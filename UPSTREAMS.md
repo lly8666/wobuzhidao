@@ -15,3 +15,7 @@ Rules:
 2. Record repository, commit/tag, purpose and license in a machine-readable lock before implementation depends on it.
 3. Upstream upgrades are dedicated workstreams with local regression.
 4. Stock REALITY/Vision behavior is an architecture invariant unless an explicit ADR, tests and benchmark evidence justify a change.
+
+## Benchmark oracle
+
+- QUIC oracle plan: `github.com/quic-go/quic-go` tag `v0.61.0` (`579ee19`), recorded in `deps/oracle-lock.json`. It requires Go 1.25.0, so it is not linked into the current Go 1.23 WBD module in M10.
