@@ -1,5 +1,7 @@
 # Roadmap
 
+> **Status: HALTED at M10 on 2026-08-24.** The current multi-real-TCP architecture failed the M10-004 FEC architecture gate. Do not advance M11-M19 on this design. Resume only with a new architecture decision that changes a fundamental carrier/product assumption. See `docs/benchmarks/m10-004-fec-no-go.md`.
+
 The roadmap is gate-based. A later milestone is not admitted merely because it is interesting.
 
 | Milestone | Scope | Exit gate |
@@ -14,13 +16,13 @@ The roadmap is gate-based. A later milestone is not admitted merely because it i
 | M7 | bounded flight + 2-bulk/1-rescue experiment | rescue data avoids bulk queue delay |
 | M8 | RBC normal/1.5x/2x/auto framework | bounded multiplier accounting + fast-up/slow-down hysteresis tests |
 | M9 | same-budget FEC admission experiment | experimental admit only if repair measurably beats reinjection in repeatable cases |
-| M10 | UDP + QUIC oracle benchmark harness | deterministic profile/report schema + real TCP/UDP socket smoke + pinned QUIC oracle before any FEC wire commitment |
-| M11 | adaptive RBC tuning | fast-up/slow-down without oscillation |
-| M12 | sliding-window FEC research | only if M9 data justifies complexity |
-| M13 | username/password + protected inner session | authenticated session/lane join |
-| M14 | stock REALITY/Vision integration | local full E2E with unchanged carrier stack |
-| M15 | Linux VPN | local sandbox qualification |
-| M16 | long-duration/fault qualification | restart/stall/memory soak |
-| M17 | OpenWrt | router build/profile |
-| M18 | Windows | Wintun/service profile |
-| M19 | Android | unrooted VpnService profile |
+| M10 | UDP + QUIC oracle benchmark harness | **FAILED architecture gate at M10-004: FEC above multiple ordered TCP carriers did not bypass HOL; current architecture rejected** |
+| M11 | adaptive RBC tuning | blocked by M10 no-go |
+| M12 | sliding-window FEC research | blocked by M10 no-go |
+| M13 | username/password + protected inner session | blocked by M10 no-go |
+| M14 | stock REALITY/Vision integration | blocked by M10 no-go |
+| M15 | Linux VPN | blocked by M10 no-go |
+| M16 | long-duration/fault qualification | blocked by M10 no-go |
+| M17 | OpenWrt | blocked by M10 no-go |
+| M18 | Windows | blocked by M10 no-go |
+| M19 | Android | blocked by M10 no-go |
