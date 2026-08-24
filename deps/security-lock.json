@@ -1,0 +1,31 @@
+{
+  "schema_version": "wbd-security-lock/v1",
+  "dtls": {
+    "implementation": "wolfSSL/wolfssl",
+    "tag": "v5.9.2-stable",
+    "commit": "ac01707f552c611fbd135cc723b2682b3e7f80f2",
+    "protocol": "DTLS 1.3",
+    "rfc": "RFC 9147",
+    "status": "architecture_pinned_not_locally_qualified",
+    "required_capabilities": [
+      "DTLS 1.3 client",
+      "DTLS 1.3 server",
+      "native X.509 peer verification",
+      "hostname verification or an explicitly reviewed equivalent binding",
+      "AEAD application records",
+      "anti-replay",
+      "portable UDP/custom-I/O integration"
+    ],
+    "initial_policy": {
+      "minimum_version": "DTLS 1.3 only",
+      "zero_rtt": "disabled",
+      "certificate_verification": "required",
+      "certificate_identity": "operator-controlled hostname",
+      "manual_openssl_compat_x509_verify_cert": "forbidden_for_product_peer_auth",
+      "session_resumption": "deferred_until_full_handshake_qualification",
+      "key_update": "deferred_until_full_handshake_qualification"
+    },
+    "license_note": "wolfSSL 5.9.x is available under GPLv3 and commercial licensing. Review redistribution/linking obligations before product packaging.",
+    "qualification_rule": "The tag/commit pin is architectural only until the exact source or build artifact SHA-256 is verified and the DTLS client/server/certificate/FEC-loss tests execute locally. GitHub Actions may relay build bytes but does not qualify them."
+  }
+}

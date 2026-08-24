@@ -1,176 +1,255 @@
-# Architecture v2
+# Architecture v2.1
 
-> **Status: ACTIVE EXPERIMENTAL MAINLINE (2026-08-24).** V1 multi-ordinary-TCP is permanently rejected by M10-004. The active decision is `docs/architecture/ADR-0002-raw-fec-restart.md`.
+> **Status: ACTIVE EXPERIMENTAL MAINLINE.** V1 multi-ordinary-TCP is permanently rejected by M10-004. ADR-0002 changed the carrier to unordered FakeTCP/FEC. **ADR-0003 supersedes the old Xray/WireGuard composition and makes WBD itself the DTLS 1.3 security/session owner.**
 
 ## Core stack
 
-The V2 public weak-network carrier is unordered/datagram-like:
+The V2.1 public weak-network path is:
 
 ```text
-upper payload (VPN / WireGuard / Xray-over-private-link / lab UDP)
+Application / TUN / lab UDP
         ↓
-FEC / redundancy
-  1.0x / 1.5x / 2.0x
+WBD native packet/session layer
         ↓
-raw lane mapper
-  lane0 required
-  lane1 optional
+UDPspeeder-compatible FEC
+  normal / 20:10 / 20:20
         ↓
-udp2raw-compatible FakeTCP packet carrier
+DTLS 1.3 security wrapper
+  one independent DTLS association per raw lane
+        ↓
+udp2raw-compatible FakeTCP lane(s)
         ↓
 public network
 ```
 
-Unlike V1, product payload is not placed in an ordinary kernel TCP byte stream. A missing raw packet therefore does not block later FEC/source symbols in a kernel TCP receive queue.
-
-## Reference implementation first
-
-The initial implementation is composition, not reinvention:
+Receive direction reverses the stack:
 
 ```text
-UDP source
-  → UDPspeeder 20230206.0
-  → udp2raw 20230206.0 / faketcp
-  → network
-  → udp2raw
-  → UDPspeeder
-  → UDP sink
+FakeTCP packet
+  → DTLS record verification/decryption
+  → authenticated FEC source/repair datagram
+  → FEC decode/reorder
+  → WBD packet/session
+  → application/TUN
 ```
 
-Pinned identities live in `deps/oracle-lock.json` and ADR-0002. This exact combination is already locally qualified as the M10-004 upper-bound reference and becomes the V2 baseline.
+The critical property is unchanged from ADR-0002: protected payload is never committed to an ordinary kernel TCP byte stream on the public weak-network path.
 
-## Lane 0: classic correctness baseline
+## Why DTLS 1.3, not TLS 1.3 over a reconstructed stream
 
-Linux/OpenWrt first uses classic udp2raw FakeTCP with privileged raw access and the upstream-required firewall/RST handling. This is the baseline that all hybrid and Windows variants must match for correctness.
+TLS 1.3 assumes a reliable ordered byte stream. Reconstructing such a stream above FakeTCP would recreate head-of-line blocking at the WBD layer.
 
-No custom WBD session/RBC from V1 sits above this lane.
+DTLS 1.3 keeps the TLS 1.3 security model while operating on unordered/lossy datagrams. WBD therefore gets real certificate authentication, ephemeral key exchange, AEAD records, anti-replay and standard key lifecycle without reintroducing a reliable stream below FEC.
 
-## Kernel-anchor / real-return-packet experiment
+WBD does **not** implement a custom protocol that merely imitates TLS records. The security layer is a real DTLS implementation. Detector-specific record sizing, timing, browser fingerprinting or traffic-shaping is outside the engineering scope.
 
-A V2 lane may optionally have two cooperating pieces:
+## Pinned DTLS implementation candidate
+
+Initial pin:
+
+- repository: `wolfSSL/wolfssl`
+- tag: `v5.9.2-stable`
+- commit: `ac01707f552c611fbd135cc723b2682b3e7f80f2`
+- required protocol: DTLS 1.3 client and server
+
+The release has native DTLS 1.3 support. Product verification must use wolfSSL's native peer-verification path rather than a manual OpenSSL-compatibility certificate verification path.
+
+The pin is architectural until V2-M2 locally builds and qualifies the exact source/binary SHA. `deps/security-lock.json` records this state.
+
+## Connection establishment
+
+One-lane initial sequence:
 
 ```text
-kernel anchor socket                 raw data engine
---------------------                 ---------------
-real OS TCP handshake                encrypted/FEC UDP payload
-keeps TCP state alive                raw packet capture/injection
-helps suppress unwanted RST          unordered delivery
-control/return behavior              no kernel payload queue
+1. udp2raw-compatible FakeTCP lane becomes reachable
+2. WBD DTLS client sends a real DTLS 1.3 ClientHello through that datagram service
+3. WBD DTLS server completes the standard DTLS handshake
+4. server supplies a real X.509 certificate for an operator-controlled hostname
+5. client validates trust chain + hostname; optional SPKI pin is additive
+6. Finished completes; application traffic begins
+7. all subsequent WBD/FEC traffic remains DTLS application data
 ```
 
-The upstream `easy-faketcp`/`--easy-tcp` dummy-socket mechanism is the reference for this idea.
+There is no "TLS-looking handshake, then switch to custom encryption" state transition.
 
-Important boundary: **the anchor is not the payload carrier**. We do not send protected application bytes with `send()` on the anchor socket. Doing so would restore HOL.
+The first product milestone disables 0-RTT. Resumption and KeyUpdate are admitted only after the full-handshake path and replay semantics are tested.
 
-Before this mode is admitted, packet capture must establish:
+## Certificate model
 
-- stable three-way handshake and 4-tuple ownership;
-- no spurious RST/challenge-ACK loop;
-- sequence/ACK evolution is internally consistent;
-- raw payload can arrive out of order;
-- losing one raw payload packet does not delay later raw payload at the receiver;
-- kernel retransmission state is not required for product payload recovery.
+The server owns a normal hostname and private key. Certificate issuance can use ordinary CA/ACME tooling outside WBD. WBD loads the resulting key/certificate and sends the certificate chain during DTLS handshake.
 
-If those conditions fail, use classic udp2raw behavior instead of forcing the hybrid.
+Client policy:
 
-## FEC layer
+- verify peer certificate;
+- verify expected hostname;
+- reject expired/untrusted/mismatched certificates;
+- optionally enforce an operator-configured SPKI pin;
+- never use a third-party site's certificate without its private key;
+- never disable verification on the product path.
 
-First fixed profiles:
+Optional user/account authentication happens only after DTLS Finished, inside encrypted application data.
 
-- 1.0x: no proactive repair;
-- 1.5x: mode 0 `20:10`;
-- 2.0x: mode 0 `20:20`.
+## FEC placement
 
-FEC is below any inner reliable TCP/Xray stream. Repair must be able to arrive independently of the missing source shard.
+V2.1 deliberately places the FEC encoder **before each DTLS application-record encryption**:
 
-Do not design a new FEC wire format until the upstream baseline and its exact impairment results are reproduced locally.
+```text
+WBD packet(s)
+   ↓
+UDPspeeder / FEC encoder
+   ↓
+source shard S0
+source shard S1
+repair shard P0
+   ↓ each shard independently
+DTLS application datagram
+   ↓
+FakeTCP
+```
+
+Consequences:
+
+- every transmitted source or repair shard is independently AEAD-authenticated;
+- FEC generation/symbol metadata is encrypted inside DTLS application data;
+- losing one DTLS record does not block verification of later records;
+- a repair shard can arrive and be authenticated even when the corresponding source shard was lost;
+- the FEC decoder only receives plaintext shards that already passed DTLS authentication.
+
+For the initial composition, UDPspeeder remains unmodified: its encoded UDP datagrams are fed into a local WBD DTLS shim, which emits DTLS datagrams to udp2raw. On receive, the shim decrypts and forwards the original UDPspeeder datagram to the decoder.
+
+DTLS handshake records are not required to use proactive FEC in V2-M2; native DTLS retransmission is the starting behavior. Handshake protection can be benchmarked later without changing application-data semantics.
+
+## One-lane reference composition
+
+```text
+UDP/TUN source
+    ↓
+UDPspeeder client
+    ↓ encoded UDP source/repair datagrams
+WBD DTLS 1.3 client shim
+    ↓ encrypted DTLS datagrams
+udp2raw FakeTCP client
+    ↓
+public network
+    ↓
+udp2raw server
+    ↓
+WBD DTLS 1.3 server shim
+    ↓ authenticated source/repair datagrams
+UDPspeeder server/decoder
+    ↓
+UDP/TUN sink
+```
+
+V2-M1 qualifies the raw/FEC path **without** DTLS first so the known-good baseline remains measurable. V2-M2 inserts the DTLS shim and measures its incremental cost.
 
 ## Optional two-lane design
 
-Two lanes mean two independent raw sessions / public 4-tuples, not two ordinary TCP streams.
+Two lanes are optional and are admitted only after one secured lane is stable.
+
+Each lane is independent:
 
 ```text
-FEC generation
-  source/repair symbols
-        ↓ deterministic interleaver
-   ┌────┴────┐
- lane0      lane1
-   ↓          ↓
-FakeTCP     FakeTCP
+                 FEC encoder
+          source/repair datagrams
+                    ↓
+              lane dispatcher
+              /           \
+             /             \
+      DTLS association 0   DTLS association 1
+             ↓                    ↓
+        FakeTCP lane0         FakeTCP lane1
+```
+
+Receiver:
+
+```text
+FakeTCP0 → DTLS0 ─┐
+                  ├→ authenticated datagram merger → one FEC decoder
+FakeTCP1 → DTLS1 ─┘
 ```
 
 Rules:
 
-- total source+repair traffic budget is shared across both lanes;
-- source and repair symbols should be spread so one lane-specific stall does not remove an entire repair opportunity;
-- receiver merges symbols by FEC generation/symbol identity, not by ordered lane sequence;
-- no cross-lane reliable byte stream is created;
-- one lane remains default unless two lanes measurably improve p95/p99 under the same total bytes.
+- independent raw 4-tuples;
+- independent DTLS epochs/record-number spaces and keys;
+- the same server certificate may authenticate both associations;
+- total source+repair byte budget is shared across lanes;
+- no ordered stream is constructed across lanes;
+- outbound FEC datagrams can initially be deterministic round-robin/interleaved; smarter symbol placement requires benchmark evidence;
+- mandatory comparisons include independent loss, same-time correlated loss and burst loss.
 
-Mandatory comparisons include independent loss, same-time correlated loss and burst loss. Since both lanes may share one ISP/radio bottleneck, correlated loss is a first-class failure case.
+## Kernel-anchor / real-return-packet experiment
 
-## Xray and VPN composition
-
-The preferred first full product composition is:
+The ADR-0002 experiment remains valid and is independent of DTLS:
 
 ```text
-Application / TUN
-        ↓
-stock Xray client
-VLESS + Vision + REALITY
-        ↓
-TCP to a private tunnel address
-        ↓
-WireGuard point-to-point IP link
-        ↓
-UDPspeeder / FEC
-        ↓
-udp2raw FakeTCP lane(s)
-        ↓
-public network
-        ↓
-reverse stack
-        ↓
-stock Xray server
+kernel anchor socket                 raw lane engine
+--------------------                 ---------------
+real OS TCP handshake                DTLS datagram bytes
+keeps TCP state/4-tuple alive        raw capture/injection
+helps RST/control behavior           unordered payload delivery
 ```
 
-Why this ordering matters: the Xray TCP connection is **inside** a lower virtual link whose public losses can be repaired by FEC. If stock REALITY/Vision/TCP is put back on the public outside, its kernel TCP HOL again becomes the outer recovery domain and recreates V1's structural failure.
+The anchor is never the application payload stream. Packet-capture qualification must prove sequence/ACK consistency, no spurious RST/challenge-ACK loop, and no kernel retransmission/HOL dependency for DTLS payload packets.
 
-WireGuard is only L3 glue in this plan. It is selected first because it is mature and UDP-based and because udp2raw/UDPspeeder have established WireGuard/OpenVPN-style use. If this composition works, do not write a custom TUN stack.
+If the hybrid fails, use classic udp2raw FakeTCP behavior rather than forcing it.
+
+## Native WBD session responsibilities
+
+Xray is removed. WBD itself eventually owns only the minimum product functions not already provided by DTLS/FEC:
+
+- configuration/version negotiation inside DTLS application data;
+- optional username/password or token authorization after Finished;
+- tunnel/session identity and keepalive;
+- IP/UDP packet framing and MTU handling;
+- FEC mode negotiation (`normal`, `20:10`, `20:20`, later Auto);
+- lane health and statistics;
+- reconnect/resume policy;
+- TUN ingress/egress on Linux/OpenWrt and Windows.
+
+Do not duplicate certificate authentication, AEAD, anti-replay or key derivation in custom WBD crypto.
 
 ## Platform roles
 
 - OpenWrt/Linux: preferred server or either endpoint; classic raw FakeTCP baseline.
 - Linux desktop/server: privileged raw baseline and kernel-anchor research target.
-- Windows: client target using upstream multiplatform/easy-faketcp and Npcap; do not assume server mode.
-- Android: out of scope for V2.
+- Windows: client target using upstream multiplatform/easy-faketcp and Npcap; later Wintun or equivalent for VPN ingress.
+- Android: out of scope.
 
-## What is intentionally removed from V1
+## Removed dependencies and mechanisms
 
-V2 does not carry forward as main-path mechanisms:
+V2.1 does not use on the mainline:
 
-- ordinary TCP lane pool;
-- logical ACK/GAP reinjection above kernel TCP;
-- rescue TCP lane;
-- V1 RBC state machine;
-- FEC above ordered TCP;
+- Xray;
+- VLESS / Vision / REALITY;
+- WireGuard as an inner transport;
+- ordinary TCP lane pools;
+- V1 logical ACK/GAP reinjection above kernel TCP;
+- V1 rescue TCP lane or RBC state machine;
+- FEC above ordered kernel TCP;
 - Android/no-root constraints.
 
-Old code remains for evidence and can be reused only when clearly carrier-agnostic.
+Old code/docs remain historical evidence and may be reused only when carrier/security agnostic.
 
 ## Benchmark authority
 
-The M10-004 no-go result is the historical control. V2 must first reproduce the pinned one-lane reference before modifying it.
+M10-004 remains the historical control. Qualification sequence:
+
+1. V2-M1: reproduce pinned one-lane udp2raw + UDPspeeder without DTLS.
+2. V2-M2: insert real DTLS 1.3 and measure incremental latency/CPU/bytes at 0/1/5/10/15% impairment.
+3. Only then add WBD native session/account features, kernel-anchor experiments and two lanes.
 
 Core metrics:
 
 - p50/p95/p99 and maximum delivery delay;
 - delivery/completion ratio;
 - FEC recovered vs unrecovered symbols;
+- DTLS handshake time and retransmissions;
 - intentional source/repair bytes;
-- raw packet retransmission (should be none at payload layer unless explicitly designed);
+- DTLS and raw framing bytes;
 - CPU/RAM;
 - per-lane packet counts;
 - independent vs correlated impairment.
 
-The ultimate comparison is not "looks TCP-like" but whether the unordered raw/FEC path retains low tail latency when packets are lost.
+The success criterion is low weak-network tail latency with real authenticated encryption, not resemblance to any specific third-party traffic fingerprint.

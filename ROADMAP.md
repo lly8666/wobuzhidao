@@ -1,57 +1,57 @@
 # Roadmap
 
-> **V1 is closed. V2 starts from ADR-0002.** PR #2 / M10-004 remains the rejected multi-ordinary-TCP history. The milestones below are the only authorized mainline work for `dev/wbd-raw-fec-v2`.
+> **Status: V2.1 ACTIVE.** V1 multi-ordinary-TCP is permanently rejected. ADR-0002 changed the carrier to unordered FakeTCP/FEC. ADR-0003 removes Xray/WireGuard and makes WBD itself the DTLS 1.3-secured VPN/session implementation.
 
-The roadmap is gate-based. Do not skip a failed gate by adding more complexity.
+The roadmap is gate-based. Later work is not admitted merely because it is attractive.
 
 | Milestone | Scope | Exit gate |
 | --- | --- | --- |
-| V2-M0 | architecture restart + new branch/PR/handoff | fresh agent lands on V2 without reading V1 as active work |
-| V2-M1 | reproduce pinned one-lane udp2raw + UDPspeeder baseline | exact pinned versions run locally; clean and 1/5/10/15% impairment results reproduce the ~72 ms p99 reference class with hashes/receipts |
-| V2-M2 | kernel TCP anchor / real-return-packet feasibility | packet capture proves real handshake/control behavior without payload entering kernel TCP stream, no RST/ACK state conflict, and later raw payload bypasses a lost earlier payload |
-| V2-M3 | one-lane V2 harness | OpenWrt/Linux-oriented one-lane raw/FEC service with normal, 1.5x and 2.0x fixed modes; local benchmark and long-run correctness pass |
-| V2-M4 | optional two-lane raw symbol striping | same total byte budget; repeatable p95/p99 win vs one lane under independent loss; correlated/burst loss measured; otherwise reject two-lane default |
-| V2-M5 | virtual L3 glue | WireGuard or equivalent minimal UDP/IP point-to-point link operates through V2 without custom TUN code |
-| V2-M6 | stock Xray composition | stock Xray client/server VLESS + Vision + REALITY works over private V2/WireGuard link; weak-network result does not regress to V1 TCP-HOL behavior |
-| V2-M7 | OpenWrt packaging | reproducible package/service, firewall/raw capability setup, reboot persistence, resource profile |
-| V2-M8 | Linux endpoint packaging | reproducible privileged Linux client/server packaging and service management |
-| V2-M9 | Windows client | Npcap + upstream easy-faketcp-compatible client path, local integration and failure-recovery tests |
-| V2-M10 | fixed-mode weak-network qualification | 40–60 ms/0%, ~50 ms/1%, 80–150 ms/~2%, 150–300 ms/10% and 20%, correlated burst, 250–600 ms/~30% or worse |
-| V2-M11 | Auto protection admission | only after fixed 1.0/1.5/2.0 modes are real-path qualified; must reduce bytes on good links without harming tail latency on weak links |
-| V2-M12 | hardening | multi-hour runs, reconnect, address change, lane failure, CPU/RAM/FD bounds, upgrade/rollback |
+| V2-M0 | architecture restart / evidence preservation | PR #2 frozen as rejected evidence; PR #3 + handoff point to V2 |
+| V2-M1 | exact one-lane udp2raw `20230206.0` + UDPspeeder `20230206.0` product baseline | local exact-hash reproduction; ~50 ms RTT over 0/1/5/10/15% impairment; 20:10 and 20:20 where practical; p50/p95/p99/delivery/bytes/CPU recorded |
+| V2-M2 | native WBD DTLS 1.3 security shim on one raw lane | pinned wolfSSL DTLS 1.3 build locally qualified; real X.509 server cert + hostname validation; UDPspeeder source/repair datagrams each carried as DTLS application data; 0/1/5/10/15% results preserve the M1 weak-network result class with bounded security overhead |
+| V2-M3 | native WBD session/control inside DTLS | version/config framing, optional username/password/token after Finished, keepalive, session stats and reconnect work without custom crypto; malformed/auth tests |
+| V2-M4 | kernel-anchor / real-return-packet experiment | packet capture proves or rejects real OS handshake/control + raw payload coexistence with no kernel payload HOL/retransmission dependency; fallback to classic udp2raw remains valid |
+| V2-M5 | optional two raw lanes, one DTLS association per lane | same-total-byte-budget comparison beats one secured lane repeatably in at least one justified impairment family and does not regress correlated-loss cases enough to invalidate admission |
+| V2-M6 | Linux/OpenWrt native L3/TUN VPN path | real IP packets cross WBD DTLS/FEC/FakeTCP path; routing, MTU, DNS and reconnect qualification; no Xray/WireGuard dependency |
+| V2-M7 | Windows client | Npcap/easy-faketcp + native DTLS/FEC + Wintun/equivalent integration passes interoperability with OpenWrt/Linux server |
+| V2-M8 | fixed-mode product hardening | `normal`, `weak-1.5x`, `weak-2x` configuration, resource bounds, long-duration/fault tests |
+| V2-M9 | adaptive protection research | Auto admitted only if real measurements justify it; total intentional source/repair bytes remain <=2.0x unless constitution changes |
+| V2-M10 | release qualification | normal, 1%, 2%, 150–300 ms/10–20%, correlated burst, and 250–600 ms/~30% profiles plus CPU/RAM/MTU/route/security regression |
 
-## V2-M1 exact first task
+## V2-M1 immediate rule
 
-Do not start by writing a new protocol.
+Do not start DTLS implementation until the exact pinned raw/FEC baseline is reproduced locally. Temporary GitHub Actions relay helpers may fetch/build bytes, but Actions PASS is not runtime qualification.
 
-1. Restore/build the pinned udp2raw `20230206.0` and UDPspeeder `20230206.0` assets already referenced in `deps/oracle-lock.json`.
-2. Verify exact SHA-256 and source commits.
-3. Run the existing M10-004 reference topology locally as a **V2 product baseline**, not as an oracle.
-4. Produce machine-readable results for 0/1/5/10/15% impairment at ~50 ms RTT.
-5. Confirm `20:10` and `20:20` behavior before touching lane count, Xray, WireGuard or kernel-anchor code.
+## V2-M2 security gate
 
-## V2-M2 real-return-packet gate
+The DTLS milestone must prove **real protocol use**, not appearance:
 
-The requested "real TCP return packet" idea is tested separately from FEC so failures are diagnosable.
+- DTLS 1.3 handshake completes over the FakeTCP-provided datagram path;
+- server presents an operator-controlled real certificate;
+- client verifies CA chain and expected hostname;
+- product mode rejects invalid/expired/mismatched certificates;
+- 0-RTT is disabled initially;
+- after Finished, all source/repair datagrams are DTLS application data records;
+- no switch to custom encryption and no detector-specific TLS/browser fingerprint shaping;
+- FEC repair remains independent: loss of record N does not prevent later record N+1 or a repair record from being verified/decrypted.
 
-The test must answer:
+Initial implementation pin is recorded in `deps/security-lock.json`.
 
-- Does the OS own a real TCP anchor 4-tuple after the handshake?
-- Which SYN/SYN-ACK/ACK/RST/keepalive packets are kernel-generated vs raw-generated?
-- Can raw data-bearing packets use the lane without causing the kernel to reject ACK state?
-- Can packet N+1 be delivered when packet N is dropped?
-- Is any application payload waiting in the kernel TCP receive/send queue?
+## Two-lane admission rule
 
-If the answer to the last question is yes, the experiment fails because V1 HOL has been reintroduced.
+A second lane is not "more redundancy for free". At the same overall source+repair budget, compare:
 
-## Two-lane stop rule
+- one lane + one DTLS association;
+- two raw lanes + two independent DTLS associations + one shared FEC decoder.
 
-Do not assume two lanes are always better. If two independent raw lanes at the same total 1.5x/2.0x byte budget do not improve tail latency under the agreed real fault profiles, keep one lane. No 3/4-lane escalation is authorized without a new benchmark decision.
+Test independent loss, correlated loss and burst loss. If two lanes do not produce repeatable p95/p99 benefit, keep one lane as the product default.
 
-## Xray stop rule
+## Removed roadmap items
 
-Do not place stock REALITY/Vision ordinary TCP outside the raw/FEC carrier and call that V2. That topology is allowed only as a negative-control benchmark because it restores the exact ordered carrier assumption rejected by M10-004.
+The following are explicitly removed from V2.1:
 
-## Platform stop rule
-
-Android is removed. Do not spend cycles on unrooted/mobile portability. Windows support can require Npcap/admin privileges. OpenWrt/Linux privileged raw access is acceptable.
+- Xray/VLESS/Vision/REALITY integration;
+- WireGuard composition;
+- Android/no-root support;
+- multi-ordinary-TCP carrier work;
+- V1 RBC/reinjection/rescue-lane development.
