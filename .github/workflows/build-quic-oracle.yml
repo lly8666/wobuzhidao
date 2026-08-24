@@ -43,12 +43,16 @@ jobs:
           go list -m -json github.com/quic-go/quic-go > dist/QUIC_MODULE.json
           cp go.sum dist/go.sum
           git rev-parse HEAD > dist/SOURCE_COMMIT
+      - name: Package source snapshot for local sandbox relay
+        run: |
+          mkdir -p relay
+          git archive --format=tar.gz --output=relay/wobuzhidao-source.tar.gz HEAD
+          sha256sum relay/wobuzhidao-source.tar.gz > relay/SOURCE_SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: wbd-quic-oracle-linux-amd64
           path: |
             tools/quic-oracle/dist/
-            internal/benchmark/model.go
-            internal/benchmark/model_test.go
+            relay/
           retention-days: 1
           if-no-files-found: error
