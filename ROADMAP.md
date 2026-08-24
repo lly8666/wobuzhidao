@@ -13,8 +13,8 @@ The roadmap is gate-based. A later milestone is not admitted merely because it i
 | M6 | cross-lane reinjection | measurable HOL reduction vs single TCP |
 | M7 | bounded flight + 2-bulk/1-rescue experiment | rescue data avoids bulk queue delay |
 | M8 | RBC normal/1.5x/2x/auto framework | bounded multiplier accounting + fast-up/slow-down hysteresis tests |
-| M9 | simple FEC | admitted only if reinjection leaves repeatable gap |
-| M10 | UDP + QUIC oracle benchmark harness | reproducible profile matrix |
+| M9 | same-budget FEC admission experiment | experimental admit only if repair measurably beats reinjection in repeatable cases |
+| M10 | UDP + QUIC oracle benchmark harness | reproduce M9 candidates across realistic loss/stall/reorder profiles before any FEC wire commitment |
 | M11 | adaptive RBC tuning | fast-up/slow-down without oscillation |
 | M12 | sliding-window FEC research | only if M9 data justifies complexity |
 | M13 | username/password + protected inner session | authenticated session/lane join |
