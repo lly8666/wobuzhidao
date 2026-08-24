@@ -49,7 +49,7 @@
     "xray_status": "composition_deferred_until_raw_FEC_and_L3_link_are_qualified"
   },
   "local_test_snapshot": {
-    "authority": "architecture_only_no_new_runtime_qualification",
+    "authority": "snapshot_not_live",
     "tested_commit": "7d3c917d7c2a85d4f4fec0041adfbfead9c96574",
     "result": "docs_and_dependency_lock_only",
     "command": "No new runtime transport code was added in the V2 architecture restart. Use GitHub handoff/CI only to validate repository consistency; V2 runtime qualification begins at V2-M1 and remains local-authoritative."
