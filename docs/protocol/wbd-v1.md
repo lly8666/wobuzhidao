@@ -222,3 +222,45 @@ This proves the core M6 property: WBD logical delivery can bypass one carrier's 
 - no RBC/adaptive scheduling,
 - no Xray/REALITY integration,
 - no TUN/VPN.
+
+## M7 bounded flight and rescue-lane policy
+
+M7 adds sender-side admission control above `lane.Pool`. The scheduler treats one WBD session as two bulk carriers plus one logically reserved rescue/control carrier in the first qualified topology.
+
+### Logical flight credit
+
+A lane's `flight_bytes` is the amount of STREAM DATA admitted to that carrier but not yet covered by logical ACK state. This is deliberately an application-level bound, not a claim that WBD can read the exact number of bytes sitting in every platform's kernel TCP send queue.
+
+- bulk and rescue lanes have independent configurable credit limits;
+- credit is reserved **before** calling the socket-backed `Pool.SendOn`;
+- if a socket write fails, that reservation is rolled back;
+- while a socket write is still pending, an ACK for an equivalent copy cannot release the pending reservation. This prevents another producer from over-admitting the lane while the first write is still blocked;
+- a logical ACK releases all acknowledged copies, including the original bulk copy and any rescue duplicate;
+- zero-byte FIN consumes one accounting unit until FIN is logically acknowledged, bounding FIN-only record growth;
+- accounting for a carrier that Pool has declared inactive may be dropped because `recovery.StreamSender` remains the owner of immutable source bytes needed for rescue.
+
+M7 does not modify kernel TCP congestion control, retransmission, ordering or send-buffer implementation. Platform-specific controls such as socket-buffer sizing or `TCP_NOTSENT_LOWAT` may later tighten the relationship between logical flight and kernel queue occupancy, but they are optimizations rather than correctness requirements.
+
+### 2 bulk + 1 rescue
+
+The first policy uses two bulk lane IDs for new STREAM data and one dedicated rescue lane:
+
+- new bulk DATA is round-robin scheduled only among active bulk lanes with enough remaining credit;
+- when all bulk credit is consumed, new bulk admission fails/backpressures instead of writing more bytes into TCP;
+- the rescue lane is excluded from normal bulk scheduling and therefore remains low occupancy;
+- ACK/GAP control frames may use the rescue carrier without depending on the data's original lane;
+- the M6 recovery engine receives a narrow `RescueSender` view exposing only the rescue lane, so GAP-driven reinjection cannot accidentally choose a full bulk carrier;
+- rescue DATA has its own small flight limit.
+
+A real three-TCP localhost qualification test fills both bulk logical-credit windows, withholds receiver bulk lane 1, receives the tail through bulk lane 2, returns the resulting GAP through rescue lane 3, and reinjects the missing prefix through lane 3. The logical STREAM completes while lane 1 remains gated and both bulk credits were full. The final logical ACK releases bulk and rescue accounting; the later original lane-1 copy is a harmless duplicate.
+
+## Explicit non-goals of M7
+
+- no wall-clock/timer-based loss inference or FIN timeout,
+- no exact cross-platform kernel-send-queue byte accounting,
+- no rescue/control rate controller,
+- no DATAGRAM deadline/redundancy policy,
+- no RBC or adaptive redundancy multiplier,
+- no FEC/repair frame,
+- no Xray/REALITY integration,
+- no TUN/VPN.
