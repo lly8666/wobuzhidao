@@ -1,29 +1,33 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 1,
+  "continuity_sequence": 2,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-multilane-v1",
   "active_issue": 1,
-  "checkpoint_based_on_head_sha": "d0dbe06d3f7f5a0290cdfa0873fc09759d5714eb",
+  "active_pr": 2,
+  "checkpoint_based_on_head_sha": "e0f913a2f0ef5406f1255fcc4d1faa2569f55e57",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal cross-platform VPN whose logical weak-network behavior approaches UDP/QUIC while public carriers remain stock REALITY/Vision over real kernel TCP.",
-    "current_milestone": "M0 repository-backed continuity and benchmark contract",
-    "local_optimization_stop_rule": "Do not implement transport code until a fresh agent can recover the architecture, hard constraints, current cursor and binary/test authority from bounded repository state."
+    "current_milestone": "M2 STREAM/DATAGRAM logical semantics",
+    "local_optimization_stop_rule": "Do not add real lanes, FEC/RBC, Xray/REALITY integration or TUN until stream reassembly/dedup/FIN and datagram dedup/expiry semantics pass deterministic local tests."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed M0: initialized the repository and issue #1 rendezvous, froze the real-TCP/stock-REALITY-Vision/RBC architecture and roadmap, added Drive-only binary and local-sandbox qualification contracts, and added a local handoff verifier plus tests.",
-    "current_task": "M1-001: start the protocol layer with a minimal deterministic frame/session vocabulary; do not add FEC, Xray integration or TUN yet.",
-    "why_now": "The project will span many short-lived chat agents; repository-backed continuity must be proven before implementation state begins to accumulate.",
-    "done_when": "A pure-Go WBD v1 codec for DATA, DATAGRAM, ACK and GAP_HINT has deterministic round-trip and malformed-input tests, with logical identity explicitly independent from lane/transmission identity.",
-    "next_atomic_action": "M1-001: define the minimal WBD v1 frame/session vocabulary and implement a deterministic pure-Go frame codec for DATA, DATAGRAM, ACK and GAP_HINT with malformed-input tests; do not add FEC, Xray or TUN yet."
+    "last_completed_action": "Completed M1-001: added the pure-Go WBD v1 frame codec and protocol seed for DATA, DATAGRAM, ACK and GAP_HINT, with deterministic encoding, ACK ranges, strict bounds/malformed-input handling, and explicit separation of logical identity from transmission/lane identity.",
+    "current_task": "M2-001: implement deterministic in-memory STREAM and DATAGRAM receive semantics on top of the codec; still no real lanes, FEC, Xray or TUN.",
+    "why_now": "The wire vocabulary is stable enough to test the logical behavior that future multi-lane recovery depends on. Reorder, duplicate and expiry semantics must be correct before any carrier scheduler exists.",
+    "done_when": "Local tests prove STREAM out-of-order buffering, contiguous delivery, duplicate suppression and FIN consistency plus DATAGRAM deduplication and hard-deadline expiry using a deterministic virtual clock, without depending on lane/TCP behavior.",
+    "next_atomic_action": "M2-001: implement an in-memory receive engine for reliable STREAM reassembly/dedup/FIN and expiring DATAGRAM delivery/dedup using a deterministic virtual clock; add adversarial reorder/duplicate/deadline tests; do not add lanes, FEC, Xray or TUN."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    "UPSTREAMS.md",
+    "docs/protocol/wbd-v1.md",
+    "internal/protocol/identity.go",
+    "internal/protocol/frame.go",
+    "internal/protocol/frame_test.go",
     ".wbd/handoff/current.json",
     ".wbd/handoff/data-plane.json",
     "scripts/verify_handoff.py"
@@ -38,8 +42,8 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "d0dbe06d3f7f5a0290cdfa0873fc09759d5714eb",
+    "tested_commit": "e0f913a2f0ef5406f1255fcc4d1faa2569f55e57",
     "result": "pass",
-    "command": "python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
+    "command": "go test ./... -count=1 && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
   }
 }
