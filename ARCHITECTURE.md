@@ -1,5 +1,7 @@
 # Architecture v1
 
+> **Status: REJECTED / historical only (2026-08-24).** M10-004 real-socket FEC qualification showed that adding erasure coding above multiple ordered TCP carriers does not bypass carrier HOL: 20:20 at 2.0x reached about 250 ms p99 with only 1% impairment while the udp2raw + UDPspeeder 20:20 reference remained about 72 ms p99 through 15% shard loss. See `docs/benchmarks/m10-004-fec-no-go.md`. Do not continue product work on this architecture without a new architecture decision that changes a fundamental carrier assumption.
+
 ## Public carrier
 
 Each lane is independently established as:
