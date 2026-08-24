@@ -80,8 +80,9 @@ func run() error {
 		return fmt.Errorf("dial: %w", err)
 	}
 	defer conn.CloseWithError(0, "done")
-	if !conn.ConnectionState().SupportsDatagrams {
-		return fmt.Errorf("peer did not negotiate QUIC DATAGRAM support")
+	datagrams := conn.ConnectionState().SupportsDatagrams
+	if !datagrams.Local || !datagrams.Remote {
+		return fmt.Errorf("QUIC DATAGRAM support incomplete: local=%v remote=%v", datagrams.Local, datagrams.Remote)
 	}
 
 	streamSamples, err := streamRTT(ctx, conn)
