@@ -1,24 +1,24 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 21,
+  "continuity_sequence": 22,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "8f6b49b4e748e867a36a20a5fb845892a73fcf4e",
+  "checkpoint_based_on_head_sha": "529dce12646aeba74bc2dd0b15c9f68b50ec9ad7",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows using unordered FakeTCP/FEC carriers plus a native standards-compliant DTLS 1.3 WBD security/session layer. Xray/VLESS/Vision/REALITY, WireGuard and Android are not part of the V2.1 product stack.",
-    "current_milestone": "V2-M3 native WBD session/control inside the locally qualified one-lane DTLS/FEC/FakeTCP path; M3A framing, M3B token auth and M3C liveness/stats passed, M3D reconnect policy active",
-    "local_optimization_stop_rule": "Keep all M3 semantics inside an already-finished DTLS 1.3 association. Do not invent another cryptographic layer, reliable public byte stream or custom FEC. Do not start two-lane, kernel-anchor, TUN/L3, Windows, Auto or detector-specific shaping work before the M3 session/control gate passes. M3D may define close/reconnect semantics and deterministic policy only; it must not silently replay application data."
+    "current_milestone": "V2-M3 native WBD session/control inside the locally qualified one-lane DTLS/FEC/FakeTCP path; M3A framing, M3B token auth, M3C liveness/stats and M3D close/reconnect policy passed, M3E fixed-mode config negotiation active",
+    "local_optimization_stop_rule": "Keep all M3 semantics inside an already-finished DTLS 1.3 association. Do not invent another cryptographic layer, reliable public byte stream or custom FEC. Do not start two-lane, kernel-anchor, TUN/L3, Windows, Auto or detector-specific shaping work before the M3 session/control gate passes. M3E may negotiate only the constitution-defined fixed protection modes normal, weak-1.5x and weak-2x; Auto remains deferred."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed V2-M3C through substantive commit 8f6b49b4e748e867a36a20a5fb845892a73fcf4e. The carrier-agnostic control codec adds fixed 8-byte PING/PONG nonce bodies. ServerSession accepts PING only in Established and echoes the exact nonce in PONG; pre-HELLO or pre-auth liveness is rejected. HandleWire performs strict decode/encode while tracking real control RX/TX messages and encoded byte counts, auth-required/authenticated state, ping/pong counts and caller-supplied last-activity tick without exposing token contents. IdleExpired(now,idle) is a pure caller-driven monotonic-tick helper: idle=0 disables expiry, clock regression does not expire, and the exact now-last_activity==idle boundary is expired; it creates no timer and retransmits nothing. Local direct-DTLS authority used the M2-qualified quiet shim SHA-256 63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a. Both auth-disabled and token-authenticated sessions started control only after DTLSv1.3 READY, established successfully, then completed PING->PONG with identical nonces. Server stats recorded pings=1, pongs=1 and correct auth flags/wire bytes. Accepted local source SHA-256 identities: control.go 8be3e703eb46293ef8909633cef254edf6567443f4ee5092d1cc6d5010048778, control_test.go d14f5e579e4892eada6f636c05be675b1c215d93061865b2abbf6ecb019f92ad, probe f0d1e32618083cf7f42983ba777ec006cf4f758d47d0336eb43d57df0b51df5d, qualification script cc530f8b75340e22d835bef4a7fd158253f81214b49e32df25bcc385a019c706, receipt 8c3309eed743c054f4995dfac2173f95149c29d076eeaa7e2fc7453f9d3c82fd and doc 283ada9fa272879dde304aef5b15f4de56f5669ee2d40b0b7228dd42baa52c75. GitHub ci, handoff-verify and build-quic-oracle all completed successfully for 8f6b49b4e748e867a36a20a5fb845892a73fcf4e.",
-    "current_task": "V2-M3D: define explicit session termination and reconnect eligibility without implementing a hidden reliability layer. Add a bounded CLOSE control message with reason codes, make Established sessions transition to Closed on peer CLOSE or local idle expiry, and define a deterministic reconnect/backoff policy helper for callers.",
-    "why_now": "M3 now has strict framing, authorization and liveness/accounting. The remaining session-control gap before the M3 gate can close is deterministic behavior when a DTLS/session ends. Explicit close reasons and caller-driven reconnect policy prevent ad-hoc reconnect loops from being mixed later with TUN or carrier loss handling.",
-    "done_when": "M3D defines strict CLOSE framing with bounded UTF-8 detail and enumerated reasons for normal, idle-timeout, auth/policy failure and protocol error; a session can enter Closed explicitly and exposes the close reason in stats without storing credentials; reconnect eligibility distinguishes normal/policy/auth/protocol close from transient/idle transport loss; a pure backoff helper returns bounded deterministic delays from attempt number and configured min/max with no goroutine or sleeping; unit tests cover CLOSE encoding/malformed cases, state transitions, retry/no-retry reason mapping and backoff boundaries/overflow; and a direct-DTLS loopback demonstrates Established -> PING/PONG -> CLOSE with a recorded reason. No application-data replay or TUN work is part of M3D.",
-    "next_atomic_action": "V2-M3D: add a bounded CLOSE frame (reason code plus <=256-byte UTF-8 detail), a Closed session state and close-reason stats. Define pure ReconnectAllowed(reason) and Backoff(attempt,min,max) helpers with saturating bounds. Write table-driven codec/state/policy tests first. Then extend the direct DTLS probe to establish, PING/PONG once and send/receive one CLOSE reason. Do not implement an automatic reconnect loop, application-data replay or TUN yet."
+    "last_completed_action": "Completed V2-M3D through substantive commit 529dce12646aeba74bc2dd0b15c9f68b50ec9ad7. The independent WBDC control codec adds bounded CLOSE type 8 with enumerated reasons normal, idle-timeout, auth-failure, policy, protocol-error and transient-transport plus <=256-byte UTF-8 detail. ServerSession accepts peer CLOSE only after Established, echoes it, records the close reason and enters Closed; caller-driven idle expiry can close an Established session with the idle-timeout reason. ReconnectAllowed permits retry only for idle-timeout and transient-transport; normal/auth/policy/protocol/unknown closes are non-retriable. Backoff(attempt,min,max) is a pure saturating exponential helper: no goroutine, sleep or replay, with invalid range and overflow boundary tests. Local direct-DTLS authority used the M2-qualified quiet shim SHA-256 63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a and started WBD control only after both peers reported DTLSv1.3 / TLS_AES_256_GCM_SHA384 READY. The qualified sequence HELLO/ACCEPT -> AUTH/AUTH_OK -> PING/PONG -> CLOSE/CLOSE-echo ended with server state Closed and close reason normal. docs/protocol/v2-m3d-receipt.json records result=pass, server rx=4 tx=4, pings=1 pongs=1, auth_required/authenticated=true and close_reason=1. GitHub ci run 32765924791, handoff-verify 32765924976 and build-quic-oracle 32765924836 all completed successfully for 529dce12646aeba74bc2dd0b15c9f68b50ec9ad7.",
+    "current_task": "V2-M3E: add one-time fixed protection-mode configuration inside an already-Established WBD session. Negotiate only the constitution-defined normal, weak-1.5x and weak-2x modes; explicitly reject auto and unknown values. Record selected mode/configured state without dynamically changing UDPspeeder or carrier behavior in this gate.",
+    "why_now": "M3 has strict framing, authorization, liveness/accounting and deterministic termination/retry policy. Before the session/control milestone can close, the peer must have one explicit product-mode decision that later TUN/data-plane code can require before forwarding traffic. Keeping this as a one-time Established-state CONFIG avoids smuggling old V1 RBC/lane semantics back into the protocol.",
+    "done_when": "M3E defines strict CONFIG and CONFIG_OK frames for exactly normal, weak-1.5x and weak-2x; auto/zero/unknown modes are rejected; ServerSession accepts CONFIG only once in Established, records Configured=true and ProtectionMode in stats without changing carrier/FEC processes; duplicate or pre-auth/pre-HELLO CONFIG is rejected deterministically; unit/malformed tests cover codec/state/mode policy; and a direct-DTLS loopback demonstrates token-authenticated Established -> CONFIG weak-1.5x -> CONFIG_OK with server stats recording the mode. No actual UDPspeeder reconfiguration, TUN forwarding, two-lane or Auto work is part of M3E.",
+    "next_atomic_action": "V2-M3E: extend internal/control with fixed ProtectionMode values and CONFIG/CONFIG_OK message types. Accept only normal, weak-1.5x and weak-2x; reserve/reject auto. Add Configured/ProtectionMode session stats and make CONFIG one-shot in Established. Write codec/state/malformed/duplicate tests first, then extend the direct DTLS probe to authenticate and negotiate weak-1.5x after both peers are READY. Do not modify UDPspeeder arguments or start TUN/data forwarding in this atomic step."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
@@ -27,16 +27,18 @@
     "docs/protocol/v2-m3a-control.md",
     "docs/protocol/v2-m3b-auth.md",
     "docs/protocol/v2-m3c-liveness.md",
-    "docs/protocol/v2-m3c-receipt.json",
+    "docs/protocol/v2-m3d-close.md",
+    "docs/protocol/v2-m3d-receipt.json",
     "internal/control/control.go",
     "internal/control/control_test.go",
     "cmd/wbd-control-probe/main.go",
-    "scripts/qualify_v2_m3c_liveness.py",
-    ".wbd/handoff/current.json"
+    "scripts/qualify_v2_m3d_close.py",
+    ".wbd/handoff/current.json",
+    "scripts/verify_handoff.py"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_M2_qualified_transport_security_plus_M3A_framing_M3B_auth_M3C_liveness",
+    "authority": "V2_M2_qualified_transport_security_plus_M3A_framing_M3B_auth_M3C_liveness_M3D_close",
     "v1_status": "permanently_rejected_multi_ordinary_TCP",
     "v2_raw_fec_status": "locally_qualified_product_baseline",
     "security": {
@@ -46,7 +48,7 @@
       "certificate_policy": "operator-controlled X.509 certificate; native trust-chain and hostname verification",
       "zero_rtt": "disabled"
     },
-    "session_status": "V2_M3A_control_M3B_auth_M3C_liveness_locally_qualified_M3D_reconnect_active",
+    "session_status": "V2_M3A_control_M3B_auth_M3C_liveness_M3D_close_locally_qualified_M3E_config_active",
     "two_lane_status": "not_admitted; future design uses two independent DTLS associations and one shared FEC decoder",
     "kernel_anchor_status": "deferred_to_V2_M4",
     "tun_status": "deferred_to_V2_M6",
@@ -55,8 +57,8 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "8f6b49b4e748e867a36a20a5fb845892a73fcf4e",
+    "tested_commit": "529dce12646aeba74bc2dd0b15c9f68b50ec9ad7",
     "result": "pass",
-    "command": "M3C local authority: Go 1.23.2 codec/state/stats/idle tests passed; direct DTLS auth-disabled and token-auth sessions each established only after DTLSv1.3 READY and completed one exact-nonce PING/PONG with expected server wire counters/auth flags. GitHub ci/handoff-verify/build-quic-oracle all passed for the committed tree."
+    "command": "M3D local authority: Go codec/state/retry/backoff tests passed; direct DTLS token-auth session started only after both DTLSv1.3 peers were READY and completed HELLO/ACCEPT, AUTH/AUTH_OK, PING/PONG, CLOSE/CLOSE-echo with final server state Closed/reason normal. GitHub ci/handoff-verify/build-quic-oracle all passed for the committed tree."
   }
 }
