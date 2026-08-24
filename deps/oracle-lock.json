@@ -5,7 +5,18 @@
     "tag": "v0.61.0",
     "release_commit_short": "579ee19",
     "minimum_go": "1.25.0",
-    "status": "pinned_plan_not_yet_integrated",
-    "reason": "M10 pins the QUIC oracle identity without silently upgrading the WBD Go 1.23 module. Integrate through a compatible isolated oracle toolchain after the local TCP/UDP baseline is qualified."
+    "status": "locally_qualified_via_verified_actions_relay",
+    "qualification": {
+      "workflow_run_id": 32717572887,
+      "artifact_id": 9516504571,
+      "artifact_zip_sha256": "d3353e3f55fc5abad3e4e5e1b1cdf71e7a0ccb181c3368a69cba497208737e49",
+      "binary_sha256": "9482defb23b556faf0af0f7f48b8108c1e589973c861969d1d9ee750f3e224a1",
+      "go_sum_sha256": "ae98d0b5699ee49aac22fae53a0eb50a7184dbc64c84b1ff46e3e015390cc6cb",
+      "relay_source_merge_commit": "f7d88122aca110b22608414f1907df8bd1c58ce8",
+      "toolchain": "go1.25.0 linux/amd64",
+      "local_result": "pass",
+      "local_samples_per_mode": 64
+    },
+    "reason": "The sandbox could not fetch Go 1.25/quic-go directly, so GitHub Actions was used only as a short-lived build relay. The returned artifact zip and binary were SHA-verified, then the exact binary was executed successfully inside the local sandbox for both QUIC STREAM and DATAGRAM. The WBD main module remains on Go 1.23."
   }
 }
