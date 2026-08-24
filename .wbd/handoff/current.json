@@ -1,34 +1,34 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 4,
+  "continuity_sequence": 5,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-multilane-v1",
   "active_issue": 1,
-  "checkpoint_based_on_head_sha": "c5f0da46f4f7ef9aa6af08a2ba582e9e29d5d028",
+  "active_pr": 2,
+  "checkpoint_based_on_head_sha": "87bb6808b1ee04d8399e34b439c9dfd049286f0a",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal cross-platform VPN whose logical weak-network behavior approaches UDP/QUIC while public carriers remain stock REALITY/Vision over real kernel TCP.",
-    "current_milestone": "M4 multi-lane pool and deterministic scheduling",
-    "local_optimization_stop_rule": "Do not add logical ACK/GAP recovery, cross-lane reinjection, FEC/RBC, Xray/REALITY integration or TUN until two independent real TCP lanes can be joined into one logical receive fan-in with explicit local LaneID, deterministic scheduling and clean lane shutdown."
+    "current_milestone": "M7 bounded flight and rescue-lane experiment",
+    "local_optimization_stop_rule": "Do not add FEC/RBC, Xray/REALITY integration or TUN until sender memory/kernel enqueue is bounded and a low-occupancy rescue lane can deliver control/reinjected STREAM data without sitting behind bulk traffic."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed M3-001: added a bounded incremental WBD frame reader/writer and a thin single real-TCP lane wrapper. Local 127.0.0.1 tests deliberately coalesced frames and fragmented writes into 1/2/5/3/11-byte pieces, verified bidirectional DATA/DATAGRAM/ACK/GAP_HINT delivery, concurrent writer serialization and TCP half-close EOF semantics. go vet, normal/race tests, a 2-second ReadFrame fuzz run (~110k executions), handoff verification and continuity tests passed; remote CI also passed.",
-    "current_task": "M4-001: join exactly two independent real TCP lanes into one local lane pool with deterministic new-data scheduling and receive fan-in; still no ACK-driven recovery, reinjection, FEC/RBC, Xray or TUN.",
-    "why_now": "One carrier now has correct byte-stream framing. The next architectural claim to prove is that carrier-level stalls/reordering stay isolated by lane and that the existing logical receiver can merge frames arriving from independent real TCP sequence spaces.",
-    "done_when": "Real localhost tests establish two TCP lanes with distinct local LaneIDs, prove deterministic round-robin/explicit lane selection, receive events identify their lane, one delayed lane does not prevent another lane from delivering datagrams or later stream chunks, stream reassembly waits only for its logical hole, cross-lane duplicate logical data is deduplicated, and pool close unblocks all readers without leaks.",
-    "next_atomic_action": "M4-001: implement a two-lane-capable Pool over internal/lane.TCP with local LaneID, explicit SendOn plus deterministic round-robin SendNext, and fan-in Receive events; qualify on two real 127.0.0.1 TCP connections with one lane deliberately delayed, including DATAGRAM progress, STREAM reordering and cross-lane duplicate dedup; do not implement logical ACK/GAP recovery or reinjection yet."
+    "last_completed_action": "Completed M4-M6 progression. M4 joined independent real TCP carriers into one logical pool. M5 added normalized logical ACK/GAP receipts, cross-lane control return, STREAM FIN acknowledgement and a safe DATAGRAM ID bound. M6 added an immutable sender STREAM scoreboard and GAP-driven cross-lane reinjection with fresh TransmissionID, ACK pruning and stale-control tolerance. A real two-TCP localhost test proves the logical STREAM completes through lane 2 while the original prefix remains unavailable on lane 1, then the late original copy is deduplicated. Local vet, normal/race tests, protocol fuzz, handoff verification and continuity tests passed; M5 remote CI passed and M6 is the substantive checkpoint to refresh live CI against.",
+    "current_task": "M7-001: bound per-lane logical flight before kernel enqueue and prototype a 2-bulk/1-rescue lane policy; still no FEC/RBC, Xray/REALITY or TUN.",
+    "why_now": "Cross-lane reinjection is logically correct, but it only reduces tail latency if rescue/control data is not trapped behind already-queued bulk bytes. The next risk is queue occupancy and unbounded outstanding memory, not wire correctness.",
+    "done_when": "Deterministic and real-local tests enforce configurable per-lane flight limits, prevent new bulk scheduling when a lane has exhausted credit, keep a designated rescue lane low-occupancy, allow ACK/GAP and reinjected STREAM bytes to use rescue capacity, and prove a rescued logical gap completes before gated bulk carriers are released. Lane failure/close must preserve accounting without leaks.",
+    "next_atomic_action": "M7-001: add per-lane logical flight/credit accounting above lane.Pool and a 2-bulk/1-rescue scheduler policy. Build deterministic plus three-real-TCP localhost tests where bulk lanes are intentionally gated/occupied while the rescue lane stays available; prove control and M6 reinjection complete the logical STREAM before bulk release. Do not add FEC/RBC, Xray/REALITY or TUN yet."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
     "docs/protocol/wbd-v1.md",
-    "internal/protocol/frame.go",
-    "internal/protocol/stream.go",
-    "internal/session/receiver.go",
-    "internal/lane/tcp.go",
-    "internal/lane/tcp_test.go",
+    "internal/lane/pool.go",
+    "internal/recovery/stream.go",
+    "internal/recovery/stream_test.go",
+    "internal/session/receipt.go",
     ".wbd/handoff/current.json",
     ".wbd/handoff/data-plane.json",
     "scripts/verify_handoff.py"
@@ -43,9 +43,8 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "c5f0da46f4f7ef9aa6af08a2ba582e9e29d5d028",
+    "tested_commit": "87bb6808b1ee04d8399e34b439c9dfd049286f0a",
     "result": "pass",
-    "command": "go vet ./... && go test ./... -count=1 && go test -race ./... -count=1 && go test ./internal/protocol -run=^$ -fuzz=FuzzReadFrame -fuzztime=2s && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
-  },
-  "active_pr": 2
+    "command": "go vet ./... && go test ./... -count=1 && go test -race ./... -count=1 && go test ./internal/protocol -run='^$' -fuzz=FuzzUnmarshalFrame -fuzztime=2s && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
+  }
 }
