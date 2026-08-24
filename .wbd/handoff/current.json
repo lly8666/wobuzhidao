@@ -1,44 +1,40 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 22,
+  "continuity_sequence": 23,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "529dce12646aeba74bc2dd0b15c9f68b50ec9ad7",
+  "checkpoint_based_on_head_sha": "95be28659a7b3b5fc1723524d10edfd209cae3b5",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows using unordered FakeTCP/FEC carriers plus a native standards-compliant DTLS 1.3 WBD security/session layer. Xray/VLESS/Vision/REALITY, WireGuard and Android are not part of the V2.1 product stack.",
-    "current_milestone": "V2-M3 native WBD session/control inside the locally qualified one-lane DTLS/FEC/FakeTCP path; M3A framing, M3B token auth, M3C liveness/stats and M3D close/reconnect policy passed, M3E fixed-mode config negotiation active",
-    "local_optimization_stop_rule": "Keep all M3 semantics inside an already-finished DTLS 1.3 association. Do not invent another cryptographic layer, reliable public byte stream or custom FEC. Do not start two-lane, kernel-anchor, TUN/L3, Windows, Auto or detector-specific shaping work before the M3 session/control gate passes. M3E may negotiate only the constitution-defined fixed protection modes normal, weak-1.5x and weak-2x; Auto remains deferred."
+    "current_milestone": "V2-M4 kernel-anchor / real-return-packet experiment after full M3 native session/control qualification",
+    "local_optimization_stop_rule": "M3 is complete. M4 is an isolated Linux packet-capture experiment only: keep classic udp2raw FakeTCP as the qualified fallback, never write product/DTLS payload into the kernel anchor socket, and do not start two-lane, TUN/L3, Windows, Auto or detector-specific shaping work. Admit a kernel anchor only if capture proves sequence/ACK consistency and no kernel retransmission/HOL dependency for raw payload packets."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed V2-M3D through substantive commit 529dce12646aeba74bc2dd0b15c9f68b50ec9ad7. The independent WBDC control codec adds bounded CLOSE type 8 with enumerated reasons normal, idle-timeout, auth-failure, policy, protocol-error and transient-transport plus <=256-byte UTF-8 detail. ServerSession accepts peer CLOSE only after Established, echoes it, records the close reason and enters Closed; caller-driven idle expiry can close an Established session with the idle-timeout reason. ReconnectAllowed permits retry only for idle-timeout and transient-transport; normal/auth/policy/protocol/unknown closes are non-retriable. Backoff(attempt,min,max) is a pure saturating exponential helper: no goroutine, sleep or replay, with invalid range and overflow boundary tests. Local direct-DTLS authority used the M2-qualified quiet shim SHA-256 63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a and started WBD control only after both peers reported DTLSv1.3 / TLS_AES_256_GCM_SHA384 READY. The qualified sequence HELLO/ACCEPT -> AUTH/AUTH_OK -> PING/PONG -> CLOSE/CLOSE-echo ended with server state Closed and close reason normal. docs/protocol/v2-m3d-receipt.json records result=pass, server rx=4 tx=4, pings=1 pongs=1, auth_required/authenticated=true and close_reason=1. GitHub ci run 32765924791, handoff-verify 32765924976 and build-quic-oracle 32765924836 all completed successfully for 529dce12646aeba74bc2dd0b15c9f68b50ec9ad7.",
-    "current_task": "V2-M3E: add one-time fixed protection-mode configuration inside an already-Established WBD session. Negotiate only the constitution-defined normal, weak-1.5x and weak-2x modes; explicitly reject auto and unknown values. Record selected mode/configured state without dynamically changing UDPspeeder or carrier behavior in this gate.",
-    "why_now": "M3 has strict framing, authorization, liveness/accounting and deterministic termination/retry policy. Before the session/control milestone can close, the peer must have one explicit product-mode decision that later TUN/data-plane code can require before forwarding traffic. Keeping this as a one-time Established-state CONFIG avoids smuggling old V1 RBC/lane semantics back into the protocol.",
-    "done_when": "M3E defines strict CONFIG and CONFIG_OK frames for exactly normal, weak-1.5x and weak-2x; auto/zero/unknown modes are rejected; ServerSession accepts CONFIG only once in Established, records Configured=true and ProtectionMode in stats without changing carrier/FEC processes; duplicate or pre-auth/pre-HELLO CONFIG is rejected deterministically; unit/malformed tests cover codec/state/mode policy; and a direct-DTLS loopback demonstrates token-authenticated Established -> CONFIG weak-1.5x -> CONFIG_OK with server stats recording the mode. No actual UDPspeeder reconfiguration, TUN forwarding, two-lane or Auto work is part of M3E.",
-    "next_atomic_action": "V2-M3E: extend internal/control with fixed ProtectionMode values and CONFIG/CONFIG_OK message types. Accept only normal, weak-1.5x and weak-2x; reserve/reject auto. Add Configured/ProtectionMode session stats and make CONFIG one-shot in Established. Write codec/state/malformed/duplicate tests first, then extend the direct DTLS probe to authenticate and negotiate weak-1.5x after both peers are READY. Do not modify UDPspeeder arguments or start TUN/data forwarding in this atomic step."
+    "last_completed_action": "Completed V2-M3 including M3E fixed protection-mode configuration at substantive commit 95be28659a7b3b5fc1723524d10edfd209cae3b5. M3A-D remain byte-for-byte unchanged; M3E is an additive extension in internal/control/config.go plus config_test.go and a separate wbd-config-probe. CONFIG/CONFIG_OK use existing WBDC framing types 9/10 with exactly one mode byte. Only constitution-defined normal, weak-1.5x and weak-2x are admitted; zero, unknown and reserved Auto are rejected, and the CLI rejects Auto before opening a UDP socket. ConfigServerSession wraps the already-qualified M3A-D ServerSession, accepts CONFIG once only after Established/authentication, records Configured and ProtectionMode plus encoded-wire counters, and does not modify UDPspeeder/FEC/carrier behavior. Local authority ran Go tests and direct DTLS using the qualified quiet shim SHA-256 63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a; after both peers reported DTLSv1.3 / TLS_AES_256_GCM_SHA384 READY, HELLO/ACCEPT -> AUTH/AUTH_OK -> CONFIG weak-1.5x/CONFIG_OK passed and server stats recorded configured=true protection_mode=weak-1.5x. docs/protocol/v2-m3e-receipt.json records result=pass. GitHub go test ./... on CI run 32769686064 passed every Go package including internal/control and cmd/wbd-config-probe; build-quic-oracle run 32769686070 passed. The only CI/handoff failure on 95be2865 was the sequence-22 handoff having 13 resume paths while the repository contract allows 3..12; sequence 23 corrects that handoff-only defect. The ROADMAP V2-M3 exit gate is therefore satisfied: version/config framing, optional post-Finished token authorization, keepalive/liveness, session stats, deterministic close/reconnect policy, malformed/auth tests and no custom crypto are all locally qualified.",
+    "current_task": "V2-M4A: qualify the kernel-anchor hypothesis as an isolated Linux packet-capture experiment before any product integration. Establish one real kernel TCP connection/anchor on a 4-tuple, write no application payload to that socket, then independently inject/capture TCP-shaped raw payload packets and observe how the kernel peer responds.",
+    "why_now": "The secured one-lane carrier and native session/control layer are stable. The next roadmap gate is the easy-faketcp-inspired real-return-packet hypothesis: determine experimentally whether a real kernel TCP state machine can keep a public 4-tuple alive and generate coherent return ACK/control traffic while WBD payload remains entirely in the raw unordered path. This must be proven by packet capture rather than assumed from socket state.",
+    "done_when": "M4A has a reproducible Linux capture harness and receipt that records the real kernel SYN/SYN-ACK/ACK handshake, initial client/server sequence numbers, the exact raw-injected payload sequence range, resulting kernel ACK/RST/challenge-ACK behavior and any retransmissions. The kernel anchor socket carries zero WBD/DTLS application bytes. The experiment explicitly concludes PASS only if sequence/ACK behavior is coherent and the raw payload path has no dependency on kernel TCP retransmission/ordered delivery; otherwise it records NO-GO and retains classic udp2raw FakeTCP as the product fallback. This first gate may use synthetic opaque raw payload bytes; DTLS/FEC integration is not required until the packet-state hypothesis itself passes.",
+    "next_atomic_action": "V2-M4A: inspect the local Linux sandbox capabilities for a same-namespace or isolated user+net namespace experiment (raw socket/packet capture, kernel TCP socket and firewall/RST control). Then implement the smallest deterministic capture harness: real kernel TCP listener+client completes handshake on loopback, neither side writes application payload, capture establishes ISN/ACK state, one TCP PSH/ACK packet with synthetic payload is raw-injected in the established sequence space, and capture records the peer kernel response. Do not modify the qualified udp2raw/DTLS/FEC product path yet; if capabilities are insufficient, persist the exact environment blocker instead of substituting an unproven design."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    "docs/protocol/v2-m3a-control.md",
-    "docs/protocol/v2-m3b-auth.md",
-    "docs/protocol/v2-m3c-liveness.md",
-    "docs/protocol/v2-m3d-close.md",
-    "docs/protocol/v2-m3d-receipt.json",
-    "internal/control/control.go",
-    "internal/control/control_test.go",
-    "cmd/wbd-control-probe/main.go",
-    "scripts/qualify_v2_m3d_close.py",
+    "docs/protocol/v2-m3e-config.md",
+    "docs/protocol/v2-m3e-receipt.json",
+    "internal/control/config.go",
+    "internal/control/config_test.go",
+    "scripts/qualify_v2_m3e_config.py",
     ".wbd/handoff/current.json",
     "scripts/verify_handoff.py"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_M2_qualified_transport_security_plus_M3A_framing_M3B_auth_M3C_liveness_M3D_close",
+    "authority": "V2_M2_qualified_transport_security_plus_full_V2_M3_native_session_control",
     "v1_status": "permanently_rejected_multi_ordinary_TCP",
     "v2_raw_fec_status": "locally_qualified_product_baseline",
     "security": {
@@ -48,17 +44,18 @@
       "certificate_policy": "operator-controlled X.509 certificate; native trust-chain and hostname verification",
       "zero_rtt": "disabled"
     },
-    "session_status": "V2_M3A_control_M3B_auth_M3C_liveness_M3D_close_locally_qualified_M3E_config_active",
+    "session_status": "V2_M3_locally_qualified_framing_auth_liveness_stats_close_reconnect_config",
+    "fixed_modes": ["normal", "weak-1.5x", "weak-2x"],
+    "auto_status": "deferred_to_V2_M9_and_rejected_by_M3_config",
+    "kernel_anchor_status": "V2_M4A_active_packet_capture_gate",
     "two_lane_status": "not_admitted; future design uses two independent DTLS associations and one shared FEC decoder",
-    "kernel_anchor_status": "deferred_to_V2_M4",
     "tun_status": "deferred_to_V2_M6",
-    "auto_status": "deferred_to_V2_M9",
     "xray_status": "removed_from_V2_1_product_stack"
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "529dce12646aeba74bc2dd0b15c9f68b50ec9ad7",
+    "tested_commit": "95be28659a7b3b5fc1723524d10edfd209cae3b5",
     "result": "pass",
-    "command": "M3D local authority: Go codec/state/retry/backoff tests passed; direct DTLS token-auth session started only after both DTLSv1.3 peers were READY and completed HELLO/ACCEPT, AUTH/AUTH_OK, PING/PONG, CLOSE/CLOSE-echo with final server state Closed/reason normal. GitHub ci/handoff-verify/build-quic-oracle all passed for the committed tree."
+    "command": "M3E local authority: additive config extension Go tests passed; direct DTLS token-auth session began only after both peers were DTLSv1.3 READY and completed CONFIG weak-1.5x/CONFIG_OK with configured=true/mode recorded; Auto was rejected before socket open. GitHub go test ./... passed completely on run 32769686064 and build-quic-oracle passed on 32769686070. The former overall CI/handoff red status was solely the corrected sequence-22 resume_read_set length violation, not a product/test failure."
   }
 }
