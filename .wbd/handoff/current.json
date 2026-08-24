@@ -1,58 +1,79 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 9,
+  "continuity_sequence": 10,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-multilane-v1",
   "active_issue": 1,
   "active_pr": 2,
-  "checkpoint_based_on_head_sha": "1f2b11424d6eeac8f8d092a236872f48e49c5799",
+  "checkpoint_based_on_head_sha": "29878fc5f5545ab6a73e62491f5aa0e182fc700b",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal cross-platform VPN whose logical weak-network behavior approaches UDP/QUIC while public carriers remain stock REALITY/Vision over real kernel TCP.",
-    "current_milestone": "M10-002 pinned QUIC oracle integration and broader seeded weak-network profiles",
-    "local_optimization_stop_rule": "Do not tune RBC/FEC policy, freeze a production FEC frame, modify REALITY/Vision, or start TUN/platform integration until a locally executed pinned QUIC stream/datagram oracle is compared with the M10 deterministic/native-socket baselines. Keep the main WBD module on its current toolchain unless a dedicated toolchain ADR and regression gate explicitly changes it."
+    "current_milestone": "M10-003 real two-lane weak-network and fault-injected QUIC qualification",
+    "local_optimization_stop_rule": "Do not tune RBC/FEC policy, freeze a production FEC frame, modify REALITY/Vision, or start TUN/platform integration until real local fault-path tests validate the deterministic 150-300 ms / 10-20% loss direction. Mandatory profiles include normal 40-60 ms, 150-300 ms jitter with 10% and 20% impairment, correlated burst loss, and at least one worse 250-600 ms / ~30% profile. Keep the 2.0x intentional-redundancy ceiling."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed M10-001 at substantive HEAD 1f2b11424d6eeac8f8d092a236872f48e49c5799: added a versioned deterministic benchmark/report layer with six fixed profiles and 60 strategy/multiplier results, a runnable cmd/wbd-bench JSON report, real 127.0.0.1 tcp4/udp4 fault-proxy smoke tests, bounded soft-deadline tail-recovery candidate, same-XOR-pair counterexample, and a machine-readable QUIC oracle pin. The real socket smoke showed one 35 ms serial TCP stall holding later records to roughly 38-40 ms while later UDP datagrams still arrived around 1-2 ms. The deterministic single-stall profile gives native TCP p95=80 ms, WBD 1.5x reinjection p95=20 ms and 1.5x XOR/duplicate p95=10 ms, while the same-XOR-pair burst keeps XOR at 80 ms and reinjection at 20 ms. Final-chunk GAP-only completion remains 80 ms; the bounded soft-deadline candidate reduces it to 50 ms. quic-go is pinned at v0.61.0 / 579ee19 and requires Go 1.25.0, so it is not silently linked into the current Go 1.23 module. Local vet, normal/race tests, protocol fuzz (~132k executions), Linux/386, Linux/mipsle and Windows/amd64 benchmark cross-builds, CLI cross-builds, handoff verification and continuity tests passed; remote CI and handoff-verify also passed.",
-    "current_task": "M10-002: locally execute the pinned quic-go v0.61.0 oracle in an isolated compatible Go toolchain, add QUIC stream and datagram rows to the benchmark report without upgrading the WBD module by accident, and broaden deterministic profiles with seeded jitter/loss distributions after the oracle baseline is stable.",
-    "why_now": "M10-001 now separates reproducible model statistics from real kernel socket semantics and has a quantified TCP/UDP/WBD baseline. QUIC is the missing reliable-stream/datagram oracle needed before choosing RBC allocation, FEC shape, or tail timer policy.",
-    "done_when": "A pinned quic-go v0.61.0 oracle is built and run inside the local sandbox with a recorded compatible Go toolchain, produces repeatable stream and datagram benchmark rows comparable to native TCP/UDP and WBD candidates, the oracle identity/toolchain hashes are recorded without committing binaries, and at least one seeded jitter/loss profile family is added with stable report output. If the local environment cannot qualify the oracle, record the exact blocker and do not substitute Actions PASS as local qualification.",
-    "next_atomic_action": "M10-002: provision an isolated local Go >=1.25 toolchain without changing go.mod, verify quic-go v0.61.0 (579ee19) from deps/oracle-lock.json, build the smallest localhost QUIC stream/datagram oracle, run it locally against the existing benchmark result schema, then add seeded jitter/loss profiles only after the pinned oracle baseline works."
+    "last_completed_action": "Completed M10-002 at substantive HEAD 29878fc5f5545ab6a73e62491f5aa0e182fc700b: recovered from an interrupted sandbox, qualified the pinned quic-go v0.61.0 oracle locally using a SHA-verified GitHub Actions build relay without upgrading the WBD Go 1.23 module, and added a separate deterministic two-lane stress layer. The exact relay artifact ZIP SHA-256 d3353e3f55fc5abad3e4e5e1b1cdf71e7a0ccb181c3368a69cba497208737e49 and oracle binary SHA-256 9482defb23b556faf0af0f7f48b8108c1e589973c861969d1d9ee750f3e224a1 were verified locally; the binary then completed 64 QUIC STREAM and 64 QUIC DATAGRAM loopback RTT samples with bidirectional DATAGRAM support. Stress profiles now cover normal 40-60 ms/0%, mobile 80-150 ms/2%, 150-300 ms/10% (2 seeds), 150-300 ms/20% (2 seeds), and 250-600 ms/30% (2 seeds). Protection traffic pays an independently sampled alternate-lane propagation/recovery delay, eliminating the earlier unrealistic instant-protection artifact. Final root-module vet, normal/race tests, protocol fuzz (~143,899 executions), Linux/386, Linux/mipsle, Windows/amd64 benchmark cross-builds, wbd-stress cross-builds, handoff verification and continuity tests passed; remote CI/handoff/oracle relay also passed.",
+    "current_task": "M10-003: move the 150-300 ms / 10-20% and worse profiles from deterministic two-lane modeling into real local fault-path tests, and inject controlled faults into the locally qualified QUIC oracle so WBD, TCP, UDP and QUIC can be compared under the same weak-network schedule.",
+    "why_now": "M10-002 proved the QUIC oracle can run locally and showed that deterministic weak-network conclusions vary strongly by seed at 20%+ impairment. The remaining uncertainty is whether those trends survive real kernel socket queues, correlated path impairment and QUIC recovery rather than only independent sampled lane models.",
+    "done_when": "Local sandbox tests exercise at least normal 40-60 ms, 150-300 ms with 10% impairment, 150-300 ms with 20% impairment, a correlated burst-loss case, and one worse 250-600 ms/~30% case through a real fault path or equivalent user-space packet/socket proxy. Native TCP/UDP, WBD 1.5x/2.0x candidates and pinned QUIC STREAM/DATAGRAM are measured with p50/p95/p99/completion, delivery ratio where applicable, intentional bytes, and reproducible seeds. Results explicitly distinguish independent-lane from correlated-loss behavior. If CAP_NET_ADMIN/netem is unavailable, use a deterministic user-space fault proxy and record the limitation rather than substituting Actions results.",
+    "next_atomic_action": "M10-003: build a real localhost two-lane fault proxy with reproducible seeded delay/loss schedules and run normal 40-60 ms plus 150-300 ms/10% and 20% cases first; add correlated burst impairment and 250-600 ms/~30% after the basic proxy is stable. Route the pinned locally qualified QUIC oracle through the same controlled fault path before any M11 RBC tuning."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    "UPSTREAMS.md",
     "deps/oracle-lock.json",
-    "docs/benchmarks/m10-local-baseline.md",
-    "internal/benchmark/model.go",
-    "internal/benchmark/report.go",
+    "internal/benchmark/stress.go",
+    "internal/benchmark/stress_test.go",
     "internal/benchmark/socket.go",
+    "internal/rbc/controller.go",
     ".wbd/handoff/current.json",
     ".wbd/handoff/data-plane.json",
     "scripts/verify_handoff.py"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "preliminary_deterministic_model_plus_local_socket_smoke",
-    "profile": "single-stall-v1; 8x1024B; 10ms step; one chunk held to step 8",
-    "native_tcp_p95_ms": 80,
-    "native_udp_p50_ms": 10,
-    "native_udp_p95_ms": 80,
-    "wbd_reinjection_1_5x_p95_ms": 20,
-    "wbd_xor_1_5x_p95_ms": 10,
-    "wbd_duplicate_1_5x_p95_ms": 10,
-    "tail_gap_only_completion_ms": 80,
-    "tail_soft_deadline_completion_ms": 50,
-    "current_best_variant": "not_selected: XOR/duplicate win isolated stalls but pairwise XOR has an 80ms same-group double-stall counterexample; wait for QUIC and broader profiles"
+    "authority": "deterministic_two_lane_stress_plus_local_quic_loopback_qualified_not_final",
+    "quic_oracle": {
+      "implementation": "quic-go v0.61.0",
+      "local_status": "pass",
+      "stream_p50_us": 42,
+      "stream_p95_us": 127,
+      "datagram_p50_us": 48,
+      "datagram_p95_us": 106,
+      "scope": "clean_loopback_only"
+    },
+    "stress_profiles": [
+      "normal-40-60ms-0pct",
+      "weak-150-300ms-10pct-seeds-3010-3011",
+      "very-weak-150-300ms-20pct-seeds-3020-3021",
+      "extreme-250-600ms-30pct-seeds-3030-3031"
+    ],
+    "representative_p95_ms": {
+      "normal_tcp": 60,
+      "normal_wbd_1_5x_xor": 60,
+      "normal_wbd_2x_duplicate": 60,
+      "10pct_tcp_seed_a": 760,
+      "10pct_xor_1_5x_seed_a": 590,
+      "10pct_dup_2x_seed_a": 670,
+      "20pct_tcp_seed_b": 1140,
+      "20pct_xor_1_5x_seed_b": 1090,
+      "20pct_dup_2x_seed_b": 300,
+      "30pct_tcp_seed_a": 2120,
+      "30pct_xor_1_5x_seed_a": 1880,
+      "30pct_dup_2x_seed_a": 1880
+    },
+    "current_best_variant": "not_selected: normal networks show no protection latency win; 10-30% stress results are seed/path-shape dependent and still need real correlated-fault and QUIC weak-network qualification"
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "1f2b11424d6eeac8f8d092a236872f48e49c5799",
+    "tested_commit": "29878fc5f5545ab6a73e62491f5aa0e182fc700b",
     "result": "pass",
-    "report_sha256": "69a6088efd445c86d9cca390216e66f78fe97c8366bc0ae0ed6d68aeac11c7b5",
-    "command": "go vet ./... && go test ./... -count=1 && go test -race ./... -count=1 && go test ./internal/protocol -run='^$' -fuzz=FuzzUnmarshalFrame -fuzztime=2s && GOOS=linux GOARCH=386 go test -c ./internal/benchmark -o /tmp/benchmark-386.test && GOOS=linux GOARCH=mipsle go test -c ./internal/benchmark -o /tmp/benchmark-mipsle.test && GOOS=windows GOARCH=amd64 go test -c ./internal/benchmark -o /tmp/benchmark-windows-amd64.test.exe && GOOS=linux GOARCH=mipsle go build -o /tmp/wbd-bench-mipsle ./cmd/wbd-bench && GOOS=windows GOARCH=amd64 go build -o /tmp/wbd-bench-windows-amd64.exe ./cmd/wbd-bench && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
+    "stress_report_sha256": "165ee332177cafdf4f5b506c0fdc91446d3a5c15789bbe34b6119fb83b0eb46e",
+    "quic_artifact_zip_sha256": "d3353e3f55fc5abad3e4e5e1b1cdf71e7a0ccb181c3368a69cba497208737e49",
+    "quic_binary_sha256": "9482defb23b556faf0af0f7f48b8108c1e589973c861969d1d9ee750f3e224a1",
+    "command": "go vet ./... && go test ./... -count=1 && go test -race ./... -count=1 && go test ./internal/protocol -run='^$' -fuzz=FuzzUnmarshalFrame -fuzztime=2s && GOOS=linux GOARCH=386 go test -c ./internal/benchmark -o /tmp/benchmark-386.test && GOOS=linux GOARCH=mipsle go test -c ./internal/benchmark -o /tmp/benchmark-mipsle.test && GOOS=windows GOARCH=amd64 go test -c ./internal/benchmark -o /tmp/benchmark-windows-amd64.test.exe && GOOS=linux GOARCH=mipsle go build -o /tmp/wbd-stress-mipsle ./cmd/wbd-stress && GOOS=windows GOARCH=amd64 go build -o /tmp/wbd-stress-windows-amd64.exe ./cmd/wbd-stress && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v; plus SHA verification and local execution of the exact relayed QUIC oracle binary"
   }
 }
