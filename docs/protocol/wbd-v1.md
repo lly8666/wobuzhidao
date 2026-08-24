@@ -122,3 +122,29 @@ The same envelope is self-delimiting on a real TCP byte stream. `ReadFrame` read
 - no TUN/VPN,
 - no authentication,
 - no public traffic-shaping behavior.
+
+## M4 multi-lane pool semantics
+
+`internal/lane.Pool` joins independent real kernel TCP carriers without changing the WBD wire format. Each carrier has a local `LaneID`; the ID is event/scheduler context and remains outside DATA/DATAGRAM bodies.
+
+M4 provides only deterministic carrier mechanics:
+
+- `SendOn(lane_id, frame)` explicitly selects one active lane.
+- `SendNext(frame)` selects active lanes in ascending-`LaneID` round-robin order.
+- one receive goroutine per TCP lane fans frames into `Event{LaneID, Frame, Err}`.
+- a terminal carrier error marks only that lane inactive; remaining carriers continue to schedule new frames.
+- pool shutdown closes all carriers, unblocks readers and closes the fan-in stream.
+
+Two independent TCP sequence spaces therefore can progress independently. A delayed lane can leave a STREAM logical hole while DATAGRAMs or other flows arriving through another lane are delivered immediately. Later STREAM bytes are buffered by M2 until the missing logical prefix arrives. Identical logical bytes received on two lanes with different `transmission_id` values are deduplicated by the M2 receiver.
+
+M4 deliberately does **not** infer loss from delay and does not resend a missing logical range. Logical receipt tracking, ACK/GAP generation and cross-lane reinjection remain M5/M6 work.
+
+## Explicit non-goals of M4
+
+- no ACK-driven recovery policy,
+- no automatic cross-lane reinjection,
+- no FEC/repair frame,
+- no RBC/adaptive scheduling,
+- no Xray/REALITY integration,
+- no TUN/VPN,
+- no authentication.
