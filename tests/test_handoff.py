@@ -40,7 +40,7 @@ class HandoffContractTest(unittest.TestCase):
         self.assertIn("FEC encoder **before each DTLS application-record encryption**", architecture)
         self.assertIn("one independent DTLS association per raw lane", architecture)
         self.assertIn("Xray is removed", architecture)
-        self.assertIn("kernel-anchor / real-return-packet experiment", architecture)
+        self.assertIn("Kernel-anchor / real-return-packet experiment", architecture)
 
         adr = (ROOT / "docs/architecture/ADR-0003-native-dtls.md").read_text(encoding="utf-8")
         self.assertIn("There is no post-handshake transition to a custom cipher", adr)
