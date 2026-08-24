@@ -1,56 +1,52 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 19,
+  "continuity_sequence": 20,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "50addb1fdd577528993bdce241a67cc98d45f5c9",
+  "checkpoint_based_on_head_sha": "7458a5489f91b232af1577d72a330ee8d8b5b6b1",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows using unordered FakeTCP/FEC carriers plus a native standards-compliant DTLS 1.3 WBD security/session layer. Xray/VLESS/Vision/REALITY, WireGuard and Android are not part of the V2.1 product stack.",
-    "current_milestone": "V2-M3 native WBD session/control inside the locally qualified one-lane DTLS/FEC/FakeTCP path; M3A framing passed, M3B authentication state active",
-    "local_optimization_stop_rule": "Keep all M3 semantics inside an already-finished DTLS 1.3 association. Do not invent another cryptographic layer, reliable public byte stream or custom FEC. Do not start two-lane, kernel-anchor, TUN/L3, Windows, Auto or detector-specific shaping work before the M3 session/control gate passes. M3B should add only explicit authentication/session state after ACCEPT."
+    "current_milestone": "V2-M3 native WBD session/control inside the locally qualified one-lane DTLS/FEC/FakeTCP path; M3A framing and M3B token auth passed, M3C keepalive/stats active",
+    "local_optimization_stop_rule": "Keep all M3 semantics inside an already-finished DTLS 1.3 association. Do not invent another cryptographic layer, reliable public byte stream or custom FEC. Do not start two-lane, kernel-anchor, TUN/L3, Windows, Auto or detector-specific shaping work before the M3 session/control gate passes. M3C should add only liveness/session accounting after Established; reconnect policy remains separate."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed V2-M3A on active branch through commit 50addb1fdd577528993bdce241a67cc98d45f5c9. A new carrier-agnostic internal/control package defines a fixed 8-byte WBDC envelope (magic, frame version, type, big-endian body length) with HELLO, ACCEPT and ERROR messages, protocol version 1 and strict 1024-byte body / 256-byte error-message bounds. It is deliberately separate from the rejected V1 DATA/ACK/GAP/TransmissionID wire format. Unit/table tests cover deterministic round trips, highest-common-version negotiation, unsupported-version ERROR, bad magic/version/type, truncation, trailing bytes, invalid HELLO ranges, oversized bodies/messages and invalid UTF-8; fuzz seeds and every-prefix truncation checks run without panic. A direct probe and reproducible qualification script were added. Local authority used the M2-qualified quiet DTLS shim SHA-256 63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a and the wbd.test certificate path: both DTLS peers reached READY as DTLSv1.3 / TLS_AES_256_GCM_SHA384 before any control client was started; HELLO 1..1 returned ACCEPT 1 and HELLO 2..2 returned ERROR code 1 no-common-version. Local receipt result is pass. Source SHA-256 identities: control.go f862ac39b670ac9d4c5465c3521a4e549d80df1ff88244f1d3122cf7d70de1a5, control_test.go 98edffa33f1d98fba4f7db238b4d096f4ef08a9057484b86cb31b9686716be9d, probe 7eaece87dbe71933e44cd3590bb464f884288080c0ffc34c8d8d9186190c2ae4, qualification script 38bdbdcffb68efbeb912d120c42ad8cbb1885cfcdd31ba4cfe1b156876e13163, receipt c9fdcd624ffad5e2fdf5a0dee9dfa1faa9108ff4f147348aa06b2ad63f76008d. GitHub ci, handoff-verify and build-quic-oracle all completed successfully for 50addb1fdd577528993bdce241a67cc98d45f5c9.",
-    "current_task": "V2-M3B: add the smallest explicit post-ACCEPT session authentication state. Start with optional static bearer-token authentication carried only inside the existing DTLS application channel; unauthenticated sessions must not enter Established. Keep token handling independent of carrier/FEC and do not add password hashing, keepalive, reconnect or routing yet.",
-    "why_now": "M3A established a strict versioned control boundary and proved it is exchanged only after DTLS Finished. The next product invariant is deciding when a WBD session is actually authorized to carry future application/L3 traffic. A tiny token-auth state machine can be tested independently before keepalive, reconnect and TUN semantics are layered on top.",
-    "done_when": "M3B has explicit states for version negotiation, authentication-required and Established; AUTH and AUTH_OK/ERROR messages are bounded and strictly decoded; a configured static token is compared in constant time; missing/wrong tokens never enter Established; authentication-disabled mode may transition from ACCEPT directly to Established; duplicate/out-of-order AUTH/control messages are rejected deterministically; unit/malformed tests cover both modes; and a direct-DTLS loopback demonstrates correct-token success plus wrong-token rejection after M3A negotiation. No credentials are ever sent before DTLS READY/Finished.",
-    "next_atomic_action": "V2-M3B: extend the independent internal/control codec with bounded AUTH and AUTH_OK message types, then add a small server-side session state machine whose only policy input is optional expected bearer token. Use crypto/subtle.ConstantTimeCompare for configured-token comparison, reject AUTH before successful HELLO/ACCEPT and reject repeated AUTH after establishment. Write unit/state-machine tests first; then extend the direct DTLS probe to run auth-disabled success, correct-token success and wrong-token ERROR. Do not add username/password, keepalive, reconnect or TUN in this atomic step."
+    "last_completed_action": "Completed V2-M3B through substantive commit 7458a5489f91b232af1577d72a330ee8d8b5b6b1. The M3A control codec now adds bounded AUTH (opaque 1..256-byte bearer token) and empty AUTH_OK frames plus explicit ERROR codes for AUTH-required, auth-failed and unexpected-state. A ServerSession state machine enforces AwaitHello -> AwaitAuth -> Established when a token is configured and AwaitHello -> Established when auth is disabled. Unsupported protocol or a wrong token fails closed; AUTH before HELLO, repeated HELLO while awaiting AUTH, retries after failure and control after Established are rejected deterministically. Configured/presented tokens are SHA-256 hashed to fixed 32-byte values and compared using crypto/subtle.ConstantTimeCompare; this is only local comparison and does not replace DTLS or add protocol crypto. Local direct-DTLS authority used the accepted quiet shim SHA-256 63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a and wbd.test certificate path. In all cases both DTLS peers reached READY before HELLO/AUTH: auth-disabled reached Established after ACCEPT; matching token reached AUTH_OK/Established; wrong token returned ERROR code 5 and server state Failed. Source SHA-256 identities for the accepted local M3B content are control.go 0148bcc94e745daf0b8fd471a6bb5bb39a245330d5d7fc7772c214b9f6770269, control_test.go 1c650e3b505a1d0a8897b0ee88a84aa1ff3c913d8265e0a78c5f54881426f491, probe 09c96b5f8967291817885285ce26ec489af20c42dc67064e502d82e81e0ddf57, qualification script eb9d5219b7ee95077ac394d4843ab0a473a03b2a0a61dc46639fac4591243658, receipt 9466d0ec24cd4b57d149315673e402a8e33bc1a8d4d9182e4a56e9736e7ce841 and M3B doc bb646ede7f622fca44a9771aaa873e1ad16b769f92a4d2feb1960eca717f8290. GitHub ci, handoff-verify and build-quic-oracle all completed successfully for 7458a5489f91b232af1577d72a330ee8d8b5b6b1.",
+    "current_task": "V2-M3C: add minimal liveness and session accounting after Established. Introduce bounded PING/PONG control messages with an opaque nonce and explicit session counters/last-activity tracking; no timer should create a reliable stream or retransmit application data.",
+    "why_now": "Version negotiation and authorization are now explicit and qualified. Before reconnect or TUN semantics are added, the session needs a small way to detect a live peer and expose observable state without conflating carrier packet loss with application reliability. PING/PONG plus counters can be tested entirely inside the existing DTLS control channel.",
+    "done_when": "M3C defines strict PING/PONG frames with fixed-size nonce encoding; PING is accepted only in Established and returns the same nonce in PONG; pre-auth or failed-state liveness frames are rejected; session stats track control messages/bytes, successful auth mode, ping/pong counts and last-activity time without recording bearer-token contents; an idle-policy helper can report expiry from caller-provided monotonic timestamps without spawning timers or retransmitting data; unit tests cover nonce round trips, ordering/state errors and idle boundaries; and a direct-DTLS loopback demonstrates established session PING->PONG for both auth-disabled and token-authenticated modes. Reconnect/TUN remain out of scope.",
+    "next_atomic_action": "V2-M3C: extend internal/control with fixed 8-byte PING and PONG nonce bodies and add session stats/last-activity fields to the existing server state machine using caller-supplied time values rather than hidden timers. Write unit tests for Established-only handling, nonce echo, counters and exact idle-expiry boundaries first. Then extend the direct DTLS probe/qualification to perform one PING/PONG after auth-disabled establishment and after successful token AUTH. Do not implement reconnect, application/L3 data framing or TUN yet."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
     "docs/protocol/v2-m3a-control.md",
-    "docs/protocol/v2-m3a-receipt.json",
+    "docs/protocol/v2-m3b-auth.md",
+    "docs/protocol/v2-m3b-receipt.json",
     "internal/control/control.go",
     "internal/control/control_test.go",
     "cmd/wbd-control-probe/main.go",
-    "scripts/qualify_v2_m3a_control.py",
-    "deps/security-lock.json",
+    "scripts/qualify_v2_m3b_auth.py",
     ".wbd/handoff/current.json",
     "scripts/verify_handoff.py"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_M2_locally_qualified_one_lane_DTLS13_over_pinned_raw_FEC_plus_M3A_control_framing",
+    "authority": "V2_M2_locally_qualified_one_lane_DTLS13_over_pinned_raw_FEC_plus_M3A_control_plus_M3B_auth",
     "v1_status": "permanently_rejected_multi_ordinary_TCP",
     "v2_raw_fec_status": "locally_qualified_product_baseline",
     "security": {
       "design": "real DTLS 1.3; no Xray/WireGuard",
       "implementation_pin": "wolfSSL v5.9.2-stable / ac01707f552c611fbd135cc723b2682b3e7f80f2",
-      "m2a_status": "locally_qualified_native_handshake_identity",
-      "m2b_status": "locally_qualified_datagram_independence_quiet_default",
-      "m2c_status": "locally_qualified_raw_fec_composition",
       "full_m2_status": "qualified",
-      "placement": "UDPspeeder source/repair datagram -> DTLS application datagram -> udp2raw FakeTCP",
       "certificate_policy": "operator-controlled X.509 certificate; native trust-chain and hostname verification",
       "zero_rtt": "disabled"
     },
-    "session_status": "V2_M3A_locally_qualified_control_framing_M3B_auth_active",
+    "session_status": "V2_M3A_control_and_M3B_token_auth_locally_qualified_M3C_liveness_active",
     "two_lane_status": "not_admitted; future design uses two independent DTLS associations and one shared FEC decoder",
     "kernel_anchor_status": "deferred_to_V2_M4",
     "tun_status": "deferred_to_V2_M6",
@@ -59,8 +55,8 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "50addb1fdd577528993bdce241a67cc98d45f5c9",
+    "tested_commit": "7458a5489f91b232af1577d72a330ee8d8b5b6b1",
     "result": "pass",
-    "command": "M3A local authority: go test ./internal/control ./cmd/wbd-control-probe passed with Go 1.23.2. The direct qualification script then used the accepted quiet DTLS shim and wbd.test certificate path; after both peers reported DTLSv1.3 READY, HELLO 1..1 -> ACCEPT 1 and HELLO 2..2 -> ERROR no-common-version both passed. GitHub ci/handoff-verify/build-quic-oracle also passed for the committed tree."
+    "command": "M3B local authority: Go 1.23.2 unit/state tests passed, then direct DTLS qualification ran auth-disabled, correct-token and wrong-token cases only after both peers reported DTLSv1.3 READY. Correct token produced AUTH_OK/Established; wrong token returned ERROR code 5 and Failed. GitHub ci/handoff-verify/build-quic-oracle all passed for the committed tree."
   }
 }
