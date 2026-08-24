@@ -5,7 +5,7 @@
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "7d3c917d7c2a85d4f4fec0041adfbfead9c96574",
+  "checkpoint_based_on_head_sha": "3caa571cfc2ad47bb8e577226842df56fe71f446",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
@@ -14,7 +14,7 @@
     "local_optimization_stop_rule": "Do not write a new FEC protocol, add two lanes, integrate WireGuard/Xray, or implement Auto until the exact pinned one-lane udp2raw 20230206.0 + UDPspeeder 20230206.0 baseline is locally reproduced with exact hashes and the existing M10-004 reference impairment family. Do not put ordinary REALITY/Vision/TCP back outside the raw/FEC carrier."
   },
   "continuation_cursor": {
-    "last_completed_action": "Architecture restart completed on new branch dev/wbd-raw-fec-v2 after V1 M10-004 no-go. Added ADR-0002 and rewrote PROJECT_CONSTITUTION.md, ARCHITECTURE.md and ROADMAP.md for an unordered udp2raw-compatible FakeTCP + FEC mainline. Android/no-root portability was removed. The pinned udp2raw tag 20230206.0 commit e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63 and UDPspeeder tag 20230206.0 commit 61b24a369700c3d8248dd18fa9a524b778741454 are promoted from external reference to the V2 product baseline. One raw lane is mandatory first; a second raw lane may later stripe FEC symbols under the same total byte budget. An easy-faketcp-inspired kernel TCP anchor is admitted only as a packet-capture experiment for real OS handshake/control/RST behavior; payload must never enter the kernel TCP byte stream. Stock Xray is to run above/inside the protected virtual link, initially through WireGuard or equivalent UDP/L3 glue, so public ordinary-TCP HOL is not reintroduced. PR #2 remains historical rejected evidence; PR #3 is the active V2 development PR.",
+    "last_completed_action": "Architecture restart completed on new branch dev/wbd-raw-fec-v2 after V1 M10-004 no-go. Added ADR-0002 and rewrote PROJECT_CONSTITUTION.md, ARCHITECTURE.md and ROADMAP.md for an unordered udp2raw-compatible FakeTCP + FEC mainline. Android/no-root portability was removed. The pinned udp2raw tag 20230206.0 commit e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63 and UDPspeeder tag 20230206.0 commit 61b24a369700c3d8248dd18fa9a524b778741454 are promoted from external reference to the V2 product baseline. One raw lane is mandatory first; a second raw lane may later stripe FEC symbols under the same total byte budget. An easy-faketcp-inspired kernel TCP anchor is admitted only as a packet-capture experiment for real OS handshake/control/RST behavior; payload must never enter the kernel TCP byte stream. Stock Xray is to run above/inside the protected virtual link, initially through WireGuard or equivalent UDP/L3 glue, so public ordinary-TCP HOL is not reintroduced. PR #2 is closed as historical rejected evidence; PR #3 is active. Continuity tests were updated so they assert V2 FakeTCP/FEC, Android-out-of-scope and no-public-outer-TCP invariants instead of the rejected V1 real-kernel-TCP invariants.",
     "current_task": "V2-M1: locally reproduce the exact pinned one-lane udp2raw + UDPspeeder transport as the V2 product baseline before modifying it.",
     "why_now": "The failed multi-TCP architecture is already conclusively rejected, while the exact pinned udp2raw + UDPspeeder combination demonstrated approximately 71 ms p99 and 100% delivery through the tested 15% forward FEC-shard loss profile. V2 should start from the known-good unordered carrier rather than immediately inventing a replacement.",
     "done_when": "The local sandbox/privileged host restores or rebuilds the exact pinned udp2raw and UDPspeeder versions, verifies source commit and SHA-256 identities, runs the one-lane topology at approximately 50 ms RTT over 0/1/5/10/15% impairment with both 20:10 and 20:20 fixed FEC where practical, records machine-readable p50/p95/p99/delivery/bytes/CPU results, and confirms the result class is consistent with the qualified M10-004 reference. GitHub Actions may relay build bytes but cannot substitute for local execution.",
@@ -29,7 +29,8 @@
     "deps/oracle-lock.json",
     ".wbd/handoff/current.json",
     ".wbd/handoff/data-plane.json",
-    "scripts/verify_handoff.py"
+    "scripts/verify_handoff.py",
+    "tests/test_handoff.py"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
@@ -50,8 +51,8 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "7d3c917d7c2a85d4f4fec0041adfbfead9c96574",
+    "tested_commit": "3caa571cfc2ad47bb8e577226842df56fe71f446",
     "result": "not_run",
-    "command": "No new runtime transport code was added in the V2 architecture restart. Use GitHub handoff/CI only to validate repository consistency; V2 runtime qualification begins at V2-M1 and remains local-authoritative."
+    "command": "No V2 runtime transport code was added in this architecture restart. Repository continuity is validated by CI/handoff tests; local-authoritative runtime qualification begins at V2-M1."
   }
 }
