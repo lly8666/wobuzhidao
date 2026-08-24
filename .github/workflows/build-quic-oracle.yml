@@ -8,6 +8,12 @@ on:
       - 'tools/quic-oracle/**'
       - '.github/workflows/build-quic-oracle.yml'
       - 'deps/oracle-lock.json'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/quic-oracle/**'
+      - '.github/workflows/build-quic-oracle.yml'
+      - 'deps/oracle-lock.json'
 
 permissions:
   contents: read
