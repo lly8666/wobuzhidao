@@ -30,6 +30,7 @@ const (
 	TypeAuthOK
 	TypePing
 	TypePong
+	TypeClose
 )
 
 type ErrorCode uint16
@@ -69,6 +70,22 @@ type Ping struct {
 
 type Pong struct {
 	Nonce uint64
+}
+
+type CloseReason uint16
+
+const (
+	CloseNormal CloseReason = 1 + iota
+	CloseIdleTimeout
+	CloseAuthFailure
+	ClosePolicy
+	CloseProtocolError
+	CloseTransportTransient
+)
+
+type Close struct {
+	Reason CloseReason
+	Detail string
 }
 
 var (
@@ -163,6 +180,25 @@ func Marshal(frame any) ([]byte, error) {
 	case *Pong:
 		if f == nil {
 			return nil, fmt.Errorf("%w: nil PONG", ErrMalformed)
+		}
+		return Marshal(*f)
+	case Close:
+		typ = TypeClose
+		if !validCloseReason(f.Reason) {
+			return nil, fmt.Errorf("%w: close reason %d", ErrUnsupported, f.Reason)
+		}
+		if !utf8.ValidString(f.Detail) {
+			return nil, fmt.Errorf("%w: invalid UTF-8 close detail", ErrMalformed)
+		}
+		if len(f.Detail) > MaxErrorMessageLen {
+			return nil, fmt.Errorf("%w: close detail %d", ErrLimit, len(f.Detail))
+		}
+		body = make([]byte, 2+len(f.Detail))
+		binary.BigEndian.PutUint16(body[:2], uint16(f.Reason))
+		copy(body[2:], f.Detail)
+	case *Close:
+		if f == nil {
+			return nil, fmt.Errorf("%w: nil CLOSE", ErrMalformed)
 		}
 		return Marshal(*f)
 	default:
@@ -261,6 +297,22 @@ func Unmarshal(data []byte) (any, error) {
 			return nil, fmt.Errorf("%w: PONG body %d", ErrMalformed, len(body))
 		}
 		return Pong{Nonce: binary.BigEndian.Uint64(body)}, nil
+	case TypeClose:
+		if len(body) < 2 {
+			return nil, fmt.Errorf("%w: CLOSE body %d", ErrMalformed, len(body))
+		}
+		reason := CloseReason(binary.BigEndian.Uint16(body[:2]))
+		if !validCloseReason(reason) {
+			return nil, fmt.Errorf("%w: close reason %d", ErrUnsupported, reason)
+		}
+		detail := body[2:]
+		if len(detail) > MaxErrorMessageLen {
+			return nil, fmt.Errorf("%w: close detail %d", ErrLimit, len(detail))
+		}
+		if !utf8.Valid(detail) {
+			return nil, fmt.Errorf("%w: invalid UTF-8 close detail", ErrMalformed)
+		}
+		return Close{Reason: reason, Detail: string(detail)}, nil
 	default:
 		return nil, fmt.Errorf("%w: type %d", ErrUnsupported, data[5])
 	}
@@ -291,6 +343,37 @@ func validateHello(h Hello) error {
 	return nil
 }
 
+func validCloseReason(r CloseReason) bool {
+	return r >= CloseNormal && r <= CloseTransportTransient
+}
+
+func ReconnectAllowed(reason CloseReason) bool {
+	switch reason {
+	case CloseIdleTimeout, CloseTransportTransient:
+		return true
+	default:
+		return false
+	}
+}
+
+func Backoff(attempt uint32, min, max uint64) (uint64, error) {
+	if min == 0 || max < min {
+		return 0, fmt.Errorf("%w: invalid backoff range %d..%d", ErrMalformed, min, max)
+	}
+	d := min
+	for i := uint32(0); i < attempt && d < max; i++ {
+		if d > max/2 {
+			d = max
+			break
+		}
+		d *= 2
+		if d > max {
+			d = max
+		}
+	}
+	return d, nil
+}
+
 type State byte
 
 const (
@@ -298,6 +381,7 @@ const (
 	StateAwaitAuth
 	StateEstablished
 	StateFailed
+	StateClosed
 )
 
 type SessionStats struct {
@@ -311,6 +395,7 @@ type SessionStats struct {
 	PingsReceived  uint64
 	PongsSent      uint64
 	LastActivity   uint64
+	CloseReason    CloseReason
 }
 
 type ServerSession struct {
@@ -351,6 +436,16 @@ func (s *ServerSession) IdleExpired(now, idle uint64) bool {
 		return false
 	}
 	return now-s.stats.LastActivity >= idle
+}
+
+func (s *ServerSession) ExpireIdle(now, idle uint64) bool {
+	if s.state != StateEstablished || !s.IdleExpired(now, idle) {
+		return false
+	}
+	s.state = StateClosed
+	s.stats.CloseReason = CloseIdleTimeout
+	s.syncStatsState()
+	return true
 }
 
 func (s *ServerSession) Handle(frame any) any {
@@ -418,9 +513,17 @@ func (s *ServerSession) handleDecoded(frame any) any {
 			s.stats.PongsSent++
 			return Pong{Nonce: p.Nonce}
 		}
+		if c, ok := frame.(Close); ok {
+			s.state = StateClosed
+			s.stats.CloseReason = c.Reason
+			s.syncStatsState()
+			return c
+		}
 		return Error{Code: ErrorUnexpectedState, Message: "session already established"}
 	case StateFailed:
 		return Error{Code: ErrorUnexpectedState, Message: "session failed"}
+	case StateClosed:
+		return Error{Code: ErrorUnexpectedState, Message: "session closed"}
 	default:
 		return Error{Code: ErrorUnexpectedState, Message: "invalid session state"}
 	}
