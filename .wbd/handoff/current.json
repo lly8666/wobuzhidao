@@ -1,0 +1,45 @@
+{
+  "schema_version": "wbd-session-handoff/v1",
+  "continuity_sequence": 1,
+  "repository": "lly8666/wobuzhidao",
+  "active_branch": "dev/wbd-multilane-v1",
+  "active_issue": 1,
+  "checkpoint_based_on_head_sha": "d0dbe06d3f7f5a0290cdfa0873fc09759d5714eb",
+  "live_refresh_required": true,
+  "do_not_ask_user_to_repeat": true,
+  "strategic_horizon": {
+    "terminal_goal": "Build a personal cross-platform VPN whose logical weak-network behavior approaches UDP/QUIC while public carriers remain stock REALITY/Vision over real kernel TCP.",
+    "current_milestone": "M0 repository-backed continuity and benchmark contract",
+    "local_optimization_stop_rule": "Do not implement transport code until a fresh agent can recover the architecture, hard constraints, current cursor and binary/test authority from bounded repository state."
+  },
+  "continuation_cursor": {
+    "last_completed_action": "Completed M0: initialized the repository and issue #1 rendezvous, froze the real-TCP/stock-REALITY-Vision/RBC architecture and roadmap, added Drive-only binary and local-sandbox qualification contracts, and added a local handoff verifier plus tests.",
+    "current_task": "M1-001: start the protocol layer with a minimal deterministic frame/session vocabulary; do not add FEC, Xray integration or TUN yet.",
+    "why_now": "The project will span many short-lived chat agents; repository-backed continuity must be proven before implementation state begins to accumulate.",
+    "done_when": "A pure-Go WBD v1 codec for DATA, DATAGRAM, ACK and GAP_HINT has deterministic round-trip and malformed-input tests, with logical identity explicitly independent from lane/transmission identity.",
+    "next_atomic_action": "M1-001: define the minimal WBD v1 frame/session vocabulary and implement a deterministic pure-Go frame codec for DATA, DATAGRAM, ACK and GAP_HINT with malformed-input tests; do not add FEC, Xray or TUN yet."
+  },
+  "resume_read_set": [
+    "PROJECT_CONSTITUTION.md",
+    "ARCHITECTURE.md",
+    "ROADMAP.md",
+    "UPSTREAMS.md",
+    ".wbd/handoff/current.json",
+    ".wbd/handoff/data-plane.json",
+    "scripts/verify_handoff.py"
+  ],
+  "required_data_plane_assets": [],
+  "udp_like_status": {
+    "authority": "not_measured_yet",
+    "udp_oracle": null,
+    "quic_oracle": null,
+    "single_tcp_baseline": null,
+    "current_best_variant": null
+  },
+  "local_test_snapshot": {
+    "authority": "snapshot_not_live",
+    "tested_commit": "d0dbe06d3f7f5a0290cdfa0873fc09759d5714eb",
+    "result": "pass",
+    "command": "python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
+  }
+}
