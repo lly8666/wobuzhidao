@@ -17,6 +17,7 @@ func testSweepSpec() SweepSpec {
 		}},
 		LaneCounts:            []int{1, 2, 4},
 		WBDModes:              []string{"normal", "auto"},
+		ReplicationCopies:     []int{2, 3},
 		Windows:               []int{1, 4},
 		FECProfiles:           []FECConfig{FECOff(), UDPspeederDefaultFEC(), UDPspeederOneToOneFEC()},
 		IncludeNative:         true,
@@ -30,11 +31,12 @@ func TestExpandSweepGeneratesRunnableAndExperimentalCases(t *testing.T) {
 		t.Fatal(err)
 	}
 	// WBD: 3 lanes * 2 modes * 2 windows * 3 fec profiles = 36.
+	// Replication upper bound: 2 copy counts * 2 windows = 4.
 	// Native: TCP + UDP = 2. Oracle: two enabled FEC profiles = 2.
-	if len(cases) != 40 {
-		t.Fatalf("cases=%d want=40", len(cases))
+	if len(cases) != 44 {
+		t.Fatalf("cases=%d want=44", len(cases))
 	}
-	var runnable, experimental, oracle11 int
+	var runnable, replicated, experimental, oracle11 int
 	for _, c := range cases {
 		switch c.Engine {
 		case EngineWBDReal:
@@ -42,6 +44,11 @@ func TestExpandSweepGeneratesRunnableAndExperimentalCases(t *testing.T) {
 				t.Fatalf("bad runnable case: %#v", c)
 			}
 			runnable++
+		case EngineWBDReplicated:
+			if !c.Runnable || c.LaneCount < 2 || c.LaneCount > 3 || c.FEC.Enabled {
+				t.Fatalf("bad replicated case: %#v", c)
+			}
+			replicated++
 		case EngineWBDFECExperiment:
 			if c.Runnable || !c.FEC.Enabled {
 				t.Fatalf("bad FEC case: %#v", c)
@@ -59,8 +66,8 @@ func TestExpandSweepGeneratesRunnableAndExperimentalCases(t *testing.T) {
 			}
 		}
 	}
-	if runnable != 12 || experimental != 24 || oracle11 != 1 {
-		t.Fatalf("runnable=%d experimental=%d oracle11=%d", runnable, experimental, oracle11)
+	if runnable != 12 || replicated != 4 || experimental != 24 || oracle11 != 1 {
+		t.Fatalf("runnable=%d replicated=%d experimental=%d oracle11=%d", runnable, replicated, experimental, oracle11)
 	}
 }
 

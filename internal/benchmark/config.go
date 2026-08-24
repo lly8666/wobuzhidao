@@ -16,6 +16,7 @@ const (
 	EngineNativeTCP        = "native-tcp"
 	EngineNativeUDP        = "native-udp"
 	EngineWBDReal          = "wbd-real"
+	EngineWBDReplicated    = "wbd-replicate-upper-bound"
 	EngineWBDFECExperiment = "wbd-fec-experimental"
 	EngineUDP2RawSpeeder   = "udp2raw-udpspeeder"
 )
@@ -78,6 +79,7 @@ type SweepSpec struct {
 	Networks              []NetworkConfig `json:"networks"`
 	LaneCounts            []int           `json:"lane_counts"`
 	WBDModes              []string        `json:"wbd_modes"`
+	ReplicationCopies     []int           `json:"replication_copies,omitempty"`
 	Windows               []int           `json:"windows"`
 	FECProfiles           []FECConfig     `json:"fec_profiles"`
 	IncludeNative         bool            `json:"include_native"`
@@ -141,6 +143,11 @@ func (s SweepSpec) Validate() error {
 	for _, laneCount := range s.LaneCounts {
 		if laneCount < 1 || laneCount > 16 {
 			return fmt.Errorf("%w: lane_count=%d", ErrInvalidSweepSpec, laneCount)
+		}
+	}
+	for _, copies := range s.ReplicationCopies {
+		if copies < 2 || copies > 3 {
+			return fmt.Errorf("%w: replication_copies=%d (upper-bound runner accepts 2 or 3)", ErrInvalidSweepSpec, copies)
 		}
 	}
 	for _, window := range s.Windows {
@@ -222,6 +229,25 @@ func ExpandSweep(spec SweepSpec) ([]ExperimentCase, error) {
 				out = append(out, ExperimentCase{ID: caseID(spec.Name, n.Name, engine), Engine: engine, Runnable: true, Network: n, LaneCount: 1, Window: 1, FEC: FECOff()})
 			}
 		}
+		for _, copies := range spec.ReplicationCopies {
+			for _, window := range spec.Windows {
+				c := ExperimentCase{
+					ID:        caseID(spec.Name, n.Name, fmt.Sprintf("replicate-%dx", copies), fmt.Sprintf("w%d", window)),
+					Engine:    EngineWBDReplicated,
+					Runnable:  true,
+					Network:   n,
+					LaneCount: copies,
+					Window:    window,
+					FEC:       FECOff(),
+				}
+				if copies == 3 {
+					c.CommandHint = "3.0x proactive replication is an experimental ceiling probe and exceeds the 2.0x product RBC budget"
+				} else {
+					c.CommandHint = "2.0x proactive replication ceiling probe; no FEC and no reactive reinjection"
+				}
+				out = append(out, c)
+			}
+		}
 		for _, lanes := range spec.LaneCounts {
 			for _, mode := range spec.WBDModes {
 				for _, window := range spec.Windows {
@@ -280,6 +306,8 @@ func RunExperimentCase(ctx context.Context, c ExperimentCase) (RealFaultObservat
 		return RunRealFaultTCP(ctx, p, sched)
 	case EngineNativeUDP:
 		return RunRealFaultUDP(ctx, p, sched)
+	case EngineWBDReplicated:
+		return RunRealFaultWBDReplicated(ctx, p, c.LaneCount)
 	case EngineWBDReal:
 		mode, err := parseRealWBDMode(c.WBDMode)
 		if err != nil {
