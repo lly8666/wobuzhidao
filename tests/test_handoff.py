@@ -48,9 +48,23 @@ class HandoffContractTest(unittest.TestCase):
         self.assertIn("Do not tune record length, timing, handshake extensions", adr)
 
         lock = json.loads((ROOT / "deps/security-lock.json").read_text(encoding="utf-8"))
-        self.assertEqual(lock["dtls"]["tag"], "v5.9.2-stable")
-        self.assertEqual(lock["dtls"]["commit"], "ac01707f552c611fbd135cc723b2682b3e7f80f2")
-        self.assertEqual(lock["dtls"]["status"], "architecture_pinned_not_locally_qualified")
+        dtls = lock["dtls"]
+        self.assertEqual(dtls["tag"], "v5.9.2-stable")
+        self.assertEqual(dtls["commit"], "ac01707f552c611fbd135cc723b2682b3e7f80f2")
+        self.assertEqual(dtls["status"], "V2_M2_LOCALLY_QUALIFIED_RAW_FEC_COMPOSITION")
+        self.assertEqual(dtls["full_m2_status"], "qualified")
+        self.assertEqual(dtls["m2a_local_qualification"]["result"], "pass")
+        self.assertEqual(dtls["m2b_local_qualification"]["result"], "pass")
+        self.assertEqual(dtls["m2c_local_qualification"]["result"], "pass")
+        self.assertEqual(dtls["initial_policy"]["zero_rtt"], "disabled")
+        self.assertEqual(
+            dtls["initial_policy"]["manual_openssl_compat_x509_verify_cert"],
+            "forbidden_for_product_peer_auth",
+        )
+
+        roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
+        self.assertIn("V2-M3 | native WBD session/control inside DTLS", roadmap)
+        self.assertIn("V2-M5 | optional two raw lanes", roadmap)
 
     def test_no_required_binary_state_at_bootstrap(self):
         dp = json.loads((ROOT / ".wbd/handoff/data-plane.json").read_text())
