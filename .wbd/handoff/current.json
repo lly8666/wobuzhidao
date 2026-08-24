@@ -1,24 +1,24 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 16,
+  "continuity_sequence": 17,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "e82092953df8304feff0c8629e12e23c89609d97",
+  "checkpoint_based_on_head_sha": "b9b505395f3bbf31b4279d492b15f2506f0f8483",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows using unordered FakeTCP/FEC carriers plus a native standards-compliant DTLS 1.3 WBD security/session layer. Xray/VLESS/Vision/REALITY, WireGuard and Android are not part of the V2.1 product stack.",
-    "current_milestone": "V2-M2 native WBD DTLS 1.3 security shim; M2A handshake/identity gate passed, M2B datagram independence active",
-    "local_optimization_stop_rule": "Keep M2 on one DTLS association and one raw lane. Do not add custom FEC, two lanes, kernel-anchor work, native TUN/session features, Auto, custom post-handshake crypto or detector-specific fingerprint shaping. Prove datagram independence before raw/FEC integration."
+    "current_milestone": "V2-M2 native WBD DTLS 1.3 security shim; M2A identity and M2B datagram independence passed, M2C raw/FEC integration active",
+    "local_optimization_stop_rule": "Keep M2 on one DTLS association and one raw lane. Do not add custom FEC, two lanes, kernel-anchor work, native TUN/session features, Auto, custom post-handshake crypto or detector-specific fingerprint shaping. First prove the qualified DTLS shim composes with the exact M1 UDPspeeder/udp2raw baseline, then measure the 0/1/5/10/15% family."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed V2-M2A at substantive checkpoint e82092953df8304feff0c8629e12e23c89609d97. The wolfSSL v5.9.2-stable tag was explicitly verified to resolve to ac01707f552c611fbd135cc723b2682b3e7f80f2; the exact git-archive source bytes SHA-256 4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b were relayed and built locally with --enable-dtls13 --disable-shared --enable-static. The accepted local static library SHA-256 is 22b132f66b74067507df8a891a2137e78d54309ec424c8bcc7ed9a3ac897c96a. Native DTLS 1.3 client/server methods and wolfSSL_check_domain_name were exercised with a generated CA and SAN wbd.test certificate: the valid hostname/CA completed DTLSv1.3 using TLS_AES_256_GCM_SHA384 and application-data round trip, wrong.test was rejected with peer subject name mismatch, and an untrusted CA was rejected with ASN no signer. Early data and OPENSSL_EXTRA were not enabled. Reproducible probe/driver, receipt and security lock update were committed; temporary source relay workflow was removed.",
-    "current_task": "V2-M2B: implement and locally qualify a bidirectional DTLS 1.3 UDP datagram shim using the M2A-qualified wolfSSL configuration. Prove one input UDP datagram maps to one DTLS application write/read and that loss of one encrypted application datagram does not prevent a later application datagram from being authenticated and delivered.",
-    "why_now": "Certificate identity and the exact DTLS 1.3 implementation are now independently proven. The next structural risk is accidentally rebuilding ordered delivery above DTLS. A plain-UDP shim/drop test isolates that property before UDPspeeder or udp2raw are introduced.",
-    "done_when": "A local client/server shim maintains one DTLS 1.3 association, relays multiple bidirectional UDP application datagrams without merging them into a reliable stream, and a deterministic proxy that drops one post-handshake DTLS application datagram demonstrates that a later record is still independently authenticated/decrypted/delivered. The valid certificate/hostname path remains required. Record/application byte counts and observed drop index are recorded. No FEC or FakeTCP is present in this M2B gate.",
-    "next_atomic_action": "V2-M2B: add a minimal wolfSSL DTLS 1.3 UDP relay with client plaintext-listen and server plaintext-target modes. Run it first over direct localhost UDP with a generated wbd.test certificate. Then place a deterministic UDP proxy between the DTLS peers, allow the handshake to finish, drop exactly one DTLS application datagram, and send numbered application datagrams so delivery of a later number proves no record-order HOL. Commit only after both direct relay and drop-one-record tests pass."
+    "last_completed_action": "Completed V2-M2B at substantive checkpoint b9b505395f3bbf31b4279d492b15f2506f0f8483. A thin bidirectional wolfSSL DTLS 1.3 UDP shim was locally qualified against the M2A-qualified build and certificate path. Direct localhost relay delivered 5/5 numbered datagrams in both directions with one plaintext UDP receive mapped to one wolfSSL_write and one successful wolfSSL_read mapped to one plaintext UDP send. A deterministic post-handshake proxy then dropped exactly the next client-to-server encrypted UDP datagram after 12 forwarded DTLS packets; msg-01 was lost while msg-02 and msg-03 were still independently authenticated, decrypted and echoed, proving no DTLS record-order HOL. The accepted local shim source SHA-256 is e45680a297645812ac5da2133d4357408e81776607ba641c192e1f874e4768ab and accepted binary SHA-256 is 90cc3bf45d1b23cd1848159e730a6b80a2e16221177da5b83078d4db75b22e65. Reproducible driver, receipt, report and security lock update were committed.",
+    "current_task": "V2-M2C: insert the qualified DTLS 1.3 shim between the exact M1 UDPspeeder and udp2raw components on one FakeTCP lane. Start with a clean 20:20 local smoke using the same isolated classic-faketcp/RST-suppression environment, then add the first 1% impairment case only after clean composition passes.",
+    "why_now": "M2A proved identity/security and M2B proved record independence without carrier complexity. The remaining architectural risk is composition: DTLS handshake/application records must traverse the already-qualified FakeTCP lane while UDPspeeder source/repair datagrams remain independently recoverable. A clean smoke isolates wiring/MTU/state issues before the full weak-network matrix.",
+    "done_when": "The exact pinned UDPspeeder 20230206.0 -> qualified WBD DTLS 1.3 shim -> exact pinned udp2raw 20230206.0 one-lane topology runs locally with the M2A wbd.test certificate path, first at 0% and then at 1% impairment. Application echo delivery is complete, DTLS remains DTLSv1.3 with the qualified cipher, and logs/counters prove UDPspeeder encoded datagrams cross as DTLS application records. No two-lane, kernel-anchor, TUN/session or Auto work is admitted. After 0%/1% composition passes, expand M2 to 5/10/15% and security-overhead/CPU accounting.",
+    "next_atomic_action": "V2-M2C: reuse the committed M1 namespace/FakeTCP harness and exact pinned udp2raw/UDPspeeder binaries. Wire UDPspeeder client encoded output to the DTLS client shim plaintext listener; wire the shim transport through udp2raw; on the server side wire udp2raw UDP output into the DTLS server transport listener and its decrypted plaintext target into UDPspeeder server. Run a 20:20 clean smoke first. If and only if it reaches stable DTLS READY and complete application echo delivery, repeat at 1% forward encoded/FEC-datagram impairment and record the delta from M1."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
@@ -27,23 +27,24 @@
     "docs/architecture/ADR-0003-native-dtls.md",
     "docs/benchmarks/v2-m1-one-lane-raw-fec.md",
     "docs/security/v2-m2a-dtls13-handshake.md",
+    "docs/security/v2-m2b-dtls-datagrams.md",
     "deps/oracle-lock.json",
     "deps/security-lock.json",
-    "native/dtls/dtls13_probe.c",
-    "scripts/qualify_v2_m2_dtls13.sh",
-    ".wbd/handoff/current.json",
-    "scripts/verify_handoff.py"
+    "native/dtls/wbd_dtls_shim.c",
+    "scripts/qualify_v2_m2b_dtls_datagrams.py",
+    ".wbd/handoff/current.json"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_M1_raw_FEC_locally_qualified_plus_V2_M2A_native_DTLS13_identity_qualified",
+    "authority": "V2_M1_raw_FEC_locally_qualified_plus_V2_M2A_identity_plus_V2_M2B_datagram_independence",
     "v1_status": "permanently_rejected_multi_ordinary_TCP",
     "v2_raw_fec_status": "locally_qualified_product_baseline",
     "security": {
       "design": "real DTLS 1.3; no Xray/WireGuard",
       "implementation_pin": "wolfSSL v5.9.2-stable / ac01707f552c611fbd135cc723b2682b3e7f80f2",
       "m2a_status": "locally_qualified_native_handshake_identity",
-      "m2b_status": "active_datagram_independence_gate",
+      "m2b_status": "locally_qualified_datagram_independence",
+      "m2c_status": "active_raw_fec_integration",
       "placement": "UDPspeeder source/repair datagram -> DTLS application datagram -> udp2raw FakeTCP",
       "certificate_policy": "operator-controlled X.509 certificate; native trust-chain and hostname verification",
       "zero_rtt": "disabled"
@@ -54,8 +55,8 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "e82092953df8304feff0c8629e12e23c89609d97",
+    "tested_commit": "b9b505395f3bbf31b4279d492b15f2506f0f8483",
     "result": "pass",
-    "command": "M2A local authority: exact source archive SHA verified; local Autotools build with --enable-dtls13 --disable-shared --enable-static; native valid wbd.test DTLSv1.3 handshake/application round trip passed; hostname mismatch and untrusted CA failed as required; reproducibility driver rebuilt from source archive and repeated all three cases successfully."
+    "command": "M2B local authority: M2A receipt/source/build identity verified; shim rebuilt with -Wall -Wextra -Werror; direct DTLSv1.3 relay passed 5/5; deterministic post-handshake proxy dropped one client-to-server encrypted application datagram and later msg-02/msg-03 were independently decrypted/echoed while msg-01 remained lost."
   }
 }
