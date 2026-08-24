@@ -1,34 +1,34 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 6,
+  "continuity_sequence": 7,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-multilane-v1",
   "active_issue": 1,
   "active_pr": 2,
-  "checkpoint_based_on_head_sha": "e46b82caca7a24f108ebb603cf72d50c0f09ee03",
+  "checkpoint_based_on_head_sha": "fa370f6b4da674b300b08accf40cb70dd326ed4d",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal cross-platform VPN whose logical weak-network behavior approaches UDP/QUIC while public carriers remain stock REALITY/Vision over real kernel TCP.",
-    "current_milestone": "M8 redundancy budget controller (RBC) minimum closed loop",
-    "local_optimization_stop_rule": "Do not add FEC, Xray/REALITY integration or TUN until protection modes and auto redundancy state can be represented deterministically, bounded to 1.0x..2.0x, and tested independently of carrier implementation."
+    "current_milestone": "M9 FEC admission experiment under the M8 redundancy budget",
+    "local_optimization_stop_rule": "Do not add a production FEC wire frame, Xray/REALITY integration or TUN until a deterministic same-budget experiment shows that a minimal repair strategy improves logical completion delay beyond M6 reinjection/duplicate recovery in repeatable weak-network cases."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed M7-001 and reconciled its code+handoff history. M7 adds per-lane logical flight credit above lane.Pool with reservation before socket write, ACK-aware release, inactive-lane cleanup, two bulk lanes and one dedicated low-occupancy rescue lane. A real three-TCP localhost test fills both bulk credits, withholds one bulk lane, returns GAP through the rescue lane, reinjects missing STREAM bytes through rescue, completes the logical stream before bulk release, then verifies late original delivery is only a duplicate. Local vet, normal/race tests, protocol fuzz, Linux/386 and Linux/mipsle cross-builds, handoff verification and continuity tests passed.",
-    "current_task": "M8-001: implement the minimum deterministic Redundancy Budget Controller model for normal, weak-1.5x, weak-2x and auto without adding FEC or carrier-specific policy yet.",
-    "why_now": "M7 now bounds lane admission and preserves a rescue path. The next invariant is to make user-selected protection overhead a first-class bounded policy variable so later duplicate/FEC decisions share one budget instead of becoming separate protocols.",
-    "done_when": "Pure-Go deterministic tests define ProtectionMode normal/weak-1.5x/weak-2x/auto, map fixed modes to 1.0/1.5/2.0 intentional multipliers, implement an auto level set 1.0/1.25/1.5/2.0 with fast-up/slow-down hysteresis based only on logical delivery samples, enforce a hard 2.0x ceiling, and expose budget accounting suitable for later FEC/duplicate/reinjection allocation. No wire-format or Xray/TUN changes.",
-    "next_atomic_action": "M8-001: add internal/rbc with protection modes, rational multiplier/budget accounting and a deterministic auto controller using injected samples/windows. Unit-test fixed-mode accounting, 2.0x hard cap, fast-up on bad logical delivery, slow-down only after multiple clean windows, and anti-flap behavior. Do not add FEC, Xray/REALITY or TUN yet."
+    "last_completed_action": "Completed M8-001 at substantive commit fa370f6b4da674b300b08accf40cb70dd326ed4d: added a pure-Go Redundancy Budget Controller with fixed normal=1.0x, weak-1.5x=1.5x, weak-2x=2.0x and auto levels 1.0/1.25/1.5/2.0 using integer quarter units and a hard 2.0x ceiling. Auto consumes only injected logical-delivery samples and uses deterministic fast-up/slow-down hysteresis. A common prospective budget ledger accounts source bytes and protection spend across duplicate, reinjection and future FEC categories without retroactively granting budget after an Auto upshift. Local vet, normal/race tests, protocol fuzz, Linux/386, Linux/mipsle and Windows/amd64 RBC cross-builds, handoff verification and continuity tests passed. M7 was also fully reconciled before this checkpoint.",
+    "current_task": "M9-001: build a deterministic weak-network protection micro-harness that consumes the M8 RBC budget and compares reinjection/duplicate allocation against a minimal XOR-repair prototype under identical source bytes and fault schedules.",
+    "why_now": "The project now has bounded per-lane flight, a dedicated rescue path, logical reinjection and an explicit 1.0x..2.0x protection budget. FEC should be admitted only if it buys measurable logical-delivery latency under the same byte budget rather than adding complexity by assumption.",
+    "done_when": "A pure-Go deterministic harness can replay fixed stall/burst/reorder schedules for the same logical chunks, enforce identical RBC protection entitlement for each strategy, report logical completion step/latency proxy plus protection bytes, compare reinjection-only, duplicate and minimal XOR-repair variants at 1.5x and 2.0x, and either demonstrate a repeatable repair advantage or record a clear no-admit result. No public wire-format, Xray/REALITY, TUN or platform-specific changes.",
+    "next_atomic_action": "M9-001: add an internal deterministic protection simulator/harness around RBC Budget and logical chunk identities; implement reinjection-only and duplicate baselines plus the smallest XOR-repair prototype as an experiment, then run fixed single-stall and burst-loss schedules at 1.5x/2.0x. Keep FEC experimental unless it measurably improves logical completion under equal intentional-byte budget."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
     "docs/protocol/wbd-v1.md",
+    "internal/rbc/controller.go",
+    "internal/rbc/controller_test.go",
     "internal/scheduler/flight.go",
-    "internal/scheduler/flight_test.go",
     "internal/recovery/stream.go",
-    "internal/session/receipt.go",
     ".wbd/handoff/current.json",
     ".wbd/handoff/data-plane.json",
     "scripts/verify_handoff.py"
@@ -43,8 +43,8 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "e46b82caca7a24f108ebb603cf72d50c0f09ee03",
+    "tested_commit": "fa370f6b4da674b300b08accf40cb70dd326ed4d",
     "result": "pass",
-    "command": "go vet ./... && go test ./... -count=1 && go test -race ./... -count=1 && go test ./internal/protocol -run='^$' -fuzz=FuzzUnmarshalFrame -fuzztime=2s && GOOS=linux GOARCH=386 go test -c ./internal/scheduler -o /tmp/scheduler-386.test && GOOS=linux GOARCH=mipsle go test -c ./internal/scheduler -o /tmp/scheduler-mipsle.test && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
+    "command": "go vet ./... && go test ./... -count=1 && go test -race ./... -count=1 && go test ./internal/protocol -run='^$' -fuzz=FuzzUnmarshalFrame -fuzztime=2s && GOOS=linux GOARCH=386 go test -c ./internal/rbc -o /tmp/rbc-386.test && GOOS=linux GOARCH=mipsle go test -c ./internal/rbc -o /tmp/rbc-mipsle.test && GOOS=windows GOARCH=amd64 go test -c ./internal/rbc -o /tmp/rbc-windows-amd64.test.exe && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
   }
 }
