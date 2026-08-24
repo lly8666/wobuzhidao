@@ -1,23 +1,23 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 3,
+  "continuity_sequence": 4,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-multilane-v1",
   "active_issue": 1,
-  "checkpoint_based_on_head_sha": "461cfb4a9917f04487fbfa8a8dfa27e24d38b74b",
+  "checkpoint_based_on_head_sha": "c5f0da46f4f7ef9aa6af08a2ba582e9e29d5d028",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal cross-platform VPN whose logical weak-network behavior approaches UDP/QUIC while public carriers remain stock REALITY/Vision over real kernel TCP.",
-    "current_milestone": "M3 one real TCP lane abstraction",
-    "local_optimization_stop_rule": "Do not add multiple lanes, scheduling, FEC/RBC, Xray/REALITY integration or TUN until one real localhost TCP carrier can stream multiple WBD frames correctly across arbitrary TCP segmentation/coalescing and clean shutdown."
+    "current_milestone": "M4 multi-lane pool and deterministic scheduling",
+    "local_optimization_stop_rule": "Do not add logical ACK/GAP recovery, cross-lane reinjection, FEC/RBC, Xray/REALITY integration or TUN until two independent real TCP lanes can be joined into one logical receive fan-in with explicit local LaneID, deterministic scheduling and clean lane shutdown."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed M2-001: added a deterministic, goroutine-safe logical receive engine. STREAM now supports bounded out-of-order buffering, contiguous delivery, reinjection/duplicate suppression, overlap conflict detection, transactional FIN/final-offset consistency and per-flow type safety. DATAGRAM now supports logical deduplication, hard-deadline expiry and deterministic pruning via ManualClock. Local go vet, normal/race Go tests, handoff verification and continuity tests all passed.",
-    "current_task": "M3-001: implement exactly one real TCP lane abstraction plus incremental frame streaming on localhost; no multi-lane scheduler, FEC/RBC, Xray or TUN.",
-    "why_now": "Logical STREAM/DATAGRAM semantics are now independent of carrier behavior. The next uncertainty is whether the existing frame envelope and receiver survive real TCP byte-stream segmentation/coalescing and bidirectional socket lifecycle without adding transport policy.",
-    "done_when": "Local tests use real 127.0.0.1 TCP sockets to exchange multiple DATA/DATAGRAM/ACK/GAP_HINT frames in both directions, with an incremental bounded decoder that tolerates fragmented and coalesced writes, rejects malformed/oversize frames, and closes without goroutine/socket leaks while all M1/M2 tests remain green.",
-    "next_atomic_action": "M3-001: add a bounded incremental WBD frame reader/writer and a single real TCP lane wrapper; qualify it with 127.0.0.1 client/server tests that deliberately fragment/coalesce frames and exercise bidirectional close; do not add multiple lanes, scheduling, FEC/RBC, Xray or TUN."
+    "last_completed_action": "Completed M3-001: added a bounded incremental WBD frame reader/writer and a thin single real-TCP lane wrapper. Local 127.0.0.1 tests deliberately coalesced frames and fragmented writes into 1/2/5/3/11-byte pieces, verified bidirectional DATA/DATAGRAM/ACK/GAP_HINT delivery, concurrent writer serialization and TCP half-close EOF semantics. go vet, normal/race tests, a 2-second ReadFrame fuzz run (~110k executions), handoff verification and continuity tests passed; remote CI also passed.",
+    "current_task": "M4-001: join exactly two independent real TCP lanes into one local lane pool with deterministic new-data scheduling and receive fan-in; still no ACK-driven recovery, reinjection, FEC/RBC, Xray or TUN.",
+    "why_now": "One carrier now has correct byte-stream framing. The next architectural claim to prove is that carrier-level stalls/reordering stay isolated by lane and that the existing logical receiver can merge frames arriving from independent real TCP sequence spaces.",
+    "done_when": "Real localhost tests establish two TCP lanes with distinct local LaneIDs, prove deterministic round-robin/explicit lane selection, receive events identify their lane, one delayed lane does not prevent another lane from delivering datagrams or later stream chunks, stream reassembly waits only for its logical hole, cross-lane duplicate logical data is deduplicated, and pool close unblocks all readers without leaks.",
+    "next_atomic_action": "M4-001: implement a two-lane-capable Pool over internal/lane.TCP with local LaneID, explicit SendOn plus deterministic round-robin SendNext, and fan-in Receive events; qualify on two real 127.0.0.1 TCP connections with one lane deliberately delayed, including DATAGRAM progress, STREAM reordering and cross-lane duplicate dedup; do not implement logical ACK/GAP recovery or reinjection yet."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
@@ -25,10 +25,10 @@
     "ROADMAP.md",
     "docs/protocol/wbd-v1.md",
     "internal/protocol/frame.go",
-    "internal/protocol/identity.go",
-    "internal/session/clock.go",
+    "internal/protocol/stream.go",
     "internal/session/receiver.go",
-    "internal/session/receiver_test.go",
+    "internal/lane/tcp.go",
+    "internal/lane/tcp_test.go",
     ".wbd/handoff/current.json",
     ".wbd/handoff/data-plane.json",
     "scripts/verify_handoff.py"
@@ -43,9 +43,9 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "461cfb4a9917f04487fbfa8a8dfa27e24d38b74b",
+    "tested_commit": "c5f0da46f4f7ef9aa6af08a2ba582e9e29d5d028",
     "result": "pass",
-    "command": "go vet ./... && go test ./... -count=1 && go test -race ./... -count=1 && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
+    "command": "go vet ./... && go test ./... -count=1 && go test -race ./... -count=1 && go test ./internal/protocol -run=^$ -fuzz=FuzzReadFrame -fuzztime=2s && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
   },
   "active_pr": 2
 }
