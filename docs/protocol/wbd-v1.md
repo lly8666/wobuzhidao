@@ -148,3 +148,41 @@ M4 deliberately does **not** infer loss from delay and does not resend a missing
 - no Xray/REALITY integration,
 - no TUN/VPN,
 - no authentication.
+
+## M5 logical receipt semantics
+
+M5 turns the already-defined ACK/GAP_HINT frames into receiver-generated logical state without adding sender-side recovery policy.
+
+### ACK ranges
+
+`Receiver.ReceiptFor(flow_id)` derives normalized logical receipt ranges from successful receive state, independent of the lane on which each transmission arrived:
+
+- STREAM ACKs cover the contiguous delivered prefix plus every normalized out-of-order buffered segment.
+- DATAGRAM ACKs cover live, delivered datagram IDs; expired arrivals are not acknowledged.
+- If more than `MaxAckRanges` normalized ranges exist, the snapshot is split into multiple valid ACK frames.
+- a STREAM ACK may carry the envelope FIN flag to report that a consistent logical FIN was observed. This allows an empty stream to be acknowledged with `FIN=true` and zero byte ranges.
+
+Because ACK ranges are half-open, DATAGRAM IDs are capped at `MaxDatagramID = MaxValue-1`; the largest ID therefore remains representable as `[MaxDatagramID, MaxValue)`.
+
+### First observable gap
+
+A receipt exposes at most one current `GAP_HINT`, always the earliest hole that can be proven from received logical state:
+
+- STREAM: `[next_contiguous_offset, first_buffered_offset)`, or a FIN-revealed tail hole when final offset is known.
+- DATAGRAM: the first internal gap between live delivered datagram IDs. M5 does not assume IDs before the first observed datagram were necessarily sent.
+
+A GAP_HINT is diagnostic/control information only. It does not mean the original TCP carrier failed and does not trigger retransmission in M5.
+
+### Lane independence
+
+ACK and GAP_HINT belong to the logical session, not to a TCP carrier. A receipt produced from DATA received on lane 2 may be sent on lane 1 (or any later healthy lane). Real two-lane localhost tests qualify this behavior.
+
+## Explicit non-goals of M5
+
+- no sender outstanding-data scoreboard,
+- no automatic cross-lane reinjection,
+- no gap/ACK timer policy,
+- no FEC/repair frame,
+- no RBC/adaptive scheduling,
+- no Xray/REALITY integration,
+- no TUN/VPN.

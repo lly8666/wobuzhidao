@@ -13,6 +13,10 @@ const (
 	// avoids cross-language signed/overflow ambiguity later.
 	MaxValue uint64 = (1 << 62) - 1
 
+	// MaxDatagramID leaves one representable endpoint for the half-open ACK
+	// range [datagram_id, datagram_id+1).
+	MaxDatagramID uint64 = MaxValue - 1
+
 	// MaxPayload is a safety bound, not a target chunk size. Scheduler/benchmark
 	// work will choose much smaller normal chunks later.
 	MaxPayload   = 1 << 20 // 1 MiB
@@ -63,6 +67,10 @@ type DatagramFrame struct {
 type AckFrame struct {
 	FlowID FlowID
 	Kind   AckKind
+	// FIN means the receiver has observed a consistent STREAM FIN. It is not
+	// valid for DATAGRAM ACKs. FIN may be true with zero ranges for an empty
+	// stream.
+	FIN    bool
 	Ranges []Range
 }
 
@@ -123,6 +131,9 @@ func MarshalFrame(frame any) ([]byte, error) {
 		return MarshalFrame(*f)
 	case AckFrame:
 		typ = FrameAck
+		if f.FIN {
+			flags |= FlagFIN
+		}
 		var err error
 		body, err = appendAck(body, f)
 		if err != nil {
@@ -182,7 +193,7 @@ func UnmarshalFrame(data []byte) (any, error) {
 
 	switch typ {
 	case FrameData:
-		if flags&^FlagFIN != 0 {
+		if flags & ^FlagFIN != 0 {
 			return nil, fmt.Errorf("%w: DATA flags 0x%x", ErrUnsupported, flags)
 		}
 		return parseData(body, flags&FlagFIN != 0)
@@ -192,10 +203,10 @@ func UnmarshalFrame(data []byte) (any, error) {
 		}
 		return parseDatagram(body)
 	case FrameAck:
-		if flags != 0 {
+		if flags&^FlagFIN != 0 {
 			return nil, fmt.Errorf("%w: ACK flags 0x%x", ErrUnsupported, flags)
 		}
-		return parseAck(body)
+		return parseAck(body, flags&FlagFIN != 0)
 	case FrameGapHint:
 		if flags != 0 {
 			return nil, fmt.Errorf("%w: GAP_HINT flags 0x%x", ErrUnsupported, flags)
@@ -231,8 +242,8 @@ func appendDatagram(dst []byte, f DatagramFrame) ([]byte, error) {
 	if err := checkValue(uint64(f.FlowID), "flow_id"); err != nil {
 		return nil, err
 	}
-	if err := checkValue(uint64(f.DatagramID), "datagram_id"); err != nil {
-		return nil, err
+	if uint64(f.DatagramID) > MaxDatagramID {
+		return nil, fmt.Errorf("%w: datagram_id=%d", ErrLimit, f.DatagramID)
 	}
 	if err := checkValue(uint64(f.TransmissionID), "transmission_id"); err != nil {
 		return nil, err
@@ -255,7 +266,13 @@ func appendAck(dst []byte, f AckFrame) ([]byte, error) {
 	if err := checkKind(f.Kind); err != nil {
 		return nil, err
 	}
-	if len(f.Ranges) == 0 || len(f.Ranges) > MaxAckRanges {
+	if f.FIN && f.Kind != AckStream {
+		return nil, fmt.Errorf("%w: FIN on non-stream ACK", ErrMalformed)
+	}
+	if len(f.Ranges) == 0 && !f.FIN {
+		return nil, fmt.Errorf("%w: empty ACK without FIN", ErrLimit)
+	}
+	if len(f.Ranges) > MaxAckRanges {
 		return nil, fmt.Errorf("%w: ack ranges %d", ErrLimit, len(f.Ranges))
 	}
 	dst = appendUvarint(dst, uint64(f.FlowID))
@@ -322,6 +339,9 @@ func parseDatagram(body []byte) (DatagramFrame, error) {
 	if err != nil {
 		return DatagramFrame{}, err
 	}
+	if id > MaxDatagramID {
+		return DatagramFrame{}, fmt.Errorf("%w: datagram_id=%d", ErrLimit, id)
+	}
 	tx, rest, err := takeUvarint(rest)
 	if err != nil {
 		return DatagramFrame{}, err
@@ -333,7 +353,7 @@ func parseDatagram(body []byte) (DatagramFrame, error) {
 	return DatagramFrame{FlowID: FlowID(flow), DatagramID: DatagramID(id), TransmissionID: TransmissionID(tx), Payload: payload}, nil
 }
 
-func parseAck(body []byte) (AckFrame, error) {
+func parseAck(body []byte, fin bool) (AckFrame, error) {
 	flow, rest, err := takeUvarint(body)
 	if err != nil {
 		return AckFrame{}, err
@@ -350,10 +370,19 @@ func parseAck(body []byte) (AckFrame, error) {
 	if err != nil {
 		return AckFrame{}, err
 	}
-	if count == 0 || count > MaxAckRanges {
+	if fin && kind != AckStream {
+		return AckFrame{}, fmt.Errorf("%w: FIN on non-stream ACK", ErrMalformed)
+	}
+	if count == 0 && !fin {
+		return AckFrame{}, fmt.Errorf("%w: empty ACK without FIN", ErrLimit)
+	}
+	if count > MaxAckRanges {
 		return AckFrame{}, fmt.Errorf("%w: ack ranges %d", ErrLimit, count)
 	}
-	ranges := make([]Range, 0, count)
+	var ranges []Range
+	if count > 0 {
+		ranges = make([]Range, 0, count)
+	}
 	var prevEnd uint64
 	for i := uint64(0); i < count; i++ {
 		start, next, err := takeUvarint(rest)
@@ -379,7 +408,7 @@ func parseAck(body []byte) (AckFrame, error) {
 	if len(rest) != 0 {
 		return AckFrame{}, ErrTrailingBytes
 	}
-	return AckFrame{FlowID: FlowID(flow), Kind: kind, Ranges: ranges}, nil
+	return AckFrame{FlowID: FlowID(flow), Kind: kind, FIN: fin, Ranges: ranges}, nil
 }
 
 func parseGap(body []byte) (GapHintFrame, error) {

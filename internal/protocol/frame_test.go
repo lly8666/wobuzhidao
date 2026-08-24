@@ -121,3 +121,17 @@ func FuzzUnmarshalFrame(f *testing.F) {
 	}
 	f.Fuzz(func(t *testing.T, data []byte) { _, _ = UnmarshalFrame(data) })
 }
+
+func TestAckFINAndDatagramIDRangeBoundary(t *testing.T) {
+	// Empty reliable stream closure still needs a representable logical ACK.
+	roundTrip(t, AckFrame{FlowID: 90, Kind: AckStream, FIN: true})
+	if _, err := MarshalFrame(AckFrame{FlowID: 90, Kind: AckDatagram, FIN: true}); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("DATAGRAM FIN ack: %v", err)
+	}
+	if _, err := MarshalFrame(DatagramFrame{FlowID: 1, DatagramID: DatagramID(MaxDatagramID + 1), TransmissionID: 1}); !errors.Is(err, ErrLimit) {
+		t.Fatalf("unacknowledgeable datagram id: %v", err)
+	}
+	// The largest allowed datagram ID has a half-open ACK endpoint at MaxValue.
+	roundTrip(t, DatagramFrame{FlowID: 1, DatagramID: DatagramID(MaxDatagramID), TransmissionID: 1, Payload: []byte{}})
+	roundTrip(t, AckFrame{FlowID: 1, Kind: AckDatagram, Ranges: []Range{{Start: MaxDatagramID, End: MaxValue}}})
+}

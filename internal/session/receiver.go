@@ -298,7 +298,7 @@ func validateDataFrame(f protocol.DataFrame) error {
 }
 
 func validateDatagramFrame(f protocol.DatagramFrame) error {
-	if uint64(f.FlowID) > protocol.MaxValue || uint64(f.DatagramID) > protocol.MaxValue || uint64(f.TransmissionID) > protocol.MaxValue {
+	if uint64(f.FlowID) > protocol.MaxValue || uint64(f.DatagramID) > protocol.MaxDatagramID || uint64(f.TransmissionID) > protocol.MaxValue {
 		return fmt.Errorf("%w: DATAGRAM identity exceeds 62-bit limit", ErrInvalidFrame)
 	}
 	if len(f.Payload) > protocol.MaxPayload {

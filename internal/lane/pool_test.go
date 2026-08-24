@@ -241,6 +241,7 @@ func TestPoolLaneFailureRemovesLaneAndCloseUnblocksReaders(t *testing.T) {
 	select {
 	case _, ok := <-pool.Events():
 		if ok {
+			// A close-race terminal event is allowed; drain until closure.
 			for range pool.Events() {
 			}
 		}
@@ -263,4 +264,59 @@ func TestPoolRejectsDuplicateAndUnknownLanes(t *testing.T) {
 		t.Fatalf("unknown lane err=%v", err)
 	}
 	_ = pool.Close()
+}
+
+func TestLogicalReceiptCanReturnOnDifferentHealthyLane(t *testing.T) {
+	client1, server1 := realTCPPair(t)
+	client2, server2 := realTCPPair(t)
+	defer server1.Close()
+	defer server2.Close()
+	pool := NewPool(16)
+	if err := pool.Add(1, client1); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.Add(2, client2); err != nil {
+		t.Fatal(err)
+	}
+	defer pool.Close()
+
+	// Data arrives over lane 2 and reveals a stream hole [0,5).
+	if err := server2.Send(protocol.DataFrame{FlowID: 80, Offset: 5, TransmissionID: 1, FIN: true, Payload: []byte("world")}); err != nil {
+		t.Fatal(err)
+	}
+	ev := <-pool.Events()
+	if ev.Err != nil || ev.LaneID != 2 {
+		t.Fatalf("data event=%#v", ev)
+	}
+	recv := session.NewReceiver(nil, 0)
+	if _, err := recv.AcceptData(ev.Frame.(protocol.DataFrame)); err != nil {
+		t.Fatal(err)
+	}
+	receipt, err := recv.ReceiptFor(80)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(receipt.ACKs) != 1 || receipt.Gap == nil {
+		t.Fatalf("receipt=%#v", receipt)
+	}
+
+	// Receipt/control traffic is logical-session state and may use lane 1 even
+	// though the acknowledged data arrived over lane 2.
+	if err := pool.SendOn(1, receipt.ACKs[0]); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.SendOn(1, *receipt.Gap); err != nil {
+		t.Fatal(err)
+	}
+	ack, err := server1.Receive()
+	if err != nil {
+		t.Fatal(err)
+	}
+	gap, err := server1.Receive()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(ack, receipt.ACKs[0]) || !reflect.DeepEqual(gap, *receipt.Gap) {
+		t.Fatalf("cross-lane receipt got=%#v %#v want=%#v %#v", ack, gap, receipt.ACKs[0], *receipt.Gap)
+	}
 }
