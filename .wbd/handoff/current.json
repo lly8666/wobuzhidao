@@ -1,60 +1,57 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 12,
+  "continuity_sequence": 13,
   "repository": "lly8666/wobuzhidao",
-  "active_branch": "dev/wbd-multilane-v1",
+  "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
-  "active_pr": 2,
-  "checkpoint_based_on_head_sha": "12e2a42421b7494a431f0bf3b6dec9ca5984fd83",
+  "active_pr": 3,
+  "checkpoint_based_on_head_sha": "7d3c917d7c2a85d4f4fec0041adfbfead9c96574",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Build a personal cross-platform VPN with strong weak-network behavior, but the current multi-ordinary-TCP WBD carrier architecture is rejected and must not be continued without changing a fundamental carrier/product assumption.",
-    "current_milestone": "M10-004 architecture gate — NO-GO for multi-TCP recovery/FEC",
-    "local_optimization_stop_rule": "Stop all RBC tuning, production FEC framing, larger lane-count experiments, REALITY/Vision integration and TUN/platform work on the current multi-TCP architecture. Resume only after an explicit new architecture decision changes a fundamental assumption such as using a genuinely unordered/datagram-capable carrier or relaxing the current public-carrier constraint."
+    "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows using an unordered FakeTCP/FEC public carrier, with stock Xray composed above/inside the protected virtual link. Android is out of scope.",
+    "current_milestone": "V2-M1 reproduce pinned one-lane udp2raw + UDPspeeder product baseline",
+    "local_optimization_stop_rule": "Do not write a new FEC protocol, add two lanes, integrate WireGuard/Xray, or implement Auto until the exact pinned one-lane udp2raw 20230206.0 + UDPspeeder 20230206.0 baseline is locally reproduced with exact hashes and the existing M10-004 reference impairment family. Do not put ordinary REALITY/Vision/TCP back outside the raw/FEC carrier."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed the M10-004 architecture gate. Added a benchmark-only systematic erasure-code experiment using two independent real kernel TCP lanes, 20:10 (1.5x) and 20:20 (2.0x), with exact erasure-recovery unit tests. Go CI passed. A 50 ms RTT / 200 x 256 B / window 32 / three-seed real-socket sweep over 0/1/2/3/5/8/10/12/15% retransmission-equivalent carrier holds showed clean-network p99 around 52 ms, but 20:20 already reached about 250.5 ms p99 at 1% impairment and remained around 252 ms through 15%; 20:10 was worse. Delivery stayed 100%, proving the failure is latency/HOL rather than reliability. The warmed three-seed udp2raw 20230206.0 + UDPspeeder 20230206.0 mode0 20:20 reference remained about 71 ms p99 with 100% delivery through 15% forward FEC-shard loss. The earlier 2x/3x proactive replication ceiling also failed to remove high-impairment TCP HOL. Current architecture is therefore rejected. Results are recorded in docs/benchmarks/m10-004-fec-no-go.md; temporary benchmark workflows were removed; ARCHITECTURE.md and ROADMAP.md are marked rejected/halted; deps/oracle-lock.json now records the qualified udp2raw/UDPspeeder reference.",
-    "current_task": "HALTED. Preserve the failed experiment as evidence and do not continue implementation on the current multi-TCP WBD architecture.",
-    "why_now": "The strongest favorable FEC experiment still inherited ordered TCP HOL and lost by a large latency margin to the external FEC reference. More tuning, lanes or redundancy would add complexity without addressing the structural carrier constraint.",
-    "done_when": "This architecture remains stopped. If the project is resumed, the first artifact must be a new architecture decision that changes a fundamental carrier/product assumption and defines a new benchmark gate before implementation resumes.",
-    "next_atomic_action": "No code action is authorized on the rejected architecture. If the user chooses to continue the VPN project, draft a new architecture decision comparing genuinely datagram/unordered carrier options or explicitly relaxed constraints; do not tune or extend the current multi-TCP stack."
+    "last_completed_action": "Architecture restart completed on new branch dev/wbd-raw-fec-v2 after V1 M10-004 no-go. Added ADR-0002 and rewrote PROJECT_CONSTITUTION.md, ARCHITECTURE.md and ROADMAP.md for an unordered udp2raw-compatible FakeTCP + FEC mainline. Android/no-root portability was removed. The pinned udp2raw tag 20230206.0 commit e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63 and UDPspeeder tag 20230206.0 commit 61b24a369700c3d8248dd18fa9a524b778741454 are promoted from external reference to the V2 product baseline. One raw lane is mandatory first; a second raw lane may later stripe FEC symbols under the same total byte budget. An easy-faketcp-inspired kernel TCP anchor is admitted only as a packet-capture experiment for real OS handshake/control/RST behavior; payload must never enter the kernel TCP byte stream. Stock Xray is to run above/inside the protected virtual link, initially through WireGuard or equivalent UDP/L3 glue, so public ordinary-TCP HOL is not reintroduced. PR #2 remains historical rejected evidence; PR #3 is the active V2 development PR.",
+    "current_task": "V2-M1: locally reproduce the exact pinned one-lane udp2raw + UDPspeeder transport as the V2 product baseline before modifying it.",
+    "why_now": "The failed multi-TCP architecture is already conclusively rejected, while the exact pinned udp2raw + UDPspeeder combination demonstrated approximately 71 ms p99 and 100% delivery through the tested 15% forward FEC-shard loss profile. V2 should start from the known-good unordered carrier rather than immediately inventing a replacement.",
+    "done_when": "The local sandbox/privileged host restores or rebuilds the exact pinned udp2raw and UDPspeeder versions, verifies source commit and SHA-256 identities, runs the one-lane topology at approximately 50 ms RTT over 0/1/5/10/15% impairment with both 20:10 and 20:20 fixed FEC where practical, records machine-readable p50/p95/p99/delivery/bytes/CPU results, and confirms the result class is consistent with the qualified M10-004 reference. GitHub Actions may relay build bytes but cannot substitute for local execution.",
+    "next_atomic_action": "V2-M1: read deps/oracle-lock.json and docs/benchmarks/m10-004-fec-no-go.md, restore/build the exact udp2raw e5ecd33... and UDPspeeder 61b24a3... assets, verify their hashes, then run the simplest one-lane local UDP -> UDPspeeder -> udp2raw FakeTCP -> udp2raw -> UDPspeeder -> UDP echo baseline before touching kernel-anchor, two-lane, WireGuard or Xray work."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
+    "docs/architecture/ADR-0002-raw-fec-restart.md",
     "docs/benchmarks/m10-004-fec-no-go.md",
-    "docs/benchmarks/m10-003b-real-low-impairment.md",
-    "internal/benchmark/fec.go",
-    "internal/benchmark/replicate.go",
-    "cmd/wbd-fec-sweep/main.go",
     "deps/oracle-lock.json",
-    ".wbd/handoff/current.json"
+    ".wbd/handoff/current.json",
+    ".wbd/handoff/data-plane.json",
+    "scripts/verify_handoff.py"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "M10-004_no_go_real_socket_FEC_plus_qualified_external_reference",
-    "current_best_variant": "none; current multi-TCP architecture rejected",
-    "wbd_fec_20_20": {
-      "clean_p99_ms": 52.873,
-      "one_percent_p99_ms": 250.460,
-      "fifteen_percent_p99_ms": 252.227,
-      "traffic_multiplier": "2.0x",
-      "delivery_ratio": "1.0"
-    },
-    "udp2raw_udpspeeder_20_20": {
+    "authority": "V2_architecture_restart_using_M10-004_qualified_raw_FEC_reference",
+    "v1_status": "permanently_rejected_multi_ordinary_TCP",
+    "v2_status": "active_raw_FEC_baseline_not_yet_reproduced_as_product",
+    "v2_reference": {
+      "udp2raw": "20230206.0 / e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63",
+      "udpspeeder": "20230206.0 / 61b24a369700c3d8248dd18fa9a524b778741454",
       "one_percent_p99_ms": 71.544,
       "fifteen_percent_p99_ms": 71.116,
       "delivery_ratio": "1.0",
-      "workflow_run_id": 32735353872,
-      "artifact_id": 9523056681
-    }
+      "scope": "historically qualified comparator; must now be reproduced as V2 product baseline"
+    },
+    "two_lane_status": "not_admitted",
+    "kernel_anchor_status": "experiment_not_started",
+    "xray_status": "composition_deferred_until_raw_FEC_and_L3_link_are_qualified"
   },
   "local_test_snapshot": {
-    "authority": "snapshot_not_live",
-    "tested_commit": "b8c166901729691a12629aa12106c367cc2c8de5",
-    "result": "pass",
-    "command": "GitHub CI run 32741844218 passed Go tests and handoff tests; WBD FEC sweep run 32741844450 passed and artifact 9525489314 contains results.csv and median.csv; FEC codec erasure-recovery tests are part of the Go suite."
+    "authority": "architecture_only_no_new_runtime_qualification",
+    "tested_commit": "7d3c917d7c2a85d4f4fec0041adfbfead9c96574",
+    "result": "docs_and_dependency_lock_only",
+    "command": "No new runtime transport code was added in the V2 architecture restart. Use GitHub handoff/CI only to validate repository consistency; V2 runtime qualification begins at V2-M1 and remains local-authoritative."
   }
 }
