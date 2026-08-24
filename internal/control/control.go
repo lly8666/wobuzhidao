@@ -1,6 +1,8 @@
 package control
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -13,6 +15,7 @@ const (
 	HeaderLen                 = 8
 	MaxBodyLen                = 1024
 	MaxErrorMessageLen        = 256
+	MaxTokenLen               = 256
 )
 
 var Magic = [4]byte{'W', 'B', 'D', 'C'}
@@ -23,6 +26,8 @@ const (
 	TypeHello Type = 1 + iota
 	TypeAccept
 	TypeError
+	TypeAuth
+	TypeAuthOK
 )
 
 type ErrorCode uint16
@@ -31,6 +36,9 @@ const (
 	ErrorNoCommonVersion ErrorCode = 1
 	ErrorMalformedHello  ErrorCode = 2
 	ErrorPolicy          ErrorCode = 3
+	ErrorAuthRequired    ErrorCode = 4
+	ErrorAuthFailed      ErrorCode = 5
+	ErrorUnexpectedState ErrorCode = 6
 )
 
 type Hello struct {
@@ -46,6 +54,12 @@ type Error struct {
 	Code    ErrorCode
 	Message string
 }
+
+type Auth struct {
+	Token []byte
+}
+
+type AuthOK struct{}
 
 var (
 	ErrMalformed   = errors.New("malformed WBD control frame")
@@ -100,6 +114,27 @@ func Marshal(frame any) ([]byte, error) {
 	case *Error:
 		if f == nil {
 			return nil, fmt.Errorf("%w: nil ERROR", ErrMalformed)
+		}
+		return Marshal(*f)
+	case Auth:
+		typ = TypeAuth
+		if len(f.Token) == 0 {
+			return nil, fmt.Errorf("%w: empty AUTH token", ErrMalformed)
+		}
+		if len(f.Token) > MaxTokenLen {
+			return nil, fmt.Errorf("%w: AUTH token %d", ErrLimit, len(f.Token))
+		}
+		body = append([]byte(nil), f.Token...)
+	case *Auth:
+		if f == nil {
+			return nil, fmt.Errorf("%w: nil AUTH", ErrMalformed)
+		}
+		return Marshal(*f)
+	case AuthOK:
+		typ = TypeAuthOK
+	case *AuthOK:
+		if f == nil {
+			return nil, fmt.Errorf("%w: nil AUTH_OK", ErrMalformed)
 		}
 		return Marshal(*f)
 	default:
@@ -175,6 +210,19 @@ func Unmarshal(data []byte) (any, error) {
 			return nil, fmt.Errorf("%w: invalid UTF-8 error message", ErrMalformed)
 		}
 		return Error{Code: code, Message: string(msg)}, nil
+	case TypeAuth:
+		if len(body) == 0 {
+			return nil, fmt.Errorf("%w: empty AUTH token", ErrMalformed)
+		}
+		if len(body) > MaxTokenLen {
+			return nil, fmt.Errorf("%w: AUTH token %d", ErrLimit, len(body))
+		}
+		return Auth{Token: append([]byte(nil), body...)}, nil
+	case TypeAuthOK:
+		if len(body) != 0 {
+			return nil, fmt.Errorf("%w: AUTH_OK body %d", ErrMalformed, len(body))
+		}
+		return AuthOK{}, nil
 	default:
 		return nil, fmt.Errorf("%w: type %d", ErrUnsupported, data[5])
 	}
@@ -203,4 +251,77 @@ func validateHello(h Hello) error {
 		return fmt.Errorf("%w: invalid HELLO range %d..%d", ErrMalformed, h.MinProtocol, h.MaxProtocol)
 	}
 	return nil
+}
+
+type State byte
+
+const (
+	StateAwaitHello State = iota
+	StateAwaitAuth
+	StateEstablished
+	StateFailed
+)
+
+type ServerSession struct {
+	state             State
+	minProtocol       uint16
+	maxProtocol       uint16
+	authRequired      bool
+	expectedTokenHash [sha256.Size]byte
+}
+
+func NewServerSession(minProtocol, maxProtocol uint16, expectedToken []byte) (*ServerSession, error) {
+	if minProtocol == 0 || maxProtocol == 0 || minProtocol > maxProtocol {
+		return nil, fmt.Errorf("%w: invalid server protocol range %d..%d", ErrMalformed, minProtocol, maxProtocol)
+	}
+	if len(expectedToken) > MaxTokenLen {
+		return nil, fmt.Errorf("%w: expected token %d", ErrLimit, len(expectedToken))
+	}
+	s := &ServerSession{state: StateAwaitHello, minProtocol: minProtocol, maxProtocol: maxProtocol}
+	if len(expectedToken) != 0 {
+		s.authRequired = true
+		s.expectedTokenHash = sha256.Sum256(expectedToken)
+	}
+	return s, nil
+}
+
+func (s *ServerSession) State() State { return s.state }
+
+func (s *ServerSession) Handle(frame any) any {
+	switch s.state {
+	case StateAwaitHello:
+		h, ok := frame.(Hello)
+		if !ok {
+			return Error{Code: ErrorUnexpectedState, Message: "HELLO required"}
+		}
+		reply := Negotiate(h, s.minProtocol, s.maxProtocol)
+		if _, ok := reply.(Accept); !ok {
+			s.state = StateFailed
+			return reply
+		}
+		if s.authRequired {
+			s.state = StateAwaitAuth
+		} else {
+			s.state = StateEstablished
+		}
+		return reply
+	case StateAwaitAuth:
+		a, ok := frame.(Auth)
+		if !ok {
+			return Error{Code: ErrorAuthRequired, Message: "AUTH required"}
+		}
+		provided := sha256.Sum256(a.Token)
+		if subtle.ConstantTimeCompare(provided[:], s.expectedTokenHash[:]) != 1 {
+			s.state = StateFailed
+			return Error{Code: ErrorAuthFailed, Message: "authentication failed"}
+		}
+		s.state = StateEstablished
+		return AuthOK{}
+	case StateEstablished:
+		return Error{Code: ErrorUnexpectedState, Message: "session already established"}
+	case StateFailed:
+		return Error{Code: ErrorUnexpectedState, Message: "session failed"}
+	default:
+		return Error{Code: ErrorUnexpectedState, Message: "invalid session state"}
+	}
 }
