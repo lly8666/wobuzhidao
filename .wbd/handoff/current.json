@@ -5,7 +5,7 @@
   "active_branch": "dev/wbd-multilane-v1",
   "active_issue": 1,
   "active_pr": 2,
-  "checkpoint_based_on_head_sha": "9fefdb65b3c46c86e30ee63130958b61971307c0",
+  "checkpoint_based_on_head_sha": "e46b82caca7a24f108ebb603cf72d50c0f09ee03",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
@@ -14,7 +14,7 @@
     "local_optimization_stop_rule": "Do not add FEC, Xray/REALITY integration or TUN until protection modes and auto redundancy state can be represented deterministically, bounded to 1.0x..2.0x, and tested independently of carrier implementation."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed M7-001: added per-lane logical flight credit above lane.Pool with reservation before socket write, ACK-aware release, inactive-lane cleanup, two bulk lanes and one dedicated low-occupancy rescue lane. A real three-TCP localhost test fills both bulk credits, withholds one bulk lane, returns GAP through the rescue lane, reinjects missing STREAM bytes through rescue, completes the logical stream before bulk release, then verifies late original delivery is only a duplicate. Local vet, normal/race tests, protocol fuzz, Linux/386 and Linux/mipsle cross-builds, handoff verification and continuity tests passed.",
+    "last_completed_action": "Completed M7-001 and reconciled its code+handoff branches into merge checkpoint e46b82caca7a24f108ebb603cf72d50c0f09ee03. M7 adds per-lane logical flight credit above lane.Pool with reservation before socket write, ACK-aware release, inactive-lane cleanup, two bulk lanes and one dedicated low-occupancy rescue lane. A real three-TCP localhost test fills both bulk credits, withholds one bulk lane, returns GAP through the rescue lane, reinjects missing STREAM bytes through rescue, completes the logical stream before bulk release, then verifies late original delivery is only a duplicate. Local vet, normal/race tests, protocol fuzz, Linux/386 and Linux/mipsle cross-builds, handoff verification and continuity tests passed.",
     "current_task": "M8-001: implement the minimum deterministic Redundancy Budget Controller model for normal, weak-1.5x, weak-2x and auto without adding FEC or carrier-specific policy yet.",
     "why_now": "M7 now bounds lane admission and preserves a rescue path. The next invariant is to make user-selected protection overhead a first-class bounded policy variable so later duplicate/FEC decisions share one budget instead of becoming separate protocols.",
     "done_when": "Pure-Go deterministic tests define ProtectionMode normal/weak-1.5x/weak-2x/auto, map fixed modes to 1.0/1.5/2.0 intentional multipliers, implement an auto level set 1.0/1.25/1.5/2.0 with fast-up/slow-down hysteresis based only on logical delivery samples, enforce a hard 2.0x ceiling, and expose budget accounting suitable for later FEC/duplicate/reinjection allocation. No wire-format or Xray/TUN changes.",
@@ -43,7 +43,7 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "9fefdb65b3c46c86e30ee63130958b61971307c0",
+    "tested_commit": "e46b82caca7a24f108ebb603cf72d50c0f09ee03",
     "result": "pass",
     "command": "go vet ./... && go test ./... -count=1 && go test -race ./... -count=1 && go test ./internal/protocol -run='^$' -fuzz=FuzzUnmarshalFrame -fuzztime=2s && GOOS=linux GOARCH=386 go test -c ./internal/scheduler -o /tmp/scheduler-386.test && GOOS=linux GOARCH=mipsle go test -c ./internal/scheduler -o /tmp/scheduler-mipsle.test && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
   }
