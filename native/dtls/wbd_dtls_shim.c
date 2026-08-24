@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 static volatile sig_atomic_t g_stop = 0;
+static int g_trace = 0;
 static void on_signal(int sig) { (void)sig; g_stop = 1; }
 static void die(const char* what) { perror(what); exit(2); }
 static void ssl_log(const char* what, WOLFSSL* ssl, int ret) {
@@ -52,7 +53,7 @@ static int relay_loop(const char* role,WOLFSSL* ssl,int transport,int plain,int 
             else n=recv(plain,buf,sizeof(buf),0);
             if(n>0){
                 st.plain_in++;st.plain_in_bytes+=(unsigned long long)n;st.dtls_write_calls++;
-                fprintf(stderr,"WRITE role=%s datagram=%lu bytes=%zd\n",role,st.plain_in,n);
+                if(g_trace) fprintf(stderr,"WRITE role=%s datagram=%lu bytes=%zd\n",role,st.plain_in,n);
                 if(write_record(ssl,buf,(int)n)<0)return 5;
             }
         }
@@ -61,7 +62,7 @@ static int relay_loop(const char* role,WOLFSSL* ssl,int transport,int plain,int 
                 int r=wolfSSL_read(ssl,buf,sizeof(buf));
                 if(r>0){
                     st.dtls_read_records++;st.plain_out++;st.plain_out_bytes+=(unsigned long long)r;
-                    fprintf(stderr,"READ role=%s record=%lu bytes=%d\n",role,st.dtls_read_records,r);
+                    if(g_trace) fprintf(stderr,"READ role=%s record=%lu bytes=%d\n",role,st.dtls_read_records,r);
                     ssize_t s;
                     if(plain_is_client){if(!have_peer){fprintf(stderr,"no client plaintext peer\n");return 6;}s=sendto(plain,buf,(size_t)r,0,(struct sockaddr*)&app_peer,app_len);}
                     else s=send(plain,buf,(size_t)r,0);
@@ -103,7 +104,7 @@ static int run_server(int listen_port,const char* target_ip,int target_port,cons
     int rc=relay_loop("server",ssl,t,p,0);wolfSSL_free(ssl);wolfSSL_CTX_free(ctx);close(t);close(p);return rc;
 }
 int main(int argc,char**argv){
-    signal(SIGTERM,on_signal);signal(SIGINT,on_signal);if(wolfSSL_Init()!=WOLFSSL_SUCCESS)return 2;
+    signal(SIGTERM,on_signal);signal(SIGINT,on_signal);const char* trace=getenv("WBD_DTLS_TRACE");g_trace=(trace&&strcmp(trace,"1")==0);if(wolfSSL_Init()!=WOLFSSL_SUCCESS)return 2;
     int rc=2;
     if(argc==7&&strcmp(argv[1],"client")==0)rc=run_client(atoi(argv[2]),argv[3],atoi(argv[4]),argv[5],argv[6]);
     else if(argc==7&&strcmp(argv[1],"server")==0)rc=run_server(atoi(argv[2]),argv[3],atoi(argv[4]),argv[5],argv[6]);
