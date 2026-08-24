@@ -34,7 +34,7 @@ class HandoffContractTest(unittest.TestCase):
 
         architecture = (ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
         self.assertIn("V1 multi-ordinary-TCP is permanently rejected", architecture)
-        self.assertIn("kernel TCP anchor", architecture)
+        self.assertIn("Kernel-anchor / real-return-packet experiment", architecture)
         self.assertIn("payload is not placed in an ordinary kernel TCP byte stream", architecture)
 
     def test_no_required_binary_state_at_bootstrap(self):
