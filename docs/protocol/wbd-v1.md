@@ -107,7 +107,13 @@ This frame does not itself define a retransmission algorithm. M5/M6 will use it 
 
 A `flow_id` is either STREAM or DATAGRAM for its lifetime in the receiver. Reusing the same flow ID with the other type fails closed.
 
-## Explicit non-goals of M2
+## M3 single-carrier stream framing
+
+The same envelope is self-delimiting on a real TCP byte stream. `ReadFrame` reads the fixed 3-byte prefix, incrementally decodes `bodyLen`, bounds it before allocation, reads exactly that body and then reuses the normal frame decoder. TCP write/segment boundaries are never protocol boundaries. Multiple frames may be coalesced into one TCP read or one frame may arrive across many reads.
+
+`internal/lane.TCP` is intentionally a thin one-carrier wrapper: it serializes concurrent frame writes, permits one framed reader, exposes deadlines/addresses/half-close, and contains no scheduling, reinjection, redundancy or session policy. M3 qualifies this behavior on real `127.0.0.1` TCP sockets.
+
+## Explicit non-goals of M3
 
 - no lane scheduler,
 - no FEC/repair frame,
