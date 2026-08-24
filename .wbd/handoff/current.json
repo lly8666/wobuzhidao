@@ -1,33 +1,34 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 2,
+  "continuity_sequence": 3,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-multilane-v1",
   "active_issue": 1,
-  "active_pr": 2,
-  "checkpoint_based_on_head_sha": "e0f913a2f0ef5406f1255fcc4d1faa2569f55e57",
+  "checkpoint_based_on_head_sha": "461cfb4a9917f04487fbfa8a8dfa27e24d38b74b",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal cross-platform VPN whose logical weak-network behavior approaches UDP/QUIC while public carriers remain stock REALITY/Vision over real kernel TCP.",
-    "current_milestone": "M2 STREAM/DATAGRAM logical semantics",
-    "local_optimization_stop_rule": "Do not add real lanes, FEC/RBC, Xray/REALITY integration or TUN until stream reassembly/dedup/FIN and datagram dedup/expiry semantics pass deterministic local tests."
+    "current_milestone": "M3 one real TCP lane abstraction",
+    "local_optimization_stop_rule": "Do not add multiple lanes, scheduling, FEC/RBC, Xray/REALITY integration or TUN until one real localhost TCP carrier can stream multiple WBD frames correctly across arbitrary TCP segmentation/coalescing and clean shutdown."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed M1-001: added the pure-Go WBD v1 frame codec and protocol seed for DATA, DATAGRAM, ACK and GAP_HINT, with deterministic encoding, ACK ranges, strict bounds/malformed-input handling, and explicit separation of logical identity from transmission/lane identity.",
-    "current_task": "M2-001: implement deterministic in-memory STREAM and DATAGRAM receive semantics on top of the codec; still no real lanes, FEC, Xray or TUN.",
-    "why_now": "The wire vocabulary is stable enough to test the logical behavior that future multi-lane recovery depends on. Reorder, duplicate and expiry semantics must be correct before any carrier scheduler exists.",
-    "done_when": "Local tests prove STREAM out-of-order buffering, contiguous delivery, duplicate suppression and FIN consistency plus DATAGRAM deduplication and hard-deadline expiry using a deterministic virtual clock, without depending on lane/TCP behavior.",
-    "next_atomic_action": "M2-001: implement an in-memory receive engine for reliable STREAM reassembly/dedup/FIN and expiring DATAGRAM delivery/dedup using a deterministic virtual clock; add adversarial reorder/duplicate/deadline tests; do not add lanes, FEC, Xray or TUN."
+    "last_completed_action": "Completed M2-001: added a deterministic, goroutine-safe logical receive engine. STREAM now supports bounded out-of-order buffering, contiguous delivery, reinjection/duplicate suppression, overlap conflict detection, transactional FIN/final-offset consistency and per-flow type safety. DATAGRAM now supports logical deduplication, hard-deadline expiry and deterministic pruning via ManualClock. Local go vet, normal/race Go tests, handoff verification and continuity tests all passed.",
+    "current_task": "M3-001: implement exactly one real TCP lane abstraction plus incremental frame streaming on localhost; no multi-lane scheduler, FEC/RBC, Xray or TUN.",
+    "why_now": "Logical STREAM/DATAGRAM semantics are now independent of carrier behavior. The next uncertainty is whether the existing frame envelope and receiver survive real TCP byte-stream segmentation/coalescing and bidirectional socket lifecycle without adding transport policy.",
+    "done_when": "Local tests use real 127.0.0.1 TCP sockets to exchange multiple DATA/DATAGRAM/ACK/GAP_HINT frames in both directions, with an incremental bounded decoder that tolerates fragmented and coalesced writes, rejects malformed/oversize frames, and closes without goroutine/socket leaks while all M1/M2 tests remain green.",
+    "next_atomic_action": "M3-001: add a bounded incremental WBD frame reader/writer and a single real TCP lane wrapper; qualify it with 127.0.0.1 client/server tests that deliberately fragment/coalesce frames and exercise bidirectional close; do not add multiple lanes, scheduling, FEC/RBC, Xray or TUN."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
     "docs/protocol/wbd-v1.md",
-    "internal/protocol/identity.go",
     "internal/protocol/frame.go",
-    "internal/protocol/frame_test.go",
+    "internal/protocol/identity.go",
+    "internal/session/clock.go",
+    "internal/session/receiver.go",
+    "internal/session/receiver_test.go",
     ".wbd/handoff/current.json",
     ".wbd/handoff/data-plane.json",
     "scripts/verify_handoff.py"
@@ -42,8 +43,9 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "e0f913a2f0ef5406f1255fcc4d1faa2569f55e57",
+    "tested_commit": "461cfb4a9917f04487fbfa8a8dfa27e24d38b74b",
     "result": "pass",
-    "command": "go test ./... -count=1 && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
-  }
+    "command": "go vet ./... && go test ./... -count=1 && go test -race ./... -count=1 && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
+  },
+  "active_pr": 2
 }
