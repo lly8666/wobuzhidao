@@ -30,7 +30,7 @@ jobs:
       - name: Resolve pinned oracle module
         working-directory: tools/quic-oracle
         run: |
-          go mod download
+          go mod tidy
           go mod verify
       - name: Build oracle relay asset
         working-directory: tools/quic-oracle
