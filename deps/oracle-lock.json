@@ -18,5 +18,30 @@
       "local_samples_per_mode": 64
     },
     "reason": "The sandbox could not fetch Go 1.25/quic-go directly, so GitHub Actions was used only as a short-lived build relay. The returned artifact zip and binary were SHA-verified, then the exact binary was executed successfully inside the local sandbox for both QUIC STREAM and DATAGRAM. The WBD main module remains on Go 1.23."
+  },
+  "udp2raw_udpspeeder": {
+    "status": "pinned_not_yet_locally_qualified",
+    "purpose": "external upper-bound comparator only; raw FakeTCP is not the WBD product path",
+    "topology": "application -> UDPspeeder -> udp2raw FakeTCP -> network -> udp2raw -> UDPspeeder -> application",
+    "udp2raw": {
+      "repository": "github.com/wangyu-/udp2raw",
+      "tag": "20230206.0",
+      "commit": "e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63",
+      "license": "MIT",
+      "raw_mode": "faketcp"
+    },
+    "udpspeeder": {
+      "repository": "github.com/wangyu-/UDPspeeder",
+      "tag": "20230206.0",
+      "commit": "61b24a369700c3d8248dd18fa9a524b778741454",
+      "license": "MIT",
+      "mode": 0,
+      "timeout_ms": 8,
+      "primary_fec": "20:20",
+      "primary_total_multiplier": "2.0x",
+      "secondary_fec": "20:10",
+      "secondary_total_multiplier": "1.5x"
+    },
+    "qualification_rule": "Do not report comparator results until exact binary bytes are SHA-256 recorded and run in the local sandbox under the same network profile and payload/workload contract as WBD."
   }
 }

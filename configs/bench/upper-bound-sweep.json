@@ -1,0 +1,54 @@
+{
+  "name": "upper-bound-v1",
+  "networks": [
+    {
+      "name": "50ms-clean",
+      "seed": 6001,
+      "samples": 64,
+      "payload_bytes": 256,
+      "rtt_min_ms": 50,
+      "rtt_max_ms": 50,
+      "impair_basis_points": 0,
+      "extra_hold_ms": 0,
+      "soft_deadline_ms": 100,
+      "source_spacing_ms": 10,
+      "burst_length": 1
+    },
+    {
+      "name": "50ms-1pct",
+      "seed": 7001,
+      "samples": 100,
+      "payload_bytes": 256,
+      "rtt_min_ms": 50,
+      "rtt_max_ms": 50,
+      "impair_basis_points": 100,
+      "extra_hold_ms": 200,
+      "soft_deadline_ms": 100,
+      "source_spacing_ms": 10,
+      "burst_length": 1
+    },
+    {
+      "name": "80-150ms-2pct",
+      "seed": 8001,
+      "samples": 50,
+      "payload_bytes": 256,
+      "rtt_min_ms": 80,
+      "rtt_max_ms": 150,
+      "impair_basis_points": 200,
+      "extra_hold_ms": 300,
+      "soft_deadline_ms": 225,
+      "source_spacing_ms": 50,
+      "burst_length": 1
+    }
+  ],
+  "lane_counts": [1, 2, 3, 4],
+  "wbd_modes": ["normal", "auto"],
+  "windows": [1, 4, 8],
+  "fec_profiles": [
+    {"name": "off", "enabled": false, "data_shards": 0, "parity_shards": 0, "mode": 0, "timeout_ms": 0},
+    {"name": "fec-20-10", "enabled": true, "data_shards": 20, "parity_shards": 10, "mode": 0, "timeout_ms": 8},
+    {"name": "fec-20-20-1to1", "enabled": true, "data_shards": 20, "parity_shards": 20, "mode": 0, "timeout_ms": 8}
+  ],
+  "include_native": true,
+  "include_udp2raw_udpspeeder": true
+}
