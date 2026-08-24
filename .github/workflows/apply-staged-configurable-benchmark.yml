@@ -1,0 +1,41 @@
+name: Apply staged configurable benchmark
+
+on:
+  push:
+    branches:
+      - dev/wbd-multilane-v1
+    paths:
+      - .github/workflows/apply-staged-configurable-benchmark.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/wbd-multilane-v1
+          fetch-depth: 0
+      - name: Restore staged tree
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          : > /tmp/wbd-stage.b64
+          for sha in d348e2941924a4aa654331d33fdf0ac67317c5dc 7f419be2f57b14a221af2fd7c4b3bafd2f4a582c c99e68c1cfd82d123d3b1f4ef01e0cb25ea40c70 0bbf3f87de0eb37a1f4a6aad10a760c18ab38e87; do
+            curl -fsSL \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/lly8666/wobuzhidao/git/blobs/${sha}" \
+              | jq -r '.content' | tr -d '\n' | base64 -d >> /tmp/wbd-stage.b64
+          done
+          base64 -d /tmp/wbd-stage.b64 > /tmp/wbd-stage.tgz
+          tar -xzf /tmp/wbd-stage.tgz
+          rm .github/workflows/apply-staged-configurable-benchmark.yml
+          git config user.name "wobuzhidao handoff bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "benchmark: add configurable real fault sweep"
+          git push origin HEAD:dev/wbd-multilane-v1
