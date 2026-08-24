@@ -186,3 +186,39 @@ ACK and GAP_HINT belong to the logical session, not to a TCP carrier. A receipt 
 - no RBC/adaptive scheduling,
 - no Xray/REALITY integration,
 - no TUN/VPN.
+
+## M6 cross-lane STREAM reinjection
+
+M6 adds a sender-side logical outstanding scoreboard for reliable STREAM data. Source DATA bytes are copied into the scoreboard after initial scheduling and remain available until logical ACK state proves they no longer need recovery.
+
+### Scoreboard identity
+
+- source records are keyed by logical `(flow_id, offset, payload, FIN)` rather than TCP sequence or lane;
+- source byte ranges may not overlap;
+- the most recent carrier used for a source record is local recovery state, not wire identity;
+- every reinjection allocates a fresh `transmission_id` while preserving logical flow/offset/bytes;
+- FIN-bearing source records are retained until both their payload range and logical FIN have been acknowledged.
+
+### GAP-driven reinjection
+
+For a STREAM `GAP_HINT [start,end)`, the sender intersects the gap with still-tracked source data, subtracts already ACKed subranges, and emits only the remaining missing logical bytes. Each rescue attempt chooses a healthy lane different from the most recent lane for that source record. A failed local send consumes its transmission ID and may fall through to another eligible lane.
+
+ACK and GAP may cross in flight on different TCP carriers. Therefore a stale gap for data already pruned by ACK is a normal no-op. A gap for a flow the sender never tracked is rejected.
+
+M6 deliberately does not implement timer-based loss inference. In particular, a FIN that is not observed and does not create a receiver-visible byte gap will need later timer/flight policy. M6 also does not reinject DATAGRAMs; their hard-deadline policy belongs with the later RBC/deadline controller.
+
+### Real-TCP HOL invariant
+
+The M6 localhost integration test uses two independent real TCP connections. The original stream prefix is written to lane 1 while the receiver intentionally leaves that lane outside its active pool, so those bytes remain unavailable to the logical receiver. A later stream tail on lane 2 reveals a gap; the GAP returns over lane 2, and the sender reinjects the original prefix on lane 2 with a new transmission ID. The logical stream completes before receiver lane 1 is activated. When lane 1 is finally activated, the original TCP-delivered copy is accepted only as a logical duplicate.
+
+This proves the core M6 property: WBD logical delivery can bypass one carrier's head-of-line delay without altering that carrier's real kernel TCP behavior.
+
+## Explicit non-goals of M6
+
+- no bounded per-lane flight window or rescue-lane reservation (M7),
+- no timer-based retransmission or FIN timeout policy,
+- no DATAGRAM reinjection policy,
+- no FEC/repair frame,
+- no RBC/adaptive scheduling,
+- no Xray/REALITY integration,
+- no TUN/VPN.
