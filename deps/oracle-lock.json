@@ -20,7 +20,7 @@
     "reason": "The sandbox could not fetch Go 1.25/quic-go directly, so GitHub Actions was used only as a short-lived build relay. The returned artifact zip and binary were SHA-verified, then the exact binary was executed successfully inside the local sandbox for both QUIC STREAM and DATAGRAM. The WBD main module remains on Go 1.23."
   },
   "udp2raw_udpspeeder": {
-    "status": "pinned_not_yet_locally_qualified",
+    "status": "qualified_reference_oracle",
     "purpose": "external upper-bound comparator only; raw FakeTCP is not the WBD product path",
     "topology": "application -> UDPspeeder -> udp2raw FakeTCP -> network -> udp2raw -> UDPspeeder -> application",
     "udp2raw": {
@@ -42,6 +42,17 @@
       "secondary_fec": "20:10",
       "secondary_total_multiplier": "1.5x"
     },
-    "qualification_rule": "Do not report comparator results until exact binary bytes are SHA-256 recorded and run in the local sandbox under the same network profile and payload/workload contract as WBD."
+    "qualification": {
+      "workflow_run_id": 32735353872,
+      "artifact_id": 9523056681,
+      "artifact_digest": "sha256:d08830c1f6f774a2f732f252fc65fb13969cc79f8e3bb68917f88f3b4a8261d1",
+      "udp2raw_archive_sha256": "503cf5781aa97e50b4954c6bc4622c3ea6be02f6a35def4bb3b3eaf95bd2c7e8",
+      "udpspeeder_archive_sha256": "b64dd376a948995cb5da17d8eb171338ccd0553b9380e5164f8cb5ac4131bcaa",
+      "udp2raw_amd64_sha256": "c81c7699194188172f37f747cdeba9fb54214bc4b3ba2d85cfdfccd5f7f70c3c",
+      "udpspeeder_amd64_sha256": "f2ac1feedc10003255c1072346b1f3ee4935fc7bf2053af69ad52b7369d4b25a",
+      "profile": "50 ms RTT, 200 x 256 B, window 32, warmed, 3 seeds, forward FEC-shard loss 0/1/2/3/5/8/10/12/15%",
+      "result": "100% delivery and approximately 71 ms p99 across all tested loss levels"
+    },
+    "qualification_rule": "Comparator results are reference evidence only; raw/FEC remains outside the rejected WBD multi-TCP product architecture."
   }
 }
