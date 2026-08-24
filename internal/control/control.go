@@ -28,6 +28,8 @@ const (
 	TypeError
 	TypeAuth
 	TypeAuthOK
+	TypePing
+	TypePong
 )
 
 type ErrorCode uint16
@@ -60,6 +62,14 @@ type Auth struct {
 }
 
 type AuthOK struct{}
+
+type Ping struct {
+	Nonce uint64
+}
+
+type Pong struct {
+	Nonce uint64
+}
 
 var (
 	ErrMalformed   = errors.New("malformed WBD control frame")
@@ -135,6 +145,24 @@ func Marshal(frame any) ([]byte, error) {
 	case *AuthOK:
 		if f == nil {
 			return nil, fmt.Errorf("%w: nil AUTH_OK", ErrMalformed)
+		}
+		return Marshal(*f)
+	case Ping:
+		typ = TypePing
+		body = make([]byte, 8)
+		binary.BigEndian.PutUint64(body, f.Nonce)
+	case *Ping:
+		if f == nil {
+			return nil, fmt.Errorf("%w: nil PING", ErrMalformed)
+		}
+		return Marshal(*f)
+	case Pong:
+		typ = TypePong
+		body = make([]byte, 8)
+		binary.BigEndian.PutUint64(body, f.Nonce)
+	case *Pong:
+		if f == nil {
+			return nil, fmt.Errorf("%w: nil PONG", ErrMalformed)
 		}
 		return Marshal(*f)
 	default:
@@ -223,6 +251,16 @@ func Unmarshal(data []byte) (any, error) {
 			return nil, fmt.Errorf("%w: AUTH_OK body %d", ErrMalformed, len(body))
 		}
 		return AuthOK{}, nil
+	case TypePing:
+		if len(body) != 8 {
+			return nil, fmt.Errorf("%w: PING body %d", ErrMalformed, len(body))
+		}
+		return Ping{Nonce: binary.BigEndian.Uint64(body)}, nil
+	case TypePong:
+		if len(body) != 8 {
+			return nil, fmt.Errorf("%w: PONG body %d", ErrMalformed, len(body))
+		}
+		return Pong{Nonce: binary.BigEndian.Uint64(body)}, nil
 	default:
 		return nil, fmt.Errorf("%w: type %d", ErrUnsupported, data[5])
 	}
@@ -262,12 +300,27 @@ const (
 	StateFailed
 )
 
+type SessionStats struct {
+	State          State
+	AuthRequired   bool
+	Authenticated  bool
+	ControlRX      uint64
+	ControlTX      uint64
+	ControlRXBytes uint64
+	ControlTXBytes uint64
+	PingsReceived  uint64
+	PongsSent      uint64
+	LastActivity   uint64
+}
+
 type ServerSession struct {
 	state             State
 	minProtocol       uint16
 	maxProtocol       uint16
 	authRequired      bool
+	authenticated     bool
 	expectedTokenHash [sha256.Size]byte
+	stats             SessionStats
 }
 
 func NewServerSession(minProtocol, maxProtocol uint16, expectedToken []byte) (*ServerSession, error) {
@@ -282,12 +335,48 @@ func NewServerSession(minProtocol, maxProtocol uint16, expectedToken []byte) (*S
 		s.authRequired = true
 		s.expectedTokenHash = sha256.Sum256(expectedToken)
 	}
+	s.syncStatsState()
 	return s, nil
 }
 
 func (s *ServerSession) State() State { return s.state }
 
+func (s *ServerSession) Stats() SessionStats {
+	s.syncStatsState()
+	return s.stats
+}
+
+func (s *ServerSession) IdleExpired(now, idle uint64) bool {
+	if idle == 0 || s.stats.LastActivity == 0 || now < s.stats.LastActivity {
+		return false
+	}
+	return now-s.stats.LastActivity >= idle
+}
+
 func (s *ServerSession) Handle(frame any) any {
+	return s.handleDecoded(frame)
+}
+
+func (s *ServerSession) HandleWire(data []byte, now uint64) ([]byte, error) {
+	frame, err := Unmarshal(data)
+	if err != nil {
+		return nil, err
+	}
+	s.stats.ControlRX++
+	s.stats.ControlRXBytes += uint64(len(data))
+	s.stats.LastActivity = now
+	reply := s.handleDecoded(frame)
+	wire, err := Marshal(reply)
+	if err != nil {
+		return nil, err
+	}
+	s.stats.ControlTX++
+	s.stats.ControlTXBytes += uint64(len(wire))
+	s.syncStatsState()
+	return wire, nil
+}
+
+func (s *ServerSession) handleDecoded(frame any) any {
 	switch s.state {
 	case StateAwaitHello:
 		h, ok := frame.(Hello)
@@ -297,13 +386,16 @@ func (s *ServerSession) Handle(frame any) any {
 		reply := Negotiate(h, s.minProtocol, s.maxProtocol)
 		if _, ok := reply.(Accept); !ok {
 			s.state = StateFailed
+			s.syncStatsState()
 			return reply
 		}
 		if s.authRequired {
 			s.state = StateAwaitAuth
 		} else {
 			s.state = StateEstablished
+			s.authenticated = true
 		}
+		s.syncStatsState()
 		return reply
 	case StateAwaitAuth:
 		a, ok := frame.(Auth)
@@ -313,15 +405,29 @@ func (s *ServerSession) Handle(frame any) any {
 		provided := sha256.Sum256(a.Token)
 		if subtle.ConstantTimeCompare(provided[:], s.expectedTokenHash[:]) != 1 {
 			s.state = StateFailed
+			s.syncStatsState()
 			return Error{Code: ErrorAuthFailed, Message: "authentication failed"}
 		}
 		s.state = StateEstablished
+		s.authenticated = true
+		s.syncStatsState()
 		return AuthOK{}
 	case StateEstablished:
+		if p, ok := frame.(Ping); ok {
+			s.stats.PingsReceived++
+			s.stats.PongsSent++
+			return Pong{Nonce: p.Nonce}
+		}
 		return Error{Code: ErrorUnexpectedState, Message: "session already established"}
 	case StateFailed:
 		return Error{Code: ErrorUnexpectedState, Message: "session failed"}
 	default:
 		return Error{Code: ErrorUnexpectedState, Message: "invalid session state"}
 	}
+}
+
+func (s *ServerSession) syncStatsState() {
+	s.stats.State = s.state
+	s.stats.AuthRequired = s.authRequired
+	s.stats.Authenticated = s.authenticated
 }
