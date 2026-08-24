@@ -21,12 +21,15 @@ jobs:
           ref: ac01707f552c611fbd135cc723b2682b3e7f80f2
           fetch-depth: 1
           path: wolfssl-src
-      - name: Verify and archive exact source
+      - name: Verify pinned commit/tag and archive exact source
         run: |
           set -euo pipefail
           cd wolfssl-src
-          test "$(git rev-parse HEAD)" = ac01707f552c611fbd135cc723b2682b3e7f80f2
-          git describe --tags --exact-match HEAD | tee /tmp/wolfssl-tag.txt
+          EXPECT=ac01707f552c611fbd135cc723b2682b3e7f80f2
+          test "$(git rev-parse HEAD)" = "$EXPECT"
+          git fetch --no-tags --depth=1 origin refs/tags/v5.9.2-stable:refs/tags/v5.9.2-stable
+          test "$(git rev-list -n1 v5.9.2-stable)" = "$EXPECT"
+          printf '%s\n' v5.9.2-stable | tee /tmp/wolfssl-tag.txt
           git rev-parse HEAD | tee /tmp/wolfssl-commit.txt
           git archive --format=tar.gz --prefix=wolfssl-ac01707f/ HEAD > /tmp/wolfssl-ac01707f-source.tar.gz
           sha256sum /tmp/wolfssl-ac01707f-source.tar.gz | tee /tmp/wolfssl-source.sha256
