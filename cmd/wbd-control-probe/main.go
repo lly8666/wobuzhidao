@@ -15,13 +15,15 @@ func main() {
 	addr := flag.String("addr", "", "UDP listen address (server) or destination address (client)")
 	min := flag.Uint("min", 1, "client minimum protocol version")
 	max := flag.Uint("max", 1, "client maximum protocol version")
+	token := flag.String("token", "", "client bearer token")
+	expectedToken := flag.String("expected-token", "", "server expected bearer token; empty disables auth")
 	flag.Parse()
 	var err error
 	switch *mode {
 	case "server":
-		err = runServer(*addr)
+		err = runServer(*addr, []byte(*expectedToken))
 	case "client":
-		err = runClient(*addr, uint16(*min), uint16(*max))
+		err = runClient(*addr, uint16(*min), uint16(*max), []byte(*token))
 	default:
 		err = fmt.Errorf("-mode must be server or client")
 	}
@@ -31,39 +33,41 @@ func main() {
 	}
 }
 
-func runServer(addr string) error {
+func runServer(addr string, expectedToken []byte) error {
 	pc, err := net.ListenPacket("udp", addr)
 	if err != nil {
 		return err
 	}
 	defer pc.Close()
+	session, err := control.NewServerSession(control.ProtocolVersion1, control.ProtocolVersion1, expectedToken)
+	if err != nil {
+		return err
+	}
 	buf := make([]byte, control.HeaderLen+control.MaxBodyLen)
 	_ = pc.SetDeadline(time.Now().Add(10 * time.Second))
-	n, peer, err := pc.ReadFrom(buf)
-	if err != nil {
-		return err
+	for session.State() != control.StateEstablished && session.State() != control.StateFailed {
+		n, peer, err := pc.ReadFrom(buf)
+		if err != nil {
+			return err
+		}
+		msg, err := control.Unmarshal(buf[:n])
+		if err != nil {
+			return err
+		}
+		reply := session.Handle(msg)
+		wire, err := control.Marshal(reply)
+		if err != nil {
+			return err
+		}
+		if _, err = pc.WriteTo(wire, peer); err != nil {
+			return err
+		}
+		fmt.Printf("SERVER received=%T reply=%T state=%d\n", msg, reply, session.State())
 	}
-	msg, err := control.Unmarshal(buf[:n])
-	if err != nil {
-		return err
-	}
-	h, ok := msg.(control.Hello)
-	if !ok {
-		return fmt.Errorf("expected HELLO, got %T", msg)
-	}
-	reply := control.Negotiate(h, control.ProtocolVersion1, control.ProtocolVersion1)
-	wire, err := control.Marshal(reply)
-	if err != nil {
-		return err
-	}
-	if _, err = pc.WriteTo(wire, peer); err != nil {
-		return err
-	}
-	fmt.Printf("SERVER received=HELLO min=%d max=%d reply=%T\n", h.MinProtocol, h.MaxProtocol, reply)
 	return nil
 }
 
-func runClient(addr string, min, max uint16) error {
+func runClient(addr string, min, max uint16, token []byte) error {
 	peer, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return err
@@ -73,20 +77,11 @@ func runClient(addr string, min, max uint16) error {
 		return err
 	}
 	defer c.Close()
-	wire, err := control.Marshal(control.Hello{MinProtocol: min, MaxProtocol: max})
-	if err != nil {
+	_ = c.SetDeadline(time.Now().Add(10 * time.Second))
+	if err := send(c, control.Hello{MinProtocol: min, MaxProtocol: max}); err != nil {
 		return err
 	}
-	if _, err = c.Write(wire); err != nil {
-		return err
-	}
-	_ = c.SetReadDeadline(time.Now().Add(10 * time.Second))
-	buf := make([]byte, control.HeaderLen+control.MaxBodyLen)
-	n, err := c.Read(buf)
-	if err != nil {
-		return err
-	}
-	msg, err := control.Unmarshal(buf[:n])
+	msg, err := recv(c)
 	if err != nil {
 		return err
 	}
@@ -95,8 +90,46 @@ func runClient(addr string, min, max uint16) error {
 		fmt.Printf("CLIENT reply=ACCEPT protocol=%d\n", m.Protocol)
 	case control.Error:
 		fmt.Printf("CLIENT reply=ERROR code=%d message=%q\n", m.Code, m.Message)
+		return nil
 	default:
 		return fmt.Errorf("unexpected reply %T", msg)
 	}
+	if len(token) == 0 {
+		fmt.Println("CLIENT state=ESTABLISHED auth=disabled")
+		return nil
+	}
+	if err := send(c, control.Auth{Token: token}); err != nil {
+		return err
+	}
+	msg, err = recv(c)
+	if err != nil {
+		return err
+	}
+	switch m := msg.(type) {
+	case control.AuthOK:
+		fmt.Println("CLIENT reply=AUTH_OK state=ESTABLISHED")
+	case control.Error:
+		fmt.Printf("CLIENT reply=ERROR code=%d message=%q\n", m.Code, m.Message)
+	default:
+		return fmt.Errorf("unexpected auth reply %T", msg)
+	}
 	return nil
+}
+
+func send(c *net.UDPConn, frame any) error {
+	wire, err := control.Marshal(frame)
+	if err != nil {
+		return err
+	}
+	_, err = c.Write(wire)
+	return err
+}
+
+func recv(c *net.UDPConn) (any, error) {
+	buf := make([]byte, control.HeaderLen+control.MaxBodyLen)
+	n, err := c.Read(buf)
+	if err != nil {
+		return nil, err
+	}
+	return control.Unmarshal(buf[:n])
 }
