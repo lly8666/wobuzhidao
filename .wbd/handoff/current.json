@@ -1,41 +1,42 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 18,
+  "continuity_sequence": 19,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "da50221c33f920c374c9a6fb695cb458de8ea643",
+  "checkpoint_based_on_head_sha": "50addb1fdd577528993bdce241a67cc98d45f5c9",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows using unordered FakeTCP/FEC carriers plus a native standards-compliant DTLS 1.3 WBD security/session layer. Xray/VLESS/Vision/REALITY, WireGuard and Android are not part of the V2.1 product stack.",
-    "current_milestone": "V2-M3 native WBD session/control inside the locally qualified one-lane DTLS/FEC/FakeTCP path",
-    "local_optimization_stop_rule": "M2 is complete. During M3, add only product/session semantics inside an already-finished DTLS 1.3 association. Do not invent another cryptographic layer, reliable public byte stream or custom FEC. Do not start two-lane, kernel-anchor, TUN/L3, Windows, Auto or detector-specific shaping work before the M3 session/control gate passes."
+    "current_milestone": "V2-M3 native WBD session/control inside the locally qualified one-lane DTLS/FEC/FakeTCP path; M3A framing passed, M3B authentication state active",
+    "local_optimization_stop_rule": "Keep all M3 semantics inside an already-finished DTLS 1.3 association. Do not invent another cryptographic layer, reliable public byte stream or custom FEC. Do not start two-lane, kernel-anchor, TUN/L3, Windows, Auto or detector-specific shaping work before the M3 session/control gate passes. M3B should add only explicit authentication/session state after ACCEPT."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed full V2-M2 qualification. Substantive product/evidence commit 2a1cbd8a5c0cb040b293b7f03b44d18dcb927014 updates the DTLS shim to quiet-by-default tracing, adds the reproducible M2C harness, raw CSV/median data, report/receipt and marks deps/security-lock.json fully qualified. The exact pinned one-lane topology UDPspeeder mode0 FEC -> wolfSSL DTLS 1.3 -> udp2raw FakeTCP was run locally at approximately 50 ms RTT with 200 x 256 B payloads, window32 and 64-packet warmup. Primary 20:20 covered 0/1/5/10/15% encrypted-record loss across seeds 260824/260825/260826: all 15 cases delivered 200/200, with median p99 about 70.5/71.9/76.2/69.8/82.1 ms and median security byte overhead about 5.2-5.4% relative to the matching M1 UDPspeeder FEC bytes. Secondary 20:10 regression at 0/1/15% covered 9 cases, all 200/200, with median p99 about 72.3/71.9/79.0 ms. Formal single-run outliers were preserved; deterministic repeats reduced the worst tails, supporting sandbox scheduling sensitivity rather than ordered-record HOL. Quiet-default M2B was requalified after tracing changes: one encrypted record was dropped and later msg-02/msg-03 still decrypted and delivered. Continuity test commit da50221c33f920c374c9a6fb695cb458de8ea643 advances the persisted invariants from architecture-pinned to full-M2-qualified state. GitHub handoff-verify, Go tests and handoff tests pass on that tree.",
-    "current_task": "V2-M3A: define and implement the smallest versioned native WBD control framing that runs only after DTLS Finished. Start with HELLO, ACCEPT and ERROR control messages plus strict header/length/version validation; keep the codec carrier-agnostic and do not add credentials, keepalive, reconnect policy or TUN yet.",
-    "why_now": "The weak-network carrier and the standards-based security layer are now independently and jointly qualified. The next missing product layer is explicit WBD session semantics. Starting with a tiny version-negotiation/control codec keeps failures diagnosable and avoids mixing authentication, routing or reconnect behavior into the first protocol commitment.",
-    "done_when": "M3A has a documented minimal control-frame format with a fixed magic/version/type/length boundary, deterministic encode/decode behavior, HELLO->ACCEPT success negotiation, unsupported-version->ERROR behavior, strict rejection of truncated/oversized/unknown-invalid frames, and unit/fuzz-style malformed coverage. A loopback integration must prove these control frames are exchanged only as DTLS application data after Finished. No custom crypto or lower-carrier changes are part of M3A.",
-    "next_atomic_action": "V2-M3A: inspect existing carrier-agnostic framing code for safe reuse, then add a minimal WBD control codec for HELLO/ACCEPT/ERROR with an explicit protocol version and bounded payload length. Write table-driven encode/decode and malformed/version tests first. After the codec tests pass, run the smallest direct-DTLS loopback negotiation using the already-qualified wbd.test certificate path. Do not add username/password/token auth until this framing gate passes."
+    "last_completed_action": "Completed V2-M3A on active branch through commit 50addb1fdd577528993bdce241a67cc98d45f5c9. A new carrier-agnostic internal/control package defines a fixed 8-byte WBDC envelope (magic, frame version, type, big-endian body length) with HELLO, ACCEPT and ERROR messages, protocol version 1 and strict 1024-byte body / 256-byte error-message bounds. It is deliberately separate from the rejected V1 DATA/ACK/GAP/TransmissionID wire format. Unit/table tests cover deterministic round trips, highest-common-version negotiation, unsupported-version ERROR, bad magic/version/type, truncation, trailing bytes, invalid HELLO ranges, oversized bodies/messages and invalid UTF-8; fuzz seeds and every-prefix truncation checks run without panic. A direct probe and reproducible qualification script were added. Local authority used the M2-qualified quiet DTLS shim SHA-256 63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a and the wbd.test certificate path: both DTLS peers reached READY as DTLSv1.3 / TLS_AES_256_GCM_SHA384 before any control client was started; HELLO 1..1 returned ACCEPT 1 and HELLO 2..2 returned ERROR code 1 no-common-version. Local receipt result is pass. Source SHA-256 identities: control.go f862ac39b670ac9d4c5465c3521a4e549d80df1ff88244f1d3122cf7d70de1a5, control_test.go 98edffa33f1d98fba4f7db238b4d096f4ef08a9057484b86cb31b9686716be9d, probe 7eaece87dbe71933e44cd3590bb464f884288080c0ffc34c8d8d9186190c2ae4, qualification script 38bdbdcffb68efbeb912d120c42ad8cbb1885cfcdd31ba4cfe1b156876e13163, receipt c9fdcd624ffad5e2fdf5a0dee9dfa1faa9108ff4f147348aa06b2ad63f76008d. GitHub ci, handoff-verify and build-quic-oracle all completed successfully for 50addb1fdd577528993bdce241a67cc98d45f5c9.",
+    "current_task": "V2-M3B: add the smallest explicit post-ACCEPT session authentication state. Start with optional static bearer-token authentication carried only inside the existing DTLS application channel; unauthenticated sessions must not enter Established. Keep token handling independent of carrier/FEC and do not add password hashing, keepalive, reconnect or routing yet.",
+    "why_now": "M3A established a strict versioned control boundary and proved it is exchanged only after DTLS Finished. The next product invariant is deciding when a WBD session is actually authorized to carry future application/L3 traffic. A tiny token-auth state machine can be tested independently before keepalive, reconnect and TUN semantics are layered on top.",
+    "done_when": "M3B has explicit states for version negotiation, authentication-required and Established; AUTH and AUTH_OK/ERROR messages are bounded and strictly decoded; a configured static token is compared in constant time; missing/wrong tokens never enter Established; authentication-disabled mode may transition from ACCEPT directly to Established; duplicate/out-of-order AUTH/control messages are rejected deterministically; unit/malformed tests cover both modes; and a direct-DTLS loopback demonstrates correct-token success plus wrong-token rejection after M3A negotiation. No credentials are ever sent before DTLS READY/Finished.",
+    "next_atomic_action": "V2-M3B: extend the independent internal/control codec with bounded AUTH and AUTH_OK message types, then add a small server-side session state machine whose only policy input is optional expected bearer token. Use crypto/subtle.ConstantTimeCompare for configured-token comparison, reject AUTH before successful HELLO/ACCEPT and reject repeated AUTH after establishment. Write unit/state-machine tests first; then extend the direct DTLS probe to run auth-disabled success, correct-token success and wrong-token ERROR. Do not add username/password, keepalive, reconnect or TUN in this atomic step."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    "docs/architecture/ADR-0003-native-dtls.md",
-    "docs/security/v2-m2c-dtls-raw-fec.md",
-    "docs/security/v2-m2c-receipt.json",
+    "docs/protocol/v2-m3a-control.md",
+    "docs/protocol/v2-m3a-receipt.json",
+    "internal/control/control.go",
+    "internal/control/control_test.go",
+    "cmd/wbd-control-probe/main.go",
+    "scripts/qualify_v2_m3a_control.py",
     "deps/security-lock.json",
-    "native/dtls/wbd_dtls_shim.c",
-    "scripts/bench_v2_m2_dtls_raw_fec.py",
     ".wbd/handoff/current.json",
     "scripts/verify_handoff.py"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_M2_locally_qualified_one_lane_DTLS13_over_pinned_raw_FEC",
+    "authority": "V2_M2_locally_qualified_one_lane_DTLS13_over_pinned_raw_FEC_plus_M3A_control_framing",
     "v1_status": "permanently_rejected_multi_ordinary_TCP",
     "v2_raw_fec_status": "locally_qualified_product_baseline",
     "security": {
@@ -49,7 +50,7 @@
       "certificate_policy": "operator-controlled X.509 certificate; native trust-chain and hostname verification",
       "zero_rtt": "disabled"
     },
-    "session_status": "V2_M3A_active_minimal_control_framing",
+    "session_status": "V2_M3A_locally_qualified_control_framing_M3B_auth_active",
     "two_lane_status": "not_admitted; future design uses two independent DTLS associations and one shared FEC decoder",
     "kernel_anchor_status": "deferred_to_V2_M4",
     "tun_status": "deferred_to_V2_M6",
@@ -58,8 +59,8 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "2a1cbd8a5c0cb040b293b7f03b44d18dcb927014",
+    "tested_commit": "50addb1fdd577528993bdce241a67cc98d45f5c9",
     "result": "pass",
-    "command": "Local V2-M2 authority: exact SHA-verified udp2raw/UDPspeeder and locally built pinned wolfSSL DTLS 1.3 were executed in isolated classic-faketcp namespaces. 20:20 0/1/5/10/15% x 3 seeds passed 15/15 cases at 200/200 delivery; 20:10 0/1/15% x 3 seeds passed 9/9 cases. M2B quiet-default drop-one-record gate also re-passed. GitHub continuity/Go/handoff tests pass on follow-up commit da50221c33f920c374c9a6fb695cb458de8ea643."
+    "command": "M3A local authority: go test ./internal/control ./cmd/wbd-control-probe passed with Go 1.23.2. The direct qualification script then used the accepted quiet DTLS shim and wbd.test certificate path; after both peers reported DTLSv1.3 READY, HELLO 1..1 -> ACCEPT 1 and HELLO 2..2 -> ERROR no-common-version both passed. GitHub ci/handoff-verify/build-quic-oracle also passed for the committed tree."
   }
 }
