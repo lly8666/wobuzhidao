@@ -17,13 +17,15 @@ func main() {
 	max := flag.Uint("max", 1, "client maximum protocol version")
 	token := flag.String("token", "", "client bearer token")
 	expectedToken := flag.String("expected-token", "", "server expected bearer token; empty disables auth")
+	servePing := flag.Bool("serve-ping", false, "server handles one PING after establishment")
+	pingNonce := flag.Uint64("ping-nonce", 0, "client sends one PING with this nonce after establishment; zero disables")
 	flag.Parse()
 	var err error
 	switch *mode {
 	case "server":
-		err = runServer(*addr, []byte(*expectedToken))
+		err = runServer(*addr, []byte(*expectedToken), *servePing)
 	case "client":
-		err = runClient(*addr, uint16(*min), uint16(*max), []byte(*token))
+		err = runClient(*addr, uint16(*min), uint16(*max), []byte(*token), *pingNonce)
 	default:
 		err = fmt.Errorf("-mode must be server or client")
 	}
@@ -33,7 +35,7 @@ func main() {
 	}
 }
 
-func runServer(addr string, expectedToken []byte) error {
+func runServer(addr string, expectedToken []byte, servePing bool) error {
 	pc, err := net.ListenPacket("udp", addr)
 	if err != nil {
 		return err
@@ -45,29 +47,39 @@ func runServer(addr string, expectedToken []byte) error {
 	}
 	buf := make([]byte, control.HeaderLen+control.MaxBodyLen)
 	_ = pc.SetDeadline(time.Now().Add(10 * time.Second))
-	for session.State() != control.StateEstablished && session.State() != control.StateFailed {
+	for {
+		if session.State() == control.StateFailed {
+			break
+		}
+		if session.State() == control.StateEstablished && !servePing {
+			break
+		}
 		n, peer, err := pc.ReadFrom(buf)
 		if err != nil {
 			return err
 		}
-		msg, err := control.Unmarshal(buf[:n])
-		if err != nil {
-			return err
-		}
-		reply := session.Handle(msg)
-		wire, err := control.Marshal(reply)
+		wire, err := session.HandleWire(buf[:n], uint64(time.Now().UnixNano()))
 		if err != nil {
 			return err
 		}
 		if _, err = pc.WriteTo(wire, peer); err != nil {
 			return err
 		}
+		msg, _ := control.Unmarshal(buf[:n])
+		reply, _ := control.Unmarshal(wire)
 		fmt.Printf("SERVER received=%T reply=%T state=%d\n", msg, reply, session.State())
+		if servePing && session.State() == control.StateEstablished {
+			if _, ok := msg.(control.Ping); ok {
+				break
+			}
+		}
 	}
+	st := session.Stats()
+	fmt.Printf("SERVER stats rx=%d tx=%d rx_bytes=%d tx_bytes=%d pings=%d pongs=%d auth_required=%t authenticated=%t\n", st.ControlRX, st.ControlTX, st.ControlRXBytes, st.ControlTXBytes, st.PingsReceived, st.PongsSent, st.AuthRequired, st.Authenticated)
 	return nil
 }
 
-func runClient(addr string, min, max uint16, token []byte) error {
+func runClient(addr string, min, max uint16, token []byte, pingNonce uint64) error {
 	peer, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return err
@@ -94,24 +106,39 @@ func runClient(addr string, min, max uint16, token []byte) error {
 	default:
 		return fmt.Errorf("unexpected reply %T", msg)
 	}
-	if len(token) == 0 {
+	if len(token) != 0 {
+		if err := send(c, control.Auth{Token: token}); err != nil {
+			return err
+		}
+		msg, err = recv(c)
+		if err != nil {
+			return err
+		}
+		switch m := msg.(type) {
+		case control.AuthOK:
+			fmt.Println("CLIENT reply=AUTH_OK state=ESTABLISHED")
+		case control.Error:
+			fmt.Printf("CLIENT reply=ERROR code=%d message=%q\n", m.Code, m.Message)
+			return nil
+		default:
+			return fmt.Errorf("unexpected auth reply %T", msg)
+		}
+	} else {
 		fmt.Println("CLIENT state=ESTABLISHED auth=disabled")
-		return nil
 	}
-	if err := send(c, control.Auth{Token: token}); err != nil {
-		return err
-	}
-	msg, err = recv(c)
-	if err != nil {
-		return err
-	}
-	switch m := msg.(type) {
-	case control.AuthOK:
-		fmt.Println("CLIENT reply=AUTH_OK state=ESTABLISHED")
-	case control.Error:
-		fmt.Printf("CLIENT reply=ERROR code=%d message=%q\n", m.Code, m.Message)
-	default:
-		return fmt.Errorf("unexpected auth reply %T", msg)
+	if pingNonce != 0 {
+		if err := send(c, control.Ping{Nonce: pingNonce}); err != nil {
+			return err
+		}
+		msg, err = recv(c)
+		if err != nil {
+			return err
+		}
+		p, ok := msg.(control.Pong)
+		if !ok || p.Nonce != pingNonce {
+			return fmt.Errorf("unexpected PONG %#v", msg)
+		}
+		fmt.Printf("CLIENT reply=PONG nonce=%d\n", p.Nonce)
 	}
 	return nil
 }
