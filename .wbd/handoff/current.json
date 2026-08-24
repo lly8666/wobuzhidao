@@ -1,58 +1,68 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 13,
+  "continuity_sequence": 14,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "65a872a1ac148beac112332e0702eb92420d5c1d",
+  "checkpoint_based_on_head_sha": "fc73c3bb0079e0d1458845d922eeaa4579c74c1b",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows using an unordered FakeTCP/FEC public carrier, with stock Xray composed above/inside the protected virtual link. Android is out of scope.",
-    "current_milestone": "V2-M1 reproduce pinned one-lane udp2raw + UDPspeeder product baseline",
-    "local_optimization_stop_rule": "Do not write a new FEC protocol, add two lanes, integrate WireGuard/Xray, or implement Auto until the exact pinned one-lane udp2raw 20230206.0 + UDPspeeder 20230206.0 baseline is locally reproduced with exact hashes and the existing M10-004 reference impairment family. Do not put ordinary REALITY/Vision/TCP back outside the raw/FEC carrier."
+    "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows using unordered FakeTCP/FEC carriers plus a native standards-compliant DTLS 1.3 WBD security/session layer. Xray/VLESS/Vision/REALITY, WireGuard and Android are not part of the V2.1 product stack.",
+    "current_milestone": "V2-M1 reproduce pinned one-lane udp2raw + UDPspeeder product baseline; V2-M2 is native DTLS 1.3 security",
+    "local_optimization_stop_rule": "Finish exact local V2-M1 raw/FEC reproduction before implementing DTLS. Do not write a new FEC protocol, add two lanes, start kernel-anchor work, implement native TUN/session features or Auto until M1 passes. After M1, V2-M2 must use real DTLS 1.3 with certificate/hostname verification; do not add Xray/WireGuard back and do not implement a custom TLS-looking post-handshake cipher or detector-specific fingerprint shaping."
   },
   "continuation_cursor": {
-    "last_completed_action": "Architecture restart completed and repository continuity contract verified at substantive checkpoint 65a872a1ac148beac112332e0702eb92420d5c1d. New branch dev/wbd-raw-fec-v2 and draft PR #3 replace rejected PR #2 as the active surface. ADR-0002, PROJECT_CONSTITUTION.md, ARCHITECTURE.md and ROADMAP.md define an unordered udp2raw-compatible FakeTCP + FEC mainline; Android/no-root portability is removed. udp2raw 20230206.0 / e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63 and UDPspeeder 20230206.0 / 61b24a369700c3d8248dd18fa9a524b778741454 are the pinned V2 product baseline. One raw lane is mandatory first; a second raw lane may later stripe FEC symbols under the same total byte budget. An easy-faketcp-inspired kernel TCP anchor is admitted only as a packet-capture experiment for real OS handshake/control/RST behavior; payload must never enter the kernel TCP byte stream. Stock Xray is to run above/inside the protected virtual link, initially through WireGuard or equivalent UDP/L3 glue, so public ordinary-TCP HOL is not reintroduced. V2 handoff and CI tests at 65a872a1 passed.",
-    "current_task": "V2-M1: locally reproduce the exact pinned one-lane udp2raw + UDPspeeder transport as the V2 product baseline before modifying it.",
-    "why_now": "The failed multi-TCP architecture is conclusively rejected, while the pinned udp2raw + UDPspeeder combination already demonstrated approximately 71 ms p99 and 100% delivery through the tested 15% forward FEC-shard loss profile. V2 must start from the known-good unordered carrier rather than inventing another transport before reproducing it.",
-    "done_when": "The local sandbox/privileged host restores or rebuilds the exact pinned udp2raw and UDPspeeder versions, verifies source commit and SHA-256 identities, runs the one-lane topology at approximately 50 ms RTT over 0/1/5/10/15% impairment with both 20:10 and 20:20 fixed FEC where practical, records machine-readable p50/p95/p99/delivery/bytes/CPU results, and confirms the result class is consistent with the qualified M10-004 reference. GitHub Actions may relay build bytes but cannot substitute for local execution.",
-    "next_atomic_action": "V2-M1: read deps/oracle-lock.json and docs/benchmarks/m10-004-fec-no-go.md, restore/build the exact udp2raw e5ecd33... and UDPspeeder 61b24a3... assets, verify their hashes, then run the simplest one-lane local UDP -> UDPspeeder -> udp2raw FakeTCP -> udp2raw -> UDPspeeder -> UDP echo baseline before touching kernel-anchor, two-lane, WireGuard or Xray work."
+    "last_completed_action": "Revised the active V2 architecture to V2.1 at substantive checkpoint fc73c3bb0079e0d1458845d922eeaa4579c74c1b. The carrier decision remains pinned udp2raw-compatible FakeTCP + UDPspeeder FEC, but Xray/VLESS/Vision/REALITY and WireGuard are removed. ADR-0003 now makes WBD itself the security/session owner using standards-compliant DTLS 1.3. FEC is placed before DTLS application-record encryption: each UDPspeeder source/repair datagram becomes an independently authenticated DTLS application datagram, then crosses udp2raw FakeTCP. Initial DTLS implementation pin is wolfSSL v5.9.2-stable / ac01707f552c611fbd135cc723b2682b3e7f80f2 and is architecture-pinned but not locally qualified. A future two-lane mode uses two independent DTLS associations and one merged FEC decoder. ADR-0002 kernel-anchor/real-return-packet research remains independent. Intervening commits 8c4dd105acb47973327d28e43143636b1b93d3d0 and 87aca2bdc39d9921bcd9689df1c42af85ca6daa1 were reconciled as temporary V2-M1 Actions relay helpers for pinned baseline binaries and iptables tooling; they are preserved but do not constitute local runtime qualification. Repository handoff/continuity and Go tests pass at the substantive V2.1 checkpoint; local V2-M1 runtime qualification is still pending.",
+    "current_task": "V2-M1: locally reproduce the exact pinned one-lane udp2raw + UDPspeeder transport as the V2 product baseline. Do not start DTLS implementation until this raw/FEC baseline is locally measured and recorded.",
+    "why_now": "M10-004 already proved the unordered udp2raw + UDPspeeder reference has the weak-network latency class V2 wants. V2.1 changes only the later security/product composition. Keeping M1 unchanged preserves a clean baseline so V2-M2 can measure the incremental cost and behavior of real DTLS 1.3 instead of confounding carrier and security changes.",
+    "done_when": "The local sandbox/privileged host restores or rebuilds the exact udp2raw e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63 and UDPspeeder 61b24a369700c3d8248dd18fa9a524b778741454 versions, verifies source/archive/binary SHA-256 identities, runs the one-lane UDP -> UDPspeeder -> udp2raw FakeTCP -> udp2raw -> UDPspeeder -> UDP echo topology at approximately 50 ms RTT over 0/1/5/10/15% impairment with both 20:10 and 20:20 where practical, records machine-readable p50/p95/p99/delivery/bytes/CPU results, and confirms the result class matches the qualified M10-004 reference. Remove temporary relay workflows after they have served this task. GitHub Actions may relay bytes but cannot substitute for local execution.",
+    "next_atomic_action": "V2-M1: reconcile the temporary relay helpers at 8c4dd105... and 87aca2bd..., obtain/verify the exact pinned udp2raw and UDPspeeder assets, then execute the simplest one-lane local UDP -> UDPspeeder -> udp2raw FakeTCP -> udp2raw -> UDPspeeder -> UDP echo baseline and the 0/1/5/10/15% impairment sweep. Record local qualification and clean up temporary relay workflows. Only after M1 passes, advance to V2-M2 from ADR-0003: wolfSSL DTLS 1.3 shim between UDPspeeder and udp2raw with a real X.509 certificate and strict peer/hostname verification."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    "docs/architecture/ADR-0002-raw-fec-restart.md",
+    "docs/architecture/ADR-0003-native-dtls.md",
     "docs/benchmarks/m10-004-fec-no-go.md",
     "deps/oracle-lock.json",
+    "deps/security-lock.json",
+    ".github/workflows/tmp-v2-m1-relay.yml",
+    ".github/workflows/tmp-v2-m1-iptables-relay.yml",
     ".wbd/handoff/current.json",
     ".wbd/handoff/data-plane.json",
-    "scripts/verify_handoff.py",
-    "tests/test_handoff.py"
+    "scripts/verify_handoff.py"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_architecture_restart_using_M10-004_qualified_raw_FEC_reference",
+    "authority": "V2_1_architecture_plus_M10-004_qualified_raw_FEC_reference; local V2-M1 product reproduction still pending",
     "v1_status": "permanently_rejected_multi_ordinary_TCP",
-    "v2_status": "active_raw_FEC_baseline_not_yet_reproduced_as_product",
+    "v2_raw_fec_status": "active_product_baseline_not_yet_reproduced_in_current_V2_M1",
     "v2_reference": {
       "udp2raw": "20230206.0 / e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63",
       "udpspeeder": "20230206.0 / 61b24a369700c3d8248dd18fa9a524b778741454",
       "one_percent_p99_ms": 71.544,
       "fifteen_percent_p99_ms": 71.116,
       "delivery_ratio": "1.0",
-      "scope": "historically qualified comparator; must now be reproduced as V2 product baseline"
+      "scope": "historically qualified comparator promoted to V2 baseline; must still be locally reproduced by V2-M1"
     },
-    "two_lane_status": "not_admitted",
+    "security": {
+      "design": "real DTLS 1.3; no Xray/WireGuard",
+      "implementation_pin": "wolfSSL v5.9.2-stable / ac01707f552c611fbd135cc723b2682b3e7f80f2",
+      "status": "architecture_pinned_not_locally_qualified",
+      "placement": "UDPspeeder source/repair datagram -> DTLS application datagram -> udp2raw FakeTCP",
+      "certificate_policy": "operator-controlled X.509 certificate; native trust-chain and hostname verification; optional SPKI pin",
+      "zero_rtt": "disabled_initially"
+    },
+    "two_lane_status": "not_admitted; future design uses two independent DTLS associations and one shared FEC decoder",
     "kernel_anchor_status": "experiment_not_started",
-    "xray_status": "composition_deferred_until_raw_FEC_and_L3_link_are_qualified"
+    "xray_status": "removed_from_V2_1_product_stack"
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "65a872a1ac148beac112332e0702eb92420d5c1d",
+    "tested_commit": "fc73c3bb0079e0d1458845d922eeaa4579c74c1b",
     "result": "not_run",
-    "command": "No V2 runtime transport code was added in this architecture restart. Repository CI, handoff verifier and V2 continuity tests passed at the substantive checkpoint; local-authoritative runtime transport qualification begins at V2-M1."
+    "command": "No new V2 runtime transport/security code was added by the V2.1 architecture revision. GitHub Go tests, handoff verifier and V2.1 continuity tests passed at the substantive checkpoint; local-authoritative raw/FEC runtime qualification remains the V2-M1 task, and local DTLS qualification begins only at V2-M2."
   }
 }
