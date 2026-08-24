@@ -1,64 +1,60 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 11,
+  "continuity_sequence": 12,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-multilane-v1",
   "active_issue": 1,
   "active_pr": 2,
-  "checkpoint_based_on_head_sha": "3c975ae47fe3a87f226282721c161e294ff423f1",
+  "checkpoint_based_on_head_sha": "12e2a42421b7494a431f0bf3b6dec9ca5984fd83",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Build a personal cross-platform VPN whose logical weak-network behavior approaches UDP/QUIC while public carriers remain stock REALITY/Vision over real kernel TCP.",
-    "current_milestone": "M10-003B real low-loss two-lane fault-path qualification",
-    "local_optimization_stop_rule": "Do not tune RBC/FEC policy, freeze a production FEC frame, modify REALITY/Vision, or start TUN/platform integration until the real normal-network gate remains green and the real userspace fault path passes a staged progression: approximately 50 ms RTT/~1% impairment, then 80-150 ms/~2%, before 150-300 ms/10-20%, correlated burst loss, and 250-600 ms/~30%. Keep the 2.0x intentional-redundancy ceiling."
+    "terminal_goal": "Build a personal cross-platform VPN with strong weak-network behavior, but the current multi-ordinary-TCP WBD carrier architecture is rejected and must not be continued without changing a fundamental carrier/product assumption.",
+    "current_milestone": "M10-004 architecture gate — NO-GO for multi-TCP recovery/FEC",
+    "local_optimization_stop_rule": "Stop all RBC tuning, production FEC framing, larger lane-count experiments, REALITY/Vision integration and TUN/platform work on the current multi-TCP architecture. Resume only after an explicit new architecture decision changes a fundamental assumption such as using a genuinely unordered/datagram-capable carrier or relaxing the current public-carrier constraint."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed M10-003A at substantive HEAD 3c975ae47fe3a87f226282721c161e294ff423f1: added a real localhost bidirectional RTT calibration gate using kernel TCP/UDP sockets and the same seeded 20-30 ms one-way schedule for native TCP, native UDP, WBD normal and WBD Auto. WBD uses real frame encoding, lane.TCP, and server-side session.Receiver.AcceptData; application delivery is not gated on logical ACK, FEC, duplication or rescue. A 64-sample concurrent local run had target mean RTT 49.445669 ms; inlier means were native TCP 51.078 ms, native UDP 51.108 ms, WBD normal 51.104 ms and WBD Auto 50.989 ms. WBD normal median excess was 1.444 ms versus native TCP 1.354 ms, and Auto remained at 1.0x. Raw tail metrics retain explicitly reported shared-host descheduling outliers. The local sandbox passed vet, normal/race tests, protocol fuzz (~138,710 executions), Linux/386, Linux/mipsle and Windows/amd64 benchmark cross-builds, wbd-rtt Linux/mipsle and Windows/amd64 cross-builds, handoff verification and continuity tests. The normal RTT report SHA-256 is 818a6b807772d1097cbc511b9971a14e9cfe1da816ed080e199d71058d85e6ca.",
-    "current_task": "M10-003B: extend the real localhost userspace fault path to two independent WBD TCP lanes and introduce the first controlled low-impairment case near 50 ms RTT/~1% before escalating to 80-150 ms/~2%. Measure current WBD recovery/RBC behavior without tuning it yet.",
-    "why_now": "The normal 0%-loss gate now demonstrates that WBD normal/Auto add no systematic extra RTT and Auto stays at 1.0x. Weak-network conclusions are only meaningful after a small real impairment step proves the two-lane fault injector and recovery path without jumping directly to 10-20% loss.",
-    "done_when": "The local sandbox has a reproducible real two-lane userspace fault path whose zero-loss mode still passes the M10-003A gate, plus a seeded approximately 50 ms RTT/~1% impairment case that exercises real kernel TCP lanes and current WBD recovery without hidden model-only timing. Native TCP/UDP and WBD results include mean/p50/p95/p99/completion or delivery ratio as applicable and intentional bytes. Then add 80-150 ms/~2% only if the 1% case is stable. Do not start 150-300 ms/10-20% or RBC/FEC tuning in the same atomic step.",
-    "next_atomic_action": "M10-003B: implement a reusable two-lane real localhost fault proxy with explicit RTT semantics and reproducible seeded ~1% impairment while preserving the green 40-60 ms RTT/0% normal gate; route current WBD lane/recovery code through it and record baseline metrics before adding the 80-150 ms/~2% step."
+    "last_completed_action": "Completed the M10-004 architecture gate. Added a benchmark-only systematic erasure-code experiment using two independent real kernel TCP lanes, 20:10 (1.5x) and 20:20 (2.0x), with exact erasure-recovery unit tests. Go CI passed. A 50 ms RTT / 200 x 256 B / window 32 / three-seed real-socket sweep over 0/1/2/3/5/8/10/12/15% retransmission-equivalent carrier holds showed clean-network p99 around 52 ms, but 20:20 already reached about 250.5 ms p99 at 1% impairment and remained around 252 ms through 15%; 20:10 was worse. Delivery stayed 100%, proving the failure is latency/HOL rather than reliability. The warmed three-seed udp2raw 20230206.0 + UDPspeeder 20230206.0 mode0 20:20 reference remained about 71 ms p99 with 100% delivery through 15% forward FEC-shard loss. The earlier 2x/3x proactive replication ceiling also failed to remove high-impairment TCP HOL. Current architecture is therefore rejected. Results are recorded in docs/benchmarks/m10-004-fec-no-go.md; temporary benchmark workflows were removed; ARCHITECTURE.md and ROADMAP.md are marked rejected/halted; deps/oracle-lock.json now records the qualified udp2raw/UDPspeeder reference.",
+    "current_task": "HALTED. Preserve the failed experiment as evidence and do not continue implementation on the current multi-TCP WBD architecture.",
+    "why_now": "The strongest favorable FEC experiment still inherited ordered TCP HOL and lost by a large latency margin to the external FEC reference. More tuning, lanes or redundancy would add complexity without addressing the structural carrier constraint.",
+    "done_when": "This architecture remains stopped. If the project is resumed, the first artifact must be a new architecture decision that changes a fundamental carrier/product assumption and defines a new benchmark gate before implementation resumes.",
+    "next_atomic_action": "No code action is authorized on the rejected architecture. If the user chooses to continue the VPN project, draft a new architecture decision comparing genuinely datagram/unordered carrier options or explicitly relaxed constraints; do not tune or extend the current multi-TCP stack."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    "docs/benchmarks/m10-003-normal-rtt-gate.md",
-    "internal/benchmark/rtt.go",
-    "internal/benchmark/rtt_test.go",
-    "internal/lane/pool.go",
-    "internal/recovery/stream.go",
-    "internal/scheduler/flight.go",
-    "internal/rbc/controller.go",
-    ".wbd/handoff/current.json",
-    "scripts/verify_handoff.py"
+    "docs/benchmarks/m10-004-fec-no-go.md",
+    "docs/benchmarks/m10-003b-real-low-impairment.md",
+    "internal/benchmark/fec.go",
+    "internal/benchmark/replicate.go",
+    "cmd/wbd-fec-sweep/main.go",
+    "deps/oracle-lock.json",
+    ".wbd/handoff/current.json"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "real_localhost_kernel_socket_normal_gate_plus_prior_deterministic_stress_not_final",
-    "normal_gate": {
-      "definition": "RTT 40-60 ms = independent 20-30 ms one-way delays, 0% loss",
-      "samples": 64,
-      "target_mean_ms": 49.445669,
-      "native_tcp_inlier_mean_ms": 51.078,
-      "native_udp_inlier_mean_ms": 51.108,
-      "wbd_normal_inlier_mean_ms": 51.104,
-      "wbd_auto_inlier_mean_ms": 50.989,
-      "native_tcp_median_excess_ms": 1.354,
-      "wbd_normal_median_excess_ms": 1.444,
-      "wbd_auto_median_excess_ms": 1.399,
-      "auto_final_multiplier": "1.0x",
-      "report_sha256": "818a6b807772d1097cbc511b9971a14e9cfe1da816ed080e199d71058d85e6ca"
+    "authority": "M10-004_no_go_real_socket_FEC_plus_qualified_external_reference",
+    "current_best_variant": "none; current multi-TCP architecture rejected",
+    "wbd_fec_20_20": {
+      "clean_p99_ms": 52.873,
+      "one_percent_p99_ms": 250.460,
+      "fifteen_percent_p99_ms": 252.227,
+      "traffic_multiplier": "2.0x",
+      "delivery_ratio": "1.0"
     },
-    "weak_network_status": "prior 150-300 ms/10-20% and 250-600 ms/30% values remain deterministic-model evidence only; next real step is ~50 ms RTT/~1%, then 80-150 ms/~2% before revisiting them",
-    "current_best_variant": "normal/Auto direct WBD path qualified at essentially native TCP latency; weak-network variant not selected"
+    "udp2raw_udpspeeder_20_20": {
+      "one_percent_p99_ms": 71.544,
+      "fifteen_percent_p99_ms": 71.116,
+      "delivery_ratio": "1.0",
+      "workflow_run_id": 32735353872,
+      "artifact_id": 9523056681
+    }
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "3c975ae47fe3a87f226282721c161e294ff423f1",
+    "tested_commit": "b8c166901729691a12629aa12106c367cc2c8de5",
     "result": "pass",
-    "normal_rtt_report_sha256": "818a6b807772d1097cbc511b9971a14e9cfe1da816ed080e199d71058d85e6ca",
-    "command": "go vet ./... && go test ./... -count=1 && go test -race ./... -count=1 && go test ./internal/protocol -run='^$' -fuzz=FuzzUnmarshalFrame -fuzztime=2s && Linux/386, Linux/mipsle and Windows/amd64 benchmark cross-builds && Linux/mipsle and Windows/amd64 wbd-rtt cross-builds && python scripts/verify_handoff.py && python -m unittest discover -s tests -p 'test_*.py' -v"
+    "command": "GitHub CI run 32741844218 passed Go tests and handoff tests; WBD FEC sweep run 32741844450 passed and artifact 9525489314 contains results.csv and median.csv; FEC codec erasure-recovery tests are part of the Go suite."
   }
 }
