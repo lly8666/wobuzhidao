@@ -1,0 +1,21 @@
+name: handoff-verify
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify repository handoff contract
+        run: |
+          python scripts/verify_handoff.py
+          python -m unittest discover -s tests -p 'test_*.py' -v
