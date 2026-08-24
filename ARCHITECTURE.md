@@ -1,127 +1,176 @@
-# Architecture v1
+# Architecture v2
 
-> **Status: REJECTED / historical only (2026-08-24).** M10-004 real-socket FEC qualification showed that adding erasure coding above multiple ordered TCP carriers does not bypass carrier HOL: 20:20 at 2.0x reached about 250 ms p99 with only 1% impairment while the udp2raw + UDPspeeder 20:20 reference remained about 72 ms p99 through 15% shard loss. See `docs/benchmarks/m10-004-fec-no-go.md`. Do not continue product work on this architecture without a new architecture decision that changes a fundamental carrier assumption.
+> **Status: ACTIVE EXPERIMENTAL MAINLINE (2026-08-24).** V1 multi-ordinary-TCP is permanently rejected by M10-004. The active decision is `docs/architecture/ADR-0002-raw-fec-restart.md`.
 
-## Public carrier
+## Core stack
 
-Each lane is independently established as:
-
-```text
-WBD protected inner session
-        ↓
-VLESS + XTLS Vision
-        ↓
-REALITY
-        ↓
-RAW transport
-        ↓
-real kernel TCP
-        ↓
-server:443
-```
-
-WBD never relies on public raw-FakeTCP behavior. Multiple lanes are separate genuine TCP connections and therefore separate kernel HOL/congestion domains.
-
-## Logical transport
-
-WBD borrows mature semantics rather than inventing a VPN-specific TCP clone:
-
-- QUIC-like connection/session, streams, datagrams and bounded flow control.
-- MPTCP-like logical data identity independent from per-lane transport identity, enabling cross-lane reinjection and deduplication.
-- TCPLS-like use of multiple ordinary TCP/TLS carriers inside one higher-level secure logical session.
-- Optional low-latency repair/FEC only after measured admission.
-
-Conceptual stack:
+The V2 public weak-network carrier is unordered/datagram-like:
 
 ```text
-VPN / SOCKS / test flows
+upper payload (VPN / WireGuard / Xray-over-private-link / lab UDP)
         ↓
-WBD Flow Layer
-  reliable STREAM
-  expiring DATAGRAM
+FEC / redundancy
+  1.0x / 1.5x / 2.0x
         ↓
-WBD Session Layer
-  session_id
-  stream/flow identity
-  logical offsets / datagram ids
-  ACK ranges
-  GAP hints
-  flow control
-  dedup / reorder
+raw lane mapper
+  lane0 required
+  lane1 optional
         ↓
-Recovery Layer
-  cross-lane reinjection
-  rescue lane
-  RBC 1.0x..2.0x
-  optional FEC
+udp2raw-compatible FakeTCP packet carrier
         ↓
-Lane Scheduler
-  bounded logical flight per lane
-  estimated-delivery-time metrics
-        ↓
-N independent real TCP + REALITY/Vision lanes
+public network
 ```
 
-## Lane roles
+Unlike V1, product payload is not placed in an ordinary kernel TCP byte stream. A missing raw packet therefore does not block later FEC/source symbols in a kernel TCP receive queue.
 
-The first benchmarked topologies are deliberately small:
+## Reference implementation first
 
-- 1 lane: correctness/baseline.
-- 2 symmetric bulk lanes.
-- 2 bulk + 1 low-queue rescue/control lane.
-- 4 symmetric lanes as a comparison, not an assumed optimum.
+The initial implementation is composition, not reinvention:
 
-Control frames are not bound to a single lane. Any healthy lane may carry ACK, GAP, flow or session control.
+```text
+UDP source
+  → UDPspeeder 20230206.0
+  → udp2raw 20230206.0 / faketcp
+  → network
+  → udp2raw
+  → UDPspeeder
+  → UDP sink
+```
 
-## Logical identity
+Pinned identities live in `deps/oracle-lock.json` and ADR-0002. This exact combination is already locally qualified as the M10-004 upper-bound reference and becomes the V2 baseline.
 
-At minimum keep three identities separate:
+## Lane 0: classic correctness baseline
 
-1. `flow_id` + stream offset or datagram id: what application data this is.
-2. `transmission_id`: one attempt to carry that logical data.
-3. `lane_id`: which real TCP carrier carried the attempt.
+Linux/OpenWrt first uses classic udp2raw FakeTCP with privileged raw access and the upstream-required firewall/RST handling. This is the baseline that all hybrid and Windows variants must match for correctness.
 
-Reinjecting a logical chunk changes transmission/lane identity, not application identity.
+No custom WBD session/RBC from V1 sits above this lane.
 
-## Redundancy Budget Controller (RBC)
+## Kernel-anchor / real-return-packet experiment
 
-RBC owns a target intentional multiplier `M` in `[1.0, 2.0]` and decides how the protection budget is spent among:
+A V2 lane may optionally have two cooperating pieces:
 
-- proactive repair/FEC,
-- proactive cross-lane duplicate,
-- gap-driven reinjection,
-- source pacing/backpressure.
+```text
+kernel anchor socket                 raw data engine
+--------------------                 ---------------
+real OS TCP handshake                encrypted/FEC UDP payload
+keeps TCP state alive                raw packet capture/injection
+helps suppress unwanted RST          unordered delivery
+control/return behavior              no kernel payload queue
+```
 
-`weak-1.5x` targets `M=1.5`; `weak-2x` V1 uses full cross-lane replication; `auto` uses discrete levels and fast-up/slow-down hysteresis.
+The upstream `easy-faketcp`/`--easy-tcp` dummy-socket mechanism is the reference for this idea.
 
-Primary feedback is logical delivery quality: ACK delay distribution, late-chunk ratio, gap age/rate, reinjection success, FEC recovery, lane stalls/disconnects and queue pressure. Kernel TCP telemetry is optional optimization only.
+Important boundary: **the anchor is not the payload carrier**. We do not send protected application bytes with `send()` on the anchor socket. Doing so would restore HOL.
 
-## Weak-network semantics
+Before this mode is admitted, packet capture must establish:
 
-A logical item is operationally “lost” for latency purposes when it misses its soft delivery deadline, even if its original TCP lane will eventually recover it. STREAM data is eventually reliable; DATAGRAM data may expire at a hard deadline.
+- stable three-way handshake and 4-tuple ownership;
+- no spurious RST/challenge-ACK loop;
+- sequence/ACK evolution is internally consistent;
+- raw payload can arrive out of order;
+- losing one raw payload packet does not delay later raw payload at the receiver;
+- kernel retransmission state is not required for product payload recovery.
 
-A rescue lane is evaluated because reinjected critical data must not sit behind bulk bytes already committed to another kernel socket queue.
+If those conditions fail, use classic udp2raw behavior instead of forcing the hybrid.
 
-## VPN integration boundary
+## FEC layer
 
-Protocol development starts without TUN. Planned sequence:
+First fixed profiles:
 
-1. deterministic flow/test generators,
-2. WBD local TCP/UDP/SOCKS surface,
-3. stock Xray REALITY/Vision carrier integration,
-4. Linux TUN/VPN,
-5. OpenWrt, Windows and finally Android.
+- 1.0x: no proactive repair;
+- 1.5x: mode 0 `20:10`;
+- 2.0x: mode 0 `20:20`.
 
-Where possible, reuse Xray's existing TUN/netstack/platform support instead of building a second portable userspace TCP stack.
+FEC is below any inner reliable TCP/Xray stream. Repair must be able to arrive independently of the missing source shard.
 
-## Benchmark oracles
+Do not design a new FEC wire format until the upstream baseline and its exact impairment results are reproduced locally.
 
-Every network profile must compare at least:
+## Optional two-lane design
 
-- native TCP,
-- native UDP datagram,
-- QUIC stream/datagram,
-- WBD single TCP,
-- WBD multi-lane variants.
+Two lanes mean two independent raw sessions / public 4-tuples, not two ordinary TCP streams.
 
-Metrics: p50/p95/p99 delivery latency, maximum HOL stall, goodput, recovery latency, intentional redundancy, observed network bytes, CPU, memory and socket count.
+```text
+FEC generation
+  source/repair symbols
+        ↓ deterministic interleaver
+   ┌────┴────┐
+ lane0      lane1
+   ↓          ↓
+FakeTCP     FakeTCP
+```
+
+Rules:
+
+- total source+repair traffic budget is shared across both lanes;
+- source and repair symbols should be spread so one lane-specific stall does not remove an entire repair opportunity;
+- receiver merges symbols by FEC generation/symbol identity, not by ordered lane sequence;
+- no cross-lane reliable byte stream is created;
+- one lane remains default unless two lanes measurably improve p95/p99 under the same total bytes.
+
+Mandatory comparisons include independent loss, same-time correlated loss and burst loss. Since both lanes may share one ISP/radio bottleneck, correlated loss is a first-class failure case.
+
+## Xray and VPN composition
+
+The preferred first full product composition is:
+
+```text
+Application / TUN
+        ↓
+stock Xray client
+VLESS + Vision + REALITY
+        ↓
+TCP to a private tunnel address
+        ↓
+WireGuard point-to-point IP link
+        ↓
+UDPspeeder / FEC
+        ↓
+udp2raw FakeTCP lane(s)
+        ↓
+public network
+        ↓
+reverse stack
+        ↓
+stock Xray server
+```
+
+Why this ordering matters: the Xray TCP connection is **inside** a lower virtual link whose public losses can be repaired by FEC. If stock REALITY/Vision/TCP is put back on the public outside, its kernel TCP HOL again becomes the outer recovery domain and recreates V1's structural failure.
+
+WireGuard is only L3 glue in this plan. It is selected first because it is mature and UDP-based and because udp2raw/UDPspeeder have established WireGuard/OpenVPN-style use. If this composition works, do not write a custom TUN stack.
+
+## Platform roles
+
+- OpenWrt/Linux: preferred server or either endpoint; classic raw FakeTCP baseline.
+- Linux desktop/server: privileged raw baseline and kernel-anchor research target.
+- Windows: client target using upstream multiplatform/easy-faketcp and Npcap; do not assume server mode.
+- Android: out of scope for V2.
+
+## What is intentionally removed from V1
+
+V2 does not carry forward as main-path mechanisms:
+
+- ordinary TCP lane pool;
+- logical ACK/GAP reinjection above kernel TCP;
+- rescue TCP lane;
+- V1 RBC state machine;
+- FEC above ordered TCP;
+- Android/no-root constraints.
+
+Old code remains for evidence and can be reused only when clearly carrier-agnostic.
+
+## Benchmark authority
+
+The M10-004 no-go result is the historical control. V2 must first reproduce the pinned one-lane reference before modifying it.
+
+Core metrics:
+
+- p50/p95/p99 and maximum delivery delay;
+- delivery/completion ratio;
+- FEC recovered vs unrecovered symbols;
+- intentional source/repair bytes;
+- raw packet retransmission (should be none at payload layer unless explicitly designed);
+- CPU/RAM;
+- per-lane packet counts;
+- independent vs correlated impairment.
+
+The ultimate comparison is not "looks TCP-like" but whether the unordered raw/FEC path retains low tail latency when packets are lost.
