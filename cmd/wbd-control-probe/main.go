@@ -18,14 +18,17 @@ func main() {
 	token := flag.String("token", "", "client bearer token")
 	expectedToken := flag.String("expected-token", "", "server expected bearer token; empty disables auth")
 	servePing := flag.Bool("serve-ping", false, "server handles one PING after establishment")
+	serveClose := flag.Bool("serve-close", false, "server handles one CLOSE after establishment")
 	pingNonce := flag.Uint64("ping-nonce", 0, "client sends one PING with this nonce after establishment; zero disables")
+	closeReason := flag.Uint("close-reason", 0, "client sends CLOSE with this reason after optional PING; zero disables")
+	closeDetail := flag.String("close-detail", "", "client CLOSE detail")
 	flag.Parse()
 	var err error
 	switch *mode {
 	case "server":
-		err = runServer(*addr, []byte(*expectedToken), *servePing)
+		err = runServer(*addr, []byte(*expectedToken), *servePing, *serveClose)
 	case "client":
-		err = runClient(*addr, uint16(*min), uint16(*max), []byte(*token), *pingNonce)
+		err = runClient(*addr, uint16(*min), uint16(*max), []byte(*token), *pingNonce, control.CloseReason(*closeReason), *closeDetail)
 	default:
 		err = fmt.Errorf("-mode must be server or client")
 	}
@@ -35,7 +38,7 @@ func main() {
 	}
 }
 
-func runServer(addr string, expectedToken []byte, servePing bool) error {
+func runServer(addr string, expectedToken []byte, servePing, serveClose bool) error {
 	pc, err := net.ListenPacket("udp", addr)
 	if err != nil {
 		return err
@@ -48,10 +51,10 @@ func runServer(addr string, expectedToken []byte, servePing bool) error {
 	buf := make([]byte, control.HeaderLen+control.MaxBodyLen)
 	_ = pc.SetDeadline(time.Now().Add(10 * time.Second))
 	for {
-		if session.State() == control.StateFailed {
+		if session.State() == control.StateFailed || session.State() == control.StateClosed {
 			break
 		}
-		if session.State() == control.StateEstablished && !servePing {
+		if session.State() == control.StateEstablished && !servePing && !serveClose {
 			break
 		}
 		n, peer, err := pc.ReadFrom(buf)
@@ -68,18 +71,18 @@ func runServer(addr string, expectedToken []byte, servePing bool) error {
 		msg, _ := control.Unmarshal(buf[:n])
 		reply, _ := control.Unmarshal(wire)
 		fmt.Printf("SERVER received=%T reply=%T state=%d\n", msg, reply, session.State())
-		if servePing && session.State() == control.StateEstablished {
-			if _, ok := msg.(control.Ping); ok {
+		if session.State() == control.StateEstablished {
+			if _, ok := msg.(control.Ping); ok && servePing && !serveClose {
 				break
 			}
 		}
 	}
 	st := session.Stats()
-	fmt.Printf("SERVER stats rx=%d tx=%d rx_bytes=%d tx_bytes=%d pings=%d pongs=%d auth_required=%t authenticated=%t\n", st.ControlRX, st.ControlTX, st.ControlRXBytes, st.ControlTXBytes, st.PingsReceived, st.PongsSent, st.AuthRequired, st.Authenticated)
+	fmt.Printf("SERVER stats rx=%d tx=%d rx_bytes=%d tx_bytes=%d pings=%d pongs=%d auth_required=%t authenticated=%t close_reason=%d state=%d\n", st.ControlRX, st.ControlTX, st.ControlRXBytes, st.ControlTXBytes, st.PingsReceived, st.PongsSent, st.AuthRequired, st.Authenticated, st.CloseReason, st.State)
 	return nil
 }
 
-func runClient(addr string, min, max uint16, token []byte, pingNonce uint64) error {
+func runClient(addr string, min, max uint16, token []byte, pingNonce uint64, closeReason control.CloseReason, closeDetail string) error {
 	peer, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return err
@@ -139,6 +142,21 @@ func runClient(addr string, min, max uint16, token []byte, pingNonce uint64) err
 			return fmt.Errorf("unexpected PONG %#v", msg)
 		}
 		fmt.Printf("CLIENT reply=PONG nonce=%d\n", p.Nonce)
+	}
+	if closeReason != 0 {
+		want := control.Close{Reason: closeReason, Detail: closeDetail}
+		if err := send(c, want); err != nil {
+			return err
+		}
+		msg, err = recv(c)
+		if err != nil {
+			return err
+		}
+		got, ok := msg.(control.Close)
+		if !ok || got != want {
+			return fmt.Errorf("unexpected CLOSE %#v", msg)
+		}
+		fmt.Printf("CLIENT reply=CLOSE reason=%d detail=%q\n", got.Reason, got.Detail)
 	}
 	return nil
 }
