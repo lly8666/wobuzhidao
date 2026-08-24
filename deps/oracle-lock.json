@@ -1,0 +1,11 @@
+{
+  "schema_version": "wbd-oracle-lock/v1",
+  "quic": {
+    "implementation": "github.com/quic-go/quic-go",
+    "tag": "v0.61.0",
+    "release_commit_short": "579ee19",
+    "minimum_go": "1.25.0",
+    "status": "pinned_plan_not_yet_integrated",
+    "reason": "M10 pins the QUIC oracle identity without silently upgrading the WBD Go 1.23 module. Integrate through a compatible isolated oracle toolchain after the local TCP/UDP baseline is qualified."
+  }
+}
