@@ -1,0 +1,43 @@
+{
+  "schema": "wbd-v2-m3b-auth-qualification/v1",
+  "result": "pass",
+  "authority": "local sandbox execution",
+  "shim_sha256": "63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a",
+  "dtls": {
+    "version": "DTLSv1.3",
+    "cipher": "TLS_AES_256_GCM_SHA384",
+    "hello_and_auth_started_only_after_both_ready": true
+  },
+  "auth": {
+    "mechanism": "optional static bearer token inside DTLS application data",
+    "comparison": "SHA-256 fixed-length digest + crypto/subtle.ConstantTimeCompare",
+    "wrong_token": "fail closed; session does not enter Established"
+  },
+  "cases": [
+    {
+      "name": "auth-disabled",
+      "expected_token_configured": false,
+      "client_token_supplied": false,
+      "client_output": "CLIENT reply=ACCEPT protocol=1\nCLIENT state=ESTABLISHED auth=disabled",
+      "server_output": "SERVER received=control.Hello reply=control.Accept state=2",
+      "dtls_ready_before_hello_or_auth": true
+    },
+    {
+      "name": "auth-correct",
+      "expected_token_configured": true,
+      "client_token_supplied": true,
+      "client_output": "CLIENT reply=ACCEPT protocol=1\nCLIENT reply=AUTH_OK state=ESTABLISHED",
+      "server_output": "SERVER received=control.Hello reply=control.Accept state=1\nSERVER received=control.Auth reply=control.AuthOK state=2",
+      "dtls_ready_before_hello_or_auth": true
+    },
+    {
+      "name": "auth-wrong",
+      "expected_token_configured": true,
+      "client_token_supplied": true,
+      "client_output": "CLIENT reply=ACCEPT protocol=1\nCLIENT reply=ERROR code=5 message=\"authentication failed\"",
+      "server_output": "SERVER received=control.Hello reply=control.Accept state=1\nSERVER received=control.Auth reply=control.Error state=3",
+      "dtls_ready_before_hello_or_auth": true
+    }
+  ],
+  "scope": "M3B auth state only; no username/password, keepalive, reconnect, TUN, FEC or carrier changes"
+}
