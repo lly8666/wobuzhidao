@@ -1,24 +1,24 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 15,
+  "continuity_sequence": 16,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "61037c33ed3c230486378845328e7e54a3c43ab4",
+  "checkpoint_based_on_head_sha": "e82092953df8304feff0c8629e12e23c89609d97",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows using unordered FakeTCP/FEC carriers plus a native standards-compliant DTLS 1.3 WBD security/session layer. Xray/VLESS/Vision/REALITY, WireGuard and Android are not part of the V2.1 product stack.",
-    "current_milestone": "V2-M2 native WBD DTLS 1.3 security shim on the qualified one-lane raw/FEC carrier",
-    "local_optimization_stop_rule": "Qualify the exact pinned wolfSSL DTLS 1.3 implementation and its certificate/hostname verification path before integrating it into UDPspeeder/udp2raw. Do not add custom FEC, two lanes, kernel-anchor work, native TUN/session features, Auto, custom post-handshake crypto, or detector-specific fingerprint shaping during V2-M2."
+    "current_milestone": "V2-M2 native WBD DTLS 1.3 security shim; M2A handshake/identity gate passed, M2B datagram independence active",
+    "local_optimization_stop_rule": "Keep M2 on one DTLS association and one raw lane. Do not add custom FEC, two lanes, kernel-anchor work, native TUN/session features, Auto, custom post-handshake crypto or detector-specific fingerprint shaping. Prove datagram independence before raw/FEC integration."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed V2-M1 at substantive checkpoint 61037c33ed3c230486378845328e7e54a3c43ab4. The exact pinned udp2raw 20230206.0 / e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63 and UDPspeeder 20230206.0 / 61b24a369700c3d8248dd18fa9a524b778741454 amd64 binaries were SHA-256 verified and executed locally. Final qualification used classic --raw-mode faketcp with upstream -a RST-suppression rules on both client and server inside an isolated unshare -Urn network namespace. The 50 ms RTT, 200 x 256 B, window 32, three-seed 0/1/5/10/15% forward FEC-shard loss matrix covered both 20:10 and 20:20: all 30 cases completed 64/64 warmup and 200/200 delivery, all measured late>100ms ratios were zero, and median p99 remained approximately 70-78 ms. Results, receipt, report and reproducible harness were committed; deps/oracle-lock.json now marks the exact raw/FEC baseline locally qualified; temporary relay workflows were removed from the source tree.",
-    "current_task": "V2-M2: add the native DTLS 1.3 security layer defined by ADR-0003, starting with exact local qualification of pinned wolfSSL v5.9.2-stable / ac01707f552c611fbd135cc723b2682b3e7f80f2 and a minimal real-certificate DTLS 1.3 client/server handshake before carrier integration.",
-    "why_now": "V2-M1 has established a clean local raw/FEC latency baseline. DTLS can now be measured as an incremental security layer without confounding carrier behavior. The first M2 gate is deliberately security/correctness-only so certificate verification and DTLS 1.3 protocol use are proven before UDPspeeder/FakeTCP integration complexity is added.",
-    "done_when": "V2-M2 is complete when the exact pinned wolfSSL source/build identity is recorded and locally qualified; a real DTLS 1.3 client/server handshake succeeds with an operator-style test CA/server certificate and strict expected-hostname verification; untrusted and hostname-mismatched certificates fail; UDPspeeder source/repair datagrams each traverse as DTLS application datagrams between UDPspeeder and udp2raw; loss of one DTLS application record does not block later source/repair records; and local 0/1/5/10/15% measurements record p50/p95/p99/delivery, FEC bytes, DTLS/security bytes, CPU and memory. 0-RTT stays disabled and there is no custom crypto fallback.",
-    "next_atomic_action": "V2-M2A: obtain or build the exact wolfSSL v5.9.2-stable / ac01707f552c611fbd135cc723b2682b3e7f80f2 source/build bytes, record SHA-256/build flags/toolchain, then locally run the smallest DTLS 1.3 UDP loopback client/server using a generated test CA plus a server certificate for wbd.test. Require native chain+hostname verification to pass for wbd.test and fail for a mismatched hostname and an untrusted CA. Do not insert UDPspeeder or udp2raw into the DTLS path until this gate passes."
+    "last_completed_action": "Completed V2-M2A at substantive checkpoint e82092953df8304feff0c8629e12e23c89609d97. The wolfSSL v5.9.2-stable tag was explicitly verified to resolve to ac01707f552c611fbd135cc723b2682b3e7f80f2; the exact git-archive source bytes SHA-256 4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b were relayed and built locally with --enable-dtls13 --disable-shared --enable-static. The accepted local static library SHA-256 is 22b132f66b74067507df8a891a2137e78d54309ec424c8bcc7ed9a3ac897c96a. Native DTLS 1.3 client/server methods and wolfSSL_check_domain_name were exercised with a generated CA and SAN wbd.test certificate: the valid hostname/CA completed DTLSv1.3 using TLS_AES_256_GCM_SHA384 and application-data round trip, wrong.test was rejected with peer subject name mismatch, and an untrusted CA was rejected with ASN no signer. Early data and OPENSSL_EXTRA were not enabled. Reproducible probe/driver, receipt and security lock update were committed; temporary source relay workflow was removed.",
+    "current_task": "V2-M2B: implement and locally qualify a bidirectional DTLS 1.3 UDP datagram shim using the M2A-qualified wolfSSL configuration. Prove one input UDP datagram maps to one DTLS application write/read and that loss of one encrypted application datagram does not prevent a later application datagram from being authenticated and delivered.",
+    "why_now": "Certificate identity and the exact DTLS 1.3 implementation are now independently proven. The next structural risk is accidentally rebuilding ordered delivery above DTLS. A plain-UDP shim/drop test isolates that property before UDPspeeder or udp2raw are introduced.",
+    "done_when": "A local client/server shim maintains one DTLS 1.3 association, relays multiple bidirectional UDP application datagrams without merging them into a reliable stream, and a deterministic proxy that drops one post-handshake DTLS application datagram demonstrates that a later record is still independently authenticated/decrypted/delivered. The valid certificate/hostname path remains required. Record/application byte counts and observed drop index are recorded. No FEC or FakeTCP is present in this M2B gate.",
+    "next_atomic_action": "V2-M2B: add a minimal wolfSSL DTLS 1.3 UDP relay with client plaintext-listen and server plaintext-target modes. Run it first over direct localhost UDP with a generated wbd.test certificate. Then place a deterministic UDP proxy between the DTLS peers, allow the handshake to finish, drop exactly one DTLS application datagram, and send numbered application datagrams so delivery of a later number proves no record-order HOL. Commit only after both direct relay and drop-one-record tests pass."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
@@ -26,36 +26,27 @@
     "ROADMAP.md",
     "docs/architecture/ADR-0003-native-dtls.md",
     "docs/benchmarks/v2-m1-one-lane-raw-fec.md",
+    "docs/security/v2-m2a-dtls13-handshake.md",
     "deps/oracle-lock.json",
     "deps/security-lock.json",
-    "scripts/bench_v2_m1_raw_fec.py",
+    "native/dtls/dtls13_probe.c",
+    "scripts/qualify_v2_m2_dtls13.sh",
     ".wbd/handoff/current.json",
-    ".wbd/handoff/data-plane.json",
     "scripts/verify_handoff.py"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_M1_locally_qualified_exact_pinned_raw_FEC_baseline",
+    "authority": "V2_M1_raw_FEC_locally_qualified_plus_V2_M2A_native_DTLS13_identity_qualified",
     "v1_status": "permanently_rejected_multi_ordinary_TCP",
     "v2_raw_fec_status": "locally_qualified_product_baseline",
-    "v2_m1": {
-      "substantive_commit": "61037c33ed3c230486378845328e7e54a3c43ab4",
-      "udp2raw": "20230206.0 / e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63",
-      "udpspeeder": "20230206.0 / 61b24a369700c3d8248dd18fa9a524b778741454",
-      "cases": 30,
-      "delivery": "100% in every accepted case",
-      "p99_median_class": "approximately 70-78 ms",
-      "max_individual_p99_ms": 92.503,
-      "results_sha256": "3eeb7851c1284d838817f6f3406516568e76469f0319056cc3bb63e2897e15e5",
-      "median_sha256": "db22df67515253ee9e1bdc47196bc117e2485751043e92341d9cd61819695027"
-    },
     "security": {
       "design": "real DTLS 1.3; no Xray/WireGuard",
       "implementation_pin": "wolfSSL v5.9.2-stable / ac01707f552c611fbd135cc723b2682b3e7f80f2",
-      "status": "V2_M2_active_architecture_pin_not_yet_locally_qualified",
+      "m2a_status": "locally_qualified_native_handshake_identity",
+      "m2b_status": "active_datagram_independence_gate",
       "placement": "UDPspeeder source/repair datagram -> DTLS application datagram -> udp2raw FakeTCP",
-      "certificate_policy": "operator-controlled X.509 certificate; native trust-chain and hostname verification; optional SPKI pin later",
-      "zero_rtt": "disabled_initially"
+      "certificate_policy": "operator-controlled X.509 certificate; native trust-chain and hostname verification",
+      "zero_rtt": "disabled"
     },
     "two_lane_status": "not_admitted; future design uses two independent DTLS associations and one shared FEC decoder",
     "kernel_anchor_status": "deferred_to_V2_M4",
@@ -63,8 +54,8 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "61037c33ed3c230486378845328e7e54a3c43ab4",
+    "tested_commit": "e82092953df8304feff0c8629e12e23c89609d97",
     "result": "pass",
-    "command": "Local V2-M1 authority: exact SHA-verified udp2raw/UDPspeeder binaries executed in isolated unshare -Urn namespace with classic faketcp and upstream -a on both endpoints; 30-case 20:10/20:20 0/1/5/10/15% matrix passed 64/64 warmup and 200/200 delivery. Committed harness was independently smoke-tested at 20:20/1%/seed260824 with 200/200 delivery and about 71.8 ms p99. GitHub CI for the substantive checkpoint was triggered; the initial handoff-verify failure was solely the expected stale resume_read_set reference to relay workflows removed by that commit and is corrected by this sequence-15 handoff."
+    "command": "M2A local authority: exact source archive SHA verified; local Autotools build with --enable-dtls13 --disable-shared --enable-static; native valid wbd.test DTLSv1.3 handshake/application round trip passed; hostname mismatch and untrusted CA failed as required; reproducibility driver rebuilt from source archive and repeated all three cases successfully."
   }
 }
