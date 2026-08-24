@@ -1,0 +1,12 @@
+{
+  "schema_version": "wbd-data-plane/v1",
+  "binary_authority": "google_drive_only",
+  "local_test_authority": "sandbox",
+  "policy": {
+    "git": "source, text state, exact hashes, Drive IDs and qualification receipts only",
+    "github_actions": "networked dependency acquisition, CI, cross-build and temporary relay artifacts only",
+    "google_drive": "durable binaries and generated binary packs",
+    "qualification": "the exact SHA-256 bytes must pass the required local sandbox tests before qualified=true"
+  },
+  "assets": []
+}
