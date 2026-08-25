@@ -31,18 +31,16 @@ class HandoffContractTest(unittest.TestCase):
             "20:20",
             "OpenWrt/Linux ↔ Linux or Windows",
             "Android and unprivileged/no-root portability are out of scope",
-            "optional TLS Persona bootstrap",
-            "Persona must remain isolated from the unordered DTLS/FEC data plane",
+            "Reality-like same-entry TLS front",
+            "Sustained VPN payload never runs in this ordinary TLS/TCP connection",
             "Kernel TCP anchor / real-return-packet hybrid: retired",
-            "Phase B — fixed FEC / immutable setup / periodic refresh — CURRENT",
-            "optional fixed FEC",
-            "same account username",
-            "only-cn",
             "Do not delay an available systematic source merely to fill a FEC block",
-            "periodic fixed-profile refresh",
             "There is no runtime FEC config epoch",
-            "changing parameters means a fresh association",
-            "configured-capacity rate guard",
+            "100 Mbit/s physical link capacity",
+            "certificate-chain and hostname verification are **not required**",
+            "same username/password may authenticate multiple simultaneous devices/sessions",
+            "OpenWrt final transparent capture through **TPROXY**",
+            "Windows final client capture through a **TUN/Wintun-class L3 adapter**",
         ):
             self.assertIn(phrase, text)
 
@@ -112,15 +110,15 @@ class HandoffContractTest(unittest.TestCase):
 
         adr8 = (ROOT / "docs/architecture/ADR-0008-reality-target-mirror-diagnostic.md").read_text(encoding="utf-8")
         for phrase in (
-            "explicit demo-only experiment",
-            "There is deliberately **no in-stream plaintext or protocol splice**",
-            "DEMO_BIND",
-            "one-time",
-            "mandatory normal device/account `AUTH`",
-            "self-signed DTLS certificate",
-            "never means disabling certificate verification",
+            "Reality-like same-entry front",
+            "same TCP socket",
+            "single encrypted username/password request",
+            "same username/password may authenticate multiple simultaneous devices/sessions",
+            "one-time ticket",
+            "does **not** require another normal device/account `AUTH`",
+            "certificate and hostname verification disabled",
+            "no sustained VPN payload inside the Reality-like TLS/TCP stream",
             "unordered/no-HOL WBD data plane",
-            "before those first bytes are forwarded to the client",
         ):
             self.assertIn(phrase, adr8)
 
@@ -140,14 +138,15 @@ class HandoffContractTest(unittest.TestCase):
         )
 
         roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
-        self.assertIn("V2-M3A-E | minimal native session/control + bearer auth + legacy fixed config foundation | **DONE AS FOUNDATION**", roadmap)
-        self.assertIn("V2-M4 | kernel-anchor / real-return-packet experiment | **RETIRED**", roadmap)
-        self.assertIn("V2-M6A | Linux/OpenWrt packet-preserving L3/TUN core | **IMPLEMENTED**", roadmap)
-        self.assertIn("V2-M8A | optional TLS Persona bootstrap + network-treatment diagnostic | **REALITY-STYLE TARGET-MIRROR + ENCRYPTED DEMO BIND IMPLEMENTED; PERSONA STILL PLANNED**", roadmap)
-        self.assertIn("V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **CURRENT**", roadmap)
-        self.assertIn("V2-M8C | account + per-device credential + concurrent multi-session server state | **PLANNED**", roadmap)
-        self.assertIn("V2-X1 | advanced continuously learning Auto FEC / automatic capacity inference | **FUTURE RESEARCH; NOT REQUIRED**", roadmap)
-        self.assertIn("link-defining parameters never change in place", roadmap)
+        self.assertIn("V2-M6A | Linux packet-preserving L3/TUN regression core | **IMPLEMENTED**", roadmap)
+        self.assertIn("V2-M6C | OpenWrt transparent capture | **PLANNED FINAL SHAPE: TPROXY + POLICY ROUTING**", roadmap)
+        self.assertIn("V2-M7A | Windows client capture | **PLANNED FINAL SHAPE: TUN/WINTUN-CLASS L3**", roadmap)
+        self.assertIn("V2-M8A | Reality-like same-entry bootstrap | **IMPLEMENTED; SIMPLE SHARED USER/PASS PATH UNDER CI QUALIFICATION**", roadmap)
+        self.assertIn("V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **CURRENT TRANSPORT WORK**", roadmap)
+        self.assertIn("V2-M8C | shared-account concurrent session admission | **IN PROGRESS**", roadmap)
+        self.assertIn("V2-M10 | release qualification | protocol regression -> OpenWrt TPROXY one-shot VPN -> Windows TUN one-shot VPN", roadmap)
+        self.assertIn("100 Mbit/s physical-link ceiling", roadmap)
+        self.assertIn("same pair may be used by several devices simultaneously", roadmap)
 
         bench = (ROOT / "docs/benchmarks/v2-transport-20x20-matrix.md").read_text(encoding="utf-8")
         self.assertIn("Nominal matrix size: **126 cases**", bench)
