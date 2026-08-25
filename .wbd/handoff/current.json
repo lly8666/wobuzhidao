@@ -1,52 +1,56 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 33,
+  "continuity_sequence": 34,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "43041da32cc67bf04197bdd00ec3ce1d75d99cd5",
+  "checkpoint_based_on_head_sha": "82dc197d2706db4d6d5158c068a81cda1cc0ac2b",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal weak-network VPN with TCP-shaped FakeTCP outer packets, UDP/datagram-like inner behavior, DTLS 1.3, and a compact WBD-owned FEC layer suited to OpenWrt/Linux/Windows owned endpoints.",
-    "current_milestone": "Replace the resource-heavy generic UDPspeeder process with a narrow WBD-owned FEC candidate, using UDPspeeder 20:20 as the oracle baseline and correcting the steady-state 200-Mbit sizing methodology.",
-    "local_optimization_stop_rule": "Do not broaden the matrix. First implement one fixed 20+20 systematic erasure-code path with bounded buffers, then A/B only high-information 200-Mbit public-link points. Keep UDPspeeder until the candidate is at least as good on delivery/tail latency and materially better on RSS/CPU."
+    "current_milestone": "Qualify WBD-owned 20+20 FEC and native FakeTCP together using first-complete-inner-datagram latency as the performance authority, while retaining TCP-like shadow retransmission behavior and measuring its CPU/RSS/wire/BDP cost separately.",
+    "local_optimization_stop_rule": "Inner first-complete-datagram performance is the primary invariant. Do not cap or delay new inner datagrams to save retransmission memory. Retain unacknowledged payload for TCP-like retransmission correctness and treat BDP memory as a measured cost. Do not broaden the matrix until focused full-stack first-arrival points pass."
   },
   "continuation_cursor": {
-    "last_completed_action": "Recovered the live handoff from Issue #1 and dev/wbd-raw-fec-v2, reconciled checkpoint 9ba1ca8cee6d2d6a865b4ae96413c556a708c951 to live head 476139ec88a780ddf709bacb236b06e2e4a024e6 as one handoff-only delta, then completed the requested first WBD-owned FEC atomic step. Commits 7b01d7961bbfd4f75e5134c51d7ff3e96e6d7c0c and 43041da32cc67bf04197bdd00ec3ce1d75d99cd5 add internal/fec with a fixed systematic 20 data + 20 parity GF(256) Reed-Solomon codec, a thin replaceable Codec interface, a fixed-capacity preallocated BufferPool, and a repeated 56-byte BlockHeader carrying block/shard identity plus original packet lengths. Deterministic unit tests recover every missing-count 0..20 using both data-prefix and mixed loss patterns, reject 21 missing shards, round-trip variable-length metadata, and prove pool exhaustion is bounded. Exact tested local blobs match GitHub: fec.go b833ebd2a6089b16e1cf4afb85cc9eb2a4b5d33a and fec_test.go 8c0e61ed976cb68701dcb66d1ce83c6df9604fdd. Local Go 1.23.2 targeted tests pass. Indicative 1200-byte-shard microbench on the sandbox AMD EPYC reports about 43.04 MB/s encode and 40.84 MB/s worst-case reconstruction with all 20 data shards missing; this is only an implementation baseline, not the required transport A/B. Full-repository local tests were not run because the sandbox cannot resolve github.com for cloning, but this package has no external dependency and the exact committed package bytes were tested locally.",
-    "current_task": "Build a minimal WBD-owned FEC v0 and A/B it against UDPspeeder 20:20. Preferred first codec is fixed systematic 20 data + 20 parity Reed-Solomon-style erasure coding with preallocated bounded block buffers, original packet-length metadata and a small flush timer. In parallel, correct the 200-Mbit sizing probe to separate one-way bulk throughput/CPU from a low-rate latency probe and to use actual measurement wall time.",
-    "why_now": "The 200-Mbit pass shows UDPspeeder consumes about three quarters of current userspace RSS, while the project only needs one narrow fixed FEC behavior. The core 20+20 codec now exists and passes deterministic recovery tests, so the next risk is packet-preserving block lifecycle under variable lengths, reorder, partial blocks and bounded memory before transport integration.",
-    "done_when": "A WBD-owned FEC candidate can encode/decode fixed 20+20 blocks, handle variable original packet lengths without stream semantics, bound memory explicitly, flush partial blocks on a small timer, pass deterministic loss/reorder unit tests, and run the corrected focused 200-Mbit A/B against the pinned UDPspeeder oracle. Report per-endpoint RSS, codec CPU, end-to-end CPU, one-way delivery/goodput and separate latency under a small set of RTT/loss points.",
-    "next_atomic_action": "Build the packet-preserving block layer around internal/fec: accept variable-length datagrams into a bounded 20-packet block, pad only inside the block, emit 40 independently parseable shard datagrams with BlockHeader, collect by BlockID/ShardIndex under arbitrary arrival order, reconstruct as soon as 20 valid shards are available, restore original datagram lengths, and flush a partial block on a small deterministic timer using DataCount. Add deterministic reorder/loss/partial-flush tests. Do not integrate with DTLS/FakeTCP or remove UDPspeeder until this block layer is locally qualified."
+    "last_completed_action": "Implemented and qualified the first native WBD FakeTCP shadow-reliability path required for total-cost measurement. The branch now has a WBD-owned raw IPv4/TCP carrier with SYN/SYN-ACK/ACK, cumulative sequence/ACK state, RFC-2018-style SACK signaling, three-duplicate-ACK fast retransmit, and RFC-6298-style earliest-unacknowledged RTO retransmission with exponential backoff. SACK is advisory: retransmission payload is deliberately retained until cumulative ACK rather than freed on SACK, so memory optimization cannot suppress future retransmission or throttle first-arrival performance. Receive delivery remains datagram-oriented: a new out-of-order complete payload is delivered immediately while only sequence ranges are retained for cumulative ACK, and retransmitted duplicates are suppressed from the inner path. Commits b5c2469b1e859c87ebf61e471e6ae2dad480f447 and 95d3181b3d7094284bfd824841c31efe0e0f36a9 implement and test these invariants. Added scripts/faketcp_first_arrival_probe.py and workflow faketcp-first-arrival at checkpoint 82dc197d2706db4d6d5158c068a81cda1cc0ac2b. GitHub Actions run 32835886973 completed SUCCESS for RTT 20/100 ms x loss 0/10%. At 0% loss, one-way first-complete latency is essentially the netem floor: RTT20 p50 10.159 ms, p99 10.278 ms; RTT100 p50 50.168 ms, p99 50.267 ms. Under 10% one-way loss, surviving first transmissions still bypass holes: RTT20 p50 10.109 ms, p95 10.139 ms; RTT100 p50 50.174 ms, p95 50.268 ms. Loss-case raw-only p99 includes datagrams whose original segment was lost and therefore is not the product FEC latency authority. At the 3 s observation cutoff, sender pending peaked at roughly 451-460 packets, intentionally demonstrating that the implementation accepts BDP memory instead of gating new inner traffic. All four first-arrival jobs and internal/faketcp unit tests passed.",
+    "current_task": "Move the first-complete-datagram latency authority through the actual WBD product transport stack: WBD fixed 20+20 FEC -> DTLS 1.3 -> native WBD FakeTCP shadow TCP retransmission. Measure the earliest time each original inner datagram is available, whether by original source shard or earlier FEC reconstruction; ignore later FakeTCP duplicate/retransmission arrivals for latency. Keep shadow retransmission running and account its CPU/RSS/wire/pending cost separately.",
+    "why_now": "Raw native FakeTCP now proves that sequence holes do not impose receive HOL: p50-p95 first-arrival remains at the one-way propagation floor even with 10% loss. The remaining product question is whether the WBD FEC layer reconstructs the packets whose first raw transmission is lost before TCP shadow retransmission, so full-stack p95/p99 rather than raw-only retransmission tails must become the release metric.",
+    "done_when": "Focused full-stack points show first-complete original inner datagram p50/p95/p99 for RTT 20/100 ms and loss 0/10/20% with WBD FEC 20+20 + pinned DTLS 1.3 + native FakeTCP. Later complete datagrams must bypass earlier holes; FEC reconstruction must count at its first availability time; later FakeTCP retransmissions must not alter latency; new inner sends must not be gated by retransmission-buffer memory. Report carrier/FEC/DTLS CPU, per-component and total RSS, retransmit bytes, fast/RTO retransmit counts, and peak pending alongside first-arrival latency. Do not claim a full RFC TCP stack: the required product invariant is TCP-shaped shadow retransmission behavior without giving TCP congestion/HOL control over inner delivery.",
+    "next_atomic_action": "Wire scripts/faketcp_first_arrival_probe.py through the existing WBD full-stack A/B harness for the WBD arm (WBD FEC 20+20 -> DTLS 1.3 -> native FakeTCP), deduplicate by original datagram ID at the final inner sink, and timestamp the earliest complete original whether received directly or reconstructed by FEC. Run focused RTT 20/100 ms x loss 0/10/20% points before any memory optimization or broader matrix. Preserve and report native FakeTCP retransmission stats and pending-memory peak separately from the latency metric."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
-    "ROADMAP.md",
-    "docs/benchmarks/v2-200m-first-pass.md",
     "go.mod",
     "internal/fec/fec.go",
-    "internal/fec/fec_test.go",
+    "internal/fec/block.go",
+    "internal/faketcp/arq.go",
+    "internal/faketcp/packet.go",
+    "cmd/wbd-faketcp/main_linux.go",
+    "scripts/faketcp_first_arrival_probe.py",
+    "scripts/bench_wbd_fullstack_ab_runner.py",
+    ".github/workflows/faketcp-first-arrival.yml",
     ".wbd/handoff/current.json"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_M1_M2_M3_qualified_plus_200m_capacity_diagnostic_plus_fec_v0_codec_targeted_local_pass",
-    "outer_semantics": "TCP-shaped FakeTCP raw datagrams; no kernel TCP byte-stream dependency",
-    "current_oracle_fec": "UDPspeeder mode0 20:20",
-    "200m_run": "32819141473 PASS infrastructure/20 rows; 20ms 0% shows capacity pressure, but cross-RTT delivery/CPU fractions are diagnostic-only because drain accounting varies with RTT",
-    "200m_20ms_0loss": "90Mbps full-duplex inner offered, 39.217Mbps returned within accounting window, p99 282.5ms, aggregate RSS 28976KiB, qdisc drops 0",
-    "memory_breakdown_20ms_0loss": "UDPspeeder 21096KiB, DTLS 5624KiB, udp2raw 2256KiB across both endpoints; UDPspeeder ~73% of userspace RSS",
-    "fec_replacement_decision": "yes: build WBD-owned compact FEC and retain UDPspeeder only as oracle until A/B qualification",
-    "fec_v0_target": "systematic fixed 20+20 erasure coding, bounded blocks, preallocated buffers, variable packet-length metadata, timer flush, no retransmission/order semantics",
-    "fec_v0_codec_checkpoint": "43041da32cc67bf04197bdd00ec3ce1d75d99cd5: core GF(256) systematic 20+20 codec/header/pool passes targeted exact-blob local tests; no block lifecycle, transport integration or UDPspeeder A/B yet",
-    "naive_xor_status": "single XOR parity is not equivalent to 20+20 arbitrary-erasure recovery; packet duplication may be an optional ultra-low-CPU mode but not the main weak-network 20:20 replacement"
+    "authority": "native_faketcp_first_arrival_qualified_plus_wbd_fec_candidate_pending_fullstack_first_arrival",
+    "outer_semantics": "WBD-owned TCP-shaped raw carrier with shadow cumulative ACK/SACK/fast-retransmit/RTO state; inner payload delivery remains unordered and never waits for cumulative TCP ACK",
+    "current_oracle_fec": "UDPspeeder mode0 20:20 remains external comparator; WBD fixed 20+20 is the product candidate",
+    "first_arrival_run": "GitHub Actions 32835886973 SUCCESS, RTT 20/100 ms x loss 0/10%, 500 1200-byte datagrams per point",
+    "first_arrival_20ms_0loss": "one-way floor 10 ms; p50 10.159 ms, p95 10.243 ms, p99 10.278 ms, 500/500",
+    "first_arrival_100ms_0loss": "one-way floor 50 ms; p50 50.168 ms, p95 50.244 ms, p99 50.267 ms, 500/500",
+    "first_arrival_20ms_10loss": "p50 10.109 ms, p95 10.139 ms; raw-only p99 41.165 ms; 455/500 observed within 3 s; receiver OutOfOrder 441; sender PeakPending 460",
+    "first_arrival_100ms_10loss": "p50 50.174 ms, p95 50.268 ms; raw-only p99 199.888 ms; 460/500 observed within 3 s; receiver OutOfOrder 439; sender PeakPending 451",
+    "memory_policy": "performance first: SACKed-but-not-cumulatively-ACKed payload stays retained and new datagrams are not gated by pending depth; BDP memory is measured rather than optimized away",
+    "tcp_retransmission_scope": "core shadow retransmission primitives are implemented and tested; this is not a claim of a full RFC TCP congestion-control/byte-stream stack, which must not take ownership of product delivery"
   },
   "local_test_snapshot": {
-    "authority": "snapshot_not_live",
-    "tested_commit": "43041da32cc67bf04197bdd00ec3ce1d75d99cd5",
+    "authority": "github_actions_plus_targeted_local_unit_tests",
+    "tested_commit": "82dc197d2706db4d6d5158c068a81cda1cc0ac2b",
     "result": "pass",
-    "command": "Go 1.23.2 sandbox: go test ./internal/fec; go test ./internal/fec -run '^$' -bench 'Benchmark(Encode|Reconstruct)' -benchtime=20x. Exact GitHub blob SHAs matched the tested local files. Full-repository test was not run because sandbox DNS cannot resolve github.com for clone."
+    "command": "Targeted local go test ./internal/faketcp -count=1 passed before push. GitHub Actions faketcp-first-arrival run 32835886973 then passed all 4 RTT/loss jobs with go test ./internal/faketcp, native carrier build, and first-complete datagram latency assertions."
   }
 }
