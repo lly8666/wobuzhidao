@@ -34,11 +34,12 @@ class HandoffContractTest(unittest.TestCase):
             "optional TLS Persona bootstrap",
             "Persona must remain isolated from the unordered DTLS/FEC data plane",
             "Kernel TCP anchor / real-return-packet hybrid: retired",
-            "Phase B — adaptive FEC / control qualification",
-            "off/fixed/qualified-auto",
+            "Phase B — fixed FEC / control qualification",
+            "optional FEC (off/fixed)",
             "same account username",
             "only-cn",
             "Do not delay an available systematic source merely to fill a FEC block",
+            "Auto FEC is deliberately deferred to a future advanced-research milestone",
         ):
             self.assertIn(phrase, text)
 
@@ -69,13 +70,15 @@ class HandoffContractTest(unittest.TestCase):
 
         adr5 = (ROOT / "docs/architecture/ADR-0005-adaptive-fec-multisession-routing.md").read_text(encoding="utf-8")
         for phrase in (
-            "fec.mode = off | fixed | auto",
+            "fec.mode = off | fixed",
             "config epoch",
             "multiple simultaneous sessions/devices",
             "capture.mode = off | global | only-cn | only-non-cn",
-            "Persona profile is client-selected",
+            "client selects `persona = off | native | chrome | firefox | safari | edge`",
             "dual lane is an optional survival mode",
             "alpha > p/(1-p)",
+            "Auto FEC remains future advanced research",
+            "speed-test sites as **measurement baselines**",
         ):
             self.assertIn(phrase, adr5)
 
@@ -95,12 +98,13 @@ class HandoffContractTest(unittest.TestCase):
         )
 
         roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
-        self.assertIn("V2-M3A-E | minimal native session/control + bearer auth + fixed config | **DONE AS FOUNDATION**", roadmap)
+        self.assertIn("V2-M3A-E | minimal native session/control + bearer auth + fixed config foundation | **DONE AS FOUNDATION**", roadmap)
         self.assertIn("V2-M4 | kernel-anchor / real-return-packet experiment | **RETIRED**", roadmap)
         self.assertIn("V2-M6A | Linux/OpenWrt packet-preserving L3/TUN core | **IMPLEMENTED**", roadmap)
-        self.assertIn("V2-M8A | optional TLS Persona bootstrap | **ADMITTED; IMPLEMENT NEXT AFTER FEC CONTROL BOUNDARY**", roadmap)
-        self.assertIn("V2-M8B-T2 | adaptive FEC math, scheduler comparison, off/fixed runtime config epochs | **CURRENT**", roadmap)
+        self.assertIn("V2-M8A | optional TLS Persona bootstrap | **PLANNED AFTER FIXED FEC CONTROL**", roadmap)
+        self.assertIn("V2-M8B-T2 | fixed FEC math/scheduler comparison + `off|fixed` runtime config epochs | **CURRENT**", roadmap)
         self.assertIn("V2-M8C | account + per-device credential + concurrent multi-session server state | **PLANNED**", roadmap)
+        self.assertIn("V2-X1 | Auto FEC estimator/controller | **FUTURE ADVANCED RESEARCH; NOT ON V2.2 CRITICAL PATH**", roadmap)
 
         bench = (ROOT / "docs/benchmarks/v2-transport-20x20-matrix.md").read_text(encoding="utf-8")
         self.assertIn("Nominal matrix size: **126 cases**", bench)
