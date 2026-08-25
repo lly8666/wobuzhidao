@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	maxBlocks       = 64
-	setupRetryAfter = 200 * time.Millisecond
+	maxBlocks        = 64
+	setupRetryAfter  = 200 * time.Millisecond
+	defaultKeepalive = 15 * time.Second
 )
 
 type options struct {
@@ -35,6 +36,7 @@ type options struct {
 	token                 string
 	expectedToken         string
 	setupTimeout          time.Duration
+	keepalive             time.Duration
 	demoRealityWitness    string
 	demoRealityWitnessDir string
 	demoRealityServerName string
@@ -69,6 +71,7 @@ func main() {
 	flag.StringVar(&o.token, "token", "", "client bearer token for normal/legacy-witness startup")
 	flag.StringVar(&o.expectedToken, "expected-token", "", "server bearer token; empty disables AUTH")
 	flag.DurationVar(&o.setupTimeout, "setup-timeout", 10*time.Second, "LINK_INIT/AUTH startup deadline")
+	flag.DurationVar(&o.keepalive, "keepalive", defaultKeepalive, "client idle interval before DTLS-protected WBD PING")
 	flag.StringVar(&o.demoRealityWitness, "demo-reality-witness", "", "legacy mirror demo: 64-hex ClientHello witness")
 	flag.StringVar(&o.demoRealityWitnessDir, "demo-reality-witness-dir", "", "legacy mirror demo server: local witness directory")
 	flag.StringVar(&o.demoRealityServerName, "demo-reality-server-name", "", "legacy mirror demo server: target SNI bound to witness")
@@ -179,6 +182,10 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if err != nil {
 		return err
 	}
+	keepalive := o.keepalive
+	if keepalive <= 0 {
+		keepalive = defaultKeepalive
+	}
 	init := control.LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: cfg}
 	var startup clientStartupSession
 	demoKind := "off"
@@ -219,8 +226,8 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("WBD_LINK_READY role=client fec=%s mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t demo_kind=%s\n", o.fec, cfg.MTU, cfg.LaneCount, startupAcceptAuth(startup), demoKind != "off", demoKind)
-	return clientDataLoop(conn, dtlsAddr, path, startup, stop)
+	fmt.Printf("WBD_LINK_READY role=client fec=%s mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t demo_kind=%s keepalive=%s\n", o.fec, cfg.MTU, cfg.LaneCount, startupAcceptAuth(startup), demoKind != "off", demoKind, keepalive)
+	return clientDataLoop(conn, dtlsAddr, path, startup, keepalive, stop)
 }
 
 func startupAcceptAuth(s clientStartupSession) bool {
@@ -368,18 +375,30 @@ func serverStartup(conn *net.UDPConn, serviceAddr *net.UDPAddr, startup serverSt
 	return peer, nil
 }
 
-func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Path, startup clientStartupSession, stop <-chan os.Signal) error {
+func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Path, startup clientStartupSession, keepalive time.Duration, stop <-chan os.Signal) error {
 	buf := make([]byte, 65535)
 	var appPeer *net.UDPAddr
+	nextPing := time.Now().Add(keepalive)
 	for {
 		select {
 		case <-stop:
-			return flushPath(conn, dtlsAddr, path)
+			if err := flushPath(conn, dtlsAddr, path); err != nil {
+				return err
+			}
+			_ = sendLifecycle(conn, dtlsAddr, control.Close{Reason: control.CloseNormal, Detail: "client shutdown"})
+			return nil
 		default:
+		}
+		now := time.Now()
+		if !now.Before(nextPing) {
+			if err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: uint64(now.UnixNano())}); err != nil {
+				return err
+			}
+			nextPing = now.Add(keepalive)
 		}
 		_ = conn.SetReadDeadline(time.Now().Add(time.Millisecond))
 		n, from, err := conn.ReadFromUDP(buf)
-		now := time.Now()
+		now = time.Now()
 		if err != nil {
 			if ne, ok := err.(net.Error); !ok || !ne.Timeout() {
 				return err
@@ -393,7 +412,27 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 						return err
 					}
 				}
+				nextPing = now.Add(keepalive)
 				continue
+			}
+			if isLifecycleControl(buf[:n]) {
+				frame, err := control.UnmarshalLink(buf[:n])
+				if err != nil {
+					return err
+				}
+				switch f := frame.(type) {
+				case control.Pong:
+					nextPing = now.Add(keepalive)
+					continue
+				case control.Ping:
+					if err := sendLifecycle(conn, dtlsAddr, control.Pong{Nonce: f.Nonce}); err != nil {
+						return err
+					}
+					nextPing = now.Add(keepalive)
+					continue
+				case control.Close:
+					return fmt.Errorf("server closed WBD link reason=%d detail=%q reconnect=%t", f.Reason, f.Detail, control.ReconnectAllowed(f.Reason))
+				}
 			}
 			packets, err := path.Decode(buf[:n])
 			if err != nil {
@@ -407,6 +446,7 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 					}
 				}
 			}
+			nextPing = now.Add(keepalive)
 		} else {
 			appPeer = cloneUDPAddr(from)
 			wire, err := path.Encode(buf[:n], now)
@@ -416,6 +456,7 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 			if err := sendWire(conn, dtlsAddr, wire); err != nil {
 				return err
 			}
+			nextPing = now.Add(keepalive)
 		}
 		wire, err := path.FlushDue(now)
 		if err != nil {
@@ -451,16 +492,21 @@ func serverDataLoop(conn *net.UDPConn, serviceAddr, dtlsPeer *net.UDPAddr, path 
 				return err
 			}
 		} else if sameUDPAddr(from, dtlsPeer) {
-			if isStartupControl(buf[:n]) {
+			if isStartupControl(buf[:n]) || isLifecycleControl(buf[:n]) {
 				reply, err := startup.HandleWire(buf[:n], uint64(now.UnixNano()))
 				if err != nil {
 					return err
 				}
-				if _, err := conn.WriteToUDP(reply, dtlsPeer); err != nil {
-					return err
+				if len(reply) != 0 {
+					if _, err := conn.WriteToUDP(reply, dtlsPeer); err != nil {
+						return err
+					}
 				}
 				if startup.State() == control.StateFailed {
 					return errors.New("post-establishment link change requires reconnect")
+				}
+				if startup.State() == control.StateClosed {
+					return nil
 				}
 				continue
 			}
@@ -504,12 +550,33 @@ func sendWire(conn *net.UDPConn, dst *net.UDPAddr, wire [][]byte) error {
 	return nil
 }
 
+func sendLifecycle(conn *net.UDPConn, dst *net.UDPAddr, frame any) error {
+	wire, err := control.MarshalLink(frame)
+	if err != nil {
+		return err
+	}
+	_, err = conn.WriteToUDP(wire, dst)
+	return err
+}
+
 func isStartupControl(packet []byte) bool {
 	if len(packet) < control.HeaderLen || string(packet[:4]) != string(control.Magic[:]) || packet[4] != control.FrameVersion1 {
 		return false
 	}
 	switch control.Type(packet[5]) {
 	case control.TypeDemoBind, control.TypeDemoBindOK, control.TypeLinkInit, control.TypeLinkAccept, control.TypeError, control.TypeAuth, control.TypeAuthOK:
+		return true
+	default:
+		return false
+	}
+}
+
+func isLifecycleControl(packet []byte) bool {
+	if len(packet) < control.HeaderLen || string(packet[:4]) != string(control.Magic[:]) || packet[4] != control.FrameVersion1 {
+		return false
+	}
+	switch control.Type(packet[5]) {
+	case control.TypePing, control.TypePong, control.TypeClose:
 		return true
 	default:
 		return false
