@@ -34,14 +34,15 @@ class HandoffContractTest(unittest.TestCase):
             "optional TLS Persona bootstrap",
             "Persona must remain isolated from the unordered DTLS/FEC data plane",
             "Kernel TCP anchor / real-return-packet hybrid: retired",
-            "Phase B — fixed FEC / immutable link-setup qualification — CURRENT",
+            "Phase B — fixed FEC / immutable setup / periodic refresh — CURRENT",
             "optional fixed FEC",
             "same account username",
             "only-cn",
             "Do not delay an available systematic source merely to fill a FEC block",
-            "Auto FEC is deliberately deferred to a future advanced-research milestone",
+            "periodic fixed-profile refresh",
             "There is no runtime FEC config epoch",
             "changing parameters means a fresh association",
+            "configured-capacity rate guard",
         ):
             self.assertIn(phrase, text)
 
@@ -95,6 +96,20 @@ class HandoffContractTest(unittest.TestCase):
         ):
             self.assertIn(phrase, adr6)
 
+        adr7 = (ROOT / "docs/architecture/ADR-0007-periodic-fixed-fec-refresh.md").read_text(encoding="utf-8")
+        for phrase in (
+            "Low-frequency fixed-FEC refresh",
+            "LossMarked",
+            "Wilson 95%",
+            "window = 20 s",
+            "periodic fixed-profile refresh",
+            "association rotation",
+            "B_inner_max",
+            "public control service",
+            "CertificateVerify",
+        ):
+            self.assertIn(phrase, adr7)
+
         lock = json.loads((ROOT / "deps/security-lock.json").read_text(encoding="utf-8"))
         dtls = lock["dtls"]
         self.assertEqual(dtls["tag"], "v5.9.2-stable")
@@ -114,11 +129,11 @@ class HandoffContractTest(unittest.TestCase):
         self.assertIn("V2-M3A-E | minimal native session/control + bearer auth + legacy fixed config foundation | **DONE AS FOUNDATION**", roadmap)
         self.assertIn("V2-M4 | kernel-anchor / real-return-packet experiment | **RETIRED**", roadmap)
         self.assertIn("V2-M6A | Linux/OpenWrt packet-preserving L3/TUN core | **IMPLEMENTED**", roadmap)
-        self.assertIn("V2-M8A | optional TLS Persona bootstrap | **PLANNED AFTER IMMUTABLE LINK SETUP**", roadmap)
-        self.assertIn("V2-M8B-T2 | fixed FEC scheduler comparison + immutable `LINK_INIT/LINK_ACCEPT` | **CURRENT**", roadmap)
+        self.assertIn("V2-M8A | optional TLS Persona bootstrap + network-treatment diagnostic | **PLANNED AFTER CURRENT TRANSPORT SETUP**", roadmap)
+        self.assertIn("V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **CURRENT**", roadmap)
         self.assertIn("V2-M8C | account + per-device credential + concurrent multi-session server state | **PLANNED**", roadmap)
-        self.assertIn("V2-X1 | Auto FEC estimator/controller | **FUTURE ADVANCED RESEARCH; NOT ON V2.2 CRITICAL PATH**", roadmap)
-        self.assertIn("no runtime config epoch", roadmap)
+        self.assertIn("V2-X1 | advanced continuously learning Auto FEC / automatic capacity inference | **FUTURE RESEARCH; NOT REQUIRED**", roadmap)
+        self.assertIn("no in-place FEC transition", roadmap)
 
         bench = (ROOT / "docs/benchmarks/v2-transport-20x20-matrix.md").read_text(encoding="utf-8")
         self.assertIn("Nominal matrix size: **126 cases**", bench)
