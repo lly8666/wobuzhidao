@@ -24,28 +24,40 @@ class HandoffContractTest(unittest.TestCase):
         text = (ROOT / "PROJECT_CONSTITUTION.md").read_text(encoding="utf-8")
         for phrase in (
             "udp2raw-compatible FakeTCP",
+            "TCP-shaped does not mean kernel-TCP-owned",
             "DTLS 1.3",
             "wolfSSL",
             "weak-1.5x",
             "weak-2x",
-            "Android and unprivileged mobile compatibility are explicitly out of scope",
-            "Xray, VLESS, Vision, REALITY and WireGuard are not part of the V2 product stack",
-            "Local sandbox/host execution remains qualification authority",
+            "OpenWrt/Linux ↔ Linux or Windows",
+            "Android and unprivileged/no-root portability are out of scope",
+            "optional TLS Persona bootstrap",
+            "Persona must remain isolated from the unordered DTLS/FEC data plane",
+            "Kernel TCP anchor / real-return-packet hybrid: **retired from the product roadmap",
         ):
             self.assertIn(phrase, text)
 
         architecture = (ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
-        self.assertIn("V1 multi-ordinary-TCP is permanently rejected", architecture)
-        self.assertIn("ADR-0003", architecture)
-        self.assertIn("FEC encoder **before each DTLS application-record encryption**", architecture)
-        self.assertIn("one independent DTLS association per raw lane", architecture)
-        self.assertIn("Xray is removed", architecture)
-        self.assertIn("Kernel-anchor / real-return-packet experiment", architecture)
+        for phrase in (
+            "V1 multi-ordinary-TCP is permanently rejected",
+            "TCP-shaped, not an ordinary kernel TCP byte stream",
+            "FEC encoder",
+            "DTLS application datagram",
+            "Optional TLS Persona bootstrap",
+            "kernel TCP anchor / real-return-packet experiment is **retired from the product roadmap**",
+            "Classic udp2raw-compatible FakeTCP remains the product carrier baseline",
+        ):
+            self.assertIn(phrase, architecture)
 
-        adr = (ROOT / "docs/architecture/ADR-0003-native-dtls.md").read_text(encoding="utf-8")
-        self.assertIn("There is no post-handshake transition to a custom cipher", adr)
-        self.assertIn("two independent DTLS associations", adr)
-        self.assertIn("Do not tune record length, timing, handshake extensions", adr)
+        adr3 = (ROOT / "docs/architecture/ADR-0003-native-dtls.md").read_text(encoding="utf-8")
+        self.assertIn("DTLS 1.3", adr3)
+        self.assertIn("Do not invent a second AEAD/key schedule", adr3)
+        self.assertIn("Relationship to TLS Persona", adr3)
+
+        adr4 = (ROOT / "docs/architecture/ADR-0004-product-scope-persona.md").read_text(encoding="utf-8")
+        self.assertIn("retire kernel TCP anchor from the product roadmap", adr4)
+        self.assertIn("admit optional TLS Persona", adr4)
+        self.assertIn("separate from the FakeTCP/DTLS data lane", adr4)
 
         lock = json.loads((ROOT / "deps/security-lock.json").read_text(encoding="utf-8"))
         dtls = lock["dtls"]
@@ -63,8 +75,10 @@ class HandoffContractTest(unittest.TestCase):
         )
 
         roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
-        self.assertIn("V2-M3 | native WBD session/control inside DTLS", roadmap)
-        self.assertIn("V2-M5 | optional two raw lanes", roadmap)
+        self.assertIn("V2-M3 | minimal native session/control", roadmap)
+        self.assertIn("V2-M4 | kernel-anchor / real-return-packet experiment | **RETIRED**", roadmap)
+        self.assertIn("V2-M6 | Linux/OpenWrt native L3/TUN core | **CURRENT**", roadmap)
+        self.assertIn("V2-M8A | optional TLS Persona bootstrap", roadmap)
 
     def test_no_required_binary_state_at_bootstrap(self):
         dp = json.loads((ROOT / ".wbd/handoff/data-plane.json").read_text())
