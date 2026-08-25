@@ -1,55 +1,55 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 39,
+  "continuity_sequence": 40,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "5ae903af8bb9cd3f1ac4d2eebeebf2104d7fa1fa",
+  "checkpoint_based_on_head_sha": "46f1b5f25c23b38ae6d92415fdb4143ecf610c61",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux/Windows with a TCP-shaped WBD raw/FakeTCP carrier, datagram-like no-HOL inner delivery, real DTLS 1.3, optional fixed WBD FEC, optional browser-like TLS Persona, concurrent multi-device sessions per account, and client-selectable global/China/non-China capture.",
-    "current_milestone": "V2-M8B-T2: qualify fixed minimum-delay FEC schedulers and implement runtime fec.mode=off|fixed configuration epochs. Auto FEC is explicitly deferred to future advanced research and is not on the V2.2 critical path.",
-    "local_optimization_stop_rule": "Do not delay an available systematic source to fill a FEC block. Do not replace the live qualified RS path from iid-only simulator evidence. Optimize fixed profiles by earliest complete original datagram, delivery, CPU/RSS, wire cost, burst behavior and capacity headroom together. Keep one lane as baseline."
+    "current_milestone": "V2-M8B-T2: fixed-FEC scheduler qualification plus immutable per-association LINK_INIT/LINK_ACCEPT setup. All link-defining parameters are chosen once before Established; changing them requires a fresh association. Auto FEC remains future advanced research.",
+    "local_optimization_stop_rule": "Do not delay an available systematic source to fill a FEC block. Do not replace the live qualified RS path from iid-only simulator evidence. Do not add a runtime link-parameter control plane. Inner first-complete transport performance remains the first optimization priority, even when retransmission/FEC buffers consume additional memory."
   },
   "continuation_cursor": {
-    "last_completed_action": "Changed the product boundary from off|fixed|qualified-auto to current off|fixed with Auto deferred to future advanced research. Updated PROJECT_CONSTITUTION.md, ROADMAP.md, ADR-0005, PR #3 title/body and architecture contract tests accordingly. Third-party public services such as speed-test sites are now explicitly measurement baselines only; TLS Persona remains browser-like ClientHello shaping to an operator-authorized endpoint identity with normal certificate validation. Implemented internal/fec/simulator.go plus simulator_test.go and replaced cmd/wbd-fec-sweep with a deterministic fixed-schedule timing/capacity simulator supporting off, tail-block RS, micro-block RS and causal/sliding repair models, iid or two-state burst loss, fixed seeds, source-priority serialization, repair backlog, first-complete latency, delivery, wire ratio and drain metrics. GitHub Actions ci run 32851722051 completed SUCCESS with Go tests and handoff tests. Offline exact-code smoke at 20 Mbit/s payload over 200 Mbit/s / 50 ms RTT shows iid 10% causal 20:10 delivery 1.000 and p99 about 26.7 ms versus tail 20:10 delivery 1.000 and p99 about 33.4 ms; burst-length-4 at 20% shows causal delivery about 0.946 versus tail about 0.918 but causal p99 about 39.8 ms versus tail about 33.9 ms, proving iid wins cannot directly select the live codec. Capacity smoke shows 20:10 nominal utilization above 1 causes large repair backlog and recovery tails: at 140/200 Mbit/s payload/capacity, p99 rises to about 57 ms with roughly 270+ ready repairs; at 160/200 it rises to roughly 92 ms with 600+ ready repairs. Results and interpretation are recorded in docs/benchmarks/v2-fixed-fec-simulator-smoke.md.",
-    "current_task": "Implement negotiated runtime FEC configuration epochs for the current product modes off|fixed without reconnecting DTLS/FakeTCP. Keep the live data codec on the already-qualified systematic RS path while the control semantics are added; do not implement or accept Auto.",
-    "why_now": "The fixed-schedule simulator is repository-tested and has already exposed two important boundaries: causal repair improves iid tails at the same modeled ratio but does not dominate burst traces, and any fixed ratio that pushes total offered utilization above capacity accumulates repair backlog. The next product requirement is therefore explicit client-selected fixed/off policy with server ceilings and unambiguous epoch switching, not an estimator/controller.",
-    "done_when": "Control frames can propose an explicit monotonic FEC config epoch containing off or a fixed profile; Auto/unknown values are rejected. The server validates supported scheduler/profile values and resource ceilings, acknowledges the effective fixed config, and keeps it pending until an explicit coding-window-boundary activation rather than switching mid-block. Duplicate/stale epochs, pre-auth proposals and overlapping pending epochs fail deterministically. Unit tests cover wire round trip, off/fixed validation, server cap reject/clamp policy as chosen by the implementation, monotonic epochs, pending-to-active transition and unchanged M3A-E behavior. Live transport integration remains a later atomic action after control tests pass.",
-    "next_atomic_action": "Extend internal/control with a new explicit FEC epoch config frame rather than overloading the legacy one-byte M3E ProtectionMode. Encode epoch + off/fixed + K:R + scheduler + flush/boundary-compatible fields; keep the reserved Auto value rejected. Add a server session wrapper with current/pending config and a boundary activation method, plus deterministic tests for auth ordering, monotonic epochs, duplicate/stale rejection, server resource caps and off<->fixed transitions. Do not change internal/fec live encoding behavior in the same commit."
+    "last_completed_action": "Replaced the planned runtime off|fixed config-epoch design with immutable per-association startup negotiation. Added internal/control/link.go and link_test.go with LINK_INIT type 11 and LINK_ACCEPT type 12 in the existing WBDC envelope. LinkConfig currently carries FEC off/fixed, scheduler, data/parity geometry, flush milliseconds, MTU and lane count. CurrentLinkPolicy honestly admits only live-supported FEC off or WBD systematic 20:20 tail-RS, one lane, and bounded MTU/flush; 20:10, micro, causal and two-lane proposals are rejected. The server accepts the exact proposal or rejects it; ValidateLinkAccept rejects server rewrites. A rejected initial proposal, a wrong first frame, a second LINK_INIT, or legacy CONFIG after setup poisons the WBD session to StateFailed so the client must recreate the association. Updated cmd/wbd-config-probe to use LINK_INIT/LINK_ACCEPT before AUTH instead of HELLO/CONFIG, with explicit off/20:20 flags and current unsupported-profile rejection. Updated PROJECT_CONSTITUTION.md, ROADMAP.md, ADR-0005, new ADR-0006-immutable-link-setup.md, historical M3E docs, architecture contract tests and PR #3 metadata so runtime config epochs are explicitly rejected. GitHub Actions ci run 32856466413 for checkpoint 46f1b5f25c23b38ae6d92415fdb4143ecf610c61 completed SUCCESS with Go tests and handoff tests; the handoff verifier also passed on that checkpoint.",
+    "current_task": "Integrate the accepted immutable LinkConfig into the live WBD proxy startup path without changing already-qualified data-plane semantics. The live proxy must demultiplex startup WBDC control from data, complete LINK_INIT/LINK_ACCEPT and optional AUTH before application forwarding, then lock into either FEC-off direct DTLS datagrams or the existing streaming-systematic 20:20 tail-RS path for the lifetime of that association.",
+    "why_now": "The one-time link codec/state machine is repository-qualified and the user explicitly rejected runtime control. The remaining gap is that cmd/wbd-fec-proxy is still benchmark-oriented: it starts encoding immediately and has no startup control or FEC-off mode. Integrating immutable setup there proves the product path uses the new architecture rather than merely exposing it in a probe/library.",
+    "done_when": "A focused live-proxy qualification proves two fresh associations: FEC off and fixed 20:20. Client and server complete LINK_INIT/LINK_ACCEPT over the DTLS plaintext path before forwarding application data; optional bearer AUTH still gates Established; accepted config is exact and immutable; unsupported 20:10/causal/two-lane proposals fail before data forwarding; a post-Established parameter-change frame fails the association; FEC-off forwards packet-preserving DTLS datagrams directly; fixed 20:20 retains immediate systematic-source delivery and later parity recovery. Existing first-arrival/20%-loss transport regressions must remain green for the fixed path.",
+    "next_atomic_action": "Refactor or wrap cmd/wbd-fec-proxy so startup WBDC frames are handled before data forwarding. Add a small product-mode state that uses LinkServerSession on server and LINK_INIT/ValidateLinkAccept plus optional AUTH on client. After Established, select an immutable data handler: off = direct packet-preserving DTLS plaintext forwarding; fixed 20:20 = existing FastBlockEncoder/BlockDecoder. Keep the old benchmark behavior behind an explicit legacy/test option if needed so existing full-stack evidence is not silently invalidated. Add deterministic tests for startup demux and both data modes before rerunning the focused full-stack first-arrival cases."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ROADMAP.md",
+    "docs/architecture/ADR-0006-immutable-link-setup.md",
     "docs/architecture/ADR-0005-adaptive-fec-multisession-routing.md",
-    "docs/benchmarks/v2-fixed-fec-simulator-smoke.md",
-    "docs/protocol/v2-m3e-config.md",
-    "internal/control/config.go",
-    "internal/control/config_test.go",
-    "internal/fec/simulator.go",
+    "internal/control/link.go",
+    "internal/control/link_test.go",
+    "internal/control/control.go",
+    "cmd/wbd-config-probe/main.go",
+    "cmd/wbd-fec-proxy/main.go",
     "internal/fec/fastblock_encoder.go",
-    "cmd/wbd-fec-sweep/main.go",
-    "tests/test_handoff.py",
+    "scripts/bench_wbd_fullstack_ab_runner.py",
     ".wbd/handoff/current.json"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "native_faketcp_pcap_20loss_plus_streaming_systematic_fullstack_first_arrival_plus_fixed_schedule_simulator_ci",
+    "authority": "native_faketcp_pcap_20loss_plus_streaming_systematic_fullstack_first_arrival_plus_fixed_schedule_simulator_plus_immutable_link_setup_ci",
     "outer_semantics": "WBD-owned TCP-shaped raw carrier with shadow cumulative ACK/SACK/fast-retransmit/RTO state; inner complete datagram delivery never waits for cumulative TCP ACK",
-    "fec_status": "WBD systematic 20+20 RS remains the qualified strong fixed live reference and systematic sources stream immediately. Offline fixed-scheduler simulator now compares off/tail/micro/causal under iid/burst/capacity pressure. Product runtime modes are off|fixed only; Auto is deferred advanced research.",
+    "fec_status": "WBD systematic 20+20 RS remains the qualified fixed live reference and systematic sources stream immediately. Offline simulator compares off/tail/micro/causal, but live negotiation currently admits only off or 20:20 tail-RS. Auto is deferred.",
     "fullstack_run": "GitHub Actions 32841039689 SUCCESS, RTT 20/100 ms x loss 0/10/20%, 800 1200-byte datagrams per point",
     "fullstack_20ms_20loss": "800/800; p50 10.374367 ms; p75 10.637389 ms; p95 17.825149 ms; p99 20.077293 ms; max 20.439752 ms",
     "fullstack_100ms_20loss": "800/800; p50 50.379323 ms; p75 50.792243 ms; p95 58.114718 ms; p99 59.768831 ms; max 60.160976 ms",
-    "fixed_simulator_ci": "GitHub Actions ci run 32851722051 SUCCESS; go test ./... and handoff tests passed with internal/fec/simulator.go and simulator_test.go",
-    "simulator_interpretation": "iid 10% favors causal 20:10 tail latency at equal modeled wire ratio, but burst traces show delivery/tail tradeoffs; capacity >1 nominal FEC utilization creates large repair backlog. No live codec switch is admitted from this smoke alone.",
+    "immutable_setup_ci": "GitHub Actions ci run 32856466413 SUCCESS at checkpoint 46f1b5f25c23b38ae6d92415fdb4143ecf610c61; Go tests and handoff tests passed for LINK_INIT/LINK_ACCEPT and reconnect-only rejection semantics",
     "tcp_like_pcap": "20% real pcap gate passed with MSS=1360, SACK-Permitted, Window Scale=8, cumulative ACK, up to four live merged SACK blocks, third-dup-ACK fast retransmit, ~1 s RTO and exponential backoff",
     "memory_policy": "performance first: SACKed-but-not-cumulatively-ACKed payload remains retained for shadow retransmission and new inner datagrams are not gated by pending depth; BDP memory is measured rather than optimized away",
     "tcp_retransmission_scope": "qualified TCP-shaped shadow behavior, not a claim of a full RFC TCP congestion-control/byte-stream implementation"
   },
   "product_policy": {
-    "fec": "client/session chooses off or an admitted fixed profile; server advertises supported code/scheduler versions and hard resource/wire caps; config changes use coding-window epochs. Auto is reserved future advanced research and rejected now.",
+    "link_setup": "client proposes all current link-defining data parameters once in LINK_INIT; server accepts the exact config or rejects it; after LINK_ACCEPT/AUTH/Established parameters are immutable and any change requires a fresh association; there is no runtime config epoch",
+    "fec": "client/session selects off or a live-admitted fixed profile at establishment; live admission currently off or 20:20 tail-RS; Auto is reserved future advanced research and rejected now",
     "accounts": "same username/account may own multiple simultaneous device sessions; live state keyed by account plus unique session id; prefer per-device high-entropy credentials and independent revocation",
     "routing": "client capture modes off|global|only-cn|only-non-cn; mandatory underlay endpoint escape; Linux/OpenWrt use policy routing/prefix sets; Windows uses Wintun-class L3 plus broad routes or compact WFP/equivalent split classifier, never thousands of persistent firewall rules",
     "persona": "ClientHello browser profile is client-selected from the server-supported set; Persona is separate real TLS 1.3 preflight. Endpoint hostname/certificate/private key must be identities the operator is authorized to use; public third-party sites may be measurement baselines but are not borrowed WBD identities.",
@@ -57,8 +57,8 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "98b8bb16edd6f952a6e0668f02cd695c544020a7",
+    "tested_commit": "46f1b5f25c23b38ae6d92415fdb4143ecf610c61",
     "result": "pass",
-    "command": "GitHub Actions ci run 32851722051 completed SUCCESS: Go tests and handoff tests passed after fixed-schedule simulator, deferred-Auto architecture, and updated contract assertions. Handoff verifier on the same branch also passed. docs/benchmarks/v2-fixed-fec-simulator-smoke.md was added afterward without changing Go/runtime code. This field is a snapshot and does not replace live CI refresh."
+    "command": "GitHub Actions ci run 32856466413 completed SUCCESS at checkpoint 46f1b5f25c23b38ae6d92415fdb4143ecf610c61: go test ./... and repository handoff tests passed. Handoff verifier also passed on that checkpoint. This field is a snapshot and does not replace a future live refresh."
   }
 }
