@@ -13,6 +13,11 @@ const (
 	FlagPSH = 0x08
 	FlagACK = 0x10
 
+	// A scale of 8 makes the steady-state advertised 65535 window represent
+	// about 16 MiB. That covers the project's 200-Mbit/600-ms BDP without ever
+	// using receive-window pressure to throttle the performance-first inner path.
+	DefaultWindowScale = 8
+
 	// IPv4 20 + TCP 20 + maximum RFC 2018 SACK option (36 bytes).
 	MaxHeaderSize = 76
 )
@@ -29,17 +34,20 @@ type SACKBlock struct {
 }
 
 type Segment struct {
-	SrcIP   [4]byte
-	DstIP   [4]byte
-	SrcPort uint16
-	DstPort uint16
-	Seq     uint32
-	Ack     uint32
-	Flags   uint8
-	Window  uint16
-	SACK    [4]SACKBlock
-	SACKN   int
-	Payload []byte
+	SrcIP          [4]byte
+	DstIP          [4]byte
+	SrcPort        uint16
+	DstPort        uint16
+	Seq            uint32
+	Ack            uint32
+	Flags          uint8
+	Window         uint16
+	SACKPermitted  bool
+	WindowScale    uint8
+	WindowScaleSet bool
+	SACK           [4]SACKBlock
+	SACKN          int
+	Payload        []byte
 }
 
 func IPv4(ip net.IP) ([4]byte, bool) {
@@ -51,7 +59,7 @@ func IPv4(ip net.IP) ([4]byte, bool) {
 }
 
 func optionLen(flags uint8, sacks []SACKBlock) int {
-	if flags&FlagSYN != 0 { return 8 }
+	if flags&FlagSYN != 0 { return 12 }
 	if len(sacks) == 0 { return 0 }
 	n := len(sacks)
 	if n > 4 { n = 4 }
@@ -78,9 +86,9 @@ func MarshalIPv4TCPInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort uint1
 }
 
 // MarshalIPv4TCPSACKInto constructs one IPv4/TCP packet without allocation.
-// SYN advertises MSS + SACK-permitted. ACK packets may carry up to four RFC
-// 2018 SACK blocks. The steady-state data path has no TCP options unless a SACK
-// is actually needed.
+// SYN advertises MSS + SACK-permitted + window-scale. ACK packets may carry up
+// to four RFC 2018 SACK blocks. The steady-state data path has no TCP options
+// unless SACK state is actually needed.
 func MarshalIPv4TCPSACKInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort uint16, seq, ack uint32, flags uint8, window uint16, sacks []SACKBlock, payload []byte, ipID uint16) []byte {
 	optLen := optionLen(flags, sacks)
 	need := 40 + optLen + len(payload)
@@ -108,10 +116,14 @@ func MarshalIPv4TCPSACKInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort u
 	tcp[13] = flags
 	binary.BigEndian.PutUint16(tcp[14:16], window)
 	if flags&FlagSYN != 0 {
-		o := tcp[20:28]
+		o := tcp[20:32]
+		// MSS 1360, SACK permitted, NOP, window scale 8, NOP/NOP padding.
 		o[0], o[1] = 2, 4
 		binary.BigEndian.PutUint16(o[2:4], 1360)
-		o[4], o[5], o[6], o[7] = 4, 2, 1, 1
+		o[4], o[5] = 4, 2
+		o[6] = 1
+		o[7], o[8], o[9] = 3, 3, DefaultWindowScale
+		o[10], o[11] = 1, 1
 	} else if len(sacks) != 0 {
 		n := len(sacks)
 		if n > 4 { n = 4 }
@@ -160,7 +172,13 @@ func parseTCPOptions(opts []byte, s *Segment) {
 		if i+2 > len(opts) { return }
 		l := int(opts[i+1])
 		if l < 2 || i+l > len(opts) { return }
-		if kind == 5 && l >= 10 && (l-2)%8 == 0 {
+		switch {
+		case kind == 3 && l == 3:
+			s.WindowScale = opts[i+2]
+			s.WindowScaleSet = true
+		case kind == 4 && l == 2:
+			s.SACKPermitted = true
+		case kind == 5 && l >= 10 && (l-2)%8 == 0:
 			n := (l-2)/8
 			if n > 4 { n = 4 }
 			for j := 0; j < n; j++ {
