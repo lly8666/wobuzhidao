@@ -4,6 +4,15 @@ import "time"
 
 const payloadSlabSize = 2048
 
+// RFC 6298 uses a 1 second lower bound for the retransmission timer. The
+// product's first-arrival path does not wait on this timer: new/out-of-order
+// datagrams continue to be delivered immediately while the TCP-shaped shadow
+// reliability state catches up in the background.
+const (
+	minRTO = time.Second
+	maxRTO = 60 * time.Second
+)
+
 type Pending struct {
 	Seq        uint32
 	End        uint32
@@ -12,6 +21,7 @@ type Pending struct {
 	LastSent   time.Time
 	Retries    uint32
 	WasRetried bool
+	SACKed     bool
 	slot       int
 }
 
@@ -43,31 +53,45 @@ type Sender struct {
 }
 
 func NewSender(nextSeq uint32, initialRTO time.Duration) *Sender {
-	if initialRTO <= 0 { initialRTO = time.Second }
-	return &Sender{nextSeq:nextSeq, lastAck:nextSeq, rto:clampRTO(initialRTO), bySeq:make(map[uint32]*Pending)}
+	if initialRTO <= 0 {
+		initialRTO = minRTO
+	}
+	return &Sender{
+		nextSeq: nextSeq,
+		lastAck: nextSeq,
+		rto:     clampRTO(initialRTO),
+		bySeq:   make(map[uint32]*Pending),
+	}
 }
 
-func (s *Sender) NextSeq() uint32 { return s.nextSeq }
-func (s *Sender) RTO() time.Duration { return s.rto }
-func (s *Sender) Pending() int { return s.active }
-func (s *Sender) Stats() SenderStats { return s.stats }
+func (s *Sender) NextSeq() uint32            { return s.nextSeq }
+func (s *Sender) RTO() time.Duration         { return s.rto }
+func (s *Sender) Pending() int               { return s.active }
+func (s *Sender) Stats() SenderStats         { return s.stats }
+func (s *Sender) LastAck() uint32            { return s.lastAck }
+func (s *Sender) Outstanding(seq uint32) *Pending { return s.bySeq[seq] }
 
 func (s *Sender) Enqueue(payload []byte, now time.Time) *Pending {
 	buf := s.allocPayload(len(payload))
 	copy(buf, payload)
-	p := &Pending{Seq:s.nextSeq, End:s.nextSeq+uint32(len(payload)), Payload:buf, FirstSent:now, LastSent:now, slot:len(s.pending)}
+	p := &Pending{
+		Seq: s.nextSeq, End: s.nextSeq + uint32(len(payload)),
+		Payload: buf, FirstSent: now, LastSent: now, slot: len(s.pending),
+	}
 	s.nextSeq = p.End
 	s.pending = append(s.pending, p)
 	s.bySeq[p.Seq] = p
 	s.active++
 	s.stats.Enqueued++
-	if s.active > s.stats.PeakPending { s.stats.PeakPending = s.active }
+	if s.active > s.stats.PeakPending {
+		s.stats.PeakPending = s.active
+	}
 	return p
 }
 
 func (s *Sender) allocPayload(n int) []byte {
 	if n <= payloadSlabSize {
-		last := len(s.freeSlabs)-1
+		last := len(s.freeSlabs) - 1
 		if last >= 0 {
 			b := s.freeSlabs[last]
 			s.freeSlabs = s.freeSlabs[:last]
@@ -88,34 +112,42 @@ func (s *Sender) Ack(ack uint32, now time.Time) *Pending {
 	return s.AckSelective(ack, nil, now)
 }
 
-// AckSelective consumes cumulative ACK + RFC 2018 SACK. Exact WBD datagram
-// SACKs are O(1) through bySeq; cumulative ACK remains a sequential head walk.
-// A given cumulative-ACK hole gets at most one fast retransmit until ACK moves.
+// AckSelective consumes a TCP cumulative ACK plus RFC 2018 SACK information.
+// SACK is advisory: payload bytes stay retained until cumulatively ACKed. This
+// intentionally spends BDP memory to preserve retransmission correctness and
+// never gates the first-arrival/new-datagram path on memory optimization.
 func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pending {
-	advanced := seqLT(s.lastAck, ack)
+	oldAck := s.lastAck
+	advanced := seqLT(oldAck, ack)
 	if advanced {
 		s.lastAck = ack
 		s.dupAcks = 0
 		s.fastRetxDone = false
-		s.ackCumulative(ack, now)
+		s.ackCumulative(oldAck, ack, now)
 	} else if ack == s.lastAck && s.active != 0 {
 		s.dupAcks++
 	}
 
 	for _, b := range sacks {
-		if b.Start == b.End || seqLT(b.End, b.Start) { continue }
+		if b.Start == b.End || seqLT(b.End, b.Start) {
+			continue
+		}
 		seq := b.Start
 		for {
 			p := s.bySeq[seq]
-			if p == nil || seqLT(b.End, p.End) { break }
+			if p == nil || seqLT(b.End, p.End) {
+				break
+			}
 			next := p.End
-			s.ackOne(p, true, true, now)
-			if next == b.End { break }
+			s.markSACK(p, now)
+			if next == b.End {
+				break
+			}
 			seq = next
 		}
 	}
-	s.advanceHead()
 
+	// RFC 5681 fast retransmit: the third duplicate ACK retransmits SND.UNA.
 	if !advanced && ack == s.lastAck && s.dupAcks >= 3 {
 		s.dupAcks = 0
 		p := s.oldest()
@@ -129,57 +161,95 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 	return nil
 }
 
-func (s *Sender) ackCumulative(ack uint32, now time.Time) {
+func (s *Sender) markSACK(p *Pending, now time.Time) {
+	if p == nil || s.bySeq[p.Seq] != p {
+		return
+	}
+	if !p.SACKed {
+		p.SACKed = true
+		s.stats.SACKed++
+		// A precise first-time SACK of a never-retransmitted segment is a valid
+		// RTT sample. The bytes themselves remain queued until cumulative ACK.
+		if !p.WasRetried {
+			s.observeRTT(now.Sub(p.FirstSent))
+		}
+	}
+}
+
+func (s *Sender) ackCumulative(oldAck, ack uint32, now time.Time) {
+	// Only sample a cumulative ACK if it exactly acknowledges one fresh segment
+	// starting at old SND.UNA. If the ACK leaps over a repaired hole and sweeps
+	// up older out-of-order data, those packet ages are not RTT samples.
+	var sample *Pending
+	if p := s.bySeq[oldAck]; p != nil && p.End == ack && !p.WasRetried {
+		sample = p
+	}
 	for i := s.head; i < len(s.pending); i++ {
 		p := s.pending[i]
-		if p == nil { continue }
-		if !seqLE(p.End, ack) { break }
-		// Only the right edge of a newly advancing cumulative ACK can be used as
-		// an RTT sample. Older packets swept up behind a repaired hole may have
-		// waited arbitrarily long in cumulative-ACK space despite arriving on time.
-		s.ackOne(p, false, p.End == ack, now)
+		if p == nil {
+			continue
+		}
+		if !seqLE(p.End, ack) {
+			break
+		}
+		s.ackOne(p)
+	}
+	if sample != nil {
+		s.observeRTT(now.Sub(sample.FirstSent))
 	}
 	s.advanceHead()
 }
 
-func (s *Sender) ackOne(p *Pending, sack, sampleRTT bool, now time.Time) {
-	if p == nil || s.bySeq[p.Seq] != p { return }
-	if sampleRTT && !p.WasRetried { s.observeRTT(now.Sub(p.FirstSent)) }
+func (s *Sender) ackOne(p *Pending) {
+	if p == nil || s.bySeq[p.Seq] != p {
+		return
+	}
 	delete(s.bySeq, p.Seq)
 	s.releasePayload(p.Payload)
 	p.Payload = nil
 	s.active--
 	s.stats.Acked++
-	if sack { s.stats.SACKed++ }
 	if p.slot >= 0 && p.slot < len(s.pending) && s.pending[p.slot] == p {
 		s.pending[p.slot] = nil
 	}
 }
 
 func (s *Sender) advanceHead() {
-	for s.head < len(s.pending) && s.pending[s.head] == nil { s.head++ }
+	for s.head < len(s.pending) && s.pending[s.head] == nil {
+		s.head++
+	}
 	if s.head >= 4096 && s.head*2 >= len(s.pending) {
 		oldHead := s.head
 		copy(s.pending, s.pending[oldHead:])
 		s.pending = s.pending[:len(s.pending)-oldHead]
-		for i, p := range s.pending { if p != nil { p.slot = i } }
+		for i, p := range s.pending {
+			if p != nil {
+				p.slot = i
+			}
+		}
 		s.head = 0
 	}
 }
 
-// RetransmitDue deliberately does not apply TCP-style global exponential RTO
-// backoff. Packet loss on this carrier is not treated as congestion and a slow
-// hole must not inflate recovery time for all later independent datagrams.
+// RetransmitDue follows the RFC 6298 timeout behavior relevant to the shadow
+// TCP carrier: retransmit the earliest cumulatively-unacknowledged segment and
+// exponentially back off the RTO. New independent datagrams are not blocked by
+// this timer; retransmission exists to preserve TCP-like outer behavior.
 func (s *Sender) RetransmitDue(now time.Time) *Pending {
 	p := s.oldest()
-	if p == nil || now.Sub(p.LastSent) < s.rto { return nil }
+	if p == nil || now.Sub(p.LastSent) < s.rto {
+		return nil
+	}
 	s.markRetry(p, now, false)
+	s.rto = clampRTO(s.rto * 2)
 	return p
 }
 
 func (s *Sender) oldest() *Pending {
 	s.advanceHead()
-	if s.head >= len(s.pending) { return nil }
+	if s.head >= len(s.pending) {
+		return nil
+	}
 	return s.pending[s.head]
 }
 
@@ -187,27 +257,39 @@ func (s *Sender) markRetry(p *Pending, now time.Time, fast bool) {
 	p.LastSent = now
 	p.Retries++
 	p.WasRetried = true
-	if fast { s.stats.FastRetransmits++ } else { s.stats.RTOTransmits++ }
+	if fast {
+		s.stats.FastRetransmits++
+	} else {
+		s.stats.RTOTransmits++
+	}
 	s.stats.RetransmitBytes += uint64(len(p.Payload))
 }
 
 func (s *Sender) observeRTT(sample time.Duration) {
-	if sample <= 0 { return }
+	if sample <= 0 {
+		return
+	}
 	if s.srtt == 0 {
 		s.srtt = sample
-		s.rttvar = sample/2
+		s.rttvar = sample / 2
 	} else {
-		d := s.srtt-sample
-		if d < 0 { d = -d }
-		s.rttvar = (3*s.rttvar+d)/4
-		s.srtt = (7*s.srtt+sample)/8
+		d := s.srtt - sample
+		if d < 0 {
+			d = -d
+		}
+		s.rttvar = (3*s.rttvar + d) / 4
+		s.srtt = (7*s.srtt + sample) / 8
 	}
-	s.rto = clampRTO(s.srtt+4*s.rttvar)
+	s.rto = clampRTO(s.srtt + 4*s.rttvar)
 }
 
 func clampRTO(v time.Duration) time.Duration {
-	if v < 20*time.Millisecond { return 20*time.Millisecond }
-	if v > 2*time.Second { return 2*time.Second }
+	if v < minRTO {
+		return minRTO
+	}
+	if v > maxRTO {
+		return maxRTO
+	}
 	return v
 }
 
@@ -224,16 +306,19 @@ type Receiver struct {
 }
 
 func NewReceiver(nextSeq uint32) *Receiver {
-	return &Receiver{next:nextSeq, outOfOrder:make(map[uint32]uint32)}
+	return &Receiver{next: nextSeq, outOfOrder: make(map[uint32]uint32)}
 }
-func (r *Receiver) Next() uint32 { return r.next }
+func (r *Receiver) Next() uint32         { return r.next }
 func (r *Receiver) Stats() ReceiverStats { return r.stats }
 
-// Accept never buffers payload. Later datagrams are delivered immediately while
-// only sequence ranges are retained to advance cumulative ACK once holes close.
+// Accept never buffers payload for ordered delivery. A complete later datagram
+// is delivered on its first arrival even while cumulative TCP ACK state retains
+// a hole. Retransmitted duplicates are suppressed from the inner path.
 func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, outOfOrder bool) {
-	if payloadLen <= 0 { return false, false }
-	end := seq+uint32(payloadLen)
+	if payloadLen <= 0 {
+		return false, false
+	}
+	end := seq + uint32(payloadLen)
 	if seqLT(seq, r.next) {
 		r.stats.Duplicates++
 		return false, false
@@ -251,12 +336,14 @@ func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, outOfOrder bool)
 	r.next = end
 	for {
 		nextEnd, ok := r.outOfOrder[r.next]
-		if !ok { break }
+		if !ok {
+			break
+		}
 		delete(r.outOfOrder, r.next)
 		r.next = nextEnd
 	}
 	return true, false
 }
 
-func seqLT(a,b uint32) bool { return int32(a-b)<0 }
-func seqLE(a,b uint32) bool { return a==b || seqLT(a,b) }
+func seqLT(a, b uint32) bool { return int32(a-b) < 0 }
+func seqLE(a, b uint32) bool { return a == b || seqLT(a, b) }
