@@ -1,0 +1,388 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"flag"
+	"fmt"
+	"net"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
+
+	"github.com/lly8666/wobuzhidao/internal/control"
+	"github.com/lly8666/wobuzhidao/internal/fec"
+	"github.com/lly8666/wobuzhidao/internal/realityfront"
+	"github.com/lly8666/wobuzhidao/internal/session"
+)
+
+const maxBlocks = 64
+
+type config struct {
+	listen       string
+	service      string
+	ticketDir    string
+	ticketTTL    time.Duration
+	setupTimeout time.Duration
+	maxSessions  int
+}
+
+type startupSession interface {
+	State() control.State
+	Stats() control.LinkSessionStats
+	HandleWire([]byte, uint64) ([]byte, error)
+}
+
+type peerSession struct {
+	peer    *net.UDPAddr
+	key     string
+	startup startupSession
+	created time.Time
+
+	account      string
+	id           session.LiveID
+	haveIdentity bool
+	active       bool
+	service      *net.UDPConn
+}
+
+type server struct {
+	cfg         config
+	conn        *net.UDPConn
+	serviceAddr *net.UDPAddr
+	plane       *session.DataPlane
+
+	mu    sync.RWMutex
+	peers map[string]*peerSession
+}
+
+func main() {
+	var c config
+	flag.StringVar(&c.listen, "listen", "", "shared UDP address receiving plaintext from all DTLS workers")
+	flag.StringVar(&c.service, "service", "", "local UDP service address")
+	flag.StringVar(&c.ticketDir, "ticket-dir", "", "same-entry Reality one-time ticket directory")
+	flag.DurationVar(&c.ticketTTL, "ticket-ttl", 60*time.Second, "maximum ticket age")
+	flag.DurationVar(&c.setupTimeout, "setup-timeout", 10*time.Second, "ticket bind + LINK_INIT deadline per peer")
+	flag.IntVar(&c.maxSessions, "max-sessions", 32, "maximum simultaneous sessions")
+	flag.Parse()
+
+	s, err := newServer(c)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "WBD_LINK_SERVER_MUX_FAIL", err)
+		os.Exit(1)
+	}
+	defer s.Close()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	fmt.Printf("WBD_LINK_SERVER_MUX_READY listen=%s service=%s max_sessions=%d ticket_auth=1\n", s.conn.LocalAddr(), c.service, c.maxSessions)
+	if err := s.Run(ctx); err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, os.ErrClosed) {
+		fmt.Fprintln(os.Stderr, "WBD_LINK_SERVER_MUX_FAIL", err)
+		os.Exit(1)
+	}
+}
+
+func newServer(c config) (*server, error) {
+	if c.listen == "" || c.service == "" || c.ticketDir == "" || c.ticketTTL <= 0 || c.setupTimeout <= 0 || c.maxSessions <= 0 {
+		return nil, errors.New("-listen, -service, -ticket-dir and positive ttl/timeout/max-sessions are required")
+	}
+	listenAddr, err := net.ResolveUDPAddr("udp4", c.listen)
+	if err != nil {
+		return nil, err
+	}
+	serviceAddr, err := net.ResolveUDPAddr("udp4", c.service)
+	if err != nil {
+		return nil, err
+	}
+	conn, err := net.ListenUDP("udp4", listenAddr)
+	if err != nil {
+		return nil, err
+	}
+	_ = conn.SetReadBuffer(4 << 20)
+	_ = conn.SetWriteBuffer(4 << 20)
+	plane, err := session.NewDataPlane(c.maxSessions, maxBlocks)
+	if err != nil {
+		_ = conn.Close()
+		return nil, err
+	}
+	return &server{
+		cfg: c, conn: conn, serviceAddr: serviceAddr, plane: plane,
+		peers: make(map[string]*peerSession),
+	}, nil
+}
+
+func (s *server) Addr() *net.UDPAddr {
+	if s == nil || s.conn == nil {
+		return nil
+	}
+	a, _ := s.conn.LocalAddr().(*net.UDPAddr)
+	return cloneUDPAddr(a)
+}
+
+func (s *server) Run(ctx context.Context) error {
+	buf := make([]byte, 65535)
+	for {
+		if err := s.conn.SetReadDeadline(time.Now().Add(2 * time.Millisecond)); err != nil {
+			return err
+		}
+		n, from, err := s.conn.ReadFromUDP(buf)
+		now := time.Now()
+		if err != nil {
+			if ne, ok := err.(net.Error); !ok || !ne.Timeout() {
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				default:
+					return err
+				}
+			}
+		} else {
+			if err := s.handleDatagram(from, buf[:n], now); err != nil {
+				fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_DROP peer=%s err=%v\n", from, err)
+				s.removePeer(from.String(), true)
+			}
+		}
+		s.flushDue(now)
+		s.expireSetups(now)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+	}
+}
+
+func (s *server) handleDatagram(from *net.UDPAddr, packet []byte, now time.Time) error {
+	key := from.String()
+	ps := s.getPeer(key)
+	if ps == nil {
+		typ, ok := controlFrameType(packet)
+		if !ok || typ != control.TypeDemoBind {
+			return nil
+		}
+		var err error
+		ps, err = s.newPeer(from, now)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !ps.active || isStartupControl(packet) {
+		return s.handleStartup(ps, packet, now)
+	}
+	_, packets, err := s.plane.Inbound(ps.key, packet)
+	if err != nil {
+		if errors.Is(err, fec.ErrDecoderFull) {
+			return nil
+		}
+		return err
+	}
+	for _, p := range packets {
+		if _, err := ps.service.Write(p); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *server) newPeer(peer *net.UDPAddr, now time.Time) (*peerSession, error) {
+	key := peer.String()
+	s.mu.Lock()
+	if existing := s.peers[key]; existing != nil {
+		s.mu.Unlock()
+		return existing, nil
+	}
+	if len(s.peers) >= s.cfg.maxSessions {
+		s.mu.Unlock()
+		return nil, session.ErrRegistryFull
+	}
+	ps := &peerSession{peer: cloneUDPAddr(peer), key: key, created: now}
+	verify := func(bind [control.DemoWitnessLen]byte) error {
+		var ticket realityfront.Ticket
+		copy(ticket[:], bind[:])
+		account, err := realityfront.ConsumeTicketForAccount(s.cfg.ticketDir, ticket, time.Now(), s.cfg.ticketTTL)
+		if err != nil {
+			return err
+		}
+		ps.account = account
+		copy(ps.id[:], ticket[:])
+		ps.haveIdentity = true
+		return nil
+	}
+	startup, err := control.NewDemoTicketReliableLinkServerSession(1, 1, control.CurrentLinkPolicy(), verify)
+	if err != nil {
+		s.mu.Unlock()
+		return nil, err
+	}
+	ps.startup = startup
+	s.peers[key] = ps
+	s.mu.Unlock()
+	return ps, nil
+}
+
+func (s *server) handleStartup(ps *peerSession, packet []byte, now time.Time) error {
+	reply, err := ps.startup.HandleWire(packet, uint64(now.UnixNano()))
+	if err != nil {
+		return err
+	}
+	if len(reply) != 0 {
+		if _, err := s.conn.WriteToUDP(reply, ps.peer); err != nil {
+			return err
+		}
+	}
+	if ps.startup.State() == control.StateFailed || ps.startup.State() == control.StateClosed {
+		return errors.New("startup state failed; reconnect required")
+	}
+	if ps.startup.State() != control.StateEstablished || ps.active {
+		return nil
+	}
+	if !ps.haveIdentity || ps.account == "" || ps.id == (session.LiveID{}) {
+		return errors.New("established session lacks ticket identity")
+	}
+	if err := s.plane.Reserve(ps.account, ps.id, ps.key, now); err != nil {
+		return err
+	}
+	cfg := ps.startup.Stats().Config
+	if err := s.plane.Activate(ps.id, cfg); err != nil {
+		s.plane.Remove(ps.id)
+		return err
+	}
+	service, err := net.DialUDP("udp4", nil, s.serviceAddr)
+	if err != nil {
+		s.plane.Remove(ps.id)
+		return err
+	}
+	ps.service = service
+	ps.active = true
+	go s.serviceLoop(ps)
+	fmt.Printf("WBD_LINK_MUX_SESSION_READY account=%s id_prefix=%x peer=%s fec_mode=%d fec=%d:%d mtu=%d lanes=%d\n",
+		ps.account, ps.id[:4], ps.key, cfg.FECMode, cfg.DataShards, cfg.ParityShards, cfg.MTU, cfg.LaneCount)
+	return nil
+}
+
+func (s *server) serviceLoop(ps *peerSession) {
+	buf := make([]byte, 65535)
+	for {
+		n, err := ps.service.Read(buf)
+		if err != nil {
+			return
+		}
+		peerKey, wire, err := s.plane.Outbound(ps.id, buf[:n], time.Now())
+		if err != nil || peerKey != ps.key {
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_SERVICE_DROP peer=%s err=%v\n", ps.key, err)
+			}
+			return
+		}
+		if err := sendWire(s.conn, ps.peer, wire); err != nil {
+			return
+		}
+	}
+}
+
+func (s *server) flushDue(now time.Time) {
+	for _, ps := range s.snapshotPeers() {
+		if !ps.active {
+			continue
+		}
+		peerKey, wire, err := s.plane.FlushDue(ps.id, now)
+		if err != nil || peerKey != ps.key {
+			continue
+		}
+		_ = sendWire(s.conn, ps.peer, wire)
+	}
+}
+
+func (s *server) expireSetups(now time.Time) {
+	for _, ps := range s.snapshotPeers() {
+		if !ps.active && now.Sub(ps.created) > s.cfg.setupTimeout {
+			s.removePeer(ps.key, false)
+		}
+	}
+}
+
+func (s *server) getPeer(key string) *peerSession {
+	s.mu.RLock()
+	ps := s.peers[key]
+	s.mu.RUnlock()
+	return ps
+}
+
+func (s *server) snapshotPeers() []*peerSession {
+	s.mu.RLock()
+	out := make([]*peerSession, 0, len(s.peers))
+	for _, ps := range s.peers {
+		out = append(out, ps)
+	}
+	s.mu.RUnlock()
+	return out
+}
+
+func (s *server) removePeer(key string, flush bool) {
+	s.mu.Lock()
+	ps := s.peers[key]
+	if ps != nil {
+		delete(s.peers, key)
+	}
+	s.mu.Unlock()
+	if ps == nil {
+		return
+	}
+	if ps.active {
+		if flush {
+			if peerKey, wire, err := s.plane.Flush(ps.id); err == nil && peerKey == ps.key {
+				_ = sendWire(s.conn, ps.peer, wire)
+			}
+		}
+		s.plane.Remove(ps.id)
+	}
+	if ps.service != nil {
+		_ = ps.service.Close()
+	}
+}
+
+func (s *server) Close() {
+	for _, ps := range s.snapshotPeers() {
+		s.removePeer(ps.key, true)
+	}
+	if s.conn != nil {
+		_ = s.conn.Close()
+	}
+}
+
+func controlFrameType(packet []byte) (control.Type, bool) {
+	if len(packet) < control.HeaderLen || string(packet[:4]) != string(control.Magic[:]) || packet[4] != control.FrameVersion1 {
+		return 0, false
+	}
+	return control.Type(packet[5]), true
+}
+
+func isStartupControl(packet []byte) bool {
+	typ, ok := controlFrameType(packet)
+	if !ok {
+		return false
+	}
+	switch typ {
+	case control.TypeDemoBind, control.TypeDemoBindOK, control.TypeLinkInit, control.TypeLinkAccept, control.TypeError, control.TypeAuth, control.TypeAuthOK:
+		return true
+	default:
+		return false
+	}
+}
+
+func sendWire(conn *net.UDPConn, dst *net.UDPAddr, wire [][]byte) error {
+	for _, packet := range wire {
+		if _, err := conn.WriteToUDP(packet, dst); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func cloneUDPAddr(a *net.UDPAddr) *net.UDPAddr {
+	if a == nil {
+		return nil
+	}
+	return &net.UDPAddr{IP: append(net.IP(nil), a.IP...), Port: a.Port, Zone: a.Zone}
+}
