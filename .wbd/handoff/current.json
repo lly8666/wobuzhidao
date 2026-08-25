@@ -44,7 +44,7 @@
     "naive_xor_status": "single XOR parity is not equivalent to 20+20 arbitrary-erasure recovery; packet duplication may be an optional ultra-low-CPU mode but not the main weak-network 20:20 replacement"
   },
   "local_test_snapshot": {
-    "authority": "local_sandbox_targeted_exact_blob",
+    "authority": "snapshot_not_live",
     "tested_commit": "43041da32cc67bf04197bdd00ec3ce1d75d99cd5",
     "result": "pass",
     "command": "Go 1.23.2 sandbox: go test ./internal/fec; go test ./internal/fec -run '^$' -bench 'Benchmark(Encode|Reconstruct)' -benchtime=20x. Exact GitHub blob SHAs matched the tested local files. Full-repository test was not run because sandbox DNS cannot resolve github.com for clone."
