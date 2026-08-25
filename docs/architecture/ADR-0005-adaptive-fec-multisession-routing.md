@@ -1,8 +1,8 @@
-# ADR-0005: Fixed FEC scheduling, deferred Auto, multi-session accounts, split routing, and optional dual lane
+# ADR-0005: Fixed FEC scheduling, deferred Auto, shared-account multi-session, split routing, and optional dual lane
 
-Status: **ACCEPTED FOR V2.2 DEVELOPMENT** (updated 2026-08-25)
+Status: **ACCEPTED FOR V2.2 DEVELOPMENT** (updated 2026-08-26)
 
-ADR-0006 is authoritative for link-parameter timing: V2.2 uses immutable per-association `LINK_INIT/LINK_ACCEPT`; there is no runtime config epoch or mid-session FEC switching.
+ADR-0006 is authoritative for link-parameter timing: V2.2 uses immutable per-association `LINK_INIT/LINK_ACCEPT`; there is no runtime config epoch or mid-session FEC switching. ADR-0008 is authoritative for the Reality-like front and shared username/password admission.
 
 ## Context
 
@@ -10,7 +10,7 @@ Focused first-arrival testing changed the FEC latency picture. The original WBD 
 
 The remaining latency cost for a lost systematic source comes from waiting for enough repair equations. Fixed 20+20 tail parity is therefore a strong-loss reference, not a universal optimum.
 
-Current requirements also include fixed FEC that may be disabled, client-owned performance/routing choices with server resource ceilings, several simultaneous sessions under one account, global/China/non-China capture, optional browser-like TLS Persona, and possible later two-lane survival modes. **Auto FEC remains future advanced research.**
+Current requirements include fixed FEC that may be disabled, a 100 Mbit/s weak-link ceiling, client-owned routing choices, multiple simultaneous sessions/devices using one shared personal account, global/China/non-China capture, a Reality-like connection front, OpenWrt TPROXY and Windows TUN/Wintun-class capture. **Auto FEC remains future advanced research.**
 
 ## Decision 1 — optimize FEC for first-complete datagram time
 
@@ -58,7 +58,7 @@ With payload offered load `B` and path capacity `C`, first-order utilization is:
 rho = B(1+alpha)/C
 ```
 
-As `rho` approaches or exceeds one, repair backlog and serialization delay can erase recovery gains. Therefore fixed profiles are qualified against both loss and capacity pressure.
+As `rho` approaches or exceeds one, repair backlog and serialization delay can erase recovery gains. Therefore fixed profiles are qualified against both loss and capacity pressure. Current release-critical capacity qualification uses `C <= 100 Mbit/s`.
 
 ## Decision 2 — compare fixed schedulers before changing live codec
 
@@ -70,7 +70,7 @@ Research compares:
 - smaller/micro-block systematic RS;
 - causal/sliding-window systematic linear repair with earlier repair equations.
 
-`internal/fec/simulator.go` is an offline qualification tool, not an Auto controller and not a declaration of live support. No research scheduler replaces the live codec until it wins first-arrival tail, delivery, CPU/RSS and wire-efficiency gates under iid, burst and capacity stress.
+`internal/fec/simulator.go` is an offline qualification tool, not an Auto controller and not a declaration of live support. No research scheduler replaces the live codec until it wins first-arrival tail, delivery, CPU/RSS and wire-efficiency gates under iid, burst and 100 Mbit/s capacity stress.
 
 ## Decision 3 — current product FEC is `off | fixed`
 
@@ -97,18 +97,20 @@ At present only WBD live `20:20` tail-RS and FEC off are admitted. `20:10`, micr
 
 Per ADR-0006, the fixed/off choice and all link-defining parameters are proposed once in `LINK_INIT`, accepted exactly or rejected by the server, and then remain immutable until reconnect.
 
-## Decision 4 — one account may own multiple simultaneous device sessions
+## Decision 4 — one shared account may own multiple simultaneous device sessions
 
-The current bearer authorization will evolve into a minimal account/session model:
+WBD is a personal server, not a multi-tenant identity platform. Admission is deliberately simpler than the earlier per-device-token proposal.
 
-- `username` identifies an account principal;
-- state is keyed by at least `(account_id, session_id)`, never username alone;
-- the same username may have multiple simultaneous sessions/devices;
-- each device should preferably use a distinct high-entropy access token/key so it can be revoked independently;
-- authentication remains inside the authenticated DTLS association;
-- server policy may cap concurrent sessions per account.
+- one configured `username/password` pair identifies the shared account;
+- the same pair may create multiple simultaneous sessions/devices;
+- the credentials are sent once inside a recognized TLS 1.3 front connection, where TLS already supplies encryption and integrity;
+- server recognition uses bounded constant-time equality checks only; there is no required application-layer password KDF/challenge protocol for the personal path;
+- every successful login receives a fresh random one-time ticket;
+- live state is keyed by the independent ticket/session identity, never by username alone;
+- a simple overall resource limit such as `max-conns` may bound simultaneous work;
+- no per-device credential database, revocation table, device-token rotation or username-based single-session lock is required.
 
-Human-memorable passwords are not required for the first implementation. If added later, they require a proper password KDF.
+The ticket is consumed by the later DTLS/WBD association. Once a front ticket is accepted, the data association does not repeat a second bearer `AUTH` exchange.
 
 ## Decision 5 — routing/capture policy is client-side and must exclude underlay
 
@@ -118,31 +120,35 @@ Client capture modes are:
 capture.mode = off | global | only-cn | only-non-cn
 ```
 
-Every full/split mode has an **underlay escape invariant**: WBD server endpoint(s), Persona/bootstrap endpoint(s), and required local-link traffic continue through the original physical/default route and never recurse into the tunnel.
+Every full/split mode has an **underlay escape invariant**: WBD server endpoint(s), Reality-like bootstrap endpoint(s), and required local-link traffic continue through the original physical/default route and never recurse into the VPN capture path.
 
-### Linux / OpenWrt
+### OpenWrt
 
-Use TUN plus policy routing. Prefer a small number of `ip rule`/route-table rules and compact platform-native interval/prefix sets. Do not create one firewall rule per China prefix.
+The final OpenWrt product uses **TPROXY plus policy routing**, not a TUN device. Selected TCP/UDP traffic is redirected to a local transparent adapter. Packet marks and dedicated route tables return marked traffic locally while explicit WBD underlay destinations are exempted before broad capture.
 
-CIDR membership is longest-prefix matching, not exact-address hashing. A portable radix/Patricia structure is acceptable; kernel-native prefix/interval sets may be superior.
+Prefer compact nftables interval sets/ipsets for `only-cn` and `only-non-cn`. Do not create one firewall rule per China prefix. Installation and cleanup must be idempotent and WBD-owned state must be removable after failed startup.
+
+The existing Linux TUN implementation remains a protocol/regression harness and a Linux experiment path; it does not satisfy the OpenWrt release gate.
 
 ### Windows
 
-Use Wintun-class L3 I/O. Global capture uses broad tunnel routes with explicit `/32` and `/128` endpoint escape routes through the original gateway.
+Use a **TUN/Wintun-class L3 adapter**. Global capture uses broad tunnel routes with explicit `/32` and `/128` endpoint escape routes through the original gateway.
 
 For `only-cn` / `only-non-cn`, compare compact aggregated routes with a small WFP/equivalent interception layer backed by user-space longest-prefix classification. Do not install thousands of persistent Windows Firewall rules.
 
-The domestic prefix database is versioned, atomically replaced, and supports IPv4 and IPv6.
+CIDR membership is longest-prefix matching, not exact-address hashing. The domestic prefix database is versioned, atomically replaced, and supports IPv4 and IPv6.
 
-## Decision 6 — Persona profile is client-selected; endpoint identity is operator-owned
+## Decision 6 — Reality-like front appearance is client-selected; certificate verification is optional in personal mode
 
-The client selects `persona = off | native | chrome | firefox | safari | edge` from the supported set.
+The client selects `persona = off | native | chrome | firefox | safari | edge` from the supported set where implemented. Browser-profile work affects only connection establishment; it does not replace steady-state DTLS/FakeTCP data transport.
 
-The TLS endpoint hostname, certificate and private key are identities the operator is authorized to use. The client validates a normal certificate chain and hostname. Browser profile implementations are pinned and pcap-qualified rather than trusting a moving library Auto alias.
+The preferred product join is ADR-0008's same-entry front: one ClientHello is classified, recognized traffic is locally taken over on the same TCP socket, and unrecognized traffic continues byte-for-byte to the fixed fallback target.
 
-WBD may use public services such as speed-test sites as **measurement baselines** when studying network treatment. It does not borrow their private keys/certificates or present an unrelated third-party identity as the WBD endpoint.
+The personal client may explicitly set server certificate/hostname verification off. A configured SNI can therefore be used with an unrelated self-signed WBD certificate. This gives encrypted TLS records without server certificate identity authentication and is an intentional personal-use setting. It must be visible in logs/configuration rather than happening silently.
 
-Persona remains a connection-establishment preflight and does not replace steady-state DTLS 1.3.
+WBD may use public speed-test sites as **measurement baselines** when studying network treatment. It does not need those services' private keys and does not route sustained VPN data through them.
+
+The older target-mirror/witness diagnostic remains a compatibility experiment, not the preferred connection join.
 
 ## Decision 7 — dual lane is an optional survival mode, not default
 
@@ -158,18 +164,19 @@ Two lanes do not require unrelated FEC algorithms. They require independent lane
 
 ## Configuration ownership summary
 
-Client/session-owned at establishment: capture mode, fixed FEC profile, directional preferences, Persona profile, optional future lane mode.
+Client/session-owned at establishment: capture mode, fixed FEC profile, directional preferences, optional Persona profile, optional future lane mode.
 
-Server/operator-owned: account credentials/caps, certificate/private key and allowed Persona hostnames, supported protocol/code versions, hard memory/CPU/wire/MTU/lane ceilings.
+Server/operator-owned: one shared username/password, simple overall connection/resource limits, local certificate/private key, fallback target, supported protocol/code versions, and hard memory/CPU/wire/MTU/lane ceilings.
 
 Negotiated exactly once: immutable LinkConfig for the new association. Unsupported proposals are rejected rather than silently rewritten.
 
 ## Consequences / implementation order
 
-1. Finish fixed-scheduler offline qualification.
-2. Implement and integrate immutable `LINK_INIT/LINK_ACCEPT`; no runtime config epochs.
-3. Implement optional TLS Persona with pinned, pcap-qualified browser profiles and normal certificate validation.
-4. Upgrade bearer auth to account + device-token + concurrent multi-session state.
-5. Implement Linux/OpenWrt capture policies and then Windows Wintun/global/split policies with underlay escape tests.
-6. Revisit fixed dual-lane experiments only if one-lane qualification shows a meaningful cliff.
-7. Keep Auto FEC outside the V2.2 implementation sequence.
+1. Finish 100 Mbit/s FakeTCP/FEC/DTLS/recovery qualification and freeze the transport semantics.
+2. Keep immutable `LINK_INIT/LINK_ACCEPT`; no runtime config epochs.
+3. Finish ADR-0008 same-entry Reality-like front with simple shared username/password and one-time ticket admission.
+4. Implement the smallest data-session demultiplexing model keyed by independent ticket/session identity so one shared account can keep several live associations concurrently.
+5. Run the complete protocol/unit/pcap/100 Mbit/s regression set before platform packet capture is allowed to change.
+6. Connect the frozen session adapter to OpenWrt TPROXY, perform one clean end-to-end VPN success, then do the same with Windows TUN/Wintun-class.
+7. Revisit fixed dual-lane experiments only if one-lane 100 Mbit/s qualification shows a meaningful cliff.
+8. Keep Auto FEC outside the V2.2 implementation sequence.
