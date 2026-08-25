@@ -1,29 +1,32 @@
-# Reality-style target-mirror diagnostic
+# Reality-style target-mirror diagnostic and encrypted demo handoff
 
 ## Purpose
 
-This is an **isolated diagnostic oracle**, not the WBD product data plane.
+This remains an **explicit demo mode**, not the default WBD transport.
 
-It reproduces the opening/fallback property that is useful for network-treatment experiments:
+The genuine target mirror is used only for the network-treatment preflight:
 
 ```text
-client TCP -> WBD mirror server
-              -> fixed genuine TLS target
-
+client TCP -> WBD mirror server -> fixed genuine TLS target
 client ClientHello --byte-for-byte--> target
 target TLS response --byte-for-byte--> client
-then bounded bidirectional splice
 ```
 
-The client therefore receives the real target's ServerHello, certificate chain, CertificateVerify and Finished. WBD does not possess, copy or forge the target private key.
+The client therefore receives the real target's ServerHello/certificate/Finished and validates the genuine target normally. WBD never possesses or forges the target private key.
 
-This experiment answers a narrow question: does a TCP flow to the WBD server IP receive measurably different treatment when its visible TLS handshake and subsequent HTTPS traffic are genuinely supplied by a selected target host?
+The follow-on demo does **not** switch this TCP/TLS byte stream into VPN payload. Instead it closes the preflight and binds a fresh WBD DTLS 1.3 association with a short-lived one-time ClientHello witness:
 
-It does **not** yet carry WBD UDP-like application traffic on the same TCP stream. Doing that would require a separate authenticated protocol design; blindly placing the WBD data plane inside a TLS byte stream would reintroduce stream HOL and violates the current transport constitution.
+```text
+mirror preflight -> witness
+fresh FakeTCP/DTLS association
+DEMO_BIND -> DEMO_BIND_OK -> LINK_INIT -> LINK_ACCEPT -> AUTH -> encrypted WBD datagrams
+```
+
+This keeps WBDC control, account token, FEC metadata and application payload encrypted by DTLS and preserves the unordered/no-HOL data plane.
 
 ## Safety / abuse boundary
 
-The server is deliberately not an open SNI proxy:
+The mirror is deliberately not an open SNI proxy:
 
 - exactly one `-target HOST:PORT` is configured;
 - exactly one `-server-name HOST` is accepted;
@@ -33,18 +36,19 @@ The server is deliberately not an open SNI proxy:
 - default transfer ceiling is 32 MiB per direction;
 - default concurrent session limit is 32.
 
-If exposed publicly for a test, keep the target fixed and the test window short. A generic fallback proxy can otherwise be abused as a relay.
+`-witness-dir` is also demo-only. Witnesses are non-secret correlation hashes, stored locally with a short lifetime and consumed once by the WBD startup gate.
 
 ## Build
 
 ```bash
 go build -o wbd-reality-mirror ./cmd/wbd-reality-mirror
 go build -o wbd-tls-diag ./cmd/wbd-tls-diag
+go build -o wbd-link-proxy ./cmd/wbd-link-proxy
 ```
 
-## Server-side demo
+## 1. Standalone mirror measurement
 
-Run this on the WBD server/VPS. Replace the placeholder target with the genuine HTTPS host you want to use as the control identity.
+Server/VPS:
 
 ```bash
 ./wbd-reality-mirror server \
@@ -55,12 +59,6 @@ Run this on the WBD server/VPS. Replace the placeholder target with the genuine 
   -max-bytes 33554432
 ```
 
-The process prints `WBD_REALITY_MIRROR_READY` followed by one JSON result per connection. The result includes parsed SNI/ALPN and mirrored byte counts.
-
-For a short controlled throughput experiment, `-max-bytes 0` removes the userspace byte-limit wrapper and lets Go's normal TCP `io.Copy` fast path operate. Keep a short `-session-timeout`, low `-max-conns`, and stop the public listener immediately after the experiment.
-
-## Client-side handshake comparison
-
 Direct target baseline:
 
 ```bash
@@ -70,7 +68,7 @@ Direct target baseline:
   -count 20
 ```
 
-Same genuine TLS target, but reached through the WBD server IP:
+Same genuine target through the WBD server IP:
 
 ```bash
 ./wbd-tls-diag \
@@ -79,9 +77,9 @@ Same genuine TLS target, but reached through the WBD server IP:
   -count 20
 ```
 
-The target certificate/SPKI hashes should match because both cases terminate TLS at the genuine target. Compare connection success, TCP connect p50/p95 and TLS handshake p50/p95.
+The target certificate/SPKI hashes should match because both paths terminate TLS at the genuine target.
 
-For the preferred short-window comparison, alternate the two paths so a few minutes of changing network quality cannot systematically favor whichever group was run first:
+Preferred paired comparison:
 
 ```bash
 python3 scripts/bench_reality_mirror.py \
@@ -93,11 +91,98 @@ python3 scripts/bench_reality_mirror.py \
   > reality-mirror-handshake.json
 ```
 
-The JSON reports each pair, direct/mirror success ratios, p50/p95 and `mirror_minus_direct` deltas. Pair order alternates `direct -> mirror` then `mirror -> direct`.
+Pair order alternates direct/mirror to reduce short-term drift.
 
-## HTTP/data comparison
+## 2. Explicit encrypted demo handoff
 
-A normal HTTPS client can use the same mirror. For example, with a target URL that you are permitted to benchmark, direct access is compared with `curl --connect-to`. `--connect-to` keeps the URL authority, Host header, SNI and certificate hostname at normal port 443 while redirecting only the TCP destination to the WBD mirror port.
+This mode requires all three explicit demo pieces. Without the `-demo-reality-*` flags, normal WBD startup is unchanged.
+
+### Server: start mirror witness producer
+
+Choose a server-local directory that is not shared over the network:
+
+```bash
+sudo install -d -m 700 /run/wbd/reality-demo
+
+./wbd-reality-mirror server \
+  -listen :9443 \
+  -target TARGET_HOST:443 \
+  -server-name TARGET_HOST \
+  -witness-dir /run/wbd/reality-demo \
+  -session-timeout 10s \
+  -max-conns 8
+```
+
+After a successful mirrored TLS session with target-to-client bytes, the mirror records the exact ClientHello SHA-256 in that local directory.
+
+### Server: start WBD link gate
+
+The DTLS shim remains outside this process exactly as in the normal product path. Point `-listen/-service` at the same local plaintext endpoints used by the normal `wbd-link-proxy`, and add the demo gate:
+
+```bash
+./wbd-link-proxy \
+  -mode server \
+  -listen SERVER_PROXY_UDP \
+  -service LOCAL_SERVICE_UDP \
+  -expected-token 'DEVICE_SECRET' \
+  -demo-reality-witness-dir /run/wbd/reality-demo \
+  -demo-reality-server-name TARGET_HOST \
+  -demo-reality-ttl 15s
+```
+
+A WBD association is rejected before LINK_INIT unless it first presents a matching one-time witness inside DTLS.
+
+### Client: perform genuine TLS preflight and save witness
+
+Use exactly one successful handshake for the handoff:
+
+```bash
+./wbd-tls-diag \
+  -addr WBD_SERVER_IP:9443 \
+  -server-name TARGET_HOST \
+  -count 1 \
+  -witness-out /tmp/wbd-reality.witness
+```
+
+`wbd-tls-diag` performs ordinary target certificate/hostname validation. The witness file contains only the SHA-256 of the exact ClientHello bytes and is written mode `0600`.
+
+### Client: establish the encrypted WBD association
+
+```bash
+./wbd-link-proxy \
+  -mode client \
+  -listen CLIENT_PROXY_UDP \
+  -dtls CLIENT_DTLS_PLAINTEXT_UDP \
+  -fec 20:20 \
+  -token 'DEVICE_SECRET' \
+  -demo-reality-witness "$(cat /tmp/wbd-reality.witness)"
+```
+
+Startup on the public path is then:
+
+```text
+FakeTCP
+  -> DTLS 1.3 Finished
+  -> encrypted DEMO_BIND
+  <- encrypted DEMO_BIND_OK
+  -> encrypted LINK_INIT
+  <- encrypted LINK_ACCEPT
+  -> encrypted AUTH
+  <- encrypted AUTH_OK
+  -> encrypted WBD application datagrams
+```
+
+There is no point where WBDC, the bearer/device secret, FEC parameters or application data are sent in plaintext or inserted into the genuine target TLS stream.
+
+## 3. Normal mode / self-signed certificate
+
+Do not pass any `-demo-reality-*` options. The mirror is not consulted and no witness is required.
+
+A normal deployment may use an operator-created self-signed DTLS certificate. The client must trust that exact certificate as a local trust anchor or validate a fixed SPKI; do **not** disable certificate verification. Self-signed changes the trust root, not the TLS/DTLS security requirement.
+
+## HTTP/data comparison for the mirror itself
+
+A normal HTTPS client can still use the standalone mirror for controlled measurements. `--connect-to` keeps URL authority, Host, SNI and certificate hostname at port 443 while redirecting only the TCP destination:
 
 ```bash
 curl -o /dev/null -sS \
@@ -110,17 +195,17 @@ curl --connect-to TARGET_HOST:443:WBD_SERVER_IP:9443 \
   https://TARGET_HOST/TEST_PATH
 ```
 
-The target must accept the Host/SNI and request path you choose. Keep public-service tests modest; this is a network-treatment diagnostic, not a load generator.
+Keep public-service tests modest; this is a network-treatment diagnostic, not a load generator.
 
 ## Interpretation
 
-Useful experiment groups are:
+Useful experiment groups remain:
 
 1. direct genuine target;
 2. genuine target through `wbd-reality-mirror`;
-3. direct WBD TLS/Persona endpoint;
-4. WBD FakeTCP/DTLS data plane.
+3. normal WBD DTLS endpoint;
+4. demo-preflight-bound WBD DTLS/FakeTCP data lane.
 
-Group 1 vs 2 isolates the effect of destination IP/path while holding the TLS endpoint identity genuine. Group 2 vs 3 helps separate target TLS appearance from the WBD server's own certificate/handshake. Group 3 vs 4 then isolates the product carrier.
+Group 1 vs 2 tests path/destination-IP treatment while keeping a genuine TLS endpoint. Group 3 vs 4 then asks whether requiring the genuine target preflight before the otherwise identical encrypted WBD data lane changes real observed treatment.
 
-Do not infer a carrier policy from a single run. Alternate direct/mirror samples over the same short interval and repeat during the suspected good/bad daily periods.
+Do not infer a carrier policy from a single run. Alternate samples over the same short interval and repeat during suspected good/bad daily periods.
