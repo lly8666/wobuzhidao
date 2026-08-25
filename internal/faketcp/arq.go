@@ -238,7 +238,13 @@ func (s *Sender) rackLossCandidate(now time.Time) *Pending {
 	reo := s.rackReorderingWindow()
 	for i := s.head; i < len(s.pending); i++ {
 		p := s.pending[i]
-		if p == nil || p.SACKed || p.LastSent.IsZero() {
+		// RACK is deliberately restricted to one failed-repair inference. The
+		// SACK scoreboard/classic dup-ACK path owns the first fast repair. Once
+		// that repair has itself been inferred lost, a second fast repair is
+		// allowed; further attempts fall back to the existing backed-off RTO.
+		// This bounds duplicate traffic when old SACK ranges fall out of the
+		// receiver's four-block advertisement under a large outstanding window.
+		if p == nil || p.SACKed || p.LastSent.IsZero() || !p.WasRetried || p.Retries != 1 {
 			continue
 		}
 		if !p.LastSent.Before(s.rackLatestTx) {
@@ -409,7 +415,7 @@ type ReceiverStats struct {
 }
 
 type Receiver struct {
-	next uint32
+	next           uint32
 	outOfOrder     map[uint32]uint32
 	sacksByStart   map[uint32]uint32
 	sackStartByEnd map[uint32]uint32
