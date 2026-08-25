@@ -12,6 +12,7 @@ type Pending struct {
 	LastSent   time.Time
 	Retries    uint32
 	WasRetried bool
+	slot       int
 }
 
 type SenderStats struct {
@@ -25,23 +26,23 @@ type SenderStats struct {
 }
 
 type Sender struct {
-	nextSeq    uint32
-	pending    []*Pending
-	bySeq      map[uint32]*Pending
-	head       int
-	active     int
-	lastAck    uint32
-	dupAcks    int
-	rto        time.Duration
-	srtt       time.Duration
-	rttvar     time.Duration
-	freeSlabs  [][]byte
-	stats      SenderStats
+	nextSeq   uint32
+	pending   []*Pending
+	bySeq     map[uint32]*Pending
+	head      int
+	active    int
+	lastAck   uint32
+	dupAcks   int
+	rto       time.Duration
+	srtt      time.Duration
+	rttvar    time.Duration
+	freeSlabs [][]byte
+	stats     SenderStats
 }
 
 func NewSender(nextSeq uint32, initialRTO time.Duration) *Sender {
 	if initialRTO <= 0 { initialRTO = time.Second }
-	return &Sender{nextSeq: nextSeq, lastAck: nextSeq, rto: clampRTO(initialRTO), bySeq: make(map[uint32]*Pending)}
+	return &Sender{nextSeq:nextSeq, lastAck:nextSeq, rto:clampRTO(initialRTO), bySeq:make(map[uint32]*Pending)}
 }
 
 func (s *Sender) NextSeq() uint32 { return s.nextSeq }
@@ -52,7 +53,7 @@ func (s *Sender) Stats() SenderStats { return s.stats }
 func (s *Sender) Enqueue(payload []byte, now time.Time) *Pending {
 	buf := s.allocPayload(len(payload))
 	copy(buf, payload)
-	p := &Pending{Seq:s.nextSeq, End:s.nextSeq+uint32(len(payload)), Payload:buf, FirstSent:now, LastSent:now}
+	p := &Pending{Seq:s.nextSeq, End:s.nextSeq+uint32(len(payload)), Payload:buf, FirstSent:now, LastSent:now, slot:len(s.pending)}
 	s.nextSeq = p.End
 	s.pending = append(s.pending, p)
 	s.bySeq[p.Seq] = p
@@ -81,14 +82,12 @@ func (s *Sender) releasePayload(b []byte) {
 	}
 }
 
-// Ack is retained for tests/callers that do not use SACK.
 func (s *Sender) Ack(ack uint32, now time.Time) *Pending {
 	return s.AckSelective(ack, nil, now)
 }
 
-// AckSelective consumes a cumulative ACK plus RFC 2018 SACK blocks. SACKed
-// datagrams are released immediately, so the retransmission queue contains only
-// actual holes rather than the entire out-of-order tail.
+// AckSelective consumes cumulative ACK + RFC 2018 SACK. Exact WBD datagram
+// SACKs are O(1) through bySeq; cumulative ACK remains a sequential head walk.
 func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pending {
 	advanced := seqLT(s.lastAck, ack)
 	if advanced {
@@ -101,9 +100,6 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 
 	for _, b := range sacks {
 		if b.Start == b.End || seqLT(b.End, b.Start) { continue }
-		// WBD currently emits one exact datagram per SACK block. Supporting a
-		// broader peer is cheap: walk from the block's left edge through pending
-		// datagrams while they remain fully covered.
 		seq := b.Start
 		for {
 			p := s.bySeq[seq]
@@ -146,17 +142,18 @@ func (s *Sender) ackOne(p *Pending, sack bool, now time.Time) {
 	s.active--
 	s.stats.Acked++
 	if sack { s.stats.SACKed++ }
-	// Leave a nil tombstone in the ordered slice; advanceHead/compaction removes it.
-	for i := s.head; i < len(s.pending); i++ {
-		if s.pending[i] == p { s.pending[i] = nil; break }
+	if p.slot >= 0 && p.slot < len(s.pending) && s.pending[p.slot] == p {
+		s.pending[p.slot] = nil
 	}
 }
 
 func (s *Sender) advanceHead() {
 	for s.head < len(s.pending) && s.pending[s.head] == nil { s.head++ }
 	if s.head >= 4096 && s.head*2 >= len(s.pending) {
-		copy(s.pending, s.pending[s.head:])
-		s.pending = s.pending[:len(s.pending)-s.head]
+		oldHead := s.head
+		copy(s.pending, s.pending[oldHead:])
+		s.pending = s.pending[:len(s.pending)-oldHead]
+		for i, p := range s.pending { if p != nil { p.slot = i } }
 		s.head = 0
 	}
 }
@@ -165,7 +162,7 @@ func (s *Sender) RetransmitDue(now time.Time) *Pending {
 	p := s.oldest()
 	if p == nil || now.Sub(p.LastSent) < s.rto { return nil }
 	s.markRetry(p, now, false)
-	s.rto = clampRTO(s.rto * 2)
+	s.rto = clampRTO(s.rto*2)
 	return p
 }
 
@@ -221,8 +218,8 @@ func NewReceiver(nextSeq uint32) *Receiver {
 func (r *Receiver) Next() uint32 { return r.next }
 func (r *Receiver) Stats() ReceiverStats { return r.stats }
 
-// Accept returns deliver/outOfOrder. Payload is never held waiting for a hole;
-// only sequence ranges are retained for cumulative ACK progression.
+// Accept never buffers payload. Later datagrams are delivered immediately while
+// only sequence ranges are retained to advance cumulative ACK once holes close.
 func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, outOfOrder bool) {
 	if payloadLen <= 0 { return false, false }
 	end := seq+uint32(payloadLen)
