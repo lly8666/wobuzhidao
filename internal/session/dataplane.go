@@ -97,6 +97,19 @@ func (d *DataPlane) EntryByPeer(peer string) (LiveEntry, bool) {
 
 func (d *DataPlane) Len() int { return d.registry.Len() }
 
+func (d *DataPlane) Stats(id LiveID) (linkdata.PathStats, error) {
+	s, err := d.session(id)
+	if err != nil {
+		return linkdata.PathStats{}, err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.path == nil {
+		return linkdata.PathStats{}, ErrSessionInactive
+	}
+	return s.path.Stats(), nil
+}
+
 // Inbound routes one already-authenticated DTLS plaintext datagram by peer and
 // decodes it only through that session's immutable path.
 func (d *DataPlane) Inbound(peer string, wire []byte) (LiveID, [][]byte, error) {
