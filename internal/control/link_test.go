@@ -97,7 +97,7 @@ func TestLinkServerLocksExactConfigBeforeAuth(t *testing.T) {
 		t.Fatalf("state=%v", s.State())
 	}
 	st := s.Stats()
-	if !st.Configured || st.Config != init.Config {
+	if !st.Configured || st.Config != init.Config || st.LastActivity != 1 {
 		t.Fatalf("stats=%#v", st)
 	}
 
@@ -113,12 +113,12 @@ func TestLinkServerLocksExactConfigBeforeAuth(t *testing.T) {
 	if _, ok := authReply.(AuthOK); !ok {
 		t.Fatalf("got %#v", authReply)
 	}
-	if s.State() != StateEstablished {
-		t.Fatalf("state=%v", s.State())
+	if s.State() != StateEstablished || s.Stats().LastActivity != 2 {
+		t.Fatalf("stats=%#v", s.Stats())
 	}
 }
 
-func TestLinkServerRejectsUnsupportedProposalWithoutEstablishing(t *testing.T) {
+func TestLinkServerRejectedProposalPoisonsAssociation(t *testing.T) {
 	s, _ := NewLinkServerSession(1, 1, nil, CurrentLinkPolicy())
 	bad := fixed20x20Link()
 	bad.ParityShards = 10
@@ -135,8 +135,37 @@ func TestLinkServerRejectsUnsupportedProposalWithoutEstablishing(t *testing.T) {
 	if !ok || e.Code != ErrorPolicy {
 		t.Fatalf("got %#v", reply)
 	}
-	if s.State() != StateAwaitHello || s.Stats().Configured {
-		t.Fatalf("unsupported proposal changed session: %#v", s.Stats())
+	if s.State() != StateFailed || s.Stats().Configured {
+		t.Fatalf("rejected proposal did not poison association: %#v", s.Stats())
+	}
+
+	good, _ := MarshalLink(LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: offLink()})
+	retryWire, err := s.HandleWire(good, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	retry, _ := UnmarshalLink(retryWire)
+	if e, ok := retry.(Error); !ok || e.Code != ErrorUnexpectedState {
+		t.Fatalf("same association accepted/replied unexpectedly to retry: %#v", retry)
+	}
+	if s.State() != StateFailed {
+		t.Fatalf("state=%v", s.State())
+	}
+}
+
+func TestLinkServerRequiresLinkInitAsFirstFrame(t *testing.T) {
+	s, _ := NewLinkServerSession(1, 1, []byte("secret"), CurrentLinkPolicy())
+	wire, _ := MarshalLink(Auth{Token: []byte("secret")})
+	replyWire, err := s.HandleWire(wire, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reply, _ := UnmarshalLink(replyWire)
+	if e, ok := reply.(Error); !ok || e.Code != ErrorUnexpectedState {
+		t.Fatalf("got %#v", reply)
+	}
+	if s.State() != StateFailed {
+		t.Fatalf("state=%v", s.State())
 	}
 }
 
@@ -151,29 +180,21 @@ func TestLinkServerRejectsAnyPostSetupConfigChange(t *testing.T) {
 		t.Fatalf("state=%v", s.State())
 	}
 
-	for _, frame := range []any{
-		LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: fixed20x20Link()},
-		Config{Mode: ProtectionWeak2},
-	} {
-		wire, err := MarshalLink(frame)
-		if err != nil {
-			t.Fatal(err)
-		}
-		replyWire, err := s.HandleWire(wire, 2)
-		if err != nil {
-			t.Fatal(err)
-		}
-		reply, err := UnmarshalLink(replyWire)
-		if err != nil {
-			t.Fatal(err)
-		}
-		e, ok := reply.(Error)
-		if !ok || e.Code != ErrorUnexpectedState {
-			t.Fatalf("frame=%T got %#v", frame, reply)
-		}
-		if s.Stats().Config != init.Config {
-			t.Fatalf("immutable config changed to %#v", s.Stats().Config)
-		}
+	change, _ := MarshalLink(LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: fixed20x20Link()})
+	replyWire, err := s.HandleWire(change, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reply, err := UnmarshalLink(replyWire)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e, ok := reply.(Error)
+	if !ok || e.Code != ErrorUnexpectedState {
+		t.Fatalf("got %#v", reply)
+	}
+	if s.State() != StateFailed || s.Stats().Config != init.Config {
+		t.Fatalf("post-setup change did not force reconnect: %#v", s.Stats())
 	}
 }
 
