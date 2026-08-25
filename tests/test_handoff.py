@@ -133,7 +133,7 @@ class HandoffContractTest(unittest.TestCase):
         self.assertIn("V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **CURRENT**", roadmap)
         self.assertIn("V2-M8C | account + per-device credential + concurrent multi-session server state | **PLANNED**", roadmap)
         self.assertIn("V2-X1 | advanced continuously learning Auto FEC / automatic capacity inference | **FUTURE RESEARCH; NOT REQUIRED**", roadmap)
-        self.assertIn("no in-place FEC transition", roadmap)
+        self.assertIn("link-defining parameters never change in place", roadmap)
 
         bench = (ROOT / "docs/benchmarks/v2-transport-20x20-matrix.md").read_text(encoding="utf-8")
         self.assertIn("Nominal matrix size: **126 cases**", bench)
