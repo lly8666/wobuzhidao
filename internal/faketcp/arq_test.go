@@ -145,6 +145,38 @@ func TestSenderSACKRecoveryContinuesAfterCumulativeAdvance(t *testing.T) {
 	}
 }
 
+func TestSenderRACKDetectsLostRetransmission(t *testing.T) {
+	now := time.Unix(7, 0)
+	s := NewSender(100, time.Second)
+	p1 := s.Enqueue(make([]byte, 10), now) // 100 lost, first repair will also be lost
+	p2 := s.Enqueue(make([]byte, 10), now) // 110 lost, repair arrives later
+	_ = s.Enqueue(make([]byte, 10), now)   // 120 received
+	_ = s.Enqueue(make([]byte, 10), now)   // 130 received
+	_ = s.Enqueue(make([]byte, 10), now)   // 140 received
+
+	// Three later SACKed originals infer p1 at t=10ms.
+	if got := s.AckSelective(100, []SACKBlock{{Start:120, End:150}}, now.Add(10*time.Millisecond)); got != p1 {
+		t.Fatalf("first scoreboard repair=%#v", got)
+	}
+	// Same persistent SACK evidence infers p2 at t=20ms; this transmission is
+	// chronologically newer than p1's failed repair.
+	if got := s.AckSelective(100, []SACKBlock{{Start:120, End:150}}, now.Add(20*time.Millisecond)); got != p2 {
+		t.Fatalf("second scoreboard repair=%#v", got)
+	}
+	// p2's repair arrives and becomes a new SACK. Its LastSent timestamp is newer
+	// than p1's repair, so after the conservative 10ms reordering window RACK
+	// identifies the lost p1 retransmission without waiting for the 1s RTO.
+	if got := s.AckSelective(100, []SACKBlock{{Start:110, End:150}}, now.Add(30*time.Millisecond)); got != p1 {
+		t.Fatalf("RACK did not recover lost retransmission: %#v", got)
+	}
+	if p1.Retries != 2 {
+		t.Fatalf("p1 retries=%d want 2", p1.Retries)
+	}
+	if st := s.Stats(); st.FastRetransmits != 3 || st.RTOTransmits != 0 || st.LossMarked != 2 {
+		t.Fatalf("unexpected RACK accounting: %#v", st)
+	}
+}
+
 func TestSenderRTOBacksOffLikeTCP(t *testing.T) {
 	now := time.Unix(2, 0)
 	s := NewSender(7, time.Second)
