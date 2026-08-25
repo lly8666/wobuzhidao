@@ -61,6 +61,10 @@ func TestSenderFastRetransmitAndAck(t *testing.T) {
 	if got != p1 || got.Retries != 1 {
 		t.Fatalf("expected first segment fast retransmit, got %#v", got)
 	}
+	st := s.Stats()
+	if st.Enqueued != 2 || st.EnqueuedBytes != 20 || st.LossMarked != 1 || st.LossMarkedBytes != 10 {
+		t.Fatalf("unexpected first-loss accounting: %#v", st)
+	}
 	s.Ack(120, now.Add(30*time.Millisecond))
 	if s.Pending() != 0 {
 		t.Fatalf("pending=%d after cumulative ack", s.Pending())
@@ -134,6 +138,10 @@ func TestSenderRTOBacksOffLikeTCP(t *testing.T) {
 	}
 	if s.RTO() != 4*time.Second {
 		t.Fatalf("RTO after second timeout=%v want 4s", s.RTO())
+	}
+	st := s.Stats()
+	if st.LossMarked != 1 || st.LossMarkedBytes != 3 || st.RTOTransmits != 2 || st.RetransmitBytes != 6 {
+		t.Fatalf("same lost segment must be marked once but retried twice: %#v", st)
 	}
 }
 
