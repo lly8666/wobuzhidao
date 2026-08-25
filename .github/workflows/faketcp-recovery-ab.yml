@@ -32,7 +32,7 @@ jobs:
           go test ./internal/faketcp -count=1
           go build -trimpath -o /tmp/wbd-faketcp ./cmd/wbd-faketcp
           python3 -m py_compile scripts/faketcp_first_arrival_probe.py
-      - name: Interleaved first-arrival A/B
+      - name: Interleaved first-arrival A/B on 100 Mbit weak link
         env:
           RTT: ${{ matrix.rtt }}
           LOSS: ${{ matrix.loss }}
@@ -66,8 +66,8 @@ jobs:
           print(float("$RTT")/2.0)
           PY
             )
-            sudo ip netns exec "$C" tc qdisc add dev vc root netem limit 50000 delay "${HALF}ms" rate 200mbit
-            sudo ip netns exec "$S" tc qdisc add dev vs root netem limit 50000 delay "${HALF}ms" rate 200mbit
+            sudo ip netns exec "$C" tc qdisc add dev vc root netem limit 50000 delay "${HALF}ms" rate 100mbit
+            sudo ip netns exec "$S" tc qdisc add dev vs root netem limit 50000 delay "${HALF}ms" rate 100mbit
             OUT="/tmp/recovery-ab/${MODE}-${REP}.json"
             SLOG="/tmp/recovery-ab/${MODE}-${REP}-server.log"
             CLOG="/tmp/recovery-ab/${MODE}-${REP}-client.log"
@@ -85,8 +85,8 @@ jobs:
             done
             grep -q "READY role=client.*recovery=${MODE}" "$CLOG"
             grep -q "READY role=server.*recovery=${MODE}" "$SLOG"
-            sudo ip netns exec "$C" tc qdisc replace dev vc root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 200mbit
-            sudo ip netns exec "$S" tc qdisc replace dev vs root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 200mbit
+            sudo ip netns exec "$C" tc qdisc replace dev vc root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 100mbit
+            sudo ip netns exec "$S" tc qdisc replace dev vs root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 100mbit
             sudo ip netns exec "$C" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
               client --dest 127.0.0.1:$((BASE+4)) --count 700 --size 1200 --interval-ms 1
             wait "$RPID" || true; RPID=
@@ -97,7 +97,6 @@ jobs:
             trap - RETURN
           }
 
-          # Alternate order to reduce short-term runner bias.
           run_one legacy    1 57000
           run_one sack-rack 1 57100
           run_one sack-rack 2 57200
@@ -106,11 +105,11 @@ jobs:
           run_one sack-rack 3 57500
 
           python3 - <<'PY'
-          import glob,json,os,re,statistics
+          import glob,json,os,statistics
           def load(mode):
               rows=[]
               for p in sorted(glob.glob('/tmp/recovery-ab/%s-[123].json'%mode)):
-                  r=json.load(open(p)); rows.append(r)
+                  rows.append(json.load(open(p)))
               assert len(rows)==3,(mode,rows)
               return rows
           def agg(mode):
@@ -125,14 +124,11 @@ jobs:
                   'runs':rows,
               }
           legacy=agg('legacy'); advanced=agg('sack-rack')
-          out={'rtt_ms':float(os.environ['RTT']),'loss_pct':float(os.environ['LOSS']),'legacy':legacy,'sack_rack':advanced}
+          out={'link_mbps':100,'rtt_ms':float(os.environ['RTT']),'loss_pct':float(os.environ['LOSS']),'legacy':legacy,'sack_rack':advanced}
           for k in ('p50_ms_median','p75_ms_median','p95_ms_median','p99_ms_median'):
               out[k+'_delta_ms']=advanced[k]-legacy[k]
           out['delivery_delta_pp']=(advanced['delivery_ratio_median']-legacy['delivery_ratio_median'])*100
           print('RECOVERY_AB',json.dumps(out,sort_keys=True))
-          # Core invariant: advanced shadow recovery is not allowed to impose a
-          # material first-complete latency tax. Tail may improve; median body
-          # latency must stay essentially identical at this load.
           assert out['p50_ms_median_delta_ms'] <= 1.0, out
           assert out['p75_ms_median_delta_ms'] <= 1.5, out
           PY
