@@ -7,14 +7,14 @@ import (
 
 func TestReceiverDeliversOutOfOrderWithoutHOL(t *testing.T) {
 	r := NewReceiver(100)
-	if deliver, oo := r.Accept(110, 10); !deliver || !oo {
-		t.Fatalf("later datagram should bypass hole: deliver=%v oo=%v", deliver, oo)
+	if deliver, sack := r.Accept(110, 10); !deliver || !sack {
+		t.Fatalf("later datagram should bypass hole: deliver=%v sack=%v", deliver, sack)
 	}
 	if r.Next() != 100 {
 		t.Fatalf("cumulative ACK advanced across hole: %d", r.Next())
 	}
-	if deliver, oo := r.Accept(100, 10); !deliver || oo {
-		t.Fatalf("missing datagram should deliver and close hole: deliver=%v oo=%v", deliver, oo)
+	if deliver, sack := r.Accept(100, 10); !deliver || sack {
+		t.Fatalf("missing datagram should deliver and close all holes: deliver=%v sack=%v", deliver, sack)
 	}
 	if r.Next() != 120 {
 		t.Fatalf("expected cumulative ACK 120, got %d", r.Next())
@@ -26,19 +26,21 @@ func TestReceiverDeliversOutOfOrderWithoutHOL(t *testing.T) {
 
 func TestReceiverSACKRangesMergeAndPersist(t *testing.T) {
 	r := NewReceiver(100)
-	if _, oo := r.Accept(120, 10); !oo { t.Fatal("120..130 should be out of order") }
-	if _, oo := r.Accept(110, 10); !oo { t.Fatal("110..120 should be out of order") }
+	if _, sack := r.Accept(120, 10); !sack { t.Fatal("120..130 should require SACK") }
+	if _, sack := r.Accept(110, 10); !sack { t.Fatal("110..120 should require SACK") }
 	var blocks [4]SACKBlock
 	n := r.SACKBlocks(&blocks)
 	if n != 1 || blocks[0] != (SACKBlock{Start:110, End:130}) {
 		t.Fatalf("merged SACK=%v n=%d", blocks[:n], n)
 	}
-	if _, oo := r.Accept(150, 10); !oo { t.Fatal("150..160 should be out of order") }
+	if _, sack := r.Accept(150, 10); !sack { t.Fatal("150..160 should require SACK") }
 	n = r.SACKBlocks(&blocks)
 	if n != 2 || blocks[0] != (SACKBlock{Start:150, End:160}) || blocks[1] != (SACKBlock{Start:110, End:130}) {
 		t.Fatalf("persistent SACK order=%v n=%d", blocks[:n], n)
 	}
-	if _, oo := r.Accept(100, 10); oo { t.Fatal("100..110 closes first hole") }
+	// Repairing the first hole advances ACK through 110..130, but 150..160 is
+	// still live. A real SACK TCP ACK must continue advertising that later data.
+	if _, sack := r.Accept(100, 10); !sack { t.Fatal("later SACK state must survive partial hole repair") }
 	if r.Next() != 130 { t.Fatalf("next=%d want 130", r.Next()) }
 	n = r.SACKBlocks(&blocks)
 	if n != 1 || blocks[0] != (SACKBlock{Start:150, End:160}) {
@@ -95,25 +97,51 @@ func TestSACKRetainsBytesUntilCumulativeAck(t *testing.T) {
 	}
 }
 
-func TestSenderSelectiveAckLeavesHolesRetransmittable(t *testing.T) {
+func TestSenderSelectiveAckRepairsProvenHoleImmediately(t *testing.T) {
 	now := time.Unix(4, 0)
 	s := NewSender(100, time.Second)
 	p1 := s.Enqueue(make([]byte, 10), now) // 100..110 missing
 	p2 := s.Enqueue(make([]byte, 10), now) // 110..120 received
-	_ = s.Enqueue(make([]byte, 10), now)   // 120..130 missing
+	p3 := s.Enqueue(make([]byte, 10), now) // 120..130 received
 	p4 := s.Enqueue(make([]byte, 10), now) // 130..140 received
 
-	s.AckSelective(100, []SACKBlock{{Start: 110, End: 120}, {Start: 130, End: 140}}, now.Add(10*time.Millisecond))
-	if !p2.SACKed || !p4.SACKed {
+	got := s.AckSelective(100, []SACKBlock{{Start: 110, End: 140}}, now.Add(10*time.Millisecond))
+	if !p2.SACKed || !p3.SACKed || !p4.SACKed {
 		t.Fatal("SACK scoreboard missing received segments")
+	}
+	if got != p1 || got.Retries != 1 {
+		t.Fatalf("three SACKed segments should infer first hole immediately, got %#v", got)
 	}
 	if s.Pending() != 4 {
 		t.Fatalf("all bytes must remain until cumulative ACK, pending=%d", s.Pending())
 	}
-	s.AckSelective(100, nil, now.Add(11*time.Millisecond))
-	got := s.AckSelective(100, nil, now.Add(12*time.Millisecond))
+}
+
+func TestSenderSACKRecoveryContinuesAfterCumulativeAdvance(t *testing.T) {
+	now := time.Unix(6, 0)
+	s := NewSender(100, time.Second)
+	p1 := s.Enqueue(make([]byte, 10), now) // 100 missing
+	_ = s.Enqueue(make([]byte, 10), now)   // 110 received
+	_ = s.Enqueue(make([]byte, 10), now)   // 120 received
+	_ = s.Enqueue(make([]byte, 10), now)   // 130 received
+	p5 := s.Enqueue(make([]byte, 10), now) // 140 missing
+	_ = s.Enqueue(make([]byte, 10), now)   // 150 received
+	_ = s.Enqueue(make([]byte, 10), now)   // 160 received
+	_ = s.Enqueue(make([]byte, 10), now)   // 170 received
+
+	got := s.AckSelective(100, []SACKBlock{{Start:110, End:140}, {Start:150, End:180}}, now.Add(10*time.Millisecond))
 	if got != p1 {
-		t.Fatalf("expected SND.UNA fast retransmit, got %#v", got)
+		t.Fatalf("first loss recovery=%#v want p1", got)
+	}
+	// Once p1 arrives, the receiver cumulatively ACKs through 140 while still
+	// advertising 150..180. The next SACK-proven hole must be repaired now, not
+	// one or more exponentially backed-off RTOs later.
+	got = s.AckSelective(140, []SACKBlock{{Start:150, End:180}}, now.Add(20*time.Millisecond))
+	if got != p5 || got.Retries != 1 {
+		t.Fatalf("second SACK-proven hole not chained after ACK advance: %#v", got)
+	}
+	if st := s.Stats(); st.FastRetransmits != 2 || st.LossMarked != 2 {
+		t.Fatalf("unexpected chained recovery stats: %#v", st)
 	}
 }
 
