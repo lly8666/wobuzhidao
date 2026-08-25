@@ -76,7 +76,7 @@ func main() {
 	fs.StringVar(&c.source, "source", "", "client raw source ip:port")
 	fs.StringVar(&c.listen, "listen", "", "server raw listen ip:port")
 	fs.StringVar(&c.remote, "remote", "", "client raw remote ip:port")
-	fs.StringVar(&c.recovery, "shadow-recovery", "sack-rack", "TCP-like shadow recovery: legacy or sack-rack")
+	fs.StringVar(&c.recovery, "shadow-recovery", "legacy", "TCP-like shadow recovery: legacy (default) or sack-rack experimental")
 	_ = fs.Parse(os.Args[2:])
 	if role != "client" && role != "server" { usage(); os.Exit(2) }
 	if _, err := parseRecovery(c.recovery); err != nil { fmt.Fprintln(os.Stderr,"wbd-faketcp:",err); os.Exit(2) }
@@ -116,7 +116,7 @@ func parseRecovery(s string) (faketcp.RecoveryMode, error) {
 	case "sack-rack", "advanced":
 		return faketcp.RecoverySACKRACK, nil
 	default:
-		return faketcp.RecoverySACKRACK, fmt.Errorf("unknown --shadow-recovery %q", s)
+		return faketcp.RecoveryLegacy, fmt.Errorf("unknown --shadow-recovery %q", s)
 	}
 }
 
@@ -317,7 +317,6 @@ func udpEqual(a,b *net.UDPAddr) bool {
 	if a==nil || b==nil { return false }
 	return a.Port==b.Port && a.IP.Equal(b.IP)
 }
-
 func (e *endpoint) retransmitLoop() error {
 	t:=time.NewTicker(2*time.Millisecond); defer t.Stop()
 	for {
