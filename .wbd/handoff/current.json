@@ -1,54 +1,51 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 30,
+  "continuity_sequence": 31,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "1ab973c0e509e80ca9843780f5b5cd2e08ffae93",
+  "checkpoint_based_on_head_sha": "916804dc31096040d7b264d2c69a3bf5f6993251",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows with TCP-shaped FakeTCP outer packets, UDP/datagram-like no-HOL inner behavior, fixed FEC and DTLS 1.3.",
-    "current_milestone": "Transport/resource characterization with WBD userspace resource cost and Linux netfilter/NAT overhead measured separately.",
-    "local_optimization_stop_rule": "Measure before adding features. Keep fixed 20:20 as the first transport surface; treat firewall/NAT as incremental kernel cost and do not model it with heavyweight userspace relays."
+    "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows with TCP-shaped FakeTCP outer packets, UDP/datagram-like no-HOL inner behavior, DTLS 1.3, and a small efficient FEC implementation suitable for owned endpoints.",
+    "current_milestone": "Fast steady-state sizing at a normal 200 Mbit/s public-link budget, with 20:20 fixed and TUN excluded.",
+    "local_optimization_stop_rule": "Prefer high-information measurements over broad grids. Treat 200 Mbit/s as public-link capacity: with 20:20, drive about 90 Mbit/s inner payload so FEC plus DTLS/FakeTCP headers approach the 200 Mbit/s outer budget. Only repeat points that show a cliff or anomaly."
   },
   "continuation_cursor": {
-    "last_completed_action": "User asked whether prior CPU/RSS measurements omitted iptables. Clarification: exact WBD smoke run 32814277618 launches udp2raw with -a, so it is not literally firewall-free, but cpu_ms_total only sums WBD userspace process CPU and does not include all kernel netfilter/softirq work or OpenWrt-style routed FORWARD/NAT. The current sandbox lacks CAP_NET_ADMIN, so genuine iptables/netns tests cannot run locally. A local compiled C UDP relay was used only as a conservative userspace upper bound: for 100000 x 1200-byte echo transactions, direct median goodput ~1467.9 Mbps; one relay ~1200.2 Mbps with ~710 ms relay CPU for 200000 forwarded datagrams (~3.55 us/datagram) and ~1412 KiB RSS; two relays ~403.3 Mbps with ~2130 ms CPU and ~2832 KiB RSS, with an unstable repeat. This confirms userspace port forwarding materially overstates kernel netfilter cost. A better privileged kernel probe was added in scripts/bench_netfilter_overhead.py and tests/test_netfilter_bench_optional.py. CI run 32816368578, test job 97705372904, completed PASS at 300 Mbps UDP / 1200-byte datagrams / three repeats: plain routing median 299.889 Mbps, FORWARD+conntrack median 299.901 Mbps, DNAT+MASQUERADE+FORWARD median 299.901 Mbps, all with 0% loss. Conntrack median was 0 for plain route and 2 entries for filter/NAT. iperf remote CPU medians were 24.74% route, 27.05% filter and 29.29% NAT; this is a rough end-to-end signal, not isolated router CPU. Global /proc/stat busy-core medians were noisy/non-monotonic on the hosted runner (1.47 route, 1.03 filter, 2.05 NAT) and must not be used as precise incremental netfilter CPU. No throughput cliff was observed at 300 Mbps. The temporary [netfilter-bench] PR title flag was removed after capture. Existing WBD smoke RSS remains ~28-30 MiB aggregate across both peers, or roughly 13.2-14.9 MiB userspace per endpoint; UDPspeeder dominates memory. Kernel netfilter memory for a small ruleset and two conntrack entries is expected to be tiny relative to this userspace budget and should not be approximated by the ~1.4 MiB C relay RSS.",
-    "current_task": "Return to the repaired full 20:20 matrix. Inspect transport_bench replicate 260827 failure in run 32814429610, patch only the harness if it is infrastructure-related, and complete/aggregate the fixed 126-case surface. After that, add a longer fixed-rate exact-stack CPU sizing benchmark if needed for OpenWrt CPU planning.",
-    "why_now": "The user-requested firewall/NAT overhead question is now answered with both a local userspace upper bound and a real privileged kernel netfilter probe. The result indicates small-rule-set netfilter/NAT does not reduce 300 Mbps throughput in this environment, while exact CPU isolation on a noisy hosted runner is not precise enough for an absolute percentage. The remaining mainline blocker is the one failed transport replicate.",
-    "done_when": "Replicate 260827 failure is classified and fixed if it is harness-related; the repaired 126-case matrix passes semantic validation and aggregates. For CPU sizing, do not extrapolate the short 60 ms smoke into a stable CPU percentage; use a longer exact-stack fixed-rate measurement when that becomes the active task.",
-    "next_atomic_action": "Inspect job 97699970057 transport_bench(260827) from run 32814429610. Find the first semantic-validation failure or harness error, compare with successful repeats 260825/260826, and patch without changing the frozen RTT/loss/FEC surface."
+    "last_completed_action": "The user asked to skip broad low-rate testing and go directly to a normal 200-Mbit/s RTT/loss resource test, then decide whether UDPspeeder can be removed in favor of a small WBD-owned FEC layer. A local fixed-rate C UDP probe was developed and directly validated at 200 Mbit/s on loopback with 100% delivery, but the current sandbox cannot provide reliable tc netem because sch_netem is unavailable in its user namespace and repeated unshare/netns experiments wedged the sandbox executor. Therefore the impairment run was moved to the already-qualified privileged Ubuntu runner instead of treating a userspace relay as netem. Repository commits 162235f78ecc3e2a923eb981623399366b439247, a4a225b1595f20bc19dbd1a33c8d85d667a8b875 and 916804dc31096040d7b264d2c69a3bf5f6993251 added scripts/udp_rate_probe.c, scripts/bench_v2_transport_200m.py and .github/workflows/transport-200m.yml. The focused workflow runs RTT 20/100/300/600 ms in parallel; each job sweeps symmetric per-direction loss 0/1/5/10/20%, shapes each public direction to 200 Mbit/s, sends 90 Mbit/s inner 1200-byte datagrams for 2 seconds, and records delivery, p50/p95/p99/max, outer gross rate/drop counts, per-component CPU, endpoint CPU-core fractions and peak RSS. PR #3 is temporarily titled [200m]; this sequence-31 commit is the synchronize event intended to trigger the new workflow.",
+    "current_task": "Complete the 20-case focused 200-Mbit/s public-link sweep, inspect CPU/RSS and delivery/latency cliffs, then use those results plus the known UDPspeeder RSS dominance to decide the FEC replacement design.",
+    "why_now": "The user wants efficient resource sizing rather than the previous 126-case characterization. 20:20 roughly doubles coded traffic, so shaping the public link to 200 Mbit/s while offering 90 Mbit/s inner payload models a realistic 200-Mbit/s WAN more honestly than offering 200 Mbit/s inner and then blaming the 2x FEC overhead for oversubscription.",
+    "done_when": "transport-200m completes four RTT jobs and aggregates exactly 20 rows; each row has delivery, latency percentiles, gross outer rate/drop counts, client/server CPU-core fractions and RSS. The temporary [200m] PR title is removed. The result is summarized in handoff, and the next FEC step is explicitly chosen: keep UDPspeeder temporarily or replace it with a fixed systematic 20+20 erasure codec with bounded buffers and timer flush.",
+    "next_atomic_action": "Refresh workflows for this sequence-31 commit. Find transport-200m prepare and four bench jobs. If a harness/build issue appears, patch without expanding the RTT/loss surface. If all pass, read the aggregate 20-row output, remove [200m] from PR #3, persist the resource conclusions, then start a small WBD-owned FEC benchmark/design if replacement is justified."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    "scripts/bench_netfilter_overhead.py",
+    "scripts/udp_rate_probe.c",
+    "scripts/bench_v2_transport_200m.py",
+    ".github/workflows/transport-200m.yml",
     "scripts/bench_v2_transport_20x20.py",
-    "scripts/bench_v2_transport_20x20_compat.py",
-    "scripts/validate_v2_transport_results.py",
-    "scripts/analyze_v2_transport_20x20.py",
-    ".github/workflows/ci.yml",
+    "scripts/bench_netfilter_overhead.py",
     ".wbd/handoff/current.json"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
     "authority": "V2_M1_M2_M3_qualified_plus_repaired_transport_smoke_and_netfilter_probe_passed",
     "outer_semantics": "TCP-shaped FakeTCP raw datagrams; no kernel TCP byte-stream dependency",
-    "current_characterization_fec": "20:20 only",
-    "repaired_smoke": "run 32814277618 PASS: 20ms/0% and 20ms/10%, 128/128 delivery each, TCP-like stable, RST=0, aggregate userspace RSS 28652/30324 KiB",
+    "current_characterization_fec": "UDPspeeder mode0 20:20 only",
+    "current_200m_definition": "200 Mbit/s public capacity per direction; 90 Mbit/s inner offered load to leave room for approximately 2x FEC plus DTLS/FakeTCP headers",
+    "focused_200m_surface": "RTT 20/100/300/600 ms x symmetric loss 0/1/5/10/20% = 20 steady-state cases, one fast pass; repeat only anomalous/cliff points",
     "per_endpoint_userspace_rss_smoke": "approximately 13.2-14.9 MiB per endpoint across UDPspeeder+DTLS+udp2raw; UDPspeeder is the dominant allocation",
-    "netfilter_accounting_note": "udp2raw -a means the exact baseline is not literally firewall-free; OpenWrt-style FORWARD/NAT kernel cost is not included in WBD userspace cpu_ms_total",
-    "sandbox_net_admin": "unavailable; local genuine iptables/netns test cannot run in current sandbox",
-    "local_userspace_relay_upper_bound": "one C UDP relay median ~710ms CPU per 100k echo transactions / 200k forwarded datagrams, ~3.55us per forwarded datagram, ~1412KiB RSS; conservative upper bound only",
-    "kernel_netfilter_probe": "run 32816368578 PASS at 300Mbps UDP: route/filter/NAT all ~299.9Mbps and 0% loss; conntrack 0/2/2; global CPU too noisy for precise delta; remote iperf CPU medians 24.74/27.05/29.29% are rough end-to-end indicators",
-    "second_matrix_run": "32814429610: repeats 260825 and 260826 success, repeat 260827 failure; aggregate skipped"
+    "kernel_netfilter_probe": "run 32816368578 PASS at 300Mbps UDP: route/filter/NAT all ~299.9Mbps and 0% loss; no throughput cliff from small-rule-set netfilter/NAT",
+    "fec_replacement_candidate": "A small WBD-owned systematic Reed-Solomon-style fixed 20+20 erasure layer is technically feasible and is the leading simplification candidate; simple XOR parity alone is not equivalent because it cannot recover arbitrary multi-packet erasures in a 20:20 budget."
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "1ab973c0e509e80ca9843780f5b5cd2e08ffae93",
+    "tested_commit": "186c36b7dbdd8ae824a11e29a7e70eebd465561f",
     "result": "pass",
-    "command": "GitHub CI run 32816368578 test job 97705372904 PASS. Privileged netfilter probe: route/filter/nat medians ~299.889/~299.901/~299.901 Mbps, 0% loss; conntrack 0/2/2; remote iperf CPU ~24.74/27.05/29.29%. Local C relay upper-bound result is /mnt/data/c-udp-relay-bench.json."
+    "command": "Sequence-30 handoff verifier and prior CI/netfilter probe passed. Local fixed-rate probe source was additionally exercised outside repo at 200 Mbit/s direct loopback with 100% delivery before being committed; impairment qualification is intentionally delegated to the privileged transport-200m workflow because the current sandbox lacks usable sch_netem."
   }
 }
