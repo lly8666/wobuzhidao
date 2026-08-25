@@ -178,7 +178,7 @@ The repository also contains `.github/workflows/demo-encryption.yml`, a real pin
 
 ## 3. Normal mode / self-signed certificate
 
-Do not pass any `-demo-reality-*` options. The mirror is not consulted and no witness is required.
+Do not pass any `-demo-reality-*` options. The mirror is not consulted, no witness is required, and the normal association begins directly with the existing DTLS-protected immutable WBD startup.
 
 A normal deployment may use an operator-created self-signed DTLS certificate. The client must trust that exact certificate as a local trust anchor or validate a fixed SPKI; do **not** disable certificate verification. Self-signed changes the trust root, not the TLS/DTLS security requirement.
 
