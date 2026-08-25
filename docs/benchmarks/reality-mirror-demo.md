@@ -172,7 +172,9 @@ FakeTCP
   -> encrypted WBD application datagrams
 ```
 
-There is no point where WBDC, the bearer/device secret, FEC parameters or application data are sent in plaintext or inserted into the genuine target TLS stream.
+There is no point where WBDC, the bearer/device secret, FEC parameters or application data are intentionally sent in plaintext or inserted into the genuine target TLS stream.
+
+The repository also contains `.github/workflows/demo-encryption.yml`, a real pinned-wolfSSL capture gate. It uses a deliberately trusted self-signed `wbd.test` DTLS identity, sends a known device token and known application plaintext through the demo startup/data path, captures the DTLS transport side, and fails if the raw pcap contains `WBDC`, the token, or that application plaintext. This is the qualification evidence for the leakage claim; code review alone is not treated as proof.
 
 ## 3. Normal mode / self-signed certificate
 
