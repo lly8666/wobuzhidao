@@ -122,9 +122,11 @@ func (s *Sender) Ack(ack uint32, now time.Time) *Pending {
 }
 
 // AckSelective consumes a TCP cumulative ACK plus RFC 2018 SACK information.
-// SACK is advisory: payload bytes stay retained until cumulatively ACKed. This
-// intentionally spends BDP memory to preserve retransmission correctness and
-// never gates the first-arrival/new-datagram path on memory optimization.
+// SACK is advisory for retention: payload bytes stay queued until cumulatively
+// ACKed. It also drives a compact RFC-6675-style loss inference: the earliest
+// never-retried hole with at least three later SACKed segments is retransmitted
+// immediately instead of waiting for the global RTO. This shadow recovery never
+// gates the independent first-arrival data path.
 func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pending {
 	oldAck := s.lastAck
 	advanced := seqLT(oldAck, ack)
@@ -156,15 +158,59 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 		}
 	}
 
-	// RFC 5681 fast retransmit: the third duplicate ACK retransmits SND.UNA.
+	// RFC 6675's IsLost rule is richer than this datagram-oriented scoreboard,
+	// but the three-later-SACKed-segment threshold preserves the familiar TCP
+	// duplicate-ACK evidence while allowing recovery to continue after a
+	// cumulative ACK jumps from one repaired hole to the next. Retransmit each
+	// inferred hole once here; an actually lost retransmission remains RTO-owned.
+	if p := s.sackLossCandidate(); p != nil {
+		if p.Seq == s.lastAck {
+			s.fastRetxSeq = p.Seq
+			s.fastRetxDone = true
+			s.dupAcks = 0
+		}
+		s.markRetry(p, now, true)
+		return p
+	}
+
+	// RFC 5681 fast retransmit fallback: the third duplicate ACK retransmits
+	// SND.UNA when the SACK scoreboard did not already classify that segment.
 	if !advanced && ack == s.lastAck && s.dupAcks >= 3 {
 		s.dupAcks = 0
 		p := s.oldest()
-		if p != nil && p.Seq == ack && (!s.fastRetxDone || s.fastRetxSeq != p.Seq) {
+		if p != nil && p.Seq == ack && !p.WasRetried && (!s.fastRetxDone || s.fastRetxSeq != p.Seq) {
 			s.fastRetxSeq = p.Seq
 			s.fastRetxDone = true
 			s.markRetry(p, now, true)
 			return p
+		}
+	}
+	return nil
+}
+
+// sackLossCandidate returns the earliest unsacked, never-retried pending
+// segment once at least three later segments are known SACKed. Because any
+// later candidate with three SACKed segments above it implies the earlier
+// candidate has the same evidence, a single forward scan is sufficient.
+func (s *Sender) sackLossCandidate() *Pending {
+	var candidate *Pending
+	sackedAbove := 0
+	for i := s.head; i < len(s.pending); i++ {
+		p := s.pending[i]
+		if p == nil {
+			continue
+		}
+		if candidate == nil {
+			if !p.SACKed && !p.WasRetried {
+				candidate = p
+			}
+			continue
+		}
+		if p.SACKed {
+			sackedAbove++
+			if sackedAbove >= 3 {
+				return candidate
+			}
 		}
 	}
 	return nil
@@ -340,19 +386,21 @@ func (r *Receiver) Stats() ReceiverStats { return r.stats }
 
 // Accept never buffers payload for ordered delivery. A complete later datagram
 // is delivered on its first arrival even while cumulative TCP ACK state retains
-// a hole. Retransmitted duplicates are suppressed from the inner path.
-func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, outOfOrder bool) {
+// a hole. Retransmitted duplicates are suppressed from the inner path. The
+// second result means the ACK should include current SACK blocks; it remains
+// true after an in-order repair if another hole still leaves live SACK state.
+func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool) {
 	if payloadLen <= 0 {
 		return false, false
 	}
 	end := seq + uint32(payloadLen)
 	if seqLT(seq, r.next) {
 		r.stats.Duplicates++
-		return false, false
+		return false, len(r.sacksByStart) != 0
 	}
 	if _, exists := r.outOfOrder[seq]; exists {
 		r.stats.Duplicates++
-		return false, seq != r.next
+		return false, len(r.sacksByStart) != 0
 	}
 	r.stats.Delivered++
 	if seq != r.next {
@@ -364,7 +412,7 @@ func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, outOfOrder bool)
 
 	r.next = end
 	r.consumeContiguousSACKs()
-	return true, false
+	return true, len(r.sacksByStart) != 0
 }
 
 // SACKBlocks returns up to four persistent RFC-2018-style ranges. The first
