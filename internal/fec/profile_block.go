@@ -109,10 +109,10 @@ func ParseProfileBlockHeader(b []byte) (ProfileBlockHeader, error) {
 // ProfileFastBlockEncoder is the variable-R counterpart of FastBlockEncoder.
 // Every source datagram is emitted immediately. The selected R repair shards
 // are emitted only when the K=20 block closes or the partial flush timer fires.
-// It intentionally uses the correctness-first ReedSolomon20xR codec until each
-// profile gets a separately qualified fast implementation.
+// The hot path uses the same GF lookup-table strategy as the qualified 20:20
+// codec; lowering R reduces both repair bytes and parity arithmetic.
 type ProfileFastBlockEncoder struct {
-	codec         *ReedSolomon20xR
+	codec         *FastReedSolomon20xR
 	parity        int
 	maxPacketSize int
 	flushAfter    time.Duration
@@ -128,7 +128,7 @@ type ProfileFastBlockEncoder struct {
 }
 
 func NewProfileFastBlockEncoder(parity, maxPacketSize int, flushAfter time.Duration, firstBlockID uint32) (*ProfileFastBlockEncoder, error) {
-	codec, err := NewReedSolomon20xR(parity)
+	codec, err := NewFastReedSolomon20xR(parity)
 	if err != nil || maxPacketSize <= 0 || maxPacketSize > 0xffff || flushAfter <= 0 {
 		return nil, errors.New("fec: invalid profile fast block encoder config")
 	}
@@ -241,7 +241,7 @@ type profileDecodeBlock struct {
 	parity int
 	header ProfileBlockHeader
 	final  bool
-	codec  *ReedSolomon20xR
+	codec  *FastReedSolomon20xR
 	shards [][]byte
 	present []bool
 	count int
@@ -291,7 +291,7 @@ func (d *ProfileBlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 		if len(d.blocks) >= d.maxBlocks {
 			return nil, false, ErrDecoderFull
 		}
-		codec, err := NewReedSolomon20xR(int(h.ParityShards))
+		codec, err := NewFastReedSolomon20xR(int(h.ParityShards))
 		if err != nil {
 			return nil, false, err
 		}
