@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"io"
 	"net"
+	"sync"
 	"testing"
 	"time"
 
@@ -83,16 +84,78 @@ func TestSimpleAuthSameCredentialsCanOwnConcurrentSessions(t *testing.T) {
 		t.Fatalf("tickets must be independent: a=%s b=%s", a.ticket.Hex(), b.ticket.Hex())
 	}
 	for _, ticket := range []Ticket{a.ticket, b.ticket} {
-		account, err := TicketAccount(ticketDir, ticket)
+		account, err := ConsumeTicketForAccount(ticketDir, ticket, time.Now(), time.Minute)
 		if err != nil {
-			t.Fatalf("ticket account: %v", err)
+			t.Fatalf("consume account ticket: %v", err)
 		}
 		if account != "solo" {
 			t.Fatalf("account=%q", account)
 		}
-		if err := ConsumeTicket(ticketDir, ticket, time.Now(), time.Minute); err != nil {
-			t.Fatalf("consume: %v", err)
+	}
+}
+
+func TestConsumeTicketForAccountIsAtomicOneShot(t *testing.T) {
+	dir := t.TempDir()
+	var ticket Ticket
+	if _, err := rand.Read(ticket[:]); err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now()
+	if err := RecordTicketForAccount(dir, ticket, "solo", now); err != nil {
+		t.Fatal(err)
+	}
+
+	const racers = 32
+	var wg sync.WaitGroup
+	results := make(chan string, racers)
+	errs := make(chan error, racers)
+	for i := 0; i < racers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			account, err := ConsumeTicketForAccount(dir, ticket, now.Add(time.Millisecond), time.Minute)
+			if err != nil {
+				errs <- err
+				return
+			}
+			results <- account
+		}()
+	}
+	wg.Wait()
+	close(results)
+	close(errs)
+
+	success := 0
+	for account := range results {
+		success++
+		if account != "solo" {
+			t.Fatalf("account=%q", account)
 		}
+	}
+	if success != 1 {
+		t.Fatalf("successful concurrent ticket claims=%d want=1", success)
+	}
+	if failures := len(errs); failures != racers-1 {
+		t.Fatalf("failed concurrent claims=%d want=%d", failures, racers-1)
+	}
+	if _, err := TicketAccount(dir, ticket); err == nil {
+		t.Fatal("consumed ticket remained readable")
+	}
+}
+
+func TestConsumeTicketForAccountRejectsExpiredClaim(t *testing.T) {
+	dir := t.TempDir()
+	var ticket Ticket
+	ticket[0] = 1
+	issued := time.Unix(100, 0)
+	if err := RecordTicketForAccount(dir, ticket, "solo", issued); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ConsumeTicketForAccount(dir, ticket, issued.Add(2*time.Minute), time.Minute); err == nil {
+		t.Fatal("expired ticket unexpectedly consumed")
+	}
+	if _, err := ConsumeTicketForAccount(dir, ticket, issued.Add(time.Second), time.Minute); err == nil {
+		t.Fatal("expired claim was returned to circulation")
 	}
 }
 
