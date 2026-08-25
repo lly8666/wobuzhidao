@@ -27,7 +27,14 @@ static struct sockaddr_in addr4(const char* ip,int port){
     struct sockaddr_in a; memset(&a,0,sizeof(a)); a.sin_family=AF_INET; a.sin_port=htons((unsigned short)port);
     if(inet_pton(AF_INET,ip,&a.sin_addr)!=1){fprintf(stderr,"bad IPv4: %s\n",ip);exit(2);} return a;
 }
-static void timeout_fd(int fd){struct timeval tv={5,0};setsockopt(fd,SOL_SOCKET,SO_RCVTIMEO,&tv,sizeof(tv));setsockopt(fd,SOL_SOCKET,SO_SNDTIMEO,&tv,sizeof(tv));}
+/*
+ * The transport underneath DTLS is FakeTCP carried across an impaired link.
+ * Five seconds was enough on clean links but could expire before udp2raw had
+ * completed its own association when 10-20% loss was already active. Keep the
+ * socket blocking during the handshake and give wolfSSL/FakeTCP room to retry;
+ * the benchmark harness still owns the outer case deadline.
+ */
+static void timeout_fd(int fd){struct timeval tv={20,0};setsockopt(fd,SOL_SOCKET,SO_RCVTIMEO,&tv,sizeof(tv));setsockopt(fd,SOL_SOCKET,SO_SNDTIMEO,&tv,sizeof(tv));}
 static void nonblock(int fd){int f=fcntl(fd,F_GETFL,0);if(f<0||fcntl(fd,F_SETFL,f|O_NONBLOCK)<0)die("fcntl");}
 static int write_record(WOLFSSL* ssl,const unsigned char* buf,int n){
     for(;;){
