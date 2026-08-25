@@ -20,8 +20,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y iproute2 iptables
-      - name: Build native FakeTCP
-        run: go build -trimpath -o /tmp/wbd-faketcp ./cmd/wbd-faketcp
+      - name: Unit tests and build native FakeTCP
+        run: |
+          go test ./internal/faketcp -count=1
+          go build -trimpath -o /tmp/wbd-faketcp ./cmd/wbd-faketcp
       - name: Run raw retransmission smoke
         run: |
           set -euo pipefail
@@ -75,7 +77,7 @@ jobs:
           grep -q 'READY role=server' /tmp/fts.log
 
           cat >/tmp/wbd_probe.py <<'PY'
-          import socket,struct,threading,time
+          import json,socket,struct,threading,time
           N=1000
           got=set()
           s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
@@ -88,16 +90,19 @@ jobs:
                   except socket.timeout: continue
                   if len(b)>=4: got.add(struct.unpack('!I',b[:4])[0])
           t=threading.Thread(target=rx); t.start()
+          start=time.time()
           for i in range(N):
               s.sendto(struct.pack('!I',i)+bytes(196),('127.0.0.1',52004))
               time.sleep(.001)
-          deadline=time.time()+8
+          deadline=time.time()+12
           while len(got)<N and time.time()<deadline: time.sleep(.02)
           end=True; t.join()
-          print('PROBE sent',N,'received',len(got),'ratio',len(got)/N)
-          if len(got)!=N: raise SystemExit(1)
+          out={'sent':N,'received':len(got),'ratio':len(got)/N,'wall_s':time.time()-start}
+          open('/tmp/probe.json','w').write(json.dumps(out)+'\n')
+          print('PROBE',json.dumps(out))
           PY
           sudo ip netns exec "$C" python3 /tmp/wbd_probe.py
+
           sudo kill -TERM "$CPID" "$SPID"
           wait "$CPID" || true
           wait "$SPID" || true
@@ -108,12 +113,16 @@ jobs:
           grep -q 'WBD_FAKETCP_STATS' /tmp/fts.log
           python3 - <<'PY'
           import json,re
+          probe=json.load(open('/tmp/probe.json'))
           rows=[]
           for p in ['/tmp/ftc.log','/tmp/fts.log']:
               txt=open(p).read()
               m=re.findall(r'WBD_FAKETCP_STATS (\{.*\})',txt)
               assert m,p
               rows.append(json.loads(m[-1]))
-          print(json.dumps(rows,indent=2))
+          print('PROBE_FINAL',json.dumps(probe,sort_keys=True))
+          print('ARQ_FINAL',json.dumps(rows,sort_keys=True))
+          assert probe['received']==probe['sent'], probe
           assert sum(r['sender']['FastRetransmits']+r['sender']['RTOTransmits'] for r in rows)>0, rows
+          assert sum(r['sender']['SACKed'] for r in rows)>0, rows
           PY
