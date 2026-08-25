@@ -21,52 +21,50 @@ import (
 )
 
 type config struct {
-	role string
-	localUDP string
+	role      string
+	localUDP  string
 	targetUDP string
-	source string
-	listen string
-	remote string
+	source    string
+	listen    string
+	remote    string
 }
 
 type endpoint struct {
-	cfg config
-	fd int
-	srcIP, dstIP [4]byte
-	srcPort, dstPort uint16
-	udp *net.UDPConn
-	innerMu sync.RWMutex
-	inner *net.UDPAddr
-	senderMu sync.Mutex
-	sender *faketcp.Sender
-	receiver *faketcp.Receiver
-	ipID uint32
-	rawTx uint64
-	rawRx uint64
-	ackTx uint64
-	dataTx uint64
-	dataRx uint64
-	stop chan struct{}
-	stopOnce sync.Once
+	cfg                 config
+	fd                  int
+	srcIP, dstIP        [4]byte
+	srcPort, dstPort    uint16
+	udp                 *net.UDPConn
+	innerMu             sync.RWMutex
+	inner               *net.UDPAddr
+	senderMu            sync.Mutex
+	sender              *faketcp.Sender
+	receiverMu          sync.Mutex
+	receiver            *faketcp.Receiver
+	sendMu              sync.Mutex
+	sendBuf             []byte
+	ipID                uint32
+	rawTx, rawRx        uint64
+	ackTx, dataTx       uint64
+	dataRx              uint64
+	stop                chan struct{}
+	stopOnce            sync.Once
 }
 
 type finalStats struct {
-	Role string `json:"role"`
-	RawTx uint64 `json:"raw_tx"`
-	RawRx uint64 `json:"raw_rx"`
-	AckTx uint64 `json:"ack_tx"`
-	DataTx uint64 `json:"data_tx"`
-	DataRx uint64 `json:"data_rx"`
-	Sender faketcp.SenderStats `json:"sender"`
+	Role     string                `json:"role"`
+	RawTx    uint64                `json:"raw_tx"`
+	RawRx    uint64                `json:"raw_rx"`
+	AckTx    uint64                `json:"ack_tx"`
+	DataTx   uint64                `json:"data_tx"`
+	DataRx   uint64                `json:"data_rx"`
+	Sender   faketcp.SenderStats   `json:"sender"`
 	Receiver faketcp.ReceiverStats `json:"receiver"`
-	RTOms float64 `json:"rto_ms"`
+	RTOms    float64               `json:"rto_ms"`
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		usage()
-		os.Exit(2)
-	}
+	if len(os.Args) < 2 { usage(); os.Exit(2) }
 	role := os.Args[1]
 	fs := flag.NewFlagSet(role, flag.ExitOnError)
 	var c config
@@ -83,7 +81,8 @@ func main() {
 	if err != nil { fmt.Fprintln(os.Stderr, "wbd-faketcp:", err); os.Exit(1) }
 	defer e.close()
 	if err := e.handshake(); err != nil { fmt.Fprintln(os.Stderr, "wbd-faketcp handshake:", err); os.Exit(1) }
-	fmt.Printf("READY role=%s rto_ms=%.3f\n", role, float64(e.sender.RTO())/float64(time.Millisecond))
+	e.senderMu.Lock(); startupRTO := e.sender.RTO(); e.senderMu.Unlock()
+	fmt.Printf("READY role=%s rto_ms=%.3f\n", role, float64(startupRTO)/float64(time.Millisecond))
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
@@ -107,7 +106,7 @@ func usage() {
 }
 
 func newEndpoint(c config) (*endpoint, error) {
-	e := &endpoint{cfg:c, fd:-1, stop:make(chan struct{})}
+	e := &endpoint{cfg:c, fd:-1, stop:make(chan struct{}), sendBuf:make([]byte, 65535)}
 	var rawLocal, rawRemote *net.UDPAddr
 	var err error
 	if c.role == "client" {
@@ -155,7 +154,6 @@ func (e *endpoint) setReadTimeout(d time.Duration) error {
 	tv := syscall.NsecToTimeval(d.Nanoseconds())
 	return syscall.SetsockoptTimeval(e.fd, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &tv)
 }
-
 func (e *endpoint) clearReadTimeout() error {
 	return syscall.SetsockoptTimeval(e.fd, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &syscall.Timeval{})
 }
@@ -173,8 +171,8 @@ func (e *endpoint) handshakeClient() error {
 				if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) { break }
 				return err
 			}
+			if seg.SrcIP != e.dstIP || seg.DstIP != e.srcIP || seg.SrcPort != e.dstPort || seg.DstPort != e.srcPort { continue }
 			if seg.Flags&(faketcp.FlagSYN|faketcp.FlagACK) != faketcp.FlagSYN|faketcp.FlagACK || seg.Ack != isn+1 { continue }
-			e.dstIP, e.dstPort = seg.SrcIP, seg.SrcPort
 			peerNext := seg.Seq+1
 			if err := e.send(isn+1, peerNext, faketcp.FlagACK, nil); err != nil { return err }
 			rtt := time.Since(sent)
@@ -191,7 +189,7 @@ func (e *endpoint) handshakeServer() error {
 	_ = e.clearReadTimeout()
 	for {
 		seg, err := e.recvOne(); if err != nil { return err }
-		if seg.DstPort != e.srcPort || seg.Flags&faketcp.FlagSYN == 0 { continue }
+		if seg.DstIP != e.srcIP || seg.DstPort != e.srcPort || seg.Flags&faketcp.FlagSYN == 0 { continue }
 		e.dstIP, e.dstPort = seg.SrcIP, seg.SrcPort
 		peerNext := seg.Seq+1
 		isn := randomSeq()
@@ -205,7 +203,7 @@ func (e *endpoint) handshakeServer() error {
 					if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) { break }
 					return err
 				}
-				if a.SrcIP != e.dstIP || a.SrcPort != e.dstPort || a.Flags&faketcp.FlagACK == 0 || a.Ack != isn+1 { continue }
+				if a.SrcIP != e.dstIP || a.DstIP != e.srcIP || a.SrcPort != e.dstPort || a.DstPort != e.srcPort || a.Flags&faketcp.FlagACK == 0 || a.Ack != isn+1 { continue }
 				rtt := time.Since(sent)
 				e.sender = faketcp.NewSender(isn+1, maxDuration(40*time.Millisecond, 2*rtt))
 				e.receiver = faketcp.NewReceiver(peerNext)
@@ -245,11 +243,12 @@ func (e *endpoint) rawLoop() error {
 			if p != nil { _ = e.sendDataPending(p) }
 		}
 		if len(seg.Payload) == 0 { continue }
+		e.receiverMu.Lock()
 		deliver, _ := e.receiver.Accept(seg.Seq, len(seg.Payload))
+		ack := e.receiver.Next()
+		e.receiverMu.Unlock()
 		atomic.AddUint64(&e.dataRx, 1)
-		// ACK every packet in v1. This intentionally exposes the full reliability
-		// wire cost; delayed ACK can be optimized after the first total-cost matrix.
-		_ = e.send(e.senderNext(), e.receiver.Next(), faketcp.FlagACK, nil)
+		_ = e.send(e.senderNext(), ack, faketcp.FlagACK, nil)
 		atomic.AddUint64(&e.ackTx, 1)
 		if deliver {
 			peer := e.innerPeer()
@@ -304,7 +303,10 @@ func (e *endpoint) senderNext() uint32 {
 	e.senderMu.Lock(); defer e.senderMu.Unlock()
 	return e.sender.NextSeq()
 }
-
+func (e *endpoint) receiverNext() uint32 {
+	e.receiverMu.Lock(); defer e.receiverMu.Unlock()
+	return e.receiver.Next()
+}
 func (e *endpoint) innerPeer() *net.UDPAddr {
 	e.innerMu.RLock(); defer e.innerMu.RUnlock()
 	if e.inner == nil { return nil }
@@ -314,15 +316,16 @@ func (e *endpoint) innerPeer() *net.UDPAddr {
 
 func (e *endpoint) sendDataPending(p *faketcp.Pending) error {
 	if p == nil || len(p.Payload)==0 { return nil }
-	if err := e.send(p.Seq, e.receiver.Next(), faketcp.FlagACK|faketcp.FlagPSH, p.Payload); err != nil { return err }
+	if err := e.send(p.Seq, e.receiverNext(), faketcp.FlagACK|faketcp.FlagPSH, p.Payload); err != nil { return err }
 	atomic.AddUint64(&e.dataTx, 1)
 	return nil
 }
 
 func (e *endpoint) send(seq, ack uint32, flags uint8, payload []byte) error {
-	var scratch [65535]byte
+	e.sendMu.Lock()
+	defer e.sendMu.Unlock()
 	id := uint16(atomic.AddUint32(&e.ipID,1))
-	pkt := faketcp.MarshalIPv4TCPInto(scratch[:], e.srcIP, e.dstIP, e.srcPort, e.dstPort, seq, ack, flags, 65535, payload, id)
+	pkt := faketcp.MarshalIPv4TCPInto(e.sendBuf, e.srcIP, e.dstIP, e.srcPort, e.dstPort, seq, ack, flags, 65535, payload, id)
 	sa := &syscall.SockaddrInet4{Addr:e.dstIP}
 	if err := syscall.Sendto(e.fd, pkt, 0, sa); err != nil { return err }
 	atomic.AddUint64(&e.rawTx,1)
@@ -340,7 +343,8 @@ func (e *endpoint) close() {
 func (e *endpoint) printStats() {
 	if e.sender == nil || e.receiver == nil { return }
 	e.senderMu.Lock(); ss := e.sender.Stats(); rto := e.sender.RTO(); e.senderMu.Unlock()
-	st := finalStats{Role:e.cfg.role, RawTx:atomic.LoadUint64(&e.rawTx), RawRx:atomic.LoadUint64(&e.rawRx), AckTx:atomic.LoadUint64(&e.ackTx), DataTx:atomic.LoadUint64(&e.dataTx), DataRx:atomic.LoadUint64(&e.dataRx), Sender:ss, Receiver:e.receiver.Stats(), RTOms:float64(rto)/float64(time.Millisecond)}
+	e.receiverMu.Lock(); rs := e.receiver.Stats(); e.receiverMu.Unlock()
+	st := finalStats{Role:e.cfg.role, RawTx:atomic.LoadUint64(&e.rawTx), RawRx:atomic.LoadUint64(&e.rawRx), AckTx:atomic.LoadUint64(&e.ackTx), DataTx:atomic.LoadUint64(&e.dataTx), DataRx:atomic.LoadUint64(&e.dataRx), Sender:ss, Receiver:rs, RTOms:float64(rto)/float64(time.Millisecond)}
 	b,_ := json.Marshal(st)
 	fmt.Printf("WBD_FAKETCP_STATS %s\n", b)
 }
