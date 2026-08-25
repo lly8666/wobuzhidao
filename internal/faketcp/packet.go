@@ -12,6 +12,8 @@ const (
 	FlagRST = 0x04
 	FlagPSH = 0x08
 	FlagACK = 0x10
+
+	MaxHeaderSize = 48
 )
 
 var (
@@ -42,24 +44,35 @@ func IPv4(ip net.IP) ([4]byte, bool) {
 	return out, true
 }
 
-// MarshalIPv4TCP constructs one IPv4/TCP packet. The raw carrier deliberately
-// keeps options minimal on the steady-state path: SYN advertises MSS and SACK
-// permitted, while data/ACK packets use a 20-byte TCP header. This avoids the
-// allocation-heavy generic packet builders in the hot path.
+func PacketLen(flags uint8, payloadLen int) int {
+	if flags&FlagSYN != 0 { return 48 + payloadLen }
+	return 40 + payloadLen
+}
+
+// MarshalIPv4TCP is the allocating convenience form used by tests and cold
+// paths. The transport hot path uses MarshalIPv4TCPInto with a reusable scratch
+// buffer.
 func MarshalIPv4TCP(srcIP, dstIP [4]byte, srcPort, dstPort uint16, seq, ack uint32, flags uint8, window uint16, payload []byte, ipID uint16) []byte {
+	buf := make([]byte, PacketLen(flags, len(payload)))
+	return MarshalIPv4TCPInto(buf, srcIP, dstIP, srcPort, dstPort, seq, ack, flags, window, payload, ipID)
+}
+
+// MarshalIPv4TCPInto constructs one IPv4/TCP packet without allocation. SYN
+// advertises MSS and SACK permitted; steady-state data/ACK packets use a plain
+// 20-byte TCP header to keep the raw lane cheap.
+func MarshalIPv4TCPInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort uint16, seq, ack uint32, flags uint8, window uint16, payload []byte, ipID uint16) []byte {
 	optLen := 0
-	if flags&FlagSYN != 0 {
-		// MSS 1360 + SACK permitted + 2 NOPs => 8 bytes.
-		optLen = 8
-	}
-	tcpLen := 20 + optLen + len(payload)
-	buf := make([]byte, 20+tcpLen)
+	if flags&FlagSYN != 0 { optLen = 8 }
+	need := 40 + optLen + len(payload)
+	if len(buf) < need { panic("faketcp: marshal buffer too small") }
+	buf = buf[:need]
+	clear(buf[:40+optLen])
 
 	ip := buf[:20]
 	ip[0] = 0x45
 	binary.BigEndian.PutUint16(ip[2:4], uint16(len(buf)))
 	binary.BigEndian.PutUint16(ip[4:6], ipID)
-	binary.BigEndian.PutUint16(ip[6:8], 0x4000) // DF
+	binary.BigEndian.PutUint16(ip[6:8], 0x4000)
 	ip[8] = 64
 	ip[9] = 6
 	copy(ip[12:16], srcIP[:])
@@ -87,25 +100,15 @@ func MarshalIPv4TCP(srcIP, dstIP [4]byte, srcPort, dstPort uint16, seq, ack uint
 
 func ParseIPv4TCP(packet []byte) (Segment, error) {
 	var s Segment
-	if len(packet) < 40 {
-		return s, ErrShortPacket
-	}
-	if packet[0]>>4 != 4 || packet[9] != 6 {
-		return s, ErrNotIPv4TCP
-	}
+	if len(packet) < 40 { return s, ErrShortPacket }
+	if packet[0]>>4 != 4 || packet[9] != 6 { return s, ErrNotIPv4TCP }
 	ihl := int(packet[0]&0x0f) * 4
-	if ihl < 20 || len(packet) < ihl+20 {
-		return s, ErrShortPacket
-	}
+	if ihl < 20 || len(packet) < ihl+20 { return s, ErrShortPacket }
 	total := int(binary.BigEndian.Uint16(packet[2:4]))
-	if total == 0 || total > len(packet) {
-		total = len(packet)
-	}
+	if total == 0 || total > len(packet) { total = len(packet) }
 	tcp := packet[ihl:total]
 	doff := int(tcp[12]>>4) * 4
-	if doff < 20 || doff > len(tcp) {
-		return s, ErrBadTCPHeader
-	}
+	if doff < 20 || doff > len(tcp) { return s, ErrBadTCPHeader }
 	copy(s.SrcIP[:], packet[12:16])
 	copy(s.DstIP[:], packet[16:20])
 	s.SrcPort = binary.BigEndian.Uint16(tcp[0:2])
@@ -124,21 +127,28 @@ func checksum(b []byte) uint16 {
 		sum += uint32(binary.BigEndian.Uint16(b[:2]))
 		b = b[2:]
 	}
-	if len(b) != 0 {
-		sum += uint32(b[0]) << 8
-	}
-	for sum>>16 != 0 {
-		sum = (sum & 0xffff) + (sum >> 16)
-	}
-	return ^uint16(sum)
+	if len(b) != 0 { sum += uint32(b[0]) << 8 }
+	return finishChecksum(sum)
 }
 
 func tcpChecksum(srcIP, dstIP [4]byte, tcp []byte) uint16 {
-	pseudo := make([]byte, 12+len(tcp))
-	copy(pseudo[0:4], srcIP[:])
-	copy(pseudo[4:8], dstIP[:])
-	pseudo[9] = 6
-	binary.BigEndian.PutUint16(pseudo[10:12], uint16(len(tcp)))
-	copy(pseudo[12:], tcp)
-	return checksum(pseudo)
+	var sum uint32
+	sum += uint32(binary.BigEndian.Uint16(srcIP[0:2]))
+	sum += uint32(binary.BigEndian.Uint16(srcIP[2:4]))
+	sum += uint32(binary.BigEndian.Uint16(dstIP[0:2]))
+	sum += uint32(binary.BigEndian.Uint16(dstIP[2:4]))
+	sum += 6
+	sum += uint32(len(tcp))
+	b := tcp
+	for len(b) >= 2 {
+		sum += uint32(binary.BigEndian.Uint16(b[:2]))
+		b = b[2:]
+	}
+	if len(b) != 0 { sum += uint32(b[0]) << 8 }
+	return finishChecksum(sum)
+}
+
+func finishChecksum(sum uint32) uint16 {
+	for sum>>16 != 0 { sum = (sum & 0xffff) + (sum >> 16) }
+	return ^uint16(sum)
 }
