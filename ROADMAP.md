@@ -1,6 +1,6 @@
 # Roadmap
 
-> **Status: V2.2 ACTIVE.** One-lane WBD-owned FEC + DTLS 1.3 + native TCP-shaped FakeTCP has focused first-arrival and 20%-loss pcap evidence. Current work is fixed-FEC qualification, immutable one-time setup, and a deliberately narrow **periodic fixed-profile refresh** based on low-load FakeTCP loss samples. Continuously learning Auto FEC remains deferred advanced research.
+> **Status: V2.2 ACTIVE.** One-lane WBD-owned FEC + DTLS 1.3 + native TCP-shaped FakeTCP has focused first-arrival and 20%-loss pcap evidence. Current work is fixed-FEC qualification, immutable one-time setup, and a deliberately narrow **periodic fixed-profile refresh** based on low-load FakeTCP loss samples. A bounded Reality-style fixed-target mirror is now available as an isolated network-treatment diagnostic. Continuously learning Auto FEC remains deferred advanced research.
 
 | Milestone | Scope | Status / exit gate |
 | --- | --- | --- |
@@ -15,7 +15,7 @@
 | V2-M6C | Linux/OpenWrt capture policy: global / only-cn / only-non-cn | **PLANNED AFTER LINK/PERSONA FOUNDATION** |
 | V2-M7A | Windows Wintun L3 client | **PLANNED** |
 | V2-M7B | Windows global/split capture with underlay escape and minimal persistent rules | **PLANNED** |
-| V2-M8A | optional TLS Persona bootstrap + network-treatment diagnostic | **PLANNED AFTER CURRENT TRANSPORT SETUP** |
+| V2-M8A | optional TLS Persona bootstrap + network-treatment diagnostic | **REALITY-STYLE TARGET-MIRROR DIAGNOSTIC IMPLEMENTED; PERSONA STILL PLANNED** |
 | V2-M8B-T1 | native FakeTCP + WBD FEC first-arrival / pcap qualification | **FOCUSED GATE PASSED** |
 | V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **CURRENT** |
 | V2-M8C | account + per-device credential + concurrent multi-session server state | **PLANNED** |
@@ -113,6 +113,10 @@ Persona remains a real standard TLS 1.3 preflight, separate from the DTLS/FEC da
 - WBD does not claim that third-party identity, copy its private key, or disable verification.
 
 A certificate fingerprint alone cannot make a WBD endpoint authenticate as that site because TLS CertificateVerify requires the matching private key. Browser-profile implementations are pinned and pcap-qualified rather than trusting a moving `Auto` alias.
+
+The first REALITY-inspired diagnostic is now implemented as `cmd/wbd-reality-mirror` plus `internal/realitymirror` and `scripts/bench_reality_mirror.py`. It mirrors one fixed genuine TLS target: the client's exact ClientHello is sent to that target and the target's real TLS records return to the client. SNI must exactly match the configured target identity before the server dials upstream. The listener defaults to loopback and has session, byte and concurrency bounds so it is not an open fallback proxy. The paired benchmark alternates direct and mirror samples and verifies the same real target certificate/SPKI is observed.
+
+This does **not** implement authenticated REALITY and does not carry sustained WBD payload inside the mirrored TCP/TLS stream. ADR-0008 records the boundary. Further REALITY-like work is admitted only if real-network paired evidence shows a repeatable material advantage and any follow-up preserves the unordered WBD data-plane invariant.
 
 ## V2-M8C account / concurrent sessions
 
