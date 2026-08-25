@@ -1,27 +1,40 @@
 # Roadmap
 
-> **Status: V2.2 ACTIVE.** One-lane WBD-owned FEC + DTLS 1.3 + native TCP-shaped FakeTCP has focused first-arrival and 20%-loss pcap evidence. Current work is fixed-FEC qualification, immutable one-time setup, and a deliberately narrow **periodic fixed-profile refresh** based on low-load FakeTCP loss samples. A bounded Reality-style fixed-target mirror plus opt-in encrypted WBD demo binding is now implemented for network-treatment experiments. Continuously learning Auto FEC remains deferred advanced research.
+> **Status: V2.2 ACTIVE.** The two product cores remain: inner UDP/datagram-like earliest-complete delivery and outer TCP-shaped FakeTCP behavior. Current weak-network qualification uses a **100 Mbit/s physical-link ceiling**. Reality-like setup, account admission and platform capture are deliberately kept outside the sustained data plane.
 
 | Milestone | Scope | Status / exit gate |
 | --- | --- | --- |
 | V2-M0 | architecture restart / evidence preservation | **DONE** |
 | V2-M1 | pinned one-lane udp2raw + UDPspeeder baseline | **DONE**; external baseline retained |
-| V2-M2 | native DTLS 1.3 security shim | **DONE**; pinned wolfSSL DTLS 1.3 + X.509/hostname validation qualified |
-| V2-M3A-E | minimal native session/control + bearer auth + legacy fixed config foundation | **DONE AS FOUNDATION**; legacy CONFIG retained only for compatibility tests |
+| V2-M2 | native DTLS 1.3 security shim | **DONE**; encryption/integrity qualified; personal client also supports explicit no-cert/no-hostname verification |
+| V2-M3A-E | minimal native session/control + bearer auth + legacy fixed config foundation | **DONE AS FOUNDATION**; legacy AUTH retained only where needed for compatibility |
 | V2-M4 | kernel-anchor / real-return-packet experiment | **RETIRED** |
-| V2-M5 | optional two raw lanes | **DEFERRED / POST-FIXED-FEC EXPERIMENT** |
-| V2-M6A | Linux/OpenWrt packet-preserving L3/TUN core | **IMPLEMENTED** |
-| V2-M6B | privileged real-TUN integration | harness implemented; external real-device qualification still required |
-| V2-M6C | Linux/OpenWrt capture policy: global / only-cn / only-non-cn | **PLANNED AFTER LINK/PERSONA FOUNDATION** |
-| V2-M7A | Windows Wintun L3 client | **PLANNED** |
-| V2-M7B | Windows global/split capture with underlay escape and minimal persistent rules | **PLANNED** |
-| V2-M8A | optional TLS Persona bootstrap + network-treatment diagnostic | **REALITY-STYLE TARGET-MIRROR + ENCRYPTED DEMO BIND IMPLEMENTED; PERSONA STILL PLANNED** |
+| V2-M5 | optional two raw lanes | **DEFERRED / POST-100M ONE-LANE EXPERIMENT** |
+| V2-M6A | Linux packet-preserving L3/TUN regression core | **IMPLEMENTED** |
+| V2-M6B | privileged real-TUN integration harness | **IMPLEMENTED AS TEST HARNESS** |
+| V2-M6C | OpenWrt transparent capture | **PLANNED FINAL SHAPE: TPROXY + POLICY ROUTING** |
+| V2-M7A | Windows client capture | **PLANNED FINAL SHAPE: TUN/WINTUN-CLASS L3** |
+| V2-M7B | Windows global/split capture + underlay escape | **PLANNED** |
+| V2-M8A | Reality-like same-entry bootstrap | **IMPLEMENTED; SIMPLE SHARED USER/PASS PATH UNDER CI QUALIFICATION** |
 | V2-M8B-T1 | native FakeTCP + WBD FEC first-arrival / pcap qualification | **FOCUSED GATE PASSED** |
-| V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **CURRENT** |
-| V2-M8C | account + per-device credential + concurrent multi-session server state | **PLANNED** |
-| V2-M9 | optional two-lane striped/hedged/survival research | only if one-lane measured cliff justifies it |
-| V2-M10 | release qualification | final Linux/OpenWrt/Windows + security + transport regression |
+| V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **CURRENT TRANSPORT WORK** |
+| V2-M8C | shared-account concurrent session admission | **IN PROGRESS**; same username/password -> distinct one-time tickets, data-session demux still to finish |
+| V2-M9 | optional two-lane striped/hedged/survival research | only if one-lane 100M cliff justifies it |
+| V2-M10 | release qualification | protocol regression -> OpenWrt TPROXY one-shot VPN -> Windows TUN one-shot VPN |
 | V2-X1 | advanced continuously learning Auto FEC / automatic capacity inference | **FUTURE RESEARCH; NOT REQUIRED** |
+
+## Product order of operations
+
+Development must finish in this order:
+
+1. freeze and qualify UDP-like inner semantics and TCP-like FakeTCP outer semantics on a 100 Mbit/s weak link;
+2. qualify fixed FEC, DTLS 1.3, immutable LINK_INIT/LINK_ACCEPT and recovery behavior;
+3. qualify Reality-like same-entry recognition plus simple shared username/password -> one-time ticket admission;
+4. run the full protocol regression matrix before platform integration;
+5. integrate the frozen protocol into OpenWrt **TPROXY** and make one end-to-end VPN attempt succeed from clean state;
+6. integrate the frozen protocol into Windows **TUN/Wintun-class** capture and make one end-to-end VPN attempt succeed from clean state.
+
+Platform work must not be allowed to change the already-qualified transport semantics merely to make routing easier.
 
 ## V2-M8B-T1 evidence retained
 
@@ -32,129 +45,126 @@ The WBD FEC fast path streams systematic source shards immediately and sends rep
 - RTT 20 ms: 800/800 delivered, p50 `10.374 ms`, p95 `17.825 ms`, p99 `20.077 ms`;
 - RTT 100 ms: 800/800 delivered, p50 `50.379 ms`, p95 `58.115 ms`, p99 `59.769 ms`.
 
-## V2-M8B-T2 current gate — fixed FEC + immutable setup + periodic refresh
+A later same-binary `legacy` versus `sack-rack` recovery A/B showed that SACK/RACK did not materially tax body first-arrival latency at the tested load while recovering many packets that legacy never delivered inside the observation window. That recovery decision is not permanent until the loaded **100 Mbit/s** gate also passes.
 
-The iid mathematical reference for an ideal systematic `(K+R,K)` MDS block is:
+## 100 Mbit/s weak-link rule
 
-```text
-P_fail = sum_{l=R+1}^{K+R} C(K+R,l) p^l (1-p)^(K+R-l)
-```
+Current critical transport qualification must use `rate 100mbit` or lower. A 200 Mbit/s laboratory link may remain in historical benchmark documents, but it is not the current product assumption.
 
-For `K=20`, a representative strong iid block-failure target requires approximately `R=4/8/12/16/20` around `p=1/5/10/15/20%`. `20:20` is therefore a strong-loss reference rather than a universal default.
+The loaded FakeTCP recovery gate offers `65 Mbit/s` inner payload on a `100 Mbit/s` public link at RTT `20/100 ms` and loss `10/20%`. This leaves only bounded room for headers, ACKs and retransmissions and therefore exposes whether advanced recovery steals queue/CPU time from new datagrams.
 
-The offline fixed-scheduler comparison remains available, but the near-term live target is simpler: preserve immediate systematic source transmission and implement a qualified fixed preset family `off`, `20:4`, `20:8`, `20:12`, `20:16`, `20:20` before attempting more exotic scheduler changes.
-
-`internal/fec/simulator.go` and `cmd/wbd-fec-sweep` remain deterministic qualification tools. Simulator evidence does not automatically enable an unimplemented live profile.
-
-### Immutable setup rule
-
-One association is established as:
-
-```text
-FakeTCP -> DTLS 1.3 -> LINK_INIT -> LINK_ACCEPT -> optional AUTH -> Established
-```
-
-After Established, link-defining parameters never change in place. A different FEC profile means a fresh association, preferably make-before-break.
-
-The current implementation still carries one symmetric LinkConfig. The next directional setup change will separate client-TX and server-TX FEC while keeping shared MTU/lane/protocol parameters explicit. The client chooses its transmit profile; the server chooses its transmit profile from its own local low-load measurement and returns that immutable choice in LINK_ACCEPT.
-
-### Periodic fixed-profile refresh
-
-This is intentionally **not** the old high-complexity Auto plan.
-
-Default design from ADR-0007:
-
-- refresh interval: configurable `30m` or `60m`;
-- measurement window: about `20s`;
-- only sample when sender original traffic is below a low-load gate, initially 5% of configured physical capacity;
-- estimate one-way sender loss as `delta(unique first-loss marks) / delta(original segments)`;
-- use a Wilson 95% upper confidence bound for the fixed-preset lookup;
-- organic traffic supplies samples at zero additional wire cost;
-- optional idle probe only fills a sample deficit, then stops;
-- changed FEC applies only on a new association;
-- advanced automatic capacity inference and continuous online optimization remain out of scope.
-
-The FakeTCP sender now exposes unique first-loss and original-byte counters. `internal/linkadapt` provides counter-window math, Wilson bounds, low-load gating, coarse fixed-preset recommendation, probe-deficit accounting, and a deterministic inner-rate budget.
-
-### Inner-rate capacity guard
-
-For configured path capacity `C`, target utilization `u`, FEC factor `F`, packet/header expansion and shadow retransmission factor `A`, the client limits inner offered payload approximately as:
+For configured path capacity `C <= 100 Mbit/s`, target utilization `u`, FEC factor `F`, packet/header expansion and shadow retransmission factor `A`, the client limits inner offered payload approximately as:
 
 ```text
 B_inner_max = C * u * (1-ack_reserve) / (F * packet_expansion * A)
 ```
 
-`A` is conservatively at least `1/(1-p_hi)` and may be raised to the actual measured retransmission-byte factor. This is not TCP congestion control; it prevents known FEC + shadow retransmission expansion from persistently filling the physical queue.
+This is a physical-capacity guard, not TCP congestion control. It must never delay an available systematic source merely to fill a block.
 
-Example ignoring headers/ACK reserve: 200 Mbit/s physical capacity, 20% loss upper bound, 20:20 FEC and 80% target utilization gives a 64 Mbit/s inner payload ceiling.
+## V2-M8B-T2 — fixed FEC + immutable setup
+
+One data association is established as:
+
+```text
+FakeTCP -> DTLS 1.3 -> optional one-time ticket bind -> LINK_INIT -> LINK_ACCEPT -> Established
+```
+
+After Established, link-defining parameters never change in place. A different FEC profile means a fresh association, preferably make-before-break.
+
+The current live admission remains FEC `off` or systematic `20:20` tail-RS. The intended fixed family is `off`, `20:4`, `20:8`, `20:12`, `20:16`, `20:20`; intermediate profiles must not be advertised until implemented and first-arrival qualified.
+
+The narrow periodic refresh may sample sender first-loss counters during low load and choose another qualified fixed profile only for the next association. Advanced continuously learning Auto FEC remains future research.
 
 ### T2 exit gate
 
-- fixed-scheduler simulator and existing first-arrival tests remain green;
-- immutable LINK_INIT/LINK_ACCEPT startup and reliable retry tests remain green;
-- unique first-loss counters are verified not to double-count repeated retries;
-- `internal/linkadapt` fixed selector/rate-budget tests pass;
-- live systematic `20:4/8/12/16/20` presets are implemented and pcap/first-arrival qualified;
-- establishment supports immutable directional client-TX/server-TX FEC;
-- a 30/60-minute scheduler can wait for low load, produce a 20-second sample, and rotate associations without interrupting inner traffic;
-- loaded-vs-low-load tests show the selector does not treat self-induced saturation as baseline path loss.
+- fixed-scheduler simulator and first-arrival tests green;
+- immutable LINK_INIT/LINK_ACCEPT tests green;
+- FEC off and fixed path packet-preserving startup green;
+- loaded 100 Mbit/s `legacy` versus `sack-rack` recovery gate shows advanced recovery does not materially delay new inner datagrams;
+- live fixed preset family implemented only after each candidate is qualified;
+- any changed profile is applied by association rotation, never in place.
 
-Advanced continuously learning Auto FEC is not part of this exit gate.
+## V2-M8A — Reality-like same-entry front
 
-## V2-M8A TLS Persona and network-treatment diagnostics
+Preferred connection setup now uses one TCP listener:
 
-Persona remains a real standard TLS 1.3 preflight, separate from the DTLS/FEC data lane.
+```text
+ClientHello
+  -> recognized marker: same socket TLS 1.3 takeover
+       -> one encrypted username/password request
+       <- one-time ticket
+  -> unrecognized marker: exact bytes continue to fixed fallback target
+```
 
-- client selects a pinned browser-like profile from the server-supported set;
-- server/operator owns endpoint hostname(s), certificate/private key and policy;
-- client performs normal trust-chain + hostname validation;
-- public services such as speed-test sites may be used as **genuine control connections** for network-treatment measurements;
-- diagnostics may record the public site's real leaf-certificate/SPKI fingerprint, handshake timing, download timing and path statistics;
-- WBD does not claim that third-party identity, copy its private key, or disable verification.
+Sustained VPN payload never uses this TLS/TCP stream.
 
-A certificate fingerprint alone cannot make a WBD endpoint authenticate as that site because TLS CertificateVerify requires the matching private key. Browser-profile implementations are pinned and pcap-qualified rather than trusting a moving `Auto` alias.
+The personal client defaults to explicit no server-certificate/hostname verification. The front and DTLS may therefore accept an arbitrary self-signed certificate with a name unrelated to the configured SNI. This gives encryption without server certificate identity authentication and is an intentional personal-use tradeoff.
 
-The REALITY-inspired demo now has two deliberately separated pieces. `cmd/wbd-reality-mirror` mirrors one fixed genuine TLS target and derives a short-lived ClientHello witness. The witness is published locally after the target produces its first TLS bytes but before those bytes reach the client. A fresh WBD FakeTCP/DTLS association must then complete encrypted `DEMO_BIND/DEMO_BIND_OK`, immutable `LINK_INIT/LINK_ACCEPT`, and mandatory normal device/account `AUTH` before application forwarding. WBD never switches the genuine target's TCP/TLS byte stream into VPN data.
+The old target-mirror/witness/DEMO_BIND path remains only as a diagnostic compatibility tool.
 
-Demo mode exists only behind explicit `-demo-reality-*` command-line flags. Normal WBD mode does not consult the mirror or witness store and may use an operator-controlled self-signed DTLS certificate as an explicit trust anchor while retaining hostname verification. ADR-0008 is authoritative for this boundary.
+## V2-M8C — shared account / concurrent sessions
 
-A dedicated `demo-encryption` CI gate uses the pinned wolfSSL DTLS 1.3 shim, a deliberately trusted self-signed identity and a public-side pcap. It fails if WBDC magic, the device token or a known application plaintext appears in that DTLS capture.
+The server is intentionally not a multi-tenant account service.
 
-## V2-M8C account / concurrent sessions
+- one configured username/password pair is the shared account credential;
+- the same pair may be used by several devices simultaneously;
+- recognized TLS sends username/password once inside TLS, without an extra nonce/HMAC challenge round trip;
+- each successful login gets a fresh random one-time ticket;
+- tickets carry the account label for logging but are independent session identities;
+- live state must be keyed by session/ticket identity, not username;
+- no per-device credential database, KDF, revocation table or single-login lock is required;
+- simple process/resource limits such as `max-conns` are sufficient admission controls for the personal deployment.
 
-Extend DTLS-protected bearer authorization into a minimal account/device model:
+The remaining M8C work is multi-session data-plane demultiplexing so several ticket-authenticated DTLS/WBD associations can remain active concurrently behind one server instance.
 
-- one username/account may own several simultaneous device sessions;
-- live state is keyed by account + unique session ID, never username alone;
-- prefer a distinct high-entropy device token/key per client installation;
-- support independent device revocation and optional server-side concurrent-session caps;
-- link/FEC/Persona choices are session-local and fixed during each association.
+## OpenWrt TPROXY release path
 
-## V2-M6C / M7 capture and split-routing policy
+OpenWrt final product mode uses TPROXY for selected TCP/UDP traffic. The integration layer must:
 
-Common client modes: `off`, `global`, `only-cn`, `only-non-cn`.
+- install compact nftables/iptables TPROXY rules;
+- use packet marks + policy routing to deliver selected traffic locally;
+- exempt WBD front/FakeTCP underlay endpoints before broad capture is enabled;
+- support `global`, `only-cn`, `only-non-cn` using compact sets rather than thousands of rules;
+- restore all rules/routes/marks on exit or failed startup;
+- prove ordinary DNS/TCP/UDP application traffic crosses the WBD association in one clean end-to-end run.
 
-All modes first establish explicit escape routes/policy for actual WBD underlay server and Persona/bootstrap endpoints via the original physical gateway. Tunnel recursion is a test failure.
+The existing Linux TUN bridge remains a regression harness and does not satisfy the OpenWrt release gate by itself.
 
-Linux/OpenWrt uses TUN + policy routing and compact kernel prefix/interval sets. Windows uses Wintun-class L3 I/O. Full-tunnel Windows prefers broad routes plus explicit endpoint escape routes. Split mode must avoid thousands of persistent Windows Firewall rules and use compact routing/WFP/equivalent longest-prefix classification.
+## Windows TUN release path
 
-## V2-M5 / M9 dual-lane admission rule
+Windows final product mode uses a TUN/Wintun-class L3 adapter. The integration layer must:
 
-Do not build `two lanes x full duplicate x 20:20` as a normal 4x mode. First measure cross-lane loss/latency correlation.
+- create/open the adapter and configure addresses/MTU;
+- install full/split routes with explicit underlay endpoint escape;
+- avoid thousands of persistent Windows Firewall rules;
+- pass packet-preserving IPv4/IPv6 traffic through the frozen WBD association;
+- restore routes/adapter state on exit or failed startup;
+- pass one clean end-to-end application traffic run after protocol qualification is already green.
 
-Preferred later experiments are `striped`, `hedged`, and explicit emergency `survival`. Two lanes may share one coding family but should use distinct lane IDs, sequence spaces, coding equations/seeds/window phases and schedules.
+## V2-M10 final release gate
 
-## V2-X1 advanced Auto FEC — deliberately deferred
+The final test sequence is intentionally end-to-end rather than another synthetic transport-only benchmark:
 
-The deferred item is a continuously learning controller or automatic capacity estimator: joint loss/recovery/capacity inference, queue-pressure detection, continuous hysteresis, scheduler learning and high-frequency transitions. The simple periodic fixed-table refresh in T2 does not depend on those features.
+1. protocol/unit/pcap/weak-link regressions all green;
+2. start from clean server/client routing state;
+3. install the platform VPN capture adapter;
+4. establish Reality-like front -> ticket -> FakeTCP -> DTLS 1.3 -> LINK_INIT/LINK_ACCEPT once;
+5. pass real DNS plus TCP/UDP application traffic;
+6. verify underlay escape and no recursive capture;
+7. stop the client and prove routing/firewall state is restored;
+8. repeat once for OpenWrt TPROXY and once for Windows TUN.
+
+The target is **one successful clean attempt per platform after the protocol is frozen**, then that sequence becomes the release regression.
 
 ## Removed / rejected work
 
 - ordinary kernel TCP as product data carrier;
 - kernel-anchor integration;
-- runtime FEC config epochs / mid-session link parameter switching;
+- runtime FEC config epochs / mid-session link switching;
 - continuously learning/high-frequency Auto FEC on the current critical path;
-- VLESS/Xray routing/Vision stream semantics as the product data plane;
+- mandatory per-device credential/revocation infrastructure;
+- mandatory client certificate-chain/hostname verification in personal mode;
+- VLESS/Xray routing/Vision stream semantics as the data plane;
 - WireGuard inner glue;
 - Android/no-root;
 - blind default multi-lane duplication.
