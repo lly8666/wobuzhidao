@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: write
 
 jobs:
   prepare:
@@ -177,8 +178,58 @@ jobs:
             --manifest /tmp/assets/manifest.json
           cat /tmp/final/report.md
           cat /tmp/final/receipt.json
+      - name: Verify frozen 126-case matrix completeness
+        run: |
+          python3 - <<'PY'
+          import csv,json,sys
+          from pathlib import Path
+          out=Path('/tmp/final')
+          receipt=json.loads((out/'receipt.json').read_text())
+          want_rtt=[20,50,100,200,400,600]
+          want_loss=[0.0,1.0,5.0,10.0,20.0,30.0,40.0]
+          want_seeds=[260825,260826,260827]
+          problems=[]
+          if receipt.get('cases') != 126: problems.append(f"cases={receipt.get('cases')} want=126")
+          if receipt.get('rtt_ms') != want_rtt: problems.append(f"rtt={receipt.get('rtt_ms')}")
+          if receipt.get('loss_pct_per_direction') != want_loss: problems.append(f"loss={receipt.get('loss_pct_per_direction')}")
+          if receipt.get('seeds') != want_seeds: problems.append(f"seeds={receipt.get('seeds')}")
+          rows=list(csv.DictReader((out/'median.csv').open()))
+          if len(rows) != 42: problems.append(f"median_points={len(rows)} want=42")
+          bad=[r for r in rows if int(r['cases']) != 3]
+          if bad: problems.append(f"points_without_3_seeds={[(r['rtt_ms'],r['loss_pct_per_direction'],r['cases']) for r in bad]}")
+          if problems:
+              print('MATRIX_INCOMPLETE: '+'; '.join(problems), file=sys.stderr)
+              raise SystemExit(2)
+          print('MATRIX_COMPLETE cases=126 points=42 seeds=3')
+          PY
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: transport-20x20-matrix-final
           path: /tmp/final
           retention-days: 30
+
+  notify:
+    needs: [prepare, bench, aggregate]
+    if: always()
+    runs-on: ubuntu-24.04
+    env:
+      PREPARE_RESULT: ${{ needs.prepare.result }}
+      BENCH_RESULT: ${{ needs.bench.result }}
+      AGGREGATE_RESULT: ${{ needs.aggregate.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      HEAD_SHA: ${{ github.sha }}
+      RUN_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- wbd-transport-20x20-status -->';
+            const body = `${marker}\n**WBD transport 20:20 matrix**\n\n- run: ${process.env.RUN_ID}\n- head: \`${process.env.HEAD_SHA}\`\n- prepare: **${process.env.PREPARE_RESULT}**\n- bench (3 seeds): **${process.env.BENCH_RESULT}**\n- aggregate/completeness: **${process.env.AGGREGATE_RESULT}**\n- final artifact: \`transport-20x20-matrix-final\` when aggregate produced output\n- run URL: ${process.env.RUN_URL}`;
+            const {data: comments} = await github.rest.issues.listComments({owner: context.repo.owner, repo: context.repo.repo, issue_number: 3, per_page: 100});
+            const old = comments.find(c => c.body && c.body.includes(marker));
+            if (old) {
+              await github.rest.issues.updateComment({owner: context.repo.owner, repo: context.repo.repo, comment_id: old.id, body});
+            } else {
+              await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: 3, body});
+            }
