@@ -7,12 +7,14 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/control"
 	"github.com/lly8666/wobuzhidao/internal/fec"
 	"github.com/lly8666/wobuzhidao/internal/linkdata"
+	"github.com/lly8666/wobuzhidao/internal/persona"
 )
 
 const (
@@ -21,17 +23,34 @@ const (
 )
 
 type options struct {
-	mode          string
-	listen        string
-	dtls          string
-	service       string
-	fec           string
-	mtu           int
-	flushMS       int
-	lanes         int
-	token         string
-	expectedToken string
-	setupTimeout  time.Duration
+	mode                  string
+	listen                string
+	dtls                  string
+	service               string
+	fec                   string
+	mtu                   int
+	flushMS               int
+	lanes                 int
+	token                 string
+	expectedToken         string
+	setupTimeout          time.Duration
+	demoRealityWitness    string
+	demoRealityWitnessDir string
+	demoRealityServerName string
+	demoRealityTTL        time.Duration
+}
+
+type clientStartupSession interface {
+	Established() bool
+	RetryWire() ([]byte, error)
+	HandleWire([]byte) ([]byte, error)
+	Accept() (control.LinkAccept, bool)
+}
+
+type serverStartupSession interface {
+	State() control.State
+	Stats() control.LinkSessionStats
+	HandleWire([]byte, uint64) ([]byte, error)
 }
 
 func main() {
@@ -47,6 +66,10 @@ func main() {
 	flag.StringVar(&o.token, "token", "", "client bearer token when server requires AUTH")
 	flag.StringVar(&o.expectedToken, "expected-token", "", "server bearer token; empty disables AUTH")
 	flag.DurationVar(&o.setupTimeout, "setup-timeout", 10*time.Second, "LINK_INIT/AUTH startup deadline")
+	flag.StringVar(&o.demoRealityWitness, "demo-reality-witness", "", "client demo only: 64-hex ClientHello witness from wbd-tls-diag -witness-out")
+	flag.StringVar(&o.demoRealityWitnessDir, "demo-reality-witness-dir", "", "server demo only: local witness directory shared with wbd-reality-mirror -witness-dir")
+	flag.StringVar(&o.demoRealityServerName, "demo-reality-server-name", "", "server demo only: target SNI bound to the witness")
+	flag.DurationVar(&o.demoRealityTTL, "demo-reality-ttl", 15*time.Second, "server demo only: maximum age of one-time mirror witness")
 	flag.Parse()
 
 	if err := run(o); err != nil {
@@ -62,6 +85,24 @@ func run(o options) error {
 	if o.listen == "" {
 		return errors.New("-listen is required")
 	}
+	if o.mode == "client" {
+		if strings.TrimSpace(o.demoRealityWitnessDir) != "" || strings.TrimSpace(o.demoRealityServerName) != "" {
+			return errors.New("client demo mode uses only -demo-reality-witness")
+		}
+	} else {
+		if strings.TrimSpace(o.demoRealityWitness) != "" {
+			return errors.New("server demo mode uses witness directory, not -demo-reality-witness")
+		}
+		demoDir := strings.TrimSpace(o.demoRealityWitnessDir)
+		demoName := strings.TrimSpace(o.demoRealityServerName)
+		if (demoDir == "") != (demoName == "") {
+			return errors.New("server demo mode requires both -demo-reality-witness-dir and -demo-reality-server-name")
+		}
+		if demoDir != "" && o.demoRealityTTL <= 0 {
+			return errors.New("server demo mode requires positive -demo-reality-ttl")
+		}
+	}
+
 	listenAddr, err := net.ResolveUDPAddr("udp4", o.listen)
 	if err != nil {
 		return err
@@ -127,9 +168,25 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if err != nil {
 		return err
 	}
-	startup, err := control.NewLinkClientSession(control.LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: cfg}, []byte(o.token))
-	if err != nil {
-		return err
+	init := control.LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: cfg}
+	var startup clientStartupSession
+	demo := strings.TrimSpace(o.demoRealityWitness) != ""
+	if demo {
+		id, err := persona.ParseWitnessHex(o.demoRealityWitness)
+		if err != nil {
+			return err
+		}
+		var witness [control.DemoWitnessLen]byte
+		copy(witness[:], id[:])
+		startup, err = control.NewDemoLinkClientSession(init, []byte(o.token), witness)
+		if err != nil {
+			return err
+		}
+	} else {
+		startup, err = control.NewLinkClientSession(init, []byte(o.token))
+		if err != nil {
+			return err
+		}
 	}
 	if err := clientStartup(conn, dtlsAddr, startup, o.setupTimeout, stop); err != nil {
 		return err
@@ -138,16 +195,16 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("WBD_LINK_READY role=client fec=%s mtu=%d lanes=%d immutable=1 auth=%t\n", o.fec, cfg.MTU, cfg.LaneCount, startupAcceptAuth(startup))
+	fmt.Printf("WBD_LINK_READY role=client fec=%s mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t\n", o.fec, cfg.MTU, cfg.LaneCount, startupAcceptAuth(startup), demo)
 	return clientDataLoop(conn, dtlsAddr, path, startup, stop)
 }
 
-func startupAcceptAuth(s *control.LinkClientSession) bool {
+func startupAcceptAuth(s clientStartupSession) bool {
 	a, ok := s.Accept()
 	return ok && a.AuthRequired
 }
 
-func clientStartup(conn *net.UDPConn, dtlsAddr *net.UDPAddr, startup *control.LinkClientSession, timeout time.Duration, stop <-chan os.Signal) error {
+func clientStartup(conn *net.UDPConn, dtlsAddr *net.UDPAddr, startup clientStartupSession, timeout time.Duration, stop <-chan os.Signal) error {
 	deadline := time.Now().Add(timeout)
 	nextSend := time.Time{}
 	buf := make([]byte, control.HeaderLen+control.MaxBodyLen)
@@ -212,7 +269,16 @@ func runServer(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if err != nil {
 		return err
 	}
-	startup, err := control.NewReliableLinkServerSession(1, 1, []byte(o.expectedToken), control.CurrentLinkPolicy())
+	var startup serverStartupSession
+	demo := strings.TrimSpace(o.demoRealityWitnessDir) != ""
+	if demo {
+		verify := func(witness [control.DemoWitnessLen]byte) error {
+			return persona.ConsumeWitness(o.demoRealityWitnessDir, persona.WitnessID(witness), o.demoRealityServerName, time.Now(), o.demoRealityTTL)
+		}
+		startup, err = control.NewDemoReliableLinkServerSession(1, 1, []byte(o.expectedToken), control.CurrentLinkPolicy(), verify)
+	} else {
+		startup, err = control.NewReliableLinkServerSession(1, 1, []byte(o.expectedToken), control.CurrentLinkPolicy())
+	}
 	if err != nil {
 		return err
 	}
@@ -225,12 +291,12 @@ func runServer(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("WBD_LINK_READY role=server fec_mode=%d fec=%d:%d mtu=%d lanes=%d immutable=1 auth=%t\n",
-		cfg.FECMode, cfg.DataShards, cfg.ParityShards, cfg.MTU, cfg.LaneCount, startup.Stats().AuthRequired)
+	fmt.Printf("WBD_LINK_READY role=server fec_mode=%d fec=%d:%d mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t\n",
+		cfg.FECMode, cfg.DataShards, cfg.ParityShards, cfg.MTU, cfg.LaneCount, startup.Stats().AuthRequired, demo)
 	return serverDataLoop(conn, serviceAddr, dtlsPeer, path, startup, stop)
 }
 
-func serverStartup(conn *net.UDPConn, serviceAddr *net.UDPAddr, startup *control.ReliableLinkServerSession, timeout time.Duration, stop <-chan os.Signal) (*net.UDPAddr, error) {
+func serverStartup(conn *net.UDPConn, serviceAddr *net.UDPAddr, startup serverStartupSession, timeout time.Duration, stop <-chan os.Signal) (*net.UDPAddr, error) {
 	deadline := time.Now().Add(timeout)
 	buf := make([]byte, control.HeaderLen+control.MaxBodyLen)
 	var peer *net.UDPAddr
@@ -271,7 +337,7 @@ func serverStartup(conn *net.UDPConn, serviceAddr *net.UDPAddr, startup *control
 	return peer, nil
 }
 
-func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Path, startup *control.LinkClientSession, stop <-chan os.Signal) error {
+func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Path, startup clientStartupSession, stop <-chan os.Signal) error {
 	buf := make([]byte, 65535)
 	var appPeer *net.UDPAddr
 	for {
@@ -330,7 +396,7 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 	}
 }
 
-func serverDataLoop(conn *net.UDPConn, serviceAddr, dtlsPeer *net.UDPAddr, path *linkdata.Path, startup *control.ReliableLinkServerSession, stop <-chan os.Signal) error {
+func serverDataLoop(conn *net.UDPConn, serviceAddr, dtlsPeer *net.UDPAddr, path *linkdata.Path, startup serverStartupSession, stop <-chan os.Signal) error {
 	buf := make([]byte, 65535)
 	for {
 		select {
@@ -412,7 +478,7 @@ func isStartupControl(packet []byte) bool {
 		return false
 	}
 	switch control.Type(packet[5]) {
-	case control.TypeLinkInit, control.TypeLinkAccept, control.TypeError, control.TypeAuth, control.TypeAuthOK:
+	case control.TypeDemoBind, control.TypeDemoBindOK, control.TypeLinkInit, control.TypeLinkAccept, control.TypeError, control.TypeAuth, control.TypeAuthOK:
 		return true
 	default:
 		return false
