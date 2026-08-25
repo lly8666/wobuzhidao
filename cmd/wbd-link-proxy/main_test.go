@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lly8666/wobuzhidao/internal/control"
+	"github.com/lly8666/wobuzhidao/internal/linkdata"
 	"github.com/lly8666/wobuzhidao/internal/persona"
 )
 
@@ -31,6 +33,88 @@ func TestImmutableLinkProxyFixed20x20WithAuth(t *testing.T) {
 
 func TestImmutableLinkProxyRealityDemoGateThenEncryptedData(t *testing.T) {
 	runProxyIntegration(t, "off", true, true)
+}
+
+type establishedStartup struct{}
+
+func (establishedStartup) Established() bool { return true }
+func (establishedStartup) RetryWire() ([]byte, error) { return nil, nil }
+func (establishedStartup) HandleWire([]byte) ([]byte, error) { return nil, nil }
+func (establishedStartup) Accept() (control.LinkAccept, bool) { return control.LinkAccept{}, true }
+
+func TestClientDataLoopHeartbeatAndGracefulClose(t *testing.T) {
+	client := udp4(t)
+	dtls := udp4(t)
+	defer client.Close()
+	defer dtls.Close()
+
+	path, err := linkdata.New(control.LinkConfig{
+		FECMode: control.FECOff, Scheduler: control.FECSchedulerNone,
+		MTU: 1400, LaneCount: 1,
+	}, maxBlocks)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stop := make(chan os.Signal, 1)
+	done := make(chan error, 1)
+	go func() {
+		done <- clientDataLoop(client, addr(dtls), path, establishedStartup{}, 20*time.Millisecond, stop)
+	}()
+
+	buf := make([]byte, 65535)
+	_ = dtls.SetReadDeadline(time.Now().Add(time.Second))
+	n, peer, err := dtls.ReadFromUDP(buf)
+	if err != nil {
+		t.Fatalf("read PING: %v", err)
+	}
+	frame, err := control.UnmarshalLink(buf[:n])
+	if err != nil {
+		t.Fatalf("decode PING: %v", err)
+	}
+	ping, ok := frame.(control.Ping)
+	if !ok || ping.Nonce == 0 {
+		t.Fatalf("got %T %#v want nonzero PING", frame, frame)
+	}
+	pong, err := control.MarshalLink(control.Pong{Nonce: ping.Nonce})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := dtls.WriteToUDP(pong, peer); err != nil {
+		t.Fatal(err)
+	}
+
+	stop <- os.Interrupt
+	deadline := time.Now().Add(time.Second)
+	for {
+		_ = dtls.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
+		n, _, err = dtls.ReadFromUDP(buf)
+		if err != nil {
+			if ne, ok := err.(net.Error); ok && ne.Timeout() && time.Now().Before(deadline) {
+				continue
+			}
+			t.Fatalf("read CLOSE: %v", err)
+		}
+		frame, err = control.UnmarshalLink(buf[:n])
+		if err != nil {
+			continue
+		}
+		closeFrame, ok := frame.(control.Close)
+		if !ok {
+			continue
+		}
+		if closeFrame.Reason != control.CloseNormal {
+			t.Fatalf("close reason=%d want=%d", closeFrame.Reason, control.CloseNormal)
+		}
+		break
+	}
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatalf("client loop: %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("client loop did not stop")
+	}
 }
 
 func runProxyIntegration(t *testing.T, fecMode string, auth, demo bool) {
