@@ -243,17 +243,16 @@ func (e *endpoint) rawLoop() error {
 			if err != nil { return err }
 		}
 		if len(seg.Payload)==0 { continue }
+		var sackBuf [4]faketcp.SACKBlock
 		e.receiverMu.Lock()
 		deliver,oo := e.receiver.Accept(seg.Seq,len(seg.Payload))
 		ack := e.receiver.Next()
+		sackN := 0
+		if oo { sackN = e.receiver.SACKBlocks(&sackBuf) }
 		e.receiverMu.Unlock()
 		atomic.AddUint64(&e.dataRx,1)
 		var sacks []faketcp.SACKBlock
-		var one [1]faketcp.SACKBlock
-		if oo {
-			one[0] = faketcp.SACKBlock{Start:seg.Seq,End:seg.Seq+uint32(len(seg.Payload))}
-			sacks = one[:]
-		}
+		if sackN != 0 { sacks = sackBuf[:sackN] }
 		if err := e.send(e.senderNext(),ack,faketcp.FlagACK,sacks,nil); err != nil { return err }
 		atomic.AddUint64(&e.ackTx,1)
 		if deliver {
