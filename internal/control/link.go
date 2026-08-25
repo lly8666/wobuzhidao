@@ -30,13 +30,13 @@ const (
 // that wants different parameters tears down the association and creates a new
 // one; there is deliberately no mid-session config epoch/control path.
 type LinkConfig struct {
-	FECMode       FECMode
-	Scheduler     FECScheduler
-	DataShards    uint8
-	ParityShards  uint8
-	LaneCount     uint8
-	FlushMillis   uint16
-	MTU           uint16
+	FECMode      FECMode
+	Scheduler    FECScheduler
+	DataShards   uint8
+	ParityShards uint8
+	LaneCount    uint8
+	FlushMillis  uint16
+	MTU          uint16
 }
 
 type LinkInit struct {
@@ -57,12 +57,12 @@ type FixedFECProfile struct {
 }
 
 type LinkPolicy struct {
-	AllowFECOff      bool
-	MinMTU           uint16
-	MaxMTU           uint16
-	MaxFlushMillis   uint16
-	MaxLaneCount     uint8
-	AllowedFixedFEC  []FixedFECProfile
+	AllowFECOff     bool
+	MinMTU          uint16
+	MaxMTU          uint16
+	MaxFlushMillis  uint16
+	MaxLaneCount    uint8
+	AllowedFixedFEC []FixedFECProfile
 }
 
 // CurrentLinkPolicy mirrors the live transport, not simulator research. The
@@ -266,7 +266,8 @@ type LinkSessionStats struct {
 
 // LinkServerSession is the product startup state machine. It consumes exactly
 // one LINK_INIT before authentication/Established and never accepts a link
-// configuration change after that point.
+// configuration change after that point. A rejected proposal also poisons the
+// WBD session: trying another parameter set requires a fresh association.
 type LinkServerSession struct {
 	base   *ServerSession
 	policy LinkPolicy
@@ -300,6 +301,11 @@ func (s *LinkServerSession) Stats() LinkSessionStats {
 	return LinkSessionStats{SessionStats: st, Configured: s.set, Config: s.config}
 }
 
+func (s *LinkServerSession) fail() {
+	s.base.state = StateFailed
+	s.base.syncStatsState()
+}
+
 func (s *LinkServerSession) HandleWire(data []byte, now uint64) ([]byte, error) {
 	frame, err := UnmarshalLink(data)
 	if err != nil {
@@ -307,14 +313,17 @@ func (s *LinkServerSession) HandleWire(data []byte, now uint64) ([]byte, error) 
 	}
 	s.rx++
 	s.rxB += uint64(len(data))
+	s.base.stats.LastActivity = now
 
 	var reply any
 	if s.base.State() == StateAwaitHello {
 		init, ok := frame.(LinkInit)
 		if !ok {
-			reply = Error{Code: ErrorUnexpectedState, Message: "LINK_INIT required"}
+			s.fail()
+			reply = Error{Code: ErrorUnexpectedState, Message: "LINK_INIT required; reconnect required"}
 		} else if err := s.policy.Validate(init.Config); err != nil {
-			reply = Error{Code: ErrorPolicy, Message: err.Error()}
+			s.fail()
+			reply = Error{Code: ErrorPolicy, Message: err.Error() + "; reconnect required"}
 		} else {
 			neg := s.base.Handle(Hello{MinProtocol: init.MinProtocol, MaxProtocol: init.MaxProtocol})
 			if a, ok := neg.(Accept); ok {
@@ -327,6 +336,7 @@ func (s *LinkServerSession) HandleWire(data []byte, now uint64) ([]byte, error) 
 	} else {
 		switch frame.(type) {
 		case LinkInit, LinkAccept, Config, ConfigOK:
+			s.fail()
 			reply = Error{Code: ErrorUnexpectedState, Message: "link parameters are immutable; reconnect required"}
 		default:
 			reply = s.base.Handle(frame)
@@ -339,6 +349,5 @@ func (s *LinkServerSession) HandleWire(data []byte, now uint64) ([]byte, error) 
 	}
 	s.tx++
 	s.txB += uint64(len(wire))
-	_ = now // retained for parity with the existing wire-session API
 	return wire, nil
 }
