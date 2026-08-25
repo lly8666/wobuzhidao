@@ -15,6 +15,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/fec"
 	"github.com/lly8666/wobuzhidao/internal/linkdata"
 	"github.com/lly8666/wobuzhidao/internal/persona"
+	"github.com/lly8666/wobuzhidao/internal/realityfront"
 )
 
 const (
@@ -37,6 +38,8 @@ type options struct {
 	demoRealityWitness    string
 	demoRealityWitnessDir string
 	demoRealityServerName string
+	demoRealityTicket     string
+	demoRealityTicketDir  string
 	demoRealityTTL        time.Duration
 }
 
@@ -63,13 +66,15 @@ func main() {
 	flag.IntVar(&o.mtu, "mtu", 1400, "immutable maximum plaintext datagram size")
 	flag.IntVar(&o.flushMS, "fec-flush-ms", 8, "immutable 20:20 partial-block flush")
 	flag.IntVar(&o.lanes, "lanes", 1, "immutable raw lane count (currently 1)")
-	flag.StringVar(&o.token, "token", "", "client bearer token when server requires AUTH")
+	flag.StringVar(&o.token, "token", "", "client bearer token for normal/legacy-witness startup")
 	flag.StringVar(&o.expectedToken, "expected-token", "", "server bearer token; empty disables AUTH")
 	flag.DurationVar(&o.setupTimeout, "setup-timeout", 10*time.Second, "LINK_INIT/AUTH startup deadline")
-	flag.StringVar(&o.demoRealityWitness, "demo-reality-witness", "", "client demo only: 64-hex ClientHello witness from wbd-tls-diag -witness-out")
-	flag.StringVar(&o.demoRealityWitnessDir, "demo-reality-witness-dir", "", "server demo only: local witness directory shared with wbd-reality-mirror -witness-dir")
-	flag.StringVar(&o.demoRealityServerName, "demo-reality-server-name", "", "server demo only: target SNI bound to the witness")
-	flag.DurationVar(&o.demoRealityTTL, "demo-reality-ttl", 15*time.Second, "server demo only: maximum age of one-time mirror witness")
+	flag.StringVar(&o.demoRealityWitness, "demo-reality-witness", "", "legacy mirror demo: 64-hex ClientHello witness")
+	flag.StringVar(&o.demoRealityWitnessDir, "demo-reality-witness-dir", "", "legacy mirror demo server: local witness directory")
+	flag.StringVar(&o.demoRealityServerName, "demo-reality-server-name", "", "legacy mirror demo server: target SNI bound to witness")
+	flag.StringVar(&o.demoRealityTicket, "demo-reality-ticket", "", "same-entry Reality front demo: one-time 64-hex authenticated ticket")
+	flag.StringVar(&o.demoRealityTicketDir, "demo-reality-ticket-dir", "", "same-entry Reality front demo server: one-time ticket directory")
+	flag.DurationVar(&o.demoRealityTTL, "demo-reality-ttl", 15*time.Second, "maximum age of one-time demo witness/ticket")
 	flag.Parse()
 
 	if err := run(o); err != nil {
@@ -86,20 +91,26 @@ func run(o options) error {
 		return errors.New("-listen is required")
 	}
 	if o.mode == "client" {
-		if strings.TrimSpace(o.demoRealityWitnessDir) != "" || strings.TrimSpace(o.demoRealityServerName) != "" {
-			return errors.New("client demo mode uses only -demo-reality-witness")
+		if strings.TrimSpace(o.demoRealityWitnessDir) != "" || strings.TrimSpace(o.demoRealityServerName) != "" || strings.TrimSpace(o.demoRealityTicketDir) != "" {
+			return errors.New("client demo mode accepts only -demo-reality-witness or -demo-reality-ticket")
+		}
+		if strings.TrimSpace(o.demoRealityWitness) != "" && strings.TrimSpace(o.demoRealityTicket) != "" {
+			return errors.New("choose exactly one Reality demo binding: witness or ticket")
 		}
 	} else {
-		if strings.TrimSpace(o.demoRealityWitness) != "" {
-			return errors.New("server demo mode uses witness directory, not -demo-reality-witness")
+		if strings.TrimSpace(o.demoRealityWitness) != "" || strings.TrimSpace(o.demoRealityTicket) != "" {
+			return errors.New("server demo mode uses local witness/ticket directories, not client binding values")
 		}
-		demoDir := strings.TrimSpace(o.demoRealityWitnessDir)
-		demoName := strings.TrimSpace(o.demoRealityServerName)
-		if (demoDir == "") != (demoName == "") {
-			return errors.New("server demo mode requires both -demo-reality-witness-dir and -demo-reality-server-name")
+		witnessDir := strings.TrimSpace(o.demoRealityWitnessDir)
+		ticketDir := strings.TrimSpace(o.demoRealityTicketDir)
+		if witnessDir != "" && ticketDir != "" {
+			return errors.New("server cannot enable legacy witness and authenticated ticket modes simultaneously")
 		}
-		if demoDir != "" && o.demoRealityTTL <= 0 {
-			return errors.New("server demo mode requires positive -demo-reality-ttl")
+		if (witnessDir == "") != (strings.TrimSpace(o.demoRealityServerName) == "") {
+			return errors.New("legacy witness mode requires both -demo-reality-witness-dir and -demo-reality-server-name")
+		}
+		if (witnessDir != "" || ticketDir != "") && o.demoRealityTTL <= 0 {
+			return errors.New("server Reality demo mode requires positive -demo-reality-ttl")
 		}
 	}
 
@@ -170,9 +181,21 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	}
 	init := control.LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: cfg}
 	var startup clientStartupSession
-	demo := strings.TrimSpace(o.demoRealityWitness) != ""
-	if demo {
-		id, err := persona.ParseWitnessHex(o.demoRealityWitness)
+	demoKind := "off"
+	if raw := strings.TrimSpace(o.demoRealityTicket); raw != "" {
+		ticket, err := realityfront.ParseTicketHex(raw)
+		if err != nil {
+			return err
+		}
+		var bind [control.DemoWitnessLen]byte
+		copy(bind[:], ticket[:])
+		startup, err = control.NewDemoTicketLinkClientSession(init, bind)
+		if err != nil {
+			return err
+		}
+		demoKind = "ticket"
+	} else if raw := strings.TrimSpace(o.demoRealityWitness); raw != "" {
+		id, err := persona.ParseWitnessHex(raw)
 		if err != nil {
 			return err
 		}
@@ -182,6 +205,7 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 		if err != nil {
 			return err
 		}
+		demoKind = "witness"
 	} else {
 		startup, err = control.NewLinkClientSession(init, []byte(o.token))
 		if err != nil {
@@ -195,7 +219,7 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("WBD_LINK_READY role=client fec=%s mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t\n", o.fec, cfg.MTU, cfg.LaneCount, startupAcceptAuth(startup), demo)
+	fmt.Printf("WBD_LINK_READY role=client fec=%s mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t demo_kind=%s\n", o.fec, cfg.MTU, cfg.LaneCount, startupAcceptAuth(startup), demoKind != "off", demoKind)
 	return clientDataLoop(conn, dtlsAddr, path, startup, stop)
 }
 
@@ -244,7 +268,6 @@ func clientStartup(conn *net.UDPConn, dtlsAddr *net.UDPAddr, startup clientStart
 		default:
 		}
 		if !sameUDPAddr(from, dtlsAddr) {
-			// Application traffic is not admitted before immutable setup finishes.
 			continue
 		}
 		next, err := startup.HandleWire(buf[:n])
@@ -270,12 +293,21 @@ func runServer(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 		return err
 	}
 	var startup serverStartupSession
-	demo := strings.TrimSpace(o.demoRealityWitnessDir) != ""
-	if demo {
+	demoKind := "off"
+	if ticketDir := strings.TrimSpace(o.demoRealityTicketDir); ticketDir != "" {
+		verify := func(bind [control.DemoWitnessLen]byte) error {
+			var ticket realityfront.Ticket
+			copy(ticket[:], bind[:])
+			return realityfront.ConsumeTicket(ticketDir, ticket, time.Now(), o.demoRealityTTL)
+		}
+		startup, err = control.NewDemoTicketReliableLinkServerSession(1, 1, control.CurrentLinkPolicy(), verify)
+		demoKind = "ticket"
+	} else if witnessDir := strings.TrimSpace(o.demoRealityWitnessDir); witnessDir != "" {
 		verify := func(witness [control.DemoWitnessLen]byte) error {
-			return persona.ConsumeWitness(o.demoRealityWitnessDir, persona.WitnessID(witness), o.demoRealityServerName, time.Now(), o.demoRealityTTL)
+			return persona.ConsumeWitness(witnessDir, persona.WitnessID(witness), o.demoRealityServerName, time.Now(), o.demoRealityTTL)
 		}
 		startup, err = control.NewDemoReliableLinkServerSession(1, 1, []byte(o.expectedToken), control.CurrentLinkPolicy(), verify)
+		demoKind = "witness"
 	} else {
 		startup, err = control.NewReliableLinkServerSession(1, 1, []byte(o.expectedToken), control.CurrentLinkPolicy())
 	}
@@ -291,8 +323,8 @@ func runServer(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("WBD_LINK_READY role=server fec_mode=%d fec=%d:%d mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t\n",
-		cfg.FECMode, cfg.DataShards, cfg.ParityShards, cfg.MTU, cfg.LaneCount, startup.Stats().AuthRequired, demo)
+	fmt.Printf("WBD_LINK_READY role=server fec_mode=%d fec=%d:%d mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t demo_kind=%s\n",
+		cfg.FECMode, cfg.DataShards, cfg.ParityShards, cfg.MTU, cfg.LaneCount, startup.Stats().AuthRequired, demoKind != "off", demoKind)
 	return serverDataLoop(conn, serviceAddr, dtlsPeer, path, startup, stop)
 }
 
@@ -315,7 +347,6 @@ func serverStartup(conn *net.UDPConn, serviceAddr *net.UDPAddr, startup serverSt
 		default:
 		}
 		if sameUDPAddr(from, serviceAddr) {
-			// Service data is not admitted before startup completes.
 			continue
 		}
 		if peer == nil {
