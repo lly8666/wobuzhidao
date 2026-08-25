@@ -34,7 +34,7 @@ client -> WBD FakeTCP -> DTLS 1.3
        -> WBD encrypted application datagrams
 ```
 
-There is deliberately **no in-stream plaintext or protocol splice** from A to B. `DEMO_BIND`, `LINK_INIT`, `AUTH`, FEC metadata and application packets are DTLS application data and are therefore encrypted on the public path.
+There is deliberately **no in-stream plaintext or protocol splice** from A to B. `DEMO_BIND`, `LINK_INIT`, `AUTH`, FEC metadata and application packets are DTLS application data and are therefore encrypted on the public path. The target mirror is never used as a container for sustained WBD payload.
 
 ## One-time witness
 
