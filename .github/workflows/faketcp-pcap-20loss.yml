@@ -29,6 +29,7 @@ jobs:
         run: |
           set -euo pipefail
           C=wbdpcapc$$
+          R=wbdpcapr$$
           S=wbdpcaps$$
           cleanup() {
             set +e
@@ -36,43 +37,60 @@ jobs:
             [[ -n "${SPID:-}" ]] && sudo kill -TERM "$SPID" 2>/dev/null
             [[ -n "${RPID:-}" ]] && sudo kill -TERM "$RPID" 2>/dev/null
             [[ -n "${TPID:-}" ]] && sudo kill -INT "$TPID" 2>/dev/null
+            [[ -n "${TSPID:-}" ]] && sudo kill -INT "$TSPID" 2>/dev/null
             sleep .2
             sudo ip netns del "$C" 2>/dev/null
+            sudo ip netns del "$R" 2>/dev/null
             sudo ip netns del "$S" 2>/dev/null
           }
           trap cleanup EXIT
 
+          # Three namespaces put the impairment in a forwarding namespace. The
+          # client capture point is therefore BEFORE client->server netem loss,
+          # so every original send and retransmission is observable in pcap.
           sudo ip netns add "$C"
+          sudo ip netns add "$R"
           sudo ip netns add "$S"
-          sudo ip link add vc type veth peer name vs
-          sudo ip link set vc netns "$C"
-          sudo ip link set vs netns "$S"
-          sudo ip -n "$C" addr add 10.84.0.1/24 dev vc
-          sudo ip -n "$S" addr add 10.84.0.2/24 dev vs
-          sudo ip -n "$C" link set lo up
-          sudo ip -n "$S" link set lo up
-          sudo ip -n "$C" link set vc up
-          sudo ip -n "$S" link set vs up
+          sudo ip link add c0 type veth peer name r0
+          sudo ip link add r1 type veth peer name s0
+          sudo ip link set c0 netns "$C"
+          sudo ip link set r0 netns "$R"
+          sudo ip link set r1 netns "$R"
+          sudo ip link set s0 netns "$S"
+          sudo ip -n "$C" addr add 10.84.0.1/24 dev c0
+          sudo ip -n "$R" addr add 10.84.0.254/24 dev r0
+          sudo ip -n "$R" addr add 10.84.1.254/24 dev r1
+          sudo ip -n "$S" addr add 10.84.1.2/24 dev s0
+          for N in "$C" "$R" "$S"; do sudo ip -n "$N" link set lo up; done
+          sudo ip -n "$C" link set c0 up
+          sudo ip -n "$R" link set r0 up
+          sudo ip -n "$R" link set r1 up
+          sudo ip -n "$S" link set s0 up
+          sudo ip -n "$C" route add 10.84.1.0/24 via 10.84.0.254
+          sudo ip -n "$S" route add 10.84.0.0/24 via 10.84.1.254
+          sudo ip netns exec "$R" sysctl -qw net.ipv4.ip_forward=1
           sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
           sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
-          # Establish at 20ms RTT without loss, then stage exactly the data-plane
-          # impairment we want to inspect. This avoids conflating SYN survival
-          # randomness with retransmission semantics.
-          sudo ip netns exec "$C" tc qdisc add dev vc root netem limit 50000 delay 10ms rate 200mbit
-          sudo ip netns exec "$S" tc qdisc add dev vs root netem limit 50000 delay 10ms rate 200mbit
 
-          sudo ip netns exec "$C" tcpdump -i vc -s 0 -U -w /tmp/faketcp20-client.pcap \
+          # 20ms RTT comes from 10ms on each router egress. Start without loss
+          # for deterministic handshake capture; stage 20% random loss for data.
+          sudo ip netns exec "$R" tc qdisc add dev r1 root netem limit 50000 delay 10ms rate 200mbit
+          sudo ip netns exec "$R" tc qdisc add dev r0 root netem limit 50000 delay 10ms rate 200mbit
+
+          sudo ip netns exec "$C" tcpdump -i c0 -s 0 -U -w /tmp/faketcp20-client.pcap \
             'tcp and (port 54003 or port 54010)' >/tmp/tcpdump-client.log 2>&1 & TPID=$!
+          sudo ip netns exec "$S" tcpdump -i s0 -s 0 -U -w /tmp/faketcp20-server.pcap \
+            'tcp and (port 54003 or port 54010)' >/tmp/tcpdump-server.log 2>&1 & TSPID=$!
           sleep .1
 
           sudo ip netns exec "$S" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
             server --bind 127.0.0.1:54000 --expect 800 --window 6.0 --out /tmp/first20.json \
             >/tmp/first20-server.log 2>&1 & RPID=$!
           sudo ip netns exec "$S" /tmp/wbd-faketcp server \
-            --listen 10.84.0.2:54003 --target-udp 127.0.0.1:54000 >/tmp/faketcp20-server.log 2>&1 & SPID=$!
+            --listen 10.84.1.2:54003 --target-udp 127.0.0.1:54000 >/tmp/faketcp20-server.log 2>&1 & SPID=$!
           sleep .15
           sudo ip netns exec "$C" /tmp/wbd-faketcp client \
-            --local-udp 127.0.0.1:54004 --source 10.84.0.1:54010 --remote 10.84.0.2:54003 \
+            --local-udp 127.0.0.1:54004 --source 10.84.0.1:54010 --remote 10.84.1.2:54003 \
             >/tmp/faketcp20-client.log 2>&1 & CPID=$!
           for i in $(seq 1 300); do
             grep -q 'READY role=client' /tmp/faketcp20-client.log && grep -q 'READY role=server' /tmp/faketcp20-server.log && break
@@ -81,28 +99,30 @@ jobs:
           grep -q 'READY role=client' /tmp/faketcp20-client.log
           grep -q 'READY role=server' /tmp/faketcp20-server.log
 
-          sudo ip netns exec "$C" tc qdisc replace dev vc root netem limit 50000 delay 10ms loss random 20% rate 200mbit
-          sudo ip netns exec "$S" tc qdisc replace dev vs root netem limit 50000 delay 10ms loss random 20% rate 200mbit
+          sudo ip netns exec "$R" tc qdisc replace dev r1 root netem limit 50000 delay 10ms loss random 20% rate 200mbit
+          sudo ip netns exec "$R" tc qdisc replace dev r0 root netem limit 50000 delay 10ms loss random 20% rate 200mbit
           sudo ip netns exec "$C" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
             client --dest 127.0.0.1:54004 --count 800 --size 1200 --interval-ms 1
           wait "$RPID" || true
           RPID=
-          # Keep the carrier alive briefly after the first-arrival observation
-          # window so RFC-style timeout retransmissions are visible in pcap.
+          # Keep shadow TCP alive after the latency observation window so RTO
+          # behavior is visible. It is deliberately not part of latency scoring.
           sleep 2
 
           sudo kill -TERM "$CPID" "$SPID" 2>/dev/null || true
           wait "$CPID" || true
           wait "$SPID" || true
           CPID= SPID=
-          sudo kill -INT "$TPID" 2>/dev/null || true
+          sudo kill -INT "$TPID" "$TSPID" 2>/dev/null || true
           wait "$TPID" || true
-          TPID=
+          wait "$TSPID" || true
+          TPID= TSPID=
 
           cat /tmp/first20-server.log
           cat /tmp/faketcp20-client.log
           cat /tmp/faketcp20-server.log
           cat /tmp/tcpdump-client.log
+          cat /tmp/tcpdump-server.log
           python3 scripts/analyze_faketcp_pcap.py /tmp/faketcp20-client.pcap \
             --client-port 54010 --server-port 54003 --out /tmp/faketcp20-analysis.json
           python3 - <<'PY'
@@ -118,15 +138,17 @@ jobs:
           print('FIRST20_FINAL',json.dumps(first,sort_keys=True))
           print('WIRE20_FINAL',json.dumps(wire,sort_keys=True))
           print('ARQ20_FINAL',json.dumps({'fast':fast,'rto':rto,'sacked':sacks,'stats':stats},sort_keys=True))
-          # Performance-first invariant: the majority of packets that survive
-          # first transmission remain pinned to the one-way propagation floor.
+          # Inner performance is primary. 20% loss must not push successfully
+          # surviving first transmissions behind the TCP sequence hole.
           assert first['p50_ms'] <= 12.0, first
           assert first['p75_ms'] <= 15.0, first
-          # Packet-capture invariants are independent of WBD's counters.
+          # Wire-visible TCP-like behavior, independent of WBD counters.
+          assert wire['data_first_transmissions'] == 800, wire
           assert wire['duplicate_acks'] >= 3, wire
           assert wire['sack_ack_packets'] > 0, wire
           assert wire['retransmission_events'] > 0, wire
           assert wire['fast_retransmit_evidence'] > 0, wire
+          assert wire['rto_scale_retransmit_evidence'] > 0, wire
           assert fast > 0 and rto > 0 and sacks > 0, (fast,rto,sacks)
           PY
       - name: Upload packet capture evidence
@@ -136,6 +158,7 @@ jobs:
           name: faketcp-pcap-20loss
           path: |
             /tmp/faketcp20-client.pcap
+            /tmp/faketcp20-server.pcap
             /tmp/faketcp20-analysis.json
             /tmp/first20.json
             /tmp/faketcp20-client.log
