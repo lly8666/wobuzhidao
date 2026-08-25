@@ -209,10 +209,10 @@ func (p *BufferPool) ShardSize() int { return p.shardSize }
 // BlockHeader is repeated with each shard so packet lengths survive arbitrary
 // shard loss/reorder. Source packets are padded only inside the FEC block.
 type BlockHeader struct {
-	BlockID          uint32
-	ShardIndex       uint8
-	DataCount        uint8
-	ShardSize        uint16
+	BlockID         uint32
+	ShardIndex      uint8
+	DataCount       uint8
+	ShardSize       uint16
 	OriginalLengths [DataShards]uint16
 }
 
