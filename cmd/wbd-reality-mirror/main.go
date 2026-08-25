@@ -17,15 +17,15 @@ import (
 )
 
 type resultLog struct {
-	Remote       string   `json:"remote"`
-	OK           bool     `json:"ok"`
-	Error        string   `json:"error,omitempty"`
-	ServerName   string   `json:"server_name,omitempty"`
-	ALPN         []string `json:"alpn,omitempty"`
-	Target       string   `json:"target"`
-	UpBytes      int64    `json:"up_bytes"`
-	DownBytes    int64    `json:"down_bytes"`
-	DurationMS   float64  `json:"duration_ms"`
+	Remote     string   `json:"remote"`
+	OK         bool     `json:"ok"`
+	Error      string   `json:"error,omitempty"`
+	ServerName string   `json:"server_name,omitempty"`
+	ALPN       []string `json:"alpn,omitempty"`
+	Target     string   `json:"target"`
+	UpBytes    int64    `json:"up_bytes"`
+	DownBytes  int64    `json:"down_bytes"`
+	DurationMS float64  `json:"duration_ms"`
 }
 
 func main() {
@@ -83,7 +83,7 @@ func runServer(args []string) {
 
 	ready := map[string]any{
 		"listen": ln.Addr().String(), "target": *target, "server_name": *serverName,
-		"session_timeout_ms": float64(sessionTimeout.Milliseconds()), "max_bytes_per_direction": *maxBytes,
+		"session_timeout_ms": float64((*sessionTimeout).Milliseconds()), "max_bytes_per_direction": *maxBytes,
 	}
 	printJSON("WBD_REALITY_MIRROR_READY", ready)
 
@@ -104,8 +104,9 @@ func runServer(args []string) {
 				handleOne(ctx, c, cfg)
 			}(conn)
 		default:
+			remote := conn.RemoteAddr().String()
 			_ = conn.Close()
-			printJSON("WBD_REALITY_MIRROR_RESULT", resultLog{Remote: conn.RemoteAddr().String(), OK: false, Error: "concurrency limit", Target: cfg.Target})
+			printJSON("WBD_REALITY_MIRROR_RESULT", resultLog{Remote: remote, OK: false, Error: "concurrency limit", Target: cfg.Target})
 		}
 	}
 }
