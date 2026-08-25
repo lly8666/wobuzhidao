@@ -107,16 +107,37 @@ static int run_client(int listen_port,const char* transport_ip,int transport_por
     printf("READY role=client version=%s cipher=%s listen=%d verify=%s\n",wolfSSL_get_version(ssl),wolfSSL_get_cipher(ssl),listen_port,insecure?"none":"peer-hostname");fflush(stdout);
     int rc=relay_loop("client",ssl,t,p,1);wolfSSL_free(ssl);wolfSSL_CTX_free(ctx);close(t);close(p);return rc;
 }
+
+static int inherited_server_transport(void){
+    const char* s=getenv("WBD_DTLS_TRANSPORT_FD");
+    if(!s||!*s)return -1;
+    char* end=NULL;long v=strtol(s,&end,10);
+    if(!end||*end!='\0'||v<0||v>1048576){fprintf(stderr,"bad WBD_DTLS_TRANSPORT_FD\n");return -2;}
+    int fd=(int)v;struct sockaddr_in a;socklen_t n=sizeof(a);memset(&a,0,sizeof(a));
+    if(getsockname(fd,(struct sockaddr*)&a,&n)<0||a.sin_family!=AF_INET){fprintf(stderr,"invalid inherited DTLS transport fd\n");return -2;}
+    return fd;
+}
+
 static int run_server(int listen_port,const char* target_ip,int target_port,const char* cert,const char* key){
     WOLFSSL_CTX* ctx=wolfSSL_CTX_new(wolfDTLSv1_3_server_method());if(!ctx)return 2;
     if (wolfSSL_CTX_use_certificate_chain_file(ctx,cert)!=WOLFSSL_SUCCESS) return 2;
     if (wolfSSL_CTX_use_PrivateKey_file(ctx,key,WOLFSSL_FILETYPE_PEM)!=WOLFSSL_SUCCESS) return 2;
-    int t=socket(AF_INET,SOCK_DGRAM,0);if(t<0)die("transport socket");timeout_fd(t);struct sockaddr_in la=addr4("127.0.0.1",listen_port);if(bind(t,(struct sockaddr*)&la,sizeof(la))<0)die("transport bind");
+    int inherited=inherited_server_transport();
+    if(inherited==-2)return 2;
+    int t=inherited;
+    if(t<0){
+        t=socket(AF_INET,SOCK_DGRAM,0);if(t<0)die("transport socket");
+        struct sockaddr_in la=addr4("127.0.0.1",listen_port);if(bind(t,(struct sockaddr*)&la,sizeof(la))<0)die("transport bind");
+    }
+    timeout_fd(t);
+    struct sockaddr_in bound;socklen_t bound_len=sizeof(bound);memset(&bound,0,sizeof(bound));
+    if(getsockname(t,(struct sockaddr*)&bound,&bound_len)<0)die("transport getsockname");
+    fprintf(stderr,"BOUND role=server transport_port=%u inherited=%s\n",(unsigned)ntohs(bound.sin_port),inherited>=0?"yes":"no");
     unsigned char peek[2048];struct sockaddr_in peer;socklen_t plen=sizeof(peer);int n=(int)recvfrom(t,peek,sizeof(peek),MSG_PEEK,(struct sockaddr*)&peer,&plen);if(n<=0)die("peek");
     WOLFSSL* ssl=wolfSSL_new(ctx);if(!ssl)return 2;if(wolfSSL_set_fd(ssl,t)!=WOLFSSL_SUCCESS)return 2;if(wolfSSL_dtls_set_peer(ssl,&peer,plen)!=WOLFSSL_SUCCESS)return 2;if(wolfSSL_send_hrr_cookie(ssl,NULL,0)!=WOLFSSL_SUCCESS)return 2;
     int r=wolfSSL_accept(ssl);if(r!=WOLFSSL_SUCCESS){ssl_log("server handshake",ssl,r);return 3;}
     int p=socket(AF_INET,SOCK_DGRAM,0);if(p<0)die("plain socket");struct sockaddr_in ta=addr4(target_ip,target_port);if(connect(p,(struct sockaddr*)&ta,sizeof(ta))<0)die("plain target connect");
-    printf("READY role=server version=%s cipher=%s target=%s:%d\n",wolfSSL_get_version(ssl),wolfSSL_get_cipher(ssl),target_ip,target_port);fflush(stdout);
+    printf("READY role=server version=%s cipher=%s target=%s:%d transport=%u\n",wolfSSL_get_version(ssl),wolfSSL_get_cipher(ssl),target_ip,target_port,(unsigned)ntohs(bound.sin_port));fflush(stdout);
     int rc=relay_loop("server",ssl,t,p,0);wolfSSL_free(ssl);wolfSSL_CTX_free(ctx);close(t);close(p);return rc;
 }
 int main(int argc,char**argv){
