@@ -96,6 +96,12 @@ func NewDemoLinkClientSession(init LinkInit, token []byte, witness [DemoWitnessL
 	if allZero(witness[:]) {
 		return nil, ErrDemoBindFailed
 	}
+	// A public ClientHello hash is correlation evidence, not a credential. Demo
+	// mode therefore always keeps the normal high-entropy WBD device/account
+	// AUTH gate. A deployment with no token must use normal non-demo startup.
+	if len(token) == 0 {
+		return nil, fmt.Errorf("%w: demo mode requires normal WBD token/device authentication", ErrDemoBindFailed)
+	}
 	inner, err := NewLinkClientSession(init, token)
 	if err != nil {
 		return nil, err
@@ -171,6 +177,9 @@ type DemoReliableLinkServerSession struct {
 func NewDemoReliableLinkServerSession(minProtocol, maxProtocol uint16, expectedToken []byte, policy LinkPolicy, verify DemoWitnessVerifier) (*DemoReliableLinkServerSession, error) {
 	if verify == nil {
 		return nil, ErrDemoBindFailed
+	}
+	if len(expectedToken) == 0 {
+		return nil, fmt.Errorf("%w: demo mode requires normal WBD token/device authentication", ErrDemoBindFailed)
 	}
 	inner, err := NewReliableLinkServerSession(minProtocol, maxProtocol, expectedToken, policy)
 	if err != nil {
