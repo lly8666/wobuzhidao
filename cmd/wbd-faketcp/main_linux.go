@@ -27,6 +27,7 @@ type config struct {
 	source    string
 	listen    string
 	remote    string
+	recovery  string
 }
 
 type endpoint struct {
@@ -53,6 +54,7 @@ type endpoint struct {
 
 type finalStats struct {
 	Role     string                `json:"role"`
+	Recovery string                `json:"recovery"`
 	RawTx    uint64                `json:"raw_tx"`
 	RawRx    uint64                `json:"raw_rx"`
 	AckTx    uint64                `json:"ack_tx"`
@@ -74,15 +76,17 @@ func main() {
 	fs.StringVar(&c.source, "source", "", "client raw source ip:port")
 	fs.StringVar(&c.listen, "listen", "", "server raw listen ip:port")
 	fs.StringVar(&c.remote, "remote", "", "client raw remote ip:port")
+	fs.StringVar(&c.recovery, "shadow-recovery", "sack-rack", "TCP-like shadow recovery: legacy or sack-rack")
 	_ = fs.Parse(os.Args[2:])
 	if role != "client" && role != "server" { usage(); os.Exit(2) }
+	if _, err := parseRecovery(c.recovery); err != nil { fmt.Fprintln(os.Stderr,"wbd-faketcp:",err); os.Exit(2) }
 
 	e, err := newEndpoint(c)
 	if err != nil { fmt.Fprintln(os.Stderr, "wbd-faketcp:", err); os.Exit(1) }
 	defer e.close()
 	if err := e.handshake(); err != nil { fmt.Fprintln(os.Stderr, "wbd-faketcp handshake:", err); os.Exit(1) }
 	e.senderMu.Lock(); startupRTO := e.sender.RTO(); e.senderMu.Unlock()
-	fmt.Printf("READY role=%s rto_ms=%.3f\n", role, float64(startupRTO)/float64(time.Millisecond))
+	fmt.Printf("READY role=%s rto_ms=%.3f recovery=%s\n", role, float64(startupRTO)/float64(time.Millisecond), c.recovery)
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
@@ -101,8 +105,19 @@ func main() {
 
 func usage() {
 	fmt.Fprintln(os.Stderr, "usage:")
-	fmt.Fprintln(os.Stderr, "  wbd-faketcp client --local-udp 127.0.0.1:PORT --source IP:PORT --remote IP:PORT")
-	fmt.Fprintln(os.Stderr, "  wbd-faketcp server --listen IP:PORT --target-udp 127.0.0.1:PORT")
+	fmt.Fprintln(os.Stderr, "  wbd-faketcp client --local-udp 127.0.0.1:PORT --source IP:PORT --remote IP:PORT [--shadow-recovery legacy|sack-rack]")
+	fmt.Fprintln(os.Stderr, "  wbd-faketcp server --listen IP:PORT --target-udp 127.0.0.1:PORT [--shadow-recovery legacy|sack-rack]")
+}
+
+func parseRecovery(s string) (faketcp.RecoveryMode, error) {
+	switch s {
+	case "legacy":
+		return faketcp.RecoveryLegacy, nil
+	case "sack-rack", "advanced":
+		return faketcp.RecoverySACKRACK, nil
+	default:
+		return faketcp.RecoverySACKRACK, fmt.Errorf("unknown --shadow-recovery %q", s)
+	}
 }
 
 func newEndpoint(c config) (*endpoint, error) {
@@ -144,6 +159,11 @@ func randomSeq() uint32 {
 	return uint32(time.Now().UnixNano())
 }
 
+func (e *endpoint) newSender(seq uint32, rto time.Duration) *faketcp.Sender {
+	mode, _ := parseRecovery(e.cfg.recovery)
+	return faketcp.NewSenderWithRecovery(seq, rto, mode)
+}
+
 func (e *endpoint) handshake() error {
 	if e.cfg.role == "client" { return e.handshakeClient() }
 	return e.handshakeServer()
@@ -174,7 +194,7 @@ func (e *endpoint) handshakeClient() error {
 			peerNext := seg.Seq+1
 			if err := e.send(isn+1,peerNext,faketcp.FlagACK,nil,nil); err != nil { return err }
 			rtt := time.Since(sent)
-			e.sender = faketcp.NewSender(isn+1,maxDuration(40*time.Millisecond,2*rtt))
+			e.sender = e.newSender(isn+1,maxDuration(40*time.Millisecond,2*rtt))
 			e.receiver = faketcp.NewReceiver(peerNext)
 			_ = e.clearReadTimeout()
 			return nil
@@ -203,7 +223,7 @@ func (e *endpoint) handshakeServer() error {
 				}
 				if a.SrcIP != e.dstIP || a.DstIP != e.srcIP || a.SrcPort != e.dstPort || a.DstPort != e.srcPort || a.Flags&faketcp.FlagACK == 0 || a.Ack != isn+1 { continue }
 				rtt := time.Since(sent)
-				e.sender = faketcp.NewSender(isn+1,maxDuration(40*time.Millisecond,2*rtt))
+				e.sender = e.newSender(isn+1,maxDuration(40*time.Millisecond,2*rtt))
 				e.receiver = faketcp.NewReceiver(peerNext)
 				_ = e.clearReadTimeout()
 				return nil
@@ -233,11 +253,6 @@ func (e *endpoint) rawLoop() error {
 		if seg.SrcIP != e.dstIP || seg.DstIP != e.srcIP || seg.SrcPort != e.dstPort || seg.DstPort != e.srcPort { continue }
 		atomic.AddUint64(&e.rawRx,1)
 
-		// A real TCP client that has sent the third-handshake ACK must answer a
-		// retransmitted SYN-ACK when that final ACK was lost. The client already
-		// considers the association established, so this recovery belongs here,
-		// not in handshakeClient. Without it, 10-20% loss can leave the server in
-		// SYN-RECEIVED forever while the client has started its data loops.
 		if e.cfg.role == "client" && len(seg.Payload) == 0 && seg.Flags&(faketcp.FlagSYN|faketcp.FlagACK) == faketcp.FlagSYN|faketcp.FlagACK {
 			snd := e.senderNext()
 			rcv := e.receiverNext()
@@ -252,9 +267,7 @@ func (e *endpoint) rawLoop() error {
 		if seg.Flags&faketcp.FlagACK != 0 {
 			e.senderMu.Lock()
 			p := e.sender.AckSelective(seg.Ack,seg.SACK[:seg.SACKN],now)
-			if p != nil {
-				err = e.sendDataPending(p)
-			}
+			if p != nil { err = e.sendDataPending(p) }
 			e.senderMu.Unlock()
 			if err != nil { return err }
 		}
@@ -336,8 +349,6 @@ func (e *endpoint) innerPeer() *net.UDPAddr {
 	return &cp
 }
 
-// Caller holds senderMu, guaranteeing a Pending slab cannot be ACK-recycled
-// while a retransmission is being serialized to the raw socket.
 func (e *endpoint) sendDataPending(p *faketcp.Pending) error {
 	if p==nil || len(p.Payload)==0 { return nil }
 	if err:=e.send(p.Seq,e.receiverNext(),faketcp.FlagACK|faketcp.FlagPSH,nil,p.Payload); err!=nil { return err }
@@ -368,7 +379,7 @@ func (e *endpoint) printStats() {
 	if e.sender==nil || e.receiver==nil { return }
 	e.senderMu.Lock(); ss:=e.sender.Stats(); rto:=e.sender.RTO(); e.senderMu.Unlock()
 	e.receiverMu.Lock(); rs:=e.receiver.Stats(); e.receiverMu.Unlock()
-	st:=finalStats{Role:e.cfg.role,RawTx:atomic.LoadUint64(&e.rawTx),RawRx:atomic.LoadUint64(&e.rawRx),AckTx:atomic.LoadUint64(&e.ackTx),DataTx:atomic.LoadUint64(&e.dataTx),DataRx:atomic.LoadUint64(&e.dataRx),Sender:ss,Receiver:rs,RTOms:float64(rto)/float64(time.Millisecond)}
+	st:=finalStats{Role:e.cfg.role,Recovery:e.cfg.recovery,RawTx:atomic.LoadUint64(&e.rawTx),RawRx:atomic.LoadUint64(&e.rawRx),AckTx:atomic.LoadUint64(&e.ackTx),DataTx:atomic.LoadUint64(&e.dataTx),DataRx:atomic.LoadUint64(&e.dataRx),Sender:ss,Receiver:rs,RTOms:float64(rto)/float64(time.Millisecond)}
 	b,_:=json.Marshal(st)
 	fmt.Printf("WBD_FAKETCP_STATS %s\n",b)
 }
