@@ -1,6 +1,6 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 36,
+  "continuity_sequence": 37,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
@@ -55,8 +55,8 @@
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "568205bd78ebd49afaa190adf93a5acfca92563f",
-    "result": "pass_for_transport_checkpoint; planner_commit_ci_pending_at_handoff_write",
-    "command": "GitHub Actions fullstack-first-arrival run 32841039689 passed all 6 points and ran go test ./internal/fec ./internal/faketcp -count=1. Native 20% pcap and focused first-arrival workflows also passed at that transport checkpoint. New planner.go/planner_test.go at 0fd1f05c500fa07682cbfb2789766b38ce8be442 was pushed immediately before this handoff; fresh CI was in progress and is not claimed here as a completed live test."
+    "tested_commit": "0fd1f05c500fa07682cbfb2789766b38ce8be442",
+    "result": "pass",
+    "command": "GitHub Actions ci run 32847581377 completed its Go tests successfully at planner commit 0fd1f05c500fa07682cbfb2789766b38ce8be442; that run's overall failure was only the then-stale handoff contract. The earlier transport checkpoint fullstack-first-arrival run 32841039689 passed all 6 focused points and native 20% pcap/first-arrival workflows passed. This field is a snapshot and does not claim to replace live CI refresh."
   }
 }
