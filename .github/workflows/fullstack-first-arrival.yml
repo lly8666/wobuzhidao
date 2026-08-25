@@ -62,7 +62,7 @@ jobs:
             -keyout /tmp/assets/certs/server.key -out /tmp/assets/certs/server.csr >/dev/null 2>&1
           openssl x509 -req -in /tmp/assets/certs/server.csr -CA /tmp/assets/certs/ca.pem -CAkey /tmp/assets/certs/ca.key \
             -CAcreateserial -days 7 -sha256 -extfile /tmp/assets/certs/server.ext -out /tmp/assets/certs/server.pem >/dev/null 2>&1
-      - name: Measure earliest complete inner datagram
+      - name: Measure earliest complete inner datagram on 100 Mbit link
         env:
           RTT: ${{ matrix.rtt }}
           LOSS: ${{ matrix.loss }}
@@ -102,8 +102,8 @@ jobs:
           print(float('$RTT')/2.0)
           PY
           )
-          sudo ip netns exec "$R" tc qdisc add dev r1 root netem limit 50000 delay "${HALF}ms" rate 200mbit
-          sudo ip netns exec "$R" tc qdisc add dev r0 root netem limit 50000 delay "${HALF}ms" rate 200mbit
+          sudo ip netns exec "$R" tc qdisc add dev r1 root netem limit 50000 delay "${HALF}ms" rate 100mbit
+          sudo ip netns exec "$R" tc qdisc add dev r0 root netem limit 50000 delay "${HALF}ms" rate 100mbit
 
           BASE=55000
           sudo ip netns exec "$S" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
@@ -138,8 +138,8 @@ jobs:
           grep -q 'READY role=server' /tmp/full-fec-server.log
 
           if [[ "$LOSS" != "0" ]]; then
-            sudo ip netns exec "$R" tc qdisc replace dev r1 root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 200mbit
-            sudo ip netns exec "$R" tc qdisc replace dev r0 root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 200mbit
+            sudo ip netns exec "$R" tc qdisc replace dev r1 root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 100mbit
+            sudo ip netns exec "$R" tc qdisc replace dev r0 root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 100mbit
           fi
           sudo ip netns exec "$C" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
             client --dest 127.0.0.1:$((BASE+7)) --count 800 --size 1200 --interval-ms 1
@@ -159,10 +159,7 @@ jobs:
           import json,os
           row=json.load(open('/tmp/full-first.json'))
           rtt=float(os.environ['RTT']); loss=float(os.environ['LOSS'])
-          print('FULLSTACK_FIRST',json.dumps({'rtt_ms':rtt,'loss_pct':loss,**row},sort_keys=True))
-          # Do not hide loss tail with a delivery threshold. The key invariant is
-          # no HOL for the body of first-complete deliveries; FEC effectiveness is
-          # reported separately through delivery ratio and upper percentiles.
+          print('FULLSTACK_FIRST',json.dumps({'link_mbps':100,'rtt_ms':rtt,'loss_pct':loss,**row},sort_keys=True))
           assert row['p50_ms'] <= rtt/2.0 + 25.0, row
           assert row['p75_ms'] <= rtt/2.0 + 30.0, row
           if loss == 0:
