@@ -1,6 +1,7 @@
 package fec
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"time"
@@ -12,8 +13,15 @@ var (
 	ErrHeaderMismatch = errors.New("fec: inconsistent block header")
 )
 
-// BlockEncoder groups packet-preserving datagrams into fixed 20-data-shard
-// blocks. Full blocks flush immediately; partial blocks flush on FlushAfter.
+// Header bytes 14:16 were reserved from the first WBD FEC wire format. Bit 0
+// now marks a systematic source shard whose payload is complete and may be
+// delivered immediately, before the block's final size/count metadata exists.
+// Final parity shards keep flags=0 and carry the authoritative block metadata.
+const headerFlagStreamingSystematic uint16 = 1
+
+// BlockEncoder is the simple reference encoder. It retains the original
+// all-at-flush behavior; FastBlockEncoder is the performance data path and
+// streams systematic shards immediately.
 type BlockEncoder struct {
 	codec         Codec
 	maxPacketSize int
@@ -82,8 +90,6 @@ func (e *BlockEncoder) flush() ([][]byte, error) {
 	}
 
 	// A partial block does not transmit the known-zero unused systematic shards.
-	// The decoder recreates those zeros from DataCount. All 20 parity shards are
-	// still emitted so the real source packets retain the fixed 20-parity budget.
 	wire := make([][]byte, 0, dataCount+ParityShards)
 	appendShard := func(index int) error {
 		h := BlockHeader{
@@ -121,14 +127,25 @@ func (e *BlockEncoder) flush() ([][]byte, error) {
 }
 
 type decodeBlock struct {
-	header  BlockHeader
+	header BlockHeader
+	final  bool
+
 	shards  [][]byte
 	present []bool
 	count   int
+
+	// Streaming sources are retained only as retransformation inputs. Their
+	// payload has already been delivered to the inner path on first arrival.
+	sources       [DataShards][]byte
+	sourcePresent [DataShards]bool
+	sourceCount   int
+	delivered     [DataShards]bool
 }
 
 // BlockDecoder keeps a bounded number of in-flight blocks and a bounded recent
 // completion set so late parity/source shards do not recreate completed blocks.
+// Streaming systematic shards are returned immediately; parity later supplies
+// final metadata and reconstructs only sources that never arrived.
 type BlockDecoder struct {
 	codec         Codec
 	maxPacketSize int
@@ -162,6 +179,16 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 	if int(h.ShardSize) > d.maxPacketSize || len(datagram) != HeaderSize+int(h.ShardSize) {
 		return nil, false, ErrPacketTooLarge
 	}
+	flags := binary.BigEndian.Uint16(datagram[14:16])
+	if flags & ^headerFlagStreamingSystematic != 0 {
+		return nil, false, ErrHeaderMismatch
+	}
+	streaming := flags&headerFlagStreamingSystematic != 0
+	if streaming {
+		if err := validateStreamingHeader(h); err != nil {
+			return nil, false, err
+		}
+	}
 	if _, ok := d.completed[h.BlockID]; ok {
 		return nil, false, nil
 	}
@@ -171,28 +198,128 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 		if len(d.blocks) >= d.maxBlocks {
 			return nil, false, ErrDecoderFull
 		}
-		b = &decodeBlock{header: h, shards: make([][]byte, TotalShards), present: make([]bool, TotalShards)}
-		for i := range b.shards {
-			b.shards[i] = make([]byte, h.ShardSize)
-		}
-		// Unused systematic shards in a partial block are known zeros and count
-		// as available equations without consuming wire bytes.
-		for i := int(h.DataCount); i < DataShards; i++ {
-			b.present[i] = true
-			b.count++
-		}
+		b = &decodeBlock{}
 		d.blocks[h.BlockID] = b
+	}
+	if streaming {
+		return d.addStreamingSource(b, h, datagram[HeaderSize:])
+	}
+	return d.addFinalShard(b, h, datagram[HeaderSize:])
+}
+
+func validateStreamingHeader(h BlockHeader) error {
+	idx := int(h.ShardIndex)
+	if idx >= DataShards || int(h.DataCount) != DataShards {
+		return ErrHeaderMismatch
+	}
+	if h.OriginalLengths[idx] != h.ShardSize {
+		return ErrHeaderMismatch
+	}
+	for i, n := range h.OriginalLengths {
+		if i != idx && n != 0 {
+			return ErrHeaderMismatch
+		}
+	}
+	return nil
+}
+
+func (d *BlockDecoder) addStreamingSource(b *decodeBlock, h BlockHeader, payload []byte) ([][]byte, bool, error) {
+	idx := int(h.ShardIndex)
+	if b.final {
+		if idx >= int(b.header.DataCount) || int(b.header.OriginalLengths[idx]) != len(payload) {
+			return nil, false, ErrHeaderMismatch
+		}
+		if b.present[idx] {
+			return nil, false, nil
+		}
+		copy(b.shards[idx], payload)
+		b.present[idx] = true
+		b.count++
+	} else {
+		if b.sourcePresent[idx] {
+			return nil, false, nil
+		}
+		b.sources[idx] = append([]byte(nil), payload...)
+		b.sourcePresent[idx] = true
+		b.sourceCount++
+	}
+
+	var out [][]byte
+	if !b.delivered[idx] {
+		out = append(out, append([]byte(nil), payload...))
+		b.delivered[idx] = true
+	}
+
+	// Twenty streaming systematic shards prove this is a complete full block.
+	// All originals have already been delivered, so parity can become a late
+	// duplicate and the block need not consume decoder-window memory.
+	if !b.final && b.sourceCount == DataShards {
+		delete(d.blocks, h.BlockID)
+		d.markCompleted(h.BlockID)
+		return out, true, nil
+	}
+	if !b.final {
+		return out, false, nil
+	}
+	recovered, done, err := d.maybeComplete(h.BlockID, b)
+	if err != nil {
+		return nil, false, err
+	}
+	out = append(out, recovered...)
+	return out, done, nil
+}
+
+func (d *BlockDecoder) addFinalShard(b *decodeBlock, h BlockHeader, payload []byte) ([][]byte, bool, error) {
+	if !b.final {
+		if err := d.finalizeMetadata(b, h); err != nil {
+			return nil, false, err
+		}
 	} else if !sameBlockHeader(b.header, h) {
 		return nil, false, ErrHeaderMismatch
 	}
 
 	idx := int(h.ShardIndex)
-	if b.present[idx] {
-		return nil, false, nil
+	if !b.present[idx] {
+		copy(b.shards[idx], payload)
+		b.present[idx] = true
+		b.count++
 	}
-	copy(b.shards[idx], datagram[HeaderSize:])
-	b.present[idx] = true
-	b.count++
+	return d.maybeComplete(h.BlockID, b)
+}
+
+func (d *BlockDecoder) finalizeMetadata(b *decodeBlock, h BlockHeader) error {
+	b.header = h
+	b.final = true
+	b.shards = make([][]byte, TotalShards)
+	b.present = make([]bool, TotalShards)
+	for i := range b.shards {
+		b.shards[i] = make([]byte, h.ShardSize)
+	}
+	for i := int(h.DataCount); i < DataShards; i++ {
+		b.present[i] = true
+		b.count++
+	}
+	for i := 0; i < DataShards; i++ {
+		if !b.sourcePresent[i] {
+			continue
+		}
+		if i >= int(h.DataCount) || len(b.sources[i]) != int(h.OriginalLengths[i]) {
+			return ErrHeaderMismatch
+		}
+		copy(b.shards[i], b.sources[i])
+		b.present[i] = true
+		b.count++
+		b.sources[i] = nil
+	}
+	return nil
+}
+
+func (d *BlockDecoder) maybeComplete(blockID uint32, b *decodeBlock) ([][]byte, bool, error) {
+	if allDataDelivered(b) {
+		delete(d.blocks, blockID)
+		d.markCompleted(blockID)
+		return nil, true, nil
+	}
 	if b.count < DataShards {
 		return nil, false, nil
 	}
@@ -200,17 +327,33 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 		return nil, false, err
 	}
 
-	packets := make([][]byte, int(b.header.DataCount))
-	for i := range packets {
+	packets := make([][]byte, 0, int(b.header.DataCount))
+	for i := 0; i < int(b.header.DataCount); i++ {
+		if b.delivered[i] {
+			continue
+		}
 		n := int(b.header.OriginalLengths[i])
 		if n > len(b.shards[i]) {
 			return nil, false, fmt.Errorf("fec: reconstructed packet %d length overflow", i)
 		}
-		packets[i] = append([]byte(nil), b.shards[i][:n]...)
+		packets = append(packets, append([]byte(nil), b.shards[i][:n]...))
+		b.delivered[i] = true
 	}
-	delete(d.blocks, h.BlockID)
-	d.markCompleted(h.BlockID)
+	delete(d.blocks, blockID)
+	d.markCompleted(blockID)
 	return packets, true, nil
+}
+
+func allDataDelivered(b *decodeBlock) bool {
+	if !b.final {
+		return false
+	}
+	for i := 0; i < int(b.header.DataCount); i++ {
+		if !b.delivered[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func sameBlockHeader(a, b BlockHeader) bool {
