@@ -232,6 +232,22 @@ func (e *endpoint) rawLoop() error {
 		seg,err := faketcp.ParseIPv4TCP(buf[:n]); if err != nil { continue }
 		if seg.SrcIP != e.dstIP || seg.DstIP != e.srcIP || seg.SrcPort != e.dstPort || seg.DstPort != e.srcPort { continue }
 		atomic.AddUint64(&e.rawRx,1)
+
+		// A real TCP client that has sent the third-handshake ACK must answer a
+		// retransmitted SYN-ACK when that final ACK was lost. The client already
+		// considers the association established, so this recovery belongs here,
+		// not in handshakeClient. Without it, 10-20% loss can leave the server in
+		// SYN-RECEIVED forever while the client has started its data loops.
+		if e.cfg.role == "client" && len(seg.Payload) == 0 && seg.Flags&(faketcp.FlagSYN|faketcp.FlagACK) == faketcp.FlagSYN|faketcp.FlagACK {
+			snd := e.senderNext()
+			rcv := e.receiverNext()
+			if seg.Ack == snd && seg.Seq+1 == rcv {
+				if err := e.send(snd, rcv, faketcp.FlagACK, nil, nil); err != nil { return err }
+				atomic.AddUint64(&e.ackTx,1)
+				continue
+			}
+		}
+
 		now := time.Now()
 		if seg.Flags&faketcp.FlagACK != 0 {
 			e.senderMu.Lock()
