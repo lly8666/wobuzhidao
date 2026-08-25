@@ -26,14 +26,15 @@ static int server(int port, double seconds, int drain_ms, const char *out) {
     struct sockaddr_in a={.sin_family=AF_INET,.sin_port=htons(port),.sin_addr.s_addr=htonl(INADDR_LOOPBACK)};
     if(bind(s,(void*)&a,sizeof(a))<0){perror("bind");return 2;}
     fcntl(s,F_SETFL,fcntl(s,F_GETFL)|O_NONBLOCK);
-    uint8_t *buf=malloc(65536), *seen=NULL; double *lat=NULL; uint64_t total=0,received=0,dup=0,ooo=0,last=0; int have=0;
-    uint64_t first=0, deadline=0;
+    uint8_t *buf=malloc(65536), *seen=NULL; double *lat=NULL;
+    uint64_t total=0,received=0,dup=0,ooo=0,last=0; int have=0,packet_size=0;
+    uint64_t first=0,deadline=0;
     for(;;){
         ssize_t n=recv(s,buf,65536,0); uint64_t now=nowns();
         if(n>=24){
             uint64_t seq,tot,ts; memcpy(&seq,buf,8); memcpy(&tot,buf+8,8); memcpy(&ts,buf+16,8);
             if(!first){
-                first=now; total=tot; seen=calloc(total,1); lat=malloc(total*sizeof(double));
+                first=now; total=tot; packet_size=(int)n; seen=calloc(total,1); lat=malloc(total*sizeof(double));
                 if(!seen||!lat){fprintf(stderr,"alloc\n");return 2;}
                 deadline=first+(uint64_t)(seconds*1e9)+(uint64_t)drain_ms*1000000ull;
             }
@@ -46,9 +47,11 @@ static int server(int port, double seconds, int drain_ms, const char *out) {
         struct timespec t={0,200000}; nanosleep(&t,NULL);
     }
     uint64_t end=nowns(); double p50=q(lat,received,.50),p95=q(lat,received,.95),p99=q(lat,received,.99),mx=received?lat[received-1]:NAN;
-    double wall=first?(double)(end-first)/1e9:0.0; double good=wall>0?(double)received*1200.0*8.0/wall/1e6:0.0;
+    double wall=first?(double)(end-first)/1e9:0.0;
+    double good_active=seconds>0?(double)received*(double)packet_size*8.0/seconds/1e6:0.0;
+    double good_wall=wall>0?(double)received*(double)packet_size*8.0/wall/1e6:0.0;
     FILE *f=fopen(out,"w"); if(!f){perror("fopen");return 2;}
-    fprintf(f,"{\n  \"planned\": %"PRIu64",\n  \"delivered\": %"PRIu64",\n  \"delivery_ratio\": %.9f,\n  \"receiver_wall_s\": %.6f,\n  \"delivered_mbps_wall_1200B\": %.3f,\n  \"oneway_p50_ms\": %.3f,\n  \"oneway_p95_ms\": %.3f,\n  \"oneway_p99_ms\": %.3f,\n  \"oneway_max_ms\": %.3f,\n  \"out_of_order_events\": %"PRIu64",\n  \"duplicates\": %"PRIu64"\n}\n",total,received,total?(double)received/total:0.0,wall,good,p50,p95,p99,mx,ooo,dup);
+    fprintf(f,"{\n  \"planned\": %"PRIu64",\n  \"delivered\": %"PRIu64",\n  \"packet_size\": %d,\n  \"delivery_ratio\": %.9f,\n  \"receiver_wall_s\": %.6f,\n  \"delivered_mbps_active\": %.3f,\n  \"delivered_mbps_wall\": %.3f,\n  \"oneway_p50_ms\": %.3f,\n  \"oneway_p95_ms\": %.3f,\n  \"oneway_p99_ms\": %.3f,\n  \"oneway_max_ms\": %.3f,\n  \"out_of_order_events\": %"PRIu64",\n  \"duplicates\": %"PRIu64"\n}\n",total,received,packet_size,total?(double)received/total:0.0,wall,good_active,good_wall,p50,p95,p99,mx,ooo,dup);
     fclose(f); close(s); free(buf); free(seen); free(lat); return 0;
 }
 
