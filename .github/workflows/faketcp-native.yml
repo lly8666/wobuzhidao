@@ -24,9 +24,12 @@ jobs:
         run: |
           go test ./internal/faketcp -count=1
           go build -trimpath -o /tmp/wbd-faketcp ./cmd/wbd-faketcp
-      - name: Run raw retransmission smoke
+      - name: Run explicit SACK/RACK raw retransmission smoke
         run: |
           set -euo pipefail
+          # Product default is intentionally legacy after the loaded 100-Mbit
+          # latency decision. This smoke is the strong-recovery qualification,
+          # so request sack-rack explicitly and keep its complete-delivery gate.
           C=wbdftc$$
           S=wbdfts$$
           cleanup() {
@@ -64,17 +67,17 @@ jobs:
               s.sendto(b,a)
           PY
           sudo ip netns exec "$S" python3 /tmp/wbd_echo.py >/tmp/echo.log 2>&1 & EPID=$!
-          sudo ip netns exec "$S" /tmp/wbd-faketcp server --listen 10.82.0.2:52003 --target-udp 127.0.0.1:52000 >/tmp/fts.log 2>&1 & SPID=$!
+          sudo ip netns exec "$S" /tmp/wbd-faketcp server --shadow-recovery sack-rack --listen 10.82.0.2:52003 --target-udp 127.0.0.1:52000 >/tmp/fts.log 2>&1 & SPID=$!
           sleep .15
-          sudo ip netns exec "$C" /tmp/wbd-faketcp client --local-udp 127.0.0.1:52004 --source 10.82.0.1:52010 --remote 10.82.0.2:52003 >/tmp/ftc.log 2>&1 & CPID=$!
+          sudo ip netns exec "$C" /tmp/wbd-faketcp client --shadow-recovery sack-rack --local-udp 127.0.0.1:52004 --source 10.82.0.1:52010 --remote 10.82.0.2:52003 >/tmp/ftc.log 2>&1 & CPID=$!
           for i in $(seq 1 200); do
-            grep -q 'READY role=client' /tmp/ftc.log && grep -q 'READY role=server' /tmp/fts.log && break
+            grep -q 'READY role=client.*recovery=sack-rack' /tmp/ftc.log && grep -q 'READY role=server.*recovery=sack-rack' /tmp/fts.log && break
             sleep .05
           done
           cat /tmp/ftc.log
           cat /tmp/fts.log
-          grep -q 'READY role=client' /tmp/ftc.log
-          grep -q 'READY role=server' /tmp/fts.log
+          grep -q 'READY role=client.*recovery=sack-rack' /tmp/ftc.log
+          grep -q 'READY role=server.*recovery=sack-rack' /tmp/fts.log
 
           cat >/tmp/wbd_probe.py <<'PY'
           import json,socket,struct,threading,time
@@ -123,6 +126,7 @@ jobs:
           print('PROBE_FINAL',json.dumps(probe,sort_keys=True))
           print('ARQ_FINAL',json.dumps(rows,sort_keys=True))
           assert probe['received']==probe['sent'], probe
+          assert all(r['recovery']=='sack-rack' for r in rows), rows
           assert sum(r['sender']['FastRetransmits']+r['sender']['RTOTransmits'] for r in rows)>0, rows
           assert sum(r['sender']['SACKed'] for r in rows)>0, rows
           PY
