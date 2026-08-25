@@ -50,7 +50,7 @@ Peer collisions are rejected instead of overwriting another session. Removing on
 
 ## Decision 4 — public FakeTCP listener fans out by raw 4-tuple
 
-The server must expose one normal public FakeTCP listener while supporting several simultaneous associations. The fan-out key is:
+The server exposes one normal public FakeTCP listener while supporting several simultaneous associations. The fan-out key is:
 
 ```text
 (client IPv4, client TCP-shaped source port,
@@ -59,15 +59,17 @@ The server must expose one normal public FakeTCP listener while supporting sever
 
 Each raw association owns independent handshake state, sequence spaces, SACK/RTO state and first-arrival receiver state. Account identity is deliberately absent at this layer because the ticket is not available until after DTLS.
 
-`internal/faketcp.ServerAssociationTable` and `ServerAssociation` are the reusable mux core. The next executable step is to replace the single-peer FakeTCP server loop with this table rather than duplicate ARQ code.
+`internal/faketcp.ServerAssociationTable` and `ServerAssociation` are the reusable mux core. `cmd/wbd-faketcp-mux` now wires that core to a single public raw socket. A new SYN allocates one association, one loopback UDP relay and one DTLS worker; replies from that worker are enqueued only into the owning raw association.
+
+The old `wbd-faketcp server` remains a single-association regression/benchmark binary while the mux is qualified.
 
 ## Decision 5 — one DTLS worker per raw association for V2.2
 
-The pinned wolfSSL shim is currently one-association-per-process: one UDP peer, one `WOLFSSL*`, one relay loop. For this personal server, V2.2 keeps that simple model instead of building a complex multi-peer wolfSSL event engine.
+The pinned wolfSSL shim is one-association-per-process: one UDP peer, one `WOLFSSL*`, one relay loop. For this personal server, V2.2 keeps that simple model instead of building a complex multi-peer wolfSSL event engine.
 
 The public FakeTCP mux allocates one loopback UDP transport per raw association and launches/owns one DTLS worker for that association. All workers send plaintext to the shared WBD link/session server, where the source UDP peer becomes the hot demux index.
 
-To avoid loopback port races, the DTLS shim can inherit an already-bound UDP fd through `WBD_DTLS_TRANSPORT_FD`. The parent binds loopback `:0`, learns the port, passes the fd to the child and routes only that FakeTCP association to it.
+To avoid loopback port races, the DTLS shim can inherit an already-bound UDP fd through `WBD_DTLS_TRANSPORT_FD`. `internal/dtlsworker` binds loopback `:0`, passes the socket as fd 3, removes stale inherited-fd environment values and owns the worker lifecycle. The C shim validates the inherited IPv4 socket and reports the actual bound transport port.
 
 This process-per-association choice is intentional for a small personal device count. If measurements later show worker-process overhead matters, wolfSSL multi-association I/O can replace it without changing account/ticket/LiveID semantics.
 
@@ -93,9 +95,9 @@ Real platform packet-adapter integration starts after the transport/session prot
 
 ## Next implementation order
 
-1. Wire `ServerAssociationTable` into a real multi-association FakeTCP raw server loop.
-2. Allocate one loopback transport and inherited-fd wolfSSL DTLS worker per raw association.
-3. Convert the WBD link server to accept several DTLS plaintext peers and route them through `session.DataPlane`.
-4. Bind each peer by atomically consuming a ticket, then activate its immutable LinkConfig after `LINK_ACCEPT`.
-5. Qualify at least two simultaneous devices using the same username/password with independent traffic in both FEC-off and fixed-20:20 modes.
+1. Qualify `cmd/wbd-faketcp-mux` compile/unit behavior and then a real two-client raw/DTLS run on one public listener.
+2. Convert the WBD link server from one DTLS plaintext peer to several peers routed through `session.DataPlane`.
+3. Bind each peer by atomically consuming a ticket, then activate its immutable LinkConfig after `LINK_ACCEPT`.
+4. Qualify at least two simultaneous devices using the same username/password with independent traffic in both FEC-off and fixed-20:20 modes.
+5. Re-run 100 Mbit first-arrival/full-stack/pcap plus worker CPU/RSS accounting with two sessions.
 6. Freeze protocol, then perform final OpenWrt TPROXY and Windows TUN one-shot VPN qualifications.
