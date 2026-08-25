@@ -37,6 +37,17 @@ func TestDemoFramesRoundTrip(t *testing.T) {
 	}
 }
 
+func TestDemoModeRequiresNormalAuthentication(t *testing.T) {
+	cfg := LinkConfig{FECMode: FECOff, Scheduler: FECSchedulerNone, LaneCount: 1, MTU: 1400}
+	w := demoWitness(3)
+	if _, err := NewDemoLinkClientSession(LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: cfg}, nil, w); !errors.Is(err, ErrDemoBindFailed) {
+		t.Fatalf("client without token err=%v", err)
+	}
+	if _, err := NewDemoReliableLinkServerSession(1, 1, nil, CurrentLinkPolicy(), func([DemoWitnessLen]byte) error { return nil }); !errors.Is(err, ErrDemoBindFailed) {
+		t.Fatalf("server without expected token err=%v", err)
+	}
+}
+
 func TestDemoBoundStartupRequiresWitnessBeforeLinkInit(t *testing.T) {
 	cfg := LinkConfig{FECMode: FECOff, Scheduler: FECSchedulerNone, LaneCount: 1, MTU: 1400}
 	w := demoWitness(7)
@@ -106,7 +117,7 @@ func TestDemoBoundStartupRequiresWitnessBeforeLinkInit(t *testing.T) {
 
 func TestDemoBindRetryIsIdempotentButChangeFails(t *testing.T) {
 	w := demoWitness(11)
-	server, err := NewDemoReliableLinkServerSession(1, 1, nil, CurrentLinkPolicy(), func([DemoWitnessLen]byte) error { return nil })
+	server, err := NewDemoReliableLinkServerSession(1, 1, []byte("secret"), CurrentLinkPolicy(), func([DemoWitnessLen]byte) error { return nil })
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +144,7 @@ func TestDemoBindRetryIsIdempotentButChangeFails(t *testing.T) {
 
 func TestDemoBindRejectsMissingOrInvalidWitness(t *testing.T) {
 	cfg := LinkConfig{FECMode: FECOff, Scheduler: FECSchedulerNone, LaneCount: 1, MTU: 1400}
-	server, err := NewDemoReliableLinkServerSession(1, 1, nil, CurrentLinkPolicy(), func([DemoWitnessLen]byte) error { return errors.New("expired") })
+	server, err := NewDemoReliableLinkServerSession(1, 1, []byte("secret"), CurrentLinkPolicy(), func([DemoWitnessLen]byte) error { return errors.New("expired") })
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -148,7 +159,7 @@ func TestDemoBindRejectsMissingOrInvalidWitness(t *testing.T) {
 		t.Fatalf("missing bind reply=%T", f)
 	}
 
-	server, _ = NewDemoReliableLinkServerSession(1, 1, nil, CurrentLinkPolicy(), func([DemoWitnessLen]byte) error { return errors.New("expired") })
+	server, _ = NewDemoReliableLinkServerSession(1, 1, []byte("secret"), CurrentLinkPolicy(), func([DemoWitnessLen]byte) error { return errors.New("expired") })
 	bind, _ := MarshalDemo(DemoBind{Witness: demoWitness(9)})
 	wire, err = server.HandleWire(bind, 2)
 	if err != nil {
