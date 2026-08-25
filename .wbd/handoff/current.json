@@ -1,64 +1,51 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 26,
+  "continuity_sequence": 27,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "e5d2c7e8a3294c5202b620e4df3436af8269bb6b",
+  "checkpoint_based_on_head_sha": "ce7acafbc65b0c0aaa25190f573565d2f5a81feb",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows with TCP-shaped FakeTCP outer packets, UDP/datagram-like no-HOL inner behavior, fixed FEC, standards-compliant DTLS 1.3, optional TLS Persona, and later native TUN/platform integration.",
-    "current_milestone": "V2-M8B-T transport-only fixed-20:20 characterization; TUN/platform qualification remains deferred to later/external real-device testing",
-    "local_optimization_stop_rule": "Finish and validate the repaired 20:20 RTT/loss/TCP-like/UDP-like/CPU/RSS surface before adding 20:10, MTU, burst loss, timer, Persona or multi-lane dimensions. The first invalid matrix is diagnostic evidence only and must never be used as a product performance result."
+    "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows with TCP-shaped FakeTCP outer packets, UDP/datagram-like no-HOL inner behavior, fixed FEC and DTLS 1.3.",
+    "current_milestone": "Transport/resource characterization, including explicit separation of WBD userspace CPU/RSS from Linux netfilter/NAT kernel overhead.",
+    "local_optimization_stop_rule": "Measure before adding features. Keep the first 20:20 transport surface fixed; treat firewall/NAT as an incremental kernel-cost probe rather than mixing it into protocol semantics."
   },
   "continuation_cursor": {
-    "last_completed_action": "The first visible 126-case transport workflow, ci run 32813852082 at head 2c17cb639e7af20526f7846421a74b4a8056e34e, completed all jobs and produced artifact 9550745735 / digest sha256:b78bcfe87274604f327cff5e7cde68aa56e2b66c36cc49cf4cd3714d138b8cbf, but its performance data is INVALID. Results contained 108 harness_error cases because Ubuntu 24.04 runner iproute2 6.1 rejected the newer netem `seed VALUE` option with `What is seed?`, and 18 zero-loss handshake failures because actions/download-artifact did not preserve executable mode on wbd_dtls_shim. The old completeness gate checked only 126 rows/42 points/3 labels and therefore incorrectly allowed app-less rows to aggregate. Fixes landed through e5d2c7e8a3294c5202b620e4df3436af8269bb6b: scripts/bench_v2_transport_20x20_compat.py probes seeded netem and falls back explicitly to independent random replicates; CI chmods all downloaded executables; scripts/validate_v2_transport_results.py rejects harness errors, invalid zero-loss baselines and missing application/resource metrics; CI now has a small transport-smoke gate before a full matrix. Smoke run 32814277618 passed at 20 ms RTT for both 0% and 10% loss with 128/128 application delivery, p99 approximately 43.09/40.00 ms, total CPU approximately 60 ms per case, peak aggregate RSS approximately 28.7/30.3 MB, actual netem drops at 10%, TCP-like stable, RST=0. On this runner netem seed is unsupported, so labels 260825/260826/260827 are independent replicate identifiers rather than deterministic per-packet loss sequences.",
-    "current_task": "Run the repaired full 126-case fixed-20:20 transport-only matrix and aggregate only semantically valid results. Compare establishment, delivery/p99, TCP-like outer stability, UDP-like no-HOL evidence, CPU per delivered MiB and RSS across RTT/loss.",
-    "why_now": "The smoke proves the repaired harness now exercises real application data and real loss instead of failing before measurement. A full rerun is therefore justified. TUN remains intentionally outside this milestone so the resource/weak-network surface describes UDPspeeder+DTLS+FakeTCP rather than a platform driver.",
-    "done_when": "A repaired matrix run passes per-replicate semantic validation and the final 126-case/42-point/3-replicate gate; zero-loss baselines all establish and deliver >=99%; no harness_error is present; every established case has application latency/delivery and CPU/RSS fields; TCP-like and UDP-like diagnostics are populated; a final artifact and cliff analysis are downloaded and reviewed. Genuine high-loss handshake/delivery failures are allowed as product findings, but infrastructure failures are not.",
-    "next_atomic_action": "Refresh the live CI run triggered by this sequence-26 handoff commit while PR #3 is temporarily titled with [matrix]. Confirm transport_prepare, three transport_bench replicates and transport_aggregate. As soon as the matrix run is visibly started, remove [matrix] from the PR title to prevent accidental reruns. If any replicate fails, inspect the first failing case/log and patch the harness without changing the frozen RTT/loss/FEC surface. If it succeeds, download ci-transport-20x20-matrix-final, analyze real cliffs, persist a repository-backed report/receipt, then update handoff again."
+    "last_completed_action": "User asked whether current CPU/RSS excludes iptables and requested a local sandbox simulation. Existing WBD smoke run 32814277618 already used udp2raw -a, so it is not literally firewall-free: udp2raw may install the FakeTCP/RST handling rule. However the transport benchmark does not model OpenWrt-style routed FORWARD/NAT/port-forward work, and cpu_ms_total sums only WBD userspace process CPU so kernel netfilter/softirq cost is not fully represented. The current sandbox is root with CAP_NET_RAW but lacks CAP_NET_ADMIN, so it cannot create netns/veth or install real iptables rules. A local C UDP relay upper-bound microbenchmark was run instead: 100000 x 1200-byte echo transactions, five repeats. Direct median goodput ~1467.9 Mbps; one userspace relay median ~1200.2 Mbps, relay CPU ~710 ms for 200000 forwarded datagrams (~3.55 us/datagram) and RSS ~1412 KiB; two relays median ~403.3 Mbps, relay CPU ~2130 ms and RSS ~2832 KiB, with one unstable repeat. This demonstrates userspace port forwarding substantially overestimates kernel netfilter memory/CPU. To measure the real increment cleanly, scripts/bench_netfilter_overhead.py and tests/test_netfilter_bench_optional.py landed at ce7acafbc65b0c0aaa25190f573565d2f5a81feb. The probe uses client-router-server namespaces and compares plain routing, FORWARD+conntrack, and DNAT+MASQUERADE+FORWARD at a fixed iperf3 UDP offered load while recording throughput, loss, iperf CPU, global busy CPU, softirq deltas, conntrack count and relevant slab activity. PR #3 is temporarily titled [netfilter-bench] so this handoff commit triggers the opt-in test in the already-registered CI workflow.",
+    "current_task": "Run the privileged netfilter overhead probe, quantify the incremental routed filter/NAT cost, remove the temporary PR title flag, then return to the repaired 20:20 matrix. The second full matrix run 32814429610 had repeats 260825 and 260826 pass but repeat 260827 fail, so that failing replicate still needs inspection after the user-requested netfilter measurement.",
+    "why_now": "The user specifically wants CPU/RAM realism and asked whether iptables overhead is missing. A dedicated kernel probe is more meaningful than inserting a userspace UDP forwarder, because userspace relay RSS and scheduling overhead are much larger than netfilter and would give a misleading budget.",
+    "done_when": "The opt-in CI prints median route/filter/NAT throughput and CPU measurements from a privileged runner; the result is interpreted as incremental kernel networking cost, not WBD process RSS. The temporary [netfilter-bench] title is removed. Then inspect matrix run 32814429610 repeat 260827 failure and resume transport characterization without expanding feature scope.",
+    "next_atomic_action": "Refresh CI for this sequence-27 commit, find the test job triggered while PR title contains [netfilter-bench], read NETFILTER_CASE/NETFILTER_SUMMARY logs, remove [netfilter-bench], persist a concise result, then inspect transport_bench(260827) from run 32814429610."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    "docs/benchmarks/v2-transport-20x20-matrix.md",
-    "scripts/bench_v2_transport_20x20.py",
+    "scripts/bench_netfilter_overhead.py",
+    "tests/test_netfilter_bench_optional.py",
     "scripts/bench_v2_transport_20x20_compat.py",
     "scripts/validate_v2_transport_results.py",
-    "scripts/analyze_v2_transport_20x20.py",
     ".github/workflows/ci.yml",
     ".wbd/handoff/current.json"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_M1_M2_M3_qualified_plus_repaired_transport_characterization_smoke_passed",
-    "v1_status": "permanently_rejected_multi_ordinary_TCP",
-    "v2_raw_fec_status": "locally_qualified_product_baseline",
+    "authority": "V2_M1_M2_M3_qualified_plus_repaired_transport_smoke_passed",
     "outer_semantics": "TCP-shaped FakeTCP raw datagrams; no kernel TCP byte-stream dependency",
-    "security": {
-      "design": "real DTLS 1.3 steady-state data security",
-      "implementation_pin": "wolfSSL v5.9.2-stable / ac01707f552c611fbd135cc723b2682b3e7f80f2",
-      "full_m2_status": "qualified",
-      "zero_rtt": "disabled"
-    },
     "current_characterization_fec": "20:20 only",
-    "current_characterization_matrix": "RTT 20/50/100/200/400/600 ms x symmetric independent loss 0/1/5/10/20/30/40% x three independent runner replicates = 126 nominal cases",
-    "netem_reproducibility": "runner iproute2 6.1 lacks seed VALUE; replicate labels are independent runs, not deterministic per-packet loss patterns",
-    "first_matrix_run": "run 32813852082 diagnostic-only INVALID due netem seed syntax and artifact executable mode bugs",
-    "repaired_smoke": "run 32814277618 PASS: 20ms/0% and 20ms/10%, 128/128 delivery each, TCP-like stable, RST=0",
-    "kernel_anchor_status": "retired_from_product_roadmap",
-    "two_lane_status": "deferred_optional_optimization",
-    "tun_status": "M6A implemented; M6B harness implemented; real-device qualification deferred/external",
-    "windows_status": "required later platform qualification",
-    "tls_persona_status": "admitted optional later milestone; config boundary implemented; handshake backend not yet implemented"
+    "repaired_smoke": "run 32814277618 PASS: 20ms/0% and 20ms/10%, 128/128 delivery each, TCP-like stable, RST=0, aggregate userspace RSS 28652/30324 KiB",
+    "netfilter_accounting_note": "udp2raw -a means baseline is not literally no-firewall, but OpenWrt-style FORWARD/NAT kernel cost is not included in WBD userspace cpu_ms_total",
+    "sandbox_net_admin": "unavailable; local real iptables/netns test cannot run in current sandbox",
+    "local_userspace_relay_upper_bound": "one C UDP relay: median 710ms CPU per 100k echo transactions / 200k forwarded datagrams and ~1412KiB RSS; do not treat as kernel iptables cost",
+    "second_matrix_run": "32814429610: repeats 260825 and 260826 success, repeat 260827 failure; aggregate skipped"
   },
   "local_test_snapshot": {
-    "authority": "snapshot_not_live",
-    "tested_commit": "e5d2c7e8a3294c5202b620e4df3436af8269bb6b",
-    "result": "pass",
-    "command": "GitHub ci run 32814277618 transport-smoke passed after executable-mode and netem compatibility fixes. Smoke rows: 20ms/0% delivery=1.0 p99=43.09ms CPU=60ms RSS=28652KB TCP-like=stable RST=0; 20ms/10% delivery=1.0 p99=40.00ms CPU=60ms RSS=30324KB TCP-like=stable RST=0. Standard Go/handoff tests in the same run passed."
+    "authority": "current_sandbox_plus_github_smoke",
+    "tested_commit": "ce7acafbc65b0c0aaa25190f573565d2f5a81feb",
+    "result": "partial_pass",
+    "command": "Local sandbox C relay benchmark saved /mnt/data/c-udp-relay-bench.json. GitHub smoke run 32814277618 remains the current exact WBD resource baseline. Privileged kernel netfilter benchmark is opt-in and pending this sequence-27 CI trigger."
   }
 }
