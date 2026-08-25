@@ -47,8 +47,8 @@ func runServer(args []string) error {
 	certFile := fs.String("cert", "", "local TLS certificate used only after a recognized WBD ClientHello")
 	keyFile := fs.String("key", "", "private key for -cert")
 	routeKey := fs.String("route-key", "", "classifier secret shared by WBD client/server; not account authentication")
-	username := fs.String("username", "", "single-user demo username")
-	password := fs.String("password", "", "single-user demo password")
+	username := fs.String("username", "", "shared personal account username; concurrent devices may reuse it")
+	password := fs.String("password", "", "shared personal account password; concurrent devices may reuse it")
 	ticketDir := fs.String("ticket-dir", "/tmp/wbd-reality-front-tickets", "0700 local directory shared with wbd-link-proxy ticket admission")
 	maxConns := fs.Int("max-conns", 64, "maximum concurrent front sessions")
 	if err := fs.Parse(args); err != nil {
@@ -80,7 +80,7 @@ func runServer(args []string) error {
 	}
 	defer ln.Close()
 	go func() { <-ctx.Done(); _ = ln.Close() }()
-	fmt.Printf("WBD_REALITY_FRONT_READY listen=%s target=%s server_name=%s takeover=tls13 fallback=mirror verify_client_cert=none\n", ln.Addr(), *target, *serverName)
+	fmt.Printf("WBD_REALITY_FRONT_READY listen=%s target=%s server_name=%s takeover=tls13 fallback=mirror verify_client_cert=none auth=simple-userpass multi_session=1\n", ln.Addr(), *target, *serverName)
 	sem := make(chan struct{}, *maxConns)
 	for {
 		conn, err := ln.Accept()
@@ -94,13 +94,13 @@ func runServer(args []string) error {
 		case sem <- struct{}{}:
 			go func(c net.Conn) {
 				defer func() { <-sem; _ = c.Close() }()
-				res, err := realityfront.HandleServerConn(ctx, c, cfg)
+				res, err := realityfront.HandleServerConnSimple(ctx, c, cfg)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "WBD_REALITY_FRONT_SESSION remote=%s err=%q\n", c.RemoteAddr(), err)
 					return
 				}
 				if res.Branch == "wbd" {
-					fmt.Printf("WBD_REALITY_FRONT_AUTH_OK remote=%s ticket=%s\n", c.RemoteAddr(), res.Ticket.Hex())
+					fmt.Printf("WBD_REALITY_FRONT_AUTH_OK remote=%s account=%s ticket=%s\n", c.RemoteAddr(), *username, res.Ticket.Hex())
 				}
 			}(conn)
 		default:
@@ -114,8 +114,8 @@ func runClient(args []string) error {
 	addr := fs.String("addr", "", "WBD server TCP address")
 	serverName := fs.String("server-name", "", "target-looking SNI")
 	routeKey := fs.String("route-key", "", "classifier secret shared with server")
-	username := fs.String("username", "", "username")
-	password := fs.String("password", "", "password")
+	username := fs.String("username", "", "shared account username")
+	password := fs.String("password", "", "shared account password")
 	verifyServer := fs.Bool("verify-server", false, "verify certificate/hostname using system roots; default false accepts any cert/domain")
 	ticketOut := fs.String("ticket-out", "", "optional 0600 file receiving only the one-time ticket hex")
 	timeout := fs.Duration("timeout", 10*time.Second, "overall TCP/TLS/bootstrap timeout")
@@ -146,7 +146,7 @@ func runClient(args []string) error {
 	if err := conn.Handshake(); err != nil {
 		return err
 	}
-	ticket, err := realityfront.BootstrapClient(conn, *username, *password)
+	ticket, err := realityfront.BootstrapClientSimple(conn, *username, *password)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func runClient(args []string) error {
 			return err
 		}
 	}
-	fmt.Printf("WBD_REALITY_FRONT_OK ticket=%s tls=%x verify_server=%t\n", ticket.Hex(), conn.ConnectionState().Version, *verifyServer)
+	fmt.Printf("WBD_REALITY_FRONT_OK ticket=%s tls=%x verify_server=%t auth=simple-userpass\n", ticket.Hex(), conn.ConnectionState().Version, *verifyServer)
 	return nil
 }
 
@@ -163,5 +163,5 @@ func usage() {
 	fmt.Fprintln(os.Stderr, "usage:")
 	fmt.Fprintln(os.Stderr, "  wbd-reality-front server -listen :443 -target HOST:443 -server-name HOST -cert self.pem -key self.key -route-key SECRET -username USER -password PASS -ticket-dir DIR")
 	fmt.Fprintln(os.Stderr, "  wbd-reality-front client -addr SERVER:443 -server-name HOST -route-key SECRET -username USER -password PASS [-verify-server=false] [-ticket-out FILE]")
-	fmt.Fprintln(os.Stderr, "Recognized WBD ClientHello sessions are taken over on the same TCP connection; unrecognized sessions are byte-preserving fallback to the fixed target. Sustained VPN payload never uses this TCP stream.")
+	fmt.Fprintln(os.Stderr, "Recognized WBD ClientHello sessions are taken over on the same TCP connection; unrecognized sessions are byte-preserving fallback to the fixed target. Shared username/password admission is one request inside TLS and may issue many independent concurrent session tickets. Sustained VPN payload never uses this TCP stream.")
 }
