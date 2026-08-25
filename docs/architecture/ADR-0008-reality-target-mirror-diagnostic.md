@@ -93,7 +93,7 @@ Normal deployments may use an operator-controlled self-signed DTLS certificate. 
 - Witness publication is ordered before the first target TLS bytes reach the client.
 - The unordered/no-HOL WBD data plane remains DTLS/FEC/FakeTCP and is never replaced by an ordinary TLS/TCP byte stream.
 
-These are implementation requirements, but the no-leakage claim is not accepted from source inspection alone. `.github/workflows/demo-encryption.yml` must pass with the pinned wolfSSL DTLS 1.3 shim and a public-side pcap that contains none of the known `WBDC` magic, device-token bytes, or known application plaintext.
+These are implementation requirements, but the no-leakage claim is not accepted from source inspection alone. `.github/workflows/demo-encryption.yml` must pass with the pinned wolfSSL DTLS 1.3 shim and a public-side pcap that contains none of the known `WBDC` magic, device-token bytes, or known application plaintext. A future refactor that cannot satisfy this capture gate is not an acceptable demo implementation.
 
 ## Non-goals
 
