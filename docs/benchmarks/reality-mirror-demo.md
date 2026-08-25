@@ -22,7 +22,7 @@ fresh FakeTCP/DTLS association
 DEMO_BIND -> DEMO_BIND_OK -> LINK_INIT -> LINK_ACCEPT -> AUTH -> encrypted WBD datagrams
 ```
 
-This keeps WBDC control, account token, FEC metadata and application payload encrypted by DTLS and preserves the unordered/no-HOL data plane.
+This keeps WBDC control, account token, FEC metadata and application payload encrypted by DTLS and preserves the unordered/no-HOL data plane. Demo mode additionally **requires normal non-empty WBD device/account authentication**; the public ClientHello hash is never accepted as the sole credential.
 
 ## Safety / abuse boundary
 
@@ -36,7 +36,7 @@ The mirror is deliberately not an open SNI proxy:
 - default transfer ceiling is 32 MiB per direction;
 - default concurrent session limit is 32.
 
-`-witness-dir` is also demo-only. Witnesses are non-secret correlation hashes, stored locally with a short lifetime and consumed once by the WBD startup gate.
+`-witness-dir` is also demo-only. Witnesses are non-secret correlation hashes, stored locally with a short lifetime and consumed once by the WBD startup gate. The server publishes the witness after the genuine target produces its first TLS response bytes but **before those bytes are forwarded to the client**, removing the preflight-to-DEMO_BIND race without adding an artificial wait.
 
 ## Build
 
@@ -113,7 +113,7 @@ sudo install -d -m 700 /run/wbd/reality-demo
   -max-conns 8
 ```
 
-After a successful mirrored TLS session with target-to-client bytes, the mirror records the exact ClientHello SHA-256 in that local directory.
+As soon as the configured genuine target produces the first TLS response bytes, the mirror records the exact ClientHello SHA-256 locally before forwarding those target bytes to the client.
 
 ### Server: start WBD link gate
 
@@ -130,7 +130,7 @@ The DTLS shim remains outside this process exactly as in the normal product path
   -demo-reality-ttl 15s
 ```
 
-A WBD association is rejected before LINK_INIT unless it first presents a matching one-time witness inside DTLS.
+A WBD association is rejected before LINK_INIT unless it first presents a matching one-time witness inside DTLS. Demo startup is also rejected unless `-expected-token` is non-empty.
 
 ### Client: perform genuine TLS preflight and save witness
 
@@ -158,7 +158,7 @@ Use exactly one successful handshake for the handoff:
   -demo-reality-witness "$(cat /tmp/wbd-reality.witness)"
 ```
 
-Startup on the public path is then:
+Demo startup is rejected if `-token` is empty. Startup on the public path is then:
 
 ```text
 FakeTCP
@@ -179,6 +179,8 @@ There is no point where WBDC, the bearer/device secret, FEC parameters or applic
 Do not pass any `-demo-reality-*` options. The mirror is not consulted and no witness is required.
 
 A normal deployment may use an operator-created self-signed DTLS certificate. The client must trust that exact certificate as a local trust anchor or validate a fixed SPKI; do **not** disable certificate verification. Self-signed changes the trust root, not the TLS/DTLS security requirement.
+
+The current wolfSSL DTLS shim already enforces peer verification, loads the configured CA/trust file and checks the expected hostname, so a self-signed server certificate is used by supplying that certificate as the explicit local trust anchor rather than enabling an insecure mode.
 
 ## HTTP/data comparison for the mirror itself
 
