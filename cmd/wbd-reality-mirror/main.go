@@ -13,19 +13,22 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lly8666/wobuzhidao/internal/persona"
 	"github.com/lly8666/wobuzhidao/internal/realitymirror"
 )
 
 type resultLog struct {
-	Remote     string   `json:"remote"`
-	OK         bool     `json:"ok"`
-	Error      string   `json:"error,omitempty"`
-	ServerName string   `json:"server_name,omitempty"`
-	ALPN       []string `json:"alpn,omitempty"`
-	Target     string   `json:"target"`
-	UpBytes    int64    `json:"up_bytes"`
-	DownBytes  int64    `json:"down_bytes"`
-	DurationMS float64  `json:"duration_ms"`
+	Remote          string   `json:"remote"`
+	OK              bool     `json:"ok"`
+	Error           string   `json:"error,omitempty"`
+	ServerName      string   `json:"server_name,omitempty"`
+	ALPN            []string `json:"alpn,omitempty"`
+	Target          string   `json:"target"`
+	ClientHelloHash string   `json:"client_hello_sha256,omitempty"`
+	WitnessRecorded bool     `json:"witness_recorded,omitempty"`
+	UpBytes         int64    `json:"up_bytes"`
+	DownBytes       int64    `json:"down_bytes"`
+	DurationMS      float64  `json:"duration_ms"`
 }
 
 func main() {
@@ -53,6 +56,7 @@ func runServer(args []string) {
 	maxHello := fs.Int("max-hello-bytes", 64<<10, "maximum buffered TLS ClientHello bytes")
 	maxBytes := fs.Int64("max-bytes", 32<<20, "maximum bytes copied per direction after ClientHello; 0 disables")
 	maxConns := fs.Int("max-conns", 32, "maximum concurrent mirror sessions")
+	witnessDir := fs.String("witness-dir", "", "demo only: local 0700 directory for one-time ClientHello witnesses")
 	_ = fs.Parse(args)
 
 	if strings.TrimSpace(*target) == "" || strings.TrimSpace(*serverName) == "" || *maxConns <= 0 || *maxConns > 4096 {
@@ -84,6 +88,7 @@ func runServer(args []string) {
 	ready := map[string]any{
 		"listen": ln.Addr().String(), "target": *target, "server_name": *serverName,
 		"session_timeout_ms": float64((*sessionTimeout).Milliseconds()), "max_bytes_per_direction": *maxBytes,
+		"demo_witness_enabled": strings.TrimSpace(*witnessDir) != "",
 	}
 	printJSON("WBD_REALITY_MIRROR_READY", ready)
 
@@ -101,7 +106,7 @@ func runServer(args []string) {
 		case sem <- struct{}{}:
 			go func(c net.Conn) {
 				defer func() { <-sem }()
-				handleOne(ctx, c, cfg)
+				handleOne(ctx, c, cfg, *witnessDir)
 			}(conn)
 		default:
 			remote := conn.RemoteAddr().String()
@@ -111,21 +116,46 @@ func runServer(args []string) {
 	}
 }
 
-func handleOne(ctx context.Context, conn net.Conn, cfg realitymirror.Config) {
+func handleOne(ctx context.Context, conn net.Conn, cfg realitymirror.Config, witnessDir string) {
 	remote := conn.RemoteAddr().String()
 	defer conn.Close()
 	start := time.Now()
-	result, err := realitymirror.Handle(ctx, conn, cfg)
+	info, rawHello, err := realitymirror.ReadClientHello(conn, cfg.MaxHelloBytes, cfg.HelloTimeout)
+	var result realitymirror.Result
+	var witness persona.WitnessID
+	if err == nil {
+		witness = persona.WitnessFromClientHello(rawHello)
+		result, err = realitymirror.HandleFromHello(ctx, conn, cfg, info, rawHello)
+	}
 	row := resultLog{
 		Remote: remote, OK: err == nil, Target: cfg.Target,
 		ServerName: result.Hello.ServerName, ALPN: result.Hello.ALPN,
 		UpBytes: result.UpBytes, DownBytes: result.DownBytes,
 		DurationMS: float64(time.Since(start)) / float64(time.Millisecond),
 	}
+	if !allZeroWitness(witness) {
+		row.ClientHelloHash = witness.Hex()
+	}
+	if err == nil && result.DownBytes > 0 && strings.TrimSpace(witnessDir) != "" {
+		if recErr := persona.RecordWitness(witnessDir, witness, cfg.ServerName, time.Now()); recErr != nil {
+			err = recErr
+			row.OK = false
+		} else {
+			row.WitnessRecorded = true
+		}
+	}
 	if err != nil {
 		row.Error = err.Error()
 	}
 	printJSON("WBD_REALITY_MIRROR_RESULT", row)
+}
+
+func allZeroWitness(w persona.WitnessID) bool {
+	var v byte
+	for _, b := range w {
+		v |= b
+	}
+	return v == 0
 }
 
 func printJSON(prefix string, value any) {
@@ -139,9 +169,9 @@ func printJSON(prefix string, value any) {
 
 func usage() {
 	fmt.Fprintln(os.Stderr, "usage:")
-	fmt.Fprintln(os.Stderr, "  wbd-reality-mirror server -listen 127.0.0.1:9443 -target HOST:443 -server-name HOST")
+	fmt.Fprintln(os.Stderr, "  wbd-reality-mirror server -listen 127.0.0.1:9443 -target HOST:443 -server-name HOST [-witness-dir /run/wbd/reality]")
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, "The server mirrors one fixed genuine TLS target. Use wbd-tls-diag or a normal TLS/HTTP client against the mirror address while keeping SNI/hostname set to -server-name.")
+	fmt.Fprintln(os.Stderr, "The server mirrors one fixed genuine TLS target. -witness-dir is an explicit demo-only bridge to the encrypted WBD startup path; without it the command remains a standalone diagnostic oracle.")
 }
 
 func fatal(err error) {
