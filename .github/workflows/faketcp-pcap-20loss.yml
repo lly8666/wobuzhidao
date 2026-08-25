@@ -1,0 +1,143 @@
+name: faketcp-pcap-20loss
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pcap:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install packet tools
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables tcpdump
+      - name: Build and unit-test native FakeTCP
+        run: |
+          go test ./internal/faketcp -count=1
+          go build -trimpath -o /tmp/wbd-faketcp ./cmd/wbd-faketcp
+          python3 -m py_compile scripts/analyze_faketcp_pcap.py scripts/faketcp_first_arrival_probe.py
+      - name: Capture 20 percent loss wire behavior
+        run: |
+          set -euo pipefail
+          C=wbdpcapc$$
+          S=wbdpcaps$$
+          cleanup() {
+            set +e
+            [[ -n "${CPID:-}" ]] && sudo kill -TERM "$CPID" 2>/dev/null
+            [[ -n "${SPID:-}" ]] && sudo kill -TERM "$SPID" 2>/dev/null
+            [[ -n "${RPID:-}" ]] && sudo kill -TERM "$RPID" 2>/dev/null
+            [[ -n "${TPID:-}" ]] && sudo kill -INT "$TPID" 2>/dev/null
+            sleep .2
+            sudo ip netns del "$C" 2>/dev/null
+            sudo ip netns del "$S" 2>/dev/null
+          }
+          trap cleanup EXIT
+
+          sudo ip netns add "$C"
+          sudo ip netns add "$S"
+          sudo ip link add vc type veth peer name vs
+          sudo ip link set vc netns "$C"
+          sudo ip link set vs netns "$S"
+          sudo ip -n "$C" addr add 10.84.0.1/24 dev vc
+          sudo ip -n "$S" addr add 10.84.0.2/24 dev vs
+          sudo ip -n "$C" link set lo up
+          sudo ip -n "$S" link set lo up
+          sudo ip -n "$C" link set vc up
+          sudo ip -n "$S" link set vs up
+          sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          # Establish at 20ms RTT without loss, then stage exactly the data-plane
+          # impairment we want to inspect. This avoids conflating SYN survival
+          # randomness with retransmission semantics.
+          sudo ip netns exec "$C" tc qdisc add dev vc root netem limit 50000 delay 10ms rate 200mbit
+          sudo ip netns exec "$S" tc qdisc add dev vs root netem limit 50000 delay 10ms rate 200mbit
+
+          sudo ip netns exec "$C" tcpdump -i vc -s 0 -U -w /tmp/faketcp20-client.pcap \
+            'tcp and (port 54003 or port 54010)' >/tmp/tcpdump-client.log 2>&1 & TPID=$!
+          sleep .1
+
+          sudo ip netns exec "$S" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
+            server --bind 127.0.0.1:54000 --expect 800 --window 6.0 --out /tmp/first20.json \
+            >/tmp/first20-server.log 2>&1 & RPID=$!
+          sudo ip netns exec "$S" /tmp/wbd-faketcp server \
+            --listen 10.84.0.2:54003 --target-udp 127.0.0.1:54000 >/tmp/faketcp20-server.log 2>&1 & SPID=$!
+          sleep .15
+          sudo ip netns exec "$C" /tmp/wbd-faketcp client \
+            --local-udp 127.0.0.1:54004 --source 10.84.0.1:54010 --remote 10.84.0.2:54003 \
+            >/tmp/faketcp20-client.log 2>&1 & CPID=$!
+          for i in $(seq 1 300); do
+            grep -q 'READY role=client' /tmp/faketcp20-client.log && grep -q 'READY role=server' /tmp/faketcp20-server.log && break
+            sleep .05
+          done
+          grep -q 'READY role=client' /tmp/faketcp20-client.log
+          grep -q 'READY role=server' /tmp/faketcp20-server.log
+
+          sudo ip netns exec "$C" tc qdisc replace dev vc root netem limit 50000 delay 10ms loss random 20% rate 200mbit
+          sudo ip netns exec "$S" tc qdisc replace dev vs root netem limit 50000 delay 10ms loss random 20% rate 200mbit
+          sudo ip netns exec "$C" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
+            client --dest 127.0.0.1:54004 --count 800 --size 1200 --interval-ms 1
+          wait "$RPID" || true
+          RPID=
+          # Keep the carrier alive briefly after the first-arrival observation
+          # window so RFC-style timeout retransmissions are visible in pcap.
+          sleep 2
+
+          sudo kill -TERM "$CPID" "$SPID" 2>/dev/null || true
+          wait "$CPID" || true
+          wait "$SPID" || true
+          CPID= SPID=
+          sudo kill -INT "$TPID" 2>/dev/null || true
+          wait "$TPID" || true
+          TPID=
+
+          cat /tmp/first20-server.log
+          cat /tmp/faketcp20-client.log
+          cat /tmp/faketcp20-server.log
+          cat /tmp/tcpdump-client.log
+          python3 scripts/analyze_faketcp_pcap.py /tmp/faketcp20-client.pcap \
+            --client-port 54010 --server-port 54003 --out /tmp/faketcp20-analysis.json
+          python3 - <<'PY'
+          import json,re
+          first=json.load(open('/tmp/first20.json'))
+          wire=json.load(open('/tmp/faketcp20-analysis.json'))
+          logs=open('/tmp/faketcp20-client.log').read()+open('/tmp/faketcp20-server.log').read()
+          stats=[json.loads(x) for x in re.findall(r'WBD_FAKETCP_STATS (\{.*\})',logs)]
+          assert stats, logs
+          fast=sum(x['sender']['FastRetransmits'] for x in stats)
+          rto=sum(x['sender']['RTOTransmits'] for x in stats)
+          sacks=sum(x['sender']['SACKed'] for x in stats)
+          print('FIRST20_FINAL',json.dumps(first,sort_keys=True))
+          print('WIRE20_FINAL',json.dumps(wire,sort_keys=True))
+          print('ARQ20_FINAL',json.dumps({'fast':fast,'rto':rto,'sacked':sacks,'stats':stats},sort_keys=True))
+          # Performance-first invariant: the majority of packets that survive
+          # first transmission remain pinned to the one-way propagation floor.
+          assert first['p50_ms'] <= 12.0, first
+          assert first['p75_ms'] <= 15.0, first
+          # Packet-capture invariants are independent of WBD's counters.
+          assert wire['duplicate_acks'] >= 3, wire
+          assert wire['sack_ack_packets'] > 0, wire
+          assert wire['retransmission_events'] > 0, wire
+          assert wire['fast_retransmit_evidence'] > 0, wire
+          assert fast > 0 and rto > 0 and sacks > 0, (fast,rto,sacks)
+          PY
+      - name: Upload packet capture evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: faketcp-pcap-20loss
+          path: |
+            /tmp/faketcp20-client.pcap
+            /tmp/faketcp20-analysis.json
+            /tmp/first20.json
+            /tmp/faketcp20-client.log
+            /tmp/faketcp20-server.log
+          if-no-files-found: warn
