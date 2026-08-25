@@ -8,14 +8,15 @@ import (
 	"io"
 	"net"
 	"strings"
+	"syscall"
 	"time"
 )
 
 var (
-	ErrNotClientHello  = errors.New("realitymirror: first TLS handshake message is not ClientHello")
-	ErrMalformedHello  = errors.New("realitymirror: malformed ClientHello")
-	ErrSNIMismatch     = errors.New("realitymirror: SNI does not match configured target identity")
-	ErrTransferLimit   = errors.New("realitymirror: transfer byte limit reached")
+	ErrNotClientHello = errors.New("realitymirror: first TLS handshake message is not ClientHello")
+	ErrMalformedHello = errors.New("realitymirror: malformed ClientHello")
+	ErrSNIMismatch    = errors.New("realitymirror: SNI does not match configured target identity")
+	ErrTransferLimit  = errors.New("realitymirror: transfer byte limit reached")
 )
 
 type HelloInfo struct {
@@ -294,13 +295,18 @@ func Handle(ctx context.Context, client net.Conn, cfg Config) (Result, error) {
 			out.DownBytes += r.n
 		}
 	}
-	if first.err != nil {
+	if !benignCopyError(first.err) {
 		return out, first.err
 	}
-	if second.err != nil {
+	if !benignCopyError(second.err) {
 		return out, second.err
 	}
 	return out, nil
+}
+
+func benignCopyError(err error) bool {
+	return err == nil || errors.Is(err, io.EOF) || errors.Is(err, net.ErrClosed) ||
+		errors.Is(err, syscall.ECONNRESET) || errors.Is(err, syscall.EPIPE)
 }
 
 func copyLimited(dst io.Writer, src io.Reader, max int64) (int64, error) {
