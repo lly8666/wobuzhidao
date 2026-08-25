@@ -27,7 +27,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_*.py' -v
 
   transport_prepare:
-    if: github.event_name == 'pull_request' && contains(github.event.pull_request.title, '[matrix]')
+    if: github.event_name == 'pull_request' && (contains(github.event.pull_request.title, '[matrix]') || contains(github.event.pull_request.title, '[transport-smoke]'))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -105,7 +105,9 @@ jobs:
             'dtls_shim_source_sha256':'b5b8a1031c045af973b27c18178205f2057330f28e2bc5350ba82a5556d272a1',
             'benchmark_dtls_shim_sha256':h('/tmp/assets/wbd_dtls_shim'),
             'historical_qualified_dtls_shim_sha256':'63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a',
+            'netem_note':'iproute2 6.1 may not support netem seed; compatibility runner falls back to independent random replicates and logs that fact',
             'runner':platform.platform(),
+            'iproute2':subprocess.check_output(['tc','-V'],text=True).strip(),
             'gcc':subprocess.check_output(['gcc','--version'],text=True).splitlines()[0],
           }
           Path('/tmp/assets/manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
@@ -114,6 +116,44 @@ jobs:
         with:
           name: ci-transport-bench-assets
           path: /tmp/assets
+          retention-days: 7
+
+  transport_smoke:
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.title, '[transport-smoke]')
+    needs: transport_prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y iproute2 iptables
+      - uses: actions/download-artifact@v4
+        with:
+          name: ci-transport-bench-assets
+          path: /tmp/assets
+      - name: Restore executable modes after artifact download
+        run: chmod +x /tmp/assets/udp2raw_amd64 /tmp/assets/speederv2_amd64 /tmp/assets/wbd_dtls_shim
+      - name: Run 20 ms smoke at 0% and 10% loss
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/wbd-smoke"
+          sudo python3 scripts/bench_v2_transport_20x20_compat.py \
+            --udp2raw /tmp/assets/udp2raw_amd64 \
+            --speeder /tmp/assets/speederv2_amd64 \
+            --shim /tmp/assets/wbd_dtls_shim \
+            --cert-dir /tmp/assets/certs \
+            --manifest /tmp/assets/manifest.json \
+            --out "$RUNNER_TEMP/wbd-smoke" \
+            --seed 260825 --rtts 20 --losses 0,10 \
+            --count 128 --size 1200 --window 64
+          sudo chown -R "$USER:$USER" "$RUNNER_TEMP/wbd-smoke"
+          python3 scripts/validate_v2_transport_results.py \
+            --results "$RUNNER_TEMP/wbd-smoke/results-seed-260825.csv" --expected-cases 2
+          cat "$RUNNER_TEMP/wbd-smoke/results-seed-260825.csv"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ci-transport-20x20-smoke
+          path: ${{ runner.temp }}/wbd-smoke
           retention-days: 7
 
   transport_bench:
@@ -135,6 +175,8 @@ jobs:
         with:
           name: ci-transport-bench-assets
           path: /tmp/assets
+      - name: Restore executable modes after artifact download
+        run: chmod +x /tmp/assets/udp2raw_amd64 /tmp/assets/speederv2_amd64 /tmp/assets/wbd_dtls_shim
       - name: Preflight namespace/raw networking
         run: |
           set -euo pipefail
@@ -146,7 +188,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/wbd-matrix-${{ matrix.seed }}"
-          sudo python3 scripts/bench_v2_transport_20x20.py \
+          sudo python3 scripts/bench_v2_transport_20x20_compat.py \
             --udp2raw /tmp/assets/udp2raw_amd64 \
             --speeder /tmp/assets/speederv2_amd64 \
             --shim /tmp/assets/wbd_dtls_shim \
@@ -158,6 +200,8 @@ jobs:
             --losses 0,1,5,10,20,30,40 \
             --count 512 --size 1200 --window 256
           sudo chown -R "$USER:$USER" "$RUNNER_TEMP/wbd-matrix-${{ matrix.seed }}"
+          python3 scripts/validate_v2_transport_results.py \
+            --results "$RUNNER_TEMP/wbd-matrix-${{ matrix.seed }}/results-seed-${{ matrix.seed }}.csv" --expected-cases 42
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -184,7 +228,7 @@ jobs:
           python3 scripts/bench_v2_transport_20x20.py _aggregate \
             --input /tmp/all-seeds --out /tmp/final --manifest /tmp/assets/manifest.json
           cat /tmp/final/report.md
-      - name: Verify frozen 126-case completeness
+      - name: Verify frozen 126-case completeness and semantic validity
         run: |
           python3 - <<'PY'
           import csv,json,sys
@@ -194,15 +238,17 @@ jobs:
           if r.get('cases') != 126: problems.append(f"cases={r.get('cases')} want=126")
           if r.get('rtt_ms') != [20,50,100,200,400,600]: problems.append(f"rtt={r.get('rtt_ms')}")
           if r.get('loss_pct_per_direction') != [0.0,1.0,5.0,10.0,20.0,30.0,40.0]: problems.append(f"loss={r.get('loss_pct_per_direction')}")
-          if r.get('seeds') != [260825,260826,260827]: problems.append(f"seeds={r.get('seeds')}")
+          if r.get('seeds') != [260825,260826,260827]: problems.append(f"replicates={r.get('seeds')}")
           rows=list(csv.DictReader((out/'median.csv').open()))
           if len(rows) != 42: problems.append(f"points={len(rows)} want=42")
           bad=[x for x in rows if int(x['cases']) != 3]
-          if bad: problems.append(f"points_without_3_seeds={len(bad)}")
+          if bad: problems.append(f"points_without_3_replicates={len(bad)}")
           if problems:
               print('MATRIX_INCOMPLETE: '+'; '.join(problems), file=sys.stderr); raise SystemExit(2)
-          print('MATRIX_COMPLETE cases=126 points=42 seeds=3')
           PY
+          python3 scripts/validate_v2_transport_results.py \
+            --results /tmp/final/results.csv --receipt /tmp/final/receipt.json --expected-cases 126
+          echo 'MATRIX_COMPLETE_AND_VALID cases=126 points=42 replicates=3'
       - name: Analyze cliffs
         run: python3 scripts/analyze_v2_transport_20x20.py --input /tmp/final --out /tmp/final
       - uses: actions/upload-artifact@v4
