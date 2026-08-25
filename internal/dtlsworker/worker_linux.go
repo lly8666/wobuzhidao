@@ -10,7 +10,9 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"sync"
+	"syscall"
 )
 
 var (
@@ -59,13 +61,13 @@ func (w *Worker) Wait() error {
 	return w.waitErr
 }
 
-// Stop asks the worker to terminate and then reaps it. SIGTERM is what the C
-// shim already handles for a clean relay-loop exit.
+// Stop asks the worker to terminate and then reaps it. The C shim handles
+// SIGTERM for a clean relay-loop exit.
 func (w *Worker) Stop() error {
 	if w == nil || w.cmd == nil || w.cmd.Process == nil {
 		return nil
 	}
-	_ = w.cmd.Process.Signal(os.Interrupt)
+	_ = w.cmd.Process.Signal(syscall.SIGTERM)
 	return w.Wait()
 }
 
@@ -75,6 +77,22 @@ type Command struct {
 	Env    []string
 	Stdout io.Writer
 	Stderr io.Writer
+}
+
+func cleanInheritedFDEnv(base, extra []string) []string {
+	prefix := inheritedFDEnv + "="
+	out := make([]string, 0, len(base)+len(extra)+1)
+	for _, e := range base {
+		if !strings.HasPrefix(e, prefix) {
+			out = append(out, e)
+		}
+	}
+	for _, e := range extra {
+		if !strings.HasPrefix(e, prefix) {
+			out = append(out, e)
+		}
+	}
+	return append(out, prefix+"3")
 }
 
 // StartBoundUDPChild is the small socket-activation primitive used by the DTLS
@@ -104,8 +122,7 @@ func StartBoundUDPChild(ctx context.Context, c Command) (*Worker, error) {
 	}
 	cmd := exec.CommandContext(ctx, c.Path, c.Args...)
 	cmd.ExtraFiles = []*os.File{f}
-	cmd.Env = append(os.Environ(), c.Env...)
-	cmd.Env = append(cmd.Env, inheritedFDEnv+"=3")
+	cmd.Env = cleanInheritedFDEnv(os.Environ(), c.Env)
 	cmd.Stdout = c.Stdout
 	cmd.Stderr = c.Stderr
 	if err := cmd.Start(); err != nil {
