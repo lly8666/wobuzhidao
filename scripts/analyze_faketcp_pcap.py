@@ -3,8 +3,9 @@
 
 The analyzer deliberately does not trust internal WBD counters. It parses the
 wire image and checks TCP-shaped invariants an observer can see: SYN options,
-sequence/ACK monotonicity, duplicate ACKs, SACK blocks, repeated sequence
-ranges, fast retransmit evidence and RFC-6298-scale timeout retransmits.
+sequence/ACK monotonicity, duplicate ACKs, persistent/merged SACK blocks,
+repeated sequence ranges, fast retransmit evidence and RFC-6298-scale timeout
+retransmits.
 """
 from __future__ import annotations
 
@@ -75,6 +76,7 @@ def parse_tcp(ts: float, frame: bytes):
     opts = tcp[20:doff]
     mss = None
     sack_perm = False
+    win_scale = None
     sacks = []
     i = 0
     while i < len(opts):
@@ -92,6 +94,8 @@ def parse_tcp(ts: float, frame: bytes):
         val = opts[i + 2:i + ln]
         if kind == 2 and ln == 4:
             mss = struct.unpack("!H", val)[0]
+        elif kind == 3 and ln == 3:
+            win_scale = val[0]
         elif kind == 4 and ln == 2:
             sack_perm = True
         elif kind == 5 and ln >= 10 and (ln - 2) % 8 == 0:
@@ -109,6 +113,7 @@ def parse_tcp(ts: float, frame: bytes):
         "payload_len": len(tcp) - doff,
         "mss": mss,
         "sack_perm": sack_perm,
+        "win_scale": win_scale,
         "sacks": sacks,
     }
 
@@ -128,8 +133,8 @@ def analyze(path: Path, client_port: int, server_port: int):
     synack = next((p for p in s2c if p["flags"] & SYN and p["flags"] & ACK), None)
     third = next((p for p in c2s if p["flags"] & ACK and not (p["flags"] & SYN) and p["payload_len"] == 0), None)
     assert syn and synack and third, "3-way handshake not visible"
-    assert syn["mss"] and syn["sack_perm"], syn
-    assert synack["mss"] and synack["sack_perm"], synack
+    assert syn["mss"] and syn["sack_perm"] and syn["win_scale"] is not None, syn
+    assert synack["mss"] and synack["sack_perm"] and synack["win_scale"] is not None, synack
     assert synack["ack"] == (syn["seq"] + 1) & 0xFFFFFFFF
     assert third["ack"] == (synack["seq"] + 1) & 0xFFFFFFFF
 
@@ -156,9 +161,14 @@ def analyze(path: Path, client_port: int, server_port: int):
         assert new >= old, ("cumulative ACK moved backwards", old, new)
 
     sack_packets = [p for p in acks if p["sacks"]]
+    max_sack_blocks = max((len(p["sacks"]) for p in sack_packets), default=0)
+    merged_sack_packets = 0
     for p in sack_packets:
         for left, right in p["sacks"]:
             assert left >= p["ack"] and right > left, ("invalid SACK block", p)
+            if right - left > 1200:
+                merged_sack_packets += 1
+                break
 
     dup_acks = 0
     run = 0
@@ -176,7 +186,7 @@ def analyze(path: Path, client_port: int, server_port: int):
     assert dup_acks >= 3, f"too few duplicate ACKs: {dup_acks}"
     assert sack_packets, "no SACK blocks observed on wire"
 
-    # Classify evidence from the packet chronology rather than internal stats.
+    # Classify evidence from packet chronology rather than WBD's counters.
     ack_run = 0
     current_ack = None
     fast = []
@@ -206,8 +216,6 @@ def analyze(path: Path, client_port: int, server_port: int):
         previous_send[seq] = p["ts"]
 
     assert fast, "pcap has retransmissions but no third-duplicate-ACK fast retransmit evidence"
-    # RTO may not always fire in a random run if fast recovery repairs everything;
-    # report it when present rather than requiring artificial timeout loss.
 
     first_ts = packets[0]["ts"]
     out = {
@@ -216,8 +224,11 @@ def analyze(path: Path, client_port: int, server_port: int):
         "handshake": {
             "syn_mss": syn["mss"],
             "syn_sack_permitted": syn["sack_perm"],
+            "syn_window_scale": syn["win_scale"],
             "synack_mss": synack["mss"],
             "synack_sack_permitted": synack["sack_perm"],
+            "synack_window_scale": synack["win_scale"],
+            "effective_advertised_window_bytes": 65535 << synack["win_scale"],
             "third_ack_delay_ms": (third["ts"] - syn["ts"]) * 1000.0,
         },
         "data_first_transmissions": len(first_segments),
@@ -228,6 +239,8 @@ def analyze(path: Path, client_port: int, server_port: int):
         "rto_scale_retransmit_evidence": len(rto_like),
         "duplicate_acks": dup_acks,
         "sack_ack_packets": len(sack_packets),
+        "max_sack_blocks": max_sack_blocks,
+        "merged_sack_packets": merged_sack_packets,
         "first_fast": fast[0] if fast else None,
         "first_rto_like": rto_like[0] if rto_like else None,
         "capture_duration_ms": (packets[-1]["ts"] - first_ts) * 1000.0,
