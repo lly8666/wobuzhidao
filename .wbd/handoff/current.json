@@ -1,51 +1,52 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 31,
+  "continuity_sequence": 32,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "916804dc31096040d7b264d2c69a3bf5f6993251",
+  "checkpoint_based_on_head_sha": "9ba1ca8cee6d2d6a865b4ae96413c556a708c951",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows with TCP-shaped FakeTCP outer packets, UDP/datagram-like no-HOL inner behavior, DTLS 1.3, and a small efficient FEC implementation suitable for owned endpoints.",
-    "current_milestone": "Fast steady-state sizing at a normal 200 Mbit/s public-link budget, with 20:20 fixed and TUN excluded.",
-    "local_optimization_stop_rule": "Prefer high-information measurements over broad grids. Treat 200 Mbit/s as public-link capacity: with 20:20, drive about 90 Mbit/s inner payload so FEC plus DTLS/FakeTCP headers approach the 200 Mbit/s outer budget. Only repeat points that show a cliff or anomaly."
+    "terminal_goal": "Build a personal weak-network VPN with TCP-shaped FakeTCP outer packets, UDP/datagram-like inner behavior, DTLS 1.3, and a compact WBD-owned FEC layer suited to OpenWrt/Linux/Windows owned endpoints.",
+    "current_milestone": "Replace the resource-heavy generic UDPspeeder process with a narrow WBD-owned FEC candidate, using UDPspeeder 20:20 as the oracle baseline and correcting the steady-state 200-Mbit sizing methodology.",
+    "local_optimization_stop_rule": "Do not broaden the matrix. First implement one fixed 20+20 systematic erasure-code path with bounded buffers, then A/B only high-information 200-Mbit public-link points. Keep UDPspeeder until the candidate is at least as good on delivery/tail latency and materially better on RSS/CPU."
   },
   "continuation_cursor": {
-    "last_completed_action": "The user asked to skip broad low-rate testing and go directly to a normal 200-Mbit/s RTT/loss resource test, then decide whether UDPspeeder can be removed in favor of a small WBD-owned FEC layer. A local fixed-rate C UDP probe was developed and directly validated at 200 Mbit/s on loopback with 100% delivery, but the current sandbox cannot provide reliable tc netem because sch_netem is unavailable in its user namespace and repeated unshare/netns experiments wedged the sandbox executor. Therefore the impairment run was moved to the already-qualified privileged Ubuntu runner instead of treating a userspace relay as netem. Repository commits 162235f78ecc3e2a923eb981623399366b439247, a4a225b1595f20bc19dbd1a33c8d85d667a8b875 and 916804dc31096040d7b264d2c69a3bf5f6993251 added scripts/udp_rate_probe.c, scripts/bench_v2_transport_200m.py and .github/workflows/transport-200m.yml. The focused workflow runs RTT 20/100/300/600 ms in parallel; each job sweeps symmetric per-direction loss 0/1/5/10/20%, shapes each public direction to 200 Mbit/s, sends 90 Mbit/s inner 1200-byte datagrams for 2 seconds, and records delivery, p50/p95/p99/max, outer gross rate/drop counts, per-component CPU, endpoint CPU-core fractions and peak RSS. PR #3 is temporarily titled [200m]; this sequence-31 commit is the synchronize event intended to trigger the new workflow.",
-    "current_task": "Complete the 20-case focused 200-Mbit/s public-link sweep, inspect CPU/RSS and delivery/latency cliffs, then use those results plus the known UDPspeeder RSS dominance to decide the FEC replacement design.",
-    "why_now": "The user wants efficient resource sizing rather than the previous 126-case characterization. 20:20 roughly doubles coded traffic, so shaping the public link to 200 Mbit/s while offering 90 Mbit/s inner payload models a realistic 200-Mbit/s WAN more honestly than offering 200 Mbit/s inner and then blaming the 2x FEC overhead for oversubscription.",
-    "done_when": "transport-200m completes four RTT jobs and aggregates exactly 20 rows; each row has delivery, latency percentiles, gross outer rate/drop counts, client/server CPU-core fractions and RSS. The temporary [200m] PR title is removed. The result is summarized in handoff, and the next FEC step is explicitly chosen: keep UDPspeeder temporarily or replace it with a fixed systematic 20+20 erasure codec with bounded buffers and timer flush.",
-    "next_atomic_action": "Refresh workflows for this sequence-31 commit. Find transport-200m prepare and four bench jobs. If a harness/build issue appears, patch without expanding the RTT/loss surface. If all pass, read the aggregate 20-row output, remove [200m] from PR #3, persist the resource conclusions, then start a small WBD-owned FEC benchmark/design if replacement is justified."
+    "last_completed_action": "Focused workflow transport-200m run 32819141473 completed successfully: prepare, RTT 20/100/300/600 bench jobs and aggregate all passed, producing 20 rows for symmetric loss 0/1/5/10/20%. Public veth capacity was 200 Mbit/s per direction and inner offered load was 90 Mbit/s with UDPspeeder mode0 20:20, DTLS 1.3 and FakeTCP. The request/echo generator makes this a 90-Mbit/s full-duplex inner stress. At 20 ms / 0% loss the stack returned 39.217 Mbit/s within the accounting window, delivery ratio 0.4357, p99 282.5 ms, with zero qdisc loss; this is strong evidence of CPU/queueing pressure rather than network-loss recovery. Aggregate RSS was 28,976 KiB: UDPspeeder 21,096 KiB, DTLS 5,624 KiB, udp2raw 2,256 KiB. Process CPU deltas over the case were UDPspeeder ~2.67 s, DTLS ~2.70 s and udp2raw ~2.29 s across both endpoints, showing CPU pressure is distributed while UDPspeeder clearly dominates memory (~73% of userspace RSS). Across all 20 cases total RSS stayed roughly 28.3-30.5 MiB, so no RTT/loss memory blow-up appeared. The run also revealed a measurement defect: the post-send drain timeout grows with RTT, responses during drain count toward delivery while throughput keeps a 2-s denominator, and CPU deltas include drain while cpu_core_fraction divides by 2 s. Therefore higher-RTT delivery/throughput/core-fraction values are not valid for quantitative cross-RTT comparison. This limitation and the valid capacity/RSS conclusions are persisted in docs/benchmarks/v2-200m-first-pass.md at 9ba1ca8cee6d2d6a865b4ae96413c556a708c951. The temporary [200m] PR title flag has been removed.",
+    "current_task": "Build a minimal WBD-owned FEC v0 and A/B it against UDPspeeder 20:20. Preferred first codec is fixed systematic 20 data + 20 parity Reed-Solomon-style erasure coding with preallocated bounded block buffers, original packet-length metadata and a small flush timer. In parallel, correct the 200-Mbit sizing probe to separate one-way bulk throughput/CPU from a low-rate latency probe and to use actual measurement wall time.",
+    "why_now": "The 200-Mbit pass shows UDPspeeder consumes about three quarters of current userspace RSS, while the project only needs one narrow fixed FEC behavior. Eliminating the generic UDPspeeder process can remove a large memory allocation and one UDP process/socket hop per side. A naive single-XOR parity scheme is too weak for the desired 20:20 loss protection, so the simplification should be protocol/implementation scope, not a weaker erasure model by accident.",
+    "done_when": "A WBD-owned FEC candidate can encode/decode fixed 20+20 blocks, handle variable original packet lengths without stream semantics, bound memory explicitly, flush partial blocks on a small timer, pass deterministic loss/reorder unit tests, and run the corrected focused 200-Mbit A/B against the pinned UDPspeeder oracle. Report per-endpoint RSS, codec CPU, end-to-end CPU, one-way delivery/goodput and separate latency under a small set of RTT/loss points.",
+    "next_atomic_action": "Add a minimal internal FEC package and benchmark: systematic 20+20 shards, GF(256) Reed-Solomon via a thin replaceable codec interface, bounded buffer pool and block header. Unit-test recovery for 0..20 missing shards and rejection beyond parity budget. Do not remove UDPspeeder from the product baseline until the A/B passes."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
+    "docs/benchmarks/v2-200m-first-pass.md",
     "scripts/udp_rate_probe.c",
     "scripts/bench_v2_transport_200m.py",
     ".github/workflows/transport-200m.yml",
     "scripts/bench_v2_transport_20x20.py",
-    "scripts/bench_netfilter_overhead.py",
     ".wbd/handoff/current.json"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_M1_M2_M3_qualified_plus_repaired_transport_smoke_and_netfilter_probe_passed",
+    "authority": "V2_M1_M2_M3_qualified_plus_200m_capacity_diagnostic",
     "outer_semantics": "TCP-shaped FakeTCP raw datagrams; no kernel TCP byte-stream dependency",
-    "current_characterization_fec": "UDPspeeder mode0 20:20 only",
-    "current_200m_definition": "200 Mbit/s public capacity per direction; 90 Mbit/s inner offered load to leave room for approximately 2x FEC plus DTLS/FakeTCP headers",
-    "focused_200m_surface": "RTT 20/100/300/600 ms x symmetric loss 0/1/5/10/20% = 20 steady-state cases, one fast pass; repeat only anomalous/cliff points",
-    "per_endpoint_userspace_rss_smoke": "approximately 13.2-14.9 MiB per endpoint across UDPspeeder+DTLS+udp2raw; UDPspeeder is the dominant allocation",
-    "kernel_netfilter_probe": "run 32816368578 PASS at 300Mbps UDP: route/filter/NAT all ~299.9Mbps and 0% loss; no throughput cliff from small-rule-set netfilter/NAT",
-    "fec_replacement_candidate": "A small WBD-owned systematic Reed-Solomon-style fixed 20+20 erasure layer is technically feasible and is the leading simplification candidate; simple XOR parity alone is not equivalent because it cannot recover arbitrary multi-packet erasures in a 20:20 budget."
+    "current_oracle_fec": "UDPspeeder mode0 20:20",
+    "200m_run": "32819141473 PASS infrastructure/20 rows; 20ms 0% shows capacity pressure, but cross-RTT delivery/CPU fractions are diagnostic-only because drain accounting varies with RTT",
+    "200m_20ms_0loss": "90Mbps full-duplex inner offered, 39.217Mbps returned within accounting window, p99 282.5ms, aggregate RSS 28976KiB, qdisc drops 0",
+    "memory_breakdown_20ms_0loss": "UDPspeeder 21096KiB, DTLS 5624KiB, udp2raw 2256KiB across both endpoints; UDPspeeder ~73% of userspace RSS",
+    "fec_replacement_decision": "yes: build WBD-owned compact FEC and retain UDPspeeder only as oracle until A/B qualification",
+    "fec_v0_target": "systematic fixed 20+20 erasure coding, bounded blocks, preallocated buffers, variable packet-length metadata, timer flush, no retransmission/order semantics",
+    "naive_xor_status": "single XOR parity is not equivalent to 20+20 arbitrary-erasure recovery; packet duplication may be an optional ultra-low-CPU mode but not the main weak-network 20:20 replacement"
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "186c36b7dbdd8ae824a11e29a7e70eebd465561f",
+    "tested_commit": "747b0969d7d0295410d15a81b97c384a73db055e",
     "result": "pass",
-    "command": "Sequence-30 handoff verifier and prior CI/netfilter probe passed. Local fixed-rate probe source was additionally exercised outside repo at 200 Mbit/s direct loopback with 100% delivery before being committed; impairment qualification is intentionally delegated to the privileged transport-200m workflow because the current sandbox lacks usable sch_netem."
+    "command": "GitHub transport-200m run 32819141473 completed all four RTT jobs and aggregate successfully. See docs/benchmarks/v2-200m-first-pass.md for valid conclusions and the RTT-dependent drain-accounting caveat."
   }
 }
