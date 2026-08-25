@@ -40,7 +40,8 @@ class HandoffContractTest(unittest.TestCase):
         architecture = (ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
         for phrase in (
             "V1 multi-ordinary-TCP is permanently rejected",
-            "TCP-shaped, not an ordinary kernel TCP byte stream",
+            "outer wire packets** should be TCP-shaped",
+            "product payload is never committed to an ordinary kernel TCP byte stream",
             "FEC encoder",
             "DTLS application datagram",
             "Optional TLS Persona bootstrap",
