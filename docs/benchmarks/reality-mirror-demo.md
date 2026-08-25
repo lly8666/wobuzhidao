@@ -81,6 +81,20 @@ Same genuine TLS target, but reached through the WBD server IP:
 
 The target certificate/SPKI hashes should match because both cases terminate TLS at the genuine target. Compare connection success, TCP connect p50/p95 and TLS handshake p50/p95.
 
+For the preferred short-window comparison, alternate the two paths so a few minutes of changing network quality cannot systematically favor whichever group was run first:
+
+```bash
+python3 scripts/bench_reality_mirror.py \
+  --diag ./wbd-tls-diag \
+  --direct TARGET_HOST:443 \
+  --mirror WBD_SERVER_IP:9443 \
+  --server-name TARGET_HOST \
+  --pairs 20 \
+  > reality-mirror-handshake.json
+```
+
+The JSON reports each pair, direct/mirror success ratios, p50/p95 and `mirror_minus_direct` deltas. Pair order alternates `direct -> mirror` then `mirror -> direct`.
+
 ## HTTP/data comparison
 
 A normal HTTPS client can use the same mirror. For example, with a target URL that you are permitted to benchmark, direct access is compared with `curl --connect-to`. `--connect-to` keeps the URL authority, Host header, SNI and certificate hostname at normal port 443 while redirecting only the TCP destination to the WBD mirror port.
