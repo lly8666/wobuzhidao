@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"github.com/lly8666/wobuzhidao/internal/persona"
 )
 
 func udp4(t *testing.T) *net.UDPConn {
@@ -20,14 +22,18 @@ func udp4(t *testing.T) *net.UDPConn {
 func addr(c *net.UDPConn) *net.UDPAddr { return c.LocalAddr().(*net.UDPAddr) }
 
 func TestImmutableLinkProxyOffNoAuth(t *testing.T) {
-	runProxyIntegration(t, "off", false)
+	runProxyIntegration(t, "off", false, false)
 }
 
 func TestImmutableLinkProxyFixed20x20WithAuth(t *testing.T) {
-	runProxyIntegration(t, "20:20", true)
+	runProxyIntegration(t, "20:20", true, false)
 }
 
-func runProxyIntegration(t *testing.T, fecMode string, auth bool) {
+func TestImmutableLinkProxyRealityDemoGateThenEncryptedData(t *testing.T) {
+	runProxyIntegration(t, "off", true, true)
+}
+
+func runProxyIntegration(t *testing.T, fecMode string, auth, demo bool) {
 	t.Helper()
 	clientProxy := udp4(t)
 	serverProxy := udp4(t)
@@ -92,6 +98,17 @@ func runProxyIntegration(t *testing.T, fecMode string, auth bool) {
 		mtu: 1400, flushMS: 8, lanes: 1, token: token,
 		setupTimeout: 3 * time.Second,
 	}
+	if demo {
+		dir := t.TempDir()
+		id := persona.WitnessFromClientHello([]byte("demo-real-target-clienthello"))
+		if err := persona.RecordWitness(dir, id, "target.example", time.Now()); err != nil {
+			t.Fatal(err)
+		}
+		serverOpts.demoRealityWitnessDir = dir
+		serverOpts.demoRealityServerName = "target.example"
+		serverOpts.demoRealityTTL = 15 * time.Second
+		clientOpts.demoRealityWitness = id.Hex()
+	}
 	go func() { serverDone <- runServer(serverProxy, serverOpts, stopServer) }()
 	go func() { clientDone <- runClient(clientProxy, clientOpts, stopClient) }()
 
@@ -100,14 +117,14 @@ func runProxyIntegration(t *testing.T, fecMode string, auth bool) {
 	deadline := time.Now().Add(4 * time.Second)
 	for {
 		if time.Now().After(deadline) {
-			t.Fatalf("%s: timed out waiting for echo", fecMode)
+			t.Fatalf("%s demo=%v: timed out waiting for echo", fecMode, demo)
 		}
 		_, _ = app.WriteToUDP(payload, addr(clientProxy))
 		_ = app.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
 		n, _, err := app.ReadFromUDP(buf)
 		if err == nil {
 			if !bytes.Equal(buf[:n], payload) {
-				t.Fatalf("%s: got %q want %q", fecMode, buf[:n], payload)
+				t.Fatalf("%s demo=%v: got %q want %q", fecMode, demo, buf[:n], payload)
 			}
 			break
 		}
@@ -122,10 +139,10 @@ func runProxyIntegration(t *testing.T, fecMode string, auth bool) {
 		select {
 		case err := <-ch:
 			if err != nil {
-				t.Fatalf("%s %s: %v", fecMode, name, err)
+				t.Fatalf("%s demo=%v %s: %v", fecMode, demo, name, err)
 			}
 		case <-time.After(2 * time.Second):
-			t.Fatalf("%s %s did not stop", fecMode, name)
+			t.Fatalf("%s demo=%v %s did not stop", fecMode, demo, name)
 		}
 	}
 }
