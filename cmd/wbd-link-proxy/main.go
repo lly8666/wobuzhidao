@@ -227,7 +227,16 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 		return err
 	}
 	fmt.Printf("WBD_LINK_READY role=client fec=%s mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t demo_kind=%s keepalive=%s\n", o.fec, cfg.MTU, cfg.LaneCount, startupAcceptAuth(startup), demoKind != "off", demoKind, keepalive)
-	return clientDataLoop(conn, dtlsAddr, path, startup, keepalive, stop)
+	loopErr := clientDataLoop(conn, dtlsAddr, path, startup, keepalive, stop)
+	printPathStats("client", path.Stats())
+	return loopErr
+}
+
+func printPathStats(role string, st linkdata.PathStats) {
+	fmt.Printf("WBD_LINK_PATH_STATS role=%s inner_tx_packets=%d inner_tx_bytes=%d wire_tx_packets=%d wire_tx_bytes=%d fec_systematic_tx_packets=%d fec_systematic_tx_bytes=%d fec_repair_tx_packets=%d fec_repair_tx_bytes=%d wire_rx_packets=%d wire_rx_bytes=%d inner_rx_packets=%d inner_rx_bytes=%d\n",
+		role, st.InnerTXPackets, st.InnerTXBytes, st.WireTXPackets, st.WireTXBytes,
+		st.FECSystematicTXPackets, st.FECSystematicTXBytes, st.FECRepairTXPackets, st.FECRepairTXBytes,
+		st.WireRXPackets, st.WireRXBytes, st.InnerRXPackets, st.InnerRXBytes)
 }
 
 func startupAcceptAuth(s clientStartupSession) bool {
@@ -521,7 +530,6 @@ func serverDataLoop(conn *net.UDPConn, serviceAddr, dtlsPeer *net.UDPAddr, path 
 						return err
 					}
 				}
-			}
 		}
 		wire, err := path.FlushDue(now)
 		if err != nil {
