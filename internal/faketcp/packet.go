@@ -13,7 +13,8 @@ const (
 	FlagPSH = 0x08
 	FlagACK = 0x10
 
-	MaxHeaderSize = 48
+	// IPv4 20 + TCP 20 + maximum RFC 2018 SACK option (36 bytes).
+	MaxHeaderSize = 76
 )
 
 var (
@@ -21,6 +22,11 @@ var (
 	ErrNotIPv4TCP  = errors.New("faketcp: not ipv4/tcp")
 	ErrBadTCPHeader = errors.New("faketcp: invalid tcp header")
 )
+
+type SACKBlock struct {
+	Start uint32
+	End   uint32
+}
 
 type Segment struct {
 	SrcIP   [4]byte
@@ -31,38 +37,52 @@ type Segment struct {
 	Ack     uint32
 	Flags   uint8
 	Window  uint16
+	SACK    [4]SACKBlock
+	SACKN   int
 	Payload []byte
 }
 
 func IPv4(ip net.IP) ([4]byte, bool) {
 	var out [4]byte
 	v := ip.To4()
-	if v == nil {
-		return out, false
-	}
+	if v == nil { return out, false }
 	copy(out[:], v)
 	return out, true
 }
 
-func PacketLen(flags uint8, payloadLen int) int {
-	if flags&FlagSYN != 0 { return 48 + payloadLen }
-	return 40 + payloadLen
+func optionLen(flags uint8, sacks []SACKBlock) int {
+	if flags&FlagSYN != 0 { return 8 }
+	if len(sacks) == 0 { return 0 }
+	n := len(sacks)
+	if n > 4 { n = 4 }
+	// RFC 2018 option is 2+8*n bytes, padded to a 32-bit TCP header boundary.
+	l := 2 + 8*n
+	return (l + 3) &^ 3
 }
 
-// MarshalIPv4TCP is the allocating convenience form used by tests and cold
-// paths. The transport hot path uses MarshalIPv4TCPInto with a reusable scratch
-// buffer.
+func PacketLen(flags uint8, payloadLen int) int {
+	return PacketLenSACK(flags, payloadLen, nil)
+}
+
+func PacketLenSACK(flags uint8, payloadLen int, sacks []SACKBlock) int {
+	return 40 + optionLen(flags, sacks) + payloadLen
+}
+
 func MarshalIPv4TCP(srcIP, dstIP [4]byte, srcPort, dstPort uint16, seq, ack uint32, flags uint8, window uint16, payload []byte, ipID uint16) []byte {
 	buf := make([]byte, PacketLen(flags, len(payload)))
 	return MarshalIPv4TCPInto(buf, srcIP, dstIP, srcPort, dstPort, seq, ack, flags, window, payload, ipID)
 }
 
-// MarshalIPv4TCPInto constructs one IPv4/TCP packet without allocation. SYN
-// advertises MSS and SACK permitted; steady-state data/ACK packets use a plain
-// 20-byte TCP header to keep the raw lane cheap.
 func MarshalIPv4TCPInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort uint16, seq, ack uint32, flags uint8, window uint16, payload []byte, ipID uint16) []byte {
-	optLen := 0
-	if flags&FlagSYN != 0 { optLen = 8 }
+	return MarshalIPv4TCPSACKInto(buf, srcIP, dstIP, srcPort, dstPort, seq, ack, flags, window, nil, payload, ipID)
+}
+
+// MarshalIPv4TCPSACKInto constructs one IPv4/TCP packet without allocation.
+// SYN advertises MSS + SACK-permitted. ACK packets may carry up to four RFC
+// 2018 SACK blocks. The steady-state data path has no TCP options unless a SACK
+// is actually needed.
+func MarshalIPv4TCPSACKInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort uint16, seq, ack uint32, flags uint8, window uint16, sacks []SACKBlock, payload []byte, ipID uint16) []byte {
+	optLen := optionLen(flags, sacks)
 	need := 40 + optLen + len(payload)
 	if len(buf) < need { panic("faketcp: marshal buffer too small") }
 	buf = buf[:need]
@@ -87,11 +107,21 @@ func MarshalIPv4TCPInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort uint1
 	tcp[12] = byte((20 + optLen) / 4 << 4)
 	tcp[13] = flags
 	binary.BigEndian.PutUint16(tcp[14:16], window)
-	if optLen != 0 {
+	if flags&FlagSYN != 0 {
 		o := tcp[20:28]
 		o[0], o[1] = 2, 4
 		binary.BigEndian.PutUint16(o[2:4], 1360)
 		o[4], o[5], o[6], o[7] = 4, 2, 1, 1
+	} else if len(sacks) != 0 {
+		n := len(sacks)
+		if n > 4 { n = 4 }
+		o := tcp[20:20+optLen]
+		o[0], o[1] = 5, byte(2+8*n)
+		for i := 0; i < n; i++ {
+			binary.BigEndian.PutUint32(o[2+i*8:6+i*8], sacks[i].Start)
+			binary.BigEndian.PutUint32(o[6+i*8:10+i*8], sacks[i].End)
+		}
+		// Remaining bytes are already EOL/padding zeroes.
 	}
 	copy(tcp[20+optLen:], payload)
 	binary.BigEndian.PutUint16(tcp[16:18], tcpChecksum(srcIP, dstIP, tcp))
@@ -117,8 +147,30 @@ func ParseIPv4TCP(packet []byte) (Segment, error) {
 	s.Ack = binary.BigEndian.Uint32(tcp[8:12])
 	s.Flags = tcp[13]
 	s.Window = binary.BigEndian.Uint16(tcp[14:16])
+	parseTCPOptions(tcp[20:doff], &s)
 	s.Payload = tcp[doff:]
 	return s, nil
+}
+
+func parseTCPOptions(opts []byte, s *Segment) {
+	for i := 0; i < len(opts); {
+		kind := opts[i]
+		if kind == 0 { return }
+		if kind == 1 { i++; continue }
+		if i+2 > len(opts) { return }
+		l := int(opts[i+1])
+		if l < 2 || i+l > len(opts) { return }
+		if kind == 5 && l >= 10 && (l-2)%8 == 0 {
+			n := (l-2)/8
+			if n > 4 { n = 4 }
+			for j := 0; j < n; j++ {
+				off := i+2+j*8
+				s.SACK[j] = SACKBlock{Start: binary.BigEndian.Uint32(opts[off:off+4]), End: binary.BigEndian.Uint32(opts[off+4:off+8])}
+			}
+			s.SACKN = n
+		}
+		i += l
+	}
 }
 
 func checksum(b []byte) uint16 {
