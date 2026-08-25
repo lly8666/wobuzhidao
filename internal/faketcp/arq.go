@@ -27,11 +27,19 @@ type Pending struct {
 
 type SenderStats struct {
 	Enqueued        uint64
+	EnqueuedBytes   uint64
 	Acked           uint64
 	SACKed          uint64
 	FastRetransmits uint64
 	RTOTransmits    uint64
 	RetransmitBytes uint64
+	// LossMarked counts original data segments that required at least one
+	// retransmission. A segment is counted once regardless of how many fast/RTO
+	// retries follow. This is the low-overhead sender-side loss sample used by
+	// periodic fixed-FEC profile selection; retry-attempt counters must not be
+	// treated as a packet-loss probability.
+	LossMarked      uint64
+	LossMarkedBytes uint64
 	PeakPending     int
 }
 
@@ -83,6 +91,7 @@ func (s *Sender) Enqueue(payload []byte, now time.Time) *Pending {
 	s.bySeq[p.Seq] = p
 	s.active++
 	s.stats.Enqueued++
+	s.stats.EnqueuedBytes += uint64(len(payload))
 	if s.active > s.stats.PeakPending {
 		s.stats.PeakPending = s.active
 	}
@@ -254,9 +263,14 @@ func (s *Sender) oldest() *Pending {
 }
 
 func (s *Sender) markRetry(p *Pending, now time.Time, fast bool) {
+	firstLossMark := !p.WasRetried
 	p.LastSent = now
 	p.Retries++
 	p.WasRetried = true
+	if firstLossMark {
+		s.stats.LossMarked++
+		s.stats.LossMarkedBytes += uint64(len(p.Payload))
+	}
 	if fast {
 		s.stats.FastRetransmits++
 	} else {
@@ -305,19 +319,19 @@ type Receiver struct {
 	// outOfOrder retains only exact segment boundaries for duplicate detection
 	// and cumulative-ACK advancement. sacksByStart/sackStartByEnd maintain merged
 	// contiguous SACK ranges separately, so the inner payload is never buffered.
-	outOfOrder    map[uint32]uint32
-	sacksByStart  map[uint32]uint32
+	outOfOrder     map[uint32]uint32
+	sacksByStart   map[uint32]uint32
 	sackStartByEnd map[uint32]uint32
-	recentSACK    [4]uint32
-	recentSACKN   int
-	stats         ReceiverStats
+	recentSACK     [4]uint32
+	recentSACKN    int
+	stats          ReceiverStats
 }
 
 func NewReceiver(nextSeq uint32) *Receiver {
 	return &Receiver{
-		next: nextSeq,
-		outOfOrder: make(map[uint32]uint32),
-		sacksByStart: make(map[uint32]uint32),
+		next:           nextSeq,
+		outOfOrder:     make(map[uint32]uint32),
+		sacksByStart:   make(map[uint32]uint32),
 		sackStartByEnd: make(map[uint32]uint32),
 	}
 }
