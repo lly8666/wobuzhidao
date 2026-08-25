@@ -12,6 +12,7 @@ on:
       - 'internal/persona/witness_test.go'
       - 'internal/realitymirror/**'
       - 'native/dtls/wbd_dtls_shim.c'
+  pull_request:
 
 permissions:
   contents: read
@@ -19,6 +20,7 @@ permissions:
 
 jobs:
   encrypted-handoff:
+    if: github.event_name == 'push' || contains(github.event.pull_request.title, '[demoenc]')
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
