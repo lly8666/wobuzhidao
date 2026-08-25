@@ -1,0 +1,346 @@
+//go:build linux
+
+package main
+
+import (
+	"crypto/rand"
+	"encoding/binary"
+	"encoding/json"
+	"errors"
+	"flag"
+	"fmt"
+	"net"
+	"os"
+	"os/signal"
+	"sync"
+	"sync/atomic"
+	"syscall"
+	"time"
+
+	"github.com/lly8666/wobuzhidao/internal/faketcp"
+)
+
+type config struct {
+	role string
+	localUDP string
+	targetUDP string
+	source string
+	listen string
+	remote string
+}
+
+type endpoint struct {
+	cfg config
+	fd int
+	srcIP, dstIP [4]byte
+	srcPort, dstPort uint16
+	udp *net.UDPConn
+	innerMu sync.RWMutex
+	inner *net.UDPAddr
+	senderMu sync.Mutex
+	sender *faketcp.Sender
+	receiver *faketcp.Receiver
+	ipID uint32
+	rawTx uint64
+	rawRx uint64
+	ackTx uint64
+	dataTx uint64
+	dataRx uint64
+	stop chan struct{}
+	stopOnce sync.Once
+}
+
+type finalStats struct {
+	Role string `json:"role"`
+	RawTx uint64 `json:"raw_tx"`
+	RawRx uint64 `json:"raw_rx"`
+	AckTx uint64 `json:"ack_tx"`
+	DataTx uint64 `json:"data_tx"`
+	DataRx uint64 `json:"data_rx"`
+	Sender faketcp.SenderStats `json:"sender"`
+	Receiver faketcp.ReceiverStats `json:"receiver"`
+	RTOms float64 `json:"rto_ms"`
+}
+
+func main() {
+	if len(os.Args) < 2 {
+		usage()
+		os.Exit(2)
+	}
+	role := os.Args[1]
+	fs := flag.NewFlagSet(role, flag.ExitOnError)
+	var c config
+	c.role = role
+	fs.StringVar(&c.localUDP, "local-udp", "", "client UDP listen address")
+	fs.StringVar(&c.targetUDP, "target-udp", "", "server downstream UDP address")
+	fs.StringVar(&c.source, "source", "", "client raw source ip:port")
+	fs.StringVar(&c.listen, "listen", "", "server raw listen ip:port")
+	fs.StringVar(&c.remote, "remote", "", "client raw remote ip:port")
+	_ = fs.Parse(os.Args[2:])
+	if role != "client" && role != "server" { usage(); os.Exit(2) }
+
+	e, err := newEndpoint(c)
+	if err != nil { fmt.Fprintln(os.Stderr, "wbd-faketcp:", err); os.Exit(1) }
+	defer e.close()
+	if err := e.handshake(); err != nil { fmt.Fprintln(os.Stderr, "wbd-faketcp handshake:", err); os.Exit(1) }
+	fmt.Printf("READY role=%s rto_ms=%.3f\n", role, float64(e.sender.RTO())/float64(time.Millisecond))
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	errCh := make(chan error, 3)
+	go func() { errCh <- e.rawLoop() }()
+	go func() { errCh <- e.udpLoop() }()
+	go func() { errCh <- e.retransmitLoop() }()
+	select {
+	case <-sig:
+	case err := <-errCh:
+		if err != nil && !errors.Is(err, os.ErrClosed) { fmt.Fprintln(os.Stderr, "wbd-faketcp:", err) }
+	}
+	e.close()
+	e.printStats()
+}
+
+func usage() {
+	fmt.Fprintln(os.Stderr, "usage:")
+	fmt.Fprintln(os.Stderr, "  wbd-faketcp client --local-udp 127.0.0.1:PORT --source IP:PORT --remote IP:PORT")
+	fmt.Fprintln(os.Stderr, "  wbd-faketcp server --listen IP:PORT --target-udp 127.0.0.1:PORT")
+}
+
+func newEndpoint(c config) (*endpoint, error) {
+	e := &endpoint{cfg:c, fd:-1, stop:make(chan struct{})}
+	var rawLocal, rawRemote *net.UDPAddr
+	var err error
+	if c.role == "client" {
+		if c.localUDP == "" || c.source == "" || c.remote == "" { return nil, errors.New("client requires --local-udp --source --remote") }
+		rawLocal, err = net.ResolveUDPAddr("udp4", c.source); if err != nil { return nil, err }
+		rawRemote, err = net.ResolveUDPAddr("udp4", c.remote); if err != nil { return nil, err }
+		la, err := net.ResolveUDPAddr("udp4", c.localUDP); if err != nil { return nil, err }
+		e.udp, err = net.ListenUDP("udp4", la); if err != nil { return nil, err }
+	} else {
+		if c.listen == "" || c.targetUDP == "" { return nil, errors.New("server requires --listen --target-udp") }
+		rawLocal, err = net.ResolveUDPAddr("udp4", c.listen); if err != nil { return nil, err }
+		e.inner, err = net.ResolveUDPAddr("udp4", c.targetUDP); if err != nil { return nil, err }
+		la, err := net.ResolveUDPAddr("udp4", "127.0.0.1:0"); if err != nil { return nil, err }
+		e.udp, err = net.ListenUDP("udp4", la); if err != nil { return nil, err }
+	}
+	if rawLocal.Port <= 0 || rawLocal.Port > 65535 { return nil, errors.New("bad raw local port") }
+	e.srcPort = uint16(rawLocal.Port)
+	e.srcIP, _ = faketcp.IPv4(rawLocal.IP)
+	if e.srcIP == [4]byte{} { return nil, errors.New("raw local address must be IPv4") }
+	if rawRemote != nil {
+		e.dstPort = uint16(rawRemote.Port)
+		e.dstIP, _ = faketcp.IPv4(rawRemote.IP)
+		if e.dstIP == [4]byte{} { return nil, errors.New("raw remote address must be IPv4") }
+	}
+
+	e.fd, err = syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_TCP)
+	if err != nil { return nil, err }
+	if err = syscall.SetsockoptInt(e.fd, syscall.IPPROTO_IP, syscall.IP_HDRINCL, 1); err != nil { e.close(); return nil, err }
+	if err = syscall.Bind(e.fd, &syscall.SockaddrInet4{Addr:e.srcIP}); err != nil { e.close(); return nil, err }
+	return e, nil
+}
+
+func randomSeq() uint32 {
+	var b [4]byte
+	if _, err := rand.Read(b[:]); err == nil { return binary.BigEndian.Uint32(b[:]) }
+	return uint32(time.Now().UnixNano())
+}
+
+func (e *endpoint) handshake() error {
+	if e.cfg.role == "client" { return e.handshakeClient() }
+	return e.handshakeServer()
+}
+
+func (e *endpoint) setReadTimeout(d time.Duration) error {
+	tv := syscall.NsecToTimeval(d.Nanoseconds())
+	return syscall.SetsockoptTimeval(e.fd, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &tv)
+}
+
+func (e *endpoint) clearReadTimeout() error {
+	return syscall.SetsockoptTimeval(e.fd, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &syscall.Timeval{})
+}
+
+func (e *endpoint) handshakeClient() error {
+	isn := randomSeq()
+	deadline := time.Now().Add(20*time.Second)
+	for time.Now().Before(deadline) {
+		sent := time.Now()
+		if err := e.send(isn, 0, faketcp.FlagSYN, nil); err != nil { return err }
+		_ = e.setReadTimeout(300*time.Millisecond)
+		for time.Now().Before(sent.Add(300*time.Millisecond)) {
+			seg, err := e.recvOne()
+			if err != nil {
+				if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) { break }
+				return err
+			}
+			if seg.Flags&(faketcp.FlagSYN|faketcp.FlagACK) != faketcp.FlagSYN|faketcp.FlagACK || seg.Ack != isn+1 { continue }
+			e.dstIP, e.dstPort = seg.SrcIP, seg.SrcPort
+			peerNext := seg.Seq+1
+			if err := e.send(isn+1, peerNext, faketcp.FlagACK, nil); err != nil { return err }
+			rtt := time.Since(sent)
+			e.sender = faketcp.NewSender(isn+1, maxDuration(40*time.Millisecond, 2*rtt))
+			e.receiver = faketcp.NewReceiver(peerNext)
+			_ = e.clearReadTimeout()
+			return nil
+		}
+	}
+	return errors.New("client SYN timeout")
+}
+
+func (e *endpoint) handshakeServer() error {
+	_ = e.clearReadTimeout()
+	for {
+		seg, err := e.recvOne(); if err != nil { return err }
+		if seg.DstPort != e.srcPort || seg.Flags&faketcp.FlagSYN == 0 { continue }
+		e.dstIP, e.dstPort = seg.SrcIP, seg.SrcPort
+		peerNext := seg.Seq+1
+		isn := randomSeq()
+		for attempts:=0; attempts<60; attempts++ {
+			sent := time.Now()
+			if err := e.send(isn, peerNext, faketcp.FlagSYN|faketcp.FlagACK, nil); err != nil { return err }
+			_ = e.setReadTimeout(300*time.Millisecond)
+			for time.Now().Before(sent.Add(300*time.Millisecond)) {
+				a, err := e.recvOne()
+				if err != nil {
+					if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) { break }
+					return err
+				}
+				if a.SrcIP != e.dstIP || a.SrcPort != e.dstPort || a.Flags&faketcp.FlagACK == 0 || a.Ack != isn+1 { continue }
+				rtt := time.Since(sent)
+				e.sender = faketcp.NewSender(isn+1, maxDuration(40*time.Millisecond, 2*rtt))
+				e.receiver = faketcp.NewReceiver(peerNext)
+				_ = e.clearReadTimeout()
+				return nil
+			}
+		}
+		return errors.New("server SYN-ACK timeout")
+	}
+}
+
+func maxDuration(a,b time.Duration) time.Duration { if a>b { return a }; return b }
+
+func (e *endpoint) recvOne() (faketcp.Segment, error) {
+	var zero faketcp.Segment
+	buf := make([]byte, 65535)
+	n, _, err := syscall.Recvfrom(e.fd, buf, 0)
+	if err != nil { return zero, err }
+	seg, err := faketcp.ParseIPv4TCP(buf[:n]); if err != nil { return zero, err }
+	atomic.AddUint64(&e.rawRx, 1)
+	return seg, nil
+}
+
+func (e *endpoint) rawLoop() error {
+	buf := make([]byte, 65535)
+	for {
+		n, _, err := syscall.Recvfrom(e.fd, buf, 0)
+		if err != nil { select { case <-e.stop: return nil; default: return err } }
+		seg, err := faketcp.ParseIPv4TCP(buf[:n]); if err != nil { continue }
+		if seg.SrcIP != e.dstIP || seg.DstIP != e.srcIP || seg.SrcPort != e.dstPort || seg.DstPort != e.srcPort { continue }
+		atomic.AddUint64(&e.rawRx, 1)
+		now := time.Now()
+		if seg.Flags&faketcp.FlagACK != 0 {
+			e.senderMu.Lock()
+			p := e.sender.Ack(seg.Ack, now)
+			e.senderMu.Unlock()
+			if p != nil { _ = e.sendDataPending(p) }
+		}
+		if len(seg.Payload) == 0 { continue }
+		deliver, _ := e.receiver.Accept(seg.Seq, len(seg.Payload))
+		atomic.AddUint64(&e.dataRx, 1)
+		// ACK every packet in v1. This intentionally exposes the full reliability
+		// wire cost; delayed ACK can be optimized after the first total-cost matrix.
+		_ = e.send(e.senderNext(), e.receiver.Next(), faketcp.FlagACK, nil)
+		atomic.AddUint64(&e.ackTx, 1)
+		if deliver {
+			peer := e.innerPeer()
+			if peer != nil { _, _ = e.udp.WriteToUDP(seg.Payload, peer) }
+		}
+	}
+}
+
+func (e *endpoint) udpLoop() error {
+	buf := make([]byte, 65535)
+	for {
+		n, from, err := e.udp.ReadFromUDP(buf)
+		if err != nil { select { case <-e.stop: return nil; default: return err } }
+		if e.cfg.role == "client" {
+			e.innerMu.Lock()
+			if e.inner == nil { cp := *from; e.inner = &cp }
+			known := e.inner
+			e.innerMu.Unlock()
+			if !udpEqual(from, known) { continue }
+		} else if !udpEqual(from, e.innerPeer()) { continue }
+		if n == 0 { continue }
+		now := time.Now()
+		e.senderMu.Lock()
+		p := e.sender.Enqueue(buf[:n], now)
+		e.senderMu.Unlock()
+		if err := e.sendDataPending(p); err != nil { return err }
+	}
+}
+
+func udpEqual(a,b *net.UDPAddr) bool {
+	if a==nil || b==nil { return false }
+	return a.Port==b.Port && a.IP.Equal(b.IP)
+}
+
+func (e *endpoint) retransmitLoop() error {
+	t := time.NewTicker(2*time.Millisecond); defer t.Stop()
+	for {
+		select {
+		case <-e.stop: return nil
+		case now := <-t.C:
+			e.senderMu.Lock()
+			p := e.sender.RetransmitDue(now)
+			e.senderMu.Unlock()
+			if p != nil {
+				if err := e.sendDataPending(p); err != nil { return err }
+			}
+		}
+	}
+}
+
+func (e *endpoint) senderNext() uint32 {
+	e.senderMu.Lock(); defer e.senderMu.Unlock()
+	return e.sender.NextSeq()
+}
+
+func (e *endpoint) innerPeer() *net.UDPAddr {
+	e.innerMu.RLock(); defer e.innerMu.RUnlock()
+	if e.inner == nil { return nil }
+	cp := *e.inner
+	return &cp
+}
+
+func (e *endpoint) sendDataPending(p *faketcp.Pending) error {
+	if p == nil || len(p.Payload)==0 { return nil }
+	if err := e.send(p.Seq, e.receiver.Next(), faketcp.FlagACK|faketcp.FlagPSH, p.Payload); err != nil { return err }
+	atomic.AddUint64(&e.dataTx, 1)
+	return nil
+}
+
+func (e *endpoint) send(seq, ack uint32, flags uint8, payload []byte) error {
+	var scratch [65535]byte
+	id := uint16(atomic.AddUint32(&e.ipID,1))
+	pkt := faketcp.MarshalIPv4TCPInto(scratch[:], e.srcIP, e.dstIP, e.srcPort, e.dstPort, seq, ack, flags, 65535, payload, id)
+	sa := &syscall.SockaddrInet4{Addr:e.dstIP}
+	if err := syscall.Sendto(e.fd, pkt, 0, sa); err != nil { return err }
+	atomic.AddUint64(&e.rawTx,1)
+	return nil
+}
+
+func (e *endpoint) close() {
+	e.stopOnce.Do(func(){
+		close(e.stop)
+		if e.udp != nil { _ = e.udp.Close() }
+		if e.fd >= 0 { _ = syscall.Close(e.fd); e.fd = -1 }
+	})
+}
+
+func (e *endpoint) printStats() {
+	if e.sender == nil || e.receiver == nil { return }
+	e.senderMu.Lock(); ss := e.sender.Stats(); rto := e.sender.RTO(); e.senderMu.Unlock()
+	st := finalStats{Role:e.cfg.role, RawTx:atomic.LoadUint64(&e.rawTx), RawRx:atomic.LoadUint64(&e.rawRx), AckTx:atomic.LoadUint64(&e.ackTx), DataTx:atomic.LoadUint64(&e.dataTx), DataRx:atomic.LoadUint64(&e.dataRx), Sender:ss, Receiver:e.receiver.Stats(), RTOms:float64(rto)/float64(time.Millisecond)}
+	b,_ := json.Marshal(st)
+	fmt.Printf("WBD_FAKETCP_STATS %s\n", b)
+}
