@@ -116,10 +116,11 @@ class HandoffContractTest(unittest.TestCase):
             "There is deliberately **no in-stream plaintext or protocol splice**",
             "DEMO_BIND",
             "one-time",
-            "normal WBD account/device authentication is still required",
+            "mandatory normal device/account `AUTH`",
             "self-signed DTLS certificate",
             "never means disabling certificate verification",
             "unordered/no-HOL WBD data plane",
+            "before those first bytes are forwarded to the client",
         ):
             self.assertIn(phrase, adr8)
 
@@ -142,7 +143,7 @@ class HandoffContractTest(unittest.TestCase):
         self.assertIn("V2-M3A-E | minimal native session/control + bearer auth + legacy fixed config foundation | **DONE AS FOUNDATION**", roadmap)
         self.assertIn("V2-M4 | kernel-anchor / real-return-packet experiment | **RETIRED**", roadmap)
         self.assertIn("V2-M6A | Linux/OpenWrt packet-preserving L3/TUN core | **IMPLEMENTED**", roadmap)
-        self.assertIn("V2-M8A | optional TLS Persona bootstrap + network-treatment diagnostic | **REALITY-STYLE TARGET-MIRROR DIAGNOSTIC IMPLEMENTED; PERSONA STILL PLANNED**", roadmap)
+        self.assertIn("V2-M8A | optional TLS Persona bootstrap + network-treatment diagnostic | **REALITY-STYLE TARGET-MIRROR + ENCRYPTED DEMO BIND IMPLEMENTED; PERSONA STILL PLANNED**", roadmap)
         self.assertIn("V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **CURRENT**", roadmap)
         self.assertIn("V2-M8C | account + per-device credential + concurrent multi-session server state | **PLANNED**", roadmap)
         self.assertIn("V2-X1 | advanced continuously learning Auto FEC / automatic capacity inference | **FUTURE RESEARCH; NOT REQUIRED**", roadmap)
