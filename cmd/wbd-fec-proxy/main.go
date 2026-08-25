@@ -45,18 +45,27 @@ func run(args []string) error {
 	}
 	mode := args[0]
 	listenPort, err := port(args[1])
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	dtlsPort, err := port(args[2])
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	if mode != "client" && mode != "server" {
 		usage()
 		return fmt.Errorf("invalid mode %q", mode)
 	}
 	var servicePort int
 	if mode == "server" {
-		if len(args) != 4 { usage(); return errors.New("server requires SERVICE_PORT") }
+		if len(args) != 4 {
+			usage()
+			return errors.New("server requires SERVICE_PORT")
+		}
 		servicePort, err = port(args[3])
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 	} else if len(args) != 3 {
 		usage()
 		return errors.New("client takes exactly two ports")
@@ -64,22 +73,46 @@ func run(args []string) error {
 
 	addr := &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: listenPort}
 	conn, err := net.ListenUDP("udp4", addr)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	defer conn.Close()
-	if err := conn.SetReadBuffer(4 << 20); err != nil { return err }
-	if err := conn.SetWriteBuffer(4 << 20); err != nil { return err }
+	if err := conn.SetReadBuffer(4 << 20); err != nil {
+		return err
+	}
+	if err := conn.SetWriteBuffer(4 << 20); err != nil {
+		return err
+	}
 
 	codec := fec.NewReedSolomon20x20()
 	enc, err := fec.NewBlockEncoder(codec, maxPacketSize, flushAfter, 1)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	dec, err := fec.NewBlockDecoder(codec, maxPacketSize, maxBlocks)
-	if err != nil { return err }
-	dtlsAddr := &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: dtlsPort}
+	if err != nil {
+		return err
+	}
+
+	// The DTLS client plaintext socket is bound to dtlsPort, so the client-side
+	// FEC proxy has a stable peer. The DTLS server creates a separate connected
+	// plaintext UDP socket after the handshake without binding it, so its source
+	// port is ephemeral. Server mode therefore learns that peer from the first
+	// decrypted shard and replies to exactly that source address.
+	fixedDTLSAddr := &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: dtlsPort}
+	var learnedDTLSPeer *net.UDPAddr
 	var serviceAddr *net.UDPAddr
 	if mode == "server" {
 		serviceAddr = &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: servicePort}
 	}
 	var clientApp *net.UDPAddr
+
+	wireDest := func() *net.UDPAddr {
+		if mode == "client" {
+			return fixedDTLSAddr
+		}
+		return learnedDTLSPeer
+	}
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -90,7 +123,9 @@ func run(args []string) error {
 	for {
 		select {
 		case <-stop:
-			if wire, err := enc.Flush(); err == nil { _ = sendWire(conn, dtlsAddr, wire) }
+			if wire, err := enc.Flush(); err == nil {
+				_ = sendWire(conn, wireDest(), wire)
+			}
 			return nil
 		default:
 		}
@@ -99,40 +134,89 @@ func run(args []string) error {
 		n, from, err := conn.ReadFromUDP(buf)
 		now := time.Now()
 		if err != nil {
-			if ne, ok := err.(net.Error); !ok || !ne.Timeout() { return err }
-		} else if from.Port == dtlsPort {
-			packets, done, err := dec.Add(buf[:n])
-			if err != nil {
-				if !errors.Is(err, fec.ErrDecoderFull) { return err }
-			} else if done {
-				var dst *net.UDPAddr
-				if mode == "server" { dst = serviceAddr } else { dst = clientApp }
-				if dst != nil {
-					for _, p := range packets {
-						if _, err := conn.WriteToUDP(p, dst); err != nil { return err }
-					}
-				}
+			if ne, ok := err.(net.Error); !ok || !ne.Timeout() {
+				return err
 			}
 		} else {
+			fromDTLS := false
 			if mode == "client" {
-				clientApp = from
-			} else if from.Port != servicePort {
-				continue
+				fromDTLS = from.Port == dtlsPort
+			} else {
+				// The only other loopback peer of the server proxy is the local
+				// plaintext service. Everything not from that service is the DTLS
+				// shim's ephemeral plaintext socket.
+				fromDTLS = from.Port != servicePort
 			}
-			wire, err := enc.Add(buf[:n], now)
-			if err != nil { return err }
-			if err := sendWire(conn, dtlsAddr, wire); err != nil { return err }
+
+			if fromDTLS {
+				if mode == "server" {
+					learnedDTLSPeer = cloneUDPAddr(from)
+				}
+				packets, done, err := dec.Add(buf[:n])
+				if err != nil {
+					if !errors.Is(err, fec.ErrDecoderFull) {
+						return err
+					}
+				} else if done {
+					var dst *net.UDPAddr
+					if mode == "server" {
+						dst = serviceAddr
+					} else {
+						dst = clientApp
+					}
+					if dst != nil {
+						for _, p := range packets {
+							if _, err := conn.WriteToUDP(p, dst); err != nil {
+								return err
+							}
+						}
+					}
+				}
+			} else {
+				if mode == "client" {
+					clientApp = cloneUDPAddr(from)
+				} else if from.Port != servicePort {
+					continue
+				}
+				wire, err := enc.Add(buf[:n], now)
+				if err != nil {
+					return err
+				}
+				if err := sendWire(conn, wireDest(), wire); err != nil {
+					return err
+				}
+			}
 		}
 
 		wire, err := enc.FlushDue(now)
-		if err != nil { return err }
-		if err := sendWire(conn, dtlsAddr, wire); err != nil { return err }
+		if err != nil {
+			return err
+		}
+		if err := sendWire(conn, wireDest(), wire); err != nil {
+			return err
+		}
 	}
 }
 
+func cloneUDPAddr(a *net.UDPAddr) *net.UDPAddr {
+	if a == nil {
+		return nil
+	}
+	ip := append(net.IP(nil), a.IP...)
+	return &net.UDPAddr{IP: ip, Port: a.Port, Zone: a.Zone}
+}
+
 func sendWire(conn *net.UDPConn, dst *net.UDPAddr, wire [][]byte) error {
+	if len(wire) == 0 {
+		return nil
+	}
+	if dst == nil {
+		return errors.New("fec proxy: DTLS plaintext peer not learned")
+	}
 	for _, d := range wire {
-		if _, err := conn.WriteToUDP(d, dst); err != nil { return err }
+		if _, err := conn.WriteToUDP(d, dst); err != nil {
+			return err
+		}
 	}
 	return nil
 }
