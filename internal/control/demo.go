@@ -92,15 +92,9 @@ type DemoLinkClientSession struct {
 	failed   bool
 }
 
-func NewDemoLinkClientSession(init LinkInit, token []byte, witness [DemoWitnessLen]byte) (*DemoLinkClientSession, error) {
+func newDemoLinkClientSession(init LinkInit, token []byte, witness [DemoWitnessLen]byte) (*DemoLinkClientSession, error) {
 	if allZero(witness[:]) {
 		return nil, ErrDemoBindFailed
-	}
-	// A public ClientHello hash is correlation evidence, not a credential. Demo
-	// mode therefore always keeps the normal high-entropy WBD device/account
-	// AUTH gate. A deployment with no token must use normal non-demo startup.
-	if len(token) == 0 {
-		return nil, fmt.Errorf("%w: demo mode requires normal WBD token/device authentication", ErrDemoBindFailed)
 	}
 	inner, err := NewLinkClientSession(init, token)
 	if err != nil {
@@ -111,6 +105,24 @@ func NewDemoLinkClientSession(init LinkInit, token []byte, witness [DemoWitnessL
 		return nil, err
 	}
 	return &DemoLinkClientSession{inner: inner, witness: witness, bindWire: wire}, nil
+}
+
+// NewDemoLinkClientSession is the legacy target-mirror witness mode. A raw
+// ClientHello hash is public correlation evidence, so this mode retains the
+// normal WBD token/device AUTH gate.
+func NewDemoLinkClientSession(init LinkInit, token []byte, witness [DemoWitnessLen]byte) (*DemoLinkClientSession, error) {
+	if len(token) == 0 {
+		return nil, fmt.Errorf("%w: mirror-witness mode requires normal WBD token/device authentication", ErrDemoBindFailed)
+	}
+	return newDemoLinkClientSession(init, token, witness)
+}
+
+// NewDemoTicketLinkClientSession is for the same-entry Reality-like front. The
+// one-time ticket was issued only after username/password authentication inside
+// the recognized TLS branch, so the later DTLS association needs only consume
+// that ticket and does not repeat account credentials.
+func NewDemoTicketLinkClientSession(init LinkInit, ticket [DemoWitnessLen]byte) (*DemoLinkClientSession, error) {
+	return newDemoLinkClientSession(init, nil, ticket)
 }
 
 func (s *DemoLinkClientSession) Established() bool { return s.bound && !s.failed && s.inner.Established() }
@@ -174,18 +186,30 @@ type DemoReliableLinkServerSession struct {
 	failed     bool
 }
 
-func NewDemoReliableLinkServerSession(minProtocol, maxProtocol uint16, expectedToken []byte, policy LinkPolicy, verify DemoWitnessVerifier) (*DemoReliableLinkServerSession, error) {
+func newDemoReliableLinkServerSession(minProtocol, maxProtocol uint16, expectedToken []byte, policy LinkPolicy, verify DemoWitnessVerifier) (*DemoReliableLinkServerSession, error) {
 	if verify == nil {
 		return nil, ErrDemoBindFailed
-	}
-	if len(expectedToken) == 0 {
-		return nil, fmt.Errorf("%w: demo mode requires normal WBD token/device authentication", ErrDemoBindFailed)
 	}
 	inner, err := NewReliableLinkServerSession(minProtocol, maxProtocol, expectedToken, policy)
 	if err != nil {
 		return nil, err
 	}
 	return &DemoReliableLinkServerSession{inner: inner, verify: verify}, nil
+}
+
+// NewDemoReliableLinkServerSession is the legacy public-ClientHello-witness
+// mode and therefore requires the normal WBD token/device authentication too.
+func NewDemoReliableLinkServerSession(minProtocol, maxProtocol uint16, expectedToken []byte, policy LinkPolicy, verify DemoWitnessVerifier) (*DemoReliableLinkServerSession, error) {
+	if len(expectedToken) == 0 {
+		return nil, fmt.Errorf("%w: mirror-witness mode requires normal WBD token/device authentication", ErrDemoBindFailed)
+	}
+	return newDemoReliableLinkServerSession(minProtocol, maxProtocol, expectedToken, policy, verify)
+}
+
+// NewDemoTicketReliableLinkServerSession consumes a one-time ticket produced
+// only after the Reality-like front has already authenticated username/password.
+func NewDemoTicketReliableLinkServerSession(minProtocol, maxProtocol uint16, policy LinkPolicy, verify DemoWitnessVerifier) (*DemoReliableLinkServerSession, error) {
+	return newDemoReliableLinkServerSession(minProtocol, maxProtocol, nil, policy, verify)
 }
 
 func (s *DemoReliableLinkServerSession) State() State {
@@ -212,7 +236,7 @@ func (s *DemoReliableLinkServerSession) HandleWire(data []byte, now uint64) ([]b
 		if !s.bound {
 			if err := s.verify(bind.Witness); err != nil {
 				s.failed = true
-				return MarshalLink(Error{Code: ErrorAuthFailed, Message: "demo preflight witness rejected; reconnect required"})
+				return MarshalLink(Error{Code: ErrorAuthFailed, Message: "demo preflight binding rejected; reconnect required"})
 			}
 			s.bound = true
 			s.witness = bind.Witness
@@ -224,7 +248,7 @@ func (s *DemoReliableLinkServerSession) HandleWire(data []byte, now uint64) ([]b
 		}
 		if bind.Witness != s.witness {
 			s.failed = true
-			return MarshalLink(Error{Code: ErrorUnexpectedState, Message: "demo witness changed; reconnect required"})
+			return MarshalLink(Error{Code: ErrorUnexpectedState, Message: "demo binding changed; reconnect required"})
 		}
 		return append([]byte(nil), s.bindOKWire...), nil
 	}
