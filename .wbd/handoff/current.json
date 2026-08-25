@@ -1,64 +1,63 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 40,
+  "continuity_sequence": 41,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "46f1b5f25c23b38ae6d92415fdb4143ecf610c61",
+  "checkpoint_based_on_head_sha": "1b43227de133a675db0017c9803288d04de175c5",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux/Windows with a TCP-shaped WBD raw/FakeTCP carrier, datagram-like no-HOL inner delivery, real DTLS 1.3, optional fixed WBD FEC, optional browser-like TLS Persona, concurrent multi-device sessions per account, and client-selectable global/China/non-China capture.",
-    "current_milestone": "V2-M8B-T2: fixed-FEC scheduler qualification plus immutable per-association LINK_INIT/LINK_ACCEPT setup. All link-defining parameters are chosen once before Established; changing them requires a fresh association. Auto FEC remains future advanced research.",
-    "local_optimization_stop_rule": "Do not delay an available systematic source to fill a FEC block. Do not replace the live qualified RS path from iid-only simulator evidence. Do not add a runtime link-parameter control plane. Inner first-complete transport performance remains the first optimization priority, even when retransmission/FEC buffers consume additional memory."
+    "terminal_goal": "Build a personal weak-network VPN whose two primary transport properties are UDP/datagram-like earliest-complete inner delivery and TCP-shaped FakeTCP outer behavior. Current release qualification assumes at most a 100 Mbit/s weak public link. The personal server uses one shared username/password for many concurrent sessions, OpenWrt final capture is TPROXY, and Windows final capture is TUN/Wintun-class.",
+    "current_milestone": "Finish the 100 Mbit/s transport gates and shared-account session plumbing without changing already-qualified no-HOL semantics, then freeze the protocol before final OpenWrt TPROXY and Windows TUN integration.",
+    "local_optimization_stop_rule": "Inner first-complete latency and delivery are the first optimization priority. Do not delay an available systematic source, do not make inner delivery wait for cumulative TCP ACK/retransmission, do not add authentication/control complexity that is unnecessary for the personal shared-account deployment, and do not let platform capture requirements change the frozen transport protocol."
   },
   "continuation_cursor": {
-    "last_completed_action": "Replaced the planned runtime off|fixed config-epoch design with immutable per-association startup negotiation. Added internal/control/link.go and link_test.go with LINK_INIT type 11 and LINK_ACCEPT type 12 in the existing WBDC envelope. LinkConfig currently carries FEC off/fixed, scheduler, data/parity geometry, flush milliseconds, MTU and lane count. CurrentLinkPolicy honestly admits only live-supported FEC off or WBD systematic 20:20 tail-RS, one lane, and bounded MTU/flush; 20:10, micro, causal and two-lane proposals are rejected. The server accepts the exact proposal or rejects it; ValidateLinkAccept rejects server rewrites. A rejected initial proposal, a wrong first frame, a second LINK_INIT, or legacy CONFIG after setup poisons the WBD session to StateFailed so the client must recreate the association. Updated cmd/wbd-config-probe to use LINK_INIT/LINK_ACCEPT before AUTH instead of HELLO/CONFIG, with explicit off/20:20 flags and current unsupported-profile rejection. Updated PROJECT_CONSTITUTION.md, ROADMAP.md, ADR-0005, new ADR-0006-immutable-link-setup.md, historical M3E docs, architecture contract tests and PR #3 metadata so runtime config epochs are explicitly rejected. GitHub Actions ci run 32856466413 for checkpoint 46f1b5f25c23b38ae6d92415fdb4143ecf610c61 completed SUCCESS with Go tests and handoff tests; the handoff verifier also passed on that checkpoint.",
-    "current_task": "Integrate the accepted immutable LinkConfig into the live WBD proxy startup path without changing already-qualified data-plane semantics. The live proxy must demultiplex startup WBDC control from data, complete LINK_INIT/LINK_ACCEPT and optional AUTH before application forwarding, then lock into either FEC-off direct DTLS datagrams or the existing streaming-systematic 20:20 tail-RS path for the lifetime of that association.",
-    "why_now": "The one-time link codec/state machine is repository-qualified and the user explicitly rejected runtime control. The remaining gap is that cmd/wbd-fec-proxy is still benchmark-oriented: it starts encoding immediately and has no startup control or FEC-off mode. Integrating immutable setup there proves the product path uses the new architecture rather than merely exposing it in a probe/library.",
-    "done_when": "A focused live-proxy qualification proves two fresh associations: FEC off and fixed 20:20. Client and server complete LINK_INIT/LINK_ACCEPT over the DTLS plaintext path before forwarding application data; optional bearer AUTH still gates Established; accepted config is exact and immutable; unsupported 20:10/causal/two-lane proposals fail before data forwarding; a post-Established parameter-change frame fails the association; FEC-off forwards packet-preserving DTLS datagrams directly; fixed 20:20 retains immediate systematic-source delivery and later parity recovery. Existing first-arrival/20%-loss transport regressions must remain green for the fixed path.",
-    "next_atomic_action": "Refactor or wrap cmd/wbd-fec-proxy so startup WBDC frames are handled before data forwarding. Add a small product-mode state that uses LinkServerSession on server and LINK_INIT/ValidateLinkAccept plus optional AUTH on client. After Established, select an immutable data handler: off = direct packet-preserving DTLS plaintext forwarding; fixed 20:20 = existing FastBlockEncoder/BlockDecoder. Keep the old benchmark behavior behind an explicit legacy/test option if needed so existing full-stack evidence is not silently invalidated. Add deterministic tests for startup demux and both data modes before rerunning the focused full-stack first-arrival cases."
+    "last_completed_action": "Changed the active product assumptions to a 100 Mbit/s weak-link ceiling, simple shared username/password admission, and final platform targets OpenWrt TPROXY plus Windows TUN. Added a same-entry Reality-like simple auth path that sends one bounded username/password request inside TLS 1.3 and immediately issues a fresh one-time 32-byte ticket; the same credentials can issue multiple concurrent independent tickets. Added a session registry keyed by 32-byte live session ID rather than username. GitHub Actions demo-encryption run 32891427104 passed the simplified path end-to-end with an unrelated self-signed front certificate, verify_server=false, DTLS verify=none, ticket bind with auth=false, encrypted echo, and pcap scan showing no username/password/ticket/WBDC/application plaintext. Converted active FakeTCP first-arrival, full-stack first-arrival and recovery A/B qdiscs to 100mbit. Added a loaded recovery A/B with 65 Mbit/s inner offered traffic on a 100 Mbit/s link at RTT 20/100 ms and loss 10/20%. Added OpenWrt TPROXY render/apply/cleanup plumbing with underlay escape before capture and compact nft sets, plus contract tests. Updated the constitution, ADR-0008, ROADMAP and handoff architecture tests so old per-device credential and mandatory certificate/hostname-validation requirements no longer define the personal product.",
+    "current_task": "Get the current 100 Mbit/s regression set green and use the loaded legacy-vs-SACK/RACK result to make the recovery default decision. In parallel, preserve the deliberately simple one-account/many-session model and prepare the server data-plane demultiplexing boundary without introducing username-keyed live state or a multi-tenant control plane.",
+    "why_now": "Low-load same-binary recovery A/B already showed SACK/RACK adds only roughly 0.00-0.055 ms p50/p75 body latency while raising five-second delivery by about 7-19 percentage points, but that test was only around 9.6 Mbit/s. The user capped the real weak link at 100 Mbit/s, so loaded behavior near that capacity is the remaining transport decision. Authentication simplification and Reality-like ticket join have already passed a real encrypted end-to-end CI demo, so the next correctness gap is concurrent data-session ownership rather than more identity machinery.",
+    "done_when": "The loaded 100 Mbit/s recovery A/B either passes its p50/goodput gates and SACK/RACK remains default, or it fails and advanced recovery is demoted/refactored so new inner datagrams keep priority. Current go test/handoff tests and the 100 Mbit/s first-arrival/full-stack regressions are green. Same shared username/password can create multiple distinct tickets and live server state remains keyed by session/ticket identity. Only after these protocol gates are frozen should OpenWrt TPROXY and Windows TUN be connected to the real data session and each platform run one clean end-to-end VPN success with underlay escape and cleanup.",
+    "next_atomic_action": "Poll the current faketcp-recovery-load-ab, ci, fullstack-first-arrival and demo-encryption runs for checkpoint 1b43227de133a675db0017c9803288d04de175c5. If loaded recovery passes, persist SACK/RACK as the default and move to the smallest server multi-session data demux keyed by ticket/session ID; if it fails, first move advanced recovery off the new-datagram critical path or revert it. Do not start real OpenWrt/Windows packet-adapter integration until that protocol decision and multi-session demux are qualified."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ROADMAP.md",
-    "docs/architecture/ADR-0006-immutable-link-setup.md",
-    "docs/architecture/ADR-0005-adaptive-fec-multisession-routing.md",
-    "internal/control/link.go",
-    "internal/control/link_test.go",
-    "internal/control/control.go",
-    "cmd/wbd-config-probe/main.go",
-    "cmd/wbd-fec-proxy/main.go",
-    "internal/fec/fastblock_encoder.go",
-    "scripts/bench_wbd_fullstack_ab_runner.py",
+    "docs/architecture/ADR-0008-reality-target-mirror-diagnostic.md",
+    "internal/realityfront/simple_auth.go",
+    "internal/realityfront/simple_auth_test.go",
+    "internal/session/account_registry.go",
+    "cmd/wbd-reality-front/main.go",
+    "cmd/wbd-link-proxy/main.go",
+    "cmd/wbd-faketcp/main_linux.go",
+    ".github/workflows/faketcp-recovery-load-ab.yml",
+    "scripts/openwrt_tproxy.sh",
     ".wbd/handoff/current.json"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "native_faketcp_pcap_20loss_plus_streaming_systematic_fullstack_first_arrival_plus_fixed_schedule_simulator_plus_immutable_link_setup_ci",
-    "outer_semantics": "WBD-owned TCP-shaped raw carrier with shadow cumulative ACK/SACK/fast-retransmit/RTO state; inner complete datagram delivery never waits for cumulative TCP ACK",
-    "fec_status": "WBD systematic 20+20 RS remains the qualified fixed live reference and systematic sources stream immediately. Offline simulator compares off/tail/micro/causal, but live negotiation currently admits only off or 20:20 tail-RS. Auto is deferred.",
-    "fullstack_run": "GitHub Actions 32841039689 SUCCESS, RTT 20/100 ms x loss 0/10/20%, 800 1200-byte datagrams per point",
-    "fullstack_20ms_20loss": "800/800; p50 10.374367 ms; p75 10.637389 ms; p95 17.825149 ms; p99 20.077293 ms; max 20.439752 ms",
-    "fullstack_100ms_20loss": "800/800; p50 50.379323 ms; p75 50.792243 ms; p95 58.114718 ms; p99 59.768831 ms; max 60.160976 ms",
-    "immutable_setup_ci": "GitHub Actions ci run 32856466413 SUCCESS at checkpoint 46f1b5f25c23b38ae6d92415fdb4143ecf610c61; Go tests and handoff tests passed for LINK_INIT/LINK_ACCEPT and reconnect-only rejection semantics",
-    "tcp_like_pcap": "20% real pcap gate passed with MSS=1360, SACK-Permitted, Window Scale=8, cumulative ACK, up to four live merged SACK blocks, third-dup-ACK fast retransmit, ~1 s RTO and exponential backoff",
-    "memory_policy": "performance first: SACKed-but-not-cumulatively-ACKed payload remains retained for shadow retransmission and new inner datagrams are not gated by pending depth; BDP memory is measured rather than optimized away",
-    "tcp_retransmission_scope": "qualified TCP-shaped shadow behavior, not a claim of a full RFC TCP congestion-control/byte-stream implementation"
+    "authority": "native_faketcp_pcap_plus_streaming_systematic_fullstack_first_arrival_plus_same_binary_recovery_ab_with_loaded_100mbit_gate_pending",
+    "outer_semantics": "WBD-owned TCP-shaped raw carrier with shadow cumulative ACK/SACK/fast-retransmit/RTO state; inner complete datagram delivery never waits for cumulative TCP ACK. SACK/RACK remains provisionally default pending the loaded 100 Mbit/s A/B.",
+    "fec_status": "WBD systematic 20+20 RS remains the qualified fixed live reference and systematic sources stream immediately; live negotiation admits off or fixed 20:20 tail-RS while intermediate presets remain future qualification work.",
+    "historical_fullstack_run": "GitHub Actions 32841039689 SUCCESS on the older 200 Mbit/s harness, RTT 20/100 ms x loss 0/10/20%, 800 1200-byte datagrams per point. Kept as historical evidence only; current product qualification is 100 Mbit/s.",
+    "recovery_low_load_run": "GitHub Actions 32884751596 SUCCESS. RTT20/loss10 delivery legacy 92.71% vs SACK/RACK 100%, p50 delta +0.0015 ms, p75 +0.0097 ms; RTT20/loss20 81.57% vs 100%, +0.0024/+0.0545 ms; RTT100/loss10 90.86% vs 100%, -0.0004/+0.0033 ms; RTT100/loss20 80.86% vs 100%, +0.0027/+0.0548 ms.",
+    "loaded_recovery_gate": "100 Mbit/s link, 65 Mbit/s inner offered, RTT 20/100 ms x loss 10/20%, interleaved legacy vs sack-rack. Hard gates: SACK/RACK p50 delta <=2 ms and goodput >=95% of legacy. Result pending at this checkpoint.",
+    "tcp_like_pcap": "20% real pcap gate passed with MSS=1360, SACK-Permitted, Window Scale=8, cumulative ACK, live merged SACK blocks, fast retransmit and RTO/backoff while later complete inner datagrams bypass holes.",
+    "memory_policy": "performance first: retain only the state needed for shadow repair and never gate new inner datagrams on pending depth merely to save memory",
+    "capacity_policy": "active weak-link tests use 100 Mbit/s or lower; old 200 Mbit/s benchmark workflows are historical and do not qualify current defaults"
   },
   "product_policy": {
-    "link_setup": "client proposes all current link-defining data parameters once in LINK_INIT; server accepts the exact config or rejects it; after LINK_ACCEPT/AUTH/Established parameters are immutable and any change requires a fresh association; there is no runtime config epoch",
-    "fec": "client/session selects off or a live-admitted fixed profile at establishment; live admission currently off or 20:20 tail-RS; Auto is reserved future advanced research and rejected now",
-    "accounts": "same username/account may own multiple simultaneous device sessions; live state keyed by account plus unique session id; prefer per-device high-entropy credentials and independent revocation",
-    "routing": "client capture modes off|global|only-cn|only-non-cn; mandatory underlay endpoint escape; Linux/OpenWrt use policy routing/prefix sets; Windows uses Wintun-class L3 plus broad routes or compact WFP/equivalent split classifier, never thousands of persistent firewall rules",
-    "persona": "ClientHello browser profile is client-selected from the server-supported set; Persona is separate real TLS 1.3 preflight. Endpoint hostname/certificate/private key must be identities the operator is authorized to use; public third-party sites may be measurement baselines but are not borrowed WBD identities.",
-    "dual_lane": "deferred until a one-lane fixed-protection cliff is measured; prefer striped/hedged independent repair with lane-specific equations/seeds/timing rather than byte-identical duplication; any >2x survival mode requires separate admission"
+    "link_setup": "Reality-like front is connection setup only. Recognized same-entry TLS authenticates once and issues a one-time ticket; FakeTCP/DTLS then performs ticket bind plus immutable LINK_INIT/LINK_ACCEPT. Sustained VPN payload never uses the front TCP stream.",
+    "fec": "off or live-admitted fixed profile at association setup; current live fixed implementation is systematic 20:20 tail-RS; no runtime config epoch",
+    "accounts": "one configured shared username/password may authenticate multiple simultaneous devices. Each successful login gets a distinct random ticket/session identity. No required per-device credential database, KDF, revocation table or username-based single-session lock.",
+    "certificate_policy": "personal client may explicitly disable certificate-chain and hostname verification for both front TLS and DTLS; encryption remains enabled and logs must state verify_server=false / verify=none",
+    "routing": "OpenWrt final product capture is TPROXY plus policy routing and underlay escape; Windows final product capture is TUN/Wintun-class with endpoint escape. Linux TUN remains a regression harness, not the OpenWrt release shape.",
+    "release_gate": "after protocol/unit/pcap/100M weak-link tests are green, one clean end-to-end VPN attempt must succeed on OpenWrt TPROXY and one on Windows TUN, including real application traffic, underlay escape and cleanup/restoration"
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "46f1b5f25c23b38ae6d92415fdb4143ecf610c61",
+    "tested_commit": "2fbae9a466ece077b22c6ef3f8fd8c6d2039fd76",
     "result": "pass",
-    "command": "GitHub Actions ci run 32856466413 completed SUCCESS at checkpoint 46f1b5f25c23b38ae6d92415fdb4143ecf610c61: go test ./... and repository handoff tests passed. Handoff verifier also passed on that checkpoint. This field is a snapshot and does not replace a future live refresh."
+    "command": "Repository-backed snapshot: GitHub Actions demo-encryption run 32891427104 passed pinned wolfSSL build, targeted Go tests, same-entry simple username/password auth, unrelated self-signed TLS with verify_server=false, DTLSv1.3 verify=none, ticket bind without second AUTH, encrypted echo and public capture marker scan. The same commit's go test ./... step also passed; its overall ci run was red only because architecture handoff assertions still described the older credential/certificate policy, which later commits replaced."
   }
 }
