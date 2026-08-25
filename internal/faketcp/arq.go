@@ -358,6 +358,7 @@ func (s *Sender) advanceHead() {
 			if p != nil {
 				p.slot = i
 			}
+		}
 		s.head = 0
 	}
 }
