@@ -1,0 +1,143 @@
+name: faketcp-recovery-ab
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ab:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.title, '[recoveryab]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        rtt: [20, 100]
+        loss: [10, 20]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables
+      - name: Build
+        run: |
+          set -euo pipefail
+          go test ./internal/faketcp -count=1
+          go build -trimpath -o /tmp/wbd-faketcp ./cmd/wbd-faketcp
+          python3 -m py_compile scripts/faketcp_first_arrival_probe.py
+      - name: Interleaved first-arrival A/B
+        env:
+          RTT: ${{ matrix.rtt }}
+          LOSS: ${{ matrix.loss }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/recovery-ab && mkdir -p /tmp/recovery-ab
+          run_one() {
+            MODE="$1"; REP="$2"; BASE="$3"
+            C="wbdrc${BASE}$$"; S="wbdrs${BASE}$$"
+            cleanup_case() {
+              set +e
+              [[ -n "${CPID:-}" ]] && sudo kill -TERM "$CPID" 2>/dev/null
+              [[ -n "${SPID:-}" ]] && sudo kill -TERM "$SPID" 2>/dev/null
+              [[ -n "${RPID:-}" ]] && sudo kill -TERM "$RPID" 2>/dev/null
+              sleep .08
+              sudo ip netns del "$C" 2>/dev/null
+              sudo ip netns del "$S" 2>/dev/null
+              CPID= SPID= RPID=
+            }
+            trap cleanup_case RETURN
+            sudo ip netns add "$C"; sudo ip netns add "$S"
+            sudo ip link add vc type veth peer name vs
+            sudo ip link set vc netns "$C"; sudo ip link set vs netns "$S"
+            sudo ip -n "$C" addr add 10.93.0.1/24 dev vc
+            sudo ip -n "$S" addr add 10.93.0.2/24 dev vs
+            sudo ip -n "$C" link set lo up; sudo ip -n "$S" link set lo up
+            sudo ip -n "$C" link set vc up; sudo ip -n "$S" link set vs up
+            sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+            sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+            HALF=$(python3 - <<PY
+          print(float("$RTT")/2.0)
+          PY
+            )
+            sudo ip netns exec "$C" tc qdisc add dev vc root netem limit 50000 delay "${HALF}ms" rate 200mbit
+            sudo ip netns exec "$S" tc qdisc add dev vs root netem limit 50000 delay "${HALF}ms" rate 200mbit
+            OUT="/tmp/recovery-ab/${MODE}-${REP}.json"
+            SLOG="/tmp/recovery-ab/${MODE}-${REP}-server.log"
+            CLOG="/tmp/recovery-ab/${MODE}-${REP}-client.log"
+            PLOG="/tmp/recovery-ab/${MODE}-${REP}-probe.log"
+            sudo ip netns exec "$S" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
+              server --bind 127.0.0.1:${BASE} --expect 700 --window 5.0 --out "$OUT" >"$PLOG" 2>&1 & RPID=$!
+            sudo ip netns exec "$S" /tmp/wbd-faketcp server --shadow-recovery "$MODE" \
+              --listen 10.93.0.2:$((BASE+3)) --target-udp 127.0.0.1:${BASE} >"$SLOG" 2>&1 & SPID=$!
+            sleep .12
+            sudo ip netns exec "$C" /tmp/wbd-faketcp client --shadow-recovery "$MODE" \
+              --local-udp 127.0.0.1:$((BASE+4)) --source 10.93.0.1:$((BASE+10)) --remote 10.93.0.2:$((BASE+3)) >"$CLOG" 2>&1 & CPID=$!
+            for i in $(seq 1 400); do
+              grep -q "READY role=client.*recovery=${MODE}" "$CLOG" && grep -q "READY role=server.*recovery=${MODE}" "$SLOG" && break
+              sleep .05
+            done
+            grep -q "READY role=client.*recovery=${MODE}" "$CLOG"
+            grep -q "READY role=server.*recovery=${MODE}" "$SLOG"
+            sudo ip netns exec "$C" tc qdisc replace dev vc root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 200mbit
+            sudo ip netns exec "$S" tc qdisc replace dev vs root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 200mbit
+            sudo ip netns exec "$C" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
+              client --dest 127.0.0.1:$((BASE+4)) --count 700 --size 1200 --interval-ms 1
+            wait "$RPID" || true; RPID=
+            sudo kill -TERM "$CPID" "$SPID" 2>/dev/null || true
+            wait "$CPID" || true; wait "$SPID" || true; CPID= SPID=
+            test -s "$OUT"
+            cleanup_case
+            trap - RETURN
+          }
+
+          # Alternate order to reduce short-term runner bias.
+          run_one legacy    1 57000
+          run_one sack-rack 1 57100
+          run_one sack-rack 2 57200
+          run_one legacy    2 57300
+          run_one legacy    3 57400
+          run_one sack-rack 3 57500
+
+          python3 - <<'PY'
+          import glob,json,os,re,statistics
+          def load(mode):
+              rows=[]
+              for p in sorted(glob.glob('/tmp/recovery-ab/%s-[123].json'%mode)):
+                  r=json.load(open(p)); rows.append(r)
+              assert len(rows)==3,(mode,rows)
+              return rows
+          def agg(mode):
+              rows=load(mode)
+              return {
+                  'received_first_median':statistics.median(r['received_first'] for r in rows),
+                  'delivery_ratio_median':statistics.median(r['received_first']/r['expected'] for r in rows),
+                  'p50_ms_median':statistics.median(r['p50_ms'] for r in rows),
+                  'p75_ms_median':statistics.median(r['p75_ms'] for r in rows),
+                  'p95_ms_median':statistics.median(r['p95_ms'] for r in rows),
+                  'p99_ms_median':statistics.median(r['p99_ms'] for r in rows),
+                  'runs':rows,
+              }
+          legacy=agg('legacy'); advanced=agg('sack-rack')
+          out={'rtt_ms':float(os.environ['RTT']),'loss_pct':float(os.environ['LOSS']),'legacy':legacy,'sack_rack':advanced}
+          for k in ('p50_ms_median','p75_ms_median','p95_ms_median','p99_ms_median'):
+              out[k+'_delta_ms']=advanced[k]-legacy[k]
+          out['delivery_delta_pp']=(advanced['delivery_ratio_median']-legacy['delivery_ratio_median'])*100
+          print('RECOVERY_AB',json.dumps(out,sort_keys=True))
+          # Core invariant: advanced shadow recovery is not allowed to impose a
+          # material first-complete latency tax. Tail may improve; median body
+          # latency must stay essentially identical at this load.
+          assert out['p50_ms_median_delta_ms'] <= 1.0, out
+          assert out['p75_ms_median_delta_ms'] <= 1.5, out
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: recovery-ab-rtt-${{ matrix.rtt }}-loss-${{ matrix.loss }}
+          path: /tmp/recovery-ab
