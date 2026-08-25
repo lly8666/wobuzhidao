@@ -156,6 +156,24 @@ func (d *DataPlane) FlushDue(id LiveID, now time.Time) (string, [][]byte, error)
 	return e.Peer, wire, err
 }
 
+func (d *DataPlane) Flush(id LiveID) (string, [][]byte, error) {
+	e, ok := d.registry.Get(id)
+	if !ok || e.Peer == "" {
+		return "", nil, ErrSessionNotFound
+	}
+	s, err := d.session(id)
+	if err != nil {
+		return "", nil, err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.path == nil {
+		return "", nil, ErrSessionInactive
+	}
+	wire, err := s.path.Flush()
+	return e.Peer, wire, err
+}
+
 // Remove drops both identity and peer-route state. The caller owns socket/path
 // shutdown ordering; no other shared-account session is touched.
 func (d *DataPlane) Remove(id LiveID) bool {
