@@ -84,7 +84,7 @@ func run(args []string) error {
 		return err
 	}
 
-	codec := fec.NewReedSolomon20x20()
+	codec := fec.NewFastReedSolomon20x20()
 	enc, err := fec.NewBlockEncoder(codec, maxPacketSize, flushAfter, 1)
 	if err != nil {
 		return err
