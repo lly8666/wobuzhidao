@@ -1,8 +1,8 @@
 package main
 
 import (
-	"context"
 	"encoding/csv"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -10,80 +10,226 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lly8666/wobuzhidao/internal/benchmark"
+	"github.com/lly8666/wobuzhidao/internal/fec"
 )
 
+type outputRow struct {
+	Schedule           string  `json:"schedule"`
+	LossPct            float64 `json:"loss_pct"`
+	BurstLength        int     `json:"burst_length"`
+	Seed               int64   `json:"seed"`
+	K                  int     `json:"k"`
+	R                  int     `json:"r"`
+	Samples            int     `json:"samples"`
+	Delivered          int     `json:"delivered"`
+	Direct             int     `json:"direct"`
+	Recovered          int     `json:"recovered"`
+	DeliveryRatio      float64 `json:"delivery_ratio"`
+	P50MS              float64 `json:"p50_ms"`
+	P95MS              float64 `json:"p95_ms"`
+	P99MS              float64 `json:"p99_ms"`
+	MaxMS              float64 `json:"max_ms"`
+	MeanMS             float64 `json:"mean_ms"`
+	WireRatio          float64 `json:"wire_ratio"`
+	OfferedUtilization float64 `json:"offered_utilization"`
+	MaxReadyRepairs    int     `json:"max_ready_repairs"`
+	DrainMS            float64 `json:"drain_ms"`
+}
+
 func main() {
-	losses := flag.String("loss", "0,1,2,3,5,8,10,12,15", "comma-separated impairment percentages")
-	seeds := flag.String("seeds", "260824,260825,260826", "comma-separated seeds")
-	samples := flag.Int("samples", 200, "logical source chunks")
-	payload := flag.Int("payload", 256, "bytes per source chunk")
-	window := flag.Int("window", 32, "logical source window")
-	rtt := flag.Int("rtt-ms", 50, "symmetric RTT in milliseconds")
-	hold := flag.Int("hold-ms", 200, "extra TCP carrier hold for an impaired shard")
-	timeout := flag.Duration("case-timeout", 30*time.Second, "timeout per case")
+	schedules := flag.String("schedules", "off,tail,micro,causal", "comma-separated fixed schedulers: off,tail,micro,causal")
+	losses := flag.String("loss", "0,1,5,10,15,20", "comma-separated random loss percentages")
+	bursts := flag.String("burst-lengths", "1,4", "comma-separated mean loss burst lengths; 1=iid")
+	seeds := flag.String("seeds", "260825,260826,260827", "comma-separated deterministic seeds")
+	samples := flag.Int("samples", 2000, "logical source datagrams")
+	payload := flag.Int("payload", 1200, "source payload bytes")
+	header := flag.Int("header", 56, "simulated per-shard framing bytes")
+	offered := flag.Float64("offered-mbps", 20, "source payload offered rate")
+	capacity := flag.Float64("capacity-mbps", 200, "one-way path capacity")
+	rtt := flag.Float64("rtt-ms", 50, "symmetric RTT; simulator uses RTT/2 propagation")
+	k := flag.Int("k", 20, "tail/causal source denominator")
+	r := flag.Int("r", 10, "tail/causal repair numerator")
+	microK := flag.Int("micro-k", 5, "micro-block source count")
+	microR := flag.Int("micro-r", 3, "micro-block repair count")
+	window := flag.Int("window", 20, "causal repair coding window")
+	format := flag.String("format", "csv", "output format: csv or jsonl")
 	flag.Parse()
 
-	lossVals := parseInts(*losses)
-	seedVals := parseUint64s(*seeds)
-	w := csv.NewWriter(os.Stdout)
-	defer w.Flush()
-	_ = w.Write([]string{"fec", "loss_pct", "seed", "mean_ms", "p50_ms", "p95_ms", "p99_ms", "late_ratio", "delivery_ratio", "traffic_x"})
-	for _, parity := range []int{10, 20} {
-		for _, loss := range lossVals {
-			for _, seed := range seedVals {
-				p := benchmark.RealFaultProfile{
-					LaneCount:         2,
-					Seed:              seed,
-					Samples:           *samples,
-					PayloadBytes:      *payload,
-					MinOneWay:         time.Duration(*rtt/2) * time.Millisecond,
-					MaxOneWay:         time.Duration(*rtt/2) * time.Millisecond,
-					ImpairBasisPoints: uint16(loss * 100),
-					ExtraHold:         time.Duration(*hold) * time.Millisecond,
-					SoftDeadline:      100 * time.Millisecond,
-					SourceSpacing:     0,
-					Window:            *window,
-					BurstLength:       1,
+	scheduleVals := parseSchedules(*schedules)
+	lossVals := parseFloat64s(*losses)
+	burstVals := parseInts(*bursts)
+	seedVals := parseInt64s(*seeds)
+
+	rows := make([]outputRow, 0, len(scheduleVals)*len(lossVals)*len(burstVals)*len(seedVals))
+	for _, schedule := range scheduleVals {
+		for _, lossPct := range lossVals {
+			for _, burstLen := range burstVals {
+				for _, seed := range seedVals {
+					cfg := fec.SimConfig{
+						Schedule:      schedule,
+						Samples:       *samples,
+						PayloadBytes:  *payload,
+						HeaderBytes:   *header,
+						OfferedMbps:   *offered,
+						CapacityMbps:  *capacity,
+						OneWay:        time.Duration((*rtt / 2) * float64(time.Millisecond)),
+						Loss:          lossPct / 100,
+						Seed:          seed,
+						BurstLength:   burstLen,
+						DataShards:    *k,
+						ParityShards:  *r,
+						MicroData:     *microK,
+						MicroParity:   *microR,
+						CausalWindow:  *window,
+					}
+					obs, err := fec.RunScheduleSimulation(cfg)
+					if err != nil {
+						fmt.Fprintf(os.Stderr, "%s loss=%.3f burst=%d seed=%d: %v\n", schedule, lossPct, burstLen, seed, err)
+						os.Exit(1)
+					}
+
+					rowK, rowR := *k, *r
+					switch schedule {
+					case fec.ScheduleOff:
+						rowR = 0
+					case fec.ScheduleMicro:
+						rowK, rowR = *microK, *microR
+					}
+
+					rows = append(rows, outputRow{
+						Schedule:           string(schedule),
+						LossPct:            lossPct,
+						BurstLength:        burstLen,
+						Seed:               seed,
+						K:                  rowK,
+						R:                  rowR,
+						Samples:            *samples,
+						Delivered:          obs.Delivered,
+						Direct:             obs.Direct,
+						Recovered:          obs.Recovered,
+						DeliveryRatio:      obs.DeliveryRatio,
+						P50MS:              milliseconds(obs.P50),
+						P95MS:              milliseconds(obs.P95),
+						P99MS:              milliseconds(obs.P99),
+						MaxMS:              milliseconds(obs.Max),
+						MeanMS:             milliseconds(obs.Mean),
+						WireRatio:          obs.WireRatio,
+						OfferedUtilization: obs.OfferedUtilization,
+						MaxReadyRepairs:    obs.MaxReadyRepairs,
+						DrainMS:            milliseconds(obs.Drain),
+					})
 				}
-				ctx, cancel := context.WithTimeout(context.Background(), *timeout)
-				obs, err := benchmark.RunRealFaultWBDFEC(ctx, p, benchmark.FECExperimentConfig{DataShards: 20, ParityShards: parity})
-				cancel()
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "fec=20:%d loss=%d seed=%d: %v\n", parity, loss, seed, err)
-					os.Exit(1)
-				}
-				traffic := float64(obs.IntentionalBytes) / float64(obs.SourceBytes)
-				_ = w.Write([]string{
-					fmt.Sprintf("20:%d", parity), strconv.Itoa(loss), strconv.FormatUint(seed, 10),
-					fmt.Sprintf("%.3f", float64(obs.Mean)/float64(time.Millisecond)),
-					fmt.Sprintf("%.3f", float64(obs.P50)/float64(time.Millisecond)),
-					fmt.Sprintf("%.3f", float64(obs.P95)/float64(time.Millisecond)),
-					fmt.Sprintf("%.3f", float64(obs.P99)/float64(time.Millisecond)),
-					fmt.Sprintf("%.4f", obs.LateRatio), fmt.Sprintf("%.4f", obs.DeliveryRatio), fmt.Sprintf("%.2f", traffic),
-				})
-				w.Flush()
-				if err := w.Error(); err != nil { panic(err) }
 			}
 		}
 	}
+
+	if *format == "jsonl" {
+		enc := json.NewEncoder(os.Stdout)
+		for _, row := range rows {
+			if err := enc.Encode(row); err != nil {
+				panic(err)
+			}
+		}
+		return
+	}
+	if *format != "csv" {
+		fmt.Fprintln(os.Stderr, "format must be csv or jsonl")
+		os.Exit(2)
+	}
+	writeCSV(rows)
 }
 
-func parseInts(s string) []int {
-	var out []int
-	for _, p := range strings.Split(s, ",") {
-		v, err := strconv.Atoi(strings.TrimSpace(p))
-		if err != nil { panic(err) }
+func writeCSV(rows []outputRow) {
+	w := csv.NewWriter(os.Stdout)
+	defer w.Flush()
+	_ = w.Write([]string{
+		"schedule", "loss_pct", "burst_length", "seed", "k", "r", "samples",
+		"delivered", "direct", "recovered", "delivery_ratio",
+		"p50_ms", "p95_ms", "p99_ms", "max_ms", "mean_ms",
+		"wire_ratio", "offered_utilization", "max_ready_repairs", "drain_ms",
+	})
+	for _, x := range rows {
+		_ = w.Write([]string{
+			x.Schedule,
+			floatString(x.LossPct),
+			strconv.Itoa(x.BurstLength),
+			strconv.FormatInt(x.Seed, 10),
+			strconv.Itoa(x.K),
+			strconv.Itoa(x.R),
+			strconv.Itoa(x.Samples),
+			strconv.Itoa(x.Delivered),
+			strconv.Itoa(x.Direct),
+			strconv.Itoa(x.Recovered),
+			floatString(x.DeliveryRatio),
+			floatString(x.P50MS),
+			floatString(x.P95MS),
+			floatString(x.P99MS),
+			floatString(x.MaxMS),
+			floatString(x.MeanMS),
+			floatString(x.WireRatio),
+			floatString(x.OfferedUtilization),
+			strconv.Itoa(x.MaxReadyRepairs),
+			floatString(x.DrainMS),
+		})
+	}
+	if err := w.Error(); err != nil {
+		panic(err)
+	}
+}
+
+func milliseconds(d time.Duration) float64 {
+	return float64(d) / float64(time.Millisecond)
+}
+
+func floatString(v float64) string {
+	return strconv.FormatFloat(v, 'f', 6, 64)
+}
+
+func parseSchedules(s string) []fec.ScheduleKind {
+	var out []fec.ScheduleKind
+	for _, part := range strings.Split(s, ",") {
+		v := fec.ScheduleKind(strings.TrimSpace(part))
+		switch v {
+		case fec.ScheduleOff, fec.ScheduleTail, fec.ScheduleMicro, fec.ScheduleCausal:
+		default:
+			panic("invalid schedule: " + string(v))
+		}
 		out = append(out, v)
 	}
 	return out
 }
 
-func parseUint64s(s string) []uint64 {
-	var out []uint64
-	for _, p := range strings.Split(s, ",") {
-		v, err := strconv.ParseUint(strings.TrimSpace(p), 10, 64)
-		if err != nil { panic(err) }
+func parseInts(s string) []int {
+	var out []int
+	for _, part := range strings.Split(s, ",") {
+		v, err := strconv.Atoi(strings.TrimSpace(part))
+		if err != nil {
+			panic(err)
+		}
+		out = append(out, v)
+	}
+	return out
+}
+
+func parseInt64s(s string) []int64 {
+	var out []int64
+	for _, part := range strings.Split(s, ",") {
+		v, err := strconv.ParseInt(strings.TrimSpace(part), 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		out = append(out, v)
+	}
+	return out
+}
+
+func parseFloat64s(s string) []float64 {
+	var out []float64
+	for _, part := range strings.Split(s, ",") {
+		v, err := strconv.ParseFloat(strings.TrimSpace(part), 64)
+		if err != nil {
+			panic(err)
+		}
 		out = append(out, v)
 	}
 	return out
