@@ -43,6 +43,14 @@ func TestOffPathIsPacketPreservingZeroWait(t *testing.T) {
 	if flush, err := p.FlushDue(time.Unix(2, 0)); err != nil || len(flush) != 0 {
 		t.Fatalf("off flush=%d err=%v", len(flush), err)
 	}
+	st := p.Stats()
+	if st.InnerTXPackets != 1 || st.InnerTXBytes != uint64(len(packet)) ||
+		st.WireTXPackets != 1 || st.WireTXBytes != uint64(len(packet)) ||
+		st.FECSystematicTXPackets != 0 || st.FECRepairTXPackets != 0 ||
+		st.WireRXPackets != 1 || st.WireRXBytes != uint64(len(packet)) ||
+		st.InnerRXPackets != 1 || st.InnerRXBytes != uint64(len(packet)) {
+		t.Fatalf("off stats=%+v", st)
+	}
 }
 
 func TestFixedPathStreamsSystematicImmediately(t *testing.T) {
@@ -58,12 +66,31 @@ func TestFixedPathStreamsSystematicImmediately(t *testing.T) {
 	if len(wire) != 1 {
 		t.Fatalf("first source emitted %d datagrams, want one immediate systematic", len(wire))
 	}
+	st := p.Stats()
+	if st.InnerTXPackets != 1 || st.WireTXPackets != 1 || st.FECSystematicTXPackets != 1 || st.FECRepairTXPackets != 0 {
+		t.Fatalf("streaming stats=%+v", st)
+	}
 	got, err := p.Decode(wire[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(got) != 1 || !bytes.Equal(got[0], packet) {
 		t.Fatalf("got=%q", got)
+	}
+	st = p.Stats()
+	if st.WireRXPackets != 1 || st.InnerRXPackets != 1 || st.InnerRXBytes != uint64(len(packet)) {
+		t.Fatalf("decode stats=%+v", st)
+	}
+	repair, err := p.FlushDue(time.Unix(1, int64(8*time.Millisecond)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(repair) != 20 {
+		t.Fatalf("partial repair=%d want=20", len(repair))
+	}
+	st = p.Stats()
+	if st.WireTXPackets != 21 || st.FECSystematicTXPackets != 1 || st.FECRepairTXPackets != 20 {
+		t.Fatalf("partial flush stats=%+v", st)
 	}
 }
 
@@ -91,6 +118,11 @@ func TestFixedPathRecoversMissingSourceFromParity(t *testing.T) {
 	if len(wire) != 40 {
 		t.Fatalf("wire=%d want=40", len(wire))
 	}
+	encStats := enc.Stats()
+	if encStats.InnerTXPackets != 20 || encStats.WireTXPackets != 40 ||
+		encStats.FECSystematicTXPackets != 20 || encStats.FECRepairTXPackets != 20 {
+		t.Fatalf("encoder stats=%+v", encStats)
+	}
 
 	// Drop source shard 7. Feed every other source and enough parity. Surviving
 	// sources may be returned immediately; the missing original must appear once
@@ -110,6 +142,10 @@ func TestFixedPathRecoversMissingSourceFromParity(t *testing.T) {
 	}
 	if !seen[string(want[7])] {
 		t.Fatal("missing systematic source was not recovered from repair shards")
+	}
+	decStats := dec.Stats()
+	if decStats.WireRXPackets != 39 || decStats.InnerRXPackets != 20 {
+		t.Fatalf("decoder stats=%+v", decStats)
 	}
 }
 
