@@ -4,13 +4,20 @@ import "time"
 
 const payloadSlabSize = 2048
 
-// RFC 6298 uses a 1 second lower bound for the retransmission timer. The
-// product's first-arrival path does not wait on this timer: new/out-of-order
-// datagrams continue to be delivered immediately while the TCP-shaped shadow
-// reliability state catches up in the background.
 const (
 	minRTO = time.Second
 	maxRTO = 60 * time.Second
+)
+
+type RecoveryMode uint8
+
+const (
+	// RecoveryLegacy keeps only classic cumulative ACK / third-duplicate-ACK
+	// fast retransmit plus RFC6298-style RTO. It exists as a performance oracle.
+	RecoveryLegacy RecoveryMode = iota
+	// RecoverySACKRACK adds the persistent SACK scoreboard and compact RACK-style
+	// lost-retransmission inference. Neither mode owns inner delivery.
+	RecoverySACKRACK
 )
 
 type Pending struct {
@@ -33,11 +40,6 @@ type SenderStats struct {
 	FastRetransmits uint64
 	RTOTransmits    uint64
 	RetransmitBytes uint64
-	// LossMarked counts original data segments that required at least one
-	// retransmission. A segment is counted once regardless of how many fast/RTO
-	// retries follow. This is the low-overhead sender-side loss sample used by
-	// periodic fixed-FEC profile selection; retry-attempt counters must not be
-	// treated as a packet-loss probability.
 	LossMarked      uint64
 	LossMarkedBytes uint64
 	PeakPending     int
@@ -56,11 +58,10 @@ type Sender struct {
 	rto          time.Duration
 	srtt         time.Duration
 	rttvar       time.Duration
+	recovery     RecoveryMode
 
-	// rackLatestTx is the most recent transmission timestamp among segments
-	// newly proven delivered by cumulative ACK or SACK. RFC 8985 RACK compares
-	// this timestamp against older outstanding transmissions, including prior
-	// retransmissions, so a lost retransmission need not wait for an RTO.
+	// rackLatestTx is used only in RecoverySACKRACK. It is intentionally absent
+	// from the first-send decision and can never gate a new inner datagram.
 	rackLatestTx time.Time
 
 	freeSlabs [][]byte
@@ -68,14 +69,22 @@ type Sender struct {
 }
 
 func NewSender(nextSeq uint32, initialRTO time.Duration) *Sender {
+	return NewSenderWithRecovery(nextSeq, initialRTO, RecoverySACKRACK)
+}
+
+func NewSenderWithRecovery(nextSeq uint32, initialRTO time.Duration, recovery RecoveryMode) *Sender {
 	if initialRTO <= 0 {
 		initialRTO = minRTO
+	}
+	if recovery != RecoveryLegacy && recovery != RecoverySACKRACK {
+		recovery = RecoverySACKRACK
 	}
 	return &Sender{
 		nextSeq: nextSeq,
 		lastAck: nextSeq,
 		rto:     clampRTO(initialRTO),
 		bySeq:   make(map[uint32]*Pending),
+		recovery: recovery,
 	}
 }
 
@@ -84,6 +93,7 @@ func (s *Sender) RTO() time.Duration              { return s.rto }
 func (s *Sender) Pending() int                    { return s.active }
 func (s *Sender) Stats() SenderStats              { return s.stats }
 func (s *Sender) LastAck() uint32                 { return s.lastAck }
+func (s *Sender) RecoveryMode() RecoveryMode      { return s.recovery }
 func (s *Sender) Outstanding(seq uint32) *Pending { return s.bySeq[seq] }
 
 func (s *Sender) Enqueue(payload []byte, now time.Time) *Pending {
@@ -128,13 +138,10 @@ func (s *Sender) Ack(ack uint32, now time.Time) *Pending {
 	return s.AckSelective(ack, nil, now)
 }
 
-// AckSelective consumes a TCP cumulative ACK plus RFC 2018 SACK information.
-// SACK is advisory for retention: payload bytes stay queued until cumulatively
-// ACKed. Loss recovery has two shadow-TCP signals and never gates first-arrival
-// inner delivery:
-//   - an RFC-6675-style three-later-SACK threshold for original holes;
-//   - an RFC-8985 RACK-style time ordering check that also detects a lost
-//     retransmission when a chronologically later transmission is delivered.
+// AckSelective consumes cumulative ACK plus SACK information. Both recovery
+// modes retain packet-preserving, no-HOL inner semantics; the selector changes
+// only background TCP-like shadow retransmission behavior so first-arrival can
+// be measured A/B without changing any other carrier code.
 func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pending {
 	oldAck := s.lastAck
 	advanced := seqLT(oldAck, ack)
@@ -166,39 +173,27 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 		}
 	}
 
-	// RACK comes first because it can identify a retransmission that was itself
-	// lost. A successful later retransmission/SACK updates rackLatestTx, and an
-	// older outstanding transmission becomes eligible after a conservative
-	// reordering window. markRetry moves its LastSent forward, so the same ACK
-	// cannot repeatedly retransmit it.
-	if p := s.rackLossCandidate(now); p != nil {
-		if p.Seq == s.lastAck {
-			s.fastRetxSeq = p.Seq
-			s.fastRetxDone = true
-			s.dupAcks = 0
+	if s.recovery == RecoverySACKRACK {
+		if p := s.rackLossCandidate(now); p != nil {
+			if p.Seq == s.lastAck {
+				s.fastRetxSeq = p.Seq
+				s.fastRetxDone = true
+				s.dupAcks = 0
+			}
+			s.markRetry(p, now, true)
+			return p
 		}
-		s.markRetry(p, now, true)
-		return p
+		if p := s.sackLossCandidate(); p != nil {
+			if p.Seq == s.lastAck {
+				s.fastRetxSeq = p.Seq
+				s.fastRetxDone = true
+				s.dupAcks = 0
+			}
+			s.markRetry(p, now, true)
+			return p
+		}
 	}
 
-	// RFC 6675's IsLost rule is richer than this datagram-oriented scoreboard,
-	// but the three-later-SACKed-segment threshold preserves the familiar TCP
-	// duplicate-ACK evidence while allowing recovery to continue after a
-	// cumulative ACK jumps from one repaired hole to the next. Retransmit each
-	// inferred original hole once here; a lost retransmission is then RACK/RTO
-	// owned rather than being blindly repeated from stale SACK evidence.
-	if p := s.sackLossCandidate(); p != nil {
-		if p.Seq == s.lastAck {
-			s.fastRetxSeq = p.Seq
-			s.fastRetxDone = true
-			s.dupAcks = 0
-		}
-		s.markRetry(p, now, true)
-		return p
-	}
-
-	// RFC 5681 fast retransmit fallback: the third duplicate ACK retransmits
-	// SND.UNA when neither RACK nor the SACK scoreboard already classified it.
 	if !advanced && ack == s.lastAck && s.dupAcks >= 3 {
 		s.dupAcks = 0
 		p := s.oldest()
@@ -212,10 +207,6 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 	return nil
 }
 
-// sackLossCandidate returns the earliest unsacked, never-retried pending
-// segment once at least three later segments are known SACKed. Because any
-// later candidate with three SACKed segments above it implies the earlier
-// candidate has the same evidence, a single forward scan is sufficient.
 func (s *Sender) sackLossCandidate() *Pending {
 	var candidate *Pending
 	sackedAbove := 0
@@ -240,12 +231,6 @@ func (s *Sender) sackLossCandidate() *Pending {
 	return nil
 }
 
-// rackLossCandidate is a compact shadow implementation of RACK's core time
-// inference. A not-yet-delivered segment is considered lost when a segment
-// transmitted later has been proven delivered and the older transmission has
-// aged beyond a reordering window. This applies equally to original sends and
-// retransmissions, which is the important property missing from DupAck-only
-// recovery under random loss.
 func (s *Sender) rackLossCandidate(now time.Time) *Pending {
 	if s.rackLatestTx.IsZero() {
 		return nil
@@ -268,10 +253,6 @@ func (s *Sender) rackLossCandidate(now time.Time) *Pending {
 }
 
 func (s *Sender) rackReorderingWindow() time.Duration {
-	// RFC 8985 adapts the reordering window using min RTT and reordering history.
-	// WBD keeps a deliberately conservative fixed fraction because this is
-	// shadow reliability, not the owner of inner delivery or congestion control.
-	// Ten milliseconds avoids hypersensitive retries on very low-latency hosts.
 	if s.srtt <= 0 {
 		return 10 * time.Millisecond
 	}
@@ -283,7 +264,7 @@ func (s *Sender) rackReorderingWindow() time.Duration {
 }
 
 func (s *Sender) noteDelivered(p *Pending) {
-	if p == nil || p.LastSent.IsZero() {
+	if s.recovery != RecoverySACKRACK || p == nil || p.LastSent.IsZero() {
 		return
 	}
 	if s.rackLatestTx.IsZero() || s.rackLatestTx.Before(p.LastSent) {
@@ -299,8 +280,6 @@ func (s *Sender) markSACK(p *Pending, now time.Time) {
 		p.SACKed = true
 		s.stats.SACKed++
 		s.noteDelivered(p)
-		// A precise first-time SACK of a never-retransmitted segment is a valid
-		// RTT sample. The bytes themselves remain queued until cumulative ACK.
 		if !p.WasRetried {
 			s.observeRTT(now.Sub(p.FirstSent))
 		}
@@ -308,9 +287,6 @@ func (s *Sender) markSACK(p *Pending, now time.Time) {
 }
 
 func (s *Sender) ackCumulative(oldAck, ack uint32, now time.Time) {
-	// Only sample a cumulative ACK if it exactly acknowledges one fresh segment
-	// starting at old SND.UNA. If the ACK leaps over a repaired hole and sweeps
-	// up older out-of-order data, those packet ages are not RTT samples.
 	var sample *Pending
 	if p := s.bySeq[oldAck]; p != nil && p.End == ack && !p.WasRetried {
 		sample = p
@@ -363,10 +339,6 @@ func (s *Sender) advanceHead() {
 	}
 }
 
-// RetransmitDue follows the RFC 6298 timeout behavior relevant to the shadow
-// TCP carrier: retransmit the earliest cumulatively-unacknowledged segment and
-// exponentially back off the RTO. RACK handles losses for which later ACK/SACK
-// timing exists; RTO remains the last resort when feedback disappears entirely.
 func (s *Sender) RetransmitDue(now time.Time) *Pending {
 	p := s.oldest()
 	if p == nil || now.Sub(p.LastSent) < s.rto {
@@ -438,10 +410,6 @@ type ReceiverStats struct {
 
 type Receiver struct {
 	next uint32
-
-	// outOfOrder retains only exact segment boundaries for duplicate detection
-	// and cumulative-ACK advancement. sacksByStart/sackStartByEnd maintain merged
-	// contiguous SACK ranges separately, so the inner payload is never buffered.
 	outOfOrder     map[uint32]uint32
 	sacksByStart   map[uint32]uint32
 	sackStartByEnd map[uint32]uint32
@@ -461,11 +429,6 @@ func NewReceiver(nextSeq uint32) *Receiver {
 func (r *Receiver) Next() uint32          { return r.next }
 func (r *Receiver) Stats() ReceiverStats { return r.stats }
 
-// Accept never buffers payload for ordered delivery. A complete later datagram
-// is delivered on its first arrival even while cumulative TCP ACK state retains
-// a hole. Retransmitted duplicates are suppressed from the inner path. The
-// second result means the ACK should include current SACK blocks; it remains
-// true after an in-order repair if another hole still leaves live SACK state.
 func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool) {
 	if payloadLen <= 0 {
 		return false, false
@@ -492,10 +455,6 @@ func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool)
 	return true, len(r.sacksByStart) != 0
 }
 
-// SACKBlocks returns up to four persistent RFC-2018-style ranges. The first
-// range is the one most recently touched by an out-of-order arrival; older live
-// ranges follow. This keeps the option useful to a real TCP-style scoreboard
-// without sorting or allocating on the hot ACK path.
 func (r *Receiver) SACKBlocks(dst *[4]SACKBlock) int {
 	if dst == nil {
 		return 0
