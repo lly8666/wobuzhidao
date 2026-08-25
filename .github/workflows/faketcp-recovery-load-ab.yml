@@ -32,7 +32,7 @@ jobs:
           go test ./internal/faketcp -count=1
           go build -trimpath -o /tmp/wbd-faketcp ./cmd/wbd-faketcp
           gcc -O2 -Wall -Wextra -Werror scripts/udp_oneway_probe.c -lm -o /tmp/udp_oneway_probe
-      - name: Loaded legacy versus SACK/RACK on 100 Mbit link
+      - name: Loaded recovery research diagnostic on 100 Mbit link
         env:
           RTT: ${{ matrix.rtt }}
           LOSS: ${{ matrix.loss }}
@@ -117,6 +117,8 @@ jobs:
               'inner_offered_mbps':65.0,
               'rtt_ms':float(os.environ['RTT']),
               'loss_pct':float(os.environ['LOSS']),
+              'qualified_default':'legacy',
+              'sack_rack_status':'experimental',
               'legacy':{
                   'delivery_median':med(legacy,'delivery_ratio'),
                   'goodput_mbps_median':med(legacy,'delivered_mbps_active'),
@@ -136,10 +138,15 @@ jobs:
           out['delivery_delta_pp']=(out['sack_rack']['delivery_median']-out['legacy']['delivery_median'])*100.0
           out['goodput_delta_mbps']=out['sack_rack']['goodput_mbps_median']-out['legacy']['goodput_mbps_median']
           print('RECOVERY_LOAD_AB',json.dumps(out,sort_keys=True))
-          # Advanced recovery is only allowed to remain the default when it does
-          # not materially delay new inner datagrams near the 100 Mbit work point.
-          assert out['p50_delta_ms'] <= 2.0, out
-          assert out['sack_rack']['goodput_mbps_median'] >= out['legacy']['goodput_mbps_median'] * 0.95, out
+          # The loaded gate already rejected SACK/RACK as the product default.
+          # Keep both paths executable so future lower-priority repair research
+          # remains comparable, but do not make release CI depend on the
+          # experimental mode beating the qualified latency-first default.
+          for mode in ('legacy','sack_rack'):
+              row=out[mode]
+              assert 0.0 < row['delivery_median'] <= 1.0, out
+              assert row['goodput_mbps_median'] > 0.0, out
+              assert row['p50_ms_median'] >= 0.0, out
           PY
       - uses: actions/upload-artifact@v4
         if: always()
