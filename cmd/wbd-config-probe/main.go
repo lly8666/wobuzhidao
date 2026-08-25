@@ -15,14 +15,23 @@ func main() {
 	addr := flag.String("addr", "", "UDP listen/destination address")
 	token := flag.String("token", "", "client bearer token")
 	expected := flag.String("expected-token", "", "server expected bearer token")
-	configMode := flag.String("config-mode", "weak-1.5x", "normal, weak-1.5x, or weak-2x")
+	fecMode := flag.String("fec", "weak-2x", "off/normal or weak-2x/20:20; other live profiles are rejected")
+	mtu := flag.Int("mtu", 1400, "immutable link MTU")
+	flushMS := flag.Int("fec-flush-ms", 8, "fixed FEC flush in milliseconds")
+	lanes := flag.Int("lanes", 1, "immutable raw lane count")
 	flag.Parse()
+
 	var err error
 	switch *mode {
 	case "server":
 		err = runServer(*addr, []byte(*expected))
 	case "client":
-		err = runClient(*addr, []byte(*token), *configMode)
+		cfg, parseErr := parseLinkConfig(*fecMode, *mtu, *flushMS, *lanes)
+		if parseErr != nil {
+			err = parseErr
+		} else {
+			err = runClient(*addr, []byte(*token), cfg)
+		}
 	default:
 		err = fmt.Errorf("-mode must be server or client")
 	}
@@ -32,18 +41,32 @@ func main() {
 	}
 }
 
-func parseMode(s string) (control.ProtectionMode, error) {
-	switch s {
-	case "normal":
-		return control.ProtectionNormal, nil
-	case "weak-1.5x":
-		return control.ProtectionWeak15, nil
-	case "weak-2x":
-		return control.ProtectionWeak2, nil
+func parseLinkConfig(mode string, mtu, flushMS, lanes int) (control.LinkConfig, error) {
+	if mtu <= 0 || mtu > 65535 || flushMS < 0 || flushMS > 65535 || lanes <= 0 || lanes > 255 {
+		return control.LinkConfig{}, fmt.Errorf("invalid link numeric parameters")
+	}
+	base := control.LinkConfig{LaneCount: uint8(lanes), MTU: uint16(mtu)}
+	switch mode {
+	case "off", "normal":
+		base.FECMode = control.FECOff
+		base.Scheduler = control.FECSchedulerNone
+		return base, nil
+	case "weak-2x", "20:20":
+		if flushMS == 0 {
+			return control.LinkConfig{}, fmt.Errorf("fixed FEC requires positive -fec-flush-ms")
+		}
+		base.FECMode = control.FECFixed
+		base.Scheduler = control.FECSchedulerTailRS
+		base.DataShards = 20
+		base.ParityShards = 20
+		base.FlushMillis = uint16(flushMS)
+		return base, nil
+	case "weak-1.5x", "20:10":
+		return control.LinkConfig{}, fmt.Errorf("20:10 is a reference profile but the current live WBD codec is still 20:20; reconnect cannot enable an unimplemented codec")
 	case "auto":
-		return 0, fmt.Errorf("auto protection mode is not admitted")
+		return control.LinkConfig{}, fmt.Errorf("auto FEC is deferred advanced research")
 	default:
-		return 0, fmt.Errorf("unsupported protection mode %q", s)
+		return control.LinkConfig{}, fmt.Errorf("unsupported FEC profile %q", mode)
 	}
 }
 
@@ -53,13 +76,13 @@ func runServer(addr string, expected []byte) error {
 		return err
 	}
 	defer pc.Close()
-	s, err := control.NewConfigServerSession(1, 1, expected)
+	s, err := control.NewLinkServerSession(1, 1, expected, control.CurrentLinkPolicy())
 	if err != nil {
 		return err
 	}
 	buf := make([]byte, control.HeaderLen+control.MaxBodyLen)
 	_ = pc.SetDeadline(time.Now().Add(10 * time.Second))
-	for !s.Stats().Configured {
+	for s.State() != control.StateEstablished {
 		n, peer, err := pc.ReadFrom(buf)
 		if err != nil {
 			return err
@@ -73,16 +96,14 @@ func runServer(addr string, expected []byte) error {
 		}
 	}
 	st := s.Stats()
-	fmt.Printf("SERVER state=%d auth_required=%t authenticated=%t configured=%t protection_mode=%s rx=%d tx=%d rx_bytes=%d tx_bytes=%d\n",
-		st.State, st.AuthRequired, st.Authenticated, st.Configured, st.ProtectionMode, st.ControlRX, st.ControlTX, st.ControlRXBytes, st.ControlTXBytes)
+	fmt.Printf("SERVER state=%d auth_required=%t authenticated=%t configured=%t fec_mode=%d scheduler=%d fec=%d:%d flush_ms=%d mtu=%d lanes=%d rx=%d tx=%d\n",
+		st.State, st.AuthRequired, st.Authenticated, st.Configured,
+		st.Config.FECMode, st.Config.Scheduler, st.Config.DataShards, st.Config.ParityShards,
+		st.Config.FlushMillis, st.Config.MTU, st.Config.LaneCount, st.ControlRX, st.ControlTX)
 	return nil
 }
 
-func runClient(addr string, token []byte, modeText string) error {
-	mode, err := parseMode(modeText)
-	if err != nil {
-		return err
-	} // fail before socket
+func runClient(addr string, token []byte, cfg control.LinkConfig) error {
 	peer, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return err
@@ -93,15 +114,18 @@ func runClient(addr string, token []byte, modeText string) error {
 	}
 	defer c.Close()
 	_ = c.SetDeadline(time.Now().Add(10 * time.Second))
-	if err = exchange(c, control.Hello{MinProtocol: 1, MaxProtocol: 1}, func(v any) error {
-		_, ok := v.(control.Accept)
+
+	init := control.LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: cfg}
+	if err = exchange(c, init, func(v any) error {
+		accept, ok := v.(control.LinkAccept)
 		if !ok {
-			return fmt.Errorf("HELLO reply %T", v)
+			return fmt.Errorf("LINK_INIT reply %T", v)
 		}
-		return nil
+		return control.ValidateLinkAccept(init, accept)
 	}); err != nil {
 		return err
 	}
+
 	if len(token) != 0 {
 		if err = exchange(c, control.Auth{Token: token}, func(v any) error {
 			_, ok := v.(control.AuthOK)
@@ -113,21 +137,13 @@ func runClient(addr string, token []byte, modeText string) error {
 			return err
 		}
 	}
-	if err = exchange(c, control.Config{Mode: mode}, func(v any) error {
-		ok, yes := v.(control.ConfigOK)
-		if !yes || ok.Mode != mode {
-			return fmt.Errorf("CONFIG reply %#v", v)
-		}
-		return nil
-	}); err != nil {
-		return err
-	}
-	fmt.Printf("CLIENT configured=true protection_mode=%s\n", mode)
+	fmt.Printf("CLIENT established=true fec_mode=%d scheduler=%d fec=%d:%d flush_ms=%d mtu=%d lanes=%d immutable=true\n",
+		cfg.FECMode, cfg.Scheduler, cfg.DataShards, cfg.ParityShards, cfg.FlushMillis, cfg.MTU, cfg.LaneCount)
 	return nil
 }
 
 func exchange(c *net.UDPConn, frame any, check func(any) error) error {
-	wire, err := control.MarshalExtended(frame)
+	wire, err := control.MarshalLink(frame)
 	if err != nil {
 		return err
 	}
@@ -139,7 +155,7 @@ func exchange(c *net.UDPConn, frame any, check func(any) error) error {
 	if err != nil {
 		return err
 	}
-	v, err := control.UnmarshalExtended(buf[:n])
+	v, err := control.UnmarshalLink(buf[:n])
 	if err != nil {
 		return err
 	}
