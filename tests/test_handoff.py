@@ -27,15 +27,18 @@ class HandoffContractTest(unittest.TestCase):
             "TCP-shaped does not mean kernel-TCP-owned",
             "DTLS 1.3",
             "wolfSSL",
-            "weak-1.5x",
-            "weak-2x",
+            "20:10",
+            "20:20",
             "OpenWrt/Linux ↔ Linux or Windows",
             "Android and unprivileged/no-root portability are out of scope",
             "optional TLS Persona bootstrap",
             "Persona must remain isolated from the unordered DTLS/FEC data plane",
-            "Kernel TCP anchor / real-return-packet hybrid: **retired from the product roadmap",
-            "Phase A — transport-only characterization (CURRENT)",
-            "current characterization campaign intentionally freezes FEC at `20:20`",
+            "Kernel TCP anchor / real-return-packet hybrid: retired",
+            "Phase B — adaptive FEC / control qualification",
+            "off/fixed/qualified-auto",
+            "same account username",
+            "only-cn",
+            "Do not delay an available systematic source merely to fill a FEC block",
         ):
             self.assertIn(phrase, text)
 
@@ -64,6 +67,18 @@ class HandoffContractTest(unittest.TestCase):
         self.assertIn("admit optional TLS Persona", adr4)
         self.assertIn("separate from the FakeTCP/DTLS data lane", adr4)
 
+        adr5 = (ROOT / "docs/architecture/ADR-0005-adaptive-fec-multisession-routing.md").read_text(encoding="utf-8")
+        for phrase in (
+            "fec.mode = off | fixed | auto",
+            "config epoch",
+            "multiple simultaneous sessions/devices",
+            "capture.mode = off | global | only-cn | only-non-cn",
+            "Persona profile is client-selected",
+            "dual lane is an optional survival mode",
+            "alpha > p/(1-p)",
+        ):
+            self.assertIn(phrase, adr5)
+
         lock = json.loads((ROOT / "deps/security-lock.json").read_text(encoding="utf-8"))
         dtls = lock["dtls"]
         self.assertEqual(dtls["tag"], "v5.9.2-stable")
@@ -80,11 +95,12 @@ class HandoffContractTest(unittest.TestCase):
         )
 
         roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
-        self.assertIn("V2-M3 | minimal native session/control", roadmap)
+        self.assertIn("V2-M3A-E | minimal native session/control + bearer auth + fixed config | **DONE AS FOUNDATION**", roadmap)
         self.assertIn("V2-M4 | kernel-anchor / real-return-packet experiment | **RETIRED**", roadmap)
-        self.assertIn("V2-M6 | Linux/OpenWrt native L3/TUN core | **M6A IMPLEMENTED", roadmap)
-        self.assertIn("V2-M8A | optional TLS Persona bootstrap", roadmap)
-        self.assertIn("V2-M8B-T | transport-only fixed-20:20 characterization | **CURRENT**", roadmap)
+        self.assertIn("V2-M6A | Linux/OpenWrt packet-preserving L3/TUN core | **IMPLEMENTED**", roadmap)
+        self.assertIn("V2-M8A | optional TLS Persona bootstrap | **ADMITTED; IMPLEMENT NEXT AFTER FEC CONTROL BOUNDARY**", roadmap)
+        self.assertIn("V2-M8B-T2 | adaptive FEC math, scheduler comparison, off/fixed runtime config epochs | **CURRENT**", roadmap)
+        self.assertIn("V2-M8C | account + per-device credential + concurrent multi-session server state | **PLANNED**", roadmap)
 
         bench = (ROOT / "docs/benchmarks/v2-transport-20x20-matrix.md").read_text(encoding="utf-8")
         self.assertIn("Nominal matrix size: **126 cases**", bench)
