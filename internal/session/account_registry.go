@@ -7,36 +7,46 @@ import (
 )
 
 var (
-	ErrRegistryFull      = errors.New("session: registry full")
-	ErrDuplicateSession  = errors.New("session: duplicate session id")
-	ErrInvalidSession    = errors.New("session: invalid account or session id")
+	ErrRegistryFull     = errors.New("session: registry full")
+	ErrDuplicateSession = errors.New("session: duplicate session id")
+	ErrInvalidSession   = errors.New("session: invalid account or session id")
+	ErrInvalidPeer      = errors.New("session: invalid data peer")
+	ErrPeerInUse        = errors.New("session: data peer already belongs to another session")
+	ErrSessionNotFound  = errors.New("session: session not found")
 )
 
 // LiveID is the server-side identity of one admitted transport session. The
-// Reality-like front currently supplies a random 32-byte one-time ticket; the
-// session registry deliberately does not key state by username.
+// Reality-like front supplies a random 32-byte one-time ticket; the live table
+// deliberately never keys state by username.
 type LiveID [32]byte
 
 type LiveEntry struct {
 	ID        LiveID
 	Account   string
+	Peer      string
 	CreatedAt time.Time
 }
 
-// AccountRegistry is intentionally small: one shared account may have many
-// simultaneous session IDs. There is no per-device credential/revocation
-// database in the personal product path.
+// AccountRegistry is the deliberately small personal-server live-session
+// table. One shared account may have many simultaneous session IDs. Session ID
+// is the identity key; Peer is only a fast data-plane demux index learned after
+// the authenticated DTLS/ticket association is established.
 type AccountRegistry struct {
 	mu      sync.RWMutex
 	maxLive int
 	byID    map[LiveID]LiveEntry
+	byPeer  map[string]LiveID
 }
 
 func NewAccountRegistry(maxLive int) (*AccountRegistry, error) {
 	if maxLive <= 0 {
 		return nil, ErrRegistryFull
 	}
-	return &AccountRegistry{maxLive: maxLive, byID: make(map[LiveID]LiveEntry)}, nil
+	return &AccountRegistry{
+		maxLive: maxLive,
+		byID:    make(map[LiveID]LiveEntry),
+		byPeer:  make(map[string]LiveID),
+	}, nil
 }
 
 func (r *AccountRegistry) Add(account string, id LiveID, now time.Time) error {
@@ -55,6 +65,31 @@ func (r *AccountRegistry) Add(account string, id LiveID, now time.Time) error {
 	return nil
 }
 
+// BindPeer attaches the learned DTLS plaintext peer to an already admitted
+// session. It never changes account identity. A peer can belong to only one
+// live session at a time so one datagram cannot be routed to two devices.
+func (r *AccountRegistry) BindPeer(id LiveID, peer string) error {
+	if id == (LiveID{}) || peer == "" {
+		return ErrInvalidPeer
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	e, ok := r.byID[id]
+	if !ok {
+		return ErrSessionNotFound
+	}
+	if other, ok := r.byPeer[peer]; ok && other != id {
+		return ErrPeerInUse
+	}
+	if e.Peer != "" && e.Peer != peer {
+		delete(r.byPeer, e.Peer)
+	}
+	e.Peer = peer
+	r.byID[id] = e
+	r.byPeer[peer] = id
+	return nil
+}
+
 func (r *AccountRegistry) Get(id LiveID) (LiveEntry, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -62,11 +97,28 @@ func (r *AccountRegistry) Get(id LiveID) (LiveEntry, bool) {
 	return e, ok
 }
 
+// GetByPeer is the hot data-plane lookup. The returned entry is still keyed
+// and owned by its LiveID; the peer string is only a routing index.
+func (r *AccountRegistry) GetByPeer(peer string) (LiveEntry, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	id, ok := r.byPeer[peer]
+	if !ok {
+		return LiveEntry{}, false
+	}
+	e, ok := r.byID[id]
+	return e, ok
+}
+
 func (r *AccountRegistry) Remove(id LiveID) bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if _, ok := r.byID[id]; !ok {
+	e, ok := r.byID[id]
+	if !ok {
 		return false
+	}
+	if e.Peer != "" {
+		delete(r.byPeer, e.Peer)
 	}
 	delete(r.byID, id)
 	return true
