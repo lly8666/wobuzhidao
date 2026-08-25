@@ -1,85 +1,114 @@
-# ADR-0008: Reality-style fixed-target mirror diagnostic
+# ADR-0008: Reality-style target mirror plus encrypted demo binding
 
 ## Status
 
-Accepted as an **isolated diagnostic experiment**. It is not the WBD product data plane and is not a claim that WBD implements Xray/XTLS REALITY.
+Accepted as an **explicit demo-only experiment**. It is not the default WBD product mode and is not a claim that WBD implements Xray/XTLS REALITY.
+
+The original fixed-target mirror remains useful as a network-treatment oracle. The follow-on prototype now adds a one-time binding from that genuine target preflight into the normal WBD DTLS 1.3 startup path without ever switching the mirror TCP/TLS byte stream into WBD application traffic.
 
 ## Motivation
 
-The user observes strong time-of-day differences in international network quality and wants to test whether a flow to the same WBD server IP is treated differently when the visible TLS exchange is genuinely supplied by a selected public HTTPS target.
+A genuine public TLS target can answer the narrow measurement question of whether a flow to the WBD server IP is treated differently when its visible TLS exchange is supplied by that selected target. The user additionally requires that no WBD account data, link parameters or application payload leak while moving from the preflight into the VPN data association.
 
-A certificate fingerprint alone cannot reproduce that property: TLS 1.3 `CertificateVerify` requires the target's private key. A scientifically cleaner first experiment is therefore to let the genuine target participate in the handshake.
-
-## Relevant REALITY behavior
-
-Current REALITY implementations have two distinct ideas that matter here:
-
-1. the server opens a connection to a configured TLS target and observes/mirrors its handshake behavior;
-2. unauthenticated/fallback traffic can be spliced to that target, while an authenticated REALITY client uses additional X25519/HKDF/AES-GCM material carried in ClientHello state and a custom authenticated certificate path.
-
-WBD does **not** need the second mechanism to answer the first network-treatment question.
+A certificate fingerprint alone cannot reproduce a target TLS identity: TLS 1.3 `CertificateVerify` requires the target private key. Conversely, blindly changing protocol after forwarding a third-party TLS handshake would either corrupt that TLS connection or require terminating/impersonating the target. WBD does neither.
 
 ## Decision
 
-Add `cmd/wbd-reality-mirror` plus `internal/realitymirror` as a bounded fixed-target oracle:
+The demo is a two-association design:
 
 ```text
-client TCP
-    -> WBD mirror listener
-        -> fixed configured target:443
+association A: genuine target preflight
+client TCP -> WBD mirror -> fixed target:443
+ClientHello ---------------------------> target
+target TLS records --------------------> client
+normal target certificate validation
+close preflight
 
-client ClientHello -------- exact bytes -------> target
-target TLS records -------- exact bytes -------> client
-then bounded bidirectional splice
+association B: WBD product data association
+client -> WBD FakeTCP -> DTLS 1.3
+       -> DEMO_BIND
+       <- DEMO_BIND_OK
+       -> LINK_INIT
+       <- LINK_ACCEPT
+       -> AUTH / AUTH_OK when required
+       -> WBD encrypted application datagrams
 ```
 
-The mirror parses enough ClientHello structure to enforce one configured SNI before dialing the target. It does not terminate TLS and does not forge, cache, replace or synthesize the target certificate. The client validates the genuine target certificate in the normal way.
+There is deliberately **no in-stream plaintext or protocol splice** from A to B. `DEMO_BIND`, `LINK_INIT`, `AUTH`, FEC metadata and application packets are DTLS application data and are therefore encrypted on the public path.
 
-The diagnostic is intentionally not an open proxy:
+## One-time witness
 
-- one fixed target;
-- one fixed allowed SNI;
-- loopback listen by default;
-- bounded ClientHello size;
-- bounded concurrent sessions;
-- bounded session lifetime;
-- bounded transfer bytes by default.
+Both mirror endpoints can derive the SHA-256 of the exact initial TLS ClientHello bytes. The hash is correlation metadata, not an authentication secret.
 
-`-max-bytes 0` is allowed only for a deliberately short throughput experiment so normal TCP `io.Copy` can use the platform fast path; the operator should retain a short session timeout and low concurrency and close the public listener after the test.
+Server side:
 
-## Measurement method
+1. `wbd-reality-mirror -witness-dir DIR` reads and validates the configured SNI.
+2. It forwards that exact ClientHello to the fixed genuine target.
+3. Only after the mirror session receives target-to-client TLS bytes and closes successfully does it record the ClientHello hash in a local `0700` witness directory.
+4. Witness files are `0600`, target-name bound and intended to be short lived.
 
-Use the existing `wbd-tls-diag` plus `scripts/bench_reality_mirror.py` to alternate paired observations:
+Client side:
 
-```text
-A: client -> genuine target directly
-B: client -> same WBD server IP -> mirror -> genuine target
-```
+1. `wbd-tls-diag -witness-out FILE` records the exact ClientHello flight it sent before the first server read.
+2. The client performs ordinary certificate-chain/hostname validation of the genuine target.
+3. It supplies the resulting 64-hex hash to `wbd-link-proxy -demo-reality-witness HEX`.
 
-A and B use the same TLS hostname/SNI and should expose the same real target certificate/SPKI. Pair order alternates A/B then B/A to reduce short-term network drift.
+WBD server startup consumes the matching witness exactly once with a short TTL (default 15 seconds). A missing, expired, target-mismatched or already-consumed witness rejects the association before `LINK_INIT` is accepted.
 
-Useful next comparisons are:
+The witness does not replace WBD account authentication. An observer can hash a public ClientHello too; therefore bearer/device AUTH remains authoritative and occurs inside DTLS after the demo gate.
 
-```text
-A direct genuine target
-B target through mirror
-C WBD's own TLS/Persona endpoint
-D WBD FakeTCP/DTLS data plane
-```
+## Reliable startup semantics
 
-A vs B primarily changes destination IP/path while preserving a genuine target TLS endpoint. B vs C changes endpoint TLS identity/behavior. C vs D changes the WBD carrier.
+Demo startup adds two WBDC frame types used only inside the already-established DTLS association:
+
+- `DEMO_BIND`: 32-byte ClientHello witness;
+- `DEMO_BIND_OK`: byte-identical witness echo from the server.
+
+Loss handling follows the immutable startup rule:
+
+- the client retries the exact `DEMO_BIND` until `DEMO_BIND_OK`;
+- an exact duplicate bind is idempotent;
+- changing the witness on the same association poisons startup and requires reconnect;
+- `LINK_INIT` is not accepted before a valid demo bind;
+- normal `LINK_INIT/LINK_ACCEPT/AUTH` behavior is unchanged after binding.
+
+This avoids half-switched states when DTLS application datagrams are lost.
+
+## Default mode
+
+The demo is off unless explicit `-demo-reality-*` command-line arguments are supplied. With no demo arguments, `wbd-link-proxy` uses its normal immutable startup path and does not consult a mirror or witness directory.
+
+Normal deployments may use an operator-controlled self-signed DTLS certificate. Self-signed means an explicit trust anchor or fixed SPKI on the client; it never means disabling certificate verification.
+
+## Security and leakage invariants
+
+- WBD never copies or presents a third-party private key.
+- WBD never injects `DEMO_BIND`, AUTH tokens, WBDC frames or application data into the genuine target TLS connection.
+- Public-path WBD control/data remains inside DTLS 1.3.
+- Mirror mode is fixed-target/fixed-SNI, bounded and explicit; it is not an open relay.
+- Witnesses are non-secret, local, short-lived, target-bound and one-time.
+- A witness is only an admission prerequisite; normal WBD account/device authentication is still required when configured.
+- The unordered/no-HOL WBD data plane remains DTLS/FEC/FakeTCP and is never replaced by an ordinary TLS/TCP byte stream.
 
 ## Non-goals
 
 - no VLESS/Vision import;
+- no transparent third-party identity takeover;
 - no open fallback relay;
-- no copying or presenting a third-party private key;
-- no claim that certificate/SPKI equality alone causes network treatment;
+- no sustained VPN payload inside the mirror TCP stream;
 - no automatic selection of public target sites;
-- no embedding of the WBD unordered data plane inside the mirror's ordinary TCP/TLS byte stream.
+- no claim that a target mirror will improve a given ISP path before paired real-network evidence exists.
 
-The final non-goal is a transport invariant: putting sustained WBD payload inside a normal TLS/TCP stream would reintroduce ordered-stream head-of-line behavior and invalidate the current first-arrival architecture.
+## Qualification gate
 
-## Admission to further work
+Before this demo can influence product decisions, tests must prove:
 
-Only if paired real-network tests show a repeatable material improvement for B over A/C/D should WBD spend time on a second prototype inspired by REALITY's authenticated path. Such a prototype must preserve the existing unordered DTLS/FEC/FakeTCP data semantics or explicitly remain a bootstrap-only mechanism; it must not silently replace the product data path with ordinary TLS/TCP.
+1. exact ClientHello hash agreement between client capture and mirror observation;
+2. one-time/TTL/target-name witness rejection behavior;
+3. reliable `DEMO_BIND/DEMO_BIND_OK` retries under loss;
+4. application forwarding begins only after demo bind + normal link setup + AUTH;
+5. normal non-demo startup remains byte/behavior compatible;
+6. pcap shows no WBDC/auth/application plaintext outside DTLS;
+7. existing first-arrival and FakeTCP/FEC regressions remain green.
+
+Only after real-network A/B evidence shows a repeatable benefit should WBD consider a more elaborate authenticated preflight. Any such work must preserve the same rule: the product data lane stays independently authenticated and encrypted, and unordered first-arrival semantics are not traded for a TLS/TCP stream disguise.
