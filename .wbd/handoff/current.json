@@ -1,11 +1,11 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 27,
+  "continuity_sequence": 28,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "ce7acafbc65b0c0aaa25190f573565d2f5a81feb",
+  "checkpoint_based_on_head_sha": "802bf571c10889fa292b7da1185f039df0658d47",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
@@ -14,11 +14,11 @@
     "local_optimization_stop_rule": "Measure before adding features. Keep the first 20:20 transport surface fixed; treat firewall/NAT as an incremental kernel-cost probe rather than mixing it into protocol semantics."
   },
   "continuation_cursor": {
-    "last_completed_action": "User asked whether current CPU/RSS excludes iptables and requested a local sandbox simulation. Existing WBD smoke run 32814277618 already used udp2raw -a, so it is not literally firewall-free: udp2raw may install the FakeTCP/RST handling rule. However the transport benchmark does not model OpenWrt-style routed FORWARD/NAT/port-forward work, and cpu_ms_total sums only WBD userspace process CPU so kernel netfilter/softirq cost is not fully represented. The current sandbox is root with CAP_NET_RAW but lacks CAP_NET_ADMIN, so it cannot create netns/veth or install real iptables rules. A local C UDP relay upper-bound microbenchmark was run instead: 100000 x 1200-byte echo transactions, five repeats. Direct median goodput ~1467.9 Mbps; one userspace relay median ~1200.2 Mbps, relay CPU ~710 ms for 200000 forwarded datagrams (~3.55 us/datagram) and RSS ~1412 KiB; two relays median ~403.3 Mbps, relay CPU ~2130 ms and RSS ~2832 KiB, with one unstable repeat. This demonstrates userspace port forwarding substantially overestimates kernel netfilter memory/CPU. To measure the real increment cleanly, scripts/bench_netfilter_overhead.py and tests/test_netfilter_bench_optional.py landed at ce7acafbc65b0c0aaa25190f573565d2f5a81feb. The probe uses client-router-server namespaces and compares plain routing, FORWARD+conntrack, and DNAT+MASQUERADE+FORWARD at a fixed iperf3 UDP offered load while recording throughput, loss, iperf CPU, global busy CPU, softirq deltas, conntrack count and relevant slab activity. PR #3 is temporarily titled [netfilter-bench] so this handoff commit triggers the opt-in test in the already-registered CI workflow.",
-    "current_task": "Run the privileged netfilter overhead probe, quantify the incremental routed filter/NAT cost, remove the temporary PR title flag, then return to the repaired 20:20 matrix. The second full matrix run 32814429610 had repeats 260825 and 260826 pass but repeat 260827 fail, so that failing replicate still needs inspection after the user-requested netfilter measurement.",
-    "why_now": "The user specifically wants CPU/RAM realism and asked whether iptables overhead is missing. A dedicated kernel probe is more meaningful than inserting a userspace UDP forwarder, because userspace relay RSS and scheduling overhead are much larger than netfilter and would give a misleading budget.",
-    "done_when": "The opt-in CI prints median route/filter/NAT throughput and CPU measurements from a privileged runner; the result is interpreted as incremental kernel networking cost, not WBD process RSS. The temporary [netfilter-bench] title is removed. Then inspect matrix run 32814429610 repeat 260827 failure and resume transport characterization without expanding feature scope.",
-    "next_atomic_action": "Refresh CI for this sequence-27 commit, find the test job triggered while PR title contains [netfilter-bench], read NETFILTER_CASE/NETFILTER_SUMMARY logs, remove [netfilter-bench], persist a concise result, then inspect transport_bench(260827) from run 32814429610."
+    "last_completed_action": "User requested CPU/RSS realism and iptables overhead. Current exact WBD smoke run 32814277618 used udp2raw -a and therefore is not literally firewall-free, but its cpu_ms_total only sums WBD userspace process CPU and does not capture OpenWrt-style routed FORWARD/NAT kernel work or all softirq cost. The current local sandbox lacks CAP_NET_ADMIN, so it cannot install real iptables rules or create veth/netns. A compiled C UDP relay upper-bound test was run locally: 100000 x 1200-byte echo transactions, five repeats; direct median ~1467.9 Mbps, one relay ~1200.2 Mbps with ~710 ms relay CPU for 200000 forwarded datagrams (~3.55 us/datagram) and ~1412 KiB RSS; two relays ~403.3 Mbps with ~2130 ms CPU and ~2832 KiB RSS. Because a userspace relay exaggerates netfilter cost, scripts/bench_netfilter_overhead.py plus tests/test_netfilter_bench_optional.py were added to run a privileged client-router-server comparison of plain routing, FORWARD+conntrack and DNAT+MASQUERADE+FORWARD. Sequence 27 CI run 32816165506 did not reach the opt-in unittest because verify_handoff rejected local_test_snapshot.authority=current_sandbox_plus_github_smoke; this sequence fixes the field to snapshot_not_live and retries while PR #3 remains temporarily titled [netfilter-bench].",
+    "current_task": "Run the privileged netfilter overhead probe, quantify route/filter/NAT incremental CPU/throughput and kernel state, remove the temporary PR title flag, then return to the repaired 20:20 matrix. Matrix run 32814429610 still has repeat 260827 failure pending inspection.",
+    "why_now": "A dedicated kernel netfilter probe is more meaningful than inserting a userspace port forwarder. It isolates the incremental routing/filter/NAT cost and avoids treating Python/C relay RSS as if it were iptables memory.",
+    "done_when": "The opt-in CI prints route/filter/NAT medians, the result is interpreted with system-CPU noise caveats, [netfilter-bench] is removed from the PR title, handoff is updated with measured numbers, and work returns to matrix repeat 260827.",
+    "next_atomic_action": "Refresh CI triggered by sequence 28. Read NETFILTER_CASE and NETFILTER_SUMMARY from the test job. Remove [netfilter-bench] immediately after result capture. Persist measured route/filter/NAT deltas in handoff, then inspect transport_bench(260827) from run 32814429610."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
@@ -40,12 +40,13 @@
     "netfilter_accounting_note": "udp2raw -a means baseline is not literally no-firewall, but OpenWrt-style FORWARD/NAT kernel cost is not included in WBD userspace cpu_ms_total",
     "sandbox_net_admin": "unavailable; local real iptables/netns test cannot run in current sandbox",
     "local_userspace_relay_upper_bound": "one C UDP relay: median 710ms CPU per 100k echo transactions / 200k forwarded datagrams and ~1412KiB RSS; do not treat as kernel iptables cost",
+    "netfilter_probe_status": "sequence27 attempt blocked by handoff snapshot authority validation before unittest; sequence28 retries",
     "second_matrix_run": "32814429610: repeats 260825 and 260826 success, repeat 260827 failure; aggregate skipped"
   },
   "local_test_snapshot": {
-    "authority": "current_sandbox_plus_github_smoke",
-    "tested_commit": "ce7acafbc65b0c0aaa25190f573565d2f5a81feb",
+    "authority": "snapshot_not_live",
+    "tested_commit": "802bf571c10889fa292b7da1185f039df0658d47",
     "result": "partial_pass",
-    "command": "Local sandbox C relay benchmark saved /mnt/data/c-udp-relay-bench.json. GitHub smoke run 32814277618 remains the current exact WBD resource baseline. Privileged kernel netfilter benchmark is opt-in and pending this sequence-27 CI trigger."
+    "command": "Local sandbox C relay benchmark saved /mnt/data/c-udp-relay-bench.json. GitHub smoke run 32814277618 remains the exact WBD resource baseline. Netfilter benchmark retry is pending sequence28 CI."
   }
 }
