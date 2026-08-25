@@ -1,11 +1,11 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 32,
+  "continuity_sequence": 33,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "9ba1ca8cee6d2d6a865b4ae96413c556a708c951",
+  "checkpoint_based_on_head_sha": "43041da32cc67bf04197bdd00ec3ce1d75d99cd5",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
@@ -14,26 +14,25 @@
     "local_optimization_stop_rule": "Do not broaden the matrix. First implement one fixed 20+20 systematic erasure-code path with bounded buffers, then A/B only high-information 200-Mbit public-link points. Keep UDPspeeder until the candidate is at least as good on delivery/tail latency and materially better on RSS/CPU."
   },
   "continuation_cursor": {
-    "last_completed_action": "Focused workflow transport-200m run 32819141473 completed successfully: prepare, RTT 20/100/300/600 bench jobs and aggregate all passed, producing 20 rows for symmetric loss 0/1/5/10/20%. Public veth capacity was 200 Mbit/s per direction and inner offered load was 90 Mbit/s with UDPspeeder mode0 20:20, DTLS 1.3 and FakeTCP. The request/echo generator makes this a 90-Mbit/s full-duplex inner stress. At 20 ms / 0% loss the stack returned 39.217 Mbit/s within the accounting window, delivery ratio 0.4357, p99 282.5 ms, with zero qdisc loss; this is strong evidence of CPU/queueing pressure rather than network-loss recovery. Aggregate RSS was 28,976 KiB: UDPspeeder 21,096 KiB, DTLS 5,624 KiB, udp2raw 2,256 KiB. Process CPU deltas over the case were UDPspeeder ~2.67 s, DTLS ~2.70 s and udp2raw ~2.29 s across both endpoints, showing CPU pressure is distributed while UDPspeeder clearly dominates memory (~73% of userspace RSS). Across all 20 cases total RSS stayed roughly 28.3-30.5 MiB, so no RTT/loss memory blow-up appeared. The run also revealed a measurement defect: the post-send drain timeout grows with RTT, responses during drain count toward delivery while throughput keeps a 2-s denominator, and CPU deltas include drain while cpu_core_fraction divides by 2 s. Therefore higher-RTT delivery/throughput/core-fraction values are not valid for quantitative cross-RTT comparison. This limitation and the valid capacity/RSS conclusions are persisted in docs/benchmarks/v2-200m-first-pass.md at 9ba1ca8cee6d2d6a865b4ae96413c556a708c951. The temporary [200m] PR title flag has been removed.",
+    "last_completed_action": "Recovered the live handoff from Issue #1 and dev/wbd-raw-fec-v2, reconciled checkpoint 9ba1ca8cee6d2d6a865b4ae96413c556a708c951 to live head 476139ec88a780ddf709bacb236b06e2e4a024e6 as one handoff-only delta, then completed the requested first WBD-owned FEC atomic step. Commits 7b01d7961bbfd4f75e5134c51d7ff3e96e6d7c0c and 43041da32cc67bf04197bdd00ec3ce1d75d99cd5 add internal/fec with a fixed systematic 20 data + 20 parity GF(256) Reed-Solomon codec, a thin replaceable Codec interface, a fixed-capacity preallocated BufferPool, and a repeated 56-byte BlockHeader carrying block/shard identity plus original packet lengths. Deterministic unit tests recover every missing-count 0..20 using both data-prefix and mixed loss patterns, reject 21 missing shards, round-trip variable-length metadata, and prove pool exhaustion is bounded. Exact tested local blobs match GitHub: fec.go b833ebd2a6089b16e1cf4afb85cc9eb2a4b5d33a and fec_test.go 8c0e61ed976cb68701dcb66d1ce83c6df9604fdd. Local Go 1.23.2 targeted tests pass. Indicative 1200-byte-shard microbench on the sandbox AMD EPYC reports about 43.04 MB/s encode and 40.84 MB/s worst-case reconstruction with all 20 data shards missing; this is only an implementation baseline, not the required transport A/B. Full-repository local tests were not run because the sandbox cannot resolve github.com for cloning, but this package has no external dependency and the exact committed package bytes were tested locally.",
     "current_task": "Build a minimal WBD-owned FEC v0 and A/B it against UDPspeeder 20:20. Preferred first codec is fixed systematic 20 data + 20 parity Reed-Solomon-style erasure coding with preallocated bounded block buffers, original packet-length metadata and a small flush timer. In parallel, correct the 200-Mbit sizing probe to separate one-way bulk throughput/CPU from a low-rate latency probe and to use actual measurement wall time.",
-    "why_now": "The 200-Mbit pass shows UDPspeeder consumes about three quarters of current userspace RSS, while the project only needs one narrow fixed FEC behavior. Eliminating the generic UDPspeeder process can remove a large memory allocation and one UDP process/socket hop per side. A naive single-XOR parity scheme is too weak for the desired 20:20 loss protection, so the simplification should be protocol/implementation scope, not a weaker erasure model by accident.",
+    "why_now": "The 200-Mbit pass shows UDPspeeder consumes about three quarters of current userspace RSS, while the project only needs one narrow fixed FEC behavior. The core 20+20 codec now exists and passes deterministic recovery tests, so the next risk is packet-preserving block lifecycle under variable lengths, reorder, partial blocks and bounded memory before transport integration.",
     "done_when": "A WBD-owned FEC candidate can encode/decode fixed 20+20 blocks, handle variable original packet lengths without stream semantics, bound memory explicitly, flush partial blocks on a small timer, pass deterministic loss/reorder unit tests, and run the corrected focused 200-Mbit A/B against the pinned UDPspeeder oracle. Report per-endpoint RSS, codec CPU, end-to-end CPU, one-way delivery/goodput and separate latency under a small set of RTT/loss points.",
-    "next_atomic_action": "Add a minimal internal FEC package and benchmark: systematic 20+20 shards, GF(256) Reed-Solomon via a thin replaceable codec interface, bounded buffer pool and block header. Unit-test recovery for 0..20 missing shards and rejection beyond parity budget. Do not remove UDPspeeder from the product baseline until the A/B passes."
+    "next_atomic_action": "Build the packet-preserving block layer around internal/fec: accept variable-length datagrams into a bounded 20-packet block, pad only inside the block, emit 40 independently parseable shard datagrams with BlockHeader, collect by BlockID/ShardIndex under arbitrary arrival order, reconstruct as soon as 20 valid shards are available, restore original datagram lengths, and flush a partial block on a small deterministic timer using DataCount. Add deterministic reorder/loss/partial-flush tests. Do not integrate with DTLS/FakeTCP or remove UDPspeeder until this block layer is locally qualified."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
     "docs/benchmarks/v2-200m-first-pass.md",
-    "scripts/udp_rate_probe.c",
-    "scripts/bench_v2_transport_200m.py",
-    ".github/workflows/transport-200m.yml",
-    "scripts/bench_v2_transport_20x20.py",
+    "go.mod",
+    "internal/fec/fec.go",
+    "internal/fec/fec_test.go",
     ".wbd/handoff/current.json"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_M1_M2_M3_qualified_plus_200m_capacity_diagnostic",
+    "authority": "V2_M1_M2_M3_qualified_plus_200m_capacity_diagnostic_plus_fec_v0_codec_targeted_local_pass",
     "outer_semantics": "TCP-shaped FakeTCP raw datagrams; no kernel TCP byte-stream dependency",
     "current_oracle_fec": "UDPspeeder mode0 20:20",
     "200m_run": "32819141473 PASS infrastructure/20 rows; 20ms 0% shows capacity pressure, but cross-RTT delivery/CPU fractions are diagnostic-only because drain accounting varies with RTT",
@@ -41,12 +40,13 @@
     "memory_breakdown_20ms_0loss": "UDPspeeder 21096KiB, DTLS 5624KiB, udp2raw 2256KiB across both endpoints; UDPspeeder ~73% of userspace RSS",
     "fec_replacement_decision": "yes: build WBD-owned compact FEC and retain UDPspeeder only as oracle until A/B qualification",
     "fec_v0_target": "systematic fixed 20+20 erasure coding, bounded blocks, preallocated buffers, variable packet-length metadata, timer flush, no retransmission/order semantics",
+    "fec_v0_codec_checkpoint": "43041da32cc67bf04197bdd00ec3ce1d75d99cd5: core GF(256) systematic 20+20 codec/header/pool passes targeted exact-blob local tests; no block lifecycle, transport integration or UDPspeeder A/B yet",
     "naive_xor_status": "single XOR parity is not equivalent to 20+20 arbitrary-erasure recovery; packet duplication may be an optional ultra-low-CPU mode but not the main weak-network 20:20 replacement"
   },
   "local_test_snapshot": {
-    "authority": "snapshot_not_live",
-    "tested_commit": "747b0969d7d0295410d15a81b97c384a73db055e",
+    "authority": "local_sandbox_targeted_exact_blob",
+    "tested_commit": "43041da32cc67bf04197bdd00ec3ce1d75d99cd5",
     "result": "pass",
-    "command": "GitHub transport-200m run 32819141473 completed all four RTT jobs and aggregate successfully. See docs/benchmarks/v2-200m-first-pass.md for valid conclusions and the RTT-dependent drain-accounting caveat."
+    "command": "Go 1.23.2 sandbox: go test ./internal/fec; go test ./internal/fec -run '^$' -bench 'Benchmark(Encode|Reconstruct)' -benchtime=20x. Exact GitHub blob SHAs matched the tested local files. Full-repository test was not run because sandbox DNS cannot resolve github.com for clone."
   }
 }
