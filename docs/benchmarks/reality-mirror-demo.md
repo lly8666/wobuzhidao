@@ -95,7 +95,7 @@ Pair order alternates direct/mirror to reduce short-term drift.
 
 ## 2. Explicit encrypted demo handoff
 
-This mode requires all three explicit demo pieces. Without the `-demo-reality-*` flags, normal WBD startup is unchanged.
+This mode requires all three explicit demo pieces. Without the `-demo-reality-*` flags, normal WBD startup is unchanged and no public-target preflight is attempted.
 
 ### Server: start mirror witness producer
 
