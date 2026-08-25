@@ -26,18 +26,20 @@ type SenderStats struct {
 }
 
 type Sender struct {
-	nextSeq   uint32
-	pending   []*Pending
-	bySeq     map[uint32]*Pending
-	head      int
-	active    int
-	lastAck   uint32
-	dupAcks   int
-	rto       time.Duration
-	srtt      time.Duration
-	rttvar    time.Duration
-	freeSlabs [][]byte
-	stats     SenderStats
+	nextSeq      uint32
+	pending      []*Pending
+	bySeq        map[uint32]*Pending
+	head         int
+	active       int
+	lastAck      uint32
+	dupAcks      int
+	fastRetxSeq  uint32
+	fastRetxDone bool
+	rto          time.Duration
+	srtt         time.Duration
+	rttvar       time.Duration
+	freeSlabs    [][]byte
+	stats        SenderStats
 }
 
 func NewSender(nextSeq uint32, initialRTO time.Duration) *Sender {
@@ -88,11 +90,13 @@ func (s *Sender) Ack(ack uint32, now time.Time) *Pending {
 
 // AckSelective consumes cumulative ACK + RFC 2018 SACK. Exact WBD datagram
 // SACKs are O(1) through bySeq; cumulative ACK remains a sequential head walk.
+// A given cumulative-ACK hole gets at most one fast retransmit until ACK moves.
 func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pending {
 	advanced := seqLT(s.lastAck, ack)
 	if advanced {
 		s.lastAck = ack
 		s.dupAcks = 0
+		s.fastRetxDone = false
 		s.ackCumulative(ack, now)
 	} else if ack == s.lastAck && s.active != 0 {
 		s.dupAcks++
@@ -115,7 +119,9 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 	if !advanced && ack == s.lastAck && s.dupAcks >= 3 {
 		s.dupAcks = 0
 		p := s.oldest()
-		if p != nil && p.Seq == ack {
+		if p != nil && p.Seq == ack && (!s.fastRetxDone || s.fastRetxSeq != p.Seq) {
+			s.fastRetxSeq = p.Seq
+			s.fastRetxDone = true
 			s.markRetry(p, now, true)
 			return p
 		}
@@ -158,11 +164,13 @@ func (s *Sender) advanceHead() {
 	}
 }
 
+// RetransmitDue deliberately does not apply TCP-style global exponential RTO
+// backoff. Packet loss on this carrier is not treated as congestion and a slow
+// hole must not inflate recovery time for all later independent datagrams.
 func (s *Sender) RetransmitDue(now time.Time) *Pending {
 	p := s.oldest()
 	if p == nil || now.Sub(p.LastSent) < s.rto { return nil }
 	s.markRetry(p, now, false)
-	s.rto = clampRTO(s.rto*2)
 	return p
 }
 
@@ -196,7 +204,7 @@ func (s *Sender) observeRTT(sample time.Duration) {
 
 func clampRTO(v time.Duration) time.Duration {
 	if v < 20*time.Millisecond { return 20*time.Millisecond }
-	if v > 4*time.Second { return 4*time.Second }
+	if v > 2*time.Second { return 2*time.Second }
 	return v
 }
 
