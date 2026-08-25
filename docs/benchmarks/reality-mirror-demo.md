@@ -57,6 +57,8 @@ Run this on the WBD server/VPS. Replace the placeholder target with the genuine 
 
 The process prints `WBD_REALITY_MIRROR_READY` followed by one JSON result per connection. The result includes parsed SNI/ALPN and mirrored byte counts.
 
+For a short controlled throughput experiment, `-max-bytes 0` removes the userspace byte-limit wrapper and lets Go's normal TCP `io.Copy` fast path operate. Keep a short `-session-timeout`, low `-max-conns`, and stop the public listener immediately after the experiment.
+
 ## Client-side handshake comparison
 
 Direct target baseline:
@@ -81,17 +83,17 @@ The target certificate/SPKI hashes should match because both cases terminate TLS
 
 ## HTTP/data comparison
 
-A normal HTTPS client can use the same mirror. For example, with a target URL that you are permitted to benchmark, direct access is compared with a host override that sends the TCP connection to the WBD server while preserving the HTTPS hostname/SNI:
+A normal HTTPS client can use the same mirror. For example, with a target URL that you are permitted to benchmark, direct access is compared with `curl --connect-to`. `--connect-to` keeps the URL authority, Host header, SNI and certificate hostname at normal port 443 while redirecting only the TCP destination to the WBD mirror port.
 
 ```bash
 curl -o /dev/null -sS \
   -w 'direct code=%{http_code} connect=%{time_connect} tls=%{time_appconnect} first=%{time_starttransfer} total=%{time_total} bytes=%{size_download} speed=%{speed_download}\n' \
   https://TARGET_HOST/TEST_PATH
 
-curl --resolve TARGET_HOST:9443:WBD_SERVER_IP \
+curl --connect-to TARGET_HOST:443:WBD_SERVER_IP:9443 \
   -o /dev/null -sS \
   -w 'mirror code=%{http_code} connect=%{time_connect} tls=%{time_appconnect} first=%{time_starttransfer} total=%{time_total} bytes=%{size_download} speed=%{speed_download}\n' \
-  https://TARGET_HOST:9443/TEST_PATH
+  https://TARGET_HOST/TEST_PATH
 ```
 
 The target must accept the Host/SNI and request path you choose. Keep public-service tests modest; this is a network-treatment diagnostic, not a load generator.
