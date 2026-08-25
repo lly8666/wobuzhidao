@@ -27,6 +27,7 @@ type attempt struct {
 	TLSVersion        string  `json:"tls_version,omitempty"`
 	CipherSuite       string  `json:"cipher_suite,omitempty"`
 	ALPN              string  `json:"alpn,omitempty"`
+	ClientHelloSHA256 string  `json:"client_hello_sha256,omitempty"`
 	LeafCertSHA256    string  `json:"leaf_cert_sha256,omitempty"`
 	LeafSPKISHA256    string  `json:"leaf_spki_sha256,omitempty"`
 	LeafSubject       string  `json:"leaf_subject,omitempty"`
@@ -56,6 +57,7 @@ func main() {
 	interval := flag.Duration("interval", 100*time.Millisecond, "delay between attempts")
 	caFile := flag.String("ca-file", "", "optional PEM CA bundle for an operator-controlled endpoint")
 	profile := flag.String("profile", "native", "ClientHello profile; currently only native is implemented")
+	witnessOut := flag.String("witness-out", "", "demo only: write the last successful ClientHello SHA-256 as a 0600 file")
 	flag.Parse()
 
 	if *addr == "" || *serverName == "" || *count <= 0 || *count > 1000 || *timeout <= 0 || *interval < 0 {
@@ -71,6 +73,7 @@ func main() {
 
 	out := summary{Addr: *addr, ServerName: *serverName, Profile: *profile, Attempts: *count}
 	var tcpTimes, tlsTimes []float64
+	lastWitness := ""
 	for i := 0; i < *count; i++ {
 		r := runAttempt(i, *addr, *serverName, *timeout, roots)
 		out.Results = append(out.Results, r)
@@ -78,6 +81,9 @@ func main() {
 			out.Successes++
 			tcpTimes = append(tcpTimes, r.TCPConnectMS)
 			tlsTimes = append(tlsTimes, r.TLSHandshakeMS)
+			if r.ClientHelloSHA256 != "" {
+				lastWitness = r.ClientHelloSHA256
+			}
 		} else {
 			out.Failures++
 		}
@@ -90,6 +96,17 @@ func main() {
 		out.TCPConnectP95MS = percentile(tcpTimes, 0.95)
 		out.TLSHandshakeP50MS = percentile(tlsTimes, 0.50)
 		out.TLSHandshakeP95MS = percentile(tlsTimes, 0.95)
+	}
+	if strings.TrimSpace(*witnessOut) != "" {
+		if lastWitness == "" {
+			fatal(errors.New("-witness-out requested but no successful TLS ClientHello was captured"))
+		}
+		if err := os.WriteFile(*witnessOut, []byte(lastWitness+"\n"), 0o600); err != nil {
+			fatal(err)
+		}
+		if err := os.Chmod(*witnessOut, 0o600); err != nil {
+			fatal(err)
+		}
 	}
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
@@ -118,13 +135,16 @@ func runAttempt(index int, addr, serverName string, timeout time.Duration, roots
 		RootCAs: roots,
 		MinVersion: tls.VersionTLS12,
 	}
-	conn := tls.Client(raw, cfg)
+	captured := newHelloCaptureConn(raw)
+	conn := tls.Client(captured, cfg)
 	t1 := time.Now()
 	if err := conn.HandshakeContext(ctx); err != nil {
+		r.ClientHelloSHA256 = captured.SHA256Hex()
 		r.Error = err.Error()
 		return r
 	}
 	r.TLSHandshakeMS = float64(time.Since(t1)) / float64(time.Millisecond)
+	r.ClientHelloSHA256 = captured.SHA256Hex()
 	st := conn.ConnectionState()
 	r.OK = true
 	r.TLSVersion = tlsVersion(st.Version)
