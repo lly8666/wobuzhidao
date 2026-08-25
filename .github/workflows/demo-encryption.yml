@@ -1,0 +1,175 @@
+name: demo-encryption
+
+on:
+  push:
+    branches: [dev/wbd-raw-fec-v2]
+    paths:
+      - '.github/workflows/demo-encryption.yml'
+      - 'cmd/wbd-link-proxy/**'
+      - 'internal/control/demo.go'
+      - 'internal/control/demo_test.go'
+      - 'internal/persona/witness.go'
+      - 'internal/persona/witness_test.go'
+      - 'internal/realitymirror/**'
+      - 'native/dtls/wbd_dtls_shim.c'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  encrypted-handoff:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and capture tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl tcpdump
+      - name: Build pinned DTLS and demo path
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/demo
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/demo/wbd_dtls_shim
+          go test ./internal/control ./internal/persona ./internal/realitymirror ./cmd/wbd-link-proxy -count=1
+          go build -trimpath -o /tmp/demo/wbd-link-proxy ./cmd/wbd-link-proxy
+      - name: Create explicitly trusted self-signed DTLS identity
+        run: |
+          set -euo pipefail
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=wbd.test' \
+            -addext 'basicConstraints=critical,CA:TRUE' \
+            -addext 'keyUsage=critical,digitalSignature,keyEncipherment,keyCertSign' \
+            -addext 'extendedKeyUsage=serverAuth' \
+            -addext 'subjectAltName=DNS:wbd.test' \
+            -keyout /tmp/demo/server.key -out /tmp/demo/server.pem >/dev/null 2>&1
+          openssl verify -CAfile /tmp/demo/server.pem /tmp/demo/server.pem
+      - name: Run encrypted demo binding and scan public DTLS capture
+        run: |
+          set -euo pipefail
+          BASE=56000
+          TOKEN='WBD_DEMO_DEVICE_SECRET_DO_NOT_LEAK_7f31a9'
+          PAYLOAD='WBD_DEMO_APPLICATION_PLAINTEXT_DO_NOT_LEAK_b8c2e4'
+          TARGET='target.example'
+          mkdir -m 700 /tmp/demo/witness
+          WITNESS=$(python3 - <<'PY'
+          import hashlib,json,time,os
+          raw=b'demo-real-target-clienthello-for-ci'
+          h=hashlib.sha256(raw).hexdigest()
+          body={'version':1,'server_name':'target.example','observed_unix_ns':time.time_ns()}
+          path=f'/tmp/demo/witness/{h}.json'
+          with open(path,'w') as f: json.dump(body,f); f.write('\n')
+          os.chmod(path,0o600)
+          print(h)
+          PY
+          )
+          cleanup() {
+            set +e
+            for P in ${PIDS:-}; do kill -TERM "$P" 2>/dev/null; done
+            sleep .2
+          }
+          trap cleanup EXIT
+
+          cat >/tmp/demo/echo.py <<'PY'
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',56000))
+          while True:
+              b,a=s.recvfrom(65535)
+              s.sendto(b,a)
+          PY
+          python3 /tmp/demo/echo.py >/tmp/demo/echo.log 2>&1 & P1=$!
+          sudo tcpdump -i lo -U -s 0 -w /tmp/demo/public-dtls.pcap "udp port $((BASE+2))" >/tmp/demo/tcpdump.log 2>&1 & P2=$!
+          /tmp/demo/wbd-link-proxy -mode server -listen 127.0.0.1:$((BASE+1)) -service 127.0.0.1:${BASE} \
+            -expected-token "$TOKEN" -demo-reality-witness-dir /tmp/demo/witness \
+            -demo-reality-server-name "$TARGET" -demo-reality-ttl 15s >/tmp/demo/link-server.log 2>&1 & P3=$!
+          /tmp/demo/wbd_dtls_shim server $((BASE+2)) 127.0.0.1 $((BASE+1)) \
+            /tmp/demo/server.pem /tmp/demo/server.key >/tmp/demo/dtls-server.log 2>&1 & P4=$!
+          sleep .10
+          /tmp/demo/wbd_dtls_shim client $((BASE+3)) 127.0.0.1 $((BASE+2)) \
+            /tmp/demo/server.pem wbd.test >/tmp/demo/dtls-client.log 2>&1 & P5=$!
+          PIDS="$P1 $P2 $P3 $P4 $P5"
+          for i in $(seq 1 400); do
+            grep -q 'READY role=client' /tmp/demo/dtls-client.log && grep -q 'READY role=server' /tmp/demo/dtls-server.log && break
+            sleep .05
+          done
+          grep -q 'READY role=client version=DTLSv1.3' /tmp/demo/dtls-client.log
+          grep -q 'READY role=server version=DTLSv1.3' /tmp/demo/dtls-server.log
+
+          /tmp/demo/wbd-link-proxy -mode client -listen 127.0.0.1:$((BASE+4)) -dtls 127.0.0.1:$((BASE+3)) \
+            -fec off -token "$TOKEN" -demo-reality-witness "$WITNESS" >/tmp/demo/link-client.log 2>&1 & P6=$!
+          PIDS="$PIDS $P6"
+          for i in $(seq 1 200); do
+            grep -q 'WBD_LINK_READY role=client' /tmp/demo/link-client.log && grep -q 'WBD_LINK_READY role=server' /tmp/demo/link-server.log && break
+            sleep .05
+          done
+          grep -q 'demo_reality=true' /tmp/demo/link-client.log
+          grep -q 'auth=true' /tmp/demo/link-client.log
+          grep -q 'demo_reality=true' /tmp/demo/link-server.log
+          grep -q 'auth=true' /tmp/demo/link-server.log
+
+          PAYLOAD="$PAYLOAD" python3 - <<'PY'
+          import os,socket,time
+          payload=os.environ['PAYLOAD'].encode()
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',0)); s.settimeout(.25)
+          end=time.time()+3
+          while time.time()<end:
+              s.sendto(payload,('127.0.0.1',56004))
+              try:
+                  b,_=s.recvfrom(65535)
+              except socket.timeout:
+                  continue
+              if b==payload:
+                  print('DEMO_ENCRYPTED_ECHO_OK bytes=%d'%len(b))
+                  break
+          else:
+              raise SystemExit('encrypted demo echo timeout')
+          PY
+
+          sleep .20
+          kill -TERM "$P6" "$P5" "$P4" "$P3" 2>/dev/null || true
+          sleep .20
+          sudo kill -TERM "$P2" 2>/dev/null || true
+          wait "$P2" || true
+          PIDS="$P1"
+          test -s /tmp/demo/public-dtls.pcap
+          TOKEN="$TOKEN" PAYLOAD="$PAYLOAD" python3 - <<'PY'
+          import os
+          data=open('/tmp/demo/public-dtls.pcap','rb').read()
+          markers={
+              'WBDC control magic':b'WBDC',
+              'device token':os.environ['TOKEN'].encode(),
+              'application plaintext':os.environ['PAYLOAD'].encode(),
+          }
+          for name,marker in markers.items():
+              if marker in data:
+                  raise SystemExit(f'PLAINTEXT_LEAK {name}')
+          print('DEMO_WIRE_ENCRYPTION_PASS bytes=%d markers_absent=%s'%(len(data),','.join(markers)))
+          PY
+          echo '--- dtls client ---'; cat /tmp/demo/dtls-client.log
+          echo '--- dtls server ---'; cat /tmp/demo/dtls-server.log
+          echo '--- link client ---'; cat /tmp/demo/link-client.log
+          echo '--- link server ---'; cat /tmp/demo/link-server.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: demo-encryption-evidence
+          path: |
+            /tmp/demo/public-dtls.pcap
+            /tmp/demo/*.log
