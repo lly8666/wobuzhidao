@@ -6,12 +6,14 @@ Build a personal-use weak-network VPN for **OpenWrt/Linux ↔ Linux or Windows**
 
 - a TCP-shaped raw/FakeTCP public carrier;
 - UDP/datagram-like payload semantics with no ordinary-TCP retransmission/HOL dependency;
-- optional WBD-owned FEC that can be off, fixed, or adaptively tuned after qualification;
+- optional WBD-owned FEC that is currently `off` or an explicit fixed profile;
 - standards-compliant DTLS 1.3 for authentication, encryption, integrity and anti-replay;
 - native TUN/L3 ingress/egress as a platform layer;
 - optional full-tunnel and China/non-China split capture on supported clients;
 - an optional TLS Persona bootstrap with browser-like ClientHello profiles;
 - a minimal account/session model in which one account may own multiple concurrent device sessions.
+
+Auto FEC is deliberately deferred to a future advanced-research milestone. It is not required for V2.2 and must not delay the fixed-mode product path.
 
 The endpoints are operator-controlled devices with sufficient privileges for raw sockets, limited RST/filter handling, TUN, pcap/Npcap and Wintun-class packet I/O. Android and unprivileged/no-root portability are out of scope.
 
@@ -23,9 +25,9 @@ V1 (`dev/wbd-multilane-v1`, PR #2) is permanently rejected by M10-004.
 2. The required public carrier is udp2raw-compatible FakeTCP: TCP-shaped raw packets carrying unordered/real-time datagrams.
 3. **TCP-shaped does not mean kernel-TCP-owned.** WBD does not require a real `ESTABLISHED` kernel TCP socket for the product lane.
 4. Kernel TCP retransmission, ordered delivery, congestion-control HOL and byte-stream sequence ownership must not become dependencies of product payload delivery.
-5. WBD FEC is systematic and optional. A systematic source that is ready to send must not be intentionally held merely to wait for a repair block.
-6. UDPspeeder mode 0 remains an external fixed-mode reference: `20:10` for a 1.5x reference point and `20:20` for a 2.0x strong-loss reference point.
-7. Normal one-lane proactive source+repair bytes stay at or below 2.0x until benchmark evidence explicitly changes this constitution. An explicit future emergency multi-lane survival mode may exceed 2.0x only after a separate admission/qualification decision; it is never an Auto default.
+5. WBD FEC is systematic and optional. **Do not delay an available systematic source merely to fill a FEC block.**
+6. UDPspeeder mode 0 remains an external fixed-mode reference. Compatibility names remain `weak-1.5x` = `20:10` and `weak-2x` = `20:20`.
+7. Normal one-lane proactive source+repair bytes stay at or below 2.0x until benchmark evidence explicitly changes this constitution. An explicit future emergency multi-lane survival mode may exceed 2.0x only after a separate admission/qualification decision; it is never a default.
 8. One raw lane is the product baseline. Extra lanes remain optional optimizations and must demonstrate value under measured cross-lane loss/latency correlation.
 9. FEC/lane optimization is judged by earliest complete original datagram, delivery, CPU/RSS and total wire cost together; block completion time alone is not a product metric.
 
@@ -37,7 +39,7 @@ V1 (`dev/wbd-multilane-v1`, PR #2) is permanently rejected by M10-004.
 4. 0-RTT remains disabled until replay semantics are explicitly designed.
 5. After DTLS Finished, product traffic remains standards-compliant DTLS application data. WBD does not invent a second AEAD/key schedule.
 6. FEC source/repair datagrams are independently protected DTLS application datagrams so one lost record does not block later records.
-7. Account authorization occurs only inside the authenticated DTLS association. The same account may own multiple simultaneous device sessions; session state is never keyed by username alone.
+7. Account authorization occurs only inside the authenticated DTLS association. The same account username may own multiple simultaneous device sessions; session state is never keyed by username alone.
 8. High-entropy per-device access tokens/keys are preferred so one device can be revoked independently. Human-memorable passwords, if ever added, require a proper password KDF.
 
 ## Optional TLS Persona
@@ -53,21 +55,22 @@ Rules:
 - Browser-like fingerprints change connection appearance/interoperability; they do not make cryptography stronger.
 - Standard TLS preflight and the FakeTCP/DTLS data lane are separate protocol roles.
 - The browser ClientHello profile is a client/session choice from the server-advertised supported set.
-- Persona hostname, certificate and private key are operator/server assets; the client validates an allowed operator-controlled hostname and cannot invent an unrelated identity.
-- Do not borrow third-party private keys/certificates.
+- Persona hostname, certificate and private key are operator/server assets and must be identities the operator is authorized to use.
+- Public third-party services may be used as measurement baselines, but WBD does not borrow third-party private keys/certificates or present an unrelated third-party identity as its own endpoint.
 - Xray/REALITY/Vision may be studied as implementation references, but WBD does not import VLESS, Xray routing, or Vision stream semantics into the data plane.
 
 ## Protection modes and configuration ownership
 
-The product FEC surface is conceptually:
+The **current product** FEC surface is:
 
 - `off`: no proactive repair; FakeTCP shadow retransmission and DTLS remain active;
-- `fixed`: an admitted `K:R`/scheduler profile chosen by the client, including reference presets such as `20:10` and `20:20`;
-- `auto`: a client-side controller that may choose directional protection from measured loss, recovery latency, RTT, goodput and queue pressure **only after estimator/controller qualification**.
+- `fixed`: an admitted `K:R`/scheduler profile chosen by the client, including reference presets such as `20:10` and `20:20`.
+
+`auto` remains a reserved future advanced-research value. It is not implemented or accepted in the current product path.
 
 FEC may differ by direction. Runtime changes use a negotiated configuration epoch and take effect only at coding-window boundaries so old shards remain unambiguous and no reconnect is required.
 
-Most optional behavior is client/session-owned: capture mode, FEC policy/target, Persona profile, and optional lane policy. The server remains intentionally simple but is not policy-less: it advertises supported protocol/code versions and hard resource ceilings, then accepts, clamps or rejects client proposals. A client must not be able to force unbounded server memory, CPU, wire amplification, MTU or lane count.
+Most optional behavior is client/session-owned: capture mode, fixed FEC profile, Persona profile, and optional future lane mode. The server remains intentionally simple but is not policy-less: it advertises supported protocol/code versions and hard resource ceilings, then accepts, clamps or rejects client proposals. A client must not be able to force unbounded server memory, CPU, wire amplification, MTU or lane count.
 
 ## Account/session model
 
@@ -103,7 +106,7 @@ client capture / split policy
         ↓
 minimal WBD packet framing + session/control
         ↓
-optional FEC (off/fixed/qualified-auto)
+optional FEC (off/fixed)
         ↓
 DTLS 1.3
         ↓
@@ -120,24 +123,13 @@ For transport-only qualification, the TUN/platform layer may be replaced by a pa
 
 The current WBD-owned one-lane stack is qualified from the perspective of first-complete datagram behavior before platform integration is broadened.
 
-Always record:
+Always record connection/handshake success, earliest-complete delivery p50/p95/p99/max, goodput, no-HOL/out-of-order evidence, FakeTCP ACK/SACK/retransmission behavior, FEC direct-vs-reconstructed availability, CPU/RSS, repair bytes and retransmit bytes.
 
-- connection/handshake success and time;
-- earliest-complete delivery ratio and p50/p95/p99/max;
-- throughput/goodput;
-- later-datagram bypass / out-of-order evidence relevant to UDP-like no-HOL behavior;
-- actual FakeTCP outer packet counts, flags, sequence/ACK/SACK/retransmission progression and RST/FIN anomalies;
-- FEC direct-vs-reconstructed first availability;
-- per-component and total CPU time;
-- CPU per delivered MiB;
-- per-component and aggregate peak RSS;
-- wire bytes, repair bytes and retransmit bytes separately.
+### Phase B — fixed FEC / control qualification
 
-Random-loss surfaces are necessary but not sufficient. Burst/correlated loss, offered-load/capacity pressure and MTU are targeted after the core scheduler/controller is defined.
+Compare current tail-repair systematic RS against lower-latency micro-block and causal/sliding-window repair schedules. `off` and `fixed` runtime switching plus configuration epochs are implemented and qualified. The offline simulator must include iid/burst loss and offered-load/capacity pressure.
 
-### Phase B — adaptive FEC / control qualification
-
-Compare current tail-repair systematic RS against lower-latency micro-block and causal/sliding-window repair schedules. `off` and `fixed` runtime switching plus configuration epochs are implemented before `auto`. Auto is admitted only after estimator stability, hysteresis, resource caps and first-arrival regression tests pass.
+Auto FEC is **not part of Phase B**. It is deferred to a future advanced-research milestone after the fixed-mode product and platform work are stable.
 
 ### Phase C — Persona / account / platform policy
 
@@ -145,7 +137,7 @@ Implement and qualify optional browser-like TLS Persona, account + multi-device 
 
 ### Phase D — optional multi-lane research
 
-Only after one-lane adaptive protection has a measured cliff may a second raw lane be admitted. Prefer striped/hedged independent repairs over blind duplication. Any emergency >2x survival mode requires an explicit constitution update backed by measurements.
+Only after one-lane fixed protection has a measured cliff may a second raw lane be admitted. Prefer striped/hedged independent repairs over blind duplication. Any emergency >2x survival mode requires an explicit constitution update backed by measurements.
 
 ## Interpretation of TCP-like and UDP-like
 
@@ -161,13 +153,14 @@ Only after one-lane adaptive protection has a measured cliff may a second raw la
 - WireGuard inner glue: not used.
 - Android/no-root: out of scope.
 - Two raw lanes: optional post-one-lane optimization only.
+- Auto FEC: future advanced research only; not on the current implementation critical path.
 
 ## Development discipline
 
 - Preserve already-qualified WBD FEC/DTLS/FakeTCP evidence and exact upstream pins.
 - Optimize from first-arrival + delivery + resource + wire measurements, not intuition or block-code aesthetics.
 - Do not delay an available systematic source merely to fill a FEC block.
-- Do not enable Auto FEC until the estimator/controller has bounded-state tests and hysteresis/failure behavior.
+- Do not implement Auto FEC on the current V2.2 path; first finish fixed scheduler qualification and `off|fixed` runtime epochs.
 - Keep client configurability high but retain server capability/resource ceilings.
 - Do not implement split routing using thousands of persistent Windows Firewall rules.
 - Do not enable dual lane by default; measure cross-lane correlation first.
