@@ -27,9 +27,12 @@ static struct sockaddr_in addr4(const char* ip,int port){
     struct sockaddr_in a; memset(&a,0,sizeof(a)); a.sin_family=AF_INET; a.sin_port=htons((unsigned short)port);
     if(inet_pton(AF_INET,ip,&a.sin_addr)!=1){fprintf(stderr,"bad IPv4: %s\n",ip);exit(2);} return a;
 }
+static int insecure_verify_arg(const char* s){
+    return s && (!strcmp(s,"-") || !strcmp(s,"none") || !strcmp(s,"insecure"));
+}
 /*
  * The transport underneath DTLS is FakeTCP carried across an impaired link.
- * Five seconds was enough on clean links but could expire before udp2raw had
+ * Five seconds was enough on clean links but could expire before FakeTCP had
  * completed its own association when 10-20% loss was already active. Keep the
  * socket blocking during the handshake and give wolfSSL/FakeTCP room to retry;
  * the benchmark harness still owns the outer case deadline.
@@ -89,13 +92,19 @@ static int relay_loop(const char* role,WOLFSSL* ssl,int transport,int plain,int 
 
 static int run_client(int listen_port,const char* transport_ip,int transport_port,const char* ca,const char* host){
     WOLFSSL_CTX* ctx=wolfSSL_CTX_new(wolfDTLSv1_3_client_method());if(!ctx){fprintf(stderr,"ctx client failed\n");return 2;}
-    wolfSSL_CTX_set_verify(ctx,WOLFSSL_VERIFY_PEER,NULL);
-    if(wolfSSL_CTX_load_verify_locations(ctx,ca,NULL)!=WOLFSSL_SUCCESS){fprintf(stderr,"CA load failed\n");return 2;}
+    int insecure=insecure_verify_arg(ca);
+    if(insecure){
+        wolfSSL_CTX_set_verify(ctx,WOLFSSL_VERIFY_NONE,NULL);
+    } else {
+        wolfSSL_CTX_set_verify(ctx,WOLFSSL_VERIFY_PEER,NULL);
+        if(wolfSSL_CTX_load_verify_locations(ctx,ca,NULL)!=WOLFSSL_SUCCESS){fprintf(stderr,"CA load failed\n");return 2;}
+    }
     int t=socket(AF_INET,SOCK_DGRAM,0);if(t<0)die("transport socket");timeout_fd(t);struct sockaddr_in ta=addr4(transport_ip,transport_port);if(connect(t,(struct sockaddr*)&ta,sizeof(ta))<0)die("transport connect");
-    WOLFSSL* ssl=wolfSSL_new(ctx);if(!ssl)return 2;if(wolfSSL_set_fd(ssl,t)!=WOLFSSL_SUCCESS)return 2;if(wolfSSL_check_domain_name(ssl,host)!=WOLFSSL_SUCCESS)return 2;
+    WOLFSSL* ssl=wolfSSL_new(ctx);if(!ssl)return 2;if(wolfSSL_set_fd(ssl,t)!=WOLFSSL_SUCCESS)return 2;
+    if(!insecure && !insecure_verify_arg(host) && wolfSSL_check_domain_name(ssl,host)!=WOLFSSL_SUCCESS)return 2;
     int r=wolfSSL_connect(ssl);if(r!=WOLFSSL_SUCCESS){ssl_log("client handshake",ssl,r);return 3;}
     int p=socket(AF_INET,SOCK_DGRAM,0);if(p<0)die("plain socket");struct sockaddr_in pa=addr4("127.0.0.1",listen_port);if(bind(p,(struct sockaddr*)&pa,sizeof(pa))<0)die("plain bind");
-    printf("READY role=client version=%s cipher=%s listen=%d\n",wolfSSL_get_version(ssl),wolfSSL_get_cipher(ssl),listen_port);fflush(stdout);
+    printf("READY role=client version=%s cipher=%s listen=%d verify=%s\n",wolfSSL_get_version(ssl),wolfSSL_get_cipher(ssl),listen_port,insecure?"none":"peer-hostname");fflush(stdout);
     int rc=relay_loop("client",ssl,t,p,1);wolfSSL_free(ssl);wolfSSL_CTX_free(ctx);close(t);close(p);return rc;
 }
 static int run_server(int listen_port,const char* target_ip,int target_port,const char* cert,const char* key){
@@ -115,6 +124,6 @@ int main(int argc,char**argv){
     int rc=2;
     if(argc==7&&strcmp(argv[1],"client")==0)rc=run_client(atoi(argv[2]),argv[3],atoi(argv[4]),argv[5],argv[6]);
     else if(argc==7&&strcmp(argv[1],"server")==0)rc=run_server(atoi(argv[2]),argv[3],atoi(argv[4]),argv[5],argv[6]);
-    else fprintf(stderr,"usage: %s client PLAIN_LISTEN TRANSPORT_IP TRANSPORT_PORT CA HOST | server TRANSPORT_LISTEN TARGET_IP TARGET_PORT CERT KEY\n",argv[0]);
+    else fprintf(stderr,"usage: %s client PLAIN_LISTEN TRANSPORT_IP TRANSPORT_PORT CA_OR_none HOST_OR_none | server TRANSPORT_LISTEN TARGET_IP TARGET_PORT CERT KEY\n",argv[0]);
     wolfSSL_Cleanup();return rc;
 }
