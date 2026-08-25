@@ -83,6 +83,9 @@ func runServer(addr string, expected []byte) error {
 	buf := make([]byte, control.HeaderLen+control.MaxBodyLen)
 	_ = pc.SetDeadline(time.Now().Add(10 * time.Second))
 	for s.State() != control.StateEstablished {
+		if s.State() == control.StateFailed || s.State() == control.StateClosed {
+			return fmt.Errorf("link setup failed state=%d", s.State())
+		}
 		n, peer, err := pc.ReadFrom(buf)
 		if err != nil {
 			return err
@@ -116,17 +119,25 @@ func runClient(addr string, token []byte, cfg control.LinkConfig) error {
 	_ = c.SetDeadline(time.Now().Add(10 * time.Second))
 
 	init := control.LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: cfg}
+	var authRequired bool
 	if err = exchange(c, init, func(v any) error {
 		accept, ok := v.(control.LinkAccept)
 		if !ok {
 			return fmt.Errorf("LINK_INIT reply %T", v)
 		}
-		return control.ValidateLinkAccept(init, accept)
+		if err := control.ValidateLinkAccept(init, accept); err != nil {
+			return err
+		}
+		authRequired = accept.AuthRequired
+		return nil
 	}); err != nil {
 		return err
 	}
 
-	if len(token) != 0 {
+	if authRequired {
+		if len(token) == 0 {
+			return fmt.Errorf("server requires AUTH but client token is empty; reconnect required")
+		}
 		if err = exchange(c, control.Auth{Token: token}, func(v any) error {
 			_, ok := v.(control.AuthOK)
 			if !ok {
@@ -137,8 +148,8 @@ func runClient(addr string, token []byte, cfg control.LinkConfig) error {
 			return err
 		}
 	}
-	fmt.Printf("CLIENT established=true fec_mode=%d scheduler=%d fec=%d:%d flush_ms=%d mtu=%d lanes=%d immutable=true\n",
-		cfg.FECMode, cfg.Scheduler, cfg.DataShards, cfg.ParityShards, cfg.FlushMillis, cfg.MTU, cfg.LaneCount)
+	fmt.Printf("CLIENT established=true auth_required=%t fec_mode=%d scheduler=%d fec=%d:%d flush_ms=%d mtu=%d lanes=%d immutable=true\n",
+		authRequired, cfg.FECMode, cfg.Scheduler, cfg.DataShards, cfg.ParityShards, cfg.FlushMillis, cfg.MTU, cfg.LaneCount)
 	return nil
 }
 
