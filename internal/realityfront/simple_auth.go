@@ -6,6 +6,7 @@ import (
 	"crypto/subtle"
 	"crypto/tls"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"net"
@@ -16,10 +17,10 @@ import (
 )
 
 const (
-	simpleAuthMagic       = "WBSA"
-	simpleAuthV1          = byte(1)
-	simpleAuthHeaderLen   = 9
-	maxSimplePasswordLen  = 1024
+	simpleAuthMagic      = "WBSA"
+	simpleAuthV1         = byte(1)
+	simpleAuthHeaderLen  = 9
+	maxSimplePasswordLen = 1024
 )
 
 type accountTicketRecord struct {
@@ -61,7 +62,9 @@ func RecordTicketForAccount(dir string, ticket Ticket, username string, now time
 }
 
 // TicketAccount returns the account attached to a not-yet-consumed ticket.
-// The ticket remains one-shot; this function does not remove it.
+// The ticket remains one-shot; this function does not remove it. Product bind
+// code should prefer ConsumeTicketForAccount so ownership and one-shot consume
+// happen in one operation.
 func TicketAccount(dir string, ticket Ticket) (string, error) {
 	if ticket == (Ticket{}) {
 		return "", ErrTicket
@@ -72,6 +75,40 @@ func TicketAccount(dir string, ticket Ticket) (string, error) {
 	}
 	var rec accountTicketRecord
 	if err := json.Unmarshal(body, &rec); err != nil || rec.Version != ticketVersion || rec.IssuedUnixNano <= 0 || rec.Username == "" {
+		return "", ErrTicket
+	}
+	return rec.Username, nil
+}
+
+// ConsumeTicketForAccount atomically claims a simple-auth ticket, validates its
+// TTL, and returns the account that owns the new live session. The rename is
+// the one-shot serialization point: concurrent bind attempts for one ticket
+// cannot both succeed even when they race in separate goroutines/processes.
+func ConsumeTicketForAccount(dir string, ticket Ticket, now time.Time, ttl time.Duration) (string, error) {
+	if ttl <= 0 || ticket == (Ticket{}) {
+		return "", ErrTicket
+	}
+	path := ticketPath(dir, ticket)
+	var nonce [8]byte
+	if _, err := io.ReadFull(rand.Reader, nonce[:]); err != nil {
+		return "", err
+	}
+	claim := path + ".claim-" + hex.EncodeToString(nonce[:])
+	if err := os.Rename(path, claim); err != nil {
+		return "", ErrTicket
+	}
+	defer os.Remove(claim)
+
+	body, err := os.ReadFile(claim)
+	if err != nil {
+		return "", ErrTicket
+	}
+	var rec accountTicketRecord
+	if err := json.Unmarshal(body, &rec); err != nil || rec.Version != ticketVersion || rec.IssuedUnixNano <= 0 || rec.Username == "" {
+		return "", ErrTicket
+	}
+	issued := time.Unix(0, rec.IssuedUnixNano)
+	if now.Before(issued) || now.Sub(issued) > ttl {
 		return "", ErrTicket
 	}
 	return rec.Username, nil
