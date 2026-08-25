@@ -1,57 +1,103 @@
 # Roadmap
 
-> **Status: V2.1 ACTIVE.** V1 multi-ordinary-TCP is permanently rejected. ADR-0002 changed the carrier to unordered FakeTCP/FEC. ADR-0003 removes Xray/WireGuard and makes WBD itself the DTLS 1.3-secured VPN/session implementation.
+> **Status: V2.2 ACTIVE.** Core goal: OpenWrt/Linux ↔ Linux/Windows personal VPN using TUN → WBD packets → FEC → DTLS 1.3 → TCP-shaped FakeTCP. Optional TLS Persona is isolated from the steady-state datagram data plane.
 
-The roadmap is gate-based. Later work is not admitted merely because it is attractive.
+The roadmap is gate-based. Completed evidence is preserved; optional research cannot block the core VPN.
 
-| Milestone | Scope | Exit gate |
+| Milestone | Scope | Status / exit gate |
 | --- | --- | --- |
-| V2-M0 | architecture restart / evidence preservation | PR #2 frozen as rejected evidence; PR #3 + handoff point to V2 |
-| V2-M1 | exact one-lane udp2raw `20230206.0` + UDPspeeder `20230206.0` product baseline | local exact-hash reproduction; ~50 ms RTT over 0/1/5/10/15% impairment; 20:10 and 20:20 where practical; p50/p95/p99/delivery/bytes/CPU recorded |
-| V2-M2 | native WBD DTLS 1.3 security shim on one raw lane | pinned wolfSSL DTLS 1.3 build locally qualified; real X.509 server cert + hostname validation; UDPspeeder source/repair datagrams each carried as DTLS application data; 0/1/5/10/15% results preserve the M1 weak-network result class with bounded security overhead |
-| V2-M3 | native WBD session/control inside DTLS | version/config framing, optional username/password/token after Finished, keepalive, session stats and reconnect work without custom crypto; malformed/auth tests |
-| V2-M4 | kernel-anchor / real-return-packet experiment | packet capture proves or rejects real OS handshake/control + raw payload coexistence with no kernel payload HOL/retransmission dependency; fallback to classic udp2raw remains valid |
-| V2-M5 | optional two raw lanes, one DTLS association per lane | same-total-byte-budget comparison beats one secured lane repeatably in at least one justified impairment family and does not regress correlated-loss cases enough to invalidate admission |
-| V2-M6 | Linux/OpenWrt native L3/TUN VPN path | real IP packets cross WBD DTLS/FEC/FakeTCP path; routing, MTU, DNS and reconnect qualification; no Xray/WireGuard dependency |
-| V2-M7 | Windows client | Npcap/easy-faketcp + native DTLS/FEC + Wintun/equivalent integration passes interoperability with OpenWrt/Linux server |
-| V2-M8 | fixed-mode product hardening | `normal`, `weak-1.5x`, `weak-2x` configuration, resource bounds, long-duration/fault tests |
-| V2-M9 | adaptive protection research | Auto admitted only if real measurements justify it; total intentional source/repair bytes remain <=2.0x unless constitution changes |
-| V2-M10 | release qualification | normal, 1%, 2%, 150–300 ms/10–20%, correlated burst, and 250–600 ms/~30% profiles plus CPU/RAM/MTU/route/security regression |
+| V2-M0 | architecture restart / evidence preservation | **DONE** |
+| V2-M1 | pinned one-lane udp2raw + UDPspeeder baseline | **DONE**; exact pinned one-lane raw/FEC baseline locally qualified |
+| V2-M2 | native DTLS 1.3 security shim | **DONE**; pinned wolfSSL DTLS 1.3, X.509/hostname validation and weak-network behavior qualified |
+| V2-M3 | minimal native session/control | **DONE**; framing/auth/liveness/stats/close/reconnect/fixed protection config qualified |
+| V2-M4 | kernel-anchor / real-return-packet experiment | **RETIRED** by product scope clarification; historical evidence only, no further work |
+| V2-M5 | optional two raw lanes | **DEFERRED**; cannot block one-lane product path |
+| V2-M6 | Linux/OpenWrt native L3/TUN core | **CURRENT**; real IPv4/IPv6 packets cross a packet-preserving WBD datagram adapter and then the qualified one-lane FEC/DTLS/FakeTCP composition |
+| V2-M7 | Windows client | required Npcap/easy-faketcp-compatible raw path + Wintun/equivalent interoperates with OpenWrt/Linux server |
+| V2-M8A | optional TLS Persona bootstrap | real TLS 1.3 preflight with explicit `off/native/browser-profile` policy, operator-controlled cert verification, bounded bootstrap binding, fingerprint/fragmentation tests |
+| V2-M8B | product hardening + large parameter sweep | long-duration/fault/MTU/RTT/loss/burst matrix; select measured defaults for fixed modes and timers |
+| V2-M9 | adaptive protection research | Auto admitted only if M8B measurements justify it; otherwise remain fixed-mode |
+| V2-M10 | release qualification | OpenWrt/Linux ↔ Linux/Windows end-to-end regression with security, MTU, routing, reconnect, performance and optional Persona cases |
 
-## V2-M1 immediate rule
+## M6 current gate
 
-Do not start DTLS implementation until the exact pinned raw/FEC baseline is reproduced locally. Temporary GitHub Actions relay helpers may fetch/build bytes, but Actions PASS is not runtime qualification.
+M6 is deliberately split so the project gets a usable data plane before more optional features.
 
-## V2-M2 security gate
+### M6A — packet-preserving TUN adapter
 
-The DTLS milestone must prove **real protocol use**, not appearance:
+- one TUN read equals one WBD IP datagram;
+- one decoded WBD IP datagram equals one TUN write;
+- exact length validation;
+- IPv4 and IPv6 accepted;
+- bounded MTU;
+- counters for packets/bytes/drops/errors;
+- no stream reassembly.
 
-- DTLS 1.3 handshake completes over the FakeTCP-provided datagram path;
-- server presents an operator-controlled real certificate;
-- client verifies CA chain and expected hostname;
-- product mode rejects invalid/expired/mismatched certificates;
-- 0-RTT is disabled initially;
-- after Finished, all source/repair datagrams are DTLS application data records;
-- no switch to custom encryption and no detector-specific TLS/browser fingerprint shaping;
-- FEC repair remains independent: loss of record N does not prevent later record N+1 or a repair record from being verified/decrypted.
+### M6B — Linux/OpenWrt integration
 
-Initial implementation pin is recorded in `deps/security-lock.json`.
+- create/configure TUN with privileged product path;
+- connect the packet adapter to the existing local UDPspeeder → DTLS shim → udp2raw composition;
+- verify bidirectional ICMP/UDP and representative TCP-over-the-VPN traffic;
+- routing and MTU documented;
+- reconnect does not corrupt packet boundaries.
 
-## Two-lane admission rule
+### M6C — impairment qualification
 
-A second lane is not "more redundancy for free". At the same overall source+repair budget, compare:
+Run real packet traffic through the complete one-lane path at 0/1/5/10/15% plus burst loss and at several RTTs. Record p50/p95/p99/max, delivery, bytes, CPU/RAM and FEC recovery.
 
-- one lane + one DTLS association;
-- two raw lanes + two independent DTLS associations + one shared FEC decoder.
+## TLS Persona admission rule
 
-Test independent loss, correlated loss and burst loss. If two lanes do not produce repeatable p95/p99 benefit, keep one lane as the product default.
+TLS Persona is optional and must not block M6/M7.
 
-## Removed roadmap items
+Initial policy values:
 
-The following are explicitly removed from V2.1:
+- `off`
+- `native`
+- `chrome`
+- `firefox`
+- `safari`
+- `edge`
+- later `randomized` only after explicit qualification
 
-- Xray/VLESS/Vision/REALITY integration;
-- WireGuard composition;
-- Android/no-root support;
-- multi-ordinary-TCP carrier work;
-- V1 RBC/reinjection/rescue-lane development.
+The implementation should use a maintained uTLS-style library rather than hand-encoding browser ClientHello bytes.
+
+Qualification must include:
+
+- standard TLS 1.3 handshake success;
+- operator-controlled chain + hostname validation;
+- negotiated ALPN;
+- ClientHello total bytes and TCP segment count;
+- MTU-sensitive fragmentation;
+- repeated handshake latency/failure rate;
+- fail-closed behavior when Persona is required.
+
+The bootstrap remains separate from the FakeTCP/DTLS data lane.
+
+## Large test / optimization rule
+
+Do not optimize from intuition. After M6 + M7 core interoperability:
+
+1. establish one immutable default baseline;
+2. sweep one parameter family at a time;
+3. use multiple seeds/runs;
+4. compare same payload and intentional byte budget;
+5. reject changes that improve mean latency while materially worsening p99, delivery, CPU/RAM or burst-loss behavior;
+6. store machine-readable receipts.
+
+Primary tuning targets:
+
+- `normal`, `20:10`, `20:20`;
+- UDPspeeder grouping/timing parameters that are actually exposed by the pinned version;
+- TUN MTU;
+- reconnect/backoff/keepalive;
+- DTLS record sizing only when standards-compliant and supported by the library;
+- Persona profile and handshake size/fragmentation.
+
+## Removed/deferred work
+
+- ordinary kernel TCP as product data carrier;
+- kernel-anchor product integration;
+- Xray/VLESS/Vision as the VPN data plane;
+- WireGuard inner glue;
+- Android/no-root;
+- multi-lane unless measurements justify it.
