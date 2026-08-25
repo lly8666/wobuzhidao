@@ -6,13 +6,11 @@ import (
 	"time"
 )
 
-// FastBlockEncoder is the steady-state transport encoder. It owns fixed wire
-// buffers sized at construction time. Each RS shard aliases the payload region
-// immediately after that shard's header, so source copies and parity generation
-// land directly in the final UDP datagram buffer. Full 20-packet blocks therefore
-// avoid temporary per-block matrices, heap churn, and the old second payload copy.
-// Returned wire slices remain valid until the next Add/Flush operation; the UDP
-// proxy sends them synchronously before accepting the next plaintext datagram.
+// FastBlockEncoder is the steady-state transport encoder. It owns fixed shard
+// and wire buffers sized at construction time, so full 20-packet blocks do not
+// allocate or copy through temporary per-block shard matrices. Returned wire
+// slices remain valid until the next Add/Flush operation; the UDP proxy sends
+// them synchronously before accepting the next plaintext datagram.
 type FastBlockEncoder struct {
 	codec         Codec
 	maxPacketSize int
@@ -36,8 +34,8 @@ func NewFastBlockEncoder(codec Codec, maxPacketSize int, flushAfter time.Duratio
 		codec: codec, maxPacketSize: maxPacketSize, flushAfter: flushAfter, nextBlockID: firstBlockID,
 	}
 	for i := 0; i < TotalShards; i++ {
+		e.shardBuf[i] = make([]byte, maxPacketSize)
 		e.wireBuf[i] = make([]byte, HeaderSize+maxPacketSize)
-		e.shardBuf[i] = e.wireBuf[i][HeaderSize:]
 	}
 	return e, nil
 }
@@ -96,6 +94,7 @@ func (e *FastBlockEncoder) flush() ([][]byte, error) {
 	emit := func(index int) {
 		b := e.wireBuf[index][:HeaderSize+shardSize]
 		marshalFastHeader(b[:HeaderSize], e.nextBlockID, index, dataCount, shardSize, e.lengths)
+		copy(b[HeaderSize:], e.shardBuf[index][:shardSize])
 		e.out[nout] = b
 		nout++
 	}
