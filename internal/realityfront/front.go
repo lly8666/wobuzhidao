@@ -35,10 +35,10 @@ const (
 )
 
 var (
-	ErrMarker            = errors.New("realityfront: invalid ClientHello marker")
-	ErrBootstrapAuth     = errors.New("realityfront: username/password authentication failed")
-	ErrTicket            = errors.New("realityfront: invalid or expired one-time ticket")
-	ErrUnsupportedHello  = errors.New("realityfront: unsupported ClientHello layout")
+	ErrMarker           = errors.New("realityfront: invalid ClientHello marker")
+	ErrBootstrapAuth    = errors.New("realityfront: username/password authentication failed")
+	ErrTicket           = errors.New("realityfront: invalid or expired one-time ticket")
+	ErrUnsupportedHello = errors.New("realityfront: unsupported ClientHello layout")
 )
 
 type Ticket [TicketLen]byte
@@ -232,8 +232,6 @@ func ConsumeTicket(dir string, ticket Ticket, now time.Time, ttl time.Duration) 
 	if err != nil {
 		return ErrTicket
 	}
-	// Remove before checking contents so a malformed/stale ticket is still
-	// one-shot and cannot be hammered repeatedly.
 	_ = os.Remove(path)
 	var rec ticketRecord
 	if err := json.Unmarshal(body, &rec); err != nil || rec.Version != ticketVersion || rec.IssuedUnixNano <= 0 {
@@ -271,10 +269,6 @@ func authMAC(password string, username []byte, clientNonce, serverNonce [32]byte
 	return out
 }
 
-// BootstrapClient authenticates inside the already-established recognized TLS
-// branch. The password itself is never transmitted; only an HMAC challenge
-// response is sent. The returned one-time ticket binds the later DTLS/WBD
-// association without keeping VPN data in this ordinary TCP/TLS stream.
 func BootstrapClient(conn net.Conn, username, password string) (Ticket, error) {
 	var zero Ticket
 	if len(username) == 0 || len(username) > maxUsernameLen || password == "" {
@@ -348,10 +342,12 @@ func BootstrapServer(conn net.Conn, expectedUsername, expectedPassword, ticketDi
 		return zero, err
 	}
 	want := authMAC(expectedPassword, []byte(expectedUsername), clientNonce, serverNonce)
-	userOK := subtle.ConstantTimeCompare([]byte(string(user)), []byte(expectedUsername)) == 1
-	proofOK := subtle.ConstantTimeCompare(got[:], want[:]) == 1
-	if userOK != 1 || proofOK != 1 || expectedUsername == "" || expectedPassword == "" {
-		_ = writeFull(conn, make([]byte, 1+TicketLen))
+	userOK := subtle.ConstantTimeCompare(user, []byte(expectedUsername))
+	proofOK := subtle.ConstantTimeCompare(got[:], want[:])
+	if !userOK || !proofOK || expectedUsername == "" || expectedPassword == "" {
+		failure := make([]byte, 1+TicketLen)
+		failure[0] = 1
+		_ = writeFull(conn, failure)
 		return zero, ErrBootstrapAuth
 	}
 	if _, err := io.ReadFull(rand.Reader, zero[:]); err != nil {
@@ -384,10 +380,6 @@ type ServerResult struct {
 	Ticket Ticket
 }
 
-// HandleServerConn implements the useful REALITY-style split on one TCP
-// listener: read one ClientHello, classify it, and either take over that same
-// connection locally or pass the exact already-read bytes to the genuine
-// fallback target. Sustained WBD payload is deliberately not carried here.
 func HandleServerConn(ctx context.Context, conn net.Conn, cfg ServerConfig) (ServerResult, error) {
 	var out ServerResult
 	if conn == nil || cfg.TLSConfig == nil || len(cfg.RouteKey) < 16 || normalizeName(cfg.ServerName) == "" {
