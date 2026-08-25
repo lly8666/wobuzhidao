@@ -109,7 +109,7 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 			p := s.bySeq[seq]
 			if p == nil || seqLT(b.End, p.End) { break }
 			next := p.End
-			s.ackOne(p, true, now)
+			s.ackOne(p, true, true, now)
 			if next == b.End { break }
 			seq = next
 		}
@@ -134,14 +134,17 @@ func (s *Sender) ackCumulative(ack uint32, now time.Time) {
 		p := s.pending[i]
 		if p == nil { continue }
 		if !seqLE(p.End, ack) { break }
-		s.ackOne(p, false, now)
+		// Only the right edge of a newly advancing cumulative ACK can be used as
+		// an RTT sample. Older packets swept up behind a repaired hole may have
+		// waited arbitrarily long in cumulative-ACK space despite arriving on time.
+		s.ackOne(p, false, p.End == ack, now)
 	}
 	s.advanceHead()
 }
 
-func (s *Sender) ackOne(p *Pending, sack bool, now time.Time) {
+func (s *Sender) ackOne(p *Pending, sack, sampleRTT bool, now time.Time) {
 	if p == nil || s.bySeq[p.Seq] != p { return }
-	if !p.WasRetried { s.observeRTT(now.Sub(p.FirstSent)) }
+	if sampleRTT && !p.WasRetried { s.observeRTT(now.Sub(p.FirstSent)) }
 	delete(s.bySeq, p.Seq)
 	s.releasePayload(p.Payload)
 	p.Payload = nil
