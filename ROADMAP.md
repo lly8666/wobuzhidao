@@ -1,6 +1,6 @@
 # Roadmap
 
-> **Status: V2.2 ACTIVE.** One-lane WBD-owned FEC + DTLS 1.3 + native TCP-shaped FakeTCP has focused first-arrival and 20%-loss pcap evidence. Current work is fixed-FEC qualification, immutable one-time setup, and a deliberately narrow **periodic fixed-profile refresh** based on low-load FakeTCP loss samples. A bounded Reality-style fixed-target mirror is now available as an isolated network-treatment diagnostic. Continuously learning Auto FEC remains deferred advanced research.
+> **Status: V2.2 ACTIVE.** One-lane WBD-owned FEC + DTLS 1.3 + native TCP-shaped FakeTCP has focused first-arrival and 20%-loss pcap evidence. Current work is fixed-FEC qualification, immutable one-time setup, and a deliberately narrow **periodic fixed-profile refresh** based on low-load FakeTCP loss samples. A bounded Reality-style fixed-target mirror plus opt-in encrypted WBD demo binding is now implemented for network-treatment experiments. Continuously learning Auto FEC remains deferred advanced research.
 
 | Milestone | Scope | Status / exit gate |
 | --- | --- | --- |
@@ -15,7 +15,7 @@
 | V2-M6C | Linux/OpenWrt capture policy: global / only-cn / only-non-cn | **PLANNED AFTER LINK/PERSONA FOUNDATION** |
 | V2-M7A | Windows Wintun L3 client | **PLANNED** |
 | V2-M7B | Windows global/split capture with underlay escape and minimal persistent rules | **PLANNED** |
-| V2-M8A | optional TLS Persona bootstrap + network-treatment diagnostic | **REALITY-STYLE TARGET-MIRROR DIAGNOSTIC IMPLEMENTED; PERSONA STILL PLANNED** |
+| V2-M8A | optional TLS Persona bootstrap + network-treatment diagnostic | **REALITY-STYLE TARGET-MIRROR + ENCRYPTED DEMO BIND IMPLEMENTED; PERSONA STILL PLANNED** |
 | V2-M8B-T1 | native FakeTCP + WBD FEC first-arrival / pcap qualification | **FOCUSED GATE PASSED** |
 | V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **CURRENT** |
 | V2-M8C | account + per-device credential + concurrent multi-session server state | **PLANNED** |
@@ -114,9 +114,11 @@ Persona remains a real standard TLS 1.3 preflight, separate from the DTLS/FEC da
 
 A certificate fingerprint alone cannot make a WBD endpoint authenticate as that site because TLS CertificateVerify requires the matching private key. Browser-profile implementations are pinned and pcap-qualified rather than trusting a moving `Auto` alias.
 
-The first REALITY-inspired diagnostic is now implemented as `cmd/wbd-reality-mirror` plus `internal/realitymirror` and `scripts/bench_reality_mirror.py`. It mirrors one fixed genuine TLS target: the client's exact ClientHello is sent to that target and the target's real TLS records return to the client. SNI must exactly match the configured target identity before the server dials upstream. The listener defaults to loopback and has session, byte and concurrency bounds so it is not an open fallback proxy. The paired benchmark alternates direct and mirror samples and verifies the same real target certificate/SPKI is observed.
+The REALITY-inspired demo now has two deliberately separated pieces. `cmd/wbd-reality-mirror` mirrors one fixed genuine TLS target and derives a short-lived ClientHello witness. The witness is published locally after the target produces its first TLS bytes but before those bytes reach the client. A fresh WBD FakeTCP/DTLS association must then complete encrypted `DEMO_BIND/DEMO_BIND_OK`, immutable `LINK_INIT/LINK_ACCEPT`, and mandatory normal device/account `AUTH` before application forwarding. WBD never switches the genuine target's TCP/TLS byte stream into VPN data.
 
-This does **not** implement authenticated REALITY and does not carry sustained WBD payload inside the mirrored TCP/TLS stream. ADR-0008 records the boundary. Further REALITY-like work is admitted only if real-network paired evidence shows a repeatable material advantage and any follow-up preserves the unordered WBD data-plane invariant.
+Demo mode exists only behind explicit `-demo-reality-*` command-line flags. Normal WBD mode does not consult the mirror or witness store and may use an operator-controlled self-signed DTLS certificate as an explicit trust anchor while retaining hostname verification. ADR-0008 is authoritative for this boundary.
+
+A dedicated `demo-encryption` CI gate uses the pinned wolfSSL DTLS 1.3 shim, a deliberately trusted self-signed identity and a public-side pcap. It fails if WBDC magic, the device token or a known application plaintext appears in that DTLS capture.
 
 ## V2-M8C account / concurrent sessions
 
