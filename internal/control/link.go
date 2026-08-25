@@ -46,8 +46,9 @@ type LinkInit struct {
 }
 
 type LinkAccept struct {
-	Protocol uint16
-	Config   LinkConfig
+	Protocol     uint16
+	AuthRequired bool
+	Config       LinkConfig
 }
 
 type FixedFECProfile struct {
@@ -186,9 +187,12 @@ func MarshalLink(frame any) ([]byte, error) {
 			return nil, err
 		}
 		typ = TypeLinkAccept
-		body = make([]byte, 12)
+		body = make([]byte, 13)
 		binary.BigEndian.PutUint16(body[0:2], f.Protocol)
-		marshalLinkConfig(body[2:12], f.Config)
+		if f.AuthRequired {
+			body[2] = 1
+		}
+		marshalLinkConfig(body[3:13], f.Config)
 	default:
 		return MarshalExtended(frame)
 	}
@@ -231,10 +235,10 @@ func UnmarshalLink(data []byte) (any, error) {
 		}
 		return f, nil
 	}
-	if len(body) != 12 {
-		return nil, fmt.Errorf("%w: LINK_ACCEPT body %d", ErrMalformed, len(body))
+	if len(body) != 13 || body[2]&^byte(1) != 0 {
+		return nil, fmt.Errorf("%w: LINK_ACCEPT body/flags", ErrMalformed)
 	}
-	cfg, err := unmarshalLinkConfig(body[2:12])
+	cfg, err := unmarshalLinkConfig(body[3:13])
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +246,7 @@ func UnmarshalLink(data []byte) (any, error) {
 	if protocol == 0 {
 		return nil, fmt.Errorf("%w: LINK_ACCEPT protocol 0", ErrMalformed)
 	}
-	return LinkAccept{Protocol: protocol, Config: cfg}, nil
+	return LinkAccept{Protocol: protocol, AuthRequired: body[2]&1 != 0, Config: cfg}, nil
 }
 
 // ValidateLinkAccept prevents silent server-side parameter rewriting. A WBD
@@ -328,7 +332,7 @@ func (s *LinkServerSession) HandleWire(data []byte, now uint64) ([]byte, error) 
 			neg := s.base.Handle(Hello{MinProtocol: init.MinProtocol, MaxProtocol: init.MaxProtocol})
 			if a, ok := neg.(Accept); ok {
 				s.config, s.set = init.Config, true
-				reply = LinkAccept{Protocol: a.Protocol, Config: init.Config}
+				reply = LinkAccept{Protocol: a.Protocol, AuthRequired: s.base.authRequired, Config: init.Config}
 			} else {
 				reply = neg
 			}
