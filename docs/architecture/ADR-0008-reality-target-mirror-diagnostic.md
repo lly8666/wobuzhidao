@@ -1,121 +1,125 @@
-# ADR-0008: Reality-style target mirror plus encrypted demo binding
+# ADR-0008: Reality-like same-entry front and one-time ticket join
 
 ## Status
 
-Accepted as an **explicit demo-only experiment**. It is not the default WBD product mode and is not a claim that WBD implements Xray/XTLS REALITY.
-
-The fixed-target mirror remains useful as a network-treatment oracle. The follow-on prototype adds a one-time binding from that genuine target preflight into the normal WBD DTLS 1.3 startup path without ever switching the mirror TCP/TLS byte stream into WBD application traffic.
+Accepted for the personal product connection-establishment path. The older fixed-target mirror/witness experiment remains available only as a diagnostic compatibility path. WBD does not claim to implement Xray/XTLS REALITY and does not import VLESS/Vision stream semantics.
 
 ## Motivation
 
-A genuine public TLS target can answer the narrow measurement question of whether a flow to the WBD server IP is treated differently when its visible TLS exchange is supplied by that selected target. The user additionally requires that no WBD account data, link parameters or application payload leak while moving from the preflight into the VPN data association.
+The useful REALITY-like property for WBD is not sustained VPN traffic inside an ordinary TLS/TCP stream. It is the ability to use **one TCP listener**, read the initial ClientHello, and then choose one of two branches:
 
-A certificate fingerprint alone cannot reproduce a target TLS identity: TLS 1.3 `CertificateVerify` requires the target private key. Conversely, blindly changing protocol after forwarding a third-party TLS handshake would either corrupt that TLS connection or require terminating/impersonating the target. WBD does neither.
+- recognized WBD ClientHello: take over that same TCP socket locally with TLS 1.3;
+- unrecognized ClientHello: forward the exact already-read bytes to the configured genuine fallback target.
+
+This gives a much cleaner connection join than the earlier two-connection ClientHello witness design while preserving the main WBD architecture: sustained payload remains unordered DTLS/FEC/FakeTCP datagrams.
 
 ## Decision
 
-The demo is a two-association design:
+The preferred front flow is:
 
 ```text
-association A: genuine target preflight
-client TCP -> WBD mirror -> fixed target:443
-ClientHello ---------------------------> target
-target TLS records --------------------> client
-normal target certificate validation
-close preflight
+client TCP -> WBD :443
+        -> ClientHello with WBD recognition marker
 
-association B: WBD product data association
-client -> WBD FakeTCP -> DTLS 1.3
-       -> DEMO_BIND
-       <- DEMO_BIND_OK
-       -> LINK_INIT
-       <- LINK_ACCEPT
-       -> AUTH / AUTH_OK (mandatory in demo mode)
-       -> WBD encrypted application datagrams
+recognized:
+        same socket -> local TLS 1.3 takeover
+        -> one encrypted username/password request
+        <- fresh one-time ticket
+        close bootstrap TCP
+        -> FakeTCP -> DTLS 1.3
+        -> ticket bind
+        -> LINK_INIT / LINK_ACCEPT
+        -> WBD application datagrams
+
+unrecognized:
+        exact ClientHello bytes -> configured fallback target
+        <-> ordinary target TLS session
 ```
 
-There is deliberately **no in-stream plaintext or protocol splice** from A to B. `DEMO_BIND`, `LINK_INIT`, `AUTH`, FEC metadata and application packets are DTLS application data and are therefore encrypted on the public path. The target mirror is never used as a container for sustained WBD payload.
+There is deliberately **no sustained VPN payload inside the Reality-like TLS/TCP stream**. The unordered/no-HOL WBD data plane remains DTLS/FEC/FakeTCP.
 
-## One-time witness
+## ClientHello recognition
 
-Both mirror endpoints derive the SHA-256 of the exact initial TLS ClientHello bytes. The hash is correlation metadata, not an authentication secret.
+The client lets its TLS implementation construct the ClientHello normally. WBD supplies the randomness used for the TLS 1.3 compatibility SessionID so the marker is part of the original TLS transcript rather than a post-build packet patch.
 
-Server side:
+The current marker is derived from a shared route/classifier key, ClientHello random and configured SNI. The route key is only a cheap connection classifier; account authentication is still performed inside the recognized TLS branch.
 
-1. `wbd-reality-mirror -witness-dir DIR` reads and validates the configured SNI.
-2. It forwards that exact ClientHello to the fixed genuine target.
-3. When the genuine target produces its **first downstream TLS bytes**, the mirror atomically records the ClientHello hash in a local `0700` witness directory **before those first bytes are forwarded to the client**.
-4. Witness files are `0600`, target-name bound and short lived.
+An unrecognized ClientHello is not reserialized. The server replays the bytes it already read to the fixed fallback connection so fallback behavior stays byte-preserving at the join point.
 
-This ordering closes the preflight-to-WBD race without an arbitrary sleep: a client cannot complete the genuine TLS preflight before the server-side witness exists.
+## Simple shared-account admission
 
-Client side:
+WBD is a personal deployment, not a multi-tenant identity service. Server recognition and admission should therefore stay deliberately small and fast.
 
-1. `wbd-tls-diag -witness-out FILE` records the exact ClientHello flight it sent before the first server read.
-2. The client performs ordinary certificate-chain/hostname validation of the genuine target.
-3. It supplies the resulting 64-hex hash to `wbd-link-proxy -demo-reality-witness HEX`.
+After recognized TLS 1.3 establishment, the product path uses a **single encrypted username/password request**. TLS already provides confidentiality and integrity, so WBD does not add another application-layer nonce/HMAC challenge round trip.
 
-WBD server startup consumes the matching witness exactly once with a short TTL (default 15 seconds). A missing, expired, target-mismatched or already-consumed witness rejects the association before `LINK_INIT` is accepted.
+Server behavior is intentionally simple:
 
-The witness does not replace WBD account authentication. An observer can hash a public ClientHello too. Therefore demo constructors reject an empty client token or empty server expected-token: normal high-entropy device/account AUTH is mandatory and remains authoritative inside DTLS after the demo gate.
+1. read bounded username/password lengths and bytes inside TLS;
+2. compare them against the one configured shared pair with constant-time equality checks;
+3. on success generate a fresh random 32-byte one-time ticket;
+4. persist the ticket with the account label and issue timestamp;
+5. return the ticket immediately.
 
-## Reliable startup semantics
+The **same username/password may authenticate multiple simultaneous devices/sessions**. Each successful request receives a different ticket. There is no required per-device credential database, password KDF layer, revocation table or username-based single-session lock.
 
-Demo startup adds two WBDC frame types used only inside the already-established DTLS association:
+The ticket is the session identity used to join the later DTLS/WBD association. The account name may be retained as log/metadata, but live transport state must not be keyed by username alone.
 
-- `DEMO_BIND`: 32-byte ClientHello witness;
-- `DEMO_BIND_OK`: byte-identical witness echo from the server.
+## Ticket join
 
-Loss handling follows the immutable startup rule:
+The one-time ticket is short lived and consumed once by the DTLS/WBD startup path. A missing, expired or already-consumed ticket rejects that association.
 
-- the client retries the exact `DEMO_BIND` until `DEMO_BIND_OK`;
-- an exact duplicate bind is idempotent;
-- changing the witness on the same association poisons startup and requires reconnect;
-- `LINK_INIT` is not accepted before a valid demo bind;
-- normal `LINK_INIT/LINK_ACCEPT/AUTH` behavior is unchanged after binding.
+A front-issued ticket means account admission already succeeded. The ticket path therefore does **not** require another normal device/account `AUTH` bearer exchange after DTLS. Legacy non-front and old witness compatibility modes may retain the older AUTH frame until they are retired.
 
-This avoids half-switched states when DTLS application datagrams are lost.
+The public path must not expose the ticket, username, password, WBDC framing or known application plaintext.
 
-## Default mode
+## Certificate and hostname policy
 
-The demo is off unless explicit `-demo-reality-*` command-line arguments are supplied. With no demo arguments, `wbd-link-proxy` uses its normal immutable startup path and does not consult a mirror or witness directory.
+The personal client explicitly supports **certificate and hostname verification disabled**.
 
-Normal deployments may use an operator-controlled self-signed DTLS certificate. Self-signed means an explicit trust anchor or fixed SPKI on the client; it never means disabling certificate verification. The current wolfSSL shim already uses `WOLFSSL_VERIFY_PEER`, loads the configured trust file and calls `wolfSSL_check_domain_name`.
+For the Reality-like TLS front, `verify-server=false` is the personal default. The configured SNI may therefore differ from the certificate name and the WBD server may present an arbitrary/self-signed local certificate.
 
-## Security and leakage invariants
+For DTLS, the wolfSSL shim supports an explicit no-verification mode (`none`/`insecure`) that neither loads a trust anchor nor performs hostname checking.
 
-- WBD never copies or presents a third-party private key.
-- WBD never injects `DEMO_BIND`, AUTH tokens, WBDC frames or application data into the genuine target TLS connection.
-- Public-path WBD control/data remains inside DTLS 1.3.
-- Demo mode always requires normal WBD device/account authentication in addition to the witness.
-- Mirror mode is fixed-target/fixed-SNI, bounded and explicit; it is not an open relay.
-- Witnesses are non-secret, local, short-lived, target-bound and one-time.
-- Witness publication is ordered before the first target TLS bytes reach the client.
-- The unordered/no-HOL WBD data plane remains DTLS/FEC/FakeTCP and is never replaced by an ordinary TLS/TCP byte stream.
+This is an intentional product tradeoff: records remain encrypted, but the client does not authenticate the server certificate identity in this mode. The implementation must log the verification mode clearly so an operator cannot mistake it for verified TLS/DTLS.
 
-These are implementation requirements, but the no-leakage claim is not accepted from source inspection alone. `.github/workflows/demo-encryption.yml` must pass with the pinned wolfSSL DTLS 1.3 shim and a public-side pcap that contains none of the known `WBDC` magic, device-token bytes, or known application plaintext. A future refactor that cannot satisfy this capture gate is not an acceptable demo implementation.
+## Legacy mirror diagnostic
 
-## Non-goals
+`cmd/wbd-reality-mirror`, ClientHello witness files and `DEMO_BIND` remain useful for network-treatment experiments and historical regression. They are no longer the preferred product join.
 
-- no VLESS/Vision import;
-- no transparent third-party identity takeover;
-- no open fallback relay;
-- no sustained VPN payload inside the mirror TCP stream;
-- no automatic selection of public target sites;
-- no claim that a target mirror will improve a given ISP path before paired real-network evidence exists.
+The legacy mirror still has these constraints:
+
+- fixed target/fixed SNI;
+- bounded connection and byte limits;
+- never an open relay;
+- never carries sustained WBD payload;
+- witness data is diagnostic correlation, not account authentication.
+
+No future product work should depend on the old two-association witness merely because older tests reference it.
+
+## Leakage and data-plane invariants
+
+- Sustained VPN data never enters the front TCP/TLS stream.
+- WBD never needs the fallback target private key.
+- Public WBD control/data remains inside DTLS 1.3 after the front closes.
+- Shared username/password are allowed for concurrent devices but only appear inside TLS records.
+- Every successful login receives an independent one-time ticket.
+- Ticket bytes are not repeated as plaintext on the public path.
+- FEC and FakeTCP remain outside the front and keep first-complete datagram behavior.
+- SACK/RACK shadow recovery must not make inner delivery wait on ordered TCP state.
 
 ## Qualification gate
 
-Before this demo can influence product decisions, tests must prove:
+The same-entry front is qualified only when tests prove:
 
-1. exact ClientHello hash agreement between client capture and mirror observation;
-2. one-time/TTL/target-name witness rejection behavior;
-3. witness publication occurs before first target TLS bytes reach the client;
-4. demo mode rejects missing normal device/account AUTH;
-5. reliable `DEMO_BIND/DEMO_BIND_OK` retries under loss;
-6. application forwarding begins only after demo bind + normal link setup + AUTH;
-7. normal non-demo startup remains behavior compatible;
-8. a real DTLS pcap contains no plaintext WBDC magic, device token or known application payload;
-9. existing first-arrival and FakeTCP/FEC regressions remain green.
+1. a TLS-generated marker is recognized without post-build ClientHello mutation;
+2. recognized traffic is taken over on the same TCP socket;
+3. unrecognized traffic is forwarded to the genuine fallback without WBD TLS takeover;
+4. an unrelated self-signed certificate succeeds when verification is explicitly disabled;
+5. wrong username/password fails;
+6. the same username/password can issue multiple distinct concurrent one-time tickets;
+7. each ticket is consumable once and only once;
+8. ticket mode reaches LINK_INIT/LINK_ACCEPT without a second bearer AUTH;
+9. a public-side TCP+DTLS capture contains none of the username, password, raw/ascii ticket, WBDC magic or known application plaintext;
+10. existing first-arrival, FEC and FakeTCP regressions remain green.
 
-Only after real-network A/B evidence shows a repeatable benefit should WBD consider a more elaborate authenticated preflight. Any such work must preserve the same rule: the product data lane stays independently authenticated and encrypted, and unordered first-arrival semantics are not traded for a TLS/TCP stream disguise.
+The front is considered connection setup only. Any design that makes sustained payload depend on an ordinary TLS/TCP byte stream is rejected even if its wire appearance is more browser-like.
