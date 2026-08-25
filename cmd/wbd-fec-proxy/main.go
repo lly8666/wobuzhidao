@@ -119,7 +119,7 @@ func run(args []string) error {
 	defer signal.Stop(stop)
 
 	buf := make([]byte, 65535)
-	fmt.Printf("READY role=%s listen=%d dtls=%d flush_ms=%d\n", mode, listenPort, dtlsPort, flushAfter.Milliseconds())
+	fmt.Printf("READY role=%s listen=%d dtls=%d flush_ms=%d streaming_systematic=1\n", mode, listenPort, dtlsPort, flushAfter.Milliseconds())
 	for {
 		select {
 		case <-stop:
@@ -142,9 +142,6 @@ func run(args []string) error {
 			if mode == "client" {
 				fromDTLS = from.Port == dtlsPort
 			} else {
-				// The only other loopback peer of the server proxy is the local
-				// plaintext service. Everything not from that service is the DTLS
-				// shim's ephemeral plaintext socket.
 				fromDTLS = from.Port != servicePort
 			}
 
@@ -152,12 +149,12 @@ func run(args []string) error {
 				if mode == "server" {
 					learnedDTLSPeer = cloneUDPAddr(from)
 				}
-				packets, done, err := dec.Add(buf[:n])
+				packets, _, err := dec.Add(buf[:n])
 				if err != nil {
 					if !errors.Is(err, fec.ErrDecoderFull) {
 						return err
 					}
-				} else if done {
+				} else if len(packets) != 0 {
 					var dst *net.UDPAddr
 					if mode == "server" {
 						dst = serviceAddr
@@ -165,6 +162,9 @@ func run(args []string) error {
 						dst = clientApp
 					}
 					if dst != nil {
+						// Streaming systematic packets arrive here before parity/final
+						// block metadata. Reconstructed missing packets use the exact same
+						// path later. First complete arrival therefore wins naturally.
 						for _, p := range packets {
 							if _, err := conn.WriteToUDP(p, dst); err != nil {
 								return err
