@@ -1,0 +1,119 @@
+name: faketcp-native
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables
+      - name: Build native FakeTCP
+        run: go build -trimpath -o /tmp/wbd-faketcp ./cmd/wbd-faketcp
+      - name: Run raw retransmission smoke
+        run: |
+          set -euo pipefail
+          C=wbdftc$$
+          S=wbdfts$$
+          cleanup() {
+            set +e
+            [[ -n "${CPID:-}" ]] && sudo kill -TERM "$CPID" 2>/dev/null
+            [[ -n "${SPID:-}" ]] && sudo kill -TERM "$SPID" 2>/dev/null
+            [[ -n "${EPID:-}" ]] && sudo kill -TERM "$EPID" 2>/dev/null
+            sleep .2
+            sudo ip netns del "$C" 2>/dev/null
+            sudo ip netns del "$S" 2>/dev/null
+          }
+          trap cleanup EXIT
+          sudo ip netns add "$C"
+          sudo ip netns add "$S"
+          sudo ip link add vc type veth peer name vs
+          sudo ip link set vc netns "$C"
+          sudo ip link set vs netns "$S"
+          sudo ip -n "$C" addr add 10.82.0.1/24 dev vc
+          sudo ip -n "$S" addr add 10.82.0.2/24 dev vs
+          sudo ip -n "$C" link set lo up
+          sudo ip -n "$S" link set lo up
+          sudo ip -n "$C" link set vc up
+          sudo ip -n "$S" link set vs up
+          sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          sudo ip netns exec "$C" tc qdisc add dev vc root netem delay 10ms loss 10%
+          sudo ip netns exec "$S" tc qdisc add dev vs root netem delay 10ms loss 10%
+
+          cat >/tmp/wbd_echo.py <<'PY'
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',52000))
+          while True:
+              b,a=s.recvfrom(65535)
+              s.sendto(b,a)
+          PY
+          sudo ip netns exec "$S" python3 /tmp/wbd_echo.py >/tmp/echo.log 2>&1 & EPID=$!
+          sudo ip netns exec "$S" /tmp/wbd-faketcp server --listen 10.82.0.2:52003 --target-udp 127.0.0.1:52000 >/tmp/fts.log 2>&1 & SPID=$!
+          sleep .15
+          sudo ip netns exec "$C" /tmp/wbd-faketcp client --local-udp 127.0.0.1:52004 --source 10.82.0.1:52010 --remote 10.82.0.2:52003 >/tmp/ftc.log 2>&1 & CPID=$!
+          for i in $(seq 1 200); do
+            grep -q 'READY role=client' /tmp/ftc.log && grep -q 'READY role=server' /tmp/fts.log && break
+            sleep .05
+          done
+          cat /tmp/ftc.log
+          cat /tmp/fts.log
+          grep -q 'READY role=client' /tmp/ftc.log
+          grep -q 'READY role=server' /tmp/fts.log
+
+          cat >/tmp/wbd_probe.py <<'PY'
+          import socket,struct,threading,time
+          N=1000
+          got=set()
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',0))
+          s.settimeout(.1)
+          end=False
+          def rx():
+              while not end:
+                  try: b,_=s.recvfrom(2048)
+                  except socket.timeout: continue
+                  if len(b)>=4: got.add(struct.unpack('!I',b[:4])[0])
+          t=threading.Thread(target=rx); t.start()
+          for i in range(N):
+              s.sendto(struct.pack('!I',i)+bytes(196),('127.0.0.1',52004))
+              time.sleep(.001)
+          deadline=time.time()+8
+          while len(got)<N and time.time()<deadline: time.sleep(.02)
+          end=True; t.join()
+          print('PROBE sent',N,'received',len(got),'ratio',len(got)/N)
+          if len(got)!=N: raise SystemExit(1)
+          PY
+          sudo ip netns exec "$C" python3 /tmp/wbd_probe.py
+          sudo kill -TERM "$CPID" "$SPID"
+          wait "$CPID" || true
+          wait "$SPID" || true
+          CPID= SPID=
+          cat /tmp/ftc.log
+          cat /tmp/fts.log
+          grep -q 'WBD_FAKETCP_STATS' /tmp/ftc.log
+          grep -q 'WBD_FAKETCP_STATS' /tmp/fts.log
+          python3 - <<'PY'
+          import json,re
+          rows=[]
+          for p in ['/tmp/ftc.log','/tmp/fts.log']:
+              txt=open(p).read()
+              m=re.findall(r'WBD_FAKETCP_STATS (\{.*\})',txt)
+              assert m,p
+              rows.append(json.loads(m[-1]))
+          print(json.dumps(rows,indent=2))
+          assert sum(r['sender']['FastRetransmits']+r['sender']['RTOTransmits'] for r in rows)>0, rows
+          PY
