@@ -123,26 +123,33 @@ func handleOne(ctx context.Context, conn net.Conn, cfg realitymirror.Config, wit
 	info, rawHello, err := realitymirror.ReadClientHello(conn, cfg.MaxHelloBytes, cfg.HelloTimeout)
 	var result realitymirror.Result
 	var witness persona.WitnessID
+	witnessRecorded := false
 	if err == nil {
 		witness = persona.WitnessFromClientHello(rawHello)
-		result, err = realitymirror.HandleFromHello(ctx, conn, cfg, info, rawHello)
+		var publish func() error
+		if strings.TrimSpace(witnessDir) != "" {
+			publish = func() error {
+				if err := persona.RecordWitness(witnessDir, witness, cfg.ServerName, time.Now()); err != nil {
+					return err
+				}
+				witnessRecorded = true
+				return nil
+			}
+		}
+		// Publication occurs after the genuine target has produced its first TLS
+		// bytes but before those bytes reach the client. Thus a client cannot
+		// complete the preflight and race DEMO_BIND ahead of the server witness.
+		result, err = realitymirror.HandleFromHelloObserved(ctx, conn, cfg, info, rawHello, publish)
 	}
 	row := resultLog{
 		Remote: remote, OK: err == nil, Target: cfg.Target,
 		ServerName: result.Hello.ServerName, ALPN: result.Hello.ALPN,
 		UpBytes: result.UpBytes, DownBytes: result.DownBytes,
 		DurationMS: float64(time.Since(start)) / float64(time.Millisecond),
+		WitnessRecorded: witnessRecorded,
 	}
 	if !allZeroWitness(witness) {
 		row.ClientHelloHash = witness.Hex()
-	}
-	if err == nil && result.DownBytes > 0 && strings.TrimSpace(witnessDir) != "" {
-		if recErr := persona.RecordWitness(witnessDir, witness, cfg.ServerName, time.Now()); recErr != nil {
-			err = recErr
-			row.OK = false
-		} else {
-			row.WitnessRecorded = true
-		}
 	}
 	if err != nil {
 		row.Error = err.Error()
