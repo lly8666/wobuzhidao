@@ -21,7 +21,8 @@ func offLink() LinkConfig {
 func TestLinkWireRoundTrip(t *testing.T) {
 	for _, in := range []any{
 		LinkInit{MinProtocol: 1, MaxProtocol: 2, Config: fixed20x20Link()},
-		LinkAccept{Protocol: 1, Config: offLink()},
+		LinkAccept{Protocol: 1, AuthRequired: true, Config: offLink()},
+		LinkAccept{Protocol: 1, AuthRequired: false, Config: fixed20x20Link()},
 	} {
 		wire, err := MarshalLink(in)
 		if err != nil {
@@ -90,6 +91,9 @@ func TestLinkServerLocksExactConfigBeforeAuth(t *testing.T) {
 	if !ok {
 		t.Fatalf("got %#v", reply)
 	}
+	if !accept.AuthRequired {
+		t.Fatal("LINK_ACCEPT did not advertise required authentication")
+	}
 	if err := ValidateLinkAccept(init, accept); err != nil {
 		t.Fatal(err)
 	}
@@ -115,6 +119,30 @@ func TestLinkServerLocksExactConfigBeforeAuth(t *testing.T) {
 	}
 	if s.State() != StateEstablished || s.Stats().LastActivity != 2 {
 		t.Fatalf("stats=%#v", s.Stats())
+	}
+}
+
+func TestLinkServerAdvertisesAuthDisabled(t *testing.T) {
+	s, err := NewLinkServerSession(1, 1, nil, CurrentLinkPolicy())
+	if err != nil {
+		t.Fatal(err)
+	}
+	init := LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: offLink()}
+	wire, _ := MarshalLink(init)
+	replyWire, err := s.HandleWire(wire, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reply, err := UnmarshalLink(replyWire)
+	if err != nil {
+		t.Fatal(err)
+	}
+	accept, ok := reply.(LinkAccept)
+	if !ok || accept.AuthRequired {
+		t.Fatalf("got %#v", reply)
+	}
+	if s.State() != StateEstablished {
+		t.Fatalf("state=%v", s.State())
 	}
 }
 
@@ -200,7 +228,7 @@ func TestLinkServerRejectsAnyPostSetupConfigChange(t *testing.T) {
 
 func TestValidateLinkAcceptRejectsServerRewrite(t *testing.T) {
 	init := LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: fixed20x20Link()}
-	accept := LinkAccept{Protocol: 1, Config: fixed20x20Link()}
+	accept := LinkAccept{Protocol: 1, AuthRequired: true, Config: fixed20x20Link()}
 	if err := ValidateLinkAccept(init, accept); err != nil {
 		t.Fatal(err)
 	}
