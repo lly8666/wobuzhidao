@@ -149,8 +149,8 @@ func exchange(t *testing.T, c *testClient, dst *net.UDPAddr, payload []byte) {
 		if isControlWire(buf[:n]) {
 			next, err := c.startup.HandleWire(buf[:n])
 			if err != nil {
-				// Duplicate startup frames after Established are not application
-				// data and must not poison the data-path assertion.
+				// Lifecycle replies and duplicate startup frames after Established
+				// are not application data and must not poison this assertion.
 				continue
 			}
 			if len(next) != 0 {
@@ -166,11 +166,63 @@ func exchange(t *testing.T, c *testClient, dst *net.UDPAddr, payload []byte) {
 			if string(p) == string(payload) {
 				return
 			}
-			// A previously queued echo may be observed here. Ignore it and
-			// require the newly requested payload before the deadline.
 		}
 	}
 	t.Fatalf("echo timeout payload=%q", payload)
+}
+
+func lifecycleRoundTrip(t *testing.T, c *testClient, dst *net.UDPAddr, frame any) any {
+	t.Helper()
+	wire, err := control.MarshalLink(frame)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.conn.WriteToUDP(wire, dst); err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Now().Add(time.Second)
+	buf := make([]byte, 65535)
+	for time.Now().Before(deadline) {
+		_ = c.conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
+		n, from, err := c.conn.ReadFromUDP(buf)
+		if err != nil {
+			if ne, ok := err.(net.Error); ok && ne.Timeout() {
+				continue
+			}
+			t.Fatal(err)
+		}
+		if !from.IP.Equal(dst.IP) || from.Port != dst.Port || !isControlWire(buf[:n]) {
+			continue
+		}
+		got, err := control.UnmarshalLink(buf[:n])
+		if err != nil {
+			continue
+		}
+		switch frame.(type) {
+		case control.Ping:
+			if _, ok := got.(control.Pong); ok {
+				return got
+			}
+		case control.Close:
+			if _, ok := got.(control.Close); ok {
+				return got
+			}
+		}
+	}
+	t.Fatalf("lifecycle reply timeout for %T", frame)
+	return nil
+}
+
+func waitPlaneLen(t *testing.T, s *server, want int) {
+	t.Helper()
+	deadline := time.Now().Add(time.Second)
+	for time.Now().Before(deadline) {
+		if s.plane.Len() == want {
+			return
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	t.Fatalf("live sessions=%d want=%d", s.plane.Len(), want)
 }
 
 func startEcho(t *testing.T) (*net.UDPConn, context.CancelFunc) {
@@ -255,11 +307,14 @@ func TestSharedAccountTwoClientLinkMuxOffAndFixed(t *testing.T) {
 			go func() { defer wg.Done(); exchange(t, b, s.Addr(), []byte("DEVICE-B-UNIQUE")) }()
 			wg.Wait()
 
-			// Removing one same-account session must not disturb the other.
-			s.removePeer(a.conn.LocalAddr().String(), true)
-			if got := s.plane.Len(); got != 1 {
-				t.Fatalf("live after removing A=%d want=1", got)
+			if pong, ok := lifecycleRoundTrip(t, b, s.Addr(), control.Ping{Nonce: 0x1234}).(control.Pong); !ok || pong.Nonce != 0x1234 {
+				t.Fatalf("bad PONG: %#v", pong)
 			}
+			closed, ok := lifecycleRoundTrip(t, a, s.Addr(), control.Close{Reason: control.CloseNormal, Detail: "test client done"}).(control.Close)
+			if !ok || closed.Reason != control.CloseNormal {
+				t.Fatalf("bad CLOSE echo: %#v", closed)
+			}
+			waitPlaneLen(t, s, 1)
 			exchange(t, b, s.Addr(), []byte("DEVICE-B-STILL-LIVE"))
 
 			cancel()
@@ -272,5 +327,50 @@ func TestSharedAccountTwoClientLinkMuxOffAndFixed(t *testing.T) {
 				t.Fatal("server did not stop")
 			}
 		})
+	}
+}
+
+func TestIdleLeaseReclaimsSessionSlot(t *testing.T) {
+	echo, stopEcho := startEcho(t)
+	defer stopEcho()
+	dir := t.TempDir()
+	s, err := newServer(config{
+		listen: "127.0.0.1:0", service: echo.LocalAddr().String(), ticketDir: dir,
+		ticketTTL: time.Minute, setupTimeout: time.Second, idleTimeout: 40 * time.Millisecond, maxSessions: 1,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	errCh := make(chan error, 1)
+	go func() { errCh <- s.Run(ctx) }()
+
+	a := newTestClient(t, newTicket(t, dir, time.Now()), testLinkConfig(false))
+	defer a.conn.Close()
+	startupClient(t, a, s.Addr())
+	waitPlaneLen(t, s, 1)
+	if pong, ok := lifecycleRoundTrip(t, a, s.Addr(), control.Ping{Nonce: 7}).(control.Pong); !ok || pong.Nonce != 7 {
+		t.Fatalf("bad lease PONG: %#v", pong)
+	}
+	// The PING refreshed the lease; once no further data/control arrives the
+	// server must remove both the LiveID and peer slot.
+	waitPlaneLen(t, s, 0)
+
+	b := newTestClient(t, newTicket(t, dir, time.Now()), testLinkConfig(false))
+	defer b.conn.Close()
+	startupClient(t, b, s.Addr())
+	waitPlaneLen(t, s, 1)
+	exchange(t, b, s.Addr(), []byte("REUSED-IDLE-SLOT"))
+
+	cancel()
+	select {
+	case err := <-errCh:
+		if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, net.ErrClosed) {
+			t.Fatalf("server run: %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("server did not stop")
 	}
 }
