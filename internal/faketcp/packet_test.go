@@ -28,7 +28,11 @@ func TestSYNOptionsParsePayloadOffset(t *testing.T) {
 	seg, err := ParseIPv4TCP(pkt)
 	if err != nil { t.Fatal(err) }
 	if seg.Flags != FlagSYN || len(seg.Payload) != 0 { t.Fatalf("bad SYN %#v", seg) }
-	if pkt[20+12]>>4 != 7 { t.Fatalf("expected 28-byte TCP header, doff=%d", pkt[32]>>4) }
+	if pkt[20+12]>>4 != 8 { t.Fatalf("expected 32-byte TCP header, doff=%d", pkt[32]>>4) }
+	if !seg.SACKPermitted { t.Fatal("SYN did not parse SACK-permitted") }
+	if !seg.WindowScaleSet || seg.WindowScale != DefaultWindowScale {
+		t.Fatalf("window scale parsed as set=%v value=%d", seg.WindowScaleSet, seg.WindowScale)
+	}
 }
 
 func TestSACKRoundTrip(t *testing.T) {
