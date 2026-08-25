@@ -37,6 +37,8 @@ V1 (`dev/wbd-multilane-v1`, PR #2) is permanently rejected by M10-004.
 10. Do not cap or delay new inner datagrams merely to reduce retransmission/FEC memory. Inner transport performance is the first optimization priority.
 11. The inner offered-rate limiter may account for known FEC/header/retransmission expansion to avoid self-induced queue saturation; this is a physical-capacity guard, not shadow-TCP congestion control.
 12. Current release qualification assumes a maximum configured physical capacity of 100 Mbit/s. Recovery/FEC changes that only look acceptable on a faster test link are not qualified.
+13. The product FakeTCP default is the latency-first **legacy shadow recovery** path. SACK/RACK remains an explicit experimental mode until a loaded 100 Mbit/s test proves it does not steal latency from new inner datagrams.
+14. One public FakeTCP server listener may fan out to many associations, but raw transport state is keyed by the client/server 4-tuple and account identity is not consulted at this layer.
 
 ## Immutable link setup
 
@@ -75,7 +77,8 @@ Legacy one-shot M3E CONFIG frames may remain in-tree for historical compatibilit
 7. Product account admission is deliberately simple: recognized Reality-like TLS sessions send the shared `username + password` once inside TLS; the server performs bounded constant-time equality checks and returns an independent one-time ticket.
 8. The **same username/password may authenticate multiple simultaneous devices/sessions**. No per-device credential, KDF, revocation database or multi-tenant account system is required for the personal product path.
 9. Each successful login produces a fresh random session ticket. Live session identity must therefore be ticket/session based, never username alone.
-10. Username/password, one-time ticket bytes, WBDC control and application plaintext must not appear in public-path captures.
+10. Product ticket bind must be atomic one-shot consumption. Concurrent bind attempts for one ticket must not both succeed.
+11. Username/password, one-time ticket bytes, WBDC control and application plaintext must not appear in public-path captures.
 
 ## Reality-like same-entry front
 
@@ -111,9 +114,13 @@ WBD is a personal single-account-style server, not a multi-tenant control plane.
 - one configured `username/password` pair may be reused by several devices at the same time;
 - `username` identifies the shared account, not a transport session;
 - each successful front login produces a fresh random one-time ticket/session identity;
-- live state is keyed by ticket/session identity (optionally with the account label for logs), never by username alone;
-- simultaneous-session count may be bounded only by simple process/resource limits such as `max-conns`; there is no required per-device revocation/cap database;
+- ticket consumption is atomically claimed before validation so a ticket can establish at most one live session;
+- live state is keyed by ticket/`LiveID` identity, with account label only for metadata/logging and learned DTLS plaintext peer only as a hot routing index;
+- each LiveID owns an independent immutable data path/FEC encoder/decoder state;
+- simultaneous-session count may be bounded only by simple process/resource limits such as `max-sessions`; there is no required per-device revocation/cap database;
 - link/FEC/routing choices remain session-local and immutable for each established association.
+
+The V2.2 server fan-out is deliberately simple: one public FakeTCP raw listener demultiplexes associations by raw 4-tuple; one wolfSSL DTLS worker process is owned by each raw association; all DTLS plaintext workers feed the shared LiveID/session data demux. The process-per-association DTLS model is acceptable for the intended small personal device count and may be optimized later without changing protocol identity semantics.
 
 ## Client capture / routing modes
 
@@ -153,7 +160,9 @@ OpenWrt: TPROXY TCP/UDP adapter       Windows: TUN/Wintun L3 adapter
                          ↓
                      DTLS 1.3
                          ↓
-             WBD FakeTCP raw TCP-shaped lane
+        per-association DTLS worker / LiveID demux
+                         ↓
+             WBD FakeTCP raw public mux lane
                          ↓
                     public network
 ```
@@ -174,9 +183,9 @@ Implement and qualify live systematic fixed presets `20:4/8/12/16/20` before the
 
 Advanced continuously learning Auto FEC is **not part of Phase B**.
 
-### Phase C — front / account / platform integration
+### Phase C — front / account / multi-session server / platform integration
 
-Finish the same-entry Reality-like front, shared-credential multi-session ticket admission and full protocol regression. Then integrate the frozen protocol into the two actual client shapes: OpenWrt TPROXY and Windows TUN.
+Finish the same-entry Reality-like front, atomic shared-credential ticket bind and public-listener multi-association FakeTCP/DTLS fan-out. Qualify at least two simultaneous devices under the same username/password with independent LiveID data paths. Then integrate the frozen protocol into the two actual client shapes: OpenWrt TPROXY and Windows TUN.
 
 ### Phase D — release one-shot VPN gate
 
@@ -197,6 +206,7 @@ Only after the one-lane 100 Mbit/s weak-link product has a measured cliff may a 
 - V1 ordinary-TCP lane pools/RBC/reinjection/rescue lanes: permanently rejected.
 - Kernel TCP anchor / real-return-packet hybrid: retired.
 - Runtime config epochs / mid-session FEC switching: rejected; reconnect/rotate instead.
+- SACK/RACK as the unconditional product default: rejected by the loaded 100 Mbit/s latency gate; retained experimental only.
 - High-frequency continuously learning Auto FEC and automatic capacity inference: future advanced research only.
 - Per-device credential/revocation control plane: not required for the personal product.
 - Mandatory certificate-chain/hostname verification: not required in the explicit personal insecure-verification mode.
@@ -212,7 +222,8 @@ Only after the one-lane 100 Mbit/s weak-link product has a measured cliff may a 
 - Do not delay an available systematic source merely to fill a FEC block.
 - Do not add a mid-session link-parameter control plane; changing parameters means a fresh association.
 - Use 100 Mbit/s as the current weak-link capacity ceiling in critical qualification.
-- Keep account admission deliberately simple: one shared username/password, many independent session tickets.
+- Keep account admission deliberately simple: one shared username/password, many independent one-shot session tickets.
+- Keep sustained session/data routing keyed by LiveID/peer, never username.
 - Do not silently reintroduce mandatory certificate or hostname verification into the personal client.
 - OpenWrt final capture is TPROXY; Windows final capture is TUN/Wintun-class.
 - Do not implement split routing using thousands of persistent Windows Firewall rules.
