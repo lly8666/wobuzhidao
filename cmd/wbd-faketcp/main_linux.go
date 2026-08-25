@@ -30,25 +30,25 @@ type config struct {
 }
 
 type endpoint struct {
-	cfg                 config
-	fd                  int
-	srcIP, dstIP        [4]byte
-	srcPort, dstPort    uint16
-	udp                 *net.UDPConn
-	innerMu             sync.RWMutex
-	inner               *net.UDPAddr
-	senderMu            sync.Mutex
-	sender              *faketcp.Sender
-	receiverMu          sync.Mutex
-	receiver            *faketcp.Receiver
-	sendMu              sync.Mutex
-	sendBuf             []byte
-	ipID                uint32
-	rawTx, rawRx        uint64
-	ackTx, dataTx       uint64
-	dataRx              uint64
-	stop                chan struct{}
-	stopOnce            sync.Once
+	cfg              config
+	fd               int
+	srcIP, dstIP     [4]byte
+	srcPort, dstPort uint16
+	udp              *net.UDPConn
+	innerMu          sync.RWMutex
+	inner            *net.UDPAddr
+	senderMu         sync.Mutex
+	sender           *faketcp.Sender
+	receiverMu       sync.Mutex
+	receiver         *faketcp.Receiver
+	sendMu           sync.Mutex
+	sendBuf          []byte
+	ipID             uint32
+	rawTx, rawRx     uint64
+	ackTx, dataTx    uint64
+	dataRx           uint64
+	stop             chan struct{}
+	stopOnce         sync.Once
 }
 
 type finalStats struct {
@@ -106,7 +106,7 @@ func usage() {
 }
 
 func newEndpoint(c config) (*endpoint, error) {
-	e := &endpoint{cfg:c, fd:-1, stop:make(chan struct{}), sendBuf:make([]byte, 65535)}
+	e := &endpoint{cfg:c, fd:-1, stop:make(chan struct{}), sendBuf:make([]byte,65535)}
 	var rawLocal, rawRemote *net.UDPAddr
 	var err error
 	if c.role == "client" {
@@ -131,7 +131,6 @@ func newEndpoint(c config) (*endpoint, error) {
 		e.dstIP, _ = faketcp.IPv4(rawRemote.IP)
 		if e.dstIP == [4]byte{} { return nil, errors.New("raw remote address must be IPv4") }
 	}
-
 	e.fd, err = syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_TCP)
 	if err != nil { return nil, err }
 	if err = syscall.SetsockoptInt(e.fd, syscall.IPPROTO_IP, syscall.IP_HDRINCL, 1); err != nil { e.close(); return nil, err }
@@ -149,7 +148,6 @@ func (e *endpoint) handshake() error {
 	if e.cfg.role == "client" { return e.handshakeClient() }
 	return e.handshakeServer()
 }
-
 func (e *endpoint) setReadTimeout(d time.Duration) error {
 	tv := syscall.NsecToTimeval(d.Nanoseconds())
 	return syscall.SetsockoptTimeval(e.fd, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &tv)
@@ -163,20 +161,20 @@ func (e *endpoint) handshakeClient() error {
 	deadline := time.Now().Add(20*time.Second)
 	for time.Now().Before(deadline) {
 		sent := time.Now()
-		if err := e.send(isn, 0, faketcp.FlagSYN, nil); err != nil { return err }
+		if err := e.send(isn,0,faketcp.FlagSYN,nil,nil); err != nil { return err }
 		_ = e.setReadTimeout(300*time.Millisecond)
 		for time.Now().Before(sent.Add(300*time.Millisecond)) {
 			seg, err := e.recvOne()
 			if err != nil {
-				if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) { break }
+				if errors.Is(err,syscall.EAGAIN) || errors.Is(err,syscall.EWOULDBLOCK) { break }
 				return err
 			}
 			if seg.SrcIP != e.dstIP || seg.DstIP != e.srcIP || seg.SrcPort != e.dstPort || seg.DstPort != e.srcPort { continue }
 			if seg.Flags&(faketcp.FlagSYN|faketcp.FlagACK) != faketcp.FlagSYN|faketcp.FlagACK || seg.Ack != isn+1 { continue }
 			peerNext := seg.Seq+1
-			if err := e.send(isn+1, peerNext, faketcp.FlagACK, nil); err != nil { return err }
+			if err := e.send(isn+1,peerNext,faketcp.FlagACK,nil,nil); err != nil { return err }
 			rtt := time.Since(sent)
-			e.sender = faketcp.NewSender(isn+1, maxDuration(40*time.Millisecond, 2*rtt))
+			e.sender = faketcp.NewSender(isn+1,maxDuration(40*time.Millisecond,2*rtt))
 			e.receiver = faketcp.NewReceiver(peerNext)
 			_ = e.clearReadTimeout()
 			return nil
@@ -195,17 +193,17 @@ func (e *endpoint) handshakeServer() error {
 		isn := randomSeq()
 		for attempts:=0; attempts<60; attempts++ {
 			sent := time.Now()
-			if err := e.send(isn, peerNext, faketcp.FlagSYN|faketcp.FlagACK, nil); err != nil { return err }
+			if err := e.send(isn,peerNext,faketcp.FlagSYN|faketcp.FlagACK,nil,nil); err != nil { return err }
 			_ = e.setReadTimeout(300*time.Millisecond)
 			for time.Now().Before(sent.Add(300*time.Millisecond)) {
 				a, err := e.recvOne()
 				if err != nil {
-					if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) { break }
+					if errors.Is(err,syscall.EAGAIN) || errors.Is(err,syscall.EWOULDBLOCK) { break }
 					return err
 				}
 				if a.SrcIP != e.dstIP || a.DstIP != e.srcIP || a.SrcPort != e.dstPort || a.DstPort != e.srcPort || a.Flags&faketcp.FlagACK == 0 || a.Ack != isn+1 { continue }
 				rtt := time.Since(sent)
-				e.sender = faketcp.NewSender(isn+1, maxDuration(40*time.Millisecond, 2*rtt))
+				e.sender = faketcp.NewSender(isn+1,maxDuration(40*time.Millisecond,2*rtt))
 				e.receiver = faketcp.NewReceiver(peerNext)
 				_ = e.clearReadTimeout()
 				return nil
@@ -214,67 +212,76 @@ func (e *endpoint) handshakeServer() error {
 		return errors.New("server SYN-ACK timeout")
 	}
 }
-
 func maxDuration(a,b time.Duration) time.Duration { if a>b { return a }; return b }
 
-func (e *endpoint) recvOne() (faketcp.Segment, error) {
+func (e *endpoint) recvOne() (faketcp.Segment,error) {
 	var zero faketcp.Segment
-	buf := make([]byte, 65535)
-	n, _, err := syscall.Recvfrom(e.fd, buf, 0)
-	if err != nil { return zero, err }
-	seg, err := faketcp.ParseIPv4TCP(buf[:n]); if err != nil { return zero, err }
-	atomic.AddUint64(&e.rawRx, 1)
-	return seg, nil
+	buf := make([]byte,65535)
+	n,_,err := syscall.Recvfrom(e.fd,buf,0)
+	if err != nil { return zero,err }
+	seg,err := faketcp.ParseIPv4TCP(buf[:n]); if err != nil { return zero,err }
+	atomic.AddUint64(&e.rawRx,1)
+	return seg,nil
 }
 
 func (e *endpoint) rawLoop() error {
-	buf := make([]byte, 65535)
+	buf := make([]byte,65535)
 	for {
-		n, _, err := syscall.Recvfrom(e.fd, buf, 0)
-		if err != nil { select { case <-e.stop: return nil; default: return err } }
-		seg, err := faketcp.ParseIPv4TCP(buf[:n]); if err != nil { continue }
+		n,_,err := syscall.Recvfrom(e.fd,buf,0)
+		if err != nil { select { case <-e.stop:return nil; default:return err } }
+		seg,err := faketcp.ParseIPv4TCP(buf[:n]); if err != nil { continue }
 		if seg.SrcIP != e.dstIP || seg.DstIP != e.srcIP || seg.SrcPort != e.dstPort || seg.DstPort != e.srcPort { continue }
-		atomic.AddUint64(&e.rawRx, 1)
+		atomic.AddUint64(&e.rawRx,1)
 		now := time.Now()
 		if seg.Flags&faketcp.FlagACK != 0 {
 			e.senderMu.Lock()
-			p := e.sender.Ack(seg.Ack, now)
+			p := e.sender.AckSelective(seg.Ack,seg.SACK[:seg.SACKN],now)
+			if p != nil {
+				err = e.sendDataPending(p)
+			}
 			e.senderMu.Unlock()
-			if p != nil { _ = e.sendDataPending(p) }
+			if err != nil { return err }
 		}
-		if len(seg.Payload) == 0 { continue }
+		if len(seg.Payload)==0 { continue }
 		e.receiverMu.Lock()
-		deliver, _ := e.receiver.Accept(seg.Seq, len(seg.Payload))
+		deliver,oo := e.receiver.Accept(seg.Seq,len(seg.Payload))
 		ack := e.receiver.Next()
 		e.receiverMu.Unlock()
-		atomic.AddUint64(&e.dataRx, 1)
-		_ = e.send(e.senderNext(), ack, faketcp.FlagACK, nil)
-		atomic.AddUint64(&e.ackTx, 1)
+		atomic.AddUint64(&e.dataRx,1)
+		var sacks []faketcp.SACKBlock
+		var one [1]faketcp.SACKBlock
+		if oo {
+			one[0] = faketcp.SACKBlock{Start:seg.Seq,End:seg.Seq+uint32(len(seg.Payload))}
+			sacks = one[:]
+		}
+		if err := e.send(e.senderNext(),ack,faketcp.FlagACK,sacks,nil); err != nil { return err }
+		atomic.AddUint64(&e.ackTx,1)
 		if deliver {
 			peer := e.innerPeer()
-			if peer != nil { _, _ = e.udp.WriteToUDP(seg.Payload, peer) }
+			if peer != nil { _,_ = e.udp.WriteToUDP(seg.Payload,peer) }
 		}
 	}
 }
 
 func (e *endpoint) udpLoop() error {
-	buf := make([]byte, 65535)
+	buf := make([]byte,65535)
 	for {
-		n, from, err := e.udp.ReadFromUDP(buf)
-		if err != nil { select { case <-e.stop: return nil; default: return err } }
-		if e.cfg.role == "client" {
+		n,from,err := e.udp.ReadFromUDP(buf)
+		if err != nil { select { case <-e.stop:return nil; default:return err } }
+		if e.cfg.role=="client" {
 			e.innerMu.Lock()
-			if e.inner == nil { cp := *from; e.inner = &cp }
-			known := e.inner
+			if e.inner==nil { cp:=*from; e.inner=&cp }
+			known:=e.inner
 			e.innerMu.Unlock()
-			if !udpEqual(from, known) { continue }
-		} else if !udpEqual(from, e.innerPeer()) { continue }
-		if n == 0 { continue }
-		now := time.Now()
+			if !udpEqual(from,known) { continue }
+		} else if !udpEqual(from,e.innerPeer()) { continue }
+		if n==0 { continue }
+		now:=time.Now()
 		e.senderMu.Lock()
-		p := e.sender.Enqueue(buf[:n], now)
+		p:=e.sender.Enqueue(buf[:n],now)
+		err=e.sendDataPending(p)
 		e.senderMu.Unlock()
-		if err := e.sendDataPending(p); err != nil { return err }
+		if err!=nil { return err }
 	}
 }
 
@@ -284,17 +291,17 @@ func udpEqual(a,b *net.UDPAddr) bool {
 }
 
 func (e *endpoint) retransmitLoop() error {
-	t := time.NewTicker(2*time.Millisecond); defer t.Stop()
+	t:=time.NewTicker(2*time.Millisecond); defer t.Stop()
 	for {
 		select {
-		case <-e.stop: return nil
-		case now := <-t.C:
+		case <-e.stop:return nil
+		case now:=<-t.C:
 			e.senderMu.Lock()
-			p := e.sender.RetransmitDue(now)
+			p:=e.sender.RetransmitDue(now)
+			var err error
+			if p!=nil { err=e.sendDataPending(p) }
 			e.senderMu.Unlock()
-			if p != nil {
-				if err := e.sendDataPending(p); err != nil { return err }
-			}
+			if err!=nil { return err }
 		}
 	}
 }
@@ -309,25 +316,27 @@ func (e *endpoint) receiverNext() uint32 {
 }
 func (e *endpoint) innerPeer() *net.UDPAddr {
 	e.innerMu.RLock(); defer e.innerMu.RUnlock()
-	if e.inner == nil { return nil }
-	cp := *e.inner
+	if e.inner==nil { return nil }
+	cp:=*e.inner
 	return &cp
 }
 
+// Caller holds senderMu, guaranteeing a Pending slab cannot be ACK-recycled
+// while a retransmission is being serialized to the raw socket.
 func (e *endpoint) sendDataPending(p *faketcp.Pending) error {
-	if p == nil || len(p.Payload)==0 { return nil }
-	if err := e.send(p.Seq, e.receiverNext(), faketcp.FlagACK|faketcp.FlagPSH, p.Payload); err != nil { return err }
-	atomic.AddUint64(&e.dataTx, 1)
+	if p==nil || len(p.Payload)==0 { return nil }
+	if err:=e.send(p.Seq,e.receiverNext(),faketcp.FlagACK|faketcp.FlagPSH,nil,p.Payload); err!=nil { return err }
+	atomic.AddUint64(&e.dataTx,1)
 	return nil
 }
 
-func (e *endpoint) send(seq, ack uint32, flags uint8, payload []byte) error {
+func (e *endpoint) send(seq,ack uint32,flags uint8,sacks []faketcp.SACKBlock,payload []byte) error {
 	e.sendMu.Lock()
 	defer e.sendMu.Unlock()
-	id := uint16(atomic.AddUint32(&e.ipID,1))
-	pkt := faketcp.MarshalIPv4TCPInto(e.sendBuf, e.srcIP, e.dstIP, e.srcPort, e.dstPort, seq, ack, flags, 65535, payload, id)
-	sa := &syscall.SockaddrInet4{Addr:e.dstIP}
-	if err := syscall.Sendto(e.fd, pkt, 0, sa); err != nil { return err }
+	id:=uint16(atomic.AddUint32(&e.ipID,1))
+	pkt:=faketcp.MarshalIPv4TCPSACKInto(e.sendBuf,e.srcIP,e.dstIP,e.srcPort,e.dstPort,seq,ack,flags,65535,sacks,payload,id)
+	sa:=&syscall.SockaddrInet4{Addr:e.dstIP}
+	if err:=syscall.Sendto(e.fd,pkt,0,sa); err!=nil { return err }
 	atomic.AddUint64(&e.rawTx,1)
 	return nil
 }
@@ -335,16 +344,16 @@ func (e *endpoint) send(seq, ack uint32, flags uint8, payload []byte) error {
 func (e *endpoint) close() {
 	e.stopOnce.Do(func(){
 		close(e.stop)
-		if e.udp != nil { _ = e.udp.Close() }
-		if e.fd >= 0 { _ = syscall.Close(e.fd); e.fd = -1 }
+		if e.udp!=nil { _=e.udp.Close() }
+		if e.fd>=0 { _=syscall.Close(e.fd); e.fd=-1 }
 	})
 }
 
 func (e *endpoint) printStats() {
-	if e.sender == nil || e.receiver == nil { return }
-	e.senderMu.Lock(); ss := e.sender.Stats(); rto := e.sender.RTO(); e.senderMu.Unlock()
-	e.receiverMu.Lock(); rs := e.receiver.Stats(); e.receiverMu.Unlock()
-	st := finalStats{Role:e.cfg.role, RawTx:atomic.LoadUint64(&e.rawTx), RawRx:atomic.LoadUint64(&e.rawRx), AckTx:atomic.LoadUint64(&e.ackTx), DataTx:atomic.LoadUint64(&e.dataTx), DataRx:atomic.LoadUint64(&e.dataRx), Sender:ss, Receiver:rs, RTOms:float64(rto)/float64(time.Millisecond)}
-	b,_ := json.Marshal(st)
-	fmt.Printf("WBD_FAKETCP_STATS %s\n", b)
+	if e.sender==nil || e.receiver==nil { return }
+	e.senderMu.Lock(); ss:=e.sender.Stats(); rto:=e.sender.RTO(); e.senderMu.Unlock()
+	e.receiverMu.Lock(); rs:=e.receiver.Stats(); e.receiverMu.Unlock()
+	st:=finalStats{Role:e.cfg.role,RawTx:atomic.LoadUint64(&e.rawTx),RawRx:atomic.LoadUint64(&e.rawRx),AckTx:atomic.LoadUint64(&e.ackTx),DataTx:atomic.LoadUint64(&e.dataTx),DataRx:atomic.LoadUint64(&e.dataRx),Sender:ss,Receiver:rs,RTOms:float64(rto)/float64(time.Millisecond)}
+	b,_:=json.Marshal(st)
+	fmt.Printf("WBD_FAKETCP_STATS %s\n",b)
 }
