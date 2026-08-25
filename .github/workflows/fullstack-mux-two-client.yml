@@ -147,8 +147,8 @@ jobs:
             -ticket-out /tmp/muxfull/${LABEL}/ticket-b.txt >/tmp/muxfull/${LABEL}/front-b.log 2>&1
           grep -q 'WBD_REALITY_FRONT_OK' /tmp/muxfull/${LABEL}/front-a.log
           grep -q 'WBD_REALITY_FRONT_OK' /tmp/muxfull/${LABEL}/front-b.log
-          TA=$(tr -d '\r\n' </tmp/muxfull/${LABEL}/ticket-a.txt)
-          TB=$(tr -d '\r\n' </tmp/muxfull/${LABEL}/ticket-b.txt)
+          TA=$(sudo cat /tmp/muxfull/${LABEL}/ticket-a.txt | tr -d '\r\n')
+          TB=$(sudo cat /tmp/muxfull/${LABEL}/ticket-b.txt | tr -d '\r\n')
           test ${#TA} -eq 64
           test ${#TB} -eq 64
           test "$TA" != "$TB"
