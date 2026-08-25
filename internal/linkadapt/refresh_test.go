@@ -17,7 +17,9 @@ func TestRefreshWaitsForDueLowLoadAndCommitsOnlyAfterRotation(t *testing.T) {
 	}
 	start := time.Unix(1000, 0)
 	before := Snapshot{At: start, Stats: faketcp.SenderStats{Enqueued: 100, EnqueuedBytes: 120000, LossMarked: 1}}
-	after := Snapshot{At: start.Add(20*time.Second), Stats: faketcp.SenderStats{Enqueued: 1100, EnqueuedBytes: 1320000, LossMarked: 101, LossMarkedBytes: 120000}}
+	// 70 first-loss marks across 1000 new segments has a Wilson 95% upper
+	// bound below 10%, selecting the conservative 20:12 preset.
+	after := Snapshot{At: start.Add(20*time.Second), Stats: faketcp.SenderStats{Enqueued: 1100, EnqueuedBytes: 1320000, LossMarked: 71, LossMarkedBytes: 84000}}
 	rec, err := s.Evaluate(before, after)
 	if err != nil {
 		t.Fatal(err)
