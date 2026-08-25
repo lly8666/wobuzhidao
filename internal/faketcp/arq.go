@@ -64,11 +64,11 @@ func NewSender(nextSeq uint32, initialRTO time.Duration) *Sender {
 	}
 }
 
-func (s *Sender) NextSeq() uint32            { return s.nextSeq }
-func (s *Sender) RTO() time.Duration         { return s.rto }
-func (s *Sender) Pending() int               { return s.active }
-func (s *Sender) Stats() SenderStats         { return s.stats }
-func (s *Sender) LastAck() uint32            { return s.lastAck }
+func (s *Sender) NextSeq() uint32                 { return s.nextSeq }
+func (s *Sender) RTO() time.Duration              { return s.rto }
+func (s *Sender) Pending() int                    { return s.active }
+func (s *Sender) Stats() SenderStats              { return s.stats }
+func (s *Sender) LastAck() uint32                 { return s.lastAck }
 func (s *Sender) Outstanding(seq uint32) *Pending { return s.bySeq[seq] }
 
 func (s *Sender) Enqueue(payload []byte, now time.Time) *Pending {
@@ -300,15 +300,28 @@ type ReceiverStats struct {
 }
 
 type Receiver struct {
-	next       uint32
-	outOfOrder map[uint32]uint32
-	stats      ReceiverStats
+	next uint32
+
+	// outOfOrder retains only exact segment boundaries for duplicate detection
+	// and cumulative-ACK advancement. sacksByStart/sackStartByEnd maintain merged
+	// contiguous SACK ranges separately, so the inner payload is never buffered.
+	outOfOrder    map[uint32]uint32
+	sacksByStart  map[uint32]uint32
+	sackStartByEnd map[uint32]uint32
+	recentSACK    [4]uint32
+	recentSACKN   int
+	stats         ReceiverStats
 }
 
 func NewReceiver(nextSeq uint32) *Receiver {
-	return &Receiver{next: nextSeq, outOfOrder: make(map[uint32]uint32)}
+	return &Receiver{
+		next: nextSeq,
+		outOfOrder: make(map[uint32]uint32),
+		sacksByStart: make(map[uint32]uint32),
+		sackStartByEnd: make(map[uint32]uint32),
+	}
 }
-func (r *Receiver) Next() uint32         { return r.next }
+func (r *Receiver) Next() uint32          { return r.next }
 func (r *Receiver) Stats() ReceiverStats { return r.stats }
 
 // Accept never buffers payload for ordered delivery. A complete later datagram
@@ -331,18 +344,104 @@ func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, outOfOrder bool)
 	if seq != r.next {
 		r.stats.OutOfOrder++
 		r.outOfOrder[seq] = end
+		r.insertSACKRange(seq, end)
 		return true, true
 	}
+
 	r.next = end
-	for {
-		nextEnd, ok := r.outOfOrder[r.next]
-		if !ok {
-			break
-		}
-		delete(r.outOfOrder, r.next)
-		r.next = nextEnd
-	}
+	r.consumeContiguousSACKs()
 	return true, false
+}
+
+// SACKBlocks returns up to four persistent RFC-2018-style ranges. The first
+// range is the one most recently touched by an out-of-order arrival; older live
+// ranges follow. This keeps the option useful to a real TCP-style scoreboard
+// without sorting or allocating on the hot ACK path.
+func (r *Receiver) SACKBlocks(dst *[4]SACKBlock) int {
+	if dst == nil {
+		return 0
+	}
+	n := 0
+	for i := 0; i < r.recentSACKN && n < len(dst); i++ {
+		start := r.recentSACK[i]
+		end, ok := r.sacksByStart[start]
+		if !ok || seqLT(start, r.next) {
+			continue
+		}
+		dst[n] = SACKBlock{Start: start, End: end}
+		n++
+	}
+	return n
+}
+
+func (r *Receiver) insertSACKRange(seq, end uint32) {
+	start := seq
+	finish := end
+	if leftStart, ok := r.sackStartByEnd[seq]; ok {
+		start = leftStart
+		delete(r.sacksByStart, leftStart)
+		delete(r.sackStartByEnd, seq)
+		r.removeRecentSACK(leftStart)
+	}
+	if rightEnd, ok := r.sacksByStart[end]; ok {
+		finish = rightEnd
+		delete(r.sacksByStart, end)
+		delete(r.sackStartByEnd, rightEnd)
+		r.removeRecentSACK(end)
+	}
+	r.sacksByStart[start] = finish
+	r.sackStartByEnd[finish] = start
+	r.touchRecentSACK(start)
+}
+
+func (r *Receiver) consumeContiguousSACKs() {
+	for {
+		start := r.next
+		end, ok := r.sacksByStart[start]
+		if !ok {
+			return
+		}
+		delete(r.sacksByStart, start)
+		delete(r.sackStartByEnd, end)
+		r.removeRecentSACK(start)
+		cur := start
+		for cur != end {
+			nextEnd, exists := r.outOfOrder[cur]
+			if !exists {
+				break
+			}
+			delete(r.outOfOrder, cur)
+			cur = nextEnd
+		}
+		r.next = end
+	}
+}
+
+func (r *Receiver) touchRecentSACK(start uint32) {
+	r.removeRecentSACK(start)
+	limit := r.recentSACKN
+	if limit > 3 {
+		limit = 3
+	}
+	for i := limit; i > 0; i-- {
+		r.recentSACK[i] = r.recentSACK[i-1]
+	}
+	r.recentSACK[0] = start
+	if r.recentSACKN < len(r.recentSACK) {
+		r.recentSACKN++
+	}
+}
+
+func (r *Receiver) removeRecentSACK(start uint32) {
+	for i := 0; i < r.recentSACKN; i++ {
+		if r.recentSACK[i] != start {
+			continue
+		}
+		copy(r.recentSACK[i:], r.recentSACK[i+1:r.recentSACKN])
+		r.recentSACKN--
+		r.recentSACK[r.recentSACKN] = 0
+		return
+	}
 }
 
 func seqLT(a, b uint32) bool { return int32(a-b) < 0 }
