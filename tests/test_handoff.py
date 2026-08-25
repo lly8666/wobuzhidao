@@ -34,6 +34,8 @@ class HandoffContractTest(unittest.TestCase):
             "optional TLS Persona bootstrap",
             "Persona must remain isolated from the unordered DTLS/FEC data plane",
             "Kernel TCP anchor / real-return-packet hybrid: **retired from the product roadmap",
+            "Phase A — transport-only characterization (CURRENT)",
+            "current characterization campaign intentionally freezes FEC at `20:20`",
         ):
             self.assertIn(phrase, text)
 
@@ -47,6 +49,8 @@ class HandoffContractTest(unittest.TestCase):
             "Optional TLS Persona bootstrap",
             "kernel TCP anchor / real-return-packet experiment is **retired from the product roadmap**",
             "Classic udp2raw-compatible FakeTCP remains the product carrier baseline",
+            "Transport-only characterization — current priority",
+            "FEC fixed at `20:20`",
         ):
             self.assertIn(phrase, architecture)
 
@@ -78,8 +82,14 @@ class HandoffContractTest(unittest.TestCase):
         roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
         self.assertIn("V2-M3 | minimal native session/control", roadmap)
         self.assertIn("V2-M4 | kernel-anchor / real-return-packet experiment | **RETIRED**", roadmap)
-        self.assertIn("V2-M6 | Linux/OpenWrt native L3/TUN core | **CURRENT**", roadmap)
+        self.assertIn("V2-M6 | Linux/OpenWrt native L3/TUN core | **M6A IMPLEMENTED", roadmap)
         self.assertIn("V2-M8A | optional TLS Persona bootstrap", roadmap)
+        self.assertIn("V2-M8B-T | transport-only fixed-20:20 characterization | **CURRENT**", roadmap)
+
+        bench = (ROOT / "docs/benchmarks/v2-transport-20x20-matrix.md").read_text(encoding="utf-8")
+        self.assertIn("Nominal matrix size: **126 cases**", bench)
+        self.assertIn("later-datagram bypass", bench)
+        self.assertIn("CPU ms per delivered MiB", bench)
 
     def test_no_required_binary_state_at_bootstrap(self):
         dp = json.loads((ROOT / ".wbd/handoff/data-plane.json").read_text())

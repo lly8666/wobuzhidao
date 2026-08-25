@@ -1,44 +1,43 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 24,
+  "continuity_sequence": 25,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "500e83c84d42b2dce3c501553da550b5c204885c",
+  "checkpoint_based_on_head_sha": "401f992aab307f7a8f308453b490fadce2d75a36",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows whose steady-state path is TUN/IP -> WBD packet framing -> fixed-mode FEC -> standards-compliant DTLS 1.3 -> TCP-shaped udp2raw-compatible FakeTCP. The public carrier is not an ordinary kernel TCP byte stream. Optional TLS Persona may add a real TLS 1.3 preflight with maintained browser-like ClientHello profiles, but it remains separate from DTLS/FEC steady-state data.",
-    "current_milestone": "V2-M6 Linux/OpenWrt native L3/TUN core; M4 kernel-anchor retired and M5 two-lane deferred",
-    "local_optimization_stop_rule": "Finish a complete one-lane Linux/OpenWrt packet path before optional Persona implementation, Windows optimization, two lanes or Auto. Preserve packet boundaries end-to-end; do not introduce a reliable public byte stream. Broad parameter sweeps begin only after the Linux/OpenWrt plus Windows core interoperates."
+    "terminal_goal": "Build a personal weak-network VPN for OpenWrt/Linux to Linux or Windows with TCP-shaped FakeTCP outer packets, UDP/datagram-like no-HOL inner behavior, fixed FEC, standards-compliant DTLS 1.3, optional TLS Persona, and later native TUN/platform integration.",
+    "current_milestone": "V2-M8B-T transport-only fixed-20:20 characterization; M6A TUN code remains implemented but privileged TUN qualification is deferred to later/external real-device testing",
+    "local_optimization_stop_rule": "Freeze FEC at UDPspeeder mode0 20:20 and finish the first RTT/loss/TCP-like/UDP-like/CPU/RSS surface before adding 20:10, MTU, burst loss, timer, Persona or multi-lane dimensions. Use targeted follow-up points only where the first matrix identifies a boundary."
   },
   "continuation_cursor": {
-    "last_completed_action": "Scope was clarified and repository control documents were rewritten for V2.2 at architecture commit 06414153ab51d1a2b54c471db76d306877a31786: TCP-shaped FakeTCP is the required outer carrier but real kernel-TCP ownership is not a product goal; V2-M4 kernel-anchor is retired; M5 two-lane is deferred; M6 Linux/OpenWrt TUN is current; optional TLS Persona is admitted later as a separate real TLS 1.3 preflight with operator-controlled certificate and maintained browser-like ClientHello profiles. PR #3 and Issue #1 were updated to the same boundary. M6A code landed at 500e83c84d42b2dce3c501553da550b5c204885c: internal/dataplane adds exact WBDP IPv4/IPv6 datagram framing; internal/tunnel adds packet-preserving bidirectional bridge, connected/learned-peer local UDP endpoints and Linux /dev/net/tun opening; cmd/wbd-tun exposes client/server glue; internal/persona freezes admitted config names off/native/chrome/firefox/safari/edge while randomized remains unadmitted. Targeted local Go tests for the new packages passed. A real TUN creation probe could not run in this sandbox because /dev/net/tun is absent; this is an environment limitation, not a compile/test failure. CI for 500e83c8 was triggered; its first handoff-verify run failed only because sequence 23 still described M4, which this sequence 24 corrects.",
-    "current_task": "V2-M6B: connect wbd-tun to the already-qualified one-lane UDPspeeder -> DTLS shim -> udp2raw composition on a Linux/OpenWrt environment with /dev/net/tun, configure addresses/routes/MTU, and prove bidirectional real IP packets cross the complete stack.",
-    "why_now": "M1 raw/FEC, M2 DTLS 1.3 and M3 minimal session/control are already qualified. The product requirement no longer needs kernel-anchor research. M6A now supplies the missing packet-preserving TUN boundary, so the highest-value next work is an end-to-end usable one-lane VPN rather than optional appearance or multi-lane features.",
-    "done_when": "M6B has a reproducible Linux/OpenWrt recipe and machine-readable receipt showing a created TUN interface, explicit addresses/routes/MTU, bidirectional IPv4 and IPv6 where available, ICMP and UDP through WBDP -> UDPspeeder -> DTLS 1.3 -> FakeTCP and reverse, representative TCP traffic inside the VPN without public kernel-TCP payload dependency, packet/byte/drop counters, and clean reconnect. The exact upstream/shim hashes must match the already-qualified pins. If the execution host lacks /dev/net/tun or required raw privileges, record that blocker without changing architecture.",
-    "next_atomic_action": "Refresh CI for 500e83c84d42b2dce3c501553da550b5c204885c and confirm Go tests. Then prepare M6B integration scripts/config for two local namespaces or an OpenWrt/Linux pair: create wbd0 TUN devices, assign point-to-point addresses, set MTU 1400 initially, wire wbd-tun client/server to local UDPspeeder endpoints and the qualified DTLS shim/udp2raw chain, and run bidirectional ping/UDP before any parameter tuning. Do not start TLS Persona implementation until the one-lane TUN path is functional."
+    "last_completed_action": "Transport-only benchmark implementation landed at 401f992aab307f7a8f308453b490fadce2d75a36: scripts/bench_v2_transport_20x20.py plus .github/workflows/transport-20x20-matrix.yml define a fresh-namespace-per-case UDPspeeder 20:20 -> DTLS 1.3 -> udp2raw FakeTCP matrix. Frozen points are RTT 20/50/100/200/400/600 ms and symmetric independent per-direction loss 0/1/5/10/20/30/40%, initially three seeds and 512x1200B application datagrams. The harness records establishment, delivery and latency percentiles, later-datagram bypass/out-of-order behavior, FakeTCP flags/RST/sequence diagnostics, per-component CPU, CPU per delivered MiB, peak RSS and byte accounting. Exact udp2raw/UDPspeeder release hashes and exact wolfSSL source/shim source pins are verified. Standard repo CI, handoff-verify and build-quic-oracle for 401f992a all completed successfully. The dedicated push-triggered transport matrix run must be reconciled separately because the available commit-workflow wrapper exposes pull_request runs only.",
+    "current_task": "Run, debug and complete the 126-case fixed-20:20 transport-only matrix; aggregate the three seeds into a machine-readable surface and identify establishment, delivery/p99 and CPU/RSS cliffs while checking TCP-like outer stability and UDP-like later-datagram bypass.",
+    "why_now": "The user explicitly deferred TUN testing to later/external testers and wants the transport above TUN characterized first. M1/M2/M3 already qualify the core FakeTCP/FEC/DTLS ingredients, so isolating that stack gives cleaner CPU/RSS and weak-network data than mixing in TUN/driver/platform effects.",
+    "done_when": "A repository-backed final transport artifact/receipt contains the frozen matrix or explicitly records unreachable cases, at least three seeds per attempted RTT/loss point, connection/handshake result, delivery and p50/p95/p99/max, goodput, later-datagram bypass, FakeTCP SYN/ACK/PSH/FIN/RST/duplicate/sequence diagnostics, per-component and total CPU, CPU per delivered MiB, per-component and total peak RSS, and byte accounting. A report identifies meaningful cliffs and recommends only targeted follow-up experiments. No TUN result is required for this milestone.",
+    "next_atomic_action": "Refresh the live branch and locate the dedicated transport-20x20-matrix workflow run triggered by 401f992a. If it failed, inspect the first failing job/log and patch the harness/workflow without changing the frozen RTT/loss/FEC matrix. If it completed, download transport-20x20-matrix-final, validate receipt/summary completeness, persist a concise repository report and then choose targeted follow-up points only around observed cliffs."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    "docs/architecture/ADR-0004-product-scope-persona.md",
-    "docs/protocol/v2-m6a-ip-datagram.md",
-    "internal/dataplane/frame.go",
-    "internal/tunnel/bridge.go",
-    "internal/tunnel/tun_linux.go",
-    "cmd/wbd-tun/main.go",
+    "docs/benchmarks/v2-transport-20x20-matrix.md",
+    "scripts/bench_v2_transport_20x20.py",
+    ".github/workflows/transport-20x20-matrix.yml",
+    "deps/oracle-lock.json",
+    "deps/security-lock.json",
     ".wbd/handoff/current.json",
-    "scripts/verify_handoff.py"
+    "tests/test_handoff.py"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "V2_M1_M2_M3_qualified_plus_V2_M6A_implemented",
+    "authority": "V2_M1_M2_M3_qualified_plus_transport_matrix_harness_implemented",
     "v1_status": "permanently_rejected_multi_ordinary_TCP",
     "v2_raw_fec_status": "locally_qualified_product_baseline",
-    "outer_semantics": "TCP-shaped FakeTCP raw datagrams; no product requirement for kernel TCP stream ownership",
+    "outer_semantics": "TCP-shaped FakeTCP raw datagrams; no kernel TCP byte-stream dependency",
     "security": {
       "design": "real DTLS 1.3 steady-state data security",
       "implementation_pin": "wolfSSL v5.9.2-stable / ac01707f552c611fbd135cc723b2682b3e7f80f2",
@@ -47,23 +46,20 @@
       "zero_rtt": "disabled"
     },
     "session_status": "V2_M3_locally_qualified_minimal_control",
-    "fixed_modes": [
-      "normal",
-      "weak-1.5x",
-      "weak-2x"
-    ],
-    "auto_status": "deferred_until_large_fixed_mode_measurements",
+    "current_characterization_fec": "20:20 only",
+    "current_characterization_matrix": "RTT 20/50/100/200/400/600 ms x symmetric independent loss 0/1/5/10/20/30/40% x seeds 260825/260826/260827 = 126 nominal cases",
+    "normal_and_20_10_status": "still supported product modes but excluded from first characterization matrix",
+    "auto_status": "deferred_until_measurements",
     "kernel_anchor_status": "retired_from_product_roadmap",
     "two_lane_status": "deferred_optional_optimization",
-    "tun_status": "M6A implemented; M6B privileged end-to-end integration current",
-    "windows_status": "M7 required after Linux/OpenWrt core",
-    "tls_persona_status": "admitted_optional_later_milestone; config boundary implemented; handshake backend not yet implemented",
-    "xray_status": "not a product dependency; REALITY/uTLS may be narrow TLS Persona reference; VLESS/Vision data-plane semantics excluded"
+    "tun_status": "M6A implemented; M6B harness implemented; real-device qualification deferred/external",
+    "windows_status": "required later platform qualification",
+    "tls_persona_status": "admitted optional later milestone; config boundary implemented; handshake backend not yet implemented"
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "500e83c84d42b2dce3c501553da550b5c204885c",
+    "tested_commit": "401f992aab307f7a8f308453b490fadce2d75a36",
     "result": "pass",
-    "command": "Targeted local Go authority: go test ./internal/dataplane ./internal/persona ./internal/tunnel ./cmd/wbd-tun passed on the exact new source content. go build ./cmd/wbd-tun passed. Privileged runtime probe failed before TUN creation because this container has no /dev/net/tun. Full repository GitHub CI for 500e83c8 was still running when sequence 24 was written; the separate handoff-verify failure on that commit was expected stale sequence-23 state and is corrected here."
+    "command": "GitHub pull-request workflows for 401f992a: ci run 32811878069 success, handoff-verify run 32811878105 success, build-quic-oracle run 32811878060 success. Dedicated push-triggered transport-20x20-matrix workflow result is not represented by the available commit-workflow lookup and remains the next live reconciliation task."
   }
 }
