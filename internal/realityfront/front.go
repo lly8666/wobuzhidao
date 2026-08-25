@@ -139,7 +139,6 @@ func ParseHelloIdentity(raw []byte) (HelloIdentity, error) {
 		return out, ErrUnsupportedHello
 	}
 	b := handshake[4 : 4+msgLen]
-	// legacy_version(2), random(32), legacy_session_id_len(1)
 	if len(b) < 35 {
 		return out, ErrUnsupportedHello
 	}
@@ -344,7 +343,7 @@ func BootstrapServer(conn net.Conn, expectedUsername, expectedPassword, ticketDi
 	want := authMAC(expectedPassword, []byte(expectedUsername), clientNonce, serverNonce)
 	userOK := subtle.ConstantTimeCompare(user, []byte(expectedUsername))
 	proofOK := subtle.ConstantTimeCompare(got[:], want[:])
-	if !userOK || !proofOK || expectedUsername == "" || expectedPassword == "" {
+	if userOK != 1 || proofOK != 1 || expectedUsername == "" || expectedPassword == "" {
 		failure := make([]byte, 1+TicketLen)
 		failure[0] = 1
 		_ = writeFull(conn, failure)
