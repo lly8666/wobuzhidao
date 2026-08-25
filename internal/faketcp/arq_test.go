@@ -24,6 +24,28 @@ func TestReceiverDeliversOutOfOrderWithoutHOL(t *testing.T) {
 	}
 }
 
+func TestReceiverSACKRangesMergeAndPersist(t *testing.T) {
+	r := NewReceiver(100)
+	if _, oo := r.Accept(120, 10); !oo { t.Fatal("120..130 should be out of order") }
+	if _, oo := r.Accept(110, 10); !oo { t.Fatal("110..120 should be out of order") }
+	var blocks [4]SACKBlock
+	n := r.SACKBlocks(&blocks)
+	if n != 1 || blocks[0] != (SACKBlock{Start:110, End:130}) {
+		t.Fatalf("merged SACK=%v n=%d", blocks[:n], n)
+	}
+	if _, oo := r.Accept(150, 10); !oo { t.Fatal("150..160 should be out of order") }
+	n = r.SACKBlocks(&blocks)
+	if n != 2 || blocks[0] != (SACKBlock{Start:150, End:160}) || blocks[1] != (SACKBlock{Start:110, End:130}) {
+		t.Fatalf("persistent SACK order=%v n=%d", blocks[:n], n)
+	}
+	if _, oo := r.Accept(100, 10); oo { t.Fatal("100..110 closes first hole") }
+	if r.Next() != 130 { t.Fatalf("next=%d want 130", r.Next()) }
+	n = r.SACKBlocks(&blocks)
+	if n != 1 || blocks[0] != (SACKBlock{Start:150, End:160}) {
+		t.Fatalf("consumed SACK range leaked: %v n=%d", blocks[:n], n)
+	}
+}
+
 func TestSenderFastRetransmitAndAck(t *testing.T) {
 	now := time.Unix(1, 0)
 	s := NewSender(100, time.Second)
