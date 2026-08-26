@@ -27,6 +27,13 @@ type UnderlayDiscoverer interface {
 	Discover(Profile) (Underlay, error)
 }
 
+// RuntimePreflighter is optional. Product discoverers may implement it when a
+// dependency must be proven before setup-only Reality admission consumes a new
+// one-time ticket. Test discoverers do not need to implement this interface.
+type RuntimePreflighter interface {
+	Preflight(Profile) error
+}
+
 // TicketStore prevents a successful Connect from accidentally reusing a stale
 // setup ticket if a bootstrap invocation returns without producing a new one.
 type TicketStore interface {
@@ -34,10 +41,10 @@ type TicketStore interface {
 	Read(path string) (string, error)
 }
 
-// Controller composes setup-only Reality admission, physical underlay
-// discovery, the immutable runtime Plan and the lifecycle Executor. It owns no
-// transport semantics; BuildPlan remains the sole authority for the frozen
-// FakeTCP -> DTLS -> LINK -> TUN command line.
+// Controller composes dependency preflight, setup-only Reality admission,
+// physical underlay discovery, the immutable runtime Plan and lifecycle
+// Executor. It owns no transport semantics; BuildPlan remains the sole
+// authority for the frozen FakeTCP -> DTLS -> LINK -> TUN command line.
 type Controller struct {
 	mu         sync.Mutex
 	state      RuntimeState
@@ -100,6 +107,11 @@ func (c *Controller) Connect(profile Profile) error {
 		c.mu.Unlock()
 	}()
 
+	if preflight, ok := c.discoverer.(RuntimePreflighter); ok {
+		if err := preflight.Preflight(profile); err != nil {
+			return fmt.Errorf("Windows runtime dependency preflight: %w", err)
+		}
+	}
 	if err := c.tickets.Clear(profile.TicketPath); err != nil {
 		return fmt.Errorf("clear stale Reality ticket: %w", err)
 	}
@@ -172,10 +184,33 @@ func (FileTicketStore) Read(path string) (string, error) {
 	return strings.TrimSpace(string(b)), nil
 }
 
-// PowerShellUnderlayDiscoverer reuses the already-qualified route/Npcap probe
-// rather than duplicating Find-NetRoute, neighbor resolution or adapter GUID
-// logic in the GUI process.
+// PowerShellUnderlayDiscoverer reuses the already-qualified Windows Npcap
+// preparation and route/Npcap probe instead of duplicating driver, Find-NetRoute,
+// neighbor resolution or adapter GUID logic in the GUI process.
 type PowerShellUnderlayDiscoverer struct{}
+
+func (PowerShellUnderlayDiscoverer) Preflight(profile Profile) error {
+	profile = profile.normalized()
+	if err := profile.Validate(); err != nil {
+		return err
+	}
+	script := filepath.Join(profile.BinDir, "windows_npcap_prepare.ps1")
+	cmd := exec.Command(
+		"powershell.exe",
+		"-NoProfile", "-ExecutionPolicy", "Bypass",
+		"-File", script,
+		"-Action", "Status",
+	)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		text := strings.TrimSpace(string(output))
+		if text == "" {
+			text = err.Error()
+		}
+		return fmt.Errorf("Npcap runtime is not ready: %s; run %s -Action Install", text, script)
+	}
+	return nil
+}
 
 func (PowerShellUnderlayDiscoverer) Discover(profile Profile) (Underlay, error) {
 	profile = profile.normalized()
