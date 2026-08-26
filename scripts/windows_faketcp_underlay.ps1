@@ -11,22 +11,40 @@ if (-not [System.Net.IPAddress]::TryParse($RemoteIPAddress, [ref]$remote) -or $r
     throw "RemoteIPAddress must be IPv4: $RemoteIPAddress"
 }
 
-$best = Find-NetRoute -RemoteIPAddress $RemoteIPAddress -ErrorAction Stop | Select-Object -First 1
-if (-not $best) { throw "no route to $RemoteIPAddress" }
-$ifIndex = [uint32]$best.InterfaceIndex
+# Find-NetRoute intentionally returns TWO objects: the selected NetIPAddress
+# followed by the selected NetRoute. Do not Select-Object -First 1 and assume
+# route properties exist; Windows Server 2025 exposes NextHop only on the
+# NetRoute object.
+$found = @(Find-NetRoute -RemoteIPAddress $RemoteIPAddress -ErrorAction Stop)
+$ip = $found | Where-Object {
+    $_.PSObject.Properties.Name -contains 'IPAddress' -and
+    $_.PSObject.Properties.Name -contains 'InterfaceIndex'
+} | Select-Object -First 1
+$route = $found | Where-Object {
+    $_.PSObject.Properties.Name -contains 'NextHop' -and
+    $_.PSObject.Properties.Name -contains 'DestinationPrefix' -and
+    $_.PSObject.Properties.Name -contains 'InterfaceIndex'
+} | Select-Object -First 1
+if (-not $ip -or -not $route) {
+    $shapes = $found | ForEach-Object { ($_.PSObject.Properties.Name | Sort-Object) -join ',' }
+    throw "Find-NetRoute did not return both NetIPAddress and NetRoute objects: $($shapes -join ' | ')"
+}
+$ifIndex = [uint32]$route.InterfaceIndex
+if ([uint32]$ip.InterfaceIndex -ne $ifIndex) {
+    throw "Find-NetRoute returned mismatched source/route interfaces: source=$($ip.InterfaceIndex) route=$ifIndex"
+}
 $adapter = Get-NetAdapter -InterfaceIndex $ifIndex -ErrorAction Stop
-$ip = Get-NetIPAddress -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction Stop |
-    Where-Object { $_.IPAddress -notlike '169.254.*' -and $_.AddressState -ne 'Duplicate' } |
-    Sort-Object @{Expression={ if ($_.AddressState -eq 'Preferred') { 0 } else { 1 } }}, PrefixLength -Descending |
-    Select-Object -First 1
-if (-not $ip) { throw "no usable IPv4 source address on interface $ifIndex" }
+$sourceIP = [string]$ip.IPAddress
+if ([string]::IsNullOrWhiteSpace($sourceIP) -or $sourceIP -like '169.254.*') {
+    throw "no usable IPv4 source address on interface $ifIndex"
+}
 
-$nextHop = [string]$best.NextHop
+$nextHop = [string]$route.NextHop
 if ([string]::IsNullOrWhiteSpace($nextHop) -or $nextHop -eq '0.0.0.0') {
     $nextHop = $RemoteIPAddress
 }
 
-# Trigger neighbor resolution. Lack of an ICMP reply is harmless; ARP/NDP work
+# Trigger neighbor resolution. Lack of an ICMP reply is harmless; ARP work
 # happens before ping decides whether the peer answered.
 & "$env:SystemRoot\System32\PING.EXE" -n 1 -w 750 $nextHop *> $null
 $neighbor = Get-NetNeighbor -InterfaceIndex $ifIndex -AddressFamily IPv4 -IPAddress $nextHop -ErrorAction SilentlyContinue |
@@ -43,7 +61,7 @@ $packetDevice = "\Device\NPF_{$guid}"
 
 $result = [ordered]@{
     remote_ip = $RemoteIPAddress
-    source_ip = [string]$ip.IPAddress
+    source_ip = $sourceIP
     interface_index = $ifIndex
     interface_alias = [string]$adapter.Name
     interface_guid = $guid
