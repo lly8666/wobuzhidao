@@ -19,6 +19,10 @@ on:
       - 'native/dtls/**'
   workflow_dispatch:
 
+concurrency:
+  group: mux-load-100m-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   actions: read
@@ -26,13 +30,11 @@ permissions:
 jobs:
   bench:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         rtt: [20, 100]
-        offered_per_stream: [20, 30, 40]
-        fec: ['off', '20:20']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -42,7 +44,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables
-      - name: Build pinned DTLS and two-session stack
+      - name: Build pinned DTLS and two-session stack once for this RTT
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -72,34 +74,39 @@ jobs:
           openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
             -subj '/CN=unrelated-dtls.invalid' \
             -keyout /tmp/muxload/assets/dtls.key -out /tmp/muxload/assets/dtls.pem >/dev/null 2>&1
-      - name: Run two simultaneous sessions on one 100 Mbit weak link
+      - name: Run 40/60/80 Mbit aggregate inner sweep
         run: |
           set -euo pipefail
-          label="rtt${{ matrix.rtt }}-load$(( ${{ matrix.offered_per_stream }} * 2 ))-${{ matrix.fec }}"
-          label="${label/:/x}"
-          sudo -E python3 scripts/bench_mux_two_session_100m_runner.py run \
-            --rtt '${{ matrix.rtt }}' --loss 20 --fec '${{ matrix.fec }}' \
-            --offered-mbps-per-stream '${{ matrix.offered_per_stream }}' --duration 2 \
-            --assets /tmp/muxload/assets --out-dir "/tmp/muxload/results/${label}"
-          echo "LABEL=${label}" >> "$GITHUB_ENV"
-      - name: Show result
+          for per_stream in 20 30 40; do
+            total=$((per_stream * 2))
+            for fec in off 20:20; do
+              safe_fec="${fec/:/x}"
+              label="rtt${{ matrix.rtt }}-load${total}-${safe_fec}"
+              echo "=== ${label} ==="
+              sudo -E python3 scripts/bench_mux_two_session_100m_runner.py run \
+                --rtt '${{ matrix.rtt }}' --loss 20 --fec "${fec}" \
+                --offered-mbps-per-stream "${per_stream}" --duration 2 \
+                --assets /tmp/muxload/assets --out-dir "/tmp/muxload/results/${label}"
+            done
+          done
+      - name: Show compact RTT results
         if: always()
         run: |
-          if test -n "${LABEL:-}" && test -f "/tmp/muxload/results/${LABEL}/result.json"; then
-            cat "/tmp/muxload/results/${LABEL}/result.json"
-          fi
-      - name: Make result artifact readable
+          python3 - <<'PY'
+          import glob,json,os
+          for p in sorted(glob.glob('/tmp/muxload/results/*/result.json')):
+              r=json.load(open(p)); a=r['probe']['aggregate']
+              print(os.path.basename(os.path.dirname(p)), 'delivery', round(a['delivery_ratio'],6), 'goodput', a['delivered_mbps_active'], 'p99_ms', a['oneway_p99_ms'], 'expansion', r['fec_plaintext_expansion'])
+          PY
+      - name: Make result artifacts readable
         if: always()
-        run: |
-          if test -n "${LABEL:-}"; then
-            sudo chmod -R a+rX "/tmp/muxload/results/${LABEL}" 2>/dev/null || true
-          fi
+        run: sudo chmod -R a+rX /tmp/muxload/results 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: mux-load-rtt${{ matrix.rtt }}-load${{ matrix.offered_per_stream }}x2-${{ matrix.fec }}
+          name: mux-load-rtt${{ matrix.rtt }}-sweep
           path: /tmp/muxload/results/
-          if-no-files-found: warn
+          if-no-files-found: error
 
   aggregate:
     if: always()
@@ -108,7 +115,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: mux-load-*
+          pattern: mux-load-rtt*-sweep
           path: /tmp/mux-load-summary
       - name: Aggregate 40/60/80 Mbit paired characterization points
         run: |
@@ -129,8 +136,8 @@ jobs:
                   off=by[(rtt,load,'off')]; fixed=by[(rtt,load,'20:20')]
                   oa=off['probe']['aggregate']; fa=fixed['probe']['aggregate']
                   streams=fixed['probe']['streams']
-                  fairness_gap=max(s['delivery_ratio'] for s in streams)-min(s['delivery_ratio'] for s in streams)
-                  row={
+                  gap=(max(s['delivery_ratio'] for s in streams)-min(s['delivery_ratio'] for s in streams))*100.0
+                  pairs.append({
                       'rtt_ms':rtt,'loss_pct':20,'offered_inner_mbps':load,
                       'off_delivery':oa['delivery_ratio'],'fixed_delivery':fa['delivery_ratio'],
                       'delivery_delta_pp':(fa['delivery_ratio']-oa['delivery_ratio'])*100.0,
@@ -145,11 +152,9 @@ jobs:
                       'off_retransmit_bytes':off['faketcp_client_retransmit_bytes'],'fixed_retransmit_bytes':fixed['faketcp_client_retransmit_bytes'],
                       'fixed_plaintext_expansion':fixed['fec_plaintext_expansion'],
                       'fixed_forward_qdisc_dropped':fixed['forward_qdisc']['dropped'],
-                      'fixed_stream_delivery_gap_pp':fairness_gap*100.0,
-                  }
-                  pairs.append(row)
-          summary={'rows':rows,'pairs':pairs}
-          pathlib.Path('/tmp/mux-load-summary/summary.json').write_text(json.dumps(summary,sort_keys=True,indent=2)+'\n')
+                      'fixed_stream_delivery_gap_pp':gap,
+                  })
+          pathlib.Path('/tmp/mux-load-summary/summary.json').write_text(json.dumps({'rows':rows,'pairs':pairs},sort_keys=True,indent=2)+'\n')
           print('MUX_LOAD_100M_SWEEP',json.dumps(pairs,sort_keys=True))
           with open('/tmp/mux-load-summary/summary.md','w') as f:
               f.write('| RTT | offered inner | delivery off→20:20 | goodput off→20:20 | p99 off→20:20 | fixed expansion | fixed stream gap |\n')
