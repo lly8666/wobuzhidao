@@ -52,26 +52,80 @@ func TestConservativeBumpsOffOneProtectionStep(t *testing.T) {
 	}
 }
 
-func TestGameTwoLaneRequestOnlyOnLowLossLowBurst(t *testing.T) {
-	low := DefaultObservation(100, 0.01, 1)
-	r, err := Recommend(low, ModeGame)
-	if err != nil {
-		t.Fatal(err)
+func TestManualLinkSpeedIsForcedAuthority(t *testing.T) {
+	obs := DefaultObservation(37, 0.01, 1)
+	auto, err := Recommend(obs, ModeBalanced)
+	if err != nil { t.Fatal(err) }
+	obs.LinkSpeedMode = LinkSpeedManual
+	obs.ManualLinkSpeedMbps = 120
+	manual, err := Recommend(obs, ModeBalanced)
+	if err != nil { t.Fatal(err) }
+	if manual.EffectiveCapacityMbps != 120 || manual.LinkSpeedMode != LinkSpeedManual {
+		t.Fatalf("manual=%+v", manual)
 	}
-	if r.LaneCount != 2 || !r.GameLaneEligible || !r.ExperimentalLane {
-		t.Fatalf("low-loss game=%+v", r)
+	if math.Abs(manual.InnerMbps/auto.InnerMbps-120.0/37.0) > 1e-9 {
+		t.Fatalf("auto=%f manual=%f", auto.InnerMbps, manual.InnerMbps)
+	}
+}
+
+func TestGameManualFourLaneAndInnerCeilingPaysForCopies(t *testing.T) {
+	obs := DefaultObservation(100, 0.01, 1)
+	obs.GameRequestedLanes = 4
+	obs.GameMaxLanes = 4
+	game, err := Recommend(obs, ModeGame)
+	if err != nil { t.Fatal(err) }
+	if game.Mode != ModeGame || game.LaneCount != 4 || game.AutoLaneAdded {
+		t.Fatalf("game=%+v", game)
 	}
 
-	highLoss := DefaultObservation(100, 0.05, 1)
-	r, _ = Recommend(highLoss, ModeGame)
-	if r.LaneCount != 1 || r.GameLaneEligible {
-		t.Fatalf("high-loss game=%+v", r)
+	singleObs := obs
+	singleObs.GameRequestedLanes = 1
+	singleObs.GameMaxLanes = 4
+	single, err := Recommend(singleObs, ModeGame)
+	if err != nil { t.Fatal(err) }
+	if math.Abs(game.InnerMbps-single.InnerMbps/4) > 1e-9 {
+		t.Fatalf("single=%f four=%f", single.InnerMbps, game.InnerMbps)
+	}
+	if math.Abs(game.WireExpansion-game.PerLaneWireExpansion*4) > 1e-9 {
+		t.Fatalf("expansion=%+v", game)
+	}
+}
+
+func TestGameAutoAddOnlyRaisesLaneFloorUpToFour(t *testing.T) {
+	obs := DefaultObservation(100, 0.10, 1)
+	obs.GameRequestedLanes = 1
+	obs.GameAutoAddLanes = true
+	obs.GameMaxLanes = 4
+	game, err := Recommend(obs, ModeGame)
+	if err != nil { t.Fatal(err) }
+	if game.Mode != ModeGame || game.LaneCount != 4 || !game.AutoLaneAdded {
+		t.Fatalf("auto game=%+v", game)
+	}
+	if game.FECProfile != "20:8" {
+		t.Fatalf("game FEC unexpectedly replaced: %+v", game)
 	}
 
-	bursty := DefaultObservation(100, 0.01, 2)
-	r, _ = Recommend(bursty, ModeGame)
-	if r.LaneCount != 1 || r.GameLaneEligible {
-		t.Fatalf("bursty game=%+v", r)
+	obs.GameRequestedLanes = 3
+	obs.Loss = 0
+	game, err = Recommend(obs, ModeGame)
+	if err != nil { t.Fatal(err) }
+	if game.LaneCount != 3 || game.AutoLaneAdded {
+		t.Fatalf("auto lane must not downshift requested floor: %+v", game)
+	}
+}
+
+func TestGameHighLossNeverChangesOutOfGameMode(t *testing.T) {
+	obs := DefaultObservation(100, 0.30, 4)
+	obs.GameRequestedLanes = 2
+	obs.GameAutoAddLanes = true
+	obs.GameMaxLanes = 4
+	game, err := Recommend(obs, ModeGame)
+	if err != nil { t.Fatal(err) }
+	if game.Mode != ModeGame || game.LaneCount < 2 || game.LaneCount > 4 {
+		t.Fatalf("game degraded=%+v", game)
+	}
+	if game.FECProfile != "20:20" || game.MeetsTarget {
+		t.Fatalf("extreme game=%+v", game)
 	}
 }
 
@@ -108,5 +162,15 @@ func TestRejectsInvalidObservation(t *testing.T) {
 	obs.CarrierExpansion = 0.9
 	if _, err := Recommend(obs, ModeBalanced); err == nil {
 		t.Fatal("expected carrier expansion validation error")
+	}
+	obs = DefaultObservation(10, 0.01, 1)
+	obs.LinkSpeedMode = LinkSpeedManual
+	if _, err := Recommend(obs, ModeBalanced); err == nil {
+		t.Fatal("expected manual speed validation error")
+	}
+	obs = DefaultObservation(10, 0.01, 1)
+	obs.GameRequestedLanes = 5
+	if _, err := Recommend(obs, ModeGame); err == nil {
+		t.Fatal("expected four-lane cap validation error")
 	}
 }

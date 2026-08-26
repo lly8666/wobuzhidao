@@ -6,7 +6,10 @@ import (
 	"math"
 )
 
-const DataShards = 20
+const (
+	DataShards   = 20
+	MaxGameLanes = 4
+)
 
 var paritySteps = [...]int{0, 4, 8, 12, 16, 20}
 
@@ -18,13 +21,26 @@ const (
 	ModeGame         Mode = "game"
 )
 
+type LinkSpeedMode string
+
+const (
+	LinkSpeedAuto   LinkSpeedMode = "auto"
+	LinkSpeedManual LinkSpeedMode = "manual"
+)
+
 type Observation struct {
-	// CapacityMbps is measured path service capacity, not application goodput.
-	// Packet loss must be estimated independently rather than baked into this
-	// number, otherwise a lossy fast path looks like a genuinely slow path.
+	// CapacityMbps is the automatic estimator's path service-capacity result,
+	// not application goodput. Packet loss is estimated independently.
 	CapacityMbps float64
-	Loss         float64
-	MeanBurst    float64
+
+	// LinkSpeedMode selects the capacity authority. Auto uses CapacityMbps.
+	// Manual is intentionally forceful and uses ManualLinkSpeedMbps even when
+	// it disagrees with the automatic estimate.
+	LinkSpeedMode       LinkSpeedMode
+	ManualLinkSpeedMbps float64
+
+	Loss      float64
+	MeanBurst float64
 
 	// CarrierExpansion is observed FakeTCP/raw transmission expansion after
 	// retransmissions. 1 means one carrier byte per logical WBD shard byte.
@@ -36,11 +52,14 @@ type Observation struct {
 	TargetDelivery float64
 	MaxWireUtil    float64
 
-	// Game mode may request two experimental lanes only on a low-loss,
-	// low-burst path. LaneCount=2 is a request for a later lane data-plane; the
-	// current release policy remains one lane.
-	GameMinRawDelivery float64
-	GameMaxMeanBurst   float64
+	// Game lanes and FEC are orthogonal. RequestedLanes is the user's floor.
+	// When AutoAddLanes is enabled, the formula may only add lanes up to
+	// GameMaxLanes; it never changes ModeGame into another mode and never drops
+	// below the requested floor. All lanes race the same logical datagram.
+	GameRequestedLanes int
+	GameAutoAddLanes   bool
+	GameMaxLanes       int
+	GameRaceTarget     float64
 }
 
 type Recommendation struct {
@@ -50,13 +69,21 @@ type Recommendation struct {
 	ParityShards int
 	FECProfile   string
 
-	InnerMbps         float64
-	PredictedDelivery float64
-	WireExpansion     float64
+	LinkSpeedMode        LinkSpeedMode
+	EffectiveCapacityMbps float64
+	InnerMbps             float64
+	PredictedDelivery     float64
+	PerLaneWireExpansion  float64
+	WireExpansion         float64
 
-	LaneCount        int
-	GameLaneEligible bool
+	LaneCount       int
+	AutoLaneAdded   bool
 	ExperimentalLane bool
+
+	// GameLaneEligible is retained for calibration/report compatibility. It no
+	// longer means "low-loss only"; game mode is always allowed and this field
+	// simply reports whether the current plan uses more than one lane.
+	GameLaneEligible bool
 
 	MeetsTarget bool
 }
@@ -64,6 +91,7 @@ type Recommendation struct {
 func DefaultObservation(capacityMbps, loss, meanBurst float64) Observation {
 	return Observation{
 		CapacityMbps:       capacityMbps,
+		LinkSpeedMode:      LinkSpeedAuto,
 		Loss:               loss,
 		MeanBurst:          meanBurst,
 		CarrierExpansion:   1,
@@ -71,8 +99,10 @@ func DefaultObservation(capacityMbps, loss, meanBurst float64) Observation {
 		FramingBytes:       56,
 		TargetDelivery:     0.995,
 		MaxWireUtil:        0.92,
-		GameMinRawDelivery: 0.97,
-		GameMaxMeanBurst:   1.5,
+		GameRequestedLanes: 2,
+		GameAutoAddLanes:   false,
+		GameMaxLanes:       MaxGameLanes,
+		GameRaceTarget:     0.9995,
 	}
 }
 
@@ -84,6 +114,7 @@ func Recommend(obs Observation, mode Mode) (Recommendation, error) {
 		return Recommendation{}, fmt.Errorf("linkpolicy: unsupported mode %q", mode)
 	}
 
+	capacity := effectiveCapacity(obs)
 	parity, predicted, meets := chooseParity(obs.Loss, obs.MeanBurst, obs.TargetDelivery)
 	if mode == ModeConservative {
 		parity = bumpParity(parity)
@@ -92,36 +123,96 @@ func Recommend(obs Observation, mode Mode) (Recommendation, error) {
 	}
 
 	lanes := 1
-	gameEligible := false
+	autoAdded := false
 	if mode == ModeGame {
-		rawDelivery := 1 - obs.Loss
-		gameEligible = rawDelivery >= obs.GameMinRawDelivery && obs.MeanBurst <= obs.GameMaxMeanBurst
-		if gameEligible {
-			lanes = 2
+		lanes = obs.GameRequestedLanes
+		if obs.GameAutoAddLanes {
+			auto := autoGameLaneCount(obs)
+			if auto > lanes {
+				lanes = auto
+				autoAdded = true
+			}
 		}
 	}
 
-	wireExpansion := framingExpansion(obs.PayloadBytes, obs.FramingBytes) * fecExpansion(parity) * obs.CarrierExpansion
-	inner := obs.CapacityMbps * obs.MaxWireUtil / wireExpansion
+	perLaneExpansion := framingExpansion(obs.PayloadBytes, obs.FramingBytes) * fecExpansion(parity) * obs.CarrierExpansion
+	totalExpansion := perLaneExpansion * float64(lanes)
+	inner := capacity * obs.MaxWireUtil / totalExpansion
 
 	return Recommendation{
-		Mode:              mode,
-		DataShards:        DataShards,
-		ParityShards:      parity,
-		FECProfile:        profileName(parity),
-		InnerMbps:         inner,
-		PredictedDelivery: predicted,
-		WireExpansion:     wireExpansion,
-		LaneCount:         lanes,
-		GameLaneEligible:  gameEligible,
-		ExperimentalLane:  lanes > 1,
-		MeetsTarget:       meets,
+		Mode:                  mode,
+		DataShards:            DataShards,
+		ParityShards:          parity,
+		FECProfile:            profileName(parity),
+		LinkSpeedMode:         obs.LinkSpeedMode,
+		EffectiveCapacityMbps: capacity,
+		InnerMbps:             inner,
+		PredictedDelivery:     predicted,
+		PerLaneWireExpansion:  perLaneExpansion,
+		WireExpansion:         totalExpansion,
+		LaneCount:             lanes,
+		AutoLaneAdded:         autoAdded,
+		ExperimentalLane:      lanes > 1,
+		GameLaneEligible:      mode == ModeGame && lanes > 1,
+		MeetsTarget:           meets,
 	}, nil
 }
 
+func effectiveCapacity(obs Observation) float64 {
+	if obs.LinkSpeedMode == LinkSpeedManual {
+		return obs.ManualLinkSpeedMbps
+	}
+	return obs.CapacityMbps
+}
+
+// autoGameLaneCount converts observed raw-path risk into a lane count without a
+// lookup table. It is a scheduling heuristic, not an independence guarantee:
+// independently authenticated associations can still share the same physical
+// congestion/loss cause. The formula therefore only controls how many copies
+// are raced; MeetsTarget remains the per-lane FEC prediction.
+func autoGameLaneCount(obs Observation) int {
+	floor := obs.GameRequestedLanes
+	limit := obs.GameMaxLanes
+	if floor >= limit || obs.Loss <= 0 {
+		return floor
+	}
+
+	// Burstiness increases the effective miss risk continuously instead of via
+	// hard loss thresholds. sqrt keeps a long bad run from immediately pinning
+	// every mildly lossy path to four lanes.
+	risk := obs.Loss * math.Sqrt(obs.MeanBurst)
+	if risk < 1e-9 {
+		return floor
+	}
+	if risk > 0.95 {
+		risk = 0.95
+	}
+	residual := 1 - obs.GameRaceTarget
+	need := floor
+	if residual > 0 && residual < 1 {
+		n := int(math.Ceil(math.Log(residual) / math.Log(risk)))
+		if n > need {
+			need = n
+		}
+	}
+	if need > limit {
+		need = limit
+	}
+	if need < floor {
+		need = floor
+	}
+	return need
+}
+
 func validateObservation(obs Observation) error {
+	if obs.LinkSpeedMode != LinkSpeedAuto && obs.LinkSpeedMode != LinkSpeedManual {
+		return errors.New("linkpolicy: link speed mode must be auto or manual")
+	}
 	if obs.CapacityMbps <= 0 || math.IsNaN(obs.CapacityMbps) || math.IsInf(obs.CapacityMbps, 0) {
-		return errors.New("linkpolicy: capacity must be finite and positive")
+		return errors.New("linkpolicy: automatic capacity must be finite and positive")
+	}
+	if obs.LinkSpeedMode == LinkSpeedManual && (obs.ManualLinkSpeedMbps <= 0 || math.IsNaN(obs.ManualLinkSpeedMbps) || math.IsInf(obs.ManualLinkSpeedMbps, 0)) {
+		return errors.New("linkpolicy: manual link speed must be finite and positive")
 	}
 	if obs.Loss < 0 || obs.Loss >= 1 || math.IsNaN(obs.Loss) {
 		return errors.New("linkpolicy: loss must be in [0,1)")
@@ -141,11 +232,14 @@ func validateObservation(obs Observation) error {
 	if obs.MaxWireUtil <= 0 || obs.MaxWireUtil > 1 {
 		return errors.New("linkpolicy: max wire utilization must be in (0,1]")
 	}
-	if obs.GameMinRawDelivery <= 0 || obs.GameMinRawDelivery > 1 {
-		return errors.New("linkpolicy: game raw-delivery gate must be in (0,1]")
+	if obs.GameRequestedLanes < 1 || obs.GameRequestedLanes > MaxGameLanes {
+		return fmt.Errorf("linkpolicy: requested game lanes must be in [1,%d]", MaxGameLanes)
 	}
-	if obs.GameMaxMeanBurst < 1 {
-		return errors.New("linkpolicy: game burst gate must be >= 1")
+	if obs.GameMaxLanes < obs.GameRequestedLanes || obs.GameMaxLanes > MaxGameLanes {
+		return fmt.Errorf("linkpolicy: max game lanes must be in [%d,%d]", obs.GameRequestedLanes, MaxGameLanes)
+	}
+	if obs.GameRaceTarget <= 0 || obs.GameRaceTarget >= 1 {
+		return errors.New("linkpolicy: game race target must be in (0,1)")
 	}
 	return nil
 }
