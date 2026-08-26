@@ -1,0 +1,161 @@
+name: mux-load-100m
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/mux-load-100m.yml'
+      - 'scripts/bench_mux_two_session_100m.py'
+      - 'scripts/udp_multistream_oneway_probe.c'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'internal/faketcp/**'
+      - 'internal/linkdata/**'
+      - 'internal/session/**'
+      - 'internal/control/**'
+      - 'internal/realityfront/**'
+      - 'native/dtls/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: rtt20-off
+            rtt: 20
+            fec: off
+          - label: rtt20-fixed20x20
+            rtt: 20
+            fec: '20:20'
+          - label: rtt100-off
+            rtt: 100
+            fec: off
+          - label: rtt100-fixed20x20
+            rtt: 100
+            fec: '20:20'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables
+      - name: Build pinned DTLS and two-session stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/muxload/assets
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/muxload/assets/wbd_dtls_shim
+          gcc -O2 -Wall -Wextra -Werror scripts/udp_multistream_oneway_probe.c -lm -o /tmp/muxload/assets/udp_multistream_oneway_probe
+          python3 -m py_compile scripts/bench_mux_two_session_100m.py
+          go test ./internal/control ./internal/linkdata ./internal/session ./internal/faketcp ./internal/realityfront ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux -count=1
+          go build -trimpath -o /tmp/muxload/assets/wbd-reality-front ./cmd/wbd-reality-front
+          go build -trimpath -o /tmp/muxload/assets/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/muxload/assets/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/muxload/assets/wbd-link-proxy ./cmd/wbd-link-proxy
+          go build -trimpath -o /tmp/muxload/assets/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-front.invalid' \
+            -keyout /tmp/muxload/assets/front.key -out /tmp/muxload/assets/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-dtls.invalid' \
+            -keyout /tmp/muxload/assets/dtls.key -out /tmp/muxload/assets/dtls.pem >/dev/null 2>&1
+      - name: Run two simultaneous sessions on one 100 Mbit weak link
+        run: |
+          set -euo pipefail
+          sudo -E python3 scripts/bench_mux_two_session_100m.py run \
+            --rtt '${{ matrix.rtt }}' --loss 20 --fec '${{ matrix.fec }}' \
+            --offered-mbps-per-stream 20 --duration 2 \
+            --assets /tmp/muxload/assets --out-dir '/tmp/muxload/results/${{ matrix.label }}'
+      - name: Show result
+        if: always()
+        run: |
+          if test -f '/tmp/muxload/results/${{ matrix.label }}/result.json'; then
+            cat '/tmp/muxload/results/${{ matrix.label }}/result.json'
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mux-load-${{ matrix.label }}
+          path: /tmp/muxload/results/${{ matrix.label }}/
+          if-no-files-found: warn
+
+  aggregate:
+    if: always()
+    needs: bench
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mux-load-*
+          path: /tmp/mux-load-summary
+      - name: Aggregate four paired characterization points
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import glob,json,pathlib
+          files=sorted(glob.glob('/tmp/mux-load-summary/**/result.json',recursive=True))
+          if len(files)!=4:
+              raise SystemExit(f'expected 4 valid result.json files, got {len(files)}: {files}')
+          rows=[json.load(open(p)) for p in files]
+          by={(int(r['rtt_ms']),r['fec']):r for r in rows}
+          pairs=[]
+          for rtt in (20,100):
+              off=by[(rtt,'off')]; fixed=by[(rtt,'20:20')]
+              oa=off['probe']['aggregate']; fa=fixed['probe']['aggregate']
+              row={
+                  'rtt_ms':rtt,'loss_pct':20,
+                  'off_delivery':oa['delivery_ratio'],'fixed_delivery':fa['delivery_ratio'],
+                  'delivery_delta_pp':(fa['delivery_ratio']-oa['delivery_ratio'])*100.0,
+                  'off_goodput_mbps':oa['delivered_mbps_active'],'fixed_goodput_mbps':fa['delivered_mbps_active'],
+                  'goodput_delta_mbps':fa['delivered_mbps_active']-oa['delivered_mbps_active'],
+                  'off_p50_ms':oa['oneway_p50_ms'],'fixed_p50_ms':fa['oneway_p50_ms'],
+                  'p50_delta_ms':fa['oneway_p50_ms']-oa['oneway_p50_ms'],
+                  'off_p99_ms':oa['oneway_p99_ms'],'fixed_p99_ms':fa['oneway_p99_ms'],
+                  'p99_delta_ms':fa['oneway_p99_ms']-oa['oneway_p99_ms'],
+                  'off_cpu_s':off['resources']['cpu_seconds'],'fixed_cpu_s':fixed['resources']['cpu_seconds'],
+                  'off_peak_rss_kib':off['resources']['peak_rss_kib'],'fixed_peak_rss_kib':fixed['resources']['peak_rss_kib'],
+                  'off_retransmit_bytes':off['faketcp_client_retransmit_bytes'],'fixed_retransmit_bytes':fixed['faketcp_client_retransmit_bytes'],
+                  'off_plaintext_expansion':off['fec_plaintext_expansion'],'fixed_plaintext_expansion':fixed['fec_plaintext_expansion'],
+                  'fixed_repair_bytes':fixed['link_plaintext_meter']['aggregate']['fec_repair_bytes'],
+                  'fixed_systematic_bytes':fixed['link_plaintext_meter']['aggregate']['fec_systematic_bytes'],
+                  'off_forward_qdisc_dropped':off['forward_qdisc']['dropped'],'fixed_forward_qdisc_dropped':fixed['forward_qdisc']['dropped'],
+              }
+              pairs.append(row)
+          pathlib.Path('/tmp/mux-load-summary/summary.json').write_text(json.dumps({'rows':rows,'pairs':pairs},sort_keys=True,indent=2)+'\n')
+          print('MUX_LOAD_100M_SUMMARY',json.dumps(pairs,sort_keys=True))
+          with open('/tmp/mux-load-summary/summary.md','w') as f:
+              f.write('| RTT | delivery off→20:20 | goodput off→20:20 | p99 off→20:20 | CPU off→20:20 | RSS off→20:20 | fixed FEC expansion |\n')
+              f.write('|---:|---:|---:|---:|---:|---:|---:|\n')
+              for x in pairs:
+                  f.write(f"| {x['rtt_ms']} ms | {x['off_delivery']:.3f} → {x['fixed_delivery']:.3f} | {x['off_goodput_mbps']:.2f} → {x['fixed_goodput_mbps']:.2f} Mbit/s | {x['off_p99_ms']:.2f} → {x['fixed_p99_ms']:.2f} ms | {x['off_cpu_s']:.2f} → {x['fixed_cpu_s']:.2f} s | {x['off_peak_rss_kib']} → {x['fixed_peak_rss_kib']} KiB | {x['fixed_plaintext_expansion']:.3f}x |\n")
+          PY
+          cat /tmp/mux-load-summary/summary.md
+          cat /tmp/mux-load-summary/summary.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-load-100m-summary
+          path: |
+            /tmp/mux-load-summary/summary.json
+            /tmp/mux-load-summary/summary.md
