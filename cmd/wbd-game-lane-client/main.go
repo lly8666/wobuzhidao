@@ -13,6 +13,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"syscall"
+	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/gamelane"
 )
@@ -29,6 +30,7 @@ type client struct {
 	lanes []*laneConn
 	enc   *gamelane.Encoder
 	dec   *gamelane.Decoder
+	pacer *gamelane.InnerPacer
 
 	peerMu sync.RWMutex
 	peer   *net.UDPAddr
@@ -43,10 +45,12 @@ type client struct {
 func main() {
 	var listen, lanesRaw, sessionHex string
 	var replayWindow int
+	var innerRateMbps float64
 	flag.StringVar(&listen, "listen", "", "local UDP address used by the platform client")
 	flag.StringVar(&lanesRaw, "lanes", "", "comma-separated independent wbd-link-proxy UDP addresses, 1..4")
 	flag.StringVar(&sessionHex, "session-id", "auto", "32 hex chars or auto")
 	flag.IntVar(&replayWindow, "replay-window", 4096, "bounded first-arrival dedupe window")
+	flag.Float64Var(&innerRateMbps, "inner-rate-mbps", 0, "logical inner Mbps ceiling from the external link-speed/FEC/lane controller; 0 disables pacing")
 	flag.Parse()
 	laneAddrs, err := parseLaneAddrs(lanesRaw)
 	if err != nil { fatal(err) }
@@ -57,12 +61,14 @@ func main() {
 	if err != nil { fatal(err) }
 	dec, err := gamelane.NewDecoder(sid, replayWindow)
 	if err != nil { fatal(err) }
+	pacer, err := gamelane.NewInnerPacer(innerRateMbps)
+	if err != nil { fatal(err) }
 	la, err := net.ResolveUDPAddr("udp4", listen)
 	if err != nil { fatal(err) }
 	app, err := net.ListenUDP("udp4", la)
 	if err != nil { fatal(err) }
 	defer app.Close()
-	c := &client{app: app, enc: enc, dec: dec}
+	c := &client{app: app, enc: enc, dec: dec, pacer: pacer}
 	for i, a := range laneAddrs {
 		conn, err := net.DialUDP("udp4", nil, a)
 		if err != nil { fatal(err) }
@@ -80,8 +86,8 @@ func main() {
 		go func(index int) { errCh <- c.laneLoop(index) }(i)
 	}
 
-	fmt.Printf("WBD_GAME_LANE_CLIENT_READY listen=%s session_id=%x lanes=%d mode=race max_lanes=%d experimental=1\n",
-		app.LocalAddr(), sid, len(c.lanes), gamelane.MaxLanes)
+	fmt.Printf("WBD_GAME_LANE_CLIENT_READY listen=%s session_id=%x lanes=%d mode=race max_lanes=%d inner_ceiling_mbps=%.6f experimental=1\n",
+		app.LocalAddr(), sid, len(c.lanes), gamelane.MaxLanes, pacer.Mbps())
 	for _, lane := range c.lanes {
 		fmt.Printf("WBD_GAME_LANE_OUTER lane=%d local=%s proxy=%s association_required=independent\n", lane.id, lane.conn.LocalAddr(), lane.conn.RemoteAddr())
 	}
@@ -108,6 +114,9 @@ func (c *client) appLoop() error {
 		if err != nil { return err }
 		if n == 0 { continue }
 		if !c.acceptPeer(from) { continue }
+		if wait := c.pacer.Reserve(n, time.Now()); wait > 0 {
+			time.Sleep(wait)
+		}
 		_, copies, err := c.enc.WrapCopies(buf[:n], laneIDs)
 		if err != nil { return err }
 		atomic.AddUint64(&c.logicalTX, 1)
