@@ -12,7 +12,7 @@ import (
 const (
 	defaultFakeTCPLocalPort  = 45101
 	defaultFakeTCPSourcePort = 41001
-	defaultDTLSPlainPort      = 46101
+	defaultDTLSPlainPort     = 46101
 	defaultLinkListenPort     = 47101
 	defaultMTU                = 1400
 )
@@ -142,13 +142,41 @@ func (u Underlay) Validate() error {
 	if ip, err := netip.ParseAddr(u.SourceIP); err != nil || !ip.Is4() {
 		return errors.New("underlay source IP must be IPv4")
 	}
-	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
+	if !strings.HasPrefix(u.PacketDevice, `\\Device\\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
 		return errors.New("underlay packet device must be an Npcap device")
 	}
 	if !validMAC(u.SourceMAC) || !validMAC(u.NextHopMAC) {
 		return errors.New("underlay source and next-hop MACs are required")
 	}
 	return nil
+}
+
+// BuildBootstrap returns the setup-only Reality command. Keeping this command
+// in windowsruntime lets the GUI controller run admission before any Wintun
+// capture mutation without duplicating authentication or ticket arguments.
+func BuildBootstrap(profile Profile) (Command, error) {
+	profile = profile.normalized()
+	if err := profile.Validate(); err != nil {
+		return Command{}, err
+	}
+	return buildBootstrapCommand(profile), nil
+}
+
+func buildBootstrapCommand(profile Profile) Command {
+	return Command{
+		Name: "reality-bootstrap",
+		Path: filepath.Join(profile.BinDir, "wbd-reality-front.exe"),
+		Args: []string{
+			"client",
+			"-addr", profile.ServerFront,
+			"-server-name", profile.ServerName,
+			"-route-key", profile.RouteKey,
+			"-username", profile.Username,
+			"-password", profile.Password,
+			"-verify-server=" + strconv.FormatBool(profile.VerifyServer),
+			"-ticket-out", profile.TicketPath,
+		},
+	}
 }
 
 func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) {
@@ -178,17 +206,6 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	raw, _ := netip.ParseAddrPort(profile.ServerRaw)
 	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
 	loop := func(port int) string { return "127.0.0.1:" + strconv.Itoa(port) }
-
-	bootstrapArgs := []string{
-		"client",
-		"-addr", profile.ServerFront,
-		"-server-name", profile.ServerName,
-		"-route-key", profile.RouteKey,
-		"-username", profile.Username,
-		"-password", profile.Password,
-		"-verify-server=" + strconv.FormatBool(profile.VerifyServer),
-		"-ticket-out", profile.TicketPath,
-	}
 
 	fakeArgs := []string{
 		"client",
@@ -246,7 +263,7 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	}
 
 	return Plan{
-		Bootstrap:    Command{Name: "reality-bootstrap", Path: bin("wbd-reality-front.exe"), Args: bootstrapArgs},
+		Bootstrap:    buildBootstrapCommand(profile),
 		FakeTCP:      Command{Name: "faketcp", Path: bin("wbd-faketcp.exe"), Args: fakeArgs},
 		DTLS:         Command{Name: "dtls", Path: bin("wbd_dtls_shim.exe"), Args: dtlsArgs},
 		Link:         Command{Name: "link", Path: bin("wbd-link-proxy.exe"), Args: linkArgs},
