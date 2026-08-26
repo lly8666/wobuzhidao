@@ -141,9 +141,9 @@ class HandoffContractTest(unittest.TestCase):
         self.assertIn("V2-M6A | Linux packet-preserving L3/TUN regression core | **IMPLEMENTED**", roadmap)
         self.assertIn("V2-M6C | OpenWrt transparent capture | **PLANNED FINAL SHAPE: TPROXY + POLICY ROUTING**", roadmap)
         self.assertIn("V2-M7A | Windows client capture | **PLANNED FINAL SHAPE: TUN/WINTUN-CLASS L3**", roadmap)
-        self.assertIn("V2-M8A | Reality-like same-entry bootstrap | **IMPLEMENTED; SIMPLE SHARED USER/PASS PATH UNDER CI QUALIFICATION**", roadmap)
-        self.assertIn("V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **CURRENT TRANSPORT WORK**", roadmap)
-        self.assertIn("V2-M8C | shared-account concurrent session admission | **IN PROGRESS**", roadmap)
+        self.assertIn("V2-M8A | Reality-like same-entry bootstrap | **IMPLEMENTED; SIMPLE SHARED USER/PASS PATH QUALIFIED**", roadmap)
+        self.assertIn("V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **TRANSPORT REFERENCE RETAINED; LEGACY RECOVERY IS DEFAULT**", roadmap)
+        self.assertIn("V2-M8C | shared-account concurrent transport/session fan-out | **CURRENT**", roadmap)
         self.assertIn("V2-M10 | release qualification | protocol regression -> OpenWrt TPROXY one-shot VPN -> Windows TUN one-shot VPN", roadmap)
         self.assertIn("100 Mbit/s physical-link ceiling", roadmap)
         self.assertIn("same pair may be used by several devices simultaneously", roadmap)
@@ -152,6 +152,15 @@ class HandoffContractTest(unittest.TestCase):
         self.assertIn("Nominal matrix size: **126 cases**", bench)
         self.assertIn("later-datagram bypass", bench)
         self.assertIn("CPU ms per delivered MiB", bench)
+
+        mux_bench = (ROOT / "docs/benchmarks/v2-mux-two-session-100m.md").read_text(encoding="utf-8")
+        self.assertIn("32918572671", mux_bench)
+        self.assertIn("setup loss: 0%", mux_bench)
+        self.assertIn("measurement loss: random 20%", mux_bench)
+        self.assertIn("0.8022 -> **1.0000**", mux_bench)
+        self.assertIn("0.8062 -> **1.0000**", mux_bench)
+        self.assertIn("2.1622x", mux_bench)
+        self.assertIn("2.1597x", mux_bench)
 
     def test_no_required_binary_state_at_bootstrap(self):
         dp = json.loads((ROOT / ".wbd/handoff/data-plane.json").read_text())
