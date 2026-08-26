@@ -1,6 +1,6 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 46,
+  "continuity_sequence": 47,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
@@ -14,31 +14,25 @@
     "local_optimization_stop_rule": "Prioritize first-complete inner datagram delivery and balanced independent sessions. Never gate available systematic data on cumulative TCP repair, do not add multi-tenant identity complexity, do not change legacy FakeTCP recovery or fixed 20:20 during platform integration, and reject extra throughput if it requires hundreds of milliseconds of persistent queueing. Platform routing convenience is not a reason to reopen frozen FEC, FakeTCP, DTLS, Reality-front, ticket/LiveID, association-fanout, or one-lane semantics."
   },
   "continuation_cursor": {
-    "last_completed_action": "Consumed the corrected mux-load-100m authority and closed the capacity cursor. GitHub Actions run 32920925944 on head a3d8b05a875b2880c69cb4d6bada967eef8c17f9 completed bench(20), bench(100), and aggregate successfully and produced unexpired RTT20, RTT100, and aggregate artifacts. Fixed 20:20 at 40 Mbit/s aggregate inner delivered 100% with p99 21.768ms at RTT20 and 60.711ms at RTT100; at 60 Mbit/s p99 rose to 286.604/210.995ms and at 80 Mbit/s to 956.262/913.954ms. Therefore the release operating point stays at 40 Mbit/s and no 50 Mbit/s midpoint is release-critical. Recorded the decision in ADR-0010 and docs/benchmarks/v2-mux-two-session-100m.md. Then started platform integration without changing frozen transport: added internal/platformproxy WBDP frames (UDP datagram plus TCP open/data/cumulative-ack/close with FlowID and byte offsets), added a server-side UDP relay keyed by (wbd-link-server-mux service peer, FlowID) so same-account independent LiveID sessions cannot cross-route even when they reuse FlowID values, added isolation/codec tests, and added cmd/wbd-platform-proxy-server. The server relay receives full UDP replies before applying the WBDP frame limit so oversized datagrams are rejected rather than silently truncated.",
+    "last_completed_action": "Consumed the corrected mux-load-100m authority and closed the capacity cursor. GitHub Actions run 32920925944 on head a3d8b05a875b2880c69cb4d6bada967eef8c17f9 completed bench(20), bench(100), and aggregate successfully and produced unexpired RTT20, RTT100, and aggregate artifacts. Fixed 20:20 at 40 Mbit/s aggregate inner delivered 100% with p99 21.768ms at RTT20 and 60.711ms at RTT100; at 60 Mbit/s p99 rose to 286.604/210.995ms and at 80 Mbit/s to 956.262/913.954ms. Therefore the release operating point stays at 40 Mbit/s and no 50 Mbit/s midpoint is release-critical. Recorded the decision in ADR-0010 and docs/benchmarks/v2-mux-two-session-100m.md. Then started platform integration without changing frozen transport: added internal/platformproxy WBDP frames (UDP datagram plus TCP open/data/cumulative-ack/close with FlowID and byte offsets), added a server-side UDP relay keyed by (wbd-link-server-mux service peer, FlowID) so same-account independent LiveID sessions cannot cross-route even when they reuse FlowID values, added isolation/codec tests, and added cmd/wbd-platform-proxy-server. The server relay receives full UDP replies before applying the WBDP frame limit so oversized datagrams are rejected rather than silently truncated. Substantive checkpoint ab33e24bf971bcce04a903b849d24d3216728d74 passed repository ci run 32924768334 with Go tests and Handoff tests both successful.",
     "current_task": "Complete the first executable OpenWrt platform slice: transparent UDP TPROXY capture and transparent return on the OpenWrt/client side, feeding WBDP UDPDatagram frames through the existing local UDP application interface of wbd-link-proxy. The server-side UDP egress relay already exists. Keep the WBD transport/session stack opaque to platformproxy and do not change linkdata/FEC/DTLS/FakeTCP/Reality/ticket/LiveID semantics.",
     "why_now": "The corrected 100 Mbit/s sweep reproduced the latency cliff and ADR-0010 freezes the release transport at 40 Mbit/s aggregate inner, so more capacity work would violate the latency-first stop rule. PROJECT_CONSTITUTION requires OpenWrt TPROXY plus policy routing and mandatory underlay escape, with real DNS/TCP/UDP and cleanup in the final one-shot. scripts/openwrt_tproxy.sh already installs and removes the nft/ip state but explicitly lacked the user-space transparent adapter. wbd-link-proxy already transports opaque complete application datagrams, while wbd-link-server-mux gives each LiveID its own connected service UDP peer; those boundaries allow the platform adapter to be added above the frozen WBD link.",
     "done_when": "A Linux/OpenWrt transparent UDP adapter can bind the configured TPROXY port, recover the original UDP destination, allocate stable per-flow FlowIDs, send WBDP UDPDatagram frames to the local wbd-link-proxy app socket, map reverse WBDP frames back to the intercepted client with transparent source addressing, and cleanly expire flow state. Unit tests cover original-destination/flow mapping and no cross-flow routing; a root/network-namespace integration proves at least real DNS/UDP through the installed TPROXY+policy-routing rules with underlay escape and cleanup. Then continue with the TCP open/data/ack/close adapter required for the final real TCP gate, without reopening transport semantics.",
     "next_atomic_action": "Implement the Linux/OpenWrt client-side transparent UDP adapter above internal/platformproxy. Use the existing scripts/openwrt_tproxy.sh default capture port 12345 unless explicitly overridden. Recover original destination from the TPROXY socket, key local flow state by intercepted client endpoint plus original destination/protocol, assign a nonzero FlowID per flow, and exchange only WBDP UDPDatagram frames with the local wbd-link-proxy UDP application socket. Reverse frames must be emitted to the intercepted client with the remote/original peer as transparent source; never route them back into WBD capture. Add deterministic non-root tests for flow identity/mapping and a Linux root/netns qualification path for TPROXY original-destination plus transparent reply. Do not add a new transport dependency, do not change FEC/FakeTCP/DTLS/session semantics, and do not start TCP work until the UDP slice is clean."
   },
   "resume_read_set": [
-    ".wbd/handoff/README.md",
     ".wbd/handoff/current.json",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    "docs/architecture/ADR-0009-shared-account-session-fanout.md",
     "docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md",
-    "docs/benchmarks/v2-mux-two-session-100m.md",
     "deps/security-lock.json",
     "deps/oracle-lock.json",
     "scripts/openwrt_tproxy.sh",
-    "tests/test_openwrt_tproxy.py",
     "internal/platformproxy/frame.go",
     "internal/platformproxy/udp_relay.go",
-    "cmd/wbd-platform-proxy-server/main.go",
     "cmd/wbd-link-proxy/main.go",
-    "cmd/wbd-link-server-mux/main.go",
-    "internal/linkdata/path.go"
+    "cmd/wbd-link-server-mux/main.go"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
@@ -62,9 +56,9 @@
     "release_gate": "Protocol is frozen by ADR-0010 at the 40 Mbit/s aggregate-inner operating point. Remaining release gates are one clean OpenWrt TPROXY install -> front/FakeTCP/DTLS/LINK -> real DNS/TCP/UDP -> clean restore, then one clean Windows TUN/Wintun-class install -> same application gate -> clean restore."
   },
   "local_test_snapshot": {
-    "authority": "repository_ci_live_plus_snapshot_not_local_shell",
-    "tested_commit": "a12874d48baf49fc8c42f0db9bbef42f1250d181",
+    "authority": "snapshot_not_live",
+    "tested_commit": "ab33e24bf971bcce04a903b849d24d3216728d74",
     "result": "pass",
-    "command": "GitHub Actions ci run 32924682018 on a12874d48baf49fc8c42f0db9bbef42f1250d181 completed SUCCESS: Go tests SUCCESS and Handoff tests SUCCESS; transport benchmark jobs were path/condition skipped. Earlier frame-only head 4e35c5e26a88cfa63f7ac93fe5c5ecb5c311b4e4 also passed ci run 32924397106. The current substantive checkpoint ab33e24bf971bcce04a903b849d24d3216728d74 differs from a12874d only by changing the server UDP upstream read buffer from MaxPayload to 65535 so oversized UDP replies are not silently truncated; its own ci run 32924768334 was queued at handoff-write time and must be live-refreshed rather than assumed green. No local shell checkout was used as authority; repository Actions is the live test source."
+    "command": "Repository-backed CI snapshot only: GitHub Actions ci run 32924768334 on substantive checkpoint ab33e24bf971bcce04a903b849d24d3216728d74 completed SUCCESS with Go tests SUCCESS and Handoff tests SUCCESS; transport benchmark jobs were condition-skipped. Sequence 46 metadata CI exposed handoff-contract-only errors (resume_read_set >12 and a noncanonical snapshot authority string); sequence 47 corrects those metadata fields. This snapshot is intentionally non-live and every takeover must refresh current HEAD/PR/Actions before relying on it."
   }
 }
