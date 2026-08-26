@@ -57,7 +57,7 @@ jobs:
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-windows-gui.exe")) { throw 'wbd-windows-gui.exe not built' }
           Write-Output 'WBD_WINDOWS_PACKET_BACKENDS_BUILD_PASS'
           Write-Output 'WBD_WINDOWS_GUI_BUILD_PASS native_win32=1 tray=Shell_NotifyIconW close_to_tray=1 start_minimized=1 exit_cleanup=automatic'
-      - name: Fetch locked personal-use Npcap installer from official origin
+      - name: Fetch and inspect locked personal-use Npcap payload from official origin
         shell: pwsh
         run: |
           $source = Get-Content ./scripts/windows_npcap_prepare.ps1 -Raw
@@ -68,8 +68,30 @@ jobs:
           if ($source -notmatch [regex]::Escape($versionLock) -or $source -notmatch [regex]::Escape('https://npcap.com/dist/') -or $source -notmatch [regex]::Escape('Nmap Software LLC')) {
             throw 'Npcap helper is not pinned to the qualified official release/origin/signer'
           }
+
           & ./scripts/windows_npcap_prepare.ps1 -Action Fetch -DownloadDirectory "$env:RUNNER_TEMP\wbd-npcap"
           if ($LASTEXITCODE -ne 0) { throw "Npcap fetch helper exited $LASTEXITCODE" }
+          $installer = "$env:RUNNER_TEMP\wbd-npcap\npcap-1.88.exe"
+          if (-not (Test-Path -LiteralPath $installer)) { throw 'Npcap installer was not downloaded' }
+
+          # Inspect the official installer payload in the ephemeral runner only.
+          # The extracted DLL is neither committed nor uploaded as an artifact.
+          $sevenZip = Join-Path $env:ProgramFiles '7-Zip\7z.exe'
+          if (-not (Test-Path -LiteralPath $sevenZip)) { throw '7-Zip is required to inspect the Npcap installer payload' }
+          $extract = "$env:RUNNER_TEMP\wbd-npcap-payload"
+          & $sevenZip x $installer "-o$extract" -y | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw "7-Zip could not inspect Npcap installer: exit=$LASTEXITCODE" }
+          $wpcaps = @(Get-ChildItem -Path $extract -Recurse -Filter wpcap.dll -File -ErrorAction SilentlyContinue)
+          if ($wpcaps.Count -eq 0) { throw 'official Npcap installer payload contains no wpcap.dll' }
+          foreach ($dll in $wpcaps) {
+            $sig = Get-AuthenticodeSignature -FilePath $dll.FullName
+            if ($sig.Status -ne 'Valid' -or [string]$sig.SignerCertificate.Subject -notmatch 'Nmap Software LLC') {
+              throw "untrusted wpcap.dll payload: path=$($dll.FullName) status=$($sig.Status) signer=$($sig.SignerCertificate.Subject)"
+            }
+          }
+          Write-Output "WBD_WINDOWS_NPCAP_WPCAP_FETCH_PASS version=1.88 copies=$($wpcaps.Count) signer=Nmap_Software_LLC"
+          Remove-Item -LiteralPath $extract -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath $installer -Force -ErrorAction SilentlyContinue
           Write-Output 'WBD_WINDOWS_NPCAP_FETCH_QUALIFIED version=1.88 origin=npcap.com redistribution=none'
       - name: Resolve physical FakeTCP underlay before capture
         shell: pwsh
