@@ -1,64 +1,86 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 49,
+  "continuity_sequence": 50,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "be3174a2cab0b032662dafda545c887c557d95f1",
+  "checkpoint_based_on_head_sha": "d548a9488c39f7a4109347c883c53c693bd807c6",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Build a personal-use weak-network VPN for OpenWrt/Linux ↔ Linux or Windows with UDP/datagram-like earliest-complete inner delivery over WBD-owned TCP-shaped FakeTCP, a conservative release operating point on a physical link at or below 100 Mbit/s, shared username/password admission for multiple independent LiveID sessions, OpenWrt TPROXY capture with full-cone UDP behavior, and Windows TUN/Wintun-class capture.",
-    "current_milestone": "V2.2 transport/session semantics remain protocol-frozen at the qualified 40 Mbit/s aggregate-inner operating point. The OpenWrt platform adapter is now qualified independently of the WBD transport for both UDP and TCP: UDP uses endpoint-independent full-cone mapping/filtering keyed by the intercepted source endpoint with per-LiveID server isolation, and TCP uses adapter-owned WBDP byte offsets/cumulative ACK/retransmission above the frozen WBD datagram link. Root network-namespace gates pass real nft TPROXY capture, original-destination recovery, transparent return, full-cone EIM/EIF, underlay escape and cleanup. The next missing release slice is one actual OpenWrt one-shot that inserts the already-qualified Reality-front -> WBD FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK path between the platform client and platform server, then proves real DNS/UDP/TCP before moving to Windows.",
-    "local_optimization_stop_rule": "Do not reopen FEC, FakeTCP, DTLS, Reality-front, ticket/LiveID, association fan-out, one-lane semantics or the 40 Mbit/s release operating point for platform convenience. Preserve earliest-complete WBD datagram delivery. Full-cone UDP is a platform mapping/filtering property; TCP application reliability remains only in the WBDP platform adapter. Do not import Xray/VLESS/Vision stream semantics into WBD."
+    "terminal_goal": "Ship a personal weak-network VPN for OpenWrt/Linux <-> Linux/Windows over WBD-owned TCP-shaped FakeTCP with earliest-complete inner datagram delivery, pinned wolfSSL DTLS 1.3, Reality-like setup/admission, OpenWrt TPROXY/full-cone UDP, Windows Wintun, optional low-loss multi-lane game mode, formula-based FEC/inner-rate control, and a Windows GUI with system-tray lifecycle.",
+    "current_milestone": "OpenWrt release composition is complete and live-qualified. Windows Wintun capture/routing/underlay discovery and real bidirectional administrator dataplane are qualified. Game race mode supports 1..4 genuinely independent WBD associations and its settings/fullstack matrices are green. Formula-based link policy/discovery is green. Native Windows GUI shell compiles and implements minimize/X-to-tray semantics. The remaining release-critical blocker is the Windows WinSock build of the exact pinned wolfSSL DTLS 1.3 shim, followed by wiring the Windows runtime executor into GUI Connect/Disconnect and one clean Windows frozen-WBD end-to-end one-shot.",
+    "local_optimization_stop_rule": "Do not reopen ADR-0010 release transport semantics: 40 Mbit/s aggregate-inner release operating point, legacy FakeTCP default, current pinned wolfSSL DTLS source, Reality setup-only semantics, ticket/LiveID isolation and frozen single-association LINK semantics remain authority. Multi-lane game mode is an aggregation layer over independent frozen associations. FEC recommendation research must not silently change the live wire profile."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed and root-qualified the OpenWrt platform layer through be3174a2cab0b032662dafda545c887c557d95f1. Full-cone UDP was reimplemented from behavior rather than copied source: the client maps one intercepted source addr:port to one FlowID across destinations; the server keeps one unconnected AF-specific UDP mapping socket per (wbd-link-server-mux service peer, FlowID); outbound packets may target multiple remotes and inbound packets from previously unseen remotes are accepted and returned with their real remote source in WBDP Peer. This provides endpoint-independent mapping and endpoint-independent filtering while preserving LiveID isolation. The root UDP gate logs WBD_OPENWRT_UDP_FULLCONE_EIM_PASS, WBD_OPENWRT_UDP_FULLCONE_EIF_PASS, TPROXY capture, underlay escape and cleanup. Added a single service-socket UDP/TCP dispatcher behind wbd-link-server-mux, a bounded per-flow TCP reliability machine, server TCP relay keyed by (service peer, FlowID), Linux IP_TRANSPARENT TCP listener/original-destination recovery, client TCPOpen/DATA/ACK/CLOSE handling with explicit OPEN ACK gating and bounded retransmission, and a root TCP TPROXY gate. GitHub Actions on be3174a2cab0b032662dafda545c887c557d95f1: ci run 32929706487 SUCCESS with Go tests and Handoff tests; openwrt-udp-tproxy run 32929706403 SUCCESS; openwrt-tcp-tproxy run 32929706457 SUCCESS; handoff-verify run 32929706491 SUCCESS. The UDP/TCP platform gates deliberately connect platform client/server through the local WBDP service path and therefore do not claim the final Reality/FakeTCP/DTLS/LINK release one-shot. Hairpin/NAT loopback is not separately qualified by these EIM/EIF gates.",
-    "current_task": "Compose and qualify the actual frozen-WBD OpenWrt one-shot. Reuse the existing fullstack-mux-two-client startup sequence and pinned DTLS asset: Reality-like front issues a one-time ticket, one raw WBD FakeTCP association carries a pinned wolfSSL DTLS 1.3 worker, wbd-link-proxy establishes the immutable LINK, and wbd-link-server-mux targets wbd-platform-proxy-server. On the client side cmd/wbd-platform-proxy-openwrt must feed its WBDP datagrams into that wbd-link-proxy instead of directly into the platform server. Install scripts/openwrt_tproxy.sh only after the underlay/front/raw endpoints are explicitly escaped.",
-    "why_now": "The separate OpenWrt UDP and TCP platform gates are clean, including full-cone EIM/EIF, and the existing transport/fullstack gates already qualify the frozen WBD association stack. The only meaningful remaining OpenWrt release risk is composition: making TPROXY capture coexist with the underlay escape while the platform datagrams cross the real Reality/FakeTCP/DTLS/LINK path exactly once.",
-    "done_when": "One clean root/network-namespace OpenWrt attempt starts from no WBD nft/policy state, starts the pinned Reality/FakeTCP/DTLS/LINK server and client path, applies TPROXY with explicit underlay escape, then passes real DNS-style UDP request/response, general UDP request/response, and real TCP request/response through cmd/wbd-platform-proxy-openwrt -> wbd-link-proxy -> FakeTCP/DTLS/LINK -> wbd-link-server-mux -> wbd-platform-proxy-server. The test must prove underlay/front/raw traffic is not recursively captured and must cleanly restore nft/policy routing afterward. Keep the existing separate full-cone EIM/EIF root gate authoritative; optionally repeat EIM/EIF through the frozen WBD one-shot if composition cost is small, but do not require a new transport semantic. Then advance to Windows TUN/Wintun-class integration.",
-    "next_atomic_action": "Read and reuse .github/workflows/fullstack-mux-two-client.yml plus the exact command-line contracts of wbd-reality-front, wbd-faketcp, the pinned native/dtls shim, wbd-link-proxy and wbd-link-server-mux. Add one OpenWrt fullstack one-shot script/workflow that inserts cmd/wbd-platform-proxy-openwrt and cmd/wbd-platform-proxy-server at the existing link application boundaries. Prefer one client and one server namespace plus an application/target namespace; build the pinned wolfSSL artifact exactly as existing fullstack workflows do. First prove FEC off for composition simplicity; if clean, the existing fixed-20:20 transport qualification remains authoritative and no FEC retune is needed. Do not modify linkdata/FEC/FakeTCP/DTLS/Reality/ticket/LiveID/session semantics."
+    "last_completed_action": "Refreshed live HEAD d548a9488c39f7a4109347c883c53c693bd807c6 and current-head Actions. Current-head SUCCESS: ci 32972420927; handoff-verify 32972420832 (against prior handoff); openwrt-fullstack-one-shot 32972420818; openwrt-udp-tproxy 32972421005; openwrt-tcp-tproxy 32972421132; windows-tun-build 32972420764; windows-tun-admin-smoke 32972420842; game-lane-fullstack 32972420754; game-settings-matrix 32972420698; fec-policy-discovery 32972421013; link-policy-formula 32972420991; mux-load-100m 32972421090; faketcp-pcap-20loss 32972421128; faketcp-first-arrival 32972420889; fullstack-first-arrival 32972420766. PR #3 remains open, draft, mergeable and its body was refreshed to this state. OpenWrt full-cone EIM/EIF plus hairpin/NAT loopback and clean fullstack composition are complete. Windows Wintun now has safe concurrent shutdown, transactional route lifecycle, underlay discovery, DAD Preferred readiness and a real two-way IP-stack/Wintun/WBDP administrator dataplane gate. Game mode has 1..4 independent outer flows, first-arrival dedupe, auto/manual link-speed authority, optional auto-add-lane, actual-FEC-aware inner ceiling and pre-replication pacing; settings and fullstack matrices are green. Windows GUI shell compiles as a windowsgui binary and minimizes/closes to tray; explicit Exit terminates.",
+    "current_task": "Clear the Windows DTLS build blocker, then finish Windows one-click runtime/GUI integration and Windows end-to-end qualification.",
+    "why_now": "All OpenWrt, Windows TUN, game-lane, settings and formula gates are green on the current substantive head. The only release-critical Windows protocol-composition blocker left is the WinSock/MSVC/CMake build of the exact pinned wolfSSL DTLS 1.3 shim. Once that is green, the existing runtime ordering model can be wired into GUI Connect/Disconnect and exercised as one frozen-WBD Windows one-shot.",
+    "done_when": "Current pinned wolfSSL DTLS 1.3 shim builds and runs on Windows without changing DTLS semantics or pin; GUI Connect performs Reality bootstrap/underlay discovery then starts Npcap FakeTCP -> DTLS -> LINK -> Wintun and only then applies capture routes; Disconnect/Exit cleans routes first and tears down in reverse order; minimize/X leaves VPN running in tray; one clean administrator Windows one-shot proves real traffic through the frozen WBD path and cleanup. Also resolve or classify the current-head faketcp-native failure without reopening transport semantics if other packet/first-arrival gates remain green.",
+    "next_atomic_action": "Fetch jobs for windows-dtls-build run 32972420635, then fetch decoded logs for its failed job and fix the first concrete MSVC/CMake error in native/dtls without floating the wolfSSL pin or changing handshake/record behavior. Re-run that gate. In parallel only if needed, inspect faketcp-native run 32972420897; because faketcp-pcap-20loss, faketcp-first-arrival, fullstack-first-arrival and mux-load-100m are green on the same head, treat it as setup/flaky unless logs prove a deterministic regression. After Windows DTLS is green, wire the windowsruntime executor into GUI Connect/Disconnect and add a real Windows frozen-WBD one-shot."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
+    "ROADMAP.md",
     "docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md",
-    "scripts/openwrt_tproxy.sh",
-    ".github/workflows/fullstack-mux-two-client.yml",
-    "internal/platformproxy/udp_client_flows.go",
-    "internal/platformproxy/udp_relay.go",
-    "internal/platformproxy/tcp_client.go",
-    "internal/platformproxy/tcp_relay.go",
-    "cmd/wbd-platform-proxy-openwrt/main_linux.go",
-    "cmd/wbd-platform-proxy-server/main.go"
+    ".github/workflows/windows-dtls-build.yml",
+    "native/dtls/wbd_dtls_shim.c",
+    "native/dtls/CMakeLists.txt",
+    "scripts/windows_tun_route.ps1",
+    "cmd/wbd-windows-gui",
+    "internal/windowsruntime",
+    ".github/workflows/game-lane-fullstack.yml",
+    ".github/workflows/game-settings-matrix.yml",
+    "internal/linkpolicy",
+    "internal/linkestimate"
   ],
-  "required_data_plane_assets": [],
+  "required_data_plane_assets": [
+    "Pinned wolfSSL source remains v5.9.2-stable commit ac01707f552c611fbd135cc723b2682b3e7f80f2; do not float it.",
+    "Windows Wintun release artifact decision remains separate from API/runtime qualification; do not silently substitute an older runtime as release authority.",
+    "Windows FakeTCP uses Npcap packet I/O and requires underlay discovery before broad Wintun capture."
+  ],
   "udp_like_status": {
-    "authority": "native_faketcp_pcap_plus_streaming_first_arrival_plus_two_client_mux_plus_authoritative_100m_capacity_freeze_plus_openwrt_fullcone_udp_and_tcp_platform_root_netns",
-    "outer_semantics": "WBD-owned TCP-shaped raw carrier with legacy shadow recovery remains frozen. Complete independent inner datagrams never wait for ordinary kernel TCP ordered delivery. Platform TCP stream reliability stays above WBDP and outside FakeTCP/FEC.",
-    "fec_status": "Release path remains FEC off or fixed systematic 20:20 tail-RS; no runtime config epoch or platform-driven retune is qualified.",
-    "two_client_clean_gate": "GitHub Actions fullstack-mux-two-client run 32911866748 SUCCESS for FEC off and fixed 20:20 with two distinct same-account tickets/LiveIDs and no cross-session routing.",
-    "capacity_diagnostic": "Corrected mux-load-100m run 32920925944 remains the release capacity authority. Fixed 20:20 at 40M delivered 1.000 at RTT20/100 with p99 21.768/60.711ms; 60M entered 286.604/210.995ms p99 and 80M 956.262/913.954ms. ADR-0010 freezes the release operating point at 40 Mbit/s aggregate inner. Later automatic capacity-run setup noise is not authority for reopening this decision.",
-    "openwrt_udp_platform_gate": "GitHub Actions openwrt-udp-tproxy run 32929706403 on be3174a2cab0b032662dafda545c887c557d95f1 SUCCESS. Root network namespaces exercised real scripts/openwrt_tproxy.sh state, transparent UDP capture/original destination, endpoint-independent mapping across multiple destinations, endpoint-independent filtering from a previously unseen remote, transparent real-remote-source reply, underlay bypass and cleanup restoration. Full-cone state is isolated by internal source on the client and by (LiveID-facing service peer, FlowID) on the server. Hairpin/NAT loopback is not separately qualified.",
-    "openwrt_tcp_platform_gate": "GitHub Actions openwrt-tcp-tproxy run 32929706457 on be3174a2cab0b032662dafda545c887c557d95f1 SUCCESS. Root namespaces exercised real TCP TPROXY interception, original destination via preserved accepted LocalAddr, WBDP TCPOpen/DATA/cumulative-ACK/CLOSE through the shared service dispatcher, server egress source proof, bidirectional half/full close, underlay bypass and cleanup restoration.",
-    "memory_policy": "Keep bounded independent state per LiveID and per platform flow. TCP worker/window pressure must not serialize unrelated flows; UDP full-cone mappings expire on bounded idle lifetime.",
-    "capacity_policy": "Release qualification remains frozen at 40 Mbit/s aggregate inner on the 100 Mbit/s weak shared-link boundary. Platform work does not reopen capacity exploration."
+    "authority": "current-head OpenWrt fullstack + packet/first-arrival gates + game/settings matrices + ADR-0010 release freeze",
+    "outer_semantics": "WBD-owned TCP-shaped raw carrier with earliest-complete inner datagram delivery; platform TCP reliability remains above WBD. Game lanes are independent outer associations rather than duplicate ciphertext in one flow.",
+    "fec_status": "Release wire path remains off or fixed systematic 20:20 unless an explicit future ADR changes it. Research formula can evaluate 20:4/8/12/16/20 and 10:10; 10:10 remains research-only. Current simulation evidence shows 10:10 can reduce recovery latency but is materially weaker than 20:20 under burst loss.",
+    "capacity_policy": "ADR-0010 release authority remains 40 Mbit/s aggregate inner on <=100 Mbit/s physical weak-link qualification. New 5..150 Mbit/s discovery work is for formula/recommendation calibration and must not silently reopen the release cap.",
+    "link_speed_policy": "Two authorities exist: auto and manual. Manual must work with no auto sample and force the configured capacity. Auto estimates service capacity separately from loss/burst; do not equate high-loss application goodput with physical link speed. Runtime research uses packet arrival dispersion/delivery samples plus independent loss/burst statistics.",
+    "game_mode": "User-selectable 1..4 lanes. Optional auto-add-lane may raise lane count up to configured max but game mode does not downgrade into FEC-only mode. Logical inner pacing occurs before replication and inner ceiling accounts for active lane replication plus actual wire/FEC/carrier expansion. Each lane must look like a distinct outer traffic flow via independent association/ticket/LiveID/DTLS/FakeTCP tuple and sequence space.",
+    "platform_status": "OpenWrt clean fullstack one-shot is green, including DNS/UDP/TCP, full-cone EIM/EIF, hairpin loopback, bidirectional underlay escape and cleanup. Windows Wintun device, route lifecycle and real bidirectional admin dataplane are green; full Windows WBD composition is not yet green because Windows DTLS build is red."
   },
   "product_policy": {
-    "link_setup": "Reality-like TLS front is setup/admission only; sustained payload remains WBD FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable WBD link data.",
-    "fec": "Association setup admits off or fixed systematic 20:20 on the current live codec. No platform-triggered in-place FEC changes.",
-    "accounts": "One shared username/password may authenticate multiple simultaneous devices; routing/FEC/platform service state remains LiveID/peer/FlowID isolated, never username keyed.",
-    "recovery": "FakeTCP product default remains legacy shadow recovery; sack-rack remains experimental.",
-    "routing": "OpenWrt final capture is TCP/UDP TPROXY plus policy routing and mandatory underlay escape. UDP full-cone EIM/EIF and transparent TCP are platform-qualified. Windows final capture remains TUN/Wintun-class with endpoint escape.",
-    "fullcone_nat": "OpenWrt UDP platform semantics are endpoint-independent mapping plus endpoint-independent filtering: one internal source addr:port keeps one mapping/FlowID across remote destinations and a mapped socket accepts replies from previously unseen remotes in the same address family. This was behaviorally aligned with the mature Xray TUN full-cone source-only mapping pattern but reimplemented in WBD code. Hairpin/NAT loopback remains a separate optional qualification and is not implied by EIM/EIF.",
-    "release_gate": "Protocol is frozen by ADR-0010. Remaining release gates are one actual clean OpenWrt TPROXY -> Reality/FakeTCP/DTLS/LINK -> real DNS/TCP/UDP -> cleanup success, then one clean Windows TUN/Wintun-class one-shot."
+    "link_setup": "Reality-like TLS front remains setup/admission only; sustained payload remains WBD FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK.",
+    "accounts": "One shared username/password may authenticate multiple simultaneous devices; routing/session state is ticket/LiveID/peer keyed, never username keyed.",
+    "fullcone_nat": "OpenWrt UDP is endpoint-independent mapping plus endpoint-independent filtering and has a root-qualified hairpin/NAT-loopback gate. This is platform behavior, not transport semantics.",
+    "windows_gui": "Windows product requires a native GUI. Minimize and window-close hide to the system tray and keep VPN running; tray restores the window; explicit Disconnect stops the tunnel; explicit Exit performs cleanup then terminates. Explorer/taskbar restart must restore the tray icon. GUI must call a runtime controller rather than embed transport logic in the UI thread.",
+    "settings_testing": "Every exposed game/link-speed/FEC/lane/pacing setting must have executable validation. Current game-settings-matrix and game-lane-fullstack are green on d548a9488c39f7a4109347c883c53c693bd807c6."
   },
-  "local_test_snapshot": {
-    "authority": "snapshot_not_live",
-    "tested_commit": "be3174a2cab0b032662dafda545c887c557d95f1",
-    "result": "pass",
-    "command": "Repository-backed snapshot only: GitHub Actions ci run 32929706487 completed SUCCESS with Go tests and Handoff tests; openwrt-udp-tproxy run 32929706403 completed SUCCESS with root TPROXY capture, full-cone EIM/EIF, underlay escape and cleanup; openwrt-tcp-tproxy run 32929706457 completed SUCCESS with root transparent TCP capture, WBDP stream adapter, underlay escape and cleanup; handoff-verify run 32929706491 completed SUCCESS. Every takeover must refresh live HEAD/PR/Actions."
+  "live_ci_snapshot": {
+    "authority": "live_current_head",
+    "tested_commit": "d548a9488c39f7a4109347c883c53c693bd807c6",
+    "green": {
+      "ci": 32972420927,
+      "openwrt_fullstack_one_shot": 32972420818,
+      "openwrt_udp_tproxy": 32972421005,
+      "openwrt_tcp_tproxy": 32972421132,
+      "windows_tun_build": 32972420764,
+      "windows_tun_admin_smoke": 32972420842,
+      "game_lane_fullstack": 32972420754,
+      "game_settings_matrix": 32972420698,
+      "fec_policy_discovery": 32972421013,
+      "link_policy_formula": 32972420991,
+      "mux_load_100m": 32972421090,
+      "faketcp_pcap_20loss": 32972421128,
+      "faketcp_first_arrival": 32972420889,
+      "fullstack_first_arrival": 32972420766
+    },
+    "red": {
+      "windows_dtls_build": 32972420635,
+      "faketcp_native": 32972420897
+    },
+    "note": "Windows DTLS is the known release-critical blocker. The current faketcp-native failure must be inspected, but same-head packet/pcap/first-arrival/fullstack/mux gates are green, so do not infer a transport regression without log evidence."
   }
 }
