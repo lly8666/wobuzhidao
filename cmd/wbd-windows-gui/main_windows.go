@@ -38,8 +38,8 @@ const (
 	swNormal  = 1
 	swRestore = 9
 
-	nimAdd    = 0x00000000
-	nimDelete = 0x00000002
+	nimAdd     = 0x00000000
+	nimDelete  = 0x00000002
 	nifMessage = 0x00000001
 	nifIcon    = 0x00000002
 	nifTip     = 0x00000004
@@ -50,7 +50,7 @@ const (
 	tpmRightButton = 0x0002
 	tpmBottomAlign = 0x0020
 
-	colorWindow = 5
+	colorWindow    = 5
 	idiApplication = 32512
 	idcArrow       = 32512
 	defaultGUIFont = 17
@@ -67,26 +67,27 @@ const (
 var (
 	user32   = syscall.NewLazyDLL("user32.dll")
 	shell32  = syscall.NewLazyDLL("shell32.dll")
-	kernel32 = syscall.NewLazyDLL("kernel32.dll")	gdi32    = syscall.NewLazyDLL("gdi32.dll")
+	kernel32 = syscall.NewLazyDLL("kernel32.dll")
+	gdi32    = syscall.NewLazyDLL("gdi32.dll")
 
-	procRegisterClassExW   = user32.NewProc("RegisterClassExW")
-	procCreateWindowExW    = user32.NewProc("CreateWindowExW")
-	procDefWindowProcW     = user32.NewProc("DefWindowProcW")
-	procShowWindow         = user32.NewProc("ShowWindow")
-	procUpdateWindow       = user32.NewProc("UpdateWindow")
-	procGetMessageW        = user32.NewProc("GetMessageW")
-	procTranslateMessage   = user32.NewProc("TranslateMessage")
-	procDispatchMessageW   = user32.NewProc("DispatchMessageW")
-	procPostQuitMessage    = user32.NewProc("PostQuitMessage")
-	procLoadIconW          = user32.NewProc("LoadIconW")
-	procLoadCursorW        = user32.NewProc("LoadCursorW")
-	procSendMessageW       = user32.NewProc("SendMessageW")
-	procSetForegroundWindow = user32.NewProc("SetForegroundWindow")
-	procCreatePopupMenu    = user32.NewProc("CreatePopupMenu")
-	procAppendMenuW        = user32.NewProc("AppendMenuW")
-	procTrackPopupMenu     = user32.NewProc("TrackPopupMenu")
-	procDestroyMenu        = user32.NewProc("DestroyMenu")
-	procGetCursorPos       = user32.NewProc("GetCursorPos")
+	procRegisterClassExW       = user32.NewProc("RegisterClassExW")
+	procCreateWindowExW        = user32.NewProc("CreateWindowExW")
+	procDefWindowProcW         = user32.NewProc("DefWindowProcW")
+	procShowWindow             = user32.NewProc("ShowWindow")
+	procUpdateWindow           = user32.NewProc("UpdateWindow")
+	procGetMessageW            = user32.NewProc("GetMessageW")
+	procTranslateMessage       = user32.NewProc("TranslateMessage")
+	procDispatchMessageW       = user32.NewProc("DispatchMessageW")
+	procPostQuitMessage        = user32.NewProc("PostQuitMessage")
+	procLoadIconW              = user32.NewProc("LoadIconW")
+	procLoadCursorW            = user32.NewProc("LoadCursorW")
+	procSendMessageW           = user32.NewProc("SendMessageW")
+	procSetForegroundWindow    = user32.NewProc("SetForegroundWindow")
+	procCreatePopupMenu        = user32.NewProc("CreatePopupMenu")
+	procAppendMenuW            = user32.NewProc("AppendMenuW")
+	procTrackPopupMenu         = user32.NewProc("TrackPopupMenu")
+	procDestroyMenu            = user32.NewProc("DestroyMenu")
+	procGetCursorPos           = user32.NewProc("GetCursorPos")
 	procRegisterWindowMessageW = user32.NewProc("RegisterWindowMessageW")
 
 	procShellNotifyIconW = shell32.NewProc("Shell_NotifyIconW")
@@ -111,36 +112,36 @@ type msg struct {
 }
 
 type wndClassEx struct {
-	CbSize        uint32
-	Style         uint32
-	WndProc       uintptr
-	ClsExtra      int32
-	WndExtra      int32
-	Instance      uintptr
-	Icon          uintptr
-	Cursor        uintptr
-	Background    uintptr
-	MenuName      *uint16
-	ClassName     *uint16
-	IconSm        uintptr
+	CbSize     uint32
+	Style      uint32
+	WndProc    uintptr
+	ClsExtra   int32
+	WndExtra   int32
+	Instance   uintptr
+	Icon       uintptr
+	Cursor     uintptr
+	Background uintptr
+	MenuName   *uint16
+	ClassName  *uint16
+	IconSm     uintptr
 }
 
 type notifyIconData struct {
-	CbSize           uint32
-	HWnd             uintptr
-	UID              uint32
-	UFlags           uint32
-	UCallbackMessage uint32
-	HIcon            uintptr
-	SzTip            [128]uint16
-	DwState          uint32
-	DwStateMask      uint32
-	SzInfo           [256]uint16
+	CbSize            uint32
+	HWnd              uintptr
+	UID               uint32
+	UFlags            uint32
+	UCallbackMessage  uint32
+	HIcon             uintptr
+	SzTip             [128]uint16
+	DwState           uint32
+	DwStateMask       uint32
+	SzInfo            [256]uint16
 	UTimeoutOrVersion uint32
-	SzInfoTitle      [64]uint16
-	DwInfoFlags      uint32
-	GuidItem         [16]byte
-	HBalloonIcon     uintptr
+	SzInfoTitle       [64]uint16
+	DwInfoFlags       uint32
+	GuidItem          [16]byte
+	HBalloonIcon      uintptr
 }
 
 var app struct {
