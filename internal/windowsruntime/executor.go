@@ -25,11 +25,12 @@ type Runner interface {
 // knows nothing about FakeTCP/DTLS/LINK wire semantics; those remain encoded in
 // BuildPlan. Its only authority is process/route lifecycle ordering.
 type Executor struct {
-	mu        sync.Mutex
-	runner    Runner
-	plan      Plan
-	processes []namedProcess
-	running   bool
+	mu             sync.Mutex
+	runner         Runner
+	plan           Plan
+	processes      []namedProcess
+	running        bool
+	cleanupPending bool
 }
 
 type namedProcess struct {
@@ -51,6 +52,9 @@ func NewExecutor(runner Runner) *Executor {
 func (e *Executor) Start(plan Plan) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	if e.cleanupPending {
+		return errors.New("Windows runtime has pending route cleanup")
+	}
 	if e.running || len(e.processes) != 0 {
 		return errors.New("Windows runtime is already running")
 	}
@@ -63,7 +67,7 @@ func (e *Executor) Start(plan Plan) error {
 	for _, command := range sequence[:len(sequence)-1] {
 		proc, err := e.runner.Start(command)
 		if err != nil {
-			e.rollbackLocked(false, plan)
+			e.rollbackLocked()
 			return fmt.Errorf("start %s: %w", command.Name, err)
 		}
 		e.processes = append(e.processes, namedProcess{name: command.Name, proc: proc})
@@ -71,8 +75,10 @@ func (e *Executor) Start(plan Plan) error {
 
 	if err := e.runner.Run(plan.RouteApply); err != nil {
 		cleanupErr := e.runner.Run(plan.RouteCleanup)
-		e.rollbackLocked(false, plan)
+		e.rollbackLocked()
 		if cleanupErr != nil {
+			e.plan = plan
+			e.cleanupPending = true
 			return fmt.Errorf("apply capture routes: %w (cleanup: %v)", err, cleanupErr)
 		}
 		return fmt.Errorf("apply capture routes: %w", err)
@@ -84,18 +90,30 @@ func (e *Executor) Start(plan Plan) error {
 }
 
 // Stop removes capture routes first, then terminates TUN/LINK/DTLS/FakeTCP in
-// reverse process order. It is idempotent so explicit Exit may safely call it
-// after a prior Disconnect.
+// reverse process order. If route cleanup fails, the command is retained and a
+// later Stop retries it even though child teardown has already completed. This
+// makes explicit Exit/Disconnect able to recover from a transient NetTCPIP
+// failure instead of silently forgetting a broad capture route.
 func (e *Executor) Stop() error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+
 	if !e.running && len(e.processes) == 0 {
+		if !e.cleanupPending {
+			return nil
+		}
+		if err := e.runner.Run(e.plan.RouteCleanup); err != nil {
+			return fmt.Errorf("cleanup capture routes: %w", err)
+		}
+		e.plan = Plan{}
+		e.cleanupPending = false
 		return nil
 	}
 
 	var errs []error
-	if err := e.runner.Run(e.plan.RouteCleanup); err != nil {
-		errs = append(errs, fmt.Errorf("cleanup capture routes: %w", err))
+	cleanupErr := e.runner.Run(e.plan.RouteCleanup)
+	if cleanupErr != nil {
+		errs = append(errs, fmt.Errorf("cleanup capture routes: %w", cleanupErr))
 	}
 	for i := len(e.processes) - 1; i >= 0; i-- {
 		if err := e.processes[i].proc.Stop(); err != nil {
@@ -103,8 +121,13 @@ func (e *Executor) Stop() error {
 		}
 	}
 	e.processes = nil
-	e.plan = Plan{}
 	e.running = false
+	if cleanupErr != nil {
+		e.cleanupPending = true
+	} else {
+		e.plan = Plan{}
+		e.cleanupPending = false
+	}
 	return errors.Join(errs...)
 }
 
@@ -114,16 +137,20 @@ func (e *Executor) Running() bool {
 	return e.running
 }
 
-func (e *Executor) rollbackLocked(cleanRoutes bool, plan Plan) {
-	if cleanRoutes {
-		_ = e.runner.Run(plan.RouteCleanup)
-	}
+func (e *Executor) CleanupPending() bool {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.cleanupPending
+}
+
+func (e *Executor) rollbackLocked() {
 	for i := len(e.processes) - 1; i >= 0; i-- {
 		_ = e.processes[i].proc.Stop()
 	}
 	e.processes = nil
 	e.plan = Plan{}
 	e.running = false
+	e.cleanupPending = false
 }
 
 // OSRunner is the product runner used by the GUI controller. Long-running
