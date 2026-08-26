@@ -14,6 +14,7 @@ on:
       - 'internal/windowsruntime/**'
       - 'scripts/windows_tun_route.ps1'
       - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_npcap_prepare.ps1'
       - 'deps/platform-lock.json'
   push:
     branches:
@@ -29,6 +30,7 @@ on:
       - 'internal/windowsruntime/**'
       - 'scripts/windows_tun_route.ps1'
       - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_npcap_prepare.ps1'
       - 'deps/platform-lock.json'
 
 permissions:
@@ -46,7 +48,7 @@ jobs:
       - name: Compile Windows Wintun Npcap and tray GUI
         shell: pwsh
         run: |
-          go test ./internal/tunnel ./internal/faketcp ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-tun ./cmd/wbd-faketcp -count=1
+          go test ./internal/tunnel ./internal/faketcp ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-tun ./cmd/wbd-faketcp ./cmd/wbd-windows-gui -count=1
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-tun.exe" ./cmd/wbd-tun
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
           go build -trimpath -ldflags="-H=windowsgui" -o "$env:RUNNER_TEMP\wbd-windows-gui.exe" ./cmd/wbd-windows-gui
@@ -54,7 +56,17 @@ jobs:
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-faketcp.exe")) { throw 'wbd-faketcp.exe not built' }
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-windows-gui.exe")) { throw 'wbd-windows-gui.exe not built' }
           Write-Output 'WBD_WINDOWS_PACKET_BACKENDS_BUILD_PASS'
-          Write-Output 'WBD_WINDOWS_GUI_BUILD_PASS native_win32=1 tray=Shell_NotifyIconW close_to_tray=1 start_minimized=1'
+          Write-Output 'WBD_WINDOWS_GUI_BUILD_PASS native_win32=1 tray=Shell_NotifyIconW close_to_tray=1 start_minimized=1 exit_cleanup=automatic'
+      - name: Fetch locked personal-use Npcap installer from official origin
+        shell: pwsh
+        run: |
+          $source = Get-Content ./scripts/windows_npcap_prepare.ps1 -Raw
+          [void][scriptblock]::Create($source)
+          if ($source -match '(?i)(^|\s)/S(\s|$)') { throw 'Free Npcap helper must not use OEM-only silent installation' }
+          if ($source -notmatch 'npcap-1\.88\.exe' -or $source -notmatch 'Nmap Software LLC') { throw 'Npcap helper is not pinned to the qualified official release/signer' }
+          & ./scripts/windows_npcap_prepare.ps1 -Action Fetch -DownloadDirectory "$env:RUNNER_TEMP\wbd-npcap"
+          if ($LASTEXITCODE -ne 0) { throw "Npcap fetch helper exited $LASTEXITCODE" }
+          Write-Output 'WBD_WINDOWS_NPCAP_FETCH_QUALIFIED version=1.88 origin=npcap.com redistribution=none'
       - name: Resolve physical FakeTCP underlay before capture
         shell: pwsh
         run: |
