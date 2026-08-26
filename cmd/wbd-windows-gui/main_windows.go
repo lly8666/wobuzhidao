@@ -6,11 +6,13 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"syscall"
 	"unsafe"
 
 	"github.com/lly8666/wobuzhidao/internal/windowsgui"
+	"github.com/lly8666/wobuzhidao/internal/windowsruntime"
 )
 
 const (
@@ -55,12 +57,15 @@ const (
 	idcArrow       = 32512
 	defaultGUIFont = 17
 
-	idHideButton = 1001
-	idExitButton = 1002
-	idTrayShow   = 2001
-	idTrayExit   = 2002
+	idConnectButton    = 1000
+	idHideButton       = 1001
+	idExitButton       = 1002
+	idDisconnectButton = 1003
+	idTrayShow         = 2001
+	idTrayExit         = 2002
 
 	trayCallbackMessage = wmApp + 1
+	runtimeResultMessage = wmApp + 2
 	trayIconID           = 1
 )
 
@@ -79,9 +84,12 @@ var (
 	procTranslateMessage       = user32.NewProc("TranslateMessage")
 	procDispatchMessageW       = user32.NewProc("DispatchMessageW")
 	procPostQuitMessage        = user32.NewProc("PostQuitMessage")
+	procPostMessageW           = user32.NewProc("PostMessageW")
 	procLoadIconW              = user32.NewProc("LoadIconW")
 	procLoadCursorW            = user32.NewProc("LoadCursorW")
 	procSendMessageW           = user32.NewProc("SendMessageW")
+	procSetWindowTextW         = user32.NewProc("SetWindowTextW")
+	procEnableWindow           = user32.NewProc("EnableWindow")
 	procSetForegroundWindow    = user32.NewProc("SetForegroundWindow")
 	procCreatePopupMenu        = user32.NewProc("CreatePopupMenu")
 	procAppendMenuW            = user32.NewProc("AppendMenuW")
@@ -144,29 +152,78 @@ type notifyIconData struct {
 	HBalloonIcon      uintptr
 }
 
+type runtimeResult struct {
+	action string
+	err    error
+}
+
 var app struct {
-	window         uintptr
-	status         uintptr
-	hideButton     uintptr
-	exitButton     uintptr
-	icon           uintptr
-	font           uintptr
-	taskbarCreated uint32
-	state          windowsgui.WindowState
+	window           uintptr
+	status           uintptr
+	connectButton    uintptr
+	disconnectButton uintptr
+	hideButton       uintptr
+	exitButton       uintptr
+	icon             uintptr
+	font             uintptr
+	taskbarCreated   uint32
+	state            windowsgui.WindowState
+	controller       *windowsruntime.Controller
+	profile          windowsruntime.Profile
+	profileReady     bool
+	profileErr       error
+	profilePath      string
+	results          chan runtimeResult
+	operation        string
+	exitRequested    bool
+	cleanupFailed    bool
 }
 
 func main() {
 	startMinimized := flag.Bool("start-minimized", false, "start with the main window hidden in the notification area")
+	profilePath := flag.String("profile", "", "path to the WBD Windows client JSON profile")
 	flag.Parse()
+
+	app.state = windowsgui.NewWindowState(*startMinimized)
+	app.controller = windowsruntime.NewController(nil, nil, nil)
+	app.results = make(chan runtimeResult, 4)
+	app.profilePath = *profilePath
+	if *profilePath != "" {
+		if err := loadRuntimeProfile(*profilePath); err != nil {
+			app.profileErr = err
+			messageBox("WBD Windows GUI profile", err.Error())
+		}
+	}
 
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	app.state = windowsgui.NewWindowState(*startMinimized)
 	if err := run(); err != nil {
 		messageBox("WBD Windows GUI", err.Error())
 		os.Exit(1)
 	}
+}
+
+func loadRuntimeProfile(path string) error {
+	exe, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("resolve GUI executable: %w", err)
+	}
+	programData := os.Getenv("ProgramData")
+	if programData == "" {
+		return fmt.Errorf("ProgramData is not set")
+	}
+	stateDir := filepath.Join(programData, "WBD")
+	if err := os.MkdirAll(stateDir, 0o700); err != nil {
+		return fmt.Errorf("create WBD state directory: %w", err)
+	}
+	profile, err := windowsgui.LoadRuntimeProfile(path, filepath.Dir(exe), stateDir)
+	if err != nil {
+		return err
+	}
+	app.profile = profile
+	app.profileReady = true
+	return nil
 }
 
 func run() error {
@@ -204,7 +261,7 @@ func run() error {
 		uintptr(unsafe.Pointer(className)),
 		uintptr(unsafe.Pointer(title)),
 		wsOverlappedWindow,
-		200, 160, 560, 300,
+		200, 160, 640, 320,
 		0, 0, instance, 0,
 	)
 	if hwnd == 0 {
@@ -254,22 +311,30 @@ func windowProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uintptr {
 			return 0
 		}
 	case wmClose:
+		// Window close is intentionally tray-only. It never calls the runtime
+		// controller, so an active VPN remains running.
 		app.state.Close()
 		procShowWindow.Call(hwnd, swHide)
 		return 0
 	case wmCommand:
 		switch lowWord(wParam) {
+		case idConnectButton:
+			beginConnect(hwnd)
+			return 0
+		case idDisconnectButton:
+			beginDisconnect(hwnd)
+			return 0
 		case idHideButton:
 			minimizeToTray(hwnd)
 			return 0
 		case idExitButton:
-			exitApplication(hwnd)
+			requestExit(hwnd)
 			return 0
 		case idTrayShow:
 			restoreFromTray(hwnd)
 			return 0
 		case idTrayExit:
-			exitApplication(hwnd)
+			requestExit(hwnd)
 			return 0
 		}
 	case trayCallbackMessage:
@@ -281,6 +346,9 @@ func windowProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uintptr {
 			showTrayMenu(hwnd)
 			return 0
 		}
+	case runtimeResultMessage:
+		handleRuntimeResult(hwnd)
+		return 0
 	case wmDestroy:
 		deleteTrayIcon(hwnd)
 		procPostQuitMessage.Call(0)
@@ -292,10 +360,19 @@ func windowProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uintptr {
 }
 
 func createControls(hwnd uintptr) {
-	app.status = createControl(hwnd, "STATIC", "Status: platform UI ready; VPN runtime orchestration is the next checkpoint", 24, 28, 500, 28, 0)
-	createControl(hwnd, "STATIC", "Minimize or close this window to keep WBD resident in the notification area. Use the tray menu to restore or explicitly exit.", 24, 68, 500, 56, 0)
-	app.hideButton = createControl(hwnd, "BUTTON", "Minimize to tray", 24, 156, 160, 36, idHideButton)
-	app.exitButton = createControl(hwnd, "BUTTON", "Exit WBD", 200, 156, 120, 36, idExitButton)
+	status := "Status: disconnected; load a profile with -profile <path> to connect"
+	if app.profileReady {
+		status = "Status: disconnected; profile loaded"
+	} else if app.profileErr != nil {
+		status = "Status: disconnected; profile invalid"
+	}
+	app.status = createControl(hwnd, "STATIC", status, 24, 26, 580, 30, 0)
+	createControl(hwnd, "STATIC", "Minimize or X keeps an active VPN running in the tray. Disconnect tears down routes/tunnel but keeps WBD open. Exit performs cleanup before terminating.", 24, 66, 580, 58, 0)
+	app.connectButton = createControl(hwnd, "BUTTON", "Connect", 24, 156, 110, 36, idConnectButton)
+	app.disconnectButton = createControl(hwnd, "BUTTON", "Disconnect", 146, 156, 110, 36, idDisconnectButton)
+	app.hideButton = createControl(hwnd, "BUTTON", "Minimize to tray", 268, 156, 150, 36, idHideButton)
+	app.exitButton = createControl(hwnd, "BUTTON", "Exit WBD", 430, 156, 110, 36, idExitButton)
+	refreshControls()
 }
 
 func createControl(parent uintptr, class, text string, x, y, width, height int, id uintptr) uintptr {
@@ -314,6 +391,143 @@ func createControl(parent uintptr, class, text string, x, y, width, height int, 
 	return hwnd
 }
 
+func beginConnect(hwnd uintptr) {
+	if app.operation != "" || app.exitRequested {
+		return
+	}
+	if !app.profileReady {
+		if app.profileErr != nil {
+			messageBox("WBD Windows GUI profile", app.profileErr.Error())
+		} else {
+			messageBox("WBD Windows GUI", "No runtime profile is loaded. Restart WBD with -profile <path>.")
+		}
+		return
+	}
+	app.operation = "connect"
+	app.cleanupFailed = false
+	setStatus("Status: connecting; Reality admission and physical underlay discovery run before Wintun capture")
+	refreshControls()
+	go func(profile windowsruntime.Profile) {
+		postRuntimeResult(runtimeResult{action: "connect", err: app.controller.Connect(profile)})
+	}(app.profile)
+}
+
+func beginDisconnect(hwnd uintptr) {
+	if app.operation != "" || app.exitRequested {
+		return
+	}
+	launchDisconnect()
+}
+
+func launchDisconnect() {
+	app.operation = "disconnect"
+	if app.exitRequested {
+		setStatus("Status: exiting; removing capture routes before stopping Wintun/LINK/DTLS/FakeTCP")
+	} else if app.cleanupFailed {
+		setStatus("Status: retrying capture-route cleanup")
+	} else {
+		setStatus("Status: disconnecting; removing capture routes before reverse teardown")
+	}
+	refreshControls()
+	go func() {
+		postRuntimeResult(runtimeResult{action: "disconnect", err: app.controller.Disconnect()})
+	}()
+}
+
+func requestExit(hwnd uintptr) {
+	if app.exitRequested {
+		return
+	}
+	app.exitRequested = true
+	if app.operation == "connect" {
+		setStatus("Status: Exit requested; waiting for connection setup to finish before cleanup")
+		refreshControls()
+		return
+	}
+	if app.operation == "disconnect" {
+		setStatus("Status: Exit requested; waiting for route cleanup and teardown")
+		refreshControls()
+		return
+	}
+	launchDisconnect()
+}
+
+func postRuntimeResult(result runtimeResult) {
+	app.results <- result
+	procPostMessageW.Call(app.window, runtimeResultMessage, 0, 0)
+}
+
+func handleRuntimeResult(hwnd uintptr) {
+	var result runtimeResult
+	select {
+	case result = <-app.results:
+	default:
+		return
+	}
+	app.operation = ""
+
+	switch result.action {
+	case "connect":
+		if result.err != nil {
+			setStatus("Status: disconnected; connect failed: " + result.err.Error())
+			if !app.exitRequested {
+				messageBox("WBD Connect failed", result.err.Error())
+			}
+		} else {
+			setStatus("Status: connected; WBD FakeTCP -> DTLS 1.3 -> LINK -> Wintun is active")
+		}
+		if app.exitRequested {
+			launchDisconnect()
+			return
+		}
+	case "disconnect":
+		if result.err != nil {
+			app.cleanupFailed = true
+			setStatus("Status: disconnected, but capture-route cleanup needs retry: " + result.err.Error())
+			messageBox("WBD cleanup needs retry", result.err.Error())
+			// Do not silently terminate with a broad capture route still pending.
+			// A subsequent Disconnect or Exit retries Executor.Stop cleanup.
+			app.exitRequested = false
+		} else {
+			app.cleanupFailed = false
+			setStatus("Status: disconnected; routes and WBD runtime are stopped")
+			if app.exitRequested {
+				finalizeExit(hwnd)
+				return
+			}
+		}
+	}
+	refreshControls()
+}
+
+func refreshControls() {
+	busy := app.operation != ""
+	connectEnabled := app.profileReady && !busy && !app.exitRequested && !app.cleanupFailed && app.controller.State() == windowsruntime.RuntimeDisconnected
+	disconnectEnabled := !busy && !app.exitRequested && (app.cleanupFailed || app.controller.State() == windowsruntime.RuntimeConnected)
+	setEnabled(app.connectButton, connectEnabled)
+	setEnabled(app.disconnectButton, disconnectEnabled)
+	setEnabled(app.hideButton, !app.exitRequested)
+	setEnabled(app.exitButton, !app.exitRequested)
+}
+
+func setStatus(text string) {
+	if app.status == 0 {
+		return
+	}
+	procSetWindowTextW.Call(app.status, uintptr(unsafe.Pointer(utf16Ptr(text))))
+}
+
+func setEnabled(hwnd uintptr, enabled bool) {
+	if hwnd == 0 {
+		return
+	}
+	var value uintptr
+	if enabled {
+		value = 1
+	}
+	procEnableWindow.Call(hwnd, value)
+}
+
 func minimizeToTray(hwnd uintptr) {
 	app.state.Minimize()
 	procShowWindow.Call(hwnd, swHide)
@@ -325,7 +539,7 @@ func restoreFromTray(hwnd uintptr) {
 	procSetForegroundWindow.Call(hwnd)
 }
 
-func exitApplication(hwnd uintptr) {
+func finalizeExit(hwnd uintptr) {
 	app.state.Exit()
 	deleteTrayIcon(hwnd)
 	procPostQuitMessage.Call(0)
