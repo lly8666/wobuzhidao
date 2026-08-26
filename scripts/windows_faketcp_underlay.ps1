@@ -45,8 +45,12 @@ if ([string]::IsNullOrWhiteSpace($nextHop) -or $nextHop -eq '0.0.0.0') {
 }
 
 # Trigger neighbor resolution. Lack of an ICMP reply is harmless; ARP work
-# happens before ping decides whether the peer answered.
+# happens before ping decides whether the peer answered. PING.EXE is therefore
+# deliberately best-effort. Clear its native exit status immediately so a
+# reachable ARP neighbor plus an unanswered ICMP echo cannot poison the caller's
+# PowerShell process exit code after all route/MAC assertions succeeded.
 & "$env:SystemRoot\System32\PING.EXE" -n 1 -w 750 $nextHop *> $null
+$global:LASTEXITCODE = 0
 $neighbor = Get-NetNeighbor -InterfaceIndex $ifIndex -AddressFamily IPv4 -IPAddress $nextHop -ErrorAction SilentlyContinue |
     Where-Object { $_.State -notin @('Incomplete','Unreachable') -and $_.LinkLayerAddress -and $_.LinkLayerAddress -ne '00-00-00-00-00-00' } |
     Select-Object -First 1
