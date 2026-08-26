@@ -28,27 +28,34 @@ const (
 var (
 	wintunDLL = syscall.NewLazyDLL("wintun.dll")
 
-	wintunCreateAdapter       = wintunDLL.NewProc("WintunCreateAdapter")
-	wintunOpenAdapter         = wintunDLL.NewProc("WintunOpenAdapter")
-	wintunCloseAdapter        = wintunDLL.NewProc("WintunCloseAdapter")
-	wintunStartSession        = wintunDLL.NewProc("WintunStartSession")
-	wintunEndSession          = wintunDLL.NewProc("WintunEndSession")
-	wintunGetReadWaitEvent    = wintunDLL.NewProc("WintunGetReadWaitEvent")
-	wintunReceivePacket       = wintunDLL.NewProc("WintunReceivePacket")
+	wintunCreateAdapter        = wintunDLL.NewProc("WintunCreateAdapter")
+	wintunOpenAdapter          = wintunDLL.NewProc("WintunOpenAdapter")
+	wintunCloseAdapter         = wintunDLL.NewProc("WintunCloseAdapter")
+	wintunStartSession         = wintunDLL.NewProc("WintunStartSession")
+	wintunEndSession           = wintunDLL.NewProc("WintunEndSession")
+	wintunGetReadWaitEvent     = wintunDLL.NewProc("WintunGetReadWaitEvent")
+	wintunReceivePacket        = wintunDLL.NewProc("WintunReceivePacket")
 	wintunReleaseReceivePacket = wintunDLL.NewProc("WintunReleaseReceivePacket")
-	wintunAllocateSendPacket  = wintunDLL.NewProc("WintunAllocateSendPacket")
-	wintunSendPacket          = wintunDLL.NewProc("WintunSendPacket")
+	wintunAllocateSendPacket   = wintunDLL.NewProc("WintunAllocateSendPacket")
+	wintunSendPacket           = wintunDLL.NewProc("WintunSendPacket")
 
-	kernel32DLL       = syscall.NewLazyDLL("kernel32.dll")
-	waitForSingleObject = kernel32DLL.NewProc("WaitForSingleObject")
+	kernel32DLL           = syscall.NewLazyDLL("kernel32.dll")
+	createEventW          = kernel32DLL.NewProc("CreateEventW")
+	setEvent              = kernel32DLL.NewProc("SetEvent")
+	closeHandle           = kernel32DLL.NewProc("CloseHandle")
+	waitForMultipleObjects = kernel32DLL.NewProc("WaitForMultipleObjects")
 )
 
 type TUN struct {
-	adapter uintptr
-	session uintptr
-	readEvt uintptr
-	name    string
+	adapter  uintptr
+	session  uintptr
+	readEvt  uintptr
+	closeEvt uintptr
+	name     string
 
+	stateMu   sync.Mutex
+	closed    bool
+	active    sync.WaitGroup
 	closeOnce sync.Once
 }
 
@@ -88,17 +95,59 @@ func OpenTUN(name string) (*TUN, error) {
 		wintunCloseAdapter.Call(adapter)
 		return nil, wintunCallError("WintunGetReadWaitEvent", callErr, nil)
 	}
+	closeEvt, _, callErr := createEventW.Call(0, 1, 0, 0) // manual-reset, initially non-signaled
+	if closeEvt == 0 {
+		wintunEndSession.Call(session)
+		wintunCloseAdapter.Call(adapter)
+		return nil, wintunCallError("CreateEventW", callErr, nil)
+	}
 
-	return &TUN{adapter: adapter, session: session, readEvt: readEvt, name: name}, nil
+	return &TUN{
+		adapter:  adapter,
+		session:  session,
+		readEvt:  readEvt,
+		closeEvt: closeEvt,
+		name:     name,
+	}, nil
 }
 
 func (t *TUN) Name() string { return t.name }
+
+func (t *TUN) beginCall() bool {
+	t.stateMu.Lock()
+	defer t.stateMu.Unlock()
+	if t.closed {
+		return false
+	}
+	t.active.Add(1)
+	return true
+}
+
+func (t *TUN) endCall() {
+	t.active.Done()
+}
+
+func (t *TUN) isClosed() bool {
+	t.stateMu.Lock()
+	closed := t.closed
+	t.stateMu.Unlock()
+	return closed
+}
 
 func (t *TUN) ReadPacket(p []byte) (int, error) {
 	if len(p) == 0 {
 		return 0, io.ErrShortBuffer
 	}
+	if !t.beginCall() {
+		return 0, io.EOF
+	}
+	defer t.endCall()
+
 	for {
+		if t.isClosed() {
+			return 0, io.EOF
+		}
+
 		var packetSize uint32
 		packet, _, callErr := wintunReceivePacket.Call(
 			t.session,
@@ -117,14 +166,23 @@ func (t *TUN) ReadPacket(p []byte) (int, error) {
 		errno := wintunErrno(callErr)
 		switch errno {
 		case errorNoMoreItems:
-			status, _, waitErr := waitForSingleObject.Call(t.readEvt, infinite)
-			if status == waitObject0 {
+			handles := [2]uintptr{t.readEvt, t.closeEvt}
+			status, _, waitErr := waitForMultipleObjects.Call(
+				uintptr(len(handles)),
+				uintptr(unsafe.Pointer(&handles[0])),
+				0,
+				infinite,
+			)
+			switch status {
+			case waitObject0:
 				continue
+			case waitObject0 + 1:
+				return 0, io.EOF
+			case waitFailed:
+				return 0, wintunCallError("WaitForMultipleObjects", waitErr, nil)
+			default:
+				return 0, fmt.Errorf("WaitForMultipleObjects returned %#x", status)
 			}
-			if status == waitFailed {
-				return 0, wintunCallError("WaitForSingleObject", waitErr, nil)
-			}
-			return 0, fmt.Errorf("WaitForSingleObject returned %#x", status)
 		case errorHandleEOF:
 			return 0, io.EOF
 		default:
@@ -137,7 +195,16 @@ func (t *TUN) WritePacket(p []byte) (int, error) {
 	if len(p) == 0 || len(p) > wintunMaxIPPacket {
 		return 0, fmt.Errorf("%w: packet size %d", ErrMTU, len(p))
 	}
+	if !t.beginCall() {
+		return 0, io.EOF
+	}
+	defer t.endCall()
+
 	for {
+		if t.isClosed() {
+			return 0, io.EOF
+		}
+
 		packet, _, callErr := wintunAllocateSendPacket.Call(t.session, uintptr(len(p)))
 		if packet != 0 {
 			copy(unsafe.Slice((*byte)(unsafe.Pointer(packet)), len(p)), p)
@@ -148,7 +215,8 @@ func (t *TUN) WritePacket(p []byte) (int, error) {
 		switch wintunErrno(callErr) {
 		case errorBufferOverflow:
 			// Wintun has no send-wait event. Back off instead of turning a
-			// transient ring-full condition into a tunnel failure.
+			// transient ring-full condition into a tunnel failure. Close sets
+			// the state flag, so a draining writer cannot stall teardown forever.
 			runtime.Gosched()
 			time.Sleep(time.Millisecond)
 			continue
@@ -162,6 +230,18 @@ func (t *TUN) WritePacket(p []byte) (int, error) {
 
 func (t *TUN) Close() error {
 	t.closeOnce.Do(func() {
+		// First prevent new Wintun calls and wake any reader blocked on the
+		// Wintun read event. The session remains alive until all calls that
+		// entered before this point have returned.
+		t.stateMu.Lock()
+		t.closed = true
+		if t.closeEvt != 0 {
+			setEvent.Call(t.closeEvt)
+		}
+		t.stateMu.Unlock()
+
+		t.active.Wait()
+
 		if t.session != 0 {
 			wintunEndSession.Call(t.session)
 			t.session = 0
@@ -169,6 +249,10 @@ func (t *TUN) Close() error {
 		if t.adapter != 0 {
 			wintunCloseAdapter.Call(t.adapter)
 			t.adapter = 0
+		}
+		if t.closeEvt != 0 {
+			closeHandle.Call(t.closeEvt)
+			t.closeEvt = 0
 		}
 	})
 	return nil
