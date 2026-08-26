@@ -167,10 +167,15 @@ $proc = $null
 $connected = $false
 $ifIndex = $null
 try {
+    # Start-Process joins ArgumentList into one Windows command line. Quote path
+    # arguments explicitly so a normal Program Files/profile path cannot be
+    # split into extra flags.
+    $profileArg = '"' + $ProfilePath + '"'
+    $stopFileArg = '"' + $stopFile + '"'
     $proc = Start-Process -FilePath $qualifier -ArgumentList @(
-        '-profile', $ProfilePath,
+        '-profile', $profileArg,
         '-run-for', '2m',
-        '-stop-file', $stopFile
+        '-stop-file', $stopFileArg
     ) -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
 
     $deadline = [DateTime]::UtcNow.AddSeconds($ReadyTimeoutSeconds)
