@@ -14,6 +14,7 @@ Set-StrictMode -Version Latest
 $NpcapVersion = '1.88'
 $NpcapURL = "https://npcap.com/dist/npcap-$NpcapVersion.exe"
 $NpcapInstaller = Join-Path $DownloadDirectory "npcap-$NpcapVersion.exe"
+$NpcapInstallerSHA256 = 'a2f4ec1e5ea353ff67efd24b2ebf081ba44532410fae8d5e146af0310aa4f56b'
 $ExpectedSigner = 'Nmap Software LLC'
 
 function Get-NpcapRuntimeState {
@@ -61,8 +62,12 @@ function Fetch-NpcapInstaller {
         New-Item -ItemType Directory -Force -Path $DownloadDirectory | Out-Null
     }
     Invoke-WebRequest -UseBasicParsing -Uri $NpcapURL -OutFile $NpcapInstaller
-    $signature = Assert-TrustedNmapSignature -Path $NpcapInstaller -Label "Npcap $NpcapVersion installer"
     $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $NpcapInstaller).Hash.ToLowerInvariant()
+    if ($hash -ne $NpcapInstallerSHA256) {
+        Remove-Item -LiteralPath $NpcapInstaller -Force -ErrorAction SilentlyContinue
+        throw "Npcap $NpcapVersion installer SHA256 mismatch: got=$hash want=$NpcapInstallerSHA256"
+    }
+    $signature = Assert-TrustedNmapSignature -Path $NpcapInstaller -Label "Npcap $NpcapVersion installer"
     return [pscustomobject]@{
         Path = $NpcapInstaller
         SHA256 = $hash
