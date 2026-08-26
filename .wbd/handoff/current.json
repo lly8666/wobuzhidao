@@ -1,63 +1,63 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 41,
+  "continuity_sequence": 42,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "1b43227de133a675db0017c9803288d04de175c5",
+  "checkpoint_based_on_head_sha": "0d6d0a306d425cdd1a2a83f5a09cc4ada6aa67a9",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Build a personal weak-network VPN whose two primary transport properties are UDP/datagram-like earliest-complete inner delivery and TCP-shaped FakeTCP outer behavior. Current release qualification assumes at most a 100 Mbit/s weak public link. The personal server uses one shared username/password for many concurrent sessions, OpenWrt final capture is TPROXY, and Windows final capture is TUN/Wintun-class.",
-    "current_milestone": "Finish the 100 Mbit/s transport gates and shared-account session plumbing without changing already-qualified no-HOL semantics, then freeze the protocol before final OpenWrt TPROXY and Windows TUN integration.",
-    "local_optimization_stop_rule": "Inner first-complete latency and delivery are the first optimization priority. Do not delay an available systematic source, do not make inner delivery wait for cumulative TCP ACK/retransmission, do not add authentication/control complexity that is unnecessary for the personal shared-account deployment, and do not let platform capture requirements change the frozen transport protocol."
+    "terminal_goal": "Build a personal weak-network VPN with UDP/datagram-like earliest-complete inner delivery over WBD-owned TCP-shaped FakeTCP, a 100 Mbit/s weak-link release ceiling, shared username/password admission for multiple independent LiveID sessions, OpenWrt TPROXY capture, and Windows TUN/Wintun-class capture.",
+    "current_milestone": "Shared-account two-session clean-path fan-out and the first 40 Mbit/s aggregate weak-link characterization are qualified. Keep protocol/FEC semantics frozen while measuring the safe aggregate offered-load ceiling on the 100 Mbit/s shared bottleneck, then freeze protocol and move to final OpenWrt/Windows end-to-end integration.",
+    "local_optimization_stop_rule": "Prioritize first-complete inner datagram delivery and balanced independent sessions. Never gate available systematic data on cumulative TCP repair, do not add multi-tenant identity complexity, and do not retune fixed 20:20 from a single load point before the 100 Mbit/s shared-link load ceiling is measured."
   },
   "continuation_cursor": {
-    "last_completed_action": "Changed the active product assumptions to a 100 Mbit/s weak-link ceiling, simple shared username/password admission, and final platform targets OpenWrt TPROXY plus Windows TUN. Added a same-entry Reality-like simple auth path that sends one bounded username/password request inside TLS 1.3 and immediately issues a fresh one-time 32-byte ticket; the same credentials can issue multiple concurrent independent tickets. Added a session registry keyed by 32-byte live session ID rather than username. GitHub Actions demo-encryption run 32891427104 passed the simplified path end-to-end with an unrelated self-signed front certificate, verify_server=false, DTLS verify=none, ticket bind with auth=false, encrypted echo, and pcap scan showing no username/password/ticket/WBDC/application plaintext. Converted active FakeTCP first-arrival, full-stack first-arrival and recovery A/B qdiscs to 100mbit. Added a loaded recovery A/B with 65 Mbit/s inner offered traffic on a 100 Mbit/s link at RTT 20/100 ms and loss 10/20%. Added OpenWrt TPROXY render/apply/cleanup plumbing with underlay escape before capture and compact nft sets, plus contract tests. Updated the constitution, ADR-0008, ROADMAP and handoff architecture tests so old per-device credential and mandatory certificate/hostname-validation requirements no longer define the personal product.",
-    "current_task": "Get the current 100 Mbit/s regression set green and use the loaded legacy-vs-SACK/RACK result to make the recovery default decision. In parallel, preserve the deliberately simple one-account/many-session model and prepare the server data-plane demultiplexing boundary without introducing username-keyed live state or a multi-tenant control plane.",
-    "why_now": "Low-load same-binary recovery A/B already showed SACK/RACK adds only roughly 0.00-0.055 ms p50/p75 body latency while raising five-second delivery by about 7-19 percentage points, but that test was only around 9.6 Mbit/s. The user capped the real weak link at 100 Mbit/s, so loaded behavior near that capacity is the remaining transport decision. Authentication simplification and Reality-like ticket join have already passed a real encrypted end-to-end CI demo, so the next correctness gap is concurrent data-session ownership rather than more identity machinery.",
-    "done_when": "The loaded 100 Mbit/s recovery A/B either passes its p50/goodput gates and SACK/RACK remains default, or it fails and advanced recovery is demoted/refactored so new inner datagrams keep priority. Current go test/handoff tests and the 100 Mbit/s first-arrival/full-stack regressions are green. Same shared username/password can create multiple distinct tickets and live server state remains keyed by session/ticket identity. Only after these protocol gates are frozen should OpenWrt TPROXY and Windows TUN be connected to the real data session and each platform run one clean end-to-end VPN success with underlay escape and cleanup.",
-    "next_atomic_action": "Poll the current faketcp-recovery-load-ab, ci, fullstack-first-arrival and demo-encryption runs for checkpoint 1b43227de133a675db0017c9803288d04de175c5. If loaded recovery passes, persist SACK/RACK as the default and move to the smallest server multi-session data demux keyed by ticket/session ID; if it fails, first move advanced recovery off the new-datagram critical path or revert it. Do not start real OpenWrt/Windows packet-adapter integration until that protocol decision and multi-session demux are qualified."
+    "last_completed_action": "Qualified same-account two-session fan-out through one public FakeTCP listener for FEC off and fixed 20:20, added DTLS-protected PING/PONG/CLOSE lifecycle with a 15s client keepalive and 90s server idle lease, fixed the bounded test activation race, and completed the first shared 100 Mbit/s two-session load characterization. Authoritative mux-load run 32918572671 passed all four network jobs plus aggregate with setup loss 0 and measured random loss 20%. At 40 Mbit/s aggregate inner offered, RTT20 off delivered 0.8022 / 32.083 Mbit/s / p99 11.061ms versus fixed20:20 1.0000 / 39.994 Mbit/s / p99 20.678ms; RTT100 off delivered 0.8062 / 32.242 Mbit/s / p99 50.770ms versus fixed20:20 1.0000 / 39.994 Mbit/s / p99 61.185ms. Fixed plaintext expansion measured 2.1622x and 2.1597x. Results are recorded in docs/benchmarks/v2-mux-two-session-100m.md.",
+    "current_task": "Find the safe aggregate inner offered-load ceiling for two simultaneous same-account sessions on the 100 Mbit/s shared weak link without changing the qualified mux, legacy FakeTCP default, DTLS worker model, or fixed 20:20 semantics.",
+    "why_now": "At 20% measured random loss, fixed 20:20 recovered both 20 and 100 ms RTT cases from about 80% delivery to 100%, but its measured LINK->DTLS plaintext expansion is about 2.16x and costs roughly 16-18% more sampled CPU, 26-33% more peak RSS, and about 10ms more p99. Forty Mbit/s aggregate inner therefore already consumes roughly the mid-80-Mbit/s range before DTLS/FakeTCP overhead. The next product risk is saturation/queue collapse, not correctness of session fan-out.",
+    "done_when": "A paired aggregate-load sweep on the same two-session topology identifies the highest sustainable inner offered rate at RTT 20/100 ms with measured 20% random loss, using setup loss 0 and loss only during the offered interval. Record delivery/goodput/p50/p99, per-session balance, CPU/RSS, exact systematic/repair plaintext bytes, FakeTCP retransmit bytes and shared qdisc drops. Do not freeze protocol or begin final platform VPN integration until the ceiling and a conservative release operating point are documented.",
+    "next_atomic_action": "Extend scripts/bench_mux_two_session_100m.py / mux-load-100m workflow into a load sweep at aggregate inner 40 -> 60 -> 80 Mbit/s (20 -> 30 -> 40 per session), RTT 20/100 ms, measured random loss 20%, preserving setup_loss_pct=0 and the existing exact plaintext meter. Start with fixed 20:20 plus an off-mode control at each RTT/load; stop increasing load when persistent queue/tail collapse or materially unfair session delivery appears. Do not retune FEC or recovery during this sweep."
   },
   "resume_read_set": [
     "PROJECT_CONSTITUTION.md",
-    "ROADMAP.md",
-    "docs/architecture/ADR-0008-reality-target-mirror-diagnostic.md",
-    "internal/realityfront/simple_auth.go",
-    "internal/realityfront/simple_auth_test.go",
-    "internal/session/account_registry.go",
-    "cmd/wbd-reality-front/main.go",
+    "docs/architecture/ADR-0009-shared-account-session-fanout.md",
+    "cmd/wbd-faketcp-mux/main_linux.go",
+    "cmd/wbd-link-server-mux/main.go",
+    "cmd/wbd-link-server-mux/main_test.go",
     "cmd/wbd-link-proxy/main.go",
-    "cmd/wbd-faketcp/main_linux.go",
-    ".github/workflows/faketcp-recovery-load-ab.yml",
-    "scripts/openwrt_tproxy.sh",
-    ".wbd/handoff/current.json"
+    "internal/session/dataplane.go",
+    "internal/linkdata/path.go",
+    "scripts/bench_mux_two_session_100m.py",
+    "scripts/bench_mux_two_session_100m_runner.py",
+    ".github/workflows/mux-load-100m.yml",
+    "docs/benchmarks/v2-mux-two-session-100m.md"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "native_faketcp_pcap_plus_streaming_systematic_fullstack_first_arrival_plus_same_binary_recovery_ab_with_loaded_100mbit_gate_pending",
-    "outer_semantics": "WBD-owned TCP-shaped raw carrier with shadow cumulative ACK/SACK/fast-retransmit/RTO state; inner complete datagram delivery never waits for cumulative TCP ACK. SACK/RACK remains provisionally default pending the loaded 100 Mbit/s A/B.",
-    "fec_status": "WBD systematic 20+20 RS remains the qualified fixed live reference and systematic sources stream immediately; live negotiation admits off or fixed 20:20 tail-RS while intermediate presets remain future qualification work.",
-    "historical_fullstack_run": "GitHub Actions 32841039689 SUCCESS on the older 200 Mbit/s harness, RTT 20/100 ms x loss 0/10/20%, 800 1200-byte datagrams per point. Kept as historical evidence only; current product qualification is 100 Mbit/s.",
-    "recovery_low_load_run": "GitHub Actions 32884751596 SUCCESS. RTT20/loss10 delivery legacy 92.71% vs SACK/RACK 100%, p50 delta +0.0015 ms, p75 +0.0097 ms; RTT20/loss20 81.57% vs 100%, +0.0024/+0.0545 ms; RTT100/loss10 90.86% vs 100%, -0.0004/+0.0033 ms; RTT100/loss20 80.86% vs 100%, +0.0027/+0.0548 ms.",
-    "loaded_recovery_gate": "100 Mbit/s link, 65 Mbit/s inner offered, RTT 20/100 ms x loss 10/20%, interleaved legacy vs sack-rack. Hard gates: SACK/RACK p50 delta <=2 ms and goodput >=95% of legacy. Result pending at this checkpoint.",
-    "tcp_like_pcap": "20% real pcap gate passed with MSS=1360, SACK-Permitted, Window Scale=8, cumulative ACK, live merged SACK blocks, fast retransmit and RTO/backoff while later complete inner datagrams bypass holes.",
-    "memory_policy": "performance first: retain only the state needed for shadow repair and never gate new inner datagrams on pending depth merely to save memory",
-    "capacity_policy": "active weak-link tests use 100 Mbit/s or lower; old 200 Mbit/s benchmark workflows are historical and do not qualify current defaults"
+    "authority": "native_faketcp_pcap_plus_streaming_systematic_first_arrival_plus_full_two_client_mux_plus_shared_100mbit_two_session_load",
+    "outer_semantics": "WBD-owned TCP-shaped raw carrier with legacy shadow recovery as the product default. SACK/RACK remains explicit experimental research. Complete inner datagram delivery never waits for cumulative TCP ACK or repair.",
+    "fec_status": "Live negotiation admits FEC off or fixed systematic 20:20 tail-RS. Surviving systematic sources stream immediately and missing originals reconstruct from repair shards; no runtime config epoch or adaptive retune is qualified.",
+    "two_client_clean_gate": "GitHub Actions fullstack-mux-two-client run 32911866748 SUCCESS for both FEC off and fixed 20:20: two distinct tickets from one shared account, one public FakeTCP listener, two inherited-fd wolfSSL DTLS workers, two independent LINK/LiveID sessions, concurrent unique application echoes with no cross-session routing.",
+    "two_session_load_gate": "GitHub Actions mux-load-100m run 32918572671 SUCCESS at 100 Mbit/s shared link, two simultaneous 20 Mbit/s inner streams, RTT 20/100 ms, setup loss 0 and measurement random loss 20%. Fixed 20:20 delivered 100% at both RTTs versus off about 80%; p99 increased by 9.617/10.415ms and exact fixed plaintext expansion was 2.1622x/2.1597x.",
+    "lifecycle": "Client sends DTLS-protected WBD PING after 15s idle, handles PONG/CLOSE, and on normal stop flushes FEC then best-effort CLOSE_NORMAL. Shared link server refreshes active leases on data/control/service traffic, echoes lifecycle control via the existing state machine, and reclaims idle LiveID slots after a default 90s lease.",
+    "memory_policy": "Performance first: retain bounded independent state per LiveID and never gate new inner datagrams on pending repair depth merely to save memory.",
+    "capacity_policy": "Active release qualification uses a 100 Mbit/s weak shared link or lower. The current 40 Mbit/s aggregate inner point is qualified but is not yet the safe load ceiling."
   },
   "product_policy": {
-    "link_setup": "Reality-like front is connection setup only. Recognized same-entry TLS authenticates once and issues a one-time ticket; FakeTCP/DTLS then performs ticket bind plus immutable LINK_INIT/LINK_ACCEPT. Sustained VPN payload never uses the front TCP stream.",
-    "fec": "off or live-admitted fixed profile at association setup; current live fixed implementation is systematic 20:20 tail-RS; no runtime config epoch",
-    "accounts": "one configured shared username/password may authenticate multiple simultaneous devices. Each successful login gets a distinct random ticket/session identity. No required per-device credential database, KDF, revocation table or username-based single-session lock.",
-    "certificate_policy": "personal client may explicitly disable certificate-chain and hostname verification for both front TLS and DTLS; encryption remains enabled and logs must state verify_server=false / verify=none",
-    "routing": "OpenWrt final product capture is TPROXY plus policy routing and underlay escape; Windows final product capture is TUN/Wintun-class with endpoint escape. Linux TUN remains a regression harness, not the OpenWrt release shape.",
-    "release_gate": "after protocol/unit/pcap/100M weak-link tests are green, one clean end-to-end VPN attempt must succeed on OpenWrt TPROXY and one on Windows TUN, including real application traffic, underlay escape and cleanup/restoration"
+    "link_setup": "Reality-like TLS front is connection setup only. Recognized same-entry TLS authenticates the shared username/password and issues a fresh one-time ticket; FakeTCP/DTLS then performs ticket bind and immutable LINK_INIT/LINK_ACCEPT. Sustained VPN payload never uses the front TCP stream.",
+    "fec": "Association setup admits off or fixed systematic 20:20 tail-RS. No runtime FEC config epoch; adaptive/intermediate profiles remain research until separately qualified.",
+    "accounts": "One configured shared username/password may authenticate multiple simultaneous devices. Every login gets a distinct random ticket/LiveID; live routing and FEC state are keyed by LiveID/peer, never username.",
+    "recovery": "FakeTCP product default is legacy shadow recovery. sack-rack remains opt-in experimental/diagnostic and is not a release default.",
+    "certificate_policy": "Personal client may explicitly disable certificate-chain and hostname verification for both front TLS and DTLS while encryption remains enabled and logs disclose the verification mode.",
+    "routing": "OpenWrt final capture is TPROXY plus policy routing and underlay escape; Windows final capture is TUN/Wintun-class with endpoint escape. Linux TUN remains a regression harness.",
+    "release_gate": "After protocol/unit/pcap/100M weak-link and load-ceiling gates are green, freeze protocol, then require one clean end-to-end VPN success on OpenWrt TPROXY and one on Windows TUN including real DNS/TCP/UDP application traffic, underlay escape and cleanup/restoration."
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "2fbae9a466ece077b22c6ef3f8fd8c6d2039fd76",
+    "tested_commit": "03d41b7450ef8fa751816fd02452bfedea79137d",
     "result": "pass",
-    "command": "Repository-backed snapshot: GitHub Actions demo-encryption run 32891427104 passed pinned wolfSSL build, targeted Go tests, same-entry simple username/password auth, unrelated self-signed TLS with verify_server=false, DTLSv1.3 verify=none, ticket bind without second AUTH, encrypted echo and public capture marker scan. The same commit's go test ./... step also passed; its overall ci run was red only because architecture handoff assertions still described the older credential/certificate policy, which later commits replaced."
+    "command": "Repository-backed CI snapshot: the normal GitHub Actions ci go test ./... step passed at 03d41b7450ef8fa751816fd02452bfedea79137d after the mux activation-race test fix. Later benchmark-only/script/workflow/document commits did not change Go product code. At substantive checkpoint d29856d017a08dd3f9d7d291e4179ac53ca3c614, all four mux-load jobs also passed targeted control/linkdata/session/faketcp/realityfront/link-proxy/link-server tests before the authoritative network run 32918572671 completed successfully."
   }
 }
