@@ -1,6 +1,6 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 44,
+  "continuity_sequence": 45,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
@@ -29,14 +29,10 @@
     "docs/architecture/ADR-0009-shared-account-session-fanout.md",
     "docs/benchmarks/v2-mux-two-session-100m.md",
     ".github/workflows/mux-load-100m.yml",
-    "scripts/bench_mux_two_session_100m.py",
     "scripts/bench_mux_two_session_100m_runner.py",
     "cmd/wbd-faketcp-mux/main_linux.go",
     "cmd/wbd-link-server-mux/main.go",
-    "cmd/wbd-link-proxy/main.go",
-    "internal/session/dataplane.go",
-    "internal/linkdata/path.go",
-    "deps/security-lock.json"
+    "internal/session/dataplane.go"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
