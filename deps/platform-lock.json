@@ -18,10 +18,13 @@
       "release": "1.88",
       "release_date": "2026-05-06",
       "sdk": "1.16",
+      "official_installer": "https://npcap.com/dist/npcap-1.88.exe",
+      "authenticode_signer": "Nmap Software LLC",
+      "prepare_script": "scripts/windows_npcap_prepare.ps1",
       "api": "wpcap.dll / libpcap-compatible pcap_open_live, pcap_next_ex, pcap_sendpacket",
-      "integration": "Load the system-installed Npcap wpcap.dll dynamically. WBD does not redistribute the Npcap Free Edition. The operator installs an eligible Npcap package separately unless a redistribution license is obtained.",
-      "qualification": "The Windows release one-shot must qualify packet capture/injection on the selected physical NIC and explicitly check checksum/LSO/RSC offload interactions before the Npcap backend is release-authoritative.",
-      "notes": "Npcap 1.88 is the current official release used as the development reference. Do not silently float the dependency during release qualification."
+      "integration": "Load the system-installed Npcap wpcap.dll dynamically. WBD does not redistribute the Npcap Free Edition. For this personal-use project the operator downloads the pinned public installer directly from npcap.com and completes its normal graphical installation; WBD never invokes OEM-only silent installation and never uploads the installer or extracted DLL as a build artifact.",
+      "qualification": "windows-tun-build downloads the pinned public installer directly from npcap.com, verifies the Nmap Software LLC Authenticode signer, transiently inspects its wpcap.dll payload, then deletes it. Product Connect preflights the installed wpcap.dll/Packet.dll/npcap service before Reality admission. The Windows release one-shot still requires an administrator Windows machine with Npcap actually installed and must qualify physical capture/injection plus checksum/LSO/RSC offload interactions.",
+      "notes": "Npcap 1.88 is the release-authoritative personal-use development reference. The Free Edition is not redistributed by WBD. Do not silently float the dependency during release qualification."
     }
   }
 }
