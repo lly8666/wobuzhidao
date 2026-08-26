@@ -73,9 +73,11 @@ def main() -> None:
         assert p["active_lanes"] == cap and p["auto_lane_added"], p
 
     # race-target is an actual lane scheduler input, not decorative configuration.
+    # Use 0.8 instead of the exact 0.9/risk=0.1 logarithmic boundary so this
+    # checks semantics rather than floating-point ceil behavior.
     relaxed = manual_base(binary,
         "-loss-pct", "10", "-mean-burst", "1", "-lanes", "1", "-max-lanes", "4",
-        "-auto-add-lane=true", "-race-target", "0.9")
+        "-auto-add-lane=true", "-race-target", "0.8")
     strict = manual_base(binary,
         "-loss-pct", "10", "-mean-burst", "1", "-lanes", "1", "-max-lanes", "4",
         "-auto-add-lane=true", "-race-target", "0.9995")
