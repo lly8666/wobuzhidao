@@ -5,12 +5,27 @@
       "role": "Windows TUN/Wintun-class L3 capture device only; never part of the frozen WBD transport semantics",
       "official_repository": "https://git.zx2c4.com/wintun",
       "github_mirror": "https://github.com/WireGuard/wintun",
-      "commit": "ec0a6b98456fe1ba52567bb2add4bbf5f64315a1",
-      "commit_date": "2026-03-18",
       "api": "api/wintun.h",
-      "license": "GPL-2.0 OR MIT",
-      "integration": "Load wintun.dll dynamically and bind only the documented public Wintun API. The deployed DLL/driver must be built or obtained from this pinned source commit, or receive an explicit artifact hash lock before release.",
-      "notes": "This pin includes the 2026 missed-wakeup ring-buffer memory-barrier fix. Do not float master during release qualification."
+      "source_reference": {
+        "commit": "ec0a6b98456fe1ba52567bb2add4bbf5f64315a1",
+        "commit_date": "2026-03-18",
+        "reason": "Current upstream source reference includes the 2026 Ring->Head race fix and missed-wakeup memory-barrier fix. Do not float this reference during qualification."
+      },
+      "official_signed_compatibility_artifact": {
+        "version": "0.14.1",
+        "url": "https://www.wintun.net/builds/wintun-0.14.1.zip",
+        "sha256": "07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51",
+        "purpose": "administrator integration/ABI compatibility smoke only",
+        "release_authority": false,
+        "reason": "The currently published signed package predates the 2026 upstream ring-race fixes and therefore must not silently become the V2.2 release authority."
+      },
+      "release_binary_policy": "Use only an official/suitably signed Wintun binary whose exact archive or DLL hash is locked here. Before declaring Windows release-qualified, either obtain a signed artifact that includes the pinned 2026 source fixes or record an explicit risk-acceptance decision for the older official signed package. Self-built unsigned/test-signed Wintun is not a release artifact.",
+      "integration": "Load wintun.dll dynamically and bind only the documented public Wintun API. Keep device/route lifecycle outside the frozen WBD transport.",
+      "licenses": {
+        "source_repository": "GPL-2.0",
+        "api_header_spdx": "GPL-2.0 OR MIT",
+        "official_prebuilt": "permissive prebuilt-binaries license included by upstream"
+      }
     }
   }
 }

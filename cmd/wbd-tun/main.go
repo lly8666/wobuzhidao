@@ -21,6 +21,7 @@ func main() {
 		transport = flag.String("transport", "127.0.0.1:4090", "client: local UDP transport target")
 		local     = flag.String("local", "", "client: optional local UDP bind address")
 		listen    = flag.String("listen", "127.0.0.1:4091", "server: UDP listen address for decoded transport")
+		runFor    = flag.Duration("run-for", 0, "optional qualification lifetime; 0 runs until signal")
 	)
 	flag.Parse()
 
@@ -59,6 +60,14 @@ func main() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if *runFor < 0 {
+		fatalIf(fmt.Errorf("run-for must be non-negative"))
+	}
+	if *runFor > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, *runFor)
+		defer cancel()
+	}
 
 	stats, err := bridge.Run(ctx)
 	if err != nil {

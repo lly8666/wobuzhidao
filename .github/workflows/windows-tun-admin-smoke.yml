@@ -1,0 +1,100 @@
+name: windows-tun-admin-smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/windows-tun-admin-smoke.yml'
+      - 'cmd/wbd-tun/**'
+      - 'internal/tunnel/**'
+      - 'scripts/windows_tun_route.ps1'
+      - 'deps/platform-lock.json'
+  push:
+    branches:
+      - dev/wbd-raw-fec-v2
+    paths:
+      - '.github/workflows/windows-tun-admin-smoke.yml'
+      - 'cmd/wbd-tun/**'
+      - 'internal/tunnel/**'
+      - 'scripts/windows_tun_route.ps1'
+      - 'deps/platform-lock.json'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Download locked official signed Wintun compatibility artifact
+        shell: pwsh
+        run: |
+          $zip = "$env:RUNNER_TEMP\wintun-0.14.1.zip"
+          Invoke-WebRequest -UseBasicParsing 'https://www.wintun.net/builds/wintun-0.14.1.zip' -OutFile $zip
+          $got = (Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant()
+          $want = '07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51'
+          if ($got -ne $want) { throw "Wintun ZIP SHA256 mismatch: got=$got want=$want" }
+          $dir = "$env:RUNNER_TEMP\wintun"
+          Expand-Archive -LiteralPath $zip -DestinationPath $dir
+          $dll = Get-ChildItem -Path $dir -Recurse -Filter wintun.dll | Where-Object { $_.FullName -match '[\\/]amd64[\\/]' } | Select-Object -First 1
+          if (-not $dll) { throw 'amd64 wintun.dll not found in locked archive' }
+          Copy-Item -LiteralPath $dll.FullName -Destination "$env:RUNNER_TEMP\wintun.dll"
+          Write-Output "WBD_WINDOWS_WINTUN_COMPAT_ARTIFACT_PASS sha256=$got"
+      - name: Build WBD TUN client
+        shell: pwsh
+        run: |
+          go test ./internal/tunnel ./cmd/wbd-tun -count=1
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-tun.exe" ./cmd/wbd-tun
+      - name: Administrator adapter route and cleanup smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = "$env:RUNNER_TEMP\wbd-tun.exe"
+          $state = "$env:RUNNER_TEMP\wbd-route-state.json"
+          $stdout = "$env:RUNNER_TEMP\wbd-tun.stdout.log"
+          $stderr = "$env:RUNNER_TEMP\wbd-tun.stderr.log"
+          $proc = $null
+          try {
+            $proc = Start-Process -FilePath $exe -ArgumentList @('-mode','client','-ifname','WBDCI','-mtu','1400','-transport','127.0.0.1:49999','-run-for','20s') -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+            $ready = $false
+            for ($i = 0; $i -lt 100; $i++) {
+              if ($proc.HasExited) { break }
+              if ((Test-Path $stderr) -and ((Get-Content $stderr -Raw) -match 'WBD_TUN_READY')) { $ready = $true; break }
+              Start-Sleep -Milliseconds 100
+            }
+            if (-not $ready) {
+              if (Test-Path $stderr) { Get-Content $stderr }
+              throw 'Wintun-backed wbd-tun did not become ready'
+            }
+            $adapter = Get-NetAdapter -Name WBDCI -ErrorAction Stop
+            Write-Output "WBD_WINDOWS_WINTUN_ADAPTER_PASS ifindex=$($adapter.ifIndex)"
+
+            & ./scripts/windows_tun_route.ps1 -Action Apply -Mode Split -AdapterAlias WBDCI -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -Prefix4 203.0.113.0/24 -MTU 1400 -StatePath $state
+            $ifIndex = [uint32](Get-NetAdapter -Name WBDCI).ifIndex
+            if (-not (Get-NetIPAddress -InterfaceIndex $ifIndex -IPAddress 10.66.0.2 -ErrorAction SilentlyContinue)) { throw 'Wintun IPv4 address missing after apply' }
+            if (-not (Get-NetRoute -DestinationPrefix 203.0.113.0/24 -InterfaceIndex $ifIndex -ErrorAction SilentlyContinue)) { throw 'WBD split capture route missing after apply' }
+            $escape = Get-NetRoute -DestinationPrefix 1.1.1.1/32 -ErrorAction SilentlyContinue | Where-Object { [uint32]$_.InterfaceIndex -ne $ifIndex } | Select-Object -First 1
+            if (-not $escape) { throw 'underlay /32 was not locked outside Wintun' }
+            Write-Output "WBD_WINDOWS_TUN_ADMIN_APPLY_PASS underlay_ifindex=$($escape.InterfaceIndex)"
+
+            & ./scripts/windows_tun_route.ps1 -Action Cleanup -StatePath $state
+            if (Test-Path $state) { throw 'route state survived cleanup' }
+            if (Get-NetRoute -DestinationPrefix 203.0.113.0/24 -InterfaceIndex $ifIndex -ErrorAction SilentlyContinue) { throw 'WBD capture route survived cleanup' }
+            if (Get-NetIPAddress -InterfaceIndex $ifIndex -IPAddress 10.66.0.2 -ErrorAction SilentlyContinue) { throw 'WBD address survived cleanup' }
+            Write-Output 'WBD_WINDOWS_TUN_ADMIN_CLEANUP_PASS'
+
+            Wait-Process -Id $proc.Id -Timeout 25
+            if ($proc.ExitCode -ne 0) {
+              if (Test-Path $stderr) { Get-Content $stderr }
+              throw "wbd-tun exited $($proc.ExitCode)"
+            }
+            Write-Output 'WBD_WINDOWS_TUN_ADMIN_SMOKE_PASS compatibility_only=1 release_authority=0'
+          } finally {
+            try { & ./scripts/windows_tun_route.ps1 -Action Cleanup -StatePath $state 2>$null | Out-Null } catch { }
+            if ($proc -and -not $proc.HasExited) { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue }
+          }
