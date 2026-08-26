@@ -166,7 +166,7 @@ func (r *UDPRelay) flowFor(servicePeer *net.UDPAddr, flowID uint64, target netip
 }
 
 func (r *UDPRelay) readUpstream(flow *udpFlow) {
-	buf := make([]byte, MaxPayload)
+	buf := make([]byte, 65535)
 	for {
 		n, err := flow.upstream.Read(buf)
 		if err != nil {
