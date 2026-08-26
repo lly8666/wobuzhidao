@@ -13,8 +13,8 @@ const (
 	defaultFakeTCPLocalPort  = 45101
 	defaultFakeTCPSourcePort = 41001
 	defaultDTLSPlainPort     = 46101
-	defaultLinkListenPort     = 47101
-	defaultMTU                = 1400
+	defaultLinkListenPort    = 47101
+	defaultMTU               = 1400
 )
 
 type Profile struct {
@@ -142,7 +142,7 @@ func (u Underlay) Validate() error {
 	if ip, err := netip.ParseAddr(u.SourceIP); err != nil || !ip.Is4() {
 		return errors.New("underlay source IP must be IPv4")
 	}
-	if !strings.HasPrefix(u.PacketDevice, `\\Device\\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
+	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
 		return errors.New("underlay packet device must be an Npcap device")
 	}
 	if !validMAC(u.SourceMAC) || !validMAC(u.NextHopMAC) {
