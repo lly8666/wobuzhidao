@@ -94,6 +94,10 @@ jobs:
           if test -f '/tmp/muxload/results/${{ matrix.label }}/result.json'; then
             cat '/tmp/muxload/results/${{ matrix.label }}/result.json'
           fi
+      - name: Make result artifact readable
+        if: always()
+        run: |
+          sudo chmod -R a+rX '/tmp/muxload/results/${{ matrix.label }}' 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
