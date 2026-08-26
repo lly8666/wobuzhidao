@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/mux-load-100m.yml'
       - 'scripts/bench_mux_two_session_100m.py'
+      - 'scripts/bench_mux_two_session_100m_runner.py'
       - 'scripts/udp_multistream_oneway_probe.c'
       - 'cmd/wbd-faketcp/**'
       - 'cmd/wbd-faketcp-mux/**'
@@ -68,7 +69,7 @@ jobs:
           gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
             native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/muxload/assets/wbd_dtls_shim
           gcc -O2 -Wall -Wextra -Werror scripts/udp_multistream_oneway_probe.c -lm -o /tmp/muxload/assets/udp_multistream_oneway_probe
-          python3 -m py_compile scripts/bench_mux_two_session_100m.py
+          python3 -m py_compile scripts/bench_mux_two_session_100m.py scripts/bench_mux_two_session_100m_runner.py
           go test ./internal/control ./internal/linkdata ./internal/session ./internal/faketcp ./internal/realityfront ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux -count=1
           go build -trimpath -o /tmp/muxload/assets/wbd-reality-front ./cmd/wbd-reality-front
           go build -trimpath -o /tmp/muxload/assets/wbd-faketcp ./cmd/wbd-faketcp
@@ -84,7 +85,7 @@ jobs:
       - name: Run two simultaneous sessions on one 100 Mbit weak link
         run: |
           set -euo pipefail
-          sudo -E python3 scripts/bench_mux_two_session_100m.py run \
+          sudo -E python3 scripts/bench_mux_two_session_100m_runner.py run \
             --rtt '${{ matrix.rtt }}' --loss 20 --fec '${{ matrix.fec }}' \
             --offered-mbps-per-stream 20 --duration 2 \
             --assets /tmp/muxload/assets --out-dir '/tmp/muxload/results/${{ matrix.label }}'
@@ -123,6 +124,9 @@ jobs:
           if len(files)!=4:
               raise SystemExit(f'expected 4 valid result.json files, got {len(files)}: {files}')
           rows=[json.load(open(p)) for p in files]
+          for r in rows:
+              if r.get('setup_loss_pct') != 0.0 or r.get('measurement_loss_pct') != 20.0:
+                  raise SystemExit(f'loss activation boundary missing from result: {r.get("rtt_ms")} {r.get("fec")}')
           by={(int(r['rtt_ms']),r['fec']):r for r in rows}
           pairs=[]
           for rtt in (20,100):
