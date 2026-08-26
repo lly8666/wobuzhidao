@@ -20,8 +20,11 @@ if ! [[ "$PROBE_COUNT" =~ ^[1-9][0-9]*$ ]]; then
   exit 2
 fi
 EXPECTED_LOGICAL=$((PROBE_COUNT + 1))
-EXPECTED_DUP=$((EXPECTED_LOGICAL * (LANES - 1)))
-EXPECTED_OUT_LANE=$((EXPECTED_LOGICAL * LANES))
+EXPECTED_IN_DUP=$((EXPECTED_LOGICAL * (LANES - 1)))
+MIN_RETURN_DUP=$((PROBE_COUNT * (LANES - 1)))
+MAX_RETURN_DUP=$((EXPECTED_LOGICAL * (LANES - 1)))
+MIN_OUT_LANE=$((PROBE_COUNT * LANES + 1))
+MAX_OUT_LANE=$((EXPECTED_LOGICAL * LANES))
 
 mkdir -p "$LOG_DIR" "$LOG_DIR/tickets"
 chmod 700 "$LOG_DIR/tickets"
@@ -249,8 +252,51 @@ PIDS=("${PIDS[@]/$GCPID}")
 sudo kill -TERM "$GSPID" 2>/dev/null || true
 wait "$GSPID" || true
 PIDS=("${PIDS[@]/$GSPID}")
-grep -q "WBD_GAME_LANE_CLIENT_STATS logical_tx=${EXPECTED_LOGICAL} delivered=${EXPECTED_LOGICAL}" "$LOG_DIR/game-client.log"
-grep -q "in_first=${EXPECTED_LOGICAL} in_dup=${EXPECTED_DUP} out_logical=${EXPECTED_LOGICAL} out_lane=${EXPECTED_OUT_LANE}" "$LOG_DIR/game-server.log"
+
+# The first warm datagram is a binding barrier, not a measured fanout sample.
+# Its earliest downstream reply may occur after only a subset of the lanes have
+# registered, while the remaining copies of that same logical datagram finish
+# binding the session. The formal probes start only after all lanes are bound.
+# Require all formal probes on every return lane, exact ingress duplication,
+# exactly-once logical delivery, and allow only the warm reply fanout to vary.
+python3 - "$LOG_DIR/game-client.log" "$LOG_DIR/game-server.log" \
+  "$EXPECTED_LOGICAL" "$EXPECTED_IN_DUP" "$PROBE_COUNT" "$LANES" \
+  "$MIN_RETURN_DUP" "$MAX_RETURN_DUP" "$MIN_OUT_LANE" "$MAX_OUT_LANE" <<'PY'
+import pathlib,re,sys
+client_path,server_path=sys.argv[1],sys.argv[2]
+expected=int(sys.argv[3]); expected_in_dup=int(sys.argv[4])
+probe=int(sys.argv[5]); lanes=int(sys.argv[6])
+min_dup,max_dup=map(int,sys.argv[7:9])
+min_out,max_out=map(int,sys.argv[9:11])
+client=pathlib.Path(client_path).read_text()
+server=pathlib.Path(server_path).read_text()
+
+m=re.search(r'WBD_GAME_LANE_CLIENT_STATS logical_tx=(\d+) delivered=(\d+) duplicate=(\d+) stale=(\d+)',client)
+assert m, client
+logical_tx,delivered,duplicate,stale=map(int,m.groups())
+assert logical_tx==expected,(logical_tx,expected)
+assert delivered==expected,(delivered,expected)
+assert stale==0,stale
+assert min_dup <= duplicate <= max_dup,(duplicate,min_dup,max_dup)
+
+lane_stats={int(l): (int(tx),int(rx)) for l,tx,rx in re.findall(r'WBD_GAME_LANE_CLIENT_LANE_STATS lane=(\d+) tx=(\d+) rx=(\d+)',client)}
+assert len(lane_stats)==lanes,lane_stats
+for lane in range(1,lanes+1):
+    tx,rx=lane_stats[lane]
+    assert tx==expected,(lane,tx,expected)
+    assert probe <= rx <= expected,(lane,rx,probe,expected)
+
+m=re.search(r'WBD_GAME_LANE_SESSION_CLOSE .*in_first=(\d+) in_dup=(\d+) out_logical=(\d+) out_lane=(\d+)',server)
+assert m, server
+in_first,in_dup,out_logical,out_lane=map(int,m.groups())
+assert in_first==expected,(in_first,expected)
+assert in_dup==expected_in_dup,(in_dup,expected_in_dup)
+assert out_logical==expected,(out_logical,expected)
+assert min_out <= out_lane <= max_out,(out_lane,min_out,max_out)
+warm_fanout=out_lane-probe*lanes
+assert 1 <= warm_fanout <= lanes,(warm_fanout,lanes)
+print(f'WBD_GAME_LANE_STATS_PASS lanes={lanes} formal_probe={probe} warm_return_fanout={warm_fanout} return_dup={duplicate}')
+PY
 
 sudo kill -INT "$TPID" 2>/dev/null || true
 wait "$TPID" || true
