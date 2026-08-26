@@ -30,25 +30,35 @@ on:
       - 'internal/gamelane/**'
       - 'cmd/wbd-game-lane-client/**'
       - 'cmd/wbd-game-lane-server/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-reality-front/**'
+      - 'internal/faketcp/**'
+      - 'internal/session/**'
+      - 'internal/realityfront/**'
+      - 'internal/dtlsworker/**'
+      - 'native/dtls/**'
 
 permissions:
   contents: read
   actions: read
 
 jobs:
-  four-lane:
+  build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
-      - name: Install build and packet tools
+      - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables tcpdump
-      - name: Build pinned DTLS and four-lane stack
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl
+      - name: Build pinned DTLS and game stack once
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -65,7 +75,6 @@ jobs:
           make -C /tmp/wolf/build -j2 src/libwolfssl.la
           gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
             native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
-          chmod +x "$ASSET/wbd_dtls_shim"
 
           go test ./internal/gamelane ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server ./cmd/wbd-link-server-mux -count=1
           go build -trimpath -o "$ASSET/wbd-reality-front" ./cmd/wbd-reality-front
@@ -80,27 +89,82 @@ jobs:
             -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
           openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
             -subj '/CN=unrelated-dtls.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
-      - name: Four independent WBD associations race one logical game flow
+      - uses: actions/upload-artifact@v4
+        with:
+          name: game-lane-assets
+          path: ${{ runner.temp }}/wbd-game-lane-assets
+          retention-days: 1
+
+  runtime-matrix:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lanes: 1
+            fec: off
+            label: off
+          - lanes: 1
+            fec: '20:20'
+            label: fixed20x20
+          - lanes: 2
+            fec: off
+            label: off
+          - lanes: 2
+            fec: '20:20'
+            label: fixed20x20
+          - lanes: 3
+            fec: off
+            label: off
+          - lanes: 3
+            fec: '20:20'
+            label: fixed20x20
+          - lanes: 4
+            fec: off
+            label: off
+          - lanes: 4
+            fec: '20:20'
+            label: fixed20x20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install namespace and packet tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump
+      - uses: actions/download-artifact@v4
+        with:
+          name: game-lane-assets
+          path: ${{ runner.temp }}/wbd-game-lane-assets
+      - name: Restore executable modes
+        run: |
+          chmod +x "$RUNNER_TEMP/wbd-game-lane-assets"/wbd-*
+      - name: Exercise configured lanes and FEC over independent WBD associations
+        env:
+          LANES: ${{ matrix.lanes }}
+          FEC: ${{ matrix.fec }}
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/wbd-game-lane-logs"
-          sudo scripts/game_lane_fullstack.sh "$RUNNER_TEMP/wbd-game-lane-assets" "$RUNNER_TEMP/wbd-game-lane-logs"
-      - name: Diagnose failed four-lane wiring
+          LOG="$RUNNER_TEMP/wbd-game-lane-logs"
+          mkdir -p "$LOG"
+          sudo -E scripts/game_lane_fullstack.sh "$RUNNER_TEMP/wbd-game-lane-assets" "$LOG"
+      - name: Diagnose failed lane/FEC wiring
         if: failure()
+        env:
+          LANES: ${{ matrix.lanes }}
         run: |
           set +e
           LOG="$RUNNER_TEMP/wbd-game-lane-logs"
           echo '=== WBD_GAME_LANE_DIAGNOSTIC_BEGIN ==='
-          for f in \
-            game-server.log front-server.log link-server.log faketcp-mux.log tcpdump.log \
-            faketcp-1.log faketcp-2.log faketcp-3.log faketcp-4.log \
-            dtls-1.log dtls-2.log dtls-3.log dtls-4.log \
-            link-1.log link-2.log link-3.log link-4.log \
-            game-client.log probe-warm.log probe.log echo.log echo-count.log; do
-            if sudo test -f "$LOG/$f"; then
-              echo "--- $f ---"
-              sudo tail -n 120 "$LOG/$f"
-            fi
+          for f in game-server.log link-server.log faketcp-mux.log tcpdump.log game-client.log probe-warm.log probe.log echo.log echo-count.log; do
+            if sudo test -f "$LOG/$f"; then echo "--- $f ---"; sudo tail -n 120 "$LOG/$f"; fi
+          done
+          for i in $(seq 1 "$LANES"); do
+            for stem in faketcp dtls link; do
+              f="$LOG/${stem}-${i}.log"
+              if sudo test -f "$f"; then echo "--- ${stem}-${i}.log ---"; sudo tail -n 120 "$f"; fi
+            done
           done
           echo '=== WBD_GAME_LANE_DIAGNOSTIC_END ==='
       - name: Remove one-time auth material from evidence
@@ -108,11 +172,11 @@ jobs:
         run: |
           set +e
           LOG="$RUNNER_TEMP/wbd-game-lane-logs"
-          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/front-[1-4].log
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/front-*.log
           sudo chmod -R a+rX "$LOG" 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: game-lane-fullstack
+          name: game-lane-${{ matrix.lanes }}-${{ matrix.label }}
           path: ${{ runner.temp }}/wbd-game-lane-logs
           retention-days: 14
