@@ -21,7 +21,7 @@ function Get-NpcapRuntimeState {
     $wpcap = Join-Path $system32 'wpcap.dll'
     $packet = Join-Path $system32 'Packet.dll'
     $service = Get-Service -Name 'npcap' -ErrorAction SilentlyContinue
-    [pscustomobject]@{
+    return [pscustomobject]@{
         Wpcap = $wpcap
         Packet = $packet
         WpcapExists = Test-Path -LiteralPath $wpcap
@@ -53,7 +53,6 @@ function Assert-NpcapInstalled {
     }
     [void](Assert-TrustedNmapSignature -Path $state.Wpcap -Label 'Npcap wpcap.dll')
     [void](Assert-TrustedNmapSignature -Path $state.Packet -Label 'Npcap Packet.dll')
-    Write-Output "WBD_WINDOWS_NPCAP_READY version=$NpcapVersion service=$($state.ServiceStatus) wpcap=$($state.Wpcap)"
     return $state
 }
 
@@ -64,29 +63,36 @@ function Fetch-NpcapInstaller {
     Invoke-WebRequest -UseBasicParsing -Uri $NpcapURL -OutFile $NpcapInstaller
     $signature = Assert-TrustedNmapSignature -Path $NpcapInstaller -Label "Npcap $NpcapVersion installer"
     $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $NpcapInstaller).Hash.ToLowerInvariant()
-    Write-Output "WBD_WINDOWS_NPCAP_FETCH_PASS version=$NpcapVersion signer=$($signature.SignerCertificate.Subject) sha256=$hash path=$NpcapInstaller"
-    return $NpcapInstaller
+    return [pscustomobject]@{
+        Path = $NpcapInstaller
+        SHA256 = $hash
+        Signer = [string]$signature.SignerCertificate.Subject
+    }
 }
 
 switch ($Action) {
     'Status' {
-        [void](Assert-NpcapInstalled)
+        $state = Assert-NpcapInstalled
+        Write-Output "WBD_WINDOWS_NPCAP_READY version=$NpcapVersion service=$($state.ServiceStatus) wpcap=$($state.Wpcap)"
         exit 0
     }
     'Fetch' {
-        [void](Fetch-NpcapInstaller)
+        $download = Fetch-NpcapInstaller
+        Write-Output "WBD_WINDOWS_NPCAP_FETCH_PASS version=$NpcapVersion signer=$($download.Signer) sha256=$($download.SHA256) path=$($download.Path)"
         exit 0
     }
     'Install' {
-        $installer = Fetch-NpcapInstaller | Select-Object -Last 1
+        $download = Fetch-NpcapInstaller
+        Write-Output "WBD_WINDOWS_NPCAP_FETCH_PASS version=$NpcapVersion signer=$($download.Signer) sha256=$($download.SHA256) path=$($download.Path)"
         # The public/free Npcap installer intentionally has no unattended /S
         # entitlement. Start it in the normal graphical mode and wait for the
         # operator to complete or cancel installation.
-        $proc = Start-Process -FilePath $installer -Wait -PassThru
+        $proc = Start-Process -FilePath $download.Path -Wait -PassThru
         if ($proc.ExitCode -notin @(0, 3010)) {
             throw "Npcap installer exited $($proc.ExitCode)"
         }
-        [void](Assert-NpcapInstalled)
+        $state = Assert-NpcapInstalled
+        Write-Output "WBD_WINDOWS_NPCAP_READY version=$NpcapVersion service=$($state.ServiceStatus) wpcap=$($state.Wpcap)"
         if ($proc.ExitCode -eq 3010) {
             Write-Output 'WBD_WINDOWS_NPCAP_REBOOT_REQUIRED'
         }
