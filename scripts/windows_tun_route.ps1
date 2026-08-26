@@ -46,6 +46,19 @@ function Require-Admin {
     }
 }
 
+function Wait-NetAdapterByName([string]$Name, [int]$TimeoutMilliseconds = 10000) {
+    $deadline = [DateTime]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
+    do {
+        $adapter = Get-NetAdapter -Name $Name -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($adapter) {
+            Write-Output "WBD_WINDOWS_TUN_ADAPTER_READY adapter=$Name ifindex=$($adapter.ifIndex)"
+            return $adapter
+        }
+        Start-Sleep -Milliseconds 100
+    } while ([DateTime]::UtcNow -lt $deadline)
+    throw "Wintun adapter $Name did not appear within ${TimeoutMilliseconds}ms"
+}
+
 function Wait-PreferredIPAddress([uint32]$InterfaceIndex, [string]$IPAddress, [string]$Family, [int]$TimeoutMilliseconds = 10000) {
     $deadline = [DateTime]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
     $lastState = 'Missing'
@@ -137,7 +150,10 @@ if (Test-Path -LiteralPath $StatePath) {
     throw "state already exists; run Cleanup first: $StatePath"
 }
 
-$adapter = Get-NetAdapter -Name $AdapterAlias -ErrorAction Stop
+# wbd-tun creates/opens Wintun asynchronously from the GUI controller's point
+# of view. Wait for the adapter itself instead of relying on a fixed sleep so
+# capture routes can never race process startup.
+$adapter = Wait-NetAdapterByName -Name $AdapterAlias
 $ifIndex = [uint32]$adapter.ifIndex
 $ipif4 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue | Select-Object -First 1
 $ipif6 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv6 -ErrorAction SilentlyContinue | Select-Object -First 1
