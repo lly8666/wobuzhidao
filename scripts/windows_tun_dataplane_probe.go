@@ -45,49 +45,62 @@ func main() {
 	fmt.Printf("WBD_WINDOWS_TUN_DATAPLANE_PROBE_READY listen=%s target=%s\n", conn.LocalAddr(), target)
 
 	buf := make([]byte, 65535)
-	n, peer, err := conn.ReadFromUDP(buf)
-	fatalIf(err)
-	frame := append([]byte(nil), buf[:n]...)
-	ip, err := parseFrame(frame)
-	fatalIf(err)
-	if len(ip) < 20 || ip[0]>>4 != 4 {
-		fatalIf(fmt.Errorf("expected IPv4 packet, got %d bytes", len(ip)))
-	}
-	ihl := int(ip[0]&0x0f) * 4
-	if ihl < 20 || ihl > len(ip) || int(binary.BigEndian.Uint16(ip[2:4])) != len(ip) {
-		fatalIf(fmt.Errorf("malformed IPv4 header ihl=%d len=%d total=%d", ihl, len(ip), binary.BigEndian.Uint16(ip[2:4])))
-	}
-	if ip[9] != 1 || len(ip) < ihl+8 {
-		fatalIf(fmt.Errorf("expected ICMP echo request protocol=%d len=%d ihl=%d", ip[9], len(ip), ihl))
-	}
-	dst := netip.AddrFrom4([4]byte{ip[16], ip[17], ip[18], ip[19]})
-	src := netip.AddrFrom4([4]byte{ip[12], ip[13], ip[14], ip[15]})
-	if dst != target {
-		fatalIf(fmt.Errorf("unexpected IPv4 target %s want %s", dst, target))
-	}
-	if ip[ihl] != 8 || ip[ihl+1] != 0 {
-		fatalIf(fmt.Errorf("expected ICMP echo request type/code, got %d/%d", ip[ihl], ip[ihl+1]))
-	}
+	for {
+		n, peer, err := conn.ReadFromUDP(buf)
+		fatalIf(err)
+		frame := append([]byte(nil), buf[:n]...)
+		ip, err := parseFrame(frame)
+		fatalIf(err)
+		if len(ip) == 0 {
+			fatalIf(fmt.Errorf("empty IP payload"))
+		}
 
-	replyIP := append([]byte(nil), ip...)
-	copy(replyIP[12:16], ip[16:20])
-	copy(replyIP[16:20], ip[12:16])
-	replyIP[8] = 64
-	replyIP[10], replyIP[11] = 0, 0
-	binary.BigEndian.PutUint16(replyIP[10:12], checksum(replyIP[:ihl]))
-	icmp := replyIP[ihl:]
-	icmp[0] = 0
-	icmp[1] = 0
-	icmp[2], icmp[3] = 0, 0
-	binary.BigEndian.PutUint16(icmp[2:4], checksum(icmp))
+		// A newly-created Windows interface can emit legitimate background IP
+		// control traffic (notably IPv6) before the qualification ping. That is
+		// real TUN traffic and must remain transportable; it is simply not the
+		// packet this probe is meant to answer. Keep waiting for the selected
+		// IPv4 ICMP target instead of treating the first unrelated packet as a
+		// framing failure.
+		version := ip[0] >> 4
+		if version != 4 {
+			fmt.Printf("WBD_WINDOWS_TUN_DATAPLANE_PROBE_SKIP version=%d ip_bytes=%d\n", version, len(ip))
+			continue
+		}
+		if len(ip) < 20 {
+			fatalIf(fmt.Errorf("short IPv4 packet: %d bytes", len(ip)))
+		}
+		ihl := int(ip[0]&0x0f) * 4
+		if ihl < 20 || ihl > len(ip) || int(binary.BigEndian.Uint16(ip[2:4])) != len(ip) {
+			fatalIf(fmt.Errorf("malformed IPv4 header ihl=%d len=%d total=%d", ihl, len(ip), binary.BigEndian.Uint16(ip[2:4])))
+		}
+		dst := netip.AddrFrom4([4]byte{ip[16], ip[17], ip[18], ip[19]})
+		if dst != target || ip[9] != 1 || len(ip) < ihl+8 || ip[ihl] != 8 || ip[ihl+1] != 0 {
+			fmt.Printf("WBD_WINDOWS_TUN_DATAPLANE_PROBE_SKIP version=4 target=%s protocol=%d ip_bytes=%d\n", dst, ip[9], len(ip))
+			continue
+		}
+		src := netip.AddrFrom4([4]byte{ip[12], ip[13], ip[14], ip[15]})
 
-	reply := marshalFrame(replyIP)
-	written, err := conn.WriteToUDP(reply, peer)
-	fatalIf(err)
-	if written != len(reply) {
-		fatalIf(fmt.Errorf("short UDP reply %d/%d", written, len(reply)))
+		replyIP := append([]byte(nil), ip...)
+		copy(replyIP[12:16], ip[16:20])
+		copy(replyIP[16:20], ip[12:16])
+		replyIP[8] = 64
+		replyIP[10], replyIP[11] = 0, 0
+		binary.BigEndian.PutUint16(replyIP[10:12], checksum(replyIP[:ihl]))
+		icmp := replyIP[ihl:]
+		icmp[0] = 0
+		icmp[1] = 0
+		icmp[2], icmp[3] = 0, 0
+		binary.BigEndian.PutUint16(icmp[2:4], checksum(icmp))
+
+		reply := marshalFrame(replyIP)
+		written, err := conn.WriteToUDP(reply, peer)
+		fatalIf(err)
+		if written != len(reply) {
+			fatalIf(fmt.Errorf("short UDP reply %d/%d", written, len(reply)))
+		}
+		fmt.Printf("WBD_WINDOWS_TUN_DATAPLANE_PROBE_PASS source=%s target=%s ip_bytes=%d frame_bytes=%d\n", src, dst, len(replyIP), len(reply))
+		return
 	}
-	fmt.Printf("WBD_WINDOWS_TUN_DATAPLANE_PROBE_PASS source=%s target=%s ip_bytes=%d frame_bytes=%d\n", src, dst, len(replyIP), len(reply))
 }
 
 func parseFrame(frame []byte) ([]byte, error) {
