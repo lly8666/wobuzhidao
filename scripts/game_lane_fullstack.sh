@@ -134,7 +134,12 @@ MUXPID=$!; PIDS+=("$MUXPID")
 for _ in $(seq 1 300); do grep -q 'READY role=server-mux.*recovery=legacy' "$LOG_DIR/faketcp-mux.log" && break; sleep .05; done
 grep -q 'READY role=server-mux.*recovery=legacy' "$LOG_DIR/faketcp-mux.log"
 
-sudo ip netns exec "$C" tcpdump -i gc0 -s 0 -U -w "$LOG_DIR/game-lanes.pcap" "tcp port ${RAW}" >"$LOG_DIR/tcpdump.log" 2>&1 &
+# Use immediate capture delivery as well as packet-buffered pcap writes. The
+# lane probe is intentionally short; without immediate mode libpcap may still
+# have matching packets in its kernel buffer when the deterministic SIGINT
+# arrives, producing an empty pcap despite a non-zero "received by filter"
+# counter.
+sudo ip netns exec "$C" tcpdump --immediate-mode -i gc0 -s 0 -U -w "$LOG_DIR/game-lanes.pcap" "tcp port ${RAW}" >"$LOG_DIR/tcpdump.log" 2>&1 &
 TPID=$!
 for _ in $(seq 1 200); do grep -q 'listening on gc0' "$LOG_DIR/tcpdump.log" && break; sleep .05; done
 grep -q 'listening on gc0' "$LOG_DIR/tcpdump.log"
