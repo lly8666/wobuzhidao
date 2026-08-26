@@ -20,7 +20,7 @@ type udpFlowKey struct {
 type udpFlow struct {
 	key         udpFlowKey
 	servicePeer *net.UDPAddr
-	target      netip.AddrPort
+	ipv4        bool
 	upstream    *net.UDPConn
 
 	mu       sync.Mutex
@@ -57,10 +57,11 @@ func (f *udpFlow) close() {
 
 // UDPRelay serves UDPDatagram platform frames received from wbd-link-server-mux.
 //
-// wbd-link-server-mux creates one connected local UDP service socket per LiveID,
-// so the relay intentionally keys state by (service source address, FlowID).
-// FlowID alone is not globally unique and must never be used to route across
-// independent sessions.
+// Each mapping is keyed only by (LiveID-facing service peer, FlowID). The
+// upstream socket is deliberately unconnected, which gives endpoint-independent
+// mapping and endpoint-independent filtering inside one address family: one
+// mapped source socket may send to many remote endpoints and may receive from
+// remote endpoints that were never used as an outbound destination.
 type UDPRelay struct {
 	conn        *net.UDPConn
 	idleTimeout time.Duration
@@ -79,6 +80,9 @@ func NewUDPRelay(conn *net.UDPConn, idleTimeout time.Duration) (*UDPRelay, error
 	return &UDPRelay{conn: conn, idleTimeout: idleTimeout, flows: make(map[udpFlowKey]*udpFlow)}, nil
 }
 
+// Serve is retained for the UDP-only executable/tests. The combined platform
+// server uses HandleFrame through Relay so UDP and TCP share the same LiveID
+// service socket and therefore the same service-peer isolation boundary.
 func (r *UDPRelay) Serve(ctx context.Context) error {
 	if ctx == nil {
 		return errors.New("platformproxy: nil context")
@@ -92,35 +96,38 @@ func (r *UDPRelay) Serve(ctx context.Context) error {
 			if ne, ok := err.(net.Error); !ok || !ne.Timeout() {
 				select {
 				case <-ctx.Done():
-					r.closeAll()
+					r.Close()
 					return ctx.Err()
 				default:
-					r.closeAll()
+					r.Close()
 					return err
 				}
 			}
 		} else {
-			if err := r.handle(servicePeer, buf[:n], now); err != nil {
-				// Malformed or stale application frames are isolated to that datagram.
-				// The WBD session itself remains alive.
-				continue
+			frame, ferr := Unmarshal(buf[:n])
+			if ferr == nil {
+				_ = r.HandleFrame(servicePeer, frame, now)
 			}
 		}
-		r.expire(now)
+		r.Tick(now)
 		select {
 		case <-ctx.Done():
-			r.closeAll()
+			r.Close()
 			return ctx.Err()
 		default:
 		}
 	}
 }
 
-func (r *UDPRelay) handle(servicePeer *net.UDPAddr, packet []byte, now time.Time) error {
+func (r *UDPRelay) HandlePacket(servicePeer *net.UDPAddr, packet []byte, now time.Time) error {
 	frame, err := Unmarshal(packet)
 	if err != nil {
 		return err
 	}
+	return r.HandleFrame(servicePeer, frame, now)
+}
+
+func (r *UDPRelay) HandleFrame(servicePeer *net.UDPAddr, frame Frame, now time.Time) error {
 	if frame.Kind != KindUDPDatagram {
 		return fmt.Errorf("%w: UDP relay kind=%d", ErrUnsupported, frame.Kind)
 	}
@@ -129,33 +136,33 @@ func (r *UDPRelay) handle(servicePeer *net.UDPAddr, packet []byte, now time.Time
 		return err
 	}
 	flow.touch(now)
-	_, err = flow.upstream.Write(frame.Payload)
+	_, err = flow.upstream.WriteToUDPAddrPort(frame.Payload, frame.Peer)
 	return err
 }
 
 func (r *UDPRelay) flowFor(servicePeer *net.UDPAddr, flowID uint64, target netip.AddrPort, now time.Time) (*udpFlow, error) {
-	if servicePeer == nil || flowID == 0 || !target.IsValid() {
+	if servicePeer == nil || flowID == 0 || !validUDPFlowEndpoint(target) {
 		return nil, fmt.Errorf("%w: invalid UDP flow identity", ErrMalformed)
 	}
 	key := udpFlowKey{servicePeer: servicePeer.String(), flowID: flowID}
+	ipv4 := udpAddrIs4(target.Addr())
 
 	r.mu.Lock()
 	if existing := r.flows[key]; existing != nil {
 		r.mu.Unlock()
-		if existing.target != target {
-			return nil, fmt.Errorf("%w: UDP flow target changed", ErrMalformed)
+		if existing.ipv4 != ipv4 {
+			return nil, fmt.Errorf("%w: UDP mapping address family changed", ErrMalformed)
 		}
 		return existing, nil
 	}
 
-	targetAddr := net.UDPAddrFromAddrPort(target)
-	upstream, err := net.DialUDP(networkFor(target.Addr()), nil, targetAddr)
+	upstream, err := listenUDPMapping(ipv4)
 	if err != nil {
 		r.mu.Unlock()
 		return nil, err
 	}
 	flow := &udpFlow{
-		key: key, servicePeer: cloneUDPAddr(servicePeer), target: target,
+		key: key, servicePeer: cloneUDPAddr(servicePeer), ipv4: ipv4,
 		upstream: upstream, lastSeen: now,
 	}
 	r.flows[key] = flow
@@ -168,7 +175,7 @@ func (r *UDPRelay) flowFor(servicePeer *net.UDPAddr, flowID uint64, target netip
 func (r *UDPRelay) readUpstream(flow *udpFlow) {
 	buf := make([]byte, 65535)
 	for {
-		n, err := flow.upstream.Read(buf)
+		n, remote, err := flow.upstream.ReadFromUDPAddrPort(buf)
 		if err != nil {
 			r.remove(flow.key, flow)
 			return
@@ -177,7 +184,7 @@ func (r *UDPRelay) readUpstream(flow *udpFlow) {
 		flow.touch(now)
 		frame, err := Marshal(Frame{
 			Kind: KindUDPDatagram, FlowID: flow.key.flowID,
-			Peer: flow.target, Payload: buf[:n],
+			Peer: remote, Payload: buf[:n],
 		})
 		if err != nil {
 			continue
@@ -189,7 +196,7 @@ func (r *UDPRelay) readUpstream(flow *udpFlow) {
 	}
 }
 
-func (r *UDPRelay) expire(now time.Time) {
+func (r *UDPRelay) Tick(now time.Time) {
 	var stale []*udpFlow
 	r.mu.Lock()
 	for key, flow := range r.flows {
@@ -213,7 +220,7 @@ func (r *UDPRelay) remove(key udpFlowKey, want *udpFlow) {
 	want.close()
 }
 
-func (r *UDPRelay) closeAll() {
+func (r *UDPRelay) Close() {
 	r.mu.Lock()
 	flows := make([]*udpFlow, 0, len(r.flows))
 	for key, flow := range r.flows {
@@ -224,6 +231,19 @@ func (r *UDPRelay) closeAll() {
 	for _, flow := range flows {
 		flow.close()
 	}
+}
+
+func (r *UDPRelay) Len() int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return len(r.flows)
+}
+
+func listenUDPMapping(ipv4 bool) (*net.UDPConn, error) {
+	if ipv4 {
+		return net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: 0})
+	}
+	return net.ListenUDP("udp6", &net.UDPAddr{IP: net.IPv6unspecified, Port: 0})
 }
 
 func networkFor(addr netip.Addr) string {

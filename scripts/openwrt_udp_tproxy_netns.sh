@@ -19,15 +19,19 @@ NS_PROXY=wbd-udp-proxy-$$
 NS_SERVER=wbd-udp-server-$$
 CLIENT_PID=
 SERVER_PID=
-ECHO_APP_PID=
+ECHO_APP_A_PID=
+ECHO_APP_B_PID=
 ECHO_BYPASS_PID=
+INJECTOR_PID=
 
 cleanup() {
     set +e
     [[ -z "$CLIENT_PID" ]] || kill "$CLIENT_PID" 2>/dev/null || true
     [[ -z "$SERVER_PID" ]] || kill "$SERVER_PID" 2>/dev/null || true
-    [[ -z "$ECHO_APP_PID" ]] || kill "$ECHO_APP_PID" 2>/dev/null || true
+    [[ -z "$ECHO_APP_A_PID" ]] || kill "$ECHO_APP_A_PID" 2>/dev/null || true
+    [[ -z "$ECHO_APP_B_PID" ]] || kill "$ECHO_APP_B_PID" 2>/dev/null || true
     [[ -z "$ECHO_BYPASS_PID" ]] || kill "$ECHO_BYPASS_PID" 2>/dev/null || true
+    [[ -z "$INJECTOR_PID" ]] || kill "$INJECTOR_PID" 2>/dev/null || true
     ip netns exec "$NS_PROXY" sh "$ROOT/scripts/openwrt_tproxy.sh" cleanup --port 12345 --underlay4 10.20.0.3 >/dev/null 2>&1 || true
     for ns in "$NS_CLIENT" "$NS_PROXY" "$NS_SERVER"; do
         ip netns pids "$ns" 2>/dev/null | xargs -r kill 2>/dev/null || true
@@ -67,26 +71,45 @@ ip -n "$NS_PROXY" addr add 10.20.0.1/24 dev wbdps$$
 ip -n "$NS_PROXY" link set wbdps$$ up
 ip netns exec "$NS_PROXY" sysctl -qw net.ipv4.ip_forward=1
 
-ip -n "$NS_SERVER" addr add 10.20.0.2/24 dev wbds$$
-ip -n "$NS_SERVER" addr add 10.20.0.3/24 dev wbds$$
+for addr in 10.20.0.2 10.20.0.3 10.20.0.4 10.20.0.5; do
+    ip -n "$NS_SERVER" addr add "$addr/24" dev wbds$$
+done
 ip -n "$NS_SERVER" link set wbds$$ up
 ip -n "$NS_SERVER" route add 10.10.0.0/24 via 10.20.0.1
 
 cat >"$TMP/echo.py" <<'PYEOF'
 import socket,sys
 addr=sys.argv[1]
-tag=sys.argv[2].encode()
+port=int(sys.argv[2])
+tag=sys.argv[3].encode()
 s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-s.bind((addr,5353))
+s.bind((addr,port))
 while True:
     data,peer=s.recvfrom(65535)
-    s.sendto(tag+b":"+data,peer)
+    reply=tag+b":"+data+b":SEEN="+str(peer[1]).encode()
+    s.sendto(reply,peer)
 PYEOF
 
-ip netns exec "$NS_SERVER" python3 -u "$TMP/echo.py" 10.20.0.2 APP >"$TMP/echo-app.log" 2>&1 &
-ECHO_APP_PID=$!
-ip netns exec "$NS_SERVER" python3 -u "$TMP/echo.py" 10.20.0.3 BYPASS >"$TMP/echo-bypass.log" 2>&1 &
+cat >"$TMP/injector.py" <<'PYEOF'
+import socket
+control=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+control.bind(("10.20.0.3",5454))
+tx=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+tx.bind(("10.20.0.5",7777))
+while True:
+    data,_=control.recvfrom(128)
+    port=int(data.decode())
+    tx.sendto(b"UNSOLICITED",("10.20.0.1",port))
+PYEOF
+
+ip netns exec "$NS_SERVER" python3 -u "$TMP/echo.py" 10.20.0.2 5353 APPA >"$TMP/echo-app-a.log" 2>&1 &
+ECHO_APP_A_PID=$!
+ip netns exec "$NS_SERVER" python3 -u "$TMP/echo.py" 10.20.0.4 5354 APPB >"$TMP/echo-app-b.log" 2>&1 &
+ECHO_APP_B_PID=$!
+ip netns exec "$NS_SERVER" python3 -u "$TMP/echo.py" 10.20.0.3 5353 BYPASS >"$TMP/echo-bypass.log" 2>&1 &
 ECHO_BYPASS_PID=$!
+ip netns exec "$NS_SERVER" python3 -u "$TMP/injector.py" >"$TMP/injector.log" 2>&1 &
+INJECTOR_PID=$!
 
 ip netns exec "$NS_PROXY" "$SERVER_BIN" -listen 127.0.0.1:20001 -udp-idle 10s >"$TMP/platform-server.log" 2>&1 &
 SERVER_PID=$!
@@ -107,23 +130,44 @@ grep -q WBD_PLATFORM_PROXY_OPENWRT_READY "$TMP/platform-client.log"
 ip netns exec "$NS_PROXY" sh "$ROOT/scripts/openwrt_tproxy.sh" apply \
     --mode global --port 12345 --underlay4 10.20.0.3
 
-udp_expect() {
-    local dst=$1
-    local payload=$2
-    local want=$3
-    ip netns exec "$NS_CLIENT" python3 - "$dst" "$payload" "$want" <<'PY'
-import socket,sys
-host=sys.argv[1]; payload=sys.argv[2].encode(); want=sys.argv[3].encode()
-s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-s.settimeout(3)
-s.sendto(payload,(host,5353))
-data,peer=s.recvfrom(65535)
-assert peer == (host,5353), (peer,(host,5353))
-assert data == want, (data,want)
-PY
-}
+# One internal UDP source talks to two different external endpoints. Both
+# endpoints must observe the same server-side mapped source port (EIM). Then a
+# third endpoint that the internal source never contacted sends directly to the
+# mapped port; that packet must return with its real source endpoint (EIF).
+ip netns exec "$NS_CLIENT" python3 - <<'PY'
+import socket
 
-udp_expect 10.20.0.2 captured APP:captured
+def seen_port(data, prefix):
+    assert data.startswith(prefix), (data,prefix)
+    marker=b":SEEN="
+    assert marker in data, data
+    return int(data.rsplit(marker,1)[1])
+
+s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+s.bind(("10.10.0.2",0))
+s.settimeout(3)
+
+s.sendto(b"cone-a",("10.20.0.2",5353))
+data,peer=s.recvfrom(65535)
+assert peer == ("10.20.0.2",5353), peer
+mapped_a=seen_port(data,b"APPA:cone-a")
+
+s.sendto(b"cone-b",("10.20.0.4",5354))
+data,peer=s.recvfrom(65535)
+assert peer == ("10.20.0.4",5354), peer
+mapped_b=seen_port(data,b"APPB:cone-b")
+assert mapped_a == mapped_b and mapped_a != 0, (mapped_a,mapped_b)
+print(f"WBD_OPENWRT_UDP_FULLCONE_EIM_PASS mapped_port={mapped_a}", flush=True)
+
+# 10.20.0.3 is the configured underlay escape, so this control datagram bypasses
+# TPROXY. The injector then sends from unseen 10.20.0.5:7777 directly to the
+# server-side mapping port discovered above.
+s.sendto(str(mapped_a).encode(),("10.20.0.3",5454))
+data,peer=s.recvfrom(65535)
+assert peer == ("10.20.0.5",7777), peer
+assert data == b"UNSOLICITED", data
+print("WBD_OPENWRT_UDP_FULLCONE_EIF_PASS", flush=True)
+PY
 
 echo "WBD_OPENWRT_UDP_TPROXY_CAPTURE_PASS"
 
@@ -131,9 +175,26 @@ kill "$CLIENT_PID"
 wait "$CLIENT_PID" 2>/dev/null || true
 CLIENT_PID=
 
+udp_expect_prefix() {
+    local dst=$1
+    local port=$2
+    local payload=$3
+    local prefix=$4
+    ip netns exec "$NS_CLIENT" python3 - "$dst" "$port" "$payload" "$prefix" <<'PY'
+import socket,sys
+host=sys.argv[1]; port=int(sys.argv[2]); payload=sys.argv[3].encode(); prefix=sys.argv[4].encode()
+s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+s.settimeout(3)
+s.sendto(payload,(host,port))
+data,peer=s.recvfrom(65535)
+assert peer == (host,port), (peer,(host,port))
+assert data.startswith(prefix), (data,prefix)
+PY
+}
+
 # The underlay destination is excluded before the TPROXY rule, so it must keep
 # working even with the transparent adapter stopped.
-udp_expect 10.20.0.3 underlay BYPASS:underlay
+udp_expect_prefix 10.20.0.3 5353 underlay BYPASS:underlay
 echo "WBD_OPENWRT_UDP_UNDERLAY_ESCAPE_PASS"
 
 ip netns exec "$NS_PROXY" sh "$ROOT/scripts/openwrt_tproxy.sh" cleanup \
@@ -149,5 +210,5 @@ fi
 
 # With capture removed and the adapter still stopped, the original application
 # destination must return to ordinary routed UDP behavior.
-udp_expect 10.20.0.2 restored APP:restored
+udp_expect_prefix 10.20.0.2 5353 restored APPA:restored
 echo "WBD_OPENWRT_UDP_CLEANUP_PASS"

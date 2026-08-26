@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"net/netip"
 	"testing"
 	"time"
 )
@@ -56,9 +57,81 @@ func TestUDPRelayIsolatesSameFlowIDByServicePeer(t *testing.T) {
 	}
 }
 
-func TestUDPRelayRejectsTargetChangeWithinFlow(t *testing.T) {
+func TestUDPRelayFullConeMappingAndFiltering(t *testing.T) {
 	echoA := startUDPEcho(t)
 	echoB := startUDPEcho(t)
+	unsolicited, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer unsolicited.Close()
+
+	relayConn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer relayConn.Close()
+	relay, err := NewUDPRelay(relayConn, time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() { done <- relay.Serve(ctx) }()
+	defer func() {
+		cancel()
+		_ = relayConn.Close()
+		select {
+		case <-done:
+		case <-time.After(time.Second):
+		}
+	}()
+
+	service := dialRelay(t, relayConn.LocalAddr().(*net.UDPAddr))
+	defer service.Close()
+	const flowID = 9
+
+	sendUDPFrame(t, service, Frame{Kind: KindUDPDatagram, FlowID: flowID, Peer: echoA.LocalAddr().(*net.UDPAddr).AddrPort(), Payload: []byte("one")})
+	first := readUDPFrame(t, service)
+	if first.Peer != echoA.LocalAddr().(*net.UDPAddr).AddrPort() || string(first.Payload) != "one" {
+		t.Fatalf("first=%+v payload=%q", first, first.Payload)
+	}
+
+	key := udpFlowKey{servicePeer: service.LocalAddr().String(), flowID: flowID}
+	relay.mu.Lock()
+	flow := relay.flows[key]
+	relay.mu.Unlock()
+	if flow == nil {
+		t.Fatal("full-cone mapping missing")
+	}
+	mappedPort := flow.upstream.LocalAddr().(*net.UDPAddr).Port
+	if mappedPort == 0 {
+		t.Fatal("mapping has zero port")
+	}
+
+	sendUDPFrame(t, service, Frame{Kind: KindUDPDatagram, FlowID: flowID, Peer: echoB.LocalAddr().(*net.UDPAddr).AddrPort(), Payload: []byte("two")})
+	second := readUDPFrame(t, service)
+	if second.Peer != echoB.LocalAddr().(*net.UDPAddr).AddrPort() || string(second.Payload) != "two" {
+		t.Fatalf("second=%+v payload=%q", second, second.Payload)
+	}
+	relay.mu.Lock()
+	same := relay.flows[key]
+	relay.mu.Unlock()
+	if same != flow || same.upstream.LocalAddr().(*net.UDPAddr).Port != mappedPort {
+		t.Fatal("mapping/port changed across outbound destinations")
+	}
+
+	mappedTarget := &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: mappedPort}
+	if _, err := unsolicited.WriteToUDP([]byte("unsolicited"), mappedTarget); err != nil {
+		t.Fatal(err)
+	}
+	third := readUDPFrame(t, service)
+	if third.FlowID != flowID || third.Peer != unsolicited.LocalAddr().(*net.UDPAddr).AddrPort() || string(third.Payload) != "unsolicited" {
+		t.Fatalf("unsolicited return=%+v payload=%q", third, third.Payload)
+	}
+}
+
+func TestUDPRelayRejectsAddressFamilyChangeWithinMapping(t *testing.T) {
 	relayConn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
 	if err != nil {
 		t.Fatal(err)
@@ -70,22 +143,12 @@ func TestUDPRelayRejectsTargetChangeWithinFlow(t *testing.T) {
 	}
 	service := &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 30001}
 	now := time.Now()
-
-	first, err := Marshal(Frame{Kind: KindUDPDatagram, FlowID: 9, Peer: echoA.LocalAddr().(*net.UDPAddr).AddrPort(), Payload: []byte("one")})
-	if err != nil {
+	if _, err := relay.flowFor(service, 7, netip.MustParseAddrPort("127.0.0.1:53"), now); err != nil {
 		t.Fatal(err)
 	}
-	if err := relay.handle(service, first, now); err != nil {
-		t.Fatal(err)
-	}
-	defer relay.closeAll()
-
-	changed, err := Marshal(Frame{Kind: KindUDPDatagram, FlowID: 9, Peer: echoB.LocalAddr().(*net.UDPAddr).AddrPort(), Payload: []byte("two")})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := relay.handle(service, changed, now); !errors.Is(err, ErrMalformed) {
-		t.Fatalf("target-change err=%v", err)
+	defer relay.Close()
+	if _, err := relay.flowFor(service, 7, netip.MustParseAddrPort("[2001:db8::1]:53"), now); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("family-change err=%v", err)
 	}
 }
 
