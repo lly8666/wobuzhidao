@@ -16,6 +16,7 @@ on:
       - 'scripts/windows_tun_route.ps1'
       - 'scripts/windows_faketcp_underlay.ps1'
       - 'scripts/windows_npcap_prepare.ps1'
+      - 'scripts/windows_frozen_wbd_one_shot.ps1'
       - 'deps/platform-lock.json'
   push:
     branches:
@@ -33,6 +34,7 @@ on:
       - 'scripts/windows_tun_route.ps1'
       - 'scripts/windows_faketcp_underlay.ps1'
       - 'scripts/windows_npcap_prepare.ps1'
+      - 'scripts/windows_frozen_wbd_one_shot.ps1'
       - 'deps/platform-lock.json'
 
 permissions:
@@ -111,7 +113,7 @@ jobs:
           if ($x.next_hop_mac -notmatch '^([0-9a-f]{2}:){5}[0-9a-f]{2}$') { throw "bad next-hop MAC: $($x.next_hop_mac)" }
           $lines | ForEach-Object { Write-Output $_ }
           Write-Output 'WBD_WINDOWS_FAKETCP_UNDERLAY_DISCOVERY_PASS'
-      - name: Qualify route plan without administrator mutation
+      - name: Qualify route plan and one-shot harness without administrator mutation
         shell: pwsh
         run: |
           $required = @('Find-NetRoute','Get-NetAdapter','Get-NetIPInterface','Get-NetRoute','New-NetRoute','Remove-NetRoute','New-NetIPAddress','Remove-NetIPAddress','Set-NetIPInterface')
@@ -131,4 +133,11 @@ jobs:
           if ($splitText -notmatch '03 CAPTURE IPv4 10.0.0.0/8' -or $splitText -notmatch '03 CAPTURE IPv4 172.16.0.0/12') {
             throw "split route plan incomplete:`n$splitText"
           }
+          $oneShot = Get-Content ./scripts/windows_frozen_wbd_one_shot.ps1 -Raw
+          [void][scriptblock]::Create($oneShot)
+          if ($oneShot -match '(?i)Stop-Process') { throw 'Windows frozen one-shot must request Controller cleanup instead of force-killing the qualifier' }
+          if ($oneShot -notmatch 'WBD_WINDOWS_FROZEN_ONE_SHOT_PASS' -or $oneShot -notmatch 'WBD_WINDOWS_QUALIFY_CLEANUP_PASS') {
+            throw 'Windows frozen one-shot is missing release/cleanup assertions'
+          }
           Write-Output 'WBD_WINDOWS_TUN_ROUTE_PLAN_PASS'
+          Write-Output 'WBD_WINDOWS_FROZEN_ONE_SHOT_HARNESS_PASS syntax=1 forced_kill=0 cleanup_asserted=1'
