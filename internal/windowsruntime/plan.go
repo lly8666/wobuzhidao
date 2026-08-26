@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	defaultFakeTCPLocalPort = 45101
+	defaultFakeTCPLocalPort  = 45101
 	defaultFakeTCPSourcePort = 41001
-	defaultDTLSPlainPort     = 46101
-	defaultLinkListenPort    = 47101
-	defaultMTU               = 1400
+	defaultDTLSPlainPort      = 46101
+	defaultLinkListenPort     = 47101
+	defaultMTU                = 1400
 )
 
 type Profile struct {
@@ -37,10 +37,10 @@ type Profile struct {
 }
 
 type Underlay struct {
-	SourceIP    string
+	SourceIP     string
 	PacketDevice string
-	SourceMAC   string
-	NextHopMAC  string
+	SourceMAC    string
+	NextHopMAC   string
 }
 
 type Command struct {
@@ -50,14 +50,25 @@ type Command struct {
 }
 
 type Plan struct {
-	Bootstrap Command
-	FakeTCP   Command
-	DTLS      Command
-	Link      Command
-	TUN       Command
-	RouteApply Command
+	Bootstrap    Command
+	FakeTCP      Command
+	DTLS         Command
+	Link         Command
+	TUN          Command
+	RouteApply   Command
 	RouteCleanup Command
-	TicketPath string
+	TicketPath   string
+}
+
+func (p Plan) StartSequence() []Command {
+	return []Command{p.FakeTCP, p.DTLS, p.Link, p.TUN, p.RouteApply}
+}
+
+// StopSequence is intentionally not the reverse of process creation alone.
+// Capture routes must disappear first so a partial shutdown can never leave
+// Windows traffic recursively pointed at a dead Wintun path.
+func (p Plan) StopSequence() []Command {
+	return []Command{p.RouteCleanup, p.TUN, p.Link, p.DTLS, p.FakeTCP}
 }
 
 func (p Profile) normalized() Profile {
@@ -145,6 +156,13 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	if err := profile.Validate(); err != nil {
 		return Plan{}, err
 	}
+	// Full capture is the first GUI/runtime authority. The lower-level route
+	// script retains Split support, but crossing a string[] PowerShell parameter
+	// through an external process boundary will get its own Windows qualification
+	// before the GUI exposes it.
+	if profile.RouteMode != "Full" {
+		return Plan{}, errors.New("Windows GUI runtime currently qualifies Full capture only")
+	}
 	if err := underlay.Validate(); err != nil {
 		return Plan{}, err
 	}
@@ -213,17 +231,12 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 		"-NoProfile", "-ExecutionPolicy", "Bypass",
 		"-File", bin("windows_tun_route.ps1"),
 		"-Action", "Apply",
-		"-Mode", profile.RouteMode,
+		"-Mode", "Full",
 		"-AdapterAlias", profile.IfName,
 		"-TunnelAddress4", profile.TunnelIPv4,
 		"-Underlay4", raw.Addr().String(),
 		"-MTU", strconv.Itoa(profile.MTU),
 		"-StatePath", profile.RouteState,
-	}
-	if profile.RouteMode == "Split" {
-		for _, prefix := range profile.Prefix4 {
-			routeArgs = append(routeArgs, "-Prefix4", prefix)
-		}
 	}
 	cleanupArgs := []string{
 		"-NoProfile", "-ExecutionPolicy", "Bypass",
@@ -233,14 +246,14 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	}
 
 	return Plan{
-		Bootstrap: Command{Name: "reality-bootstrap", Path: bin("wbd-reality-front.exe"), Args: bootstrapArgs},
-		FakeTCP: Command{Name: "faketcp", Path: bin("wbd-faketcp.exe"), Args: fakeArgs},
-		DTLS: Command{Name: "dtls", Path: bin("wbd_dtls_shim.exe"), Args: dtlsArgs},
-		Link: Command{Name: "link", Path: bin("wbd-link-proxy.exe"), Args: linkArgs},
-		TUN: Command{Name: "tun", Path: bin("wbd-tun.exe"), Args: tunArgs},
-		RouteApply: Command{Name: "route-apply", Path: "powershell.exe", Args: routeArgs},
+		Bootstrap:    Command{Name: "reality-bootstrap", Path: bin("wbd-reality-front.exe"), Args: bootstrapArgs},
+		FakeTCP:      Command{Name: "faketcp", Path: bin("wbd-faketcp.exe"), Args: fakeArgs},
+		DTLS:         Command{Name: "dtls", Path: bin("wbd_dtls_shim.exe"), Args: dtlsArgs},
+		Link:         Command{Name: "link", Path: bin("wbd-link-proxy.exe"), Args: linkArgs},
+		TUN:          Command{Name: "tun", Path: bin("wbd-tun.exe"), Args: tunArgs},
+		RouteApply:   Command{Name: "route-apply", Path: "powershell.exe", Args: routeArgs},
 		RouteCleanup: Command{Name: "route-cleanup", Path: "powershell.exe", Args: cleanupArgs},
-		TicketPath: profile.TicketPath,
+		TicketPath:   profile.TicketPath,
 	}, nil
 }
 
