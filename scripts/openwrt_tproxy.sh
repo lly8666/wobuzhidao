@@ -23,7 +23,8 @@ usage: openwrt_tproxy.sh [render|apply|cleanup] [options]
 
 render prints the nft/ip plan without privileges. apply installs an idempotent
 TPROXY capture table plus policy routes. cleanup removes only WBD-owned state.
-The user-space transparent TCP/UDP adapter is a later platform integration step.
+Underlay endpoints are escaped in both directions so their return traffic cannot
+be captured back into WBD.
 EOF
 }
 
@@ -83,10 +84,18 @@ case "$MODE" in
         ;;
 esac
 
-bypass4=
-bypass6=
-[ -z "$UNDERLAY4" ] || bypass4="ip daddr $UNDERLAY4 return"
-[ -z "$UNDERLAY6" ] || bypass6="ip6 daddr $UNDERLAY6 return"
+bypass4src=
+bypass4dst=
+bypass6src=
+bypass6dst=
+if [ -n "$UNDERLAY4" ]; then
+    bypass4src="ip saddr $UNDERLAY4 return"
+    bypass4dst="ip daddr $UNDERLAY4 return"
+fi
+if [ -n "$UNDERLAY6" ]; then
+    bypass6src="ip6 saddr $UNDERLAY6 return"
+    bypass6dst="ip6 daddr $UNDERLAY6 return"
+fi
 
 emit_apply() {
     emit_cleanup
@@ -98,9 +107,11 @@ table inet wbd {
     chain prerouting {
         type filter hook prerouting priority mangle; policy accept;
         meta mark $MARK return
+        $bypass4src
+        $bypass6src
         fib daddr type local return
-        $bypass4
-        $bypass6
+        $bypass4dst
+        $bypass6dst
         $rule4
         $rule6
     }
@@ -116,7 +127,7 @@ EOF
 case "$ACTION" in
     render)
         echo "# WBD_OPENWRT_TPROXY_PLAN mode=$MODE port=$PORT mark=$MARK table=$TABLE priority=$PRIO"
-        echo "# underlay escape rules are emitted before any TPROXY rule"
+        echo "# underlay source/destination escape rules are emitted before any TPROXY rule"
         emit_apply
         ;;
     cleanup)
