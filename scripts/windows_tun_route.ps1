@@ -51,7 +51,9 @@ function Wait-NetAdapterByName([string]$Name, [int]$TimeoutMilliseconds = 10000)
     do {
         $adapter = Get-NetAdapter -Name $Name -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($adapter) {
-            Write-Output "WBD_WINDOWS_TUN_ADAPTER_READY adapter=$Name ifindex=$($adapter.ifIndex)"
+            # Return only the NetAdapter object. Emitting a log line here would
+            # make assignment capture a heterogeneous object array and break
+            # strict-mode property access on $adapter.ifIndex.
             return $adapter
         }
         Start-Sleep -Milliseconds 100
@@ -155,6 +157,7 @@ if (Test-Path -LiteralPath $StatePath) {
 # capture routes can never race process startup.
 $adapter = Wait-NetAdapterByName -Name $AdapterAlias
 $ifIndex = [uint32]$adapter.ifIndex
+Write-Output "WBD_WINDOWS_TUN_ADAPTER_READY adapter=$AdapterAlias ifindex=$ifIndex"
 $ipif4 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue | Select-Object -First 1
 $ipif6 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv6 -ErrorAction SilentlyContinue | Select-Object -First 1
 $state = [ordered]@{
@@ -176,7 +179,8 @@ try {
         if (-not $item.IP) { continue }
         $found = @(Find-NetRoute -RemoteIPAddress $item.IP)
         $route = $found | Where-Object { $_.PSObject.Properties.Name -contains 'NextHop' } | Select-Object -First 1
-        if (-not $route) { throw "no pre-WBD route found for underlay $($item.IP)" }
+        if (-not $route) { throw "no pre-WBD route found for underlay $($item.IP)"
+        }
         if ([uint32]$route.InterfaceIndex -eq $ifIndex) { throw "underlay $($item.IP) already resolves through Wintun; refusing recursive capture" }
         $existing = Get-NetRoute -DestinationPrefix $item.Prefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop ([string]$route.NextHop) -PolicyStore ActiveStore -ErrorAction SilentlyContinue
         if (-not $existing) {
