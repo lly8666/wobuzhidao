@@ -1,12 +1,12 @@
 # V2.2 shared-account two-session 100 Mbit weak-link qualification
 
-Status: **qualified characterization checkpoint** for the current fixed `20:20` WBD FEC path and `legacy` FakeTCP recovery. The conservative qualified aggregate inner rate remains **40 Mbit/s** pending any narrower midpoint qualification.
+Status: **QUALIFIED / RELEASE CAP FROZEN.** The current fixed `20:20` WBD FEC path with `legacy` FakeTCP recovery is qualified at a conservative **40 Mbit/s aggregate inner offered rate** on the 100 Mbit/s shared weak-link boundary. The corrected 40/60/80 sweep is now authoritative and reproduces the tail-latency cliff above 40 Mbit/s, so no 50 Mbit/s midpoint is required for the release path.
 
-Authoritative 40 Mbit/s GitHub Actions run: `32918572671` (`mux-load-100m`, run #5), substantive head `d29856d017a08dd3f9d7d291e4179ac53ca3c614`. All four network matrix jobs and the aggregate job completed successfully.
+The protocol-freeze decision is recorded in `docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md`.
 
 ## Boundary under test
 
-Each point starts two simultaneous devices using the same configured Reality-front username/password. The front issues two distinct one-time tickets. Both devices then traverse one public WBD FakeTCP listener, separate raw associations, separate wolfSSL DTLS 1.3 workers, separate immutable LINK/LiveID sessions, and the shared `wbd-link-server-mux`/`session.DataPlane` service boundary.
+Each point starts two simultaneous devices using the same configured Reality-front username/password. The front issues two distinct one-time tickets. Both devices then traverse one public WBD FakeTCP listener, separate raw associations, separate wolfSSL DTLS 1.3 workers, separate immutable LINK/LiveID sessions, and the shared `wbd-link-server-mux` / `session.DataPlane` boundary.
 
 The measured direction is client -> server and the two application streams run concurrently:
 
@@ -18,59 +18,71 @@ The measured direction is client -> server and the two application streams run c
 - measurement loss: random 20% in both directions;
 - setup loss: 0%; RTT delay and the 100 Mbit/s rate remain active during setup;
 - loss is enabled only after both LINK sessions are established and immediately before the offered interval;
-- hosted `tc netem` has no deterministic seed here, so each run is a paired diagnostic/qualification sample rather than deterministic release statistics.
+- hosted `tc netem` is unseeded, so each point is a paired characterization sample rather than a deterministic delivery curve.
 
-Separating setup from measurement is deliberate. Earlier harness attempts applied 20% loss before FakeTCP/DTLS establishment and produced random pre-data handshake failures. Those failures did not exercise either FEC mode and therefore contaminated a sustained data-path comparison.
+The harness meters each client LINK -> DTLS plaintext leg and classifies `WF` shard index `<20` as systematic and `>=20` as repair. FEC expansion is therefore measured from the live path rather than inferred from the nominal profile.
 
-The harness also inserts a transparent meter only on each client LINK -> DTLS plaintext leg. It counts the actual datagrams emitted by the live path and classifies `WF` shard index `<20` as systematic and `>=20` as repair. Therefore FEC expansion below is measured, not inferred from the nominal 20+20 profile.
+## Original authoritative 40 Mbit/s qualification
 
-## Authoritative paired result at 40 Mbit/s aggregate inner
+GitHub Actions run `32918572671` (`mux-load-100m`, run #5), substantive head `d29856d017a08dd3f9d7d291e4179ac53ca3c614`, established the first authoritative 40 Mbit/s two-session point.
 
 | RTT | Delivery off -> 20:20 | Goodput off -> 20:20 | One-way p50 off -> 20:20 | One-way p99 off -> 20:20 | Stack CPU off -> 20:20 | Peak RSS off -> 20:20 | FEC plaintext expansion |
 |---:|---:|---:|---:|---:|---:|---:|---:|
 | 20 ms | 0.8022 -> **1.0000** | 32.083 -> **39.994 Mbit/s** | 10.497 -> 11.977 ms | 11.061 -> 20.678 ms | 3.57 -> 4.20 s | 80,248 -> 106,336 KiB | 2.1622x |
 | 100 ms | 0.8062 -> **1.0000** | 32.242 -> **39.994 Mbit/s** | 50.502 -> 52.531 ms | 50.770 -> 61.185 ms | 3.60 -> 4.18 s | 82,636 -> 104,368 KiB | 2.1597x |
 
-Paired deltas:
+Both fixed-FEC streams individually delivered all 4166 planned datagrams at both RTTs. The two LiveIDs remained balanced.
 
-- RTT 20 ms: delivery **+19.779 percentage points**, goodput **+7.911 Mbit/s**, p50 **+1.480 ms**, p99 **+9.617 ms**, CPU **+17.65%**, peak RSS **+32.51%**.
-- RTT 100 ms: delivery **+19.383 percentage points**, goodput **+7.752 Mbit/s**, p50 **+2.029 ms**, p99 **+10.415 ms**, CPU **+16.11%**, peak RSS **+26.30%**.
+At RTT 20 ms, fixed `20:20` emitted 10,464,992 systematic bytes and 11,153,280 repair bytes on the measured plaintext legs. At RTT 100 ms it emitted 10,464,992 systematic bytes and 11,128,160 repair bytes. Fixed FEC intentionally increased outer packet pressure while reconstructing every planned inner datagram at the qualified point.
 
-Both fixed-FEC streams individually delivered all 4166 planned datagrams at both RTTs. The off-mode streams remained balanced rather than starving one LiveID: at RTT 20 ms both were exactly 0.8022 delivery in this run; at RTT 100 ms they were 0.8012 and 0.8111.
+## Historical diagnostic 60/80 sweep
 
-## Wire and recovery accounting at 40 Mbit/s
+Run `32920381126` at commit `621653e30f8bd7e9d9d26bce598077d8391043ad` completed the cited network measurements but used literal `20:20` in GitHub artifact names, causing fixed jobs to fail at artifact upload. It remains **diagnostic log evidence only**.
 
-At RTT 20 ms, fixed `20:20` emitted 10,464,992 systematic bytes and 11,153,280 repair bytes on the measured LINK -> DTLS plaintext legs. At RTT 100 ms it emitted 10,464,992 systematic bytes and 11,128,160 repair bytes. The small amount above an exact 2x inner ratio comes from the WBD FEC shard/header and partial-block behavior.
+That diagnostic already showed the important signal: p99 moved from tens of milliseconds at 40 Mbit/s to hundreds of milliseconds at 60 Mbit/s and about one second at 80 Mbit/s, while per-session delivery remained balanced. The workflow was corrected at `71501859c6fc1aa1a6d1a6b048af5aebcf984732` to build once per RTT, run six points sequentially, use filesystem-safe `20x20` artifact names, and cancel stale same-workflow runs.
 
-Forward qdisc drops approximately doubled because fixed FEC deliberately put roughly twice as many packets on the shared link: 1657 -> 3470 drops at RTT 20 ms and 1618 -> 3452 at RTT 100 ms. Despite those additional dropped outer packets, the live decoder reconstructed every planned inner datagram in both fixed-FEC cases.
+## Authoritative corrected 40/60/80 sweep
 
-Client FakeTCP retransmit bytes were lower with fixed FEC in this sample: 45,214 -> 20,448 bytes at RTT 20 ms (-54.8%) and 34,216 -> 21,726 bytes at RTT 100 ms (-36.5%). This is diagnostic only; current product recovery remains `legacy`, and this run does not justify reopening the previously closed `sack-rack` default decision.
+The corrected workflow completed cleanly on branch `dev/wbd-raw-fec-v2`, head `a3d8b05a875b2880c69cb4d6bada967eef8c17f9`, as GitHub Actions run **`32920925944`** (`mux-load-100m`, run #15).
 
-## 60/80 Mbit/s ceiling sweep diagnostic
+All three jobs succeeded:
 
-A follow-up sweep was started at commit `621653e30f8bd7e9d9d26bce598077d8391043ad`, Actions run `32920381126`, over aggregate inner 40/60/80 Mbit/s, RTT 20/100 ms, and FEC `off`/`20:20`. Every fixed-20:20 network measurement cited below completed and printed a complete `result.json`, but that first sweep workflow used the literal `20:20` in the GitHub artifact name. GitHub rejected `:` during artifact upload. Therefore run `32920381126` is **diagnostic log evidence, not an authoritative aggregate artifact run**.
+- `bench (20)` — SUCCESS;
+- `bench (100)` — SUCCESS;
+- `aggregate` — SUCCESS.
 
-The workflow was subsequently corrected and amortized at commit `71501859c6fc1aa1a6d1a6b048af5aebcf984732`: one build per RTT, six sequential points per RTT, filesystem-safe `20x20` artifact naming, and workflow concurrency so stale sweeps can be canceled. A later clean run must be used before promoting any load above 40 Mbit/s to qualified status.
+The run produced the unexpired artifacts `mux-load-rtt20-sweep`, `mux-load-rtt100-sweep`, and `mux-load-100m-sweep-summary`.
 
-The diagnostic fixed-20:20 measurements already show the load ceiling cliff:
+### Corrected sweep result
 
-| RTT | Aggregate inner offered | Delivery | Goodput | One-way p50 | One-way p99 | Measured plaintext expansion | Session fairness |
+| RTT | Aggregate inner offered | Delivery off -> 20:20 | Goodput off -> 20:20 | One-way p50 off -> 20:20 | One-way p99 off -> 20:20 | Fixed plaintext expansion | Fixed stream gap |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 20 ms | 40 Mbit/s | **1.0000** | **39.994 Mbit/s** | 11.977 ms | 20.678 ms | 2.162x | both streams 1.0000 |
-| 20 ms | 60 Mbit/s | 0.7558 | 45.346 Mbit/s | 250.567 ms | 305.948 ms | 2.095x | 0.7571 vs 0.7544 |
-| 20 ms | 80 Mbit/s | 0.9971 | 79.762 Mbit/s | 530.701 ms | 915.466 ms | 2.094x | 0.9974 vs 0.9968 |
-| 100 ms | 40 Mbit/s | **1.0000** | **39.994 Mbit/s** | 52.531 ms | 61.185 ms | 2.160x | both streams 1.0000 |
-| 100 ms | 60 Mbit/s | **1.0000** | **60.000 Mbit/s** | 116.341 ms | 181.819 ms | 2.095x | both streams 1.0000 |
-| 100 ms | 80 Mbit/s | 0.9401 | 75.206 Mbit/s | 623.151 ms | 994.520 ms | 2.094x | 0.9414 vs 0.9388 |
+| 20 ms | 40 Mbit/s | 0.799 -> **1.000** | 31.94 -> **39.99 Mbit/s** | 10.50 -> **12.94 ms** | 11.04 -> **21.77 ms** | 2.157x | 0.00 pp |
+| 20 ms | 60 Mbit/s | 0.800 -> **0.774** | 47.97 -> **46.45 Mbit/s** | 10.70 -> **253.25 ms** | 64.28 -> **286.60 ms** | 2.095x | 0.32 pp |
+| 20 ms | 80 Mbit/s | 0.596 -> **0.759** | 47.69 -> **60.70 Mbit/s** | 23.22 -> **619.03 ms** | 176.32 -> **956.26 ms** | 2.094x | 0.76 pp |
+| 100 ms | 40 Mbit/s | 0.799 -> **1.000** | 31.96 -> **39.99 Mbit/s** | 50.50 -> **52.15 ms** | 50.66 -> **60.71 ms** | 2.170x | 0.00 pp |
+| 100 ms | 60 Mbit/s | 0.800 -> **1.000** | 48.01 -> **60.00 Mbit/s** | 50.55 -> **137.38 ms** | 50.94 -> **211.00 ms** | 2.095x | 0.00 pp |
+| 100 ms | 80 Mbit/s | 0.785 -> **1.000** | 62.79 -> **80.00 Mbit/s** | 52.74 -> **538.32 ms** | 164.47 -> **913.95 ms** | 2.094x | 0.00 pp |
 
-For one paired control available directly from the same diagnostic logs, RTT 100 ms / 60 Mbit/s with FEC off delivered 0.8030 at 48.178 Mbit/s with p99 51.143 ms. Fixed 20:20 restored 100% delivery and the full 60 Mbit/s offered rate, but p99 rose to 181.819 ms. That is useful recovery, but it is already a large queueing cost for a latency-first product.
+The corrected sample changes some random-loss delivery values relative to the historical diagnostic, as expected for unseeded `netem`, but it reproduces the robust product signal:
 
-The non-monotonic delivery at RTT 20 ms (60 Mbit/s worse than 80 Mbit/s in this random-loss sample) is exactly why these unseeded points must not be treated as deterministic delivery curves. The robust signal is the **tail-latency cliff**: both RTTs move from tens of milliseconds at 40 Mbit/s to hundreds of milliseconds at 60 Mbit/s and roughly one second by 80 Mbit/s, while the two sessions remain balanced rather than one LiveID starving the other.
+- 40 Mbit/s remains bounded: fixed `20:20` delivers 100% with p99 about 21.8 ms at RTT20 and 60.7 ms at RTT100;
+- 60 Mbit/s already enters persistent hundreds-of-milliseconds queueing at both RTTs; RTT20 also loses delivery/goodput despite FEC;
+- 80 Mbit/s approaches one second p99 at both RTTs;
+- the two LiveIDs remain balanced, so the failure mode is shared-link queue pressure rather than session starvation.
 
-## Current decision and continuation
+This is sufficient clean evidence to close the capacity cursor. A 50 Mbit/s midpoint could narrow the numerical cliff in future research, but it cannot change the release conclusion without making extra throughput a product requirement. It is therefore not on the release critical path.
 
-The shared-account two-session fan-out is qualified at **40 Mbit/s aggregate inner offered rate** under the present 100 Mbit/s weak-link / 20% measured-loss boundary. Fixed `20:20` provides a large delivery gain there with bounded first-complete latency and no ordinary TCP HOL behavior.
+## Release decision
 
-Do **not** raise the operational/qualification cap to 60 or 80 Mbit/s from the diagnostic sweep. In particular, 60 Mbit/s is not a generally safe point: the RTT 20 ms sample already collapsed to 75.6% delivery with ~306 ms p99, and RTT 100 ms reached ~182 ms p99 even while delivery stayed complete. 80 Mbit/s is clearly outside the acceptable latency region at both RTTs.
+The qualified V2.2 release operating point is **40 Mbit/s aggregate inner offered payload** under the present 100 Mbit/s shared-link / 20% measurement-loss boundary.
 
-The next transport action, if more capacity than 40 Mbit/s is worth pursuing, is a **single narrow midpoint characterization around 50 Mbit/s aggregate inner** at RTT 20/100 ms using the corrected two-job workflow. Keep FEC fixed at `20:20`, recovery fixed at `legacy`, setup loss at 0%, measurement loss at 20%, and do not alter protocol semantics while finding that boundary. If the clean corrected sweep/midpoint does not materially improve the latency margin, retain 40 Mbit/s as the conservative release cap and move on to protocol freeze plus OpenWrt TPROXY and Windows TUN one-shot release integration.
+For this release decision:
+
+- FEC remains fixed systematic `20:20` where enabled;
+- FakeTCP recovery remains `legacy`;
+- DTLS, ticket/LiveID session semantics, association fan-out and one-lane raw carrier semantics remain unchanged;
+- 50/60/80 Mbit/s are not release operating points;
+- `sack-rack` remains experimental and is not reopened by this sweep.
+
+Capacity exploration stops here for V2.2 release work. Continue with the frozen transport/session protocol into one clean OpenWrt TPROXY end-to-end VPN qualification, then one clean Windows TUN/Wintun-class qualification. Platform integration must not change already-qualified transport semantics merely to make routing easier.
