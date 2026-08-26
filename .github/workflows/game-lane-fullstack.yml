@@ -41,6 +41,10 @@ on:
       - 'internal/dtlsworker/**'
       - 'native/dtls/**'
 
+concurrency:
+  group: game-lane-fullstack-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   actions: read
@@ -139,7 +143,7 @@ jobs:
           path: ${{ runner.temp }}/wbd-game-lane-assets
       - name: Restore executable modes
         run: |
-          chmod +x "$RUNNER_TEMP/wbd-game-lane-assets"/wbd-*
+          chmod +x "$RUNNER_TEMP/wbd-game-lane-assets"/wbd-* "$RUNNER_TEMP/wbd-game-lane-assets/wbd_dtls_shim"
       - name: Exercise configured lanes and FEC over independent WBD associations
         env:
           LANES: ${{ matrix.lanes }}
