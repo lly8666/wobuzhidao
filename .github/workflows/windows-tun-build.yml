@@ -11,6 +11,7 @@ on:
       - 'internal/faketcp/**'
       - 'internal/tunnel/**'
       - 'internal/windowsgui/**'
+      - 'internal/windowsruntime/**'
       - 'scripts/windows_tun_route.ps1'
       - 'scripts/windows_faketcp_underlay.ps1'
       - 'deps/platform-lock.json'
@@ -25,6 +26,7 @@ on:
       - 'internal/faketcp/**'
       - 'internal/tunnel/**'
       - 'internal/windowsgui/**'
+      - 'internal/windowsruntime/**'
       - 'scripts/windows_tun_route.ps1'
       - 'scripts/windows_faketcp_underlay.ps1'
       - 'deps/platform-lock.json'
@@ -44,7 +46,7 @@ jobs:
       - name: Compile Windows Wintun Npcap and tray GUI
         shell: pwsh
         run: |
-          go test ./internal/tunnel ./internal/faketcp ./internal/windowsgui ./cmd/wbd-tun ./cmd/wbd-faketcp -count=1
+          go test ./internal/tunnel ./internal/faketcp ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-tun ./cmd/wbd-faketcp -count=1
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-tun.exe" ./cmd/wbd-tun
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
           go build -trimpath -ldflags="-H=windowsgui" -o "$env:RUNNER_TEMP\wbd-windows-gui.exe" ./cmd/wbd-windows-gui
