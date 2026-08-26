@@ -85,6 +85,31 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/wbd-game-lane-logs"
           sudo scripts/game_lane_fullstack.sh "$RUNNER_TEMP/wbd-game-lane-assets" "$RUNNER_TEMP/wbd-game-lane-logs"
+      - name: Diagnose failed four-lane wiring
+        if: failure()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/wbd-game-lane-logs"
+          echo '=== WBD_GAME_LANE_DIAGNOSTIC_BEGIN ==='
+          for f in \
+            game-server.log front-server.log link-server.log faketcp-mux.log tcpdump.log \
+            faketcp-1.log faketcp-2.log faketcp-3.log faketcp-4.log \
+            dtls-1.log dtls-2.log dtls-3.log dtls-4.log \
+            link-1.log link-2.log link-3.log link-4.log \
+            game-client.log probe-warm.log probe.log echo.log echo-count.log; do
+            if sudo test -f "$LOG/$f"; then
+              echo "--- $f ---"
+              sudo tail -n 120 "$LOG/$f"
+            fi
+          done
+          echo '=== WBD_GAME_LANE_DIAGNOSTIC_END ==='
+      - name: Remove one-time auth material from evidence
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/wbd-game-lane-logs"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/front-[1-4].log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
