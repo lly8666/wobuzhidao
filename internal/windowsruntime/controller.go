@@ -77,6 +77,9 @@ func (c *Controller) Connect(profile Profile) error {
 	if err != nil {
 		return err
 	}
+	if c.executor.CleanupPending() {
+		return errors.New("Windows runtime has pending route cleanup; retry Disconnect before Connect")
+	}
 
 	c.mu.Lock()
 	if c.state != RuntimeDisconnected {
@@ -131,7 +134,9 @@ func (c *Controller) Disconnect() error {
 	switch c.state {
 	case RuntimeDisconnected:
 		c.mu.Unlock()
-		return nil
+		// Stop is normally a no-op here, but intentionally retries a prior route
+		// cleanup failure retained by Executor.
+		return c.executor.Stop()
 	case RuntimeConnected:
 		c.state = RuntimeDisconnecting
 	default:
