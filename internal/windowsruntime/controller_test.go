@@ -41,6 +41,16 @@ func (d *recordingUnderlayDiscoverer) Discover(Profile) (Underlay, error) {
 	return d.underlay, nil
 }
 
+type recordingPreflightDiscoverer struct {
+	*recordingUnderlayDiscoverer
+	preflightErr error
+}
+
+func (d *recordingPreflightDiscoverer) Preflight(Profile) error {
+	d.runner.events = append(d.runner.events, "preflight:dependencies")
+	return d.preflightErr
+}
+
 func testController(r *recordingRunner) *Controller {
 	return NewController(
 		r,
@@ -75,6 +85,29 @@ func TestControllerConnectDisconnectPreservesCompositionOrder(t *testing.T) {
 	}
 	if !reflect.DeepEqual(r.events, want) {
 		t.Fatalf("controller events = %v want %v", r.events, want)
+	}
+}
+
+func TestControllerDependencyPreflightFailsBeforeTicketOrRealityBootstrap(t *testing.T) {
+	r := &recordingRunner{}
+	discoverer := &recordingPreflightDiscoverer{
+		recordingUnderlayDiscoverer: &recordingUnderlayDiscoverer{runner: r, underlay: testUnderlay()},
+		preflightErr:                errors.New("Npcap missing"),
+	}
+	c := NewController(
+		r,
+		discoverer,
+		&recordingTicketStore{runner: r, ticket: strings.Repeat("ef", 32)},
+	)
+	if err := c.Connect(testProfile()); err == nil {
+		t.Fatal("expected dependency preflight failure")
+	}
+	want := []string{"preflight:dependencies"}
+	if !reflect.DeepEqual(r.events, want) {
+		t.Fatalf("events = %v want %v", r.events, want)
+	}
+	if got := c.State(); got != RuntimeDisconnected {
+		t.Fatalf("failed preflight state = %s", got)
 	}
 }
 
