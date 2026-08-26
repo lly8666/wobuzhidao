@@ -7,13 +7,25 @@ import (
 )
 
 type recordingRunner struct {
-	events []string
-	fail   string
+	events   []string
+	fail     string
+	failOnce string
+}
+
+func (r *recordingRunner) shouldFail(name string) bool {
+	if r.fail == name {
+		return true
+	}
+	if r.failOnce == name {
+		r.failOnce = ""
+		return true
+	}
+	return false
 }
 
 func (r *recordingRunner) Run(command Command) error {
 	r.events = append(r.events, "run:"+command.Name)
-	if r.fail == command.Name {
+	if r.shouldFail(command.Name) {
 		return errors.New("injected failure")
 	}
 	return nil
@@ -21,7 +33,7 @@ func (r *recordingRunner) Run(command Command) error {
 
 func (r *recordingRunner) Start(command Command) (Process, error) {
 	r.events = append(r.events, "start:"+command.Name)
-	if r.fail == command.Name {
+	if r.shouldFail(command.Name) {
 		return nil, errors.New("injected failure")
 	}
 	return &recordingProcess{runner: r, name: command.Name}, nil
@@ -114,5 +126,47 @@ func TestExecutorRejectsSecondStart(t *testing.T) {
 	defer e.Stop()
 	if err := e.Start(testExecutorPlan()); err == nil {
 		t.Fatal("second Start must fail while runtime is active")
+	}
+}
+
+func TestExecutorRetriesFailedRouteCleanupBeforeAllowingRestart(t *testing.T) {
+	r := &recordingRunner{}
+	e := NewExecutor(r)
+	if err := e.Start(testExecutorPlan()); err != nil {
+		t.Fatal(err)
+	}
+	r.failOnce = "route-cleanup"
+	if err := e.Stop(); err == nil {
+		t.Fatal("expected first route cleanup to fail")
+	}
+	if e.Running() {
+		t.Fatal("children must be stopped even when route cleanup fails")
+	}
+	if !e.CleanupPending() {
+		t.Fatal("failed route cleanup must remain pending")
+	}
+	if err := e.Start(testExecutorPlan()); err == nil {
+		t.Fatal("restart must be blocked while broad route cleanup is pending")
+	}
+	if err := e.Stop(); err != nil {
+		t.Fatalf("second Stop must retry route cleanup: %v", err)
+	}
+	if e.CleanupPending() {
+		t.Fatal("successful cleanup retry must clear pending state")
+	}
+	if err := e.Start(testExecutorPlan()); err != nil {
+		t.Fatalf("restart after cleanup retry: %v", err)
+	}
+	if err := e.Stop(); err != nil {
+		t.Fatal(err)
+	}
+
+	wantPrefix := []string{
+		"start:faketcp", "start:dtls", "start:link", "start:tun", "run:route-apply",
+		"run:route-cleanup", "stop:tun", "stop:link", "stop:dtls", "stop:faketcp",
+		"run:route-cleanup",
+	}
+	if len(r.events) < len(wantPrefix) || !reflect.DeepEqual(r.events[:len(wantPrefix)], wantPrefix) {
+		t.Fatalf("cleanup retry events = %v want prefix %v", r.events, wantPrefix)
 	}
 }
