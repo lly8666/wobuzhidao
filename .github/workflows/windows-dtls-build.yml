@@ -74,3 +74,4 @@ jobs:
           $usage = Get-Content -LiteralPath $stderr -Raw
           if ($usage -notmatch 'client PLAIN_LISTEN TRANSPORT_IP TRANSPORT_PORT') { throw "DTLS shim usage contract missing: $usage" }
           Write-Output 'WBD_WINDOWS_DTLS_BUILD_PASS version=DTLSv1.3 socket=WinSock wolfssl=pinned-static'
+          exit 0
