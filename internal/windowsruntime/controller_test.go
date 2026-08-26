@@ -140,3 +140,30 @@ func TestControllerTicketClearFailureStopsBeforeBootstrap(t *testing.T) {
 		t.Fatalf("events = %v want %v", r.events, want)
 	}
 }
+
+func TestControllerDisconnectedDisconnectRetriesPendingRouteCleanup(t *testing.T) {
+	r := &recordingRunner{}
+	c := testController(r)
+	if err := c.Connect(testProfile()); err != nil {
+		t.Fatal(err)
+	}
+	r.failOnce = "route-cleanup"
+	if err := c.Disconnect(); err == nil {
+		t.Fatal("expected first cleanup failure")
+	}
+	if got := c.State(); got != RuntimeDisconnected {
+		t.Fatalf("state after failed cleanup = %s", got)
+	}
+	if err := c.Connect(testProfile()); err == nil {
+		t.Fatal("Connect must remain blocked until pending cleanup succeeds")
+	}
+	if err := c.Disconnect(); err != nil {
+		t.Fatalf("disconnected Disconnect must retry cleanup: %v", err)
+	}
+	if err := c.Connect(testProfile()); err != nil {
+		t.Fatalf("Connect after cleanup retry: %v", err)
+	}
+	if err := c.Disconnect(); err != nil {
+		t.Fatal(err)
+	}
+}
