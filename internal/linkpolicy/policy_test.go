@@ -68,6 +68,19 @@ func TestManualLinkSpeedIsForcedAuthority(t *testing.T) {
 	}
 }
 
+func TestManualLinkSpeedWorksWithoutAutoSample(t *testing.T) {
+	obs := DefaultObservation(0, 0.02, 1)
+	obs.LinkSpeedMode = LinkSpeedManual
+	obs.ManualLinkSpeedMbps = 88
+	r, err := Recommend(obs, ModeGame)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.EffectiveCapacityMbps != 88 || r.LinkSpeedMode != LinkSpeedManual {
+		t.Fatalf("manual no-auto=%+v", r)
+	}
+}
+
 func TestGameManualFourLaneAndInnerCeilingPaysForCopies(t *testing.T) {
 	obs := DefaultObservation(100, 0.01, 1)
 	obs.GameRequestedLanes = 4
@@ -156,17 +169,24 @@ func TestExtremeBurstCanReportTargetUnmet(t *testing.T) {
 func TestRejectsInvalidObservation(t *testing.T) {
 	obs := DefaultObservation(0, 0.01, 1)
 	if _, err := Recommend(obs, ModeBalanced); err == nil {
-		t.Fatal("expected capacity validation error")
+		t.Fatal("expected auto capacity validation error")
 	}
 	obs = DefaultObservation(10, 0.01, 1)
 	obs.CarrierExpansion = 0.9
 	if _, err := Recommend(obs, ModeBalanced); err == nil {
 		t.Fatal("expected carrier expansion validation error")
 	}
-	obs = DefaultObservation(10, 0.01, 1)
+	obs = DefaultObservation(0, 0.01, 1)
 	obs.LinkSpeedMode = LinkSpeedManual
+	obs.ManualLinkSpeedMbps = 0
 	if _, err := Recommend(obs, ModeBalanced); err == nil {
 		t.Fatal("expected manual speed validation error")
+	}
+	obs = DefaultObservation(-1, 0.01, 1)
+	obs.LinkSpeedMode = LinkSpeedManual
+	obs.ManualLinkSpeedMbps = 10
+	if _, err := Recommend(obs, ModeBalanced); err == nil {
+		t.Fatal("expected invalid diagnostic auto sample error")
 	}
 	obs = DefaultObservation(10, 0.01, 1)
 	obs.GameRequestedLanes = 5
