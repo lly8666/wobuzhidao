@@ -7,6 +7,7 @@ on:
       - '.github/workflows/windows-tun-build.yml'
       - 'cmd/wbd-tun/**'
       - 'internal/tunnel/**'
+      - 'scripts/windows_tun_route.ps1'
       - 'deps/platform-lock.json'
   push:
     branches:
@@ -15,6 +16,7 @@ on:
       - '.github/workflows/windows-tun-build.yml'
       - 'cmd/wbd-tun/**'
       - 'internal/tunnel/**'
+      - 'scripts/windows_tun_route.ps1'
       - 'deps/platform-lock.json'
 
 permissions:
@@ -35,3 +37,24 @@ jobs:
           go test ./internal/tunnel ./cmd/wbd-tun -count=1
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-tun.exe" ./cmd/wbd-tun
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-tun.exe")) { throw 'wbd-tun.exe not built' }
+      - name: Qualify route plan without administrator mutation
+        shell: pwsh
+        run: |
+          $required = @('Find-NetRoute','Get-NetAdapter','Get-NetIPInterface','Get-NetRoute','New-NetRoute','Remove-NetRoute','New-NetIPAddress','Remove-NetIPAddress','Set-NetIPInterface')
+          foreach ($cmd in $required) {
+            if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { throw "missing NetTCPIP command: $cmd" }
+          }
+          $plan = & ./scripts/windows_tun_route.ps1 -Action Render -Mode Full -AdapterAlias WBD -TunnelAddress4 10.66.0.2/30 -Underlay4 198.51.100.10 -MTU 1400
+          $text = $plan -join "`n"
+          $escape = $text.IndexOf('01 ESCAPE IPv4 198.51.100.10/32')
+          $captureA = $text.IndexOf('03 CAPTURE IPv4 0.0.0.0/1')
+          $captureB = $text.IndexOf('03 CAPTURE IPv4 128.0.0.0/1')
+          if ($escape -lt 0 -or $captureA -lt 0 -or $captureB -lt 0 -or $escape -gt $captureA -or $escape -gt $captureB) {
+            throw "underlay escape must be planned before broad capture routes:`n$text"
+          }
+          $split = & ./scripts/windows_tun_route.ps1 -Action Render -Mode Split -AdapterAlias WBD -TunnelAddress4 10.66.0.2/30 -Underlay4 203.0.113.7 -Prefix4 10.0.0.0/8,172.16.0.0/12
+          $splitText = $split -join "`n"
+          if ($splitText -notmatch '03 CAPTURE IPv4 10.0.0.0/8' -or $splitText -notmatch '03 CAPTURE IPv4 172.16.0.0/12') {
+            throw "split route plan incomplete:`n$splitText"
+          }
+          Write-Output 'WBD_WINDOWS_TUN_ROUTE_PLAN_PASS'
