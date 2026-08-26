@@ -2,6 +2,7 @@
 """Black-box timing and lane-setting test for wbd-game-lane-client."""
 from __future__ import annotations
 
+import re
 import select
 import signal
 import socket
@@ -43,6 +44,16 @@ def wait_ready(proc: subprocess.Popen[str]) -> str:
     raise AssertionError(f"client ready timeout lines={lines}")
 
 
+def stop(proc: subprocess.Popen[str]) -> None:
+    if proc.poll() is None:
+        proc.send_signal(signal.SIGTERM)
+        try:
+            proc.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=2)
+
+
 def measure(binary: Path, rate_mbps: float, lanes: int = 1) -> tuple[float, str]:
     sinks = []
     for _ in range(lanes):
@@ -61,8 +72,8 @@ def measure(binary: Path, rate_mbps: float, lanes: int = 1) -> tuple[float, str]
     try:
         ready = wait_ready(proc)
         expected_rate = f"inner_ceiling_mbps={rate_mbps:.6f}"
-        if expected_rate not in ready or f"lanes={lanes}" not in ready:
-            raise AssertionError(f"settings not reflected in READY: want rate={expected_rate} lanes={lanes}, got {ready}")
+        if expected_rate not in ready or f"lanes={lanes}" not in ready or f"session_id={SESSION}" not in ready:
+            raise AssertionError(f"settings not reflected in READY: want rate={expected_rate} lanes={lanes} session={SESSION}, got {ready}")
 
         app = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         app.bind(("127.0.0.1", 0))
@@ -84,13 +95,23 @@ def measure(binary: Path, rate_mbps: float, lanes: int = 1) -> tuple[float, str]
     finally:
         for sink in sinks:
             sink.close()
-        if proc.poll() is None:
-            proc.send_signal(signal.SIGTERM)
-            try:
-                proc.wait(timeout=2)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-                proc.wait(timeout=2)
+        stop(proc)
+
+
+def start_and_read_settings(binary: Path, session: str, replay_window: int) -> str:
+    sink = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sink.bind(("127.0.0.1", 0))
+    proc = subprocess.Popen(
+        [str(binary), "-listen", f"127.0.0.1:{free_port()}",
+         "-lanes", f"127.0.0.1:{sink.getsockname()[1]}",
+         "-session-id", session, "-replay-window", str(replay_window)],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+    )
+    try:
+        return wait_ready(proc)
+    finally:
+        sink.close()
+        stop(proc)
 
 
 def expect_fail(binary: Path, lane_arg: str, *extra: str) -> None:
@@ -126,17 +147,32 @@ def main() -> None:
     if not (0.75 <= four_lane_one / one <= 1.35):
         raise AssertionError(f"lane copies changed logical pacing: one_lane={one:.6f}s four_lane={four_lane_one:.6f}s")
 
-    # Client-side lane/rate validation must fail closed too, not only controller validation.
+    # session-id and replay-window are public settings too. Minimum legal replay
+    # window must start successfully; auto must produce a non-zero 128-bit ID.
+    auto_ready = start_and_read_settings(binary, "auto", 64)
+    m = re.search(r"session_id=([0-9a-f]{32})", auto_ready)
+    if not m or int(m.group(1), 16) == 0:
+        raise AssertionError(f"auto session ID invalid: {auto_ready}")
+    fixed_ready = start_and_read_settings(binary, SESSION, 64)
+    if f"session_id={SESSION}" not in fixed_ready:
+        raise AssertionError(f"fixed session ID not preserved: {fixed_ready}")
+
+    # Client-side settings must fail closed too, not only controller validation.
     good = f"127.0.0.1:{free_port()}"
     expect_fail(binary, good, "-inner-rate-mbps", "-1")
     expect_fail(binary, f"{good},{good}")
     five = ",".join(f"127.0.0.1:{free_port()}" for _ in range(5))
     expect_fail(binary, five)
+    expect_fail(binary, good, "-session-id", "00" * 16)
+    expect_fail(binary, good, "-session-id", "abcd")
+    expect_fail(binary, good, "-session-id", "not-hex-at-all")
+    expect_fail(binary, good, "-replay-window", "63")
+    expect_fail(binary, good, "-replay-window", str((1 << 20) + 1))
 
     print(
         f"WBD_GAME_PACING_PASS unlimited_span_s={unlimited:.6f} four_mbps_span_s={four:.6f} "
         f"one_mbps_span_s={one:.6f} four_lane_one_mbps_span_s={four_lane_one:.6f} "
-        "logical_before_copy=1 lane_validation=1"
+        "logical_before_copy=1 lane_validation=1 session_id=1 replay_window=1"
     )
 
 
