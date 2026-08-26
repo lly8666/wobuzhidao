@@ -292,9 +292,11 @@ func TestSharedAccountTwoClientLinkMuxOffAndFixed(t *testing.T) {
 			go func() { defer wg.Done(); startupClient(t, a, s.Addr()) }()
 			go func() { defer wg.Done(); startupClient(t, b, s.Addr()) }()
 			wg.Wait()
-			if got := s.plane.Len(); got != 2 {
-				t.Fatalf("live sessions=%d want=2", got)
-			}
+			// The final startup response is written before the server installs
+			// the corresponding DataPlane path. Client establishment therefore
+			// precedes server activation by a few scheduler ticks; wait for the
+			// observable server state instead of racing an immediate Len read.
+			waitPlaneLen(t, s, 2)
 			if _, err := realityfront.TicketAccount(dir, ta); err == nil {
 				t.Fatal("ticket A was not consumed")
 			}
