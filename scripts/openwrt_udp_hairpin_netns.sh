@@ -70,6 +70,7 @@ ip -n "$S" addr add 10.78.0.1/24 dev hs0$$
 ip -n "$S" link set hs0$$ up
 ip -n "$S" addr add 10.90.0.1/24 dev hs1$$
 ip -n "$S" link set hs1$$ up
+ip -n "$S" route add 10.10.0.0/24 via 10.78.0.2
 ip netns exec "$S" sysctl -qw net.ipv4.ip_forward=1
 
 ip -n "$T" addr add 10.90.0.2/24 dev ht$$
@@ -126,20 +127,17 @@ pa=mapped(a,b"prime-a")
 pb=mapped(b,b"prime-b")
 assert pa and pb and pa != pb,(pa,pb)
 
-# A reaches B through B's external server-side mapping endpoint.
 a.sendto(b"HAIRPIN_A_TO_B",("10.90.0.1",pb))
 data,peer=b.recvfrom(65535)
 assert data == b"HAIRPIN_A_TO_B",data
 assert peer == ("10.90.0.1",pa),(peer,pa)
 
-# B replies to the source endpoint it observed; the reverse loopback must land A.
 b.sendto(b"HAIRPIN_B_TO_A",peer)
 data,peer=a.recvfrom(65535)
 assert data == b"HAIRPIN_B_TO_A",data
 assert peer == ("10.90.0.1",pb),(peer,pb)
 print(f"WBD_OPENWRT_UDP_HAIRPIN_PASS a={pa} b={pb}",flush=True)
 
-# The WBD underlay remains excluded from capture and keeps its direct source.
 u=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); u.settimeout(4)
 u.sendto(b"escape",("10.78.0.1",5555))
 data,peer=u.recvfrom(65535)
