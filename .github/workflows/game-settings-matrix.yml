@@ -1,0 +1,57 @@
+name: game-settings-matrix
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/game-settings-matrix.yml'
+      - 'scripts/test_game_settings.py'
+      - 'scripts/test_game_pacing.py'
+      - 'internal/linkpolicy/**'
+      - 'internal/gamecontrol/**'
+      - 'internal/gamelane/**'
+      - 'cmd/wbd-game-plan/**'
+      - 'cmd/wbd-game-lane-client/**'
+  push:
+    branches:
+      - dev/wbd-raw-fec-v2
+    paths:
+      - '.github/workflows/game-settings-matrix.yml'
+      - 'scripts/test_game_settings.py'
+      - 'scripts/test_game_pacing.py'
+      - 'internal/linkpolicy/**'
+      - 'internal/gamecontrol/**'
+      - 'internal/gamelane/**'
+      - 'cmd/wbd-game-plan/**'
+      - 'cmd/wbd-game-lane-client/**'
+
+permissions:
+  contents: read
+
+jobs:
+  settings:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Unit boundary tests
+        run: |
+          set -euo pipefail
+          go test ./internal/linkpolicy ./internal/gamecontrol ./internal/gamelane -count=1
+      - name: Build black-box setting targets
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/wbd-game-settings"
+          go build -trimpath -o "$RUNNER_TEMP/wbd-game-settings/wbd-game-plan" ./cmd/wbd-game-plan
+          go build -trimpath -o "$RUNNER_TEMP/wbd-game-settings/wbd-game-lane-client" ./cmd/wbd-game-lane-client
+      - name: Exercise every controller flag through the real CLI
+        run: |
+          set -euo pipefail
+          python3 scripts/test_game_settings.py "$RUNNER_TEMP/wbd-game-settings/wbd-game-plan"
+      - name: Measure real logical inner pacing
+        run: |
+          set -euo pipefail
+          python3 scripts/test_game_pacing.py "$RUNNER_TEMP/wbd-game-settings/wbd-game-lane-client"
