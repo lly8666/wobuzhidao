@@ -283,6 +283,14 @@ func (r *TCPReceive) Push(f Frame) (TCPReceiveResult, error) {
 		r.finOffset = &v
 	}
 
+	// A zero-byte FIN at exactly the next expected byte is a new half-close
+	// event the first time it is seen. Only subsequent copies are duplicates.
+	if len(f.Payload) == 0 && f.FIN && f.Offset == r.nextOffset && !r.finDelivered {
+		r.finDelivered = true
+		result.FIN = true
+		result.Ack.Offset = r.nextOffset
+		return result, nil
+	}
 	if end <= r.nextOffset {
 		result.Duplicate = true
 		result.FIN = r.finOffset != nil && r.nextOffset >= *r.finOffset
