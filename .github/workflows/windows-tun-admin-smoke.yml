@@ -116,7 +116,11 @@ jobs:
               if (Test-Path $stderr) { Get-Content $stderr }
               throw "real Wintun dataplane ping failed with exit code $LASTEXITCODE"
             }
-            Wait-Process -Id $probe.Id -Timeout 5
+            # Start-Process -PassThru returns a Process object that remains valid
+            # after the child exits. Waiting by numeric PID races with a fast,
+            # successful probe because Wait-Process performs a fresh lookup and
+            # can report "process not found" after the OS has reaped it.
+            if (-not $probe.WaitForExit(5000)) { throw 'WBD TUN dataplane probe did not exit after replying' }
             $probe.Refresh()
             if ($probe.ExitCode -ne 0) {
               if (Test-Path $probeErr) { Get-Content $probeErr }
@@ -133,7 +137,7 @@ jobs:
             if (Get-NetIPAddress -InterfaceIndex $ifIndex -IPAddress 10.66.0.2 -ErrorAction SilentlyContinue) { throw 'WBD address survived cleanup' }
             Write-Output 'WBD_WINDOWS_TUN_ADMIN_CLEANUP_PASS'
 
-            Wait-Process -Id $proc.Id -Timeout 25
+            if (-not $proc.WaitForExit(25000)) { throw 'wbd-tun did not exit after qualification lifetime' }
             $proc.Refresh()
             if ($proc.ExitCode -ne 0) {
               if (Test-Path $stderr) { Get-Content $stderr }
