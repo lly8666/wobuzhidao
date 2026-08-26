@@ -196,12 +196,37 @@ func main() {
 	}
 
 	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
-
+	exitCode := 0
 	if err := run(); err != nil {
 		messageBox("WBD Windows GUI", err.Error())
-		os.Exit(1)
+		exitCode = 1
 	}
+	// Explicit Exit already disconnects before posting WM_QUIT. This is the
+	// second safety net for any other controlled process exit, including a
+	// Win32 message-loop error: wait for an in-flight lifecycle action, then run
+	// the idempotent cleanup path before allowing the process to terminate.
+	if err := cleanupBeforeProcessExit(); err != nil {
+		messageBox("WBD cleanup before exit", err.Error())
+		exitCode = 1
+	}
+	runtime.UnlockOSThread()
+	if exitCode != 0 {
+		os.Exit(exitCode)
+	}
+}
+
+func cleanupBeforeProcessExit() error {
+	if app.controller == nil {
+		return nil
+	}
+	if app.operation != "" {
+		// If the UI loop itself has ended, no window procedure will consume this
+		// result. Wait rather than racing a still-starting Wintun stack with
+		// process termination. A failed disconnect is retried below.
+		<-app.results
+		app.operation = ""
+	}
+	return app.controller.Disconnect()
 }
 
 func loadRuntimeProfile(path string) error {
