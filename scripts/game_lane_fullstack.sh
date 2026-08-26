@@ -182,7 +182,7 @@ cat >"$LOG_DIR/probe.py" <<'PY'
 import socket,sys,time
 count=int(sys.argv[1]); prefix=sys.argv[2].encode()
 s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-s.bind(('127.0.0.1',0)); s.settimeout(2)
+s.bind(('127.0.0.1',47600)); s.settimeout(2)
 for i in range(count):
     b=prefix+i.to_bytes(2,'big')
     s.sendto(b,('127.0.0.1',47500))
