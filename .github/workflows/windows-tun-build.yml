@@ -135,7 +135,8 @@ jobs:
           }
           $oneShot = Get-Content ./scripts/windows_frozen_wbd_one_shot.ps1 -Raw
           [void][scriptblock]::Create($oneShot)
-          if ($oneShot -match '(?i)Stop-Process') { throw 'Windows frozen one-shot must request Controller cleanup instead of force-killing the qualifier' }
+          $oneShotCode = (($oneShot -split "`r?`n") | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
+          if ($oneShotCode -match '(?i)Stop-Process') { throw 'Windows frozen one-shot must request Controller cleanup instead of force-killing the qualifier' }
           if ($oneShot -notmatch 'WBD_WINDOWS_FROZEN_ONE_SHOT_PASS' -or $oneShot -notmatch 'WBD_WINDOWS_QUALIFY_CLEANUP_PASS') {
             throw 'Windows frozen one-shot is missing release/cleanup assertions'
           }
