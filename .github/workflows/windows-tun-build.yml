@@ -62,8 +62,12 @@ jobs:
         run: |
           $source = Get-Content ./scripts/windows_npcap_prepare.ps1 -Raw
           [void][scriptblock]::Create($source)
-          if ($source -match '(?i)(^|\s)/S(\s|$)') { throw 'Free Npcap helper must not use OEM-only silent installation' }
-          if ($source -notmatch 'npcap-1\.88\.exe' -or $source -notmatch 'Nmap Software LLC') { throw 'Npcap helper is not pinned to the qualified official release/signer' }
+          $code = (($source -split "`r?`n") | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
+          if ($code -match '(?i)(^|\s)/S(\s|$)') { throw 'Free Npcap helper must not use OEM-only silent installation' }
+          $versionLock = '$NpcapVersion = ''1.88'''
+          if ($source -notmatch [regex]::Escape($versionLock) -or $source -notmatch [regex]::Escape('https://npcap.com/dist/') -or $source -notmatch [regex]::Escape('Nmap Software LLC')) {
+            throw 'Npcap helper is not pinned to the qualified official release/origin/signer'
+          }
           & ./scripts/windows_npcap_prepare.ps1 -Action Fetch -DownloadDirectory "$env:RUNNER_TEMP\wbd-npcap"
           if ($LASTEXITCODE -ne 0) { throw "Npcap fetch helper exited $LASTEXITCODE" }
           Write-Output 'WBD_WINDOWS_NPCAP_FETCH_QUALIFIED version=1.88 origin=npcap.com redistribution=none'
