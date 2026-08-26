@@ -72,17 +72,32 @@ func exitTestProfile() windowsruntime.Profile {
 	}
 }
 
-func TestExplicitExitAutomaticallyRunsRouteCleanupBeforeProcessTeardown(t *testing.T) {
-	saved := app
-	defer func() { app = saved }()
+func wantExitLifecycle() []string {
+	return []string{
+		"run:route-cleanup",
+		"stop:tun",
+		"stop:link",
+		"stop:dtls",
+		"stop:faketcp",
+	}
+}
 
+func connectedExitTestController(t *testing.T) (*windowsruntime.Controller, *exitTestRunner) {
+	t.Helper()
 	runner := &exitTestRunner{}
 	controller := windowsruntime.NewController(runner, exitTestDiscoverer{}, exitTestTickets{})
 	if err := controller.Connect(exitTestProfile()); err != nil {
 		t.Fatal(err)
 	}
 	runner.events = nil
+	return controller, runner
+}
 
+func TestExplicitExitAutomaticallyRunsRouteCleanupBeforeProcessTeardown(t *testing.T) {
+	saved := app
+	defer func() { app = saved }()
+
+	controller, runner := connectedExitTestController(t)
 	app.controller = controller
 	app.results = make(chan runtimeResult, 1)
 	app.window = 0
@@ -103,17 +118,32 @@ func TestExplicitExitAutomaticallyRunsRouteCleanupBeforeProcessTeardown(t *testi
 	if result.action != "disconnect" || result.err != nil {
 		t.Fatalf("Exit cleanup result = action=%q err=%v", result.action, result.err)
 	}
-	want := []string{
-		"run:route-cleanup",
-		"stop:tun",
-		"stop:link",
-		"stop:dtls",
-		"stop:faketcp",
-	}
-	if !reflect.DeepEqual(runner.events, want) {
-		t.Fatalf("Exit lifecycle = %v want %v", runner.events, want)
+	if !reflect.DeepEqual(runner.events, wantExitLifecycle()) {
+		t.Fatalf("Exit lifecycle = %v want %v", runner.events, wantExitLifecycle())
 	}
 	if controller.State() != windowsruntime.RuntimeDisconnected {
 		t.Fatalf("Exit left controller state %s", controller.State())
+	}
+}
+
+func TestProcessExitFallbackAutomaticallyCleansConnectedRuntime(t *testing.T) {
+	saved := app
+	defer func() { app = saved }()
+
+	controller, runner := connectedExitTestController(t)
+	app.controller = controller
+	app.results = make(chan runtimeResult, 1)
+	app.operation = ""
+
+	// This is the second safety net reached after the Win32 message loop ends,
+	// including an error return. It must use the same route-first teardown.
+	if err := cleanupBeforeProcessExit(); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(runner.events, wantExitLifecycle()) {
+		t.Fatalf("process-exit lifecycle = %v want %v", runner.events, wantExitLifecycle())
+	}
+	if controller.State() != windowsruntime.RuntimeDisconnected {
+		t.Fatalf("process-exit cleanup left controller state %s", controller.State())
 	}
 }
