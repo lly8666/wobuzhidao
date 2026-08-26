@@ -8,6 +8,7 @@ on:
       - 'cmd/wbd-tun/**'
       - 'cmd/wbd-faketcp/**'
       - 'cmd/wbd-windows-gui/**'
+      - 'cmd/wbd-windows-qualify/**'
       - 'internal/faketcp/**'
       - 'internal/tunnel/**'
       - 'internal/windowsgui/**'
@@ -24,6 +25,7 @@ on:
       - 'cmd/wbd-tun/**'
       - 'cmd/wbd-faketcp/**'
       - 'cmd/wbd-windows-gui/**'
+      - 'cmd/wbd-windows-qualify/**'
       - 'internal/faketcp/**'
       - 'internal/tunnel/**'
       - 'internal/windowsgui/**'
@@ -45,18 +47,21 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
-      - name: Compile Windows Wintun Npcap and tray GUI
+      - name: Compile Windows Wintun Npcap tray GUI and qualifier
         shell: pwsh
         run: |
-          go test ./internal/tunnel ./internal/faketcp ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-tun ./cmd/wbd-faketcp ./cmd/wbd-windows-gui -count=1
+          go test ./internal/tunnel ./internal/faketcp ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-tun ./cmd/wbd-faketcp ./cmd/wbd-windows-gui ./cmd/wbd-windows-qualify -count=1
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-tun.exe" ./cmd/wbd-tun
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
           go build -trimpath -ldflags="-H=windowsgui" -o "$env:RUNNER_TEMP\wbd-windows-gui.exe" ./cmd/wbd-windows-gui
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-windows-qualify.exe" ./cmd/wbd-windows-qualify
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-tun.exe")) { throw 'wbd-tun.exe not built' }
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-faketcp.exe")) { throw 'wbd-faketcp.exe not built' }
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-windows-gui.exe")) { throw 'wbd-windows-gui.exe not built' }
+          if (-not (Test-Path "$env:RUNNER_TEMP\wbd-windows-qualify.exe")) { throw 'wbd-windows-qualify.exe not built' }
           Write-Output 'WBD_WINDOWS_PACKET_BACKENDS_BUILD_PASS'
           Write-Output 'WBD_WINDOWS_GUI_BUILD_PASS native_win32=1 tray=Shell_NotifyIconW close_to_tray=1 start_minimized=1 exit_cleanup=automatic'
+          Write-Output 'WBD_WINDOWS_QUALIFIER_BUILD_PASS controller=shared cleanup=automatic'
       - name: Fetch and inspect locked personal-use Npcap payload from official origin
         shell: pwsh
         run: |
