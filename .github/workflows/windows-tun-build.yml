@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/windows-tun-build.yml'
       - 'cmd/wbd-tun/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'internal/faketcp/**'
       - 'internal/tunnel/**'
       - 'scripts/windows_tun_route.ps1'
       - 'deps/platform-lock.json'
@@ -15,6 +17,8 @@ on:
     paths:
       - '.github/workflows/windows-tun-build.yml'
       - 'cmd/wbd-tun/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'internal/faketcp/**'
       - 'internal/tunnel/**'
       - 'scripts/windows_tun_route.ps1'
       - 'deps/platform-lock.json'
@@ -31,12 +35,15 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
-      - name: Compile Windows Wintun endpoint and packet bridge
+      - name: Compile Windows Wintun and Npcap packet backends
         shell: pwsh
         run: |
-          go test ./internal/tunnel ./cmd/wbd-tun -count=1
+          go test ./internal/tunnel ./internal/faketcp ./cmd/wbd-tun ./cmd/wbd-faketcp -count=1
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-tun.exe" ./cmd/wbd-tun
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-tun.exe")) { throw 'wbd-tun.exe not built' }
+          if (-not (Test-Path "$env:RUNNER_TEMP\wbd-faketcp.exe")) { throw 'wbd-faketcp.exe not built' }
+          Write-Output 'WBD_WINDOWS_PACKET_BACKENDS_BUILD_PASS'
       - name: Qualify route plan without administrator mutation
         shell: pwsh
         run: |
