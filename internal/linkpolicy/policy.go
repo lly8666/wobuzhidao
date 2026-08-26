@@ -69,15 +69,15 @@ type Recommendation struct {
 	ParityShards int
 	FECProfile   string
 
-	LinkSpeedMode        LinkSpeedMode
+	LinkSpeedMode         LinkSpeedMode
 	EffectiveCapacityMbps float64
-	InnerMbps             float64
-	PredictedDelivery     float64
-	PerLaneWireExpansion  float64
-	WireExpansion         float64
+	InnerMbps              float64
+	PredictedDelivery      float64
+	PerLaneWireExpansion   float64
+	WireExpansion          float64
 
-	LaneCount       int
-	AutoLaneAdded   bool
+	LaneCount        int
+	AutoLaneAdded    bool
 	ExperimentalLane bool
 
 	// GameLaneEligible is retained for calibration/report compatibility. It no
@@ -208,8 +208,11 @@ func validateObservation(obs Observation) error {
 	if obs.LinkSpeedMode != LinkSpeedAuto && obs.LinkSpeedMode != LinkSpeedManual {
 		return errors.New("linkpolicy: link speed mode must be auto or manual")
 	}
-	if obs.CapacityMbps <= 0 || math.IsNaN(obs.CapacityMbps) || math.IsInf(obs.CapacityMbps, 0) {
-		return errors.New("linkpolicy: automatic capacity must be finite and positive")
+	if math.IsNaN(obs.CapacityMbps) || math.IsInf(obs.CapacityMbps, 0) || obs.CapacityMbps < 0 {
+		return errors.New("linkpolicy: automatic capacity must be finite and non-negative")
+	}
+	if obs.LinkSpeedMode == LinkSpeedAuto && obs.CapacityMbps <= 0 {
+		return errors.New("linkpolicy: automatic capacity must be positive in auto mode")
 	}
 	if obs.LinkSpeedMode == LinkSpeedManual && (obs.ManualLinkSpeedMbps <= 0 || math.IsNaN(obs.ManualLinkSpeedMbps) || math.IsInf(obs.ManualLinkSpeedMbps, 0)) {
 		return errors.New("linkpolicy: manual link speed must be finite and positive")
