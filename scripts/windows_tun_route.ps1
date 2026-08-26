@@ -46,6 +46,26 @@ function Require-Admin {
     }
 }
 
+function Wait-PreferredIPAddress([uint32]$InterfaceIndex, [string]$IPAddress, [string]$Family, [int]$TimeoutMilliseconds = 10000) {
+    $deadline = [DateTime]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
+    $lastState = 'Missing'
+    do {
+        $row = Get-NetIPAddress -InterfaceIndex $InterfaceIndex -IPAddress $IPAddress -AddressFamily $Family -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($row) {
+            $lastState = [string]$row.AddressState
+            if ($lastState -eq 'Preferred') {
+                Write-Output "WBD_WINDOWS_TUN_ADDRESS_READY family=$Family ip=$IPAddress state=Preferred"
+                return
+            }
+            if ($lastState -in @('Duplicate','Invalid')) {
+                throw "WBD tunnel address $IPAddress entered unusable DAD state $lastState"
+            }
+        }
+        Start-Sleep -Milliseconds 100
+    } while ([DateTime]::UtcNow -lt $deadline)
+    throw "WBD tunnel address $IPAddress did not become Preferred within ${TimeoutMilliseconds}ms; last_state=$lastState"
+}
+
 function Save-State($State) {
     $dir = Split-Path -Parent $StatePath
     if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
@@ -90,8 +110,8 @@ if ($Action -eq 'Render') {
     Write-Output "WBD_WINDOWS_TUN_PLAN mode=$Mode adapter=$AdapterAlias mtu=$MTU"
     if ($Underlay4) { Write-Output "01 ESCAPE IPv4 $Underlay4/32 through the pre-WBD best route before capture routes" }
     if ($Underlay6) { Write-Output "01 ESCAPE IPv6 $Underlay6/128 through the pre-WBD best route before capture routes" }
-    if ($addr4) { Write-Output "02 ADDRESS IPv4 $($addr4.CIDR) on $AdapterAlias" }
-    if ($addr6) { Write-Output "02 ADDRESS IPv6 $($addr6.CIDR) on $AdapterAlias" }
+    if ($addr4) { Write-Output "02 ADDRESS IPv4 $($addr4.CIDR) on $AdapterAlias and wait for DAD Preferred state" }
+    if ($addr6) { Write-Output "02 ADDRESS IPv6 $($addr6.CIDR) on $AdapterAlias and wait for DAD Preferred state" }
     Write-Output "02 MTU $MTU on $AdapterAlias"
     foreach ($p in $capture4) { Write-Output "03 CAPTURE IPv4 $p on $AdapterAlias" }
     foreach ($p in $capture6) { Write-Output "03 CAPTURE IPv6 $p on $AdapterAlias" }
@@ -161,6 +181,12 @@ try {
             $state.Addresses += [ordered]@{ InterfaceIndex=$ifIndex; IPAddress=$a.Parsed.IP }
             Save-State $state
         }
+        # New-NetIPAddress can return while Windows Duplicate Address Detection
+        # still marks the address Tentative. A Tentative address is not usable
+        # for communication and immediate application traffic can fail with
+        # PING "General failure" before a packet ever reaches Wintun. Declare
+        # WBD routing ready only after the configured address is Preferred.
+        Wait-PreferredIPAddress -InterfaceIndex $ifIndex -IPAddress $a.Parsed.IP -Family $a.Family
     }
 
     foreach ($item in @(@{Family='IPv4'; Prefixes=$capture4; NextHop='0.0.0.0'}, @{Family='IPv6'; Prefixes=$capture6; NextHop='::'})) {
