@@ -1,11 +1,11 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 42,
+  "continuity_sequence": 43,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "0d6d0a306d425cdd1a2a83f5a09cc4ada6aa67a9",
+  "checkpoint_based_on_head_sha": "e82e61d3b85d8660e3437c2791f9838344ccd9ab",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
@@ -14,7 +14,7 @@
     "local_optimization_stop_rule": "Prioritize first-complete inner datagram delivery and balanced independent sessions. Never gate available systematic data on cumulative TCP repair, do not add multi-tenant identity complexity, and do not retune fixed 20:20 from a single load point before the 100 Mbit/s shared-link load ceiling is measured."
   },
   "continuation_cursor": {
-    "last_completed_action": "Qualified same-account two-session fan-out through one public FakeTCP listener for FEC off and fixed 20:20, added DTLS-protected PING/PONG/CLOSE lifecycle with a 15s client keepalive and 90s server idle lease, fixed the bounded test activation race, and completed the first shared 100 Mbit/s two-session load characterization. Authoritative mux-load run 32918572671 passed all four network jobs plus aggregate with setup loss 0 and measured random loss 20%. At 40 Mbit/s aggregate inner offered, RTT20 off delivered 0.8022 / 32.083 Mbit/s / p99 11.061ms versus fixed20:20 1.0000 / 39.994 Mbit/s / p99 20.678ms; RTT100 off delivered 0.8062 / 32.242 Mbit/s / p99 50.770ms versus fixed20:20 1.0000 / 39.994 Mbit/s / p99 61.185ms. Fixed plaintext expansion measured 2.1622x and 2.1597x. Results are recorded in docs/benchmarks/v2-mux-two-session-100m.md.",
+    "last_completed_action": "Qualified same-account two-session fan-out through one public FakeTCP listener for FEC off and fixed 20:20, added DTLS-protected PING/PONG/CLOSE lifecycle with a 15s client keepalive and 90s server idle lease, fixed the bounded test activation race, and completed the first shared 100 Mbit/s two-session load characterization. Authoritative mux-load run 32918572671 passed all four network jobs plus aggregate with setup loss 0 and measured random loss 20%. At 40 Mbit/s aggregate inner offered, RTT20 off delivered 0.8022 / 32.083 Mbit/s / p99 11.061ms versus fixed20:20 1.0000 / 39.994 Mbit/s / p99 20.678ms; RTT100 off delivered 0.8062 / 32.242 Mbit/s / p99 50.770ms versus fixed20:20 1.0000 / 39.994 Mbit/s / p99 61.185ms. Fixed plaintext expansion measured 2.1622x and 2.1597x. Results are recorded in docs/benchmarks/v2-mux-two-session-100m.md. Handoff architecture assertions were also aligned with the now-qualified M8A/M8B/M8C roadmap state and the new mux benchmark evidence.",
     "current_task": "Find the safe aggregate inner offered-load ceiling for two simultaneous same-account sessions on the 100 Mbit/s shared weak link without changing the qualified mux, legacy FakeTCP default, DTLS worker model, or fixed 20:20 semantics.",
     "why_now": "At 20% measured random loss, fixed 20:20 recovered both 20 and 100 ms RTT cases from about 80% delivery to 100%, but its measured LINK->DTLS plaintext expansion is about 2.16x and costs roughly 16-18% more sampled CPU, 26-33% more peak RSS, and about 10ms more p99. Forty Mbit/s aggregate inner therefore already consumes roughly the mid-80-Mbit/s range before DTLS/FakeTCP overhead. The next product risk is saturation/queue collapse, not correctness of session fan-out.",
     "done_when": "A paired aggregate-load sweep on the same two-session topology identifies the highest sustainable inner offered rate at RTT 20/100 ms with measured 20% random loss, using setup loss 0 and loss only during the offered interval. Record delivery/goodput/p50/p99, per-session balance, CPU/RSS, exact systematic/repair plaintext bytes, FakeTCP retransmit bytes and shared qdisc drops. Do not freeze protocol or begin final platform VPN integration until the ceiling and a conservative release operating point are documented.",
@@ -58,6 +58,6 @@
     "authority": "snapshot_not_live",
     "tested_commit": "03d41b7450ef8fa751816fd02452bfedea79137d",
     "result": "pass",
-    "command": "Repository-backed CI snapshot: the normal GitHub Actions ci go test ./... step passed at 03d41b7450ef8fa751816fd02452bfedea79137d after the mux activation-race test fix. Later benchmark-only/script/workflow/document commits did not change Go product code. At substantive checkpoint d29856d017a08dd3f9d7d291e4179ac53ca3c614, all four mux-load jobs also passed targeted control/linkdata/session/faketcp/realityfront/link-proxy/link-server tests before the authoritative network run 32918572671 completed successfully."
+    "command": "Repository-backed CI snapshot: the normal GitHub Actions ci go test ./... step passed at 03d41b7450ef8fa751816fd02452bfedea79137d after the mux activation-race test fix. Later benchmark-only/script/workflow/document commits did not change Go product code. At substantive checkpoint d29856d017a08dd3f9d7d291e4179ac53ca3c614, all four mux-load jobs also passed targeted control/linkdata/session/faketcp/realityfront/link-proxy/link-server tests before the authoritative network run 32918572671 completed successfully. The handoff contract assertions were then updated at e82e61d3b85d8660e3437c2791f9838344ccd9ab to match the repository's already-qualified M8A/M8B state and assert the new two-session benchmark evidence."
   }
 }
