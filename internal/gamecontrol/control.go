@@ -11,8 +11,8 @@ import (
 type FECProfile string
 
 const (
-	FECOff    FECProfile = "off"
-	FEC20x20  FECProfile = "20:20"
+	FECOff   FECProfile = "off"
+	FEC20x20 FECProfile = "20:20"
 )
 
 type Config struct {
@@ -33,7 +33,8 @@ type Config struct {
 
 type Measurement struct {
 	// AutoLinkSpeedMbps must come from the service-capacity estimator, not
-	// application goodput. In manual mode it is retained only for diagnostics.
+	// application goodput. In manual mode it is retained only for diagnostics
+	// and may be zero when no automatic estimate exists yet.
 	AutoLinkSpeedMbps float64
 	Loss              float64
 	MeanBurst         float64
@@ -130,8 +131,11 @@ func validate(cfg Config, m Measurement) error {
 	if cfg.LinkSpeedMode != linkpolicy.LinkSpeedAuto && cfg.LinkSpeedMode != linkpolicy.LinkSpeedManual {
 		return errors.New("gamecontrol: link speed mode must be auto or manual")
 	}
-	if m.AutoLinkSpeedMbps <= 0 || math.IsNaN(m.AutoLinkSpeedMbps) || math.IsInf(m.AutoLinkSpeedMbps, 0) {
-		return errors.New("gamecontrol: auto link speed observation must be finite and positive")
+	if math.IsNaN(m.AutoLinkSpeedMbps) || math.IsInf(m.AutoLinkSpeedMbps, 0) || m.AutoLinkSpeedMbps < 0 {
+		return errors.New("gamecontrol: auto link speed observation must be finite and non-negative")
+	}
+	if cfg.LinkSpeedMode == linkpolicy.LinkSpeedAuto && m.AutoLinkSpeedMbps <= 0 {
+		return errors.New("gamecontrol: auto link speed observation must be positive in auto mode")
 	}
 	if cfg.LinkSpeedMode == linkpolicy.LinkSpeedManual && (cfg.ManualLinkSpeedMbps <= 0 || math.IsNaN(cfg.ManualLinkSpeedMbps) || math.IsInf(cfg.ManualLinkSpeedMbps, 0)) {
 		return errors.New("gamecontrol: manual link speed must be finite and positive")
