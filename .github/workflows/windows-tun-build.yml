@@ -10,6 +10,7 @@ on:
       - 'internal/faketcp/**'
       - 'internal/tunnel/**'
       - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_faketcp_underlay.ps1'
       - 'deps/platform-lock.json'
   push:
     branches:
@@ -21,6 +22,7 @@ on:
       - 'internal/faketcp/**'
       - 'internal/tunnel/**'
       - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_faketcp_underlay.ps1'
       - 'deps/platform-lock.json'
 
 permissions:
@@ -44,6 +46,19 @@ jobs:
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-tun.exe")) { throw 'wbd-tun.exe not built' }
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-faketcp.exe")) { throw 'wbd-faketcp.exe not built' }
           Write-Output 'WBD_WINDOWS_PACKET_BACKENDS_BUILD_PASS'
+      - name: Resolve physical FakeTCP underlay before capture
+        shell: pwsh
+        run: |
+          $lines = & ./scripts/windows_faketcp_underlay.ps1 -RemoteIPAddress 1.1.1.1
+          $jsonLine = $lines | Where-Object { $_ -match '^\{' } | Select-Object -First 1
+          if (-not $jsonLine) { throw "underlay discovery returned no JSON: $($lines -join '; ')" }
+          $x = $jsonLine | ConvertFrom-Json
+          if (-not $x.source_ip -or -not $x.interface_index -or -not $x.packet_device) { throw "underlay discovery missing route identity: $jsonLine" }
+          if ($x.packet_device -notmatch '^\\Device\\NPF_\{[0-9A-F-]+\}$') { throw "bad Npcap device: $($x.packet_device)" }
+          if ($x.source_mac -notmatch '^([0-9a-f]{2}:){5}[0-9a-f]{2}$') { throw "bad source MAC: $($x.source_mac)" }
+          if ($x.next_hop_mac -notmatch '^([0-9a-f]{2}:){5}[0-9a-f]{2}$') { throw "bad next-hop MAC: $($x.next_hop_mac)" }
+          $lines | ForEach-Object { Write-Output $_ }
+          Write-Output 'WBD_WINDOWS_FAKETCP_UNDERLAY_DISCOVERY_PASS'
       - name: Qualify route plan without administrator mutation
         shell: pwsh
         run: |
