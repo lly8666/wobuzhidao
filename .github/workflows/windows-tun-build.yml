@@ -1,0 +1,37 @@
+name: windows-tun-build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/windows-tun-build.yml'
+      - 'cmd/wbd-tun/**'
+      - 'internal/tunnel/**'
+      - 'deps/platform-lock.json'
+  push:
+    branches:
+      - dev/wbd-raw-fec-v2
+    paths:
+      - '.github/workflows/windows-tun-build.yml'
+      - 'cmd/wbd-tun/**'
+      - 'internal/tunnel/**'
+      - 'deps/platform-lock.json'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Compile Windows Wintun endpoint and packet bridge
+        shell: pwsh
+        run: |
+          go test ./internal/tunnel ./cmd/wbd-tun -count=1
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-tun.exe" ./cmd/wbd-tun
+          if (-not (Test-Path "$env:RUNNER_TEMP\wbd-tun.exe")) { throw 'wbd-tun.exe not built' }
