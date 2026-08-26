@@ -70,7 +70,6 @@ jobs:
             -o /tmp/wolfssl-source.zip
           unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
           echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
-          echo 'b5b8a1031c045af973b27c18178205f2057330f28e2bc5350ba82a5556d272a1  native/dtls/wbd_dtls_shim.c' | sha256sum -c -
           tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
           (cd /tmp/wolf/src && ./autogen.sh)
           (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)

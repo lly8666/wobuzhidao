@@ -8,6 +8,7 @@ on:
       - 'internal/platformproxy/**'
       - 'scripts/openwrt_tproxy.sh'
       - 'scripts/openwrt_udp_tproxy_netns.sh'
+      - 'scripts/openwrt_udp_hairpin_netns.sh'
       - '.github/workflows/openwrt-udp-tproxy.yml'
   pull_request:
     paths:
@@ -16,6 +17,7 @@ on:
       - 'internal/platformproxy/**'
       - 'scripts/openwrt_tproxy.sh'
       - 'scripts/openwrt_udp_tproxy_netns.sh'
+      - 'scripts/openwrt_udp_hairpin_netns.sh'
       - '.github/workflows/openwrt-udp-tproxy.yml'
   workflow_dispatch:
 
@@ -43,5 +45,10 @@ jobs:
       - name: Root network-namespace OpenWrt UDP TPROXY qualification
         run: |
           sudo scripts/openwrt_udp_tproxy_netns.sh \
+            "$RUNNER_TEMP/wbd-platform-proxy-openwrt" \
+            "$RUNNER_TEMP/wbd-platform-proxy-server"
+      - name: Root network-namespace full-cone hairpin qualification
+        run: |
+          sudo scripts/openwrt_udp_hairpin_netns.sh \
             "$RUNNER_TEMP/wbd-platform-proxy-openwrt" \
             "$RUNNER_TEMP/wbd-platform-proxy-server"
