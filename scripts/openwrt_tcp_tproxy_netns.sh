@@ -134,6 +134,7 @@ ip netns exec "$NS_PROXY" sh "$ROOT/scripts/openwrt_tproxy.sh" apply \
 ip netns exec "$NS_CLIENT" python3 - <<'PY'
 import socket
 s=socket.create_connection(("10.20.0.2",8080),timeout=3)
+assert s.getpeername() == ("10.20.0.2",8080), s.getpeername()
 s.sendall(b"tcp-through-wbdp")
 s.shutdown(socket.SHUT_WR)
 s.settimeout(5)
@@ -144,7 +145,6 @@ while True:
         break
     out += part
 assert out == b"PROXIED:tcp-through-wbdp", out
-assert s.getpeername() == ("10.20.0.2",8080), s.getpeername()
 print("WBD_OPENWRT_TCP_TPROXY_CAPTURE_PASS", flush=True)
 PY
 
