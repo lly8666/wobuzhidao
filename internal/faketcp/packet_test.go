@@ -29,10 +29,19 @@ func TestSYNOptionsParsePayloadOffset(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	if seg.Flags != FlagSYN || len(seg.Payload) != 0 { t.Fatalf("bad SYN %#v", seg) }
 	if pkt[20+12]>>4 != 8 { t.Fatalf("expected 32-byte TCP header, doff=%d", pkt[32]>>4) }
+	if !seg.MSSSet || seg.MSS != DefaultMSS { t.Fatalf("MSS parsed as set=%v value=%d", seg.MSSSet, seg.MSS) }
 	if !seg.SACKPermitted { t.Fatal("SYN did not parse SACK-permitted") }
 	if !seg.WindowScaleSet || seg.WindowScale != DefaultWindowScale {
 		t.Fatalf("window scale parsed as set=%v value=%d", seg.WindowScaleSet, seg.WindowScale)
 	}
+	if !IsWBDHandshakeSegment(seg) { t.Fatalf("WBD SYN fingerprint not recognized: %#v", seg) }
+}
+
+func TestWBDHandshakeFingerprintRejectsOrdinaryKernelShape(t *testing.T) {
+	seg := Segment{Flags: FlagSYN, MSSSet: true, MSS: 1460, SACKPermitted: true, WindowScaleSet: true, WindowScale: 7}
+	if IsWBDHandshakeSegment(seg) { t.Fatal("ordinary TCP SYN was misclassified as WBD FakeTCP") }
+	seg = Segment{Flags: FlagSYN | FlagACK, MSSSet: true, MSS: DefaultMSS, SACKPermitted: true, WindowScaleSet: true, WindowScale: DefaultWindowScale}
+	if !IsWBDHandshakeSegment(seg) { t.Fatal("WBD SYNACK fingerprint not recognized") }
 }
 
 func TestSACKRoundTrip(t *testing.T) {
