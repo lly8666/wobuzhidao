@@ -54,6 +54,8 @@ load_config() {
     [ -n "${WBD_USERNAME:-}" ] && [ -n "${WBD_PASSWORD:-}" ] || { echo 'WBD_USERNAME/WBD_PASSWORD required' >&2; exit 1; }
     case "$WBD_FRONT_PORT:$WBD_RAW_PORT" in *[!0-9:]*|:|*: ) echo 'ports must be numeric' >&2; exit 1;; esac
     [ "$WBD_FRONT_PORT" -ge 1 ] && [ "$WBD_FRONT_PORT" -le 65535 ] && [ "$WBD_RAW_PORT" -ge 1 ] && [ "$WBD_RAW_PORT" -le 65535 ] || { echo 'ports must be 1..65535' >&2; exit 1; }
+    case "$WBD_FIREWALL_BACKEND" in auto|nft|iptables) ;; *) echo 'WBD_FIREWALL_BACKEND must be auto, nft, or iptables' >&2; exit 1;; esac
+    case "$WBD_DECOY_TARGET" in *:*) ;; *) echo 'WBD_DECOY_TARGET must be host:port' >&2; exit 1;; esac
 }
 
 set_config() {
@@ -68,7 +70,11 @@ set_config() {
     awk -v k="$key" -v line="$key=$quoted" 'BEGIN{done=0} index($0,k"=")==1 {print line; done=1; next} {print} END{if(!done) print line}' "$CONFIG" >"$tmp"
     chmod 600 "$tmp"; mv "$tmp" "$CONFIG"
     load_config
-    echo "$key updated; run: wbd-server restart"
+    if [ "$key" = WBD_SERVER_NAME ]; then
+        echo "$key updated; run: wbd-server regen-certs && wbd-server restart"
+    else
+        echo "$key updated; run: wbd-server restart"
+    fi
 }
 
 install_unit() {
@@ -100,6 +106,7 @@ regen_certs() {
     "$PREFIX/bin/wbd-server-cert" -name "$WBD_SERVER_NAME" -cert "$ETC/front.pem" -key "$ETC/front.key"
     "$PREFIX/bin/wbd-server-cert" -name wbd-dtls.local -cert "$ETC/dtls.pem" -key "$ETC/dtls.key"
     chmod 600 "$ETC"/*.key
+    echo 'WBD certificates regenerated; restart WBD to use them'
 }
 
 install_files() {
@@ -126,7 +133,7 @@ install_files() {
     chmod 600 "$ETC"/*.key "$CONFIG"
     install_unit
     systemctl enable wbd-server.service >/dev/null
-    echo "WBD installed. Edit $CONFIG or use 'wbd-server set KEY VALUE', then run: wbd-server restart"
+    echo "WBD installed but not started. Configure $CONFIG (especially domain/ports/credentials), run 'wbd-server doctor', then 'wbd-server start'."
 }
 
 run_server() {
@@ -169,6 +176,24 @@ uninstall_files() {
     echo 'WBD uninstalled'
 }
 
+doctor() {
+    load_config
+    fail=0
+    printf 'config: OK (%s)\n' "$CONFIG"
+    for f in wbd-reality-front wbd-faketcp-mux wbd-link-server-mux wbd-platform-proxy-server wbd_dtls_shim wbd-server-cert linux_server_firewall.sh linux_server_guard.sh; do
+        if [ -x "$PREFIX/bin/$f" ]; then echo "binary: OK $f"; else echo "binary: MISSING $f"; fail=1; fi
+    done
+    if command -v systemctl >/dev/null 2>&1; then echo 'systemd: OK'; else echo 'systemd: MISSING'; fail=1; fi
+    if command -v nft >/dev/null 2>&1; then echo 'firewall: OK nft'; elif command -v iptables >/dev/null 2>&1; then echo 'firewall: OK iptables'; else echo 'firewall: MISSING nft/iptables'; fail=1; fi
+    [ -r "$ETC/front.pem" ] && [ -r "$ETC/front.key" ] && echo 'front certificate: OK' || { echo 'front certificate: MISSING'; fail=1; }
+    [ -r "$ETC/dtls.pem" ] && [ -r "$ETC/dtls.key" ] && echo 'DTLS certificate: OK' || { echo 'DTLS certificate: MISSING'; fail=1; }
+    echo "front: $WBD_LISTEN_IP:$WBD_FRONT_PORT server_name=$WBD_SERVER_NAME decoy=$WBD_DECOY_TARGET"
+    echo "raw:   $WBD_LISTEN_IP:$WBD_RAW_PORT"
+    echo "limits: front=$WBD_MAX_FRONT_CONNS sessions=$WBD_MAX_SESSIONS ticket_ttl=$WBD_TICKET_TTL"
+    if [ "$fail" -ne 0 ]; then echo 'WBD_SERVER_DOCTOR_FAIL'; return 1; fi
+    echo 'WBD_SERVER_DOCTOR_PASS'
+}
+
 show_config() { load_config; sed -E 's/^(WBD_(PASSWORD|ROUTE_KEY))=.*/\1=<redacted>/' "$CONFIG"; }
 
 case "${1:-help}" in
@@ -183,10 +208,11 @@ case "${1:-help}" in
  config) need_root; write_default_config; ${EDITOR:-vi} "$CONFIG" ;;
  set) [ $# -eq 3 ] || { echo 'usage: wbd-server set KEY VALUE' >&2; exit 2; }; set_config "$2" "$3" ;;
  regen-certs) regen_certs ;;
+ doctor) doctor ;;
  show-config) show_config ;;
  help|-h|--help) cat <<EOF
 usage: wbd-server COMMAND
-  install       install this amd64/arm64 bundle and create defaults
+  install       install this amd64/arm64 bundle, enable service, do not start it
   uninstall     stop, remove firewall state, binaries, config and service
   start|resume  start server
   stop|pause    stop server and clean WBD firewall rules
@@ -195,7 +221,8 @@ usage: wbd-server COMMAND
   logs          follow journal logs
   config        edit $CONFIG
   set KEY VALUE set one supported option without an editor
-  regen-certs   regenerate local TLS/DTLS certificates
+  regen-certs   regenerate local TLS/DTLS certificates (run after server-name change)
+  doctor        validate config, runtime files and host facilities
   show-config   print settings with secrets redacted
 
 Main settings: WBD_FRONT_PORT, WBD_RAW_PORT, WBD_LISTEN_IP, WBD_SERVER_NAME,
