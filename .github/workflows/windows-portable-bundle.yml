@@ -18,13 +18,13 @@ on:
       - 'internal/ipset/**'
       - 'native/dtls/**'
       - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_ipv6_killswitch.ps1'
       - 'scripts/windows_faketcp_underlay.ps1'
       - 'scripts/windows_npcap_prepare.ps1'
       - 'deps/platform-lock.json'
       - 'deps/upstream-lock.json'
   push:
-    branches:
-      - dev/wbd-raw-fec-v2
+    branches: [dev/wbd-raw-fec-v2]
     paths:
       - '.github/workflows/windows-portable-bundle.yml'
       - 'cmd/wbd-windows-portable/**'
@@ -40,6 +40,7 @@ on:
       - 'internal/ipset/**'
       - 'native/dtls/**'
       - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_ipv6_killswitch.ps1'
       - 'scripts/windows_faketcp_underlay.ps1'
       - 'scripts/windows_npcap_prepare.ps1'
       - 'deps/platform-lock.json'
@@ -72,9 +73,10 @@ jobs:
           go build -trimpath -o "$payload\wbd-tun.exe" ./cmd/wbd-tun
           go build -trimpath -ldflags="-H=windowsgui" -o "$payload\wbd-windows-gui.exe" ./cmd/wbd-windows-gui
           Copy-Item scripts/windows_tun_route.ps1 "$payload\windows_tun_route.ps1"
+          Copy-Item scripts/windows_ipv6_killswitch.ps1 "$payload\windows_ipv6_killswitch.ps1"
           Copy-Item scripts/windows_faketcp_underlay.ps1 "$payload\windows_faketcp_underlay.ps1"
           Copy-Item scripts/windows_npcap_prepare.ps1 "$payload\windows_npcap_prepare.ps1"
-          Write-Output 'WBD_WINDOWS_PORTABLE_GO_RUNTIME_PASS'
+          Write-Output 'WBD_WINDOWS_PORTABLE_GO_RUNTIME_PASS ipv6_killswitch=1 gui_npcap_setup=1 portable_sidecar_assets=1'
 
       - name: Build static-CRT pinned wolfSSL DTLS shim
         shell: pwsh
@@ -129,18 +131,14 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $payload = "$env:RUNNER_TEMP\wbd-payload"
+          foreach ($required in @('windows_ipv6_killswitch.ps1','windows_npcap_prepare.ps1','windows_tun_route.ps1','wintun.dll')) {
+            if (-not (Test-Path (Join-Path $payload $required))) { throw "portable runtime missing $required" }
+          }
           $files = [ordered]@{}
           Get-ChildItem $payload -File | Sort-Object Name | ForEach-Object {
-            if ($_.Name -ne 'manifest.json') {
-              $files[$_.Name] = (Get-FileHash -Algorithm SHA256 $_.FullName).Hash.ToLowerInvariant()
-            }
+            if ($_.Name -ne 'manifest.json') { $files[$_.Name] = (Get-FileHash -Algorithm SHA256 $_.FullName).Hash.ToLowerInvariant() }
           }
-          $manifest = [ordered]@{
-            schema = 'wbd-windows-runtime/v1'
-            files = $files
-            wintun_version = '0.14.1'
-            wintun_zip_sha256 = '07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51'
-          }
+          $manifest = [ordered]@{ schema='wbd-windows-runtime/v1'; files=$files; wintun_version='0.14.1'; wintun_zip_sha256='07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51' }
           $manifest | ConvertTo-Json -Depth 6 | Set-Content "$payload\manifest.json" -Encoding UTF8
           $embedded = 'internal/windowsbundle/payload.zip'
           if (Test-Path $embedded) { Remove-Item $embedded -Force }
@@ -148,7 +146,7 @@ jobs:
           $payloadSHA = (Get-FileHash -Algorithm SHA256 $embedded).Hash.ToLowerInvariant()
           go build -tags wbd_bundle -trimpath -ldflags="-H=windowsgui" -o "$env:RUNNER_TEMP\wbd.exe" ./cmd/wbd-windows-portable
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd.exe")) { throw 'portable wbd.exe not produced' }
-          Write-Output "WBD_WINDOWS_PORTABLE_SINGLE_EXE_PASS payload_sha256=$payloadSHA npcap_embedded=0 wintun_embedded=1"
+          Write-Output "WBD_WINDOWS_PORTABLE_SINGLE_EXE_PASS payload_sha256=$payloadSHA npcap_embedded=0 wintun_embedded=1 sidecar_config=wbd.json sidecar_ipset=cn4.txt,cn6.txt,cn-manifest.json"
 
       - name: Verify portable EXE PE dependencies
         shell: pwsh
