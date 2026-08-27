@@ -24,7 +24,7 @@ var (
 )
 
 func main() {
-	profilePath := flag.String("profile", "", "path to the WBD Windows client JSON profile")
+	profilePath := flag.String("profile", "", "path to the WBD Windows client JSON profile; default is wbd.json beside wbd.exe")
 	selfTest := flag.Bool("self-test", false, "run full automatic diagnostics then cleanup and exit")
 	selfTestLog := flag.String("self-test-log", "", "support JSONL log path; default is a timestamped file under TEMP\\WBD")
 	importCN := flag.String("import-cn", "", "manually import a CIDR/APNIC delegated CN IP range file")
@@ -40,15 +40,27 @@ func main() {
 }
 
 func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollbackCN, installNpcap, show bool) error {
+	exe, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("resolve portable executable: %w", err)
+	}
+	portableDir := filepath.Dir(exe)
+	if err := os.Setenv("WBD_PORTABLE_DIR", portableDir); err != nil {
+		return fmt.Errorf("set portable directory: %w", err)
+	}
+
 	programData := os.Getenv("ProgramData")
 	if programData == "" {
 		return errors.New("ProgramData is not set")
 	}
+	// Only privileged mutable runtime state lives under ProgramData. User-owned
+	// config and CN range files stay beside the outer wbd.exe so the folder can
+	// be moved anywhere without reinstalling WBD.
 	stateDir := filepath.Join(programData, "WBD")
 	if err := os.MkdirAll(stateDir, 0o700); err != nil {
 		return err
 	}
-	cnDir := filepath.Join(stateDir, "ipsets", "cn")
+	cnDir := portableDir
 
 	modeCount := 0
 	for _, active := range []bool{selfTest, importCN != "", rollbackCN, installNpcap} {
@@ -68,14 +80,14 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 		if parseErr != nil { return parseErr }
 		m, err := ipset.WriteCNBundle(cnDir, "manual:"+filepath.Base(path), prefixes)
 		if err != nil { return err }
-		showMessage("WBD IP ranges", fmt.Sprintf("IP range update succeeded.\n\nIPv4: %d\nIPv6: %d\n\nThe new list is used on the next Connect.", m.IPv4Count, m.IPv6Count), false)
+		showMessage("WBD IP ranges", fmt.Sprintf("IP range update succeeded beside wbd.exe.\n\nIPv4: %d\nIPv6: %d\n\nFiles: cn4.txt, cn6.txt, cn-manifest.json\nThe new list is used on the next Connect.", m.IPv4Count, m.IPv6Count), false)
 		return nil
 	}
 	if rollbackCN {
 		if err := ipset.RestorePrevious(cnDir); err != nil { return err }
 		m, err := ipset.VerifyCNBundle(cnDir)
 		if err != nil { return err }
-		showMessage("WBD IP ranges", fmt.Sprintf("Previous IP range list restored.\n\nIPv4: %d\nIPv6: %d\n\nReconnect WBD to apply it.", m.IPv4Count, m.IPv6Count), false)
+		showMessage("WBD IP ranges", fmt.Sprintf("Previous IP range list restored beside wbd.exe.\n\nIPv4: %d\nIPv6: %d\n\nReconnect WBD to apply it.", m.IPv4Count, m.IPv6Count), false)
 		return nil
 	}
 
@@ -93,13 +105,21 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 		return nil
 	}
 
+	if profilePath == "" {
+		candidate := filepath.Join(portableDir, "wbd.json")
+		if _, statErr := os.Stat(candidate); statErr == nil {
+			profilePath = candidate
+		} else if !errors.Is(statErr, os.ErrNotExist) {
+			return fmt.Errorf("inspect default profile: %w", statErr)
+		}
+	}
 	if profilePath != "" {
 		profilePath, err = filepath.Abs(profilePath)
 		if err != nil { return err }
 	}
 	if selfTest {
 		if profilePath == "" {
-			return errors.New("-self-test requires -profile <path>")
+			return errors.New("self-test requires wbd.json beside wbd.exe or -profile <path>")
 		}
 		diagState := filepath.Join(stateDir, "diagnostics")
 		if err := os.MkdirAll(diagState, 0o700); err != nil { return err }
@@ -116,14 +136,11 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 
 	gui := filepath.Join(runtimeInfo.Dir, "wbd-windows-gui.exe")
 	args := []string{"-start-minimized=true"}
-	if show {
-		args[0] = "-start-minimized=false"
-	}
-	if profilePath != "" {
-		args = append(args, "-profile", profilePath)
-	}
+	if show { args[0] = "-start-minimized=false" }
+	if profilePath != "" { args = append(args, "-profile", profilePath) }
 	cmd := exec.Command(gui, args...)
-	cmd.Dir = runtimeInfo.Dir
+	cmd.Dir = portableDir
+	cmd.Env = append(os.Environ(), "WBD_PORTABLE_DIR="+portableDir)
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("start WBD GUI: %w", err)
 	}
@@ -131,7 +148,7 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 }
 
 func showMessage(title, text string, isError bool) {
-	flags := uintptr(0x40) // MB_ICONINFORMATION
+	flags := uintptr(0x40)
 	if isError { flags = 0x10 }
 	titlePtr, _ := syscall.UTF16PtrFromString(title)
 	textPtr, _ := syscall.UTF16PtrFromString(text)
