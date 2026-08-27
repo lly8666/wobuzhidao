@@ -45,8 +45,8 @@ jobs:
             $outAddresses = @($outFilter.RemoteAddress)
             $inAddresses = @($inFilter.LocalAddress)
             foreach ($prefix in $universe) {
-              if ($prefix -notin $outAddresses) { throw "outbound IPv6 block misses $prefix: $outAddresses" }
-              if ($prefix -notin $inAddresses) { throw "inbound IPv6 block misses $prefix: $inAddresses" }
+              if ($prefix -notin $outAddresses) { throw "outbound IPv6 block misses ${prefix}: $outAddresses" }
+              if ($prefix -notin $inAddresses) { throw "inbound IPv6 block misses ${prefix}: $inAddresses" }
             }
             Write-Output 'WBD_WINDOWS_IPV6_KILLSWITCH_ADMIN_PASS scope=device outbound=full_ipv6 inbound=full_ipv6'
           } finally {
