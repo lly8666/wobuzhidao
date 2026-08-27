@@ -126,7 +126,7 @@ jobs:
           foreach ($cmd in $required) { if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { throw "missing Windows networking command: $cmd" } }
 
           $kill = (& ./scripts/windows_ipv6_killswitch.ps1 -Action Render) -join "`n"
-          if ($kill -notmatch 'scope=device' -or $kill -notmatch 'range=::/0' -or $kill -notmatch 'directions=inbound,outbound') { throw "IPv6 kill-switch plan incomplete: $kill" }
+          if ($kill -notmatch 'scope=device' -or $kill -notmatch 'range=::/1,8000::/1' -or $kill -notmatch 'directions=inbound,outbound') { throw "IPv6 kill-switch plan incomplete: $kill" }
 
           $plan = & ./scripts/windows_tun_route.ps1 -Action Render -Mode Full -AdapterAlias WBD -TunnelAddress4 10.66.0.2/30 -Underlay4 198.51.100.10 -MTU 1400 -DNSServer '1.1.1.1,1.0.0.1'
           $text = $plan -join "`n"
