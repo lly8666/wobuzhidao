@@ -9,8 +9,10 @@ on:
       - 'cmd/wbd-faketcp/**'
       - 'cmd/wbd-windows-gui/**'
       - 'cmd/wbd-windows-qualify/**'
+      - 'cmd/wbd-ipset/**'
       - 'internal/faketcp/**'
       - 'internal/tunnel/**'
+      - 'internal/ipset/**'
       - 'internal/windowsgui/**'
       - 'internal/windowsruntime/**'
       - 'scripts/windows_tun_route.ps1'
@@ -27,8 +29,10 @@ on:
       - 'cmd/wbd-faketcp/**'
       - 'cmd/wbd-windows-gui/**'
       - 'cmd/wbd-windows-qualify/**'
+      - 'cmd/wbd-ipset/**'
       - 'internal/faketcp/**'
       - 'internal/tunnel/**'
+      - 'internal/ipset/**'
       - 'internal/windowsgui/**'
       - 'internal/windowsruntime/**'
       - 'scripts/windows_tun_route.ps1'
@@ -49,21 +53,22 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
-      - name: Compile Windows Wintun Npcap tray GUI and qualifier
+      - name: Compile Windows Wintun Npcap tray GUI qualifier and ipset tool
         shell: pwsh
         run: |
-          go test ./internal/tunnel ./internal/faketcp ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-tun ./cmd/wbd-faketcp ./cmd/wbd-windows-gui ./cmd/wbd-windows-qualify -count=1
+          go test ./internal/tunnel ./internal/faketcp ./internal/ipset ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-tun ./cmd/wbd-faketcp ./cmd/wbd-windows-gui ./cmd/wbd-windows-qualify ./cmd/wbd-ipset -count=1
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-tun.exe" ./cmd/wbd-tun
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
           go build -trimpath -ldflags="-H=windowsgui" -o "$env:RUNNER_TEMP\wbd-windows-gui.exe" ./cmd/wbd-windows-gui
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-windows-qualify.exe" ./cmd/wbd-windows-qualify
-          if (-not (Test-Path "$env:RUNNER_TEMP\wbd-tun.exe")) { throw 'wbd-tun.exe not built' }
-          if (-not (Test-Path "$env:RUNNER_TEMP\wbd-faketcp.exe")) { throw 'wbd-faketcp.exe not built' }
-          if (-not (Test-Path "$env:RUNNER_TEMP\wbd-windows-gui.exe")) { throw 'wbd-windows-gui.exe not built' }
-          if (-not (Test-Path "$env:RUNNER_TEMP\wbd-windows-qualify.exe")) { throw 'wbd-windows-qualify.exe not built' }
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-ipset.exe" ./cmd/wbd-ipset
+          foreach ($name in @('wbd-tun.exe','wbd-faketcp.exe','wbd-windows-gui.exe','wbd-windows-qualify.exe','wbd-ipset.exe')) {
+            if (-not (Test-Path "$env:RUNNER_TEMP\$name")) { throw "$name not built" }
+          }
           Write-Output 'WBD_WINDOWS_PACKET_BACKENDS_BUILD_PASS'
           Write-Output 'WBD_WINDOWS_GUI_BUILD_PASS native_win32=1 tray=Shell_NotifyIconW close_to_tray=1 start_minimized=1 exit_cleanup=automatic'
           Write-Output 'WBD_WINDOWS_QUALIFIER_BUILD_PASS controller=shared cleanup=automatic'
+          Write-Output 'WBD_WINDOWS_IPSET_BUILD_PASS import=cidr+apnic rollback=1 hash_manifest=1'
       - name: Fetch and inspect locked personal-use Npcap payload from official origin
         shell: pwsh
         run: |
@@ -81,8 +86,6 @@ jobs:
           $installer = "$env:RUNNER_TEMP\wbd-npcap\npcap-1.88.exe"
           if (-not (Test-Path -LiteralPath $installer)) { throw 'Npcap installer was not downloaded' }
 
-          # Inspect the official installer payload in the ephemeral runner only.
-          # The extracted DLL is neither committed nor uploaded as an artifact.
           $sevenZip = Join-Path $env:ProgramFiles '7-Zip\7z.exe'
           if (-not (Test-Path -LiteralPath $sevenZip)) { throw '7-Zip is required to inspect the Npcap installer payload' }
           $extract = "$env:RUNNER_TEMP\wbd-npcap-payload"
@@ -113,14 +116,14 @@ jobs:
           if ($x.next_hop_mac -notmatch '^([0-9a-f]{2}:){5}[0-9a-f]{2}$') { throw "bad next-hop MAC: $($x.next_hop_mac)" }
           $lines | ForEach-Object { Write-Output $_ }
           Write-Output 'WBD_WINDOWS_FAKETCP_UNDERLAY_DISCOVERY_PASS'
-      - name: Qualify route plan and one-shot harness without administrator mutation
+      - name: Qualify route split DNS and one-shot harness without administrator mutation
         shell: pwsh
         run: |
-          $required = @('Find-NetRoute','Get-NetAdapter','Get-NetIPInterface','Get-NetRoute','New-NetRoute','Remove-NetRoute','New-NetIPAddress','Remove-NetIPAddress','Set-NetIPInterface')
+          $required = @('Find-NetRoute','Get-NetAdapter','Get-NetIPInterface','Get-NetRoute','New-NetRoute','Remove-NetRoute','New-NetIPAddress','Remove-NetIPAddress','Set-NetIPInterface','Get-DnsClientServerAddress','Set-DnsClientServerAddress')
           foreach ($cmd in $required) {
-            if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { throw "missing NetTCPIP command: $cmd" }
+            if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { throw "missing Windows networking command: $cmd" }
           }
-          $plan = & ./scripts/windows_tun_route.ps1 -Action Render -Mode Full -AdapterAlias WBD -TunnelAddress4 10.66.0.2/30 -Underlay4 198.51.100.10 -MTU 1400
+          $plan = & ./scripts/windows_tun_route.ps1 -Action Render -Mode Full -AdapterAlias WBD -TunnelAddress4 10.66.0.2/30 -Underlay4 198.51.100.10 -MTU 1400 -DNSServer 1.1.1.1
           $text = $plan -join "`n"
           $escape = $text.IndexOf('01 ESCAPE IPv4 198.51.100.10/32')
           $captureA = $text.IndexOf('03 CAPTURE IPv4 0.0.0.0/1')
@@ -128,11 +131,24 @@ jobs:
           if ($escape -lt 0 -or $captureA -lt 0 -or $captureB -lt 0 -or $escape -gt $captureA -or $escape -gt $captureB) {
             throw "underlay escape must be planned before broad capture routes:`n$text"
           }
-          $split = & ./scripts/windows_tun_route.ps1 -Action Render -Mode Split -AdapterAlias WBD -TunnelAddress4 10.66.0.2/30 -Underlay4 203.0.113.7 -Prefix4 10.0.0.0/8,172.16.0.0/12
-          $splitText = $split -join "`n"
-          if ($splitText -notmatch '03 CAPTURE IPv4 10.0.0.0/8' -or $splitText -notmatch '03 CAPTURE IPv4 172.16.0.0/12') {
-            throw "split route plan incomplete:`n$splitText"
+          if ($text -notmatch '02 DNS IPv4 1\.1\.1\.1' -or $text -notmatch '03 CAPTURE IPv4 1\.1\.1\.1/32') {
+            throw "Cloudflare DNS must be configured and explicitly captured through WBD:`n$text"
           }
+
+          $cn4 = "$env:RUNNER_TEMP\cn4.txt"
+          @('1.2.0.0/16','14.0.0.0/8') | Set-Content -LiteralPath $cn4 -Encoding ASCII
+          $foreign = & ./scripts/windows_tun_route.ps1 -Action Render -Mode Full -AdapterAlias WBD -TunnelAddress4 10.66.0.2/30 -Underlay4 198.51.100.10 -DirectPrefixFile4 $cn4 -DNSServer 1.1.1.1
+          $foreignText = $foreign -join "`n"
+          if ($foreignText -notmatch '01 DIRECT IPv4 1\.2\.0\.0/16' -or $foreignText -notmatch '03 CAPTURE IPv4 0\.0\.0\.0/1') {
+            throw "Foreign routing policy render is incomplete:`n$foreignText"
+          }
+          $china = & ./scripts/windows_tun_route.ps1 -Action Render -Mode Split -AdapterAlias WBD -TunnelAddress4 10.66.0.2/30 -Underlay4 198.51.100.10 -PrefixFile4 $cn4
+          $chinaText = $china -join "`n"
+          if ($chinaText -notmatch '03 CAPTURE IPv4 1\.2\.0\.0/16' -or $chinaText -match '03 CAPTURE IPv4 0\.0\.0\.0/1') {
+            throw "China routing policy render is incomplete:`n$chinaText"
+          }
+          Write-Output 'WBD_WINDOWS_SPLIT_DNS_PLAN_PASS full=1 foreign=1 china=1 dns_restore_state=1'
+
           $oneShot = Get-Content ./scripts/windows_frozen_wbd_one_shot.ps1 -Raw
           [void][scriptblock]::Create($oneShot)
           $oneShotCode = (($oneShot -split "`r?`n") | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
