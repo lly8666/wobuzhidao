@@ -21,30 +21,19 @@ const (
 	RuntimeDisconnecting RuntimeState = "disconnecting"
 )
 
-// UnderlayDiscoverer resolves the physical Windows route/Npcap identity before
-// Wintun capture is allowed to mutate routing.
 type UnderlayDiscoverer interface {
 	Discover(Profile) (Underlay, error)
 }
 
-// RuntimePreflighter is optional. Product discoverers may implement it when a
-// dependency must be proven before setup-only Reality admission consumes a new
-// one-time ticket. Test discoverers do not need to implement this interface.
 type RuntimePreflighter interface {
 	Preflight(Profile) error
 }
 
-// TicketStore prevents a successful Connect from accidentally reusing a stale
-// setup ticket if a bootstrap invocation returns without producing a new one.
 type TicketStore interface {
 	Clear(path string) error
 	Read(path string) (string, error)
 }
 
-// Controller composes dependency preflight, setup-only Reality admission,
-// physical underlay discovery, the immutable runtime Plan and lifecycle
-// Executor. It owns no transport semantics; BuildPlan remains the sole
-// authority for the frozen FakeTCP -> DTLS -> LINK -> TUN command line.
 type Controller struct {
 	mu         sync.Mutex
 	state      RuntimeState
@@ -146,8 +135,6 @@ func (c *Controller) Disconnect() error {
 	switch c.state {
 	case RuntimeDisconnected:
 		c.mu.Unlock()
-		// Stop is normally a no-op here, but intentionally retries a prior route
-		// cleanup failure retained by Executor.
 		return c.executor.Stop()
 	case RuntimeConnected:
 		c.state = RuntimeDisconnecting
@@ -165,7 +152,6 @@ func (c *Controller) Disconnect() error {
 	return err
 }
 
-// FileTicketStore is the product ticket store used by the native GUI.
 type FileTicketStore struct{}
 
 func (FileTicketStore) Clear(path string) error {
@@ -184,14 +170,17 @@ func (FileTicketStore) Read(path string) (string, error) {
 	return strings.TrimSpace(string(b)), nil
 }
 
-// PowerShellUnderlayDiscoverer reuses the already-qualified Windows Npcap
-// preparation and route/Npcap probe instead of duplicating driver, Find-NetRoute,
-// neighbor resolution or adapter GUID logic in the GUI process.
 type PowerShellUnderlayDiscoverer struct{}
 
 func (PowerShellUnderlayDiscoverer) Preflight(profile Profile) error {
 	profile = profile.normalized()
 	if err := profile.Validate(); err != nil {
+		return err
+	}
+	// Validate the WBD-owned manifest and prefix hashes before setup-only Reality
+	// admission consumes a ticket. A corrupted/manual partial update therefore
+	// cannot proceed to Npcap or mutate routing.
+	if err := ValidateRoutingAssets(profile); err != nil {
 		return err
 	}
 	script := filepath.Join(profile.BinDir, "windows_npcap_prepare.ps1")
