@@ -10,6 +10,11 @@ $Group = 'WBD Runtime IPv6 Kill Switch'
 $Outbound = 'WBD Block IPv6 Outbound'
 $Inbound = 'WBD Block IPv6 Inbound'
 $Description = 'wbd-owned-runtime-ipv6-killswitch/v1'
+# Windows Firewall rejects the zero-length IPv6 prefix ::/0 on current
+# Windows 11/Server NetSecurity. These two valid /1 prefixes are an exact
+# partition of the full IPv6 address space and therefore preserve the
+# device-wide fail-closed contract without touching IPv4.
+$IPv6Universe = @('::/1', '8000::/1')
 
 function Require-Admin {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -30,7 +35,7 @@ function Remove-WBDRules {
 }
 
 if ($Action -eq 'Render') {
-    Write-Output 'WBD_WINDOWS_IPV6_KILLSWITCH_PLAN scope=device directions=inbound,outbound range=::/0 restore=remove_wbd_owned_rules'
+    Write-Output 'WBD_WINDOWS_IPV6_KILLSWITCH_PLAN scope=device directions=inbound,outbound range=::/1,8000::/1 restore=remove_wbd_owned_rules'
     exit 0
 }
 
@@ -62,10 +67,10 @@ Remove-WBDRules
 try {
     New-NetFirewallRule -DisplayName $Outbound -Group $Group -Description $Description `
         -Direction Outbound -Action Block -Enabled True -Profile Any -Protocol Any `
-        -RemoteAddress '::/0' | Out-Null
+        -RemoteAddress $IPv6Universe | Out-Null
     New-NetFirewallRule -DisplayName $Inbound -Group $Group -Description $Description `
         -Direction Inbound -Action Block -Enabled True -Profile Any -Protocol Any `
-        -LocalAddress '::/0' | Out-Null
+        -LocalAddress $IPv6Universe | Out-Null
 
     $rules = @(Get-NetFirewallRule -Group $Group -ErrorAction Stop | Where-Object {
         $_.DisplayName -in @($Outbound, $Inbound) -and $_.Description -eq $Description -and $_.Enabled -eq 'True'
