@@ -44,13 +44,13 @@ type Profile struct {
 	// Prefix4 remains a low-level/test field. Product China/Foreign policies use
 	// the verified WBD-owned CNSetDir so a profile cannot redirect privileged
 	// route loading to an arbitrary file.
-	Prefix4      []string
-	CNSetDir     string
-	DNSMode      string
-	DNSServer    string
-	TunnelIPv4   string
-	TicketPath   string
-	RouteState   string
+	Prefix4    []string
+	CNSetDir   string
+	DNSMode    string
+	DNSServer  string
+	TunnelIPv4 string
+	TicketPath string
+	RouteState string
 }
 
 type Underlay struct {
@@ -291,7 +291,7 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 		psMode = "Split"
 		prefixFile = filepath.Join(profile.CNSetDir, "cn4.txt")
 	}
-	dnsServer := resolvedDNSServer(profile)
+	dnsServers := resolvedDNSServers(profile)
 
 	routeArgs := []string{
 		"-NoProfile", "-ExecutionPolicy", "Bypass",
@@ -310,8 +310,10 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	if directFile != "" {
 		routeArgs = append(routeArgs, "-DirectPrefixFile4", directFile)
 	}
-	if dnsServer != "" {
-		routeArgs = append(routeArgs, "-DNSServer", dnsServer)
+	if len(dnsServers) > 0 {
+		// Scalar comma-separated transport is intentional; powershell.exe -File
+		// string-array CLI binding differs between Windows PowerShell versions.
+		routeArgs = append(routeArgs, "-DNSServer", strings.Join(dnsServers, ","))
 	}
 	cleanupArgs := []string{
 		"-NoProfile", "-ExecutionPolicy", "Bypass",
@@ -332,25 +334,25 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	}, nil
 }
 
-func resolvedDNSServer(profile Profile) string {
+func resolvedDNSServers(profile Profile) []string {
 	profile = profile.normalized()
 	switch profile.DNSMode {
 	case DNSSystem:
-		return ""
+		return nil
 	case DNSCloudflare:
-		return "1.1.1.1"
+		return []string{"1.1.1.1", "1.0.0.1"}
 	case DNSCustom:
-		return strings.TrimSpace(profile.DNSServer)
+		return []string{strings.TrimSpace(profile.DNSServer)}
 	case DNSAuto:
-		// Full and Foreign mode can carry a foreign resolver through WBD without
-		// changing the user's domestic-direct policy. China-only defaults to the
-		// system resolver; users can still explicitly request Cloudflare/Custom.
+		// Full and Foreign mode send ordinary Windows DNS through WBD-owned NRPT
+		// to Cloudflare. China-only defaults to the system resolver; users can
+		// still explicitly request Cloudflare or a custom IPv4 resolver.
 		if profile.RouteMode == RouteChina {
-			return ""
+			return nil
 		}
-		return "1.1.1.1"
+		return []string{"1.1.1.1", "1.0.0.1"}
 	default:
-		return ""
+		return nil
 	}
 }
 
