@@ -64,6 +64,20 @@ jobs:
           $exe = Get-ChildItem -Path $build -Recurse -Filter wbd_dtls_shim.exe | Select-Object -First 1
           if (-not $exe) { throw 'wbd_dtls_shim.exe not produced' }
 
+          # Portable Windows staging requires a static MSVC CRT. Locate the
+          # Visual Studio dumpbin that matches the hosted compiler and reject a
+          # shim that imports the redistributable runtime DLLs.
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path -LiteralPath $vswhere)) { throw 'vswhere.exe not found' }
+          $dumpbin = & $vswhere -latest -products * -find 'VC\Tools\MSVC\**\bin\Hostx64\x64\dumpbin.exe' | Select-Object -First 1
+          if (-not $dumpbin -or -not (Test-Path -LiteralPath $dumpbin)) { throw 'dumpbin.exe not found' }
+          $deps = & $dumpbin /dependents $exe.FullName | Out-String
+          if ($LASTEXITCODE -ne 0) { throw "dumpbin /dependents failed: $LASTEXITCODE" }
+          if ($deps -match '(?im)^\s*(VCRUNTIME|MSVCP|ucrtbase)[^\s]*\.dll\s*$') {
+            throw "DTLS shim still imports a dynamic MSVC/UCRT runtime:`n$deps"
+          }
+          Write-Output 'WBD_WINDOWS_DTLS_STATIC_CRT_PASS vcruntime=0 msvcp=0 ucrtbase=0'
+
           # No-argument execution intentionally returns usage exit 2. This proves
           # the WinSock + static wolfSSL executable starts and reaches the same
           # CLI contract as the Linux shim without requiring a network peer.
@@ -73,5 +87,5 @@ jobs:
           if ($rc -ne 2) { throw "wbd_dtls_shim.exe usage exit=$rc want=2" }
           $usage = Get-Content -LiteralPath $stderr -Raw
           if ($usage -notmatch 'client PLAIN_LISTEN TRANSPORT_IP TRANSPORT_PORT') { throw "DTLS shim usage contract missing: $usage" }
-          Write-Output 'WBD_WINDOWS_DTLS_BUILD_PASS version=DTLSv1.3 socket=WinSock wolfssl=pinned-static'
+          Write-Output 'WBD_WINDOWS_DTLS_BUILD_PASS version=DTLSv1.3 socket=WinSock wolfssl=pinned-static crt=static'
           exit 0
