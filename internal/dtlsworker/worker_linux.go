@@ -120,6 +120,16 @@ func StartBoundUDPChild(ctx context.Context, c Command) (*Worker, error) {
 		_ = ln.Close()
 		return nil, err
 	}
+	// UDPConn is runtime-managed and may leave the duplicated descriptor in
+	// O_NONBLOCK. The wolfSSL shim deliberately performs a blocking MSG_PEEK to
+	// discover the DTLS peer before its handshake, so make the inherited-fd
+	// contract explicit here. The shim switches the socket back to nonblocking
+	// only after the handshake when it enters the steady-state relay loop.
+	if err := syscall.SetNonblock(int(f.Fd()), false); err != nil {
+		_ = f.Close()
+		_ = ln.Close()
+		return nil, err
+	}
 	cmd := exec.CommandContext(ctx, c.Path, c.Args...)
 	cmd.ExtraFiles = []*os.File{f}
 	cmd.Env = cleanInheritedFDEnv(os.Environ(), c.Env)
