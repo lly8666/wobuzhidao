@@ -17,6 +17,7 @@ const (
 	// about 16 MiB. That covers the project's 200-Mbit/600-ms BDP without ever
 	// using receive-window pressure to throttle the performance-first inner path.
 	DefaultWindowScale = 8
+	DefaultMSS         = 1360
 
 	// IPv4 20 + TCP 20 + maximum RFC 2018 SACK option (36 bytes).
 	MaxHeaderSize = 76
@@ -42,12 +43,25 @@ type Segment struct {
 	Ack            uint32
 	Flags          uint8
 	Window         uint16
+	MSS            uint16
+	MSSSet         bool
 	SACKPermitted  bool
 	WindowScale    uint8
 	WindowScaleSet bool
 	SACK           [4]SACKBlock
 	SACKN          int
 	Payload        []byte
+}
+
+// IsWBDHandshakeSegment recognizes the SYN option profile WBD already emits.
+// It deliberately does not add a new wire marker: the helper only turns the
+// existing MSS/SACK/window-scale tuple into a demultiplexing guard so a normal
+// kernel TCP/TLS listener may share the same numeric public port with the raw
+// FakeTCP lane without the raw lane adopting ordinary browser/kernel SYNs.
+func IsWBDHandshakeSegment(s Segment) bool {
+	return s.Flags&FlagSYN != 0 && len(s.Payload) == 0 &&
+		s.MSSSet && s.MSS == DefaultMSS &&
+		s.SACKPermitted && s.WindowScaleSet && s.WindowScale == DefaultWindowScale
 }
 
 func IPv4(ip net.IP) ([4]byte, bool) {
@@ -119,7 +133,7 @@ func MarshalIPv4TCPSACKInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort u
 		o := tcp[20:32]
 		// MSS 1360, SACK permitted, NOP, window scale 8, NOP/NOP padding.
 		o[0], o[1] = 2, 4
-		binary.BigEndian.PutUint16(o[2:4], 1360)
+		binary.BigEndian.PutUint16(o[2:4], DefaultMSS)
 		o[4], o[5] = 4, 2
 		o[6] = 1
 		o[7], o[8], o[9] = 3, 3, DefaultWindowScale
@@ -173,6 +187,9 @@ func parseTCPOptions(opts []byte, s *Segment) {
 		l := int(opts[i+1])
 		if l < 2 || i+l > len(opts) { return }
 		switch {
+		case kind == 2 && l == 4:
+			s.MSS = binary.BigEndian.Uint16(opts[i+2:i+4])
+			s.MSSSet = true
 		case kind == 3 && l == 3:
 			s.WindowScale = opts[i+2]
 			s.WindowScaleSet = true
