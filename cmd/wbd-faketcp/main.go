@@ -264,7 +264,7 @@ func (e *endpoint) handshakeClient() error {
 			if seg.SrcIP != e.dstIP || seg.DstIP != e.srcIP || seg.SrcPort != e.dstPort || seg.DstPort != e.srcPort {
 				continue
 			}
-			if seg.Flags&(faketcp.FlagSYN|faketcp.FlagACK) != faketcp.FlagSYN|faketcp.FlagACK || seg.Ack != isn+1 {
+			if !faketcp.IsWBDHandshakeSegment(seg) || seg.Flags&(faketcp.FlagSYN|faketcp.FlagACK) != faketcp.FlagSYN|faketcp.FlagACK || seg.Ack != isn+1 {
 				continue
 			}
 			peerNext := seg.Seq + 1
@@ -291,7 +291,7 @@ func (e *endpoint) handshakeServer() error {
 			}
 			return err
 		}
-		if seg.DstIP != e.srcIP || seg.DstPort != e.srcPort || seg.Flags&faketcp.FlagSYN == 0 {
+		if seg.DstIP != e.srcIP || seg.DstPort != e.srcPort || seg.Flags&faketcp.FlagSYN == 0 || !faketcp.IsWBDHandshakeSegment(seg) {
 			continue
 		}
 		e.dstIP, e.dstPort = seg.SrcIP, seg.SrcPort
@@ -376,7 +376,7 @@ func (e *endpoint) rawLoop() error {
 		}
 		atomic.AddUint64(&e.rawRx, 1)
 
-		if e.cfg.role == "client" && len(seg.Payload) == 0 && seg.Flags&(faketcp.FlagSYN|faketcp.FlagACK) == faketcp.FlagSYN|faketcp.FlagACK {
+		if e.cfg.role == "client" && faketcp.IsWBDHandshakeSegment(seg) && seg.Flags&(faketcp.FlagSYN|faketcp.FlagACK) == faketcp.FlagSYN|faketcp.FlagACK {
 			snd := e.senderNext()
 			rcv := e.receiverNext()
 			if seg.Ack == snd && seg.Seq+1 == rcv {
