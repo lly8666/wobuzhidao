@@ -82,7 +82,7 @@
     "note": "Most product/release gates are green on the checkpoint head, including both product artifact workflows. Do not call the entire repository zero-red: faketcp-native and mux-load-100m are red on this same head and must be refreshed/triaged before final sign-off. Every takeover must refresh live HEAD/PR/Actions because the handoff commit itself advances the branch."
   },
   "local_test_snapshot": {
-    "authority": "github_actions_current_head",
+    "authority": "snapshot_not_live",
     "tested_commit": "5e7ad701936770e09b608068a0474d96f345e07c",
     "result": "not_run_locally",
     "command": "No local sandbox test is treated as authority for this checkpoint. Platform-specific GitHub Actions on the checkpoint head are the qualification evidence; the next session must refresh them before editing."
