@@ -30,6 +30,7 @@ jobs:
           $script = './scripts/windows_ipv6_killswitch.ps1'
           [void][scriptblock]::Create((Get-Content $script -Raw))
           $group = 'WBD Runtime IPv6 Kill Switch'
+          $universe = @('::/1', '8000::/1')
           try {
             & $script -Action Cleanup | Out-Null
             & $script -Action Apply
@@ -41,9 +42,13 @@ jobs:
             if (-not $outbound -or -not $inbound) { throw 'WBD IPv6 inbound/outbound block pair is incomplete' }
             $outFilter = $outbound | Get-NetFirewallAddressFilter
             $inFilter = $inbound | Get-NetFirewallAddressFilter
-            if ('::/0' -notin @($outFilter.RemoteAddress)) { throw "outbound IPv6 block does not cover ::/0: $($outFilter.RemoteAddress)" }
-            if ('::/0' -notin @($inFilter.LocalAddress)) { throw "inbound IPv6 block does not cover ::/0: $($inFilter.LocalAddress)" }
-            Write-Output 'WBD_WINDOWS_IPV6_KILLSWITCH_ADMIN_PASS scope=device outbound=::/0 inbound=::/0'
+            $outAddresses = @($outFilter.RemoteAddress)
+            $inAddresses = @($inFilter.LocalAddress)
+            foreach ($prefix in $universe) {
+              if ($prefix -notin $outAddresses) { throw "outbound IPv6 block misses $prefix: $outAddresses" }
+              if ($prefix -notin $inAddresses) { throw "inbound IPv6 block misses $prefix: $inAddresses" }
+            }
+            Write-Output 'WBD_WINDOWS_IPV6_KILLSWITCH_ADMIN_PASS scope=device outbound=full_ipv6 inbound=full_ipv6'
           } finally {
             & $script -Action Cleanup | Out-Null
             $left = @(Get-NetFirewallRule -Group $group -ErrorAction SilentlyContinue)
