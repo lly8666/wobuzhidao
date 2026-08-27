@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -24,6 +25,15 @@ func TestInheritedFDHelper(t *testing.T) {
 	if err != nil || fd != 3 {
 		fmt.Fprintf(os.Stderr, "bad inherited fd %q err=%v\n", os.Getenv(inheritedFDEnv), err)
 		os.Exit(20)
+	}
+	flags, _, errno := syscall.Syscall(syscall.SYS_FCNTL, uintptr(fd), uintptr(syscall.F_GETFL), 0)
+	if errno != 0 {
+		fmt.Fprintf(os.Stderr, "fcntl inherited fd: %v\n", errno)
+		os.Exit(24)
+	}
+	if flags&uintptr(syscall.O_NONBLOCK) != 0 {
+		fmt.Fprintln(os.Stderr, "inherited DTLS transport unexpectedly nonblocking")
+		os.Exit(25)
 	}
 	f := os.NewFile(uintptr(fd), "wbd-dtls-transport")
 	if f == nil {
