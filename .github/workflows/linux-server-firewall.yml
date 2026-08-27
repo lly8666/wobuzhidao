@@ -7,6 +7,14 @@ on:
       - '.github/workflows/linux-server-firewall.yml'
       - 'scripts/linux_server_firewall.sh'
       - 'scripts/linux_server_guard.sh'
+      - 'scripts/linux_server_manager.sh'
+      - 'cmd/wbd-server-cert/**'
+      - 'cmd/wbd-reality-front/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-platform-proxy-server/**'
+      - 'internal/**'
+      - 'native/dtls/**'
   push:
     branches:
       - dev/wbd-raw-fec-v2
@@ -14,6 +22,14 @@ on:
       - '.github/workflows/linux-server-firewall.yml'
       - 'scripts/linux_server_firewall.sh'
       - 'scripts/linux_server_guard.sh'
+      - 'scripts/linux_server_manager.sh'
+      - 'cmd/wbd-server-cert/**'
+      - 'cmd/wbd-reality-front/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-platform-proxy-server/**'
+      - 'internal/**'
+      - 'native/dtls/**'
 
 permissions:
   contents: read
@@ -88,3 +104,99 @@ jobs:
           fi
           test "$(sudo ip netns exec "$NS" iptables -S INPUT | head -n 1)" = '-P INPUT DROP'
           echo 'WBD_LINUX_SERVER_GUARD_CLEANUP_PASS exit_cleanup=automatic'
+
+  release-bundle:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Build dependency-free server runtime
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends autoconf automake libtool make musl-tools curl unzip file
+          ROOT="$RUNNER_TEMP/wbd-server-$ARCH"
+          mkdir -p "$ROOT/bin" /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build
+
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && CC=musl-gcc /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -fPIC')
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          musl-gcc -O2 -Wall -Wextra -Werror -static -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -lpthread \
+            -o "$ROOT/bin/wbd_dtls_shim"
+
+          export CGO_ENABLED=0 GOOS=linux GOARCH="$ARCH"
+          go test ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./internal/platformproxy ./cmd/wbd-link-server-mux ./cmd/wbd-server-cert -count=1
+          for spec in \
+            'wbd-reality-front:./cmd/wbd-reality-front' \
+            'wbd-faketcp-mux:./cmd/wbd-faketcp-mux' \
+            'wbd-link-server-mux:./cmd/wbd-link-server-mux' \
+            'wbd-platform-proxy-server:./cmd/wbd-platform-proxy-server' \
+            'wbd-server-cert:./cmd/wbd-server-cert'; do
+            name=${spec%%:*}; pkg=${spec#*:}
+            go build -trimpath -ldflags='-s -w' -o "$ROOT/bin/$name" "$pkg"
+          done
+
+          cp scripts/linux_server_manager.sh "$ROOT/wbd-server"
+          cp scripts/linux_server_manager.sh "$ROOT/linux_server_manager.sh"
+          cp scripts/linux_server_firewall.sh scripts/linux_server_guard.sh "$ROOT/"
+          printf '%s\n' "$ARCH" > "$ROOT/ARCH"
+          cat > "$ROOT/README.txt" <<'EOF'
+WBD Linux Server bundle
+=======================
+1. Extract this archive on the target Linux server.
+2. sudo ./wbd-server install
+3. sudo /opt/wbd/bin/wbd-server config
+   or: sudo /opt/wbd/bin/wbd-server set WBD_FRONT_PORT 443
+4. sudo /opt/wbd/bin/wbd-server restart
+5. /opt/wbd/bin/wbd-server status
+
+Commands: install, uninstall, start, stop, pause, resume, restart, status, logs,
+config, set, regen-certs, show-config.
+Configuration: /etc/wbd/server.env
+
+Application/runtime binaries are statically linked. The host Linux kernel must
+provide raw sockets/netfilter; the host OS must provide systemd and nft or
+iptables. No OpenSSL/wolfSSL/Go runtime package is required on the target host.
+EOF
+          chmod +x "$ROOT/wbd-server" "$ROOT"/*.sh "$ROOT/bin"/*
+          sh -n "$ROOT/wbd-server" "$ROOT/linux_server_manager.sh" "$ROOT/linux_server_firewall.sh" "$ROOT/linux_server_guard.sh"
+          for f in "$ROOT/bin"/*; do
+            file "$f"
+            if ldd "$f" 2>&1 | grep -q '=>'; then
+              echo "dynamic runtime dependency found: $f" >&2
+              ldd "$f" >&2
+              exit 1
+            fi
+          done
+          tar -C "$RUNNER_TEMP" -czf "$RUNNER_TEMP/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
+          sha256sum "$RUNNER_TEMP/wbd-linux-server-$ARCH.tar.gz" > "$RUNNER_TEMP/wbd-linux-server-$ARCH.tar.gz.sha256"
+          echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 lifecycle_manager=1"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wbd-linux-server-${{ matrix.arch }}-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/wbd-linux-server-${{ matrix.arch }}.tar.gz
+            ${{ runner.temp }}/wbd-linux-server-${{ matrix.arch }}.tar.gz.sha256
+          retention-days: 30
+          if-no-files-found: error
