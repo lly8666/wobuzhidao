@@ -144,14 +144,36 @@ run_server() {
     [ -z "$WBD_NFT_INPUT" ] || set -- "$@" --nft-input "$WBD_NFT_INPUT"
     set -- "$@" -- "$PREFIX/bin/wbd-faketcp-mux" server --listen "$WBD_LISTEN_IP:$WBD_RAW_PORT" --dtls-shim "$PREFIX/bin/wbd_dtls_shim" --link-target "$WBD_LINK_LISTEN" --cert "$ETC/dtls.pem" --key "$ETC/dtls.key" --max-sessions "$WBD_MAX_SESSIONS"
     "$@" & main=$!; pids="$pids $main"
-    wait "$main"; rc=$?; exit "$rc"
+    if wait "$main"; then rc=0; else rc=$?; fi
+    exit "$rc"
+}
+
+uninstall_files() {
+    need_root
+    fp=40443; rp=40000; backend=auto; nft_input=
+    if [ -r "$CONFIG" ]; then
+        # Capture the active ownership parameters before stopping/deleting the service.
+        # shellcheck disable=SC1090
+        . "$CONFIG"
+        fp=${WBD_FRONT_PORT:-$fp}; rp=${WBD_RAW_PORT:-$rp}; backend=${WBD_FIREWALL_BACKEND:-$backend}; nft_input=${WBD_NFT_INPUT:-}
+    fi
+    systemctl disable --now wbd-server.service 2>/dev/null || true
+    if [ -x "$PREFIX/bin/linux_server_firewall.sh" ]; then
+        set -- "$PREFIX/bin/linux_server_firewall.sh" cleanup --backend "$backend" --front-port "$fp" --raw-port "$rp" --state "$RUN/server-firewall.state"
+        [ -z "$nft_input" ] || set -- "$@" --nft-input "$nft_input"
+        "$@" 2>/dev/null || true
+    fi
+    rm -f "$UNIT"
+    systemctl daemon-reload
+    rm -rf "$PREFIX" "$ETC" "$RUN"
+    echo 'WBD uninstalled'
 }
 
 show_config() { load_config; sed -E 's/^(WBD_(PASSWORD|ROUTE_KEY))=.*/\1=<redacted>/' "$CONFIG"; }
 
 case "${1:-help}" in
  install) install_files ;;
- uninstall) need_root; systemctl disable --now wbd-server.service 2>/dev/null || true; rm -f "$UNIT"; systemctl daemon-reload; if [ -x "$PREFIX/bin/linux_server_firewall.sh" ]; then "$PREFIX/bin/linux_server_firewall.sh" cleanup --backend auto --front-port 40443 --raw-port 40000 --state "$RUN/server-firewall.state" 2>/dev/null || true; fi; rm -rf "$PREFIX" "$ETC" "$RUN"; echo 'WBD uninstalled' ;;
+ uninstall) uninstall_files ;;
  run) run_server ;;
  start|stop|restart) need_root; systemctl "$1" wbd-server.service ;;
  pause) need_root; systemctl stop wbd-server.service ;;
