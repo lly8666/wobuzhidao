@@ -12,7 +12,13 @@ import (
 	"time"
 )
 
-const BundleSchema = "wbd-cn-ipset/v1"
+const (
+	BundleSchema       = "wbd-cn-ipset/v1"
+	CNIPv4File         = "cn4.txt"
+	CNIPv6File         = "cn6.txt"
+	CNManifestFile     = "cn-manifest.json"
+	CNPreviousDir      = ".wbd-cn-previous"
+)
 
 type BundleManifest struct {
 	Schema       string `json:"schema"`
@@ -25,9 +31,9 @@ type BundleManifest struct {
 }
 
 // WriteCNBundle atomically replaces the two prefix files and publishes the
-// manifest last. Consumers must verify the hashes in manifest.json before
-// applying routes/firewall sets, so a power loss between file replacements can
-// never silently activate a mixed generation.
+// manifest last. The product may point dir at the portable wbd.exe directory;
+// file names are therefore WBD-specific and never collide with a generic
+// manifest.json owned by another application.
 func WriteCNBundle(dir, source string, prefixes []netip.Prefix) (BundleManifest, error) {
 	if strings.TrimSpace(dir) == "" {
 		return BundleManifest{}, fmt.Errorf("ipset output directory is required")
@@ -56,17 +62,16 @@ func WriteCNBundle(dir, source string, prefixes []netip.Prefix) (BundleManifest,
 	}
 	mb = append(mb, '\n')
 
-	// Keep one complete previous generation for manual rollback/support.
 	if err := backupCurrent(dir); err != nil {
 		return BundleManifest{}, err
 	}
-	if err := atomicWrite(filepath.Join(dir, "cn4.txt"), v4b, 0o600); err != nil {
+	if err := atomicWrite(filepath.Join(dir, CNIPv4File), v4b, 0o600); err != nil {
 		return BundleManifest{}, err
 	}
-	if err := atomicWrite(filepath.Join(dir, "cn6.txt"), v6b, 0o600); err != nil {
+	if err := atomicWrite(filepath.Join(dir, CNIPv6File), v6b, 0o600); err != nil {
 		return BundleManifest{}, err
 	}
-	if err := atomicWrite(filepath.Join(dir, "manifest.json"), mb, 0o600); err != nil {
+	if err := atomicWrite(filepath.Join(dir, CNManifestFile), mb, 0o600); err != nil {
 		return BundleManifest{}, err
 	}
 	return manifest, nil
@@ -74,7 +79,7 @@ func WriteCNBundle(dir, source string, prefixes []netip.Prefix) (BundleManifest,
 
 func VerifyCNBundle(dir string) (BundleManifest, error) {
 	var m BundleManifest
-	b, err := os.ReadFile(filepath.Join(dir, "manifest.json"))
+	b, err := os.ReadFile(filepath.Join(dir, CNManifestFile))
 	if err != nil {
 		return m, err
 	}
@@ -84,11 +89,11 @@ func VerifyCNBundle(dir string) (BundleManifest, error) {
 	if m.Schema != BundleSchema {
 		return m, fmt.Errorf("unsupported CN ipset schema %q", m.Schema)
 	}
-	v4, err := os.ReadFile(filepath.Join(dir, "cn4.txt"))
+	v4, err := os.ReadFile(filepath.Join(dir, CNIPv4File))
 	if err != nil {
 		return m, err
 	}
-	v6, err := os.ReadFile(filepath.Join(dir, "cn6.txt"))
+	v6, err := os.ReadFile(filepath.Join(dir, CNIPv6File))
 	if err != nil {
 		return m, err
 	}
@@ -99,11 +104,11 @@ func VerifyCNBundle(dir string) (BundleManifest, error) {
 }
 
 func RestorePrevious(dir string) error {
-	prev := filepath.Join(dir, "previous")
+	prev := filepath.Join(dir, CNPreviousDir)
 	if _, err := VerifyCNBundle(prev); err != nil {
 		return fmt.Errorf("previous CN ipset is unavailable or invalid: %w", err)
 	}
-	for _, name := range []string{"cn4.txt", "cn6.txt", "manifest.json"} {
+	for _, name := range []string{CNIPv4File, CNIPv6File, CNManifestFile} {
 		b, err := os.ReadFile(filepath.Join(prev, name))
 		if err != nil {
 			return err
@@ -121,15 +126,13 @@ func backupCurrent(dir string) error {
 		if os.IsNotExist(err) {
 			return nil
 		}
-		// A stale/incomplete generation should not block installing a known-good
-		// replacement; simply do not preserve it as a rollback candidate.
 		return nil
 	}
-	prev := filepath.Join(dir, "previous")
+	prev := filepath.Join(dir, CNPreviousDir)
 	if err := os.MkdirAll(prev, 0o700); err != nil {
 		return err
 	}
-	for _, name := range []string{"cn4.txt", "cn6.txt", "manifest.json"} {
+	for _, name := range []string{CNIPv4File, CNIPv6File, CNManifestFile} {
 		b, err := os.ReadFile(filepath.Join(dir, name))
 		if err != nil {
 			return err
@@ -163,8 +166,6 @@ func atomicWrite(path string, data []byte, perm os.FileMode) error {
 	if err := os.Chmod(tmp, perm); err != nil {
 		return err
 	}
-	// Windows Rename cannot replace an existing destination. Remove only the
-	// WBD-owned target immediately before publishing its same-directory temp.
 	_ = os.Remove(path)
 	return os.Rename(tmp, path)
 }
