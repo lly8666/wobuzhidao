@@ -1,0 +1,52 @@
+name: windows-ipv6-killswitch
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/windows-ipv6-killswitch.yml'
+      - 'scripts/windows_ipv6_killswitch.ps1'
+      - 'internal/windowsruntime/**'
+  push:
+    branches: [dev/wbd-raw-fec-v2]
+    paths:
+      - '.github/workflows/windows-ipv6-killswitch.yml'
+      - 'scripts/windows_ipv6_killswitch.ps1'
+      - 'internal/windowsruntime/**'
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply verify and restore device-wide IPv6 kill switch
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $script = './scripts/windows_ipv6_killswitch.ps1'
+          [void][scriptblock]::Create((Get-Content $script -Raw))
+          $group = 'WBD Runtime IPv6 Kill Switch'
+          try {
+            & $script -Action Cleanup | Out-Null
+            & $script -Action Apply
+            if ($LASTEXITCODE -ne 0) { throw "IPv6 kill-switch Apply exited $LASTEXITCODE" }
+            $rules = @(Get-NetFirewallRule -Group $group -ErrorAction Stop | Where-Object { $_.Enabled -eq 'True' -and $_.Action -eq 'Block' })
+            if ($rules.Count -ne 2) { throw "expected exactly two enabled WBD block rules, got $($rules.Count)" }
+            $outbound = $rules | Where-Object Direction -eq 'Outbound' | Select-Object -First 1
+            $inbound = $rules | Where-Object Direction -eq 'Inbound' | Select-Object -First 1
+            if (-not $outbound -or -not $inbound) { throw 'WBD IPv6 inbound/outbound block pair is incomplete' }
+            $outFilter = $outbound | Get-NetFirewallAddressFilter
+            $inFilter = $inbound | Get-NetFirewallAddressFilter
+            if ('::/0' -notin @($outFilter.RemoteAddress)) { throw "outbound IPv6 block does not cover ::/0: $($outFilter.RemoteAddress)" }
+            if ('::/0' -notin @($inFilter.LocalAddress)) { throw "inbound IPv6 block does not cover ::/0: $($inFilter.LocalAddress)" }
+            Write-Output 'WBD_WINDOWS_IPV6_KILLSWITCH_ADMIN_PASS scope=device outbound=::/0 inbound=::/0'
+          } finally {
+            & $script -Action Cleanup | Out-Null
+            $left = @(Get-NetFirewallRule -Group $group -ErrorAction SilentlyContinue)
+            if ($left.Count -ne 0) { throw "WBD IPv6 firewall rules survived cleanup: $($left.Count)" }
+          }
+          Write-Output 'WBD_WINDOWS_IPV6_KILLSWITCH_RESTORE_PASS residual_rules=0'
