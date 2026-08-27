@@ -177,7 +177,7 @@ func (s *muxServer) rawLoop() error {
 		flow := faketcp.ServerFlowFromSegment(seg)
 		sess := s.getSession(flow)
 		if sess == nil {
-			if seg.Flags&faketcp.FlagSYN == 0 || seg.Flags&faketcp.FlagACK != 0 || len(seg.Payload) != 0 {
+			if seg.Flags&faketcp.FlagSYN == 0 || seg.Flags&faketcp.FlagACK != 0 || len(seg.Payload) != 0 || !faketcp.IsWBDHandshakeSegment(seg) {
 				continue
 			}
 			if err := s.acceptSYN(seg); err != nil {
@@ -189,6 +189,9 @@ func (s *muxServer) rawLoop() error {
 		}
 
 		if seg.Flags&faketcp.FlagSYN != 0 && sess.assoc.State() == faketcp.ServerAssociationAwaitACK {
+			if !faketcp.IsWBDHandshakeSegment(seg) {
+				continue
+			}
 			_ = s.sendSYNACK(sess)
 			continue
 		}
