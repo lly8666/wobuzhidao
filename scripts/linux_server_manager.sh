@@ -52,6 +52,23 @@ load_config() {
     : "${WBD_UDP_IDLE:=30s}" "${WBD_TCP_IDLE:=30s}" "${WBD_FIREWALL_BACKEND:=auto}" "${WBD_NFT_INPUT:=}"
     [ -n "${WBD_ROUTE_KEY:-}" ] && [ ${#WBD_ROUTE_KEY} -ge 16 ] || { echo 'WBD_ROUTE_KEY must be >=16 chars' >&2; exit 1; }
     [ -n "${WBD_USERNAME:-}" ] && [ -n "${WBD_PASSWORD:-}" ] || { echo 'WBD_USERNAME/WBD_PASSWORD required' >&2; exit 1; }
+    case "$WBD_FRONT_PORT:$WBD_RAW_PORT" in *[!0-9:]*|:|*: ) echo 'ports must be numeric' >&2; exit 1;; esac
+    [ "$WBD_FRONT_PORT" -ge 1 ] && [ "$WBD_FRONT_PORT" -le 65535 ] && [ "$WBD_RAW_PORT" -ge 1 ] && [ "$WBD_RAW_PORT" -le 65535 ] || { echo 'ports must be 1..65535' >&2; exit 1; }
+}
+
+set_config() {
+    need_root; write_default_config
+    key=${1:-}; value=${2-}
+    case "$key" in
+      WBD_LISTEN_IP|WBD_FRONT_PORT|WBD_RAW_PORT|WBD_SERVER_NAME|WBD_DECOY_TARGET|WBD_ROUTE_KEY|WBD_USERNAME|WBD_PASSWORD|WBD_MAX_FRONT_CONNS|WBD_MAX_SESSIONS|WBD_TICKET_TTL|WBD_PLATFORM_LISTEN|WBD_LINK_LISTEN|WBD_UDP_IDLE|WBD_TCP_IDLE|WBD_FIREWALL_BACKEND|WBD_NFT_INPUT) ;;
+      *) echo "unsupported setting: $key" >&2; exit 2;;
+    esac
+    quoted=$(q "$value")
+    tmp="$CONFIG.tmp.$$"
+    awk -v k="$key" -v line="$key=$quoted" 'BEGIN{done=0} index($0,k"=")==1 {print line; done=1; next} {print} END{if(!done) print line}' "$CONFIG" >"$tmp"
+    chmod 600 "$tmp"; mv "$tmp" "$CONFIG"
+    load_config
+    echo "$key updated; run: wbd-server restart"
 }
 
 install_unit() {
@@ -68,7 +85,7 @@ ExecStop=/bin/kill -TERM \$MAINPID
 Restart=on-failure
 RestartSec=2
 LimitNOFILE=1048576
-AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
 
@@ -78,6 +95,13 @@ EOF
     systemctl daemon-reload
 }
 
+regen_certs() {
+    need_root; load_config
+    "$PREFIX/bin/wbd-server-cert" -name "$WBD_SERVER_NAME" -cert "$ETC/front.pem" -key "$ETC/front.key"
+    "$PREFIX/bin/wbd-server-cert" -name wbd-dtls.local -cert "$ETC/dtls.pem" -key "$ETC/dtls.key"
+    chmod 600 "$ETC"/*.key
+}
+
 install_files() {
     need_root
     arch=$(uname -m)
@@ -85,22 +109,24 @@ install_files() {
     [ -x "$SELF_DIR/bin/wbd-reality-front" ] || { echo 'run install from extracted WBD server bundle' >&2; exit 1; }
     bundle_arch=$(cat "$SELF_DIR/ARCH" 2>/dev/null || true)
     [ "$bundle_arch" = "$want" ] || { echo "bundle arch=$bundle_arch host=$want" >&2; exit 1; }
+    command -v systemctl >/dev/null || { echo 'systemd/systemctl is required' >&2; exit 1; }
+    if ! command -v nft >/dev/null 2>&1 && ! command -v iptables >/dev/null 2>&1; then echo 'host requires nft or iptables' >&2; exit 1; fi
     mkdir -p "$PREFIX/bin" "$ETC" "$RUN/tickets"
     chmod 700 "$RUN/tickets"
-    for f in wbd-reality-front wbd-faketcp-mux wbd-link-server-mux wbd-platform-proxy-server wbd_dtls_shim; do
+    for f in wbd-reality-front wbd-faketcp-mux wbd-link-server-mux wbd-platform-proxy-server wbd_dtls_shim wbd-server-cert; do
         install -m 0755 "$SELF_DIR/bin/$f" "$PREFIX/bin/$f"
     done
     install -m 0755 "$SELF_DIR/linux_server_firewall.sh" "$PREFIX/bin/linux_server_firewall.sh"
     install -m 0755 "$SELF_DIR/linux_server_guard.sh" "$PREFIX/bin/linux_server_guard.sh"
     install -m 0755 "$SELF_DIR/linux_server_manager.sh" "$PREFIX/bin/wbd-server"
-    install -m 0755 "$SELF_DIR/wbd-server-cert" "$PREFIX/bin/wbd-server-cert"
     write_default_config
-    if [ ! -s "$ETC/front.pem" ] || [ ! -s "$ETC/front.key" ]; then "$PREFIX/bin/wbd-server-cert" -name "$(. "$CONFIG"; printf %s "$WBD_SERVER_NAME")" -cert "$ETC/front.pem" -key "$ETC/front.key"; fi
+    load_config
+    if [ ! -s "$ETC/front.pem" ] || [ ! -s "$ETC/front.key" ]; then "$PREFIX/bin/wbd-server-cert" -name "$WBD_SERVER_NAME" -cert "$ETC/front.pem" -key "$ETC/front.key"; fi
     if [ ! -s "$ETC/dtls.pem" ] || [ ! -s "$ETC/dtls.key" ]; then "$PREFIX/bin/wbd-server-cert" -name wbd-dtls.local -cert "$ETC/dtls.pem" -key "$ETC/dtls.key"; fi
     chmod 600 "$ETC"/*.key "$CONFIG"
     install_unit
     systemctl enable wbd-server.service >/dev/null
-    echo "WBD installed. Edit $CONFIG then run: wbd-server restart"
+    echo "WBD installed. Edit $CONFIG or use 'wbd-server set KEY VALUE', then run: wbd-server restart"
 }
 
 run_server() {
@@ -125,7 +151,7 @@ show_config() { load_config; sed -E 's/^(WBD_(PASSWORD|ROUTE_KEY))=.*/\1=<redact
 
 case "${1:-help}" in
  install) install_files ;;
- uninstall) need_root; systemctl disable --now wbd-server.service 2>/dev/null || true; rm -f "$UNIT"; systemctl daemon-reload; "$PREFIX/bin/linux_server_firewall.sh" cleanup --backend auto --front-port 40443 --raw-port 40000 --state "$RUN/server-firewall.state" 2>/dev/null || true; rm -rf "$PREFIX" "$ETC" "$RUN"; echo 'WBD uninstalled' ;;
+ uninstall) need_root; systemctl disable --now wbd-server.service 2>/dev/null || true; rm -f "$UNIT"; systemctl daemon-reload; if [ -x "$PREFIX/bin/linux_server_firewall.sh" ]; then "$PREFIX/bin/linux_server_firewall.sh" cleanup --backend auto --front-port 40443 --raw-port 40000 --state "$RUN/server-firewall.state" 2>/dev/null || true; fi; rm -rf "$PREFIX" "$ETC" "$RUN"; echo 'WBD uninstalled' ;;
  run) run_server ;;
  start|stop|restart) need_root; systemctl "$1" wbd-server.service ;;
  pause) need_root; systemctl stop wbd-server.service ;;
@@ -133,6 +159,8 @@ case "${1:-help}" in
  status) systemctl --no-pager --full status wbd-server.service || true ;;
  logs) exec journalctl -u wbd-server.service -f -n 100 ;;
  config) need_root; write_default_config; ${EDITOR:-vi} "$CONFIG" ;;
+ set) [ $# -eq 3 ] || { echo 'usage: wbd-server set KEY VALUE' >&2; exit 2; }; set_config "$2" "$3" ;;
+ regen-certs) regen_certs ;;
  show-config) show_config ;;
  help|-h|--help) cat <<EOF
 usage: wbd-server COMMAND
@@ -144,6 +172,8 @@ usage: wbd-server COMMAND
   status        systemd status
   logs          follow journal logs
   config        edit $CONFIG
+  set KEY VALUE set one supported option without an editor
+  regen-certs   regenerate local TLS/DTLS certificates
   show-config   print settings with secrets redacted
 
 Main settings: WBD_FRONT_PORT, WBD_RAW_PORT, WBD_LISTEN_IP, WBD_SERVER_NAME,
