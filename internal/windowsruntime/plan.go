@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/lly8666/wobuzhidao/internal/ipset"
 )
 
 const (
@@ -15,6 +17,15 @@ const (
 	defaultDTLSPlainPort     = 46101
 	defaultLinkListenPort    = 47101
 	defaultMTU               = 1400
+
+	RouteFull    = "Full"
+	RouteForeign = "Foreign" // non-CN through WBD, CN direct
+	RouteChina   = "China"   // CN through WBD, non-CN direct
+
+	DNSAuto       = "Auto"
+	DNSSystem     = "System"
+	DNSCloudflare = "Cloudflare"
+	DNSCustom     = "Custom"
 )
 
 type Profile struct {
@@ -30,7 +41,13 @@ type Profile struct {
 	IfName       string
 	MTU          int
 	RouteMode    string
+	// Prefix4 remains a low-level/test field. Product China/Foreign policies use
+	// the verified WBD-owned CNSetDir so a profile cannot redirect privileged
+	// route loading to an arbitrary file.
 	Prefix4      []string
+	CNSetDir     string
+	DNSMode      string
+	DNSServer    string
 	TunnelIPv4   string
 	TicketPath   string
 	RouteState   string
@@ -82,7 +99,10 @@ func (p Profile) normalized() Profile {
 		p.MTU = defaultMTU
 	}
 	if p.RouteMode == "" {
-		p.RouteMode = "Full"
+		p.RouteMode = RouteFull
+	}
+	if p.DNSMode == "" {
+		p.DNSMode = DNSAuto
 	}
 	if p.TunnelIPv4 == "" {
 		p.TunnelIPv4 = "10.66.0.2/30"
@@ -117,11 +137,11 @@ func (p Profile) Validate() error {
 	if p.MTU < 576 || p.MTU > 9000 {
 		return errors.New("MTU must be 576..9000")
 	}
-	if p.RouteMode != "Full" && p.RouteMode != "Split" {
-		return errors.New("route mode must be Full or Split")
+	if p.RouteMode != RouteFull && p.RouteMode != RouteForeign && p.RouteMode != RouteChina {
+		return errors.New("route mode must be Full, Foreign, or China")
 	}
-	if p.RouteMode == "Split" && len(p.Prefix4) == 0 {
-		return errors.New("Split route mode requires at least one IPv4 prefix")
+	if (p.RouteMode == RouteForeign || p.RouteMode == RouteChina) && strings.TrimSpace(p.CNSetDir) == "" {
+		return errors.New("China/Foreign route mode requires the WBD CN ipset directory")
 	}
 	for _, prefix := range p.Prefix4 {
 		px, err := netip.ParsePrefix(prefix)
@@ -129,11 +149,37 @@ func (p Profile) Validate() error {
 			return fmt.Errorf("invalid IPv4 capture prefix %q", prefix)
 		}
 	}
+	if p.DNSMode != DNSAuto && p.DNSMode != DNSSystem && p.DNSMode != DNSCloudflare && p.DNSMode != DNSCustom {
+		return errors.New("DNS mode must be Auto, System, Cloudflare, or Custom")
+	}
+	if p.DNSMode == DNSCustom {
+		ip, err := netip.ParseAddr(strings.TrimSpace(p.DNSServer))
+		if err != nil || !ip.Is4() {
+			return errors.New("custom DNS server must be one IPv4 address")
+		}
+	}
 	if px, err := netip.ParsePrefix(p.TunnelIPv4); err != nil || !px.Addr().Is4() {
 		return errors.New("tunnel IPv4 must be an IPv4 CIDR")
 	}
 	if strings.TrimSpace(p.TicketPath) == "" || strings.TrimSpace(p.RouteState) == "" {
 		return errors.New("ticket and route-state paths are required")
+	}
+	return nil
+}
+
+// ValidateRoutingAssets verifies the manifest/hash of a manually installed CN
+// prefix set before Reality admission consumes a one-time ticket or Wintun is
+// touched. Full routing does not require an ipset.
+func ValidateRoutingAssets(profile Profile) error {
+	profile = profile.normalized()
+	if err := profile.Validate(); err != nil {
+		return err
+	}
+	if profile.RouteMode != RouteForeign && profile.RouteMode != RouteChina {
+		return nil
+	}
+	if _, err := ipset.VerifyCNBundle(profile.CNSetDir); err != nil {
+		return fmt.Errorf("verify WBD CN ipset: %w", err)
 	}
 	return nil
 }
@@ -151,9 +197,6 @@ func (u Underlay) Validate() error {
 	return nil
 }
 
-// BuildBootstrap returns the setup-only Reality command. Keeping this command
-// in windowsruntime lets the GUI controller run admission before any Wintun
-// capture mutation without duplicating authentication or ticket arguments.
 func BuildBootstrap(profile Profile) (Command, error) {
 	profile = profile.normalized()
 	if err := profile.Validate(); err != nil {
@@ -181,15 +224,8 @@ func buildBootstrapCommand(profile Profile) Command {
 
 func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) {
 	profile = profile.normalized()
-	if err := profile.Validate(); err != nil {
+	if err := ValidateRoutingAssets(profile); err != nil {
 		return Plan{}, err
-	}
-	// Full capture is the first GUI/runtime authority. The lower-level route
-	// script retains Split support, but crossing a string[] PowerShell parameter
-	// through an external process boundary will get its own Windows qualification
-	// before the GUI exposes it.
-	if profile.RouteMode != "Full" {
-		return Plan{}, errors.New("Windows GUI runtime currently qualifies Full capture only")
 	}
 	if err := underlay.Validate(); err != nil {
 		return Plan{}, err
@@ -244,16 +280,38 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 		"-transport", loop(defaultLinkListenPort),
 	}
 
+	psMode := "Full"
+	var prefixFile, directFile string
+	switch profile.RouteMode {
+	case RouteForeign:
+		// Full /1 capture plus more-specific CN physical routes means non-CN
+		// traffic enters WBD while CN keeps the pre-WBD route.
+		directFile = filepath.Join(profile.CNSetDir, "cn4.txt")
+	case RouteChina:
+		psMode = "Split"
+		prefixFile = filepath.Join(profile.CNSetDir, "cn4.txt")
+	}
+	dnsServer := resolvedDNSServer(profile)
+
 	routeArgs := []string{
 		"-NoProfile", "-ExecutionPolicy", "Bypass",
 		"-File", bin("windows_tun_route.ps1"),
 		"-Action", "Apply",
-		"-Mode", "Full",
+		"-Mode", psMode,
 		"-AdapterAlias", profile.IfName,
 		"-TunnelAddress4", profile.TunnelIPv4,
 		"-Underlay4", raw.Addr().String(),
 		"-MTU", strconv.Itoa(profile.MTU),
 		"-StatePath", profile.RouteState,
+	}
+	if prefixFile != "" {
+		routeArgs = append(routeArgs, "-PrefixFile4", prefixFile)
+	}
+	if directFile != "" {
+		routeArgs = append(routeArgs, "-DirectPrefixFile4", directFile)
+	}
+	if dnsServer != "" {
+		routeArgs = append(routeArgs, "-DNSServer", dnsServer)
 	}
 	cleanupArgs := []string{
 		"-NoProfile", "-ExecutionPolicy", "Bypass",
@@ -272,6 +330,28 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 		RouteCleanup: Command{Name: "route-cleanup", Path: "powershell.exe", Args: cleanupArgs},
 		TicketPath:   profile.TicketPath,
 	}, nil
+}
+
+func resolvedDNSServer(profile Profile) string {
+	profile = profile.normalized()
+	switch profile.DNSMode {
+	case DNSSystem:
+		return ""
+	case DNSCloudflare:
+		return "1.1.1.1"
+	case DNSCustom:
+		return strings.TrimSpace(profile.DNSServer)
+	case DNSAuto:
+		// Full and Foreign mode can carry a foreign resolver through WBD without
+		// changing the user's domestic-direct policy. China-only defaults to the
+		// system resolver; users can still explicitly request Cloudflare/Custom.
+		if profile.RouteMode == RouteChina {
+			return ""
+		}
+		return "1.1.1.1"
+	default:
+		return ""
+	}
 }
 
 func validMAC(s string) bool {
