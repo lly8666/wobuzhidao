@@ -1,0 +1,90 @@
+name: linux-server-firewall
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/linux-server-firewall.yml'
+      - 'scripts/linux_server_firewall.sh'
+      - 'scripts/linux_server_guard.sh'
+  push:
+    branches:
+      - dev/wbd-raw-fec-v2
+    paths:
+      - '.github/workflows/linux-server-firewall.yml'
+      - 'scripts/linux_server_firewall.sh'
+      - 'scripts/linux_server_guard.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  firewall:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Qualify nftables ownership and cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v nft
+          command -v ip
+          NS=wbdnft$$
+          STATE=/tmp/wbd-nft-state.$$.txt
+          cleanup() { sudo ip netns del "$NS" 2>/dev/null || true; rm -f "$STATE"; }
+          trap cleanup EXIT
+          sudo ip netns add "$NS"
+          sudo ip netns exec "$NS" nft add table inet filter
+          sudo ip netns exec "$NS" nft 'add chain inet filter input { type filter hook input priority 0; policy drop; }'
+          sudo ip netns exec "$NS" sh "$PWD/scripts/linux_server_firewall.sh" apply --backend nft --front-port 40443 --raw-port 40000 --state "$STATE" --nft-input inet:filter:input
+          sudo ip netns exec "$NS" nft -a list chain inet filter input | grep -q 'comment "wbd-server-front"'
+          sudo ip netns exec "$NS" nft -a list chain inet filter input | grep -q 'comment "wbd-server-raw"'
+          sudo ip netns exec "$NS" nft -a list table inet wbd_server | grep -q 'comment "wbd-server-rst"'
+          sudo ip netns exec "$NS" sh "$PWD/scripts/linux_server_firewall.sh" cleanup --backend nft --front-port 40443 --raw-port 40000 --state "$STATE" --nft-input inet:filter:input
+          if sudo ip netns exec "$NS" nft list table inet wbd_server >/dev/null 2>&1; then
+            echo 'WBD nft table survived cleanup' >&2; exit 1
+          fi
+          sudo ip netns exec "$NS" nft list chain inet filter input | grep -q 'policy drop'
+          if sudo ip netns exec "$NS" nft -a list chain inet filter input | grep -q 'wbd-server-'; then
+            echo 'WBD nft input rule survived cleanup' >&2; exit 1
+          fi
+          echo 'WBD_LINUX_SERVER_NFT_CLEANUP_PASS preserved_existing_policy=drop'
+      - name: Qualify iptables ownership guard and cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v iptables
+          NS=wbdipt$$
+          STATE=/tmp/wbd-ipt-state.$$.txt
+          cleanup() { sudo ip netns del "$NS" 2>/dev/null || true; rm -f "$STATE"; }
+          trap cleanup EXIT
+          sudo ip netns add "$NS"
+          sudo ip netns exec "$NS" iptables -P INPUT DROP
+          sudo ip netns exec "$NS" sh "$PWD/scripts/linux_server_firewall.sh" apply --backend iptables --front-port 40443 --raw-port 40000 --state "$STATE"
+          sudo ip netns exec "$NS" iptables -C INPUT -p tcp --dport 40443 -m comment --comment wbd-server-front -j ACCEPT
+          sudo ip netns exec "$NS" iptables -C INPUT -p tcp --dport 40000 -m comment --comment wbd-server-raw -j ACCEPT
+          sudo ip netns exec "$NS" iptables -C OUTPUT -p tcp --sport 40000 --tcp-flags RST RST -m comment --comment wbd-server-rst -j DROP
+          sudo ip netns exec "$NS" sh "$PWD/scripts/linux_server_firewall.sh" cleanup --backend iptables --front-port 40443 --raw-port 40000 --state "$STATE"
+          test "$(sudo ip netns exec "$NS" iptables -S INPUT | head -n 1)" = '-P INPUT DROP'
+          if sudo ip netns exec "$NS" iptables -S | grep -q 'wbd-server-'; then
+            echo 'WBD iptables rule survived cleanup' >&2; exit 1
+          fi
+          echo 'WBD_LINUX_SERVER_IPTABLES_CLEANUP_PASS preserved_existing_policy=drop'
+      - name: Qualify guard automatic cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          NS=wbdguard$$
+          STATE=/tmp/wbd-guard-state.$$.txt
+          cleanup() { sudo ip netns del "$NS" 2>/dev/null || true; rm -f "$STATE"; }
+          trap cleanup EXIT
+          sudo ip netns add "$NS"
+          sudo ip netns exec "$NS" iptables -P INPUT DROP
+          sudo ip netns exec "$NS" sh "$PWD/scripts/linux_server_guard.sh" --backend iptables --front-port 40443 --raw-port 40000 --state "$STATE" -- sh -c 'sleep 0.2'
+          test ! -e "$STATE"
+          if sudo ip netns exec "$NS" iptables -S | grep -q 'wbd-server-'; then
+            echo 'guard left WBD firewall rules behind' >&2; exit 1
+          fi
+          test "$(sudo ip netns exec "$NS" iptables -S INPUT | head -n 1)" = '-P INPUT DROP'
+          echo 'WBD_LINUX_SERVER_GUARD_CLEANUP_PASS exit_cleanup=automatic'
