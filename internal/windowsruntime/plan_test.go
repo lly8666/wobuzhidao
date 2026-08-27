@@ -23,7 +23,7 @@ func TestBuildPlanUsesFrozenWindowsStack(t *testing.T) {
 	if !slices.Contains(p.FakeTCP.Args, testUnderlay().PacketDevice) || !slices.Contains(p.FakeTCP.Args, testUnderlay().SourceMAC) || !slices.Contains(p.FakeTCP.Args, testUnderlay().NextHopMAC) { t.Fatalf("Npcap underlay identity missing: %v", p.FakeTCP.Args) }
 	if got := p.DTLS.Args; !slices.Equal(got, []string{"client", "46101", "127.0.0.1", "45101", "none", "none"}) { t.Fatalf("DTLS client contract = %v", got) }
 	if !slices.Contains(p.Link.Args, "20:20") || !slices.Contains(p.Link.Args, "1") { t.Fatalf("immutable LINK settings missing: %v", p.Link.Args) }
-	if p.IPv6Apply.Name != "ipv6-apply" || !slices.Contains(p.IPv6Apply.Args, "windows_ipv6_killswitch.ps1") || !slices.Contains(p.IPv6Apply.Args, "Apply") { t.Fatalf("device IPv6 fail-close missing: %v", p.IPv6Apply) }
+	if p.IPv6Apply.Name != "ipv6-apply" || !hasArgSuffix(p.IPv6Apply.Args, "windows_ipv6_killswitch.ps1") || !slices.Contains(p.IPv6Apply.Args, "Apply") { t.Fatalf("device IPv6 fail-close missing: %v", p.IPv6Apply) }
 	if p.IPv6Cleanup.Name != "ipv6-cleanup" || !slices.Contains(p.IPv6Cleanup.Args, "Cleanup") { t.Fatalf("IPv6 cleanup missing: %v", p.IPv6Cleanup) }
 	if !slices.Contains(p.RouteApply.Args, "198.51.100.10") { t.Fatalf("raw endpoint underlay escape missing: %v", p.RouteApply.Args) }
 	if !argPair(p.RouteApply.Args, "-DNSServer", "1.1.1.1,1.0.0.1") { t.Fatalf("Full Auto DNS must use Cloudflare pair through WBD: %v", p.RouteApply.Args) }
@@ -63,3 +63,4 @@ func TestProfileRejectsUnfrozenOrUnsafeSettings(t *testing.T) {
 }
 func commandNames(commands []Command) []string { out:=make([]string,0,len(commands));for _,cmd:=range commands{out=append(out,cmd.Name)};return out }
 func argPair(args []string,key,value string) bool { for i:=0;i+1<len(args);i++{if args[i]==key&&args[i+1]==value{return true}};return false }
+func hasArgSuffix(args []string, suffix string) bool { for _, arg := range args { if strings.HasSuffix(strings.ReplaceAll(arg, `\`, `/`), "/"+suffix) || arg == suffix { return true } }; return false }
