@@ -106,7 +106,7 @@
     "delivery_note": "A local combined delivery pack with these exact programs, configuration examples, checksums and advanced documentation was generated outside the repository. Physical Windows administrator E2E remains not performed in this build environment."
   },
   "local_test_snapshot": {
-    "authority": "local_artifact_inspection_not_physical_e2e",
+    "authority": "snapshot_not_live",
     "tested_commit": "834a592d51f9ee5ed126cc74d477bc426ce59381",
     "result": "pass",
     "command": "Downloaded the three successful Actions release artifacts; verified SHA-256 and file formats; extracted both Linux tarballs; ran the amd64 wbd-server help surface and wbd-reality-front usage smoke; generated and rendered/visually inspected the release manual DOCX/PDF. Windows PE execution and physical administrator E2E were not run on this Linux build host."
