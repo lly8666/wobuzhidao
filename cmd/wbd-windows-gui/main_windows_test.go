@@ -75,6 +75,7 @@ func exitTestProfile() windowsruntime.Profile {
 func wantExitLifecycle() []string {
 	return []string{
 		"run:route-cleanup",
+		"run:ipv6-cleanup",
 		"stop:tun",
 		"stop:link",
 		"stop:dtls",
