@@ -2,6 +2,7 @@ package windowsruntime
 
 import (
 	"net/netip"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -109,7 +110,7 @@ func TestBuildPlanRejectsTamperedCNBundle(t *testing.T) {
 	if _, err := ipset.WriteCNBundle(dir, "test", []netip.Prefix{netip.MustParsePrefix("1.2.0.0/16")}); err != nil {
 		t.Fatal(err)
 	}
-	if err := osWriteFile(filepath.Join(dir, "cn4.txt"), []byte("8.8.8.0/24\n")); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "cn4.txt"), []byte("8.8.8.0/24\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	p := testProfile()
@@ -176,8 +177,4 @@ func argPair(args []string, key, value string) bool {
 		}
 	}
 	return false
-}
-
-func osWriteFile(path string, data []byte) error {
-	return os.WriteFile(path, data, 0o600)
 }
