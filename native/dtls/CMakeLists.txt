@@ -15,6 +15,15 @@ set(WOLFSSL_DTLS13 yes CACHE STRING "" FORCE)
 set(WOLFSSL_EXAMPLES no CACHE STRING "" FORCE)
 set(WOLFSSL_CRYPT_TESTS no CACHE STRING "" FORCE)
 
+# The Windows client is staged as a portable application. Keep the Microsoft C
+# runtime static for the shim and the embedded wolfSSL build so a clean machine
+# does not need a side-by-side VCRUNTIME/MSVCP payload. This changes packaging
+# only; the frozen wolfSSL source/configuration and DTLS wire semantics are
+# unchanged.
+if(MSVC)
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 add_subdirectory("${WOLFSSL_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/wolfssl-build" EXCLUDE_FROM_ALL)
 
 add_executable(wbd_dtls_shim wbd_dtls_shim.c)
