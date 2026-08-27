@@ -11,9 +11,9 @@ import (
 )
 
 // RuntimeProfileFile contains only operator-controlled connection settings.
-// Executable/script paths and mutable route/ticket state are supplied by the
-// installed GUI, not by the profile file, so loading a profile cannot redirect
-// privileged lifecycle commands to arbitrary paths.
+// Executable/script paths, ipset paths and mutable route/ticket state are
+// supplied by the installed GUI, so a profile cannot redirect privileged
+// lifecycle commands or CN-prefix loading to arbitrary files.
 type RuntimeProfileFile struct {
 	ServerFront  string `json:"server_front"`
 	ServerName   string `json:"server_name"`
@@ -25,7 +25,11 @@ type RuntimeProfileFile struct {
 	FEC          string `json:"fec"`
 	IfName       string `json:"if_name"`
 	MTU          int    `json:"mtu"`
+	// route_mode is a user-facing policy: Full, Foreign (non-CN via WBD), or
+	// China (CN via WBD). CN ranges come only from WBD's verified state bundle.
 	RouteMode    string `json:"route_mode"`
+	DNSMode      string `json:"dns_mode"`
+	DNSServer    string `json:"dns_server"`
 	TunnelIPv4   string `json:"tunnel_ipv4"`
 }
 
@@ -56,7 +60,10 @@ func LoadRuntimeProfile(path, binDir, stateDir string) (windowsruntime.Profile, 
 		cfg.MTU = 1400
 	}
 	if cfg.RouteMode == "" {
-		cfg.RouteMode = "Full"
+		cfg.RouteMode = windowsruntime.RouteFull
+	}
+	if cfg.DNSMode == "" {
+		cfg.DNSMode = windowsruntime.DNSAuto
 	}
 	if cfg.TunnelIPv4 == "" {
 		cfg.TunnelIPv4 = "10.66.0.2/30"
@@ -74,6 +81,9 @@ func LoadRuntimeProfile(path, binDir, stateDir string) (windowsruntime.Profile, 
 		IfName:       cfg.IfName,
 		MTU:          cfg.MTU,
 		RouteMode:    cfg.RouteMode,
+		CNSetDir:     filepath.Join(stateDir, "ipsets", "cn"),
+		DNSMode:      cfg.DNSMode,
+		DNSServer:    cfg.DNSServer,
 		TunnelIPv4:   cfg.TunnelIPv4,
 		TicketPath:   filepath.Join(stateDir, "reality-ticket.tmp"),
 		RouteState:   filepath.Join(stateDir, "route-state.json"),
