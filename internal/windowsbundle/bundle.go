@@ -2,6 +2,7 @@ package windowsbundle
 
 import (
 	"archive/zip"
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -19,10 +20,10 @@ type Info struct {
 }
 
 type manifest struct {
-	Schema         string            `json:"schema"`
-	Files          map[string]string `json:"files"`
-	WintunVersion  string            `json:"wintun_version"`
-	WintunZipSHA   string            `json:"wintun_zip_sha256"`
+	Schema        string            `json:"schema"`
+	Files         map[string]string `json:"files"`
+	WintunVersion string            `json:"wintun_version"`
+	WintunZipSHA  string            `json:"wintun_zip_sha256"`
 }
 
 func verifyRuntime(dir string) error {
@@ -49,8 +50,12 @@ func verifyRuntime(dir string) error {
 		h := sha256.New()
 		_, copyErr := io.Copy(h, f)
 		closeErr := f.Close()
-		if copyErr != nil { return copyErr }
-		if closeErr != nil { return closeErr }
+		if copyErr != nil {
+			return copyErr
+		}
+		if closeErr != nil {
+			return closeErr
+		}
 		got := hex.EncodeToString(h.Sum(nil))
 		if !strings.EqualFold(got, want) {
 			return fmt.Errorf("runtime hash mismatch for %s", name)
@@ -77,7 +82,7 @@ func extractPayload(payload []byte, payloadSHA, base string) (string, error) {
 	}
 	defer os.RemoveAll(tmp)
 
-	r, err := zip.NewReader(strings.NewReader(string(payload)), int64(len(payload)))
+	r, err := zip.NewReader(bytes.NewReader(payload), int64(len(payload)))
 	if err != nil {
 		return "", err
 	}
@@ -88,20 +93,35 @@ func extractPayload(payload []byte, payloadSHA, base string) (string, error) {
 		}
 		dst := filepath.Join(tmp, clean)
 		if zf.FileInfo().IsDir() {
-			if err := os.MkdirAll(dst, 0o700); err != nil { return "", err }
+			if err := os.MkdirAll(dst, 0o700); err != nil {
+				return "", err
+			}
 			continue
 		}
-		if err := os.MkdirAll(filepath.Dir(dst), 0o700); err != nil { return "", err }
+		if err := os.MkdirAll(filepath.Dir(dst), 0o700); err != nil {
+			return "", err
+		}
 		src, err := zf.Open()
-		if err != nil { return "", err }
+		if err != nil {
+			return "", err
+		}
 		out, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o700)
-		if err != nil { _ = src.Close(); return "", err }
+		if err != nil {
+			_ = src.Close()
+			return "", err
+		}
 		_, copyErr := io.Copy(out, src)
 		closeOut := out.Close()
 		closeSrc := src.Close()
-		if copyErr != nil { return "", copyErr }
-		if closeOut != nil { return "", closeOut }
-		if closeSrc != nil { return "", closeSrc }
+		if copyErr != nil {
+			return "", copyErr
+		}
+		if closeOut != nil {
+			return "", closeOut
+		}
+		if closeSrc != nil {
+			return "", closeSrc
+		}
 	}
 	if err := verifyRuntime(tmp); err != nil {
 		return "", fmt.Errorf("verify extracted runtime: %w", err)
@@ -120,6 +140,8 @@ func runtimeBaseDir() (string, error) {
 		return filepath.Join(local, "WBD", "runtime"), nil
 	}
 	cache, err := os.UserCacheDir()
-	if err != nil { return "", err }
+	if err != nil {
+		return "", err
+	}
 	return filepath.Join(cache, "WBD", "runtime"), nil
 }
