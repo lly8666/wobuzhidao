@@ -1,89 +1,90 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 51,
+  "continuity_sequence": 52,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "203ea9e5a2d2a0c031c0ca03074a8c66d0eb5791",
+  "checkpoint_based_on_head_sha": "5e7ad701936770e09b608068a0474d96f345e07c",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Ship a personal weak-network VPN for OpenWrt/Linux <-> Linux/Windows over WBD-owned TCP-shaped FakeTCP with earliest-complete inner datagram delivery, pinned wolfSSL DTLS 1.3, Reality-like setup/admission, OpenWrt TPROXY/full-cone UDP, Windows Wintun, optional low-loss multi-lane game mode, formula-based FEC/inner-rate control, and a Windows GUI with system-tray lifecycle.",
-    "current_milestone": "OpenWrt release composition, Windows Wintun capture/routing/dataplane, game-lane/settings policy, and the pinned WinSock wolfSSL DTLS 1.3 build are qualified. The remaining release-critical Windows work is wiring the existing windowsruntime executor into GUI Connect/Disconnect and proving one clean administrator frozen-WBD end-to-end one-shot without changing transport semantics.",
-    "local_optimization_stop_rule": "Do not reopen ADR-0010 release transport semantics: 40 Mbit/s aggregate-inner release operating point, legacy FakeTCP default, current pinned wolfSSL DTLS source, Reality setup-only semantics, ticket/LiveID isolation and frozen single-association LINK semantics remain authority. Multi-lane game mode is an aggregation layer over independent frozen associations. FEC recommendation research must not silently change the live wire profile."
+    "terminal_goal": "Ship a personal weak-network VPN with a portable Windows 11 client and self-contained Linux amd64/arm64 server bundles. Sustained payload remains WBD-owned raw TCP-shaped FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK, with Reality-like setup/admission only, safe platform routing/firewall ownership, and deterministic cleanup.",
+    "current_milestone": "Windows portable product composition and Linux server release packaging are implemented and qualified on the checkpoint head. Windows portable bundle, IPv6 device kill-switch, TUN build/admin smoke, DTLS build, Linux shared-public-port contract, Linux server settings, and Linux amd64/arm64 release workflows are green. The remaining release-critical proof is one clean physical administrator Windows application run against the Linux server using the produced portable client, including Npcap readiness, DNS/TCP/UDP traffic, split/full policy as selected, device-wide IPv6 blocking while connected, and automatic cleanup on Disconnect/Exit. Two non-release-specialized current-head gates, faketcp-native and mux-load-100m, are red and must be rechecked for deterministic regression before release sign-off.",
+    "local_optimization_stop_rule": "Do not reopen ADR-0010 release transport semantics for packaging or platform convenience: 40 Mbit/s aggregate-inner release operating point on <=100 Mbit/s weak links, legacy FakeTCP release default, pinned wolfSSL DTLS source, Reality setup-only semantics, ticket/LiveID isolation, immutable LINK semantics, and release FEC off or fixed systematic 20:20 remain authority unless a future ADR explicitly changes them."
   },
   "continuation_cursor": {
-    "last_completed_action": "Refreshed live HEAD/PR/Actions from sequence 50, inspected windows-dtls-build run 32972420635, and proved the MSVC/CMake build itself was already successful: pinned wolfSSL static library and wbd_dtls_shim.exe were produced and the shim reached its expected no-argument usage contract. The failing Actions step retained the expected native exit code 2 after all assertions and after WBD_WINDOWS_DTLS_BUILD_PASS. Commit 203ea9e5a2d2a0c031c0ca03074a8c66d0eb5791 added only an explicit exit 0 after the assertions. windows-dtls-build run 32999869554 is SUCCESS on that head, and faketcp-native run 32999869622 is also SUCCESS. No native DTLS/FakeTCP/LINK semantics, wolfSSL pin, Windows Wintun behavior, GUI behavior, or tray lifecycle code changed. handoff-verify then exposed malformed sequence-50 metadata (15 resume paths, missing local_test_snapshot, and policy prose incorrectly placed in required_data_plane_assets); this sequence repairs only the handoff contract while preserving the frozen policy.",
-    "current_task": "Wire the existing Windows runtime executor into native GUI Connect/Disconnect/Exit, then add and pass one clean administrator Windows frozen-WBD end-to-end qualification.",
-    "why_now": "The pinned Windows DTLS build blocker is green without implementation changes, and the Windows TUN/Wintun foundation plus GUI tray shell were already qualified. The remaining risk is product composition and lifecycle ordering, not transport semantics.",
-    "done_when": "GUI Connect performs Reality bootstrap and underlay discovery before broad Wintun capture, starts Npcap FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK -> Wintun in the existing runtime-controller ordering, and only then applies capture routes. Disconnect and explicit Exit remove routes first and tear down in reverse order. Minimize/X keeps VPN running in the tray, tray restore works, Explorer/taskbar restart restores the tray icon, and one clean administrator Windows one-shot proves real traffic and cleanup through the frozen WBD path.",
-    "next_atomic_action": "Read cmd/wbd-windows-gui and internal/windowsruntime together with the Windows route/TUN workflow contracts. Identify the smallest controller boundary that lets GUI Connect call the existing runtime executor without embedding transport logic in the UI thread. Preserve minimize/X-to-tray behavior and explicit Exit cleanup. Add executable lifecycle tests before adding the real administrator Windows frozen-WBD one-shot."
+    "last_completed_action": "Closed the Windows/Linux product-packaging tranche on live head 5e7ad701936770e09b608068a0474d96f345e07c. Windows now builds a single portable wbd.exe artifact; the outer executable self-elevates through standard UAC when needed, uses its own directory for wbd.json and CN IP-set assets, exposes GUI Npcap install/repair using the locked official Npcap 1.88 download/signature/hash contract, supports Full/Foreign/China IPv4 routing policies and DNS policy, and enforces a mandatory device-wide IPv6 firewall kill-switch while connected. The IPv6 implementation was corrected after Windows Server 2025 rejected ::/0 in New-NetFirewallRule: it now covers the complete IPv6 address space using ::/1 and 8000::/1 and cleans only WBD-owned rules. The path-sensitive windowsruntime test was also corrected. On the same checkpoint head, windows-portable-bundle 33057712343, windows-ipv6-killswitch 33057712471, windows-tun-build 33057712341, windows-tun-admin-smoke 33057712526, windows-dtls-build 33057712445, and ci 33057712346 are SUCCESS. Linux server release now exposes exactly one product-level public WBD_PORT shared by Reality-like admission and raw FakeTCP while retaining loopback-only internal service ports. scripts/linux_server_manager.sh provides install/uninstall/start/stop/pause/resume/restart/status/logs/config/set/regen-certs/doctor/show-config, generates secrets/certs, installs a systemd unit, and removes only WBD-owned firewall state. nftables/iptables ownership cleanup remains precise. linux-shared-port 33057712480, linux-server-settings 33057712442, and linux-server-release 33057712393 are SUCCESS. That release run produced amd64 artifact 9640472667 (sha256 c96e3f2559bc417527b24af84ab524e603dd76cf084428e30e666f8e2f9f920b) and arm64 artifact 9640470514 (sha256 36bcac05e69af07a01ef2a5169b0e7ae3797aa4840c197906375227a25f22c11). Windows portable artifact 9640440913 was also produced (sha256 95fcfc827d86b7684b9a3a25d2f07b01492147bc185be29b0c9e360f0fe9bab8).",
+    "current_task": "Release closeout: refresh live HEAD/Actions, recheck the two current-head red specialized gates, then run one physical administrator Windows end-to-end qualification using the portable wbd.exe against a Linux server installed from the amd64 or arm64 release bundle. Preserve the single-public-port server contract and all frozen transport semantics.",
+    "why_now": "Both product packaging paths now produce real artifacts and their platform-specific CI gates are green. The highest-value remaining work is physical product proof and regression triage, not adding more features.",
+    "done_when": "A clean Linux server can be installed from the produced amd64 or arm64 bundle with one public WBD_PORT, configured through wbd-server, started/stopped/paused/resumed/restarted, and uninstalled with WBD-owned nftables/iptables state fully removed. A clean administrator Windows 11 machine can run portable wbd.exe from an arbitrary directory, install/repair Npcap through the GUI if required, validate local wbd.json/CN assets, connect through Reality admission -> raw FakeTCP -> pinned wolfSSL DTLS 1.3 -> LINK -> Wintun, pass DNS/TCP/UDP probes, keep IPv6 inaccessible for the whole connected interval, and on Disconnect/Exit remove routes/DNS/IPv6 firewall state before stopping TUN/LINK/DTLS/FakeTCP. The two red specialized gates are either fixed if deterministic or documented as non-release flaky evidence with a clean rerun.",
+    "next_atomic_action": "Refresh the branch HEAD and current PR Actions first. If faketcp-native or mux-load-100m is still red on the refreshed head, fetch the failed job logs and fix only the first deterministic implementation error; do not change frozen transport policy. If both are green or shown flaky/non-release, download the current Windows portable and Linux server artifacts and perform the physical administrator Windows frozen-WBD one-shot against the one-port Linux server, collecting the redacted self-test/support log and verifying cleanup."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
     "PROJECT_CONSTITUTION.md",
-    "ARCHITECTURE.md",
     "docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md",
-    ".github/workflows/windows-dtls-build.yml",
-    "native/dtls/wbd_dtls_shim.c",
-    "native/dtls/CMakeLists.txt",
-    "scripts/windows_tun_route.ps1",
+    "cmd/wbd-windows-portable",
     "cmd/wbd-windows-gui",
     "internal/windowsruntime",
-    ".github/workflows/windows-tun-build.yml",
-    ".github/workflows/windows-tun-admin-smoke.yml"
+    "scripts/windows_ipv6_killswitch.ps1",
+    "scripts/windows_npcap_prepare.ps1",
+    "scripts/windows_tun_route.ps1",
+    "scripts/linux_server_manager.sh",
+    "scripts/linux_server_firewall.sh",
+    ".github/workflows/linux-server-release.yml"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "current-head OpenWrt fullstack + packet/first-arrival gates + game/settings matrices + ADR-0010 release freeze",
-    "outer_semantics": "WBD-owned TCP-shaped raw carrier with earliest-complete inner datagram delivery; platform TCP reliability remains above WBD. Game lanes are independent outer associations rather than duplicate ciphertext in one flow.",
-    "fec_status": "Release wire path remains off or fixed systematic 20:20 unless an explicit future ADR changes it. Research formula may evaluate other profiles but must not silently change the live wire profile.",
+    "authority": "current-head platform/release gates plus ADR-0010 release freeze",
+    "outer_semantics": "WBD-owned TCP-shaped raw carrier with earliest-complete inner datagram delivery; Reality-like TLS is setup/admission only and sustained payload is FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK.",
+    "fec_status": "Release wire path remains off or fixed systematic 20:20 unless an explicit future ADR changes it. Research formula work must not silently change the live wire profile.",
     "capacity_policy": "ADR-0010 release authority remains 40 Mbit/s aggregate inner on <=100 Mbit/s physical weak-link qualification.",
-    "link_speed_policy": "Auto and manual link-speed authorities remain distinct; manual must work without an auto sample, and auto capacity estimation must remain separate from loss/burst statistics.",
+    "link_speed_policy": "Automatic and manual link-speed authorities remain distinct; manual must work without an automatic sample, and capacity estimation remains separate from loss/burst statistics.",
     "game_mode": "User-selectable 1..4 lanes remain independent outer associations with first-arrival dedupe; logical inner pacing occurs before replication and accounts for actual lane/FEC/carrier expansion.",
-    "platform_status": "OpenWrt clean fullstack one-shot is green, including DNS/UDP/TCP, full-cone EIM/EIF, hairpin loopback, bidirectional underlay escape and cleanup. Windows Wintun device, route lifecycle and real bidirectional admin dataplane are green. The pinned Windows wolfSSL DTLS shim build and usage smoke are green in run 32999869554. Full Windows WBD GUI/runtime composition is not yet qualified."
+    "platform_status": "OpenWrt/Linux fullstack gates remain qualified. Windows portable composition is built; current-head Windows portable, IPv6 kill-switch, Wintun build/admin dataplane, DTLS, and generic CI are green. Linux one-public-port settings and amd64/arm64 release packaging are green and produced real artifacts. Final physical administrator Windows full-application qualification remains outstanding."
   },
   "product_policy": {
     "link_setup": "Reality-like TLS front remains setup/admission only; sustained payload remains WBD FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK.",
     "accounts": "One shared username/password may authenticate multiple simultaneous devices; routing/session state is ticket/LiveID/peer keyed, never username keyed.",
-    "fullcone_nat": "OpenWrt UDP is endpoint-independent mapping plus endpoint-independent filtering and has a root-qualified hairpin/NAT-loopback gate. This is platform behavior, not transport semantics.",
-    "windows_gui": "Windows product requires a native GUI. Minimize and window-close hide to the system tray and keep VPN running; tray restores the window; explicit Disconnect stops the tunnel; explicit Exit performs cleanup then terminates. Explorer/taskbar restart must restore the tray icon. GUI must call a runtime controller rather than embed transport logic in the UI thread.",
-    "settings_testing": "Every exposed game/link-speed/FEC/lane/pacing setting must retain executable validation; do not regress previously green game-settings-matrix or game-lane-fullstack coverage."
+    "fullcone_nat": "OpenWrt UDP remains endpoint-independent mapping plus endpoint-independent filtering with root-qualified hairpin/NAT-loopback coverage. This is platform behavior, not transport semantics.",
+    "windows_gui": "Final Windows product is a portable outer wbd.exe runnable from an arbitrary directory. wbd.json and cn4.txt/cn6.txt/cn-manifest.json live beside the outer executable. The GUI exposes Npcap install/repair but does not redistribute the Npcap Free Edition binaries. Minimize/X hides to tray and keeps VPN running; explicit Disconnect stops the tunnel; explicit Exit performs automatic cleanup then terminates. Connect fails closed if the device-wide IPv6 kill-switch cannot be established. While connected, IPv6 is blocked for the whole device with WBD-owned firewall rules; cleanup removes those rules. GUI lifecycle calls windowsruntime rather than embedding transport logic in the UI thread.",
+    "windows_routing_dns": "IPv4 product policy exposes Full, Foreign (foreign through WBD with CN direct), and China (CN through WBD) using a verified portable CN bundle. DNS policy supports Auto/System/Cloudflare/Custom; Full/Foreign Auto use WBD-owned NRPT plus resolver host routes, while China Auto retains system DNS. IPv6 is not split-routed: it is blocked device-wide while WBD is connected.",
+    "linux_server": "The product exposes exactly one public WBD_PORT shared by Reality-like admission and raw FakeTCP. Internal LINK/platform/DTLS worker ports remain loopback/internal implementation details. The release manager owns install/uninstall/start/stop/pause/resume/restart/status/logs/config/set/regen-certs/doctor/show-config. Install enables but does not auto-start until configuration is reviewed. nftables/iptables cleanup removes only WBD-owned rules/state and never flushes or restores the entire host ruleset.",
+    "settings_testing": "Every exposed routing, DNS, CN bundle, server port/domain/credential/session, game/link-speed/FEC/lane/pacing setting must retain executable validation; do not regress previously green product settings gates."
   },
   "live_ci_snapshot": {
     "authority": "live_current_head",
-    "tested_commit": "203ea9e5a2d2a0c031c0ca03074a8c66d0eb5791",
+    "tested_commit": "5e7ad701936770e09b608068a0474d96f345e07c",
     "green": {
-      "windows_dtls_build": 32999869554,
-      "faketcp_native": 32999869622,
-      "windows_tun_build": 32999869804,
-      "openwrt_udp_tproxy": 32999869793,
-      "openwrt_tcp_tproxy": 32999869706,
-      "faketcp_first_arrival": 32999869600,
-      "link_policy_formula": 32999869809,
-      "game_settings_matrix": 32999869813,
-      "build_quic_oracle": 32999869847
+      "ci": 33057712346,
+      "handoff_verify": 33057712344,
+      "windows_portable_bundle": 33057712343,
+      "windows_ipv6_killswitch": 33057712471,
+      "windows_tun_build": 33057712341,
+      "windows_tun_admin_smoke": 33057712526,
+      "windows_dtls_build": 33057712445,
+      "linux_shared_port": 33057712480,
+      "linux_server_settings": 33057712442,
+      "linux_server_release": 33057712393,
+      "openwrt_fullstack_one_shot": 33057712414,
+      "openwrt_udp_tproxy": 33057712407,
+      "openwrt_tcp_tproxy": 33057712379,
+      "faketcp_first_arrival": 33057712398,
+      "game_lane_fullstack": 33057712409,
+      "game_settings_matrix": 33057712486
     },
-    "pending_at_checkpoint": [
-      "ci",
-      "openwrt-fullstack-one-shot",
-      "game-lane-fullstack",
-      "mux-load-100m",
-      "faketcp-pcap-20loss",
-      "fec-policy-discovery",
-      "windows-tun-admin-smoke",
-      "fullstack-first-arrival"
-    ],
+    "pending_at_checkpoint": [],
     "red": {
-      "handoff_verify_sequence_50": 32999869724
+      "faketcp_native": 33057712351,
+      "mux_load_100m": 33057712367
     },
-    "note": "The sequence-50 handoff verification failure is metadata-contract-only and is repaired by sequence 51. Every takeover must refresh live HEAD/PR/Actions rather than treating this snapshot as current authority."
+    "note": "Most product/release gates are green on the checkpoint head, including both product artifact workflows. Do not call the entire repository zero-red: faketcp-native and mux-load-100m are red on this same head and must be refreshed/triaged before final sign-off. Every takeover must refresh live HEAD/PR/Actions because the handoff commit itself advances the branch."
   },
   "local_test_snapshot": {
-    "authority": "snapshot_not_live",
-    "tested_commit": "203ea9e5a2d2a0c031c0ca03074a8c66d0eb5791",
-    "result": "not_run",
-    "command": "No local sandbox test was run for the one-line workflow exit-status repair. GitHub Actions windows-dtls-build run 32999869554 is the platform-specific qualification authority for that change; live status must be refreshed on takeover."
+    "authority": "github_actions_current_head",
+    "tested_commit": "5e7ad701936770e09b608068a0474d96f345e07c",
+    "result": "not_run_locally",
+    "command": "No local sandbox test is treated as authority for this checkpoint. Platform-specific GitHub Actions on the checkpoint head are the qualification evidence; the next session must refresh them before editing."
   }
 }
