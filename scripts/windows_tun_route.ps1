@@ -13,7 +13,10 @@ param(
     [string]$PrefixFile4 = '',
     [string[]]$DirectPrefix4 = @(),
     [string]$DirectPrefixFile4 = '',
-    [string[]]$DNSServer = @(),
+    # Comma/semicolon separated by design: powershell.exe -File is launched by
+    # the Go controller and scalar CLI transport is deterministic across Windows
+    # PowerShell versions, unlike repeated external string[] argument binding.
+    [string]$DNSServer = '',
     [ValidateRange(576,9000)]
     [int]$MTU = 1400,
     [string]$StatePath = "$env:ProgramData\WBD\windows-route-state.json"
@@ -21,6 +24,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+$NRPTDisplayName = 'WBD Runtime DNS'
+$NRPTComment = 'wbd-owned-runtime-dns/v1'
 
 function Assert-IP([string]$Value, [System.Net.Sockets.AddressFamily]$Family, [string]$Label) {
     if ([string]::IsNullOrWhiteSpace($Value)) { return }
@@ -97,10 +102,30 @@ function Save-State($State) {
     $State | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $StatePath -Encoding UTF8
 }
 
+function Remove-StaleWBDNRPT {
+    if (-not (Get-Command Get-DnsClientNrptRule -ErrorAction SilentlyContinue) -or
+        -not (Get-Command Remove-DnsClientNrptRule -ErrorAction SilentlyContinue)) {
+        return
+    }
+    $rules = @(Get-DnsClientNrptRule -ErrorAction SilentlyContinue | Where-Object {
+        [string]$_.DisplayName -eq $NRPTDisplayName -and [string]$_.Comment -eq $NRPTComment
+    })
+    foreach ($rule in $rules) {
+        Remove-DnsClientNrptRule -Name ([string]$rule.Name) -Force -Confirm:$false -ErrorAction SilentlyContinue
+    }
+}
+
 function Remove-Owned-State($State) {
-    # Capture/direct routes disappear before DNS/address/MTU restoration. This
-    # preserves the frozen Exit rule: never leave broad traffic pointed at a
-    # tunnel that is about to be stopped.
+    # Stop steering new ordinary DNS queries first. Then remove WBD routes while
+    # Wintun/LINK/DTLS/FakeTCP are still alive; process teardown remains outside
+    # this script and is strictly after route cleanup in Executor.Stop().
+    if ($State.PSObject.Properties.Name -contains 'NRPTRuleName' -and $State.NRPTRuleName) {
+        if (Get-Command Remove-DnsClientNrptRule -ErrorAction SilentlyContinue) {
+            Remove-DnsClientNrptRule -Name ([string]$State.NRPTRuleName) -Force -Confirm:$false -ErrorAction SilentlyContinue
+        }
+    } elseif ($State.PSObject.Properties.Name -contains 'DNSConfigured' -and $State.DNSConfigured) {
+        Remove-StaleWBDNRPT
+    }
     if ($State.PSObject.Properties.Name -contains 'CaptureRoutes') {
         foreach ($route in @($State.CaptureRoutes)) {
             Remove-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -PolicyStore ActiveStore -Confirm:$false -ErrorAction SilentlyContinue
@@ -114,15 +139,6 @@ function Remove-Owned-State($State) {
     if ($State.PSObject.Properties.Name -contains 'UnderlayRoutes') {
         foreach ($route in @($State.UnderlayRoutes)) {
             Remove-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -PolicyStore ActiveStore -Confirm:$false -ErrorAction SilentlyContinue
-        }
-    }
-    if ($State.PSObject.Properties.Name -contains 'DNSConfigured' -and $State.DNSConfigured) {
-        $previous = @()
-        if ($State.PSObject.Properties.Name -contains 'DNSPrevious') { $previous = @($State.DNSPrevious) }
-        if ($previous.Count -gt 0) {
-            Set-DnsClientServerAddress -InterfaceIndex ([uint32]$State.AdapterInterfaceIndex) -ServerAddresses $previous -ErrorAction SilentlyContinue
-        } else {
-            Set-DnsClientServerAddress -InterfaceIndex ([uint32]$State.AdapterInterfaceIndex) -ResetServerAddresses -ErrorAction SilentlyContinue
         }
     }
     if ($State.PSObject.Properties.Name -contains 'Addresses') {
@@ -142,6 +158,10 @@ $Prefix4 = @($Prefix4) + @(Read-PrefixFile $PrefixFile4 ([System.Net.Sockets.Add
 $DirectPrefix4 = @($DirectPrefix4) + @(Read-PrefixFile $DirectPrefixFile4 ([System.Net.Sockets.AddressFamily]::InterNetwork) 'DirectPrefixFile4')
 $Prefix4 = @($Prefix4 | Select-Object -Unique)
 $DirectPrefix4 = @($DirectPrefix4 | Select-Object -Unique)
+$DNSServers = @()
+if (-not [string]::IsNullOrWhiteSpace($DNSServer)) {
+    $DNSServers = @($DNSServer -split '[,;]' | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Select-Object -Unique)
+}
 
 $addr4 = Parse-CIDR $TunnelAddress4 ([System.Net.Sockets.AddressFamily]::InterNetwork) 'TunnelAddress4'
 $addr6 = Parse-CIDR $TunnelAddress6 ([System.Net.Sockets.AddressFamily]::InterNetworkV6) 'TunnelAddress6'
@@ -150,7 +170,7 @@ Assert-IP $Underlay6 ([System.Net.Sockets.AddressFamily]::InterNetworkV6) 'Under
 foreach ($p in $Prefix4) { [void](Parse-CIDR $p ([System.Net.Sockets.AddressFamily]::InterNetwork) 'Prefix4') }
 foreach ($p in $Prefix6) { [void](Parse-CIDR $p ([System.Net.Sockets.AddressFamily]::InterNetworkV6) 'Prefix6') }
 foreach ($p in $DirectPrefix4) { [void](Parse-CIDR $p ([System.Net.Sockets.AddressFamily]::InterNetwork) 'DirectPrefix4') }
-foreach ($dns in $DNSServer) { Assert-IP $dns ([System.Net.Sockets.AddressFamily]::InterNetwork) 'DNSServer' }
+foreach ($dns in $DNSServers) { Assert-IP $dns ([System.Net.Sockets.AddressFamily]::InterNetwork) 'DNSServer' }
 if ($DirectPrefix4.Count -gt 0 -and -not $Underlay4) { throw 'DirectPrefix4 requires Underlay4 so the pre-WBD physical route is known' }
 
 if ($Mode -eq 'Full') {
@@ -159,11 +179,11 @@ if ($Mode -eq 'Full') {
 } else {
     $capture4 = @($Prefix4)
     $capture6 = @($Prefix6)
-    if ($capture4.Count -eq 0 -and $capture6.Count -eq 0 -and $DNSServer.Count -eq 0) { throw 'Split mode requires Prefix4/Prefix6 and/or DNSServer' }
+    if ($capture4.Count -eq 0 -and $capture6.Count -eq 0 -and $DNSServers.Count -eq 0) { throw 'Split mode requires Prefix4/Prefix6 and/or DNSServer' }
 }
-# Any explicitly configured DNS upstream is forced through WBD even when the
-# selected split policy would otherwise send that address direct.
-$capture4 = @($capture4) + @($DNSServer | ForEach-Object { "$_/32" })
+# Every configured DNS upstream is explicitly captured through WBD, even when a
+# more-specific domestic direct route would otherwise match it.
+$capture4 = @($capture4) + @($DNSServers | ForEach-Object { "$_/32" })
 $capture4 = @($capture4 | Select-Object -Unique)
 
 if ($Action -eq 'Render') {
@@ -174,10 +194,10 @@ if ($Action -eq 'Render') {
     if ($addr4) { Write-Output "02 ADDRESS IPv4 $($addr4.CIDR) on $AdapterAlias and wait for DAD Preferred state" }
     if ($addr6) { Write-Output "02 ADDRESS IPv6 $($addr6.CIDR) on $AdapterAlias and wait for DAD Preferred state" }
     Write-Output "02 MTU $MTU on $AdapterAlias"
-    foreach ($dns in $DNSServer) { Write-Output "02 DNS IPv4 $dns on $AdapterAlias and capture its /32 through WBD" }
+    if ($DNSServers.Count -gt 0) { Write-Output "02 DNS NRPT namespace=. servers=$($DNSServers -join ',') capture_resolvers_through_wbd=1" }
     foreach ($p in $capture4) { Write-Output "03 CAPTURE IPv4 $p on $AdapterAlias" }
     foreach ($p in $capture6) { Write-Output "03 CAPTURE IPv6 $p on $AdapterAlias" }
-    Write-Output '04 CLEANUP WBD-owned routes first, then restore DNS/addresses/MTU'
+    Write-Output '04 CLEANUP remove WBD NRPT rule and WBD-owned routes before reverse runtime teardown'
     exit 0
 }
 
@@ -185,7 +205,8 @@ Require-Admin
 
 if ($Action -eq 'Cleanup') {
     if (-not (Test-Path -LiteralPath $StatePath)) {
-        Write-Output "WBD_WINDOWS_TUN_CLEAN state=absent"
+        Remove-StaleWBDNRPT
+        Write-Output "WBD_WINDOWS_TUN_CLEAN state=absent stale_nrpt_removed=1"
         exit 0
     }
     $state = Get-Content -LiteralPath $StatePath -Raw | ConvertFrom-Json
@@ -198,6 +219,9 @@ if ($Action -eq 'Cleanup') {
 if (Test-Path -LiteralPath $StatePath) {
     throw "state already exists; run Cleanup first: $StatePath"
 }
+# Crash recovery for the narrow interval after NRPT creation but before its rule
+# id can be persisted. Only the exact WBD display/comment pair is removed.
+Remove-StaleWBDNRPT
 
 $adapter = Wait-NetAdapterByName -Name $AdapterAlias
 $ifIndex = [uint32]$adapter.ifIndex
@@ -205,13 +229,13 @@ Write-Output "WBD_WINDOWS_TUN_ADAPTER_READY adapter=$AdapterAlias ifindex=$ifInd
 $ipif4 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue | Select-Object -First 1
 $ipif6 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv6 -ErrorAction SilentlyContinue | Select-Object -First 1
 $state = [ordered]@{
-    Schema = 'wbd-windows-route-state/v2'
+    Schema = 'wbd-windows-route-state/v3'
     AdapterAlias = $AdapterAlias
     AdapterInterfaceIndex = $ifIndex
     MTU4 = if ($ipif4) { [uint32]$ipif4.NlMtu } else { $null }
     MTU6 = if ($ipif6) { [uint32]$ipif6.NlMtu } else { $null }
     DNSConfigured = $false
-    DNSPrevious = @()
+    NRPTRuleName = ''
     Addresses = @()
     UnderlayRoutes = @()
     DirectRoutes = @()
@@ -266,15 +290,9 @@ try {
         Wait-PreferredIPAddress -InterfaceIndex $ifIndex -IPAddress $a.Parsed.IP -Family $a.Family
     }
 
-    if ($DNSServer.Count -gt 0) {
-        if (-not (Get-Command Set-DnsClientServerAddress -ErrorAction SilentlyContinue)) { throw 'Set-DnsClientServerAddress is unavailable' }
-        $dnsPrevious = Get-DnsClientServerAddress -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue | Select-Object -First 1
-        $state.DNSConfigured = $true
-        $state.DNSPrevious = if ($dnsPrevious) { @($dnsPrevious.ServerAddresses) } else { @() }
-        Save-State $state
-        Set-DnsClientServerAddress -InterfaceIndex $ifIndex -ServerAddresses $DNSServer
-    }
-
+    # Plan and persist all WBD-owned capture routes before creating the batch so
+    # cleanup after a partial New-NetRoute failure is complete and never removes
+    # pre-existing user routes.
     $captureCreate = @()
     foreach ($item in @(@{Family='IPv4'; Prefixes=$capture4; NextHop='0.0.0.0'}, @{Family='IPv6'; Prefixes=$capture6; NextHop='::'})) {
         foreach ($prefix in @($item.Prefixes)) {
@@ -290,10 +308,23 @@ try {
         New-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -RouteMetric 5 -PolicyStore ActiveStore | Out-Null
     }
 
-    Write-Output "WBD_WINDOWS_TUN_READY mode=$Mode adapter=$AdapterAlias ifindex=$ifIndex mtu=$MTU direct4=$($DirectPrefix4.Count) capture4=$($capture4.Count) dns=$($DNSServer.Count)"
+    # Install the Any-namespace NRPT rule only after each DNS resolver /32 is
+    # already captured through WBD. Existing adapter DNS settings are untouched.
+    if ($DNSServers.Count -gt 0) {
+        foreach ($cmd in @('Add-DnsClientNrptRule','Get-DnsClientNrptRule','Remove-DnsClientNrptRule')) {
+            if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { throw "$cmd is unavailable" }
+        }
+        $rule = Add-DnsClientNrptRule -Namespace '.' -NameServers $DNSServers -DisplayName $NRPTDisplayName -Comment $NRPTComment -PassThru -ErrorAction Stop
+        if (-not $rule -or -not $rule.Name) { throw 'NRPT rule creation returned no rule id' }
+        $state.DNSConfigured = $true
+        $state.NRPTRuleName = [string]$rule.Name
+        Save-State $state
+    }
+
+    Write-Output "WBD_WINDOWS_TUN_READY mode=$Mode adapter=$AdapterAlias ifindex=$ifIndex mtu=$MTU direct4=$($DirectPrefix4.Count) capture4=$($capture4.Count) dns=$($DNSServers.Count)"
     if ($Underlay4) { Write-Output "WBD_WINDOWS_TUN_UNDERLAY4_LOCKED $Underlay4" }
     if ($Underlay6) { Write-Output "WBD_WINDOWS_TUN_UNDERLAY6_LOCKED $Underlay6" }
-    if ($DNSServer.Count -gt 0) { Write-Output "WBD_WINDOWS_DNS_READY servers=$($DNSServer -join ',') via_wbd=1" }
+    if ($DNSServers.Count -gt 0) { Write-Output "WBD_WINDOWS_DNS_READY mode=nrpt namespace=. servers=$($DNSServers -join ',') via_wbd=1 rule=$($state.NRPTRuleName)" }
 } catch {
     try { Remove-Owned-State ([pscustomobject]$state) } catch { }
     Remove-Item -LiteralPath $StatePath -Force -ErrorAction SilentlyContinue
