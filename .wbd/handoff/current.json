@@ -25,7 +25,6 @@
     "PROJECT_CONSTITUTION.md",
     "docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md",
     "cmd/wbd-windows-portable",
-    "cmd/wbd-windows-gui",
     "internal/windowsruntime",
     "scripts/windows_frozen_wbd_one_shot.ps1",
     "scripts/windows_npcap_prepare.ps1",
