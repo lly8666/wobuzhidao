@@ -12,7 +12,7 @@ import (
 
 // RuntimeProfileFile contains only operator-controlled connection settings.
 // Executable/script paths, ipset paths and mutable route/ticket state are
-// supplied by the installed GUI, so a profile cannot redirect privileged
+// supplied by the product wrapper, so a profile cannot redirect privileged
 // lifecycle commands or CN-prefix loading to arbitrary files.
 type RuntimeProfileFile struct {
 	ServerFront  string `json:"server_front"`
@@ -25,8 +25,6 @@ type RuntimeProfileFile struct {
 	FEC          string `json:"fec"`
 	IfName       string `json:"if_name"`
 	MTU          int    `json:"mtu"`
-	// route_mode is a user-facing policy: Full, Foreign (non-CN via WBD), or
-	// China (CN via WBD). CN ranges come only from WBD's verified state bundle.
 	RouteMode    string `json:"route_mode"`
 	DNSMode      string `json:"dns_mode"`
 	DNSServer    string `json:"dns_server"`
@@ -50,23 +48,16 @@ func LoadRuntimeProfile(path, binDir, stateDir string) (windowsruntime.Profile, 
 		return windowsruntime.Profile{}, err
 	}
 
-	if cfg.FEC == "" {
-		cfg.FEC = "off"
-	}
-	if cfg.IfName == "" {
-		cfg.IfName = "WBD"
-	}
-	if cfg.MTU == 0 {
-		cfg.MTU = 1400
-	}
-	if cfg.RouteMode == "" {
-		cfg.RouteMode = windowsruntime.RouteFull
-	}
-	if cfg.DNSMode == "" {
-		cfg.DNSMode = windowsruntime.DNSAuto
-	}
-	if cfg.TunnelIPv4 == "" {
-		cfg.TunnelIPv4 = "10.66.0.2/30"
+	if cfg.FEC == "" { cfg.FEC = "off" }
+	if cfg.IfName == "" { cfg.IfName = "WBD" }
+	if cfg.MTU == 0 { cfg.MTU = 1400 }
+	if cfg.RouteMode == "" { cfg.RouteMode = windowsruntime.RouteFull }
+	if cfg.DNSMode == "" { cfg.DNSMode = windowsruntime.DNSAuto }
+	if cfg.TunnelIPv4 == "" { cfg.TunnelIPv4 = "10.66.0.2/30" }
+
+	assetDir := filepath.Clean(stateDir)
+	if portable := os.Getenv("WBD_PORTABLE_DIR"); portable != "" {
+		assetDir = filepath.Clean(portable)
 	}
 	profile := windowsruntime.Profile{
 		BinDir:       filepath.Clean(binDir),
@@ -81,7 +72,7 @@ func LoadRuntimeProfile(path, binDir, stateDir string) (windowsruntime.Profile, 
 		IfName:       cfg.IfName,
 		MTU:          cfg.MTU,
 		RouteMode:    cfg.RouteMode,
-		CNSetDir:     filepath.Join(stateDir, "ipsets", "cn"),
+		CNSetDir:     assetDir,
 		DNSMode:      cfg.DNSMode,
 		DNSServer:    cfg.DNSServer,
 		TunnelIPv4:   cfg.TunnelIPv4,
