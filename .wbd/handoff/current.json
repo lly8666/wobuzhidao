@@ -1,100 +1,97 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 55,
+  "continuity_sequence": 56,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "3a72cac9e2e21a259a9106eb3ab10002dd80066b",
+  "checkpoint_based_on_head_sha": "b1824532ddb8cc9b435e496ce1e03b5730891c3d",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Ship a personal weak-network VPN with a portable Windows 11 client and self-contained Linux amd64/arm64 server bundles. Sustained payload remains WBD-owned raw TCP-shaped FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK; Reality-like TLS is setup/admission only.",
-    "current_milestone": "Real Ubuntu use of the sequence-54 Linux bundle exposed a deterministic launch defect: WBD_LISTEN_IP=0.0.0.0 was passed to raw FakeTCP although wbd-faketcp-mux requires a concrete IPv4. The report also showed LINK UDP 127.0.0.1:47000 occupied, a systemd restart counter of 123, and fragile ExecStop kill usage. The Linux manager now resolves a primary concrete IPv4 only for FakeTCP while keeping Reality on the wildcard listener, removes explicit ExecStop, uses control-group teardown, caps restart bursts, and logs the resolved bind. Regression CI covers the wildcard case. Linux release checksums were also made portable.",
-    "local_optimization_stop_rule": "Do not reopen ADR-0010 transport semantics for this platform fix: 40 Mbit/s aggregate-inner on <=100 Mbit/s weak links, legacy FakeTCP, pinned wolfSSL DTLS, setup-only Reality, immutable LINK, one raw lane, and release FEC off or fixed 20:20 remain frozen."
+    "terminal_goal": "Ship a personal weak-network VPN with a portable Windows 11 x64 client and self-contained Linux amd64/arm64 server bundles. Sustained payload remains WBD-owned raw TCP-shaped FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK; Reality-like TLS remains setup/admission only.",
+    "current_milestone": "Physical Windows 11 -> real Ubuntu ARM64 qualification has progressed through Reality admission and FakeTCP establishment. The readiness-gated Windows experiment proves FakeTCP READY before DTLS start and prevents routing/connect success before data-plane readiness. The current first deterministic blocker is now DTLS handshake completion: Windows times out waiting for DTLS READY while Linux logs BOUND role=server transport_port=<ephemeral> inherited=yes, with no DTLS server READY.",
+    "local_optimization_stop_rule": "Do not reopen ADR-0010 transport semantics: release remains 40 Mbit/s aggregate-inner on <=100 Mbit/s weak links, legacy FakeTCP, pinned wolfSSL DTLS 1.3, setup-only Reality, immutable LINK, one raw lane, FEC off or fixed 20:20."
   },
   "continuation_cursor": {
-    "last_completed_action": "Diagnosed the real Ubuntu logs against source. Manager fix e542196c9e45b3da4f3d7586433ad1fb583ffcd0 and regression test head 067d44780ab923c3ca46041108010be41d0f3f06 passed linux-server-settings 33178916611, CI 33178916295, handoff-verify 33178916659 and linux-server-release 33178916579. Artifact inspection then found absolute GitHub-runner paths in .sha256 files; portable checksum fix 3a72cac9e2e21a259a9106eb3ab10002dd80066b passed linux-server-settings 33179439771, CI 33179439797, handoff-verify 33179440020 and linux-server-release 33179439484. Final amd64/arm64 artifacts were downloaded, ZIP-tested, sha256sum -c verified, extracted, syntax checked, and the amd64 manager help-smoked.",
-    "current_task": "Requalify the fixed Linux server on the reporting Ubuntu host, then perform the remaining physical administrator Windows 11 end-to-end one-shot against that working Linux server.",
-    "why_now": "The deterministic source defect is fixed and CI-qualified; only the real host can confirm the separate 47000 ownership condition and startup lifecycle before Windows E2E.",
-    "done_when": "The updated Ubuntu service stays active without restart storm, doctor resolves a concrete FakeTCP IPv4, logs show WBD_LINUX_SERVER_BIND with Reality on the configured listener and FakeTCP on a concrete IPv4, LINK/platform loopback ports have no foreign owner, then the physical Windows one-shot proves admission -> FakeTCP -> wolfSSL DTLS 1.3 -> LINK -> Wintun, DNS/TCP/UDP, routing, IPv6 fail-closed and cleanup.",
-    "next_atomic_action": "Install the 3a72cac9 Linux artifact matching the Ubuntu architecture while preserving /etc/wbd/server.env. Stop/reset wbd-server first and inspect 47000/49000 owners; terminate only stale WBD processes. Run wbd-server doctor, start, status, and journalctl -u wbd-server -n 100 --no-pager. If service stays active, proceed to physical Windows E2E; otherwise fix only the first deterministic new error."
+    "last_completed_action": "Created experimental PR #8 from canonical b1824532 to gate Windows startup on actual readiness. Experimental head 9b1024167139fc2e2f09d6a9e943d3fc880d4f7e passed main CI run 33196838704 and windows-portable-bundle run 33196838643. Artifact 9696151559 was downloaded and verified: Actions ZIP SHA-256 8172e915ebe62c3aad93f7f049ab73407654cd2ffa1623279a1fa8f17689ec7b, wbd.exe SHA-256 b8e44b28bb82b783ec4f363d92f3375b0dfe78f4b739570200552133f8567006. Physical retest showed Reality bootstrap pass, FakeTCP READY, then DTLS start only after FakeTCP readiness; DTLS never reached READY within 25s and runtime rolled back before IPv6/routes. Concurrent Linux evidence showed Reality AUTH OK and a per-session DTLS worker BOUND with inherited transport, proving FakeTCP association creation succeeded.",
+    "current_task": "Localize and fix the DTLS handshake stall between the Windows client shim and the Linux per-session wolfSSL worker without changing wire semantics.",
+    "why_now": "The readiness gate removed the former process-order race and false connect_pass. The failure is now isolated before LINK/TUN/routing: FakeTCP establishes, Linux worker is spawned, but wolfSSL DTLS 1.3 handshake does not complete.",
+    "done_when": "Physical Windows logs show FakeTCP READY -> DTLS READY -> WBD_LINK_READY -> WBD_TUN_READY -> IPv6 apply -> route apply -> connect_pass, then DNS/UDP/TCP probes pass and cleanup succeeds; Linux logs show the matching DTLS server handshake and LINK session readiness.",
+    "next_atomic_action": "Refresh canonical dev head, PR #8 head and current Actions. On PR #8 inspect native/dtls/wbd_dtls_shim.c, cmd/wbd-faketcp-mux/main_linux.go, internal/dtlsworker/worker_linux.go and cmd/wbd-faketcp/main.go. Add deterministic handshake-stage observability without wire changes: client connect-start, server first transport datagram/peek, HRR send, accept-start, plus one-shot mux first client-payload and first server-payload markers. Keep the inherited UDP descriptor explicitly blocking before server MSG_PEEK. Run CI and Windows/Linux release builds, then use the resulting packages for one physical retest. Fix only the first newly localized failure."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
     "PROJECT_CONSTITUTION.md",
     "docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md",
-    "scripts/linux_server_manager.sh",
-    "scripts/linux_server_settings_test.sh",
-    "scripts/build_linux_server_bundle.sh",
-    "scripts/linux_server_guard.sh",
+    "internal/windowsruntime/executor.go",
+    "internal/windowsruntime/executor_test.go",
+    "internal/windowsdiag/diag_windows.go",
+    "cmd/wbd-faketcp/main.go",
+    "cmd/wbd-faketcp/main_windows.go",
+    "internal/faketcp/server_mux.go",
     "cmd/wbd-faketcp-mux/main_linux.go",
-    ".github/workflows/linux-server-release.yml",
-    "scripts/windows_frozen_wbd_one_shot.ps1",
-    "cmd/wbd-windows-portable",
-    ".github/workflows/windows-portable-bundle.yml"
+    "internal/dtlsworker/worker_linux.go",
+    "native/dtls/wbd_dtls_shim.c",
+    "native/dtls/CMakeLists.txt",
+    "scripts/linux_server_firewall.sh",
+    ".github/workflows/windows-portable-bundle.yml",
+    ".github/workflows/linux-server-release.yml"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "real Ubuntu failure evidence plus current-head green Linux release/regression gates and ADR-0010",
-    "outer_semantics": "Reality-like TLS is setup/admission only; sustained payload is WBD raw FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK.",
-    "fec_status": "Release wire path remains off or fixed systematic 20:20 unless an ADR changes it.",
+    "authority": "physical Windows/Ubuntu evidence from 2026-08-29 plus current PR #8 CI and frozen ADR-0010",
+    "outer_semantics": "Reality-like TLS setup/admission only; sustained payload is WBD raw FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK.",
+    "fec_status": "Release wire remains off or fixed systematic 20:20.",
     "capacity_policy": "40 Mbit/s aggregate-inner release point on <=100 Mbit/s weak links.",
-    "platform_status": "Linux startup fix is CI-qualified but needs retry on the reporting Ubuntu host. Physical administrator Windows qualification remains outstanding."
+    "platform_status": "Linux service is active and accepts Reality admission. Physical FakeTCP handshake succeeds. Current blocker is DTLS handshake completion before LINK."
   },
   "product_policy": {
-    "linux_server": "One public WBD_PORT is shared by Reality admission and raw FakeTCP. WBD_LISTEN_IP=0.0.0.0 is valid for Reality; the manager resolves a primary concrete IPv4 for raw FakeTCP. Internal LINK/platform listeners remain loopback. systemd uses control-group teardown and startup burst limiting.",
-    "windows": "Portable x64 wbd.exe, UAC elevation, Npcap 1.88 readiness, local strict wbd.json, Full/Foreign/China routing, Auto/System/Cloudflare/Custom DNS, device IPv6 kill-switch while connected, WBD-owned cleanup on Disconnect/Exit.",
-    "protocol_freeze": "Legacy FakeTCP release default; pinned wolfSSL DTLS 1.3; Reality setup-only; ticket/LiveID isolation; immutable LINK; FEC off or fixed 20:20."
+    "linux_server": "One public WBD_PORT shared by Reality admission and raw FakeTCP. Reality may bind wildcard; FakeTCP uses a concrete local IPv4. Internal LINK/platform listeners remain loopback. WBD-owned firewall suppresses raw-port kernel RST and cleans only WBD state.",
+    "windows": "Portable x64 wbd.exe, UAC elevation, Npcap 1.88, Full/Foreign/China routes, Auto/System/Cloudflare/Custom DNS, device-wide IPv6 kill-switch while connected. Startup must be readiness-gated: FakeTCP -> DTLS -> LINK -> TUN -> IPv6 -> routes.",
+    "protocol_freeze": "Legacy FakeTCP; pinned wolfSSL DTLS 1.3; Reality setup-only; ticket/LiveID isolation; immutable LINK; one raw lane; FEC off or fixed 20:20."
   },
   "real_host_failure_evidence": {
-    "observed_at": "2026-08-28T22:02:37+08:00",
-    "errors": [
-      "WBD_LINK_SERVER_MUX_FAIL listen udp4 127.0.0.1:47000: bind: address already in use",
-      "wbd-faketcp-mux: --listen must use a concrete IPv4 address",
-      "wbd-server.service restart counter reached 123",
-      "ExecStop kill emitted usage and control process failed"
+    "observed_at": "2026-08-29T02:22:47+08:00",
+    "windows": [
+      "Reality bootstrap passed.",
+      "FakeTCP printed READY role=client before DTLS process start.",
+      "DTLS produced no READY marker for 25 seconds.",
+      "Connect failed with wait dtls ready timeout and rolled back DTLS/FakeTCP before IPv6 or route mutation."
     ],
-    "root_cause": "Wildcard WBD_LISTEN_IP was incorrectly reused for raw FakeTCP. The 47000 conflict is separate host state and must be resolved by identifying the owner, not blind process killing."
+    "linux": [
+      "wbd-server.service remained active.",
+      "Reality front logged authenticated admission for the physical client.",
+      "Per-session wbd_dtls_shim was spawned.",
+      "DTLS server logged BOUND role=server transport_port=61061 inherited=yes but no READY role=server in the supplied excerpt."
+    ],
+    "first_deterministic_blocker": "wolfSSL DTLS 1.3 handshake does not complete after the FakeTCP association is established and the Linux DTLS worker is spawned.",
+    "important_negative_evidence": "The old Windows process-order race is removed: DTLS now starts only after FakeTCP READY. No route-apply/connect_pass occurs on this failure, so LINK/TUN/DNS are downstream and not the current blocker."
   },
-  "live_ci_snapshot": {
-    "authority": "live_current_head",
-    "tested_commit": "3a72cac9e2e21a259a9106eb3ab10002dd80066b",
-    "green": {
-      "linux_server_settings": 33179439771,
-      "linux_server_release": 33179439484,
-      "ci": 33179439797,
-      "handoff_verify": 33179440020
+  "experiment_snapshot": {
+    "pr": 8,
+    "branch": "exp/windows-readiness-gated-startup",
+    "head": "9b1024167139fc2e2f09d6a9e943d3fc880d4f7e",
+    "base": "b1824532ddb8cc9b435e496ce1e03b5730891c3d",
+    "purpose": "Readiness-gated Windows startup and fail-before-routing behavior.",
+    "ci": {
+      "main": {"run_id": 33196838704, "result": "success"},
+      "windows_portable_bundle": {"run_id": 33196838643, "result": "success", "artifact_id": 9696151559}
     },
-    "pending_at_checkpoint": [],
-    "red": {},
-    "note": "3a72 changes Linux release checksum portability on top of the 067d startup fix. No frozen transport implementation changed."
-  },
-  "release_artifacts": {
-    "linux_source_head": "3a72cac9e2e21a259a9106eb3ab10002dd80066b",
-    "linux_run_id": 33179439484,
-    "linux_amd64": {
-      "artifact_id": 9689141140,
-      "actions_zip_sha256": "674b262c73686f967e2b55e86837daa956e8ed2ad227282d744114c1814dbd9b",
-      "tar_gz_sha256": "aaffd8c77533606013cae44d4be2675dce0ab360a76648ce9ac448e492082468"
-    },
-    "linux_arm64": {
-      "artifact_id": 9689108264,
-      "actions_zip_sha256": "7db72ea6d16028a922f69d5ed583b57c5685913e71d06be07e1ea3da0b99ebde",
-      "tar_gz_sha256": "597db6e45816216d04244f2e93a925c6aab7f35adda5d4d25431da390e64ba51"
-    },
-    "windows": {
-      "source_head": "834a592d51f9ee5ed126cc74d477bc426ce59381",
-      "run_id": 33062571592,
-      "artifact_id": 9642420665,
-      "actions_zip_sha256": "a0cd8eba541fbae3574b351f68153b0ddb2805a06f966602951a3c832d8b08e7",
-      "wbd_exe_sha256": "e1d7de6851ddfbe52740a8f1eee91917fc1e23b6a99a26b5ef45e71335933d8b"
+    "artifact": {
+      "actions_zip_sha256": "8172e915ebe62c3aad93f7f049ab73407654cd2ffa1623279a1fa8f17689ec7b",
+      "wbd_exe_sha256": "b8e44b28bb82b783ec4f363d92f3375b0dfe78f4b739570200552133f8567006"
     }
   },
-  "local_test_snapshot": {
-    "authority": "snapshot_not_live",
-    "tested_commit": "3a72cac9e2e21a259a9106eb3ab10002dd80066b",
-    "result": "pass",
-    "command": "Local sh syntax and Linux settings regression passed; wildcard 0.0.0.0 resolved to synthetic 10.77.0.9 for FakeTCP. Final amd64/arm64 Actions ZIPs and portable tar checksums were verified, bundles extracted, manager markers/syntax checked, and amd64 help smoke passed. Real Ubuntu service retry and physical Windows E2E were not run in this sandbox."
-  }
+  "source_findings": {
+    "faketcp_client_handshake": "Client sends an empty final ACK, initializes sender at ISN+1, then prints READY and starts raw/UDP/retransmit loops. Under the readiness gate, DTLS ClientHello is therefore a normal post-handshake FakeTCP data segment, not final-ACK payload.",
+    "faketcp_server_mux": "After accepting the final ACK, mux starts the per-session DTLS worker and then processes the same segment through HandleSegment. Normal subsequent payload is delivered through sess.relay to the worker socket; server responses are read from sess.relay and enqueued onto FakeTCP raw return traffic.",
+    "dtls_server": "Linux shim prints BOUND before its initial MSG_PEEK, then sets peer, sends an HRR cookie and enters wolfSSL_accept. Existing BOUND alone cannot distinguish blocked MSG_PEEK from a later wolfSSL_accept stall.",
+    "wolfssl_windows_fd": "Pinned wolfSSL 5.9.2 exposes wolfSSL_set_fd(WOLFSSL*, int) and its MSVC SOCKET_T is unsigned int, so WBD's current int cast is consistent with the pinned library API and is not presently treated as the first root cause."
+  },
+  "known_secondary_windows_issues": [
+    "PowerShell 5.1 UTF-8 BOM can make route state JSON fail Go json.Unmarshal with invalid character 'ï'.",
+    "Stopping an already-exited LINK child may report TerminateProcess: Access is denied; Stop should become idempotent.",
+    "Linux process argv can expose Reality credentials; rotate the test password and move secrets off argv in a later product-hardening fix."
+  ]
 }
