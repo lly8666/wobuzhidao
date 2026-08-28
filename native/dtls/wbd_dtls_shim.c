@@ -134,6 +134,16 @@ static void timeout_fd(wbd_socket_t fd) {
 #endif
 }
 
+static void blocking(wbd_socket_t fd) {
+#ifdef _WIN32
+    u_long mode = 0;
+    if (ioctlsocket(fd, FIONBIO, &mode) == SOCKET_ERROR) die_socket("ioctlsocket blocking");
+#else
+    int f = fcntl(fd, F_GETFL, 0);
+    if (f < 0 || fcntl(fd, F_SETFL, f & ~O_NONBLOCK) < 0) die_socket("fcntl blocking");
+#endif
+}
+
 static void nonblock(wbd_socket_t fd) {
 #ifdef _WIN32
     u_long mode = 1;
@@ -315,6 +325,7 @@ static int run_client(int listen_port, const char* transport_ip, int transport_p
 
     t = socket(AF_INET, SOCK_DGRAM, 0);
     if (t == WBD_INVALID_SOCKET) die_socket("transport socket");
+    blocking(t);
     timeout_fd(t);
     ta = addr4(transport_ip, transport_port);
     if (socket_failed(connect(t, (struct sockaddr*)&ta, (int)sizeof(ta)))) die_socket("transport connect");
@@ -337,6 +348,9 @@ static int run_client(int listen_port, const char* transport_ip, int transport_p
         wolfSSL_CTX_free(ctx);
         return 2;
     }
+    fprintf(stderr, "WBD_DTLS_CLIENT_CONNECT_START transport_port=%d verify=%s\n",
+        transport_port, insecure ? "none" : "peer-hostname");
+    fflush(stderr);
     r = wolfSSL_connect(ssl);
     if (r != WOLFSSL_SUCCESS) {
         ssl_log("client handshake", ssl, r);
@@ -345,6 +359,9 @@ static int run_client(int listen_port, const char* transport_ip, int transport_p
         wolfSSL_CTX_free(ctx);
         return 3;
     }
+    fprintf(stderr, "WBD_DTLS_CLIENT_CONNECT_PASS version=%s cipher=%s\n",
+        wolfSSL_get_version(ssl), wolfSSL_get_cipher(ssl));
+    fflush(stderr);
 
     p = socket(AF_INET, SOCK_DGRAM, 0);
     if (p == WBD_INVALID_SOCKET) die_socket("plain socket");
@@ -427,14 +444,21 @@ static int run_server(int listen_port, const char* target_ip, int target_port, c
         la = addr4("127.0.0.1", listen_port);
         if (socket_failed(bind(t, (struct sockaddr*)&la, (int)sizeof(la)))) die_socket("transport bind");
     }
+    blocking(t);
     timeout_fd(t);
     memset(&bound, 0, sizeof(bound));
     if (socket_failed(getsockname(t, (struct sockaddr*)&bound, &bound_len))) die_socket("transport getsockname");
     fprintf(stderr, "BOUND role=server transport_port=%u inherited=%s\n",
         (unsigned)ntohs(bound.sin_port), inherited == 1 ? "yes" : "no");
+    fprintf(stderr, "WBD_DTLS_SERVER_PEEK_WAIT transport_port=%u inherited=%s\n",
+        (unsigned)ntohs(bound.sin_port), inherited == 1 ? "yes" : "no");
+    fflush(stderr);
 
     n = (int)recvfrom(t, (char*)peek, (int)sizeof(peek), MSG_PEEK, (struct sockaddr*)&peer, &plen);
     if (n <= 0) die_socket("peek");
+    fprintf(stderr, "WBD_DTLS_SERVER_PEEK bytes=%d peer_port=%u inherited=%s\n",
+        n, (unsigned)ntohs(peer.sin_port), inherited == 1 ? "yes" : "no");
+    fflush(stderr);
     ssl = wolfSSL_new(ctx);
     if (!ssl) {
         close_socket(t);
@@ -453,12 +477,17 @@ static int run_server(int listen_port, const char* target_ip, int target_port, c
         wolfSSL_CTX_free(ctx);
         return 2;
     }
+    fprintf(stderr, "WBD_DTLS_SERVER_PEER_SET peer_port=%u\n", (unsigned)ntohs(peer.sin_port));
+    fflush(stderr);
     if (wolfSSL_send_hrr_cookie(ssl, NULL, 0) != WOLFSSL_SUCCESS) {
         close_socket(t);
         wolfSSL_free(ssl);
         wolfSSL_CTX_free(ctx);
         return 2;
     }
+    fprintf(stderr, "WBD_DTLS_SERVER_HRR_ARMED\n");
+    fprintf(stderr, "WBD_DTLS_SERVER_ACCEPT_START\n");
+    fflush(stderr);
     r = wolfSSL_accept(ssl);
     if (r != WOLFSSL_SUCCESS) {
         ssl_log("server handshake", ssl, r);
@@ -467,6 +496,9 @@ static int run_server(int listen_port, const char* target_ip, int target_port, c
         wolfSSL_CTX_free(ctx);
         return 3;
     }
+    fprintf(stderr, "WBD_DTLS_SERVER_ACCEPT_PASS version=%s cipher=%s\n",
+        wolfSSL_get_version(ssl), wolfSSL_get_cipher(ssl));
+    fflush(stderr);
 
     p = socket(AF_INET, SOCK_DGRAM, 0);
     if (p == WBD_INVALID_SOCKET) die_socket("plain socket");
