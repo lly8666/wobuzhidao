@@ -101,12 +101,15 @@ func (a *ServerAssociation) SYNACK() (seq, ack uint32, err error) {
 	return a.serverISN, a.peerNext, nil
 }
 
-// HandleHandshakeACK completes only this flow. A retransmitted SYN can be
-// answered by SYNACK again by the outer mux without allocating a second state.
+// HandleHandshakeACK completes only this flow. Like TCP, the final ACK may
+// carry the first application payload. The outer mux can then either process
+// that payload immediately or, on older callers, recover it via normal sender
+// retransmission. A retransmitted SYN can still be answered by SYNACK again
+// without allocating a second state.
 func (a *ServerAssociation) HandleHandshakeACK(seg Segment) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if a.state != ServerAssociationAwaitACK || !a.flow.Matches(seg) || seg.Flags&FlagACK == 0 || seg.Ack != a.serverISN+1 || len(seg.Payload) != 0 {
+	if a.state != ServerAssociationAwaitACK || !a.flow.Matches(seg) || seg.Flags&FlagACK == 0 || seg.Ack != a.serverISN+1 {
 		return ErrHandshakeState
 	}
 	a.state = ServerAssociationEstablished
