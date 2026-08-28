@@ -78,4 +78,54 @@ if grep -Eq '^WBD_(FRONT|RAW)_PORT=' "$ETC/server.env"; then
     echo 'explicit WBD_PORT migration left legacy keys behind' >&2; exit 1
 fi
 
-echo 'WBD_LINUX_SERVER_SETTINGS_PASS shared_port=1 migration=fail_closed secrets=redacted'
+# Regression: the product default is WBD_LISTEN_IP=0.0.0.0 for the Reality TCP
+# listener, but raw FakeTCP requires a concrete IPv4. The manager must resolve
+# the primary route IPv4 before constructing wbd-faketcp-mux --listen.
+rm -rf "$PREFIX" "$RUN"; mkdir -p "$PREFIX/bin" "$RUN/tickets" "$ROOT/fakebin"
+sed -i 's/^WBD_LISTEN_IP=.*/WBD_LISTEN_IP=0.0.0.0/' "$ETC/server.env"
+cat >"$ROOT/fakebin/ip" <<'EOF'
+#!/bin/sh
+printf '%s\n' '1.1.1.1 via 10.77.0.1 dev eth0 src 10.77.0.9 uid 0'
+EOF
+chmod +x "$ROOT/fakebin/ip"
+for f in wbd-platform-proxy-server wbd-link-server-mux wbd-reality-front; do
+    cat >"$PREFIX/bin/$f" <<'EOF'
+#!/bin/sh
+exec sleep 30
+EOF
+    chmod +x "$PREFIX/bin/$f"
+done
+cat >"$PREFIX/bin/linux_server_guard.sh" <<'EOF'
+#!/bin/sh
+: "${WBD_TEST_GUARD_LOG:?}"
+printf '%s\n' "$@" >"$WBD_TEST_GUARD_LOG"
+exit 0
+EOF
+chmod +x "$PREFIX/bin/linux_server_guard.sh"
+GUARD_LOG=$ROOT/guard.args
+export WBD_TEST_GUARD_LOG=$GUARD_LOG
+OLD_PATH=$PATH
+PATH=$ROOT/fakebin:$PATH
+export PATH
+run_manager run >/tmp/wbd-settings-wildcard.log
+PATH=$OLD_PATH
+export PATH
+unset WBD_TEST_GUARD_LOG
+grep -q '^10.77.0.9:8443$' "$GUARD_LOG"
+if grep -q '^0.0.0.0:8443$' "$GUARD_LOG"; then
+    echo 'wildcard WBD_LISTEN_IP leaked into raw FakeTCP --listen' >&2
+    cat "$GUARD_LOG" >&2
+    exit 1
+fi
+grep -q 'faketcp=10.77.0.9:8443' /tmp/wbd-settings-wildcard.log
+
+# The systemd unit must rely on normal control-group termination instead of an
+# explicit /bin/kill $MAINPID control process, and cap repeated startup failures.
+if grep -q 'ExecStop=/bin/kill' "$MANAGER"; then
+    echo 'manager still emits fragile ExecStop=/bin/kill $MAINPID' >&2
+    exit 1
+fi
+grep -q 'StartLimitBurst=5' "$MANAGER"
+grep -q 'KillMode=control-group' "$MANAGER"
+
+echo 'WBD_LINUX_SERVER_SETTINGS_PASS shared_port=1 wildcard_raw_ipv4=resolved restart_storm=capped migration=fail_closed secrets=redacted'
