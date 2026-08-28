@@ -342,6 +342,7 @@ func (s *muxServer) retransmitLoop() error {
 						return err
 					}
 				}
+			}
 		}
 	}
 }
