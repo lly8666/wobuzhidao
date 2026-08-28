@@ -40,13 +40,17 @@ func TestParseEtherMAC(t *testing.T) {
 	}
 }
 
-func TestMatchesKernelRSTExactFlow(t *testing.T) {
-	r := &npcapRawPacketIO{
+func testFlowIO() *npcapRawPacketIO {
+	return &npcapRawPacketIO{
 		sourceIP:   [4]byte{192, 168, 10, 11},
 		remoteIP:   [4]byte{203, 0, 113, 7},
 		sourcePort: 41001,
 		remotePort: 443,
 	}
+}
+
+func TestMatchesKernelRSTExactFlow(t *testing.T) {
+	r := testFlowIO()
 	pkt := make([]byte, 40)
 	pkt[0] = 0x45
 	pkt[9] = 6
@@ -78,5 +82,46 @@ func TestMatchesKernelRSTExactFlow(t *testing.T) {
 	binary.BigEndian.PutUint16(inbound[22:24], r.sourcePort)
 	if r.matchesKernelRST(inbound) {
 		t.Fatal("inbound peer RST must not be reported as a local kernel RST")
+	}
+}
+
+func TestFlowPayloadBytesExactDirection(t *testing.T) {
+	r := testFlowIO()
+	out := make([]byte, 45)
+	out[0] = 0x45
+	binary.BigEndian.PutUint16(out[2:4], uint16(len(out)))
+	out[9] = 6
+	copy(out[12:16], r.sourceIP[:])
+	copy(out[16:20], r.remoteIP[:])
+	binary.BigEndian.PutUint16(out[20:22], r.sourcePort)
+	binary.BigEndian.PutUint16(out[22:24], r.remotePort)
+	out[32] = 5 << 4 // TCP header is 20 bytes.
+	copy(out[40:], []byte("hello"))
+	if n, ok := r.flowPayloadBytes(out, true); !ok || n != 5 {
+		t.Fatalf("outbound payload boundary mismatch n=%d ok=%v", n, ok)
+	}
+	if _, ok := r.flowPayloadBytes(out, false); ok {
+		t.Fatal("outbound packet must not match inbound direction")
+	}
+
+	in := append([]byte(nil), out...)
+	copy(in[12:16], r.remoteIP[:])
+	copy(in[16:20], r.sourceIP[:])
+	binary.BigEndian.PutUint16(in[20:22], r.remotePort)
+	binary.BigEndian.PutUint16(in[22:24], r.sourcePort)
+	if n, ok := r.flowPayloadBytes(in, false); !ok || n != 5 {
+		t.Fatalf("inbound payload boundary mismatch n=%d ok=%v", n, ok)
+	}
+
+	ackOnly := append([]byte(nil), out[:40]...)
+	binary.BigEndian.PutUint16(ackOnly[2:4], uint16(len(ackOnly)))
+	if _, ok := r.flowPayloadBytes(ackOnly, true); ok {
+		t.Fatal("ACK-only packet must not be reported as payload")
+	}
+
+	wrongPort := append([]byte(nil), out...)
+	binary.BigEndian.PutUint16(wrongPort[20:22], r.sourcePort+1)
+	if _, ok := r.flowPayloadBytes(wrongPort, true); ok {
+		t.Fatal("different four-tuple must not match payload boundary")
 	}
 }
