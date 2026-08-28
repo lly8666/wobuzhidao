@@ -18,9 +18,10 @@ import (
 )
 
 const (
-	pcapErrbufSize    = 256
-	pcapDLTEthernet   = 1
-	pcapReadTimeoutMS = 50
+	pcapErrbufSize          = 256
+	pcapDLTEthernet         = 1
+	pcapReadTimeoutMS       = 50
+	npcapModeSendToRxClear = 0x0200
 )
 
 type pcapHeader struct {
@@ -116,6 +117,10 @@ func openRawPacketIO(c config, sourceIP [4]byte) (rawPacketIO, error) {
 	if err != nil {
 		return fail(err)
 	}
+	setMode, err := dll.FindProc("pcap_setmode")
+	if err != nil {
+		return fail(fmt.Errorf("Npcap 1.88 pcap_setmode export missing: %w", err))
+	}
 
 	device, err := syscall.BytePtrFromString(c.packetDevice)
 	if err != nil {
@@ -144,11 +149,17 @@ func openRawPacketIO(c config, sourceIP [4]byte) (rawPacketIO, error) {
 	if setMinToCopy, err := dll.FindProc("pcap_setmintocopy"); err == nil {
 		_, _, _ = setMinToCopy.Call(handle, 1)
 	}
-	// Npcap >=1.83 mode 0 restores the ordinary transmit path if a machine-wide
-	// SendToRxAdapters override exists. Older versions simply lack this symbol.
-	if setMode, err := dll.FindProc("pcap_setmode"); err == nil {
-		_, _, _ = setMode.Call(handle, 0)
+	// Npcap 1.83+ defines MODE_SENDTORX_CLEAR (0x0200) specifically to
+	// override a machine-wide SendToRxAdapters setting for this handle. MODE_CAPT
+	// is 0 and does not clear that override. WBD locks Npcap 1.88, so failure to
+	// force the physical transmit path is a startup error rather than a condition
+	// to hide until the DTLS handshake times out.
+	if ret, _, _ := setMode.Call(handle, npcapModeSendToRxClear); int32(ret) != 0 {
+		msg := pcapHandleError(getErr, handle)
+		closeProc.Call(handle)
+		return fail(fmt.Errorf("pcap_setmode MODE_SENDTORX_CLEAR: %s", msg))
 	}
+	fmt.Fprintln(os.Stderr, "WBD_FAKETCP_WINDOWS_NPCAP_MODE_READY sendtorx=cleared")
 
 	return &npcapRawPacketIO{
 		dll: dll, handle: handle,
@@ -375,8 +386,11 @@ func (r *npcapRawPacketIO) Close() error {
 	return nil
 }
 
-func (r *npcapRawPacketIO) lastError() string {
-	ptr, _, _ := r.pcapGetErr.Call(r.handle)
+func pcapHandleError(getErr *syscall.Proc, handle uintptr) string {
+	if getErr == nil || handle == 0 {
+		return "unknown Npcap error"
+	}
+	ptr, _, _ := getErr.Call(handle)
 	if ptr == 0 {
 		return "unknown Npcap error"
 	}
@@ -385,6 +399,10 @@ func (r *npcapRawPacketIO) lastError() string {
 		return s
 	}
 	return "unknown Npcap error"
+}
+
+func (r *npcapRawPacketIO) lastError() string {
+	return pcapHandleError(r.pcapGetErr, r.handle)
 }
 
 func ethernetIPv4Payload(frame []byte) ([]byte, bool) {

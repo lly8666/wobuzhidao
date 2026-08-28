@@ -7,6 +7,12 @@ import (
 	"testing"
 )
 
+func TestNpcapModeSendToRxClearLockedValue(t *testing.T) {
+	if npcapModeSendToRxClear != 0x0200 {
+		t.Fatalf("MODE_SENDTORX_CLEAR=%#x want=0x0200", npcapModeSendToRxClear)
+	}
+}
+
 func TestEthernetIPv4Payload(t *testing.T) {
 	ip := []byte{0x45, 0, 0, 20}
 	frame := make([]byte, 14+len(ip))
