@@ -87,6 +87,46 @@ func TestServerAssociationTableAllowsManyClientsOnOnePublicPort(t *testing.T) {
 	}
 }
 
+func TestServerAssociationAcceptsDataBearingFinalACK(t *testing.T) {
+	const clientISN uint32 = 1200
+	const serverISN uint32 = 9000
+	table, _ := NewServerAssociationTable(1)
+	syn := muxSYN(20501, clientISN)
+	a, err := table.AddSYN(syn, serverISN, RecoveryLegacy, time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The pure third ACK may be lost. TCP permits the first application data to
+	// acknowledge the SYN-ACK, so the WBD server must establish instead of
+	// rejecting every retransmission of the first DTLS ClientHello payload.
+	first := syn
+	first.Flags = FlagACK | FlagPSH
+	first.Seq = clientISN + 1
+	first.Ack = serverISN + 1
+	first.Payload = []byte("dtls-client-hello")
+	if err := a.HandleHandshakeACK(first); err != nil {
+		t.Fatalf("data-bearing final ACK rejected: %v", err)
+	}
+	if a.State() != ServerAssociationEstablished {
+		t.Fatal("data-bearing final ACK did not establish association")
+	}
+
+	// The outer mux in the compatibility path may have consumed the handshake
+	// segment before delivery. Normal FakeTCP ARQ retransmission must then be
+	// accepted and delivered, rather than leaving DTLS to time out forever.
+	res, err := a.HandleSegment(first, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(res.Deliver) != string(first.Payload) || !res.AckNeeded {
+		t.Fatalf("retransmitted first payload deliver=%q ack_needed=%v", res.Deliver, res.AckNeeded)
+	}
+	if want := clientISN + 1 + uint32(len(first.Payload)); res.Ack != want {
+		t.Fatalf("ack=%d want=%d", res.Ack, want)
+	}
+}
+
 func TestServerAssociationsKeepSequenceAndHOLStateIndependent(t *testing.T) {
 	table, _ := NewServerAssociationTable(2)
 	a := handshakeMuxAssociation(t, table, 21001, 1000, 5000)
