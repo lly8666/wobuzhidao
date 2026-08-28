@@ -32,11 +32,16 @@ func openRawPacketIO(_ config, srcIP [4]byte) (rawPacketIO, error) {
 }
 
 func (r *linuxRawPacketIO) ReadPacket(buf []byte) (int, error) {
-	n, _, err := syscall.Recvfrom(r.fd, buf, 0)
-	if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) {
-		return 0, errRawTimeout
+	for {
+		n, _, err := syscall.Recvfrom(r.fd, buf, 0)
+		if errors.Is(err, syscall.EINTR) {
+			continue
+		}
+		if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) {
+			return 0, errRawTimeout
+		}
+		return n, err
 	}
-	return n, err
 }
 
 func (r *linuxRawPacketIO) WritePacket(packet []byte, dst [4]byte) error {
