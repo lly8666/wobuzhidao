@@ -66,6 +66,7 @@ jobs:
           cleanup() {
             set +e
             for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null; kill -TERM "$p" 2>/dev/null; done
+            sudo ip netns pids "$C" 2>/dev/null | xargs -r sudo kill -TERM 2>/dev/null
             sleep .2
             sudo ip netns del "$C" 2>/dev/null
             sudo ip netns del "$R" 2>/dev/null
@@ -95,6 +96,12 @@ jobs:
           sudo ip -n "$S" route add default via 198.18.0.1
           sudo ip netns exec "$R" sysctl -qw net.ipv4.ip_forward=1
           sudo ip netns exec "$R" iptables -t nat -A POSTROUTING -s 10.93.0.0/24 -o rs0 -j MASQUERADE
+
+          # Count client-originated TCP RSTs that actually leave the client and
+          # reach the NAT router. RETURN preserves the normal forwarding path.
+          sudo ip netns exec "$R" iptables -N WBD_RST_ROUTER
+          sudo ip netns exec "$R" iptables -A WBD_RST_ROUTER -j RETURN
+          sudo ip netns exec "$R" iptables -I FORWARD -i rc0 -p tcp --tcp-flags RST RST -j WBD_RST_ROUTER
           sudo ip netns exec "$R" iptables -A FORWARD -i rc0 -o rs0 -j ACCEPT
           sudo ip netns exec "$R" iptables -A FORWARD -i rs0 -o rc0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
@@ -129,6 +136,7 @@ jobs:
             plain=$4
             sudo ip netns exec "$C" iptables -F WBD_RST_AB
             sudo ip netns exec "$C" iptables -Z WBD_RST_AB
+            sudo ip netns exec "$R" iptables -Z WBD_RST_ROUTER
             if [ "$mode" = allow ]; then
               sudo ip netns exec "$C" iptables -A WBD_RST_AB -j RETURN
             else
@@ -137,45 +145,44 @@ jobs:
 
             sudo ip netns exec "$C" /tmp/rstab/wbd-faketcp client \
               --local-udp 127.0.0.1:${local_udp} --source 10.93.0.2:${sport} --remote 198.18.0.2:40000 \
-              >"/tmp/rstab/faketcp-${mode}.log" 2>&1 & FC=$!
-            PIDS="$PIDS $FC"
+              >"/tmp/rstab/faketcp-${mode}.log" 2>&1 &
             fake_ready=0
             for i in $(seq 1 300); do
               if grep -q 'READY role=client' "/tmp/rstab/faketcp-${mode}.log"; then fake_ready=1; break; fi
-              ! kill -0 "$FC" 2>/dev/null && break
               sleep .05
             done
 
             dtls_ready=0
             if [ "$fake_ready" = 1 ]; then
               sudo ip netns exec "$C" /tmp/rstab/wbd_dtls_shim client ${plain} 127.0.0.1 ${local_udp} /tmp/rstab/ca.pem wbd.test \
-                >"/tmp/rstab/dtls-${mode}.log" 2>&1 & DC=$!
-              PIDS="$PIDS $DC"
+                >"/tmp/rstab/dtls-${mode}.log" 2>&1 &
               for i in $(seq 1 300); do
                 if grep -q 'READY role=client version=DTLSv1.3.*verify=peer-hostname' "/tmp/rstab/dtls-${mode}.log"; then dtls_ready=1; break; fi
-                ! kill -0 "$DC" 2>/dev/null && break
                 sleep .05
               done
             else
               : >"/tmp/rstab/dtls-${mode}.log"
             fi
 
-            rst_count=$(sudo ip netns exec "$C" iptables -L WBD_RST_AB -v -n -x | awk '/RETURN|DROP/{print $1; exit}')
-            rst_count=${rst_count:-0}
-            echo "RST_NAT_CASE mode=${mode} fake_ready=${fake_ready} dtls_ready=${dtls_ready} rst_count=${rst_count}" | tee "/tmp/rstab/result-${mode}.log"
+            generated_rst=$(sudo ip netns exec "$C" iptables -L WBD_RST_AB -v -n -x | awk '/RETURN|DROP/{print $1; exit}')
+            router_rst=$(sudo ip netns exec "$R" iptables -L WBD_RST_ROUTER -v -n -x | awk '/RETURN/{print $1; exit}')
+            generated_rst=${generated_rst:-0}
+            router_rst=${router_rst:-0}
+            echo "RST_NAT_CASE mode=${mode} fake_ready=${fake_ready} dtls_ready=${dtls_ready} generated_rst=${generated_rst} router_rst=${router_rst}" | tee "/tmp/rstab/result-${mode}.log"
 
-            if [ "$mode" = allow ] && [ "$rst_count" -le 0 ]; then
-              echo 'expected client kernel RST was not observed' >&2
-              return 1
-            fi
-            if [ "$mode" = drop ]; then
+            [ "$generated_rst" -gt 0 ]
+            if [ "$mode" = allow ]; then
+              [ "$router_rst" -gt 0 ]
+            else
+              [ "$router_rst" -eq 0 ]
               [ "$fake_ready" = 1 ]
               [ "$dtls_ready" = 1 ]
             fi
-            return 0
           }
 
           run_case allow 41001 45101 46101
+          sudo ip netns pids "$C" | xargs -r sudo kill -TERM
+          sleep .2
           run_case drop 41002 45102 46102
 
           echo '--- allow ---'
