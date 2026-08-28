@@ -1,114 +1,106 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 54,
+  "continuity_sequence": 55,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
   "active_pr": 3,
-  "checkpoint_based_on_head_sha": "834a592d51f9ee5ed126cc74d477bc426ce59381",
+  "checkpoint_based_on_head_sha": "3a72cac9e2e21a259a9106eb3ab10002dd80066b",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Ship a personal weak-network VPN with a portable Windows 11 client and self-contained Linux amd64/arm64 server bundles. Sustained payload remains WBD-owned raw TCP-shaped FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK, with Reality-like setup/admission only, safe platform routing/firewall ownership, and deterministic cleanup.",
-    "current_milestone": "Release artifact closeout is complete for the connector-visible build surface. On live head 834a592d51f9ee5ed126cc74d477bc426ce59381 all release-critical automated gates are green, including faketcp-native, faketcp-first-arrival, mux-load-100m, windows portable bundle, linux amd64/arm64 server release, windows IPv6 kill-switch, linux shared port, handoff verify and main CI. The successful Windows and Linux Actions artifacts were downloaded and locally inspected. The only remaining release qualification is a clean physical Windows 11 administrator end-to-end one-shot against a real Linux server installed from the produced bundle; this environment cannot substitute for that real host and must not fabricate the result.",
-    "local_optimization_stop_rule": "Do not reopen ADR-0010 release transport semantics for packaging or platform convenience: 40 Mbit/s aggregate-inner release operating point on <=100 Mbit/s physical weak links, legacy FakeTCP release default, pinned wolfSSL DTLS source, Reality setup-only semantics, ticket/LiveID isolation, immutable LINK semantics, one raw lane, and release FEC off or fixed systematic 20:20 remain authority unless a future ADR explicitly changes them."
+    "current_milestone": "A real Ubuntu deployment of the sequence-54 Linux bundle exposed a deterministic launch defect that automated release checks had missed: the default WBD_LISTEN_IP=0.0.0.0 was passed directly to wbd-faketcp-mux even though raw FakeTCP requires a concrete IPv4. The same report also showed an occupied internal LINK UDP port 127.0.0.1:47000, a 123-iteration systemd restart storm, and a fragile ExecStop=/bin/kill $MAINPID failure. The manager now resolves the host primary IPv4 for raw FakeTCP while keeping Reality on the wildcard listener, removes the explicit ExecStop, uses control-group teardown, limits restart bursts, and exposes the resolved bind in doctor/start logs. A regression test reproduces the wildcard case. Linux release artifacts were rebuilt for amd64/arm64, and their checksum files were additionally fixed to use portable basenames.",
+    "local_optimization_stop_rule": "Do not reopen ADR-0010 release transport semantics for this platform fix. 40 Mbit/s aggregate-inner on <=100 Mbit/s weak links, legacy FakeTCP release default, pinned wolfSSL DTLS, Reality setup-only semantics, ticket/LiveID isolation, immutable LINK, one raw lane, and release FEC off or fixed systematic 20:20 remain frozen unless a future ADR changes them."
   },
   "continuation_cursor": {
-    "last_completed_action": "Refreshed sequence-53 head 834a592d51f9ee5ed126cc74d477bc426ce59381 and confirmed the relevant Actions matrix is green. Downloaded windows-portable-bundle artifact 9642420665 and linux-server-release artifacts 9642426148 (amd64) and 9642414782 (arm64). Verified the Windows artifact contains an x86-64 GUI wbd.exe; verified Linux bundles contain architecture-matched self-contained server tarballs, static runtime binaries, and a working wbd-server help surface. Checked Windows profile/runtime/Npcap/qualification source contracts and produced a release delivery pack with runnable programs, configuration examples, SHA-256 manifest, Markdown/DOCX/PDF advanced Chinese manual, and explicit physical-Windows qualification caveat. No frozen transport code was changed.",
-    "current_task": "Final external qualification only: perform one physical administrator Windows 11 frozen-WBD one-shot using the delivered portable wbd.exe against a Linux server installed from the delivered amd64 or arm64 bundle, then record DNS/TCP/UDP, Full capture, device-wide IPv6 fail-closed interval, and automatic Disconnect/Exit cleanup evidence.",
-    "why_now": "Automated repository, transport, platform and packaging gates are all green on the artifact-producing head and the artifacts themselves are available and structurally valid. Further code churn without physical evidence would add release risk instead of reducing it.",
-    "done_when": "A real Windows 11 x64 administrator machine with Npcap 1.88 and a real Linux server completes the frozen-WBD one-shot: admission ticket, raw FakeTCP -> wolfSSL DTLS 1.3 -> LINK -> Wintun data path, DNS/TCP/UDP probes, selected routing policy, device-wide IPv6 blocked for the complete connected interval, and automatic WBD-owned route/DNS/IPv6/firewall cleanup before runtime teardown. Preserve logs and artifact SHA-256 values with the result.",
-    "next_atomic_action": "Refresh branch HEAD and PR Actions. If the sequence-54 metadata commit is green, do not edit transport code. Move directly to the physical administrator Windows 11 one-shot. If a newly triggered automated gate is red, fetch only that run/job log and fix the first deterministic error; do not treat unrelated queue/cancel/flaky evidence as authority to reopen ADR-0010."
+    "last_completed_action": "Diagnosed the user-reported Ubuntu startup logs against source. Confirmed scripts/linux_server_manager.sh defaulted WBD_LISTEN_IP=0.0.0.0 and passed it to wbd-faketcp-mux, whose Linux implementation rejects zero/unspecified IPv4. Committed manager fix e542196c9e45b3da4f3d7586433ad1fb583ffcd0 and regression test 067d44780ab923c3ca46041108010be41d0f3f06. linux-server-settings run 33178916611, main CI 33178916295, handoff verify 33178916659, and linux-server-release run 33178916579 all passed. Download inspection then found release .sha256 files contained runner absolute paths; committed portable checksum fix 3a72cac9e2e21a259a9106eb3ab10002dd80066b. On that head main CI 33179439797, handoff verify 33179440020, linux-server-settings 33179439771, and linux-server-release 33179439484 all passed. Final amd64/arm64 Actions artifacts were downloaded, ZIP-tested, tar SHA-256 verified with sha256sum -c, shell syntax checked, and amd64 manager help-smoked.",
+    "current_task": "Requalify the fixed Linux server on the reporting real Ubuntu host, then continue the remaining physical administrator Windows 11 end-to-end one-shot against that working Linux server.",
+    "why_now": "This is the first real-host Linux startup evidence and it invalidated the previous assumption that automated packaging alone covered the default wildcard bind. The deterministic source bug is now fixed and covered by CI; only real-host confirmation can close the reported 47000 ownership/startup condition before Windows end-to-end qualification.",
+    "done_when": "On the real Ubuntu host, the updated bundle installs over the existing configuration, doctor resolves a concrete FakeTCP IPv4, systemd starts without a restart storm, logs show WBD_LINUX_SERVER_BIND with Reality on the configured listener and FakeTCP on a concrete IPv4, LINK owns 127.0.0.1:47000 and platform owns 127.0.0.1:49000 without foreign conflicts, and the service remains active. Then the physical Windows 11 administrator one-shot completes admission -> FakeTCP -> pinned wolfSSL DTLS 1.3 -> LINK -> Wintun plus DNS/TCP/UDP, routing, IPv6 fail-closed, and cleanup evidence.",
+    "next_atomic_action": "Install the final 3a72cac9 Linux artifact matching the Ubuntu CPU architecture while preserving /etc/wbd/server.env. Before start, stop/reset the service and inspect owners of 47000/49000; terminate only stale WBD processes, never unrelated owners. Run wbd-server doctor, start, status, and journalctl -u wbd-server -n 100 --no-pager. If the new bind log shows a concrete FakeTCP IPv4 and the service stays active, proceed to the physical Windows one-shot. If it fails, use only the first deterministic new error as the next implementation target."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
     "PROJECT_CONSTITUTION.md",
     "docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md",
-    "cmd/wbd-windows-portable",
-    "internal/windowsruntime",
-    "scripts/windows_frozen_wbd_one_shot.ps1",
-    "scripts/windows_npcap_prepare.ps1",
-    "scripts/windows_ipv6_killswitch.ps1",
-    "scripts/windows_tun_route.ps1",
     "scripts/linux_server_manager.sh",
-    ".github/workflows/windows-portable-bundle.yml",
-    ".github/workflows/linux-server-release.yml"
+    "scripts/linux_server_settings_test.sh",
+    "scripts/build_linux_server_bundle.sh",
+    "scripts/linux_server_guard.sh",
+    "cmd/wbd-faketcp-mux/main_linux.go",
+    ".github/workflows/linux-server-release.yml",
+    "scripts/windows_frozen_wbd_one_shot.ps1",
+    "cmd/wbd-windows-portable",
+    ".github/workflows/windows-portable-bundle.yml"
   ],
   "required_data_plane_assets": [],
   "udp_like_status": {
-    "authority": "current-head green release gates plus ADR-0010 protocol freeze",
+    "authority": "real Ubuntu failure evidence plus current-head green regression/release gates and ADR-0010 protocol freeze",
     "outer_semantics": "WBD-owned TCP-shaped raw carrier with earliest-complete inner datagram delivery; Reality-like TLS is setup/admission only and sustained payload is FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK.",
-    "fec_status": "Release wire path remains off or fixed systematic 20:20 unless an explicit future ADR changes it. Research formula work must not silently change the live wire profile.",
+    "fec_status": "Release wire path remains off or fixed systematic 20:20 unless an explicit future ADR changes it.",
     "capacity_policy": "ADR-0010 release authority remains 40 Mbit/s aggregate inner on <=100 Mbit/s physical weak-link qualification.",
-    "artifact_status": "Actions produced and downloaded Windows x64 portable plus Linux amd64 and arm64 server artifacts from head 834a592d51f9ee5ed126cc74d477bc426ce59381.",
-    "platform_status": "OpenWrt/Linux and Windows automated platform gates are green. Final physical administrator Windows full-application qualification remains outstanding and is the only external release proof not executable in this environment."
+    "artifact_status": "Final Linux amd64/arm64 artifacts were rebuilt from head 3a72cac9e2e21a259a9106eb3ab10002dd80066b after the wildcard-listen and portable-checksum fixes. Windows artifact remains code-equivalent because these commits affect Linux manager/tests/build packaging only.",
+    "platform_status": "Linux default startup now has a regression test but still needs confirmation on the reporting real Ubuntu host. Physical administrator Windows full-application qualification remains outstanding."
   },
   "product_policy": {
     "link_setup": "Reality-like TLS front remains setup/admission only; sustained payload remains WBD FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK.",
     "accounts": "One shared username/password may authenticate multiple simultaneous devices; routing/session state is ticket/LiveID/peer keyed, never username keyed.",
-    "windows_gui": "Final Windows product is a portable outer wbd.exe. It self-elevates via UAC, extracts and SHA-verifies its embedded runtime, reads strict wbd.json beside the executable by default, exposes Npcap install/repair without redistributing Npcap Free Edition, keeps VPN running on minimize/X, and performs WBD-owned cleanup on explicit Disconnect/Exit. Device IPv6 is blocked while connected.",
-    "windows_profile": "New profiles use one server_ip IPv4 plus server_port. Valid route modes are Full, Foreign and China. Valid DNS modes are Auto, System, Cloudflare and Custom. FEC is off or 20:20 and MTU defaults to 1400. Foreign/China require a verified portable CN bundle.",
-    "linux_server": "Exactly one public WBD_PORT is shared by Reality-like admission and raw FakeTCP. Internal platform/LINK workers remain loopback. The manager owns install/uninstall/start/stop/pause/resume/restart/status/logs/config/set/regen-certs/doctor/show-config, and firewall cleanup removes only WBD-owned state.",
-    "npcap": "Windows dependency lock remains Npcap 1.88 fetched from the official site, installer SHA-256 a2f4ec1e5ea353ff67efd24b2ebf081ba44532410fae8d5e146af0310aa4f56b, Authenticode signer Nmap Software LLC; WBD does not redistribute the Free Edition installer."
+    "windows_gui": "Portable outer wbd.exe self-elevates via UAC, reads strict local wbd.json, manages Npcap readiness without redistributing Npcap Free Edition, keeps VPN running on minimize/X, and performs WBD-owned cleanup on Disconnect/Exit with device IPv6 blocked while connected.",
+    "windows_profile": "One server_ip IPv4 plus server_port. Route modes Full/Foreign/China. DNS Auto/System/Cloudflare/Custom. FEC off or 20:20. MTU defaults to 1400. Foreign/China require verified CN assets.",
+    "linux_server": "Exactly one public WBD_PORT is shared by Reality-like admission and raw FakeTCP. WBD_LISTEN_IP=0.0.0.0 remains valid for Reality; the manager resolves the primary concrete host IPv4 for raw FakeTCP. Internal platform/LINK workers remain loopback. systemd teardown uses the control group and startup failures are burst-limited. Firewall cleanup removes only WBD-owned state.",
+    "npcap": "Npcap dependency lock remains 1.88 from the official site with installer SHA-256 a2f4ec1e5ea353ff67efd24b2ebf081ba44532410fae8d5e146af0310aa4f56b and signer Nmap Software LLC; WBD does not redistribute it."
+  },
+  "real_host_failure_evidence": {
+    "observed_at": "2026-08-28T22:02:37+08:00",
+    "reported_platform": "Ubuntu systemd host",
+    "deterministic_errors": [
+      "WBD_LINK_SERVER_MUX_FAIL listen udp4 127.0.0.1:47000: bind: address already in use",
+      "wbd-faketcp-mux: --listen must use a concrete IPv4 address",
+      "wbd-server.service restart counter reached 123",
+      "ExecStop kill emitted usage and control process status=1"
+    ],
+    "root_cause": "The release manager defaulted WBD_LISTEN_IP to 0.0.0.0 for the Reality listener and reused the same wildcard for raw FakeTCP, while cmd/wbd-faketcp-mux/main_linux.go requires a concrete IPv4. The 47000 ownership conflict is a separate host-state condition and must be resolved by identifying the owning process rather than blindly killing listeners."
   },
   "live_ci_snapshot": {
     "authority": "live_current_head",
-    "tested_commit": "834a592d51f9ee5ed126cc74d477bc426ce59381",
+    "tested_commit": "3a72cac9e2e21a259a9106eb3ab10002dd80066b",
     "green": {
-      "windows_tun_admin_smoke": 33062571572,
-      "faketcp_pcap_20loss": 33062571589,
-      "openwrt_udp_tproxy": 33062571629,
-      "windows_dtls_build": 33062571564,
-      "windows_tun_build": 33062571581,
-      "openwrt_fullstack_one_shot": 33062571617,
-      "fullstack_first_arrival": 33062571599,
-      "windows_portable_bundle": 33062571592,
-      "linux_server_release": 33062571680,
-      "game_lane_fullstack": 33062571623,
-      "mux_load_100m": 33062571558,
-      "handoff_verify": 33062571524,
-      "openwrt_tcp_tproxy": 33062571511,
-      "linux_server_settings": 33062571672,
-      "game_settings_matrix": 33062571559,
-      "build_quic_oracle": 33062571590,
-      "ci": 33062571545,
-      "windows_ipv6_killswitch": 33062571661,
-      "faketcp_first_arrival": 33062571520,
-      "link_policy_formula": 33062571516,
-      "fec_policy_discovery": 33062571569,
-      "faketcp_native": 33062571639,
-      "linux_shared_port": 33062571609
+      "linux_server_settings": 33179439771,
+      "linux_server_release": 33179439484,
+      "ci": 33179439797,
+      "handoff_verify": 33179440020
     },
     "pending_at_checkpoint": [],
     "red": {},
-    "note": "The isolated prior faketcp-first-arrival 20ms/0 failure was successfully rerun before this head and the sequence-53 current-head first-arrival workflow is also green. The sequence-53 handoff enum repair is green in both handoff-verify and main CI. Refresh statuses after this sequence-54 metadata commit before any new edit."
+    "note": "The prior implementation head 067d44780ab923c3ca46041108010be41d0f3f06 also passed linux-server-settings 33178916611 and linux-server-release 33178916579. The only 3a72 change is portable release checksum generation/verification. No frozen transport code changed."
   },
   "release_artifacts": {
-    "source_head": "834a592d51f9ee5ed126cc74d477bc426ce59381",
+    "linux_source_head": "3a72cac9e2e21a259a9106eb3ab10002dd80066b",
+    "linux_run_id": 33179439484,
+    "linux_amd64": {
+      "artifact_id": 9689141140,
+      "actions_zip_sha256": "674b262c73686f967e2b55e86837daa956e8ed2ad227282d744114c1814dbd9b",
+      "tar_gz_sha256": "aaffd8c77533606013cae44d4be2675dce0ab360a76648ce9ac448e492082468"
+    },
+    "linux_arm64": {
+      "artifact_id": 9689108264,
+      "actions_zip_sha256": "7db72ea6d16028a922f69d5ed583b57c5685913e71d06be07e1ea3da0b99ebde",
+      "tar_gz_sha256": "597db6e45816216d04244f2e93a925c6aab7f35adda5d4d25431da390e64ba51"
+    },
     "windows": {
+      "source_head": "834a592d51f9ee5ed126c1eec39aa0b904d8b83",
       "run_id": 33062571592,
       "artifact_id": 9642420665,
       "actions_zip_sha256": "a0cd8eba541fbae3574b351f68153b0ddb2805a06f966602951a3c832d8b08e7",
       "wbd_exe_sha256": "e1d7de6851ddfbe52740a8f1eee91917fc1e23b6a99a26b5ef45e71335933d8b"
     },
-    "linux_amd64": {
-      "run_id": 33062571680,
-      "artifact_id": 9642426148,
-      "actions_zip_sha256": "8edeb2ab4cf9ee52f81de5b88e28556716d42d46f5c8299b81c4d4c3258f5aad",
-      "tar_gz_sha256": "11c889737dcf7c3795de5f8fafb49f57325b47f7101bd0177a458be9695db750"
-    },
-    "linux_arm64": {
-      "run_id": 33062571680,
-      "artifact_id": 9642414782,
-      "actions_zip_sha256": "30f74dc5a8326aa7ebd9ee081a9b7083fdf89fd87d3f9e91f431c1a93631d935",
-      "tar_gz_sha256": "a3fc7d73605a18b8d84f573e2752b70b232b3eb1ebb0f3b343cfaefcb4108108"
-    },
-    "delivery_note": "A local combined delivery pack with these exact programs, configuration examples, checksums and advanced documentation was generated outside the repository. Physical Windows administrator E2E remains not performed in this build environment."
+    "delivery_note": "Final Linux artifact ZIPs and tarballs were locally integrity-checked after download. Their .sha256 files now contain basenames and pass sha256sum -c outside the GitHub runner."
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "834a592d51f9ee5ed126cc74d477bc426ce59381",
+    "tested_commit": "3a72cac9e2e21a259a9106eb3ab10002dd80066b",
     "result": "pass",
-    "command": "Downloaded the three successful Actions release artifacts; verified SHA-256 and file formats; extracted both Linux tarballs; ran the amd64 wbd-server help surface and wbd-reality-front usage smoke; generated and rendered/visually inspected the release manual DOCX/PDF. Windows PE execution and physical administrator E2E were not run on this Linux build host."
+    "command": "Ran sh -n and scripts/linux_server_settings_test.sh against the patched manager locally; the wildcard regression resolved 0.0.0.0 to a synthetic 10.77.0.9 FakeTCP bind. Downloaded final amd64/arm64 Actions artifacts, unzip-tested them, ran each portable tar checksum with sha256sum -c, extracted both bundles, verified manager fix markers and syntax, and ran the amd64 wbd-server help smoke. This sandbox did not execute the real Ubuntu network service or physical Windows administrator E2E."
   }
 }
