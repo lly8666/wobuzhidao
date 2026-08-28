@@ -41,9 +41,23 @@ jobs:
           go test ./internal/faketcp ./internal/dtlsworker -count=1
           go build -trimpath -o /tmp/mux2/wbd-faketcp ./cmd/wbd-faketcp
           go build -trimpath -o /tmp/mux2/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+
+          cat >/tmp/mux2/server.ext <<'EOF'
+          basicConstraints=critical,CA:FALSE
+          keyUsage=critical,digitalSignature,keyEncipherment
+          extendedKeyUsage=serverAuth
+          subjectAltName=DNS:wbd.test
+          EOF
           openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
-            -subj '/CN=mux-two-client.invalid' \
-            -keyout /tmp/mux2/dtls.key -out /tmp/mux2/dtls.pem >/dev/null 2>&1
+            -subj '/CN=WBD Mux Test Root CA' \
+            -keyout /tmp/mux2/ca.key -out /tmp/mux2/ca.pem >/dev/null 2>&1
+          openssl req -newkey rsa:2048 -nodes -sha256 -subj '/CN=wbd.test' \
+            -keyout /tmp/mux2/dtls.key -out /tmp/mux2/dtls.csr >/dev/null 2>&1
+          openssl x509 -req -in /tmp/mux2/dtls.csr \
+            -CA /tmp/mux2/ca.pem -CAkey /tmp/mux2/ca.key -CAcreateserial \
+            -days 2 -sha256 -extfile /tmp/mux2/server.ext -out /tmp/mux2/dtls.pem >/dev/null 2>&1
+          openssl verify -CAfile /tmp/mux2/ca.pem /tmp/mux2/dtls.pem
+          openssl x509 -in /tmp/mux2/dtls.pem -noout -ext subjectAltName | grep -q 'DNS:wbd.test'
       - name: Two clients share one public FakeTCP listener and get independent DTLS workers
         run: |
           set -euo pipefail
@@ -128,22 +142,22 @@ jobs:
           grep -q 'READY role=client.*recovery=legacy' /tmp/mux2/faketcp-a.log
           grep -q 'READY role=client.*recovery=legacy' /tmp/mux2/faketcp-b.log
 
-          sudo ip netns exec "$A" /tmp/mux2/wbd_dtls_shim client 46101 127.0.0.1 45101 none none \
+          sudo ip netns exec "$A" /tmp/mux2/wbd_dtls_shim client 46101 127.0.0.1 45101 /tmp/mux2/ca.pem wbd.test \
             >/tmp/mux2/dtls-a.log 2>&1 & DA=$!
-          sudo ip netns exec "$B" /tmp/mux2/wbd_dtls_shim client 46102 127.0.0.1 45102 none none \
+          sudo ip netns exec "$B" /tmp/mux2/wbd_dtls_shim client 46102 127.0.0.1 45102 /tmp/mux2/ca.pem wbd.test \
             >/tmp/mux2/dtls-b.log 2>&1 & DB=$!
           PIDS="$PIDS $DA $DB"
           for i in $(seq 1 800); do
-            if grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/mux2/dtls-a.log && \
-               grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/mux2/dtls-b.log && \
+            if grep -q 'READY role=client version=DTLSv1.3.*verify=peer-hostname' /tmp/mux2/dtls-a.log && \
+               grep -q 'READY role=client version=DTLSv1.3.*verify=peer-hostname' /tmp/mux2/dtls-b.log && \
                test "$(grep -c 'BOUND role=server.*inherited=yes' /tmp/mux2/mux.log || true)" -ge 2 && \
                test "$(grep -c 'READY role=server version=DTLSv1.3' /tmp/mux2/mux.log || true)" -ge 2; then
               break
             fi
             sleep .05
           done
-          grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/mux2/dtls-a.log
-          grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/mux2/dtls-b.log
+          grep -q 'READY role=client version=DTLSv1.3.*verify=peer-hostname' /tmp/mux2/dtls-a.log
+          grep -q 'READY role=client version=DTLSv1.3.*verify=peer-hostname' /tmp/mux2/dtls-b.log
           test "$(grep -c 'BOUND role=server.*inherited=yes' /tmp/mux2/mux.log)" -eq 2
           test "$(grep -c 'READY role=server version=DTLSv1.3' /tmp/mux2/mux.log)" -eq 2
 
@@ -174,7 +188,7 @@ jobs:
           grep -q 'MUX2_ECHO_OK marker=DEVICE_A_UNIQUE_MARKER count=20' /tmp/mux2/probe-a.log
           grep -q 'MUX2_ECHO_OK marker=DEVICE_B_UNIQUE_MARKER count=20' /tmp/mux2/probe-b.log
           kill -0 "$MUX"
-          echo 'MUX_TWO_CLIENT_PASS'
+          echo 'MUX_TWO_CLIENT_CERT_VERIFY_PASS'
           echo '--- mux ---'; cat /tmp/mux2/mux.log
           echo '--- client A ---'; cat /tmp/mux2/faketcp-a.log; cat /tmp/mux2/dtls-a.log; cat /tmp/mux2/probe-a.log
           echo '--- client B ---'; cat /tmp/mux2/faketcp-b.log; cat /tmp/mux2/dtls-b.log; cat /tmp/mux2/probe-b.log
