@@ -39,13 +39,15 @@ type npcapRawPacketIO struct {
 	pcapClose      *syscall.Proc
 	pcapGetErr     *syscall.Proc
 
-	sourceMAC [6]byte
+	sourceMAC  [6]byte
 	nextHopMAC [6]byte
-	sourceIP  [4]byte
-	remoteIP  [4]byte
+	sourceIP   [4]byte
+	remoteIP   [4]byte
 	sourcePort uint16
 	remotePort uint16
-	rstOnce   sync.Once
+	rstOnce    sync.Once
+	txDataOnce sync.Once
+	rxDataOnce sync.Once
 
 	mu     sync.Mutex
 	closed bool
@@ -245,6 +247,13 @@ func (r *npcapRawPacketIO) ReadPacket(buf []byte) (int, error) {
 						r.sourcePort, r.remotePort)
 				})
 			}
+			if payloadBytes, ok := r.flowPayloadBytes(packet, false); ok {
+				r.rxDataOnce.Do(func() {
+					fmt.Fprintf(os.Stderr,
+						"WBD_FAKETCP_WINDOWS_RAW_PAYLOAD_RX bytes=%d source_port=%d remote_port=%d\n",
+						payloadBytes, r.sourcePort, r.remotePort)
+				})
+			}
 			if len(packet) > len(buf) {
 				return 0, io.ErrShortBuffer
 			}
@@ -274,6 +283,45 @@ func (r *npcapRawPacketIO) matchesKernelRST(packet []byte) bool {
 	return packet[ihl+13]&0x04 != 0
 }
 
+// flowPayloadBytes recognizes only the exact WBD FakeTCP four-tuple and returns
+// the TCP payload length. It is intentionally independent from the protocol
+// parser so the Npcap boundary can prove that bytes reached/leaved the driver.
+func (r *npcapRawPacketIO) flowPayloadBytes(packet []byte, outbound bool) (int, bool) {
+	if len(packet) < 40 || packet[0]>>4 != 4 || packet[9] != 6 {
+		return 0, false
+	}
+	ihl := int(packet[0]&0x0f) * 4
+	if ihl < 20 || len(packet) < ihl+20 {
+		return 0, false
+	}
+	total := int(binary.BigEndian.Uint16(packet[2:4]))
+	if total == 0 || total > len(packet) {
+		total = len(packet)
+	}
+	tcpOff := ihl
+	tcpHL := int(packet[tcpOff+12]>>4) * 4
+	if tcpHL < 20 || tcpOff+tcpHL > total {
+		return 0, false
+	}
+	var srcIP, dstIP [4]byte
+	copy(srcIP[:], packet[12:16])
+	copy(dstIP[:], packet[16:20])
+	srcPort := binary.BigEndian.Uint16(packet[tcpOff : tcpOff+2])
+	dstPort := binary.BigEndian.Uint16(packet[tcpOff+2 : tcpOff+4])
+	if outbound {
+		if srcIP != r.sourceIP || dstIP != r.remoteIP || srcPort != r.sourcePort || dstPort != r.remotePort {
+			return 0, false
+		}
+	} else if srcIP != r.remoteIP || dstIP != r.sourceIP || srcPort != r.remotePort || dstPort != r.sourcePort {
+		return 0, false
+	}
+	payload := total - tcpOff - tcpHL
+	if payload <= 0 {
+		return 0, false
+	}
+	return payload, true
+}
+
 func (r *npcapRawPacketIO) WritePacket(packet []byte, _ [4]byte) error {
 	if len(packet) == 0 {
 		return errors.New("Npcap send: empty packet")
@@ -290,6 +338,13 @@ func (r *npcapRawPacketIO) WritePacket(packet []byte, _ [4]byte) error {
 	ret, _, _ := r.pcapSendPacket.Call(r.handle, uintptr(unsafe.Pointer(&frame[0])), uintptr(len(frame)))
 	if int32(ret) != 0 {
 		return fmt.Errorf("pcap_sendpacket: %s", r.lastError())
+	}
+	if payloadBytes, ok := r.flowPayloadBytes(packet, true); ok {
+		r.txDataOnce.Do(func() {
+			fmt.Fprintf(os.Stderr,
+				"WBD_FAKETCP_WINDOWS_RAW_PAYLOAD_TX bytes=%d source_port=%d remote_port=%d\n",
+				payloadBytes, r.sourcePort, r.remotePort)
+		})
 	}
 	return nil
 }
