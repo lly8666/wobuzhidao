@@ -1,0 +1,192 @@
+name: faketcp-rst-nat-ab
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  rst_nat_ab:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.title, '[mux2]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables conntrack
+      - name: Build pinned wolfSSL and WBD FakeTCP mux
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/rstab
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/rstab/wbd_dtls_shim
+          go build -trimpath -o /tmp/rstab/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/rstab/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+
+          cat >/tmp/rstab/server.ext <<'EOF'
+          basicConstraints=critical,CA:FALSE
+          keyUsage=critical,digitalSignature,keyEncipherment
+          extendedKeyUsage=serverAuth
+          subjectAltName=DNS:wbd.test
+          EOF
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=WBD RST NAT Root CA' \
+            -keyout /tmp/rstab/ca.key -out /tmp/rstab/ca.pem >/dev/null 2>&1
+          openssl req -newkey rsa:2048 -nodes -sha256 -subj '/CN=wbd.test' \
+            -keyout /tmp/rstab/dtls.key -out /tmp/rstab/dtls.csr >/dev/null 2>&1
+          openssl x509 -req -in /tmp/rstab/dtls.csr \
+            -CA /tmp/rstab/ca.pem -CAkey /tmp/rstab/ca.key -CAcreateserial \
+            -days 2 -sha256 -extfile /tmp/rstab/server.ext -out /tmp/rstab/dtls.pem >/dev/null 2>&1
+          openssl verify -CAfile /tmp/rstab/ca.pem /tmp/rstab/dtls.pem
+      - name: Compare kernel RST allowed versus suppressed through NAT
+        run: |
+          set -euo pipefail
+          C=wbdrstc$$
+          R=wbdrstr$$
+          S=wbdrsts$$
+          PIDS=''
+          cleanup() {
+            set +e
+            for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null; kill -TERM "$p" 2>/dev/null; done
+            sleep .2
+            sudo ip netns del "$C" 2>/dev/null
+            sudo ip netns del "$R" 2>/dev/null
+            sudo ip netns del "$S" 2>/dev/null
+          }
+          trap cleanup EXIT
+
+          sudo ip netns add "$C"
+          sudo ip netns add "$R"
+          sudo ip netns add "$S"
+          sudo ip link add c0 type veth peer name rc0
+          sudo ip link add rs0 type veth peer name s0
+          sudo ip link set c0 netns "$C"
+          sudo ip link set rc0 netns "$R"
+          sudo ip link set rs0 netns "$R"
+          sudo ip link set s0 netns "$S"
+          sudo ip -n "$C" addr add 10.93.0.2/24 dev c0
+          sudo ip -n "$R" addr add 10.93.0.1/24 dev rc0
+          sudo ip -n "$R" addr add 198.18.0.1/24 dev rs0
+          sudo ip -n "$S" addr add 198.18.0.2/24 dev s0
+          for ns in "$C" "$R" "$S"; do sudo ip -n "$ns" link set lo up; done
+          sudo ip -n "$C" link set c0 up
+          sudo ip -n "$R" link set rc0 up
+          sudo ip -n "$R" link set rs0 up
+          sudo ip -n "$S" link set s0 up
+          sudo ip -n "$C" route add default via 10.93.0.1
+          sudo ip -n "$S" route add default via 198.18.0.1
+          sudo ip netns exec "$R" sysctl -qw net.ipv4.ip_forward=1
+          sudo ip netns exec "$R" iptables -t nat -A POSTROUTING -s 10.93.0.0/24 -o rs0 -j MASQUERADE
+          sudo ip netns exec "$R" iptables -A FORWARD -i rc0 -o rs0 -j ACCEPT
+          sudo ip netns exec "$R" iptables -A FORWARD -i rs0 -o rc0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+          # Server raw listener has no kernel TCP socket. Suppress only its
+          # unavoidable local RSTs so the A/B isolates the client-side effect.
+          sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          sudo ip netns exec "$C" iptables -N WBD_RST_AB
+          sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j WBD_RST_AB
+
+          cat >/tmp/rstab/echo.py <<'PY'
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',47000))
+          while True:
+              b,a=s.recvfrom(65535)
+              s.sendto(b,a)
+          PY
+          sudo ip netns exec "$S" python3 /tmp/rstab/echo.py >/tmp/rstab/echo.log 2>&1 & ECHO=$!
+          PIDS="$ECHO"
+          sudo ip netns exec "$S" /tmp/rstab/wbd-faketcp-mux server \
+            --listen 198.18.0.2:40000 --dtls-shim /tmp/rstab/wbd_dtls_shim \
+            --link-target 127.0.0.1:47000 --cert /tmp/rstab/dtls.pem --key /tmp/rstab/dtls.key \
+            --max-sessions 8 >/tmp/rstab/mux.log 2>&1 & MUX=$!
+          PIDS="$PIDS $MUX"
+          for i in $(seq 1 200); do grep -q 'READY role=server-mux' /tmp/rstab/mux.log && break; sleep .05; done
+          grep -q 'READY role=server-mux' /tmp/rstab/mux.log
+
+          run_case() {
+            mode=$1
+            sport=$2
+            local_udp=$3
+            plain=$4
+            sudo ip netns exec "$C" iptables -F WBD_RST_AB
+            sudo ip netns exec "$C" iptables -Z WBD_RST_AB
+            if [ "$mode" = allow ]; then
+              sudo ip netns exec "$C" iptables -A WBD_RST_AB -j RETURN
+            else
+              sudo ip netns exec "$C" iptables -A WBD_RST_AB -j DROP
+            fi
+
+            sudo ip netns exec "$C" /tmp/rstab/wbd-faketcp client \
+              --local-udp 127.0.0.1:${local_udp} --source 10.93.0.2:${sport} --remote 198.18.0.2:40000 \
+              >"/tmp/rstab/faketcp-${mode}.log" 2>&1 & FC=$!
+            PIDS="$PIDS $FC"
+            fake_ready=0
+            for i in $(seq 1 300); do
+              if grep -q 'READY role=client' "/tmp/rstab/faketcp-${mode}.log"; then fake_ready=1; break; fi
+              ! kill -0 "$FC" 2>/dev/null && break
+              sleep .05
+            done
+
+            dtls_ready=0
+            if [ "$fake_ready" = 1 ]; then
+              sudo ip netns exec "$C" /tmp/rstab/wbd_dtls_shim client ${plain} 127.0.0.1 ${local_udp} /tmp/rstab/ca.pem wbd.test \
+                >"/tmp/rstab/dtls-${mode}.log" 2>&1 & DC=$!
+              PIDS="$PIDS $DC"
+              for i in $(seq 1 300); do
+                if grep -q 'READY role=client version=DTLSv1.3.*verify=peer-hostname' "/tmp/rstab/dtls-${mode}.log"; then dtls_ready=1; break; fi
+                ! kill -0 "$DC" 2>/dev/null && break
+                sleep .05
+              done
+            else
+              : >"/tmp/rstab/dtls-${mode}.log"
+            fi
+
+            rst_count=$(sudo ip netns exec "$C" iptables -L WBD_RST_AB -v -n -x | awk '/RETURN|DROP/{print $1; exit}')
+            rst_count=${rst_count:-0}
+            echo "RST_NAT_CASE mode=${mode} fake_ready=${fake_ready} dtls_ready=${dtls_ready} rst_count=${rst_count}" | tee "/tmp/rstab/result-${mode}.log"
+
+            if [ "$mode" = allow ] && [ "$rst_count" -le 0 ]; then
+              echo 'expected client kernel RST was not observed' >&2
+              return 1
+            fi
+            if [ "$mode" = drop ]; then
+              [ "$fake_ready" = 1 ]
+              [ "$dtls_ready" = 1 ]
+            fi
+            return 0
+          }
+
+          run_case allow 41001 45101 46101
+          run_case drop 41002 45102 46102
+
+          echo '--- allow ---'
+          cat /tmp/rstab/result-allow.log /tmp/rstab/faketcp-allow.log /tmp/rstab/dtls-allow.log
+          echo '--- drop ---'
+          cat /tmp/rstab/result-drop.log /tmp/rstab/faketcp-drop.log /tmp/rstab/dtls-drop.log
+          echo '--- mux ---'
+          cat /tmp/rstab/mux.log
+          echo 'RST_NAT_AB_PASS'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: faketcp-rst-nat-ab-evidence
+          path: /tmp/rstab/*.log
