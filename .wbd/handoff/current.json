@@ -1,6 +1,6 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 58,
+  "continuity_sequence": 59,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
@@ -14,7 +14,7 @@
     "local_optimization_stop_rule": "Do not reopen ADR-0010 transport semantics: release remains 40 Mbit/s aggregate-inner on <=100 Mbit/s weak links, legacy FakeTCP, pinned wolfSSL DTLS 1.3, setup-only Reality, immutable LINK, one raw lane, FEC off or fixed 20:20."
   },
   "continuation_cursor": {
-    "last_completed_action": "Created experimental PR #8 from canonical b1824532 to gate Windows startup on actual readiness. Experimental head 9b1024167139fc2e2f09d6a9e943d3fc880d4f7e passed main CI run 33196838704 and windows-portable-bundle run 33196838643. Artifact 9696151559 was downloaded and verified: Actions ZIP SHA-256 8172e915ebe62c3aad93f7f049ab73407654cd2ffa1623279a1fa8f17689ec7b, wbd.exe SHA-256 b8e44b28bb82b783ec4f363d92f3375b0dfe78f4b739570200552133f8567006. Physical retest showed Reality bootstrap pass, FakeTCP READY, then DTLS start only after FakeTCP readiness; DTLS never reached READY within 25s and runtime rolled back before IPv6/routes. Concurrent Linux evidence showed Reality AUTH OK and a per-session DTLS worker BOUND with inherited transport, proving FakeTCP association creation succeeded. Sequence 56 was rejected for an oversized resume_read_set; sequence 57 corrected its length but referenced a nonexistent windowsdiag path. Sequence 58 corrects that path to internal/windowsdiag/diagnose_windows.go.",
+    "last_completed_action": "Created experimental PR #8 from canonical b1824532 to gate Windows startup on actual readiness. Experimental head 9b1024167139fc2e2f09d6a9e943d3fc880d4f7e passed main CI run 33196838704 and windows-portable-bundle run 33196838643. Artifact 9696151559 was downloaded and verified: Actions ZIP SHA-256 8172e915ebe62c3aad93f7f049ab73407654cd2ffa1623279a1fa8f17689ec7b, wbd.exe SHA-256 b8e44b28bb82b783ec4f363d92f3375b0dfe78f4b739570200552133f8567006. Physical retest showed Reality bootstrap pass, FakeTCP READY, then DTLS start only after FakeTCP readiness; DTLS never reached READY within 25s and runtime rolled back before IPv6/routes. Concurrent Linux evidence showed Reality AUTH OK and a per-session DTLS worker BOUND with inherited transport, proving FakeTCP association creation succeeded. Sequences 56-58 captured this state while iteratively satisfying handoff contract checks; sequence 59 adds the required explicitly non-live local test snapshot.",
     "current_task": "Localize and fix the DTLS handshake stall between the Windows client shim and the Linux per-session wolfSSL worker without changing wire semantics.",
     "why_now": "The readiness gate removed the former process-order race and false connect_pass. The failure is now isolated before LINK/TUN/routing: FakeTCP establishes, Linux worker is spawned, but wolfSSL DTLS 1.3 handshake does not complete.",
     "done_when": "Physical Windows logs show FakeTCP READY -> DTLS READY -> WBD_LINK_READY -> WBD_TUN_READY -> IPv6 apply -> route apply -> connect_pass, then DNS/UDP/TCP probes pass and cleanup succeeds; Linux logs show the matching DTLS server handshake and LINK session readiness.",
@@ -35,6 +35,12 @@
     ".github/workflows/windows-portable-bundle.yml"
   ],
   "required_data_plane_assets": [],
+  "local_test_snapshot": {
+    "authority": "snapshot_not_live",
+    "tested_commit": "9b1024167139fc2e2f09d6a9e943d3fc880d4f7e",
+    "result": "fail",
+    "scope": "Physical Windows 11 x64 readiness-gated client against real Ubuntu ARM64 server: Reality and FakeTCP passed; DTLS timed out before LINK/TUN/routes. Historical qualification evidence only; refresh live repository and Actions before continuing."
+  },
   "udp_like_status": {
     "authority": "physical Windows/Ubuntu evidence from 2026-08-29 plus current PR #8 CI and frozen ADR-0010",
     "outer_semantics": "Reality-like TLS setup/admission only; sustained payload is WBD raw FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK.",
