@@ -199,7 +199,15 @@ func (s *muxServer) rawLoop() error {
 			if err := sess.assoc.HandleHandshakeACK(seg); err != nil {
 				continue
 			}
-			continue
+		}
+		// Allocate wolfSSL only when this established flow actually carries its
+		// first payload. The triggering segment is retained in userspace until the
+		// worker is ready, so the first DTLS datagram is not sacrificed to startup.
+		if sess.worker == nil && len(seg.Payload) != 0 {
+			if err := s.startSessionWorker(sess); err != nil {
+				s.removeSession(flow)
+				continue
+			}
 		}
 		res, err := sess.assoc.HandleSegment(seg, time.Now())
 		if err != nil {
@@ -216,6 +224,10 @@ func (s *muxServer) rawLoop() error {
 			}
 		}
 		if len(res.Deliver) != 0 {
+			if sess.relay == nil {
+				s.removeSession(flow)
+				continue
+			}
 			if _, err := sess.relay.Write(res.Deliver); err != nil {
 				s.removeSession(flow)
 			}
@@ -230,9 +242,31 @@ func (s *muxServer) acceptSYN(seg faketcp.Segment) error {
 		return err
 	}
 	flow := faketcp.ServerFlowFromSegment(seg)
+	sess := &muxSession{flow: flow, assoc: assoc}
+	s.mu.Lock()
+	if _, exists := s.sessions[flow]; exists {
+		s.mu.Unlock()
+		s.table.Remove(flow)
+		return faketcp.ErrAssociationExists
+	}
+	s.sessions[flow] = sess
+	s.mu.Unlock()
+
+	// Half-open raw associations own only transport state. Delay the DTLS worker
+	// until the first established payload actually needs it.
+	if err := s.sendSYNACK(sess); err != nil {
+		s.removeSession(flow)
+		return err
+	}
+	return nil
+}
+
+func (s *muxServer) startSessionWorker(sess *muxSession) error {
+	if sess.worker != nil && sess.relay != nil {
+		return nil
+	}
 	linkAddr, err := net.ResolveUDPAddr("udp4", s.cfg.linkTarget)
 	if err != nil {
-		s.table.Remove(flow)
 		return err
 	}
 	worker, err := dtlsworker.StartServer(s.ctx, dtlsworker.ServerSpec{
@@ -240,36 +274,20 @@ func (s *muxServer) acceptSYN(seg faketcp.Segment) error {
 		CertPath: s.cfg.cert, KeyPath: s.cfg.key, Stdout: os.Stdout, Stderr: os.Stderr,
 	})
 	if err != nil {
-		s.table.Remove(flow)
 		return err
 	}
 	relay, err := net.DialUDP("udp4", nil, worker.Addr())
 	if err != nil {
 		_ = worker.Stop()
-		s.table.Remove(flow)
 		return err
 	}
-	sess := &muxSession{flow: flow, assoc: assoc, relay: relay, worker: worker}
-	s.mu.Lock()
-	if _, exists := s.sessions[flow]; exists {
-		s.mu.Unlock()
-		_ = relay.Close()
-		_ = worker.Stop()
-		s.table.Remove(flow)
-		return faketcp.ErrAssociationExists
-	}
-	s.sessions[flow] = sess
-	s.mu.Unlock()
-
+	sess.worker = worker
+	sess.relay = relay
 	go s.relayLoop(sess)
-	go func() {
-		_ = worker.Wait()
+	go func(flow faketcp.ServerFlow, w *dtlsworker.Worker) {
+		_ = w.Wait()
 		s.removeSession(flow)
-	}()
-	if err := s.sendSYNACK(sess); err != nil {
-		s.removeSession(flow)
-		return err
-	}
+	}(sess.flow, worker)
 	return nil
 }
 
@@ -366,8 +384,12 @@ func (s *muxServer) removeSession(flow faketcp.ServerFlow) {
 	if sess == nil {
 		return
 	}
-	_ = sess.relay.Close()
-	_ = sess.worker.Stop()
+	if sess.relay != nil {
+		_ = sess.relay.Close()
+	}
+	if sess.worker != nil {
+		_ = sess.worker.Stop()
+	}
 	s.table.Remove(flow)
 }
 
