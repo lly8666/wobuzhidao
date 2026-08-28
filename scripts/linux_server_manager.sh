@@ -20,6 +20,8 @@ write_default_config() {
     cat >"$CONFIG" <<EOF
 # WBD Linux server configuration. Edit then run: wbd-server restart
 # One public TCP port is shared by Reality-like admission and raw FakeTCP.
+# 0.0.0.0 is valid here: Reality listens on all IPv4 addresses while the
+# manager resolves the host's primary concrete IPv4 for raw FakeTCP.
 WBD_LISTEN_IP=0.0.0.0
 WBD_PORT=40443
 WBD_SERVER_NAME=www.cloudflare.com
@@ -81,6 +83,26 @@ load_config() {
     case "$WBD_DECOY_TARGET" in *:*) ;; *) echo 'WBD_DECOY_TARGET must be host:port' >&2; exit 1;; esac
 }
 
+resolve_faketcp_listen_ip() {
+    case "$WBD_LISTEN_IP" in
+        0.0.0.0)
+            command -v ip >/dev/null 2>&1 || {
+                echo 'WBD_LISTEN_IP=0.0.0.0 requires iproute2 to resolve a concrete FakeTCP IPv4; install iproute2 or set WBD_LISTEN_IP to this host IPv4' >&2
+                return 1
+            }
+            raw_ip=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for (i=1;i<=NF;i++) if ($i=="src" && i<NF) {print $(i+1); exit}}')
+            [ -n "$raw_ip" ] && [ "$raw_ip" != 0.0.0.0 ] || {
+                echo 'cannot resolve a concrete FakeTCP IPv4 from WBD_LISTEN_IP=0.0.0.0; set WBD_LISTEN_IP to this host IPv4' >&2
+                return 1
+            }
+            printf '%s\n' "$raw_ip"
+            ;;
+        *)
+            printf '%s\n' "$WBD_LISTEN_IP"
+            ;;
+    esac
+}
+
 set_config() {
     need_root; write_default_config
     key=${1:-}; value=${2-}
@@ -112,13 +134,16 @@ install_unit() {
 Description=WBD Linux Server
 After=network-online.target
 Wants=network-online.target
+StartLimitIntervalSec=30
+StartLimitBurst=5
 
 [Service]
 Type=simple
 ExecStart=$PREFIX/bin/wbd-server run
-ExecStop=/bin/kill -TERM \$MAINPID
 Restart=on-failure
 RestartSec=2
+KillMode=control-group
+TimeoutStopSec=10s
 LimitNOFILE=1048576
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_NET_BIND_SERVICE
@@ -167,18 +192,21 @@ install_files() {
 
 run_server() {
     need_root; load_config
+    raw_listen_ip=$(resolve_faketcp_listen_ip)
     mkdir -p "$RUN/tickets"; chmod 700 "$RUN/tickets"
     rm -f "$RUN/tickets"/* 2>/dev/null || true
     pids=""
     cleanup() { set +e; for p in $pids; do kill -TERM "$p" 2>/dev/null || true; done; wait 2>/dev/null || true; }
-    trap cleanup EXIT INT TERM HUP
+    trap cleanup EXIT
+    trap 'exit 0' INT TERM HUP
+    echo "WBD_LINUX_SERVER_BIND reality=$WBD_LISTEN_IP:$WBD_PORT faketcp=$raw_listen_ip:$WBD_PORT link=$WBD_LINK_LISTEN platform=$WBD_PLATFORM_LISTEN"
     "$PREFIX/bin/wbd-platform-proxy-server" -listen "$WBD_PLATFORM_LISTEN" -udp-idle "$WBD_UDP_IDLE" -tcp-idle "$WBD_TCP_IDLE" & pids="$pids $!"
     "$PREFIX/bin/wbd-link-server-mux" -listen "$WBD_LINK_LISTEN" -service "$WBD_PLATFORM_LISTEN" -ticket-dir "$RUN/tickets" -ticket-ttl "$WBD_TICKET_TTL" -max-sessions "$WBD_MAX_SESSIONS" & pids="$pids $!"
     "$PREFIX/bin/wbd-reality-front" server -listen "$WBD_LISTEN_IP:$WBD_PORT" -target "$WBD_DECOY_TARGET" -server-name "$WBD_SERVER_NAME" -cert "$ETC/front.pem" -key "$ETC/front.key" -route-key "$WBD_ROUTE_KEY" -username "$WBD_USERNAME" -password "$WBD_PASSWORD" -ticket-dir "$RUN/tickets" -max-conns "$WBD_MAX_FRONT_CONNS" & pids="$pids $!"
     guard="$PREFIX/bin/linux_server_guard.sh"
     set -- "$guard" --backend "$WBD_FIREWALL_BACKEND" --front-port "$WBD_PORT" --raw-port "$WBD_PORT" --state "$RUN/server-firewall.state"
     [ -z "$WBD_NFT_INPUT" ] || set -- "$@" --nft-input "$WBD_NFT_INPUT"
-    set -- "$@" -- "$PREFIX/bin/wbd-faketcp-mux" server --listen "$WBD_LISTEN_IP:$WBD_PORT" --dtls-shim "$PREFIX/bin/wbd_dtls_shim" --link-target "$WBD_LINK_LISTEN" --cert "$ETC/dtls.pem" --key "$ETC/dtls.key" --max-sessions "$WBD_MAX_SESSIONS"
+    set -- "$@" -- "$PREFIX/bin/wbd-faketcp-mux" server --listen "$raw_listen_ip:$WBD_PORT" --dtls-shim "$PREFIX/bin/wbd_dtls_shim" --link-target "$WBD_LINK_LISTEN" --cert "$ETC/dtls.pem" --key "$ETC/dtls.key" --max-sessions "$WBD_MAX_SESSIONS"
     "$@" & main=$!; pids="$pids $main"
     if wait "$main"; then rc=0; else rc=$?; fi
     exit "$rc"
@@ -222,7 +250,12 @@ doctor() {
     if command -v nft >/dev/null 2>&1; then echo 'firewall: OK nft'; elif command -v iptables >/dev/null 2>&1; then echo 'firewall: OK iptables'; else echo 'firewall: MISSING nft/iptables'; fail=1; fi
     [ -r "$ETC/front.pem" ] && [ -r "$ETC/front.key" ] && echo 'front certificate: OK' || { echo 'front certificate: MISSING'; fail=1; }
     [ -r "$ETC/dtls.pem" ] && [ -r "$ETC/dtls.key" ] && echo 'DTLS certificate: OK' || { echo 'DTLS certificate: MISSING'; fail=1; }
-    echo "public: $WBD_LISTEN_IP:$WBD_PORT reality_admission=1 faketcp=1"
+    if raw_listen_ip=$(resolve_faketcp_listen_ip); then
+        echo "public: reality=$WBD_LISTEN_IP:$WBD_PORT faketcp=$raw_listen_ip:$WBD_PORT"
+    else
+        echo 'public: FakeTCP concrete IPv4 resolution FAILED'
+        fail=1
+    fi
     echo "front:  server_name=$WBD_SERVER_NAME decoy=$WBD_DECOY_TARGET"
     echo "limits: front=$WBD_MAX_FRONT_CONNS sessions=$WBD_MAX_SESSIONS ticket_ttl=$WBD_TICKET_TTL"
     if [ "$fail" -ne 0 ]; then echo 'WBD_SERVER_DOCTOR_FAIL'; return 1; fi
@@ -263,8 +296,10 @@ usage: wbd-server COMMAND
 Main settings: WBD_PORT, WBD_LISTEN_IP, WBD_SERVER_NAME, WBD_DECOY_TARGET,
 WBD_ROUTE_KEY, WBD_USERNAME, WBD_PASSWORD, session limits, timeouts and firewall
 backend. WBD_PORT is the one public TCP port shared by Reality-like admission and
-raw FakeTCP. The decoy domain/target are used only by the setup front; sustained
-VPN payload remains FakeTCP -> DTLS 1.3 -> LINK.
+raw FakeTCP. WBD_LISTEN_IP=0.0.0.0 keeps Reality on all IPv4 interfaces; the
+manager resolves the host's primary concrete IPv4 for raw FakeTCP. The decoy
+domain/target are used only by the setup front; sustained VPN payload remains
+FakeTCP -> DTLS 1.3 -> LINK.
 EOF
  ;;
  *) echo "unknown command: $1" >&2; exit 2;;
