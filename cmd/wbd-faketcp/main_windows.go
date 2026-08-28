@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	pcapErrbufSize = 256
-	pcapDLTEthernet = 1
+	pcapErrbufSize    = 256
+	pcapDLTEthernet   = 1
 	pcapReadTimeoutMS = 50
 )
 
@@ -31,7 +31,7 @@ type pcapHeader struct {
 }
 
 type npcapRawPacketIO struct {
-	dll *syscall.DLL
+	dll    *syscall.DLL
 	handle uintptr
 
 	pcapNextEx     *syscall.Proc
@@ -41,13 +41,18 @@ type npcapRawPacketIO struct {
 
 	sourceMAC [6]byte
 	nextHopMAC [6]byte
+	sourceIP  [4]byte
+	remoteIP  [4]byte
+	sourcePort uint16
+	remotePort uint16
+	rstOnce   sync.Once
 
 	mu     sync.Mutex
 	closed bool
 	active sync.WaitGroup
 }
 
-func openRawPacketIO(c config, _ [4]byte) (rawPacketIO, error) {
+func openRawPacketIO(c config, sourceIP [4]byte) (rawPacketIO, error) {
 	if c.role != "client" {
 		return nil, errors.New("Windows Npcap FakeTCP backend is client-only; run the public listener on Linux")
 	}
@@ -62,6 +67,20 @@ func openRawPacketIO(c config, _ [4]byte) (rawPacketIO, error) {
 	if err != nil {
 		return nil, fmt.Errorf("next-hop MAC: %w", err)
 	}
+	sourceAddr, err := net.ResolveUDPAddr("udp4", c.source)
+	if err != nil || sourceAddr == nil || sourceAddr.Port <= 0 || sourceAddr.Port > 65535 {
+		return nil, fmt.Errorf("source flow: %w", err)
+	}
+	remoteAddr, err := net.ResolveUDPAddr("udp4", c.remote)
+	if err != nil || remoteAddr == nil || remoteAddr.Port <= 0 || remoteAddr.Port > 65535 {
+		return nil, fmt.Errorf("remote flow: %w", err)
+	}
+	remote4 := remoteAddr.IP.To4()
+	if remote4 == nil {
+		return nil, errors.New("Windows FakeTCP remote must be IPv4")
+	}
+	var remoteIP [4]byte
+	copy(remoteIP[:], remote4)
 
 	dll, err := loadNpcapDLL()
 	if err != nil {
@@ -133,6 +152,8 @@ func openRawPacketIO(c config, _ [4]byte) (rawPacketIO, error) {
 		dll: dll, handle: handle,
 		pcapNextEx: nextEx, pcapSendPacket: sendPacket, pcapClose: closeProc, pcapGetErr: getErr,
 		sourceMAC: sourceMAC, nextHopMAC: nextHopMAC,
+		sourceIP: sourceIP, remoteIP: remoteIP,
+		sourcePort: uint16(sourceAddr.Port), remotePort: uint16(remoteAddr.Port),
 	}, nil
 }
 
@@ -217,6 +238,13 @@ func (r *npcapRawPacketIO) ReadPacket(buf []byte) (int, error) {
 			if !ok {
 				continue
 			}
+			if r.matchesKernelRST(packet) {
+				r.rstOnce.Do(func() {
+					fmt.Fprintf(os.Stderr,
+						"WBD_FAKETCP_WINDOWS_KERNEL_RST_SEEN source_port=%d remote_port=%d\n",
+						r.sourcePort, r.remotePort)
+				})
+			}
 			if len(packet) > len(buf) {
 				return 0, io.ErrShortBuffer
 			}
@@ -226,6 +254,24 @@ func (r *npcapRawPacketIO) ReadPacket(buf []byte) (int, error) {
 			return 0, fmt.Errorf("pcap_next_ex returned %d", int32(ret))
 		}
 	}
+}
+
+func (r *npcapRawPacketIO) matchesKernelRST(packet []byte) bool {
+	if len(packet) < 40 || packet[0]>>4 != 4 || packet[9] != 6 {
+		return false
+	}
+	ihl := int(packet[0]&0x0f) * 4
+	if ihl < 20 || len(packet) < ihl+20 {
+		return false
+	}
+	if packet[12] != r.sourceIP[0] || packet[13] != r.sourceIP[1] || packet[14] != r.sourceIP[2] || packet[15] != r.sourceIP[3] ||
+		packet[16] != r.remoteIP[0] || packet[17] != r.remoteIP[1] || packet[18] != r.remoteIP[2] || packet[19] != r.remoteIP[3] {
+		return false
+	}
+	if binary.BigEndian.Uint16(packet[ihl:ihl+2]) != r.sourcePort || binary.BigEndian.Uint16(packet[ihl+2:ihl+4]) != r.remotePort {
+		return false
+	}
+	return packet[ihl+13]&0x04 != 0
 }
 
 func (r *npcapRawPacketIO) WritePacket(packet []byte, _ [4]byte) error {
