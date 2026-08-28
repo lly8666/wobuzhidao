@@ -99,5 +99,9 @@ done
 sh -n "$root/wbd-server" "$root/linux_server_manager.sh" "$root/linux_server_firewall.sh" "$root/linux_server_guard.sh"
 
 tar -C "$OUT" -czf "$OUT/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
-sha256sum "$OUT/wbd-linux-server-$ARCH.tar.gz" > "$OUT/wbd-linux-server-$ARCH.tar.gz.sha256"
-echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 shared_public_port=1"
+(
+    cd "$OUT"
+    sha256sum "wbd-linux-server-$ARCH.tar.gz" > "wbd-linux-server-$ARCH.tar.gz.sha256"
+    sha256sum -c "wbd-linux-server-$ARCH.tar.gz.sha256"
+)
+echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 shared_public_port=1 portable_checksum=1"
