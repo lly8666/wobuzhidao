@@ -51,9 +51,10 @@ type muxServer struct {
 	mu       sync.RWMutex
 	sessions map[faketcp.ServerFlow]*muxSession
 
-	sendMu  sync.Mutex
-	sendBuf []byte
-	ipID    uint32
+	sendMu         sync.Mutex
+	sendBuf        []byte
+	ipID           uint32
+	rawPayloadOnce sync.Once
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -178,6 +179,13 @@ func (s *muxServer) rawLoop() error {
 		seg, err := faketcp.ParseIPv4TCP(buf[:n])
 		if err != nil || seg.DstIP != s.serverIP || seg.DstPort != s.serverPort {
 			continue
+		}
+		if len(seg.Payload) != 0 {
+			s.rawPayloadOnce.Do(func() {
+				fmt.Fprintf(os.Stderr,
+					"WBD_FAKETCP_MUX_RAW_PAYLOAD_RX bytes=%d client_port=%d server_port=%d\n",
+					len(seg.Payload), seg.SrcPort, seg.DstPort)
+			})
 		}
 		flow := faketcp.ServerFlowFromSegment(seg)
 		sess := s.getSession(flow)
@@ -334,7 +342,6 @@ func (s *muxServer) retransmitLoop() error {
 						return err
 					}
 				}
-			}
 		}
 	}
 }
