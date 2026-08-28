@@ -1,18 +1,45 @@
 package windowsruntime
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
+	"time"
 )
 
 type Process interface { Stop() error }
 
+type readyProcess interface {
+	WaitReady(marker string, timeout time.Duration) error
+}
+
 type Runner interface {
 	Run(Command) error
 	Start(Command) (Process, error)
+}
+
+type readinessSpec struct {
+	marker  string
+	timeout time.Duration
+}
+
+func commandReadiness(name string) (readinessSpec, bool) {
+	switch name {
+	case "faketcp":
+		return readinessSpec{marker: "READY role=client", timeout: 25 * time.Second}, true
+	case "dtls":
+		return readinessSpec{marker: "READY role=client", timeout: 25 * time.Second}, true
+	case "link":
+		return readinessSpec{marker: "WBD_LINK_READY role=client", timeout: 12 * time.Second}, true
+	case "tun":
+		return readinessSpec{marker: "WBD_TUN_READY mode=client", timeout: 10 * time.Second}, true
+	default:
+		return readinessSpec{}, false
+	}
 }
 
 type Executor struct {
@@ -34,9 +61,10 @@ func NewExecutor(runner Runner) *Executor {
 	return &Executor{runner: runner}
 }
 
-// Start preserves the frozen process stack, then fail-closes device IPv6, then
-// applies IPv4 capture last. Broad IPv4 capture is never enabled before every
-// process and the IPv6 kill switch are ready.
+// Start brings up each transport layer only after the layer below has emitted
+// its real readiness marker. Device IPv6 is then fail-closed and IPv4 capture
+// is applied last. This prevents DTLS from racing the FakeTCP local UDP socket
+// and prevents broad routes from becoming active before immutable LINK exists.
 func (e *Executor) Start(plan Plan) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -50,6 +78,17 @@ func (e *Executor) Start(plan Plan) error {
 			return fmt.Errorf("start %s: %w", command.Name, err)
 		}
 		e.processes = append(e.processes, namedProcess{name: command.Name, proc: proc})
+		if spec, ok := commandReadiness(command.Name); ok {
+			rp, ok := proc.(readyProcess)
+			if !ok {
+				e.rollbackProcessesLocked()
+				return fmt.Errorf("wait %s ready: process runner does not expose readiness", command.Name)
+			}
+			if err := rp.WaitReady(spec.marker, spec.timeout); err != nil {
+				e.rollbackProcessesLocked()
+				return fmt.Errorf("wait %s ready: %w", command.Name, err)
+			}
+		}
 	}
 
 	if err := e.runner.Run(plan.IPv6Apply); err != nil {
@@ -140,19 +179,122 @@ func (OSRunner) Run(command Command) error {
 
 func (OSRunner) Start(command Command) (Process, error) {
 	cmd := exec.Command(command.Path, command.Args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	out := newProcessOutput()
+	stdout := &readyLineWriter{dst: os.Stdout, out: out}
+	stderr := &readyLineWriter{dst: os.Stderr, out: out}
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 	if err := cmd.Start(); err != nil { return nil, err }
-	return &osProcess{cmd: cmd}, nil
+	p := &osProcess{cmd: cmd, out: out, stdout: stdout, stderr: stderr, done: make(chan struct{})}
+	go p.wait()
+	return p, nil
 }
 
-type osProcess struct { cmd *exec.Cmd }
+type processOutput struct {
+	mu     sync.Mutex
+	lines  []string
+	notify chan struct{}
+}
+
+func newProcessOutput() *processOutput { return &processOutput{notify: make(chan struct{}, 1)} }
+
+func (o *processOutput) observe(line string) {
+	line = strings.TrimSpace(line)
+	if line == "" { return }
+	o.mu.Lock()
+	if len(o.lines) >= 256 { copy(o.lines, o.lines[len(o.lines)-128:]); o.lines = o.lines[:128] }
+	o.lines = append(o.lines, line)
+	o.mu.Unlock()
+	select { case o.notify <- struct{}{}: default: }
+}
+
+func (o *processOutput) contains(marker string) bool {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	for _, line := range o.lines { if strings.Contains(line, marker) { return true } }
+	return false
+}
+
+type readyLineWriter struct {
+	mu  sync.Mutex
+	dst *os.File
+	out *processOutput
+	buf []byte
+}
+
+func (w *readyLineWriter) Write(p []byte) (int, error) {
+	if w.dst != nil { _, _ = w.dst.Write(p) }
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.buf = append(w.buf, p...)
+	for {
+		i := bytes.IndexByte(w.buf, '\n')
+		if i < 0 { break }
+		w.out.observe(strings.TrimRight(string(w.buf[:i]), "\r"))
+		w.buf = append(w.buf[:0], w.buf[i+1:]...)
+	}
+	return len(p), nil
+}
+
+func (w *readyLineWriter) Flush() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if len(w.buf) == 0 { return }
+	w.out.observe(strings.TrimRight(string(w.buf), "\r\n"))
+	w.buf = nil
+}
+
+type osProcess struct {
+	cmd            *exec.Cmd
+	out            *processOutput
+	stdout, stderr *readyLineWriter
+	done           chan struct{}
+	mu             sync.Mutex
+	exitErr        error
+}
+
+func (p *osProcess) wait() {
+	err := p.cmd.Wait()
+	p.stdout.Flush()
+	p.stderr.Flush()
+	p.mu.Lock()
+	p.exitErr = err
+	p.mu.Unlock()
+	close(p.done)
+}
+
+func (p *osProcess) getExitErr() error { p.mu.Lock(); defer p.mu.Unlock(); return p.exitErr }
+
+func (p *osProcess) WaitReady(marker string, timeout time.Duration) error {
+	if p == nil { return errors.New("nil process") }
+	marker = strings.TrimSpace(marker)
+	if marker == "" { return nil }
+	if timeout <= 0 { timeout = 25 * time.Second }
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	for {
+		if p.out.contains(marker) { return nil }
+		select {
+		case <-p.out.notify:
+			continue
+		case <-p.done:
+			if p.out.contains(marker) { return nil }
+			if err := p.getExitErr(); err != nil { return fmt.Errorf("process exited before marker %q: %w", marker, err) }
+			return fmt.Errorf("process exited before marker %q", marker)
+		case <-timer.C:
+			return fmt.Errorf("timeout waiting for marker %q", marker)
+		}
+	}
+}
 
 func (p *osProcess) Stop() error {
 	if p == nil || p.cmd == nil || p.cmd.Process == nil { return nil }
+	select { case <-p.done: return nil; default: }
 	killErr := p.cmd.Process.Kill()
-	waitErr := p.cmd.Wait()
+	<-p.done
 	if errors.Is(killErr, os.ErrProcessDone) { killErr = nil }
+	if p.cmd.ProcessState != nil && p.cmd.ProcessState.Exited() { killErr = nil }
+	waitErr := p.getExitErr()
 	if _, ok := waitErr.(*exec.ExitError); ok && killErr == nil { waitErr = nil }
 	return errors.Join(killErr, waitErr)
 }

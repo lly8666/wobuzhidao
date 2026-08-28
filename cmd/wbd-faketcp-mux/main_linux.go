@@ -21,6 +21,8 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 )
 
+const halfOpenTimeout = 25 * time.Second
+
 type config struct {
 	listen      string
 	dtlsShim    string
@@ -49,9 +51,10 @@ type muxServer struct {
 	mu       sync.RWMutex
 	sessions map[faketcp.ServerFlow]*muxSession
 
-	sendMu  sync.Mutex
-	sendBuf []byte
-	ipID    uint32
+	sendMu         sync.Mutex
+	sendBuf        []byte
+	ipID           uint32
+	rawPayloadOnce sync.Once
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -162,6 +165,9 @@ func (s *muxServer) rawLoop() error {
 	buf := make([]byte, 65535)
 	for {
 		n, _, err := syscall.Recvfrom(s.fd, buf, 0)
+		if errors.Is(err, syscall.EINTR) {
+			continue
+		}
 		if err != nil {
 			select {
 			case <-s.ctx.Done():
@@ -173,6 +179,13 @@ func (s *muxServer) rawLoop() error {
 		seg, err := faketcp.ParseIPv4TCP(buf[:n])
 		if err != nil || seg.DstIP != s.serverIP || seg.DstPort != s.serverPort {
 			continue
+		}
+		if len(seg.Payload) != 0 {
+			s.rawPayloadOnce.Do(func() {
+				fmt.Fprintf(os.Stderr,
+					"WBD_FAKETCP_MUX_RAW_PAYLOAD_RX bytes=%d client_port=%d server_port=%d\n",
+					len(seg.Payload), seg.SrcPort, seg.DstPort)
+			})
 		}
 		flow := faketcp.ServerFlowFromSegment(seg)
 		sess := s.getSession(flow)
@@ -199,7 +212,10 @@ func (s *muxServer) rawLoop() error {
 			if err := sess.assoc.HandleHandshakeACK(seg); err != nil {
 				continue
 			}
-			continue
+			if err := s.startSessionWorker(sess); err != nil {
+				s.removeSessionMatch(flow, sess)
+				continue
+			}
 		}
 		res, err := sess.assoc.HandleSegment(seg, time.Now())
 		if err != nil {
@@ -217,7 +233,7 @@ func (s *muxServer) rawLoop() error {
 		}
 		if len(res.Deliver) != 0 {
 			if _, err := sess.relay.Write(res.Deliver); err != nil {
-				s.removeSession(flow)
+				s.removeSessionMatch(flow, sess)
 			}
 		}
 	}
@@ -230,9 +246,47 @@ func (s *muxServer) acceptSYN(seg faketcp.Segment) error {
 		return err
 	}
 	flow := faketcp.ServerFlowFromSegment(seg)
+	sess := &muxSession{flow: flow, assoc: assoc}
+	s.mu.Lock()
+	if _, exists := s.sessions[flow]; exists {
+		s.mu.Unlock()
+		s.table.Remove(flow)
+		return faketcp.ErrAssociationExists
+	}
+	s.sessions[flow] = sess
+	s.mu.Unlock()
+
+	// Keep the raw handshake free of per-session process startup. Allocate the
+	// DTLS worker only after the final ACK establishes this association.
+	if err := s.sendSYNACK(sess); err != nil {
+		s.removeSessionMatch(flow, sess)
+		return err
+	}
+	s.expireHalfOpenAfter(sess, halfOpenTimeout)
+	return nil
+}
+
+func (s *muxServer) expireHalfOpenAfter(sess *muxSession, d time.Duration) {
+	go func() {
+		t := time.NewTimer(d)
+		defer t.Stop()
+		select {
+		case <-s.ctx.Done():
+			return
+		case <-t.C:
+		}
+		if sess.assoc.State() == faketcp.ServerAssociationAwaitACK {
+			s.removeSessionMatch(sess.flow, sess)
+		}
+	}()
+}
+
+func (s *muxServer) startSessionWorker(sess *muxSession) error {
+	if sess.worker != nil && sess.relay != nil {
+		return nil
+	}
 	linkAddr, err := net.ResolveUDPAddr("udp4", s.cfg.linkTarget)
 	if err != nil {
-		s.table.Remove(flow)
 		return err
 	}
 	worker, err := dtlsworker.StartServer(s.ctx, dtlsworker.ServerSpec{
@@ -240,36 +294,20 @@ func (s *muxServer) acceptSYN(seg faketcp.Segment) error {
 		CertPath: s.cfg.cert, KeyPath: s.cfg.key, Stdout: os.Stdout, Stderr: os.Stderr,
 	})
 	if err != nil {
-		s.table.Remove(flow)
 		return err
 	}
 	relay, err := net.DialUDP("udp4", nil, worker.Addr())
 	if err != nil {
 		_ = worker.Stop()
-		s.table.Remove(flow)
 		return err
 	}
-	sess := &muxSession{flow: flow, assoc: assoc, relay: relay, worker: worker}
-	s.mu.Lock()
-	if _, exists := s.sessions[flow]; exists {
-		s.mu.Unlock()
-		_ = relay.Close()
-		_ = worker.Stop()
-		s.table.Remove(flow)
-		return faketcp.ErrAssociationExists
-	}
-	s.sessions[flow] = sess
-	s.mu.Unlock()
-
+	sess.worker = worker
+	sess.relay = relay
 	go s.relayLoop(sess)
-	go func() {
-		_ = worker.Wait()
-		s.removeSession(flow)
-	}()
-	if err := s.sendSYNACK(sess); err != nil {
-		s.removeSession(flow)
-		return err
-	}
+	go func(flow faketcp.ServerFlow, expected *muxSession, w *dtlsworker.Worker) {
+		_ = w.Wait()
+		s.removeSessionMatch(flow, expected)
+	}(sess.flow, sess, worker)
 	return nil
 }
 
@@ -357,17 +395,27 @@ func (s *muxServer) snapshotSessions() []*muxSession {
 }
 
 func (s *muxServer) removeSession(flow faketcp.ServerFlow) {
-	s.mu.Lock()
-	sess := s.sessions[flow]
-	if sess != nil {
-		delete(s.sessions, flow)
-	}
-	s.mu.Unlock()
-	if sess == nil {
+	s.removeSessionMatch(flow, s.getSession(flow))
+}
+
+func (s *muxServer) removeSessionMatch(flow faketcp.ServerFlow, expected *muxSession) {
+	if expected == nil {
 		return
 	}
-	_ = sess.relay.Close()
-	_ = sess.worker.Stop()
+	s.mu.Lock()
+	sess := s.sessions[flow]
+	if sess != expected {
+		s.mu.Unlock()
+		return
+	}
+	delete(s.sessions, flow)
+	s.mu.Unlock()
+	if sess.relay != nil {
+		_ = sess.relay.Close()
+	}
+	if sess.worker != nil {
+		_ = sess.worker.Stop()
+	}
 	s.table.Remove(flow)
 }
 
@@ -376,7 +424,7 @@ func (s *muxServer) Close() {
 		s.cancel()
 	}
 	for _, sess := range s.snapshotSessions() {
-		s.removeSession(sess.flow)
+		s.removeSessionMatch(sess.flow, sess)
 	}
 	if s.fd >= 0 {
 		_ = syscall.Close(s.fd)
