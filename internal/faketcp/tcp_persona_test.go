@@ -46,7 +46,7 @@ func TestLegacyPersonaIsByteIdentical(t *testing.T) {
 	dst, _ := IPv4(net.ParseIP("10.0.0.2"))
 	wantBuf := make([]byte, 128)
 	gotBuf := make([]byte, 128)
-	want := append([]byte(nil), MarshalIPv4TCPSACKInto(wantBuf, src, dst, 40000, 443, 1, 0, FlagSYN, 65535, nil, nil, 5)...)
+	want := append([]byte(nil), marshalIPv4TCPSACKBaseInto(wantBuf, src, dst, 40000, 443, 1, 0, FlagSYN, 65535, nil, nil, 5)...)
 	got := MarshalIPv4TCPSACKPersonaInto(gotBuf, src, dst, 40000, 443, 1, 0, FlagSYN, 65535, nil, nil, 5, PacketPersonaLegacy)
 	if !bytes.Equal(got, want) { t.Fatal("legacy persona changed existing packet bytes") }
 }

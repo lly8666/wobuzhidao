@@ -38,23 +38,20 @@ func (p PacketPersona) String() string {
 
 // MarshalIPv4TCPSACKPersonaInto preserves the mature legacy packet builder and
 // applies a presentation-only profile afterwards. This keeps ARQ/FEC and the
-// non-persona wire path byte-for-byte unchanged.
+// legacy/Linux wire path byte-for-byte unchanged.
 //
 // The Windows profile intentionally keeps WBD's path-MTU-derived MSS=1360 but
-// presents the stable Windows-family traits used by passive fingerprinting:
-// IPv4 TTL 128, DF with non-zero IP ID (already provided by the legacy builder),
-// window 65535 supplied by callers, WS=8, and SYN option layout
-// MSS,NOP,WS,NOP,NOP,SACK-permitted. The TTL is kept coherent for the whole
-// client flow rather than changing after the bootstrap phase.
+// presents stable Windows-family traits used by passive fingerprinting: IPv4
+// TTL 128, DF with non-zero IP ID (already provided by the base builder),
+// caller-provided window 65535, WS=8, and SYN option layout
+// MSS,NOP,WS,NOP,NOP,SACK-permitted. TTL remains coherent for the whole client
+// flow instead of jumping at the TLS->DTLS transition.
 func MarshalIPv4TCPSACKPersonaInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort uint16, seq, ack uint32, flags uint8, window uint16, sacks []SACKBlock, payload []byte, ipID uint16, persona PacketPersona) []byte {
-	pkt := MarshalIPv4TCPSACKInto(buf, srcIP, dstIP, srcPort, dstPort, seq, ack, flags, window, sacks, payload, ipID)
+	pkt := marshalIPv4TCPSACKBaseInto(buf, srcIP, dstIP, srcPort, dstPort, seq, ack, flags, window, sacks, payload, ipID)
 	if persona != PacketPersonaWindows11 {
 		return pkt
 	}
 
-	// Windows uses an initial IPv4 TTL of 128. Keep it for every packet in the
-	// same raw flow so observers do not see a persona jump at the TLS->DTLS
-	// transition. TTL is outside the TCP checksum.
 	ip := pkt[:20]
 	ip[8] = 128
 	binary.BigEndian.PutUint16(ip[10:12], 0)
@@ -64,9 +61,8 @@ func MarshalIPv4TCPSACKPersonaInto(buf []byte, srcIP, dstIP [4]byte, srcPort, ds
 		return pkt
 	}
 
-	// SYN option bytes occupy the same 12 bytes as the legacy profile, so this
-	// is a pure reorder with no sequence/header-length impact:
-	//   MSS(4), NOP(1), WS(3), NOP(1), NOP(1), SACK-permitted(2).
+	// Same 12-byte option length as the base profile, so this is a pure
+	// presentation reorder with no sequence/header-length impact.
 	tcp := pkt[20:]
 	o := tcp[20:32]
 	clear(o)

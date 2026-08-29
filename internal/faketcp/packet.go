@@ -100,10 +100,16 @@ func MarshalIPv4TCPInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort uint1
 }
 
 // MarshalIPv4TCPSACKInto constructs one IPv4/TCP packet without allocation.
-// SYN advertises MSS + SACK-permitted + window-scale. ACK packets may carry up
-// to four RFC 2018 SACK blocks. The steady-state data path has no TCP options
-// unless SACK state is actually needed.
+// It selects only the platform's presentation persona; sequence accounting,
+// recovery, SACK semantics and payload bytes remain in the shared base marshal.
 func MarshalIPv4TCPSACKInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort uint16, seq, ack uint32, flags uint8, window uint16, sacks []SACKBlock, payload []byte, ipID uint16) []byte {
+	return MarshalIPv4TCPSACKPersonaInto(buf, srcIP, dstIP, srcPort, dstPort, seq, ack, flags, window, sacks, payload, ipID, DefaultPacketPersona)
+}
+
+// marshalIPv4TCPSACKBaseInto is the mature legacy wire builder. Keep this
+// function persona-free so Linux/OpenWrt output remains byte-identical and a
+// presentation profile cannot alter ARQ/FEC behavior.
+func marshalIPv4TCPSACKBaseInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort uint16, seq, ack uint32, flags uint8, window uint16, sacks []SACKBlock, payload []byte, ipID uint16) []byte {
 	optLen := optionLen(flags, sacks)
 	need := 40 + optLen + len(payload)
 	if len(buf) < need { panic("faketcp: marshal buffer too small") }
@@ -131,7 +137,8 @@ func MarshalIPv4TCPSACKInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort u
 	binary.BigEndian.PutUint16(tcp[14:16], window)
 	if flags&FlagSYN != 0 {
 		o := tcp[20:32]
-		// MSS 1360, SACK permitted, NOP, window scale 8, NOP/NOP padding.
+		// Legacy Linux-like WBD profile: MSS 1360, SACK permitted, NOP,
+		// window scale 8, NOP/NOP padding.
 		o[0], o[1] = 2, 4
 		binary.BigEndian.PutUint16(o[2:4], DefaultMSS)
 		o[4], o[5] = 4, 2
