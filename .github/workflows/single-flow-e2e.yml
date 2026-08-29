@@ -144,8 +144,8 @@ jobs:
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/single/faketcp.log
           grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/single/faketcp.log
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/single/mux.log
-          test -s /tmp/single/client.ticket
-          test "$(tr -d '\r\n' </tmp/single/client.ticket | wc -c)" -eq 64
+          sudo test -s /tmp/single/client.ticket
+          test "$(sudo sh -c "tr -d '\\r\\n' </tmp/single/client.ticket | wc -c")" -eq 64
 
           sudo ip netns exec "$C" /tmp/single/wbd_dtls_shim client 46101 127.0.0.1 45101 none none \
             >/tmp/single/dtls.log 2>&1 & DTLS=$!
@@ -211,4 +211,3 @@ jobs:
           path: |
             /tmp/single/*.log
             /tmp/single/public.pcap
-            /tmp/single/client.ticket
