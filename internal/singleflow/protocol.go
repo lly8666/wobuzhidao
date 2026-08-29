@@ -70,15 +70,17 @@ func (a *OrderedAssembler) Push(seq uint32, payload []byte) []byte {
 
 func seqLT(a, b uint32) bool { return int32(a-b) < 0 }
 
-// SwitchRequest is the first non-TLS payload after successful Reality-like
-// admission. It does not expose the one-time ticket: only a truncated SHA-256
-// binding is carried. The frame remains inside the same FakeTCP sequence space;
-// there is no FIN/RST/new SYN between bootstrap and DTLS.
+// SwitchRequest is encrypted as TLS 1.3 application data inside the bounded
+// Reality-like bootstrap stream. The frame never appears as plaintext on the
+// public carrier. It binds the transition to the admitted one-time ticket
+// without exposing that ticket. No FIN/RST/new SYN is sent at the boundary.
 func SwitchRequest(ticket []byte) []byte { return makeSwitchFrame(switchRequest, ticket) }
 
-// SwitchAck is sent by the server only after its DTLS worker is ready to receive
-// the first ClientHello. Receiving it is the client's authority to discard the
-// ordered bootstrap reassembler and enter first-arrival datagram mode.
+// SwitchAck is likewise carried inside TLS 1.3 application data. The server
+// starts the DTLS worker before writing this ACK and switches its raw receiver
+// to datagram mode immediately after the TLS record has been queued. A client
+// that can decrypt the ACK therefore knows the peer is already ready for the
+// first DTLS ClientHello on the same TCP-shaped 4-tuple.
 func SwitchAck(ticket []byte) []byte { return makeSwitchFrame(switchAck, ticket) }
 
 func IsSwitchRequest(frame, ticket []byte) bool { return verifySwitchFrame(frame, switchRequest, ticket) }

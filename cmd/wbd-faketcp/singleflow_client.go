@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"strings"
@@ -20,7 +21,6 @@ type singleFlowPhase uint8
 const (
 	singleFlowDisabled singleFlowPhase = iota
 	singleFlowBootstrap
-	singleFlowAwaitSwitch
 	singleFlowDatagram
 )
 
@@ -30,8 +30,6 @@ type singleFlowClientState struct {
 	assembler *singleflow.OrderedAssembler
 	inbound   chan []byte
 	ticket    realityfront.Ticket
-	switchAck chan struct{}
-	ackOnce   sync.Once
 }
 
 func (e *endpoint) singleFlowEnabled() bool {
@@ -52,7 +50,6 @@ func (e *endpoint) initSingleFlowClient() error {
 		phase:     singleFlowBootstrap,
 		assembler: singleflow.NewOrderedAssembler(e.receiverNext()),
 		inbound:   make(chan []byte, 128),
-		switchAck: make(chan struct{}),
 	}
 	return nil
 }
@@ -72,34 +69,32 @@ func (e *endpoint) runSingleFlowBootstrap() error {
 	defer app.Close()
 	defer carrier.Close()
 
-	pumpErr := make(chan error, 2)
-	go func() { pumpErr <- e.singleFlowCarrierWriter(carrier) }()
-	go func() { pumpErr <- e.singleFlowCarrierReader(carrier) }()
+	go func() { _ = e.singleFlowCarrierWriter(carrier) }()
+	go func() { _ = e.singleFlowCarrierReader(carrier) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), e.cfg.bootstrapTimeout)
 	defer cancel()
 	ticket, tlsConn, err := realityfront.BootstrapClientSingleFlow(ctx, app, realityfront.SingleFlowClientConfig{
-		ServerName: e.cfg.realityServerName,
-		RouteKey: []byte(e.cfg.realityRouteKey),
-		Username: e.cfg.username,
-		Password: e.cfg.password,
+		ServerName:   e.cfg.realityServerName,
+		RouteKey:     []byte(e.cfg.realityRouteKey),
+		Username:     e.cfg.username,
+		Password:     e.cfg.password,
 		VerifyServer: e.cfg.verifyServer,
-		Timeout: e.cfg.bootstrapTimeout,
+		Timeout:      e.cfg.bootstrapTimeout,
 	})
 	if err != nil {
 		return fmt.Errorf("single-flow Reality-like bootstrap: %w", err)
 	}
 	// Do not call tlsConn.Close(): that would emit close_notify into the shared
-	// sequence space. The transport-level switch below is the phase boundary.
-	_ = tlsConn
+	// sequence space. The encrypted in-TLS switch below is the phase boundary.
 	if err := os.WriteFile(e.cfg.ticketOut, []byte(ticket.Hex()+"\n"), 0o600); err != nil {
 		return fmt.Errorf("write single-flow ticket: %w", err)
 	}
 
 	// Application-level TLS/auth completion is not yet a transport barrier. Wait
 	// until every client->server bootstrap byte has left the FakeTCP sender's
-	// pending set. Only then can SWITCH_REQ become the first post-TLS byte in the
-	// same sequence space. This HOL wait exists only during bounded bootstrap.
+	// pending set before appending the final encrypted switch request record.
+	// This HOL wait exists only during bounded bootstrap.
 	if err := e.waitSingleFlowSenderDrained(e.cfg.bootstrapTimeout); err != nil {
 		return fmt.Errorf("drain single-flow client bootstrap: %w", err)
 	}
@@ -107,51 +102,38 @@ func (e *endpoint) runSingleFlowBootstrap() error {
 
 	e.single.mu.Lock()
 	e.single.ticket = ticket
-	e.single.phase = singleFlowAwaitSwitch
 	e.single.mu.Unlock()
 
-	// Closing the local pipe stops TLS byte pumps without producing a TLS alert
-	// on the public carrier. All auth bytes are already cumulatively ACKed above.
+	// Keep the transition control inside TLS 1.3 application data. A public
+	// observer sees a normal encrypted TLS record, never a plaintext WBSF marker.
+	deadline := time.Now().Add(e.cfg.bootstrapTimeout)
+	_ = tlsConn.SetDeadline(deadline)
+	if _, err := tlsConn.Write(singleflow.SwitchRequest(ticket[:])); err != nil {
+		return fmt.Errorf("send encrypted single-flow switch request: %w", err)
+	}
+	fmt.Fprintln(os.Stderr, "WBD_SINGLEFLOW_TLS_SWITCH_REQUEST_SENT")
+
+	ack := make([]byte, singleflow.SwitchFrameLen)
+	if _, err := io.ReadFull(tlsConn, ack); err != nil {
+		return fmt.Errorf("read encrypted single-flow switch ACK: %w", err)
+	}
+	if !singleflow.IsSwitchAck(ack, ticket[:]) {
+		return singleflow.ErrBadSwitchFrame
+	}
+	_ = tlsConn.SetDeadline(time.Time{})
+	fmt.Fprintln(os.Stderr, "WBD_SINGLEFLOW_TLS_SWITCH_ACK_RECEIVED")
+
+	// The server switches to datagram mode immediately after queuing the TLS ACK
+	// record. Therefore successful decryption of that ACK is the client authority
+	// to discard ordered bootstrap state and start DTLS on the same public flow.
+	e.single.mu.Lock()
+	e.single.phase = singleFlowDatagram
+	e.single.assembler = nil
+	e.single.mu.Unlock()
 	_ = app.Close()
 	_ = carrier.Close()
-
-	if err := e.enqueueCarrierPayload(singleflow.SwitchRequest(ticket[:])); err != nil {
-		return fmt.Errorf("send single-flow switch request: %w", err)
-	}
-	fmt.Fprintln(os.Stderr, "WBD_SINGLEFLOW_SWITCH_REQUEST_SENT")
-
-	switchTimer := time.NewTimer(e.cfg.bootstrapTimeout)
-	defer switchTimer.Stop()
-	select {
-	case <-e.single.switchAck:
-		e.single.mu.Lock()
-		e.single.phase = singleFlowDatagram
-		e.single.assembler = nil
-		e.single.mu.Unlock()
-		fmt.Fprintln(os.Stderr, "WBD_SINGLEFLOW_DATAGRAM_READY public_flow=reused hol=bootstrap-only")
-		return nil
-	case err := <-pumpErr:
-		if err != nil && !errors.Is(err, net.ErrClosed) {
-			return fmt.Errorf("single-flow TLS carrier pump: %w", err)
-		}
-		// A pipe pump normally exits because we closed the local pipe after auth;
-		// keep waiting for the raw SWITCH_ACK.
-		select {
-		case <-e.single.switchAck:
-			e.single.mu.Lock()
-			e.single.phase = singleFlowDatagram
-			e.single.assembler = nil
-			e.single.mu.Unlock()
-			fmt.Fprintln(os.Stderr, "WBD_SINGLEFLOW_DATAGRAM_READY public_flow=reused hol=bootstrap-only")
-			return nil
-		case <-switchTimer.C:
-			return errors.New("single-flow switch ACK timeout")
-		}
-	case <-switchTimer.C:
-		return errors.New("single-flow switch ACK timeout")
-	case <-e.stop:
-		return os.ErrClosed
-	}
+	fmt.Fprintln(os.Stderr, "WBD_SINGLEFLOW_DATAGRAM_READY public_flow=reused hol=bootstrap-only")
+	return nil
 }
 
 func (e *endpoint) waitSingleFlowSenderDrained(timeout time.Duration) error {
@@ -234,8 +216,9 @@ func (e *endpoint) enqueueCarrierPayload(payload []byte) error {
 
 // handleDeliveredPayload is called after the existing first-arrival receiver
 // has accepted one raw segment. During bootstrap it adds only an ephemeral
-// ordered presentation for TLS; after SWITCH_ACK it immediately returns to the
-// legacy datagram delivery path, preserving no-HOL steady-state semantics.
+// ordered presentation for TLS; after the encrypted switch ACK it immediately
+// returns to the legacy datagram delivery path, preserving no-HOL steady-state
+// semantics.
 func (e *endpoint) handleDeliveredPayload(seg faketcp.Segment) error {
 	if e.single == nil {
 		peer := e.innerPeer()
@@ -247,7 +230,6 @@ func (e *endpoint) handleDeliveredPayload(seg faketcp.Segment) error {
 
 	e.single.mu.RLock()
 	phase := e.single.phase
-	ticket := e.single.ticket
 	assembler := e.single.assembler
 	e.single.mu.RUnlock()
 
@@ -263,12 +245,6 @@ func (e *endpoint) handleDeliveredPayload(seg faketcp.Segment) error {
 			case <-e.stop:
 				return os.ErrClosed
 			}
-		}
-		return nil
-	case singleFlowAwaitSwitch:
-		if singleflow.IsSwitchAck(seg.Payload, ticket[:]) {
-			e.single.ackOnce.Do(func() { close(e.single.switchAck) })
-			fmt.Fprintln(os.Stderr, "WBD_SINGLEFLOW_SWITCH_ACK_RECEIVED")
 		}
 		return nil
 	case singleFlowDatagram:

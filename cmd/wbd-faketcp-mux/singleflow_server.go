@@ -5,6 +5,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"sync"
@@ -19,7 +20,6 @@ type serverSingleFlowPhase uint8
 
 const (
 	serverSingleFlowBootstrap serverSingleFlowPhase = iota
-	serverSingleFlowAwaitSwitch
 	serverSingleFlowDatagram
 )
 
@@ -29,8 +29,6 @@ type serverSingleFlowState struct {
 	assembler *singleflow.OrderedAssembler
 	inbound   chan []byte
 	ticket    realityfront.Ticket
-	switchReq chan struct{}
-	reqOnce   sync.Once
 	startOnce sync.Once
 	done      chan struct{}
 	doneOnce  sync.Once
@@ -38,11 +36,10 @@ type serverSingleFlowState struct {
 
 func newServerSingleFlowState(peerNext uint32) *serverSingleFlowState {
 	return &serverSingleFlowState{
-		phase: serverSingleFlowBootstrap,
+		phase:     serverSingleFlowBootstrap,
 		assembler: singleflow.NewOrderedAssembler(peerNext),
-		inbound: make(chan []byte, 128),
-		switchReq: make(chan struct{}),
-		done: make(chan struct{}),
+		inbound:   make(chan []byte, 128),
+		done:      make(chan struct{}),
 	}
 }
 
@@ -68,9 +65,8 @@ func (s *muxServer) runSingleFlowBootstrap(sess *muxSession) {
 	defer app.Close()
 	defer carrier.Close()
 
-	pumpErr := make(chan error, 2)
-	go func() { pumpErr <- s.singleFlowCarrierWriter(sess, carrier) }()
-	go func() { pumpErr <- s.singleFlowCarrierReader(sess, carrier) }()
+	go func() { _ = s.singleFlowCarrierWriter(sess, carrier) }()
+	go func() { _ = s.singleFlowCarrierReader(sess, carrier) }()
 
 	res, tlsConn, err := realityfront.HandleServerConnSimpleSingleFlow(s.ctx, app, *s.front)
 	if err != nil {
@@ -78,7 +74,8 @@ func (s *muxServer) runSingleFlowBootstrap(sess *muxSession) {
 		s.removeSessionMatch(sess.flow, sess)
 		return
 	}
-	_ = tlsConn // deliberately no close_notify on the shared public flow
+	// Deliberately never call tlsConn.Close(): V3 has no TLS close_notify, FIN,
+	// RST or second SYN at the boundary to the datagram phase.
 	if res.Ticket == (realityfront.Ticket{}) {
 		s.removeSessionMatch(sess.flow, sess)
 		return
@@ -86,31 +83,30 @@ func (s *muxServer) runSingleFlowBootstrap(sess *muxSession) {
 
 	sess.sf.mu.Lock()
 	sess.sf.ticket = res.Ticket
-	sess.sf.phase = serverSingleFlowAwaitSwitch
 	sess.sf.mu.Unlock()
 	fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_REALITY_AUTH_OK client_port=%d tls=1.3\n", sess.flow.ClientPort)
 
-	select {
-	case <-sess.sf.switchReq:
-	case err := <-pumpErr:
-		if err != nil && !errors.Is(err, net.ErrClosed) {
-			fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_BOOTSTRAP_PUMP_FAIL client_port=%d err=%q\n", sess.flow.ClientPort, err)
-		}
+	// The mode-switch request remains encrypted TLS 1.3 application data. The
+	// public wire therefore stays TLS-shaped through the entire setup phase.
+	deadline := time.Now().Add(15 * time.Second)
+	_ = tlsConn.SetDeadline(deadline)
+	req := make([]byte, singleflow.SwitchFrameLen)
+	if _, err := io.ReadFull(tlsConn, req); err != nil {
+		fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_TLS_SWITCH_READ_FAIL client_port=%d err=%q\n", sess.flow.ClientPort, err)
 		s.removeSessionMatch(sess.flow, sess)
-		return
-	case <-time.After(15 * time.Second):
-		fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_SWITCH_TIMEOUT client_port=%d\n", sess.flow.ClientPort)
-		s.removeSessionMatch(sess.flow, sess)
-		return
-	case <-sess.sf.done:
-		return
-	case <-s.ctx.Done():
 		return
 	}
+	if !singleflow.IsSwitchRequest(req, res.Ticket[:]) {
+		fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_TLS_SWITCH_BAD client_port=%d\n", sess.flow.ClientPort)
+		s.removeSessionMatch(sess.flow, sess)
+		return
+	}
+	fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_TLS_SWITCH_REQUEST_RECEIVED client_port=%d\n", sess.flow.ClientPort)
 
-	// HandleSegment processes the request's ACK before the request payload is
-	// delivered here. Wait until all server->client TLS/auth bytes are actually
-	// out of the sender pending set before crossing the protocol boundary.
+	// Reading SWITCH_REQ proves all earlier client TLS bytes are contiguous at
+	// the server. Drain the server's earlier TLS/auth bytes before appending the
+	// final encrypted ACK record. HOL/retransmission is intentionally bounded to
+	// this setup phase only.
 	if err := s.waitSingleFlowSenderDrained(sess, 12*time.Second); err != nil {
 		fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_BOOTSTRAP_DRAIN_FAIL client_port=%d err=%q\n", sess.flow.ClientPort, err)
 		s.removeSessionMatch(sess.flow, sess)
@@ -118,27 +114,33 @@ func (s *muxServer) runSingleFlowBootstrap(sess *muxSession) {
 	}
 	fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_BOOTSTRAP_TX_DRAINED client_port=%d\n", sess.flow.ClientPort)
 
-	// The server DTLS worker must be ready before the client receives SWITCH_ACK
-	// and sends its first ClientHello. This removes the old first-payload/process
-	// startup race without creating another public connection.
+	// The worker is live before the client receives its encrypted switch ACK.
+	// Consequently the first DTLS ClientHello can never outrun worker startup.
 	if err := s.startSessionWorker(sess); err != nil {
 		fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_DTLS_WORKER_FAIL client_port=%d err=%q\n", sess.flow.ClientPort, err)
 		s.removeSessionMatch(sess.flow, sess)
 		return
 	}
 
-	sess.sf.mu.Lock()
-	ticket := sess.sf.ticket
-	sess.sf.phase = serverSingleFlowDatagram
-	sess.sf.assembler = nil
-	sess.sf.mu.Unlock()
-	_ = app.Close()
-	_ = carrier.Close()
-
-	if err := s.sendCarrierPayload(sess, singleflow.SwitchAck(ticket[:])); err != nil {
+	if _, err := tlsConn.Write(singleflow.SwitchAck(res.Ticket[:])); err != nil {
+		fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_TLS_SWITCH_WRITE_FAIL client_port=%d err=%q\n", sess.flow.ClientPort, err)
 		s.removeSessionMatch(sess.flow, sess)
 		return
 	}
+	fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_TLS_SWITCH_ACK_SENT client_port=%d\n", sess.flow.ClientPort)
+
+	// Switch server receive semantics immediately after the final TLS ACK record
+	// has been handed to the same raw sender. If that record is lost it is still
+	// retransmitted by the sender; the client cannot start DTLS until it has
+	// decrypted the record. Old TLS duplicates have sequence numbers below the
+	// receiver frontier and are discarded before reaching this handler.
+	sess.sf.mu.Lock()
+	sess.sf.phase = serverSingleFlowDatagram
+	sess.sf.assembler = nil
+	sess.sf.mu.Unlock()
+	_ = tlsConn.SetDeadline(time.Time{})
+	_ = app.Close()
+	_ = carrier.Close()
 	fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_DATAGRAM_READY client_port=%d public_flow=reused hol=bootstrap-only\n", sess.flow.ClientPort)
 }
 
@@ -227,7 +229,6 @@ func (s *muxServer) handleSingleFlowPayload(sess *muxSession, seg faketcp.Segmen
 	sess.sf.mu.RLock()
 	phase := sess.sf.phase
 	assembler := sess.sf.assembler
-	ticket := sess.sf.ticket
 	sess.sf.mu.RUnlock()
 
 	switch phase {
@@ -244,12 +245,6 @@ func (s *muxServer) handleSingleFlowPayload(sess *muxSession, seg faketcp.Segmen
 			case <-s.ctx.Done():
 				return s.ctx.Err()
 			}
-		}
-		return nil
-	case serverSingleFlowAwaitSwitch:
-		if singleflow.IsSwitchRequest(seg.Payload, ticket[:]) {
-			sess.sf.reqOnce.Do(func() { close(sess.sf.switchReq) })
-			fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_SWITCH_REQUEST_RECEIVED client_port=%d\n", sess.flow.ClientPort)
 		}
 		return nil
 	case serverSingleFlowDatagram:
