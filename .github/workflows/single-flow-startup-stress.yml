@@ -1,0 +1,253 @@
+name: single-flow-startup-stress
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/dtlsworker/**'
+      - 'internal/session/**'
+      - 'native/dtls/**'
+      - '.github/workflows/single-flow-startup-stress.yml'
+  pull_request:
+    paths:
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/dtlsworker/**'
+      - 'internal/session/**'
+      - 'native/dtls/**'
+      - '.github/workflows/single-flow-startup-stress.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  repeated_full_stack:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables python3
+      - name: Build pinned DTLS and complete single-flow stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/sfstress /tmp/wolf-stress /tmp/wolf-stress-art /tmp/wolfssl-stress-source.zip
+          mkdir -p /tmp/sfstress/tickets /tmp/wolf-stress/src /tmp/wolf-stress/build /tmp/wolf-stress-art
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-stress-source.zip
+          unzip -q /tmp/wolfssl-stress-source.zip -d /tmp/wolf-stress-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-stress-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-stress-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf-stress/src --strip-components=1
+          (cd /tmp/wolf-stress/src && ./autogen.sh)
+          (cd /tmp/wolf-stress/build && /tmp/wolf-stress/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf-stress/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf-stress/build -I/tmp/wolf-stress/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf-stress/build/src/.libs/libwolfssl.a -lm -o /tmp/sfstress/wbd_dtls_shim
+          go build -trimpath -o /tmp/sfstress/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/sfstress/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/sfstress/wbd-link-proxy ./cmd/wbd-link-proxy
+          go build -trimpath -o /tmp/sfstress/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
+            -keyout /tmp/sfstress/front.key -out /tmp/sfstress/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=dtls.wbd.test' \
+            -keyout /tmp/sfstress/dtls.key -out /tmp/sfstress/dtls.pem >/dev/null 2>&1
+      - name: Twenty rapid full-stack reconnects survive NAT and dirty client exits
+        run: |
+          set -euo pipefail
+          C=sfstressc$$
+          R=sfstressr$$
+          S=sfstresss$$
+          SERVER_PIDS=''
+          cleanup() {
+            set +e
+            for f in /tmp/sfstress/fake.pid /tmp/sfstress/dtls.pid /tmp/sfstress/link.pid; do
+              [ -s "$f" ] && sudo kill -TERM "$(cat "$f")" 2>/dev/null || true
+            done
+            for p in ${SERVER_PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null || true; done
+            sleep .3
+            sudo ip netns del "$C" 2>/dev/null || true
+            sudo ip netns del "$R" 2>/dev/null || true
+            sudo ip netns del "$S" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          ROUTE_KEY='0123456789abcdef0123456789abcdef'
+          USERNAME='stress-user'
+          PASSWORD='stress-password'
+          ROUNDS=20
+
+          sudo ip netns add "$C"
+          sudo ip netns add "$R"
+          sudo ip netns add "$S"
+          sudo ip link add cr type veth peer name rc
+          sudo ip link add rs type veth peer name sr
+          sudo ip link set cr netns "$C"
+          sudo ip link set rc netns "$R"
+          sudo ip link set rs netns "$R"
+          sudo ip link set sr netns "$S"
+          sudo ip -n "$C" addr add 10.92.0.2/24 dev cr
+          sudo ip -n "$R" addr add 10.92.0.1/24 dev rc
+          sudo ip -n "$R" addr add 10.93.0.1/24 dev rs
+          sudo ip -n "$S" addr add 10.93.0.2/24 dev sr
+          for ns in "$C" "$R" "$S"; do sudo ip -n "$ns" link set lo up; done
+          sudo ip -n "$C" link set cr up
+          sudo ip -n "$R" link set rc up
+          sudo ip -n "$R" link set rs up
+          sudo ip -n "$S" link set sr up
+          sudo ip -n "$C" route add default via 10.92.0.1
+          sudo ip netns exec "$R" sysctl -qw net.ipv4.ip_forward=1
+          sudo ip netns exec "$R" iptables -P FORWARD ACCEPT
+          sudo ip netns exec "$R" iptables -t nat -A POSTROUTING -s 10.92.0.0/24 -o rs -j MASQUERADE
+          sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+
+          cat >/tmp/sfstress/echo.py <<'PY'
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',48000))
+          while True:
+              b,a=s.recvfrom(65535)
+              s.sendto(b,a)
+          PY
+          sudo ip netns exec "$S" python3 /tmp/sfstress/echo.py >/tmp/sfstress/echo.log 2>&1 & ECHO_PID=$!
+          SERVER_PIDS="$ECHO_PID"
+
+          sudo ip netns exec "$S" /tmp/sfstress/wbd-link-server-mux \
+            -listen 127.0.0.1:47000 -service 127.0.0.1:48000 \
+            -ticket-dir /tmp/sfstress/tickets -ticket-ttl 60s -max-sessions 64 \
+            >/tmp/sfstress/link-server.log 2>&1 & LINK_SERVER_PID=$!
+          SERVER_PIDS="$SERVER_PIDS $LINK_SERVER_PID"
+          for i in $(seq 1 200); do grep -q 'WBD_LINK_SERVER_MUX_READY' /tmp/sfstress/link-server.log && break; sleep .05; done
+          grep -q 'WBD_LINK_SERVER_MUX_READY' /tmp/sfstress/link-server.log
+
+          python3 -m http.server 44444 --bind 127.0.0.1 >/tmp/sfstress/fallback.log 2>&1 & FALLBACK_PID=$!
+          SERVER_PIDS="$SERVER_PIDS $FALLBACK_PID"
+
+          sudo ip netns exec "$S" /tmp/sfstress/wbd-faketcp-mux server \
+            --listen 10.93.0.2:443 --dtls-shim /tmp/sfstress/wbd_dtls_shim \
+            --link-target 127.0.0.1:47000 --cert /tmp/sfstress/dtls.pem --key /tmp/sfstress/dtls.key \
+            --front-cert /tmp/sfstress/front.pem --front-key /tmp/sfstress/front.key \
+            --server-name wbd.test --route-key "$ROUTE_KEY" \
+            --username "$USERNAME" --password "$PASSWORD" \
+            --ticket-dir /tmp/sfstress/tickets --fallback-target 127.0.0.1:44444 \
+            --bootstrap-timeout 12s --max-sessions 64 \
+            >/tmp/sfstress/mux.log 2>&1 & MUX_PID=$!
+          SERVER_PIDS="$SERVER_PIDS $MUX_PID"
+          for i in $(seq 1 200); do grep -q 'READY role=server-mux.*single_flow_bootstrap=true' /tmp/sfstress/mux.log && break; sleep .05; done
+          grep -q 'READY role=server-mux.*single_flow_bootstrap=true' /tmp/sfstress/mux.log
+
+          cat >/tmp/sfstress/probe.py <<'PY'
+          import socket,sys,time
+          marker=sys.argv[1].encode()
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',0)); s.settimeout(.20)
+          for i in range(3):
+              want=marker+i.to_bytes(2,'big')
+              end=time.time()+3
+              while time.time()<end:
+                  s.sendto(want,('127.0.0.1',47101))
+                  try: got,_=s.recvfrom(65535)
+                  except socket.timeout: continue
+                  if got == want: break
+              else: raise SystemExit('echo timeout at %d'%i)
+          print('STRESS_ECHO_PASS marker='+sys.argv[1])
+          PY
+
+          for round in $(seq 1 "$ROUNDS"); do
+            port=$((49151 + round))
+            rm -f /tmp/sfstress/client.ticket /tmp/sfstress/fake.log /tmp/sfstress/dtls.log /tmp/sfstress/link.log \
+                  /tmp/sfstress/fake.pid /tmp/sfstress/dtls.pid /tmp/sfstress/link.pid /tmp/sfstress/probe.log
+
+            sudo ip netns exec "$C" sh -c "echo \\\$\\$ >/tmp/sfstress/fake.pid; exec /tmp/sfstress/wbd-faketcp client \
+              --local-udp 127.0.0.1:45101 --source 10.92.0.2:${port} --remote 10.93.0.2:443 \
+              --shadow-recovery legacy --reality-server-name wbd.test --reality-route-key '$ROUTE_KEY' \
+              --reality-username '$USERNAME' --reality-password '$PASSWORD' \
+              --reality-ticket-out /tmp/sfstress/client.ticket --reality-verify-server=false --reality-timeout 12s" \
+              >/tmp/sfstress/fake.log 2>&1 &
+            for i in $(seq 1 500); do
+              if grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/sfstress/fake.log && \
+                 grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/sfstress/fake.log; then break; fi
+              sleep .05
+            done
+            grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/sfstress/fake.log
+            grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/sfstress/fake.log
+            test -s /tmp/sfstress/client.ticket
+            ticket="$(tr -d '\r\n' </tmp/sfstress/client.ticket)"
+            test ${#ticket} -eq 64
+
+            sudo ip netns exec "$C" sh -c "echo \\\$\\$ >/tmp/sfstress/dtls.pid; exec /tmp/sfstress/wbd_dtls_shim client 46101 127.0.0.1 45101 none none" \
+              >/tmp/sfstress/dtls.log 2>&1 &
+            for i in $(seq 1 800); do grep -q 'READY role=client version=DTLSv1.3' /tmp/sfstress/dtls.log && break; sleep .05; done
+            grep -q 'READY role=client version=DTLSv1.3' /tmp/sfstress/dtls.log
+
+            sudo ip netns exec "$C" sh -c "echo \\\$\\$ >/tmp/sfstress/link.pid; exec /tmp/sfstress/wbd-link-proxy -mode client \
+              -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off -mtu 1400 -lanes 1 -demo-reality-ticket '$ticket'" \
+              >/tmp/sfstress/link.log 2>&1 &
+            for i in $(seq 1 800); do grep -q 'WBD_LINK_READY role=client' /tmp/sfstress/link.log && break; sleep .05; done
+            grep -q 'WBD_LINK_READY role=client' /tmp/sfstress/link.log
+
+            sudo ip netns exec "$C" python3 /tmp/sfstress/probe.py "ROUND_${round}_" >/tmp/sfstress/probe.log 2>&1
+            grep -q 'STRESS_ECHO_PASS' /tmp/sfstress/probe.log
+            test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY remote=.*same_flow=1' /tmp/sfstress/mux.log || true)" -ge "$round"
+            test "$(grep -c 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' /tmp/sfstress/mux.log || true)" -ge "$round"
+            test "$(grep -c 'WBD_LINK_MUX_SESSION_READY account=stress-user' /tmp/sfstress/link-server.log || true)" -ge "$round"
+
+            # Dirty client shutdown deliberately models process termination,
+            # laptop sleep, or link loss. Kill the real namespace child PIDs,
+            # not the outer sudo wrappers, then immediately start the next flow.
+            for f in /tmp/sfstress/link.pid /tmp/sfstress/dtls.pid /tmp/sfstress/fake.pid; do
+              if [ -s "$f" ]; then sudo kill -KILL "$(cat "$f")" 2>/dev/null || true; fi
+            done
+            for i in $(seq 1 100); do
+              alive=0
+              for f in /tmp/sfstress/link.pid /tmp/sfstress/dtls.pid /tmp/sfstress/fake.pid; do
+                if [ -s "$f" ] && sudo kill -0 "$(cat "$f")" 2>/dev/null; then alive=1; fi
+              done
+              [ "$alive" -eq 0 ] && break
+              sleep .02
+            done
+            echo "SINGLE_FLOW_STARTUP_STRESS_ROUND_PASS round=${round} source_port=${port}"
+          done
+
+          test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY remote=.*same_flow=1' /tmp/sfstress/mux.log)" -eq "$ROUNDS"
+          test "$(grep -c 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' /tmp/sfstress/mux.log)" -eq "$ROUNDS"
+          test "$(grep -c 'WBD_LINK_MUX_SESSION_READY account=stress-user' /tmp/sfstress/link-server.log)" -eq "$ROUNDS"
+          kill -0 "$MUX_PID"
+          kill -0 "$LINK_SERVER_PID"
+          echo "SINGLE_FLOW_STARTUP_STRESS_PASS rounds=${ROUNDS} nat=1 dirty_exit=1 full_stack=1"
+      - name: Upload stress diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: single-flow-startup-stress-${{ github.sha }}
+          path: |
+            /tmp/sfstress/mux.log
+            /tmp/sfstress/link-server.log
+            /tmp/sfstress/fake.log
+            /tmp/sfstress/dtls.log
+            /tmp/sfstress/link.log
+            /tmp/sfstress/probe.log
+          if-no-files-found: ignore
+          retention-days: 7
