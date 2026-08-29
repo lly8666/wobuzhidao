@@ -1,0 +1,25 @@
+name: exp-dispatch-single-flow-e2e
+
+on:
+  push:
+    branches:
+      - exp/single-flow-utls-firefox120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Dispatch canonical single-flow E2E on this ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api --method POST \
+            "repos/${GITHUB_REPOSITORY}/actions/workflows/single-flow-e2e.yml/dispatches" \
+            -f ref="${GITHUB_REF_NAME}"
+          echo "SINGLE_FLOW_E2E_DISPATCHED ref=${GITHUB_REF_NAME}"
