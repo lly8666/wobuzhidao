@@ -1,19 +1,25 @@
 package windowsruntime
 
 import (
+	"crypto/rand"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"net/netip"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 
 	"github.com/lly8666/wobuzhidao/internal/ipset"
 )
 
 const (
 	defaultFakeTCPLocalPort  = 45101
-	defaultFakeTCPSourcePort = 41001
+	defaultFakeTCPSourcePort = 41001 // compatibility fallback; product Connect assigns a dynamic port
+	windowsDynamicPortMin    = 49152
+	windowsDynamicPortCount  = 16384
 	defaultDTLSPlainPort     = 46101
 	defaultLinkListenPort    = 47101
 	defaultMTU               = 1400
@@ -26,6 +32,12 @@ const (
 	DNSSystem     = "System"
 	DNSCloudflare = "Cloudflare"
 	DNSCustom     = "Custom"
+)
+
+var (
+	fakeTCPPortSeedOnce sync.Once
+	fakeTCPPortSeed     uint32
+	fakeTCPPortCounter  atomic.Uint32
 )
 
 type Profile struct {
@@ -57,6 +69,10 @@ type Underlay struct {
 	PacketDevice string
 	SourceMAC    string
 	NextHopMAC   string
+	// SourcePort is a per-Connect TCP-shaped ephemeral source port. Zero is
+	// accepted only for builders/tests that need the historical deterministic
+	// fallback; product Controller.Connect always assigns a dynamic-range port.
+	SourcePort uint16
 }
 
 type Command struct {
@@ -138,7 +154,26 @@ func (u Underlay) Validate() error {
 	if ip, err := netip.ParseAddr(u.SourceIP); err != nil || !ip.Is4() { return errors.New("underlay source IP must be IPv4") }
 	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") { return errors.New("underlay packet device must be an Npcap device") }
 	if !validMAC(u.SourceMAC) || !validMAC(u.NextHopMAC) { return errors.New("underlay source and next-hop MACs are required") }
+	if u.SourcePort != 0 && (u.SourcePort < windowsDynamicPortMin || int(u.SourcePort) >= windowsDynamicPortMin+windowsDynamicPortCount) {
+		return errors.New("underlay FakeTCP source port must be in the Windows dynamic TCP port range")
+	}
 	return nil
+}
+
+// nextFakeTCPSourcePort returns a normal Windows dynamic-range source port and
+// guarantees no immediate reuse inside one wbd.exe process until all 16384
+// values have been cycled. The random seed changes the starting point after a
+// process restart. The port is connection metadata only; it does not change the
+// frozen FakeTCP recovery/FEC semantics.
+func nextFakeTCPSourcePort() uint16 {
+	fakeTCPPortSeedOnce.Do(func() {
+		var b [2]byte
+		if _, err := rand.Read(b[:]); err == nil {
+			fakeTCPPortSeed = uint32(binary.BigEndian.Uint16(b[:]) & (windowsDynamicPortCount - 1))
+		}
+	})
+	n := fakeTCPPortCounter.Add(1) - 1
+	return uint16(windowsDynamicPortMin + int((fakeTCPPortSeed+n)&(windowsDynamicPortCount-1)))
 }
 
 // BuildBootstrap remains available only for diagnostics/backward-compatible
@@ -167,10 +202,12 @@ func BuildFakeTCPCommand(profile Profile, underlay Underlay) (Command, error) {
 	raw, _ := netip.ParseAddrPort(profile.ServerRaw)
 	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
 	loop := func(port int) string { return "127.0.0.1:" + strconv.Itoa(port) }
+	sourcePort := underlay.SourcePort
+	if sourcePort == 0 { sourcePort = defaultFakeTCPSourcePort }
 	args := []string{
 		"client",
 		"--local-udp", loop(defaultFakeTCPLocalPort),
-		"--source", netip.AddrPortFrom(netip.MustParseAddr(underlay.SourceIP), defaultFakeTCPSourcePort).String(),
+		"--source", netip.AddrPortFrom(netip.MustParseAddr(underlay.SourceIP), sourcePort).String(),
 		"--remote", raw.String(),
 		"--shadow-recovery", "legacy",
 		"--packet-device", underlay.PacketDevice,
