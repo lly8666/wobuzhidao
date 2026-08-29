@@ -162,9 +162,10 @@ jobs:
           grep -q 'READY role=client.*single_flow_bootstrap=true' "$ROOT/faketcp.log"
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/faketcp.log"
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/mux.log"
-          test -s "$ROOT/client.ticket"
-          TICKET="$(tr -d '\r\n' <"$ROOT/client.ticket")"
+          sudo test -s "$ROOT/client.ticket"
+          TICKET="$(sudo cat "$ROOT/client.ticket" | tr -d '\r\n')"
           test ${#TICKET} -eq 64
+          sudo rm -f "$ROOT/client.ticket"
 
           sudo ip netns exec "$C" /tmp/sflink/wbd_dtls_shim client 46101 127.0.0.1 45101 none none \
             >"$ROOT/dtls.log" 2>&1 & DTLS=$!
