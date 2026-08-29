@@ -101,6 +101,11 @@ jobs:
           sudo ip netns exec "$C" tcpdump -U -i vc -s 0 -w /tmp/single/public.pcap \
             'tcp and host 10.88.0.1 and port 443' >/tmp/single/tcpdump.log 2>&1 & CAP=$!
           PIDS="$PIDS $CAP"
+          for i in $(seq 1 200); do
+            grep -q 'listening on vc' /tmp/single/tcpdump.log && break
+            sleep .05
+          done
+          grep -q 'listening on vc' /tmp/single/tcpdump.log
 
           sudo ip netns exec "$S" /tmp/single/wbd-faketcp-mux server \
             --listen 10.88.0.1:443 \
