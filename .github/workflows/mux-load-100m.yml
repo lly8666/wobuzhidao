@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/mux-load-100m.yml'
-      - 'scripts/bench_mux_two_session_100m.py'
+      - 'scripts/bench_mux_two_session_single_flow_100m.py'
       - 'scripts/bench_mux_two_session_100m_runner.py'
       - 'scripts/udp_multistream_oneway_probe.c'
       - 'cmd/wbd-faketcp/**'
@@ -44,7 +44,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables
-      - name: Build pinned DTLS and two-session stack once for this RTT
+      - name: Build pinned DTLS and single-flow two-session stack once for this RTT
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -61,9 +61,8 @@ jobs:
           gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
             native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/muxload/assets/wbd_dtls_shim
           gcc -O2 -Wall -Wextra -Werror scripts/udp_multistream_oneway_probe.c -lm -o /tmp/muxload/assets/udp_multistream_oneway_probe
-          python3 -m py_compile scripts/bench_mux_two_session_100m.py scripts/bench_mux_two_session_100m_runner.py
+          python3 -m py_compile scripts/bench_mux_two_session_single_flow_100m.py scripts/bench_mux_two_session_100m_runner.py
           go test ./internal/control ./internal/linkdata ./internal/session ./internal/faketcp ./internal/realityfront ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux -count=1
-          go build -trimpath -o /tmp/muxload/assets/wbd-reality-front ./cmd/wbd-reality-front
           go build -trimpath -o /tmp/muxload/assets/wbd-faketcp ./cmd/wbd-faketcp
           go build -trimpath -o /tmp/muxload/assets/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
           go build -trimpath -o /tmp/muxload/assets/wbd-link-proxy ./cmd/wbd-link-proxy
