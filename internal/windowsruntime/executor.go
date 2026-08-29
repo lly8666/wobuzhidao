@@ -330,6 +330,6 @@ func (p *osProcess) Stop() error {
 	if proc == nil { return nil }
 	err := proc.Kill()
 	if err == nil { return nil }
-	if errors.Is(err, os.ErrProcessDone) || errors.Is(err, syscall.ERROR_ACCESS_DENIED) || errors.Is(err, syscall.ERROR_INVALID_HANDLE) { return nil }
+	if isBenignProcessStopError(err) { return nil }
 	return err
 }
