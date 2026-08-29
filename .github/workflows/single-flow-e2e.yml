@@ -44,7 +44,17 @@ jobs:
           curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
           unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
-          unzip -q /tmp/wolf-art/wolfssl-source-5.9.2-stable.zip -d /tmp/wolf/src
+          test "$(cat /tmp/wolf-art/wolfssl-tag.txt)" = 'v5.9.2-stable'
+          test "$(cat /tmp/wolf-art/wolfssl-commit.txt)" = 'ac01707f552c611fbd135cc723b2682b3e7f80f2'
+          grep -Fq 'AC_INIT([wolfssl],[5.9.2]' /tmp/wolf-art/wolfssl-version-evidence.txt
+          mapfile -t WOLF_TARS < <(find /tmp/wolf-art -maxdepth 1 -type f -name 'wolfssl-*-source.tar.gz' -print)
+          test "${#WOLF_TARS[@]}" -eq 1
+          SOURCE_TAR="${WOLF_TARS[0]}"
+          test "$(basename "$SOURCE_TAR")" = 'wolfssl-ac01707f-source.tar.gz'
+          EXPECTED_SHA="$(awk 'NF >= 1 {print $1; exit}' /tmp/wolf-art/wolfssl-source.sha256)"
+          test "$EXPECTED_SHA" = '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b'
+          printf '%s  %s\n' "$EXPECTED_SHA" "$SOURCE_TAR" | sha256sum -c -
+          tar -xzf "$SOURCE_TAR" -C /tmp/wolf/src
           WOLF_SRC="$(find /tmp/wolf/src -mindepth 1 -maxdepth 1 -type d | head -n1)"
           test -n "$WOLF_SRC"
           cd "$WOLF_SRC"
