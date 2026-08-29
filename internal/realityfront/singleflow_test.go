@@ -3,6 +3,7 @@ package realityfront
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"net"
 	"testing"
 	"time"
@@ -18,10 +19,11 @@ func TestSingleFlowBootstrapKeepsCarrierOpen(t *testing.T) {
 	defer clientRaw.Close()
 	defer serverRaw.Close()
 
-	serverDone := make(chan struct {
+	type serverResult struct {
 		ticket Ticket
 		err    error
-	}, 1)
+	}
+	serverDone := make(chan serverResult, 1)
 	go func() {
 		res, tlsConn, err := HandleServerConnSimpleSingleFlow(context.Background(), serverRaw, ServerConfig{
 			RouteKey: key, ServerName: "target.test",
@@ -31,12 +33,9 @@ func TestSingleFlowBootstrapKeepsCarrierOpen(t *testing.T) {
 			Mirror: realitymirror.Config{MaxHelloBytes: 64 << 10},
 		})
 		if err == nil && tlsConn == nil {
-			t.Fatal("server did not return live TLS handle")
+			err = errors.New("server did not return live TLS handle")
 		}
-		serverDone <- struct {
-			ticket Ticket
-			err    error
-		}{res.Ticket, err}
+		serverDone <- serverResult{ticket: res.Ticket, err: err}
 	}()
 
 	ticket, tlsConn, err := BootstrapClientSingleFlow(context.Background(), clientRaw, SingleFlowClientConfig{
