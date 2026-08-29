@@ -1,6 +1,7 @@
 name: faketcp-reconnect-stress
 
 on:
+  push:
   pull_request:
   workflow_dispatch:
 
@@ -10,7 +11,7 @@ permissions:
 
 jobs:
   reconnect_stress:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.title, '[mux2]')
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.title, '[mux2]')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -99,8 +100,6 @@ jobs:
           sudo ip netns exec "$R" iptables -t nat -A POSTROUTING -s 10.94.0.0/24 -o rs0 -j MASQUERADE
           sudo ip netns exec "$R" iptables -A FORWARD -i rc0 -o rs0 -j ACCEPT
           sudo ip netns exec "$R" iptables -A FORWARD -i rs0 -o rc0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-          # Match the production Linux guard: the real TCP listener owns 443 in
-          # the kernel while FakeTCP is raw, so suppress only kernel-generated RST.
           sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --sport 443 --tcp-flags RST RST -j DROP
 
           cat >/tmp/reconnect/echo.py <<'PY'
@@ -170,9 +169,6 @@ jobs:
           assert data==msg,(data,msg)
           PY
               echo "RECONNECT_PASS phase=${phase} iter=${i} sport=${sport}" | tee -a /tmp/reconnect/results.log
-
-              # Deliberately model Windows TerminateProcess/crash semantics: no
-              # graceful DTLS close and no kernel TCP FIN exists for FakeTCP.
               sudo kill -KILL "$DPID" "$FPID" 2>/dev/null || true
               wait "$DPID" 2>/dev/null || true
               wait "$FPID" 2>/dev/null || true
@@ -182,8 +178,6 @@ jobs:
           }
 
           run_phase fixed 30
-          # Restart only the server mux between phases; the NAT namespace and
-          # conntrack table intentionally remain alive.
           sudo kill -KILL "$MUX" 2>/dev/null || true
           wait "$MUX" 2>/dev/null || true
           sudo ip netns pids "$S" | grep -v "^${ECHO}$" | xargs -r sudo kill -KILL 2>/dev/null || true
