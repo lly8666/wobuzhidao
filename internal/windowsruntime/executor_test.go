@@ -3,15 +3,17 @@ package windowsruntime
 import (
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
 
 type recordingRunner struct {
-	events    []string
-	fail      string
-	failOnce  string
-	failReady string
+	events     []string
+	fail       string
+	failOnce   string
+	failReady  string
+	failMarker string
 }
 
 func (r *recordingRunner) shouldFail(name string) bool {
@@ -32,8 +34,10 @@ func (r *recordingRunner) Start(command Command) (Process, error) {
 type recordingProcess struct { runner *recordingRunner; name string }
 func (p *recordingProcess) Stop() error { p.runner.events = append(p.runner.events, "stop:"+p.name); return nil }
 func (p *recordingProcess) WaitReady(marker string, timeout time.Duration) error {
-	p.runner.events = append(p.runner.events, "ready:"+p.name)
-	if p.runner.failReady == p.name { return errors.New("injected readiness failure") }
+	event := "ready:"+p.name
+	if strings.Contains(marker, singleFlowBootstrapReadyMarker) { event += ":bootstrap" }
+	p.runner.events = append(p.runner.events, event)
+	if p.runner.failReady == p.name || (p.runner.failMarker != "" && strings.Contains(marker, p.runner.failMarker)) { return errors.New("injected readiness failure") }
 	if marker == "" || timeout <= 0 { return errors.New("invalid readiness contract") }
 	return nil
 }
