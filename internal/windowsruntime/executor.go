@@ -138,17 +138,24 @@ func (e *Executor) startLocked(plan Plan, prestartedFake Process) error {
 	return nil
 }
 
+func waitProcessMarker(label string, proc Process, marker string, timeout time.Duration) error {
+	if strings.TrimSpace(marker) == "" || timeout <= 0 {
+		return fmt.Errorf("wait %s: invalid readiness contract", label)
+	}
+	rp, ok := proc.(readyProcess)
+	if !ok {
+		return fmt.Errorf("wait %s: process runner does not expose readiness", label)
+	}
+	if err := rp.WaitReady(marker, timeout); err != nil {
+		return fmt.Errorf("wait %s: %w", label, err)
+	}
+	return nil
+}
+
 func waitProcessReady(name string, proc Process) error {
 	spec, ok := commandReadiness(name)
 	if !ok { return nil }
-	rp, ok := proc.(readyProcess)
-	if !ok {
-		return fmt.Errorf("wait %s ready: process runner does not expose readiness", name)
-	}
-	if err := rp.WaitReady(spec.marker, spec.timeout); err != nil {
-		return fmt.Errorf("wait %s ready: %w", name, err)
-	}
-	return nil
+	return waitProcessMarker(name+" ready", proc, spec.marker, spec.timeout)
 }
 
 // Stop removes IPv4 steering first, then releases the device-wide IPv6 block,
@@ -258,78 +265,71 @@ type readyLineWriter struct {
 }
 
 func (w *readyLineWriter) Write(p []byte) (int, error) {
-	if w.dst != nil { _, _ = w.dst.Write(p) }
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	if w.dst != nil { _, _ = w.dst.Write(p) }
 	w.buf = append(w.buf, p...)
 	for {
 		i := bytes.IndexByte(w.buf, '\n')
 		if i < 0 { break }
-		w.out.observe(strings.TrimRight(string(w.buf[:i]), "\r"))
+		w.out.observe(string(w.buf[:i]))
 		w.buf = append(w.buf[:0], w.buf[i+1:]...)
 	}
 	return len(p), nil
 }
 
-func (w *readyLineWriter) Flush() {
+func (w *readyLineWriter) flush() {
 	w.mu.Lock()
-	defer w.mu.Unlock()
-	if len(w.buf) == 0 { return }
-	w.out.observe(strings.TrimRight(string(w.buf), "\r\n"))
-	w.buf = nil
+	if len(w.buf) != 0 { w.out.observe(string(w.buf)); w.buf = w.buf[:0] }
+	w.mu.Unlock()
 }
 
 type osProcess struct {
-	cmd            *exec.Cmd
-	out            *processOutput
-	stdout, stderr *readyLineWriter
-	done           chan struct{}
-	mu             sync.Mutex
-	exitErr        error
+	cmd    *exec.Cmd
+	out    *processOutput
+	stdout *readyLineWriter
+	stderr *readyLineWriter
+	done   chan struct{}
+	mu     sync.Mutex
+	exited bool
+	err    error
 }
 
 func (p *osProcess) wait() {
 	err := p.cmd.Wait()
-	p.stdout.Flush()
-	p.stderr.Flush()
-	p.mu.Lock()
-	p.exitErr = err
-	p.mu.Unlock()
+	p.stdout.flush(); p.stderr.flush()
+	p.mu.Lock(); p.err = err; p.exited = true; p.mu.Unlock()
 	close(p.done)
+	select { case p.out.notify <- struct{}{}: default: }
 }
 
-func (p *osProcess) getExitErr() error { p.mu.Lock(); defer p.mu.Unlock(); return p.exitErr }
-
 func (p *osProcess) WaitReady(marker string, timeout time.Duration) error {
-	if p == nil { return errors.New("nil process") }
-	marker = strings.TrimSpace(marker)
-	if marker == "" { return nil }
-	if timeout <= 0 { timeout = 25 * time.Second }
-	timer := time.NewTimer(timeout)
-	defer timer.Stop()
+	deadline := time.NewTimer(timeout)
+	defer deadline.Stop()
 	for {
 		if p.out.contains(marker) { return nil }
+		p.mu.Lock(); exited, err := p.exited, p.err; p.mu.Unlock()
+		if exited {
+			if err == nil { return fmt.Errorf("process exited before readiness marker %q", marker) }
+			return fmt.Errorf("process exited before readiness marker %q: %w", marker, err)
+		}
 		select {
 		case <-p.out.notify:
-			continue
 		case <-p.done:
-			if p.out.contains(marker) { return nil }
-			if err := p.getExitErr(); err != nil { return fmt.Errorf("process exited before marker %q: %w", marker, err) }
-			return fmt.Errorf("process exited before marker %q", marker)
-		case <-timer.C:
+		case <-deadline.C:
 			return fmt.Errorf("timeout waiting for marker %q", marker)
 		}
 	}
 }
 
 func (p *osProcess) Stop() error {
-	if p == nil || p.cmd == nil || p.cmd.Process == nil { return nil }
-	select { case <-p.done: return nil; default: }
-	killErr := p.cmd.Process.Kill()
-	<-p.done
-	if errors.Is(killErr, os.ErrProcessDone) { killErr = nil }
-	if p.cmd.ProcessState != nil && p.cmd.ProcessState.Exited() { killErr = nil }
-	waitErr := p.getExitErr()
-	if _, ok := waitErr.(*exec.ExitError); ok && killErr == nil { waitErr = nil }
-	return errors.Join(killErr, waitErr)
+	p.mu.Lock()
+	if p.exited { p.mu.Unlock(); return nil }
+	proc := p.cmd.Process
+	p.mu.Unlock()
+	if proc == nil { return nil }
+	err := proc.Kill()
+	if err == nil { return nil }
+	if errors.Is(err, os.ErrProcessDone) || errors.Is(err, syscall.ERROR_ACCESS_DENIED) || errors.Is(err, syscall.ERROR_INVALID_HANDLE) { return nil }
+	return err
 }
