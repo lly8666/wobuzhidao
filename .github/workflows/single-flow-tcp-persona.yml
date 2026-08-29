@@ -1,0 +1,161 @@
+name: single-flow-tcp-persona
+
+on:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+  pull_request:
+    paths:
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'scripts/analyze_single_flow_persona_pcap.py'
+      - 'scripts/check_single_flow_firefox120_persona.py'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/single-flow-tcp-persona.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  firefox120_public_persona:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump openssl
+      - name: Build bootstrap stack
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/persona/tickets
+          go build -trimpath -o /tmp/persona/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/persona/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
+            -keyout /tmp/persona/front.key -out /tmp/persona/front.pem >/dev/null 2>&1
+      - name: Capture and verify pinned Firefox 120 ClientHello
+        run: |
+          set -euo pipefail
+          S=wbdsfps$$
+          C=wbdsfpc$$
+          PIDS=''
+          cleanup() {
+            set +e
+            for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null; kill -TERM "$p" 2>/dev/null; done
+            sleep .2
+            sudo ip netns del "$C" 2>/dev/null
+            sudo ip netns del "$S" 2>/dev/null
+          }
+          trap cleanup EXIT
+
+          rm -f /tmp/persona/public.pcap /tmp/persona/tcpdump.log /tmp/persona/tcpdump.pid \
+            /tmp/persona/client.log /tmp/persona/mux.log /tmp/persona/report.json /tmp/persona/client.ticket
+
+          sudo ip netns add "$S"
+          sudo ip netns add "$C"
+          sudo ip link add pfc type veth peer name pfs
+          sudo ip link set pfc netns "$C"
+          sudo ip link set pfs netns "$S"
+          sudo ip -n "$C" addr add 10.92.0.2/24 dev pfc
+          sudo ip -n "$S" addr add 10.92.0.1/24 dev pfs
+          sudo ip -n "$C" link set lo up
+          sudo ip -n "$S" link set lo up
+          sudo ip -n "$C" link set pfc up
+          sudo ip -n "$S" link set pfs up
+          sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+
+          sudo ip netns exec "$C" sh -c 'echo $$ >/tmp/persona/tcpdump.pid; exec tcpdump --immediate-mode -U -i pfc -s 0 -w /tmp/persona/public.pcap "tcp and host 10.92.0.1 and port 443"' \
+            >/tmp/persona/tcpdump.log 2>&1 & CAP=$!
+          PIDS="$CAP"
+          for i in $(seq 1 200); do
+            if sudo test -s /tmp/persona/tcpdump.pid && grep -q 'listening on pfc' /tmp/persona/tcpdump.log; then break; fi
+            sleep .05
+          done
+          sudo test -s /tmp/persona/tcpdump.pid
+          grep -q 'listening on pfc' /tmp/persona/tcpdump.log
+
+          sudo ip netns exec "$S" /tmp/persona/wbd-faketcp-mux server \
+            --listen 10.92.0.1:443 \
+            --dtls-shim /bin/true \
+            --link-target 127.0.0.1:47000 \
+            --cert /tmp/persona/front.pem --key /tmp/persona/front.key \
+            --front-cert /tmp/persona/front.pem --front-key /tmp/persona/front.key \
+            --server-name wbd.test \
+            --route-key 0123456789abcdef0123456789abcdef \
+            --username persona --password persona-test-password \
+            --ticket-dir /tmp/persona/tickets \
+            --fallback-target 127.0.0.1:44444 \
+            --bootstrap-timeout 12s --max-sessions 4 \
+            >/tmp/persona/mux.log 2>&1 & MUX=$!
+          PIDS="$PIDS $MUX"
+          for i in $(seq 1 200); do
+            grep -q 'READY role=server-mux.*single_flow_bootstrap=true' /tmp/persona/mux.log && break
+            sleep .05
+          done
+          grep -q 'READY role=server-mux.*single_flow_bootstrap=true' /tmp/persona/mux.log
+
+          sudo ip netns exec "$C" /tmp/persona/wbd-faketcp client \
+            --local-udp 127.0.0.1:45101 \
+            --source 10.92.0.2:41001 --remote 10.92.0.1:443 \
+            --shadow-recovery legacy \
+            --reality-server-name wbd.test \
+            --reality-route-key 0123456789abcdef0123456789abcdef \
+            --reality-username persona --reality-password persona-test-password \
+            --reality-ticket-out /tmp/persona/client.ticket \
+            --reality-verify-server=false --reality-timeout 12s \
+            >/tmp/persona/client.log 2>&1 & FC=$!
+          PIDS="$PIDS $FC"
+          for i in $(seq 1 500); do
+            if grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/persona/client.log && \
+               grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/persona/mux.log; then
+              break
+            fi
+            sleep .05
+          done
+          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/persona/client.log
+          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/persona/mux.log
+          sudo test -s /tmp/persona/client.ticket
+
+          for i in $(seq 1 200); do
+            PCAP_SIZE="$(sudo stat -c%s /tmp/persona/public.pcap 2>/dev/null || echo 0)"
+            [ "$PCAP_SIZE" -gt 24 ] && break
+            sleep .05
+          done
+          test "$(sudo stat -c%s /tmp/persona/public.pcap)" -gt 24
+
+          TCPDUMP_PID="$(sudo cat /tmp/persona/tcpdump.pid)"
+          sudo kill -INT "$TCPDUMP_PID"
+          wait "$CAP" || true
+          sudo test -s /tmp/persona/public.pcap
+
+          sudo chown "$(id -u):$(id -g)" /tmp/persona/public.pcap
+          python3 scripts/analyze_single_flow_persona_pcap.py \
+            /tmp/persona/public.pcap \
+            --client-ip 10.92.0.2 --server-ip 10.92.0.1 \
+            --client-port 41001 --server-port 443 \
+            --out /tmp/persona/report.json
+          python3 scripts/check_single_flow_firefox120_persona.py \
+            /tmp/persona/report.json --server-name wbd.test
+          echo '--- client ---'; cat /tmp/persona/client.log
+          echo '--- mux ---'; cat /tmp/persona/mux.log
+      - name: Upload persona evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: single-flow-firefox120-persona
+          path: |
+            /tmp/persona/public.pcap
+            /tmp/persona/report.json
+            /tmp/persona/client.log
+            /tmp/persona/mux.log
+          if-no-files-found: warn
