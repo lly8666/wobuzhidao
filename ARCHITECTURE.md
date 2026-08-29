@@ -1,145 +1,175 @@
-# Architecture v2.2
+# Architecture v3.0
 
-> **Status: ACTIVE MAINLINE.** V1 multi-ordinary-TCP is permanently rejected. V2.2 is a personal OpenWrt/Linux ↔ Linux/Windows VPN with a TCP-shaped FakeTCP carrier, UDP-like data semantics, FEC, DTLS 1.3, native TUN/L3, and an optional browser-like TLS Persona bootstrap.
+> **Status: V3 CANDIDATE / HARD INVARIANTS FROZEN.** WBD is a personal weak-network VPN whose public transport is one TCP-shaped raw FakeTCP association. The first bounded phase is real TLS 1.3 / Reality-like setup on that same association; steady state is DTLS 1.3 + FEC + packet/datagram transport with no ordinary-TCP head-of-line blocking.
 
-## Product intent
+## Non-negotiable public-flow invariant
 
-- the **outer wire packets** should be TCP-shaped enough for the selected FakeTCP carrier;
-- the **inner transport behavior** must stay packet/datagram-oriented and avoid ordinary TCP HOL/retransmission;
-- both endpoints are operator-controlled and privileged;
-- the local kernel does not need to believe the raw payload lane is a genuine TCP byte stream.
+For one WBD session, the public network must observe exactly one TCP-shaped flow:
 
-Therefore the product does not require a kernel TCP anchor.
+```text
+client-ip:client-port  <====================>  server-ip:WBD_PORT
+         SYN ... TLS-looking setup ... DTLS/FEC data ... close
+```
 
-## Core stack
+From the first SYN until session teardown:
+
+- the same client/server 4-tuple is retained;
+- FakeTCP owns the raw TCP-shaped sequence space;
+- no second Reality/TLS TCP connection is dialed;
+- no second SYN is used to enter the data plane;
+- no FIN, RST, TLS `close_notify`, or kernel-TCP handoff occurs at the setup-to-data boundary;
+- the official server has exactly one public owner for `WBD_PORT`: `wbd-faketcp-mux`;
+- an independent kernel `wbd-reality-front :WBD_PORT` listener is forbidden in the V3 product composition.
+
+A ticket/session identity may bind higher layers, but it must never be used to correlate two different public connections because V3 does not create two public connections.
+
+## Public phase model
+
+```text
+raw FakeTCP SYN / SYN-ACK / ACK
+        ↓
+SAME RAW ASSOCIATION / SAME SEQUENCE SPACE
+        ↓
+bounded ordered bootstrap presentation
+        ↓
+real TLS 1.3 Reality-like ClientHello/SNI/marker
+        ↓
+username/password admission + one-time ticket
+        ↓
+encrypted TLS application-data SWITCH_REQ / SWITCH_ACK
+        ↓
+NO FIN / NO RST / NO close_notify / NO NEW SYN
+        ↓
+discard ordered bootstrap assembler
+        ↓
+DTLS 1.3 datagrams
+        ↓
+FEC / LINK / VPN packet datagrams
+```
+
+The mode-switch controls are encrypted inside TLS 1.3 application-data records. A public observer must not see a plaintext WBD switch magic immediately after the TLS setup.
+
+## Reality-like fidelity
+
+The setup phase must use real TLS 1.3 wire grammar over the caller-owned raw FakeTCP association. It includes a valid ClientHello, SNI, certificate handshake, WBD Reality-like route marker, and authenticated admission.
+
+The design goal is to be as close as practical to an ordinary Reality/browser-style setup for the first few seconds. Fidelity work may improve ClientHello/TCP option fingerprints, extension order, timing, record sizing, or certificate presentation, but it must obey these rules:
+
+1. fidelity code runs over the existing raw association;
+2. it must never dial a second public socket;
+3. it must never move steady-state VPN payload into ordinary kernel TCP;
+4. it must never retain an ordered TLS/TCP stream after the switch barrier.
+
+Current Go `crypto/tls` setup is real TLS 1.3 but is not claimed to be byte-for-byte browser/uTLS fingerprint identical. That is an explicit fidelity gap, not permission to reintroduce a second connection.
+
+## HOL boundary
+
+A short ordered presentation is necessary because TLS is a byte-stream protocol. Therefore bootstrap may temporarily buffer out-of-order FakeTCP payload until contiguous TLS bytes exist.
+
+That ordered assembler is **bootstrap-only**. It is destroyed immediately after the encrypted switch ACK is successfully processed. After that point:
+
+- later datagrams may complete while earlier datagrams are lost or delayed;
+- no stream reassembly waits for missing earlier data;
+- DTLS records/FEC shards remain independently deliverable/authenticated;
+- ordinary TCP retransmission and kernel receive queues never control sustained VPN payload.
+
+Qualification must prove this boundary, not merely infer it from code structure.
+
+## Steady-state stack
 
 ```text
 TUN / IP packet
         ↓
-WBD packet/session layer
+WBD packet/session layer / LINK
         ↓
-UDPspeeder-compatible FEC
-  normal / 20:10 / 20:20
+release FEC: off or fixed systematic 20:20
         ↓
 DTLS 1.3 security wrapper
         ↓
-udp2raw-compatible FakeTCP raw lane
+first-arrival FakeTCP datagram carrier
         ↓
-public network
+same public TCP-shaped 4-tuple
 ```
 
-The critical property is: **product payload is never committed to an ordinary kernel TCP byte stream on the weak-network path.**
+DTLS 1.3 is the steady-state security authority. The pinned implementation remains wolfSSL `v5.9.2-stable`, commit `ac01707f552c611fbd135cc723b2682b3e7f80f2`, unless a separately qualified security-lock update replaces it.
 
-## What "TCP-shaped" means
+## Server composition
 
-FakeTCP owns the public packet shape and its own raw-lane state. It may emit SYN/ACK/PSH-shaped packets as required by the selected carrier.
+The official Linux V3 runtime must launch:
 
-It does not imply application `send()` on a kernel TCP socket, kernel retransmission of product payload, kernel byte-stream receive queues, kernel sequence-space ownership for WBD payload, or a required real OS `ESTABLISHED` payload socket.
+- one raw `wbd-faketcp-mux` public listener;
+- Reality-like TLS/auth inside each raw association;
+- one DTLS worker per admitted association;
+- shared loopback LINK mux;
+- shared loopback platform proxy.
 
-Classic udp2raw-compatible FakeTCP remains the product carrier baseline.
+`wbd-reality-front` may remain in the repository for legacy/diagnostic comparison, but it is not installed or executed as a public listener by the V3 release bundle.
+
+A future normal-web fallback on the same IP/port must be implemented inside the raw-front ownership model. It must not be implemented by restoring a competing kernel TCP listener on the same port.
+
+## Client composition
+
+Windows V3 performs underlay discovery, then starts the one raw FakeTCP association. Reality-like TLS/auth happens inside that process/association. The ticket produced by that setup is injected into LINK only after the encrypted switch barrier and DTLS readiness chain. No standalone `reality-bootstrap` public connection exists in the V3 product path.
+
+The readiness dependency remains:
+
+```text
+FakeTCP raw association + Reality-like setup + switch
+        ↓
+DTLS READY
+        ↓
+LINK READY
+        ↓
+TUN READY
+        ↓
+IPv6 kill-switch / routes
+        ↓
+connected
+```
+
+Routes must never be applied merely because child processes were spawned.
+
+## FakeTCP semantics
+
+"TCP-shaped" means WBD emits structurally coherent IPv4/TCP packets and owns its raw-lane state. It does not mean application `send()` on a kernel TCP socket, kernel retransmission of sustained product payload, kernel byte-stream delivery, or OS TCP sequence ownership.
+
+The raw carrier may use SYN/ACK/PSH-like packets, ACK progression, bounded recovery, and packet-level retransmission needed for its selected semantics. Steady-state delivery authority remains first-arrival/datagram oriented.
 
 ## FEC and DTLS ordering
 
 ```text
-WBD/application packet datagram
+WBD packet datagram
    ↓
-FEC encoder
-   ↓
-source/repair shard
+FEC source/repair shard
    ↓
 DTLS application datagram
    ↓
-FakeTCP raw carrier
+FakeTCP raw packet
 ```
 
-Every source/repair shard is independently AEAD-authenticated. Losing one DTLS record must not block later records or repair symbols.
+Every DTLS/FEC unit is packet-preserving. Losing one earlier record must not force later independent records to wait. FEC must never reconstruct an ordered aggregate byte stream.
 
-## DTLS security
+## Qualification requirements
 
-DTLS 1.3 remains the steady-state security authority: real X.509, native trust-chain/hostname verification, ephemeral key exchange, AEAD, anti-replay, and no custom post-handshake cipher.
+A V3 release candidate is not qualified by unit tests alone. Automated qualification must include a network-namespace/NAT environment that proves all of the following on the same association:
 
-Initial pin: wolfSSL `v5.9.2-stable`, commit `ac01707f552c611fbd135cc723b2682b3e7f80f2`. M2 already qualified this implementation path.
+- exactly one public SYN/session 4-tuple;
+- real TLS 1.3 Reality-like setup occurs before DTLS;
+- switch request/ack plaintext does not appear on the captured public wire;
+- no second SYN, FIN, RST, or TLS close-notify is used at the transition;
+- DTLS 1.3 becomes ready on the same raw association;
+- bidirectional payload succeeds through LINK/echo;
+- an intentionally delayed/lost earlier steady-state unit does not block a later datagram;
+- repeated reconnect/dirty-exit cases do not revive a second-listener or stale-association design.
 
-## Native WBD packet/session layer
-
-M3 provides HELLO/ACCEPT, optional AUTH/AUTH_OK, PING/PONG, CLOSE/reconnect, stats and fixed protection CONFIG/CONFIG_OK. Data framing remains bounded and packet-preserving; it must never reconstruct an ordered byte stream.
-
-## Qualification split
-
-The product architecture deliberately separates **transport semantics** from **platform ingress/egress**.
-
-### A. Transport-only characterization — current priority
-
-```text
-packet/datagram generator
-  → UDPspeeder mode0 20:20
-  → DTLS 1.3
-  → FakeTCP
-  → impaired underlay
-  → FakeTCP
-  → DTLS 1.3
-  → FEC decode
-  → packet/datagram echo
-```
-
-TUN is intentionally absent from this campaign. That makes CPU/RSS, loss tolerance and latency measurements attributable to the carrier/security/FEC stack rather than a platform driver.
-
-The first immutable matrix is:
-
-- RTT `20/50/100/200/400/600 ms`;
-- symmetric independent random loss `0/1/5/10/20/30/40%` per direction;
-- FEC fixed at `20:20`;
-- at least three deterministic seeds;
-- fresh namespaces and fresh FakeTCP/DTLS/FEC association for every case;
-- impairment installed before connection establishment.
-
-The matrix must measure two architectural properties together.
-
-**TCP-like outer:** real IPv4/TCP-shaped FakeTCP packets remain structurally coherent across impairment. Capture/parse flags, SYN/SYN-ACK/ACK behavior, RST/FIN, duplicate packets and sequence/ACK progression. This is not a claim of ordinary TCP semantics.
-
-**UDP-like inner:** later independent datagrams may complete while earlier datagrams are lost/delayed; delivery must not inherit an ordered byte-stream HOL dependency. Record delivery, out-of-order/later-datagram bypass evidence, p50/p95/p99/max and goodput.
-
-Resource accounting is mandatory: per-component CPU, total CPU, CPU per delivered MiB, per-component peak RSS, aggregate peak RSS, and wire bytes.
-
-### B. Platform qualification — later / external real-device work
-
-Real TUN/OpenWrt/Linux/Windows testing validates TUN/Wintun/Npcap integration, MTU, routes, firewall rules and device-specific resources. A platform failure does not silently change the already-measured transport semantics.
-
-## Optional TLS Persona bootstrap
-
-TLS Persona is independent from the data lane.
-
-```text
-client
-  ├─ optional standard TCP/TLS 1.3 preflight
-  │    ├─ operator-controlled SNI/certificate
-  │    ├─ browser-like ClientHello profile
-  │    └─ optional bounded bootstrap binding
-  └─ WBD FakeTCP lane
-       → DTLS 1.3
-       → WBD auth/config
-       → steady-state FEC/datagrams
-```
-
-Persona must not turn steady-state VPN traffic into an ordered TLS/TCP stream, replace DTLS security, silently weaken verification, or require third-party private keys/certificates.
-
-Xray REALITY/uTLS may be studied for ClientHello profile handling. Vision stream/TLS-in-TLS semantics are not part of the WBD data plane.
-
-## Kernel-anchor research status
-
-The previous kernel TCP anchor / real-return-packet experiment is **retired from the product roadmap**. Historical packet-capture evidence may remain, but no further product work is required.
-
-## Optional two-lane design
-
-Two lanes remain deferred. Admission requires same-total-byte-budget evidence after one-lane characterization. If ever admitted, use one independent DTLS association per raw lane and merge authenticated plaintext FEC datagrams before a shared decoder; never create an ordered aggregate stream.
+Physical Windows/Npcap and real-server tests remain final platform qualification because hosted CI cannot perfectly emulate the Windows packet driver, NIC, home NAT, or ISP middleboxes.
 
 ## Platform roles
 
-- OpenWrt/Linux: preferred server/either endpoint; native TUN + privileged raw path.
-- Linux desktop/server: native TUN + privileged raw path.
-- Windows: required later client; Npcap/easy-faketcp-compatible raw path + Wintun/equivalent.
+- Linux/OpenWrt: preferred server/either endpoint; native TUN + privileged raw path.
+- Windows 11 x64: portable client; Npcap raw path + Wintun/equivalent.
 - Android: out of scope.
 
-## Optimization rule
+## Deferred work
 
-The current transport matrix is deliberately narrow: `20:20` only. Do not add more FEC ratios, MTUs, burst models, timers, Persona profiles or lanes until the first RTT/loss/resource surface identifies where additional experiments are informative.
+Do not add lanes, new FEC ratios, or other transport complexity until the one-flow V3 invariants and no-HOL qualification remain green. Reality-like fingerprint fidelity may be improved independently as long as it never violates one-flow ownership or steady-state no-HOL semantics.
