@@ -34,16 +34,35 @@ func NewExecutor(runner Runner) *Executor {
 	return &Executor{runner: runner}
 }
 
-// Start preserves the frozen process stack, then fail-closes device IPv6, then
-// applies IPv4 capture last. Broad IPv4 capture is never enabled before every
-// process and the IPv6 kill switch are ready.
+// Start starts the complete process stack. It remains useful for transport-only
+// and compatibility tests that do not perform product single-flow admission.
 func (e *Executor) Start(plan Plan) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	return e.startLocked(plan, nil)
+}
+
+// StartAfterFakeTCP continues startup after Controller has already started the
+// one public FakeTCP process and waited for its in-flow TLS/bootstrap ticket.
+// The supplied process becomes lifecycle-owned by Executor and is rolled back
+// together with DTLS/LINK/TUN on any later failure.
+func (e *Executor) StartAfterFakeTCP(plan Plan, fake Process) error {
+	if fake == nil { return errors.New("prestarted FakeTCP process is required") }
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.startLocked(plan, fake)
+}
+
+func (e *Executor) startLocked(plan Plan, prestartedFake Process) error {
 	if e.cleanupPending { return errors.New("Windows runtime has pending network cleanup") }
 	if e.running || len(e.processes) != 0 { return errors.New("Windows runtime is already running") }
 
-	for _, command := range plan.ProcessSequence() {
+	commands := plan.ProcessSequence()
+	if prestartedFake != nil {
+		e.processes = append(e.processes, namedProcess{name: plan.FakeTCP.Name, proc: prestartedFake})
+		if len(commands) != 0 { commands = commands[1:] }
+	}
+	for _, command := range commands {
 		proc, err := e.runner.Start(command)
 		if err != nil {
 			e.rollbackProcessesLocked()
@@ -53,8 +72,6 @@ func (e *Executor) Start(plan Plan) error {
 	}
 
 	if err := e.runner.Run(plan.IPv6Apply); err != nil {
-		// The script self-cleans partial rules; retry cleanup for crash-safe
-		// idempotence before stopping the already-started process stack.
 		cleanupErr := e.runner.Run(plan.IPv6Cleanup)
 		e.rollbackProcessesLocked()
 		if cleanupErr != nil {
