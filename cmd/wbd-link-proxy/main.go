@@ -41,7 +41,6 @@ type options struct {
 	demoRealityWitnessDir string
 	demoRealityServerName string
 	demoRealityTicket     string
-	demoRealityTicketFile string
 	demoRealityTicketDir  string
 	demoRealityTTL        time.Duration
 }
@@ -77,7 +76,6 @@ func main() {
 	flag.StringVar(&o.demoRealityWitnessDir, "demo-reality-witness-dir", "", "legacy mirror demo server: local witness directory")
 	flag.StringVar(&o.demoRealityServerName, "demo-reality-server-name", "", "legacy mirror demo server: target SNI bound to witness")
 	flag.StringVar(&o.demoRealityTicket, "demo-reality-ticket", "", "same-entry Reality front demo: one-time 64-hex authenticated ticket")
-	flag.StringVar(&o.demoRealityTicketFile, "demo-reality-ticket-file", "", "V3 single-flow client: read one-time Reality ticket from this 0600 file at process startup")
 	flag.StringVar(&o.demoRealityTicketDir, "demo-reality-ticket-dir", "", "same-entry Reality front demo server: one-time ticket directory")
 	flag.DurationVar(&o.demoRealityTTL, "demo-reality-ttl", 15*time.Second, "maximum age of one-time demo witness/ticket")
 	flag.Parse()
@@ -97,17 +95,13 @@ func run(o options) error {
 	}
 	if o.mode == "client" {
 		if strings.TrimSpace(o.demoRealityWitnessDir) != "" || strings.TrimSpace(o.demoRealityServerName) != "" || strings.TrimSpace(o.demoRealityTicketDir) != "" {
-			return errors.New("client demo mode accepts only a witness or ticket binding")
+			return errors.New("client demo mode accepts only -demo-reality-witness or -demo-reality-ticket")
 		}
-		bindings := 0
-		if strings.TrimSpace(o.demoRealityWitness) != "" { bindings++ }
-		if strings.TrimSpace(o.demoRealityTicket) != "" { bindings++ }
-		if strings.TrimSpace(o.demoRealityTicketFile) != "" { bindings++ }
-		if bindings > 1 {
-			return errors.New("choose exactly one Reality binding: witness, ticket, or ticket-file")
+		if strings.TrimSpace(o.demoRealityWitness) != "" && strings.TrimSpace(o.demoRealityTicket) != "" {
+			return errors.New("choose exactly one Reality demo binding: witness or ticket")
 		}
 	} else {
-		if strings.TrimSpace(o.demoRealityWitness) != "" || strings.TrimSpace(o.demoRealityTicket) != "" || strings.TrimSpace(o.demoRealityTicketFile) != "" {
+		if strings.TrimSpace(o.demoRealityWitness) != "" || strings.TrimSpace(o.demoRealityTicket) != "" {
 			return errors.New("server demo mode uses local witness/ticket directories, not client binding values")
 		}
 		witnessDir := strings.TrimSpace(o.demoRealityWitnessDir)
@@ -176,25 +170,6 @@ func clientLinkConfig(o options) (control.LinkConfig, error) {
 	return cfg, nil
 }
 
-func loadClientTicket(o options) (string, error) {
-	if raw := strings.TrimSpace(o.demoRealityTicket); raw != "" {
-		return raw, nil
-	}
-	path := strings.TrimSpace(o.demoRealityTicketFile)
-	if path == "" {
-		return "", nil
-	}
-	body, err := os.ReadFile(path)
-	if err != nil {
-		return "", fmt.Errorf("read Reality ticket file: %w", err)
-	}
-	raw := strings.TrimSpace(string(body))
-	if raw == "" {
-		return "", errors.New("Reality ticket file is empty")
-	}
-	return raw, nil
-}
-
 func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if o.dtls == "" {
 		return errors.New("client requires -dtls")
@@ -214,12 +189,8 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	init := control.LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: cfg}
 	var startup clientStartupSession
 	demoKind := "off"
-	rawTicket, err := loadClientTicket(o)
-	if err != nil {
-		return err
-	}
-	if rawTicket != "" {
-		ticket, err := realityfront.ParseTicketHex(rawTicket)
+	if raw := strings.TrimSpace(o.demoRealityTicket); raw != "" {
+		ticket, err := realityfront.ParseTicketHex(raw)
 		if err != nil {
 			return err
 		}
@@ -229,11 +200,7 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 		if err != nil {
 			return err
 		}
-		if strings.TrimSpace(o.demoRealityTicketFile) != "" {
-			demoKind = "ticket-file"
-		} else {
-			demoKind = "ticket"
-		}
+		demoKind = "ticket"
 	} else if raw := strings.TrimSpace(o.demoRealityWitness); raw != "" {
 		id, err := persona.ParseWitnessHex(raw)
 		if err != nil {
@@ -298,59 +265,334 @@ func clientStartup(conn *net.UDPConn, dtlsAddr *net.UDPAddr, startup clientStart
 		n, from, err := conn.ReadFromUDP(buf)
 		if err != nil {
 			if ne, ok := err.(net.Error); ok && ne.Timeout() {
-				select {
-				case <-stop:
-					return errors.New("stopped during immutable link startup")
-				default:
-					continue
-				}
+				continue
 			}
 			return err
 		}
-		if !udpEqual(from, dtlsAddr) {
+		select {
+		case <-stop:
+			return nil
+		default:
+		}
+		if !sameUDPAddr(from, dtlsAddr) {
 			continue
 		}
-		wire, err := startup.HandleWire(buf[:n])
+		next, err := startup.HandleWire(buf[:n])
 		if err != nil {
 			return err
 		}
-		if len(wire) != 0 {
-			if _, err := conn.WriteToUDP(wire, dtlsAddr); err != nil {
+		if len(next) != 0 {
+			if _, err := conn.WriteToUDP(next, dtlsAddr); err != nil {
 				return err
 			}
+			nextSend = time.Now().Add(setupRetryAfter)
 		}
 	}
-	_ = conn.SetReadDeadline(time.Time{})
 	return nil
 }
 
 func runServer(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
+	if o.service == "" {
+		return errors.New("server requires -service")
+	}
 	serviceAddr, err := net.ResolveUDPAddr("udp4", o.service)
 	if err != nil {
 		return err
 	}
-	if serviceAddr == nil || serviceAddr.Port == 0 {
-		return errors.New("server requires -service")
+	var startup serverStartupSession
+	demoKind := "off"
+	if ticketDir := strings.TrimSpace(o.demoRealityTicketDir); ticketDir != "" {
+		verify := func(bind [control.DemoWitnessLen]byte) error {
+			var ticket realityfront.Ticket
+			copy(ticket[:], bind[:])
+			return realityfront.ConsumeTicket(ticketDir, ticket, time.Now(), o.demoRealityTTL)
+		}
+		startup, err = control.NewDemoTicketReliableLinkServerSession(1, 1, control.CurrentLinkPolicy(), verify)
+		demoKind = "ticket"
+	} else if witnessDir := strings.TrimSpace(o.demoRealityWitnessDir); witnessDir != "" {
+		verify := func(witness [control.DemoWitnessLen]byte) error {
+			return persona.ConsumeWitness(witnessDir, persona.WitnessID(witness), o.demoRealityServerName, time.Now(), o.demoRealityTTL)
+		}
+		startup, err = control.NewDemoReliableLinkServerSession(1, 1, []byte(o.expectedToken), control.CurrentLinkPolicy(), verify)
+		demoKind = "witness"
+	} else {
+		startup, err = control.NewReliableLinkServerSession(1, 1, []byte(o.expectedToken), control.CurrentLinkPolicy())
 	}
-	return runServerMux(conn, serviceAddr, o, stop)
+	if err != nil {
+		return err
+	}
+	dtlsPeer, err := serverStartup(conn, serviceAddr, startup, o.setupTimeout, stop)
+	if err != nil {
+		return err
+	}
+	cfg := startup.Stats().Config
+	path, err := linkdata.New(cfg, maxBlocks)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("WBD_LINK_READY role=server fec_mode=%d fec=%d:%d mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t demo_kind=%s\n",
+		cfg.FECMode, cfg.DataShards, cfg.ParityShards, cfg.MTU, cfg.LaneCount, startup.Stats().AuthRequired, demoKind != "off", demoKind)
+	return serverDataLoop(conn, serviceAddr, dtlsPeer, path, startup, stop)
 }
 
-func udpEqual(a, b *net.UDPAddr) bool {
-	if a == nil || b == nil {
-		return false
+func serverStartup(conn *net.UDPConn, serviceAddr *net.UDPAddr, startup serverStartupSession, timeout time.Duration, stop <-chan os.Signal) (*net.UDPAddr, error) {
+	deadline := time.Now().Add(timeout)
+	buf := make([]byte, control.HeaderLen+control.MaxBodyLen)
+	var peer *net.UDPAddr
+	for startup.State() != control.StateEstablished {
+		if startup.State() == control.StateFailed || startup.State() == control.StateClosed {
+			return nil, errors.New("immutable link startup failed; reconnect required")
+		}
+		_ = conn.SetReadDeadline(deadline)
+		n, from, err := conn.ReadFromUDP(buf)
+		if err != nil {
+			return nil, err
+		}
+		select {
+		case <-stop:
+			return nil, nil
+		default:
+		}
+		if sameUDPAddr(from, serviceAddr) {
+			continue
+		}
+		if peer == nil {
+			peer = cloneUDPAddr(from)
+		} else if !sameUDPAddr(from, peer) {
+			continue
+		}
+		reply, err := startup.HandleWire(buf[:n], uint64(time.Now().UnixNano()))
+		if err != nil {
+			return nil, err
+		}
+		if _, err := conn.WriteToUDP(reply, peer); err != nil {
+			return nil, err
+		}
 	}
-	return a.Port == b.Port && a.IP.Equal(b.IP)
+	if peer == nil {
+		return nil, errors.New("server established without DTLS plaintext peer")
+	}
+	return peer, nil
 }
-
-// The rest of this file implements the established client/server LINK data
-// loops and is intentionally unchanged by V3 single-flow admission. The ticket
-// file only changes how the already-qualified one-shot bind is sourced.
-
-func startupAcceptConfig(s clientStartupSession) (control.LinkAccept, bool) { return s.Accept() }
 
 func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Path, startup clientStartupSession, keepalive time.Duration, stop <-chan os.Signal) error {
-	// Existing implementation retained below by the repository version. This
-	// marker comment is replaced during the next compile pass if the file has
-	// additional helpers after this excerpt.
-	return clientDataLoopImpl(conn, dtlsAddr, path, startup, keepalive, stop)
+	buf := make([]byte, 65535)
+	var appPeer *net.UDPAddr
+	nextPing := time.Now().Add(keepalive)
+	for {
+		select {
+		case <-stop:
+			if err := flushPath(conn, dtlsAddr, path); err != nil {
+				return err
+			}
+			_ = sendLifecycle(conn, dtlsAddr, control.Close{Reason: control.CloseNormal, Detail: "client shutdown"})
+			return nil
+		default:
+		}
+		now := time.Now()
+		if !now.Before(nextPing) {
+			if err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: uint64(now.UnixNano())}); err != nil {
+				return err
+			}
+			nextPing = now.Add(keepalive)
+		}
+		_ = conn.SetReadDeadline(time.Now().Add(time.Millisecond))
+		n, from, err := conn.ReadFromUDP(buf)
+		now = time.Now()
+		if err != nil {
+			if ne, ok := err.(net.Error); !ok || !ne.Timeout() {
+				return err
+			}
+		} else if sameUDPAddr(from, dtlsAddr) {
+			if isStartupControl(buf[:n]) {
+				if next, err := startup.HandleWire(buf[:n]); err != nil {
+					return err
+				} else if len(next) != 0 {
+					if _, err := conn.WriteToUDP(next, dtlsAddr); err != nil {
+						return err
+					}
+				}
+				nextPing = now.Add(keepalive)
+				continue
+			}
+			if isLifecycleControl(buf[:n]) {
+				frame, err := control.UnmarshalLink(buf[:n])
+				if err != nil {
+					return err
+				}
+				switch f := frame.(type) {
+				case control.Pong:
+					nextPing = now.Add(keepalive)
+					continue
+				case control.Ping:
+					if err := sendLifecycle(conn, dtlsAddr, control.Pong{Nonce: f.Nonce}); err != nil {
+						return err
+					}
+					nextPing = now.Add(keepalive)
+					continue
+				case control.Close:
+					return fmt.Errorf("server closed WBD link reason=%d detail=%q reconnect=%t", f.Reason, f.Detail, control.ReconnectAllowed(f.Reason))
+				}
+			}
+			packets, err := path.Decode(buf[:n])
+			if err != nil {
+				if !errors.Is(err, fec.ErrDecoderFull) {
+					return err
+				}
+			} else if appPeer != nil {
+				for _, packet := range packets {
+					if _, err := conn.WriteToUDP(packet, appPeer); err != nil {
+						return err
+					}
+				}
+			}
+			nextPing = now.Add(keepalive)
+		} else {
+			appPeer = cloneUDPAddr(from)
+			wire, err := path.Encode(buf[:n], now)
+			if err != nil {
+				return err
+			}
+			if err := sendWire(conn, dtlsAddr, wire); err != nil {
+				return err
+			}
+			nextPing = now.Add(keepalive)
+		}
+		wire, err := path.FlushDue(now)
+		if err != nil {
+			return err
+		}
+		if err := sendWire(conn, dtlsAddr, wire); err != nil {
+			return err
+		}
+	}
+}
+
+func serverDataLoop(conn *net.UDPConn, serviceAddr, dtlsPeer *net.UDPAddr, path *linkdata.Path, startup serverStartupSession, stop <-chan os.Signal) error {
+	buf := make([]byte, 65535)
+	for {
+		select {
+		case <-stop:
+			return flushPath(conn, dtlsPeer, path)
+		default:
+		}
+		_ = conn.SetReadDeadline(time.Now().Add(time.Millisecond))
+		n, from, err := conn.ReadFromUDP(buf)
+		now := time.Now()
+		if err != nil {
+			if ne, ok := err.(net.Error); !ok || !ne.Timeout() {
+				return err
+			}
+		} else if sameUDPAddr(from, serviceAddr) {
+			wire, err := path.Encode(buf[:n], now)
+			if err != nil {
+				return err
+			}
+			if err := sendWire(conn, dtlsPeer, wire); err != nil {
+				return err
+			}
+		} else if sameUDPAddr(from, dtlsPeer) {
+			if isStartupControl(buf[:n]) || isLifecycleControl(buf[:n]) {
+				reply, err := startup.HandleWire(buf[:n], uint64(now.UnixNano()))
+				if err != nil {
+					return err
+				}
+				if len(reply) != 0 {
+					if _, err := conn.WriteToUDP(reply, dtlsPeer); err != nil {
+						return err
+					}
+				}
+				if startup.State() == control.StateFailed {
+					return errors.New("post-establishment link change requires reconnect")
+				}
+				if startup.State() == control.StateClosed {
+					return nil
+				}
+				continue
+			}
+			packets, err := path.Decode(buf[:n])
+			if err != nil {
+				if !errors.Is(err, fec.ErrDecoderFull) {
+					return err
+				}
+			} else {
+				for _, packet := range packets {
+					if _, err := conn.WriteToUDP(packet, serviceAddr); err != nil {
+						return err
+					}
+				}
+			}
+		}
+		wire, err := path.FlushDue(now)
+		if err != nil {
+			return err
+		}
+		if err := sendWire(conn, dtlsPeer, wire); err != nil {
+			return err
+		}
+	}
+}
+
+func flushPath(conn *net.UDPConn, dst *net.UDPAddr, path *linkdata.Path) error {
+	wire, err := path.Flush()
+	if err != nil {
+		return err
+	}
+	return sendWire(conn, dst, wire)
+}
+
+func sendWire(conn *net.UDPConn, dst *net.UDPAddr, wire [][]byte) error {
+	for _, packet := range wire {
+		if _, err := conn.WriteToUDP(packet, dst); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func sendLifecycle(conn *net.UDPConn, dst *net.UDPAddr, frame any) error {
+	wire, err := control.MarshalLink(frame)
+	if err != nil {
+		return err
+	}
+	_, err = conn.WriteToUDP(wire, dst)
+	return err
+}
+
+func isStartupControl(packet []byte) bool {
+	if len(packet) < control.HeaderLen || string(packet[:4]) != string(control.Magic[:]) || packet[4] != control.FrameVersion1 {
+		return false
+	}
+	switch control.Type(packet[5]) {
+	case control.TypeDemoBind, control.TypeDemoBindOK, control.TypeLinkInit, control.TypeLinkAccept, control.TypeError, control.TypeAuth, control.TypeAuthOK:
+		return true
+	default:
+		return false
+	}
+}
+
+func isLifecycleControl(packet []byte) bool {
+	if len(packet) < control.HeaderLen || string(packet[:4]) != string(control.Magic[:]) || packet[4] != control.FrameVersion1 {
+		return false
+	}
+	switch control.Type(packet[5]) {
+	case control.TypePing, control.TypePong, control.TypeClose:
+		return true
+	default:
+		return false
+	}
+}
+
+func sameUDPAddr(a, b *net.UDPAddr) bool {
+	if a == nil || b == nil || a.Port != b.Port || a.Zone != b.Zone {
+		return false
+	}
+	return a.IP.Equal(b.IP)
+}
+
+func cloneUDPAddr(a *net.UDPAddr) *net.UDPAddr {
+	if a == nil {
+		return nil
+	}
+	return &net.UDPAddr{IP: append(net.IP(nil), a.IP...), Port: a.Port, Zone: a.Zone}
 }
