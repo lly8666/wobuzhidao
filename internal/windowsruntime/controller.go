@@ -79,6 +79,11 @@ func (c *Controller) Connect(profile Profile) error {
 	// is no preliminary ordinary-TCP Reality connection.
 	underlay, err := c.discoverer.Discover(profile)
 	if err != nil { return fmt.Errorf("discover Windows FakeTCP underlay: %w", err) }
+	// A browser-like TCP connection uses an ephemeral source port. Assign one
+	// fresh dynamic-range port per Connect and keep it fixed for this entire
+	// single-flow lifetime. This is both more Reality-like and prevents rapid
+	// reconnects from gratuitously reusing the previous public TCP-shaped tuple.
+	if underlay.SourcePort == 0 { underlay.SourcePort = nextFakeTCPSourcePort() }
 	fakeCommand, err := BuildFakeTCPCommand(profile, underlay)
 	if err != nil { return fmt.Errorf("build single-flow FakeTCP command: %w", err) }
 	fakeProc, err := c.runner.Start(fakeCommand)
