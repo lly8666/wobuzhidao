@@ -177,7 +177,8 @@ jobs:
 
           for round in $(seq 1 "$ROUNDS"); do
             port=$((49151 + round))
-            rm -f /tmp/sfstress/client.ticket /tmp/sfstress/fake.log /tmp/sfstress/dtls.log /tmp/sfstress/link.log \
+            sudo rm -f /tmp/sfstress/client.ticket
+            rm -f /tmp/sfstress/fake.log /tmp/sfstress/dtls.log /tmp/sfstress/link.log \
                   /tmp/sfstress/fake.pid /tmp/sfstress/dtls.pid /tmp/sfstress/link.pid /tmp/sfstress/probe.log
 
             sudo ip netns exec "$C" sh -c "echo \\\$\\$ >/tmp/sfstress/fake.pid; exec /tmp/sfstress/wbd-faketcp client \
@@ -193,9 +194,10 @@ jobs:
             done
             grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/sfstress/fake.log
             grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/sfstress/fake.log
-            test -s /tmp/sfstress/client.ticket
-            ticket="$(tr -d '\r\n' </tmp/sfstress/client.ticket)"
+            sudo test -s /tmp/sfstress/client.ticket
+            ticket="$(sudo cat /tmp/sfstress/client.ticket | tr -d '\r\n')"
             test ${#ticket} -eq 64
+            sudo rm -f /tmp/sfstress/client.ticket
 
             sudo ip netns exec "$C" sh -c "echo \\\$\\$ >/tmp/sfstress/dtls.pid; exec /tmp/sfstress/wbd_dtls_shim client 46101 127.0.0.1 45101 none none" \
               >/tmp/sfstress/dtls.log 2>&1 &
