@@ -1,0 +1,241 @@
+name: single-flow-link-fullstack
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+  pull_request:
+    paths:
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/dtlsworker/**'
+      - 'internal/session/**'
+      - 'native/dtls/**'
+      - 'scripts/check_single_flow_wire_invariants.py'
+      - '.github/workflows/single-flow-link-fullstack.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  single_flow_link:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    strategy:
+      fail-fast: false
+      matrix:
+        fec: ['off', '20:20']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables tcpdump
+      - name: Build pinned wolfSSL and WBD single-flow full stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/sflink /tmp/sflink-wolf /tmp/sflink-art /tmp/sflink-source.zip
+          mkdir -p /tmp/sflink /tmp/sflink-wolf/src /tmp/sflink-wolf/build /tmp/sflink-art
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/sflink-source.zip
+          unzip -q /tmp/sflink-source.zip -d /tmp/sflink-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/sflink-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/sflink-art/wolfssl-ac01707f-source.tar.gz -C /tmp/sflink-wolf/src --strip-components=1
+          (cd /tmp/sflink-wolf/src && ./autogen.sh)
+          (cd /tmp/sflink-wolf/build && /tmp/sflink-wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/sflink-wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/sflink-wolf/build -I/tmp/sflink-wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/sflink-wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/sflink/wbd_dtls_shim
+          go test ./internal/faketcp ./internal/realityfront ./internal/dtlsworker ./internal/session ./internal/singleflowvwire -count=1
+          go build -trimpath -o /tmp/sflink/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/sflink/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/sflink/wbd-link-proxy ./cmd/wbd-link-proxy
+          go build -trimpath -o /tmp/sflink/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          python3 -m py_compile scripts/check_single_flow_wire_invariants.py
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
+            -keyout /tmp/sflink/front.key -out /tmp/sflink/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=dtls.wbd.test' \
+            -keyout /tmp/sflink/dtls.key -out /tmp/sflink/dtls.pem >/dev/null 2>&1
+      - name: One public flow reaches LINK service
+        env:
+          FEC: ${{ matrix.fec }}
+        run: |
+          set -euo pipefail
+          S=wbdsfls$$
+          C=wbdsflc$$
+          ROOT="/tmp/sflink/run-${FEC//:/x}"
+          mkdir -p "$ROOT/tickets"
+          chmod 700 "$ROOT/tickets"
+          PIDS=''
+          cleanup() {
+            set +e
+            for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null; kill -TERM "$p" 2>/dev/null; done
+            sleep .2
+            sudo ip netns del "$C" 2>/dev/null
+            sudo ip netns del "$S" 2>/dev/null
+          }
+          trap cleanup EXIT
+
+          sudo ip netns add "$S"
+          sudo ip netns add "$C"
+          sudo ip link add sflc type veth peer name sfls
+          sudo ip link set sflc netns "$C"
+          sudo ip link set sfls netns "$S"
+          sudo ip -n "$C" addr add 10.91.0.2/24 dev sflc
+          sudo ip -n "$S" addr add 10.91.0.1/24 dev sfls
+          sudo ip -n "$C" link set lo up
+          sudo ip -n "$S" link set lo up
+          sudo ip -n "$C" link set sflc up
+          sudo ip -n "$S" link set sfls up
+          sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+
+          cat >"$ROOT/echo.py" <<'PY'
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',48000))
+          while True:
+              b,a=s.recvfrom(65535)
+              s.sendto(b,a)
+          PY
+          sudo ip netns exec "$S" python3 "$ROOT/echo.py" >"$ROOT/echo.log" 2>&1 & ECHO=$!
+          PIDS="$ECHO"
+
+          sudo ip netns exec "$S" /tmp/sflink/wbd-link-server-mux \
+            -listen 127.0.0.1:47000 -service 127.0.0.1:48000 \
+            -ticket-dir "$ROOT/tickets" -ticket-ttl 60s -max-sessions 8 \
+            >"$ROOT/link-server.log" 2>&1 & LINKSERVER=$!
+          PIDS="$PIDS $LINKSERVER"
+          for i in $(seq 1 300); do grep -q 'WBD_LINK_SERVER_MUX_READY' "$ROOT/link-server.log" && break; sleep .05; done
+          grep -q 'WBD_LINK_SERVER_MUX_READY' "$ROOT/link-server.log"
+
+          sudo rm -f "$ROOT/public.pcap" "$ROOT/tcpdump.pid"
+          sudo ip netns exec "$C" sh -c "echo \$\$ >'$ROOT/tcpdump.pid'; exec tcpdump --immediate-mode -U -i sflc -s 0 -w '$ROOT/public.pcap' 'tcp and host 10.91.0.1 and port 443'" \
+            >"$ROOT/tcpdump.log" 2>&1 & CAP=$!
+          PIDS="$PIDS $CAP"
+          for i in $(seq 1 200); do
+            if test -s "$ROOT/tcpdump.pid" && grep -q 'listening on sflc' "$ROOT/tcpdump.log"; then break; fi
+            sleep .05
+          done
+          test -s "$ROOT/tcpdump.pid"
+          grep -q 'listening on sflc' "$ROOT/tcpdump.log"
+
+          sudo ip netns exec "$S" /tmp/sflink/wbd-faketcp-mux server \
+            --listen 10.91.0.1:443 --dtls-shim /tmp/sflink/wbd_dtls_shim \
+            --link-target 127.0.0.1:47000 --cert /tmp/sflink/dtls.pem --key /tmp/sflink/dtls.key \
+            --front-cert /tmp/sflink/front.pem --front-key /tmp/sflink/front.key \
+            --server-name wbd.test --route-key 0123456789abcdef0123456789abcdef \
+            --username singleflow --password singleflow-test-password \
+            --ticket-dir "$ROOT/tickets" --fallback-target 127.0.0.1:44444 \
+            --bootstrap-timeout 12s --max-sessions 8 \
+            >"$ROOT/mux.log" 2>&1 & MUX=$!
+          PIDS="$PIDS $MUX"
+          for i in $(seq 1 300); do grep -q 'READY role=server-mux.*single_flow_bootstrap=true' "$ROOT/mux.log" && break; sleep .05; done
+          grep -q 'READY role=server-mux.*single_flow_bootstrap=true' "$ROOT/mux.log"
+
+          sudo ip netns exec "$C" /tmp/sflink/wbd-faketcp client \
+            --local-udp 127.0.0.1:45101 --source 10.91.0.2:51001 --remote 10.91.0.1:443 \
+            --shadow-recovery legacy --reality-server-name wbd.test \
+            --reality-route-key 0123456789abcdef0123456789abcdef \
+            --reality-username singleflow --reality-password singleflow-test-password \
+            --reality-ticket-out "$ROOT/client.ticket" --reality-verify-server=false --reality-timeout 12s \
+            >"$ROOT/faketcp.log" 2>&1 & FC=$!
+          PIDS="$PIDS $FC"
+          for i in $(seq 1 600); do
+            if grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/faketcp.log" && \
+               grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/mux.log"; then break; fi
+            sleep .05
+          done
+          grep -q 'READY role=client.*single_flow_bootstrap=true' "$ROOT/faketcp.log"
+          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/faketcp.log"
+          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/mux.log"
+          test -s "$ROOT/client.ticket"
+          TICKET="$(tr -d '\r\n' <"$ROOT/client.ticket")"
+          test ${#TICKET} -eq 64
+
+          sudo ip netns exec "$C" /tmp/sflink/wbd_dtls_shim client 46101 127.0.0.1 45101 none none \
+            >"$ROOT/dtls.log" 2>&1 & DTLS=$!
+          PIDS="$PIDS $DTLS"
+          for i in $(seq 1 900); do
+            if grep -q 'READY role=client version=DTLSv1.3' "$ROOT/dtls.log" && \
+               grep -q 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' "$ROOT/mux.log"; then break; fi
+            sleep .05
+          done
+          grep -q 'READY role=client version=DTLSv1.3' "$ROOT/dtls.log"
+          grep -q 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' "$ROOT/mux.log"
+
+          sudo ip netns exec "$C" /tmp/sflink/wbd-link-proxy \
+            -mode client -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 \
+            -fec "$FEC" -mtu 1400 -lanes 1 -demo-reality-ticket "$TICKET" \
+            >"$ROOT/link-client.log" 2>&1 & LINKCLIENT=$!
+          PIDS="$PIDS $LINKCLIENT"
+          for i in $(seq 1 900); do
+            if grep -q 'WBD_LINK_READY role=client' "$ROOT/link-client.log" && \
+               grep -q 'WBD_LINK_MUX_SESSION_READY account=singleflow' "$ROOT/link-server.log"; then break; fi
+            sleep .05
+          done
+          grep -q 'WBD_LINK_READY role=client' "$ROOT/link-client.log"
+          grep -q 'WBD_LINK_MUX_SESSION_READY account=singleflow' "$ROOT/link-server.log"
+          test "$(find "$ROOT/tickets" -type f | wc -l)" -eq 0
+
+          cat >"$ROOT/probe.py" <<'PY'
+          import socket,time
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',0)); s.settimeout(.25)
+          ok=0
+          for i in range(20):
+              want=b'SINGLE_FLOW_LINK_ECHO_'+i.to_bytes(2,'big')
+              end=time.time()+4
+              while time.time()<end:
+                  s.sendto(want,('127.0.0.1',47101))
+                  try: got,_=s.recvfrom(65535)
+                  except socket.timeout: continue
+                  if got != want: raise SystemExit('corrupt echo')
+                  ok += 1
+                  break
+              else: raise SystemExit('echo timeout at %d'%i)
+          print('SINGLE_FLOW_LINK_ECHO_PASS count=%d'%ok)
+          PY
+          sudo ip netns exec "$C" python3 "$ROOT/probe.py" >"$ROOT/probe.log" 2>&1
+          grep -q 'SINGLE_FLOW_LINK_ECHO_PASS count=20' "$ROOT/probe.log"
+
+          TCPDUMP_PID="$(cat "$ROOT/tcpdump.pid")"
+          sudo kill -INT "$TCPDUMP_PID"
+          wait "$CAP" || true
+          PIDS="${PIDS//$CAP/}"
+          test -s "$ROOT/public.pcap"
+          python3 "$GITHUB_WORKSPACE/scripts/check_single_flow_wire_invariants.py" "$ROOT/public.pcap" \
+            --client-ip 10.91.0.2 --server-ip 10.91.0.1 --client-port 51001 --server-port 443 \
+            --min-client-payload 512 --min-server-payload 512 | tee "$ROOT/wire.log"
+          grep -q 'SINGLE_FLOW_WIRE_INVARIANT_PASS' "$ROOT/wire.log"
+
+          kill -0 "$FC"
+          kill -0 "$MUX"
+          kill -0 "$DTLS"
+          kill -0 "$LINKCLIENT"
+          kill -0 "$LINKSERVER"
+          echo "SINGLE_FLOW_LINK_FULLSTACK_PASS fec=$FEC public_flows=1 tls_bootstrap=1 dtls13=1 link=1 echo=20"
+          echo '--- faketcp client ---'; cat "$ROOT/faketcp.log"
+          echo '--- mux ---'; cat "$ROOT/mux.log"
+          echo '--- dtls ---'; cat "$ROOT/dtls.log"
+          echo '--- link client ---'; cat "$ROOT/link-client.log"
+          echo '--- link server ---'; cat "$ROOT/link-server.log"
+          echo '--- probe ---'; cat "$ROOT/probe.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: single-flow-link-${{ matrix.fec }}
+          path: /tmp/sflink/run-*/
