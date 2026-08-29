@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/binary"
 	"errors"
 	"flag"
@@ -19,6 +20,8 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/dtlsworker"
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
+	"github.com/lly8666/wobuzhidao/internal/realityfront"
+	"github.com/lly8666/wobuzhidao/internal/realitymirror"
 )
 
 const halfOpenTimeout = 25 * time.Second
@@ -31,6 +34,17 @@ type config struct {
 	key         string
 	maxSessions int
 	recovery    string
+
+	// V3 single-public-flow Reality-like bootstrap. These are separate from the
+	// DTLS certificate because the TLS-looking bootstrap and steady-state DTLS
+	// remain distinct cryptographic protocols on one raw sequence space.
+	frontServerName string
+	frontCert       string
+	frontKey        string
+	frontRouteKey   string
+	username        string
+	password        string
+	ticketDir       string
 }
 
 type muxSession struct {
@@ -38,10 +52,12 @@ type muxSession struct {
 	assoc  *faketcp.ServerAssociation
 	relay  *net.UDPConn
 	worker *dtlsworker.Worker
+	sf     *serverSingleFlowState
 }
 
 type muxServer struct {
-	cfg config
+	cfg   config
+	front *realityfront.ServerConfig
 
 	fd         int
 	serverIP   [4]byte
@@ -74,6 +90,13 @@ func main() {
 	fs.StringVar(&c.key, "key", "", "DTLS server private key")
 	fs.IntVar(&c.maxSessions, "max-sessions", 32, "maximum simultaneous raw/DTLS associations")
 	fs.StringVar(&c.recovery, "shadow-recovery", "legacy", "legacy (default) or sack-rack experimental")
+	fs.StringVar(&c.frontServerName, "front-server-name", "", "V3 target-looking TLS SNI; enables single-flow Reality-like bootstrap")
+	fs.StringVar(&c.frontCert, "front-cert", "", "V3 TLS bootstrap certificate")
+	fs.StringVar(&c.frontKey, "front-key", "", "V3 TLS bootstrap private key")
+	fs.StringVar(&c.frontRouteKey, "front-route-key", "", "V3 Reality-like classifier secret")
+	fs.StringVar(&c.username, "username", "", "V3 shared account username")
+	fs.StringVar(&c.password, "password", "", "V3 shared account password")
+	fs.StringVar(&c.ticketDir, "ticket-dir", "", "V3 one-time ticket directory shared with LINK")
 	_ = fs.Parse(os.Args[2:])
 
 	s, err := newMuxServer(c)
@@ -87,7 +110,11 @@ func main() {
 	defer stop()
 	s.ctx, s.cancel = context.WithCancel(sigCtx)
 
-	fmt.Printf("READY role=server-mux listen=%s max_sessions=%d recovery=%s link_target=%s\n", c.listen, c.maxSessions, c.recovery, c.linkTarget)
+	if s.singleFlowEnabled() {
+		fmt.Printf("READY role=server-mux listen=%s max_sessions=%d recovery=%s link_target=%s single_flow=1 reality_like=1\n", c.listen, c.maxSessions, c.recovery, c.linkTarget)
+	} else {
+		fmt.Printf("READY role=server-mux listen=%s max_sessions=%d recovery=%s link_target=%s\n", c.listen, c.maxSessions, c.recovery, c.linkTarget)
+	}
 	if err := s.Run(); err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, os.ErrClosed) {
 		fmt.Fprintln(os.Stderr, "wbd-faketcp-mux:", err)
 		os.Exit(1)
@@ -96,6 +123,7 @@ func main() {
 
 func usage() {
 	fmt.Fprintln(os.Stderr, "usage: wbd-faketcp-mux server --listen IP:PORT --dtls-shim PATH --link-target IP:PORT --cert CERT --key KEY [--max-sessions 32] [--shadow-recovery legacy|sack-rack]")
+	fmt.Fprintln(os.Stderr, "  V3: add --front-server-name SNI --front-cert CERT --front-key KEY --front-route-key KEY --username USER --password PASS --ticket-dir DIR")
 }
 
 func parseRecovery(s string) (faketcp.RecoveryMode, error) {
@@ -127,6 +155,25 @@ func newMuxServer(c config) (*muxServer, error) {
 	if _, err := net.ResolveUDPAddr("udp4", c.linkTarget); err != nil {
 		return nil, errors.New("invalid --link-target")
 	}
+
+	var front *realityfront.ServerConfig
+	if c.frontServerName != "" {
+		if c.frontCert == "" || c.frontKey == "" || len(c.frontRouteKey) < 16 || c.username == "" || c.password == "" || c.ticketDir == "" {
+			return nil, errors.New("single-flow front requires server-name/cert/key, route-key >=16 bytes, username/password and ticket-dir")
+		}
+		frontPair, err := tls.LoadX509KeyPair(c.frontCert, c.frontKey)
+		if err != nil {
+			return nil, fmt.Errorf("load single-flow front certificate: %w", err)
+		}
+		front = &realityfront.ServerConfig{
+			RouteKey: []byte(c.frontRouteKey), ServerName: c.frontServerName,
+			TLSConfig: &tls.Config{Certificates: []tls.Certificate{frontPair}, MinVersion: tls.VersionTLS13, MaxVersion: tls.VersionTLS13},
+			ExpectedUsername: c.username, ExpectedPassword: c.password, TicketDir: c.ticketDir,
+			HelloTimeout: 5 * time.Second,
+			Mirror: realitymirror.Config{MaxHelloBytes: 64 << 10},
+		}
+	}
+
 	table, err := faketcp.NewServerAssociationTable(c.maxSessions)
 	if err != nil {
 		return nil, err
@@ -144,7 +191,7 @@ func newMuxServer(c config) (*muxServer, error) {
 		return nil, err
 	}
 	return &muxServer{
-		cfg: c, fd: fd, serverIP: serverIP, serverPort: uint16(la.Port), table: table,
+		cfg: c, front: front, fd: fd, serverIP: serverIP, serverPort: uint16(la.Port), table: table,
 		sessions: make(map[faketcp.ServerFlow]*muxSession), sendBuf: make([]byte, 65535),
 	}, nil
 }
@@ -214,7 +261,9 @@ func (s *muxServer) rawLoop() error {
 			if err := sess.assoc.HandleHandshakeACK(seg); err != nil {
 				continue
 			}
-			if err := s.startSessionWorker(sess); err != nil {
+			if s.singleFlowEnabled() {
+				s.startSingleFlowBootstrap(sess)
+			} else if err := s.startSessionWorker(sess); err != nil {
 				s.removeSessionMatch(flow, sess)
 				continue
 			}
@@ -241,8 +290,14 @@ func (s *muxServer) rawLoop() error {
 			}
 		}
 		if len(res.Deliver) != 0 {
-			if _, err := sess.relay.Write(res.Deliver); err != nil {
-				s.removeSessionMatch(flow, sess)
+			if s.singleFlowEnabled() {
+				if err := s.handleSingleFlowPayload(sess, seg); err != nil {
+					s.removeSessionMatch(flow, sess)
+				}
+			} else if sess.relay != nil {
+				if _, err := sess.relay.Write(res.Deliver); err != nil {
+					s.removeSessionMatch(flow, sess)
+				}
 			}
 		}
 	}
@@ -256,6 +311,9 @@ func (s *muxServer) acceptSYN(seg faketcp.Segment) error {
 	}
 	flow := faketcp.ServerFlowFromSegment(seg)
 	sess := &muxSession{flow: flow, assoc: assoc}
+	if s.singleFlowEnabled() {
+		sess.sf = newServerSingleFlowState(assoc.ReceiverNext())
+	}
 	s.mu.Lock()
 	if _, exists := s.sessions[flow]; exists {
 		s.mu.Unlock()
@@ -265,8 +323,9 @@ func (s *muxServer) acceptSYN(seg faketcp.Segment) error {
 	s.sessions[flow] = sess
 	s.mu.Unlock()
 
-	// Keep the raw handshake free of per-session process startup. Allocate the
-	// DTLS worker only after the final ACK establishes this association.
+	// V3 still keeps the raw handshake free of process startup. In single-flow
+	// mode the final ACK starts the short Reality-like TLS phase; wolfSSL DTLS is
+	// allocated only after the explicit SWITCH_REQ barrier.
 	if err := s.sendSYNACK(sess); err != nil {
 		s.removeSessionMatch(flow, sess)
 		return err
