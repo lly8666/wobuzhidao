@@ -38,6 +38,17 @@ type config struct {
 	packetDevice string
 	sourceMAC    string
 	nextHopMAC   string
+
+	// V3 single-public-flow Reality-like bootstrap. When realityServerName is
+	// non-empty the client performs TLS/auth inside this FakeTCP association
+	// before exposing the local DTLS UDP port.
+	realityServerName string
+	realityRouteKey   string
+	username          string
+	password          string
+	verifyServer      bool
+	ticketOut         string
+	bootstrapTimeout  time.Duration
 }
 
 type endpoint struct {
@@ -60,6 +71,7 @@ type endpoint struct {
 	dataRx           uint64
 	stop             chan struct{}
 	stopOnce         sync.Once
+	single           *singleFlowClientState
 }
 
 type finalStats struct {
@@ -93,6 +105,13 @@ func main() {
 	fs.StringVar(&c.packetDevice, "packet-device", "", "Windows/Npcap capture device, for example \\Device\\NPF_{GUID}")
 	fs.StringVar(&c.sourceMAC, "source-mac", "", "Windows/Npcap physical source MAC")
 	fs.StringVar(&c.nextHopMAC, "next-hop-mac", "", "Windows/Npcap routed next-hop MAC")
+	fs.StringVar(&c.realityServerName, "reality-server-name", "", "V3 single-flow target-looking TLS SNI; enables integrated Reality-like bootstrap")
+	fs.StringVar(&c.realityRouteKey, "reality-route-key", "", "V3 single-flow Reality-like classifier secret")
+	fs.StringVar(&c.username, "username", "", "V3 single-flow account username")
+	fs.StringVar(&c.password, "password", "", "V3 single-flow account password")
+	fs.BoolVar(&c.verifyServer, "verify-server", false, "verify V3 bootstrap certificate/hostname")
+	fs.StringVar(&c.ticketOut, "ticket-out", "", "0600 file receiving the single-flow one-time ticket")
+	fs.DurationVar(&c.bootstrapTimeout, "bootstrap-timeout", 12*time.Second, "V3 single-flow TLS/auth/switch timeout")
 	_ = fs.Parse(os.Args[2:])
 	if role != "client" && role != "server" {
 		usage()
@@ -113,17 +132,36 @@ func main() {
 		fmt.Fprintln(os.Stderr, "wbd-faketcp handshake:", err)
 		os.Exit(1)
 	}
-	e.senderMu.Lock()
-	startupRTO := e.sender.RTO()
-	e.senderMu.Unlock()
-	fmt.Printf("READY role=%s rto_ms=%.3f recovery=%s\n", role, float64(startupRTO)/float64(time.Millisecond), c.recovery)
+	if err := e.initSingleFlowClient(); err != nil {
+		fmt.Fprintln(os.Stderr, "wbd-faketcp single-flow:", err)
+		os.Exit(1)
+	}
 
 	sig := make(chan os.Signal, 1)
 	notifySignals(sig)
 	errCh := make(chan error, 3)
 	go func() { errCh <- e.rawLoop() }()
-	go func() { errCh <- e.udpLoop() }()
 	go func() { errCh <- e.retransmitLoop() }()
+
+	if e.singleFlowEnabled() {
+		if err := e.runSingleFlowBootstrap(); err != nil {
+			fmt.Fprintln(os.Stderr, "wbd-faketcp single-flow:", err)
+			e.close()
+			e.printStats()
+			os.Exit(1)
+		}
+	}
+
+	e.senderMu.Lock()
+	startupRTO := e.sender.RTO()
+	e.senderMu.Unlock()
+	if e.singleFlowEnabled() {
+		fmt.Printf("READY role=%s rto_ms=%.3f recovery=%s single_flow=1 reality_like=1\n", role, float64(startupRTO)/float64(time.Millisecond), c.recovery)
+	} else {
+		fmt.Printf("READY role=%s rto_ms=%.3f recovery=%s\n", role, float64(startupRTO)/float64(time.Millisecond), c.recovery)
+	}
+	go func() { errCh <- e.udpLoop() }()
+
 	select {
 	case <-sig:
 	case err := <-errCh:
@@ -138,6 +176,7 @@ func main() {
 func usage() {
 	fmt.Fprintln(os.Stderr, "usage:")
 	fmt.Fprintln(os.Stderr, "  wbd-faketcp client --local-udp 127.0.0.1:PORT --source IP:PORT --remote IP:PORT [--shadow-recovery legacy|sack-rack]")
+	fmt.Fprintln(os.Stderr, "    V3: add --reality-server-name SNI --reality-route-key KEY --username USER --password PASS --ticket-out FILE")
 	fmt.Fprintln(os.Stderr, "  wbd-faketcp server --listen IP:PORT --target-udp 127.0.0.1:PORT [--shadow-recovery legacy|sack-rack]")
 	fmt.Fprintln(os.Stderr, "  Windows client additionally requires --packet-device --source-mac --next-hop-mac")
 }
@@ -422,9 +461,8 @@ func (e *endpoint) rawLoop() error {
 		}
 		atomic.AddUint64(&e.ackTx, 1)
 		if deliver {
-			peer := e.innerPeer()
-			if peer != nil {
-				_, _ = e.udp.WriteToUDP(seg.Payload, peer)
+			if err := e.handleDeliveredPayload(seg); err != nil {
+				return err
 			}
 		}
 	}
