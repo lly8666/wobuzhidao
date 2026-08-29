@@ -214,7 +214,8 @@ jobs:
           sudo ip netns exec "$C" python3 /tmp/nohol/probe.py >/tmp/nohol/probe.log 2>&1
           grep -q 'SINGLE_FLOW_NO_HOL_PASS' /tmp/nohol/probe.log
 
-          DROP_PKTS="$(sudo ip netns exec "$R" iptables -L FORWARD -n -v -x | awk '$3=="DROP" && $9=="10.94.0.2" && $10=="10.94.1.2" {print $1; exit}')"
+          # iptables -L -n -v -x columns are: pkts bytes target prot opt in out source destination.
+          DROP_PKTS="$(sudo ip netns exec "$R" iptables -L FORWARD -n -v -x | awk '$3=="DROP" && $8=="10.94.0.2" && $9=="10.94.1.2" {print $1; exit}')"
           test "${DROP_PKTS:-0}" -eq 1
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/nohol/faketcp.log
           grep -q 'READY role=client version=DTLSv1.3' /tmp/nohol/dtls.log
