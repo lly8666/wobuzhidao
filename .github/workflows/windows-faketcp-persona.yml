@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - 'internal/faketcp/**'
+      - 'internal/windowsruntime/**'
+      - 'internal/windowsdiag/**'
       - 'cmd/wbd-faketcp/**'
       - '.github/workflows/windows-faketcp-persona.yml'
   push:
@@ -13,6 +15,8 @@ on:
       - dev/wbd-raw-fec-v2
     paths:
       - 'internal/faketcp/**'
+      - 'internal/windowsruntime/**'
+      - 'internal/windowsdiag/**'
       - 'cmd/wbd-faketcp/**'
       - '.github/workflows/windows-faketcp-persona.yml'
 
@@ -28,7 +32,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
-      - name: Execute Windows packet persona and backend tests
+      - name: Execute Windows packet, runtime, and diagnostics tests
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -36,6 +40,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Windows FakeTCP persona tests failed: $LASTEXITCODE" }
           go test ./cmd/wbd-faketcp -count=1 -v
           if ($LASTEXITCODE -ne 0) { throw "Windows FakeTCP backend tests failed: $LASTEXITCODE" }
+          go test ./internal/windowsruntime ./internal/windowsdiag -count=1 -v
+          if ($LASTEXITCODE -ne 0) { throw "Windows runtime/diagnostics tests failed: $LASTEXITCODE" }
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
           if ($LASTEXITCODE -ne 0) { throw "Windows FakeTCP build failed: $LASTEXITCODE" }
-          Write-Output 'WBD_WINDOWS_FAKETCP_PERSONA_PASS ttl=128 options=mss,nop,ws8,nop,nop,sack df=1 ipid=incrementing backend_tests=pass'
+          Write-Output 'WBD_WINDOWS_FAKETCP_PERSONA_PASS ttl=128 options=mss,nop,ws8,nop,nop,sack df=1 ipid=incrementing backend_tests=pass runtime_tests=pass diagnostics_tests=pass'
