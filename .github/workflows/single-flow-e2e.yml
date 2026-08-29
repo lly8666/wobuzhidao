@@ -99,7 +99,7 @@ jobs:
           PIDS="$ECHO"
 
           sudo rm -f /tmp/single/tcpdump.pid /tmp/single/public.pcap
-          sudo ip netns exec "$C" sh -c 'echo $$ >/tmp/single/tcpdump.pid; exec tcpdump -U -i vc -s 0 -w /tmp/single/public.pcap "tcp and host 10.88.0.1 and port 443"' \
+          sudo ip netns exec "$C" sh -c 'echo $$ >/tmp/single/tcpdump.pid; exec tcpdump --immediate-mode -U -i vc -s 0 -w /tmp/single/public.pcap "tcp and host 10.88.0.1 and port 443"' \
             >/tmp/single/tcpdump.log 2>&1 & CAP=$!
           PIDS="$PIDS $CAP"
           for i in $(seq 1 200); do
@@ -152,7 +152,7 @@ jobs:
           grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/single/faketcp.log
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/single/mux.log
           sudo test -s /tmp/single/client.ticket
-          test "$(sudo sh -c "tr -d '\\r\\n' </tmp/single/client.ticket | wc -c")" -eq 64
+          test "$(sudo sh -c "tr -d '\r\n' </tmp/single/client.ticket | wc -c")" -eq 64
 
           sudo ip netns exec "$C" /tmp/single/wbd_dtls_shim client 46101 127.0.0.1 45101 none none \
             >/tmp/single/dtls.log 2>&1 & DTLS=$!
@@ -189,6 +189,18 @@ jobs:
           PY
           sudo ip netns exec "$C" python3 /tmp/single/probe.py >/tmp/single/probe.log 2>&1
           grep -q 'SINGLE_FLOW_ECHO_PASS count=20' /tmp/single/probe.log
+
+          # In immediate mode with -U every delivered packet is written promptly,
+          # but still prove the pcap contains at least one packet before stopping
+          # tcpdump. This prevents a header-only pcap from falsely failing the
+          # one-SYN invariant after the data plane itself has already succeeded.
+          for i in $(seq 1 200); do
+            PCAP_SIZE="$(sudo stat -c%s /tmp/single/public.pcap 2>/dev/null || echo 0)"
+            [ "$PCAP_SIZE" -gt 24 ] && break
+            sleep .05
+          done
+          PCAP_SIZE="$(sudo stat -c%s /tmp/single/public.pcap)"
+          test "$PCAP_SIZE" -gt 24
 
           TCPDUMP_PID="$(sudo cat /tmp/single/tcpdump.pid)"
           sudo kill -INT "$TCPDUMP_PID"
