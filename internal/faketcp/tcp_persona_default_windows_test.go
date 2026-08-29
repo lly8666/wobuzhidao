@@ -20,4 +20,10 @@ func TestWindowsDefaultPacketPersona(t *testing.T) {
 	want := []byte{2,4,0x05,0x50,1,3,3,8,1,1,4,2}
 	if !bytes.Equal(pkt[40:52], want) { t.Fatalf("default options=%v want %v", pkt[40:52], want) }
 	if checksum(pkt[:20]) != 0 || tcpChecksum(src, dst, pkt[20:]) != 0 { t.Fatal("default Windows persona checksum invalid") }
+
+	seg, err := ParseIPv4TCP(pkt)
+	if err != nil { t.Fatalf("parse default Windows SYN: %v", err) }
+	if !IsWBDHandshakeSegment(seg) {
+		t.Fatalf("default Windows SYN must remain recognizable by the shared WBD handshake classifier: %+v", seg)
+	}
 }
