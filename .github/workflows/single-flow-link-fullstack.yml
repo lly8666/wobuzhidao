@@ -238,5 +238,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: single-flow-link-${{ matrix.fec }}
+          name: single-flow-link-${{ matrix.fec == '20:20' && '20x20' || matrix.fec }}
           path: /tmp/sflink/run-*/
