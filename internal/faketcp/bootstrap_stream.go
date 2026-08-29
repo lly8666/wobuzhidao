@@ -9,11 +9,16 @@ import (
 	"time"
 )
 
-const DefaultBootstrapChunk = 1200
+const (
+	DefaultBootstrapChunk    = 1200
+	MaxBootstrapPendingChunks = 64
+	MaxBootstrapBufferedBytes = 256 << 10
+)
 
 var (
-	ErrBootstrapClosed  = errors.New("faketcp: bootstrap stream closed")
-	ErrBootstrapTimeout = errors.New("faketcp: bootstrap stream deadline exceeded")
+	ErrBootstrapClosed   = errors.New("faketcp: bootstrap stream closed")
+	ErrBootstrapTimeout  = errors.New("faketcp: bootstrap stream deadline exceeded")
+	ErrBootstrapOverflow = errors.New("faketcp: bootstrap stream buffer limit exceeded")
 )
 
 // BootstrapSend emits one TCP-shaped payload segment and returns the cumulative
@@ -32,11 +37,13 @@ type BootstrapWaitAck func(end uint32, deadline time.Time) error
 type BootstrapStream struct {
 	mu sync.Mutex
 
-	next    uint32
-	pending map[uint32][]byte
-	readBuf bytes.Buffer
-	notify  chan struct{}
-	closed  bool
+	next         uint32
+	pending      map[uint32][]byte
+	pendingBytes int
+	readBuf      bytes.Buffer
+	notify       chan struct{}
+	closed       bool
+	fail         error
 
 	readDeadline  time.Time
 	writeDeadline time.Time
@@ -60,6 +67,8 @@ func NewBootstrapStream(next uint32, send BootstrapSend, waitAck BootstrapWaitAc
 
 // Feed accepts a first-arrival FakeTCP payload. Out-of-order payload is retained
 // only for this short bootstrap phase; contiguous bytes become visible to TLS.
+// Both contiguous unread bytes and out-of-order storage are hard bounded so an
+// unauthenticated peer cannot turn the setup stream into an unbounded buffer.
 func (c *BootstrapStream) Feed(seq uint32, payload []byte) {
 	if len(payload) == 0 {
 		return
@@ -69,8 +78,15 @@ func (c *BootstrapStream) Feed(seq uint32, payload []byte) {
 		c.mu.Unlock()
 		return
 	}
-	if seq < c.next {
+	if seqLT(seq, c.next) {
 		c.mu.Unlock()
+		return
+	}
+	if c.readBuf.Len()+c.pendingBytes+len(payload) > MaxBootstrapBufferedBytes {
+		c.fail = ErrBootstrapOverflow
+		c.closed = true
+		c.mu.Unlock()
+		c.signal()
 		return
 	}
 	if seq == c.next {
@@ -82,11 +98,21 @@ func (c *BootstrapStream) Feed(seq uint32, payload []byte) {
 				break
 			}
 			delete(c.pending, c.next)
+			c.pendingBytes -= len(p)
 			_, _ = c.readBuf.Write(p)
 			c.next += uint32(len(p))
 		}
 	} else if _, exists := c.pending[seq]; !exists {
-		c.pending[seq] = append([]byte(nil), payload...)
+		if len(c.pending) >= MaxBootstrapPendingChunks {
+			c.fail = ErrBootstrapOverflow
+			c.closed = true
+			c.mu.Unlock()
+			c.signal()
+			return
+		}
+		p := append([]byte(nil), payload...)
+		c.pending[seq] = p
+		c.pendingBytes += len(p)
 	}
 	c.mu.Unlock()
 	c.signal()
@@ -99,6 +125,11 @@ func (c *BootstrapStream) Read(p []byte) (int, error) {
 			n, err := c.readBuf.Read(p)
 			c.mu.Unlock()
 			return n, err
+		}
+		if c.fail != nil {
+			err := c.fail
+			c.mu.Unlock()
+			return 0, err
 		}
 		if c.closed {
 			c.mu.Unlock()
@@ -116,12 +147,14 @@ func (c *BootstrapStream) Write(p []byte) (int, error) {
 	written := 0
 	for len(p) != 0 {
 		c.mu.Lock()
+		if c.fail != nil {
+			err := c.fail
+			c.mu.Unlock()
+			return written, err
+		}
 		if c.closed {
 			c.mu.Unlock()
-			if written != 0 {
-				return written, ErrBootstrapClosed
-			}
-			return 0, ErrBootstrapClosed
+			return written, ErrBootstrapClosed
 		}
 		chunk := c.chunk
 		deadline := c.writeDeadline
@@ -147,13 +180,9 @@ func (c *BootstrapStream) Write(p []byte) (int, error) {
 
 func (c *BootstrapStream) Close() error {
 	c.mu.Lock()
-	already := c.closed
 	c.closed = true
 	c.mu.Unlock()
 	c.signal()
-	if already {
-		return nil
-	}
 	return nil
 }
 
