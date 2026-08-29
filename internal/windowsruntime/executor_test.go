@@ -4,12 +4,14 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"time"
 )
 
 type recordingRunner struct {
-	events   []string
-	fail     string
-	failOnce string
+	events    []string
+	fail      string
+	failOnce  string
+	failReady string
 }
 
 func (r *recordingRunner) shouldFail(name string) bool {
@@ -29,6 +31,12 @@ func (r *recordingRunner) Start(command Command) (Process, error) {
 }
 type recordingProcess struct { runner *recordingRunner; name string }
 func (p *recordingProcess) Stop() error { p.runner.events = append(p.runner.events, "stop:"+p.name); return nil }
+func (p *recordingProcess) WaitReady(marker string, timeout time.Duration) error {
+	p.runner.events = append(p.runner.events, "ready:"+p.name)
+	if p.runner.failReady == p.name { return errors.New("injected readiness failure") }
+	if marker == "" || timeout <= 0 { return errors.New("invalid readiness contract") }
+	return nil
+}
 
 func testExecutorPlan() Plan {
 	return Plan{
@@ -45,18 +53,51 @@ func TestExecutorStartStopPreservesFrozenLifecycleOrder(t *testing.T) {
 	if !e.Running() { t.Fatal("executor must report running after routes are applied") }
 	if err := e.Stop(); err != nil { t.Fatal(err) }
 	want := []string{
-		"start:faketcp", "start:dtls", "start:link", "start:tun", "run:ipv6-apply", "run:route-apply",
+		"start:faketcp", "ready:faketcp", "start:dtls", "ready:dtls", "start:link", "ready:link", "start:tun", "ready:tun", "run:ipv6-apply", "run:route-apply",
 		"run:route-cleanup", "run:ipv6-cleanup", "stop:tun", "stop:link", "stop:dtls", "stop:faketcp",
 	}
 	if !reflect.DeepEqual(r.events, want) { t.Fatalf("lifecycle events = %v want %v", r.events, want) }
 	if err := e.Stop(); err != nil { t.Fatalf("second Stop must be idempotent: %v", err) }
 }
 
+func TestExecutorStartAfterFakeTCPWaitsPrestartedFlowBeforeDTLS(t *testing.T) {
+	r := &recordingRunner{}
+	fake := &recordingProcess{runner: r, name: "faketcp"}
+	e := NewExecutor(r)
+	if err := e.StartAfterFakeTCP(testExecutorPlan(), fake); err != nil { t.Fatal(err) }
+	if err := e.Stop(); err != nil { t.Fatal(err) }
+	want := []string{
+		"ready:faketcp", "start:dtls", "ready:dtls", "start:link", "ready:link", "start:tun", "ready:tun", "run:ipv6-apply", "run:route-apply",
+		"run:route-cleanup", "run:ipv6-cleanup", "stop:tun", "stop:link", "stop:dtls", "stop:faketcp",
+	}
+	if !reflect.DeepEqual(r.events, want) { t.Fatalf("single-flow continuation events = %v want %v", r.events, want) }
+	for _, event := range r.events {
+		if event == "start:faketcp" { t.Fatalf("prestarted public flow was started twice: %v", r.events) }
+	}
+}
+
+func TestExecutorReadinessFailureRollsBackBeforeNetworkMutation(t *testing.T) {
+	r := &recordingRunner{failReady: "dtls"}
+	e := NewExecutor(r)
+	if err := e.Start(testExecutorPlan()); err == nil { t.Fatal("expected injected readiness failure") }
+	want := []string{"start:faketcp", "ready:faketcp", "start:dtls", "ready:dtls", "stop:dtls", "stop:faketcp"}
+	if !reflect.DeepEqual(r.events, want) { t.Fatalf("readiness rollback events = %v want %v", r.events, want) }
+}
+
+func TestExecutorPrestartedFakeTCPReadinessFailureNeverStartsDTLS(t *testing.T) {
+	r := &recordingRunner{failReady: "faketcp"}
+	fake := &recordingProcess{runner: r, name: "faketcp"}
+	e := NewExecutor(r)
+	if err := e.StartAfterFakeTCP(testExecutorPlan(), fake); err == nil { t.Fatal("expected FakeTCP readiness failure") }
+	want := []string{"ready:faketcp", "stop:faketcp"}
+	if !reflect.DeepEqual(r.events, want) { t.Fatalf("prestarted readiness rollback events = %v want %v", r.events, want) }
+}
+
 func TestExecutorProcessStartFailureRollsBackWithoutNetworkMutation(t *testing.T) {
 	r := &recordingRunner{fail: "link"}
 	e := NewExecutor(r)
 	if err := e.Start(testExecutorPlan()); err == nil { t.Fatal("expected injected start failure") }
-	want := []string{"start:faketcp", "start:dtls", "start:link", "stop:dtls", "stop:faketcp"}
+	want := []string{"start:faketcp", "ready:faketcp", "start:dtls", "ready:dtls", "start:link", "stop:dtls", "stop:faketcp"}
 	if !reflect.DeepEqual(r.events, want) { t.Fatalf("rollback events = %v want %v", r.events, want) }
 }
 
@@ -65,7 +106,7 @@ func TestExecutorIPv6FailureCleansBeforeProcessRollback(t *testing.T) {
 	e := NewExecutor(r)
 	if err := e.Start(testExecutorPlan()); err == nil { t.Fatal("expected injected IPv6 failure") }
 	want := []string{
-		"start:faketcp", "start:dtls", "start:link", "start:tun", "run:ipv6-apply", "run:ipv6-cleanup",
+		"start:faketcp", "ready:faketcp", "start:dtls", "ready:dtls", "start:link", "ready:link", "start:tun", "ready:tun", "run:ipv6-apply", "run:ipv6-cleanup",
 		"stop:tun", "stop:link", "stop:dtls", "stop:faketcp",
 	}
 	if !reflect.DeepEqual(r.events, want) { t.Fatalf("IPv6 rollback events = %v want %v", r.events, want) }
@@ -76,7 +117,7 @@ func TestExecutorRouteFailureCleansRoutesThenIPv6BeforeProcessRollback(t *testin
 	e := NewExecutor(r)
 	if err := e.Start(testExecutorPlan()); err == nil { t.Fatal("expected injected route failure") }
 	want := []string{
-		"start:faketcp", "start:dtls", "start:link", "start:tun", "run:ipv6-apply", "run:route-apply",
+		"start:faketcp", "ready:faketcp", "start:dtls", "ready:dtls", "start:link", "ready:link", "start:tun", "ready:tun", "run:ipv6-apply", "run:route-apply",
 		"run:route-cleanup", "run:ipv6-cleanup", "stop:tun", "stop:link", "stop:dtls", "stop:faketcp",
 	}
 	if !reflect.DeepEqual(r.events, want) { t.Fatalf("route rollback events = %v want %v", r.events, want) }
@@ -103,7 +144,7 @@ func TestExecutorRetriesFailedCleanupBeforeAllowingRestart(t *testing.T) {
 	if err := e.Stop(); err != nil { t.Fatal(err) }
 
 	wantPrefix := []string{
-		"start:faketcp", "start:dtls", "start:link", "start:tun", "run:ipv6-apply", "run:route-apply",
+		"start:faketcp", "ready:faketcp", "start:dtls", "ready:dtls", "start:link", "ready:link", "start:tun", "ready:tun", "run:ipv6-apply", "run:route-apply",
 		"run:route-cleanup", "run:ipv6-cleanup", "stop:tun", "stop:link", "stop:dtls", "stop:faketcp",
 		"run:route-cleanup", "run:ipv6-cleanup",
 	}
