@@ -1,0 +1,252 @@
+name: single-flow-two-client
+
+on:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+  pull_request:
+    paths:
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/session/**'
+      - 'native/dtls/**'
+      - '.github/workflows/single-flow-two-client.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  two_clients:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: off
+            fec: off
+          - label: fixed20x20
+            fec: '20:20'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables
+      - name: Build pinned DTLS and single-flow stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/sf2
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/sf2/wbd_dtls_shim
+          go build -trimpath -o /tmp/sf2/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/sf2/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/sf2/wbd-link-proxy ./cmd/wbd-link-proxy
+          go build -trimpath -o /tmp/sf2/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
+            -keyout /tmp/sf2/front.key -out /tmp/sf2/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=dtls.wbd.test' \
+            -keyout /tmp/sf2/dtls.key -out /tmp/sf2/dtls.pem >/dev/null 2>&1
+      - name: Same account owns two independent single-flow sessions
+        env:
+          FEC: ${{ matrix.fec }}
+          LABEL: ${{ matrix.label }}
+        run: |
+          set -euo pipefail
+          S=wbdsf2s$$
+          A=wbdsf2a$$
+          B=wbdsf2b$$
+          PIDS=''
+          cleanup() {
+            set +e
+            for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null; kill -TERM "$p" 2>/dev/null; done
+            sleep .3
+            sudo ip netns del "$A" 2>/dev/null
+            sudo ip netns del "$B" 2>/dev/null
+            sudo ip netns del "$S" 2>/dev/null
+          }
+          trap cleanup EXIT
+
+          mkdir -p /tmp/sf2/${LABEL}
+          mkdir -m 700 /tmp/sf2/${LABEL}/tickets
+          ROUTE_KEY='0123456789abcdef0123456789abcdef'
+          USERNAME='solo'
+          PASSWORD='shared-password'
+          RAW=443
+          LINK=47000
+          ECHO=48000
+
+          sudo ip netns add "$S"
+          sudo ip netns add "$A"
+          sudo ip netns add "$B"
+          sudo ip link add va type veth peer name sa
+          sudo ip link add vb type veth peer name sb
+          sudo ip link set va netns "$A"
+          sudo ip link set vb netns "$B"
+          sudo ip link set sa netns "$S"
+          sudo ip link set sb netns "$S"
+          sudo ip netns exec "$S" ip link add br0 type bridge
+          sudo ip netns exec "$S" ip link set sa master br0
+          sudo ip netns exec "$S" ip link set sb master br0
+          sudo ip -n "$S" addr add 10.90.0.1/24 dev br0
+          sudo ip -n "$A" addr add 10.90.0.2/24 dev va
+          sudo ip -n "$B" addr add 10.90.0.3/24 dev vb
+          for ns in "$S" "$A" "$B"; do sudo ip -n "$ns" link set lo up; done
+          sudo ip -n "$S" link set br0 up
+          sudo ip -n "$S" link set sa up
+          sudo ip -n "$S" link set sb up
+          sudo ip -n "$A" link set va up
+          sudo ip -n "$B" link set vb up
+          for ns in "$S" "$A" "$B"; do
+            sudo ip netns exec "$ns" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          done
+
+          cat >/tmp/sf2/echo.py <<'PY'
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',48000))
+          while True:
+              b,a=s.recvfrom(65535)
+              s.sendto(b,a)
+          PY
+          sudo ip netns exec "$S" python3 /tmp/sf2/echo.py >/tmp/sf2/${LABEL}/echo.log 2>&1 & ECHO_PID=$!
+          PIDS="$ECHO_PID"
+
+          sudo ip netns exec "$S" /tmp/sf2/wbd-link-server-mux \
+            -listen 127.0.0.1:${LINK} -service 127.0.0.1:${ECHO} \
+            -ticket-dir /tmp/sf2/${LABEL}/tickets -ticket-ttl 60s -max-sessions 8 \
+            >/tmp/sf2/${LABEL}/link-server.log 2>&1 & LINK_PID=$!
+          PIDS="$PIDS $LINK_PID"
+          for i in $(seq 1 200); do grep -q 'WBD_LINK_SERVER_MUX_READY' /tmp/sf2/${LABEL}/link-server.log && break; sleep .05; done
+          grep -q 'WBD_LINK_SERVER_MUX_READY' /tmp/sf2/${LABEL}/link-server.log
+
+          # Fallback is required by product single-flow configuration even though
+          # these two recognized clients never enter the fallback branch.
+          python3 -m http.server 44444 --bind 127.0.0.1 >/tmp/sf2/${LABEL}/fallback.log 2>&1 & FALLBACK_PID=$!
+          PIDS="$PIDS $FALLBACK_PID"
+
+          sudo ip netns exec "$S" /tmp/sf2/wbd-faketcp-mux server \
+            --listen 10.90.0.1:${RAW} --dtls-shim /tmp/sf2/wbd_dtls_shim \
+            --link-target 127.0.0.1:${LINK} --cert /tmp/sf2/dtls.pem --key /tmp/sf2/dtls.key \
+            --front-cert /tmp/sf2/front.pem --front-key /tmp/sf2/front.key \
+            --server-name wbd.test --route-key "$ROUTE_KEY" \
+            --username "$USERNAME" --password "$PASSWORD" \
+            --ticket-dir /tmp/sf2/${LABEL}/tickets --fallback-target 127.0.0.1:44444 \
+            --bootstrap-timeout 12s --max-sessions 8 \
+            >/tmp/sf2/${LABEL}/mux.log 2>&1 & MUX_PID=$!
+          PIDS="$PIDS $MUX_PID"
+          for i in $(seq 1 200); do grep -q 'READY role=server-mux.*single_flow_bootstrap=true' /tmp/sf2/${LABEL}/mux.log && break; sleep .05; done
+          grep -q 'READY role=server-mux.*single_flow_bootstrap=true' /tmp/sf2/${LABEL}/mux.log
+
+          sudo ip netns exec "$A" /tmp/sf2/wbd-faketcp client \
+            --local-udp 127.0.0.1:45101 --source 10.90.0.2:41001 --remote 10.90.0.1:${RAW} \
+            --shadow-recovery legacy --reality-server-name wbd.test --reality-route-key "$ROUTE_KEY" \
+            --reality-username "$USERNAME" --reality-password "$PASSWORD" \
+            --reality-ticket-out /tmp/sf2/${LABEL}/ticket-a.txt --reality-verify-server=false --reality-timeout 12s \
+            >/tmp/sf2/${LABEL}/faketcp-a.log 2>&1 & FA=$!
+          sudo ip netns exec "$B" /tmp/sf2/wbd-faketcp client \
+            --local-udp 127.0.0.1:45102 --source 10.90.0.3:41002 --remote 10.90.0.1:${RAW} \
+            --shadow-recovery legacy --reality-server-name wbd.test --reality-route-key "$ROUTE_KEY" \
+            --reality-username "$USERNAME" --reality-password "$PASSWORD" \
+            --reality-ticket-out /tmp/sf2/${LABEL}/ticket-b.txt --reality-verify-server=false --reality-timeout 12s \
+            >/tmp/sf2/${LABEL}/faketcp-b.log 2>&1 & FB=$!
+          PIDS="$PIDS $FA $FB"
+
+          for i in $(seq 1 500); do
+            if grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/sf2/${LABEL}/faketcp-a.log && \
+               grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/sf2/${LABEL}/faketcp-b.log && \
+               test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY remote=.*same_flow=1' /tmp/sf2/${LABEL}/mux.log || true)" -ge 2; then break; fi
+            sleep .05
+          done
+          grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/sf2/${LABEL}/faketcp-a.log
+          grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/sf2/${LABEL}/faketcp-b.log
+          test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY remote=.*same_flow=1' /tmp/sf2/${LABEL}/mux.log)" -eq 2
+          TA=$(sudo tr -d '\r\n' </tmp/sf2/${LABEL}/ticket-a.txt)
+          TB=$(sudo tr -d '\r\n' </tmp/sf2/${LABEL}/ticket-b.txt)
+          test ${#TA} -eq 64
+          test ${#TB} -eq 64
+          test "$TA" != "$TB"
+          test "$(find /tmp/sf2/${LABEL}/tickets -type f | wc -l)" -eq 2
+
+          sudo ip netns exec "$A" /tmp/sf2/wbd_dtls_shim client 46101 127.0.0.1 45101 none none \
+            >/tmp/sf2/${LABEL}/dtls-a.log 2>&1 & DA=$!
+          sudo ip netns exec "$B" /tmp/sf2/wbd_dtls_shim client 46102 127.0.0.1 45102 none none \
+            >/tmp/sf2/${LABEL}/dtls-b.log 2>&1 & DB=$!
+          PIDS="$PIDS $DA $DB"
+          for i in $(seq 1 800); do
+            if grep -q 'READY role=client version=DTLSv1.3' /tmp/sf2/${LABEL}/dtls-a.log && \
+               grep -q 'READY role=client version=DTLSv1.3' /tmp/sf2/${LABEL}/dtls-b.log && \
+               test "$(grep -c 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' /tmp/sf2/${LABEL}/mux.log || true)" -ge 2; then break; fi
+            sleep .05
+          done
+          grep -q 'READY role=client version=DTLSv1.3' /tmp/sf2/${LABEL}/dtls-a.log
+          grep -q 'READY role=client version=DTLSv1.3' /tmp/sf2/${LABEL}/dtls-b.log
+          test "$(grep -c 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' /tmp/sf2/${LABEL}/mux.log)" -eq 2
+
+          sudo ip netns exec "$A" /tmp/sf2/wbd-link-proxy -mode client \
+            -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec "$FEC" -mtu 1400 -lanes 1 \
+            -demo-reality-ticket "$TA" >/tmp/sf2/${LABEL}/link-a.log 2>&1 & LA=$!
+          sudo ip netns exec "$B" /tmp/sf2/wbd-link-proxy -mode client \
+            -listen 127.0.0.1:47102 -dtls 127.0.0.1:46102 -fec "$FEC" -mtu 1400 -lanes 1 \
+            -demo-reality-ticket "$TB" >/tmp/sf2/${LABEL}/link-b.log 2>&1 & LB=$!
+          PIDS="$PIDS $LA $LB"
+          for i in $(seq 1 800); do
+            if grep -q 'WBD_LINK_READY role=client' /tmp/sf2/${LABEL}/link-a.log && \
+               grep -q 'WBD_LINK_READY role=client' /tmp/sf2/${LABEL}/link-b.log && \
+               test "$(grep -c 'WBD_LINK_MUX_SESSION_READY account=solo' /tmp/sf2/${LABEL}/link-server.log || true)" -ge 2; then break; fi
+            sleep .05
+          done
+          grep -q 'WBD_LINK_READY role=client' /tmp/sf2/${LABEL}/link-a.log
+          grep -q 'WBD_LINK_READY role=client' /tmp/sf2/${LABEL}/link-b.log
+          test "$(grep -c 'WBD_LINK_MUX_SESSION_READY account=solo' /tmp/sf2/${LABEL}/link-server.log)" -eq 2
+          test "$(find /tmp/sf2/${LABEL}/tickets -type f | wc -l)" -eq 0
+
+          cat >/tmp/sf2/probe.py <<'PY'
+          import socket,sys,time
+          port=int(sys.argv[1]); marker=sys.argv[2].encode()
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',0)); s.settimeout(.25)
+          for i in range(20):
+              want=marker+i.to_bytes(2,'big')
+              end=time.time()+4
+              while time.time()<end:
+                  s.sendto(want,('127.0.0.1',port))
+                  try: got,_=s.recvfrom(65535)
+                  except socket.timeout: continue
+                  if got == want: break
+              else: raise SystemExit('echo timeout')
+          print('SINGLE_FLOW_TWO_CLIENT_ECHO_PASS',marker.decode(),20)
+          PY
+          sudo ip netns exec "$A" python3 /tmp/sf2/probe.py 47101 A- >/tmp/sf2/${LABEL}/probe-a.log
+          sudo ip netns exec "$B" python3 /tmp/sf2/probe.py 47102 B- >/tmp/sf2/${LABEL}/probe-b.log
+          grep -q 'SINGLE_FLOW_TWO_CLIENT_ECHO_PASS A- 20' /tmp/sf2/${LABEL}/probe-a.log
+          grep -q 'SINGLE_FLOW_TWO_CLIENT_ECHO_PASS B- 20' /tmp/sf2/${LABEL}/probe-b.log
+
+          kill -0 "$FA"; kill -0 "$FB"; kill -0 "$MUX_PID"
+          echo "SINGLE_FLOW_TWO_CLIENT_PASS fec=${FEC} tickets_distinct=1 sessions=2 echo_a=20 echo_b=20"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: single-flow-two-client-${{ matrix.label }}
+          path: /tmp/sf2/${{ matrix.label }}/*.log
