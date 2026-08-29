@@ -20,7 +20,7 @@ func testController(r *recordingRunner)*Controller{return NewController(r,&recor
 
 func TestControllerConnectDisconnectUsesOnePublicFakeTCPFlow(t *testing.T){
 	r:=&recordingRunner{};c:=testController(r);if err:=c.Connect(testProfile());err!=nil{t.Fatal(err)};if got:=c.State();got!=RuntimeConnected{t.Fatalf("state after Connect = %s",got)};if err:=c.Disconnect();err!=nil{t.Fatal(err)};if got:=c.State();got!=RuntimeDisconnected{t.Fatalf("state after Disconnect = %s",got)}
-	want:=[]string{"ticket:clear","discover:underlay","start:faketcp","ticket:read","start:dtls","start:link","start:tun","run:ipv6-apply","run:route-apply","run:route-cleanup","run:ipv6-cleanup","stop:tun","stop:link","stop:dtls","stop:faketcp"}
+	want:=[]string{"ticket:clear","discover:underlay","start:faketcp","ticket:read","ready:faketcp","start:dtls","ready:dtls","start:link","ready:link","start:tun","ready:tun","run:ipv6-apply","run:route-apply","run:route-cleanup","run:ipv6-cleanup","stop:tun","stop:link","stop:dtls","stop:faketcp"}
 	if !reflect.DeepEqual(r.events,want){t.Fatalf("controller events = %v want %v",r.events,want)}
 	for _,e:=range r.events{if e=="run:reality-bootstrap"||e=="start:reality-bootstrap"{t.Fatalf("separate public Reality bootstrap reintroduced: %v",r.events)}}
 }
