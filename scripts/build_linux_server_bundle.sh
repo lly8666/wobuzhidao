@@ -86,6 +86,10 @@ assembler is discarded and sustained VPN traffic is DTLS 1.3/FEC/datagram over
 the existing first-arrival FakeTCP path, so ordinary TCP HOL is absent from the
 steady-state data plane.
 
+Front route/account secrets are loaded from the root-owned server.env file and
+passed to the child environment. The official manager does not put them in the
+mux command line shown by ps/systemctl status.
+
 Runtime application binaries are statically linked. The host kernel must support
 raw sockets and netfilter, and the OS must provide systemd plus nft or iptables.
 EOF
@@ -103,10 +107,18 @@ done
 sh -n "$root/wbd-server" "$root/linux_server_manager_v3.sh" "$root/linux_server_firewall.sh" "$root/linux_server_guard.sh"
 
 # Release qualification asserts the legacy kernel-TCP Reality listener is not
-# present in the official V3 package and the manager names raw mux as sole owner.
+# present, raw mux is the sole public owner, and official process argv carries
+# no front classifier/account secrets.
 [ ! -e "$root/bin/wbd-reality-front" ] || { echo 'legacy Reality listener must not ship in V3 runtime' >&2; exit 1; }
 grep -q 'public_owner=raw-mux' "$root/wbd-server"
 grep -q -- '--front-server-name' "$root/wbd-server"
+grep -q 'WBD_FRONT_ROUTE_KEY=' "$root/wbd-server"
+grep -q 'WBD_FRONT_USERNAME=' "$root/wbd-server"
+grep -q 'WBD_FRONT_PASSWORD=' "$root/wbd-server"
+if grep -E -- '--front-route-key|--username|--password' "$root/wbd-server" >/dev/null; then
+    echo 'V3 manager must not place front secrets in process argv' >&2
+    exit 1
+fi
 
 tar -C "$OUT" -czf "$OUT/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
 (
@@ -114,4 +126,4 @@ tar -C "$OUT" -czf "$OUT/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
     sha256sum "wbd-linux-server-$ARCH.tar.gz" > "wbd-linux-server-$ARCH.tar.gz.sha256"
     sha256sum -c "wbd-linux-server-$ARCH.tar.gz.sha256"
 )
-echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 single_public_owner=raw-mux single_flow_v3=1 portable_checksum=1"
+echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 single_public_owner=raw-mux single_flow_v3=1 secret_argv=0 portable_checksum=1"
