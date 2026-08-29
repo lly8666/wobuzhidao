@@ -2,10 +2,8 @@
 """Qualify the public single-flow wire contract from a libpcap capture.
 
 The checker is intentionally dependency-free so the release workflow can run it
-on a stock Python installation.  It does not try to understand WBD application
-frames.  Instead it proves the public transport invariants that must remain true
-while the workflow separately proves TLS bootstrap, DTLS readiness and payload
-round trips:
+on a stock Python installation. It proves public transport invariants directly
+from captured packets instead of trusting WBD readiness logs:
 
 * exactly one client<->server TCP 4-tuple;
 * one client SYN incarnation and one server SYN-ACK incarnation (retransmits of
@@ -14,12 +12,13 @@ round trips:
 * no FIN or RST during the TLS->DTLS mode switch/session;
 * client and server payload remain in one continuous TCP sequence space rooted
   at each side's original ISN+1, with retransmissions allowed but no reset/gap;
-* the first client payload is a TLS handshake record, proving that the same
-  sequence lineage starts with the Reality-like TLS phase.
+* the first client payload is a TLS ClientHello record;
+* an optional test-only post-bootstrap marker can be required later in that same
+  client sequence stream, proving bytes after the mode barrier did not use a
+  second connection.
 
-The enclosing E2E workflow must additionally prove post-bootstrap DTLS READY and
-application echo after this capture.  Taken together, those facts prove that the
-later no-HOL data plane did not open a second public connection.
+The full E2E workflow separately proves real DTLS 1.3 readiness and application
+round trips. Together those facts qualify the one-public-flow/no-HOL contract.
 """
 
 from __future__ import annotations
@@ -78,7 +77,7 @@ def read_pcap(path: Path) -> tuple[int, list[bytes]]:
             fail("truncated pcap packet header")
         _ts_sec, _ts_frac, incl_len, _orig_len = struct.unpack_from(endian + "IIII", raw, off)
         off += 16
-        if incl_len < 0 or off + incl_len > len(raw):
+        if off + incl_len > len(raw):
             fail("truncated pcap packet body")
         frames.append(raw[off : off + incl_len])
         off += incl_len
@@ -86,7 +85,7 @@ def read_pcap(path: Path) -> tuple[int, list[bytes]]:
 
 
 def ethernet_ipv4(frame: bytes, linktype: int) -> bytes | None:
-    if linktype != 1:  # DLT_EN10MB; the qualification capture is on a veth.
+    if linktype != 1:  # DLT_EN10MB; qualification captures are on veth/Npcap Ethernet.
         fail(f"unsupported pcap linktype {linktype}; expected Ethernet(1)")
     if len(frame) < 14:
         return None
@@ -169,6 +168,7 @@ def main() -> int:
     ap.add_argument("--server-port", required=True, type=int)
     ap.add_argument("--min-client-payload", type=int, default=256)
     ap.add_argument("--min-server-payload", type=int, default=256)
+    ap.add_argument("--require-client-marker", default="", help="ASCII marker that must occur after the TLS ClientHello in the same client seq-space")
     args = ap.parse_args()
 
     linktype, frames = read_pcap(args.pcap)
@@ -228,6 +228,15 @@ def main() -> int:
     if len(client_stream) < 6 or client_stream[0] != 22 or client_stream[1] != 3 or client_stream[5] != 1:
         fail("client sequence space does not start with a TLS ClientHello record")
 
+    marker_offset = -1
+    if args.require_client_marker:
+        marker = args.require_client_marker.encode("ascii")
+        marker_offset = client_stream.find(marker)
+        if marker_offset < 0:
+            fail(f"required post-bootstrap client marker {args.require_client_marker!r} was not captured")
+        if marker_offset < 6:
+            fail("post-bootstrap marker appeared before the TLS ClientHello")
+
     summary = {
         "tuple": f"{args.client_ip}:{args.client_port}-{args.server_ip}:{args.server_port}",
         "client_isn": client_isn,
@@ -236,6 +245,7 @@ def main() -> int:
         "server_synack_packets": len(server_synack),
         "client_payload_bytes": len(client_stream),
         "server_payload_bytes": len(server_stream),
+        "client_marker_offset": marker_offset,
         "fin_rst": 0,
         "seq_spaces": 1,
     }
