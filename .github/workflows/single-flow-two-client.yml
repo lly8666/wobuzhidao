@@ -141,8 +141,6 @@ jobs:
           for i in $(seq 1 200); do grep -q 'WBD_LINK_SERVER_MUX_READY' /tmp/sf2/${LABEL}/link-server.log && break; sleep .05; done
           grep -q 'WBD_LINK_SERVER_MUX_READY' /tmp/sf2/${LABEL}/link-server.log
 
-          # Fallback is required by product single-flow configuration even though
-          # these two recognized clients never enter the fallback branch.
           python3 -m http.server 44444 --bind 127.0.0.1 >/tmp/sf2/${LABEL}/fallback.log 2>&1 & FALLBACK_PID=$!
           PIDS="$PIDS $FALLBACK_PID"
 
@@ -182,8 +180,8 @@ jobs:
           grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/sf2/${LABEL}/faketcp-a.log
           grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/sf2/${LABEL}/faketcp-b.log
           test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY remote=.*same_flow=1' /tmp/sf2/${LABEL}/mux.log)" -eq 2
-          TA=$(sudo tr -d '\r\n' </tmp/sf2/${LABEL}/ticket-a.txt)
-          TB=$(sudo tr -d '\r\n' </tmp/sf2/${LABEL}/ticket-b.txt)
+          TA=$(sudo sh -c "tr -d '\\r\\n' </tmp/sf2/${LABEL}/ticket-a.txt")
+          TB=$(sudo sh -c "tr -d '\\r\\n' </tmp/sf2/${LABEL}/ticket-b.txt")
           test ${#TA} -eq 64
           test ${#TB} -eq 64
           test "$TA" != "$TB"
