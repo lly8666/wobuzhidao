@@ -2,12 +2,13 @@ package realityfront
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/tls"
 	"errors"
 	"net"
 	"strings"
 	"time"
+
+	utls "github.com/refraction-networking/utls"
 
 	"github.com/lly8666/wobuzhidao/internal/realitymirror"
 )
@@ -37,9 +38,60 @@ type SingleFlowHello struct {
 	Recognized bool
 }
 
+// newSingleFlowFirefox120Client prepares a pinned Firefox 120 ClientHello on
+// the already-established FakeTCP bootstrap stream. WBD changes only the TLS
+// 1.3 compatibility SessionID: it is derived from the preset's own random and
+// remains the route classifier marker recognized by the server. The browser
+// cipher/extension/GREASE/group/ALPN persona otherwise stays owned by uTLS.
+func newSingleFlowFirefox120Client(conn net.Conn, cfg SingleFlowClientConfig) (*utls.UConn, error) {
+	if conn == nil || strings.TrimSpace(cfg.ServerName) == "" || len(cfg.RouteKey) < 16 {
+		return nil, errors.New("realityfront: incomplete Firefox 120 client config")
+	}
+	uconn := utls.UClient(conn, &utls.Config{
+		ServerName:         cfg.ServerName,
+		InsecureSkipVerify: !cfg.VerifyServer,
+	}, utls.HelloFirefox_120)
+	if err := uconn.BuildHandshakeState(); err != nil {
+		return nil, err
+	}
+	hello := uconn.HandshakeState.Hello
+	if hello == nil || len(hello.Random) != 32 {
+		return nil, errors.New("realityfront: Firefox 120 ClientHello has invalid random")
+	}
+	var random [32]byte
+	copy(random[:], hello.Random)
+	marker := markerFor(cfg.RouteKey, cfg.ServerName, random)
+	hello.SessionId = append([]byte(nil), marker[:]...)
+	// A second BuildHandshakeState remarshal preserves the selected Firefox
+	// preset while incorporating the WBD compatibility SessionID marker.
+	if err := uconn.BuildHandshakeState(); err != nil {
+		return nil, err
+	}
+	return uconn, nil
+}
+
+func standardTLSState(state utls.ConnectionState) tls.ConnectionState {
+	return tls.ConnectionState{
+		Version:                     state.Version,
+		HandshakeComplete:           state.HandshakeComplete,
+		DidResume:                   state.DidResume,
+		CipherSuite:                 state.CipherSuite,
+		NegotiatedProtocol:          state.NegotiatedProtocol,
+		NegotiatedProtocolIsMutual:  state.NegotiatedProtocolIsMutual,
+		ServerName:                  state.ServerName,
+		PeerCertificates:            state.PeerCertificates,
+		VerifiedChains:              state.VerifiedChains,
+		SignedCertificateTimestamps: state.SignedCertificateTimestamps,
+		OCSPResponse:                state.OCSPResponse,
+		TLSUnique:                   state.TLSUnique,
+	}
+}
+
 // BootstrapClientSingleFlow performs real TLS 1.3 and WBD admission on an
 // already-established FakeTCP bootstrap stream. It never dials, closes or
-// replaces the public transport association.
+// replaces the public transport association. The ClientHello uses the pinned
+// Firefox 120 uTLS persona while the WBD route marker occupies only the normal
+// 32-byte TLS 1.3 compatibility SessionID.
 func BootstrapClientSingleFlow(ctx context.Context, conn net.Conn, cfg SingleFlowClientConfig) (Ticket, tls.ConnectionState, error) {
 	var zero Ticket
 	var state tls.ConnectionState
@@ -48,16 +100,12 @@ func BootstrapClientSingleFlow(ctx context.Context, conn net.Conn, cfg SingleFlo
 	}
 	timeout := cfg.Timeout
 	if timeout <= 0 { timeout = 10 * time.Second }
-	mr, err := NewMarkerRand(rand.Reader, cfg.RouteKey, cfg.ServerName)
-	if err != nil { return zero, state, err }
 	_ = conn.SetDeadline(time.Now().Add(timeout))
-	tlsConn := tls.Client(conn, &tls.Config{
-		ServerName: cfg.ServerName, InsecureSkipVerify: !cfg.VerifyServer,
-		MinVersion: tls.VersionTLS13, MaxVersion: tls.VersionTLS13, Rand: mr,
-	})
-	if err := tlsConn.HandshakeContext(ctx); err != nil { return zero, state, err }
-	ticket, err := BootstrapClientSimple(tlsConn, cfg.Username, cfg.Password)
-	state = tlsConn.ConnectionState()
+	uconn, err := newSingleFlowFirefox120Client(conn, cfg)
+	if err != nil { return zero, state, err }
+	if err := uconn.HandshakeContext(ctx); err != nil { return zero, state, err }
+	ticket, err := BootstrapClientSimple(uconn, cfg.Username, cfg.Password)
+	state = standardTLSState(uconn.ConnectionState())
 	if err != nil { return zero, state, err }
 	_ = conn.SetDeadline(time.Time{})
 	return ticket, state, nil
