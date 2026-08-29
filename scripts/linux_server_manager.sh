@@ -26,7 +26,7 @@ write_default_config() {
 WBD_LISTEN_IP=0.0.0.0
 WBD_PORT=40443
 WBD_SERVER_NAME=www.cloudflare.com
-# Reserved for the upcoming unrecognized-ClientHello fallback proxy gate.
+# Unrecognized ClientHello streams are proxied here by the same raw listener.
 WBD_DECOY_TARGET=www.cloudflare.com:443
 WBD_ROUTE_KEY=$route_key
 WBD_USERNAME=wbd
@@ -55,8 +55,6 @@ load_config() {
     : "${WBD_PLATFORM_LISTEN:=127.0.0.1:49000}" "${WBD_LINK_LISTEN:=127.0.0.1:47000}"
     : "${WBD_UDP_IDLE:=30s}" "${WBD_TCP_IDLE:=30s}" "${WBD_FIREWALL_BACKEND:=auto}" "${WBD_NFT_INPUT:=}"
 
-    # Migrate old configs only when their historic front/raw ports already
-    # matched. V2.3 has one public port and one raw association lineage.
     if [ -z "${WBD_PORT:-}" ]; then
         legacy_front=${WBD_FRONT_PORT:-}
         legacy_raw=${WBD_RAW_PORT:-}
@@ -72,8 +70,6 @@ load_config() {
     fi
     case "$WBD_PORT" in *[!0-9]*|'') echo 'WBD_PORT must be numeric' >&2; exit 1;; esac
     [ "$WBD_PORT" -ge 1 ] && [ "$WBD_PORT" -le 65535 ] || { echo 'WBD_PORT must be 1..65535' >&2; exit 1; }
-    # Firewall helper still accepts historical front/raw arguments; pass the
-    # same value for both until its compatibility CLI is simplified.
     WBD_FRONT_PORT=$WBD_PORT
     WBD_RAW_PORT=$WBD_PORT
 
@@ -117,11 +113,7 @@ set_config() {
     fi
     chmod 600 "$tmp"; mv "$tmp" "$CONFIG"
     load_config
-    if [ "$key" = WBD_SERVER_NAME ]; then
-        echo "$key updated; run: wbd-server regen-certs && wbd-server restart"
-    else
-        echo "$key updated; run: wbd-server restart"
-    fi
+    if [ "$key" = WBD_SERVER_NAME ]; then echo "$key updated; run: wbd-server regen-certs && wbd-server restart"; else echo "$key updated; run: wbd-server restart"; fi
 }
 
 install_unit() {
@@ -170,8 +162,7 @@ install_files() {
     if ! command -v nft >/dev/null 2>&1 && ! command -v iptables >/dev/null 2>&1; then echo 'host requires nft or iptables' >&2; exit 1; fi
     mkdir -p "$PREFIX/bin" "$ETC" "$RUN/tickets"
     chmod 700 "$RUN/tickets"
-    # Keep wbd-reality-front as a diagnostic/reference binary for now, but the
-    # product manager never starts it on the public port.
+    # Diagnostic/reference binary only; product run path below never starts it.
     for f in wbd-reality-front wbd-faketcp-mux wbd-link-server-mux wbd-platform-proxy-server wbd_dtls_shim wbd-server-cert; do
         install -m 0755 "$SELF_DIR/bin/$f" "$PREFIX/bin/$f"
     done
@@ -210,7 +201,8 @@ run_server() {
         --front-cert "$ETC/front.pem" --front-key "$ETC/front.key" \
         --server-name "$WBD_SERVER_NAME" --route-key "$WBD_ROUTE_KEY" \
         --username "$WBD_USERNAME" --password "$WBD_PASSWORD" \
-        --ticket-dir "$RUN/tickets" --bootstrap-timeout "$WBD_BOOTSTRAP_TIMEOUT"
+        --ticket-dir "$RUN/tickets" --bootstrap-timeout "$WBD_BOOTSTRAP_TIMEOUT" \
+        --fallback-target "$WBD_DECOY_TARGET"
     "$@" & main=$!; pids="$pids $main"
     if wait "$main"; then rc=0; else rc=$?; fi
     exit "$rc"
@@ -220,7 +212,6 @@ uninstall_files() {
     need_root
     fp=40443; rp=40443; backend=auto; nft_input=
     if [ -r "$CONFIG" ]; then
-        # Old two-port configs are still cleaned with their exact historic values.
         # shellcheck disable=SC1090
         . "$CONFIG"
         if [ -n "${WBD_PORT:-}" ]; then fp=$WBD_PORT; rp=$WBD_PORT; else fp=${WBD_FRONT_PORT:-40443}; rp=${WBD_RAW_PORT:-40000}; fi
@@ -249,12 +240,8 @@ doctor() {
     if command -v nft >/dev/null 2>&1; then echo 'firewall: OK nft'; elif command -v iptables >/dev/null 2>&1; then echo 'firewall: OK iptables'; else echo 'firewall: MISSING nft/iptables'; fail=1; fi
     [ -r "$ETC/front.pem" ] && [ -r "$ETC/front.key" ] && echo 'bootstrap TLS certificate: OK' || { echo 'bootstrap TLS certificate: MISSING'; fail=1; }
     [ -r "$ETC/dtls.pem" ] && [ -r "$ETC/dtls.key" ] && echo 'DTLS certificate: OK' || { echo 'DTLS certificate: MISSING'; fail=1; }
-    if raw_listen_ip=$(resolve_faketcp_listen_ip); then
-        echo "public: single-flow=$raw_listen_ip:$WBD_PORT"
-    else
-        echo 'public: FakeTCP concrete IPv4 resolution FAILED'; fail=1
-    fi
-    echo "bootstrap: server_name=$WBD_SERVER_NAME fallback_target=$WBD_DECOY_TARGET status=single-flow-real-tls fallback-not-yet-qualified"
+    if raw_listen_ip=$(resolve_faketcp_listen_ip); then echo "public: single-flow=$raw_listen_ip:$WBD_PORT"; else echo 'public: FakeTCP concrete IPv4 resolution FAILED'; fail=1; fi
+    echo "bootstrap: server_name=$WBD_SERVER_NAME fallback_target=$WBD_DECOY_TARGET"
     echo "limits: sessions=$WBD_MAX_SESSIONS ticket_ttl=$WBD_TICKET_TTL bootstrap_timeout=$WBD_BOOTSTRAP_TIMEOUT"
     if [ "$fail" -ne 0 ]; then echo 'WBD_SERVER_DOCTOR_FAIL'; return 1; fi
     echo 'WBD_SERVER_DOCTOR_PASS'
@@ -297,10 +284,9 @@ WBD_BOOTSTRAP_TIMEOUT, timeouts and firewall backend.
 
 V2.3 has one public raw FakeTCP listener. The first payload phase on that same
 association is real TLS 1.3 / Reality-like admission; after a mode barrier the
-same 4-tuple and sequence space carry DTLS 1.3 / LINK / FEC datagrams. No
-parallel public kernel TCP Reality listener is started. WBD_DECOY_TARGET is
-reserved for the unrecognized-ClientHello fallback gate and is not yet a
-qualified release behavior on this experimental branch.
+same 4-tuple and sequence space carry DTLS 1.3 / LINK / FEC datagrams. An
+unrecognized ClientHello remains in the temporary ordered raw stream and is
+proxied to WBD_DECOY_TARGET. No parallel public kernel TCP listener is started.
 EOF
  ;;
  *) echo "unknown command: $1" >&2; exit 2;;
