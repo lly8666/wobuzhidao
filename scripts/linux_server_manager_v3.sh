@@ -130,8 +130,8 @@ install_files() {
     if ! command -v nft >/dev/null 2>&1 && ! command -v iptables >/dev/null 2>&1; then echo 'host requires nft or iptables' >&2; exit 1; fi
     mkdir -p "$PREFIX/bin" "$ETC" "$RUN/tickets"; chmod 700 "$RUN/tickets"
     for f in wbd-faketcp-mux wbd-link-server-mux wbd-platform-proxy-server wbd_dtls_shim wbd-server-cert; do install -m 0755 "$SELF_DIR/bin/$f" "$PREFIX/bin/$f"; done
-    # wbd-reality-front may be present as a diagnostic/legacy tool, but V3 does
-    # not install or execute it as a public listener.
+    # wbd-reality-front may remain in source history as a diagnostic/legacy tool,
+    # but V3 never installs or executes it as a public listener.
     install -m 0755 "$SELF_DIR/linux_server_firewall.sh" "$PREFIX/bin/linux_server_firewall.sh"
     install -m 0755 "$SELF_DIR/linux_server_guard.sh" "$PREFIX/bin/linux_server_guard.sh"
     install -m 0755 "$SELF_DIR/linux_server_manager_v3.sh" "$PREFIX/bin/wbd-server"
@@ -154,8 +154,13 @@ run_server() {
     guard="$PREFIX/bin/linux_server_guard.sh"
     set -- "$guard" --backend "$WBD_FIREWALL_BACKEND" --front-port "$WBD_PORT" --raw-port "$WBD_PORT" --state "$RUN/server-firewall.state"
     [ -z "$WBD_NFT_INPUT" ] || set -- "$@" --nft-input "$WBD_NFT_INPUT"
-    set -- "$@" -- "$PREFIX/bin/wbd-faketcp-mux" server --listen "$raw_ip:$WBD_PORT" --dtls-shim "$PREFIX/bin/wbd_dtls_shim" --link-target "$WBD_LINK_LISTEN" --cert "$ETC/dtls.pem" --key "$ETC/dtls.key" --max-sessions "$WBD_MAX_SESSIONS" --front-server-name "$WBD_SERVER_NAME" --front-cert "$ETC/front.pem" --front-key "$ETC/front.key" --front-route-key "$WBD_ROUTE_KEY" --username "$WBD_USERNAME" --password "$WBD_PASSWORD" --ticket-dir "$RUN/tickets"
-    "$@" & main=$!; pids="$pids $main"
+    set -- "$@" -- "$PREFIX/bin/wbd-faketcp-mux" server --listen "$raw_ip:$WBD_PORT" --dtls-shim "$PREFIX/bin/wbd_dtls_shim" --link-target "$WBD_LINK_LISTEN" --cert "$ETC/dtls.pem" --key "$ETC/dtls.key" --max-sessions "$WBD_MAX_SESSIONS" --front-server-name "$WBD_SERVER_NAME" --front-cert "$ETC/front.pem" --front-key "$ETC/front.key" --ticket-dir "$RUN/tickets"
+    # Secrets are inherited by the child only; they are intentionally absent
+    # from the kernel-visible argv printed by ps/systemctl status. The mux adds
+    # them to Go's process-local flag input after exec. Root can still read the
+    # root-owned config/environment, which is the expected privilege boundary.
+    WBD_FRONT_ROUTE_KEY="$WBD_ROUTE_KEY" WBD_FRONT_USERNAME="$WBD_USERNAME" WBD_FRONT_PASSWORD="$WBD_PASSWORD" "$@" &
+    main=$!; pids="$pids $main"
     if wait "$main"; then rc=0; else rc=$?; fi
     exit "$rc"
 }
@@ -182,6 +187,7 @@ doctor() {
     [ -r "$ETC/dtls.pem" ] && [ -r "$ETC/dtls.key" ] && echo 'DTLS certificate: OK' || { echo 'DTLS certificate: MISSING'; fail=1; }
     if raw_ip=$(resolve_raw_listen_ip); then echo "public: owner=raw-mux endpoint=$raw_ip:$WBD_PORT reality_like=in-flow second_listener=0"; else fail=1; fi
     echo "single-flow: TLS1.3 bootstrap -> encrypted switch -> DTLS1.3 datagrams; no second SYN/FIN/close_notify at boundary"
+    echo "secret-argv: route-key/username/password are child environment only, not mux command-line flags"
     if [ "$fail" -ne 0 ]; then echo 'WBD_SERVER_DOCTOR_FAIL'; return 1; fi
     echo 'WBD_SERVER_DOCTOR_PASS'
 }
@@ -206,7 +212,7 @@ public 4-tuple from the first SYN. Real TLS 1.3 Reality-like setup/auth runs as 
 bounded ordered phase inside that same association, followed by an encrypted
 mode-switch barrier and DTLS 1.3/FEC datagrams on the same sequence space.
 There is no second public Reality TCP listener and no ordinary-TCP steady-state
-payload/HOL.
+payload/HOL. Front route/account secrets are not placed on the mux command line.
 EOF
  ;;
  *) echo "unknown command: $1" >&2; exit 2;;
