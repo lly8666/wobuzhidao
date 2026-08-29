@@ -2,7 +2,13 @@ package realityfront
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"math/big"
 	"net"
 	"reflect"
 	"testing"
@@ -12,7 +18,7 @@ import (
 )
 
 func TestSingleFlowTLSAdmissionUsesProvidedConnection(t *testing.T) {
-	cert := makeServerCert(t)
+	cert := makeFirefoxCompatibleServerCert(t)
 	key := []byte("0123456789abcdef0123456789abcdef")
 	ticketDir := t.TempDir()
 	clientConn, serverConn := net.Pipe()
@@ -33,7 +39,14 @@ func TestSingleFlowTLSAdmissionUsesProvidedConnection(t *testing.T) {
 		ServerName: "target.test", RouteKey: key, Username: "solo", Password: "single-flow-password",
 		VerifyServer: false, Timeout: 2 * time.Second,
 	})
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		select {
+		case serverErr := <-serverDone:
+			t.Fatalf("client handshake: %v; server: %v", err, serverErr)
+		default:
+			t.Fatal(err)
+		}
+	}
 	if state.Version != tls.VersionTLS13 { t.Fatalf("TLS version=%x", state.Version) }
 	if err := <-serverDone; err != nil { t.Fatal(err) }
 	if err := ConsumeTicket(ticketDir, ticket, time.Now(), time.Minute); err != nil { t.Fatalf("consume ticket: %v", err) }
@@ -113,4 +126,20 @@ func TestSingleFlowWrongMarkerIsRejectedBeforeAdmission(t *testing.T) {
 		ServerName: "target.test", RouteKey: clientKey, Username: "solo", Password: "single-flow-password", Timeout: time.Second,
 	})
 	if err := <-serverDone; err != ErrMarker { t.Fatalf("server err=%v want ErrMarker", err) }
+}
+
+func makeFirefoxCompatibleServerCert(t *testing.T) tls.Certificate {
+	t.Helper()
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil { t.Fatal(err) }
+	now := time.Now()
+	tmpl := &x509.Certificate{
+		SerialNumber: big.NewInt(2), Subject: pkix.Name{CommonName: "target.test"},
+		NotBefore: now.Add(-time.Hour), NotAfter: now.Add(time.Hour),
+		DNSNames: []string{"target.test"}, KeyUsage: x509.KeyUsageDigitalSignature,
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &priv.PublicKey, priv)
+	if err != nil { t.Fatal(err) }
+	return tls.Certificate{Certificate: [][]byte{der}, PrivateKey: priv}
 }
