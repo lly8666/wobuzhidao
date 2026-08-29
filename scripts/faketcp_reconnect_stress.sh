@@ -100,28 +100,54 @@ sudo ip netns exec "$S" "$MUX" server \
 for _ in $(seq 1 200); do grep -q 'READY role=server-mux' "$ROOT/mux.log" && break; sleep .05; done
 grep -q 'READY role=server-mux' "$ROOT/mux.log"
 
-# Prove ordinary kernel TCP:443 remains functional alongside the raw listener
-# before enabling the experiment-only SYNACK isolation gate.
+# Prove ordinary kernel TCP:443 is functional before shared-port isolation.
 sudo ip netns exec "$C" python3 - <<'PY'
 import socket
 s=socket.create_connection(('198.19.0.2',443),3)
-s.sendall(b'reality-like-setup')
-assert s.recv(64)==b'reality-like-setup'
+s.sendall(b'reality-like-setup-before')
+assert s.recv(64)==b'reality-like-setup-before'
 s.close()
 PY
 
-# Causal A/B guard: WBD raw SYNACK uses the exact existing 12-byte option
-# profile (MSS 1360, SACK-permitted, WS=8). Once the ordinary setup probe has
-# passed, allow that raw SYNACK signature and drop the competing kernel SYNACK.
-# If dirty reconnect becomes stable, this proves shared-port dual-SYNACK is the
-# failure mechanism; production will use a per-flow guard rather than this
-# temporary global handoff gate.
+# Production-candidate per-flow isolation. Only the exact WBD SYN fingerprint
+# is connmarked: IPv4 20-byte header + TCP 32-byte header, SYN-only, no payload,
+# and the frozen MSS1360/SACK/WS8 12-byte option profile. For only that flow,
+# WBD-shaped raw SYNACKs may return to the host OUTPUT chain while the competing
+# kernel TCP listener SYNACK is dropped. Ordinary Reality/TCP flows are unmarked.
 WBD_SYN_U32='0>>22&0x3C@20=0x02040550&&0>>22&0x3C@24=0x04020103&&0>>22&0x3C@28=0x03080101'
+WBD_CT_MARK='0x5742/0xffff'
+sudo ip netns exec "$S" iptables -t mangle -I PREROUTING 1 \
+  -p tcp --dport 443 --tcp-flags FIN,SYN,RST,ACK SYN \
+  -m length --length 52:52 -m u32 --u32 "$WBD_SYN_U32" \
+  -m comment --comment wbd-test-flow-mark \
+  -j CONNMARK --set-xmark "$WBD_CT_MARK"
 sudo ip netns exec "$S" iptables -N WBD_SYNACK_GUARD
-sudo ip netns exec "$S" iptables -A WBD_SYNACK_GUARD -m u32 --u32 "$WBD_SYN_U32" -j RETURN
+sudo ip netns exec "$S" iptables -A WBD_SYNACK_GUARD \
+  -m u32 --u32 "$WBD_SYN_U32" -j RETURN
 sudo ip netns exec "$S" iptables -A WBD_SYNACK_GUARD -j DROP
-sudo ip netns exec "$S" iptables -I OUTPUT 1 -p tcp --sport 443 --tcp-flags SYN,ACK SYN,ACK -j WBD_SYNACK_GUARD
+sudo ip netns exec "$S" iptables -I OUTPUT 1 \
+  -p tcp --sport 443 --tcp-flags SYN,ACK SYN,ACK \
+  -m connmark --mark "$WBD_CT_MARK" -j WBD_SYNACK_GUARD
+sudo ip netns exec "$S" iptables -t mangle -S PREROUTING >"$ROOT/flow-mark-rules.log"
 sudo ip netns exec "$S" iptables -S WBD_SYNACK_GUARD >"$ROOT/synack-guard-rules.log"
+
+# Rules are already active here. Ordinary TCP must still work, including a
+# client that requests MSS 1360: the real WBD fingerprint also requires exact
+# 52-byte SYN length and the frozen option ordering/profile.
+sudo ip netns exec "$C" python3 - <<'PY'
+import socket
+for idx,mss in enumerate((None,1360)):
+    s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    if mss is not None:
+        s.setsockopt(socket.IPPROTO_TCP,socket.TCP_MAXSEG,mss)
+    s.settimeout(3)
+    s.connect(('198.19.0.2',443))
+    msg=('reality-like-after-%d' % idx).encode()
+    s.sendall(msg)
+    assert s.recv(64)==msg
+    s.close()
+print('REALITY_LIKE_TCP_AFTER_GUARD_PASS cases=2')
+PY
 
 run_phase() {
   phase=$1
@@ -158,6 +184,7 @@ run_phase() {
     if [ "$dtls_ready" != 1 ]; then
       echo "RECONNECT_FAIL phase=$phase iter=$i stage=dtls sport=$sport" | tee -a "$ROOT/results.log"
       cat "$flog" "$dlog" "$ROOT/mux.log"
+      sudo ip netns exec "$S" iptables -t mangle -nvx -L PREROUTING | tee "$ROOT/flow-mark-counters.log"
       sudo ip netns exec "$S" iptables -nvx -L WBD_SYNACK_GUARD | tee "$ROOT/synack-guard-counters.log"
       return 1
     fi
@@ -185,6 +212,7 @@ PY
 run_phase fixed 30
 run_phase rotate 30
 
+sudo ip netns exec "$S" iptables -t mangle -nvx -L PREROUTING | tee "$ROOT/flow-mark-counters.log"
 sudo ip netns exec "$S" iptables -nvx -L WBD_SYNACK_GUARD | tee "$ROOT/synack-guard-counters.log"
 fixed_pass=$(grep -c '^RECONNECT_PASS phase=fixed' "$ROOT/results.log")
 rotate_pass=$(grep -c '^RECONNECT_PASS phase=rotate' "$ROOT/results.log")
