@@ -20,7 +20,7 @@ func testController(r *recordingRunner)*Controller{return NewController(r,&recor
 
 func TestControllerConnectDisconnectUsesOnePublicFakeTCPFlow(t *testing.T){
 	r:=&recordingRunner{};c:=testController(r);if err:=c.Connect(testProfile());err!=nil{t.Fatal(err)};if got:=c.State();got!=RuntimeConnected{t.Fatalf("state after Connect = %s",got)};if err:=c.Disconnect();err!=nil{t.Fatal(err)};if got:=c.State();got!=RuntimeDisconnected{t.Fatalf("state after Disconnect = %s",got)}
-	want:=[]string{"ticket:clear","discover:underlay","start:faketcp","ticket:read","ready:faketcp","start:dtls","ready:dtls","start:link","ready:link","start:tun","ready:tun","run:ipv6-apply","run:route-apply","run:route-cleanup","run:ipv6-cleanup","stop:tun","stop:link","stop:dtls","stop:faketcp"}
+	want:=[]string{"ticket:clear","discover:underlay","start:faketcp","ready:faketcp:bootstrap","ticket:read","ready:faketcp","start:dtls","ready:dtls","start:link","ready:link","start:tun","ready:tun","run:ipv6-apply","run:route-apply","run:route-cleanup","run:ipv6-cleanup","stop:tun","stop:link","stop:dtls","stop:faketcp"}
 	if !reflect.DeepEqual(r.events,want){t.Fatalf("controller events = %v want %v",r.events,want)}
 	for _,e:=range r.events{if e=="run:reality-bootstrap"||e=="start:reality-bootstrap"{t.Fatalf("separate public Reality bootstrap reintroduced: %v",r.events)}}
 }
@@ -33,8 +33,14 @@ func TestControllerFakeTCPStartFailureNeverStartsDTLSOrCapture(t *testing.T){
 	r:=&recordingRunner{fail:"faketcp"};c:=testController(r);if err:=c.Connect(testProfile());err==nil{t.Fatal("expected FakeTCP failure")};want:=[]string{"ticket:clear","discover:underlay","start:faketcp"};if !reflect.DeepEqual(r.events,want){t.Fatalf("events=%v want=%v",r.events,want)};if got:=c.State();got!=RuntimeDisconnected{t.Fatalf("failed Connect state=%s",got)}
 }
 
+func TestControllerBootstrapReadinessFailureNeverPollsTicket(t *testing.T){
+	r:=&recordingRunner{failMarker:singleFlowBootstrapReadyMarker};c:=testController(r);err:=c.Connect(testProfile());if err==nil{t.Fatal("expected bootstrap readiness failure")};if !strings.Contains(err.Error(),"single-flow Reality bootstrap"){t.Fatalf("bootstrap error lost first failure context: %v",err)}
+	want:=[]string{"ticket:clear","discover:underlay","start:faketcp","ready:faketcp:bootstrap","stop:faketcp"};if !reflect.DeepEqual(r.events,want){t.Fatalf("events=%v want=%v",r.events,want)}
+	for _,event:=range r.events{if event=="ticket:read"{t.Fatalf("ticket polling must not hide an exited bootstrap child: %v",r.events)}}
+}
+
 func TestControllerTicketFailureStopsOnlyPublicFlow(t *testing.T){
-	r:=&recordingRunner{};tickets:=&recordingTicketStore{runner:r,ticket:strings.Repeat("cd",32),errorRead:errors.New("TLS auth failed")};c:=NewController(r,&recordingUnderlayDiscoverer{runner:r,underlay:testUnderlay()},tickets);if err:=c.Connect(testProfile());err==nil{t.Fatal("expected ticket failure")};want:=[]string{"ticket:clear","discover:underlay","start:faketcp","ticket:read","stop:faketcp"};if !reflect.DeepEqual(r.events,want){t.Fatalf("events=%v want=%v",r.events,want)}
+	r:=&recordingRunner{};tickets:=&recordingTicketStore{runner:r,ticket:strings.Repeat("cd",32),errorRead:errors.New("TLS auth failed")};c:=NewController(r,&recordingUnderlayDiscoverer{runner:r,underlay:testUnderlay()},tickets);if err:=c.Connect(testProfile());err==nil{t.Fatal("expected ticket failure")};want:=[]string{"ticket:clear","discover:underlay","start:faketcp","ready:faketcp:bootstrap","ticket:read","stop:faketcp"};if !reflect.DeepEqual(r.events,want){t.Fatalf("events=%v want=%v",r.events,want)}
 }
 
 func TestControllerUnderlayFailureNeverStartsPublicFlow(t *testing.T){
