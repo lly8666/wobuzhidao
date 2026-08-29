@@ -51,6 +51,16 @@ func (p *loggingProcess) WaitReady(marker string, timeout time.Duration) error {
 			return fmt.Errorf("inspect child while waiting for marker %q: %w", marker, err)
 		}
 		if exited {
+			// Reap the child here. loggingProcess.Stop is intentionally idempotent
+			// when cmd is nil, so cleanup will not issue TerminateProcess against an
+			// already-dead Windows process and create a misleading Access Denied.
+			waitErr := p.cmd.Wait()
+			if p.stdout != nil { p.stdout.Flush() }
+			if p.stderr != nil { p.stderr.Flush() }
+			p.cmd = nil
+			if waitErr != nil {
+				return fmt.Errorf("process exited before readiness marker %q exit_code=%d: %w", marker, code, waitErr)
+			}
 			return fmt.Errorf("process exited before readiness marker %q exit_code=%d", marker, code)
 		}
 		if !time.Now().Before(deadline) {
