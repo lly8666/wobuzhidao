@@ -180,13 +180,6 @@ func (s *muxServer) rawLoop() error {
 		if err != nil || seg.DstIP != s.serverIP || seg.DstPort != s.serverPort {
 			continue
 		}
-		if len(seg.Payload) != 0 {
-			s.rawPayloadOnce.Do(func() {
-				fmt.Fprintf(os.Stderr,
-					"WBD_FAKETCP_MUX_RAW_PAYLOAD_RX bytes=%d client_port=%d server_port=%d\n",
-					len(seg.Payload), seg.SrcPort, seg.DstPort)
-			})
-		}
 		flow := faketcp.ServerFlowFromSegment(seg)
 		sess := s.getSession(flow)
 		if sess == nil {
@@ -201,11 +194,20 @@ func (s *muxServer) rawLoop() error {
 			continue
 		}
 
-		if seg.Flags&faketcp.FlagSYN != 0 && sess.assoc.State() == faketcp.ServerAssociationAwaitACK {
+		if seg.Flags&faketcp.FlagSYN != 0 {
 			if !faketcp.IsWBDHandshakeSegment(seg) {
 				continue
 			}
-			_ = s.sendSYNACK(sess)
+			switch sess.assoc.ClassifyPeerSYN(seg) {
+			case faketcp.PeerSYNRetransmit:
+				_ = s.sendSYNACK(sess)
+			case faketcp.PeerSYNNewIncarnation:
+				fmt.Fprintf(os.Stderr, "WBD_FAKETCP_MUX_RECONNECT client_port=%d server_port=%d\n", seg.SrcPort, seg.DstPort)
+				s.removeSessionMatch(flow, sess)
+				if err := s.acceptSYN(seg); err != nil && !errors.Is(err, faketcp.ErrMuxFull) && !errors.Is(err, faketcp.ErrAssociationExists) {
+					fmt.Fprintln(os.Stderr, "wbd-faketcp-mux reconnect:", err)
+				}
+			}
 			continue
 		}
 		if sess.assoc.State() == faketcp.ServerAssociationAwaitACK {
@@ -220,6 +222,13 @@ func (s *muxServer) rawLoop() error {
 		res, err := sess.assoc.HandleSegment(seg, time.Now())
 		if err != nil {
 			continue
+		}
+		if len(seg.Payload) != 0 {
+			s.rawPayloadOnce.Do(func() {
+				fmt.Fprintf(os.Stderr,
+					"WBD_FAKETCP_MUX_RAW_PAYLOAD_RX bytes=%d client_port=%d server_port=%d association=accepted\n",
+					len(seg.Payload), seg.SrcPort, seg.DstPort)
+			})
 		}
 		if res.FastRetransmit != nil {
 			if err := s.sendPending(sess, res.FastRetransmit); err != nil {
