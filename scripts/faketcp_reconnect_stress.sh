@@ -62,7 +62,7 @@ sudo ip netns exec "$R" iptables -A FORWARD -i rc0 -o rs0 -j ACCEPT
 sudo ip netns exec "$R" iptables -A FORWARD -i rs0 -o rc0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 # Match production shared-port behavior: a kernel TCP listener and the raw
-# FakeTCP mux both observe TCP:443. Only kernel-generated RST is suppressed.
+# FakeTCP mux both observe TCP:443. Kernel-generated RST is always suppressed.
 sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --sport 443 --tcp-flags RST RST -j DROP
 
 cat >"$ROOT/echo.py" <<'PY'
@@ -100,7 +100,8 @@ sudo ip netns exec "$S" "$MUX" server \
 for _ in $(seq 1 200); do grep -q 'READY role=server-mux' "$ROOT/mux.log" && break; sleep .05; done
 grep -q 'READY role=server-mux' "$ROOT/mux.log"
 
-# Prove ordinary kernel TCP:443 remains functional alongside the raw listener.
+# Prove ordinary kernel TCP:443 remains functional alongside the raw listener
+# before enabling the experiment-only SYNACK isolation gate.
 sudo ip netns exec "$C" python3 - <<'PY'
 import socket
 s=socket.create_connection(('198.19.0.2',443),3)
@@ -108,6 +109,19 @@ s.sendall(b'reality-like-setup')
 assert s.recv(64)==b'reality-like-setup'
 s.close()
 PY
+
+# Causal A/B guard: WBD raw SYNACK uses the exact existing 12-byte option
+# profile (MSS 1360, SACK-permitted, WS=8). Once the ordinary setup probe has
+# passed, allow that raw SYNACK signature and drop the competing kernel SYNACK.
+# If dirty reconnect becomes stable, this proves shared-port dual-SYNACK is the
+# failure mechanism; production will use a per-flow guard rather than this
+# temporary global handoff gate.
+WBD_SYN_U32='0>>22&0x3C@20=0x02040550&&0>>22&0x3C@24=0x04020103&&0>>22&0x3C@28=0x03080101'
+sudo ip netns exec "$S" iptables -N WBD_SYNACK_GUARD
+sudo ip netns exec "$S" iptables -A WBD_SYNACK_GUARD -m u32 --u32 "$WBD_SYN_U32" -j RETURN
+sudo ip netns exec "$S" iptables -A WBD_SYNACK_GUARD -j DROP
+sudo ip netns exec "$S" iptables -I OUTPUT 1 -p tcp --sport 443 --tcp-flags SYN,ACK SYN,ACK -j WBD_SYNACK_GUARD
+sudo ip netns exec "$S" iptables -S WBD_SYNACK_GUARD >"$ROOT/synack-guard-rules.log"
 
 run_phase() {
   phase=$1
@@ -144,6 +158,7 @@ run_phase() {
     if [ "$dtls_ready" != 1 ]; then
       echo "RECONNECT_FAIL phase=$phase iter=$i stage=dtls sport=$sport" | tee -a "$ROOT/results.log"
       cat "$flog" "$dlog" "$ROOT/mux.log"
+      sudo ip netns exec "$S" iptables -nvx -L WBD_SYNACK_GUARD | tee "$ROOT/synack-guard-counters.log"
       return 1
     fi
 
@@ -170,6 +185,7 @@ PY
 run_phase fixed 30
 run_phase rotate 30
 
+sudo ip netns exec "$S" iptables -nvx -L WBD_SYNACK_GUARD | tee "$ROOT/synack-guard-counters.log"
 fixed_pass=$(grep -c '^RECONNECT_PASS phase=fixed' "$ROOT/results.log")
 rotate_pass=$(grep -c '^RECONNECT_PASS phase=rotate' "$ROOT/results.log")
 reconnects=$(grep -c 'WBD_FAKETCP_MUX_RECONNECT' "$ROOT/mux.log" || true)
