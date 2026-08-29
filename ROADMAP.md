@@ -14,14 +14,30 @@
 | V2-M6C | OpenWrt transparent capture | **FINAL SHAPE: TPROXY + POLICY ROUTING** |
 | V2-M7A/B | Windows TUN + full/split routing | **IMPLEMENTED / PHYSICAL QUALIFICATION IN PROGRESS** |
 | V2-M8A-old | separate ordinary-TCP Reality-like front | **SUPERSEDED BY ADR-0011** |
-| V2-M8A-SF1 | temporary reliable FakeTCP bootstrap stream | **IN IMPLEMENTATION** |
-| V2-M8A-SF2 | real TLS 1.3 / Reality-like auth over same FakeTCP association | **NEXT** |
-| V2-M8A-SF3 | raw-listener fallback/decoy proxy + fingerprint qualification | **REQUIRED BEFORE REALITY-LIKENESS CLAIM** |
-| V2-M8B-T1 | native FakeTCP + FEC first-arrival / pcap qualification | **RETAINED** |
+| V2-M8A-SF1 | temporary reliable FakeTCP bootstrap stream | **IMPLEMENTED + NO-HOL BOUNDARY UNIT-QUALIFIED** |
+| V2-M8A-SF2 | real TLS 1.3 / Reality-like auth over same FakeTCP association | **IMPLEMENTED + SINGLE-FLOW E2E QUALIFIED** |
+| V2-M8A-SF3 | raw-listener fallback/decoy proxy + fingerprint qualification | **NEXT ARCHITECTURE/RESEMBLANCE GATE** |
+| V2-M8B-T1 | native FakeTCP + FEC first-arrival / pcap qualification | **RETAINED / GREEN ON CURRENT SINGLE-FLOW HEAD** |
 | V2-M8B-T2 | fixed FEC + immutable setup | **RETAINED** |
 | V2-M8C | shared-account concurrent association/DTLS/LiveID fan-out | **RETAINED, MUST BE REQUALIFIED WITH SINGLE-FLOW BOOTSTRAP** |
 | V2-M9 | optional two-lane research | **POST-RELEASE ONLY IF JUSTIFIED** |
 | V2-M10 | release qualification | single-flow protocol gate -> OpenWrt one-shot -> Windows one-shot |
+
+## Current single-flow qualification evidence
+
+At PR #9 head `fd2fbc10e5ce8225d8cbf47b7e1bb3990095dbaf`, the dedicated `single-flow-e2e` gate proves the core public-flow invariant with packet capture and the pinned wolfSSL DTLS implementation:
+
+- exactly one client SYN sequence lineage for `10.88.0.2:41001 -> 10.88.0.1:443`;
+- no second client 4-tuple to public port 443;
+- real TLS 1.3 / Reality-like bootstrap reports `same_flow=1` on client and server;
+- the same FakeTCP processes remain alive through the mode switch;
+- DTLS server reaches PEEK / PEER_SET / HRR / ACCEPT_PASS and DTLS 1.3 READY;
+- DTLS client reaches CONNECT_PASS and DTLS 1.3 READY;
+- 20/20 bidirectional echo probes succeed after the switch.
+
+The separate `faketcp-pcap-20loss` gate is also green after fixing capture readiness; no FakeTCP recovery algorithm was changed to obtain that result.
+
+This is a protocol/integration qualification checkpoint, not final physical Windows/OpenWrt release qualification. The project still must complete the resemblance/fallback gate, concurrent-session requalification, and clean platform one-shot gates.
 
 ## Product order of operations
 
@@ -37,7 +53,7 @@ Development now proceeds in this order:
 8. re-run concurrent sessions, <=100 Mbit/s load and pcap gates;
 9. re-run OpenWrt TPROXY and Windows TUN one-shot release qualification.
 
-Platform convenience must not reintroduce a second public setup connection.
+Steps 2-6 are now implemented; the dedicated single-flow E2E gate has qualified steps 2-5, and unit tests cover the post-bootstrap hole-bypass invariant in step 6. Platform convenience must not reintroduce a second public setup connection.
 
 ## V2-M8A-SF1 — bounded bootstrap stream
 
@@ -52,11 +68,11 @@ Required properties:
 - closing the adapter does not emit an outer FIN or create a new flow;
 - the adapter is discarded after authentication/mode barrier.
 
-Unit tests must cover reordering, ACK gating, deadline behavior and transition back to normal datagram semantics.
+Unit tests cover bootstrap stream behavior and the transition back to normal datagram semantics, including delivery of a later post-bootstrap datagram across an earlier missing FakeTCP sequence range.
 
 ## V2-M8A-SF2 — TLS/Reality-like admission on the same association
 
-Target establishment:
+Qualified establishment shape:
 
 ```text
 FakeTCP SYN / SYN-ACK / ACK
@@ -70,12 +86,13 @@ FakeTCP SYN / SYN-ACK / ACK
   -> ticket bind / LINK_INIT / LINK_ACCEPT
 ```
 
-There must be no separate `wbd-reality-front` public product connection before FakeTCP. The old front binary may remain only as a diagnostic/reference tool while migration is incomplete.
+There is no separate `wbd-reality-front` public product connection before FakeTCP. The old front binary may remain only as a diagnostic/reference tool.
 
-Windows product startup should therefore become:
+Windows product startup is:
 
 ```text
-single-flow FakeTCP TLS/auth READY
+single-flow FakeTCP TLS/auth ready
+  -> FakeTCP steady-mode READY
   -> DTLS READY
   -> LINK READY
   -> TUN READY
@@ -83,7 +100,7 @@ single-flow FakeTCP TLS/auth READY
   -> routes
 ```
 
-Linux product startup should use one raw public listener, not a kernel TCP front plus raw listener sharing the numeric port.
+Linux product startup uses one raw public listener, not a kernel TCP front plus raw listener sharing the numeric port.
 
 ## V2-M8A-SF3 — probe/fingerprint resemblance
 
@@ -150,7 +167,7 @@ Release proof must include DNS, TCP and UDP application traffic over the one pub
 
 Windows final mode remains TUN/Wintun-class L3 capture with Full/Foreign/China route policy, underlay escape, compact prefix classification and cleanup.
 
-The readiness sequence must not call the connection successful before the single-flow TLS bootstrap, DTLS, LINK and TUN are actually ready.
+The readiness sequence must not call the connection successful before the single-flow TLS bootstrap, FakeTCP steady-mode readiness, DTLS, LINK and TUN are actually ready.
 
 ## V2-M10 final release gate
 
