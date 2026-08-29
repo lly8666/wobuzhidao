@@ -96,13 +96,22 @@ func (e *endpoint) runSingleFlowBootstrap() error {
 		return fmt.Errorf("write single-flow ticket: %w", err)
 	}
 
+	// Application-level TLS/auth completion is not yet a transport barrier. Wait
+	// until every client->server bootstrap byte has left the FakeTCP sender's
+	// pending set. Only then can SWITCH_REQ become the first post-TLS byte in the
+	// same sequence space. This HOL wait exists only during bounded bootstrap.
+	if err := e.waitSingleFlowSenderDrained(e.cfg.bootstrapTimeout); err != nil {
+		return fmt.Errorf("drain single-flow client bootstrap: %w", err)
+	}
+	fmt.Fprintln(os.Stderr, "WBD_SINGLEFLOW_BOOTSTRAP_TX_DRAINED")
+
 	e.single.mu.Lock()
 	e.single.ticket = ticket
 	e.single.phase = singleFlowAwaitSwitch
 	e.single.mu.Unlock()
 
 	// Closing the local pipe stops TLS byte pumps without producing a TLS alert
-	// on the carrier. All auth reply bytes have already been read synchronously.
+	// on the public carrier. All auth bytes are already cumulatively ACKed above.
 	_ = app.Close()
 	_ = carrier.Close()
 
@@ -142,6 +151,31 @@ func (e *endpoint) runSingleFlowBootstrap() error {
 		return errors.New("single-flow switch ACK timeout")
 	case <-e.stop:
 		return os.ErrClosed
+	}
+}
+
+func (e *endpoint) waitSingleFlowSenderDrained(timeout time.Duration) error {
+	if timeout <= 0 {
+		timeout = 12 * time.Second
+	}
+	deadline := time.Now().Add(timeout)
+	ticker := time.NewTicker(2 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		e.senderMu.Lock()
+		pending := e.sender.Pending()
+		e.senderMu.Unlock()
+		if pending == 0 {
+			return nil
+		}
+		if !time.Now().Before(deadline) {
+			return fmt.Errorf("timeout with %d pending segments", pending)
+		}
+		select {
+		case <-ticker.C:
+		case <-e.stop:
+			return os.ErrClosed
+		}
 	}
 }
 
