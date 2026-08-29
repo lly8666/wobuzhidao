@@ -1,0 +1,102 @@
+name: singleflow-realitylike-e2e
+
+on:
+  push:
+    branches:
+      - exp/singleflow-realitylike-v3
+  pull_request:
+    paths:
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/singleflow/**'
+      - 'internal/dtlsworker/**'
+      - 'native/dtls/**'
+      - 'scripts/singleflow_realitylike_e2e.sh'
+      - '.github/workflows/singleflow-realitylike-e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  single_public_flow:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables tcpdump
+      - name: Build pinned wolfSSL DTLS shim and V3 raw binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ROOT=/tmp/wbd-singleflow-v3
+          mkdir -p "$ROOT/bin" /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm \
+            -o "$ROOT/bin/wbd_dtls_shim"
+          go test ./internal/realityfront ./internal/singleflow ./internal/faketcp ./internal/dtlsworker ./cmd/wbd-faketcp-mux -count=1
+          go build -trimpath -o "$ROOT/bin/wbd-faketcp" ./cmd/wbd-faketcp
+          go build -trimpath -o "$ROOT/bin/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+      - name: Generate Reality-like TLS and DTLS certificates
+        run: |
+          set -euo pipefail
+          ROOT=/tmp/wbd-singleflow-v3
+          cat >"$ROOT/front.ext" <<'EOF'
+          basicConstraints=critical,CA:FALSE
+          keyUsage=critical,digitalSignature,keyEncipherment
+          extendedKeyUsage=serverAuth
+          subjectAltName=DNS:front.test
+          EOF
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=WBD V3 Test Root CA' \
+            -keyout "$ROOT/ca.key" -out "$ROOT/ca.pem" >/dev/null 2>&1
+          openssl req -newkey rsa:2048 -nodes -sha256 -subj '/CN=front.test' \
+            -keyout "$ROOT/front.key" -out "$ROOT/front.csr" >/dev/null 2>&1
+          openssl x509 -req -in "$ROOT/front.csr" -CA "$ROOT/ca.pem" -CAkey "$ROOT/ca.key" -CAcreateserial \
+            -days 2 -sha256 -extfile "$ROOT/front.ext" -out "$ROOT/front.pem" >/dev/null 2>&1
+          cat >"$ROOT/dtls.ext" <<'EOF'
+          basicConstraints=critical,CA:FALSE
+          keyUsage=critical,digitalSignature,keyEncipherment
+          extendedKeyUsage=serverAuth
+          subjectAltName=DNS:wbd.test
+          EOF
+          openssl req -newkey rsa:2048 -nodes -sha256 -subj '/CN=wbd.test' \
+            -keyout "$ROOT/dtls.key" -out "$ROOT/dtls.csr" >/dev/null 2>&1
+          openssl x509 -req -in "$ROOT/dtls.csr" -CA "$ROOT/ca.pem" -CAkey "$ROOT/ca.key" -CAcreateserial \
+            -days 2 -sha256 -extfile "$ROOT/dtls.ext" -out "$ROOT/dtls.pem" >/dev/null 2>&1
+          openssl verify -CAfile "$ROOT/ca.pem" "$ROOT/front.pem" "$ROOT/dtls.pem"
+          openssl x509 -in "$ROOT/front.pem" -noout -ext subjectAltName | grep -q 'DNS:front.test'
+          openssl x509 -in "$ROOT/dtls.pem" -noout -ext subjectAltName | grep -q 'DNS:wbd.test'
+      - name: One SYN, Reality-like TLS, encrypted switch, same-flow DTLS, no HOL
+        env:
+          WBD_E2E_DIR: /tmp/wbd-singleflow-v3
+        run: |
+          chmod +x scripts/singleflow_realitylike_e2e.sh
+          sudo --preserve-env=WBD_E2E_DIR bash scripts/singleflow_realitylike_e2e.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: singleflow-realitylike-e2e-evidence
+          path: |
+            /tmp/wbd-singleflow-v3/*.log
+            /tmp/wbd-singleflow-v3/*.pcap
+            /tmp/wbd-singleflow-v3/pcap.result
+          if-no-files-found: warn
