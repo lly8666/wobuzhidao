@@ -1,38 +1,36 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 63,
+  "continuity_sequence": 64,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "5120ec1dd8f8ef8288fcf8f658c2b715aa1ec217",
+  "checkpoint_based_on_head_sha": "63ca934a241abdb05d4f7f669e05ed977e383750",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Ship WBD with exactly one long-lived public TCP-shaped 4-tuple per VPN session. FakeTCP owns the only SYN and sequence lineage; the first bounded phase carries a Firefox-120-like real TLS 1.3 authenticated bootstrap; without FIN, close, RST or another SYN the same association switches to pinned wolfSSL DTLS 1.3 -> immutable LINK/FEC/VPN datagrams. Sustained payload must never inherit ordinary kernel-TCP head-of-line blocking.",
-    "current_milestone": "Automated single-flow qualification is complete on feature source head 48e9fd45790a4c85d012aadb7a2ea50d3ad95479. All observed non-conditionally-skipped gates are green, including one-flow E2E, Firefox persona, Windows packet persona, no-HOL, two-client isolation, FakeTCP loss/first-arrival, Windows portable, Linux release and the full RTT20/RTT100 40/60/80 mux-load sweep. Next milestone is physical Windows 11/Npcap -> real NAT/ISP -> Ubuntu ARM64 single-flow qualification with the exact artifacts from this head.",
-    "local_optimization_stop_rule": "Do not return to the retired dual-public-flow Reality TCP -> close -> FakeTCP design. Keep mature FakeTCP recovery/FEC/sequence/ACK/SACK behavior frozen unless deterministic new evidence requires a change. The release target is stable 40 Mbit/s aggregate-inner on <=100 Mbit/s weak links; 60/80 Mbit are headroom characterization and fixed 20:20 intentionally expands plaintext by about 2.1x."
+    "terminal_goal": "Ship WBD with exactly one long-lived public TCP-shaped 4-tuple and one SYN/sequence lineage per VPN session. FakeTCP owns the public flow from SYN; a bounded setup-only reliable phase carries Firefox-120-like real TLS 1.3 / Reality-like admission; without FIN/RST/close/new SYN the same association switches in-band to pinned wolfSSL DTLS 1.3 -> LINK/FEC/VPN datagrams. Sustained payload must never inherit ordinary kernel-TCP cumulative-stream HOL.",
+    "current_milestone": "Post-physical-failure fixes are requalified on feature source head 9bacaab9268f893349800316b93c4d692158d6ec. Windows-hosted backend/parser/virtual-wire/runtime tests, Linux one-flow full stack with public pcap invariants, 20-round NAT dirty-exit reconnect stress, loss/first-arrival gates, Windows portable, Linux release and mux-load-100m are green. Exact-head Windows x64 and Linux ARM64 artifacts were independently downloaded and checksummed. Remaining step is physical Windows 11/Npcap + real NIC/NAT/ISP environmental qualification.",
+    "local_optimization_stop_rule": "Do not return to the retired dual-public-flow Reality TCP -> close -> FakeTCP design. Keep mature FakeTCP recovery/FEC/sequence/ACK/SACK behavior frozen unless deterministic new evidence requires it. Reproduce any new physical failure in sandbox before changing transport core."
   },
   "architecture_override": {
     "authority": "explicit user hard requirement on 2026-08-29",
     "required_public_flow": "Exactly one TCP-shaped 4-tuple for the whole WBD session and exactly one SYN lineage. FakeTCP owns public sequence space from SYN through teardown.",
-    "bootstrap_phase": "A bounded reliable ordered FakeTCP setup stream carries real TLS 1.3 / Reality-like admission during the first seconds. The client is pinned to uTLS Firefox 120; only the normal 32-byte TLS 1.3 compatibility SessionID contents are replaced by the WBD route-classifier marker.",
+    "bootstrap_phase": "A bounded reliable ordered FakeTCP setup stream carries real TLS 1.3 / Reality-like admission during the first seconds. Client persona is pinned to uTLS Firefox 120; WBD classification is confined to normal TLS-compatible setup bytes.",
     "mode_switch": "Authenticated setup switches in-band on the same FakeTCP association to DTLS/datagram mode; no FIN, RST, reconnect or new SYN at the boundary.",
     "hol_rule": "Reliable ordered behavior is setup-only. Post-switch payload delivery/recovery must not impose ordinary TCP cumulative-stream HOL.",
     "server_port_model": "The raw FakeTCP mux owns WBD sessions from the SYN. Product startup must not launch a separate public kernel-TCP Reality listener for the WBD session. Wrong-marker/non-WBD TLS-like traffic uses the mux fallback/decoy path."
   },
   "continuation_cursor": {
-    "last_completed_action": "Qualified feature source head 48e9fd45790a4c85d012aadb7a2ea50d3ad95479 after removing final dual-flow build-only remnants from mux-load-100m; all observed non-conditionally-skipped workflows completed success. Downloaded exact-head Windows portable and Linux ARM64 artifacts and verified outer digests, direct deliverable hashes and PE/AArch64 structure. Wrote detailed closure log at canonical commit 92dcf168c1aa5d0f085fe6010af76f0719a6ccbe. Sequence 62 verifier run 33245347008 then exposed a continuity-only invalid resume path; correction rationale was durably recorded at canonical commit 5120ec1dd8f8ef8288fcf8f658c2b715aa1ec217 before issuing this sequence 63.",
-    "current_task": "Perform physical single-flow qualification with the exact Windows x64 and Linux ARM64 packages built from feature source head 48e9fd45790a4c85d012aadb7a2ea50d3ad95479. Do not modify TCP-like/FEC internals before physical evidence identifies a deterministic blocker.",
-    "why_now": "The architecture and automated qualification are no longer the blocker. One-flow E2E, Firefox persona, Windows packet persona, no-HOL, two-client, 100M characterization and release builds are all green on the same source head. The only major environment not represented equivalently by CI is the user's real Windows 11/Npcap physical adapter plus real NAT/ISP path to Ubuntu ARM64.",
-    "done_when": "A physical Windows 11 x64 portable client and Ubuntu ARM64 server built from the recorded source head demonstrate one FakeTCP-owned public flow: same-flow Reality-like bootstrap ready -> DTLSv1.3 ready -> LINK ready -> TUN/routes -> DNS/UDP/TCP probes pass, without a standalone public Reality bootstrap connection. If it fails, the first missing marker/boundary is identified and reproduced in sandbox before transport changes.",
-    "next_atomic_action": "Give the user the exact qualified Windows x64 wbd.exe and Linux ARM64 tar.gz recorded in artifact_snapshot, install/replace both sides, run the existing Windows self-test, and collect the Windows JSONL plus Ubuntu journal. Classify the first missing single-flow marker. Do not touch mature FakeTCP recovery/FEC unless the physical evidence specifically points there."
+    "last_completed_action": "Requalified feature source head 9bacaab9268f893349800316b93c4d692158d6ec after the user's physical Windows Npcap failure. The deterministic `faketcp: not ipv4/tcp` startup failure is addressed by exact-flow Npcap ingress filtering with Windows-only noisy-adapter regression tests. Product/diagnostics readiness is process-aware, per-Connect raw source ports rotate in the Windows dynamic range, and a 20-round client->MASQUERADE NAT->persistent-server dirty-exit full-stack stress gate passes. Windows-hosted single-flow virtual-wire/runtime tests and Linux FakeTCP->Reality-like TLS->DTLS1.3->LINK full-stack tests are green. Exact-head Windows and Linux ARM64 artifacts were independently verified. Detailed durable log: docs/development/2026-08-30-single-flow-post-physical-fix-qualification.md.",
+    "current_task": "Perform final physical environmental qualification with the exact artifacts from source head 9bacaab9268f893349800316b93c4d692158d6ec. Do not modify mature TCP-like recovery/FEC before a deterministic physical marker identifies a remaining gap.",
+    "why_now": "Automated upstream/downstream qualification is complete: Windows-specific backend/parser/runtime behavior runs on a Windows hosted OS; Linux full stack proves one public SYN/one sequence space/no FIN-RST through Reality-like bootstrap, DTLS and LINK; reconnect stress proves 20 rapid full sessions through persistent NAT/server with dirty client exits. The only non-equivalent environment is the user's physical Npcap driver/NIC and real NAT/ISP path.",
+    "done_when": "Physical Windows 11 x64 portable -> real NAT/ISP -> Ubuntu ARM64 demonstrates WBD_SINGLE_FLOW_BOOTSTRAP_READY same_flow=1 -> DTLSv1.3 ready -> LINK ready -> TUN/routes -> DNS/UDP/TCP probes pass on one public FakeTCP-owned flow. If it fails, preserve the first deterministic marker and reproduce it in sandbox before code changes.",
+    "next_atomic_action": "Use the exact qualified Windows wbd.exe and Linux ARM64 tar.gz recorded in artifact_snapshot for one physical self-test. On failure, classify the first missing marker against the now-qualified boundaries; do not ask the user to repeat historical context and do not touch the mature TCP-like/FEC core without a reproduced cause."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
-    "docs/development/2026-08-29-single-flow-exact-head-qualification.md",
-    "docs/development/2026-08-29-seq62-handoff-verifier-correction.md",
-    "docs/development/SINGLE_FLOW_DEVLOG.md",
+    "docs/development/2026-08-30-single-flow-post-physical-fix-qualification.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "internal/realityfront/front.go",
@@ -45,99 +43,86 @@
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "48e9fd45790a4c85d012aadb7a2ea50d3ad95479",
+    "tested_commit": "9bacaab9268f893349800316b93c4d692158d6ec",
     "result": "pass",
-    "scope": "Exact-head PR #9 qualification. Main CI, single-flow E2E, Firefox-120 TLS persona, Windows raw packet persona, post-switch no-HOL, two-client isolation, FakeTCP native, pcap-20loss, first-arrival, fullstack-first-arrival, Linux shared-port, Windows DTLS/TUN/IPv6, Windows portable, Linux release, OpenWrt and game-lane gates passed. mux-load-100m run 33245027049 completed bench20, bench100 and aggregate successfully with no bootstrap READY timeout."
+    "scope": "Exact-head PR #9 post-physical-fix qualification. Current-head main CI, Windows FakeTCP persona/backend/runtime/diagnostics, single-flow E2E/persona/no-HOL/two-client, Linux single-flow LINK full stack for FEC off and 20:20, 20-round NAT dirty-exit startup stress, FakeTCP native/loss/first-arrival, Windows DTLS/TUN/IPv6, Windows portable, Linux settings/shared-port/release and mux-load-100m completed success. No relevant current-head red workflow was observed."
   },
   "active_single_flow_branch": {
     "pr": 9,
     "branch": "feat/single-flow-reality-faketcp",
-    "head": "48e9fd45790a4c85d012aadb7a2ea50d3ad95479",
-    "classification": "Qualified implementation line; continue here after physical evidence, do not create a replacement architecture branch.",
-    "implemented": [
-      "single FakeTCP-owned public flow from the only SYN",
-      "bounded reliable ordered bootstrap stream used only during setup",
-      "uTLS Firefox 120 Reality-like TLS 1.3 bootstrap on the same association",
-      "WBD route marker confined to TLS 1.3 compatibility SessionID contents",
-      "same-flow server classification/authentication/fallback before DTLS mode switch",
-      "same-association DTLS/LINK handoff with no second public SYN",
-      "Linux product startup with one raw public WBD listener",
-      "Windows product startup with one public FakeTCP process and readiness gates",
-      "Windows-family presentation-only raw TCP/IP persona without changing recovery semantics",
-      "one-flow E2E, persona, two-client and post-switch no-HOL qualification",
-      "single-flow 100 Mbit capacity characterization harness without standalone Reality build/setup"
+    "head": "9bacaab9268f893349800316b93c4d692158d6ec",
+    "classification": "Current exact-head qualified implementation line. Continue here after physical evidence; do not create a replacement architecture branch and do not restore the retired dual-flow design.",
+    "post_physical_fixes": [
+      "Windows Npcap ingress filters to exact unfragmented inbound WBD IPv4/TCP flow before handshake parser",
+      "Windows backend tests cover UDP/ICMP/unrelated TCP/self-capture/fragments/malformed/VLAN noise",
+      "product and diagnostics readiness fail fast when the sole FakeTCP/bootstrap child exits",
+      "Windows selects a fresh dynamic-range raw source port for every Connect and freezes it for that flow",
+      "Windows hosted virtual-wire proves single-flow admission then post-switch no-HOL behavior",
+      "Linux full-stack gate proves one SYN/one seq space/no FIN-RST through bootstrap, DTLS, LINK and application echo",
+      "20-round NAT dirty-exit full-stack reconnect stress passes against persistent server state"
     ]
   },
   "qualification_snapshot": {
-    "source_head": "48e9fd45790a4c85d012aadb7a2ea50d3ad95479",
+    "source_head": "9bacaab9268f893349800316b93c4d692158d6ec",
+    "pr_merge_sha_used_by_actions_checkout": "0c1d3626cdfdf90b8c73854a5c4b86b75f2198fb",
     "runs": {
-      "ci": 33245027098,
-      "single_flow_e2e": 33245027009,
-      "single_flow_tcp_persona": 33245026974,
-      "windows_faketcp_persona": 33245027146,
-      "single_flow_no_hol": 33245026920,
-      "single_flow_two_client": 33245026936,
-      "faketcp_native": 33245026951,
-      "faketcp_pcap_20loss": 33245026966,
-      "faketcp_first_arrival": 33245026977,
-      "fullstack_first_arrival": 33245027029,
-      "windows_portable_bundle": 33245026925,
-      "linux_server_release": 33245027019,
-      "mux_load_100m": 33245027049
+      "ci": 33260280835,
+      "windows_faketcp_persona": 33260280825,
+      "windows_tun_build": 33260280850,
+      "windows_ipv6_killswitch": 33260280882,
+      "windows_dtls_build": 33260280884,
+      "windows_portable_bundle": 33260280869,
+      "single_flow_e2e": 33260280848,
+      "single_flow_tcp_persona": 33260280833,
+      "single_flow_no_hol": 33260280857,
+      "single_flow_two_client": 33260280856,
+      "single_flow_startup_stress": 33260280864,
+      "single_flow_link_fullstack": 33260280837,
+      "faketcp_native": 33260280873,
+      "faketcp_pcap_20loss": 33260280843,
+      "faketcp_first_arrival": 33260280860,
+      "fullstack_first_arrival": 33260280866,
+      "mux_load_100m": 33260280839,
+      "linux_server_settings": 33260280851,
+      "linux_shared_port": 33260280852,
+      "linux_server_release": 33260280813
     },
-    "rtt100_release_point": "40 Mbit/s aggregate-inner + fixed 20:20: delivery=1.0, goodput=39.994 Mbit/s, p99=63.551 ms, plaintext expansion=2.137x.",
-    "rtt100_headroom": "60 Mbit fixed 20:20: delivery=0.74288, 44.573 Mbit/s, p99=346.912 ms, 2.095x. 80 Mbit fixed 20:20: delivery=0.732629, 58.608 Mbit/s, p99=1013.063 ms, 2.094x. These are >100 Mbit expanded offered-load oversubscription points, not release regressions.",
-    "no_hol": "single-flow-no-hol success proves a later independent DTLS datagram can cross an earlier FakeTCP sequence hole before repair.",
-    "persona": "capture gate pins Firefox 120 ClientHello shape; Windows hosted-runner gate qualifies Windows-family outer packet presentation."
+    "windows_hosted": "Windows Server 2025 runner executes Windows FakeTCP backend/parser tests, single-flow virtual-wire admission/no-HOL, windowsruntime and windowsdiag tests. This is not claimed to equal a physical Npcap driver/NIC test.",
+    "linux_fullstack": "single-flow-link-fullstack succeeds for FEC off and 20:20. Off capture reports client_syn_packets=1, server_synack_packets=1, seq_spaces=1, fin_rst=0, then DTLS1.3/LINK and 20 application echoes.",
+    "startup_stress": "20/20 full sessions through client->MASQUERADE NAT->persistent server, each followed by SIGKILL of real FakeTCP/DTLS/LINK children and immediate reconnect with a fresh dynamic source port."
   },
   "artifact_snapshot": {
     "authority": "snapshot_not_live",
-    "source_head": "48e9fd45790a4c85d012aadb7a2ea50d3ad95479",
-    "pr_merge_sha_used_by_actions_checkout": "6d6654c767645eb6a65024b335dd40da71b7994e",
+    "source_head": "9bacaab9268f893349800316b93c4d692158d6ec",
     "windows": {
-      "run": 33245026925,
-      "artifact_id": 9712592173,
-      "actions_zip_sha256": "c42f1fbcef7cc4c4b972023f1d398cfe767cf192bf51c29838481a9fc65a06d4",
-      "extracted_wbd_exe_sha256": "807d356105f6d9b08894e7841a324c56ffef0ede258be40b4e4bccab98c6aa19",
-      "format_check": "PE x86-64 machine 0x8664"
+      "run": 33260280869,
+      "artifact_id": 9717076881,
+      "actions_zip_sha256": "de2009443f4177ef3138f2d9b4c8433b53aa6ce8bb49f4cae126af660fb9ac9c",
+      "extracted_wbd_exe_sha256": "e9cd50247ddb66f78d7e913f0cf8386bc38d0711c96640084968dc6fd46c9c53",
+      "format_check": "PE32+ x86-64"
     },
     "linux_arm64": {
-      "run": 33245027019,
-      "artifact_id": 9712579571,
-      "actions_zip_sha256": "36a43a810d221e20e2ff0b550b7c266d3623b13ec7bd2e5a73165df837fc729d",
-      "extracted_tar_gz_sha256": "e38cc0404d129e7c636ba8568df6ca2cbc3bfa723badaf2dfb1ef829d1e6f9fc",
-      "format_check": "representative server binaries are ELF AArch64 e_machine=183"
-    },
-    "linux_amd64": {
-      "run": 33245027019,
-      "artifact_id": 9712589155,
-      "actions_zip_sha256": "b3deca6c6531179ae655cfc7a7f29a0e046c2abf67a33a023a48a4291b8073cd"
-    },
-    "mux_rtt100": {
-      "run": 33245027049,
-      "artifact_id": 9712599094,
-      "actions_zip_sha256": "f0c1b5c4e34fa1a9b5c2479be5fdcc80ac20ca813661d52cf695fdf94869c90f"
+      "run": 33260280813,
+      "artifact_id": 9717108868,
+      "actions_zip_sha256": "952180baa6b81134e6f4095724ae4a232dbd80b68d16ed354846fdb361a495cd",
+      "extracted_tar_gz_sha256": "f6399478cd82931bd87080a3b3cef338678bd01c9a5d45f48e58154130efe3a5",
+      "format_check": "bundled sha256 passes; representative runtime binaries are ELF AArch64; manager help smoke passes"
     }
   },
   "validated_findings": {
-    "single_flow": "Automated E2E proves one public SYN lineage carries Reality-like TLS bootstrap and subsequent DTLS data on the same running FakeTCP association; wrong-marker traffic uses same-ingress fallback.",
-    "persona": "Current client TLS persona is pinned uTLS Firefox 120. Physical Windows raw packet presentation is separately qualified as Windows-family while Linux/OpenWrt legacy packet bytes remain unchanged.",
-    "no_hol": "A deliberate post-ready earlier sequence hole does not block a later independent DTLS datagram; steady-state is not ordinary TCP stream HOL.",
-    "release_point": "RTT100/20% measurement-loss two-session 40M aggregate-inner with fixed 20:20 delivered 100% at 39.994 Mbit/s on the exact qualified head.",
-    "headroom": "60/80 Mbit fixed-20:20 points exceed the modeled 100 Mbit link after ~2.1x FEC expansion; do not retune FakeTCP core to make these oversubscribed points look like release points."
+    "physical_failure": "The earlier Windows physical startup failure was first caused by unrelated physical Npcap ingress reaching the strict FakeTCP handshake parser. Current Windows backend filters before protocol parsing and tests the observed noise classes.",
+    "single_flow": "Linux public capture proves one SYN lineage/one sequence space carries the Reality-like setup and subsequent DTLS/LINK data without FIN/RST at the mode boundary.",
+    "no_hol": "Windows virtual-wire and dedicated no-HOL gate prove post-switch independent datagrams are not constrained by ordinary TCP cumulative-stream HOL semantics.",
+    "reconnect": "20 rapid full sessions through persistent NAT/server survive deliberate dirty client termination when a fresh dynamic-range public source port is selected per Connect.",
+    "tcp_like_core": "No evidence in this requalification requires retuning the mature FakeTCP recovery/ACK/SACK/FEC core; keep it frozen."
   },
   "retired_or_historical": {
-    "dual_flow_pr8": "Historical diagnostic/cherry-pick source only. Never resume ordinary TCP Reality bootstrap -> close -> second FakeTCP public connection as product architecture.",
-    "legacy_mux_benchmark": "scripts/bench_mux_two_session_100m.py is retained only as historical comparison and is no longer an input to the authoritative single-flow mux-load workflow.",
-    "rst_hypothesis": "Prior NAT/RST sandbox A/B did not justify a broad Windows RST firewall workaround."
+    "dual_flow": "Never resume ordinary kernel TCP Reality bootstrap -> close -> second FakeTCP public connection as product architecture.",
+    "old_qualified_head": "48e9fd45790a4c85d012aadb7a2ea50d3ad95479 is superseded by post-physical-fix exact head 9bacaab9268f893349800316b93c4d692158d6ec.",
+    "old_physical_logs": "Retain as regression evidence; they were generated before the exact-flow Windows Npcap ingress filter and process-aware readiness fixes."
   },
   "operational_continuity": {
-    "durable_log": "GitHub docs/development is authoritative. Exact-head closure: docs/development/2026-08-29-single-flow-exact-head-qualification.md. Sequence-62 verifier correction rationale: docs/development/2026-08-29-seq62-handoff-verifier-correction.md at canonical checkpoint 5120ec1dd8f8ef8288fcf8f658c2b715aa1ec217.",
+    "durable_log": "GitHub docs/development is authoritative. Current closure log: docs/development/2026-08-30-single-flow-post-physical-fix-qualification.md at canonical substantive checkpoint 63ca934a241abdb05d4f7f669e05ed977e383750.",
     "rule": "Record major conclusions, failed hypotheses, commits, run IDs, artifact IDs/hashes and next actions in GitHub development docs. End every development turn with a refreshed machine-readable handoff and handoff-verify success. Chat history is secondary and may be truncated."
-  },
-  "known_secondary_windows_issues": [
-    "PowerShell 5.1 UTF-8 BOM can make route-state JSON fail Go json.Unmarshal with invalid character 'ï'.",
-    "Stopping an already-exited LINK child may report TerminateProcess: Access is denied; Stop should become idempotent.",
-    "Linux process argv can expose Reality/account credentials; move credentials off argv during product hardening and never repeat exposed secrets in logs."
-  ]
+  }
 }
