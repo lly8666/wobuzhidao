@@ -165,6 +165,15 @@ func (a *ServerAssociation) SenderNext() uint32 {
 	return a.sender.NextSeq()
 }
 
+// SenderPending is used only by the short V3 bootstrap barrier. Steady-state
+// datagram delivery never waits on it. Returning zero means every byte emitted
+// before the mode switch has received cumulative/SACK-driven sender cleanup.
+func (a *ServerAssociation) SenderPending() int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.sender.Pending()
+}
+
 func (a *ServerAssociation) ReceiverNext() uint32 {
 	a.mu.Lock()
 	defer a.mu.Unlock()
