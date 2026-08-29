@@ -42,6 +42,42 @@ func commandReadiness(name string) (readinessSpec, bool) {
 	}
 }
 
+func hasArg(args []string, key string) bool {
+	for _, arg := range args {
+		if arg == key { return true }
+	}
+	return false
+}
+
+func validTicketHex(raw string) bool {
+	if len(raw) != 64 { return false }
+	for _, c := range raw {
+		if !strings.ContainsRune("0123456789abcdefABCDEF", c) { return false }
+	}
+	return true
+}
+
+// prepareProcessCommand materializes only the ephemeral V3 LINK ticket. The
+// persistent Plan contains a file path, not the ticket value. FakeTCP writes
+// that file only after real TLS 1.3/Reality-like admission and the same-flow
+// SWITCH barrier are complete, and readiness ordering guarantees this helper
+// runs afterwards. Legacy V2 plans that already embed a ticket are untouched.
+func prepareProcessCommand(plan Plan, command Command) (Command, error) {
+	if command.Name != "link" || strings.TrimSpace(plan.TicketPath) == "" || hasArg(command.Args, "-demo-reality-ticket") {
+		return command, nil
+	}
+	body, err := os.ReadFile(plan.TicketPath)
+	if err != nil {
+		return Command{}, fmt.Errorf("read single-flow Reality ticket: %w", err)
+	}
+	ticket := strings.TrimSpace(string(body))
+	if !validTicketHex(ticket) {
+		return Command{}, errors.New("single-flow Reality ticket file must contain exactly 64 hex characters")
+	}
+	command.Args = append(append([]string(nil), command.Args...), "-demo-reality-ticket", ticket)
+	return command, nil
+}
+
 type Executor struct {
 	mu             sync.Mutex
 	runner         Runner
@@ -63,15 +99,21 @@ func NewExecutor(runner Runner) *Executor {
 
 // Start brings up each transport layer only after the layer below has emitted
 // its real readiness marker. Device IPv6 is then fail-closed and IPv4 capture
-// is applied last. This prevents DTLS from racing the FakeTCP local UDP socket
-// and prevents broad routes from becoming active before immutable LINK exists.
+// is applied last. V3 FakeTCP READY additionally means the Reality-like TLS
+// bootstrap and same-flow mode-switch barrier have completed, so DTLS never
+// creates a second public flow and cannot race the setup phase.
 func (e *Executor) Start(plan Plan) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if e.cleanupPending { return errors.New("Windows runtime has pending network cleanup") }
 	if e.running || len(e.processes) != 0 { return errors.New("Windows runtime is already running") }
 
-	for _, command := range plan.ProcessSequence() {
+	for _, baseCommand := range plan.ProcessSequence() {
+		command, err := prepareProcessCommand(plan, baseCommand)
+		if err != nil {
+			e.rollbackProcessesLocked()
+			return fmt.Errorf("prepare %s: %w", baseCommand.Name, err)
+		}
 		proc, err := e.runner.Start(command)
 		if err != nil {
 			e.rollbackProcessesLocked()
