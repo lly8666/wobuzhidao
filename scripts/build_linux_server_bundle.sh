@@ -16,7 +16,6 @@ command -v python3 >/dev/null 2>&1 || { echo 'python3 required' >&2; exit 1; }
 command -v curl >/dev/null 2>&1 || { echo 'curl required' >&2; exit 1; }
 command -v unzip >/dev/null 2>&1 || { echo 'unzip required' >&2; exit 1; }
 
-LOCK=deps/security-lock.json
 read_lock() {
     python3 - "$1" <<'PY'
 import json,sys
@@ -50,9 +49,8 @@ gcc -O2 -Wall -Wextra -Werror -static -I"$work/wolf/build" -I"$work/wolf/src" \
   -o "$root/bin/wbd_dtls_shim"
 
 export CGO_ENABLED=0 GOOS=linux GOARCH="$ARCH"
-go test ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./internal/platformproxy ./cmd/wbd-link-server-mux ./cmd/wbd-server-cert -count=1
+go test ./internal/realityfront ./internal/singleflow ./internal/session ./internal/faketcp ./internal/dtlsworker ./internal/platformproxy ./cmd/wbd-faketcp-mux ./cmd/wbd-link-server-mux ./cmd/wbd-server-cert -count=1
 for spec in \
-  'wbd-reality-front:./cmd/wbd-reality-front' \
   'wbd-faketcp-mux:./cmd/wbd-faketcp-mux' \
   'wbd-link-server-mux:./cmd/wbd-link-server-mux' \
   'wbd-platform-proxy-server:./cmd/wbd-platform-proxy-server' \
@@ -61,26 +59,32 @@ for spec in \
     go build -trimpath -ldflags='-s -w' -o "$root/bin/$name" "$pkg"
 done
 
-cp scripts/linux_server_manager.sh "$root/wbd-server"
-cp scripts/linux_server_manager.sh "$root/linux_server_manager.sh"
+# V3 official composition has one public owner. The legacy wbd-reality-front
+# binary is intentionally not packaged or installed as a listener.
+cp scripts/linux_server_manager_v3.sh "$root/wbd-server"
+cp scripts/linux_server_manager_v3.sh "$root/linux_server_manager_v3.sh"
 cp scripts/linux_server_firewall.sh scripts/linux_server_guard.sh "$root/"
 printf '%s\n' "$ARCH" > "$root/ARCH"
 cat > "$root/README.txt" <<'EOF'
-WBD Linux Server bundle
-=======================
+WBD V3 Linux Server bundle
+==========================
 1. Extract this bundle on the target Linux server.
 2. sudo ./wbd-server install
-3. Set one public port, for example: sudo /opt/wbd/bin/wbd-server set WBD_PORT 443
-4. Configure domain and credentials: sudo /opt/wbd/bin/wbd-server config
+3. Set the one public TCP-shaped port, e.g.: sudo /opt/wbd/bin/wbd-server set WBD_PORT 443
+4. Configure server name and credentials: sudo /opt/wbd/bin/wbd-server config
 5. Run: sudo /opt/wbd/bin/wbd-server doctor
 6. Run: sudo /opt/wbd/bin/wbd-server start
 7. Check: /opt/wbd/bin/wbd-server status
 
-Commands: install, uninstall, start, stop, pause, resume, restart, status, logs,
-config, set, regen-certs, doctor, show-config. Configuration is
-/etc/wbd/server.env. WBD_PORT is the single public TCP port shared by the
-Reality-like setup/admission listener and WBD raw FakeTCP. Sustained VPN data
-remains FakeTCP -> DTLS 1.3 -> LINK.
+The V3 public endpoint has exactly one owner: wbd-faketcp-mux. From the first
+raw SYN through steady state the same public 4-tuple and FakeTCP sequence space
+are retained. During the first bounded setup phase, the raw association exposes
+an ordered byte-stream presentation for real TLS 1.3 Reality-like ClientHello,
+authentication, and an encrypted TLS mode-switch request/ack. There is no FIN,
+RST, close_notify, or second SYN at that boundary. After the barrier the ordered
+assembler is discarded and sustained VPN traffic is DTLS 1.3/FEC/datagram over
+the existing first-arrival FakeTCP path, so ordinary TCP HOL is absent from the
+steady-state data plane.
 
 Runtime application binaries are statically linked. The host kernel must support
 raw sockets and netfilter, and the OS must provide systemd plus nft or iptables.
@@ -96,7 +100,13 @@ for f in "$root/bin"/*; do
         exit 1
     fi
 done
-sh -n "$root/wbd-server" "$root/linux_server_manager.sh" "$root/linux_server_firewall.sh" "$root/linux_server_guard.sh"
+sh -n "$root/wbd-server" "$root/linux_server_manager_v3.sh" "$root/linux_server_firewall.sh" "$root/linux_server_guard.sh"
+
+# Release qualification asserts the legacy kernel-TCP Reality listener is not
+# present in the official V3 package and the manager names raw mux as sole owner.
+[ ! -e "$root/bin/wbd-reality-front" ] || { echo 'legacy Reality listener must not ship in V3 runtime' >&2; exit 1; }
+grep -q 'public_owner=raw-mux' "$root/wbd-server"
+grep -q -- '--front-server-name' "$root/wbd-server"
 
 tar -C "$OUT" -czf "$OUT/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
 (
@@ -104,4 +114,4 @@ tar -C "$OUT" -czf "$OUT/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
     sha256sum "wbd-linux-server-$ARCH.tar.gz" > "wbd-linux-server-$ARCH.tar.gz.sha256"
     sha256sum -c "wbd-linux-server-$ARCH.tar.gz.sha256"
 )
-echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 shared_public_port=1 portable_checksum=1"
+echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 single_public_owner=raw-mux single_flow_v3=1 portable_checksum=1"
