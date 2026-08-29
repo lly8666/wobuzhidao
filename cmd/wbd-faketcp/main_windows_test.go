@@ -55,6 +55,93 @@ func testFlowIO() *npcapRawPacketIO {
 	}
 }
 
+func makeFlowPacket(proto byte, srcIP, dstIP [4]byte, srcPort, dstPort uint16) []byte {
+	pkt := make([]byte, 40)
+	pkt[0] = 0x45
+	binary.BigEndian.PutUint16(pkt[2:4], uint16(len(pkt)))
+	pkt[9] = proto
+	copy(pkt[12:16], srcIP[:])
+	copy(pkt[16:20], dstIP[:])
+	if proto == 6 {
+		binary.BigEndian.PutUint16(pkt[20:22], srcPort)
+		binary.BigEndian.PutUint16(pkt[22:24], dstPort)
+		pkt[32] = 5 << 4
+	}
+	return pkt
+}
+
+func TestMatchesInboundFlowRejectsPhysicalAdapterNoise(t *testing.T) {
+	r := testFlowIO()
+
+	valid := makeFlowPacket(6, r.remoteIP, r.sourceIP, r.remotePort, r.sourcePort)
+	if !r.matchesInboundFlow(valid) {
+		t.Fatal("exact inbound WBD TCP packet must pass")
+	}
+
+	outboundSelfCapture := makeFlowPacket(6, r.sourceIP, r.remoteIP, r.sourcePort, r.remotePort)
+	if r.matchesInboundFlow(outboundSelfCapture) {
+		t.Fatal("outbound self-capture must not enter the FakeTCP receive state machine")
+	}
+
+	udp := makeFlowPacket(17, r.remoteIP, r.sourceIP, r.remotePort, r.sourcePort)
+	if r.matchesInboundFlow(udp) {
+		t.Fatal("IPv4 UDP adapter noise must be ignored during handshake")
+	}
+
+	icmp := makeFlowPacket(1, r.remoteIP, r.sourceIP, 0, 0)
+	if r.matchesInboundFlow(icmp) {
+		t.Fatal("IPv4 ICMP adapter noise must be ignored during handshake")
+	}
+
+	wrongPort := makeFlowPacket(6, r.remoteIP, r.sourceIP, r.remotePort, r.sourcePort+1)
+	if r.matchesInboundFlow(wrongPort) {
+		t.Fatal("unrelated inbound TCP flow must be ignored")
+	}
+
+	wrongPeer := makeFlowPacket(6, [4]byte{203, 0, 113, 8}, r.sourceIP, r.remotePort, r.sourcePort)
+	if r.matchesInboundFlow(wrongPeer) {
+		t.Fatal("TCP from a different peer must be ignored")
+	}
+
+	fragment := append([]byte(nil), valid...)
+	binary.BigEndian.PutUint16(fragment[6:8], 0x2000)
+	if r.matchesInboundFlow(fragment) {
+		t.Fatal("fragmented IPv4 packet must not enter FakeTCP parser")
+	}
+
+	badTotal := append([]byte(nil), valid...)
+	binary.BigEndian.PutUint16(badTotal[2:4], 39)
+	if r.matchesInboundFlow(badTotal) {
+		t.Fatal("truncated IPv4/TCP packet must be rejected")
+	}
+}
+
+func TestVLANExactFlowPassesButVLANUDPNoiseDoesNot(t *testing.T) {
+	r := testFlowIO()
+	wrapVLAN := func(ip []byte) []byte {
+		frame := make([]byte, 18+len(ip))
+		frame[12], frame[13] = 0x81, 0x00
+		frame[16], frame[17] = 0x08, 0x00
+		copy(frame[18:], ip)
+		return frame
+	}
+
+	valid := makeFlowPacket(6, r.remoteIP, r.sourceIP, r.remotePort, r.sourcePort)
+	ip, ok := ethernetIPv4Payload(wrapVLAN(valid))
+	if !ok || !r.matchesInboundFlow(ip) {
+		t.Fatal("VLAN-encapsulated exact WBD TCP flow must pass")
+	}
+
+	udp := makeFlowPacket(17, r.remoteIP, r.sourceIP, r.remotePort, r.sourcePort)
+	ip, ok = ethernetIPv4Payload(wrapVLAN(udp))
+	if !ok {
+		t.Fatal("VLAN IPv4 extraction should succeed before protocol filtering")
+	}
+	if r.matchesInboundFlow(ip) {
+		t.Fatal("VLAN IPv4 UDP noise must be rejected")
+	}
+}
+
 func TestMatchesKernelRSTExactFlow(t *testing.T) {
 	r := testFlowIO()
 	pkt := make([]byte, 40)
