@@ -30,6 +30,8 @@ const (
 
 type Profile struct {
 	BinDir       string
+	// ServerFront is retained for config compatibility but V2.3 requires it to
+	// equal ServerRaw. There is only one public endpoint/4-tuple lineage.
 	ServerFront  string
 	ServerName   string
 	RouteKey     string
@@ -64,6 +66,8 @@ type Command struct {
 }
 
 type Plan struct {
+	// Bootstrap is diagnostic compatibility only. Product Connect never runs it;
+	// TLS/Reality admission is performed by FakeTCP on the same public flow.
 	Bootstrap    Command
 	FakeTCP      Command
 	DTLS         Command
@@ -76,17 +80,9 @@ type Plan struct {
 	TicketPath   string
 }
 
-func (p Plan) ProcessSequence() []Command {
-	return []Command{p.FakeTCP, p.DTLS, p.Link, p.TUN}
-}
+func (p Plan) ProcessSequence() []Command { return []Command{p.FakeTCP, p.DTLS, p.Link, p.TUN} }
+func (p Plan) StartSequence() []Command { return []Command{p.FakeTCP, p.DTLS, p.Link, p.TUN, p.IPv6Apply, p.RouteApply} }
 
-func (p Plan) StartSequence() []Command {
-	return []Command{p.FakeTCP, p.DTLS, p.Link, p.TUN, p.IPv6Apply, p.RouteApply}
-}
-
-// StopSequence keeps capture-route cleanup first. IPv6 remains fail-closed until
-// those routes are removed, then the device-wide IPv6 block is released before
-// the Wintun/LINK/DTLS/FakeTCP processes are stopped in reverse order.
 func (p Plan) StopSequence() []Command {
 	return []Command{p.RouteCleanup, p.IPv6Cleanup, p.TUN, p.Link, p.DTLS, p.FakeTCP}
 }
@@ -104,37 +100,29 @@ func (p Profile) normalized() Profile {
 func (p Profile) Validate() error {
 	p = p.normalized()
 	if strings.TrimSpace(p.BinDir) == "" { return errors.New("bin directory is required") }
-	if _, err := netip.ParseAddrPort(p.ServerFront); err != nil { return fmt.Errorf("server front: %w", err) }
+	front, err := netip.ParseAddrPort(p.ServerFront)
+	if err != nil || !front.Addr().Is4() { return errors.New("server front must be an IPv4 address:port") }
 	if strings.TrimSpace(p.ServerName) == "" { return errors.New("server name is required") }
 	if len(p.RouteKey) < 16 { return errors.New("route key must be at least 16 bytes") }
 	if p.Username == "" || p.Password == "" { return errors.New("username and password are required") }
 	raw, err := netip.ParseAddrPort(p.ServerRaw)
 	if err != nil || !raw.Addr().Is4() { return errors.New("server raw must be an IPv4 address:port") }
+	if front != raw { return errors.New("V2.3 single-flow requires server front and raw endpoints to be identical") }
 	if p.FEC != "off" && p.FEC != "20:20" { return errors.New("FEC must be off or 20:20") }
 	if p.MTU < 576 || p.MTU > 9000 { return errors.New("MTU must be 576..9000") }
-	if p.RouteMode != RouteFull && p.RouteMode != RouteForeign && p.RouteMode != RouteChina {
-		return errors.New("route mode must be Full, Foreign, or China")
-	}
-	if (p.RouteMode == RouteForeign || p.RouteMode == RouteChina) && strings.TrimSpace(p.CNSetDir) == "" {
-		return errors.New("China/Foreign route mode requires the WBD CN ipset directory")
-	}
+	if p.RouteMode != RouteFull && p.RouteMode != RouteForeign && p.RouteMode != RouteChina { return errors.New("route mode must be Full, Foreign, or China") }
+	if (p.RouteMode == RouteForeign || p.RouteMode == RouteChina) && strings.TrimSpace(p.CNSetDir) == "" { return errors.New("China/Foreign route mode requires the WBD CN ipset directory") }
 	for _, prefix := range p.Prefix4 {
 		px, err := netip.ParsePrefix(prefix)
 		if err != nil || !px.Addr().Is4() { return fmt.Errorf("invalid IPv4 capture prefix %q", prefix) }
 	}
-	if p.DNSMode != DNSAuto && p.DNSMode != DNSSystem && p.DNSMode != DNSCloudflare && p.DNSMode != DNSCustom {
-		return errors.New("DNS mode must be Auto, System, Cloudflare, or Custom")
-	}
+	if p.DNSMode != DNSAuto && p.DNSMode != DNSSystem && p.DNSMode != DNSCloudflare && p.DNSMode != DNSCustom { return errors.New("DNS mode must be Auto, System, Cloudflare, or Custom") }
 	if p.DNSMode == DNSCustom {
 		ip, err := netip.ParseAddr(strings.TrimSpace(p.DNSServer))
 		if err != nil || !ip.Is4() { return errors.New("custom DNS server must be one IPv4 address") }
 	}
-	if px, err := netip.ParsePrefix(p.TunnelIPv4); err != nil || !px.Addr().Is4() {
-		return errors.New("tunnel IPv4 must be an IPv4 CIDR")
-	}
-	if strings.TrimSpace(p.TicketPath) == "" || strings.TrimSpace(p.RouteState) == "" {
-		return errors.New("ticket and route-state paths are required")
-	}
+	if px, err := netip.ParsePrefix(p.TunnelIPv4); err != nil || !px.Addr().Is4() { return errors.New("tunnel IPv4 must be an IPv4 CIDR") }
+	if strings.TrimSpace(p.TicketPath) == "" || strings.TrimSpace(p.RouteState) == "" { return errors.New("ticket and route-state paths are required") }
 	return nil
 }
 
@@ -142,21 +130,19 @@ func ValidateRoutingAssets(profile Profile) error {
 	profile = profile.normalized()
 	if err := profile.Validate(); err != nil { return err }
 	if profile.RouteMode != RouteForeign && profile.RouteMode != RouteChina { return nil }
-	if _, err := ipset.VerifyCNBundle(profile.CNSetDir); err != nil {
-		return fmt.Errorf("verify WBD CN ipset: %w", err)
-	}
+	if _, err := ipset.VerifyCNBundle(profile.CNSetDir); err != nil { return fmt.Errorf("verify WBD CN ipset: %w", err) }
 	return nil
 }
 
 func (u Underlay) Validate() error {
 	if ip, err := netip.ParseAddr(u.SourceIP); err != nil || !ip.Is4() { return errors.New("underlay source IP must be IPv4") }
-	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
-		return errors.New("underlay packet device must be an Npcap device")
-	}
+	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") { return errors.New("underlay packet device must be an Npcap device") }
 	if !validMAC(u.SourceMAC) || !validMAC(u.NextHopMAC) { return errors.New("underlay source and next-hop MACs are required") }
 	return nil
 }
 
+// BuildBootstrap remains available only for diagnostics/backward-compatible
+// tooling. Product Controller.Connect must never invoke it.
 func BuildBootstrap(profile Profile) (Command, error) {
 	profile = profile.normalized()
 	if err := profile.Validate(); err != nil { return Command{}, err }
@@ -165,10 +151,39 @@ func BuildBootstrap(profile Profile) (Command, error) {
 
 func buildBootstrapCommand(profile Profile) Command {
 	return Command{
-		Name: "reality-bootstrap",
+		Name: "reality-bootstrap-diagnostic",
 		Path: filepath.Join(profile.BinDir, "wbd-reality-front.exe"),
 		Args: []string{"client", "-addr", profile.ServerFront, "-server-name", profile.ServerName, "-route-key", profile.RouteKey, "-username", profile.Username, "-password", profile.Password, "-verify-server=" + strconv.FormatBool(profile.VerifyServer), "-ticket-out", profile.TicketPath},
 	}
+}
+
+// BuildFakeTCPCommand creates the unique public transport process. Reality-like
+// TLS/auth parameters are consumed inside this process after its raw handshake,
+// so no other public connection is created to obtain the ticket.
+func BuildFakeTCPCommand(profile Profile, underlay Underlay) (Command, error) {
+	profile = profile.normalized()
+	if err := ValidateRoutingAssets(profile); err != nil { return Command{}, err }
+	if err := underlay.Validate(); err != nil { return Command{}, err }
+	raw, _ := netip.ParseAddrPort(profile.ServerRaw)
+	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
+	loop := func(port int) string { return "127.0.0.1:" + strconv.Itoa(port) }
+	args := []string{
+		"client",
+		"--local-udp", loop(defaultFakeTCPLocalPort),
+		"--source", netip.AddrPortFrom(netip.MustParseAddr(underlay.SourceIP), defaultFakeTCPSourcePort).String(),
+		"--remote", raw.String(),
+		"--shadow-recovery", "legacy",
+		"--packet-device", underlay.PacketDevice,
+		"--source-mac", underlay.SourceMAC,
+		"--next-hop-mac", underlay.NextHopMAC,
+		"--reality-server-name", profile.ServerName,
+		"--reality-route-key", profile.RouteKey,
+		"--reality-username", profile.Username,
+		"--reality-password", profile.Password,
+		"--reality-ticket-out", profile.TicketPath,
+		"--reality-verify-server=" + strconv.FormatBool(profile.VerifyServer),
+	}
+	return Command{Name: "faketcp", Path: bin("wbd-faketcp.exe"), Args: args}, nil
 }
 
 func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) {
@@ -183,11 +198,10 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	raw, _ := netip.ParseAddrPort(profile.ServerRaw)
 	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
 	loop := func(port int) string { return "127.0.0.1:" + strconv.Itoa(port) }
-	psScript := func(name, script, action string) Command {
-		return Command{Name: name, Path: "powershell.exe", Args: []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin(script), "-Action", action}}
-	}
+	psScript := func(name, script, action string) Command { return Command{Name: name, Path: "powershell.exe", Args: []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin(script), "-Action", action}} }
 
-	fakeArgs := []string{"client", "--local-udp", loop(defaultFakeTCPLocalPort), "--source", netip.AddrPortFrom(netip.MustParseAddr(underlay.SourceIP), defaultFakeTCPSourcePort).String(), "--remote", raw.String(), "--shadow-recovery", "legacy", "--packet-device", underlay.PacketDevice, "--source-mac", underlay.SourceMAC, "--next-hop-mac", underlay.NextHopMAC}
+	fake, err := BuildFakeTCPCommand(profile, underlay)
+	if err != nil { return Plan{}, err }
 	dtlsArgs := []string{"client", strconv.Itoa(defaultDTLSPlainPort), "127.0.0.1", strconv.Itoa(defaultFakeTCPLocalPort), "none", "none"}
 	linkArgs := []string{"-mode", "client", "-listen", loop(defaultLinkListenPort), "-dtls", loop(defaultDTLSPlainPort), "-fec", profile.FEC, "-mtu", strconv.Itoa(profile.MTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(ticket)}
 	tunArgs := []string{"-mode", "client", "-ifname", profile.IfName, "-mtu", strconv.Itoa(profile.MTU), "-transport", loop(defaultLinkListenPort)}
@@ -211,7 +225,7 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 
 	return Plan{
 		Bootstrap:    buildBootstrapCommand(profile),
-		FakeTCP:      Command{Name: "faketcp", Path: bin("wbd-faketcp.exe"), Args: fakeArgs},
+		FakeTCP:      fake,
 		DTLS:         Command{Name: "dtls", Path: bin("wbd_dtls_shim.exe"), Args: dtlsArgs},
 		Link:         Command{Name: "link", Path: bin("wbd-link-proxy.exe"), Args: linkArgs},
 		TUN:          Command{Name: "tun", Path: bin("wbd-tun.exe"), Args: tunArgs},
@@ -226,17 +240,13 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 func resolvedDNSServers(profile Profile) []string {
 	profile = profile.normalized()
 	switch profile.DNSMode {
-	case DNSSystem:
-		return nil
-	case DNSCloudflare:
-		return []string{"1.1.1.1", "1.0.0.1"}
-	case DNSCustom:
-		return []string{strings.TrimSpace(profile.DNSServer)}
+	case DNSSystem: return nil
+	case DNSCloudflare: return []string{"1.1.1.1", "1.0.0.1"}
+	case DNSCustom: return []string{strings.TrimSpace(profile.DNSServer)}
 	case DNSAuto:
 		if profile.RouteMode == RouteChina { return nil }
 		return []string{"1.1.1.1", "1.0.0.1"}
-	default:
-		return nil
+	default: return nil
 	}
 }
 
@@ -245,9 +255,7 @@ func validMAC(s string) bool {
 	if len(parts) != 6 { return false }
 	for _, part := range parts {
 		if len(part) != 2 { return false }
-		for _, c := range part {
-			if !strings.ContainsRune("0123456789abcdef", c) { return false }
-		}
+		for _, c := range part { if !strings.ContainsRune("0123456789abcdef", c) { return false } }
 	}
 	return true
 }
