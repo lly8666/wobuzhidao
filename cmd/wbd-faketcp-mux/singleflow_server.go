@@ -32,6 +32,8 @@ type serverSingleFlowState struct {
 	switchReq chan struct{}
 	reqOnce   sync.Once
 	startOnce sync.Once
+	done      chan struct{}
+	doneOnce  sync.Once
 }
 
 func newServerSingleFlowState(peerNext uint32) *serverSingleFlowState {
@@ -40,6 +42,13 @@ func newServerSingleFlowState(peerNext uint32) *serverSingleFlowState {
 		assembler: singleflow.NewOrderedAssembler(peerNext),
 		inbound: make(chan []byte, 128),
 		switchReq: make(chan struct{}),
+		done: make(chan struct{}),
+	}
+}
+
+func (sf *serverSingleFlowState) stop() {
+	if sf != nil {
+		sf.doneOnce.Do(func() { close(sf.done) })
 	}
 }
 
@@ -93,9 +102,21 @@ func (s *muxServer) runSingleFlowBootstrap(sess *muxSession) {
 		fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_SWITCH_TIMEOUT client_port=%d\n", sess.flow.ClientPort)
 		s.removeSessionMatch(sess.flow, sess)
 		return
+	case <-sess.sf.done:
+		return
 	case <-s.ctx.Done():
 		return
 	}
+
+	// HandleSegment processes the request's ACK before the request payload is
+	// delivered here. Wait until all server->client TLS/auth bytes are actually
+	// out of the sender pending set before crossing the protocol boundary.
+	if err := s.waitSingleFlowSenderDrained(sess, 12*time.Second); err != nil {
+		fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_BOOTSTRAP_DRAIN_FAIL client_port=%d err=%q\n", sess.flow.ClientPort, err)
+		s.removeSessionMatch(sess.flow, sess)
+		return
+	}
+	fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_BOOTSTRAP_TX_DRAINED client_port=%d\n", sess.flow.ClientPort)
 
 	// The server DTLS worker must be ready before the client receives SWITCH_ACK
 	// and sends its first ClientHello. This removes the old first-payload/process
@@ -121,10 +142,34 @@ func (s *muxServer) runSingleFlowBootstrap(sess *muxSession) {
 	fmt.Fprintf(os.Stderr, "WBD_SINGLEFLOW_DATAGRAM_READY client_port=%d public_flow=reused hol=bootstrap-only\n", sess.flow.ClientPort)
 }
 
+func (s *muxServer) waitSingleFlowSenderDrained(sess *muxSession, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	ticker := time.NewTicker(2 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		pending := sess.assoc.SenderPending()
+		if pending == 0 {
+			return nil
+		}
+		if !time.Now().Before(deadline) {
+			return fmt.Errorf("timeout with %d pending segments", pending)
+		}
+		select {
+		case <-ticker.C:
+		case <-sess.sf.done:
+			return errors.New("session removed while draining bootstrap")
+		case <-s.ctx.Done():
+			return s.ctx.Err()
+		}
+	}
+}
+
 func (s *muxServer) singleFlowCarrierWriter(sess *muxSession, carrier net.Conn) error {
 	for {
 		select {
 		case <-s.ctx.Done():
+			return nil
+		case <-sess.sf.done:
 			return nil
 		case p := <-sess.sf.inbound:
 			if len(p) == 0 {
@@ -148,6 +193,11 @@ func (s *muxServer) singleFlowCarrierReader(sess *muxSession, carrier net.Conn) 
 		}
 		if err != nil {
 			return err
+		}
+		select {
+		case <-sess.sf.done:
+			return nil
+		default:
 		}
 	}
 }
@@ -189,6 +239,8 @@ func (s *muxServer) handleSingleFlowPayload(sess *muxSession, seg faketcp.Segmen
 		if len(contiguous) != 0 {
 			select {
 			case sess.sf.inbound <- contiguous:
+			case <-sess.sf.done:
+				return errors.New("session removed during bootstrap")
 			case <-s.ctx.Done():
 				return s.ctx.Err()
 			}
