@@ -1,6 +1,6 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 59,
+  "continuity_sequence": 60,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "dev/wbd-raw-fec-v2",
   "active_issue": 1,
@@ -9,91 +9,112 @@
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Ship a personal weak-network VPN with a portable Windows 11 x64 client and self-contained Linux amd64/arm64 server bundles. Sustained payload remains WBD-owned raw TCP-shaped FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK; Reality-like TLS remains setup/admission only.",
-    "current_milestone": "Physical Windows 11 -> real Ubuntu ARM64 qualification has progressed through Reality admission and FakeTCP establishment. The readiness-gated Windows experiment proves FakeTCP READY before DTLS start and prevents routing/connect success before data-plane readiness. The current first deterministic blocker is now DTLS handshake completion: Windows times out waiting for DTLS READY while Linux logs BOUND role=server transport_port=<ephemeral> inherited=yes, with no DTLS server READY.",
-    "local_optimization_stop_rule": "Do not reopen ADR-0010 transport semantics: release remains 40 Mbit/s aggregate-inner on <=100 Mbit/s weak links, legacy FakeTCP, pinned wolfSSL DTLS 1.3, setup-only Reality, immutable LINK, one raw lane, FEC off or fixed 20:20."
+    "terminal_goal": "Ship a personal weak-network VPN with a portable Windows 11 x64 client and self-contained Linux amd64/arm64 server bundles. The public network must see exactly one long-lived TCP-shaped 4-tuple per VPN session: FakeTCP owns the flow from the initial SYN; the first few seconds carry a Reality-like/TLS-1.3-like bootstrap over that same flow; after bootstrap the same flow switches without FIN or a new SYN into WBD datagram transport carrying pinned wolfSSL DTLS 1.3 -> immutable LINK, with sustained payload never inheriting kernel TCP head-of-line blocking.",
+    "current_milestone": "Architectural correction. The previous design used a kernel TCP Reality-like admission connection, closed it, then created a second independent raw FakeTCP connection. Physical and namespace/NAT testing exposed shared-port/conntrack instability and, more importantly, the user clarified that two public connections violate the original hard requirement. Stop repairing the dual-flow architecture. Replace it with one FakeTCP-owned public flow whose initial reliable phase is Reality-like enough to be externally indistinguishable at approximately 99% packet/handshake shape, then switch in-place to no-HOL DTLS/FEC/LINK payload semantics.",
+    "local_optimization_stop_rule": "Do not preserve an old ADR or constitution clause merely because it freezes the dual-flow design. The user's newer hard constraint supersedes contradictory setup-only-separate-TCP wording. Preserve the validated release operating point (40 Mbit/s aggregate-inner on <=100 Mbit/s weak links), legacy FakeTCP recovery unless new single-flow work proves a required change, pinned wolfSSL DTLS 1.3, immutable LINK, one raw lane, and FEC off or fixed 20:20. The new architecture must use exactly one public TCP-shaped flow and must not route sustained payload through kernel TCP."
+  },
+  "architecture_override": {
+    "authority": "explicit user hard requirement on 2026-08-29",
+    "required_public_flow": "Exactly one TCP-shaped 4-tuple for the entire VPN session. One SYN/SYNACK/ACK sequence only. No separate Reality TCP connection followed by FakeTCP. No second SYN after admission.",
+    "bootstrap_phase": "FakeTCP owns the connection from SYN. During the first seconds it must provide a short reliable ordered bootstrap stream sufficient to emit and receive a normal-looking Reality-like/TLS-1.3-like handshake and admission exchange. If 100% byte/implementation identity with REALITY is impractical, target approximately 99% externally observable likeness without reintroducing kernel TCP ownership.",
+    "mode_switch": "After authenticated bootstrap, remain on the same 4-tuple and same FakeTCP incarnation; transition in-band to datagram mode for pinned wolfSSL DTLS 1.3 and LINK. No FIN, no close/reconnect, no new SYN, and no kernel TCP takeover.",
+    "hol_rule": "Kernel TCP may not carry sustained VPN payload. Any ordered/retransmitted behavior used for the bootstrap phase must be bounded to setup only. Post-switch loss recovery remains WBD/FakeTCP/DTLS/FEC controlled so one lost outer segment cannot impose normal TCP stream HOL on later VPN datagrams.",
+    "server_port_model": "The final design must not depend on a kernel TCP Reality listener and a raw FakeTCP listener racing on the same public port for the same WBD session. FakeTCP is the WBD public-flow owner. Non-WBD fallback/cover behavior may require a classifier/front-end design, but it must not create a second WBD connection or corrupt the one WBD flow's sequence space.",
+    "docs_to_reconcile": [
+      "PROJECT_CONSTITUTION.md",
+      "ARCHITECTURE.md",
+      "docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md"
+    ]
   },
   "continuation_cursor": {
-    "last_completed_action": "Created experimental PR #8 from canonical b1824532 to gate Windows startup on actual readiness. Experimental head 9b1024167139fc2e2f09d6a9e943d3fc880d4f7e passed main CI run 33196838704 and windows-portable-bundle run 33196838643. Artifact 9696151559 was downloaded and verified: Actions ZIP SHA-256 8172e915ebe62c3aad93f7f049ab73407654cd2ffa1623279a1fa8f17689ec7b, wbd.exe SHA-256 b8e44b28bb82b783ec4f363d92f3375b0dfe78f4b739570200552133f8567006. Physical retest showed Reality bootstrap pass, FakeTCP READY, then DTLS start only after FakeTCP readiness; DTLS never reached READY within 25s and runtime rolled back before IPv6/routes. Concurrent Linux evidence showed Reality AUTH OK and a per-session DTLS worker BOUND with inherited transport, proving FakeTCP association creation succeeded. Sequences 56-58 captured this state while iteratively satisfying handoff contract checks; sequence 59 adds the required explicitly non-live local test snapshot.",
-    "current_task": "Localize and fix the DTLS handshake stall between the Windows client shim and the Linux per-session wolfSSL worker without changing wire semantics.",
-    "why_now": "The readiness gate removed the former process-order race and false connect_pass. The failure is now isolated before LINK/TUN/routing: FakeTCP establishes, Linux worker is spawned, but wolfSSL DTLS 1.3 handshake does not complete.",
-    "done_when": "Physical Windows logs show FakeTCP READY -> DTLS READY -> WBD_LINK_READY -> WBD_TUN_READY -> IPv6 apply -> route apply -> connect_pass, then DNS/UDP/TCP probes pass and cleanup succeeds; Linux logs show the matching DTLS server handshake and LINK session readiness.",
-    "next_atomic_action": "Refresh canonical dev head, PR #8 head and current Actions. On PR #8 inspect native/dtls/wbd_dtls_shim.c, cmd/wbd-faketcp-mux/main_linux.go, internal/dtlsworker/worker_linux.go and cmd/wbd-faketcp/main.go. Add deterministic handshake-stage observability without wire changes: client connect-start, server first transport datagram/peek, HRR send, accept-start, plus one-shot mux first client-payload and first server-payload markers. Keep the inherited UDP descriptor explicitly blocking before server MSG_PEEK. Run CI and Windows/Linux release builds, then use the resulting packages for one physical retest. Fix only the first newly localized failure."
+    "last_completed_action": "Refreshed canonical dev/wbd-raw-fec-v2 at handoff sequence 59 / commit 029e8ecfa6976a8e1d4286394b0c87e58cdec922 and refreshed experimental PR #8 head 57fc45697b45dd70f88948cfebf7e9a73df9a28a. Reconciled the interrupted development history and recorded the user's architectural override: the old dual-public-flow design is no longer an acceptable target. This sequence-60 handoff is intentionally written before further development, per user request.",
+    "current_task": "Replace the dual-flow Reality-bootstrap-then-FakeTCP architecture with a single FakeTCP-owned TCP-shaped public flow that begins with a reliable Reality-like/TLS-like bootstrap phase and switches in-place to no-HOL DTLS/FEC/LINK datagrams.",
+    "why_now": "The current code demonstrably creates two unrelated public connections: Windows Controller runs wbd-reality-front synchronously to obtain a ticket and only after it exits starts wbd-faketcp; server Reality front closes its TLS connection after ticket issuance. Physical tests and a NAT/shared-port sandbox exposed connection-state races, but the decisive issue is semantic: the user requires one public connection for the full session. Continuing to patch dual-flow conntrack behavior would optimize an architecture that violates the product requirement.",
+    "done_when": "Architecture docs and code agree on one public flow. A deterministic namespace/NAT test proves exactly one SYN from WBD client through session teardown; the first phase parses as TLS-1.3/Reality-like setup and authenticates; an in-band mode switch occurs without FIN/new SYN; sustained DTLS/LINK traffic then survives loss/reordering without kernel-TCP HOL. Windows and Linux builds pass, single-flow reconnect/fault tests pass, 40 Mbit/s release-point gates pass, and only after those sandbox gates are green is a new Windows x64 + Linux ARM64 pair offered for physical qualification.",
+    "next_atomic_action": "After refreshing live HEAD and this handoff, create a new single-flow architecture branch from the current canonical substantive checkpoint, not from PR #8's accumulated dual-flow experiments. First commit documentation/tests that make the hard invariant executable: one WBD public 4-tuple, one SYN only, FakeTCP owns sequence space from SYN, Reality-like TLS bootstrap is carried over a bounded reliable FakeTCP setup stream, explicit in-band setup->datagram switch, and no sustained kernel-TCP payload. Then implement the smallest vertical slice: FakeTCP reliable bootstrap byte-stream adapter plus TLS/Reality-like client/server over that adapter on Linux namespace loopback/NAT, followed by same-association DTLS handoff. Do not build Windows packages until the one-SYN Linux/NAT integration test is green."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
     "PROJECT_CONSTITUTION.md",
+    "ARCHITECTURE.md",
     "docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md",
-    "internal/windowsruntime/executor.go",
-    "internal/windowsdiag/diagnose_windows.go",
+    "internal/realityfront/front.go",
+    "internal/windowsruntime/controller.go",
+    "internal/windowsruntime/plan.go",
     "cmd/wbd-faketcp/main.go",
     "internal/faketcp/server_mux.go",
     "cmd/wbd-faketcp-mux/main_linux.go",
-    "internal/dtlsworker/worker_linux.go",
     "native/dtls/wbd_dtls_shim.c",
-    "scripts/linux_server_firewall.sh",
-    ".github/workflows/windows-portable-bundle.yml"
+    ".github/workflows/faketcp-mux-two-client.yml"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "9b1024167139fc2e2f09d6a9e943d3fc880d4f7e",
+    "tested_commit": "57fc45697b45dd70f88948cfebf7e9a73df9a28a",
     "result": "fail",
-    "scope": "Physical Windows 11 x64 readiness-gated client against real Ubuntu ARM64 server: Reality and FakeTCP passed; DTLS timed out before LINK/TUN/routes. Historical qualification evidence only; refresh live repository and Actions before continuing."
+    "scope": "Historical PR #8 dual-flow experiment only. Its sandbox work proved many lower layers but does not qualify the new one-public-flow requirement. The shared-port/NAT/reconnect work reproduced instability in the old architecture; do not treat this commit as a candidate release for the new architecture."
   },
-  "udp_like_status": {
-    "authority": "physical Windows/Ubuntu evidence from 2026-08-29 plus current PR #8 CI and frozen ADR-0010",
-    "outer_semantics": "Reality-like TLS setup/admission only; sustained payload is WBD raw FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK.",
-    "fec_status": "Release wire remains off or fixed systematic 20:20.",
-    "capacity_policy": "40 Mbit/s aggregate-inner release point on <=100 Mbit/s weak links.",
-    "platform_status": "Linux service is active and accepts Reality admission. Physical FakeTCP handshake succeeds. Current blocker is DTLS handshake completion before LINK."
-  },
-  "product_policy": {
-    "linux_server": "One public WBD_PORT shared by Reality admission and raw FakeTCP. Reality may bind wildcard; FakeTCP uses a concrete local IPv4. Internal LINK/platform listeners remain loopback. WBD-owned firewall suppresses raw-port kernel RST and cleans only WBD state.",
-    "windows": "Portable x64 wbd.exe, UAC elevation, Npcap 1.88, Full/Foreign/China routes, Auto/System/Cloudflare/Custom DNS, device-wide IPv6 kill-switch while connected. Startup must be readiness-gated: FakeTCP -> DTLS -> LINK -> TUN -> IPv6 -> routes.",
-    "protocol_freeze": "Legacy FakeTCP; pinned wolfSSL DTLS 1.3; Reality setup-only; ticket/LiveID isolation; immutable LINK; one raw lane; FEC off or fixed 20:20."
-  },
-  "real_host_failure_evidence": {
-    "observed_at": "2026-08-29T02:22:47+08:00",
-    "windows": [
-      "Reality bootstrap passed.",
-      "FakeTCP printed READY role=client before DTLS process start.",
-      "DTLS produced no READY marker for 25 seconds.",
-      "Connect failed with wait dtls ready timeout and rolled back DTLS/FakeTCP before IPv6 or route mutation."
+  "validated_historical_findings": {
+    "physical_e2e": [
+      "A physical Windows 11 -> Ubuntu ARM64 run reached Reality AUTH OK, FakeTCP READY, DTLS server PEEK/HRR/ACCEPT PASS, READY role=server, and WBD_LINK_MUX_SESSION_READY once, proving the underlying FakeTCP->DTLS->LINK components can interoperate on real hosts.",
+      "Subsequent rapid physical attempts often showed Windows FakeTCP READY and DTLS CONNECT_START while the server did not spawn/reach the per-session DTLS worker, demonstrating instability before DTLS rather than a permanent wolfSSL incompatibility.",
+      "Readiness-gated Windows startup was valuable and should be preserved conceptually: do not mutate IPv6/routes or claim connect success before transport and LINK readiness."
     ],
-    "linux": [
-      "wbd-server.service remained active.",
-      "Reality front logged authenticated admission for the physical client.",
-      "Per-session wbd_dtls_shim was spawned.",
-      "DTLS server logged BOUND role=server transport_port=61061 inherited=yes but no READY role=server in the supplied excerpt."
+    "dtls_and_certificate_sandbox": [
+      "A Linux namespace integration test generated a temporary CA and SAN=wbd.test server certificate, compiled the pinned wolfSSL shim, and passed two simultaneous FakeTCP-mux inherited-worker DTLS 1.3 sessions with CA/hostname verification and bidirectional UDP echo.",
+      "DTLS stage markers observed server PEEK -> PEER_SET -> HRR_ARMED -> ACCEPT_START -> ACCEPT_PASS and client CONNECT_PASS. Therefore Linux inherited UDP worker, pinned wolfSSL DTLS 1.3, certificate verification, and bidirectional payload are not the architectural blocker."
     ],
-    "first_deterministic_blocker": "wolfSSL DTLS 1.3 handshake does not complete after the FakeTCP association is established and the Linux DTLS worker is spawned.",
-    "important_negative_evidence": "The old Windows process-order race is removed: DTLS now starts only after FakeTCP READY. No route-apply/connect_pass occurs on this failure, so LINK/TUN/DNS are downstream and not the current blocker."
+    "rst_nat_sandbox": [
+      "A NAT namespace A/B proved Linux clients generate kernel RSTs for raw FakeTCP-shaped flows. Allowing those RSTs through the router versus suppressing them did not prevent FakeTCP+DTLS from completing in that harness, so a blanket Windows RST firewall was not justified as a root-cause fix.",
+      "Windows Npcap mode handling had a real bug: pcap_setmode(handle, 0) was incorrectly documented as clearing SendToRx. Npcap 1.88 uses MODE_SENDTORX_CLEAR=0x0200. PR #8 corrected this and added a readiness marker. This fix may be retained when the Windows single-flow transport is rebuilt."
+    ],
+    "dual_flow_shared_port_reproduction": [
+      "A stricter namespace/NAT harness added a real kernel TCP:443 listener alongside raw FakeTCP:443, matching the old server topology. It reproduced the physical failure shape: FakeTCP client READY, DTLS client CONNECT_START, but server mux never reached BOUND/DTLS worker creation.",
+      "This made shared kernel-TCP/raw-TCP sequence/conntrack competition a reproducible property of the old topology. Experimental same-4-tuple reincarnation and SYNACK-isolation work exists on PR #8, but the new product direction makes those mitigations historical diagnostics rather than the final architecture."
+    ],
+    "release_candidate_history": [
+      "Before the architectural pivot, experimental D fixed FakeTCP mux worker timing, half-open cleanup and Linux raw EINTR handling and passed repeated mux-load RTT100 qualification. Those transport robustness lessons remain useful, but D still assumed separate Reality and FakeTCP public flows.",
+      "A later diagnostic build at source 6d96271bb4ad6f38caeececb7f83db9dd246160b passed main CI, Windows portable, Linux release, certificate mux, FakeTCP native and mux-load gates and produced verified Windows/Linux artifacts. Those artifacts are obsolete for the new single-flow architecture and must not be presented as final products."
+    ]
   },
   "experiment_snapshot": {
     "pr": 8,
     "branch": "exp/windows-readiness-gated-startup",
-    "head": "9b1024167139fc2e2f09d6a9e943d3fc880d4f7e",
+    "head": "57fc45697b45dd70f88948cfebf7e9a73df9a28a",
     "base": "b1824532ddb8cc9b435e496ce1e03b5730891c3d",
-    "purpose": "Readiness-gated Windows startup and fail-before-routing behavior.",
-    "ci": {
-      "main": {"run_id": 33196838704, "result": "success"},
-      "windows_portable_bundle": {"run_id": 33196838643, "result": "success", "artifact_id": 9696151559}
-    },
-    "artifact": {
-      "actions_zip_sha256": "8172e915ebe62c3aad93f7f049ab73407654cd2ffa1623279a1fa8f17689ec7b",
-      "wbd_exe_sha256": "b8e44b28bb82b783ec4f363d92f3375b0dfe78f4b739570200552133f8567006"
-    }
+    "status": "open draft, mergeable=false at last refresh",
+    "classification": "Historical dual-flow diagnostic branch. Preserve for evidence and cherry-pickable low-level fixes/tests; do not continue it as the main implementation branch for the single-flow redesign.",
+    "notable_commits": [
+      "10df2b0436411797e73352008db20d392bc5a8d6 test: cover FakeTCP mux half-open expiry",
+      "9b1024167139fc2e2f09d6a9e943d3fc880d4f7e test: expect readiness-gated Windows controller order",
+      "5d080200bd5f94544bec1ae2ec267d62e1b4bea5 test: verify mux DTLS with real CA certificate",
+      "a642eb8bd94463703f14c4a7d13d52f9d7ab7a1d dtls: harden blocking handshake and add stage markers",
+      "6d96271bb4ad6f38caeececb7f83db9dd246160b windows: clear Npcap SendToRx mode",
+      "df947fccd43e7a1bb9c9eeed0fe54b64aa0a040e faketcp: accept new incarnation on reused server flow",
+      "50ede493a6203f253436185a30c20e81db72c96b test: use reusable reconnect stress harness",
+      "57fc45697b45dd70f88948cfebf7e9a73df9a28a test: qualify per-flow shared-port SYNACK isolation"
+    ]
   },
-  "source_findings": {
-    "faketcp_client_handshake": "Client sends an empty final ACK, initializes sender at ISN+1, then prints READY and starts raw/UDP/retransmit loops. Under the readiness gate, DTLS ClientHello is therefore a normal post-handshake FakeTCP data segment, not final-ACK payload.",
-    "faketcp_server_mux": "After accepting the final ACK, mux starts the per-session DTLS worker and then processes the same segment through HandleSegment. Normal subsequent payload is delivered through sess.relay to the worker socket; server responses are read from sess.relay and enqueued onto FakeTCP raw return traffic.",
-    "dtls_server": "Linux shim prints BOUND before its initial MSG_PEEK, then sets peer, sends an HRR cookie and enters wolfSSL_accept. Existing BOUND alone cannot distinguish blocked MSG_PEEK from a later wolfSSL_accept stall.",
-    "wolfssl_windows_fd": "Pinned wolfSSL 5.9.2 exposes wolfSSL_set_fd(WOLFSSL*, int) and its MSVC SOCKET_T is unsigned int, so WBD's current int cast is consistent with the pinned library API and is not presently treated as the first root cause."
+  "implementation_direction": {
+    "phase_0_tcp_shape": "FakeTCP raw engine performs the only SYN/SYNACK/ACK on the public flow and owns all subsequent TCP header sequence/ack fields.",
+    "phase_1_reliable_setup": "Expose a bounded reliable ordered byte-stream abstraction over FakeTCP solely for setup. Feed that adapter to the Reality-like/TLS client and server so the observable early exchange is normal TLS 1.3 / Reality-like rather than a separate kernel TCP connection. This phase may retransmit and order bytes because it is short setup traffic; its HOL behavior must terminate at the mode switch.",
+    "phase_2_switch": "Authenticate and derive/confirm session identity inside the setup stream, then exchange an authenticated mode-switch record that both endpoints acknowledge. Do not close the outer flow. Reset/advance only WBD internal delivery state as formally specified; public 4-tuple and FakeTCP incarnation remain unchanged.",
+    "phase_3_datagram": "After switch, feed datagrams on the same FakeTCP association to pinned wolfSSL DTLS 1.3, then immutable LINK/FEC. Data segments must not wait for earlier lost datagrams except where WBD recovery/FEC explicitly requires it; normal TCP cumulative-stream HOL is forbidden.",
+    "cover_and_fallback_question": "Non-WBD clients hitting the public port still need plausible fallback/cover behavior. Solve this as a classifier/response problem around the FakeTCP-owned public ingress, not by making the WBD client first create a separate kernel TCP admission connection. This is a design item for the new ADR and tests."
+  },
+  "product_policy": {
+    "linux_server": "One public WBD_PORT. Final single-flow design must have one WBD raw FakeTCP owner for WBD sessions from SYN through teardown; loopback LINK/platform remain internal. Firewall cleanup remains WBD-owned only.",
+    "windows": "Portable x64 wbd.exe, UAC elevation, Npcap 1.88, Full/Foreign/China routes, Auto/System/Cloudflare/Custom DNS, device-wide IPv6 kill-switch while connected. Preserve dependency readiness gating, but replace separate Reality-bootstrap process plus later FakeTCP connect with one FakeTCP-owned flow containing setup and datagram phases.",
+    "transport": "One public TCP-shaped flow; Reality-like/TLS-like bootstrap first; in-place no-new-SYN transition to pinned wolfSSL DTLS 1.3 -> immutable LINK; one raw lane; FEC off or fixed 20:20; release point remains 40 Mbit/s aggregate-inner on <=100 Mbit/s weak links until requalified."
+  },
+  "operational_continuity": {
+    "drive_logging_requirement": "User requires development conclusions and detailed history to be durably written to Google Drive during work. Every development turn must finish by syncing the turn result/history to the project-related Drive document and writing/verifying the GitHub handoff. A turn is not considered complete before both durable writes are done.",
+    "project_history_requirement": "Create/maintain a detailed development-history document in a project-related directory so lost chat recovery does not erase reasoning, experiments, failures, artifact hashes, architectural decisions and why approaches were abandoned. Keep handoff concise enough for takeover but link/point to the detailed history once created.",
+    "no_physical_host_dependency_until_sandbox_green": "Do not give the user a new physical test package until the new single-flow architecture passes its namespace/NAT/one-SYN integration gates and core release tests. Physical Windows/Npcap and real Ubuntu remain final qualification only, not the primary debugger."
   },
   "known_secondary_windows_issues": [
     "PowerShell 5.1 UTF-8 BOM can make route state JSON fail Go json.Unmarshal with invalid character 'ï'.",
     "Stopping an already-exited LINK child may report TerminateProcess: Access is denied; Stop should become idempotent.",
-    "Linux process argv can expose Reality credentials; rotate the test password and move secrets off argv in a later product-hardening fix."
+    "Linux process argv can expose Reality credentials; rotate test credentials and move secrets off argv in a later product-hardening fix."
   ]
 }
