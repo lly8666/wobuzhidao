@@ -83,7 +83,10 @@ jobs:
           cleanup() {
             set +e
             for f in /tmp/sfstress/fake.pid /tmp/sfstress/dtls.pid /tmp/sfstress/link.pid; do
-              [ -s "$f" ] && sudo kill -TERM "$(cat "$f")" 2>/dev/null || true
+              if [ -s "$f" ]; then
+                pid="$(cat "$f")"
+                case "$pid" in (*[!0-9]*|'') ;; (*) sudo kill -TERM "$pid" 2>/dev/null || true ;; esac
+              fi
             done
             for p in ${SERVER_PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null || true; done
             sleep .3
@@ -175,13 +178,27 @@ jobs:
           print('STRESS_ECHO_PASS marker='+sys.argv[1])
           PY
 
+          assert_pid_file() {
+            local f="$1"
+            test -s "$f"
+            local pid
+            pid="$(cat "$f")"
+            case "$pid" in
+              (*[!0-9]*|'') echo "invalid child pid file $f: $pid" >&2; exit 1 ;;
+            esac
+            sudo kill -0 "$pid"
+          }
+
           for round in $(seq 1 "$ROUNDS"); do
             port=$((49151 + round))
             sudo rm -f /tmp/sfstress/client.ticket
             rm -f /tmp/sfstress/fake.log /tmp/sfstress/dtls.log /tmp/sfstress/link.log \
                   /tmp/sfstress/fake.pid /tmp/sfstress/dtls.pid /tmp/sfstress/link.pid /tmp/sfstress/probe.log
 
-            sudo ip netns exec "$C" sh -c "echo \\\$\\$ >/tmp/sfstress/fake.pid; exec /tmp/sfstress/wbd-faketcp client \
+            # Escape each dollar once so the outer workflow shell passes `$$`
+            # into the namespace shell; that shell then records the real child
+            # PID which remains stable across exec(2).
+            sudo ip netns exec "$C" sh -c "echo \$\$ >/tmp/sfstress/fake.pid; exec /tmp/sfstress/wbd-faketcp client \
               --local-udp 127.0.0.1:45101 --source 10.92.0.2:${port} --remote 10.93.0.2:443 \
               --shadow-recovery legacy --reality-server-name wbd.test --reality-route-key '$ROUTE_KEY' \
               --reality-username '$USERNAME' --reality-password '$PASSWORD' \
@@ -194,21 +211,24 @@ jobs:
             done
             grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/sfstress/fake.log
             grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/sfstress/fake.log
+            assert_pid_file /tmp/sfstress/fake.pid
             sudo test -s /tmp/sfstress/client.ticket
             ticket="$(sudo cat /tmp/sfstress/client.ticket | tr -d '\r\n')"
             test ${#ticket} -eq 64
             sudo rm -f /tmp/sfstress/client.ticket
 
-            sudo ip netns exec "$C" sh -c "echo \\\$\\$ >/tmp/sfstress/dtls.pid; exec /tmp/sfstress/wbd_dtls_shim client 46101 127.0.0.1 45101 none none" \
+            sudo ip netns exec "$C" sh -c "echo \$\$ >/tmp/sfstress/dtls.pid; exec /tmp/sfstress/wbd_dtls_shim client 46101 127.0.0.1 45101 none none" \
               >/tmp/sfstress/dtls.log 2>&1 &
             for i in $(seq 1 800); do grep -q 'READY role=client version=DTLSv1.3' /tmp/sfstress/dtls.log && break; sleep .05; done
             grep -q 'READY role=client version=DTLSv1.3' /tmp/sfstress/dtls.log
+            assert_pid_file /tmp/sfstress/dtls.pid
 
-            sudo ip netns exec "$C" sh -c "echo \\\$\\$ >/tmp/sfstress/link.pid; exec /tmp/sfstress/wbd-link-proxy -mode client \
+            sudo ip netns exec "$C" sh -c "echo \$\$ >/tmp/sfstress/link.pid; exec /tmp/sfstress/wbd-link-proxy -mode client \
               -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off -mtu 1400 -lanes 1 -demo-reality-ticket '$ticket'" \
               >/tmp/sfstress/link.log 2>&1 &
             for i in $(seq 1 800); do grep -q 'WBD_LINK_READY role=client' /tmp/sfstress/link.log && break; sleep .05; done
             grep -q 'WBD_LINK_READY role=client' /tmp/sfstress/link.log
+            assert_pid_file /tmp/sfstress/link.pid
 
             sudo ip netns exec "$C" python3 /tmp/sfstress/probe.py "ROUND_${round}_" >/tmp/sfstress/probe.log 2>&1
             grep -q 'STRESS_ECHO_PASS' /tmp/sfstress/probe.log
@@ -217,19 +237,35 @@ jobs:
             test "$(grep -c 'WBD_LINK_MUX_SESSION_READY account=stress-user' /tmp/sfstress/link-server.log || true)" -ge "$round"
 
             # Dirty client shutdown deliberately models process termination,
-            # laptop sleep, or link loss. Kill the real namespace child PIDs,
-            # not the outer sudo wrappers, then immediately start the next flow.
+            # laptop sleep, or link loss. Kill the namespace child processes,
+            # verify their real PIDs are gone, and assert that all three local
+            # UDP endpoints are released before starting the next public flow.
             for f in /tmp/sfstress/link.pid /tmp/sfstress/dtls.pid /tmp/sfstress/fake.pid; do
-              if [ -s "$f" ]; then sudo kill -KILL "$(cat "$f")" 2>/dev/null || true; fi
+              pid="$(cat "$f")"
+              sudo kill -KILL "$pid"
             done
-            for i in $(seq 1 100); do
+            for i in $(seq 1 150); do
               alive=0
               for f in /tmp/sfstress/link.pid /tmp/sfstress/dtls.pid /tmp/sfstress/fake.pid; do
-                if [ -s "$f" ] && sudo kill -0 "$(cat "$f")" 2>/dev/null; then alive=1; fi
+                pid="$(cat "$f")"
+                if sudo kill -0 "$pid" 2>/dev/null; then alive=1; fi
               done
               [ "$alive" -eq 0 ] && break
               sleep .02
             done
+            for f in /tmp/sfstress/link.pid /tmp/sfstress/dtls.pid /tmp/sfstress/fake.pid; do
+              pid="$(cat "$f")"
+              if sudo kill -0 "$pid" 2>/dev/null; then
+                echo "dirty-exit cleanup failed: child pid $pid is still alive" >&2
+                sudo ps -fp "$pid" >&2 || true
+                exit 1
+              fi
+            done
+            if sudo ip netns exec "$C" ss -H -lun | grep -Eq '127\.0\.0\.1:(45101|46101|47101)([[:space:]]|$)'; then
+              echo 'dirty-exit cleanup failed: client UDP endpoint still bound' >&2
+              sudo ip netns exec "$C" ss -lunp >&2 || true
+              exit 1
+            fi
             echo "SINGLE_FLOW_STARTUP_STRESS_ROUND_PASS round=${round} source_port=${port}"
           done
 
