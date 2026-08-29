@@ -97,7 +97,11 @@ jobs:
           for i in range(N):
               s.sendto(struct.pack('!I',i)+bytes(196),('127.0.0.1',52004))
               time.sleep(.001)
-          deadline=time.time()+12
+          # The strong-recovery sender may legitimately back off to a 16-second
+          # RTO under unlucky two-way netem loss. Keep the 1000/1000 assertion,
+          # but let the observation window extend beyond that legal recovery
+          # point instead of terminating one pending packet at 12 seconds.
+          deadline=time.time()+24
           while len(got)<N and time.time()<deadline: time.sleep(.02)
           end=True; t.join()
           out={'sent':N,'received':len(got),'ratio':len(got)/N,'wall_s':time.time()-start}
