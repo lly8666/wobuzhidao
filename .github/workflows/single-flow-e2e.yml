@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - feat/single-flow-reality-faketcp
-      - exp/single-flow-utls-firefox120
   pull_request:
     paths:
       - 'cmd/wbd-faketcp/**'
@@ -44,41 +43,24 @@ jobs:
           curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
           unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
-          test "$(cat /tmp/wolf-art/wolfssl-tag.txt)" = 'v5.9.2-stable'
-          test "$(cat /tmp/wolf-art/wolfssl-commit.txt)" = 'ac01707f552c611fbd135cc723b2682b3e7f80f2'
-          grep -Fq 'AC_INIT([wolfssl],[5.9.2]' /tmp/wolf-art/wolfssl-version-evidence.txt
-          mapfile -t WOLF_TARS < <(find /tmp/wolf-art -maxdepth 1 -type f -name 'wolfssl-*-source.tar.gz' -print)
-          test "${#WOLF_TARS[@]}" -eq 1
-          SOURCE_TAR="${WOLF_TARS[0]}"
-          test "$(basename "$SOURCE_TAR")" = 'wolfssl-ac01707f-source.tar.gz'
-          EXPECTED_SHA="$(awk 'NF >= 1 {print $1; exit}' /tmp/wolf-art/wolfssl-source.sha256)"
-          test "$EXPECTED_SHA" = '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b'
-          printf '%s  %s\n' "$EXPECTED_SHA" "$SOURCE_TAR" | sha256sum -c -
-          tar -xzf "$SOURCE_TAR" -C /tmp/wolf/src
-          WOLF_SRC="$(find /tmp/wolf/src -mindepth 1 -maxdepth 1 -type d | head -n1)"
-          test -n "$WOLF_SRC"
-          cd "$WOLF_SRC"
-          ./autogen.sh >/tmp/single/wolfssl-autogen.log 2>&1
-          CFLAGS='-O2 -fPIC' ./configure \
-            --prefix=/tmp/wolf/build \
-            --enable-dtls --enable-dtls13 --enable-tls13 --disable-shared \
-            >/tmp/single/wolfssl-configure.log 2>&1
-          make -j2 >/tmp/single/wolfssl-build.log 2>&1
-          make install >/tmp/single/wolfssl-install.log 2>&1
-          cd "$GITHUB_WORKSPACE"
-          go build -o /tmp/single/wbd-faketcp ./cmd/wbd-faketcp
-          go build -o /tmp/single/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
-          go build -o /tmp/single/wbd-single-flow-decoy ./scripts/single_flow_decoy.go
-          cc -O2 -Wall -Wextra \
-            -I/tmp/wolf/build/include native/dtls/wbd_dtls_shim.c \
-            /tmp/wolf/build/lib/libwolfssl.a -lpthread -lm -o /tmp/single/wbd_dtls_shim
-          openssl req -x509 -newkey rsa:2048 -sha256 -nodes -days 1 \
-            -subj '/CN=wbd.test' \
-            -addext 'subjectAltName=DNS:wbd.test' \
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/single/wbd_dtls_shim
+          go build -trimpath -o /tmp/single/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/single/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/single/wbd-single-flow-decoy ./scripts/single_flow_decoy.go
+          go test ./internal/faketcp -run 'TestBootstrapStream|TestPostBootstrapReceiverStillDeliversLaterDatagramAcrossHole' -count=1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
             -keyout /tmp/single/front.key -out /tmp/single/front.pem >/dev/null 2>&1
-          cp /tmp/single/front.key /tmp/single/dtls.key
-          cp /tmp/single/front.pem /tmp/single/dtls.pem
-      - name: Same public FakeTCP flow performs Reality bootstrap then DTLS
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=dtls.wbd.test' \
+            -keyout /tmp/single/dtls.key -out /tmp/single/dtls.pem >/dev/null 2>&1
+      - name: One SYN lineage carries TLS bootstrap then DTLS data
         run: |
           set -euo pipefail
           S=wbdsfs$$
@@ -92,8 +74,6 @@ jobs:
             sudo ip netns del "$S" 2>/dev/null
           }
           trap cleanup EXIT
-          rm -f /tmp/single/*.log /tmp/single/client.ticket /tmp/single/public.pcap /tmp/single/tcpdump.pid
-          rm -rf /tmp/single/tickets/*
 
           sudo ip netns add "$S"
           sudo ip netns add "$C"
@@ -137,53 +117,84 @@ jobs:
             --link-target 127.0.0.1:47000 \
             --cert /tmp/single/dtls.pem --key /tmp/single/dtls.key \
             --front-cert /tmp/single/front.pem --front-key /tmp/single/front.key \
-            --server-name wbd.test --route-key 0123456789abcdef0123456789abcdef \
+            --server-name wbd.test \
+            --route-key 0123456789abcdef0123456789abcdef \
             --username singleflow --password singleflow-test-password \
-            --ticket-dir /tmp/single/tickets --bootstrap-timeout 12s --max-sessions 8 \
+            --ticket-dir /tmp/single/tickets \
+            --fallback-target 127.0.0.1:44444 \
+            --bootstrap-timeout 12s --max-sessions 8 \
             >/tmp/single/mux.log 2>&1 & MUX=$!
           PIDS="$PIDS $MUX"
-          for i in $(seq 1 200); do grep -q 'READY role=server-mux' /tmp/single/mux.log && break; sleep .05; done
-          grep -q 'READY role=server-mux' /tmp/single/mux.log
+          for i in $(seq 1 200); do
+            grep -q 'READY role=server-mux.*single_flow_bootstrap=true' /tmp/single/mux.log && break
+            sleep .05
+          done
+          grep -q 'READY role=server-mux.*single_flow_bootstrap=true' /tmp/single/mux.log
 
           sudo ip netns exec "$C" /tmp/single/wbd-faketcp client \
-            --local-udp 127.0.0.1:45101 --source 10.88.0.2:41001 --remote 10.88.0.1:443 \
-            --shadow-recovery legacy --reality-server-name wbd.test \
+            --local-udp 127.0.0.1:45101 \
+            --source 10.88.0.2:41001 --remote 10.88.0.1:443 \
+            --shadow-recovery legacy \
+            --reality-server-name wbd.test \
             --reality-route-key 0123456789abcdef0123456789abcdef \
             --reality-username singleflow --reality-password singleflow-test-password \
             --reality-ticket-out /tmp/single/client.ticket \
             --reality-verify-server=false --reality-timeout 12s \
-            >/tmp/single/faketcp.log 2>&1 & FAKE=$!
-          PIDS="$PIDS $FAKE"
-          for i in $(seq 1 300); do grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/single/faketcp.log && break; sleep .05; done
+            >/tmp/single/faketcp.log 2>&1 & FC=$!
+          PIDS="$PIDS $FC"
+          for i in $(seq 1 500); do
+            if grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/single/faketcp.log && \
+               grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/single/faketcp.log && \
+               grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/single/mux.log; then
+              break
+            fi
+            sleep .05
+          done
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/single/faketcp.log
+          grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/single/faketcp.log
+          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/single/mux.log
           sudo test -s /tmp/single/client.ticket
+          test "$(sudo sh -c "tr -d '\r\n' </tmp/single/client.ticket | wc -c")" -eq 64
 
           sudo ip netns exec "$C" /tmp/single/wbd_dtls_shim client 46101 127.0.0.1 45101 none none \
             >/tmp/single/dtls.log 2>&1 & DTLS=$!
           PIDS="$PIDS $DTLS"
-          for i in $(seq 1 300); do grep -q '^READY role=client' /tmp/single/dtls.log && break; sleep .05; done
-          grep -q '^READY role=client' /tmp/single/dtls.log
-          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/single/mux.log
-          grep -q '^BOUND role=server' /tmp/single/mux.log
-          grep -q '^READY role=server' /tmp/single/mux.log
+          for i in $(seq 1 800); do
+            if grep -q 'READY role=client version=DTLSv1.3' /tmp/single/dtls.log && \
+               grep -q 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' /tmp/single/mux.log && \
+               grep -q 'READY role=server version=DTLSv1.3' /tmp/single/mux.log; then
+              break
+            fi
+            sleep .05
+          done
+          grep -q 'READY role=client version=DTLSv1.3' /tmp/single/dtls.log
+          grep -q 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' /tmp/single/mux.log
+          grep -q 'READY role=server version=DTLSv1.3' /tmp/single/mux.log
 
           cat >/tmp/single/probe.py <<'PY'
           import socket,time
           s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-          s.bind(('127.0.0.1',0)); s.settimeout(2)
+          s.bind(('127.0.0.1',0)); s.settimeout(.25)
+          ok=0
           for i in range(20):
-              p=('single-flow-%02d'%i).encode()
-              s.sendto(p,('127.0.0.1',46101))
-              b,_=s.recvfrom(4096)
-              if b!=p: raise SystemExit('bad echo')
-          print('SINGLE_FLOW_ECHO_PASS count=20')
+              want=b'SINGLE_FLOW_ECHO_'+i.to_bytes(2,'big')
+              end=time.time()+3
+              while time.time()<end:
+                  s.sendto(want,('127.0.0.1',46101))
+                  try: got,_=s.recvfrom(65535)
+                  except socket.timeout: continue
+                  if got != want: raise SystemExit('corrupt echo')
+                  ok += 1
+                  break
+              else: raise SystemExit('echo timeout at %d'%i)
+          print('SINGLE_FLOW_ECHO_PASS count=%d'%ok)
           PY
           sudo ip netns exec "$C" python3 /tmp/single/probe.py >/tmp/single/probe.log 2>&1
           grep -q 'SINGLE_FLOW_ECHO_PASS count=20' /tmp/single/probe.log
 
           for i in $(seq 1 200); do
             PCAP_SIZE="$(sudo stat -c%s /tmp/single/public.pcap 2>/dev/null || echo 0)"
-            if [ "$PCAP_SIZE" -gt 24 ]; then break; fi
+            [ "$PCAP_SIZE" -gt 24 ] && break
             sleep .05
           done
           PCAP_SIZE="$(sudo stat -c%s /tmp/single/public.pcap)"
@@ -204,6 +215,8 @@ jobs:
             exit 1
           fi
           test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY' /tmp/single/faketcp.log)" -eq 1
+          test "$(grep -c 'READY role=client' /tmp/single/faketcp.log)" -eq 1
+          kill -0 "$FC"
           kill -0 "$MUX"
           echo 'SINGLE_FLOW_PUBLIC_INVARIANT_PASS unique_syn_seq=1 tuple=10.88.0.2:41001-10.88.0.1:443'
           echo '--- faketcp ---'; cat /tmp/single/faketcp.log
