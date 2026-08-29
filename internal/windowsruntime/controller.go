@@ -68,9 +68,12 @@ func (c *Controller) State() RuntimeState {
 	return c.state
 }
 
+// Connect is the V3 product path. FakeTCP owns the only public TCP-shaped
+// association from the first SYN. Its READY marker is emitted only after real
+// TLS 1.3/Reality-like admission and the in-flow SWITCH_REQ/SWITCH_ACK barrier
+// have completed. No ordinary TCP bootstrap is dialed here.
 func (c *Controller) Connect(profile Profile) error {
-	bootstrap, err := BuildBootstrap(profile)
-	if err != nil {
+	if err := profile.normalized().Validate(); err != nil {
 		return err
 	}
 	if c.executor.CleanupPending() {
@@ -104,20 +107,13 @@ func (c *Controller) Connect(profile Profile) error {
 	if err := c.tickets.Clear(profile.TicketPath); err != nil {
 		return fmt.Errorf("clear stale Reality ticket: %w", err)
 	}
-	if err := c.runner.Run(bootstrap); err != nil {
-		return fmt.Errorf("Reality bootstrap: %w", err)
-	}
-	ticket, err := c.tickets.Read(profile.TicketPath)
-	if err != nil {
-		return fmt.Errorf("read Reality ticket: %w", err)
-	}
 	underlay, err := c.discoverer.Discover(profile)
 	if err != nil {
 		return fmt.Errorf("discover Windows FakeTCP underlay: %w", err)
 	}
-	plan, err := BuildPlan(profile, underlay, ticket)
+	plan, err := BuildSingleFlowPlan(profile, underlay)
 	if err != nil {
-		return fmt.Errorf("build Windows runtime plan: %w", err)
+		return fmt.Errorf("build Windows V3 single-flow runtime plan: %w", err)
 	}
 	if err := c.executor.Start(plan); err != nil {
 		return err
@@ -162,6 +158,9 @@ func (FileTicketStore) Clear(path string) error {
 	return err
 }
 
+// Read remains for compatibility tools/tests. The V3 product Controller never
+// reads a ticket before FakeTCP starts; Executor reads it only at the LINK
+// readiness boundary after same-flow admission has completed.
 func (FileTicketStore) Read(path string) (string, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -177,9 +176,9 @@ func (PowerShellUnderlayDiscoverer) Preflight(profile Profile) error {
 	if err := profile.Validate(); err != nil {
 		return err
 	}
-	// Validate the WBD-owned manifest and prefix hashes before setup-only Reality
-	// admission consumes a ticket. A corrupted/manual partial update therefore
-	// cannot proceed to Npcap or mutate routing.
+	// Validate WBD-owned assets before the one public flow is created. A
+	// corrupted/manual partial update therefore cannot reach Npcap or mutate
+	// routing.
 	if err := ValidateRoutingAssets(profile); err != nil {
 		return err
 	}
