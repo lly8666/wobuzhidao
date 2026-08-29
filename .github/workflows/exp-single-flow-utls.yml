@@ -1,0 +1,35 @@
+name: exp-single-flow-utls
+
+on:
+  push:
+    branches:
+      - exp/single-flow-utls-firefox120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Resolve pinned uTLS module graph
+        run: |
+          set -euo pipefail
+          go mod tidy
+          echo '--- WBD_GENERATED_GO_MOD_BEGIN ---'
+          cat go.mod
+          echo '--- WBD_GENERATED_GO_MOD_END ---'
+          echo '--- WBD_GENERATED_GO_SUM_BEGIN ---'
+          cat go.sum
+          echo '--- WBD_GENERATED_GO_SUM_END ---'
+      - name: Run single-flow Reality persona tests
+        run: |
+          set -euo pipefail
+          go test ./internal/realityfront -count=1
+          go build ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux
