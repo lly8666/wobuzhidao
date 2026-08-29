@@ -13,6 +13,11 @@ import (
 	"time"
 )
 
+const (
+	singleFlowBootstrapReadyMarker = "WBD_SINGLE_FLOW_BOOTSTRAP_READY"
+	singleFlowBootstrapWait        = 15 * time.Second
+)
+
 type RuntimeState string
 
 const (
@@ -70,8 +75,8 @@ func (c *Controller) Connect(profile Profile) error {
 	}
 	if err := c.tickets.Clear(profile.TicketPath); err != nil { return fmt.Errorf("clear stale Reality ticket: %w", err) }
 
-	// V2.3 must discover the underlay before the one public raw flow is opened.
-	// There is no preliminary ordinary-TCP Reality connection anymore.
+	// V2.3 discovers the underlay before opening the one public raw flow. There
+	// is no preliminary ordinary-TCP Reality connection.
 	underlay, err := c.discoverer.Discover(profile)
 	if err != nil { return fmt.Errorf("discover Windows FakeTCP underlay: %w", err) }
 	fakeCommand, err := BuildFakeTCPCommand(profile, underlay)
@@ -81,10 +86,17 @@ func (c *Controller) Connect(profile Profile) error {
 	fakeOwned := true
 	defer func() { if fakeOwned { _ = fakeProc.Stop() } }()
 
-	// wbd-faketcp writes this file only after real TLS 1.3 + Reality-like shared
-	// credential admission succeeds on the exact same raw association.
+	// The FakeTCP child owns both the sole public SYN lineage and the bounded
+	// Reality-like TLS bootstrap. Wait on the child itself before polling any
+	// side-effect file. If the child exits (for example because Npcap rejected a
+	// frame), OSProcess.WaitReady reports that exit immediately instead of hiding
+	// the first failure behind a 15-second "ticket file not found" timeout.
+	// wbd-faketcp writes the ticket before emitting this marker.
+	if err := waitProcessMarker("single-flow Reality bootstrap", fakeProc, singleFlowBootstrapReadyMarker, singleFlowBootstrapWait); err != nil {
+		return err
+	}
 	ticket, err := c.tickets.Read(profile.TicketPath)
-	if err != nil { return fmt.Errorf("wait for single-flow Reality ticket: %w", err) }
+	if err != nil { return fmt.Errorf("read single-flow Reality ticket after bootstrap readiness: %w", err) }
 	plan, err := BuildPlan(profile, underlay, ticket)
 	if err != nil { return fmt.Errorf("build Windows runtime plan: %w", err) }
 	if err := c.executor.StartAfterFakeTCP(plan, fakeProc); err != nil { return err }
