@@ -87,10 +87,10 @@ func loggingProcessExitState(p *loggingProcess) (bool, uint32, error) {
 	if err != nil {
 		return false, 0, err
 	}
-	if status == windows.WAIT_TIMEOUT {
+	if status == uint32(windows.WAIT_TIMEOUT) {
 		return false, 0, nil
 	}
-	if status != windows.WAIT_OBJECT_0 {
+	if status != uint32(windows.WAIT_OBJECT_0) {
 		return false, 0, fmt.Errorf("unexpected WaitForSingleObject status %#x", status)
 	}
 	var code uint32
