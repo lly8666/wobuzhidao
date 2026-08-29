@@ -159,7 +159,7 @@ func openRawPacketIO(c config, sourceIP [4]byte) (rawPacketIO, error) {
 		closeProc.Call(handle)
 		return fail(fmt.Errorf("pcap_setmode MODE_SENDTORX_CLEAR: %s", msg))
 	}
-	fmt.Fprintln(os.Stderr, "WBD_FAKETCP_WINDOWS_NPCAP_MODE_READY sendtorx=cleared")
+	fmt.Fprintln(os.Stderr, "WBD_FAKETCP_WINDOWS_NPCAP_MODE_READY sendtorx=cleared flow_filter=exact-inbound")
 
 	return &npcapRawPacketIO{
 		dll: dll, handle: handle,
@@ -251,12 +251,20 @@ func (r *npcapRawPacketIO) ReadPacket(buf []byte) (int, error) {
 			if !ok {
 				continue
 			}
+			// Npcap sees all traffic on the physical adapter. During handshake the
+			// protocol parser expects IPv4/TCP and used to treat an unrelated IPv4
+			// UDP/ICMP frame as fatal. Keep local-kernel RST observation, but only
+			// deliver exact peer->WBD, unfragmented TCP packets to the FakeTCP state
+			// machine. Outbound self-capture and unrelated TCP flows are noise too.
 			if r.matchesKernelRST(packet) {
 				r.rstOnce.Do(func() {
 					fmt.Fprintf(os.Stderr,
 						"WBD_FAKETCP_WINDOWS_KERNEL_RST_SEEN source_port=%d remote_port=%d\n",
 						r.sourcePort, r.remotePort)
 				})
+			}
+			if !r.matchesInboundFlow(packet) {
+				continue
 			}
 			if payloadBytes, ok := r.flowPayloadBytes(packet, false); ok {
 				r.rxDataOnce.Do(func() {
@@ -274,6 +282,35 @@ func (r *npcapRawPacketIO) ReadPacket(buf []byte) (int, error) {
 			return 0, fmt.Errorf("pcap_next_ex returned %d", int32(ret))
 		}
 	}
+}
+
+func (r *npcapRawPacketIO) matchesInboundFlow(packet []byte) bool {
+	if len(packet) < 40 || packet[0]>>4 != 4 || packet[9] != 6 {
+		return false
+	}
+	ihl := int(packet[0]&0x0f) * 4
+	if ihl < 20 || len(packet) < ihl+20 {
+		return false
+	}
+	// FakeTCP deliberately avoids IP fragmentation. Never pass a fragment into
+	// the TCP parser because non-first fragments do not carry the TCP header and
+	// first fragments may describe an incomplete segment.
+	frag := binary.BigEndian.Uint16(packet[6:8])
+	if frag&0x3fff != 0 {
+		return false
+	}
+	total := int(binary.BigEndian.Uint16(packet[2:4]))
+	if total < ihl+20 || total > len(packet) {
+		return false
+	}
+	var srcIP, dstIP [4]byte
+	copy(srcIP[:], packet[12:16])
+	copy(dstIP[:], packet[16:20])
+	if srcIP != r.remoteIP || dstIP != r.sourceIP {
+		return false
+	}
+	return binary.BigEndian.Uint16(packet[ihl:ihl+2]) == r.remotePort &&
+		binary.BigEndian.Uint16(packet[ihl+2:ihl+4]) == r.sourcePort
 }
 
 func (r *npcapRawPacketIO) matchesKernelRST(packet []byte) bool {
