@@ -1,11 +1,11 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 62,
+  "continuity_sequence": 63,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "48e9fd45790a4c85d012aadb7a2ea50d3ad95479",
+  "checkpoint_based_on_head_sha": "5120ec1dd8f8ef8288fcf8f658c2b715aa1ec217",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
@@ -22,7 +22,7 @@
     "server_port_model": "The raw FakeTCP mux owns WBD sessions from the SYN. Product startup must not launch a separate public kernel-TCP Reality listener for the WBD session. Wrong-marker/non-WBD TLS-like traffic uses the mux fallback/decoy path."
   },
   "continuation_cursor": {
-    "last_completed_action": "Qualified feature source head 48e9fd45790a4c85d012aadb7a2ea50d3ad95479 after removing the final dual-flow build-only remnants from mux-load-100m. All non-conditionally-skipped workflows observed on this head completed success. Downloaded exact-head Windows portable and Linux ARM64 Actions artifacts, verified their Actions ZIP digests, extracted the deliverables, verified Windows PE x86-64 and representative Linux AArch64 ELF structure, and recorded inner SHA-256 values. Detailed closure log was committed to canonical docs at 92dcf168c1aa5d0f085fe6010af76f0719a6ccbe.",
+    "last_completed_action": "Qualified feature source head 48e9fd45790a4c85d012aadb7a2ea50d3ad95479 after removing final dual-flow build-only remnants from mux-load-100m; all observed non-conditionally-skipped workflows completed success. Downloaded exact-head Windows portable and Linux ARM64 artifacts and verified outer digests, direct deliverable hashes and PE/AArch64 structure. Wrote detailed closure log at canonical commit 92dcf168c1aa5d0f085fe6010af76f0719a6ccbe. Sequence 62 verifier run 33245347008 then exposed a continuity-only invalid resume path; correction rationale was durably recorded at canonical commit 5120ec1dd8f8ef8288fcf8f658c2b715aa1ec217 before issuing this sequence 63.",
     "current_task": "Perform physical single-flow qualification with the exact Windows x64 and Linux ARM64 packages built from feature source head 48e9fd45790a4c85d012aadb7a2ea50d3ad95479. Do not modify TCP-like/FEC internals before physical evidence identifies a deterministic blocker.",
     "why_now": "The architecture and automated qualification are no longer the blocker. One-flow E2E, Firefox persona, Windows packet persona, no-HOL, two-client, 100M characterization and release builds are all green on the same source head. The only major environment not represented equivalently by CI is the user's real Windows 11/Npcap physical adapter plus real NAT/ISP path to Ubuntu ARM64.",
     "done_when": "A physical Windows 11 x64 portable client and Ubuntu ARM64 server built from the recorded source head demonstrate one FakeTCP-owned public flow: same-flow Reality-like bootstrap ready -> DTLSv1.3 ready -> LINK ready -> TUN/routes -> DNS/UDP/TCP probes pass, without a standalone public Reality bootstrap connection. If it fails, the first missing marker/boundary is identified and reproduced in sandbox before transport changes.",
@@ -31,22 +31,22 @@
   "resume_read_set": [
     ".wbd/handoff/current.json",
     "docs/development/2026-08-29-single-flow-exact-head-qualification.md",
+    "docs/development/2026-08-29-seq62-handoff-verifier-correction.md",
     "docs/development/SINGLE_FLOW_DEVLOG.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
-    "internal/realityfront/single_flow.go",
+    "internal/realityfront/front.go",
     "cmd/wbd-faketcp/main.go",
     "cmd/wbd-faketcp-mux/main_linux.go",
     "internal/faketcp/server_mux.go",
     "internal/windowsruntime/controller.go",
-    "native/dtls/wbd_dtls_shim.c",
-    ".github/workflows/mux-load-100m.yml"
+    "native/dtls/wbd_dtls_shim.c"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
     "tested_commit": "48e9fd45790a4c85d012aadb7a2ea50d3ad95479",
-    "result": "success",
+    "result": "pass",
     "scope": "Exact-head PR #9 qualification. Main CI, single-flow E2E, Firefox-120 TLS persona, Windows raw packet persona, post-switch no-HOL, two-client isolation, FakeTCP native, pcap-20loss, first-arrival, fullstack-first-arrival, Linux shared-port, Windows DTLS/TUN/IPv6, Windows portable, Linux release, OpenWrt and game-lane gates passed. mux-load-100m run 33245027049 completed bench20, bench100 and aggregate successfully with no bootstrap READY timeout."
   },
   "active_single_flow_branch": {
@@ -132,7 +132,7 @@
     "rst_hypothesis": "Prior NAT/RST sandbox A/B did not justify a broad Windows RST firewall workaround."
   },
   "operational_continuity": {
-    "durable_log": "GitHub repository docs/development is authoritative for detailed development history. The current exact-head closure is docs/development/2026-08-29-single-flow-exact-head-qualification.md, canonical commit 92dcf168c1aa5d0f085fe6010af76f0719a6ccbe.",
+    "durable_log": "GitHub docs/development is authoritative. Exact-head closure: docs/development/2026-08-29-single-flow-exact-head-qualification.md. Sequence-62 verifier correction rationale: docs/development/2026-08-29-seq62-handoff-verifier-correction.md at canonical checkpoint 5120ec1dd8f8ef8288fcf8f658c2b715aa1ec217.",
     "rule": "Record major conclusions, failed hypotheses, commits, run IDs, artifact IDs/hashes and next actions in GitHub development docs. End every development turn with a refreshed machine-readable handoff and handoff-verify success. Chat history is secondary and may be truncated."
   },
   "known_secondary_windows_issues": [
