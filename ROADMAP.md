@@ -1,6 +1,8 @@
 # Roadmap
 
 > **Status: V2.3 SINGLE-FLOW MAINLINE CANDIDATE.** ADR-0011 replaces the old two-public-connection Reality/FakeTCP setup with one continuous public FakeTCP-owned flow. Automated protocol/platform qualification is strong; final release acceptance still requires a same-source physical Windows + Linux/OpenWrt one-shot.
+>
+> Contract anchor: **V2.3 SINGLE-FLOW CORRECTION ACTIVE** remains the machine-stable name of the architecture correction; `MAINLINE CANDIDATE` is the current delivery/qualification state.
 
 | Milestone | Scope | Status / exit gate |
 | --- | --- | --- |
