@@ -1,6 +1,7 @@
 name: single-flow-rawip-e2e
 
 on:
+  workflow_call:
   workflow_dispatch: {}
   push:
     branches:
@@ -20,6 +21,7 @@ on:
       - 'internal/session/**'
       - 'native/dtls/**'
       - 'scripts/linux_ip_gateway_firewall.sh'
+      - 'scripts/check_single_flow_wire_invariants.py'
   pull_request:
     paths:
       - '.github/workflows/single-flow-rawip-e2e.yml'
@@ -36,6 +38,7 @@ on:
       - 'internal/session/**'
       - 'native/dtls/**'
       - 'scripts/linux_ip_gateway_firewall.sh'
+      - 'scripts/check_single_flow_wire_invariants.py'
 
 permissions:
   contents: read
@@ -85,13 +88,14 @@ jobs:
           go build -trimpath -o /tmp/sfraw/wbd-ip-gateway-server ./cmd/wbd-ip-gateway-server
           go build -trimpath -o /tmp/sfraw/wbd-tun ./cmd/wbd-tun
           sh -n scripts/linux_ip_gateway_firewall.sh
+          python3 -m py_compile scripts/check_single_flow_wire_invariants.py
           openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
             -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
             -keyout /tmp/sfraw/front.key -out /tmp/sfraw/front.pem >/dev/null 2>&1
           openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
             -subj '/CN=dtls.wbd.test' \
             -keyout /tmp/sfraw/dtls.key -out /tmp/sfraw/dtls.pem >/dev/null 2>&1
-      - name: Qualify one public flow through raw-IP gateway to Internet namespace
+      - name: Qualify issued lease through one public flow and raw-IP Internet path
         env:
           FEC: ${{ matrix.fec }}
         run: |
@@ -146,8 +150,7 @@ jobs:
           def tcp():
               s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.bind((IP,8443)); s.listen(16)
               while True:
-                  c,_=s.accept()
-                  threading.Thread(target=echo,args=(c,),daemon=True).start()
+                  c,_=s.accept(); threading.Thread(target=echo,args=(c,),daemon=True).start()
           def echo(c):
               with c:
                   while True:
@@ -172,8 +175,6 @@ jobs:
           for i in $(seq 1 300); do grep -q 'WBD_IP_GATEWAY_READY.*isolation=netns' "$ROOT/gateway.log" && break; sleep .05; done
           grep -q 'WBD_IP_GATEWAY_READY.*isolation=netns' "$ROOT/gateway.log"
 
-          # platform service remains configured for backward-compatible non-M6A
-          # sessions, but this qualification must select backend=rawip.
           python3 -u - <<'PY' >"$ROOT/platform.log" 2>&1 & PLATFORM=$!
           import socket
           s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind(('127.0.0.1',48000))
@@ -189,6 +190,12 @@ jobs:
           PIDS="$PIDS $LINKSERVER"
           for i in $(seq 1 300); do grep -q WBD_LINK_SERVER_MUX_READY "$ROOT/link-server.log" && break; sleep .05; done
           grep -q WBD_LINK_SERVER_MUX_READY "$ROOT/link-server.log"
+
+          sudo tcpdump --immediate-mode -U -i sfraws -s 0 -w "$ROOT/public.pcap" \
+            'tcp and host 10.91.0.2 and host 10.91.0.1 and port 443' >"$ROOT/tcpdump.log" 2>&1 & CAP=$!
+          PIDS="$PIDS $CAP"
+          for i in $(seq 1 200); do grep -q 'listening on sfraws' "$ROOT/tcpdump.log" && break; sleep .05; done
+          grep -q 'listening on sfraws' "$ROOT/tcpdump.log"
 
           sudo /tmp/sfraw/wbd-faketcp-mux server \
             --listen 10.91.0.1:443 --dtls-shim /tmp/sfraw/wbd_dtls_shim \
@@ -207,14 +214,28 @@ jobs:
             --shadow-recovery legacy --reality-server-name wbd.test \
             --reality-route-key 0123456789abcdef0123456789abcdef \
             --reality-username singleflow --reality-password singleflow-test-password \
-            --reality-ticket-out "$ROOT/client.ticket" --reality-verify-server=false --reality-timeout 12s \
+            --reality-ticket-out "$ROOT/client.ticket" \
+            --reality-installation-id 00112233445566778899aabbccddeeff \
+            --reality-tunnel-config-out "$ROOT/tunnel.json" \
+            --reality-verify-server=false --reality-timeout 12s \
             >"$ROOT/faketcp.log" 2>&1 & FC=$!
           PIDS="$PIDS $FC"
-          for i in $(seq 1 600); do grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/faketcp.log" && break; sleep .05; done
-          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/faketcp.log"
+          for i in $(seq 1 600); do grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1.*logical_tunnel=1' "$ROOT/faketcp.log" && break; sleep .05; done
+          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1.*logical_tunnel=1' "$ROOT/faketcp.log"
           TICKET="$(sudo cat "$ROOT/client.ticket" | tr -d '\r\n')"
           test ${#TICKET} -eq 64
-          sudo rm -f "$ROOT/client.ticket"
+          TUN_CIDR="$(sudo python3 - "$ROOT/tunnel.json" <<'PY'
+          import ipaddress,json,sys
+          with open(sys.argv[1],encoding='utf-8') as f: x=json.load(f)
+          a=ipaddress.ip_interface(x['address4'])
+          assert a.version == 4 and a.network.prefixlen == 32, x
+          assert len(x['tunnel_id']) == 32, x
+          assert x.get('routes4'), x
+          print(str(a))
+          PY
+          )"
+          TUN_IP="${TUN_CIDR%/*}"
+          echo "SINGLE_FLOW_ISSUED_LEASE_PASS address4=$TUN_CIDR"
 
           sudo ip netns exec "$C" /tmp/sfraw/wbd_dtls_shim client 46101 127.0.0.1 45101 none none >"$ROOT/dtls.log" 2>&1 & DTLS=$!
           PIDS="$PIDS $DTLS"
@@ -233,21 +254,21 @@ jobs:
           for i in $(seq 1 400); do grep -q WBD_TUN_READY "$ROOT/tun.log" && break; sleep .05; done
           grep -q WBD_TUN_READY "$ROOT/tun.log"
           sudo ip -n "$C" link set wbd0 mtu 1400 up
-          sudo ip -n "$C" addr add 10.66.0.2/30 dev wbd0
+          sudo ip -n "$C" addr add "$TUN_CIDR" dev wbd0
           sudo ip -n "$C" route add 203.0.113.2/32 dev wbd0
 
           cat >"$ROOT/probe.py" <<'PY'
-          import socket
-          IP='203.0.113.2'
+          import socket,sys
+          IP='203.0.113.2'; SRC=sys.argv[1]
           for port,tag in ((53,b'dns-rawip'),(5300,b'udp-rawip')):
-              s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.settimeout(6)
+              s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.settimeout(6); s.bind((SRC,0))
               s.sendto(tag,(IP,port)); d,_=s.recvfrom(4096); assert d==tag,(d,tag)
               print('UDP_PASS',port,flush=True)
-          s=socket.socket(); s.settimeout(8); s.bind(('10.66.0.2',40000)); s.connect((IP,8443))
+          s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.settimeout(8); s.bind((SRC,40000)); s.connect((IP,8443))
           p=b'tcp-rawip-same-flow'; s.sendall(p); d=s.recv(len(p)); assert d==p,(d,p)
           print('TCP_PASS',s.getsockname(),flush=True)
           PY
-          sudo ip netns exec "$C" python3 "$ROOT/probe.py" | tee "$ROOT/probe.log"
+          sudo ip netns exec "$C" python3 "$ROOT/probe.py" "$TUN_IP" | tee "$ROOT/probe.log"
           grep -q 'UDP_PASS 53' "$ROOT/probe.log"
           grep -q 'UDP_PASS 5300' "$ROOT/probe.log"
           grep -q TCP_PASS "$ROOT/probe.log"
@@ -267,8 +288,17 @@ jobs:
           LSID="$(sed -n 's/.*WBD_LINK_MUX_BACKEND_READY sid=\([0-9a-f]\{6\}\).*/\1/p' "$ROOT/link-server.log" | head -n1)"
           GSID="$(sed -n 's/.*WBD_RAWIP_SESSION_READY sid=\([0-9a-f]\{6\}\).*/\1/p' "$ROOT/gateway.log" | head -n1)"
           test -n "$LSID" && test "$LSID" = "$GSID"
-          sudo ip netns list | grep -q '^wbdg00'
-          echo "SINGLE_FLOW_RAWIP_E2E_PASS fec=$FEC sid=$LSID public_flows=1 reality_like=1 dtls13=1 link=1 rawip=1 netns=1 udp=2 tcp=1"
+
+          sudo kill -INT "$CAP" 2>/dev/null || true
+          wait "$CAP" 2>/dev/null || true
+          python3 scripts/check_single_flow_wire_invariants.py "$ROOT/public.pcap" \
+            --client-ip 10.91.0.2 --server-ip 10.91.0.1 --client-port 51001 --server-port 443 \
+            >"$ROOT/wire.log" 2>&1
+          cat "$ROOT/wire.log"
+          grep -q 'SINGLE_FLOW_WIRE_PASS' "$ROOT/wire.log"
+
+          sudo chmod -R a+rX "$ROOT"
+          echo "SINGLE_FLOW_RAWIP_E2E_PASS fec=$FEC sid=$LSID public_flows=1 issued_lease=$TUN_CIDR reality_like=1 dtls13=1 link=1 rawip=1 udp=2 tcp=1 wire=1"
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
