@@ -1,0 +1,279 @@
+name: single-flow-rawip-e2e
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - '.github/workflows/single-flow-rawip-e2e.yml'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-ip-gateway-server/**'
+      - 'cmd/wbd-tun/**'
+      - 'internal/dataplane/**'
+      - 'internal/diag/**'
+      - 'internal/rawipbackend/**'
+      - 'internal/realityfront/**'
+      - 'internal/session/**'
+      - 'native/dtls/**'
+      - 'scripts/linux_ip_gateway_firewall.sh'
+  pull_request:
+    paths:
+      - '.github/workflows/single-flow-rawip-e2e.yml'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-ip-gateway-server/**'
+      - 'cmd/wbd-tun/**'
+      - 'internal/dataplane/**'
+      - 'internal/diag/**'
+      - 'internal/rawipbackend/**'
+      - 'internal/realityfront/**'
+      - 'internal/session/**'
+      - 'native/dtls/**'
+      - 'scripts/linux_ip_gateway_firewall.sh'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  rawip:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        fec: ['off', '20:20']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends autoconf automake libtool make gcc curl unzip openssl iproute2 iptables nftables tcpdump
+          sudo modprobe tun
+          test -c /dev/net/tun
+      - name: Build pinned wolfSSL and WBD stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/sfraw /tmp/sfraw-wolf /tmp/sfraw-art /tmp/sfraw-source.zip
+          mkdir -p /tmp/sfraw /tmp/sfraw-wolf/src /tmp/sfraw-wolf/build /tmp/sfraw-art
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/sfraw-source.zip
+          unzip -q /tmp/sfraw-source.zip -d /tmp/sfraw-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/sfraw-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/sfraw-art/wolfssl-ac01707f-source.tar.gz -C /tmp/sfraw-wolf/src --strip-components=1
+          (cd /tmp/sfraw-wolf/src && ./autogen.sh)
+          (cd /tmp/sfraw-wolf/build && /tmp/sfraw-wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/sfraw-wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/sfraw-wolf/build -I/tmp/sfraw-wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/sfraw-wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/sfraw/wbd_dtls_shim
+          go test ./internal/diag ./internal/rawipbackend ./cmd/wbd-link-server-mux ./cmd/wbd-ip-gateway-server -count=1
+          go build -trimpath -o /tmp/sfraw/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/sfraw/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/sfraw/wbd-link-proxy ./cmd/wbd-link-proxy
+          go build -trimpath -o /tmp/sfraw/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          go build -trimpath -o /tmp/sfraw/wbd-ip-gateway-server ./cmd/wbd-ip-gateway-server
+          go build -trimpath -o /tmp/sfraw/wbd-tun ./cmd/wbd-tun
+          sh -n scripts/linux_ip_gateway_firewall.sh
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
+            -keyout /tmp/sfraw/front.key -out /tmp/sfraw/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=dtls.wbd.test' \
+            -keyout /tmp/sfraw/dtls.key -out /tmp/sfraw/dtls.pem >/dev/null 2>&1
+      - name: Qualify one public flow through raw-IP gateway to Internet namespace
+        env:
+          FEC: ${{ matrix.fec }}
+        run: |
+          set -euo pipefail
+          C=wbdrawc$$
+          I=wbdrawi$$
+          ROOT="/tmp/sfraw/run-${FEC//:/x}"
+          mkdir -p "$ROOT/tickets"
+          chmod 700 "$ROOT/tickets"
+          PIDS=''
+          cleanup() {
+            set +e
+            for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null; kill -TERM "$p" 2>/dev/null; done
+            sudo scripts/linux_ip_gateway_firewall.sh cleanup --state "$ROOT/firewall.state" >/dev/null 2>&1 || true
+            for n in $(seq -w 0 07); do sudo ip netns del "wbdg$n" 2>/dev/null || true; done
+            sudo ip netns del "$C" 2>/dev/null || true
+            sudo ip netns del "$I" 2>/dev/null || true
+            sudo ip link del sfraws 2>/dev/null || true
+            sudo ip link del sfrawih 2>/dev/null || true
+            sudo iptables -D OUTPUT -p tcp --sport 443 --tcp-flags RST RST -j DROP 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          sudo ip netns add "$C"
+          sudo ip link add sfraws type veth peer name sfrawc
+          sudo ip link set sfrawc netns "$C"
+          sudo ip addr add 10.91.0.1/24 dev sfraws
+          sudo ip link set sfraws up
+          sudo ip -n "$C" addr add 10.91.0.2/24 dev sfrawc
+          sudo ip -n "$C" link set lo up
+          sudo ip -n "$C" link set sfrawc up
+          sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          sudo iptables -I OUTPUT -p tcp --sport 443 --tcp-flags RST RST -j DROP
+
+          sudo ip netns add "$I"
+          sudo ip link add sfrawih type veth peer name sfrawii
+          sudo ip link set sfrawii netns "$I"
+          sudo ip addr add 203.0.113.1/30 dev sfrawih
+          sudo ip link set sfrawih up
+          sudo ip -n "$I" addr add 203.0.113.2/30 dev sfrawii
+          sudo ip -n "$I" link set lo up
+          sudo ip -n "$I" link set sfrawii up
+          sudo ip -n "$I" route add default via 203.0.113.1
+
+          cat >"$ROOT/internet.py" <<'PY'
+          import socket,threading
+          IP='203.0.113.2'
+          def udp(port):
+              s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind((IP,port))
+              while True:
+                  d,a=s.recvfrom(65535); s.sendto(d,a)
+          def tcp():
+              s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.bind((IP,8443)); s.listen(16)
+              while True:
+                  c,_=s.accept()
+                  threading.Thread(target=echo,args=(c,),daemon=True).start()
+          def echo(c):
+              with c:
+                  while True:
+                      d=c.recv(65535)
+                      if not d: return
+                      c.sendall(d)
+          threading.Thread(target=udp,args=(53,),daemon=True).start()
+          threading.Thread(target=udp,args=(5300,),daemon=True).start()
+          print('INTERNET_READY',flush=True)
+          tcp()
+          PY
+          sudo ip netns exec "$I" python3 -u "$ROOT/internet.py" >"$ROOT/internet.log" 2>&1 & INET=$!
+          PIDS="$PIDS $INET"
+          for i in $(seq 1 200); do grep -q INTERNET_READY "$ROOT/internet.log" && break; sleep .05; done
+          grep -q INTERNET_READY "$ROOT/internet.log"
+
+          sudo /tmp/sfraw/wbd-ip-gateway-server \
+            -listen 127.0.0.1:49100 -firewall-helper "$GITHUB_WORKSPACE/scripts/linux_ip_gateway_firewall.sh" \
+            -backend iptables -firewall-state "$ROOT/firewall.state" -max-sessions 8 -idle-timeout 30s \
+            >"$ROOT/gateway.log" 2>&1 & GATEWAY=$!
+          PIDS="$PIDS $GATEWAY"
+          for i in $(seq 1 300); do grep -q 'WBD_IP_GATEWAY_READY.*isolation=netns' "$ROOT/gateway.log" && break; sleep .05; done
+          grep -q 'WBD_IP_GATEWAY_READY.*isolation=netns' "$ROOT/gateway.log"
+
+          # platform service remains configured for backward-compatible non-M6A
+          # sessions, but this qualification must select backend=rawip.
+          python3 -u - <<'PY' >"$ROOT/platform.log" 2>&1 & PLATFORM=$!
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind(('127.0.0.1',48000))
+          while True:
+              d,a=s.recvfrom(65535); s.sendto(d,a)
+          PY
+          PIDS="$PIDS $PLATFORM"
+
+          sudo /tmp/sfraw/wbd-link-server-mux \
+            -listen 127.0.0.1:47000 -service 127.0.0.1:48000 -raw-ip-service 127.0.0.1:49100 \
+            -ticket-dir "$ROOT/tickets" -ticket-ttl 60s -max-sessions 8 \
+            >"$ROOT/link-server.log" 2>&1 & LINKSERVER=$!
+          PIDS="$PIDS $LINKSERVER"
+          for i in $(seq 1 300); do grep -q WBD_LINK_SERVER_MUX_READY "$ROOT/link-server.log" && break; sleep .05; done
+          grep -q WBD_LINK_SERVER_MUX_READY "$ROOT/link-server.log"
+
+          sudo /tmp/sfraw/wbd-faketcp-mux server \
+            --listen 10.91.0.1:443 --dtls-shim /tmp/sfraw/wbd_dtls_shim \
+            --link-target 127.0.0.1:47000 --cert /tmp/sfraw/dtls.pem --key /tmp/sfraw/dtls.key \
+            --front-cert /tmp/sfraw/front.pem --front-key /tmp/sfraw/front.key \
+            --server-name wbd.test --route-key 0123456789abcdef0123456789abcdef \
+            --username singleflow --password singleflow-test-password \
+            --ticket-dir "$ROOT/tickets" --fallback-target 127.0.0.1:44444 \
+            --bootstrap-timeout 12s --max-sessions 8 >"$ROOT/mux.log" 2>&1 & MUX=$!
+          PIDS="$PIDS $MUX"
+          for i in $(seq 1 300); do grep -q 'READY role=server-mux.*single_flow_bootstrap=true' "$ROOT/mux.log" && break; sleep .05; done
+          grep -q 'READY role=server-mux.*single_flow_bootstrap=true' "$ROOT/mux.log"
+
+          sudo ip netns exec "$C" /tmp/sfraw/wbd-faketcp client \
+            --local-udp 127.0.0.1:45101 --source 10.91.0.2:51001 --remote 10.91.0.1:443 \
+            --shadow-recovery legacy --reality-server-name wbd.test \
+            --reality-route-key 0123456789abcdef0123456789abcdef \
+            --reality-username singleflow --reality-password singleflow-test-password \
+            --reality-ticket-out "$ROOT/client.ticket" --reality-verify-server=false --reality-timeout 12s \
+            >"$ROOT/faketcp.log" 2>&1 & FC=$!
+          PIDS="$PIDS $FC"
+          for i in $(seq 1 600); do grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/faketcp.log" && break; sleep .05; done
+          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/faketcp.log"
+          TICKET="$(sudo cat "$ROOT/client.ticket" | tr -d '\r\n')"
+          test ${#TICKET} -eq 64
+          sudo rm -f "$ROOT/client.ticket"
+
+          sudo ip netns exec "$C" /tmp/sfraw/wbd_dtls_shim client 46101 127.0.0.1 45101 none none >"$ROOT/dtls.log" 2>&1 & DTLS=$!
+          PIDS="$PIDS $DTLS"
+          for i in $(seq 1 900); do grep -q 'READY role=client version=DTLSv1.3' "$ROOT/dtls.log" && break; sleep .05; done
+          grep -q 'READY role=client version=DTLSv1.3' "$ROOT/dtls.log"
+
+          sudo ip netns exec "$C" /tmp/sfraw/wbd-link-proxy \
+            -mode client -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 \
+            -fec "$FEC" -mtu 1400 -lanes 1 -demo-reality-ticket "$TICKET" >"$ROOT/link-client.log" 2>&1 & LINKCLIENT=$!
+          PIDS="$PIDS $LINKCLIENT"
+          for i in $(seq 1 900); do grep -q 'WBD_LINK_READY role=client' "$ROOT/link-client.log" && break; sleep .05; done
+          grep -q 'WBD_LINK_READY role=client' "$ROOT/link-client.log"
+
+          sudo ip netns exec "$C" /tmp/sfraw/wbd-tun -mode client -ifname wbd0 -mtu 1400 -transport 127.0.0.1:47101 >"$ROOT/tun.log" 2>&1 & TUN=$!
+          PIDS="$PIDS $TUN"
+          for i in $(seq 1 400); do grep -q WBD_TUN_READY "$ROOT/tun.log" && break; sleep .05; done
+          grep -q WBD_TUN_READY "$ROOT/tun.log"
+          sudo ip -n "$C" link set wbd0 mtu 1400 up
+          sudo ip -n "$C" addr add 10.66.0.2/30 dev wbd0
+          sudo ip -n "$C" route add 203.0.113.2/32 dev wbd0
+
+          cat >"$ROOT/probe.py" <<'PY'
+          import socket
+          IP='203.0.113.2'
+          for port,tag in ((53,b'dns-rawip'),(5300,b'udp-rawip')):
+              s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.settimeout(6)
+              s.sendto(tag,(IP,port)); d,_=s.recvfrom(4096); assert d==tag,(d,tag)
+              print('UDP_PASS',port,flush=True)
+          s=socket.socket(); s.settimeout(8); s.bind(('10.66.0.2',40000)); s.connect((IP,8443))
+          p=b'tcp-rawip-same-flow'; s.sendall(p); d=s.recv(len(p)); assert d==p,(d,p)
+          print('TCP_PASS',s.getsockname(),flush=True)
+          PY
+          sudo ip netns exec "$C" python3 "$ROOT/probe.py" | tee "$ROOT/probe.log"
+          grep -q 'UDP_PASS 53' "$ROOT/probe.log"
+          grep -q 'UDP_PASS 5300' "$ROOT/probe.log"
+          grep -q TCP_PASS "$ROOT/probe.log"
+
+          for i in $(seq 1 400); do
+            grep -q 'WBD_LINK_MUX_BACKEND_READY sid=.*backend=rawip' "$ROOT/link-server.log" && \
+            grep -q WBD_RAWIP_SESSION_READY "$ROOT/gateway.log" && break
+            sleep .05
+          done
+          grep -q 'WBD_LINK_MUX_BACKEND_READY sid=.*backend=rawip' "$ROOT/link-server.log"
+          grep -q WBD_LINK_RX_FIRST "$ROOT/link-server.log"
+          grep -q WBD_LINK_TX_FIRST "$ROOT/link-server.log"
+          grep -q WBD_RAWIP_RX_FIRST "$ROOT/gateway.log"
+          grep -q WBD_NETNS_TUN_TX_FIRST "$ROOT/gateway.log"
+          grep -q WBD_NETNS_TUN_RX_FIRST "$ROOT/gateway.log"
+          grep -q WBD_RAWIP_TX_FIRST "$ROOT/gateway.log"
+          LSID="$(sed -n 's/.*WBD_LINK_MUX_BACKEND_READY sid=\([0-9a-f]\{6\}\).*/\1/p' "$ROOT/link-server.log" | head -n1)"
+          GSID="$(sed -n 's/.*WBD_RAWIP_SESSION_READY sid=\([0-9a-f]\{6\}\).*/\1/p' "$ROOT/gateway.log" | head -n1)"
+          test -n "$LSID" && test "$LSID" = "$GSID"
+          sudo ip netns list | grep -q '^wbdg00'
+          echo "SINGLE_FLOW_RAWIP_E2E_PASS fec=$FEC sid=$LSID public_flows=1 reality_like=1 dtls13=1 link=1 rawip=1 netns=1 udp=2 tcp=1"
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: single-flow-rawip-${{ matrix.fec == '20:20' && '20x20' || matrix.fec }}-${{ github.sha }}
+          path: /tmp/sfraw/run-*/
+          retention-days: 14
+          if-no-files-found: warn
