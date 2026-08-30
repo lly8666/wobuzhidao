@@ -9,13 +9,16 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/control"
 	"github.com/lly8666/wobuzhidao/internal/dataplane"
+	"github.com/lly8666/wobuzhidao/internal/diag"
 	"github.com/lly8666/wobuzhidao/internal/fec"
 	"github.com/lly8666/wobuzhidao/internal/platformproxy"
+	"github.com/lly8666/wobuzhidao/internal/rawipbackend"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/session"
 )
@@ -33,14 +36,14 @@ const (
 )
 
 type config struct {
-	listen       string
-	service      string
-	rawIPService string
-	ticketDir    string
-	ticketTTL    time.Duration
-	setupTimeout time.Duration
-	idleTimeout  time.Duration
-	maxSessions  int
+	listen        string
+	service       string
+	rawIPService  string
+	ticketDir     string
+	ticketTTL     time.Duration
+	setupTimeout  time.Duration
+	idleTimeout   time.Duration
+	maxSessions   int
 }
 
 type startupSession interface {
@@ -58,12 +61,19 @@ type peerSession struct {
 	activityMu   sync.Mutex
 	lastActivity time.Time
 
-	account      string
+	account      string // internal authorization / registry key; never logged
 	id           session.LiveID
+	sid          string
 	haveIdentity bool
 	active       bool
 	backend      serviceBackend
 	service      *net.UDPConn
+
+	linkRx atomic.Uint64
+	linkTx atomic.Uint64
+	drop   atomic.Uint64
+	linkRxFirst sync.Once
+	linkTxFirst sync.Once
 }
 
 func (p *peerSession) touch(now time.Time) {
@@ -83,11 +93,11 @@ func (p *peerSession) idleFor(now time.Time) time.Duration {
 }
 
 type server struct {
-	cfg             config
-	conn            *net.UDPConn
-	serviceAddr     *net.UDPAddr
+	cfg              config
+	conn             *net.UDPConn
+	serviceAddr      *net.UDPAddr
 	rawIPServiceAddr *net.UDPAddr
-	plane           *session.DataPlane
+	plane            *session.DataPlane
 
 	mu    sync.RWMutex
 	peers map[string]*peerSession
@@ -217,6 +227,7 @@ func (s *server) handleDatagram(from *net.UDPAddr, packet []byte, now time.Time)
 
 	if !ps.active || isStartupControl(packet) || isLifecycleControl(packet) {
 		if err := s.handleControl(ps, packet, now); err != nil {
+			ps.drop.Add(1)
 			return err
 		}
 		ps.touch(now)
@@ -225,16 +236,24 @@ func (s *server) handleDatagram(from *net.UDPAddr, packet []byte, now time.Time)
 	_, packets, err := s.plane.Inbound(ps.key, packet)
 	if err != nil {
 		if errors.Is(err, fec.ErrDecoderFull) {
+			ps.drop.Add(1)
 			return nil
 		}
+		ps.drop.Add(1)
 		return err
 	}
 	ps.touch(now)
 	for _, p := range packets {
 		if err := s.ensureService(ps, p); err != nil {
+			ps.drop.Add(1)
 			return err
 		}
+		ps.linkRx.Add(1)
+		ps.linkRxFirst.Do(func() {
+			fmt.Printf("WBD_LINK_RX_FIRST sid=%s bytes=%d backend=%s\n", ps.sid, len(p), ps.backend)
+		})
 		if _, err := ps.service.Write(p); err != nil {
+			ps.drop.Add(1)
 			return err
 		}
 	}
@@ -262,6 +281,7 @@ func (s *server) newPeer(peer *net.UDPAddr, now time.Time) (*peerSession, error)
 		}
 		ps.account = account
 		copy(ps.id[:], ticket[:])
+		ps.sid = diag.SessionID(ticket[:])
 		ps.haveIdentity = true
 		return nil
 	}
@@ -291,14 +311,14 @@ func (s *server) handleControl(ps *peerSession, packet []byte, now time.Time) er
 	}
 	if ps.startup.State() == control.StateClosed {
 		reason := ps.startup.Stats().CloseReason
-		fmt.Printf("WBD_LINK_MUX_SESSION_CLOSE account=%s id_prefix=%x peer=%s reason=%d\n", ps.account, ps.id[:4], ps.key, reason)
+		fmt.Printf("WBD_LINK_MUX_SESSION_CLOSE sid=%s reason=%d\n", printableSID(ps), reason)
 		s.removePeer(ps.key, true)
 		return nil
 	}
 	if ps.startup.State() != control.StateEstablished || ps.active {
 		return nil
 	}
-	if !ps.haveIdentity || ps.account == "" || ps.id == (session.LiveID{}) {
+	if !ps.haveIdentity || ps.account == "" || ps.id == (session.LiveID{}) || ps.sid == "" {
 		return errors.New("established session lacks ticket identity")
 	}
 	if err := s.plane.Reserve(ps.account, ps.id, ps.key, now); err != nil {
@@ -311,8 +331,8 @@ func (s *server) handleControl(ps *peerSession, packet []byte, now time.Time) er
 	}
 	ps.active = true
 	ps.touch(now)
-	fmt.Printf("WBD_LINK_MUX_SESSION_READY account=%s id_prefix=%x peer=%s fec_mode=%d fec=%d:%d mtu=%d lanes=%d backend=pending\n",
-		ps.account, ps.id[:4], ps.key, cfg.FECMode, cfg.DataShards, cfg.ParityShards, cfg.MTU, cfg.LaneCount)
+	fmt.Printf("WBD_LINK_MUX_SESSION_READY sid=%s fec_mode=%d fec=%d:%d mtu=%d lanes=%d backend=pending\n",
+		ps.sid, cfg.FECMode, cfg.DataShards, cfg.ParityShards, cfg.MTU, cfg.LaneCount)
 	return nil
 }
 
@@ -340,10 +360,25 @@ func (s *server) ensureService(ps *peerSession, packet []byte) error {
 	if err != nil {
 		return err
 	}
+	if backend == backendRawIP {
+		meta, err := rawipbackend.MarshalSessionMeta(ps.sid)
+		if err != nil {
+			_ = service.Close()
+			return err
+		}
+		if _, err := service.Write(meta); err != nil {
+			_ = service.Close()
+			return fmt.Errorf("write raw-IP session metadata: %w", err)
+		}
+	}
 	ps.backend = backend
 	ps.service = service
 	go s.serviceLoop(ps, service)
-	fmt.Printf("WBD_LINK_MUX_BACKEND_READY account=%s id_prefix=%x peer=%s backend=%s service=%s\n", ps.account, ps.id[:4], ps.key, backend, addr)
+	local := "unknown"
+	if service.LocalAddr() != nil {
+		local = service.LocalAddr().String()
+	}
+	fmt.Printf("WBD_LINK_MUX_BACKEND_READY sid=%s backend=%s service_local=%s\n", ps.sid, backend, local)
 	return nil
 }
 
@@ -364,15 +399,27 @@ func (s *server) serviceLoop(ps *peerSession, service *net.UDPConn) {
 		if err != nil {
 			return
 		}
+		// A raw-IP service metadata frame is one-way LINK->gateway. If a test
+		// echo backend reflects it, do not inject that local control frame onto
+		// the public LINK data path.
+		if _, ok := rawipbackend.UnmarshalSessionMeta(buf[:n]); ok {
+			continue
+		}
 		now := time.Now()
+		ps.linkTx.Add(1)
+		ps.linkTxFirst.Do(func() {
+			fmt.Printf("WBD_LINK_TX_FIRST sid=%s bytes=%d backend=%s\n", ps.sid, n, ps.backend)
+		})
 		peerKey, wire, err := s.plane.Outbound(ps.id, buf[:n], now)
 		if err != nil || peerKey != ps.key {
+			ps.drop.Add(1)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_SERVICE_DROP peer=%s backend=%s err=%v\n", ps.key, ps.backend, err)
+				fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_SERVICE_DROP sid=%s backend=%s err=%v\n", ps.sid, ps.backend, err)
 			}
 			return
 		}
 		if err := sendWire(s.conn, ps.peer, wire); err != nil {
+			ps.drop.Add(1)
 			return
 		}
 		ps.touch(now)
@@ -406,7 +453,7 @@ func (s *server) expirePeers(now time.Time) {
 		if wire, err := control.MarshalLink(control.Close{Reason: control.CloseIdleTimeout, Detail: "session idle lease expired"}); err == nil {
 			_, _ = s.conn.WriteToUDP(wire, ps.peer)
 		}
-		fmt.Printf("WBD_LINK_MUX_SESSION_CLOSE account=%s id_prefix=%x peer=%s reason=%d\n", ps.account, ps.id[:4], ps.key, control.CloseIdleTimeout)
+		fmt.Printf("WBD_LINK_MUX_SESSION_CLOSE sid=%s reason=%d\n", ps.sid, control.CloseIdleTimeout)
 		s.removePeer(ps.key, true)
 	}
 }
@@ -449,6 +496,9 @@ func (s *server) removePeer(key string, flush bool) {
 	if ps.service != nil {
 		_ = ps.service.Close()
 	}
+	if ps.sid != "" {
+		fmt.Printf("WBD_LINK_SESSION_COUNTERS sid=%s tx=%d rx=%d drop=%d\n", ps.sid, ps.linkTx.Load(), ps.linkRx.Load(), ps.drop.Load())
+	}
 }
 
 func (s *server) Close() {
@@ -458,6 +508,13 @@ func (s *server) Close() {
 	if s.conn != nil {
 		_ = s.conn.Close()
 	}
+}
+
+func printableSID(ps *peerSession) string {
+	if ps == nil || ps.sid == "" {
+		return "pending"
+	}
+	return ps.sid
 }
 
 func controlFrameType(packet []byte) (control.Type, bool) {
