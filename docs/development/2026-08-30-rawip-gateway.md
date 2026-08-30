@@ -1,5 +1,13 @@
 # 2026-08-30 Windows Raw-IP Gateway Development Log
 
+> **SUPERSEDED PRODUCT DIRECTION — historical evidence only.**
+>
+> The `Selected model: one Linux network namespace per Windows LiveID` section below records the correctness path chosen before ADR-0012. It is no longer the final product architecture. ADR-0012 now requires a server-assigned unique Logical Tunnel address lease, one shared Linux TUN, one WBD-owned host NAT, and lease-based downlink demux. The existing netns/veth/double-NAT implementation/tests may remain as historical/reference evidence, but agents must not continue expanding it as mainline product work.
+>
+> The VRF/conntrack-zone prototype remains rejected. Do not revive it.
+>
+> Current execution contract: `docs/development/2026-08-30-architecture-pivot-tunnel-multipath.md`.
+
 This log is append-only engineering context for the post-single-flow upper-data-plane repair. It complements `SINGLE_FLOW_V23_DEVLOG.md` and exists so an interrupted chat cannot erase why a design was selected or rejected.
 
 ## Physical blocker being repaired
@@ -34,6 +42,8 @@ The VRF prototype is therefore experimental history only and must not be wired i
 
 ## Selected model: one Linux network namespace per Windows LiveID
 
+> **Historical selection only; superseded by ADR-0012. Do not implement new product work from this section.**
+
 The raw-IP backend will create a real Linux network namespace per active Windows service peer/LiveID.
 
 For each session:
@@ -54,6 +64,8 @@ This model needs namespace-management privilege. Product hardening should isolat
 
 ## Qualification requirement
 
+> **Historical netns qualification contract only.** ADR-0012 replaces the final product gate with distinct server-assigned tunnel IPs, shared TUN, one host NAT, anti-spoof validation, dynamic lane lifecycle, idle/wake and make-before-break replacement. The scenarios below may still be reused as behavioral stress cases where useful.
+
 The privileged CI must not merely ping a transit address. It must:
 
 - launch two real `wbd-tun` client endpoints;
@@ -66,4 +78,4 @@ The privileged CI must not merely ping a transit address. It must:
 - prove deterministic namespace/session cleanup;
 - only after this direct adapter test passes, insert it behind the real single-flow FakeTCP -> DTLS -> LINK stack and repeat the probes.
 
-No physical package is release-ready until those deterministic tests are green and the final real Windows probes pass.
+No physical package is release-ready until the current ADR-0012 deterministic tests are green and the final real Windows probes pass.
