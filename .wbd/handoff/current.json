@@ -1,16 +1,16 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 64,
+  "continuity_sequence": 65,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "63ca934a241abdb05d4f7f669e05ed977e383750",
+  "checkpoint_based_on_head_sha": "47dcc61a514e41442161a50a5870c708cb2bc279",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Ship WBD with exactly one long-lived public TCP-shaped 4-tuple and one SYN/sequence lineage per VPN session. FakeTCP owns the public flow from SYN; a bounded setup-only reliable phase carries Firefox-120-like real TLS 1.3 / Reality-like admission; without FIN/RST/close/new SYN the same association switches in-band to pinned wolfSSL DTLS 1.3 -> LINK/FEC/VPN datagrams. Sustained payload must never inherit ordinary kernel-TCP cumulative-stream HOL.",
-    "current_milestone": "Post-physical-failure fixes are requalified on feature source head 9bacaab9268f893349800316b93c4d692158d6ec. Windows-hosted backend/parser/virtual-wire/runtime tests, Linux one-flow full stack with public pcap invariants, 20-round NAT dirty-exit reconnect stress, loss/first-arrival gates, Windows portable, Linux release and mux-load-100m are green. Exact-head Windows x64 and Linux ARM64 artifacts were independently downloaded and checksummed. Remaining step is physical Windows 11/Npcap + real NIC/NAT/ISP environmental qualification.",
+    "current_milestone": "The exact product source head 9bacaab9268f893349800316b93c4d692158d6ec remains the fully qualified same-source physical-test candidate. Follow-up test-only commit 74bffc859c73befab2d26dce7a348c13162b3288 hardens Windows Npcap noisy-ingress coverage and passed windows-faketcp-persona on a Windows hosted runner. Documentation contract drift found by handoff tests was corrected at feature head ecb01c4eb620a9caaeeec7b04e50c5abc88ab520. No TCP-like/FEC/product wire behavior was changed in this follow-up.",
     "local_optimization_stop_rule": "Do not return to the retired dual-public-flow Reality TCP -> close -> FakeTCP design. Keep mature FakeTCP recovery/FEC/sequence/ACK/SACK behavior frozen unless deterministic new evidence requires it. Reproduce any new physical failure in sandbox before changing transport core."
   },
   "architecture_override": {
@@ -22,39 +22,40 @@
     "server_port_model": "The raw FakeTCP mux owns WBD sessions from the SYN. Product startup must not launch a separate public kernel-TCP Reality listener for the WBD session. Wrong-marker/non-WBD TLS-like traffic uses the mux fallback/decoy path."
   },
   "continuation_cursor": {
-    "last_completed_action": "Requalified feature source head 9bacaab9268f893349800316b93c4d692158d6ec after the user's physical Windows Npcap failure. The deterministic `faketcp: not ipv4/tcp` startup failure is addressed by exact-flow Npcap ingress filtering with Windows-only noisy-adapter regression tests. Product/diagnostics readiness is process-aware, per-Connect raw source ports rotate in the Windows dynamic range, and a 20-round client->MASQUERADE NAT->persistent-server dirty-exit full-stack stress gate passes. Windows-hosted single-flow virtual-wire/runtime tests and Linux FakeTCP->Reality-like TLS->DTLS1.3->LINK full-stack tests are green. Exact-head Windows and Linux ARM64 artifacts were independently verified. Detailed durable log: docs/development/2026-08-30-single-flow-post-physical-fix-qualification.md.",
-    "current_task": "Perform final physical environmental qualification with the exact artifacts from source head 9bacaab9268f893349800316b93c4d692158d6ec. Do not modify mature TCP-like recovery/FEC before a deterministic physical marker identifies a remaining gap.",
-    "why_now": "Automated upstream/downstream qualification is complete: Windows-specific backend/parser/runtime behavior runs on a Windows hosted OS; Linux full stack proves one public SYN/one sequence space/no FIN-RST through Reality-like bootstrap, DTLS and LINK; reconnect stress proves 20 rapid full sessions through persistent NAT/server with dirty client exits. The only non-equivalent environment is the user's physical Npcap driver/NIC and real NAT/ISP path.",
-    "done_when": "Physical Windows 11 x64 portable -> real NAT/ISP -> Ubuntu ARM64 demonstrates WBD_SINGLE_FLOW_BOOTSTRAP_READY same_flow=1 -> DTLSv1.3 ready -> LINK ready -> TUN/routes -> DNS/UDP/TCP probes pass on one public FakeTCP-owned flow. If it fails, preserve the first deterministic marker and reproduce it in sandbox before code changes.",
-    "next_atomic_action": "Use the exact qualified Windows wbd.exe and Linux ARM64 tar.gz recorded in artifact_snapshot for one physical self-test. On failure, classify the first missing marker against the now-qualified boundaries; do not ask the user to repeat historical context and do not touch the mature TCP-like/FEC core without a reproduced cause."
+    "last_completed_action": "Verified canonical sequence 64 with handoff-verify run 33263357866 success, audited the post-physical Windows Npcap exact-flow filter, and added test-only ingress corpus hardening at 74bffc859c73befab2d26dce7a348c13162b3288. Windows-hosted windows-faketcp-persona run 33297977069 completed success with QinQ/non-IPv4/truncation/IPv4-options/4096-mutation/fuzz-seed coverage. Handoff run 33297977104 showed scripts/verify_handoff.py itself PASS but exposed ROADMAP machine-anchor drift; feature commit ecb01c4eb620a9caaeeec7b04e50c5abc88ab520 restores the stable `V2.3 SINGLE-FLOW CORRECTION ACTIVE` anchor while retaining MAINLINE CANDIDATE status. Durable log: docs/development/2026-08-30-windows-npcap-ingress-corpus-hardening.md.",
+    "current_task": "Live-refresh feature head ecb01c4eb620a9caaeeec7b04e50c5abc88ab520 and close the repository-contract follow-up. Require handoff-verify and main ci green after the ROADMAP correction. Do not make further product transport changes without a deterministic physical failure marker.",
+    "why_now": "The last physical failure class is already fixed and the product source was fully requalified. This follow-up only strengthened Windows adapter-noise regression coverage and repaired a documentation/test anchor mismatch. The only non-equivalent product environment remains the user's physical Windows 11 Npcap driver/NIC plus real NAT/ISP path.",
+    "done_when": "Feature head containing the test hardening and ROADMAP anchor correction has handoff-verify and main ci success; no new relevant product red gate appears. Then physical qualification continues with the unchanged exact same-source Windows/Linux artifacts recorded below. If physical qualification fails, preserve the first deterministic marker and reproduce it in sandbox before code changes.",
+    "next_atomic_action": "Refresh PR #9 head and Actions. Check handoff-verify and main ci for ecb01c4eb620a9caaeeec7b04e50c5abc88ab520 (or its docs-only successor). If both are green and no new relevant failure appears, stop modifying transport code and use the sequence-64 exact qualified artifacts for the physical Windows 11/Npcap -> real NAT/ISP -> Ubuntu ARM64 self-test."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
+    "docs/development/2026-08-30-windows-npcap-ingress-corpus-hardening.md",
     "docs/development/2026-08-30-single-flow-post-physical-fix-qualification.md",
+    "ROADMAP.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
-    "internal/realityfront/front.go",
-    "cmd/wbd-faketcp/main.go",
-    "cmd/wbd-faketcp-mux/main_linux.go",
-    "internal/faketcp/server_mux.go",
+    "cmd/wbd-faketcp/main_windows.go",
+    "cmd/wbd-faketcp/main_windows_test.go",
     "internal/windowsruntime/controller.go",
-    "native/dtls/wbd_dtls_shim.c"
+    "cmd/wbd-faketcp-mux/main_linux.go"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "9bacaab9268f893349800316b93c4d692158d6ec",
+    "tested_commit": "74bffc859c73befab2d26dce7a348c13162b3288",
     "result": "pass",
-    "scope": "Exact-head PR #9 post-physical-fix qualification. Current-head main CI, Windows FakeTCP persona/backend/runtime/diagnostics, single-flow E2E/persona/no-HOL/two-client, Linux single-flow LINK full stack for FEC off and 20:20, 20-round NAT dirty-exit startup stress, FakeTCP native/loss/first-arrival, Windows DTLS/TUN/IPv6, Windows portable, Linux settings/shared-port/release and mux-load-100m completed success. No relevant current-head red workflow was observed."
+    "scope": "Test-only Windows Npcap ingress hardening. windows-faketcp-persona run 33297977069 completed success on a Windows hosted runner. The earlier exact product source qualification remains 9bacaab9268f893349800316b93c4d692158d6ec; current docs-only ROADMAP correction must be live-refreshed before declaring its repository-contract runs green."
   },
   "active_single_flow_branch": {
     "pr": 9,
     "branch": "feat/single-flow-reality-faketcp",
-    "head": "9bacaab9268f893349800316b93c4d692158d6ec",
-    "classification": "Current exact-head qualified implementation line. Continue here after physical evidence; do not create a replacement architecture branch and do not restore the retired dual-flow design.",
+    "head": "ecb01c4eb620a9caaeeec7b04e50c5abc88ab520",
+    "classification": "Single-flow implementation line. Product behavior remains the fully qualified 9bacaab source; later changes in this follow-up are test/qualification/docs hardening only. Continue here after live refresh; do not restore the retired dual-flow design.",
     "post_physical_fixes": [
       "Windows Npcap ingress filters to exact unfragmented inbound WBD IPv4/TCP flow before handshake parser",
       "Windows backend tests cover UDP/ICMP/unrelated TCP/self-capture/fragments/malformed/VLAN noise",
+      "new corpus additionally covers QinQ, ARP/IPv6/LLDP, capture truncation, IPv4 options, 4096 deterministic mutations and fuzz seeds",
       "product and diagnostics readiness fail fast when the sole FakeTCP/bootstrap child exits",
       "Windows selects a fresh dynamic-range raw source port for every Connect and freezes it for that flow",
       "Windows hosted virtual-wire proves single-flow admission then post-switch no-HOL behavior",
@@ -87,7 +88,7 @@
       "linux_shared_port": 33260280852,
       "linux_server_release": 33260280813
     },
-    "windows_hosted": "Windows Server 2025 runner executes Windows FakeTCP backend/parser tests, single-flow virtual-wire admission/no-HOL, windowsruntime and windowsdiag tests. This is not claimed to equal a physical Npcap driver/NIC test.",
+    "windows_hosted": "Windows Server hosted runner executes Windows FakeTCP backend/parser tests, single-flow virtual-wire admission/no-HOL, windowsruntime and windowsdiag tests. Test-only follow-up run 33297977069 also passed the expanded noisy-ingress corpus. This is not claimed to equal a physical Npcap driver/NIC test.",
     "linux_fullstack": "single-flow-link-fullstack succeeds for FEC off and 20:20. Off capture reports client_syn_packets=1, server_synack_packets=1, seq_spaces=1, fin_rst=0, then DTLS1.3/LINK and 20 application echoes.",
     "startup_stress": "20/20 full sessions through client->MASQUERADE NAT->persistent server, each followed by SIGKILL of real FakeTCP/DTLS/LINK children and immediate reconnect with a fresh dynamic source port."
   },
@@ -110,19 +111,21 @@
     }
   },
   "validated_findings": {
-    "physical_failure": "The earlier Windows physical startup failure was first caused by unrelated physical Npcap ingress reaching the strict FakeTCP handshake parser. Current Windows backend filters before protocol parsing and tests the observed noise classes.",
+    "physical_failure": "The earlier Windows physical startup failure was first caused by unrelated physical Npcap ingress reaching the strict FakeTCP handshake parser. Current Windows backend filters before protocol parsing and tests the observed and adjacent noise classes.",
+    "ingress_hardening": "Windows-hosted run 33297977069 passes expanded test-only QinQ/non-IPv4/truncation/IPv4-options/mutation/fuzz-seed coverage without changing product data-plane code.",
+    "repository_contract": "handoff-verify run 33297977104 printed HANDOFF_VERIFY_PASS for sequence 64, then failed only because tests/test_handoff.py expected a stable ROADMAP anchor phrase that had drifted. ecb01c4 restores that anchor without reverting MAINLINE CANDIDATE status.",
     "single_flow": "Linux public capture proves one SYN lineage/one sequence space carries the Reality-like setup and subsequent DTLS/LINK data without FIN/RST at the mode boundary.",
     "no_hol": "Windows virtual-wire and dedicated no-HOL gate prove post-switch independent datagrams are not constrained by ordinary TCP cumulative-stream HOL semantics.",
     "reconnect": "20 rapid full sessions through persistent NAT/server survive deliberate dirty client termination when a fresh dynamic-range public source port is selected per Connect.",
-    "tcp_like_core": "No evidence in this requalification requires retuning the mature FakeTCP recovery/ACK/SACK/FEC core; keep it frozen."
+    "tcp_like_core": "No evidence in this follow-up requires retuning the mature FakeTCP recovery/ACK/SACK/FEC core; it remains frozen."
   },
   "retired_or_historical": {
     "dual_flow": "Never resume ordinary kernel TCP Reality bootstrap -> close -> second FakeTCP public connection as product architecture.",
-    "old_qualified_head": "48e9fd45790a4c85d012aadb7a2ea50d3ad95479 is superseded by post-physical-fix exact head 9bacaab9268f893349800316b93c4d692158d6ec.",
+    "old_qualified_head": "48e9fd45790a4c85d012aadb7a2ea50d3ad95479 is superseded by post-physical-fix exact product source 9bacaab9268f893349800316b93c4d692158d6ec.",
     "old_physical_logs": "Retain as regression evidence; they were generated before the exact-flow Windows Npcap ingress filter and process-aware readiness fixes."
   },
   "operational_continuity": {
-    "durable_log": "GitHub docs/development is authoritative. Current closure log: docs/development/2026-08-30-single-flow-post-physical-fix-qualification.md at canonical substantive checkpoint 63ca934a241abdb05d4f7f669e05ed977e383750.",
+    "durable_log": "GitHub docs/development is authoritative. Current follow-up log: docs/development/2026-08-30-windows-npcap-ingress-corpus-hardening.md; predecessor: docs/development/2026-08-30-single-flow-post-physical-fix-qualification.md.",
     "rule": "Record major conclusions, failed hypotheses, commits, run IDs, artifact IDs/hashes and next actions in GitHub development docs. End every development turn with a refreshed machine-readable handoff and handoff-verify success. Chat history is secondary and may be truncated."
   }
 }
