@@ -93,10 +93,37 @@ jobs:
               throw 'Wintun-backed wbd-tun did not become ready'
             }
             $adapter = Get-NetAdapter -Name WBDCI -ErrorAction Stop
-            Write-Output "WBD_WINDOWS_WINTUN_ADAPTER_PASS ifindex=$($adapter.ifIndex)"
+            $ifIndex = [uint32]$adapter.ifIndex
+            Write-Output "WBD_WINDOWS_WINTUN_ADAPTER_PASS ifindex=$ifIndex"
 
-            & ./scripts/windows_tun_route.ps1 -Action Apply -Mode Split -AdapterAlias WBDCI -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -Prefix4 203.0.113.0/24 -MTU 1400 -StatePath $state
-            $ifIndex = [uint32](Get-NetAdapter -Name WBDCI).ifIndex
+            # Reproduce the physical 2026-08-30 failure deterministically: a
+            # prior crash leaves a route-state file whose saved NRPT GUID has
+            # already disappeared. Apply must treat the missing WBD-owned NRPT
+            # object as idempotent, remove the stale state, and continue.
+            $stale = [ordered]@{
+              Schema='wbd-windows-route-state/v3'
+              AdapterAlias='WBDCI'
+              AdapterInterfaceIndex=$ifIndex
+              MTU4=$null
+              MTU6=$null
+              DNSConfigured=$true
+              NRPTRuleName='{00000000-0000-0000-0000-000000000001}'
+              Addresses=@()
+              UnderlayRoutes=@()
+              DirectRoutes=@()
+              CaptureRoutes=@()
+            }
+            $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+            [System.IO.File]::WriteAllText($state, ($stale | ConvertTo-Json -Depth 6), $utf8NoBom)
+
+            $applyLog = (& ./scripts/windows_tun_route.ps1 -Action Apply -Mode Split -AdapterAlias WBDCI -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -Prefix4 203.0.113.0/24 -MTU 1400 -StatePath $state 2>&1 | Out-String)
+            Write-Output $applyLog
+            if ($applyLog -notmatch 'WBD_WINDOWS_TUN_STALE_STATE_RECOVERED') { throw 'stale route-state recovery marker missing' }
+            if ($applyLog -notmatch 'WBD_WINDOWS_TUN_NRPT_ALREADY_ABSENT') { throw 'missing-NRPT idempotency marker missing' }
+            $stateBytes = [System.IO.File]::ReadAllBytes($state)
+            if ($stateBytes.Length -ge 3 -and $stateBytes[0] -eq 0xEF -and $stateBytes[1] -eq 0xBB -and $stateBytes[2] -eq 0xBF) { throw 'route state contains UTF-8 BOM' }
+            Write-Output 'WBD_WINDOWS_TUN_STALE_STATE_RECOVERY_PASS missing_nrpt=benign utf8_bom=0'
+
             if (-not (Get-NetIPAddress -InterfaceIndex $ifIndex -IPAddress 10.66.0.2 -ErrorAction SilentlyContinue)) { throw 'Wintun IPv4 address missing after apply' }
             if (-not (Get-NetRoute -DestinationPrefix 203.0.113.0/24 -InterfaceIndex $ifIndex -ErrorAction SilentlyContinue)) { throw 'WBD split capture route missing after apply' }
             $escape = Get-NetRoute -DestinationPrefix 1.1.1.1/32 -ErrorAction SilentlyContinue | Where-Object { [uint32]$_.InterfaceIndex -ne $ifIndex } | Select-Object -First 1
