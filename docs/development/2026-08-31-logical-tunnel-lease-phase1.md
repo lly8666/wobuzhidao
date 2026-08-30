@@ -61,3 +61,24 @@ Automated tests must prove at minimum:
 ## Explicit non-goals for this phase
 
 Do not implement shared TUN/NAT yet, do not extend netns product topology, do not add DORMANT/rotation yet, do not change Game Lane wire semantics, do not optimize DTLS HRR/startup RTT, do not merge LINK bind/init, do not implement 0-RTT, do not slim Windows child processes, and do not change FakeTCP recovery/FEC profiles.
+
+## 2026-08-31 implementation checkpoint: allocator and authenticated admission
+
+Substantive commits through this checkpoint:
+
+- `37860845...` adds `internal/logicaltunnel`: stable InstallationID/TunnelID types, configurable IPv4 pool manager, deterministic lowest-free `/32` lease allocation, reconnect lookup, explicit release, and raw IPv4 source validation.
+- `04ea2ad5...` locks same-account/different-installation lease isolation, same-installation reconnect stability, deterministic lease reuse, and cross-tunnel source spoof rejection.
+- `c0948441...` adds WBSA v2 inside the already-existing single-flow Reality-like TLS phase. V2 carries InstallationID in the authenticated request and returns one-time lane ticket + TunnelID + `/32` address + bounded explicit IPv4 routes. V1 remains for historical compatibility/tests.
+- `0ad0012e...` proves two same-account installations receive distinct authenticated configs and that repeated lanes for one installation receive fresh tickets while attaching to the same Logical Tunnel.
+- `45f78a43...` adds single-flow TLS v2 client/server wrappers; FakeTCP/DTLS/FEC wire semantics are unchanged.
+- `32edaa49...` + `46e0036f...` switch the FakeTCP product client bootstrap to v2 and persist both the one-time lane ticket and authenticated tunnel JSON. Product v2 requires a stable installation ID and tunnel-config output path.
+- `ff1fc066...` gives the Linux FakeTCP mux a process-level configurable Logical-Tunnel lease manager (`--tunnel-pool`, `--tunnel-routes4`) and uses v2 admission before transitioning the same association to DTLS.
+
+Observed CI evidence at `45f78a43...`:
+
+- `internal/logicaltunnel`: PASS.
+- `internal/realityfront`, including WBSA/single-flow v2: PASS.
+- Main `go test ./...` red was **not** a new allocator/auth compile failure. Existing `cmd/wbd-link-server-mux` tests send arbitrary string payloads, while current mux routing correctly accepts only M6A raw-IP or platformproxy frames; the tests therefore time out after `application datagram is neither M6A raw-IP nor platformproxy frame`.
+- Those LINK tests will be converted to valid architecture-neutral traffic while adding Logical-Tunnel ticket binding/source anti-spoof. The obsolete netns product qualification path will not be extended or loosened.
+
+Important ownership rule confirmed during implementation: lane teardown must **not** release the Logical-Tunnel lease. Lease lifetime belongs to the Logical Tunnel and survives replaceable FakeTCP/DTLS/LINK lanes. Explicit Logical-Tunnel Disconnect/release remains a later Phase-1 lifecycle hook.
