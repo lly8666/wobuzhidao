@@ -1,6 +1,6 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 69,
+  "continuity_sequence": 70,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
@@ -23,21 +23,18 @@
     "delivery_rule": "Before user delivery, the exact candidate HEAD must pass both hosted Windows-native qualification/build and Linux raw/netns full-stack qualification. Physical Windows Npcap/NIC/NAT/ISP remains a final non-equivalent acceptance layer, but no package should be handed to the user while automated Windows or Linux gates are red."
   },
   "continuation_cursor": {
-    "last_completed_action": "Live-refreshed canonical handoff, PR #9 and feature HEAD. Confirmed canonical dev/wbd-raw-fec-v2 HEAD 88815fa0251befca778ed4aee7581aefff79d437 is handoff-only on substantive checkpoint 9fdf700f3aa5ee0d74417223403ce23ea064b4d8. Confirmed PR #9 feature HEAD 898f627ce041b10bf858f3824685d09dcd0cc7ef. Current-head Actions include single-flow-link-fullstack run 33324659186 with both off and 20:20 jobs failing in step 'One public flow reaches LINK service'. Build, pinned wolfSSL compilation and focused Go tests pass before that step. No current package is qualified for delivery.",
+    "last_completed_action": "Live-refreshed canonical handoff, PR #9 and feature HEAD, then wrote sequence 69. Its handoff-verify run 33325613275 failed only because resume_read_set referenced four paths that exist on the feature branch but not on canonical dev/wbd-raw-fec-v2. Sequence 70 corrects the resume set to canonical paths. Product qualification state is unchanged: feature HEAD 898f627ce041b10bf858f3824685d09dcd0cc7ef has single-flow-link-fullstack run 33324659186 red in both FEC modes at the integrated LINK step.",
     "current_task": "Diagnose and fix the exact current-head single-flow-link-fullstack failure at 898f627 without changing the mature FakeTCP/TCP-like recovery core. Inspect the uploaded artifacts from run 33324659186 to identify the first missing boundary among V2 single-flow bootstrap, DTLS, Logical-Tunnel ticket binding, LINK session creation, echo probe and wire-invariant capture. Reproduce/fix in repository qualification code or production code according to evidence, then re-run the exact-head Windows and Linux qualification matrix.",
     "why_now": "Sequence 68 green evidence applied to ed7b717d, but the feature branch advanced by 56 commits, including Logical Tunnel and raw-IP ownership changes. The current HEAD has a reproducible Linux full-stack red gate, so old green runs cannot authorize delivery. The user explicitly requires upstream/downstream environments to be tested before another package is sent.",
     "done_when": "The first deterministic failure in run 33324659186 is explained and fixed; current exact HEAD then passes single-flow-link-fullstack off and 20:20, single-flow-e2e, no-HOL, Windows FakeTCP/persona/runtime tests, Windows portable build, Linux server release, FakeTCP recovery/first-arrival and relevant raw-IP/Logical-Tunnel gates. Development log records the diagnosis, commits and run IDs. Only after all exact-head Windows/Linux gates are green may artifacts be considered for delivery.",
-    "next_atomic_action": "Download/inspect run 33324659186 artifacts single-flow-link-off and single-flow-link-20x20. Identify which assertion failed by reading faketcp.log, mux.log, dtls.log, link-client.log, link-server.log, probe.log, wire.log and tunnel metadata evidence. Do not change transport core before this inspection."
+    "next_atomic_action": "After this sequence-70 handoff itself verifies green, download/inspect run 33324659186 artifacts single-flow-link-off and single-flow-link-20x20. Identify which assertion failed by reading per-process logs and tunnel metadata evidence. Do not change transport core before this inspection."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
-    "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
-    "docs/development/2026-08-31-current-head-requalification.md",
-    "docs/development/2026-08-31-logical-tunnel-lease-phase1.md",
+    ".wbd/handoff/README.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    ".github/workflows/single-flow-link-fullstack.yml",
     "cmd/wbd-faketcp/main_windows.go",
     "cmd/wbd-faketcp-mux/main_linux.go",
     "cmd/wbd-link-server-mux/main.go",
@@ -79,7 +76,8 @@
     "tcp_like_core": "Keep the mature FakeTCP/TCP-like recovery core unchanged unless deterministic evidence isolates a core defect."
   },
   "operational_continuity": {
-    "canonical_branch_head_before_this_handoff": "88815fa0251befca778ed4aee7581aefff79d437",
+    "canonical_branch_head_before_this_handoff": "80135ba3680086ee807319eae94d6b89576e5476",
+    "handoff_verify_history": "Sequence 69 handoff-verify run 33325613275 failed only on four resume_read_set paths missing from canonical checkout; sequence 70 removes those feature-only paths.",
     "durable_logs": "GitHub docs/development is authoritative for detailed history. Chat may be truncated. Append new diagnosis and test evidence there before final handoff.",
     "rule": "End development turns with a refreshed machine-readable handoff and handoff-verify success. Do not claim queued/old Actions as current green. Do not deliver artifacts while exact-head Windows or Linux qualification is red."
   }
