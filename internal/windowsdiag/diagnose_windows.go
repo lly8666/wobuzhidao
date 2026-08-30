@@ -74,26 +74,14 @@ func Run(profile windowsruntime.Profile, logPath string) (result Result, retErr 
 	}
 	l.event("routing_assets_pass", nil)
 
-	productDiscoverer := windowsruntime.PowerShellUnderlayDiscoverer{}
-	if err := productDiscoverer.Preflight(profile); err != nil {
-		l.event("dependency_preflight_fail", map[string]any{"error": l.redact(err.Error())})
-		return result, err
-	}
-	l.event("dependency_preflight_pass", map[string]any{"npcap": "ready"})
-	underlay, err := productDiscoverer.Discover(profile)
-	if err != nil {
-		l.event("underlay_fail", map[string]any{"error": l.redact(err.Error())})
-		return result, err
-	}
-	l.event("underlay_pass", map[string]any{
-		"source_ip":       underlay.SourceIP,
-		"packet_device":   shortHash(underlay.PacketDevice),
-		"source_mac":      shortHash(underlay.SourceMAC),
-		"next_hop_mac":    shortHash(underlay.NextHopMAC),
-	})
-
+	// Use the same Controller startup path as the product GUI. The wrapper only
+	// adds redacted diagnostic events; it does not pre-discover the underlay. This
+	// is important because Controller first performs idempotent stale route/IPv6
+	// cleanup, then discovers the physical underlay, then opens the sole public
+	// FakeTCP flow. Diagnostics must not observe a different startup order.
 	runner := &loggingRunner{log: l}
-	controller := windowsruntime.NewController(runner, staticDiscoverer{underlay: underlay}, nil)
+	discoverer := &loggingDiscoverer{log: l, inner: windowsruntime.PowerShellUnderlayDiscoverer{}}
+	controller := windowsruntime.NewController(runner, discoverer, nil)
 	started := time.Now()
 	if err := controller.Connect(profile); err != nil {
 		l.event("connect_fail", map[string]any{"elapsed_ms": time.Since(started).Milliseconds(), "error": l.redact(err.Error())})
@@ -152,10 +140,33 @@ func Run(profile windowsruntime.Profile, logPath string) (result Result, retErr 
 	return result, nil
 }
 
-type staticDiscoverer struct{ underlay windowsruntime.Underlay }
+type loggingDiscoverer struct {
+	log   *logger
+	inner windowsruntime.PowerShellUnderlayDiscoverer
+}
 
-func (d staticDiscoverer) Discover(windowsruntime.Profile) (windowsruntime.Underlay, error) {
-	return d.underlay, nil
+func (d *loggingDiscoverer) Preflight(profile windowsruntime.Profile) error {
+	if err := d.inner.Preflight(profile); err != nil {
+		d.log.event("dependency_preflight_fail", map[string]any{"error": d.log.redact(err.Error())})
+		return err
+	}
+	d.log.event("dependency_preflight_pass", map[string]any{"npcap": "ready"})
+	return nil
+}
+
+func (d *loggingDiscoverer) Discover(profile windowsruntime.Profile) (windowsruntime.Underlay, error) {
+	underlay, err := d.inner.Discover(profile)
+	if err != nil {
+		d.log.event("underlay_fail", map[string]any{"error": d.log.redact(err.Error())})
+		return windowsruntime.Underlay{}, err
+	}
+	d.log.event("underlay_pass", map[string]any{
+		"source_ip":       underlay.SourceIP,
+		"packet_device":   shortHash(underlay.PacketDevice),
+		"source_mac":      shortHash(underlay.SourceMAC),
+		"next_hop_mac":    shortHash(underlay.NextHopMAC),
+	})
+	return underlay, nil
 }
 
 type loggingRunner struct{ log *logger }
@@ -204,8 +215,13 @@ func (p *loggingProcess) Stop() error {
 	if p == nil || p.cmd == nil || p.cmd.Process == nil {
 		return nil
 	}
-	killErr := p.cmd.Process.Kill()
-	waitErr := p.cmd.Wait()
+	cmd := p.cmd
+	killErr := cmd.Process.Kill()
+	waitErr := cmd.Wait()
+	// A successfully attempted Wait consumes exec.Cmd's one-shot wait state.
+	// Clear our reference so any later cleanup call is a true idempotent no-op
+	// instead of issuing a second Wait and reporting "Wait was already called".
+	p.cmd = nil
 	p.stdout.Flush()
 	p.stderr.Flush()
 	if errors.Is(killErr, os.ErrProcessDone) {
