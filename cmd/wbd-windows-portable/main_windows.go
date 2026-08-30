@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"github.com/lly8666/wobuzhidao/internal/ipset"
@@ -37,7 +38,7 @@ func main() {
 
 	profilePath := flag.String("profile", "", "path to the WBD Windows client JSON profile; default is wbd.json beside wbd.exe")
 	selfTest := flag.Bool("self-test", false, "run full automatic diagnostics then cleanup and exit")
-	selfTestLog := flag.String("self-test-log", "", "support JSONL log path; default is a timestamped file under TEMP\\WBD")
+	selfTestLog := flag.String("self-test-log", "", "support JSONL log path; default is logs\\self-test-*.jsonl beside wbd.exe")
 	importCN := flag.String("import-cn", "", "manually import a CIDR/APNIC delegated CN IP range file")
 	rollbackCN := flag.Bool("rollback-cn", false, "restore the previous validated CN IP range generation")
 	installNpcap := flag.Bool("install-npcap", false, "download, verify and launch the pinned personal-use Npcap installer")
@@ -78,6 +79,12 @@ func ensureElevated() (bool, error) {
 		return false, fmt.Errorf("administrator elevation was not started: code=%d error=%v", result, callErr)
 	}
 	return true, nil
+}
+
+func timestampedLogPath(portableDir, prefix, ext string) (string, error) {
+	logDir := filepath.Join(portableDir, "logs")
+	if err := os.MkdirAll(logDir, 0o700); err != nil { return "", err }
+	return filepath.Join(logDir, prefix+time.Now().Format("20060102-150405.000")+ext), nil
 }
 
 func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollbackCN, installNpcap, show bool) error {
@@ -128,6 +135,10 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 	if profilePath != "" { profilePath, err = filepath.Abs(profilePath); if err != nil { return err } }
 	if selfTest {
 		if profilePath == "" { return errors.New("self-test requires wbd.json beside wbd.exe or -profile <path>") }
+		if strings.TrimSpace(selfTestLog) == "" {
+			selfTestLog, err = timestampedLogPath(portableDir, "self-test-", ".jsonl")
+			if err != nil { return fmt.Errorf("prepare self-test log beside wbd.exe: %w", err) }
+		}
 		diagState := filepath.Join(stateDir, "diagnostics"); if err := os.MkdirAll(diagState, 0o700); err != nil { return err }
 		profile, err := windowsgui.LoadRuntimeProfile(profilePath, runtimeInfo.Dir, diagState); if err != nil { return err }
 		result, testErr := windowsdiag.Run(profile, selfTestLog)
@@ -137,8 +148,17 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 
 	gui := filepath.Join(runtimeInfo.Dir, "wbd-windows-gui.exe")
 	args := []string{"-start-minimized=true"}; if show { args[0] = "-start-minimized=false" }; if profilePath != "" { args = append(args, "-profile", profilePath) }
-	cmd := exec.Command(gui, args...); cmd.Dir = portableDir; cmd.Env = append(os.Environ(), "WBD_PORTABLE_DIR="+portableDir)
-	if err := cmd.Start(); err != nil { return fmt.Errorf("start WBD GUI: %w", err) }
+	logPath, err := timestampedLogPath(portableDir, "runtime-", ".log")
+	if err != nil { return fmt.Errorf("prepare runtime log beside wbd.exe: %w", err) }
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
+	if err != nil { return fmt.Errorf("open runtime log %s: %w", logPath, err) }
+	cmd := exec.Command(gui, args...)
+	cmd.Dir = portableDir
+	cmd.Env = append(os.Environ(), "WBD_PORTABLE_DIR="+portableDir, "WBD_RUNTIME_LOG="+logPath)
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
+	if err := cmd.Start(); err != nil { _ = logFile.Close(); return fmt.Errorf("start WBD GUI: %w", err) }
+	_ = logFile.Close()
 	return nil
 }
 
