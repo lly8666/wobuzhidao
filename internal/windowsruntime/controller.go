@@ -53,8 +53,26 @@ func NewController(runner Runner, discoverer UnderlayDiscoverer, tickets TicketS
 
 func (c *Controller) State() RuntimeState { c.mu.Lock(); defer c.mu.Unlock(); return c.state }
 
+func startupRecoveryCommands(profile Profile) []Command {
+	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
+	return []Command{
+		{Name: "route-cleanup", Path: "powershell.exe", Args: []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_tun_route.ps1"), "-Action", "Cleanup", "-StatePath", profile.RouteState}},
+		{Name: "ipv6-cleanup", Path: "powershell.exe", Args: []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_ipv6_killswitch.ps1"), "-Action", "Cleanup"}},
+	}
+}
+
+func (c *Controller) recoverStaleNetworkState(profile Profile) error {
+	for _, command := range startupRecoveryCommands(profile) {
+		if err := c.runner.Run(command); err != nil {
+			return fmt.Errorf("startup %s: %w", command.Name, err)
+		}
+	}
+	return nil
+}
+
 func (c *Controller) Connect(profile Profile) error {
-	if err := profile.normalized().Validate(); err != nil { return err }
+	profile = profile.normalized()
+	if err := profile.Validate(); err != nil { return err }
 	if c.executor.CleanupPending() { return errors.New("Windows runtime has pending route cleanup; retry Disconnect before Connect") }
 
 	c.mu.Lock()
@@ -72,6 +90,13 @@ func (c *Controller) Connect(profile Profile) error {
 
 	if preflight, ok := c.discoverer.(RuntimePreflighter); ok {
 		if err := preflight.Preflight(profile); err != nil { return fmt.Errorf("Windows runtime dependency preflight: %w", err) }
+	}
+	// Recover WBD-owned state from an earlier crash before underlay discovery or
+	// opening the sole public flow. This keeps stale Full routes / NRPT / IPv6
+	// kill-switch rules from perturbing the next connection attempt. Both cleanup
+	// scripts are idempotent when no prior state exists.
+	if err := c.recoverStaleNetworkState(profile); err != nil {
+		return fmt.Errorf("recover stale Windows network state: %w", err)
 	}
 	if err := c.tickets.Clear(profile.TicketPath); err != nil { return fmt.Errorf("clear stale Reality ticket: %w", err) }
 
