@@ -161,13 +161,19 @@ jobs:
             --local-udp 127.0.0.1:45101 --source 10.90.0.2:41001 --remote 10.90.0.1:${RAW} \
             --shadow-recovery legacy --reality-server-name wbd.test --reality-route-key "$ROUTE_KEY" \
             --reality-username "$USERNAME" --reality-password "$PASSWORD" \
-            --reality-ticket-out /tmp/sf2/${LABEL}/ticket-a.txt --reality-verify-server=false --reality-timeout 12s \
+            --reality-ticket-out /tmp/sf2/${LABEL}/ticket-a.txt \
+            --reality-installation-id 00112233445566778899aabbccddeeff \
+            --reality-tunnel-config-out /tmp/sf2/${LABEL}/tunnel-a.json \
+            --reality-verify-server=false --reality-timeout 12s \
             >/tmp/sf2/${LABEL}/faketcp-a.log 2>&1 & FA=$!
           sudo ip netns exec "$B" /tmp/sf2/wbd-faketcp client \
             --local-udp 127.0.0.1:45102 --source 10.90.0.3:41002 --remote 10.90.0.1:${RAW} \
             --shadow-recovery legacy --reality-server-name wbd.test --reality-route-key "$ROUTE_KEY" \
             --reality-username "$USERNAME" --reality-password "$PASSWORD" \
-            --reality-ticket-out /tmp/sf2/${LABEL}/ticket-b.txt --reality-verify-server=false --reality-timeout 12s \
+            --reality-ticket-out /tmp/sf2/${LABEL}/ticket-b.txt \
+            --reality-installation-id ffeeddccbbaa99887766554433221100 \
+            --reality-tunnel-config-out /tmp/sf2/${LABEL}/tunnel-b.json \
+            --reality-verify-server=false --reality-timeout 12s \
             >/tmp/sf2/${LABEL}/faketcp-b.log 2>&1 & FB=$!
           PIDS="$PIDS $FA $FB"
 
@@ -180,6 +186,17 @@ jobs:
           grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/sf2/${LABEL}/faketcp-a.log
           grep -q 'READY role=client.*single_flow_bootstrap=true' /tmp/sf2/${LABEL}/faketcp-b.log
           test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY remote=.*same_flow=1' /tmp/sf2/${LABEL}/mux.log)" -eq 2
+          sudo test -s /tmp/sf2/${LABEL}/tunnel-a.json
+          sudo test -s /tmp/sf2/${LABEL}/tunnel-b.json
+          sudo python3 - /tmp/sf2/${LABEL}/tunnel-a.json /tmp/sf2/${LABEL}/tunnel-b.json <<'PY'
+          import json,sys
+          a=json.load(open(sys.argv[1])); b=json.load(open(sys.argv[2]))
+          assert len(a['tunnel_id'])==32 and len(b['tunnel_id'])==32
+          assert a['address4'].endswith('/32') and b['address4'].endswith('/32')
+          assert a['tunnel_id'] != b['tunnel_id'], (a,b)
+          assert a['address4'] != b['address4'], (a,b)
+          print('SINGLE_FLOW_TWO_CLIENT_TUNNEL_PASS distinct_ids=1 distinct_addresses=1')
+          PY
           TA=$(sudo sh -c "tr -d '\\r\\n' </tmp/sf2/${LABEL}/ticket-a.txt")
           TB=$(sudo sh -c "tr -d '\\r\\n' </tmp/sf2/${LABEL}/ticket-b.txt")
           test ${#TA} -eq 64
@@ -242,9 +259,15 @@ jobs:
           grep -q 'SINGLE_FLOW_TWO_CLIENT_ECHO_PASS B- 20' /tmp/sf2/${LABEL}/probe-b.log
 
           kill -0 "$FA"; kill -0 "$FB"; kill -0 "$MUX_PID"
-          echo "SINGLE_FLOW_TWO_CLIENT_PASS fec=${FEC} tickets_distinct=1 sessions=2 echo_a=20 echo_b=20"
+          echo "SINGLE_FLOW_TWO_CLIENT_PASS fec=${FEC} tickets_distinct=1 tunnels_distinct=1 sessions=2 echo_a=20 echo_b=20"
+      - name: Prepare two-client evidence
+        if: always()
+        run: |
+          sudo find /tmp/sf2/${{ matrix.label }} -maxdepth 1 -type f -exec chmod a+r {} + 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: single-flow-two-client-${{ matrix.label }}
-          path: /tmp/sf2/${{ matrix.label }}/*.log
+          path: |
+            /tmp/sf2/${{ matrix.label }}/*.log
+            /tmp/sf2/${{ matrix.label }}/tunnel-*.json
