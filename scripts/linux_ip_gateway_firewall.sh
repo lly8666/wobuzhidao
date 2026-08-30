@@ -8,10 +8,10 @@ TRANSIT_PREFIX=198.18.240.0/24
 INNER_PREFIX=10.66.0.0/30
 NFT_FORWARD=
 SLOT=
+NETNS=
 TUN_IF=
-VRF_IF=
+NS_IF=
 TRANSIT_IP=
-ZONE=
 
 usage() {
     cat >&2 <<'EOF'
@@ -22,11 +22,13 @@ usage: linux_ip_gateway_firewall.sh apply|cleanup|status|session-add|session-del
   --inner-prefix CIDR
   --nft-forward FAMILY:TABLE:CHAIN
   session-add/session-del also require:
-  --slot N --tun-if IFNAME --vrf-if IFNAME --transit-ip IPv4 --zone N
+  --slot N --netns NAME --tun-if IFNAME --ns-if IFNAME --transit-ip IPv4
 
-The helper owns only rules marked wbd-ipg-* plus dedicated nft tables named
-wbd_ipg_raw/wbd_ipg_nat. It never flushes the host ruleset. Global apply enables
-IPv4 forwarding while active and restores the previous value on cleanup.
+The helper owns only WBD-marked host rules and one WBD-owned NAT/filter set
+inside each WBD session network namespace. It never flushes the host ruleset.
+Host NAT maps the unique transit prefix to physical egress. Inner NAT lives in
+the per-session namespace, so identical Windows inner tuples remain isolated by
+that namespace's independent conntrack table.
 EOF
 }
 
@@ -39,10 +41,10 @@ while [ $# -gt 0 ]; do
         --inner-prefix) INNER_PREFIX=$2; shift 2 ;;
         --nft-forward) NFT_FORWARD=$2; shift 2 ;;
         --slot) SLOT=$2; shift 2 ;;
+        --netns) NETNS=$2; shift 2 ;;
         --tun-if) TUN_IF=$2; shift 2 ;;
-        --vrf-if) VRF_IF=$2; shift 2 ;;
+        --ns-if) NS_IF=$2; shift 2 ;;
         --transit-ip) TRANSIT_IP=$2; shift 2 ;;
-        --zone) ZONE=$2; shift 2 ;;
         -h|--help) usage; exit 0 ;;
         *) echo "unknown argument: $1" >&2; usage; exit 2 ;;
     esac
@@ -113,6 +115,12 @@ iptables_delete_all() {
         iptables -t "$table" -D "$chain" "$@" >/dev/null 2>&1 || break
     done
 }
+ns_iptables_delete_all() {
+    table=$1 chain=$2; shift 2
+    while ip netns exec "$NETNS" iptables -t "$table" -C "$chain" "$@" >/dev/null 2>&1; do
+        ip netns exec "$NETNS" iptables -t "$table" -D "$chain" "$@" >/dev/null 2>&1 || break
+    done
+}
 
 restore_forwarding() {
     old=$(state_get IP_FORWARD_OLD)
@@ -134,21 +142,18 @@ iptables_global_apply() {
     iptables -t nat -I POSTROUTING 1 -s "$TRANSIT_PREFIX" -m comment --comment wbd-ipg-transit-nat -j MASQUERADE
 }
 iptables_session_del() {
+    ip netns list | awk '{print $1}' | grep -Fx "$NETNS" >/dev/null 2>&1 || return 0
     marker="wbd-ipg-$SLOT"
-    iptables_delete_all raw PREROUTING -i "$TUN_IF" -m comment --comment "$marker-tun-zone" -j CT --zone "$ZONE"
-    iptables_delete_all raw PREROUTING -i "$VRF_IF" -m comment --comment "$marker-vrf-zone" -j CT --zone "$ZONE"
-    iptables_delete_all nat POSTROUTING -s "$INNER_PREFIX" -o "$VRF_IF" -m comment --comment "$marker-snat" -j SNAT --to-source "$TRANSIT_IP"
-    iptables_delete_all filter FORWARD -i "$TUN_IF" -o "$VRF_IF" -m comment --comment "$marker-out" -j ACCEPT
-    iptables_delete_all filter FORWARD -i "$VRF_IF" -o "$TUN_IF" -m conntrack --ctstate ESTABLISHED,RELATED -m comment --comment "$marker-in" -j ACCEPT
+    ns_iptables_delete_all nat POSTROUTING -s "$INNER_PREFIX" -o "$NS_IF" -m comment --comment "$marker-snat" -j SNAT --to-source "$TRANSIT_IP"
+    ns_iptables_delete_all filter FORWARD -i "$TUN_IF" -o "$NS_IF" -m comment --comment "$marker-out" -j ACCEPT
+    ns_iptables_delete_all filter FORWARD -i "$NS_IF" -o "$TUN_IF" -m conntrack --ctstate ESTABLISHED,RELATED -m comment --comment "$marker-in" -j ACCEPT
 }
 iptables_session_add() {
     iptables_session_del
     marker="wbd-ipg-$SLOT"
-    iptables -t raw -I PREROUTING 1 -i "$TUN_IF" -m comment --comment "$marker-tun-zone" -j CT --zone "$ZONE"
-    iptables -t raw -I PREROUTING 1 -i "$VRF_IF" -m comment --comment "$marker-vrf-zone" -j CT --zone "$ZONE"
-    iptables -t nat -I POSTROUTING 1 -s "$INNER_PREFIX" -o "$VRF_IF" -m comment --comment "$marker-snat" -j SNAT --to-source "$TRANSIT_IP"
-    iptables -I FORWARD 1 -i "$TUN_IF" -o "$VRF_IF" -m comment --comment "$marker-out" -j ACCEPT
-    iptables -I FORWARD 1 -i "$VRF_IF" -o "$TUN_IF" -m conntrack --ctstate ESTABLISHED,RELATED -m comment --comment "$marker-in" -j ACCEPT
+    ip netns exec "$NETNS" iptables -t nat -I POSTROUTING 1 -s "$INNER_PREFIX" -o "$NS_IF" -m comment --comment "$marker-snat" -j SNAT --to-source "$TRANSIT_IP"
+    ip netns exec "$NETNS" iptables -I FORWARD 1 -i "$TUN_IF" -o "$NS_IF" -m comment --comment "$marker-out" -j ACCEPT
+    ip netns exec "$NETNS" iptables -I FORWARD 1 -i "$NS_IF" -o "$TUN_IF" -m conntrack --ctstate ESTABLISHED,RELATED -m comment --comment "$marker-in" -j ACCEPT
 }
 
 nft_global_cleanup() {
@@ -158,8 +163,7 @@ nft_global_cleanup() {
         nft_delete_comment "$1" "$2" "$3" wbd-ipg-transit-out
         nft_delete_comment "$1" "$2" "$3" wbd-ipg-transit-in
     fi
-    nft delete table inet wbd_ipg_raw 2>/dev/null || true
-    nft delete table ip wbd_ipg_nat 2>/dev/null || true
+    nft delete table ip wbd_ipg_host 2>/dev/null || true
 }
 nft_global_apply() {
     command -v nft >/dev/null 2>&1 || { echo 'nft not installed' >&2; return 1; }
@@ -177,47 +181,32 @@ nft_global_apply() {
         f_family= f_table= f_chain=
     fi
     nft -f - <<EOF
-add table inet wbd_ipg_raw
-add chain inet wbd_ipg_raw prerouting { type filter hook prerouting priority raw; policy accept; }
-add table ip wbd_ipg_nat
-add chain ip wbd_ipg_nat postrouting { type nat hook postrouting priority srcnat; policy accept; }
-add rule ip wbd_ipg_nat postrouting ip saddr $TRANSIT_PREFIX masquerade comment "wbd-ipg-transit-nat"
+add table ip wbd_ipg_host
+add chain ip wbd_ipg_host postrouting { type nat hook postrouting priority srcnat; policy accept; }
+add rule ip wbd_ipg_host postrouting ip saddr $TRANSIT_PREFIX masquerade comment "wbd-ipg-transit-nat"
 EOF
     NFT_APPLY_FORWARD_FAMILY=$f_family
     NFT_APPLY_FORWARD_TABLE=$f_table
     NFT_APPLY_FORWARD_CHAIN=$f_chain
 }
 nft_session_del() {
-    marker="wbd-ipg-$SLOT"
-    nft_delete_comment inet wbd_ipg_raw prerouting "$marker-tun-zone"
-    nft_delete_comment inet wbd_ipg_raw prerouting "$marker-vrf-zone"
-    nft_delete_comment ip wbd_ipg_nat postrouting "$marker-snat"
-    if values=$(find_nft_forward 2>/dev/null); then
-        # shellcheck disable=SC2086
-        set -- $values
-        nft_delete_comment "$1" "$2" "$3" "$marker-out"
-        nft_delete_comment "$1" "$2" "$3" "$marker-in"
-    fi
+    ip netns list | awk '{print $1}' | grep -Fx "$NETNS" >/dev/null 2>&1 || return 0
+    ip netns exec "$NETNS" nft delete table ip wbd_ipg_session 2>/dev/null || true
 }
 nft_session_add() {
     nft_session_del
-    marker="wbd-ipg-$SLOT"
-    nft insert rule inet wbd_ipg_raw prerouting iifname "$TUN_IF" ct zone set "$ZONE" comment "$marker-tun-zone"
-    nft insert rule inet wbd_ipg_raw prerouting iifname "$VRF_IF" ct zone set "$ZONE" comment "$marker-vrf-zone"
-    nft insert rule ip wbd_ipg_nat postrouting ip saddr "$INNER_PREFIX" oifname "$VRF_IF" snat to "$TRANSIT_IP" comment "$marker-snat"
-    if values=$(find_nft_forward); then
-        # shellcheck disable=SC2086
-        set -- $values
-        nft insert rule "$1" "$2" "$3" iifname "$TUN_IF" oifname "$VRF_IF" accept comment "$marker-out"
-        nft insert rule "$1" "$2" "$3" iifname "$VRF_IF" oifname "$TUN_IF" ct state established,related accept comment "$marker-in"
-    else
-        rc=$?
-        [ "$rc" -eq 1 ] || return "$rc"
-    fi
+    ip netns exec "$NETNS" nft -f - <<EOF
+add table ip wbd_ipg_session
+add chain ip wbd_ipg_session forward { type filter hook forward priority filter; policy accept; }
+add chain ip wbd_ipg_session postrouting { type nat hook postrouting priority srcnat; policy accept; }
+add rule ip wbd_ipg_session forward iifname "$TUN_IF" oifname "$NS_IF" accept comment "wbd-ipg-$SLOT-out"
+add rule ip wbd_ipg_session forward iifname "$NS_IF" oifname "$TUN_IF" ct state established,related accept comment "wbd-ipg-$SLOT-in"
+add rule ip wbd_ipg_session postrouting ip saddr $INNER_PREFIX oifname "$NS_IF" snat to $TRANSIT_IP comment "wbd-ipg-$SLOT-snat"
+EOF
 }
 
 require_session_args() {
-    for v in SLOT TUN_IF VRF_IF TRANSIT_IP ZONE; do
+    for v in SLOT NETNS TUN_IF NS_IF TRANSIT_IP; do
         eval "value=\${$v:-}"
         [ -n "$value" ] || { echo "$v is required for $ACTION" >&2; exit 2; }
     done
@@ -247,7 +236,7 @@ case "$ACTION" in
             echo NFT_FORWARD_CHAIN="$f_chain"
         } >"$STATE"
         chmod 600 "$STATE" 2>/dev/null || true
-        echo "WBD_IP_GATEWAY_FIREWALL_READY backend=$selected transit=$TRANSIT_PREFIX"
+        echo "WBD_IP_GATEWAY_FIREWALL_READY backend=$selected transit=$TRANSIT_PREFIX isolation=netns"
         ;;
     cleanup)
         need_root
@@ -262,7 +251,7 @@ case "$ACTION" in
         esac
         restore_forwarding
         rm -f "$STATE"
-        echo 'WBD_IP_GATEWAY_FIREWALL_CLEANUP_PASS'
+        echo 'WBD_IP_GATEWAY_FIREWALL_CLEANUP_PASS isolation=netns'
         ;;
     session-add|session-del)
         need_root; require_session_args
@@ -273,10 +262,10 @@ case "$ACTION" in
             nft:session-add) nft_session_add ;;
             nft:session-del) nft_session_del ;;
         esac
-        echo "WBD_IP_GATEWAY_FIREWALL_SESSION action=$ACTION backend=$selected slot=$SLOT zone=$ZONE"
+        echo "WBD_IP_GATEWAY_FIREWALL_SESSION action=$ACTION backend=$selected slot=$SLOT netns=$NETNS"
         ;;
     status)
         saved=$(state_get BACKEND)
-        if [ -n "$saved" ]; then echo "WBD_IP_GATEWAY_FIREWALL_STATUS active=1 backend=$saved state=$STATE"; else echo "WBD_IP_GATEWAY_FIREWALL_STATUS active=0 state=$STATE"; fi
+        if [ -n "$saved" ]; then echo "WBD_IP_GATEWAY_FIREWALL_STATUS active=1 backend=$saved state=$STATE isolation=netns"; else echo "WBD_IP_GATEWAY_FIREWALL_STATUS active=0 state=$STATE"; fi
         ;;
 esac
