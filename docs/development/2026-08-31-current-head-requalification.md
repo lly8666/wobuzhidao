@@ -6,11 +6,12 @@ The exact-tested single-flow candidate recorded by handoff sequence 68 was `ed7b
 
 Frozen architectural constraints for this work:
 
-- one public TCP-shaped 4-tuple and one SYN lineage;
+- one public TCP-shaped 4-tuple and one SYN lineage **per Transport Lane**;
 - initial reliable ordered FakeTCP phase carries TLS 1.3 / Reality-like admission;
-- no second SYN/FIN/RST transition between admission and sustained transport;
+- no second SYN/FIN/RST transition between admission and sustained transport within one lane;
 - the same FakeTCP association switches in-band to pinned wolfSSL DTLS 1.3 and LINK/FEC datagrams;
 - sustained transport must not inherit kernel TCP stream HOL;
+- a Logical Tunnel may own 1..N independent Transport Lanes, but each lane independently obeys the one-flow invariant;
 - mature FakeTCP recovery/FEC/TCP-like data plane is not to be changed without deterministic evidence.
 
 ## Resume state
@@ -83,8 +84,98 @@ Commit `5bc25ee8bc4564d1e1c69dd40151344c57b81351` (`test: rebase single-flow e2e
 
 These three commits are test/qualification changes. They do not alter the public-flow protocol or mature TCP-like recovery logic.
 
+## Finding 4: current single-flow bootstrap, DTLS and LINK admission reach READY; old LINK echo fixture violates the current application-payload contract
+
+Requalification then moved to feature head `0fdd656d8ad5f69ca695d4653c728457ebe0a477`.
+
+`single-flow-link-fullstack` run `33326620684` failed only after all protected transport stages had passed. Both FEC variants reached:
+
+```text
+SINGLE_FLOW_LINK_STAGE_PASS stage=bootstrap_v2
+SINGLE_FLOW_LINK_STAGE_PASS stage=dtls13
+SINGLE_FLOW_LINK_STAGE_PASS stage=link
+```
+
+The server then rejected the first old echo probe with:
+
+```text
+application datagram is neither M6A raw-IP nor platformproxy frame
+```
+
+Source review confirmed the production contract is correct:
+
+- `wbd-link-proxy` carries the local application datagram as LINK application payload;
+- `wbd-link-server-mux` accepts a formal raw IPv4 M6A packet or a platformproxy frame;
+- an arbitrary ASCII string such as `SINGLE_FLOW_LINK_ECHO_00` is not a valid logical-tunnel payload and must be rejected.
+
+Therefore the red fullstack run is evidence that the old qualification fixture is stale, not evidence that FakeTCP, Reality-like bootstrap, DTLS 1.3 or LINK admission is broken. The correct replacement is a TUN/raw-IPv4 qualification through the raw-IP backend, while retaining the public pcap one-SYN/same-flow assertions.
+
+## Finding 5: two-client qualification proves identity separation before hitting the same stale arbitrary-payload fixture
+
+`single-flow-two-client` run `33326620631` also reached the current transport contract before failing. For both FEC modes the workflow proved:
+
+- two same-account clients completed V2 single-flow bootstrap;
+- the clients received distinct TunnelIDs;
+- the clients received distinct server-assigned `/32` tunnel addresses;
+- tickets were distinct;
+- both wolfSSL DTLS 1.3 handshakes completed;
+- two independent LINK sessions became READY and consumed the tickets.
+
+It then sent arbitrary `A-...` / `B-...` UDP strings directly into LINK and hit the same formal payload rejection. The replacement qualification must use two real raw-IP/TUN clients, preserve distinct server-assigned leases, and prove both can use inner TCP source port `40000` simultaneously to the same Internet target/port.
+
+## Finding 6: the existing raw-IP E2E already contains the correct data-plane skeleton, but still has one pre-V2.4 hard-coded address
+
+`.github/workflows/single-flow-rawip-e2e.yml` already exercises:
+
+```text
+single-flow FakeTCP / Reality-like V2
+  -> wolfSSL DTLS 1.3
+  -> LINK
+  -> wbd-tun
+  -> raw-IP gateway
+  -> Linux namespace Internet target
+```
+
+and verifies DNS-style UDP, generic UDP and TCP. This is the correct skeleton for the LINK fullstack replacement.
+
+However the workflow currently assigns `10.66.0.2/30` manually to its client TUN. V2.4 requires the client to consume the server-issued `address4` lease from `tunnel-config.json`. New qualification must parse and apply that issued `/32`; copying the old hard-coded address would preserve a stale architectural shortcut.
+
+The current raw-IP server fixture still uses the historical per-session netns backend. It remains useful as correctness evidence, but V2.4 explicitly says that per-session netns/double-NAT is not the selected final Windows server topology. Do not expand that backend as new product architecture; shared-TUN/one-host-NAT remains the selected direction.
+
+## Finding 7: main CI red was a V2.3 invariant baked into the test, not a production regression
+
+On head `0fdd656d...`, main CI run `33326620656` completed all Go tests successfully. The only failing unit test was `test_v23_single_flow_architecture_invariants_are_persisted`, which still required the old whole-VPN invariant:
+
+```text
+exactly one public TCP-shaped raw/FakeTCP association
+```
+
+V2.4 intentionally changed the invariant to **per Transport Lane**. A Logical Tunnel may use multiple independent lanes, while every lane still owns exactly one public FakeTCP SYN lineage / 4-tuple / sequence space and never creates a second WBD payload SYN between Reality-like bootstrap and steady DTLS/FEC payload.
+
+Commit `6397ae0ff9aa7c6c65dd8200f3ca883a8a88e8ef` (`test: align handoff contract with v2.4 per-lane single-flow`) updates this test contract only. It does not change transport behavior or relax no-HOL.
+
+## Finding 8: Windows and Linux have strong isolated hosted gates, but release still lacks one combined Windows-runtime -> Linux-server gate
+
+Existing hosted evidence includes:
+
+- Windows `windows-faketcp-persona`: Windows builds/runs FakeTCP backend tests, Reality-like single-flow tests, virtual-wire no-HOL, runtime and diagnostics tests;
+- Windows `windows-tun-admin-smoke`: real hosted Windows Wintun adapter, real route/address/NRPT state, stale-state recovery and real bidirectional Wintun dataplane;
+- Linux `windows-rawip-gateway`: two Windows-style TUN sessions through real Linux raw-IP gateway/firewall paths using both iptables and nft;
+- Linux single-flow/raw-netns workflows: real raw FakeTCP + pinned wolfSSL DTLS + LINK and raw-IP Internet namespace paths.
+
+These are necessary but not sufficient for the user's delivery condition. Before another package is offered, add a combined automated gate that executes the actual Windows runtime-side binaries and a Linux server-side stack in one qualification topology (prefer hosted Windows + WSL2/Linux when privileged raw networking is available; otherwise use an explicit cross-platform synthetic packet-I/O bridge while preserving the real single-flow/Reality/DTLS/LINK state machines, and label that limitation honestly).
+
+Npcap Free Edition licensing/install constraints remain in force: do not silently redistribute or silently install Npcap merely to make CI green.
+
 ## Current qualification policy
 
-No Windows or Linux package is to be delivered until the exact current source candidate has current green evidence on both hosted Windows and hosted Linux/raw-netns gates. Older `ed7b...` green evidence is historical only.
+No Windows or Linux package is to be delivered until the exact current source candidate has current green evidence on both hosted Windows and hosted Linux/raw-netns gates **and** the combined Windows-runtime/Linux-server qualification gate is green. Older green evidence is historical only.
 
-At the time this log entry was created, the new `5bc25ee8...` Actions matrix had started but the rewritten single-flow E2E and main Go test job were still running. Results and any subsequent fixes must be appended here before release/handoff.
+Immediate next work:
+
+1. replace the stale arbitrary-payload `single-flow-link-fullstack` probe with dynamic-lease raw-IP/TUN traffic while retaining the one-public-flow pcap proof;
+2. replace `single-flow-two-client` arbitrary echo with two dynamic-lease raw-IP/TUN sessions and same inner source-port isolation proof;
+3. add the combined Windows-runtime/Linux-server gate;
+4. rerun current-head CI and release builds;
+5. only after all mandatory gates are green, create packages;
+6. write and verify canonical handoff sequence 71 before ending the workstream.
