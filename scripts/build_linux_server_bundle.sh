@@ -65,6 +65,7 @@ cp scripts/linux_server_manager.sh "$root/wbd-server"
 cp scripts/linux_server_manager.sh "$root/linux_server_manager.sh"
 cp scripts/linux_server_firewall.sh scripts/linux_server_guard.sh "$root/"
 printf '%s\n' "$ARCH" > "$root/ARCH"
+printf '%s\n' "${GITHUB_SHA:-unknown}" > "$root/SOURCE_SHA"
 cat > "$root/README.txt" <<'EOF'
 WBD Linux Server bundle
 =======================
@@ -78,9 +79,21 @@ WBD Linux Server bundle
 
 Commands: install, uninstall, start, stop, pause, resume, restart, status, logs,
 config, set, regen-certs, doctor, show-config. Configuration is
-/etc/wbd/server.env. WBD_PORT is the single public TCP port shared by the
-Reality-like setup/admission listener and WBD raw FakeTCP. Sustained VPN data
-remains FakeTCP -> DTLS 1.3 -> LINK.
+/etc/wbd/server.env.
+
+V2.3 product mode exposes exactly one public TCP-shaped FakeTCP association per
+session. WBD_PORT is owned by one raw wbd-faketcp-mux public listener. The
+Reality-like TLS setup/admission exchange is the first payload phase of that
+same raw association; there is no parallel kernel TCP Reality front and no
+second public SYN before DTLS. After the mode barrier the same association
+carries DTLS 1.3 -> LINK/FEC datagrams without ordinary-TCP stream HOL.
+
+The bundled wbd-reality-front binary is diagnostic/reference only. The product
+wbd-server run path never starts it as a public listener.
+
+SOURCE_SHA records the exact repository commit used to build this bundle. Pair
+Windows and Linux physical-test artifacts only when their SOURCE_SHA values are
+identical.
 
 Runtime application binaries are statically linked. The host kernel must support
 raw sockets and netfilter, and the OS must provide systemd plus nft or iptables.
@@ -104,4 +117,4 @@ tar -C "$OUT" -czf "$OUT/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
     sha256sum "wbd-linux-server-$ARCH.tar.gz" > "wbd-linux-server-$ARCH.tar.gz.sha256"
     sha256sum -c "wbd-linux-server-$ARCH.tar.gz.sha256"
 )
-echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 shared_public_port=1 portable_checksum=1"
+echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 public_single_flow=1 source_sha=${GITHUB_SHA:-unknown} portable_checksum=1"
