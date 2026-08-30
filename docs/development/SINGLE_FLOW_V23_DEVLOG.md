@@ -149,6 +149,64 @@ The new core reuses the mature qdisc setup, resource sampling, meter, probe, loa
 
 This keeps performance comparability while ensuring the benchmark is actually testing the product architecture.
 
+## 2026-08-30 physical Windows -> Ubuntu ARM64: public single-flow passes, upper data plane fails
+
+A physical Windows 11 x64 client against the real Ubuntu ARM64 server proved that the corrected single-flow public transport now gets all the way through product readiness:
+
+- Windows Npcap entered normal transmit mode with exact inbound flow filtering.
+- The same FakeTCP process transmitted and received the Reality-like TLS bootstrap payload.
+- Windows printed `WBD_SINGLE_FLOW_BOOTSTRAP_READY ... same_flow=1` followed by FakeTCP READY.
+- DTLS then completed on that same public association (`DTLSv1.3`, `TLS_AES_256_GCM_SHA384`).
+- LINK printed `WBD_LINK_READY`.
+- Wintun printed `WBD_TUN_READY`.
+- IPv6 kill-switch and Full-mode route application completed.
+- route-state v3 decoded correctly; the physical underlay /32 escape route was present.
+- Linux showed the matching `WBD_SINGLE_FLOW_BOOTSTRAP_READY`, DTLS BOUND/PEEK/HRR/ACCEPT_PASS/READY and `WBD_LINK_MUX_SESSION_READY`.
+
+The first remaining deterministic failure was therefore no longer public ingress, Reality-like admission, FakeTCP, DTLS, LINK, Wintun creation, route application or route-state persistence. All three sustained probes timed out after `connect_pass`: system DNS, UDP DNS to 1.1.1.1:53, and TCP to 1.1.1.1:443.
+
+### Root cause: incompatible WBDP envelopes were wired together
+
+Source inspection identified a deterministic upper-data-plane composition error.
+
+Windows `cmd/wbd-tun` uses `internal/tunnel.FramedEndpoint`, which implements the M6A raw-IP envelope from `internal/dataplane`:
+
+```text
+magic "WBDP"
+version 1
+TypeIP 1
+uint16 raw-IP length
+exact IPv4/IPv6 packet
+```
+
+The LINK client/server intentionally treats application datagrams as opaque. `wbd-link-server-mux` therefore delivered those M6A frames unchanged to its configured Linux service address, currently `127.0.0.1:49000`.
+
+But the Linux manager starts `wbd-platform-proxy-server` on that address. `internal/platformproxy` defines a different, 44-byte L4 flow envelope that unfortunately also uses magic `WBDP`; it contains kind, FlowID, offset, peer address/port and payload length. `platformproxy.Relay` tries to decode every incoming service datagram as that L4 format and silently ignores decode failures.
+
+Consequently a valid Windows TUN raw-IP packet reached the server service as an 8-byte-header M6A WBDP frame and was rejected as an invalid 44-byte platformproxy WBDP frame. This exactly matches the physical symptom: control/encrypted transport readiness was complete, but DNS/UDP/TCP traffic disappeared after LINK.
+
+This is not a FakeTCP/TCP-like failure and must not be "fixed" by changing FakeTCP recovery, sequence logic, FEC or the one-public-flow architecture.
+
+### Correct repair boundary
+
+OpenWrt and Windows intentionally have different capture adapters:
+
+- OpenWrt TPROXY terminates L4 sockets and correctly emits `platformproxy` UDP/TCP flow frames.
+- Windows Wintun is an L3 interface and correctly emits raw IP packets in the M6A envelope.
+
+The server must therefore preserve both backends rather than forcing one wire envelope into the other.
+
+The selected direction is:
+
+1. keep the existing `wbd-platform-proxy-server` unchanged for OpenWrt L4 sessions;
+2. add a Linux raw-IP gateway backend for Windows M6A sessions;
+3. make `wbd-link-server-mux` classify the first decoded application datagram for each LiveID and permanently pin that session to either the raw-IP backend or the existing platformproxy backend;
+4. keep classification above LINK and below platform adapters so FakeTCP/DTLS/LINK remain unchanged;
+5. preserve same-account multi-session isolation. Because every Windows client currently uses inner address `10.66.0.2/30`, Windows sessions cannot share one root-namespace TUN. The raw-IP backend must isolate each service peer/LiveID, preferably with one Linux network namespace/TUN per active Windows session so identical inner addresses remain safe;
+6. let the Linux kernel in each namespace carry the inner UDP/TCP semantics and NAT egress, avoiding any new user-space TCP implementation and preserving normal end-host TCP behavior inside the VPN.
+
+Before another physical package is offered, a new privileged CI qualification must exercise the exact product composition through the raw-IP backend and prove DNS-style UDP, generic UDP and ordinary TCP round trips. Multi-session qualification must include at least two simultaneous Windows-style raw-IP sessions that reuse the same inner `10.66.0.2` address without collision.
+
 ## Current engineering policy
 
 - Do not reintroduce standalone public Reality/TCP setup into Windows Connect or Linux run path.
@@ -156,12 +214,14 @@ This keeps performance comparability while ensuring the benchmark is actually te
 - Do not alter mature FakeTCP recovery/FEC merely to make a setup benchmark green.
 - Qualification failures must first be classified as setup/bootstrap, mode-switch, DTLS/LINK, test-harness, or steady-state data-plane failures using deterministic logs/artifacts.
 - A new physical Windows package should not be handed to the user until deterministic single-flow CI gates are green and the package is built from the exact qualified source head.
+- The 2026-08-30 physical evidence upgrades the release bar further: no package is release-ready until the current Windows raw-IP -> Linux gateway path passes DNS/UDP/TCP end to end.
 
 ## Immediate next actions
 
-1. Run the new single-flow `mux-load-100m` sweep at RTT20/RTT100, 20% measurement loss, 40/60/80 Mbit aggregate offered inner rates, FEC off and fixed 20:20.
-2. If setup fails, inspect per-client FakeTCP bootstrap markers and mux bootstrap markers; fix only setup/concurrency/readiness.
-3. If 40 Mbit steady-state fails after both sessions are ready, inspect artifacts before considering any transport change. The release target remains stable 40 Mbit aggregate on <=100 Mbit weak links.
-4. Once qualification is deterministic, clean obsolete dual-flow build-only references from the current qualification workflows while retaining historical reference tests where useful.
-5. Refresh Windows portable and Linux ARM64 release artifacts from the exact qualified single-flow head.
-6. Update canonical `.wbd/handoff/current.json` and require `handoff-verify` success before ending the development task.
+1. Add backend selection to `wbd-link-server-mux`: defer service dial until the first decoded application payload, recognize valid M6A raw-IP frames with `dataplane.UnmarshalIP`, otherwise require a valid platformproxy frame, then pin the LiveID to the selected backend for its lifetime.
+2. Implement a Linux raw-IP gateway that accepts M6A frames per service peer and isolates simultaneous Windows sessions with per-session network namespaces/TUNs while reusing the mature `wbd-tun` framing.
+3. Add WBD-owned egress/NAT setup and deterministic cleanup for those namespaces without changing the public FakeTCP firewall semantics.
+4. Add privileged CI for the exact current stack and prove DNS-style UDP, generic UDP, TCP, reconnect cleanup and two simultaneous Windows-style sessions using the same inner address.
+5. Re-run single-flow E2E, no-HOL, two-client, 100 Mbit release point, Linux release and Windows portable build from the same substantive head.
+6. Only after those gates are green, produce a diagnostic physical pair; final release acceptance still requires the real Windows probes to pass.
+7. Update `.wbd/handoff/current.json` to the actual latest state and require `handoff-verify` success before ending the development task.
