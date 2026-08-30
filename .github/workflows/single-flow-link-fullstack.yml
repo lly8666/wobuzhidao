@@ -168,6 +168,7 @@ jobs:
           sudo test -s "$ROOT/client.ticket"
           sudo test -s "$ROOT/tunnel-config.json"
           sudo python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert len(d["tunnel_id"]) == 32; assert d["address4"].endswith("/32"); assert isinstance(d["routes4"], list)' "$ROOT/tunnel-config.json"
+          echo 'SINGLE_FLOW_LINK_STAGE_PASS stage=bootstrap_v2'
           TICKET="$(sudo cat "$ROOT/client.ticket" | tr -d '\r\n')"
           test ${#TICKET} -eq 64
           sudo rm -f "$ROOT/client.ticket"
@@ -182,6 +183,7 @@ jobs:
           done
           grep -q 'READY role=client version=DTLSv1.3' "$ROOT/dtls.log"
           grep -q 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' "$ROOT/mux.log"
+          echo 'SINGLE_FLOW_LINK_STAGE_PASS stage=dtls13'
 
           sudo ip netns exec "$C" /tmp/sflink/wbd-link-proxy \
             -mode client -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 \
@@ -196,6 +198,7 @@ jobs:
           grep -q 'WBD_LINK_READY role=client' "$ROOT/link-client.log"
           grep -q 'WBD_LINK_MUX_SESSION_READY account=singleflow' "$ROOT/link-server.log"
           test "$(find "$ROOT/tickets" -type f | wc -l)" -eq 0
+          echo 'SINGLE_FLOW_LINK_STAGE_PASS stage=link'
 
           cat >"$ROOT/probe.py" <<'PY'
           import socket,time
@@ -217,6 +220,7 @@ jobs:
           PY
           sudo ip netns exec "$C" python3 "$ROOT/probe.py" >"$ROOT/probe.log" 2>&1
           grep -q 'SINGLE_FLOW_LINK_ECHO_PASS count=20' "$ROOT/probe.log"
+          echo 'SINGLE_FLOW_LINK_STAGE_PASS stage=echo20'
 
           TCPDUMP_PID="$(cat "$ROOT/tcpdump.pid")"
           sudo kill -INT "$TCPDUMP_PID"
@@ -227,6 +231,7 @@ jobs:
             --client-ip 10.91.0.2 --server-ip 10.91.0.1 --client-port 51001 --server-port 443 \
             --min-client-payload 512 --min-server-payload 512 | tee "$ROOT/wire.log"
           grep -q 'SINGLE_FLOW_WIRE_INVARIANT_PASS' "$ROOT/wire.log"
+          echo 'SINGLE_FLOW_LINK_STAGE_PASS stage=wire'
 
           kill -0 "$FC"
           kill -0 "$MUX"
@@ -240,6 +245,18 @@ jobs:
           echo '--- link client ---'; cat "$ROOT/link-client.log"
           echo '--- link server ---'; cat "$ROOT/link-server.log"
           echo '--- probe ---'; cat "$ROOT/probe.log"
+      - name: Expose LINK fullstack evidence
+        if: always()
+        run: |
+          set +e
+          sudo find /tmp/sflink/run-* -maxdepth 2 -type f -exec chmod a+r {} + 2>/dev/null
+          if [ "${{ job.status }}" != "success" ]; then
+            for f in /tmp/sflink/run-*/*.log /tmp/sflink/run-*/*.json /tmp/sflink/run-*/*.txt; do
+              [ -f "$f" ] || continue
+              echo "--- $f ---"
+              sudo tail -n 240 "$f" || true
+            done
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
