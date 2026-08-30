@@ -16,6 +16,7 @@ on:
       - 'internal/windowsruntime/**'
       - 'internal/windowsgui/**'
       - 'internal/ipset/**'
+      - 'internal/releasecontract/**'
       - 'native/dtls/**'
       - 'scripts/windows_tun_route.ps1'
       - 'scripts/windows_ipv6_killswitch.ps1'
@@ -38,6 +39,7 @@ on:
       - 'internal/windowsruntime/**'
       - 'internal/windowsgui/**'
       - 'internal/ipset/**'
+      - 'internal/releasecontract/**'
       - 'native/dtls/**'
       - 'scripts/windows_tun_route.ps1'
       - 'scripts/windows_ipv6_killswitch.ps1'
@@ -76,7 +78,8 @@ jobs:
           Copy-Item scripts/windows_ipv6_killswitch.ps1 "$payload\windows_ipv6_killswitch.ps1"
           Copy-Item scripts/windows_faketcp_underlay.ps1 "$payload\windows_faketcp_underlay.ps1"
           Copy-Item scripts/windows_npcap_prepare.ps1 "$payload\windows_npcap_prepare.ps1"
-          Write-Output 'WBD_WINDOWS_PORTABLE_GO_RUNTIME_PASS ipv6_killswitch=1 gui_npcap_setup=1 portable_sidecar_assets=1'
+          Set-Content -LiteralPath "$payload\SOURCE_SHA" -Value $env:GITHUB_SHA -Encoding ascii
+          Write-Output "WBD_WINDOWS_PORTABLE_GO_RUNTIME_PASS ipv6_killswitch=1 gui_npcap_setup=1 portable_sidecar_assets=1 source_sha=$env:GITHUB_SHA"
 
       - name: Build static-CRT pinned wolfSSL DTLS shim
         shell: pwsh
@@ -131,14 +134,14 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $payload = "$env:RUNNER_TEMP\wbd-payload"
-          foreach ($required in @('windows_ipv6_killswitch.ps1','windows_npcap_prepare.ps1','windows_tun_route.ps1','wintun.dll')) {
+          foreach ($required in @('windows_ipv6_killswitch.ps1','windows_npcap_prepare.ps1','windows_tun_route.ps1','wintun.dll','SOURCE_SHA')) {
             if (-not (Test-Path (Join-Path $payload $required))) { throw "portable runtime missing $required" }
           }
           $files = [ordered]@{}
           Get-ChildItem $payload -File | Sort-Object Name | ForEach-Object {
             if ($_.Name -ne 'manifest.json') { $files[$_.Name] = (Get-FileHash -Algorithm SHA256 $_.FullName).Hash.ToLowerInvariant() }
           }
-          $manifest = [ordered]@{ schema='wbd-windows-runtime/v1'; files=$files; wintun_version='0.14.1'; wintun_zip_sha256='07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51' }
+          $manifest = [ordered]@{ schema='wbd-windows-runtime/v1'; source_sha=$env:GITHUB_SHA; files=$files; wintun_version='0.14.1'; wintun_zip_sha256='07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51' }
           $manifest | ConvertTo-Json -Depth 6 | Set-Content "$payload\manifest.json" -Encoding UTF8
           $embedded = 'internal/windowsbundle/payload.zip'
           if (Test-Path $embedded) { Remove-Item $embedded -Force }
@@ -146,7 +149,9 @@ jobs:
           $payloadSHA = (Get-FileHash -Algorithm SHA256 $embedded).Hash.ToLowerInvariant()
           go build -tags wbd_bundle -trimpath -ldflags="-H=windowsgui" -o "$env:RUNNER_TEMP\wbd.exe" ./cmd/wbd-windows-portable
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd.exe")) { throw 'portable wbd.exe not produced' }
-          Write-Output "WBD_WINDOWS_PORTABLE_SINGLE_EXE_PASS payload_sha256=$payloadSHA npcap_embedded=0 wintun_embedded=1 sidecar_config=wbd.json sidecar_ipset=cn4.txt,cn6.txt,cn-manifest.json"
+          Set-Content -LiteralPath "$env:RUNNER_TEMP\SOURCE_SHA" -Value $env:GITHUB_SHA -Encoding ascii
+          if ((Get-Content -LiteralPath "$env:RUNNER_TEMP\SOURCE_SHA" -Raw).Trim() -ne $env:GITHUB_SHA) { throw 'portable SOURCE_SHA mismatch' }
+          Write-Output "WBD_WINDOWS_PORTABLE_SINGLE_EXE_PASS payload_sha256=$payloadSHA source_sha=$env:GITHUB_SHA npcap_embedded=0 wintun_embedded=1 sidecar_config=wbd.json sidecar_ipset=cn4.txt,cn6.txt,cn-manifest.json"
 
       - name: Verify portable EXE PE dependencies
         shell: pwsh
@@ -162,6 +167,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: wbd-windows-portable-${{ github.sha }}
-          path: ${{ runner.temp }}\wbd.exe
+          path: |
+            ${{ runner.temp }}\wbd.exe
+            ${{ runner.temp }}\SOURCE_SHA
           if-no-files-found: error
           retention-days: 14
