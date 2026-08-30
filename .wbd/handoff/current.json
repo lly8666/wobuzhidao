@@ -1,16 +1,16 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 66,
+  "continuity_sequence": 67,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "bfccd49c2d56cb4d73bf282b892d94153cdaba65",
+  "checkpoint_based_on_head_sha": "38a584b8d3082741f031db4bcae1c1a6f2453651",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Ship WBD with exactly one long-lived public TCP-shaped 4-tuple and one SYN/sequence lineage per VPN session. FakeTCP owns the public flow from SYN; a bounded setup-only reliable phase carries Firefox-120-like real TLS 1.3 / Reality-like admission; without FIN/RST/close/new SYN the same association switches in-band to pinned wolfSSL DTLS 1.3 -> LINK/FEC/VPN datagrams. Sustained payload must never inherit ordinary kernel-TCP cumulative-stream HOL.",
-    "current_milestone": "Feature source head ed7b717d74ffa6fc823685e37a58432d46630ca6 is now the exact same-source Windows/Linux automated physical-test candidate. Windows-native Npcap ingress/persona/runtime tests, Linux raw/netns single-flow E2E, no-HOL, LINK off+20:20, two-client, 20-round dirty reconnect stress, weak-link first-arrival, pcap-loss, RTT20/RTT100 mux load, Windows portable packaging and Linux ARM64/amd64 release all completed successfully. No TCP-like recovery/FEC algorithm change was required in this qualification pass.",
+    "current_milestone": "Feature source head ed7b717d74ffa6fc823685e37a58432d46630ca6 is the exact same-source Windows/Linux automated physical-test candidate. All relevant automated Windows-native and Linux raw/netns qualification gates are green. Exact tested Windows x64 and Linux ARM64 Actions ZIPs are now durably registered in Google Drive and in .wbd/handoff/data-plane.json.",
     "local_optimization_stop_rule": "Do not return to the retired dual-public-flow Reality TCP -> close -> FakeTCP design. Keep mature FakeTCP recovery/FEC/sequence/ACK/SACK behavior frozen unless deterministic new evidence requires it. Reproduce any new physical failure in sandbox before changing transport core."
   },
   "architecture_override": {
@@ -22,11 +22,11 @@
     "server_port_model": "The raw FakeTCP mux owns WBD sessions from the SYN. Product startup must not launch a separate public kernel-TCP Reality listener for the WBD session. Wrong-marker/non-WBD TLS-like traffic uses the mux fallback/decoy path."
   },
   "continuation_cursor": {
-    "last_completed_action": "Qualified exact feature head ed7b717d74ffa6fc823685e37a58432d46630ca6 across Windows-native and Linux raw/netns gates. Added Windows startup-noise sequence regression test at 27093ed35ebfd4fa8772b798b2f17f015ffb6ab9 and durable diagnosis log at docs/development/2026-08-30-windows-ingress-qualification.md. windows-faketcp-persona 33298965054, single-flow-e2e 33298965034, single-flow-no-hol 33298965157, single-flow-link-fullstack 33298965075, single-flow-two-client 33298965115, single-flow-startup-stress 33298965218, mux-load-100m 33298965134, Windows portable 33298965247 and Linux release 33298965128 are success after targeted reruns described in qualification_snapshot.",
-    "current_task": "Preserve ed7b717d74ffa6fc823685e37a58432d46630ca6 as the exact tested candidate and perform the remaining non-equivalent physical Windows 11 Npcap/NIC + real NAT/ISP -> Ubuntu ARM64 self-test using the same-source artifacts. Do not change transport core before that physical evidence.",
-    "why_now": "Automated Windows and Linux qualification is complete. The previously observed physical Windows `faketcp: not ipv4/tcp` startup failure is covered by exact-flow ingress filtering plus a Windows-native noisy-ingress sequence test. The only environment Actions cannot faithfully reproduce is the operator's actual Npcap driver, NIC and ISP/NAT path.",
-    "done_when": "Physical Windows 11 self-test using the exact ed7b717d same-source Windows and ARM64 packages reaches same-flow bootstrap, DTLS READY, LINK READY, routes/TUN ready and DNS/UDP/TCP probes pass. If it fails, capture the first deterministic Windows marker plus matching Linux journal and reproduce that boundary in sandbox before changing code.",
-    "next_atomic_action": "Live-refresh PR #9 and canonical handoff, then use the exact ed7b717d same-source artifacts recorded below for one physical Windows 11/Npcap -> real NAT/ISP -> Ubuntu ARM64 self-test. Preserve the first missing boundary marker if anything fails; do not retune FakeTCP/FEC without deterministic reproduction."
+    "last_completed_action": "Qualified exact feature head ed7b717d74ffa6fc823685e37a58432d46630ca6 across Windows-native and Linux raw/netns gates, verified same-source Windows/Linux artifacts, uploaded exact tested Actions ZIPs to Google Drive, registered them in .wbd/handoff/data-plane.json, and preserved the detailed Windows ingress qualification record in docs/development/2026-08-30-windows-ingress-qualification.md.",
+    "current_task": "Use the registered ed7b717d same-source Windows x64 and Linux ARM64 Drive assets for the remaining non-equivalent physical Windows 11 Npcap/NIC + real NAT/ISP -> Ubuntu ARM64 self-test. Do not change transport core before that physical evidence.",
+    "why_now": "Automated Windows and Linux qualification is complete. The prior physical `faketcp: not ipv4/tcp` startup failure is covered by exact-flow ingress filtering plus Windows-native ordered-noise regression. Only the user's actual Npcap driver/NIC/NAT/ISP path remains outside faithful hosted emulation.",
+    "done_when": "Physical Windows 11 self-test with exact ed7b717d artifacts reaches same-flow Reality-like bootstrap, DTLS READY, LINK READY, TUN/routes ready and DNS/UDP/TCP probes pass. If it fails, preserve the first deterministic Windows marker plus matching Linux journal and reproduce that boundary in sandbox before code changes.",
+    "next_atomic_action": "Live-refresh PR #9 and handoff, fetch the two required data-plane assets by Google Drive file ID, deploy the ARM64 server package and Windows portable from those exact ZIPs, and run one physical self-test. Do not retune FakeTCP/FEC without deterministic reproduction."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
@@ -40,7 +40,10 @@
     "cmd/wbd-faketcp-mux/main_linux.go",
     "scripts/verify_handoff.py"
   ],
-  "required_data_plane_assets": [],
+  "required_data_plane_assets": [
+    "singleflow-ed7-windows-x64-actions",
+    "singleflow-ed7-linux-arm64-actions"
+  ],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
     "tested_commit": "ed7b717d74ffa6fc823685e37a58432d46630ca6",
@@ -54,7 +57,7 @@
     "classification": "Fully automated-qualified same-source physical-test candidate. Product architecture is one public FakeTCP SYN lineage carrying Reality-like TLS setup then in-band DTLS/LINK/FEC with post-switch no-HOL semantics.",
     "latest_test_hardening_commit": "27093ed35ebfd4fa8772b798b2f17f015ffb6ab9",
     "latest_durable_log_commit": "ed7b717d74ffa6fc823685e37a58432d46630ca6",
-    "transport_core_policy": "Freeze existing FakeTCP recovery/ACK/SACK/FEC core. This qualification pass added Windows ingress regression coverage and documentation only after the already implemented single-flow architecture."
+    "transport_core_policy": "Freeze existing FakeTCP recovery/ACK/SACK/FEC core. No deterministic result in this qualification pass requires transport retuning."
   },
   "qualification_snapshot": {
     "authority": "snapshot_not_live",
@@ -85,10 +88,10 @@
       "openwrt_tproxy": 33298964945,
       "openwrt_fullstack": 33298965023
     },
-    "windows_hosted": "windows-faketcp-persona completed success on windows-latest and executes the production Windows ingress classifiers, including the new ordered noise sequence (truncated Ethernet, ARP, IPv6, UDP, VLAN ICMP, self-capture, wrong TCP, then exact SYNACK), Reality-like single-flow virtual wire, no-HOL checks, windowsruntime/windowsdiag and native Windows build.",
-    "linux_fullstack": "single-flow-e2e proves one SYN lineage carries real TLS-like admission then DTLS data; single-flow-link-fullstack succeeds for off and 20:20; single-flow-two-client succeeds for off and 20:20; single-flow-startup-stress completes 20 rapid NAT sessions with dirty client exits against persistent server state.",
-    "weak_network": "mux-load-100m succeeds for RTT20 and RTT100 including 40/60/80 Mbit sweeps and aggregate; faketcp-first-arrival and fullstack-first-arrival succeed after targeted rerun of one random-loss point; faketcp-pcap-20loss and faketcp-native succeed.",
-    "false_negative_notes": "The first single-flow-link 20:20 attempt completed bootstrap, DTLS, LINK and 20/20 application echoes but pcap wire check failed because tcpdump reported 283 captured / 289 received / 6 packets dropped by kernel. Artifact 9728351861 confirms FakeTCP sender Enqueued=69 Acked=69 with zero FastRetransmit/RTO; targeted rerun completed success without code changes. One first-arrival random-loss point also failed once and the rerun of the matrix completed all success without code changes. Neither result justifies transport retuning."
+    "windows_hosted": "windows-faketcp-persona succeeded on windows-latest and executes production Windows ingress classifiers including the ordered physical-adapter-noise sequence, Reality-like single-flow virtual wire, no-HOL checks, windowsruntime/windowsdiag and native Windows build.",
+    "linux_fullstack": "single-flow-e2e proves one SYN lineage carries real TLS-like admission then DTLS data; LINK fullstack succeeds off and 20:20; two-client succeeds off and 20:20; startup-stress completes 20 rapid NAT sessions with dirty exits.",
+    "weak_network": "mux-load-100m succeeds RTT20 and RTT100 for 40/60/80 Mbit sweeps and aggregate; first-arrival/fullstack-first-arrival, pcap20loss and native recovery gates are success.",
+    "false_negative_notes": "Initial single-flow-link 20:20 attempt completed bootstrap/DTLS/LINK and 20/20 echoes but tcpdump reported 283 captured / 289 received / 6 dropped by kernel, producing a pcap-only sequence gap. Artifact 9728351861 confirms sender Enqueued=69 Acked=69 and zero retransmits; rerun succeeded without code changes. One random-loss first-arrival point also succeeded on rerun without code changes."
   },
   "artifact_snapshot": {
     "authority": "snapshot_not_live",
@@ -96,6 +99,7 @@
     "windows": {
       "run": 33298965247,
       "artifact_id": 9728351847,
+      "google_drive_file_id": "13C-hvhuPMVxfW2Gh2xDiYputt5dIMU3X",
       "actions_zip_sha256": "5faef1e842a7d2b42a0eb0cafef0451e46a6a071c85968a44340d7defde9a48a",
       "extracted_wbd_exe_sha256": "97c0e9aa7e199863433f01bf156bfdf619c6a637dc5be712f46a8993eda21906",
       "source_sha_file": "ed7b717d74ffa6fc823685e37a58432d46630ca6",
@@ -104,6 +108,7 @@
     "linux_arm64": {
       "run": 33298965128,
       "artifact_id": 9728339881,
+      "google_drive_file_id": "1YZ1FBHQDy0mAqGfh9wBPM7q3QjvxdJsI",
       "actions_zip_sha256": "ad73953f51c2999460f7f7a87c7adc6e2176315a56504ac6f4495924c3990b77",
       "extracted_tar_gz_sha256": "308947008046cf4e5e6ed78b5ea73bb32b51cdb78ac7421f72089eb05302083d",
       "source_sha_file": "ed7b717d74ffa6fc823685e37a58432d46630ca6",
@@ -117,15 +122,15 @@
     }
   },
   "validated_findings": {
-    "physical_failure_fix": "The prior physical Windows single-flow startup failure `faketcp: not ipv4/tcp` came from unrelated physical Npcap ingress reaching the strict handshake parser. Current Windows backend filters Ethernet/VLAN -> exact unfragmented inbound IPv4/TCP WBD four-tuple before generic parsing, and Windows-native tests now exercise realistic ordered adapter noise.",
-    "single_flow": "The product no longer uses ordinary Reality TCP -> close -> new FakeTCP SYN. FakeTCP owns the public flow from SYN, carries Reality-like real TLS setup in a temporary reliable stream, then switches in-band to DTLS/LINK/FEC on the same sequence lineage.",
-    "no_hol": "Dedicated single-flow-no-hol plus Windows virtual-wire tests prove later independent post-switch datagrams can complete while an earlier FakeTCP sequence range is missing.",
+    "physical_failure_fix": "Prior physical Windows `faketcp: not ipv4/tcp` came from unrelated Npcap ingress reaching the strict handshake parser. Current backend filters Ethernet/VLAN -> exact unfragmented inbound WBD IPv4/TCP four-tuple before parsing, with Windows-native ordered-noise regression coverage.",
+    "single_flow": "No ordinary Reality TCP -> close -> second FakeTCP SYN remains in product architecture. FakeTCP owns the public flow from SYN, carries Reality-like setup in a temporary reliable stream, then switches in-band to DTLS/LINK/FEC.",
+    "no_hol": "Dedicated no-HOL and virtual-wire tests prove later independent post-switch datagrams can complete while an earlier FakeTCP sequence range is missing.",
     "reconnect": "20 rapid full sessions through persistent NAT/server survive deliberate dirty client termination.",
-    "tcp_like_core": "No deterministic evidence from this qualification pass requires changes to the mature FakeTCP recovery/ACK/SACK/FEC core; keep it frozen.",
-    "remaining_uncertainty": "GitHub hosted Windows cannot faithfully emulate the user's installed Npcap driver, physical NIC and real ISP/NAT. That final physical environment is the only remaining acceptance layer."
+    "tcp_like_core": "Keep mature FakeTCP recovery/ACK/SACK/FEC core frozen.",
+    "remaining_uncertainty": "Hosted Windows cannot faithfully emulate the user's installed Npcap driver, physical NIC and ISP/NAT. That physical path is the remaining acceptance layer."
   },
   "operational_continuity": {
-    "durable_log": "GitHub docs/development is authoritative. Latest feature log: docs/development/2026-08-30-windows-ingress-qualification.md; predecessor single-flow release/physical qualification logs remain historical evidence.",
-    "rule": "Record major conclusions, failed hypotheses, commits, run IDs, artifact IDs/hashes and next actions in GitHub development docs. End development turns with a refreshed machine-readable handoff and handoff-verify success. Chat history is secondary and may be truncated."
+    "durable_log": "GitHub docs/development is authoritative. Latest feature log: docs/development/2026-08-30-windows-ingress-qualification.md. Durable tested binaries are the two Google Drive assets registered in .wbd/handoff/data-plane.json.",
+    "rule": "Record major conclusions, failed hypotheses, commits, run IDs, artifact IDs/hashes, Drive IDs and next actions in GitHub development state. End development turns with refreshed machine-readable handoff and handoff-verify success. Chat history is secondary and may be truncated."
   }
 }
