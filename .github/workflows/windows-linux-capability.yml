@@ -23,45 +23,37 @@ jobs:
           $ErrorActionPreference = 'Continue'
           Write-Output "WBD_WINLIN_CAPABILITY_START os=$([System.Environment]::OSVersion.VersionString)"
           Write-Output '--- wsl status ---'
-          & wsl.exe --status 2>&1 | Out-String | Write-Output
+          $status = (& wsl.exe --status 2>&1 | Out-String).Trim()
           $statusCode = $LASTEXITCODE
+          Write-Output $status
           Write-Output "WBD_WINLIN_WSL_STATUS_EXIT code=$statusCode"
+
           Write-Output '--- wsl distro list ---'
-          $list = (& wsl.exe -l -v 2>&1 | Out-String)
-          Write-Output $list
+          $list = (& wsl.exe -l -v 2>&1 | Out-String).Trim()
           $listCode = $LASTEXITCODE
+          Write-Output $list
           Write-Output "WBD_WINLIN_WSL_LIST_EXIT code=$listCode"
 
           $linuxOk = $false
-          $uname = ''
-          $id = ''
-          $raw = ''
           if ($listCode -eq 0 -and $list -notmatch 'no installed distributions' -and $list -notmatch 'There are no distributions') {
             $uname = (& wsl.exe sh -lc 'uname -a' 2>&1 | Out-String).Trim()
             $unameCode = $LASTEXITCODE
             $id = (& wsl.exe sh -lc 'id' 2>&1 | Out-String).Trim()
             $idCode = $LASTEXITCODE
-            $raw = (& wsl.exe sh -lc "python3 - <<'PY'
-import socket
-try:
-    s=socket.socket(socket.AF_INET,socket.SOCK_RAW,socket.IPPROTO_TCP)
-    print('raw_socket=pass')
-    s.close()
-except Exception as e:
-    print('raw_socket=fail:'+repr(e))
-PY" 2>&1 | Out-String).Trim()
+            $rawCmd = "import socket; s=socket.socket(socket.AF_INET,socket.SOCK_RAW,socket.IPPROTO_TCP); print('raw_socket=pass'); s.close()"
+            $raw = (& wsl.exe python3 -c $rawCmd 2>&1 | Out-String).Trim()
             $rawCode = $LASTEXITCODE
             Write-Output "WBD_WINLIN_WSL_UNAME exit=$unameCode text=$uname"
             Write-Output "WBD_WINLIN_WSL_ID exit=$idCode text=$id"
             Write-Output "WBD_WINLIN_WSL_RAW exit=$rawCode text=$raw"
-            if ($unameCode -eq 0 -and $idCode -eq 0 -and $raw -match 'raw_socket=pass') { $linuxOk = $true }
+            if ($unameCode -eq 0 -and $idCode -eq 0 -and $rawCode -eq 0 -and $raw -match 'raw_socket=pass') {
+              $linuxOk = $true
+            }
           }
+
           if ($linuxOk) {
             Write-Output 'WBD_WINLIN_WSL_RAW_CAPABILITY_PASS linux_server_process=possible raw_socket=1'
           } else {
             Write-Output 'WBD_WINLIN_WSL_RAW_CAPABILITY_UNAVAILABLE linux_server_process=unqualified'
           }
-          # This is an exploratory capability probe, not a release gate. A lack
-          # of WSL raw capability selects the synthetic packet-I/O bridge path;
-          # it must not be misreported as product failure.
           Write-Output 'WBD_WINLIN_CAPABILITY_PROBE_PASS release_authority=0'
