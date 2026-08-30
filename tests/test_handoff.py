@@ -20,32 +20,34 @@ class HandoffContractTest(unittest.TestCase):
         self.assertEqual(cp.returncode, 0, cp.stdout)
         self.assertIn("HANDOFF_VERIFY_PASS", cp.stdout)
 
-    def test_v23_single_flow_architecture_invariants_are_persisted(self):
+    def test_v24_lane_and_tunnel_architecture_invariants_are_persisted(self):
         constitution = (ROOT / "PROJECT_CONSTITUTION.md").read_text(encoding="utf-8")
         for phrase in (
-            "exactly one public TCP-shaped raw/FakeTCP association",
-            "short real-TLS Reality-like bootstrap carried inside that same FakeTCP association",
-            "temporary reliable ordered stream is permitted only during the bounded TLS/bootstrap phase",
+            "Each Transport Lane has one public client/server 4-tuple, one FakeTCP sequence space and one SYN lineage",
+            "Reality-like TLS is the first protected payload phase of that same FakeTCP association",
+            "A temporary reliable ordered stream is permitted only during bounded TLS/bootstrap for each lane",
             "later independent authenticated datagrams must be able to complete while an earlier FakeTCP sequence range is missing",
+            "A Logical Tunnel may intentionally own multiple independent lanes",
             "DTLS 1.3",
             "wolfSSL",
             "fixed systematic `20:20`",
             "40 Mbit/s aggregate inner payload",
             "OpenWrt final transparent capture through **TPROXY**",
             "Windows final client capture through a **TUN/Wintun-class L3 adapter**",
-            "Reality TCP -> close -> new FakeTCP SYN",
+            "Reality TCP -> close -> new FakeTCP payload SYN",
         ):
             self.assertIn(phrase, constitution)
 
         architecture = (ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
         for phrase in (
-            "one session = one public 4-tuple + one SYN lineage + one continuous FakeTCP sequence space",
-            "temporary reliable ordered bootstrap stream",
-            "SAME 4-tuple / SAME sequence space / NO new SYN",
-            "The product must never route sustained VPN payload through an ordinary kernel TCP byte stream",
-            "real TLS 1.3 records and configured SNI",
-            "later independent DTLS/FEC datagrams may complete while an earlier FakeTCP sequence range is missing",
-            "40 Mbit/s aggregate inner release operating point",
+            "one raw FakeTCP SYN lineage / 4-tuple / sequence space",
+            "bounded reliable bootstrap on that same association",
+            "same association, no second WBD payload SYN",
+            "one lane has one public FakeTCP association from its SYN through Reality-like bootstrap and steady payload",
+            "no separate ordinary kernel-TCP WBD payload connection exists",
+            "real TLS 1.3 ClientHello/ServerHello/Finished on the same lane sequence space",
+            "post-bootstrap earliest-complete datagram behavior",
+            "40 Mbit/s aggregate-inner conservative release operating point",
         ):
             self.assertIn(phrase, architecture)
 
@@ -60,6 +62,15 @@ class HandoffContractTest(unittest.TestCase):
             "post-switch test",
         ):
             self.assertIn(phrase, adr11)
+
+        adr12 = (ROOT / "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md").read_text(encoding="utf-8")
+        for phrase in (
+            "Logical Tunnel",
+            "Transport Lane",
+            "server-assigned",
+            "make-before-break",
+        ):
+            self.assertIn(phrase, adr12)
 
         adr10 = (ROOT / "docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md").read_text(encoding="utf-8")
         self.assertIn("AMENDED BY ADR-0011", adr10)
