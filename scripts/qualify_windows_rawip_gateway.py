@@ -3,9 +3,11 @@
 
 Two client namespaces intentionally reuse inner 10.66.0.2/30. Each real wbd-tun
 client sends M6A raw-IP frames to wbd-ip-gateway-server. The gateway must create
-isolated VRF/conntrack-zone TUN sessions and route/NAT traffic to an Internet
-namespace. DNS-style UDP, generic UDP and simultaneous identical-tuple TCP are
-required to round-trip.
+one independent Linux network namespace per backend peer and route/NAT traffic
+to an Internet namespace. DNS-style UDP, generic UDP and simultaneous identical-
+tuple TCP are required to round-trip. The clients are then killed, gateway
+sessions must clean up, and the same client addresses/ports reconnect for a
+second full probe round.
 """
 from __future__ import annotations
 
@@ -15,8 +17,6 @@ from pathlib import Path
 import shutil
 import signal
 import subprocess
-import sys
-import tempfile
 import time
 
 CLIENTS = [
@@ -57,8 +57,8 @@ def cleanup() -> None:
     quiet(["ip", "netns", "del", INTERNET_NS])
     quiet(["ip", "link", "del", INTERNET_HOST_IF])
     for i in range(64):
+        quiet(["ip", "netns", "del", f"wbdg{i:02d}"])
         quiet(["ip", "link", "del", f"wh{i:02d}"])
-        quiet(["ip", "link", "del", f"wv{i:02d}"])
         quiet(["ip", "link", "del", f"wt{i:02d}"])
 
 
@@ -122,6 +122,19 @@ def wait_log(p: Proc, needle: str, timeout: float = 12.0) -> None:
     raise RuntimeError(f"timeout waiting {needle} in {p.name}; log:\n{text[-4000:]}")
 
 
+def wait_count(p: Proc, needle: str, count: int, timeout: float = 12.0) -> None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        text = p.path.read_text(errors="replace") if p.path.exists() else ""
+        if text.count(needle) >= count:
+            return
+        if p.p.poll() is not None:
+            raise RuntimeError(f"{p.name} exited rc={p.p.returncode}; wanted {count}x {needle}; log:\n{text[-6000:]}")
+        time.sleep(0.05)
+    text = p.path.read_text(errors="replace") if p.path.exists() else ""
+    raise RuntimeError(f"timeout waiting {count}x {needle}; log:\n{text[-6000:]}")
+
+
 def start_internet(out: Path) -> Proc:
     code = r'''
 import socket,threading
@@ -162,7 +175,7 @@ print(f'UDP_PASS port={port} rtt_ms={(time.monotonic()-t)*1000:.3f}')
     return cp.stdout.strip()
 
 
-def simultaneous_tcp() -> list[str]:
+def simultaneous_tcp(round_no: int) -> list[str]:
     code = r'''
 import socket,sys,time
 payload=sys.argv[1].encode(); s=socket.socket(); s.settimeout(7)
@@ -177,7 +190,7 @@ print(f'TCP_PASS local={s.getsockname()} rtt_ms={(time.monotonic()-t)*1000:.3f}'
 '''
     ps = []
     for i, (name, *_rest) in enumerate(CLIENTS, 1):
-        ps.append(subprocess.Popen(ns(name, "python3", "-c", code, f"same-tuple-client-{i}"),
+        ps.append(subprocess.Popen(ns(name, "python3", "-c", code, f"round-{round_no}-same-tuple-client-{i}"),
                                    text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT))
     out = []
     for p in ps:
@@ -188,9 +201,57 @@ print(f'TCP_PASS local={s.getsockname()} rtt_ms={(time.monotonic()-t)*1000:.3f}'
     return out
 
 
+def start_clients(a: argparse.Namespace, backend: str, out: Path, round_no: int) -> list[Proc]:
+    clients: list[Proc] = []
+    for idx, (name, _host_if, _ns_if, host_ip, client_ip, local_port) in enumerate(CLIENTS):
+        quiet(ns(name, "ip", "link", "del", "wbd0"))
+        tun = Proc(f"tun-{backend}-r{round_no}-{idx+1}", ns(name, str(a.wbd_tun),
+            "-mode", "client", "-ifname", "wbd0", "-mtu", "1400",
+            "-local", f"{client_ip}:{local_port}", "-transport", f"{host_ip}:49100"), out)
+        clients.append(tun); wait_log(tun, "WBD_TUN_READY")
+        run(ns(name, "ip", "link", "set", "wbd0", "mtu", "1400", "up"))
+        run(ns(name, "ip", "addr", "add", INNER_CLIENT, "dev", "wbd0"))
+        run(ns(name, "ip", "route", "add", INTERNET_IP + "/32", "dev", "wbd0"))
+    return clients
+
+
+def run_probe_round(backend: str, round_no: int) -> None:
+    print(f"[{backend} r{round_no}]", udp_probe(CLIENTS[0][0], 53, f"dns-one-r{round_no}"))
+    print(f"[{backend} r{round_no}]", udp_probe(CLIENTS[1][0], 53, f"dns-two-r{round_no}"))
+    print(f"[{backend} r{round_no}]", udp_probe(CLIENTS[0][0], 5300, f"udp-one-r{round_no}"))
+    print(f"[{backend} r{round_no}]", udp_probe(CLIENTS[1][0], 5300, f"udp-two-r{round_no}"))
+    for line in simultaneous_tcp(round_no): print(f"[{backend} r{round_no}] {line}")
+
+
+def netns_names() -> set[str]:
+    cp = run(["ip", "netns", "list"], capture=True)
+    return {line.split()[0] for line in cp.stdout.splitlines() if line.strip()}
+
+
+def assert_two_gateway_netns() -> None:
+    names = netns_names()
+    if "wbdg00" not in names or "wbdg01" not in names:
+        raise RuntimeError(f"gateway netns missing; names={sorted(names)}")
+    for n in ("wbdg00", "wbdg01"):
+        cp = run(ns(n, "ip", "-4", "addr", "show"), capture=True)
+        if "10.66.0.1/30" not in cp.stdout:
+            raise RuntimeError(f"{n} missing inner server address:\n{cp.stdout}")
+
+
+def wait_gateway_netns_gone(timeout: float = 8.0) -> None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        names = netns_names()
+        if "wbdg00" not in names and "wbdg01" not in names:
+            return
+        time.sleep(0.1)
+    raise RuntimeError(f"stale gateway namespaces after idle cleanup: {sorted(netns_names())}")
+
+
 def qualify(a: argparse.Namespace, backend: str, out: Path) -> None:
     setup_network()
     procs: list[Proc] = []
+    clients: list[Proc] = []
     try:
         internet = start_internet(out)
         procs.append(internet); wait_log(internet, "INTERNET_READY")
@@ -200,39 +261,36 @@ def qualify(a: argparse.Namespace, backend: str, out: Path) -> None:
             "-backend", backend,
             "-firewall-state", f"/tmp/wbd-ipg-{backend}.state",
             "-max-sessions", "8",
-            "-idle-timeout", "30s"], out)
+            "-idle-timeout", "2s"], out)
         procs.append(gateway); wait_log(gateway, "WBD_IP_GATEWAY_READY")
 
-        for idx, (name, _host_if, _ns_if, host_ip, client_ip, local_port) in enumerate(CLIENTS):
-            tun = Proc(f"tun-{backend}-{idx+1}", ns(name, str(a.wbd_tun),
-                "-mode", "client", "-ifname", "wbd0", "-mtu", "1400",
-                "-local", f"{client_ip}:{local_port}", "-transport", f"{host_ip}:49100"), out)
-            procs.append(tun); wait_log(tun, "WBD_TUN_READY")
-            run(ns(name, "ip", "link", "set", "wbd0", "mtu", "1400", "up"))
-            run(ns(name, "ip", "addr", "add", INNER_CLIENT, "dev", "wbd0"))
-            run(ns(name, "ip", "route", "add", INTERNET_IP + "/32", "dev", "wbd0"))
+        clients = start_clients(a, backend, out, 1)
+        run_probe_round(backend, 1)
+        wait_count(gateway, "WBD_RAWIP_SESSION_READY", 2)
+        assert_two_gateway_netns()
 
-        print(f"[{backend}]", udp_probe(CLIENTS[0][0], 53, "dns-one"))
-        print(f"[{backend}]", udp_probe(CLIENTS[1][0], 53, "dns-two"))
-        print(f"[{backend}]", udp_probe(CLIENTS[0][0], 5300, "udp-one"))
-        print(f"[{backend}]", udp_probe(CLIENTS[1][0], 5300, "udp-two"))
-        for line in simultaneous_tcp(): print(f"[{backend}] {line}")
+        for p in reversed(clients): p.stop()
+        clients = []
+        wait_count(gateway, "WBD_RAWIP_SESSION_CLEAN", 2, timeout=8)
+        wait_gateway_netns_gone()
 
-        deadline = time.monotonic() + 5
-        while time.monotonic() < deadline:
-            text = gateway.path.read_text(errors="replace")
-            if text.count("WBD_IP_GATEWAY_SESSION_READY") >= 2:
-                break
-            time.sleep(0.05)
+        # Reuse the exact same client underlay addresses, local UDP ports,
+        # inner 10.66.0.2/30 and TCP source 40000. No gateway restart is allowed.
+        clients = start_clients(a, backend, out, 2)
+        run_probe_round(backend, 2)
+        wait_count(gateway, "WBD_RAWIP_SESSION_READY", 4)
+        assert_two_gateway_netns()
+
         text = gateway.path.read_text(errors="replace")
-        if text.count("WBD_IP_GATEWAY_SESSION_READY") < 2:
-            raise RuntimeError("gateway did not create two isolated sessions\n" + text[-6000:])
-        if "zone=2000" not in text or "zone=2001" not in text:
-            raise RuntimeError("conntrack zones 2000/2001 not observed\n" + text[-6000:])
-        print(f"WBD_RAWIP_GATEWAY_QUALIFY_PASS backend={backend} sessions=2 same_inner=10.66.0.2 same_tcp_source=40000 dns_udp_tcp=1")
+        for marker in ("WBD_RAWIP_RX_FIRST", "WBD_NETNS_TUN_TX_FIRST", "WBD_NETNS_TUN_RX_FIRST", "WBD_RAWIP_TX_FIRST"):
+            if text.count(marker) < 4:
+                raise RuntimeError(f"missing first-boundary marker {marker}; log:\n{text[-8000:]}")
+        if text.count("WBD_RAWIP_SESSION_COUNTERS") < 2:
+            raise RuntimeError("cleanup counters not observed after round 1\n" + text[-8000:])
+        print(f"WBD_RAWIP_GATEWAY_QUALIFY_PASS backend={backend} sessions=2 reconnect=1 same_inner=10.66.0.2 same_tcp_source=40000 dns_udp_tcp=1 isolation=netns")
     finally:
-        for p in reversed(procs):
-            p.stop()
+        for p in reversed(clients): p.stop()
+        for p in reversed(procs): p.stop()
         cleanup()
 
 
