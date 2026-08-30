@@ -8,26 +8,5 @@
     "google_drive": "durable binaries and generated binary packs",
     "qualification": "the exact SHA-256 bytes must pass the required local sandbox tests before qualified=true"
   },
-  "assets": [
-    {
-      "asset_id": "singleflow-ed7-windows-x64-actions",
-      "description": "Exact-tested Windows x64 portable Actions ZIP for single-flow physical acceptance. Contains SOURCE_SHA and wbd.exe.",
-      "sha256": "5faef1e842a7d2b42a0eb0cafef0451e46a6a071c85968a44340d7defde9a48a",
-      "google_drive_file_id": "13C-hvhuPMVxfW2Gh2xDiYputt5dIMU3X",
-      "source_head": "ed7b717d74ffa6fc823685e37a58432d46630ca6",
-      "qualified": true,
-      "qualification_receipt": "windows-portable-bundle run 33298965247 success; outer ZIP digest matches; extracted SOURCE_SHA=ed7b717d74ffa6fc823685e37a58432d46630ca6; wbd.exe SHA256=97c0e9aa7e199863433f01bf156bfdf619c6a637dc5be712f46a8993eda21906; PE32+ x86-64; windows-faketcp-persona run 33298965054 success on windows-latest.",
-      "required_for_current_task": true
-    },
-    {
-      "asset_id": "singleflow-ed7-linux-arm64-actions",
-      "description": "Exact-tested Linux ARM64 server Actions ZIP for single-flow physical acceptance. Contains server tarball and inner checksum.",
-      "sha256": "ad73953f51c2999460f7f7a87c7adc6e2176315a56504ac6f4495924c3990b77",
-      "google_drive_file_id": "1YZ1FBHQDy0mAqGfh9wBPM7q3QjvxdJsI",
-      "source_head": "ed7b717d74ffa6fc823685e37a58432d46630ca6",
-      "qualified": true,
-      "qualification_receipt": "linux-server-release run 33298965128 ARM64 success; outer ZIP digest matches; inner wbd-linux-server-arm64.tar.gz SHA256=308947008046cf4e5e6ed78b5ea73bb32b51cdb78ac7421f72089eb05302083d and bundled sha256 check passes; unpacked SOURCE_SHA=ed7b717d74ffa6fc823685e37a58432d46630ca6; runtime binaries are ELF AArch64 and DTLS shim is statically linked.",
-      "required_for_current_task": true
-    }
-  ]
+  "assets": []
 }
