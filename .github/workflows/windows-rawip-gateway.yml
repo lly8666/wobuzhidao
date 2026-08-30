@@ -1,0 +1,92 @@
+name: windows-rawip-gateway
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - '.github/workflows/windows-rawip-gateway.yml'
+      - 'cmd/wbd-ip-gateway-server/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-tun/**'
+      - 'internal/dataplane/**'
+      - 'internal/tunnel/**'
+      - 'internal/platformproxy/**'
+      - 'scripts/linux_ip_gateway_firewall.sh'
+      - 'scripts/qualify_windows_rawip_gateway.py'
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - '.github/workflows/windows-rawip-gateway.yml'
+      - 'cmd/wbd-ip-gateway-server/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-tun/**'
+      - 'internal/dataplane/**'
+      - 'internal/tunnel/**'
+      - 'internal/platformproxy/**'
+      - 'scripts/linux_ip_gateway_firewall.sh'
+      - 'scripts/qualify_windows_rawip_gateway.py'
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install privileged network prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends iproute2 iptables nftables kmod
+          sudo modprobe tun
+          sudo modprobe vrf
+          test -c /dev/net/tun
+          ip -Version
+          iptables --version
+          nft --version
+      - name: Compile and unit-test gateway contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./cmd/wbd-ip-gateway-server ./cmd/wbd-link-server-mux ./internal/dataplane ./internal/tunnel ./internal/platformproxy -count=1
+          go build -trimpath -o "$RUNNER_TEMP/wbd-ip-gateway-server" ./cmd/wbd-ip-gateway-server
+          go build -trimpath -o "$RUNNER_TEMP/wbd-tun" ./cmd/wbd-tun
+          sh -n scripts/linux_ip_gateway_firewall.sh
+          python3 -m py_compile scripts/qualify_windows_rawip_gateway.py
+      - name: Qualify dual Windows-style TUN sessions through iptables and nft
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/linux_ip_gateway_firewall.sh scripts/qualify_windows_rawip_gateway.py
+          out="$RUNNER_TEMP/rawip-gateway"
+          mkdir -p "$out"
+          set +e
+          sudo python3 scripts/qualify_windows_rawip_gateway.py \
+            --gateway "$RUNNER_TEMP/wbd-ip-gateway-server" \
+            --wbd-tun "$RUNNER_TEMP/wbd-tun" \
+            --firewall "$PWD/scripts/linux_ip_gateway_firewall.sh" \
+            --backend both --out "$out" 2>&1 | tee "$out/qualify.log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            echo '--- gateway qualification failure logs ---'
+            find "$out" -maxdepth 1 -type f -print -exec sh -c 'echo === $1; tail -n 200 "$1"' _ {} \;
+            exit "$rc"
+          fi
+          grep -q 'WBD_RAWIP_GATEWAY_QUALIFY_PASS backend=iptables sessions=2' "$out/qualify.log"
+          grep -q 'WBD_RAWIP_GATEWAY_QUALIFY_PASS backend=nft sessions=2' "$out/qualify.log"
+      - name: Upload qualification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-rawip-gateway-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/rawip-gateway
+          retention-days: 14
+          if-no-files-found: warn
