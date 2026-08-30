@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/control"
+	"github.com/lly8666/wobuzhidao/internal/dataplane"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/rawipbackend"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
@@ -49,10 +50,14 @@ func peerTunnelBinding(ps *peerSession) (realityfront.TicketBinding, bool) {
 	return binding, ok
 }
 
-func validatePeerRawIPSource(ps *peerSession, packet []byte) error {
+func validatePeerRawIPSource(ps *peerSession, frame []byte) error {
 	binding, ok := peerTunnelBinding(ps)
 	if !ok {
 		return errors.New("raw-IP lane lacks Logical Tunnel binding")
+	}
+	packet, err := dataplane.UnmarshalIP(frame)
+	if err != nil {
+		return err
 	}
 	lease, err := binding.Config.LeaseIPv4()
 	if err != nil {
