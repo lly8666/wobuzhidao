@@ -167,7 +167,9 @@ jobs:
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/mux.log"
           sudo test -s "$ROOT/client.ticket"
           sudo test -s "$ROOT/tunnel-config.json"
-          sudo python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert len(d["tunnel_id"]) == 32; assert d["address4"].endswith("/32"); assert isinstance(d["routes4"], list)' "$ROOT/tunnel-config.json"
+          TUNNEL_ID="$(sudo python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert len(d["tunnel_id"]) == 32; assert d["address4"].endswith("/32"); assert isinstance(d["routes4"], list); print(d["tunnel_id"])' "$ROOT/tunnel-config.json")"
+          TUNNEL_PREFIX="${TUNNEL_ID:0:8}"
+          test ${#TUNNEL_PREFIX} -eq 8
           echo 'SINGLE_FLOW_LINK_STAGE_PASS stage=bootstrap_v2'
           TICKET="$(sudo cat "$ROOT/client.ticket" | tr -d '\r\n')"
           test ${#TICKET} -eq 64
@@ -192,13 +194,15 @@ jobs:
           PIDS="$PIDS $LINKCLIENT"
           for i in $(seq 1 900); do
             if grep -q 'WBD_LINK_READY role=client' "$ROOT/link-client.log" && \
-               grep -q 'WBD_LINK_MUX_SESSION_READY account=singleflow' "$ROOT/link-server.log"; then break; fi
+               grep -q "WBD_LINK_LOGICAL_TUNNEL_BIND tunnel_id_prefix=${TUNNEL_PREFIX}" "$ROOT/link-server.log" && \
+               grep -q "WBD_LINK_MUX_SESSION_READY tunnel_id_prefix=${TUNNEL_PREFIX}" "$ROOT/link-server.log"; then break; fi
             sleep .05
           done
           grep -q 'WBD_LINK_READY role=client' "$ROOT/link-client.log"
-          grep -q 'WBD_LINK_MUX_SESSION_READY account=singleflow' "$ROOT/link-server.log"
+          grep -q "WBD_LINK_LOGICAL_TUNNEL_BIND tunnel_id_prefix=${TUNNEL_PREFIX}" "$ROOT/link-server.log"
+          grep -q "WBD_LINK_MUX_SESSION_READY tunnel_id_prefix=${TUNNEL_PREFIX}" "$ROOT/link-server.log"
           test "$(find "$ROOT/tickets" -type f | wc -l)" -eq 0
-          echo 'SINGLE_FLOW_LINK_STAGE_PASS stage=link'
+          echo "SINGLE_FLOW_LINK_STAGE_PASS stage=link tunnel_id_prefix=${TUNNEL_PREFIX}"
 
           cat >"$ROOT/probe.py" <<'PY'
           import socket,time
@@ -238,7 +242,7 @@ jobs:
           kill -0 "$DTLS"
           kill -0 "$LINKCLIENT"
           kill -0 "$LINKSERVER"
-          echo "SINGLE_FLOW_LINK_FULLSTACK_PASS fec=$FEC public_flows=1 tls_bootstrap=1 dtls13=1 link=1 echo=20"
+          echo "SINGLE_FLOW_LINK_FULLSTACK_PASS fec=$FEC public_flows=1 tls_bootstrap=1 dtls13=1 link=1 echo=20 tunnel_id_prefix=${TUNNEL_PREFIX}"
           echo '--- faketcp client ---'; cat "$ROOT/faketcp.log"
           echo '--- mux ---'; cat "$ROOT/mux.log"
           echo '--- dtls ---'; cat "$ROOT/dtls.log"
