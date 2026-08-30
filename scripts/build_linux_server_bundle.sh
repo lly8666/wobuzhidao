@@ -7,6 +7,7 @@ case "$ARCH" in amd64|arm64) ;; *) echo 'usage: build_linux_server_bundle.sh amd
 [ -n "$OUT" ] || { echo 'output directory required' >&2; exit 2; }
 : "${GH_TOKEN:?GH_TOKEN is required to fetch the pinned wolfSSL source artifact}"
 : "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
+BUILD_SOURCE_SHA=${WBD_SOURCE_SHA:-${GITHUB_SHA:-unknown}}
 
 host=$(uname -m)
 case "$host" in x86_64|amd64) host_arch=amd64;; aarch64|arm64) host_arch=arm64;; *) echo "unsupported build host: $host" >&2; exit 1;; esac
@@ -65,7 +66,7 @@ cp scripts/linux_server_manager.sh "$root/wbd-server"
 cp scripts/linux_server_manager.sh "$root/linux_server_manager.sh"
 cp scripts/linux_server_firewall.sh scripts/linux_server_guard.sh "$root/"
 printf '%s\n' "$ARCH" > "$root/ARCH"
-printf '%s\n' "${GITHUB_SHA:-unknown}" > "$root/SOURCE_SHA"
+printf '%s\n' "$BUILD_SOURCE_SHA" > "$root/SOURCE_SHA"
 cat > "$root/README.txt" <<'EOF'
 WBD Linux Server bundle
 =======================
@@ -91,9 +92,9 @@ carries DTLS 1.3 -> LINK/FEC datagrams without ordinary-TCP stream HOL.
 The bundled wbd-reality-front binary is diagnostic/reference only. The product
 wbd-server run path never starts it as a public listener.
 
-SOURCE_SHA records the exact repository commit used to build this bundle. Pair
-Windows and Linux physical-test artifacts only when their SOURCE_SHA values are
-identical.
+SOURCE_SHA records the exact substantive repository source head used to build
+this bundle. Pair Windows and Linux physical-test artifacts only when their
+SOURCE_SHA values are identical.
 
 Runtime application binaries are statically linked. The host kernel must support
 raw sockets and netfilter, and the OS must provide systemd plus nft or iptables.
@@ -117,4 +118,4 @@ tar -C "$OUT" -czf "$OUT/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
     sha256sum "wbd-linux-server-$ARCH.tar.gz" > "wbd-linux-server-$ARCH.tar.gz.sha256"
     sha256sum -c "wbd-linux-server-$ARCH.tar.gz.sha256"
 )
-echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 public_single_flow=1 source_sha=${GITHUB_SHA:-unknown} portable_checksum=1"
+echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 public_single_flow=1 source_sha=$BUILD_SOURCE_SHA portable_checksum=1"
