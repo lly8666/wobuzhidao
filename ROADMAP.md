@@ -1,6 +1,6 @@
 # Roadmap
 
-> **Status: V2.3 SINGLE-FLOW CORRECTION ACTIVE.** The steady-state transport remains UDP/datagram-like over one WBD-owned TCP-shaped FakeTCP carrier, but ADR-0011 replaces the old two-public-connection Reality/FakeTCP setup with one continuous public flow.
+> **Status: V2.3 SINGLE-FLOW MAINLINE CANDIDATE.** ADR-0011 replaces the old two-public-connection Reality/FakeTCP setup with one continuous public FakeTCP-owned flow. Automated protocol/platform qualification is strong; final release acceptance still requires a same-source physical Windows + Linux/OpenWrt one-shot.
 
 | Milestone | Scope | Status / exit gate |
 | --- | --- | --- |
@@ -12,174 +12,135 @@
 | V2-M5 | optional two raw lanes | **DEFERRED** |
 | V2-M6A/B | packet-preserving Linux/TUN regression harness | **IMPLEMENTED** |
 | V2-M6C | OpenWrt transparent capture | **FINAL SHAPE: TPROXY + POLICY ROUTING** |
-| V2-M7A/B | Windows TUN + full/split routing | **IMPLEMENTED / PHYSICAL QUALIFICATION IN PROGRESS** |
+| V2-M7A/B | Windows TUN + full/split routing | **IMPLEMENTED / PHYSICAL ACCEPTANCE PENDING** |
 | V2-M8A-old | separate ordinary-TCP Reality-like front | **SUPERSEDED BY ADR-0011** |
-| V2-M8A-SF1 | temporary reliable FakeTCP bootstrap stream | **IMPLEMENTED + NO-HOL BOUNDARY UNIT-QUALIFIED** |
+| V2-M8A-SF1 | temporary reliable FakeTCP bootstrap stream | **IMPLEMENTED + QUALIFIED** |
 | V2-M8A-SF2 | real TLS 1.3 / Reality-like auth over same FakeTCP association | **IMPLEMENTED + SINGLE-FLOW E2E QUALIFIED** |
-| V2-M8A-SF3 | raw-listener fallback/decoy proxy + fingerprint qualification | **NEXT ARCHITECTURE/RESEMBLANCE GATE** |
-| V2-M8B-T1 | native FakeTCP + FEC first-arrival / pcap qualification | **RETAINED / GREEN ON CURRENT SINGLE-FLOW HEAD** |
+| V2-M8A-SF3 | raw-listener fallback/decoy proxy + fingerprint qualification | **FALLBACK IMPLEMENTED/E2E GREEN; FINGERPRINT MEASUREMENT REMAINS** |
+| V2-M8B-T1 | native FakeTCP + FEC first-arrival / pcap qualification | **RETAINED / GREEN** |
 | V2-M8B-T2 | fixed FEC + immutable setup | **RETAINED** |
-| V2-M8C | shared-account concurrent association/DTLS/LiveID fan-out | **RETAINED, MUST BE REQUALIFIED WITH SINGLE-FLOW BOOTSTRAP** |
+| V2-M8C | shared-account concurrent association/DTLS/LiveID fan-out | **SINGLE-FLOW TWO-CLIENT REQUALIFIED / GREEN** |
 | V2-M9 | optional two-lane research | **POST-RELEASE ONLY IF JUSTIFIED** |
-| V2-M10 | release qualification | single-flow protocol gate -> OpenWrt one-shot -> Windows one-shot |
+| V2-M10 | release qualification | **AUTOMATED GATES GREEN; SAME-SOURCE PHYSICAL WINDOWS + LINUX/OPENWRT ACCEPTANCE PENDING** |
 
-## Current single-flow qualification evidence
+## Frozen product invariant
 
-At PR #9 head `fd2fbc10e5ce8225d8cbf47b7e1bb3990095dbaf`, the dedicated `single-flow-e2e` gate proves the core public-flow invariant with packet capture and the pinned wolfSSL DTLS implementation:
-
-- exactly one client SYN sequence lineage for `10.88.0.2:41001 -> 10.88.0.1:443`;
-- no second client 4-tuple to public port 443;
-- real TLS 1.3 / Reality-like bootstrap reports `same_flow=1` on client and server;
-- the same FakeTCP processes remain alive through the mode switch;
-- DTLS server reaches PEEK / PEER_SET / HRR / ACCEPT_PASS and DTLS 1.3 READY;
-- DTLS client reaches CONNECT_PASS and DTLS 1.3 READY;
-- 20/20 bidirectional echo probes succeed after the switch.
-
-The separate `faketcp-pcap-20loss` gate is also green after fixing capture readiness; no FakeTCP recovery algorithm was changed to obtain that result.
-
-This is a protocol/integration qualification checkpoint, not final physical Windows/OpenWrt release qualification. The project still must complete the resemblance/fallback gate, concurrent-session requalification, and clean platform one-shot gates.
-
-## Product order of operations
-
-Development now proceeds in this order:
-
-1. keep the measured steady-state no-HOL/FEC/DTLS behavior unchanged;
-2. make FakeTCP own the public 4-tuple from the first SYN;
-3. add a bounded reliable ordered stream adapter only for TLS bootstrap;
-4. run real TLS 1.3 + Reality-like marker + shared username/password admission on that adapter;
-5. switch to DTLS/datagram mode on the same 4-tuple/sequence space with no FIN/RST/new SYN;
-6. prove a later post-switch datagram bypasses an earlier sequence hole;
-7. add/qualify unrecognized ClientHello fallback and the selected TCP/TLS fingerprint;
-8. re-run concurrent sessions, <=100 Mbit/s load and pcap gates;
-9. re-run OpenWrt TPROXY and Windows TUN one-shot release qualification.
-
-Steps 2-6 are now implemented; the dedicated single-flow E2E gate has qualified steps 2-5, and unit tests cover the post-bootstrap hole-bypass invariant in step 6. Platform convenience must not reintroduce a second public setup connection.
-
-## V2-M8A-SF1 — bounded bootstrap stream
-
-The bootstrap adapter exists because real TLS requires ordered reliable bytes. It is intentionally not a general-purpose steady-state stream.
-
-Required properties:
-
-- one existing FakeTCP association provides the sequence space;
-- out-of-order bootstrap bytes are buffered only until contiguous;
-- writes are split into bounded chunks and ACK-gated;
-- setup has an absolute deadline and bounded memory;
-- closing the adapter does not emit an outer FIN or create a new flow;
-- the adapter is discarded after authentication/mode barrier.
-
-Unit tests cover bootstrap stream behavior and the transition back to normal datagram semantics, including delivery of a later post-bootstrap datagram across an earlier missing FakeTCP sequence range.
-
-## V2-M8A-SF2 — TLS/Reality-like admission on the same association
-
-Qualified establishment shape:
+A product WBD session is:
 
 ```text
-FakeTCP SYN / SYN-ACK / ACK
-  -> TLS 1.3 ClientHello / ServerHello / Finished
-  -> Reality-like marker recognition
-  -> username/password inside TLS
-  -> one-time ticket inside TLS
-  -> ACK drain / mode barrier
-  -> SAME FakeTCP flow
-  -> DTLS 1.3
-  -> ticket bind / LINK_INIT / LINK_ACCEPT
+one raw FakeTCP SYN lineage
+  -> bounded reliable ordered bootstrap on that same association
+  -> real TLS 1.3 / Reality-like marker + admission
+  -> ACK drain + mode barrier
+  -> SAME 4-tuple / SAME sequence space / NO new SYN
+  -> pinned wolfSSL DTLS 1.3
+  -> immutable LINK
+  -> optional fixed FEC
+  -> packet/datagram VPN payload without ordinary-TCP HOL
 ```
 
-There is no separate `wbd-reality-front` public product connection before FakeTCP. The old front binary may remain only as a diagnostic/reference tool.
+There is no separate product `Reality TCP -> close -> FakeTCP` sequence and no parallel kernel TCP Reality listener owning WBD admission on the public port.
 
-Windows product startup is:
+## Current automated qualification evidence
 
-```text
-single-flow FakeTCP TLS/auth ready
-  -> FakeTCP steady-mode READY
-  -> DTLS READY
-  -> LINK READY
-  -> TUN READY
-  -> IPv6 fail-closed
-  -> routes
-```
+The last fully qualified substantive feature head before release-manifest hardening was `fd0f1efeeb88e73f5bbf7034a7e1c7742c4f842b` on PR #9. Exact-head workflow evidence includes:
 
-Linux product startup uses one raw public listener, not a kernel TCP front plus raw listener sharing the numeric port.
+- `ci` — success, run `33293553761`;
+- `single-flow-e2e` — success, run `33293553782`;
+- `single-flow-no-hol` — success, run `33293553801`;
+- `single-flow-two-client` — success, run `33293553757`;
+- `single-flow-tcp-persona` — success, run `33293553825`;
+- `single-flow-link-fullstack` — success, run `33293553790`;
+- `single-flow-startup-stress` — success, run `33293553830`;
+- `windows-faketcp-persona` — success, run `33293553765`;
+- `windows-portable-bundle` — success, run `33293553733`;
+- `windows-tun-build` — success, run `33293553796`;
+- `windows-tun-admin-smoke` — success, run `33293553824`;
+- `linux-server-release` — success, run `33293553809`;
+- `linux-shared-port` — success, run `33293553808`;
+- `mux-load-100m` — success, run `33293553734`;
+- `faketcp-native` — success, run `33293553811`;
+- `faketcp-first-arrival` — success, run `33293553826`;
+- `faketcp-pcap-20loss` — success, run `33293553807`;
+- `fullstack-first-arrival` — success, run `33293553836`.
 
-## V2-M8A-SF3 — probe/fingerprint resemblance
+These are automated qualification results, not physical release acceptance.
 
-Single-flow is necessary but not sufficient for Reality-like behavior.
+## What the dedicated single-flow gates prove
 
-The release-facing resemblance gate must measure:
+`single-flow-e2e` proves one public SYN lineage, one public 4-tuple, real TLS 1.3 Reality-like bootstrap, same-process mode switch, pinned wolfSSL DTLS 1.3, and bidirectional post-switch payload.
 
-- SYN/SYN-ACK option/window/TTL profile against the selected realistic reference;
-- real TLS 1.3 ClientHello with configured SNI;
-- ClientHello/extension ordering against the selected target profile;
-- no WBD-specific plaintext before TLS;
-- active-probe behavior for an unrecognized ClientHello.
+`single-flow-no-hol` separately proves the key delivery boundary: after the mode switch, a later independent authenticated datagram can be delivered before an intentionally missing earlier FakeTCP payload is repaired. Bootstrap stream ordering is therefore not inherited by the sustained data plane.
 
-The target server behavior for an unrecognized ClientHello is a raw-stream proxy to the configured decoy target. This is allowed to use an ordinary outbound TCP connection because it is decoy traffic, not WBD VPN payload.
+`single-flow-two-client` requalifies concurrent shared-account sessions on independent raw 4-tuples/LiveIDs.
 
-Until those pcap comparisons pass, use precise wording such as **real TLS single-flow bootstrap**; do not claim browser-perfect or "99% Reality" qualification.
+`single-flow-startup-stress` keeps one server stack alive while running repeated full TLS-bootstrap -> DTLS -> LINK -> echo cycles through a NAT namespace with dirty client exits and fresh source ports. This is the durable reconnect/lifecycle regression rather than relying on a one-shot happy path.
 
-## Retained no-HOL transport evidence
+## Reality-like resemblance / fallback
 
-The native public carrier remains WBD-owned TCP-shaped raw packets. Existing focused gates demonstrate SYN/SYN-ACK/ACK, MSS/SACK/window scale, cumulative ACK/SACK, shadow retransmission and complete out-of-order inner datagram delivery.
+Single-flow is necessary but not sufficient to claim browser-perfect or "99% Reality" resemblance.
 
-ADR-0011 changes the setup boundary only. After the mode barrier, steady-state tests must continue to prove that later independent DTLS/FEC datagrams can complete before repair of an earlier FakeTCP sequence hole.
+Current requirements remain:
 
-## 100 Mbit/s weak-link release decision
+- one plausible TCP-shaped SYN/SYN-ACK/ACK lineage;
+- real TLS 1.3 records and configured SNI on the same FakeTCP sequence space;
+- WBD recognition/authentication only inside TLS;
+- no credentials/ticket in plaintext capture;
+- unrecognized ClientHello remains in bootstrap stream mode and reaches the configured decoy target;
+- selected SYN/TCP-option and TLS ClientHello fingerprint is measured against the chosen reference profile.
 
-Current critical qualification remains <=100 Mbit/s. The release operating point stays 40 Mbit/s aggregate inner payload because higher loaded points consumed excessive latency margin.
+Fallback transport is implemented and has dedicated single-flow E2E coverage. Browser/REALITY fingerprint wording remains evidence-driven; do not claim "99%" until pcap comparison supports it.
 
-Therefore:
+## Frozen steady-state transport
 
-- `legacy` FakeTCP shadow recovery remains the product default;
-- `sack-rack` remains experimental;
-- FEC wire remains `off` or fixed systematic `20:20` for the current release;
-- one raw lane remains the release baseline.
+ADR-0011 reopened only establishment. The qualified steady-state choices remain frozen unless deterministic evidence requires reopening them:
 
-The single-flow correction must not silently reopen these choices.
+- pinned wolfSSL DTLS 1.3;
+- one raw lane;
+- `legacy` FakeTCP shadow recovery default;
+- FEC `off` or fixed systematic `20:20`;
+- immutable LINK parameters;
+- <=100 Mbit/s weak-link qualification ceiling;
+- 40 Mbit/s aggregate-inner release operating point.
 
-## Shared account / concurrent sessions
+## Platform release paths
 
-The server remains a personal shared-account service:
+### Linux/OpenWrt server
 
-- one username/password may be used by several devices;
-- each successful TLS bootstrap gets a distinct one-time ticket;
-- live identity is ticket/LiveID, not username;
-- each public raw 4-tuple owns independent bootstrap state, DTLS worker and immutable link/FEC state.
+Product mode owns `WBD_PORT` with one raw `wbd-faketcp-mux` listener. Reality-like TLS setup is the first phase of each raw association. `wbd-reality-front` may remain in a bundle only as a diagnostic/reference binary and must never be started by the product server run path.
 
-Updated fan-out target:
+OpenWrt final capture remains TPROXY + policy routing with explicit underlay escape and complete WBD-owned cleanup.
 
-```text
-one public raw listener
-  -> flow A: TLS bootstrap -> DTLS worker A -> LiveID A
-  -> flow B: TLS bootstrap -> DTLS worker B -> LiveID B
-  -> probe C: unrecognized TLS -> fallback stream proxy
-```
+### Windows
 
-The two-client gate must be rerun after the single-flow integration; old two-connection admission evidence remains historical only.
+Product `Connect()` discovers the underlay first, assigns a fresh dynamic raw source port, starts the sole FakeTCP process, waits for `WBD_SINGLE_FLOW_BOOTSTRAP_READY`, then starts DTLS/LINK/TUN through readiness gates. It must not run a preliminary ordinary-TCP Reality bootstrap.
 
-## OpenWrt TPROXY release path
+Device-wide IPv6 remains fail-closed while connected until an IPv6 product path is separately qualified.
 
-OpenWrt final mode still uses TPROXY + policy routing. It must exempt the single WBD public underlay flow before broad capture and restore all WBD-owned state on exit/failure.
+## Same-source artifact rule
 
-Release proof must include DNS, TCP and UDP application traffic over the one public association.
+Physical acceptance must never mix artifacts from different substantive commits.
 
-## Windows TUN release path
+Windows portable and Linux server bundles must carry an explicit `SOURCE_SHA`. Before any physical Windows <-> Linux/OpenWrt qualification, compare the two values. A mismatch invalidates the test before networking begins.
 
-Windows final mode remains TUN/Wintun-class L3 capture with Full/Foreign/China route policy, underlay escape, compact prefix classification and cleanup.
-
-The readiness sequence must not call the connection successful before the single-flow TLS bootstrap, FakeTCP steady-mode readiness, DTLS, LINK and TUN are actually ready.
+This rule exists because independently green Windows and Linux workflows are insufficient evidence that the exact pair handed to an operator was built from identical source.
 
 ## V2-M10 final release gate
+
+A candidate becomes release-acceptable only when all of the following are true on one exact substantive source SHA:
 
 1. unit/protocol/pcap regressions green;
 2. exactly one public WBD SYN lineage from setup through data mode;
 3. real TLS bootstrap and authenticated admission on that flow;
 4. post-switch no-HOL hole-bypass test green;
 5. shared-account two-client single-flow fan-out green;
-6. <=100 Mbit/s 40 Mbit release/load surface green;
-7. clean OpenWrt TPROXY one-shot passes;
-8. clean Windows TUN one-shot passes;
-9. cleanup restores platform state.
+6. <=100 Mbit/s / 40 Mbit release-load surface green;
+7. Windows and Linux/OpenWrt artifacts both report the same `SOURCE_SHA`;
+8. clean physical Linux/OpenWrt server start passes;
+9. clean physical Windows TUN one-shot passes DNS + UDP + TCP application probes over that server;
+10. disconnect/failure cleanup restores routes, NRPT/DNS, IPv6 and firewall state without manual repair.
+
+Until items 7-10 are observed together, do not call a package final or release-ready.
 
 ## Removed / rejected work
 
