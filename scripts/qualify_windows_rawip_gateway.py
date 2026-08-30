@@ -178,7 +178,7 @@ print(f'UDP_PASS port={port} rtt_ms={(time.monotonic()-t)*1000:.3f}')
 def simultaneous_tcp(round_no: int) -> list[str]:
     code = r'''
 import socket,sys,time
-payload=sys.argv[1].encode(); s=socket.socket(); s.settimeout(7)
+payload=sys.argv[1].encode(); s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.settimeout(7)
 s.bind(('10.66.0.2',40000)); t=time.monotonic(); s.connect(('203.0.113.2',8443)); s.sendall(payload)
 d=b''
 while len(d)<len(payload):
