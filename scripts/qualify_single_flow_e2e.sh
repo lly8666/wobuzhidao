@@ -222,4 +222,10 @@ run_fallback() {
 run_primary
 run_fallback
 
+# The qualifier intentionally runs as root because network namespaces/raw sockets
+# require it. Product ticket/tunnel files remain mode 0600 in normal operation;
+# only these disposable CI evidence files are made readable so the non-root
+# upload-artifact action can archive them.
+find "$OUT" -maxdepth 1 -type f \( -name '*.log' -o -name '*.pcap' -o -name '*tunnel.json' \) -exec chmod a+r {} +
+
 echo 'SINGLE_FLOW_E2E_QUALIFY_PASS primary=1 fallback=1 one_public_flow=1 logical_tunnel_v2=1'
