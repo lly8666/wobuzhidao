@@ -73,9 +73,11 @@ jobs:
             sudo ip netns del "$S" 2>/dev/null
           }
           trap cleanup EXIT
-          rm -f /tmp/nohol/*.log /tmp/nohol/client.ticket /tmp/nohol/received.jsonl
+          rm -f /tmp/nohol/*.log /tmp/nohol/client.ticket /tmp/nohol/client-tunnel.json /tmp/nohol/received.jsonl
 
-          sudo ip netns add "$C"; sudo ip netns add "$R"; sudo ip netns add "$S"
+          sudo ip netns add "$C"
+          sudo ip netns add "$R"
+          sudo ip netns add "$S"
           sudo ip link add nhc type veth peer name nhr0
           sudo ip link add nhr1 type veth peer name nhs
           sudo ip link set nhc netns "$C"; sudo ip link set nhr0 netns "$R"
@@ -133,6 +135,8 @@ jobs:
             --reality-route-key 0123456789abcdef0123456789abcdef \
             --reality-username nohol --reality-password nohol-test-password \
             --reality-ticket-out /tmp/nohol/client.ticket \
+            --reality-installation-id 00112233445566778899aabbccddeeff \
+            --reality-tunnel-config-out /tmp/nohol/client-tunnel.json \
             --reality-verify-server=false --reality-timeout 12s \
             >/tmp/nohol/faketcp.log 2>&1 & FC=$!
           PIDS="$PIDS $FC"
@@ -143,6 +147,8 @@ jobs:
           done
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/nohol/faketcp.log
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/nohol/mux.log
+          sudo test -s /tmp/nohol/client-tunnel.json
+          sudo python3 -c 'import json; d=json.load(open("/tmp/nohol/client-tunnel.json")); assert len(d["tunnel_id"])==32; assert d["address4"].endswith("/32")'
 
           sudo ip netns exec "$C" /tmp/nohol/wbd_dtls_shim client 46101 127.0.0.1 45101 none none \
             >/tmp/nohol/dtls.log 2>&1 & DTLS=$!
@@ -225,6 +231,10 @@ jobs:
           echo '--- mux ---'; cat /tmp/nohol/mux.log
           echo '--- dtls ---'; cat /tmp/nohol/dtls.log
           echo '--- router ---'; sudo ip netns exec "$R" iptables -L FORWARD -n -v -x
+      - name: Prepare no-HOL evidence
+        if: always()
+        run: |
+          sudo find /tmp/nohol -maxdepth 1 -type f -exec chmod a+r {} + 2>/dev/null || true
       - name: Upload no-HOL evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -236,4 +246,5 @@ jobs:
             /tmp/nohol/faketcp.log
             /tmp/nohol/mux.log
             /tmp/nohol/dtls.log
+            /tmp/nohol/client-tunnel.json
           if-no-files-found: warn
