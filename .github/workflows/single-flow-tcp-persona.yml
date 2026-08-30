@@ -58,7 +58,8 @@ jobs:
           trap cleanup EXIT
 
           rm -f /tmp/persona/public.pcap /tmp/persona/tcpdump.log /tmp/persona/tcpdump.pid \
-            /tmp/persona/client.log /tmp/persona/mux.log /tmp/persona/report.json /tmp/persona/client.ticket
+            /tmp/persona/client.log /tmp/persona/mux.log /tmp/persona/report.json /tmp/persona/client.ticket \
+            /tmp/persona/client-tunnel.json
 
           sudo ip netns add "$S"
           sudo ip netns add "$C"
@@ -112,6 +113,8 @@ jobs:
             --reality-route-key 0123456789abcdef0123456789abcdef \
             --reality-username persona --reality-password persona-test-password \
             --reality-ticket-out /tmp/persona/client.ticket \
+            --reality-installation-id 11223344556677889900aabbccddeeff \
+            --reality-tunnel-config-out /tmp/persona/client-tunnel.json \
             --reality-verify-server=false --reality-timeout 12s \
             >/tmp/persona/client.log 2>&1 & FC=$!
           PIDS="$PIDS $FC"
@@ -125,6 +128,8 @@ jobs:
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/persona/client.log
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/persona/mux.log
           sudo test -s /tmp/persona/client.ticket
+          sudo test -s /tmp/persona/client-tunnel.json
+          sudo python3 -c 'import json; d=json.load(open("/tmp/persona/client-tunnel.json")); assert len(d["tunnel_id"])==32; assert d["address4"].endswith("/32")'
 
           for i in $(seq 1 200); do
             PCAP_SIZE="$(sudo stat -c%s /tmp/persona/public.pcap 2>/dev/null || echo 0)"
@@ -148,6 +153,10 @@ jobs:
             /tmp/persona/report.json --server-name wbd.test
           echo '--- client ---'; cat /tmp/persona/client.log
           echo '--- mux ---'; cat /tmp/persona/mux.log
+      - name: Prepare persona evidence
+        if: always()
+        run: |
+          sudo chmod a+r /tmp/persona/client-tunnel.json 2>/dev/null || true
       - name: Upload persona evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -158,4 +167,5 @@ jobs:
             /tmp/persona/report.json
             /tmp/persona/client.log
             /tmp/persona/mux.log
+            /tmp/persona/client-tunnel.json
           if-no-files-found: warn
