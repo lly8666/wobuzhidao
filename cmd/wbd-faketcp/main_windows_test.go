@@ -33,6 +33,36 @@ func TestEthernetIPv4Payload(t *testing.T) {
 	}
 }
 
+func TestEthernetIPv4PayloadQinQAndNonIPv4Noise(t *testing.T) {
+	ip := []byte{0x45, 0, 0, 20}
+	qinq := make([]byte, 22+len(ip))
+	binary.BigEndian.PutUint16(qinq[12:14], 0x88a8)
+	binary.BigEndian.PutUint16(qinq[16:18], 0x8100)
+	binary.BigEndian.PutUint16(qinq[20:22], 0x0800)
+	copy(qinq[22:], ip)
+	got, ok := ethernetIPv4Payload(qinq)
+	if !ok || string(got) != string(ip) {
+		t.Fatalf("QinQ Ethernet IPv4 parse failed: ok=%v got=%x", ok, got)
+	}
+
+	for _, etherType := range []uint16{0x0806, 0x86dd, 0x88cc} { // ARP, IPv6, LLDP.
+		frame := make([]byte, 64)
+		binary.BigEndian.PutUint16(frame[12:14], etherType)
+		if _, ok := ethernetIPv4Payload(frame); ok {
+			t.Fatalf("non-IPv4 EtherType %#x must be ignored", etherType)
+		}
+	}
+	for n := 0; n < 22; n++ {
+		frame := make([]byte, n)
+		if n >= 14 {
+			binary.BigEndian.PutUint16(frame[12:14], 0x88a8)
+		}
+		if _, ok := ethernetIPv4Payload(frame); ok {
+			t.Fatalf("truncated Ethernet/VLAN frame len=%d must be ignored", n)
+		}
+	}
+}
+
 func TestParseEtherMAC(t *testing.T) {
 	m, err := parseEtherMAC("02:11:22:33:44:55")
 	if err != nil {
@@ -113,6 +143,65 @@ func TestMatchesInboundFlowRejectsPhysicalAdapterNoise(t *testing.T) {
 	binary.BigEndian.PutUint16(badTotal[2:4], 39)
 	if r.matchesInboundFlow(badTotal) {
 		t.Fatal("truncated IPv4/TCP packet must be rejected")
+	}
+}
+
+func TestMatchesInboundFlowWithIPv4Options(t *testing.T) {
+	r := testFlowIO()
+	pkt := make([]byte, 44)
+	pkt[0] = 0x46 // IPv4 with four bytes of options.
+	binary.BigEndian.PutUint16(pkt[2:4], uint16(len(pkt)))
+	pkt[9] = 6
+	copy(pkt[12:16], r.remoteIP[:])
+	copy(pkt[16:20], r.sourceIP[:])
+	binary.BigEndian.PutUint16(pkt[24:26], r.remotePort)
+	binary.BigEndian.PutUint16(pkt[26:28], r.sourcePort)
+	pkt[36] = 5 << 4
+	if !r.matchesInboundFlow(pkt) {
+		t.Fatal("exact inbound WBD TCP packet with IPv4 options must pass")
+	}
+
+	badIHL := append([]byte(nil), pkt...)
+	badIHL[0] = 0x4f
+	if r.matchesInboundFlow(badIHL) {
+		t.Fatal("IPv4 header length beyond captured packet must be rejected")
+	}
+}
+
+func TestInboundFlowMutationCorpusRejectsNoise(t *testing.T) {
+	r := testFlowIO()
+	valid := makeFlowPacket(6, r.remoteIP, r.sourceIP, r.remotePort, r.sourcePort)
+	for i := 0; i < 4096; i++ {
+		pkt := append([]byte(nil), valid...)
+		switch i % 8 {
+		case 0:
+			pkt[12] ^= byte(1 + i%251)
+		case 1:
+			pkt[16] ^= byte(1 + i%251)
+		case 2:
+			pkt[9] = byte(1 + i%5)
+		case 3:
+			binary.BigEndian.PutUint16(pkt[20:22], r.remotePort+uint16(1+i%1000))
+		case 4:
+			binary.BigEndian.PutUint16(pkt[22:24], r.sourcePort+uint16(1+i%1000))
+		case 5:
+			binary.BigEndian.PutUint16(pkt[6:8], 0x2000|uint16(i&0x1fff))
+		case 6:
+			binary.BigEndian.PutUint16(pkt[2:4], uint16(i%40))
+		case 7:
+			pkt[0] = 0x60 // IPv6-shaped noise delivered after Ethernet extraction must still be rejected.
+		}
+		if r.matchesInboundFlow(pkt) {
+			t.Fatalf("noise mutation %d unexpectedly matched exact inbound WBD flow", i)
+		}
+	}
+	for n := 0; n < len(valid); n++ {
+		if r.matchesInboundFlow(valid[:n]) {
+			t.Fatalf("truncated exact packet len=%d unexpectedly matched", n)
+		}
+	}
+	if !r.matchesInboundFlow(valid) {
+		t.Fatal("mutation corpus guard damaged exact-flow acceptance")
 	}
 }
 
@@ -217,4 +306,21 @@ func TestFlowPayloadBytesExactDirection(t *testing.T) {
 	if _, ok := r.flowPayloadBytes(wrongPort, true); ok {
 		t.Fatal("different four-tuple must not match payload boundary")
 	}
+}
+
+func FuzzNpcapIngressClassifierNeverPanics(f *testing.F) {
+	f.Add([]byte{})
+	f.Add(make([]byte, 13))
+	f.Add(make([]byte, 64))
+	f.Fuzz(func(t *testing.T, frame []byte) {
+		r := testFlowIO()
+		packet, ok := ethernetIPv4Payload(frame)
+		if !ok {
+			return
+		}
+		_ = r.matchesInboundFlow(packet)
+		_ = r.matchesKernelRST(packet)
+		_, _ = r.flowPayloadBytes(packet, false)
+		_, _ = r.flowPayloadBytes(packet, true)
+	})
 }
