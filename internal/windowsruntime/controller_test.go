@@ -43,6 +43,16 @@ func TestControllerTicketFailureStopsOnlyPublicFlow(t *testing.T){
 	r:=&recordingRunner{};tickets:=&recordingTicketStore{runner:r,ticket:strings.Repeat("cd",32),errorRead:errors.New("TLS auth failed")};c:=NewController(r,&recordingUnderlayDiscoverer{runner:r,underlay:testUnderlay()},tickets);if err:=c.Connect(testProfile());err==nil{t.Fatal("expected ticket failure")};want:=[]string{"ticket:clear","discover:underlay","start:faketcp","ready:faketcp:bootstrap","ticket:read","stop:faketcp"};if !reflect.DeepEqual(r.events,want){t.Fatalf("events=%v want=%v",r.events,want)}
 }
 
+func TestControllerExecutorRollbackStopsTransferredFakeTCPExactlyOnce(t *testing.T) {
+	r := &recordingRunner{fail: "route-apply"}
+	c := testController(r)
+	if err := c.Connect(testProfile()); err == nil { t.Fatal("expected route apply failure") }
+	stops := 0
+	for _, event := range r.events { if event == "stop:faketcp" { stops++ } }
+	if stops != 1 { t.Fatalf("transferred FakeTCP stop count=%d events=%v", stops, r.events) }
+	if got := c.State(); got != RuntimeDisconnected { t.Fatalf("failed Connect state=%s", got) }
+}
+
 func TestControllerUnderlayFailureNeverStartsPublicFlow(t *testing.T){
 	r:=&recordingRunner{};tickets:=&recordingTicketStore{runner:r,ticket:strings.Repeat("cd",32)};d:=&recordingUnderlayDiscoverer{runner:r,err:errors.New("no neighbor")};c:=NewController(r,d,tickets);if err:=c.Connect(testProfile());err==nil{t.Fatal("expected underlay failure")};want:=[]string{"ticket:clear","discover:underlay"};if !reflect.DeepEqual(r.events,want){t.Fatalf("events=%v want=%v",r.events,want)}
 }
