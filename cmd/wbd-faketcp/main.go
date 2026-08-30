@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/json"
@@ -16,7 +15,6 @@ import (
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
-	"github.com/lly8666/wobuzhidao/internal/realityfront"
 )
 
 var errRawTimeout = errors.New("raw packet read timeout")
@@ -42,13 +40,15 @@ type config struct {
 	sourceMAC    string
 	nextHopMAC   string
 
-	realityServerName string
-	realityRouteKey   string
-	realityUsername   string
-	realityPassword   string
-	realityTicketOut  string
-	realityVerify     bool
-	realityTimeout    time.Duration
+	realityServerName     string
+	realityRouteKey       string
+	realityUsername       string
+	realityPassword       string
+	realityTicketOut      string
+	realityInstallationID string
+	realityTunnelConfigOut string
+	realityVerify         bool
+	realityTimeout        time.Duration
 }
 
 type endpoint struct {
@@ -113,6 +113,8 @@ func main() {
 	fs.StringVar(&c.realityUsername, "reality-username", "", "single-flow shared account username")
 	fs.StringVar(&c.realityPassword, "reality-password", "", "single-flow shared account password")
 	fs.StringVar(&c.realityTicketOut, "reality-ticket-out", "", "0600 local file receiving the same-flow one-time ticket")
+	fs.StringVar(&c.realityInstallationID, "reality-installation-id", "", "stable 32-hex installation identity for Logical Tunnel lease ownership")
+	fs.StringVar(&c.realityTunnelConfigOut, "reality-tunnel-config-out", "", "0600 local JSON file receiving authenticated Logical Tunnel config")
 	fs.BoolVar(&c.realityVerify, "reality-verify-server", false, "verify TLS bootstrap certificate/hostname")
 	fs.DurationVar(&c.realityTimeout, "reality-timeout", 12*time.Second, "single-flow TLS/bootstrap deadline")
 	_ = fs.Parse(os.Args[2:])
@@ -158,21 +160,14 @@ func main() {
 		rawStarted = true
 		go func() { errCh <- e.retransmitLoop() }()
 		retransmitStarted = true
-		ticket, tlsState, err := realityfront.BootstrapClientSingleFlow(context.Background(), stream, realityfront.SingleFlowClientConfig{
-			ServerName: c.realityServerName, RouteKey: []byte(c.realityRouteKey), Username: c.realityUsername,
-			Password: c.realityPassword, VerifyServer: c.realityVerify, Timeout: c.realityTimeout,
-		})
+		tlsState, err := runSingleFlowBootstrapV2(stream, c)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "WBD_SINGLE_FLOW_BOOTSTRAP_FAIL", err)
 			os.Exit(1)
 		}
-		if err := os.WriteFile(c.realityTicketOut, []byte(ticket.Hex()+"\n"), 0o600); err != nil {
-			fmt.Fprintln(os.Stderr, "WBD_SINGLE_FLOW_BOOTSTRAP_FAIL write ticket:", err)
-			os.Exit(1)
-		}
 		e.clearBootstrap(stream)
 		_ = stream.Close()
-		fmt.Printf("WBD_SINGLE_FLOW_BOOTSTRAP_READY tls=%x server_name=%s same_flow=1\n", tlsState.Version, c.realityServerName)
+		fmt.Printf("WBD_SINGLE_FLOW_BOOTSTRAP_READY tls=%x server_name=%s same_flow=1 logical_tunnel=1\n", tlsState.Version, c.realityServerName)
 	}
 
 	e.senderMu.Lock()
@@ -194,14 +189,15 @@ func main() {
 
 func (c config) singleFlowEnabled() bool {
 	return strings.TrimSpace(c.realityServerName) != "" || strings.TrimSpace(c.realityRouteKey) != "" ||
-		strings.TrimSpace(c.realityUsername) != "" || strings.TrimSpace(c.realityPassword) != "" || strings.TrimSpace(c.realityTicketOut) != ""
+		strings.TrimSpace(c.realityUsername) != "" || strings.TrimSpace(c.realityPassword) != "" || strings.TrimSpace(c.realityTicketOut) != "" ||
+		strings.TrimSpace(c.realityInstallationID) != "" || strings.TrimSpace(c.realityTunnelConfigOut) != ""
 }
 
 func (c config) validateSingleFlow() error {
 	if !c.singleFlowEnabled() { return nil }
 	if c.role != "client" { return errors.New("single-flow Reality bootstrap is currently a client option; use wbd-faketcp-mux on the product server") }
-	if strings.TrimSpace(c.realityServerName) == "" || len(c.realityRouteKey) < 16 || c.realityUsername == "" || c.realityPassword == "" || strings.TrimSpace(c.realityTicketOut) == "" || c.realityTimeout <= 0 {
-		return errors.New("single-flow bootstrap requires reality-server-name, route-key >=16 bytes, username/password, ticket-out and positive timeout")
+	if strings.TrimSpace(c.realityServerName) == "" || len(c.realityRouteKey) < 16 || c.realityUsername == "" || c.realityPassword == "" || strings.TrimSpace(c.realityTicketOut) == "" || strings.TrimSpace(c.realityInstallationID) == "" || strings.TrimSpace(c.realityTunnelConfigOut) == "" || c.realityTimeout <= 0 {
+		return errors.New("single-flow bootstrap requires reality-server-name, route-key >=16 bytes, username/password, ticket-out, installation-id, tunnel-config-out and positive timeout")
 	}
 	return nil
 }
@@ -210,7 +206,7 @@ func usage() {
 	fmt.Fprintln(os.Stderr, "usage:")
 	fmt.Fprintln(os.Stderr, "  wbd-faketcp client --local-udp 127.0.0.1:PORT --source IP:PORT --remote IP:PORT [--shadow-recovery legacy|sack-rack]")
 	fmt.Fprintln(os.Stderr, "  wbd-faketcp server --listen IP:PORT --target-udp 127.0.0.1:PORT [--shadow-recovery legacy|sack-rack]")
-	fmt.Fprintln(os.Stderr, "  product client single-flow bootstrap additionally uses --reality-server-name --reality-route-key --reality-username --reality-password --reality-ticket-out")
+	fmt.Fprintln(os.Stderr, "  product client single-flow bootstrap additionally uses --reality-server-name --reality-route-key --reality-username --reality-password --reality-ticket-out --reality-installation-id --reality-tunnel-config-out")
 	fmt.Fprintln(os.Stderr, "  Windows client additionally requires --packet-device --source-mac --next-hop-mac")
 }
 
