@@ -57,17 +57,25 @@ func TestWindowsProductConnectDoesNotRunLegacyRealityBootstrap(t *testing.T) {
 	requireContains(t, body, "WBD_SINGLE_FLOW_BOOTSTRAP_READY", "Windows controller")
 }
 
-func TestLinuxBundleCarriesSourceSHAAndSingleFlowOperatorContract(t *testing.T) {
-	body := readRepoFile(t, "scripts/build_linux_server_bundle.sh")
-	requireContains(t, body, `> "$root/SOURCE_SHA"`, "Linux bundle builder")
-	requireContains(t, body, "one raw wbd-faketcp-mux public listener", "Linux bundle README")
-	requireContains(t, body, "no parallel kernel TCP Reality front", "Linux bundle README")
-	requireContains(t, body, "diagnostic/reference only", "Linux bundle README")
+func TestLinuxBundleCarriesSubstantiveSourceSHAAndSingleFlowOperatorContract(t *testing.T) {
+	builder := readRepoFile(t, "scripts/build_linux_server_bundle.sh")
+	requireContains(t, builder, `BUILD_SOURCE_SHA=${WBD_SOURCE_SHA:-${GITHUB_SHA:-unknown}}`, "Linux bundle builder")
+	requireContains(t, builder, `> "$root/SOURCE_SHA"`, "Linux bundle builder")
+	requireContains(t, builder, "one raw wbd-faketcp-mux public listener", "Linux bundle README")
+	requireContains(t, builder, "no parallel kernel TCP Reality front", "Linux bundle README")
+	requireContains(t, builder, "diagnostic/reference only", "Linux bundle README")
+
+	workflow := readRepoFile(t, ".github/workflows/linux-server-release.yml")
+	requireContains(t, workflow, `WBD_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}`, "Linux release workflow")
 }
 
-func TestWindowsPortableCarriesMatchingSourceSHAEvidence(t *testing.T) {
+func TestWindowsPortableCarriesMatchingSubstantiveSourceSHAEvidence(t *testing.T) {
 	body := readRepoFile(t, ".github/workflows/windows-portable-bundle.yml")
-	requireContains(t, body, `source_sha=$env:GITHUB_SHA`, "Windows portable workflow")
+	requireContains(t, body, `WBD_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}`, "Windows portable workflow")
+	requireContains(t, body, `source_sha=$env:WBD_SOURCE_SHA`, "Windows portable workflow")
 	requireContains(t, body, `"$payload\SOURCE_SHA"`, "Windows embedded payload")
 	requireContains(t, body, `${{ runner.temp }}\SOURCE_SHA`, "Windows artifact sidecar")
+	if strings.Contains(body, "source_sha=$env:GITHUB_SHA") {
+		t.Fatal("Windows artifact source identity must not use pull_request merge GITHUB_SHA")
+	}
 }
