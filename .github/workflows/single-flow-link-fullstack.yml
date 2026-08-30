@@ -151,7 +151,10 @@ jobs:
             --shadow-recovery legacy --reality-server-name wbd.test \
             --reality-route-key 0123456789abcdef0123456789abcdef \
             --reality-username singleflow --reality-password singleflow-test-password \
-            --reality-ticket-out "$ROOT/client.ticket" --reality-verify-server=false --reality-timeout 12s \
+            --reality-ticket-out "$ROOT/client.ticket" \
+            --reality-installation-id 00112233445566778899aabbccddeeff \
+            --reality-tunnel-config-out "$ROOT/tunnel-config.json" \
+            --reality-verify-server=false --reality-timeout 12s \
             >"$ROOT/faketcp.log" 2>&1 & FC=$!
           PIDS="$PIDS $FC"
           for i in $(seq 1 600); do
@@ -163,6 +166,8 @@ jobs:
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/faketcp.log"
           grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$ROOT/mux.log"
           sudo test -s "$ROOT/client.ticket"
+          sudo test -s "$ROOT/tunnel-config.json"
+          sudo python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert len(d["tunnel_id"]) == 32; assert d["address4"].endswith("/32"); assert isinstance(d["routes4"], list)' "$ROOT/tunnel-config.json"
           TICKET="$(sudo cat "$ROOT/client.ticket" | tr -d '\r\n')"
           test ${#TICKET} -eq 64
           sudo rm -f "$ROOT/client.ticket"
