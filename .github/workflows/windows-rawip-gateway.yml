@@ -9,6 +9,8 @@ on:
       - 'cmd/wbd-link-server-mux/**'
       - 'cmd/wbd-tun/**'
       - 'internal/dataplane/**'
+      - 'internal/diag/**'
+      - 'internal/rawipbackend/**'
       - 'internal/tunnel/**'
       - 'internal/platformproxy/**'
       - 'scripts/linux_ip_gateway_firewall.sh'
@@ -22,6 +24,8 @@ on:
       - 'cmd/wbd-link-server-mux/**'
       - 'cmd/wbd-tun/**'
       - 'internal/dataplane/**'
+      - 'internal/diag/**'
+      - 'internal/rawipbackend/**'
       - 'internal/tunnel/**'
       - 'internal/platformproxy/**'
       - 'scripts/linux_ip_gateway_firewall.sh'
@@ -44,9 +48,8 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends iproute2 iptables nftables kmod
+          sudo apt-get install -y --no-install-recommends iproute2 iptables nftables
           sudo modprobe tun
-          sudo modprobe vrf
           test -c /dev/net/tun
           ip -Version
           iptables --version
@@ -55,7 +58,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          go test ./cmd/wbd-ip-gateway-server ./cmd/wbd-link-server-mux ./internal/dataplane ./internal/tunnel ./internal/platformproxy -count=1
+          go test ./cmd/wbd-ip-gateway-server ./cmd/wbd-link-server-mux ./internal/dataplane ./internal/diag ./internal/rawipbackend ./internal/tunnel ./internal/platformproxy -count=1
           go build -trimpath -o "$RUNNER_TEMP/wbd-ip-gateway-server" ./cmd/wbd-ip-gateway-server
           go build -trimpath -o "$RUNNER_TEMP/wbd-tun" ./cmd/wbd-tun
           sh -n scripts/linux_ip_gateway_firewall.sh
