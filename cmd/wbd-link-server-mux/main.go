@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/control"
+	"github.com/lly8666/wobuzhidao/internal/dataplane"
 	"github.com/lly8666/wobuzhidao/internal/fec"
+	"github.com/lly8666/wobuzhidao/internal/platformproxy"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/session"
 )
@@ -23,9 +25,17 @@ const (
 	defaultIdleTimeout = 90 * time.Second
 )
 
+type serviceBackend string
+
+const (
+	backendPlatform serviceBackend = "platformproxy"
+	backendRawIP    serviceBackend = "rawip"
+)
+
 type config struct {
 	listen       string
 	service      string
+	rawIPService string
 	ticketDir    string
 	ticketTTL    time.Duration
 	setupTimeout time.Duration
@@ -45,13 +55,14 @@ type peerSession struct {
 	startup startupSession
 	created time.Time
 
-	activityMu  sync.Mutex
+	activityMu   sync.Mutex
 	lastActivity time.Time
 
 	account      string
 	id           session.LiveID
 	haveIdentity bool
 	active       bool
+	backend      serviceBackend
 	service      *net.UDPConn
 }
 
@@ -72,10 +83,11 @@ func (p *peerSession) idleFor(now time.Time) time.Duration {
 }
 
 type server struct {
-	cfg         config
-	conn        *net.UDPConn
-	serviceAddr *net.UDPAddr
-	plane       *session.DataPlane
+	cfg             config
+	conn            *net.UDPConn
+	serviceAddr     *net.UDPAddr
+	rawIPServiceAddr *net.UDPAddr
+	plane           *session.DataPlane
 
 	mu    sync.RWMutex
 	peers map[string]*peerSession
@@ -84,7 +96,8 @@ type server struct {
 func main() {
 	var c config
 	flag.StringVar(&c.listen, "listen", "", "shared UDP address receiving plaintext from all DTLS workers")
-	flag.StringVar(&c.service, "service", "", "local UDP service address")
+	flag.StringVar(&c.service, "service", "", "local UDP platformproxy service address")
+	flag.StringVar(&c.rawIPService, "raw-ip-service", "", "optional local UDP raw-IP gateway service address")
 	flag.StringVar(&c.ticketDir, "ticket-dir", "", "same-entry Reality one-time ticket directory")
 	flag.DurationVar(&c.ticketTTL, "ticket-ttl", 60*time.Second, "maximum ticket age")
 	flag.DurationVar(&c.setupTimeout, "setup-timeout", 10*time.Second, "ticket bind + LINK_INIT deadline per peer")
@@ -100,7 +113,7 @@ func main() {
 	defer s.Close()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-	fmt.Printf("WBD_LINK_SERVER_MUX_READY listen=%s service=%s max_sessions=%d ticket_auth=1 idle_timeout=%s\n", s.conn.LocalAddr(), c.service, c.maxSessions, s.cfg.idleTimeout)
+	fmt.Printf("WBD_LINK_SERVER_MUX_READY listen=%s service=%s raw_ip_service=%s max_sessions=%d ticket_auth=1 idle_timeout=%s\n", s.conn.LocalAddr(), c.service, c.rawIPService, c.maxSessions, s.cfg.idleTimeout)
 	if err := s.Run(ctx); err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, os.ErrClosed) {
 		fmt.Fprintln(os.Stderr, "WBD_LINK_SERVER_MUX_FAIL", err)
 		os.Exit(1)
@@ -122,6 +135,13 @@ func newServer(c config) (*server, error) {
 	if err != nil {
 		return nil, err
 	}
+	var rawIPServiceAddr *net.UDPAddr
+	if c.rawIPService != "" {
+		rawIPServiceAddr, err = net.ResolveUDPAddr("udp4", c.rawIPService)
+		if err != nil {
+			return nil, err
+		}
+	}
 	conn, err := net.ListenUDP("udp4", listenAddr)
 	if err != nil {
 		return nil, err
@@ -134,7 +154,7 @@ func newServer(c config) (*server, error) {
 		return nil, err
 	}
 	return &server{
-		cfg: c, conn: conn, serviceAddr: serviceAddr, plane: plane,
+		cfg: c, conn: conn, serviceAddr: serviceAddr, rawIPServiceAddr: rawIPServiceAddr, plane: plane,
 		peers: make(map[string]*peerSession),
 	}, nil
 }
@@ -211,6 +231,9 @@ func (s *server) handleDatagram(from *net.UDPAddr, packet []byte, now time.Time)
 	}
 	ps.touch(now)
 	for _, p := range packets {
+		if err := s.ensureService(ps, p); err != nil {
+			return err
+		}
 		if _, err := ps.service.Write(p); err != nil {
 			return err
 		}
@@ -286,24 +309,58 @@ func (s *server) handleControl(ps *peerSession, packet []byte, now time.Time) er
 		s.plane.Remove(ps.id)
 		return err
 	}
-	service, err := net.DialUDP("udp4", nil, s.serviceAddr)
-	if err != nil {
-		s.plane.Remove(ps.id)
-		return err
-	}
-	ps.service = service
 	ps.active = true
 	ps.touch(now)
-	go s.serviceLoop(ps)
-	fmt.Printf("WBD_LINK_MUX_SESSION_READY account=%s id_prefix=%x peer=%s fec_mode=%d fec=%d:%d mtu=%d lanes=%d\n",
+	fmt.Printf("WBD_LINK_MUX_SESSION_READY account=%s id_prefix=%x peer=%s fec_mode=%d fec=%d:%d mtu=%d lanes=%d backend=pending\n",
 		ps.account, ps.id[:4], ps.key, cfg.FECMode, cfg.DataShards, cfg.ParityShards, cfg.MTU, cfg.LaneCount)
 	return nil
 }
 
-func (s *server) serviceLoop(ps *peerSession) {
+func (s *server) ensureService(ps *peerSession, packet []byte) error {
+	if ps.service != nil {
+		return nil
+	}
+	backend, err := classifyServicePayload(packet)
+	if err != nil {
+		return err
+	}
+	var addr *net.UDPAddr
+	switch backend {
+	case backendRawIP:
+		addr = s.rawIPServiceAddr
+		if addr == nil {
+			return errors.New("raw-IP application datagram received but -raw-ip-service is not configured")
+		}
+	case backendPlatform:
+		addr = s.serviceAddr
+	default:
+		return fmt.Errorf("unsupported backend %q", backend)
+	}
+	service, err := net.DialUDP("udp4", nil, addr)
+	if err != nil {
+		return err
+	}
+	ps.backend = backend
+	ps.service = service
+	go s.serviceLoop(ps, service)
+	fmt.Printf("WBD_LINK_MUX_BACKEND_READY account=%s id_prefix=%x peer=%s backend=%s service=%s\n", ps.account, ps.id[:4], ps.key, backend, addr)
+	return nil
+}
+
+func classifyServicePayload(packet []byte) (serviceBackend, error) {
+	if _, err := dataplane.UnmarshalIP(packet); err == nil {
+		return backendRawIP, nil
+	}
+	if _, err := platformproxy.Unmarshal(packet); err == nil {
+		return backendPlatform, nil
+	}
+	return "", errors.New("application datagram is neither M6A raw-IP nor platformproxy frame")
+}
+
+func (s *server) serviceLoop(ps *peerSession, service *net.UDPConn) {
 	buf := make([]byte, 65535)
 	for {
-		n, err := ps.service.Read(buf)
+		n, err := service.Read(buf)
 		if err != nil {
 			return
 		}
@@ -311,7 +368,7 @@ func (s *server) serviceLoop(ps *peerSession) {
 		peerKey, wire, err := s.plane.Outbound(ps.id, buf[:n], now)
 		if err != nil || peerKey != ps.key {
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_SERVICE_DROP peer=%s err=%v\n", ps.key, err)
+				fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_SERVICE_DROP peer=%s backend=%s err=%v\n", ps.key, ps.backend, err)
 			}
 			return
 		}
