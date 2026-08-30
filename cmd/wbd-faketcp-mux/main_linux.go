@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/netip"
 	"os"
 	"os/signal"
 	"strings"
@@ -22,6 +23,7 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/dtlsworker"
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
+	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 )
 
@@ -45,6 +47,8 @@ type config struct {
 	ticketDir        string
 	bootstrapTimeout time.Duration
 	fallbackTarget   string
+	tunnelPool       string
+	tunnelRoutes4    string
 }
 
 type sessionStage uint8
@@ -73,11 +77,12 @@ type muxSession struct {
 type muxServer struct {
 	cfg config
 
-	fd         int
-	serverIP   [4]byte
-	serverPort uint16
-	table      *faketcp.ServerAssociationTable
-	frontTLS   *tls.Config
+	fd            int
+	serverIP      [4]byte
+	serverPort    uint16
+	table         *faketcp.ServerAssociationTable
+	frontTLS      *tls.Config
+	tunnelManager *logicaltunnel.Manager
 
 	mu       sync.RWMutex
 	sessions map[faketcp.ServerFlow]*muxSession
@@ -110,6 +115,8 @@ func main() {
 	fs.StringVar(&c.ticketDir, "ticket-dir", "", "single-flow one-time ticket directory")
 	fs.DurationVar(&c.bootstrapTimeout, "bootstrap-timeout", 12*time.Second, "single-flow TLS/admission deadline")
 	fs.StringVar(&c.fallbackTarget, "fallback-target", "", "ordinary TCP decoy target for unrecognized ClientHello")
+	fs.StringVar(&c.tunnelPool, "tunnel-pool", "10.66.0.0/16", "Logical Tunnel IPv4 lease pool; leases are returned as /32")
+	fs.StringVar(&c.tunnelRoutes4, "tunnel-routes4", "0.0.0.0/0", "comma-separated authenticated IPv4 routes for Logical Tunnels")
 	_ = fs.Parse(os.Args[2:])
 
 	s, err := newMuxServer(c)
@@ -119,7 +126,7 @@ func main() {
 	defer stop()
 	s.ctx, s.cancel = context.WithCancel(sigCtx)
 
-	fmt.Printf("READY role=server-mux listen=%s max_sessions=%d recovery=%s link_target=%s single_flow_bootstrap=%t fallback=%t\n", c.listen, c.maxSessions, c.recovery, c.linkTarget, c.bootstrapEnabled(), c.fallbackTarget != "")
+	fmt.Printf("READY role=server-mux listen=%s max_sessions=%d recovery=%s link_target=%s single_flow_bootstrap=%t fallback=%t logical_tunnel=%t\n", c.listen, c.maxSessions, c.recovery, c.linkTarget, c.bootstrapEnabled(), c.fallbackTarget != "", s.tunnelManager != nil)
 	if err := s.Run(); err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, os.ErrClosed) {
 		fmt.Fprintln(os.Stderr, "wbd-faketcp-mux:", err); os.Exit(1)
 	}
@@ -131,11 +138,25 @@ func (c config) bootstrapEnabled() bool {
 
 func usage() {
 	fmt.Fprintln(os.Stderr, "usage: wbd-faketcp-mux server --listen IP:PORT --dtls-shim PATH --link-target IP:PORT --cert CERT --key KEY [--max-sessions 32] [--shadow-recovery legacy|sack-rack]")
-	fmt.Fprintln(os.Stderr, "  product single-flow mode additionally requires --front-cert --front-key --server-name --route-key --username --password --ticket-dir --fallback-target")
+	fmt.Fprintln(os.Stderr, "  product single-flow mode additionally requires --front-cert --front-key --server-name --route-key --username --password --ticket-dir --fallback-target [--tunnel-pool CIDR] [--tunnel-routes4 CIDR,...]")
 }
 
 func parseRecovery(s string) (faketcp.RecoveryMode, error) {
 	switch s { case "legacy": return faketcp.RecoveryLegacy, nil; case "sack-rack", "advanced": return faketcp.RecoverySACKRACK, nil; default: return faketcp.RecoveryLegacy, fmt.Errorf("unknown shadow recovery %q", s) }
+}
+
+func parseTunnelRoutes4(raw string) ([]netip.Prefix, error) {
+	parts := strings.Split(raw, ",")
+	routes := make([]netip.Prefix, 0, len(parts))
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" { continue }
+		p, err := netip.ParsePrefix(part)
+		if err != nil || !p.Addr().Is4() { return nil, fmt.Errorf("invalid tunnel IPv4 route %q", part) }
+		routes = append(routes, p.Masked())
+	}
+	if len(routes) == 0 { return nil, errors.New("at least one tunnel IPv4 route is required") }
+	return routes, nil
 }
 
 func newMuxServer(c config) (*muxServer, error) {
@@ -146,17 +167,21 @@ func newMuxServer(c config) (*muxServer, error) {
 	if c.dtlsShim == "" || c.cert == "" || c.key == "" || c.maxSessions <= 0 { return nil, errors.New("--dtls-shim, --cert, --key and positive --max-sessions are required") }
 	if _, err := parseRecovery(c.recovery); err != nil { return nil, err }
 	if _, err := net.ResolveUDPAddr("udp4", c.linkTarget); err != nil { return nil, errors.New("invalid --link-target") }
+	var tunnelManager *logicaltunnel.Manager
 	if c.bootstrapEnabled() {
 		if c.frontCert == "" || c.frontKey == "" || c.serverName == "" || len(c.routeKey) < 16 || c.username == "" || c.password == "" || c.ticketDir == "" || c.bootstrapTimeout <= 0 || strings.TrimSpace(c.fallbackTarget) == "" {
 			return nil, errors.New("single-flow bootstrap requires front cert/key, server-name, route-key >=16 bytes, username/password, ticket-dir, fallback-target and positive timeout")
 		}
 		if _, err := net.ResolveTCPAddr("tcp", c.fallbackTarget); err != nil { return nil, errors.New("invalid --fallback-target") }
+		pool, err := netip.ParsePrefix(strings.TrimSpace(c.tunnelPool)); if err != nil { return nil, errors.New("invalid --tunnel-pool") }
+		routes, err := parseTunnelRoutes4(c.tunnelRoutes4); if err != nil { return nil, err }
+		tunnelManager, err = logicaltunnel.NewManager(pool, routes); if err != nil { return nil, err }
 	}
 	table, err := faketcp.NewServerAssociationTable(c.maxSessions); if err != nil { return nil, err }
 	fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_TCP); if err != nil { return nil, err }
 	if err := syscall.SetsockoptInt(fd, syscall.IPPROTO_IP, syscall.IP_HDRINCL, 1); err != nil { _ = syscall.Close(fd); return nil, err }
 	if err := syscall.Bind(fd, &syscall.SockaddrInet4{Addr: serverIP}); err != nil { _ = syscall.Close(fd); return nil, err }
-	s := &muxServer{cfg: c, fd: fd, serverIP: serverIP, serverPort: uint16(la.Port), table: table, sessions: make(map[faketcp.ServerFlow]*muxSession), sendBuf: make([]byte, 65535)}
+	s := &muxServer{cfg: c, fd: fd, serverIP: serverIP, serverPort: uint16(la.Port), table: table, sessions: make(map[faketcp.ServerFlow]*muxSession), sendBuf: make([]byte, 65535), tunnelManager: tunnelManager}
 	if c.bootstrapEnabled() {
 		cert, err := tls.LoadX509KeyPair(c.frontCert, c.frontKey); if err != nil { _ = syscall.Close(fd); return nil, err }
 		s.frontTLS = &tls.Config{Certificates: []tls.Certificate{cert}, MinVersion: tls.VersionTLS13, MaxVersion: tls.VersionTLS13}
@@ -243,9 +268,12 @@ func (s *muxServer) runBootstrap(sess *muxSession, stream *faketcp.BootstrapStre
 		return
 	}
 
-	_, err = realityfront.BootstrapServerRecognizedSingleFlow(s.ctx, stream, hello.Raw, realityfront.SingleFlowServerConfig{
-		ServerName: s.cfg.serverName, RouteKey: []byte(s.cfg.routeKey), ExpectedUsername: s.cfg.username,
-		ExpectedPassword: s.cfg.password, TicketDir: s.cfg.ticketDir, TLSConfig: s.frontTLS, Timeout: s.cfg.bootstrapTimeout,
+	auth, err := realityfront.BootstrapServerRecognizedSingleFlowV2(s.ctx, stream, hello.Raw, realityfront.SingleFlowServerV2Config{
+		SingleFlowServerConfig: realityfront.SingleFlowServerConfig{
+			ServerName: s.cfg.serverName, RouteKey: []byte(s.cfg.routeKey), ExpectedUsername: s.cfg.username,
+			ExpectedPassword: s.cfg.password, TicketDir: s.cfg.ticketDir, TLSConfig: s.frontTLS, Timeout: s.cfg.bootstrapTimeout,
+		},
+		LeaseProvider: s.tunnelManager,
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "WBD_SINGLE_FLOW_BOOTSTRAP_FAIL remote=%s err=%q\n", stream.RemoteAddr(), err)
@@ -260,7 +288,7 @@ func (s *muxServer) runBootstrap(sess *muxSession, stream *faketcp.BootstrapStre
 		fmt.Fprintf(os.Stderr, "WBD_SINGLE_FLOW_DTLS_ACTIVATE_FAIL remote=%s err=%q\n", stream.RemoteAddr(), err)
 		s.removeSessionMatch(sess.flow, sess); return
 	}
-	fmt.Printf("WBD_SINGLE_FLOW_BOOTSTRAP_READY remote=%s server_name=%s same_flow=1\n", stream.RemoteAddr(), s.cfg.serverName)
+	fmt.Printf("WBD_SINGLE_FLOW_BOOTSTRAP_READY remote=%s server_name=%s same_flow=1 logical_tunnel=1 tunnel_id_prefix=%s address4=%s\n", stream.RemoteAddr(), s.cfg.serverName, string(auth.Config.TunnelID)[:8], auth.Config.Address4)
 }
 
 func (s *muxServer) runFallback(sess *muxSession, stream *faketcp.BootstrapStream, rawHello []byte) {
