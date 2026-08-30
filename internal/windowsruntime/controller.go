@@ -104,8 +104,12 @@ func (c *Controller) Connect(profile Profile) error {
 	if err != nil { return fmt.Errorf("read single-flow Reality ticket after bootstrap readiness: %w", err) }
 	plan, err := BuildPlan(profile, underlay, ticket)
 	if err != nil { return fmt.Errorf("build Windows runtime plan: %w", err) }
-	if err := c.executor.StartAfterFakeTCP(plan, fakeProc); err != nil { return err }
+
+	// StartAfterFakeTCP takes ownership immediately, including all rollback paths.
+	// Mark the controller copy as transferred before the call so a later route or
+	// readiness failure cannot Stop/Wait the same Windows child a second time.
 	fakeOwned = false
+	if err := c.executor.StartAfterFakeTCP(plan, fakeProc); err != nil { return err }
 
 	c.mu.Lock(); c.state = RuntimeConnected; c.mu.Unlock()
 	connected = true
