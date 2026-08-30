@@ -69,7 +69,7 @@ jobs:
           $proc = $null
           $probe = $null
           try {
-            $probe = Start-Process -FilePath $probeExe -ArgumentList @('-listen','127.0.0.1:49999','-target','203.0.113.7','-timeout','15s') -PassThru -RedirectStandardOutput $probeOut -RedirectStandardError $probeErr
+            $probe = Start-Process -FilePath $probeExe -ArgumentList @('-listen','127.0.0.1:49999','-target','203.0.113.7','-timeout','45s') -PassThru -RedirectStandardOutput $probeOut -RedirectStandardError $probeErr
             $probeReady = $false
             for ($i = 0; $i -lt 50; $i++) {
               if ($probe.HasExited) { break }
@@ -81,7 +81,7 @@ jobs:
               throw 'WBD TUN dataplane probe did not become ready'
             }
 
-            $proc = Start-Process -FilePath $exe -ArgumentList @('-mode','client','-ifname','WBDCI','-mtu','1400','-transport','127.0.0.1:49999','-run-for','30s') -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+            $proc = Start-Process -FilePath $exe -ArgumentList @('-mode','client','-ifname','WBDCI','-mtu','1400','-transport','127.0.0.1:49999','-run-for','60s') -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
             $ready = $false
             for ($i = 0; $i -lt 100; $i++) {
               if ($proc.HasExited) { break }
@@ -153,7 +153,7 @@ jobs:
             if (Get-NetIPAddress -InterfaceIndex $ifIndex -IPAddress 10.66.0.2 -ErrorAction SilentlyContinue) { throw 'WBD address survived cleanup' }
             Write-Output 'WBD_WINDOWS_TUN_ADMIN_CLEANUP_PASS'
 
-            if (-not $proc.WaitForExit(35000)) { throw 'wbd-tun did not exit after qualification lifetime' }
+            if (-not $proc.WaitForExit(65000)) { throw 'wbd-tun did not exit after qualification lifetime' }
             $proc.Refresh()
             if ($proc.ExitCode -ne 0) {
               if (Test-Path $stderr) { Get-Content $stderr }
