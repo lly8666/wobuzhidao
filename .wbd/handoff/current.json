@@ -1,99 +1,49 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 59,
+  "continuity_sequence": 60,
   "repository": "lly8666/wobuzhidao",
-  "active_branch": "dev/wbd-raw-fec-v2",
+  "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
-  "active_pr": 3,
-  "checkpoint_based_on_head_sha": "b1824532ddb8cc9b435e496ce1e03b5730891c3d",
+  "active_pr": 9,
+  "checkpoint_based_on_head_sha": "49366382d91de1ba0403e90caba645feaded5307",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Ship a personal weak-network VPN with a portable Windows 11 x64 client and self-contained Linux amd64/arm64 server bundles. Sustained payload remains WBD-owned raw TCP-shaped FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK; Reality-like TLS remains setup/admission only.",
-    "current_milestone": "Physical Windows 11 -> real Ubuntu ARM64 qualification has progressed through Reality admission and FakeTCP establishment. The readiness-gated Windows experiment proves FakeTCP READY before DTLS start and prevents routing/connect success before data-plane readiness. The current first deterministic blocker is now DTLS handshake completion: Windows times out waiting for DTLS READY while Linux logs BOUND role=server transport_port=<ephemeral> inherited=yes, with no DTLS server READY.",
-    "local_optimization_stop_rule": "Do not reopen ADR-0010 transport semantics: release remains 40 Mbit/s aggregate-inner on <=100 Mbit/s weak links, legacy FakeTCP, pinned wolfSSL DTLS 1.3, setup-only Reality, immutable LINK, one raw lane, FEC off or fixed 20:20."
+    "terminal_goal": "Ship a personal weak-network VPN whose sustained public payload remains WBD-owned raw TCP-shaped FakeTCP -> pinned wolfSSL DTLS 1.3 -> LINK/lane-local FEC without ordinary kernel-TCP HOL, while the user-visible Logical Tunnel has a server-assigned stable address lease and may sleep, reconnect, rotate or race multiple independent transport lanes without being tied to one immortal FakeTCP 4-tuple.",
+    "current_milestone": "ADR-0012 architecture pivot. Stop treating per-LiveID Linux netns + veth + double NAT as the final Windows raw-IP product. Implement Account -> Device/Installation -> Logical Tunnel -> replaceable Transport Lanes, server-assigned unique tunnel IPv4 leases, shared Linux TUN + one host NAT, and promote the existing Game Lane PacketID/first-arrival/dedup semantics into the general multipath/replacement layer.",
+    "local_optimization_stop_rule": "Do not reopen the preserved hard transport/security/release constraints while performing this pivot: no ordinary kernel-TCP WBD payload path, no TCP-over-TCP HOL, per-lane same-association Reality bootstrap -> DTLS -> LINK lineage, pinned wolfSSL DTLS 1.3, legacy FakeTCP default, FEC off or fixed 20:20 with lane-local immutable state, <=100 Mbit/s weak-link qualification ceiling, 40 Mbit/s aggregate-inner conservative release point. Do not mix startup-RTT optimization or Windows child-process slimming into this work."
   },
   "continuation_cursor": {
-    "last_completed_action": "Created experimental PR #8 from canonical b1824532 to gate Windows startup on actual readiness. Experimental head 9b1024167139fc2e2f09d6a9e943d3fc880d4f7e passed main CI run 33196838704 and windows-portable-bundle run 33196838643. Artifact 9696151559 was downloaded and verified: Actions ZIP SHA-256 8172e915ebe62c3aad93f7f049ab73407654cd2ffa1623279a1fa8f17689ec7b, wbd.exe SHA-256 b8e44b28bb82b783ec4f363d92f3375b0dfe78f4b739570200552133f8567006. Physical retest showed Reality bootstrap pass, FakeTCP READY, then DTLS start only after FakeTCP readiness; DTLS never reached READY within 25s and runtime rolled back before IPv6/routes. Concurrent Linux evidence showed Reality AUTH OK and a per-session DTLS worker BOUND with inherited transport, proving FakeTCP association creation succeeded. Sequences 56-58 captured this state while iteratively satisfying handoff contract checks; sequence 59 adds the required explicitly non-live local test snapshot.",
-    "current_task": "Localize and fix the DTLS handshake stall between the Windows client shim and the Linux per-session wolfSSL worker without changing wire semantics.",
-    "why_now": "The readiness gate removed the former process-order race and false connect_pass. The failure is now isolated before LINK/TUN/routing: FakeTCP establishes, Linux worker is spawned, but wolfSSL DTLS 1.3 handshake does not complete.",
-    "done_when": "Physical Windows logs show FakeTCP READY -> DTLS READY -> WBD_LINK_READY -> WBD_TUN_READY -> IPv6 apply -> route apply -> connect_pass, then DNS/UDP/TCP probes pass and cleanup succeeds; Linux logs show the matching DTLS server handshake and LINK session readiness.",
-    "next_atomic_action": "Refresh canonical dev head, PR #8 head and current Actions. On PR #8 inspect native/dtls/wbd_dtls_shim.c, cmd/wbd-faketcp-mux/main_linux.go, internal/dtlsworker/worker_linux.go and cmd/wbd-faketcp/main.go. Add deterministic handshake-stage observability without wire changes: client connect-start, server first transport datagram/peek, HRR send, accept-start, plus one-shot mux first client-payload and first server-payload markers. Keep the inherited UDP descriptor explicitly blocking before server MSG_PEEK. Run CI and Windows/Linux release builds, then use the resulting packages for one physical retest. Fix only the first newly localized failure."
+    "last_completed_action": "Accepted ADR-0012 and rewrote the current architecture/constitution/roadmap/PR entry points so the long-lived object is a Logical Tunnel with a server-assigned address lease and 0..N replaceable WBD Transport Lanes. The later internal/gamelane first-arrival/dedup design is explicitly preserved/promoted and distinguished from rejected PR #2 ordinary-kernel-TCP multilane. The old Windows raw-IP per-LiveID netns/veth/double-NAT development log is marked superseded-product/reference-only. A dedicated agent pivot execution contract was added at docs/development/2026-08-30-architecture-pivot-tunnel-multipath.md.",
+    "current_task": "Immediately stop product expansion of the netns/double-NAT raw-IP architecture and begin ADR-0012 Phase 1: introduce Logical Tunnel identity distinct from LiveID/lane and add a server-assigned unique IPv4 lease/configuration model. Do not yet optimize handshake latency, refactor Windows child processes, or remove historical netns evidence.",
+    "why_now": "The old netns topology existed mainly because every Windows client reused inner 10.66.0.2/30. Unique server-assigned tunnel addresses remove that collision at the correct identity layer and permit a shared TUN + one NAT. Separately, the later Game Lane code already provides the PacketID, first-arrival, duplicate suppression and no-cross-lane-HOL machinery needed for seamless make-before-break lane replacement, so creating a second migration sequencing layer would be redundant. The decisive netns product qualification had not yet run to completion, so pivoting now avoids deepening likely throwaway topology.",
+    "done_when": "Phase 1 is complete when Account/Device/Logical-Tunnel/Transport-Lane ownership is explicit in code and tests, same-account concurrent logical tunnels receive distinct server-assigned IPv4 leases from a configurable pool, Windows no longer globally assumes 10.66.0.2/30, authenticated tunnel configuration carries address/prefix/route parameters, raw-IP ingress enforces source == leased IP, reconnect/cleanup/reuse semantics are deterministic, and no preserved transport/no-HOL/security/release hard constraint regresses. Then proceed to shared TUN + one host NAT.",
+    "next_atomic_action": "Live-refresh PR #9 HEAD and Actions, reconcile any commits after checkpoint_based_on_head_sha, then read ADR-0012 and the pivot execution contract. Preserve but stop the per-session netns/double-NAT work. Inspect current LiveID/session/raw-IP/Wintun address ownership and implement the smallest testable LogicalTunnel + IPv4 lease allocator/config contract that is independent of LiveID and FakeTCP lane identity. Add tests for two same-account logical tunnels receiving distinct leases and for rejection of a packet whose source IP does not match its tunnel lease. Do not change FakeTCP/DTLS/FEC wire semantics in this step."
   },
   "resume_read_set": [
-    ".wbd/handoff/current.json",
+    "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
     "PROJECT_CONSTITUTION.md",
-    "docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md",
-    "internal/windowsruntime/executor.go",
-    "internal/windowsdiag/diagnose_windows.go",
-    "cmd/wbd-faketcp/main.go",
-    "internal/faketcp/server_mux.go",
-    "cmd/wbd-faketcp-mux/main_linux.go",
-    "internal/dtlsworker/worker_linux.go",
-    "native/dtls/wbd_dtls_shim.c",
-    "scripts/linux_server_firewall.sh",
-    ".github/workflows/windows-portable-bundle.yml"
+    "ARCHITECTURE.md",
+    "ROADMAP.md",
+    "docs/development/2026-08-30-architecture-pivot-tunnel-multipath.md",
+    "docs/development/2026-08-30-rawip-gateway.md",
+    "internal/gamelane/gamelane.go",
+    "internal/dataplane/frame.go"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "9b1024167139fc2e2f09d6a9e943d3fc880d4f7e",
-    "result": "fail",
-    "scope": "Physical Windows 11 x64 readiness-gated client against real Ubuntu ARM64 server: Reality and FakeTCP passed; DTLS timed out before LINK/TUN/routes. Historical qualification evidence only; refresh live repository and Actions before continuing."
-  },
-  "udp_like_status": {
-    "authority": "physical Windows/Ubuntu evidence from 2026-08-29 plus current PR #8 CI and frozen ADR-0010",
-    "outer_semantics": "Reality-like TLS setup/admission only; sustained payload is WBD raw FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK.",
-    "fec_status": "Release wire remains off or fixed systematic 20:20.",
-    "capacity_policy": "40 Mbit/s aggregate-inner release point on <=100 Mbit/s weak links.",
-    "platform_status": "Linux service is active and accepts Reality admission. Physical FakeTCP handshake succeeds. Current blocker is DTLS handshake completion before LINK."
+    "tested_commit": "49366382d91de1ba0403e90caba645feaded5307",
+    "result": "not_run",
+    "scope": "Architecture/document/handoff pivot only. No product data-plane code was changed in this pivot set. Live Actions must be refreshed before implementation work; previously added raw-IP netns workflows were not accepted as proof of the new ADR-0012 architecture."
   },
   "product_policy": {
-    "linux_server": "One public WBD_PORT shared by Reality admission and raw FakeTCP. Reality may bind wildcard; FakeTCP uses a concrete local IPv4. Internal LINK/platform listeners remain loopback. WBD-owned firewall suppresses raw-port kernel RST and cleans only WBD state.",
-    "windows": "Portable x64 wbd.exe, UAC elevation, Npcap 1.88, Full/Foreign/China routes, Auto/System/Cloudflare/Custom DNS, device-wide IPv6 kill-switch while connected. Startup must be readiness-gated: FakeTCP -> DTLS -> LINK -> TUN -> IPv6 -> routes.",
-    "protocol_freeze": "Legacy FakeTCP; pinned wolfSSL DTLS 1.3; Reality setup-only; ticket/LiveID isolation; immutable LINK; one raw lane; FEC off or fixed 20:20."
-  },
-  "real_host_failure_evidence": {
-    "observed_at": "2026-08-29T02:22:47+08:00",
-    "windows": [
-      "Reality bootstrap passed.",
-      "FakeTCP printed READY role=client before DTLS process start.",
-      "DTLS produced no READY marker for 25 seconds.",
-      "Connect failed with wait dtls ready timeout and rolled back DTLS/FakeTCP before IPv6 or route mutation."
-    ],
-    "linux": [
-      "wbd-server.service remained active.",
-      "Reality front logged authenticated admission for the physical client.",
-      "Per-session wbd_dtls_shim was spawned.",
-      "DTLS server logged BOUND role=server transport_port=61061 inherited=yes but no READY role=server in the supplied excerpt."
-    ],
-    "first_deterministic_blocker": "wolfSSL DTLS 1.3 handshake does not complete after the FakeTCP association is established and the Linux DTLS worker is spawned.",
-    "important_negative_evidence": "The old Windows process-order race is removed: DTLS now starts only after FakeTCP READY. No route-apply/connect_pass occurs on this failure, so LINK/TUN/DNS are downstream and not the current blocker."
-  },
-  "experiment_snapshot": {
-    "pr": 8,
-    "branch": "exp/windows-readiness-gated-startup",
-    "head": "9b1024167139fc2e2f09d6a9e943d3fc880d4f7e",
-    "base": "b1824532ddb8cc9b435e496ce1e03b5730891c3d",
-    "purpose": "Readiness-gated Windows startup and fail-before-routing behavior.",
-    "ci": {
-      "main": {"run_id": 33196838704, "result": "success"},
-      "windows_portable_bundle": {"run_id": 33196838643, "result": "success", "artifact_id": 9696151559}
-    },
-    "artifact": {
-      "actions_zip_sha256": "8172e915ebe62c3aad93f7f049ab73407654cd2ffa1623279a1fa8f17689ec7b",
-      "wbd_exe_sha256": "b8e44b28bb82b783ec4f363d92f3375b0dfe78f4b739570200552133f8567006"
-    }
-  },
-  "source_findings": {
-    "faketcp_client_handshake": "Client sends an empty final ACK, initializes sender at ISN+1, then prints READY and starts raw/UDP/retransmit loops. Under the readiness gate, DTLS ClientHello is therefore a normal post-handshake FakeTCP data segment, not final-ACK payload.",
-    "faketcp_server_mux": "After accepting the final ACK, mux starts the per-session DTLS worker and then processes the same segment through HandleSegment. Normal subsequent payload is delivered through sess.relay to the worker socket; server responses are read from sess.relay and enqueued onto FakeTCP raw return traffic.",
-    "dtls_server": "Linux shim prints BOUND before its initial MSG_PEEK, then sets peer, sends an HRR cookie and enters wolfSSL_accept. Existing BOUND alone cannot distinguish blocked MSG_PEEK from a later wolfSSL_accept stall.",
-    "wolfssl_windows_fd": "Pinned wolfSSL 5.9.2 exposes wolfSSL_set_fd(WOLFSSL*, int) and its MSVC SOCKET_T is unsigned int, so WBD's current int cast is consistent with the pinned library API and is not presently treated as the first root cause."
-  },
-  "known_secondary_windows_issues": [
-    "PowerShell 5.1 UTF-8 BOM can make route state JSON fail Go json.Unmarshal with invalid character 'ï'.",
-    "Stopping an already-exited LINK child may report TerminateProcess: Access is denied; Stop should become idempotent.",
-    "Linux process argv can expose Reality credentials; rotate the test password and move secrets off argv in a later product-hardening fix."
-  ]
+    "public_transport": "Each Transport Lane is one complete WBD-owned FakeTCP association carrying Reality-like TLS bootstrap, DTLS 1.3, LINK and lane-local FEC/payload on the same lane 4-tuple/sequence space. Ordinary kernel TCP may not become the WBD payload carrier.",
+    "logical_tunnel": "Logical Tunnel identity, server-assigned tunnel IP lease and race PacketID space survive lane rotation/reconnect/idle sleep. LiveID/FakeTCP/DTLS/LINK are disposable lane identities.",
+    "multipath": "Normal steady mode targets one lane. The later Game Lane design may use 2..4 independent complete WBD associations with first-arrival delivery and duplicate suppression. Make-before-break replacement may temporarily add a candidate lane and must rotate only one healthy game lane at a time.",
+    "idle_rotation": "Payload idle and transport liveness are separate clocks. Initial idle default is 15 minutes; 0 means no idle sleep. Active lanes still receive independent randomized age rotation, initially 30..60 minutes as policy guidance, with staggered multi-lane replacement.",
+    "linux_rawip": "Final Windows raw-IP server direction is shared WBD TUN + Linux root routing + one WBD-owned host NAT + lease-based demux and source anti-spoof. Per-LiveID netns/veth/double NAT is historical/reference only; VRF/conntrack-zone remains rejected.",
+    "windows": "Wintun/raw L3 remains the product capture path. Underlay escape, IPv6 fail-closed connected interval, deterministic Disconnect/Exit route/DNS/IPv6/firewall cleanup and Npcap release constraints remain mandatory.",
+    "observability": "Keep non-secret correlation IDs, first-boundary markers and counters; do not log usernames/passwords/tickets/resume secrets/identity secrets and do not enable per-packet INFO spam."
+  }
 }
