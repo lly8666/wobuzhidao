@@ -55,6 +55,8 @@ load_config() {
     : "${WBD_PLATFORM_LISTEN:=127.0.0.1:49000}" "${WBD_LINK_LISTEN:=127.0.0.1:47000}"
     : "${WBD_UDP_IDLE:=30s}" "${WBD_TCP_IDLE:=30s}" "${WBD_FIREWALL_BACKEND:=auto}" "${WBD_NFT_INPUT:=}"
 
+    # Upgrade-only compatibility: old bundles wrote two public-port variables.
+    # Single-flow V2.3 accepts them only if they already describe one endpoint.
     if [ -z "${WBD_PORT:-}" ]; then
         legacy_front=${WBD_FRONT_PORT:-}
         legacy_raw=${WBD_RAW_PORT:-}
@@ -70,8 +72,6 @@ load_config() {
     fi
     case "$WBD_PORT" in *[!0-9]*|'') echo 'WBD_PORT must be numeric' >&2; exit 1;; esac
     [ "$WBD_PORT" -ge 1 ] && [ "$WBD_PORT" -le 65535 ] || { echo 'WBD_PORT must be 1..65535' >&2; exit 1; }
-    WBD_FRONT_PORT=$WBD_PORT
-    WBD_RAW_PORT=$WBD_PORT
 
     [ -n "${WBD_ROUTE_KEY:-}" ] && [ ${#WBD_ROUTE_KEY} -ge 16 ] || { echo 'WBD_ROUTE_KEY must be >=16 chars' >&2; exit 1; }
     [ -n "${WBD_USERNAME:-}" ] && [ -n "${WBD_PASSWORD:-}" ] || { echo 'WBD_USERNAME/WBD_PASSWORD required' >&2; exit 1; }
@@ -162,8 +162,7 @@ install_files() {
     if ! command -v nft >/dev/null 2>&1 && ! command -v iptables >/dev/null 2>&1; then echo 'host requires nft or iptables' >&2; exit 1; fi
     mkdir -p "$PREFIX/bin" "$ETC" "$RUN/tickets"
     chmod 700 "$RUN/tickets"
-    # Diagnostic/reference binary only; product run path below never starts it.
-    for f in wbd-reality-front wbd-faketcp-mux wbd-link-server-mux wbd-platform-proxy-server wbd_dtls_shim wbd-server-cert; do
+    for f in wbd-faketcp-mux wbd-link-server-mux wbd-platform-proxy-server wbd_dtls_shim wbd-server-cert; do
         install -m 0755 "$SELF_DIR/bin/$f" "$PREFIX/bin/$f"
     done
     install -m 0755 "$SELF_DIR/linux_server_firewall.sh" "$PREFIX/bin/linux_server_firewall.sh"
@@ -192,7 +191,7 @@ run_server() {
     "$PREFIX/bin/wbd-platform-proxy-server" -listen "$WBD_PLATFORM_LISTEN" -udp-idle "$WBD_UDP_IDLE" -tcp-idle "$WBD_TCP_IDLE" & pids="$pids $!"
     "$PREFIX/bin/wbd-link-server-mux" -listen "$WBD_LINK_LISTEN" -service "$WBD_PLATFORM_LISTEN" -ticket-dir "$RUN/tickets" -ticket-ttl "$WBD_TICKET_TTL" -max-sessions "$WBD_MAX_SESSIONS" & pids="$pids $!"
     guard="$PREFIX/bin/linux_server_guard.sh"
-    set -- "$guard" --backend "$WBD_FIREWALL_BACKEND" --front-port "$WBD_PORT" --raw-port "$WBD_PORT" --state "$RUN/server-firewall.state"
+    set -- "$guard" --backend "$WBD_FIREWALL_BACKEND" --port "$WBD_PORT" --state "$RUN/server-firewall.state"
     [ -z "$WBD_NFT_INPUT" ] || set -- "$@" --nft-input "$WBD_NFT_INPUT"
     set -- "$@" -- "$PREFIX/bin/wbd-faketcp-mux" server \
         --listen "$raw_listen_ip:$WBD_PORT" \
@@ -210,16 +209,24 @@ run_server() {
 
 uninstall_files() {
     need_root
-    fp=40443; rp=40443; backend=auto; nft_input=
+    port=40443; legacy_front=; legacy_raw=; backend=auto; nft_input=
     if [ -r "$CONFIG" ]; then
         # shellcheck disable=SC1090
         . "$CONFIG"
-        if [ -n "${WBD_PORT:-}" ]; then fp=$WBD_PORT; rp=$WBD_PORT; else fp=${WBD_FRONT_PORT:-40443}; rp=${WBD_RAW_PORT:-40000}; fi
+        if [ -n "${WBD_PORT:-}" ]; then
+            port=$WBD_PORT
+        else
+            legacy_front=${WBD_FRONT_PORT:-}
+            legacy_raw=${WBD_RAW_PORT:-}
+            if [ -n "$legacy_raw" ]; then port=$legacy_raw; elif [ -n "$legacy_front" ]; then port=$legacy_front; fi
+        fi
         backend=${WBD_FIREWALL_BACKEND:-$backend}; nft_input=${WBD_NFT_INPUT:-}
     fi
     systemctl disable --now wbd-server.service 2>/dev/null || true
     if [ -x "$PREFIX/bin/linux_server_firewall.sh" ]; then
-        set -- "$PREFIX/bin/linux_server_firewall.sh" cleanup --backend "$backend" --front-port "$fp" --raw-port "$rp" --state "$RUN/server-firewall.state"
+        set -- "$PREFIX/bin/linux_server_firewall.sh" cleanup --backend "$backend" --port "$port" --state "$RUN/server-firewall.state"
+        [ -z "$legacy_front" ] || set -- "$@" --front-port "$legacy_front"
+        [ -z "$legacy_raw" ] || set -- "$@" --raw-port "$legacy_raw"
         [ -z "$nft_input" ] || set -- "$@" --nft-input "$nft_input"
         "$@" 2>/dev/null || true
     fi
