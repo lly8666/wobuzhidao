@@ -6,7 +6,7 @@ Supersedes the transport-count, Game/multipath and make-before-break clauses of 
 
 ## Product-owner requirement
 
-For one connected WBD Logical Tunnel, the public network must observe **exactly one WBD TCP-shaped connection lineage at a time**:
+For one connected WBD Logical Tunnel, the public network must observe **exactly one public WBD 4-tuple** and exactly one WBD TCP-shaped connection lineage at a time:
 
 - one client/server 4-tuple;
 - one FakeTCP SYN / SYN-ACK / ACK lineage;
