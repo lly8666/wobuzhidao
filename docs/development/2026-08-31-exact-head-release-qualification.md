@@ -58,14 +58,30 @@ The aggregator must not accept an older successful run, a run from another SHA, 
 ## Required aggregator behavior
 
 1. Verify the branch points at `GITHUB_SHA` before any dispatch.
-2. Record the dispatch start time for each explicit workflow.
-3. Dispatch all explicit workflows without serially waiting, so expensive gates can run in parallel.
-4. Resolve the new child run by workflow identity, event, creation time and exact `head_sha`.
-5. Wait until every explicit child is `completed` and require `success`.
-6. Resolve and wait for every required candidate-push workflow on the same exact `GITHUB_SHA`.
-7. Verify the feature branch still points at `GITHUB_SHA` after all children finish.
-8. Emit one authoritative `WBD_RELEASE_QUALIFICATION_PASS` marker only after every required child passes.
-9. Emit per-child evidence containing workflow, event, run id, head SHA and conclusion so the handoff can preserve exact evidence.
+2. Dispatch all explicit workflows without serially waiting, so expensive gates can run in parallel.
+3. Capture the workflow run ID returned directly by `gh workflow run`; do not re-discover a just-created run by timestamp/ranking if the dispatch command already returns an immutable run URL.
+4. Wait until every explicit child is `completed` and require exact `head_sha`, event `workflow_dispatch`, and `conclusion=success`.
+5. Resolve and wait for every required candidate-push workflow on the same exact `GITHUB_SHA`.
+6. Verify the feature branch still points at `GITHUB_SHA` after all children finish.
+7. Emit one authoritative `WBD_RELEASE_QUALIFICATION_PASS` marker only after every required child passes.
+8. Emit per-child evidence containing workflow, event, run id, head SHA and conclusion so the handoff can preserve exact evidence.
+
+## First authoritative-aggregator attempt: deterministic CI bug
+
+Candidate `98a020f9b19f0f6394df879653f2bc9a834422a4` launched aggregator run `33374725535`. The initial branch-head check passed and all thirteen explicit workflows were successfully dispatched. The aggregator then failed before evaluating any child conclusion.
+
+The failure was in its shell parser, not in product code or a child gate. It serialized `[status, conclusion, head_sha, event, html_url]` using tab-separated output and read it with Bash `IFS=$'\t'`. While a child run was still queued/running, `conclusion` was an empty string. Bash treats tab as IFS whitespace and collapses the empty field, shifting later columns. The log therefore reported the impossible identity `head=workflow_dispatch event=https://...`.
+
+The dispatched run IDs from this failed authority attempt were nevertheless exact-head runs and useful for diagnostics, but they are not release authority because the parent aggregator did not successfully aggregate them. A scan after dispatch showed no completed child with `conclusion=failure` at that point.
+
+Corrective design:
+
+- capture the numeric child run ID directly from each successful `gh workflow run` output;
+- store `workflow + run_id` in the manifest;
+- fetch that exact run ID when polling;
+- serialize poll fields with a non-whitespace delimiter so an empty conclusion preserves its position;
+- require numeric run IDs and exact SHA/event before trusting any status;
+- rerun the entire matrix on the new workflow-fix commit, because the authority commit itself changed.
 
 ## Why this is required
 
@@ -75,4 +91,4 @@ This change deliberately does not touch FakeTCP ARQ, FEC, DTLS wire semantics, L
 
 ## Next atomic action
 
-Update `docs/development/QUALIFICATION_KICK.md`, then make `release-qualification-kick.yml` the final branch change. Let that exact commit run its full matrix without moving the branch. If it fails, inspect the first deterministic child failure; do not deliver artifacts until the authoritative aggregate is green.
+Make the run-ID/parser correction in `release-qualification-kick.yml` as the final branch change, freeze that exact HEAD, and let its complete matrix finish. If it fails, inspect the first deterministic child failure. Do not deliver artifacts until the authoritative aggregate itself is green.
