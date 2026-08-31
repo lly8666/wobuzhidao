@@ -83,20 +83,27 @@ Commands: install, uninstall, start, stop, pause, resume, restart, status, logs,
 config, set, regen-certs, doctor, show-config. Configuration is
 /etc/wbd/server.env.
 
-ADR-0014 product mode exposes one public raw wbd-faketcp-mux listener on
-WBD_PORT. Each connected Logical Tunnel has exactly one active public WBD
-transport and exactly one public WBD 4-tuple. That transport owns one FakeTCP
-SYN/4-tuple/sequence lineage: its Reality-like real TLS 1.3 setup is the first
-payload phase of that exact association, then the same association crosses the
-bootstrap barrier with no FIN/RST/new WBD SYN into DTLS 1.3 -> LINK -> FEC
-without ordinary kernel-TCP stream HOL.
+ADR-0011 single-flow is a per-Transport-Lane invariant. ADR-0012 allows one
+Logical Tunnel to own 1..4 independent Transport Lanes. Every lane owns one
+FakeTCP SYN / public 4-tuple / sequence lineage. Reality-like real TLS 1.3 setup
+runs on that SAME FakeTCP association, then the lane crosses an explicit barrier
+with no FIN/RST/reconnect/new WBD payload SYN and continues through pinned
+wolfSSL DTLS 1.3 -> LINK -> lane-local FEC without ordinary kernel-TCP HOL.
 
-The product LINK mux connects directly to the private platform service. The
-bundled Game Lane server remains a research/reference binary and is not started
-by the product wbd-server run path. No extra public listener is introduced.
+Linux exposes one public raw wbd-faketcp-mux listener on WBD_PORT. One public
+server port does not mean one lane per Logical Tunnel: multiple independent lane
+4-tuples may enter the same raw mux. Private per-lane LINK sessions feed the
+product Game/race server, which performs logical PacketID first-arrival delivery
+and duplicate suppression across 1..4 lanes before the platform service. Game
+mode therefore adds no extra public listener.
+
+Normal product policy targets one active lane. Game/weak-network policy may use
+2..4 active lanes. Planned healthy replacement is make-before-break A -> A+B ->
+B, while Game replacement may rotate one lane at a time as A+B -> A+B+C -> B+C.
 
 The bundled wbd-reality-front binary is diagnostic/reference only. The product
-wbd-server run path never starts it as a public listener.
+wbd-server run path never starts a preliminary ordinary kernel-TCP Reality WBD
+connection or public Reality listener.
 
 SOURCE_SHA records the exact substantive repository source head used to build
 this bundle. Pair Windows and Linux physical-test artifacts only when their
@@ -124,4 +131,4 @@ tar -C "$OUT" -czf "$OUT/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
     sha256sum "wbd-linux-server-$ARCH.tar.gz" > "wbd-linux-server-$ARCH.tar.gz.sha256"
     sha256sum -c "wbd-linux-server-$ARCH.tar.gz.sha256"
 )
-echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 public_listener=1 max_tunnel_lanes=1 game_product=0 source_sha=$BUILD_SOURCE_SHA portable_checksum=1"
+echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 public_listener=1 max_tunnel_lanes=4 game_product=1 source_sha=$BUILD_SOURCE_SHA portable_checksum=1"
