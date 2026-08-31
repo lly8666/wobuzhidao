@@ -1,39 +1,39 @@
 {
   "schema_version": "wbd-session-handoff/v1",
   "repository": "lly8666/wobuzhidao",
-  "continuity_sequence": 58,
+  "continuity_sequence": 59,
   "active_branch": "exp/singleflow-realitylike-v3",
   "active_issue": 1,
   "active_pr": 10,
-  "checkpoint_based_on_head_sha": "2eea1b7917a16c9902cd612ebc489647ca7059fc",
+  "checkpoint_based_on_head_sha": "a74dc71d3440c8b254131eb47235b79f55709027",
   "live_refresh_required": true,
   "strategic_terminal_goal": "Ship the personal weak-network VPN with exactly one public TCP-shaped flow per session: one raw FakeTCP-owned SYN/4-tuple, bounded real TLS 1.3 Reality-like setup on that same sequence space, encrypted in-flow phase switch, then same-flow DTLS 1.3/FEC/LINK datagrams with no ordinary-TCP steady-state HOL and no second public connection.",
   "frozen_constraints": [
     "The existing FakeTCP sender/receiver/recovery/FEC steady-state data plane is frozen unless a deterministic transport failure proves a change is required.",
     "No second Reality/bootstrap TCP connection, second SYN, FIN/RST, TLS close_notify, or kernel-TCP handoff is allowed at the setup-to-data boundary.",
     "The Linux public WBD_PORT has one WBD owner: raw wbd-faketcp-mux; V3 must not restore a competing WBD kernel TCP listener.",
-    "Reality-like ordered stream semantics are bootstrap-only and must be destroyed after the encrypted switch ACK; sustained VPN payload remains datagram/no-HOL.",
+    "Reality-like ordered stream semantics are bootstrap-only and are destroyed after the encrypted switch ACK; sustained VPN payload remains packet/datagram no-HOL.",
     "Do not deliver new physical-test binaries while a deterministic Windows/Linux automated gate is red."
   ],
-  "current_milestone": "Substantive V3 checkpoint 6a2e41a2eeb50ce9d4ff565fa11a3879a777519b has passed the Windows hosted single-flow runtime gate and the Linux raw/NAT strong E2E. The Windows test executes real TLS 1.3 Reality-like auth, encrypted switch and an explicit post-switch first-arrival no-HOL assertion using the existing FakeTCP Receiver. Linux pcap evidence proves one SYN, no late SYN/FIN/RST/plain switch, TLS before same-flow pinned wolfSSL DTLS 1.3, bidirectional echo and a later steady-state datagram bypassing an intentionally lost earlier datagram. Legacy FakeTCP native/first-arrival/reconnect and Windows/Linux release workflows were also green on that substantive checkpoint. Follow-up commits are documentation/handoff contract alignment only.",
+  "current_milestone": "V3 single-public-flow automated qualification is closed on substantive checkpoint 6a2e41a2eeb50ce9d4ff565fa11a3879a777519b and audited documentation head c3d07a628adcb494c41916db061892607de83c8b. Windows hosted runtime/protocol tests execute real TLS 1.3 Reality-like auth, encrypted switch and explicit post-switch first-arrival no-HOL behavior. Linux raw/NAT pcap E2E proves one SYN, one public tuple, TLS before same-flow pinned wolfSSL DTLS 1.3, no late SYN/FIN/RST/plain switch, bidirectional payload and later-datagram bypass of earlier loss. Existing FakeTCP native/first-arrival/reconnect regressions remain green. The previously recorded windowsdiag lifecycle gap was stale: commit 52b4515111e38f2e646efd953489a57d80edd82f already provides fail-fast child-exit readiness and idempotent Stop with Windows-native tests. Detailed closure is recorded in docs/experiments/singleflow-v3-closure-2026-08-31.md.",
   "continuation_cursor": {
-    "last_completed_action": "Recorded the Windows/Linux V3 runtime qualification and explicit post-switch no-HOL proof in docs/experiments/singleflow-v3-development-log.md at branch checkpoint 2eea1b7917a16c9902cd612ebc489647ca7059fc; architecture contract wording was aligned without changing the data plane.",
-    "current_task": "Refresh the latest branch-head Actions after the documentation/handoff commits, require main ci and handoff-verify to be green, then fix the remaining windowsdiag child-exit readiness/idempotent-stop diagnostic lifecycle gap before producing a physical-test candidate.",
-    "why_now": "The core one-public-flow protocol is now proven on hosted Windows and a Linux raw/NAT pcap E2E. The remaining known gap is diagnostic lifecycle quality, while the latest documentation-only commits still need live CI refresh so stale red contract runs are not mistaken for product failures.",
-    "done_when": "Latest-head ci and handoff-verify are green; windowsdiag reports an exited child immediately rather than waiting for readiness timeout and treats already-exited Stop idempotently; the V3 development log and a newer final handoff record those results. Only then may matching Windows portable and Linux ARM64 artifacts be handed to the physical Windows/Npcap + Ubuntu test.",
-    "next_atomic_action": "Live-refresh Actions for the current branch head. If ci/handoff-verify are green, inspect internal/windowsdiag loggingRunner lifecycle against windowsruntime.OSRunner and add deterministic child-exit readiness plus idempotent-stop tests without touching the frozen FakeTCP transport."
+    "last_completed_action": "Audited current-head Actions at c3d07a628adcb494c41916db061892607de83c8b: main ci 33411152318, handoff-verify 33411152198, singleflow-v3-crossplatform 33411152261, singleflow-realitylike-e2e 33411152335, reconnect-stress 33411152268, faketcp-native 33411152193, pcap-20loss 33411152226, first-arrival 33411152330, fullstack-first-arrival 33411152274 and OpenWrt TPROXY 33411152204 all completed success. Added closure note a74dc71d... correcting the stale windowsdiag TODO.",
+    "current_task": "Perform artifact hygiene for the already-qualified V3 substantive code: obtain the matching Windows portable and Linux ARM64 release artifacts, verify archive integrity, executable architecture/content and SHA-256 values locally, then persist those artifact identities before physical delivery.",
+    "why_now": "All deterministic Windows/Linux V3 protocol, raw/NAT, no-HOL and existing FakeTCP regression gates requested before physical delivery are green. Further speculative transport changes would add risk without a failing automated signal; the next useful step is reproducible artifact verification.",
+    "done_when": "A Windows x64 portable artifact and Linux ARM64 server artifact from the qualified substantive code checkpoint are downloaded, locally integrity-checked, SHA-256 recorded in the GitHub development record/handoff, and the handoff verifier is green. Only then provide that exact pair for the final physical Windows 11/Npcap/NIC/NAT/ISP to Linux ARM64 test.",
+    "next_atomic_action": "Fetch artifacts from windows-portable-bundle run 33410098460 and linux-server-release run 33410098437 (both built from substantive checkpoint 6a2e41a2...), download them, inspect contents and compute SHA-256 before presenting any binary to the user."
   },
   "live_ci_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "6a2e41a2eeb50ce9d4ff565fa11a3879a777519b",
-    "result": "pass_with_contract_followup",
-    "note": "At snapshot time, substantive code tests were green for singleflow-v3-crossplatform run 33410098583 and Linux strong singleflow-realitylike-e2e run 33410098425; faketcp-native 33410098504, pcap-20loss 33410098433, first-arrival 33410098436, reconnect-stress 33410098538, fullstack-first-arrival 33410098444, OpenWrt TPROXY 33410098451, linux-server-release 33410098437 and windows-portable-bundle 33410098460 were also success. Main ci/handoff failures on that checkpoint were architecture-contract string assertions while Go tests passed; commits d3d359d2, 6c0f5d4a and 7da6d66c only aligned persisted documentation wording. Live refresh is mandatory before claiming current-head green."
+    "tested_commit": "c3d07a628adcb494c41916db061892607de83c8b",
+    "result": "pass",
+    "note": "Audited live on 2026-08-31 before this handoff update: ci 33411152318 success; handoff-verify 33411152198 success; singleflow-v3-crossplatform 33411152261 success; Linux strong singleflow-realitylike-e2e 33411152335 success; reconnect-stress 33411152268 success; faketcp-native 33411152193 success; pcap-20loss 33411152226 success; first-arrival 33411152330 success; fullstack-first-arrival 33411152274 success; OpenWrt TPROXY 33411152204 success. Commit c3d07a... differs from substantive code checkpoint 6a2e41a2... only by documentation/handoff contract alignment. Later closure-note/handoff commits are metadata only and require normal live refresh before future claims."
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
     "tested_commit": "6a2e41a2eeb50ce9d4ff565fa11a3879a777519b",
     "result": "pass",
-    "note": "Repository-hosted qualification passed Windows runtime/protocol/no-HOL tests and Linux raw/NAT one-flow E2E. No physical Windows 11/Npcap/NIC/NAT/ISP test has been run on this substantive checkpoint; do not claim one."
+    "note": "Repository-hosted Windows runtime/protocol/no-HOL and Linux raw/NAT one-flow E2E qualification passed. No physical Windows 11/Npcap/NIC/NAT/ISP test has been run on this final V3 candidate; do not claim one."
   },
   "required_data_plane_assets": [],
   "resume_read_set": [
@@ -41,10 +41,10 @@
     "PROJECT_CONSTITUTION.md",
     "docs/architecture/ADR-0011-v3-single-public-flow-realitylike-switch.md",
     "docs/experiments/singleflow-v3-development-log.md",
+    "docs/experiments/singleflow-v3-closure-2026-08-31.md",
     "internal/realityfront/singleflow_test.go",
     "internal/faketcp/arq.go",
     "internal/windowsdiag/readiness_windows.go",
-    "internal/windowsruntime/executor.go",
     ".github/workflows/singleflow-v3-crossplatform.yml",
     ".github/workflows/singleflow-realitylike-e2e.yml",
     "scripts/singleflow_realitylike_e2e.sh",
