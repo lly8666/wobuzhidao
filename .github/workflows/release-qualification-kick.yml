@@ -1,0 +1,72 @@
+name: release-qualification-kick
+
+on:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - '.github/workflows/release-qualification-kick.yml'
+      - 'docs/development/QUALIFICATION_KICK.md'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: release-qualification-kick-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    name: dispatch exact-head release qualification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      BRANCH: feat/single-flow-reality-faketcp
+    steps:
+      - name: Require dispatcher commit is still branch HEAD
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
+          printf 'dispatcher_sha=%s branch_sha=%s\n' "$GITHUB_SHA" "$current"
+          test "$current" = "$GITHUB_SHA"
+
+      - name: Dispatch path-filtered release-authority workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          workflows=(
+            windows-linux-single-flow.yml
+            windows-portable-bundle.yml
+            windows-tun-build.yml
+            windows-tun-admin-smoke.yml
+            windows-rawip-gateway.yml
+            linux-server-release.yml
+            linux-server-firewall.yml
+            game-lane-fullstack.yml
+            mux-load-100m.yml
+            single-flow-startup-stress.yml
+            single-flow-link-fullstack.yml
+          )
+          for workflow in "${workflows[@]}"; do
+            current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
+            if [[ "$current" != "$GITHUB_SHA" ]]; then
+              echo "branch moved before dispatching ${workflow}: current=${current} expected=${GITHUB_SHA}" >&2
+              exit 1
+            fi
+            echo "dispatch ${workflow} ref=${BRANCH} sha=${GITHUB_SHA}"
+            gh workflow run "$workflow" --repo "$REPO" --ref "$BRANCH"
+          done
+
+      - name: Require branch did not move during dispatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
+          printf 'dispatcher_sha=%s final_branch_sha=%s\n' "$GITHUB_SHA" "$current"
+          test "$current" = "$GITHUB_SHA"
+          echo 'WBD_RELEASE_QUALIFICATION_DISPATCH_PASS exact_head=1'
