@@ -1,16 +1,16 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 76,
+  "continuity_sequence": 77,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "920e23b24b94bffb3e0af96e901b87e3dbb8803f",
+  "checkpoint_based_on_head_sha": "e37ff1f1679f4a8b9691e2badd7c28f91b4fb5e7",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Ship WBD with exactly one public TCP-shaped FakeTCP association per connected Logical Tunnel. FakeTCP owns the public 4-tuple and sequence space from the first SYN. The first bounded seconds carry real TLS 1.3 Reality-like Firefox120-style admission on that same association; an explicit in-band barrier with no FIN/RST/reconnect/new WBD SYN switches the same flow to pinned wolfSSL DTLS 1.3 -> LINK -> FEC -> packet/datagram payload without ordinary kernel-TCP HOL.",
-    "current_milestone": "ADR-0014 authority is repaired and durable history now exists in docs/development/SINGLE_FLOW_DEVLOG.md. The first sequence-75 exact-head qualification candidate 8a6041bd was invalidated because handoff referenced that log before it existed. No product failure was established by that invalid candidate. Next step is a fresh immutable exact-head Windows/Linux qualification kick.",
+    "current_milestone": "ADR-0014 authority and durable development history are repaired. Two exact-head qualification attempts were invalidated only by recovery-contract issues: 8a6041bd referenced a missing devlog; d16e1fbe passed the machine handoff verifier but a Python contract test expected non-canonical 40 Mbit wording. The wording test was fixed at fcd1d4be and the qualification history was recorded at e37ff1f1. No product transport failure has yet been established by these attempts.",
     "local_optimization_stop_rule": "Do not reintroduce ordinary Reality TCP -> close -> second FakeTCP SYN, 1..4 product public lanes, Game multipath or make-before-break public overlap. Do not retune mature FakeTCP recovery/ACK/SACK/FEC unless deterministic lower-layer qualification isolates a core defect. Do not deliver artifacts until one exact substantive source HEAD has current green mandatory Windows/Linux/single-flow/no-HOL/release qualification."
   },
   "architecture_override": {
@@ -23,32 +23,32 @@
     "delivery_rule": "Before user delivery, the exact candidate HEAD must pass hosted Windows-native/runtime/portable/admin/raw-IP qualification, Linux raw/netns/firewall/release/raw-IP qualification, single-flow/persona/no-HOL/FEC gates and the combined Windows-runtime -> Linux-server gate. Physical Windows Npcap/NIC/NAT/ISP -> Ubuntu ARM64 is final acceptance, not a substitute for automated qualification."
   },
   "continuation_cursor": {
-    "last_completed_action": "Created docs/development/SINGLE_FLOW_DEVLOG.md at 920e23b24b94bffb3e0af96e901b87e3dbb8803f. The log records the rejected dual-flow architecture, retained mature transport fixes, hosted DTLS/CA/NAT experiments, physical single-flow evidence, ADR-0014 pivot, authority recovery, exact-head qualification infrastructure, and the invalidated sequence-75 qualification attempt. This directly fixes handoff run 33392037115/job 99487704225, whose only failure was HANDOFF_VERIFY_FAIL because the referenced devlog path did not exist.",
-    "current_task": "Create a fresh exact-head qualification candidate after this sequence-76 handoff, freeze the feature branch, and require handoff-verify plus the release-qualification aggregator's full Windows/Linux matrix. Fix only the first deterministic product failure. Keep the mature FakeTCP recovery/FEC core frozen.",
-    "why_now": "The previous candidate 8a6041bd0b82f11ead14395504273086d5fe3352 is not release evidence because the branch moved to create the missing durable devlog. Some child workflows may still finish, but the aggregator intentionally rejects mixed/stale heads. A new candidate is required.",
+    "last_completed_action": "Candidate d16e1fbef0414a4fc36bea029052795d94f1e063 was invalidated by handoff run 33392466328/job 99489096565. scripts/verify_handoff.py printed HANDOFF_VERIFY_PASS; the only failure was tests/test_handoff.py requiring the literal '40 Mbit/s aggregate inner payload' in PROJECT_CONSTITUTION.md while the canonical Constitution text is '40 Mbit/s aggregate-inner release operating point'. The contract test was corrected at fcd1d4be42eb7c135efc0fa5d6687883afae4df4. Detailed evidence is in docs/development/2026-08-31-seq76-qualification.md at e37ff1f1679f4a8b9691e2badd7c28f91b4fb5e7. No product code changed.",
+    "current_task": "First require sequence-77 handoff-verify itself to pass. Only after handoff is green, create a fresh exact-head qualification kick, freeze the feature branch, and require the full hosted Windows/Linux release matrix. Fix only the first deterministic product failure. Keep the mature FakeTCP recovery/FEC core frozen.",
+    "why_now": "The previous two qualification candidates were invalidated by repository continuity/test-contract defects, so their child workflow results cannot be mixed into release evidence. A clean handoff head followed by a new exact candidate is required before product diagnosis.",
     "done_when": "One exact substantive source HEAD is current green for main CI/release contract, handoff verify, one-SYN same-flow E2E, Firefox120 Reality-like persona, bootstrap barrier/no-HOL, FEC off/20:20, second-public-transport rejection, Windows native/runtime/portable/admin/raw-IP gates, Linux raw/netns/firewall/release/raw-IP gates and combined Windows-runtime -> Linux-server qualification. Matching Windows/Linux artifacts may then be produced for physical Windows 11 -> Ubuntu ARM64 acceptance.",
-    "next_atomic_action": "Update docs/development/QUALIFICATION_KICK.md with a new sequence-76 generation, creating a fresh exact candidate HEAD. Freeze the branch. Verify handoff-verify on that same head and observe release-qualification-kick. On the first deterministic red, fetch logs and fix only that layer; any fix invalidates the candidate and requires a new handoff/qualification kick."
+    "next_atomic_action": "Observe handoff-verify on this sequence-77 head. If it fails, read the first deterministic contract assertion and repair only that continuity/test layer. If it passes, update QUALIFICATION_KICK.md to a sequence-77 generation, freeze the resulting exact candidate, and observe the release aggregator plus handoff on that same SHA."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
     ".wbd/handoff/README.md",
     "docs/development/SINGLE_FLOW_DEVLOG.md",
     "docs/development/2026-08-31-single-flow-authority-recovery.md",
+    "docs/development/2026-08-31-seq76-qualification.md",
     "docs/development/QUALIFICATION_KICK.md",
     "docs/architecture/ADR-0014-global-single-flow-reality-like-bootstrap-final-freeze.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
     "tests/test_handoff.py",
-    "cmd/wbd-faketcp/main_windows.go",
-    "cmd/wbd-faketcp-mux/main_linux.go"
+    "cmd/wbd-faketcp/main_windows.go"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "8a6041bd0b82f11ead14395504273086d5fe3352",
+    "tested_commit": "d16e1fbef0414a4fc36bea029052795d94f1e063",
     "result": "fail",
-    "scope": "Invalidated qualification candidate. Handoff-verify run 33392037115/job 99487704225 failed only because sequence 75 referenced missing docs/development/SINGLE_FLOW_DEVLOG.md. The durable log now exists at 920e23b2. This is not a product transport failure and is not current release evidence."
+    "scope": "Invalidated qualification candidate. Handoff-verify run 33392466328/job 99489096565 had HANDOFF_VERIFY_PASS from the machine verifier and failed only in the Python architecture contract because of an over-exact 40 Mbit wording assertion. Fixed at fcd1d4be. This is not product transport failure and not current release evidence."
   },
   "product_policy": {
     "public_transport": "Global ADR-0014 single-flow: one connected Logical Tunnel has exactly one active WBD raw FakeTCP public association from SYN through bounded Reality-like TLS bootstrap, in-band barrier, DTLS, LINK/FEC and steady packet/datagram payload. No preliminary ordinary kernel-TCP Reality product connection and no second WBD payload SYN.",
@@ -60,14 +60,14 @@
     "observability": "Keep non-secret boundary markers/counters without per-packet INFO spam. Do not log credentials/passwords/tickets/resume or identity secrets."
   },
   "validated_findings": {
-    "authority_recovery": "Repository product authority is now consistently ADR-0014 across PR #9, Constitution, Architecture, ADR-0014, ROADMAP and handoff contract tests. The old 1..4-lane/Game/make-before-break wording is no longer product authority.",
-    "durable_history": "docs/development/SINGLE_FLOW_DEVLOG.md is now the durable detailed development history for interrupted-session recovery. Chat history is not authoritative.",
+    "authority_recovery": "Repository product authority is consistently ADR-0014 across PR #9, Constitution, Architecture, ADR-0014, ROADMAP and handoff contract tests after fcd1d4be wording correction.",
+    "durable_history": "docs/development/SINGLE_FLOW_DEVLOG.md is the durable full development history; docs/development/2026-08-31-seq76-qualification.md records the two invalid qualification attempts and exact failures.",
     "physical_history": "Historical physical single-flow server logs proved at least one successful same-flow path through WBD_SINGLE_FLOW_BOOTSTRAP_READY -> DTLS ACCEPT_PASS -> LINK_MUX_SESSION_READY. A separate historical Windows failure hit unrelated Npcap traffic before FakeTCP parsing and ticket readiness timeout; subsequent code added Npcap ingress filtering. Requalify current exact head rather than assuming either historical result is current.",
     "no_hol": "Architecture requires reliable ordered semantics only during bounded TLS setup. Post-barrier payload must retain earliest-complete datagram progress across an earlier missing FakeTCP range.",
     "tcp_like_core": "Keep mature FakeTCP/TCP-like recovery/FEC unchanged unless deterministic lower-layer qualification isolates a core defect."
   },
   "operational_continuity": {
-    "durable_logs": "GitHub docs/development is authoritative for detailed history. Start with SINGLE_FLOW_DEVLOG.md and 2026-08-31-single-flow-authority-recovery.md.",
+    "durable_logs": "GitHub docs/development is authoritative for detailed history. Start with SINGLE_FLOW_DEVLOG.md, 2026-08-31-single-flow-authority-recovery.md and 2026-08-31-seq76-qualification.md.",
     "rule": "End development turns with refreshed machine-readable handoff. Do not claim queued/old Actions as current green. Do not deliver artifacts while any mandatory exact-candidate Windows/Linux qualification gate is unconfirmed or red."
   }
 }
