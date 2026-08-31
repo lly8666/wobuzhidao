@@ -58,7 +58,7 @@ phase-switch 之后，收到的 FakeTCP payload 不再进入 TLS stream，而是
 
 ## 4. 已有 Linux/NAT 强 E2E
 
-`script/singleflow_realitylike_e2e.sh` + `.github/workflows/singleflow-realitylike-e2e.yml` 是 V3 的主要 Linux 单-flow资格测试。环境包含 client namespace、NAT router namespace、server namespace、public pcap、真实临时 CA/证书以及 pinned wolfSSL DTLS shim。
+`scripts/singleflow_realitylike_e2e.sh` + `.github/workflows/singleflow-realitylike-e2e.yml` 是 V3 的主要 Linux 单-flow资格测试。环境包含 client namespace、NAT router namespace、server namespace、public pcap、真实临时 CA/证书以及 pinned wolfSSL DTLS shim。
 
 测试要求：
 
@@ -204,7 +204,7 @@ commit `bdeeeca8dba501ad7f4dfe3f5fde17c9e341b8e1` 仅补回循环闭合，不改
 
 物理 Windows + Npcap + 真实网卡/NAT/ISP 仍属于 hosted runner 无法完全等价模拟的最后资格层，但不再承担发现基础编译、全网卡 demux、单-flow协议或 Linux setup bug 的职责。
 
-## 12. 当前恢复点（2026-08-31）
+## 12. 当前恢复点（2026-08-31，早期）
 
 当前实验分支：`exp/singleflow-realitylike-v3`，draft PR #10。
 
@@ -215,10 +215,99 @@ commit `bdeeeca8dba501ad7f4dfe3f5fde17c9e341b8e1` 仅补回循环闭合，不改
 - `2b60c5dd...` V3 direct cross-platform host gate fix。
 - `bdeeeca8...` Linux front-secret env parser missing-brace fix。
 
-当前工作顺序：
+此前工作顺序：
 
-1. 等/检查 `bdeeeca8...` 之后 Windows/Linux host gate 与 strong single-flow E2E。
+1. 检查 Windows/Linux host gate 与 strong single-flow E2E。
 2. 对第一个 deterministic red 先修，不同时改多个数据面变量。
 3. 修 `windowsdiag` child-exit readiness / idempotent Stop。
 4. 更新本文和 handoff。
 5. 只有 Windows + Linux + single-flow/no-HOL gate 全绿后才构建可交付包。
+
+## 13. 2026-08-31 V3 双平台运行资格与显式 no-HOL 证明
+
+### 13.1 substantive code/test checkpoint
+
+commit `6a2e41a2eeb50ce9d4ff565fa11a3879a777519b` 新增了一个**不修改现有 TCP-like 数据面**的运行级断言：
+
+- 先在 `internal/realityfront` 中真实完成 TLS 1.3 Reality-like marker/authentication；
+- client/server 得到同一个 one-time ticket；
+- `SWITCH_REQ / SWITCH_ACK` 通过 TLS 1.3 application data 加密发送，并继续断言 public carrier 不出现明文 switch frame；
+- 收到 encrypted switch ACK 后，把 ordered TLS bootstrap 视为已销毁；
+- 直接使用既有 `faketcp.NewReceiver()` 作为稳态 first-arrival 接收器；
+- 故意让较早 sequence range 缺失，只投递后一个 datagram；
+- 后一个 datagram 必须立即 `deliver=true`；
+- shadow ACK frontier 必须仍停在缺口之前，且 SACK/out-of-order 状态继续存在。
+
+该测试证明“后包先交付”和“TCP-shaped shadow ACK/SACK 状态”可以同时成立；它没有放宽恢复门槛，也没有重写 sender/receiver/FEC。
+
+### 13.2 Windows hosted runner 结果
+
+`singleflow-v3-crossplatform` run `33410098583`：**SUCCESS**。
+
+Windows job `99547233043` 在真实 `windows-latest` runner 上执行而非 Linux cross-compile：
+
+- `internal/singleflow` / `internal/realityfront` / `internal/windowsruntime` 运行测试；
+- 上述 TLS 1.3 + auth + encrypted switch + post-switch no-HOL 断言实际执行通过；
+- Windows Npcap 精确 demux/parser 回归通过；
+- `TestWindowsHandshakeIgnoresAdapterNoise` 连续 40 次通过，覆盖 ARP/IPv6/UDP/wrong tuple/self-captured/truncated frame 等 adapter 噪声；
+- `wbd-faketcp.exe` 构建通过；
+- Windows static self-test/bundle qualification helper 通过；
+- portable bundle 资格通过；
+- 最终 marker：`WBD_SINGLEFLOW_V3_WINDOWS_PASS`。
+
+边界说明：GitHub Windows hosted runner 可以真实运行 Windows Go 进程/协议/lifecycle 和 PE build，但不能等价替代用户机器上的 Npcap kernel driver + 物理 NIC + NAT/ISP。后者仍是最终 physical gate，不能把 hosted runner 描述成已经覆盖真实物理网卡注入。
+
+### 13.3 Linux raw/NAT 强 E2E 结果
+
+`singleflow-realitylike-e2e` run `33410098425`、job `99547232333`：**SUCCESS**。
+
+这条测试不是 net.Pipe 单测，而是 client namespace → NAT router namespace → server namespace，使用 raw FakeTCP、public pcap、临时 CA/证书和 pinned wolfSSL DTLS 1.3。最终证据：
+
+```text
+syn_count=1
+late_syn_count=0
+fin_count=0
+rst_count=0
+switch_plain_count=0
+tls_ch_index=2
+dtls_ch_index=18
+major_chronology=tls_then_dtls
+WBD_SINGLEFLOW_REALITYLIKE_E2E_PASS
+```
+
+同一个 captured association 上完成：一次 raw SYN、真实 TLS ClientHello / Reality-like admission、encrypted switch、无新 SYN/FIN/RST/明文 switch、同 4-tuple pinned wolfSSL DTLS 1.3、双向 UDP echo。
+
+no-HOL fault injection 还故意丢弃较早 steady-state datagram，并观察后一个 datagram 大约 20 ms 后先到；因此稳态并未因为 earlier loss 被 TLS/ordinary-TCP stream 阻塞。
+
+### 13.4 同一 substantive code checkpoint 的其他回归
+
+`6a2e41a2...` 相关 Actions 中：
+
+- `faketcp-native` run `33410098504`: **SUCCESS**；
+- `faketcp-pcap-20loss` run `33410098433`: **SUCCESS**；
+- `faketcp-first-arrival` run `33410098436`: **SUCCESS**；
+- `faketcp-reconnect-stress` run `33410098538`: **SUCCESS**；
+- `fullstack-first-arrival` run `33410098444`: **SUCCESS**；
+- `openwrt-tcp-tproxy` run `33410098451`: **SUCCESS**；
+- `linux-server-release` run `33410098437`: **SUCCESS**；
+- `windows-portable-bundle` run `33410098460`: **SUCCESS**。
+
+这说明新 no-HOL 资格断言没有要求改动已冻结的 TCP-like transport；原有 native/first-arrival/reconnect/release 路径仍通过。
+
+### 13.5 主 CI / handoff 红灯的真实性质
+
+同一 code checkpoint 的 `go test ./... -count=1` **全部通过**。主 `ci` run `33410098486` 的唯一 failure 位于 Python `test_handoff.py` 的 V3 architecture invariant 固定字符串，不是 Go、网络或数据面测试失败。
+
+随后只做了文档契约修复：
+
+- `d3d359d2...`: constitution 明确写入 `destroy ordered bootstrap assemblers`；
+- `6c0f5d4a...`: FEC 固定句改为 `Do not delay an available systematic source merely to fill a FEC block`；
+- `7da6d66c...`: 明确持久化 `Windows final client capture through a **TUN/Wintun-class L3 adapter**`。
+
+这些提交不改变 wire、sender/receiver、FEC、DTLS 或 runtime 行为。其目的只是让仓库恢复契约与已经实现/验证的 V3 架构保持同义且可机器验证。
+
+### 13.6 当前交付判断
+
+核心 V3 substantive code 已满足“Windows hosted + Linux raw/NAT”自动运行资格，并且 Windows/Linux 都执行了同一 TLS/auth/encrypted-switch/post-switch no-HOL 逻辑；Linux 额外有 public pcap + NAT + pinned wolfSSL DTLS 强证据。
+
+但是在写本节时，最新 branch HEAD 仍包含上述纯文档 contract 修复，必须等其最新 `ci` / `handoff-verify` 重新 green，并写 sequence 58 handoff 后，才把该状态标记为本轮完整闭环。物理 Windows 11/Npcap + 真实 NIC/NAT/ISP 仍是最终平台资格，不由 hosted CI 代替。
