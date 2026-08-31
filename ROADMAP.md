@@ -1,6 +1,8 @@
 # Roadmap
 
 > **Status: V2.5 ADR-0012 LOGICAL-TUNNEL MULTIPATH LIFECYCLE ACTIVE.** ADR-0012 controls 1..4 lanes, Game Lane and make-before-break. ADR-0013 is withdrawn.
+>
+> Compatibility contract: **V2.4 LOGICAL-TUNNEL / MULTIPATH PIVOT ACTIVE** remains the stable milestone phrase used by automated handoff/architecture checks; V2.5 is the current refinement under ADR-0012.
 
 ## Milestone map
 
