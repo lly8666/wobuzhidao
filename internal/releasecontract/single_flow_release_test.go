@@ -44,7 +44,8 @@ func TestGlobalSinglePublicFlowArchitectureFreeze(t *testing.T) {
 	requireContains(t, adr, "Multipath/Game Lane is not a release product path", "ADR-0013")
 
 	constitution := readRepoFile(t, "PROJECT_CONSTITUTION.md")
-	requireContains(t, constitution, "exactly one usable public WBD FakeTCP association", "project constitution")
+	requireContains(t, constitution, "exactly one usable public WBD transport for a connected Logical Tunnel", "project constitution")
+	requireContains(t, constitution, "A connected Logical Tunnel has **exactly one** usable public WBD FakeTCP association", "project constitution")
 	requireContains(t, constitution, "Make-before-break/public candidate overlap is forbidden", "project constitution")
 	if strings.Contains(constitution, "1..4 independent complete WBD transport lanes") {
 		t.Fatal("project constitution still advertises 1..4 public transport lanes")
@@ -109,10 +110,9 @@ func TestLinuxBundleCarriesSubstantiveSourceSHAAndSingleFlowOperatorContract(t *
 func TestWindowsPortableCarriesMatchingSubstantiveSourceSHAEvidence(t *testing.T) {
 	body := readRepoFile(t, ".github/workflows/windows-portable-bundle.yml")
 	requireContains(t, body, `WBD_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}`, "Windows portable workflow")
-	requireContains(t, body, `source_sha=$env:WBD_SOURCE_SHA`, "Windows portable workflow")
-	requireContains(t, body, `"$payload\SOURCE_SHA"`, "Windows embedded payload")
-	requireContains(t, body, `${{ runner.temp }}\SOURCE_SHA`, "Windows artifact sidecar")
-	if strings.Contains(body, "source_sha=$env:GITHUB_SHA") {
+	requireContains(t, body, `-source-sha $env:WBD_SOURCE_SHA`, "Windows portable stage")
+	requireContains(t, body, `name: wbd-windows-portable-${{ env.WBD_SOURCE_SHA }}`, "Windows portable artifact identity")
+	if strings.Contains(body, "source_sha=$env:GITHUB_SHA") || strings.Contains(body, "-source-sha $env:GITHUB_SHA") {
 		t.Fatal("Windows artifact source identity must not use pull_request merge GITHUB_SHA")
 	}
 }
