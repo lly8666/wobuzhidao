@@ -225,7 +225,7 @@ uninstall_files() {
     systemctl disable --now wbd-server.service 2>/dev/null || true
     if [ -x "$PREFIX/bin/linux_server_firewall.sh" ]; then
         set -- "$PREFIX/bin/linux_server_firewall.sh" cleanup --backend "$backend" --front-port "$fp" --raw-port "$rp" --state "$RUN/server-firewall.state"
-        [ -z "$nft_input" ] || set -- "$@" --nft-input "$WBD_NFT_INPUT"
+        [ -z "$nft_input" ] || set -- "$@" --nft-input "$nft_input"
         "$@" 2>/dev/null || true
     fi
     rm -f "$UNIT"
