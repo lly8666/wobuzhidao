@@ -40,6 +40,17 @@ A connected Logical Tunnel may own **1..4 active Transport Lanes** according to 
 
 There is no separate ordinary kernel-TCP Reality product connection and no sustained WBD payload over an ordinary TCP byte stream.
 
+### Canonical release-contract wording
+
+The following phrases are normative and intentionally stable for architecture/qualification checks:
+
+- The bootstrap-to-payload switch stays on the same association, no second WBD payload SYN.
+- In product semantics, one lane has one public FakeTCP association from its SYN through Reality-like bootstrap and steady payload.
+- During product operation, no separate ordinary kernel-TCP WBD payload connection exists.
+- Bootstrap carries real TLS 1.3 ClientHello/ServerHello/Finished on the same lane sequence space.
+- Steady-state qualification explicitly verifies post-bootstrap earliest-complete datagram behavior.
+- The weak-link release boundary remains the 40 Mbit/s aggregate-inner conservative release operating point.
+
 ## Canonical packet stack
 
 ```text
