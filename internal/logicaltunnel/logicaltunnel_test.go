@@ -25,6 +25,20 @@ func newTestManager(t *testing.T) *Manager {
 	return m
 }
 
+func TestProductTransportLanePolicyIsExactlyOne(t *testing.T) {
+	if MaxProductPublicTransportLanes != 1 {
+		t.Fatalf("release invariant changed: max public transport lanes=%d", MaxProductPublicTransportLanes)
+	}
+	if err := ValidateProductTransportLaneCount(1); err != nil {
+		t.Fatalf("one active public transport lane rejected: %v", err)
+	}
+	for _, n := range []int{0, 2, 3, 4} {
+		if err := ValidateProductTransportLaneCount(n); !errors.Is(err, ErrTransportLanes) {
+			t.Fatalf("lane count %d unexpectedly accepted: %v", n, err)
+		}
+	}
+}
+
 func TestSameAccountInstallationsReceiveDistinctLeases(t *testing.T) {
 	m := newTestManager(t)
 	a, err := m.Acquire("shared-account", mustInstallation(t, "00112233445566778899aabbccddeeff"))
