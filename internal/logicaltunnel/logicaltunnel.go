@@ -17,10 +17,11 @@ const (
 	InstallationIDBytes = 16
 	TunnelIDBytes       = 16
 
-	// MaxProductPublicTransportLanes is the ADR-0012 release ceiling for one
-	// connected Logical Tunnel. Each lane is an independent per-lane single-flow
-	// FakeTCP -> Reality-like bootstrap -> DTLS -> LINK/FEC transport epoch.
-	MaxProductPublicTransportLanes = 4
+	// MaxProductPublicTransportLanes is the product-wide public transport ceiling.
+	// A connected Logical Tunnel owns exactly one WBD public FakeTCP lineage:
+	// one 4-tuple / SYN / sequence space carrying Reality-like TLS bootstrap,
+	// the no-FIN/no-new-SYN barrier, DTLS, LINK/FEC and sustained payload.
+	MaxProductPublicTransportLanes = 1
 	MinProductPublicTransportLanes = 1
 )
 
@@ -30,7 +31,7 @@ var (
 	ErrPoolExhausted   = errors.New("logicaltunnel: IPv4 lease pool exhausted")
 	ErrUnknownTunnel   = errors.New("logicaltunnel: unknown tunnel")
 	ErrSourceSpoof     = errors.New("logicaltunnel: IPv4 source does not match lease")
-	ErrTransportLanes  = errors.New("logicaltunnel: product permits 1..4 active public transport lanes")
+	ErrTransportLanes  = errors.New("logicaltunnel: product permits exactly one active public transport lane")
 )
 
 type InstallationID string
