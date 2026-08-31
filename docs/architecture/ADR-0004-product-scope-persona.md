@@ -1,6 +1,8 @@
 # ADR-0004: Product-scope clarification — TCP-shaped datagrams, native TUN, optional TLS Persona
 
-Status: **ACCEPTED FOR V2.2 MAINLINE** (2026-08-25)
+> **V3 SUPERSESSION NOTICE (2026-08-31):** ADR-0011 supersedes this ADR's decision to use a separate ordinary TCP/TLS Persona connection. V3 keeps the raw FakeTCP/datagram and no-kernel-TCP principles from this document, but Reality-like TLS setup now runs as the bounded first phase of the **same single public FakeTCP association**. Do not use the separate-connection text below as current product guidance.
+
+Status: **SUPERSEDED IN PART BY ADR-0011 FOR V3**; retained as V2.2 historical evidence.
 
 ## Context
 
@@ -42,18 +44,11 @@ TUN/IP
 
 The Linux/OpenWrt path is implemented first, then Windows interoperability.
 
-## Decision 3 — admit optional TLS Persona
+## Decision 3 — historical V2.2 TLS Persona decision (superseded for V3)
 
-WBD may offer a connection-establishment Persona option:
+V2.2 allowed a separate connection-establishment Persona option using a real standard TLS 1.3 preflight connection. **ADR-0011 replaces this for V3:** browser/Reality-like TLS setup is now carried inside the first bounded phase of the one raw FakeTCP association, and there is no second public connection.
 
-- `off`
-- `native`
-- browser-like ClientHello profiles such as `chrome`, `firefox`, `safari`, `edge`
-- later randomized profiles only after qualification
-
-The initial design is a **real standard TLS 1.3 preflight connection to an operator-controlled TLS endpoint**. It may produce a short-lived bootstrap/session-binding value that is then presented inside the authenticated WBD session.
-
-This is intentionally separate from the FakeTCP/DTLS data lane.
+Historical profile names and fingerprint research remain useful (`native`, browser-like `chrome`/`firefox`/`safari`/`edge`), but they must be applied to the in-flow V3 bootstrap rather than a separate socket.
 
 ## Why not copy the full Xray/REALITY/Vision stack
 
@@ -70,30 +65,18 @@ WBD does not add VLESS, Xray routing or Vision stream semantics.
 
 ## Security boundary
 
-TLS Persona is not counted as the data-plane security layer.
+The Reality-like TLS bootstrap is not counted as the steady-state data-plane security layer. DTLS 1.3 remains the sustained encryption/integrity authority after the encrypted V3 phase switch.
 
-The product remains secure when Persona is `off` because DTLS 1.3 still authenticates/encrypts the data lane.
+Certificate/hostname policy is controlled by the current V3 product configuration and qualification; historical V2.2 assumptions in this ADR do not override ADR-0011 or the Project Constitution.
 
-Persona must use normal certificate validation against an operator-controlled hostname. It must not require a third-party private key or disable peer verification.
+## Qualification retained from this ADR
 
-## Qualification
-
-Persona qualification must record:
-
-- selected profile;
-- TLS version/cipher/ALPN;
-- trust/hostname validation;
-- ClientHello byte length;
-- number of TCP segments used by the ClientHello;
-- handshake p50/p95/p99 and failure rate;
-- behavior under MTU/fragmentation pressure.
-
-This requirement exists because browser-like ClientHello implementations can change size across library versions; a profile that fragments unexpectedly may be less robust than a smaller profile.
+Reality-like fidelity work should still record selected profile, TLS version/cipher/ALPN, ClientHello length/segmentation and behavior under MTU/fragmentation pressure. V3 additionally requires one public SYN/4-tuple and no ordinary-TCP steady-state HOL, as defined by ADR-0011.
 
 ## Consequences
 
-- V2-M4 kernel-anchor is retired.
-- V2-M6 Linux/OpenWrt TUN becomes the current core milestone.
-- V2-M5 two-lane remains deferred.
-- Optional TLS Persona is developed after the one-lane core path is functional and before broad product hardening.
-- Large parameter sweeps happen after core Linux/OpenWrt + Windows interoperability, with Persona included as an optional test dimension.
+- Kernel TCP anchor remains retired.
+- Native L3/TUN remains the platform capture direction.
+- Multiple raw lanes remain deferred.
+- The separate TLS Persona connection described by V2.2 is retired from the V3 product path.
+- Browser-like fingerprint work continues only inside the bounded single-flow bootstrap.
