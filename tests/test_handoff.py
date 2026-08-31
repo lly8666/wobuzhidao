@@ -31,7 +31,7 @@ class HandoffContractTest(unittest.TestCase):
             "DTLS 1.3",
             "wolfSSL",
             "fixed systematic `20:20`",
-            "40 Mbit/s aggregate inner payload",
+            "40 Mbit/s aggregate-inner release operating point",
             "Reality TCP -> close -> new FakeTCP payload SYN",
         ):
             self.assertIn(phrase, constitution)
