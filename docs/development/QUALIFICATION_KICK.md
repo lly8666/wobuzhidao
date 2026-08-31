@@ -54,7 +54,7 @@ Together these cover hosted native Windows -> Linux single-flow wire + Linux raw
 
 ## Kick generation
 
-`2026-08-31-seq76-devlog-repaired`
+`2026-08-31-seq77-handoff-green`
 
 ## Evidence recording
 
