@@ -72,7 +72,7 @@ cat >"$ROOT/fakebin/ip" <<'EOF'
 printf '%s\n' '1.1.1.1 via 10.77.0.1 dev eth0 src 10.77.0.9 uid 0'
 EOF
 chmod +x "$ROOT/fakebin/ip"
-for f in wbd-platform-proxy-server wbd-link-server-mux; do
+for f in wbd-platform-proxy-server wbd-game-lane-server wbd-link-server-mux; do
     cat >"$PREFIX/bin/$f" <<'EOF'
 #!/bin/sh
 exec sleep 30
