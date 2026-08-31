@@ -20,67 +20,66 @@ class HandoffContractTest(unittest.TestCase):
         self.assertEqual(cp.returncode, 0, cp.stdout)
         self.assertIn("HANDOFF_VERIFY_PASS", cp.stdout)
 
-    def test_architecture_invariants_are_persisted(self):
-        text = (ROOT / "PROJECT_CONSTITUTION.md").read_text(encoding="utf-8")
+    def test_v3_architecture_invariants_are_persisted(self):
+        constitution = (ROOT / "PROJECT_CONSTITUTION.md").read_text(encoding="utf-8")
         for phrase in (
-            "udp2raw-compatible FakeTCP",
-            "TCP-shaped does not mean kernel-TCP-owned",
+            "exactly one public TCP-shaped raw/FakeTCP flow per WBD session",
+            "V3 one-public-flow law",
+            "same 4-tuple, no FIN/RST/close_notify/new SYN",
+            "raw FakeTCP mux is the sole public owner",
+            "Reality-like parsing/authentication is an in-flow phase",
+            "No-HOL steady-state law",
+            "destroy ordered bootstrap assemblers",
             "DTLS 1.3",
             "wolfSSL",
-            "20:10",
-            "20:20",
-            "OpenWrt/Linux ↔ Linux or Windows",
-            "Android and unprivileged/no-root portability are out of scope",
-            "Reality-like same-entry TLS front",
-            "Sustained VPN payload never runs in this ordinary TLS/TCP connection",
-            "Kernel TCP anchor / real-return-packet hybrid: retired",
+            "fixed systematic `20:20`",
             "Do not delay an available systematic source merely to fill a FEC block",
-            "There is no runtime FEC config epoch",
             "100 Mbit/s physical link capacity",
-            "certificate-chain and hostname verification are **not required**",
-            "same username/password may authenticate multiple simultaneous devices/sessions",
-            "OpenWrt final transparent capture through **TPROXY**",
+            "OpenWrt/Linux ↔ Linux or Windows",
             "Windows final client capture through a **TUN/Wintun-class L3 adapter**",
         ):
-            self.assertIn(phrase, text)
+            self.assertIn(phrase, constitution)
 
         architecture = (ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
         for phrase in (
-            "V1 multi-ordinary-TCP is permanently rejected",
-            "outer wire packets** should be TCP-shaped",
-            "product payload is never committed to an ordinary kernel TCP byte stream",
-            "FEC encoder",
-            "DTLS application datagram",
-            "Optional TLS Persona bootstrap",
-            "kernel TCP anchor / real-return-packet experiment is **retired from the product roadmap**",
-            "Classic udp2raw-compatible FakeTCP remains the product carrier baseline",
-            "Transport-only characterization — current priority",
-            "FEC fixed at `20:20`",
+            "one public raw FakeTCP flow",
+            "one raw SYN",
+            "same public 4-tuple",
+            "Reality-like TLS 1.3 bootstrap",
+            "encrypted switch",
+            "DTLS 1.3",
+            "no-HOL",
+            "sole public",
         ):
             self.assertIn(phrase, architecture)
+
+        adr11 = (ROOT / "docs/architecture/ADR-0011-v3-single-public-flow-realitylike-switch.md").read_text(encoding="utf-8")
+        for phrase in (
+            "V3 PRODUCT AUTHORITY",
+            "one public raw FakeTCP association",
+            "There is no second public SYN",
+            "raw FakeTCP mux is the sole WBD owner",
+            "encrypted SWITCH_REQ / SWITCH_ACK",
+            "No-HOL switch law",
+            "Npcap captures an adapter rather than a socket",
+            "Physical Windows 11 + Npcap",
+        ):
+            self.assertIn(phrase, adr11)
+
+        # Historical ADRs remain available as evidence but must clearly tell a
+        # future recovery session that their separate-public-flow decisions are
+        # no longer product authority.
+        adr4 = (ROOT / "docs/architecture/ADR-0004-product-scope-persona.md").read_text(encoding="utf-8")
+        self.assertIn("SUPERSEDED IN PART BY ADR-0011 FOR V3", adr4)
+        self.assertIn("Kernel TCP anchor remains retired", adr4)
+
+        adr8 = (ROOT / "docs/architecture/ADR-0008-reality-target-mirror-diagnostic.md").read_text(encoding="utf-8")
+        self.assertIn("SUPERSEDED IN PART BY ADR-0011 FOR V3", adr8)
+        self.assertIn("Do not implement or package this sequence for V3", adr8)
 
         adr3 = (ROOT / "docs/architecture/ADR-0003-native-dtls.md").read_text(encoding="utf-8")
         self.assertIn("DTLS 1.3", adr3)
         self.assertIn("Do not invent a second AEAD/key schedule", adr3)
-        self.assertIn("Relationship to TLS Persona", adr3)
-
-        adr4 = (ROOT / "docs/architecture/ADR-0004-product-scope-persona.md").read_text(encoding="utf-8")
-        self.assertIn("retire kernel TCP anchor from the product roadmap", adr4)
-        self.assertIn("admit optional TLS Persona", adr4)
-        self.assertIn("separate from the FakeTCP/DTLS data lane", adr4)
-
-        adr5 = (ROOT / "docs/architecture/ADR-0005-adaptive-fec-multisession-routing.md").read_text(encoding="utf-8")
-        for phrase in (
-            "fec.mode = off | fixed",
-            "multiple simultaneous sessions/devices",
-            "capture.mode = off | global | only-cn | only-non-cn",
-            "client selects `persona = off | native | chrome | firefox | safari | edge`",
-            "dual lane is an optional survival mode",
-            "alpha > p/(1-p)",
-            "Auto FEC remains future advanced research",
-            "speed-test sites as **measurement baselines**",
-        ):
-            self.assertIn(phrase, adr5)
 
         adr6 = (ROOT / "docs/architecture/ADR-0006-immutable-link-setup.md").read_text(encoding="utf-8")
         for phrase in (
@@ -93,34 +92,6 @@ class HandoffContractTest(unittest.TestCase):
             "fixed systematic `20:20` tail-RS",
         ):
             self.assertIn(phrase, adr6)
-
-        adr7 = (ROOT / "docs/architecture/ADR-0007-periodic-fixed-fec-refresh.md").read_text(encoding="utf-8")
-        for phrase in (
-            "Low-frequency fixed-FEC refresh",
-            "LossMarked",
-            "Wilson 95%",
-            "window = 20 s",
-            "periodic fixed-profile refresh",
-            "association rotation",
-            "B_inner_max",
-            "public control service",
-            "CertificateVerify",
-        ):
-            self.assertIn(phrase, adr7)
-
-        adr8 = (ROOT / "docs/architecture/ADR-0008-reality-target-mirror-diagnostic.md").read_text(encoding="utf-8")
-        for phrase in (
-            "Reality-like same-entry front",
-            "same TCP socket",
-            "single encrypted username/password request",
-            "same username/password may authenticate multiple simultaneous devices/sessions",
-            "one-time ticket",
-            "does **not** require another normal device/account `AUTH`",
-            "certificate and hostname verification disabled",
-            "no sustained VPN payload inside the Reality-like TLS/TCP stream",
-            "unordered/no-HOL WBD data plane",
-        ):
-            self.assertIn(phrase, adr8)
 
         lock = json.loads((ROOT / "deps/security-lock.json").read_text(encoding="utf-8"))
         dtls = lock["dtls"]
@@ -138,16 +109,23 @@ class HandoffContractTest(unittest.TestCase):
         )
 
         roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
-        self.assertIn("V2-M6A | Linux packet-preserving L3/TUN regression core | **IMPLEMENTED**", roadmap)
-        self.assertIn("V2-M6C | OpenWrt transparent capture | **PLANNED FINAL SHAPE: TPROXY + POLICY ROUTING**", roadmap)
-        self.assertIn("V2-M7A | Windows client capture | **PLANNED FINAL SHAPE: TUN/WINTUN-CLASS L3**", roadmap)
-        self.assertIn("V2-M8A | Reality-like same-entry bootstrap | **IMPLEMENTED; SIMPLE SHARED USER/PASS PATH QUALIFIED**", roadmap)
-        self.assertIn("V2-M8B-T2 | fixed FEC presets + immutable setup + periodic low-load refresh | **TRANSPORT REFERENCE RETAINED; LEGACY RECOVERY IS DEFAULT**", roadmap)
-        self.assertIn("V2-M8C | shared-account concurrent transport/session fan-out | **CURRENT**", roadmap)
-        self.assertIn("V2-M10 | release qualification | protocol regression -> OpenWrt TPROXY one-shot VPN -> Windows TUN one-shot VPN", roadmap)
-        self.assertIn("100 Mbit/s physical-link ceiling", roadmap)
-        self.assertIn("same pair may be used by several devices simultaneously", roadmap)
+        for phrase in (
+            "V3 SINGLE-PUBLIC-FLOW ACTIVE",
+            "one raw FakeTCP SYN / SYN-ACK / ACK",
+            "same public 4-tuple and FakeTCP sequence space",
+            "destroy ordered bootstrap state",
+            "V3-M4",
+            "Windows Npcap WBD-flow demux",
+            "Linux V3 path",
+            "V3 one-public-owner firewall/manager composition",
+            "Physical Windows 11 + Npcap",
+            "ADR-0011 is authoritative",
+        ):
+            self.assertIn(phrase, roadmap)
 
+        # Retain transport evidence locks that remain valid under V3. The
+        # connection-establishment diagrams in historical benchmark prose are
+        # not architecture authority.
         bench = (ROOT / "docs/benchmarks/v2-transport-20x20-matrix.md").read_text(encoding="utf-8")
         self.assertIn("Nominal matrix size: **126 cases**", bench)
         self.assertIn("later-datagram bypass", bench)
@@ -155,12 +133,9 @@ class HandoffContractTest(unittest.TestCase):
 
         mux_bench = (ROOT / "docs/benchmarks/v2-mux-two-session-100m.md").read_text(encoding="utf-8")
         self.assertIn("32918572671", mux_bench)
-        self.assertIn("setup loss: 0%", mux_bench)
         self.assertIn("measurement loss: random 20%", mux_bench)
         self.assertIn("0.8022 -> **1.0000**", mux_bench)
         self.assertIn("0.8062 -> **1.0000**", mux_bench)
-        self.assertIn("2.1622x", mux_bench)
-        self.assertIn("2.1597x", mux_bench)
 
     def test_no_required_binary_state_at_bootstrap(self):
         dp = json.loads((ROOT / ".wbd/handoff/data-plane.json").read_text())
