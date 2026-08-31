@@ -236,8 +236,8 @@ jobs:
           CIDRA=${TUN_DATA[0]}; CIDRB=${TUN_DATA[1]}; IPA=${CIDRA%/*}; IPB=${CIDRB%/*}
           test "$IPA" != "$IPB"
           echo "SINGLE_FLOW_TWO_CLIENT_TUNNEL_PASS distinct_ids=1 distinct_addresses=1 a=$CIDRA b=$CIDRB"
-          TA=$(sudo sh -c "tr -d '\\r\\n' <'$ROOT/ticket-a.txt'")
-          TB=$(sudo sh -c "tr -d '\\r\\n' <'$ROOT/ticket-b.txt'")
+          TA=$(sudo sh -c "tr -d '\r\n' <'$ROOT/ticket-a.txt'")
+          TB=$(sudo sh -c "tr -d '\r\n' <'$ROOT/ticket-b.txt'")
           test ${#TA} -eq 64; test ${#TB} -eq 64; test "$TA" != "$TB"
 
           sudo ip netns exec "$A" /tmp/sf2/wbd_dtls_shim client 46101 127.0.0.1 45101 none none >"$ROOT/dtls-a.log" 2>&1 & DA=$!
@@ -260,7 +260,11 @@ jobs:
           done
           grep -q 'WBD_LINK_READY role=client' "$ROOT/link-a.log"
           grep -q 'WBD_LINK_READY role=client' "$ROOT/link-b.log"
-          test "$(grep -c 'WBD_LINK_MUX_SESSION_READY account=solo' "$ROOT/link-server.log")" -eq 2
+          for i in $(seq 1 400); do
+            test "$(grep -c 'WBD_LINK_MUX_SESSION_READY tunnel_id_prefix=.*backend=pending' "$ROOT/link-server.log" || true)" -ge 2 && break
+            sleep .05
+          done
+          test "$(grep -c 'WBD_LINK_MUX_SESSION_READY tunnel_id_prefix=.*backend=pending' "$ROOT/link-server.log")" -eq 2
           test "$(find "$ROOT/tickets" -type f | wc -l)" -eq 0
 
           sudo ip netns exec "$A" /tmp/sf2/wbd-tun -mode client -ifname wbd0 -mtu 1400 -transport 127.0.0.1:47101 >"$ROOT/tun-a.log" 2>&1 & TUNA=$!
@@ -295,16 +299,16 @@ jobs:
           grep -q 'CLIENT_RAWIP_PASS A .*source_port=40000' "$ROOT/probe-a.log"
           grep -q 'CLIENT_RAWIP_PASS B .*source_port=40000' "$ROOT/probe-b.log"
 
-          for i in $(seq 1 400); do test "$(grep -c WBD_RAWIP_SESSION_READY "$ROOT/gateway.log" || true)" -ge 2 && break; sleep .05; done
-          test "$(grep -c 'WBD_LINK_MUX_BACKEND_READY sid=.*backend=rawip' "$ROOT/link-server.log")" -eq 2
-          test "$(grep -c WBD_RAWIP_SESSION_READY "$ROOT/gateway.log")" -eq 2
+          for i in $(seq 1 400); do test "$(grep -c 'WBD_RAWIP_SESSION_READY tunnel_id_prefix=' "$ROOT/gateway.log" || true)" -ge 2 && break; sleep .05; done
+          test "$(grep -c 'WBD_LINK_MUX_BACKEND_READY tunnel_id_prefix=.*backend=rawip' "$ROOT/link-server.log")" -eq 2
+          test "$(grep -c 'WBD_RAWIP_SESSION_READY tunnel_id_prefix=' "$ROOT/gateway.log")" -eq 2
           kill -0 "$FA"; kill -0 "$FB"; kill -0 "$MUX_PID"
           sudo chmod -R a+rX "$ROOT"
           echo "SINGLE_FLOW_TWO_CLIENT_PASS fec=${FEC} tickets_distinct=1 tunnels_distinct=1 addresses_distinct=1 sessions=2 rawip=1 same_inner_source_port=40000 udp_each=2 tcp_each=1"
       - name: Prepare two-client evidence
         if: always()
         run: |
-          sudo find /tmp/sf2/${{ matrix.label }} -maxdepth 1 -type f -exec chmod a+r {} + 2>/dev/null || true
+          sudo chmod -R a+rX /tmp/sf2/${{ matrix.label }} 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
