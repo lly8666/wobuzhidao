@@ -66,14 +66,14 @@ History is preserved; these commits are not rewritten or deleted.
 - `cmd/wbd-link-server-mux/logical_tunnel.go` still tracks a bounded set of active peers per Logical Tunnel and uses the shared product maximum; it was not structurally reduced to a scalar one-peer model.
 - Logical Tunnel lease/source anti-spoof and shared-TUN direction remain in-tree.
 
-### Polluted authority / cardinality / product wiring
+### Polluted authority / cardinality / product wiring at the original forensic baseline
 
-- `internal/logicaltunnel/logicaltunnel.go` sets `MaxProductPublicTransportLanes = 1` and its error text says exactly one lane.
-- `internal/windowsruntime/controller.go` bypasses `BuildMultiLanePlan` and starts only one FakeTCP lane in product Connect.
-- `scripts/linux_server_manager.sh` explicitly labels Game as research-only, does not start the Game server in product `run_server`, and advertises `max_tunnel_lanes=1`.
-- `internal/releasecontract/single_flow_release_test.go` enforces ADR-0014, max=1, second-lane rejection, Game exclusion and one-lane Linux/Windows product paths.
-- `PROJECT_CONSTITUTION.md`, ADR-0012 and ADR-0014 contain global-one-lane authority pollution.
-- PR #9 metadata and handoff sequence 77 repeat the same false product-owner requirement.
+- `internal/logicaltunnel/logicaltunnel.go` set `MaxProductPublicTransportLanes = 1` and its error text said exactly one lane.
+- `internal/windowsruntime/controller.go` bypassed `BuildMultiLanePlan` and started only one FakeTCP lane in product Connect.
+- `scripts/linux_server_manager.sh` explicitly labeled Game as research-only, did not start the Game server in product `run_server`, and advertised `max_tunnel_lanes=1`.
+- `internal/releasecontract/single_flow_release_test.go` enforced ADR-0014, max=1, second-lane rejection, Game exclusion and one-lane Linux/Windows product paths.
+- `PROJECT_CONSTITUTION.md`, ADR-0012 and ADR-0014 contained global-one-lane authority pollution.
+- PR #9 metadata and handoff sequence 77 repeated the same false product-owner requirement.
 
 ## Transport-core freeze during rollback
 
@@ -96,12 +96,12 @@ one FakeTCP SYN lineage / 4-tuple / sequence space
 
 ### Phase B — authority repair
 
-- [ ] Restore ADR-0012 as accepted/current multipath lifecycle authority.
-- [ ] Withdraw/invalidate ADR-0014 while preserving its historical evidence.
-- [ ] Keep ADR-0013 historical/withdrawn.
-- [ ] Repair Constitution, Architecture, Roadmap, README and polluted development authority notes.
-- [ ] Repair PR #9 metadata.
-- [ ] Write a new handoff continuity sequence with the architecture guard.
+- [x] Restore ADR-0012 as accepted/current multipath lifecycle authority.
+- [x] Withdraw/invalidate ADR-0014 while preserving its historical evidence.
+- [x] Keep ADR-0013 historical/withdrawn.
+- [x] Repair Constitution, Architecture, Roadmap and polluted development authority notes. README was inspected and did not require authority rewriting.
+- [x] Repair PR #9 metadata.
+- [x] Write handoff sequence 78 with the architecture guard.
 
 ### Phase C — contract/test repair
 
@@ -130,6 +130,27 @@ one FakeTCP SYN lineage / 4-tuple / sequence space
 - [ ] existing CI matrix and exact-head Windows/Linux release builds.
 - [ ] final physical Windows 11 + Npcap -> Ubuntu ARM64 remains required before release designation.
 
+## 2026-08-31 live refresh at HEAD d41e4b53
+
+Live branch refresh found that repair work had progressed beyond handoff sequence 78's stale `why_now` summary:
+
+- branch HEAD before this log update: `d41e4b538e2ad82f87a3e797bdc8905943a3536e` (`windows: align product Game plan with current client flags`);
+- PR #9 metadata is already repaired to per-lane single-flow + Logical Tunnel multipath and explicitly withdraws ADR-0014;
+- `internal/logicaltunnel/logicaltunnel.go` is already restored to `MinProductPublicTransportLanes = 1` and `MaxProductPublicTransportLanes = 4` with `product permits 1..4 active public transport lanes`;
+- Windows `Controller.Connect` already creates `profile.Lanes` independent `LaneBootstrap` instances with dynamic source ports, waits for same-flow Reality bootstrap readiness on each FakeTCP child, verifies that all lanes bind to the same authenticated `TunnelConfig`, builds `MultiLanePlan`, and transfers ownership to `Executor.StartMultiLane` before one Wintun/routes are exposed;
+- the latest Go CI failure is not a transport-core failure. The first deterministic compiler error is `internal/windowsruntime/multilane.go:60: syntax error: unexpected ) in composite literal`;
+- the same CI run reports release-contract failures for brittle/missing authority markers and for Linux product wiring that still advertises `max_tunnel_lanes=1` / omits the Game server;
+- handoff verifier itself reports `HANDOFF_VERIFY_PASS` for sequence 78, then the Python contract test fails only because `PROJECT_CONSTITUTION.md` says `Game Lane is a product multipath mechanism` instead of the brittle exact substring `Game/race is product behavior`;
+- packages `internal/faketcp`, `internal/dtlsworker`, `internal/gamelane`, `internal/gamecontrol`, `internal/logicaltunnel`, LINK-related packages and the same-flow virtual wire package all passed before the Windows syntax/release-contract failures terminated CI.
+
+### Immediate repair cursor after live refresh
+
+1. Fix only the `multilane.go` syntax/command construction error; do not change FakeTCP/DTLS/LINK/FEC wire.
+2. Make authority/release contract tests check the correct per-lane + 1..4/Game/make-before-break semantics without reviving global-one-lane strings.
+3. Restore Linux product wiring to `platform <- Game/race <- LINK mux <- per-lane DTLS/FakeTCP`, one public raw mux, `max_tunnel_lanes=4`.
+4. Add/restore explicit tests for lane counts 1..4/fifth rejected, Game race/dedup/no-cross-lane-HOL, `A -> A+B -> B`, candidate failure preservation, and `A+B -> A+B+C -> B+C`.
+5. Run exact-head qualification and only then update handoff again.
+
 ## Development rule for this repair
 
-Fix authority first, then contracts/tests, then product orchestration, then qualification. Do not modify lower transport semantics to make an architecture test green.
+Fix authority first, then contracts/tests, then product orchestration, then qualification. Do not modify lower transport semantics to make an architecture/string contract test green.
