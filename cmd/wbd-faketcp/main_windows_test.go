@@ -55,15 +55,57 @@ func testFlowIO() *npcapRawPacketIO {
 	}
 }
 
-func TestMatchesKernelRSTExactFlow(t *testing.T) {
-	r := testFlowIO()
+func makeFlowTCP(r *npcapRawPacketIO, outbound bool) []byte {
 	pkt := make([]byte, 40)
 	pkt[0] = 0x45
+	binary.BigEndian.PutUint16(pkt[2:4], uint16(len(pkt)))
 	pkt[9] = 6
-	copy(pkt[12:16], r.sourceIP[:])
-	copy(pkt[16:20], r.remoteIP[:])
-	binary.BigEndian.PutUint16(pkt[20:22], r.sourcePort)
-	binary.BigEndian.PutUint16(pkt[22:24], r.remotePort)
+	pkt[32] = 5 << 4
+	if outbound {
+		copy(pkt[12:16], r.sourceIP[:])
+		copy(pkt[16:20], r.remoteIP[:])
+		binary.BigEndian.PutUint16(pkt[20:22], r.sourcePort)
+		binary.BigEndian.PutUint16(pkt[22:24], r.remotePort)
+	} else {
+		copy(pkt[12:16], r.remoteIP[:])
+		copy(pkt[16:20], r.sourceIP[:])
+		binary.BigEndian.PutUint16(pkt[20:22], r.remotePort)
+		binary.BigEndian.PutUint16(pkt[22:24], r.sourcePort)
+	}
+	return pkt
+}
+
+func TestMatchesFlowTCPDemultiplexesNpcapCapture(t *testing.T) {
+	r := testFlowIO()
+	in := makeFlowTCP(r, false)
+	if !r.matchesFlowTCP(in, false) {
+		t.Fatal("exact inbound WBD TCP flow must be accepted")
+	}
+	if r.matchesFlowTCP(in, true) {
+		t.Fatal("inbound flow must not match outbound direction")
+	}
+
+	out := makeFlowTCP(r, true)
+	if r.matchesFlowTCP(out, false) {
+		t.Fatal("self-captured outbound WBD frame must not reach inbound protocol parser")
+	}
+
+	udp := append([]byte(nil), in...)
+	udp[9] = 17
+	if r.matchesFlowTCP(udp, false) {
+		t.Fatal("unrelated IPv4 UDP must not reach FakeTCP parser")
+	}
+
+	wrongPort := append([]byte(nil), in...)
+	binary.BigEndian.PutUint16(wrongPort[20:22], r.remotePort+1)
+	if r.matchesFlowTCP(wrongPort, false) {
+		t.Fatal("different TCP four-tuple must not reach FakeTCP parser")
+	}
+}
+
+func TestMatchesKernelRSTExactFlow(t *testing.T) {
+	r := testFlowIO()
+	pkt := makeFlowTCP(r, true)
 	pkt[33] = 0x04 // RST
 	if !r.matchesKernelRST(pkt) {
 		t.Fatal("exact outbound WBD RST was not detected")
@@ -81,11 +123,8 @@ func TestMatchesKernelRSTExactFlow(t *testing.T) {
 		t.Fatal("RST from a different source port must not match the WBD flow")
 	}
 
-	inbound := append([]byte(nil), pkt...)
-	copy(inbound[12:16], r.remoteIP[:])
-	copy(inbound[16:20], r.sourceIP[:])
-	binary.BigEndian.PutUint16(inbound[20:22], r.remotePort)
-	binary.BigEndian.PutUint16(inbound[22:24], r.sourcePort)
+	inbound := makeFlowTCP(r, false)
+	inbound[33] = 0x04
 	if r.matchesKernelRST(inbound) {
 		t.Fatal("inbound peer RST must not be reported as a local kernel RST")
 	}
