@@ -65,7 +65,12 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          go test ./cmd/wbd-winlin-wire-vector ./cmd/wbd-faketcp ./internal/realityfront ./internal/windowsruntime -count=1
+          # Keep this job scoped to code that is a Windows client/runtime concern.
+          # The wire-vector package itself executes a real TLS 1.3 / Reality-like
+          # V2 admission exchange, so running the whole realityfront package here
+          # would additionally exercise Linux-server ticket-file rename semantics
+          # on NTFS, which is outside this hosted Windows boundary.
+          go test ./cmd/wbd-winlin-wire-vector ./cmd/wbd-faketcp ./internal/windowsruntime -count=1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Generate native Windows single-flow wire vector
         shell: pwsh
