@@ -61,7 +61,7 @@ func exitTestProfile() windowsruntime.Profile {
 		RouteKey:    "0123456789abcdef",
 		Username:    "solo",
 		Password:    "shared-password",
-		ServerRaw:   "198.51.100.10:40000",
+		ServerRaw:   "198.51.100.10:40443",
 		FEC:         "off",
 		IfName:      "WBD",
 		MTU:         1400,
