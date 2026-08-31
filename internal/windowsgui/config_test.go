@@ -49,17 +49,17 @@ func TestLoadRuntimeProfilePersistsInstallationIdentityAcrossLoads(t *testing.T)
 	if strings.TrimSpace(string(b))!=first.InstallationID{t.Fatalf("persisted installation id=%q want=%q",strings.TrimSpace(string(b)),first.InstallationID)}
 }
 
-func TestLoadRuntimeProfileAcceptsFourLanesAndRejectsFive(t *testing.T) {
+func TestLoadRuntimeProfileAcceptsOneLaneAndRejectsSecondPublicLane(t *testing.T) {
 	t.Setenv("WBD_PORTABLE_DIR", "")
 	dir:=t.TempDir(); stateDir:=filepath.Join(dir,"state")
-	four:=writeTestProfile(t,dir,`,
-  "lanes": 4`)
-	p,err:=LoadRuntimeProfile(four,filepath.Join(dir,"bin"),stateDir);if err!=nil{t.Fatal(err)}
-	if p.Lanes!=4{t.Fatalf("lanes=%d want=4",p.Lanes)}
-	fivePath:=filepath.Join(dir,"profile-five.json")
-	body:=`{"server_ip":"198.51.100.10","server_port":40443,"server_name":"front.example","route_key":"0123456789abcdef","username":"solo","password":"shared-password","lanes":5}`
-	if err:=os.WriteFile(fivePath,[]byte(body),0o600);err!=nil{t.Fatal(err)}
-	if _,err:=LoadRuntimeProfile(fivePath,filepath.Join(dir,"bin"),stateDir);err==nil{t.Fatal("five product lanes unexpectedly accepted")}
+	one:=writeTestProfile(t,dir,`,
+  "lanes": 1`)
+	p,err:=LoadRuntimeProfile(one,filepath.Join(dir,"bin"),stateDir);if err!=nil{t.Fatal(err)}
+	if p.Lanes!=1{t.Fatalf("lanes=%d want=1",p.Lanes)}
+	twoPath:=filepath.Join(dir,"profile-two.json")
+	body:=`{"server_ip":"198.51.100.10","server_port":40443,"server_name":"front.example","route_key":"0123456789abcdef","username":"solo","password":"shared-password","lanes":2}`
+	if err:=os.WriteFile(twoPath,[]byte(body),0o600);err!=nil{t.Fatal(err)}
+	if _,err:=LoadRuntimeProfile(twoPath,filepath.Join(dir,"bin"),stateDir);err==nil||!strings.Contains(err.Error(),"exactly one active public transport lane"){t.Fatalf("second product lane error=%v",err)}
 }
 
 func TestLegacyTunnelIPv4FieldDoesNotOverrideAuthenticatedLease(t *testing.T) {
