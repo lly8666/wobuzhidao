@@ -1,40 +1,34 @@
 # ADR-0013: Global single-public-flow release freeze
 
-Status: **WITHDRAWN / SUPERSEDED BY REAFFIRMED ADR-0012** (2026-08-31)
+Status: **HISTORICAL / SUPERSEDED BY ADR-0014 — 2026-08-31**
 
 ## Historical context
 
-ADR-0013 temporarily interpreted the single-flow requirement as a **global** invariant for the whole connected Logical Tunnel: one public transport total, no Game Lane, and break-before-make replacement.
+ADR-0013 was an earlier attempt to freeze one public transport for the whole connected Logical Tunnel. It was later withdrawn while multipath work resumed. The product owner has now issued a final, more specific requirement captured in ADR-0014:
 
-That interpretation was rejected by the product owner on 2026-08-31. The controlling rule is again ADR-0012:
+- exactly one public TCP-shaped WBD connection lineage at a time for one connected Logical Tunnel;
+- Reality-like real TLS 1.3 is carried inside that FakeTCP association from the first SYN lineage;
+- no preliminary ordinary kernel-TCP Reality connection;
+- no FIN/RST/new WBD payload SYN at the bootstrap barrier;
+- sustained DTLS/FEC/VPN payload remains datagram-oriented and free of ordinary kernel-TCP HOL;
+- no simultaneous second public lane / Game multipath / make-before-break public overlap.
 
-- a connected Logical Tunnel may own **1..4 independent Transport Lanes**;
-- normal steady mode targets one lane;
-- Game/weak-network policy may keep 2..4 lanes;
-- planned replacement is **make-before-break** and may temporarily overlap old + candidate lanes;
-- Game Lane `PacketID` / first-arrival / duplicate-suppression semantics are the shared multipath/replacement layer;
-- replacement rotates one healthy lane at a time.
+ADR-0014, not this historical ADR, is the current authority.
 
-## What remains valid from this experiment
+## Evidence retained from ADR-0013
 
-ADR-0013 correctly strengthened a different invariant which remains mandatory **per lane**:
+The single-flow implementation and tests developed during this period remain valuable evidence, especially:
 
 ```text
 one raw FakeTCP SYN lineage / 4-tuple / sequence space
   -> bounded reliable Reality-like real TLS 1.3 bootstrap
-  -> explicit bootstrap barrier; no FIN and no second WBD payload SYN
+  -> explicit same-flow barrier
   -> DTLS 1.3
   -> LINK
-  -> lane-local FEC
+  -> FEC
   -> packet/datagram payload without ordinary kernel-TCP HOL
 ```
 
-There is no preliminary ordinary kernel-TCP Reality connection for a lane and no sustained WBD payload over an ordinary kernel TCP byte stream.
+Npcap filtering fixes, same-association bootstrap tests and post-switch no-HOL tests remain part of current qualification where they match ADR-0014.
 
-The single-flow work, Npcap filtering fixes, same-association bootstrap tests, no-HOL tests and other evidence produced while ADR-0013 was active remain useful technical evidence. Only the **global one-transport count** and **break-before-make** policy are withdrawn.
-
-## Current authority
-
-For transport count, Game Lane, migration, rotation, idle/wake and Logical Tunnel lifecycle, **ADR-0012 is authoritative**.
-
-Any release-contract test, configuration, lifecycle code or documentation that still requires `MaxProductPublicTransportLanes == 1`, rejects a second lane for the same TunnelID, disables Game Lane as a product path, or requires break-before-make must be corrected.
+See `docs/architecture/ADR-0014-global-single-flow-reality-like-bootstrap-final-freeze.md` for the controlling release contract.
