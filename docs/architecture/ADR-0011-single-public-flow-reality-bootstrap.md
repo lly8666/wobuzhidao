@@ -19,6 +19,8 @@ ADR-0012 later separated Logical Tunnel lifetime from lane lifetime. A long-live
 
 ## Decision
 
+For each independent Transport Lane/epoch, the normative invariant is **one public TCP-shaped 4-tuple and one continuous TCP sequence space** from the lane's first SYN through Reality-like bootstrap, the mode barrier, and steady DTLS/FEC payload. Reality-like recognition moves inside the raw association. The mode switch preserves the **same 4-tuple and same sequence space, no FIN/RST/new SYN**. Reality-likeness qualification therefore requires **exactly one client SYN** for each lane/epoch; additional independent game/migration lanes are separate lanes with their own single SYN lineage.
+
 ### 1. One public association per lane/epoch
 
 A WBD Transport Lane has exactly one public carrier association:
