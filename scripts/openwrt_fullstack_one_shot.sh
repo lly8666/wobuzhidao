@@ -263,6 +263,7 @@ TICKET=$(tr -d '\r\n' <"$TICKET_FILE")
 test ${#TICKET} -eq 64
 case "$TICKET" in *[!0-9a-fA-F]*) echo 'single-flow ticket is not hex' >&2; exit 1;; esac
 validate_tunnel_json "$TUNNEL_FILE"
+TUNNEL_PREFIX=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1],encoding="utf-8"))["tunnel_id"][:8])' "$TUNNEL_FILE")
 echo 'WBD_OPENWRT_SINGLE_FLOW_BOOTSTRAP_PASS same_flow=1 logical_tunnel=1'
 
 # The bootstrap barrier keeps the same FakeTCP process/4-tuple alive; pinned
@@ -278,7 +279,7 @@ ip netns exec "$R" "$ASSET_DIR/wbd-link-proxy" \
     -mode client -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off \
     -demo-reality-ticket "$TICKET" >"$LOG_DIR/link-client.log" 2>&1 & LINK_CLIENT_PID=$!; PIDS+=("$LINK_CLIENT_PID")
 wait_log "$LOG_DIR/link-client.log" 'WBD_LINK_READY role=client' 900
-wait_log "$LOG_DIR/link-server.log" 'WBD_LINK_MUX_SESSION_READY account=solo' 900
+wait_log "$LOG_DIR/link-server.log" "WBD_LINK_MUX_SESSION_READY tunnel_id_prefix=${TUNNEL_PREFIX}.*lanes=1" 900
 test "$(find "$TICKET_DIR" -type f | wc -l)" -eq 0
 
 ip netns exec "$R" "$ASSET_DIR/wbd-platform-proxy-openwrt" \
