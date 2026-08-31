@@ -33,29 +33,35 @@ func requireContains(t *testing.T, body, want, label string) {
 	}
 }
 
-func TestGlobalSinglePublicFlowArchitectureFreeze(t *testing.T) {
+func TestADR0012MultipathArchitectureFreeze(t *testing.T) {
 	policy := readRepoFile(t, "internal/logicaltunnel/logicaltunnel.go")
-	requireContains(t, policy, "MaxProductPublicTransportLanes = 1", "Logical Tunnel transport policy")
+	requireContains(t, policy, "MaxProductPublicTransportLanes = 4", "Logical Tunnel transport policy")
+	requireContains(t, policy, "MinProductPublicTransportLanes = 1", "Logical Tunnel transport policy")
 	requireContains(t, policy, "ValidateProductTransportLaneCount", "Logical Tunnel transport policy")
 
-	adr := readRepoFile(t, "docs/architecture/ADR-0013-global-single-public-flow-release-freeze.md")
-	requireContains(t, adr, "public WBD transport count = 1", "ADR-0013")
-	requireContains(t, adr, "Replacement is break-before-make", "ADR-0013")
-	requireContains(t, adr, "Multipath/Game Lane is not a release product path", "ADR-0013")
+	adr := readRepoFile(t, "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md")
+	requireContains(t, adr, "1..4 replaceable Transport Lanes", "ADR-0012")
+	requireContains(t, adr, "single-flow is a per-lane invariant", "ADR-0012")
+	requireContains(t, adr, "Replacement is make-before-break", "ADR-0012")
+	requireContains(t, adr, "Game Lane semantics are the general multipath/replacement layer", "ADR-0012")
+
+	withdrawn := readRepoFile(t, "docs/architecture/ADR-0013-global-single-public-flow-release-freeze.md")
+	requireContains(t, withdrawn, "WITHDRAWN / SUPERSEDED BY REAFFIRMED ADR-0012", "ADR-0013")
 
 	constitution := readRepoFile(t, "PROJECT_CONSTITUTION.md")
-	requireContains(t, constitution, "exactly one usable public WBD transport for a connected Logical Tunnel", "project constitution")
-	requireContains(t, constitution, "A connected Logical Tunnel has **exactly one** usable public WBD FakeTCP association", "project constitution")
-	requireContains(t, constitution, "Make-before-break/public candidate overlap is forbidden", "project constitution")
-	if strings.Contains(constitution, "1..4 independent complete WBD transport lanes") {
-		t.Fatal("project constitution still advertises 1..4 public transport lanes")
+	requireContains(t, constitution, "1..4 independent WBD Transport Lanes", "project constitution")
+	requireContains(t, constitution, "single-flow invariant applies to each lane", "project constitution")
+	requireContains(t, constitution, "Make-before-break", "project constitution")
+	if strings.Contains(constitution, "MaxProductPublicTransportLanes` is fixed at `1`") {
+		t.Fatal("project constitution still freezes global transport count to one")
 	}
 
 	architecture := readRepoFile(t, "ARCHITECTURE.md")
-	requireContains(t, architecture, "Global single-public-flow invariant", "architecture")
-	requireContains(t, architecture, "release product configuration does not expose 2..4 public lanes", "architecture")
-	if strings.Contains(architecture, "Replacement is make-before-break") {
-		t.Fatal("architecture still selects make-before-break public transport overlap")
+	requireContains(t, architecture, "Per-lane single-flow, tunnel-level multipath", "architecture")
+	requireContains(t, architecture, "1..4 active Transport Lanes", "architecture")
+	requireContains(t, architecture, "A -> A+B -> B", "architecture")
+	if strings.Contains(architecture, "Global single-public-flow invariant") {
+		t.Fatal("architecture still selects withdrawn global single-public-flow policy")
 	}
 }
 
@@ -74,25 +80,25 @@ func TestLinuxProductRunPathOwnsOnePublicRawListener(t *testing.T) {
 	}
 }
 
-func TestWindowsProductConnectOwnsOnlyOnePublicFakeTCPChild(t *testing.T) {
+func TestWindowsProductUsesPerLaneSameAssociationBootstrap(t *testing.T) {
 	body := readRepoFile(t, "internal/windowsruntime/controller.go")
 	if strings.Contains(body, "reality-bootstrap") || strings.Contains(body, "BuildBootstrap(") {
-		t.Fatal("Windows product controller must not create a second public Reality bootstrap connection")
+		t.Fatal("Windows product controller must not create a separate ordinary-TCP Reality bootstrap connection")
 	}
 	requireContains(t, body, "BuildFakeTCPCommand", "Windows controller")
 	requireContains(t, body, "WBD_SINGLE_FLOW_BOOTSTRAP_READY", "Windows controller")
 	requireContains(t, body, "RuntimeDisconnected", "Windows controller")
-	if strings.Contains(body, "gamelane") || strings.Contains(body, "desiredLane") || strings.Contains(body, "candidateLane") {
-		t.Fatal("Windows product controller must not expose a multipath/candidate public-lane lifecycle")
-	}
 }
 
-func TestLinkServerRejectsConcurrentTransportForSameTunnel(t *testing.T) {
+func TestLinkServerAcceptsBoundedLaneSetForSameTunnel(t *testing.T) {
 	body := readRepoFile(t, "cmd/wbd-link-server-mux/logical_tunnel.go")
-	requireContains(t, body, "activeTunnelPeers", "LINK Logical Tunnel binding")
-	requireContains(t, body, "LoadOrStore", "LINK Logical Tunnel binding")
-	requireContains(t, body, "errConcurrentTunnelTransport", "LINK Logical Tunnel binding")
+	requireContains(t, body, "activeTunnelPeers", "LINK Logical Tunnel lane set")
+	requireContains(t, body, "MaxProductPublicTransportLanes", "LINK Logical Tunnel lane set")
+	requireContains(t, body, "errTransportLaneLimit", "LINK Logical Tunnel lane limit")
 	requireContains(t, body, "releaseTunnelTransport", "LINK Logical Tunnel teardown")
+	if strings.Contains(body, "LoadOrStore(key, ps)") {
+		t.Fatal("LINK server still uses withdrawn one-peer-per-TunnelID claim")
+	}
 }
 
 func TestLinuxBundleCarriesSubstantiveSourceSHAAndSingleFlowOperatorContract(t *testing.T) {
