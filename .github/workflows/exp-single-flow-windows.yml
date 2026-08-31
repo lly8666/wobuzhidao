@@ -36,11 +36,14 @@ jobs:
           $ErrorActionPreference = 'Stop'
           go test ./internal/windowsruntime -count=1
           go test ./internal/realityfront -count=1
+          go test ./cmd/wbd-windows-portable ./cmd/wbd-windows-gui -count=1
       - name: Build Windows single-flow binaries
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
-          go build -trimpath -o "$env:RUNNER_TEMP\wbd.exe" ./cmd/wbd
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd.exe" ./cmd/wbd-windows-portable
+          go build -trimpath -ldflags="-H=windowsgui" -o "$env:RUNNER_TEMP\wbd-windows-gui.exe" ./cmd/wbd-windows-gui
           Get-Item "$env:RUNNER_TEMP\wbd-faketcp.exe"
           Get-Item "$env:RUNNER_TEMP\wbd.exe"
+          Get-Item "$env:RUNNER_TEMP\wbd-windows-gui.exe"
