@@ -98,7 +98,7 @@ DTLS 1.3 remains the steady-state cryptographic authority. The current lock is w
 ## FEC invariants
 
 1. WBD FEC is systematic and optional.
-2. Never delay an available systematic source merely to fill a FEC block.
+2. Do not delay an available systematic source merely to fill a FEC block.
 3. Release wire modes are only `off` and fixed systematic `20:20`.
 4. One-lane proactive expansion must remain within the qualified release budget; no hidden adaptive/learning FEC is allowed in V3.
 5. FEC must preserve packet boundaries and must not reconstruct an ordered aggregate byte stream.
