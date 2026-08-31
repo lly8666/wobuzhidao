@@ -45,9 +45,10 @@ func TestBuildFakeTCPCommandDoesNotDialSeparateRealityFront(t *testing.T) {
 	if !argPair(cmd.Args,"--reality-tunnel-config-out",testProfile().TunnelConfigPath){t.Fatalf("authenticated tunnel config output missing: %v",cmd.Args)}
 }
 
-func TestProfileAllowsOneToFourLanesOnly(t *testing.T) {
-	for lanes:=1;lanes<=4;lanes++{p:=testProfile();p.Lanes=lanes;if err:=p.Validate();err!=nil{t.Fatalf("lanes=%d rejected: %v",lanes,err)}}
-	for _,lanes:=range []int{-1,5}{p:=testProfile();p.Lanes=lanes;if err:=p.Validate();err==nil{t.Fatalf("lanes=%d unexpectedly accepted",lanes)}}
+func TestProfileAllowsExactlyOneProductPublicTransport(t *testing.T) {
+	p:=testProfile();p.Lanes=1;if err:=p.Validate();err!=nil{t.Fatalf("single public transport rejected: %v",err)}
+	p=testProfile();p.Lanes=0;if got:=p.normalized().Lanes;got!=1{t.Fatalf("default lane count normalized to %d want 1",got)};if err:=p.Validate();err!=nil{t.Fatalf("default single public transport rejected: %v",err)}
+	for _,lanes:=range []int{-1,2,3,4,5}{p:=testProfile();p.Lanes=lanes;if err:=p.Validate();err==nil{t.Fatalf("lanes=%d unexpectedly accepted",lanes)}}
 }
 
 func TestProfileAllowsTunnelAddressToBeEmptyUntilAuthenticatedBootstrap(t *testing.T) {
