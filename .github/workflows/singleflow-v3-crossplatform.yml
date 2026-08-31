@@ -1,0 +1,50 @@
+name: singleflow-v3-crossplatform
+
+on:
+  push:
+    branches:
+      - exp/singleflow-realitylike-v3
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Test V3 Windows transport and lifecycle
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          go test ./internal/faketcp ./internal/realityfront ./internal/singleflow ./internal/windowsruntime ./internal/windowsdiag ./cmd/wbd-faketcp -count=1
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-windows-portable.exe" ./cmd/wbd-windows-portable
+          if (-not (Test-Path "$env:RUNNER_TEMP\wbd-faketcp.exe")) { throw 'wbd-faketcp.exe not built' }
+          if (-not (Test-Path "$env:RUNNER_TEMP\wbd-windows-portable.exe")) { throw 'wbd-windows-portable.exe not built' }
+          Write-Output 'WBD_SINGLEFLOW_V3_WINDOWS_PASS os=windows-latest npcap_demux_tests=1 runtime_tests=1'
+
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Test V3 Linux server composition
+        run: |
+          set -euo pipefail
+          go test ./internal/faketcp ./internal/realityfront ./internal/singleflow ./internal/dtlsworker ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux -count=1
+          go build -trimpath -o /tmp/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          test -x /tmp/wbd-faketcp
+          test -x /tmp/wbd-faketcp-mux
+          sh -n scripts/linux_server_manager_v3.sh
+          Write-Output='WBD_SINGLEFLOW_V3_LINUX_PASS os=ubuntu-24.04 server_mux=1 manager_v3=1'
+          echo "$Write-Output"
