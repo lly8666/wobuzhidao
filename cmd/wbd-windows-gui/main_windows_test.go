@@ -35,6 +35,11 @@ func (p *exitTestProcess) Stop() error {
 	return nil
 }
 
+func (p *exitTestProcess) WaitReady(marker string, timeout time.Duration) error {
+	p.runner.events = append(p.runner.events, "ready:"+p.name+":"+marker)
+	return nil
+}
+
 type exitTestDiscoverer struct{}
 
 func (exitTestDiscoverer) Discover(windowsruntime.Profile) (windowsruntime.Underlay, error) {
