@@ -1,6 +1,6 @@
 # Roadmap
 
-> **Status: V2.4 GLOBAL SINGLE-PUBLIC-FLOW HARDENING ACTIVE.** ADR-0013 controls public transport count/replacement. ADR-0012 retains Logical Tunnel/address-lease/shared-TUN work only where it does not require multipath.
+> **Status: V2.5 ADR-0012 LOGICAL-TUNNEL MULTIPATH LIFECYCLE ACTIVE.** ADR-0012 controls 1..4 lanes, Game Lane and make-before-break. ADR-0013 is withdrawn.
 
 ## Milestone map
 
@@ -9,240 +9,155 @@
 | V2-M0 | architecture restart / evidence preservation | **DONE** |
 | V2-M1 | raw FakeTCP + weak-network external baseline | **DONE** |
 | V2-M2 | pinned wolfSSL DTLS 1.3 | **DONE** |
-| V2-M3 | immutable LINK/session/control foundation | **DONE AS FOUNDATION** |
-| V2-M4 | no-HOL FakeTCP/FEC first-arrival qualification | **DONE / MUST REMAIN GREEN** |
-| V2-M5 | historical Game Lane first-arrival/race research | **IMPLEMENTED RESEARCH / NOT CURRENT PRODUCT PATH** |
-| V2-M6 | Reality-like TLS bootstrap on the same FakeTCP association | **IMPLEMENTED / QUALIFIED FOUNDATION** |
-| V2-M7 | Windows Wintun raw-L3 capture/routing + Npcap single-flow underlay | **IMPLEMENTED / EXACT-HEAD REQUALIFICATION REQUIRED** |
+| V2-M3 | immutable LINK/control foundation | **DONE AS FOUNDATION** |
+| V2-M4 | no-HOL FakeTCP/FEC qualification | **DONE / MUST REMAIN GREEN** |
+| V2-M5 | Game Lane first-arrival/race layer | **IMPLEMENTED FOUNDATION / CURRENT PRODUCT MECHANISM** |
+| V2-M6 | Reality-like TLS bootstrap on the same FakeTCP association | **IMPLEMENTED / PER-LANE FOUNDATION** |
+| V2-M7 | Windows Wintun raw-L3 + Npcap underlay | **IMPLEMENTED FOUNDATION / MULTILANE LIFECYCLE INTEGRATION ACTIVE** |
 | V2-M8-old | per-LiveID raw-IP netns + veth + double NAT | **SUPERSEDED / REFERENCE ONLY** |
 | V2-M9A | Logical Tunnel identity + server address lease | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9B | shared Linux TUN + one host NAT + lease demux | **IMPLEMENTED FOUNDATION / REQUALIFY** |
-| V2-M9C | global one-public-transport product freeze + duplicate-lane rejection | **ACTIVE** |
-| V2-M9D | payload-idle DORMANT/wake with 0-or-1 public transport | **NEXT AFTER M9C GREEN** |
-| V2-M9E | break-before-make age/path replacement | **NEXT AFTER M9C GREEN** |
-| V2-M10 | exact-source automated Windows/Linux qualification + physical Windows 11 -> Ubuntu ARM64 | **BLOCKED ON M9C/M9E QUALIFICATION** |
-| V2-M11 | startup RTT / packaging/process simplification | **DEFERRED UNTIL FUNCTIONAL ARCHITECTURE IS GREEN** |
+| V2-M9C | ADR-0012 bounded 1..4 lane admission + Game integration | **ACTIVE** |
+| V2-M9D | payload-idle DORMANT/wake with 0 active lanes and 1..4 wake target | **NEXT** |
+| V2-M9E | make-before-break age/path replacement | **ACTIVE AFTER M9C CORE GREEN** |
+| V2-M10 | exact-source Windows/Linux qualification + physical Windows 11 -> Ubuntu ARM64 | **BLOCKED ON MULTILANE LIFECYCLE QUALIFICATION** |
+| V2-M11 | startup RTT / packaging/process simplification | **DEFERRED** |
 
-## Frozen global transport invariant
+## Frozen transport model
 
-For one connected Logical Tunnel:
-
-```text
-public WBD transport count = 1
-```
-
-Disconnected/dormant may be zero.
-
-The one public transport is:
+One active Logical Tunnel owns **1..4 independent WBD Transport Lanes**. Each lane separately satisfies:
 
 ```text
 one raw FakeTCP SYN lineage
-  -> bounded reliable ordered bootstrap on that same association
-  -> real TLS 1.3 / Reality-like marker + admission
+  -> bounded reliable Reality-like real TLS 1.3 bootstrap on that same association
   -> SAME 4-tuple / SAME sequence space / NO second WBD payload SYN
   -> pinned wolfSSL DTLS 1.3
   -> LINK
-  -> optional fixed FEC
+  -> lane-local optional fixed FEC
   -> packet/datagram VPN payload without ordinary-TCP HOL
 ```
 
-Current release product must not expose 2..4 public lanes, Game/race duplication, or old+candidate overlap. `internal/logicaltunnel.MaxProductPublicTransportLanes` remains `1`.
+Normal mode targets one lane. Game/weak-network mode may maintain 2..4 lanes. A candidate lane may temporarily overlap an old lane during make-before-break. All lanes terminate at the same Linux public `WBD_PORT` but use independent client 4-tuples and independent transport state.
 
 ## Frozen weak-network/release limits
-
-Unless a later explicit benchmark ADR reopens them:
 
 - <=100 Mbit/s weak-link qualification ceiling;
 - 40 Mbit/s aggregate-inner conservative release operating point;
 - `legacy` FakeTCP recovery default; `sack-rack` experimental;
 - pinned wolfSSL DTLS 1.3;
-- FEC `off` or fixed systematic `20:20` on the qualified release wire;
-- systematic source datagrams are not delayed merely to fill FEC blocks;
-- no ordinary kernel-TCP sustained WBD payload path and no TCP-over-TCP HOL dependency.
+- FEC `off` or fixed systematic `20:20` per lane;
+- no ordinary kernel-TCP sustained WBD payload and no TCP-over-TCP HOL.
 
-## V2-M9A — Logical Tunnel + server-assigned unique address
+The mature TCP-like recovery core is frozen unless deterministic evidence proves a defect below the new lifecycle layer.
 
-Retained identity hierarchy:
+## V2-M9A — Logical Tunnel + server-assigned address
 
 ```text
-Account -> Device/Installation -> Logical Tunnel -> one current public Transport Epoch
+Account -> Device/Installation -> Logical Tunnel -> 1..4 disposable Transport Lanes
 ```
 
-A Logical Tunnel owns:
+A Logical Tunnel owns a stable TunnelID, unique IPv4 lease and authenticated route/address configuration. LiveID/FakeTCP/DTLS/LINK belong to lanes.
 
-- stable TunnelID while the logical VPN is enabled;
-- server-assigned unique IPv4 lease from a configurable pool;
-- authenticated route/address configuration;
-- zero public transports while dormant/disconnected or one while connected.
-
-LiveID/FakeTCP/DTLS/LINK belong to the disposable transport epoch, not to the IP lease.
-
-Exit gates:
-
-1. two same-account logical tunnels receive different addresses;
-2. Windows does not assume every client is `10.66.0.2/30`;
-3. authenticated tunnel configuration carries address/prefix/route information;
-4. ingress source address must equal the lease;
-5. lease cleanup/reconnect/reuse is deterministic;
-6. pool is configurable.
+Exit gates include distinct same-account leases, no global `10.66.0.2/30` identity, source anti-spoof and deterministic lease reuse/cleanup.
 
 ## V2-M9B — Shared server TUN + one NAT
-
-Selected final Windows raw-IP server shape:
 
 ```text
 Internet
   <-> one WBD-owned host NAT/SNAT
   <-> Linux root routing
   <-> shared WBD TUN
-  <-> lease/tunnel demux
-  <-> one current transport per tunnel
+  <-> lease/tunnel demux + Game/race layer
+  <-> 1..4 active lanes
 ```
 
-Exit gates:
+Exit gates: two Logical Tunnels can use the same inner source port to the same target, DNS/UDP/TCP pass, spoofing is rejected, and firewall changes remain WBD-scoped.
 
-- two different leased tunnel IPs simultaneously work as separate Logical Tunnels;
-- both clients may use the same inner TCP source port `40000` to the same target/port;
-- DNS-style UDP, generic UDP and TCP pass;
-- target observes host NAT identity, not WBD private addresses;
-- spoofed source lease is rejected;
-- WBD firewall helper modifies only WBD-owned state.
-
-## V2-M9C — Global one-public-transport enforcement
-
-This milestone corrects the superseded multipath pivot without changing mature FakeTCP recovery.
+## V2-M9C — Bounded multipath + Game Lane product integration
 
 Required work:
 
-- release invariant `MaxProductPublicTransportLanes == 1`;
-- Windows product controller owns exactly one `wbd-faketcp` public child per Connect;
-- Linux product starts one raw single-flow public listener and no parallel kernel-TCP Reality admission listener;
-- LINK server rejects a second concurrently usable transport claim for the same TunnelID;
-- product UI/config has no desired public lane count greater than one;
-- Game Lane/race libraries remain experimental/history only;
-- release-contract tests make reintroducing multipath a CI failure;
-- ADR/constitution/architecture/roadmap/handoff consistently point to ADR-0013.
+- release invariant `1 <= active lanes <= 4`;
+- LINK server accepts up to four lane peers for one TunnelID and rejects the fifth;
+- Game Lane PacketID/first-arrival/dedup is the tunnel multipath layer;
+- each lane independently uses per-lane same-association Reality-like bootstrap -> DTLS -> LINK;
+- normal mode requests one lane; Game/weak policy may request 2..4;
+- Windows lane lifecycle owns independent per-lane FakeTCP/DTLS/LINK child state without changing the TCP-like recovery core;
+- Linux still exposes one raw public listener, not one listener per lane;
+- release-contract tests make regression to global-one-lane semantics a CI failure.
 
-Exit gate: exact-head CI + same-flow fullstack + Windows/Linux capability/build gates all pass after this freeze.
+Exit gate: unit tests plus Game Lane, per-lane same-flow, no-HOL, Windows and Linux exact-head gates are green together.
 
 ## V2-M9D — Payload-idle sleep and wake
 
-A Logical Tunnel may retain lease/Wintun/routes while public transport count becomes zero.
+A Logical Tunnel may retain lease/Wintun/routes while active lane count becomes zero. PING/PONG/control never resets real payload idle.
 
-Maintain separate clocks for real payload activity and transport liveness. PING/PONG/control never resets real payload idle.
+On wake, establish one lane first so queued payload can resume; establish optional extra Game lanes afterward. Wake must use bounded buffering.
 
-On idle expiry:
-
-- close the one FakeTCP/DTLS/LINK transport;
-- keep Logical Tunnel lease, Wintun, capture routes/DNS and connected logical state;
-- enter `DORMANT`.
-
-On first new Wintun packet:
-
-- wake with a bounded queue;
-- establish one new same-flow Reality-like transport;
-- resume when DTLS/LINK is ready.
-
-Exit gate: sleep/wake does not require user reconnect, create a second public flow, or leak unbounded buffered packets.
-
-## V2-M9E — Break-before-make replacement and mobility
-
-Age/path replacement must obey the global one-flow invariant:
+## V2-M9E — Make-before-break replacement and mobility
 
 ```text
 A ACTIVE
-  -> stop new payload admission to A
-  -> bounded close/flush when possible
-  -> retire A locally
-  -> establish B
-  -> Reality-like bootstrap -> DTLS -> LINK
+  -> establish B completely
+  -> attach/prove B
+  -> A+B bounded race/dedup overlap
+  -> drain/retire A
   -> B ACTIVE
 ```
 
-There is no A+B overlap.
+Candidate failure leaves A usable. In Game mode rotate only one lane at a time: `A+B -> A+B+C -> B+C`.
 
-This means planned rotation/network migration may have a short packet pause. A small bounded local reconnect buffer is allowed; a second public flow is not.
-
-The same replacement state machine should handle:
-
-- scheduled rotation;
-- Windows NIC/default-route/public-IP change;
-- NAT/path change;
-- missed-PONG/no-valid-RX;
-- FakeTCP/DTLS/LINK child failure;
-- server-requested replace;
-- manual reconnect.
-
-Abrupt loss may leave stale server bookkeeping after the old physical path is already unusable. A fresh authenticated transport may supersede that stale record, but two usable data transports for one TunnelID are forbidden.
+One replacement state machine handles scheduled age, Windows NIC/default-route/public-IP change, NAT/path failure, missed liveness, child failure, server request and manual reconnect. Lane generations fence stale paths.
 
 ## Reality-like fidelity work
 
-The first seconds should be as close to ordinary Reality-like/TLS behavior as reproducibly possible while retaining one raw FakeTCP association and no steady-state HOL.
+For every lane, packet captures must qualify TCP persona, TLS 1.3 ClientHello/persona/SNI/record progression, same 4-tuple through the bootstrap barrier and absence of a second WBD payload SYN. Do not claim numeric `99%` similarity without a defined reproducible metric.
 
-Qualification should use packet captures and analyzers for:
-
-- TCP persona (options, sequence/ACK progression, packet sizing/timing);
-- TLS 1.3 ClientHello/persona/SNI/record progression;
-- no second SYN/FIN barrier violation;
-- same 4-tuple through DTLS mode transition.
-
-Do not publish a numeric `99%`/browser-perfect similarity claim without a defined reproducible metric. If a fidelity technique needs sustained kernel TCP or a second public connection, the single-flow/no-HOL invariant wins pending a newer explicit decision.
-
-## Platform requirements that must not regress
+## Platform requirements
 
 ### Linux server
 
-- one public `WBD_PORT` product surface;
-- one raw single-flow WBD listener;
-- no parallel ordinary kernel TCP Reality product listener;
+- one public `WBD_PORT` and one raw mux listener;
+- no parallel ordinary kernel-TCP Reality product listener;
+- multiple lanes are independent 4-tuples handled by that mux;
 - WBD-owned firewall/RST suppression only;
-- never flush/replace the user's host ruleset;
 - internal LINK/DTLS/raw-IP listeners remain private.
 
 ### Windows
 
-- Wintun/raw-L3 remains the product capture path;
+- Wintun/raw-L3 capture remains;
 - underlay escape remains mandatory;
-- one Connect -> one public `wbd-faketcp` child;
-- Npcap ingress must ignore unrelated ARP/IPv6/UDP/TCP noise;
-- device-wide IPv6 remains fail-closed while connected until IPv6 tunneling is qualified;
-- Disconnect/Exit restores routes, DNS/NRPT, IPv6 and WBD-owned firewall state;
-- Npcap installation/licensing constraints remain unchanged.
-
-## Observability requirements
-
-Retain non-secret correlation IDs, first-boundary markers and counters without per-packet INFO spam. Credentials, passwords, tickets, resume secrets and identity secrets never belong in logs.
-
-Detailed development decisions, failed experiments, exact heads and gate results belong under `docs/development/` and must be summarized in `.wbd/handoff/current.json`.
+- lane manager may own 1..4 independent per-lane FakeTCP/DTLS/LINK states;
+- Npcap ingress must ignore unrelated traffic;
+- IPv6 remains fail-closed while connected;
+- Disconnect/Exit restores routes, DNS/NRPT, IPv6 and WBD-owned firewall state.
 
 ## Final V2-M10 release gate
 
-On one exact substantive `SOURCE_SHA`, all of the following must be true:
+On one exact substantive `SOURCE_SHA`:
 
-1. one-SYN Reality-like -> DTLS -> LINK -> raw-IP continuity is green;
-2. no parallel ordinary kernel-TCP WBD bootstrap exists;
-3. post-bootstrap no-HOL hole-bypass is green;
-4. Windows Npcap noise filtering is green;
-5. same TunnelID rejects a second concurrently usable transport;
-6. distinct tunnel leases + shared TUN + one NAT are green;
-7. same source port `40000` / same Internet target works for two **different Logical Tunnels**;
-8. source spoofing is rejected;
-9. break-before-make reconnect preserves the Logical Tunnel lease;
-10. FEC `off` and `20:20` remain green;
-11. same-flow startup stress and TCP/TLS persona capture gates are green;
-12. Windows build/admin-smoke/capability and Linux release/firewall/full-stack gates are green;
-13. Windows and Linux artifacts report the same `SOURCE_SHA`;
-14. clean physical Windows 11 -> Ubuntu ARM64 passes DNS + UDP + TCP;
-15. Disconnect/Exit restores route, DNS/NRPT, IPv6 and WBD-owned firewall state without manual repair.
+1. every lane one-SYN Reality-like -> DTLS -> LINK -> raw-IP continuity is green;
+2. no ordinary kernel-TCP Reality product bootstrap exists;
+3. post-bootstrap no-HOL is green;
+4. one TunnelID admits lanes 1..4 and rejects 5;
+5. Game first-arrival/dedup/no-cross-lane-HOL is green;
+6. `A -> A+B -> B` make-before-break preserves lease and delivers once;
+7. candidate failure leaves A healthy;
+8. one-at-a-time Game rotation preserves redundancy;
+9. distinct leases + shared TUN + one NAT are green;
+10. identical inner tuples from two Logical Tunnels remain isolated;
+11. source spoofing is rejected;
+12. FEC `off` and `20:20` remain green;
+13. Windows build/admin-smoke/capability/portable and Linux release/firewall/full-stack are green;
+14. Windows/Linux artifacts report the same `SOURCE_SHA`;
+15. clean physical Windows 11 -> Ubuntu ARM64 passes DNS + UDP + TCP and deterministic cleanup.
 
-Until all changed automated gates pass together, do not hand a new artifact to the physical tester.
+Until changed automated gates pass together, do not hand a new artifact to the physical tester.
 
-## Deferred until after V2-M10 functional architecture
+## Deferred
 
-- DTLS HRR-cookie startup RTT optimization;
+- DTLS HRR startup RTT optimization;
 - LINK bind/init coalescing;
-- abbreviated resume/0-RTT work;
+- abbreviated resume/0-RTT;
 - Windows child-process/module slimming;
-- native replacement of PowerShell underlay/network configuration;
-- additional FEC profiles or higher release throughput caps;
-- reopening multipath/Game Lane as a product feature (requires an explicit newer product decision because it conflicts with ADR-0013).
+- additional FEC profiles or higher release throughput caps.
