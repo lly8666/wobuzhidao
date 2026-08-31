@@ -3,26 +3,29 @@ set -eu
 
 ACTION=status
 BACKEND=auto
-FRONT_PORT=40443
-RAW_PORT=40000
+PORT=40443
+PORT_SET=0
 STATE=/run/wbd/server-firewall.state
 NFT_INPUT=
+LEGACY_FRONT_PORT=
+LEGACY_RAW_PORT=
 
 usage() {
     cat >&2 <<'EOF'
 usage: linux_server_firewall.sh apply|cleanup|status|render [options]
   --backend auto|nft|iptables
-  --front-port PORT       Reality setup/admission TCP port (default 40443)
-  --raw-port PORT         WBD raw FakeTCP destination/source port (default 40000)
+  --port PORT             single public WBD TCP-shaped port (default 40443)
   --state PATH            WBD-owned state file
   --nft-input FAMILY:TABLE:CHAIN
                          explicit existing nft input chain when auto-detection
                          cannot identify the host firewall
 
-The helper never flushes or restores the host ruleset. It inserts only
-WBD-owned input accepts and an exact FakeTCP RST suppression rule, and cleanup
-removes only those rules. The platform relay is userspace egress, so this helper
-does not add FORWARD or MASQUERADE rules.
+V2.3 exposes exactly one public TCP-shaped flow. The helper never flushes or
+restores the host ruleset. It inserts one WBD-owned input accept for that port
+and an exact kernel-RST suppression rule, and cleanup removes only WBD-owned
+state. Historical front/raw rule names are recognized only for upgrade cleanup.
+The platform relay is userspace egress, so this helper adds no FORWARD or
+MASQUERADE rules.
 EOF
 }
 
@@ -30,8 +33,11 @@ EOF
 while [ $# -gt 0 ]; do
     case "$1" in
         --backend) BACKEND=$2; shift 2 ;;
-        --front-port) FRONT_PORT=$2; shift 2 ;;
-        --raw-port) RAW_PORT=$2; shift 2 ;;
+        --port) PORT=$2; PORT_SET=1; shift 2 ;;
+        # Hidden upgrade compatibility. New callers must use --port. Applying
+        # with legacy arguments is accepted only when both describe one port.
+        --front-port) LEGACY_FRONT_PORT=$2; shift 2 ;;
+        --raw-port) LEGACY_RAW_PORT=$2; shift 2 ;;
         --state) STATE=$2; shift 2 ;;
         --nft-input) NFT_INPUT=$2; shift 2 ;;
         -h|--help) usage; exit 0 ;;
@@ -41,10 +47,30 @@ done
 
 case "$ACTION" in apply|cleanup|status|render) ;; *) usage; exit 2 ;; esac
 case "$BACKEND" in auto|nft|iptables) ;; *) echo "invalid backend: $BACKEND" >&2; exit 2 ;; esac
-for p in "$FRONT_PORT" "$RAW_PORT"; do
+
+if [ -n "$LEGACY_FRONT_PORT" ] || [ -n "$LEGACY_RAW_PORT" ]; then
+    if [ "$ACTION" != cleanup ]; then
+        [ -n "$LEGACY_FRONT_PORT" ] && [ -n "$LEGACY_RAW_PORT" ] || {
+            echo 'legacy --front-port/--raw-port must both be supplied; use --port' >&2; exit 2;
+        }
+        [ "$LEGACY_FRONT_PORT" = "$LEGACY_RAW_PORT" ] || {
+            echo 'single-flow firewall requires one public port; use --port PORT' >&2; exit 2;
+        }
+        if [ "$PORT_SET" -eq 1 ] && [ "$PORT" != "$LEGACY_FRONT_PORT" ]; then
+            echo '--port conflicts with legacy port arguments' >&2; exit 2
+        fi
+        PORT=$LEGACY_FRONT_PORT
+    fi
+fi
+
+validate_port() {
+    p=$1
     case "$p" in *[!0-9]*|'') echo "invalid port: $p" >&2; exit 2 ;; esac
     [ "$p" -gt 0 ] && [ "$p" -le 65535 ] || { echo "invalid port: $p" >&2; exit 2; }
-done
+}
+validate_port "$PORT"
+[ -z "$LEGACY_FRONT_PORT" ] || validate_port "$LEGACY_FRONT_PORT"
+[ -z "$LEGACY_RAW_PORT" ] || validate_port "$LEGACY_RAW_PORT"
 
 need_root() {
     [ "$(id -u)" -eq 0 ] || { echo "$ACTION requires root" >&2; exit 1; }
@@ -98,9 +124,6 @@ find_nft_input() {
             return
         fi
     done
-    # If there is no existing input hook then there is no nft input firewall to
-    # punch through. If an unknown input hook exists, fail rather than pretend a
-    # separate accept base-chain can override an earlier drop verdict.
     rules=$(nft list ruleset 2>/dev/null || true)
     if printf '%s\n' "$rules" | grep -Eq 'hook[[:space:]]+input'; then
         echo 'unable to identify existing nft input chain; pass --nft-input FAMILY:TABLE:CHAIN' >&2
@@ -121,20 +144,24 @@ nft_delete_comment() {
     done
 }
 
+nft_cleanup_chain() {
+    family=$1 table=$2 chain=$3
+    nft_delete_comment "$family" "$table" "$chain" wbd-server-public
+    # Upgrade cleanup for pre-single-flow bundles.
+    nft_delete_comment "$family" "$table" "$chain" wbd-server-front
+    nft_delete_comment "$family" "$table" "$chain" wbd-server-raw
+}
+
 nft_cleanup() {
     family=$(state_get NFT_INPUT_FAMILY)
     table=$(state_get NFT_INPUT_TABLE)
     chain=$(state_get NFT_INPUT_CHAIN)
     if [ -n "$family" ] && [ -n "$table" ] && [ -n "$chain" ]; then
-        nft_delete_comment "$family" "$table" "$chain" wbd-server-front
-        nft_delete_comment "$family" "$table" "$chain" wbd-server-raw
+        nft_cleanup_chain "$family" "$table" "$chain"
     else
-        # Crash-recovery best effort for the common chains used by auto mode.
         for spec in 'inet filter input' 'inet fw4 input' 'ip filter INPUT' 'ip filter input'; do
             # shellcheck disable=SC2086
-            nft_delete_comment $spec wbd-server-front
-            # shellcheck disable=SC2086
-            nft_delete_comment $spec wbd-server-raw
+            nft_cleanup_chain $spec
         done
     fi
     nft delete table inet wbd_server 2>/dev/null || true
@@ -148,27 +175,24 @@ nft_apply() {
         # shellcheck disable=SC2086
         set -- $input_values
         in_family=$1 in_table=$2 in_chain=$3
-        nft insert rule "$in_family" "$in_table" "$in_chain" tcp dport "$FRONT_PORT" accept comment wbd-server-front
-        nft insert rule "$in_family" "$in_table" "$in_chain" tcp dport "$RAW_PORT" accept comment wbd-server-raw
+        nft insert rule "$in_family" "$in_table" "$in_chain" tcp dport "$PORT" accept comment wbd-server-public
     else
         rc=$?
         [ "$rc" -eq 1 ] || return "$rc"
         in_family= in_table= in_chain=
     fi
 
-    # A raw TCP-shaped WBD association has no kernel TCP socket. Suppress only
-    # kernel RST packets sourced from the WBD raw port, in a dedicated table;
-    # DROP is terminal across later base chains and cleanup can delete the table.
+    # The public WBD flow is raw TCP-shaped and has no kernel TCP socket.
+    # Suppress only kernel RST packets sourced from this one public port.
     nft -f - <<EOF
 add table inet wbd_server
 add chain inet wbd_server output { type filter hook output priority -300; policy accept; }
-add rule inet wbd_server output tcp sport $RAW_PORT tcp flags rst / rst drop comment "wbd-server-rst"
+add rule inet wbd_server output tcp sport $PORT tcp flags rst / rst drop comment "wbd-server-rst"
 EOF
     mkdir -p "$(dirname "$STATE")"
     {
         echo BACKEND=nft
-        echo FRONT_PORT="$FRONT_PORT"
-        echo RAW_PORT="$RAW_PORT"
+        echo PORT="$PORT"
         echo NFT_INPUT_FAMILY="$in_family"
         echo NFT_INPUT_TABLE="$in_table"
         echo NFT_INPUT_CHAIN="$in_chain"
@@ -185,24 +209,32 @@ iptables_rule_delete_all() {
 
 iptables_cleanup() {
     command -v iptables >/dev/null 2>&1 || return 0
-    fp=$(state_get FRONT_PORT); [ -n "$fp" ] || fp=$FRONT_PORT
-    rp=$(state_get RAW_PORT); [ -n "$rp" ] || rp=$RAW_PORT
-    iptables_rule_delete_all INPUT -p tcp --dport "$fp" -m comment --comment wbd-server-front -j ACCEPT
-    iptables_rule_delete_all INPUT -p tcp --dport "$rp" -m comment --comment wbd-server-raw -j ACCEPT
-    iptables_rule_delete_all OUTPUT -p tcp --sport "$rp" --tcp-flags RST RST -m comment --comment wbd-server-rst -j DROP
+    state_port=$(state_get PORT)
+    [ -n "$state_port" ] || state_port=$PORT
+    old_front=$(state_get FRONT_PORT)
+    old_raw=$(state_get RAW_PORT)
+    [ -n "$old_front" ] || old_front=${LEGACY_FRONT_PORT:-$state_port}
+    [ -n "$old_raw" ] || old_raw=${LEGACY_RAW_PORT:-$state_port}
+
+    iptables_rule_delete_all INPUT -p tcp --dport "$state_port" -m comment --comment wbd-server-public -j ACCEPT
+    # Upgrade cleanup for historical dual-rule ownership.
+    iptables_rule_delete_all INPUT -p tcp --dport "$old_front" -m comment --comment wbd-server-front -j ACCEPT
+    iptables_rule_delete_all INPUT -p tcp --dport "$old_raw" -m comment --comment wbd-server-raw -j ACCEPT
+    iptables_rule_delete_all OUTPUT -p tcp --sport "$state_port" --tcp-flags RST RST -m comment --comment wbd-server-rst -j DROP
+    if [ "$old_raw" != "$state_port" ]; then
+        iptables_rule_delete_all OUTPUT -p tcp --sport "$old_raw" --tcp-flags RST RST -m comment --comment wbd-server-rst -j DROP
+    fi
 }
 
 iptables_apply() {
     command -v iptables >/dev/null 2>&1 || { echo 'iptables not installed' >&2; return 1; }
     iptables_cleanup
-    iptables -I INPUT 1 -p tcp --dport "$RAW_PORT" -m comment --comment wbd-server-raw -j ACCEPT
-    iptables -I INPUT 1 -p tcp --dport "$FRONT_PORT" -m comment --comment wbd-server-front -j ACCEPT
-    iptables -I OUTPUT 1 -p tcp --sport "$RAW_PORT" --tcp-flags RST RST -m comment --comment wbd-server-rst -j DROP
+    iptables -I INPUT 1 -p tcp --dport "$PORT" -m comment --comment wbd-server-public -j ACCEPT
+    iptables -I OUTPUT 1 -p tcp --sport "$PORT" --tcp-flags RST RST -m comment --comment wbd-server-rst -j DROP
     mkdir -p "$(dirname "$STATE")"
     {
         echo BACKEND=iptables
-        echo FRONT_PORT="$FRONT_PORT"
-        echo RAW_PORT="$RAW_PORT"
+        echo PORT="$PORT"
     } >"$STATE"
     chmod 600 "$STATE" 2>/dev/null || true
 }
@@ -223,8 +255,8 @@ cleanup_all() {
 case "$ACTION" in
     render)
         selected=$(choose_backend)
-        echo "WBD_LINUX_SERVER_FIREWALL_PLAN backend=$selected front=$FRONT_PORT raw=$RAW_PORT"
-        echo 'ownership: WBD-marked input accept rules + dedicated raw-RST suppression only'
+        echo "WBD_LINUX_SERVER_FIREWALL_PLAN backend=$selected port=$PORT single_flow=1"
+        echo 'ownership: one WBD-marked public-port accept + exact raw-RST suppression only'
         echo 'no FORWARD/MASQUERADE/global ruleset restore'
         ;;
     apply)
@@ -235,7 +267,7 @@ case "$ACTION" in
             nft) nft_apply ;;
             iptables) iptables_apply ;;
         esac
-        echo "WBD_LINUX_SERVER_FIREWALL_READY backend=$selected front=$FRONT_PORT raw=$RAW_PORT"
+        echo "WBD_LINUX_SERVER_FIREWALL_READY backend=$selected port=$PORT single_flow=1"
         ;;
     cleanup)
         need_root
@@ -244,8 +276,9 @@ case "$ACTION" in
         ;;
     status)
         saved=$(state_get BACKEND)
+        saved_port=$(state_get PORT)
         if [ -n "$saved" ]; then
-            echo "WBD_LINUX_SERVER_FIREWALL_STATUS active=1 backend=$saved state=$STATE"
+            echo "WBD_LINUX_SERVER_FIREWALL_STATUS active=1 backend=$saved port=${saved_port:-unknown} state=$STATE"
         else
             echo "WBD_LINUX_SERVER_FIREWALL_STATUS active=0 state=$STATE"
         fi
