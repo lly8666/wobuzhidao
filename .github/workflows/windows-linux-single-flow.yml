@@ -1,0 +1,135 @@
+name: windows-linux-single-flow
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - '.github/workflows/windows-linux-single-flow.yml'
+      - '.github/workflows/single-flow-rawip-e2e.yml'
+      - 'cmd/wbd-winlin-wire-vector/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-ip-gateway-server/**'
+      - 'cmd/wbd-tun/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/logicaltunnel/**'
+      - 'internal/dataplane/**'
+      - 'internal/rawipbackend/**'
+      - 'internal/session/**'
+      - 'internal/windowsruntime/**'
+      - 'native/dtls/**'
+      - 'scripts/linux_ip_gateway_firewall.sh'
+      - 'scripts/check_single_flow_wire_invariants.py'
+  pull_request:
+    paths:
+      - '.github/workflows/windows-linux-single-flow.yml'
+      - '.github/workflows/single-flow-rawip-e2e.yml'
+      - 'cmd/wbd-winlin-wire-vector/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-ip-gateway-server/**'
+      - 'cmd/wbd-tun/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/logicaltunnel/**'
+      - 'internal/dataplane/**'
+      - 'internal/rawipbackend/**'
+      - 'internal/session/**'
+      - 'internal/windowsruntime/**'
+      - 'native/dtls/**'
+      - 'scripts/linux_ip_gateway_firewall.sh'
+      - 'scripts/check_single_flow_wire_invariants.py'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  windows_wire:
+    name: windows native wire producer
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Qualify Windows protocol/runtime contracts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          go test ./cmd/wbd-winlin-wire-vector ./cmd/wbd-faketcp ./internal/realityfront ./internal/windowsruntime -count=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Generate native Windows single-flow wire vector
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:RUNNER_TEMP 'winlin-wire.json'
+          go run ./cmd/wbd-winlin-wire-vector -mode generate -file $out -source-sha $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path $out)) { throw 'wire vector was not created' }
+          $json = Get-Content -Raw $out | ConvertFrom-Json
+          if ($json.source_sha -ne $env:GITHUB_SHA) { throw 'wire vector source SHA mismatch' }
+          if ($json.producer_goos -ne 'windows') { throw 'wire vector was not produced natively on Windows' }
+          if ($json.packet_persona -ne 'windows11') { throw 'wire vector did not use Windows11 persona' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wbd-winlin-wire-${{ github.sha }}
+          path: ${{ runner.temp }}/winlin-wire.json
+          if-no-files-found: error
+          retention-days: 7
+
+  linux_wire:
+    name: linux consumes Windows wire
+    needs: windows_wire
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - uses: actions/download-artifact@v4
+        with:
+          name: wbd-winlin-wire-${{ github.sha }}
+          path: ${{ runner.temp }}/winlin-wire
+      - name: Verify Windows packet lineage through Linux server state machine
+        run: |
+          set -euo pipefail
+          test -s "$RUNNER_TEMP/winlin-wire/winlin-wire.json"
+          go run ./cmd/wbd-winlin-wire-vector \
+            -mode verify \
+            -file "$RUNNER_TEMP/winlin-wire/winlin-wire.json" \
+            -source-sha "$GITHUB_SHA" | tee "$RUNNER_TEMP/winlin-verify.log"
+          grep -q 'WBD_WINLIN_VECTOR_VERIFY_PASS.*producer=windows.*server_association=1.*reality_marker=1.*no_second_syn=1.*same_sequence_space=1.*physical_npcap=0' "$RUNNER_TEMP/winlin-verify.log"
+
+  linux_rawip:
+    name: linux raw/netns full stack
+    needs: linux_wire
+    uses: ./.github/workflows/single-flow-rawip-e2e.yml
+
+  aggregate:
+    name: hosted Windows + Linux qualification
+    needs: [windows_wire, linux_wire, linux_rawip]
+    runs-on: ubuntu-24.04
+    if: ${{ always() }}
+    steps:
+      - name: Require every hosted cross-platform boundary
+        env:
+          WINDOWS_WIRE: ${{ needs.windows_wire.result }}
+          LINUX_WIRE: ${{ needs.linux_wire.result }}
+          LINUX_RAWIP: ${{ needs.linux_rawip.result }}
+        run: |
+          set -euo pipefail
+          printf 'windows_wire=%s linux_wire=%s linux_rawip=%s\n' "$WINDOWS_WIRE" "$LINUX_WIRE" "$LINUX_RAWIP"
+          test "$WINDOWS_WIRE" = success
+          test "$LINUX_WIRE" = success
+          test "$LINUX_RAWIP" = success
+          echo 'WBD_WINDOWS_LINUX_SINGLE_FLOW_PASS windows_native=1 windows_wire_emitter=1 linux_server_consumer=1 linux_raw_netns=1 reality_tls13=1 same_flow=1 no_second_syn=1 dtls13=1 link=1 tun=1 rawip=1 udp=1 tcp=1 physical_npcap=0 release_authority=hosted_cross_platform'
