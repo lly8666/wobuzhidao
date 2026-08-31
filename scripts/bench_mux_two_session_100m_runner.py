@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Run the V2.3 single-flow two-session capacity characterization.
+"""Run the ADR-0014 single-public-flow capacity characterization.
 
-The wrapper keeps the historical command contract and result annotations while
-using the single-flow setup core: one public FakeTCP association per client,
-Reality-like TLS bootstrap on that association, then DTLS/LINK steady state.
-It strips loss only from initial setup; the measured offered interval still
-applies the requested random loss.
+The wrapper keeps the historical CLI and result annotations while the core uses
+one public FakeTCP association: Reality-like TLS bootstrap on that association,
+then DTLS/LINK steady state carrying two independent inner streams. It strips
+loss only from initial setup; the measured offered interval still applies the
+requested random loss.
 """
 
 import json
@@ -57,9 +57,9 @@ if rc == 0 and len(sys.argv) > 1 and sys.argv[1] == "run":
         result["link_mbps"] = LINK_MBPS
         result["setup_loss_pct"] = 0.0
         result["measurement_loss_pct"] = result.get("loss_pct")
-        result["loss_activation"] = "after_two_single_flow_link_sessions_ready_before_offered_interval"
+        result["loss_activation"] = "after_single_public_flow_link_ready_before_offered_interval"
         result["capacity_override"] = "wrapper_rewrites_netem_rate_only"
-        result["qualification_setup"] = "single_public_faketcp_flow_with_in_association_reality_like_tls"
+        result["qualification_setup"] = "one_public_faketcp_flow_reality_like_tls_then_dtls_with_two_inner_streams"
         path.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n")
     except (ValueError, IndexError, OSError, json.JSONDecodeError) as exc:
         print(f"benchmark runner result annotation failed: {exc}", file=sys.stderr)
