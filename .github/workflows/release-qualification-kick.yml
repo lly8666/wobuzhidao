@@ -62,43 +62,33 @@ jobs:
               echo "branch moved before dispatching ${workflow}: current=${current} expected=${GITHUB_SHA}" >&2
               exit 1
             fi
-            started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            printf '%s\t%s\n' "$workflow" "$started" >>"$manifest"
-            echo "dispatch ${workflow} ref=${BRANCH} sha=${GITHUB_SHA} started=${started}"
-            gh workflow run "$workflow" --repo "$REPO" --ref "$BRANCH"
+            echo "dispatch ${workflow} ref=${BRANCH} sha=${GITHUB_SHA}"
+            run_url="$(gh workflow run "$workflow" --repo "$REPO" --ref "$BRANCH")"
+            run_url="$(printf '%s\n' "$run_url" | tail -n 1 | tr -d '\r')"
+            run_id="${run_url##*/}"
+            if [[ ! "$run_id" =~ ^[0-9]+$ ]]; then
+              echo "could not parse dispatched run id workflow=${workflow} output=${run_url}" >&2
+              exit 1
+            fi
+            printf '%s\t%s\n' "$workflow" "$run_id" >>"$manifest"
+            echo "WBD_RELEASE_CHILD_DISPATCH workflow=${workflow} run_id=${run_id} expected_head=${GITHUB_SHA} url=${run_url}"
           done
           cat "$manifest"
 
-      - name: Resolve and wait for exact-head dispatched gates
+      - name: Wait for exact-head dispatched gates
         shell: bash
         run: |
           set -euo pipefail
           manifest="$RUNNER_TEMP/wbd-release-dispatch.tsv"
-          while IFS=$'\t' read -r workflow started; do
-            [[ -n "$workflow" ]] || continue
-            run_id=""
-            for attempt in $(seq 1 120); do
-              run_id="$(
-                gh api "repos/${REPO}/actions/workflows/${workflow}/runs?branch=${BRANCH}&event=workflow_dispatch&per_page=100" |
-                  jq -r --arg sha "$GITHUB_SHA" --arg started "$started" '
-                    [.workflow_runs[]
-                     | select(.head_sha == $sha and .created_at >= $started)]
-                    | sort_by(.created_at)
-                    | first
-                    | .id // empty'
-              )"
-              [[ -n "$run_id" ]] && break
-              sleep 5
-            done
-            if [[ -z "$run_id" ]]; then
-              echo "could not resolve exact-head workflow_dispatch run: ${workflow} sha=${GITHUB_SHA} started=${started}" >&2
+          while IFS=$'\t' read -r workflow run_id; do
+            [[ -n "$workflow" && "$run_id" =~ ^[0-9]+$ ]] || {
+              echo "invalid dispatch manifest row workflow=${workflow} run_id=${run_id}" >&2
               exit 1
-            fi
-
+            }
             deadline=$((SECONDS + 12600))
             while true; do
-              row="$(gh api "repos/${REPO}/actions/runs/${run_id}" --jq '[.status, (.conclusion // ""), .head_sha, .event, .html_url] | @tsv')"
-              IFS=$'\t' read -r status conclusion head_sha event url <<<"$row"
+              row="$(gh api "repos/${REPO}/actions/runs/${run_id}" --jq '[.status, (.conclusion // ""), .head_sha, .event, .html_url] | map(tostring) | join("|")')"
+              IFS='|' read -r status conclusion head_sha event url <<<"$row"
               if [[ "$head_sha" != "$GITHUB_SHA" || "$event" != "workflow_dispatch" ]]; then
                 echo "child identity mismatch workflow=${workflow} run_id=${run_id} head=${head_sha} event=${event} expected_head=${GITHUB_SHA}" >&2
                 exit 1
@@ -147,15 +137,15 @@ jobs:
               [[ -n "$run_id" ]] && break
               sleep 5
             done
-            if [[ -z "$run_id" ]]; then
+            if [[ ! "$run_id" =~ ^[0-9]+$ ]]; then
               echo "could not resolve exact-head push run: ${workflow} sha=${GITHUB_SHA}" >&2
               exit 1
             fi
 
             deadline=$((SECONDS + 12600))
             while true; do
-              row="$(gh api "repos/${REPO}/actions/runs/${run_id}" --jq '[.status, (.conclusion // ""), .head_sha, .event, .html_url] | @tsv')"
-              IFS=$'\t' read -r status conclusion head_sha event url <<<"$row"
+              row="$(gh api "repos/${REPO}/actions/runs/${run_id}" --jq '[.status, (.conclusion // ""), .head_sha, .event, .html_url] | map(tostring) | join("|")')"
+              IFS='|' read -r status conclusion head_sha event url <<<"$row"
               if [[ "$head_sha" != "$GITHUB_SHA" || "$event" != "push" ]]; then
                 echo "push-gate identity mismatch workflow=${workflow} run_id=${run_id} head=${head_sha} event=${event} expected_head=${GITHUB_SHA}" >&2
                 exit 1
