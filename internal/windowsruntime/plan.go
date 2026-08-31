@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 
 	"github.com/lly8666/wobuzhidao/internal/ipset"
+	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 )
 
 const (
@@ -22,6 +23,7 @@ const (
 	windowsDynamicPortCount  = 16384
 	defaultDTLSPlainPort     = 46101
 	defaultLinkListenPort    = 47101
+	defaultGameListenPort    = 48101
 	defaultMTU               = 1400
 
 	RouteFull    = "Full"
@@ -41,9 +43,10 @@ var (
 )
 
 type Profile struct {
-	BinDir       string
-	// ServerFront is retained for config compatibility but V2.3 requires it to
-	// equal ServerRaw. There is only one public endpoint/4-tuple lineage.
+	BinDir string
+	// ServerFront is retained for config compatibility but must equal ServerRaw.
+	// Every ADR-0012 lane performs Reality-like setup inside its own FakeTCP
+	// association to this one public endpoint.
 	ServerFront  string
 	ServerName   string
 	RouteKey     string
@@ -59,9 +62,21 @@ type Profile struct {
 	CNSetDir     string
 	DNSMode      string
 	DNSServer    string
-	TunnelIPv4   string
-	TicketPath   string
-	RouteState   string
+
+	// InstallationID is stable for this WBD installation. All lanes use the same
+	// value so independent same-flow bootstraps acquire fresh one-time tickets
+	// that bind to the same server-side Logical Tunnel / address lease.
+	InstallationID string
+	// Lanes is the desired ADR-0012 active lane count for initial connect. Normal
+	// mode defaults to one; Game/weak-network policy may request 2..4.
+	Lanes int
+
+	// TunnelIPv4 is populated from authenticated tunnel configuration before
+	// capture routes are applied. Empty is valid during preflight/bootstrap.
+	TunnelIPv4      string
+	TicketPath      string
+	TunnelConfigPath string
+	RouteState      string
 }
 
 type Underlay struct {
@@ -69,9 +84,8 @@ type Underlay struct {
 	PacketDevice string
 	SourceMAC    string
 	NextHopMAC   string
-	// SourcePort is a per-Connect TCP-shaped ephemeral source port. Zero is
-	// accepted only for builders/tests that need the historical deterministic
-	// fallback; product Controller.Connect always assigns a dynamic-range port.
+	// SourcePort is per-lane TCP-shaped metadata. Product orchestration assigns a
+	// distinct dynamic-range port to every lane/candidate.
 	SourcePort uint16
 }
 
@@ -94,14 +108,12 @@ type Plan struct {
 	RouteCleanup Command
 	IPv6Cleanup  Command
 	TicketPath   string
+	TunnelConfigPath string
 }
 
 func (p Plan) ProcessSequence() []Command { return []Command{p.FakeTCP, p.DTLS, p.Link, p.TUN} }
 func (p Plan) StartSequence() []Command { return []Command{p.FakeTCP, p.DTLS, p.Link, p.TUN, p.IPv6Apply, p.RouteApply} }
-
-func (p Plan) StopSequence() []Command {
-	return []Command{p.RouteCleanup, p.IPv6Cleanup, p.TUN, p.Link, p.DTLS, p.FakeTCP}
-}
+func (p Plan) StopSequence() []Command { return []Command{p.RouteCleanup, p.IPv6Cleanup, p.TUN, p.Link, p.DTLS, p.FakeTCP} }
 
 func (p Profile) normalized() Profile {
 	if p.FEC == "" { p.FEC = "off" }
@@ -109,7 +121,7 @@ func (p Profile) normalized() Profile {
 	if p.MTU == 0 { p.MTU = defaultMTU }
 	if p.RouteMode == "" { p.RouteMode = RouteFull }
 	if p.DNSMode == "" { p.DNSMode = DNSAuto }
-	if p.TunnelIPv4 == "" { p.TunnelIPv4 = "10.66.0.2/30" }
+	if p.Lanes == 0 { p.Lanes = logicaltunnel.MinProductPublicTransportLanes }
 	return p
 }
 
@@ -123,9 +135,11 @@ func (p Profile) Validate() error {
 	if p.Username == "" || p.Password == "" { return errors.New("username and password are required") }
 	raw, err := netip.ParseAddrPort(p.ServerRaw)
 	if err != nil || !raw.Addr().Is4() { return errors.New("server raw must be an IPv4 address:port") }
-	if front != raw { return errors.New("V2.3 single-flow requires server front and raw endpoints to be identical") }
+	if front != raw { return errors.New("per-lane single-flow requires server front and raw endpoints to be identical") }
 	if p.FEC != "off" && p.FEC != "20:20" { return errors.New("FEC must be off or 20:20") }
 	if p.MTU < 576 || p.MTU > 9000 { return errors.New("MTU must be 576..9000") }
+	if err := logicaltunnel.ValidateProductTransportLaneCount(p.Lanes); err != nil { return err }
+	if _, err := logicaltunnel.ParseInstallationID(strings.TrimSpace(p.InstallationID)); err != nil { return errors.New("stable installation id must be exactly 32 hex characters") }
 	if p.RouteMode != RouteFull && p.RouteMode != RouteForeign && p.RouteMode != RouteChina { return errors.New("route mode must be Full, Foreign, or China") }
 	if (p.RouteMode == RouteForeign || p.RouteMode == RouteChina) && strings.TrimSpace(p.CNSetDir) == "" { return errors.New("China/Foreign route mode requires the WBD CN ipset directory") }
 	for _, prefix := range p.Prefix4 {
@@ -137,8 +151,12 @@ func (p Profile) Validate() error {
 		ip, err := netip.ParseAddr(strings.TrimSpace(p.DNSServer))
 		if err != nil || !ip.Is4() { return errors.New("custom DNS server must be one IPv4 address") }
 	}
-	if px, err := netip.ParsePrefix(p.TunnelIPv4); err != nil || !px.Addr().Is4() { return errors.New("tunnel IPv4 must be an IPv4 CIDR") }
-	if strings.TrimSpace(p.TicketPath) == "" || strings.TrimSpace(p.RouteState) == "" { return errors.New("ticket and route-state paths are required") }
+	if strings.TrimSpace(p.TunnelIPv4) != "" {
+		if px, err := netip.ParsePrefix(p.TunnelIPv4); err != nil || !px.Addr().Is4() { return errors.New("authenticated tunnel IPv4 must be an IPv4 CIDR") }
+	}
+	if strings.TrimSpace(p.TicketPath) == "" || strings.TrimSpace(p.TunnelConfigPath) == "" || strings.TrimSpace(p.RouteState) == "" {
+		return errors.New("ticket, tunnel-config and route-state paths are required")
+	}
 	return nil
 }
 
@@ -168,16 +186,14 @@ func (u Underlay) Validate() error {
 func nextFakeTCPSourcePort() uint16 {
 	fakeTCPPortSeedOnce.Do(func() {
 		var b [2]byte
-		if _, err := rand.Read(b[:]); err == nil {
-			fakeTCPPortSeed = uint32(binary.BigEndian.Uint16(b[:]) & (windowsDynamicPortCount - 1))
-		}
+		if _, err := rand.Read(b[:]); err == nil { fakeTCPPortSeed = uint32(binary.BigEndian.Uint16(b[:]) & (windowsDynamicPortCount - 1)) }
 	})
 	n := fakeTCPPortCounter.Add(1) - 1
 	return uint16(windowsDynamicPortMin + int((fakeTCPPortSeed+n)&(windowsDynamicPortCount-1)))
 }
 
-// BuildBootstrap remains available only for diagnostics/backward-compatible
-// tooling. Product Controller.Connect must never invoke it.
+// BuildBootstrap remains diagnostic/backward-compatible tooling only. Product
+// Controller.Connect must never invoke it.
 func BuildBootstrap(profile Profile) (Command, error) {
 	profile = profile.normalized()
 	if err := profile.Validate(); err != nil { return Command{}, err }
@@ -185,16 +201,11 @@ func BuildBootstrap(profile Profile) (Command, error) {
 }
 
 func buildBootstrapCommand(profile Profile) Command {
-	return Command{
-		Name: "reality-bootstrap-diagnostic",
-		Path: filepath.Join(profile.BinDir, "wbd-reality-front.exe"),
-		Args: []string{"client", "-addr", profile.ServerFront, "-server-name", profile.ServerName, "-route-key", profile.RouteKey, "-username", profile.Username, "-password", profile.Password, "-verify-server=" + strconv.FormatBool(profile.VerifyServer), "-ticket-out", profile.TicketPath},
-	}
+	return Command{Name: "reality-bootstrap-diagnostic", Path: filepath.Join(profile.BinDir, "wbd-reality-front.exe"), Args: []string{"client", "-addr", profile.ServerFront, "-server-name", profile.ServerName, "-route-key", profile.RouteKey, "-username", profile.Username, "-password", profile.Password, "-verify-server=" + strconv.FormatBool(profile.VerifyServer), "-ticket-out", profile.TicketPath}}
 }
 
-// BuildFakeTCPCommand creates the unique public transport process. Reality-like
-// TLS/auth parameters are consumed inside this process after its raw handshake,
-// so no other public connection is created to obtain the ticket.
+// BuildFakeTCPCommand builds the compatibility one-lane command. Multi-lane
+// orchestration uses the same arguments with lane-specific ports/paths.
 func BuildFakeTCPCommand(profile Profile, underlay Underlay) (Command, error) {
 	profile = profile.normalized()
 	if err := ValidateRoutingAssets(profile); err != nil { return Command{}, err }
@@ -218,6 +229,8 @@ func BuildFakeTCPCommand(profile Profile, underlay Underlay) (Command, error) {
 		"--reality-username", profile.Username,
 		"--reality-password", profile.Password,
 		"--reality-ticket-out", profile.TicketPath,
+		"--reality-installation-id", profile.InstallationID,
+		"--reality-tunnel-config-out", profile.TunnelConfigPath,
 		"--reality-verify-server=" + strconv.FormatBool(profile.VerifyServer),
 	}
 	return Command{Name: "faketcp", Path: bin("wbd-faketcp.exe"), Args: args}, nil
@@ -228,9 +241,8 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	if err := ValidateRoutingAssets(profile); err != nil { return Plan{}, err }
 	if err := underlay.Validate(); err != nil { return Plan{}, err }
 	if len(strings.TrimSpace(ticket)) != 64 { return Plan{}, errors.New("Reality ticket must be 64 hex characters") }
-	for _, c := range ticket {
-		if !strings.ContainsRune("0123456789abcdefABCDEF", c) { return Plan{}, errors.New("Reality ticket must be hexadecimal") }
-	}
+	for _, c := range ticket { if !strings.ContainsRune("0123456789abcdefABCDEF", c) { return Plan{}, errors.New("Reality ticket must be hexadecimal") } }
+	if strings.TrimSpace(profile.TunnelIPv4) == "" { return Plan{}, errors.New("authenticated tunnel IPv4 is required before runtime plan build") }
 
 	raw, _ := netip.ParseAddrPort(profile.ServerRaw)
 	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
@@ -246,14 +258,10 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	psMode := "Full"
 	var prefixFile, directFile string
 	switch profile.RouteMode {
-	case RouteForeign:
-		directFile = filepath.Join(profile.CNSetDir, ipset.CNIPv4File)
-	case RouteChina:
-		psMode = "Split"
-		prefixFile = filepath.Join(profile.CNSetDir, ipset.CNIPv4File)
+	case RouteForeign: directFile = filepath.Join(profile.CNSetDir, ipset.CNIPv4File)
+	case RouteChina: psMode = "Split"; prefixFile = filepath.Join(profile.CNSetDir, ipset.CNIPv4File)
 	}
 	dnsServers := resolvedDNSServers(profile)
-
 	routeArgs := []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_tun_route.ps1"), "-Action", "Apply", "-Mode", psMode, "-AdapterAlias", profile.IfName, "-TunnelAddress4", profile.TunnelIPv4, "-Underlay4", raw.Addr().String(), "-MTU", strconv.Itoa(profile.MTU), "-StatePath", profile.RouteState}
 	if prefixFile != "" { routeArgs = append(routeArgs, "-PrefixFile4", prefixFile) }
 	if directFile != "" { routeArgs = append(routeArgs, "-DirectPrefixFile4", directFile) }
@@ -261,16 +269,15 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	cleanupArgs := []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_tun_route.ps1"), "-Action", "Cleanup", "-StatePath", profile.RouteState}
 
 	return Plan{
-		Bootstrap:    buildBootstrapCommand(profile),
-		FakeTCP:      fake,
-		DTLS:         Command{Name: "dtls", Path: bin("wbd_dtls_shim.exe"), Args: dtlsArgs},
-		Link:         Command{Name: "link", Path: bin("wbd-link-proxy.exe"), Args: linkArgs},
-		TUN:          Command{Name: "tun", Path: bin("wbd-tun.exe"), Args: tunArgs},
-		IPv6Apply:    psScript("ipv6-apply", "windows_ipv6_killswitch.ps1", "Apply"),
-		RouteApply:   Command{Name: "route-apply", Path: "powershell.exe", Args: routeArgs},
+		Bootstrap: buildBootstrapCommand(profile), FakeTCP: fake,
+		DTLS: Command{Name: "dtls", Path: bin("wbd_dtls_shim.exe"), Args: dtlsArgs},
+		Link: Command{Name: "link", Path: bin("wbd-link-proxy.exe"), Args: linkArgs},
+		TUN: Command{Name: "tun", Path: bin("wbd-tun.exe"), Args: tunArgs},
+		IPv6Apply: psScript("ipv6-apply", "windows_ipv6_killswitch.ps1", "Apply"),
+		RouteApply: Command{Name: "route-apply", Path: "powershell.exe", Args: routeArgs},
 		RouteCleanup: Command{Name: "route-cleanup", Path: "powershell.exe", Args: cleanupArgs},
-		IPv6Cleanup:  psScript("ipv6-cleanup", "windows_ipv6_killswitch.ps1", "Cleanup"),
-		TicketPath:   profile.TicketPath,
+		IPv6Cleanup: psScript("ipv6-cleanup", "windows_ipv6_killswitch.ps1", "Cleanup"),
+		TicketPath: profile.TicketPath, TunnelConfigPath: profile.TunnelConfigPath,
 	}, nil
 }
 
