@@ -1,17 +1,17 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 70,
+  "continuity_sequence": 71,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "9fdf700f3aa5ee0d74417223403ce23ea064b4d8",
+  "checkpoint_based_on_head_sha": "9178c5666ca38db76adfdbc5120b653c2f5b382d",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Ship WBD with one public TCP-shaped FakeTCP association per Transport Lane. FakeTCP owns the public sequence space from SYN. The first bounded reliable phase carries Firefox-120-like TLS 1.3 / Reality-like admission, then the same association switches in-band without FIN/RST/new SYN to pinned wolfSSL DTLS 1.3 -> LINK/lane-local FEC/VPN datagrams. Sustained payload must not inherit ordinary kernel-TCP cumulative-stream HOL.",
-    "current_milestone": "Requalify the current PR #9 source after Logical Tunnel/raw-IP changes. Preserve the mature FakeTCP/TCP-like recovery core. The older exact-tested ed7b717d candidate is historical only; current feature HEAD is 898f627ce041b10bf858f3824685d09dcd0cc7ef and has a deterministic red single-flow LINK full-stack gate that must be resolved before any new package is delivered.",
-    "local_optimization_stop_rule": "Do not return to the retired dual-public-flow Reality TCP -> close -> FakeTCP design. Do not retune FakeTCP recovery/ACK/SACK/FEC without deterministic evidence. Do not deliver a Windows or Linux package until the exact same source HEAD has current green Windows-native and Linux/raw-netns qualification, including single-flow setup, DTLS, LINK and no-HOL evidence."
+    "current_milestone": "Finish exact-head requalification of PR #9 after Logical Tunnel/raw-IP and cross-platform qualification work. Feature HEAD 9178c5666ca38db76adfdbc5120b653c2f5b382d has current product Go tests green and the hosted Windows+Linux qualification gate green; the only observed exact-head failures are CI/handoff contract checks caused by stale handoff architecture wording. No package is deliverable until those contract failures are fixed and the full mandatory exact-head qualification matrix is re-confirmed green.",
+    "local_optimization_stop_rule": "Do not return to the retired dual-public-flow Reality TCP -> close -> FakeTCP design. Do not retune mature FakeTCP recovery/ACK/SACK/FEC without deterministic evidence. Do not deliver Windows or Linux artifacts until one exact source HEAD has current green Windows-native, Linux raw/netns, same-flow/no-HOL, LINK/raw-IP and combined Windows->Linux qualification evidence."
   },
   "architecture_override": {
     "authority": "explicit user hard requirement beginning 2026-08-29 and still active",
@@ -19,66 +19,77 @@
     "bootstrap_phase": "A bounded reliable ordered FakeTCP setup stream carries real TLS 1.3 / Reality-like admission during the first seconds; production persona remains Firefox-120-like where technically possible.",
     "mode_switch": "Authenticated setup switches in-band on the same FakeTCP association to DTLS/datagram mode with no FIN, RST, reconnect or new SYN at the boundary.",
     "hol_rule": "Reliable ordered behavior is setup-only. Post-switch payload must retain the mature WBD FakeTCP/DTLS/FEC datagram behavior and must not acquire ordinary kernel-TCP cumulative-stream HOL.",
-    "tcp_like_core": "The existing FakeTCP/TCP-like recovery core is considered mature and should remain frozen unless a deterministic regression specifically proves it must change.",
-    "delivery_rule": "Before user delivery, the exact candidate HEAD must pass both hosted Windows-native qualification/build and Linux raw/netns full-stack qualification. Physical Windows Npcap/NIC/NAT/ISP remains a final non-equivalent acceptance layer, but no package should be handed to the user while automated Windows or Linux gates are red."
+    "tcp_like_core": "The existing FakeTCP/TCP-like recovery core is mature and remains frozen unless a deterministic regression specifically proves it must change.",
+    "delivery_rule": "Before user delivery, the exact candidate HEAD must pass both hosted Windows-native qualification/build and Linux raw/netns full-stack qualification plus the combined Windows-runtime -> Linux-server gate. Physical Windows Npcap/NIC/NAT/ISP remains final acceptance, not a substitute for automated qualification."
   },
   "continuation_cursor": {
-    "last_completed_action": "Live-refreshed canonical handoff, PR #9 and feature HEAD, then wrote sequence 69. Its handoff-verify run 33325613275 failed only because resume_read_set referenced four paths that exist on the feature branch but not on canonical dev/wbd-raw-fec-v2. Sequence 70 corrects the resume set to canonical paths. Product qualification state is unchanged: feature HEAD 898f627ce041b10bf858f3824685d09dcd0cc7ef has single-flow-link-fullstack run 33324659186 red in both FEC modes at the integrated LINK step.",
-    "current_task": "Diagnose and fix the exact current-head single-flow-link-fullstack failure at 898f627 without changing the mature FakeTCP/TCP-like recovery core. Inspect the uploaded artifacts from run 33324659186 to identify the first missing boundary among V2 single-flow bootstrap, DTLS, Logical-Tunnel ticket binding, LINK session creation, echo probe and wire-invariant capture. Reproduce/fix in repository qualification code or production code according to evidence, then re-run the exact-head Windows and Linux qualification matrix.",
-    "why_now": "Sequence 68 green evidence applied to ed7b717d, but the feature branch advanced by 56 commits, including Logical Tunnel and raw-IP ownership changes. The current HEAD has a reproducible Linux full-stack red gate, so old green runs cannot authorize delivery. The user explicitly requires upstream/downstream environments to be tested before another package is sent.",
-    "done_when": "The first deterministic failure in run 33324659186 is explained and fixed; current exact HEAD then passes single-flow-link-fullstack off and 20:20, single-flow-e2e, no-HOL, Windows FakeTCP/persona/runtime tests, Windows portable build, Linux server release, FakeTCP recovery/first-arrival and relevant raw-IP/Logical-Tunnel gates. Development log records the diagnosis, commits and run IDs. Only after all exact-head Windows/Linux gates are green may artifacts be considered for delivery.",
-    "next_atomic_action": "After this sequence-70 handoff itself verifies green, download/inspect run 33324659186 artifacts single-flow-link-off and single-flow-link-20x20. Identify which assertion failed by reading per-process logs and tunnel metadata evidence. Do not change transport core before this inspection."
+    "last_completed_action": "Live-refreshed canonical handoff, PR #9 and exact feature HEAD after chat truncation. Verified PR #9 head is 9178c5666ca38db76adfdbc5120b653c2f5b382d. Exact-head Actions show 9 successful workflows and 2 failures. Main CI run 33366816098 has all Go tests green and fails only Handoff tests because tests/test_handoff.py still requires an exact V2.4 architecture phrase that PROJECT_CONSTITUTION.md expresses semantically but not verbatim. handoff-verify run 33366816097 is the second red. Hosted Windows + Linux qualification job 99409697730 in run 33366816353 is success, including linux raw/netns rawip off and 20:20 jobs.",
+    "current_task": "Fix the stale handoff/architecture contract wording at exact head 9178c566 without changing product transport behavior, rerun CI and handoff-verify, then re-run/confirm the full mandatory exact-head Windows/Linux qualification matrix before creating artifacts. Continue logging detailed diagnosis and run IDs under docs/development and keep the Drive recovery document synchronized.",
+    "why_now": "Chat recovery repeatedly truncates long sessions. The repository has advanced far beyond sequence 70's 898f627 snapshot: stale arbitrary LINK echo fixtures were identified and replaced by raw-IP/TUN semantics, current single-flow transport reached TLS -> DTLS -> LINK, and a native Windows-to-Linux qualification gate was added. The handoff must reflect the actual current head so development resumes at the remaining contract/qualification layer rather than re-debugging already resolved transport stages.",
+    "done_when": "CI and handoff-verify pass on the current exact feature head; all mandatory same-head single-flow E2E/LINK/no-HOL, Windows FakeTCP/persona/runtime/portable/admin/raw-IP, Linux release/firewall/raw-netns/raw-IP, FEC off/20:20 and combined Windows->Linux gates are current green; development log and handoff record the exact run IDs; only then may matching Windows/Linux artifacts be produced for physical acceptance.",
+    "next_atomic_action": "Inspect tests/test_handoff.py and PROJECT_CONSTITUTION.md at 9178c566. Resolve the single stale exact-string invariant without weakening per-lane one-flow/no-HOL semantics. Commit the smallest documentation/test-contract fix, then observe CI and handoff-verify on that exact head before touching product code."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
     ".wbd/handoff/README.md",
+    "docs/development/SINGLE_FLOW_DEVLOG.md",
+    "docs/development/2026-08-31-current-head-requalification.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
     "cmd/wbd-faketcp/main_windows.go",
     "cmd/wbd-faketcp-mux/main_linux.go",
-    "cmd/wbd-link-server-mux/main.go",
-    "internal/realityfront/front.go"
+    "cmd/wbd-link-server-mux/main.go"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "898f627ce041b10bf858f3824685d09dcd0cc7ef",
+    "tested_commit": "9178c5666ca38db76adfdbc5120b653c2f5b382d",
     "result": "fail",
-    "scope": "Current-head requalification is not green. single-flow-link-fullstack run 33324659186 fails both FEC off and 20:20 in the end-to-end LINK step after build and focused Go tests succeed. Older ed7b717d green results are historical only and may not be used to qualify current packages."
+    "scope": "Product Go tests and hosted Windows+Linux qualification are green on this exact head, but release qualification remains red because CI and handoff-verify contract checks fail. The observed CI failure is a stale exact architecture wording assertion, not a transport/data-plane failure."
   },
   "active_single_flow_branch": {
     "pr": 9,
     "branch": "feat/single-flow-reality-faketcp",
-    "head": "898f627ce041b10bf858f3824685d09dcd0cc7ef",
-    "classification": "Active single-flow + Logical Tunnel development branch. One public FakeTCP flow per lane remains a hard invariant; current exact source is not release-qualified due the single-flow LINK full-stack failure.",
-    "latest_commit": "898f627ce041b10bf858f3824685d09dcd0cc7ef",
-    "latest_commit_message": "test: expose single-flow evidence to artifact uploader",
+    "head": "9178c5666ca38db76adfdbc5120b653c2f5b382d",
+    "classification": "Active V2.4 per-Transport-Lane same-public-flow implementation. FakeTCP owns each public flow from SYN; Reality-like TLS bootstrap, DTLS, LINK and lane-local FEC share the association without a second WBD payload SYN. Logical Tunnel may own 1..4 independent lanes under ADR-0012.",
+    "latest_commit": "9178c5666ca38db76adfdbc5120b653c2f5b382d",
+    "latest_commit_message": "ci: scope Windows single-flow gate to client runtime",
     "transport_core_policy": "Freeze mature FakeTCP recovery/ACK/SACK/FEC behavior unless deterministic evidence requires a targeted fix."
   },
   "qualification_snapshot": {
     "authority": "snapshot_not_live",
-    "source_head": "898f627ce041b10bf858f3824685d09dcd0cc7ef",
+    "source_head": "9178c5666ca38db76adfdbc5120b653c2f5b382d",
     "known_red": {
-      "single_flow_link_fullstack": 33324659186,
-      "off_job": 99292556121,
-      "fec_20x20_job": 99292556034,
-      "failure_step": "One public flow reaches LINK service"
+      "ci": 33366816098,
+      "handoff_verify": 33366816097,
+      "ci_failure_step": "Handoff tests",
+      "ci_failure_detail": "tests/test_handoff.py expects exact phrase 'Each Transport Lane has one public client/server 4-tuple, one FakeTCP sequence space and one SYN lineage'; PROJECT_CONSTITUTION.md contains the same invariant semantically but not that exact wording"
     },
-    "evidence": "Both failing jobs completed checkout, dependency install, pinned wolfSSL build, WBD binary build and focused Go tests successfully. Failure occurs only in the integrated same-flow LINK exercise. Artifacts were uploaded and must be inspected before any code change.",
-    "historical_only": "Sequence 68 exact-tested ed7b717d artifacts and green matrix remain useful regression history but are not current release evidence."
+    "known_green": {
+      "hosted_windows_linux_qualification_run": 33366816353,
+      "hosted_windows_linux_qualification_job": 99409697730,
+      "linux_rawip_off_job": 99409371901,
+      "linux_rawip_20x20_job": 99409371881,
+      "linux_consumes_windows_wire_job": 99409263274,
+      "successful_workflow_count_on_head": 9
+    },
+    "evidence": "Main CI Go tests pass across production packages. Exact-head check-runs show the combined hosted Windows + Linux qualification and Linux raw/netns raw-IP off/20:20 jobs successful. Remaining observed reds are contract/handoff checks, so the next fix must stay at the contract layer unless new deterministic product evidence appears.",
+    "historical_only": "Sequence 68 ed7b717d and sequence 70 898f627 snapshots remain useful history but are not current release authorization."
   },
   "validated_findings": {
-    "single_flow_architecture": "The product no longer uses ordinary Reality TCP -> close -> second FakeTCP SYN. FakeTCP owns the public flow from SYN; the initial reliable setup stream carries Reality-like TLS admission and the same association switches to DTLS/LINK/FEC.",
-    "prior_physical_windows_ingress": "The earlier physical Windows `faketcp: not ipv4/tcp` startup failure was attributed to unrelated Npcap ingress reaching a strict handshake parser; later production ingress classification filters exact unfragmented inbound WBD IPv4/TCP four-tuples before parsing and has Windows-native ordered-noise regression coverage. Treat the old log as historical unless the exact failure reappears on a newer candidate.",
-    "prior_physical_linux_success": "Physical Linux evidence showed at least one single-flow session reaching WBD_SINGLE_FLOW_BOOTSTRAP_READY, DTLS ACCEPT_PASS/READY and WBD_LINK_MUX_SESSION_READY, proving the single-flow architecture can complete on real Linux; startup stability still requires exact-head qualification before delivery.",
-    "current_blocker": "Current exact-head Linux single-flow LINK full-stack is red in both FEC modes. This is the first blocker and must be diagnosed from artifacts before any physical package is sent.",
-    "tcp_like_core": "Keep the mature FakeTCP/TCP-like recovery core unchanged unless deterministic evidence isolates a core defect."
+    "single_flow_architecture": "The product no longer uses ordinary Reality TCP -> close -> second FakeTCP SYN. Each Transport Lane is one FakeTCP-owned public 4-tuple/SYN lineage; its bounded reliable prefix carries Reality-like TLS admission and the same association switches to DTLS/LINK/FEC without FIN/RST/new SYN.",
+    "logical_tunnel": "ADR-0012 remains authoritative: one Logical Tunnel may own 1..4 independent Transport Lanes. ADR-0013's temporary global-one-lane interpretation is withdrawn. Game Lane, first-arrival/dedup and make-before-break remain product behavior.",
+    "stale_link_fixture": "Earlier single-flow LINK full-stack failures were traced to obsolete arbitrary ASCII echo payloads after production had moved to formal raw-IP/platformproxy application payload contracts. Transport reached bootstrap_v2, DTLS13 and LINK before the stale fixture was rejected.",
+    "windows_ingress": "The old physical Windows `faketcp: not ipv4/tcp` failure was addressed by exact WBD IPv4/TCP ingress classification before handshake parsing, with Windows-native ordered-noise regression coverage. Treat the old log as historical unless it reappears on a newer candidate.",
+    "cross_platform": "A hosted native Windows -> Linux qualification line now exists. Current exact head has the hosted Windows + Linux qualification gate green, including Windows wire consumption and Linux raw/netns raw-IP off/20:20 jobs.",
+    "current_blocker": "Current observed blockers are stale handoff/architecture contract checks, not a deterministic FakeTCP/TLS/DTLS/LINK data-plane failure.",
+    "tcp_like_core": "Keep mature FakeTCP/TCP-like recovery unchanged unless deterministic evidence isolates a core defect."
   },
   "operational_continuity": {
-    "canonical_branch_head_before_this_handoff": "80135ba3680086ee807319eae94d6b89576e5476",
-    "handoff_verify_history": "Sequence 69 handoff-verify run 33325613275 failed only on four resume_read_set paths missing from canonical checkout; sequence 70 removes those feature-only paths.",
-    "durable_logs": "GitHub docs/development is authoritative for detailed history. Chat may be truncated. Append new diagnosis and test evidence there before final handoff.",
-    "rule": "End development turns with a refreshed machine-readable handoff and handoff-verify success. Do not claim queued/old Actions as current green. Do not deliver artifacts while exact-head Windows or Linux qualification is red."
+    "canonical_branch_head_before_this_handoff": "3dd6eb5da03c6557ff83d46ee9841b782efca474",
+    "handoff_verify_history": "Sequence 70 corrected canonical resume paths. Sequence 71 refreshes the feature checkpoint to 9178c566 and records the current contract-only red state after additional requalification work.",
+    "durable_logs": "GitHub docs/development is authoritative for detailed history; Google Drive document 'WBD 开发历程与实时结论' is the user-visible recovery mirror. Chat may be truncated.",
+    "rule": "End development turns with a refreshed machine-readable handoff and a verified Drive append. Do not claim queued/old Actions as current green. Do not deliver artifacts while any mandatory exact-head Windows/Linux qualification or contract gate is red."
   }
 }
