@@ -16,6 +16,12 @@ import (
 const (
 	InstallationIDBytes = 16
 	TunnelIDBytes       = 16
+
+	// MaxProductPublicTransportLanes is a release invariant, not a tuning knob.
+	// One Logical Tunnel may have zero public transport flows while disconnected
+	// and exactly one while connected. Current product code must never create a
+	// second candidate/race lane alongside the active public FakeTCP flow.
+	MaxProductPublicTransportLanes = 1
 )
 
 var (
@@ -24,10 +30,18 @@ var (
 	ErrPoolExhausted   = errors.New("logicaltunnel: IPv4 lease pool exhausted")
 	ErrUnknownTunnel   = errors.New("logicaltunnel: unknown tunnel")
 	ErrSourceSpoof     = errors.New("logicaltunnel: IPv4 source does not match lease")
+	ErrTransportLanes  = errors.New("logicaltunnel: product permits exactly one active public transport lane")
 )
 
 type InstallationID string
 type TunnelID string
+
+func ValidateProductTransportLaneCount(n int) error {
+	if n != MaxProductPublicTransportLanes {
+		return ErrTransportLanes
+	}
+	return nil
+}
 
 func ParseInstallationID(s string) (InstallationID, error) {
 	s = strings.ToLower(strings.TrimSpace(s))
