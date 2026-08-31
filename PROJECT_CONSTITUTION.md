@@ -36,6 +36,20 @@ raw FakeTCP SYN / SYN-ACK / ACK
   -> packet/datagram payload
 ```
 
+### Canonical release-contract wording
+
+The following wording is normative and intentionally kept stable for automated architecture/handoff checks:
+
+- Each Transport Lane has one public client/server 4-tuple, one FakeTCP sequence space and one SYN lineage.
+- Reality-like TLS is the first protected payload phase of that same FakeTCP association.
+- A temporary reliable ordered stream is permitted only during bounded TLS/bootstrap for each lane.
+- After the bootstrap barrier, later independent authenticated datagrams must be able to complete while an earlier FakeTCP sequence range is missing.
+- A Logical Tunnel may intentionally own multiple independent lanes; the single-flow invariant is per Transport Lane, not global to the tunnel.
+- The conservative release target remains 40 Mbit/s aggregate inner payload on the qualified weak-link envelope.
+- OpenWrt final transparent capture through **TPROXY** remains the product capture path.
+- Windows final client capture through a **TUN/Wintun-class L3 adapter** remains the product capture path.
+- The retired topology `Reality TCP -> close -> new FakeTCP payload SYN` is forbidden for WBD product lanes.
+
 Non-negotiable properties:
 
 1. There is no preliminary ordinary kernel-TCP Reality connection for a product lane.
