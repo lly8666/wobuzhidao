@@ -84,12 +84,12 @@ config, set, regen-certs, doctor, show-config. Configuration is
 /etc/wbd/server.env.
 
 ADR-0014 product mode exposes one public raw wbd-faketcp-mux listener on
-WBD_PORT. Each connected Logical Tunnel may bind exactly one active public WBD
-transport. That transport owns one FakeTCP SYN/4-tuple/sequence lineage: its
-Reality-like real TLS 1.3 setup is the first payload phase of that exact
-association, then the same association crosses the bootstrap barrier with no
-FIN/RST/new WBD SYN into DTLS 1.3 -> LINK -> FEC without ordinary kernel-TCP
-stream HOL.
+WBD_PORT. Each connected Logical Tunnel has exactly one active public WBD
+transport and exactly one public WBD 4-tuple. That transport owns one FakeTCP
+SYN/4-tuple/sequence lineage: its Reality-like real TLS 1.3 setup is the first
+payload phase of that exact association, then the same association crosses the
+bootstrap barrier with no FIN/RST/new WBD SYN into DTLS 1.3 -> LINK -> FEC
+without ordinary kernel-TCP stream HOL.
 
 The product LINK mux connects directly to the private platform service. The
 bundled Game Lane server remains a research/reference binary and is not started
