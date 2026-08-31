@@ -3,10 +3,13 @@
 package main
 
 import (
+	"net"
 	"net/netip"
 	"testing"
+	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
+	"github.com/lly8666/wobuzhidao/internal/rawipbackend"
 )
 
 func TestCapacityForPrefix(t *testing.T) {
@@ -70,5 +73,54 @@ func TestLegacySessionKeepsConfiguredInnerPrefix(t *testing.T) {
 	}
 	if got := s.marker(); got != "sid=abcdef" {
 		t.Fatalf("marker=%q", got)
+	}
+}
+
+func TestHandleFrameStoresTunnelMeta(t *testing.T) {
+	id, err := logicaltunnel.ParseTunnelID("00112233445566778899aabbccddeeff")
+	if err != nil {
+		t.Fatal(err)
+	}
+	lease := netip.MustParseAddr("10.66.42.17")
+	wire, err := rawipbackend.MarshalTunnelMeta(id, lease)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g := &gateway{
+		sessions:      make(map[string]*gatewaySession),
+		pendingSID:    make(map[string]string),
+		pendingTunnel: make(map[string]rawipbackend.TunnelMeta),
+	}
+	peer := &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: 41000}
+	if err := g.handleFrame(peer, wire, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	got, ok := g.pendingTunnel[peer.String()]
+	if !ok {
+		t.Fatal("TunnelMeta was not retained for first raw-IP datagram")
+	}
+	if got.TunnelID != id || got.Address4 != lease {
+		t.Fatalf("metadata=%+v want tunnel=%s lease=%s", got, id, lease)
+	}
+}
+
+func TestHandleFrameRejectsTunnelMetaChangeOnActivePeer(t *testing.T) {
+	idA, _ := logicaltunnel.ParseTunnelID("00112233445566778899aabbccddeeff")
+	idB, _ := logicaltunnel.ParseTunnelID("ffeeddccbbaa99887766554433221100")
+	leaseA := netip.MustParseAddr("10.66.42.17")
+	wire, err := rawipbackend.MarshalTunnelMeta(idB, netip.MustParseAddr("10.66.42.18"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	peer := &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: 41000}
+	g := &gateway{
+		sessions: map[string]*gatewaySession{
+			peer.String(): {logicalTunnel: true, tunnelID: idA, lease: leaseA},
+		},
+		pendingSID:    make(map[string]string),
+		pendingTunnel: make(map[string]rawipbackend.TunnelMeta),
+	}
+	if err := g.handleFrame(peer, wire, time.Now()); err == nil {
+		t.Fatal("active backend peer accepted changed Logical Tunnel metadata")
 	}
 }
