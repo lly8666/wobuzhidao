@@ -83,17 +83,17 @@ Commands: install, uninstall, start, stop, pause, resume, restart, status, logs,
 config, set, regen-certs, doctor, show-config. Configuration is
 /etc/wbd/server.env.
 
-ADR-0012 product mode exposes one public raw wbd-faketcp-mux listener on
-WBD_PORT. A Logical Tunnel may bind 1..4 independent Transport Lanes to that
-listener. Each lane owns one FakeTCP SYN/4-tuple/sequence lineage: its
-Reality-like real TLS setup is the first payload phase of that exact association,
-then the same association crosses the bootstrap barrier into DTLS 1.3 -> LINK ->
-lane-local FEC without ordinary kernel-TCP stream HOL.
+ADR-0014 product mode exposes one public raw wbd-faketcp-mux listener on
+WBD_PORT. Each connected Logical Tunnel may bind exactly one active public WBD
+transport. That transport owns one FakeTCP SYN/4-tuple/sequence lineage: its
+Reality-like real TLS 1.3 setup is the first payload phase of that exact
+association, then the same association crosses the bootstrap barrier with no
+FIN/RST/new WBD SYN into DTLS 1.3 -> LINK -> FEC without ordinary kernel-TCP
+stream HOL.
 
-The private wbd-game-lane-server sits between LINK and the platform/shared-TUN
-service. It assigns one logical PacketID across active lanes, delivers the first
-valid arrival and suppresses duplicates. This is also the bounded race layer for
-make-before-break lane replacement. No extra public listener is introduced.
+The product LINK mux connects directly to the private platform service. The
+bundled Game Lane server remains a research/reference binary and is not started
+by the product wbd-server run path. No extra public listener is introduced.
 
 The bundled wbd-reality-front binary is diagnostic/reference only. The product
 wbd-server run path never starts it as a public listener.
@@ -124,4 +124,4 @@ tar -C "$OUT" -czf "$OUT/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
     sha256sum "wbd-linux-server-$ARCH.tar.gz" > "wbd-linux-server-$ARCH.tar.gz.sha256"
     sha256sum -c "wbd-linux-server-$ARCH.tar.gz.sha256"
 )
-echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 public_listener=1 max_tunnel_lanes=4 game_race=1 source_sha=$BUILD_SOURCE_SHA portable_checksum=1"
+echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 public_listener=1 max_tunnel_lanes=1 game_product=0 source_sha=$BUILD_SOURCE_SHA portable_checksum=1"
