@@ -59,7 +59,7 @@ one FakeTCP SYN lineage
   -> DTLS 1.3 / LINK / lane-local FEC datagrams
 ```
 
-No second ordinary kernel-TCP WBD payload connection is permitted after successful admission for that lane. The reliable ordered adapter exists only for bounded TLS setup and is destroyed before no-HOL data mode.
+**No second public SYN is permitted for the same Transport Lane.** No second ordinary kernel-TCP WBD payload connection is permitted after successful admission for that lane. The reliable ordered adapter exists only for bounded TLS setup and is destroyed before no-HOL data mode.
 
 ### Amendment: lane-count / logical-tunnel lifecycle
 
