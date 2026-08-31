@@ -1,6 +1,6 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 73,
+  "continuity_sequence": 74,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
@@ -23,9 +23,9 @@
     "delivery_rule": "Before user delivery, the exact candidate HEAD must pass both hosted Windows-native qualification/build and Linux raw/netns full-stack qualification plus the combined Windows-runtime -> Linux-server gate. Physical Windows Npcap/NIC/NAT/ISP remains final acceptance, not a substitute for automated qualification."
   },
   "continuation_cursor": {
-    "last_completed_action": "Reconciled all stale exact-string architecture contracts on PR #9 without changing product code: PROJECT_CONSTITUTION canonical wording at 60ce6c66, ARCHITECTURE canonical wording at 2904951b, ROADMAP pivot wording at 43f82ddf and per-lane M6 wording at bd32f3f6; recorded the full diagnosis in docs/development/2026-08-31-contract-reconciliation.md at faa4f320. Exact-head main CI and handoff-verify are green, and the single-flow/no-HOL/persona/FakeTCP/first-arrival/OpenWrt path-triggered qualification remains green.",
+    "last_completed_action": "Reconciled all stale exact-string architecture contracts on PR #9 without changing product code: PROJECT_CONSTITUTION canonical wording at 60ce6c66, ARCHITECTURE canonical wording at 2904951b, ROADMAP pivot wording at 43f82ddf and per-lane M6 wording at bd32f3f6; recorded the full diagnosis in docs/development/2026-08-31-contract-reconciliation.md at faa4f320. Exact-head main CI and handoff-verify are green, and the single-flow/no-HOL/persona/FakeTCP/first-arrival/OpenWrt path-triggered qualification remains green. Sequence 73 was superseded because its canonical resume set incorrectly referenced a feature-only development log; sequence 74 removes that invalid resume-path dependency without changing product or architecture state.",
     "current_task": "Keep transport frozen. Re-confirm the mandatory Windows/Linux exact-candidate qualification set that was not necessarily retriggered by docs-only path filters, record exact run IDs under docs/development, then continue at the first deterministic blocker above the mature transport layer (Logical Tunnel 1..4 lane lifecycle, Game Lane integration, make-before-break, idle/wake, or packaging/qualification). Do not produce physical-test artifacts until the complete same-head release gate is current green.",
-    "why_now": "The prior red feature CI/handoff runs were caused exclusively by stale canonical documentation phrases exposed one assertion at a time. Repeated Go production baselines stayed green, and the corrected exact head now passes the architecture contract. The next work must therefore remain above transport unless fresh deterministic evidence says otherwise.",
+    "why_now": "The prior red feature CI/handoff runs were caused exclusively by stale canonical documentation phrases exposed one assertion at a time. Repeated Go production baselines stayed green, and the corrected exact head now passes the architecture contract. Sequence 73 canonical CI also kept Go green; its only failure was a missing resume path. The next work must therefore remain above transport unless fresh deterministic evidence says otherwise.",
     "done_when": "One exact candidate source HEAD has current green CI/handoff, single-flow E2E/no-HOL/persona, Windows native/runtime/portable/admin/raw-IP qualification, Linux release/firewall/raw-netns/raw-IP qualification, FEC off/20:20 and combined Windows->Linux qualification; development log records exact evidence; only then may matching Windows/Linux artifacts be produced for physical acceptance.",
     "next_atomic_action": "Live-refresh PR #9 HEAD and Actions. Treat faa4f320 as the current docs-only checkpoint and 9178c566 as the last product-substantive code head. Enumerate mandatory Windows/Linux qualification gates that did not run on faa4f320 due path filters; re-run or otherwise obtain current same-candidate evidence without changing FakeTCP/DTLS/LINK/recovery. Fix only the first deterministic non-transport failure if one appears."
   },
@@ -33,7 +33,6 @@
     ".wbd/handoff/current.json",
     ".wbd/handoff/README.md",
     "docs/development/SINGLE_FLOW_DEVLOG.md",
-    "docs/development/2026-08-31-contract-reconciliation.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
@@ -87,9 +86,9 @@
     "tcp_like_core": "Keep mature FakeTCP/TCP-like recovery unchanged unless deterministic evidence isolates a core defect."
   },
   "operational_continuity": {
-    "canonical_branch_head_before_sequence_73": "908a98084f2b5e3e3fd4349987fd0d49b10df2a8",
-    "handoff_verify_history": "Sequence 72 fixed the canonical resume set. Sequence 73 closes the stale architecture wording blocker after exact-head feature CI and handoff-verify pass, while preserving the distinction between product-substantive head 9178c566 and docs-only checkpoint faa4f320.",
-    "durable_logs": "GitHub docs/development is authoritative for detailed history; chat may be truncated. The current reconciliation record is docs/development/2026-08-31-contract-reconciliation.md on the active feature branch.",
+    "canonical_branch_head_before_sequence_74": "467dcb5c26ed2061b7c7de86d8c000b5cdc5c061",
+    "handoff_verify_history": "Sequence 72 fixed the canonical resume set. Sequence 73 accurately captured the docs-contract closure but failed canonical verification because its resume_read_set referenced feature-only docs/development/2026-08-31-contract-reconciliation.md. Sequence 74 removes that invalid resume dependency; the detailed reconciliation log remains authoritative on the active feature branch and is still referenced in narrative state.",
+    "durable_logs": "GitHub docs/development is authoritative for detailed history; chat may be truncated. The reconciliation record is docs/development/2026-08-31-contract-reconciliation.md on the active feature branch; canonical resume_read_set contains only paths present in canonical checkout.",
     "rule": "End development turns with a refreshed machine-readable handoff. Do not claim queued/old Actions as current green. Do not deliver artifacts while any mandatory exact-candidate Windows/Linux qualification gate is unconfirmed or red."
   }
 }
