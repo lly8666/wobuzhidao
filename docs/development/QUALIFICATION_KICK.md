@@ -54,7 +54,7 @@ Together these cover hosted native Windows -> Linux single-flow wire + Linux raw
 
 ## Kick generation
 
-`2026-08-31T17:20+08-seq2`
+`2026-08-31-seq3-d01-recovery`
 
 ## Evidence recording
 
