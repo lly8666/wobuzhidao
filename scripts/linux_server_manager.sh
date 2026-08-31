@@ -19,8 +19,10 @@ write_default_config() {
     password=$(cat /proc/sys/kernel/random/uuid | tr -d '-')
     cat >"$CONFIG" <<EOF
 # WBD Linux server configuration. Edit then run: wbd-server restart
-# V2.3 exposes one public raw FakeTCP flow. Reality-like TLS admission is the
-# first payload phase of that same flow; there is no parallel kernel TCP front.
+# ADR-0012 exposes one public raw FakeTCP mux. Each Logical Tunnel may own
+# 1..4 independent per-lane single-flow associations to that same public port.
+# Reality-like TLS admission is the first protected phase of each lane; there is
+# no parallel kernel-TCP Reality product listener.
 # 0.0.0.0 is accepted as a convenience and resolved to this host's primary
 # concrete IPv4 because the raw FakeTCP listener requires a concrete address.
 WBD_LISTEN_IP=0.0.0.0
@@ -35,6 +37,7 @@ WBD_MAX_SESSIONS=64
 WBD_TICKET_TTL=60s
 WBD_BOOTSTRAP_TIMEOUT=12s
 WBD_PLATFORM_LISTEN=127.0.0.1:49000
+WBD_GAME_LISTEN=127.0.0.1:48500
 WBD_LINK_LISTEN=127.0.0.1:47000
 WBD_UDP_IDLE=30s
 WBD_TCP_IDLE=30s
@@ -52,7 +55,7 @@ load_config() {
     : "${WBD_LISTEN_IP:=0.0.0.0}"
     : "${WBD_SERVER_NAME:=www.cloudflare.com}" "${WBD_DECOY_TARGET:=www.cloudflare.com:443}"
     : "${WBD_MAX_SESSIONS:=64}" "${WBD_TICKET_TTL:=60s}" "${WBD_BOOTSTRAP_TIMEOUT:=12s}"
-    : "${WBD_PLATFORM_LISTEN:=127.0.0.1:49000}" "${WBD_LINK_LISTEN:=127.0.0.1:47000}"
+    : "${WBD_PLATFORM_LISTEN:=127.0.0.1:49000}" "${WBD_GAME_LISTEN:=127.0.0.1:48500}" "${WBD_LINK_LISTEN:=127.0.0.1:47000}"
     : "${WBD_UDP_IDLE:=30s}" "${WBD_TCP_IDLE:=30s}" "${WBD_FIREWALL_BACKEND:=auto}" "${WBD_NFT_INPUT:=}"
 
     if [ -z "${WBD_PORT:-}" ]; then
@@ -101,7 +104,7 @@ set_config() {
     need_root; write_default_config
     key=${1:-}; value=${2-}
     case "$key" in
-      WBD_LISTEN_IP|WBD_PORT|WBD_SERVER_NAME|WBD_DECOY_TARGET|WBD_ROUTE_KEY|WBD_USERNAME|WBD_PASSWORD|WBD_MAX_SESSIONS|WBD_TICKET_TTL|WBD_BOOTSTRAP_TIMEOUT|WBD_PLATFORM_LISTEN|WBD_LINK_LISTEN|WBD_UDP_IDLE|WBD_TCP_IDLE|WBD_FIREWALL_BACKEND|WBD_NFT_INPUT) ;;
+      WBD_LISTEN_IP|WBD_PORT|WBD_SERVER_NAME|WBD_DECOY_TARGET|WBD_ROUTE_KEY|WBD_USERNAME|WBD_PASSWORD|WBD_MAX_SESSIONS|WBD_TICKET_TTL|WBD_BOOTSTRAP_TIMEOUT|WBD_PLATFORM_LISTEN|WBD_GAME_LISTEN|WBD_LINK_LISTEN|WBD_UDP_IDLE|WBD_TCP_IDLE|WBD_FIREWALL_BACKEND|WBD_NFT_INPUT) ;;
       *) echo "unsupported setting: $key" >&2; exit 2;;
     esac
     quoted=$(q "$value")
@@ -163,7 +166,7 @@ install_files() {
     mkdir -p "$PREFIX/bin" "$ETC" "$RUN/tickets"
     chmod 700 "$RUN/tickets"
     # Diagnostic/reference binary only; product run path below never starts it.
-    for f in wbd-reality-front wbd-faketcp-mux wbd-link-server-mux wbd-platform-proxy-server wbd_dtls_shim wbd-server-cert; do
+    for f in wbd-reality-front wbd-faketcp-mux wbd-link-server-mux wbd-game-lane-server wbd-platform-proxy-server wbd_dtls_shim wbd-server-cert; do
         install -m 0755 "$SELF_DIR/bin/$f" "$PREFIX/bin/$f"
     done
     install -m 0755 "$SELF_DIR/linux_server_firewall.sh" "$PREFIX/bin/linux_server_firewall.sh"
@@ -188,9 +191,10 @@ run_server() {
     cleanup() { set +e; for p in $pids; do kill -TERM "$p" 2>/dev/null || true; done; wait 2>/dev/null || true; }
     trap cleanup EXIT
     trap 'exit 0' INT TERM HUP
-    echo "WBD_LINUX_SERVER_BIND public_single_flow=$raw_listen_ip:$WBD_PORT link=$WBD_LINK_LISTEN platform=$WBD_PLATFORM_LISTEN"
+    echo "WBD_LINUX_SERVER_BIND public_raw=$raw_listen_ip:$WBD_PORT max_tunnel_lanes=4 link=$WBD_LINK_LISTEN game=$WBD_GAME_LISTEN platform=$WBD_PLATFORM_LISTEN"
     "$PREFIX/bin/wbd-platform-proxy-server" -listen "$WBD_PLATFORM_LISTEN" -udp-idle "$WBD_UDP_IDLE" -tcp-idle "$WBD_TCP_IDLE" & pids="$pids $!"
-    "$PREFIX/bin/wbd-link-server-mux" -listen "$WBD_LINK_LISTEN" -service "$WBD_PLATFORM_LISTEN" -ticket-dir "$RUN/tickets" -ticket-ttl "$WBD_TICKET_TTL" -max-sessions "$WBD_MAX_SESSIONS" & pids="$pids $!"
+    "$PREFIX/bin/wbd-game-lane-server" -listen "$WBD_GAME_LISTEN" -service "$WBD_PLATFORM_LISTEN" -max-sessions "$WBD_MAX_SESSIONS" -max-lanes 4 -idle 90s & pids="$pids $!"
+    "$PREFIX/bin/wbd-link-server-mux" -listen "$WBD_LINK_LISTEN" -service "$WBD_GAME_LISTEN" -ticket-dir "$RUN/tickets" -ticket-ttl "$WBD_TICKET_TTL" -max-sessions "$WBD_MAX_SESSIONS" & pids="$pids $!"
     guard="$PREFIX/bin/linux_server_guard.sh"
     set -- "$guard" --backend "$WBD_FIREWALL_BACKEND" --front-port "$WBD_PORT" --raw-port "$WBD_PORT" --state "$RUN/server-firewall.state"
     [ -z "$WBD_NFT_INPUT" ] || set -- "$@" --nft-input "$WBD_NFT_INPUT"
@@ -233,16 +237,17 @@ doctor() {
     load_config
     fail=0
     printf 'config: OK (%s)\n' "$CONFIG"
-    for f in wbd-faketcp-mux wbd-link-server-mux wbd-platform-proxy-server wbd_dtls_shim wbd-server-cert linux_server_firewall.sh linux_server_guard.sh; do
+    for f in wbd-faketcp-mux wbd-link-server-mux wbd-game-lane-server wbd-platform-proxy-server wbd_dtls_shim wbd-server-cert linux_server_firewall.sh linux_server_guard.sh; do
         if [ -x "$PREFIX/bin/$f" ]; then echo "binary: OK $f"; else echo "binary: MISSING $f"; fail=1; fi
     done
     if command -v systemctl >/dev/null 2>&1; then echo 'systemd: OK'; else echo 'systemd: MISSING'; fail=1; fi
     if command -v nft >/dev/null 2>&1; then echo 'firewall: OK nft'; elif command -v iptables >/dev/null 2>&1; then echo 'firewall: OK iptables'; else echo 'firewall: MISSING nft/iptables'; fail=1; fi
     [ -r "$ETC/front.pem" ] && [ -r "$ETC/front.key" ] && echo 'bootstrap TLS certificate: OK' || { echo 'bootstrap TLS certificate: MISSING'; fail=1; }
     [ -r "$ETC/dtls.pem" ] && [ -r "$ETC/dtls.key" ] && echo 'DTLS certificate: OK' || { echo 'DTLS certificate: MISSING'; fail=1; }
-    if raw_listen_ip=$(resolve_faketcp_listen_ip); then echo "public: single-flow=$raw_listen_ip:$WBD_PORT"; else echo 'public: FakeTCP concrete IPv4 resolution FAILED'; fail=1; fi
+    if raw_listen_ip=$(resolve_faketcp_listen_ip); then echo "public: raw_mux=$raw_listen_ip:$WBD_PORT max_tunnel_lanes=4"; else echo 'public: FakeTCP concrete IPv4 resolution FAILED'; fail=1; fi
+    echo "private: link=$WBD_LINK_LISTEN game=$WBD_GAME_LISTEN platform=$WBD_PLATFORM_LISTEN"
     echo "bootstrap: server_name=$WBD_SERVER_NAME fallback_target=$WBD_DECOY_TARGET"
-    echo "limits: sessions=$WBD_MAX_SESSIONS ticket_ttl=$WBD_TICKET_TTL bootstrap_timeout=$WBD_BOOTSTRAP_TIMEOUT"
+    echo "limits: sessions=$WBD_MAX_SESSIONS lanes_per_tunnel=4 ticket_ttl=$WBD_TICKET_TTL bootstrap_timeout=$WBD_BOOTSTRAP_TIMEOUT"
     if [ "$fail" -ne 0 ]; then echo 'WBD_SERVER_DOCTOR_FAIL'; return 1; fi
     echo 'WBD_SERVER_DOCTOR_PASS'
 }
@@ -280,13 +285,15 @@ usage: wbd-server COMMAND
 
 Main settings: WBD_PORT, WBD_LISTEN_IP, WBD_SERVER_NAME, WBD_DECOY_TARGET,
 WBD_ROUTE_KEY, WBD_USERNAME, WBD_PASSWORD, WBD_MAX_SESSIONS,
-WBD_BOOTSTRAP_TIMEOUT, timeouts and firewall backend.
+WBD_BOOTSTRAP_TIMEOUT, WBD_GAME_LISTEN, timeouts and firewall backend.
 
-V2.3 has one public raw FakeTCP listener. The first payload phase on that same
-association is real TLS 1.3 / Reality-like admission; after a mode barrier the
-same 4-tuple and sequence space carry DTLS 1.3 / LINK / FEC datagrams. An
-unrecognized ClientHello remains in the temporary ordered raw stream and is
-proxied to WBD_DECOY_TARGET. No parallel public kernel TCP listener is started.
+ADR-0012 has one public raw FakeTCP mux listener and 1..4 independent per-tunnel
+lanes. Each lane starts with real TLS 1.3 / Reality-like admission on that same
+FakeTCP association, then crosses the barrier into DTLS 1.3 / LINK / lane-local
+FEC with no ordinary-TCP HOL. The private Game Lane server races one logical
+PacketID across active lanes, delivers first arrival and suppresses duplicates;
+it is also the make-before-break overlap layer. No parallel public kernel TCP
+listener is started.
 EOF
  ;;
  *) echo "unknown command: $1" >&2; exit 2;;
