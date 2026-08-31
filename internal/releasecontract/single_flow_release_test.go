@@ -33,39 +33,44 @@ func requireContains(t *testing.T, body, want, label string) {
 	}
 }
 
-func TestADR0012MultipathArchitectureFreeze(t *testing.T) {
-	policy := readRepoFile(t, "internal/logicaltunnel/logicaltunnel.go")
-	requireContains(t, policy, "MaxProductPublicTransportLanes = 4", "Logical Tunnel transport policy")
-	requireContains(t, policy, "MinProductPublicTransportLanes = 1", "Logical Tunnel transport policy")
-	requireContains(t, policy, "ValidateProductTransportLaneCount", "Logical Tunnel transport policy")
-
-	adr := readRepoFile(t, "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md")
-	requireContains(t, adr, "1..4 replaceable Transport Lanes", "ADR-0012")
-	requireContains(t, adr, "single-flow is a per-lane invariant", "ADR-0012")
-	requireContains(t, adr, "Replacement is make-before-break", "ADR-0012")
-	requireContains(t, adr, "Game Lane semantics are the general multipath/replacement layer", "ADR-0012")
-
-	withdrawn := readRepoFile(t, "docs/architecture/ADR-0013-global-single-public-flow-release-freeze.md")
-	requireContains(t, withdrawn, "WITHDRAWN / SUPERSEDED BY REAFFIRMED ADR-0012", "ADR-0013")
-
-	constitution := readRepoFile(t, "PROJECT_CONSTITUTION.md")
-	requireContains(t, constitution, "1..4 independent WBD Transport Lanes", "project constitution")
-	requireContains(t, constitution, "single-flow invariant applies to each lane", "project constitution")
-	requireContains(t, constitution, "Make-before-break", "project constitution")
-	if strings.Contains(constitution, "MaxProductPublicTransportLanes` is fixed at `1`") {
-		t.Fatal("project constitution still freezes global transport count to one")
-	}
-
-	architecture := readRepoFile(t, "ARCHITECTURE.md")
-	requireContains(t, architecture, "Per-lane single-flow, tunnel-level multipath", "architecture")
-	requireContains(t, architecture, "1..4 active Transport Lanes", "architecture")
-	requireContains(t, architecture, "A -> A+B -> B", "architecture")
-	if strings.Contains(architecture, "Global single-public-flow invariant") {
-		t.Fatal("architecture still selects withdrawn global single-public-flow policy")
+func requireNotContains(t *testing.T, body, forbidden, label string) {
+	t.Helper()
+	if strings.Contains(body, forbidden) {
+		t.Fatalf("%s contains forbidden release-contract marker %q", label, forbidden)
 	}
 }
 
-func TestLinuxProductRunPathOwnsSharedPublicRawMux(t *testing.T) {
+func TestADR0014GlobalSingleFlowArchitectureFreeze(t *testing.T) {
+	policy := readRepoFile(t, "internal/logicaltunnel/logicaltunnel.go")
+	requireContains(t, policy, "MaxProductPublicTransportLanes = 1", "Logical Tunnel transport policy")
+	requireContains(t, policy, "MinProductPublicTransportLanes = 1", "Logical Tunnel transport policy")
+	requireContains(t, policy, "product permits exactly one active public transport lane", "Logical Tunnel transport policy")
+
+	adr := readRepoFile(t, "docs/architecture/ADR-0014-global-single-flow-reality-like-bootstrap-final-freeze.md")
+	requireContains(t, adr, "PRODUCT-OWNER FINAL FREEZE", "ADR-0014")
+	requireContains(t, adr, "exactly one public WBD 4-tuple", "ADR-0014")
+	requireContains(t, adr, "no concurrent second WBD Transport Lane", "ADR-0014")
+	requireContains(t, adr, "no FIN/RST/new WBD payload SYN", "ADR-0014")
+
+	adr12 := readRepoFile(t, "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md")
+	requireContains(t, adr12, "PARTIALLY SUPERSEDED BY ADR-0014", "ADR-0012")
+	adr13 := readRepoFile(t, "docs/architecture/ADR-0013-global-single-public-flow-release-freeze.md")
+	requireContains(t, adr13, "HISTORICAL / SUPERSEDED BY ADR-0014", "ADR-0013")
+
+	constitution := readRepoFile(t, "PROJECT_CONSTITUTION.md")
+	requireContains(t, constitution, "ADR-0014 is authoritative", "project constitution")
+	requireContains(t, constitution, "exactly one active public WBD 4-tuple", "project constitution")
+	requireContains(t, constitution, "A simultaneous second WBD public transport", "project constitution")
+	requireNotContains(t, constitution, "1..4 independent WBD Transport Lanes", "project constitution")
+
+	architecture := readRepoFile(t, "ARCHITECTURE.md")
+	requireContains(t, architecture, "ADR-0014 is authoritative", "architecture")
+	requireContains(t, architecture, "exactly one WBD-owned raw TCP-shaped FakeTCP association", "architecture")
+	requireContains(t, architecture, "Product transport cardinality is exactly one while connected", "architecture")
+	requireNotContains(t, architecture, "A connected Logical Tunnel may own **1..4 active Transport Lanes**", "architecture")
+}
+
+func TestLinuxProductRunPathOwnsOneSharedPublicRawMuxWithoutGameHop(t *testing.T) {
 	body := readRepoFile(t, "scripts/linux_server_manager.sh")
 	start := strings.Index(body, "run_server() {")
 	end := strings.Index(body, "\nuninstall_files() {")
@@ -74,42 +79,48 @@ func TestLinuxProductRunPathOwnsSharedPublicRawMux(t *testing.T) {
 	}
 	run := body[start:end]
 	requireContains(t, run, "public_raw=", "linux run_server")
-	requireContains(t, run, "max_tunnel_lanes=4", "linux run_server")
+	requireContains(t, run, "max_tunnel_lanes=1", "linux run_server")
 	requireContains(t, run, `"$PREFIX/bin/wbd-faketcp-mux" server`, "linux run_server")
-	if strings.Contains(run, "wbd-reality-front") {
-		t.Fatal("linux product run path must not start a parallel wbd-reality-front listener")
-	}
+	requireContains(t, run, `"$PREFIX/bin/wbd-link-server-mux" -listen "$WBD_LINK_LISTEN" -service "$WBD_PLATFORM_LISTEN"`, "linux run_server")
+	requireNotContains(t, run, `"$PREFIX/bin/wbd-game-lane-server"`, "linux run_server")
+	requireNotContains(t, run, "wbd-reality-front", "linux run_server")
 }
 
-func TestWindowsProductUsesPerLaneSameAssociationBootstrap(t *testing.T) {
-	body := readRepoFile(t, "internal/windowsruntime/controller.go")
-	if strings.Contains(body, "reality-bootstrap") || strings.Contains(body, "BuildBootstrap(") {
+func TestWindowsProductUsesOneSameAssociationBootstrap(t *testing.T) {
+	controller := readRepoFile(t, "internal/windowsruntime/controller.go")
+	if strings.Contains(controller, "reality-bootstrap") || strings.Contains(controller, "BuildBootstrap(") {
 		t.Fatal("Windows product controller must not create a separate ordinary-TCP Reality bootstrap connection")
 	}
-	requireContains(t, body, "BuildFakeTCPCommand", "Windows controller")
-	requireContains(t, body, "WBD_SINGLE_FLOW_BOOTSTRAP_READY", "Windows controller")
-	requireContains(t, body, "RuntimeDisconnected", "Windows controller")
+	requireContains(t, controller, "BuildFakeTCPCommand", "Windows controller")
+	requireContains(t, controller, "WBD_SINGLE_FLOW_BOOTSTRAP_READY", "Windows controller")
+	requireNotContains(t, controller, "BuildMultiLanePlan", "Windows controller")
+
+	plan := readRepoFile(t, "internal/windowsruntime/plan.go")
+	requireContains(t, plan, "ValidateProductTransportLaneCount(p.Lanes)", "Windows profile")
+	policy := readRepoFile(t, "internal/logicaltunnel/logicaltunnel.go")
+	requireContains(t, policy, "MaxProductPublicTransportLanes = 1", "Windows transport ceiling")
 }
 
-func TestLinkServerAcceptsBoundedLaneSetForSameTunnel(t *testing.T) {
+func TestLinkServerRejectsSecondPublicTransportForSameTunnel(t *testing.T) {
 	body := readRepoFile(t, "cmd/wbd-link-server-mux/logical_tunnel.go")
-	requireContains(t, body, "activeTunnelPeers", "LINK Logical Tunnel lane set")
-	requireContains(t, body, "MaxProductPublicTransportLanes", "LINK Logical Tunnel lane set")
-	requireContains(t, body, "errTransportLaneLimit", "LINK Logical Tunnel lane limit")
+	requireContains(t, body, "activeTunnelPeers", "LINK Logical Tunnel transport set")
+	requireContains(t, body, "MaxProductPublicTransportLanes", "LINK Logical Tunnel transport limit")
+	requireContains(t, body, "errTransportLaneLimit", "LINK Logical Tunnel transport limit")
 	requireContains(t, body, "releaseTunnelTransport", "LINK Logical Tunnel teardown")
-	if strings.Contains(body, "LoadOrStore(key, ps)") {
-		t.Fatal("LINK server still uses withdrawn one-peer-per-TunnelID claim")
-	}
+	policy := readRepoFile(t, "internal/logicaltunnel/logicaltunnel.go")
+	requireContains(t, policy, "MaxProductPublicTransportLanes = 1", "LINK transport ceiling")
 }
 
-func TestLinuxBundleCarriesSubstantiveSourceSHAAndPerLaneOperatorContract(t *testing.T) {
+func TestLinuxBundleCarriesSubstantiveSourceSHAAndGlobalSingleFlowContract(t *testing.T) {
 	builder := readRepoFile(t, "scripts/build_linux_server_bundle.sh")
 	requireContains(t, builder, `BUILD_SOURCE_SHA=${WBD_SOURCE_SHA:-${GITHUB_SHA:-unknown}}`, "Linux bundle builder")
 	requireContains(t, builder, `> "$root/SOURCE_SHA"`, "Linux bundle builder")
 	requireContains(t, builder, "one public raw wbd-faketcp-mux listener", "Linux bundle README")
-	requireContains(t, builder, "1..4 independent Transport Lanes", "Linux bundle README")
-	requireContains(t, builder, "Each lane owns one FakeTCP SYN/4-tuple/sequence lineage", "Linux bundle README")
+	requireContains(t, builder, "exactly one active public WBD transport", "Linux bundle README")
+	requireContains(t, builder, "one FakeTCP SYN/4-tuple/sequence lineage", "Linux bundle README")
 	requireContains(t, builder, "never starts it as a public listener", "Linux bundle README")
+	requireContains(t, builder, "max_tunnel_lanes=1", "Linux release evidence")
+	requireNotContains(t, builder, "A Logical Tunnel may bind 1..4 independent Transport Lanes", "Linux bundle README")
 
 	workflow := readRepoFile(t, ".github/workflows/linux-server-release.yml")
 	requireContains(t, workflow, `WBD_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}`, "Linux release workflow")
