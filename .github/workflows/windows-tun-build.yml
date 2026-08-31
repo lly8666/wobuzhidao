@@ -23,7 +23,9 @@ on:
       - 'scripts/windows_frozen_wbd_one_shot.ps1'
       - 'deps/platform-lock.json'
   push:
-    branches: [dev/wbd-raw-fec-v2]
+    branches:
+      - dev/wbd-raw-fec-v2
+      - feat/single-flow-reality-faketcp
     paths:
       - '.github/workflows/windows-tun-build.yml'
       - 'cmd/wbd-tun/**'
