@@ -62,8 +62,9 @@ run_manager set WBD_PORT 8443 >/dev/null
 grep -q "^WBD_PORT='8443'$" "$ETC/server.env"
 if grep -Eq '^WBD_(FRONT|RAW)_PORT=' "$ETC/server.env"; then echo 'explicit WBD_PORT migration left legacy keys behind' >&2; exit 1; fi
 
-# V2.3 resolves wildcard config to one concrete raw FakeTCP listener. TLS
-# Reality-like admission is inside that listener and no kernel TCP front runs.
+# ADR-0012 product mode resolves wildcard config to one concrete shared raw
+# FakeTCP mux ingress. The mux may host 1..4 independent same-flow Transport
+# Lane associations for one Logical Tunnel; no parallel kernel TCP front runs.
 rm -rf "$PREFIX" "$RUN"; mkdir -p "$PREFIX/bin" "$RUN/tickets" "$ROOT/fakebin" "$ETC"
 sed -i 's/^WBD_LISTEN_IP=.*/WBD_LISTEN_IP=0.0.0.0/' "$ETC/server.env"
 cat >"$ROOT/fakebin/ip" <<'EOF'
@@ -94,7 +95,8 @@ run_manager run >/tmp/wbd-settings-wildcard.log
 PATH=$OLD_PATH; export PATH; unset WBD_TEST_GUARD_LOG
 grep -q '^10.77.0.9:8443$' "$GUARD_LOG"
 if grep -q '^0.0.0.0:8443$' "$GUARD_LOG"; then echo 'wildcard WBD_LISTEN_IP leaked into raw FakeTCP --listen' >&2; cat "$GUARD_LOG" >&2; exit 1; fi
-grep -q 'public_single_flow=10.77.0.9:8443' /tmp/wbd-settings-wildcard.log
+grep -q 'public_raw=10.77.0.9:8443' /tmp/wbd-settings-wildcard.log
+grep -q 'max_tunnel_lanes=4' /tmp/wbd-settings-wildcard.log
 grep -q '^--front-cert$' "$GUARD_LOG"
 grep -q '^--server-name$' "$GUARD_LOG"
 grep -q '^--ticket-dir$' "$GUARD_LOG"
@@ -105,4 +107,4 @@ if grep -q 'ExecStop=/bin/kill' "$MANAGER"; then echo 'manager still emits fragi
 grep -q 'StartLimitBurst=5' "$MANAGER"
 grep -q 'KillMode=control-group' "$MANAGER"
 
-echo 'WBD_LINUX_SERVER_SETTINGS_PASS single_public_flow=1 wildcard_raw_ipv4=resolved restart_storm=capped migration=fail_closed secrets=redacted'
+echo 'WBD_LINUX_SERVER_SETTINGS_PASS shared_public_raw_mux=1 max_tunnel_lanes=4 per_lane_same_flow=1 wildcard_raw_ipv4=resolved restart_storm=capped migration=fail_closed secrets=redacted'
