@@ -251,12 +251,20 @@ func (r *npcapRawPacketIO) ReadPacket(buf []byte) (int, error) {
 			if !ok {
 				continue
 			}
+			// Npcap captures the whole adapter, not a WBD-only socket. Observe an
+			// exact local kernel RST if present, but never hand adapter background
+			// traffic (UDP/ICMP/other TCP/self-injected frames) to the FakeTCP
+			// protocol parser. The handshake parser is intentionally strict; the
+			// raw backend therefore owns exact four-tuple/TCP demultiplexing.
 			if r.matchesKernelRST(packet) {
 				r.rstOnce.Do(func() {
 					fmt.Fprintf(os.Stderr,
 						"WBD_FAKETCP_WINDOWS_KERNEL_RST_SEEN source_port=%d remote_port=%d\n",
 						r.sourcePort, r.remotePort)
 				})
+			}
+			if !r.matchesFlowTCP(packet, false) {
+				continue
 			}
 			if payloadBytes, ok := r.flowPayloadBytes(packet, false); ok {
 				r.rxDataOnce.Do(func() {
@@ -276,7 +284,7 @@ func (r *npcapRawPacketIO) ReadPacket(buf []byte) (int, error) {
 	}
 }
 
-func (r *npcapRawPacketIO) matchesKernelRST(packet []byte) bool {
+func (r *npcapRawPacketIO) matchesFlowTCP(packet []byte, outbound bool) bool {
 	if len(packet) < 40 || packet[0]>>4 != 4 || packet[9] != 6 {
 		return false
 	}
@@ -284,13 +292,22 @@ func (r *npcapRawPacketIO) matchesKernelRST(packet []byte) bool {
 	if ihl < 20 || len(packet) < ihl+20 {
 		return false
 	}
-	if packet[12] != r.sourceIP[0] || packet[13] != r.sourceIP[1] || packet[14] != r.sourceIP[2] || packet[15] != r.sourceIP[3] ||
-		packet[16] != r.remoteIP[0] || packet[17] != r.remoteIP[1] || packet[18] != r.remoteIP[2] || packet[19] != r.remoteIP[3] {
+	var srcIP, dstIP [4]byte
+	copy(srcIP[:], packet[12:16])
+	copy(dstIP[:], packet[16:20])
+	srcPort := binary.BigEndian.Uint16(packet[ihl : ihl+2])
+	dstPort := binary.BigEndian.Uint16(packet[ihl+2 : ihl+4])
+	if outbound {
+		return srcIP == r.sourceIP && dstIP == r.remoteIP && srcPort == r.sourcePort && dstPort == r.remotePort
+	}
+	return srcIP == r.remoteIP && dstIP == r.sourceIP && srcPort == r.remotePort && dstPort == r.sourcePort
+}
+
+func (r *npcapRawPacketIO) matchesKernelRST(packet []byte) bool {
+	if !r.matchesFlowTCP(packet, true) {
 		return false
 	}
-	if binary.BigEndian.Uint16(packet[ihl:ihl+2]) != r.sourcePort || binary.BigEndian.Uint16(packet[ihl+2:ihl+4]) != r.remotePort {
-		return false
-	}
+	ihl := int(packet[0]&0x0f) * 4
 	return packet[ihl+13]&0x04 != 0
 }
 
@@ -298,13 +315,10 @@ func (r *npcapRawPacketIO) matchesKernelRST(packet []byte) bool {
 // the TCP payload length. It is intentionally independent from the protocol
 // parser so the Npcap boundary can prove that bytes reached/leaved the driver.
 func (r *npcapRawPacketIO) flowPayloadBytes(packet []byte, outbound bool) (int, bool) {
-	if len(packet) < 40 || packet[0]>>4 != 4 || packet[9] != 6 {
+	if !r.matchesFlowTCP(packet, outbound) {
 		return 0, false
 	}
 	ihl := int(packet[0]&0x0f) * 4
-	if ihl < 20 || len(packet) < ihl+20 {
-		return 0, false
-	}
 	total := int(binary.BigEndian.Uint16(packet[2:4]))
 	if total == 0 || total > len(packet) {
 		total = len(packet)
@@ -312,18 +326,6 @@ func (r *npcapRawPacketIO) flowPayloadBytes(packet []byte, outbound bool) (int, 
 	tcpOff := ihl
 	tcpHL := int(packet[tcpOff+12]>>4) * 4
 	if tcpHL < 20 || tcpOff+tcpHL > total {
-		return 0, false
-	}
-	var srcIP, dstIP [4]byte
-	copy(srcIP[:], packet[12:16])
-	copy(dstIP[:], packet[16:20])
-	srcPort := binary.BigEndian.Uint16(packet[tcpOff : tcpOff+2])
-	dstPort := binary.BigEndian.Uint16(packet[tcpOff+2 : tcpOff+4])
-	if outbound {
-		if srcIP != r.sourceIP || dstIP != r.remoteIP || srcPort != r.sourcePort || dstPort != r.remotePort {
-			return 0, false
-		}
-	} else if srcIP != r.remoteIP || dstIP != r.sourceIP || srcPort != r.remotePort || dstPort != r.sourcePort {
 		return 0, false
 	}
 	payload := total - tcpOff - tcpHL
