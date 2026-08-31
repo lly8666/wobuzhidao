@@ -6,34 +6,37 @@ on:
     paths:
       - '.github/workflows/linux-server-release.yml'
       - 'scripts/build_linux_server_bundle.sh'
-      - 'scripts/linux_server_manager.sh'
-      - 'scripts/linux_server_settings_test.sh'
+      - 'scripts/linux_server_manager_v3.sh'
       - 'scripts/linux_server_firewall.sh'
       - 'scripts/linux_server_guard.sh'
-      - 'cmd/wbd-server-cert/**'
-      - 'cmd/wbd-reality-front/**'
       - 'cmd/wbd-faketcp-mux/**'
       - 'cmd/wbd-link-server-mux/**'
       - 'cmd/wbd-platform-proxy-server/**'
-      - 'internal/**'
+      - 'cmd/wbd-server-cert/**'
+      - 'internal/realityfront/**'
+      - 'internal/singleflow/**'
+      - 'internal/faketcp/**'
+      - 'internal/dtlsworker/**'
       - 'native/dtls/**'
       - 'deps/security-lock.json'
   push:
     branches:
       - dev/wbd-raw-fec-v2
+      - exp/singleflow-realitylike-v3
     paths:
       - '.github/workflows/linux-server-release.yml'
       - 'scripts/build_linux_server_bundle.sh'
-      - 'scripts/linux_server_manager.sh'
-      - 'scripts/linux_server_settings_test.sh'
+      - 'scripts/linux_server_manager_v3.sh'
       - 'scripts/linux_server_firewall.sh'
       - 'scripts/linux_server_guard.sh'
-      - 'cmd/wbd-server-cert/**'
-      - 'cmd/wbd-reality-front/**'
       - 'cmd/wbd-faketcp-mux/**'
       - 'cmd/wbd-link-server-mux/**'
       - 'cmd/wbd-platform-proxy-server/**'
-      - 'internal/**'
+      - 'cmd/wbd-server-cert/**'
+      - 'internal/realityfront/**'
+      - 'internal/singleflow/**'
+      - 'internal/faketcp/**'
+      - 'internal/dtlsworker/**'
       - 'native/dtls/**'
       - 'deps/security-lock.json'
 
@@ -47,13 +50,21 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Qualify server configuration surface
+      - name: Qualify V3 server configuration surface
         shell: bash
         run: |
           set -euo pipefail
-          sh -n scripts/build_linux_server_bundle.sh scripts/linux_server_manager.sh scripts/linux_server_settings_test.sh
-          chmod +x scripts/linux_server_settings_test.sh
-          sudo env WBD_SERVER_MANAGER="$PWD/scripts/linux_server_manager.sh" scripts/linux_server_settings_test.sh
+          sh -n scripts/build_linux_server_bundle.sh scripts/linux_server_manager_v3.sh scripts/linux_server_firewall.sh scripts/linux_server_guard.sh
+          help=$(WBD_PREFIX="$RUNNER_TEMP/prefix" WBD_ETC="$RUNNER_TEMP/etc" WBD_RUN="$RUNNER_TEMP/run" sh scripts/linux_server_manager_v3.sh help)
+          grep -q 'V3 exposes exactly one public TCP-shaped endpoint' <<<"$help"
+          grep -q 'no second public Reality TCP listener' <<<"$help"
+          grep -q 'public_owner=raw-mux' scripts/linux_server_manager_v3.sh
+          grep -q 'reality_like=in-flow' scripts/linux_server_manager_v3.sh
+          if grep -q 'wbd-reality-front' scripts/build_linux_server_bundle.sh && ! grep -q 'legacy Reality listener must not ship' scripts/build_linux_server_bundle.sh; then
+            echo 'V3 release builder has an unqualified legacy Reality dependency' >&2
+            exit 1
+          fi
+          echo 'WBD_LINUX_SERVER_V3_SETTINGS_PASS single_public_owner=raw-mux legacy_reality_listener=0'
 
   amd64:
     needs: settings
@@ -70,7 +81,7 @@ jobs:
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends autoconf automake libtool make gcc libc6-dev curl unzip file
-      - name: Build amd64 server bundle
+      - name: Build amd64 V3 server bundle
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -78,6 +89,13 @@ jobs:
           set -euo pipefail
           chmod +x scripts/build_linux_server_bundle.sh
           scripts/build_linux_server_bundle.sh amd64 "$RUNNER_TEMP"
+          tar -tzf "$RUNNER_TEMP/wbd-linux-server-amd64.tar.gz" > "$RUNNER_TEMP/contents.txt"
+          grep -q '/bin/wbd-faketcp-mux$' "$RUNNER_TEMP/contents.txt"
+          if grep -q '/bin/wbd-reality-front$' "$RUNNER_TEMP/contents.txt"; then
+            echo 'legacy Reality listener leaked into V3 amd64 bundle' >&2
+            exit 1
+          fi
+          grep -q '/linux_server_manager_v3.sh$' "$RUNNER_TEMP/contents.txt"
       - uses: actions/upload-artifact@v4
         with:
           name: wbd-linux-server-amd64-${{ github.sha }}
@@ -102,7 +120,7 @@ jobs:
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends autoconf automake libtool make gcc libc6-dev curl unzip file
-      - name: Build arm64 server bundle
+      - name: Build arm64 V3 server bundle
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -110,6 +128,13 @@ jobs:
           set -euo pipefail
           chmod +x scripts/build_linux_server_bundle.sh
           scripts/build_linux_server_bundle.sh arm64 "$RUNNER_TEMP"
+          tar -tzf "$RUNNER_TEMP/wbd-linux-server-arm64.tar.gz" > "$RUNNER_TEMP/contents.txt"
+          grep -q '/bin/wbd-faketcp-mux$' "$RUNNER_TEMP/contents.txt"
+          if grep -q '/bin/wbd-reality-front$' "$RUNNER_TEMP/contents.txt"; then
+            echo 'legacy Reality listener leaked into V3 arm64 bundle' >&2
+            exit 1
+          fi
+          grep -q '/linux_server_manager_v3.sh$' "$RUNNER_TEMP/contents.txt"
       - uses: actions/upload-artifact@v4
         with:
           name: wbd-linux-server-arm64-${{ github.sha }}
