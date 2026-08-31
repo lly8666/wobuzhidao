@@ -46,5 +46,4 @@ jobs:
           test -x /tmp/wbd-faketcp
           test -x /tmp/wbd-faketcp-mux
           sh -n scripts/linux_server_manager_v3.sh
-          Write-Output='WBD_SINGLEFLOW_V3_LINUX_PASS os=ubuntu-24.04 server_mux=1 manager_v3=1'
-          echo "$Write-Output"
+          echo 'WBD_SINGLEFLOW_V3_LINUX_PASS os=ubuntu-24.04 server_mux=1 manager_v3=1'
