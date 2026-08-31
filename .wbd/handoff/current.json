@@ -1,127 +1,52 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 56,
   "repository": "lly8666/wobuzhidao",
-  "active_branch": "exp/windows-readiness-gated-startup",
+  "continuity_sequence": 57,
+  "active_branch": "exp/singleflow-realitylike-v3",
   "active_issue": 1,
-  "active_pr": 8,
-  "checkpoint_based_on_head_sha": "6d96271bb4ad6f38caeececb7f83db9dd246160b",
+  "active_pr": 10,
+  "checkpoint_based_on_head_sha": "22638efa71bfe133ecba3f9336b48f7efe547c5c",
   "live_refresh_required": true,
-  "do_not_ask_user_to_repeat": true,
-  "strategic_horizon": {
-    "terminal_goal": "Ship a personal weak-network VPN with a portable Windows 11 x64 client and self-contained Linux amd64/arm64 server bundles. Sustained payload remains WBD-owned raw TCP-shaped FakeTCP -> pinned wolfSSL DTLS 1.3 -> immutable LINK; Reality-like TLS remains setup/admission only.",
-    "current_milestone": "Automated diagnosis now covers the real-host failure boundary. Linux FakeTCP mux plus inherited DTLS worker is qualified with a temporary CA, a SAN=wbd.test server certificate, pinned wolfSSL DTLS 1.3, peer-hostname verification, two simultaneous sessions and bidirectional payload. A NAT/RST A/B proved client kernel RSTs exist but did not reproduce the DTLS failure. Windows startup now waits for FakeTCP, DTLS, LINK and TUN readiness before IPv6/routes, Npcap first-payload TX/RX and kernel-RST markers were added, and Npcap 1.88 is explicitly put into MODE_SENDTORX_CLEAR rather than incorrectly calling pcap_setmode(handle, 0).",
-    "local_optimization_stop_rule": "Do not reopen ADR-0010 transport semantics: release point remains 40 Mbit/s aggregate inner on <=100 Mbit/s weak links, legacy FakeTCP, pinned wolfSSL DTLS 1.3, setup-only Reality, immutable LINK, one raw lane, and FEC off or fixed systematic 20:20."
-  },
-  "continuation_cursor": {
-    "last_completed_action": "Fixed the Linux mux marker syntax regression in 35879a629eec7aeea632ff9afae9a3b4c6956033, then fixed the locked Npcap transmit-mode reset in 6d96271bb4ad6f38caeececb7f83db9dd246160b. Current-head CI, Windows build/portable, Windows DTLS, Linux shared-port/release, cert-backed FakeTCP mux two-client, RST/NAT A/B, FakeTCP native, first-arrival/fullstack, game-lane, OpenWrt fullstack and mux-load-100m all passed. Same-head Windows and Linux amd64/arm64 artifacts were downloaded and locally integrity-checked; Linux tar checksums, extraction, architecture and manager smoke passed.",
-    "current_task": "Run one physical administrator Windows 11 x64 end-to-end attempt against the paired 6d96271b Linux ARM64 server and use the new boundary markers to identify the first real-Npcap/real-network failure, if any.",
-    "why_now": "Sandbox coverage now proves Linux mux/inherited-fd/wolfSSL/certificate/bidirectional payload and NAT/RST behavior, while hosted CI cannot legally/equivalently install and qualify the locked Npcap Free Edition on a physical NIC. The remaining uncertainty is specifically Windows Npcap plus the real NIC/NAT/ISP path.",
-    "done_when": "The physical run reaches WBD_LINK_READY before route application, DNS/UDP/TCP probes pass, IPv6 remains fail-closed while connected, and cleanup is clean. If it fails, the first missing transition among Windows Npcap raw TX, Linux mux raw RX, DTLS server PEEK/ACCEPT, Windows raw RX and DTLS client CONNECT_PASS must identify the next deterministic fix.",
-    "next_atomic_action": "Install the verified 6d96271b ARM64 server bundle on the Ubuntu host while preserving /etc/wbd/server.env, confirm wbd-server doctor/status, then replace the Windows portable wbd.exe with the verified same-head build and run one elevated connection attempt. Capture the Windows log and `journalctl -u wbd-server -n 200 --no-pager`. Classify only the first missing marker; do not change RST firewall policy unless real evidence requires it."
-  },
-  "resume_read_set": [
-    ".wbd/handoff/current.json",
-    "docs/architecture/ADR-0010-v2-protocol-freeze-40m-release-cap.md",
-    "internal/windowsruntime/executor.go",
-    "cmd/wbd-faketcp/main_windows.go",
-    "cmd/wbd-faketcp-mux/main_linux.go",
-    "native/dtls/wbd_dtls_shim.c",
-    ".github/workflows/faketcp-mux-two-client.yml",
-    ".github/workflows/faketcp-rst-nat-ab.yml",
-    ".github/workflows/mux-load-100m.yml",
-    ".github/workflows/linux-server-release.yml",
-    ".github/workflows/windows-portable-bundle.yml",
-    "deps/platform-lock.json"
+  "strategic_terminal_goal": "Ship the personal weak-network VPN with exactly one public TCP-shaped flow per session: one raw FakeTCP-owned SYN/4-tuple, bounded real TLS 1.3 Reality-like setup on that same sequence space, encrypted in-flow phase switch, then same-flow DTLS 1.3/FEC/LINK datagrams with no ordinary-TCP steady-state HOL and no second public connection.",
+  "frozen_constraints": [
+    "The existing FakeTCP sender/receiver/recovery/FEC steady-state data plane is frozen unless a deterministic transport failure proves a change is required.",
+    "No second Reality/bootstrap TCP connection, second SYN, FIN/RST, TLS close_notify, or kernel-TCP handoff is allowed at the setup-to-data boundary.",
+    "The Linux public WBD_PORT has one WBD owner: raw wbd-faketcp-mux; V3 must not restore a competing WBD kernel TCP listener.",
+    "Reality-like ordered stream semantics are bootstrap-only and must be destroyed after the encrypted switch ACK; sustained VPN payload remains datagram/no-HOL.",
+    "Do not deliver new physical-test binaries while a deterministic Windows/Linux automated gate is red."
   ],
-  "required_data_plane_assets": [],
-  "diagnostic_markers": {
-    "windows_order": [
-      "WBD_FAKETCP_WINDOWS_NPCAP_MODE_READY sendtorx=cleared",
-      "WBD_DTLS_CLIENT_CONNECT_START",
-      "WBD_FAKETCP_WINDOWS_RAW_PAYLOAD_TX",
-      "WBD_FAKETCP_WINDOWS_KERNEL_RST_SEEN (optional evidence)",
-      "WBD_FAKETCP_WINDOWS_RAW_PAYLOAD_RX",
-      "WBD_DTLS_CLIENT_CONNECT_PASS",
-      "WBD_LINK_READY role=client"
-    ],
-    "linux_order": [
-      "WBD_FAKETCP_MUX_RAW_PAYLOAD_RX",
-      "WBD_DTLS_SERVER_PEEK_WAIT",
-      "WBD_DTLS_SERVER_PEEK",
-      "WBD_DTLS_SERVER_PEER_SET",
-      "WBD_DTLS_SERVER_HRR_ARMED",
-      "WBD_DTLS_SERVER_ACCEPT_START",
-      "WBD_DTLS_SERVER_ACCEPT_PASS"
-    ],
-    "triage": "Windows RAW_PAYLOAD_TX without Linux MUX_RAW_PAYLOAD_RX points at physical/NAT/ISP transit. Linux MUX_RAW_PAYLOAD_RX without server PEEK points at mux association/relay. PEEK without ACCEPT_PASS points at wolfSSL handshake. Server ACCEPT_PASS without Windows RAW_PAYLOAD_RX points at return raw/Npcap capture. Windows RAW_PAYLOAD_RX without CONNECT_PASS points at wolfSSL client processing."
+  "current_milestone": "V3 single-public-flow implementation exists and Linux/NAT strong E2E proves one SYN/one tuple, real TLS 1.3 setup, encrypted switch, same-flow DTLS and no-HOL steady state. A physical Ubuntu ARM64/Windows run has reached single-flow bootstrap -> DTLS ACCEPT -> LINK READY once. A later physical Windows startup failed because adapter background traffic reached the strict FakeTCP handshake parser; commit 77c162ab75bd7a5825d4985a4c41110aa34048a7 added exact Npcap WBD-flow demux. Current work strengthens Windows-native regression coverage before another delivery.",
+  "continuation_cursor": {
+    "last_completed_action": "Added Windows-native Npcap adapter-noise stress regression at 22638efa71bfe133ecba3f9336b48f7efe547c5c; it feeds ARP/IPv6/UDP/wrong-tuple/self-captured/truncated frames and requires a valid WBD SYNACK to survive the boundary.",
+    "current_task": "Qualify the physical-Windows startup fix on windows-latest and keep Linux one-flow/no-HOL E2E green; repair stale handoff CI metadata and record all results in the V3 development log.",
+    "why_now": "The last physical Windows failure happened before the precise Npcap demux commit, while Linux proved the V3 one-flow architecture can complete bootstrap, DTLS and LINK. Hosted CI must now prevent that exact class of startup failure before binaries are handed back to the physical machine.",
+    "done_when": "The same substantive V3 HEAD has green Windows native tests/build, Linux host tests, strong singleflow-realitylike-e2e, reconnect stress and legacy FakeTCP regression gates; handoff-verify is green and the development log reflects the current state. Physical Npcap/NIC/NAT remains final platform qualification, not a substitute for CI.",
+    "next_atomic_action": "Inspect the Actions spawned by 22638efa; fix the first deterministic failure if any. Then append current Windows/Linux qualification results to docs/experiments/singleflow-v3-development-log.md and write a fresh final handoff sequence."
   },
   "live_ci_snapshot": {
-    "authority": "live_current_head",
-    "tested_commit": "6d96271bb4ad6f38caeececb7f83db9dd246160b",
-    "green": {
-      "ci": 33220043333,
-      "handoff_verify_pre_handoff": 33220043288,
-      "windows_tun_build": 33220043343,
-      "windows_dtls_build": 33220043293,
-      "windows_portable_bundle": 33220043287,
-      "windows_ipv6_killswitch": 33220043385,
-      "linux_server_release": 33220043398,
-      "linux_shared_port": 33220043338,
-      "faketcp_mux_two_client_cert": 33220043356,
-      "faketcp_rst_nat_ab": 33220043320,
-      "faketcp_native": 33220043368,
-      "faketcp_pcap_20loss": 33220043371,
-      "faketcp_first_arrival": 33220043397,
-      "fullstack_first_arrival": 33220043310,
-      "game_lane_fullstack": 33220043286,
-      "openwrt_fullstack_one_shot": 33220043303,
-      "openwrt_tcp_tproxy": 33220043299,
-      "mux_load_100m": 33220043331
-    },
-    "red": {},
-    "note": "mux-load-100m bench(20), bench(100) and aggregate all passed. The preceding 5689725 head was non-authoritative because its Linux mux marker commit accidentally removed one closing brace; the separate prior 999/1000 sack-rack result did not reproduce on 6d96271b, which delivered 1000/1000 in about 4.08 seconds."
-  },
-  "benchmark_authority": {
-    "commit": "6d96271bb4ad6f38caeececb7f83db9dd246160b",
-    "run_id": 33220043331,
-    "setup_loss_pct": 0,
-    "measurement_loss_pct": 20,
-    "rtt_ms": [20, 100],
-    "aggregate_inner_mbit": [40, 60, 80],
-    "result": "pass"
-  },
-  "release_artifacts": {
-    "source_head": "6d96271bb4ad6f38caeececb7f83db9dd246160b",
-    "pr_merge_checkout_sha": "1a80fd6216f6432b496242f876a546ee1e1574dd",
-    "windows": {
-      "run_id": 33220043287,
-      "artifact_id": 9704871387,
-      "actions_zip_sha256": "2bcfb6b3aa827a14d2dcba91dbee4121085faf2721e4449af59d620f55afb2e1",
-      "wbd_exe_sha256": "00035bef5d8b6849b61a1db40cd11bcf967e8b6c1421020a5b89a1729f2b7e96"
-    },
-    "linux_amd64": {
-      "run_id": 33220043398,
-      "artifact_id": 9704880289,
-      "actions_zip_sha256": "acd11a388b20aeb1a45c60413e7b4562fd8e97a69c015596024022ff8cdfda44",
-      "tar_gz_sha256": "21e5b225bdbd7e53e865faaafc9f90a37e08e35abbdfc2204c026dbabb99e723"
-    },
-    "linux_arm64": {
-      "run_id": 33220043398,
-      "artifact_id": 9704878483,
-      "actions_zip_sha256": "98cfb5d8ca591260e30e1d127c2b32e8ef9dca04c667e64feb9e5f4226d05875",
-      "tar_gz_sha256": "8bc8305b05eb6638c60c9fe8494229a1f710e715d5bb68b2430c519d4b243475"
-    }
-  },
-  "sandbox_qualification": {
-    "cert_mux": "Temporary CA plus SAN=wbd.test certificate, pinned wolfSSL DTLS 1.3, peer-hostname verification, two FakeTCP mux sessions and bidirectional UDP payload passed.",
-    "rst_nat_ab": "Client kernel RSTs were generated in both cases; allow forwarded them through NAT and drop suppressed them, while FakeTCP and DTLS both remained ready in both cases. Do not infer that Windows RST suppression is required from this sandbox result.",
-    "physical_limit": "Hosted CI is not release-authoritative for Npcap physical capture/injection; the locked Free Edition is not silently installed or redistributed."
+    "authority": "live_current_head_pending",
+    "tested_commit": "22638efa71bfe133ecba3f9336b48f7efe547c5c",
+    "note": "Actions for this new test commit were queued at handoff write time. Previous substantive HEAD 102cab4ecd03071c875ac2c1d1dad05de525d5d6 had green Go tests, singleflow-v3-crossplatform, singleflow-realitylike-e2e, faketcp-reconnect-stress, faketcp-native, faketcp-first-arrival, faketcp-pcap-20loss, fullstack-first-arrival and linux-server-release; its ci/handoff-verify red was stale current.json metadata rather than Go test failure."
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "6d96271bb4ad6f38caeececb7f83db9dd246160b",
+    "tested_commit": "102cab4ecd03071c875ac2c1d1dad05de525d5d6",
     "result": "pass",
-    "command": "Downloaded same-head Actions artifacts. Windows ZIP integrity and PE x64 were checked and wbd.exe hashed. Linux amd64/arm64 Actions ZIP integrity, inner sha256sum -c, extraction, ELF architecture, manager sh -n and help smoke were checked. Physical Windows/Npcap and real Ubuntu end-to-end were not executed in the sandbox."
-  }
+    "note": "Repository-hosted qualification on the prior HEAD was green for the V3 cross-platform Windows/Linux jobs and strong Linux/NAT one-flow E2E. No new physical Windows test has been run after the Npcap exact-flow demux fix; do not claim one."
+  },
+  "required_data_plane_assets": [],
+  "resume_read_set": [
+    "ARCHITECTURE.md",
+    "PROJECT_CONSTITUTION.md",
+    "docs/experiments/singleflow-v3-development-log.md",
+    "cmd/wbd-faketcp/main.go",
+    "cmd/wbd-faketcp/main_windows.go",
+    "cmd/wbd-faketcp/main_windows_test.go",
+    "cmd/wbd-faketcp/singleflow_client.go",
+    "cmd/wbd-faketcp-mux/main_linux.go",
+    "internal/realityfront/front.go",
+    "internal/windowsdiag/readiness_windows.go",
+    ".github/workflows/singleflow-v3-crossplatform.yml",
+    "scripts/singleflow_realitylike_e2e.sh"
+  ]
 }
