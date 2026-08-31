@@ -22,6 +22,7 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/dataplane"
 	"github.com/lly8666/wobuzhidao/internal/diag"
+	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/rawipbackend"
 	"github.com/lly8666/wobuzhidao/internal/tunnel"
 )
@@ -56,18 +57,21 @@ type sessionCounters struct {
 }
 
 type gatewaySession struct {
-	key       string
-	sid       string
-	peer      *net.UDPAddr
-	slot      int
-	tun       *tunnel.TUN
-	tunIf     string
-	netns     string
-	hostIf    string
-	nsIf      string
-	hostIP    netip.Addr
-	transitIP netip.Addr
-	egress    string
+	key           string
+	sid           string
+	tunnelID      logicaltunnel.TunnelID
+	lease         netip.Addr
+	logicalTunnel bool
+	peer          *net.UDPAddr
+	slot          int
+	tun           *tunnel.TUN
+	tunIf         string
+	netns         string
+	hostIf        string
+	nsIf          string
+	hostIP        netip.Addr
+	transitIP     netip.Addr
+	egress        string
 
 	activityMu sync.Mutex
 	last       time.Time
@@ -95,6 +99,31 @@ func (s *gatewaySession) idleFor(now time.Time) time.Duration {
 	return now.Sub(last)
 }
 
+func tunnelIDPrefix(id logicaltunnel.TunnelID) string {
+	raw := string(id)
+	if len(raw) > 8 {
+		return raw[:8]
+	}
+	return raw
+}
+
+func (s *gatewaySession) marker() string {
+	if s != nil && s.logicalTunnel {
+		return "tunnel_id_prefix=" + tunnelIDPrefix(s.tunnelID)
+	}
+	if s == nil {
+		return "sid=unknown"
+	}
+	return "sid=" + s.sid
+}
+
+func (s *gatewaySession) innerPrefix(fallback netip.Prefix) netip.Prefix {
+	if s != nil && s.logicalTunnel && s.lease.IsValid() && s.lease.Is4() {
+		return netip.PrefixFrom(s.lease, 32)
+	}
+	return fallback
+}
+
 type gateway struct {
 	cfg         config
 	conn        *net.UDPConn
@@ -102,10 +131,11 @@ type gateway struct {
 	inner       netip.Prefix
 	innerServer netip.Addr
 
-	mu         sync.Mutex
-	sessions   map[string]*gatewaySession
-	pendingSID map[string]string
-	slots      []bool
+	mu            sync.Mutex
+	sessions      map[string]*gatewaySession
+	pendingSID    map[string]string
+	pendingTunnel map[string]rawipbackend.TunnelMeta
+	slots         []bool
 }
 
 func main() {
@@ -116,7 +146,7 @@ func main() {
 	flag.StringVar(&c.firewallState, "firewall-state", "/run/wbd/ip-gateway-firewall.state", "WBD-owned netfilter state path")
 	flag.StringVar(&c.nftForward, "nft-forward", "", "optional existing nft forward chain FAMILY:TABLE:CHAIN")
 	flag.StringVar(&c.transitPrefix, "transit-prefix", defaultTransitPrefix, "host<->session-netns transit prefix; four addresses reserved per session")
-	flag.StringVar(&c.innerServer, "inner-server", defaultInnerServer, "server TUN IPv4 CIDR; clients use the other /30 host address")
+	flag.StringVar(&c.innerServer, "inner-server", defaultInnerServer, "legacy v1 server TUN IPv4 CIDR; v2 Logical Tunnel sessions are lease-driven /32")
 	flag.DurationVar(&c.idleTimeout, "idle-timeout", defaultIdleTimeout, "raw-IP backend idle cleanup timeout")
 	flag.IntVar(&c.mtu, "mtu", defaultMTU, "TUN MTU")
 	flag.IntVar(&c.maxSessions, "max-sessions", defaultMaxSessions, "maximum simultaneous raw-IP sessions")
@@ -130,7 +160,7 @@ func main() {
 	defer g.Close()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-	fmt.Printf("WBD_IP_GATEWAY_READY listen=%s max_sessions=%d inner=%s transit=%s isolation=netns\n", g.conn.LocalAddr(), c.maxSessions, g.inner, g.transit)
+	fmt.Printf("WBD_IP_GATEWAY_READY listen=%s max_sessions=%d inner=%s transit=%s isolation=netns logical_tunnel=v2\n", g.conn.LocalAddr(), c.maxSessions, g.inner, g.transit)
 	if err := g.Run(ctx); err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, os.ErrClosed) {
 		fmt.Fprintln(os.Stderr, "WBD_IP_GATEWAY_FAIL", err)
 		os.Exit(1)
@@ -175,7 +205,7 @@ func newGateway(c config) (*gateway, error) {
 	_ = conn.SetWriteBuffer(4 << 20)
 	g := &gateway{
 		cfg: c, conn: conn, transit: transit, inner: inner, innerServer: innerServer.Addr(),
-		sessions: make(map[string]*gatewaySession), pendingSID: make(map[string]string), slots: make([]bool, c.maxSessions),
+		sessions: make(map[string]*gatewaySession), pendingSID: make(map[string]string), pendingTunnel: make(map[string]rawipbackend.TunnelMeta), slots: make([]bool, c.maxSessions),
 	}
 	if err := g.resetOwnedState(); err != nil {
 		_ = conn.Close()
@@ -222,10 +252,23 @@ func (g *gateway) Run(ctx context.Context) error {
 
 func (g *gateway) handleFrame(peer *net.UDPAddr, frame []byte, now time.Time) error {
 	key := peer.String()
+	if meta, ok := rawipbackend.UnmarshalTunnelMeta(frame); ok {
+		g.mu.Lock()
+		if s := g.sessions[key]; s != nil {
+			if !s.logicalTunnel || s.tunnelID != meta.TunnelID || s.lease != meta.Address4 {
+				g.mu.Unlock()
+				return errors.New("raw-IP Logical Tunnel metadata changed on an active backend peer")
+			}
+		} else {
+			g.pendingTunnel[key] = meta
+		}
+		g.mu.Unlock()
+		return nil
+	}
 	if meta, ok := rawipbackend.UnmarshalSessionMeta(frame); ok {
 		g.mu.Lock()
 		if s := g.sessions[key]; s != nil {
-			if s.sid != meta.SID {
+			if s.logicalTunnel || s.sid != meta.SID {
 				g.mu.Unlock()
 				return errors.New("raw-IP session metadata changed on an active backend peer")
 			}
@@ -242,13 +285,27 @@ func (g *gateway) handleFrame(peer *net.UDPAddr, frame []byte, now time.Time) er
 	if packet[0]>>4 != 4 {
 		return errors.New("IPv6 raw-IP gateway is disabled while Windows IPv6 kill-switch is active")
 	}
+	g.mu.Lock()
+	pendingTunnel, havePendingTunnel := g.pendingTunnel[key]
+	g.mu.Unlock()
+	if havePendingTunnel {
+		if err := logicaltunnel.ValidateIPv4Source(packet, pendingTunnel.Address4); err != nil {
+			return fmt.Errorf("raw-IP source does not match pending Logical Tunnel lease: %w", err)
+		}
+	}
 	s, err := g.getOrCreateSession(key, peer, now)
 	if err != nil {
 		return err
 	}
+	if s.logicalTunnel {
+		if err := logicaltunnel.ValidateIPv4Source(packet, s.lease); err != nil {
+			s.counters.drop.Add(1)
+			return fmt.Errorf("raw-IP source does not match Logical Tunnel lease: %w", err)
+		}
+	}
 	s.counters.rawRx.Add(1)
 	s.rawRxFirst.Do(func() {
-		fmt.Printf("WBD_RAWIP_RX_FIRST sid=%s bytes=%d\n", s.sid, len(packet))
+		fmt.Printf("WBD_RAWIP_RX_FIRST %s bytes=%d\n", s.marker(), len(packet))
 	})
 	n, err := s.tun.WritePacket(packet)
 	if err != nil {
@@ -262,7 +319,7 @@ func (g *gateway) handleFrame(peer *net.UDPAddr, frame []byte, now time.Time) er
 	}
 	s.counters.tunTx.Add(1)
 	s.tunTxFirst.Do(func() {
-		fmt.Printf("WBD_NETNS_TUN_TX_FIRST sid=%s bytes=%d tun=%s netns=%s\n", s.sid, len(packet), s.tunIf, s.netns)
+		fmt.Printf("WBD_NETNS_TUN_TX_FIRST %s bytes=%d tun=%s netns=%s\n", s.marker(), len(packet), s.tunIf, s.netns)
 	})
 	s.touch(now)
 	return nil
@@ -284,17 +341,21 @@ func (g *gateway) getOrCreateSession(key string, peer *net.UDPAddr, now time.Tim
 	}
 	sid := g.pendingSID[key]
 	delete(g.pendingSID, key)
+	tunnelMeta, haveTunnelMeta := g.pendingTunnel[key]
+	delete(g.pendingTunnel, key)
 	g.mu.Unlock()
 	if slot < 0 {
 		return nil, errors.New("raw-IP gateway session capacity reached")
 	}
-	if sid == "" {
-		// Direct qualification clients do not traverse LINK mux. Product traffic
-		// supplies localhost-only metadata before the first M6A datagram.
+	if haveTunnelMeta {
+		sid = tunnelIDPrefix(tunnelMeta.TunnelID)
+	} else if sid == "" {
+		// Direct qualification clients do not traverse LINK mux. Product V2.4
+		// traffic supplies localhost-only TunnelMeta before the first M6A datagram.
 		sid = diag.SessionID([]byte("local-backend:" + key))
 	}
 
-	s, err := g.createSession(key, sid, peer, slot, now)
+	s, err := g.createSession(key, sid, peer, slot, now, tunnelMeta, haveTunnelMeta)
 	if err != nil {
 		g.mu.Lock()
 		g.slots[slot] = false
@@ -311,12 +372,17 @@ func (g *gateway) getOrCreateSession(key string, peer *net.UDPAddr, now time.Tim
 	g.sessions[key] = s
 	g.mu.Unlock()
 	go g.tunReadLoop(s)
-	fmt.Printf("WBD_RAWIP_SESSION_READY sid=%s netns=%s tun=%s inner=%s veth_host=%s veth_ns=%s transit_host=%s transit_ns=%s egress=%s nat=ready\n",
-		s.sid, s.netns, s.tunIf, g.cfg.innerServer, s.hostIf, s.nsIf, s.hostIP, s.transitIP, s.egress)
+	if s.logicalTunnel {
+		fmt.Printf("WBD_RAWIP_SESSION_READY tunnel_id_prefix=%s address4=%s netns=%s tun=%s route=%s/32 veth_host=%s veth_ns=%s transit_host=%s transit_ns=%s egress=%s nat=ready\n",
+			tunnelIDPrefix(s.tunnelID), s.lease, s.netns, s.tunIf, s.lease, s.hostIf, s.nsIf, s.hostIP, s.transitIP, s.egress)
+	} else {
+		fmt.Printf("WBD_RAWIP_SESSION_READY sid=%s netns=%s tun=%s inner=%s veth_host=%s veth_ns=%s transit_host=%s transit_ns=%s egress=%s nat=ready\n",
+			s.sid, s.netns, s.tunIf, g.cfg.innerServer, s.hostIf, s.nsIf, s.hostIP, s.transitIP, s.egress)
+	}
 	return s, nil
 }
 
-func (g *gateway) createSession(key, sid string, peer *net.UDPAddr, slot int, now time.Time) (*gatewaySession, error) {
+func (g *gateway) createSession(key, sid string, peer *net.UDPAddr, slot int, now time.Time, tunnelMeta rawipbackend.TunnelMeta, logicalTunnel bool) (*gatewaySession, error) {
 	hostIP, transitIP, err := transitPair(g.transit, slot)
 	if err != nil {
 		return nil, err
@@ -334,6 +400,11 @@ func (g *gateway) createSession(key, sid string, peer *net.UDPAddr, slot int, no
 		key: key, sid: sid, peer: cloneUDPAddr(peer), slot: slot, tun: tunDev,
 		tunIf: tunIf, netns: netns, hostIf: hostIf, nsIf: nsIf,
 		hostIP: hostIP, transitIP: transitIP, egress: detectEgress(), last: now,
+		logicalTunnel: logicalTunnel,
+	}
+	if logicalTunnel {
+		s.tunnelID = tunnelMeta.TunnelID
+		s.lease = tunnelMeta.Address4
 	}
 	failed := true
 	defer func() {
@@ -351,20 +422,34 @@ func (g *gateway) createSession(key, sid string, peer *net.UDPAddr, slot int, no
 		{"ip", "link", "set", tunIf, "netns", netns},
 		{"ip", "netns", "exec", netns, "ip", "link", "set", "lo", "up"},
 		{"ip", "netns", "exec", netns, "ip", "link", "set", tunIf, "mtu", strconv.Itoa(g.cfg.mtu), "up"},
-		{"ip", "netns", "exec", netns, "ip", "addr", "add", g.cfg.innerServer, "dev", tunIf},
-		{"ip", "netns", "exec", netns, "ip", "addr", "add", transitIP.String() + "/30", "dev", nsIf},
-		{"ip", "netns", "exec", netns, "ip", "link", "set", nsIf, "up"},
-		{"ip", "netns", "exec", netns, "ip", "route", "replace", "default", "via", hostIP.String(), "dev", nsIf},
-		{"ip", "netns", "exec", netns, "sysctl", "-q", "-w", "net.ipv4.ip_forward=1"},
-		{"ip", "netns", "exec", netns, "sysctl", "-q", "-w", "net.ipv4.conf.all.rp_filter=0"},
-		{"ip", "netns", "exec", netns, "sysctl", "-q", "-w", "net.ipv4.conf.default.rp_filter=0"},
 	}
+	if logicalTunnel {
+		commands = append(commands,
+			[]string{"ip", "netns", "exec", netns, "ip", "route", "replace", netip.PrefixFrom(s.lease, 32).String(), "dev", tunIf},
+		)
+	} else {
+		commands = append(commands,
+			[]string{"ip", "netns", "exec", netns, "ip", "addr", "add", g.cfg.innerServer, "dev", tunIf},
+		)
+	}
+	commands = append(commands,
+		[]string{"ip", "netns", "exec", netns, "ip", "addr", "add", transitIP.String() + "/30", "dev", nsIf},
+		[]string{"ip", "netns", "exec", netns, "ip", "link", "set", nsIf, "up"},
+		[]string{"ip", "netns", "exec", netns, "ip", "route", "replace", "default", "via", hostIP.String(), "dev", nsIf},
+		[]string{"ip", "netns", "exec", netns, "sysctl", "-q", "-w", "net.ipv4.ip_forward=1"},
+		[]string{"ip", "netns", "exec", netns, "sysctl", "-q", "-w", "net.ipv4.conf.all.rp_filter=0"},
+		[]string{"ip", "netns", "exec", netns, "sysctl", "-q", "-w", "net.ipv4.conf.default.rp_filter=0"},
+	)
 	for _, cmd := range commands {
 		if err := run(cmd[0], cmd[1:]...); err != nil {
 			return nil, err
 		}
 	}
 	_ = run("sysctl", "-q", "-w", "net.ipv4.conf."+hostIf+".rp_filter=0")
+	if logicalTunnel {
+		_ = run("ip", "netns", "exec", netns, "sysctl", "-q", "-w", "net.ipv4.conf."+tunIf+".rp_filter=0")
+		_ = run("ip", "netns", "exec", netns, "sysctl", "-q", "-w", "net.ipv4.conf."+nsIf+".rp_filter=0")
+	}
 	if err := g.runFirewall("session-add", s); err != nil {
 		return nil, err
 	}
@@ -381,12 +466,12 @@ func (g *gateway) tunReadLoop(s *gatewaySession) {
 		}
 		s.counters.tunRx.Add(1)
 		s.tunRxFirst.Do(func() {
-			fmt.Printf("WBD_NETNS_TUN_RX_FIRST sid=%s bytes=%d tun=%s netns=%s\n", s.sid, n, s.tunIf, s.netns)
+			fmt.Printf("WBD_NETNS_TUN_RX_FIRST %s bytes=%d tun=%s netns=%s\n", s.marker(), n, s.tunIf, s.netns)
 		})
 		wire, err := dataplane.MarshalIP(buf[:n])
 		if err != nil {
 			s.counters.drop.Add(1)
-			fmt.Fprintf(os.Stderr, "WBD_IP_GATEWAY_TUN_DROP sid=%s err=%v\n", s.sid, err)
+			fmt.Fprintf(os.Stderr, "WBD_IP_GATEWAY_TUN_DROP %s err=%v\n", s.marker(), err)
 			continue
 		}
 		if _, err := g.conn.WriteToUDP(wire, s.peer); err != nil {
@@ -395,7 +480,7 @@ func (g *gateway) tunReadLoop(s *gatewaySession) {
 		}
 		s.counters.rawTx.Add(1)
 		s.rawTxFirst.Do(func() {
-			fmt.Printf("WBD_RAWIP_TX_FIRST sid=%s bytes=%d\n", s.sid, n)
+			fmt.Printf("WBD_RAWIP_TX_FIRST %s bytes=%d\n", s.marker(), n)
 		})
 		s.touch(time.Now())
 	}
@@ -423,14 +508,15 @@ func (g *gateway) dropSession(key, reason string) {
 		g.slots[s.slot] = false
 	}
 	delete(g.pendingSID, key)
+	delete(g.pendingTunnel, key)
 	g.mu.Unlock()
 	if s == nil {
 		return
 	}
 	g.destroySession(s)
-	fmt.Printf("WBD_RAWIP_SESSION_COUNTERS sid=%s rawip_tx=%d rawip_rx=%d tun_tx=%d tun_rx=%d drop=%d\n",
-		s.sid, s.counters.rawTx.Load(), s.counters.rawRx.Load(), s.counters.tunTx.Load(), s.counters.tunRx.Load(), s.counters.drop.Load())
-	fmt.Printf("WBD_RAWIP_SESSION_CLEAN sid=%s netns=removed veth=removed tun=removed nat=removed reason=%s\n", s.sid, reason)
+	fmt.Printf("WBD_RAWIP_SESSION_COUNTERS %s rawip_tx=%d rawip_rx=%d tun_tx=%d tun_rx=%d drop=%d\n",
+		s.marker(), s.counters.rawTx.Load(), s.counters.rawRx.Load(), s.counters.tunTx.Load(), s.counters.tunRx.Load(), s.counters.drop.Load())
+	fmt.Printf("WBD_RAWIP_SESSION_CLEAN %s netns=removed veth=removed tun=removed nat=removed reason=%s\n", s.marker(), reason)
 }
 
 func (g *gateway) destroySession(s *gatewaySession) {
@@ -467,8 +553,12 @@ func (g *gateway) resetOwnedState() error {
 }
 
 func (g *gateway) runFirewall(action string, s *gatewaySession) error {
+	innerPrefix := g.inner
+	if s != nil {
+		innerPrefix = s.innerPrefix(g.inner)
+	}
 	args := []string{action, "--backend", g.cfg.backend, "--state", g.cfg.firewallState,
-		"--transit-prefix", g.transit.String(), "--inner-prefix", g.inner.String()}
+		"--transit-prefix", g.transit.String(), "--inner-prefix", innerPrefix.String()}
 	if g.cfg.nftForward != "" {
 		args = append(args, "--nft-forward", g.cfg.nftForward)
 	}
