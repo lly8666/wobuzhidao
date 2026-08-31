@@ -295,7 +295,7 @@ jobs:
             --client-ip 10.91.0.2 --server-ip 10.91.0.1 --client-port 51001 --server-port 443 \
             >"$ROOT/wire.log" 2>&1
           cat "$ROOT/wire.log"
-          grep -q 'SINGLE_FLOW_WIRE_PASS' "$ROOT/wire.log"
+          grep -q 'SINGLE_FLOW_WIRE_INVARIANT_PASS' "$ROOT/wire.log"
 
           sudo chmod -R a+rX "$ROOT"
           echo "SINGLE_FLOW_RAWIP_E2E_PASS fec=$FEC tunnel_id_prefix=$LTID public_flows=1 issued_lease=$TUN_CIDR reality_like=1 dtls13=1 link=1 rawip=1 udp=2 tcp=1 wire=1"
