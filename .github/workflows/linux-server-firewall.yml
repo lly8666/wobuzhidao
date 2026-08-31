@@ -78,7 +78,7 @@ jobs:
           cleanup() {
             sudo ip netns exec "$ns" sh "$GITHUB_WORKSPACE/scripts/linux_server_firewall.sh" cleanup --backend "$BACKEND" --port 40443 --state "$state" >/dev/null 2>&1 || true
             sudo ip netns del "$ns" >/dev/null 2>&1 || true
-            rm -f "$state"
+            sudo rm -f "$state" >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
           sudo ip netns add "$ns"
@@ -93,8 +93,8 @@ jobs:
 
           sudo ip netns exec "$ns" sh "$GITHUB_WORKSPACE/scripts/linux_server_firewall.sh" apply \
             --backend "$BACKEND" --port 40443 --state "$state" "${extra[@]}"
-          test -s "$state"
-          grep -F 'PUBLIC_PORT=40443' "$state"
+          sudo test -s "$state"
+          sudo grep -F 'PUBLIC_PORT=40443' "$state"
 
           if [[ "$BACKEND" == nft ]]; then
             rules=$(sudo ip netns exec "$ns" nft -a list chain inet filter input)
@@ -131,7 +131,7 @@ jobs:
           set -euo pipefail
           ns="wbd-guard-${BACKEND}"
           state="/tmp/${ns}.state"
-          cleanup() { sudo ip netns del "$ns" >/dev/null 2>&1 || true; rm -f "$state"; }
+          cleanup() { sudo ip netns del "$ns" >/dev/null 2>&1 || true; sudo rm -f "$state" >/dev/null 2>&1 || true; }
           trap cleanup EXIT
           sudo ip netns add "$ns"
           sudo ip netns exec "$ns" ip link set lo up
