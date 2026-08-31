@@ -75,10 +75,19 @@ ip netns exec "$S" python3 "$DIR/echo.py" >"$DIR/echo.log" 2>&1 &
 PIDS+=("$!")
 
 # Capture on the router's public side so assertions see the NAT-visible tuple.
+# Do not guess how quickly tcpdump attaches on a hosted runner. The public-flow
+# proof is only authoritative if capture has explicitly reached its listening
+# state before the sole client SYN is allowed to leave the namespace.
 ip netns exec "$R" tcpdump -U -i rs -s 0 -w "$DIR/public.pcap" 'tcp port 443' >"$DIR/tcpdump.log" 2>&1 &
 TCPDUMP_PID=$!
 PIDS+=("$TCPDUMP_PID")
-sleep .2
+for _ in $(seq 1 200); do
+  grep -q 'tcpdump: listening on rs' "$DIR/tcpdump.log" 2>/dev/null && break
+  kill -0 "$TCPDUMP_PID" 2>/dev/null || { cat "$DIR/tcpdump.log" >&2; exit 1; }
+  sleep .05
+done
+grep -q 'tcpdump: listening on rs' "$DIR/tcpdump.log"
+echo 'SINGLEFLOW_CAPTURE_READY interface=rs before_syn=1' | tee "$DIR/capture.log"
 
 ROUTE_KEY='v3-route-key-0123456789abcdef'
 USER_NAME='v3-test-user'
