@@ -5,6 +5,8 @@ package main
 import (
 	"net/netip"
 	"testing"
+
+	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 )
 
 func TestCapacityForPrefix(t *testing.T) {
@@ -38,5 +40,35 @@ func TestTransitPair(t *testing.T) {
 	}
 	if _, _, err := transitPair(prefix, 64); err == nil {
 		t.Fatal("slot 64 should be rejected")
+	}
+}
+
+func TestLogicalTunnelSessionUsesLeasePrefix(t *testing.T) {
+	id, err := logicaltunnel.ParseTunnelID("00112233445566778899aabbccddeeff")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := &gatewaySession{
+		logicalTunnel: true,
+		tunnelID:      id,
+		lease:         netip.MustParseAddr("10.66.42.17"),
+	}
+	fallback := netip.MustParsePrefix("10.66.0.0/30")
+	if got := s.innerPrefix(fallback).String(); got != "10.66.42.17/32" {
+		t.Fatalf("inner prefix=%s want lease /32", got)
+	}
+	if got := s.marker(); got != "tunnel_id_prefix=00112233" {
+		t.Fatalf("marker=%q", got)
+	}
+}
+
+func TestLegacySessionKeepsConfiguredInnerPrefix(t *testing.T) {
+	s := &gatewaySession{sid: "abcdef"}
+	fallback := netip.MustParsePrefix("10.66.0.0/30")
+	if got := s.innerPrefix(fallback); got != fallback {
+		t.Fatalf("inner prefix=%s want %s", got, fallback)
+	}
+	if got := s.marker(); got != "sid=abcdef" {
+		t.Fatalf("marker=%q", got)
 	}
 }
