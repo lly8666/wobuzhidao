@@ -139,6 +139,8 @@ def benchmark_main(args):
             "--reality-route-key", route_key,
             "--reality-username", "solo", "--reality-password", "shared-password",
             "--reality-ticket-out", str(out / "ticket.txt"),
+            "--reality-installation-id", "00112233445566778899aabbccddeeff",
+            "--reality-tunnel-config-out", str(out / "tunnel.json"),
             "--reality-verify-server=false", "--reality-timeout", "20s",
         ])
         wait_text(fc_log, "WBD_SINGLE_FLOW_BOOTSTRAP_READY", 35)
@@ -148,6 +150,9 @@ def benchmark_main(args):
         ticket = (out / "ticket.txt").read_text().strip()
         if len(ticket) != 64:
             raise RuntimeError("invalid in-flow Reality ticket")
+        tunnel = json.loads((out / "tunnel.json").read_text())
+        if len(str(tunnel.get("tunnel_id", ""))) != 32 or not tunnel.get("address4"):
+            raise RuntimeError("invalid in-flow Logical Tunnel config")
 
         dtls, dtls_log = start("dtls", A, [
             str(assets / "wbd_dtls_shim"), "client", "46101", "127.0.0.1", "45101", "none", "none",
@@ -228,6 +233,7 @@ def benchmark_main(args):
             "public_flow_count": 1,
             "inner_stream_count": 2,
             "single_flow_bootstrap": True,
+            "logical_tunnel": True,
             "probe": probe_json,
             "resources": resources,
             "faketcp_client_retransmit_bytes": retransmit_bytes,
