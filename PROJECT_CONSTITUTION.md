@@ -11,7 +11,7 @@ Build a personal-use weak-network VPN for **OpenWrt/Linux ↔ Linux or Windows**
 - optional WBD-owned release FEC: `off` or fixed systematic `20:20`;
 - pinned standards-compliant DTLS 1.3 for steady-state encryption, integrity and anti-replay;
 - OpenWrt transparent capture through TPROXY;
-- Windows capture through a TUN/Wintun-class L3 adapter and Npcap raw carrier;
+- Windows final client capture through a **TUN/Wintun-class L3 adapter** with Npcap as the privileged raw carrier;
 - one shared username/password account allowed to own multiple isolated sessions.
 
 The current weak-network qualification ceiling is **100 Mbit/s physical link capacity**. The release operating point is 40 Mbit/s aggregate inner traffic on <=100 Mbit/s weak links. Higher-capacity optimization is not on the critical path.
