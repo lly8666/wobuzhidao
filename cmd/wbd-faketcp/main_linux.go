@@ -14,6 +14,8 @@ type linuxRawPacketIO struct {
 	fd int
 }
 
+type linuxRecvfromFunc func(int, []byte, int) (int, syscall.Sockaddr, error)
+
 func openRawPacketIO(_ config, srcIP [4]byte) (rawPacketIO, error) {
 	fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_TCP)
 	if err != nil {
@@ -31,12 +33,21 @@ func openRawPacketIO(_ config, srcIP [4]byte) (rawPacketIO, error) {
 	return r, nil
 }
 
-func (r *linuxRawPacketIO) ReadPacket(buf []byte) (int, error) {
-	n, _, err := syscall.Recvfrom(r.fd, buf, 0)
-	if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) {
-		return 0, errRawTimeout
+func readLinuxRawPacket(recv linuxRecvfromFunc, fd int, buf []byte) (int, error) {
+	for {
+		n, _, err := recv(fd, buf, 0)
+		if errors.Is(err, syscall.EINTR) {
+			continue
+		}
+		if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) {
+			return 0, errRawTimeout
+		}
+		return n, err
 	}
-	return n, err
+}
+
+func (r *linuxRawPacketIO) ReadPacket(buf []byte) (int, error) {
+	return readLinuxRawPacket(syscall.Recvfrom, r.fd, buf)
 }
 
 func (r *linuxRawPacketIO) WritePacket(packet []byte, dst [4]byte) error {
