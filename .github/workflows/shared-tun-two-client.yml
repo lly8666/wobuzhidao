@@ -1,0 +1,317 @@
+name: shared-tun-two-client
+
+on:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - 'cmd/wbd-ip-gateway-shared/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-tun/**'
+      - 'internal/dataplane/**'
+      - 'internal/logicaltunnel/**'
+      - 'internal/rawipbackend/**'
+      - 'native/dtls/**'
+      - 'scripts/linux_shared_tun_firewall.sh'
+      - '.github/workflows/shared-tun-two-client.yml'
+  pull_request:
+    paths:
+      - 'cmd/wbd-ip-gateway-shared/**'
+      - 'scripts/linux_shared_tun_firewall.sh'
+      - '.github/workflows/shared-tun-two-client.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  two_clients_shared_tun:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: off
+            fec: off
+          - label: fixed20x20
+            fec: '20:20'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends autoconf automake libtool make gcc curl unzip openssl iproute2 iptables nftables
+          sudo modprobe tun
+          test -c /dev/net/tun
+      - name: Unit and shell contract
+        run: |
+          go test ./cmd/wbd-ip-gateway-shared
+          sh -n scripts/linux_shared_tun_firewall.sh
+      - name: Build pinned DTLS and single-flow stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/wolf-art /tmp/wolf /tmp/sfs /tmp/wolfssl-source.zip
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/sfs
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/sfs/wbd_dtls_shim
+          go build -trimpath -o /tmp/sfs/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/sfs/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/sfs/wbd-link-proxy ./cmd/wbd-link-proxy
+          go build -trimpath -o /tmp/sfs/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          go build -trimpath -o /tmp/sfs/wbd-ip-gateway-shared ./cmd/wbd-ip-gateway-shared
+          go build -trimpath -o /tmp/sfs/wbd-tun ./cmd/wbd-tun
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
+            -keyout /tmp/sfs/front.key -out /tmp/sfs/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=dtls.wbd.test' \
+            -keyout /tmp/sfs/dtls.key -out /tmp/sfs/dtls.pem >/dev/null 2>&1
+      - name: Two leases share one TUN and one host NAT
+        env:
+          FEC: ${{ matrix.fec }}
+          LABEL: ${{ matrix.label }}
+        run: |
+          set -euo pipefail
+          A=wbdsfsa$$
+          B=wbdsfsb$$
+          I=wbdsfsi$$
+          ROOT=/tmp/sfs/${LABEL}
+          mkdir -p "$ROOT/tickets"
+          chmod 700 "$ROOT/tickets"
+          PIDS=''
+          cleanup() {
+            set +e
+            for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null; kill -TERM "$p" 2>/dev/null; done
+            sudo scripts/linux_shared_tun_firewall.sh cleanup --state "$ROOT/firewall.state" >/dev/null 2>&1 || true
+            sudo ip link del wbdg0 2>/dev/null || true
+            sudo ip netns del "$A" 2>/dev/null || true
+            sudo ip netns del "$B" 2>/dev/null || true
+            sudo ip netns del "$I" 2>/dev/null || true
+            sudo ip link del sfsbr 2>/dev/null || true
+            sudo ip link del sfsih 2>/dev/null || true
+            sudo iptables -D OUTPUT -p tcp --sport 443 --tcp-flags RST RST -j DROP 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          ROUTE_KEY='0123456789abcdef0123456789abcdef'
+          USERNAME='solo'
+          PASSWORD='shared-password'
+
+          sudo ip link add sfsbr type bridge
+          sudo ip addr add 10.90.0.1/24 dev sfsbr
+          sudo ip link set sfsbr up
+          for spec in "$A va ha 10.90.0.2" "$B vb hb 10.90.0.3"; do
+            set -- $spec; ns=$1; ci=$2; hi=$3; ip4=$4
+            sudo ip netns add "$ns"
+            sudo ip link add "$hi" type veth peer name "$ci"
+            sudo ip link set "$ci" netns "$ns"
+            sudo ip link set "$hi" master sfsbr
+            sudo ip link set "$hi" up
+            sudo ip -n "$ns" addr add "$ip4/24" dev "$ci"
+            sudo ip -n "$ns" link set lo up
+            sudo ip -n "$ns" link set "$ci" up
+            sudo ip netns exec "$ns" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          done
+          sudo iptables -I OUTPUT -p tcp --sport 443 --tcp-flags RST RST -j DROP
+
+          sudo ip netns add "$I"
+          sudo ip link add sfsih type veth peer name sfsii
+          sudo ip link set sfsii netns "$I"
+          sudo ip addr add 203.0.113.1/30 dev sfsih
+          sudo ip link set sfsih up
+          sudo ip -n "$I" addr add 203.0.113.2/30 dev sfsii
+          sudo ip -n "$I" link set lo up
+          sudo ip -n "$I" link set sfsii up
+          sudo ip -n "$I" route add default via 203.0.113.1
+
+          cat >"$ROOT/internet.py" <<'PY'
+          import socket,threading
+          IP='203.0.113.2'
+          def udp(port):
+              s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind((IP,port))
+              while True:
+                  d,a=s.recvfrom(65535); s.sendto(d,a)
+          def echo(c):
+              with c:
+                  while True:
+                      d=c.recv(65535)
+                      if not d: return
+                      c.sendall(d)
+          def tcp():
+              s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.bind((IP,8443)); s.listen(32)
+              while True:
+                  c,_=s.accept(); threading.Thread(target=echo,args=(c,),daemon=True).start()
+          threading.Thread(target=udp,args=(53,),daemon=True).start()
+          threading.Thread(target=udp,args=(5300,),daemon=True).start()
+          print('INTERNET_READY',flush=True); tcp()
+          PY
+          sudo ip netns exec "$I" python3 -u "$ROOT/internet.py" >"$ROOT/internet.log" 2>&1 & INET=$!
+          PIDS="$PIDS $INET"
+          for i in $(seq 1 200); do grep -q INTERNET_READY "$ROOT/internet.log" && break; sleep .05; done
+          grep -q INTERNET_READY "$ROOT/internet.log"
+
+          sudo /tmp/sfs/wbd-ip-gateway-shared \
+            -listen 127.0.0.1:49100 -firewall-helper "$GITHUB_WORKSPACE/scripts/linux_shared_tun_firewall.sh" \
+            -backend iptables -firewall-state "$ROOT/firewall.state" -lease-prefix 10.66.0.0/16 \
+            -tun-if wbdg0 -max-sessions 8 -idle-timeout 45s \
+            >"$ROOT/gateway.log" 2>&1 & GATEWAY=$!
+          PIDS="$PIDS $GATEWAY"
+          for i in $(seq 1 300); do grep -q 'WBD_SHARED_TUN_GATEWAY_READY.*isolation=shared_tun' "$ROOT/gateway.log" && break; sleep .05; done
+          grep -q 'WBD_SHARED_TUN_GATEWAY_READY.*isolation=shared_tun' "$ROOT/gateway.log"
+          sudo ip link show wbdg0 >/dev/null
+          test "$(ip netns list | awk '{print $1}' | grep -Ec '^wbdg[0-9][0-9]$' || true)" -eq 0
+
+          python3 -u - <<'PY' >"$ROOT/platform.log" 2>&1 & PLATFORM=$!
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind(('127.0.0.1',48000))
+          while True:
+              d,a=s.recvfrom(65535); s.sendto(d,a)
+          PY
+          PIDS="$PIDS $PLATFORM"
+
+          sudo /tmp/sfs/wbd-link-server-mux \
+            -listen 127.0.0.1:47000 -service 127.0.0.1:48000 -raw-ip-service 127.0.0.1:49100 \
+            -ticket-dir "$ROOT/tickets" -ticket-ttl 60s -max-sessions 8 \
+            >"$ROOT/link-server.log" 2>&1 & LINK_PID=$!
+          PIDS="$PIDS $LINK_PID"
+          for i in $(seq 1 200); do grep -q WBD_LINK_SERVER_MUX_READY "$ROOT/link-server.log" && break; sleep .05; done
+          grep -q WBD_LINK_SERVER_MUX_READY "$ROOT/link-server.log"
+
+          sudo /tmp/sfs/wbd-faketcp-mux server \
+            --listen 10.90.0.1:443 --dtls-shim /tmp/sfs/wbd_dtls_shim \
+            --link-target 127.0.0.1:47000 --cert /tmp/sfs/dtls.pem --key /tmp/sfs/dtls.key \
+            --front-cert /tmp/sfs/front.pem --front-key /tmp/sfs/front.key \
+            --server-name wbd.test --route-key "$ROUTE_KEY" --username "$USERNAME" --password "$PASSWORD" \
+            --ticket-dir "$ROOT/tickets" --fallback-target 127.0.0.1:44444 --bootstrap-timeout 12s --max-sessions 8 \
+            >"$ROOT/mux.log" 2>&1 & MUX_PID=$!
+          PIDS="$PIDS $MUX_PID"
+          for i in $(seq 1 300); do grep -q 'READY role=server-mux.*single_flow_bootstrap=true' "$ROOT/mux.log" && break; sleep .05; done
+          grep -q 'READY role=server-mux.*single_flow_bootstrap=true' "$ROOT/mux.log"
+
+          start_faketcp() {
+            ns=$1; source=$2; lport=$3; install=$4; name=$5
+            sudo ip netns exec "$ns" /tmp/sfs/wbd-faketcp client \
+              --local-udp "127.0.0.1:$lport" --source "$source" --remote 10.90.0.1:443 \
+              --shadow-recovery legacy --reality-server-name wbd.test --reality-route-key "$ROUTE_KEY" \
+              --reality-username "$USERNAME" --reality-password "$PASSWORD" \
+              --reality-ticket-out "$ROOT/ticket-$name.txt" --reality-installation-id "$install" \
+              --reality-tunnel-config-out "$ROOT/tunnel-$name.json" \
+              --reality-verify-server=false --reality-timeout 12s >"$ROOT/faketcp-$name.log" 2>&1 &
+            echo $!
+          }
+          FA=$(start_faketcp "$A" 10.90.0.2:41001 45101 00112233445566778899aabbccddeeff a)
+          FB=$(start_faketcp "$B" 10.90.0.3:41002 45102 ffeeddccbbaa99887766554433221100 b)
+          PIDS="$PIDS $FA $FB"
+          for i in $(seq 1 600); do
+            if grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*logical_tunnel=1' "$ROOT/faketcp-a.log" && grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*logical_tunnel=1' "$ROOT/faketcp-b.log"; then break; fi
+            sleep .05
+          done
+          grep -q 'READY role=client.*single_flow_bootstrap=true' "$ROOT/faketcp-a.log"
+          grep -q 'READY role=client.*single_flow_bootstrap=true' "$ROOT/faketcp-b.log"
+          test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY remote=.*same_flow=1' "$ROOT/mux.log")" -eq 2
+
+          readarray -t TUN_DATA < <(sudo python3 - "$ROOT/tunnel-a.json" "$ROOT/tunnel-b.json" <<'PY'
+          import ipaddress,json,sys
+          a=json.load(open(sys.argv[1])); b=json.load(open(sys.argv[2]))
+          for x in (a,b):
+              assert len(x['tunnel_id']) == 32, x
+              p=ipaddress.ip_interface(x['address4']); assert p.version==4 and p.network.prefixlen==32, x
+              assert x.get('routes4'), x
+          assert a['tunnel_id'] != b['tunnel_id'], (a,b)
+          assert a['address4'] != b['address4'], (a,b)
+          print(a['address4']); print(b['address4'])
+          PY
+          )
+          CIDRA=${TUN_DATA[0]}; CIDRB=${TUN_DATA[1]}; IPA=${CIDRA%/*}; IPB=${CIDRB%/*}
+          TA=$(sudo sh -c "tr -d '\r\n' <'$ROOT/ticket-a.txt'")
+          TB=$(sudo sh -c "tr -d '\r\n' <'$ROOT/ticket-b.txt'")
+          test ${#TA} -eq 64; test ${#TB} -eq 64; test "$TA" != "$TB"
+
+          sudo ip netns exec "$A" /tmp/sfs/wbd_dtls_shim client 46101 127.0.0.1 45101 none none >"$ROOT/dtls-a.log" 2>&1 & DA=$!
+          sudo ip netns exec "$B" /tmp/sfs/wbd_dtls_shim client 46102 127.0.0.1 45102 none none >"$ROOT/dtls-b.log" 2>&1 & DB=$!
+          PIDS="$PIDS $DA $DB"
+          for i in $(seq 1 900); do
+            if grep -q 'READY role=client version=DTLSv1.3' "$ROOT/dtls-a.log" && grep -q 'READY role=client version=DTLSv1.3' "$ROOT/dtls-b.log"; then break; fi
+            sleep .05
+          done
+          grep -q 'READY role=client version=DTLSv1.3' "$ROOT/dtls-a.log"
+          grep -q 'READY role=client version=DTLSv1.3' "$ROOT/dtls-b.log"
+
+          sudo ip netns exec "$A" /tmp/sfs/wbd-link-proxy -mode client -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec "$FEC" -mtu 1400 -lanes 1 -demo-reality-ticket "$TA" >"$ROOT/link-a.log" 2>&1 & LA=$!
+          sudo ip netns exec "$B" /tmp/sfs/wbd-link-proxy -mode client -listen 127.0.0.1:47102 -dtls 127.0.0.1:46102 -fec "$FEC" -mtu 1400 -lanes 1 -demo-reality-ticket "$TB" >"$ROOT/link-b.log" 2>&1 & LB=$!
+          PIDS="$PIDS $LA $LB"
+          for i in $(seq 1 900); do
+            if grep -q 'WBD_LINK_READY role=client' "$ROOT/link-a.log" && grep -q 'WBD_LINK_READY role=client' "$ROOT/link-b.log"; then break; fi
+            sleep .05
+          done
+          grep -q 'WBD_LINK_READY role=client' "$ROOT/link-a.log"
+          grep -q 'WBD_LINK_READY role=client' "$ROOT/link-b.log"
+
+          sudo ip netns exec "$A" /tmp/sfs/wbd-tun -mode client -ifname wbd0 -mtu 1400 -transport 127.0.0.1:47101 >"$ROOT/tun-a.log" 2>&1 & TUNA=$!
+          sudo ip netns exec "$B" /tmp/sfs/wbd-tun -mode client -ifname wbd0 -mtu 1400 -transport 127.0.0.1:47102 >"$ROOT/tun-b.log" 2>&1 & TUNB=$!
+          PIDS="$PIDS $TUNA $TUNB"
+          for i in $(seq 1 400); do
+            if grep -q WBD_TUN_READY "$ROOT/tun-a.log" && grep -q WBD_TUN_READY "$ROOT/tun-b.log"; then break; fi
+            sleep .05
+          done
+          grep -q WBD_TUN_READY "$ROOT/tun-a.log"; grep -q WBD_TUN_READY "$ROOT/tun-b.log"
+          for spec in "$A $CIDRA" "$B $CIDRB"; do
+            set -- $spec; ns=$1; cidr=$2
+            sudo ip -n "$ns" link set wbd0 mtu 1400 up
+            sudo ip -n "$ns" addr add "$cidr" dev wbd0
+            sudo ip -n "$ns" route add 203.0.113.2/32 dev wbd0
+          done
+
+          cat >"$ROOT/probe.py" <<'PY'
+          import socket,sys
+          src,tag=sys.argv[1],sys.argv[2].encode(); dst='203.0.113.2'
+          for port in (53,5300):
+              s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.settimeout(8); s.bind((src,0))
+              msg=tag+b'-udp-'+str(port).encode(); s.sendto(msg,(dst,port)); got,_=s.recvfrom(4096); assert got==msg,(got,msg)
+          s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.settimeout(10); s.bind((src,40000)); s.connect((dst,8443))
+          msg=tag+b'-tcp-40000'; s.sendall(msg); got=s.recv(len(msg)); assert got==msg,(got,msg)
+          print('CLIENT_SHARED_TUN_PASS',tag.decode(),src,'source_port=40000',flush=True)
+          PY
+          sudo ip netns exec "$A" python3 "$ROOT/probe.py" "$IPA" A >"$ROOT/probe-a.log" 2>&1 & PA=$!
+          sudo ip netns exec "$B" python3 "$ROOT/probe.py" "$IPB" B >"$ROOT/probe-b.log" 2>&1 & PB=$!
+          wait "$PA"; wait "$PB"
+          cat "$ROOT/probe-a.log"; cat "$ROOT/probe-b.log"
+          grep -q 'CLIENT_SHARED_TUN_PASS A .*source_port=40000' "$ROOT/probe-a.log"
+          grep -q 'CLIENT_SHARED_TUN_PASS B .*source_port=40000' "$ROOT/probe-b.log"
+
+          for i in $(seq 1 400); do test "$(grep -c 'WBD_SHARED_TUN_SESSION_READY tunnel_id_prefix=' "$ROOT/gateway.log" || true)" -ge 2 && break; sleep .05; done
+          test "$(grep -c 'WBD_SHARED_TUN_SESSION_READY tunnel_id_prefix=' "$ROOT/gateway.log")" -eq 2
+          test "$(grep -c 'WBD_LINK_MUX_BACKEND_READY tunnel_id_prefix=.*backend=rawip' "$ROOT/link-server.log")" -eq 2
+          test "$(ip netns list | awk '{print $1}' | grep -Ec '^wbdg[0-9][0-9]$' || true)" -eq 0
+          sudo iptables -t nat -S POSTROUTING | grep -q 'wbd-shared-tun-nat'
+          kill -0 "$FA"; kill -0 "$FB"; kill -0 "$MUX_PID"
+          sudo chmod -R a+rX "$ROOT"
+          echo "SHARED_TUN_TWO_CLIENT_PASS fec=${FEC} tunnels=2 leases=2 shared_tun=1 host_nat=1 per_session_netns=0 same_inner_source_port=40000 udp_each=2 tcp_each=1"
+      - name: Prepare evidence
+        if: always()
+        run: sudo chmod -R a+rX /tmp/sfs/${{ matrix.label }} 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shared-tun-two-client-${{ matrix.label }}
+          path: /tmp/sfs/${{ matrix.label }}/
+          retention-days: 14
+          if-no-files-found: warn
