@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lly8666/wobuzhidao/internal/faketcp"
 	"github.com/lly8666/wobuzhidao/internal/realitymirror"
 	"github.com/lly8666/wobuzhidao/internal/singleflow"
 )
@@ -120,5 +121,27 @@ func TestSingleFlowBootstrapKeepsCarrierOpenAndEncryptsSwitch(t *testing.T) {
 	}
 	if bytes.Contains(serverRaw.bytes(), ack) {
 		t.Fatal("single-flow switch ACK leaked as plaintext on public carrier")
+	}
+
+	// The encrypted ACK is the V3 barrier. After it, the ordered TLS bootstrap
+	// assembler is destroyed and the existing first-arrival FakeTCP receiver is
+	// once again the delivery authority. Prove that a later independent datagram
+	// is delivered immediately even while an earlier sequence range is missing.
+	// This assertion runs unchanged on Windows and Linux hosted runners.
+	steady := faketcp.NewReceiver(1000)
+	laterPayload := []byte("later-dtls-datagram")
+	deliver, sackNeeded := steady.Accept(1100, len(laterPayload))
+	if !deliver {
+		t.Fatal("post-switch later datagram was blocked behind missing earlier data")
+	}
+	if !sackNeeded {
+		t.Fatal("post-switch out-of-order delivery did not retain shadow TCP SACK state")
+	}
+	if got := steady.Next(); got != 1000 {
+		t.Fatalf("post-switch shadow ACK frontier advanced across loss: got %d want 1000", got)
+	}
+	stats := steady.Stats()
+	if stats.Delivered != 1 || stats.OutOfOrder != 1 {
+		t.Fatalf("unexpected post-switch receiver stats: %+v", stats)
 	}
 }
