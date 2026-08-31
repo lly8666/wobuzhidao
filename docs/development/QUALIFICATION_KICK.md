@@ -50,11 +50,11 @@ These workflows already run automatically for the final aggregator commit. The a
 - `single-flow-no-hol.yml`
 - `single-flow-tcp-persona.yml`
 
-Together these cover hosted native Windows -> Linux single-flow wire + Linux raw/netns full stack; Windows portable and TUN qualification; Windows administrator TUN and raw-IP gateway checks; Linux server release and WBD-owned firewall qualification; Game Lane; FakeTCP recovery and 20% pcap behavior; first-arrival weak-network behavior; 100 Mbit mux/load release operating-point qualification; OpenWrt; one-SYN/same-sequence-space E2E; startup stress; no-HOL; and TCP/Reality-like persona checks.
+Together these cover hosted native Windows -> Linux single-flow wire + Linux raw/netns full stack; Windows portable and TUN qualification; Windows administrator TUN and raw-IP gateway checks; Linux server release and WBD-owned firewall qualification; Game Lane research regression; FakeTCP recovery and 20% pcap behavior; first-arrival weak-network behavior; 100 Mbit mux/load release operating-point qualification; OpenWrt; one-SYN/same-sequence-space E2E; startup stress; no-HOL; and TCP/Reality-like persona checks.
 
 ## Kick generation
 
-`2026-08-31-seq3-d01-recovery`
+`2026-08-31-seq75-adr0014-authority-recovery`
 
 ## Evidence recording
 
