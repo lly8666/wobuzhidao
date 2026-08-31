@@ -23,9 +23,10 @@ class HandoffContractTest(unittest.TestCase):
     def test_per_lane_single_flow_multipath_authority_is_persisted(self):
         constitution = (ROOT / "PROJECT_CONSTITUTION.md").read_text(encoding="utf-8")
         for phrase in (
-            "single-flow` is **PER TRANSPORT LANE**",
+            "PER TRANSPORT LANE",
             "Logical Tunnel may own 1..4 independent complete WBD Transport Lanes",
-            "Game/race is product behavior",
+            "Game Lane is a product multipath mechanism",
+            "not research-only",
             "A -> A+B -> B",
             "pinned wolfSSL DTLS 1.3",
             "fixed systematic `20:20`",
@@ -37,7 +38,7 @@ class HandoffContractTest(unittest.TestCase):
 
         architecture = (ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
         for phrase in (
-            "single-flow` describes each independent Transport Lane",
+            "each independent Transport Lane",
             "one raw FakeTCP SYN lineage / 4-tuple / sequence space",
             "no FIN/RST/reconnect/new WBD payload SYN inside that lane",
             "Game/race operates above independent complete WBD lanes",
@@ -50,7 +51,8 @@ class HandoffContractTest(unittest.TestCase):
         adr12 = (ROOT / "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md").read_text(encoding="utf-8")
         for phrase in (
             "CURRENT LIFECYCLE AND MULTIPATH AUTHORITY",
-            "single-flow is a per-Transport-Lane invariant",
+            "per-Transport-Lane invariant",
+            "not a global one-flow-per-Logical-Tunnel invariant",
             "MaxProductPublicTransportLanes = 4",
             "Game / weak-network mode",
             "A -> A+B -> B",
