@@ -60,7 +60,7 @@ Current Go `crypto/tls` is not declared byte-for-byte equivalent to a particular
 
 A short ordered assembler is allowed **only** for the TLS bootstrap. Once the client decrypts the server's encrypted switch ACK:
 
-- client and server discard ordered bootstrap assemblers;
+- client and server destroy ordered bootstrap assemblers (discarding all bootstrap-only ordered state);
 - all sustained data is packet/datagram-preserving;
 - later independent datagrams may complete while earlier units are lost/delayed;
 - no missing earlier record may gate later DTLS/FEC/LINK delivery;
