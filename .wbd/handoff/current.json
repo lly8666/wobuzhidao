@@ -1,49 +1,52 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 60,
+  "continuity_sequence": 61,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "49366382d91de1ba0403e90caba645feaded5307",
+  "checkpoint_based_on_head_sha": "3293cd026584da132485635efd3e1f29304cd570",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Ship a personal weak-network VPN whose sustained public payload remains WBD-owned raw TCP-shaped FakeTCP -> pinned wolfSSL DTLS 1.3 -> LINK/lane-local FEC without ordinary kernel-TCP HOL, while the user-visible Logical Tunnel has a server-assigned stable address lease and may sleep, reconnect, rotate or race multiple independent transport lanes without being tied to one immortal FakeTCP 4-tuple.",
-    "current_milestone": "ADR-0012 architecture pivot. Stop treating per-LiveID Linux netns + veth + double NAT as the final Windows raw-IP product. Implement Account -> Device/Installation -> Logical Tunnel -> replaceable Transport Lanes, server-assigned unique tunnel IPv4 leases, shared Linux TUN + one host NAT, and promote the existing Game Lane PacketID/first-arrival/dedup semantics into the general multipath/replacement layer.",
-    "local_optimization_stop_rule": "Do not reopen the preserved hard transport/security/release constraints while performing this pivot: no ordinary kernel-TCP WBD payload path, no TCP-over-TCP HOL, per-lane same-association Reality bootstrap -> DTLS -> LINK lineage, pinned wolfSSL DTLS 1.3, legacy FakeTCP default, FEC off or fixed 20:20 with lane-local immutable state, <=100 Mbit/s weak-link qualification ceiling, 40 Mbit/s aggregate-inner conservative release point. Do not mix startup-RTT optimization or Windows child-process slimming into this work."
+    "terminal_goal": "Ship a personal weak-network VPN whose sustained public payload remains WBD-owned raw TCP-shaped FakeTCP -> pinned wolfSSL DTLS 1.3 -> LINK/lane-local FEC without ordinary kernel-TCP HOL. Each Transport Lane owns one complete same-4-tuple same-sequence-space lineage whose first bounded phase is Reality-like real TLS 1.3; a Logical Tunnel may own 1..4 such independent lanes under ADR-0012 Game Lane/make-before-break lifecycle.",
+    "current_milestone": "ADR-0012 authority restoration plus requalification of the per-lane same-flow V2.4 line. ADR-0013 is withdrawn historical evidence only. Logical Tunnel lease/shared-TUN work and Windows 1..4 lane planning are present; the immediate milestone is to remove the current exact-head CI/release red gates before further lifecycle expansion.",
+    "local_optimization_stop_rule": "Do not redesign the mature TCP-like/FakeTCP recovery/FEC/data-plane core unless a deterministic failing qualification proves a defect below the lifecycle/setup layer. Preserve per-lane one-SYN Reality-like bootstrap -> explicit same-flow barrier -> DTLS -> LINK/FEC lineage, no ordinary kernel-TCP WBD payload, no TCP-over-TCP HOL, pinned wolfSSL DTLS 1.3, legacy FakeTCP default, FEC off or fixed 20:20, <=100 Mbit/s qualification ceiling and 40 Mbit/s conservative aggregate-inner release point."
   },
   "continuation_cursor": {
-    "last_completed_action": "Accepted ADR-0012 and rewrote the current architecture/constitution/roadmap/PR entry points so the long-lived object is a Logical Tunnel with a server-assigned address lease and 0..N replaceable WBD Transport Lanes. The later internal/gamelane first-arrival/dedup design is explicitly preserved/promoted and distinguished from rejected PR #2 ordinary-kernel-TCP multilane. The old Windows raw-IP per-LiveID netns/veth/double-NAT development log is marked superseded-product/reference-only. A dedicated agent pivot execution contract was added at docs/development/2026-08-30-architecture-pivot-tunnel-multipath.md.",
-    "current_task": "Immediately stop product expansion of the netns/double-NAT raw-IP architecture and begin ADR-0012 Phase 1: introduce Logical Tunnel identity distinct from LiveID/lane and add a server-assigned unique IPv4 lease/configuration model. Do not yet optimize handshake latency, refactor Windows child processes, or remove historical netns evidence.",
-    "why_now": "The old netns topology existed mainly because every Windows client reused inner 10.66.0.2/30. Unique server-assigned tunnel addresses remove that collision at the correct identity layer and permit a shared TUN + one NAT. Separately, the later Game Lane code already provides the PacketID, first-arrival, duplicate suppression and no-cross-lane-HOL machinery needed for seamless make-before-break lane replacement, so creating a second migration sequencing layer would be redundant. The decisive netns product qualification had not yet run to completion, so pivoting now avoids deepening likely throwaway topology.",
-    "done_when": "Phase 1 is complete when Account/Device/Logical-Tunnel/Transport-Lane ownership is explicit in code and tests, same-account concurrent logical tunnels receive distinct server-assigned IPv4 leases from a configurable pool, Windows no longer globally assumes 10.66.0.2/30, authenticated tunnel configuration carries address/prefix/route parameters, raw-IP ingress enforces source == leased IP, reconnect/cleanup/reuse semantics are deterministic, and no preserved transport/no-HOL/security/release hard constraint regresses. Then proceed to shared TUN + one host NAT.",
-    "next_atomic_action": "Live-refresh PR #9 HEAD and Actions, reconcile any commits after checkpoint_based_on_head_sha, then read ADR-0012 and the pivot execution contract. Preserve but stop the per-session netns/double-NAT work. Inspect current LiveID/session/raw-IP/Wintun address ownership and implement the smallest testable LogicalTunnel + IPv4 lease allocator/config contract that is independent of LiveID and FakeTCP lane identity. Add tests for two same-account logical tunnels receiving distinct leases and for rejection of a packet whose source IP does not match its tunnel lease. Do not change FakeTCP/DTLS/FEC wire semantics in this step."
+    "last_completed_action": "Corrected PR #9 metadata so it no longer presents withdrawn ADR-0013 as authority. The PR now states that ADR-0012 controls Logical Tunnel lifecycle, 1..4 Transport Lanes, Game Lane and make-before-break, while same-flow is a per-lane invariant. Live refresh confirmed branch HEAD 3293cd026584da132485635efd3e1f29304cd570, 100 commits ahead of sequence-60 checkpoint 49366382d91de1ba0403e90caba645feaded5307. Current code already restores MaxProductPublicTransportLanes=4 and includes Logical Tunnel lease/shared-TUN/Windows multilane work plus ADR-0012 reaffirmation logs. Latest exact-head Actions contain four red workflows: ci run 33358268584, linux-server-release run 33358268603, handoff-verify run 33358268638, and windows-portable-bundle run 33358268657. Other exact-head workflows exist and include successes, but the checkpoint is not release-qualified while these four are red.",
+    "current_task": "Fix the four exact-head red workflows without weakening ADR-0012 or the per-lane same-flow/no-HOL contract. Start with deterministic failure logs from ci and the two packaging workflows; handoff-verify may be stale-contract fallout and must be made green after substantive fixes. Do not hand artifacts to physical testing until one exact substantive source head is green for the required Windows/Linux/same-flow/multipath gates.",
+    "why_now": "PR #9 had stale title/body text from withdrawn ADR-0013 even though repository architecture had already restored ADR-0012. That metadata is now fixed. The branch has advanced materially beyond the prior handoff and automated qualification is the current truth source: four exact-head failures block further trustworthy product delivery. Fixing these first prevents additional lifecycle work from being layered on a non-green baseline.",
+    "done_when": "The immediate red-gate cleanup is complete when ci, linux-server-release and windows-portable-bundle pass on one exact substantive HEAD, architecture/release-contract tests enforce ADR-0012 rather than withdrawn ADR-0013, handoff-verify passes on the subsequent handoff-only commit, and no FakeTCP/DTLS/FEC wire or no-HOL regression is introduced. Then continue ADR-0012 multipath/lifecycle integration and full qualification.",
+    "next_atomic_action": "Fetch jobs/logs for exact-head failures ci 33358268584, linux-server-release 33358268603 and windows-portable-bundle 33358268657. Identify the first deterministic common failure, fix the smallest root cause, run/observe the affected Actions, then inspect any remaining red gate. Treat handoff-verify 33358268638 as a contract check to rerun after the handoff update. Preserve the mature TCP-like core and do not reintroduce global-one-flow ADR-0013 semantics."
   },
   "resume_read_set": [
+    "docs/architecture/ADR-0011-single-public-flow-reality-bootstrap.md",
     "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
+    "docs/architecture/ADR-0013-global-single-public-flow-release-freeze.md",
+    "docs/development/2026-08-31-adr0012-multipath-reaffirmation.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
-    "ROADMAP.md",
-    "docs/development/2026-08-30-architecture-pivot-tunnel-multipath.md",
-    "docs/development/2026-08-30-rawip-gateway.md",
-    "internal/gamelane/gamelane.go",
-    "internal/dataplane/frame.go"
+    "internal/logicaltunnel/logicaltunnel.go",
+    "cmd/wbd-link-server-mux/logical_tunnel.go",
+    "internal/windowsruntime/multilane.go",
+    "internal/releasecontract/single_flow_release_test.go"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "49366382d91de1ba0403e90caba645feaded5307",
-    "result": "not_run",
-    "scope": "Architecture/document/handoff pivot only. No product data-plane code was changed in this pivot set. Live Actions must be refreshed before implementation work; previously added raw-IP netns workflows were not accepted as proof of the new ADR-0012 architecture."
+    "tested_commit": "3293cd026584da132485635efd3e1f29304cd570",
+    "result": "fail",
+    "scope": "Live GitHub Actions refresh at this exact head found four failures: ci 33358268584, linux-server-release 33358268603, handoff-verify 33358268638, windows-portable-bundle 33358268657. This snapshot is diagnostic only; refresh Actions again before acting because a later commit may supersede it."
   },
   "product_policy": {
-    "public_transport": "Each Transport Lane is one complete WBD-owned FakeTCP association carrying Reality-like TLS bootstrap, DTLS 1.3, LINK and lane-local FEC/payload on the same lane 4-tuple/sequence space. Ordinary kernel TCP may not become the WBD payload carrier.",
-    "logical_tunnel": "Logical Tunnel identity, server-assigned tunnel IP lease and race PacketID space survive lane rotation/reconnect/idle sleep. LiveID/FakeTCP/DTLS/LINK are disposable lane identities.",
-    "multipath": "Normal steady mode targets one lane. The later Game Lane design may use 2..4 independent complete WBD associations with first-arrival delivery and duplicate suppression. Make-before-break replacement may temporarily add a candidate lane and must rotate only one healthy game lane at a time.",
-    "idle_rotation": "Payload idle and transport liveness are separate clocks. Initial idle default is 15 minutes; 0 means no idle sleep. Active lanes still receive independent randomized age rotation, initially 30..60 minutes as policy guidance, with staggered multi-lane replacement.",
+    "public_transport": "Single-flow is per Transport Lane, not global. Each lane is one WBD-owned raw FakeTCP SYN lineage / 4-tuple / sequence space carrying bounded reliable Reality-like real TLS 1.3 bootstrap, an explicit no-FIN/no-new-WBD-SYN barrier, pinned wolfSSL DTLS 1.3, LINK and lane-local FEC/payload. Ordinary kernel TCP may not become the sustained WBD payload carrier.",
+    "logical_tunnel": "Logical Tunnel identity, server-assigned tunnel IP lease and Game Lane PacketID space survive lane rotation/reconnect/idle sleep. LiveID/FakeTCP/DTLS/LINK are disposable lane identities.",
+    "multipath": "ADR-0012 is authoritative. A connected Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Normal steady mode targets one lane; Game/weak-network policy may keep 2..4. Planned replacement is make-before-break A -> A+B -> B, with first-arrival delivery, duplicate suppression, no cross-lane HOL and one healthy Game lane rotated at a time.",
+    "idle_rotation": "Payload idle and transport liveness are separate clocks. Initial idle default is 15 minutes; 0 means no idle sleep. Active lanes receive independent randomized age rotation, initially 30..60 minutes as policy guidance, with staggered multi-lane replacement.",
     "linux_rawip": "Final Windows raw-IP server direction is shared WBD TUN + Linux root routing + one WBD-owned host NAT + lease-based demux and source anti-spoof. Per-LiveID netns/veth/double NAT is historical/reference only; VRF/conntrack-zone remains rejected.",
-    "windows": "Wintun/raw L3 remains the product capture path. Underlay escape, IPv6 fail-closed connected interval, deterministic Disconnect/Exit route/DNS/IPv6/firewall cleanup and Npcap release constraints remain mandatory.",
-    "observability": "Keep non-secret correlation IDs, first-boundary markers and counters; do not log usernames/passwords/tickets/resume secrets/identity secrets and do not enable per-packet INFO spam."
+    "windows": "Wintun/raw L3 remains the product capture path. Underlay escape, IPv6 fail-closed connected interval, deterministic Disconnect/Exit route/DNS/IPv6/firewall cleanup and Npcap release constraints remain mandatory. Windows lane planning may create 1..4 independent per-lane same-flow children without changing the mature TCP-like core.",
+    "observability": "Keep non-secret correlation IDs, first-boundary markers and counters; do not log usernames/passwords/tickets/resume secrets/identity secrets and do not enable per-packet INFO spam.",
+    "withdrawn_policy": "ADR-0013 global-one-public-transport, Game Lane removal, second-lane rejection and break-before-make are withdrawn and must not be reintroduced by code, tests, docs or PR metadata."
   }
 }
