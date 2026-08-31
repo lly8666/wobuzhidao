@@ -22,6 +22,7 @@ on:
       - 'native/dtls/**'
   push:
     branches:
+      - feat/single-flow-reality-faketcp
       - dev/wbd-raw-fec-v2
     paths:
       - '.github/workflows/openwrt-fullstack-one-shot.yml'
