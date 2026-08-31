@@ -1,0 +1,46 @@
+name: exp-single-flow-windows
+
+on:
+  push:
+    branches:
+      - exp/single-flow-utls-firefox120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows_single_flow:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Verify module graph
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+      - name: Run Windows FakeTCP adapter tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          go test ./cmd/wbd-faketcp -count=1
+          go test ./cmd/wbd-faketcp -run TestMatchesInboundFlowExactTuple -count=100
+      - name: Run Windows single-flow runtime tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          go test ./internal/windowsruntime -count=1
+          go test ./internal/realityfront -count=1
+      - name: Build Windows single-flow binaries
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd.exe" ./cmd/wbd
+          Get-Item "$env:RUNNER_TEMP\wbd-faketcp.exe"
+          Get-Item "$env:RUNNER_TEMP\wbd.exe"
