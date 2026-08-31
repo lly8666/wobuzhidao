@@ -1,202 +1,153 @@
-name: linux-server-firewall
+name: linux-server-v3-firewall
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - '.github/workflows/linux-server-firewall.yml'
-      - 'scripts/linux_server_firewall.sh'
-      - 'scripts/linux_server_guard.sh'
-      - 'scripts/linux_server_manager.sh'
-      - 'cmd/wbd-server-cert/**'
-      - 'cmd/wbd-reality-front/**'
-      - 'cmd/wbd-faketcp-mux/**'
-      - 'cmd/wbd-link-server-mux/**'
-      - 'cmd/wbd-platform-proxy-server/**'
-      - 'internal/**'
-      - 'native/dtls/**'
   push:
     branches:
+      - exp/singleflow-realitylike-v3
       - dev/wbd-raw-fec-v2
     paths:
-      - '.github/workflows/linux-server-firewall.yml'
-      - 'scripts/linux_server_firewall.sh'
-      - 'scripts/linux_server_guard.sh'
-      - 'scripts/linux_server_manager.sh'
-      - 'cmd/wbd-server-cert/**'
-      - 'cmd/wbd-reality-front/**'
-      - 'cmd/wbd-faketcp-mux/**'
-      - 'cmd/wbd-link-server-mux/**'
-      - 'cmd/wbd-platform-proxy-server/**'
-      - 'internal/**'
-      - 'native/dtls/**'
+      - scripts/linux_server_firewall.sh
+      - scripts/linux_server_guard.sh
+      - scripts/linux_server_manager_v3.sh
+      - .github/workflows/linux-server-firewall.yml
+  pull_request:
+    paths:
+      - scripts/linux_server_firewall.sh
+      - scripts/linux_server_guard.sh
+      - scripts/linux_server_manager_v3.sh
+      - .github/workflows/linux-server-firewall.yml
 
 permissions:
   contents: read
 
 jobs:
-  firewall:
+  composition:
+    name: V3 one-public-owner composition
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Qualify nftables ownership and cleanup
-        shell: bash
+      - name: Shell syntax
+        run: |
+          sh -n scripts/linux_server_firewall.sh
+          sh -n scripts/linux_server_guard.sh
+          sh -n scripts/linux_server_manager_v3.sh
+      - name: Assert V3 single-flow manager composition
         run: |
           set -euo pipefail
-          command -v nft
-          command -v ip
-          NS=wbdnft$$
-          STATE=/tmp/wbd-nft-state.$$.txt
-          cleanup() { sudo ip netns del "$NS" 2>/dev/null || true; rm -f "$STATE"; }
-          trap cleanup EXIT
-          sudo ip netns add "$NS"
-          sudo ip netns exec "$NS" nft add table inet filter
-          sudo ip netns exec "$NS" nft 'add chain inet filter input { type filter hook input priority 0; policy drop; }'
-          sudo ip netns exec "$NS" sh "$PWD/scripts/linux_server_firewall.sh" apply --backend nft --front-port 40443 --raw-port 40000 --state "$STATE" --nft-input inet:filter:input
-          sudo ip netns exec "$NS" nft -a list chain inet filter input | grep -q 'comment "wbd-server-front"'
-          sudo ip netns exec "$NS" nft -a list chain inet filter input | grep -q 'comment "wbd-server-raw"'
-          sudo ip netns exec "$NS" nft -a list table inet wbd_server | grep -q 'comment "wbd-server-rst"'
-          sudo ip netns exec "$NS" sh "$PWD/scripts/linux_server_firewall.sh" cleanup --backend nft --front-port 40443 --raw-port 40000 --state "$STATE" --nft-input inet:filter:input
-          if sudo ip netns exec "$NS" nft list table inet wbd_server >/dev/null 2>&1; then
-            echo 'WBD nft table survived cleanup' >&2; exit 1
+          grep -F 'WBD_LINUX_SERVER_BIND_V3 public_owner=raw-mux' scripts/linux_server_manager_v3.sh
+          grep -F 'reality_like=in-flow' scripts/linux_server_manager_v3.sh
+          grep -F 'wbd-faketcp-mux' scripts/linux_server_manager_v3.sh
+          if grep -F '"$PREFIX/bin/wbd-reality-front"' scripts/linux_server_manager_v3.sh; then
+            echo 'V3 manager must not install or execute standalone wbd-reality-front' >&2
+            exit 1
           fi
-          sudo ip netns exec "$NS" nft list chain inet filter input | grep -q 'policy drop'
-          if sudo ip netns exec "$NS" nft -a list chain inet filter input | grep -q 'wbd-server-'; then
-            echo 'WBD nft input rule survived cleanup' >&2; exit 1
-          fi
-          echo 'WBD_LINUX_SERVER_NFT_CLEANUP_PASS preserved_existing_policy=drop'
-      - name: Qualify iptables ownership guard and cleanup
-        shell: bash
+          grep -F 'V3 never installs or executes it as a public listener' scripts/linux_server_manager_v3.sh
+      - name: Assert single-port render
         run: |
           set -euo pipefail
-          command -v iptables
-          NS=wbdipt$$
-          STATE=/tmp/wbd-ipt-state.$$.txt
-          cleanup() { sudo ip netns del "$NS" 2>/dev/null || true; rm -f "$STATE"; }
-          trap cleanup EXIT
-          sudo ip netns add "$NS"
-          sudo ip netns exec "$NS" iptables -P INPUT DROP
-          sudo ip netns exec "$NS" sh "$PWD/scripts/linux_server_firewall.sh" apply --backend iptables --front-port 40443 --raw-port 40000 --state "$STATE"
-          sudo ip netns exec "$NS" iptables -C INPUT -p tcp --dport 40443 -m comment --comment wbd-server-front -j ACCEPT
-          sudo ip netns exec "$NS" iptables -C INPUT -p tcp --dport 40000 -m comment --comment wbd-server-raw -j ACCEPT
-          sudo ip netns exec "$NS" iptables -C OUTPUT -p tcp --sport 40000 --tcp-flags RST RST -m comment --comment wbd-server-rst -j DROP
-          sudo ip netns exec "$NS" sh "$PWD/scripts/linux_server_firewall.sh" cleanup --backend iptables --front-port 40443 --raw-port 40000 --state "$STATE"
-          test "$(sudo ip netns exec "$NS" iptables -S INPUT | head -n 1)" = '-P INPUT DROP'
-          if sudo ip netns exec "$NS" iptables -S | grep -q 'wbd-server-'; then
-            echo 'WBD iptables rule survived cleanup' >&2; exit 1
-          fi
-          echo 'WBD_LINUX_SERVER_IPTABLES_CLEANUP_PASS preserved_existing_policy=drop'
-      - name: Qualify guard automatic cleanup
-        shell: bash
-        run: |
-          set -euo pipefail
-          NS=wbdguard$$
-          STATE=/tmp/wbd-guard-state.$$.txt
-          cleanup() { sudo ip netns del "$NS" 2>/dev/null || true; rm -f "$STATE"; }
-          trap cleanup EXIT
-          sudo ip netns add "$NS"
-          sudo ip netns exec "$NS" iptables -P INPUT DROP
-          sudo ip netns exec "$NS" sh "$PWD/scripts/linux_server_guard.sh" --backend iptables --front-port 40443 --raw-port 40000 --state "$STATE" -- sh -c 'sleep 0.2'
-          test ! -e "$STATE"
-          if sudo ip netns exec "$NS" iptables -S | grep -q 'wbd-server-'; then
-            echo 'guard left WBD firewall rules behind' >&2; exit 1
-          fi
-          test "$(sudo ip netns exec "$NS" iptables -S INPUT | head -n 1)" = '-P INPUT DROP'
-          echo 'WBD_LINUX_SERVER_GUARD_CLEANUP_PASS exit_cleanup=automatic'
+          for backend in nft iptables; do
+            out=$(sh scripts/linux_server_firewall.sh render --backend "$backend" --port 40443 --state /tmp/wbd-fw-render.state)
+            echo "$out"
+            grep -F "backend=$backend mode=single port=40443" <<<"$out"
+            ! grep -F 'mode=legacy' <<<"$out"
+          done
 
-  release-bundle:
+  firewall:
+    name: firewall ${{ matrix.backend }} single port
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - arch: amd64
-            runner: ubuntu-24.04
-          - arch: arm64
-            runner: ubuntu-24.04-arm
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
+        backend: [nft, iptables]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.23.x'
-      - name: Build dependency-free server runtime
-        shell: bash
+      - name: Install firewall tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 nftables iptables
+      - name: Qualify WBD-owned single-port lifecycle
         env:
-          GH_TOKEN: ${{ github.token }}
-          ARCH: ${{ matrix.arch }}
+          BACKEND: ${{ matrix.backend }}
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends autoconf automake libtool make musl-tools curl unzip file
-          ROOT="$RUNNER_TEMP/wbd-server-$ARCH"
-          mkdir -p "$ROOT/bin" /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build
+          ns="wbd-fw-${BACKEND}"
+          state="/tmp/${ns}.state"
+          cleanup() {
+            sudo ip netns exec "$ns" sh "$GITHUB_WORKSPACE/scripts/linux_server_firewall.sh" cleanup --backend "$BACKEND" --port 40443 --state "$state" >/dev/null 2>&1 || true
+            sudo ip netns del "$ns" >/dev/null 2>&1 || true
+            rm -f "$state"
+          }
+          trap cleanup EXIT
+          sudo ip netns add "$ns"
+          sudo ip netns exec "$ns" ip link set lo up
 
-          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
-          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
-          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
-          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
-          (cd /tmp/wolf/src && ./autogen.sh)
-          (cd /tmp/wolf/build && CC=musl-gcc /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -fPIC')
-          make -C /tmp/wolf/build -j2 src/libwolfssl.la
-          musl-gcc -O2 -Wall -Wextra -Werror -static -I/tmp/wolf/build -I/tmp/wolf/src \
-            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -lpthread \
-            -o "$ROOT/bin/wbd_dtls_shim"
+          extra=()
+          if [[ "$BACKEND" == nft ]]; then
+            sudo ip netns exec "$ns" nft add table inet filter
+            sudo ip netns exec "$ns" nft 'add chain inet filter input { type filter hook input priority 0; policy drop; }'
+            extra=(--nft-input inet:filter:input)
+          fi
 
-          export CGO_ENABLED=0 GOOS=linux GOARCH="$ARCH"
-          go test ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./internal/platformproxy ./cmd/wbd-link-server-mux ./cmd/wbd-server-cert -count=1
-          for spec in \
-            'wbd-reality-front:./cmd/wbd-reality-front' \
-            'wbd-faketcp-mux:./cmd/wbd-faketcp-mux' \
-            'wbd-link-server-mux:./cmd/wbd-link-server-mux' \
-            'wbd-platform-proxy-server:./cmd/wbd-platform-proxy-server' \
-            'wbd-server-cert:./cmd/wbd-server-cert'; do
-            name=${spec%%:*}; pkg=${spec#*:}
-            go build -trimpath -ldflags='-s -w' -o "$ROOT/bin/$name" "$pkg"
-          done
+          sudo ip netns exec "$ns" sh "$GITHUB_WORKSPACE/scripts/linux_server_firewall.sh" apply \
+            --backend "$BACKEND" --port 40443 --state "$state" "${extra[@]}"
+          test -s "$state"
+          grep -F 'PUBLIC_PORT=40443' "$state"
 
-          cp scripts/linux_server_manager.sh "$ROOT/wbd-server"
-          cp scripts/linux_server_manager.sh "$ROOT/linux_server_manager.sh"
-          cp scripts/linux_server_firewall.sh scripts/linux_server_guard.sh "$ROOT/"
-          printf '%s\n' "$ARCH" > "$ROOT/ARCH"
-          cat > "$ROOT/README.txt" <<'EOF'
-WBD Linux Server bundle
-=======================
-1. Extract this archive on the target Linux server.
-2. sudo ./wbd-server install
-3. sudo /opt/wbd/bin/wbd-server config
-   or: sudo /opt/wbd/bin/wbd-server set WBD_FRONT_PORT 443
-4. sudo /opt/wbd/bin/wbd-server restart
-5. /opt/wbd/bin/wbd-server status
+          if [[ "$BACKEND" == nft ]]; then
+            rules=$(sudo ip netns exec "$ns" nft -a list chain inet filter input)
+            echo "$rules"
+            [[ $(grep -c 'wbd-server-public' <<<"$rules") -eq 1 ]]
+            ! grep -q 'wbd-server-front' <<<"$rules"
+            ! grep -q 'wbd-server-raw' <<<"$rules"
+            sudo ip netns exec "$ns" nft list table inet wbd_server | grep -F 'wbd-server-rst'
+          else
+            rules=$(sudo ip netns exec "$ns" iptables -S INPUT)
+            echo "$rules"
+            [[ $(grep -c -- '--dport 40443 .*wbd-server-public' <<<"$rules") -eq 1 ]]
+            ! grep -q 'wbd-server-front' <<<"$rules"
+            ! grep -q 'wbd-server-raw' <<<"$rules"
+            sudo ip netns exec "$ns" iptables -S OUTPUT | grep -F 'wbd-server-rst'
+          fi
 
-Commands: install, uninstall, start, stop, pause, resume, restart, status, logs,
-config, set, regen-certs, show-config.
-Configuration: /etc/wbd/server.env
+          sudo ip netns exec "$ns" sh "$GITHUB_WORKSPACE/scripts/linux_server_firewall.sh" cleanup \
+            --backend "$BACKEND" --port 40443 --state "$state" "${extra[@]}"
+          test ! -e "$state"
 
-Application/runtime binaries are statically linked. The host Linux kernel must
-provide raw sockets/netfilter; the host OS must provide systemd and nft or
-iptables. No OpenSSL/wolfSSL/Go runtime package is required on the target host.
-EOF
-          chmod +x "$ROOT/wbd-server" "$ROOT"/*.sh "$ROOT/bin"/*
-          sh -n "$ROOT/wbd-server" "$ROOT/linux_server_manager.sh" "$ROOT/linux_server_firewall.sh" "$ROOT/linux_server_guard.sh"
-          for f in "$ROOT/bin"/*; do
-            file "$f"
-            if ldd "$f" 2>&1 | grep -q '=>'; then
-              echo "dynamic runtime dependency found: $f" >&2
-              ldd "$f" >&2
-              exit 1
-            fi
-          done
-          tar -C "$RUNNER_TEMP" -czf "$RUNNER_TEMP/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
-          sha256sum "$RUNNER_TEMP/wbd-linux-server-$ARCH.tar.gz" > "$RUNNER_TEMP/wbd-linux-server-$ARCH.tar.gz.sha256"
-          echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 lifecycle_manager=1"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wbd-linux-server-${{ matrix.arch }}-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/wbd-linux-server-${{ matrix.arch }}.tar.gz
-            ${{ runner.temp }}/wbd-linux-server-${{ matrix.arch }}.tar.gz.sha256
-          retention-days: 30
-          if-no-files-found: error
+          if [[ "$BACKEND" == nft ]]; then
+            after=$(sudo ip netns exec "$ns" nft -a list chain inet filter input)
+            ! grep -q 'wbd-server-' <<<"$after"
+            ! sudo ip netns exec "$ns" nft list table inet wbd_server >/dev/null 2>&1
+          else
+            ! sudo ip netns exec "$ns" iptables -S | grep -q 'wbd-server-'
+          fi
+
+      - name: Guard cleanup on child exit
+        env:
+          BACKEND: ${{ matrix.backend }}
+        run: |
+          set -euo pipefail
+          ns="wbd-guard-${BACKEND}"
+          state="/tmp/${ns}.state"
+          cleanup() { sudo ip netns del "$ns" >/dev/null 2>&1 || true; rm -f "$state"; }
+          trap cleanup EXIT
+          sudo ip netns add "$ns"
+          sudo ip netns exec "$ns" ip link set lo up
+          extra=()
+          if [[ "$BACKEND" == nft ]]; then
+            sudo ip netns exec "$ns" nft add table inet filter
+            sudo ip netns exec "$ns" nft 'add chain inet filter input { type filter hook input priority 0; policy drop; }'
+            extra=(--nft-input inet:filter:input)
+          fi
+          sudo ip netns exec "$ns" sh "$GITHUB_WORKSPACE/scripts/linux_server_guard.sh" \
+            --backend "$BACKEND" --port 40443 --state "$state" "${extra[@]}" \
+            -- sh -c 'exit 0'
+          test ! -e "$state"
+          if [[ "$BACKEND" == nft ]]; then
+            ! sudo ip netns exec "$ns" nft list table inet wbd_server >/dev/null 2>&1
+            ! sudo ip netns exec "$ns" nft -a list chain inet filter input | grep -q 'wbd-server-'
+          else
+            ! sudo ip netns exec "$ns" iptables -S | grep -q 'wbd-server-'
+          fi
