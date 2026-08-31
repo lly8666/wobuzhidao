@@ -251,12 +251,21 @@ func (r *npcapRawPacketIO) ReadPacket(buf []byte) (int, error) {
 			if !ok {
 				continue
 			}
+			// Npcap captures the whole physical adapter. Do not let unrelated IPv4
+			// traffic (UDP/ICMP/other TCP flows or our own outbound injection) reach
+			// the FakeTCP protocol parser. On a real Windows host that noise can be
+			// the first packet after SYN and previously made the handshake fail with
+			// "faketcp: not ipv4/tcp" even though the WBD flow itself was healthy.
 			if r.matchesKernelRST(packet) {
 				r.rstOnce.Do(func() {
 					fmt.Fprintf(os.Stderr,
 						"WBD_FAKETCP_WINDOWS_KERNEL_RST_SEEN source_port=%d remote_port=%d\n",
 						r.sourcePort, r.remotePort)
 				})
+				continue
+			}
+			if !r.matchesInboundFlow(packet) {
+				continue
 			}
 			if payloadBytes, ok := r.flowPayloadBytes(packet, false); ok {
 				r.rxDataOnce.Do(func() {
@@ -274,6 +283,22 @@ func (r *npcapRawPacketIO) ReadPacket(buf []byte) (int, error) {
 			return 0, fmt.Errorf("pcap_next_ex returned %d", int32(ret))
 		}
 	}
+}
+
+func (r *npcapRawPacketIO) matchesInboundFlow(packet []byte) bool {
+	if len(packet) < 40 || packet[0]>>4 != 4 || packet[9] != 6 {
+		return false
+	}
+	ihl := int(packet[0]&0x0f) * 4
+	if ihl < 20 || len(packet) < ihl+20 {
+		return false
+	}
+	if packet[12] != r.remoteIP[0] || packet[13] != r.remoteIP[1] || packet[14] != r.remoteIP[2] || packet[15] != r.remoteIP[3] ||
+		packet[16] != r.sourceIP[0] || packet[17] != r.sourceIP[1] || packet[18] != r.sourceIP[2] || packet[19] != r.sourceIP[3] {
+		return false
+	}
+	return binary.BigEndian.Uint16(packet[ihl:ihl+2]) == r.remotePort &&
+		binary.BigEndian.Uint16(packet[ihl+2:ihl+4]) == r.sourcePort
 }
 
 func (r *npcapRawPacketIO) matchesKernelRST(packet []byte) bool {
