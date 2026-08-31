@@ -54,7 +54,7 @@ Together these cover hosted native Windows -> Linux single-flow wire + Linux raw
 
 ## Kick generation
 
-`2026-08-31-seq75-adr0014-authority-recovery`
+`2026-08-31-seq76-devlog-repaired`
 
 ## Evidence recording
 
