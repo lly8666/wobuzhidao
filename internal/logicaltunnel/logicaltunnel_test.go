@@ -25,16 +25,18 @@ func newTestManager(t *testing.T) *Manager {
 	return m
 }
 
-func TestProductTransportLanePolicyIsExactlyOne(t *testing.T) {
-	if MaxProductPublicTransportLanes != 1 {
-		t.Fatalf("release invariant changed: max public transport lanes=%d", MaxProductPublicTransportLanes)
+func TestProductTransportLanePolicyIsOneToFour(t *testing.T) {
+	if MinProductPublicTransportLanes != 1 || MaxProductPublicTransportLanes != 4 {
+		t.Fatalf("ADR-0012 lane bounds changed: min=%d max=%d", MinProductPublicTransportLanes, MaxProductPublicTransportLanes)
 	}
-	if err := ValidateProductTransportLaneCount(1); err != nil {
-		t.Fatalf("one active public transport lane rejected: %v", err)
+	for n := 1; n <= 4; n++ {
+		if err := ValidateProductTransportLaneCount(n); err != nil {
+			t.Fatalf("valid lane count %d rejected: %v", n, err)
+		}
 	}
-	for _, n := range []int{0, 2, 3, 4} {
+	for _, n := range []int{-1, 0, 5, 8} {
 		if err := ValidateProductTransportLaneCount(n); !errors.Is(err, ErrTransportLanes) {
-			t.Fatalf("lane count %d unexpectedly accepted: %v", n, err)
+			t.Fatalf("invalid lane count %d unexpectedly accepted: %v", n, err)
 		}
 	}
 }
