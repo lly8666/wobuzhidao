@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
@@ -25,24 +26,28 @@ func resetTunnelTransportTestState() {
 		peerTunnelBindings.Delete(key)
 		return true
 	})
-	activeTunnelPeers.Range(func(key, _ any) bool {
-		activeTunnelPeers.Delete(key)
-		return true
-	})
+	activeTunnelPeersMu.Lock()
+	activeTunnelPeers = make(map[string]map[*peerSession]struct{})
+	activeTunnelPeersMu.Unlock()
 }
 
-func TestClaimTunnelTransportRejectsSecondPeerForSameTunnel(t *testing.T) {
+func TestClaimTunnelTransportAllowsFourAndRejectsFifth(t *testing.T) {
 	resetTunnelTransportTestState()
 	t.Cleanup(resetTunnelTransportTestState)
 
 	binding := testTunnelBinding()
-	first := &peerSession{key: "first"}
-	second := &peerSession{key: "second"}
-	if err := claimTunnelTransport(first, binding); err != nil {
-		t.Fatalf("first transport claim failed: %v", err)
+	for i := 0; i < logicaltunnel.MaxProductPublicTransportLanes; i++ {
+		peer := &peerSession{key: fmt.Sprintf("lane-%d", i+1)}
+		if err := claimTunnelTransport(peer, binding); err != nil {
+			t.Fatalf("lane %d claim failed: %v", i+1, err)
+		}
 	}
-	if err := claimTunnelTransport(second, binding); !errors.Is(err, errConcurrentTunnelTransport) {
-		t.Fatalf("second concurrent transport was not rejected: %v", err)
+	if got := activeTunnelTransportCount(binding.Config.TunnelID); got != 4 {
+		t.Fatalf("active lane count=%d want=4", got)
+	}
+	fifth := &peerSession{key: "lane-5"}
+	if err := claimTunnelTransport(fifth, binding); !errors.Is(err, errTransportLaneLimit) {
+		t.Fatalf("fifth lane was not rejected by bounded lane set: %v", err)
 	}
 }
 
@@ -58,26 +63,39 @@ func TestClaimTunnelTransportIsIdempotentForSamePeer(t *testing.T) {
 	if err := claimTunnelTransport(peer, binding); err != nil {
 		t.Fatalf("same peer could not repeat its claim: %v", err)
 	}
+	if got := activeTunnelTransportCount(binding.Config.TunnelID); got != 1 {
+		t.Fatalf("idempotent claim changed lane count: got=%d want=1", got)
+	}
 }
 
-func TestForgetPeerTunnelReleasesSingleTransportClaim(t *testing.T) {
+func TestForgetPeerTunnelFreesOnlyThatLane(t *testing.T) {
 	resetTunnelTransportTestState()
 	t.Cleanup(resetTunnelTransportTestState)
 
 	binding := testTunnelBinding()
-	first := &peerSession{key: "first"}
-	second := &peerSession{key: "second"}
-	if err := claimTunnelTransport(first, binding); err != nil {
-		t.Fatal(err)
+	peers := make([]*peerSession, 0, 4)
+	for i := 0; i < 4; i++ {
+		peer := &peerSession{key: fmt.Sprintf("lane-%d", i+1)}
+		if err := claimTunnelTransport(peer, binding); err != nil {
+			t.Fatal(err)
+		}
+		peerTunnelBindings.Store(peer, binding)
+		peers = append(peers, peer)
 	}
-	peerTunnelBindings.Store(first, binding)
-	forgetPeerTunnel(first)
-	if err := claimTunnelTransport(second, binding); err != nil {
-		t.Fatalf("replacement transport remained blocked after old peer teardown: %v", err)
+	forgetPeerTunnel(peers[1])
+	if got := activeTunnelTransportCount(binding.Config.TunnelID); got != 3 {
+		t.Fatalf("release removed wrong number of lanes: got=%d want=3", got)
+	}
+	candidate := &peerSession{key: "candidate"}
+	if err := claimTunnelTransport(candidate, binding); err != nil {
+		t.Fatalf("freed lane slot did not accept candidate: %v", err)
+	}
+	if got := activeTunnelTransportCount(binding.Config.TunnelID); got != 4 {
+		t.Fatalf("candidate did not restore desired four-lane set: got=%d", got)
 	}
 }
 
-func TestBreakBeforeMakeReplacementKeepsLogicalTunnelLease(t *testing.T) {
+func TestMakeBeforeBreakReplacementKeepsLogicalTunnelLease(t *testing.T) {
 	resetTunnelTransportTestState()
 	t.Cleanup(resetTunnelTransportTestState)
 
@@ -98,11 +116,11 @@ func TestBreakBeforeMakeReplacementKeepsLogicalTunnelLease(t *testing.T) {
 		InstallationID: firstLease.InstallationID,
 		Config:         firstLease.Config,
 	}
-	first := &peerSession{key: "first-epoch"}
-	if err := claimTunnelTransport(first, firstBinding); err != nil {
-		t.Fatalf("first transport claim failed: %v", err)
+	oldLane := &peerSession{key: "old-lane"}
+	if err := claimTunnelTransport(oldLane, firstBinding); err != nil {
+		t.Fatalf("old lane claim failed: %v", err)
 	}
-	peerTunnelBindings.Store(first, firstBinding)
+	peerTunnelBindings.Store(oldLane, firstBinding)
 
 	replacementLease, err := manager.Acquire("test-account", installation)
 	if err != nil {
@@ -119,22 +137,24 @@ func TestBreakBeforeMakeReplacementKeepsLogicalTunnelLease(t *testing.T) {
 		InstallationID: replacementLease.InstallationID,
 		Config:         replacementLease.Config,
 	}
-	replacement := &peerSession{key: "replacement-epoch"}
-	if err := claimTunnelTransport(replacement, replacementBinding); !errors.Is(err, errConcurrentTunnelTransport) {
-		t.Fatalf("replacement overlapped old public transport: %v", err)
+	candidate := &peerSession{key: "candidate-lane"}
+	if err := claimTunnelTransport(candidate, replacementBinding); err != nil {
+		t.Fatalf("make-before-break candidate overlap was rejected: %v", err)
+	}
+	peerTunnelBindings.Store(candidate, replacementBinding)
+	if got := activeTunnelTransportCount(firstLease.Config.TunnelID); got != 2 {
+		t.Fatalf("A -> A+B overlap count=%d want=2", got)
 	}
 
-	forgetPeerTunnel(first)
-	if err := claimTunnelTransport(replacement, replacementBinding); err != nil {
-		t.Fatalf("replacement could not claim after old transport teardown: %v", err)
+	forgetPeerTunnel(oldLane)
+	if got := activeTunnelTransportCount(firstLease.Config.TunnelID); got != 1 {
+		t.Fatalf("A+B -> B drain count=%d want=1", got)
 	}
-	peerTunnelBindings.Store(replacement, replacementBinding)
-
-	bound, ok := peerTunnelBinding(replacement)
+	bound, ok := peerTunnelBinding(candidate)
 	if !ok {
-		t.Fatal("replacement lost Logical Tunnel binding")
+		t.Fatal("candidate lost Logical Tunnel binding")
 	}
 	if bound.Config.TunnelID != firstBinding.Config.TunnelID || bound.Config.Address4 != firstBinding.Config.Address4 {
-		t.Fatalf("replacement did not retain logical identity/lease: first=%+v replacement=%+v", firstBinding.Config, bound.Config)
+		t.Fatalf("candidate did not retain logical identity/lease: first=%+v candidate=%+v", firstBinding.Config, bound.Config)
 	}
 }
