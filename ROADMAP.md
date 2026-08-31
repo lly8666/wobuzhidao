@@ -14,7 +14,7 @@
 | V2-M3 | immutable LINK/control foundation | **DONE AS FOUNDATION** |
 | V2-M4 | no-HOL FakeTCP/FEC qualification | **DONE / MUST REMAIN GREEN** |
 | V2-M5 | Game Lane first-arrival/race layer | **IMPLEMENTED FOUNDATION / CURRENT PRODUCT MECHANISM** |
-| V2-M6 | Reality-like TLS bootstrap on the same FakeTCP association | **IMPLEMENTED / PER-LANE FOUNDATION** |
+| V2-M6 | Reality-like TLS bootstrap on the same FakeTCP association per lane | **IMPLEMENTED / PER-LANE FOUNDATION** |
 | V2-M7 | Windows Wintun raw-L3 + Npcap underlay | **IMPLEMENTED FOUNDATION / MULTILANE LIFECYCLE INTEGRATION ACTIVE** |
 | V2-M8-old | per-LiveID raw-IP netns + veth + double NAT | **SUPERSEDED / REFERENCE ONLY** |
 | V2-M9A | Logical Tunnel identity + server address lease | **IMPLEMENTED FOUNDATION / REQUALIFY** |
