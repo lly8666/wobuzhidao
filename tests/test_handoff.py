@@ -100,13 +100,13 @@ class HandoffContractTest(unittest.TestCase):
 
         roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
         for phrase in (
-            "V2.3 SINGLE-FLOW CORRECTION ACTIVE",
-            "V2-M8A-old | separate ordinary-TCP Reality-like front | **SUPERSEDED BY ADR-0011**",
-            "V2-M8A-SF1 | temporary reliable FakeTCP bootstrap stream",
-            "V2-M8A-SF2 | real TLS 1.3 / Reality-like auth over same FakeTCP association",
-            "V2-M8A-SF3 | raw-listener fallback/decoy proxy + fingerprint qualification",
-            "post-switch no-HOL hole-bypass test green",
-            "one public WBD SYN lineage",
+            "V2.4 LOGICAL-TUNNEL / MULTIPATH PIVOT ACTIVE",
+            "V2-M6 | Reality-like TLS bootstrap on the same FakeTCP association per lane",
+            "V2-M8-old | per-LiveID raw-IP netns + veth + double NAT",
+            "V2-M9B | shared Linux TUN + one host NAT + lease demux",
+            "one raw FakeTCP SYN lineage",
+            "NO second WBD payload SYN",
+            "packet/datagram VPN payload without ordinary-TCP HOL",
         ):
             self.assertIn(phrase, roadmap)
 
