@@ -11,6 +11,7 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/rawipbackend"
+	"github.com/lly8666/wobuzhidao/internal/tunnel"
 )
 
 func mustTunnelID(t *testing.T, s string) logicaltunnel.TunnelID {
@@ -25,6 +26,7 @@ func mustTunnelID(t *testing.T, s string) logicaltunnel.TunnelID {
 func testGateway() *sharedGateway {
 	return &sharedGateway{
 		cfg: config{maxSessions: 4},
+		tun: &tunnel.TUN{},
 		leases: netip.MustParsePrefix("10.66.0.0/16"),
 		byPeer: make(map[string]*sharedSession),
 		byLease: make(map[netip.Addr]*sharedSession),
