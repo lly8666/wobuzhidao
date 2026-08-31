@@ -76,3 +76,65 @@ func TestForgetPeerTunnelReleasesSingleTransportClaim(t *testing.T) {
 		t.Fatalf("replacement transport remained blocked after old peer teardown: %v", err)
 	}
 }
+
+func TestBreakBeforeMakeReplacementKeepsLogicalTunnelLease(t *testing.T) {
+	resetTunnelTransportTestState()
+	t.Cleanup(resetTunnelTransportTestState)
+
+	manager, err := logicaltunnel.ParseManager("10.66.0.0/29", []string{"0.0.0.0/0"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	installation, err := logicaltunnel.ParseInstallationID("00112233445566778899aabbccddeeff")
+	if err != nil {
+		t.Fatal(err)
+	}
+	firstLease, err := manager.Acquire("test-account", installation)
+	if err != nil {
+		t.Fatal(err)
+	}
+	firstBinding := realityfront.TicketBinding{
+		Account:        firstLease.Account,
+		InstallationID: firstLease.InstallationID,
+		Config:         firstLease.Config,
+	}
+	first := &peerSession{key: "first-epoch"}
+	if err := claimTunnelTransport(first, firstBinding); err != nil {
+		t.Fatalf("first transport claim failed: %v", err)
+	}
+	peerTunnelBindings.Store(first, firstBinding)
+
+	replacementLease, err := manager.Acquire("test-account", installation)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if replacementLease.Config.TunnelID != firstLease.Config.TunnelID {
+		t.Fatalf("replacement changed TunnelID: first=%s replacement=%s", firstLease.Config.TunnelID, replacementLease.Config.TunnelID)
+	}
+	if replacementLease.Config.Address4 != firstLease.Config.Address4 {
+		t.Fatalf("replacement changed lease: first=%s replacement=%s", firstLease.Config.Address4, replacementLease.Config.Address4)
+	}
+	replacementBinding := realityfront.TicketBinding{
+		Account:        replacementLease.Account,
+		InstallationID: replacementLease.InstallationID,
+		Config:         replacementLease.Config,
+	}
+	replacement := &peerSession{key: "replacement-epoch"}
+	if err := claimTunnelTransport(replacement, replacementBinding); !errors.Is(err, errConcurrentTunnelTransport) {
+		t.Fatalf("replacement overlapped old public transport: %v", err)
+	}
+
+	forgetPeerTunnel(first)
+	if err := claimTunnelTransport(replacement, replacementBinding); err != nil {
+		t.Fatalf("replacement could not claim after old transport teardown: %v", err)
+	}
+	peerTunnelBindings.Store(replacement, replacementBinding)
+
+	bound, ok := peerTunnelBinding(replacement)
+	if !ok {
+		t.Fatal("replacement lost Logical Tunnel binding")
+	}
+	if bound.Config.TunnelID != firstBinding.Config.TunnelID || bound.Config.Address4 != firstBinding.Config.Address4 {
+		t.Fatalf("replacement did not retain logical identity/lease: first=%+v replacement=%+v", firstBinding.Config, bound.Config)
+	}
+}
