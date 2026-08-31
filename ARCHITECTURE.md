@@ -2,6 +2,10 @@
 
 > **Status: V3 CANDIDATE / HARD INVARIANTS FROZEN.** WBD is a personal weak-network VPN whose public transport is one TCP-shaped raw FakeTCP association. The first bounded phase is real TLS 1.3 / Reality-like setup on that same association; steady state is DTLS 1.3 + FEC + packet/datagram transport with no ordinary-TCP head-of-line blocking.
 
+## Machine-persisted V3 contract
+
+The recovery contract uses these exact phrases to prevent later sessions from drifting back to V2 semantics: **one public raw FakeTCP flow**, **one raw SYN**, **same public 4-tuple**, **Reality-like TLS 1.3 bootstrap**, **encrypted switch**, **DTLS 1.3**, **no-HOL**, and **sole public** WBD owner. These are names for the architecture already specified below, not a second implementation layer.
+
 ## Non-negotiable public-flow invariant
 
 For one WBD session, the public network must observe exactly one TCP-shaped flow:
