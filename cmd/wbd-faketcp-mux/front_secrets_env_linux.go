@@ -33,6 +33,7 @@ func injectFrontSecretEnv(args []string, getenv func(string) string) []string {
 			if out[i] == name || len(out[i]) > len(name) && out[i][:len(name)+1] == name+"=" {
 				return true
 			}
+		}
 		return false
 	}
 	appendSecret := func(flagName, envName string) {
