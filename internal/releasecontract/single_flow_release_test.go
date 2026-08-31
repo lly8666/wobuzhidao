@@ -65,7 +65,7 @@ func TestADR0012MultipathArchitectureFreeze(t *testing.T) {
 	}
 }
 
-func TestLinuxProductRunPathOwnsOnePublicRawListener(t *testing.T) {
+func TestLinuxProductRunPathOwnsSharedPublicRawMux(t *testing.T) {
 	body := readRepoFile(t, "scripts/linux_server_manager.sh")
 	start := strings.Index(body, "run_server() {")
 	end := strings.Index(body, "\nuninstall_files() {")
@@ -73,7 +73,8 @@ func TestLinuxProductRunPathOwnsOnePublicRawListener(t *testing.T) {
 		t.Fatal("cannot isolate linux run_server product path")
 	}
 	run := body[start:end]
-	requireContains(t, run, "public_single_flow=", "linux run_server")
+	requireContains(t, run, "public_raw=", "linux run_server")
+	requireContains(t, run, "max_tunnel_lanes=4", "linux run_server")
 	requireContains(t, run, `"$PREFIX/bin/wbd-faketcp-mux" server`, "linux run_server")
 	if strings.Contains(run, "wbd-reality-front") {
 		t.Fatal("linux product run path must not start a parallel wbd-reality-front listener")
@@ -101,13 +102,14 @@ func TestLinkServerAcceptsBoundedLaneSetForSameTunnel(t *testing.T) {
 	}
 }
 
-func TestLinuxBundleCarriesSubstantiveSourceSHAAndSingleFlowOperatorContract(t *testing.T) {
+func TestLinuxBundleCarriesSubstantiveSourceSHAAndPerLaneOperatorContract(t *testing.T) {
 	builder := readRepoFile(t, "scripts/build_linux_server_bundle.sh")
 	requireContains(t, builder, `BUILD_SOURCE_SHA=${WBD_SOURCE_SHA:-${GITHUB_SHA:-unknown}}`, "Linux bundle builder")
 	requireContains(t, builder, `> "$root/SOURCE_SHA"`, "Linux bundle builder")
-	requireContains(t, builder, "one raw wbd-faketcp-mux public listener", "Linux bundle README")
-	requireContains(t, builder, "no parallel kernel TCP Reality front", "Linux bundle README")
-	requireContains(t, builder, "diagnostic/reference only", "Linux bundle README")
+	requireContains(t, builder, "one public raw wbd-faketcp-mux listener", "Linux bundle README")
+	requireContains(t, builder, "1..4 independent Transport Lanes", "Linux bundle README")
+	requireContains(t, builder, "Each lane owns one FakeTCP SYN/4-tuple/sequence lineage", "Linux bundle README")
+	requireContains(t, builder, "never starts it as a public listener", "Linux bundle README")
 
 	workflow := readRepoFile(t, ".github/workflows/linux-server-release.yml")
 	requireContains(t, workflow, `WBD_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}`, "Linux release workflow")
