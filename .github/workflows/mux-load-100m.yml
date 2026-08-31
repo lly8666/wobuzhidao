@@ -1,6 +1,24 @@
 name: mux-load-100m
 
 on:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - '.github/workflows/mux-load-100m.yml'
+      - 'scripts/bench_mux_two_session_single_flow_100m.py'
+      - 'scripts/bench_mux_two_session_100m_runner.py'
+      - 'scripts/udp_multistream_oneway_probe.c'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'internal/faketcp/**'
+      - 'internal/linkdata/**'
+      - 'internal/session/**'
+      - 'internal/control/**'
+      - 'internal/realityfront/**'
+      - 'native/dtls/**'
   pull_request:
     paths:
       - '.github/workflows/mux-load-100m.yml'
