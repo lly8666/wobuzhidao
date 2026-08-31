@@ -122,17 +122,34 @@ func TestMaxLanesRejectsThirdRealUDPPeerAndKeepsExistingLanesHealthy(t *testing.
 	if got := string(readPayload(lanes[0])); got != "still-healthy" { t.Fatalf("lane1 after reject=%q", got) }
 	if got := string(readPayload(lanes[1])); got != "still-healthy" { t.Fatalf("lane2 after reject=%q", got) }
 
-	s.mu.Lock()
-	if len(s.sessions) != 1 { t.Fatalf("sessions=%d", len(s.sessions)) }
-	gs := s.sessions[sid]
-	s.mu.Unlock()
-	if gs == nil { t.Fatal("logical session disappeared") }
-	gs.mu.Lock()
-	bound := len(gs.lanes)
-	inFirst, inDup := gs.inFirst, gs.inDup
-	gs.mu.Unlock()
-	if bound != 2 { t.Fatalf("bound lanes=%d, want 2", bound) }
-	if inFirst != 3 || inDup != 3 { t.Fatalf("in_first=%d in_dup=%d, want 3/3", inFirst, inDup) }
+	// Input handling is asynchronous relative to the first-arrival echoed
+	// response. Do not sample duplicate accounting at an arbitrary scheduler
+	// instant: keep the exact 3/3 assertion, but give the already-sent second
+	// copies a bounded opportunity to reach the server loop.
+	deadline = time.Now().Add(500 * time.Millisecond)
+	for {
+		s.mu.Lock()
+		if len(s.sessions) != 1 {
+			n := len(s.sessions)
+			s.mu.Unlock()
+			t.Fatalf("sessions=%d", n)
+		}
+		gs := s.sessions[sid]
+		s.mu.Unlock()
+		if gs == nil { t.Fatal("logical session disappeared") }
+		gs.mu.Lock()
+		bound := len(gs.lanes)
+		inFirst, inDup := gs.inFirst, gs.inDup
+		gs.mu.Unlock()
+		if bound != 2 { t.Fatalf("bound lanes=%d, want 2", bound) }
+		if inFirst == 3 && inDup == 3 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("in_first=%d in_dup=%d, want 3/3", inFirst, inDup)
+		}
+		time.Sleep(time.Millisecond)
+	}
 
 	_ = conn.Close()
 	select {
