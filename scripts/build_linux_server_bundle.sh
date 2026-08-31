@@ -51,11 +51,12 @@ gcc -O2 -Wall -Wextra -Werror -static -I"$work/wolf/build" -I"$work/wolf/src" \
   -o "$root/bin/wbd_dtls_shim"
 
 export CGO_ENABLED=0 GOOS=linux GOARCH="$ARCH"
-go test ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./internal/platformproxy ./cmd/wbd-link-server-mux ./cmd/wbd-server-cert -count=1
+go test ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./internal/platformproxy ./internal/gamelane ./cmd/wbd-game-lane-server ./cmd/wbd-link-server-mux ./cmd/wbd-server-cert -count=1
 for spec in \
   'wbd-reality-front:./cmd/wbd-reality-front' \
   'wbd-faketcp-mux:./cmd/wbd-faketcp-mux' \
   'wbd-link-server-mux:./cmd/wbd-link-server-mux' \
+  'wbd-game-lane-server:./cmd/wbd-game-lane-server' \
   'wbd-platform-proxy-server:./cmd/wbd-platform-proxy-server' \
   'wbd-server-cert:./cmd/wbd-server-cert'; do
     name=${spec%%:*}; pkg=${spec#*:}
@@ -82,12 +83,17 @@ Commands: install, uninstall, start, stop, pause, resume, restart, status, logs,
 config, set, regen-certs, doctor, show-config. Configuration is
 /etc/wbd/server.env.
 
-V2.3 product mode exposes exactly one public TCP-shaped FakeTCP association per
-session. WBD_PORT is owned by one raw wbd-faketcp-mux public listener. The
-Reality-like TLS setup/admission exchange is the first payload phase of that
-same raw association; there is no parallel kernel TCP Reality front and no
-second public SYN before DTLS. After the mode barrier the same association
-carries DTLS 1.3 -> LINK/FEC datagrams without ordinary-TCP stream HOL.
+ADR-0012 product mode exposes one public raw wbd-faketcp-mux listener on
+WBD_PORT. A Logical Tunnel may bind 1..4 independent Transport Lanes to that
+listener. Each lane owns one FakeTCP SYN/4-tuple/sequence lineage: its
+Reality-like real TLS setup is the first payload phase of that exact association,
+then the same association crosses the bootstrap barrier into DTLS 1.3 -> LINK ->
+lane-local FEC without ordinary kernel-TCP stream HOL.
+
+The private wbd-game-lane-server sits between LINK and the platform/shared-TUN
+service. It assigns one logical PacketID across active lanes, delivers the first
+valid arrival and suppresses duplicates. This is also the bounded race layer for
+make-before-break lane replacement. No extra public listener is introduced.
 
 The bundled wbd-reality-front binary is diagnostic/reference only. The product
 wbd-server run path never starts it as a public listener.
@@ -118,4 +124,4 @@ tar -C "$OUT" -czf "$OUT/wbd-linux-server-$ARCH.tar.gz" "wbd-server-$ARCH"
     sha256sum "wbd-linux-server-$ARCH.tar.gz" > "wbd-linux-server-$ARCH.tar.gz.sha256"
     sha256sum -c "wbd-linux-server-$ARCH.tar.gz.sha256"
 )
-echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 public_single_flow=1 source_sha=$BUILD_SOURCE_SHA portable_checksum=1"
+echo "WBD_LINUX_SERVER_RELEASE_PASS arch=$ARCH static_runtime=1 manager=1 public_listener=1 max_tunnel_lanes=4 game_race=1 source_sha=$BUILD_SOURCE_SHA portable_checksum=1"
