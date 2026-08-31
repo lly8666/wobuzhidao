@@ -18,27 +18,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  dispatch:
-    name: dispatch exact-head release qualification
+  qualify:
+    name: aggregate exact-head release qualification
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 240
     env:
       GH_TOKEN: ${{ github.token }}
       REPO: ${{ github.repository }}
       BRANCH: feat/single-flow-reality-faketcp
     steps:
-      - name: Require dispatcher commit is still branch HEAD
+      - name: Require aggregator commit is still branch HEAD
         shell: bash
         run: |
           set -euo pipefail
           current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
-          printf 'dispatcher_sha=%s branch_sha=%s\n' "$GITHUB_SHA" "$current"
+          printf 'aggregator_sha=%s branch_sha=%s\n' "$GITHUB_SHA" "$current"
           test "$current" = "$GITHUB_SHA"
 
-      - name: Dispatch path-filtered release-authority workflows
+      - name: Dispatch exact-head opt-in release gates
         shell: bash
         run: |
           set -euo pipefail
+          manifest="$RUNNER_TEMP/wbd-release-dispatch.tsv"
+          : >"$manifest"
           workflows=(
             windows-linux-single-flow.yml
             windows-portable-bundle.yml
@@ -51,6 +53,8 @@ jobs:
             mux-load-100m.yml
             single-flow-startup-stress.yml
             single-flow-link-fullstack.yml
+            faketcp-recovery-ab.yml
+            openwrt-fullstack-one-shot.yml
           )
           for workflow in "${workflows[@]}"; do
             current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
@@ -58,15 +62,125 @@ jobs:
               echo "branch moved before dispatching ${workflow}: current=${current} expected=${GITHUB_SHA}" >&2
               exit 1
             fi
-            echo "dispatch ${workflow} ref=${BRANCH} sha=${GITHUB_SHA}"
+            started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            printf '%s\t%s\n' "$workflow" "$started" >>"$manifest"
+            echo "dispatch ${workflow} ref=${BRANCH} sha=${GITHUB_SHA} started=${started}"
             gh workflow run "$workflow" --repo "$REPO" --ref "$BRANCH"
           done
+          cat "$manifest"
 
-      - name: Require branch did not move during dispatch
+      - name: Resolve and wait for exact-head dispatched gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="$RUNNER_TEMP/wbd-release-dispatch.tsv"
+          while IFS=$'\t' read -r workflow started; do
+            [[ -n "$workflow" ]] || continue
+            run_id=""
+            for attempt in $(seq 1 120); do
+              run_id="$(
+                gh api "repos/${REPO}/actions/workflows/${workflow}/runs?branch=${BRANCH}&event=workflow_dispatch&per_page=100" |
+                  jq -r --arg sha "$GITHUB_SHA" --arg started "$started" '
+                    [.workflow_runs[]
+                     | select(.head_sha == $sha and .created_at >= $started)]
+                    | sort_by(.created_at)
+                    | first
+                    | .id // empty'
+              )"
+              [[ -n "$run_id" ]] && break
+              sleep 5
+            done
+            if [[ -z "$run_id" ]]; then
+              echo "could not resolve exact-head workflow_dispatch run: ${workflow} sha=${GITHUB_SHA} started=${started}" >&2
+              exit 1
+            fi
+
+            deadline=$((SECONDS + 12600))
+            while true; do
+              row="$(gh api "repos/${REPO}/actions/runs/${run_id}" --jq '[.status, (.conclusion // ""), .head_sha, .event, .html_url] | @tsv')"
+              IFS=$'\t' read -r status conclusion head_sha event url <<<"$row"
+              if [[ "$head_sha" != "$GITHUB_SHA" || "$event" != "workflow_dispatch" ]]; then
+                echo "child identity mismatch workflow=${workflow} run_id=${run_id} head=${head_sha} event=${event} expected_head=${GITHUB_SHA}" >&2
+                exit 1
+              fi
+              if [[ "$status" == "completed" ]]; then
+                if [[ "$conclusion" != "success" ]]; then
+                  echo "child failed workflow=${workflow} run_id=${run_id} conclusion=${conclusion} url=${url}" >&2
+                  exit 1
+                fi
+                echo "WBD_RELEASE_CHILD_PASS workflow=${workflow} event=${event} run_id=${run_id} head_sha=${head_sha} conclusion=${conclusion} url=${url}"
+                break
+              fi
+              if (( SECONDS >= deadline )); then
+                echo "child timeout workflow=${workflow} run_id=${run_id} status=${status} url=${url}" >&2
+                exit 1
+              fi
+              sleep 20
+            done
+          done <"$manifest"
+
+      - name: Resolve and wait for exact-candidate push gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          workflows=(
+            ci.yml
+            faketcp-native.yml
+            faketcp-pcap-20loss.yml
+            fullstack-first-arrival.yml
+            openwrt-tcp-tproxy.yml
+            single-flow-e2e.yml
+            single-flow-no-hol.yml
+            single-flow-tcp-persona.yml
+          )
+          for workflow in "${workflows[@]}"; do
+            run_id=""
+            for attempt in $(seq 1 120); do
+              run_id="$(
+                gh api "repos/${REPO}/actions/workflows/${workflow}/runs?branch=${BRANCH}&event=push&per_page=100" |
+                  jq -r --arg sha "$GITHUB_SHA" '
+                    [.workflow_runs[] | select(.head_sha == $sha)]
+                    | sort_by(.created_at)
+                    | last
+                    | .id // empty'
+              )"
+              [[ -n "$run_id" ]] && break
+              sleep 5
+            done
+            if [[ -z "$run_id" ]]; then
+              echo "could not resolve exact-head push run: ${workflow} sha=${GITHUB_SHA}" >&2
+              exit 1
+            fi
+
+            deadline=$((SECONDS + 12600))
+            while true; do
+              row="$(gh api "repos/${REPO}/actions/runs/${run_id}" --jq '[.status, (.conclusion // ""), .head_sha, .event, .html_url] | @tsv')"
+              IFS=$'\t' read -r status conclusion head_sha event url <<<"$row"
+              if [[ "$head_sha" != "$GITHUB_SHA" || "$event" != "push" ]]; then
+                echo "push-gate identity mismatch workflow=${workflow} run_id=${run_id} head=${head_sha} event=${event} expected_head=${GITHUB_SHA}" >&2
+                exit 1
+              fi
+              if [[ "$status" == "completed" ]]; then
+                if [[ "$conclusion" != "success" ]]; then
+                  echo "push gate failed workflow=${workflow} run_id=${run_id} conclusion=${conclusion} url=${url}" >&2
+                  exit 1
+                fi
+                echo "WBD_RELEASE_CHILD_PASS workflow=${workflow} event=${event} run_id=${run_id} head_sha=${head_sha} conclusion=${conclusion} url=${url}"
+                break
+              fi
+              if (( SECONDS >= deadline )); then
+                echo "push gate timeout workflow=${workflow} run_id=${run_id} status=${status} url=${url}" >&2
+                exit 1
+              fi
+              sleep 20
+            done
+          done
+
+      - name: Require branch stayed on candidate and publish authority marker
         shell: bash
         run: |
           set -euo pipefail
           current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
-          printf 'dispatcher_sha=%s final_branch_sha=%s\n' "$GITHUB_SHA" "$current"
+          printf 'aggregator_sha=%s final_branch_sha=%s\n' "$GITHUB_SHA" "$current"
           test "$current" = "$GITHUB_SHA"
-          echo 'WBD_RELEASE_QUALIFICATION_DISPATCH_PASS exact_head=1'
+          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=13 push_gates=8 total_children=21'
