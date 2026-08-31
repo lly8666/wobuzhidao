@@ -274,20 +274,20 @@ jobs:
           grep -q TCP_PASS "$ROOT/probe.log"
 
           for i in $(seq 1 400); do
-            grep -q 'WBD_LINK_MUX_BACKEND_READY sid=.*backend=rawip' "$ROOT/link-server.log" && \
-            grep -q WBD_RAWIP_SESSION_READY "$ROOT/gateway.log" && break
+            grep -q 'WBD_LINK_MUX_BACKEND_READY tunnel_id_prefix=.*backend=rawip' "$ROOT/link-server.log" && \
+            grep -q 'WBD_RAWIP_SESSION_READY tunnel_id_prefix=' "$ROOT/gateway.log" && break
             sleep .05
           done
-          grep -q 'WBD_LINK_MUX_BACKEND_READY sid=.*backend=rawip' "$ROOT/link-server.log"
+          grep -q 'WBD_LINK_MUX_BACKEND_READY tunnel_id_prefix=.*backend=rawip' "$ROOT/link-server.log"
           grep -q WBD_LINK_RX_FIRST "$ROOT/link-server.log"
           grep -q WBD_LINK_TX_FIRST "$ROOT/link-server.log"
           grep -q WBD_RAWIP_RX_FIRST "$ROOT/gateway.log"
           grep -q WBD_NETNS_TUN_TX_FIRST "$ROOT/gateway.log"
           grep -q WBD_NETNS_TUN_RX_FIRST "$ROOT/gateway.log"
           grep -q WBD_RAWIP_TX_FIRST "$ROOT/gateway.log"
-          LSID="$(sed -n 's/.*WBD_LINK_MUX_BACKEND_READY sid=\([0-9a-f]\{6\}\).*/\1/p' "$ROOT/link-server.log" | head -n1)"
-          GSID="$(sed -n 's/.*WBD_RAWIP_SESSION_READY sid=\([0-9a-f]\{6\}\).*/\1/p' "$ROOT/gateway.log" | head -n1)"
-          test -n "$LSID" && test "$LSID" = "$GSID"
+          LTID="$(sed -n 's/.*WBD_LINK_MUX_BACKEND_READY tunnel_id_prefix=\([0-9a-f]\{8\}\).*/\1/p' "$ROOT/link-server.log" | head -n1)"
+          GTID="$(sed -n 's/.*WBD_RAWIP_SESSION_READY tunnel_id_prefix=\([0-9a-f]\{8\}\).*/\1/p' "$ROOT/gateway.log" | head -n1)"
+          test -n "$LTID" && test "$LTID" = "$GTID"
 
           sudo kill -INT "$CAP" 2>/dev/null || true
           wait "$CAP" 2>/dev/null || true
@@ -298,7 +298,11 @@ jobs:
           grep -q 'SINGLE_FLOW_WIRE_PASS' "$ROOT/wire.log"
 
           sudo chmod -R a+rX "$ROOT"
-          echo "SINGLE_FLOW_RAWIP_E2E_PASS fec=$FEC sid=$LSID public_flows=1 issued_lease=$TUN_CIDR reality_like=1 dtls13=1 link=1 rawip=1 udp=2 tcp=1 wire=1"
+          echo "SINGLE_FLOW_RAWIP_E2E_PASS fec=$FEC tunnel_id_prefix=$LTID public_flows=1 issued_lease=$TUN_CIDR reality_like=1 dtls13=1 link=1 rawip=1 udp=2 tcp=1 wire=1"
+      - name: Prepare raw-IP evidence
+        if: always()
+        run: |
+          sudo chmod -R a+rX /tmp/sfraw/run-* 2>/dev/null || true
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
