@@ -15,7 +15,7 @@ func TestCandidateLaneUsesPrivateSlotFiveWithSameLogicalID(t *testing.T){
 	wantLink:="127.0.0.1:47105"
 	got,err:=LaneGameTarget(plan);if err!=nil{t.Fatal(err)}
 	if got!=wantLink{t.Fatalf("candidate Game target=%q want=%q",got,wantLink)}
-	if plan.FakeTCP.Name!="faketcp-4-candidate"||plan.DTLS.Name!="dtls-4-candidate"||plan.Link.Name!="link-4-candidate"{t.Fatalf("candidate names=%s/%s/%s",plan.FakeTCP.Name,plan.DTLS.Name,plan.Link.Name)}
+	if plan.FakeTCP.Name!="faketcp-4-candidate-s5"||plan.DTLS.Name!="dtls-4-candidate-s5"||plan.Link.Name!="link-4-candidate-s5"{t.Fatalf("candidate names=%s/%s/%s",plan.FakeTCP.Name,plan.DTLS.Name,plan.Link.Name)}
 	if !argPair(plan.FakeTCP.Args,"--local-udp","127.0.0.1:45105"){t.Fatalf("candidate FakeTCP args=%v",plan.FakeTCP.Args)}
 }
 
