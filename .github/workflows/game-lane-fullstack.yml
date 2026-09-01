@@ -23,6 +23,7 @@ on:
   push:
     branches:
       - dev/wbd-raw-fec-v2
+      - feat/single-flow-reality-faketcp
     paths:
       - '.github/workflows/game-lane-fullstack.yml'
       - 'scripts/game_lane_fullstack.sh'
@@ -32,8 +33,6 @@ on:
       - 'cmd/wbd-game-lane-server/**'
       - 'cmd/wbd-link-proxy/**'
       - 'cmd/wbd-link-server-mux/**'
-      - 'cmd/wbd-faketcp/**'
-      - 'cmd/wbd-faketcp-mux/**'
       - 'cmd/wbd-reality-front/**'
       - 'internal/faketcp/**'
       - 'internal/session/**'
