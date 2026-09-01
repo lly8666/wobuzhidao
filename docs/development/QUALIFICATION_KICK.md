@@ -62,9 +62,9 @@ Together the 28 child gates cover hosted Windows native protocol/runtime behavio
 
 ## Kick generation
 
-`2026-09-01-seq80-physical-npcap-28-gate-requalification`
+`2026-09-01-seq84-final-single-flow-exact-head-requalification`
 
-This generation follows the durable recovery note `docs/development/2026-09-01-seq80-exact-head-qualification.md`. It intentionally requalifies after the exact-head physical Npcap acceptance workflow was added; no older qualification result may be inherited by this candidate.
+This generation follows the completed Windows noisy-ingress hardening and the repaired 20-round startup-stress harness. It creates a fresh immutable candidate HEAD without changing product code and requires all 28 hosted qualification children to execute against that exact SHA. No result from an older product-code HEAD is inherited as release authority.
 
 ## Delivery rule
 
