@@ -56,13 +56,20 @@ sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
 cat >"$ROOT/echo.py" <<'PY'
 import socket
 s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-s.bind(('127.0.0.1',48000))
+s.bind(('127.0.0.1',48001))
 while True:
     b,a=s.recvfrom(65535)
     s.sendto(b,a)
 PY
 sudo ip netns exec "$S" python3 "$ROOT/echo.py" >"$ROOT/echo.log" 2>&1 & ECHO_PID=$!
 SERVER_PIDS="$ECHO_PID"
+
+sudo ip netns exec "$S" "$ROOT/wbd-platform-proxy-server" \
+  -listen 127.0.0.1:48000 -udp-idle 30s -tcp-idle 30s \
+  >"$ROOT/platform-server.log" 2>&1 & PLATFORM_PID=$!
+SERVER_PIDS="$SERVER_PIDS $PLATFORM_PID"
+for _ in $(seq 1 200); do grep -q 'WBD_PLATFORM_PROXY_SERVER_READY' "$ROOT/platform-server.log" && break; sleep .05; done
+grep -q 'WBD_PLATFORM_PROXY_SERVER_READY' "$ROOT/platform-server.log"
 
 sudo ip netns exec "$S" "$ROOT/wbd-link-server-mux" \
   -listen 127.0.0.1:47000 -service 127.0.0.1:48000 \
@@ -89,20 +96,55 @@ for _ in $(seq 1 200); do grep -q 'READY role=server-mux.*single_flow_bootstrap=
 grep -q 'READY role=server-mux.*single_flow_bootstrap=true' "$ROOT/mux.log"
 
 cat >"$ROOT/probe.py" <<'PY'
-import socket,sys,time
-marker=sys.argv[1].encode()
+import ipaddress,socket,struct,sys,time
+round_no=int(sys.argv[1])
+marker=('ROUND_%d_' % round_no).encode()
+flow_id=0x5354460000000000 | round_no
+target_ip=ipaddress.IPv4Address('127.0.0.1').packed
+target_port=48001
+
+def frame(payload):
+    hdr=bytearray(44)
+    hdr[0:4]=b'WBDP'
+    hdr[4]=1       # platformproxy Version1
+    hdr[5]=1       # KindUDPDatagram
+    hdr[6]=0       # flags
+    hdr[7]=4       # IPv4 peer
+    struct.pack_into('>Q',hdr,8,flow_id)
+    struct.pack_into('>Q',hdr,16,0)
+    struct.pack_into('>H',hdr,24,target_port)
+    hdr[26:30]=target_ip
+    struct.pack_into('>H',hdr,42,len(payload))
+    return bytes(hdr)+payload
+
+def parse(packet):
+    if len(packet)<44 or packet[:4]!=b'WBDP' or packet[4]!=1 or packet[5]!=1 or packet[6]!=0 or packet[7]!=4:
+        raise ValueError('bad platformproxy header')
+    got_flow=struct.unpack_from('>Q',packet,8)[0]
+    got_offset=struct.unpack_from('>Q',packet,16)[0]
+    got_port=struct.unpack_from('>H',packet,24)[0]
+    got_len=struct.unpack_from('>H',packet,42)[0]
+    if got_flow!=flow_id or got_offset!=0 or got_port!=target_port or packet[26:30]!=target_ip or any(packet[30:42]):
+        raise ValueError('bad platformproxy identity')
+    if len(packet)!=44+got_len:
+        raise ValueError('bad platformproxy payload length')
+    return packet[44:]
+
 s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 s.bind(('127.0.0.1',0)); s.settimeout(.20)
 for i in range(3):
     want=marker+i.to_bytes(2,'big')
+    wire=frame(want)
     end=time.time()+3
     while time.time()<end:
-        s.sendto(want,('127.0.0.1',47101))
+        s.sendto(wire,('127.0.0.1',47101))
         try: got,_=s.recvfrom(65535)
         except socket.timeout: continue
-        if got == want: break
-    else: raise SystemExit('echo timeout at %d'%i)
-print('STRESS_ECHO_PASS marker='+sys.argv[1])
+        try: payload=parse(got)
+        except ValueError: continue
+        if payload == want: break
+    else: raise SystemExit('platformproxy echo timeout at %d'%i)
+print('STRESS_PLATFORMPROXY_ECHO_PASS round=%d flow_id=%d'%(round_no,flow_id))
 PY
 
 assert_pid_file() {
@@ -183,8 +225,8 @@ for round in $(seq 1 "$ROUNDS"); do
   grep -q 'WBD_LINK_READY role=client' "$ROOT/link.log"
   assert_pid_file "$ROOT/link.pid"
 
-  sudo ip netns exec "$C" python3 "$ROOT/probe.py" "ROUND_${round}_" >"$ROOT/probe.log" 2>&1
-  grep -q 'STRESS_ECHO_PASS' "$ROOT/probe.log"
+  sudo ip netns exec "$C" python3 "$ROOT/probe.py" "$round" >"$ROOT/probe.log" 2>&1
+  grep -q 'STRESS_PLATFORMPROXY_ECHO_PASS' "$ROOT/probe.log"
   test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY remote=.*same_flow=1' "$ROOT/mux.log" || true)" -ge "$round"
   test "$(grep -c 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' "$ROOT/mux.log" || true)" -ge "$round"
   test "$(grep -c 'WBD_LINK_MUX_SESSION_READY account=stress-user' "$ROOT/link-server.log" || true)" -ge "$round"
@@ -215,4 +257,5 @@ test "$(grep -c 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' "$ROOT/mux.log")"
 test "$(grep -c 'WBD_LINK_MUX_SESSION_READY account=stress-user' "$ROOT/link-server.log")" -eq "$ROUNDS"
 kill -0 "$MUX_PID"
 kill -0 "$LINK_SERVER_PID"
-echo "SINGLE_FLOW_STARTUP_STRESS_PASS rounds=${ROUNDS} nat=1 dirty_exit=1 full_stack=1 logical_tunnel=1"
+kill -0 "$PLATFORM_PID"
+echo "SINGLE_FLOW_STARTUP_STRESS_PASS rounds=${ROUNDS} nat=1 dirty_exit=1 full_stack=1 logical_tunnel=1 platformproxy=1"
