@@ -43,6 +43,30 @@ jobs:
             sudo ip netns del "$R" 2>/dev/null
             sudo ip netns del "$S" 2>/dev/null
           }
+          wait_capture_ready() {
+            local pid="$1"
+            local log="$2"
+            local label="$3"
+            for _ in $(seq 1 100); do
+              if grep -q 'listening on ' "$log" 2>/dev/null; then
+                kill -0 "$pid" 2>/dev/null || {
+                  echo "$label tcpdump exited after reporting readiness" >&2
+                  cat "$log" >&2 || true
+                  return 1
+                }
+                return 0
+              fi
+              if ! kill -0 "$pid" 2>/dev/null; then
+                echo "$label tcpdump exited before readiness" >&2
+                cat "$log" >&2 || true
+                return 1
+              fi
+              sleep .05
+            done
+            echo "$label tcpdump readiness timeout" >&2
+            cat "$log" >&2 || true
+            return 1
+          }
           trap cleanup EXIT
 
           # Three namespaces put the impairment in a forwarding namespace. The
@@ -81,7 +105,13 @@ jobs:
             'tcp and (port 54003 or port 54010)' >/tmp/tcpdump-client.log 2>&1 & TPID=$!
           sudo ip netns exec "$S" tcpdump -i s0 -s 0 -U -w /tmp/faketcp20-server.pcap \
             'tcp and (port 54003 or port 54010)' >/tmp/tcpdump-server.log 2>&1 & TSPID=$!
-          sleep .1
+          # Do not start the WBD handshake until both packet capture processes
+          # have actually opened their interfaces. A blind sleep made the wire
+          # evidence flaky: data could be captured while the initial SYN was
+          # missed, causing the strict analyzer to report that the three-way
+          # handshake was not visible.
+          wait_capture_ready "$TPID" /tmp/tcpdump-client.log client
+          wait_capture_ready "$TSPID" /tmp/tcpdump-server.log server
 
           sudo ip netns exec "$S" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
             server --bind 127.0.0.1:54000 --expect 800 --window 6.0 --out /tmp/first20.json \
