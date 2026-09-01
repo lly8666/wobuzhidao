@@ -61,7 +61,7 @@ Together the 27 child gates cover hosted Windows native protocol/runtime behavio
 
 ## Kick generation
 
-`2026-09-01-seq81-fix-stale-windows-lane-contracts`
+`2026-09-01-seq82-game-single-flow-logical-tunnel-matrix-green`
 
 ## Delivery rule
 
