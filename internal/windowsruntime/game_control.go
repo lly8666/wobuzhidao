@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
-	"reflect"
 	"sort"
 	"time"
 
@@ -46,6 +45,9 @@ func setGameLaneTargets(control string, targets []gamelane.LaneTarget, timeout t
 	sort.Slice(want, func(i,j int)bool{return want[i]<want[j]})
 	got := append([]uint8(nil), reply.Active...)
 	sort.Slice(got, func(i,j int)bool{return got[i]<got[j]})
-	if !reflect.DeepEqual(got, want) { return fmt.Errorf("Game control active lanes=%v want=%v", got, want) }
+	if len(got) != len(want) { return fmt.Errorf("Game control active lanes=%v want=%v", got, want) }
+	for i := range want {
+		if got[i] != want[i] { return fmt.Errorf("Game control active lanes=%v want=%v", got, want) }
+	}
 	return nil
 }
