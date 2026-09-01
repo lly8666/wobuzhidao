@@ -27,13 +27,14 @@ jobs:
           go build -trimpath -o "$env:RUNNER_TEMP\wbd-windows-portable.exe" ./cmd/wbd-windows-portable
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-faketcp.exe")) { throw 'wbd-faketcp.exe not built' }
           if (-not (Test-Path "$env:RUNNER_TEMP\wbd-windows-portable.exe")) { throw 'wbd-windows-portable.exe not built' }
-          foreach ($script in @('scripts/windows_npcap_prepare.ps1','scripts/windows_npcap_physical_qualify.ps1')) {
+          foreach ($script in @('scripts/windows_npcap_prepare.ps1','scripts/windows_npcap_physical_qualify.ps1','scripts/windows_npcap_abi_qualify.ps1')) {
             $text = Get-Content -LiteralPath $script -Raw
             [void][scriptblock]::Create($text)
           }
           if (-not (Select-String -LiteralPath scripts/windows_npcap_prepare.ps1 -SimpleMatch "'Uninstall'" -Quiet)) { throw 'Npcap prepare script lacks Uninstall action' }
           if (-not (Select-String -LiteralPath scripts/windows_npcap_physical_qualify.ps1 -SimpleMatch 'WBD_WINDOWS_NPCAP_PHYSICAL_PASS' -Quiet)) { throw 'physical qualifier PASS contract missing' }
-          Write-Output 'WBD_SINGLEFLOW_V3_WINDOWS_PASS os=windows-latest npcap_demux_tests=1 runtime_tests=1 physical_gate_scripts_parsed=1'
+          & scripts/windows_npcap_abi_qualify.ps1 -FakeTCPExe "$env:RUNNER_TEMP\wbd-faketcp.exe"
+          Write-Output 'WBD_SINGLEFLOW_V3_WINDOWS_PASS os=windows-latest npcap_demux_tests=1 npcap_abi_process_gate=1 runtime_tests=1 physical_gate_scripts_parsed=1'
 
   linux:
     runs-on: ubuntu-24.04
