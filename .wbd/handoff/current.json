@@ -1,16 +1,16 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 82,
+  "continuity_sequence": 83,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "f2bf90f41634f3a494ed3755e99630ae56365ce8",
+  "checkpoint_based_on_head_sha": "88b00fec9c8735e7ca4aa0366b7f02aae44da2fd",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Ship WBD with one TCP-shaped public flow per Transport Lane. FakeTCP owns the 4-tuple and sequence lineage from the first SYN; a bounded reliable prefix carries Firefox-120-like TLS 1.3 / Reality-like admission, then the same association crosses an in-band barrier into pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/VPN datagrams without FIN/RST/reconnect/new SYN and without sustained ordinary TCP HOL. One Logical Tunnel may own 1..4 independent complete WBD Transport Lanes.",
-    "current_milestone": "PR #9 was reconciled with canonical continuity and became mergeable. Frozen candidate f2bf90f41634f3a494ed3755e99630ae56365ce8 then ran exact-head qualification. All Go product tests in ci run 33572611677 passed, but the handoff contract test failed because sequence 81 paraphrased rather than persisted the exact current multipath authority phrases. Sequence 82 corrects repository authority metadata only; no executable transport code is changed.",
+    "current_milestone": "PR #9 was reconciled with canonical continuity and became mergeable. Frozen candidate f2bf90f41634f3a494ed3755e99630ae56365ce8 then ran exact-head qualification. All Go product tests in ci run 33572611677 passed, but the handoff contract test failed because sequence 81 paraphrased rather than persisted the exact current multipath authority phrases. Sequence 83 carries the complete authority correction and restores the handoff protocol rule that checkpoint_based_on_head_sha points to the latest substantive canonical code/test/docs commit, 88b00fec9c8735e7ca4aa0366b7f02aae44da2fd.",
     "local_optimization_stop_rule": "Do not revive ordinary Reality TCP -> close -> second FakeTCP SYN. Do not retune mature FakeTCP recovery/ACK/SACK/RTO/FEC without deterministic evidence. Do not call packaging or hosted Actions alone a release. Physical Windows 11 Npcap/NIC/NAT/ISP -> Ubuntu ARM64 acceptance remains mandatory."
   },
   "architecture_override": {
@@ -26,11 +26,11 @@
     "delivery_rule": "Exact candidate HEAD must pass current hosted Windows and Linux product qualification including combined Windows-runtime -> Linux-server. Physical Windows -> Ubuntu remains final acceptance authority."
   },
   "continuation_cursor": {
-    "last_completed_action": "Canonical continuity was merged into PR #9 without changing executable product code, producing merge commit 6d887f82f2b4c1f0151147e8c12fa624a06c3fb1. Durable recovery logging was added at e4f5fa71c8f25d778e1b6a5742f1feaa4420f33d and exact-head qualification kick f2bf90f41634f3a494ed3755e99630ae56365ce8 was frozen. ci run 33572611677 then proved go test ./... passes and isolated the only deterministic red to tests/test_handoff.py authority text. The failure and correction plan are recorded in docs/development/2026-09-02-seq82-exact-head-handoff-contract-correction.md at canonical commit 88b00fec9c8735e7ca4aa0366b7f02aae44da2fd.",
-    "current_task": "Verify sequence 82 handoff on canonical. If green, reconcile this canonical handoff into feat/single-flow-reality-faketcp without changing executable source, issue a new exact-head qualification kick, freeze that SHA and require all 28 hosted qualification children on that exact SHA. Do not inherit green status from f2bf90 because its exact-head qualification is invalidated by the handoff contract red.",
+    "last_completed_action": "Canonical continuity was merged into PR #9 without changing executable product code, producing merge commit 6d887f82f2b4c1f0151147e8c12fa624a06c3fb1. Durable recovery logging was added at e4f5fa71c8f25d778e1b6a5742f1feaa4420f33d and exact-head qualification kick f2bf90f41634f3a494ed3755e99630ae56365ce8 was frozen. ci run 33572611677 then proved go test ./... passes and isolated the only deterministic red to tests/test_handoff.py authority text. The failure and correction plan are recorded in docs/development/2026-09-02-seq82-exact-head-handoff-contract-correction.md at canonical substantive commit 88b00fec9c8735e7ca4aa0366b7f02aae44da2fd. Sequence 82 added the required authority text; sequence 83 corrects only its checkpoint pointer to that latest substantive commit as required by .wbd/handoff/README.md.",
+    "current_task": "Verify sequence 83 handoff on canonical. If green, reconcile this canonical handoff into feat/single-flow-reality-faketcp without changing executable source, issue a new exact-head qualification kick, freeze that SHA and require all 28 hosted qualification children on that exact SHA. Do not inherit green status from f2bf90 because its exact-head qualification is invalidated by the handoff contract red.",
     "why_now": "The user requires detailed GitHub continuity, handoff, and Windows/Linux qualification before delivery. The latest deterministic failure is repository authority metadata, not transport code. Fixing only that layer preserves the mature TCP-like core and produces a clean candidate for the final hosted matrix and subsequent physical acceptance.",
     "done_when": "One immutable candidate source HEAD has green ci and handoff, one-SYN per-lane single-flow E2E, post-switch no-HOL, Reality-like TLS persona, mature FakeTCP weak-network recovery, lane count 1..4/fifth rejected, Game race/dedup/no-cross-lane-HOL, make-before-break candidate-failure preservation, Windows runtime/portable/admin/raw-IP, Linux raw-netns/firewall/release/shared-TUN, FEC off/20:20 and combined hosted Windows-runtime -> Linux-server qualification. Matching artifacts from that same source HEAD then pass physical Windows 11 -> Ubuntu ARM64 acceptance.",
-    "next_atomic_action": "Confirm sequence-82 handoff-verify success on canonical, then merge that exact canonical handoff/history into PR #9 and create a new immutable qualification-kick HEAD without touching executable product source."
+    "next_atomic_action": "Confirm sequence-83 handoff-verify success on canonical, then merge that exact canonical handoff/history into PR #9 and create a new immutable qualification-kick HEAD without touching executable product source."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
@@ -57,7 +57,7 @@
     "pr": 9,
     "branch": "feat/single-flow-reality-faketcp",
     "head": "f2bf90f41634f3a494ed3755e99630ae56365ce8",
-    "classification": "Active per-lane same-public-flow implementation plus Logical Tunnel 1..4/Game/make-before-break product layer. Current exact-head candidate is disqualified only by repository handoff-contract metadata and must be superseded after sequence-82 reconciliation.",
+    "classification": "Active per-lane same-public-flow implementation plus Logical Tunnel 1..4/Game/make-before-break product layer. Current exact-head candidate is disqualified only by repository handoff-contract metadata and must be superseded after sequence-83 reconciliation.",
     "transport_core_policy": "Freeze mature FakeTCP/TCP-like recovery/ACK/SACK/RTO/FEC behavior unless deterministic lower-layer evidence requires a targeted fix."
   },
   "physical_acceptance_snapshot": {
@@ -72,7 +72,7 @@
     "source_head": "f2bf90f41634f3a494ed3755e99630ae56365ce8",
     "known_red": {
       "ci_run_33572611677": "Go product tests success; Handoff tests failure because architecture_override.critical_guard lacked exact required multipath authority phrase(s).",
-      "handoff_verify_feature_run_33572611764": "feature exact-head handoff/contract red; superseded by sequence-82 correction path"
+      "handoff_verify_feature_run_33572611764": "feature exact-head handoff/contract red; superseded by sequence-83 correction path"
     },
     "known_green_or_completed": {
       "windows_ipv6_killswitch": "success",
@@ -95,7 +95,7 @@
     "automated_state": "Candidate f2bf90 product Go tests pass, but repository handoff authority contract failed; therefore that SHA is not release-authorized and all 28 hosted gates must be rerun on a superseding exact candidate after metadata correction.",
     "physical_evidence": "Physical Linux has reached same-flow bootstrap -> DTLS -> LINK. A prior physical Windows run failed at a FakeTCP/Npcap parse boundary that current feature code now filters and regression-tests, but fresh exact-candidate physical acceptance is pending.",
     "tcp_like_core": "No current evidence justifies changing mature FakeTCP/TCP-like recovery.",
-    "current_blocker": "Sequence-82 authority contract verification, then exact-head hosted requalification and physical Windows->Ubuntu acceptance."
+    "current_blocker": "Sequence-83 authority contract verification, then exact-head hosted requalification and physical Windows->Ubuntu acceptance."
   },
   "operational_continuity": {
     "canonical_sequence_81_head": "d872156b4ee24890efecbd7e5d810ee59b9eb237",
@@ -104,6 +104,7 @@
     "continuity_merge": "6d887f82f2b4c1f0151147e8c12fa624a06c3fb1",
     "disqualified_feature_candidate": "f2bf90f41634f3a494ed3755e99630ae56365ce8",
     "sequence_82_failure_log_commit": "88b00fec9c8735e7ca4aa0366b7f02aae44da2fd",
+    "sequence_82_handoff_commit": "fe9d15f22bad0e58694bd83d935dad52fdeae9e5",
     "durable_logs": "docs/development/SINGLE_FLOW_DEVLOG.md plus dated docs/development notes are the durable engineering history; chat history is secondary and may be truncated.",
     "rule": "Start future work by live-refreshing canonical HEAD, PR #9 feature HEAD, Actions and handoff. End development turns with a new canonical machine-readable handoff and handoff-verify. Never call skipped/cancelled/queued/path-filtered gates green and never call a release accepted before fresh exact-candidate physical Windows->Ubuntu success."
   }
