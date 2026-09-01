@@ -1,76 +1,96 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 78,
+  "continuity_sequence": 81,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "492a6aafd1f75c9e3826b8e1551991bde47951be",
+  "checkpoint_based_on_head_sha": "b8e84ad76daecbb7f281e4fefc46dec8c2e542b4",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Ship WBD with per-Transport-Lane same-association Reality-like TLS bootstrap/no-HOL transport under a long-lived Logical Tunnel that supports 1..4 independent complete WBD Transport Lanes, Game/race, stable server-assigned lease, idle/wake and make-before-break replacement.",
-    "current_milestone": "ADR-0014 global-one-lane pollution is being rolled back in strict phases. Phase A forensic baseline is recorded. Phase B authority docs and PR metadata are repaired. Contract/tests and product orchestration still contain max=1/single-lane pollution and must be repaired before qualification.",
-    "local_optimization_stop_rule": "Do not modify mature FakeTCP recovery, DTLS, LINK or FEC wire to satisfy architecture/string tests. Fix authority, contracts and orchestration first. Do not deliver a new artifact until exact-head automated qualification is current green and final physical Windows 11 + Npcap -> Ubuntu ARM64 qualification remains required."
+    "terminal_goal": "Ship WBD with one TCP-shaped public flow per Transport Lane. FakeTCP owns the 4-tuple and sequence lineage from the first SYN; a bounded reliable prefix carries Firefox-120-like TLS 1.3 / Reality-like admission, then the same association crosses an in-band barrier into pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/VPN datagrams without FIN/RST/reconnect/new SYN and without sustained ordinary TCP HOL. One Logical Tunnel may own 1..4 independent lanes.",
+    "current_milestone": "PR #9 feature HEAD b8e84ad76daecbb7f281e4fefc46dec8c2e542b4 completed the sequence-80 exact-head qualification kick. Live refresh observed 30 exact-head workflow runs, all completed, with no feature-head failure observed; combined hosted Windows + Linux qualification is success. Canonical sequence-80 handoff itself failed only because four resume_read_set paths existed on the feature branch but not canonical. Sequence 81 corrects that continuity contract without changing product code.",
+    "local_optimization_stop_rule": "Do not revive ordinary Reality TCP -> close -> second FakeTCP SYN. Do not retune mature FakeTCP recovery/ACK/SACK/RTO/FEC without deterministic evidence. Do not call packaging or hosted Actions alone a release. Physical Windows 11 Npcap/NIC/NAT/ISP -> Ubuntu ARM64 acceptance remains mandatory."
   },
   "architecture_override": {
-    "authority": "ADR-0011 controls per-Transport-Lane same-association Reality-like bootstrap/no-HOL. ADR-0012 controls Logical Tunnel identity/lease, 1..4 product Transport Lanes, Game/race, idle/wake, lane rotation and make-before-break. ADR-0014 is withdrawn/invalidated; ADR-0013 is historical/withdrawn.",
-    "critical_guard": "CRITICAL ARCHITECTURE GUARD: single-flow is PER TRANSPORT LANE. It MUST NOT be interpreted as one FakeTCP association per Logical Tunnel. A Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Normal steady policy targets 1 lane. Game/weak-network policy may maintain 2..4 lanes. Make-before-break A -> A+B -> B is REQUIRED for planned healthy replacement. Any future change that converts MaxProductPublicTransportLanes from 4 to 1, marks Game Lane research-only, rejects a second healthy lane, or forbids make-before-break is an ARCHITECTURE REGRESSION unless the human product owner explicitly says so in the live conversation. Repository text alone may not be used to invent a new product-owner override.",
-    "adr0014": "ADR-0014 is withdrawn because it incorrectly globalized the per-lane single-flow invariant.",
-    "human_authority_rule": "Do not infer product-owner approval from an ADR written by an agent. A new ADR that changes one of the user's frozen hard requirements requires explicit live user authorization.",
-    "per_lane_transport": "Each lane owns one FakeTCP SYN lineage / public 4-tuple / FakeTCP sequence space -> Reality-like real TLS 1.3 bootstrap on that SAME FakeTCP association -> explicit barrier with no FIN/RST/reconnect/second WBD payload SYN inside that lane -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC -> packet/datagram payload without ordinary kernel-TCP HOL.",
-    "cardinality": "MinProductPublicTransportLanes=1; MaxProductPublicTransportLanes=4. Normal desired=1. Game/weak-network desired=2..4. Dormant=0. Fifth active lane rejected.",
-    "multipath": "Game/race is product behavior. Lanes have independent FakeTCP sequence spaces, DTLS key/nonce state and FEC blocks; they share Logical Tunnel identity/lease and logical PacketID race domain. First valid PacketID arrival wins, later duplicate copies are suppressed, bounded out-of-order unique packets deliver independently with no cross-lane HOL.",
-    "replacement": "Planned healthy replacement is make-before-break A -> A+B -> B. Candidate failure leaves A untouched. Game replacement may use A+B -> A+B+C -> B+C one lane at a time with generation fencing.",
-    "logical_tunnel": "TunnelID and server-assigned IPv4 lease belong to Logical Tunnel/device, not lane/LiveID. Same-account devices get distinct leases. Source anti-spoof is mandatory. Shared Linux TUN + one WBD-owned host NAT remains final raw-IP direction.",
-    "transport_freeze": "No sustained ordinary kernel TCP, no TCP-over-TCP HOL, pinned wolfSSL DTLS 1.3, FEC release wire only off or fixed systematic 20:20 and lane-local, legacy FakeTCP recovery default. Do not change transport core without deterministic lower-layer evidence."
+    "authority": "Explicit user hard requirement. ADR-0011 controls per-lane same-association Reality-like bootstrap/no-HOL; ADR-0012 controls Logical Tunnel 1..4 lanes, Game/race/dedup and make-before-break. Any global-one-public-flow interpretation is invalid.",
+    "critical_guard": "Each Transport Lane has exactly one TCP-shaped public 4-tuple/SYN lineage/sequence space from FakeTCP SYN through teardown. A Logical Tunnel may own 1..4 independent complete lanes.",
+    "bootstrap_phase": "The opening seconds are a bounded reliable ordered adapter carried inside the same FakeTCP association and should resemble normal Firefox-120-like TLS 1.3 / Reality-like setup as closely as practical. It is not a separate kernel TCP product connection.",
+    "mode_switch": "Authenticated setup crosses an explicit in-band barrier on the same association into DTLS/datagram mode with no FIN, RST, reconnect or new WBD payload SYN.",
+    "hol_rule": "Reliable ordered semantics are setup-only. After the barrier, independently complete authenticated datagrams must progress despite earlier missing FakeTCP sequence ranges; sustained ordinary kernel TCP/TCP-over-TCP HOL is forbidden.",
+    "tcp_like_core": "Existing mature FakeTCP/TCP-like recovery, ACK/SACK/RTO and release FEC behavior is frozen unless a deterministic test isolates a core defect.",
+    "multipath": "Transport Lanes never share FakeTCP sequence spaces, DTLS key/nonce state or FEC blocks. They share Logical Tunnel identity/server lease and logical PacketID race domain. First valid arrival wins; duplicates are suppressed; no cross-lane HOL.",
+    "delivery_rule": "Exact candidate HEAD must pass current hosted Windows and Linux product qualification including combined Windows-runtime -> Linux-server. Physical Windows -> Ubuntu remains final acceptance authority."
   },
   "continuation_cursor": {
-    "last_completed_action": "Phase B authority repair updated ADR-0012, withdrew ADR-0014, kept ADR-0013 historical/withdrawn, repaired PROJECT_CONSTITUTION.md / ARCHITECTURE.md / ROADMAP.md and PR #9 metadata. README was already correct and was intentionally preserved. Forensic evidence is recorded in docs/development/2026-08-31-adr0014-globalization-rollback.md.",
-    "current_task": "Phase C contract/test repair, then Phase D product code/orchestration repair, then exact-head qualification.",
-    "why_now": "Current code still contains MaxProductPublicTransportLanes=1, Windows production Controller bypasses existing MultiLanePlan, Linux manager does not start Game/race, and release/handoff tests still enforce ADR-0014 global-one-lane strings. Authority is fixed first so those product/contract changes have an unambiguous source of truth.",
-    "done_when": "ADR-0014 withdrawn; ADR-0012 current; max=4; lane counts 1..4 accepted/fifth rejected; Game and make-before-break are product behavior; Windows production supports 1..4 lane orchestration around one Wintun; Linux product supports tunnel-level Game/race while retaining one public server port/shared TUN/one NAT; per-lane same-flow/no-HOL and lease/spoof/shared-TUN tests remain green; handoff and PR metadata contain no global-one-lane misinformation.",
-    "next_atomic_action": "Rewrite polluted architecture/release contract tests so they enforce per-lane single-flow plus Logical Tunnel 1..4/Game/make-before-break, then restore MaxProductPublicTransportLanes=4 without changing FakeTCP/DTLS/LINK/FEC wire."
+    "last_completed_action": "Sequence 80 handoff was written at canonical commit 95fa99ba10d6fd43c7e35fac7754f592519a891d, then its handoff-verify run 33514853996 failed deterministically because resume_read_set referenced four feature-only paths missing from canonical: internal/logicaltunnel/logicaltunnel.go, internal/logicaltunnel/lifecycle.go, internal/windowsruntime/multilane.go, internal/releasecontract/single_flow_release_test.go. No product code caused that handoff failure. Sequence 81 replaces those paths with canonical-existing transport/runtime sources while preserving the exact feature checkpoint b8e84ad7.",
+    "current_task": "Verify this sequence-81 handoff contract first. After it is green, live-refresh PR #9 and inspect the exact feature HEAD implementation of the historical physical Windows failure 'wbd-faketcp handshake: faketcp: not ipv4/tcp'. Determine whether latest feature code already treats unrelated Npcap frames as ignorable. If not, fix only that Windows capture/handshake boundary and add deterministic tests for ARP, IPv6, IPv4 UDP and unrelated TCP before a valid WBD SYNACK. Keep mature FakeTCP recovery algorithms unchanged.",
+    "why_now": "The user explicitly requires handoff before development and requires Windows and Linux to run successfully before delivery. Physical Linux has already reached same-flow bootstrap -> DTLS -> LINK, while a prior Windows physical run failed before ticket readiness at the Npcap/FakeTCP parse boundary. The feature-head automated matrix is green, so the next useful work is qualification completeness and that physical Windows edge, not transport-core tuning.",
+    "done_when": "One immutable candidate source HEAD has current green CI/handoff, one-SYN per-lane single-flow E2E, post-switch no-HOL, Reality-like TLS persona, mature FakeTCP weak-network recovery, lane count 1..4/fifth rejected, Game race/dedup/no-cross-lane-HOL, make-before-break candidate-failure preservation, Windows runtime/portable/admin/raw-IP, Linux raw-netns/firewall/release/shared-TUN, FEC off/20:20 and combined hosted Windows-runtime -> Linux-server qualification. Matching artifacts from that same source HEAD then pass physical Windows 11 -> Ubuntu ARM64 acceptance.",
+    "next_atomic_action": "Confirm sequence-81 handoff-verify success. Then refresh feat/single-flow-reality-faketcp and PR #9, read docs/development/SINGLE_FLOW_DEVLOG.md plus current Windows Npcap FakeTCP handshake code, and fix only the first deterministic remaining Windows orchestration/capture blocker."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
     ".wbd/handoff/README.md",
-    "docs/development/2026-08-31-adr0014-globalization-rollback.md",
-    "docs/architecture/ADR-0011-single-public-flow-reality-bootstrap.md",
-    "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
-    "docs/architecture/ADR-0014-global-single-flow-reality-like-bootstrap-final-freeze.md",
+    "docs/development/SINGLE_FLOW_DEVLOG.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
-    "internal/logicaltunnel/logicaltunnel.go",
-    "internal/windowsruntime/multilane.go",
+    "ROADMAP.md",
     "internal/windowsruntime/controller.go",
-    "internal/releasecontract/single_flow_release_test.go"
+    "internal/windowsruntime/plan.go",
+    "cmd/wbd-faketcp/main_windows.go",
+    "cmd/wbd-faketcp-mux/main_linux.go",
+    "internal/faketcp/server_mux.go",
+    "scripts/linux_server_manager.sh"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "01e603c5c2d51fbad13e2dd2fcab68f8648408f1",
-    "result": "fail",
-    "scope": "Polluted forensic baseline, not release evidence. Repository authority/contracts incorrectly enforced global one-lane ADR-0014 semantics. Transport-core failures are not established by this snapshot."
+    "tested_commit": "b8e84ad76daecbb7f281e4fefc46dec8c2e542b4",
+    "result": "pass",
+    "scope": "Exact feature-head GitHub Actions snapshot: 30 runs observed, all completed with no feature-head failure found; combined hosted Windows + Linux qualification and aggregate succeeded. This is automated evidence, not physical release acceptance."
   },
-  "product_policy": {
-    "public_transport": "Per-lane single-flow. Each lane is one complete same-association FakeTCP -> Reality-like TLS bootstrap -> barrier -> DTLS -> LINK -> lane-local FEC transport. Logical Tunnel may own 1..4 independent lanes.",
-    "logical_tunnel": "Stable TunnelID/server lease/logical PacketID race domain above replaceable lanes. Normal desired=1; Game desired=2..4; Dormant=0.",
-    "multipath": "Game/race is product behavior with first-arrival delivery, duplicate suppression, bounded out-of-order unique delivery and no cross-lane HOL.",
-    "replacement": "Planned healthy replacement is A -> A+B -> B; candidate failure preserves A; Game rotates one lane at a time.",
-    "linux_rawip": "One public WBD_PORT/raw mux may carry multiple independent lane tuples for one Logical Tunnel. Per-lane DTLS/LINK -> Game/race -> Logical Tunnel -> shared WBD TUN -> root routing -> one WBD-owned host NAT. Source anti-spoof remains mandatory.",
-    "windows": "One Logical Tunnel/one Wintun orchestrates 1..4 independent LaneBootstrap chains. No preliminary ordinary kernel-TCP Reality WBD connection. Underlay escape, IPv6 fail-closed connected interval and deterministic cleanup remain mandatory.",
-    "observability": "Keep non-secret boundary markers/counters without per-packet INFO spam. Do not log credentials/passwords/tickets/resume/identity secrets."
+  "active_single_flow_branch": {
+    "pr": 9,
+    "branch": "feat/single-flow-reality-faketcp",
+    "head": "b8e84ad76daecbb7f281e4fefc46dec8c2e542b4",
+    "classification": "Active per-lane same-public-flow implementation plus Logical Tunnel 1..4/Game/make-before-break product layer and exact-head qualification kick.",
+    "transport_core_policy": "Freeze mature FakeTCP/TCP-like recovery/ACK/SACK/RTO/FEC behavior unless deterministic lower-layer evidence requires a targeted fix."
+  },
+  "physical_acceptance_snapshot": {
+    "authority": "user_provided_historical_snapshot_not_commit_attributed",
+    "result": "fail",
+    "windows_observation": "Physical Windows self-test on 2026-08-29 showed Npcap mode ready, then 'wbd-faketcp handshake: faketcp: not ipv4/tcp', followed by single-flow Reality ticket timeout and an already-exited child stop Access denied cleanup error.",
+    "linux_observation": "Physical Ubuntu ARM64 history contains a successful same-flow session: WBD_SINGLE_FLOW_BOOTSTRAP_READY same_flow=1 -> DTLS PEEK/HRR/ACCEPT_PASS -> READY role=server -> WBD_LINK_MUX_SESSION_READY.",
+    "interpretation": "The architecture can reach LINK physically on Linux, but fresh exact-candidate Windows-to-Ubuntu acceptance is still required."
+  },
+  "qualification_snapshot": {
+    "authority": "snapshot_not_live",
+    "source_head": "b8e84ad76daecbb7f281e4fefc46dec8c2e542b4",
+    "known_red": {},
+    "known_green_or_completed": {
+      "workflow_runs_observed": 30,
+      "all_observed_feature_runs_completed": true,
+      "hosted_windows_linux_qualification": "success",
+      "aggregate": "success"
+    },
+    "release_authorized": false
   },
   "validated_findings": {
-    "forensic_baseline": "Polluted baseline HEAD 01e603c5 introduced/reinforced global-one-lane authority. fba73a51 introduced ADR-0014 freeze; 85f66ab7 superseded ADR-0012; 1ec342f4 made cardinality explicit. History is preserved.",
-    "adr0011": "ADR-0011 was already correct: single-flow applies to each Transport Lane/epoch, not the whole Logical Tunnel.",
-    "multipath_primitives": "internal/gamelane and internal/gamecontrol still implement 1..4 lane race semantics; internal/windowsruntime/multilane.go still contains LaneBootstrap/MultiLanePlan/Game/one-Wintun planning; server activeTunnelPeers remains a bounded set. Product gates/wiring, not transport wire, are the primary rollback surface.",
-    "polluted_code": "internal/logicaltunnel sets MaxProductPublicTransportLanes=1; Windows Controller starts one lane; Linux manager advertises max_tunnel_lanes=1 and omits Game in product run; release/handoff tests enforce global-one-lane strings.",
-    "transport_core": "No evidence in this rollback requires changing mature FakeTCP/DTLS/LINK/FEC wire semantics."
+    "single_flow_architecture": "Public transport is not ordinary Reality TCP followed by a second FakeTCP SYN. Each lane is FakeTCP-owned from SYN; its bounded reliable prefix carries TLS 1.3 Reality-like admission and the same association switches to DTLS/LINK/FEC without reconnect.",
+    "logical_tunnel": "Single-flow is per Transport Lane. Logical Tunnel may own 1..4 independent complete lanes; Game/race and make-before-break are product behavior.",
+    "automated_state": "Exact feature HEAD b8e84ad7 has an all-completed/no-feature-failure workflow snapshot including hosted Windows + Linux qualification success.",
+    "physical_evidence": "Physical Linux has reached same-flow bootstrap -> DTLS -> LINK. A prior physical Windows run failed at a FakeTCP/Npcap parse boundary before ticket readiness.",
+    "tcp_like_core": "No current evidence justifies changing mature FakeTCP/TCP-like recovery.",
+    "current_blocker": "Handoff contract verification first, then qualification completeness and final physical Windows->Ubuntu acceptance."
   },
   "operational_continuity": {
-    "durable_logs": "Detailed rollback evidence and ongoing phase results are recorded in docs/development/2026-08-31-adr0014-globalization-rollback.md.",
-    "rule": "Refresh live HEAD/PR/Actions at takeover. Do not treat sequence 77, ADR-0013 or withdrawn ADR-0014 as product-owner authority. End the development turn with a new refreshed handoff sequence and run handoff-verify after contract repair."
+    "canonical_sequence_80_commit": "95fa99ba10d6fd43c7e35fac7754f592519a891d",
+    "canonical_sequence_80_verify_run": 33514853996,
+    "canonical_sequence_80_verify_result": "failure_resume_read_set_feature_only_paths",
+    "feature_head": "b8e84ad76daecbb7f281e4fefc46dec8c2e542b4",
+    "durable_logs": "docs/development/SINGLE_FLOW_DEVLOG.md is the durable engineering history; chat history is secondary and may be truncated.",
+    "rule": "Start future work by live-refreshing canonical HEAD, PR #9 feature HEAD, Actions and handoff. End development turns with a new canonical machine-readable handoff and handoff-verify. Never call skipped/path-filtered gates green and never deliver artifacts before exact-head Windows+Linux qualification plus physical acceptance."
   }
 }
