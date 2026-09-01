@@ -1,7 +1,7 @@
 {
   "schema_version": "wbd-session-handoff/v1",
   "repository": "lly8666/wobuzhidao",
-  "continuity_sequence": 60,
+  "continuity_sequence": 61,
   "active_branch": "exp/singleflow-realitylike-v3",
   "active_issue": 1,
   "active_pr": 10,
@@ -16,13 +16,13 @@
     "Do not deliver a new Windows/Linux artifact pair until the exact final V3 behavior has passed both the strong Linux single-flow qualification and a real Administrator Windows 11 x64 Npcap 1.88 capture/injection qualification.",
     "Npcap Free Edition is never redistributed by WBD and is not silently installed; physical qualification may silently uninstall Npcap after the run using the documented all-edition uninstall path."
   ],
-  "current_milestone": "V3 single-public-flow behavior remains automated-green and a real-Npcap physical release gate has now been added. Checkpoint 34906fc6997b1440a8dc1c4709691a8f44a3a875 includes verified Npcap uninstall support, WBD_HEADLESS presentation for the exact portable self-test, a physical Windows Npcap qualification script, a self-hosted Windows physical workflow, and hosted-Windows parser/build guards. The strong Linux/NAT Reality-like E2E, main CI, Windows/Linux cross-platform gate, FakeTCP native, first-arrival, fullstack first-arrival, reconnect stress and pcap-20loss all completed success for this checkpoint. Detailed physical-gate development history is recorded in docs/experiments/singleflow-v3-physical-npcap-gate-2026-09-01.md at metadata head d31fda7c330d168da44706af42106ebb2a9256e9. No real Windows Npcap capture/injection pass has yet been recorded for this final gate, so no new binary pair is release-qualified for delivery.",
+  "current_milestone": "V3 single-public-flow behavior remains automated-green and a real-Npcap physical release gate has now been added. Checkpoint 34906fc6997b1440a8dc1c4709691a8f44a3a875 includes verified Npcap uninstall support, WBD_HEADLESS presentation for the exact portable self-test, a physical Windows Npcap qualification script, a self-hosted Windows physical workflow, and hosted-Windows parser/build guards. The strong Linux/NAT Reality-like E2E, main CI, Windows/Linux cross-platform gate, FakeTCP native, first-arrival, fullstack first-arrival, reconnect stress and pcap-20loss all completed success for this checkpoint. Detailed physical-gate development history is recorded in docs/experiments/singleflow-v3-physical-npcap-gate-2026-09-01.md at metadata head d31fda7c330d168da44706af42106ebb2a9256e9. No real Windows Npcap capture/injection pass has yet been recorded for this final gate, so no new binary pair is release-qualified for delivery. Sequence 60 failed handoff schema verification only because local_test_snapshot.result used a descriptive value outside the verifier enum; sequence 61 corrects that field to not_run without changing product or qualification state.",
   "continuation_cursor": {
-    "last_completed_action": "Added the real Windows Npcap physical qualification gate and audited checkpoint 34906fc...: singleflow-v3-crossplatform 33467225228 success, singleflow-realitylike-e2e 33467224779 success, ci 33467225428 success, faketcp-native 33467224666 success, faketcp-first-arrival 33467225128 success, fullstack-first-arrival 33467224620 success, reconnect-stress 33467224381 success, and faketcp-pcap-20loss 33467225388 success. Added the detailed physical-gate development log at d31fda7c....",
+    "last_completed_action": "Added the real Windows Npcap physical qualification gate and audited checkpoint 34906fc...: singleflow-v3-crossplatform 33467225228 success, singleflow-realitylike-e2e 33467224779 success, ci 33467225428 success, faketcp-native 33467224666 success, faketcp-first-arrival 33467225128 success, fullstack-first-arrival 33467224620 success, reconnect-stress 33467224381 success, and faketcp-pcap-20loss 33467225388 success. Added the detailed physical-gate development log at d31fda7c.... Sequence 60 handoff verification failed only on the invalid local test result enum; sequence 61 corrects it to not_run.",
     "current_task": "Obtain a physically qualified Windows 11 x64 Npcap result for the exact final portable behavior, then reconfirm/build the Linux ARM64 server from the same behavior checkpoint and only then prepare a release pair.",
     "why_now": "Hosted Windows and Linux automation now covers the V3 protocol, no-HOL transition, adapter-noise demux, reconnect and loss behavior, but the user explicitly requires real Npcap capture/injection on Windows before delivery. The remaining uncertainty is a physical adapter/driver boundary, not the frozen TCP-like algorithm.",
     "done_when": "A real elevated Windows 11 x64 machine with Npcap 1.88 runs the exact final portable artifact through scripts/windows_npcap_physical_qualify.ps1 and records WBD_WINDOWS_NPCAP_PHYSICAL_PASS plus all required FakeTCP/DTLS/LINK/TUN/probe/cleanup markers; requested Npcap removal is verified; the strong Linux single-flow qualification and Linux ARM64 release are green for the same final behavior checkpoint; artifact hashes and run identities are recorded; handoff-verify is green. Only then may the pair be delivered.",
-    "next_atomic_action": "Live-refresh the branch and Actions, identify or build the exact Windows portable artifact for checkpoint 34906fc... (or the next behavior-equivalent final checkpoint), then run .github/workflows/windows-npcap-physical.yml on an elevated self-hosted Windows x64 runner labeled wbd-npcap with a runner-local profile and uninstall_after=true. If no such runner is connected, do not fabricate a pass or deliver binaries; continue only with non-physical qualification and keep this gate open."
+    "next_atomic_action": "Confirm sequence 61 handoff-verify is green, then inspect repository self-hosted Actions runners for an online elevated Windows x64 runner labeled wbd-npcap. If available, identify/build the exact Windows portable artifact for checkpoint 34906fc... (or the next behavior-equivalent final checkpoint) and run .github/workflows/windows-npcap-physical.yml with a runner-local profile and uninstall_after=true. If no such runner is connected, do not fabricate a pass or deliver binaries; continue non-physical qualification and keep this gate open."
   },
   "live_ci_snapshot": {
     "authority": "snapshot_not_live",
@@ -33,8 +33,8 @@
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
     "tested_commit": "34906fc6997b1440a8dc1c4709691a8f44a3a875",
-    "result": "incomplete_physical_gate",
-    "note": "Automated Windows hosted and Linux raw/NAT single-flow qualification is green. The physical Windows 11/Npcap/NIC capture-injection gate has been implemented but has NOT yet produced WBD_WINDOWS_NPCAP_PHYSICAL_PASS for this final checkpoint. This absence blocks artifact delivery and must never be described as a pass."
+    "result": "not_run",
+    "note": "The final physical Windows 11/Npcap/NIC capture-injection qualification has NOT been run for this checkpoint. Automated hosted-Windows and Linux raw/NAT qualifications are green, but they do not satisfy the physical gate. This absence blocks artifact delivery and must never be described as a pass."
   },
   "required_data_plane_assets": [],
   "resume_read_set": [
