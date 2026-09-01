@@ -1,34 +1,34 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 79,
+  "continuity_sequence": 80,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "e7b21b0980ca0dec721dfdd3a34ec21cb68242d7",
+  "checkpoint_based_on_head_sha": "b8e84ad76daecbb7f281e4fefc46dec8c2e542b4",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "Ship WBD with per-Transport-Lane one-public-flow transport: FakeTCP owns each TCP-shaped 4-tuple/SYN lineage from SYN, the first bounded reliable phase carries Firefox-120-like TLS 1.3 / Reality-like admission, then that same association switches in-band with no FIN/RST/reconnect/new SYN to pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/VPN datagrams without ordinary kernel-TCP cumulative-stream HOL. One Logical Tunnel may own 1..4 independent complete Transport Lanes.",
-    "current_milestone": "PR #9 has advanced beyond the stale sequence-74/78 recovery points. Current feature HEAD e7b21b0980ca0dec721dfdd3a34ec21cb68242d7 contains the authority rollback plus Logical Tunnel 1..4 lifecycle restoration, Windows multilane orchestration work, Linux Game/race -> shared TUN -> one WBD-owned NAT product wiring, release bundling and product-topology tests. Mature FakeTCP/TCP-like recovery remains frozen. The immediate release blocker is qualification completeness and physical acceptance, not a justified transport retune.",
-    "local_optimization_stop_rule": "Do not revive ordinary Reality TCP -> close -> second FakeTCP SYN. Do not change mature FakeTCP recovery/ACK/SACK/FEC unless a deterministic lower-layer regression proves necessity. Do not deliver Windows/Linux artifacts until one exact candidate source HEAD has current green hosted Windows-native + Linux raw/netns + single-flow/no-HOL + combined Windows-runtime -> Linux-server qualification, then final physical Windows 11 Npcap/NIC/NAT/ISP -> Ubuntu ARM64 acceptance."
+    "current_milestone": "PR #9 feature HEAD b8e84ad76daecbb7f281e4fefc46dec8c2e542b4 completed the sequence-80 exact-head product qualification kick. Live refresh observed 30 exact-head workflow runs, all completed, with no failure conclusion found; combined hosted Windows + Linux qualification is success. Mature FakeTCP/TCP-like recovery remains frozen. Remaining release authority still requires physical Windows 11 Npcap/NIC/NAT/ISP -> Ubuntu ARM64 acceptance on artifacts built from the exact qualified source HEAD.",
+    "local_optimization_stop_rule": "Do not revive ordinary Reality TCP -> close -> second FakeTCP SYN. Do not retune mature FakeTCP recovery/ACK/SACK/FEC without deterministic evidence. Do not call Actions packaging alone a release. Do not deliver a final product until exact-head hosted Windows+Linux qualification is green and physical Windows->Ubuntu acceptance succeeds."
   },
   "architecture_override": {
-    "authority": "Explicit user hard requirement: single-flow is PER TRANSPORT LANE; ADR-0011 controls same-association Reality-like bootstrap/no-HOL and ADR-0012 controls Logical Tunnel 1..4 lanes/Game/make-before-break. Agent-authored ADR-0014 global-one-lane interpretation is withdrawn/invalidated.",
-    "critical_guard": "Each Transport Lane has exactly one TCP-shaped public 4-tuple/SYN lineage/sequence space from FakeTCP SYN through teardown. A Logical Tunnel may own 1..4 such independent lanes. Normal steady policy may use one; Game/weak-network may use 2..4; planned healthy replacement is make-before-break.",
+    "authority": "Explicit user hard requirement: single-flow is PER TRANSPORT LANE; ADR-0011 controls same-association Reality-like bootstrap/no-HOL and ADR-0012 controls Logical Tunnel 1..4 lanes/Game/make-before-break. ADR-0014 global-one-lane interpretation is withdrawn/invalidated.",
+    "critical_guard": "Each Transport Lane has exactly one TCP-shaped public 4-tuple/SYN lineage/sequence space from FakeTCP SYN through teardown. A Logical Tunnel may own 1..4 such independent lanes.",
     "bootstrap_phase": "The opening seconds are a bounded reliable ordered adapter carried INSIDE the same FakeTCP association and must look as close to normal Firefox-120-like TLS 1.3 / Reality-like setup as practical. It is not a separate kernel TCP product connection.",
     "mode_switch": "Authenticated setup crosses an explicit in-band barrier on the same FakeTCP association into DTLS/datagram mode with no FIN, RST, reconnect or new WBD payload SYN.",
     "hol_rule": "Reliable ordered semantics are setup-only. After the barrier, independently complete authenticated datagrams must progress despite earlier missing FakeTCP sequence ranges; sustained ordinary kernel TCP/TCP-over-TCP HOL is forbidden.",
     "tcp_like_core": "Existing FakeTCP/TCP-like recovery, ACK/SACK/RTO and release FEC behavior is mature and frozen unless deterministic evidence isolates a core defect.",
     "multipath": "Transport Lanes never share FakeTCP sequence spaces, DTLS key/nonce state or FEC blocks. They share Logical Tunnel identity/server lease and logical PacketID race domain. First valid arrival wins; duplicates are suppressed; no cross-lane HOL.",
-    "delivery_rule": "No artifact handoff based only on Actions packaging success. Exact candidate HEAD must pass current hosted Windows and Linux product qualification including combined Windows-runtime -> Linux-server. Physical Windows 11 + Npcap/NIC/NAT/ISP -> Ubuntu ARM64 remains required final acceptance."
+    "delivery_rule": "Exact candidate HEAD must pass current hosted Windows and Linux product qualification including combined Windows-runtime -> Linux-server. Physical Windows 11 + Npcap/NIC/NAT/ISP -> Ubuntu ARM64 is still required final acceptance."
   },
   "continuation_cursor": {
-    "last_completed_action": "Recovered live state before further development. Canonical dev/wbd-raw-fec-v2 is at handoff-only HEAD 9d001a6a23fc8adb90da9bc2494f0935beee5242 (sequence 74). PR #9 is open on feat/single-flow-reality-faketcp at e7b21b0980ca0dec721dfdd3a34ec21cb68242d7. Feature handoff sequence 78 checkpointed 492a6aafd1f75c9e3826b8e1551991bde47951be; current feature HEAD is 26 commits ahead. Those commits touch Logical Tunnel lifecycle, link-server mux, Game server, Windows controller/executor/multilane, Linux manager/release bundle and release-contract tests. Current e7b check-runs are completed with no failure conclusion observed in the live check-run set, but multiple packaging jobs are skipped by path filters, so this is not release authorization.",
-    "current_task": "After this handoff is verified, continue development from e7b21b09 without touching mature TCP-like transport. First establish current exact-candidate Windows+Linux qualification completeness; fix only the first deterministic product/orchestration failure. Then complete Logical Tunnel lifecycle/Game/make-before-break/shared-TUN packaging qualification. Do not produce a user artifact until the automated same-head Windows/Linux gate is current green and a physical acceptance candidate is intentionally designated.",
-    "why_now": "The user explicitly requires Windows and Linux to be tested end-to-end before delivery and reported a recent physical Windows single-flow failure. Repository history also shows a physical Ubuntu run that reached same-flow bootstrap -> DTLS ACCEPT_PASS -> LINK session, proving the architecture can work, while a later Windows self-test failed at the FakeTCP/Npcap/bootstrap boundary. Therefore green narrow Actions cannot substitute for cross-platform exact-head qualification and final physical acceptance.",
-    "done_when": "One immutable candidate source HEAD passes current main CI/handoff, per-lane one-SYN single-flow E2E, post-switch no-HOL, Firefox-like persona, FakeTCP weak-network recovery, lane-count 1..4/fifth rejected, Game race/dedup/no-cross-lane-HOL, make-before-break candidate-failure preservation, Windows runtime/portable/admin/raw-IP, Linux raw-netns/firewall/release/shared-TUN/one-NAT, FEC off/20:20 and combined Windows-runtime -> Linux-server qualification. Matching Windows/Linux artifacts are then produced from that exact source HEAD and only designated final after physical Windows -> Ubuntu acceptance.",
-    "next_atomic_action": "Live-refresh all mandatory Actions for PR #9 HEAD e7b21b0980ca0dec721dfdd3a34ec21cb68242d7. Enumerate which release/Windows/Linux/combined gates were skipped by path filters and explicitly rerun/dispatch them for the exact candidate. If any fail, inspect and fix the first deterministic non-transport blocker. Keep FakeTCP/DTLS/LINK/FEC wire frozen."
+    "last_completed_action": "Live-refreshed canonical and feature state before development. Canonical dev/wbd-raw-fec-v2 was at sequence-79 handoff HEAD 7d7a6acc945a69f8b811a1accae943ca8acfffd5. PR #9 is open on feat/single-flow-reality-faketcp at b8e84ad76daecbb7f281e4fefc46dec8c2e542b4. Exact-head Actions refresh found 30 workflow runs; all were completed and no failure, queued or in-progress status was found. Check-run evidence includes hosted Windows + Linux qualification success and aggregate success.",
+    "current_task": "After this handoff verifies, continue above the frozen mature TCP-like transport. Inspect exact-head qualification details for any skipped/non-authoritative release surface, ensure Windows and Linux artifacts originate from the exact qualified source HEAD, and strengthen automated Windows<->Linux single-flow startup coverage where hosted environments can reproduce it. Fix only the first deterministic orchestration/product blocker. Do not require the user to reproduce a failure already covered by automation.",
+    "why_now": "The user explicitly requires handoff first, then continued development, and requires Windows and Linux to be tested before delivery. Previous physical evidence showed Linux single-flow bootstrap -> DTLS -> LINK can succeed while one Windows run failed at a Npcap/FakeTCP parse boundary. The current exact-head hosted matrix is green, so further work should focus on qualification completeness and final physical acceptance rather than transport-core changes.",
+    "done_when": "One immutable candidate source HEAD has current green CI/handoff, per-lane one-SYN single-flow E2E, post-switch no-HOL, Firefox-like persona, FakeTCP weak-network recovery, lane-count 1..4/fifth rejected, Game race/dedup/no-cross-lane-HOL, make-before-break candidate-failure preservation, Windows runtime/portable/admin/raw-IP, Linux raw-netns/firewall/release/shared-TUN/one-NAT, FEC off/20:20 and combined Windows-runtime -> Linux-server qualification. Matching artifacts are built from that same source HEAD and then pass physical Windows 11 -> Ubuntu ARM64 acceptance.",
+    "next_atomic_action": "Verify the sequence-80 handoff contract. Then inspect the exact b8e84ad7 workflow set and durable development log, identify any skipped or missing Windows/Linux release gate despite the all-completed/no-failure snapshot, and add/repair only the missing qualification. Keep FakeTCP/TCP-like recovery and post-switch wire semantics frozen."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
@@ -47,54 +47,51 @@
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "e7b21b0980ca0dec721dfdd3a34ec21cb68242d7",
+    "tested_commit": "b8e84ad76daecbb7f281e4fefc46dec8c2e542b4",
     "result": "pass",
-    "scope": "Repository/check-run snapshot only: the current visible check-run set for e7b is completed and contains no failure conclusion observed during this handoff refresh. Some release/package jobs are skipped by path filters, therefore this snapshot is explicitly NOT full release authorization and does not supersede the physical acceptance failure."
+    "scope": "Exact-head GitHub Actions snapshot from live refresh on 2026-09-01: 30 workflow runs observed, all completed; no failure, queued or in-progress status found. Combined hosted Windows + Linux qualification and aggregate checks are success. This is automated qualification evidence, not physical acceptance."
   },
   "active_single_flow_branch": {
     "pr": 9,
     "branch": "feat/single-flow-reality-faketcp",
-    "head": "e7b21b0980ca0dec721dfdd3a34ec21cb68242d7",
-    "classification": "Active per-lane same-public-flow implementation plus restored Logical Tunnel 1..4/Game/make-before-break product layer.",
-    "previous_handoff_sequence": 78,
-    "previous_handoff_checkpoint": "492a6aafd1f75c9e3826b8e1551991bde47951be",
-    "commits_since_previous_feature_handoff": 26,
-    "latest_commit_message": "test: require Linux Game to shared-TUN product topology",
+    "head": "b8e84ad76daecbb7f281e4fefc46dec8c2e542b4",
+    "classification": "Active per-lane same-public-flow implementation plus Logical Tunnel 1..4/Game/make-before-break product layer and exact-head qualification kick.",
+    "latest_commit_message": "ci: kick seq80 exact-head product qualification",
     "transport_core_policy": "Freeze mature FakeTCP/TCP-like recovery/ACK/SACK/FEC behavior unless deterministic lower-layer evidence requires a targeted fix."
   },
   "physical_acceptance_snapshot": {
     "authority": "user_provided_historical_snapshot_not_commit_attributed",
     "result": "fail",
     "windows_observation": "A physical Windows self-test on 2026-08-29 showed Npcap mode ready, then wbd-faketcp handshake error 'faketcp: not ipv4/tcp', followed by single-flow Reality ticket readiness timeout and a stop Access denied cleanup error.",
-    "linux_observation": "The physical Ubuntu ARM64 server history also contains an earlier successful same-flow session with WBD_SINGLE_FLOW_BOOTSTRAP_READY same_flow=1 -> DTLS PEEK/HRR/ACCEPT_PASS -> READY role=server -> WBD_LINK_MUX_SESSION_READY, demonstrating the same-flow architecture has reached steady LINK on physical Linux at least once.",
-    "interpretation": "The Windows failure is final-acceptance evidence that must not be hidden by hosted CI. The durable devlog records that Npcap ingress filtering was subsequently added for unrelated frames, so the historical failure is not automatically attributable to the current e7b candidate. A new physical run is required only after exact-head hosted Windows/Linux qualification is complete."
+    "linux_observation": "Physical Ubuntu ARM64 history contains a successful same-flow session with WBD_SINGLE_FLOW_BOOTSTRAP_READY same_flow=1 -> DTLS PEEK/HRR/ACCEPT_PASS -> READY role=server -> WBD_LINK_MUX_SESSION_READY.",
+    "interpretation": "Physical evidence proves the architecture can reach LINK on Linux but final Windows-to-Ubuntu acceptance has not yet passed on the current exact candidate. Hosted green results do not erase this requirement."
   },
   "qualification_snapshot": {
     "authority": "snapshot_not_live",
-    "source_head": "e7b21b0980ca0dec721dfdd3a34ec21cb68242d7",
+    "source_head": "b8e84ad76daecbb7f281e4fefc46dec8c2e542b4",
     "known_red": {},
     "known_green_or_completed": {
-      "observed_check_runs_total": 26,
-      "faketcp_pcap_20loss_run": 33408941179
+      "workflow_runs_observed": 30,
+      "all_observed_runs_completed": true,
+      "hosted_windows_linux_qualification": "success",
+      "aggregate": "success"
     },
-    "evidence": "Live check-run refresh found no failure conclusion and no queued/in-progress checks in the fetched exact-head set. However release jobs including ARM64/AMD64 can be skipped on this path set, so mandatory same-head Windows/Linux packaging/raw-IP/combined evidence must be explicitly re-established before delivery.",
+    "evidence": "Live exact-head Actions refresh found no failure conclusion and no queued/in-progress workflow among the 30 runs returned. Delivery still requires checking for skipped/missing release surfaces and physical acceptance.",
     "release_authorized": false
   },
   "validated_findings": {
     "single_flow_architecture": "Public transport is not ordinary Reality TCP followed by a second FakeTCP SYN. Each Transport Lane is FakeTCP-owned from SYN; its bounded reliable prefix carries real TLS 1.3 Reality-like admission and the same association switches to DTLS/LINK/FEC without FIN/RST/reconnect/new SYN.",
     "logical_tunnel": "Single-flow is per Transport Lane, not per entire Logical Tunnel. Logical Tunnel may own 1..4 independent complete lanes; Game/race and make-before-break are product behavior.",
-    "recent_product_progress": "Since feature handoff sequence 78, 26 commits modified Logical Tunnel lifecycle, link-server mux, Game server, Windows controller/executor/multilane, Linux manager/release bundle and contract tests. Latest commits wire Linux Game into shared TUN/one NAT and require that product topology in tests.",
-    "physical_evidence": "Physical Linux has reached same-flow bootstrap -> DTLS -> LINK. Physical Windows later failed before ticket readiness at a FakeTCP/Npcap parse boundary. Do not claim physical end-to-end success until a fresh exact-candidate run passes both ends.",
+    "automated_state": "Exact feature HEAD b8e84ad7 has an all-completed/no-failure workflow snapshot including hosted Windows + Linux qualification success.",
+    "physical_evidence": "Physical Linux has reached same-flow bootstrap -> DTLS -> LINK. A prior physical Windows run failed before ticket readiness at a FakeTCP/Npcap parse boundary, so fresh exact-candidate physical acceptance remains mandatory.",
     "tcp_like_core": "No current evidence justifies changing mature FakeTCP/TCP-like recovery. Continue above transport unless a deterministic test isolates a transport-core defect.",
-    "current_blocker": "Release qualification completeness plus unresolved physical Windows acceptance. No new user artifact may be designated until Windows and Linux are both proven on the same candidate."
+    "current_blocker": "Qualification completeness audit plus final physical Windows->Ubuntu acceptance; do not ship based solely on Actions packaging success."
   },
   "operational_continuity": {
-    "canonical_head_before_sequence_79": "9d001a6a23fc8adb90da9bc2494f0935beee5242",
-    "canonical_previous_sequence": 74,
-    "feature_previous_sequence": 78,
-    "feature_head": "e7b21b0980ca0dec721dfdd3a34ec21cb68242d7",
-    "feature_delta_from_sequence78_checkpoint": "26 commits ahead of 492a6aafd1f75c9e3826b8e1551991bde47951be",
-    "durable_logs": "docs/development/SINGLE_FLOW_DEVLOG.md is the durable engineering history for architecture pivot, hosted experiments and physical snapshots. Chat history is secondary and may be truncated.",
+    "canonical_head_before_sequence_80": "7d7a6acc945a69f8b811a1accae943ca8acfffd5",
+    "canonical_previous_sequence": 79,
+    "feature_head": "b8e84ad76daecbb7f281e4fefc46dec8c2e542b4",
+    "durable_logs": "docs/development/SINGLE_FLOW_DEVLOG.md is the durable engineering history. Chat history is secondary and may be truncated.",
     "rule": "Start future work by live-refreshing canonical HEAD, PR #9 feature HEAD, Actions and this handoff. End development turns with a new canonical machine-readable handoff and handoff-verify. Never call skipped/path-filtered release gates green and never deliver artifacts before exact-head Windows+Linux qualification plus physical acceptance."
   }
 }
