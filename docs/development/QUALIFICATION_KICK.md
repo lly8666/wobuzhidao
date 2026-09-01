@@ -20,26 +20,27 @@ This file and `.github/workflows/release-qualification-kick.yml` define the mand
 
 The aggregator requires new `workflow_dispatch` runs on the exact candidate SHA for:
 
-1. `windows-linux-single-flow.yml`
-2. `windows-portable-bundle.yml`
-3. `windows-tun-build.yml`
-4. `windows-tun-admin-smoke.yml`
-5. `windows-rawip-gateway.yml`
-6. `windows-faketcp-persona.yml`
-7. `windows-ipv6-killswitch.yml`
-8. `windows-dtls-build.yml`
-9. `linux-server-release.yml`
-10. `linux-server-firewall.yml`
-11. `single-flow-rawip-e2e.yml`
-12. `mux-load-100m.yml`
-13. `single-flow-startup-stress.yml`
-14. `single-flow-link-fullstack.yml`
-15. `faketcp-recovery-ab.yml`
-16. `openwrt-fullstack-one-shot.yml`
-17. `game-lane-fullstack.yml`
-18. `shared-tun-two-client.yml`
+1. `product-lifecycle-e2e.yml`
+2. `windows-linux-single-flow.yml`
+3. `windows-portable-bundle.yml`
+4. `windows-tun-build.yml`
+5. `windows-tun-admin-smoke.yml`
+6. `windows-rawip-gateway.yml`
+7. `windows-faketcp-persona.yml`
+8. `windows-ipv6-killswitch.yml`
+9. `windows-dtls-build.yml`
+10. `linux-server-release.yml`
+11. `linux-server-firewall.yml`
+12. `single-flow-rawip-e2e.yml`
+13. `mux-load-100m.yml`
+14. `single-flow-startup-stress.yml`
+15. `single-flow-link-fullstack.yml`
+16. `faketcp-recovery-ab.yml`
+17. `openwrt-fullstack-one-shot.yml`
+18. `game-lane-fullstack.yml`
+19. `shared-tun-two-client.yml`
 
-The two additions that are release-critical for the current product layer are `game-lane-fullstack.yml` (1..4 lanes, FEC off/20:20, race/dedup/no-cross-lane-HOL behavior) and `shared-tun-two-client.yml` (two authenticated Logical Tunnels sharing one Linux WBD TUN and one host NAT with lease/source isolation).
+`product-lifecycle-e2e.yml` is release-critical for 1..4 lane lifecycle/Game/make-before-break behavior. `game-lane-fullstack.yml` and `shared-tun-two-client.yml` qualify the restored product topology above transport. `mux-load-100m.yml` is separately mandatory because weak-network/load workflows are path-filtered and the frozen release operating point must not disappear from exact-head authority merely because no transport source file changed.
 
 ## Exact-candidate push authority set
 
@@ -55,14 +56,14 @@ The aggregator additionally resolves and waits for these exact-SHA push runs:
 8. `single-flow-no-hol.yml`
 9. `single-flow-tcp-persona.yml`
 
-Together the 27 child gates cover hosted Windows native protocol/runtime behavior, Windows portable/TUN/admin/raw-IP/IPv6/DTLS/persona, Linux raw/netns/server/firewall/release/shared-TUN/one-NAT, single-flow Reality-like TLS, no-second-SYN, post-switch no-HOL, Game 1..4 lanes, FEC off/20:20, weak-network recovery/first-arrival/load, and OpenWrt regressions.
+Together the 28 child gates cover hosted Windows native protocol/runtime behavior, Windows portable/TUN/admin/raw-IP/IPv6/DTLS/persona, Linux raw/netns/server/firewall/release/shared-TUN/one-NAT, single-flow Reality-like TLS, no-second-SYN, post-switch no-HOL, Game 1..4 lanes, lifecycle/make-before-break, FEC off/20:20, weak-network recovery/first-arrival/load, and OpenWrt regressions.
 
 `windows-linux-single-flow.yml` intentionally reports `physical_npcap=0`: hosted CI can prove native Windows code/wire semantics plus Linux consumption/raw-netns full stack, but it cannot replace final physical Windows 11 Npcap/NIC/NAT/ISP -> Ubuntu ARM64 acceptance.
 
 ## Kick generation
 
-`2026-09-01-seq82-game-single-flow-logical-tunnel-matrix-green`
+`2026-09-01-seq83-28-gate-exact-head-reconciliation`
 
 ## Delivery rule
 
-No Windows/Linux artifact is delivered merely because packaging succeeded. The exact candidate HEAD must first emit `WBD_RELEASE_QUALIFICATION_PASS` after all 27 hosted child gates succeed. Matching Windows/Linux bundles must then identify that same source HEAD. Physical Windows 11 + Npcap/NIC/NAT/ISP -> Ubuntu ARM64 remains final acceptance before calling a release complete.
+No Windows/Linux artifact is delivered merely because packaging succeeded. The exact candidate HEAD must first emit `WBD_RELEASE_QUALIFICATION_PASS` after all 28 hosted child gates succeed. Matching Windows/Linux bundles must then identify that same source HEAD. Physical Windows 11 + Npcap/NIC/NAT/ISP -> Ubuntu ARM64 remains final acceptance before calling a release complete.
