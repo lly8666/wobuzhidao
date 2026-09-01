@@ -24,7 +24,13 @@ type LaneBootstrap struct {
 }
 
 type LanePlan struct {
-	ID      int
+	// ID is the Logical Tunnel/Game race identity and is always 1..4.
+	ID int
+	// Slot selects lane-local loopback ports/process incarnation. Normal product
+	// lanes use Slot==ID. Make-before-break may use a transient private slot while
+	// keeping the same logical ID, so a candidate can become healthy before the
+	// old transport is retired.
+	Slot    int
 	FakeTCP Command
 	DTLS    Command
 	Link    Command
@@ -47,6 +53,13 @@ func lanePort(base, laneID int) (int, error) {
 	return base + laneID - 1, nil
 }
 
+func transportSlotPort(base, slot int) (int, error) {
+	// Slot 5 is reserved for one unjoined make-before-break candidate. It is not
+	// a fifth active Game lane and never appears as a public Logical LaneID.
+	if slot < 1 || slot > logicaltunnel.MaxProductPublicTransportLanes+1 { return 0, errors.New("transport slot must be 1..5") }
+	return base + slot - 1, nil
+}
+
 func laneStatePath(base string, laneID int) (string, error) {
 	if _, err := lanePort(0, laneID); err != nil { return "", err }
 	if strings.TrimSpace(base) == "" { return "", errors.New("lane state path base is required") }
@@ -55,6 +68,11 @@ func laneStatePath(base string, laneID int) (string, error) {
 
 func laneLoopback(base, laneID int) (string, error) {
 	port, err := lanePort(base, laneID); if err != nil { return "", err }
+	return "127.0.0.1:" + strconv.Itoa(port), nil
+}
+
+func transportSlotLoopback(base, slot int) (string, error) {
+	port, err := transportSlotPort(base, slot); if err != nil { return "", err }
 	return "127.0.0.1:" + strconv.Itoa(port), nil
 }
 
@@ -123,7 +141,7 @@ func BuildMultiLanePlan(profile Profile, bootstraps []LaneBootstrap) (MultiLaneP
 	lanes:=make([]LanePlan,0,len(bootstraps));linkAddresses:=make([]string,0,len(bootstraps))
 	for _,b:=range bootstraps{
 		dtlsPlain,_:=laneLoopback(defaultDTLSPlainPort,b.ID);linkListen,_:=laneLoopback(defaultLinkListenPort,b.ID);dtlsPort,_:=lanePort(defaultDTLSPlainPort,b.ID);fakePort,_:=lanePort(defaultFakeTCPLocalPort,b.ID)
-		lanes=append(lanes,LanePlan{ID:b.ID,FakeTCP:b.FakeTCP,DTLS:Command{Name:fmt.Sprintf("dtls-%d",b.ID),Path:bin("wbd_dtls_shim.exe"),Args:[]string{"client",strconv.Itoa(dtlsPort),"127.0.0.1",strconv.Itoa(fakePort),"none","none"}},Link:Command{Name:fmt.Sprintf("link-%d",b.ID),Path:bin("wbd-link-proxy.exe"),Args:[]string{"-mode","client","-listen",linkListen,"-dtls",dtlsPlain,"-fec",profile.FEC,"-mtu",strconv.Itoa(profile.MTU),"-lanes","1","-demo-reality-ticket",strings.TrimSpace(b.Ticket)}}})
+		lanes=append(lanes,LanePlan{ID:b.ID,Slot:b.ID,FakeTCP:b.FakeTCP,DTLS:Command{Name:fmt.Sprintf("dtls-%d",b.ID),Path:bin("wbd_dtls_shim.exe"),Args:[]string{"client",strconv.Itoa(dtlsPort),"127.0.0.1",strconv.Itoa(fakePort),"none","none"}},Link:Command{Name:fmt.Sprintf("link-%d",b.ID),Path:bin("wbd-link-proxy.exe"),Args:[]string{"-mode","client","-listen",linkListen,"-dtls",dtlsPlain,"-fec",profile.FEC,"-mtu",strconv.Itoa(profile.MTU),"-lanes","1","-demo-reality-ticket",strings.TrimSpace(b.Ticket)}}})
 		linkAddresses=append(linkAddresses,linkListen)
 	}
 	gameListen:="127.0.0.1:"+strconv.Itoa(defaultGameListenPort)
