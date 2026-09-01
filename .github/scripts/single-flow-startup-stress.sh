@@ -115,7 +115,10 @@ assert_pid_file() {
 
 validate_tunnel_config() {
   local cfg="$1"
-  python3 - "$cfg" "$ROOT/expected-tunnel.txt" <<'PY'
+  # The client runs as root inside a network namespace and intentionally writes
+  # authenticated ticket/tunnel state with restrictive permissions. Validate
+  # that protected state as root rather than weakening product file modes for CI.
+  sudo python3 - "$cfg" "$ROOT/expected-tunnel.txt" <<'PY'
 import json,sys,pathlib
 cfg=json.load(open(sys.argv[1],encoding='utf-8'))
 tid=cfg.get('tunnel_id','')
@@ -133,6 +136,11 @@ else:
 print('STRESS_TUNNEL_CONFIG_PASS '+value)
 PY
 }
+
+# Fail before the expensive reconnect loop if runner-owned harness diagnostics
+# cannot be created. Product-owned protected files are checked separately above.
+touch "$ROOT/.runner-write-check"
+rm -f "$ROOT/.runner-write-check"
 
 for round in $(seq 1 "$ROUNDS"); do
   port=$((49151 + round))
