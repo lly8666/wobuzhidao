@@ -2,6 +2,7 @@ package main
 
 import (
 	"net"
+	"runtime"
 	"testing"
 	"time"
 
@@ -127,6 +128,24 @@ func TestMaxLanesRejectsThirdRealUDPPeerAndKeepsExistingLanesHealthy(t *testing.
 	gs := s.sessions[sid]
 	s.mu.Unlock()
 	if gs == nil { t.Fatal("logical session disappeared") }
+
+	// The two healthy echoes prove the logical session and admitted lanes still
+	// work, but the final duplicate datagram can still be queued in Run's UDP
+	// goroutine when the client-side reads complete. Wait for the exact 3/3
+	// accounting state with a strict deadline instead of betting on a fixed
+	// sleep or weakening the original assertion.
+	counterDeadline := time.Now().Add(time.Second)
+	for {
+		gs.mu.Lock()
+		inFirst, inDup := gs.inFirst, gs.inDup
+		gs.mu.Unlock()
+		if inFirst == 3 && inDup == 3 { break }
+		if time.Now().After(counterDeadline) {
+			t.Fatalf("inbound counters did not settle before timeout: in_first=%d in_dup=%d, want 3/3", inFirst, inDup)
+		}
+		runtime.Gosched()
+	}
+
 	gs.mu.Lock()
 	bound := len(gs.lanes)
 	inFirst, inDup := gs.inFirst, gs.inDup
