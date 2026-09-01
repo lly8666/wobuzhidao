@@ -49,9 +49,7 @@
     ".github/workflows/windows-npcap-physical.yml",
     "scripts/windows_npcap_abi_qualify.ps1",
     "scripts/windows_npcap_physical_qualify.ps1",
-    "tests/windows_npcap_abi/wpcap_stub.c",
     "cmd/wbd-game-lane-server/main_test.go",
-    "cmd/wbd-faketcp/main_windows.go",
-    "cmd/wbd-faketcp/singleflow_client.go"
+    "cmd/wbd-faketcp/main_windows.go"
   ]
 }
