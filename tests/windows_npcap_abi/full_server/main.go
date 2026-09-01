@@ -15,7 +15,6 @@ import (
 	"math/big"
 	"net"
 	"os"
-	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -244,6 +243,7 @@ func (s *bridgeServer) carrierReader(carrier net.Conn) {
 				fmt.Printf("WBD_NPCAP_FULL_SERVER_SEND_FAIL err=%q\n", e)
 				return
 			}
+		}
 		if err != nil {
 			return
 		}
@@ -404,5 +404,3 @@ func fatalf(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, "WBD_NPCAP_FULL_SERVER_FATAL "+format+"\n", args...)
 	os.Exit(1)
 }
-
-var _ = filepath.Separator
