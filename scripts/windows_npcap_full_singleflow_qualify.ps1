@@ -10,6 +10,17 @@ function Fail([string]$Message) {
     throw "WBD Windows full single-flow qualification failed: $Message"
 }
 
+function ReadText([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return ''
+    }
+    $value = Get-Content -LiteralPath $Path -Raw
+    if ($null -eq $value) {
+        return ''
+    }
+    return [string]$value
+}
+
 $exe = (Resolve-Path -LiteralPath $FakeTCPExe).Path
 $repo = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $bridgeSource = Join-Path $repo 'tests\windows_npcap_abi\wpcap_bridge_stub.c'
@@ -97,19 +108,17 @@ try {
     $deadline = [DateTime]::UtcNow.AddSeconds(5)
     $serverReady = $false
     while ([DateTime]::UtcNow -lt $deadline) {
-        if (Test-Path -LiteralPath $serverOut) {
-            $text = Get-Content -LiteralPath $serverOut -Raw
-            if ($text.Contains('WBD_NPCAP_FULL_SERVER_READY')) {
-                $serverReady = $true
-                break
-            }
+        $text = ReadText $serverOut
+        if ($text.Contains('WBD_NPCAP_FULL_SERVER_READY')) {
+            $serverReady = $true
+            break
         }
         if ($server.HasExited) { break }
         Start-Sleep -Milliseconds 50
     }
     if (-not $serverReady) {
-        $so = if (Test-Path $serverOut) { Get-Content -LiteralPath $serverOut -Raw } else { '' }
-        $se = if (Test-Path $serverErr) { Get-Content -LiteralPath $serverErr -Raw } else { '' }
+        $so = ReadText $serverOut
+        $se = ReadText $serverErr
         Fail "bridge server did not become ready.`nSTDOUT:`n$so`nSTDERR:`n$se"
     }
 
@@ -137,28 +146,26 @@ try {
     $deadline = [DateTime]::UtcNow.AddSeconds(15)
     $datagramReady = $false
     while ([DateTime]::UtcNow -lt $deadline) {
-        if (Test-Path -LiteralPath $clientErr) {
-            $text = Get-Content -LiteralPath $clientErr -Raw
-            if ($text.Contains('WBD_SINGLEFLOW_DATAGRAM_READY public_flow=reused hol=bootstrap-only')) {
-                $datagramReady = $true
-                break
-            }
+        $text = ReadText $clientErr
+        if ($text.Contains('WBD_SINGLEFLOW_DATAGRAM_READY public_flow=reused hol=bootstrap-only')) {
+            $datagramReady = $true
+            break
         }
         if ($client.HasExited -or $server.HasExited) { break }
         Start-Sleep -Milliseconds 50
     }
     if (-not $datagramReady) {
-        $co = if (Test-Path $clientOut) { Get-Content -LiteralPath $clientOut -Raw } else { '' }
-        $ce = if (Test-Path $clientErr) { Get-Content -LiteralPath $clientErr -Raw } else { '' }
-        $so = if (Test-Path $serverOut) { Get-Content -LiteralPath $serverOut -Raw } else { '' }
-        $se = if (Test-Path $serverErr) { Get-Content -LiteralPath $serverErr -Raw } else { '' }
+        $co = ReadText $clientOut
+        $ce = ReadText $clientErr
+        $so = ReadText $serverOut
+        $se = ReadText $serverErr
         Fail "real Windows FakeTCP process did not reach same-flow datagram phase.`nCLIENT STDOUT:`n$co`nCLIENT STDERR:`n$ce`nSERVER STDOUT:`n$so`nSERVER STDERR:`n$se"
     }
 
     if (-not (Test-Path -LiteralPath $ticket)) {
         Fail 'single-flow ticket file was not created'
     }
-    $ticketText = (Get-Content -LiteralPath $ticket -Raw).Trim()
+    $ticketText = (ReadText $ticket).Trim()
     if ($ticketText -notmatch '^[0-9a-fA-F]{64}$') {
         Fail "invalid ticket output: $ticketText"
     }
@@ -180,12 +187,10 @@ try {
     $deadline = [DateTime]::UtcNow.AddSeconds(3)
     $serverEcho = $false
     while ([DateTime]::UtcNow -lt $deadline) {
-        if (Test-Path -LiteralPath $serverOut) {
-            $text = Get-Content -LiteralPath $serverOut -Raw
-            if ($text.Contains('WBD_NPCAP_FULL_SERVER_DATAGRAM_ECHO bytes=')) {
-                $serverEcho = $true
-                break
-            }
+        $text = ReadText $serverOut
+        if ($text.Contains('WBD_NPCAP_FULL_SERVER_DATAGRAM_ECHO bytes=')) {
+            $serverEcho = $true
+            break
         }
         Start-Sleep -Milliseconds 50
     }
@@ -207,9 +212,9 @@ try {
     }
 }
 
-$clientStdout = Get-Content -LiteralPath $clientOut -Raw
-$clientStderr = Get-Content -LiteralPath $clientErr -Raw
-$serverStdout = Get-Content -LiteralPath $serverOut -Raw
+$clientStdout = ReadText $clientOut
+$clientStderr = ReadText $clientErr
+$serverStdout = ReadText $serverOut
 foreach ($required in @(
     'READY role=client'
 )) {
