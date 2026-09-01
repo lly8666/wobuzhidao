@@ -1,6 +1,7 @@
 package windowsgui
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,17 +50,19 @@ func TestLoadRuntimeProfilePersistsInstallationIdentityAcrossLoads(t *testing.T)
 	if strings.TrimSpace(string(b))!=first.InstallationID{t.Fatalf("persisted installation id=%q want=%q",strings.TrimSpace(string(b)),first.InstallationID)}
 }
 
-func TestLoadRuntimeProfileAcceptsOneLaneAndRejectsSecondPublicLane(t *testing.T) {
+func TestLoadRuntimeProfileAcceptsOneToFourProductLanes(t *testing.T) {
 	t.Setenv("WBD_PORTABLE_DIR", "")
-	dir:=t.TempDir(); stateDir:=filepath.Join(dir,"state")
-	one:=writeTestProfile(t,dir,`,
-  "lanes": 1`)
-	p,err:=LoadRuntimeProfile(one,filepath.Join(dir,"bin"),stateDir);if err!=nil{t.Fatal(err)}
-	if p.Lanes!=1{t.Fatalf("lanes=%d want=1",p.Lanes)}
-	twoPath:=filepath.Join(dir,"profile-two.json")
-	body:=`{"server_ip":"198.51.100.10","server_port":40443,"server_name":"front.example","route_key":"0123456789abcdef","username":"solo","password":"shared-password","lanes":2}`
-	if err:=os.WriteFile(twoPath,[]byte(body),0o600);err!=nil{t.Fatal(err)}
-	if _,err:=LoadRuntimeProfile(twoPath,filepath.Join(dir,"bin"),stateDir);err==nil||!strings.Contains(err.Error(),"exactly one active public transport lane"){t.Fatalf("second product lane error=%v",err)}
+	for _, lanes := range []int{1,2,3,4} {
+		t.Run(fmt.Sprintf("lanes-%d", lanes), func(t *testing.T) {
+			dir:=t.TempDir(); stateDir:=filepath.Join(dir,"state")
+			path:=writeTestProfile(t,dir,fmt.Sprintf(",\n  \"lanes\": %d",lanes))
+			p,err:=LoadRuntimeProfile(path,filepath.Join(dir,"bin"),stateDir);if err!=nil{t.Fatal(err)}
+			if p.Lanes!=lanes{t.Fatalf("lanes=%d want=%d",p.Lanes,lanes)}
+		})
+	}
+	dir:=t.TempDir(); badPath:=writeTestProfile(t,dir,`,
+  "lanes": 5`)
+	if _,err:=LoadRuntimeProfile(badPath,filepath.Join(dir,"bin"),filepath.Join(dir,"state"));err==nil{t.Fatal("five product lanes unexpectedly accepted")}
 }
 
 func TestLegacyTunnelIPv4FieldDoesNotOverrideAuthenticatedLease(t *testing.T) {
