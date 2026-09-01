@@ -74,21 +74,56 @@ Each OS runs:
 
 This matrix complements rather than replaces the Linux raw-network/pcap E2E. Linux E2E proves the real namespace/raw socket/inherited wolfSSL path; the cross-platform matrix proves that Windows and Linux compile and execute the identical common lineage/mode-barrier state machine.
 
-## Qualification still required before product delivery
+### `45364c3139b1f7f672c0e603a3308b2c8bfa4908`
 
-For the final tested HEAD of this sequence:
+Added an experiment-only dispatcher for the canonical Windows portable and Linux server release workflows. This commit does not change product source, wire semantics, or data-plane behavior compared with `ff26100c4d6bf86bc496e46511ba5bf4c2ff259a`; it only dispatches the repository's canonical release workflows on the experiment ref.
 
-- `single-flow-cross-platform-contract`: both OS matrix jobs success.
-- `single-flow-e2e`: success.
-- `exp-single-flow-windows`: success.
-- main `ci`: success.
-- Windows portable bundle: success.
-- Linux server release including ARM64: success.
-- Existing FakeTCP recovery/first-arrival gates must show no deterministic regression.
-- Update the handoff with the exact tested HEAD and workflow run IDs and make `handoff-verify` green.
+## Final qualification snapshot
 
-If any gate fails, fix the first deterministic failure and append the result here before producing user-facing artifacts.
+Qualification/head used for the releasable artifact pair: `45364c3139b1f7f672c0e603a3308b2c8bfa4908`.
+
+Protocol and platform gates on this exact HEAD:
+
+- `single-flow-cross-platform-contract` run `33503717470`: Windows Server 2025 success and Ubuntu 24.04 success. Each OS ran the single-flow lineage contract 100 times, temporary-bootstrap/no-HOL tests 25 times, and Firefox-120 Reality-like TLS admission/persona tests 20 times.
+- `single-flow-e2e` run `33503725059`: success. Real Linux raw socket/network namespace/pinned wolfSSL test proved one SYN lineage carries TLS bootstrap then DTLS data; wrong Reality marker stayed on the same flow and reached the TLS decoy.
+- Windows portable release run `33503726887`: success. Windows child runtime, static-CRT pinned wolfSSL DTLS shim, locked official Wintun, portable manifest/embed, PE dependency verification, and artifact upload all passed.
+- Linux server release run `33503729024`: settings, amd64, and arm64 jobs all success.
+
+The product-code-equivalent preceding HEAD `ff26100c4d6bf86bc496e46511ba5bf4c2ff259a` additionally had the main `ci`, `exp-single-flow-windows`, `exp-single-flow-utls`, `faketcp-native`, `faketcp-pcap-20loss`, `faketcp-first-arrival`, and `fullstack-first-arrival` gates green. The final `45364c...` push also reran the protocol contracts because the only delta was CI dispatch plumbing.
+
+### Release artifact verification
+
+Windows portable Actions artifact:
+
+- workflow run: `33503726887`
+- artifact id: `9798808451`
+- Actions ZIP SHA-256: `0a5556d117df8bb1ea0212499d68657e779d9d624cf922c363e5bf605592bab3`
+- extracted `wbd.exe` SHA-256: `67829bc5edbe22c5d8e8b26047b9ea3047db316745f8159348a9a37f144d16ef`
+- extracted executable verified as PE x86-64.
+
+Linux ARM64 Actions artifact:
+
+- workflow run: `33503729024`
+- artifact id: `9798791484`
+- Actions ZIP SHA-256: `3812de83ec7dd61e71448779342875aca6e8e3503b928bdadfd7e067da813593`
+- extracted `wbd-linux-server-arm64.tar.gz` SHA-256: `9fb150ecfd47314dced71fcdd2d3a3998e9b5531df4c15a719a92f50d9caa5ab`
+- artifact-provided `.sha256` matches the extracted tarball.
+- representative native binaries (`wbd_dtls_shim`, `wbd-link-server-mux`, `wbd-faketcp-mux`, `wbd-platform-proxy-server`) all have ELF `e_machine=183` (AArch64).
+
+Linux AMD64 was also built successfully by the same release run; the user's physical server target remains ARM64.
+
+## Workflow anomaly kept separate from product qualification
+
+Experimental pushes continue to create a `.github/workflows/linux-server-firewall.yml` run that fails before scheduling any job (`0 jobs`). No firewall test step executes in that record. This must not be misreported as a successful product gate, but it is also not evidence of a runtime firewall regression. Keep it as a workflow scheduling/parsing follow-up rather than changing the frozen data plane to chase a zero-job record.
 
 ## Physical qualification boundary
 
 GitHub-hosted Windows runners do not provide the user's Npcap installation, physical NIC, home NAT, or ISP path. Therefore a later physical Windows/Ubuntu test remains the final hardware/network qualification. It must be described accurately as physical qualification, not as something CI performed.
+
+## Sequence 64 completion decision
+
+Software-side single-flow qualification is complete for the artifact pair above. The next physical test should use the matching Windows and Linux ARM64 products from `45364c...` and verify the expected log chain:
+
+`FakeTCP single-flow handshake -> Firefox-120 Reality-like bootstrap on same flow -> ticket ready -> mode barrier without reconnect -> DTLS 1.3 -> LINK ready -> TUN/routes/probes`.
+
+If the physical path fails, analyze the first missing marker against this exact tested artifact pair; do not re-open the architectural decision or modify the mature TCP-like steady-state data plane without new deterministic evidence.
