@@ -54,6 +54,7 @@ jobs:
             linux-server-release.yml
             linux-server-firewall.yml
             single-flow-rawip-e2e.yml
+            mux-load-100m.yml
             single-flow-startup-stress.yml
             single-flow-link-fullstack.yml
             faketcp-recovery-ab.yml
@@ -62,8 +63,9 @@ jobs:
             shared-tun-two-client.yml
           )
           # FEC research is frozen in this phase. game-lane-fullstack carries the
-          # only mandatory 20:20 smoke; no 60/80M FEC/throughput characterization
-          # workflow is dispatched by release authority.
+          # mandatory 20:20 product smoke, while mux-load-100m retains the frozen
+          # weak-network/load operating-point evidence. No separate 60/80M FEC
+          # research workflow is dispatched by release authority.
           for workflow in "${workflows[@]}"; do
             current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
             if [[ "$current" != "$GITHUB_SHA" ]]; then
@@ -153,4 +155,4 @@ jobs:
           current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
           printf 'aggregator_sha=%s final_branch_sha=%s\n' "$GITHUB_SHA" "$current"
           test "$current" = "$GITHUB_SHA"
-          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=18 push_gates=9 total_children=27 windows_linux=1 logical_tunnel=1 lanes=1..4 game_race=1 mbb=1 dormant_wake=1 shared_tun_one_nat=1 fec_primary=off fec_20x20=smoke_only fec_research=frozen'
+          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=19 push_gates=9 total_children=28 windows_linux=1 logical_tunnel=1 lanes=1..4 game_race=1 mbb=1 dormant_wake=1 shared_tun_one_nat=1 fec_primary=off fec_20x20=smoke_only fec_research=frozen'
