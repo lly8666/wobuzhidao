@@ -15,6 +15,8 @@
 
 #define HEADER_BYTES 32
 #define MAX_STREAMS 16
+#define PLATFORM_HEADER_BYTES 44
+#define PLATFORM_MAX_PAYLOAD 1300
 
 typedef struct {
     uint64_t id;
@@ -33,6 +35,68 @@ static uint64_t nowns(void) {
     struct timespec t;
     clock_gettime(CLOCK_MONOTONIC, &t);
     return (uint64_t)t.tv_sec * 1000000000ull + (uint64_t)t.tv_nsec;
+}
+
+static int platform_mode(void) {
+    const char *v = getenv("WBD_BENCH_PLATFORM_ENVELOPE");
+    return v && !strcmp(v, "1");
+}
+
+static void put_be64(uint8_t *p, uint64_t v) {
+    for (int i = 7; i >= 0; i--) {
+        p[i] = (uint8_t)(v & 0xffu);
+        v >>= 8;
+    }
+}
+
+static void put_be16(uint8_t *p, uint16_t v) {
+    p[0] = (uint8_t)(v >> 8);
+    p[1] = (uint8_t)(v & 0xffu);
+}
+
+static uint16_t get_be16(const uint8_t *p) {
+    return (uint16_t)(((uint16_t)p[0] << 8) | p[1]);
+}
+
+// The load gate deliberately uses the released WBDP v1 UDP envelope at the
+// LINK application boundary. The benchmark service itself remains a raw UDP
+// sink so the transport measurement does not include an extra proxy process.
+// wbd-link-server-mux validates this frame through internal/platformproxy before
+// forwarding it to the benchmark sink.
+static int wrap_platform(uint8_t *out, size_t cap, const uint8_t *payload, size_t payload_len, uint64_t flow_id) {
+    if (!flow_id || payload_len > PLATFORM_MAX_PAYLOAD || cap < PLATFORM_HEADER_BYTES + payload_len) return -1;
+    memset(out, 0, PLATFORM_HEADER_BYTES);
+    memcpy(out, "WBDP", 4);
+    out[4] = 1;  // platformproxy.Version1
+    out[5] = 1;  // platformproxy.KindUDPDatagram
+    out[6] = 0;
+    out[7] = 4;
+    put_be64(out + 8, flow_id);
+    put_be64(out + 16, 0);
+    put_be16(out + 24, 48000);
+    out[26] = 127;
+    out[27] = 0;
+    out[28] = 0;
+    out[29] = 1;
+    put_be16(out + 42, (uint16_t)payload_len);
+    memcpy(out + PLATFORM_HEADER_BYTES, payload, payload_len);
+    return (int)(PLATFORM_HEADER_BYTES + payload_len);
+}
+
+static int unwrap_platform(uint8_t *buf, ssize_t *n) {
+    if (!buf || !n || *n < PLATFORM_HEADER_BYTES) return -1;
+    if (memcmp(buf, "WBDP", 4) || buf[4] != 1 || buf[5] != 1 || buf[6] != 0 || buf[7] != 4) return -1;
+    uint64_t flow_id = 0;
+    for (int i = 0; i < 8; i++) flow_id = (flow_id << 8) | buf[8 + i];
+    if (!flow_id) return -1;
+    for (int i = 16; i < 24; i++) if (buf[i] != 0) return -1;
+    if (get_be16(buf + 24) == 0) return -1;
+    for (int i = 30; i < 42; i++) if (buf[i] != 0) return -1;
+    uint16_t payload_len = get_be16(buf + 42);
+    if (payload_len > PLATFORM_MAX_PAYLOAD || (ssize_t)(PLATFORM_HEADER_BYTES + payload_len) != *n) return -1;
+    memmove(buf, buf + PLATFORM_HEADER_BYTES, payload_len);
+    *n = payload_len;
+    return 0;
 }
 
 static int cmpd(const void *a, const void *b) {
@@ -75,6 +139,7 @@ static void free_stream(Stream *st) {
 
 static int server(int port, double seconds, int drain_ms, int expected_streams, const char *out) {
     if (expected_streams <= 0 || expected_streams > MAX_STREAMS || seconds <= 0 || drain_ms < 0) return 2;
+    int use_platform = platform_mode();
     int s = socket(AF_INET, SOCK_DGRAM, 0);
     if (s < 0) { perror("socket"); return 2; }
     int sz = 8 << 20;
@@ -83,6 +148,7 @@ static int server(int port, double seconds, int drain_ms, int expected_streams, 
     if (bind(s, (void *)&a, sizeof(a)) < 0) { perror("bind"); close(s); return 2; }
     int fl = fcntl(s, F_GETFL, 0);
     if (fl < 0 || fcntl(s, F_SETFL, fl | O_NONBLOCK) < 0) { perror("fcntl"); close(s); return 2; }
+    if (use_platform) fprintf(stdout, "WBD_BENCH_PLATFORM_ENVELOPE_READY role=server version=1 header_bytes=%d\n", PLATFORM_HEADER_BYTES);
 
     uint8_t *buf = malloc(65536);
     Stream streams[MAX_STREAMS];
@@ -94,6 +160,9 @@ static int server(int port, double seconds, int drain_ms, int expected_streams, 
     for (;;) {
         ssize_t n = recv(s, buf, 65536, 0);
         uint64_t now = nowns();
+        if (n > 0 && use_platform && unwrap_platform(buf, &n) != 0) {
+            n = 0;
+        }
         if (n >= HEADER_BYTES) {
             uint64_t sid, seq, total, ts;
             memcpy(&sid, buf, 8);
@@ -198,6 +267,8 @@ static int server(int port, double seconds, int drain_ms, int expected_streams, 
 static int client(int port, uint64_t stream_id, double mbps, double seconds, int size) {
     if (mbps <= 0 || seconds <= 0) return 2;
     if (size < HEADER_BYTES) size = HEADER_BYTES;
+    int use_platform = platform_mode();
+    if (use_platform && (size > PLATFORM_MAX_PAYLOAD || stream_id == 0)) return 2;
     uint64_t total = (uint64_t)floor(mbps * 1000000.0 * seconds / ((double)size * 8.0));
     if (total < 1) total = 1;
 
@@ -209,7 +280,9 @@ static int client(int port, uint64_t stream_id, double mbps, double seconds, int
     if (connect(s, (void *)&a, sizeof(a)) < 0) { perror("connect"); close(s); return 2; }
 
     uint8_t *buf = calloc(1, (size_t)size);
-    if (!buf) { close(s); return 2; }
+    uint8_t *wire = use_platform ? calloc(1, (size_t)size + PLATFORM_HEADER_BYTES) : NULL;
+    if (!buf || (use_platform && !wire)) { free(buf); free(wire); close(s); return 2; }
+    if (use_platform) fprintf(stdout, "WBD_BENCH_PLATFORM_ENVELOPE_READY role=client stream=%" PRIu64 " version=1 header_bytes=%d\n", stream_id, PLATFORM_HEADER_BYTES);
     double pps = mbps * 1000000.0 / ((double)size * 8.0);
     double step = 1e9 / pps;
     uint64_t t0 = nowns(), sent = 0;
@@ -231,10 +304,18 @@ static int client(int port, uint64_t stream_id, double mbps, double seconds, int
         memcpy(buf + 8, &seq, 8);
         memcpy(buf + 16, &total, 8);
         memcpy(buf + 24, &ts, 8);
-        if (send(s, buf, (size_t)size, 0) == size) sent++;
+        const uint8_t *send_buf = buf;
+        int send_len = size;
+        if (use_platform) {
+            send_len = wrap_platform(wire, (size_t)size + PLATFORM_HEADER_BYTES, buf, (size_t)size, stream_id);
+            if (send_len < 0) break;
+            send_buf = wire;
+        }
+        if (send(s, send_buf, (size_t)send_len, 0) == send_len) sent++;
     }
     fprintf(stdout, "MULTISTREAM_SENT stream=%" PRIu64 " planned=%" PRIu64 " sent=%" PRIu64 " active_s=%.6f\n",
             stream_id, total, sent, (double)(nowns() - t0) / 1e9);
+    free(wire);
     free(buf);
     close(s);
     return sent == total ? 0 : 3;
