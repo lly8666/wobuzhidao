@@ -1,0 +1,28 @@
+name: exp-dispatch-single-flow-release
+
+on:
+  push:
+    branches:
+      - exp/single-flow-utls-firefox120
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Dispatch canonical Windows and Linux release workflows on this ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for workflow in windows-portable-bundle.yml linux-server-release.yml; do
+            gh api --method POST \
+              "repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow}/dispatches" \
+              -f ref="${GITHUB_REF_NAME}"
+            echo "SINGLE_FLOW_RELEASE_DISPATCHED workflow=${workflow} ref=${GITHUB_REF_NAME}"
+          done
