@@ -44,15 +44,36 @@ The existing release aggregator already forced important Windows/Linux/single-fl
 
 That gap could allow a candidate to look release-qualified while the newest Game/shared-TUN product wiring had only path-filtered or stale evidence.
 
-## Change made by this candidate commit
+## Candidate 2370c0b7: full matrix hardening and first deterministic failure
 
-The exact-head release aggregator is expanded to 18 explicit dispatch gates and 9 exact-SHA push gates (27 total). No product data-plane code, FakeTCP recovery, DTLS wire, LINK wire, or FEC wire is changed by this qualification-hardening commit.
+Commit `2370c0b730091a86038e96bb025aea027daa6d37` expanded release authority to 18 workflow-dispatch gates plus 9 exact-SHA push gates (27 total). It changed no product data-plane behavior.
 
-The branch must remain frozen on this candidate while the aggregator runs. Any product/doc commit after the candidate invalidates the qualification and requires a fresh kick.
+The aggregator run `33455412514` successfully verified that the candidate was still feature-branch HEAD and dispatched the 18 opt-in workflows. The first deterministic red was exact-head `linux-server-release` run `33455435058`, settings job `99694293613`:
+
+```text
+scripts/linux_server_manager.sh: .../opt/bin/wbd-ip-gateway-shared: not found
+product run unexpectedly started Game Lane
+```
+
+Inspection showed the production manager and release builder were already aligned with the current Constitution: the manager launches shared-TUN gateway -> Game server -> LINK server -> one public raw mux, and the release builder packages `wbd-ip-gateway-shared`, `wbd-game-lane-server`, shared-TUN firewall helpers and reports `max_tunnel_lanes=4 game_product=1 shared_tun=1 host_nat=1`.
+
+The failure was instead a stale `scripts/linux_server_settings_test.sh` fixture left from the withdrawn ADR-0014 global-one-flow interpretation. That test deliberately omitted the shared gateway binary, made any Game invocation exit 99, expected `max_tunnel_lanes=1`, and required LINK to connect directly to the legacy platform service. The test was therefore rejecting the correct current product topology.
+
+Fix policy: update only the Linux settings qualification fixture/contract. Do not change FakeTCP/TCP-like recovery, DTLS, LINK wire or FEC wire. The corrected fixture records argv for the shared gateway, Game and LINK processes and asserts:
+
+- one concrete public raw mux ingress after wildcard resolution;
+- per-lane single-flow with a 4-lane Logical Tunnel ceiling;
+- shared gateway listen/lease pool/TUN/firewall helper;
+- Game -> shared gateway with `max-lanes=4`;
+- LINK -> Game plus authenticated raw-IP shared gateway boundary;
+- no preliminary ordinary kernel-TCP Reality product listener;
+- no legacy platform proxy in the product run path.
+
+Because this fix moves the feature branch, candidate `2370c0b7` is invalidated for release qualification. A fresh exact-head kick is mandatory.
 
 ## Acceptance interpretation
 
-Hosted qualification now self-builds the strongest practical upstream/downstream matrix available in GitHub Actions:
+Hosted qualification self-builds the strongest practical upstream/downstream matrix available in GitHub Actions:
 
 - native Windows runner executes Windows protocol/runtime code and emits single-flow wire evidence;
 - Linux runner consumes that Windows wire through the Linux server state machine and continues into raw/netns full stack;
@@ -60,4 +81,4 @@ Hosted qualification now self-builds the strongest practical upstream/downstream
 - Linux jobs build/qualify release bundles, firewall ownership, raw/netns single-flow, startup stress, LINK fullstack, shared-TUN/one-NAT, Game 1..4 lanes and weak-network load/recovery;
 - single-flow E2E/persona/no-HOL gates prove one-SYN same-association setup and post-barrier non-HOL behavior.
 
-Hosted GitHub Windows does not provide the user's physical Npcap/NIC/NAT/ISP path. Therefore no claim of final physical acceptance is allowed from Actions alone. After all 27 hosted gates are green and matching artifacts come from this exact source SHA, one physical Windows 11 -> Ubuntu ARM64 acceptance run is still required before declaring the release complete.
+Hosted GitHub Windows does not provide the user's physical Npcap/NIC/NAT/ISP path. Therefore no claim of final physical acceptance is allowed from Actions alone. After all 27 hosted gates are green and matching artifacts come from the exact source SHA, one physical Windows 11 -> Ubuntu ARM64 acceptance run is still required before declaring the release complete.

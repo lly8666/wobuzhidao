@@ -61,7 +61,7 @@ Together the 27 child gates cover hosted Windows native protocol/runtime behavio
 
 ## Kick generation
 
-`2026-09-01-seq79-full-product-qualification`
+`2026-09-01-seq80-fix-stale-linux-settings-contract`
 
 ## Delivery rule
 
