@@ -62,9 +62,9 @@ Together the 28 child gates cover hosted Windows native protocol/runtime behavio
 
 ## Kick generation
 
-`2026-09-01-seq84-final-single-flow-exact-head-requalification`
+`2026-09-02-post-canonical-merge-exact-head-requalification`
 
-This generation follows the completed Windows noisy-ingress hardening and the repaired 20-round startup-stress harness. It creates a fresh immutable candidate HEAD without changing product code and requires all 28 hosted qualification children to execute against that exact SHA. No result from an older product-code HEAD is inherited as release authority.
+This generation follows the canonical continuity merge `6d887f82f2b4c1f0151147e8c12fa624a06c3fb1` and durable recovery note `docs/development/2026-09-02-continuity-requalification.md`. The merge changed repository ancestry/history continuity but no product executable source. Because the candidate SHA changed, no prior green run is inherited: all 28 hosted qualification children must execute against this new immutable candidate HEAD.
 
 ## Delivery rule
 
