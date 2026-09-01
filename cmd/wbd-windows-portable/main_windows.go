@@ -143,6 +143,17 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 }
 
 func showMessage(title, text string, isError bool) {
+	// Physical/self-hosted qualification must exercise the exact portable EXE
+	// without hanging on modal UI. WBD_HEADLESS changes presentation only: it
+	// leaves elevation, runtime, transport, probes and cleanup untouched.
+	if strings.TrimSpace(os.Getenv("WBD_HEADLESS")) == "1" {
+		if isError {
+			fmt.Fprintf(os.Stderr, "%s: %s\n", title, text)
+		} else {
+			fmt.Fprintf(os.Stdout, "%s: %s\n", title, text)
+		}
+		return
+	}
 	flags := uintptr(0x40); if isError { flags = 0x10 }
 	titlePtr, _ := syscall.UTF16PtrFromString(title); textPtr, _ := syscall.UTF16PtrFromString(text)
 	messageBoxW.Call(0, uintptr(unsafe.Pointer(textPtr)), uintptr(unsafe.Pointer(titlePtr)), flags)
