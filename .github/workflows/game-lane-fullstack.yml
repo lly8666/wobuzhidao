@@ -131,6 +131,10 @@ jobs:
         with:
           name: game-lane-assets
           path: ${{ runner.temp }}/wbd-game-lane-assets
+      - name: Restore executable bits lost by Actions artifact transport
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP"/wbd-game-lane-assets/wbd-*
       - name: Exercise product lanes; FEC off is primary and 20:20 is smoke-only
         env:
           LANES: ${{ matrix.lanes }}
