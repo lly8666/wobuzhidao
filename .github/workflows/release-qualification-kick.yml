@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   qualify:
-    name: aggregate exact-head release qualification
+    name: aggregate exact-head product qualification
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     env:
@@ -35,13 +35,14 @@ jobs:
           printf 'aggregator_sha=%s branch_sha=%s\n' "$GITHUB_SHA" "$current"
           test "$current" = "$GITHUB_SHA"
 
-      - name: Dispatch exact-head opt-in release gates
+      - name: Dispatch exact-head product gates
         shell: bash
         run: |
           set -euo pipefail
           manifest="$RUNNER_TEMP/wbd-release-dispatch.tsv"
           : >"$manifest"
           workflows=(
+            product-lifecycle-e2e.yml
             windows-linux-single-flow.yml
             windows-portable-bundle.yml
             windows-tun-build.yml
@@ -53,7 +54,6 @@ jobs:
             linux-server-release.yml
             linux-server-firewall.yml
             single-flow-rawip-e2e.yml
-            mux-load-100m.yml
             single-flow-startup-stress.yml
             single-flow-link-fullstack.yml
             faketcp-recovery-ab.yml
@@ -61,6 +61,9 @@ jobs:
             game-lane-fullstack.yml
             shared-tun-two-client.yml
           )
+          # FEC research is frozen in this phase. game-lane-fullstack carries the
+          # only mandatory 20:20 smoke; no 60/80M FEC/throughput characterization
+          # workflow is dispatched by release authority.
           for workflow in "${workflows[@]}"; do
             current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
             if [[ "$current" != "$GITHUB_SHA" ]]; then
@@ -86,10 +89,7 @@ jobs:
           set -euo pipefail
           manifest="$RUNNER_TEMP/wbd-release-dispatch.tsv"
           while IFS=$'\t' read -r workflow run_id; do
-            [[ -n "$workflow" && "$run_id" =~ ^[0-9]+$ ]] || {
-              echo "invalid dispatch manifest row workflow=${workflow} run_id=${run_id}" >&2
-              exit 1
-            }
+            [[ -n "$workflow" && "$run_id" =~ ^[0-9]+$ ]] || { echo "invalid dispatch manifest row workflow=${workflow} run_id=${run_id}" >&2; exit 1; }
             deadline=$((SECONDS + 12600))
             while true; do
               row="$(gh api "repos/${REPO}/actions/runs/${run_id}" --jq '[.status, (.conclusion // ""), .head_sha, .event, .html_url] | map(tostring) | join("|")')"
@@ -99,17 +99,11 @@ jobs:
                 exit 1
               fi
               if [[ "$status" == "completed" ]]; then
-                if [[ "$conclusion" != "success" ]]; then
-                  echo "child failed workflow=${workflow} run_id=${run_id} conclusion=${conclusion} url=${url}" >&2
-                  exit 1
-                fi
+                if [[ "$conclusion" != "success" ]]; then echo "child failed workflow=${workflow} run_id=${run_id} conclusion=${conclusion} url=${url}" >&2; exit 1; fi
                 echo "WBD_RELEASE_CHILD_PASS workflow=${workflow} event=${event} run_id=${run_id} head_sha=${head_sha} conclusion=${conclusion} url=${url}"
                 break
               fi
-              if (( SECONDS >= deadline )); then
-                echo "child timeout workflow=${workflow} run_id=${run_id} status=${status} url=${url}" >&2
-                exit 1
-              fi
+              if (( SECONDS >= deadline )); then echo "child timeout workflow=${workflow} run_id=${run_id} status=${status} url=${url}" >&2; exit 1; fi
               sleep 20
             done
           done <"$manifest"
@@ -132,42 +126,22 @@ jobs:
           for workflow in "${workflows[@]}"; do
             run_id=""
             for attempt in $(seq 1 120); do
-              run_id="$(
-                gh api "repos/${REPO}/actions/workflows/${workflow}/runs?branch=${BRANCH}&event=push&per_page=100" |
-                  jq -r --arg sha "$GITHUB_SHA" '
-                    [.workflow_runs[] | select(.head_sha == $sha)]
-                    | sort_by(.created_at)
-                    | last
-                    | .id // empty'
-              )"
+              run_id="$(gh api "repos/${REPO}/actions/workflows/${workflow}/runs?branch=${BRANCH}&event=push&per_page=100" | jq -r --arg sha "$GITHUB_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last | .id // empty')"
               [[ -n "$run_id" ]] && break
               sleep 5
             done
-            if [[ ! "$run_id" =~ ^[0-9]+$ ]]; then
-              echo "could not resolve exact-head push run: ${workflow} sha=${GITHUB_SHA}" >&2
-              exit 1
-            fi
-
+            if [[ ! "$run_id" =~ ^[0-9]+$ ]]; then echo "could not resolve exact-head push run: ${workflow} sha=${GITHUB_SHA}" >&2; exit 1; fi
             deadline=$((SECONDS + 12600))
             while true; do
               row="$(gh api "repos/${REPO}/actions/runs/${run_id}" --jq '[.status, (.conclusion // ""), .head_sha, .event, .html_url] | map(tostring) | join("|")')"
               IFS='|' read -r status conclusion head_sha event url <<<"$row"
-              if [[ "$head_sha" != "$GITHUB_SHA" || "$event" != "push" ]]; then
-                echo "push-gate identity mismatch workflow=${workflow} run_id=${run_id} head=${head_sha} event=${event} expected_head=${GITHUB_SHA}" >&2
-                exit 1
-              fi
+              if [[ "$head_sha" != "$GITHUB_SHA" || "$event" != "push" ]]; then echo "push-gate identity mismatch workflow=${workflow} run_id=${run_id} head=${head_sha} event=${event} expected_head=${GITHUB_SHA}" >&2; exit 1; fi
               if [[ "$status" == "completed" ]]; then
-                if [[ "$conclusion" != "success" ]]; then
-                  echo "push gate failed workflow=${workflow} run_id=${run_id} conclusion=${conclusion} url=${url}" >&2
-                  exit 1
-                fi
+                if [[ "$conclusion" != "success" ]]; then echo "push gate failed workflow=${workflow} run_id=${run_id} conclusion=${conclusion} url=${url}" >&2; exit 1; fi
                 echo "WBD_RELEASE_CHILD_PASS workflow=${workflow} event=${event} run_id=${run_id} head_sha=${head_sha} conclusion=${conclusion} url=${url}"
                 break
               fi
-              if (( SECONDS >= deadline )); then
-                echo "push gate timeout workflow=${workflow} run_id=${run_id} status=${status} url=${url}" >&2
-                exit 1
-              fi
+              if (( SECONDS >= deadline )); then echo "push gate timeout workflow=${workflow} run_id=${run_id} status=${status} url=${url}" >&2; exit 1; fi
               sleep 20
             done
           done
@@ -179,4 +153,4 @@ jobs:
           current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
           printf 'aggregator_sha=%s final_branch_sha=%s\n' "$GITHUB_SHA" "$current"
           test "$current" = "$GITHUB_SHA"
-          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=18 push_gates=9 total_children=27 windows_linux=1 game_lanes=1 shared_tun_one_nat=1'
+          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=18 push_gates=9 total_children=27 windows_linux=1 logical_tunnel=1 lanes=1..4 game_race=1 mbb=1 dormant_wake=1 shared_tun_one_nat=1 fec_primary=off fec_20x20=smoke_only fec_research=frozen'
