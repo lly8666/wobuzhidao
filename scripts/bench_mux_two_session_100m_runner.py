@@ -34,6 +34,7 @@ if LINK_MBPS <= 0:
     raise SystemExit("--link-mbps must be positive")
 RATE_TOKEN = f"{LINK_MBPS:g}mbit"
 _original_run = core.run
+_original_wait_text = core.wait_text
 
 
 def setup_safe_run(cmd, *, check=True, capture=False, timeout=None):
@@ -46,7 +47,17 @@ def setup_safe_run(cmd, *, check=True, capture=False, timeout=None):
     return _original_run(argv, check=check, capture=capture, timeout=timeout)
 
 
+def single_flow_wait_text(path, needle, timeout=20.0, count=1):
+    # ADR-0014 Logical Tunnel sessions are identified by tunnel_id, not the
+    # retired account field. Keep the mature benchmark orchestration while
+    # translating only its obsolete READY marker expectation.
+    if needle == "WBD_LINK_MUX_SESSION_READY account=solo":
+        needle = "WBD_LINK_MUX_SESSION_READY "
+    return _original_wait_text(path, needle, timeout, count)
+
+
 core.run = setup_safe_run
+core.wait_text = single_flow_wait_text
 rc = core.main()
 
 if rc == 0 and len(sys.argv) > 1 and sys.argv[1] == "run":
