@@ -26,6 +26,7 @@ const (
 	RuntimeDisconnected RuntimeState = "disconnected"
 	RuntimeConnecting    RuntimeState = "connecting"
 	RuntimeConnected     RuntimeState = "connected"
+	RuntimeDormant       RuntimeState = "dormant"
 	RuntimeDisconnecting RuntimeState = "disconnecting"
 )
 
@@ -44,6 +45,16 @@ type Controller struct {
 	executor *Executor
 	discoverer UnderlayDiscoverer
 	tickets TicketStore
+
+	// The fields below are Logical Tunnel control-plane state. They never own or
+	// mutate FakeTCP/TCP-like recovery semantics. They survive DORMANT so the one
+	// shared TUN/routes and authenticated tunnel identity can wake new lanes.
+	profile Profile
+	baseUnderlay Underlay
+	tunnelConfig logicaltunnel.TunnelConfig
+	gameControl string
+	lanePlans map[int]LanePlan
+	lifecycle *logicaltunnel.LaneLifecycle
 }
 
 func NewController(runner Runner,discoverer UnderlayDiscoverer,tickets TicketStore)*Controller{
@@ -79,7 +90,7 @@ func(c *Controller)Connect(profile Profile)error{
 
 	c.mu.Lock();if c.state!=RuntimeDisconnected{state:=c.state;c.mu.Unlock();return fmt.Errorf("Windows runtime cannot connect while %s",state)};c.state=RuntimeConnecting;c.mu.Unlock()
 	connected:=false
-	defer func(){if connected{return};c.mu.Lock();c.state=RuntimeDisconnected;c.mu.Unlock()}()
+	defer func(){if connected{return};c.mu.Lock();c.state=RuntimeDisconnected;c.clearRuntimeContextLocked();c.mu.Unlock()}()
 
 	if preflight,ok:=c.discoverer.(RuntimePreflighter);ok{if err:=preflight.Preflight(profile);err!=nil{return fmt.Errorf("Windows runtime dependency preflight: %w",err)}}
 	if err:=c.recoverStaleNetworkState(profile);err!=nil{return fmt.Errorf("recover stale Windows network state: %w",err)}
@@ -95,8 +106,7 @@ func(c *Controller)Connect(profile Profile)error{
 	}()
 
 	for laneID:=1;laneID<=profile.Lanes;laneID++{
-		laneUnderlay:=baseUnderlay
-		laneUnderlay.SourcePort=nextFakeTCPSourcePort()
+		laneUnderlay:=baseUnderlay;laneUnderlay.SourcePort=nextFakeTCPSourcePort()
 		bootstrap,err:=BuildLaneBootstrap(profile,laneUnderlay,laneID);if err!=nil{return fmt.Errorf("build lane %d bootstrap: %w",laneID,err)}
 		if err:=c.tickets.Clear(bootstrap.TicketPath);err!=nil{return fmt.Errorf("clear lane %d Reality ticket: %w",laneID,err)}
 		if err:=c.tickets.Clear(bootstrap.TunnelConfigPath);err!=nil{return fmt.Errorf("clear lane %d authenticated tunnel config: %w",laneID,err)}
@@ -114,21 +124,39 @@ func(c *Controller)Connect(profile Profile)error{
 	}
 
 	multi,err:=BuildMultiLanePlan(profile,bootstraps);if err!=nil{return fmt.Errorf("build Windows multi-lane runtime plan: %w",err)}
-	// Server-authenticated /32 is the route/address authority. All lanes were
-	// validated against this same TunnelConfig before any capture routes mutate.
 	profile.TunnelIPv4=multi.TunnelConfig.Address4
 
-	// Ownership moves atomically to Executor. On any failure from here the
-	// executor rolls back every prestarted lane before network state is exposed.
 	owned=false
 	if err:=c.executor.StartMultiLane(multi,prestarted);err!=nil{return err}
+	lifecycle,err:=logicaltunnel.NewLaneLifecycle(profile.Lanes);if err!=nil{_ = c.executor.Stop();return err}
+	plans:=make(map[int]LanePlan,len(multi.Lanes))
+	for _,lane:=range multi.Lanes{
+		if _,err:=lifecycle.AttachInitial(uint8(lane.ID));err!=nil{_ = c.executor.Stop();return err}
+		plans[lane.ID]=lane
+	}
 
-	c.mu.Lock();c.state=RuntimeConnected;c.mu.Unlock();connected=true;return nil
+	c.mu.Lock()
+	c.profile=profile;c.baseUnderlay=baseUnderlay;c.tunnelConfig=multi.TunnelConfig;c.gameControl=multi.GameControl;c.lanePlans=plans;c.lifecycle=lifecycle;c.state=RuntimeConnected
+	c.mu.Unlock();connected=true;return nil
 }
 
 func(c *Controller)Disconnect()error{
-	c.mu.Lock();switch c.state{case RuntimeDisconnected:c.mu.Unlock();return c.executor.Stop();case RuntimeConnected:c.state=RuntimeDisconnecting;default:state:=c.state;c.mu.Unlock();return fmt.Errorf("Windows runtime cannot disconnect while %s",state)};c.mu.Unlock()
-	err:=c.executor.Stop();c.mu.Lock();c.state=RuntimeDisconnected;c.mu.Unlock();return err
+	c.mu.Lock()
+	switch c.state{
+	case RuntimeDisconnected:
+		c.mu.Unlock();return c.executor.Stop()
+	case RuntimeConnected,RuntimeDormant:
+		c.state=RuntimeDisconnecting
+	default:
+		state:=c.state;c.mu.Unlock();return fmt.Errorf("Windows runtime cannot disconnect while %s",state)
+	}
+	c.mu.Unlock()
+	err:=c.executor.Stop()
+	c.mu.Lock();c.state=RuntimeDisconnected;c.clearRuntimeContextLocked();c.mu.Unlock();return err
+}
+
+func(c *Controller)clearRuntimeContextLocked(){
+	c.profile=Profile{};c.baseUnderlay=Underlay{};c.tunnelConfig=logicaltunnel.TunnelConfig{};c.gameControl="";c.lanePlans=nil;c.lifecycle=nil
 }
 
 type FileTicketStore struct{}
