@@ -1,0 +1,39 @@
+name: single-flow-cross-platform-contract
+
+on:
+  push:
+    branches:
+      - exp/single-flow-utls-firefox120
+  pull_request:
+    paths:
+      - 'cmd/wbd-faketcp/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - '.github/workflows/single-flow-cross-platform-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: contract-${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - windows-2025
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: One public incarnation survives the mode barrier
+        run: go test ./cmd/wbd-faketcp -run TestSingleFlowLineageContract -count=100
+      - name: Bootstrap reliability is temporary and steady-state stays no-HOL
+        run: go test ./internal/faketcp -run 'TestBootstrapStream|TestPostBootstrapReceiverStillDeliversLaterDatagramAcrossHole' -count=25
+      - name: Firefox-120 Reality-like TLS admission contract
+        run: go test ./internal/realityfront -run 'TestSingleFlowTLSAdmissionUsesProvidedConnection|TestSingleFlowFirefox120PersonaKeepsPresetAndRouteMarker' -count=20
