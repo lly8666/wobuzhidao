@@ -221,12 +221,12 @@ __declspec(dllexport) pcap_t *pcap_open_live(const char *device, int snaplen,
     pcap_t *p = (pcap_t *)calloc(1, sizeof(*p));
     if (!p) {
         if (errbuf) {
-            strcpy(errbuf, "stub allocation failed");
+            strcpy_s(errbuf, 256, "stub allocation failed");
         }
         return NULL;
     }
     InitializeCriticalSection(&p->lock);
-    strcpy(p->err, "wbd hosted Npcap ABI stub");
+    strcpy_s(p->err, sizeof(p->err), "wbd hosted Npcap ABI stub");
     marker("OPEN device=%s", device ? device : "<null>");
     return p;
 }
@@ -249,7 +249,7 @@ __declspec(dllexport) int pcap_setmode(pcap_t *p, int mode) {
     }
     marker("MODE value=0x%04x", mode);
     if (mode != MODE_SENDTORX_CLEAR) {
-        strcpy(p->err, "expected MODE_SENDTORX_CLEAR 0x0200");
+        strcpy_s(p->err, sizeof(p->err), "expected MODE_SENDTORX_CLEAR 0x0200");
         return -1;
     }
     return 0;
