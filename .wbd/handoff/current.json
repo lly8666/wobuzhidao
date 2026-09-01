@@ -1,11 +1,11 @@
 {
   "schema_version": "wbd-session-handoff/v1",
   "repository": "lly8666/wobuzhidao",
-  "continuity_sequence": 59,
+  "continuity_sequence": 60,
   "active_branch": "exp/singleflow-realitylike-v3",
   "active_issue": 1,
   "active_pr": 10,
-  "checkpoint_based_on_head_sha": "a74dc71d3440c8b254131eb47235b79f55709027",
+  "checkpoint_based_on_head_sha": "34906fc6997b1440a8dc1c4709691a8f44a3a875",
   "live_refresh_required": true,
   "strategic_terminal_goal": "Ship the personal weak-network VPN with exactly one public TCP-shaped flow per session: one raw FakeTCP-owned SYN/4-tuple, bounded real TLS 1.3 Reality-like setup on that same sequence space, encrypted in-flow phase switch, then same-flow DTLS 1.3/FEC/LINK datagrams with no ordinary-TCP steady-state HOL and no second public connection.",
   "frozen_constraints": [
@@ -13,41 +13,42 @@
     "No second Reality/bootstrap TCP connection, second SYN, FIN/RST, TLS close_notify, or kernel-TCP handoff is allowed at the setup-to-data boundary.",
     "The Linux public WBD_PORT has one WBD owner: raw wbd-faketcp-mux; V3 must not restore a competing WBD kernel TCP listener.",
     "Reality-like ordered stream semantics are bootstrap-only and are destroyed after the encrypted switch ACK; sustained VPN payload remains packet/datagram no-HOL.",
-    "Do not deliver new physical-test binaries while a deterministic Windows/Linux automated gate is red."
+    "Do not deliver a new Windows/Linux artifact pair until the exact final V3 behavior has passed both the strong Linux single-flow qualification and a real Administrator Windows 11 x64 Npcap 1.88 capture/injection qualification.",
+    "Npcap Free Edition is never redistributed by WBD and is not silently installed; physical qualification may silently uninstall Npcap after the run using the documented all-edition uninstall path."
   ],
-  "current_milestone": "V3 single-public-flow automated qualification is closed on substantive checkpoint 6a2e41a2eeb50ce9d4ff565fa11a3879a777519b and audited documentation head c3d07a628adcb494c41916db061892607de83c8b. Windows hosted runtime/protocol tests execute real TLS 1.3 Reality-like auth, encrypted switch and explicit post-switch first-arrival no-HOL behavior. Linux raw/NAT pcap E2E proves one SYN, one public tuple, TLS before same-flow pinned wolfSSL DTLS 1.3, no late SYN/FIN/RST/plain switch, bidirectional payload and later-datagram bypass of earlier loss. Existing FakeTCP native/first-arrival/reconnect regressions remain green. The previously recorded windowsdiag lifecycle gap was stale: commit 52b4515111e38f2e646efd953489a57d80edd82f already provides fail-fast child-exit readiness and idempotent Stop with Windows-native tests. Detailed closure is recorded in docs/experiments/singleflow-v3-closure-2026-08-31.md.",
+  "current_milestone": "V3 single-public-flow behavior remains automated-green and a real-Npcap physical release gate has now been added. Checkpoint 34906fc6997b1440a8dc1c4709691a8f44a3a875 includes verified Npcap uninstall support, WBD_HEADLESS presentation for the exact portable self-test, a physical Windows Npcap qualification script, a self-hosted Windows physical workflow, and hosted-Windows parser/build guards. The strong Linux/NAT Reality-like E2E, main CI, Windows/Linux cross-platform gate, FakeTCP native, first-arrival, fullstack first-arrival, reconnect stress and pcap-20loss all completed success for this checkpoint. Detailed physical-gate development history is recorded in docs/experiments/singleflow-v3-physical-npcap-gate-2026-09-01.md at metadata head d31fda7c330d168da44706af42106ebb2a9256e9. No real Windows Npcap capture/injection pass has yet been recorded for this final gate, so no new binary pair is release-qualified for delivery.",
   "continuation_cursor": {
-    "last_completed_action": "Audited current-head Actions at c3d07a628adcb494c41916db061892607de83c8b: main ci 33411152318, handoff-verify 33411152198, singleflow-v3-crossplatform 33411152261, singleflow-realitylike-e2e 33411152335, reconnect-stress 33411152268, faketcp-native 33411152193, pcap-20loss 33411152226, first-arrival 33411152330, fullstack-first-arrival 33411152274 and OpenWrt TPROXY 33411152204 all completed success. Added closure note a74dc71d... correcting the stale windowsdiag TODO.",
-    "current_task": "Perform artifact hygiene for the already-qualified V3 substantive code: obtain the matching Windows portable and Linux ARM64 release artifacts, verify archive integrity, executable architecture/content and SHA-256 values locally, then persist those artifact identities before physical delivery.",
-    "why_now": "All deterministic Windows/Linux V3 protocol, raw/NAT, no-HOL and existing FakeTCP regression gates requested before physical delivery are green. Further speculative transport changes would add risk without a failing automated signal; the next useful step is reproducible artifact verification.",
-    "done_when": "A Windows x64 portable artifact and Linux ARM64 server artifact from the qualified substantive code checkpoint are downloaded, locally integrity-checked, SHA-256 recorded in the GitHub development record/handoff, and the handoff verifier is green. Only then provide that exact pair for the final physical Windows 11/Npcap/NIC/NAT/ISP to Linux ARM64 test.",
-    "next_atomic_action": "Fetch artifacts from windows-portable-bundle run 33410098460 and linux-server-release run 33410098437 (both built from substantive checkpoint 6a2e41a2...), download them, inspect contents and compute SHA-256 before presenting any binary to the user."
+    "last_completed_action": "Added the real Windows Npcap physical qualification gate and audited checkpoint 34906fc...: singleflow-v3-crossplatform 33467225228 success, singleflow-realitylike-e2e 33467224779 success, ci 33467225428 success, faketcp-native 33467224666 success, faketcp-first-arrival 33467225128 success, fullstack-first-arrival 33467224620 success, reconnect-stress 33467224381 success, and faketcp-pcap-20loss 33467225388 success. Added the detailed physical-gate development log at d31fda7c....",
+    "current_task": "Obtain a physically qualified Windows 11 x64 Npcap result for the exact final portable behavior, then reconfirm/build the Linux ARM64 server from the same behavior checkpoint and only then prepare a release pair.",
+    "why_now": "Hosted Windows and Linux automation now covers the V3 protocol, no-HOL transition, adapter-noise demux, reconnect and loss behavior, but the user explicitly requires real Npcap capture/injection on Windows before delivery. The remaining uncertainty is a physical adapter/driver boundary, not the frozen TCP-like algorithm.",
+    "done_when": "A real elevated Windows 11 x64 machine with Npcap 1.88 runs the exact final portable artifact through scripts/windows_npcap_physical_qualify.ps1 and records WBD_WINDOWS_NPCAP_PHYSICAL_PASS plus all required FakeTCP/DTLS/LINK/TUN/probe/cleanup markers; requested Npcap removal is verified; the strong Linux single-flow qualification and Linux ARM64 release are green for the same final behavior checkpoint; artifact hashes and run identities are recorded; handoff-verify is green. Only then may the pair be delivered.",
+    "next_atomic_action": "Live-refresh the branch and Actions, identify or build the exact Windows portable artifact for checkpoint 34906fc... (or the next behavior-equivalent final checkpoint), then run .github/workflows/windows-npcap-physical.yml on an elevated self-hosted Windows x64 runner labeled wbd-npcap with a runner-local profile and uninstall_after=true. If no such runner is connected, do not fabricate a pass or deliver binaries; continue only with non-physical qualification and keep this gate open."
   },
   "live_ci_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "c3d07a628adcb494c41916db061892607de83c8b",
+    "tested_commit": "34906fc6997b1440a8dc1c4709691a8f44a3a875",
     "result": "pass",
-    "note": "Audited live on 2026-08-31 before this handoff update: ci 33411152318 success; handoff-verify 33411152198 success; singleflow-v3-crossplatform 33411152261 success; Linux strong singleflow-realitylike-e2e 33411152335 success; reconnect-stress 33411152268 success; faketcp-native 33411152193 success; pcap-20loss 33411152226 success; first-arrival 33411152330 success; fullstack-first-arrival 33411152274 success; OpenWrt TPROXY 33411152204 success. Commit c3d07a... differs from substantive code checkpoint 6a2e41a2... only by documentation/handoff contract alignment. Later closure-note/handoff commits are metadata only and require normal live refresh before future claims."
+    "note": "Audited live on 2026-09-01 before this handoff update: singleflow-v3-crossplatform 33467225228 success; singleflow-realitylike-e2e 33467224779 success; ci 33467225428 success; faketcp-native 33467224666 success; faketcp-first-arrival 33467225128 success; fullstack-first-arrival 33467224620 success; reconnect-stress 33467224381 success; faketcp-pcap-20loss 33467225388 success. Later documentation/handoff commits are metadata only. Always live-refresh before future status claims."
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "6a2e41a2eeb50ce9d4ff565fa11a3879a777519b",
-    "result": "pass",
-    "note": "Repository-hosted Windows runtime/protocol/no-HOL and Linux raw/NAT one-flow E2E qualification passed. No physical Windows 11/Npcap/NIC/NAT/ISP test has been run on this final V3 candidate; do not claim one."
+    "tested_commit": "34906fc6997b1440a8dc1c4709691a8f44a3a875",
+    "result": "incomplete_physical_gate",
+    "note": "Automated Windows hosted and Linux raw/NAT single-flow qualification is green. The physical Windows 11/Npcap/NIC capture-injection gate has been implemented but has NOT yet produced WBD_WINDOWS_NPCAP_PHYSICAL_PASS for this final checkpoint. This absence blocks artifact delivery and must never be described as a pass."
   },
   "required_data_plane_assets": [],
   "resume_read_set": [
-    "ARCHITECTURE.md",
-    "PROJECT_CONSTITUTION.md",
-    "docs/architecture/ADR-0011-v3-single-public-flow-realitylike-switch.md",
+    ".wbd/handoff/current.json",
+    "docs/experiments/singleflow-v3-physical-npcap-gate-2026-09-01.md",
     "docs/experiments/singleflow-v3-development-log.md",
     "docs/experiments/singleflow-v3-closure-2026-08-31.md",
-    "internal/realityfront/singleflow_test.go",
-    "internal/faketcp/arq.go",
-    "internal/windowsdiag/readiness_windows.go",
+    ".github/workflows/windows-npcap-physical.yml",
+    "scripts/windows_npcap_physical_qualify.ps1",
+    "scripts/windows_npcap_prepare.ps1",
     ".github/workflows/singleflow-v3-crossplatform.yml",
     ".github/workflows/singleflow-realitylike-e2e.yml",
-    "scripts/singleflow_realitylike_e2e.sh",
-    ".wbd/handoff/current.json"
+    "cmd/wbd-faketcp/main_windows.go",
+    "cmd/wbd-faketcp/singleflow_client.go",
+    "cmd/wbd-windows-portable/main_windows.go"
   ]
 }
