@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('Status','Fetch','Install')]
+    [ValidateSet('Status','Fetch','Install','Uninstall')]
     [string]$Action = 'Status',
     [string]$DownloadDirectory = "$env:LOCALAPPDATA\WBD\downloads"
 )
@@ -57,6 +57,31 @@ function Assert-NpcapInstalled {
     return $state
 }
 
+function Assert-NpcapAbsent {
+    $state = Get-NpcapRuntimeState
+    if ($state.WpcapExists -or $state.PacketExists -or $state.ServiceExists) {
+        throw "Npcap cleanup incomplete: wpcap=$($state.WpcapExists) packet=$($state.PacketExists) service=$($state.ServiceExists) status=$($state.ServiceStatus)"
+    }
+    return $state
+}
+
+function Get-NpcapUninstaller {
+    $candidates = @()
+    if ($env:ProgramFiles) {
+        $candidates += (Join-Path $env:ProgramFiles 'Npcap\uninstall.exe')
+    }
+    if (${env:ProgramFiles(x86)}) {
+        $candidates += (Join-Path ${env:ProgramFiles(x86)} 'Npcap\uninstall.exe')
+    }
+    foreach ($candidate in ($candidates | Select-Object -Unique)) {
+        if (Test-Path -LiteralPath $candidate) {
+            [void](Assert-TrustedNmapSignature -Path $candidate -Label 'Npcap uninstaller')
+            return $candidate
+        }
+    }
+    throw "Npcap uninstaller not found under Program Files\Npcap"
+}
+
 function Fetch-NpcapInstaller {
     if (-not (Test-Path -LiteralPath $DownloadDirectory)) {
         New-Item -ItemType Directory -Force -Path $DownloadDirectory | Out-Null
@@ -102,6 +127,28 @@ switch ($Action) {
             Write-Output 'WBD_WINDOWS_NPCAP_REBOOT_REQUIRED'
         }
         Write-Output "WBD_WINDOWS_NPCAP_INSTALL_PASS version=$NpcapVersion"
+        exit 0
+    }
+    'Uninstall' {
+        $state = Get-NpcapRuntimeState
+        if (-not $state.WpcapExists -and -not $state.PacketExists -and -not $state.ServiceExists) {
+            Write-Output "WBD_WINDOWS_NPCAP_UNINSTALL_PASS version=$NpcapVersion already_absent=1"
+            exit 0
+        }
+        $uninstaller = Get-NpcapUninstaller
+        # Npcap documents silent uninstall /S as available in every edition,
+        # including the Free Edition. /no_kill=no permits cleanup of processes
+        # that still hold Npcap DLL/driver handles after a qualification run.
+        $proc = Start-Process -FilePath $uninstaller -ArgumentList @('/S','/no_kill=no') -Wait -PassThru
+        if ($proc.ExitCode -notin @(0, 3010)) {
+            throw "Npcap uninstaller exited $($proc.ExitCode)"
+        }
+        Start-Sleep -Milliseconds 750
+        [void](Assert-NpcapAbsent)
+        Write-Output "WBD_WINDOWS_NPCAP_UNINSTALL_PASS version=$NpcapVersion already_absent=0"
+        if ($proc.ExitCode -eq 3010) {
+            Write-Output 'WBD_WINDOWS_NPCAP_UNINSTALL_REBOOT_REQUIRED'
+        }
         exit 0
     }
 }
