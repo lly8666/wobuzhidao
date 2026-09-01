@@ -1,11 +1,11 @@
 {
   "schema_version": "wbd-session-handoff/v1",
   "repository": "lly8666/wobuzhidao",
-  "continuity_sequence": 62,
+  "continuity_sequence": 63,
   "active_branch": "exp/singleflow-realitylike-v3",
   "active_issue": 1,
   "active_pr": 10,
-  "checkpoint_based_on_head_sha": "87da9768a7aa57c2e7057d0e2b650abce481f42a",
+  "checkpoint_based_on_head_sha": "6e2ab72f1ede0d0abd2beaaacd80c6115decd5b5",
   "live_refresh_required": true,
   "strategic_terminal_goal": "Ship the personal weak-network VPN with exactly one public TCP-shaped flow per session: one raw FakeTCP-owned SYN/4-tuple, bounded real TLS 1.3 Reality-like setup on that same sequence space, encrypted in-flow phase switch, then same-flow DTLS 1.3/FEC/LINK datagrams with no ordinary-TCP steady-state HOL and no second public connection.",
   "frozen_constraints": [
@@ -17,23 +17,23 @@
     "Do not deliver a new Windows/Linux artifact pair until the exact final V3 behavior has passed both the strong Linux single-flow qualification and a real Administrator Windows 11 x64 Npcap 1.88 capture/injection qualification.",
     "Npcap Free Edition is never redistributed by WBD and is not silently installed."
   ],
-  "current_milestone": "Single-flow V3 automated qualification has been strengthened through the actual Windows executable/Npcap ABI boundary without changing the frozen TCP-like/FEC algorithms. Checkpoint 87da9768a7aa57c2e7057d0e2b650abce481f42a completed the hosted Windows process-level ABI gate: the real wbd-faketcp.exe dynamically loaded the test wpcap.dll ABI, required MODE_SENDTORX_CLEAR=0x0200, ignored scripted UDP/wrong-tuple/self-captured adapter noise, accepted a valid WBD SYNACK and emitted its real Go TLS ClientHello payload through pcap_sendpacket. The PASS marker explicitly records physical_driver=0. At the same checkpoint, main CI, strong Linux/NAT single-flow Reality-like E2E, reconnect stress, FakeTCP native, pcap-20loss, first-arrival and fullstack first-arrival are all success. Detailed evidence is in docs/experiments/singleflow-v3-hosted-npcap-abi-gate-2026-09-01.md. A real Windows 11 x64 + Npcap 1.88 physical capture/injection PASS has still not been recorded, so release delivery remains blocked.",
+  "current_milestone": "The final known automated red lights are closed at behavior checkpoint 6e2ab72f1ede0d0abd2beaaacd80c6115decd5b5 without changing game-lane product semantics or the frozen FakeTCP/FEC data plane. First, f15b5e761d7816323cca186013c37429dfefaa1f fixed the 20% loss pcap startup race by waiting for both tcpdump instances to explicitly report listening before starting the handshake; the strict wire analyzer was not weakened. The earlier repaired loss run 33477402686 captured the handshake plus duplicate/SACK ACK and retransmission evidence, and the same behavior lineage remains green in pcap run 33479491446. Second, 6e2ab72f1ede0d0abd2beaaacd80c6115decd5b5 fixed the unrelated wbd-game-lane-server UDP test race only in cmd/wbd-game-lane-server/main_test.go: the test now waits, under a strict one-second deadline, for the exact in_first=3 and in_dup=3 state before retaining the final exact 3/3 assertion. Main CI run 33479491357 is success including Go tests and handoff tests. The same checkpoint is also success in singleflow-v3-crossplatform 33479491371 (Windows and Linux), strong singleflow-realitylike-e2e 33479491416, reconnect stress 33479491345, faketcp-native 33479491340, faketcp-pcap-20loss 33479491446, faketcp-first-arrival 33479491330, and fullstack-first-arrival 33479491385. The hosted Windows job again emitted WBD_WINDOWS_NPCAP_ABI_PASS with real_exe=1, dynamic_wpcap=1, open_live=1, setmode=1, next_ex=1, sendpacket=1, adapter_noise=ignored, synack=accepted, tls_payload_tx=1, and physical_driver=0. Therefore automated Linux/V3/FakeTCP/hosted-Windows qualification is green, but a real Windows 11 x64 + Npcap 1.88 physical capture/injection PASS has still not been recorded and release delivery remains blocked.",
   "continuation_cursor": {
-    "last_completed_action": "Added and validated a hosted Windows Npcap ABI/process qualification around the real wbd-faketcp.exe. The first attempt at 8701671e... failed only because the C test stub used strcpy under MSVC /W4 /WX; no product test had failed. The stub was made warning-clean with strcpy_s without weakening /WX. At 87da9768..., singleflow-v3-crossplatform run 33476706825 completed success and the Windows job emitted WBD_WINDOWS_NPCAP_ABI_PASS real_exe=1 dynamic_wpcap=1 open_live=1 setmode=1 next_ex=1 sendpacket=1 adapter_noise=ignored synack=accepted tls_payload_tx=1 physical_driver=0. Same-checkpoint runs also passed: ci 33476706763; singleflow-realitylike-e2e 33476706781; reconnect stress 33476706730; faketcp-native 33476706799; faketcp-pcap-20loss 33476706808; faketcp-first-arrival 33476706777; fullstack-first-arrival 33476706721. Development evidence was recorded in docs/experiments/singleflow-v3-hosted-npcap-abi-gate-2026-09-01.md.",
+    "last_completed_action": "Closed the final two automated test-harness races and requalified the exact behavior checkpoint. The pcap harness now waits for tcpdump readiness instead of racing capture startup, preserving the strict SYN/handshake assertions. The unrelated game-lane real-UDP test now waits for the server goroutine to settle the exact 3/3 first/duplicate counters with a hard deadline and does not modify server semantics. At 6e2ab72f1ede0d0abd2beaaacd80c6115decd5b5, ci 33479491357 passed Go tests; singleflow-v3-crossplatform 33479491371 passed both Windows and Linux jobs and emitted hosted WBD_WINDOWS_NPCAP_ABI_PASS physical_driver=0; singleflow-realitylike-e2e 33479491416 passed the one-SYN Reality-like TLS encrypted-switch same-flow DTLS no-HOL gate; reconnect stress 33479491345, faketcp-native 33479491340, faketcp-pcap-20loss 33479491446, faketcp-first-arrival 33479491330, and fullstack-first-arrival 33479491385 all passed. No product artifact was delivered.",
     "current_task": "Close the remaining real Windows Npcap/NIC release gate for the exact V3 behavior checkpoint, then reconfirm/build the Linux ARM64 server from the same behavior-equivalent final checkpoint and only then prepare a deliverable pair.",
-    "why_now": "The single-flow protocol, encrypted switch, no-HOL transition, Linux raw/NAT path, reconnect/loss behavior, Windows parsing, dynamic wpcap ABI and real-executable packet API boundary are automated-green. The only intentionally unresolved release uncertainty is the real Administrator Windows 11 x64 Npcap 1.88 driver/NIC/capture-injection boundary plus real network path; hosted CI cannot honestly substitute for it.",
+    "why_now": "The single-flow protocol, encrypted switch, no-HOL transition, Linux raw/NAT path, reconnect/loss behavior, pcap capture readiness, game-lane asynchronous test accounting, Windows parsing, dynamic wpcap ABI and real-executable packet API boundary are automated-green. The only intentionally unresolved release uncertainty is the real Administrator Windows 11 x64 Npcap 1.88 driver/NIC/capture-injection boundary plus real network path; hosted CI explicitly records physical_driver=0 and cannot honestly substitute for it.",
     "done_when": "A real elevated Windows 11 x64 machine with Npcap 1.88 runs the exact final portable behavior through scripts/windows_npcap_physical_qualify.ps1 and records WBD_WINDOWS_NPCAP_PHYSICAL_PASS plus required FakeTCP single-flow TLS switch/DTLS/LINK/TUN/Internet-probe/cleanup markers; the strong Linux single-flow qualification and Linux ARM64 release are green for the same final behavior checkpoint; artifact hashes and run identities are recorded; handoff-verify is green. Only then may the Windows/Linux pair be delivered.",
     "next_atomic_action": "Live-refresh this branch and Actions. Check whether a real elevated self-hosted Windows x64 runner labeled wbd-npcap is available for .github/workflows/windows-npcap-physical.yml. If it is available, run the exact final portable checkpoint through the physical gate and inspect the first deterministic failure or PASS marker. If it is not available, do not fabricate a pass and do not deliver binaries; preserve the release block and only add further automated qualification when it tests a genuinely uncovered boundary."
   },
   "live_ci_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "87da9768a7aa57c2e7057d0e2b650abce481f42a",
+    "tested_commit": "6e2ab72f1ede0d0abd2beaaacd80c6115decd5b5",
     "result": "pass",
-    "note": "Audited live on 2026-09-01 before sequence 62: singleflow-v3-crossplatform 33476706825 success with explicit WBD_WINDOWS_NPCAP_ABI_PASS physical_driver=0; ci 33476706763 success; singleflow-realitylike-e2e 33476706781 success; reconnect-stress 33476706730 success; faketcp-native 33476706799 success; faketcp-pcap-20loss 33476706808 success; faketcp-first-arrival 33476706777 success; fullstack-first-arrival 33476706721 success. Later documentation/handoff commits are metadata only. Always live-refresh before future status claims."
+    "note": "Audited live before sequence 63 metadata write: ci 33479491357 success including Go tests; singleflow-v3-crossplatform 33479491371 success on Windows and Linux with WBD_WINDOWS_NPCAP_ABI_PASS physical_driver=0; singleflow-realitylike-e2e 33479491416 success; reconnect-stress 33479491345 success; faketcp-native 33479491340 success; faketcp-pcap-20loss 33479491446 success; faketcp-first-arrival 33479491330 success; fullstack-first-arrival 33479491385 success. Handoff-verify 33479491338 was also success before this sequence-63 metadata write. Later handoff commits are metadata only. Always live-refresh before future status claims."
   },
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "87da9768a7aa57c2e7057d0e2b650abce481f42a",
+    "tested_commit": "6e2ab72f1ede0d0abd2beaaacd80c6115decd5b5",
     "result": "not_run",
     "note": "The mandatory real Administrator Windows 11 x64 + Npcap 1.88 physical capture/injection qualification has NOT been recorded for this V3 checkpoint. Hosted Windows ABI qualification explicitly says physical_driver=0 and therefore cannot satisfy the physical release gate. Artifact delivery remains blocked."
   },
@@ -45,10 +45,12 @@
     "docs/experiments/singleflow-v3-physical-npcap-gate-2026-09-01.md",
     ".github/workflows/singleflow-v3-crossplatform.yml",
     ".github/workflows/singleflow-realitylike-e2e.yml",
+    ".github/workflows/faketcp-pcap-20loss.yml",
     ".github/workflows/windows-npcap-physical.yml",
     "scripts/windows_npcap_abi_qualify.ps1",
     "scripts/windows_npcap_physical_qualify.ps1",
     "tests/windows_npcap_abi/wpcap_stub.c",
+    "cmd/wbd-game-lane-server/main_test.go",
     "cmd/wbd-faketcp/main_windows.go",
     "cmd/wbd-faketcp/singleflow_client.go"
   ]
