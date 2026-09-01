@@ -47,6 +47,9 @@ jobs:
             windows-tun-build.yml
             windows-tun-admin-smoke.yml
             windows-rawip-gateway.yml
+            windows-faketcp-persona.yml
+            windows-ipv6-killswitch.yml
+            windows-dtls-build.yml
             linux-server-release.yml
             linux-server-firewall.yml
             single-flow-rawip-e2e.yml
@@ -55,6 +58,8 @@ jobs:
             single-flow-link-fullstack.yml
             faketcp-recovery-ab.yml
             openwrt-fullstack-one-shot.yml
+            game-lane-fullstack.yml
+            shared-tun-two-client.yml
           )
           for workflow in "${workflows[@]}"; do
             current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
@@ -117,6 +122,7 @@ jobs:
             ci.yml
             faketcp-native.yml
             faketcp-pcap-20loss.yml
+            faketcp-first-arrival.yml
             fullstack-first-arrival.yml
             openwrt-tcp-tproxy.yml
             single-flow-e2e.yml
@@ -173,4 +179,4 @@ jobs:
           current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
           printf 'aggregator_sha=%s final_branch_sha=%s\n' "$GITHUB_SHA" "$current"
           test "$current" = "$GITHUB_SHA"
-          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=13 push_gates=8 total_children=21'
+          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=18 push_gates=9 total_children=27 windows_linux=1 game_lanes=1 shared_tun_one_nat=1'
