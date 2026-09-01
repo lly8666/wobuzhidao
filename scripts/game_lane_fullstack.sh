@@ -30,7 +30,7 @@ mkdir -p "$LOG_DIR" "$LOG_DIR/tickets"
 chmod 700 "$LOG_DIR/tickets"
 
 required=(
-  wbd-reality-front wbd-faketcp wbd-faketcp-mux wbd-link-proxy wbd-link-server-mux
+  wbd-faketcp wbd-faketcp-mux wbd-link-proxy wbd-link-server-mux
   wbd-game-lane-client wbd-game-lane-server wbd_dtls_shim front.pem front.key dtls.pem dtls.key
 )
 for f in "${required[@]}"; do
@@ -55,12 +55,11 @@ ROUTE_KEY='WBD_REALITY_ROUTE_KEY_0123456789abcdef'
 USERNAME='solo'
 PASSWORD='shared-password'
 TARGET='target.example'
-FRONT=40443
 RAW=40000
 LINK=47000
 GAME=49000
 ECHO=48000
-SESSION_ID=00112233445566778899aabbccddeeff
+INSTALLATION_ID=00112233445566778899aabbccddeeff
 
 sudo ip netns add "$C"
 sudo ip netns add "$S"
@@ -82,6 +81,10 @@ s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 s.bind(('127.0.0.1',48000))
 while True:
     b,a=s.recvfrom(65535)
+    # The authenticated Logical Tunnel metadata is a control datagram for the
+    # downstream shared service, not one of the measured Game payloads.
+    if not (b.startswith(b'warm') or b.startswith(b'game')):
+        continue
     with count.open('ab') as f: f.write(b.hex().encode()+b'\n')
     s.sendto(b,a)
 PY
@@ -96,52 +99,29 @@ GSPID=$!; PIDS+=("$GSPID")
 for _ in $(seq 1 200); do grep -q "WBD_GAME_LANE_SERVER_READY.*max_lanes=${LANES}" "$LOG_DIR/game-server.log" && break; sleep .05; done
 grep -q "WBD_GAME_LANE_SERVER_READY.*max_lanes=${LANES}" "$LOG_DIR/game-server.log"
 
-sudo ip netns exec "$S" "$ASSET_DIR/wbd-reality-front" server \
-  -listen 10.89.0.1:${FRONT} -target 127.0.0.1:9 -server-name "$TARGET" \
-  -cert "$ASSET_DIR/front.pem" -key "$ASSET_DIR/front.key" -route-key "$ROUTE_KEY" \
-  -username "$USERNAME" -password "$PASSWORD" -ticket-dir "$LOG_DIR/tickets" \
-  >"$LOG_DIR/front-server.log" 2>&1 &
-FRONTPID=$!; PIDS+=("$FRONTPID")
-for _ in $(seq 1 300); do grep -q 'WBD_REALITY_FRONT_READY' "$LOG_DIR/front-server.log" && break; sleep .05; done
-grep -q 'WBD_REALITY_FRONT_READY' "$LOG_DIR/front-server.log"
-
-for i in $(seq 1 "$LANES"); do
-  sudo ip netns exec "$C" "$ASSET_DIR/wbd-reality-front" client \
-    -addr 10.89.0.1:${FRONT} -server-name "$TARGET" -route-key "$ROUTE_KEY" \
-    -username "$USERNAME" -password "$PASSWORD" -verify-server=false \
-    -ticket-out "$LOG_DIR/ticket-${i}.txt" >"$LOG_DIR/front-${i}.log" 2>&1
-  grep -q 'WBD_REALITY_FRONT_OK' "$LOG_DIR/front-${i}.log"
-done
-python3 - "$LOG_DIR" "$LANES" <<'PY'
-import pathlib,sys
-p=pathlib.Path(sys.argv[1]); n=int(sys.argv[2])
-t=[(p/f'ticket-{i}.txt').read_text().strip() for i in range(1,n+1)]
-assert all(len(x)==64 for x in t), t
-assert len(set(t))==n, t
-print(f'WBD_GAME_LANE_TICKETS_PASS unique={n}')
-PY
-
 sudo ip netns exec "$S" "$ASSET_DIR/wbd-link-server-mux" \
   -listen 127.0.0.1:${LINK} -service 127.0.0.1:${GAME} \
   -ticket-dir "$LOG_DIR/tickets" -ticket-ttl 60s -max-sessions 8 \
   >"$LOG_DIR/link-server.log" 2>&1 &
 LINKPID=$!; PIDS+=("$LINKPID")
-for _ in $(seq 1 200); do grep -q 'WBD_LINK_SERVER_MUX_READY' "$LOG_DIR/link-server.log" && break; sleep .05; done
-grep -q 'WBD_LINK_SERVER_MUX_READY' "$LOG_DIR/link-server.log"
+for _ in $(seq 1 200); do grep -q 'WBD_LINK_SERVER_MUX_READY.*logical_tunnel=1.*game_backend=1' "$LOG_DIR/link-server.log" && break; sleep .05; done
+grep -q 'WBD_LINK_SERVER_MUX_READY.*logical_tunnel=1.*game_backend=1' "$LOG_DIR/link-server.log"
 
 sudo ip netns exec "$S" "$ASSET_DIR/wbd-faketcp-mux" server \
   --listen 10.89.0.1:${RAW} --dtls-shim "$ASSET_DIR/wbd_dtls_shim" \
   --link-target 127.0.0.1:${LINK} --cert "$ASSET_DIR/dtls.pem" --key "$ASSET_DIR/dtls.key" \
-  --max-sessions 8 >"$LOG_DIR/faketcp-mux.log" 2>&1 &
+  --front-cert "$ASSET_DIR/front.pem" --front-key "$ASSET_DIR/front.key" \
+  --server-name "$TARGET" --route-key "$ROUTE_KEY" \
+  --username "$USERNAME" --password "$PASSWORD" --ticket-dir "$LOG_DIR/tickets" \
+  --fallback-target 127.0.0.1:9 --bootstrap-timeout 12s --max-sessions 8 \
+  >"$LOG_DIR/faketcp-mux.log" 2>&1 &
 MUXPID=$!; PIDS+=("$MUXPID")
-for _ in $(seq 1 300); do grep -q 'READY role=server-mux.*recovery=legacy' "$LOG_DIR/faketcp-mux.log" && break; sleep .05; done
-grep -q 'READY role=server-mux.*recovery=legacy' "$LOG_DIR/faketcp-mux.log"
+for _ in $(seq 1 300); do grep -q 'READY role=server-mux.*recovery=legacy.*single_flow_bootstrap=true.*logical_tunnel=true' "$LOG_DIR/faketcp-mux.log" && break; sleep .05; done
+grep -q 'READY role=server-mux.*recovery=legacy.*single_flow_bootstrap=true.*logical_tunnel=true' "$LOG_DIR/faketcp-mux.log"
 
-# Use immediate capture delivery as well as packet-buffered pcap writes. The
-# lane probe is intentionally short; without immediate mode libpcap may still
-# have matching packets in its kernel buffer when the deterministic SIGINT
-# arrives, producing an empty pcap despite a non-zero "received by filter"
-# counter.
+# Capture the public wire before any lane starts. Each lane must have exactly one
+# FakeTCP SYN lineage; Reality-like TLS bootstrap and DTLS/LINK follow on that
+# same association with no second WBD payload SYN.
 sudo ip netns exec "$C" tcpdump --immediate-mode -i gc0 -s 0 -U -w "$LOG_DIR/game-lanes.pcap" "tcp port ${RAW}" >"$LOG_DIR/tcpdump.log" 2>&1 &
 TPID=$!
 for _ in $(seq 1 200); do grep -q 'listening on gc0' "$LOG_DIR/tcpdump.log" && break; sleep .05; done
@@ -151,16 +131,56 @@ for i in $(seq 1 "$LANES"); do
   fport=$((45100+i)); sport=$((41000+i))
   sudo ip netns exec "$C" "$ASSET_DIR/wbd-faketcp" client \
     --local-udp 127.0.0.1:${fport} --source 10.89.0.2:${sport} --remote 10.89.0.1:${RAW} \
+    --shadow-recovery legacy \
+    --reality-server-name "$TARGET" --reality-route-key "$ROUTE_KEY" \
+    --reality-username "$USERNAME" --reality-password "$PASSWORD" \
+    --reality-ticket-out "$LOG_DIR/ticket-${i}.txt" \
+    --reality-installation-id "$INSTALLATION_ID" \
+    --reality-tunnel-config-out "$LOG_DIR/tunnel-${i}.json" \
+    --reality-verify-server=false --reality-timeout 12s \
     >"$LOG_DIR/faketcp-${i}.log" 2>&1 &
   pid=$!; PIDS+=("$pid")
 done
-for _ in $(seq 1 500); do
+for _ in $(seq 1 700); do
   ok=1
-  for i in $(seq 1 "$LANES"); do grep -q 'READY role=client.*recovery=legacy' "$LOG_DIR/faketcp-${i}.log" || ok=0; done
+  for i in $(seq 1 "$LANES"); do
+    grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1.*logical_tunnel=1' "$LOG_DIR/faketcp-${i}.log" || ok=0
+    grep -q 'READY role=client.*recovery=legacy.*single_flow_bootstrap=true' "$LOG_DIR/faketcp-${i}.log" || ok=0
+  done
   [[ $ok -eq 1 ]] && break
   sleep .05
 done
-for i in $(seq 1 "$LANES"); do grep -q 'READY role=client.*recovery=legacy' "$LOG_DIR/faketcp-${i}.log"; done
+for i in $(seq 1 "$LANES"); do
+  grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1.*logical_tunnel=1' "$LOG_DIR/faketcp-${i}.log"
+  grep -q 'READY role=client.*recovery=legacy.*single_flow_bootstrap=true' "$LOG_DIR/faketcp-${i}.log"
+done
+
+SESSION_ID=$(python3 - "$LOG_DIR" "$LANES" <<'PY'
+import json,pathlib,sys
+p=pathlib.Path(sys.argv[1]); n=int(sys.argv[2])
+tickets=[(p/f'ticket-{i}.txt').read_text().strip() for i in range(1,n+1)]
+assert all(len(x)==64 for x in tickets), tickets
+assert len(set(tickets))==n, tickets
+configs=[json.loads((p/f'tunnel-{i}.json').read_text()) for i in range(1,n+1)]
+first=configs[0]
+assert len(first['tunnel_id'])==32, first
+assert first['address4'].endswith('/32'), first
+assert first.get('routes4'), first
+for cfg in configs[1:]:
+    assert cfg['tunnel_id']==first['tunnel_id'], (first,cfg)
+    assert cfg['address4']==first['address4'], (first,cfg)
+    assert cfg.get('routes4')==first.get('routes4'), (first,cfg)
+print(first['tunnel_id'])
+PY
+)
+python3 - "$LOG_DIR" "$LANES" "$SESSION_ID" <<'PY'
+import pathlib,sys
+p=pathlib.Path(sys.argv[1]); n=int(sys.argv[2]); sid=sys.argv[3]
+t=[(p/f'ticket-{i}.txt').read_text().strip() for i in range(1,n+1)]
+print(f'WBD_GAME_LANE_SINGLE_FLOW_TICKETS_PASS unique={len(set(t))} tunnel_id_prefix={sid[:8]}')
+PY
+
+test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$LOG_DIR/faketcp-mux.log")" -eq "$LANES"
 
 for i in $(seq 1 "$LANES"); do
   dport=$((46100+i)); fport=$((45100+i))
@@ -182,19 +202,31 @@ for i in $(seq 1 "$LANES"); do
   ticket=$(tr -d '\r\n' <"$LOG_DIR/ticket-${i}.txt")
   lport=$((47100+i)); dport=$((46100+i))
   sudo ip netns exec "$C" "$ASSET_DIR/wbd-link-proxy" \
-    -mode client -listen 127.0.0.1:${lport} -dtls 127.0.0.1:${dport} -fec "$FEC" \
+    -mode client -listen 127.0.0.1:${lport} -dtls 127.0.0.1:${dport} -fec "$FEC" -lanes 1 \
     -demo-reality-ticket "$ticket" >"$LOG_DIR/link-${i}.log" 2>&1 &
   pid=$!; PIDS+=("$pid")
 done
 for _ in $(seq 1 1000); do
   ok=1
   for i in $(seq 1 "$LANES"); do grep -q "WBD_LINK_READY role=client fec=${FEC}" "$LOG_DIR/link-${i}.log" || ok=0; done
-  sessions=$(grep -c 'WBD_LINK_MUX_SESSION_READY account=solo' "$LOG_DIR/link-server.log" || true)
+  sessions=$(grep -c 'WBD_LINK_MUX_SESSION_READY tunnel_id_prefix=' "$LOG_DIR/link-server.log" || true)
   [[ $ok -eq 1 && $sessions -ge $LANES ]] && break
   sleep .05
 done
 for i in $(seq 1 "$LANES"); do grep -q "WBD_LINK_READY role=client fec=${FEC}" "$LOG_DIR/link-${i}.log"; done
-test "$(grep -c 'WBD_LINK_MUX_SESSION_READY account=solo' "$LOG_DIR/link-server.log")" -eq "$LANES"
+test "$(grep -c 'WBD_LINK_MUX_SESSION_READY tunnel_id_prefix=' "$LOG_DIR/link-server.log")" -eq "$LANES"
+test "$(grep -c 'WBD_LINK_LOGICAL_TUNNEL_BIND tunnel_id_prefix=' "$LOG_DIR/link-server.log")" -eq "$LANES"
+python3 - "$LOG_DIR/link-server.log" "$SESSION_ID" "$LANES" <<'PY'
+import pathlib,re,sys
+text=pathlib.Path(sys.argv[1]).read_text(); sid=sys.argv[2]; lanes=int(sys.argv[3])
+prefix=sid[:8]
+binds=re.findall(r'WBD_LINK_LOGICAL_TUNNEL_BIND tunnel_id_prefix=([0-9a-f]+).*?active_lanes=(\d+).*?max_lanes=(\d+)', text)
+assert len(binds)==lanes, binds
+assert all(p==prefix for p,_,_ in binds), (prefix,binds)
+assert [int(a) for _,a,_ in binds]==list(range(1,lanes+1)), binds
+assert all(int(m)==4 for _,_,m in binds), binds
+print(f'WBD_GAME_LANE_LOGICAL_TUNNEL_BIND_PASS tunnel_id_prefix={prefix} active_lanes={lanes} max_lanes=4')
+PY
 if [[ "$FEC" == off ]]; then
   test "$(grep -c 'WBD_LINK_MUX_SESSION_READY.*fec_mode=0 fec=0:0' "$LOG_DIR/link-server.log")" -eq "$LANES"
 else
@@ -239,10 +271,12 @@ for _ in $(seq 1 300); do
   sleep .05
 done
 test "$(grep -c 'WBD_GAME_LANE_BIND.*lanes=' "$LOG_DIR/game-server.log")" -eq "$LANES"
+test "$(grep -c 'WBD_GAME_LANE_TUNNEL_META_READY' "$LOG_DIR/game-server.log")" -eq "$LANES"
 sudo ip netns exec "$C" python3 "$LOG_DIR/probe.py" "$PROBE_COUNT" game >"$LOG_DIR/probe.log" 2>&1
 grep -q "WBD_GAME_LANE_PROBE_PASS count=${PROBE_COUNT}" "$LOG_DIR/probe.log"
 
-# Every logical datagram must reach the downstream exactly once regardless of lane/FEC copies.
+# Every logical Game datagram reaches the downstream exactly once regardless of
+# lane/FEC copies. Authenticated TunnelMeta is intentionally excluded by echo.py.
 test "$(wc -l <"$LOG_DIR/echo-count.log")" -eq "$EXPECTED_LOGICAL"
 sleep .25
 
@@ -306,4 +340,4 @@ python3 "$GITHUB_WORKSPACE/scripts/analyze_game_lane_pcap.py" "$LOG_DIR/game-lan
 grep -q "WBD_GAME_LANE_PCAP_PASS flows=${LANES} distinct_5tuple=1 distinct_seq_space=1" \
   <(python3 "$GITHUB_WORKSPACE/scripts/analyze_game_lane_pcap.py" "$LOG_DIR/game-lanes.pcap" --server-port "$RAW" --client-ports "$CLIENT_PORTS")
 
-echo "WBD_GAME_LANE_FULLSTACK_PASS lanes=${LANES} logical_delivery_once=1 outer_flows_distinct=1 fec=${FEC}"
+echo "WBD_GAME_LANE_FULLSTACK_PASS lanes=${LANES} logical_delivery_once=1 outer_flows_distinct=1 per_lane_single_flow=1 shared_logical_tunnel=1 fec=${FEC}"
