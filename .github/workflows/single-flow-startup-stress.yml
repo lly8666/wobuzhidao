@@ -10,11 +10,13 @@ on:
       - 'cmd/wbd-faketcp-mux/**'
       - 'cmd/wbd-link-proxy/**'
       - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-platform-proxy-server/**'
       - 'internal/faketcp/**'
       - 'internal/realityfront/**'
       - 'internal/dtlsworker/**'
       - 'internal/session/**'
       - 'internal/logicaltunnel/**'
+      - 'internal/platformproxy/**'
       - 'native/dtls/**'
       - '.github/scripts/single-flow-startup-stress.sh'
       - '.github/workflows/single-flow-startup-stress.yml'
@@ -24,11 +26,13 @@ on:
       - 'cmd/wbd-faketcp-mux/**'
       - 'cmd/wbd-link-proxy/**'
       - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-platform-proxy-server/**'
       - 'internal/faketcp/**'
       - 'internal/realityfront/**'
       - 'internal/dtlsworker/**'
       - 'internal/session/**'
       - 'internal/logicaltunnel/**'
+      - 'internal/platformproxy/**'
       - 'native/dtls/**'
       - '.github/scripts/single-flow-startup-stress.sh'
       - '.github/workflows/single-flow-startup-stress.yml'
@@ -71,6 +75,7 @@ jobs:
           go build -trimpath -o /tmp/sfstress/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
           go build -trimpath -o /tmp/sfstress/wbd-link-proxy ./cmd/wbd-link-proxy
           go build -trimpath -o /tmp/sfstress/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          go build -trimpath -o /tmp/sfstress/wbd-platform-proxy-server ./cmd/wbd-platform-proxy-server
           openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
             -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
             -keyout /tmp/sfstress/front.key -out /tmp/sfstress/front.pem >/dev/null 2>&1
@@ -87,6 +92,8 @@ jobs:
           path: |
             /tmp/sfstress/mux.log
             /tmp/sfstress/link-server.log
+            /tmp/sfstress/platform-server.log
+            /tmp/sfstress/echo.log
             /tmp/sfstress/fake.log
             /tmp/sfstress/dtls.log
             /tmp/sfstress/link.log
