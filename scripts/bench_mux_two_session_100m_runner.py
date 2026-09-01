@@ -6,9 +6,17 @@ one public FakeTCP association: Reality-like TLS bootstrap on that association,
 then DTLS/LINK steady state carrying two independent inner streams. It strips
 loss only from initial setup; the measured offered interval still applies the
 requested random loss.
+
+The logical-tunnel product contract no longer accepts arbitrary bare
+application datagrams at LINK. Capacity probes therefore set a test-only mode
+that wraps each inner UDP datagram in the real WBDP v1 platformproxy envelope;
+the probe receiver unwraps the same envelope after LINK. This preserves the
+existing transport benchmark while exercising the released application-frame
+boundary instead of a retired bare-UDP shortcut.
 """
 
 import json
+import os
 import pathlib
 import sys
 
@@ -58,6 +66,7 @@ def single_flow_wait_text(path, needle, timeout=20.0, count=1):
 
 core.run = setup_safe_run
 core.wait_text = single_flow_wait_text
+os.environ["WBD_BENCH_PLATFORM_ENVELOPE"] = "1"
 rc = core.main()
 
 if rc == 0 and len(sys.argv) > 1 and sys.argv[1] == "run":
@@ -71,6 +80,9 @@ if rc == 0 and len(sys.argv) > 1 and sys.argv[1] == "run":
         result["loss_activation"] = "after_single_public_flow_link_ready_before_offered_interval"
         result["capacity_override"] = "wrapper_rewrites_netem_rate_only"
         result["qualification_setup"] = "one_public_faketcp_flow_reality_like_tls_then_dtls_with_two_inner_streams"
+        result["application_envelope"] = "platformproxy/WBDP-v1"
+        result["application_envelope_header_bytes"] = 44
+        result["bare_application_datagrams"] = False
         path.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n")
     except (ValueError, IndexError, OSError, json.JSONDecodeError) as exc:
         print(f"benchmark runner result annotation failed: {exc}", file=sys.stderr)
