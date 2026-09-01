@@ -11,9 +11,6 @@ import (
 
 const makeBeforeBreakCandidateSlot = 5
 
-// BuildCandidateLaneBootstrap creates a fresh same-flow public association for
-// an existing Logical LaneID while using private slot 5 for local UDP/DTLS/LINK
-// ports. The candidate is not part of Game/race until it is fully healthy.
 func BuildCandidateLaneBootstrap(profile Profile, base Underlay, laneID int) (LaneBootstrap, error) {
 	profile=profile.normalized()
 	if err:=profile.Validate();err!=nil{return LaneBootstrap{},err}
@@ -37,16 +34,28 @@ func BuildCandidateLaneBootstrap(profile Profile, base Underlay, laneID int) (La
 	return LaneBootstrap{ID:laneID,Underlay:base,FakeTCP:Command{Name:fmt.Sprintf("faketcp-%d-candidate",laneID),Path:filepath.Join(profile.BinDir,"wbd-faketcp.exe"),Args:args},TicketPath:ticketPath,TunnelConfigPath:configPath},nil
 }
 
+func BuildAuthenticatedLanePlan(profile Profile, bootstrap LaneBootstrap) (LanePlan,error) {
+	return buildLanePlanForSlot(profile,bootstrap,bootstrap.ID,false)
+}
+
 func BuildCandidateLanePlan(profile Profile, bootstrap LaneBootstrap) (LanePlan,error){
+	return buildLanePlanForSlot(profile,bootstrap,makeBeforeBreakCandidateSlot,true)
+}
+
+func buildLanePlanForSlot(profile Profile, bootstrap LaneBootstrap, slot int, candidate bool)(LanePlan,error){
 	profile=profile.normalized()
 	if err:=bootstrap.ValidateAuthenticated(nil);err!=nil{return LanePlan{},err}
-	fakePort,err:=transportSlotPort(defaultFakeTCPLocalPort,makeBeforeBreakCandidateSlot);if err!=nil{return LanePlan{},err}
-	dtlsPort,err:=transportSlotPort(defaultDTLSPlainPort,makeBeforeBreakCandidateSlot);if err!=nil{return LanePlan{},err}
-	dtlsPlain,err:=transportSlotLoopback(defaultDTLSPlainPort,makeBeforeBreakCandidateSlot);if err!=nil{return LanePlan{},err}
-	linkListen,err:=transportSlotLoopback(defaultLinkListenPort,makeBeforeBreakCandidateSlot);if err!=nil{return LanePlan{},err}
+	if _,err:=transportSlotPort(0,slot);err!=nil{return LanePlan{},err}
+	fakePort,err:=transportSlotPort(defaultFakeTCPLocalPort,slot);if err!=nil{return LanePlan{},err}
+	dtlsPort,err:=transportSlotPort(defaultDTLSPlainPort,slot);if err!=nil{return LanePlan{},err}
+	dtlsPlain,err:=transportSlotLoopback(defaultDTLSPlainPort,slot);if err!=nil{return LanePlan{},err}
+	linkListen,err:=transportSlotLoopback(defaultLinkListenPort,slot);if err!=nil{return LanePlan{},err}
 	bin:=func(name string)string{return filepath.Join(profile.BinDir,name)}
-	suffix:=fmt.Sprintf("%d-candidate",bootstrap.ID)
-	return LanePlan{ID:bootstrap.ID,Slot:makeBeforeBreakCandidateSlot,FakeTCP:bootstrap.FakeTCP,
+	suffix:=strconv.Itoa(bootstrap.ID)
+	if candidate{suffix+="-candidate"}
+	fake:=bootstrap.FakeTCP
+	if candidate{fake.Name="faketcp-"+suffix}
+	return LanePlan{ID:bootstrap.ID,Slot:slot,FakeTCP:fake,
 		DTLS:Command{Name:"dtls-"+suffix,Path:bin("wbd_dtls_shim.exe"),Args:[]string{"client",strconv.Itoa(dtlsPort),"127.0.0.1",strconv.Itoa(fakePort),"none","none"}},
 		Link:Command{Name:"link-"+suffix,Path:bin("wbd-link-proxy.exe"),Args:[]string{"-mode","client","-listen",linkListen,"-dtls",dtlsPlain,"-fec",profile.FEC,"-mtu",strconv.Itoa(profile.MTU),"-lanes","1","-demo-reality-ticket",strings.TrimSpace(bootstrap.Ticket)}},
 	},nil
