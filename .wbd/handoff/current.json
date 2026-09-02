@@ -21,16 +21,15 @@
     "tcp_like_core": "FakeTCP/Reality/DTLS/LINK/FEC wire is frozen unless deterministic lower-layer evidence proves a defect."
   },
   "continuation_cursor": {
-    "last_completed_action": "Live-refreshed PR #9 at 0d65698d1601951169a807d94c0eaa8c09c6531f, reconciled stale c7a0622352889ff8906db940b3e1e2bb5df3d6b1 handoff across 16 commits, and committed ff1aee3285cfe3fd3504fbbe21f029424fbdd83a. The product JSON boundary now distinguishes omitted idle_timeout from explicit zero: omission defaults to 900 seconds, explicit 0 remains never-sleep-on-payload-idle. Tests/docs/ROADMAP were updated; payload activity remains real app/TUN payload only and PING/PONG/control do not refresh it.",
-    "current_task": "Qualify the ff1aee3285cfe3fd3504fbbe21f029424fbdd83a contract fix on hosted Actions, then implement the next true lifecycle gap: randomized staggered 30..60m lane-age rotation and convergence of network/path/liveness/transport failure signals onto the existing generation-fenced replacement lifecycle.",
-    "why_now": "The prior handoff incorrectly marked bounded make-before-break Game race pending. Current code/tests already implement same-logical-LaneID old+candidate overlap, candidate-failure preservation, 4+1 physical-incarnation capacity, payload activity and automatic DORMANT/wake. The only contract drift found in this phase was omitted idle_timeout decoding to Go zero instead of the 15-minute product default.",
-    "done_when": "Focused Go tests and exact-source Actions are green for the idle contract. Then lifecycle tests prove independent randomized 30..60m age deadlines are staggered and replacement triggers converge without break-before-make or stale-generation authority. Full release readiness remains separately gated by the complete exact-source qualification matrix, same-source Windows/Linux artifacts and physical Windows 11 + Npcap -> Ubuntu ARM64 DNS/UDP/TCP/lifecycle/cleanup evidence.",
+    "last_completed_action": "Live-refreshed PR #9 at 0d65698d1601951169a807d94c0eaa8c09c6531f, reconciled stale c7a0622352889ff8906db940b3e1e2bb5df3d6b1 handoff across 16 commits, and committed ff1aee3285cfe3fd3504fbbe21f029424fbdd83a. The product JSON boundary now distinguishes omitted idle_timeout from explicit zero: omission defaults to 900 seconds, explicit 0 remains never-sleep-on-payload-idle. Tests/docs/ROADMAP were updated; payload activity remains real app/TUN payload only and PING/PONG/control do not refresh it. All 13 observed push workflows on ff1aee3285cfe3fd3504fbbe21f029424fbdd83a completed without failure; CI's go test ./... covered windowsgui/windowsruntime/gamelane successfully.",
+    "current_task": "Implement the next true lifecycle gap: randomized staggered 30..60m lane-age rotation and convergence of network/path/liveness/transport failure signals onto the existing generation-fenced replacement lifecycle.",
+    "why_now": "The prior handoff incorrectly marked bounded make-before-break Game race pending. Current code/tests already implement same-logical-LaneID old+candidate overlap, candidate-failure preservation, 4+1 physical-incarnation capacity, payload activity and automatic DORMANT/wake. The only contract drift found in the first phase was omitted idle_timeout decoding to Go zero instead of the 15-minute product default, and that source is now focused/exact-source green.",
+    "done_when": "Lifecycle tests prove independent randomized 30..60m age deadlines are staggered and replacement triggers converge without break-before-make or stale-generation authority. Full release readiness remains separately gated by the complete exact-source qualification matrix, same-source Windows/Linux artifacts and physical Windows 11 + Npcap -> Ubuntu ARM64 DNS/UDP/TCP/lifecycle/cleanup evidence.",
     "next_atomic_action": "Read controller lifecycle/process/liveness call sites and tests, then implement the age scheduler and the smallest unified replacement-trigger abstraction without modifying FakeTCP/Reality/DTLS/LINK/FEC wire."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
     "ROADMAP.md",
-    "docs/adr/ADR-0012-logical-tunnel-multipath-lifecycle.md",
     "docs/development/2026-09-02-payload-idle-dormant-wake.md",
     "internal/windowsgui/config.go",
     "internal/windowsruntime/controller_idle.go",
@@ -49,9 +48,9 @@
   },
   "automated_exact_head_snapshot": {
     "source_head": "ff1aee3285cfe3fd3504fbbe21f029424fbdd83a",
-    "result": "pending",
+    "result": "success",
     "baseline_before_fix": "At takeover baseline 0d65698d1601951169a807d94c0eaa8c09c6531f, all 12 observed push workflows completed successfully, including CI, Windows portable, Linux release, full-stack first-arrival and no-HOL. This is baseline evidence only, not release qualification for the new source.",
-    "focused_scope": "internal/windowsgui idle contract plus existing internal/windowsruntime/gamelane payload-idle behavior",
+    "focused_scope": "All 13 observed push workflows on ff1aee3285cfe3fd3504fbbe21f029424fbdd83a completed without failure. CI go test ./... passed, including internal/windowsgui, internal/windowsruntime and internal/gamelane payload-idle behavior.",
     "release_authorized": false
   },
   "validated_findings": {
@@ -59,21 +58,21 @@
     "bounded_replacement": "IMPLEMENTED in current code/tests: same logical LaneID old+candidate physical incarnations can overlap in a bounded Game race; candidate failure preserves the old incarnation; logical product cardinality remains 1..4 and private physical overlap capacity is 4+1.",
     "payload_activity": "IMPLEMENTED: Game activity sequence advances on real app/TUN payload; local control snapshots do not advance it, so PING/PONG/control do not refresh payload idle.",
     "automatic_dormant_wake": "IMPLEMENTED in runtime code/tests: timeout>0 monitor enters DORMANT after payload inactivity and wakes on a later payload-sequence advance; first READY lane is republished before optional Game refill.",
-    "idle_contract_fix": "ff1aee3285cfe3fd3504fbbe21f029424fbdd83a makes omitted idle_timeout default to 15 minutes while preserving explicit idle_timeout=0 as disabled.",
+    "idle_contract_fix": "ff1aee3285cfe3fd3504fbbe21f029424fbdd83a makes omitted idle_timeout default to 15 minutes while preserving explicit idle_timeout=0 as disabled; its 13 observed push workflows completed without failure.",
     "remaining_lifecycle": "Randomized staggered 30..60m lane-age rotation and unified replacement triggers for NIC/default-route/public-IP/NAT changes, missed-PONG/no-RX, transport failure, server request/manual reconnect remain to be completed/qualified.",
     "release_state": "NOT RELEASE READY. Direct push CI success is insufficient; complete exact-source automation, artifacts and physical evidence are still required."
   },
   "qualification_snapshot": {
-    "authority": "live_reconciliation_pending_new_source_actions",
+    "authority": "focused_exact_source_green_release_matrix_unproven",
     "source_head": "ff1aee3285cfe3fd3504fbbe21f029424fbdd83a",
-    "result": "pending",
+    "result": "focused_exact_source_success_release_qualification_incomplete",
     "known_incomplete": "The complete release-qualification matrix has not yet been proven on this source. Same-source artifacts and physical Windows 11 + Npcap -> Ubuntu ARM64 acceptance remain mandatory.",
     "release_authorized": false
   },
   "operational_continuity": {
     "previous_sequence": 89,
     "substantive_commit": "ff1aee3285cfe3fd3504fbbe21f029424fbdd83a",
-    "metadata_note": "This handoff metadata commit follows the substantive checkpoint; checkpoint_based_on_head_sha intentionally names the completed substantive source rather than the metadata-only child commit.",
+    "metadata_note": "Metadata-only descendants may follow the substantive checkpoint to keep continuity valid; checkpoint_based_on_head_sha intentionally names the completed substantive source rather than a metadata-only child commit.",
     "rule": "One atomic lifecycle repair at a time; live-refresh before execution; verify with focused tests and exact-source Actions; update handoff after every completed phase; never stitch release evidence across different source SHAs."
   }
 }
