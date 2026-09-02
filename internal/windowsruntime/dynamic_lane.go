@@ -36,6 +36,10 @@ func laneProcessNameSet(lane LanePlan) map[string]bool {
 // StartDynamicLane takes ownership of a same-flow FakeTCP process whose bounded
 // Reality-like bootstrap has already authenticated. It then brings up only this
 // transport incarnation's DTLS and LINK. Shared Game/TUN/routes remain alive.
+// Ownership begins at function entry: every rejection before executor admission
+// stops the supplied FakeTCP child; after admission rollback owns all three lane
+// children. Callers therefore never need a second cleanup path for a rejected
+// candidate.
 //
 // Independent logical LaneIDs 1..4 may coexist. During make-before-break, one
 // replacement candidate may also coexist with the old incarnation of the same
@@ -45,6 +49,12 @@ func (e *Executor) StartDynamicLane(lane LanePlan, prestartedFake Process) error
 	if prestartedFake == nil {
 		return errors.New("dynamic lane requires prestarted FakeTCP")
 	}
+	owned := true
+	defer func() {
+		if owned {
+			_ = prestartedFake.Stop()
+		}
+	}()
 	if err := validateDynamicLanePlan(lane); err != nil {
 		return err
 	}
@@ -72,6 +82,7 @@ func (e *Executor) StartDynamicLane(lane LanePlan, prestartedFake Process) error
 	}
 
 	e.processes = append(e.processes, namedProcess{name: lane.FakeTCP.Name, proc: prestartedFake})
+	owned = false
 	if err := waitProcessReady(lane.FakeTCP.Name, prestartedFake); err != nil {
 		rollback()
 		return err
