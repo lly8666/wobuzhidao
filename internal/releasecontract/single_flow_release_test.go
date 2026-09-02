@@ -124,7 +124,7 @@ func TestArtifactsCarryMatchingSubstantiveSourceSHAEvidence(t *testing.T) {
 
 	windows := readRepoFile(t, ".github/workflows/windows-portable-bundle.yml")
 	requireContains(t, windows, `WBD_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}`, "Windows portable workflow")
-	requireContains(t, windows, `-source-sha $env:WBD_SOURCE_SHA`, "Windows portable stage")
+	requireContains(t, windows, `source_sha=$env:WBD_SOURCE_SHA payload_sha256=$payloadSHA`, "Windows embedded portable payload evidence")
 	requireContains(t, windows, `name: wbd-windows-portable-${{ env.WBD_SOURCE_SHA }}`, "Windows portable artifact identity")
 	if strings.Contains(windows, "source_sha=$env:GITHUB_SHA") || strings.Contains(windows, "-source-sha $env:GITHUB_SHA") {
 		t.Fatal("Windows artifact source identity must not use pull_request merge GITHUB_SHA")
