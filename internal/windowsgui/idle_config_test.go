@@ -13,7 +13,7 @@ func TestLoadRuntimeProfileIdleTimeoutSeconds(t *testing.T) {
 		json string
 		want int
 	}{
-		{name: "omitted-disabled", json: "", want: 0},
+		{name: "omitted-product-default", json: "", want: 15 * 60},
 		{name: "explicit-disabled", json: ",\n  \"idle_timeout\": 0", want: 0},
 		{name: "enabled", json: ",\n  \"idle_timeout\": 30", want: 30},
 	} {

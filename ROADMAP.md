@@ -18,10 +18,22 @@
 | V2-M9A | Logical Tunnel identity + server address lease | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9B | shared Linux TUN + one host NAT + lease demux | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9C | product 1..4-lane admission + Game/race wiring | **IMPLEMENTED FOUNDATION / REQUALIFY** |
-| V2-M9D | payload-idle dormant/wake | **PARTIAL: DORMANT + FIRST-READY WAKE IMPLEMENTED; TRIGGERS PENDING** |
-| V2-M9E | make-before-break + unified lane replacement state machine | **PARTIAL: CANDIDATE/PROMOTION EXISTS; BOUNDED DATA-PLANE RACE PENDING** |
-| V2-M10 | exact-source Windows/Linux qualification + physical Windows 11 -> Ubuntu ARM64 | **BLOCKED UNTIL SAME-HEAD AUTOMATION GREEN** |
+| V2-M9D | payload-idle dormant/wake | **IMPLEMENTED: AUTOMATIC PAYLOAD-IDLE DORMANT + FIRST-PAYLOAD/FIRST-READY WAKE; NON-IDLE TRIGGERS PENDING** |
+| V2-M9E | make-before-break + unified lane replacement state machine | **BOUNDED SAME-LANEID OLD+CANDIDATE RACE IMPLEMENTED; AGE/UNIFIED TRIGGERS PENDING** |
+| V2-M10 | exact-source Windows/Linux qualification + physical Windows 11 -> Ubuntu ARM64 | **BLOCKED UNTIL ONE EXACT-SOURCE MATRIX + ARTIFACTS + PHYSICAL EVIDENCE** |
 | V2-M11 | startup RTT / packaging/process simplification | **DEFERRED** |
+
+## 2026-09-02 live reconciliation
+
+The takeover baseline is `0d65698d1601951169a807d94c0eaa8c09c6531f`, 16 commits ahead of stale handoff checkpoint `c7a0622352889ff8906db940b3e1e2bb5df3d6b1`. Current code/tests, not the stale continuation cursor, are authoritative for completion state:
+
+- same logical LaneID old+candidate bounded Game race is implemented; candidate failure preserves the old transport;
+- product logical-lane ceiling remains 1..4 while bounded replacement has private `4+1` physical-incarnation capacity;
+- real app/TUN payload activity is tracked independently of control traffic;
+- automatic payload-idle DORMANT and payload-triggered wake are implemented, including first-READY publication before optional lane refill;
+- the remaining lifecycle work is staggered randomized 30..60m lane-age rotation plus unified replacement triggers for network/path/liveness/transport failures.
+
+CI green at any one push is not release readiness. V2-M10 still requires one exact substantive source across the complete release matrix, Windows/Linux artifacts, and physical Windows 11 + Npcap -> Ubuntu ARM64 evidence.
 
 ## Frozen product transport model
 
@@ -46,10 +58,10 @@ Policy:
 
 - Normal steady desired lanes = 1.
 - Game / weak-network desired lanes = 2..4.
-- Architectural ceiling = 4.
+- Architectural ceiling = 4 logical lanes.
 - Dormant/disconnected = 0.
 
-A fifth lane is rejected. Planned replacement may briefly overlap old/candidate lanes under ADR-0012 make-before-break.
+A fifth logical lane is rejected. Planned replacement may briefly overlap old/candidate physical incarnations under ADR-0012 make-before-break, with an architectural maximum of four logical lanes plus one bounded private replacement incarnation.
 
 The mature TCP-like/FakeTCP recovery/FEC core is frozen unless a deterministic lower-layer qualification isolates a real defect.
 
@@ -63,7 +75,7 @@ Planned healthy replacement is:
 A -> build/qualify B -> A+B bounded race -> drain A -> B
 ```
 
-Candidate B failure leaves A alive.
+Candidate B failure leaves A alive. The bounded race is implemented with old and candidate physical incarnations carrying the same logical LaneID/PacketID namespace; it is no longer a pending gap.
 
 Game replacement rotates one lane at a time:
 
@@ -71,7 +83,7 @@ Game replacement rotates one lane at a time:
 A+B -> A+B+C -> B+C
 ```
 
-A unified replacement lifecycle covers age rotation, NIC/default route/public IP changes, NAT/path/liveness failure, FakeTCP/DTLS/LINK failure, server request and manual reconnect, with generation fencing.
+A unified replacement lifecycle covers age rotation, NIC/default route/public IP changes, NAT/path/liveness failure, FakeTCP/DTLS/LINK failure, server request and manual reconnect, with generation fencing. The trigger convergence and age scheduler remain lifecycle work; they are not transport-wire work.
 
 ## Logical Tunnel identity + lease
 
@@ -81,13 +93,13 @@ Do not reintroduce a global hard-coded `10.66.0.2/30` identity.
 
 ## Idle / wake / age policy
 
-- Default payload-idle guidance: 15m.
-- `0`: never sleep due to payload idleness.
+- Product default payload idle timeout: **15m (900s)** when `idle_timeout` is omitted.
+- Explicit `idle_timeout=0`: never sleep due to payload idleness.
 - Track `last_payload_activity` separately from `last_transport_activity`.
-- PING/PONG/control does not refresh payload idle.
+- Only real application/TUN payload refreshes payload idle; PING/PONG/control does not.
 - DORMANT closes all lanes but preserves Logical Tunnel, lease, Wintun/routes/DNS.
-- First new packet establishes the first healthy lane; forwarding resumes on that first READY lane, then optional Game lanes refill incrementally.
-- Each lane has an independent experimental randomized 30..60m soft age deadline; multi-lane rotation is staggered.
+- First new payload wakes the tunnel; forwarding resumes on the first READY lane, then optional Game lanes refill incrementally.
+- Each lane requires an independent randomized 30..60m soft age deadline; multi-lane rotation must be staggered. This scheduler is still pending.
 
 ## Shared Linux TUN + one NAT
 
@@ -123,7 +135,7 @@ Logical Tunnel
 
 Normal mode uses one lane; Game/weak-network may use 2..4; replacement may overlap old/candidate transports. DORMANT wake publishes the first READY lane immediately and then refills later Game lanes. There is no preliminary ordinary kernel-TCP Reality WBD connection.
 
-The remaining Windows lifecycle gap is explicit bounded old+candidate Game/race overlap for planned replacement; endpoint swap alone is not sufficient evidence for `A -> A+B -> B`.
+The remaining Windows lifecycle gap is not bounded replacement overlap. It is the randomized/staggered 30..60m lane-age scheduler and convergence of NIC/default-route/public-IP/NAT changes, missed-PONG/no-RX, transport failure, server request and manual reconnect onto the existing generation-fenced replacement path.
 
 ## Frozen weak-network/release limits
 
@@ -132,6 +144,7 @@ The remaining Windows lifecycle gap is explicit bounded old+candidate Game/race 
 - pinned wolfSSL DTLS 1.3;
 - `legacy` FakeTCP recovery default; `sack-rack` experimental;
 - FEC `off` or fixed systematic `20:20`, always lane-local;
+- functional/lifecycle qualification prioritizes FEC `off`; `20:20` is compatibility smoke only for this lifecycle phase, with parameter research deferred;
 - <=100 Mbit/s weak-link qualification ceiling;
 - 40 Mbit/s aggregate-inner conservative release operating point;
 - Windows Wintun raw L3;
@@ -149,17 +162,17 @@ One exact substantive `SOURCE_SHA` must prove:
 1. per-lane one-SYN same-association Reality-like real TLS 1.3 bootstrap;
 2. no FIN/RST/reconnect/new WBD payload SYN inside a lane at bootstrap -> DTLS;
 3. post-bootstrap no-HOL hole-bypass;
-4. 1,2,3,4 active lanes accepted and fifth rejected;
+4. 1,2,3,4 active lanes accepted and fifth logical lane rejected while bounded replacement respects the 4+1 physical-incarnation ceiling;
 5. normal desired=1, Game/weak desired=2..4;
 6. Game first-arrival/dedup/out-of-order unique/no-cross-lane-HOL;
 7. `A -> A+B -> B`, candidate failure preserving A, and `A+B -> A+B+C -> B+C`;
 8. distinct leases, source-spoof rejection, shared TUN + one NAT DNS/UDP/TCP;
-9. FEC `off` and `20:20` lane-local qualification;
+9. lifecycle/functionality with FEC `off`, plus fixed `20:20` lane-local compatibility smoke; FEC parameter research is deferred;
 10. Windows native/runtime and Linux raw/full-stack gates;
-11. Windows portable and Linux amd64/arm64 artifacts from that exact HEAD;
-12. final clean physical Windows 11 + Npcap -> Ubuntu ARM64 DNS/UDP/TCP + deterministic cleanup.
+11. Windows portable and Linux amd64/arm64 artifacts from that exact `SOURCE_SHA`;
+12. final clean physical Windows 11 + Npcap -> Ubuntu ARM64 DNS/UDP/TCP/lifecycle + deterministic cleanup.
 
-Until same-head automated gates are green, do not designate a new physical-test artifact as a release candidate.
+A direct push CI-green result is necessary but not sufficient. The complete release-qualification matrix must finish on the same `SOURCE_SHA`, artifacts must be attributable to that source, and physical evidence must be fresh and exact-source before release-ready may be claimed.
 
 ## Deferred
 
@@ -167,4 +180,5 @@ Until same-head automated gates are green, do not designate a new physical-test 
 - LINK bind/init coalescing;
 - abbreviated resume/0-RTT;
 - Windows child-process/module slimming;
-- additional FEC profiles or higher release throughput caps.
+- additional FEC profiles or higher release throughput caps;
+- FEC parameter research beyond fixed `20:20` compatibility smoke.

@@ -13,12 +13,14 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/windowsruntime"
 )
 
+const defaultPayloadIdleTimeoutSeconds = 15 * 60
+
 type RuntimeProfileFile struct {
 	ServerIP string `json:"server_ip"`; ServerPort int `json:"server_port"`
 	// Legacy endpoint fields remain decode-only so existing same-endpoint profiles
 	// can be opened. New product profiles must use server_ip + server_port.
 	ServerFront string `json:"server_front"`; ServerRaw string `json:"server_raw"`
-	ServerName string `json:"server_name"`; RouteKey string `json:"route_key"`; Username string `json:"username"`; Password string `json:"password"`; VerifyServer bool `json:"verify_server"`; FEC string `json:"fec"`; IfName string `json:"if_name"`; MTU int `json:"mtu"`; RouteMode string `json:"route_mode"`; DNSMode string `json:"dns_mode"`; DNSServer string `json:"dns_server"`; Lanes int `json:"lanes"`; IdleTimeout int `json:"idle_timeout"`
+	ServerName string `json:"server_name"`; RouteKey string `json:"route_key"`; Username string `json:"username"`; Password string `json:"password"`; VerifyServer bool `json:"verify_server"`; FEC string `json:"fec"`; IfName string `json:"if_name"`; MTU int `json:"mtu"`; RouteMode string `json:"route_mode"`; DNSMode string `json:"dns_mode"`; DNSServer string `json:"dns_server"`; Lanes int `json:"lanes"`; IdleTimeout *int `json:"idle_timeout"`
 	// tunnel_ipv4 is decode-only compatibility. ADR-0012 address ownership is
 	// server-assigned and authenticated during same-flow bootstrap.
 	TunnelIPv4 string `json:"tunnel_ipv4"`
@@ -77,13 +79,15 @@ func LoadRuntimeProfile(path, binDir, stateDir string) (windowsruntime.Profile, 
 	if err := ensureJSONEOF(decoder); err != nil { return windowsruntime.Profile{}, err }
 	serverFront, serverRaw, err := resolveServerEndpoints(cfg); if err != nil { return windowsruntime.Profile{}, err }
 	if cfg.FEC==""{cfg.FEC="off"};if cfg.IfName==""{cfg.IfName="WBD"};if cfg.MTU==0{cfg.MTU=1400};if cfg.RouteMode==""{cfg.RouteMode=windowsruntime.RouteFull};if cfg.DNSMode==""{cfg.DNSMode=windowsruntime.DNSAuto};if cfg.Lanes==0{cfg.Lanes=1}
+	idleTimeoutSeconds := defaultPayloadIdleTimeoutSeconds
+	if cfg.IdleTimeout != nil { idleTimeoutSeconds = *cfg.IdleTimeout }
 	installationID, err := ensureInstallationID(stateDir); if err != nil { return windowsruntime.Profile{}, err }
 
 	cnSetDir := filepath.Join(stateDir, "ipsets", "cn")
 	if portable := os.Getenv("WBD_PORTABLE_DIR"); portable != "" { cnSetDir = filepath.Clean(portable) }
 	profile := windowsruntime.Profile{
 		BinDir:filepath.Clean(binDir), ServerFront:serverFront, ServerName:cfg.ServerName, RouteKey:cfg.RouteKey, Username:cfg.Username, Password:cfg.Password, ServerRaw:serverRaw, VerifyServer:cfg.VerifyServer, FEC:cfg.FEC, IfName:cfg.IfName, MTU:cfg.MTU, RouteMode:cfg.RouteMode, CNSetDir:cnSetDir, DNSMode:cfg.DNSMode, DNSServer:cfg.DNSServer,
-		InstallationID:string(installationID), Lanes:cfg.Lanes, IdleTimeoutSeconds:cfg.IdleTimeout, TunnelIPv4:"",
+		InstallationID:string(installationID), Lanes:cfg.Lanes, IdleTimeoutSeconds:idleTimeoutSeconds, TunnelIPv4:"",
 		TicketPath:filepath.Join(stateDir,"reality-ticket.tmp"), TunnelConfigPath:filepath.Join(stateDir,"tunnel-config.json"), RouteState:filepath.Join(stateDir,"route-state.json"),
 	}
 	if err:=profile.Validate();err!=nil{return windowsruntime.Profile{},fmt.Errorf("validate Windows GUI profile: %w",err)}
