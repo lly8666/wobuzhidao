@@ -57,7 +57,7 @@ func TestControllerDormantWakeKeepsSharedGameTunAndNetwork(t *testing.T) {
 	if err := c.Connect(p); err != nil {
 		t.Fatal(err)
 	}
-	control, requests := gameControlResponder(t, 2)
+	control, requests := gameControlResponder(t, 3)
 	setControllerGameControl(c, control)
 	cut := len(r.events)
 	if err := c.Dormant(); err != nil {
@@ -83,9 +83,13 @@ func TestControllerDormantWakeKeepsSharedGameTunAndNetwork(t *testing.T) {
 	if c.State() != RuntimeConnected {
 		t.Fatalf("wake state=%s", c.State())
 	}
-	second := <-requests
-	if len(second.Lanes) != 2 || second.Lanes[0].ID != 1 || second.Lanes[1].ID != 2 {
-		t.Fatalf("wake Game lanes=%v", second.Lanes)
+	firstReady := <-requests
+	if len(firstReady.Lanes) != 1 || firstReady.Lanes[0].ID != 1 {
+		t.Fatalf("first-ready Game lanes=%v", firstReady.Lanes)
+	}
+	refill := <-requests
+	if len(refill.Lanes) != 2 || refill.Lanes[0].ID != 1 || refill.Lanes[1].ID != 2 {
+		t.Fatalf("wake refill Game lanes=%v", refill.Lanes)
 	}
 	for _, ev := range r.events[wakeCut:] {
 		if ev == "start:game" || ev == "start:tun" || ev == "run:route-apply" || ev == "run:ipv6-apply" {

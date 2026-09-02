@@ -154,8 +154,9 @@ func (c *Controller) Dormant() error {
 
 // Wake recreates the configured 1..4 Transport Lanes with fresh source ports
 // and same-association Reality-like admission. Shared Game/TUN/routes are never
-// restarted. Game membership changes only after every requested lane reaches
-// LINK readiness and authenticates to the same Logical Tunnel config.
+// restarted. The first READY lane is published to Game immediately so forwarding
+// resumes without waiting for optional Game redundancy; later READY lanes are
+// attached incrementally to the same Logical Tunnel race set.
 func (c *Controller) Wake() error {
 	c.mu.Lock()
 	if c.state != RuntimeDormant {
@@ -179,53 +180,49 @@ func (c *Controller) Wake() error {
 	if err := logicaltunnel.ValidateProductTransportLaneCount(profile.Lanes); err != nil {
 		return failDormant(err)
 	}
+	lifecycle, err := logicaltunnel.NewLaneLifecycle(profile.Lanes)
+	if err != nil {
+		return failDormant(err)
+	}
 
 	plans := make(map[int]LanePlan, profile.Lanes)
 	started := make([]LanePlan, 0, profile.Lanes)
+	gamePublished := false
 	rollback := func() {
+		if gamePublished {
+			_ = setGameLaneTargets(control, nil, gameControlTimeout)
+		}
 		for i := len(started) - 1; i >= 0; i-- {
 			_ = c.executor.StopDynamicLanePlan(started[i])
 		}
 	}
+	rollbackDormant := func(err error) error {
+		rollback()
+		return failDormant(err)
+	}
 	for id := 1; id <= profile.Lanes; id++ {
 		plan, proc, err := c.bootstrapRuntimeLane(profile, base, expected, id, id, false)
 		if err != nil {
-			rollback()
-			return failDormant(fmt.Errorf("wake lane %d bootstrap: %w", id, err))
+			return rollbackDormant(fmt.Errorf("wake lane %d bootstrap: %w", id, err))
 		}
 		if err := c.executor.StartDynamicLane(plan, proc); err != nil {
-			rollback()
-			return failDormant(fmt.Errorf("wake lane %d transport: %w", id, err))
+			return rollbackDormant(fmt.Errorf("wake lane %d transport: %w", id, err))
 		}
 		plans[id] = plan
 		started = append(started, plan)
-	}
-	targets, err := gameTargetsFromPlans(plans)
-	if err != nil {
-		rollback()
-		return failDormant(err)
-	}
-	if err := setGameLaneTargets(control, targets, gameControlTimeout); err != nil {
-		rollback()
-		return failDormant(fmt.Errorf("wake Game barrier: %w", err))
+		if _, err := lifecycle.AttachInitial(uint8(id)); err != nil {
+			return rollbackDormant(err)
+		}
+		targets, err := gameTargetsFromPlans(plans)
+		if err != nil {
+			return rollbackDormant(err)
+		}
+		if err := setGameLaneTargets(control, targets, gameControlTimeout); err != nil {
+			return rollbackDormant(fmt.Errorf("wake lane %d Game promotion: %w", id, err))
+		}
+		gamePublished = true
 	}
 
-	// From this point Game can send to the new lanes. Any control-plane failure
-	// must restore the dormant empty target set before transports are rolled back.
-	rollbackAfterGame := func(err error) error {
-		_ = setGameLaneTargets(control, nil, gameControlTimeout)
-		rollback()
-		return failDormant(err)
-	}
-	lifecycle, err := logicaltunnel.NewLaneLifecycle(profile.Lanes)
-	if err != nil {
-		return rollbackAfterGame(err)
-	}
-	for id := 1; id <= profile.Lanes; id++ {
-		if _, err := lifecycle.AttachInitial(uint8(id)); err != nil {
-			return rollbackAfterGame(err)
-		}
-	}
 	c.mu.Lock()
 	c.lanePlans = plans
 	c.lifecycle = lifecycle
