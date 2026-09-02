@@ -137,14 +137,14 @@ func TestExecutorCandidateSlotFiveCoexistsAndStopsWithoutTouchingOldLane(t *test
 	}
 }
 
-func TestExecutorDynamicLaneRejectsProcessNameCollisionWithoutMutation(t *testing.T) {
+func TestExecutorDynamicLaneRejectsProcessNameCollisionAndStopsCandidate(t *testing.T) {
 	r := &recordingRunner{}
 	e := NewExecutor(r)
 	pre := map[int]Process{1: &recordingProcess{runner: r, name: "faketcp-1"}}
 	if err := e.StartMultiLane(testMultiExecutorPlan(1), pre); err != nil {
 		t.Fatal(err)
 	}
-	baseline := append([]string(nil), r.events...)
+	baseline := len(r.events)
 	collision := LanePlan{
 		ID:      1,
 		Slot:    makeBeforeBreakCandidateSlot,
@@ -155,10 +155,24 @@ func TestExecutorDynamicLaneRejectsProcessNameCollisionWithoutMutation(t *testin
 	if err := e.StartDynamicLane(collision, &recordingProcess{runner: r, name: collision.FakeTCP.Name}); err == nil {
 		t.Fatal("expected process-name collision")
 	}
-	if !reflect.DeepEqual(r.events, baseline) {
-		t.Fatalf("collision mutated runtime: before=%v after=%v", baseline, r.events)
+	newEvents := r.events[baseline:]
+	want := []string{"stop:faketcp-1-candidate-s5"}
+	if !reflect.DeepEqual(newEvents, want) {
+		t.Fatalf("collision cleanup=%v want=%v", newEvents, want)
 	}
 	if got := e.DynamicLaneIDs(); !reflect.DeepEqual(got, []int{1}) {
 		t.Fatalf("collision changed active lanes=%v", got)
+	}
+}
+
+func TestExecutorDynamicLaneValidationFailureStopsCandidate(t *testing.T) {
+	r := &recordingRunner{}
+	e := NewExecutor(r)
+	candidate := &recordingProcess{runner: r, name: "faketcp-5"}
+	if err := e.StartDynamicLane(dynamicTestLane(5, 5, ""), candidate); err == nil {
+		t.Fatal("expected invalid logical lane rejection")
+	}
+	if want := []string{"stop:faketcp-5"}; !reflect.DeepEqual(r.events, want) {
+		t.Fatalf("invalid candidate cleanup=%v want=%v", r.events, want)
 	}
 }
