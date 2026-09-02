@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "binary_authority", "local_test_authority", "policy", "assets"],
+  "properties": {
+    "schema_version": {"const": "wbd-data-plane/v1"},
+    "binary_authority": {"const": "google_drive_only"},
+    "local_test_authority": {"const": "sandbox"},
+    "policy": {"type": "object"},
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "role", "required_for_current_task", "file_name", "size_bytes", "sha256", "google_drive_file_id", "qualified"],
+        "properties": {
+          "asset_id": {"type": "string", "minLength": 1},
+          "role": {"type": "string", "minLength": 1},
+          "required_for_current_task": {"type": "boolean"},
+          "file_name": {"type": "string", "minLength": 1},
+          "size_bytes": {"type": "integer", "minimum": 0},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "google_drive_file_id": {"type": "string", "minLength": 1},
+          "qualified": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

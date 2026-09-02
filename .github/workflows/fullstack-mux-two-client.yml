@@ -1,0 +1,270 @@
+name: fullstack-mux-two-client
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  fullstack_mux:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.title, '[muxfull]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: off
+            fec: off
+          - label: fixed20x20
+            fec: '20:20'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables
+      - name: Build pinned DTLS and full mux stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/muxfull
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/muxfull/wbd_dtls_shim
+          go test ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./cmd/wbd-link-server-mux -count=1
+          go build -trimpath -o /tmp/muxfull/wbd-reality-front ./cmd/wbd-reality-front
+          go build -trimpath -o /tmp/muxfull/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/muxfull/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/muxfull/wbd-link-proxy ./cmd/wbd-link-proxy
+          go build -trimpath -o /tmp/muxfull/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-front.invalid' \
+            -keyout /tmp/muxfull/front.key -out /tmp/muxfull/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-dtls.invalid' \
+            -keyout /tmp/muxfull/dtls.key -out /tmp/muxfull/dtls.pem >/dev/null 2>&1
+      - name: Same account owns two full data sessions through one public listener
+        env:
+          FEC: ${{ matrix.fec }}
+          LABEL: ${{ matrix.label }}
+        run: |
+          set -euo pipefail
+          S=wbdmfs$$
+          A=wbdmfa$$
+          B=wbdmfb$$
+          PIDS=''
+          cleanup() {
+            set +e
+            for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null; kill -TERM "$p" 2>/dev/null; done
+            sleep .3
+            sudo ip netns del "$A" 2>/dev/null
+            sudo ip netns del "$B" 2>/dev/null
+            sudo ip netns del "$S" 2>/dev/null
+          }
+          trap cleanup EXIT
+
+          mkdir -p /tmp/muxfull/${LABEL}
+          mkdir -m 700 /tmp/muxfull/${LABEL}/tickets
+          ROUTE_KEY='WBD_REALITY_ROUTE_KEY_0123456789abcdef'
+          USERNAME='solo'
+          PASSWORD='shared-password'
+          TARGET='target.example'
+          FRONT=40443
+          RAW=40000
+          LINK=47000
+          ECHO=48000
+
+          sudo ip netns add "$S"
+          sudo ip netns add "$A"
+          sudo ip netns add "$B"
+          sudo ip link add va type veth peer name sa
+          sudo ip link add vb type veth peer name sb
+          sudo ip link set va netns "$A"
+          sudo ip link set vb netns "$B"
+          sudo ip link set sa netns "$S"
+          sudo ip link set sb netns "$S"
+          sudo ip netns exec "$S" ip link add br0 type bridge
+          sudo ip netns exec "$S" ip link set sa master br0
+          sudo ip netns exec "$S" ip link set sb master br0
+          sudo ip -n "$S" addr add 10.78.0.1/24 dev br0
+          sudo ip -n "$A" addr add 10.78.0.2/24 dev va
+          sudo ip -n "$B" addr add 10.78.0.3/24 dev vb
+          for ns in "$S" "$A" "$B"; do sudo ip -n "$ns" link set lo up; done
+          sudo ip -n "$S" link set br0 up
+          sudo ip -n "$S" link set sa up
+          sudo ip -n "$S" link set sb up
+          sudo ip -n "$A" link set va up
+          sudo ip -n "$B" link set vb up
+          for ns in "$S" "$A" "$B"; do
+            sudo ip netns exec "$ns" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          done
+
+          cat >/tmp/muxfull/echo.py <<'PY'
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',48000))
+          while True:
+              b,a=s.recvfrom(65535)
+              s.sendto(b,a)
+          PY
+          sudo ip netns exec "$S" python3 /tmp/muxfull/echo.py >/tmp/muxfull/${LABEL}/echo.log 2>&1 & ECHOPID=$!
+          PIDS="$ECHOPID"
+
+          sudo ip netns exec "$S" /tmp/muxfull/wbd-reality-front server \
+            -listen 10.78.0.1:${FRONT} -target 127.0.0.1:9 -server-name "$TARGET" \
+            -cert /tmp/muxfull/front.pem -key /tmp/muxfull/front.key -route-key "$ROUTE_KEY" \
+            -username "$USERNAME" -password "$PASSWORD" -ticket-dir /tmp/muxfull/${LABEL}/tickets \
+            >/tmp/muxfull/${LABEL}/front-server.log 2>&1 & FRONTPID=$!
+          PIDS="$PIDS $FRONTPID"
+          for i in $(seq 1 300); do
+            grep -q 'WBD_REALITY_FRONT_READY' /tmp/muxfull/${LABEL}/front-server.log && break
+            sleep .05
+          done
+          grep -q 'WBD_REALITY_FRONT_READY' /tmp/muxfull/${LABEL}/front-server.log
+
+          sudo ip netns exec "$A" /tmp/muxfull/wbd-reality-front client \
+            -addr 10.78.0.1:${FRONT} -server-name "$TARGET" -route-key "$ROUTE_KEY" \
+            -username "$USERNAME" -password "$PASSWORD" -verify-server=false \
+            -ticket-out /tmp/muxfull/${LABEL}/ticket-a.txt >/tmp/muxfull/${LABEL}/front-a.log 2>&1
+          sudo ip netns exec "$B" /tmp/muxfull/wbd-reality-front client \
+            -addr 10.78.0.1:${FRONT} -server-name "$TARGET" -route-key "$ROUTE_KEY" \
+            -username "$USERNAME" -password "$PASSWORD" -verify-server=false \
+            -ticket-out /tmp/muxfull/${LABEL}/ticket-b.txt >/tmp/muxfull/${LABEL}/front-b.log 2>&1
+          grep -q 'WBD_REALITY_FRONT_OK' /tmp/muxfull/${LABEL}/front-a.log
+          grep -q 'WBD_REALITY_FRONT_OK' /tmp/muxfull/${LABEL}/front-b.log
+          TA=$(sudo cat /tmp/muxfull/${LABEL}/ticket-a.txt | tr -d '\r\n')
+          TB=$(sudo cat /tmp/muxfull/${LABEL}/ticket-b.txt | tr -d '\r\n')
+          test ${#TA} -eq 64
+          test ${#TB} -eq 64
+          test "$TA" != "$TB"
+          test "$(find /tmp/muxfull/${LABEL}/tickets -type f | wc -l)" -eq 2
+
+          sudo ip netns exec "$S" /tmp/muxfull/wbd-link-server-mux \
+            -listen 127.0.0.1:${LINK} -service 127.0.0.1:${ECHO} \
+            -ticket-dir /tmp/muxfull/${LABEL}/tickets -ticket-ttl 60s -max-sessions 8 \
+            >/tmp/muxfull/${LABEL}/link-server.log 2>&1 & LINKPID=$!
+          PIDS="$PIDS $LINKPID"
+          for i in $(seq 1 200); do
+            grep -q 'WBD_LINK_SERVER_MUX_READY' /tmp/muxfull/${LABEL}/link-server.log && break
+            sleep .05
+          done
+          grep -q 'WBD_LINK_SERVER_MUX_READY' /tmp/muxfull/${LABEL}/link-server.log
+
+          sudo ip netns exec "$S" /tmp/muxfull/wbd-faketcp-mux server \
+            --listen 10.78.0.1:${RAW} --dtls-shim /tmp/muxfull/wbd_dtls_shim \
+            --link-target 127.0.0.1:${LINK} --cert /tmp/muxfull/dtls.pem --key /tmp/muxfull/dtls.key \
+            --max-sessions 8 >/tmp/muxfull/${LABEL}/faketcp-mux.log 2>&1 & MUXPID=$!
+          PIDS="$PIDS $MUXPID"
+          for i in $(seq 1 200); do
+            grep -q 'READY role=server-mux.*recovery=legacy' /tmp/muxfull/${LABEL}/faketcp-mux.log && break
+            sleep .05
+          done
+          grep -q 'READY role=server-mux.*recovery=legacy' /tmp/muxfull/${LABEL}/faketcp-mux.log
+
+          sudo ip netns exec "$A" /tmp/muxfull/wbd-faketcp client \
+            --local-udp 127.0.0.1:45101 --source 10.78.0.2:41001 --remote 10.78.0.1:${RAW} \
+            >/tmp/muxfull/${LABEL}/faketcp-a.log 2>&1 & FCA=$!
+          sudo ip netns exec "$B" /tmp/muxfull/wbd-faketcp client \
+            --local-udp 127.0.0.1:45102 --source 10.78.0.3:41002 --remote 10.78.0.1:${RAW} \
+            >/tmp/muxfull/${LABEL}/faketcp-b.log 2>&1 & FCB=$!
+          PIDS="$PIDS $FCA $FCB"
+          for i in $(seq 1 400); do
+            grep -q 'READY role=client.*recovery=legacy' /tmp/muxfull/${LABEL}/faketcp-a.log && \
+            grep -q 'READY role=client.*recovery=legacy' /tmp/muxfull/${LABEL}/faketcp-b.log && break
+            sleep .05
+          done
+          grep -q 'READY role=client.*recovery=legacy' /tmp/muxfull/${LABEL}/faketcp-a.log
+          grep -q 'READY role=client.*recovery=legacy' /tmp/muxfull/${LABEL}/faketcp-b.log
+
+          sudo ip netns exec "$A" /tmp/muxfull/wbd_dtls_shim client 46101 127.0.0.1 45101 none none \
+            >/tmp/muxfull/${LABEL}/dtls-a.log 2>&1 & DA=$!
+          sudo ip netns exec "$B" /tmp/muxfull/wbd_dtls_shim client 46102 127.0.0.1 45102 none none \
+            >/tmp/muxfull/${LABEL}/dtls-b.log 2>&1 & DB=$!
+          PIDS="$PIDS $DA $DB"
+          for i in $(seq 1 800); do
+            if grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/muxfull/${LABEL}/dtls-a.log && \
+               grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/muxfull/${LABEL}/dtls-b.log && \
+               test "$(grep -c 'BOUND role=server.*inherited=yes' /tmp/muxfull/${LABEL}/faketcp-mux.log || true)" -ge 2; then
+              break
+            fi
+            sleep .05
+          done
+          grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/muxfull/${LABEL}/dtls-a.log
+          grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/muxfull/${LABEL}/dtls-b.log
+          test "$(grep -c 'BOUND role=server.*inherited=yes' /tmp/muxfull/${LABEL}/faketcp-mux.log)" -eq 2
+
+          sudo ip netns exec "$A" /tmp/muxfull/wbd-link-proxy \
+            -mode client -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec "$FEC" \
+            -demo-reality-ticket "$TA" >/tmp/muxfull/${LABEL}/link-a.log 2>&1 & LA=$!
+          sudo ip netns exec "$B" /tmp/muxfull/wbd-link-proxy \
+            -mode client -listen 127.0.0.1:47102 -dtls 127.0.0.1:46102 -fec "$FEC" \
+            -demo-reality-ticket "$TB" >/tmp/muxfull/${LABEL}/link-b.log 2>&1 & LB=$!
+          PIDS="$PIDS $LA $LB"
+          for i in $(seq 1 800); do
+            if grep -q 'WBD_LINK_READY role=client' /tmp/muxfull/${LABEL}/link-a.log && \
+               grep -q 'WBD_LINK_READY role=client' /tmp/muxfull/${LABEL}/link-b.log && \
+               test "$(grep -c 'WBD_LINK_MUX_SESSION_READY account=solo' /tmp/muxfull/${LABEL}/link-server.log || true)" -ge 2; then
+              break
+            fi
+            sleep .05
+          done
+          grep -q 'WBD_LINK_READY role=client' /tmp/muxfull/${LABEL}/link-a.log
+          grep -q 'WBD_LINK_READY role=client' /tmp/muxfull/${LABEL}/link-b.log
+          test "$(grep -c 'WBD_LINK_MUX_SESSION_READY account=solo' /tmp/muxfull/${LABEL}/link-server.log)" -eq 2
+          test "$(find /tmp/muxfull/${LABEL}/tickets -type f | wc -l)" -eq 0
+
+          cat >/tmp/muxfull/probe.py <<'PY'
+          import socket,sys,time
+          port=int(sys.argv[1]); marker=sys.argv[2].encode()
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',0)); s.settimeout(.25)
+          end=time.time()+6
+          count=0
+          while time.time()<end and count<20:
+              want=marker+count.to_bytes(2,'big')
+              s.sendto(want,('127.0.0.1',port))
+              try:
+                  b,_=s.recvfrom(65535)
+              except socket.timeout:
+                  continue
+              if b != want:
+                  raise SystemExit('CROSS_SESSION_OR_CORRUPT expected=%r got=%r'%(want,b))
+              count+=1
+          if count != 20:
+              raise SystemExit('fullstack echo timeout count=%d'%count)
+          print('MUXFULL_ECHO_OK marker=%s count=%d'%(marker.decode(),count))
+          PY
+          sudo ip netns exec "$A" python3 /tmp/muxfull/probe.py 47101 DEVICE_A_FULLSTACK >/tmp/muxfull/${LABEL}/probe-a.log 2>&1 & PA=$!
+          sudo ip netns exec "$B" python3 /tmp/muxfull/probe.py 47102 DEVICE_B_FULLSTACK >/tmp/muxfull/${LABEL}/probe-b.log 2>&1 & PB=$!
+          wait "$PA"
+          wait "$PB"
+          grep -q 'MUXFULL_ECHO_OK marker=DEVICE_A_FULLSTACK count=20' /tmp/muxfull/${LABEL}/probe-a.log
+          grep -q 'MUXFULL_ECHO_OK marker=DEVICE_B_FULLSTACK count=20' /tmp/muxfull/${LABEL}/probe-b.log
+          kill -0 "$MUXPID"
+          kill -0 "$LINKPID"
+          echo "FULLSTACK_MUX_TWO_CLIENT_PASS fec=${FEC}"
+          echo '--- front ---'; cat /tmp/muxfull/${LABEL}/front-server.log; cat /tmp/muxfull/${LABEL}/front-a.log; cat /tmp/muxfull/${LABEL}/front-b.log
+          echo '--- faketcp mux ---'; cat /tmp/muxfull/${LABEL}/faketcp-mux.log
+          echo '--- link server ---'; cat /tmp/muxfull/${LABEL}/link-server.log
+          echo '--- client A ---'; cat /tmp/muxfull/${LABEL}/faketcp-a.log; cat /tmp/muxfull/${LABEL}/dtls-a.log; cat /tmp/muxfull/${LABEL}/link-a.log; cat /tmp/muxfull/${LABEL}/probe-a.log
+          echo '--- client B ---'; cat /tmp/muxfull/${LABEL}/faketcp-b.log; cat /tmp/muxfull/${LABEL}/dtls-b.log; cat /tmp/muxfull/${LABEL}/link-b.log; cat /tmp/muxfull/${LABEL}/probe-b.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fullstack-mux-two-client-${{ matrix.label }}
+          path: /tmp/muxfull/${{ matrix.label }}/*.log

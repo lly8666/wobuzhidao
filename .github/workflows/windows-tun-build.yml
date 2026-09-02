@@ -1,0 +1,149 @@
+name: windows-tun-build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/windows-tun-build.yml'
+      - 'cmd/wbd-tun/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-windows-gui/**'
+      - 'cmd/wbd-windows-qualify/**'
+      - 'cmd/wbd-windows-portable/**'
+      - 'cmd/wbd-ipset/**'
+      - 'internal/faketcp/**'
+      - 'internal/tunnel/**'
+      - 'internal/ipset/**'
+      - 'internal/windowsgui/**'
+      - 'internal/windowsruntime/**'
+      - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_ipv6_killswitch.ps1'
+      - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_npcap_prepare.ps1'
+      - 'scripts/windows_frozen_wbd_one_shot.ps1'
+      - 'deps/platform-lock.json'
+  push:
+    branches: [dev/wbd-raw-fec-v2]
+    paths:
+      - '.github/workflows/windows-tun-build.yml'
+      - 'cmd/wbd-tun/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-windows-gui/**'
+      - 'cmd/wbd-windows-qualify/**'
+      - 'cmd/wbd-windows-portable/**'
+      - 'cmd/wbd-ipset/**'
+      - 'internal/faketcp/**'
+      - 'internal/tunnel/**'
+      - 'internal/ipset/**'
+      - 'internal/windowsgui/**'
+      - 'internal/windowsruntime/**'
+      - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_ipv6_killswitch.ps1'
+      - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_npcap_prepare.ps1'
+      - 'scripts/windows_frozen_wbd_one_shot.ps1'
+      - 'deps/platform-lock.json'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Compile Windows Wintun Npcap tray GUI qualifier portable and ipset tool
+        shell: pwsh
+        run: |
+          go test ./internal/tunnel ./internal/faketcp ./internal/ipset ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-tun ./cmd/wbd-faketcp ./cmd/wbd-windows-gui ./cmd/wbd-windows-qualify ./cmd/wbd-windows-portable ./cmd/wbd-ipset -count=1
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-tun.exe" ./cmd/wbd-tun
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
+          go build -trimpath -ldflags="-H=windowsgui" -o "$env:RUNNER_TEMP\wbd-windows-gui.exe" ./cmd/wbd-windows-gui
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-windows-qualify.exe" ./cmd/wbd-windows-qualify
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-ipset.exe" ./cmd/wbd-ipset
+          foreach ($name in @('wbd-tun.exe','wbd-faketcp.exe','wbd-windows-gui.exe','wbd-windows-qualify.exe','wbd-ipset.exe')) {
+            if (-not (Test-Path "$env:RUNNER_TEMP\$name")) { throw "$name not built" }
+          }
+          $guiSource = Get-Content ./cmd/wbd-windows-gui/main_windows.go -Raw
+          if ($guiSource -notmatch 'Install / repair Npcap' -or $guiSource -notmatch 'windows_npcap_prepare\.ps1') { throw 'GUI Npcap setup control is missing' }
+          $portableSource = Get-Content ./cmd/wbd-windows-portable/main_windows.go -Raw
+          if ($portableSource -notmatch 'wbd\.json' -or $portableSource -notmatch 'WBD_PORTABLE_DIR') { throw 'portable executable-directory contract is missing' }
+          Write-Output 'WBD_WINDOWS_PACKET_BACKENDS_BUILD_PASS'
+          Write-Output 'WBD_WINDOWS_GUI_BUILD_PASS native_win32=1 tray=1 close_to_tray=1 npcap_one_click=1 ipv6_status=1'
+          Write-Output 'WBD_WINDOWS_PORTABLE_SOURCE_PASS config_sidecar=wbd.json ipset_sidecar=1 cwd_independent=1'
+          Write-Output 'WBD_WINDOWS_QUALIFIER_BUILD_PASS controller=shared cleanup=automatic'
+          Write-Output 'WBD_WINDOWS_IPSET_BUILD_PASS import=cidr+apnic rollback=1 hash_manifest=1'
+
+      - name: Fetch and inspect locked personal-use Npcap payload from official origin
+        shell: pwsh
+        run: |
+          $source = Get-Content ./scripts/windows_npcap_prepare.ps1 -Raw
+          [void][scriptblock]::Create($source)
+          $code = (($source -split "`r?`n") | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
+          if ($code -match '(?i)(^|\s)/S(\s|$)') { throw 'Free Npcap helper must not use OEM-only silent installation' }
+          $versionLock = '$NpcapVersion = ''1.88'''
+          if ($source -notmatch [regex]::Escape($versionLock) -or $source -notmatch [regex]::Escape('https://npcap.com/dist/') -or $source -notmatch [regex]::Escape('Nmap Software LLC')) { throw 'Npcap helper is not pinned to qualified official release/origin/signer' }
+          & ./scripts/windows_npcap_prepare.ps1 -Action Fetch -DownloadDirectory "$env:RUNNER_TEMP\wbd-npcap"
+          if ($LASTEXITCODE -ne 0) { throw "Npcap fetch helper exited $LASTEXITCODE" }
+          $installer = "$env:RUNNER_TEMP\wbd-npcap\npcap-1.88.exe"
+          if (-not (Test-Path -LiteralPath $installer)) { throw 'Npcap installer was not downloaded' }
+          $sevenZip = Join-Path $env:ProgramFiles '7-Zip\7z.exe'
+          if (-not (Test-Path -LiteralPath $sevenZip)) { throw '7-Zip is required to inspect the Npcap installer payload' }
+          $extract = "$env:RUNNER_TEMP\wbd-npcap-payload"
+          & $sevenZip x $installer "-o$extract" -y | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw "7-Zip could not inspect Npcap installer: exit=$LASTEXITCODE" }
+          $wpcaps = @(Get-ChildItem -Path $extract -Recurse -Filter wpcap.dll -File -ErrorAction SilentlyContinue)
+          if ($wpcaps.Count -eq 0) { throw 'official Npcap installer payload contains no wpcap.dll' }
+          foreach ($dll in $wpcaps) {
+            $sig = Get-AuthenticodeSignature -FilePath $dll.FullName
+            if ($sig.Status -ne 'Valid' -or [string]$sig.SignerCertificate.Subject -notmatch 'Nmap Software LLC') { throw "untrusted wpcap.dll payload: $($dll.FullName)" }
+          }
+          Remove-Item -LiteralPath $extract -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath $installer -Force -ErrorAction SilentlyContinue
+          Write-Output 'WBD_WINDOWS_NPCAP_FETCH_QUALIFIED version=1.88 origin=npcap.com redistribution=none gui_install_flow=1'
+
+      - name: Resolve physical FakeTCP underlay before capture
+        shell: pwsh
+        run: |
+          $lines = & ./scripts/windows_faketcp_underlay.ps1 -RemoteIPAddress 1.1.1.1
+          $jsonLine = $lines | Where-Object { $_ -match '^\{' } | Select-Object -First 1
+          if (-not $jsonLine) { throw "underlay discovery returned no JSON: $($lines -join '; ')" }
+          $x = $jsonLine | ConvertFrom-Json
+          if (-not $x.source_ip -or -not $x.interface_index -or -not $x.packet_device) { throw "underlay discovery missing route identity: $jsonLine" }
+          if ($x.packet_device -notmatch '^\\Device\\NPF_\{[0-9A-F-]+\}$') { throw "bad Npcap device: $($x.packet_device)" }
+          if ($x.source_mac -notmatch '^([0-9a-f]{2}:){5}[0-9a-f]{2}$' -or $x.next_hop_mac -notmatch '^([0-9a-f]{2}:){5}[0-9a-f]{2}$') { throw 'bad underlay MAC identity' }
+          Write-Output 'WBD_WINDOWS_FAKETCP_UNDERLAY_DISCOVERY_PASS'
+
+      - name: Qualify split DNS IPv6 fail-close and one-shot plans
+        shell: pwsh
+        run: |
+          foreach ($script in @('./scripts/windows_tun_route.ps1','./scripts/windows_ipv6_killswitch.ps1')) { [void][scriptblock]::Create((Get-Content $script -Raw)) }
+          $required = @('Find-NetRoute','Get-NetAdapter','Get-NetIPInterface','Get-NetRoute','New-NetRoute','Remove-NetRoute','New-NetIPAddress','Remove-NetIPAddress','Set-NetIPInterface','Add-DnsClientNrptRule','Get-DnsClientNrptRule','Remove-DnsClientNrptRule','New-NetFirewallRule','Get-NetFirewallRule','Remove-NetFirewallRule')
+          foreach ($cmd in $required) { if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { throw "missing Windows networking command: $cmd" } }
+
+          $kill = (& ./scripts/windows_ipv6_killswitch.ps1 -Action Render) -join "`n"
+          if ($kill -notmatch 'scope=device' -or $kill -notmatch 'range=::/1,8000::/1' -or $kill -notmatch 'directions=inbound,outbound') { throw "IPv6 kill-switch plan incomplete: $kill" }
+
+          $plan = & ./scripts/windows_tun_route.ps1 -Action Render -Mode Full -AdapterAlias WBD -TunnelAddress4 10.66.0.2/30 -Underlay4 198.51.100.10 -MTU 1400 -DNSServer '1.1.1.1,1.0.0.1'
+          $text = $plan -join "`n"
+          $escape = $text.IndexOf('01 ESCAPE IPv4 198.51.100.10/32'); $captureA=$text.IndexOf('03 CAPTURE IPv4 0.0.0.0/1'); $captureB=$text.IndexOf('03 CAPTURE IPv4 128.0.0.0/1')
+          if ($escape -lt 0 -or $captureA -lt 0 -or $captureB -lt 0 -or $escape -gt $captureA -or $escape -gt $captureB) { throw "underlay escape must precede broad capture:`n$text" }
+          if ($text -notmatch '02 DNS NRPT namespace=\. servers=1\.1\.1\.1,1\.0\.0\.1' -or $text -notmatch '03 CAPTURE IPv4 1\.1\.1\.1/32' -or $text -notmatch '03 CAPTURE IPv4 1\.0\.0\.1/32') { throw "NRPT DNS capture incomplete:`n$text" }
+
+          $cn4 = "$env:RUNNER_TEMP\cn4.txt"; @('1.2.0.0/16','14.0.0.0/8') | Set-Content -LiteralPath $cn4 -Encoding ASCII
+          $foreignText = (& ./scripts/windows_tun_route.ps1 -Action Render -Mode Full -AdapterAlias WBD -TunnelAddress4 10.66.0.2/30 -Underlay4 198.51.100.10 -DirectPrefixFile4 $cn4 -DNSServer '1.1.1.1,1.0.0.1') -join "`n"
+          if ($foreignText -notmatch '01 DIRECT IPv4 1\.2\.0\.0/16' -or $foreignText -notmatch '03 CAPTURE IPv4 0\.0\.0\.0/1') { throw "Foreign routing plan incomplete:`n$foreignText" }
+          $chinaText = (& ./scripts/windows_tun_route.ps1 -Action Render -Mode Split -AdapterAlias WBD -TunnelAddress4 10.66.0.2/30 -Underlay4 198.51.100.10 -PrefixFile4 $cn4) -join "`n"
+          if ($chinaText -notmatch '03 CAPTURE IPv4 1\.2\.0\.0/16' -or $chinaText -match '03 CAPTURE IPv4 0\.0\.0\.0/1') { throw "China routing plan incomplete:`n$chinaText" }
+          Write-Output 'WBD_WINDOWS_SPLIT_DNS_IPV6_PLAN_PASS full=1 foreign=1 china=1 dns=nrpt ipv6=device_block'
+
+          $oneShot = Get-Content ./scripts/windows_frozen_wbd_one_shot.ps1 -Raw
+          [void][scriptblock]::Create($oneShot)
+          $oneShotCode = (($oneShot -split "`r?`n") | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
+          if ($oneShotCode -match '(?i)Stop-Process') { throw 'Windows frozen one-shot must request Controller cleanup instead of force-killing qualifier' }
+          if ($oneShot -notmatch 'WBD_WINDOWS_FROZEN_ONE_SHOT_PASS' -or $oneShot -notmatch 'WBD_WINDOWS_QUALIFY_CLEANUP_PASS') { throw 'Windows frozen one-shot missing release/cleanup assertions' }
+          Write-Output 'WBD_WINDOWS_FROZEN_ONE_SHOT_HARNESS_PASS syntax=1 forced_kill=0 cleanup_asserted=1'

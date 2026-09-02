@@ -1,0 +1,4 @@
+case,expected,client_rc,server_rc
+valid,pass,0,0
+hostname_mismatch,fail,10,3
+untrusted_ca,fail,10,3

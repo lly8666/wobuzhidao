@@ -1,0 +1,109 @@
+name: openwrt-fullstack-one-shot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/openwrt-fullstack-one-shot.yml'
+      - 'scripts/openwrt_fullstack_one_shot.sh'
+      - 'scripts/openwrt_tproxy.sh'
+      - 'cmd/wbd-platform-proxy-openwrt/**'
+      - 'cmd/wbd-platform-proxy-server/**'
+      - 'internal/platformproxy/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-reality-front/**'
+      - 'internal/faketcp/**'
+      - 'internal/session/**'
+      - 'internal/realityfront/**'
+      - 'internal/dtlsworker/**'
+      - 'native/dtls/**'
+  push:
+    branches:
+      - dev/wbd-raw-fec-v2
+    paths:
+      - '.github/workflows/openwrt-fullstack-one-shot.yml'
+      - 'scripts/openwrt_fullstack_one_shot.sh'
+      - 'scripts/openwrt_tproxy.sh'
+      - 'cmd/wbd-platform-proxy-openwrt/**'
+      - 'cmd/wbd-platform-proxy-server/**'
+      - 'internal/platformproxy/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-reality-front/**'
+      - 'internal/faketcp/**'
+      - 'internal/session/**'
+      - 'internal/realityfront/**'
+      - 'internal/dtlsworker/**'
+      - 'native/dtls/**'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one-shot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build, namespace and application tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables nftables dnsutils
+      - name: Build exact pinned DTLS and OpenWrt full stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/wbd-openwrt-fullstack"
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build "$ASSET"
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" \
+            -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm \
+            -o "$ASSET/wbd_dtls_shim"
+          chmod +x "$ASSET/wbd_dtls_shim"
+
+          go test ./internal/platformproxy ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./cmd/wbd-link-server-mux -count=1
+          go build -trimpath -o "$ASSET/wbd-reality-front" ./cmd/wbd-reality-front
+          go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
+          go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+          go build -trimpath -o "$ASSET/wbd-link-proxy" ./cmd/wbd-link-proxy
+          go build -trimpath -o "$ASSET/wbd-link-server-mux" ./cmd/wbd-link-server-mux
+          go build -trimpath -o "$ASSET/wbd-platform-proxy-openwrt" ./cmd/wbd-platform-proxy-openwrt
+          go build -trimpath -o "$ASSET/wbd-platform-proxy-server" ./cmd/wbd-platform-proxy-server
+
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-front.invalid' \
+            -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-dtls.invalid' \
+            -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+      - name: Clean OpenWrt TPROXY through frozen WBD DNS UDP TCP one-shot
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/wbd-openwrt-fullstack-logs"
+          sudo scripts/openwrt_fullstack_one_shot.sh \
+            "$RUNNER_TEMP/wbd-openwrt-fullstack" \
+            "$RUNNER_TEMP/wbd-openwrt-fullstack-logs"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openwrt-fullstack-one-shot
+          path: ${{ runner.temp }}/wbd-openwrt-fullstack-logs
+          retention-days: 14

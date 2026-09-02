@@ -1,0 +1,32 @@
+{
+  "schema": "wbd-v2-m3a-control-qualification/v1",
+  "result": "pass",
+  "authority": "local sandbox execution",
+  "shim_sha256": "63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a",
+  "dtls": {
+    "version": "DTLSv1.3",
+    "cipher": "TLS_AES_256_GCM_SHA384",
+    "control_started_only_after_both_ready": true
+  },
+  "cases": [
+    {
+      "name": "accept",
+      "min": 1,
+      "max": 1,
+      "expected": "CLIENT reply=ACCEPT protocol=1",
+      "client_output": "CLIENT reply=ACCEPT protocol=1",
+      "server_output": "SERVER received=HELLO min=1 max=1 reply=control.Accept",
+      "dtls_ready_before_control_client": true
+    },
+    {
+      "name": "unsupported",
+      "min": 2,
+      "max": 2,
+      "expected": "CLIENT reply=ERROR code=1",
+      "client_output": "CLIENT reply=ERROR code=1 message=\"no common protocol version\"",
+      "server_output": "SERVER received=HELLO min=2 max=2 reply=control.Error",
+      "dtls_ready_before_control_client": true
+    }
+  ],
+  "scope": "direct DTLS loopback only; no credentials, keepalive, TUN, FEC or FakeTCP changes"
+}

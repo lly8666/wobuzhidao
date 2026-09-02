@@ -1,0 +1,91 @@
+name: windows-dtls-build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/windows-dtls-build.yml'
+      - 'native/dtls/**'
+      - 'deps/upstream-lock.json'
+  push:
+    branches:
+      - dev/wbd-raw-fec-v2
+    paths:
+      - '.github/workflows/windows-dtls-build.yml'
+      - 'native/dtls/**'
+      - 'deps/upstream-lock.json'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download exact pinned wolfSSL source artifact
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = "$env:RUNNER_TEMP\wolfssl-source.zip"
+          $artifactDir = "$env:RUNNER_TEMP\wolf-art"
+          $src = "$env:RUNNER_TEMP\wolf-src"
+          New-Item -ItemType Directory -Force -Path $artifactDir,$src | Out-Null
+          $headers = @{
+            Authorization = "Bearer $env:GH_TOKEN"
+            Accept = 'application/vnd.github+json'
+          }
+          Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts/9529710833/zip" -OutFile $zip
+          Expand-Archive -LiteralPath $zip -DestinationPath $artifactDir
+          $tar = Join-Path $artifactDir 'wolfssl-ac01707f-source.tar.gz'
+          if (-not (Test-Path $tar)) { throw 'pinned wolfSSL source tarball missing from artifact' }
+          $got = (Get-FileHash -Algorithm SHA256 $tar).Hash.ToLowerInvariant()
+          $want = '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b'
+          if ($got -ne $want) { throw "wolfSSL source hash mismatch got=$got want=$want" }
+          tar.exe -xzf $tar -C $src --strip-components=1
+          if ($LASTEXITCODE -ne 0) { throw "tar extraction failed: $LASTEXITCODE" }
+          Write-Output "WBD_WINDOWS_DTLS_SOURCE_PASS sha256=$got"
+
+      - name: Build WinSock DTLS 1.3 shim against pinned wolfSSL
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = "$env:RUNNER_TEMP\wolf-src"
+          $build = "$env:RUNNER_TEMP\wbd-dtls-win-build"
+          cmake -S native/dtls -B $build -A x64 "-DWOLFSSL_SOURCE_DIR=$src"
+          if ($LASTEXITCODE -ne 0) { throw "DTLS CMake configure failed: $LASTEXITCODE" }
+          cmake --build $build --config Release --target wbd_dtls_shim --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw "DTLS CMake build failed: $LASTEXITCODE" }
+          $exe = Get-ChildItem -Path $build -Recurse -Filter wbd_dtls_shim.exe | Select-Object -First 1
+          if (-not $exe) { throw 'wbd_dtls_shim.exe not produced' }
+
+          # Portable Windows staging requires a static MSVC CRT. Locate the
+          # Visual Studio dumpbin that matches the hosted compiler and reject a
+          # shim that imports the redistributable runtime DLLs.
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path -LiteralPath $vswhere)) { throw 'vswhere.exe not found' }
+          $dumpbin = & $vswhere -latest -products * -find 'VC\Tools\MSVC\**\bin\Hostx64\x64\dumpbin.exe' | Select-Object -First 1
+          if (-not $dumpbin -or -not (Test-Path -LiteralPath $dumpbin)) { throw 'dumpbin.exe not found' }
+          $deps = & $dumpbin /dependents $exe.FullName | Out-String
+          if ($LASTEXITCODE -ne 0) { throw "dumpbin /dependents failed: $LASTEXITCODE" }
+          if ($deps -match '(?im)^\s*(VCRUNTIME|MSVCP|ucrtbase)[^\s]*\.dll\s*$') {
+            throw "DTLS shim still imports a dynamic MSVC/UCRT runtime:`n$deps"
+          }
+          Write-Output 'WBD_WINDOWS_DTLS_STATIC_CRT_PASS vcruntime=0 msvcp=0 ucrtbase=0'
+
+          # No-argument execution intentionally returns usage exit 2. This proves
+          # the WinSock + static wolfSSL executable starts and reaches the same
+          # CLI contract as the Linux shim without requiring a network peer.
+          $stderr = "$env:RUNNER_TEMP\wbd-dtls-win-usage.log"
+          & $exe.FullName 2>$stderr
+          $rc = $LASTEXITCODE
+          if ($rc -ne 2) { throw "wbd_dtls_shim.exe usage exit=$rc want=2" }
+          $usage = Get-Content -LiteralPath $stderr -Raw
+          if ($usage -notmatch 'client PLAIN_LISTEN TRANSPORT_IP TRANSPORT_PORT') { throw "DTLS shim usage contract missing: $usage" }
+          Write-Output 'WBD_WINDOWS_DTLS_BUILD_PASS version=DTLSv1.3 socket=WinSock wolfssl=pinned-static crt=static'
+          exit 0
