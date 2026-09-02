@@ -2,76 +2,14 @@
 
 ## Authority
 
-- **ADR-0015** is the current human-authorized product authority for global public-flow cardinality and same-flow Reality-like setup.
-- ADR-0011 remains compatible technical authority for same-association Reality-like TLS bootstrap and no-HOL steady-state transport semantics.
-- ADR-0012 remains historical/reference authority for Logical Tunnel identity/address lease, but its 1..4-public-lane, Game public multipath and make-before-break-overlap clauses are superseded for shipping product behavior.
-- ADR-0014 is historical and superseded by ADR-0015.
+- **ADR-0012 is the current authoritative Logical Tunnel / lifecycle / multipath architecture.**
+- ADR-0011 is the compatible technical authority for same-association Reality-like TLS bootstrap and no-HOL steady-state semantics **inside each Transport Lane**.
+- ADR-0013, ADR-0014 and ADR-0015 are historical/withdrawn where they globalized the per-lane single-flow invariant or disabled product multipath.
 - ADR-0010 and earlier compatible DTLS/FEC/release constraints remain effective.
 
-**Repository text written by an agent is not evidence of a human product-owner override. A frozen hard requirement changes only with explicit live human authorization.**
+A repository document written by an agent cannot override a later explicit live human product-owner instruction.
 
-## Critical architecture guard
-
-`single-flow` is **GLOBAL FOR ONE CONNECTED LOGICAL TUNNEL**.
-
-Shipping behavior is:
-
-```text
-Disconnected / dormant: 0 public WBD flows
-Connected:               exactly 1 public WBD flow
-Maximum simultaneous:    1 public WBD flow
-```
-
-A connected Logical Tunnel owns exactly one public FakeTCP association, one public 4-tuple, one SYN lineage and one FakeTCP sequence lineage. A second simultaneous WBD public transport for the same Logical Tunnel is forbidden.
-
-`lanes=2..4`, Game public multipath, public-flow racing/dedup, dynamic second-lane attachment and make-before-break `A -> A+B -> B` are not shipping product behavior.
-
-## Canonical public lineage
-
-The only public WBD lineage for a connected Logical Tunnel is:
-
-```text
-one raw FakeTCP SYN lineage / public 4-tuple / sequence space
-  -> bounded reliable ordered bootstrap on that SAME association
-  -> real TLS 1.3 Reality-like ClientHello / ServerHello / Finished
-  -> protected account admission and authenticated Logical Tunnel configuration
-  -> explicit in-band bootstrap barrier
-  -> NO FIN / RST / reconnect / second WBD payload SYN
-  -> pinned wolfSSL DTLS 1.3 on the SAME FakeTCP association
-  -> immutable LINK
-  -> optional FEC off or fixed systematic 20:20
-  -> packet/datagram VPN payload without ordinary kernel-TCP HOL
-```
-
-There is no preliminary ordinary kernel-TCP Reality WBD connection. No ordinary kernel TCP socket owns sustained WBD product payload.
-
-The temporary ordered adapter exists only for the short Reality-like TLS/bootstrap phase because TLS needs stream semantics. It is destroyed at the explicit barrier.
-
-## Reality-like fidelity
-
-The first seconds of the one public flow should resemble normal Reality-like/TLS 1.3 traffic as closely as practical:
-
-- plausible TCP-shaped SYN/SYNACK/ACK persona;
-- real TLS 1.3 handshake records;
-- configured SNI;
-- Reality-like recognition/classification;
-- protected credentials and authenticated setup;
-- no second public WBD connection hidden behind the setup phase.
-
-Do not claim a numeric similarity percentage without a reproducible pcap metric.
-
-## No-HOL steady state
-
-After the bootstrap barrier:
-
-- sustained transport is pinned wolfSSL DTLS 1.3 over the same FakeTCP association;
-- independently complete payload may progress despite an earlier missing FakeTCP sequence range according to the qualified WBD recovery design;
-- systematic FEC source packets are not intentionally delayed merely to fill a block;
-- no ordinary-TCP ordered-delivery HOL is reintroduced.
-
-The mature FakeTCP ARQ/recovery and FEC wire is frozen unless deterministic lower-layer qualification isolates a real defect.
-
-## Logical Tunnel identity and lease
+## Product identity model
 
 ```text
 Account
@@ -79,125 +17,228 @@ Account
       -> Logical Tunnel
           -> stable TunnelID
           -> stable server-assigned tunnel IPv4 lease
-          -> exactly one connected public transport
+          -> shared logical PacketID / race namespace
+          -> 1..4 replaceable Transport Lanes while active
 ```
 
-- username/password authenticates the account;
-- the lease belongs to Logical Tunnel/device identity;
-- same-account devices receive distinct tunnel IPv4 addresses;
-- authenticated setup supplies tunnel address/prefix/routes;
-- server raw IPv4 ingress requires `source IPv4 == leased IPv4` and treats mismatch as a hard spoof/security drop.
+Logical Tunnel state owns TunnelID, leased tunnel address, installation identity, logical PacketID space and Windows Wintun/routing/DNS product state.
 
-Do not reintroduce a global fixed `10.66.0.2/30` identity.
+A Transport Lane owns its FakeTCP association/public tuple, lane generation, Reality-like TLS bootstrap, DTLS 1.3, LINK, lane-local FEC, liveness/age and path/NIC/NAT binding. Lanes are disposable; Logical Tunnel identity is not.
 
-## Lifecycle
+## Single-flow invariant — per Transport Lane
 
-Planned public-flow replacement is **break-before-make**:
+`single-flow` is **per Transport Lane / per Transport Epoch**, not per Logical Tunnel lifetime.
+
+Every lane independently owns one complete public lineage:
+
+```text
+one raw FakeTCP SYN lineage / public 4-tuple / FakeTCP sequence space
+  -> bounded reliable ordered Reality-like TLS 1.3 bootstrap on that SAME association
+  -> configured SNI + Reality-like recognition
+  -> protected account admission + authenticated Logical Tunnel configuration
+  -> explicit in-band bootstrap barrier
+  -> no FIN / RST / reconnect / second WBD payload SYN inside the lane
+  -> pinned wolfSSL DTLS 1.3 on that SAME FakeTCP association
+  -> immutable LINK
+  -> lane-local FEC off or fixed systematic 20:20
+  -> packet/datagram VPN payload without ordinary kernel-TCP HOL
+```
+
+Forbidden:
+
+- ordinary kernel TCP for sustained outer WBD payload;
+- `ordinary Reality TCP -> close -> separate FakeTCP payload flow`;
+- splitting one lane's Reality/DTLS/payload across different public transports.
+
+Allowed and required by product policy: multiple independent complete lanes under one Logical Tunnel.
+
+## Product transport cardinality and Game Lane
+
+```text
+MinProductPublicTransportLanes = 1
+MaxProductPublicTransportLanes = 4
+```
+
+Policy:
+
+- Normal steady mode: desired lanes = 1.
+- Game / weak-network mode: desired lanes = 2..4.
+- DORMANT/disconnected: active lanes = 0.
+- A fifth active product lane is rejected.
+
+Game/race is current product architecture, not the rejected V1 ordered-kernel-TCP multilane design.
+
+One logical payload receives one logical PacketID. Copies may race over independent complete lanes. The first valid arrival delivers immediately, later copies are suppressed, and bounded out-of-order unique packets remain independently deliverable. There is no cross-lane HOL.
+
+FEC remains lane-local and never spans lanes.
+
+## Replacement and generation fencing
+
+Planned healthy replacement is **make-before-break** and reuses the existing PacketID/race/dedup primitive:
 
 ```text
 A ACTIVE
-  -> stop new inner sends to A
-  -> detach A from local forwarding
-  -> stop A LINK / DTLS / FakeTCP
-  -> confirm old public transport is gone
-  -> create B
-  -> B performs same-flow Reality-like bootstrap -> barrier -> DTLS -> LINK
-  -> attach B
+  -> build candidate B completely
+  -> B FakeTCP + same-lane Reality-like TLS + DTLS + LINK
+  -> authenticate/attach B to existing Logical Tunnel
+  -> health gate
+  -> bounded A+B overlap / race
+  -> stop assigning new payload to A
+  -> drain A
+  -> retire A
   -> B ACTIVE
 ```
 
-There is never a simultaneous A+B public-flow interval for one Logical Tunnel.
+Candidate B failure leaves healthy A active.
 
-Abrupt total path loss may require reconnect after cleanup. Server reboot/conntrack loss is not promised to preserve arbitrary existing application TCP sessions.
-
-DORMANT may retain local Logical Tunnel state/lease/TUN/routes according to lifecycle policy, but it owns zero public FakeTCP transports. Wake creates exactly one public transport.
-
-## Canonical packet stack
+Game mode rotates one lane at a time, for example:
 
 ```text
-Windows Wintun / OpenWrt captured packet
-        ↓
-raw IP packet
-        ↓
-Logical Tunnel lease
-        ↓
-immutable LINK + optional FEC
-        ↓
-pinned wolfSSL DTLS 1.3
-        ↓
-one WBD FakeTCP association
-        ↓
-public network
+A+B -> A+B+C -> B+C
 ```
+
+Do not rotate every healthy Game lane simultaneously.
+
+Every replacement incarnation carries a lane generation/epoch. Any old goroutine, FakeTCP RX, DTLS/LINK callback, timeout or candidate must verify its generation before mutating current tunnel/lane state. Stale generations are ignored/dropped.
+
+## Unified replacement lifecycle
+
+Scheduled lane age, NIC/default-route/public-IP changes, NAT/path changes, missed PONG/no RX, FakeTCP/DTLS/LINK failures, server request and manual reconnect feed one replacement state machine:
+
+```text
+detect trigger
+  -> request replacement
+  -> build candidate
+  -> candidate fully authenticated/ready
+  -> health gate
+  -> overlap/race
+  -> switch
+  -> drain old
+  -> retire old
+```
+
+Do not build separate incompatible reconnect protocols for each trigger.
+
+## Idle, liveness and DORMANT
+
+Track at least:
+
+- `last_payload_activity`: real tunneled IP payload only;
+- `last_transport_activity`: payload plus health/control traffic.
+
+PING/PONG/keepalive/health probes must not refresh payload idle.
+
+Initial payload-idle default is 15 minutes. `idle_timeout = 0` means never sleep because of payload idleness; it does not disable lane age rotation.
+
+When non-zero payload idle expires:
+
+```text
+ACTIVE -> DORMANT
+```
+
+Close all Transport Lanes while preserving Logical Tunnel, TunnelID, leased IP, Wintun, routes, DNS/NRPT and relevant product state. The first real payload wakes the tunnel. Traffic resumes after the first lane becomes READY; optional Game lanes attach afterward.
+
+Explicit Disconnect/Exit is different: stop lanes, release lease as policy requires, remove WBD-owned routes/DNS/NRPT/IPv6/firewall state and stop product runtime deterministically.
+
+## Lane age policy
+
+A lane cannot live forever. Initial policy is a randomized soft age around 30..60 minutes, independent of payload-idle configuration. Multi-lane deadlines must be staggered.
+
+This is lifecycle policy, not a wire-protocol constant.
+
+## Logical Tunnel lease and anti-spoof
+
+The server assigns each Logical Tunnel/installation a unique IPv4 lease from a configurable pool.
+
+- same account + different installation => distinct tunnel addresses;
+- short reconnect/replacement should retain the same lease where possible;
+- lane replacement does not change tunnel IP;
+- explicit release permits later reassignment;
+- prefer `/32` plus explicit routes where Windows qualification supports it.
+
+Server raw IPv4 ingress must enforce:
+
+```text
+inner IPv4 source == leased tunnel IPv4
+```
+
+Mismatch is a hard security drop. TunnelID/lease identity must not be confused with lane LiveID/public tuple.
 
 ## Linux product shape
 
-Public surface:
+Public surface remains one WBD public port:
 
 ```text
 Internet
-  <-> one public WBD_PORT / raw FakeTCP mux listener
+  <-> one WBD_PORT / raw FakeTCP mux
+       <-> many independent Transport Lane tuples
+       <-> Logical Tunnel manager + Game/race
+       <-> one shared WBD TUN
+       <-> Linux root routing
+       <-> one WBD-owned host NAT/SNAT
 ```
 
-The server may serve many users/Logical Tunnels on the same public port, but **one TunnelID may claim at most one simultaneous public transport peer**.
+One public server port does not mean one lane per Logical Tunnel.
 
-Internal raw-IP direction remains shared-TUN/root-routing/one WBD-owned host NAT where applicable. Per-LiveID netns/veth/double NAT and VRF/conntrack-zone remain historical/reference only.
+Per-session netns/veth/double NAT and VRF/conntrack-zone are historical qualification/reference paths, not final product architecture.
+
+Firewall helpers may manipulate only WBD-owned chains/marks/rules and must never flush the user's ruleset.
 
 ## Windows product shape
 
-One Wintun belongs to one Logical Tunnel. Shipping orchestration starts exactly one same-flow FakeTCP transport group:
+One Wintun belongs to one Logical Tunnel. Product orchestration may own 1..4 lane groups:
 
 ```text
-one FakeTCP child
-  -> same-association Reality-like bootstrap
-  -> one DTLS child
-  -> one LINK child
+Logical Tunnel
+  -> Lane A: FakeTCP -> Reality-like TLS -> DTLS -> LINK
+  -> Lane B: FakeTCP -> Reality-like TLS -> DTLS -> LINK
+  -> optional Lane C/D
+  -> Game/race aggregation
   -> one Wintun
 ```
 
-The shipping profile rejects `lanes != 1`. Dynamic candidate/multipath APIs may remain only as unreachable research code; they must not create a second public flow from product configuration or lifecycle.
+Each lane has its own source port/public tuple and transport processes but shares the authenticated Logical Tunnel identity/lease and logical PacketID race namespace.
 
-## Frozen transport/security/release limits
+Windows IPv6 remains fail-closed throughout connected/DORMANT/replacement operation until actual IPv6 qualification. Disconnect/Exit cleans the WBD-owned fail-closed rules.
 
-1. Sustained public WBD payload never falls back to ordinary kernel TCP.
+## Frozen transport/security/release boundaries
+
+1. Sustained outer WBD payload never falls back to ordinary kernel TCP.
 2. TCP-over-TCP HOL is forbidden.
-3. One connected Logical Tunnel has exactly one public FakeTCP association/SYN lineage/4-tuple.
-4. Reality-like TLS bootstrap is on that same FakeTCP association.
-5. Bootstrap -> DTLS emits no FIN/RST/reconnect/second WBD payload SYN.
-6. Pinned wolfSSL DTLS 1.3 remains steady-state crypto authority.
-7. FEC release wire is only `off` or fixed systematic `20:20`.
-8. `legacy` FakeTCP recovery remains default; `sack-rack` remains experimental.
-9. <=100 Mbit/s weak-link qualification ceiling remains.
-10. 40 Mbit/s aggregate-inner remains the conservative release operating point.
-11. Windows final capture remains Wintun/TUN raw L3.
-12. OpenWrt final capture remains TPROXY + policy routing.
-13. Linux firewall helpers manipulate WBD-owned state only and never flush user rulesets.
-14. Windows IPv6 remains fail-closed during connected interval until real IPv6 qualification.
-15. Disconnect/Exit deterministically restores WBD-owned routes/DNS/NRPT/IPv6/firewall state.
-16. Passwords/tickets/resume/identity secrets do not belong in logs; no per-packet INFO spam.
-17. Npcap packaging/licensing/install constraints remain unchanged.
-18. Startup latency optimization and Windows child-process slimming remain deferred.
-19. Server reboot/conntrack loss is not promised to preserve existing application TCP sessions.
+3. Reality-like TLS bootstrap stays on each lane's own FakeTCP association.
+4. Pinned wolfSSL DTLS 1.3 remains steady-state crypto authority.
+5. Mature FakeTCP recovery stays frozen; `legacy` remains default and `sack-rack` experimental.
+6. FEC release wire is only `off` or fixed systematic `20:20`; FEC is lane-local and immutable for one lane/epoch.
+7. Systematic source packets are not intentionally delayed merely to fill an FEC block.
+8. Weak-link qualification ceiling remains <=100 Mbit/s.
+9. Conservative release operating point remains 40 Mbit/s aggregate inner, not per lane.
+10. Windows capture remains Wintun/TUN raw L3; OpenWrt remains TPROXY + policy routing.
+11. Linux exposes one public WBD port.
+12. Windows IPv6 remains fail-closed until qualified.
+13. Disconnect/Exit cleanup is deterministic and scoped to WBD-owned state.
+14. Passwords/tickets/resume/identity secrets are never logged; no per-packet INFO spam.
+15. Npcap packaging/licensing constraints remain unchanged.
+16. Startup RTT optimization and Windows child-process slimming remain deferred.
+17. Current lifecycle work must not reopen FEC profile tuning or startup-handshake redesign.
 
-## Qualification before artifact delivery
+## Required qualification before artifact delivery
 
 One exact substantive `SOURCE_SHA` must prove at minimum:
 
-1. one SYN / one 4-tuple from Reality-like TLS bootstrap through barrier, DTLS, LINK and payload;
-2. no preliminary ordinary-TCP Reality WBD connection;
-3. no FIN/RST/reconnect/new WBD payload SYN at the barrier;
-4. post-bootstrap no-HOL hole-bypass;
-5. shipping profile accepts exactly `lanes=1` and rejects `lanes!=1`;
-6. lifecycle cannot create a simultaneous second public flow, including replacement;
-7. server rejects a second concurrent public transport claim for one TunnelID;
-8. distinct Logical Tunnels receive distinct leases and spoofed sources are rejected;
-9. DNS-style UDP, generic UDP and TCP pass the final shared-TUN/platform path;
-10. FEC `off` and `20:20` and mature FakeTCP recovery remain qualified;
-11. exact-source Windows hosted build/full-stack and Linux full-stack/release gates pass;
-12. final same-source physical Windows 11 + Npcap -> Ubuntu ARM64 passes DNS/UDP/TCP and deterministic cleanup before release designation.
+1. each lane has one SYN/4-tuple/sequence lineage from Reality-like TLS bootstrap through DTLS, LINK and payload with no second WBD payload SYN inside the lane;
+2. no preliminary ordinary kernel-TCP Reality WBD connection;
+3. post-bootstrap no-HOL hole-bypass;
+4. active lane counts 1, 2, 3 and 4 are accepted and a fifth is rejected;
+5. Normal desired=1 and Game desired=2..4;
+6. Game first-arrival/dedup/out-of-order unique delivery has no cross-lane HOL;
+7. scheduled `A -> A+B -> B` replacement works and candidate failure preserves A;
+8. Game one-lane rotation `A+B -> A+B+C -> B+C` works;
+9. generation fencing rejects stale lane events;
+10. DORMANT/wake preserves Logical Tunnel local state and resumes after first READY lane;
+11. distinct Logical Tunnels receive distinct leases and source spoofing is rejected;
+12. shared TUN + one host NAT passes DNS-style UDP, generic UDP and TCP;
+13. FEC `off` and `20:20` remain lane-local and qualified;
+14. exact-head Windows/Linux automated qualification passes;
+15. final same-source physical Windows 11 + Npcap -> Ubuntu ARM64 passes functional/lifecycle/cleanup qualification before release designation.
 
-Do not change mature transport wire semantics merely to satisfy an architecture/string contract test.
-
-## Development discipline
-
-Detailed decisions, failed experiments, exact heads, qualification results and unresolved physical-only items belong under `docs/development/` and are summarized in `.wbd/handoff/current.json`.
+Do not change mature transport wire semantics merely to satisfy an architecture/string contract test. Detailed decisions, failures, exact heads and qualification evidence belong under `docs/development/` and the current handoff.
