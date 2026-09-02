@@ -36,6 +36,7 @@ func TestADR0012MultipathAuthority(t *testing.T) {
 	policy := readRepoFile(t, "internal/logicaltunnel/logicaltunnel.go")
 	requireContains(t, policy, "MinProductPublicTransportLanes = 1", "Logical Tunnel transport policy")
 	requireContains(t, policy, "MaxProductPublicTransportLanes = 4", "Logical Tunnel transport policy")
+	requireContains(t, policy, "MaxConcurrentPublicTransportIncarnations = MaxProductPublicTransportLanes + 1", "Logical Tunnel replacement overlap capacity")
 	requireContains(t, policy, "Normal mode targets one lane; Game/weak-network mode may use 2..4 lanes", "Logical Tunnel transport policy")
 
 	adr12 := readRepoFile(t, "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md")
@@ -92,13 +93,15 @@ func TestWindowsShippingProfileAndLifecycleUsePerLaneSameFlowMultipath(t *testin
 	requireContains(t, lifecycle, "PromoteSameIDReplacement", "Windows generation fence")
 }
 
-func TestLinkServerCapsFourConcurrentPublicTransportsPerTunnel(t *testing.T) {
+func TestLinkServerSeparatesProductLaneCardinalityFromReplacementIncarnationCapacity(t *testing.T) {
 	body := readRepoFile(t, "cmd/wbd-link-server-mux/logical_tunnel.go")
 	requireContains(t, body, "activeTunnelPeers", "LINK Logical Tunnel transport set")
-	requireContains(t, body, "MaxProductPublicTransportLanes", "LINK Logical Tunnel transport limit")
-	requireContains(t, body, "errTransportLaneLimit", "LINK Logical Tunnel fifth-transport limit")
+	requireContains(t, body, "MaxConcurrentPublicTransportIncarnations", "LINK replacement transport-incarnation limit")
+	requireContains(t, body, "MaxProductPublicTransportLanes", "LINK product logical-lane marker")
+	requireContains(t, body, "errTransportIncarnationLimit", "LINK transport-incarnation rejection")
 	policy := readRepoFile(t, "internal/logicaltunnel/logicaltunnel.go")
-	requireContains(t, policy, "MaxProductPublicTransportLanes = 4", "LINK transport ceiling")
+	requireContains(t, policy, "MaxProductPublicTransportLanes = 4", "product logical-lane ceiling")
+	requireContains(t, policy, "MaxConcurrentPublicTransportIncarnations = MaxProductPublicTransportLanes + 1", "replacement overlap ceiling")
 }
 
 func TestSameAssociationRealityLikeBootstrapRemainsProductPath(t *testing.T) {

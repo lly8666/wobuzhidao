@@ -23,6 +23,12 @@ const (
 	// Normal mode targets one lane; Game/weak-network mode may use 2..4 lanes.
 	MinProductPublicTransportLanes = 1
 	MaxProductPublicTransportLanes = 4
+
+	// Planned healthy replacement is make-before-break. At the four-lane product
+	// ceiling, one additional physical transport incarnation must coexist during
+	// the bounded A -> A+B -> B overlap. This is capacity for a replacement of an
+	// existing logical LaneID, not permission for a fifth product logical lane.
+	MaxConcurrentPublicTransportIncarnations = MaxProductPublicTransportLanes + 1
 )
 
 var (
@@ -110,7 +116,7 @@ func NewManager(pool netip.Prefix, routes []netip.Prefix) (*Manager, error) {
 	if !pool.IsValid() || !pool.Addr().Is4() || pool.Bits() > 30 { return nil, ErrInvalidPool }
 	pool = pool.Masked()
 	canonicalRoutes := make([]string,0,len(routes))
-	for _,route:=range routes { if !route.IsValid()||!route.Addr().Is4(){return nil,ErrInvalidPool};canonicalRoutes=append(canonicalRoutes,route.Masked().String()) }
+	for _,route:=range routes{if !route.IsValid()||!route.Addr().Is4(){return nil,ErrInvalidPool};canonicalRoutes=append(canonicalRoutes,route.Masked().String())}
 	sort.Strings(canonicalRoutes)
 	return &Manager{pool:pool,routes:canonicalRoutes,byIdentity:make(map[string]*Lease),byTunnel:make(map[TunnelID]*Lease),used:make(map[netip.Addr]TunnelID)},nil
 }
@@ -149,7 +155,7 @@ func lastAddress(prefix netip.Prefix) netip.Addr {
 	base:=prefix.Masked().Addr().As4();hostBits:=32-prefix.Bits();mask:=uint32(1<<hostBits)-1;v:=uint32(base[0])<<24|uint32(base[1])<<16|uint32(base[2])<<8|uint32(base[3]);v|=mask;return netip.AddrFrom4([4]byte{byte(v>>24),byte(v>>16),byte(v>>8),byte(v)})
 }
 
-func cloneLease(in *Lease) Lease { if in==nil{return Lease{}};out:=*in;out.Config.Routes4=append([]string(nil),in.Config.Routes4...);return out }
+func cloneLease(in *Lease) Lease {if in==nil{return Lease{}};out:=*in;out.Config.Routes4=append([]string(nil),in.Config.Routes4...);return out}
 
 func ValidateIPv4Source(packet []byte, leased netip.Addr) error {
 	if !leased.IsValid()||!leased.Is4(){return ErrSourceSpoof};if err:=dataplane.ValidateIPPacket(packet);err!=nil{return err};if packet[0]>>4!=4{return ErrSourceSpoof};var raw [4]byte;copy(raw[:],packet[12:16]);if netip.AddrFrom4(raw)!=leased{return ErrSourceSpoof};return nil

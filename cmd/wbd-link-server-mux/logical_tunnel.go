@@ -15,15 +15,18 @@ import (
 
 var peerTunnelBindings sync.Map // map[*peerSession]realityfront.TicketBinding
 
-// activeTunnelPeers tracks the shipping public-transport claim for each Logical
-// Tunnel. ADR-0015 caps this set at exactly one simultaneous peer per TunnelID.
-// The server can still serve many different TunnelIDs on the same public port.
+// activeTunnelPeers tracks physical public Transport Lane incarnations for each
+// Logical Tunnel. ADR-0012 keeps product logical LaneIDs at 1..4, while planned
+// make-before-break may temporarily require one additional physical incarnation
+// when replacing one of four active lanes. LINK does not receive logical LaneID
+// in TicketBinding, so it enforces the bounded physical-incarnation ceiling;
+// Game/control remains the authority that rejects a fifth product logical lane.
 var (
 	activeTunnelPeersMu sync.Mutex
 	activeTunnelPeers   = make(map[string]map[*peerSession]struct{})
 )
 
-var errTransportLaneLimit = errors.New("logical tunnel public transport limit reached")
+var errTransportIncarnationLimit = errors.New("logical tunnel public transport incarnation limit reached")
 
 func claimTunnelTransport(ps *peerSession, binding realityfront.TicketBinding) error {
 	if ps == nil {
@@ -43,8 +46,8 @@ func claimTunnelTransport(ps *peerSession, binding realityfront.TicketBinding) e
 	if _, exists := peers[ps]; exists {
 		return nil
 	}
-	if len(peers) >= logicaltunnel.MaxProductPublicTransportLanes {
-		return errTransportLaneLimit
+	if len(peers) >= logicaltunnel.MaxConcurrentPublicTransportIncarnations {
+		return errTransportIncarnationLimit
 	}
 	peers[ps] = struct{}{}
 	return nil
@@ -99,8 +102,8 @@ func (s *server) consumeLogicalTunnelTicket(ps *peerSession, bind [control.DemoW
 	ps.sid = string(binding.Config.TunnelID)[:8]
 	ps.haveIdentity = true
 	peerTunnelBindings.Store(ps, binding)
-	fmt.Printf("WBD_LINK_LOGICAL_TUNNEL_BIND tunnel_id_prefix=%s address4=%s lease=%s active_transports=%d max_transports=%d ticket=consumed\n",
-		ps.sid, binding.Config.Address4, lease, activeTunnelTransportCount(binding.Config.TunnelID), logicaltunnel.MaxProductPublicTransportLanes)
+	fmt.Printf("WBD_LINK_LOGICAL_TUNNEL_BIND tunnel_id_prefix=%s address4=%s lease=%s active_transports=%d max_transports=%d max_transport_incarnations=%d ticket=consumed\n",
+		ps.sid, binding.Config.Address4, lease, activeTunnelTransportCount(binding.Config.TunnelID), logicaltunnel.MaxProductPublicTransportLanes, logicaltunnel.MaxConcurrentPublicTransportIncarnations)
 	return nil
 }
 
