@@ -36,20 +36,24 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
-      - name: Execute Windows packet, single-flow, runtime, and diagnostics tests
+      - name: FakeTCP packet persona
         shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          go test ./internal/faketcp -run 'Test(Windows11Persona|WindowsDefaultPacketPersona|LegacyPersona)' -count=1 -v
-          if ($LASTEXITCODE -ne 0) { throw "Windows FakeTCP persona tests failed: $LASTEXITCODE" }
-          go test ./cmd/wbd-faketcp -count=1 -v
-          if ($LASTEXITCODE -ne 0) { throw "Windows FakeTCP backend tests failed: $LASTEXITCODE" }
-          go test ./internal/realityfront -run 'TestSingleFlow' -count=1 -v
-          if ($LASTEXITCODE -ne 0) { throw "Windows Reality-like single-flow tests failed: $LASTEXITCODE" }
-          go test ./internal/singleflowvwire -run 'TestSingleFlowVirtualWireAdmissionThenNoHOL' -count=1 -v
-          if ($LASTEXITCODE -ne 0) { throw "Windows single-flow virtual-wire test failed: $LASTEXITCODE" }
-          go test ./internal/windowsruntime ./internal/windowsdiag -count=1 -v
-          if ($LASTEXITCODE -ne 0) { throw "Windows runtime/diagnostics tests failed: $LASTEXITCODE" }
-          go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
-          if ($LASTEXITCODE -ne 0) { throw "Windows FakeTCP build failed: $LASTEXITCODE" }
-          Write-Output 'WBD_WINDOWS_FAKETCP_PERSONA_PASS ttl=128 options=mss,nop,ws8,nop,nop,sack df=1 ipid=incrementing reality_like_tls=pass single_flow_vwire=pass no_hol=pass backend_tests=pass runtime_tests=pass diagnostics_tests=pass'
+        run: go test ./internal/faketcp -run 'Test(Windows11Persona|WindowsDefaultPacketPersona|LegacyPersona)' -count=1 -v
+      - name: Windows FakeTCP backend
+        shell: pwsh
+        run: go test ./cmd/wbd-faketcp -count=1 -v
+      - name: Reality-like same-flow bootstrap
+        shell: pwsh
+        run: go test ./internal/realityfront -run 'TestSingleFlow' -count=1 -v
+      - name: Same-flow virtual wire no-HOL
+        shell: pwsh
+        run: go test ./internal/singleflowvwire -run 'TestSingleFlowVirtualWireAdmissionThenNoHOL' -count=1 -v
+      - name: Windows runtime and diagnostics
+        shell: pwsh
+        run: go test ./internal/windowsruntime ./internal/windowsdiag -count=1 -v
+      - name: Build Windows FakeTCP child
+        shell: pwsh
+        run: go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
+      - name: Record qualification marker
+        shell: pwsh
+        run: Write-Output 'WBD_WINDOWS_FAKETCP_PERSONA_PASS ttl=128 options=mss,nop,ws8,nop,nop,sack df=1 ipid=incrementing reality_like_tls=pass single_flow_vwire=pass no_hol=pass backend_tests=pass runtime_tests=pass diagnostics_tests=pass'
