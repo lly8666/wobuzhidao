@@ -40,7 +40,6 @@
     "internal/windowsruntime/controller_lifecycle.go",
     "internal/windowsruntime/process_liveness.go",
     "internal/windowsruntime/process_liveness_test.go",
-    "internal/windowsruntime/executor.go",
     "internal/windowsruntime/plan.go",
     "scripts/windows_faketcp_underlay.ps1",
     "cmd/wbd-link-proxy/main.go",
