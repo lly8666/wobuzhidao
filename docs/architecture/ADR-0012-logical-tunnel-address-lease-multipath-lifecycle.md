@@ -6,7 +6,7 @@ Status: **ACCEPTED / CURRENT LIFECYCLE AND MULTIPATH AUTHORITY — REAFFIRMED 20
 
 This ADR is authoritative for Logical Tunnel identity/address lease, product Transport Lane cardinality, Game/race behavior, idle/wake, lane rotation and make-before-break replacement.
 
-**`single-flow` is a per-Transport-Lane invariant. It is not a global one-flow-per-Logical-Tunnel invariant.**
+**single-flow is a per-Transport-Lane invariant. It is not a global one-flow-per-Logical-Tunnel invariant.**
 
 A Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Every lane independently follows ADR-0011.
 
