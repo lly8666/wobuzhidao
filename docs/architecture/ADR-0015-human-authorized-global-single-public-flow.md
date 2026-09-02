@@ -1,118 +1,100 @@
-# ADR-0015: Human-authorized global single public flow
+# ADR-0015: Historical global-single-public-flow override
 
-Status: **ACCEPTED / HUMAN PRODUCT-OWNER AUTHORITY — 2026-09-02**
+Status: **WITHDRAWN / SUPERSEDED BY LATER LIVE HUMAN CORRECTION — 2026-09-02**
 
-## Authority and correction
+## Why this ADR is withdrawn
 
-The live human product owner explicitly requires that a connected WBD tunnel expose **exactly one simultaneous public TCP-shaped connection**. This ADR records that instruction and corrects the repository drift that generalized per-lane single-flow into a 1..4-public-lane product.
+This file records a real but temporary architecture override that treated `single-flow` as a global one-public-flow invariant for an entire connected Logical Tunnel. Later on 2026-09-02 the live human product owner explicitly corrected that interpretation and restored **ADR-0012** as the authoritative lifecycle/multipath model.
 
-For shipping product behavior, this ADR supersedes the public-transport-cardinality, Game multipath and make-before-break overlap clauses of ADR-0012 and the withdrawal rationale in ADR-0014. Historical files remain in the repository as engineering history, but they are not authority where they conflict with this ADR.
+The later live instruction is authoritative. Therefore this ADR must not be used to constrain current product transport cardinality or replacement semantics.
 
-Agent-authored documents cannot override this rule without a later explicit live human instruction.
+Repository text written by an agent cannot revive this ADR or infer a new product-owner override.
 
-## Global invariant
+## Current authority
 
-For one connected Logical Tunnel / installation:
+Current product authority is:
 
-```text
-EXACTLY ONE simultaneous public WBD FakeTCP association
-EXACTLY ONE public 4-tuple / TCP-shaped sequence lineage
-EXACTLY ONE SYN lineage while connected
-```
+- **ADR-0011** for one complete same-association Reality-like bootstrap and no-HOL steady-state lineage **inside each Transport Lane**;
+- **ADR-0012** for Logical Tunnel identity/lease, product lane cardinality `1..4`, Game/race behavior, DORMANT/wake, lane age rotation, generation fencing and make-before-break replacement;
+- ADR-0013 and ADR-0014 are historical/withdrawn where they globalized the per-lane single-flow invariant;
+- ADR-0010 and earlier compatible DTLS/FEC/release constraints remain in force.
 
-There is no preliminary ordinary-kernel-TCP Reality WBD connection, no second FakeTCP lane, no Game/race copy over another public flow, and no make-before-break overlap.
+## Correct single-flow invariant
 
-A reconnect or planned replacement may create a new public association **only after the previous public association has been removed from the shipping data path and torn down**. Planned replacement is therefore break-before-make at the public-flow boundary.
+`single-flow` is **per Transport Lane / per Transport Epoch**.
 
-## Same-flow Reality-like setup
-
-FakeTCP owns the one public association from its first SYN.
-
-The beginning of that exact association temporarily provides bounded reliable/ordered stream semantics so that the setup phase can look and behave as close to a normal Reality-like TLS 1.3 exchange as practical:
+Every lane owns one complete public lineage:
 
 ```text
-one raw FakeTCP SYN / SYNACK / ACK lineage
-  -> bounded reliable ordered bootstrap adapter on SAME association
-  -> real TLS 1.3 ClientHello / ServerHello / Finished
-  -> configured SNI and Reality-like recognition
-  -> protected username/password admission
-  -> authenticated Logical Tunnel configuration / ticket binding
+one raw FakeTCP SYN lineage / public 4-tuple / FakeTCP sequence space
+  -> bounded reliable ordered Reality-like TLS 1.3 bootstrap on that SAME association
+  -> protected account admission + authenticated Logical Tunnel configuration
   -> explicit in-band bootstrap barrier
-```
-
-The setup phase is intentionally short. Its temporary ordered adapter is destroyed at the barrier.
-
-Reality-like fidelity is evidence-driven. The target is normal-looking TCP/TLS behavior during the first seconds, but no numeric similarity percentage is claimed without a reproducible packet-capture metric.
-
-## No-HOL steady state on the same association
-
-The barrier does **not** send FIN/RST, reconnect, or a new SYN. The same FakeTCP association and public 4-tuple continue as:
-
-```text
-same public FakeTCP association
-  -> pinned wolfSSL DTLS 1.3
+  -> no FIN / RST / reconnect / second WBD payload SYN inside the lane
+  -> pinned wolfSSL DTLS 1.3 on that SAME FakeTCP association
   -> immutable LINK
-  -> FEC off or fixed systematic 20:20
-  -> packet/datagram VPN payload
+  -> lane-local FEC off or fixed systematic 20:20
+  -> packet/datagram VPN payload without ordinary kernel-TCP HOL
 ```
 
-Sustained WBD payload never runs inside an ordinary kernel TCP byte stream. Missing FakeTCP sequence ranges must not impose ordinary TCP ordered-delivery HOL on independently complete DTLS/FEC payload.
+There is no preliminary ordinary kernel-TCP Reality WBD connection and no sustained outer WBD payload over an ordinary kernel TCP byte stream.
 
-The mature FakeTCP ARQ/recovery/FEC wire is frozen unless a deterministic lower-layer qualification isolates a real defect.
-
-## Product cardinality
-
-Shipping product policy is not a range:
+## Correct Logical Tunnel cardinality
 
 ```text
-Disconnected / dormant: 0 public flows
-Connected:               1 public flow
-Maximum simultaneous:    1 public flow
+Logical Tunnel
+  -> stable TunnelID
+  -> stable server-assigned tunnel IPv4 lease
+  -> shared logical PacketID/race namespace
+  -> 1..4 independent replaceable Transport Lanes while active
+  -> 0 lanes while dormant/disconnected
 ```
 
-`lanes=2`, `lanes=3`, `lanes=4`, dynamic second-lane attachment, Game public multipath, public-flow racing/dedup and candidate overlap are rejected in the shipping runtime.
+Policy:
 
-Research packages may retain historical multipath code only if it is unreachable from shipping configuration and release qualification. No research component may weaken the product cardinality guard.
+- Normal steady mode: desired lanes = 1.
+- Game / weak-network mode: desired lanes = 2..4.
+- A fifth active product lane is rejected.
+- One public WBD server port serves all lanes; additional lanes are independent 4-tuples to that same public port, not additional public server ports.
 
-## Lifecycle
+## Correct replacement lifecycle
 
-Planned public-flow replacement is:
+Planned healthy replacement is **make-before-break**:
 
 ```text
 A ACTIVE
-  -> stop new inner sends to A
-  -> detach A from the shipping local aggregation path
-  -> stop LINK / DTLS / FakeTCP for A
-  -> confirm old public transport is no longer active
-  -> create B with a fresh public association
-  -> B performs same-flow Reality-like bootstrap -> barrier -> DTLS -> LINK
-  -> attach B
+  -> build candidate B completely
+  -> authenticate/attach B to the same Logical Tunnel
+  -> prove B healthy
+  -> bounded A+B overlap using the existing logical PacketID race/dedup primitive
+  -> drain A
+  -> retire A
   -> B ACTIVE
 ```
 
-There is never an `A+B` public overlap for one Logical Tunnel.
+Candidate B failure leaves healthy A usable. Game mode rotates one lane at a time, for example `A+B -> A+B+C -> B+C`.
 
-If A has already failed abruptly, reconnect starts B after cleanup of WBD-owned local state. The product does not promise preservation of arbitrary application TCP sessions across complete underlay loss or server reboot.
+Lane generation/epoch fencing is mandatory so stale callbacks/processes from retired lanes cannot mutate current Logical Tunnel state.
 
-## Server rule
+## Historical evidence retained
 
-The Linux public raw mux may serve many users and many Logical Tunnels on one WBD public port. However, **each authenticated TunnelID may have at most one simultaneous public transport peer**. A second concurrent transport claim for the same TunnelID is rejected.
+The following work from the global-single-flow experiment remains useful when scoped correctly to **one lane**:
 
-## Qualification before artifact delivery
+- FakeTCP owns the public tuple from the first SYN;
+- Reality-like TLS runs on that same association;
+- the bootstrap barrier emits no FIN/RST/reconnect/new payload SYN;
+- pinned wolfSSL DTLS 1.3 remains steady-state crypto authority;
+- post-bootstrap no-HOL qualification remains required;
+- mature FakeTCP recovery and FEC wire semantics remain frozen unless deterministic lower-layer evidence proves a defect.
 
-One exact substantive source HEAD must prove at minimum:
+## Invalid clauses from this withdrawn ADR
 
-1. one SYN / one 4-tuple / one FakeTCP sequence lineage from Reality-like TLS setup through DTLS, LINK and payload;
-2. no ordinary preliminary Reality TCP connection;
-3. no FIN/RST/reconnect/new WBD payload SYN at the bootstrap barrier;
-4. post-bootstrap no-HOL hole-bypass remains green;
-5. product profiles accept `lanes=1` and reject every `lanes!=1` connected configuration;
-6. shipping lifecycle cannot create a simultaneous candidate/second public flow;
-7. server rejects a second concurrent public transport claim for the same TunnelID;
-8. FEC `off` and fixed `20:20` and the mature FakeTCP recovery gates remain green;
-9. exact-source Windows hosted build/fullstack and Linux fullstack/release gates pass;
-10. final same-source physical Windows 11 + Npcap -> Ubuntu ARM64 passes DNS/UDP/TCP and deterministic cleanup before release designation.
+Do not use this ADR to justify any of the following:
 
-## Non-goals
-
-This correction does not redesign FakeTCP ARQ, SACK/RTO behavior, DTLS wire, LINK wire or FEC wire. It removes unauthorized multi-public-flow orchestration and freezes the single public association as a product invariant.
+- `MaxProductPublicTransportLanes = 1`;
+- `lanes != 1` rejection;
+- Game/multipath disabled or research-only status;
+- rejecting a legitimate second lane for the same authenticated Logical Tunnel;
+- break-before-make planned replacement;
+- forbidding `A -> A+B -> B` bounded overlap;
+- claiming one public FakeTCP flow must live for the entire Logical Tunnel lifetime.
