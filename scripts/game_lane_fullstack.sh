@@ -220,12 +220,12 @@ python3 - "$LOG_DIR/link-server.log" "$SESSION_ID" "$LANES" <<'PY'
 import pathlib,re,sys
 text=pathlib.Path(sys.argv[1]).read_text(); sid=sys.argv[2]; lanes=int(sys.argv[3])
 prefix=sid[:8]
-binds=re.findall(r'WBD_LINK_LOGICAL_TUNNEL_BIND tunnel_id_prefix=([0-9a-f]+).*?active_lanes=(\d+).*?max_lanes=(\d+)', text)
+binds=re.findall(r'WBD_LINK_LOGICAL_TUNNEL_BIND tunnel_id_prefix=([0-9a-f]+).*?active_transports=(\d+).*?max_transports=(\d+)', text)
 assert len(binds)==lanes, binds
 assert all(p==prefix for p,_,_ in binds), (prefix,binds)
 assert [int(a) for _,a,_ in binds]==list(range(1,lanes+1)), binds
 assert all(int(m)==4 for _,_,m in binds), binds
-print(f'WBD_GAME_LANE_LOGICAL_TUNNEL_BIND_PASS tunnel_id_prefix={prefix} active_lanes={lanes} max_lanes=4')
+print(f'WBD_GAME_LANE_LOGICAL_TUNNEL_BIND_PASS tunnel_id_prefix={prefix} active_transports={lanes} max_transports=4')
 PY
 if [[ "$FEC" == off ]]; then
   test "$(grep -c 'WBD_LINK_MUX_SESSION_READY.*fec_mode=0 fec=0:0' "$LOG_DIR/link-server.log")" -eq "$LANES"
