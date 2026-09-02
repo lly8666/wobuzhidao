@@ -26,7 +26,7 @@
     "current_task": "Complete planned replacement data-plane make-before-break semantics. Determine the smallest identity/control change that lets old and candidate transport incarnations race the same logical PacketID during a bounded overlap without creating a fifth product lane, duplicate logical ordering namespace, or transport-core redesign.",
     "why_now": "Controller.ReplaceLane already builds and starts a candidate while the old transport remains healthy, generation promotion exists, and candidate failure preserves the old lane. However, current Game lane control rejects duplicate logical LaneIDs and replacement currently swaps the endpoint before old retirement. That is insufficient evidence for required A -> A+B -> B bounded race semantics.",
     "done_when": "Focused tests prove: old and candidate same-logical-ID transport incarnations can both carry copies from the existing logical PacketID namespace during a bounded overlap; first-arrival/dedup semantics stay unchanged; no fifth logical product lane is admitted; candidate failure preserves old authority; promotion generation fences stale events; after overlap, old transport drains/retires and only candidate remains. Do not open FakeTCP/DTLS/LINK/FEC unless deterministic evidence requires it.",
-    "next_atomic_action": "Live-refresh exact HEAD/Actions, inspect gamelane sender/control identity handling and Windows ReplaceLane call sites/tests, then implement only the minimal bounded old+candidate race representation needed for A -> A+B -> B. Preserve logical LaneID cardinality 1..4 and existing PacketID."
+    "next_atomic_action": "Live-refresh exact HEAD/Actions, inspect gamelane data-plane/control identity handling and Windows ReplaceLane call sites/tests, then implement only the minimal bounded old+candidate race representation needed for A -> A+B -> B. Preserve logical LaneID cardinality 1..4 and existing PacketID."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
@@ -38,7 +38,7 @@
     "internal/windowsruntime/controller_lifecycle_test.go",
     "internal/windowsruntime/dynamic_lane.go",
     "internal/gamelane/control.go",
-    "internal/gamelane/sender.go",
+    "internal/gamelane/gamelane.go",
     "internal/logicaltunnel/lifecycle.go"
   ],
   "required_data_plane_assets": [],
