@@ -261,6 +261,7 @@ func (c *Controller) runLaneAgeTick(ages *laneAgeState, now time.Time) {
 func (c *Controller) runPayloadIdleMonitor(generation uint64, stop chan struct{}, timeout time.Duration) {
 	observation := newPayloadIdleObservation(time.Now())
 	ages := newLaneAgeState()
+	exitRetries := newLaneExitRetryState()
 	ticker := time.NewTicker(lifecycleMonitorPollInterval(timeout))
 	defer ticker.Stop()
 
@@ -281,13 +282,20 @@ func (c *Controller) runPayloadIdleMonitor(generation uint64, stop chan struct{}
 		if state != RuntimeConnected && state != RuntimeDormant {
 			continue
 		}
+		if state == RuntimeConnected && c.runAuthoritativeLaneExitTick(exitRetries, time.Now()) {
+			// Child failure has priority over idle/age policy. ReplaceLane carries
+			// the generation fence and make-before-break rollback semantics.
+			continue
+		}
 
 		// Explicit idle_timeout=0 disables payload-idle policy only. Keep the
-		// lifecycle monitor alive for age rotation, but do not generate payload
-		// activity control traffic or infer payload-idle DORMANT.
+		// lifecycle monitor alive for authoritative child liveness and age
+		// rotation, but do not generate payload activity control traffic or infer
+		// payload-idle DORMANT.
 		if timeout <= 0 {
 			if state == RuntimeDormant {
 				ages.clear()
+				exitRetries.clear()
 				continue
 			}
 			c.runLaneAgeTick(ages, time.Now())
@@ -307,6 +315,7 @@ func (c *Controller) runPayloadIdleMonitor(generation uint64, stop chan struct{}
 
 		if state == RuntimeDormant {
 			ages.clear()
+			exitRetries.clear()
 			if activityErr == nil && advanced && c.payloadIdleMonitorCurrent(generation, stop) {
 				if err := c.Wake(); err == nil {
 					observation.postpone(time.Now())
@@ -328,6 +337,7 @@ func (c *Controller) runPayloadIdleMonitor(generation uint64, stop chan struct{}
 					observation.postpone(time.Now())
 				} else {
 					ages.clear()
+					exitRetries.clear()
 					// Close the remaining query->barrier race: if a real payload advanced
 					// after the confirmation but before Game's empty-lane barrier landed,
 					// wake immediately. The racing packet itself may be dropped; subsequent

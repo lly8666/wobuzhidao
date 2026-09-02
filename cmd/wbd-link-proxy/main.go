@@ -71,7 +71,7 @@ func main() {
 	flag.StringVar(&o.token, "token", "", "client bearer token for normal/legacy-witness startup")
 	flag.StringVar(&o.expectedToken, "expected-token", "", "server bearer token; empty disables AUTH")
 	flag.DurationVar(&o.setupTimeout, "setup-timeout", 10*time.Second, "LINK_INIT/AUTH startup deadline")
-	flag.DurationVar(&o.keepalive, "keepalive", defaultKeepalive, "client idle interval before DTLS-protected WBD PING")
+	flag.DurationVar(&o.keepalive, "keepalive", defaultKeepalive, "client heartbeat interval for DTLS-protected WBD PING")
 	flag.StringVar(&o.demoRealityWitness, "demo-reality-witness", "", "legacy mirror demo: 64-hex ClientHello witness")
 	flag.StringVar(&o.demoRealityWitnessDir, "demo-reality-witness-dir", "", "legacy mirror demo server: local witness directory")
 	flag.StringVar(&o.demoRealityServerName, "demo-reality-server-name", "", "legacy mirror demo server: target SNI bound to witness")
@@ -378,7 +378,8 @@ func serverStartup(conn *net.UDPConn, serviceAddr *net.UDPAddr, startup serverSt
 func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Path, startup clientStartupSession, keepalive time.Duration, stop <-chan os.Signal) error {
 	buf := make([]byte, 65535)
 	var appPeer *net.UDPAddr
-	nextPing := time.Now().Add(keepalive)
+	lastRemoteRX := time.Now()
+	nextPing := lastRemoteRX.Add(keepalive)
 	for {
 		select {
 		case <-stop:
@@ -390,6 +391,9 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 		default:
 		}
 		now := time.Now()
+		if clientRemoteRXExpired(lastRemoteRX, now, keepalive) {
+			return fmt.Errorf("WBD link liveness timeout after %s without remote receive", clientRemoteRXTimeout(keepalive))
+		}
 		if !now.Before(nextPing) {
 			if err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: uint64(now.UnixNano())}); err != nil {
 				return err
@@ -412,6 +416,7 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 						return err
 					}
 				}
+				lastRemoteRX = now
 				nextPing = now.Add(keepalive)
 				continue
 			}
@@ -422,12 +427,14 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 				}
 				switch f := frame.(type) {
 				case control.Pong:
+					lastRemoteRX = now
 					nextPing = now.Add(keepalive)
 					continue
 				case control.Ping:
 					if err := sendLifecycle(conn, dtlsAddr, control.Pong{Nonce: f.Nonce}); err != nil {
 						return err
 					}
+					lastRemoteRX = now
 					nextPing = now.Add(keepalive)
 					continue
 				case control.Close:
@@ -446,6 +453,7 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 					}
 				}
 			}
+			lastRemoteRX = now
 			nextPing = now.Add(keepalive)
 		} else {
 			appPeer = cloneUDPAddr(from)
@@ -456,7 +464,6 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 			if err := sendWire(conn, dtlsAddr, wire); err != nil {
 				return err
 			}
-			nextPing = now.Add(keepalive)
 		}
 		wire, err := path.FlushDue(now)
 		if err != nil {
