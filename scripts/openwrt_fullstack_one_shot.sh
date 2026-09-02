@@ -18,7 +18,7 @@ TMP=$(mktemp -d /tmp/wbd-openwrt-fullstack.XXXXXX)
 TICKET_DIR="$TMP/tickets"
 mkdir -m 700 "$TICKET_DIR"
 
-for f in wbd-reality-front wbd-faketcp wbd-faketcp-mux wbd-link-proxy wbd-link-server-mux wbd-platform-proxy-openwrt wbd-platform-proxy-server wbd_dtls_shim; do
+for f in wbd-faketcp wbd-faketcp-mux wbd-link-proxy wbd-link-server-mux wbd-platform-proxy-openwrt wbd-platform-proxy-server wbd_dtls_shim; do
     [[ -x "$ASSET_DIR/$f" ]] || { echo "missing executable $ASSET_DIR/$f" >&2; exit 2; }
 done
 for f in front.pem front.key dtls.pem dtls.key; do
@@ -58,6 +58,21 @@ wait_log() {
     echo "timeout waiting for $pattern in $file" >&2
     cat "$file" >&2 || true
     return 1
+}
+
+validate_tunnel_json() {
+    python3 - "$1" <<'PY'
+import ipaddress,json,re,sys
+p=sys.argv[1]
+with open(p,'r',encoding='utf-8') as f: x=json.load(f)
+assert re.fullmatch(r'[0-9a-f]{32}', x['tunnel_id']), x
+iface=ipaddress.ip_interface(x['address4'])
+assert iface.version == 4 and iface.network.prefixlen == 32, x
+assert isinstance(x['routes4'], list) and x['routes4'], x
+for r in x['routes4']:
+    assert ipaddress.ip_network(r, strict=False).version == 4
+print('WBD_OPENWRT_TUNNEL_CONFIG_PASS', x['tunnel_id'], x['address4'], ','.join(x['routes4']), flush=True)
+PY
 }
 
 for tool in ip nft iptables python3 dig; do
@@ -100,7 +115,7 @@ ip -n "$T" link set ot$$ up
 ip -n "$T" route add 10.10.0.0/24 via 10.90.0.1
 
 # Raw FakeTCP owns its TCP-shaped packets, so suppress kernel RST generation in
-# the two namespaces participating in the public raw association.
+# the two namespaces participating in the one public raw association.
 ip netns exec "$R" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
 ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
 
@@ -198,7 +213,7 @@ ip netns exec "$S" python3 -u "$TMP/underlay.py" >"$LOG_DIR/underlay.log" 2>&1 &
 sleep .1
 
 # Server application boundary: platform server is the service consumed by the
-# LiveID-aware link mux.
+# Logical-Tunnel-aware LINK mux.
 ip netns exec "$S" "$ASSET_DIR/wbd-platform-proxy-server" -listen 127.0.0.1:49000 -udp-idle 30s -tcp-idle 30s >"$LOG_DIR/platform-server.log" 2>&1 & PLATFORM_SERVER_PID=$!; PIDS+=("$PLATFORM_SERVER_PID")
 wait_log "$LOG_DIR/platform-server.log" 'WBD_PLATFORM_PROXY_SERVER_READY.*udp_fullcone=1.*tcp=1'
 
@@ -206,55 +221,65 @@ ROUTE_KEY='WBD_REALITY_ROUTE_KEY_0123456789abcdef'
 USERNAME='solo'
 PASSWORD='shared-password'
 SERVER_NAME='target.example'
-FRONT=40443
 RAW=40000
 LINK=47000
-
-ip netns exec "$S" "$ASSET_DIR/wbd-reality-front" server \
-    -listen 10.78.0.1:${FRONT} -target 127.0.0.1:9 -server-name "$SERVER_NAME" \
-    -cert "$ASSET_DIR/front.pem" -key "$ASSET_DIR/front.key" -route-key "$ROUTE_KEY" \
-    -username "$USERNAME" -password "$PASSWORD" -ticket-dir "$TICKET_DIR" \
-    >"$LOG_DIR/front-server.log" 2>&1 & FRONT_PID=$!; PIDS+=("$FRONT_PID")
-wait_log "$LOG_DIR/front-server.log" 'WBD_REALITY_FRONT_READY'
-
-# Admission is setup-only. The same underlay server address used below is the
-# explicit TPROXY escape endpoint.
-ip netns exec "$R" "$ASSET_DIR/wbd-reality-front" client \
-    -addr 10.78.0.1:${FRONT} -server-name "$SERVER_NAME" -route-key "$ROUTE_KEY" \
-    -username "$USERNAME" -password "$PASSWORD" -verify-server=false \
-    -ticket-out "$TMP/ticket.txt" >"$LOG_DIR/front-client.log" 2>&1
-grep -q 'WBD_REALITY_FRONT_OK' "$LOG_DIR/front-client.log"
-TICKET=$(tr -d '\r\n' <"$TMP/ticket.txt")
-test ${#TICKET} -eq 64
+INSTALLATION_ID='00112233445566778899aabbccddeeff'
+TICKET_FILE="$TMP/ticket.txt"
+TUNNEL_FILE="$TMP/tunnel.json"
 
 tip="127.0.0.1:${LINK}"
 ip netns exec "$S" "$ASSET_DIR/wbd-link-server-mux" \
     -listen "$tip" -service 127.0.0.1:49000 \
     -ticket-dir "$TICKET_DIR" -ticket-ttl 60s -max-sessions 4 \
     >"$LOG_DIR/link-server.log" 2>&1 & LINK_PID=$!; PIDS+=("$LINK_PID")
-wait_log "$LOG_DIR/link-server.log" 'WBD_LINK_SERVER_MUX_READY'
+wait_log "$LOG_DIR/link-server.log" 'WBD_LINK_SERVER_MUX_READY.*logical_tunnel=1'
 
+# ADR-0014: one public FakeTCP association owns the flow from SYN onward. Real
+# TLS 1.3 / Reality-like admission is the bounded first phase of this same raw
+# association; there is no preliminary ordinary-TCP Reality connection.
 ip netns exec "$S" "$ASSET_DIR/wbd-faketcp-mux" server \
     --listen 10.78.0.1:${RAW} --dtls-shim "$ASSET_DIR/wbd_dtls_shim" \
     --link-target "$tip" --cert "$ASSET_DIR/dtls.pem" --key "$ASSET_DIR/dtls.key" \
-    --max-sessions 4 >"$LOG_DIR/faketcp-mux.log" 2>&1 & MUX_PID=$!; PIDS+=("$MUX_PID")
-wait_log "$LOG_DIR/faketcp-mux.log" 'READY role=server-mux.*recovery=legacy'
+    --front-cert "$ASSET_DIR/front.pem" --front-key "$ASSET_DIR/front.key" \
+    --server-name "$SERVER_NAME" --route-key "$ROUTE_KEY" \
+    --username "$USERNAME" --password "$PASSWORD" --ticket-dir "$TICKET_DIR" \
+    --bootstrap-timeout 12s --fallback-target 127.0.0.1:9 --max-sessions 4 \
+    >"$LOG_DIR/faketcp-mux.log" 2>&1 & MUX_PID=$!; PIDS+=("$MUX_PID")
+wait_log "$LOG_DIR/faketcp-mux.log" 'READY role=server-mux.*single_flow_bootstrap=true.*logical_tunnel=true' 500
 
 ip netns exec "$R" "$ASSET_DIR/wbd-faketcp" client \
     --local-udp 127.0.0.1:45101 --source 10.78.0.2:41001 --remote 10.78.0.1:${RAW} \
-    >"$LOG_DIR/faketcp-client.log" 2>&1 & FAKETCP_PID=$!; PIDS+=("$FAKETCP_PID")
-wait_log "$LOG_DIR/faketcp-client.log" 'READY role=client.*recovery=legacy' 500
+    --shadow-recovery legacy \
+    --reality-server-name "$SERVER_NAME" --reality-route-key "$ROUTE_KEY" \
+    --reality-username "$USERNAME" --reality-password "$PASSWORD" \
+    --reality-ticket-out "$TICKET_FILE" --reality-installation-id "$INSTALLATION_ID" \
+    --reality-tunnel-config-out "$TUNNEL_FILE" --reality-verify-server=false \
+    --reality-timeout 12s >"$LOG_DIR/faketcp-client.log" 2>&1 & FAKETCP_PID=$!; PIDS+=("$FAKETCP_PID")
+wait_log "$LOG_DIR/faketcp-client.log" 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1.*logical_tunnel=1' 900
+wait_log "$LOG_DIR/faketcp-client.log" 'READY role=client.*recovery=legacy.*single_flow_bootstrap=true' 200
+wait_log "$LOG_DIR/faketcp-mux.log" 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' 200
 
+TICKET=$(tr -d '\r\n' <"$TICKET_FILE")
+test ${#TICKET} -eq 64
+case "$TICKET" in *[!0-9a-fA-F]*) echo 'single-flow ticket is not hex' >&2; exit 1;; esac
+validate_tunnel_json "$TUNNEL_FILE"
+TUNNEL_PREFIX=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1],encoding="utf-8"))["tunnel_id"][:8])' "$TUNNEL_FILE")
+echo 'WBD_OPENWRT_SINGLE_FLOW_BOOTSTRAP_PASS same_flow=1 logical_tunnel=1'
+
+# The bootstrap barrier keeps the same FakeTCP process/4-tuple alive; pinned
+# wolfSSL DTLS starts on its existing local UDP endpoint, so sustained payload
+# never falls back to an ordinary kernel-TCP stream/HOL path.
 ip netns exec "$R" "$ASSET_DIR/wbd_dtls_shim" client 46101 127.0.0.1 45101 none none \
     >"$LOG_DIR/dtls-client.log" 2>&1 & DTLS_PID=$!; PIDS+=("$DTLS_PID")
 wait_log "$LOG_DIR/dtls-client.log" 'READY role=client version=DTLSv1.3.*verify=none' 900
 wait_log "$LOG_DIR/faketcp-mux.log" 'BOUND role=server.*inherited=yes' 900
+wait_log "$LOG_DIR/faketcp-mux.log" 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' 200
 
 ip netns exec "$R" "$ASSET_DIR/wbd-link-proxy" \
     -mode client -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off \
     -demo-reality-ticket "$TICKET" >"$LOG_DIR/link-client.log" 2>&1 & LINK_CLIENT_PID=$!; PIDS+=("$LINK_CLIENT_PID")
 wait_log "$LOG_DIR/link-client.log" 'WBD_LINK_READY role=client' 900
-wait_log "$LOG_DIR/link-server.log" 'WBD_LINK_MUX_SESSION_READY account=solo' 900
+wait_log "$LOG_DIR/link-server.log" "WBD_LINK_MUX_SESSION_READY tunnel_id_prefix=${TUNNEL_PREFIX}.*lanes=1" 900
 test "$(find "$TICKET_DIR" -type f | wc -l)" -eq 0
 
 ip netns exec "$R" "$ASSET_DIR/wbd-platform-proxy-openwrt" \
@@ -262,8 +287,8 @@ ip netns exec "$R" "$ASSET_DIR/wbd-platform-proxy-openwrt" \
     >"$LOG_DIR/platform-client.log" 2>&1 & PLATFORM_CLIENT_PID=$!; PIDS+=("$PLATFORM_CLIENT_PID")
 wait_log "$LOG_DIR/platform-client.log" 'WBD_PLATFORM_PROXY_OPENWRT_READY.*udp_fullcone=1.*tcp=1'
 
-# Only now install capture. 10.78.0.1 carries Reality/FakeTCP underlay and must
-# be exempt before any target traffic is redirected.
+# Only now install capture. 10.78.0.1 carries the one WBD public FakeTCP
+# association and must be exempt before any target traffic is redirected.
 ip netns exec "$R" sh "$ROOT/scripts/openwrt_tproxy.sh" apply \
     --mode global --port 12345 --underlay4 10.78.0.1
 
@@ -370,4 +395,4 @@ assert out == b"RESTORED:plain-after-cleanup",out
 print("WBD_OPENWRT_FULLSTACK_CLEANUP_PASS",flush=True)
 PY
 
-echo 'WBD_OPENWRT_FULLSTACK_ONE_SHOT_PASS fec=off'
+echo 'WBD_OPENWRT_FULLSTACK_ONE_SHOT_PASS fec=off single_flow=1 logical_tunnel=1'

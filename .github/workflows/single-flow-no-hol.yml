@@ -1,0 +1,250 @@
+name: single-flow-no-hol
+
+on:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+  pull_request:
+    paths:
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/dtlsworker/**'
+      - 'native/dtls/**'
+      - '.github/workflows/single-flow-no-hol.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  post_switch_hole:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables
+      - name: Build pinned wolfSSL and single-flow stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nohol /tmp/nohol/tickets /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/nohol/wbd_dtls_shim
+          go build -trimpath -o /tmp/nohol/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/nohol/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go test ./internal/faketcp -run 'TestPostBootstrapReceiverStillDeliversLaterDatagramAcrossHole' -count=1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
+            -keyout /tmp/nohol/front.key -out /tmp/nohol/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=dtls.wbd.test' \
+            -keyout /tmp/nohol/dtls.key -out /tmp/nohol/dtls.pem >/dev/null 2>&1
+      - name: Later DTLS datagram crosses an earlier FakeTCP sequence hole
+        run: |
+          set -euo pipefail
+          C=wbdnhc$$
+          R=wbdnhr$$
+          S=wbdnhs$$
+          PIDS=''
+          cleanup() {
+            set +e
+            for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null; kill -TERM "$p" 2>/dev/null; done
+            sleep .2
+            sudo ip netns del "$C" 2>/dev/null
+            sudo ip netns del "$R" 2>/dev/null
+            sudo ip netns del "$S" 2>/dev/null
+          }
+          trap cleanup EXIT
+          rm -f /tmp/nohol/*.log /tmp/nohol/client.ticket /tmp/nohol/client-tunnel.json /tmp/nohol/received.jsonl
+
+          sudo ip netns add "$C"
+          sudo ip netns add "$R"
+          sudo ip netns add "$S"
+          sudo ip link add nhc type veth peer name nhr0
+          sudo ip link add nhr1 type veth peer name nhs
+          sudo ip link set nhc netns "$C"; sudo ip link set nhr0 netns "$R"
+          sudo ip link set nhr1 netns "$R"; sudo ip link set nhs netns "$S"
+          sudo ip -n "$C" addr add 10.94.0.2/24 dev nhc
+          sudo ip -n "$R" addr add 10.94.0.1/24 dev nhr0
+          sudo ip -n "$R" addr add 10.94.1.1/24 dev nhr1
+          sudo ip -n "$S" addr add 10.94.1.2/24 dev nhs
+          for N in "$C" "$R" "$S"; do sudo ip -n "$N" link set lo up; done
+          sudo ip -n "$C" link set nhc up; sudo ip -n "$R" link set nhr0 up
+          sudo ip -n "$R" link set nhr1 up; sudo ip -n "$S" link set nhs up
+          sudo ip -n "$C" route add 10.94.1.0/24 via 10.94.0.1
+          sudo ip -n "$S" route add 10.94.0.0/24 via 10.94.1.1
+          sudo ip netns exec "$R" sysctl -qw net.ipv4.ip_forward=1
+          sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+
+          cat >/tmp/nohol/record.py <<'PY'
+          import json,socket,time
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',47000))
+          with open('/tmp/nohol/received.jsonl','a',buffering=1) as f:
+              while True:
+                  b,a=s.recvfrom(65535)
+                  f.write(json.dumps({'t':time.monotonic(),'payload':b.decode('ascii')})+'\n')
+          PY
+          sudo ip netns exec "$S" python3 /tmp/nohol/record.py >/tmp/nohol/record.log 2>&1 & REC=$!
+          PIDS="$REC"
+
+          sudo ip netns exec "$S" /tmp/nohol/wbd-faketcp-mux server \
+            --listen 10.94.1.2:443 \
+            --dtls-shim /tmp/nohol/wbd_dtls_shim \
+            --link-target 127.0.0.1:47000 \
+            --cert /tmp/nohol/dtls.pem --key /tmp/nohol/dtls.key \
+            --front-cert /tmp/nohol/front.pem --front-key /tmp/nohol/front.key \
+            --server-name wbd.test \
+            --route-key 0123456789abcdef0123456789abcdef \
+            --username nohol --password nohol-test-password \
+            --ticket-dir /tmp/nohol/tickets \
+            --fallback-target 127.0.0.1:44444 \
+            --bootstrap-timeout 12s --max-sessions 4 \
+            >/tmp/nohol/mux.log 2>&1 & MUX=$!
+          PIDS="$PIDS $MUX"
+          for i in $(seq 1 200); do
+            grep -q 'READY role=server-mux.*single_flow_bootstrap=true' /tmp/nohol/mux.log && break
+            sleep .05
+          done
+          grep -q 'READY role=server-mux.*single_flow_bootstrap=true' /tmp/nohol/mux.log
+
+          sudo ip netns exec "$C" /tmp/nohol/wbd-faketcp client \
+            --local-udp 127.0.0.1:45101 \
+            --source 10.94.0.2:41001 --remote 10.94.1.2:443 \
+            --shadow-recovery legacy \
+            --reality-server-name wbd.test \
+            --reality-route-key 0123456789abcdef0123456789abcdef \
+            --reality-username nohol --reality-password nohol-test-password \
+            --reality-ticket-out /tmp/nohol/client.ticket \
+            --reality-installation-id 00112233445566778899aabbccddeeff \
+            --reality-tunnel-config-out /tmp/nohol/client-tunnel.json \
+            --reality-verify-server=false --reality-timeout 12s \
+            >/tmp/nohol/faketcp.log 2>&1 & FC=$!
+          PIDS="$PIDS $FC"
+          for i in $(seq 1 500); do
+            if grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/nohol/faketcp.log && \
+               grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/nohol/mux.log; then break; fi
+            sleep .05
+          done
+          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/nohol/faketcp.log
+          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/nohol/mux.log
+          sudo test -s /tmp/nohol/client-tunnel.json
+          sudo python3 -c 'import json; d=json.load(open("/tmp/nohol/client-tunnel.json")); assert len(d["tunnel_id"])==32; assert d["address4"].endswith("/32")'
+
+          sudo ip netns exec "$C" /tmp/nohol/wbd_dtls_shim client 46101 127.0.0.1 45101 none none \
+            >/tmp/nohol/dtls.log 2>&1 & DTLS=$!
+          PIDS="$PIDS $DTLS"
+          for i in $(seq 1 800); do
+            if grep -q 'READY role=client version=DTLSv1.3' /tmp/nohol/dtls.log && \
+               grep -q 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' /tmp/nohol/mux.log; then break; fi
+            sleep .05
+          done
+          grep -q 'READY role=client version=DTLSv1.3' /tmp/nohol/dtls.log
+          grep -q 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' /tmp/nohol/mux.log
+          sleep .20
+
+          # Arm the fault only after TLS bootstrap and DTLS handshake are complete.
+          # Drop exactly the first post-ready client->server TCP-shaped payload;
+          # the huge nth interval lets its retransmission and every later packet pass.
+          sudo ip netns exec "$R" iptables -I FORWARD 1 \
+            -s 10.94.0.2 -d 10.94.1.2 -p tcp --sport 41001 --dport 443 \
+            --tcp-flags ACK,PSH ACK,PSH \
+            -m statistic --mode nth --every 1000000 --packet 0 -j DROP
+
+          cat >/tmp/nohol/probe.py <<'PY'
+          import json,os,socket,time
+          path='/tmp/nohol/received.jsonl'
+          blocked='NOHOL_BLOCKED_'+('A'*96)
+          later='NOHOL_LATER_'+('B'*160)
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',0))
+          t0=time.monotonic()
+          s.sendto(blocked.encode(),('127.0.0.1',46101))
+          time.sleep(.050)
+          t1=time.monotonic()
+          s.sendto(later.encode(),('127.0.0.1',46101))
+
+          def rows():
+              if not os.path.exists(path): return []
+              out=[]
+              for line in open(path,encoding='utf-8'):
+                  line=line.strip()
+                  if line: out.append(json.loads(line))
+              return out
+
+          deadline=t1+.500
+          later_row=None
+          while time.monotonic()<deadline:
+              rr=rows()
+              later_row=next((r for r in rr if r['payload']==later),None)
+              if later_row is not None: break
+              time.sleep(.010)
+          if later_row is None:
+              raise SystemExit('later independent DTLS datagram did not cross the sequence hole within 500ms')
+          early=rows()
+          if any(r['payload']==blocked for r in early):
+              raise SystemExit('blocked earlier datagram arrived before no-HOL proof point')
+          later_ms=(later_row['t']-t1)*1000.0
+
+          repair_deadline=t0+4.0
+          blocked_row=None
+          while time.monotonic()<repair_deadline:
+              rr=rows()
+              blocked_row=next((r for r in rr if r['payload']==blocked),None)
+              if blocked_row is not None: break
+              time.sleep(.020)
+          if blocked_row is None:
+              raise SystemExit('earlier dropped datagram never recovered')
+          repair_ms=(blocked_row['t']-t0)*1000.0
+          print('SINGLE_FLOW_NO_HOL_PASS later_ms=%.3f repair_ms=%.3f later_before_repair=1'%(later_ms,repair_ms))
+          PY
+          sudo ip netns exec "$C" python3 /tmp/nohol/probe.py >/tmp/nohol/probe.log 2>&1
+          grep -q 'SINGLE_FLOW_NO_HOL_PASS' /tmp/nohol/probe.log
+
+          # iptables -L -n -v -x columns are: pkts bytes target prot opt in out source destination.
+          DROP_PKTS="$(sudo ip netns exec "$R" iptables -L FORWARD -n -v -x | awk '$3=="DROP" && $8=="10.94.0.2" && $9=="10.94.1.2" {print $1; exit}')"
+          test "${DROP_PKTS:-0}" -eq 1
+          grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' /tmp/nohol/faketcp.log
+          grep -q 'READY role=client version=DTLSv1.3' /tmp/nohol/dtls.log
+          echo 'SINGLE_FLOW_NO_HOL_FAULT_PASS dropped_post_ready_payloads=1'
+          echo '--- probe ---'; cat /tmp/nohol/probe.log
+          echo '--- faketcp ---'; cat /tmp/nohol/faketcp.log
+          echo '--- mux ---'; cat /tmp/nohol/mux.log
+          echo '--- dtls ---'; cat /tmp/nohol/dtls.log
+          echo '--- router ---'; sudo ip netns exec "$R" iptables -L FORWARD -n -v -x
+      - name: Prepare no-HOL evidence
+        if: always()
+        run: |
+          sudo find /tmp/nohol -maxdepth 1 -type f -exec chmod a+r {} + 2>/dev/null || true
+      - name: Upload no-HOL evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: single-flow-no-hol-evidence
+          path: |
+            /tmp/nohol/probe.log
+            /tmp/nohol/received.jsonl
+            /tmp/nohol/faketcp.log
+            /tmp/nohol/mux.log
+            /tmp/nohol/dtls.log
+            /tmp/nohol/client-tunnel.json
+          if-no-files-found: warn

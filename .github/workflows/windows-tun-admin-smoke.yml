@@ -14,6 +14,7 @@ on:
   push:
     branches:
       - dev/wbd-raw-fec-v2
+      - feat/single-flow-reality-faketcp
     paths:
       - '.github/workflows/windows-tun-admin-smoke.yml'
       - 'cmd/wbd-tun/**'
@@ -69,7 +70,7 @@ jobs:
           $proc = $null
           $probe = $null
           try {
-            $probe = Start-Process -FilePath $probeExe -ArgumentList @('-listen','127.0.0.1:49999','-target','203.0.113.7','-timeout','15s') -PassThru -RedirectStandardOutput $probeOut -RedirectStandardError $probeErr
+            $probe = Start-Process -FilePath $probeExe -ArgumentList @('-listen','127.0.0.1:49999','-target','203.0.113.7','-timeout','45s') -PassThru -RedirectStandardOutput $probeOut -RedirectStandardError $probeErr
             $probeReady = $false
             for ($i = 0; $i -lt 50; $i++) {
               if ($probe.HasExited) { break }
@@ -81,7 +82,7 @@ jobs:
               throw 'WBD TUN dataplane probe did not become ready'
             }
 
-            $proc = Start-Process -FilePath $exe -ArgumentList @('-mode','client','-ifname','WBDCI','-mtu','1400','-transport','127.0.0.1:49999','-run-for','20s') -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+            $proc = Start-Process -FilePath $exe -ArgumentList @('-mode','client','-ifname','WBDCI','-mtu','1400','-transport','127.0.0.1:49999','-run-for','60s') -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
             $ready = $false
             for ($i = 0; $i -lt 100; $i++) {
               if ($proc.HasExited) { break }
@@ -93,22 +94,34 @@ jobs:
               throw 'Wintun-backed wbd-tun did not become ready'
             }
             $adapter = Get-NetAdapter -Name WBDCI -ErrorAction Stop
-            Write-Output "WBD_WINDOWS_WINTUN_ADAPTER_PASS ifindex=$($adapter.ifIndex)"
+            $ifIndex = [uint32]$adapter.ifIndex
+            Write-Output "WBD_WINDOWS_WINTUN_ADAPTER_PASS ifindex=$ifIndex"
 
-            & ./scripts/windows_tun_route.ps1 -Action Apply -Mode Split -AdapterAlias WBDCI -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -Prefix4 203.0.113.0/24 -MTU 1400 -StatePath $state
-            $ifIndex = [uint32](Get-NetAdapter -Name WBDCI).ifIndex
-            if (-not (Get-NetIPAddress -InterfaceIndex $ifIndex -IPAddress 10.66.0.2 -ErrorAction SilentlyContinue)) { throw 'Wintun IPv4 address missing after apply' }
-            if (-not (Get-NetRoute -DestinationPrefix 203.0.113.0/24 -InterfaceIndex $ifIndex -ErrorAction SilentlyContinue)) { throw 'WBD split capture route missing after apply' }
+            & ./scripts/windows_tun_route.ps1 -Action Apply -Mode Split -AdapterAlias WBDCI -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -Prefix4 203.0.113.0/24 -DNSServer 9.9.9.9 -MTU 1400 -StatePath $state
+            if (-not (Test-Path $state)) { throw 'first route state was not written' }
+            $firstState = Get-Content -LiteralPath $state -Raw | ConvertFrom-Json
+            if (-not $firstState.NRPTRuleName) { throw 'first apply did not persist NRPT rule id' }
+            if (-not (Get-NetIPAddress -InterfaceIndex $ifIndex -IPAddress 10.66.0.2 -ErrorAction SilentlyContinue)) { throw 'first apply Wintun address missing' }
+            if (-not (Get-NetRoute -DestinationPrefix 203.0.113.0/24 -InterfaceIndex $ifIndex -ErrorAction SilentlyContinue)) { throw 'first apply capture route missing' }
+
+            Remove-DnsClientNrptRule -Name ([string]$firstState.NRPTRuleName) -Force -Confirm:$false -ErrorAction Stop
+            if (Get-DnsClientNrptRule -ErrorAction SilentlyContinue | Where-Object { [string]$_.Name -eq [string]$firstState.NRPTRuleName }) { throw 'failed to remove NRPT rule for crash simulation' }
+            Write-Output "WBD_WINDOWS_TUN_CRASH_STATE_ARMED state=present nrpt=missing address=present routes=present"
+
+            $applyLog = (& ./scripts/windows_tun_route.ps1 -Action Apply -Mode Split -AdapterAlias WBDCI -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -Prefix4 203.0.113.0/24 -DNSServer 9.9.9.9 -MTU 1400 -StatePath $state 2>&1 | Out-String)
+            Write-Output $applyLog
+            if ($applyLog -notmatch 'WBD_WINDOWS_TUN_STALE_STATE_RECOVERED') { throw 'stale route-state recovery marker missing' }
+            if ($applyLog -notmatch 'WBD_WINDOWS_TUN_NRPT_ALREADY_ABSENT') { throw 'missing-NRPT idempotency marker missing' }
+            $stateBytes = [System.IO.File]::ReadAllBytes($state)
+            if ($stateBytes.Length -ge 3 -and $stateBytes[0] -eq 0xEF -and $stateBytes[1] -eq 0xBB -and $stateBytes[2] -eq 0xBF) { throw 'route state contains UTF-8 BOM' }
+            Write-Output 'WBD_WINDOWS_TUN_STALE_STATE_RECOVERY_PASS real_routes=1 real_address=1 missing_nrpt=benign utf8_bom=0'
+
+            if (-not (Get-NetIPAddress -InterfaceIndex $ifIndex -IPAddress 10.66.0.2 -ErrorAction SilentlyContinue)) { throw 'Wintun IPv4 address missing after recovery apply' }
+            if (-not (Get-NetRoute -DestinationPrefix 203.0.113.0/24 -InterfaceIndex $ifIndex -ErrorAction SilentlyContinue)) { throw 'WBD split capture route missing after recovery apply' }
             $escape = Get-NetRoute -DestinationPrefix 1.1.1.1/32 -ErrorAction SilentlyContinue | Where-Object { [uint32]$_.InterfaceIndex -ne $ifIndex } | Select-Object -First 1
             if (-not $escape) { throw 'underlay /32 was not locked outside Wintun' }
             Write-Output "WBD_WINDOWS_TUN_ADMIN_APPLY_PASS underlay_ifindex=$($escape.InterfaceIndex)"
 
-            # This is a real bidirectional Wintun dataplane assertion. PING.EXE
-            # emits an IPv4 ICMP request into the split route; wbd-tun must read
-            # it from Wintun and frame it over UDP. The qualification peer
-            # validates WBDP/IP, builds an ICMP reply, and sends the framed reply
-            # to wbd-tun, which must write it back through Wintun for ping to
-            # report success.
             & "$env:SystemRoot\System32\PING.EXE" -n 1 -w 3000 203.0.113.7
             if ($LASTEXITCODE -ne 0) {
               if (Test-Path $probeOut) { Get-Content $probeOut }
@@ -116,10 +129,6 @@ jobs:
               if (Test-Path $stderr) { Get-Content $stderr }
               throw "real Wintun dataplane ping failed with exit code $LASTEXITCODE"
             }
-            # Start-Process -PassThru returns a Process object that remains valid
-            # after the child exits. Waiting by numeric PID races with a fast,
-            # successful probe because Wait-Process performs a fresh lookup and
-            # can report "process not found" after the OS has reaped it.
             if (-not $probe.WaitForExit(5000)) { throw 'WBD TUN dataplane probe did not exit after replying' }
             $probe.Refresh()
             if ($probe.ExitCode -ne 0) {
@@ -129,7 +138,7 @@ jobs:
             $probeLog = Get-Content $probeOut -Raw
             if ($probeLog -notmatch 'WBD_WINDOWS_TUN_DATAPLANE_PROBE_PASS') { throw 'missing Wintun dataplane probe pass marker' }
             Get-Content $probeOut
-            Write-Output 'WBD_WINDOWS_TUN_DATAPLANE_PASS direction=bidirectional framing=WBDP_IP'
+            Write-Output 'WBD_WINDOWS_TUN_DATAPLANE_PASS direction=bidirectional framing=WBDP_IP after_stale_recovery=1'
 
             & ./scripts/windows_tun_route.ps1 -Action Cleanup -StatePath $state
             if (Test-Path $state) { throw 'route state survived cleanup' }
@@ -137,13 +146,13 @@ jobs:
             if (Get-NetIPAddress -InterfaceIndex $ifIndex -IPAddress 10.66.0.2 -ErrorAction SilentlyContinue) { throw 'WBD address survived cleanup' }
             Write-Output 'WBD_WINDOWS_TUN_ADMIN_CLEANUP_PASS'
 
-            if (-not $proc.WaitForExit(25000)) { throw 'wbd-tun did not exit after qualification lifetime' }
+            if (-not $proc.WaitForExit(65000)) { throw 'wbd-tun did not exit after qualification lifetime' }
             $proc.Refresh()
             if ($proc.ExitCode -ne 0) {
               if (Test-Path $stderr) { Get-Content $stderr }
               throw "wbd-tun exited $($proc.ExitCode)"
             }
-            Write-Output 'WBD_WINDOWS_TUN_ADMIN_SMOKE_PASS compatibility_only=1 dataplane=real_bidirectional release_authority=0'
+            Write-Output 'WBD_WINDOWS_TUN_ADMIN_SMOKE_PASS compatibility_only=1 dataplane=real_bidirectional stale_recovery=real_objects release_authority=0'
           } finally {
             try { & ./scripts/windows_tun_route.ps1 -Action Cleanup -StatePath $state 2>$null | Out-Null } catch { }
             if ($probe -and -not $probe.HasExited) { Stop-Process -Id $probe.Id -Force -ErrorAction SilentlyContinue }

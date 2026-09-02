@@ -1,18 +1,26 @@
 #!/usr/bin/env python3
-"""Run the two-session capacity characterization with loss isolated to data measurement.
+"""Run the ADR-0014 single-public-flow capacity characterization.
 
-The core harness still contains the historical 100 Mbit/s defaults. This wrapper
-keeps its command contract stable while allowing qualification to override the
-netem rate with --link-mbps. It also strips only the initial qdisc-add loss terms;
-the core harness's qdisc-replace immediately before the offered interval still
-applies the requested random loss and resets qdisc counters.
+The wrapper keeps the historical CLI and result annotations while the core uses
+one public FakeTCP association: Reality-like TLS bootstrap on that association,
+then DTLS/LINK steady state carrying two independent inner streams. It strips
+loss only from initial setup; the measured offered interval still applies the
+requested random loss.
+
+The logical-tunnel product contract no longer accepts arbitrary bare
+application datagrams at LINK. Capacity probes therefore set a test-only mode
+that wraps each inner UDP datagram in the real WBDP v1 platformproxy envelope;
+the probe receiver unwraps the same envelope after LINK. This preserves the
+existing transport benchmark while exercising the released application-frame
+boundary instead of a retired bare-UDP shortcut.
 """
 
 import json
+import os
 import pathlib
 import sys
 
-import bench_mux_two_session_100m as core
+import bench_mux_two_session_single_flow_100m as core
 
 
 def pop_wrapper_float(name, default):
@@ -34,29 +42,33 @@ if LINK_MBPS <= 0:
     raise SystemExit("--link-mbps must be positive")
 RATE_TOKEN = f"{LINK_MBPS:g}mbit"
 _original_run = core.run
+_original_wait_text = core.wait_text
 
 
 def setup_safe_run(cmd, *, check=True, capture=False, timeout=None):
     argv = list(cmd)
-    # Parameterize the historical harness without changing the frozen transport
-    # startup sequence or its existing 100 Mbit/s workflow callers.
     argv = [RATE_TOKEN if x == "100mbit" else x for x in argv]
     if "tc" in argv and "qdisc" in argv and "add" in argv and "loss" in argv:
         i = argv.index("loss")
-        # netem syntax emitted by the core harness is:
-        #   ... loss random <pct>% rate <link>mbit
         if i + 2 < len(argv) and argv[i + 1] == "random":
             del argv[i : i + 3]
     return _original_run(argv, check=check, capture=capture, timeout=timeout)
 
 
+def single_flow_wait_text(path, needle, timeout=20.0, count=1):
+    # ADR-0014 Logical Tunnel sessions are identified by tunnel_id, not the
+    # retired account field. Keep the mature benchmark orchestration while
+    # translating only its obsolete READY marker expectation.
+    if needle == "WBD_LINK_MUX_SESSION_READY account=solo":
+        needle = "WBD_LINK_MUX_SESSION_READY "
+    return _original_wait_text(path, needle, timeout, count)
+
+
 core.run = setup_safe_run
+core.wait_text = single_flow_wait_text
+os.environ["WBD_BENCH_PLATFORM_ENVELOPE"] = "1"
 rc = core.main()
 
-# Make the qualification boundary explicit in the durable artifact. The
-# requested loss still applies to the measured offered interval; setup is
-# intentionally loss-free so handshake survivability is not confused with
-# sustained data-path delivery/FEC behavior.
 if rc == 0 and len(sys.argv) > 1 and sys.argv[1] == "run":
     try:
         out_dir = pathlib.Path(sys.argv[sys.argv.index("--out-dir") + 1])
@@ -65,8 +77,12 @@ if rc == 0 and len(sys.argv) > 1 and sys.argv[1] == "run":
         result["link_mbps"] = LINK_MBPS
         result["setup_loss_pct"] = 0.0
         result["measurement_loss_pct"] = result.get("loss_pct")
-        result["loss_activation"] = "after_two_link_sessions_ready_before_offered_interval"
+        result["loss_activation"] = "after_single_public_flow_link_ready_before_offered_interval"
         result["capacity_override"] = "wrapper_rewrites_netem_rate_only"
+        result["qualification_setup"] = "one_public_faketcp_flow_reality_like_tls_then_dtls_with_two_inner_streams"
+        result["application_envelope"] = "platformproxy/WBDP-v1"
+        result["application_envelope_header_bytes"] = 44
+        result["bare_application_datagrams"] = False
         path.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n")
     except (ValueError, IndexError, OSError, json.JSONDecodeError) as exc:
         print(f"benchmark runner result annotation failed: {exc}", file=sys.stderr)

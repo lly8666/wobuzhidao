@@ -1,0 +1,72 @@
+name: single-flow-build-diagnostics
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - '.github/workflows/single-flow-build-diagnostics.yml'
+      - 'native/dtls/**'
+      - 'internal/diag/**'
+      - 'internal/rawipbackend/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-ip-gateway-server/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-tun/**'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends autoconf automake libtool make gcc curl unzip
+      - name: Fetch pinned wolfSSL source artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/sfdiag-wolf /tmp/sfdiag-art /tmp/sfdiag-source.zip
+          mkdir -p /tmp/sfdiag-wolf/src /tmp/sfdiag-wolf/build /tmp/sfdiag-art
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/sfdiag-source.zip
+          unzip -q /tmp/sfdiag-source.zip -d /tmp/sfdiag-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/sfdiag-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/sfdiag-art/wolfssl-ac01707f-source.tar.gz -C /tmp/sfdiag-wolf/src --strip-components=1
+      - name: Configure pinned wolfSSL DTLS 1.3
+        run: |
+          set -euo pipefail
+          (cd /tmp/sfdiag-wolf/src && ./autogen.sh)
+          (cd /tmp/sfdiag-wolf/build && /tmp/sfdiag-wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+      - name: Build pinned wolfSSL static library
+        run: make -C /tmp/sfdiag-wolf/build -j2 src/libwolfssl.la
+      - name: Build native DTLS shim with warnings as errors
+        run: |
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/sfdiag-wolf/build -I/tmp/sfdiag-wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/sfdiag-wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/wbd_dtls_shim
+      - name: Run raw-IP Go unit tests
+        run: go test ./internal/diag ./internal/rawipbackend ./cmd/wbd-link-server-mux ./cmd/wbd-ip-gateway-server -count=1 -v
+      - name: Build same-flow Go stack
+        run: |
+          set -euo pipefail
+          go build -trimpath -o /tmp/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/wbd-link-proxy ./cmd/wbd-link-proxy
+          go build -trimpath -o /tmp/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          go build -trimpath -o /tmp/wbd-ip-gateway-server ./cmd/wbd-ip-gateway-server
+          go build -trimpath -o /tmp/wbd-tun ./cmd/wbd-tun
+      - name: Record diagnostic build pass
+        run: echo 'WBD_SINGLE_FLOW_BUILD_DIAGNOSTICS_PASS wolfssl=ac01707f dtls13=1 rawip_tests=pass go_stack=pass'

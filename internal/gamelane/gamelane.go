@@ -20,6 +20,7 @@ var (
 	ErrWrongSession = errors.New("gamelane: wrong logical lane session")
 	ErrPacketIDWrap = errors.New("gamelane: packet id exhausted")
 	ErrReplayTooOld = errors.New("gamelane: packet id outside replay window")
+	ErrLanes        = errors.New("gamelane: invalid lane membership")
 )
 
 type Header struct {

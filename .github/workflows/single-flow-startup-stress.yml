@@ -1,0 +1,103 @@
+name: single-flow-startup-stress
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-platform-proxy-server/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/dtlsworker/**'
+      - 'internal/session/**'
+      - 'internal/logicaltunnel/**'
+      - 'internal/platformproxy/**'
+      - 'native/dtls/**'
+      - '.github/scripts/single-flow-startup-stress.sh'
+      - '.github/workflows/single-flow-startup-stress.yml'
+  pull_request:
+    paths:
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-platform-proxy-server/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/dtlsworker/**'
+      - 'internal/session/**'
+      - 'internal/logicaltunnel/**'
+      - 'internal/platformproxy/**'
+      - 'native/dtls/**'
+      - '.github/scripts/single-flow-startup-stress.sh'
+      - '.github/workflows/single-flow-startup-stress.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  repeated_full_stack:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables python3
+      - name: Build pinned DTLS and complete single-flow stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/sfstress /tmp/wolf-stress /tmp/wolf-stress-art /tmp/wolfssl-stress-source.zip
+          mkdir -p /tmp/sfstress/tickets /tmp/wolf-stress/src /tmp/wolf-stress/build /tmp/wolf-stress-art
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-stress-source.zip
+          unzip -q /tmp/wolfssl-stress-source.zip -d /tmp/wolf-stress-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-stress-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-stress-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf-stress/src --strip-components=1
+          (cd /tmp/wolf-stress/src && ./autogen.sh)
+          (cd /tmp/wolf-stress/build && /tmp/wolf-stress/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf-stress/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf-stress/build -I/tmp/wolf-stress/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf-stress/build/src/.libs/libwolfssl.a -lm -o /tmp/sfstress/wbd_dtls_shim
+          go build -trimpath -o /tmp/sfstress/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/sfstress/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/sfstress/wbd-link-proxy ./cmd/wbd-link-proxy
+          go build -trimpath -o /tmp/sfstress/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          go build -trimpath -o /tmp/sfstress/wbd-platform-proxy-server ./cmd/wbd-platform-proxy-server
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
+            -keyout /tmp/sfstress/front.key -out /tmp/sfstress/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=dtls.wbd.test' \
+            -keyout /tmp/sfstress/dtls.key -out /tmp/sfstress/dtls.pem >/dev/null 2>&1
+      - name: Twenty rapid full-stack reconnects survive NAT and dirty client exits
+        run: bash .github/scripts/single-flow-startup-stress.sh
+      - name: Upload stress diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: single-flow-startup-stress-${{ github.sha }}
+          path: |
+            /tmp/sfstress/mux.log
+            /tmp/sfstress/link-server.log
+            /tmp/sfstress/platform-server.log
+            /tmp/sfstress/echo.log
+            /tmp/sfstress/fake.log
+            /tmp/sfstress/dtls.log
+            /tmp/sfstress/link.log
+            /tmp/sfstress/probe.log
+            /tmp/sfstress/expected-tunnel.txt
+          if-no-files-found: ignore
+          retention-days: 7

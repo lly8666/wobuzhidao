@@ -1,103 +1,107 @@
-# ADR-0009: Shared-account session fan-out
+# ADR-0009: Shared-account transport-session fan-out
 
-Status: **ACCEPTED FOR V2.2 DEVELOPMENT** (2026-08-26)
+Status: **ACCEPTED / AMENDED BY ADR-0012** (original 2026-08-26; identity-scope amendment 2026-08-30)
+
+> ADR-0012 preserves ticket/LiveID fan-out as transport plumbing but changes what `LiveID` means in the product model. `LiveID` identifies one transport lane/session epoch; it is **not** the long-lived Logical Tunnel identity and does not own the tunnel IP lease.
 
 ## Context
 
 WBD is a personal weak-network VPN. The server intentionally uses one configured username/password pair that may be reused by several devices at the same time. Authentication must stay cheap and simple; username is an account label, not a sustained data-plane routing key.
 
-The existing Reality-like front already authenticates one TLS-encrypted username/password request and issues an independent random 32-byte one-time ticket per successful login. The remaining product requirement is to let several such tickets become simultaneous transport sessions without collapsing state by username.
+The Reality-like bootstrap authenticates one TLS-encrypted username/password request and issues an independent random one-time credential/ticket per successful login. Several such credentials must be able to become simultaneous transport sessions without collapsing state by username.
 
 Current transport implementations were originally single-association test programs. The FakeTCP server selected one raw peer, and the wolfSSL DTLS server selected one UDP peer and one `WOLFSSL*`. Therefore account-level concurrent authentication alone is not sufficient for a real one-to-many server.
 
-## Decision 1 — identity is ticket/session ID, never username
+ADR-0012 later adds a layer above these transport sessions: a Logical Tunnel/device with a stable TunnelID, server-assigned address lease and one or more replaceable transport lanes.
 
-A successful front login issues a distinct random one-time ticket. At DTLS bind the ticket is atomically claimed and returns its account label.
+## Decision 1 — username is account identity; LiveID is transport-lane identity
 
-Live identity is:
+A successful bootstrap issues a distinct random one-time ticket/credential. At DTLS/LINK bind the credential is atomically claimed and returns its account label.
+
+Transport-lane live identity is:
 
 ```text
 (account metadata, LiveID/ticket, learned DTLS plaintext peer)
 ```
 
-Only `LiveID` is the session identity key. The account string is used for accounting/caps/observability. The learned peer is a fast routing index. Sustained packets never perform a username/password lookup.
+Only `LiveID` is the hot identity key for that transport session/lane. The account string is used for accounting/caps/observability. The learned peer is a fast routing index. Sustained packets never perform a username/password lookup.
 
 The same account may own many `LiveID` values simultaneously.
 
+**ADR-0012 amendment:** a Logical Tunnel is a separate object above LiveID. Multiple successive or concurrent LiveIDs may attach to the same Logical Tunnel during game/race mode, reconnect or make-before-break replacement. The tunnel address lease must not be keyed by LiveID.
+
 ## Decision 2 — one-time ticket consumption is atomic
 
-Product bind uses `ConsumeTicketForAccount`.
+Product bind uses `ConsumeTicketForAccount` or its successor with equivalent one-shot semantics.
 
 The ticket file is atomically renamed to a unique claim name before it is read and validated. The rename is the serialization point, so concurrent processes/goroutines cannot both consume the same ticket. A claimed invalid or expired ticket is not returned to circulation.
 
-`TicketAccount` remains inspection/debug support and must not be used as a product bind primitive.
+Any future tunnel-resume credential is a separate secret and must preserve explicit replay/ownership semantics; it must not weaken one-time lane-admission credentials by accident.
 
-## Decision 3 — live data demux is peer/LiveID based
+## Decision 3 — live transport demux is peer/LiveID based; tunnel routing is above it
 
-`internal/session.DataPlane` separates admission from data activation:
+The existing transport/session layer separates admission from data activation. Each LiveID owns independent transport state, including its LINK/FEC state for that lane epoch. A second activation with changed lane parameters is rejected; parameter changes require a fresh lane/association.
+
+Peer collisions are rejected instead of overwriting another transport session. Removing one LiveID removes only that lane/session and its peer index.
+
+ADR-0012 adds a higher-level tunnel manager:
 
 ```text
-Reserve(account, LiveID, peer)
-  -> LINK_INIT / LINK_ACCEPT
-Activate(LiveID, immutable LinkConfig)
-  -> Inbound(peer, wire)
-  -> Outbound(LiveID, packet)
+LiveID/lane -> authenticated Logical Tunnel attach
+Logical Tunnel -> leased IP + race SessionID/PacketID + active lane set
 ```
 
-Each LiveID owns an independent `linkdata.Path`, including its own FEC encoder/decoder block IDs, repair timers and decoder window. A second `Activate` is rejected; link parameter changes require a fresh association.
+Do not make raw-IP return routing depend on username or on one permanent LiveID. Downlink raw-IP routing is by the Logical Tunnel's leased address and then its active lane/race set.
 
-Peer collisions are rejected instead of overwriting another session. Removing one LiveID removes only that session and its peer index.
+## Decision 4 — one public FakeTCP listener fans out independent raw associations
 
-## Decision 4 — public FakeTCP listener fans out by raw 4-tuple
-
-The server exposes one normal public FakeTCP listener while supporting several simultaneous associations. The fan-out key is:
+The server exposes one normal public WBD FakeTCP port while supporting several simultaneous associations. The fan-out key is:
 
 ```text
 (client IPv4, client TCP-shaped source port,
  server IPv4, public TCP-shaped destination port)
 ```
 
-Each raw association owns independent handshake state, sequence spaces, SACK/RTO state and first-arrival receiver state. Account identity is deliberately absent at this layer because the ticket is not available until after DTLS.
+Each raw association owns independent handshake state, sequence spaces, SACK/RTO state and first-arrival receiver state. Account/tunnel identity is deliberately absent at the raw tuple layer because authenticated identity is not known until bootstrap/bind.
 
-`internal/faketcp.ServerAssociationTable` and `ServerAssociation` are the reusable mux core. `cmd/wbd-faketcp-mux` now wires that core to a single public raw socket. A new SYN allocates one association, one loopback UDP relay and one DTLS worker; replies from that worker are enqueued only into the owning raw association.
+`internal/faketcp.ServerAssociationTable` and `ServerAssociation` remain reusable mux infrastructure. A new SYN allocates one independent WBD transport association.
 
-The old `wbd-faketcp server` remains a single-association regression/benchmark binary while the mux is qualified.
+ADR-0012 explicitly allows several such associations to belong to one Logical Tunnel when game/race mode or controlled migration requires it.
 
-## Decision 5 — one DTLS worker per raw association for V2.2
+## Decision 5 — one DTLS worker per raw association remains acceptable
 
-The pinned wolfSSL shim is one-association-per-process: one UDP peer, one `WOLFSSL*`, one relay loop. For this personal server, V2.2 keeps that simple model instead of building a complex multi-peer wolfSSL event engine.
+The pinned wolfSSL shim is one-association-per-process: one UDP peer, one `WOLFSSL*`, one relay loop. For the intended small personal device count, that simple model remains acceptable unless measurement proves otherwise.
 
-The public FakeTCP mux allocates one loopback UDP transport per raw association and launches/owns one DTLS worker for that association. All workers send plaintext to the shared WBD link/session server, where the source UDP peer becomes the hot demux index.
+The public FakeTCP mux may allocate one loopback UDP transport and one DTLS worker per raw association. Workers feed the shared LINK/tunnel layer where the authenticated lane is attached to a Logical Tunnel.
 
-To avoid loopback port races, the DTLS shim can inherit an already-bound UDP fd through `WBD_DTLS_TRANSPORT_FD`. `internal/dtlsworker` binds loopback `:0`, passes the socket as fd 3, removes stale inherited-fd environment values and owns the worker lifecycle. The C shim validates the inherited IPv4 socket and reports the actual bound transport port.
-
-This process-per-association choice is intentional for a small personal device count. If measurements later show worker-process overhead matters, wolfSSL multi-association I/O can replace it without changing account/ticket/LiveID semantics.
+To avoid loopback port races, the DTLS shim can inherit an already-bound UDP fd through `WBD_DTLS_TRANSPORT_FD`. This implementation detail does not define Logical Tunnel identity.
 
 ## Decision 6 — loaded recovery policy favors new inner packets
 
-The 100 Mbit/s, 65 Mbps inner-offered loaded A/B rejected SACK/RACK as the product default even after the repeated-retransmit storm was fixed. The remaining delivery/goodput gain was small while p50/p95/p99 latency increased under queue pressure.
+The 100 Mbit/s loaded A/B evidence rejected SACK/RACK as the unconditional product default because the remaining delivery/goodput gain was small while queueing latency increased.
 
 Therefore:
 
-- product FakeTCP default is `legacy` shadow recovery;
-- `sack-rack` remains an explicit experimental mode and low-load research oracle;
-- loaded A/B remains a diagnostic and must produce valid results for both modes, but release CI no longer requires the experimental mode to win;
-- future advanced repair must be explicitly lower priority/bandwidth-budgeted before it can replace the latency-first default.
+- product FakeTCP default remains `legacy` shadow recovery;
+- `sack-rack` remains experimental;
+- future advanced repair must be explicitly lower priority/bandwidth-budgeted before replacing the latency-first default.
 
 ## Platform consequence
 
-This fan-out work is protocol/server plumbing. It does not change final client capture targets:
+This fan-out work is transport/server plumbing. It does not change final client capture targets:
 
 - OpenWrt release path: TPROXY + policy routing + mandatory underlay escape;
 - Windows release path: TUN/Wintun-class L3 + mandatory underlay escape.
 
-Real platform packet-adapter integration starts after the transport/session protocol and multi-session server are frozen and all 100 Mbit weak-network gates are green.
+ADR-0012 changes the Windows raw-IP server topology to unique Logical Tunnel leases + shared TUN + one host NAT and promotes later Game Lane race semantics as the multipath/replacement foundation.
 
-## Next implementation order
+## Superseded interpretation
 
-1. Qualify `cmd/wbd-faketcp-mux` compile/unit behavior and then a real two-client raw/DTLS run on one public listener.
-2. Convert the WBD link server from one DTLS plaintext peer to several peers routed through `session.DataPlane`.
-3. Bind each peer by atomically consuming a ticket, then activate its immutable LinkConfig after `LINK_ACCEPT`.
-4. Qualify at least two simultaneous devices using the same username/password with independent traffic in both FEC-off and fixed-20:20 modes.
-5. Re-run 100 Mbit first-arrival/full-stack/pcap plus worker CPU/RSS accounting with two sessions.
-6. Freeze protocol, then perform final OpenWrt TPROXY and Windows TUN one-shot VPN qualifications.
+Do not read this ADR as saying:
+
+- `LiveID == Logical Tunnel`;
+- `LiveID` permanently owns a tunnel IP;
+- one whole user VPN session has exactly one LiveID/association until Disconnect;
+- later Game Lane multipath is forbidden.
+
+Those interpretations are superseded by ADR-0012. The atomic ticket, per-association isolation and concurrent shared-account fan-out decisions remain valid.

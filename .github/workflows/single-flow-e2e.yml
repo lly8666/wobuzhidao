@@ -1,0 +1,89 @@
+name: single-flow-e2e
+
+on:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+  pull_request:
+    paths:
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/logicaltunnel/**'
+      - 'internal/dtlsworker/**'
+      - 'native/dtls/**'
+      - 'internal/windowsruntime/**'
+      - 'scripts/single_flow_decoy.go'
+      - 'scripts/qualify_single_flow_e2e.sh'
+      - '.github/workflows/single-flow-e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  one_public_flow:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables tcpdump
+      - name: Build pinned wolfSSL and current single-flow binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/single
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/single/tickets /tmp/single/decoy-tickets
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/single/wbd_dtls_shim
+          go build -trimpath -o /tmp/single/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/single/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/single/wbd-single-flow-decoy ./scripts/single_flow_decoy.go
+          go test ./internal/faketcp ./internal/realityfront ./internal/logicaltunnel -count=1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=wbd.test' -addext 'subjectAltName=DNS:wbd.test' \
+            -keyout /tmp/single/front.key -out /tmp/single/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=dtls.wbd.test' \
+            -keyout /tmp/single/dtls.key -out /tmp/single/dtls.pem >/dev/null 2>&1
+      - name: Qualify one SYN lineage from TLS bootstrap through DTLS data
+        run: |
+          sudo bash scripts/qualify_single_flow_e2e.sh \
+            --faketcp /tmp/single/wbd-faketcp \
+            --mux /tmp/single/wbd-faketcp-mux \
+            --dtls /tmp/single/wbd_dtls_shim \
+            --decoy /tmp/single/wbd-single-flow-decoy \
+            --out /tmp/single
+      - name: Show failure evidence
+        if: failure()
+        run: |
+          for f in /tmp/single/*.log; do
+            [ -f "$f" ] || continue
+            echo "--- $f ---"
+            sudo tail -n 200 "$f" || true
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: single-flow-e2e-evidence
+          path: |
+            /tmp/single/*.log
+            /tmp/single/*.pcap
+            /tmp/single/*tunnel.json

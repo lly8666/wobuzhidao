@@ -1,0 +1,53 @@
+name: single-flow-link-fullstack
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - '.github/workflows/single-flow-link-fullstack.yml'
+      - '.github/workflows/single-flow-rawip-e2e.yml'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-ip-gateway-server/**'
+      - 'cmd/wbd-tun/**'
+      - 'internal/dataplane/**'
+      - 'internal/diag/**'
+      - 'internal/faketcp/**'
+      - 'internal/rawipbackend/**'
+      - 'internal/realityfront/**'
+      - 'internal/session/**'
+      - 'native/dtls/**'
+      - 'scripts/check_single_flow_wire_invariants.py'
+      - 'scripts/linux_ip_gateway_firewall.sh'
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+      - dev/wbd-raw-fec-v2
+    paths:
+      - '.github/workflows/single-flow-link-fullstack.yml'
+      - '.github/workflows/single-flow-rawip-e2e.yml'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-ip-gateway-server/**'
+      - 'cmd/wbd-tun/**'
+      - 'internal/dataplane/**'
+      - 'internal/diag/**'
+      - 'internal/faketcp/**'
+      - 'internal/rawipbackend/**'
+      - 'internal/realityfront/**'
+      - 'internal/session/**'
+      - 'native/dtls/**'
+      - 'scripts/check_single_flow_wire_invariants.py'
+      - 'scripts/linux_ip_gateway_firewall.sh'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  formal_rawip_fullstack:
+    uses: ./.github/workflows/single-flow-rawip-e2e.yml

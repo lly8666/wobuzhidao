@@ -99,7 +99,25 @@ function Wait-PreferredIPAddress([uint32]$InterfaceIndex, [string]$IPAddress, [s
 function Save-State($State) {
     $dir = Split-Path -Parent $StatePath
     if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
-    $State | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $StatePath -Encoding UTF8
+    $json = $State | ConvertTo-Json -Depth 10
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($StatePath, $json + [Environment]::NewLine, $utf8NoBom)
+}
+
+function Remove-WBDNRPTRuleByName([string]$Name) {
+    if ([string]::IsNullOrWhiteSpace($Name)) { return }
+    if (-not (Get-Command Remove-DnsClientNrptRule -ErrorAction SilentlyContinue)) { return }
+    try {
+        Remove-DnsClientNrptRule -Name $Name -Force -Confirm:$false -ErrorAction Stop
+    } catch {
+        $missing = ($_.CategoryInfo.Category -eq [System.Management.Automation.ErrorCategory]::ObjectNotFound) -or
+                   ([string]$_.FullyQualifiedErrorId -match '1168|ObjectNotFound')
+        if ($missing) {
+            Write-Output "WBD_WINDOWS_TUN_NRPT_ALREADY_ABSENT name=$Name"
+            return
+        }
+        throw
+    }
 }
 
 function Remove-StaleWBDNRPT {
@@ -111,7 +129,7 @@ function Remove-StaleWBDNRPT {
         [string]$_.DisplayName -eq $NRPTDisplayName -and [string]$_.Comment -eq $NRPTComment
     })
     foreach ($rule in $rules) {
-        Remove-DnsClientNrptRule -Name ([string]$rule.Name) -Force -Confirm:$false -ErrorAction SilentlyContinue
+        Remove-WBDNRPTRuleByName ([string]$rule.Name)
     }
 }
 
@@ -120,9 +138,7 @@ function Remove-Owned-State($State) {
     # Wintun/LINK/DTLS/FakeTCP are still alive; process teardown remains outside
     # this script and is strictly after route cleanup in Executor.Stop().
     if ($State.PSObject.Properties.Name -contains 'NRPTRuleName' -and $State.NRPTRuleName) {
-        if (Get-Command Remove-DnsClientNrptRule -ErrorAction SilentlyContinue) {
-            Remove-DnsClientNrptRule -Name ([string]$State.NRPTRuleName) -Force -Confirm:$false -ErrorAction SilentlyContinue
-        }
+        Remove-WBDNRPTRuleByName ([string]$State.NRPTRuleName)
     } elseif ($State.PSObject.Properties.Name -contains 'DNSConfigured' -and $State.DNSConfigured) {
         Remove-StaleWBDNRPT
     }
@@ -216,8 +232,14 @@ if ($Action -eq 'Cleanup') {
     exit 0
 }
 
+# Crash/restart recovery is part of Apply rather than a manual prerequisite.
+# The state file contains only WBD-owned objects, so replaying its inverse is
+# precise and safe. A previously deleted NRPT rule is explicitly idempotent.
 if (Test-Path -LiteralPath $StatePath) {
-    throw "state already exists; run Cleanup first: $StatePath"
+    $staleState = Get-Content -LiteralPath $StatePath -Raw | ConvertFrom-Json
+    Remove-Owned-State $staleState
+    Remove-Item -LiteralPath $StatePath -Force -ErrorAction Stop
+    Write-Output 'WBD_WINDOWS_TUN_STALE_STATE_RECOVERED'
 }
 # Crash recovery for the narrow interval after NRPT creation but before its rule
 # id can be persisted. Only the exact WBD display/comment pair is removed.

@@ -1,0 +1,59 @@
+name: windows-faketcp-persona
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/singleflowvwire/**'
+      - 'internal/windowsruntime/**'
+      - 'internal/windowsdiag/**'
+      - 'cmd/wbd-faketcp/**'
+      - '.github/workflows/windows-faketcp-persona.yml'
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+      - dev/wbd-raw-fec-v2
+    paths:
+      - 'internal/faketcp/**'
+      - 'internal/realityfront/**'
+      - 'internal/singleflowvwire/**'
+      - 'internal/windowsruntime/**'
+      - 'internal/windowsdiag/**'
+      - 'cmd/wbd-faketcp/**'
+      - '.github/workflows/windows-faketcp-persona.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  packet_persona:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: FakeTCP packet persona
+        shell: pwsh
+        run: go test ./internal/faketcp -run 'Test(Windows11Persona|WindowsDefaultPacketPersona|LegacyPersona)' -count=1 -v
+      - name: Windows FakeTCP backend
+        shell: pwsh
+        run: go test ./cmd/wbd-faketcp -count=1 -v
+      - name: Reality-like same-flow bootstrap
+        shell: pwsh
+        run: go test ./internal/realityfront -run 'TestSingleFlow' -count=1 -v
+      - name: Same-flow virtual wire no-HOL
+        shell: pwsh
+        run: go test ./internal/singleflowvwire -run 'TestSingleFlowVirtualWireAdmissionThenNoHOL' -count=1 -v
+      - name: Windows runtime and diagnostics
+        shell: pwsh
+        run: go test ./internal/windowsruntime ./internal/windowsdiag -count=1 -v
+      - name: Build Windows FakeTCP child
+        shell: pwsh
+        run: go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
+      - name: Record qualification marker
+        shell: pwsh
+        run: Write-Output 'WBD_WINDOWS_FAKETCP_PERSONA_PASS ttl=128 options=mss,nop,ws8,nop,nop,sack df=1 ipid=incrementing reality_like_tls=pass single_flow_vwire=pass no_hol=pass backend_tests=pass runtime_tests=pass diagnostics_tests=pass'

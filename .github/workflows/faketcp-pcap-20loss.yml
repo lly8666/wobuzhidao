@@ -77,11 +77,21 @@ jobs:
           sudo ip netns exec "$R" tc qdisc add dev r1 root netem limit 50000 delay 10ms rate 200mbit
           sudo ip netns exec "$R" tc qdisc add dev r0 root netem limit 50000 delay 10ms rate 200mbit
 
-          sudo ip netns exec "$C" tcpdump -i c0 -s 0 -U -w /tmp/faketcp20-client.pcap \
+          # Capture readiness is part of the qualification contract: the SYN must
+          # not race tcpdump startup. Immediate mode also avoids kernel buffering
+          # hiding the first handshake packets from the analyzer.
+          sudo ip netns exec "$C" tcpdump --immediate-mode -i c0 -s 0 -U -w /tmp/faketcp20-client.pcap \
             'tcp and (port 54003 or port 54010)' >/tmp/tcpdump-client.log 2>&1 & TPID=$!
-          sudo ip netns exec "$S" tcpdump -i s0 -s 0 -U -w /tmp/faketcp20-server.pcap \
+          sudo ip netns exec "$S" tcpdump --immediate-mode -i s0 -s 0 -U -w /tmp/faketcp20-server.pcap \
             'tcp and (port 54003 or port 54010)' >/tmp/tcpdump-server.log 2>&1 & TSPID=$!
-          sleep .1
+          for i in $(seq 1 200); do
+            if grep -q 'listening on c0' /tmp/tcpdump-client.log && grep -q 'listening on s0' /tmp/tcpdump-server.log; then
+              break
+            fi
+            sleep .05
+          done
+          grep -q 'listening on c0' /tmp/tcpdump-client.log
+          grep -q 'listening on s0' /tmp/tcpdump-server.log
 
           sudo ip netns exec "$S" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
             server --bind 127.0.0.1:54000 --expect 800 --window 6.0 --out /tmp/first20.json \

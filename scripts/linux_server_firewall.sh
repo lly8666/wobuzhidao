@@ -159,10 +159,12 @@ nft_apply() {
     # A raw TCP-shaped WBD association has no kernel TCP socket. Suppress only
     # kernel RST packets sourced from the WBD raw port, in a dedicated table;
     # DROP is terminal across later base chains and cleanup can delete the table.
+    # nftables TCP flags are a bitmask: test the RST bit rather than using the
+    # obsolete/invalid iptables-style mask/value token sequence.
     nft -f - <<EOF
 add table inet wbd_server
 add chain inet wbd_server output { type filter hook output priority -300; policy accept; }
-add rule inet wbd_server output tcp sport $RAW_PORT tcp flags rst / rst drop comment "wbd-server-rst"
+add rule inet wbd_server output tcp sport $RAW_PORT tcp flags & rst != 0 drop comment "wbd-server-rst"
 EOF
     mkdir -p "$(dirname "$STATE")"
     {

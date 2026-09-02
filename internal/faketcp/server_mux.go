@@ -41,13 +41,10 @@ const (
 	ServerAssociationClosed
 )
 
-// ServerSegmentResult is the pure transport result of one inbound raw segment.
-// The caller owns actual raw/UDP I/O. FastRetransmit, Ack/SACK generation and
-// first-arrival delivery are kept per association and never serialize another
-// client sharing the same public FakeTCP listener.
 type ServerSegmentResult struct {
 	FastRetransmit *Pending
 	Deliver        []byte
+	DeliverSeq     uint32
 	AckNeeded      bool
 	Ack            uint32
 	SACK           [4]SACKBlock
@@ -102,10 +99,8 @@ func (a *ServerAssociation) SYNACK() (seq, ack uint32, err error) {
 }
 
 // HandleHandshakeACK completes only this flow. Like TCP, the final ACK may
-// carry the first application payload. The outer mux can then either process
-// that payload immediately or, on older callers, recover it via normal sender
-// retransmission. A retransmitted SYN can still be answered by SYNACK again
-// without allocating a second state.
+// carry the first application payload. Callers that need that payload must then
+// process the same segment through HandleSegment after this method succeeds.
 func (a *ServerAssociation) HandleHandshakeACK(seg Segment) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -137,6 +132,7 @@ func (a *ServerAssociation) HandleSegment(seg Segment, now time.Time) (ServerSeg
 	}
 	if deliver {
 		out.Deliver = seg.Payload
+		out.DeliverSeq = seg.Seq
 	}
 	return out, nil
 }
@@ -165,6 +161,12 @@ func (a *ServerAssociation) SenderNext() uint32 {
 	return a.sender.NextSeq()
 }
 
+func (a *ServerAssociation) SenderLastAck() uint32 {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.sender.LastAck()
+}
+
 func (a *ServerAssociation) ReceiverNext() uint32 {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -189,9 +191,6 @@ func (a *ServerAssociation) Close() {
 	a.mu.Unlock()
 }
 
-// ServerAssociationTable is the public-listener fan-out index. It owns only
-// raw-flow association lookup; account/ticket identity remains a later DTLS
-// concern and is intentionally absent from this table.
 type ServerAssociationTable struct {
 	mu  sync.RWMutex
 	max int

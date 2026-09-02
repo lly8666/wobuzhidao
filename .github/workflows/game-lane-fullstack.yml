@@ -23,6 +23,7 @@ on:
   push:
     branches:
       - dev/wbd-raw-fec-v2
+      - feat/single-flow-reality-faketcp
     paths:
       - '.github/workflows/game-lane-fullstack.yml'
       - 'scripts/game_lane_fullstack.sh'
@@ -32,8 +33,6 @@ on:
       - 'cmd/wbd-game-lane-server/**'
       - 'cmd/wbd-link-proxy/**'
       - 'cmd/wbd-link-server-mux/**'
-      - 'cmd/wbd-faketcp/**'
-      - 'cmd/wbd-faketcp-mux/**'
       - 'cmd/wbd-reality-front/**'
       - 'internal/faketcp/**'
       - 'internal/session/**'
@@ -110,27 +109,18 @@ jobs:
           - lanes: 1
             fec: off
             label: off
+          - lanes: 2
+            fec: off
+            label: off
+          - lanes: 3
+            fec: off
+            label: off
+          - lanes: 4
+            fec: off
+            label: off
           - lanes: 1
             fec: '20:20'
-            label: fixed20x20
-          - lanes: 2
-            fec: off
-            label: off
-          - lanes: 2
-            fec: '20:20'
-            label: fixed20x20
-          - lanes: 3
-            fec: off
-            label: off
-          - lanes: 3
-            fec: '20:20'
-            label: fixed20x20
-          - lanes: 4
-            fec: off
-            label: off
-          - lanes: 4
-            fec: '20:20'
-            label: fixed20x20
+            label: fixed20x20-smoke
     steps:
       - uses: actions/checkout@v4
       - name: Install namespace and packet tools
@@ -141,10 +131,11 @@ jobs:
         with:
           name: game-lane-assets
           path: ${{ runner.temp }}/wbd-game-lane-assets
-      - name: Restore executable modes
+      - name: Restore executable bits lost by Actions artifact transport
         run: |
-          chmod +x "$RUNNER_TEMP/wbd-game-lane-assets"/wbd-* "$RUNNER_TEMP/wbd-game-lane-assets/wbd_dtls_shim"
-      - name: Exercise configured lanes and FEC over independent WBD associations
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP"/wbd-game-lane-assets/wbd-* "$RUNNER_TEMP"/wbd-game-lane-assets/wbd_dtls_shim
+      - name: Exercise product lanes; FEC off is primary and 20:20 is smoke-only
         env:
           LANES: ${{ matrix.lanes }}
           FEC: ${{ matrix.fec }}

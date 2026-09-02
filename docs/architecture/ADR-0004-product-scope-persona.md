@@ -1,99 +1,61 @@
 # ADR-0004: Product-scope clarification — TCP-shaped datagrams, native TUN, optional TLS Persona
 
-Status: **ACCEPTED FOR V2.2 MAINLINE** (2026-08-25)
+Status: **PARTIALLY SUPERSEDED BY ADR-0011** (original 2026-08-25; amended 2026-08-29)
 
-## Context
+ADR-0004 remains authoritative for retiring the kernel TCP anchor, keeping the sustained WBD data plane packet/datagram-oriented, and treating Xray/REALITY/Vision only as implementation references. Its former decision to use a **separate real TCP/TLS preflight connection** is no longer a valid product shape.
 
-The previous roadmap carried an easy-faketcp-inspired kernel TCP anchor experiment and explicitly prohibited browser-like TLS fingerprint work.
+## Preserved decisions
 
-The product requirement is now clarified:
+- both endpoints are operator-controlled OpenWrt/Linux/Windows devices with privileges for raw sockets, firewall control, TPROXY/TUN and Npcap/Wintun-class integration;
+- the public carrier is WBD-owned TCP-shaped FakeTCP;
+- sustained product payload must retain UDP/datagram-like weak-network behavior;
+- the local kernel does not own the WBD payload sequence space or ordered delivery;
+- kernel TCP anchor/state takeover is not required for product correctness;
+- browser/REALITY-like ClientHello engineering may be used to improve setup resemblance;
+- WBD does not import VLESS, Xray routing or Vision stream semantics into the data plane.
 
-- both endpoints are the operator's own OpenWrt/Linux/Windows devices;
-- privileged raw sockets, firewall control, TUN, Npcap/Wintun-class access are acceptable;
-- the public carrier only needs to be **TCP-shaped** at the raw packet layer;
-- the payload must retain UDP/datagram-like weak-network behavior;
-- the local kernel does not need to own or believe the raw payload stream;
-- an optional browser-like TLS connection-establishment persona is desirable, but it must not replace the datagram data plane.
+## Superseded TLS Persona boundary
 
-## Decision 1 — retire kernel TCP anchor from the product roadmap
+The V2.2 text described an optional standard TLS 1.3 **preflight connection separate from the FakeTCP/DTLS data lane**. ADR-0011 rejects that network shape because a public observer sees two unrelated connections.
 
-The product uses classic udp2raw-compatible FakeTCP semantics.
-
-A real OS TCP socket is not required for:
-
-- payload delivery;
-- ACK ownership;
-- sequence ownership;
-- product correctness.
-
-Previous M4 packet-state research remains useful historical evidence, but no additional kernel-anchor engineering is required.
-
-## Decision 2 — make native L3/TUN the next core milestone
-
-The next product work is the minimum packet-preserving VPN path:
+The V2.3 product requirement is instead:
 
 ```text
-TUN/IP
-  → WBD packet framing
-  → FEC
-  → DTLS 1.3
-  → FakeTCP
+one WBD-owned raw FakeTCP SYN lineage
+  -> temporary bounded reliable ordered bootstrap stream
+  -> real TLS 1.3 / Reality-like ClientHello recognition and admission
+  -> same 4-tuple + same FakeTCP sequence space + no new SYN
+  -> DTLS 1.3 / LINK / FEC datagrams
 ```
 
-The Linux/OpenWrt path is implemented first, then Windows interoperability.
+Thus the TLS Persona idea is retained, but it is moved **inside the first phase of the single FakeTCP association**.
 
-## Decision 3 — admit optional TLS Persona
+## Why this still preserves no-HOL transport
 
-WBD may offer a connection-establishment Persona option:
+`crypto/tls` requires reliable ordered bytes, so the setup adapter may temporarily reorder/retransmit a small bounded amount of handshake traffic. The adapter is destroyed at the mode barrier. Sustained VPN traffic continues as independent DTLS/FEC datagrams and must pass the later-datagram-bypass gate.
 
-- `off`
-- `native`
-- browser-like ClientHello profiles such as `chrome`, `firefox`, `safari`, `edge`
-- later randomized profiles only after qualification
+No ordinary kernel TCP byte stream is permitted to become the sustained WBD carrier.
 
-The initial design is a **real standard TLS 1.3 preflight connection to an operator-controlled TLS endpoint**. It may produce a short-lived bootstrap/session-binding value that is then presented inside the authenticated WBD session.
+## REALITY/browser resemblance
 
-This is intentionally separate from the FakeTCP/DTLS data lane.
+Xray/REALITY and browser/uTLS implementations remain useful references for:
 
-## Why not copy the full Xray/REALITY/Vision stack
+- ClientHello profile/fingerprint behavior;
+- TLS extension ordering and GREASE behavior;
+- handshake size and fragmentation;
+- fallback/decoy handling;
+- fail-closed configuration.
 
-Xray/REALITY is useful reference material for uTLS ClientHello handling and bootstrap engineering. Vision mainly optimizes ordered proxy/TLS stream forwarding and is not a match for WBD's packet/FEC/DTLS data plane.
+The implementation must be judged by packet capture. Real TLS 1.3 on one flow is the first checkpoint; a "99% Reality/browser-like" claim requires measured SYN/TCP-option and ClientHello fingerprint comparison rather than naming alone.
 
-WBD therefore borrows narrowly:
+## Certificate policy
 
-- maintained browser ClientHello profile machinery;
-- profile naming/configuration ideas;
-- handshake-size/fragmentation awareness;
-- fail-closed configuration patterns.
-
-WBD does not add VLESS, Xray routing or Vision stream semantics.
-
-## Security boundary
-
-TLS Persona is not counted as the data-plane security layer.
-
-The product remains secure when Persona is `off` because DTLS 1.3 still authenticates/encrypts the data lane.
-
-Persona must use normal certificate validation against an operator-controlled hostname. It must not require a third-party private key or disable peer verification.
-
-## Qualification
-
-Persona qualification must record:
-
-- selected profile;
-- TLS version/cipher/ALPN;
-- trust/hostname validation;
-- ClientHello byte length;
-- number of TCP segments used by the ClientHello;
-- handshake p50/p95/p99 and failure rate;
-- behavior under MTU/fragmentation pressure.
-
-This requirement exists because browser-like ClientHello implementations can change size across library versions; a profile that fragments unexpectedly may be less robust than a smaller profile.
+The later personal-product decision allowing explicit certificate/hostname verification disablement supersedes this ADR's older mandatory-verification wording. The configured mode must remain explicit; DTLS 1.3 stays the steady-state security authority.
 
 ## Consequences
 
-- V2-M4 kernel-anchor is retired.
-- V2-M6 Linux/OpenWrt TUN becomes the current core milestone.
-- V2-M5 two-lane remains deferred.
-- Optional TLS Persona is developed after the one-lane core path is functional and before broad product hardening.
-- Large parameter sweeps happen after core Linux/OpenWrt + Windows interoperability, with Persona included as an optional test dimension.
+- kernel TCP anchor remains retired;
+- native L3/TUN/TPROXY platform work remains valid;
+- the separate Persona/preflight public connection is retired;
+- ADR-0011 is authoritative for the single-flow setup/data transition;
+- optional multi-lane work remains deferred.

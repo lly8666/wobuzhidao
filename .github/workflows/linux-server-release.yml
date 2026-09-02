@@ -21,6 +21,7 @@ on:
   push:
     branches:
       - dev/wbd-raw-fec-v2
+      - feat/single-flow-reality-faketcp
     paths:
       - '.github/workflows/linux-server-release.yml'
       - 'scripts/build_linux_server_bundle.sh'
@@ -36,6 +37,9 @@ on:
       - 'internal/**'
       - 'native/dtls/**'
       - 'deps/security-lock.json'
+
+env:
+  WBD_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
 permissions:
   contents: read
@@ -80,7 +84,7 @@ jobs:
           scripts/build_linux_server_bundle.sh amd64 "$RUNNER_TEMP"
       - uses: actions/upload-artifact@v4
         with:
-          name: wbd-linux-server-amd64-${{ github.sha }}
+          name: wbd-linux-server-amd64-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             ${{ runner.temp }}/wbd-linux-server-amd64.tar.gz
             ${{ runner.temp }}/wbd-linux-server-amd64.tar.gz.sha256
@@ -112,7 +116,7 @@ jobs:
           scripts/build_linux_server_bundle.sh arm64 "$RUNNER_TEMP"
       - uses: actions/upload-artifact@v4
         with:
-          name: wbd-linux-server-arm64-${{ github.sha }}
+          name: wbd-linux-server-arm64-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             ${{ runner.temp }}/wbd-linux-server-arm64.tar.gz
             ${{ runner.temp }}/wbd-linux-server-arm64.tar.gz.sha256

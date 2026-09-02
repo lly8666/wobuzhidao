@@ -1,22 +1,31 @@
 package main
 
 import (
+	"encoding/hex"
 	"net"
+	"net/netip"
 	"testing"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/gamelane"
+	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
+	"github.com/lly8666/wobuzhidao/internal/rawipbackend"
 )
 
 func TestMaxLanesRejectsThirdRealUDPPeerAndKeepsExistingLanesHealthy(t *testing.T) {
 	echo, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
 	if err != nil { t.Fatal(err) }
 	defer echo.Close()
+	metaSeen := make(chan rawipbackend.TunnelMeta, 1)
 	go func() {
 		buf := make([]byte, 65535)
 		for {
 			n, peer, err := echo.ReadFromUDP(buf)
 			if err != nil { return }
+			if meta, ok := rawipbackend.UnmarshalTunnelMeta(buf[:n]); ok {
+				select { case metaSeen <- meta: default: }
+				continue
+			}
 			_, _ = echo.WriteToUDP(buf[:n], peer)
 		}
 	}()
@@ -32,6 +41,7 @@ func TestMaxLanesRejectsThirdRealUDPPeerAndKeepsExistingLanesHealthy(t *testing.
 		idle: time.Minute,
 		sessions: make(map[gamelane.SessionID]*gameSession),
 		peerSession: make(map[string]gamelane.SessionID),
+		peerMeta: make(map[string]rawipbackend.TunnelMeta),
 	}
 	defer s.Close()
 	errCh := make(chan error, 1)
@@ -46,40 +56,43 @@ func TestMaxLanesRejectsThirdRealUDPPeerAndKeepsExistingLanesHealthy(t *testing.
 	}
 
 	var sid gamelane.SessionID
-	copy(sid[:], []byte("max-lanes-real"))
+	for i := range sid { sid[i] = byte(i + 1) }
+	tunnelID := logicaltunnel.TunnelID(hex.EncodeToString(sid[:]))
+	lease := netip.MustParseAddr("10.66.0.1")
+	metaWire, err := rawipbackend.MarshalTunnelMeta(tunnelID, lease)
+	if err != nil { t.Fatal(err) }
+	for _, lane := range lanes {
+		if _, err := lane.Write(metaWire); err != nil { t.Fatal(err) }
+	}
 	enc, err := gamelane.NewEncoder(sid, 1)
 	if err != nil { t.Fatal(err) }
 
-	// Packet 1 exists to bind two distinct real UDP peers and establish the
-	// dedupe relation. Return timing for this first packet is intentionally not
-	// asserted because the echo may come back before the second bind completes.
 	_, first, err := enc.WrapCopies([]byte("bind"), []uint8{1, 2})
 	if err != nil { t.Fatal(err) }
 	if _, err := lanes[0].Write(first[0].Wire); err != nil { t.Fatal(err) }
 	if _, err := lanes[1].Write(first[1].Wire); err != nil { t.Fatal(err) }
 
+	select {
+	case got := <-metaSeen:
+		if got.TunnelID != tunnelID || got.Address4 != lease { t.Fatalf("downstream meta=%+v", got) }
+	case <-time.After(time.Second):
+		t.Fatal("Game server did not forward authenticated tunnel metadata downstream")
+	}
+
 	deadline := time.Now().Add(time.Second)
 	for {
-		s.mu.Lock()
-		gs := s.sessions[sid]
-		s.mu.Unlock()
+		s.mu.Lock(); gs := s.sessions[sid]; s.mu.Unlock()
 		bound := 0
-		if gs != nil {
-			gs.mu.Lock(); bound = len(gs.lanes); gs.mu.Unlock()
-		}
+		if gs != nil { gs.mu.Lock(); bound = len(gs.lanes); gs.mu.Unlock() }
 		if bound == 2 { break }
 		if time.Now().After(deadline) { t.Fatalf("only %d lanes bound before timeout", bound) }
 		time.Sleep(time.Millisecond)
 	}
 
-	// Drain any race return from the binding packet so later reads identify the
-	// exact logical packet under test rather than an earlier queued datagram.
 	for _, c := range lanes[:2] {
 		_ = c.SetReadDeadline(time.Now().Add(20 * time.Millisecond))
 		buf := make([]byte, 65535)
-		for {
-			if _, err := c.Read(buf); err != nil { break }
-		}
+		for { if _, err := c.Read(buf); err != nil { break } }
 	}
 
 	readPayload := func(c *net.UDPConn) []byte {
@@ -92,8 +105,6 @@ func TestMaxLanesRejectsThirdRealUDPPeerAndKeepsExistingLanesHealthy(t *testing.
 		return payload
 	}
 
-	// With both lanes admitted, one logical packet must be delivered once to
-	// the echo and raced back over both real UDP associations.
 	_, both, err := enc.WrapCopies([]byte("both-ready"), []uint8{1, 2})
 	if err != nil { t.Fatal(err) }
 	if _, err := lanes[0].Write(both[0].Wire); err != nil { t.Fatal(err) }
@@ -101,8 +112,6 @@ func TestMaxLanesRejectsThirdRealUDPPeerAndKeepsExistingLanesHealthy(t *testing.
 	if got := string(readPayload(lanes[0])); got != "both-ready" { t.Fatalf("lane1 ready=%q", got) }
 	if got := string(readPayload(lanes[1])); got != "both-ready" { t.Fatalf("lane2 ready=%q", got) }
 
-	// A third authenticated service peer for the same logical session tries to
-	// bind lane ID 3. It must not receive an echoed response because max-lanes=2.
 	_, thirdCopy, err := enc.WrapCopies([]byte("third-must-drop"), []uint8{3})
 	if err != nil { t.Fatal(err) }
 	_ = lanes[2].SetReadDeadline(time.Now().Add(150 * time.Millisecond))
@@ -114,7 +123,6 @@ func TestMaxLanesRejectsThirdRealUDPPeerAndKeepsExistingLanesHealthy(t *testing.
 		t.Fatalf("third lane read err=%v, want timeout", err)
 	}
 
-	// The over-cap attempt must not poison or evict the two admitted lanes.
 	_, healthy, err := enc.WrapCopies([]byte("still-healthy"), []uint8{1, 2})
 	if err != nil { t.Fatal(err) }
 	if _, err := lanes[0].Write(healthy[0].Wire); err != nil { t.Fatal(err) }
@@ -122,22 +130,30 @@ func TestMaxLanesRejectsThirdRealUDPPeerAndKeepsExistingLanesHealthy(t *testing.
 	if got := string(readPayload(lanes[0])); got != "still-healthy" { t.Fatalf("lane1 after reject=%q", got) }
 	if got := string(readPayload(lanes[1])); got != "still-healthy" { t.Fatalf("lane2 after reject=%q", got) }
 
-	s.mu.Lock()
-	if len(s.sessions) != 1 { t.Fatalf("sessions=%d", len(s.sessions)) }
-	gs := s.sessions[sid]
-	s.mu.Unlock()
-	if gs == nil { t.Fatal("logical session disappeared") }
-	gs.mu.Lock()
-	bound := len(gs.lanes)
-	inFirst, inDup := gs.inFirst, gs.inDup
-	gs.mu.Unlock()
-	if bound != 2 { t.Fatalf("bound lanes=%d, want 2", bound) }
-	if inFirst != 3 || inDup != 3 { t.Fatalf("in_first=%d in_dup=%d, want 3/3", inFirst, inDup) }
+	deadline = time.Now().Add(500 * time.Millisecond)
+	for {
+		s.mu.Lock()
+		if len(s.sessions) != 1 { n := len(s.sessions); s.mu.Unlock(); t.Fatalf("sessions=%d", n) }
+		gs := s.sessions[sid]
+		s.mu.Unlock()
+		if gs == nil { t.Fatal("logical session disappeared") }
+		gs.mu.Lock(); bound := len(gs.lanes); inFirst, inDup := gs.inFirst, gs.inDup; gs.mu.Unlock()
+		if bound != 2 { t.Fatalf("bound lanes=%d, want 2", bound) }
+		if inFirst == 3 && inDup == 3 { break }
+		if time.Now().After(deadline) { t.Fatalf("in_first=%d in_dup=%d, want 3/3", inFirst, inDup) }
+		time.Sleep(time.Millisecond)
+	}
 
 	_ = conn.Close()
-	select {
-	case <-errCh:
-	case <-time.After(time.Second):
-		t.Fatal("server Run did not stop after UDP close")
-	}
+	select { case <-errCh: case <-time.After(time.Second): t.Fatal("server Run did not stop after UDP close") }
+}
+
+func TestGameRejectsPayloadWithoutAuthenticatedTunnelMetadata(t *testing.T) {
+	s := &server{sessions: map[gamelane.SessionID]*gameSession{}, peerSession: map[string]gamelane.SessionID{}, peerMeta: map[string]rawipbackend.TunnelMeta{}}
+	var sid gamelane.SessionID
+	sid[0] = 1
+	enc, _ := gamelane.NewEncoder(sid, 1)
+	_, copies, _ := enc.WrapCopies([]byte("x"), []uint8{1})
+	err := s.handle(&net.UDPAddr{IP: net.IPv4(127,0,0,1), Port: 12345}, copies[0].Wire, time.Now())
+	if err == nil { t.Fatal("unauthenticated Game lane payload accepted") }
 }

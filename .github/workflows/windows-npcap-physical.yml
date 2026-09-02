@@ -1,0 +1,117 @@
+name: windows-npcap-physical
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_run_id:
+        description: 'windows-portable-bundle run id containing the exact wbd.exe to qualify'
+        required: true
+        type: string
+      source_sha:
+        description: 'exact source SHA expected for the artifact run and checkout'
+        required: true
+        type: string
+      profile_path:
+        description: 'absolute runner-local wbd.json path; never store credentials in the repository'
+        required: true
+        type: string
+      uninstall_after:
+        description: 'silently uninstall Npcap after qualification'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  physical-npcap:
+    # Npcap Free Edition cannot be silently installed in hosted CI. This release
+    # gate intentionally targets an elevated, operator-managed physical Windows
+    # runner with Npcap 1.88 already installed normally.
+    runs-on: [self-hosted, windows, x64, wbd-npcap]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+
+      - name: Assert Administrator and installed Npcap 1.88
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+          $principal = [Security.Principal.WindowsPrincipal]::new($identity)
+          if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+            throw 'wbd-npcap runner must run elevated as Administrator'
+          }
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/windows_npcap_prepare.ps1 -Action Status
+          if ($LASTEXITCODE -ne 0) { throw "Npcap Status failed: $LASTEXITCODE" }
+
+      - name: Download exact Windows portable artifact
+        id: portable
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ inputs.source_sha }}
+          RUN_ID: ${{ inputs.artifact_run_id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/vnd.github+json' }
+          $run = Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/runs/$env:RUN_ID"
+          if ([string]$run.head_sha -ne $env:EXPECTED_SHA) {
+            throw "artifact run head mismatch: got=$($run.head_sha) want=$env:EXPECTED_SHA"
+          }
+          if ($run.status -ne 'completed' -or $run.conclusion -ne 'success') {
+            throw "artifact run is not successful: status=$($run.status) conclusion=$($run.conclusion)"
+          }
+          $artifacts = Invoke-RestMethod -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/runs/$env:RUN_ID/artifacts"
+          $artifact = $artifacts.artifacts | Where-Object { $_.name -like 'wbd-windows-portable-*' -and -not $_.expired } | Select-Object -First 1
+          if (-not $artifact) { throw "matching Windows portable artifact not found in run $env:RUN_ID" }
+          $zip = Join-Path $env:RUNNER_TEMP 'wbd-windows-portable.zip'
+          Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri $artifact.archive_download_url -OutFile $zip
+          $zipHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLowerInvariant()
+          if ($artifact.digest -and ([string]$artifact.digest).StartsWith('sha256:')) {
+            $want = ([string]$artifact.digest).Substring(7).ToLowerInvariant()
+            if ($zipHash -ne $want) { throw "Actions ZIP digest mismatch: got=$zipHash want=$want" }
+          }
+          $dir = Join-Path $env:RUNNER_TEMP 'wbd-physical-portable'
+          if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
+          Expand-Archive -LiteralPath $zip -DestinationPath $dir
+          $exe = Get-ChildItem $dir -Recurse -Filter wbd.exe | Select-Object -First 1
+          if (-not $exe) { throw 'wbd.exe missing from portable artifact' }
+          $exeHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $exe.FullName).Hash.ToLowerInvariant()
+          "wbd_exe=$($exe.FullName)" >> $env:GITHUB_OUTPUT
+          "wbd_sha256=$exeHash" >> $env:GITHUB_OUTPUT
+          Write-Output "WBD_WINDOWS_PHYSICAL_ARTIFACT_PASS source_sha=$env:EXPECTED_SHA run_id=$env:RUN_ID zip_sha256=$zipHash wbd_sha256=$exeHash"
+
+      - name: Run real Npcap capture/injection single-flow qualification
+        shell: pwsh
+        env:
+          WBD_PROFILE_PATH: ${{ inputs.profile_path }}
+          WBD_EXE: ${{ steps.portable.outputs.wbd_exe }}
+          UNINSTALL_AFTER: ${{ inputs.uninstall_after }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $logDir = Join-Path $env:RUNNER_TEMP 'wbd-physical-log'
+          New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+          $log = Join-Path $logDir 'support.jsonl'
+          $args = @(
+            '-NoProfile','-ExecutionPolicy','Bypass','-File','scripts/windows_npcap_physical_qualify.ps1',
+            '-WbdExe',$env:WBD_EXE,
+            '-Profile',$env:WBD_PROFILE_PATH,
+            '-LogPath',$log
+          )
+          if ($env:UNINSTALL_AFTER -eq 'true') { $args += '-UninstallNpcapAfter' }
+          & powershell.exe @args
+          if ($LASTEXITCODE -ne 0) { throw "physical qualification failed with exit code $LASTEXITCODE" }
+
+      - name: Upload physical qualification log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wbd-windows-npcap-physical-${{ inputs.source_sha }}
+          path: ${{ runner.temp }}\wbd-physical-log\support.jsonl
+          if-no-files-found: warn
+          retention-days: 14

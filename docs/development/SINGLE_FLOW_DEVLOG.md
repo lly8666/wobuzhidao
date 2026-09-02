@@ -1,250 +1,326 @@
 # WBD Single-Flow Development Log
 
-This file is the durable repository-side history for the single-public-flow redesign. It exists because chat recovery can truncate long development sessions. It records decisions, experiments, failures, fixes, qualification evidence, and abandoned approaches. The canonical handoff remains `.wbd/handoff/current.json`; this file supplies the detailed history behind that concise checkpoint.
+> Durable engineering history for interrupted-session recovery.
+>
+> This document records decisions, experiments, failures, fixes and qualification evidence. It is not a substitute for live GitHub Actions status. Always live-refresh the active branch and Actions before acting on a historical result.
 
-## Non-negotiable product invariant
+## 0. Current product authority
 
-As clarified by the user on 2026-08-29, one WBD VPN session must expose exactly one TCP-shaped public flow for its full lifetime:
+The current product authority is **ADR-0011 + ADR-0012**.
 
-- one public 4-tuple;
-- one SYN/SYNACK/ACK lineage;
-- FakeTCP owns public TCP-shaped sequence space from the initial SYN;
-- the first seconds carry a Reality-like / TLS-1.3-like authenticated bootstrap on that same association;
-- the setup-to-data transition does not FIN, close, reconnect, or create another SYN;
-- after the transition, the same association carries pinned wolfSSL DTLS 1.3, immutable LINK, and optional FEC;
-- sustained VPN payload must not inherit ordinary kernel-TCP reliable-stream head-of-line blocking.
+The word **single-flow** applies to each independent **Transport Lane**, not to the entire Logical Tunnel.
 
-A separate kernel-TCP Reality admission connection followed by a second FakeTCP connection is therefore retired architecture, even if the two are linked by a ticket.
+Each Transport Lane owns exactly one public TCP-shaped lineage:
 
-## Historical baseline before the architecture correction
+```text
+one raw FakeTCP SYN / one public 4-tuple / one FakeTCP sequence space
+  -> bounded reliable ordered bootstrap on that same association
+  -> real TLS 1.3 Reality-like setup, Firefox120 uTLS persona where practical
+  -> protected admission / lane identity
+  -> explicit in-band bootstrap barrier
+     (no FIN, no RST, no reconnect, no second SYN for that lane)
+  -> pinned wolfSSL DTLS 1.3 on the same FakeTCP association
+  -> LINK
+  -> FEC off or fixed systematic 20:20
+  -> packet/datagram VPN payload without ordinary kernel-TCP HOL
+```
 
-The project originally treated the Reality-like front as setup-only admission and FakeTCP as a separate sustained data connection. Windows ran the Reality-like bootstrap synchronously, read a one-time ticket, closed that connection, then started FakeTCP/DTLS/LINK/TUN. Linux simultaneously exposed a kernel TCP Reality-like listener and a raw FakeTCP listener on the same public port.
+A connected **Logical Tunnel may own 1..4 independent complete Transport Lanes**. Each lane has its own public 4-tuple, FakeTCP sequence space, TLS bootstrap, DTLS state, LINK association and loss/recovery state. No FakeTCP sequence, DTLS nonce/record state or FEC state is shared across lanes.
 
-This design preserved the important rule that sustained VPN data never ran inside ordinary TCP, but it created two unrelated public flows. NAT, conntrack and DPI saw two connections rather than one continuous connection. That contradicted the user's original requirement once it was restated explicitly.
+For Game/latency racing, one logical PacketID may be transmitted over multiple independent lanes; the first valid complete arrival wins and later copies are suppressed. This is a product-layer race, not a shared TCP/FakeTCP sequence space.
 
-## Linux/shared-port and early physical qualification
+Hard rules:
 
-The Linux server path was made self-contained for amd64/arm64 and validated on a real Ubuntu ARM64 host. Important fixes included resolving wildcard raw-listen addresses to a concrete local IPv4 for FakeTCP and making release checksum generation portable.
+- FakeTCP owns each public lane from its first SYN.
+- There is no preliminary ordinary kernel-TCP Reality product connection before a lane.
+- Reality-like TLS setup occurs inside the same FakeTCP association that later carries DTLS/LINK payload.
+- Reliable ordered semantics exist only during the bounded TLS/bootstrap adapter and are destroyed at the barrier.
+- Post-barrier, later independently complete authenticated datagrams must be able to progress while an earlier FakeTCP sequence range is missing; steady payload must not inherit ordinary kernel-TCP HOL.
+- The mature FakeTCP ACK/SACK/RTO/recovery/FEC core is frozen unless deterministic lower-layer evidence isolates a defect.
+- Logical Tunnel lifecycle may add/remove/replace independent lanes (including make-before-break) while preserving tunnel identity/address lease.
+- Physical Windows testing is final acceptance only; it must not be used as the primary debugging loop while hosted Windows/Linux qualification is red or incomplete.
 
-A physical server was observed running:
+### Withdrawn interpretation
 
-- Reality-like front on public 443;
-- FakeTCP raw listener on the concrete server IPv4:443;
-- LINK mux on loopback;
-- platform proxy on loopback.
+An earlier repository interpretation treated ADR-0014 as meaning **one public WBD flow for the entire Logical Tunnel** and prohibited simultaneous independent lanes. That interpretation is withdrawn and is retained only as historical context. It must not be used to remove ADR-0012 multipath/lifecycle behavior.
 
-A secondary security issue was discovered: process argv shown by systemd could expose Reality authentication material. Secrets must not be repeated in logs; moving credentials off argv remains a later hardening task.
+## 1. Historical architecture that was rejected
 
-## FakeTCP worker-start A/B/C/D experiments
+The earlier V2 implementation used two unrelated public connections:
 
-A major RTT100 failure was initially misdiagnosed as an inherited nonblocking fd problem. Exact code/log inspection corrected the root cause: the old mux started a per-session wolfSSL DTLS worker synchronously while handling SYN, so SYNACK latency was coupled to process creation and a worker that could already be waiting for data while the test harness was still waiting for FakeTCP readiness.
+```text
+ordinary kernel TCP Reality-like TLS bootstrap
+  -> account auth
+  -> one-time ticket
+  -> close TCP
 
-Experiments:
+then
 
-### A — lazy worker after final ACK
+new raw FakeTCP SYN
+  -> DTLS
+  -> LINK ticket bind
+  -> payload
+```
 
-- SYN created only a lightweight association.
-- SYNACK was sent immediately.
-- worker creation moved to valid final ACK.
-- a data-bearing final ACK was allowed to fall through into normal segment processing.
+This was internally ticket-correlated but externally two separate TCP flows. NAT, conntrack, firewall and DPI therefore saw two unrelated lineages. It also created a server shared-port conflict: an ordinary kernel TCP listener and a raw FakeTCP listener both reacted to traffic on the public WBD port.
 
-Network behavior improved, but a SYN that never completed ACK could occupy the session table indefinitely because no worker timeout existed yet.
+The product requirement is instead: **within every Transport Lane**, public observers see one continuous TCP-looking connection, the opening seconds are Reality-like/TLS-like, and steady payload remains free of ordinary TCP HOL.
 
-### B — SYNACK before worker startup
+Do not revive `Reality TCP -> close -> new FakeTCP SYN` as a shortcut.
 
-- SYNACK was emitted immediately;
-- worker still started for every half-open SYN afterward.
+## 2. Useful pre-single-flow transport work retained
 
-This was stable but resource-expensive under half-open traffic.
+The dual-flow era still produced transport fixes that remain valuable because they are below the architecture boundary.
 
-### C — worker on first established payload
+### 2.1 FakeTCP final-ACK and DTLS-worker startup
 
-This avoided spawning a worker for pure final ACK but created another leak shape: an ACK-only established association with no payload could occupy the table indefinitely. RTT100 also exposed a client `interrupted system call` failure.
+Historical fixes included:
 
-### D — final-ACK worker + half-open expiry + EINTR robustness
+- accepting a data-bearing final ACK instead of requiring an empty final ACK;
+- ensuring a successful final ACK falls through to normal segment delivery so first payload is not discarded;
+- decoupling SYNACK latency from wolfSSL worker process creation;
+- starting the DTLS worker after the FakeTCP association is established;
+- adding half-open association expiry and stale-session pointer matching so old timers cannot delete a new connection reusing a 4-tuple;
+- retrying Linux raw receive on `EINTR`;
+- forcing inherited DTLS worker descriptors to blocking mode in the native child;
+- adding DTLS stage markers (`PEEK`, `HRR`, `ACCEPT`) and FakeTCP raw TX/RX boundary markers.
 
-D became the best version of the old dual-flow mux behavior:
+Representative historical experiment winner was the D line around `10df2b0436411797e73352008db20d392bc5a8d6`, which passed repeated RTT100 mux load before the architecture pivot. These results validate the mature TCP-like core but do not validate the retired two-public-flow product topology.
 
-- lightweight association on SYN;
-- immediate SYNACK;
-- worker after valid final ACK;
-- data-bearing final ACK falls through and preserves payload;
-- half-open expiry after 25 seconds;
-- stale timer/worker cleanup uses expected-session pointer matching so an old goroutine cannot delete a new incarnation that reused a tuple;
-- Linux raw receives transparently retry EINTR;
-- server mux raw receive also retries EINTR;
-- relay/worker teardown became nil-safe.
+### 2.2 Npcap send path
 
-D passed repeated RTT100 qualification and the 40 Mbit release point. These low-level robustness lessons remain useful in the single-flow architecture even though D itself still assumed a separate Reality setup connection.
+A Windows-specific bug was found in Npcap mode setup: code had used `pcap_setmode(handle, 0)` while intending to clear global `SendToRxAdapters`. Npcap 1.88 defines the explicit clear flag as `MODE_SENDTORX_CLEAR = 0x0200`. The Windows path was changed to request the clear mode and fail fast instead of silently continuing with a possibly looped-back injection path.
 
-## Windows readiness/lifecycle work
+Marker:
 
-A real Windows self-test showed the old runtime launching FakeTCP, DTLS, LINK and TUN almost simultaneously. DTLS could start hundreds of milliseconds before FakeTCP was actually ready. Routes and the IPv6 kill-switch could be applied before LINK was usable, causing a false `connect_pass` followed by DNS/UDP/TCP timeouts.
+```text
+WBD_FAKETCP_WINDOWS_NPCAP_MODE_READY sendtorx=cleared
+```
 
-The validated lifecycle order became:
+### 2.3 Weak-network qualification philosophy
 
-1. FakeTCP READY;
-2. DTLS READY;
-3. LINK `WBD_LINK_READY`;
-4. TUN `WBD_TUN_READY`;
-5. IPv6 kill-switch;
-6. route apply;
-7. only then connected/pass.
+Do not weaken release criteria to hide a tail retransmission. A historical `faketcp-native` 999/1000 run occurred while RTO had backed off beyond the probe wait window; the natural rerun passed 1000/1000 with SACK/FastRetransmit/RTO exercised. No recovery-algorithm change was made from that single stochastic edge result.
 
-This readiness design must remain in the single-flow product. Current PR #9 has `Executor.StartAfterFakeTCP()` and per-process readiness markers, so the latest branch has already restored this lesson.
+The conservative release operating point remains 40 Mbit/s aggregate inner payload on <=100 Mbit/s weak links; higher 60/80 Mbit points are headroom, not the release contract.
 
-Secondary Windows lifecycle issues remain:
+## 3. Hosted DTLS / certificate / NAT experiments before the architecture pivot
 
-- PowerShell 5.1 UTF-8 BOM can make route-state JSON fail Go `json.Unmarshal` with `invalid character 'ï'`;
-- stopping an already exited LINK child can report `TerminateProcess: Access is denied`; Stop should be idempotent.
+### 3.1 Real CA + hostname DTLS mux environment
 
-## DTLS certificate/inherited-worker sandbox
+A Linux namespace test was upgraded from `none none` certificate arguments to a temporary CA and SAN certificate for `wbd.test`, using pinned wolfSSL and the real `wbd_dtls_shim` through the same FakeTCP mux/inherited-worker path.
 
-To stop using the physical machine as the primary debugger, a Linux namespace sandbox was built with:
+Two independent clients completed FakeTCP association, inherited DTLS worker startup, wolfSSL DTLS 1.3, CA/hostname verification and bidirectional UDP echo. Server stages included:
 
-- a temporary CA;
-- SAN `wbd.test` service certificate;
-- the same pinned wolfSSL build;
-- real `wbd_dtls_shim`;
-- FakeTCP mux;
-- inherited UDP worker fd;
-- two simultaneous clients;
-- CA + hostname verification;
-- bidirectional UDP echo.
+```text
+PEEK -> HRR -> ACCEPT -> DTLSv1.3 READY
+```
 
-This ran successfully and observed full DTLS 1.3 server stages. Therefore the Linux inherited-worker, pinned wolfSSL, certificate verification, and bidirectional DTLS payload path are viable.
+This ruled out the Linux inherited-DTLS/CA path as the generic cause of earlier physical DTLS timeout.
 
-## NAT/RST investigation
+### 3.2 Kernel RST + NAT A/B
 
-A NAT namespace A/B test confirmed that a host kernel can generate RST packets for raw TCP-shaped traffic. RST allow and RST suppression variants both completed FakeTCP + DTLS in that harness, so a blanket Windows firewall RST guard was not justified as the root-cause fix.
+A namespace NAT experiment confirmed that a host kernel can generate RST for raw FakeTCP-shaped traffic. Allowing generated RST through NAT and suppressing it before the router both completed FakeTCP + DTLS in that hosted topology. The evidence did not justify a broad Windows RST firewall workaround.
 
-A real Npcap bug was found independently: code used `pcap_setmode(handle, 0)` while claiming it cleared SendToRx behavior. In Npcap 1.88, `MODE_SENDTORX_CLEAR` is `0x0200`. The corrected behavior is to require the export, call mode `0x0200`, fail fast on error, and emit `WBD_FAKETCP_WINDOWS_NPCAP_MODE_READY sendtorx=cleared`. Current PR #9 contains this fix.
+### 3.3 Shared kernel-TCP:443 + raw FakeTCP:443 experiment
 
-## Real physical evidence before the architecture pivot
+When a real kernel TCP listener and raw FakeTCP mux were deliberately placed on the same server port behind NAT, hosted CI reproduced the physical failure shape:
 
-At least one Windows -> Ubuntu ARM64 run progressed through:
+```text
+FakeTCP client READY
+DTLS client CONNECT_START
+server mux has no DTLS BOUND/PEEK
+DTLS timeout
+```
 
-- Reality authentication;
-- FakeTCP READY;
-- DTLS server PEEK/HRR/ACCEPT PASS;
-- DTLS server READY;
-- `WBD_LINK_MUX_SESSION_READY`.
+This was strong evidence against the retired dual-listener architecture and supported moving Reality-like setup into the FakeTCP-owned association itself.
 
-Later rapid attempts often showed Windows FakeTCP READY and DTLS CONNECT_START while the server never spawned/reached the per-session DTLS worker. This proved the lower layers could interoperate physically, but it also motivated increasingly faithful NAT/shared-port sandboxes.
+## 4. Architecture pivot: single public flow per Transport Lane
 
-## Shared kernel TCP 443 + raw FakeTCP 443 reproduction
+The chosen architecture is not kernel-TCP takeover. FakeTCP owns each lane's sequence space from SYN and provides a temporary reliable ordered byte-stream adapter only for TLS/bootstrap. This avoids the cross-platform problem of stealing an established kernel TCP sequence space while preserving one-visible-flow-per-lane semantics.
 
-A stricter namespace/NAT harness added a real kernel TCP:443 listener at the same server port as raw FakeTCP. It reproduced the physical failure shape: FakeTCP client reported READY, DTLS client started, but server mux did not create the DTLS worker.
+Conceptually:
 
-Experiments around tuple reuse, session reincarnation and SYNACK isolation were useful diagnostics, but the more important conclusion was architectural: the old design forced a kernel TCP state machine and a raw TCP-shaped state machine to coexist around the same WBD public port while the client itself created two independent public connections.
+```text
+raw FakeTCP SYN / SYNACK / ACK
+        |
+        | same public 4-tuple + same FakeTCP sequence space
+        v
+bounded reliable ordered bootstrap stream
+        |
+        +-- real TLS 1.3
+        +-- Firefox120 uTLS-style ClientHello persona where practical
+        +-- configured SNI
+        +-- WBD recognition-compatible marker
+        +-- protected account/admission exchange
+        |
+        v
+explicit bootstrap barrier
+        |
+        | no FIN / RST / reconnect / second SYN for the lane
+        v
+DTLS 1.3 datagram phase -> LINK/FEC/VPN
+```
 
-When the user restated the requirement that the entire WBD session must be one TCP-looking connection, continuing to optimize this dual-flow topology was rejected.
+The opening reliable adapter may temporarily exhibit stream HOL because TLS requires ordered bytes. That bounded setup HOL ends at the barrier. Steady VPN payload retains datagram earliest-complete behavior.
 
-## Single-flow architecture pivot
+A Logical Tunnel may instantiate 1..4 such complete lanes. Lane independence is mandatory; multipath does not merge their TCP-like sequence spaces.
 
-The chosen architecture is not kernel-TCP takeover. Taking a fully established Windows/Linux kernel TCP socket and then attempting to steal its exact sequence/ack state for raw FakeTCP would be platform-specific and would risk leaving normal TCP retransmission/HOL semantics in control.
+## 5. Physical single-flow evidence already observed
 
-Instead, FakeTCP owns the public flow from SYN.
+These are historical snapshots, not current release qualification.
 
-### Phase 1: bounded reliable bootstrap
+### 5.1 Physical Ubuntu ARM64 reached steady state
 
-FakeTCP exposes a temporary reliable ordered byte-stream adapter only for setup. A real TLS 1.3 / Reality-like marker and admission exchange run over this adapter. Small setup traffic may retransmit/order bytes because setup latency is bounded and short.
+A physical single-flow server run reached:
 
-### In-band transition
+```text
+WBD_SINGLE_FLOW_BOOTSTRAP_READY ... same_flow=1
+BOUND role=server ... inherited=yes
+WBD_DTLS_SERVER_PEEK ...
+WBD_DTLS_SERVER_HRR_ARMED
+WBD_DTLS_SERVER_ACCEPT_START
+WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3 ...
+READY role=server version=DTLSv1.3 ...
+WBD_LINK_MUX_SESSION_READY ...
+```
 
-After authentication, both sides remain on the same public tuple and FakeTCP incarnation. There is no FIN, close, RST or new SYN. Setup state is retired and the transport changes role in-band.
+This proves same-flow bootstrap -> DTLS -> LINK has worked on physical Ubuntu.
 
-### Phase 2: no-HOL datagram data plane
+### 5.2 Historical Windows Npcap ingress failure
 
-Pinned wolfSSL DTLS 1.3 and immutable LINK/FEC operate on datagrams over the same FakeTCP association. Steady-state delivery must not wait for earlier missing outer segments merely to preserve a global byte stream. Unit tests include the requirement that later post-bootstrap datagrams remain deliverable across an earlier sequence hole.
+A later physical Windows self-test produced:
 
-## PR #9 implementation line
+```text
+WBD_FAKETCP_WINDOWS_NPCAP_MODE_READY sendtorx=cleared
+wbd-faketcp handshake: faketcp: not ipv4/tcp
+wait for single-flow Reality ticket: ticket readiness timeout
+```
 
-The active implementation branch is `feat/single-flow-reality-faketcp`, PR #9, titled `Single-flow Reality-like bootstrap over FakeTCP`.
+A real Npcap adapter can return unrelated ARP/IPv6/UDP/unrelated TCP frames while the FakeTCP handshake waits. Production code subsequently added ingress filtering so unrelated traffic is discarded before FakeTCP parsing. Do not assume this historical failure describes the current candidate.
 
-By head `904ad0aa5db615c61ef12ed8b3c0b6f9c0fa3a6e`, it already contained:
+### 5.3 Physical test policy
 
-- one FakeTCP-owned public flow from SYN;
-- bounded reliable bootstrap stream;
-- Reality-like TLS 1.3 bootstrap on the same association;
-- same-flow ticket output;
-- server mux bootstrap before inherited DTLS worker;
-- Linux manager using one raw WBD public ingress for WBD sessions;
-- Windows integration without a preliminary public Reality socket;
-- architecture/constitution rewrite and ADR-0011;
-- bootstrap/no-HOL unit tests;
-- a dedicated `single-flow-e2e` workflow.
+Do not hand out another Windows/Linux artifact pair because one narrow single-flow test passes. The exact candidate HEAD must first pass the complete hosted Windows/Linux qualification matrix. Only then request physical Windows 11 + Npcap/NIC/NAT/ISP -> Ubuntu ARM64 acceptance.
 
-This branch, not PR #8, is the correct forward implementation line. PR #8 is historical/cherry-pick material only.
+## 6. Authority-conflict recovery history
 
-## Single-flow E2E qualification evolution
+Interrupted sessions exposed contradictory repository state: single-flow-per-lane work, ADR-0012 multipath lifecycle, a temporary global-one-lane ADR-0014 interpretation, roadmap text and handoff tests were not aligned.
 
-Early `single-flow-e2e` failures were harness failures rather than product transport failures.
+Several repair commits restored machine-readable recovery and revealed that some failures were authority/test failures rather than data-plane failures. Later reconciliation reaffirmed ADR-0012 multipath and withdrew the global-one-lane interpretation. Historical ADR-0014 material must therefore be read as superseded context, not current product authority.
 
-### Ticket permission failure
+Relevant durable reconciliation files include:
 
-The FakeTCP client ran as root inside a namespace and correctly wrote the ticket as root-owned mode 0600. The workflow attempted to read/upload it as the normal runner user. The fix was to validate ticket existence/length with sudo and not upload the secret ticket.
+- `docs/development/2026-08-31-adr0014-globalization-rollback.md`;
+- `docs/development/2026-08-31-adr0012-multipath-reaffirmation.md`;
+- `docs/development/2026-08-31-contract-reconciliation.md`.
 
-### Missing observability marker
+## 7. Exact-head release qualification infrastructure
 
-At head `904ad0aa...`, evidence artifact 9709741957 showed:
+Many expensive Windows/Linux workflows use path filters. A docs-only or upper-layer fix can therefore appear to have no red gates simply because release workflows did not run.
 
-- client `WBD_SINGLE_FLOW_BOOTSTRAP_READY ... same_flow=1`;
-- client FakeTCP READY with `single_flow_bootstrap=true`;
-- server matching single-flow bootstrap READY;
-- server `BOUND role=server`;
-- server `READY role=server version=DTLSv1.3`;
-- client `READY role=client version=DTLSv1.3`;
-- a non-empty public capture.
+`release-qualification-kick.yml` and `docs/development/QUALIFICATION_KICK.md` exist to prevent that ambiguity.
 
-The workflow still failed because it waited for the mature marker `WBD_DTLS_SERVER_ACCEPT_PASS`, which the branch's older shim did not emit. This was an observability regression, not evidence that the same-flow TLS->DTLS transition failed.
+For one immutable candidate HEAD, the aggregator dispatches 18 product workflows and requires 9 exact-head push gates. It rejects older successes, PR merge SHAs, merely-started jobs, mixed candidate SHAs and branch movement during qualification.
 
-### Current qualification fixes, 2026-08-29
+The dispatched product set covers, among others:
 
-Two isolated commits were made after sequence-61 handoff:
+- combined `windows-linux-single-flow.yml`;
+- Windows portable/TUN/admin/raw-IP/persona/IPv6/DTLS gates;
+- Linux release/firewall gates;
+- single-flow raw-IP/startup/LINK fullstack;
+- FakeTCP recovery;
+- OpenWrt regression;
+- Game 1..4-lane product lifecycle;
+- shared-TUN two-client lifecycle.
 
-- `c8926b44b1632a7bfd9740a6dc20ae513f48c3b0` — reuse the already validated PR #8 DTLS shim blob, restoring child-side blocking and CONNECT/PEEK/PEER_SET/HRR/ACCEPT stage markers without changing wire behavior.
-- `0e35c237356437e6d0db11c15ab9e2c24e7fed61` — make `single-flow-e2e` wait until tcpdump reports `listening on vc` before starting the server mux/public flow, preventing the only SYN and early TLS packets from racing capture attachment.
+The exact-head push set includes main CI, FakeTCP native/pcap/first-arrival, fullstack first-arrival, OpenWrt TCP TPROXY, single-flow E2E/no-HOL/TCP persona.
 
-The branch is intentionally frozen on this head while the new qualification run executes.
+Artifacts may be handed to the user only after the exact candidate passes this hosted matrix and matching Windows/Linux bundles identify the same source SHA.
 
-## Current Windows state at PR #9 latest audit
+## 8. 2026-09-01 recovery and release-repair cycle
 
-The latest branch already contains the mature items that older notes once described as missing:
+### 8.1 Live candidate compile blocker
 
-- `Executor.StartAfterFakeTCP()` waits for the prestarted single-flow FakeTCP process to emit readiness;
-- DTLS, LINK and TUN are then started and individually waited on;
-- IPv6 and routes are not mutated until all child layers are ready;
-- Npcap uses `MODE_SENDTORX_CLEAR=0x0200` and fails fast if the mode cannot be applied.
+Recovered feature head:
 
-Do not re-port these a second time.
+```text
+3124abfb1d8370619dc724f9f796a7fd4192865b
+```
 
-## RTT100 mux-load status at head 904ad0aa
+Both Linux ARM64 and AMD64 release builds failed at compile time:
 
-This is a separate high-load issue and must not be conflated with the single-flow E2E gate.
+```text
+internal/gamelane/control.go:56:10: undefined: ErrLanes
+internal/gamelane/control.go:61:11: undefined: ErrLanes
+```
 
-Observed bench(100):
+`internal/gamelane/control_test.go` already expected `errors.Is(err, ErrLanes)`. `internal/gamelane/gamelane.go` defined lane limits but the sentinel error had been removed during upper-layer refactoring.
 
-- 40 Mbit/s off: roughly 80.4% delivery / ~32.17 Mbit/s goodput;
-- 40 Mbit/s FEC20:20: 100% delivery / ~39.994 Mbit/s goodput;
-- 60 Mbit/s off: roughly 80.18% delivery / ~48.11 Mbit/s;
-- 60 Mbit/s FEC20:20: roughly 75.304% delivery / ~45.18 Mbit/s in that run;
-- 80 Mbit/s off: roughly 59.0% delivery / ~47.20 Mbit/s;
-- 80 Mbit/s FEC20:20: failed before benchmark because a second FakeTCP client did not reach READY within the workflow deadline.
+Fix:
 
-The release target remains 40 Mbit/s aggregate-inner on <=100 Mbit/s weak links. The 40M+FEC release point still passed. 60/80M behavior is headroom regression and will be debugged after the single-flow qualification gate becomes truthful and green. Do not weaken the 40M release invariant and do not change recovery algorithms merely to hide the 60/80 result.
+```text
+604996ae3344c6f43464ecacaa3b9934c790cca5
+fix: restore Game lane membership error
+```
 
-## Durable-work rules
+Only `ErrLanes = errors.New("gamelane: invalid lane membership")` was restored. No FakeTCP/TCP-like/DTLS/FEC wire behavior changed.
 
-For future development sessions:
+### 8.2 Game matrix artifact executable-bit blocker
 
-1. Refresh canonical handoff, active PR head, and current Actions before editing.
-2. Read this file and the Drive document `WBD 开发历程与实时结论` if chat history is incomplete.
-3. Append deterministic failures, conclusions, commits and qualification evidence here/Drive as work proceeds.
-4. Do not call a queued or in-progress workflow successful.
-5. Do not hand a new Windows/Linux package to the user until sandbox/integration qualification is green.
-6. Before a development turn ends, update Google Drive and write the next canonical GitHub handoff sequence.
+After the compile repair, the Game runtime matrix failed before network behavior because downloaded Actions artifacts lost Unix executable bits:
 
-## Next action at time of this entry
+```text
+exec of ".../wbd-game-lane-server" failed: Permission denied
+```
 
-Wait for the `0e35c237...` single-flow E2E run. If it passes, preserve that evidence and move to the RTT100 headroom investigation. If it fails, inspect the first deterministic failure and artifact before changing code. Do not change the single-flow wire unless the evidence specifically requires it.
+First CI fix:
+
+```text
+54209c78d1268a3133d29d70002e23d80720e93e
+ci: restore executable bits for Game lane artifacts
+```
+
+This restored `wbd-*` executable bits. The next run progressed farther: single-flow bootstrap completed and the server/mux started, but DTLS activation then failed because the native shim uses an underscore name and was not matched by `wbd-*`:
+
+```text
+WBD_SINGLE_FLOW_DTLS_ACTIVATE_FAIL ... wbd_dtls_shim: permission denied
+```
+
+Second CI fix:
+
+```text
+f20dbb7963a9657b973ad836afeb72081c2caa48
+ci: restore DTLS shim executable bit
+```
+
+The workflow now restores executable bits for both `wbd-*` and `wbd_dtls_shim` before the 1/2/3/4-lane + fixed-20:20 smoke matrix runs.
+
+Again, this is qualification infrastructure only; the TCP-like core remains unchanged.
+
+### 8.3 Release authority for this cycle
+
+Do not deliver artifacts from `3124abfb`, `604996ae`, `54209c78` or `f20dbb79` merely because a subset of checks is green. After deterministic pre-kick failures are repaired and the development log is current, create a fresh final commit by updating `docs/development/QUALIFICATION_KICK.md`, freeze that exact feature HEAD, and require `release-qualification-kick` to certify all exact-head child workflows.
+
+## 9. Development discipline
+
+1. Live-refresh branch and Actions before every continuation.
+2. Read canonical `.wbd/handoff/current.json`, this devlog and the dated reconciliation logs after interruption.
+3. Treat ADR-0011 + ADR-0012 as current product authority: one public single-flow association per Transport Lane; 1..4 independent lanes per Logical Tunnel.
+4. Treat the global-one-lane ADR-0014 interpretation as withdrawn historical context.
+5. Keep TCP-like/FakeTCP ACK/SACK/RTO/recovery/FEC frozen unless a deterministic lower-layer gate isolates a core defect.
+6. Fix the first deterministic failing layer only.
+7. Update this log with important experiments and failed hypotheses so later sessions do not repeat them.
+8. End a development cycle with an updated machine-readable handoff on the canonical branch.
+9. Never call queued/in-progress Actions green.
+10. Never deliver physical-test artifacts while the same-head hosted Windows/Linux release matrix is incomplete or red.
+
+## 10. Immediate next action
+
+1. Let `f20dbb7963a9657b973ad836afeb72081c2caa48` run far enough to verify that the Game 1..4-lane/FEC-smoke matrix has progressed past artifact permissions.
+2. Inspect the first deterministic red anywhere on the current feature HEAD; repair only that layer.
+3. Once ordinary pre-kick checks show no known deterministic blocker, update `docs/development/QUALIFICATION_KICK.md` as the **last feature-branch commit**.
+4. Freeze the resulting candidate HEAD while `release-qualification-kick` dispatches and validates its 27 exact-head child gates.
+5. On any child failure, record the evidence here, fix it, and produce a new kick/candidate; never mix evidence from different SHAs.
+6. If exact-head qualification is fully green, fetch and verify the Windows x64 portable and Linux ARM64 release artifacts from that exact SHA.
+7. Update canonical handoff with candidate SHA, qualification run IDs, results and artifact digests; verify handoff green.
+8. Only then provide the matching artifacts for final physical Windows-to-Ubuntu acceptance.

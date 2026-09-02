@@ -1,0 +1,3 @@
+WBD exact-head qualification stamp
+parent=988efa8f51f711e162dc33db864b655b6c29ade7
+purpose=trigger Windows FakeTCP/persona/TUN and shared-TUN/single-flow candidate gates without changing runtime behavior
