@@ -51,6 +51,8 @@ one raw FakeTCP SYN lineage / 4-tuple / sequence space
   -> packet/datagram payload without ordinary kernel-TCP HOL
 ```
 
+The sustained outer WBD payload has **no ordinary kernel-TCP HOL**.
+
 Forbidden:
 
 - ordinary kernel TCP as sustained outer WBD carrier;
