@@ -32,44 +32,52 @@ func requireNotContains(t *testing.T, body, forbidden, label string) {
 	if strings.Contains(body, forbidden) { t.Fatalf("%s contains forbidden release-contract marker %q", label, forbidden) }
 }
 
-func TestHumanAuthorizedGlobalSingleFlowAuthority(t *testing.T) {
+func TestADR0012MultipathAuthority(t *testing.T) {
 	policy := readRepoFile(t, "internal/logicaltunnel/logicaltunnel.go")
 	requireContains(t, policy, "MinProductPublicTransportLanes = 1", "Logical Tunnel transport policy")
-	requireContains(t, policy, "MaxProductPublicTransportLanes = 1", "Logical Tunnel transport policy")
-	requireContains(t, policy, "shipping product requires exactly one active public transport", "Logical Tunnel transport policy")
+	requireContains(t, policy, "MaxProductPublicTransportLanes = 4", "Logical Tunnel transport policy")
+	requireContains(t, policy, "Normal mode targets one lane; Game/weak-network mode may use 2..4 lanes", "Logical Tunnel transport policy")
 
-	adr15 := readRepoFile(t, "docs/architecture/ADR-0015-human-authorized-global-single-public-flow.md")
+	adr12 := readRepoFile(t, "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md")
 	for _, want := range []string{
-		"HUMAN PRODUCT-OWNER AUTHORITY",
-		"EXACTLY ONE simultaneous public WBD FakeTCP association",
-		"same public FakeTCP association",
-		"no FIN/RST/reconnect/new SYN",
-		"break-before-make",
-		"post-bootstrap no-HOL hole-bypass",
-	} { requireContains(t, adr15, want, "ADR-0015") }
+		"ACCEPTED / CURRENT LIFECYCLE AND MULTIPATH AUTHORITY",
+		"single-flow is a per-Transport-Lane invariant",
+		"1..4 independent complete WBD Transport Lanes",
+		"A fifth simultaneously active product Transport Lane is rejected",
+		"make-before-break",
+	} { requireContains(t, adr12, want, "ADR-0012") }
+
+	for _, path := range []string{
+		"docs/architecture/ADR-0013-global-single-public-flow-release-freeze.md",
+		"docs/architecture/ADR-0014-global-single-flow-reality-like-bootstrap-final-freeze.md",
+		"docs/architecture/ADR-0015-human-authorized-global-single-public-flow.md",
+	} {
+		body := readRepoFile(t, path)
+		requireContains(t, body, "WITHDRAWN", path)
+	}
 
 	constitution := readRepoFile(t, "PROJECT_CONSTITUTION.md")
 	for _, want := range []string{
-		"GLOBAL FOR ONE CONNECTED LOGICAL TUNNEL",
-		"exactly 1 public WBD flow",
-		"A second simultaneous WBD public transport",
-		"break-before-make",
-		"no ordinary-TCP ordered-delivery HOL",
+		"single-flow is PER TRANSPORT LANE",
+		"Logical Tunnel may own 1..4 independent complete WBD Transport Lanes",
+		"Game Lane is a product multipath mechanism",
+		"A -> A+B -> B",
+		"no ordinary kernel-TCP HOL",
 	} { requireContains(t, constitution, want, "project constitution") }
-	requireNotContains(t, constitution, "Game / weak-network:     desired 2..4", "project constitution")
 
 	architecture := readRepoFile(t, "ARCHITECTURE.md")
 	for _, want := range []string{
-		"exactly one public TCP-shaped association",
+		"1..4 independent replaceable Transport Lanes",
 		"one raw FakeTCP SYN lineage",
-		"no FIN/RST/reconnect/new WBD payload SYN",
-		"post-bootstrap no-HOL hole-bypass",
+		"no FIN/RST/reconnect/new WBD payload SYN inside that lane",
+		"packet/datagram payload without ordinary kernel-TCP HOL",
 	} { requireContains(t, architecture, want, "architecture") }
 }
 
-func TestWindowsShippingProfileAndLifecycleCannotCreateSecondPublicFlow(t *testing.T) {
+func TestWindowsShippingProfileAndLifecycleUsePerLaneSameFlowMultipath(t *testing.T) {
 	plan := readRepoFile(t, "internal/windowsruntime/plan.go")
 	requireContains(t, plan, "ValidateProductTransportLaneCount(p.Lanes)", "Windows profile validation")
+	requireContains(t, plan, "Game/weak-network policy may request 2..4", "Windows profile lane policy")
 
 	controller := readRepoFile(t, "internal/windowsruntime/controller.go")
 	if strings.Contains(controller, "run:reality-bootstrap") || strings.Contains(controller, "c.runner.Run(bootstrap)") {
@@ -78,18 +86,19 @@ func TestWindowsShippingProfileAndLifecycleCannotCreateSecondPublicFlow(t *testi
 	requireContains(t, controller, "BuildLaneBootstrap", "Windows controller same-flow bootstrap")
 
 	lifecycle := readRepoFile(t, "internal/windowsruntime/controller_lifecycle.go")
-	requireContains(t, lifecycle, "global single-flow replacement requires break-before-make Disconnect then Connect", "Windows lifecycle")
-	requireContains(t, lifecycle, "overlapping candidate public transport is forbidden", "Windows lifecycle")
-	requireNotContains(t, lifecycle, "candidate lane %d Game promotion", "Windows shipping replacement")
+	requireContains(t, lifecycle, "Wake recreates the configured 1..4 Transport Lanes", "Windows wake lifecycle")
+	requireContains(t, lifecycle, "same-logical-ID make-before-break", "Windows replacement lifecycle")
+	requireContains(t, lifecycle, "candidate lane %d Game promotion", "Windows candidate promotion")
+	requireContains(t, lifecycle, "PromoteSameIDReplacement", "Windows generation fence")
 }
 
-func TestLinkServerCapsOneConcurrentPublicTransportPerTunnel(t *testing.T) {
+func TestLinkServerCapsFourConcurrentPublicTransportsPerTunnel(t *testing.T) {
 	body := readRepoFile(t, "cmd/wbd-link-server-mux/logical_tunnel.go")
 	requireContains(t, body, "activeTunnelPeers", "LINK Logical Tunnel transport set")
 	requireContains(t, body, "MaxProductPublicTransportLanes", "LINK Logical Tunnel transport limit")
-	requireContains(t, body, "errTransportLaneLimit", "LINK Logical Tunnel second-transport limit")
+	requireContains(t, body, "errTransportLaneLimit", "LINK Logical Tunnel fifth-transport limit")
 	policy := readRepoFile(t, "internal/logicaltunnel/logicaltunnel.go")
-	requireContains(t, policy, "MaxProductPublicTransportLanes = 1", "LINK transport ceiling")
+	requireContains(t, policy, "MaxProductPublicTransportLanes = 4", "LINK transport ceiling")
 }
 
 func TestSameAssociationRealityLikeBootstrapRemainsProductPath(t *testing.T) {
