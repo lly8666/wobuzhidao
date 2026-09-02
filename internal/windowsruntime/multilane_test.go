@@ -22,35 +22,52 @@ func testAuthenticatedTunnel() logicaltunnel.TunnelConfig {
 	return logicaltunnel.TunnelConfig{TunnelID: logicaltunnel.TunnelID("11223344556677889900aabbccddeeff"), Address4:"10.66.0.1/32", Routes4:[]string{"0.0.0.0/0"}}
 }
 
-func TestProductProfileAcceptsExactlyOnePublicTransport(t *testing.T) {
-	p := testProfile(); p.Lanes = 1
-	if err := p.Validate(); err != nil { t.Fatalf("single product public transport rejected: %v", err) }
-	for _, lanes := range []int{-1,2,3,4,5} {
+func TestProductProfileAcceptsOneToFourPublicTransports(t *testing.T) {
+	for _, lanes := range []int{0, 1, 2, 3, 4} {
 		p := testProfile(); p.Lanes = lanes
-		if err := p.Validate(); !errors.Is(err, logicaltunnel.ErrTransportLanes) { t.Fatalf("non-single product lanes=%d accepted: %v", lanes, err) }
+		if err := p.Validate(); err != nil { t.Fatalf("product lanes=%d rejected: %v", lanes, err) }
+	}
+	for _, lanes := range []int{-1, 5} {
+		p := testProfile(); p.Lanes = lanes
+		if err := p.Validate(); !errors.Is(err, logicaltunnel.ErrTransportLanes) { t.Fatalf("invalid product lanes=%d err=%v", lanes, err) }
 	}
 }
 
-func TestProductLaneBootstrapUsesOneSameFlowEndpoint(t *testing.T) {
-	p := testProfile(); p.TunnelIPv4=""; p.Lanes=1
-	u:=testUnderlay(); u.SourcePort=windowsDynamicPortMin+1
-	b,err:=BuildLaneBootstrap(p,u,1); if err!=nil{t.Fatal(err)}
-	if !argPair(b.FakeTCP.Args,"--local-udp",fmt.Sprintf("127.0.0.1:%d",defaultFakeTCPLocalPort)){t.Fatalf("local UDP args=%v",b.FakeTCP.Args)}
-	if !argPair(b.FakeTCP.Args,"--reality-installation-id",p.InstallationID){t.Fatal("same-flow bootstrap changed installation identity")}
-	if !strings.HasSuffix(b.TicketPath,".lane1") || !strings.HasSuffix(b.TunnelConfigPath,".lane1"){t.Fatalf("state paths ticket=%q config=%q",b.TicketPath,b.TunnelConfigPath)}
-}
-
-func TestBuildMultiLanePlanShippingPathProducesExactlyOneTransport(t *testing.T) {
-	p:=testProfile(); p.TunnelIPv4=""; p.Lanes=1; tunnel:=testAuthenticatedTunnel()
-	boot:=authenticatedLane(t,p,1,windowsDynamicPortMin+1,tunnel)
-	plan,err:=BuildMultiLanePlan(p,[]LaneBootstrap{boot});if err!=nil{t.Fatal(err)}
-	if len(plan.Lanes)!=1{t.Fatalf("plan public transports=%d want=1",len(plan.Lanes))}
-	if plan.TunnelConfig.TunnelID!=tunnel.TunnelID || plan.TunnelConfig.Address4!=tunnel.Address4{t.Fatal("plan changed authenticated tunnel config")}
-}
-
-func TestBuildMultiLanePlanRejectsProductMultiFlowProfiles(t *testing.T) {
-	for _, lanes:=range []int{2,3,4,5}{
-		p:=testProfile();p.TunnelIPv4="";p.Lanes=lanes
-		if _,err:=BuildMultiLanePlan(p,nil);!errors.Is(err,logicaltunnel.ErrTransportLanes){t.Fatalf("lanes=%d err=%v",lanes,err)}
+func TestProductLaneBootstrapUsesOneSameFlowEndpointPerLane(t *testing.T) {
+	p := testProfile(); p.TunnelIPv4=""; p.Lanes=4
+	seenSource := map[string]bool{}
+	for laneID := 1; laneID <= 4; laneID++ {
+		u:=testUnderlay(); u.SourcePort=uint16(windowsDynamicPortMin+laneID)
+		b,err:=BuildLaneBootstrap(p,u,laneID); if err!=nil{t.Fatal(err)}
+		wantLocal := fmt.Sprintf("127.0.0.1:%d", defaultFakeTCPLocalPort+laneID-1)
+		if !argPair(b.FakeTCP.Args,"--local-udp",wantLocal){t.Fatalf("lane %d local UDP args=%v",laneID,b.FakeTCP.Args)}
+		if !argPair(b.FakeTCP.Args,"--reality-installation-id",p.InstallationID){t.Fatalf("lane %d changed installation identity", laneID)}
+		if !strings.HasSuffix(b.TicketPath,fmt.Sprintf(".lane%d",laneID)) || !strings.HasSuffix(b.TunnelConfigPath,fmt.Sprintf(".lane%d",laneID)){t.Fatalf("lane %d state paths ticket=%q config=%q",laneID,b.TicketPath,b.TunnelConfigPath)}
+		for i, arg := range b.FakeTCP.Args {
+			if arg == "--source" && i+1 < len(b.FakeTCP.Args) {
+				if seenSource[b.FakeTCP.Args[i+1]] { t.Fatalf("lane %d reused source tuple %q", laneID, b.FakeTCP.Args[i+1]) }
+				seenSource[b.FakeTCP.Args[i+1]] = true
+			}
+		}
 	}
+	if len(seenSource) != 4 { t.Fatalf("distinct source tuples=%d want=4", len(seenSource)) }
+}
+
+func TestBuildMultiLanePlanProducesAuthorizedTransportCounts(t *testing.T) {
+	tunnel:=testAuthenticatedTunnel()
+	for lanes := 1; lanes <= 4; lanes++ {
+		p:=testProfile(); p.TunnelIPv4=""; p.Lanes=lanes
+		boots := make([]LaneBootstrap, 0, lanes)
+		for id := 1; id <= lanes; id++ {
+			boots = append(boots, authenticatedLane(t,p,id,uint16(windowsDynamicPortMin+id),tunnel))
+		}
+		plan,err:=BuildMultiLanePlan(p,boots);if err!=nil{t.Fatalf("lanes=%d: %v",lanes,err)}
+		if len(plan.Lanes)!=lanes{t.Fatalf("plan public transports=%d want=%d",len(plan.Lanes),lanes)}
+		if plan.TunnelConfig.TunnelID!=tunnel.TunnelID || plan.TunnelConfig.Address4!=tunnel.Address4{t.Fatal("plan changed authenticated tunnel config")}
+	}
+}
+
+func TestBuildMultiLanePlanRejectsFifthProductLane(t *testing.T) {
+	p:=testProfile();p.TunnelIPv4="";p.Lanes=5
+	if _,err:=BuildMultiLanePlan(p,nil);!errors.Is(err,logicaltunnel.ErrTransportLanes){t.Fatalf("lanes=5 err=%v",err)}
 }
