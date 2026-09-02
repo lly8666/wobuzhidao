@@ -28,7 +28,7 @@ func writeTestProfile(t *testing.T, dir, extra string) string {
 	return path
 }
 
-func TestLoadRuntimeProfileAppliesGlobalSingleFlowDefaults(t *testing.T) {
+func TestLoadRuntimeProfileAppliesADR0012Defaults(t *testing.T) {
 	t.Setenv("WBD_PORTABLE_DIR", "")
 	dir := t.TempDir(); path := writeTestProfile(t, dir, "")
 	stateDir := filepath.Join(dir, "state")
@@ -50,18 +50,22 @@ func TestLoadRuntimeProfilePersistsInstallationIdentityAcrossLoads(t *testing.T)
 	if strings.TrimSpace(string(b))!=first.InstallationID{t.Fatalf("persisted installation id=%q want=%q",strings.TrimSpace(string(b)),first.InstallationID)}
 }
 
-func TestLoadRuntimeProfileAcceptsOnlyOneProductPublicTransport(t *testing.T) {
+func TestLoadRuntimeProfileAcceptsProductLaneRange(t *testing.T) {
 	t.Setenv("WBD_PORTABLE_DIR", "")
-	dir:=t.TempDir(); stateDir:=filepath.Join(dir,"state")
-	path:=writeTestProfile(t,dir,`,
-  "lanes": 1`)
-	p,err:=LoadRuntimeProfile(path,filepath.Join(dir,"bin"),stateDir);if err!=nil{t.Fatal(err)}
-	if p.Lanes!=1{t.Fatalf("lanes=%d want=1",p.Lanes)}
-
-	for _, lanes := range []int{-1,2,3,4,5} {
+	for _, lanes := range []int{1,2,3,4} {
+		t.Run(fmt.Sprintf("accept-lanes-%d",lanes),func(t *testing.T){
+			dir:=t.TempDir();path:=writeTestProfile(t,dir,fmt.Sprintf(",\n  \"lanes\": %d",lanes))
+			p,err:=LoadRuntimeProfile(path,filepath.Join(dir,"bin"),filepath.Join(dir,"state"));if err!=nil{t.Fatal(err)}
+			if p.Lanes!=lanes{t.Fatalf("lanes=%d want=%d",p.Lanes,lanes)}
+		})
+	}
+	// Omitted/zero remains the profile default sentinel and normalizes to one.
+	dir:=t.TempDir();zeroPath:=writeTestProfile(t,dir,`,
+  "lanes": 0`);p,err:=LoadRuntimeProfile(zeroPath,filepath.Join(dir,"bin"),filepath.Join(dir,"state"));if err!=nil{t.Fatal(err)};if p.Lanes!=1{t.Fatalf("zero/default lanes normalized to %d want=1",p.Lanes)}
+	for _, lanes := range []int{-1,5,8} {
 		t.Run(fmt.Sprintf("reject-lanes-%d", lanes), func(t *testing.T) {
 			dir:=t.TempDir(); badPath:=writeTestProfile(t,dir,fmt.Sprintf(",\n  \"lanes\": %d",lanes))
-			if _,err:=LoadRuntimeProfile(badPath,filepath.Join(dir,"bin"),filepath.Join(dir,"state"));err==nil{t.Fatalf("%d public transports unexpectedly accepted",lanes)}
+			if _,err:=LoadRuntimeProfile(badPath,filepath.Join(dir,"bin"),filepath.Join(dir,"state"));err==nil{t.Fatalf("invalid product lane count %d unexpectedly accepted",lanes)}
 		})
 	}
 }
