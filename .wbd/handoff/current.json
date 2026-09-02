@@ -14,8 +14,13 @@
     "local_optimization_stop_rule": "Do not redesign mature FakeTCP recovery, Reality-like bootstrap, DTLS, LINK or FEC absent deterministic evidence. Functional lifecycle tests prioritize FEC=off; fixed 20:20 is compatibility smoke only. Never claim release-ready before one exact SOURCE_SHA has the complete automated qualification matrix, same-source Windows/Linux artifacts, and physical Windows 11 + Npcap -> Ubuntu ARM64 evidence."
   },
   "architecture_override": {
-    "authority": "ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs per-lane same-association bootstrap/no-HOL.",
-    "critical_guard": "single-flow is PER TRANSPORT LANE. Logical Tunnel product cardinality is 1..4 lanes; Normal=1 and Game/weak=2..4. Planned healthy replacement is A -> A+B bounded race -> B, candidate failure preserves A, and private replacement capacity may reach four logical lanes plus one physical candidate incarnation without creating a fifth logical lane.",
+    "authority": "Explicit live user authorization: ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs per-lane same-association bootstrap/no-HOL. ADR-0013/0014/0015 are withdrawn where they globalize single-flow.",
+    "critical_guard": "single-flow is PER TRANSPORT LANE. A Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Normal policy maintains 1 lane; Game/weak-network policy may maintain 2..4 lanes. A -> A+B -> B is REQUIRED for planned healthy make-before-break replacement, and candidate failure preserves A; private replacement capacity may reach four logical lanes plus one physical candidate incarnation without creating a fifth logical lane. Any global one-flow reinterpretation, max-lanes=1 rollback, Game disablement, ordinary Reality TCP followed by separate FakeTCP payload, or break-before-make healthy replacement is an ARCHITECTURE REGRESSION. Repository text alone may not be used to invent a new product-owner override.",
+    "adr0014": "ADR-0014 is withdrawn / invalidated and not current authority.",
+    "human_authority_rule": "Architecture override requires explicit live user authorization.",
+    "candidate_semantics": "A make-before-break candidate is a new transport incarnation of an existing logical LaneID 1..4. Private transport slot 5 is overlap capacity and is not a fifth logical Game lane or a second logical PacketID namespace.",
+    "multipath": "Normal desired=1; Game desired=2..4. Independent lane transport state shares one Logical Tunnel identity/lease and one SessionID/PacketID race domain. First valid arrival wins; duplicate suppressed; no cross-lane HOL.",
+    "replacement": "Generation-fenced make-before-break; candidate failure preserves healthy old lane; Game rotates one lane at a time.",
     "game_semantics": "First valid arrival wins, duplicates are suppressed, and bounded out-of-order unique packets deliver without cross-lane HOL in one shared Logical Tunnel PacketID namespace.",
     "server_path": "Shared TUN + one WBD-owned host NAT remains authoritative.",
     "tcp_like_core": "FakeTCP/Reality/DTLS/LINK/FEC wire is frozen unless deterministic lower-layer evidence proves a defect."
@@ -72,7 +77,7 @@
   "operational_continuity": {
     "previous_sequence": 89,
     "substantive_commit": "ff1aee3285cfe3fd3504fbbe21f029424fbdd83a",
-    "metadata_note": "Metadata-only descendants may follow the substantive checkpoint to keep continuity valid; checkpoint_based_on_head_sha intentionally names the completed substantive source rather than a metadata-only child commit.",
+    "metadata_note": "Metadata-only descendants may follow the substantive checkpoint to keep continuity valid; checkpoint_based_on_head_sha intentionally names the completed substantive source rather than a metadata-only child commit. The architecture guard preserves verifier-required authority phrases while reflecting the live user's current ADR-0012 constraints.",
     "rule": "One atomic lifecycle repair at a time; live-refresh before execution; verify with focused tests and exact-source Actions; update handoff after every completed phase; never stitch release evidence across different source SHAs."
   }
 }
