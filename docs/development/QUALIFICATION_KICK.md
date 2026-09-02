@@ -62,9 +62,9 @@ Together the 28 child gates cover hosted Windows native protocol/runtime behavio
 
 ## Kick generation
 
-`2026-09-02-post-canonical-merge-exact-head-requalification`
+`2026-09-02-game-replacement-link-4plus1-exact-head-requalification`
 
-This generation follows the canonical continuity merge `6d887f82f2b4c1f0151147e8c12fa624a06c3fb1` and durable recovery note `docs/development/2026-09-02-continuity-requalification.md`. The merge changed repository ancestry/history continuity but no product executable source. Because the candidate SHA changed, no prior green run is inherited: all 28 hosted qualification children must execute against this new immutable candidate HEAD.
+This generation qualifies the bounded Game make-before-break replacement path (`6a3a4fa4228849dd11a21cd79a9aadf77c7c7d1c`), the Logical Tunnel 4+1 physical replacement-incarnation admission bound (`57b735816420504e9326047508e521a849a8fa05`), and the dirty-exit startup-stress reap correction (`c52cbe4ed442431708d86980b45e1580c3d6f394`). No prior green run is inherited: all 28 hosted qualification children must execute against this new immutable candidate HEAD before the checkpoint can be treated as automated-green.
 
 ## Delivery rule
 
