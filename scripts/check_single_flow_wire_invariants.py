@@ -12,6 +12,9 @@ from captured packets instead of trusting WBD readiness logs:
 * no FIN or RST during the TLS->DTLS mode switch/session;
 * client and server payload remain in one continuous TCP sequence space rooted
   at each side's original ISN+1, with retransmissions allowed but no reset/gap;
+* if libpcap drops a payload frame, an observed cumulative ACK from the peer may
+  prove that the missing byte range existed on the same sequence space; a gap
+  without such ACK evidence still fails qualification;
 * the first client payload is a TLS ClientHello record;
 * an optional test-only post-bootstrap marker can be required later in that same
   client sequence stream, proving bytes after the mode barrier did not use a
@@ -134,7 +137,29 @@ def relative(seq: int, base: int) -> int:
     return off
 
 
-def rebuild_payload(packets: list[Packet], base: int, label: str) -> bytes:
+def max_cumulative_ack(packets: list[Packet], base: int) -> int:
+    """Return the furthest peer ACK relative to the payload base.
+
+    ACKs that are behind the base by half the sequence space are stale/noise for
+    this incarnation and are ignored rather than being allowed to prove a gap.
+    """
+    furthest = 0
+    for p in packets:
+        if not p.flags & TCP_ACK:
+            continue
+        off = (p.ack - base) & 0xFFFFFFFF
+        if off >= 0x80000000:
+            continue
+        furthest = max(furthest, off)
+    return furthest
+
+
+def rebuild_payload(
+    packets: list[Packet],
+    base: int,
+    peer_packets: list[Packet],
+    label: str,
+) -> tuple[bytes, int, int]:
     payload_packets = [p for p in packets if p.payload]
     if not payload_packets:
         fail(f"{label} carried no payload")
@@ -153,10 +178,22 @@ def rebuild_payload(packets: list[Packet], base: int, label: str) -> bytes:
             cells[i] = byte
     if 0 not in cells:
         fail(f"{label} first payload does not begin at ISN+1")
-    missing = next((i for i in range(max_end) if i not in cells), None)
-    if missing is not None:
-        fail(f"{label} sequence space has an unrecovered payload gap at relative seq {missing}")
-    return bytes(cells[i] for i in range(max_end))
+
+    acked_through = max_cumulative_ack(peer_packets, base)
+    missing = [i for i in range(max_end) if i not in cells]
+    if missing:
+        unproven = next((i for i in missing if i >= acked_through), None)
+        if unproven is not None:
+            fail(
+                f"{label} sequence space has an unrecovered payload gap at relative seq {unproven}; "
+                f"peer cumulative ACK only proves bytes before {acked_through}"
+            )
+
+    # Zero-fill only ACK-proven capture holes so offsets remain stable for later
+    # marker/TLS checks. These zero bytes are never treated as payload evidence;
+    # capture_gap_bytes reports exactly how much was inferred from peer ACKs.
+    stream = bytes(cells.get(i, 0) for i in range(max_end))
+    return stream, len(missing), acked_through
 
 
 def main() -> int:
@@ -219,8 +256,10 @@ def main() -> int:
 
     client_isn = next(iter(client_isns))
     server_isn = next(iter(server_isns))
-    client_stream = rebuild_payload(c2s, (client_isn + 1) & 0xFFFFFFFF, "client")
-    server_stream = rebuild_payload(s2c, (server_isn + 1) & 0xFFFFFFFF, "server")
+    client_base = (client_isn + 1) & 0xFFFFFFFF
+    server_base = (server_isn + 1) & 0xFFFFFFFF
+    client_stream, client_gap_bytes, client_acked_through = rebuild_payload(c2s, client_base, s2c, "client")
+    server_stream, server_gap_bytes, server_acked_through = rebuild_payload(s2c, server_base, c2s, "server")
     if len(client_stream) < args.min_client_payload:
         fail(f"client payload too short to cover bootstrap+post-switch traffic: {len(client_stream)}")
     if len(server_stream) < args.min_server_payload:
@@ -245,6 +284,10 @@ def main() -> int:
         "server_synack_packets": len(server_synack),
         "client_payload_bytes": len(client_stream),
         "server_payload_bytes": len(server_stream),
+        "client_capture_gap_bytes": client_gap_bytes,
+        "server_capture_gap_bytes": server_gap_bytes,
+        "client_peer_acked_through": client_acked_through,
+        "server_peer_acked_through": server_acked_through,
         "client_marker_offset": marker_offset,
         "fin_rst": 0,
         "seq_spaces": 1,
