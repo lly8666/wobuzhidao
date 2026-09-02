@@ -3,6 +3,7 @@ package windowsruntime
 import (
 	"encoding/json"
 	"net"
+	"sort"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -112,14 +113,13 @@ func TestPayloadIdleMonitorDormantsWithoutPayloadAndWakesOnSequenceAdvance(t *te
 	}
 }
 
-func TestConnectStartsPayloadIdleMonitorOnlyWhenConfigured(t *testing.T) {
+func TestConnectStartsLifecycleMonitorEvenWhenPayloadIdleDisabled(t *testing.T) {
 	for _, tc := range []struct {
-		name string
+		name    string
 		seconds int
-		wantMonitor bool
 	}{
-		{name: "disabled-default", seconds: 0, wantMonitor: false},
-		{name: "enabled", seconds: 1, wantMonitor: true},
+		{name: "idle-disabled-age-still-enabled", seconds: 0},
+		{name: "idle-enabled", seconds: 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			r := &recordingRunner{}
@@ -133,13 +133,96 @@ func TestConnectStartsPayloadIdleMonitorOnlyWhenConfigured(t *testing.T) {
 			c.mu.Lock()
 			running := c.idleStop != nil
 			c.mu.Unlock()
-			if running != tc.wantMonitor {
-				t.Fatalf("idle monitor running=%v want=%v", running, tc.wantMonitor)
+			if !running {
+				t.Fatal("lifecycle monitor is not running")
+			}
+			if tc.seconds == 0 && c.State() != RuntimeConnected {
+				t.Fatalf("idle_timeout=0 changed state=%s", c.State())
 			}
 			if err := c.Disconnect(); err != nil {
 				t.Fatal(err)
 			}
 		})
+	}
+}
+
+func TestLaneAgeDeadlinesAreThirtyToSixtyMinutesAndStaggered(t *testing.T) {
+	now := time.Unix(1_700_000_000, 0)
+	ages := newLaneAgeState()
+	plans := map[int]LanePlan{}
+	for id := 1; id <= 4; id++ {
+		plans[id] = LanePlan{ID: id, Slot: id}
+	}
+	zero := func(time.Duration) time.Duration { return 0 }
+	ages.reconcile(plans, now, zero)
+	if len(ages.deadlines) != 4 {
+		t.Fatalf("deadline count=%d", len(ages.deadlines))
+	}
+
+	ordered := make([]time.Time, 0, 4)
+	for id := 1; id <= 4; id++ {
+		deadline := ages.deadlines[id]
+		age := deadline.Sub(now)
+		if age < minLaneAge || age > maxLaneAge {
+			t.Fatalf("lane %d age=%s outside [%s,%s]", id, age, minLaneAge, maxLaneAge)
+		}
+		ordered = append(ordered, deadline)
+	}
+	sort.Slice(ordered, func(i, j int) bool { return ordered[i].Before(ordered[j]) })
+	for i := 1; i < len(ordered); i++ {
+		if gap := ordered[i].Sub(ordered[i-1]); gap < minLaneAgeStagger {
+			t.Fatalf("age deadlines not staggered: gap=%s", gap)
+		}
+	}
+}
+
+func TestLaneAgeIncarnationSlotChangeGetsFreshDeadline(t *testing.T) {
+	now := time.Unix(1_700_000_000, 0)
+	ages := newLaneAgeState()
+	zero := func(time.Duration) time.Duration { return 0 }
+	plans := map[int]LanePlan{1: {ID: 1, Slot: 1}}
+	ages.reconcile(plans, now, zero)
+	before := ages.deadlines[1]
+
+	plans[1] = LanePlan{ID: 1, Slot: makeBeforeBreakCandidateSlot}
+	later := now.Add(time.Second)
+	ages.reconcile(plans, later, zero)
+	after := ages.deadlines[1]
+	if ages.slots[1] != makeBeforeBreakCandidateSlot {
+		t.Fatalf("tracked slot=%d", ages.slots[1])
+	}
+	if !after.After(before) {
+		t.Fatalf("replacement did not refresh deadline before=%s after=%s", before, after)
+	}
+	if age := after.Sub(later); age < minLaneAge || age > maxLaneAge {
+		t.Fatalf("replacement age=%s outside [%s,%s]", age, minLaneAge, maxLaneAge)
+	}
+}
+
+func TestLaneAgeDueSelectsOnlyEarliestLane(t *testing.T) {
+	now := time.Unix(1_700_000_000, 0)
+	ages := newLaneAgeState()
+	ages.deadlines[1] = now.Add(-time.Second)
+	ages.deadlines[2] = now.Add(-2 * time.Second)
+	ages.deadlines[3] = now.Add(time.Second)
+	laneID, ok := ages.nextDue(now)
+	if !ok || laneID != 2 {
+		t.Fatalf("next due lane=%d ok=%v", laneID, ok)
+	}
+}
+
+func TestLaneAgeStateClearsRemovedLanesAndRebuilds(t *testing.T) {
+	now := time.Unix(1_700_000_000, 0)
+	ages := newLaneAgeState()
+	zero := func(time.Duration) time.Duration { return 0 }
+	ages.reconcile(map[int]LanePlan{1: {ID: 1, Slot: 1}, 2: {ID: 2, Slot: 2}}, now, zero)
+	ages.reconcile(map[int]LanePlan{}, now.Add(time.Second), zero)
+	if len(ages.deadlines) != 0 || len(ages.slots) != 0 {
+		t.Fatalf("removed lanes retained deadlines=%v slots=%v", ages.deadlines, ages.slots)
+	}
+	ages.reconcile(map[int]LanePlan{1: {ID: 1, Slot: 1}}, now.Add(2*time.Second), zero)
+	if len(ages.deadlines) != 1 || ages.slots[1] != 1 {
+		t.Fatalf("rebuilt age state deadlines=%v slots=%v", ages.deadlines, ages.slots)
 	}
 }
 

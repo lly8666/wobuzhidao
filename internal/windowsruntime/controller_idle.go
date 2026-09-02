@@ -1,7 +1,10 @@
 package windowsruntime
 
 import (
+	"crypto/rand"
 	"errors"
+	"math/big"
+	"sort"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/gamelane"
@@ -11,6 +14,11 @@ const (
 	minPayloadIdlePollInterval = 10 * time.Millisecond
 	maxPayloadIdlePollInterval = 250 * time.Millisecond
 	maxIdleTimeoutSeconds      = int64((1<<63 - 1) / 1_000_000_000)
+
+	minLaneAge        = 30 * time.Minute
+	maxLaneAge        = 60 * time.Minute
+	minLaneAgeStagger = time.Minute
+	laneAgeRetryDelay = time.Minute
 )
 
 func validateIdleTimeoutSeconds(seconds int) error {
@@ -32,6 +40,13 @@ func payloadIdlePollInterval(timeout time.Duration) time.Duration {
 		return maxPayloadIdlePollInterval
 	}
 	return interval
+}
+
+func lifecycleMonitorPollInterval(timeout time.Duration) time.Duration {
+	if timeout <= 0 {
+		return maxPayloadIdlePollInterval
+	}
+	return payloadIdlePollInterval(timeout)
 }
 
 type payloadIdleObservation struct {
@@ -69,10 +84,119 @@ func (o payloadIdleObservation) expired(now time.Time, timeout time.Duration) bo
 	return timeout > 0 && !now.Before(o.lastPayload.Add(timeout))
 }
 
-func (c *Controller) startPayloadIdleMonitor(timeout time.Duration) {
-	if timeout <= 0 {
-		return
+type laneAgeSampler func(time.Duration) time.Duration
+
+type laneAgeState struct {
+	deadlines map[int]time.Time
+	slots     map[int]int
+}
+
+func newLaneAgeState() *laneAgeState {
+	return &laneAgeState{deadlines: map[int]time.Time{}, slots: map[int]int{}}
+}
+
+func (s *laneAgeState) clear() {
+	clear(s.deadlines)
+	clear(s.slots)
+}
+
+func randomLaneAgeOffset(span time.Duration) time.Duration {
+	if span <= 0 {
+		return 0
 	}
+	n, err := rand.Int(rand.Reader, big.NewInt(int64(span)+1))
+	if err != nil {
+		return span / 2
+	}
+	return time.Duration(n.Int64())
+}
+
+func laneAgeDeadlineSeparated(candidate time.Time, deadlines map[int]time.Time) bool {
+	for _, existing := range deadlines {
+		delta := candidate.Sub(existing)
+		if delta < 0 {
+			delta = -delta
+		}
+		if delta < minLaneAgeStagger {
+			return false
+		}
+	}
+	return true
+}
+
+func chooseLaneAgeDeadline(now time.Time, deadlines map[int]time.Time, sample laneAgeSampler) time.Time {
+	span := maxLaneAge - minLaneAge
+	for attempt := 0; attempt < 32; attempt++ {
+		offset := sample(span)
+		if offset < 0 {
+			offset = 0
+		}
+		if offset > span {
+			offset = span
+		}
+		candidate := now.Add(minLaneAge + offset)
+		if laneAgeDeadlineSeparated(candidate, deadlines) {
+			return candidate
+		}
+	}
+	for age := minLaneAge; age <= maxLaneAge; age += minLaneAgeStagger {
+		candidate := now.Add(age)
+		if laneAgeDeadlineSeparated(candidate, deadlines) {
+			return candidate
+		}
+	}
+	return now.Add(maxLaneAge)
+}
+
+func normalizedLaneSlot(plan LanePlan) int {
+	if plan.Slot != 0 {
+		return plan.Slot
+	}
+	return plan.ID
+}
+
+func (s *laneAgeState) reconcile(plans map[int]LanePlan, now time.Time, sample laneAgeSampler) {
+	active := make(map[int]bool, len(plans))
+	ids := make([]int, 0, len(plans))
+	for id := range plans {
+		active[id] = true
+		ids = append(ids, id)
+	}
+	sort.Ints(ids)
+	for id := range s.deadlines {
+		if !active[id] {
+			delete(s.deadlines, id)
+			delete(s.slots, id)
+		}
+	}
+	for _, id := range ids {
+		slot := normalizedLaneSlot(plans[id])
+		deadline, exists := s.deadlines[id]
+		if exists && s.slots[id] == slot && !deadline.IsZero() {
+			continue
+		}
+		delete(s.deadlines, id)
+		s.deadlines[id] = chooseLaneAgeDeadline(now, s.deadlines, sample)
+		s.slots[id] = slot
+	}
+}
+
+func (s *laneAgeState) nextDue(now time.Time) (int, bool) {
+	laneID := 0
+	var earliest time.Time
+	for id, deadline := range s.deadlines {
+		if deadline.After(now) {
+			continue
+		}
+		if laneID == 0 || deadline.Before(earliest) || (deadline.Equal(earliest) && id < laneID) {
+			laneID = id
+			earliest = deadline
+		}
+	}
+	return laneID, laneID != 0
+}
+
+func (c *Controller) startPayloadIdleMonitor(timeout time.Duration) {
 	c.mu.Lock()
 	c.stopPayloadIdleMonitorLocked()
 	if c.state != RuntimeConnected {
@@ -106,9 +230,38 @@ func (c *Controller) payloadIdleMonitorCurrent(generation uint64, stop chan stru
 	return c.idleGeneration == generation && c.idleStop == stop
 }
 
+func (c *Controller) laneAgePlans() (RuntimeState, map[int]LanePlan) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.state, cloneLanePlans(c.lanePlans)
+}
+
+func (c *Controller) runLaneAgeTick(ages *laneAgeState, now time.Time) {
+	state, plans := c.laneAgePlans()
+	if state == RuntimeDormant {
+		ages.clear()
+		return
+	}
+	if state != RuntimeConnected {
+		return
+	}
+	ages.reconcile(plans, now, randomLaneAgeOffset)
+	laneID, ok := ages.nextDue(now)
+	if !ok {
+		return
+	}
+
+	// Serialize age rotation through the existing generation-fenced
+	// ReplaceLane path. A failed candidate leaves the old lane authoritative and
+	// is retried later instead of spinning every monitor tick.
+	ages.deadlines[laneID] = now.Add(laneAgeRetryDelay)
+	_ = c.ReplaceLane(laneID)
+}
+
 func (c *Controller) runPayloadIdleMonitor(generation uint64, stop chan struct{}, timeout time.Duration) {
 	observation := newPayloadIdleObservation(time.Now())
-	ticker := time.NewTicker(payloadIdlePollInterval(timeout))
+	ages := newLaneAgeState()
+	ticker := time.NewTicker(lifecycleMonitorPollInterval(timeout))
 	defer ticker.Stop()
 
 	for {
@@ -129,66 +282,75 @@ func (c *Controller) runPayloadIdleMonitor(generation uint64, stop chan struct{}
 			continue
 		}
 
-		activity, err := c.PayloadActivity()
-		now := time.Now()
-		if err != nil {
-			// Fail open while connected. If Game activity cannot be observed we do
-			// not infer idleness and tear down healthy public lanes.
-			if state == RuntimeConnected {
-				observation.postpone(now)
+		// Explicit idle_timeout=0 disables payload-idle policy only. Keep the
+		// lifecycle monitor alive for age rotation, but do not generate payload
+		// activity control traffic or infer payload-idle DORMANT.
+		if timeout <= 0 {
+			if state == RuntimeDormant {
+				ages.clear()
+				continue
 			}
+			c.runLaneAgeTick(ages, time.Now())
 			continue
 		}
-		changed, advanced := observation.observe(activity, now)
+
+		activity, activityErr := c.PayloadActivity()
+		now := time.Now()
+		changed, advanced := false, false
+		if activityErr == nil {
+			changed, advanced = observation.observe(activity, now)
+		} else if state == RuntimeConnected && timeout > 0 {
+			// Fail open while connected. If Game activity cannot be observed we do
+			// not infer idleness and tear down healthy public lanes.
+			observation.postpone(now)
+		}
 
 		if state == RuntimeDormant {
-			if advanced && c.payloadIdleMonitorCurrent(generation, stop) {
+			ages.clear()
+			if activityErr == nil && advanced && c.payloadIdleMonitorCurrent(generation, stop) {
 				if err := c.Wake(); err == nil {
 					observation.postpone(time.Now())
 				}
 			}
 			continue
 		}
-		if changed || !observation.expired(now, timeout) {
-			continue
+
+		if timeout > 0 && activityErr == nil && !changed && observation.expired(now, timeout) {
+			// Re-read immediately before the lifecycle transition. A payload that
+			// races the idle edge refreshes the local monotonic deadline instead of
+			// being mistaken for idle transport liveness.
+			confirmed, err := c.PayloadActivity()
+			confirmNow := time.Now()
+			if err != nil {
+				observation.postpone(confirmNow)
+			} else if changed, _ := observation.observe(confirmed, confirmNow); !changed && c.State() == RuntimeConnected && c.payloadIdleMonitorCurrent(generation, stop) {
+				if err := c.Dormant(); err != nil {
+					observation.postpone(time.Now())
+				} else {
+					ages.clear()
+					// Close the remaining query->barrier race: if a real payload advanced
+					// after the confirmation but before Game's empty-lane barrier landed,
+					// wake immediately. The racing packet itself may be dropped; subsequent
+					// payload resumes once Wake publishes the first READY lane.
+					if !c.payloadIdleMonitorCurrent(generation, stop) {
+						return
+					}
+					after, err := c.PayloadActivity()
+					if err == nil {
+						_, advanced = observation.observe(after, time.Now())
+						if advanced && c.State() == RuntimeDormant && c.payloadIdleMonitorCurrent(generation, stop) {
+							if err := c.Wake(); err == nil {
+								observation.postpone(time.Now())
+							}
+						}
+					}
+				}
+			}
 		}
 
-		// Re-read immediately before the lifecycle transition. A payload that
-		// races the idle edge refreshes the local monotonic deadline instead of
-		// being mistaken for idle transport liveness.
-		confirmed, err := c.PayloadActivity()
-		confirmNow := time.Now()
-		if err != nil {
-			observation.postpone(confirmNow)
-			continue
-		}
-		if changed, _ := observation.observe(confirmed, confirmNow); changed {
-			continue
-		}
 		if c.State() != RuntimeConnected || !c.payloadIdleMonitorCurrent(generation, stop) {
 			continue
 		}
-		if err := c.Dormant(); err != nil {
-			observation.postpone(time.Now())
-			continue
-		}
-
-		// Close the remaining query->barrier race: if a real payload advanced
-		// after the confirmation but before Game's empty-lane barrier landed, wake
-		// immediately. The racing packet itself may be dropped; subsequent payload
-		// resumes once Wake publishes the first READY lane.
-		if !c.payloadIdleMonitorCurrent(generation, stop) {
-			return
-		}
-		after, err := c.PayloadActivity()
-		if err != nil {
-			continue
-		}
-		_, advanced = observation.observe(after, time.Now())
-		if advanced && c.State() == RuntimeDormant && c.payloadIdleMonitorCurrent(generation, stop) {
-			if err := c.Wake(); err == nil {
-				observation.postpone(time.Now())
-			}
-		}
+		c.runLaneAgeTick(ages, time.Now())
 	}
 }

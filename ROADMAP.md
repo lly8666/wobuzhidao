@@ -19,7 +19,7 @@
 | V2-M9B | shared Linux TUN + one host NAT + lease demux | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9C | product 1..4-lane admission + Game/race wiring | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9D | payload-idle dormant/wake | **IMPLEMENTED: AUTOMATIC PAYLOAD-IDLE DORMANT + FIRST-PAYLOAD/FIRST-READY WAKE; NON-IDLE TRIGGERS PENDING** |
-| V2-M9E | make-before-break + unified lane replacement state machine | **BOUNDED SAME-LANEID OLD+CANDIDATE RACE IMPLEMENTED; AGE/UNIFIED TRIGGERS PENDING** |
+| V2-M9E | make-before-break + unified lane replacement state machine | **BOUNDED SAME-LANEID OLD+CANDIDATE RACE + RANDOMIZED STAGGERED 30..60M AGE ROTATION IMPLEMENTED; UNIFIED TRIGGERS PENDING** |
 | V2-M10 | exact-source Windows/Linux qualification + physical Windows 11 -> Ubuntu ARM64 | **BLOCKED UNTIL ONE EXACT-SOURCE MATRIX + ARTIFACTS + PHYSICAL EVIDENCE** |
 | V2-M11 | startup RTT / packaging/process simplification | **DEFERRED** |
 
@@ -31,7 +31,8 @@ The takeover baseline is `0d65698d1601951169a807d94c0eaa8c09c6531f`, 16 commits 
 - product logical-lane ceiling remains 1..4 while bounded replacement has private `4+1` physical-incarnation capacity;
 - real app/TUN payload activity is tracked independently of control traffic;
 - automatic payload-idle DORMANT and payload-triggered wake are implemented, including first-READY publication before optional lane refill;
-- the remaining lifecycle work is staggered randomized 30..60m lane-age rotation plus unified replacement triggers for network/path/liveness/transport failures.
+- randomized per-incarnation 30..60m lane-age deadlines are implemented in controller policy, collision-deconflicted by at least one minute and serialized through the existing `ReplaceLane` path;
+- the remaining lifecycle work is unified replacement triggers for network/path/liveness/transport failures and explicit server/manual triggers.
 
 CI green at any one push is not release readiness. V2-M10 still requires one exact substantive source across the complete release matrix, Windows/Linux artifacts, and physical Windows 11 + Npcap -> Ubuntu ARM64 evidence.
 
@@ -83,7 +84,7 @@ Game replacement rotates one lane at a time:
 A+B -> A+B+C -> B+C
 ```
 
-A unified replacement lifecycle covers age rotation, NIC/default route/public IP changes, NAT/path/liveness failure, FakeTCP/DTLS/LINK failure, server request and manual reconnect, with generation fencing. The trigger convergence and age scheduler remain lifecycle work; they are not transport-wire work.
+Randomized 30..60m soft age rotation now converges on this same replacement lifecycle: each active incarnation gets its own randomized deadline, multi-lane deadlines are deconflicted by at least one minute, only the earliest due lane is replaced at a time, candidate failure preserves the old lane and schedules a bounded retry, and a successful 1<->5 physical-slot promotion receives a fresh age deadline. The remaining unified-trigger work is NIC/default route/public IP changes, NAT/path/liveness failure, FakeTCP/DTLS/LINK failure, server request and manual reconnect, all with the existing generation fencing. This is lifecycle work, not transport-wire work.
 
 ## Logical Tunnel identity + lease
 
@@ -94,12 +95,12 @@ Do not reintroduce a global hard-coded `10.66.0.2/30` identity.
 ## Idle / wake / age policy
 
 - Product default payload idle timeout: **15m (900s)** when `idle_timeout` is omitted.
-- Explicit `idle_timeout=0`: never sleep due to payload idleness.
+- Explicit `idle_timeout=0`: never sleep due to payload idleness; lifecycle monitoring and lane-age rotation remain enabled.
 - Track `last_payload_activity` separately from `last_transport_activity`.
 - Only real application/TUN payload refreshes payload idle; PING/PONG/control does not.
 - DORMANT closes all lanes but preserves Logical Tunnel, lease, Wintun/routes/DNS.
 - First new payload wakes the tunnel; forwarding resumes on the first READY lane, then optional Game lanes refill incrementally.
-- Each lane requires an independent randomized 30..60m soft age deadline; multi-lane rotation must be staggered. This scheduler is still pending.
+- Each active lane incarnation has an independent randomized 30..60m soft age deadline. Multi-lane deadlines are staggered/deconflicted, DORMANT clears age state, wake rebuilds fresh deadlines, and replacements run one lane at a time through existing make-before-break.
 
 ## Shared Linux TUN + one NAT
 
@@ -135,7 +136,7 @@ Logical Tunnel
 
 Normal mode uses one lane; Game/weak-network may use 2..4; replacement may overlap old/candidate transports. DORMANT wake publishes the first READY lane immediately and then refills later Game lanes. There is no preliminary ordinary kernel-TCP Reality WBD connection.
 
-The remaining Windows lifecycle gap is not bounded replacement overlap. It is the randomized/staggered 30..60m lane-age scheduler and convergence of NIC/default-route/public-IP/NAT changes, missed-PONG/no-RX, transport failure, server request and manual reconnect onto the existing generation-fenced replacement path.
+The randomized/staggered 30..60m lane-age scheduler is now implemented in the Windows controller without touching FakeTCP/Reality/DTLS/LINK/FEC wire. The remaining Windows lifecycle gap is convergence of NIC/default-route/public-IP/NAT changes, missed-PONG/no-RX, transport failure, server request and manual reconnect onto the existing generation-fenced replacement path.
 
 ## Frozen weak-network/release limits
 
@@ -165,7 +166,7 @@ One exact substantive `SOURCE_SHA` must prove:
 4. 1,2,3,4 active lanes accepted and fifth logical lane rejected while bounded replacement respects the 4+1 physical-incarnation ceiling;
 5. normal desired=1, Game/weak desired=2..4;
 6. Game first-arrival/dedup/out-of-order unique/no-cross-lane-HOL;
-7. `A -> A+B -> B`, candidate failure preserving A, and `A+B -> A+B+C -> B+C`;
+7. `A -> A+B -> B`, candidate failure preserving A, `A+B -> A+B+C -> B+C`, and staggered 30..60m age replacement through the same lifecycle;
 8. distinct leases, source-spoof rejection, shared TUN + one NAT DNS/UDP/TCP;
 9. lifecycle/functionality with FEC `off`, plus fixed `20:20` lane-local compatibility smoke; FEC parameter research is deferred;
 10. Windows native/runtime and Linux raw/full-stack gates;
