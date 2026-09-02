@@ -1,31 +1,31 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 90,
+  "continuity_sequence": 91,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "73365c4a00980159a752a2a9dc2b10684696bdb4",
+  "checkpoint_based_on_head_sha": "fa44a2ac417efc86486651733a188e52ff4250a4",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "ADR-0012 WBD: one stable Logical Tunnel may own 1..4 independent Transport Lanes. Each lane owns one public TCP-shaped 4-tuple/SYN lineage: bounded Reality-like TLS 1.3 bootstrap on that same association, explicit barrier, then pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/no-HOL payload without ordinary kernel-TCP transport.",
-    "current_milestone": "V2-M9C exact-head qualification after rollback repair. Dynamic lane admission, logical lane cap 1..4 and same-LaneID make-before-break foundations are restored; exact head 73365c4a still has several automated red gates and is not release-qualified.",
-    "local_optimization_stop_rule": "Keep mature FakeTCP ACK/SACK/RTO/recovery and FEC wire frozen absent deterministic lower-layer evidence. Do not trade the per-lane same-flow invariant for an ordinary preliminary TCP connection. Do not deliver binaries before exact-source Windows/Linux automated qualification is green; same-source physical Windows 11 + Npcap -> Ubuntu ARM64 remains final acceptance."
+    "current_milestone": "V2-M9D payload-idle dormant/wake trigger completion. PR #9 has crossed the previously-stale replacement milestone: same-LaneID old+candidate bounded overlap, candidate promotion and old retirement are implemented. Feature head fa44a2ac now also exposes real Game application-payload activity; automatic non-zero idle timeout and dormant-payload wake policy wiring remain.",
+    "local_optimization_stop_rule": "Keep mature FakeTCP ACK/SACK/RTO/recovery, DTLS and FEC wire frozen absent deterministic lower-layer evidence. Do not trade the per-lane same-flow invariant for an ordinary preliminary TCP connection. Do not deliver binaries before exact-source Windows/Linux automated qualification is green; same-source physical Windows 11 + Npcap -> Ubuntu ARM64 remains final acceptance."
   },
   "architecture_override": {
     "authority": "Explicit live user authorization: ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs each lane's same-association Reality-like bootstrap/no-HOL transition. ADR-0013/0014/0015 are withdrawn where they globalize single-flow.",
     "critical_guard": "single-flow is PER TRANSPORT LANE, not per Logical Tunnel lifetime. A Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Each lane has exactly one public TCP-looking flow from initial FakeTCP SYN through Reality-like bootstrap and later DTLS/FEC payload; no FIN/RST/reconnect/new payload SYN inside that lane. Planned replacement is make-before-break A -> A+B -> B.",
     "multipath": "Normal desired=1; Game/weak-network desired=2..4. Lanes have independent transport state but share Logical Tunnel identity/lease and logical SessionID/PacketID race domain. First valid arrival wins; duplicates are suppressed; no cross-lane HOL; FEC remains lane-local.",
-    "replacement": "Same logical LaneID may have one bounded replacement candidate using private transport slot 5; candidate failure preserves healthy old lane; slot 5 is not a fifth logical lane.",
-    "tcp_like_core": "Existing FakeTCP TCP-like ACK/SACK/RTO/recovery and release FEC semantics are frozen for this repair."
+    "replacement": "Same logical LaneID may have one bounded replacement candidate using private transport slot 5; candidate failure preserves healthy old lane; slot 5 is not a fifth logical lane. PR #9 now executes bounded old+candidate Game target overlap before candidate-only promotion and old transport retirement.",
+    "tcp_like_core": "Existing FakeTCP TCP-like ACK/SACK/RTO/recovery and release FEC semantics remain frozen. V2-M9D activity detection is intentionally above the transport layer at Game application ingress."
   },
   "continuation_cursor": {
-    "last_completed_action": "Live-refreshed PR #9 after stale sequence 88 and wrote sequence 89. Sequence 89 verifier failed only because its resume_read_set named feature-only paths unavailable on canonical branch; this sequence corrects that continuity-contract error without changing product state. Dynamic lane execution admission and same-LaneID replacement foundations are already restored on feature head 73365c4a00980159a752a2a9dc2b10684696bdb4.",
-    "current_task": "Repair the remaining exact-head automated failures without redesigning the mature TCP-like/FEC core, then rerun Windows/Linux single-flow and multipath qualification on one exact source SHA.",
-    "why_now": "Exact head 73365c4a has green single-flow-e2e/no-hol/persona, Linux release, mux-load and first-arrival gates, but ci, windows-portable-bundle, game-lane-fullstack, single-flow-startup-stress and windows-linux-single-flow are red. Current Windows Npcap code already filters capture noise to the exact inbound flow, so the historical 'not ipv4/tcp' symptom must not be reimplemented blindly. The ci log already identifies a deterministic release-contract documentation marker failure.",
-    "done_when": "First deterministic exact-head failures are fixed; ci, windows-portable-bundle, windows-linux-single-flow, single-flow-startup-stress and game-lane-fullstack all pass on one substantive source SHA while already-green single-flow/no-HOL/Linux/mux gates stay green. No release claim until that exact SHA is green and later passes same-source physical Windows->Ubuntu qualification.",
-    "next_atomic_action": "On feature head, fix the deterministic ci failure first: internal/releasecontract TestADR0012MultipathAuthority requires ADR-0012 to contain exact release-contract marker 'single-flow is a per-Transport-Lane invariant'. Preserve the intended per-lane architecture, add only the missing authoritative marker, rerun ci, then inspect windows-linux-single-flow run 33591768961 and the other remaining red gates one deterministic failure at a time.",
+    "last_completed_action": "Live-refreshed PR #9 beyond stale sequence 90. Feature source had already advanced through same-LaneID replacement overlap/requalification to 36a08de. Implemented substantive feature commit fa44a2ac417efc86486651733a188e52ff4250a4 (feat: expose real Game payload activity): Game records monotonic sequence/timestamp for accepted non-empty application/TUN payload before the no-lane DORMANT drop barrier; loopback control exposes it; Windows runtime can query it in CONNECTED or DORMANT. No public wire/FakeTCP/DTLS/FEC behavior changed and no default idle timeout was enabled.",
+    "current_task": "Complete V2-M9D automatic non-zero idle timeout and dormant-payload wake trigger without reopening transport core.",
+    "why_now": "Dormant(), Wake() and first-READY Game target promotion already exist. The new Game PayloadActivity signal observes only real application/TUN ingress, so transport PING/PONG/control cannot refresh it; it also advances on the first payload arriving while DORMANT. The remaining gap is backward-compatible profile/controller policy wiring.",
+    "done_when": "idle_timeout=0 continues to mean never auto-sleep; a non-zero timeout is refreshed only by real Game application payload; expiry enters the existing DORMANT lifecycle while preserving Logical Tunnel/shared Game/TUN/routes; a PayloadActivity sequence advance while DORMANT triggers existing Wake(), and first READY restores forwarding before later lanes refill; focused tests and exact-head mandatory automation pass without changing FakeTCP/DTLS/FEC/public wire semantics.",
+    "next_atomic_action": "After exact-head fa44a2ac checks settle, add a backward-compatible Windows profile idle timeout (zero disables) plus a controller monitor keyed by PayloadActivity.Sequence. On CONNECTED inactivity call existing Dormant(); while DORMANT a sequence advance calls existing Wake(). Do not modify FakeTCP/TLS/DTLS/FEC/public wire.",
     "next_action_is_cursor": true
   },
   "resume_read_set": [
@@ -33,48 +33,49 @@
     ".wbd/handoff/README.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
-    "cmd/wbd-faketcp/main_windows.go",
     "internal/windowsruntime/controller.go",
     "internal/windowsruntime/plan.go",
-    "internal/windowsruntime/executor.go"
+    "internal/windowsruntime/executor.go",
+    "ROADMAP.md"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "73365c4a00980159a752a2a9dc2b10684696bdb4",
+    "tested_commit": "fa44a2ac417efc86486651733a188e52ff4250a4",
     "result": "fail",
-    "scope": "Exact-head PR #9 snapshot. PASS: handoff-verify 33591768772, single-flow-tcp-persona 33591768814, single-flow-no-hol 33591768756, single-flow-e2e 33591768795, faketcp-native 33591768820, linux-shared-port 33591768793, linux-server-release 33591768789, mux-load-100m 33591768805, fullstack-first-arrival 33591768790, single-flow-link-fullstack 33591768991, single-flow-rawip-e2e 33591768801. FAIL: ci 33591768792, windows-portable-bundle 33591768823, game-lane-fullstack 33591768821, single-flow-startup-stress 33591768770, windows-linux-single-flow 33591768961. faketcp-mux-two-client 33591768783 and several heavy AB gates were skipped and are not green evidence."
+    "scope": "No local checkout/test run in this session. Exact-head GitHub automation has at least 15 successful workflow runs. windows-portable-bundle attempt 1 failed only after Windows child runtime build succeeded, at pinned wolfSSL DTLS shim static-CRT build; failed job rerun attempt 2 was explicitly requested and was still in_progress at continuity write. Therefore exact-head release qualification is not claimed green."
   },
   "active_single_flow_branch": {
     "pr": 9,
     "branch": "feat/single-flow-reality-faketcp",
-    "head": "73365c4a00980159a752a2a9dc2b10684696bdb4",
-    "classification": "ADR-0012 per-lane same-flow multipath foundations and dynamic lane admission are implemented, but exact-head qualification is red and PR remains draft/not release-ready.",
-    "transport_core_policy": "Freeze mature per-lane TCP-like/FEC wire while repairing orchestration, platform and deterministic qualification failures."
+    "head": "fa44a2ac417efc86486651733a188e52ff4250a4",
+    "classification": "V2-M9D WIP: replacement lifecycle foundations are implemented and real Game payload activity observability is implemented; automatic payload-idle dormant/wake trigger remains. Exact-head release qualification is not yet green.",
+    "transport_core_policy": "Freeze mature per-lane TCP-like/DTLS/FEC wire. Continue at Logical Tunnel/Game/Windows lifecycle policy layer unless deterministic evidence proves a lower-layer defect."
   },
   "physical_acceptance_snapshot": {
     "authority": "user_provided_historical_snapshot_not_commit_attributed",
     "result": "fail",
-    "interpretation": "Historical physical logs proved at least one same-flow server path reached bootstrap -> DTLS ACCEPT -> LINK READY, but another attempt failed in Windows FakeTCP handshake. They do not qualify current head. Fresh exact-source physical qualification is mandatory after automated gates are green."
+    "interpretation": "Historical physical logs proved at least one same-flow server path reached bootstrap -> DTLS ACCEPT -> LINK READY, but they do not qualify current head. Fresh exact-source physical qualification remains mandatory after automated gates are green."
   },
   "qualification_snapshot": {
     "authority": "snapshot_not_live",
-    "source_head": "73365c4a00980159a752a2a9dc2b10684696bdb4",
+    "source_head": "fa44a2ac417efc86486651733a188e52ff4250a4",
     "result": "fail",
-    "known_incomplete": "Named automated gates are red; skipped workflows are not counted as pass; no exact-source physical qualification exists.",
+    "known_incomplete": "At continuity write, at least 15 exact-head workflows are successful; windows-portable-bundle is on rerun attempt 2 after attempt 1 failed in pinned wolfSSL static-CRT shim build. Full exact-head mandatory matrix has not yet been proven green; no exact-source physical qualification exists.",
     "release_authorized": false
   },
   "validated_findings": {
-    "lane_policy": "Dynamic product admission supports logical LaneID 1..4 and bounded same-LaneID make-before-break candidate semantics; the old global-one-flow restriction from sequence 88 is stale history.",
-    "npcap_current_state": "Current feature code filters Npcap capture noise to exact inbound unfragmented peer->WBD TCP before the FakeTCP parser and retains kernel-RST observation; do not re-add the same fix without current failure evidence.",
-    "ci_first_failure": "ci run 33591768792 fails internal/releasecontract TestADR0012MultipathAuthority because ADR-0012 lacks exact marker 'single-flow is a per-Transport-Lane invariant'; this is documentation/release-contract drift, not TCP-like data-plane failure.",
-    "release_state": "IMPLEMENTED=partially; AUTOMATED-GREEN=no; PHYSICAL-GREEN=no; RELEASE-QUALIFIED=no."
+    "lane_policy": "Dynamic product admission supports logical LaneID 1..4 and bounded same-LaneID make-before-break candidate semantics; stale handoff/ROADMAP text that still calls bounded replacement overlap pending must not be trusted without live source refresh.",
+    "replacement_lifecycle": "By exact source 36a08de, Windows replacement publishes old+candidate Game targets for a bounded overlap, promotes candidate-only, updates authority and retires old last; candidate failure can preserve the healthy old lane.",
+    "payload_activity": "At fa44a2ac, Game advances PayloadActivity.Sequence and LastPayloadActivityUnixNano only after accepting non-empty application/TUN ingress, before the no-lane DORMANT drop. Transport FakeTCP/DTLS/LINK liveness/control does not enter this path. Windows runtime queries the signal over IPv4 loopback in CONNECTED/DORMANT.",
+    "portable_first_failure": "windows-portable-bundle attempt 1 built the Windows child runtimes successfully and then failed at the pinned wolfSSL DTLS shim static-CRT step. No wolfSSL/DTLS/packaging source was changed by fa44a2ac; rerun attempt 2 was requested to distinguish qualification/tooling instability from a reproducible blocker.",
+    "release_state": "IMPLEMENTED=V2-M9D partial; AUTOMATED-GREEN=not yet; PHYSICAL-GREEN=no current exact-head evidence; RELEASE-QUALIFIED=no."
   },
   "operational_continuity": {
-    "previous_sequence": 89,
-    "sequence_89_commit": "11abafc7102bdced40fcea956026d8d71f915f6c",
-    "sequence_89_verifier": "failed only due to canonical-missing resume_read_set paths; corrected here",
-    "feature_checkpoint": "73365c4a00980159a752a2a9dc2b10684696bdb4",
-    "rule": "Live-refresh exact head before every repair; one deterministic failing layer at a time; detailed conclusions in GitHub development docs; final repository write of a turn should be handoff-only whenever practical."
+    "previous_sequence": 90,
+    "sequence_90_commit": "6442092d5950db513b8c6f808086bb99018b8fed",
+    "feature_checkpoint_before_this_turn": "36a08de33999bd301ec6178d926002da42741ace",
+    "substantive_commit_sha": "fa44a2ac417efc86486651733a188e52ff4250a4",
+    "rule": "Live-refresh exact feature head before every repair; one atomic product slice at a time; do not let stale ROADMAP/handoff override current source; detailed conclusions in GitHub development docs + Drive; final repository write of a turn should be handoff-only whenever practical."
   }
 }
