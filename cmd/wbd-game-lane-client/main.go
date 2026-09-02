@@ -48,6 +48,8 @@ type client struct {
 	peer   *net.UDPAddr
 	decMu  sync.Mutex
 
+	activity payloadActivityTracker
+
 	logicalTX   uint64
 	delivered   uint64
 	duplicate   uint64
@@ -136,6 +138,7 @@ func (c *client) appLoop() error {
 		if err != nil { return err }
 		if n == 0 { continue }
 		if !c.acceptPeer(from) { continue }
+		c.activity.mark(time.Now())
 		groups := c.activeRaceGroups()
 		if len(groups) == 0 { atomic.AddUint64(&c.dormantDrop, 1); continue }
 		if wait := c.pacer.Reserve(n, time.Now()); wait > 0 { time.Sleep(wait) }
@@ -184,12 +187,7 @@ func (c *client) controlLoop() error {
 	for {
 		n, peer, err := c.control.ReadFromUDP(buf)
 		if err != nil { return err }
-		cmd, parseErr := gamelane.ParseLaneSetCommand(buf[:n])
-		reply := gamelane.LaneControlReply{}
-		if parseErr != nil { reply.Error = parseErr.Error() } else {
-			active, applyErr := c.setLaneTargets(cmd.Lanes)
-			if applyErr != nil { reply.Error = applyErr.Error() } else { reply.OK = true; reply.Active = active }
-		}
+		reply := c.handleControlRequest(buf[:n])
 		wire, _ := json.Marshal(reply)
 		if _, err := c.control.WriteToUDP(wire, peer); err != nil { return err }
 	}
