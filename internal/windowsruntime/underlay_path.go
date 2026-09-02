@@ -158,10 +158,6 @@ func lanePlanUnderlay(plan LanePlan) (Underlay, error) {
 	return underlay, nil
 }
 
-func currentLaneRef(lifecycle *logicaltunnel.LaneLifecycle, laneID int) (logicaltunnel.LaneRef, error) {
-	return lifecycleRefForID(lifecycle, laneID)
-}
-
 // runUnderlayPathTick returns true while path convergence owns this lifecycle
 // tick. That priority prevents an exited old child from immediately starting a
 // replacement on the stale underlay between staggered path migrations.
@@ -171,7 +167,12 @@ func (c *Controller) runUnderlayPathTick(path *underlayPathState, now time.Time)
 	plans := cloneLanePlans(c.lanePlans)
 	profile := c.profile
 	discoverer := c.discoverer
-	lifecycle := c.lifecycle
+	refs := make(map[int]logicaltunnel.LaneRef, len(plans))
+	if state == RuntimeConnected && c.lifecycle != nil {
+		for _, snap := range c.lifecycle.Snapshot() {
+			refs[int(snap.Ref.ID)] = snap.Ref
+		}
+	}
 	c.mu.Unlock()
 
 	if state == RuntimeDormant {
@@ -216,8 +217,8 @@ func (c *Controller) runUnderlayPathTick(path *underlayPathState, now time.Time)
 		if sameUnderlayPath(current, discovered) {
 			continue
 		}
-		expected, err := currentLaneRef(lifecycle, laneID)
-		if err != nil {
+		expected, ok := refs[laneID]
+		if !ok {
 			continue
 		}
 		path.pending = true
