@@ -1,6 +1,6 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 89,
+  "continuity_sequence": 90,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
@@ -21,33 +21,29 @@
     "tcp_like_core": "Existing FakeTCP TCP-like ACK/SACK/RTO/recovery and release FEC semantics are frozen for this repair."
   },
   "continuation_cursor": {
-    "last_completed_action": "Live-refreshed PR #9 after sequence 88. Dynamic lane execution admission and same-LaneID replacement foundations were already restored after the stale checkpoint, including 1..4 logical lanes and private candidate slot semantics. Exact feature head is 73365c4a00980159a752a2a9dc2b10684696bdb4. Named Actions were re-read instead of inferring green from completion state.",
-    "current_task": "Repair the remaining exact-head automated failures without redesigning the mature TCP-like/FEC core, then rerun the Windows/Linux single-flow and multipath qualification matrix on one exact source SHA.",
-    "why_now": "Exact head 73365c4a has green single-flow-e2e/no-hol/persona, Linux release, mux-load and first-arrival gates, but ci, windows-portable-bundle, game-lane-fullstack, single-flow-startup-stress and windows-linux-single-flow are red. The current Windows Npcap backend already skips unrelated/non-target capture frames before handing packets to the FakeTCP parser, so the older physical 'not ipv4/tcp' hypothesis must not be reimplemented blindly; first inspect current failed job logs.",
-    "done_when": "First deterministic exact-head failure is identified and fixed; ci, windows-portable-bundle, windows-linux-single-flow, single-flow-startup-stress and game-lane-fullstack all pass on one substantive source SHA while already-green single-flow/no-HOL/Linux/mux gates stay green. No release claim until that exact SHA is green and later passes same-source physical Windows->Ubuntu qualification.",
-    "next_atomic_action": "Fetch job logs for exact-head failed runs, starting with ci run 33591768792 and windows-linux-single-flow run 33591768961; classify the first deterministic product/test failure, fix only that bounded layer, add/adjust deterministic coverage, and rerun exact-head gates. Preserve current Npcap exact inbound-flow filtering and do not change TCP-like recovery/FEC unless evidence proves it is the failing layer.",
+    "last_completed_action": "Live-refreshed PR #9 after stale sequence 88 and wrote sequence 89. Sequence 89 verifier failed only because its resume_read_set named feature-only paths unavailable on canonical branch; this sequence corrects that continuity-contract error without changing product state. Dynamic lane execution admission and same-LaneID replacement foundations are already restored on feature head 73365c4a00980159a752a2a9dc2b10684696bdb4.",
+    "current_task": "Repair the remaining exact-head automated failures without redesigning the mature TCP-like/FEC core, then rerun Windows/Linux single-flow and multipath qualification on one exact source SHA.",
+    "why_now": "Exact head 73365c4a has green single-flow-e2e/no-hol/persona, Linux release, mux-load and first-arrival gates, but ci, windows-portable-bundle, game-lane-fullstack, single-flow-startup-stress and windows-linux-single-flow are red. Current Windows Npcap code already filters capture noise to the exact inbound flow, so the historical 'not ipv4/tcp' symptom must not be reimplemented blindly. The ci log already identifies a deterministic release-contract documentation marker failure.",
+    "done_when": "First deterministic exact-head failures are fixed; ci, windows-portable-bundle, windows-linux-single-flow, single-flow-startup-stress and game-lane-fullstack all pass on one substantive source SHA while already-green single-flow/no-HOL/Linux/mux gates stay green. No release claim until that exact SHA is green and later passes same-source physical Windows->Ubuntu qualification.",
+    "next_atomic_action": "On feature head, fix the deterministic ci failure first: internal/releasecontract TestADR0012MultipathAuthority requires ADR-0012 to contain exact release-contract marker 'single-flow is a per-Transport-Lane invariant'. Preserve the intended per-lane architecture, add only the missing authoritative marker, rerun ci, then inspect windows-linux-single-flow run 33591768961 and the other remaining red gates one deterministic failure at a time.",
     "next_action_is_cursor": true
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
     ".wbd/handoff/README.md",
-    "docs/development/2026-09-02-multipath-qualification.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "cmd/wbd-faketcp/main_windows.go",
-    "internal/windowsruntime/dynamic_lane.go",
-    "internal/windowsruntime/dynamic_lane_test.go",
     "internal/windowsruntime/controller.go",
-    "internal/windowsruntime/multilane.go",
-    ".github/workflows/windows-linux-single-flow.yml",
-    ".github/workflows/single-flow-startup-stress.yml"
+    "internal/windowsruntime/plan.go",
+    "internal/windowsruntime/executor.go"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
     "tested_commit": "73365c4a00980159a752a2a9dc2b10684696bdb4",
     "result": "fail",
-    "scope": "Exact-head pull-request workflow snapshot. PASS: handoff-verify 33591768772, single-flow-tcp-persona 33591768814, single-flow-no-hol 33591768756, single-flow-e2e 33591768795, faketcp-native 33591768820, linux-shared-port 33591768793, linux-server-release 33591768789, mux-load-100m 33591768805, fullstack-first-arrival 33591768790, single-flow-link-fullstack 33591768991, single-flow-rawip-e2e 33591768801. FAIL: ci 33591768792, windows-portable-bundle 33591768823, game-lane-fullstack 33591768821, single-flow-startup-stress 33591768770, windows-linux-single-flow 33591768961. faketcp-mux-two-client 33591768783 and several heavy AB gates were skipped and are not green evidence."
+    "scope": "Exact-head PR #9 snapshot. PASS: handoff-verify 33591768772, single-flow-tcp-persona 33591768814, single-flow-no-hol 33591768756, single-flow-e2e 33591768795, faketcp-native 33591768820, linux-shared-port 33591768793, linux-server-release 33591768789, mux-load-100m 33591768805, fullstack-first-arrival 33591768790, single-flow-link-fullstack 33591768991, single-flow-rawip-e2e 33591768801. FAIL: ci 33591768792, windows-portable-bundle 33591768823, game-lane-fullstack 33591768821, single-flow-startup-stress 33591768770, windows-linux-single-flow 33591768961. faketcp-mux-two-client 33591768783 and several heavy AB gates were skipped and are not green evidence."
   },
   "active_single_flow_branch": {
     "pr": 9,
@@ -59,7 +55,7 @@
   "physical_acceptance_snapshot": {
     "authority": "user_provided_historical_snapshot_not_commit_attributed",
     "result": "fail",
-    "interpretation": "Historical physical logs proved at least one same-flow server path reached bootstrap -> DTLS ACCEPT -> LINK READY, but also showed a Windows Npcap handshake failure on another attempt. They do not qualify current head 73365c4a. Fresh exact-source physical qualification is mandatory after automated gates are green."
+    "interpretation": "Historical physical logs proved at least one same-flow server path reached bootstrap -> DTLS ACCEPT -> LINK READY, but another attempt failed in Windows FakeTCP handshake. They do not qualify current head. Fresh exact-source physical qualification is mandatory after automated gates are green."
   },
   "qualification_snapshot": {
     "authority": "snapshot_not_live",
@@ -69,15 +65,16 @@
     "release_authorized": false
   },
   "validated_findings": {
-    "lane_policy": "Dynamic product admission now supports logical LaneID 1..4 and bounded same-LaneID make-before-break candidate semantics; the old global-one-flow restriction from sequence 88 is stale history.",
+    "lane_policy": "Dynamic product admission supports logical LaneID 1..4 and bounded same-LaneID make-before-break candidate semantics; the old global-one-flow restriction from sequence 88 is stale history.",
     "npcap_current_state": "Current feature code filters Npcap capture noise to exact inbound unfragmented peer->WBD TCP before the FakeTCP parser and retains kernel-RST observation; do not re-add the same fix without current failure evidence.",
-    "automated_state": "Exact head has both strong green single-flow/no-HOL/Linux gates and five named red qualification gates; it is not a release candidate.",
+    "ci_first_failure": "ci run 33591768792 fails internal/releasecontract TestADR0012MultipathAuthority because ADR-0012 lacks exact marker 'single-flow is a per-Transport-Lane invariant'; this is documentation/release-contract drift, not TCP-like data-plane failure.",
     "release_state": "IMPLEMENTED=partially; AUTOMATED-GREEN=no; PHYSICAL-GREEN=no; RELEASE-QUALIFIED=no."
   },
   "operational_continuity": {
-    "previous_sequence": 88,
+    "previous_sequence": 89,
+    "sequence_89_commit": "11abafc7102bdced40fcea956026d8d71f915f6c",
+    "sequence_89_verifier": "failed only due to canonical-missing resume_read_set paths; corrected here",
     "feature_checkpoint": "73365c4a00980159a752a2a9dc2b10684696bdb4",
-    "formal_pre_handoff_head": "d30e74d4d96301c5178fe2b98993cf8f2306b6f7",
     "rule": "Live-refresh exact head before every repair; one deterministic failing layer at a time; detailed conclusions in GitHub development docs; final repository write of a turn should be handoff-only whenever practical."
   }
 }
