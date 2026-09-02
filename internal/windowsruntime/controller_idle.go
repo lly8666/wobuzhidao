@@ -281,10 +281,16 @@ func (c *Controller) runPayloadIdleMonitor(generation uint64, stop chan struct{}
 		if state != RuntimeConnected && state != RuntimeDormant {
 			continue
 		}
+		if state == RuntimeConnected && c.runAuthoritativeLaneExitTick() {
+			// Child failure has priority over idle/age policy. ReplaceLane carries
+			// the generation fence and make-before-break rollback semantics.
+			continue
+		}
 
 		// Explicit idle_timeout=0 disables payload-idle policy only. Keep the
-		// lifecycle monitor alive for age rotation, but do not generate payload
-		// activity control traffic or infer payload-idle DORMANT.
+		// lifecycle monitor alive for authoritative child liveness and age
+		// rotation, but do not generate payload activity control traffic or infer
+		// payload-idle DORMANT.
 		if timeout <= 0 {
 			if state == RuntimeDormant {
 				ages.clear()
