@@ -17,13 +17,12 @@ const (
 	InstallationIDBytes = 16
 	TunnelIDBytes       = 16
 
-	// Product transport cardinality is a GLOBAL Logical Tunnel invariant.
-	// A connected shipping tunnel owns exactly one public FakeTCP association,
-	// one public 4-tuple and one SYN lineage from Reality-like bootstrap through
-	// DTLS/LINK/FEC steady state. Historical multipath packages may remain for
-	// research but are not reachable through product cardinality validation.
+	// ADR-0012 product transport cardinality is a Logical Tunnel policy range.
+	// Each Transport Lane is one independent complete WBD public association
+	// (FakeTCP -> Reality-like bootstrap -> DTLS -> LINK -> lane-local FEC).
+	// Normal mode targets one lane; Game/weak-network mode may use 2..4 lanes.
 	MinProductPublicTransportLanes = 1
-	MaxProductPublicTransportLanes = 1
+	MaxProductPublicTransportLanes = 4
 )
 
 var (
@@ -32,14 +31,14 @@ var (
 	ErrPoolExhausted   = errors.New("logicaltunnel: IPv4 lease pool exhausted")
 	ErrUnknownTunnel   = errors.New("logicaltunnel: unknown tunnel")
 	ErrSourceSpoof     = errors.New("logicaltunnel: IPv4 source does not match lease")
-	ErrTransportLanes  = errors.New("logicaltunnel: shipping product requires exactly one active public transport")
+	ErrTransportLanes  = errors.New("logicaltunnel: active product transport lanes must be 1..4")
 )
 
 type InstallationID string
 type TunnelID string
 
 func ValidateProductTransportLaneCount(n int) error {
-	if n != MinProductPublicTransportLanes { return ErrTransportLanes }
+	if n < MinProductPublicTransportLanes || n > MaxProductPublicTransportLanes { return ErrTransportLanes }
 	return nil
 }
 
