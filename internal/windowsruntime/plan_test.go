@@ -21,7 +21,7 @@ func testProfile() Profile {
 }
 func testUnderlay() Underlay { return Underlay{SourceIP:"192.0.2.20", PacketDevice:`\Device\NPF_{01234567-89AB-CDEF-0123-456789ABCDEF}`, SourceMAC:"00:11:22:33:44:55", NextHopMAC:"66:77:88:99:aa:bb"} }
 
-func TestBuildPlanUsesGlobalSingleFlowWindowsStack(t *testing.T) {
+func TestBuildPlanUsesPerLaneSameFlowWindowsStack(t *testing.T) {
 	p, err := BuildPlan(testProfile(), testUnderlay(), strings.Repeat("ab", 32)); if err != nil { t.Fatal(err) }
 	if p.FakeTCP.Name!="faketcp"||p.DTLS.Name!="dtls"||p.Link.Name!="link"||p.TUN.Name!="tun"{t.Fatalf("unexpected runtime commands: %+v",p)}
 	if !slices.Contains(p.FakeTCP.Args,"legacy"){t.Fatalf("FakeTCP release recovery not pinned: %v",p.FakeTCP.Args)}
@@ -46,10 +46,10 @@ func TestBuildFakeTCPCommandDoesNotDialSeparateRealityFront(t *testing.T) {
 	if !argPair(cmd.Args,"--reality-tunnel-config-out",testProfile().TunnelConfigPath){t.Fatalf("authenticated tunnel config output missing: %v",cmd.Args)}
 }
 
-func TestProfileAllowsExactlyOneProductPublicTransport(t *testing.T) {
-	p:=testProfile();p.Lanes=0;if got:=p.normalized().Lanes;got!=1{t.Fatalf("default lane count normalized to %d want 1",got)};if err:=p.Validate();err!=nil{t.Fatalf("default one-flow product rejected: %v",err)}
-	p=testProfile();p.Lanes=1;if err:=p.Validate();err!=nil{t.Fatalf("explicit one-flow product rejected: %v",err)}
-	for _,lanes:=range []int{-1,2,3,4,5}{p:=testProfile();p.Lanes=lanes;if err:=p.Validate();!errorsIsTransportLane(err){t.Fatalf("lanes=%d unexpectedly accepted/error=%v",lanes,err)}}
+func TestProfileAllowsProductTransportRange(t *testing.T) {
+	p:=testProfile();p.Lanes=0;if got:=p.normalized().Lanes;got!=1{t.Fatalf("default lane count normalized to %d want 1",got)};if err:=p.Validate();err!=nil{t.Fatalf("default one-lane normal mode rejected: %v",err)}
+	for _,lanes:=range []int{1,2,3,4}{p:=testProfile();p.Lanes=lanes;if err:=p.Validate();err!=nil{t.Fatalf("valid lanes=%d rejected: %v",lanes,err)}}
+	for _,lanes:=range []int{-1,5,8}{p:=testProfile();p.Lanes=lanes;if err:=p.Validate();!errorsIsTransportLane(err){t.Fatalf("invalid lanes=%d unexpectedly accepted/error=%v",lanes,err)}}
 }
 
 func errorsIsTransportLane(err error) bool { return err != nil && strings.Contains(err.Error(), logicaltunnel.ErrTransportLanes.Error()) }
