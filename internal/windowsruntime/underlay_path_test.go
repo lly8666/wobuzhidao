@@ -27,6 +27,12 @@ func (d *scriptedPathDiscoverer) DiscoverPath(Profile) (Underlay, error) {
 	}
 	return d.path, nil
 }
+func (d *scriptedPathDiscoverer) setPath(path Underlay, err error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.path = path
+	d.pathErr = err
+}
 func (d *scriptedPathDiscoverer) calls() int {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -116,7 +122,7 @@ func TestUnderlayPathTickMigratesTwoLanesOneAtATime(t *testing.T) {
 	r := &recordingRunner{}
 	oldPath := testUnderlay()
 	newPath := changedUnderlay(oldPath)
-	d := &scriptedPathDiscoverer{initial: oldPath, path: newPath}
+	d := &scriptedPathDiscoverer{initial: oldPath, path: oldPath}
 	c := controllerWithPathDiscoverer(r, d)
 	p := testProfile()
 	p.TunnelIPv4 = ""
@@ -125,6 +131,7 @@ func TestUnderlayPathTickMigratesTwoLanesOneAtATime(t *testing.T) {
 		t.Fatal(err)
 	}
 	stopLifecycleMonitorForTest(c)
+	d.setPath(newPath, nil)
 	control, requests := gameControlResponder(t, 4)
 	setControllerGameControl(c, control)
 
@@ -167,7 +174,7 @@ func TestUnderlayPathCandidateFailurePreservesOldLaneAndBaseline(t *testing.T) {
 	r := &recordingRunner{}
 	oldPath := testUnderlay()
 	newPath := changedUnderlay(oldPath)
-	d := &scriptedPathDiscoverer{initial: oldPath, path: newPath}
+	d := &scriptedPathDiscoverer{initial: oldPath, path: oldPath}
 	c := controllerWithPathDiscoverer(r, d)
 	p := testProfile()
 	p.TunnelIPv4 = ""
@@ -175,6 +182,7 @@ func TestUnderlayPathCandidateFailurePreservesOldLaneAndBaseline(t *testing.T) {
 		t.Fatal(err)
 	}
 	stopLifecycleMonitorForTest(c)
+	d.setPath(newPath, nil)
 	r.failReady = "dtls-1-candidate-s5"
 	c.mu.Lock()
 	oldPlan := c.lanePlans[1]
@@ -209,7 +217,7 @@ func TestUnderlayPathCandidateFailurePreservesOldLaneAndBaseline(t *testing.T) {
 func TestUnderlayPathDiscoveryFailureIsFailOpen(t *testing.T) {
 	r := &recordingRunner{}
 	oldPath := testUnderlay()
-	d := &scriptedPathDiscoverer{initial: oldPath, pathErr: errors.New("route query failed")}
+	d := &scriptedPathDiscoverer{initial: oldPath, path: oldPath}
 	c := controllerWithPathDiscoverer(r, d)
 	p := testProfile()
 	p.TunnelIPv4 = ""
@@ -217,6 +225,7 @@ func TestUnderlayPathDiscoveryFailureIsFailOpen(t *testing.T) {
 		t.Fatal(err)
 	}
 	stopLifecycleMonitorForTest(c)
+	d.setPath(Underlay{}, errors.New("route query failed"))
 	cut := len(r.events)
 	if c.runUnderlayPathTick(newUnderlayPathState(), time.Now()) {
 		t.Fatal("discovery failure must not claim replacement work")
@@ -266,7 +275,7 @@ func TestDormantDoesNotReplaceAndWakeRediscoversUnderlay(t *testing.T) {
 	r := &recordingRunner{}
 	oldPath := testUnderlay()
 	newPath := changedUnderlay(oldPath)
-	d := &scriptedPathDiscoverer{initial: oldPath, path: newPath}
+	d := &scriptedPathDiscoverer{initial: oldPath, path: oldPath}
 	c := controllerWithPathDiscoverer(r, d)
 	p := testProfile()
 	p.TunnelIPv4 = ""
@@ -274,6 +283,7 @@ func TestDormantDoesNotReplaceAndWakeRediscoversUnderlay(t *testing.T) {
 		t.Fatal(err)
 	}
 	stopLifecycleMonitorForTest(c)
+	d.setPath(newPath, nil)
 	control, requests := gameControlResponder(t, 2)
 	setControllerGameControl(c, control)
 	if err := c.Dormant(); err != nil {
