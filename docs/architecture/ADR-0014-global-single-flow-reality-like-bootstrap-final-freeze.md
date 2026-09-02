@@ -1,18 +1,16 @@
 # ADR-0014: Historical global single-flow experiment
 
-Status: **HISTORICAL / WITHDRAWN — NOT PRODUCT AUTHORITY — 2026-09-02**
+Status: **WITHDRAWN / INVALIDATED — NOT PRODUCT AUTHORITY — 2026-09-02**
 
-## Historical note
+## Historical correction
 
-ADR-0014 attempted to globalize the valid per-Transport-Lane single-flow invariant into one public flow for the whole Logical Tunnel and to replace make-before-break with break-before-make. That interpretation is withdrawn.
+ADR-0014 **incorrectly expanded** the valid per-Transport-Lane single-flow invariant into one public flow for an entire Logical Tunnel and paired that with break-before-make replacement. That product interpretation is withdrawn.
 
-The current live human instruction restores **ADR-0012** as the authoritative Logical Tunnel lifecycle/multipath model. ADR-0011 remains the authority for same-association Reality-like TLS bootstrap and no-HOL steady-state transport semantics inside each individual lane.
+A later explicit live human product-owner correction restored **ADR-0012** as the authoritative Logical Tunnel lifecycle/multipath model. ADR-0011 remains the authority for same-association Reality-like TLS bootstrap and no-HOL steady-state semantics inside each individual Transport Lane.
 
-Do not use this file as current product authority.
+## Evidence retained from the experiment
 
-## Evidence that remains useful
-
-The technical work remains valid when scoped to one Transport Lane:
+The following remains correct when scoped to one lane:
 
 ```text
 one raw FakeTCP SYN lineage / 4-tuple / sequence space
@@ -25,25 +23,23 @@ one raw FakeTCP SYN lineage / 4-tuple / sequence space
   -> no-HOL packet/datagram VPN payload
 ```
 
-The mature FakeTCP ARQ/recovery/FEC wire should not be redesigned merely to satisfy architecture contract tests. Reality-like fidelity remains evidence-driven and should be evaluated with reproducible packet/handshake traces rather than unsupported percentage claims.
+FakeTCP owns the public tuple from the first SYN. The mature FakeTCP recovery/FEC wire should not be redesigned merely to satisfy an architecture string test. Reality-like fidelity remains evidence-driven.
 
-## Withdrawn clauses
+## Invalid clauses
 
-The following clauses are invalid product directions:
+Do not use ADR-0014 to justify:
 
-- one public transport for the entire Logical Tunnel lifetime;
-- maximum product lane count of 1;
+- one public transport for the whole Logical Tunnel lifetime;
+- `MaxProductPublicTransportLanes = 1`;
 - Game/weak-network multipath disabled or research-only;
-- rejecting a legitimate second complete WBD lane for the same Logical Tunnel;
+- rejecting a legitimate second complete lane for the same Logical Tunnel;
 - break-before-make planned healthy replacement;
-- forbidding bounded old+candidate overlap during replacement;
+- forbidding bounded `A -> A+B -> B` overlap;
 - claiming per-lane single-flow semantics prohibit Logical Tunnel multipath.
 
 ## Current authority
 
-Use:
-
-- ADR-0011: per-lane same-association Reality-like bootstrap and no-HOL data plane;
-- ADR-0012: stable Logical Tunnel identity/lease, `1..4` lanes, Game/race, DORMANT/wake, age rotation, generation fencing and make-before-break;
-- ADR-0013: historical/withdrawn;
+- ADR-0011: per-lane same-association Reality-like bootstrap and no-HOL data plane.
+- ADR-0012: stable Logical Tunnel identity/lease, product lanes 1..4, Game/race, DORMANT/wake, lane age rotation, generation fencing, make-before-break and unified replacement.
+- ADR-0013: historical/withdrawn.
 - ADR-0015: historical/withdrawn after a later explicit live human correction.
