@@ -7,13 +7,13 @@ import (
 )
 
 func validateDynamicLanePlan(lane LanePlan) error {
-	if lane.ID<1||lane.ID>4{return fmt.Errorf("dynamic lane id=%d out of range",lane.ID)}
+	if lane.ID!=1{return ErrOverlappingPublicFlow}
 	if lane.Slot==0{lane.Slot=lane.ID}
-	if lane.Slot<1||lane.Slot>makeBeforeBreakCandidateSlot{return fmt.Errorf("dynamic lane slot=%d out of range",lane.Slot)}
+	if lane.Slot!=1{return ErrOverlappingPublicFlow}
 	if !strings.HasPrefix(lane.FakeTCP.Name,"faketcp-")||!strings.HasPrefix(lane.DTLS.Name,"dtls-")||!strings.HasPrefix(lane.Link.Name,"link-"){
-		return errors.New("dynamic lane commands require FakeTCP/DTLS/LINK process names")
+		return errors.New("dynamic transport commands require FakeTCP/DTLS/LINK process names")
 	}
-	if lane.FakeTCP.Name==lane.DTLS.Name||lane.FakeTCP.Name==lane.Link.Name||lane.DTLS.Name==lane.Link.Name{return errors.New("dynamic lane process names must be distinct")}
+	if lane.FakeTCP.Name==lane.DTLS.Name||lane.FakeTCP.Name==lane.Link.Name||lane.DTLS.Name==lane.Link.Name{return errors.New("dynamic transport process names must be distinct")}
 	return nil
 }
 
@@ -21,20 +21,26 @@ func laneProcessNameSet(lane LanePlan) map[string]bool {
 	return map[string]bool{lane.FakeTCP.Name:true,lane.DTLS.Name:true,lane.Link.Name:true}
 }
 
-// StartDynamicLane takes ownership of a same-flow FakeTCP process whose bounded
-// Reality-like bootstrap has already authenticated. It then brings up only this
-// lane's DTLS and LINK. Shared Game/TUN/routes are intentionally untouched.
-// A candidate may share the same logical LaneID as an active lane as long as it
-// uses distinct process names and private loopback slot 5.
+func hasPublicFakeTCPLocked(processes []namedProcess) bool {
+	for _,p:=range processes{if p.name=="faketcp"||strings.HasPrefix(p.name,"faketcp-"){return true}}
+	return false
+}
+
+// StartDynamicLane is now only the Dormant -> Wake transport reattachment path.
+// Shared Game/TUN/routes may remain alive while dormant, but there must be zero
+// public FakeTCP process groups before this method is called. It may create only
+// logical transport ID/slot 1. This prevents any A+B public-flow overlap even if
+// a future caller bypasses Controller.ReplaceLane.
 func (e *Executor) StartDynamicLane(lane LanePlan, prestartedFake Process) error {
-	if prestartedFake==nil{return errors.New("dynamic lane requires prestarted FakeTCP")}
+	if prestartedFake==nil{return errors.New("dynamic transport requires prestarted FakeTCP")}
 	if err:=validateDynamicLanePlan(lane);err!=nil{return err}
 	wanted:=laneProcessNameSet(lane)
 
 	e.mu.Lock();defer e.mu.Unlock()
 	if !e.running{return errors.New("shared Windows runtime is not running")}
 	if e.cleanupPending{return errors.New("Windows runtime has pending network cleanup")}
-	for _,p:=range e.processes{if wanted[p.name]{return fmt.Errorf("dynamic lane process %s already exists",p.name)}}
+	if hasPublicFakeTCPLocked(e.processes){return ErrOverlappingPublicFlow}
+	for _,p:=range e.processes{if wanted[p.name]{return fmt.Errorf("dynamic transport process %s already exists",p.name)}}
 	base:=len(e.processes)
 	rollback:=func(){for i:=len(e.processes)-1;i>=base;i--{_ = e.processes[i].proc.Stop()};e.processes=e.processes[:base]}
 
@@ -63,25 +69,24 @@ func (e *Executor) StopDynamicLanePlan(lane LanePlan) error {
 		if stopErr:=p.proc.Stop();stopErr!=nil{errs=append(errs,fmt.Errorf("stop %s: %w",p.name,stopErr))}
 		e.processes=append(e.processes[:i],e.processes[i+1:]...)
 	}
-	if found==0{return fmt.Errorf("dynamic lane process group is not running")}
-	if found!=3{errs=append(errs,fmt.Errorf("dynamic lane process group incomplete: found=%d want=3",found))}
+	if found==0{return fmt.Errorf("dynamic transport process group is not running")}
+	if found!=3{errs=append(errs,fmt.Errorf("dynamic transport process group incomplete: found=%d want=3",found))}
 	return errors.Join(errs...)
 }
 
-// StopDynamicLane is the normal-slot compatibility wrapper.
+// StopDynamicLane is the shipping ID=1 compatibility wrapper.
 func (e *Executor) StopDynamicLane(laneID int) error {
 	fake,dtls,link,err:=normalLaneCommandsForStop(laneID);if err!=nil{return err}
 	return e.StopDynamicLanePlan(LanePlan{ID:laneID,Slot:laneID,FakeTCP:fake,DTLS:dtls,Link:link})
 }
 
 func normalLaneCommandsForStop(laneID int)(Command,Command,Command,error){
-	if laneID<1||laneID>4{return Command{},Command{},Command{},fmt.Errorf("dynamic lane id=%d out of range",laneID)}
-	return Command{Name:fmt.Sprintf("faketcp-%d",laneID)},Command{Name:fmt.Sprintf("dtls-%d",laneID)},Command{Name:fmt.Sprintf("link-%d",laneID)},nil
+	if laneID!=1{return Command{},Command{},Command{},ErrOverlappingPublicFlow}
+	return Command{Name:"faketcp-1"},Command{Name:"dtls-1"},Command{Name:"link-1"},nil
 }
 
 func (e *Executor) DynamicLaneIDs() []int {
 	e.mu.Lock();defer e.mu.Unlock()
-	seen:=map[int]bool{}
-	for _,p:=range e.processes{for id:=1;id<=4;id++{if p.name==fmt.Sprintf("link-%d",id){seen[id]=true}}}
-	out:=make([]int,0,len(seen));for id:=1;id<=4;id++{if seen[id]{out=append(out,id)}};return out
+	for _,p:=range e.processes{if p.name=="link-1"{return []int{1}}}
+	return nil
 }
