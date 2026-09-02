@@ -4,10 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/gamelane"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 )
+
+const replacementGameOverlapWindow = 100 * time.Millisecond
 
 func cloneLanePlans(in map[int]LanePlan) map[int]LanePlan {
 	out := make(map[int]LanePlan, len(in))
@@ -32,6 +35,29 @@ func gameTargetsFromPlans(plans map[int]LanePlan) ([]gamelane.LaneTarget, error)
 		out = append(out, gamelane.LaneTarget{ID: uint8(id), Address: addr})
 	}
 	return out, nil
+}
+
+func gameOverlapTargetsFromPlans(plans map[int]LanePlan, laneID int, candidate LanePlan) ([]gamelane.LaneTarget, error) {
+	if _, ok := plans[laneID]; !ok {
+		return nil, fmt.Errorf("logical lane %d is not active", laneID)
+	}
+	if candidate.ID != laneID {
+		return nil, fmt.Errorf("candidate logical lane id=%d want=%d", candidate.ID, laneID)
+	}
+	targets, err := gameTargetsFromPlans(plans)
+	if err != nil {
+		return nil, err
+	}
+	addr, err := LaneGameTarget(candidate)
+	if err != nil {
+		return nil, err
+	}
+	targets = append(targets, gamelane.LaneTarget{ID:uint8(laneID), Address:addr})
+	targets = gamelane.CanonicalLaneTargets(targets)
+	if err := (gamelane.LaneSetCommand{Op:gamelane.LaneControlSet, Lanes:targets}).Validate(); err != nil {
+		return nil, err
+	}
+	return targets, nil
 }
 
 func lifecycleRefForID(l *logicaltunnel.LaneLifecycle, id int) (logicaltunnel.LaneRef, error) {
@@ -233,11 +259,12 @@ func (c *Controller) Wake() error {
 
 // ReplaceLane performs same-logical-ID make-before-break. The candidate uses a
 // private transport slot (normally 5) and a fresh public source port while the
-// old incarnation remains authoritative and stays in Game. Only after the
-// candidate passes same-flow bootstrap, DTLS and LINK readiness does Game
-// atomically swap that LaneID's endpoint. The Logical Tunnel generation fence is
-// then advanced, and the old transport is retired last. No fifth logical lane or
-// new PacketID namespace is created.
+// old incarnation remains authoritative. Only after the candidate passes
+// same-flow bootstrap, DTLS and LINK readiness is Game switched to an explicit
+// old+candidate target set for a bounded overlap window. Game then cuts over to
+// candidate-only, the Logical Tunnel generation fence advances, and the old
+// transport is retired last. No fifth logical lane or new PacketID namespace is
+// created.
 func (c *Controller) ReplaceLane(laneID int) error {
 	c.mu.Lock()
 	if c.state != RuntimeConnected {
@@ -280,23 +307,41 @@ func (c *Controller) ReplaceLane(laneID int) error {
 	}
 	rollbackCandidate := func() { _ = c.executor.StopDynamicLanePlan(candidate) }
 
-	newPlans := cloneLanePlans(oldPlans)
-	newPlans[laneID] = candidate
-	targets, err := gameTargetsFromPlans(newPlans)
+	oldTargets, err := gameTargetsFromPlans(oldPlans)
 	if err != nil {
 		rollbackCandidate()
 		return finishConnected(err)
 	}
-	if err := setGameLaneTargets(control, targets, gameControlTimeout); err != nil {
+	overlapTargets, err := gameOverlapTargetsFromPlans(oldPlans, laneID, candidate)
+	if err != nil {
+		rollbackCandidate()
+		return finishConnected(err)
+	}
+	if err := setGameLaneTargets(control, overlapTargets, gameControlTimeout); err != nil {
+		_ = setGameLaneTargets(control, oldTargets, gameControlTimeout)
+		rollbackCandidate()
+		return finishConnected(fmt.Errorf("candidate lane %d Game overlap: %w", laneID, err))
+	}
+	// Leave an explicit bounded interval in which real payload can be copied to
+	// both transport incarnations with the existing PacketID/dedup namespace.
+	time.Sleep(replacementGameOverlapWindow)
+
+	newPlans := cloneLanePlans(oldPlans)
+	newPlans[laneID] = candidate
+	newTargets, err := gameTargetsFromPlans(newPlans)
+	if err != nil {
+		_ = setGameLaneTargets(control, oldTargets, gameControlTimeout)
+		rollbackCandidate()
+		return finishConnected(err)
+	}
+	if err := setGameLaneTargets(control, newTargets, gameControlTimeout); err != nil {
+		_ = setGameLaneTargets(control, oldTargets, gameControlTimeout)
 		rollbackCandidate()
 		return finishConnected(fmt.Errorf("candidate lane %d Game promotion: %w", laneID, err))
 	}
 	fresh, err := lifecycle.PromoteSameIDReplacement(oldRef)
 	if err != nil {
-		oldTargets, oldTargetErr := gameTargetsFromPlans(oldPlans)
-		if oldTargetErr == nil {
-			_ = setGameLaneTargets(control, oldTargets, gameControlTimeout)
-		}
+		_ = setGameLaneTargets(control, oldTargets, gameControlTimeout)
 		rollbackCandidate()
 		return finishConnected(fmt.Errorf("candidate lane %d lifecycle promotion: %w", laneID, err))
 	}

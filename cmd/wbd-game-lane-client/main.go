@@ -28,6 +28,11 @@ type laneConn struct {
 	rx   uint64
 }
 
+type laneRaceGroup struct {
+	primary *laneConn
+	overlap *laneConn
+}
+
 type client struct {
 	app     *net.UDPConn
 	control *net.UDPConn
@@ -37,6 +42,7 @@ type client struct {
 
 	lanesMu sync.RWMutex
 	lanes   map[uint8]*laneConn
+	overlap map[uint8]*laneConn
 
 	peerMu sync.RWMutex
 	peer   *net.UDPAddr
@@ -77,7 +83,7 @@ func main() {
 	app, err := net.ListenUDP("udp4", la)
 	if err != nil { fatal(err) }
 	defer app.Close()
-	c := &client{app: app, enc: enc, dec: dec, pacer: pacer, lanes: make(map[uint8]*laneConn, gamelane.MaxLanes)}
+	c := &client{app: app, enc: enc, dec: dec, pacer: pacer, lanes: make(map[uint8]*laneConn, gamelane.MaxLanes), overlap: make(map[uint8]*laneConn, 1)}
 
 	initial := make([]gamelane.LaneTarget, 0, len(laneAddrs))
 	for i, addr := range laneAddrs {
@@ -130,19 +136,23 @@ func (c *client) appLoop() error {
 		if err != nil { return err }
 		if n == 0 { continue }
 		if !c.acceptPeer(from) { continue }
-		lanes := c.activeLanes()
-		if len(lanes) == 0 { atomic.AddUint64(&c.dormantDrop, 1); continue }
+		groups := c.activeRaceGroups()
+		if len(groups) == 0 { atomic.AddUint64(&c.dormantDrop, 1); continue }
 		if wait := c.pacer.Reserve(n, time.Now()); wait > 0 { time.Sleep(wait) }
-		laneIDs := make([]uint8, len(lanes))
-		for i, lane := range lanes { laneIDs[i] = lane.id }
+		laneIDs := make([]uint8, len(groups))
+		for i, group := range groups { laneIDs[i] = group.primary.id }
 		_, copies, err := c.enc.WrapCopies(buf[:n], laneIDs)
 		if err != nil { return err }
 		atomic.AddUint64(&c.logicalTX, 1)
 		for i, copy := range copies {
-			lane := lanes[i]
-			if copy.LaneID != lane.id { return errors.New("lane copy ordering invariant violated") }
-			if _, err := lane.conn.Write(copy.Wire); err != nil { c.failLane(lane, fmt.Errorf("write: %w", err)); continue }
-			atomic.AddUint64(&lane.tx, 1)
+			group := groups[i]
+			if copy.LaneID != group.primary.id { return errors.New("lane copy ordering invariant violated") }
+			targets := []*laneConn{group.primary}
+			if group.overlap != nil { targets = append(targets, group.overlap) }
+			for _, lane := range targets {
+				if _, err := lane.conn.Write(copy.Wire); err != nil { c.failLane(lane, fmt.Errorf("write: %w", err)); continue }
+				atomic.AddUint64(&lane.tx, 1)
+			}
 		}
 	}
 }
@@ -191,21 +201,60 @@ func (c *client) setLaneTargets(targets []gamelane.LaneTarget) ([]uint8, error) 
 	targets = gamelane.CanonicalLaneTargets(targets)
 
 	c.lanesMu.Lock()
-	next := make(map[uint8]*laneConn, len(targets))
-	created := make([]*laneConn, 0, len(targets))
+	if c.lanes == nil { c.lanes = make(map[uint8]*laneConn, gamelane.MaxLanes) }
+	if c.overlap == nil { c.overlap = make(map[uint8]*laneConn, 1) }
+	grouped := make(map[uint8][]gamelane.LaneTarget, gamelane.MaxLanes)
+	ids := make([]uint8, 0, gamelane.MaxLanes)
 	for _, target := range targets {
-		if existing := c.lanes[target.ID]; existing != nil && existing.addr == target.Address { next[target.ID] = existing; continue }
+		if len(grouped[target.ID]) == 0 { ids = append(ids, target.ID) }
+		grouped[target.ID] = append(grouped[target.ID], target)
+	}
+	next := make(map[uint8]*laneConn, len(ids))
+	nextOverlap := make(map[uint8]*laneConn, 1)
+	created := make([]*laneConn, 0, len(targets))
+	resolve := func(target gamelane.LaneTarget) (*laneConn, error) {
+		if existing := c.lanes[target.ID]; existing != nil && existing.addr == target.Address { return existing, nil }
+		if existing := c.overlap[target.ID]; existing != nil && existing.addr == target.Address { return existing, nil }
 		ra, err := net.ResolveUDPAddr("udp4", target.Address)
-		if err != nil { for _, lane := range created { _ = lane.conn.Close() }; c.lanesMu.Unlock(); return nil, err }
+		if err != nil { return nil, err }
 		conn, err := net.DialUDP("udp4", nil, ra)
-		if err != nil { for _, lane := range created { _ = lane.conn.Close() }; c.lanesMu.Unlock(); return nil, err }
+		if err != nil { return nil, err }
 		_ = conn.SetReadBuffer(4 << 20); _ = conn.SetWriteBuffer(4 << 20)
 		lane := &laneConn{id: target.ID, addr: target.Address, conn: conn}
-		next[target.ID] = lane; created = append(created, lane)
+		created = append(created, lane)
+		return lane, nil
 	}
-	removed := make([]*laneConn, 0, len(c.lanes))
-	for id, lane := range c.lanes { if next[id] != lane { removed = append(removed, lane) } }
+	fail := func(err error) ([]uint8, error) {
+		for _, lane := range created { _ = lane.conn.Close() }
+		c.lanesMu.Unlock()
+		return nil, err
+	}
+	for _, id := range ids {
+		wanted := grouped[id]
+		primaryIndex := 0
+		if current := c.lanes[id]; current != nil {
+			for i, target := range wanted {
+				if target.Address == current.addr { primaryIndex = i; break }
+			}
+		}
+		primary, err := resolve(wanted[primaryIndex])
+		if err != nil { return fail(err) }
+		next[id] = primary
+		if len(wanted) == 2 {
+			other := 1 - primaryIndex
+			candidate, err := resolve(wanted[other])
+			if err != nil { return fail(err) }
+			nextOverlap[id] = candidate
+		}
+	}
+	kept := make(map[*laneConn]bool, len(next)+len(nextOverlap))
+	for _, lane := range next { kept[lane] = true }
+	for _, lane := range nextOverlap { kept[lane] = true }
+	removed := make([]*laneConn, 0, len(c.lanes)+len(c.overlap))
+	for _, lane := range c.lanes { if !kept[lane] { removed = append(removed, lane) } }
+	for _, lane := range c.overlap { if !kept[lane] { removed = append(removed, lane) } }
 	c.lanes = next
+	c.overlap = nextOverlap
 	c.lanesMu.Unlock()
 
 	for _, lane := range removed {
@@ -213,7 +262,7 @@ func (c *client) setLaneTargets(targets []gamelane.LaneTarget) ([]uint8, error) 
 		_ = lane.conn.Close()
 	}
 	for _, lane := range created { go c.laneLoop(lane) }
-	ids := c.activeIDs(); c.logLaneState(ids, "control"); return ids, nil
+	idsOut := c.activeIDs(); c.logLaneState(idsOut, "control"); return idsOut, nil
 }
 
 func (c *client) announceLaneLeave(lane *laneConn) {
@@ -226,16 +275,39 @@ func (c *client) announceLaneLeave(lane *laneConn) {
 
 func (c *client) failLane(lane *laneConn, err error) {
 	removed := false
-	c.lanesMu.Lock(); if current := c.lanes[lane.id]; current == lane { delete(c.lanes, lane.id); removed = true }; c.lanesMu.Unlock()
+	c.lanesMu.Lock()
+	if current := c.lanes[lane.id]; current == lane {
+		delete(c.lanes, lane.id)
+		if standby := c.overlap[lane.id]; standby != nil {
+			c.lanes[lane.id] = standby
+			delete(c.overlap, lane.id)
+		}
+		removed = true
+	} else if standby := c.overlap[lane.id]; standby == lane {
+		delete(c.overlap, lane.id)
+		removed = true
+	}
+	c.lanesMu.Unlock()
 	if !removed { return }
 	_ = lane.conn.Close(); atomic.AddUint64(&c.laneFail, 1)
 	fmt.Fprintf(os.Stderr, "WBD_GAME_LANE_CLIENT_LANE_FAIL lane=%d proxy=%s err=%v\n", lane.id, lane.addr, err)
 	c.logLaneState(c.activeIDs(), "lane_fail")
 }
 
+func (c *client) activeRaceGroups() []laneRaceGroup {
+	c.lanesMu.RLock()
+	out := make([]laneRaceGroup, 0, len(c.lanes))
+	for id, lane := range c.lanes { out = append(out, laneRaceGroup{primary:lane, overlap:c.overlap[id]}) }
+	c.lanesMu.RUnlock()
+	sort.Slice(out, func(i, j int) bool { return out[i].primary.id < out[j].primary.id })
+	return out
+}
+
 func (c *client) activeLanes() []*laneConn {
-	c.lanesMu.RLock(); out := make([]*laneConn, 0, len(c.lanes)); for _, lane := range c.lanes { out = append(out, lane) }; c.lanesMu.RUnlock()
-	sort.Slice(out, func(i, j int) bool { return out[i].id < out[j].id }); return out
+	groups := c.activeRaceGroups()
+	out := make([]*laneConn, len(groups))
+	for i, group := range groups { out[i] = group.primary }
+	return out
 }
 
 func (c *client) activeIDs() []uint8 {
@@ -249,7 +321,13 @@ func (c *client) logLaneState(ids []uint8, reason string) {
 }
 
 func (c *client) closeAllLanes() {
-	c.lanesMu.Lock(); lanes := c.lanes; c.lanes = make(map[uint8]*laneConn); c.lanesMu.Unlock()
+	c.lanesMu.Lock()
+	lanes := make([]*laneConn, 0, len(c.lanes)+len(c.overlap))
+	for _, lane := range c.lanes { lanes = append(lanes, lane) }
+	for _, lane := range c.overlap { lanes = append(lanes, lane) }
+	c.lanes = make(map[uint8]*laneConn)
+	c.overlap = make(map[uint8]*laneConn)
+	c.lanesMu.Unlock()
 	for _, lane := range lanes { _ = lane.conn.Close() }
 }
 

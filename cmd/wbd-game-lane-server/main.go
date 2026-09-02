@@ -26,6 +26,7 @@ type gameSession struct {
 
 	mu          sync.Mutex
 	lanes       map[uint8]*net.UDPAddr
+	overlap     map[uint8]*net.UDPAddr
 	peerLane    map[string]uint8
 	last        time.Time
 	closed      bool
@@ -191,7 +192,7 @@ func (s *server) bindLane(id gamelane.SessionID, laneID uint8, peer *net.UDPAddr
 		metaWire, err := rawipbackend.MarshalTunnelMeta(meta.TunnelID, meta.Address4)
 		if err != nil { _ = service.Close(); return nil, err }
 		if _, err := service.Write(metaWire); err != nil { _ = service.Close(); return nil, fmt.Errorf("register Game Logical Tunnel downstream: %w", err) }
-		gs = &gameSession{id:id, meta:meta, dec:dec, enc:enc, service:service, lanes:make(map[uint8]*net.UDPAddr,s.maxLanes), peerLane:make(map[string]uint8,s.maxLanes), last:now}
+		gs = &gameSession{id:id, meta:meta, dec:dec, enc:enc, service:service, lanes:make(map[uint8]*net.UDPAddr,s.maxLanes), overlap:make(map[uint8]*net.UDPAddr,1), peerLane:make(map[string]uint8,s.maxLanes+1), last:now}
 		s.sessions[id] = gs
 		go s.serviceLoop(gs)
 		fmt.Printf("WBD_GAME_LANE_SESSION_OPEN tunnel_id_prefix=%s address4=%s downstream_peer=%s\n", tunnelIDPrefix(meta), meta.Address4, service.LocalAddr())
@@ -200,25 +201,24 @@ func (s *server) bindLane(id gamelane.SessionID, laneID uint8, peer *net.UDPAddr
 	}
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
+	if gs.overlap == nil { gs.overlap = make(map[uint8]*net.UDPAddr, 1) }
 	if oldLane, ok := gs.peerLane[key]; ok {
 		if oldLane != laneID { return nil, errors.New("one WBD association cannot impersonate another lane id") }
 		gs.last = now
 		return gs, nil
 	}
-	if oldPeer := gs.lanes[laneID]; oldPeer != nil && oldPeer.String() != key {
-		oldKey := oldPeer.String()
-		oldMeta, ok := s.peerMeta[oldKey]
-		if !ok || oldMeta.TunnelID != meta.TunnelID || oldMeta.Address4 != meta.Address4 {
-			return nil, errors.New("lane id already bound to another WBD association")
+	if primary := gs.lanes[laneID]; primary != nil {
+		if candidate := gs.overlap[laneID]; candidate != nil {
+			return nil, errors.New("logical lane already has a replacement transport incarnation")
 		}
-		delete(gs.peerLane, oldKey)
-		delete(s.peerSession, oldKey)
-		delete(s.peerMeta, oldKey)
-		gs.lanes[laneID] = cloneUDPAddr(peer)
+		if len(gs.overlap) >= 1 {
+			return nil, errors.New("another logical lane already has a replacement overlap")
+		}
+		gs.overlap[laneID] = cloneUDPAddr(peer)
 		gs.peerLane[key] = laneID
 		s.peerSession[key] = id
 		gs.last = now
-		fmt.Printf("WBD_GAME_LANE_REBIND tunnel_id_prefix=%s lane=%d old_peer=%s new_peer=%s lanes=%d\n", tunnelIDPrefix(meta), laneID, oldKey, key, len(gs.lanes))
+		fmt.Printf("WBD_GAME_LANE_OVERLAP tunnel_id_prefix=%s lane=%d primary_peer=%s candidate_peer=%s lanes=%d targets=%d\n", tunnelIDPrefix(meta), laneID, primary, key, len(gs.lanes), len(gs.lanes)+len(gs.overlap))
 		return gs, nil
 	}
 	if len(gs.lanes) >= s.maxLanes { return nil, errors.New("logical game session lane limit reached") }
@@ -240,12 +240,21 @@ func (s *server) unbindLane(id gamelane.SessionID, laneID uint8, peer *net.UDPAd
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 	if bound, ok := gs.peerLane[key]; !ok || bound != laneID { return nil }
+	if current := gs.lanes[laneID]; current != nil && current.String() == key {
+		if candidate := gs.overlap[laneID]; candidate != nil {
+			gs.lanes[laneID] = candidate
+			delete(gs.overlap, laneID)
+		} else {
+			delete(gs.lanes, laneID)
+		}
+	} else if candidate := gs.overlap[laneID]; candidate != nil && candidate.String() == key {
+		delete(gs.overlap, laneID)
+	}
 	delete(gs.peerLane, key)
-	if current := gs.lanes[laneID]; current != nil && current.String() == key { delete(gs.lanes, laneID) }
 	delete(s.peerSession, key)
 	delete(s.peerMeta, key)
 	gs.last = now
-	fmt.Printf("WBD_GAME_LANE_UNBIND tunnel_id_prefix=%s lane=%d association_peer=%s lanes=%d reason=%s\n", tunnelIDPrefix(gs.meta), laneID, key, len(gs.lanes), reason)
+	fmt.Printf("WBD_GAME_LANE_UNBIND tunnel_id_prefix=%s lane=%d association_peer=%s lanes=%d targets=%d reason=%s\n", tunnelIDPrefix(gs.meta), laneID, key, len(gs.lanes), len(gs.lanes)+len(gs.overlap), reason)
 	return nil
 }
 
@@ -258,8 +267,12 @@ func (s *server) serviceLoop(gs *gameSession) {
 		gs.mu.Lock()
 		if gs.closed { gs.mu.Unlock(); return }
 		laneIDs := make([]uint8, 0, len(gs.lanes))
-		peers := make(map[uint8]*net.UDPAddr, len(gs.lanes))
-		for id, peer := range gs.lanes { laneIDs = append(laneIDs,id); peers[id] = cloneUDPAddr(peer) }
+		peers := make(map[uint8][]*net.UDPAddr, len(gs.lanes))
+		for id, peer := range gs.lanes {
+			laneIDs = append(laneIDs,id)
+			peers[id] = append(peers[id], cloneUDPAddr(peer))
+			if candidate := gs.overlap[id]; candidate != nil { peers[id] = append(peers[id], cloneUDPAddr(candidate)) }
+		}
 		sort.Slice(laneIDs, func(i,j int)bool{return laneIDs[i]<laneIDs[j]})
 		if len(laneIDs) == 0 {
 			gs.dormantDrop++
@@ -272,10 +285,10 @@ func (s *server) serviceLoop(gs *gameSession) {
 		gs.last = time.Now()
 		gs.mu.Unlock()
 		for _, copy := range copies {
-			peer := peers[copy.LaneID]
-			if peer == nil { continue }
-			if _, err := s.conn.WriteToUDP(copy.Wire, peer); err != nil { return }
-			gs.mu.Lock(); gs.outLane++; gs.mu.Unlock()
+			for _, peer := range peers[copy.LaneID] {
+				if _, err := s.conn.WriteToUDP(copy.Wire, peer); err != nil { return }
+				gs.mu.Lock(); gs.outLane++; gs.mu.Unlock()
+			}
 		}
 	}
 }

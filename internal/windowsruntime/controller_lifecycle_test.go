@@ -48,6 +48,14 @@ func setControllerGameControl(c *Controller, addr string) {
 	c.mu.Unlock()
 }
 
+func targetsForID(targets []gamelane.LaneTarget, id uint8) []string {
+	out := []string{}
+	for _, target := range targets {
+		if target.ID == id { out = append(out, target.Address) }
+	}
+	return out
+}
+
 func TestControllerDormantWakeKeepsSharedGameTunAndNetwork(t *testing.T) {
 	r := &recordingRunner{}
 	c := testController(r)
@@ -101,7 +109,7 @@ func TestControllerDormantWakeKeepsSharedGameTunAndNetwork(t *testing.T) {
 	}
 }
 
-func TestControllerReplaceLaneUsesMBBAndAlternatesTransportSlot(t *testing.T) {
+func TestControllerReplaceLaneUsesBoundedMBBRaceAndAlternatesTransportSlot(t *testing.T) {
 	r := &recordingRunner{}
 	c := testController(r)
 	p := testProfile()
@@ -110,7 +118,7 @@ func TestControllerReplaceLaneUsesMBBAndAlternatesTransportSlot(t *testing.T) {
 	if err := c.Connect(p); err != nil {
 		t.Fatal(err)
 	}
-	control, requests := gameControlResponder(t, 2)
+	control, requests := gameControlResponder(t, 4)
 	setControllerGameControl(c, control)
 	c.mu.Lock()
 	before := c.lifecycle.Snapshot()[0].Ref
@@ -120,9 +128,13 @@ func TestControllerReplaceLaneUsesMBBAndAlternatesTransportSlot(t *testing.T) {
 	if err := c.ReplaceLane(1); err != nil {
 		t.Fatal(err)
 	}
-	first := <-requests
-	if len(first.Lanes) != 1 || first.Lanes[0].ID != 1 || first.Lanes[0].Address != "127.0.0.1:47105" {
-		t.Fatalf("first promotion=%v", first.Lanes)
+	firstOverlap := <-requests
+	if got := targetsForID(firstOverlap.Lanes, 1); !reflect.DeepEqual(got, []string{"127.0.0.1:47101", "127.0.0.1:47105"}) {
+		t.Fatalf("first overlap=%v", firstOverlap.Lanes)
+	}
+	firstPromotion := <-requests
+	if len(firstPromotion.Lanes) != 1 || firstPromotion.Lanes[0].ID != 1 || firstPromotion.Lanes[0].Address != "127.0.0.1:47105" {
+		t.Fatalf("first promotion=%v", firstPromotion.Lanes)
 	}
 	c.mu.Lock()
 	firstPlan := c.lanePlans[1]
@@ -142,9 +154,13 @@ func TestControllerReplaceLaneUsesMBBAndAlternatesTransportSlot(t *testing.T) {
 	if err := c.ReplaceLane(1); err != nil {
 		t.Fatal(err)
 	}
-	second := <-requests
-	if len(second.Lanes) != 1 || second.Lanes[0].Address != "127.0.0.1:47101" {
-		t.Fatalf("second promotion=%v", second.Lanes)
+	secondOverlap := <-requests
+	if got := targetsForID(secondOverlap.Lanes, 1); !reflect.DeepEqual(got, []string{"127.0.0.1:47101", "127.0.0.1:47105"}) {
+		t.Fatalf("second overlap=%v", secondOverlap.Lanes)
+	}
+	secondPromotion := <-requests
+	if len(secondPromotion.Lanes) != 1 || secondPromotion.Lanes[0].Address != "127.0.0.1:47101" {
+		t.Fatalf("second promotion=%v", secondPromotion.Lanes)
 	}
 	c.mu.Lock()
 	secondPlan := c.lanePlans[1]
@@ -163,7 +179,7 @@ func TestControllerReplaceFourthLaneUsesPrivateSlotWithoutFifthLogicalLane(t *te
 	if err := c.Connect(p); err != nil {
 		t.Fatal(err)
 	}
-	control, requests := gameControlResponder(t, 1)
+	control, requests := gameControlResponder(t, 2)
 	setControllerGameControl(c, control)
 	c.mu.Lock()
 	before := c.lifecycle.Snapshot()[3].Ref
@@ -171,6 +187,13 @@ func TestControllerReplaceFourthLaneUsesPrivateSlotWithoutFifthLogicalLane(t *te
 
 	if err := c.ReplaceLane(4); err != nil {
 		t.Fatal(err)
+	}
+	overlap := <-requests
+	if len(overlap.Lanes) != 5 {
+		t.Fatalf("overlap targets=%v", overlap.Lanes)
+	}
+	if got := targetsForID(overlap.Lanes, 4); !reflect.DeepEqual(got, []string{"127.0.0.1:47104", "127.0.0.1:47105"}) {
+		t.Fatalf("lane4 overlap=%v", overlap.Lanes)
 	}
 	promotion := <-requests
 	if len(promotion.Lanes) != 4 {
