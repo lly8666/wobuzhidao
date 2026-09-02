@@ -2,12 +2,13 @@
 """Black-box timing and lane-setting test for wbd-game-lane-client."""
 from __future__ import annotations
 
+import queue
 import re
-import select
 import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -25,18 +26,34 @@ def free_port() -> int:
 
 
 def wait_ready(proc: subprocess.Popen[str]) -> str:
+    """Read child stdout until the real READY line without TextIO/select races.
+
+    TextIOWrapper.readline() may pull multiple lines from the OS fd into Python's
+    own buffer. select() on the underlying fd can then report no readability even
+    though READY is already buffered in user space. A dedicated blocking reader
+    thread keeps the qualification strict (STATE is not treated as READY) while
+    making line delivery independent of that buffering detail.
+    """
     deadline = time.monotonic() + 5
-    lines = []
+    lines: list[str] = []
     assert proc.stdout is not None
+    lineq: queue.Queue[str] = queue.Queue()
+
+    def read_lines() -> None:
+        assert proc.stdout is not None
+        for line in proc.stdout:
+            lineq.put(line)
+
+    threading.Thread(target=read_lines, name="wbd-game-ready-reader", daemon=True).start()
     while time.monotonic() < deadline:
-        if proc.poll() is not None:
-            err = proc.stderr.read() if proc.stderr else ""
-            raise AssertionError(f"client exited before ready rc={proc.returncode} lines={lines} stderr={err}")
-        ready, _, _ = select.select([proc.stdout], [], [], 0.1)
-        if not ready:
-            continue
-        line = proc.stdout.readline()
-        if not line:
+        try:
+            line = lineq.get(timeout=min(0.1, max(0.0, deadline - time.monotonic())))
+        except queue.Empty:
+            if proc.poll() is not None:
+                err = proc.stderr.read() if proc.stderr else ""
+                raise AssertionError(
+                    f"client exited before ready rc={proc.returncode} lines={lines} stderr={err}"
+                )
             continue
         lines.append(line.rstrip())
         if "WBD_GAME_LANE_CLIENT_READY" in line:
