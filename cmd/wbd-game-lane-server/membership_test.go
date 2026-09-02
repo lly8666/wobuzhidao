@@ -12,7 +12,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/rawipbackend"
 )
 
-func TestGameServerRebindDormantAndWake(t *testing.T) {
+func TestGameServerReplacementDormantAndWake(t *testing.T) {
 	echo, err := net.ListenUDP("udp4", &net.UDPAddr{IP:net.IPv4(127,0,0,1),Port:0})
 	if err != nil { t.Fatal(err) }
 	defer echo.Close()
@@ -45,13 +45,21 @@ func TestGameServerRebindDormantAndWake(t *testing.T) {
 
 	if err:=s.registerPeerMeta(newPeer,meta,time.Now());err!=nil{t.Fatal(err)}
 	if _,err:=s.bindLane(sid,1,newPeer,meta,time.Now());err!=nil{t.Fatal(err)}
-	gs.mu.Lock(); rebound:=gs.lanes[1]; bound:=len(gs.lanes); gs.mu.Unlock()
-	if bound!=1 || rebound==nil || rebound.String()!=newPeer.String(){t.Fatalf("rebind lanes=%d peer=%v",bound,rebound)}
-	s.mu.Lock(); _,oldMeta:=s.peerMeta[oldPeer.String()]; _,oldSession:=s.peerSession[oldPeer.String()]; s.mu.Unlock()
-	if oldMeta||oldSession{t.Fatal("old lane peer remained authoritative after authenticated rebind")}
+	gs.mu.Lock(); primary:=gs.lanes[1]; candidate:=gs.overlap[1]; bound:=len(gs.lanes); overlapping:=len(gs.overlap); gs.mu.Unlock()
+	if bound!=1 || overlapping!=1 || primary==nil || primary.String()!=oldPeer.String() || candidate==nil || candidate.String()!=newPeer.String(){
+		t.Fatalf("overlap lanes=%d overlap=%d primary=%v candidate=%v",bound,overlapping,primary,candidate)
+	}
+	s.mu.Lock(); _,oldMeta:=s.peerMeta[oldPeer.String()]; _,oldSession:=s.peerSession[oldPeer.String()]; _,newMeta:=s.peerMeta[newPeer.String()]; _,newSession:=s.peerSession[newPeer.String()]; s.mu.Unlock()
+	if !oldMeta||!oldSession||!newMeta||!newSession{t.Fatal("replacement overlap did not retain both authenticated transport peers")}
 
 	leaveWire,err:=gamelane.MarshalLaneLeave(sid,1);if err!=nil{t.Fatal(err)}
 	leave,err:=gamelane.ParseMembershipControl(leaveWire);if err!=nil{t.Fatal(err)}
+	if err:=s.handleMembership(oldPeer,leave,time.Now());err!=nil{t.Fatal(err)}
+	gs.mu.Lock(); promoted:=gs.lanes[1]; overlapAfter:=len(gs.overlap); gs.mu.Unlock()
+	if promoted==nil || promoted.String()!=newPeer.String() || overlapAfter!=0{t.Fatalf("candidate promotion peer=%v overlap=%d",promoted,overlapAfter)}
+	s.mu.Lock(); _,oldMeta=s.peerMeta[oldPeer.String()]; _,oldSession=s.peerSession[oldPeer.String()]; _,newMeta=s.peerMeta[newPeer.String()]; _,newSession=s.peerSession[newPeer.String()]; s.mu.Unlock()
+	if oldMeta||oldSession||!newMeta||!newSession{t.Fatal("old peer was not retired while candidate remained authoritative")}
+
 	if err:=s.handleMembership(newPeer,leave,time.Now());err!=nil{t.Fatal(err)}
 	gs.mu.Lock(); dormantLanes:=len(gs.lanes); gs.mu.Unlock()
 	if dormantLanes!=0{t.Fatalf("dormant lanes=%d",dormantLanes)}
