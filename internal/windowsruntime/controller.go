@@ -55,6 +55,11 @@ type Controller struct {
 	gameControl string
 	lanePlans map[int]LanePlan
 	lifecycle *logicaltunnel.LaneLifecycle
+
+	// payload-idle monitoring is controller-local policy. The stop channel is
+	// connection-generation scoped so a stale monitor cannot act after reconnect.
+	idleStop chan struct{}
+	idleGeneration uint64
 }
 
 func NewController(runner Runner,discoverer UnderlayDiscoverer,tickets TicketStore)*Controller{
@@ -137,16 +142,18 @@ func(c *Controller)Connect(profile Profile)error{
 
 	c.mu.Lock()
 	c.profile=profile;c.baseUnderlay=baseUnderlay;c.tunnelConfig=multi.TunnelConfig;c.gameControl=multi.GameControl;c.lanePlans=plans;c.lifecycle=lifecycle;c.state=RuntimeConnected
-	c.mu.Unlock();connected=true;return nil
+	c.mu.Unlock();connected=true
+	c.startPayloadIdleMonitor(time.Duration(profile.IdleTimeoutSeconds)*time.Second)
+	return nil
 }
 
 func(c *Controller)Disconnect()error{
 	c.mu.Lock()
 	switch c.state{
 	case RuntimeDisconnected:
-		c.mu.Unlock();return c.executor.Stop()
+		c.stopPayloadIdleMonitorLocked();c.mu.Unlock();return c.executor.Stop()
 	case RuntimeConnected,RuntimeDormant:
-		c.state=RuntimeDisconnecting
+		c.state=RuntimeDisconnecting;c.stopPayloadIdleMonitorLocked()
 	default:
 		state:=c.state;c.mu.Unlock();return fmt.Errorf("Windows runtime cannot disconnect while %s",state)
 	}
@@ -156,6 +163,7 @@ func(c *Controller)Disconnect()error{
 }
 
 func(c *Controller)clearRuntimeContextLocked(){
+	c.stopPayloadIdleMonitorLocked()
 	c.profile=Profile{};c.baseUnderlay=Underlay{};c.tunnelConfig=logicaltunnel.TunnelConfig{};c.gameControl="";c.lanePlans=nil;c.lifecycle=nil
 }
 

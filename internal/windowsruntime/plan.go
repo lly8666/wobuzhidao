@@ -70,6 +70,9 @@ type Profile struct {
 	// Lanes is the desired ADR-0012 active lane count for initial connect. Normal
 	// mode defaults to one; Game/weak-network policy may request 2..4.
 	Lanes int
+	// IdleTimeoutSeconds is application/TUN payload-idle policy only. Zero keeps
+	// automatic DORMANT disabled. Transport liveness/control never refreshes it.
+	IdleTimeoutSeconds int
 
 	// TunnelIPv4 is populated from authenticated tunnel configuration before
 	// capture routes are applied. Empty is valid during preflight/bootstrap.
@@ -139,6 +142,7 @@ func (p Profile) Validate() error {
 	if p.FEC != "off" && p.FEC != "20:20" { return errors.New("FEC must be off or 20:20") }
 	if p.MTU < 576 || p.MTU > 9000 { return errors.New("MTU must be 576..9000") }
 	if err := logicaltunnel.ValidateProductTransportLaneCount(p.Lanes); err != nil { return err }
+	if err := validateIdleTimeoutSeconds(p.IdleTimeoutSeconds); err != nil { return err }
 	if _, err := logicaltunnel.ParseInstallationID(strings.TrimSpace(p.InstallationID)); err != nil { return errors.New("stable installation id must be exactly 32 hex characters") }
 	if p.RouteMode != RouteFull && p.RouteMode != RouteForeign && p.RouteMode != RouteChina { return errors.New("route mode must be Full, Foreign, or China") }
 	if (p.RouteMode == RouteForeign || p.RouteMode == RouteChina) && strings.TrimSpace(p.CNSetDir) == "" { return errors.New("China/Foreign route mode requires the WBD CN ipset directory") }
