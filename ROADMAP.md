@@ -13,13 +13,13 @@
 | V2-M4 | no-HOL FakeTCP/FEC qualification | **DONE / MUST REMAIN GREEN** |
 | V2-M5 | Game/race 1..4-lane first-arrival/dedup | **PRODUCT FOUNDATION / REQUALIFY** |
 | V2-M6 | Reality-like TLS bootstrap on each lane's same FakeTCP association | **IMPLEMENTED / MUST REMAIN PER-LANE** |
-| V2-M7 | Windows Wintun raw-L3 + Npcap underlay | **IMPLEMENTED / RESTORE MULTI-LANE ORCHESTRATION** |
+| V2-M7 | Windows Wintun raw-L3 + Npcap underlay | **MULTI-LANE EXECUTION RESTORED / REQUALIFY** |
 | V2-M8-old | per-LiveID raw-IP netns + veth + double NAT | **SUPERSEDED / REFERENCE ONLY** |
 | V2-M9A | Logical Tunnel identity + server address lease | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9B | shared Linux TUN + one host NAT + lease demux | **IMPLEMENTED FOUNDATION / REQUALIFY** |
-| V2-M9C | product 1..4-lane admission + Game/race wiring | **ACTIVE ROLLBACK REPAIR** |
-| V2-M9D | payload-idle dormant/wake | **ACTIVE AFTER CARDINALITY REPAIR** |
-| V2-M9E | make-before-break + unified lane replacement state machine | **ACTIVE AFTER CARDINALITY REPAIR** |
+| V2-M9C | product 1..4-lane admission + Game/race wiring | **IMPLEMENTED FOUNDATION / REQUALIFY** |
+| V2-M9D | payload-idle dormant/wake | **PARTIAL: DORMANT + FIRST-READY WAKE IMPLEMENTED; TRIGGERS PENDING** |
+| V2-M9E | make-before-break + unified lane replacement state machine | **PARTIAL: CANDIDATE/PROMOTION EXISTS; BOUNDED DATA-PLANE RACE PENDING** |
 | V2-M10 | exact-source Windows/Linux qualification + physical Windows 11 -> Ubuntu ARM64 | **BLOCKED UNTIL SAME-HEAD AUTOMATION GREEN** |
 | V2-M11 | startup RTT / packaging/process simplification | **DEFERRED** |
 
@@ -86,7 +86,7 @@ Do not reintroduce a global hard-coded `10.66.0.2/30` identity.
 - Track `last_payload_activity` separately from `last_transport_activity`.
 - PING/PONG/control does not refresh payload idle.
 - DORMANT closes all lanes but preserves Logical Tunnel, lease, Wintun/routes/DNS.
-- First new packet establishes the first healthy lane, then optional Game lanes refill.
+- First new packet establishes the first healthy lane; forwarding resumes on that first READY lane, then optional Game lanes refill incrementally.
 - Each lane has an independent experimental randomized 30..60m soft age deadline; multi-lane rotation is staggered.
 
 ## Shared Linux TUN + one NAT
@@ -108,7 +108,7 @@ Exit gates: distinct Logical Tunnels get distinct leases, identical inner tuples
 
 ## Windows product orchestration
 
-One Wintun belongs to one Logical Tunnel. Restore product use of existing lane planning:
+One Wintun belongs to one Logical Tunnel. Product execution now admits logical lanes 1..4 plus a private replacement transport slot that does not become a fifth logical Game lane:
 
 ```text
 Logical Tunnel
@@ -121,7 +121,9 @@ Logical Tunnel
   -> one Wintun
 ```
 
-Normal mode uses one lane; Game/weak-network may use 2..4; replacement may overlap old/candidate lanes. There is no preliminary ordinary kernel-TCP Reality WBD connection.
+Normal mode uses one lane; Game/weak-network may use 2..4; replacement may overlap old/candidate transports. DORMANT wake publishes the first READY lane immediately and then refills later Game lanes. There is no preliminary ordinary kernel-TCP Reality WBD connection.
+
+The remaining Windows lifecycle gap is explicit bounded old+candidate Game/race overlap for planned replacement; endpoint swap alone is not sufficient evidence for `A -> A+B -> B`.
 
 ## Frozen weak-network/release limits
 

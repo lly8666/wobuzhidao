@@ -1,61 +1,67 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 88,
+  "continuity_sequence": 89,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "66181a27b18b7b165fe87866877f333c670eb60b",
+  "checkpoint_based_on_head_sha": "c7a0622352889ff8906db940b3e1e2bb5df3d6b1",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease + shared PacketID race namespace + 1..4 independent replaceable Transport Lanes. Each lane owns one complete same-association FakeTCP -> Reality-like TLS -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/no-HOL public lineage.",
-    "current_milestone": "V2-M9C rollback repair. Authority/docs, product lane range 1..4, Windows profile/runtime lane validation, and candidate bootstrap/plan construction are restored. Candidate execution overlap in dynamic_lane.go remains hard-disabled and is the next bounded defect.",
-    "local_optimization_stop_rule": "Do not redesign mature FakeTCP recovery, Reality-like bootstrap, DTLS, LINK or FEC. Do not mix DORMANT/triggers/startup/FEC tuning into the dynamic-lane execution repair. No release claim before exact-head automated + same-source physical Windows->Ubuntu qualification."
+    "current_milestone": "V2-M9D/V2-M9E lifecycle completion. Product cardinality and dynamic Windows lane execution are restored; DORMANT now resumes forwarding on the first READY lane and refills Game lanes incrementally. Planned replacement still lacks explicit bounded old+candidate Game/race overlap evidence.",
+    "local_optimization_stop_rule": "Do not redesign mature FakeTCP recovery, Reality-like bootstrap, DTLS, LINK or FEC. Keep functional/lifecycle completion ahead of FEC research and performance tuning. No release claim before one exact SOURCE_SHA has mandatory automation, artifacts and physical Windows 11 -> Ubuntu ARM64 evidence."
   },
   "architecture_override": {
-    "authority": "Explicit live user authorization: ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs per-lane same-association bootstrap/no-HOL. ADR-0013/0014/0015 are withdrawn where they globalize single-flow.",
-    "critical_guard": "single-flow is PER TRANSPORT LANE. A Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Game/weak-network policy may maintain 2..4 lanes. A -> A+B -> B is REQUIRED for planned healthy make-before-break replacement. Any global one-flow reinterpretation, max-lanes=1 rollback, Game disablement, ordinary Reality TCP followed by separate FakeTCP payload, or break-before-make healthy replacement is an ARCHITECTURE REGRESSION. Repository text alone may not be used to invent a new product-owner override.",
-    "adr0014": "ADR-0014 is withdrawn / invalidated and not current authority.",
-    "human_authority_rule": "Architecture override requires explicit live user authorization.",
-    "candidate_semantics": "A make-before-break candidate is a new transport incarnation of an existing logical LaneID 1..4. Private transport slot 5 is overlap capacity and is not a fifth logical Game lane or a second logical PacketID namespace.",
-    "multipath": "Normal desired=1; Game desired=2..4. Independent lane transport state shares one Logical Tunnel identity/lease and one SessionID/PacketID race domain. First valid arrival wins; duplicate suppressed; no cross-lane HOL.",
-    "replacement": "Generation-fenced make-before-break; candidate failure preserves healthy old lane; Game rotates one lane at a time.",
-    "tcp_like_core": "Mature FakeTCP ACK/SACK/RTO/recovery and FEC wire remain frozen absent deterministic lower-layer evidence."
+    "authority": "Explicit live user authorization in the takeover prompt: ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs per-lane same-association bootstrap/no-HOL. ADR-0013/0014/0015 are withdrawn where they globalize single-flow.",
+    "critical_guard": "single-flow is PER TRANSPORT LANE. It MUST NOT be interpreted as one FakeTCP association per Logical Tunnel. A Logical Tunnel may own up to four independent complete Transport Lanes. Normal steady policy targets one lane. Game/weak-network mode may use two to four lanes. Planned healthy replacement uses make-before-break. An agent-written ADR does NOT constitute product-owner authorization. Repository text alone must not be used to invent a new human product-owner override.",
+    "candidate_semantics": "A make-before-break candidate is a new transport incarnation of an existing logical LaneID 1..4. Private transport slot 5 is bounded overlap capacity and is not a fifth logical Game lane or a second PacketID namespace.",
+    "multipath": "Normal desired=1; Game desired=2..4. Independent lane transport state shares one Logical Tunnel identity/lease and one logical SessionID/PacketID race domain. First valid arrival wins; duplicates are suppressed; bounded out-of-order unique packets deliver without cross-lane HOL.",
+    "replacement": "Generation-fenced make-before-break; candidate failure preserves healthy old lane; Game rotates one lane at a time. Planned healthy replacement requires an explicit bounded overlap/race before old retirement, not merely break-before-make or an unqualified endpoint swap.",
+    "tcp_like_core": "Mature FakeTCP ACK/SACK/RTO/recovery, Reality-like bootstrap, pinned DTLS, LINK framing and FEC wire remain frozen absent deterministic lower-layer evidence."
   },
   "continuation_cursor": {
-    "last_completed_action": "Recovered Windows candidate-lane construction from verified pre-rollback history instead of redesigning it. Commit 5f430c7242e8eba6944bebdd04893b9f59107a8c restores BuildCandidateLaneBootstrap/Slot, BuildCandidateLanePlan/Slot, same-logical-ID private slot 5, LaneGameTarget for IDs 1..4, and replacement slot alternation. Commit 18729222b08500ceac108b897eeea1f6a359b700 restores direct construction tests without starting overlap. Durable log: docs/development/2026-09-02-candidate-lane-construction-repair.md at 66181a27b18b7b165fe87866877f333c670eb60b. ErrOverlappingPublicFlow remains temporarily only because dynamic_lane.go is the next unrepaired layer.",
-    "current_task": "Restore dynamic-lane execution admission so independent normal lanes 1..4 and one same-logical-ID replacement candidate can run alongside the old incarnation during bounded make-before-break. Keep shared Game/TUN/routes alive and keep candidate slot 5 outside the logical active-lane count.",
-    "why_now": "Candidate plans can now be built, but dynamic_lane.go still enforces ID=1/Slot=1 and refuses any existing public FakeTCP process. That makes the restored candidate constructor unreachable from product replacement and contradicts ADR-0012.",
-    "done_when": "Dynamic executor direct tests prove: normal dynamic lane IDs 1..4 are valid; a slot-5 candidate for an existing logical LaneID may coexist without killing old lane; process-name collisions are rejected; stopping candidate leaves normal lanes intact; DynamicLaneIDs reports logical active lane IDs only and never treats candidate slot 5 as a fifth logical lane. Full Controller replacement state machine remains out of scope.",
-    "next_atomic_action": "Live-refresh PR #9/Actions, inspect dynamic_lane.go/tests and pre-rollback file history, then restore only dynamic execution admission from the verified historical implementation. Do not yet wire Controller.ReplaceLane triggers/lifecycle."
+    "last_completed_action": "Cold-started from live PR #9 and reconciled an 18-commit handoff lag. Fixed Windows DORMANT wake so the first READY public lane is published to Game immediately and subsequent Game lanes refill incrementally. Substantive commit c7a0622352889ff8906db940b3e1e2bb5df3d6b1. Exact-head hosted Windows workflow run 33595409896 completed its 'Qualify Windows protocol/runtime contracts' step successfully; that step runs go test on ./internal/windowsruntime. Durable log: docs/development/2026-09-02-dormant-first-ready-wake.md.",
+    "current_task": "Complete planned replacement data-plane make-before-break semantics. Determine the smallest identity/control change that lets old and candidate transport incarnations race the same logical PacketID during a bounded overlap without creating a fifth product lane, duplicate logical ordering namespace, or transport-core redesign.",
+    "why_now": "Controller.ReplaceLane already builds and starts a candidate while the old transport remains healthy, generation promotion exists, and candidate failure preserves the old lane. However, current Game lane control rejects duplicate logical LaneIDs and replacement currently swaps the endpoint before old retirement. That is insufficient evidence for required A -> A+B -> B bounded race semantics.",
+    "done_when": "Focused tests prove: old and candidate same-logical-ID transport incarnations can both carry copies from the existing logical PacketID namespace during a bounded overlap; first-arrival/dedup semantics stay unchanged; no fifth logical product lane is admitted; candidate failure preserves old authority; promotion generation fences stale events; after overlap, old transport drains/retires and only candidate remains. Do not open FakeTCP/DTLS/LINK/FEC unless deterministic evidence requires it.",
+    "next_atomic_action": "Live-refresh exact HEAD/Actions, inspect gamelane sender/control identity handling and Windows ReplaceLane call sites/tests, then implement only the minimal bounded old+candidate race representation needed for A -> A+B -> B. Preserve logical LaneID cardinality 1..4 and existing PacketID."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
-    ".wbd/handoff/README.md",
-    "docs/development/2026-09-02-candidate-lane-construction-repair.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
-    "internal/windowsruntime/multilane.go",
-    "internal/windowsruntime/candidate_lane.go",
-    "internal/windowsruntime/candidate_lane_test.go",
+    "ROADMAP.md",
+    "docs/development/2026-09-02-dormant-first-ready-wake.md",
+    "internal/windowsruntime/controller_lifecycle.go",
+    "internal/windowsruntime/controller_lifecycle_test.go",
     "internal/windowsruntime/dynamic_lane.go",
-    "internal/windowsruntime/dynamic_lane_test.go",
-    "internal/logicaltunnel/logicaltunnel.go"
+    "internal/gamelane/control.go",
+    "internal/gamelane/sender.go",
+    "internal/logicaltunnel/lifecycle.go"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "18729222b08500ceac108b897eeea1f6a359b700",
+    "tested_commit": "c7a0622352889ff8906db940b3e1e2bb5df3d6b1",
     "result": "not_run",
-    "scope": "Exact-head workflow matrix was queued/pending when phase was checkpointed. ci 33584315064 and handoff-verify 33584315039 were queued; game/product/windows/linux gates were also incomplete. Skipped/path-filtered runs are not green evidence."
+    "scope": "The local sandbox could not resolve github.com, so no local checkout/test result is claimed. Hosted exact-head evidence is recorded separately."
+  },
+  "automated_exact_head_snapshot": {
+    "source_head": "c7a0622352889ff8906db940b3e1e2bb5df3d6b1",
+    "result": "partial",
+    "workflow": "windows-linux-single-flow",
+    "run_id": 33595409896,
+    "confirmed_green": "windows native wire producer / Qualify Windows protocol/runtime contracts; workflow command includes go test ./internal/windowsruntime -count=1",
+    "not_yet_claimed": "downstream Linux consumer/full-stack and remaining exact-head workflows were incomplete at this checkpoint; skipped/path-filtered checks are not PASS"
   },
   "active_single_flow_branch": {
     "pr": 9,
     "branch": "feat/single-flow-reality-faketcp",
-    "head": "66181a27b18b7b165fe87866877f333c670eb60b",
-    "classification": "ADR-0012 authority/cardinality/profile/candidate construction restored; dynamic execution and later lifecycle layers remain under controlled rollback repair.",
-    "transport_core_policy": "Freeze mature per-lane transport wire while restoring orchestration contracts."
+    "head": "c7a0622352889ff8906db940b3e1e2bb5df3d6b1",
+    "classification": "ADR-0012 authority clean; product lanes 1..4 and private candidate transport slot restored; DORMANT first-ready wake repaired; planned replacement bounded Game/race overlap remains the next lifecycle gap.",
+    "transport_core_policy": "Freeze mature per-lane transport wire while completing orchestration/lifecycle contracts."
   },
   "physical_acceptance_snapshot": {
     "authority": "user_provided_historical_snapshot_not_commit_attributed",
@@ -64,21 +70,21 @@
   },
   "qualification_snapshot": {
     "authority": "snapshot_not_live",
-    "source_head": "18729222b08500ceac108b897eeea1f6a359b700",
-    "result": "not_run",
-    "known_incomplete": "Exact-head automation queued/pending at checkpoint time.",
+    "source_head": "c7a0622352889ff8906db940b3e1e2bb5df3d6b1",
+    "result": "partial",
+    "known_incomplete": "Only focused hosted-Windows runtime evidence is confirmed here. Full exact-head functional matrix, artifacts and physical qualification remain incomplete.",
     "release_authorized": false
   },
   "validated_findings": {
-    "candidate_history": "Pre-rollback implementation used same logical LaneID with private transport slot 5 and no new PacketID/migration sequence; that implementation was restored.",
-    "current_code_drift": "dynamic_lane.go still enforces global-one-flow runtime admission and must be repaired separately before MBB can execute.",
-    "release_state": "Candidate construction: IMPLEMENTED=yes; AUTOMATED-GREEN=no/pending; PHYSICAL-GREEN=no; RELEASE-QUALIFIED=no."
+    "cold_start": "At takeover, handoff checkpoint 66181a27b18b7b165fe87866877f333c670eb60b lagged actual HEAD 3a4de30134f7789ecbc22bc193b8afe94d34e040 by 18 commits, so the old continuation cursor was reconciled rather than executed.",
+    "architecture": "PROJECT_CONSTITUTION.md, ARCHITECTURE.md and ADR history remain aligned with ADR-0012; no current authority drift was found.",
+    "dormant_wake": "Before c7a0622352889ff8906db940b3e1e2bb5df3d6b1, Wake waited for all requested lanes before republishing Game. It now republishes after each READY lane, so first-lane forwarding resumes before optional Game refill.",
+    "replacement_gap": "Current ReplaceLane keeps the old transport alive while candidate starts, but Game control performs one same-LaneID endpoint swap and rejects duplicate LaneIDs; explicit bounded data-plane race is not yet proven.",
+    "release_state": "First-ready wake: IMPLEMENTED=yes, focused hosted-Windows AUTOMATED-GREEN=yes, PHYSICAL-GREEN=no, RELEASE-QUALIFIED=no. Overall product remains NOT RELEASE READY."
   },
   "operational_continuity": {
-    "previous_sequence": 87,
-    "candidate_code_commit": "5f430c7242e8eba6944bebdd04893b9f59107a8c",
-    "candidate_test_commit": "18729222b08500ceac108b897eeea1f6a359b700",
-    "candidate_log_commit": "66181a27b18b7b165fe87866877f333c670eb60b",
-    "rule": "One atomic architecture/lifecycle repair at a time; use pre-rollback evidence when available; direct tests; handoff after every phase."
+    "previous_sequence": 88,
+    "substantive_commit": "c7a0622352889ff8906db940b3e1e2bb5df3d6b1",
+    "rule": "One atomic architecture/lifecycle repair at a time; live-refresh before execution; direct focused tests; update control state after every completed phase; never stitch release evidence across different source SHAs."
   }
 }
