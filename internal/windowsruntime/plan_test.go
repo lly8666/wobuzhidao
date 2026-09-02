@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/lly8666/wobuzhidao/internal/ipset"
+	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 )
 
 func testProfile() Profile {
@@ -20,13 +21,13 @@ func testProfile() Profile {
 }
 func testUnderlay() Underlay { return Underlay{SourceIP:"192.0.2.20", PacketDevice:`\Device\NPF_{01234567-89AB-CDEF-0123-456789ABCDEF}`, SourceMAC:"00:11:22:33:44:55", NextHopMAC:"66:77:88:99:aa:bb"} }
 
-func TestBuildPlanUsesPerLaneSingleFlowWindowsStack(t *testing.T) {
+func TestBuildPlanUsesGlobalSingleFlowWindowsStack(t *testing.T) {
 	p, err := BuildPlan(testProfile(), testUnderlay(), strings.Repeat("ab", 32)); if err != nil { t.Fatal(err) }
 	if p.FakeTCP.Name!="faketcp"||p.DTLS.Name!="dtls"||p.Link.Name!="link"||p.TUN.Name!="tun"{t.Fatalf("unexpected runtime commands: %+v",p)}
 	if !slices.Contains(p.FakeTCP.Args,"legacy"){t.Fatalf("FakeTCP release recovery not pinned: %v",p.FakeTCP.Args)}
 	if !slices.Contains(p.FakeTCP.Args,testUnderlay().PacketDevice)||!slices.Contains(p.FakeTCP.Args,testUnderlay().SourceMAC)||!slices.Contains(p.FakeTCP.Args,testUnderlay().NextHopMAC){t.Fatalf("Npcap underlay identity missing: %v",p.FakeTCP.Args)}
 	if !argPair(p.FakeTCP.Args,"--remote",testProfile().ServerRaw){t.Fatalf("single public endpoint missing: %v",p.FakeTCP.Args)}
-	if !argPair(p.FakeTCP.Args,"--reality-server-name",testProfile().ServerName)||!argPair(p.FakeTCP.Args,"--reality-route-key",testProfile().RouteKey)||!argPair(p.FakeTCP.Args,"--reality-username",testProfile().Username)||!argPair(p.FakeTCP.Args,"--reality-password",testProfile().Password)||!argPair(p.FakeTCP.Args,"--reality-ticket-out",testProfile().TicketPath)||!argPair(p.FakeTCP.Args,"--reality-installation-id",testProfile().InstallationID)||!argPair(p.FakeTCP.Args,"--reality-tunnel-config-out",testProfile().TunnelConfigPath){t.Fatalf("Reality bootstrap v2 must be inside FakeTCP command: %v",p.FakeTCP.Args)}
+	if !argPair(p.FakeTCP.Args,"--reality-server-name",testProfile().ServerName)||!argPair(p.FakeTCP.Args,"--reality-route-key",testProfile().RouteKey)||!argPair(p.FakeTCP.Args,"--reality-username",testProfile().Username)||!argPair(p.FakeTCP.Args,"--reality-password",testProfile().Password)||!argPair(p.FakeTCP.Args,"--reality-ticket-out",testProfile().TicketPath)||!argPair(p.FakeTCP.Args,"--reality-installation-id",testProfile().InstallationID)||!argPair(p.FakeTCP.Args,"--reality-tunnel-config-out",testProfile().TunnelConfigPath){t.Fatalf("Reality bootstrap must be inside FakeTCP command: %v",p.FakeTCP.Args)}
 	if got:=p.DTLS.Args;!slices.Equal(got,[]string{"client","46101","127.0.0.1","45101","none","none"}){t.Fatalf("DTLS client contract = %v",got)}
 	if !slices.Contains(p.Link.Args,"20:20")||!slices.Contains(p.Link.Args,"1"){t.Fatalf("immutable LINK settings missing: %v",p.Link.Args)}
 	if p.IPv6Apply.Name!="ipv6-apply"||!hasArgSuffix(p.IPv6Apply.Args,"windows_ipv6_killswitch.ps1")||!slices.Contains(p.IPv6Apply.Args,"Apply"){t.Fatalf("device IPv6 fail-close missing: %v",p.IPv6Apply)}
@@ -45,11 +46,13 @@ func TestBuildFakeTCPCommandDoesNotDialSeparateRealityFront(t *testing.T) {
 	if !argPair(cmd.Args,"--reality-tunnel-config-out",testProfile().TunnelConfigPath){t.Fatalf("authenticated tunnel config output missing: %v",cmd.Args)}
 }
 
-func TestProfileAllowsOneToFourProductTransportLanes(t *testing.T) {
-	p:=testProfile();p.Lanes=0;if got:=p.normalized().Lanes;got!=1{t.Fatalf("default lane count normalized to %d want 1",got)};if err:=p.Validate();err!=nil{t.Fatalf("default one-lane product rejected: %v",err)}
-	for _,lanes:=range []int{1,2,3,4}{p:=testProfile();p.Lanes=lanes;if err:=p.Validate();err!=nil{t.Fatalf("lanes=%d rejected: %v",lanes,err)}}
-	for _,lanes:=range []int{-1,5}{p:=testProfile();p.Lanes=lanes;if err:=p.Validate();err==nil{t.Fatalf("lanes=%d unexpectedly accepted",lanes)}}
+func TestProfileAllowsExactlyOneProductPublicTransport(t *testing.T) {
+	p:=testProfile();p.Lanes=0;if got:=p.normalized().Lanes;got!=1{t.Fatalf("default lane count normalized to %d want 1",got)};if err:=p.Validate();err!=nil{t.Fatalf("default one-flow product rejected: %v",err)}
+	p=testProfile();p.Lanes=1;if err:=p.Validate();err!=nil{t.Fatalf("explicit one-flow product rejected: %v",err)}
+	for _,lanes:=range []int{-1,2,3,4,5}{p:=testProfile();p.Lanes=lanes;if err:=p.Validate();!errorsIsTransportLane(err){t.Fatalf("lanes=%d unexpectedly accepted/error=%v",lanes,err)}}
 }
+
+func errorsIsTransportLane(err error) bool { return err != nil && strings.Contains(err.Error(), logicaltunnel.ErrTransportLanes.Error()) }
 
 func TestProfileAllowsTunnelAddressToBeEmptyUntilAuthenticatedBootstrap(t *testing.T) {
 	p:=testProfile();p.TunnelIPv4="";if err:=p.Validate();err!=nil{t.Fatalf("pre-bootstrap profile rejected: %v",err)}
