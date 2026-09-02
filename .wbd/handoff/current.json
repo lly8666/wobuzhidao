@@ -1,17 +1,17 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 86,
+  "continuity_sequence": 87,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "7e50faba286ba999a10000735c2e6abb18339fc5",
+  "checkpoint_based_on_head_sha": "7134524658ebbd7caccda8be3f9927ffb15f8ad3",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease and shared PacketID namespace with 1..4 independent replaceable Transport Lanes. Each lane owns one FakeTCP SYN/4-tuple/sequence lineage carrying same-association Reality-like TLS bootstrap -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/no-HOL payload.",
-    "current_milestone": "V2-M9C rollback repair. Architecture authority/docs are restored. The minimum logicaltunnel product cardinality contract is now implemented as 1..4 at code/test checkpoint 259c2dfc45132e547d26dc94207d9ed53e6b678e and recorded in durable log commit 7e50faba286ba999a10000735c2e6abb18339fc5. Exact-head automated qualification is still pending; other global-one-lane guards remain to be repaired atomically.",
-    "local_optimization_stop_rule": "Do not redesign mature FakeTCP recovery, Reality-like per-lane bootstrap, DTLS, LINK or FEC while repairing architecture/lifecycle. Do not retune FEC or startup latency, weaken anti-spoof/IPv6/firewall boundaries, or claim release readiness before exact-head automation and physical Windows->Ubuntu qualification."
+    "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease and one shared logical PacketID namespace with 1..4 independent replaceable Transport Lanes. Each lane is one complete FakeTCP SYN/4-tuple/sequence lineage carrying same-association Reality-like TLS bootstrap -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/no-HOL payload.",
+    "current_milestone": "V2-M9C rollback repair. Authority/docs and the central logicaltunnel 1..4 product cardinality contract are repaired. Windows profile/runtime production validation already delegates to that contract; stale exactly-one tests were corrected through fb24ffd57f387df8b6ed722706ae990f3e6977b0 and recorded at 7134524658ebbd7caccda8be3f9927ffb15f8ad3. Candidate/make-before-break code remains hard-disabled and is the next bounded defect.",
+    "local_optimization_stop_rule": "Do not redesign mature FakeTCP ACK/SACK/RTO/recovery, per-lane Reality-like bootstrap, DTLS, LINK or FEC. Do not tune FEC/startup, weaken source anti-spoof/IPv6/firewall scope, or claim release readiness before one exact HEAD passes required automation and same-source physical Windows->Ubuntu qualification."
   },
   "architecture_override": {
     "authority": "Explicit live user authorization: ADR-0012 is authoritative for Logical Tunnel lifecycle/multipath; ADR-0011 controls per-lane same-association Reality-like bootstrap/no-HOL. ADR-0013/0014/0015 are withdrawn where they globalize single-flow.",
@@ -19,68 +19,68 @@
     "adr0014": "ADR-0014 is withdrawn / invalidated and not current product authority.",
     "adr0015": "ADR-0015 is withdrawn after a later explicit live human correction restored ADR-0012.",
     "human_authority_rule": "Any architecture override requires explicit live user authorization; stale repository text/handoff is not enough.",
-    "cardinality": "MinProductPublicTransportLanes=1; MaxProductPublicTransportLanes=4; active counts 1..4 valid, 0/5+ invalid.",
-    "multipath": "Normal desired=1; Game desired=2..4. Lanes have independent FakeTCP/DTLS/LINK/FEC state and share Logical Tunnel identity/lease plus one logical SessionID/PacketID race namespace. First arrival wins; duplicates suppressed; no cross-lane HOL.",
+    "cardinality": "Connected product profiles default to Normal=1 and accept active lane counts 1..4; Game desired=2..4; fifth active lane rejected. Profile value 0 is an existing default sentinel that normalizes to Normal=1, not a connected zero-lane state.",
+    "multipath": "Lanes have independent FakeTCP/DTLS/LINK/FEC state and share Logical Tunnel identity/lease plus one logical SessionID/PacketID race namespace. First arrival wins; duplicates are suppressed; no cross-lane HOL.",
     "replacement": "Use generation-fenced make-before-break. Candidate failure preserves healthy old lane. Game rotates one lane at a time.",
     "tcp_like_core": "Mature FakeTCP ACK/SACK/RTO/recovery and release FEC wire behavior remains frozen unless deterministic lower-layer evidence proves a defect."
   },
   "continuation_cursor": {
-    "last_completed_action": "After sequence 85 restored ADR-0012 authority/docs, the next atomic repair changed only internal/logicaltunnel product cardinality. Commit 5140e4bf9b795ec754ff8f7587497896b83aae6f sets MaxProductPublicTransportLanes=4 and validates the inclusive 1..4 range. Commit 259c2dfc45132e547d26dc94207d9ed53e6b678e updates the direct unit contract to accept 1,2,3,4 and reject -1,0,5,8. Durable log docs/development/2026-09-02-lane-cardinality-1to4-repair.md was added at 7e50faba286ba999a10000735c2e6abb18339fc5. No transport wire code changed.",
-    "current_task": "Continue Phase A drift audit and select the next smallest shipping-layer global-one-lane guard to repair. Inspect Windows product profile/config validation, dynamic/candidate lane orchestration and server Logical Tunnel transport admission, but change only one bounded contract in the next atomic phase.",
-    "why_now": "The central lane-count authority is restored, but the branch still contains later rollback commits that reject second dynamic/candidate public transports and may constrain shipping `Lanes` to 1. Those guards can still make the correct 1..4 constant unreachable from product configuration.",
-    "done_when": "The next chosen shipping-layer contract is ADR-0012-aligned with a minimal direct regression test; no unrelated lifecycle or transport-wire change is mixed in; then handoff is incremented again.",
-    "next_atomic_action": "Live-refresh PR #9 HEAD and exact-head CI. Read internal/windowsgui/config.go plus its tests and internal/windowsruntime/plan.go/multilane.go only as needed to identify whether shipping profile Lanes is still restricted to 1. If so, repair only that configuration/admission boundary to accept 1..4 and reject 0/5+, with direct tests. Do not yet re-enable candidate make-before-break in the same atomic change."
+    "last_completed_action": "The Windows shipping profile/runtime audit found production code already ADR-0012-aligned after the central cardinality repair: windowsgui passes Lanes into windowsruntime.Profile, and Profile.Validate delegates to logicaltunnel.ValidateProductTransportLaneCount. Only stale tests still required exactly one lane. Commit dc4e28c16ccaca384f00b85cf625428496fec9b3 restores GUI profile tests to 1..4; fb24ffd57f387df8b6ed722706ae990f3e6977b0 restores runtime profile tests to 1..4. No production or transport-wire code changed. Durable log commit: 7134524658ebbd7caccda8be3f9927ffb15f8ad3.",
+    "current_task": "Restore the Windows candidate-lane construction/planning contract that was hard-disabled by the global-one-lane rollback. Keep the phase limited to candidate bootstrap/plan construction and its direct tests; do not yet wire the full replacement lifecycle or trigger integration.",
+    "why_now": "The profile/runtime lane range is reachable, but internal/windowsruntime/candidate_lane.go still returns ErrOverlappingPublicFlow from candidate constructors and rejects lane IDs beyond 1. That prevents ADR-0012 make-before-break and Game lane rotation even though multilane planning already has an independent candidate transport slot.",
+    "done_when": "Candidate bootstrap/plan construction again supports a legitimate lane ID 1..4 using a distinct transport incarnation/slot and complete same-lane FakeTCP -> Reality-like bootstrap -> DTLS -> LINK lineage, with direct tests proving it does not create a fifth active Game lane or a second logical PacketID sequence. Full dynamic replacement state transitions remain out of scope for this atomic phase.",
+    "next_atomic_action": "Live-refresh PR #9 and Actions, then inspect internal/windowsruntime/candidate_lane.go, candidate_lane_test.go, dynamic_lane.go/tests and relevant pre-rollback commit patches. Restore only the prior ADR-0012 candidate construction/planning behavior with minimum direct tests; do not invent new migration sequence or touch FakeTCP/DTLS/LINK/FEC wire code."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
     ".wbd/handoff/README.md",
-    "docs/development/SINGLE_FLOW_DEVLOG.md",
-    "docs/development/2026-09-02-seq82-exact-head-handoff-contract-correction.md",
+    "docs/development/2026-09-02-adr0012-authority-drift-repair.md",
+    "docs/development/2026-09-02-lane-cardinality-1to4-repair.md",
+    "docs/development/2026-09-02-windows-profile-lane-contract-repair.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
-    "tests/test_handoff.py",
-    "internal/windowsruntime/controller.go",
-    "cmd/wbd-faketcp/main_windows.go",
-    "cmd/wbd-faketcp-mux/main_linux.go",
-    "internal/faketcp/server_mux.go"
+    "internal/logicaltunnel/logicaltunnel.go",
+    "internal/windowsruntime/multilane.go",
+    "internal/windowsruntime/candidate_lane.go",
+    "internal/windowsruntime/plan.go"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "259c2dfc45132e547d26dc94207d9ed53e6b678e",
+    "tested_commit": "fb24ffd57f387df8b6ed722706ae990f3e6977b0",
     "result": "not_run",
-    "scope": "The direct cardinality code/test commits are present, but exact-head GitHub Actions were queued/pending when this handoff was written. No queued/pending/skipped result is counted green."
+    "scope": "Exact-head Actions were still queued/pending at live refresh. Relevant queued runs included ci 33583947191, handoff-verify 33583947179, game-settings-matrix 33583947157, game-lane-fullstack 33583947136, product-lifecycle-e2e 33583947140, shared-tun-two-client 33583947172, windows-portable-bundle 33583947113 and linux-server-release 33583947318. Skipped/path-filtered runs are not green evidence."
   },
   "active_single_flow_branch": {
     "pr": 9,
     "branch": "feat/single-flow-reality-faketcp",
-    "head": "7e50faba286ba999a10000735c2e6abb18339fc5",
-    "classification": "ADR-0012 authority restored and core product lane-count range repaired to 1..4. Further shipping/runtime global-one-lane guards remain under controlled audit.",
+    "head": "7134524658ebbd7caccda8be3f9927ffb15f8ad3",
+    "classification": "ADR-0012 authority + central/profile lane-range repaired; candidate/MBB shipping path still contains known global-one-lane rollback.",
     "transport_core_policy": "Freeze mature per-lane FakeTCP/Reality-like/DTLS/LINK/FEC wire semantics during architecture/lifecycle repair."
   },
   "physical_acceptance_snapshot": {
     "authority": "user_provided_historical_snapshot_not_commit_attributed",
     "result": "fail",
-    "interpretation": "Historical physical evidence cannot qualify current architecture-repair checkpoints. Fresh exact-source Windows 11 + Npcap -> Ubuntu ARM64 Normal/Game/lifecycle/cleanup qualification remains mandatory."
+    "interpretation": "Historical physical evidence does not qualify current multipath/lifecycle checkpoints. Fresh exact-source Windows 11 + Npcap -> Ubuntu ARM64 Normal/Game/lifecycle/network-change/cleanup qualification remains mandatory."
   },
   "qualification_snapshot": {
     "authority": "snapshot_not_live",
-    "source_head": "259c2dfc45132e547d26dc94207d9ed53e6b678e",
+    "source_head": "fb24ffd57f387df8b6ed722706ae990f3e6977b0",
     "result": "not_run",
-    "known_incomplete": "Exact-head CI/handoff and product workflow matrix queued/pending at snapshot time.",
+    "known_incomplete": "Exact-head workflow matrix queued/pending at snapshot time.",
     "release_authorized": false
   },
   "validated_findings": {
-    "authority": "ADR-0012 remains active; single-flow is per lane and product lane range is 1..4.",
-    "cardinality_implementation": "internal/logicaltunnel now accepts 1..4 and rejects outside the range; directly related lease/source anti-spoof code was unchanged.",
-    "current_code_drift": "Windows candidate/dynamic and possibly profile/server admission still contain global-one-lane rollback and require separate atomic repair.",
-    "release_state": "Lane cardinality: IMPLEMENTED=yes; AUTOMATED-GREEN=no/pending; PHYSICAL-GREEN=no; RELEASE-QUALIFIED=no."
+    "authority": "ADR-0012 active; single-flow per lane; product lane range 1..4.",
+    "windows_profile": "Production Windows GUI/runtime profile validation already delegates to the central lane-range contract; only stale tests were corrected in this phase.",
+    "current_code_drift": "Windows candidate/dynamic replacement and server lane admission still require separate audit/repair; candidate_lane.go is known to hard-disable overlap.",
+    "release_state": "Windows profile lane contract: IMPLEMENTED=yes; AUTOMATED-GREEN=no/pending; PHYSICAL-GREEN=no; RELEASE-QUALIFIED=no."
   },
   "operational_continuity": {
-    "previous_sequence": 85,
-    "cardinality_code_commit": "5140e4bf9b795ec754ff8f7587497896b83aae6f",
-    "cardinality_test_commit": "259c2dfc45132e547d26dc94207d9ed53e6b678e",
-    "cardinality_log_commit": "7e50faba286ba999a10000735c2e6abb18339fc5",
-    "rule": "One atomic architecture/lifecycle contract at a time; minimum direct test; handoff after each phase; exact-head Actions and physical acceptance required before release."
+    "previous_sequence": 86,
+    "windows_gui_test_commit": "dc4e28c16ccaca384f00b85cf625428496fec9b3",
+    "windows_runtime_test_commit": "fb24ffd57f387df8b6ed722706ae990f3e6977b0",
+    "windows_contract_log_commit": "7134524658ebbd7caccda8be3f9927ffb15f8ad3",
+    "rule": "One atomic architecture/lifecycle repair at a time; direct contract test; handoff after each phase; exact-head automation and same-source physical acceptance before release."
   }
 }
