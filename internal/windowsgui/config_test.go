@@ -28,7 +28,7 @@ func writeTestProfile(t *testing.T, dir, extra string) string {
 	return path
 }
 
-func TestLoadRuntimeProfileAppliesADR0012ProductDefaults(t *testing.T) {
+func TestLoadRuntimeProfileAppliesGlobalSingleFlowDefaults(t *testing.T) {
 	t.Setenv("WBD_PORTABLE_DIR", "")
 	dir := t.TempDir(); path := writeTestProfile(t, dir, "")
 	stateDir := filepath.Join(dir, "state")
@@ -50,19 +50,20 @@ func TestLoadRuntimeProfilePersistsInstallationIdentityAcrossLoads(t *testing.T)
 	if strings.TrimSpace(string(b))!=first.InstallationID{t.Fatalf("persisted installation id=%q want=%q",strings.TrimSpace(string(b)),first.InstallationID)}
 }
 
-func TestLoadRuntimeProfileAcceptsOneToFourProductLanes(t *testing.T) {
+func TestLoadRuntimeProfileAcceptsOnlyOneProductPublicTransport(t *testing.T) {
 	t.Setenv("WBD_PORTABLE_DIR", "")
-	for _, lanes := range []int{1,2,3,4} {
-		t.Run(fmt.Sprintf("lanes-%d", lanes), func(t *testing.T) {
-			dir:=t.TempDir(); stateDir:=filepath.Join(dir,"state")
-			path:=writeTestProfile(t,dir,fmt.Sprintf(",\n  \"lanes\": %d",lanes))
-			p,err:=LoadRuntimeProfile(path,filepath.Join(dir,"bin"),stateDir);if err!=nil{t.Fatal(err)}
-			if p.Lanes!=lanes{t.Fatalf("lanes=%d want=%d",p.Lanes,lanes)}
+	dir:=t.TempDir(); stateDir:=filepath.Join(dir,"state")
+	path:=writeTestProfile(t,dir,`,
+  "lanes": 1`)
+	p,err:=LoadRuntimeProfile(path,filepath.Join(dir,"bin"),stateDir);if err!=nil{t.Fatal(err)}
+	if p.Lanes!=1{t.Fatalf("lanes=%d want=1",p.Lanes)}
+
+	for _, lanes := range []int{-1,2,3,4,5} {
+		t.Run(fmt.Sprintf("reject-lanes-%d", lanes), func(t *testing.T) {
+			dir:=t.TempDir(); badPath:=writeTestProfile(t,dir,fmt.Sprintf(",\n  \"lanes\": %d",lanes))
+			if _,err:=LoadRuntimeProfile(badPath,filepath.Join(dir,"bin"),filepath.Join(dir,"state"));err==nil{t.Fatalf("%d public transports unexpectedly accepted",lanes)}
 		})
 	}
-	dir:=t.TempDir(); badPath:=writeTestProfile(t,dir,`,
-  "lanes": 5`)
-	if _,err:=LoadRuntimeProfile(badPath,filepath.Join(dir,"bin"),filepath.Join(dir,"state"));err==nil{t.Fatal("five product lanes unexpectedly accepted")}
 }
 
 func TestLegacyTunnelIPv4FieldDoesNotOverrideAuthenticatedLease(t *testing.T) {
