@@ -11,6 +11,8 @@ USERNAME='stress-user'
 PASSWORD='stress-password'
 INSTALLATION_ID='11223344556677889900aabbccddeeff'
 ROUNDS=${SFSTRESS_ROUNDS:-20}
+LINK_KEEPALIVE=${SFSTRESS_LINK_KEEPALIVE:-100ms}
+LINK_IDLE_TIMEOUT=${SFSTRESS_LINK_IDLE_TIMEOUT:-500ms}
 
 cleanup() {
   set +e
@@ -73,7 +75,7 @@ grep -q 'WBD_PLATFORM_PROXY_SERVER_READY' "$ROOT/platform-server.log"
 
 sudo ip netns exec "$S" "$ROOT/wbd-link-server-mux" \
   -listen 127.0.0.1:47000 -service 127.0.0.1:48000 \
-  -ticket-dir "$ROOT/tickets" -ticket-ttl 60s -max-sessions 64 \
+  -ticket-dir "$ROOT/tickets" -ticket-ttl 60s -max-sessions 64 -idle-timeout "$LINK_IDLE_TIMEOUT" \
   >"$ROOT/link-server.log" 2>&1 & LINK_SERVER_PID=$!
 SERVER_PIDS="$SERVER_PIDS $LINK_SERVER_PID"
 for _ in $(seq 1 200); do grep -q 'WBD_LINK_SERVER_MUX_READY' "$ROOT/link-server.log" && break; sleep .05; done
@@ -208,6 +210,20 @@ kill_client_stack_dirty() {
   return 1
 }
 
+wait_server_transport_reap() {
+  local round="$1" retired
+  for _ in $(seq 1 200); do
+    retired="$(grep -c 'WBD_LINK_SESSION_COUNTERS tunnel_id_prefix=' "$ROOT/link-server.log" || true)"
+    if [ "$retired" -ge "$round" ]; then
+      return 0
+    fi
+    sleep .01
+  done
+  echo "dirty-exit cleanup failed: server transport incarnation was not reaped for round $round" >&2
+  tail -n 80 "$ROOT/link-server.log" >&2 || true
+  return 1
+}
+
 touch "$ROOT/.runner-write-check"
 rm -f "$ROOT/.runner-write-check"
 
@@ -246,7 +262,7 @@ for round in $(seq 1 "$ROUNDS"); do
   assert_pid_file "$ROOT/dtls.pid"
 
   sudo ip netns exec "$C" sh -c "echo \$\$ >'$ROOT/link.pid'; exec '$ROOT/wbd-link-proxy' -mode client \
-    -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off -mtu 1400 -lanes 1 -demo-reality-ticket '$ticket'" \
+    -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off -mtu 1400 -lanes 1 -keepalive '$LINK_KEEPALIVE' -demo-reality-ticket '$ticket'" \
     >"$ROOT/link.log" 2>&1 &
   for _ in $(seq 1 800); do grep -q 'WBD_LINK_READY role=client' "$ROOT/link.log" && break; sleep .05; done
   grep -q 'WBD_LINK_READY role=client' "$ROOT/link.log"
@@ -259,13 +275,16 @@ for round in $(seq 1 "$ROUNDS"); do
   test "$(grep -c 'WBD_LINK_MUX_SESSION_READY' "$ROOT/link-server.log" || true)" -ge "$round"
 
   kill_client_stack_dirty
+  wait_server_transport_reap "$round"
   echo "SINGLE_FLOW_STARTUP_STRESS_ROUND_PASS round=${round} source_port=${port} installation=${INSTALLATION_ID}"
 done
 
 test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY remote=.*same_flow=1' "$ROOT/mux.log")" -eq "$ROUNDS"
 test "$(grep -c 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.3' "$ROOT/mux.log")" -eq "$ROUNDS"
 test "$(grep -c 'WBD_LINK_MUX_SESSION_READY' "$ROOT/link-server.log")" -eq "$ROUNDS"
+test "$(grep -c 'WBD_LINK_SESSION_COUNTERS tunnel_id_prefix=' "$ROOT/link-server.log")" -eq "$ROUNDS"
+! grep -q 'logical tunnel public transport incarnation limit reached' "$ROOT/link-server.log"
 kill -0 "$MUX_PID"
 kill -0 "$LINK_SERVER_PID"
 kill -0 "$PLATFORM_PID"
-echo "SINGLE_FLOW_STARTUP_STRESS_PASS rounds=${ROUNDS} nat=1 dirty_exit=1 full_stack=1 logical_tunnel=1 platformproxy=1"
+echo "SINGLE_FLOW_STARTUP_STRESS_PASS rounds=${ROUNDS} nat=1 dirty_exit=1 full_stack=1 logical_tunnel=1 platformproxy=1 transport_reap=1"
