@@ -1,36 +1,37 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 84,
+  "continuity_sequence": 85,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "88b00fec9c8735e7ca4aa0366b7f02aae44da2fd",
+  "checkpoint_based_on_head_sha": "779f0a469945180106f3ac09f0a53e305164f40c",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "Ship WBD with one TCP-shaped public flow per Transport Lane. FakeTCP owns each lane from its first SYN; a bounded reliable prefix carries Firefox-120-like TLS 1.3 / Reality-like admission, then the same association crosses an in-band barrier into pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/VPN datagrams without FIN/RST/reconnect/new SYN and without sustained ordinary TCP HOL. One Logical Tunnel may own 1..4 independent complete WBD Transport Lanes.",
-    "current_milestone": "PR #9 is the active single-flow implementation. Frozen candidate f2bf90f41634f3a494ed3755e99630ae56365ce8 passed all Go product tests in ci run 33572611677 but was disqualified by repository handoff-contract metadata. Sequence 84 preserves the complete authority correction from sequences 82/83 and removes one resume_read_set path that does not exist on canonical/PR #3. No executable transport code is changed by this correction.",
-    "local_optimization_stop_rule": "Do not restore ordinary Reality TCP -> close -> second FakeTCP SYN. Do not retune mature FakeTCP recovery/ACK/SACK/RTO/FEC without deterministic evidence. Hosted packaging is not final release acceptance; physical Windows 11 Npcap/NIC/NAT/ISP -> Ubuntu ARM64 remains mandatory."
+    "terminal_goal": "Ship ADR-0012 WBD: stable Logical Tunnel identity/lease and shared logical PacketID namespace with 1..4 independent replaceable Transport Lanes. Each lane owns one FakeTCP SYN/4-tuple/sequence lineage carrying Reality-like TLS bootstrap, then the same association crosses an in-band barrier into pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/VPN datagrams without ordinary kernel-TCP HOL.",
+    "current_milestone": "V2-M9C architecture rollback repair. The authority/docs layer has been restored to ADR-0012 on PR #9 through substantive checkpoint 779f0a469945180106f3ac09f0a53e305164f40c. Executable code still contains global-one-lane rollback (`MaxProductPublicTransportLanes = 1` and candidate public-flow rejection), so product multipath is not yet restored.",
+    "local_optimization_stop_rule": "Do not redesign mature FakeTCP ACK/SACK/RTO/recovery, DTLS, LINK or FEC while repairing lifecycle/cardinality. Do not retune FEC, optimize startup RTT, slim Windows child processes, relax anti-spoof/IPv6/firewall boundaries, or claim release readiness before exact-head automated and physical Windows->Ubuntu qualification."
   },
   "architecture_override": {
-    "authority": "Explicit user hard requirement. ADR-0011 controls per-lane same-association Reality-like bootstrap/no-HOL; ADR-0012 controls Logical Tunnel 1..4 lanes, Game/race/dedup and make-before-break.",
-    "critical_guard": "single-flow is PER TRANSPORT LANE. A Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Game/weak-network policy may maintain 2..4 lanes. A -> A+B -> B is REQUIRED for make-before-break. Any global one-flow reinterpretation, second setup/public WBD SYN inside one lane, or sustained ordinary TCP HOL is an ARCHITECTURE REGRESSION. Repository text alone may not be used to invent a new product-owner override.",
-    "adr0014": "ADR-0014 is withdrawn and invalidated; it must not be used to restore a global one-flow-per-Logical-Tunnel rule.",
-    "human_authority_rule": "A new product-owner architecture override requires explicit live user authorization; repository text alone is not sufficient authority to invent one.",
-    "bootstrap_phase": "The opening seconds are a bounded reliable ordered adapter inside the same FakeTCP association and should resemble normal Firefox-120-like TLS 1.3 / Reality-like setup as closely as practical. It is not a separate kernel TCP product connection.",
-    "mode_switch": "Authenticated setup crosses an explicit in-band barrier on the same association into DTLS/datagram mode with no FIN, RST, reconnect or new WBD payload SYN.",
-    "hol_rule": "Reliable ordered semantics are setup-only. After the barrier, independently complete authenticated datagrams must progress despite earlier missing FakeTCP sequence ranges; sustained ordinary kernel TCP/TCP-over-TCP HOL is forbidden.",
-    "tcp_like_core": "Existing mature FakeTCP/TCP-like recovery, ACK/SACK/RTO and release FEC behavior is frozen unless a deterministic test isolates a core defect.",
-    "multipath": "Transport Lanes never share FakeTCP sequence spaces, DTLS key/nonce state or FEC blocks. They share Logical Tunnel identity/server lease and logical PacketID race domain. First valid arrival wins; duplicates are suppressed; no cross-lane HOL.",
-    "delivery_rule": "One exact candidate HEAD must pass current hosted Windows and Linux qualification. Matching artifacts from that same source must then pass physical Windows -> Ubuntu final acceptance."
+    "authority": "Explicit live user authorization on 2026-09-02: ADR-0012 is authoritative for Logical Tunnel lifecycle/multipath; ADR-0011 controls per-lane same-association Reality-like bootstrap/no-HOL. ADR-0013/0014/0015 are withdrawn where they globalize the per-lane invariant.",
+    "critical_guard": "single-flow is PER TRANSPORT LANE. A Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Game/weak-network policy may maintain 2..4 lanes. A -> A+B -> B is REQUIRED for planned healthy make-before-break replacement. Any global one-flow reinterpretation, ordinary Reality TCP followed by a separate FakeTCP payload flow, sustained ordinary TCP HOL, Game disablement, max-lanes=1 rollback, or break-before-make healthy replacement is an ARCHITECTURE REGRESSION. Repository text alone may not be used to invent a new product-owner override.",
+    "adr0014": "ADR-0014 is withdrawn / invalidated and is not current product authority.",
+    "adr0015": "ADR-0015 is withdrawn after a later explicit live human correction restored ADR-0012 multipath authority.",
+    "human_authority_rule": "A product-owner architecture override requires explicit live user authorization; stale repository text or an earlier handoff cannot create one.",
+    "bootstrap_phase": "Each lane starts with one FakeTCP-owned public SYN lineage. A bounded reliable ordered adapter on that SAME association carries real TLS 1.3 Reality-like recognition/admission and authenticated Logical Tunnel configuration.",
+    "mode_switch": "Each lane crosses an explicit in-band barrier into pinned wolfSSL DTLS 1.3/LINK/datagram payload with no FIN, RST, reconnect or new WBD payload SYN inside that lane.",
+    "hol_rule": "Reliable ordered semantics are bootstrap-only per lane. After the barrier independently complete datagrams may progress despite an earlier missing FakeTCP range; no cross-lane HOL and no ordinary TCP-over-TCP HOL.",
+    "multipath": "Normal desired lanes=1; Game desired lanes=2..4; maximum active product lanes=4. Lanes have independent FakeTCP/DTLS/LINK/FEC state and share Logical Tunnel identity/lease plus one logical SessionID/PacketID race namespace. First arrival wins and duplicates are suppressed.",
+    "replacement": "Use one generation-fenced replacement lifecycle. Candidate failure preserves the healthy old lane. Game rotation replaces one lane at a time.",
+    "tcp_like_core": "Existing mature TCP-like/FakeTCP ACK/SACK/RTO/recovery and release FEC wire behavior is frozen unless deterministic lower-layer evidence isolates a real defect."
   },
   "continuation_cursor": {
-    "last_completed_action": "Canonical continuity was merged into PR #9 at 6d887f82f2b4c1f0151147e8c12fa624a06c3fb1 without changing executable product code. Durable recovery logging was added at e4f5fa71c8f25d778e1b6a5742f1feaa4420f33d. Exact-head candidate f2bf90f41634f3a494ed3755e99630ae56365ce8 was frozen; its ci run 33572611677 passed go test ./... and failed only the newer handoff authority contract. The deterministic failure and correction path are recorded in docs/development/2026-09-02-seq82-exact-head-handoff-contract-correction.md at substantive canonical commit 88b00fec9c8735e7ca4aa0366b7f02aae44da2fd. Sequence 83 then failed handoff-verify run 33573204706 only because resume_read_set referenced .github/workflows/release-qualification-kick.yml, a feature-only path absent from canonical/PR #3. Sequence 84 removes that invalid recovery path.",
-    "current_task": "Require sequence-84 handoff-verify success on canonical. Then reconcile the latest canonical handoff/history into feat/single-flow-reality-faketcp without changing executable source, create one new immutable qualification-kick HEAD, and require the complete exact-head hosted Windows/Linux matrix before producing physical-test candidate artifacts.",
-    "why_now": "The current deterministic blocker is repository recovery metadata, not the transport implementation. Fixing only that layer preserves the mature TCP-like core and allows a clean exact-head qualification rerun.",
-    "done_when": "One immutable candidate source HEAD has green ci and handoff, per-lane one-SYN single-flow E2E, post-switch no-HOL, Reality-like TLS persona, mature FakeTCP weak-network recovery, lane count 1..4/fifth rejected, Game race/dedup/no-cross-lane-HOL, make-before-break candidate-failure preservation, Windows runtime/portable/admin/raw-IP, Linux raw-netns/firewall/release/shared-TUN, FEC off/20:20 and combined hosted Windows-runtime -> Linux-server qualification; matching exact-source artifacts then pass physical Windows 11 -> Ubuntu ARM64 acceptance.",
-    "next_atomic_action": "Confirm sequence-84 handoff-verify success, merge the latest canonical continuity into PR #9, then issue and freeze a superseding exact-head qualification candidate without executable changes."
+    "last_completed_action": "Live-refresh found PR #9 HEAD f42641f2b6f0210bb6dace506e6636f7b7d3de1f while canonical sequence-84 checkpoint was 88b00fec9c8735e7ca4aa0366b7f02aae44da2fd, so the stale cursor was discarded. A Drift Audit established ADR-0012 as authoritative and found global-one-lane drift in PR body, PROJECT_CONSTITUTION.md, ARCHITECTURE.md, ADR-0014/0015 and executable cardinality/candidate code. The docs-only authority repair withdrew ADR-0014/0015, restored Constitution/Architecture, corrected PR #9 metadata and recorded durable evidence in docs/development/2026-09-02-adr0012-authority-drift-repair.md. Final substantive feature checkpoint for this atomic phase is 779f0a469945180106f3ac09f0a53e305164f40c.",
+    "current_task": "Restore only the executable product lane cardinality contract to ADR-0012: MinProductPublicTransportLanes=1, MaxProductPublicTransportLanes=4, accept active counts 1..4 and reject 0/5+. Update directly conflicting cardinality tests. Do not yet restore candidate/make-before-break behavior in the same atomic change and do not touch mature transport wire code.",
+    "why_now": "Authority is now coherent, but internal/logicaltunnel/logicaltunnel.go still hard-codes MaxProductPublicTransportLanes=1 and ValidateProductTransportLaneCount accepts only n==1. Windows multilane planning already structurally supports lane IDs 1..4, so the smallest next repair is to remove this product-cardinality lock before broader lifecycle restoration.",
+    "done_when": "The exact resulting feature HEAD has a minimal contract test proving lane counts 1,2,3,4 accepted and 0/5 rejected, no FakeTCP/DTLS/LINK/FEC wire change, and no new architecture contradiction. Then increment handoff again before restoring candidate/Game make-before-break paths.",
+    "next_atomic_action": "Read internal/logicaltunnel/logicaltunnel.go and its directly related tests on live PR #9 HEAD; change only MaxProductPublicTransportLanes/ValidateProductTransportLaneCount/error wording and the stale tests that assert exactly one lane, then run the smallest Go contract tests before any broader lifecycle edit."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
@@ -48,47 +49,45 @@
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "f2bf90f41634f3a494ed3755e99630ae56365ce8",
-    "result": "fail",
-    "scope": "Exact-head ci run 33572611677 passed all Go product tests and failed the Python handoff authority contract. No executable transport defect was established and this SHA is not release-authorized."
+    "tested_commit": "779f0a469945180106f3ac09f0a53e305164f40c",
+    "result": "not_run",
+    "scope": "Docs/authority-only atomic phase. No exact-head automated qualification has yet been claimed for the post-repair checkpoint; previous queued/green results from older SHAs are non-authoritative for this checkpoint."
   },
   "active_single_flow_branch": {
     "pr": 9,
     "branch": "feat/single-flow-reality-faketcp",
-    "head": "f2bf90f41634f3a494ed3755e99630ae56365ce8",
-    "classification": "Active per-lane same-public-flow implementation plus Logical Tunnel 1..4/Game/make-before-break product layer. This exact candidate is superseded because its handoff metadata failed qualification.",
-    "transport_core_policy": "Freeze mature FakeTCP/TCP-like recovery/ACK/SACK/RTO/FEC behavior unless deterministic lower-layer evidence requires a targeted fix."
+    "head": "779f0a469945180106f3ac09f0a53e305164f40c",
+    "classification": "ADR-0012 authority/docs repaired; per-lane same-flow transport implementation retained; executable global-one-lane rollback still requires controlled repair.",
+    "transport_core_policy": "Freeze mature FakeTCP/TCP-like recovery/ACK/SACK/RTO/FEC and per-lane Reality-like/DTLS/LINK wire semantics during cardinality/lifecycle correction."
   },
   "physical_acceptance_snapshot": {
     "authority": "user_provided_historical_snapshot_not_commit_attributed",
     "result": "fail",
-    "windows_observation": "Prior physical Windows self-test reached Npcap mode ready, then failed with wbd-faketcp handshake: faketcp: not ipv4/tcp and later ticket timeout. Current feature code filters unrelated Npcap ingress before strict FakeTCP parsing and has deterministic physical-shape handshake regressions, but fresh exact-candidate physical acceptance is pending.",
-    "linux_observation": "Physical Ubuntu ARM64 history reached WBD_SINGLE_FLOW_BOOTSTRAP_READY same_flow=1 -> DTLS PEEK/HRR/ACCEPT_PASS -> READY role=server -> WBD_LINK_MUX_SESSION_READY.",
-    "interpretation": "Linux has physically reached same-flow LINK and hosted code covers the historical Windows capture boundary, but fresh exact-candidate Windows-to-Ubuntu acceptance remains required."
+    "windows_observation": "Historical physical Windows runs are not attributed to the new architecture-repair checkpoint and therefore do not qualify it.",
+    "linux_observation": "Historical Ubuntu ARM64 evidence reached same-flow Reality-like bootstrap -> DTLS ACCEPT_PASS -> LINK session ready for a lane, proving the per-lane transport can work physically but not qualifying current multipath lifecycle.",
+    "interpretation": "Fresh exact-source physical Windows 11 + Npcap -> Ubuntu ARM64 Normal/Game/lifecycle/cleanup qualification remains mandatory before release."
   },
   "qualification_snapshot": {
     "authority": "snapshot_not_live",
-    "source_head": "f2bf90f41634f3a494ed3755e99630ae56365ce8",
-    "result": "fail",
-    "reason": "ci and feature handoff contract red; product Go tests themselves passed. Cancelled/queued/skipped child gates are not counted as green.",
+    "source_head": "779f0a469945180106f3ac09f0a53e305164f40c",
+    "result": "not_run",
+    "known_red": {},
+    "known_incomplete": "Post-authority-repair exact-head Actions have not yet been accepted as a qualification matrix.",
     "release_authorized": false
   },
   "validated_findings": {
-    "single_flow_architecture": "Each Transport Lane is FakeTCP-owned from its first SYN; a bounded reliable prefix carries TLS 1.3 Reality-like admission and the same association switches to DTLS/LINK/FEC without reconnect.",
-    "logical_tunnel": "single-flow is PER TRANSPORT LANE; a Logical Tunnel may own 1..4 independent complete WBD Transport Lanes with Game/race/dedup and make-before-break.",
-    "automated_state": "Candidate f2bf90 product Go tests passed but repository handoff authority failed, so all hosted gates must be rerun on a superseding exact candidate after sequence-84 reconciliation.",
-    "physical_evidence": "Physical Linux has reached same-flow bootstrap -> DTLS -> LINK; fresh exact-candidate Windows physical acceptance is pending.",
-    "tcp_like_core": "No current evidence justifies changing mature FakeTCP/TCP-like recovery.",
-    "current_blocker": "Sequence-84 handoff verification, then exact-head hosted requalification and physical Windows->Ubuntu acceptance."
+    "authority": "ADR-0012 is the active multipath/lifecycle authority. ADR-0013/0014/0015 do not authorize global-one-lane shipping behavior.",
+    "single_flow_architecture": "single-flow is per Transport Lane. Each lane remains FakeTCP-owned from SYN through same-association Reality-like bootstrap, DTLS, LINK and payload.",
+    "current_code_drift": "internal/logicaltunnel currently sets product max lanes to 1 and Windows candidate code rejects overlap; those are known architecture defects, not desired guards.",
+    "already_correct": "Logical Tunnel lease/source anti-spoof foundation, Windows MultiLanePlan structure, Game/race PacketID layer, per-lane same-flow transport and shared-TUN direction should be preserved rather than rewritten.",
+    "release_state": "IMPLEMENTED authority repair only; AUTOMATED-GREEN=no for post-repair exact head; PHYSICAL-GREEN=no; RELEASE-QUALIFIED=no."
   },
   "operational_continuity": {
-    "canonical_sequence_81_head": "d872156b4ee24890efecbd7e5d810ee59b9eb237",
-    "continuity_merge": "6d887f82f2b4c1f0151147e8c12fa624a06c3fb1",
-    "disqualified_feature_candidate": "f2bf90f41634f3a494ed3755e99630ae56365ce8",
-    "substantive_failure_log_commit": "88b00fec9c8735e7ca4aa0366b7f02aae44da2fd",
-    "sequence_83_handoff_verify_run": 33573204706,
-    "sequence_83_handoff_verify_result": "failure: resume_read_set referenced feature-only release-qualification-kick.yml",
-    "durable_logs": "docs/development/SINGLE_FLOW_DEVLOG.md plus dated docs/development notes are durable engineering history; chat history is secondary and may be truncated.",
-    "rule": "Start future work by live-refreshing canonical HEAD, PR #9 HEAD, Actions and handoff. End development cycles with a new canonical machine-readable handoff and passing handoff-verify. Never call skipped/cancelled/queued/path-filtered gates green and never call a release accepted before fresh exact-candidate physical Windows->Ubuntu success."
+    "canonical_head_at_live_refresh": "2b036a7f92034946010e4baaed1b836df40d4afa",
+    "stale_sequence_84_checkpoint": "88b00fec9c8735e7ca4aa0366b7f02aae44da2fd",
+    "feature_head_at_live_refresh": "f42641f2b6f0210bb6dace506e6636f7b7d3de1f",
+    "feature_authority_repair_checkpoint": "779f0a469945180106f3ac09f0a53e305164f40c",
+    "durable_log": "docs/development/2026-09-02-adr0012-authority-drift-repair.md on PR #9 records this audit and repair. GitHub is the durable development-history authority; chat history is secondary.",
+    "rule": "Always live-refresh canonical/PR/Actions before continuing. Complete one atomic architecture/lifecycle repair at a time, run its minimum contract tests, then increment handoff. Never combine different SHA results into a release candidate."
   }
 }
