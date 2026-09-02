@@ -15,16 +15,15 @@ import (
 
 var peerTunnelBindings sync.Map // map[*peerSession]realityfront.TicketBinding
 
-// activeTunnelPeers is the bounded ADR-0012 lane set for each Logical Tunnel.
-// Each peer is one independent per-lane single-flow FakeTCP -> Reality-like
-// bootstrap -> DTLS -> LINK transport epoch. The shared tunnel lease lives above
-// these disposable peers.
+// activeTunnelPeers tracks the shipping public-transport claim for each Logical
+// Tunnel. ADR-0015 caps this set at exactly one simultaneous peer per TunnelID.
+// The server can still serve many different TunnelIDs on the same public port.
 var (
 	activeTunnelPeersMu sync.Mutex
 	activeTunnelPeers   = make(map[string]map[*peerSession]struct{})
 )
 
-var errTransportLaneLimit = errors.New("logical tunnel public transport lane limit reached")
+var errTransportLaneLimit = errors.New("logical tunnel public transport limit reached")
 
 func claimTunnelTransport(ps *peerSession, binding realityfront.TicketBinding) error {
 	if ps == nil {
@@ -93,14 +92,14 @@ func (s *server) consumeLogicalTunnelTicket(ps *peerSession, bind [control.DemoW
 		return err
 	}
 	if err := claimTunnelTransport(ps, binding); err != nil {
-		return fmt.Errorf("claim public transport lane for tunnel %s: %w", string(binding.Config.TunnelID)[:8], err)
+		return fmt.Errorf("claim public transport for tunnel %s: %w", string(binding.Config.TunnelID)[:8], err)
 	}
 	ps.account = binding.Account
-	copy(ps.id[:], ticket[:]) // LiveID remains disposable per-lane transport identity.
+	copy(ps.id[:], ticket[:]) // LiveID remains disposable per-transport identity.
 	ps.sid = string(binding.Config.TunnelID)[:8]
 	ps.haveIdentity = true
 	peerTunnelBindings.Store(ps, binding)
-	fmt.Printf("WBD_LINK_LOGICAL_TUNNEL_BIND tunnel_id_prefix=%s address4=%s lease=%s active_lanes=%d max_lanes=%d lane_ticket=consumed\n",
+	fmt.Printf("WBD_LINK_LOGICAL_TUNNEL_BIND tunnel_id_prefix=%s address4=%s lease=%s active_transports=%d max_transports=%d ticket=consumed\n",
 		ps.sid, binding.Config.Address4, lease, activeTunnelTransportCount(binding.Config.TunnelID), logicaltunnel.MaxProductPublicTransportLanes)
 	return nil
 }
@@ -120,7 +119,7 @@ func peerTunnelBinding(ps *peerSession) (realityfront.TicketBinding, bool) {
 func validatePeerRawIPSource(ps *peerSession, frame []byte) error {
 	binding, ok := peerTunnelBinding(ps)
 	if !ok {
-		return errors.New("raw-IP lane lacks Logical Tunnel binding")
+		return errors.New("raw-IP transport lacks Logical Tunnel binding")
 	}
 	packet, err := dataplane.UnmarshalIP(frame)
 	if err != nil {
@@ -142,7 +141,7 @@ func validatePeerRawIPSource(ps *peerSession, frame []byte) error {
 func marshalPeerTunnelMeta(ps *peerSession) ([]byte, error) {
 	binding, ok := peerTunnelBinding(ps)
 	if !ok {
-		return nil, errors.New("raw-IP lane lacks Logical Tunnel binding")
+		return nil, errors.New("raw-IP transport lacks Logical Tunnel binding")
 	}
 	lease, err := binding.Config.LeaseIPv4()
 	if err != nil {
