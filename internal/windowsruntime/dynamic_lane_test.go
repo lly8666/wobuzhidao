@@ -19,20 +19,23 @@ func dynamicTestLane(id, slot int, suffix string) LanePlan {
 	}
 }
 
-func TestValidateDynamicLanePlanAllowsLogicalIDsAndPrivateCandidateSlot(t *testing.T) {
+func TestValidateDynamicLanePlanAllowsLogicalIDsAndBoundedPhysicalSlots(t *testing.T) {
 	for id := 1; id <= 4; id++ {
 		if err := validateDynamicLanePlan(dynamicTestLane(id, id, "")); err != nil {
 			t.Fatalf("normal lane %d rejected: %v", id, err)
 		}
 		if err := validateDynamicLanePlan(dynamicTestLane(id, makeBeforeBreakCandidateSlot, "candidate-s5")); err != nil {
-			t.Fatalf("candidate lane %d rejected: %v", id, err)
+			t.Fatalf("slot-5 candidate lane %d rejected: %v", id, err)
 		}
+	}
+	// After one promotion the just-retired old slot becomes the single spare
+	// physical slot. A different logical LaneID may use that slot for its next
+	// candidate; the logical identity still remains 1..4.
+	if err := validateDynamicLanePlan(dynamicTestLane(2, 1, "candidate-s1")); err != nil {
+		t.Fatalf("rotating spare slot rejected: %v", err)
 	}
 	if err := validateDynamicLanePlan(dynamicTestLane(5, 5, "")); err == nil {
 		t.Fatal("logical lane 5 must be rejected")
-	}
-	if err := validateDynamicLanePlan(dynamicTestLane(1, 2, "candidate-s2")); err == nil {
-		t.Fatal("logical lane 1 must not steal normal transport slot 2")
 	}
 	if err := validateDynamicLanePlan(dynamicTestLane(1, 6, "candidate-s6")); err == nil {
 		t.Fatal("transport slot 6 must be rejected")
@@ -134,6 +137,28 @@ func TestExecutorCandidateSlotFiveCoexistsAndStopsWithoutTouchingOldLane(t *test
 		if ev == "stop:link-1" || ev == "stop:dtls-1" || ev == "stop:faketcp-1" || ev == "stop:game" || ev == "stop:tun" {
 			t.Fatalf("candidate stop disturbed old/shared runtime: %v", r.events[cut:])
 		}
+	}
+}
+
+func TestExecutorRotatingSpareCandidateKeepsLogicalIdentity(t *testing.T) {
+	r := &recordingRunner{}
+	e := NewExecutor(r)
+	pre := map[int]Process{2: &recordingProcess{runner: r, name: "faketcp-2"}}
+	if err := e.StartMultiLane(testMultiExecutorPlan(2), pre); err != nil {
+		t.Fatal(err)
+	}
+	candidate := dynamicTestLane(2, 1, "candidate-s1")
+	if err := e.StartDynamicLane(candidate, &recordingProcess{runner: r, name: candidate.FakeTCP.Name}); err != nil {
+		t.Fatal(err)
+	}
+	if got := e.DynamicLaneIDs(); !reflect.DeepEqual(got, []int{1, 2}) {
+		t.Fatalf("rotating spare changed logical lane identities=%v", got)
+	}
+	if err := e.StopDynamicLanePlan(candidate); err != nil {
+		t.Fatal(err)
+	}
+	if got := e.DynamicLaneIDs(); !reflect.DeepEqual(got, []int{1, 2}) {
+		t.Fatalf("candidate stop disturbed authoritative lanes=%v", got)
 	}
 }
 
