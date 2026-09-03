@@ -33,6 +33,11 @@ func (d *scriptedPathDiscoverer) setPath(path Underlay, err error) {
 	d.path = path
 	d.pathErr = err
 }
+func (d *scriptedPathDiscoverer) resetCalls() {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.pathCalls = 0
+}
 func (d *scriptedPathDiscoverer) calls() int {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -283,6 +288,7 @@ func TestDormantDoesNotReplaceAndWakeRediscoversUnderlay(t *testing.T) {
 		t.Fatal(err)
 	}
 	stopLifecycleMonitorForTest(c)
+	d.resetCalls()
 	d.setPath(newPath, nil)
 	control, requests := gameControlResponder(t, 2)
 	setControllerGameControl(c, control)
