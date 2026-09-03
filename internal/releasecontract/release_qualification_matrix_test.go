@@ -8,6 +8,9 @@ func TestExactHeadReleaseQualificationMatrixMatchesAuthorityDoc(t *testing.T) {
 
 	dispatch := []string{
 		"product-lifecycle-e2e.yml",
+		"game-settings-matrix.yml",
+		"windows-manual-reconnect.yml",
+		"windows-route-rebind.yml",
 		"windows-linux-single-flow.yml",
 		"windows-portable-bundle.yml",
 		"windows-tun-build.yml",
@@ -47,6 +50,6 @@ func TestExactHeadReleaseQualificationMatrixMatchesAuthorityDoc(t *testing.T) {
 		requireContains(t, workflow, gate, "release qualification workflow push set")
 		requireContains(t, doc, gate, "release qualification authority doc push set")
 	}
-	requireContains(t, workflow, "dispatched=19 push_gates=9 total_children=28", "release qualification authority marker")
-	requireContains(t, doc, "28 child gates", "release qualification authority doc")
+	requireContains(t, workflow, "dispatched=22 push_gates=9 total_children=31", "release qualification authority marker")
+	requireContains(t, doc, "31 hosted child gates", "release qualification authority doc")
 }

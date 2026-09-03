@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/release-qualification-kick.yml'
       - 'docs/development/QUALIFICATION_KICK.md'
+      - 'internal/releasecontract/release_qualification_matrix_test.go'
   workflow_dispatch: {}
 
 permissions:
