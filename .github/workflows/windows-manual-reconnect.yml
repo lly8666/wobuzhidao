@@ -1,0 +1,47 @@
+name: windows-manual-reconnect
+
+on:
+  push:
+    paths:
+      - 'internal/windowsruntime/manual_rotation.go'
+      - 'internal/windowsruntime/manual_rotation_test.go'
+      - 'cmd/wbd-windows-gui/main_windows.go'
+      - 'cmd/wbd-link-proxy/server_reconnect_test.go'
+      - '.github/workflows/windows-manual-reconnect.yml'
+  pull_request:
+    paths:
+      - 'internal/windowsruntime/manual_rotation.go'
+      - 'internal/windowsruntime/manual_rotation_test.go'
+      - 'cmd/wbd-windows-gui/main_windows.go'
+      - 'cmd/wbd-link-proxy/server_reconnect_test.go'
+      - '.github/workflows/windows-manual-reconnect.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Manual replacement lifecycle
+        run: go test ./internal/windowsruntime -run '^TestControllerRotateActiveLanes' -count=1
+      - name: Existing server CLOSE reconnect semantics
+        run: go test ./cmd/wbd-link-proxy -run '^(TestClientDataLoopServerTransientCloseRequestsReconnect|TestServerReconnectCloseReasonsRemainWireCompatible)$' -count=1
+
+  windows-compile:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Compile Windows GUI reconnect surface
+        shell: pwsh
+        run: go test ./cmd/wbd-windows-gui -run '^$' -count=1
+      - name: Manual replacement lifecycle on Windows
+        shell: pwsh
+        run: go test ./internal/windowsruntime -run '^TestControllerRotateActiveLanes' -count=1

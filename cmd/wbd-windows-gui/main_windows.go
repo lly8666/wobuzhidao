@@ -25,7 +25,7 @@ const (
 	nimAdd=0x00000000; nimDelete=0x00000002; nifMessage=0x00000001; nifIcon=0x00000002; nifTip=0x00000004
 	mfString=0x00000000; mfSeparator=0x00000800; tpmRightButton=0x0002; tpmBottomAlign=0x0020
 	colorWindow=5; idiApplication=32512; idcArrow=32512; defaultGUIFont=17
-	idConnectButton=1000; idHideButton=1001; idExitButton=1002; idDisconnectButton=1003; idNpcapButton=1004
+	idConnectButton=1000; idHideButton=1001; idExitButton=1002; idDisconnectButton=1003; idNpcapButton=1004; idReconnectButton=1005
 	idTrayShow=2001; idTrayExit=2002
 	trayCallbackMessage=wmApp+1; runtimeResultMessage=wmApp+2; trayIconID=1
 )
@@ -47,7 +47,7 @@ type notifyIconData struct{CbSize uint32; HWnd uintptr; UID,UFlags,UCallbackMess
 type runtimeResult struct{action string; err error; detail string}
 
 var app struct{
-	window,status,connectButton,disconnectButton,npcapButton,hideButton,exitButton,icon,font uintptr
+	window,status,connectButton,disconnectButton,reconnectButton,npcapButton,hideButton,exitButton,icon,font uintptr
 	taskbarCreated uint32
 	state windowsgui.WindowState
 	controller *windowsruntime.Controller
@@ -97,7 +97,7 @@ func windowProc(hwnd uintptr,message uint32,wParam,lParam uintptr) uintptr{
 	case wmCreate: app.window=hwnd;createControls(hwnd);if err:=addTrayIcon(hwnd);err!=nil{messageBox("WBD Windows GUI",err.Error());return ^uintptr(0)};return 0
 	case wmSize:if wParam==sizeMinimized{minimizeToTray(hwnd);return 0}
 	case wmClose:app.state.Close();procShowWindow.Call(hwnd,swHide);return 0
-	case wmCommand:switch lowWord(wParam){case idConnectButton:beginConnect(hwnd);return 0;case idDisconnectButton:beginDisconnect(hwnd);return 0;case idNpcapButton:beginNpcapSetup(hwnd);return 0;case idHideButton:minimizeToTray(hwnd);return 0;case idExitButton:requestExit(hwnd);return 0;case idTrayShow:restoreFromTray(hwnd);return 0;case idTrayExit:requestExit(hwnd);return 0}
+	case wmCommand:switch lowWord(wParam){case idConnectButton:beginConnect(hwnd);return 0;case idDisconnectButton:beginDisconnect(hwnd);return 0;case idReconnectButton:beginReconnect(hwnd);return 0;case idNpcapButton:beginNpcapSetup(hwnd);return 0;case idHideButton:minimizeToTray(hwnd);return 0;case idExitButton:requestExit(hwnd);return 0;case idTrayShow:restoreFromTray(hwnd);return 0;case idTrayExit:requestExit(hwnd);return 0}
 	case trayCallbackMessage:switch uint32(lParam){case wmLButtonDbl:restoreFromTray(hwnd);return 0;case wmRButtonUp:showTrayMenu(hwnd);return 0}
 	case runtimeResultMessage:handleRuntimeResult(hwnd);return 0
 	case wmDestroy:deleteTrayIcon(hwnd);procPostQuitMessage.Call(0);return 0}
@@ -107,13 +107,14 @@ func windowProc(hwnd uintptr,message uint32,wParam,lParam uintptr) uintptr{
 func createControls(hwnd uintptr){
 	status:="Status: disconnected; put wbd.json beside wbd.exe to connect";if app.profileReady{status="Status: disconnected; portable profile loaded"}else if app.profileErr!=nil{status="Status: disconnected; profile invalid"}
 	app.status=createControl(hwnd,"STATIC",status,24,26,710,30,0)
-	createControl(hwnd,"STATIC","WBD blocks all device IPv6 while connected. Minimize/X keeps VPN running. Disconnect or Exit removes WBD routes, DNS policy and IPv6 block before stopping the tunnel.",24,64,710,58,0)
+	createControl(hwnd,"STATIC","WBD blocks all device IPv6 while connected. Minimize/X keeps VPN running. Reconnect transport rotates active lanes with make-before-break while Wintun/routes stay online. Disconnect or Exit removes WBD routes, DNS policy and IPv6 block.",24,64,710,70,0)
 	app.connectButton=createControl(hwnd,"BUTTON","Connect",24,160,105,36,idConnectButton)
 	app.disconnectButton=createControl(hwnd,"BUTTON","Disconnect",141,160,105,36,idDisconnectButton)
-	app.npcapButton=createControl(hwnd,"BUTTON","Install / repair Npcap",258,160,170,36,idNpcapButton)
+	app.reconnectButton=createControl(hwnd,"BUTTON","Reconnect transport",258,160,170,36,idReconnectButton)
 	app.hideButton=createControl(hwnd,"BUTTON","Minimize to tray",440,160,140,36,idHideButton)
 	app.exitButton=createControl(hwnd,"BUTTON","Exit WBD",592,160,105,36,idExitButton)
-	createControl(hwnd,"STATIC","Npcap setup downloads the pinned official installer, verifies SHA-256 + Nmap signature, opens the official installer, then verifies DLLs and driver service.",24,214,710,50,0)
+	app.npcapButton=createControl(hwnd,"BUTTON","Install / repair Npcap",24,214,170,36,idNpcapButton)
+	createControl(hwnd,"STATIC","Npcap setup downloads the pinned official installer, verifies SHA-256 + Nmap signature, opens the official installer, then verifies DLLs and driver service.",206,208,528,58,0)
 	refreshControls()
 }
 func createControl(parent uintptr,class,text string,x,y,width,height int,id uintptr)uintptr{instance,_,_:=procGetModuleHandleW.Call(0);hwnd,_,_:=procCreateWindowExW.Call(0,uintptr(unsafe.Pointer(utf16Ptr(class))),uintptr(unsafe.Pointer(utf16Ptr(text))),wsChild|wsVisible|bsPushButton,uintptr(x),uintptr(y),uintptr(width),uintptr(height),parent,id,instance,0);if hwnd!=0&&app.font!=0{procSendMessageW.Call(hwnd,wmSetFont,app.font,1)};return hwnd}
@@ -121,6 +122,7 @@ func createControl(parent uintptr,class,text string,x,y,width,height int,id uint
 func beginConnect(hwnd uintptr){if app.operation!=""||app.exitRequested{return};if !app.profileReady{if app.profileErr!=nil{messageBox("WBD Windows GUI profile",app.profileErr.Error())}else{messageBox("WBD Windows GUI","No profile loaded. Put wbd.json beside wbd.exe and restart WBD, or launch with -profile <path>.")};return};app.operation="connect";app.cleanupFailed=false;setStatus("Status: connecting; IPv6 will be blocked device-wide before IPv4 capture is enabled");refreshControls();go func(profile windowsruntime.Profile){postRuntimeResult(runtimeResult{action:"connect",err:app.controller.Connect(profile)})}(app.profile)}
 func beginDisconnect(hwnd uintptr){if app.operation!=""||app.exitRequested{return};launchDisconnect()}
 func launchDisconnect(){app.operation="disconnect";if app.exitRequested{setStatus("Status: exiting; removing routes, DNS and IPv6 block before reverse teardown")}else if app.cleanupFailed{setStatus("Status: retrying network cleanup")}else{setStatus("Status: disconnecting; removing routes, DNS and IPv6 block")};refreshControls();go func(){postRuntimeResult(runtimeResult{action:"disconnect",err:app.controller.Disconnect()})}()}
+func beginReconnect(hwnd uintptr){if app.operation!=""||app.exitRequested||app.controller.State()!=windowsruntime.RuntimeConnected{return};app.operation="reconnect";setStatus("Status: reconnecting transport lanes with make-before-break; Wintun/routes stay active");refreshControls();go func(){postRuntimeResult(runtimeResult{action:"reconnect",err:app.controller.RotateActiveLanes()})}()}
 
 func beginNpcapSetup(hwnd uintptr){
 	if app.operation!=""||app.exitRequested||app.controller.State()!=windowsruntime.RuntimeDisconnected{return}
@@ -129,18 +131,19 @@ func beginNpcapSetup(hwnd uintptr){
 	go func(){cmd:=exec.Command("powershell.exe","-NoProfile","-ExecutionPolicy","Bypass","-File",script,"-Action","Install");out,runErr:=cmd.CombinedOutput();detail:=strings.TrimSpace(string(out));if runErr!=nil{runErr=fmt.Errorf("Npcap setup: %w: %s",runErr,detail)};postRuntimeResult(runtimeResult{action:"npcap",err:runErr,detail:detail})}()
 }
 
-func requestExit(hwnd uintptr){if app.exitRequested{return};app.exitRequested=true;if app.operation=="npcap"{setStatus("Status: Exit requested; waiting for Npcap setup to finish");refreshControls();return};if app.operation=="connect"{setStatus("Status: Exit requested; waiting for connection setup before cleanup");refreshControls();return};if app.operation=="disconnect"{setStatus("Status: Exit requested; waiting for network cleanup and teardown");refreshControls();return};launchDisconnect()}
+func requestExit(hwnd uintptr){if app.exitRequested{return};app.exitRequested=true;if app.operation=="npcap"{setStatus("Status: Exit requested; waiting for Npcap setup to finish");refreshControls();return};if app.operation=="connect"{setStatus("Status: Exit requested; waiting for connection setup before cleanup");refreshControls();return};if app.operation=="reconnect"{setStatus("Status: Exit requested; waiting for transport rotation before cleanup");refreshControls();return};if app.operation=="disconnect"{setStatus("Status: Exit requested; waiting for network cleanup and teardown");refreshControls();return};launchDisconnect()}
 func postRuntimeResult(result runtimeResult){app.results<-result;procPostMessageW.Call(app.window,runtimeResultMessage,0,0)}
 
 func handleRuntimeResult(hwnd uintptr){var result runtimeResult;select{case result=<-app.results:default:return};app.operation=""
 	switch result.action{
 	case "connect":if result.err!=nil{setStatus("Status: disconnected; connect failed: "+result.err.Error());if !app.exitRequested{messageBox("WBD Connect failed",result.err.Error())}}else{setStatus("Status: connected; IPv4 WBD active; device IPv6 blocked")};if app.exitRequested{launchDisconnect();return}
+	case "reconnect":if result.err!=nil{setStatus("Status: connected; transport reconnect failed: "+result.err.Error());if !app.exitRequested{messageBox("WBD transport reconnect failed",result.err.Error())}}else{setStatus("Status: connected; transport lanes refreshed; Wintun/routes stayed active")};if app.exitRequested{launchDisconnect();return}
 	case "disconnect":if result.err!=nil{app.cleanupFailed=true;setStatus("Status: disconnected, but network cleanup needs retry: "+result.err.Error());messageBox("WBD cleanup needs retry",result.err.Error());app.exitRequested=false}else{app.cleanupFailed=false;setStatus("Status: disconnected; WBD routes/DNS/IPv6 block removed and runtime stopped");if app.exitRequested{finalizeExit(hwnd);return}}
 	case "npcap":if result.err!=nil{setStatus("Status: disconnected; Npcap setup failed");messageBox("WBD Npcap setup failed",result.err.Error())}else{setStatus("Status: disconnected; Npcap ready");messageBoxInfo("WBD Npcap","Npcap is installed and verified. WBD can now connect.")};if app.exitRequested{launchDisconnect();return}}
 	refreshControls()
 }
 
-func refreshControls(){busy:=app.operation!="";disconnected:=app.controller.State()==windowsruntime.RuntimeDisconnected;connectEnabled:=app.profileReady&&!busy&&!app.exitRequested&&!app.cleanupFailed&&disconnected;disconnectEnabled:=!busy&&!app.exitRequested&&(app.cleanupFailed||app.controller.State()==windowsruntime.RuntimeConnected);npcapEnabled:=!busy&&!app.exitRequested&&!app.cleanupFailed&&disconnected;setEnabled(app.connectButton,connectEnabled);setEnabled(app.disconnectButton,disconnectEnabled);setEnabled(app.npcapButton,npcapEnabled);setEnabled(app.hideButton,!app.exitRequested);setEnabled(app.exitButton,!app.exitRequested)}
+func refreshControls(){busy:=app.operation!="";state:=app.controller.State();disconnected:=state==windowsruntime.RuntimeDisconnected;connected:=state==windowsruntime.RuntimeConnected;connectEnabled:=app.profileReady&&!busy&&!app.exitRequested&&!app.cleanupFailed&&disconnected;disconnectEnabled:=!busy&&!app.exitRequested&&(app.cleanupFailed||connected);reconnectEnabled:=!busy&&!app.exitRequested&&!app.cleanupFailed&&connected;npcapEnabled:=!busy&&!app.exitRequested&&!app.cleanupFailed&&disconnected;setEnabled(app.connectButton,connectEnabled);setEnabled(app.disconnectButton,disconnectEnabled);setEnabled(app.reconnectButton,reconnectEnabled);setEnabled(app.npcapButton,npcapEnabled);setEnabled(app.hideButton,!app.exitRequested);setEnabled(app.exitButton,!app.exitRequested)}
 func setStatus(text string){if app.status!=0{procSetWindowTextW.Call(app.status,uintptr(unsafe.Pointer(utf16Ptr(text))))}}
 func setEnabled(hwnd uintptr,enabled bool){if hwnd==0{return};var value uintptr;if enabled{value=1};procEnableWindow.Call(hwnd,value)}
 func minimizeToTray(hwnd uintptr){app.state.Minimize();procShowWindow.Call(hwnd,swHide)}
