@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/lly8666/wobuzhidao/internal/gamelane"
 )
 
 type scriptedPathDiscoverer struct {
@@ -81,6 +83,17 @@ func countEvent(events []string, want string) int {
 	return n
 }
 
+func waitGameControlRequests(t *testing.T, requests <-chan gamelane.LaneSetCommand, count int) {
+	t.Helper()
+	for i := 0; i < count; i++ {
+		select {
+		case <-requests:
+		case <-time.After(time.Second):
+			t.Fatalf("timed out waiting for Game control request %d/%d", i+1, count)
+		}
+	}
+}
+
 func TestSameUnderlayPathCoversAuthoritativeIdentityFields(t *testing.T) {
 	base := testUnderlay()
 	cases := []struct {
@@ -145,8 +158,7 @@ func TestUnderlayPathTickMigratesTwoLanesOneAtATime(t *testing.T) {
 	if !c.runUnderlayPathTick(pathState, now) {
 		t.Fatal("first path change did not own lifecycle tick")
 	}
-	<-requests
-	<-requests
+	waitGameControlRequests(t, requests, 2)
 	c.mu.Lock()
 	firstPlans := cloneLanePlans(c.lanePlans)
 	firstBase := c.baseUnderlay
@@ -163,8 +175,7 @@ func TestUnderlayPathTickMigratesTwoLanesOneAtATime(t *testing.T) {
 	if !c.runUnderlayPathTick(pathState, now.Add(underlayPathLaneStagger)) {
 		t.Fatal("second stale lane did not migrate")
 	}
-	<-requests
-	<-requests
+	waitGameControlRequests(t, requests, 2)
 	c.mu.Lock()
 	secondPlans := cloneLanePlans(c.lanePlans)
 	c.mu.Unlock()
@@ -265,8 +276,7 @@ func TestUnderlayReplacementRejectsStaleGeneration(t *testing.T) {
 	if err := c.ReplaceLane(1); err != nil {
 		t.Fatal(err)
 	}
-	<-requests
-	<-requests
+	waitGameControlRequests(t, requests, 2)
 	cut := len(r.events)
 	if err := c.replaceLaneOnUnderlay(1, stale, changedUnderlay(testUnderlay())); !errors.Is(err, errStaleLaneReplacement) {
 		t.Fatalf("stale path trigger err=%v", err)
@@ -295,7 +305,7 @@ func TestDormantDoesNotReplaceAndWakeRediscoversUnderlay(t *testing.T) {
 	if err := c.Dormant(); err != nil {
 		t.Fatal(err)
 	}
-	<-requests
+	waitGameControlRequests(t, requests, 1)
 	pathState := newUnderlayPathState()
 	if c.runUnderlayPathTick(pathState, time.Now()) {
 		t.Fatal("DORMANT path tick attempted replacement")
@@ -306,7 +316,7 @@ func TestDormantDoesNotReplaceAndWakeRediscoversUnderlay(t *testing.T) {
 	if err := c.Wake(); err != nil {
 		t.Fatal(err)
 	}
-	<-requests
+	waitGameControlRequests(t, requests, 1)
 	if d.calls() != 1 {
 		t.Fatalf("Wake path discovery calls=%d want=1", d.calls())
 	}
