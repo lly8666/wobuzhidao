@@ -15,8 +15,26 @@ on:
         description: 'absolute runner-local wbd.json path; never store credentials in the repository'
         required: true
         type: string
+      udp_echo_target:
+        description: 'IPv4 host:port for a controlled UDP echo service that the active profile routes through WBD to/on/behind the Ubuntu ARM64 endpoint'
+        required: true
+        type: string
+      tcp_echo_target:
+        description: 'IPv4 host:port for a controlled TCP echo service that the active profile routes through WBD to/on/behind the Ubuntu ARM64 endpoint'
+        required: true
+        type: string
+      probe_rounds:
+        description: 'round trips per UDP and TCP probe; bounded by the qualification script'
+        required: true
+        default: '128'
+        type: string
+      probe_payload_bytes:
+        description: 'payload bytes per application round trip; bounded by the qualification script'
+        required: true
+        default: '4096'
+        type: string
       uninstall_after:
-        description: 'silently uninstall Npcap after qualification'
+        description: 'legacy compatibility input; must remain false because the physical runner owns its preinstalled Npcap'
         required: true
         default: false
         type: boolean
@@ -37,10 +55,17 @@ jobs:
         with:
           ref: ${{ inputs.source_sha }}
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
       - name: Assert Administrator and installed Npcap 1.88
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          if ('${{ inputs.uninstall_after }}' -eq 'true') {
+            throw 'uninstall_after must remain false: the self-hosted physical runner owns its preinstalled Npcap lifecycle'
+          }
           $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
           $principal = [Security.Principal.WindowsPrincipal]::new($identity)
           if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -83,35 +108,95 @@ jobs:
           if (-not $exe) { throw 'wbd.exe missing from portable artifact' }
           $exeHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $exe.FullName).Hash.ToLowerInvariant()
           "wbd_exe=$($exe.FullName)" >> $env:GITHUB_OUTPUT
+          "wbd_dir=$($exe.DirectoryName)" >> $env:GITHUB_OUTPUT
           "wbd_sha256=$exeHash" >> $env:GITHUB_OUTPUT
           Write-Output "WBD_WINDOWS_PHYSICAL_ARTIFACT_PASS source_sha=$env:EXPECTED_SHA run_id=$env:RUN_ID zip_sha256=$zipHash wbd_sha256=$exeHash"
 
-      - name: Run real Npcap capture/injection single-flow qualification
+      - name: Run baseline real Npcap capture/injection qualification
+        id: baseline
         shell: pwsh
         env:
           WBD_PROFILE_PATH: ${{ inputs.profile_path }}
           WBD_EXE: ${{ steps.portable.outputs.wbd_exe }}
-          UNINSTALL_AFTER: ${{ inputs.uninstall_after }}
         run: |
           $ErrorActionPreference = 'Stop'
           $logDir = Join-Path $env:RUNNER_TEMP 'wbd-physical-log'
           New-Item -ItemType Directory -Force -Path $logDir | Out-Null
-          $log = Join-Path $logDir 'support.jsonl'
-          $args = @(
-            '-NoProfile','-ExecutionPolicy','Bypass','-File','scripts/windows_npcap_physical_qualify.ps1',
-            '-WbdExe',$env:WBD_EXE,
-            '-Profile',$env:WBD_PROFILE_PATH,
-            '-LogPath',$log
-          )
-          if ($env:UNINSTALL_AFTER -eq 'true') { $args += '-UninstallNpcapAfter' }
-          & powershell.exe @args
-          if ($LASTEXITCODE -ne 0) { throw "physical qualification failed with exit code $LASTEXITCODE" }
+          $baselineLog = Join-Path $logDir 'support.jsonl'
 
-      - name: Upload physical qualification log
+          # Isolate runtime extraction so the qualifier below can identify exactly
+          # the child-runtime directory produced by this exact portable artifact.
+          $localAppData = Join-Path $env:RUNNER_TEMP 'wbd-physical-localappdata'
+          if (Test-Path $localAppData) { Remove-Item $localAppData -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $localAppData | Out-Null
+          $env:LOCALAPPDATA = $localAppData
+
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/windows_npcap_physical_qualify.ps1 `
+            -WbdExe $env:WBD_EXE `
+            -Profile $env:WBD_PROFILE_PATH `
+            -LogPath $baselineLog
+          if ($LASTEXITCODE -ne 0) { throw "baseline physical qualification failed with exit code $LASTEXITCODE" }
+
+          $runtimeRoot = Join-Path $localAppData 'WBD\runtime'
+          $runtimeDirs = @(Get-ChildItem -LiteralPath $runtimeRoot -Directory -ErrorAction Stop)
+          if ($runtimeDirs.Count -ne 1) {
+            throw "exact portable runtime extraction count=$($runtimeDirs.Count), want=1 under $runtimeRoot"
+          }
+          $runtimeDir = $runtimeDirs[0].FullName
+          foreach ($required in @('manifest.json','wbd-faketcp.exe','wbd_dtls_shim.exe','wbd-link-proxy.exe','wbd-tun.exe','wintun.dll')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $runtimeDir $required))) {
+              throw "exact portable runtime missing $required in $runtimeDir"
+            }
+          }
+          "runtime_dir=$runtimeDir" >> $env:GITHUB_OUTPUT
+          "log_dir=$logDir" >> $env:GITHUB_OUTPUT
+          Write-Output "WBD_WINDOWS_PHYSICAL_RUNTIME_PASS source_sha=${{ inputs.source_sha }} runtime_dir=$runtimeDir"
+
+      - name: Build exact-source connected application qualifier beside artifact runtime
+        shell: pwsh
+        env:
+          RUNTIME_DIR: ${{ steps.baseline.outputs.runtime_dir }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $qualifier = Join-Path $env:RUNTIME_DIR 'wbd-windows-qualify.exe'
+          go build -trimpath -o $qualifier .\cmd\wbd-windows-qualify
+          if ($LASTEXITCODE -ne 0) { throw "wbd-windows-qualify build failed: $LASTEXITCODE" }
+          if (-not (Test-Path -LiteralPath $qualifier)) { throw "qualifier binary missing: $qualifier" }
+          Write-Output "WBD_WINDOWS_APPLICATION_QUALIFIER_BUILD_PASS source_sha=${{ inputs.source_sha }}"
+
+      - name: Run routed UDP TCP and moderate sustained application qualification
+        shell: pwsh
+        env:
+          WBD_PROFILE_PATH: ${{ inputs.profile_path }}
+          RUNTIME_DIR: ${{ steps.baseline.outputs.runtime_dir }}
+          LOG_DIR: ${{ steps.baseline.outputs.log_dir }}
+          PORTABLE_DIR: ${{ steps.portable.outputs.wbd_dir }}
+          WBD_SHA256: ${{ steps.portable.outputs.wbd_sha256 }}
+          UDP_ECHO_TARGET: ${{ inputs.udp_echo_target }}
+          TCP_ECHO_TARGET: ${{ inputs.tcp_echo_target }}
+          PROBE_ROUNDS: ${{ inputs.probe_rounds }}
+          PROBE_PAYLOAD_BYTES: ${{ inputs.probe_payload_bytes }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $qualifier = Join-Path $env:RUNTIME_DIR 'wbd-windows-qualify.exe'
+          & .\scripts\windows_application_path_qualify.ps1 `
+            -QualifierExe $qualifier `
+            -Profile $env:WBD_PROFILE_PATH `
+            -UdpEchoTarget $env:UDP_ECHO_TARGET `
+            -TcpEchoTarget $env:TCP_ECHO_TARGET `
+            -PortableDir $env:PORTABLE_DIR `
+            -SourceSHA '${{ inputs.source_sha }}' `
+            -ArtifactRunID '${{ inputs.artifact_run_id }}' `
+            -WbdSHA256 $env:WBD_SHA256 `
+            -Rounds ([int]$env:PROBE_ROUNDS) `
+            -PayloadBytes ([int]$env:PROBE_PAYLOAD_BYTES) `
+            -LogDir $env:LOG_DIR
+
+      - name: Upload physical qualification evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: wbd-windows-npcap-physical-${{ inputs.source_sha }}
-          path: ${{ runner.temp }}\wbd-physical-log\support.jsonl
+          path: ${{ runner.temp }}\wbd-physical-log
           if-no-files-found: warn
           retention-days: 14

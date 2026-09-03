@@ -26,6 +26,7 @@ func run() (retErr error) {
 	profilePath := flag.String("profile", "", "path to the WBD Windows client JSON profile")
 	runFor := flag.Duration("run-for", 30*time.Second, "maximum connected qualification lifetime; 0 waits for interrupt or stop-file")
 	stopFile := flag.String("stop-file", "", "optional file whose creation requests a clean Disconnect")
+	readyFile := flag.String("ready-file", "", "optional file created only after Controller.Connect succeeds and removed after cleanup")
 	flag.Parse()
 
 	if *profilePath == "" {
@@ -52,9 +53,12 @@ func run() (retErr error) {
 		return err
 	}
 
-	if *stopFile != "" {
-		if err := os.Remove(*stopFile); err != nil && !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("clear stale stop-file: %w", err)
+	for _, path := range []string{*stopFile, *readyFile} {
+		if path == "" {
+			continue
+		}
+		if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("clear stale qualification signal %s: %w", path, err)
 		}
 	}
 
@@ -75,6 +79,12 @@ func run() (retErr error) {
 			}
 		}
 	}()
+	if *readyFile != "" {
+		if err := os.WriteFile(*readyFile, []byte(fmt.Sprintf("pid=%d\n", os.Getpid())), 0o600); err != nil {
+			return fmt.Errorf("write qualification ready-file: %w", err)
+		}
+		defer os.Remove(*readyFile)
+	}
 
 	fmt.Printf("WBD_WINDOWS_QUALIFY_CONNECTED pid=%d cleanup=automatic\n", os.Getpid())
 
@@ -118,6 +128,11 @@ disconnect:
 		return err
 	}
 	connected = false
+	if *readyFile != "" {
+		if err := os.Remove(*readyFile); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("remove qualification ready-file: %w", err)
+		}
+	}
 	fmt.Println("WBD_WINDOWS_QUALIFY_CLEANUP_PASS routes=removed runtime=stopped")
 	return nil
 }
