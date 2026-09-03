@@ -136,6 +136,18 @@ func (e *Executor) applyNetworkLocked(plan Plan) error {
 	return nil
 }
 
+// RebindRoutes serializes the narrow WBD-owned physical-route transaction with
+// Start/Stop network mutation. Script failure is non-destructive by contract:
+// the shared runtime keeps running and the controller retries from fresh path
+// observation instead of entering break-before-make cleanup.
+func (e *Executor) RebindRoutes(command Command) error {
+	e.mu.Lock();defer e.mu.Unlock()
+	if e.cleanupPending{return errors.New("Windows runtime has pending network cleanup")}
+	if !e.running{return errors.New("Windows runtime is not running")}
+	if err:=e.runner.Run(command);err!=nil{return fmt.Errorf("rebind Windows physical routes: %w",err)}
+	return nil
+}
+
 func waitProcessMarker(label string,proc Process,marker string,timeout time.Duration) error {
 	if strings.TrimSpace(marker)==""||timeout<=0{return fmt.Errorf("wait %s: invalid readiness contract",label)}
 	rp,ok:=proc.(readyProcess);if !ok{return fmt.Errorf("wait %s: process runner does not expose readiness",label)}

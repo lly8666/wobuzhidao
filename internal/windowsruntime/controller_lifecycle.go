@@ -182,11 +182,12 @@ func (c *Controller) Dormant() error {
 
 // Wake recreates the configured 1..4 Transport Lanes with fresh source ports
 // and same-association Reality-like admission. Shared Game/TUN/routes are never
-// restarted. The first READY lane is published to Game immediately so forwarding
-// resumes without waiting for optional Game redundancy; later READY lanes are
-// attached incrementally to the same Logical Tunnel race set. The physical
-// underlay is rediscovered first because NIC/default-route state may change while
-// the Logical Tunnel remains DORMANT.
+// restarted. The physical underlay is rediscovered first because NIC/default-
+// route state may change while DORMANT. When authoritative physical route
+// metadata is available, WBD-owned server-escape/direct routes are rebound before
+// any READY lane is published, so first resumed payload cannot follow stale
+// RouteForeign ownership. The first READY lane then resumes forwarding and later
+// READY Game lanes attach incrementally to the same Logical Tunnel race set.
 func (c *Controller) Wake() error {
 	c.mu.Lock()
 	if c.state != RuntimeDormant {
@@ -210,9 +211,15 @@ func (c *Controller) Wake() error {
 	if err := logicaltunnel.ValidateProductTransportLaneCount(profile.Lanes); err != nil {
 		return failDormant(err)
 	}
-	base, err := discoverCurrentUnderlay(discoverer, profile)
+	observed, err := discoverCurrentUnderlayObservation(discoverer, profile)
 	if err != nil {
 		return failDormant(fmt.Errorf("wake discover Windows FakeTCP underlay: %w", err))
+	}
+	base := observed.Underlay
+	if observed.HasPhysicalRoute() {
+		if err := c.rebindPhysicalRoutes(profile, observed); err != nil {
+			return failDormant(fmt.Errorf("wake rebind Windows physical routes: %w", err))
+		}
 	}
 	lifecycle, err := logicaltunnel.NewLaneLifecycle(profile.Lanes)
 	if err != nil {

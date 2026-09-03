@@ -1,0 +1,93 @@
+name: windows-route-rebind
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/windows-route-rebind.yml'
+      - 'internal/windowsruntime/**'
+      - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_tun_rebind.ps1'
+      - 'scripts/windows_tun_route.ps1'
+  pull_request:
+    paths:
+      - '.github/workflows/windows-route-rebind.yml'
+      - 'internal/windowsruntime/**'
+      - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_tun_rebind.ps1'
+      - 'scripts/windows_tun_route.ps1'
+
+permissions:
+  contents: read
+
+jobs:
+  focused:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Focused route-rebind lifecycle tests
+        shell: pwsh
+        run: |
+          go test ./internal/windowsruntime -run 'RouteRebind|UnderlayPath|WakeRebind|ObservedPath' -count=1
+      - name: Parse PowerShell route scripts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($path in @('./scripts/windows_faketcp_underlay.ps1','./scripts/windows_tun_rebind.ps1','./scripts/windows_tun_route.ps1')) {
+            $tokens = $null
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path), [ref]$tokens, [ref]$errors)
+            if ($errors.Count -ne 0) { $errors | Format-List | Out-String | Write-Error; throw "PowerShell parse failed: $path" }
+          }
+          Write-Output 'WBD_WINDOWS_ROUTE_REBIND_PARSE_PASS'
+      - name: Real Windows route ownership rebind and cleanup smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $statePath = "$env:RUNNER_TEMP\wbd-route-rebind-state.json"
+          $state = [ordered]@{
+            Schema = 'wbd-windows-route-state/v3'
+            AdapterAlias = 'WBD-REBINDSYNTH'
+            AdapterInterfaceIndex = [uint32]4294967294
+            MTU4 = $null
+            MTU6 = $null
+            DNSConfigured = $false
+            NRPTRuleName = ''
+            Addresses = @()
+            UnderlayRoutes = @()
+            DirectRoutes = @()
+            CaptureRoutes = @()
+          }
+          $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::WriteAllText($statePath, (($state | ConvertTo-Json -Depth 10) + [Environment]::NewLine), $utf8NoBom)
+          try {
+            $raw = @(& ./scripts/windows_faketcp_underlay.ps1 -RemoteIPAddress 1.1.1.1 -MonitorPhysicalPath -StatePath $statePath)
+            $json = $raw | Where-Object { ([string]$_).Trim().StartsWith('{') } | Select-Object -First 1
+            if (-not $json) { throw 'physical path observer returned no JSON' }
+            $observed = ([string]$json) | ConvertFrom-Json
+            $ifIndex = [uint32]$observed.interface_index
+            $nextHop = [string]$observed.next_hop_ip
+            if ($ifIndex -eq 0 -or -not $nextHop) { throw 'physical path observer returned incomplete route identity' }
+
+            $rebindLog = (& ./scripts/windows_tun_rebind.ps1 -Underlay4 1.1.1.1 -ExpectedPhysicalInterfaceIndex $ifIndex -ExpectedPhysicalNextHop4 $nextHop -DirectPrefix4 198.51.100.0/24 -StatePath $statePath 2>&1 | Out-String)
+            Write-Output $rebindLog
+            if ($rebindLog -notmatch 'WBD_WINDOWS_TUN_REBIND_PASS') { throw 'route rebind pass marker missing' }
+
+            $owned = Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json
+            if (@($owned.UnderlayRoutes).Count -ne 1) { throw "owned underlay route count=$(@($owned.UnderlayRoutes).Count) want=1" }
+            if (@($owned.DirectRoutes).Count -ne 1) { throw "owned direct route count=$(@($owned.DirectRoutes).Count) want=1" }
+            foreach ($route in @($owned.UnderlayRoutes) + @($owned.DirectRoutes)) {
+              if (-not (Get-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -PolicyStore ActiveStore -ErrorAction SilentlyContinue)) {
+                throw "owned route is not installed: $($route.DestinationPrefix) if=$($route.InterfaceIndex) next=$($route.NextHop)"
+              }
+            }
+            Write-Output "WBD_WINDOWS_ROUTE_REBIND_REAL_PASS ifindex=$ifIndex next_hop=$nextHop owned_underlay=1 owned_direct=1"
+          } finally {
+            try { & ./scripts/windows_tun_route.ps1 -Action Cleanup -StatePath $statePath 2>$null | Out-Null } catch { }
+          }
+          if (Test-Path -LiteralPath $statePath) { throw 'route-state survived cleanup' }
+          Write-Output 'WBD_WINDOWS_ROUTE_REBIND_CLEANUP_PASS'
