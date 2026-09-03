@@ -19,13 +19,13 @@
 | V2-M9B | shared Linux TUN + one host NAT + lease demux | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9C | product 1..4-lane admission + Game/race wiring | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9D | payload-idle dormant/wake | **IMPLEMENTED: AUTOMATIC PAYLOAD-IDLE DORMANT + FIRST-PAYLOAD/FIRST-READY WAKE** |
-| V2-M9E | make-before-break + unified lane replacement state machine | **AGE + PROCESS/LINK LIVENESS + LOCAL WINDOWS PATH + KERNEL ROUTE REBIND IMPLEMENTED; EXPLICIT SERVER/MANUAL + PUBLIC NAT OBSERVABILITY REMAIN** |
+| V2-M9E | make-before-break + unified lane replacement state machine | **AGE + PROCESS/LINK LIVENESS + LOCAL WINDOWS PATH + KERNEL ROUTE REBIND + MANUAL/SERVER-CLOSE RECONNECT IMPLEMENTED; PUBLIC NAT OBSERVABILITY + OPERATOR SERVER ACTUATOR REMAIN** |
 | V2-M10 | exact-source Windows/Linux qualification + physical Windows 11 -> Ubuntu ARM64 | **BLOCKED UNTIL ONE EXACT-SOURCE MATRIX + ARTIFACTS + PHYSICAL EVIDENCE** |
 | V2-M11 | startup RTT / packaging/process simplification | **DEFERRED** |
 
 ## 2026-09-03 lifecycle checkpoint
 
-Substantive source `45e6575de30b53f75f2e1f0a0f21cf9733cdb5e7` completes the Windows kernel-route rebind phase after local underlay change. All **17** ordinary push workflows observed on the PR branch for that exact SHA completed successfully with queued=0, in_progress=0 and failure=0. This is exact-source lifecycle evidence, **not** release authorization.
+Substantive source `c42536fb30f4c2fddc17a0169513bc1ed16cf6ce` completes the explicit local manual transport reconnect phase and verifies existing authenticated server CLOSE reconnect semantics without adding a new LINK/control wire type. All **26** ordinary push workflows observed on the PR branch for that exact SHA completed successfully with queued=0, in_progress=0 and failure=0. This is exact-source lifecycle evidence, **not** release authorization.
 
 Current code/tests establish:
 
@@ -41,11 +41,15 @@ Current code/tests establish:
 - path convergence replaces current logical lanes one at a time with expected-generation make-before-break; discovery/candidate failure is non-destructive;
 - after lane convergence, WBD-owned server `/32` escape and `RouteForeign` direct-prefix routes are rebound transactionally to the current physical interface/next hop without tearing down the shared Wintun/Logical Tunnel;
 - route rebind adds/validates the new owned routes before removing stale owned routes; a re-observed path mismatch or mutation failure fails closed for that rebind attempt and leaves cleanup ownership intact for retry;
-- DORMANT performs no lane replacement; Wake rediscovers the physical path and completes any needed route rebind before first-READY publication.
+- DORMANT performs no lane replacement; Wake rediscovers the physical path and completes any needed route rebind before first-READY publication;
+- Windows GUI `Reconnect transport` calls `Controller.RotateActiveLanes`, which snapshots authoritative LaneRefs and rotates active logical lanes sequentially through the existing generation-fenced make-before-break lifecycle while shared Wintun/routes/Game/TUN stay online;
+- stale LaneRefs are fenced; a candidate failure stops the manual sweep and preserves the healthy old incarnation of the failed lane;
+- existing DTLS-protected LINK `CloseIdleTimeout` and `CloseTransportTransient` reasons remain `ReconnectAllowed`; client receipt terminates LINK and the authoritative child-exit trigger converges on the same replacement lifecycle;
+- no FakeTCP/Reality/DTLS/LINK/FEC wire format changed for manual/server-CLOSE reconnect.
 
 Remaining lifecycle/orchestration gaps are now narrower:
 
-1. Explicit server-request/manual-reconnect triggers still need to converge on the same generation-fenced replacement API; do not invent a second replacement state machine.
+1. No operator/admin server-side `rotate now` actuator was found. Existing authenticated server CLOSE semantics are sufficient to request a reconnect once emitted, so do not invent a new control frame merely to add an actuator.
 2. Public external-IP/NAT mapping change detection remains unimplemented because the current local observer has no authoritative public-NAT signal. Do not relabel local source/default-route changes as public-IP/NAT detection.
 
 ## Frozen product transport model
@@ -103,6 +107,7 @@ This phase does **not** claim public external-IP/NAT mapping detection.
 - First new payload wakes the tunnel; physical path and route ownership converge before the first READY lane is published; optional Game lanes refill afterward.
 - Each active lane incarnation has an independent randomized 30..60m soft age deadline.
 - Current authoritative FakeTCP/DTLS/LINK process exit and LINK no-RX/missed-PONG feed the same replacement lifecycle.
+- Manual reconnect and reconnect-capable authenticated server CLOSE also converge on the existing replacement lifecycle rather than creating a second state machine.
 
 ## Shared Linux TUN + one NAT
 
@@ -146,14 +151,14 @@ One exact substantive `SOURCE_SHA` must prove:
 4. 1,2,3,4 active lanes accepted and fifth logical lane rejected while bounded replacement respects the 4+1 physical-incarnation ceiling;
 5. normal desired=1, Game/weak desired=2..4;
 6. Game first-arrival/dedup/out-of-order unique/no-cross-lane-HOL;
-7. `A -> A+B -> B`, candidate failure preserving A, one-at-a-time multi-lane replacement, staggered 30..60m age rotation, current-process/LINK-liveness replacement, local Windows path-change convergence, and WBD-owned physical-route rebind;
+7. `A -> A+B -> B`, candidate failure preserving A, one-at-a-time multi-lane replacement, staggered 30..60m age rotation, current-process/LINK-liveness replacement, local Windows path-change convergence, WBD-owned physical-route rebind, manual transport reconnect, and authenticated server-CLOSE reconnect semantics;
 8. distinct leases, source-spoof rejection, shared TUN + one NAT DNS/UDP/TCP;
 9. lifecycle/functionality with FEC `off`, plus fixed `20:20` lane-local compatibility smoke;
 10. Windows native/runtime and Linux raw/full-stack gates;
 11. Windows portable and Linux amd64/arm64 artifacts from that exact `SOURCE_SHA`;
 12. final clean physical Windows 11 + Npcap -> Ubuntu ARM64 DNS/UDP/TCP/lifecycle + deterministic cleanup.
 
-A direct push CI-green result is necessary but not sufficient. The 17 successful ordinary push workflows at `45e6575de30b53f75f2e1f0a0f21cf9733cdb5e7` do not by themselves establish V2-M10. The complete release-qualification matrix must intentionally finish on one exact final source; same-source release artifacts and fresh physical evidence remain mandatory.
+A direct push CI-green result is necessary but not sufficient. The 26 successful ordinary push workflows at `c42536fb30f4c2fddc17a0169513bc1ed16cf6ce` do not by themselves establish V2-M10. The complete release-qualification matrix must intentionally finish on one exact final source; same-source release artifacts and fresh physical evidence remain mandatory.
 
 ## Deferred
 
