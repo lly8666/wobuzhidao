@@ -19,7 +19,7 @@
 | V2-M9B | shared Linux TUN + one host NAT + lease demux | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9C | product 1..4-lane admission + Game/race wiring | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9D | payload-idle dormant/wake | **IMPLEMENTED: AUTOMATIC PAYLOAD-IDLE DORMANT + FIRST-PAYLOAD/FIRST-READY WAKE** |
-| V2-M9E | make-before-break + unified lane replacement state machine | **AGE + PROCESS/LINK LIVENESS + LOCAL WINDOWS PATH + KERNEL ROUTE REBIND + MANUAL/SERVER-CLOSE RECONNECT IMPLEMENTED; PUBLIC NAT OBSERVABILITY + OPERATOR SERVER ACTUATOR REMAIN** |
+| V2-M9E | make-before-break + unified lane replacement state machine | **AGE + PROCESS/LINK LIVENESS + LOCAL WINDOWS PATH + KERNEL ROUTE REBIND + LOCAL MANUAL + AUTOMATIC SERVER-IDLE CLOSE RECONNECT IMPLEMENTED; OPERATOR SERVER ACTUATOR + DIRECT PUBLIC NAT OBSERVABILITY ARE NOT IMPLEMENTED** |
 | V2-M10 | exact-source Windows/Linux qualification + physical Windows 11 -> Ubuntu ARM64 | **BLOCKED UNTIL ONE EXACT-SOURCE MATRIX + ARTIFACTS + PHYSICAL EVIDENCE** |
 | V2-M11 | startup RTT / packaging/process simplification | **DEFERRED** |
 
@@ -45,12 +45,17 @@ Current code/tests establish:
 - Windows GUI `Reconnect transport` calls `Controller.RotateActiveLanes`, which snapshots authoritative LaneRefs and rotates active logical lanes sequentially through the existing generation-fenced make-before-break lifecycle while shared Wintun/routes/Game/TUN stay online;
 - stale LaneRefs are fenced; a candidate failure stops the manual sweep and preserves the healthy old incarnation of the failed lane;
 - existing DTLS-protected LINK `CloseIdleTimeout` and `CloseTransportTransient` reasons remain `ReconnectAllowed`; client receipt terminates LINK and the authoritative child-exit trigger converges on the same replacement lifecycle;
+- production `wbd-link-server-mux` automatically emits the existing `CloseIdleTimeout` frame when an active session exceeds its server-side idle lease, then removes the peer;
 - no FakeTCP/Reality/DTLS/LINK/FEC wire format changed for manual/server-CLOSE reconnect.
 
-Remaining lifecycle/orchestration gaps are now narrower:
+## 2026-09-03 server/NAT capability audit
 
-1. No operator/admin server-side `rotate now` actuator was found. Existing authenticated server CLOSE semantics are sufficient to request a reconnect once emitted, so do not invent a new control frame merely to add an actuator.
-2. Public external-IP/NAT mapping change detection remains unimplemented because the current local observer has no authoritative public-NAT signal. Do not relabel local source/default-route changes as public-IP/NAT detection.
+The exact live-tree audit after sequence 95 closes two previously ambiguous claims without changing product code:
+
+1. **Server actuator boundary.** `wbd-link-server-mux` has a real automatic server-originated actuator for idle leases: `expirePeers` sends the existing reconnect-capable `CloseIdleTimeout`. The production mux exposes no operator/admin `rotate now` input, no `CloseTransportTransient` emission site, and no rotate/admin flag or management endpoint. A future trusted local/admin actuator could reuse the existing `CloseTransportTransient` reason; a new LINK control Type is not justified by current evidence.
+2. **Public NAT observation boundary.** `wbd-faketcp-mux` knows the real outer public FakeTCP `ServerFlow` (`ClientIP`, `ClientPort`, `ServerIP`, `ServerPort`) and uses the client endpoint as the Reality-like TLS bootstrap stream `RemoteAddr`. That outer tuple is not written into the Logical Tunnel ticket/binding, is not returned by the authenticated bootstrap reply, and is not passed as metadata when the server starts the DTLS worker. `wbd-link-server-mux` therefore sees only its local plaintext DTLS-worker UDP peer, not an authenticated reflection of the public FakeTCP/NAT mapping. The Windows client consequently has no existing authoritative public external-IP/NAT mapping observer.
+
+These are deliberate **non-claims**: local SourceIP/default-route/NIC changes are not relabeled as public-NAT changes, and indirect age/liveness replacement is convergence rather than direct mapping detection. No wire change is introduced merely to satisfy a checklist.
 
 ## Frozen product transport model
 
@@ -107,7 +112,7 @@ This phase does **not** claim public external-IP/NAT mapping detection.
 - First new payload wakes the tunnel; physical path and route ownership converge before the first READY lane is published; optional Game lanes refill afterward.
 - Each active lane incarnation has an independent randomized 30..60m soft age deadline.
 - Current authoritative FakeTCP/DTLS/LINK process exit and LINK no-RX/missed-PONG feed the same replacement lifecycle.
-- Manual reconnect and reconnect-capable authenticated server CLOSE also converge on the existing replacement lifecycle rather than creating a second state machine.
+- Manual reconnect and reconnect-capable authenticated server CLOSE converge on the existing replacement lifecycle rather than creating a second state machine.
 
 ## Shared Linux TUN + one NAT
 
@@ -160,8 +165,10 @@ One exact substantive `SOURCE_SHA` must prove:
 
 A direct push CI-green result is necessary but not sufficient. The 26 successful ordinary push workflows at `c42536fb30f4c2fddc17a0169513bc1ed16cf6ce` do not by themselves establish V2-M10. The complete release-qualification matrix must intentionally finish on one exact final source; same-source release artifacts and fresh physical evidence remain mandatory.
 
-## Deferred
+## Deferred / explicitly unresolved
 
+- operator/admin server-side `rotate now` actuator; if added later, prefer a trusted local/admin surface that emits existing `CloseTransportTransient` rather than a new LINK frame;
+- authoritative direct public external-IP/NAT mapping observation; current server public flow is not reflected to the client;
 - DTLS HRR startup RTT optimization;
 - LINK bind/init coalescing;
 - abbreviated resume/0-RTT;
