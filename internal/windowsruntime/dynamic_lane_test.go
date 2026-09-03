@@ -143,18 +143,32 @@ func TestExecutorCandidateSlotFiveCoexistsAndStopsWithoutTouchingOldLane(t *test
 func TestExecutorRotatingSpareCandidateKeepsLogicalIdentity(t *testing.T) {
 	r := &recordingRunner{}
 	e := NewExecutor(r)
-	pre := map[int]Process{2: &recordingProcess{runner: r, name: "faketcp-2"}}
+	pre := map[int]Process{
+		1: &recordingProcess{runner: r, name: "faketcp-1"},
+		2: &recordingProcess{runner: r, name: "faketcp-2"},
+	}
 	if err := e.StartMultiLane(testMultiExecutorPlan(2), pre); err != nil {
 		t.Fatal(err)
 	}
-	candidate := dynamicTestLane(2, 1, "candidate-s1")
-	if err := e.StartDynamicLane(candidate, &recordingProcess{runner: r, name: candidate.FakeTCP.Name}); err != nil {
+
+	// First replacement occupies slot 5 for logical lane 1, then retires the
+	// old slot-1 process group. Slot 1 is now the one spare physical slot.
+	lane1Candidate := dynamicTestLane(1, 5, "candidate-s5")
+	if err := e.StartDynamicLane(lane1Candidate, &recordingProcess{runner: r, name: lane1Candidate.FakeTCP.Name}); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.StopDynamicLanePlan(dynamicTestLane(1, 1, "")); err != nil {
+		t.Fatal(err)
+	}
+
+	lane2Candidate := dynamicTestLane(2, 1, "candidate-s1")
+	if err := e.StartDynamicLane(lane2Candidate, &recordingProcess{runner: r, name: lane2Candidate.FakeTCP.Name}); err != nil {
 		t.Fatal(err)
 	}
 	if got := e.DynamicLaneIDs(); !reflect.DeepEqual(got, []int{1, 2}) {
 		t.Fatalf("rotating spare changed logical lane identities=%v", got)
 	}
-	if err := e.StopDynamicLanePlan(candidate); err != nil {
+	if err := e.StopDynamicLanePlan(lane2Candidate); err != nil {
 		t.Fatal(err)
 	}
 	if got := e.DynamicLaneIDs(); !reflect.DeepEqual(got, []int{1, 2}) {
