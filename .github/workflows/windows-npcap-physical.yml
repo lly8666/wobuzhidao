@@ -137,6 +137,28 @@ jobs:
             -LogPath $baselineLog
           if ($LASTEXITCODE -ne 0) { throw "baseline physical qualification failed with exit code $LASTEXITCODE" }
 
+          # Baseline payload receipts prove later data crossed Npcap, but final
+          # physical authority also requires direct proof of the public FakeTCP
+          # opening handshake at the NPF boundary: the exact-flow SYN was accepted
+          # by pcap_sendpacket and an exact-flow SYNACK returned via pcap_next_ex.
+          $rows = @()
+          foreach ($line in (Get-Content -LiteralPath $baselineLog)) {
+            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+            $rows += ($line | ConvertFrom-Json)
+          }
+          foreach ($pattern in @(
+            '^WBD_FAKETCP_WINDOWS_RAW_SYN_TX\b',
+            '^WBD_FAKETCP_WINDOWS_RAW_SYNACK_RX\b'
+          )) {
+            $match = $rows | Where-Object {
+              $_.event -eq 'child_log' -and
+              $_.command -eq 'faketcp' -and
+              ([string]$_.text) -match $pattern
+            } | Select-Object -First 1
+            if (-not $match) { throw "physical baseline missing Npcap handshake receipt: $pattern" }
+          }
+          Write-Output "WBD_WINDOWS_NPCAP_HANDSHAKE_RECEIPT_PASS source_sha=${{ inputs.source_sha }} raw_syn_tx=1 raw_synack_rx=1"
+
           $runtimeRoot = Join-Path $localAppData 'WBD\runtime'
           $runtimeDirs = @(Get-ChildItem -LiteralPath $runtimeRoot -Directory -ErrorAction Stop)
           if ($runtimeDirs.Count -ne 1) {

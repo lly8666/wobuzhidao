@@ -266,6 +266,11 @@ func (r *npcapRawPacketIO) ReadPacket(buf []byte) (int, error) {
 			if !r.matchesInboundFlow(packet) {
 				continue
 			}
+			if flags, ok := r.flowTCPFlags(packet, false); ok && flags&0x12 == 0x12 {
+				fmt.Fprintf(os.Stderr,
+					"WBD_FAKETCP_WINDOWS_RAW_SYNACK_RX source_port=%d remote_port=%d\n",
+					r.sourcePort, r.remotePort)
+			}
 			if payloadBytes, ok := r.flowPayloadBytes(packet, false); ok {
 				r.rxDataOnce.Do(func() {
 					fmt.Fprintf(os.Stderr,
@@ -331,6 +336,40 @@ func (r *npcapRawPacketIO) matchesKernelRST(packet []byte) bool {
 	return packet[ihl+13]&0x04 != 0
 }
 
+// flowTCPFlags recognizes only the exact WBD FakeTCP four-tuple and returns the
+// TCP flags byte. It is a receipt helper only: it never mutates or replaces the
+// shared FakeTCP parser/state machine.
+func (r *npcapRawPacketIO) flowTCPFlags(packet []byte, outbound bool) (uint8, bool) {
+	if len(packet) < 40 || packet[0]>>4 != 4 || packet[9] != 6 {
+		return 0, false
+	}
+	ihl := int(packet[0]&0x0f) * 4
+	if ihl < 20 || len(packet) < ihl+20 {
+		return 0, false
+	}
+	frag := binary.BigEndian.Uint16(packet[6:8])
+	if frag&0x3fff != 0 {
+		return 0, false
+	}
+	total := int(binary.BigEndian.Uint16(packet[2:4]))
+	if total < ihl+20 || total > len(packet) {
+		return 0, false
+	}
+	var srcIP, dstIP [4]byte
+	copy(srcIP[:], packet[12:16])
+	copy(dstIP[:], packet[16:20])
+	srcPort := binary.BigEndian.Uint16(packet[ihl : ihl+2])
+	dstPort := binary.BigEndian.Uint16(packet[ihl+2 : ihl+4])
+	if outbound {
+		if srcIP != r.sourceIP || dstIP != r.remoteIP || srcPort != r.sourcePort || dstPort != r.remotePort {
+			return 0, false
+		}
+	} else if srcIP != r.remoteIP || dstIP != r.sourceIP || srcPort != r.remotePort || dstPort != r.sourcePort {
+		return 0, false
+	}
+	return packet[ihl+13], true
+}
+
 // flowPayloadBytes recognizes only the exact WBD FakeTCP four-tuple and returns
 // the TCP payload length. It is intentionally independent from the protocol
 // parser so the Npcap boundary can prove that bytes reached/leaved the driver.
@@ -386,6 +425,11 @@ func (r *npcapRawPacketIO) WritePacket(packet []byte, _ [4]byte) error {
 	ret, _, _ := r.pcapSendPacket.Call(r.handle, uintptr(unsafe.Pointer(&frame[0])), uintptr(len(frame)))
 	if int32(ret) != 0 {
 		return fmt.Errorf("pcap_sendpacket: %s", r.lastError())
+	}
+	if flags, ok := r.flowTCPFlags(packet, true); ok && flags&0x12 == 0x02 {
+		fmt.Fprintf(os.Stderr,
+			"WBD_FAKETCP_WINDOWS_RAW_SYN_TX source_port=%d remote_port=%d\n",
+			r.sourcePort, r.remotePort)
 	}
 	if payloadBytes, ok := r.flowPayloadBytes(packet, true); ok {
 		r.txDataOnce.Do(func() {
