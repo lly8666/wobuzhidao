@@ -24,13 +24,19 @@ type laneExitRetry struct {
 
 type laneExitRetryState struct {
 	lanes map[int]laneExitRetry
+	path  *underlayPathState
 }
 
 func newLaneExitRetryState() *laneExitRetryState {
-	return &laneExitRetryState{lanes: map[int]laneExitRetry{}}
+	return &laneExitRetryState{lanes: map[int]laneExitRetry{}, path: newUnderlayPathState()}
 }
 
-func (s *laneExitRetryState) clear() { clear(s.lanes) }
+func (s *laneExitRetryState) clear() {
+	clear(s.lanes)
+	if s.path != nil {
+		s.path.clear()
+	}
+}
 
 func (s *laneExitRetryState) reconcile(plans map[int]LanePlan) {
 	for id, retry := range s.lanes {
@@ -112,6 +118,14 @@ func (c *Controller) runAuthoritativeLaneExitTick(retries *laneExitRetryState, n
 	if state != RuntimeConnected {
 		return false
 	}
+
+	// Path change has priority over child-exit replacement. Once a new physical
+	// underlay is observed, keep stale-child recovery from rebuilding on the old
+	// baseline while logical lanes are migrated one at a time.
+	if retries.path != nil && c.runUnderlayPathTick(retries.path, now) {
+		return true
+	}
+
 	retries.reconcile(plans)
 	laneID, _, ok := firstExitedAuthoritativeLane(c.executor, plans)
 	if !ok {

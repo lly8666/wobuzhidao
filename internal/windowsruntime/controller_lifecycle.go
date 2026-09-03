@@ -12,6 +12,8 @@ import (
 
 const replacementGameOverlapWindow = 100 * time.Millisecond
 
+var errStaleLaneReplacement = errors.New("windowsruntime: stale lane replacement trigger")
+
 func cloneLanePlans(in map[int]LanePlan) map[int]LanePlan {
 	out := make(map[int]LanePlan, len(in))
 	for id, plan := range in {
@@ -52,9 +54,9 @@ func gameOverlapTargetsFromPlans(plans map[int]LanePlan, laneID int, candidate L
 	if err != nil {
 		return nil, err
 	}
-	targets = append(targets, gamelane.LaneTarget{ID:uint8(laneID), Address:addr})
+	targets = append(targets, gamelane.LaneTarget{ID: uint8(laneID), Address: addr})
 	targets = gamelane.CanonicalLaneTargets(targets)
-	if err := (gamelane.LaneSetCommand{Op:gamelane.LaneControlSet, Lanes:targets}).Validate(); err != nil {
+	if err := (gamelane.LaneSetCommand{Op: gamelane.LaneControlSet, Lanes: targets}).Validate(); err != nil {
 		return nil, err
 	}
 	return targets, nil
@@ -182,7 +184,9 @@ func (c *Controller) Dormant() error {
 // and same-association Reality-like admission. Shared Game/TUN/routes are never
 // restarted. The first READY lane is published to Game immediately so forwarding
 // resumes without waiting for optional Game redundancy; later READY lanes are
-// attached incrementally to the same Logical Tunnel race set.
+// attached incrementally to the same Logical Tunnel race set. The physical
+// underlay is rediscovered first because NIC/default-route state may change while
+// the Logical Tunnel remains DORMANT.
 func (c *Controller) Wake() error {
 	c.mu.Lock()
 	if c.state != RuntimeDormant {
@@ -192,9 +196,9 @@ func (c *Controller) Wake() error {
 	}
 	c.state = RuntimeConnecting
 	profile := c.profile
-	base := c.baseUnderlay
 	expected := c.tunnelConfig
 	control := c.gameControl
+	discoverer := c.discoverer
 	c.mu.Unlock()
 
 	failDormant := func(err error) error {
@@ -205,6 +209,10 @@ func (c *Controller) Wake() error {
 	}
 	if err := logicaltunnel.ValidateProductTransportLaneCount(profile.Lanes); err != nil {
 		return failDormant(err)
+	}
+	base, err := discoverCurrentUnderlay(discoverer, profile)
+	if err != nil {
+		return failDormant(fmt.Errorf("wake discover Windows FakeTCP underlay: %w", err))
 	}
 	lifecycle, err := logicaltunnel.NewLaneLifecycle(profile.Lanes)
 	if err != nil {
@@ -250,6 +258,7 @@ func (c *Controller) Wake() error {
 	}
 
 	c.mu.Lock()
+	c.baseUnderlay = base
 	c.lanePlans = plans
 	c.lifecycle = lifecycle
 	c.state = RuntimeConnected
@@ -257,15 +266,19 @@ func (c *Controller) Wake() error {
 	return nil
 }
 
-// ReplaceLane performs same-logical-ID make-before-break. The candidate uses a
-// private transport slot (normally 5) and a fresh public source port while the
-// old incarnation remains authoritative. Only after the candidate passes
-// same-flow bootstrap, DTLS and LINK readiness is Game switched to an explicit
-// old+candidate target set for a bounded overlap window. Game then cuts over to
-// candidate-only, the Logical Tunnel generation fence advances, and the old
-// transport is retired last. No fifth logical lane or new PacketID namespace is
-// created.
+// ReplaceLane performs same-logical-ID make-before-break through the unified
+// lifecycle helper. Trigger-specific policy may supply an expected generation or
+// a newly discovered physical underlay, but all triggers share the same
+// candidate qualification, bounded Game race, promotion and old-lane retirement.
 func (c *Controller) ReplaceLane(laneID int) error {
+	return c.replaceLaneLifecycle(laneID, nil, nil)
+}
+
+func (c *Controller) replaceLaneOnUnderlay(laneID int, expected logicaltunnel.LaneRef, underlay Underlay) error {
+	return c.replaceLaneLifecycle(laneID, &expected, &underlay)
+}
+
+func (c *Controller) replaceLaneLifecycle(laneID int, expectedRef *logicaltunnel.LaneRef, replacementBase *Underlay) error {
 	c.mu.Lock()
 	if c.state != RuntimeConnected {
 		state := c.state
@@ -282,9 +295,21 @@ func (c *Controller) ReplaceLane(laneID int) error {
 		c.mu.Unlock()
 		return err
 	}
-	c.state = RuntimeConnecting
+	if expectedRef != nil && *expectedRef != oldRef {
+		c.mu.Unlock()
+		return fmt.Errorf("%w: lane=%d expected_generation=%d current_generation=%d", errStaleLaneReplacement, laneID, expectedRef.Generation, oldRef.Generation)
+	}
 	profile := c.profile
 	base := c.baseUnderlay
+	if replacementBase != nil {
+		base = *replacementBase
+		base.SourcePort = 0
+		if err := base.Validate(); err != nil {
+			c.mu.Unlock()
+			return fmt.Errorf("replacement underlay: %w", err)
+		}
+	}
+	c.state = RuntimeConnecting
 	expected := c.tunnelConfig
 	control := c.gameControl
 	lifecycle := c.lifecycle
@@ -297,7 +322,10 @@ func (c *Controller) ReplaceLane(laneID int) error {
 		c.mu.Unlock()
 		return err
 	}
-	slot := NextReplacementSlot(oldPlan)
+	slot, err := NextReplacementSlotForPlans(oldPlan, oldPlans)
+	if err != nil {
+		return finishConnected(fmt.Errorf("candidate lane %d replacement slot: %w", laneID, err))
+	}
 	candidate, proc, err := c.bootstrapRuntimeLane(profile, base, expected, laneID, slot, true)
 	if err != nil {
 		return finishConnected(fmt.Errorf("candidate lane %d bootstrap: %w", laneID, err))
@@ -345,11 +373,17 @@ func (c *Controller) ReplaceLane(laneID int) error {
 		rollbackCandidate()
 		return finishConnected(fmt.Errorf("candidate lane %d lifecycle promotion: %w", laneID, err))
 	}
-	_ = fresh // generation is retained in lifecycle and observable via Snapshot.
+	_ = fresh
 
 	// Candidate is authoritative from here even if best-effort old cleanup fails.
+	// A trigger-supplied underlay becomes the controller baseline only at this
+	// commit point; candidate failure therefore preserves both healthy A and its
+	// last known-good path metadata.
 	c.mu.Lock()
 	c.lanePlans = newPlans
+	if replacementBase != nil {
+		c.baseUnderlay = base
+	}
 	c.state = RuntimeConnected
 	c.mu.Unlock()
 	if err := c.executor.StopDynamicLanePlan(oldPlan); err != nil {

@@ -13,8 +13,8 @@ func validateDynamicLanePlan(lane LanePlan) error {
 	if lane.Slot == 0 {
 		lane.Slot = lane.ID
 	}
-	if lane.Slot != lane.ID && lane.Slot != makeBeforeBreakCandidateSlot {
-		return fmt.Errorf("dynamic lane slot=%d invalid for logical lane id=%d", lane.Slot, lane.ID)
+	if _, err := transportSlotPort(0, lane.Slot); err != nil {
+		return fmt.Errorf("dynamic lane slot=%d invalid for logical lane id=%d: %w", lane.Slot, lane.ID, err)
 	}
 	if !strings.HasPrefix(lane.FakeTCP.Name, "faketcp-") || !strings.HasPrefix(lane.DTLS.Name, "dtls-") || !strings.HasPrefix(lane.Link.Name, "link-") {
 		return errors.New("dynamic lane commands require FakeTCP/DTLS/LINK process names")
@@ -42,9 +42,11 @@ func laneProcessNameSet(lane LanePlan) map[string]bool {
 // candidate.
 //
 // Independent logical LaneIDs 1..4 may coexist. During make-before-break, one
-// replacement candidate may also coexist with the old incarnation of the same
-// logical LaneID by using private transport slot 5 and distinct process names.
-// Slot 5 is overlap capacity, not a fifth logical lane or PacketID namespace.
+// replacement candidate may also coexist with the four authoritative lanes by
+// using whichever physical transport slot in 1..5 is currently spare and
+// distinct process names. The fifth physical slot is overlap capacity, not a
+// fifth logical lane or PacketID namespace; after promotion the retired old slot
+// becomes the spare token for the next replacement.
 func (e *Executor) StartDynamicLane(lane LanePlan, prestartedFake Process) error {
 	if prestartedFake == nil {
 		return errors.New("dynamic lane requires prestarted FakeTCP")
@@ -158,9 +160,9 @@ func normalLaneCommandsForStop(laneID int) (Command, Command, Command, error) {
 	return Command{Name: fmt.Sprintf("faketcp-%d", laneID)}, Command{Name: fmt.Sprintf("dtls-%d", laneID)}, Command{Name: fmt.Sprintf("link-%d", laneID)}, nil
 }
 
-// DynamicLaneIDs reports logical active lane identities only. A make-before-
-// break candidate in private slot 5 is attributed to its existing logical
-// LaneID and therefore never appears as a fifth product lane.
+// DynamicLaneIDs reports logical active lane identities only. Any replacement
+// candidate in the bounded physical slot space is attributed to its existing
+// logical LaneID and therefore never appears as a fifth product lane.
 func (e *Executor) DynamicLaneIDs() []int {
 	e.mu.Lock()
 	defer e.mu.Unlock()
