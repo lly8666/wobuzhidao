@@ -106,9 +106,69 @@ func buildLanePlanForSlot(profile Profile, bootstrap LaneBootstrap, slot int, ca
 	}, nil
 }
 
+// NextReplacementSlot retains the historical one-lane planning helper. Product
+// replacement uses NextReplacementSlotForPlans so the one spare physical slot
+// follows the last retired incarnation instead of assuming slot 5 is always free.
 func NextReplacementSlot(current LanePlan) int {
 	if current.Slot == makeBeforeBreakCandidateSlot { return current.ID }
 	return makeBeforeBreakCandidateSlot
+}
+
+// NextReplacementSlotForPlans chooses one currently unused physical transport
+// slot from the bounded 1..5 runtime space. With four authoritative logical lanes
+// there is exactly one spare slot; after promotion the retired old slot becomes
+// the spare for the next replacement. This preserves 4 logical lanes + at most
+// one overlapping physical candidate without treating slot 5 as a fifth lane.
+func NextReplacementSlotForPlans(current LanePlan, plans map[int]LanePlan) (int, error) {
+	currentSlot := current.Slot
+	if currentSlot == 0 { currentSlot = current.ID }
+	if _, err := transportSlotPort(0, currentSlot); err != nil {
+		return 0, fmt.Errorf("current replacement slot: %w", err)
+	}
+	authoritative, ok := plans[current.ID]
+	if !ok {
+		return 0, fmt.Errorf("logical lane %d is not active", current.ID)
+	}
+	authoritativeSlot := authoritative.Slot
+	if authoritativeSlot == 0 { authoritativeSlot = authoritative.ID }
+	if authoritative.ID != current.ID || authoritativeSlot != currentSlot {
+		return 0, fmt.Errorf("logical lane %d authoritative slot drift: current=%d plan=%d", current.ID, currentSlot, authoritativeSlot)
+	}
+
+	used := make(map[int]int, len(plans))
+	for id, plan := range plans {
+		if plan.ID != id {
+			return 0, fmt.Errorf("logical lane map key=%d contains lane id=%d", id, plan.ID)
+		}
+		slot := plan.Slot
+		if slot == 0 { slot = plan.ID }
+		if _, err := transportSlotPort(0, slot); err != nil {
+			return 0, fmt.Errorf("logical lane %d slot: %w", id, err)
+		}
+		if owner, exists := used[slot]; exists {
+			return 0, fmt.Errorf("physical transport slot %d is authoritative for lanes %d and %d", slot, owner, id)
+		}
+		used[slot] = id
+	}
+
+	preferences := make([]int, 0, makeBeforeBreakCandidateSlot+2)
+	if currentSlot == makeBeforeBreakCandidateSlot {
+		preferences = append(preferences, current.ID)
+	} else {
+		preferences = append(preferences, makeBeforeBreakCandidateSlot)
+	}
+	for slot := 1; slot <= makeBeforeBreakCandidateSlot; slot++ {
+		preferences = append(preferences, slot)
+	}
+	seen := map[int]bool{}
+	for _, slot := range preferences {
+		if seen[slot] || slot == currentSlot { continue }
+		seen[slot] = true
+		if _, occupied := used[slot]; !occupied {
+			return slot, nil
+		}
+	}
+	return 0, errors.New("no spare physical transport slot for make-before-break replacement")
 }
 
 func LaneGameTarget(plan LanePlan) (string, error) {
