@@ -20,23 +20,35 @@ const (
 	underlayPathLaneStagger   = time.Second
 )
 
-// UnderlayPathDiscoverer is an optional connected-state capability. Discover
-// remains the authoritative pre-connect route lookup; DiscoverPath must ignore
-// WBD's own pinned server escape route so a NIC/default-route change can be
-// observed after capture routes are installed.
+// UnderlayPathDiscoverer is the existing lane-identity observation capability.
+// Implementations that also know the physical route should additionally expose
+// UnderlayPathObservationDiscoverer; callers never invent missing route data.
 type UnderlayPathDiscoverer interface {
 	DiscoverPath(Profile) (Underlay, error)
 }
 
+type UnderlayPathObservationDiscoverer interface {
+	DiscoverPathObservation(Profile) (underlayPathObservation, error)
+}
+
 type underlayPathState struct {
-	nextProbe time.Time
-	pending   bool
+	nextProbe     time.Time
+	pending       bool
+	routeKnown    bool
+	route         underlayPathObservation
+	rebindPending bool
 }
 
 func newUnderlayPathState() *underlayPathState { return &underlayPathState{} }
-func (s *underlayPathState) clear()            { s.nextProbe = time.Time{}; s.pending = false }
+func (s *underlayPathState) clear() {
+	s.nextProbe = time.Time{}
+	s.pending = false
+	s.routeKnown = false
+	s.route = underlayPathObservation{}
+	s.rebindPending = false
+}
 
-func decodeUnderlayDiscoveryOutput(output []byte) (Underlay, error) {
+func decodeUnderlayDiscoveryObservation(output []byte) (underlayPathObservation, error) {
 	var jsonLine string
 	for _, line := range strings.Split(string(output), "\n") {
 		line = strings.TrimSpace(line)
@@ -46,27 +58,41 @@ func decodeUnderlayDiscoveryOutput(output []byte) (Underlay, error) {
 		}
 	}
 	if jsonLine == "" {
-		return Underlay{}, fmt.Errorf("underlay discovery returned no JSON: %s", strings.TrimSpace(string(output)))
+		return underlayPathObservation{}, fmt.Errorf("underlay discovery returned no JSON: %s", strings.TrimSpace(string(output)))
 	}
 	var result struct {
-		SourceIP     string `json:"source_ip"`
-		PacketDevice string `json:"packet_device"`
-		SourceMAC    string `json:"source_mac"`
-		NextHopMAC   string `json:"next_hop_mac"`
+		SourceIP       string `json:"source_ip"`
+		InterfaceIndex uint32 `json:"interface_index"`
+		PacketDevice   string `json:"packet_device"`
+		SourceMAC      string `json:"source_mac"`
+		NextHopIP      string `json:"next_hop_ip"`
+		NextHopMAC     string `json:"next_hop_mac"`
 	}
 	if err := json.Unmarshal([]byte(jsonLine), &result); err != nil {
-		return Underlay{}, fmt.Errorf("decode underlay discovery: %w", err)
+		return underlayPathObservation{}, fmt.Errorf("decode underlay discovery: %w", err)
 	}
-	underlay := Underlay{
-		SourceIP:     result.SourceIP,
-		PacketDevice: result.PacketDevice,
-		SourceMAC:    result.SourceMAC,
-		NextHopMAC:   result.NextHopMAC,
+	observed := underlayPathObservation{
+		Underlay: Underlay{
+			SourceIP:     result.SourceIP,
+			PacketDevice: result.PacketDevice,
+			SourceMAC:    result.SourceMAC,
+			NextHopMAC:   result.NextHopMAC,
+		},
+		InterfaceIndex: result.InterfaceIndex,
+		NextHopIP:      result.NextHopIP,
 	}
-	if err := underlay.Validate(); err != nil {
+	if err := observed.Validate(); err != nil {
+		return underlayPathObservation{}, err
+	}
+	return observed, nil
+}
+
+func decodeUnderlayDiscoveryOutput(output []byte) (Underlay, error) {
+	observed, err := decodeUnderlayDiscoveryObservation(output)
+	if err != nil {
 		return Underlay{}, err
 	}
-	return underlay, nil
+	return observed.Underlay, nil
 }
 
 func underlayPathDiscoveryArgs(profile Profile) ([]string, error) {
@@ -84,24 +110,59 @@ func underlayPathDiscoveryArgs(profile Profile) ([]string, error) {
 	}, nil
 }
 
-func (PowerShellUnderlayDiscoverer) DiscoverPath(profile Profile) (Underlay, error) {
+func (PowerShellUnderlayDiscoverer) DiscoverPathObservation(profile Profile) (underlayPathObservation, error) {
 	args, err := underlayPathDiscoveryArgs(profile)
 	if err != nil {
-		return Underlay{}, err
+		return underlayPathObservation{}, err
 	}
 	cmd := exec.Command("powershell.exe", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return Underlay{}, fmt.Errorf("%v: %s", err, strings.TrimSpace(string(output)))
+		return underlayPathObservation{}, fmt.Errorf("%v: %s", err, strings.TrimSpace(string(output)))
 	}
-	return decodeUnderlayDiscoveryOutput(output)
+	return decodeUnderlayDiscoveryObservation(output)
+}
+
+func (d PowerShellUnderlayDiscoverer) DiscoverPath(profile Profile) (Underlay, error) {
+	observed, err := d.DiscoverPathObservation(profile)
+	if err != nil {
+		return Underlay{}, err
+	}
+	return observed.Underlay, nil
+}
+
+func discoverCurrentUnderlayObservation(discoverer UnderlayDiscoverer, profile Profile) (underlayPathObservation, error) {
+	if pathDiscoverer, ok := discoverer.(UnderlayPathObservationDiscoverer); ok {
+		return pathDiscoverer.DiscoverPathObservation(profile)
+	}
+	if pathDiscoverer, ok := discoverer.(UnderlayPathDiscoverer); ok {
+		underlay, err := pathDiscoverer.DiscoverPath(profile)
+		if err != nil {
+			return underlayPathObservation{}, err
+		}
+		observed := underlayPathObservation{Underlay: underlay}
+		if err := observed.Validate(); err != nil {
+			return underlayPathObservation{}, err
+		}
+		return observed, nil
+	}
+	underlay, err := discoverer.Discover(profile)
+	if err != nil {
+		return underlayPathObservation{}, err
+	}
+	observed := underlayPathObservation{Underlay: underlay}
+	if err := observed.Validate(); err != nil {
+		return underlayPathObservation{}, err
+	}
+	return observed, nil
 }
 
 func discoverCurrentUnderlay(discoverer UnderlayDiscoverer, profile Profile) (Underlay, error) {
-	if pathDiscoverer, ok := discoverer.(UnderlayPathDiscoverer); ok {
-		return pathDiscoverer.DiscoverPath(profile)
+	observed, err := discoverCurrentUnderlayObservation(discoverer, profile)
+	if err != nil {
+		return Underlay{}, err
 	}
-	return discoverer.Discover(profile)
+	return observed.Underlay, nil
 }
 
 func sameUnderlayPath(a, b Underlay) bool {
@@ -182,27 +243,37 @@ func (c *Controller) runUnderlayPathTick(path *underlayPathState, now time.Time)
 	if state != RuntimeConnected {
 		return false
 	}
-	pathDiscoverer, ok := discoverer.(UnderlayPathDiscoverer)
-	if !ok {
+	_, hasPath := discoverer.(UnderlayPathDiscoverer)
+	_, hasRouteObservation := discoverer.(UnderlayPathObservationDiscoverer)
+	if !hasPath && !hasRouteObservation {
 		return false
 	}
 	if now.Before(path.nextProbe) {
 		return path.pending
 	}
 
-	discovered, err := pathDiscoverer.DiscoverPath(profile)
+	observed, err := discoverCurrentUnderlayObservation(discoverer, profile)
 	if err != nil {
 		// Discovery is observability. Fail open and leave every current lane and
-		// the last known-good base underlay untouched.
+		// the last known-good base/route ownership untouched.
 		path.pending = false
-		path.nextProbe = now.Add(underlayPathProbeInterval)
+		if path.rebindPending {
+			path.nextProbe = now.Add(underlayPathRetryDelay)
+		} else {
+			path.nextProbe = now.Add(underlayPathProbeInterval)
+		}
 		return false
 	}
-	if err := discovered.Validate(); err != nil {
+	if err := observed.Validate(); err != nil {
 		path.pending = false
-		path.nextProbe = now.Add(underlayPathProbeInterval)
+		if path.rebindPending {
+			path.nextProbe = now.Add(underlayPathRetryDelay)
+		} else {
+			path.nextProbe = now.Add(underlayPathProbeInterval)
+		}
 		return false
 	}
+	discovered := observed.Underlay
 
 	ids := make([]int, 0, len(plans))
 	for id := range plans {
@@ -224,12 +295,32 @@ func (c *Controller) runUnderlayPathTick(path *underlayPathState, now time.Time)
 		path.pending = true
 		path.nextProbe = now.Add(underlayPathRetryDelay)
 		if err := c.replaceLaneOnUnderlay(laneID, expected, discovered); err == nil {
+			if observed.HasPhysicalRoute() {
+				path.rebindPending = true
+			}
 			path.nextProbe = now.Add(underlayPathLaneStagger)
 		}
 		return true
 	}
 
 	path.pending = false
+	needsRebind := observed.HasPhysicalRoute() &&
+		(!path.routeKnown || path.rebindPending || !samePhysicalRouteObservation(path.route, observed))
+	if needsRebind {
+		path.nextProbe = now.Add(underlayPathRetryDelay)
+		if err := c.rebindPhysicalRoutes(profile, observed); err != nil {
+			// The rebind script keeps old WBD-owned routes authoritative on error.
+			// Fail open for payload/liveness and retry from a fresh observation.
+			path.rebindPending = true
+			return false
+		}
+		path.routeKnown = true
+		path.route = observed
+		path.rebindPending = false
+		path.nextProbe = now.Add(underlayPathProbeInterval)
+		return true
+	}
+
 	path.nextProbe = now.Add(underlayPathProbeInterval)
 	return false
 }
