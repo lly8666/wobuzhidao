@@ -86,6 +86,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
+          cache: false
 
       - name: Wait for exact-source CI and producer runs
         id: producers
@@ -125,7 +126,10 @@ jobs:
                 | select(.head_sha == $sha)]
               | sort_by(.run_number)
               | last
-              | if . == null then "missing" else "\(.status):\(.conclusion // \"\"):\(.id)" end
+              | if . == null
+                then "missing"
+                else [(.status // ""), (.conclusion // ""), (.id | tostring)] | join(":")
+                end
             ' "$runs"
           }
 
