@@ -6,6 +6,8 @@ WBD release qualification must be tied to one exact candidate source HEAD. Expen
 
 This file and `.github/workflows/release-qualification-kick.yml` define the mandatory hosted candidate matrix. The aggregator dispatches every opt-in gate against one immutable feature-branch HEAD, resolves required push gates for that exact SHA, and fails if the branch moves or any child is not `success`.
 
+Workflow-level `success` alone is insufficient release authority. After each mandatory child completes, the aggregator enumerates that run's complete job inventory and requires every job to be `completed/success`; a skipped job is not a pass. Before publishing the authority marker, it also requires three exact-source release artifact receipts: Windows portable, Linux amd64, and Linux arm64. Each receipt must be unexpired, belong to the exact child run selected by this aggregator, carry the candidate SHA in its artifact name, and report that same SHA as the producer run `head_sha`.
+
 Hosted qualification is not physical release acceptance. The final Windows 11 + Npcap/NIC/NAT/ISP -> Ubuntu ARM64 gate remains separate and must use artifacts/source fencing for the same candidate SHA.
 
 ## Product authority covered by this matrix
@@ -65,16 +67,16 @@ The aggregator additionally resolves and waits for these exact-SHA push runs:
 
 Together the 31 hosted child gates cover Windows native protocol/runtime behavior, Windows portable/TUN/admin/raw-IP/IPv6/DTLS/persona, explicit Game settings, manual/server-CLOSE lifecycle, hosted-Windows physical-route ownership rebind/cleanup, Linux raw/netns/server/firewall/release/shared-TUN/one-NAT, same-flow Reality-like TLS, no-second-SYN, post-switch no-HOL, Game 1..4 lanes, lifecycle/make-before-break, FEC off/20:20, weak-network recovery/first-arrival/load, and OpenWrt regressions.
 
-`windows-portable-bundle.yml` names its artifact with the exact run source SHA. `linux-server-release.yml` names both amd64 and arm64 artifacts with that same run source SHA. `windows-npcap-physical.yml` separately requires an explicit `source_sha` and `artifact_run_id`, verifies that the artifact-producing run's `head_sha` matches that source, and checks out the same SHA on the physical runner.
+`windows-portable-bundle.yml` names its artifact with the exact run source SHA. `linux-server-release.yml` names both amd64 and arm64 artifacts with that same run source SHA. The release aggregator does not infer artifact success from workflow status: it resolves those exact child run IDs and verifies all three artifact receipts against the same candidate SHA before it can emit `WBD_RELEASE_QUALIFICATION_PASS`. `windows-npcap-physical.yml` separately requires an explicit `source_sha` and `artifact_run_id`, verifies that the artifact-producing run's `head_sha` matches that source, and checks out the same SHA on the physical runner.
 
 `windows-linux-single-flow.yml` intentionally reports `physical_npcap=0`: hosted CI can prove native Windows code/wire semantics plus Linux consumption/raw-netns full stack, but it cannot replace final physical Windows 11 Npcap/NIC/NAT/ISP -> Ubuntu ARM64 acceptance.
 
 ## Kick generation
 
-`2026-09-03-lifecycle-settings-route-rebind-exact-head-requalification`
+`2026-09-03-exact-source-job-and-artifact-receipt-fencing`
 
-This generation folds the current ADR-0012 lifecycle source lineage through `c42536fb30f4c2fddc17a0169513bc1ed16cf6ce` into an intentional final-candidate qualification graph. It adds explicit Game setting-boundary authority, WBD-owned Windows route-rebind/cleanup authority, and manual/server-CLOSE lifecycle authority that were missing from the previous release kick. No prior green run is inherited: all 31 hosted qualification children must execute against this new immutable candidate HEAD before automated qualification can be treated as green.
+This generation preserves the current ADR-0012 lifecycle authority through `c42536fb30f4c2fddc17a0169513bc1ed16cf6ce` and the completed matrix expansion through `50475b9e96add0911abc30285ca5880dd0ba8da9`. It closes the remaining deterministic release-orchestration gap: mandatory workflow success can no longer hide skipped/non-success jobs, and packaging success cannot authorize a candidate unless Windows portable plus Linux amd64/arm64 receipts are present on the exact selected producer runs for the same source SHA. No transport wire or mature FakeTCP/Reality/DTLS/LINK/FEC behavior changes in this generation.
 
 ## Delivery rule
 
-No Windows/Linux artifact is delivered merely because packaging succeeded. The exact candidate HEAD must first emit `WBD_RELEASE_QUALIFICATION_PASS` after all 31 hosted child gates succeed. Matching Windows portable and Linux amd64/arm64 bundles must identify that same source HEAD. Physical Windows 11 + Npcap/NIC/NAT/ISP -> Ubuntu ARM64 DNS/UDP/TCP/lifecycle/cleanup remains final acceptance before calling a release complete.
+No Windows/Linux artifact is delivered merely because packaging succeeded. The exact candidate HEAD must first emit `WBD_RELEASE_QUALIFICATION_PASS` after all 31 hosted child gates succeed with no skipped/non-success jobs and the three same-source artifact receipts pass their run/SHA fence. Matching Windows portable and Linux amd64/arm64 bundles must identify that same source HEAD. Physical Windows 11 + Npcap/NIC/NAT/ISP -> Ubuntu ARM64 DNS/UDP/TCP/lifecycle/cleanup remains final acceptance before calling a release complete.

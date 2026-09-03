@@ -106,6 +106,19 @@ jobs:
               fi
               if [[ "$status" == "completed" ]]; then
                 if [[ "$conclusion" != "success" ]]; then echo "child failed workflow=${workflow} run_id=${run_id} conclusion=${conclusion} url=${url}" >&2; exit 1; fi
+                jobs_json="$(gh api "repos/${REPO}/actions/runs/${run_id}/jobs?per_page=100")"
+                total_jobs="$(jq -r '.total_count' <<<"$jobs_json")"
+                seen_jobs="$(jq -r '.jobs | length' <<<"$jobs_json")"
+                if [[ "$total_jobs" -eq 0 || "$total_jobs" -ne "$seen_jobs" ]]; then
+                  echo "child job inventory incomplete workflow=${workflow} run_id=${run_id} total=${total_jobs} seen=${seen_jobs}" >&2
+                  exit 1
+                fi
+                bad_jobs="$(jq -r '[.jobs[] | select(.status != "completed" or .conclusion != "success") | "\(.name)=\(.status)/\(.conclusion // "null")"] | join(",")' <<<"$jobs_json")"
+                if [[ -n "$bad_jobs" ]]; then
+                  echo "child has non-success job workflow=${workflow} run_id=${run_id} jobs=${bad_jobs}" >&2
+                  exit 1
+                fi
+                echo "WBD_RELEASE_CHILD_JOBS_PASS workflow=${workflow} run_id=${run_id} jobs=${total_jobs} skipped=0"
                 echo "WBD_RELEASE_CHILD_PASS workflow=${workflow} event=${event} run_id=${run_id} head_sha=${head_sha} conclusion=${conclusion} url=${url}"
                 break
               fi
@@ -113,6 +126,49 @@ jobs:
               sleep 20
             done
           done <"$manifest"
+
+      - name: Require exact-source release artifact receipts
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="$RUNNER_TEMP/wbd-release-dispatch.tsv"
+
+          run_id_for() {
+            local workflow="$1"
+            awk -F '\t' -v workflow="$workflow" '$1 == workflow { print $2 }' "$manifest"
+          }
+
+          require_artifact() {
+            local run_id="$1"
+            local artifact_name="$2"
+            local role="$3"
+            [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "missing artifact producer run role=${role}" >&2; exit 1; }
+            payload="$(gh api "repos/${REPO}/actions/runs/${run_id}/artifacts?per_page=100")"
+            total="$(jq -r '.total_count' <<<"$payload")"
+            seen="$(jq -r '.artifacts | length' <<<"$payload")"
+            if [[ "$total" -ne "$seen" ]]; then
+              echo "artifact inventory incomplete role=${role} run_id=${run_id} total=${total} seen=${seen}" >&2
+              exit 1
+            fi
+            count="$(jq -r --arg name "$artifact_name" '[.artifacts[] | select(.name == $name)] | length' <<<"$payload")"
+            if [[ "$count" -ne 1 ]]; then
+              echo "artifact receipt mismatch role=${role} run_id=${run_id} name=${artifact_name} count=${count}" >&2
+              exit 1
+            fi
+            receipt="$(jq -r --arg name "$artifact_name" '[.artifacts[] | select(.name == $name)][0] | [(.expired|tostring), (.workflow_run.id|tostring), .workflow_run.head_sha, .name] | join("|")' <<<"$payload")"
+            IFS='|' read -r expired producer_id source_sha actual_name <<<"$receipt"
+            if [[ "$expired" != "false" || "$producer_id" != "$run_id" || "$source_sha" != "$GITHUB_SHA" || "$actual_name" != "$artifact_name" ]]; then
+              echo "artifact source fence failed role=${role} run_id=${run_id} expired=${expired} producer=${producer_id} source_sha=${source_sha} expected_sha=${GITHUB_SHA} name=${actual_name}" >&2
+              exit 1
+            fi
+            echo "WBD_RELEASE_ARTIFACT_PASS role=${role} run_id=${run_id} source_sha=${source_sha} name=${actual_name}"
+          }
+
+          windows_run_id="$(run_id_for windows-portable-bundle.yml)"
+          linux_run_id="$(run_id_for linux-server-release.yml)"
+          require_artifact "$windows_run_id" "wbd-windows-portable-${GITHUB_SHA}" windows-portable
+          require_artifact "$linux_run_id" "wbd-linux-server-amd64-${GITHUB_SHA}" linux-amd64
+          require_artifact "$linux_run_id" "wbd-linux-server-arm64-${GITHUB_SHA}" linux-arm64
 
       - name: Resolve and wait for exact-candidate push gates
         shell: bash
@@ -144,6 +200,19 @@ jobs:
               if [[ "$head_sha" != "$GITHUB_SHA" || "$event" != "push" ]]; then echo "push-gate identity mismatch workflow=${workflow} run_id=${run_id} head=${head_sha} event=${event} expected_head=${GITHUB_SHA}" >&2; exit 1; fi
               if [[ "$status" == "completed" ]]; then
                 if [[ "$conclusion" != "success" ]]; then echo "push gate failed workflow=${workflow} run_id=${run_id} conclusion=${conclusion} url=${url}" >&2; exit 1; fi
+                jobs_json="$(gh api "repos/${REPO}/actions/runs/${run_id}/jobs?per_page=100")"
+                total_jobs="$(jq -r '.total_count' <<<"$jobs_json")"
+                seen_jobs="$(jq -r '.jobs | length' <<<"$jobs_json")"
+                if [[ "$total_jobs" -eq 0 || "$total_jobs" -ne "$seen_jobs" ]]; then
+                  echo "push gate job inventory incomplete workflow=${workflow} run_id=${run_id} total=${total_jobs} seen=${seen_jobs}" >&2
+                  exit 1
+                fi
+                bad_jobs="$(jq -r '[.jobs[] | select(.status != "completed" or .conclusion != "success") | "\(.name)=\(.status)/\(.conclusion // "null")"] | join(",")' <<<"$jobs_json")"
+                if [[ -n "$bad_jobs" ]]; then
+                  echo "push gate has non-success job workflow=${workflow} run_id=${run_id} jobs=${bad_jobs}" >&2
+                  exit 1
+                fi
+                echo "WBD_RELEASE_CHILD_JOBS_PASS workflow=${workflow} run_id=${run_id} jobs=${total_jobs} skipped=0"
                 echo "WBD_RELEASE_CHILD_PASS workflow=${workflow} event=${event} run_id=${run_id} head_sha=${head_sha} conclusion=${conclusion} url=${url}"
                 break
               fi
@@ -159,4 +228,4 @@ jobs:
           current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
           printf 'aggregator_sha=%s final_branch_sha=%s\n' "$GITHUB_SHA" "$current"
           test "$current" = "$GITHUB_SHA"
-          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=22 push_gates=9 total_children=31 windows_linux=1 logical_tunnel=1 lanes=1..4 game_settings=1 game_race=1 mbb=1 dormant_wake=1 route_rebind=1 manual_reconnect=1 server_close=1 shared_tun_one_nat=1 fec_primary=off fec_20x20=smoke_only fec_research=frozen'
+          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=22 push_gates=9 total_children=31 child_jobs_success_only=1 skipped=0 release_artifacts=3 artifact_source_fence=1 windows_linux=1 logical_tunnel=1 lanes=1..4 game_settings=1 game_race=1 mbb=1 dormant_wake=1 route_rebind=1 manual_reconnect=1 server_close=1 shared_tun_one_nat=1 fec_primary=off fec_20x20=smoke_only fec_research=frozen'

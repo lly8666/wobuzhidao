@@ -52,4 +52,25 @@ func TestExactHeadReleaseQualificationMatrixMatchesAuthorityDoc(t *testing.T) {
 	}
 	requireContains(t, workflow, "dispatched=22 push_gates=9 total_children=31", "release qualification authority marker")
 	requireContains(t, doc, "31 hosted child gates", "release qualification authority doc")
+
+	for _, snippet := range []string{
+		`actions/runs/${run_id}/jobs?per_page=100`,
+		`select(.status != "completed" or .conclusion != "success")`,
+		`WBD_RELEASE_CHILD_JOBS_PASS`,
+		`skipped=0`,
+		`wbd-windows-portable-${GITHUB_SHA}`,
+		`wbd-linux-server-amd64-${GITHUB_SHA}`,
+		`wbd-linux-server-arm64-${GITHUB_SHA}`,
+		`WBD_RELEASE_ARTIFACT_PASS`,
+		`artifact_source_fence=1`,
+	} {
+		requireContains(t, workflow, snippet, "release qualification exact-source runtime contract")
+	}
+	for _, snippet := range []string{
+		"workflow-level `success` alone is insufficient",
+		"skipped job is not a pass",
+		"three exact-source release artifact receipts",
+	} {
+		requireContains(t, doc, snippet, "release qualification authority doc runtime contract")
+	}
 }
