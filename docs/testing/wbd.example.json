@@ -1,0 +1,17 @@
+{
+  "server_ip": "203.0.113.10",
+  "server_port": 40443,
+  "server_name": "www.cloudflare.com",
+  "route_key": "REPLACE_WITH_SERVER_ROUTE_KEY",
+  "username": "wbd",
+  "password": "REPLACE_WITH_SERVER_PASSWORD",
+  "verify_server": false,
+  "fec": "off",
+  "if_name": "WBD",
+  "mtu": 1400,
+  "route_mode": "Full",
+  "dns_mode": "Auto",
+  "dns_server": "",
+  "lanes": 1,
+  "idle_timeout": 900
+}

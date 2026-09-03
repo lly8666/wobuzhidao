@@ -1,0 +1,346 @@
+name: publish-test-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: 'Exact 40-character product source SHA; blank uses the selected workflow ref SHA'
+        required: false
+        type: string
+      release_tag:
+        description: 'Optional immutable test tag; blank uses wbd-test-<12-char-source-sha>'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: publish-test-release-${{ inputs.source_sha || github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout publisher definition
+        uses: actions/checkout@v4
+        with:
+          path: publisher
+
+      - name: Resolve immutable source and tag
+        id: resolve
+        shell: bash
+        env:
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
+          INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          source_sha="${INPUT_SOURCE_SHA:-${GITHUB_SHA}}"
+          source_sha="${source_sha,,}"
+          if [[ ! "$source_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "source_sha must be one full 40-character Git commit SHA" >&2
+            exit 2
+          fi
+          tag="${INPUT_RELEASE_TAG:-wbd-test-${source_sha:0:12}}"
+          if [[ ! "$tag" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "release_tag may contain only letters, digits, dot, underscore and dash" >&2
+            exit 2
+          fi
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "WBD_TEST_RELEASE_SOURCE_RESOLVED source_sha=$source_sha tag=$tag"
+
+      - name: Checkout exact product source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.resolve.outputs.source_sha }}
+          path: source
+          fetch-depth: 1
+
+      - name: Fence checkout to requested source SHA
+        shell: bash
+        working-directory: source
+        env:
+          SOURCE_SHA: ${{ steps.resolve.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          got="$(git rev-parse HEAD)"
+          [[ "$got" == "$SOURCE_SHA" ]] || {
+            echo "exact-source checkout mismatch: got=$got want=$SOURCE_SHA" >&2
+            exit 1
+          }
+          echo "WBD_TEST_RELEASE_CHECKOUT_PASS source_sha=$SOURCE_SHA"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Find exact-source successful producer runs
+        id: producers
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.resolve.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          runs="$RUNNER_TEMP/runs.json"
+          gh api --paginate \
+            -H 'Accept: application/vnd.github+json' \
+            "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SOURCE_SHA&status=completed&per_page=100" \
+            | jq -s '{workflow_runs: map(.workflow_runs[]) | unique_by(.id)}' > "$runs"
+
+          select_run() {
+            local path="$1"
+            jq -r --arg path "$path" --arg sha "$SOURCE_SHA" '
+              [.workflow_runs[]
+                | select(.path == $path)
+                | select(.head_sha == $sha)
+                | select(.status == "completed" and .conclusion == "success")]
+              | sort_by(.run_number)
+              | last
+              | .id // empty
+            ' "$runs"
+          }
+
+          windows_run="$(select_run '.github/workflows/windows-portable-bundle.yml')"
+          linux_run="$(select_run '.github/workflows/linux-server-release.yml')"
+          [[ -n "$windows_run" ]] || {
+            echo "no successful exact-source Windows portable producer for $SOURCE_SHA" >&2
+            exit 1
+          }
+          [[ -n "$linux_run" ]] || {
+            echo "no successful exact-source Linux server producer for $SOURCE_SHA" >&2
+            exit 1
+          }
+
+          verify_run() {
+            local run_id="$1"
+            local path="$2"
+            gh api -H 'Accept: application/vnd.github+json' \
+              "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" \
+              | jq -e --arg sha "$SOURCE_SHA" --arg path "$path" '
+                  .head_sha == $sha and
+                  .path == $path and
+                  .status == "completed" and
+                  .conclusion == "success"
+                ' >/dev/null
+          }
+          verify_run "$windows_run" '.github/workflows/windows-portable-bundle.yml'
+          verify_run "$linux_run" '.github/workflows/linux-server-release.yml'
+
+          echo "windows_run=$windows_run" >> "$GITHUB_OUTPUT"
+          echo "linux_run=$linux_run" >> "$GITHUB_OUTPUT"
+          echo "WBD_TEST_RELEASE_PRODUCERS_PASS source_sha=$SOURCE_SHA windows_run=$windows_run linux_run=$linux_run"
+
+      - name: Verify exact artifact receipts
+        id: receipts
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.resolve.outputs.source_sha }}
+          WINDOWS_RUN: ${{ steps.producers.outputs.windows_run }}
+          LINUX_RUN: ${{ steps.producers.outputs.linux_run }}
+        run: |
+          set -euo pipefail
+          win_name="wbd-windows-portable-$SOURCE_SHA"
+          amd_name="wbd-linux-server-amd64-$SOURCE_SHA"
+          arm_name="wbd-linux-server-arm64-$SOURCE_SHA"
+
+          win_json="$RUNNER_TEMP/windows-artifacts.json"
+          linux_json="$RUNNER_TEMP/linux-artifacts.json"
+          gh api -H 'Accept: application/vnd.github+json' \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$WINDOWS_RUN/artifacts?per_page=100" > "$win_json"
+          gh api -H 'Accept: application/vnd.github+json' \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$LINUX_RUN/artifacts?per_page=100" > "$linux_json"
+
+          exact_artifact() {
+            local json="$1"
+            local name="$2"
+            local count
+            count="$(jq --arg name "$name" '[.artifacts[] | select(.name == $name and (.expired | not))] | length' "$json")"
+            [[ "$count" == "1" ]] || {
+              echo "expected one unexpired artifact named $name, got $count" >&2
+              exit 1
+            }
+            jq -c --arg name "$name" '.artifacts[] | select(.name == $name and (.expired | not))' "$json"
+          }
+
+          win_receipt="$(exact_artifact "$win_json" "$win_name")"
+          amd_receipt="$(exact_artifact "$linux_json" "$amd_name")"
+          arm_receipt="$(exact_artifact "$linux_json" "$arm_name")"
+
+          echo "win_name=$win_name" >> "$GITHUB_OUTPUT"
+          echo "amd_name=$amd_name" >> "$GITHUB_OUTPUT"
+          echo "arm_name=$arm_name" >> "$GITHUB_OUTPUT"
+
+          mkdir -p release
+          jq -n \
+            --arg source_sha "$SOURCE_SHA" \
+            --argjson windows_run "$WINDOWS_RUN" \
+            --argjson linux_run "$LINUX_RUN" \
+            --argjson windows_artifact "$win_receipt" \
+            --argjson linux_amd64_artifact "$amd_receipt" \
+            --argjson linux_arm64_artifact "$arm_receipt" \
+            '{
+              source_sha: $source_sha,
+              release_qualified: false,
+              producers: {
+                windows_portable: {run_id: $windows_run, artifact: $windows_artifact},
+                linux_server: {
+                  run_id: $linux_run,
+                  amd64_artifact: $linux_amd64_artifact,
+                  arm64_artifact: $linux_arm64_artifact
+                }
+              }
+            }' > release/PRODUCERS.json
+          echo "WBD_TEST_RELEASE_ARTIFACT_RECEIPTS_PASS source_sha=$SOURCE_SHA artifacts=3 expired=0"
+
+      - name: Download exact artifacts
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WINDOWS_RUN: ${{ steps.producers.outputs.windows_run }}
+          LINUX_RUN: ${{ steps.producers.outputs.linux_run }}
+          WIN_NAME: ${{ steps.receipts.outputs.win_name }}
+          AMD_NAME: ${{ steps.receipts.outputs.amd_name }}
+          ARM_NAME: ${{ steps.receipts.outputs.arm_name }}
+        run: |
+          set -euo pipefail
+          mkdir -p stage/windows stage/linux-amd64 stage/linux-arm64
+          gh run download "$WINDOWS_RUN" -R "$GITHUB_REPOSITORY" -n "$WIN_NAME" -D stage/windows
+          gh run download "$LINUX_RUN" -R "$GITHUB_REPOSITORY" -n "$AMD_NAME" -D stage/linux-amd64
+          gh run download "$LINUX_RUN" -R "$GITHUB_REPOSITORY" -n "$ARM_NAME" -D stage/linux-arm64
+
+      - name: Assemble test release package
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ steps.resolve.outputs.source_sha }}
+          WINDOWS_RUN: ${{ steps.producers.outputs.windows_run }}
+          LINUX_RUN: ${{ steps.producers.outputs.linux_run }}
+        run: |
+          set -euo pipefail
+          mapfile -t win_files < <(find stage/windows -type f -name wbd.exe -print)
+          mapfile -t amd_files < <(find stage/linux-amd64 -type f -name 'wbd-linux-server-amd64.tar.gz' -print)
+          mapfile -t arm_files < <(find stage/linux-arm64 -type f -name 'wbd-linux-server-arm64.tar.gz' -print)
+          [[ ${#win_files[@]} -eq 1 ]] || { echo "expected exactly one wbd.exe" >&2; exit 1; }
+          [[ ${#amd_files[@]} -eq 1 ]] || { echo "expected exactly one amd64 server tarball" >&2; exit 1; }
+          [[ ${#arm_files[@]} -eq 1 ]] || { echo "expected exactly one arm64 server tarball" >&2; exit 1; }
+
+          mkdir -p release/windows release/test-tools
+          cp "${win_files[0]}" release/windows/wbd.exe
+          (
+            cd release/windows
+            zip -q "../wbd-windows-portable-$SOURCE_SHA.zip" wbd.exe
+          )
+          cp "${amd_files[0]}" "release/wbd-linux-server-amd64-$SOURCE_SHA.tar.gz"
+          cp "${arm_files[0]}" "release/wbd-linux-server-arm64-$SOURCE_SHA.tar.gz"
+
+          (
+            cd source
+            GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath \
+              -o "../release/test-tools/wbd-windows-qualify.exe" ./cmd/wbd-windows-qualify
+          )
+          cp source/scripts/windows_npcap_physical_qualify.ps1 release/test-tools/
+          cp source/scripts/windows_application_path_qualify.ps1 release/test-tools/
+          cp source/scripts/windows_npcap_prepare.ps1 release/test-tools/
+          cp source/scripts/windows_faketcp_underlay.ps1 release/test-tools/
+          cp source/scripts/windows_tun_route.ps1 release/test-tools/
+          cp source/scripts/windows_ipv6_killswitch.ps1 release/test-tools/
+          cp publisher/scripts/qualification_echo_server.py release/test-tools/
+          cp publisher/docs/testing/PHYSICAL_TEST_PACKAGE.md release/test-tools/TESTING.md
+          cp publisher/docs/testing/wbd.example.json release/test-tools/wbd.example.json
+          printf '%s\n' "$SOURCE_SHA" > release/SOURCE_SHA.txt
+          cp release/SOURCE_SHA.txt release/test-tools/SOURCE_SHA.txt
+          cp release/PRODUCERS.json release/test-tools/PRODUCERS.json
+          (
+            cd release/test-tools
+            zip -q -r "../wbd-test-tools-$SOURCE_SHA.zip" .
+          )
+          cp publisher/docs/testing/PHYSICAL_TEST_PACKAGE.md release/TESTING.md
+          cp publisher/docs/testing/wbd.example.json release/wbd.example.json
+
+          cat > release/RELEASE_NOTES.md <<EOF
+          # WBD physical test candidate
+
+          **NOT RELEASE-QUALIFIED.** This prerelease is an exact-source physical-test package, not a production release.
+
+          - Source SHA: \`$SOURCE_SHA\`
+          - Windows portable producer run: \`$WINDOWS_RUN\`
+          - Linux server producer run: \`$LINUX_RUN\`
+          - Windows 11 + real Npcap -> Ubuntu ARM64 physical qualification: **pending**
+          - Functional/lifecycle FEC: **off**
+          - Compatibility FEC smoke only: **20:20**
+
+          Download \`TESTING.md\`, \`wbd.example.json\`, \`SOURCE_SHA.txt\`, \`PRODUCERS.json\` and \`SHA256SUMS.txt\` together with the platform packages. Do not mix artifacts from different source SHAs.
+          EOF
+
+          (
+            cd release
+            sha256sum \
+              "wbd-windows-portable-$SOURCE_SHA.zip" \
+              "wbd-linux-server-amd64-$SOURCE_SHA.tar.gz" \
+              "wbd-linux-server-arm64-$SOURCE_SHA.tar.gz" \
+              "wbd-test-tools-$SOURCE_SHA.zip" \
+              TESTING.md \
+              wbd.example.json \
+              SOURCE_SHA.txt \
+              PRODUCERS.json > SHA256SUMS.txt
+            sha256sum -c SHA256SUMS.txt
+          )
+          echo "WBD_TEST_RELEASE_PACKAGE_PASS source_sha=$SOURCE_SHA files=8 release_qualified=0"
+
+      - name: Create or update exact-source prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.resolve.outputs.source_sha }}
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            ref_json="$(gh api -H 'Accept: application/vnd.github+json' "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG")"
+            ref_type="$(jq -r '.object.type' <<<"$ref_json")"
+            ref_sha="$(jq -r '.object.sha' <<<"$ref_json")"
+            if [[ "$ref_type" == "tag" ]]; then
+              tag_json="$(gh api -H 'Accept: application/vnd.github+json' "repos/$GITHUB_REPOSITORY/git/tags/$ref_sha")"
+              ref_type="$(jq -r '.object.type' <<<"$tag_json")"
+              ref_sha="$(jq -r '.object.sha' <<<"$tag_json")"
+            fi
+            if [[ "$ref_type" != "commit" || "$ref_sha" != "$SOURCE_SHA" ]]; then
+              echo "existing release tag $TAG does not resolve to exact source $SOURCE_SHA" >&2
+              exit 1
+            fi
+            gh release edit "$TAG" -R "$GITHUB_REPOSITORY" \
+              --title "WBD test $TAG" \
+              --notes-file release/RELEASE_NOTES.md \
+              --prerelease
+            gh release upload "$TAG" -R "$GITHUB_REPOSITORY" --clobber \
+              "release/wbd-windows-portable-$SOURCE_SHA.zip" \
+              "release/wbd-linux-server-amd64-$SOURCE_SHA.tar.gz" \
+              "release/wbd-linux-server-arm64-$SOURCE_SHA.tar.gz" \
+              "release/wbd-test-tools-$SOURCE_SHA.zip" \
+              release/TESTING.md \
+              release/wbd.example.json \
+              release/SOURCE_SHA.txt \
+              release/PRODUCERS.json \
+              release/SHA256SUMS.txt
+          else
+            gh release create "$TAG" -R "$GITHUB_REPOSITORY" \
+              --target "$SOURCE_SHA" \
+              --title "WBD test $TAG" \
+              --notes-file release/RELEASE_NOTES.md \
+              --prerelease \
+              "release/wbd-windows-portable-$SOURCE_SHA.zip" \
+              "release/wbd-linux-server-amd64-$SOURCE_SHA.tar.gz" \
+              "release/wbd-linux-server-arm64-$SOURCE_SHA.tar.gz" \
+              "release/wbd-test-tools-$SOURCE_SHA.zip" \
+              release/TESTING.md \
+              release/wbd.example.json \
+              release/SOURCE_SHA.txt \
+              release/PRODUCERS.json \
+              release/SHA256SUMS.txt
+          fi
+          echo "WBD_TEST_RELEASE_PUBLISHED source_sha=$SOURCE_SHA tag=$TAG prerelease=1 release_qualified=0"
