@@ -322,7 +322,10 @@ func (c *Controller) replaceLaneLifecycle(laneID int, expectedRef *logicaltunnel
 		c.mu.Unlock()
 		return err
 	}
-	slot := NextReplacementSlot(oldPlan)
+	slot, err := NextReplacementSlotForPlans(oldPlan, oldPlans)
+	if err != nil {
+		return finishConnected(fmt.Errorf("candidate lane %d replacement slot: %w", laneID, err))
+	}
 	candidate, proc, err := c.bootstrapRuntimeLane(profile, base, expected, laneID, slot, true)
 	if err != nil {
 		return finishConnected(fmt.Errorf("candidate lane %d bootstrap: %w", laneID, err))
