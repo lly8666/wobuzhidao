@@ -10,14 +10,23 @@ func TestExactSourceTestReleasePublishingContract(t *testing.T) {
 	workflow := readRepoFile(t, ".github/workflows/publish-test-release.yml")
 
 	for _, want := range []string{
+		"push:",
+		"feat/single-flow-reality-faketcp",
 		"workflow_dispatch:",
+		"[publish-test]",
 		"source_sha:",
 		"contents: write",
 		"actions: read",
 		"ref: ${{ steps.resolve.outputs.source_sha }}",
 		"head_sha == $sha",
+		"Wait for exact-source CI and producer runs",
+		".github/workflows/ci.yml",
 		".github/workflows/windows-portable-bundle.yml",
 		".github/workflows/linux-server-release.yml",
+		"status == \"completed\" and .conclusion == \"success\"",
+		"no successful exact-source CI run",
+		"no successful exact-source Windows portable producer",
+		"no successful exact-source Linux server producer",
 		"wbd-windows-portable-$SOURCE_SHA",
 		"wbd-linux-server-amd64-$SOURCE_SHA",
 		"wbd-linux-server-arm64-$SOURCE_SHA",
