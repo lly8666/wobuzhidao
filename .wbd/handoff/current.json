@@ -36,7 +36,7 @@
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
-    "docs/architecture/ADR-0011-single-public-flow-reality-faketcp-dtls.md",
+    "docs/architecture/ADR-0011-single-public-flow-reality-bootstrap.md",
     "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
     ".github/workflows/release-qualification-kick.yml",
     "docs/development/QUALIFICATION_KICK.md",
