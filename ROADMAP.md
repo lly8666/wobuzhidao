@@ -18,23 +18,34 @@
 | V2-M9A | Logical Tunnel identity + server address lease | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9B | shared Linux TUN + one host NAT + lease demux | **IMPLEMENTED FOUNDATION / REQUALIFY** |
 | V2-M9C | product 1..4-lane admission + Game/race wiring | **IMPLEMENTED FOUNDATION / REQUALIFY** |
-| V2-M9D | payload-idle dormant/wake | **IMPLEMENTED: AUTOMATIC PAYLOAD-IDLE DORMANT + FIRST-PAYLOAD/FIRST-READY WAKE; NON-IDLE TRIGGERS PENDING** |
-| V2-M9E | make-before-break + unified lane replacement state machine | **BOUNDED SAME-LANEID OLD+CANDIDATE RACE + RANDOMIZED STAGGERED 30..60M AGE ROTATION IMPLEMENTED; UNIFIED TRIGGERS PENDING** |
+| V2-M9D | payload-idle dormant/wake | **IMPLEMENTED: AUTOMATIC PAYLOAD-IDLE DORMANT + FIRST-PAYLOAD/FIRST-READY WAKE** |
+| V2-M9E | make-before-break + unified lane replacement state machine | **AGE + PROCESS/LINK LIVENESS + LOCAL WINDOWS PATH TRIGGERS IMPLEMENTED; EXPLICIT SERVER/MANUAL + ROUTE-REBIND/NAT OBSERVABILITY GAPS REMAIN** |
 | V2-M10 | exact-source Windows/Linux qualification + physical Windows 11 -> Ubuntu ARM64 | **BLOCKED UNTIL ONE EXACT-SOURCE MATRIX + ARTIFACTS + PHYSICAL EVIDENCE** |
 | V2-M11 | startup RTT / packaging/process simplification | **DEFERRED** |
 
-## 2026-09-02 live reconciliation
+## 2026-09-03 lifecycle checkpoint
 
-The takeover baseline is `0d65698d1601951169a807d94c0eaa8c09c6531f`, 16 commits ahead of stale handoff checkpoint `c7a0622352889ff8906db940b3e1e2bb5df3d6b1`. Current code/tests, not the stale continuation cursor, are authoritative for completion state:
+Substantive source `fef0820d63736e037a790a87ef4de9e35ce39e26` completes the current local Windows underlay/path-change phase. All 16 ordinary push workflows observed on the PR branch for that exact SHA completed successfully with queued=0, in_progress=0 and failure=0. This is exact-source lifecycle evidence, **not** release authorization.
 
-- same logical LaneID old+candidate bounded Game race is implemented; candidate failure preserves the old transport;
-- product logical-lane ceiling remains 1..4 while bounded replacement has private `4+1` physical-incarnation capacity;
-- real app/TUN payload activity is tracked independently of control traffic;
-- automatic payload-idle DORMANT and payload-triggered wake are implemented, including first-READY publication before optional lane refill;
-- randomized per-incarnation 30..60m lane-age deadlines are implemented in controller policy, collision-deconflicted by at least one minute and serialized through the existing `ReplaceLane` path;
-- the remaining lifecycle work is unified replacement triggers for network/path/liveness/transport failures and explicit server/manual triggers.
+Current code/tests establish:
 
-CI green at any one push is not release readiness. V2-M10 still requires one exact substantive source across the complete release matrix, Windows/Linux artifacts, and physical Windows 11 + Npcap -> Ubuntu ARM64 evidence.
+- same logical LaneID old+candidate bounded Game race; candidate failure preserves the old transport;
+- product logical-lane ceiling 1..4 with bounded 4+1 physical-incarnation capacity;
+- the physical spare is a rotating token across slots 1..5, so sequential multi-lane replacement does not assume slot 5 is permanently free;
+- real app/TUN payload activity is separate from control traffic; PING/PONG/control do not refresh payload idle;
+- automatic payload-idle DORMANT and payload-triggered wake, including first-READY publication;
+- randomized per-incarnation 30..60m lane-age deadlines, staggered and serialized through the same replacement lifecycle;
+- authoritative FakeTCP/DTLS/LINK child exit and LINK no-RX/missed-PONG terminate the current incarnation and converge through replacement;
+- connected Windows path observation detects changes in source IPv4, Npcap packet device/NIC, source MAC, and next-hop MAC/default-route identity;
+- connected physical-path discovery explicitly excludes WBD's own pinned server escape route so the monitor does not self-lock onto the pre-change route;
+- path convergence replaces current logical lanes one at a time with expected-generation fencing; discovery failure is fail-open, candidate failure preserves both healthy A and the last-known-good underlay baseline;
+- DORMANT does not perform path replacement; Wake rediscovers the physical underlay before rebuilding lanes.
+
+Remaining lifecycle/orchestration gaps are narrower and explicit:
+
+1. `RouteForeign`/direct-prefix kernel routes recorded at initial apply still need a safe physical-route rebind strategy after an underlay change; raw WBD lanes may already have migrated while those direct routes still reference the old physical path.
+2. Explicit server-request/manual-reconnect triggers still need to converge on the same generation-fenced replacement API; do not invent a second replacement state machine.
+3. Public external-IP/NAT mapping change detection remains unimplemented because the current local underlay observer has no authoritative public-NAT signal. Do not fake this by relabeling local source/default-route changes.
 
 ## Frozen product transport model
 
@@ -62,9 +73,9 @@ Policy:
 - Architectural ceiling = 4 logical lanes.
 - Dormant/disconnected = 0.
 
-A fifth logical lane is rejected. Planned replacement may briefly overlap old/candidate physical incarnations under ADR-0012 make-before-break, with an architectural maximum of four logical lanes plus one bounded private replacement incarnation.
+A fifth logical lane is rejected. Planned replacement may briefly overlap old/candidate physical incarnations under ADR-0012 make-before-break. Physical transport slots are bounded to 1..5; only four are authoritative at once and the one unused slot is the make-before-break spare token. Promotion retires the old physical slot, which becomes the next spare. None of these physical slots creates a fifth logical LaneID or a second PacketID namespace.
 
-The mature TCP-like/FakeTCP recovery/FEC core is frozen unless a deterministic lower-layer qualification isolates a real defect.
+The mature TCP-like/FakeTCP recovery/FEC core is frozen unless deterministic lower-layer qualification isolates a real defect.
 
 ## Game/race and replacement
 
@@ -76,31 +87,33 @@ Planned healthy replacement is:
 A -> build/qualify B -> A+B bounded race -> drain A -> B
 ```
 
-Candidate B failure leaves A alive. The bounded race is implemented with old and candidate physical incarnations carrying the same logical LaneID/PacketID namespace; it is no longer a pending gap.
+Candidate B failure leaves A alive. Age, process-exit, LINK liveness, and local Windows underlay/path triggers now converge on this same generation-fenced lifecycle rather than duplicating break-before-make logic.
 
-Game replacement rotates one lane at a time:
+Randomized 30..60m soft age rotation assigns each active incarnation its own deadline, deconflicts multi-lane deadlines by at least one minute, replaces only one due lane at a time, retries candidate failure with a bounded delay, and gives each promoted incarnation a fresh age deadline.
 
-```text
-A+B -> A+B+C -> B+C
-```
-
-Randomized 30..60m soft age rotation now converges on this same replacement lifecycle: each active incarnation gets its own randomized deadline, multi-lane deadlines are deconflicted by at least one minute, only the earliest due lane is replaced at a time, candidate failure preserves the old lane and schedules a bounded retry, and a successful 1<->5 physical-slot promotion receives a fresh age deadline. The remaining unified-trigger work is NIC/default route/public IP changes, NAT/path/liveness failure, FakeTCP/DTLS/LINK failure, server request and manual reconnect, all with the existing generation fencing. This is lifecycle work, not transport-wire work.
-
-## Logical Tunnel identity + lease
-
-The Logical Tunnel, not a lane/LiveID, owns stable TunnelID and the server-assigned IPv4 lease. Same-account devices receive distinct addresses; raw IPv4 ingress is accepted only when its source matches the lease.
-
-Do not reintroduce a global hard-coded `10.66.0.2/30` identity.
-
-## Idle / wake / age policy
+## Idle / wake / liveness policy
 
 - Product default payload idle timeout: **15m (900s)** when `idle_timeout` is omitted.
 - Explicit `idle_timeout=0`: never sleep due to payload idleness; lifecycle monitoring and lane-age rotation remain enabled.
-- Track `last_payload_activity` separately from `last_transport_activity`.
 - Only real application/TUN payload refreshes payload idle; PING/PONG/control does not.
 - DORMANT closes all lanes but preserves Logical Tunnel, lease, Wintun/routes/DNS.
 - First new payload wakes the tunnel; forwarding resumes on the first READY lane, then optional Game lanes refill incrementally.
-- Each active lane incarnation has an independent randomized 30..60m soft age deadline. Multi-lane deadlines are staggered/deconflicted, DORMANT clears age state, wake rebuilds fresh deadlines, and replacements run one lane at a time through existing make-before-break.
+- Each active lane incarnation has an independent randomized 30..60m soft age deadline.
+- Current authoritative FakeTCP/DTLS/LINK process exit and LINK no-RX/missed-PONG feed the same replacement lifecycle; stale retired-incarnation exits are ignored by generation/physical-plan fencing.
+
+## Windows physical-path convergence
+
+One Wintun belongs to one Logical Tunnel. The connected monitor observes local underlay identity only:
+
+```text
+SourceIP + PacketDevice + SourceMAC + NextHopMAC
+```
+
+A change is not applied by mutating the controller baseline first. Instead, the discovered underlay is supplied to a same-LaneID candidate. Only after candidate transport qualification, bounded Game overlap and lifecycle promotion does the controller commit that underlay as the new known-good baseline. Candidate failure therefore preserves old A and its old baseline.
+
+Because the connected route table contains a WBD-owned pinned `/32` server escape route, monitor discovery must exclude that WBD-owned route before selecting the current physical path. Otherwise the observer would report the old path indefinitely after a real default-route/NIC switch.
+
+This phase does **not** claim public external-IP/NAT mapping detection, and it does **not** yet claim that `RouteForeign` direct-prefix kernel routes are rebound transactionally to the new physical route.
 
 ## Shared Linux TUN + one NAT
 
@@ -115,28 +128,7 @@ Internet
         <-> one WBD-owned host NAT/SNAT
 ```
 
-One public server port is not a one-lane-per-tunnel restriction.
-
-Exit gates: distinct Logical Tunnels get distinct leases, identical inner tuples remain isolated, DNS/UDP/TCP pass, source spoofing is rejected, and firewall changes remain WBD-scoped.
-
-## Windows product orchestration
-
-One Wintun belongs to one Logical Tunnel. Product execution now admits logical lanes 1..4 plus a private replacement transport slot that does not become a fifth logical Game lane:
-
-```text
-Logical Tunnel
-  -> 1..4 LaneBootstrap
-      -> independent source port + FakeTCP child
-      -> same-lane Reality-like TLS bootstrap
-      -> DTLS
-      -> LINK
-  -> Game/race
-  -> one Wintun
-```
-
-Normal mode uses one lane; Game/weak-network may use 2..4; replacement may overlap old/candidate transports. DORMANT wake publishes the first READY lane immediately and then refills later Game lanes. There is no preliminary ordinary kernel-TCP Reality WBD connection.
-
-The randomized/staggered 30..60m lane-age scheduler is now implemented in the Windows controller without touching FakeTCP/Reality/DTLS/LINK/FEC wire. The remaining Windows lifecycle gap is convergence of NIC/default-route/public-IP/NAT changes, missed-PONG/no-RX, transport failure, server request and manual reconnect onto the existing generation-fenced replacement path.
+One public server port is not a one-lane-per-tunnel restriction. Distinct Logical Tunnels retain distinct leases; raw ingress remains source-lease checked.
 
 ## Frozen weak-network/release limits
 
@@ -156,7 +148,7 @@ The randomized/staggered 30..60m lane-age scheduler is now implemented in the Wi
 - Npcap packaging/licensing constraints unchanged;
 - startup-latency optimization and Windows child-process slimming deferred.
 
-## V2-M10 exact-head release gate
+## V2-M10 exact-source release gate
 
 One exact substantive `SOURCE_SHA` must prove:
 
@@ -166,14 +158,14 @@ One exact substantive `SOURCE_SHA` must prove:
 4. 1,2,3,4 active lanes accepted and fifth logical lane rejected while bounded replacement respects the 4+1 physical-incarnation ceiling;
 5. normal desired=1, Game/weak desired=2..4;
 6. Game first-arrival/dedup/out-of-order unique/no-cross-lane-HOL;
-7. `A -> A+B -> B`, candidate failure preserving A, `A+B -> A+B+C -> B+C`, and staggered 30..60m age replacement through the same lifecycle;
+7. `A -> A+B -> B`, candidate failure preserving A, one-at-a-time multi-lane replacement, staggered 30..60m age rotation, current-process/LINK-liveness replacement, and local Windows path-change convergence;
 8. distinct leases, source-spoof rejection, shared TUN + one NAT DNS/UDP/TCP;
 9. lifecycle/functionality with FEC `off`, plus fixed `20:20` lane-local compatibility smoke; FEC parameter research is deferred;
 10. Windows native/runtime and Linux raw/full-stack gates;
 11. Windows portable and Linux amd64/arm64 artifacts from that exact `SOURCE_SHA`;
 12. final clean physical Windows 11 + Npcap -> Ubuntu ARM64 DNS/UDP/TCP/lifecycle + deterministic cleanup.
 
-A direct push CI-green result is necessary but not sufficient. The complete release-qualification matrix must finish on the same `SOURCE_SHA`, artifacts must be attributable to that source, and physical evidence must be fresh and exact-source before release-ready may be claimed.
+A direct push CI-green result is necessary but not sufficient. The 16 successful ordinary push workflows at `fef0820d63736e037a790a87ef4de9e35ce39e26` do not by themselves establish V2-M10. The complete release-qualification matrix must intentionally finish on one exact final source, its Windows/Linux artifacts must be attributable to that source, and physical evidence must be fresh and exact-source before release-ready may be claimed.
 
 ## Deferred
 
