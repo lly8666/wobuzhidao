@@ -1,6 +1,9 @@
 name: publish-test-release
 
 on:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
   workflow_dispatch:
     inputs:
       source_sha:
@@ -22,8 +25,9 @@ concurrency:
 
 jobs:
   publish:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-test]') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout publisher definition
         uses: actions/checkout@v4
@@ -34,11 +38,16 @@ jobs:
         id: resolve
         shell: bash
         env:
+          EVENT_NAME: ${{ github.event_name }}
           INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
           INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
-          source_sha="${INPUT_SOURCE_SHA:-${GITHUB_SHA}}"
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            source_sha="$GITHUB_SHA"
+          else
+            source_sha="${INPUT_SOURCE_SHA:-${GITHUB_SHA}}"
+          fi
           source_sha="${source_sha,,}"
           if [[ ! "$source_sha" =~ ^[0-9a-f]{40}$ ]]; then
             echo "source_sha must be one full 40-character Git commit SHA" >&2
@@ -51,7 +60,7 @@ jobs:
           fi
           echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "WBD_TEST_RELEASE_SOURCE_RESOLVED source_sha=$source_sha tag=$tag"
+          echo "WBD_TEST_RELEASE_SOURCE_RESOLVED source_sha=$source_sha tag=$tag event=$EVENT_NAME"
 
       - name: Checkout exact product source
         uses: actions/checkout@v4
@@ -78,7 +87,7 @@ jobs:
         with:
           go-version: '1.23.x'
 
-      - name: Find exact-source successful producer runs
+      - name: Wait for exact-source CI and producer runs
         id: producers
         shell: bash
         env:
@@ -87,12 +96,15 @@ jobs:
         run: |
           set -euo pipefail
           runs="$RUNNER_TEMP/runs.json"
-          gh api --paginate \
-            -H 'Accept: application/vnd.github+json' \
-            "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SOURCE_SHA&status=completed&per_page=100" \
-            | jq -s '{workflow_runs: map(.workflow_runs[]) | unique_by(.id)}' > "$runs"
 
-          select_run() {
+          fetch_runs() {
+            gh api --paginate \
+              -H 'Accept: application/vnd.github+json' \
+              "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SOURCE_SHA&per_page=100" \
+              | jq -s '{workflow_runs: map(.workflow_runs[]) | unique_by(.id)}' > "$runs"
+          }
+
+          select_success() {
             local path="$1"
             jq -r --arg path "$path" --arg sha "$SOURCE_SHA" '
               [.workflow_runs[]
@@ -105,16 +117,47 @@ jobs:
             ' "$runs"
           }
 
-          windows_run="$(select_run '.github/workflows/windows-portable-bundle.yml')"
-          linux_run="$(select_run '.github/workflows/linux-server-release.yml')"
-          [[ -n "$windows_run" ]] || {
-            echo "no successful exact-source Windows portable producer for $SOURCE_SHA" >&2
-            exit 1
+          latest_state() {
+            local path="$1"
+            jq -r --arg path "$path" --arg sha "$SOURCE_SHA" '
+              [.workflow_runs[]
+                | select(.path == $path)
+                | select(.head_sha == $sha)]
+              | sort_by(.run_number)
+              | last
+              | if . == null then "missing" else "\(.status):\(.conclusion // \"\"):\(.id)" end
+            ' "$runs"
           }
-          [[ -n "$linux_run" ]] || {
-            echo "no successful exact-source Linux server producer for $SOURCE_SHA" >&2
-            exit 1
-          }
+
+          ci_run=""
+          windows_run=""
+          linux_run=""
+          for attempt in $(seq 1 60); do
+            fetch_runs
+            ci_run="$(select_success '.github/workflows/ci.yml')"
+            windows_run="$(select_success '.github/workflows/windows-portable-bundle.yml')"
+            linux_run="$(select_success '.github/workflows/linux-server-release.yml')"
+            if [[ -n "$ci_run" && -n "$windows_run" && -n "$linux_run" ]]; then
+              break
+            fi
+
+            ci_state="$(latest_state '.github/workflows/ci.yml')"
+            windows_state="$(latest_state '.github/workflows/windows-portable-bundle.yml')"
+            linux_state="$(latest_state '.github/workflows/linux-server-release.yml')"
+            echo "producer wait attempt=$attempt ci=$ci_state windows=$windows_state linux=$linux_state"
+
+            for state in "$ci_state" "$windows_state" "$linux_state"; do
+              if [[ "$state" == completed:* && "$state" != completed:success:* ]]; then
+                echo "required exact-source run completed non-success: $state" >&2
+                exit 1
+              fi
+            done
+            sleep 10
+          done
+
+          [[ -n "$ci_run" ]] || { echo "no successful exact-source CI run for $SOURCE_SHA" >&2; exit 1; }
+          [[ -n "$windows_run" ]] || { echo "no successful exact-source Windows portable producer for $SOURCE_SHA" >&2; exit 1; }
+          [[ -n "$linux_run" ]] || { echo "no successful exact-source Linux server producer for $SOURCE_SHA" >&2; exit 1; }
 
           verify_run() {
             local run_id="$1"
@@ -128,12 +171,14 @@ jobs:
                   .conclusion == "success"
                 ' >/dev/null
           }
+          verify_run "$ci_run" '.github/workflows/ci.yml'
           verify_run "$windows_run" '.github/workflows/windows-portable-bundle.yml'
           verify_run "$linux_run" '.github/workflows/linux-server-release.yml'
 
+          echo "ci_run=$ci_run" >> "$GITHUB_OUTPUT"
           echo "windows_run=$windows_run" >> "$GITHUB_OUTPUT"
           echo "linux_run=$linux_run" >> "$GITHUB_OUTPUT"
-          echo "WBD_TEST_RELEASE_PRODUCERS_PASS source_sha=$SOURCE_SHA windows_run=$windows_run linux_run=$linux_run"
+          echo "WBD_TEST_RELEASE_PRODUCERS_PASS source_sha=$SOURCE_SHA ci_run=$ci_run windows_run=$windows_run linux_run=$linux_run"
 
       - name: Verify exact artifact receipts
         id: receipts
@@ -141,6 +186,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_SHA: ${{ steps.resolve.outputs.source_sha }}
+          CI_RUN: ${{ steps.producers.outputs.ci_run }}
           WINDOWS_RUN: ${{ steps.producers.outputs.windows_run }}
           LINUX_RUN: ${{ steps.producers.outputs.linux_run }}
         run: |
@@ -179,6 +225,7 @@ jobs:
           mkdir -p release
           jq -n \
             --arg source_sha "$SOURCE_SHA" \
+            --argjson ci_run "$CI_RUN" \
             --argjson windows_run "$WINDOWS_RUN" \
             --argjson linux_run "$LINUX_RUN" \
             --argjson windows_artifact "$win_receipt" \
@@ -187,6 +234,7 @@ jobs:
             '{
               source_sha: $source_sha,
               release_qualified: false,
+              hosted_ci: {run_id: $ci_run, conclusion: "success"},
               producers: {
                 windows_portable: {run_id: $windows_run, artifact: $windows_artifact},
                 linux_server: {
@@ -218,6 +266,7 @@ jobs:
         shell: bash
         env:
           SOURCE_SHA: ${{ steps.resolve.outputs.source_sha }}
+          CI_RUN: ${{ steps.producers.outputs.ci_run }}
           WINDOWS_RUN: ${{ steps.producers.outputs.windows_run }}
           LINUX_RUN: ${{ steps.producers.outputs.linux_run }}
         run: |
@@ -231,10 +280,7 @@ jobs:
 
           mkdir -p release/windows release/test-tools
           cp "${win_files[0]}" release/windows/wbd.exe
-          (
-            cd release/windows
-            zip -q "../wbd-windows-portable-$SOURCE_SHA.zip" wbd.exe
-          )
+          (cd release/windows && zip -q "../wbd-windows-portable-$SOURCE_SHA.zip" wbd.exe)
           cp "${amd_files[0]}" "release/wbd-linux-server-amd64-$SOURCE_SHA.tar.gz"
           cp "${arm_files[0]}" "release/wbd-linux-server-arm64-$SOURCE_SHA.tar.gz"
 
@@ -255,10 +301,7 @@ jobs:
           printf '%s\n' "$SOURCE_SHA" > release/SOURCE_SHA.txt
           cp release/SOURCE_SHA.txt release/test-tools/SOURCE_SHA.txt
           cp release/PRODUCERS.json release/test-tools/PRODUCERS.json
-          (
-            cd release/test-tools
-            zip -q -r "../wbd-test-tools-$SOURCE_SHA.zip" .
-          )
+          (cd release/test-tools && zip -q -r "../wbd-test-tools-$SOURCE_SHA.zip" .)
           cp publisher/docs/testing/PHYSICAL_TEST_PACKAGE.md release/TESTING.md
           cp publisher/docs/testing/wbd.example.json release/wbd.example.json
 
@@ -268,6 +311,7 @@ jobs:
           **NOT RELEASE-QUALIFIED.** This prerelease is an exact-source physical-test package, not a production release.
 
           - Source SHA: \`$SOURCE_SHA\`
+          - Hosted CI run: \`$CI_RUN\`
           - Windows portable producer run: \`$WINDOWS_RUN\`
           - Linux server producer run: \`$LINUX_RUN\`
           - Windows 11 + real Npcap -> Ubuntu ARM64 physical qualification: **pending**
@@ -284,10 +328,7 @@ jobs:
               "wbd-linux-server-amd64-$SOURCE_SHA.tar.gz" \
               "wbd-linux-server-arm64-$SOURCE_SHA.tar.gz" \
               "wbd-test-tools-$SOURCE_SHA.zip" \
-              TESTING.md \
-              wbd.example.json \
-              SOURCE_SHA.txt \
-              PRODUCERS.json > SHA256SUMS.txt
+              TESTING.md wbd.example.json SOURCE_SHA.txt PRODUCERS.json > SHA256SUMS.txt
             sha256sum -c SHA256SUMS.txt
           )
           echo "WBD_TEST_RELEASE_PACKAGE_PASS source_sha=$SOURCE_SHA files=8 release_qualified=0"
@@ -322,11 +363,8 @@ jobs:
               "release/wbd-linux-server-amd64-$SOURCE_SHA.tar.gz" \
               "release/wbd-linux-server-arm64-$SOURCE_SHA.tar.gz" \
               "release/wbd-test-tools-$SOURCE_SHA.zip" \
-              release/TESTING.md \
-              release/wbd.example.json \
-              release/SOURCE_SHA.txt \
-              release/PRODUCERS.json \
-              release/SHA256SUMS.txt
+              release/TESTING.md release/wbd.example.json release/SOURCE_SHA.txt \
+              release/PRODUCERS.json release/SHA256SUMS.txt
           else
             gh release create "$TAG" -R "$GITHUB_REPOSITORY" \
               --target "$SOURCE_SHA" \
@@ -337,10 +375,7 @@ jobs:
               "release/wbd-linux-server-amd64-$SOURCE_SHA.tar.gz" \
               "release/wbd-linux-server-arm64-$SOURCE_SHA.tar.gz" \
               "release/wbd-test-tools-$SOURCE_SHA.zip" \
-              release/TESTING.md \
-              release/wbd.example.json \
-              release/SOURCE_SHA.txt \
-              release/PRODUCERS.json \
-              release/SHA256SUMS.txt
+              release/TESTING.md release/wbd.example.json release/SOURCE_SHA.txt \
+              release/PRODUCERS.json release/SHA256SUMS.txt
           fi
           echo "WBD_TEST_RELEASE_PUBLISHED source_sha=$SOURCE_SHA tag=$TAG prerelease=1 release_qualified=0"
