@@ -118,7 +118,7 @@ jobs:
                   echo "child has non-success job workflow=${workflow} run_id=${run_id} jobs=${bad_jobs}" >&2
                   exit 1
                 fi
-                echo "WBD_RELEASE_CHILD_JOBS_PASS workflow=${workflow} run_id=${run_id} jobs=${total_jobs} skipped=0"
+                echo "WBD_RELEASE_CHILD_JOBS_PASS workflow=${workflow} run_id=${run_id} mandatory_jobs=${total_jobs} mandatory_skipped=0"
                 echo "WBD_RELEASE_CHILD_PASS workflow=${workflow} event=${event} run_id=${run_id} head_sha=${head_sha} conclusion=${conclusion} url=${url}"
                 break
               fi
@@ -207,12 +207,36 @@ jobs:
                   echo "push gate job inventory incomplete workflow=${workflow} run_id=${run_id} total=${total_jobs} seen=${seen_jobs}" >&2
                   exit 1
                 fi
-                bad_jobs="$(jq -r '[.jobs[] | select(.status != "completed" or .conclusion != "success") | "\(.name)=\(.status)/\(.conclusion // "null")"] | join(",")' <<<"$jobs_json")"
-                if [[ -n "$bad_jobs" ]]; then
-                  echo "push gate has non-success job workflow=${workflow} run_id=${run_id} jobs=${bad_jobs}" >&2
-                  exit 1
+
+                if [[ "$workflow" == "ci.yml" ]]; then
+                  expected_jobs='["test","transport_prepare","transport_smoke","transport_bench","transport_aggregate"]'
+                  unexpected_jobs="$(jq -r --argjson expected "$expected_jobs" '[.jobs[] | select((.name as $name | $expected | index($name)) == null) | .name] | join(",")' <<<"$jobs_json")"
+                  if [[ -n "$unexpected_jobs" ]]; then
+                    echo "ci push gate has unclassified jobs run_id=${run_id} jobs=${unexpected_jobs}" >&2
+                    exit 1
+                  fi
+                  test_count="$(jq -r '[.jobs[] | select(.name == "test")] | length' <<<"$jobs_json")"
+                  test_bad="$(jq -r '[.jobs[] | select(.name == "test" and (.status != "completed" or .conclusion != "success")) | "\(.name)=\(.status)/\(.conclusion // "null")"] | join(",")' <<<"$jobs_json")"
+                  if [[ "$test_count" -ne 1 || -n "$test_bad" ]]; then
+                    echo "ci mandatory test job failed run_id=${run_id} count=${test_count} jobs=${test_bad}" >&2
+                    exit 1
+                  fi
+                  optional_count="$(jq -r '[.jobs[] | select(.name == "transport_prepare" or .name == "transport_smoke" or .name == "transport_bench" or .name == "transport_aggregate")] | length' <<<"$jobs_json")"
+                  optional_invalid="$(jq -r '[.jobs[] | select((.name == "transport_prepare" or .name == "transport_smoke" or .name == "transport_bench" or .name == "transport_aggregate") and (.status != "completed" or (.conclusion != "success" and .conclusion != "skipped"))) | "\(.name)=\(.status)/\(.conclusion // "null")"] | join(",")' <<<"$jobs_json")"
+                  optional_skipped="$(jq -r '[.jobs[] | select((.name == "transport_prepare" or .name == "transport_smoke" or .name == "transport_bench" or .name == "transport_aggregate") and .conclusion == "skipped")] | length' <<<"$jobs_json")"
+                  if [[ "$optional_count" -ne 4 || -n "$optional_invalid" ]]; then
+                    echo "ci optional transport job contract mismatch run_id=${run_id} count=${optional_count} jobs=${optional_invalid}" >&2
+                    exit 1
+                  fi
+                  echo "WBD_RELEASE_CHILD_JOBS_PASS workflow=${workflow} run_id=${run_id} mandatory_jobs=1 mandatory_skipped=0 optional_transport_jobs=4 optional_transport_skipped=${optional_skipped}"
+                else
+                  bad_jobs="$(jq -r '[.jobs[] | select(.status != "completed" or .conclusion != "success") | "\(.name)=\(.status)/\(.conclusion // "null")"] | join(",")' <<<"$jobs_json")"
+                  if [[ -n "$bad_jobs" ]]; then
+                    echo "push gate has non-success mandatory job workflow=${workflow} run_id=${run_id} jobs=${bad_jobs}" >&2
+                    exit 1
+                  fi
+                  echo "WBD_RELEASE_CHILD_JOBS_PASS workflow=${workflow} run_id=${run_id} mandatory_jobs=${total_jobs} mandatory_skipped=0"
                 fi
-                echo "WBD_RELEASE_CHILD_JOBS_PASS workflow=${workflow} run_id=${run_id} jobs=${total_jobs} skipped=0"
                 echo "WBD_RELEASE_CHILD_PASS workflow=${workflow} event=${event} run_id=${run_id} head_sha=${head_sha} conclusion=${conclusion} url=${url}"
                 break
               fi
@@ -228,4 +252,4 @@ jobs:
           current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
           printf 'aggregator_sha=%s final_branch_sha=%s\n' "$GITHUB_SHA" "$current"
           test "$current" = "$GITHUB_SHA"
-          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=22 push_gates=9 total_children=31 child_jobs_success_only=1 skipped=0 release_artifacts=3 artifact_source_fence=1 windows_linux=1 logical_tunnel=1 lanes=1..4 game_settings=1 game_race=1 mbb=1 dormant_wake=1 route_rebind=1 manual_reconnect=1 server_close=1 shared_tun_one_nat=1 fec_primary=off fec_20x20=smoke_only fec_research=frozen'
+          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=22 push_gates=9 total_children=31 mandatory_jobs_success_only=1 mandatory_skipped=0 ci_optional_transport_jobs=non_authority release_artifacts=3 artifact_source_fence=1 windows_linux=1 logical_tunnel=1 lanes=1..4 game_settings=1 game_race=1 mbb=1 dormant_wake=1 route_rebind=1 manual_reconnect=1 server_close=1 shared_tun_one_nat=1 fec_primary=off fec_20x20=smoke_only fec_research=frozen'

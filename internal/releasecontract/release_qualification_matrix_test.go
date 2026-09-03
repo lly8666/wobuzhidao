@@ -57,7 +57,9 @@ func TestExactHeadReleaseQualificationMatrixMatchesAuthorityDoc(t *testing.T) {
 		`actions/runs/${run_id}/jobs?per_page=100`,
 		`select(.status != "completed" or .conclusion != "success")`,
 		`WBD_RELEASE_CHILD_JOBS_PASS`,
-		`skipped=0`,
+		`mandatory_skipped=0`,
+		`expected_jobs='["test","transport_prepare","transport_smoke","transport_bench","transport_aggregate"]'`,
+		`optional_transport_jobs=4`,
 		`wbd-windows-portable-${GITHUB_SHA}`,
 		`wbd-linux-server-amd64-${GITHUB_SHA}`,
 		`wbd-linux-server-arm64-${GITHUB_SHA}`,
@@ -67,8 +69,9 @@ func TestExactHeadReleaseQualificationMatrixMatchesAuthorityDoc(t *testing.T) {
 		requireContains(t, workflow, snippet, "release qualification exact-source runtime contract")
 	}
 	for _, snippet := range []string{
-		"workflow-level `success` alone is insufficient",
-		"skipped job is not a pass",
+		"Workflow-level `success` alone is insufficient",
+		"a skipped mandatory job is not a pass",
+		"Those jobs are explicitly non-authority",
 		"three exact-source release artifact receipts",
 	} {
 		requireContains(t, doc, snippet, "release qualification authority doc runtime contract")
