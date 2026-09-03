@@ -28,6 +28,12 @@ func TestControllerRotateActiveLanesSequentiallyKeepsLogicalSet(t *testing.T) {
 	control, requests := gameControlResponder(t, 6)
 	setControllerGameControl(c, control)
 	before := laneGenerations(c)
+	var maxBefore uint64
+	for _, generation := range before {
+		if generation > maxBefore {
+			maxBefore = generation
+		}
+	}
 
 	if err := c.RotateActiveLanes(); err != nil {
 		t.Fatal(err)
@@ -48,8 +54,9 @@ func TestControllerRotateActiveLanesSequentiallyKeepsLogicalSet(t *testing.T) {
 
 	after := laneGenerations(c)
 	for lane := 1; lane <= 3; lane++ {
-		if after[lane] != before[lane]+1 {
-			t.Fatalf("lane %d generation before=%d after=%d", lane, before[lane], after[lane])
+		want := maxBefore + uint64(lane)
+		if after[lane] != want {
+			t.Fatalf("lane %d generation before=%d after=%d want=%d", lane, before[lane], after[lane], want)
 		}
 	}
 	if got := c.executor.DynamicLaneIDs(); !reflect.DeepEqual(got, []int{1, 2, 3}) {
