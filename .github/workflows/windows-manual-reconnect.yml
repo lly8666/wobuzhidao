@@ -15,6 +15,7 @@ on:
       - 'cmd/wbd-windows-gui/main_windows.go'
       - 'cmd/wbd-link-proxy/server_reconnect_test.go'
       - '.github/workflows/windows-manual-reconnect.yml'
+  workflow_dispatch: {}
 
 permissions:
   contents: read

@@ -43,6 +43,9 @@ jobs:
           : >"$manifest"
           workflows=(
             product-lifecycle-e2e.yml
+            game-settings-matrix.yml
+            windows-manual-reconnect.yml
+            windows-route-rebind.yml
             windows-linux-single-flow.yml
             windows-portable-bundle.yml
             windows-tun-build.yml
@@ -155,4 +158,4 @@ jobs:
           current="$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.sha')"
           printf 'aggregator_sha=%s final_branch_sha=%s\n' "$GITHUB_SHA" "$current"
           test "$current" = "$GITHUB_SHA"
-          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=19 push_gates=9 total_children=28 windows_linux=1 logical_tunnel=1 lanes=1..4 game_race=1 mbb=1 dormant_wake=1 shared_tun_one_nat=1 fec_primary=off fec_20x20=smoke_only fec_research=frozen'
+          echo 'WBD_RELEASE_QUALIFICATION_PASS exact_head=1 dispatched=22 push_gates=9 total_children=31 windows_linux=1 logical_tunnel=1 lanes=1..4 game_settings=1 game_race=1 mbb=1 dormant_wake=1 route_rebind=1 manual_reconnect=1 server_close=1 shared_tun_one_nat=1 fec_primary=off fec_20x20=smoke_only fec_research=frozen'
