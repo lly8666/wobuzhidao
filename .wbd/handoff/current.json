@@ -1,89 +1,81 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 97,
+  "continuity_sequence": 98,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "c42536fb30f4c2fddc17a0169513bc1ed16cf6ce",
+  "checkpoint_based_on_head_sha": "0e0bf6865b719ebd17d9d2d4dd0e5463373729a3",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease + shared PacketID race namespace + 1..4 independent replaceable Transport Lanes. Each lane owns one complete same-association FakeTCP -> Reality-like TLS -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/no-HOL public lineage.",
-    "current_milestone": "V2-M9D/V2-M9E bounded lifecycle product path is implemented for payload-idle DORMANT/wake, randomized 30..60m age rotation, current child/LINK liveness, local Windows underlay/default-route change, WBD-owned kernel-route rebind, local manual reconnect and automatic server idle-CLOSE reconnect. Exact live-tree audit confirms there is no operator/admin server rotate-now actuator and no existing authoritative client-visible public external-IP/NAT mapping reflection. Those are explicit unresolved capabilities, not completion claims. The next work is V2-M10 exact-source release qualification audit.",
-    "local_optimization_stop_rule": "Do not redesign mature FakeTCP recovery, Reality-like bootstrap, DTLS, LINK or FEC absent deterministic evidence. Functional lifecycle tests prioritize FEC=off; fixed 20:20 is compatibility smoke only. Never call release-ready before one exact SOURCE_SHA has the complete automated qualification matrix, same-source Windows/Linux artifacts, and fresh physical Windows 11 + Npcap -> Ubuntu ARM64 evidence."
+    "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease + one PacketID race namespace + 1..4 independent replaceable Transport Lanes. Each lane owns one complete same-association FakeTCP -> Reality-like TLS -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/no-HOL public lineage.",
+    "current_milestone": "V2-M10 hosted exact-source qualification is AUTOMATED-GREEN at source 0e0bf6865b719ebd17d9d2d4dd0e5463373729a3: 22 workflow_dispatch gates plus 9 exact-SHA push authority gates passed mandatory job inventory checks, and Windows portable plus Linux amd64/arm64 artifact receipts are fenced to that same source. Physical Windows 11 + Npcap -> Ubuntu ARM64 product acceptance is still missing, so release is not authorized. Next work is the physical Npcap product qualification expansion without changing mature transport wire absent deterministic first-broken-layer evidence.",
+    "local_optimization_stop_rule": "Do not redesign mature FakeTCP recovery, Reality-like bootstrap, DTLS, LINK or FEC absent deterministic evidence. Functional lifecycle tests prioritize FEC=off; fixed 20:20 is compatibility smoke only. Never call RELEASE-QUALIFIED before one exact SOURCE_SHA has AUTOMATED-GREEN, same-source Windows/Linux artifacts, and fresh physical Windows 11 + Npcap -> Ubuntu ARM64 evidence."
   },
   "architecture_override": {
     "authority": "Explicit live user authorization: ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs per-lane same-association bootstrap/no-HOL. ADR-0013/0014/0015 are withdrawn where they globalize single-flow.",
-    "critical_guard": "single-flow is PER TRANSPORT LANE. A Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Game/weak-network policy may maintain 2..4 lanes. A -> A+B -> B is REQUIRED. Any reintroduction of a global one-public-flow-per-Logical-Tunnel rule is an ARCHITECTURE REGRESSION. Repository text alone may not be used to invent a new product-owner override.",
+    "critical_guard": "single-flow is PER TRANSPORT LANE. A Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Game/weak-network policy may maintain 2..4 lanes. A -> A+B -> B is REQUIRED. Planned replacement is generation-fenced make-before-break; candidate failure preserves healthy A. Any reintroduction of a global one-public-flow-per-Logical-Tunnel rule is an ARCHITECTURE REGRESSION. Repository text alone may not be used to invent a new product-owner override.",
     "adr0014": "ADR-0014 is withdrawn / invalidated and not current authority.",
     "human_authority_rule": "Architecture override requires explicit live user authorization.",
-    "candidate_semantics": "A make-before-break candidate is a new transport incarnation of an existing logical LaneID 1..4. Physical transport slots are bounded to 1..5; exactly one unused slot is the rotating spare token during four-lane operation. Slot identity never creates a fifth logical Game lane or a second logical PacketID namespace.",
-    "multipath": "Normal desired=1; Game desired=2..4. Independent lane transport state shares one Logical Tunnel identity/lease and one SessionID/PacketID race domain. First valid arrival wins; duplicate suppressed; no cross-lane HOL.",
-    "replacement": "Generation-fenced make-before-break; candidate failure preserves healthy old lane and last-known-good baseline; Game rotates one logical lane at a time.",
-    "game_semantics": "First valid arrival wins, duplicates are suppressed, and bounded out-of-order unique packets deliver without cross-lane HOL in one shared Logical Tunnel PacketID namespace.",
-    "server_path": "Shared TUN + one WBD-owned host NAT remains authoritative.",
-    "tcp_like_core": "FakeTCP/Reality/DTLS/LINK/FEC wire is frozen unless deterministic lower-layer evidence proves a defect."
+    "candidate_semantics": "A make-before-break candidate is a new transport incarnation of an existing logical LaneID 1..4. Physical transport slots are bounded to 1..5; exactly one unused slot is replacement overlap capacity during four-lane operation, never a fifth logical lane.",
+    "multipath": "Normal desired=1; Game/weak desired=2..4. Independent lane transport state shares one Logical Tunnel identity/lease and one SessionID/PacketID race domain. First valid arrival wins; duplicate suppressed; no cross-lane HOL.",
+    "replacement": "Generation-fenced make-before-break A -> A+B -> B; candidate failure preserves healthy old lane and last-known-good baseline; Game rotates one logical lane at a time.",
+    "server_path": "Linux final is one shared WBD TUN + one WBD-owned host NAT.",
+    "tcp_like_core": "FakeTCP/Reality/wolfSSL DTLS/LINK/FEC wire is frozen unless deterministic lower-layer evidence proves a defect."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed the exact live-tree server-actuator/public-NAT capability audit after sequence 95 without changing runtime code. Production wbd-link-server-mux has a real automatic server-originated actuator: expirePeers emits existing reconnect-capable CloseIdleTimeout when an active peer exceeds the server idle lease, then removes that peer. No operator/admin rotate-now input, management endpoint, rotate flag, or CloseTransportTransient emission site was found in the production mux. Separately, wbd-faketcp-mux owns the real outer public FakeTCP ServerFlow and uses ClientIP/ClientPort as the Reality-like BootstrapStream RemoteAddr, but BootstrapServerRecognizedSingleFlowV2/BootstrapServerSimpleV2 do not persist or return that tuple; TicketBinding/authenticated bootstrap reply contain account/installation/tunnel config only; activateDTLS starts the DTLS worker without ServerFlow metadata. wbd-link-server-mux therefore sees its local plaintext DTLS-worker UDP peer, not an authenticated public FakeTCP/NAT reflection. No existing authoritative client-side direct public external-IP/NAT mapping observer exists. No wire change was introduced, and indirect age/liveness convergence is not relabeled as direct NAT detection.",
-    "current_task": "Audit and repair the exact-source release-qualification orchestration against ROADMAP V2-M10 items 1..12. Preserve one immutable candidate SHA across every required hosted gate and Windows/Linux release artifact; explicitly include any focused setting/lifecycle/route-rebind gates required by the current roadmap. Do not run or claim physical Windows 11 + Npcap -> Ubuntu ARM64 evidence unless real external evidence exists.",
-    "why_now": "Sequence 96 characterized the remaining server-admin/public-NAT gaps, but its metadata child exposed a handoff persistence-test regression: critical_guard had been shortened below the repository contract even though verify_handoff.py itself passed. Sequence 97 restores the exact architecture guard before any release-orchestration change. The release audit has also identified deterministic matrix gaps that must be repaired next rather than hidden behind ordinary push success.",
-    "done_when": "The handoff verifier and persistence tests are green at sequence 97; then the release kick/workflow graph is repaired so every V2-M10 hosted requirement and Windows/Linux release artifact is tied to one exact candidate SHA. Physical Windows 11 + Npcap -> Ubuntu ARM64 DNS/UDP/TCP/lifecycle/cleanup remains a separate mandatory real-world gate and release_authorized stays false until it exists.",
-    "next_atomic_action": "After sequence 97 handoff-verify is green, update release-qualification-kick.yml and QUALIFICATION_KICK.md to add the focused game-settings and Windows route-rebind gates; make windows-manual-reconnect workflow_dispatch-capable and include it explicitly; keep the branch frozen on that qualification candidate until its exact-SHA release kick completes."
+    "last_completed_action": "Completed V2-M10 exact-source hosted qualification repair and execution on immutable SOURCE_SHA 0e0bf6865b719ebd17d9d2d4dd0e5463373729a3. Release aggregator run 33722473017 passed: 22 dispatched gates and 9 exact-SHA push authority gates all satisfied mandatory job contracts with mandatory_skipped=0; ci.yml's four title-gated transport research jobs were explicitly classified non-authority; Windows portable artifact run 33722502475 and Linux amd64/arm64 artifact run 33722517950 all produced unexpired receipts whose producer run/head SHA and artifact names fence to the same SOURCE_SHA. Final aggregator branch fence also matched 0e0bf686. No transport/runtime wire changed in this phase.",
+    "current_task": "Upgrade windows-npcap-physical from limited real-machine smoke to product-level physical qualification using the same explicit source/artifact fencing. Start by auditing the current workflow and scripts at live HEAD, then add deterministic receipt/evidence for real Npcap raw SYN/SYNACK capture/filtering, same-association Reality-like TLS -> DTLS 1.3 -> LINK, shared-TUN/Wintun DNS/UDP/TCP bidirectional application traffic, sustained traffic, response return, cleanup, IPv6 fail-closed, ADR-0012 lane lifecycle, and host/network transitions where hardware/environment allows.",
+    "why_now": "Hosted release authority is now complete for 0e0bf686 and artifact/source fencing is proven. The remaining release blocker is physical Windows 11 + Npcap/NIC/NAT/ISP -> Ubuntu ARM64 acceptance. Existing hosted Npcap capture-boundary simulation is already strong; duplicating parser corpus would not close the real product risk.",
+    "done_when": "Physical qualification emits one same-SOURCE_SHA receipt demonstrating the required real Windows Npcap -> Ubuntu ARM64 product path and lifecycle/cleanup/IPv6 gates, while unsupported hardware-dependent transitions are explicitly reported rather than silently passed. RELEASE-QUALIFIED remains forbidden until that physical receipt is green for the same source lineage required by release authority.",
+    "next_atomic_action": "Live-read .github/workflows/windows-npcap-physical.yml and every script it invokes, reconcile what the physical runner already proves versus the required product checklist, then implement the smallest deterministic physical-harness expansion that adds real end-to-end application-path evidence without modifying FakeTCP/Reality/DTLS/LINK/FEC wire."
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
+    "PROJECT_CONSTITUTION.md",
+    "ARCHITECTURE.md",
     "ROADMAP.md",
+    "docs/architecture/ADR-0011-single-public-flow-reality-faketcp-dtls.md",
+    "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
     ".github/workflows/release-qualification-kick.yml",
     "docs/development/QUALIFICATION_KICK.md",
-    ".github/workflows/game-settings-matrix.yml",
-    ".github/workflows/windows-route-rebind.yml",
-    ".github/workflows/windows-manual-reconnect.yml",
-    ".github/workflows/windows-portable-bundle.yml",
-    ".github/workflows/linux-server-release.yml",
     ".github/workflows/windows-npcap-physical.yml"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "c42536fb30f4c2fddc17a0169513bc1ed16cf6ce",
+    "tested_commit": "0e0bf6865b719ebd17d9d2d4dd0e5463373729a3",
     "result": "not_run",
-    "scope": "No local Go-test or repository grep result is claimed. Connected GitHub exact-ref reads and hosted GitHub Actions are the verification authority for this session."
+    "scope": "No local sandbox repository execution is claimed. Connected GitHub exact-source Actions are the execution authority for sequence 98; handoff JSON was syntax/contract preflighted before metadata commit."
   },
   "automated_exact_head_snapshot": {
-    "source_head": "c42536fb30f4c2fddc17a0169513bc1ed16cf6ce",
+    "source_head": "0e0bf6865b719ebd17d9d2d4dd0e5463373729a3",
     "result": "success",
-    "focused_scope": "All 26 ordinary push workflows observed on PR branch feat/single-flow-reality-faketcp at exact substantive SHA c42536fb30f4c2fddc17a0169513bc1ed16cf6ce completed successfully; queued=0, in_progress=0, failure=0. The substantive source includes focused manual lifecycle, existing server CLOSE reconnect semantics, Windows GUI compile/runtime, cross-platform wire, Linux raw/full-stack and FEC-off/fixed-20:20 compatibility gates. Sequence 97 is metadata-only and does not replace this substantive source authority.",
+    "focused_scope": "release-qualification-kick run 33722473017 completed success. All 22 workflow_dispatch gates passed complete mandatory job inventory checks; all 9 exact-SHA push authority gates passed mandatory job checks; ci.yml mandatory test passed while its four explicitly non-authority transport jobs were accounted as skipped; Windows portable and Linux amd64/arm64 exact-source artifact receipts passed producer-run/head-SHA/name fencing; final branch fence remained on the candidate SHA.",
     "release_authorized": false
   },
   "validated_findings": {
-    "bounded_replacement": "IMPLEMENTED: same logical LaneID old+candidate physical incarnations overlap in a bounded Game race; candidate failure preserves the old incarnation; logical product cardinality remains 1..4.",
-    "rotating_spare_slot": "IMPLEMENTED: four authoritative logical lanes use four unique physical slots from the bounded 1..5 pool; the unused slot rotates after promotion and remains overlap capacity only, never a fifth logical lane.",
-    "payload_idle": "IMPLEMENTED: omitted idle_timeout defaults to 15m, explicit zero disables payload-idle sleep only, and PING/PONG/control do not refresh payload idle.",
-    "automatic_dormant_wake": "IMPLEMENTED: payload idle enters DORMANT and later real payload wakes; physical path/route convergence occurs before first-READY publication and optional refill.",
-    "lane_age_rotation": "IMPLEMENTED: independent randomized 30..60m per-incarnation deadlines, >=1m deconfliction, one-at-a-time generation-fenced replacement and bounded retry.",
-    "transport_liveness": "IMPLEMENTED: current authoritative FakeTCP/DTLS/LINK child exit and local LINK no-RX/missed-PONG converge through replacement; stale retired-incarnation exits are ignored.",
-    "windows_underlay_path": "IMPLEMENTED: SourceIP, Npcap device, source MAC and next-hop MAC/default-route changes are observed against the physical route after excluding WBD-owned pinned escape state, then current lanes migrate one at a time through expected-generation make-before-break.",
-    "windows_route_rebind": "IMPLEMENTED: after physical path convergence, WBD-owned server escape and RouteForeign direct routes rebind transactionally to the re-observed physical InterfaceIndex/NextHop without tearing down shared Wintun/Logical Tunnel; Wake performs rebind before first READY.",
-    "manual_reconnect": "IMPLEMENTED at c42536fb30f4c2fddc17a0169513bc1ed16cf6ce: Windows GUI Reconnect transport sequentially rotates authoritative active LaneRefs through the existing generation-fenced replacement lifecycle; stale refs are skipped and candidate failure preserves A while shared Wintun/routes remain online.",
-    "server_close_reconnect": "VERIFIED: CloseIdleTimeout and CloseTransportTransient are reconnect-capable control reasons; client receipt terminates LINK and authoritative child-exit replacement handles convergence. Production wbd-link-server-mux actively emits CloseIdleTimeout on server-side idle lease expiry.",
-    "server_operator_actuator_audit": "NOT IMPLEMENTED: production wbd-link-server-mux has no operator/admin rotate-now management surface and no CloseTransportTransient emission site. Existing automatic idle CLOSE is not an operator actuator. A future trusted local/admin actuator can reuse the existing reconnect-capable CloseTransportTransient reason without inventing a new LINK Type.",
-    "public_nat_observability_audit": "NOT IMPLEMENTED: the lower FakeTCP mux knows the real outer public ServerFlow, but that tuple stops at the FakeTCP/Reality boundary. It is not stored in TicketBinding, not returned by authenticated single-flow bootstrap, not supplied to the DTLS worker, and not reflected through LINK to the Windows client. Local SourceIP/default-route observation and indirect liveness convergence are not direct public external-IP/NAT mapping detection.",
-    "release_qualification_audit": "IN PROGRESS: exact-tree audit confirms same-source Windows portable and Linux amd64/arm64 artifact naming plus physical source/run fencing already exist. Current release kick omits focused game-settings, Windows route-rebind, and dedicated manual/server-CLOSE gates; these must be repaired before an intentional V2-M10 candidate run.",
-    "release_state": "NOT RELEASE READY. Ordinary exact-source push success is insufficient; complete intentional exact-source release qualification, same-source artifacts and physical evidence remain required."
+    "bounded_replacement": "IMPLEMENTED: same logical LaneID old+candidate physical incarnations overlap in bounded Game race; candidate failure preserves old incarnation; logical product cardinality remains 1..4.",
+    "rotating_spare_slot": "IMPLEMENTED: four logical lanes use four unique physical slots from bounded 1..5 pool; one spare is replacement overlap only, never a fifth logical lane.",
+    "payload_idle_and_wake": "IMPLEMENTED: omitted idle_timeout defaults 15m, explicit zero disables idle sleep, real payload drives activity, DORMANT wakes on first payload and first READY lane resumes forwarding.",
+    "lane_age_and_liveness": "IMPLEMENTED: randomized 30..60m age rotation plus FakeTCP/DTLS/LINK child and LINK missed-PONG/no-RX replacement.",
+    "windows_path_convergence": "IMPLEMENTED: SourceIP/Npcap-device/MAC/default-route change observation, WBD-owned route rebind, manual reconnect and reconnect-capable server idle-CLOSE convergence.",
+    "public_nat_observability_audit": "NOT IMPLEMENTED: there is no authoritative client-visible direct public external-IP/NAT mapping reflection. Local SourceIP/default-route tests must not be relabeled as direct NAT mapping detection; any future public mapping observability is a separate design task and must not be smuggled into physical qualification by changing wire.",
+    "release_qualification_audit": "AUTOMATED-GREEN at 0e0bf6865b719ebd17d9d2d4dd0e5463373729a3: release graph enforces mandatory job execution, distinguishes only the four known ci.yml non-authority title-gated transport jobs, requires Windows portable + Linux amd64/arm64 artifact receipts, and fences all authority to the same exact SOURCE_SHA.",
+    "release_state": "NOT RELEASE-QUALIFIED. Hosted automated authority and same-source artifacts are green for 0e0bf686, but fresh physical Windows 11 + Npcap -> Ubuntu ARM64 product evidence is still mandatory."
   },
   "qualification_snapshot": {
-    "authority": "manual_reconnect_exact_source_green_release_matrix_audit_in_progress",
-    "source_head": "c42536fb30f4c2fddc17a0169513bc1ed16cf6ce",
-    "result": "ordinary_push_matrix_success_release_qualification_graph_has_known_gaps",
-    "known_incomplete": "All 26 ordinary PR-branch push workflows for c425 are green, but the release kick currently omits focused game-settings, Windows route-rebind and dedicated manual/server-CLOSE qualification. Same-source Windows/Linux release artifact attribution mechanisms exist; the intentional hosted matrix must be repaired and run on one exact final candidate. Fresh physical Windows 11 + Npcap -> Ubuntu ARM64 acceptance remains mandatory.",
+    "authority": "automated_green_same_source_artifacts_physical_pending",
+    "source_head": "0e0bf6865b719ebd17d9d2d4dd0e5463373729a3",
+    "result": "AUTOMATED-GREEN + Windows/Linux artifacts; PHYSICAL pending",
+    "known_incomplete": "Fresh physical Windows 11 + Npcap -> Ubuntu ARM64 acceptance must prove real raw SYN/SYNACK/capture filtering, same-association bootstrap/DTLS/LINK, Wintun/shared-TUN DNS+generic UDP+TCP bidirectional application traffic, sustained traffic/return path, deterministic cleanup, connected/DORMANT/replacement IPv6 fail-closed, ADR-0012 lane lifecycle and supported host/network transitions. Direct public NAT mapping observability is not currently available and is not to be faked by local path-change tests.",
     "release_authorized": false
   },
   "operational_continuity": {
-    "previous_sequence": 96,
-    "substantive_commit": "c42536fb30f4c2fddc17a0169513bc1ed16cf6ce",
-    "metadata_note": "Sequence 97 is a metadata-only repair of the architecture persistence guard lost in sequence 96. It restores the verifier-required Game/weak 2..4, required A -> A+B -> B, architecture-regression and live-human-authority phrases. checkpoint_based_on_head_sha intentionally remains c42536fb30f4c2fddc17a0169513bc1ed16cf6ce; no runtime or release qualification success is claimed.",
+    "previous_sequence": 97,
+    "substantive_commit": "0e0bf6865b719ebd17d9d2d4dd0e5463373729a3",
+    "metadata_note": "Sequence 98 records completion of the V2-M10 hosted exact-source audit. The qualified source remains immutable 0e0bf686 even though this handoff update will create a later metadata-only branch HEAD. Do not stitch physical evidence onto a different source without intentionally re-running the required source/artifact fencing.",
     "rule": "One atomic lifecycle/evidence repair at a time; live-refresh before execution; verify substantive changes with focused tests and exact-source Actions; update handoff after every completed phase; never stitch release evidence across different source SHAs."
   }
 }
