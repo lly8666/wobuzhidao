@@ -10,6 +10,7 @@ on:
       - 'cmd/wbd-reality-front/**'
       - 'cmd/wbd-faketcp/**'
       - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-game-lane-client/**'
       - 'cmd/wbd-tun/**'
       - 'internal/windowsbundle/**'
       - 'internal/windowsdiag/**'
@@ -35,6 +36,7 @@ on:
       - 'cmd/wbd-reality-front/**'
       - 'cmd/wbd-faketcp/**'
       - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-game-lane-client/**'
       - 'cmd/wbd-tun/**'
       - 'internal/windowsbundle/**'
       - 'internal/windowsdiag/**'
@@ -76,6 +78,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "wbd-faketcp build failed: $LASTEXITCODE" }
           go build -trimpath -ldflags "-s -w" -o build\windows-runtime\wbd-link-proxy.exe .\cmd\wbd-link-proxy
           if ($LASTEXITCODE -ne 0) { throw "wbd-link-proxy build failed: $LASTEXITCODE" }
+          go build -trimpath -ldflags "-s -w" -o build\windows-runtime\wbd-game-lane-client.exe .\cmd\wbd-game-lane-client
+          if ($LASTEXITCODE -ne 0) { throw "wbd-game-lane-client build failed: $LASTEXITCODE" }
           go build -trimpath -ldflags "-s -w" -o build\windows-runtime\wbd-tun.exe .\cmd\wbd-tun
           if ($LASTEXITCODE -ne 0) { throw "wbd-tun build failed: $LASTEXITCODE" }
           go build -trimpath -ldflags "-s -w -H=windowsgui" -o build\windows-runtime\wbd-windows-gui.exe .\cmd\wbd-windows-gui
@@ -151,7 +155,7 @@ jobs:
           Copy-Item scripts\windows_faketcp_underlay.ps1 "$payload\windows_faketcp_underlay.ps1"
           Copy-Item scripts\windows_npcap_prepare.ps1 "$payload\windows_npcap_prepare.ps1"
           $required = @(
-            'wbd-reality-front.exe','wbd-faketcp.exe','wbd_dtls_shim.exe','wbd-link-proxy.exe','wbd-tun.exe','wbd-windows-gui.exe',
+            'wbd-reality-front.exe','wbd-faketcp.exe','wbd_dtls_shim.exe','wbd-link-proxy.exe','wbd-game-lane-client.exe','wbd-tun.exe','wbd-windows-gui.exe',
             'wintun.dll','WINTUN-LICENSE.txt','windows_tun_route.ps1','windows_ipv6_killswitch.ps1','windows_faketcp_underlay.ps1','windows_npcap_prepare.ps1'
           )
           foreach ($name in $required) {
@@ -206,7 +210,7 @@ jobs:
             if err != nil { panic(err) }
             if !info.Bundled || info.PayloadSHA == "" { panic("embedded runtime metadata is incomplete") }
             required := []string{
-              "wbd-reality-front.exe", "wbd-faketcp.exe", "wbd_dtls_shim.exe", "wbd-link-proxy.exe", "wbd-tun.exe", "wbd-windows-gui.exe",
+              "wbd-reality-front.exe", "wbd-faketcp.exe", "wbd_dtls_shim.exe", "wbd-link-proxy.exe", "wbd-game-lane-client.exe", "wbd-tun.exe", "wbd-windows-gui.exe",
               "wintun.dll", "WINTUN-LICENSE.txt", "windows_tun_route.ps1", "windows_ipv6_killswitch.ps1", "windows_faketcp_underlay.ps1", "windows_npcap_prepare.ps1",
             }
             for _, name := range required {
