@@ -12,7 +12,7 @@ func TestWindowsPortableGameLaneRuntimeContract(t *testing.T) {
 		t.Fatalf("Windows portable workflow must trigger for Game lane client changes on PR and push; count=%d", got)
 	}
 	for _, want := range []string{
-		`go build -trimpath -ldflags "-s -w" -o build\\windows-runtime\\wbd-game-lane-client.exe .\\cmd\\wbd-game-lane-client`,
+		`go build -trimpath -ldflags "-s -w" -o build\windows-runtime\wbd-game-lane-client.exe .\cmd\wbd-game-lane-client`,
 		`wbd-game-lane-client build failed`,
 	} {
 		requireContains(t, workflow, want, "Windows portable Game lane child build")
