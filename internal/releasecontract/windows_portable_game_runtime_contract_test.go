@@ -17,8 +17,8 @@ func TestWindowsPortableGameLaneRuntimeContract(t *testing.T) {
 	} {
 		requireContains(t, workflow, want, "Windows portable Game lane child build")
 	}
-	if got := strings.Count(workflow, "wbd-game-lane-client.exe"); got < 4 {
-		t.Fatalf("Windows portable workflow must build, manifest-gate and extraction-gate Game lane client; occurrences=%d", got)
+	if got := strings.Count(workflow, "wbd-game-lane-client.exe"); got != 3 {
+		t.Fatalf("Windows portable workflow must mention Game lane client exactly for build, manifest gate and extraction gate; occurrences=%d want=3", got)
 	}
 }
 
