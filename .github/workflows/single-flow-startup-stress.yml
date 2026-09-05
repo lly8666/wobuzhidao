@@ -44,7 +44,7 @@ permissions:
 jobs:
   repeated_full_stack:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -59,7 +59,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          rm -rf /tmp/sfstress /tmp/wolf-stress /tmp/wolf-stress-art /tmp/wolfssl-stress-source.zip
+          rm -rf /tmp/sfstress /tmp/sfstress-high-rtt /tmp/wolf-stress /tmp/wolf-stress-art /tmp/wolfssl-stress-source.zip
           mkdir -p /tmp/sfstress/tickets /tmp/wolf-stress/src /tmp/wolf-stress/build /tmp/wolf-stress-art
           curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-stress-source.zip
@@ -84,6 +84,27 @@ jobs:
             -keyout /tmp/sfstress/dtls.key -out /tmp/sfstress/dtls.pem >/dev/null 2>&1
       - name: Twenty rapid full-stack reconnects survive NAT and dirty client exits
         run: bash .github/scripts/single-flow-startup-stress.sh
+      - name: One full-stack startup survives 300 ms one-way latency
+        env:
+          SFSTRESS_ROOT: /tmp/sfstress-high-rtt
+          SFSTRESS_TICKET_DIR: /tmp/sfstress-high-rtt/tickets
+          SFSTRESS_ROUNDS: '1'
+          SFSTRESS_ONE_WAY_DELAY: 300ms
+          SFSTRESS_BOOTSTRAP_TIMEOUT: 20s
+          SFSTRESS_REALITY_TIMEOUT: 20s
+          SFSTRESS_LINK_MTU: '1360'
+          SFSTRESS_LINK_KEEPALIVE: 5s
+          SFSTRESS_LINK_IDLE_TIMEOUT: 15s
+          SFSTRESS_FAKE_READY_POLLS: '1000'
+          SFSTRESS_REAP_POLLS: '2000'
+        run: |
+          set -euo pipefail
+          mkdir -p "$SFSTRESS_ROOT" "$SFSTRESS_TICKET_DIR"
+          cp /tmp/sfstress/wbd_dtls_shim /tmp/sfstress/wbd-faketcp /tmp/sfstress/wbd-faketcp-mux \
+             /tmp/sfstress/wbd-link-proxy /tmp/sfstress/wbd-link-server-mux /tmp/sfstress/wbd-platform-proxy-server \
+             /tmp/sfstress/front.pem /tmp/sfstress/front.key /tmp/sfstress/dtls.pem /tmp/sfstress/dtls.key \
+             "$SFSTRESS_ROOT/"
+          bash .github/scripts/single-flow-startup-stress.sh
       - name: Upload stress diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -99,5 +120,14 @@ jobs:
             /tmp/sfstress/link.log
             /tmp/sfstress/probe.log
             /tmp/sfstress/expected-tunnel.txt
+            /tmp/sfstress-high-rtt/mux.log
+            /tmp/sfstress-high-rtt/link-server.log
+            /tmp/sfstress-high-rtt/platform-server.log
+            /tmp/sfstress-high-rtt/echo.log
+            /tmp/sfstress-high-rtt/fake.log
+            /tmp/sfstress-high-rtt/dtls.log
+            /tmp/sfstress-high-rtt/link.log
+            /tmp/sfstress-high-rtt/probe.log
+            /tmp/sfstress-high-rtt/expected-tunnel.txt
           if-no-files-found: ignore
           retention-days: 7

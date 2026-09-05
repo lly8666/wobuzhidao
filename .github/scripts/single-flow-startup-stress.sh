@@ -13,6 +13,12 @@ INSTALLATION_ID='11223344556677889900aabbccddeeff'
 ROUNDS=${SFSTRESS_ROUNDS:-20}
 LINK_KEEPALIVE=${SFSTRESS_LINK_KEEPALIVE:-100ms}
 LINK_IDLE_TIMEOUT=${SFSTRESS_LINK_IDLE_TIMEOUT:-500ms}
+BOOTSTRAP_TIMEOUT=${SFSTRESS_BOOTSTRAP_TIMEOUT:-20s}
+REALITY_TIMEOUT=${SFSTRESS_REALITY_TIMEOUT:-20s}
+LINK_MTU=${SFSTRESS_LINK_MTU:-1360}
+ONE_WAY_DELAY=${SFSTRESS_ONE_WAY_DELAY:-}
+FAKE_READY_POLLS=${SFSTRESS_FAKE_READY_POLLS:-1000}
+REAP_POLLS=${SFSTRESS_REAP_POLLS:-200}
 
 cleanup() {
   set +e
@@ -55,6 +61,18 @@ sudo ip netns exec "$R" iptables -t nat -A POSTROUTING -s 10.92.0.0/24 -o rs -j 
 sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
 sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
 
+# Optional qualification impairment. Traffic C->S leaves the router through
+# rs; traffic S->C leaves through rc. Applying the same delay to both router
+# egress devices therefore creates approximately ONE_WAY_DELAY in each
+# direction, not twice that value per direction.
+if [ -n "$ONE_WAY_DELAY" ]; then
+  sudo ip netns exec "$R" tc qdisc replace dev rc root netem delay "$ONE_WAY_DELAY"
+  sudo ip netns exec "$R" tc qdisc replace dev rs root netem delay "$ONE_WAY_DELAY"
+  sudo ip netns exec "$R" tc qdisc show dev rc | grep -q 'netem'
+  sudo ip netns exec "$R" tc qdisc show dev rs | grep -q 'netem'
+  echo "SFSTRESS_NETEM_READY one_way_delay=${ONE_WAY_DELAY} router_egress=rc,rs"
+fi
+
 cat >"$ROOT/echo.py" <<'PY'
 import socket
 s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
@@ -91,7 +109,7 @@ sudo ip netns exec "$S" "$ROOT/wbd-faketcp-mux" server \
   --server-name wbd.test --route-key "$ROUTE_KEY" \
   --username "$USERNAME" --password "$PASSWORD" \
   --ticket-dir "$ROOT/tickets" --fallback-target 127.0.0.1:44444 \
-  --bootstrap-timeout 12s --max-sessions 64 \
+  --bootstrap-timeout "$BOOTSTRAP_TIMEOUT" --max-sessions 64 \
   >"$ROOT/mux.log" 2>&1 & MUX_PID=$!
 SERVER_PIDS="$SERVER_PIDS $MUX_PID"
 for _ in $(seq 1 200); do grep -q 'READY role=server-mux.*single_flow_bootstrap=true' "$ROOT/mux.log" && break; sleep .05; done
@@ -212,7 +230,7 @@ kill_client_stack_dirty() {
 
 wait_server_transport_reap() {
   local round="$1" retired
-  for _ in $(seq 1 200); do
+  for _ in $(seq 1 "$REAP_POLLS"); do
     retired="$(grep -c 'WBD_LINK_SESSION_COUNTERS tunnel_id_prefix=' "$ROOT/link-server.log" || true)"
     if [ "$retired" -ge "$round" ]; then
       return 0
@@ -238,9 +256,9 @@ for round in $(seq 1 "$ROUNDS"); do
     --shadow-recovery legacy --reality-server-name wbd.test --reality-route-key '$ROUTE_KEY' \
     --reality-username '$USERNAME' --reality-password '$PASSWORD' \
     --reality-ticket-out '$ROOT/client.ticket' --reality-installation-id '$INSTALLATION_ID' \
-    --reality-tunnel-config-out '$ROOT/client-tunnel.json' --reality-verify-server=false --reality-timeout 12s" \
+    --reality-tunnel-config-out '$ROOT/client-tunnel.json' --reality-verify-server=false --reality-timeout '$REALITY_TIMEOUT'" \
     >"$ROOT/fake.log" 2>&1 &
-  for _ in $(seq 1 500); do
+  for _ in $(seq 1 "$FAKE_READY_POLLS"); do
     if grep -q 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1.*logical_tunnel=1' "$ROOT/fake.log" && \
        grep -q 'READY role=client.*single_flow_bootstrap=true' "$ROOT/fake.log"; then break; fi
     sleep .05
@@ -262,7 +280,7 @@ for round in $(seq 1 "$ROUNDS"); do
   assert_pid_file "$ROOT/dtls.pid"
 
   sudo ip netns exec "$C" sh -c "echo \$\$ >'$ROOT/link.pid'; exec '$ROOT/wbd-link-proxy' -mode client \
-    -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off -mtu 1400 -lanes 1 -keepalive '$LINK_KEEPALIVE' -demo-reality-ticket '$ticket'" \
+    -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off -mtu '$LINK_MTU' -lanes 1 -keepalive '$LINK_KEEPALIVE' -demo-reality-ticket '$ticket'" \
     >"$ROOT/link.log" 2>&1 &
   for _ in $(seq 1 800); do grep -q 'WBD_LINK_READY role=client' "$ROOT/link.log" && break; sleep .05; done
   grep -q 'WBD_LINK_READY role=client' "$ROOT/link.log"
@@ -287,4 +305,4 @@ test "$(grep -c 'WBD_LINK_SESSION_COUNTERS tunnel_id_prefix=' "$ROOT/link-server
 kill -0 "$MUX_PID"
 kill -0 "$LINK_SERVER_PID"
 kill -0 "$PLATFORM_PID"
-echo "SINGLE_FLOW_STARTUP_STRESS_PASS rounds=${ROUNDS} nat=1 dirty_exit=1 full_stack=1 logical_tunnel=1 platformproxy=1 transport_reap=1"
+echo "SINGLE_FLOW_STARTUP_STRESS_PASS rounds=${ROUNDS} nat=1 dirty_exit=1 full_stack=1 logical_tunnel=1 platformproxy=1 transport_reap=1 one_way_delay=${ONE_WAY_DELAY:-off} mtu=${LINK_MTU}"
