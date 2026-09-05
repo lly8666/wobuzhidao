@@ -8,8 +8,12 @@ import (
 )
 
 const (
-	laneQualificationTimeout = 3 * time.Second
-	laneQualificationRetry   = 200 * time.Millisecond
+	// A replacement candidate must survive high-latency Internet paths too.
+	// Around 300ms one-way means roughly 600ms RTT before jitter/loss; give the
+	// authenticated Probe/Ready exchange enough independent RTT opportunities
+	// without stacking retries faster than one such round trip.
+	laneQualificationTimeout = 12 * time.Second
+	laneQualificationRetry   = time.Second
 )
 
 func (c *client) qualifyLane(lane *laneConn, timeout time.Duration) error {

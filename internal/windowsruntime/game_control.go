@@ -12,7 +12,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/gamelane"
 )
 
-const gameControlTimeout = 5 * time.Second
+const gameControlTimeout = 15 * time.Second
 
 // setGameLaneTargets updates only the local Game/race membership. It never
 // creates a public flow and never changes FakeTCP/DTLS wire semantics. Callers

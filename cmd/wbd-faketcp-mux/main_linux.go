@@ -27,7 +27,10 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 )
 
-const halfOpenTimeout = 25 * time.Second
+const (
+	halfOpenTimeout         = 25 * time.Second
+	defaultBootstrapTimeout = 20 * time.Second
+)
 
 type config struct {
 	listen      string
@@ -113,7 +116,7 @@ func main() {
 	fs.StringVar(&c.username, "username", "", "single-flow shared account username")
 	fs.StringVar(&c.password, "password", "", "single-flow shared account password")
 	fs.StringVar(&c.ticketDir, "ticket-dir", "", "single-flow one-time ticket directory")
-	fs.DurationVar(&c.bootstrapTimeout, "bootstrap-timeout", 12*time.Second, "single-flow TLS/admission deadline")
+	fs.DurationVar(&c.bootstrapTimeout, "bootstrap-timeout", defaultBootstrapTimeout, "single-flow TLS/admission deadline")
 	fs.StringVar(&c.fallbackTarget, "fallback-target", "", "ordinary TCP decoy target for unrecognized ClientHello")
 	fs.StringVar(&c.tunnelPool, "tunnel-pool", "10.66.0.0/16", "Logical Tunnel IPv4 lease pool; leases are returned as /32")
 	fs.StringVar(&c.tunnelRoutes4, "tunnel-routes4", "0.0.0.0/0", "comma-separated authenticated IPv4 routes for Logical Tunnels")

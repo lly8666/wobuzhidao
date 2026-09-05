@@ -19,9 +19,10 @@ import (
 )
 
 const (
-	maxBlocks        = 64
-	setupRetryAfter  = 200 * time.Millisecond
-	defaultKeepalive = 15 * time.Second
+	maxBlocks           = 64
+	setupRetryAfter     = time.Second
+	defaultSetupTimeout = 20 * time.Second
+	defaultKeepalive    = 15 * time.Second
 )
 
 type options struct {
@@ -65,18 +66,18 @@ func main() {
 	flag.StringVar(&o.dtls, "dtls", "", "client: fixed DTLS plaintext UDP address; server: informational DTLS transport/plain port is learned")
 	flag.StringVar(&o.service, "service", "", "server: local UDP service address")
 	flag.StringVar(&o.fec, "fec", "20:20", "client immutable FEC profile: off or 20:20")
-	flag.IntVar(&o.mtu, "mtu", 1400, "immutable maximum plaintext datagram size")
+	flag.IntVar(&o.mtu, "mtu", 1360, "immutable maximum plaintext datagram size")
 	flag.IntVar(&o.flushMS, "fec-flush-ms", 8, "immutable 20:20 partial-block flush")
 	flag.IntVar(&o.lanes, "lanes", 1, "immutable raw lane count (currently 1)")
 	flag.StringVar(&o.token, "token", "", "client bearer token for normal/legacy-witness startup")
 	flag.StringVar(&o.expectedToken, "expected-token", "", "server bearer token; empty disables AUTH")
-	flag.DurationVar(&o.setupTimeout, "setup-timeout", 10*time.Second, "LINK_INIT/AUTH startup deadline")
+	flag.DurationVar(&o.setupTimeout, "setup-timeout", defaultSetupTimeout, "LINK_INIT/AUTH startup deadline")
 	flag.DurationVar(&o.keepalive, "keepalive", defaultKeepalive, "client heartbeat interval for DTLS-protected WBD PING")
 	flag.StringVar(&o.demoRealityWitness, "demo-reality-witness", "", "legacy mirror demo: 64-hex ClientHello witness")
 	flag.StringVar(&o.demoRealityWitnessDir, "demo-reality-witness-dir", "", "legacy mirror demo server: local witness directory")
 	flag.StringVar(&o.demoRealityServerName, "demo-reality-server-name", "", "legacy mirror demo server: target SNI bound to witness")
 	flag.StringVar(&o.demoRealityTicket, "demo-reality-ticket", "", "same-entry Reality front demo: one-time 64-hex authenticated ticket")
-	flag.StringVar(&o.demoRealityTicketDir, "demo-reality-ticket-dir", "", "same-entry Reality front demo server: one-time ticket directory")
+	flag.StringVar(&o.demoRealityTicketDir, "demo-reality-ticket-dir", "", "same-entry Reality front demo server: local ticket directory")
 	flag.DurationVar(&o.demoRealityTTL, "demo-reality-ttl", 15*time.Second, "maximum age of one-time demo witness/ticket")
 	flag.Parse()
 

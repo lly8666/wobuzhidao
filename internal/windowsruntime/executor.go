@@ -25,11 +25,16 @@ type readinessSpec struct { marker string; timeout time.Duration }
 func commandReadiness(name string) (readinessSpec, bool) {
 	switch {
 	case name == "faketcp" || strings.HasPrefix(name, "faketcp-"):
-		return readinessSpec{marker:"READY role=client",timeout:25*time.Second},true
+		// FakeTCP readiness includes the raw SYN exchange plus same-association
+		// Reality-like TLS/admission bootstrap. Each inner stage has a 20s budget,
+		// so the supervisor must not preempt a valid high-latency startup first.
+		return readinessSpec{marker:"READY role=client",timeout:45*time.Second},true
 	case name == "dtls" || strings.HasPrefix(name, "dtls-"):
-		return readinessSpec{marker:"READY role=client",timeout:25*time.Second},true
+		// The native DTLS shim owns a 20s blocking handshake budget.
+		return readinessSpec{marker:"READY role=client",timeout:30*time.Second},true
 	case name == "link" || strings.HasPrefix(name, "link-"):
-		return readinessSpec{marker:"WBD_LINK_READY role=client",timeout:12*time.Second},true
+		// LINK_INIT/AUTH defaults to 20s on the data-plane process.
+		return readinessSpec{marker:"WBD_LINK_READY role=client",timeout:25*time.Second},true
 	case name == "game":
 		return readinessSpec{marker:"WBD_GAME_LANE_CLIENT_READY",timeout:10*time.Second},true
 	case name == "tun":

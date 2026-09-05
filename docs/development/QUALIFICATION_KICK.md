@@ -21,6 +21,7 @@ Hosted qualification is not physical release acceptance. The final Windows 11 + 
 - Lifecycle authority includes randomized 30..60m lane age, child/LINK liveness, Windows underlay/default-route convergence, WBD-owned physical-route rebind, manual reconnect, and existing reconnect-capable server CLOSE semantics.
 - Linux final topology is per-lane transport -> Game/race -> Logical Tunnel -> one shared WBD TUN -> one WBD-owned host NAT.
 - Mature FakeTCP/TCP-like ACK/SACK/RTO/FEC behavior remains frozen unless a deterministic gate proves a lower-layer defect. Functional lifecycle qualification uses FEC off; fixed systematic 20:20 is compatibility smoke only.
+- Startup/replacement timeout budgets must tolerate paths around 300ms one-way (~600ms RTT) without classifying ordinary propagation delay as protocol failure. Retry intervals and outer process-readiness budgets must not preempt the protocol stage they supervise.
 
 ## Explicit workflow-dispatch authority set
 
@@ -75,9 +76,9 @@ Together the 31 hosted child gates cover Windows native protocol/runtime behavio
 
 ## Kick generation
 
-`2026-09-05-lane-ready-barrier-game-mtu-budget`
+`2026-09-05-high-rtt-startup-budget-300ms-one-way`
 
-This generation qualifies the runtime repair derived from the 200-second physical long-instance evidence on the previous `6e759edc31e3d3fdf44e4b2514011b4b1a63d1ee` candidate. Healthy lane replacement now requires an authenticated private Game membership Probe/Ready qualification before old A may be retired, preserving ADR-0012 A -> A+B -> B semantics instead of relying on the prior fixed-time assumption. The user-visible inner/Wintun MTU default is reduced from 1400 to 1360 while remaining configurable, and Game-backed LINK plans automatically reserve the fixed 32-byte Game envelope above the configured inner MTU. FakeTCP, Reality-like TLS, DTLS, LINK startup semantics, release FEC policy, logical lane cardinality, lease authority, and physical-path policy are otherwise unchanged. No hosted/package or physical qualification from `6e759edc31e3d3fdf44e4b2514011b4b1a63d1ee` or any earlier SHA transfers to this fresh candidate.
+This generation carries forward the same-source lane-ready barrier and configurable 1360-byte inner/Wintun MTU repair from the prior `4fa1bbb61ad31e4bda37bba285a635cdd197e29d` candidate, then removes startup-timeout assumptions that were too close to LAN RTTs. The target regression condition is approximately 300ms one-way / 600ms RTT before additional jitter or loss. FakeTCP now waits up to 2s per SYN/SYN-ACK attempt while retaining a 20s handshake budget and a 1.2s initial RTO floor; client/server Reality-like bootstrap defaults are 20s; LINK_INIT/AUTH uses a 20s budget with 1s retry spacing; candidate Game Probe/Ready uses 12s with 1s retry spacing and a 15s local control envelope; Windows supervisor readiness is 45s for FakeTCP+Reality, 30s for DTLS, and 25s for LINK. The native DTLS shim's existing 20s handshake socket timeout and default 45s LINK liveness window remain unchanged because they already envelope the target RTT. These are failure ceilings, not added fixed delays: successful stages advance immediately. Candidate replacement still preserves healthy A on B failure and retires A only after B is authenticated, Game-bound, and Ready. No hosted/package or physical qualification from `4fa1bbb61ad31e4bda37bba285a635cdd197e29d` or any earlier SHA transfers to this fresh candidate.
 
 ## Delivery rule
 

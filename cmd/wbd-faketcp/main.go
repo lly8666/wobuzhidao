@@ -19,6 +19,19 @@ import (
 
 var errRawTimeout = errors.New("raw packet read timeout")
 
+const (
+	// WBD explicitly supports paths around 300ms one-way (~600ms RTT). Keep the
+	// per-attempt window comfortably above one such RTT so a valid SYN-ACK/ACK is
+	// not automatically classified as a timeout before it can physically return.
+	fakeTCPHandshakeReadWindow = 2 * time.Second
+	fakeTCPHandshakeTimeout    = 20 * time.Second
+	// The first measured RTT may be ambiguous after a retransmission (Karn-style
+	// aliasing). Never seed steady-state FakeTCP below two target high-latency
+	// RTTs even when a late response is attributed to a newer handshake attempt.
+	fakeTCPInitialRTOFloor = 1200 * time.Millisecond
+	defaultRealityTimeout  = 20 * time.Second
+)
+
 type rawPacketIO interface {
 	ReadPacket([]byte) (int, error)
 	WritePacket([]byte, [4]byte) error
@@ -116,7 +129,7 @@ func main() {
 	fs.StringVar(&c.realityInstallationID, "reality-installation-id", "", "stable 32-hex installation identity for Logical Tunnel lease ownership")
 	fs.StringVar(&c.realityTunnelConfigOut, "reality-tunnel-config-out", "", "0600 local JSON file receiving authenticated Logical Tunnel config")
 	fs.BoolVar(&c.realityVerify, "reality-verify-server", false, "verify TLS bootstrap certificate/hostname")
-	fs.DurationVar(&c.realityTimeout, "reality-timeout", 12*time.Second, "single-flow TLS/bootstrap deadline")
+	fs.DurationVar(&c.realityTimeout, "reality-timeout", defaultRealityTimeout, "single-flow TLS/bootstrap deadline")
 	_ = fs.Parse(os.Args[2:])
 	if role != "client" && role != "server" {
 		usage()
@@ -262,20 +275,20 @@ func (e *endpoint) newSender(seq uint32, rto time.Duration) *faketcp.Sender {
 func (e *endpoint) handshake() error { if e.cfg.role == "client" { return e.handshakeClient() }; return e.handshakeServer() }
 
 func (e *endpoint) handshakeClient() error {
-	isn := randomSeq(); deadline := time.Now().Add(20 * time.Second)
+	isn := randomSeq(); deadline := time.Now().Add(fakeTCPHandshakeTimeout)
 	for time.Now().Before(deadline) {
 		sent := time.Now()
 		if err := e.send(isn, 0, faketcp.FlagSYN, nil, nil); err != nil { return err }
-		_ = e.raw.SetReadTimeout(300 * time.Millisecond)
-		for time.Now().Before(sent.Add(300 * time.Millisecond)) {
+		_ = e.raw.SetReadTimeout(fakeTCPHandshakeReadWindow)
+		for time.Now().Before(sent.Add(fakeTCPHandshakeReadWindow)) && time.Now().Before(deadline) {
 			seg, err := e.recvOne()
-			if err != nil { if errors.Is(err, errRawTimeout) { break }; return err }
+			if err != nil { if errors.Is(err, errRawTimeout) { continue }; return err }
 			if seg.SrcIP != e.dstIP || seg.DstIP != e.srcIP || seg.SrcPort != e.dstPort || seg.DstPort != e.srcPort { continue }
 			if !faketcp.IsWBDHandshakeSegment(seg) || seg.Flags&(faketcp.FlagSYN|faketcp.FlagACK) != faketcp.FlagSYN|faketcp.FlagACK || seg.Ack != isn+1 { continue }
 			peerNext := seg.Seq + 1
 			if err := e.send(isn+1, peerNext, faketcp.FlagACK, nil, nil); err != nil { return err }
 			rtt := time.Since(sent)
-			e.sender = e.newSender(isn+1, maxDuration(40*time.Millisecond, 2*rtt)); e.receiver = faketcp.NewReceiver(peerNext)
+			e.sender = e.newSender(isn+1, maxDuration(fakeTCPInitialRTOFloor, 2*rtt)); e.receiver = faketcp.NewReceiver(peerNext)
 			_ = e.raw.ClearReadTimeout(); return nil
 		}
 	}
@@ -289,16 +302,17 @@ func (e *endpoint) handshakeServer() error {
 		if err != nil { if errors.Is(err, errRawTimeout) { continue }; return err }
 		if seg.DstIP != e.srcIP || seg.DstPort != e.srcPort || seg.Flags&faketcp.FlagSYN == 0 || !faketcp.IsWBDHandshakeSegment(seg) { continue }
 		e.dstIP, e.dstPort = seg.SrcIP, seg.SrcPort; peerNext := seg.Seq + 1; isn := randomSeq()
-		for attempts := 0; attempts < 60; attempts++ {
+		deadline := time.Now().Add(fakeTCPHandshakeTimeout)
+		for time.Now().Before(deadline) {
 			sent := time.Now()
 			if err := e.send(isn, peerNext, faketcp.FlagSYN|faketcp.FlagACK, nil, nil); err != nil { return err }
-			_ = e.raw.SetReadTimeout(300 * time.Millisecond)
-			for time.Now().Before(sent.Add(300 * time.Millisecond)) {
+			_ = e.raw.SetReadTimeout(fakeTCPHandshakeReadWindow)
+			for time.Now().Before(sent.Add(fakeTCPHandshakeReadWindow)) && time.Now().Before(deadline) {
 				a, err := e.recvOne()
-				if err != nil { if errors.Is(err, errRawTimeout) { break }; return err }
+				if err != nil { if errors.Is(err, errRawTimeout) { continue }; return err }
 				if a.SrcIP != e.dstIP || a.DstIP != e.srcIP || a.SrcPort != e.dstPort || a.DstPort != e.srcPort || a.Flags&faketcp.FlagACK == 0 || a.Ack != isn+1 { continue }
 				rtt := time.Since(sent)
-				e.sender = e.newSender(isn+1, maxDuration(40*time.Millisecond, 2*rtt)); e.receiver = faketcp.NewReceiver(peerNext)
+				e.sender = e.newSender(isn+1, maxDuration(fakeTCPInitialRTOFloor, 2*rtt)); e.receiver = faketcp.NewReceiver(peerNext)
 				_ = e.raw.ClearReadTimeout(); return nil
 			}
 		}
