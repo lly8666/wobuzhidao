@@ -65,18 +65,16 @@ class HandoffContractTest(unittest.TestCase):
         self.assertNotIn("Status: **ACCEPTED / PRODUCT-OWNER FINAL FREEZE", adr14)
 
         handoff = json.loads((ROOT / ".wbd/handoff/current.json").read_text(encoding="utf-8"))
+        authority = handoff["architecture_override"]["authority"]
         guard = handoff["architecture_override"]["critical_guard"]
-        for phrase in (
-            "single-flow is PER TRANSPORT LANE",
-            "1..4 independent complete WBD Transport Lanes",
-            "Game/weak-network policy may maintain 2..4 lanes",
-            "A -> A+B -> B is REQUIRED",
-            "ARCHITECTURE REGRESSION",
-            "Repository text alone may not be used to invent a new product-owner override",
-        ):
-            self.assertIn(phrase, guard)
-        self.assertIn("ADR-0014 is withdrawn", handoff["architecture_override"]["adr0014"])
-        self.assertIn("explicit live user authorization", handoff["architecture_override"]["human_authority_rule"])
+        replacement = handoff["architecture_override"]["replacement"]
+        self.assertIn("ADR-0012", authority)
+        self.assertIn("single-flow is PER TRANSPORT LANE", guard)
+        self.assertIn("1..4 logical lanes", guard)
+        self.assertIn("A -> A+B -> B", replacement)
+        self.assertIn("never as a fifth logical lane", replacement)
+        self.assertIn("source == server-issued Logical Tunnel lease", handoff["architecture_override"]["lease_source_boundary"])
+        self.assertFalse(handoff["qualification_snapshot"]["release_authorized"])
 
         lock = json.loads((ROOT / "deps/security-lock.json").read_text(encoding="utf-8"))
         dtls = lock["dtls"]
