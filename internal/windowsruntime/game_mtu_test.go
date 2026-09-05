@@ -10,7 +10,7 @@ import (
 func TestDefaultTunnelMTUIsConservativeAndConfigurable(t *testing.T) {
 	p := testProfile()
 	p.MTU = 0
-	if got := p.normalized().MTU; got != DefaultTunnelMTU || got != 1360 {
+	if got := p.normalized().MTU; got != DefaultTunnelMTU || DefaultTunnelMTU != 1360 {
 		t.Fatalf("default inner MTU=%d want=%d", got, DefaultTunnelMTU)
 	}
 	p.MTU = 1280

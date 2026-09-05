@@ -87,8 +87,13 @@ func TestReplacementOverlapFansOutIdenticalLogicalFrame(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	c := &client{app:app, enc:enc, pacer:pacer, lanes:make(map[uint8]*laneConn, gamelane.MaxLanes)}
 	t.Cleanup(c.closeAllLanes)
+	oldLane := gamelane.LaneTarget{ID:1,Address:oldTarget.LocalAddr().String()}
+	candidateLane := gamelane.LaneTarget{ID:1,Address:candidateTarget.LocalAddr().String()}
+	if got, err := c.setLaneTargets([]gamelane.LaneTarget{oldLane}); err != nil || !reflect.DeepEqual(got, []uint8{1}) {
+		t.Fatalf("initial active=%v err=%v", got, err)
+	}
 	ready := armLaneReadyOnce(t, candidateTarget, sid, 1)
-	if got, err := c.setLaneTargets([]gamelane.LaneTarget{{ID:1,Address:oldTarget.LocalAddr().String()},{ID:1,Address:candidateTarget.LocalAddr().String()}}); err != nil || !reflect.DeepEqual(got, []uint8{1}) {
+	if got, err := c.setLaneTargets([]gamelane.LaneTarget{oldLane,candidateLane}); err != nil || !reflect.DeepEqual(got, []uint8{1}) {
 		t.Fatalf("overlap active=%v err=%v", got, err)
 	}
 	if err := <-ready; err != nil { t.Fatal(err) }
@@ -138,8 +143,11 @@ func TestPrimaryFailurePromotesReplacementIncarnation(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	c := &client{enc:enc, lanes:make(map[uint8]*laneConn, gamelane.MaxLanes)}
 	t.Cleanup(c.closeAllLanes)
+	oldLane := gamelane.LaneTarget{ID:1,Address:oldTarget.LocalAddr().String()}
+	candidateLane := gamelane.LaneTarget{ID:1,Address:candidateTarget.LocalAddr().String()}
+	if _, err := c.setLaneTargets([]gamelane.LaneTarget{oldLane}); err != nil { t.Fatal(err) }
 	ready := armLaneReadyOnce(t, candidateTarget, sid, 1)
-	if _, err := c.setLaneTargets([]gamelane.LaneTarget{{ID:1,Address:oldTarget.LocalAddr().String()},{ID:1,Address:candidateTarget.LocalAddr().String()}}); err != nil { t.Fatal(err) }
+	if _, err := c.setLaneTargets([]gamelane.LaneTarget{oldLane,candidateLane}); err != nil { t.Fatal(err) }
 	if err := <-ready; err != nil { t.Fatal(err) }
 	group := c.activeRaceGroups()[0]
 	old := group.primary
