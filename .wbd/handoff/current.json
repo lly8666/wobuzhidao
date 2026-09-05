@@ -1,19 +1,19 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 99,
+  "continuity_sequence": 100,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "b75a33f31a5e5f49c43915960aca6ee06cfa6540",
-  "current_head_sha": "b75a33f31a5e5f49c43915960aca6ee06cfa6540",
+  "checkpoint_based_on_head_sha": "eaf3472c376a114af26576d69497a3984d5836fb",
+  "current_head_sha": "eaf3472c376a114af26576d69497a3984d5836fb",
   "runtime_test_candidate_sha": "2e44c407eee677252897f2c75942407687ff8450",
-  "last_hosted_green_runtime_sha": "cf8298f9cb30c7aa9d60ca00611a783c401ba735",
+  "last_hosted_green_runtime_sha": "2e44c407eee677252897f2c75942407687ff8450",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease + one SessionID/PacketID race namespace + 1..4 independent replaceable Transport Lanes. Each lane owns one complete same-association FakeTCP -> Reality-like TLS -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/no-HOL public lineage.",
-    "current_milestone": "Physical qualification advanced beyond stale 0e0bf686. be760709 proved the real public :443 FakeTCP -> same-flow Reality-like TLS -> DTLS 1.3 -> LINK lineage but exposed a missing Windows portable Game child. cf8298 fixed/hosted-qualified that runtime closure and physically reached Game, Windows TUN and the server shared-TUN session. The next first-broken layer was Windows Wintun L3 identity/non-IPv4 leakage. Runtime candidate 2e44c407 fences the WBD-owned Wintun to the server lease and drops non-IPv4 locally. Fresh hosted package collection and physical application E2E remain pending.",
+    "current_milestone": "Runtime source 2e44c407eee677252897f2c75942407687ff8450 is hosted-green and its same-source Windows portable plus Linux arm64/amd64 test artifacts were downloaded, independently hash-verified, and delivered. The next authoritative milestone is the fresh physical Windows 11 + Npcap -> Ubuntu ARM64 application-path retest of the Wintun lease-exclusivity/non-IPv4 fence. Release is not authorized until that exact-source physical path is green.",
     "stop_rule": "Do not redesign FakeTCP/Reality-like TLS/DTLS/LINK/Game wire/FEC absent deterministic evidence. FEC primary functional path remains off; fixed 20:20 is compatibility smoke. Never call RELEASE-QUALIFIED before one exact runtime SOURCE_SHA has hosted-green same-source artifacts and fresh physical Windows 11 + Npcap -> Ubuntu ARM64 application-path evidence."
   },
   "architecture_override": {
@@ -27,11 +27,11 @@
     "nat_observability": "SourceIP/default-route changes are not authoritative direct public NAT mapping reflection."
   },
   "continuation_cursor": {
-    "last_completed_action": "Reconstructed missing recent handoff history from 0e0bf686 through runtime candidate 2e44c407. Added docs/development/2026-09-05_windows-physical-retest-handoff.md, refreshed CONTINUE_HERE.md, and corrected .wbd/handoff/README.md authority to PR #9 / feat/single-flow-reality-faketcp. Substantive documentation checkpoint is b75a33f31a5e5f49c43915960aca6ee06cfa6540; it is documentation only and does not replace runtime candidate 2e44c407.",
-    "current_task": "Continue the user's requested test-package flow: live-refresh Actions for runtime candidate 2e44c407, run/collect normal hosted CI plus Windows portable and Ubuntu ARM64 producer outputs for one exact runtime source, then deliver compiled test packages with SHA256/source fencing. The user will perform the next physical retest.",
-    "why_now": "Round 2 on cf8298 proved the Game packaging closure and reached Windows TUN/server shared-TUN session, then exposed APIPA/non-IPv4 at the Windows Wintun L3 boundary. 2e44 implements the minimal client-side identity fence without weakening server anti-spoof or changing transport wire.",
-    "done_when": "Test-package delivery: one exact runtime source has hosted-green CI, Windows portable and Linux ARM64 artifacts and delivered hashes/source are explicit. Release qualification: a fresh physical run on that exact candidate also proves Wintun lease exclusivity/no APIPA leakage, Game/TUN/shared backend continuity, correct leased-source raw-IP RX/TX, route-fenced DNS/generic UDP/TCP application traffic and cleanup.",
-    "next_atomic_action": "Inspect current GitHub Actions and producer state for runtime candidate 2e44c407eee677252897f2c75942407687ff8450. Do not treat the later docs/handoff branch HEAD as a runtime-qualified source. If producer mechanics require rebuilding a newer source, make the source transition explicit and rerun all same-source gates rather than mixing artifacts."
+    "last_completed_action": "Completed exact-source hosted/package qualification for runtime candidate 2e44c407eee677252897f2c75942407687ff8450. CI run 33941726034, Windows portable run 33941725966, and Linux server run 33941726028 all completed successfully on that exact head. Downloaded Windows artifact 9962080813, ARM64 artifact 9962069074, and amd64 artifact 9962072737; local SHA256 values matched GitHub digests exactly; Linux bundled SOURCE_SHA values matched 2e44. Recorded durable receipt in docs/development/2026-09-05_2e44-test-package-delivery.md at substantive docs checkpoint eaf3472c376a114af26576d69497a3984d5836fb.",
+    "current_task": "Await and analyze the user's fresh physical Windows 11 + Npcap -> Ubuntu ARM64 retest using the delivered exact 2e44c407 test packages. Inspect raw client/server logs and any pcap before accepting test-AI summaries; identify only the first deterministic broken layer if application E2E still fails.",
+    "why_now": "Round 2 on cf8298 proved Game, Windows TUN and server shared-TUN session but exposed APIPA/non-IPv4 at the Windows Wintun L3 boundary. 2e44 implements the minimal client-side identity fence, and its hosted builds are now same-source green and delivered.",
+    "done_when": "Fresh physical evidence on exact 2e44 proves Wintun lease exclusivity/no APIPA leakage, Game/TUN/shared backend continuity, correct leased-source shared raw IPv4 RX/TX, route-fenced DNS/generic UDP/TCP bidirectional application traffic, and cleanup. RELEASE-QUALIFIED remains forbidden until this is green.",
+    "next_atomic_action": "When the user's physical evidence arrives, verify exact artifact/source identity first; then correlate WBD_WINDOWS_TUN_ADDRESS_EXCLUSIVE and any WBD_TUN_WINDOWS_NON_IPV4_DROP with Game/TUN/LINK/shared-TUN markers, shared raw-IP first-RX/TX, application probes, packet capture if supplied, and cleanup. Fix only the first deterministic broken layer."
   },
   "recent_physical_history": {
     "round1": {
@@ -57,7 +57,29 @@
       "source_sha": "2e44c407eee677252897f2c75942407687ff8450",
       "change": "Disable IPv4 DHCP only on WBD-owned Wintun, remove every non-lease IPv4, verify lease exclusivity, and drop non-IPv4 locally before Game/raw-IP.",
       "automatic_ipv4_semantics": "Physical Wi-Fi/Ethernet DHCP is untouched. WBD tunnel IPv4 remains automatically assigned from the authenticated server Logical Tunnel lease; Windows DHCP/APIPA is fenced only on the WBD virtual adapter.",
+      "hosted_status": "GREEN with same-source Windows/Linux artifacts delivered and verified.",
       "physical_status": "Fresh physical application-path proof pending."
+    }
+  },
+  "package_receipt": {
+    "source_sha": "2e44c407eee677252897f2c75942407687ff8450",
+    "ci_run": 33941726034,
+    "windows_run": 33941725966,
+    "linux_run": 33941726028,
+    "windows": {
+      "artifact_id": 9962080813,
+      "zip_sha256": "f799cac74d502a2b03b191e1a5d93b200b84cc9edbf60c5066a18c83a3b7e21c",
+      "wbd_exe_sha256": "bccf596e2cb4b47ecb3e4eea81ef06cdda86037c70292ace12bc44a6d0c7386b"
+    },
+    "arm64": {
+      "artifact_id": 9962069074,
+      "zip_sha256": "b991b9b817cff58c9c04af5d5b753bfcd6fa15691a9ca29148f63455e0f93b14",
+      "inner_tar_sha256": "471109e6260e5d258c41e5fababf50572e94dc6f433eec667ff8ab341c709db5"
+    },
+    "amd64": {
+      "artifact_id": 9962072737,
+      "zip_sha256": "a314124ea3d2fe5fcad7117fc457920c2b87af68eef8f7dfdf960b2fc70a26eb",
+      "inner_tar_sha256": "db75ff3524da4da4c537c4ea03b389e637e1723f472d9f1d50fcbfc732cbc034"
     }
   },
   "deployment_fences": {
@@ -76,8 +98,7 @@
     "docs/architecture/ADR-0011-single-public-flow-reality-bootstrap.md",
     "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
     "docs/development/2026-09-05_windows-physical-retest-handoff.md",
-    ".github/workflows/windows-portable-bundle.yml",
-    ".github/workflows/windows-npcap-physical.yml",
+    "docs/development/2026-09-05_2e44-test-package-delivery.md",
     "scripts/windows_tun_route.ps1",
     "internal/tunnel/tun_windows.go",
     "internal/windowsruntime/multilane.go",
@@ -87,9 +108,10 @@
   "required_data_plane_assets": [],
   "automated_exact_head_snapshot": {
     "runtime_source_head": "2e44c407eee677252897f2c75942407687ff8450",
-    "result": "live_refresh_required",
-    "known_previous_green_source": "cf8298f9cb30c7aa9d60ca00611a783c401ba735",
-    "note": "Do not infer the complete 2e44 hosted matrix from individual runs observed during handoff maintenance. Re-check CI/Windows portable/Linux ARM64 producer state before delivery.",
+    "result": "HOSTED-GREEN + SAME-SOURCE ARTIFACTS DELIVERED",
+    "ci_run": 33941726034,
+    "windows_portable_run": 33941725966,
+    "linux_server_run": 33941726028,
     "release_authorized": false
   },
   "validated_findings": {
@@ -97,21 +119,21 @@
     "game_runtime_dependency": "PROVEN REQUIRED even for Lanes=1; packaging omission fixed by cf8298 lineage.",
     "round2_backend_reachability": "PHYSICALLY PROVEN at cf8298: Game, Windows TUN ready, server Game/backend/shared-TUN session.",
     "round2_l3_failure": "PHYSICALLY OBSERVED at cf8298: non-IPv4 plus APIPA 169.254.99.241 while lease=10.66.0.1; app probes timed out.",
-    "windows_l3_fence": "IMPLEMENTED at 2e44; fresh physical proof pending.",
+    "windows_l3_fence": "IMPLEMENTED at 2e44; hosted-green and packaged; fresh physical proof pending.",
     "physical_adapter_dhcp": "UNCHANGED by 2e44: only WBD-owned Wintun DHCP/APIPA is disabled.",
     "release_state": "NOT RELEASE-QUALIFIED."
   },
   "qualification_snapshot": {
     "runtime_source_head": "2e44c407eee677252897f2c75942407687ff8450",
-    "result": "Current fix implemented; hosted package collection and fresh physical application E2E pending.",
-    "known_incomplete": "Need same-source Windows portable + Ubuntu ARM64 hosted-green artifacts for delivery, then fresh physical proof of lease exclusivity/no APIPA leakage, correct leased-source raw-IP RX/TX, DNS, generic UDP, TCP, return path and cleanup.",
+    "result": "HOSTED-GREEN + SAME-SOURCE TEST PACKAGES DELIVERED; PHYSICAL APPLICATION E2E pending.",
+    "known_incomplete": "Need fresh physical proof of lease exclusivity/no APIPA leakage, correct leased-source raw-IP RX/TX, DNS, generic UDP, TCP, return path and cleanup on exact 2e44.",
     "release_authorized": false
   },
   "operational_continuity": {
-    "previous_sequence": 98,
-    "substantive_commit": "b75a33f31a5e5f49c43915960aca6ee06cfa6540",
+    "previous_sequence": 99,
+    "substantive_commit": "eaf3472c376a114af26576d69497a3984d5836fb",
     "runtime_candidate": "2e44c407eee677252897f2c75942407687ff8450",
-    "metadata_note": "Sequence 99 repairs stale handoff documentation through both recent physical rounds. b75a33 is docs/history only. Runtime candidate remains 2e44; the final handoff-only commit is metadata and cannot self-reference.",
+    "metadata_note": "Sequence 100 records completed exact-source package delivery. eaf347 is docs/history only. Runtime candidate remains immutable 2e44; this final handoff-only commit is metadata and cannot self-reference.",
     "rule": "Live-refresh before execution; exact-source fence hosted artifacts and physical evidence; never stitch release evidence across different source SHAs."
   }
 }
