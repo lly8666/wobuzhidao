@@ -10,8 +10,9 @@ Do not infer the next task from old chat, local scratch state, old development l
 4. `ROADMAP.md`
 5. `.wbd/handoff/current.json`
 6. `docs/development/2026-09-05_windows-physical-retest-handoff.md`
-7. `docs/development/2026-08-30-architecture-pivot-tunnel-multipath.md`
-8. only the bounded `resume_read_set` named by the live handoff
+7. `docs/development/2026-09-05_2e44-test-package-delivery.md`
+8. `docs/development/2026-08-30-architecture-pivot-tunnel-multipath.md`
+9. only the bounded `resume_read_set` named by the live handoff
 
 Before editing, refresh live HEAD/PR/Actions and reconcile commits after `checkpoint_based_on_head_sha`.
 
@@ -19,91 +20,90 @@ Before editing, refresh live HEAD/PR/Actions and reconcile commits after `checkp
 
 - Active branch: `feat/single-flow-reality-faketcp`
 - Active PR: #9
-- Current runtime/test candidate source: `2e44c407eee677252897f2c75942407687ff8450` (`fix: fence Windows tunnel L3 identity`)
-- Last same-source Windows portable + Linux amd64/arm64 build candidate known to have completed successfully before the second physical run: `cf8298f9cb30c7aa9d60ca00611a783c401ba735`
-- Qualification state: **NOT RELEASE-QUALIFIED**. The current `2e44c407...` L3 fix still requires exact-source hosted build/artifact collection and a fresh Windows 11 + Npcap -> Ubuntu ARM64 application-path retest.
+- Runtime/test candidate source: `2e44c407eee677252897f2c75942407687ff8450` (`fix: fence Windows tunnel L3 identity`)
+- Hosted state for that exact runtime source: **GREEN**
+- Same-source Windows portable + Linux ARM64/amd64 test packages: **BUILT, HASH-VERIFIED AND DELIVERED**
+- Qualification state: **NOT RELEASE-QUALIFIED**; fresh physical Windows 11 + Npcap -> Ubuntu ARM64 application-path evidence is still required.
 
-The final handoff-only commit may be newer than `2e44c407...`. Do not confuse a documentation/handoff HEAD with the runtime candidate that has actually been compiled/tested. `.wbd/handoff/current.json` records both the latest substantive documentation checkpoint and the runtime candidate separately.
+The final documentation/handoff branch HEAD is newer than `2e44c407...`. Do not confuse it with the compiled runtime candidate. `.wbd/handoff/current.json` records the documentation checkpoint and runtime candidate separately.
 
-## What changed since the stale `0e0bf686...` checkpoint
+## Recent physical/fix chain
 
-The old checkpoint said physical qualification had not yet proved real raw SYN/TLS/DTLS/LINK. That is no longer current.
+### Physical round 1 — `be760709...`
 
-### Physical round 1 — `be7607093b3065bddce024048ba376f2e5d21cdd`
-
-Real Windows 11 + Npcap -> Ubuntu ARM64 traffic on public `:443` proved the outer path through:
-
-- raw FakeTCP SYN/SYNACK;
-- same-flow Reality-like TLS bootstrap;
-- DTLS 1.3;
-- LINK.
-
-It did **not** prove Game/Wintun/shared-TUN/application E2E. The Windows portable package omitted `wbd-game-lane-client.exe`, so the controller failed before TUN startup. This was a packaging/runtime-closure defect, not evidence that Game must be bypassed for `Lanes=1`.
+Real public `:443` traffic proved raw FakeTCP SYN/SYNACK -> same-association Reality-like TLS -> DTLS 1.3 -> LINK. It did not prove Game/Wintun/shared-TUN/application E2E because the Windows portable package omitted required `wbd-game-lane-client.exe`.
 
 ### Packaging closure — `e042...` -> `4d391...` -> `cf8298...`
 
-The Windows producer was fixed to build, manifest, embed and extraction-verify `wbd-game-lane-client.exe`; the physical workflow contract was updated accordingly. Two follow-up commits repaired only mistakes in the new static contract test. At `cf8298...`, CI and same-source Windows portable plus Linux amd64/arm64 builds completed successfully, and the Windows runner verified that the Game child was actually present in the embedded runtime.
+The Windows producer was fixed to build, manifest, embed and extraction-verify the Game child. At `cf8298...`, same-source CI/Windows/Linux builds were green.
 
-### Physical round 2 — `cf8298f9cb30c7aa9d60ca00611a783c401ba735`
+### Physical round 2 — `cf8298...`
 
-This run crossed the previous break and reached:
+This crossed the prior break and physically reached Game, Windows TUN, server Game/LINK backend and shared-TUN session. The first broken layer moved to Windows L3 identity: non-IPv4 payloads and source `169.254.99.241` reached the IPv4 backend while the Logical Tunnel lease was `10.66.0.1`; strict server anti-spoof correctly rejected the mismatch and application probes timed out.
 
-- `WBD_GAME_LANE_CLIENT_READY`;
-- `WBD_TUN_READY` / client `connect_pass`;
-- server `WBD_LINK_MUX_BACKEND_READY`;
-- server `WBD_GAME_LANE_SESSION_OPEN`;
-- server `WBD_SHARED_TUN_SESSION_READY`.
+### Current fix — `2e44c407...`
 
-The next failure was at the Windows L3 boundary: the server observed non-IPv4 payloads and IPv4 source `169.254.99.241` while the Logical Tunnel lease was `10.66.0.1`. Strict server source anti-spoof correctly rejected the mismatch; DNS/UDP/TCP application probes timed out.
+The fix keeps server anti-spoof strict and fences only the WBD-owned Wintun:
 
-### Current fix — `2e44c407eee677252897f2c75942407687ff8450`
+- disable IPv4 DHCP on the WBD virtual adapter, not physical Wi-Fi/Ethernet;
+- remove every non-lease IPv4 from that adapter;
+- verify the authenticated server-issued Logical Tunnel lease is exclusive before routes proceed;
+- drop non-IPv4 locally before Game/raw-IP.
 
-The fix keeps the server anti-spoof boundary strict and instead fences the WBD-owned Wintun identity:
+The tunnel IPv4 is still automatically assigned by WBD from the authenticated server lease; Windows DHCP/APIPA is merely prevented from adding a competing identity on the WBD-owned virtual adapter.
 
-- disable IPv4 DHCP only on the WBD-owned Wintun interface;
-- remove all IPv4 addresses on that Wintun except the server-issued Logical Tunnel lease;
-- ensure/verify the lease address is exclusive before routes proceed;
-- forward only valid IPv4 from the Windows TUN into Game/raw-IP;
-- drop non-IPv4 locally/fail-closed.
+Expected new markers include `WBD_WINDOWS_TUN_ADDRESS_EXCLUSIVE ... address4=<lease> ... dhcp=disabled`. `WBD_TUN_WINDOWS_NON_IPV4_DROP fail_closed=1` may appear for local IPv6/control traffic and is not itself a failure.
 
-This does **not** disable DHCP on physical Wi-Fi/Ethernet. The tunnel IPv4 is still assigned automatically from the server Logical Tunnel lease; only Windows DHCP/APIPA behavior on the WBD virtual adapter is fenced out.
+## Exact-source hosted/package receipt for `2e44c407...`
 
-Expected evidence includes `WBD_WINDOWS_TUN_ADDRESS_EXCLUSIVE ... address4=<lease> ... dhcp=disabled`; `WBD_TUN_WINDOWS_NON_IPV4_DROP fail_closed=1` may appear for locally generated non-IPv4 traffic and is not itself a failure.
+- CI run `33941726034`: success; Go tests and Handoff tests success.
+- Windows portable run `33941725966`: success; child runtime, wolfSSL, Wintun, manifest/embed, embedded extraction qualification and PE checks all success.
+- Windows artifact ID `9962080813`, ZIP SHA256 `f799cac74d502a2b03b191e1a5d93b200b84cc9edbf60c5066a18c83a3b7e21c`.
+- Linux server run `33941726028`: success; settings, amd64 and arm64 success.
+- ARM64 artifact ID `9962069074`, ZIP SHA256 `b991b9b817cff58c9c04af5d5b753bfcd6fa15691a9ca29148f63455e0f93b14`; inner tar SHA256 `471109e6260e5d258c41e5fababf50572e94dc6f433eec667ff8ab341c709db5`; bundled SOURCE_SHA exact `2e44c407...`.
+- AMD64 backup artifact ID `9962072737`, ZIP SHA256 `a314124ea3d2fe5fcad7117fc457920c2b87af68eef8f7dfdf960b2fc70a26eb`.
+
+Full receipt: `docs/development/2026-09-05_2e44-test-package-delivery.md`.
 
 ## Architecture guardrails
 
-ADR-0012 is the current tunnel/lane lifecycle authority. In particular:
-
-- `single-flow` is per Transport Lane / transport epoch, not per entire Logical Tunnel lifetime;
-- one Logical Tunnel owns stable identity/lease and one SessionID/PacketID race namespace with 1..4 logical lanes;
-- Normal desired lanes = 1; Game/weak-network policy may use 2..4;
-- `wbd-game-lane-client` remains the internal race/dedupe aggregator even when `Lanes=1`;
-- planned replacement is generation-fenced make-before-break `A -> A+B -> B`; candidate failure preserves healthy A;
-- four logical lanes map to a bounded 1..5 physical-slot pool, where slot 5 is replacement overlap only, never a fifth logical lane;
-- Linux final path is one shared WBD TUN + root routing + one WBD-owned host NAT;
-- raw IPv4 ingress requires `source == leased IPv4`; do not weaken this to accept APIPA or arbitrary sources;
-- FakeTCP/Reality-like TLS/pinned wolfSSL DTLS/LINK/FEC wire remains frozen absent deterministic lower-layer evidence;
-- FEC primary functional path remains OFF; fixed 20:20 is compatibility smoke only;
-- Windows IPv6 remains fail-closed until real IPv6 qualification;
+- ADR-0012 remains the tunnel/lane lifecycle authority; ADR-0011 remains per-lane same-association bootstrap/no-HOL authority.
+- `single-flow` is per Transport Lane / transport epoch, not per entire Logical Tunnel lifetime.
+- One Logical Tunnel owns stable identity/lease and one SessionID/PacketID race namespace with 1..4 logical lanes.
+- Normal desired lanes = 1; Game/weak-network policy may use 2..4.
+- `wbd-game-lane-client` remains the internal race/dedup aggregator even when `Lanes=1`.
+- Planned replacement is generation-fenced make-before-break `A -> A+B -> B`; candidate failure preserves healthy A.
+- Four logical lanes map to bounded physical slots 1..5; slot 5 is replacement overlap only, never a fifth logical lane.
+- Linux final path is one shared WBD TUN + root routing + one WBD-owned host NAT.
+- Raw IPv4 ingress requires `source == leased IPv4`; never weaken this to accept APIPA or arbitrary client sources.
+- FakeTCP/Reality-like TLS/pinned wolfSSL DTLS/LINK/Game/FEC wire remains frozen absent deterministic lower-layer evidence.
+- FEC primary functional path remains OFF; fixed 20:20 is compatibility smoke only.
+- Windows IPv6 remains fail-closed until real IPv6 qualification.
 - SourceIP/default-route changes are not authoritative direct public NAT mapping reflection.
 
-## Deployment/test fences learned from the physical runs
+## Deployment/test fences
 
-- Final public endpoint used for WBD physical qualification is port `443`.
-- Internal LINK listen moved to `127.0.0.1:47010` because the host already used `47000` for frps.
-- Do not reuse the earlier `40443` physical endpoint without first reconciling the host's existing NAT redirect; that trial was redirected to the old `10443` service and did not hit the intended WBD listener.
-- A public `:443` pcap proves the outer transport only. Full qualification also needs internal/shared-TUN markers and route-fenced application probes.
+- Physical WBD public endpoint: port `443`.
+- Internal LINK listen: `127.0.0.1:47010` because `47000` conflicts with frps on the test host.
+- Do not reuse public `40443` without reconciling the host NAT redirect that previously sent it to old `10443`/v2ray.
+- Normal physical retest: `Lanes=1`, FEC OFF.
+- A public `:443` pcap proves only the outer transport. Full qualification requires shared-TUN/raw-IP and application-path evidence.
 
 ## Next atomic action
 
-Continue the user's requested delivery flow from the current runtime candidate `2e44c407eee677252897f2c75942407687ff8450`:
+The exact `2e44c407...` test packages are already hosted-green and delivered. The next authoritative event is the user's fresh physical Windows 11 + Npcap -> Ubuntu ARM64 retest on those packages.
 
-1. live-refresh Actions for the exact runtime candidate and, if the handoff/docs commits caused a newer source requirement, deliberately decide whether a rebuild at the newer source is necessary rather than mixing SHAs;
-2. run/collect the normal hosted CI plus real Windows portable and Linux ARM64 producer results for one exact source;
-3. deliver the compiled Windows x64 portable client and Ubuntu ARM64 server test candidate with SHA256/source fencing once those hosted gates are green;
-4. the user then performs the next physical Windows 11 + Npcap -> Ubuntu ARM64 retest;
-5. require the retest to prove Wintun address exclusivity/no APIPA leakage, Game/TUN/shared backend continuity, shared raw-IP RX/TX and route-fenced DNS/generic UDP/TCP application traffic before considering release qualification.
+When evidence arrives:
 
-Do **not** wait for the next physical run merely to hand over a hosted-green test candidate; equally, do **not** call that candidate `RELEASE-QUALIFIED` before the physical application path passes.
+1. verify the client/server logs identify runtime source `2e44c407...` or otherwise prove the exact delivered artifact identity;
+2. inspect raw logs before trusting any test-AI summary;
+3. require Wintun lease exclusivity/no APIPA leakage;
+4. correlate Game/TUN/LINK/shared-TUN readiness with `WBD_SHARED_RAWIP_RX_FIRST` / `WBD_SHARED_RAWIP_TX_FIRST` where emitted;
+5. verify route-fenced DNS, generic UDP and TCP application traffic plus return path;
+6. if a pcap is supplied, analyze it independently and correlate timestamps/tuples with logs;
+7. verify cleanup/host-network restoration;
+8. only change the first deterministically broken layer. Do not redesign mature transport wire from symptoms above or below that boundary.
 
-GitHub is the project recovery authority. Detailed physical-test conclusions and the recent fix chronology are recorded in `docs/development/2026-09-05_windows-physical-retest-handoff.md`; chat history and external drive copies are secondary convenience only.
+Do **not** call this source `RELEASE-QUALIFIED` until the physical application path passes on the exact runtime source.
+
+GitHub is the project recovery authority; chat history and external copies are secondary convenience only.
