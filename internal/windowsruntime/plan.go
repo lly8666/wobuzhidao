@@ -73,13 +73,18 @@ type Profile struct {
 	// IdleTimeoutSeconds is application/TUN payload-idle policy only. Zero keeps
 	// automatic DORMANT disabled. Transport liveness/control never refreshes it.
 	IdleTimeoutSeconds int
+	// LaneRotationMinSeconds and LaneRotationMaxSeconds bound scheduled
+	// per-lane age replacement. Zero values mean the product defaults (30..60m).
+	// They never disable age rotation; min==max requests a fixed interval.
+	LaneRotationMinSeconds int
+	LaneRotationMaxSeconds int
 
 	// TunnelIPv4 is populated from authenticated tunnel configuration before
 	// capture routes are applied. Empty is valid during preflight/bootstrap.
-	TunnelIPv4      string
-	TicketPath      string
+	TunnelIPv4       string
+	TicketPath       string
 	TunnelConfigPath string
-	RouteState      string
+	RouteState       string
 }
 
 type Underlay struct {
@@ -101,16 +106,16 @@ type Command struct {
 type Plan struct {
 	// Bootstrap is diagnostic compatibility only. Product Connect never runs it;
 	// TLS/Reality admission is performed by FakeTCP on the same public flow.
-	Bootstrap    Command
-	FakeTCP      Command
-	DTLS         Command
-	Link         Command
-	TUN          Command
-	IPv6Apply    Command
-	RouteApply   Command
-	RouteCleanup Command
-	IPv6Cleanup  Command
-	TicketPath   string
+	Bootstrap        Command
+	FakeTCP          Command
+	DTLS             Command
+	Link             Command
+	TUN              Command
+	IPv6Apply        Command
+	RouteApply       Command
+	RouteCleanup     Command
+	IPv6Cleanup      Command
+	TicketPath       string
 	TunnelConfigPath string
 }
 
@@ -143,6 +148,7 @@ func (p Profile) Validate() error {
 	if p.MTU < 576 || p.MTU > 9000 { return errors.New("MTU must be 576..9000") }
 	if err := logicaltunnel.ValidateProductTransportLaneCount(p.Lanes); err != nil { return err }
 	if err := validateIdleTimeoutSeconds(p.IdleTimeoutSeconds); err != nil { return err }
+	if err := validateLaneRotationProfile(p); err != nil { return err }
 	if _, err := logicaltunnel.ParseInstallationID(strings.TrimSpace(p.InstallationID)); err != nil { return errors.New("stable installation id must be exactly 32 hex characters") }
 	if p.RouteMode != RouteFull && p.RouteMode != RouteForeign && p.RouteMode != RouteChina { return errors.New("route mode must be Full, Foreign, or China") }
 	if (p.RouteMode == RouteForeign || p.RouteMode == RouteChina) && strings.TrimSpace(p.CNSetDir) == "" { return errors.New("China/Foreign route mode requires the WBD CN ipset directory") }
@@ -158,9 +164,7 @@ func (p Profile) Validate() error {
 	if strings.TrimSpace(p.TunnelIPv4) != "" {
 		if px, err := netip.ParsePrefix(p.TunnelIPv4); err != nil || !px.Addr().Is4() { return errors.New("authenticated tunnel IPv4 must be an IPv4 CIDR") }
 	}
-	if strings.TrimSpace(p.TicketPath) == "" || strings.TrimSpace(p.TunnelConfigPath) == "" || strings.TrimSpace(p.RouteState) == "" {
-		return errors.New("ticket, tunnel-config and route-state paths are required")
-	}
+	if strings.TrimSpace(p.TicketPath) == "" || strings.TrimSpace(p.TunnelConfigPath) == "" || strings.TrimSpace(p.RouteState) == "" { return errors.New("ticket, tunnel-config and route-state paths are required") }
 	return nil
 }
 
@@ -176,17 +180,10 @@ func (u Underlay) Validate() error {
 	if ip, err := netip.ParseAddr(u.SourceIP); err != nil || !ip.Is4() { return errors.New("underlay source IP must be IPv4") }
 	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") { return errors.New("underlay packet device must be an Npcap device") }
 	if !validMAC(u.SourceMAC) || !validMAC(u.NextHopMAC) { return errors.New("underlay source and next-hop MACs are required") }
-	if u.SourcePort != 0 && (u.SourcePort < windowsDynamicPortMin || int(u.SourcePort) >= windowsDynamicPortMin+windowsDynamicPortCount) {
-		return errors.New("underlay FakeTCP source port must be in the Windows dynamic TCP port range")
-	}
+	if u.SourcePort != 0 && (u.SourcePort < windowsDynamicPortMin || int(u.SourcePort) >= windowsDynamicPortMin+windowsDynamicPortCount) { return errors.New("underlay FakeTCP source port must be in the Windows dynamic TCP port range") }
 	return nil
 }
 
-// nextFakeTCPSourcePort returns a normal Windows dynamic-range source port and
-// guarantees no immediate reuse inside one wbd.exe process until all 16384
-// values have been cycled. The random seed changes the starting point after a
-// process restart. The port is connection metadata only; it does not change the
-// frozen FakeTCP recovery/FEC semantics.
 func nextFakeTCPSourcePort() uint16 {
 	fakeTCPPortSeedOnce.Do(func() {
 		var b [2]byte
@@ -196,8 +193,6 @@ func nextFakeTCPSourcePort() uint16 {
 	return uint16(windowsDynamicPortMin + int((fakeTCPPortSeed+n)&(windowsDynamicPortCount-1)))
 }
 
-// BuildBootstrap remains diagnostic/backward-compatible tooling only. Product
-// Controller.Connect must never invoke it.
 func BuildBootstrap(profile Profile) (Command, error) {
 	profile = profile.normalized()
 	if err := profile.Validate(); err != nil { return Command{}, err }
@@ -208,8 +203,6 @@ func buildBootstrapCommand(profile Profile) Command {
 	return Command{Name: "reality-bootstrap-diagnostic", Path: filepath.Join(profile.BinDir, "wbd-reality-front.exe"), Args: []string{"client", "-addr", profile.ServerFront, "-server-name", profile.ServerName, "-route-key", profile.RouteKey, "-username", profile.Username, "-password", profile.Password, "-verify-server=" + strconv.FormatBool(profile.VerifyServer), "-ticket-out", profile.TicketPath}}
 }
 
-// BuildFakeTCPCommand builds the compatibility one-lane command. Multi-lane
-// orchestration uses the same arguments with lane-specific ports/paths.
 func BuildFakeTCPCommand(profile Profile, underlay Underlay) (Command, error) {
 	profile = profile.normalized()
 	if err := ValidateRoutingAssets(profile); err != nil { return Command{}, err }
@@ -249,6 +242,7 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	if strings.TrimSpace(profile.TunnelIPv4) == "" { return Plan{}, errors.New("authenticated tunnel IPv4 is required before runtime plan build") }
 
 	raw, _ := netip.ParseAddrPort(profile.ServerRaw)
+	tunnelPrefix, _ := netip.ParsePrefix(profile.TunnelIPv4)
 	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
 	loop := func(port int) string { return "127.0.0.1:" + strconv.Itoa(port) }
 	psScript := func(name, script, action string) Command { return Command{Name: name, Path: "powershell.exe", Args: []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin(script), "-Action", action}} }
@@ -257,7 +251,7 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	if err != nil { return Plan{}, err }
 	dtlsArgs := []string{"client", strconv.Itoa(defaultDTLSPlainPort), "127.0.0.1", strconv.Itoa(defaultFakeTCPLocalPort), "none", "none"}
 	linkArgs := []string{"-mode", "client", "-listen", loop(defaultLinkListenPort), "-dtls", loop(defaultDTLSPlainPort), "-fec", profile.FEC, "-mtu", strconv.Itoa(profile.MTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(ticket)}
-	tunArgs := []string{"-mode", "client", "-ifname", profile.IfName, "-mtu", strconv.Itoa(profile.MTU), "-transport", loop(defaultLinkListenPort)}
+	tunArgs := []string{"-mode", "client", "-ifname", profile.IfName, "-mtu", strconv.Itoa(profile.MTU), "-transport", loop(defaultLinkListenPort), "-expected-source-ipv4", tunnelPrefix.Addr().String()}
 
 	psMode := "Full"
 	var prefixFile, directFile string

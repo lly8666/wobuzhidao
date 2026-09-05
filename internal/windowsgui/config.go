@@ -21,6 +21,8 @@ type RuntimeProfileFile struct {
 	// can be opened. New product profiles must use server_ip + server_port.
 	ServerFront string `json:"server_front"`; ServerRaw string `json:"server_raw"`
 	ServerName string `json:"server_name"`; RouteKey string `json:"route_key"`; Username string `json:"username"`; Password string `json:"password"`; VerifyServer bool `json:"verify_server"`; FEC string `json:"fec"`; IfName string `json:"if_name"`; MTU int `json:"mtu"`; RouteMode string `json:"route_mode"`; DNSMode string `json:"dns_mode"`; DNSServer string `json:"dns_server"`; Lanes int `json:"lanes"`; IdleTimeout *int `json:"idle_timeout"`
+	LaneRotationMinSeconds *int `json:"lane_rotation_min_seconds"`
+	LaneRotationMaxSeconds *int `json:"lane_rotation_max_seconds"`
 	// tunnel_ipv4 is decode-only compatibility. ADR-0012 address ownership is
 	// server-assigned and authenticated during same-flow bootstrap.
 	TunnelIPv4 string `json:"tunnel_ipv4"`
@@ -65,8 +67,7 @@ func ensureInstallationID(stateDir string) (logicaltunnel.InstallationID, error)
 		if os.IsExist(err) { return read() }
 		return "", fmt.Errorf("persist WBD installation id: %w", err)
 	}
-	_, werr := io.WriteString(f, string(id)+"\n")
-	cerr := f.Close()
+	_, werr := io.WriteString(f, string(id)+"\n"); cerr := f.Close()
 	if werr != nil { _ = os.Remove(path); return "", werr }
 	if cerr != nil { _ = os.Remove(path); return "", cerr }
 	return id, nil
@@ -81,13 +82,17 @@ func LoadRuntimeProfile(path, binDir, stateDir string) (windowsruntime.Profile, 
 	if cfg.FEC==""{cfg.FEC="off"};if cfg.IfName==""{cfg.IfName="WBD"};if cfg.MTU==0{cfg.MTU=1400};if cfg.RouteMode==""{cfg.RouteMode=windowsruntime.RouteFull};if cfg.DNSMode==""{cfg.DNSMode=windowsruntime.DNSAuto};if cfg.Lanes==0{cfg.Lanes=1}
 	idleTimeoutSeconds := defaultPayloadIdleTimeoutSeconds
 	if cfg.IdleTimeout != nil { idleTimeoutSeconds = *cfg.IdleTimeout }
+	laneRotationMinSeconds := windowsruntime.DefaultLaneRotationMinSeconds
+	if cfg.LaneRotationMinSeconds != nil { laneRotationMinSeconds = *cfg.LaneRotationMinSeconds }
+	laneRotationMaxSeconds := windowsruntime.DefaultLaneRotationMaxSeconds
+	if cfg.LaneRotationMaxSeconds != nil { laneRotationMaxSeconds = *cfg.LaneRotationMaxSeconds }
 	installationID, err := ensureInstallationID(stateDir); if err != nil { return windowsruntime.Profile{}, err }
 
 	cnSetDir := filepath.Join(stateDir, "ipsets", "cn")
 	if portable := os.Getenv("WBD_PORTABLE_DIR"); portable != "" { cnSetDir = filepath.Clean(portable) }
 	profile := windowsruntime.Profile{
 		BinDir:filepath.Clean(binDir), ServerFront:serverFront, ServerName:cfg.ServerName, RouteKey:cfg.RouteKey, Username:cfg.Username, Password:cfg.Password, ServerRaw:serverRaw, VerifyServer:cfg.VerifyServer, FEC:cfg.FEC, IfName:cfg.IfName, MTU:cfg.MTU, RouteMode:cfg.RouteMode, CNSetDir:cnSetDir, DNSMode:cfg.DNSMode, DNSServer:cfg.DNSServer,
-		InstallationID:string(installationID), Lanes:cfg.Lanes, IdleTimeoutSeconds:idleTimeoutSeconds, TunnelIPv4:"",
+		InstallationID:string(installationID), Lanes:cfg.Lanes, IdleTimeoutSeconds:idleTimeoutSeconds, LaneRotationMinSeconds:laneRotationMinSeconds, LaneRotationMaxSeconds:laneRotationMaxSeconds, TunnelIPv4:"",
 		TicketPath:filepath.Join(stateDir,"reality-ticket.tmp"), TunnelConfigPath:filepath.Join(stateDir,"tunnel-config.json"), RouteState:filepath.Join(stateDir,"route-state.json"),
 	}
 	if err:=profile.Validate();err!=nil{return windowsruntime.Profile{},fmt.Errorf("validate Windows GUI profile: %w",err)}

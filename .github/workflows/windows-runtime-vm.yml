@@ -1,0 +1,36 @@
+name: Windows runtime VM qualification
+
+on:
+  push:
+    paths:
+      - "cmd/wbd-tun/**"
+      - "internal/tunnel/**"
+      - "internal/windowsruntime/**"
+      - "internal/windowsgui/**"
+      - ".github/workflows/windows-runtime-vm.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Test Windows runtime policy and tunnel fence
+        shell: pwsh
+        run: |
+          go test ./internal/windowsruntime ./internal/windowsgui ./cmd/wbd-tun
+      - name: Cross-check Windows TUN executable build
+        shell: pwsh
+        run: |
+          go build -trimpath -o "$env:RUNNER_TEMP\wbd-tun.exe" ./cmd/wbd-tun
+          if (-not (Test-Path "$env:RUNNER_TEMP\wbd-tun.exe")) {
+            throw "wbd-tun.exe was not produced"
+          }
