@@ -75,9 +75,9 @@ Together the 31 hosted child gates cover Windows native protocol/runtime behavio
 
 ## Kick generation
 
-`2026-09-03-exact-source-mandatory-job-and-artifact-fencing`
+`2026-09-05-4470-runtime-handoff-repair-requalification`
 
-This generation preserves the current ADR-0012 lifecycle authority through `c42536fb30f4c2fddc17a0169513bc1ed16cf6ce` and the completed matrix expansion through `50475b9e96add0911abc30285ca5880dd0ba8da9`. It closes the deterministic release-orchestration gap without redefining intentionally optional CI research jobs as mandatory product gates: mandatory workflow success can no longer hide skipped/non-success authority jobs, `ci.yml:test` is named explicitly, new/unclassified CI jobs fail closed, and packaging success cannot authorize a candidate unless Windows portable plus Linux amd64/arm64 receipts are present on the exact selected producer runs for the same source SHA. No transport wire or mature FakeTCP/Reality/DTLS/LINK/FEC behavior changes in this generation.
+This generation requalifies the runtime behavior rooted at `4470f0ab9c8518021d514efe5853489e70549013` after the handoff/validator consistency repair. The kick itself changes no runtime, transport wire, FakeTCP/Reality/DTLS/LINK/Game/FEC semantics, lane policy, or physical-path policy; it exists only to force the mandatory hosted matrix and exact-source Windows/Linux artifact receipts for one fresh candidate source SHA. No qualification from `2e44c407eee677252897f2c75942407687ff8450`, `4470f0ab9c8518021d514efe5853489e70549013`, or any intervening SHA is transferable to that fresh candidate.
 
 ## Delivery rule
 
