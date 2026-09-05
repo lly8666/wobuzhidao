@@ -39,10 +39,10 @@ var (
 	wintunAllocateSendPacket   = wintunDLL.NewProc("WintunAllocateSendPacket")
 	wintunSendPacket           = wintunDLL.NewProc("WintunSendPacket")
 
-	kernel32DLL           = syscall.NewLazyDLL("kernel32.dll")
-	createEventW          = kernel32DLL.NewProc("CreateEventW")
-	setEvent              = kernel32DLL.NewProc("SetEvent")
-	closeHandle           = kernel32DLL.NewProc("CloseHandle")
+	kernel32DLL            = syscall.NewLazyDLL("kernel32.dll")
+	createEventW           = kernel32DLL.NewProc("CreateEventW")
+	setEvent               = kernel32DLL.NewProc("SetEvent")
+	closeHandle            = kernel32DLL.NewProc("CloseHandle")
 	waitForMultipleObjects = kernel32DLL.NewProc("WaitForMultipleObjects")
 )
 
@@ -53,10 +53,11 @@ type TUN struct {
 	closeEvt uintptr
 	name     string
 
-	stateMu   sync.Mutex
-	closed    bool
-	active    sync.WaitGroup
-	closeOnce sync.Once
+	stateMu         sync.Mutex
+	closed          bool
+	active          sync.WaitGroup
+	closeOnce       sync.Once
+	nonIPv4DropOnce sync.Once
 }
 
 func OpenTUN(name string) (*TUN, error) {
@@ -134,6 +135,14 @@ func (t *TUN) isClosed() bool {
 	return closed
 }
 
+func isIPv4Packet(packet []byte) bool {
+	if len(packet) < 20 || packet[0]>>4 != 4 {
+		return false
+	}
+	ihl := int(packet[0]&0x0f) * 4
+	return ihl >= 20 && ihl <= len(packet)
+}
+
 func (t *TUN) ReadPacket(p []byte) (int, error) {
 	if len(p) == 0 {
 		return 0, io.ErrShortBuffer
@@ -154,11 +163,22 @@ func (t *TUN) ReadPacket(p []byte) (int, error) {
 			uintptr(unsafe.Pointer(&packetSize)),
 		)
 		if packet != 0 {
+			packetBytes := unsafe.Slice((*byte)(unsafe.Pointer(packet)), int(packetSize))
+			// The current Windows product path is IPv4-only. Wintun is an L3
+			// adapter and may surface IPv6 (notably link-local control traffic).
+			// Fail closed here so non-IPv4 can never enter the Game/raw-IP wire.
+			if !isIPv4Packet(packetBytes) {
+				wintunReleaseReceivePacket.Call(t.session, packet)
+				t.nonIPv4DropOnce.Do(func() {
+					fmt.Println("WBD_TUN_WINDOWS_NON_IPV4_DROP fail_closed=1")
+				})
+				continue
+			}
 			if int(packetSize) > len(p) {
 				wintunReleaseReceivePacket.Call(t.session, packet)
 				return 0, io.ErrShortBuffer
 			}
-			copy(p[:packetSize], unsafe.Slice((*byte)(unsafe.Pointer(packet)), int(packetSize)))
+			copy(p[:packetSize], packetBytes)
 			wintunReleaseReceivePacket.Call(t.session, packet)
 			return int(packetSize), nil
 		}

@@ -96,6 +96,35 @@ function Wait-PreferredIPAddress([uint32]$InterfaceIndex, [string]$IPAddress, [s
     throw "WBD tunnel address $IPAddress did not become Preferred within ${TimeoutMilliseconds}ms; last_state=$lastState"
 }
 
+function Set-ExclusiveTunnelIPv4([uint32]$InterfaceIndex, [string]$IPAddress, [int]$TimeoutMilliseconds = 3000) {
+    # This adapter is WBD-owned and its IPv4 identity is the server-assigned
+    # Logical Tunnel lease. It must never retain DHCP/APIPA or another stale
+    # address because Windows source selection could otherwise bypass the lease
+    # identity and be correctly rejected by the server anti-spoof boundary.
+    Set-NetIPInterface -InterfaceIndex $InterfaceIndex -AddressFamily IPv4 -Dhcp Disabled -ErrorAction Stop
+    $removed = 0
+    $otherAddresses = @(Get-NetIPAddress -InterfaceIndex $InterfaceIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+        Where-Object { $_.IPAddress -ne $IPAddress })
+    foreach ($entry in $otherAddresses) {
+        Remove-NetIPAddress -InterfaceIndex $InterfaceIndex -IPAddress ([string]$entry.IPAddress) -Confirm:$false -ErrorAction Stop
+        $removed++
+    }
+
+    # Re-read for a bounded interval so an automatic address racing the static
+    # lease cannot turn a transiently-clean adapter into a false qualification.
+    $deadline = [DateTime]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
+    do {
+        $unexpected = @(Get-NetIPAddress -InterfaceIndex $InterfaceIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+            Where-Object { $_.IPAddress -ne $IPAddress })
+        if ($unexpected.Count -eq 0) {
+            Write-Output "WBD_WINDOWS_TUN_ADDRESS_EXCLUSIVE ifindex=$InterfaceIndex address4=$IPAddress removed_nonlease=$removed dhcp=disabled"
+            return
+        }
+        Start-Sleep -Milliseconds 100
+    } while ([DateTime]::UtcNow -lt $deadline)
+    throw "WBD-owned adapter retained non-lease IPv4 addresses: $($unexpected.IPAddress -join ',')"
+}
+
 function Save-State($State) {
     $dir = Split-Path -Parent $StatePath
     if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
@@ -207,7 +236,7 @@ if ($Action -eq 'Render') {
     if ($Underlay4) { Write-Output "01 ESCAPE IPv4 $Underlay4/32 through the pre-WBD best route before capture routes" }
     if ($Underlay6) { Write-Output "01 ESCAPE IPv6 $Underlay6/128 through the pre-WBD best route before capture routes" }
     foreach ($p in $DirectPrefix4) { Write-Output "01 DIRECT IPv4 $p through the pre-WBD physical route" }
-    if ($addr4) { Write-Output "02 ADDRESS IPv4 $($addr4.CIDR) on $AdapterAlias and wait for DAD Preferred state" }
+    if ($addr4) { Write-Output "02 ADDRESS IPv4 $($addr4.CIDR) exclusively on $AdapterAlias and wait for DAD Preferred state" }
     if ($addr6) { Write-Output "02 ADDRESS IPv6 $($addr6.CIDR) on $AdapterAlias and wait for DAD Preferred state" }
     Write-Output "02 MTU $MTU on $AdapterAlias"
     if ($DNSServers.Count -gt 0) { Write-Output "02 DNS NRPT namespace=. servers=$($DNSServers -join ',') capture_resolvers_through_wbd=1" }
@@ -310,6 +339,9 @@ try {
             Save-State $state
         }
         Wait-PreferredIPAddress -InterfaceIndex $ifIndex -IPAddress $a.Parsed.IP -Family $a.Family
+    }
+    if ($addr4) {
+        Set-ExclusiveTunnelIPv4 -InterfaceIndex $ifIndex -IPAddress $addr4.IP
     }
 
     # Plan and persist all WBD-owned capture routes before creating the batch so
