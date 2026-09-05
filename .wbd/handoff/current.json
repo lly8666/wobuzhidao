@@ -1,81 +1,117 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 98,
+  "continuity_sequence": 99,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "0e0bf6865b719ebd17d9d2d4dd0e5463373729a3",
+  "checkpoint_based_on_head_sha": "b75a33f31a5e5f49c43915960aca6ee06cfa6540",
+  "current_head_sha": "b75a33f31a5e5f49c43915960aca6ee06cfa6540",
+  "runtime_test_candidate_sha": "2e44c407eee677252897f2c75942407687ff8450",
+  "last_hosted_green_runtime_sha": "cf8298f9cb30c7aa9d60ca00611a783c401ba735",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease + one PacketID race namespace + 1..4 independent replaceable Transport Lanes. Each lane owns one complete same-association FakeTCP -> Reality-like TLS -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/no-HOL public lineage.",
-    "current_milestone": "V2-M10 hosted exact-source qualification is AUTOMATED-GREEN at source 0e0bf6865b719ebd17d9d2d4dd0e5463373729a3: 22 workflow_dispatch gates plus 9 exact-SHA push authority gates passed mandatory job inventory checks, and Windows portable plus Linux amd64/arm64 artifact receipts are fenced to that same source. Physical Windows 11 + Npcap -> Ubuntu ARM64 product acceptance is still missing, so release is not authorized. Next work is the physical Npcap product qualification expansion without changing mature transport wire absent deterministic first-broken-layer evidence.",
-    "local_optimization_stop_rule": "Do not redesign mature FakeTCP recovery, Reality-like bootstrap, DTLS, LINK or FEC absent deterministic evidence. Functional lifecycle tests prioritize FEC=off; fixed 20:20 is compatibility smoke only. Never call RELEASE-QUALIFIED before one exact SOURCE_SHA has AUTOMATED-GREEN, same-source Windows/Linux artifacts, and fresh physical Windows 11 + Npcap -> Ubuntu ARM64 evidence."
+    "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease + one SessionID/PacketID race namespace + 1..4 independent replaceable Transport Lanes. Each lane owns one complete same-association FakeTCP -> Reality-like TLS -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/no-HOL public lineage.",
+    "current_milestone": "Physical qualification advanced beyond stale 0e0bf686. be760709 proved the real public :443 FakeTCP -> same-flow Reality-like TLS -> DTLS 1.3 -> LINK lineage but exposed a missing Windows portable Game child. cf8298 fixed/hosted-qualified that runtime closure and physically reached Game, Windows TUN and the server shared-TUN session. The next first-broken layer was Windows Wintun L3 identity/non-IPv4 leakage. Runtime candidate 2e44c407 fences the WBD-owned Wintun to the server lease and drops non-IPv4 locally. Fresh hosted package collection and physical application E2E remain pending.",
+    "stop_rule": "Do not redesign FakeTCP/Reality-like TLS/DTLS/LINK/Game wire/FEC absent deterministic evidence. FEC primary functional path remains off; fixed 20:20 is compatibility smoke. Never call RELEASE-QUALIFIED before one exact runtime SOURCE_SHA has hosted-green same-source artifacts and fresh physical Windows 11 + Npcap -> Ubuntu ARM64 application-path evidence."
   },
   "architecture_override": {
-    "authority": "Explicit live user authorization: ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs per-lane same-association bootstrap/no-HOL. ADR-0013/0014/0015 are withdrawn where they globalize single-flow.",
-    "critical_guard": "single-flow is PER TRANSPORT LANE. A Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Game/weak-network policy may maintain 2..4 lanes. A -> A+B -> B is REQUIRED. Planned replacement is generation-fenced make-before-break; candidate failure preserves healthy A. Any reintroduction of a global one-public-flow-per-Logical-Tunnel rule is an ARCHITECTURE REGRESSION. Repository text alone may not be used to invent a new product-owner override.",
-    "adr0014": "ADR-0014 is withdrawn / invalidated and not current authority.",
-    "human_authority_rule": "Architecture override requires explicit live user authorization.",
-    "candidate_semantics": "A make-before-break candidate is a new transport incarnation of an existing logical LaneID 1..4. Physical transport slots are bounded to 1..5; exactly one unused slot is replacement overlap capacity during four-lane operation, never a fifth logical lane.",
-    "multipath": "Normal desired=1; Game/weak desired=2..4. Independent lane transport state shares one Logical Tunnel identity/lease and one SessionID/PacketID race domain. First valid arrival wins; duplicate suppressed; no cross-lane HOL.",
-    "replacement": "Generation-fenced make-before-break A -> A+B -> B; candidate failure preserves healthy old lane and last-known-good baseline; Game rotates one logical lane at a time.",
-    "server_path": "Linux final is one shared WBD TUN + one WBD-owned host NAT.",
-    "tcp_like_core": "FakeTCP/Reality/wolfSSL DTLS/LINK/FEC wire is frozen unless deterministic lower-layer evidence proves a defect."
+    "authority": "ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs per-lane same-association bootstrap/no-HOL. ADR-0013/0014/0015 are withdrawn where they globalize single-flow.",
+    "critical_guard": "single-flow is PER TRANSPORT LANE / transport epoch. One Logical Tunnel owns stable identity/lease and one SessionID/PacketID race domain with 1..4 logical lanes. Normal desired=1; Game/weak desired=2..4.",
+    "game_one_lane": "wbd-game-lane-client remains required as the race/dedup aggregation point even when Lanes=1. Do not bypass it.",
+    "replacement": "Generation-fenced make-before-break A -> A+B -> B; candidate failure preserves healthy A. Physical slots are bounded to 1..5, with the spare used only for replacement overlap, never as a fifth logical lane.",
+    "server_path": "Linux final path is one shared WBD TUN + root routing + one WBD-owned host NAT.",
+    "lease_source_boundary": "Raw IPv4 ingress requires source == server-issued Logical Tunnel lease. Do not weaken anti-spoof for APIPA/arbitrary source addresses.",
+    "ipv6": "Windows product IPv6 remains fail-closed until qualified; non-IPv4 must not enter the IPv4 Game/raw-IP backend.",
+    "nat_observability": "SourceIP/default-route changes are not authoritative direct public NAT mapping reflection."
   },
   "continuation_cursor": {
-    "last_completed_action": "Completed V2-M10 exact-source hosted qualification repair and execution on immutable SOURCE_SHA 0e0bf6865b719ebd17d9d2d4dd0e5463373729a3. Release aggregator run 33722473017 passed: 22 dispatched gates and 9 exact-SHA push authority gates all satisfied mandatory job contracts with mandatory_skipped=0; ci.yml's four title-gated transport research jobs were explicitly classified non-authority; Windows portable artifact run 33722502475 and Linux amd64/arm64 artifact run 33722517950 all produced unexpired receipts whose producer run/head SHA and artifact names fence to the same SOURCE_SHA. Final aggregator branch fence also matched 0e0bf686. No transport/runtime wire changed in this phase.",
-    "current_task": "Upgrade windows-npcap-physical from limited real-machine smoke to product-level physical qualification using the same explicit source/artifact fencing. Start by auditing the current workflow and scripts at live HEAD, then add deterministic receipt/evidence for real Npcap raw SYN/SYNACK capture/filtering, same-association Reality-like TLS -> DTLS 1.3 -> LINK, shared-TUN/Wintun DNS/UDP/TCP bidirectional application traffic, sustained traffic, response return, cleanup, IPv6 fail-closed, ADR-0012 lane lifecycle, and host/network transitions where hardware/environment allows.",
-    "why_now": "Hosted release authority is now complete for 0e0bf686 and artifact/source fencing is proven. The remaining release blocker is physical Windows 11 + Npcap/NIC/NAT/ISP -> Ubuntu ARM64 acceptance. Existing hosted Npcap capture-boundary simulation is already strong; duplicating parser corpus would not close the real product risk.",
-    "done_when": "Physical qualification emits one same-SOURCE_SHA receipt demonstrating the required real Windows Npcap -> Ubuntu ARM64 product path and lifecycle/cleanup/IPv6 gates, while unsupported hardware-dependent transitions are explicitly reported rather than silently passed. RELEASE-QUALIFIED remains forbidden until that physical receipt is green for the same source lineage required by release authority.",
-    "next_atomic_action": "Live-read .github/workflows/windows-npcap-physical.yml and every script it invokes, reconcile what the physical runner already proves versus the required product checklist, then implement the smallest deterministic physical-harness expansion that adds real end-to-end application-path evidence without modifying FakeTCP/Reality/DTLS/LINK/FEC wire."
+    "last_completed_action": "Reconstructed missing recent handoff history from 0e0bf686 through runtime candidate 2e44c407. Added docs/development/2026-09-05_windows-physical-retest-handoff.md, refreshed CONTINUE_HERE.md, and corrected .wbd/handoff/README.md authority to PR #9 / feat/single-flow-reality-faketcp. Substantive documentation checkpoint is b75a33f31a5e5f49c43915960aca6ee06cfa6540; it is documentation only and does not replace runtime candidate 2e44c407.",
+    "current_task": "Continue the user's requested test-package flow: live-refresh Actions for runtime candidate 2e44c407, run/collect normal hosted CI plus Windows portable and Ubuntu ARM64 producer outputs for one exact runtime source, then deliver compiled test packages with SHA256/source fencing. The user will perform the next physical retest.",
+    "why_now": "Round 2 on cf8298 proved the Game packaging closure and reached Windows TUN/server shared-TUN session, then exposed APIPA/non-IPv4 at the Windows Wintun L3 boundary. 2e44 implements the minimal client-side identity fence without weakening server anti-spoof or changing transport wire.",
+    "done_when": "Test-package delivery: one exact runtime source has hosted-green CI, Windows portable and Linux ARM64 artifacts and delivered hashes/source are explicit. Release qualification: a fresh physical run on that exact candidate also proves Wintun lease exclusivity/no APIPA leakage, Game/TUN/shared backend continuity, correct leased-source raw-IP RX/TX, route-fenced DNS/generic UDP/TCP application traffic and cleanup.",
+    "next_atomic_action": "Inspect current GitHub Actions and producer state for runtime candidate 2e44c407eee677252897f2c75942407687ff8450. Do not treat the later docs/handoff branch HEAD as a runtime-qualified source. If producer mechanics require rebuilding a newer source, make the source transition explicit and rerun all same-source gates rather than mixing artifacts."
+  },
+  "recent_physical_history": {
+    "round1": {
+      "source_sha": "be7607093b3065bddce024048ba376f2e5d21cdd",
+      "proven": "Real public :443 Windows Npcap/FakeTCP SYN/SYNACK -> same-association Reality-like TLS bootstrap -> DTLS 1.3 -> LINK.",
+      "not_proven": "Game/Wintun/Logical Tunnel backend/shared TUN/application E2E.",
+      "root_cause": "Windows portable omitted required wbd-game-lane-client.exe even though one-lane StartMultiLane requires Game.",
+      "failure_log_sha256": "0167fd5f49f52ec0e7587a96282740652bc2e65ffe66b40374b03440f6caeb7e",
+      "pcap_sha256": "b51844853f1d86977ad5283dad35e0b4a4b4249527ea43c472b4e30fade63767"
+    },
+    "packaging_repair": {
+      "e042796373e23fa4665f7647bf767d5bc36f482b": "Added Game build/manifest/extraction/trigger coverage; first static contract test had a raw-string escaping bug.",
+      "4d391528779bd771e368f0f1bd44dfec6e2a8883": "Fixed escaping; occurrence-count assertion still wrong.",
+      "cf8298f9cb30c7aa9d60ca00611a783c401ba735": "Corrected contract; same-source CI, Windows portable embedded extraction, Linux amd64 and ARM64 producer results completed successfully."
+    },
+    "round2": {
+      "source_sha": "cf8298f9cb30c7aa9d60ca00611a783c401ba735",
+      "proven": "WBD_GAME_LANE_CLIENT_READY, WBD_TUN_READY/connect_pass, server WBD_LINK_MUX_BACKEND_READY, WBD_GAME_LANE_SESSION_OPEN and WBD_SHARED_TUN_SESSION_READY.",
+      "first_broken_layer": "Server saw non-IPv4 payloads and source 169.254.99.241 while lease was 10.66.0.1; strict anti-spoof rejected the mismatch and DNS/UDP/TCP probes timed out.",
+      "root_cause": "WBD Wintun setup did not enforce exclusive lease IPv4 and Windows TUN read side did not gate non-IPv4 before Game/raw-IP."
+    },
+    "current_fix": {
+      "source_sha": "2e44c407eee677252897f2c75942407687ff8450",
+      "change": "Disable IPv4 DHCP only on WBD-owned Wintun, remove every non-lease IPv4, verify lease exclusivity, and drop non-IPv4 locally before Game/raw-IP.",
+      "automatic_ipv4_semantics": "Physical Wi-Fi/Ethernet DHCP is untouched. WBD tunnel IPv4 remains automatically assigned from the authenticated server Logical Tunnel lease; Windows DHCP/APIPA is fenced only on the WBD virtual adapter.",
+      "physical_status": "Fresh physical application-path proof pending."
+    }
+  },
+  "deployment_fences": {
+    "public_endpoint": ":443",
+    "internal_link": "127.0.0.1:47010",
+    "avoid_without_reconciliation": "Earlier public 40443 trial was intercepted by an existing NAT redirect to the old 10443 service.",
+    "normal_lanes": 1,
+    "primary_fec": "off"
   },
   "resume_read_set": [
     ".wbd/handoff/current.json",
+    "CONTINUE_HERE.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
     "ROADMAP.md",
     "docs/architecture/ADR-0011-single-public-flow-reality-bootstrap.md",
     "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
-    ".github/workflows/release-qualification-kick.yml",
-    "docs/development/QUALIFICATION_KICK.md",
-    ".github/workflows/windows-npcap-physical.yml"
+    "docs/development/2026-09-05_windows-physical-retest-handoff.md",
+    ".github/workflows/windows-portable-bundle.yml",
+    ".github/workflows/windows-npcap-physical.yml",
+    "scripts/windows_tun_route.ps1",
+    "internal/tunnel/tun_windows.go",
+    "internal/windowsruntime/multilane.go",
+    "internal/windowsruntime/executor.go",
+    "internal/windowsruntime/controller.go"
   ],
   "required_data_plane_assets": [],
-  "local_test_snapshot": {
-    "authority": "snapshot_not_live",
-    "tested_commit": "0e0bf6865b719ebd17d9d2d4dd0e5463373729a3",
-    "result": "not_run",
-    "scope": "No local sandbox repository execution is claimed. Connected GitHub exact-source Actions are the execution authority for sequence 98; handoff JSON was syntax/contract preflighted before metadata commit."
-  },
   "automated_exact_head_snapshot": {
-    "source_head": "0e0bf6865b719ebd17d9d2d4dd0e5463373729a3",
-    "result": "success",
-    "focused_scope": "release-qualification-kick run 33722473017 completed success. All 22 workflow_dispatch gates passed complete mandatory job inventory checks; all 9 exact-SHA push authority gates passed mandatory job checks; ci.yml mandatory test passed while its four explicitly non-authority transport jobs were accounted as skipped; Windows portable and Linux amd64/arm64 exact-source artifact receipts passed producer-run/head-SHA/name fencing; final branch fence remained on the candidate SHA.",
+    "runtime_source_head": "2e44c407eee677252897f2c75942407687ff8450",
+    "result": "live_refresh_required",
+    "known_previous_green_source": "cf8298f9cb30c7aa9d60ca00611a783c401ba735",
+    "note": "Do not infer the complete 2e44 hosted matrix from individual runs observed during handoff maintenance. Re-check CI/Windows portable/Linux ARM64 producer state before delivery.",
     "release_authorized": false
   },
   "validated_findings": {
-    "bounded_replacement": "IMPLEMENTED: same logical LaneID old+candidate physical incarnations overlap in bounded Game race; candidate failure preserves old incarnation; logical product cardinality remains 1..4.",
-    "rotating_spare_slot": "IMPLEMENTED: four logical lanes use four unique physical slots from bounded 1..5 pool; one spare is replacement overlap only, never a fifth logical lane.",
-    "payload_idle_and_wake": "IMPLEMENTED: omitted idle_timeout defaults 15m, explicit zero disables idle sleep, real payload drives activity, DORMANT wakes on first payload and first READY lane resumes forwarding.",
-    "lane_age_and_liveness": "IMPLEMENTED: randomized 30..60m age rotation plus FakeTCP/DTLS/LINK child and LINK missed-PONG/no-RX replacement.",
-    "windows_path_convergence": "IMPLEMENTED: SourceIP/Npcap-device/MAC/default-route change observation, WBD-owned route rebind, manual reconnect and reconnect-capable server idle-CLOSE convergence.",
-    "public_nat_observability_audit": "NOT IMPLEMENTED: there is no authoritative client-visible direct public external-IP/NAT mapping reflection. Local SourceIP/default-route tests must not be relabeled as direct NAT mapping detection; any future public mapping observability is a separate design task and must not be smuggled into physical qualification by changing wire.",
-    "release_qualification_audit": "AUTOMATED-GREEN at 0e0bf6865b719ebd17d9d2d4dd0e5463373729a3: release graph enforces mandatory job execution, distinguishes only the four known ci.yml non-authority title-gated transport jobs, requires Windows portable + Linux amd64/arm64 artifact receipts, and fences all authority to the same exact SOURCE_SHA.",
-    "release_state": "NOT RELEASE-QUALIFIED. Hosted automated authority and same-source artifacts are green for 0e0bf686, but fresh physical Windows 11 + Npcap -> Ubuntu ARM64 product evidence is still mandatory."
+    "round1_outer_transport": "PHYSICALLY PROVEN at be760709: public :443 FakeTCP -> Reality-like TLS -> DTLS 1.3 -> LINK.",
+    "game_runtime_dependency": "PROVEN REQUIRED even for Lanes=1; packaging omission fixed by cf8298 lineage.",
+    "round2_backend_reachability": "PHYSICALLY PROVEN at cf8298: Game, Windows TUN ready, server Game/backend/shared-TUN session.",
+    "round2_l3_failure": "PHYSICALLY OBSERVED at cf8298: non-IPv4 plus APIPA 169.254.99.241 while lease=10.66.0.1; app probes timed out.",
+    "windows_l3_fence": "IMPLEMENTED at 2e44; fresh physical proof pending.",
+    "physical_adapter_dhcp": "UNCHANGED by 2e44: only WBD-owned Wintun DHCP/APIPA is disabled.",
+    "release_state": "NOT RELEASE-QUALIFIED."
   },
   "qualification_snapshot": {
-    "authority": "automated_green_same_source_artifacts_physical_pending",
-    "source_head": "0e0bf6865b719ebd17d9d2d4dd0e5463373729a3",
-    "result": "AUTOMATED-GREEN + Windows/Linux artifacts; PHYSICAL pending",
-    "known_incomplete": "Fresh physical Windows 11 + Npcap -> Ubuntu ARM64 acceptance must prove real raw SYN/SYNACK/capture filtering, same-association bootstrap/DTLS/LINK, Wintun/shared-TUN DNS+generic UDP+TCP bidirectional application traffic, sustained traffic/return path, deterministic cleanup, connected/DORMANT/replacement IPv6 fail-closed, ADR-0012 lane lifecycle and supported host/network transitions. Direct public NAT mapping observability is not currently available and is not to be faked by local path-change tests.",
+    "runtime_source_head": "2e44c407eee677252897f2c75942407687ff8450",
+    "result": "Current fix implemented; hosted package collection and fresh physical application E2E pending.",
+    "known_incomplete": "Need same-source Windows portable + Ubuntu ARM64 hosted-green artifacts for delivery, then fresh physical proof of lease exclusivity/no APIPA leakage, correct leased-source raw-IP RX/TX, DNS, generic UDP, TCP, return path and cleanup.",
     "release_authorized": false
   },
   "operational_continuity": {
-    "previous_sequence": 97,
-    "substantive_commit": "0e0bf6865b719ebd17d9d2d4dd0e5463373729a3",
-    "metadata_note": "Sequence 98 records completion of the V2-M10 hosted exact-source audit. The qualified source remains immutable 0e0bf686 even though this handoff update will create a later metadata-only branch HEAD. Do not stitch physical evidence onto a different source without intentionally re-running the required source/artifact fencing.",
-    "rule": "One atomic lifecycle/evidence repair at a time; live-refresh before execution; verify substantive changes with focused tests and exact-source Actions; update handoff after every completed phase; never stitch release evidence across different source SHAs."
+    "previous_sequence": 98,
+    "substantive_commit": "b75a33f31a5e5f49c43915960aca6ee06cfa6540",
+    "runtime_candidate": "2e44c407eee677252897f2c75942407687ff8450",
+    "metadata_note": "Sequence 99 repairs stale handoff documentation through both recent physical rounds. b75a33 is docs/history only. Runtime candidate remains 2e44; the final handoff-only commit is metadata and cannot self-reference.",
+    "rule": "Live-refresh before execution; exact-source fence hosted artifacts and physical evidence; never stitch release evidence across different source SHAs."
   }
 }
