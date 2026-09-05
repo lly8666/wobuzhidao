@@ -75,9 +75,9 @@ Together the 31 hosted child gates cover Windows native protocol/runtime behavio
 
 ## Kick generation
 
-`2026-09-05-4470-runtime-handoff-repair-requalification`
+`2026-09-05-lane-ready-barrier-game-mtu-budget`
 
-This generation requalifies the runtime behavior rooted at `4470f0ab9c8518021d514efe5853489e70549013` after the handoff/validator consistency repair. The kick itself changes no runtime, transport wire, FakeTCP/Reality/DTLS/LINK/Game/FEC semantics, lane policy, or physical-path policy; it exists only to force the mandatory hosted matrix and exact-source Windows/Linux artifact receipts for one fresh candidate source SHA. No qualification from `2e44c407eee677252897f2c75942407687ff8450`, `4470f0ab9c8518021d514efe5853489e70549013`, or any intervening SHA is transferable to that fresh candidate.
+This generation qualifies the runtime repair derived from the 200-second physical long-instance evidence on the previous `6e759edc31e3d3fdf44e4b2514011b4b1a63d1ee` candidate. Healthy lane replacement now requires an authenticated private Game membership Probe/Ready qualification before old A may be retired, preserving ADR-0012 A -> A+B -> B semantics instead of relying on the prior fixed-time assumption. The user-visible inner/Wintun MTU default is reduced from 1400 to 1360 while remaining configurable, and Game-backed LINK plans automatically reserve the fixed 32-byte Game envelope above the configured inner MTU. FakeTCP, Reality-like TLS, DTLS, LINK startup semantics, release FEC policy, logical lane cardinality, lease authority, and physical-path policy are otherwise unchanged. No hosted/package or physical qualification from `6e759edc31e3d3fdf44e4b2514011b4b1a63d1ee` or any earlier SHA transfers to this fresh candidate.
 
 ## Delivery rule
 

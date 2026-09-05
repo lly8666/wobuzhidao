@@ -24,7 +24,10 @@ const (
 	defaultDTLSPlainPort     = 46101
 	defaultLinkListenPort    = 47101
 	defaultGameListenPort    = 48101
-	defaultMTU               = 1400
+	defaultMTU               = 1360
+	// DefaultTunnelMTU is the user-visible inner/Wintun MTU used when a profile
+	// omits mtu. Product Game lanes add their private envelope budget separately.
+	DefaultTunnelMTU = defaultMTU
 
 	RouteFull    = "Full"
 	RouteForeign = "Foreign"

@@ -79,7 +79,7 @@ func LoadRuntimeProfile(path, binDir, stateDir string) (windowsruntime.Profile, 
 	if err := decoder.Decode(&cfg); err != nil { return windowsruntime.Profile{}, fmt.Errorf("decode Windows GUI profile: %w", err) }
 	if err := ensureJSONEOF(decoder); err != nil { return windowsruntime.Profile{}, err }
 	serverFront, serverRaw, err := resolveServerEndpoints(cfg); if err != nil { return windowsruntime.Profile{}, err }
-	if cfg.FEC==""{cfg.FEC="off"};if cfg.IfName==""{cfg.IfName="WBD"};if cfg.MTU==0{cfg.MTU=1400};if cfg.RouteMode==""{cfg.RouteMode=windowsruntime.RouteFull};if cfg.DNSMode==""{cfg.DNSMode=windowsruntime.DNSAuto};if cfg.Lanes==0{cfg.Lanes=1}
+	if cfg.FEC==""{cfg.FEC="off"};if cfg.IfName==""{cfg.IfName="WBD"};if cfg.MTU==0{cfg.MTU=windowsruntime.DefaultTunnelMTU};if cfg.RouteMode==""{cfg.RouteMode=windowsruntime.RouteFull};if cfg.DNSMode==""{cfg.DNSMode=windowsruntime.DNSAuto};if cfg.Lanes==0{cfg.Lanes=1}
 	idleTimeoutSeconds := defaultPayloadIdleTimeoutSeconds
 	if cfg.IdleTimeout != nil { idleTimeoutSeconds = *cfg.IdleTimeout }
 	laneRotationMinSeconds := windowsruntime.DefaultLaneRotationMinSeconds

@@ -19,6 +19,25 @@ func loopbackUDP(t *testing.T) *net.UDPConn {
 	return c
 }
 
+func armLaneReadyOnce(t *testing.T, conn *net.UDPConn, sid gamelane.SessionID, laneID uint8) <-chan error {
+	t.Helper()
+	done := make(chan error, 1)
+	go func() {
+		_ = conn.SetReadDeadline(time.Now().Add(time.Second))
+		buf := make([]byte, 256)
+		n, peer, err := conn.ReadFromUDP(buf)
+		if err != nil { done <- err; return }
+		control, err := gamelane.ParseMembershipControl(buf[:n])
+		if err != nil { done <- err; return }
+		if control.SessionID != sid || control.LaneID != laneID || control.Op != gamelane.MembershipProbe { done <- gamelane.ErrMalformed; return }
+		ready, err := gamelane.MarshalLaneReady(sid, laneID)
+		if err != nil { done <- err; return }
+		_, err = conn.WriteToUDP(ready, peer)
+		done <- err
+	}()
+	return done
+}
+
 func TestDynamicLaneMembershipDormantWake(t *testing.T) {
 	a := loopbackUDP(t)
 	b := loopbackUDP(t)
@@ -68,9 +87,11 @@ func TestReplacementOverlapFansOutIdenticalLogicalFrame(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	c := &client{app:app, enc:enc, pacer:pacer, lanes:make(map[uint8]*laneConn, gamelane.MaxLanes)}
 	t.Cleanup(c.closeAllLanes)
+	ready := armLaneReadyOnce(t, candidateTarget, sid, 1)
 	if got, err := c.setLaneTargets([]gamelane.LaneTarget{{ID:1,Address:oldTarget.LocalAddr().String()},{ID:1,Address:candidateTarget.LocalAddr().String()}}); err != nil || !reflect.DeepEqual(got, []uint8{1}) {
 		t.Fatalf("overlap active=%v err=%v", got, err)
 	}
+	if err := <-ready; err != nil { t.Fatal(err) }
 	if groups := c.activeRaceGroups(); len(groups) != 1 || groups[0].primary == nil || groups[0].overlap == nil {
 		t.Fatalf("overlap groups=%+v", groups)
 	}
@@ -111,9 +132,15 @@ func TestReplacementOverlapFansOutIdenticalLogicalFrame(t *testing.T) {
 func TestPrimaryFailurePromotesReplacementIncarnation(t *testing.T) {
 	oldTarget := loopbackUDP(t)
 	candidateTarget := loopbackUDP(t)
-	c := &client{lanes:make(map[uint8]*laneConn, gamelane.MaxLanes)}
+	var sid gamelane.SessionID
+	sid[0] = 9
+	enc, err := gamelane.NewEncoder(sid, 1)
+	if err != nil { t.Fatal(err) }
+	c := &client{enc:enc, lanes:make(map[uint8]*laneConn, gamelane.MaxLanes)}
 	t.Cleanup(c.closeAllLanes)
+	ready := armLaneReadyOnce(t, candidateTarget, sid, 1)
 	if _, err := c.setLaneTargets([]gamelane.LaneTarget{{ID:1,Address:oldTarget.LocalAddr().String()},{ID:1,Address:candidateTarget.LocalAddr().String()}}); err != nil { t.Fatal(err) }
+	if err := <-ready; err != nil { t.Fatal(err) }
 	group := c.activeRaceGroups()[0]
 	old := group.primary
 	candidate := group.overlap

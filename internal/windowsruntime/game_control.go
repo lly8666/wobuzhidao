@@ -12,13 +12,16 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/gamelane"
 )
 
-const gameControlTimeout = 2 * time.Second
+const gameControlTimeout = 5 * time.Second
 
 // setGameLaneTargets updates only the local Game/race membership. It never
 // creates a public flow and never changes FakeTCP/DTLS wire semantics. Callers
 // must make a candidate transport fully healthy before adding it here. During
 // make-before-break the target list may contain the same logical LaneID twice;
-// the reply remains a set of unique logical LaneIDs.
+// the reply remains a set of unique logical LaneIDs. An overlap set does not
+// return success until the candidate Game association has received the server
+// membership-ready acknowledgement, so controller retirement of A is gated on
+// B being present in the authenticated server Game race set.
 func setGameLaneTargets(control string, targets []gamelane.LaneTarget, timeout time.Duration) error {
 	addr, err := netip.ParseAddrPort(control)
 	if err != nil || !addr.Addr().Is4() || !addr.Addr().IsLoopback() || addr.Port() == 0 {

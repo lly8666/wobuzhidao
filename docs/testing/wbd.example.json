@@ -8,7 +8,7 @@
   "verify_server": false,
   "fec": "off",
   "if_name": "WBD",
-  "mtu": 1400,
+  "mtu": 1360,
   "route_mode": "Full",
   "dns_mode": "Auto",
   "dns_server": "",

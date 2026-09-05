@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/lly8666/wobuzhidao/internal/gamelane"
 )
 
 const makeBeforeBreakCandidateSlot = 5
@@ -82,6 +84,11 @@ func buildLanePlanForSlot(profile Profile, bootstrap LaneBootstrap, slot int, ca
 	if err != nil { return LanePlan{}, err }
 	linkListen, err := transportSlotLoopback(defaultLinkListenPort, slot)
 	if err != nil { return LanePlan{}, err }
+	// profile.MTU is the user-visible inner/Wintun MTU. Every Game datagram adds
+	// a fixed 32-byte WGL1 envelope before entering LINK, so the immutable LINK
+	// plaintext budget must include that header rather than rejecting a legal
+	// inner packet as fec.ErrPacketTooLarge even when FEC is disabled.
+	gameLinkMTU := profile.MTU + gamelane.HeaderSize
 
 	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
 	suffix := strconv.Itoa(bootstrap.ID)
@@ -101,7 +108,7 @@ func buildLanePlanForSlot(profile Profile, bootstrap LaneBootstrap, slot int, ca
 		Link: Command{
 			Name: "link-" + suffix,
 			Path: bin("wbd-link-proxy.exe"),
-			Args: []string{"-mode", "client", "-listen", linkListen, "-dtls", dtlsPlain, "-fec", profile.FEC, "-mtu", strconv.Itoa(profile.MTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(bootstrap.Ticket)},
+			Args: []string{"-mode", "client", "-listen", linkListen, "-dtls", dtlsPlain, "-fec", profile.FEC, "-mtu", strconv.Itoa(gameLinkMTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(bootstrap.Ticket)},
 		},
 	}, nil
 }

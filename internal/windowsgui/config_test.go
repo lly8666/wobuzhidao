@@ -34,10 +34,18 @@ func TestLoadRuntimeProfileAppliesADR0012Defaults(t *testing.T) {
 	stateDir := filepath.Join(dir, "state")
 	profile, err := LoadRuntimeProfile(path, filepath.Join(dir, "bin"), stateDir); if err != nil { t.Fatal(err) }
 	if profile.ServerFront!="198.51.100.10:40443"||profile.ServerRaw!=profile.ServerFront{t.Fatalf("shared server endpoint not derived: %+v",profile)}
-	if profile.FEC!="20:20"||profile.IfName!="WBD"||profile.MTU!=1400||profile.RouteMode!=windowsruntime.RouteFull||profile.DNSMode!=windowsruntime.DNSAuto||profile.Lanes!=1 { t.Fatalf("unexpected defaults: %+v",profile) }
+	if profile.FEC!="20:20"||profile.IfName!="WBD"||profile.MTU!=windowsruntime.DefaultTunnelMTU||profile.RouteMode!=windowsruntime.RouteFull||profile.DNSMode!=windowsruntime.DNSAuto||profile.Lanes!=1 { t.Fatalf("unexpected defaults: %+v",profile) }
 	if profile.TunnelIPv4!="" { t.Fatalf("tunnel address must be server-assigned after bootstrap, got=%q", profile.TunnelIPv4) }
 	if _,err:=logicaltunnel.ParseInstallationID(profile.InstallationID);err!=nil{t.Fatalf("installation id invalid: %q: %v",profile.InstallationID,err)}
 	if !strings.HasSuffix(profile.TicketPath,filepath.Join("state","reality-ticket.tmp"))||!strings.HasSuffix(profile.TunnelConfigPath,filepath.Join("state","tunnel-config.json"))||!strings.HasSuffix(profile.RouteState,filepath.Join("state","route-state.json"))||!strings.HasSuffix(profile.CNSetDir,filepath.Join("state","ipsets","cn")){t.Fatalf("WBD-owned paths escaped installed state dir: %+v",profile)}
+}
+
+func TestLoadRuntimeProfileAcceptsCustomMTU(t *testing.T) {
+	t.Setenv("WBD_PORTABLE_DIR", "")
+	dir := t.TempDir(); path := writeTestProfile(t, dir, `,
+  "mtu": 1280`)
+	profile, err := LoadRuntimeProfile(path, filepath.Join(dir, "bin"), filepath.Join(dir, "state")); if err != nil { t.Fatal(err) }
+	if profile.MTU != 1280 { t.Fatalf("custom mtu=%d want=1280", profile.MTU) }
 }
 
 func TestLoadRuntimeProfilePersistsInstallationIdentityAcrossLoads(t *testing.T) {

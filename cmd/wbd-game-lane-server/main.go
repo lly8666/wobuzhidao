@@ -145,8 +145,19 @@ func (s *server) handleMembership(peer *net.UDPAddr, control gamelane.Membership
 	meta, ok := s.metadataForPeer(peer)
 	if !ok { return errors.New("Game membership control requires authenticated Logical Tunnel metadata") }
 	if hex.EncodeToString(control.SessionID[:]) != string(meta.TunnelID) { return errors.New("Game membership SessionID does not match authenticated Logical Tunnel ID") }
-	if control.Op != gamelane.MembershipLeave { return errors.New("unsupported Game membership control") }
-	return s.unbindLane(control.SessionID, control.LaneID, peer, now, "client_leave")
+	switch control.Op {
+	case gamelane.MembershipLeave:
+		return s.unbindLane(control.SessionID, control.LaneID, peer, now, "client_leave")
+	case gamelane.MembershipProbe:
+		if _, err := s.bindLane(control.SessionID, control.LaneID, peer, meta, now); err != nil { return err }
+		ready, err := gamelane.MarshalLaneReady(control.SessionID, control.LaneID)
+		if err != nil { return err }
+		if _, err := s.conn.WriteToUDP(ready, peer); err != nil { return fmt.Errorf("write Game membership ready: %w", err) }
+		fmt.Printf("WBD_GAME_LANE_QUALIFIED tunnel_id_prefix=%s lane=%d association_peer=%s\n", tunnelIDPrefix(meta), control.LaneID, peer)
+		return nil
+	default:
+		return errors.New("unsupported Game membership control")
+	}
 }
 
 func (s *server) registerPeerMeta(peer *net.UDPAddr, meta rawipbackend.TunnelMeta, now time.Time) error {

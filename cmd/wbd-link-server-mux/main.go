@@ -290,9 +290,10 @@ func (s *server) ensureService(ps *peerSession, packet []byte) error {
 
 func classifyServicePayload(packet []byte) (serviceBackend, error) {
 	if _, err := dataplane.UnmarshalIP(packet); err == nil { return backendRawIP, nil }
+	if _, err := gamelane.ParseMembershipControl(packet); err == nil { return backendGame, nil }
 	if _, _, err := gamelane.Parse(packet); err == nil { return backendGame, nil }
 	if _, err := platformproxy.Unmarshal(packet); err == nil { return backendPlatform, nil }
-	return "", errors.New("application datagram is neither Game envelope, M6A raw-IP nor platformproxy frame")
+	return "", errors.New("application datagram is neither Game control/envelope, M6A raw-IP nor platformproxy frame")
 }
 
 func (s *server) serviceLoop(ps *peerSession, service *net.UDPConn) {

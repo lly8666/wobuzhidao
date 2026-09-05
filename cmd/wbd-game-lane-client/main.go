@@ -26,6 +26,8 @@ type laneConn struct {
 	conn *net.UDPConn
 	tx   uint64
 	rx   uint64
+	ready chan struct{}
+	readyOnce sync.Once
 }
 
 type laneRaceGroup struct {
@@ -166,6 +168,10 @@ func (c *client) laneLoop(lane *laneConn) {
 		n, err := lane.conn.Read(buf)
 		if err != nil { if !errors.Is(err, net.ErrClosed) { c.failLane(lane, fmt.Errorf("read: %w", err)) }; return }
 		atomic.AddUint64(&lane.rx, 1)
+		if handled, controlErr := c.handleLaneMembershipControl(lane, buf[:n]); handled {
+			if controlErr != nil { c.failLane(lane, controlErr); return }
+			continue
+		}
 		h, _, err := gamelane.Parse(buf[:n])
 		if err != nil { c.failLane(lane, fmt.Errorf("parse: %w", err)); return }
 		if h.LaneID != lane.id { c.failLane(lane, fmt.Errorf("received envelope for lane %d", h.LaneID)); return }
@@ -218,7 +224,7 @@ func (c *client) setLaneTargets(targets []gamelane.LaneTarget) ([]uint8, error) 
 		conn, err := net.DialUDP("udp4", nil, ra)
 		if err != nil { return nil, err }
 		_ = conn.SetReadBuffer(4 << 20); _ = conn.SetWriteBuffer(4 << 20)
-		lane := &laneConn{id: target.ID, addr: target.Address, conn: conn}
+		lane := &laneConn{id: target.ID, addr: target.Address, conn: conn, ready: make(chan struct{})}
 		created = append(created, lane)
 		return lane, nil
 	}
@@ -260,6 +266,11 @@ func (c *client) setLaneTargets(targets []gamelane.LaneTarget) ([]uint8, error) 
 		_ = lane.conn.Close()
 	}
 	for _, lane := range created { go c.laneLoop(lane) }
+	for _, lane := range nextOverlap {
+		if err := c.qualifyLane(lane, laneQualificationTimeout); err != nil {
+			return nil, err
+		}
+	}
 	idsOut := c.activeIDs(); c.logLaneState(idsOut, "control"); return idsOut, nil
 }
 
