@@ -77,15 +77,19 @@ Together the 31 hosted child gates cover Windows native protocol/runtime behavio
 
 ## Kick generation
 
-`2026-09-06-game-loopback-collision-exact-head-refresh`
+`2026-09-06-game-loopback-collision-faketcp-recovery-budget-refresh`
 
 This generation starts a fresh exact-head hosted/package qualification after the Windows physical run exposed the first definite broken layer after LINK: the Game child could exit before READY when the fixed local loopback UDP pair `127.0.0.1:48101/48102` was already occupied. The Windows runtime now prefers that historical pair but selects a free fallback pair when needed, and the TUN/Game control plan consumes the same selected endpoints consistently. These UDP sockets are loopback-only process IPC; the public transport remains Npcap/raw FakeTCP on the configured TCP-looking lane and no FakeTCP/Reality/DTLS/LINK/Game/FEC wire format is changed.
 
-The exact-head Windows VM gate includes a real compiled `wbd-game-lane-client.exe` integration case that occupies the default loopback pair and requires `WBD_GAME_LANE_CLIENT_READY` on the fallback pair. This kick changes qualification documentation only; it deliberately creates the immutable candidate SHA that the release aggregator can use to dispatch all 22 workflow-dispatch gates, resolve the nine exact-candidate push gates, and produce/source-fence the Windows portable plus Linux amd64/arm64 artifacts under one SHA.
+The exact-head Windows VM gate includes a real compiled `wbd-game-lane-client.exe` integration case that occupies the default loopback pair and requires `WBD_GAME_LANE_CLIENT_READY` on the fallback pair.
+
+The first exact-head refresh also exposed a qualification-only timing defect in `faketcp-native.yml`: under bidirectional 10% netem loss, SACK/RACK remained active but one of 1000 packets could still be inside legal backed-off recovery when the 24-second probe window expired. The implementation permits a maximum RTO of 60 seconds, so this generation preserves the strict 1000/1000 delivery assertion while extending only the smoke observation window to 120 seconds. No FakeTCP sender/receiver/recovery implementation, public wire behavior, product timeout, Reality/DTLS/LINK/Game/FEC behavior, or user-facing setting is changed by that correction.
+
+This kick deliberately creates the immutable candidate SHA that the release aggregator can use to dispatch all 22 workflow-dispatch gates, resolve the nine exact-candidate push gates, and produce/source-fence the Windows portable plus Linux amd64/arm64 artifacts under one SHA.
 
 The user-visible MTU remains the inner/Wintun MTU. MTU 1300 remains valid for the next physical acceptance run; Game LINK plaintext budget remains derived as inner MTU plus the fixed 32-byte Game envelope. Functional release qualification remains FEC off.
 
-No hosted/package or physical evidence from `e601778ceb421aee3557f32e58e0ba9c5a877ec4`, `fb461dc870d35645a9b7c6e54862c3429a37b547`, or any earlier SHA transfers as release authority to the fresh candidate produced by this generation; the earlier e601 Windows VM collision test is development evidence and must re-execute on the new candidate through the exact-head matrix.
+No hosted/package or physical evidence from `1e41db1588cf9d51d0b41f3ea1b54f2972b2d23a`, `e601778ceb421aee3557f32e58e0ba9c5a877ec4`, `fb461dc870d35645a9b7c6e54862c3429a37b547`, or any earlier SHA transfers as release authority to the fresh candidate produced by this generation; those runs are diagnostic/development evidence only and the final candidate must re-execute the exact-head matrix.
 
 ## Delivery rule
 
