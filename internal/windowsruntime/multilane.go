@@ -148,8 +148,7 @@ func BuildMultiLanePlan(profile Profile, bootstraps []LaneBootstrap) (MultiLaneP
 		lanes=append(lanes,LanePlan{ID:b.ID,Slot:b.ID,FakeTCP:b.FakeTCP,DTLS:Command{Name:fmt.Sprintf("dtls-%d",b.ID),Path:bin("wbd_dtls_shim.exe"),Args:[]string{"client",strconv.Itoa(dtlsPort),"127.0.0.1",strconv.Itoa(fakePort),"none","none"}},Link:Command{Name:fmt.Sprintf("link-%d",b.ID),Path:bin("wbd-link-proxy.exe"),Args:[]string{"-mode","client","-listen",linkListen,"-dtls",dtlsPlain,"-fec",profile.FEC,"-mtu",strconv.Itoa(gameLinkMTU),"-lanes","1","-demo-reality-ticket",strings.TrimSpace(b.Ticket)}}})
 		linkAddresses=append(linkAddresses,linkListen)
 	}
-	gameListen:="127.0.0.1:"+strconv.Itoa(defaultGameListenPort)
-	gameControl:="127.0.0.1:"+strconv.Itoa(defaultGameControlPort)
+	gameListen,gameControl,err:=selectGameLoopbackPair();if err!=nil{return MultiLanePlan{},err}
 	game:=Command{Name:"game",Path:bin("wbd-game-lane-client.exe"),Args:[]string{"-listen",gameListen,"-lanes",strings.Join(linkAddresses,","),"-control",gameControl,"-session-id",string(tunnel.TunnelID),"-replay-window","4096"}}
 	tun:=common.TUN;for i:=0;i+1<len(tun.Args);i++{if tun.Args[i]=="-transport"{tun.Args[i+1]=gameListen;break}}
 	return MultiLanePlan{Lanes:lanes,Game:game,GameControl:gameControl,TUN:tun,IPv6Apply:common.IPv6Apply,RouteApply:common.RouteApply,RouteCleanup:common.RouteCleanup,IPv6Cleanup:common.IPv6Cleanup,TunnelConfig:tunnel},nil
