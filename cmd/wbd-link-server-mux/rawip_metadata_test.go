@@ -45,7 +45,7 @@ func TestRawIPBackendReceivesTunnelMetadataBeforePayload(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := s.ensureService(ps, wire); err != nil {
+	if err := s.ensureService(ps, wire, time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	defer ps.service.Close()
