@@ -22,9 +22,12 @@ import (
 )
 
 const (
-	maxBlocks          = 64
-	defaultIdleTimeout = 90 * time.Second
+	maxBlocks                  = 64
+	defaultIdleTimeout         = 90 * time.Second
+	backendMetaRefreshInterval = 30 * time.Second
 )
+
+var errUnclassifiedApplicationDatagram = errors.New("application datagram is neither Game control/envelope, M6A raw-IP nor platformproxy frame")
 
 type serviceBackend string
 
@@ -35,14 +38,14 @@ const (
 )
 
 type config struct {
-	listen        string
-	service       string
-	rawIPService  string
-	ticketDir     string
-	ticketTTL     time.Duration
-	setupTimeout  time.Duration
-	idleTimeout   time.Duration
-	maxSessions   int
+	listen       string
+	service      string
+	rawIPService string
+	ticketDir    string
+	ticketTTL    time.Duration
+	setupTimeout time.Duration
+	idleTimeout  time.Duration
+	maxSessions  int
 }
 
 type startupSession interface {
@@ -59,6 +62,9 @@ type peerSession struct {
 
 	activityMu   sync.Mutex
 	lastActivity time.Time
+
+	metaMu       sync.Mutex
+	lastMetaSent time.Time
 
 	account      string
 	id           session.LiveID
@@ -85,8 +91,23 @@ func (p *peerSession) idleFor(now time.Time) time.Duration {
 	p.activityMu.Lock()
 	last := p.lastActivity
 	p.activityMu.Unlock()
-	if last.IsZero() || now.Before(last) { return 0 }
+	if last.IsZero() || now.Before(last) {
+		return 0
+	}
 	return now.Sub(last)
+}
+
+func (p *peerSession) noteMetaSent(now time.Time) {
+	p.metaMu.Lock()
+	p.lastMetaSent = now
+	p.metaMu.Unlock()
+}
+
+func (p *peerSession) backendMetaRefreshDue(now time.Time) bool {
+	p.metaMu.Lock()
+	last := p.lastMetaSent
+	p.metaMu.Unlock()
+	return last.IsZero() || now.Sub(last) >= backendMetaRefreshInterval
 }
 
 type server struct {
@@ -113,7 +134,10 @@ func main() {
 	flag.Parse()
 
 	s, err := newServer(c)
-	if err != nil { fmt.Fprintln(os.Stderr, "WBD_LINK_SERVER_MUX_FAIL", err); os.Exit(1) }
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "WBD_LINK_SERVER_MUX_FAIL", err)
+		os.Exit(1)
+	}
 	defer s.Close()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -125,30 +149,45 @@ func main() {
 }
 
 func newServer(c config) (*server, error) {
-	if c.idleTimeout <= 0 { c.idleTimeout = defaultIdleTimeout }
+	if c.idleTimeout <= 0 {
+		c.idleTimeout = defaultIdleTimeout
+	}
 	if c.listen == "" || c.service == "" || c.ticketDir == "" || c.ticketTTL <= 0 || c.setupTimeout <= 0 || c.maxSessions <= 0 {
 		return nil, errors.New("-listen, -service, -ticket-dir and positive ttl/timeout/max-sessions are required")
 	}
 	listenAddr, err := net.ResolveUDPAddr("udp4", c.listen)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	serviceAddr, err := net.ResolveUDPAddr("udp4", c.service)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	var rawIPServiceAddr *net.UDPAddr
 	if c.rawIPService != "" {
 		rawIPServiceAddr, err = net.ResolveUDPAddr("udp4", c.rawIPService)
-		if err != nil { return nil, err }
+		if err != nil {
+			return nil, err
+		}
 	}
 	conn, err := net.ListenUDP("udp4", listenAddr)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	_ = conn.SetReadBuffer(4 << 20)
 	_ = conn.SetWriteBuffer(4 << 20)
 	plane, err := session.NewDataPlane(c.maxSessions, maxBlocks)
-	if err != nil { _ = conn.Close(); return nil, err }
+	if err != nil {
+		_ = conn.Close()
+		return nil, err
+	}
 	return &server{cfg: c, conn: conn, serviceAddr: serviceAddr, rawIPServiceAddr: rawIPServiceAddr, plane: plane, peers: make(map[string]*peerSession)}, nil
 }
 
 func (s *server) Addr() *net.UDPAddr {
-	if s == nil || s.conn == nil { return nil }
+	if s == nil || s.conn == nil {
+		return nil
+	}
 	a, _ := s.conn.LocalAddr().(*net.UDPAddr)
 	return cloneUDPAddr(a)
 }
@@ -156,20 +195,39 @@ func (s *server) Addr() *net.UDPAddr {
 func (s *server) Run(ctx context.Context) error {
 	buf := make([]byte, 65535)
 	for {
-		if err := s.conn.SetReadDeadline(time.Now().Add(2 * time.Millisecond)); err != nil { return err }
+		if err := s.conn.SetReadDeadline(time.Now().Add(2 * time.Millisecond)); err != nil {
+			return err
+		}
 		n, from, err := s.conn.ReadFromUDP(buf)
 		now := time.Now()
 		if err != nil {
 			if ne, ok := err.(net.Error); !ok || !ne.Timeout() {
-				select { case <-ctx.Done(): return ctx.Err(); default: return err }
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				default:
+					return err
+				}
 			}
 		} else if err := s.handleDatagram(from, buf[:n], now); err != nil {
-			fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_DROP peer=%s err=%v\n", from, err)
-			s.removePeer(from.String(), true)
+			if errors.Is(err, errUnclassifiedApplicationDatagram) {
+				// A LINK association is already authenticated here, but the backend is
+				// still pending. One stray/late application datagram must not destroy
+				// the association before a valid WGC1 Probe or Game envelope arrives.
+				// Unknown bytes are dropped, never forwarded or accepted as Game.
+				fmt.Fprintf(os.Stderr, "WBD_LINK_MUX_PENDING_DROP peer=%s bytes=%d err=%v\n", from, n, err)
+			} else {
+				fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_DROP peer=%s err=%v\n", from, err)
+				s.removePeer(from.String(), true)
+			}
 		}
 		s.flushDue(now)
 		s.expirePeers(now)
-		select { case <-ctx.Done(): return ctx.Err(); default: }
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
 	}
 }
 
@@ -178,26 +236,39 @@ func (s *server) handleDatagram(from *net.UDPAddr, packet []byte, now time.Time)
 	ps := s.getPeer(key)
 	if ps == nil {
 		typ, ok := controlFrameType(packet)
-		if !ok || typ != control.TypeDemoBind { return nil }
+		if !ok || typ != control.TypeDemoBind {
+			return nil
+		}
 		var err error
 		ps, err = s.newPeer(from, now)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 	}
 
 	if !ps.active || isStartupControl(packet) || isLifecycleControl(packet) {
-		if err := s.handleControl(ps, packet, now); err != nil { ps.drop.Add(1); return err }
+		if err := s.handleControl(ps, packet, now); err != nil {
+			ps.drop.Add(1)
+			return err
+		}
 		ps.touch(now)
 		return nil
 	}
 	_, packets, err := s.plane.Inbound(ps.key, packet)
 	if err != nil {
-		if errors.Is(err, fec.ErrDecoderFull) { ps.drop.Add(1); return nil }
+		if errors.Is(err, fec.ErrDecoderFull) {
+			ps.drop.Add(1)
+			return nil
+		}
 		ps.drop.Add(1)
 		return err
 	}
 	ps.touch(now)
 	for _, p := range packets {
-		if err := s.ensureService(ps, p); err != nil { ps.drop.Add(1); return err }
+		if err := s.ensureService(ps, p, now); err != nil {
+			ps.drop.Add(1)
+			return err
+		}
 		if ps.backend == backendRawIP {
 			if err := validatePeerRawIPSource(ps, p); err != nil {
 				ps.drop.Add(1)
@@ -205,9 +276,20 @@ func (s *server) handleDatagram(from *net.UDPAddr, packet []byte, now time.Time)
 				continue
 			}
 		}
+		if (ps.backend == backendGame || ps.backend == backendRawIP) && ps.backendMetaRefreshDue(now) {
+			if err := s.writeBackendTunnelMeta(ps, ps.service, ps.backend, now); err != nil {
+				ps.drop.Add(1)
+				return err
+			}
+		}
 		ps.linkRx.Add(1)
-		ps.linkRxFirst.Do(func() { fmt.Printf("WBD_LINK_RX_FIRST tunnel_id_prefix=%s bytes=%d backend=%s\n", ps.sid, len(p), ps.backend) })
-		if _, err := ps.service.Write(p); err != nil { ps.drop.Add(1); return err }
+		ps.linkRxFirst.Do(func() {
+			fmt.Printf("WBD_LINK_RX_FIRST tunnel_id_prefix=%s bytes=%d backend=%s\n", ps.sid, len(p), ps.backend)
+		})
+		if _, err := ps.service.Write(p); err != nil {
+			ps.drop.Add(1)
+			return err
+		}
 	}
 	return nil
 }
@@ -215,12 +297,21 @@ func (s *server) handleDatagram(from *net.UDPAddr, packet []byte, now time.Time)
 func (s *server) newPeer(peer *net.UDPAddr, now time.Time) (*peerSession, error) {
 	key := peer.String()
 	s.mu.Lock()
-	if existing := s.peers[key]; existing != nil { s.mu.Unlock(); return existing, nil }
-	if len(s.peers) >= s.cfg.maxSessions { s.mu.Unlock(); return nil, session.ErrRegistryFull }
+	if existing := s.peers[key]; existing != nil {
+		s.mu.Unlock()
+		return existing, nil
+	}
+	if len(s.peers) >= s.cfg.maxSessions {
+		s.mu.Unlock()
+		return nil, session.ErrRegistryFull
+	}
 	ps := &peerSession{peer: cloneUDPAddr(peer), key: key, created: now, lastActivity: now}
 	verify := func(bind [control.DemoWitnessLen]byte) error { return s.consumeLogicalTunnelTicket(ps, bind) }
 	startup, err := control.NewDemoTicketReliableLinkServerSession(1, 1, control.CurrentLinkPolicy(), verify)
-	if err != nil { s.mu.Unlock(); return nil, err }
+	if err != nil {
+		s.mu.Unlock()
+		return nil, err
+	}
 	ps.startup = startup
 	s.peers[key] = ps
 	s.mu.Unlock()
@@ -229,98 +320,156 @@ func (s *server) newPeer(peer *net.UDPAddr, now time.Time) (*peerSession, error)
 
 func (s *server) handleControl(ps *peerSession, packet []byte, now time.Time) error {
 	reply, err := ps.startup.HandleWire(packet, uint64(now.UnixNano()))
-	if err != nil { return err }
-	if len(reply) != 0 {
-		if _, err := s.conn.WriteToUDP(reply, ps.peer); err != nil { return err }
+	if err != nil {
+		return err
 	}
-	if ps.startup.State() == control.StateFailed { return errors.New("session state failed; reconnect required") }
+	if len(reply) != 0 {
+		if _, err := s.conn.WriteToUDP(reply, ps.peer); err != nil {
+			return err
+		}
+	}
+	if ps.startup.State() == control.StateFailed {
+		return errors.New("session state failed; reconnect required")
+	}
 	if ps.startup.State() == control.StateClosed {
 		reason := ps.startup.Stats().CloseReason
 		fmt.Printf("WBD_LINK_MUX_SESSION_CLOSE tunnel_id_prefix=%s reason=%d\n", printableSID(ps), reason)
 		s.removePeer(ps.key, true)
 		return nil
 	}
-	if ps.startup.State() != control.StateEstablished || ps.active { return nil }
-	if !ps.haveIdentity || ps.account == "" || ps.id == (session.LiveID{}) || ps.sid == "" { return errors.New("established lane lacks Logical Tunnel ticket binding") }
-	if _, ok := peerTunnelBinding(ps); !ok { return errors.New("established lane lacks Logical Tunnel binding") }
-	if err := s.plane.Reserve(ps.account, ps.id, ps.key, now); err != nil { return err }
+	if ps.startup.State() != control.StateEstablished || ps.active {
+		return nil
+	}
+	if !ps.haveIdentity || ps.account == "" || ps.id == (session.LiveID{}) || ps.sid == "" {
+		return errors.New("established lane lacks Logical Tunnel ticket binding")
+	}
+	if _, ok := peerTunnelBinding(ps); !ok {
+		return errors.New("established lane lacks Logical Tunnel binding")
+	}
+	if err := s.plane.Reserve(ps.account, ps.id, ps.key, now); err != nil {
+		return err
+	}
 	cfg := ps.startup.Stats().Config
-	if err := s.plane.Activate(ps.id, cfg); err != nil { s.plane.Remove(ps.id); return err }
+	if err := s.plane.Activate(ps.id, cfg); err != nil {
+		s.plane.Remove(ps.id)
+		return err
+	}
 	ps.active = true
 	ps.touch(now)
 	fmt.Printf("WBD_LINK_MUX_SESSION_READY tunnel_id_prefix=%s fec_mode=%d fec=%d:%d mtu=%d lanes=%d backend=pending\n", ps.sid, cfg.FECMode, cfg.DataShards, cfg.ParityShards, cfg.MTU, cfg.LaneCount)
 	return nil
 }
 
-func (s *server) ensureService(ps *peerSession, packet []byte) error {
-	if ps.service != nil { return nil }
+func (s *server) ensureService(ps *peerSession, packet []byte, now time.Time) error {
+	if ps.service != nil {
+		return nil
+	}
 	backend, err := classifyServicePayload(packet)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	var addr *net.UDPAddr
 	switch backend {
 	case backendGame, backendPlatform:
 		addr = s.serviceAddr
 	case backendRawIP:
 		addr = s.rawIPServiceAddr
-		if addr == nil { return errors.New("raw-IP application datagram received but -raw-ip-service is not configured") }
+		if addr == nil {
+			return errors.New("raw-IP application datagram received but -raw-ip-service is not configured")
+		}
 	default:
 		return fmt.Errorf("unsupported backend %q", backend)
 	}
 	service, err := net.DialUDP("udp4", nil, addr)
-	if err != nil { return err }
-	// Raw-IP and Game product backends both require server-authenticated Logical
-	// Tunnel metadata before payload. For Game this metadata is consumed by the
-	// private race server and forwarded once to the shared-TUN gateway.
-	if backend == backendRawIP || backend == backendGame {
-		meta, err := marshalPeerTunnelMeta(ps)
-		if err != nil { _ = service.Close(); return err }
-		if _, err := service.Write(meta); err != nil {
-			_ = service.Close()
-			return fmt.Errorf("write authenticated Logical Tunnel metadata: %w", err)
-		}
+	if err != nil {
+		return err
+	}
+	if err := s.writeBackendTunnelMeta(ps, service, backend, now); err != nil {
+		_ = service.Close()
+		return err
 	}
 	ps.backend = backend
 	ps.service = service
 	go s.serviceLoop(ps, service)
 	local := "unknown"
-	if service.LocalAddr() != nil { local = service.LocalAddr().String() }
+	if service.LocalAddr() != nil {
+		local = service.LocalAddr().String()
+	}
 	fmt.Printf("WBD_LINK_MUX_BACKEND_READY tunnel_id_prefix=%s backend=%s service_local=%s\n", ps.sid, backend, local)
 	return nil
 }
 
+func (s *server) writeBackendTunnelMeta(ps *peerSession, service *net.UDPConn, backend serviceBackend, now time.Time) error {
+	if backend != backendRawIP && backend != backendGame {
+		return nil
+	}
+	meta, err := marshalPeerTunnelMeta(ps)
+	if err != nil {
+		return err
+	}
+	if _, err := service.Write(meta); err != nil {
+		return fmt.Errorf("write authenticated Logical Tunnel metadata: %w", err)
+	}
+	ps.noteMetaSent(now)
+	return nil
+}
+
 func classifyServicePayload(packet []byte) (serviceBackend, error) {
-	if _, err := dataplane.UnmarshalIP(packet); err == nil { return backendRawIP, nil }
-	if _, err := gamelane.ParseMembershipControl(packet); err == nil { return backendGame, nil }
-	if _, _, err := gamelane.Parse(packet); err == nil { return backendGame, nil }
-	if _, err := platformproxy.Unmarshal(packet); err == nil { return backendPlatform, nil }
-	return "", errors.New("application datagram is neither Game control/envelope, M6A raw-IP nor platformproxy frame")
+	if _, err := dataplane.UnmarshalIP(packet); err == nil {
+		return backendRawIP, nil
+	}
+	if _, err := gamelane.ParseMembershipControl(packet); err == nil {
+		return backendGame, nil
+	}
+	if _, _, err := gamelane.Parse(packet); err == nil {
+		return backendGame, nil
+	}
+	if _, err := platformproxy.Unmarshal(packet); err == nil {
+		return backendPlatform, nil
+	}
+	return "", errUnclassifiedApplicationDatagram
 }
 
 func (s *server) serviceLoop(ps *peerSession, service *net.UDPConn) {
 	buf := make([]byte, 65535)
 	for {
 		n, err := service.Read(buf)
-		if err != nil { return }
-		if isRawIPBackendMeta(buf[:n]) { continue }
+		if err != nil {
+			return
+		}
+		if isRawIPBackendMeta(buf[:n]) {
+			continue
+		}
 		now := time.Now()
 		ps.linkTx.Add(1)
-		ps.linkTxFirst.Do(func() { fmt.Printf("WBD_LINK_TX_FIRST tunnel_id_prefix=%s bytes=%d backend=%s\n", ps.sid, n, ps.backend) })
+		ps.linkTxFirst.Do(func() {
+			fmt.Printf("WBD_LINK_TX_FIRST tunnel_id_prefix=%s bytes=%d backend=%s\n", ps.sid, n, ps.backend)
+		})
 		peerKey, wire, err := s.plane.Outbound(ps.id, buf[:n], now)
 		if err != nil || peerKey != ps.key {
 			ps.drop.Add(1)
-			if err != nil { fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_SERVICE_DROP tunnel_id_prefix=%s backend=%s err=%v\n", ps.sid, ps.backend, err) }
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_SERVICE_DROP tunnel_id_prefix=%s backend=%s err=%v\n", ps.sid, ps.backend, err)
+			}
 			return
 		}
-		if err := sendWire(s.conn, ps.peer, wire); err != nil { ps.drop.Add(1); return }
+		if err := sendWire(s.conn, ps.peer, wire); err != nil {
+			ps.drop.Add(1)
+			return
+		}
 		ps.touch(now)
 	}
 }
 
 func (s *server) flushDue(now time.Time) {
 	for _, ps := range s.snapshotPeers() {
-		if !ps.active { continue }
+		if !ps.active {
+			continue
+		}
 		peerKey, wire, err := s.plane.FlushDue(ps.id, now)
-		if err != nil || peerKey != ps.key { continue }
+		if err != nil || peerKey != ps.key {
+			continue
+		}
 		_ = sendWire(s.conn, ps.peer, wire)
 	}
 }
@@ -328,58 +477,94 @@ func (s *server) flushDue(now time.Time) {
 func (s *server) expirePeers(now time.Time) {
 	for _, ps := range s.snapshotPeers() {
 		if !ps.active {
-			if now.Sub(ps.created) > s.cfg.setupTimeout { s.removePeer(ps.key, false) }
+			if now.Sub(ps.created) > s.cfg.setupTimeout {
+				s.removePeer(ps.key, false)
+			}
 			continue
 		}
-		if ps.idleFor(now) < s.cfg.idleTimeout { continue }
-		if wire, err := control.MarshalLink(control.Close{Reason: control.CloseIdleTimeout, Detail: "session idle lease expired"}); err == nil { _, _ = s.conn.WriteToUDP(wire, ps.peer) }
+		if ps.idleFor(now) < s.cfg.idleTimeout {
+			continue
+		}
+		if wire, err := control.MarshalLink(control.Close{Reason: control.CloseIdleTimeout, Detail: "session idle lease expired"}); err == nil {
+			_, _ = s.conn.WriteToUDP(wire, ps.peer)
+		}
 		fmt.Printf("WBD_LINK_MUX_SESSION_CLOSE tunnel_id_prefix=%s reason=%d\n", ps.sid, control.CloseIdleTimeout)
 		s.removePeer(ps.key, true)
 	}
 }
 
 func (s *server) getPeer(key string) *peerSession {
-	s.mu.RLock(); ps := s.peers[key]; s.mu.RUnlock(); return ps
+	s.mu.RLock()
+	ps := s.peers[key]
+	s.mu.RUnlock()
+	return ps
 }
 
 func (s *server) snapshotPeers() []*peerSession {
 	s.mu.RLock()
 	out := make([]*peerSession, 0, len(s.peers))
-	for _, ps := range s.peers { out = append(out, ps) }
+	for _, ps := range s.peers {
+		out = append(out, ps)
+	}
 	s.mu.RUnlock()
 	return out
 }
 
 func (s *server) removePeer(key string, flush bool) {
-	s.mu.Lock(); ps := s.peers[key]; if ps != nil { delete(s.peers, key) }; s.mu.Unlock()
-	if ps == nil { return }
+	s.mu.Lock()
+	ps := s.peers[key]
+	if ps != nil {
+		delete(s.peers, key)
+	}
+	s.mu.Unlock()
+	if ps == nil {
+		return
+	}
 	if ps.active {
-		if flush { if peerKey, wire, err := s.plane.Flush(ps.id); err == nil && peerKey == ps.key { _ = sendWire(s.conn, ps.peer, wire) } }
+		if flush {
+			if peerKey, wire, err := s.plane.Flush(ps.id); err == nil && peerKey == ps.key {
+				_ = sendWire(s.conn, ps.peer, wire)
+			}
+		}
 		s.plane.Remove(ps.id)
 	}
-	if ps.service != nil { _ = ps.service.Close() }
+	if ps.service != nil {
+		_ = ps.service.Close()
+	}
 	forgetPeerTunnel(ps)
-	if ps.sid != "" { fmt.Printf("WBD_LINK_SESSION_COUNTERS tunnel_id_prefix=%s tx=%d rx=%d drop=%d\n", ps.sid, ps.linkTx.Load(), ps.linkRx.Load(), ps.drop.Load()) }
+	if ps.sid != "" {
+		fmt.Printf("WBD_LINK_SESSION_COUNTERS tunnel_id_prefix=%s tx=%d rx=%d drop=%d\n", ps.sid, ps.linkTx.Load(), ps.linkRx.Load(), ps.drop.Load())
+	}
 }
 
 func (s *server) Close() {
-	for _, ps := range s.snapshotPeers() { s.removePeer(ps.key, true) }
-	if s.conn != nil { _ = s.conn.Close() }
+	for _, ps := range s.snapshotPeers() {
+		s.removePeer(ps.key, true)
+	}
+	if s.conn != nil {
+		_ = s.conn.Close()
+	}
 }
 
 func printableSID(ps *peerSession) string {
-	if ps == nil || ps.sid == "" { return "pending" }
+	if ps == nil || ps.sid == "" {
+		return "pending"
+	}
 	return ps.sid
 }
 
 func controlFrameType(packet []byte) (control.Type, bool) {
-	if len(packet) < control.HeaderLen || string(packet[:4]) != string(control.Magic[:]) || packet[4] != control.FrameVersion1 { return 0, false }
+	if len(packet) < control.HeaderLen || string(packet[:4]) != string(control.Magic[:]) || packet[4] != control.FrameVersion1 {
+		return 0, false
+	}
 	return control.Type(packet[5]), true
 }
 
 func isStartupControl(packet []byte) bool {
 	typ, ok := controlFrameType(packet)
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 	switch typ {
 	case control.TypeDemoBind, control.TypeDemoBindOK, control.TypeLinkInit, control.TypeLinkAccept, control.TypeError, control.TypeAuth, control.TypeAuthOK:
 		return true
@@ -390,7 +575,9 @@ func isStartupControl(packet []byte) bool {
 
 func isLifecycleControl(packet []byte) bool {
 	typ, ok := controlFrameType(packet)
-	if !ok { return false }
+	if !ok {
+		return false
+	}
 	switch typ {
 	case control.TypePing, control.TypePong, control.TypeClose:
 		return true
@@ -400,11 +587,17 @@ func isLifecycleControl(packet []byte) bool {
 }
 
 func sendWire(conn *net.UDPConn, dst *net.UDPAddr, wire [][]byte) error {
-	for _, packet := range wire { if _, err := conn.WriteToUDP(packet, dst); err != nil { return err } }
+	for _, packet := range wire {
+		if _, err := conn.WriteToUDP(packet, dst); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 func cloneUDPAddr(a *net.UDPAddr) *net.UDPAddr {
-	if a == nil { return nil }
+	if a == nil {
+		return nil
+	}
 	return &net.UDPAddr{IP: append(net.IP(nil), a.IP...), Port: a.Port, Zone: a.Zone}
 }

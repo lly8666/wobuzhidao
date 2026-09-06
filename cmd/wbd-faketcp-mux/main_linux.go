@@ -28,8 +28,9 @@ import (
 )
 
 const (
-	halfOpenTimeout         = 25 * time.Second
-	defaultBootstrapTimeout = 20 * time.Second
+	halfOpenTimeout             = 25 * time.Second
+	defaultBootstrapTimeout     = 20 * time.Second
+	staleDataAssociationTimeout = 60 * time.Second
 )
 
 type config struct {
@@ -68,13 +69,31 @@ type muxSession struct {
 	flow  faketcp.ServerFlow
 	assoc *faketcp.ServerAssociation
 
-	mu          sync.RWMutex
-	stage       sessionStage
-	bootstrap   *faketcp.BootstrapStream
-	ackNotify   chan struct{}
-	relay       *net.UDPConn
-	worker      *dtlsworker.Worker
-	pendingData [][]byte
+	mu           sync.RWMutex
+	stage        sessionStage
+	lastClientRX time.Time
+	bootstrap    *faketcp.BootstrapStream
+	ackNotify    chan struct{}
+	relay        *net.UDPConn
+	worker       *dtlsworker.Worker
+	pendingData  [][]byte
+}
+
+func (sess *muxSession) noteClientRX(now time.Time) {
+	sess.mu.Lock()
+	sess.lastClientRX = now
+	sess.mu.Unlock()
+}
+
+func (sess *muxSession) staleDataAssociation(now time.Time) (bool, time.Duration) {
+	sess.mu.RLock()
+	stage, last := sess.stage, sess.lastClientRX
+	sess.mu.RUnlock()
+	if stage != stageData || last.IsZero() || now.Before(last) {
+		return false, 0
+	}
+	idle := now.Sub(last)
+	return idle >= staleDataAssociationTimeout, idle
 }
 
 type muxServer struct {
@@ -213,6 +232,8 @@ func (s *muxServer) rawLoop() error {
 			if err := s.acceptSYN(seg); err != nil && !errors.Is(err, faketcp.ErrMuxFull) && !errors.Is(err, faketcp.ErrAssociationExists) { fmt.Fprintln(os.Stderr, "wbd-faketcp-mux accept:", err) }
 			continue
 		}
+		now := time.Now()
+		sess.noteClientRX(now)
 		if seg.Flags&faketcp.FlagSYN != 0 && sess.assoc.State() == faketcp.ServerAssociationAwaitACK {
 			if !s.cfg.bootstrapEnabled() && !faketcp.IsWBDHandshakeSegment(seg) { continue }
 			_ = s.sendSYNACK(sess); continue
@@ -223,7 +244,7 @@ func (s *muxServer) rawLoop() error {
 			// final ACK may carry first TLS/DTLS bytes; fall through.
 		}
 
-		res, err := sess.assoc.HandleSegment(seg, time.Now()); if err != nil { continue }
+		res, err := sess.assoc.HandleSegment(seg, now); if err != nil { continue }
 		if seg.Flags&faketcp.FlagACK != 0 { sess.signalAck() }
 		if res.FastRetransmit != nil { if err := s.sendPending(sess, res.FastRetransmit); err != nil { return err } }
 		if res.AckNeeded { if err := s.sendACK(sess, res.Ack, res.SACK[:res.SACKN]); err != nil { return err } }
@@ -235,7 +256,8 @@ func (s *muxServer) acceptSYN(seg faketcp.Segment) error {
 	mode, _ := parseRecovery(s.cfg.recovery)
 	assoc, err := s.table.AddSYN(seg, randomSeq(), mode, time.Second); if err != nil { return err }
 	flow := faketcp.ServerFlowFromSegment(seg)
-	sess := &muxSession{flow: flow, assoc: assoc, stage: stageHandshake, ackNotify: make(chan struct{}, 1)}
+	now := time.Now()
+	sess := &muxSession{flow: flow, assoc: assoc, stage: stageHandshake, lastClientRX: now, ackNotify: make(chan struct{}, 1)}
 	s.mu.Lock(); if _, exists := s.sessions[flow]; exists { s.mu.Unlock(); s.table.Remove(flow); return faketcp.ErrAssociationExists }; s.sessions[flow] = sess; s.mu.Unlock()
 	if err := s.sendSYNACK(sess); err != nil { s.removeSessionMatch(flow, sess); return err }
 	go func() {
@@ -367,7 +389,23 @@ func (s *muxServer) relayLoop(sess *muxSession) {
 
 func (s *muxServer) retransmitLoop() error {
 	t := time.NewTicker(2 * time.Millisecond); defer t.Stop()
-	for { select { case <-s.ctx.Done(): return s.ctx.Err(); case now := <-t.C: for _, sess := range s.snapshotSessions() { if p := sess.assoc.RetransmitDue(now); p != nil { if err := s.sendPending(sess, p); err != nil { return err } } } } }
+	for {
+		select {
+		case <-s.ctx.Done():
+			return s.ctx.Err()
+		case now := <-t.C:
+			for _, sess := range s.snapshotSessions() {
+				if stale, idle := sess.staleDataAssociation(now); stale {
+					fmt.Printf("WBD_FAKETCP_MUX_SESSION_EXPIRE client=%d server=%d idle=%s reason=no_client_rx\n", sess.flow.ClientPort, sess.flow.ServerPort, idle.Round(time.Millisecond))
+					s.removeSessionMatch(sess.flow, sess)
+					continue
+				}
+				if p := sess.assoc.RetransmitDue(now); p != nil {
+					if err := s.sendPending(sess, p); err != nil { return err }
+				}
+			}
+		}
+	}
 }
 
 func (s *muxServer) sendSYNACK(sess *muxSession) error { seq, ack, err := sess.assoc.SYNACK(); if err != nil { return err }; return s.sendRaw(sess.flow, seq, ack, faketcp.FlagSYN|faketcp.FlagACK, nil, nil) }

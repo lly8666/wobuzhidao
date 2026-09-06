@@ -3,7 +3,9 @@ package windowsruntime
 import (
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"math/big"
+	"os"
 	"sort"
 	"time"
 
@@ -157,7 +159,11 @@ func (c *Controller) runLaneAgeTick(ages *laneAgeState, now time.Time) {
 	ages.reconcileWithin(plans, now, randomLaneAgeOffset, minAge, maxAge)
 	laneID, ok := ages.nextDue(now); if !ok { return }
 	ages.deadlines[laneID] = now.Add(laneAgeRetryDelay)
-	_ = c.ReplaceLane(laneID)
+	if err := c.ReplaceLane(laneID); err != nil {
+		fmt.Fprintf(os.Stderr, "WBD_LANE_ROTATION_RETRY lane=%d retry=%s err=%v\n", laneID, laneAgeRetryDelay, err)
+		return
+	}
+	fmt.Printf("WBD_LANE_ROTATION_PASS lane=%d policy_min=%s policy_max=%s\n", laneID, minAge, maxAge)
 }
 
 func (c *Controller) runPayloadIdleMonitor(generation uint64, stop chan struct{}, timeout time.Duration) {
