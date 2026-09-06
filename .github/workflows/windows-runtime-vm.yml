@@ -27,6 +27,10 @@ jobs:
         shell: pwsh
         run: |
           go test ./internal/windowsruntime ./internal/windowsgui ./cmd/wbd-tun
+      - name: Prove real Game child reaches READY after default loopback collision
+        shell: pwsh
+        run: |
+          go test -count=1 -v -run '^TestWindowsGameChildReadyWhenDefaultLoopbackPairOccupied$' ./internal/windowsruntime
       - name: Cross-check Windows TUN executable build
         shell: pwsh
         run: |
