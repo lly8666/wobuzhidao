@@ -16,6 +16,30 @@ const (
 	laneQualificationRetry   = time.Second
 )
 
+func laneMembershipReady(lane *laneConn) bool {
+	if lane == nil || lane.ready == nil {
+		return false
+	}
+	select {
+	case <-lane.ready:
+		return true
+	default:
+		return false
+	}
+}
+
+func (c *client) promoteQualifiedOverlapIfPrimaryGone(lane *laneConn) {
+	if c == nil || lane == nil || !laneMembershipReady(lane) {
+		return
+	}
+	c.lanesMu.Lock()
+	if c.lanes[lane.id] == nil && c.overlap[lane.id] == lane {
+		c.lanes[lane.id] = lane
+		delete(c.overlap, lane.id)
+	}
+	c.lanesMu.Unlock()
+}
+
 func (c *client) qualifyLane(lane *laneConn, timeout time.Duration) error {
 	if lane == nil || lane.conn == nil || lane.ready == nil || c == nil || c.enc == nil {
 		return fmt.Errorf("candidate lane qualification requires an active Game association")
@@ -38,6 +62,7 @@ func (c *client) qualifyLane(lane *laneConn, timeout time.Duration) error {
 	for {
 		select {
 		case <-lane.ready:
+			c.promoteQualifiedOverlapIfPrimaryGone(lane)
 			fmt.Printf("WBD_GAME_LANE_CLIENT_QUALIFIED lane=%d proxy=%s\n", lane.id, lane.addr)
 			return nil
 		case <-retry.C:
@@ -64,5 +89,6 @@ func (c *client) handleLaneMembershipControl(lane *laneConn, wire []byte) (bool,
 		return true, fmt.Errorf("unexpected server Game membership op=%d", control.Op)
 	}
 	lane.readyOnce.Do(func() { close(lane.ready) })
+	c.promoteQualifiedOverlapIfPrimaryGone(lane)
 	return true, nil
 }

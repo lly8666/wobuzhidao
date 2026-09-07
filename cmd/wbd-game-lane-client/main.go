@@ -288,8 +288,10 @@ func (c *client) failLane(lane *laneConn, err error) {
 	if current := c.lanes[lane.id]; current == lane {
 		delete(c.lanes, lane.id)
 		if standby := c.overlap[lane.id]; standby != nil {
-			c.lanes[lane.id] = standby
-			delete(c.overlap, lane.id)
+			if laneMembershipReady(standby) {
+				c.lanes[lane.id] = standby
+				delete(c.overlap, lane.id)
+			}
 		}
 		removed = true
 	} else if standby := c.overlap[lane.id]; standby == lane {
@@ -306,7 +308,13 @@ func (c *client) failLane(lane *laneConn, err error) {
 func (c *client) activeRaceGroups() []laneRaceGroup {
 	c.lanesMu.RLock()
 	out := make([]laneRaceGroup, 0, len(c.lanes))
-	for id, lane := range c.lanes { out = append(out, laneRaceGroup{primary:lane, overlap:c.overlap[id]}) }
+	for id, lane := range c.lanes {
+		group := laneRaceGroup{primary: lane}
+		if candidate := c.overlap[id]; laneMembershipReady(candidate) {
+			group.overlap = candidate
+		}
+		out = append(out, group)
+	}
 	c.lanesMu.RUnlock()
 	sort.Slice(out, func(i, j int) bool { return out[i].primary.id < out[j].primary.id })
 	return out
