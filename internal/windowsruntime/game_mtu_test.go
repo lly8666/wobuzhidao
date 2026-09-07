@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/lly8666/wobuzhidao/internal/dataplane"
 	"github.com/lly8666/wobuzhidao/internal/gamelane"
 )
 
@@ -19,7 +20,7 @@ func TestDefaultTunnelMTUIsConservativeAndConfigurable(t *testing.T) {
 	}
 }
 
-func TestGameLaneLinkMTUBudgetsEnvelopeHeader(t *testing.T) {
+func TestGameLaneLinkMTUBudgetsDataplaneAndEnvelopeHeaders(t *testing.T) {
 	p := testProfile()
 	p.MTU = 1280
 	p.TunnelIPv4 = ""
@@ -31,8 +32,8 @@ func TestGameLaneLinkMTUBudgetsEnvelopeHeader(t *testing.T) {
 	b.TunnelConfig = testAuthenticatedTunnel()
 	plan, err := BuildCandidateLanePlan(p, b)
 	if err != nil { t.Fatal(err) }
-	want := 1280 + gamelane.HeaderSize
-	if !argPair(plan.Link.Args, "-mtu", "1312") || want != 1312 {
-		t.Fatalf("Game LINK args=%v want inner+header=%d", plan.Link.Args, want)
+	want := 1280 + dataplane.HeaderLen + gamelane.HeaderSize
+	if !argPair(plan.Link.Args, "-mtu", "1320") || want != 1320 {
+		t.Fatalf("Game LINK args=%v want inner+dataplane+game headers=%d", plan.Link.Args, want)
 	}
 }
