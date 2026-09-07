@@ -15,6 +15,7 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/control"
 	"github.com/lly8666/wobuzhidao/internal/dataplane"
+	"github.com/lly8666/wobuzhidao/internal/gamepath"
 	"github.com/lly8666/wobuzhidao/internal/linkdata"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
@@ -33,16 +34,17 @@ type testClient struct {
 var testTunnelSequence atomic.Uint32
 
 func testLinkConfig(fixed bool) control.LinkConfig {
+	linkMTU := defaultInnerMTU + gamepath.DatagramOverhead()
 	if !fixed {
 		return control.LinkConfig{
 			FECMode: control.FECOff, Scheduler: control.FECSchedulerNone,
-			MTU: defaultInnerMTU, LaneCount: 1,
+			MTU: uint16(linkMTU), LaneCount: 1,
 		}
 	}
 	return control.LinkConfig{
 		FECMode: control.FECFixed, Scheduler: control.FECSchedulerTailRS,
 		DataShards: 20, ParityShards: 20, FlushMillis: 8,
-		MTU: defaultInnerMTU, LaneCount: 1,
+		MTU: uint16(linkMTU), LaneCount: 1,
 	}
 }
 
