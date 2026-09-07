@@ -20,7 +20,7 @@ run_manager() { env WBD_ETC="$ETC" WBD_PREFIX="$PREFIX" WBD_RUN="$RUN" sh "$MANA
 run_manager set WBD_PORT 443 >/tmp/wbd-settings-set.log
 CONFIG=$ETC/server.env
 grep -q "^WBD_PORT='443'$" "$CONFIG"
-grep -q '^WBD_MTU=1400$' "$CONFIG"
+grep -q '^WBD_MTU=1360$' "$CONFIG"
 if grep -Eq '^WBD_(FRONT|RAW)_PORT=' "$CONFIG"; then
     echo 'fresh config still exposes split public ports' >&2; cat "$CONFIG" >&2; exit 1
 fi
