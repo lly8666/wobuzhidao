@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/lly8666/wobuzhidao/internal/dataplane"
 	"github.com/lly8666/wobuzhidao/internal/gamelane"
 )
 
@@ -84,11 +85,11 @@ func buildLanePlanForSlot(profile Profile, bootstrap LaneBootstrap, slot int, ca
 	if err != nil { return LanePlan{}, err }
 	linkListen, err := transportSlotLoopback(defaultLinkListenPort, slot)
 	if err != nil { return LanePlan{}, err }
-	// profile.MTU is the user-visible inner/Wintun MTU. Every Game datagram adds
-	// a fixed 32-byte WGL1 envelope before entering LINK, so the immutable LINK
-	// plaintext budget must include that header rather than rejecting a legal
-	// inner packet as fec.ErrPacketTooLarge even when FEC is disabled.
-	gameLinkMTU := profile.MTU + gamelane.HeaderSize
+	// profile.MTU is the user-visible inner/Wintun IP-packet MTU. wbd-tun
+	// first wraps each IP packet in the fixed WBDP dataplane header, then Game
+	// adds its fixed WGL1 envelope. LINK's immutable plaintext MTU must budget
+	// both headers so a legal inner packet is never rejected as too large.
+	gameLinkMTU := profile.MTU + dataplane.HeaderLen + gamelane.HeaderSize
 
 	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
 	suffix := strconv.Itoa(bootstrap.ID)
