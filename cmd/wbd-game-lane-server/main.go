@@ -220,7 +220,20 @@ func (s *server) bindLane(id gamelane.SessionID, laneID uint8, peer *net.UDPAddr
 	}
 	if primary := gs.lanes[laneID]; primary != nil {
 		if candidate := gs.overlap[laneID]; candidate != nil {
-			return nil, errors.New("logical lane already has a replacement transport incarnation")
+			// CLIENT_LEAVE is an idempotent best-effort membership hint carried
+			// over the retiring UDP transport. If that hint is lost, the client
+			// may already have promoted candidate locally and later present a new
+			// authenticated incarnation for the same logical LaneID. That third
+			// incarnation is the convergence proof promised by the WGC1 contract:
+			// roll A+B forward to B before admitting C as the next overlap.
+			staleKey := primary.String()
+			gs.lanes[laneID] = candidate
+			delete(gs.overlap, laneID)
+			delete(gs.peerLane, staleKey)
+			delete(s.peerSession, staleKey)
+			delete(s.peerMeta, staleKey)
+			fmt.Printf("WBD_GAME_LANE_UNBIND tunnel_id_prefix=%s lane=%d association_peer=%s lanes=%d targets=%d reason=lost_leave_rebind_recovery\n", tunnelIDPrefix(gs.meta), laneID, staleKey, len(gs.lanes), len(gs.lanes)+len(gs.overlap))
+			primary = candidate
 		}
 		if len(gs.overlap) >= 1 {
 			return nil, errors.New("another logical lane already has a replacement overlap")
