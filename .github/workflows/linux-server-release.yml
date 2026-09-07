@@ -32,7 +32,6 @@ on:
       - 'cmd/wbd-server-cert/**'
       - 'cmd/wbd-reality-front/**'
       - 'cmd/wbd-faketcp-mux/**'
-      - 'cmd/wbd-link-server-mux/**'
       - 'cmd/wbd-platform-proxy-server/**'
       - 'internal/**'
       - 'native/dtls/**'
@@ -57,7 +56,8 @@ jobs:
           set -euo pipefail
           sh -n scripts/build_linux_server_bundle.sh scripts/linux_server_manager.sh scripts/linux_server_settings_test.sh
           chmod +x scripts/linux_server_settings_test.sh
-          sudo env WBD_SERVER_MANAGER="$PWD/scripts/linux_server_manager.sh" scripts/linux_server_settings_test.sh
+          sudo env WBD_SOURCE_SHA="$WBD_SOURCE_SHA" WBD_SERVER_MANAGER="$PWD/scripts/linux_server_manager.sh" scripts/linux_server_settings_test.sh
+          grep -Fq "WBD_LINUX_SERVER_SOURCE source_sha=$WBD_SOURCE_SHA" /tmp/wbd-settings-wildcard.log
 
   amd64:
     needs: settings
