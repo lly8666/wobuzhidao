@@ -159,6 +159,31 @@ regen_certs() {
     echo 'WBD certificates regenerated; restart WBD to use them'
 }
 
+validate_source_sha() {
+    sha=${1:-}
+    [ ${#sha} -eq 40 ] || return 1
+    case "$sha" in *[!0-9a-f]*) return 1;; esac
+    return 0
+}
+
+read_source_sha_file() {
+    path=${1:-}
+    [ -r "$path" ] || return 1
+    sha=$(tr -d '\r\n' <"$path")
+    validate_source_sha "$sha" || return 1
+    printf '%s\n' "$sha"
+}
+
+runtime_source_sha() {
+    if [ -r "$PREFIX/SOURCE_SHA" ]; then
+        read_source_sha_file "$PREFIX/SOURCE_SHA"
+        return
+    fi
+    sha=${WBD_SOURCE_SHA:-}
+    validate_source_sha "$sha" || return 1
+    printf '%s\n' "$sha"
+}
+
 install_files() {
     need_root
     arch=$(uname -m)
@@ -166,11 +191,18 @@ install_files() {
     [ -x "$SELF_DIR/bin/wbd-faketcp-mux" ] || { echo 'run install from extracted WBD server bundle' >&2; exit 1; }
     bundle_arch=$(cat "$SELF_DIR/ARCH" 2>/dev/null || true)
     [ "$bundle_arch" = "$want" ] || { echo "bundle arch=$bundle_arch host=$want" >&2; exit 1; }
+    bundle_source_sha=$(read_source_sha_file "$SELF_DIR/SOURCE_SHA" 2>/dev/null || true)
+    [ -n "$bundle_source_sha" ] || { echo 'bundle SOURCE_SHA is missing or invalid; refuse an unfenced server install' >&2; exit 1; }
     command -v systemctl >/dev/null || { echo 'systemd/systemctl is required' >&2; exit 1; }
     command -v ip >/dev/null || { echo 'iproute2/ip is required for shared TUN' >&2; exit 1; }
     if ! command -v nft >/dev/null 2>&1 && ! command -v iptables >/dev/null 2>&1; then echo 'host requires nft or iptables' >&2; exit 1; fi
+
+    was_active=0
+    if systemctl is-active --quiet wbd-server.service 2>/dev/null; then was_active=1; fi
+
     mkdir -p "$PREFIX/bin" "$ETC" "$RUN/tickets"
     chmod 700 "$RUN/tickets"
+    install -m 0644 "$SELF_DIR/SOURCE_SHA" "$PREFIX/SOURCE_SHA"
     for f in wbd-reality-front wbd-faketcp-mux wbd-link-server-mux wbd-game-lane-server wbd-ip-gateway-shared wbd-platform-proxy-server wbd_dtls_shim wbd-server-cert; do
         install -m 0755 "$SELF_DIR/bin/$f" "$PREFIX/bin/$f"
     done
@@ -185,11 +217,18 @@ install_files() {
     chmod 600 "$ETC"/*.key "$CONFIG"
     install_unit
     systemctl enable wbd-server.service >/dev/null
-    echo "WBD installed but not started. Configure $CONFIG, run 'wbd-server doctor', then 'wbd-server start'."
+    if [ "$was_active" -eq 1 ]; then
+        systemctl restart wbd-server.service
+        echo "WBD upgraded and restarted source_sha=$bundle_source_sha"
+    else
+        echo "WBD installed but not started source_sha=$bundle_source_sha. Configure $CONFIG, run 'wbd-server doctor', then 'wbd-server start'."
+    fi
 }
 
 run_server() {
     need_root; load_config
+    source_sha=$(runtime_source_sha 2>/dev/null || true)
+    [ -n "$source_sha" ] || { echo 'WBD runtime SOURCE_SHA is missing or invalid; reinstall from an exact-source server bundle' >&2; exit 1; }
     raw_listen_ip=$(resolve_faketcp_listen_ip)
     mkdir -p "$RUN/tickets"; chmod 700 "$RUN/tickets"
     rm -f "$RUN/tickets"/* 2>/dev/null || true
@@ -197,6 +236,7 @@ run_server() {
     cleanup() { set +e; for p in $pids; do kill -TERM "$p" 2>/dev/null || true; done; wait 2>/dev/null || true; }
     trap cleanup EXIT
     trap 'exit 0' INT TERM HUP
+    echo "WBD_LINUX_SERVER_SOURCE source_sha=$source_sha"
     echo "WBD_LINUX_SERVER_BIND public_raw=$raw_listen_ip:$WBD_PORT max_tunnel_lanes=4 link=$WBD_LINK_LISTEN game=$WBD_GAME_LISTEN shared_tun=$WBD_SHARED_TUN_LISTEN tun_if=$WBD_SHARED_TUN_IF lease_pool=$WBD_TUNNEL_POOL"
 
     set -- "$PREFIX/bin/wbd-ip-gateway-shared" -listen "$WBD_SHARED_TUN_LISTEN" \
@@ -256,6 +296,12 @@ doctor() {
     load_config
     fail=0
     printf 'config: OK (%s)\n' "$CONFIG"
+    if source_sha=$(read_source_sha_file "$PREFIX/SOURCE_SHA" 2>/dev/null); then
+        echo "source: OK sha=$source_sha"
+    else
+        echo "source: MISSING/INVALID $PREFIX/SOURCE_SHA"
+        fail=1
+    fi
     for f in wbd-faketcp-mux wbd-link-server-mux wbd-game-lane-server wbd-ip-gateway-shared wbd_dtls_shim wbd-server-cert linux_server_firewall.sh linux_server_guard.sh linux_shared_tun_firewall.sh; do
         if [ -x "$PREFIX/bin/$f" ]; then echo "binary: OK $f"; else echo "binary: MISSING $f"; fail=1; fi
     done
@@ -290,7 +336,7 @@ case "${1:-help}" in
  show-config) show_config ;;
  help|-h|--help) cat <<EOF
 usage: wbd-server COMMAND
-  install       install this amd64/arm64 bundle, enable service, do not start it
+  install       install/upgrade this exact-source bundle; restart only if already active
   uninstall     stop, remove WBD-owned firewall/NAT state, binaries, config and service
   start|resume  start server
   stop|pause    stop server and clean WBD-owned runtime firewall state
@@ -300,7 +346,7 @@ usage: wbd-server COMMAND
   config        edit $CONFIG
   set KEY VALUE set one supported option without an editor
   regen-certs   regenerate local TLS/DTLS certificates (run after server-name change)
-  doctor        validate config, runtime files and host facilities
+  doctor        validate config, source receipt, runtime files and host facilities
   show-config   print settings with secrets redacted
 
 Main settings: WBD_PORT, WBD_LISTEN_IP, WBD_SERVER_NAME, WBD_DECOY_TARGET,
