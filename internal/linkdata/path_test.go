@@ -85,12 +85,12 @@ func TestFixedPathStreamsSystematicImmediately(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(repair) != 20 {
-		t.Fatalf("partial repair=%d want=20", len(repair))
+	if len(repair) != 1 {
+		t.Fatalf("single-source partial repair=%d want=1", len(repair))
 	}
 	st = p.Stats()
-	if st.WireTXPackets != 21 || st.FECSystematicTXPackets != 1 || st.FECRepairTXPackets != 20 {
-		t.Fatalf("partial flush stats=%+v", st)
+	if st.WireTXPackets != 2 || st.FECSystematicTXPackets != 1 || st.FECRepairTXPackets != 1 {
+		t.Fatalf("bounded partial flush stats=%+v", st)
 	}
 }
 
