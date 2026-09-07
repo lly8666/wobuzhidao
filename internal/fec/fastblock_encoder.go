@@ -12,9 +12,11 @@ import (
 // retained in preallocated shard storage only so parity can be computed later.
 //
 // When the block fills, or a partial block reaches flushAfter, the encoder emits
-// exactly the 20 parity shards with authoritative final block metadata. Total
-// wire geometry is unchanged: a full block is still 20 source + 20 parity, and
-// a partial N-packet block is still N source + 20 parity.
+// enough parity to preserve the fixed 100% redundancy ratio: a full block is
+// 20 source + 20 parity, while a partial N-packet block is N source + N parity.
+// Unused source slots are authoritative known-zero shards at the decoder, so
+// transmitting 20 parity datagrams for a one- or two-packet partial block only
+// amplified wire traffic without increasing recoverability.
 //
 // Returned wire slices remain valid until the corresponding backing slot is
 // reused. The UDP proxy sends returned slices synchronously before the next Add.
@@ -108,7 +110,15 @@ func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 		return nil, err
 	}
 
-	for p := 0; p < ParityShards; p++ {
+	// For a partial block, DataShards-dataCount systematic slots are known zero
+	// and the decoder marks them present. dataCount parity shards are therefore
+	// sufficient even if every real source datagram is lost: known zeros plus
+	// parity still provide the 20 equations required by the fixed 20x20 codec.
+	parityCount := dataCount
+	if parityCount > ParityShards {
+		parityCount = ParityShards
+	}
+	for p := 0; p < parityCount; p++ {
 		index := DataShards + p
 		b := e.wireBuf[index][:HeaderSize+shardSize]
 		marshalFastHeader(b[:HeaderSize], e.nextBlockID, index, dataCount, shardSize, e.lengths)
@@ -121,7 +131,7 @@ func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 	e.shardSize = 0
 	e.firstAt = time.Time{}
 	clear(e.lengths[:])
-	return e.out[:offset+ParityShards], nil
+	return e.out[:offset+parityCount], nil
 }
 
 func marshalStreamingSourceHeader(dst []byte, blockID uint32, shardIndex, packetLen int) {
