@@ -252,7 +252,7 @@ run_server() {
     "$@" & pids="$pids $!"
 
     "$PREFIX/bin/wbd-game-lane-server" -listen "$WBD_GAME_LISTEN" -service "$WBD_SHARED_TUN_LISTEN" -max-sessions "$WBD_MAX_SESSIONS" -max-lanes 4 -replay-window 4096 & pids="$pids $!"
-    "$PREFIX/bin/wbd-link-server-mux" -listen "$WBD_LINK_LISTEN" -service "$WBD_GAME_LISTEN" -raw-ip-service "$WBD_SHARED_TUN_LISTEN" -ticket-dir "$RUN/tickets" -ticket-ttl "$WBD_TICKET_TTL" -max-sessions "$WBD_MAX_SESSIONS" & pids="$pids $!"
+    "$PREFIX/bin/wbd-link-server-mux" -listen "$WBD_LINK_LISTEN" -service "$WBD_GAME_LISTEN" -raw-ip-service "$WBD_SHARED_TUN_LISTEN" -ticket-dir "$RUN/tickets" -ticket-ttl "$WBD_TICKET_TTL" -max-sessions "$WBD_MAX_SESSIONS" -mtu "$WBD_MTU" & pids="$pids $!"
 
     guard="$PREFIX/bin/linux_server_guard.sh"
     set -- "$guard" --backend "$WBD_FIREWALL_BACKEND" --front-port "$WBD_PORT" --raw-port "$WBD_PORT" --state "$RUN/server-firewall.state"
