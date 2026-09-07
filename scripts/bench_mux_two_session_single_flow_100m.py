@@ -169,12 +169,16 @@ def benchmark_main(args):
         ])
         time.sleep(0.1)
 
+        # The mux owns a user-visible inner MTU (1360 by default) and adds the
+        # 40-byte WBDP+Game envelope before LINK. wbd-link-proxy is a direct
+        # LINK tool, so its -mtu remains LINK plaintext: 1360 + 40 = 1400.
         linkc, linkc_log = start("link-client", A, [
             str(assets / "wbd-link-proxy"),
             "-mode", "client",
             "-listen", "127.0.0.1:47101",
             "-dtls", "127.0.0.1:46201",
             "-fec", args.fec,
+            "-mtu", "1400",
             "-demo-reality-ticket", ticket,
         ])
         wait_text(linkc_log, "WBD_LINK_READY role=client", 35)
