@@ -83,47 +83,53 @@ func TestFastBlockEncoderRoundTripTwentyMissingReordered(t *testing.T) {
 	}
 }
 
-func TestFastBlockEncoderPartialStreamsThenRecoversMissing(t *testing.T) {
+func TestFastBlockEncoderPartialParityMatchesDataCountAndRecoversAllLostSources(t *testing.T) {
 	codec := NewFastReedSolomon20x20()
 	enc, _ := NewFastBlockEncoder(codec, 1400, 8*time.Millisecond, 7)
 	want := testPackets(3)
 	t0 := time.Unix(100, 0)
-	wire := make([][]byte, 0, 3+ParityShards)
 	for i, p := range want {
 		out, err := enc.Add(p, t0.Add(time.Duration(i)*time.Millisecond))
 		if err != nil { t.Fatal(err) }
 		if len(out) != 1 { t.Fatalf("partial Add %d emitted %d", i, len(out)) }
-		wire = append(wire, out...)
 	}
 	if out, err := enc.FlushDue(t0.Add(7*time.Millisecond)); err != nil || out != nil {
 		t.Fatalf("early flush out=%d err=%v", len(out), err)
 	}
 	parity, err := enc.FlushDue(t0.Add(8*time.Millisecond))
 	if err != nil { t.Fatal(err) }
-	if len(parity) != ParityShards { t.Fatalf("parity=%d want=%d", len(parity), ParityShards) }
-	wire = append(wire, parity...)
-	if len(wire) != 3+ParityShards { t.Fatalf("wire=%d", len(wire)) }
+	if len(parity) != len(want) { t.Fatalf("partial parity=%d want dataCount=%d", len(parity), len(want)) }
 
-	// Drop streaming source #1. Source #0/#2 must be returned immediately; the
-	// first final parity shard supplies enough equations (17 known zero + 2 real
-	// sources + 1 parity) to recover only the missing packet without duplicates.
+	// Drop every streaming source. The three parity shards plus the 17 known-zero
+	// unused systematic slots must still provide the 20 equations needed to
+	// reconstruct all three real source packets.
 	dec, _ := NewBlockDecoder(codec, 1400, 8)
 	var got [][]byte
 	completed := false
-	for i, d := range wire {
-		h, err := ParseBlockHeader(d[:HeaderSize]); if err != nil { t.Fatal(err) }
-		if h.ShardIndex == 1 { continue }
+	for i, d := range parity {
 		packets, done, err := dec.Add(d)
-		if err != nil { t.Fatalf("wire %d: %v", i, err) }
+		if err != nil { t.Fatalf("parity %d: %v", i, err) }
 		appendDecoded(&got, packets)
-		if done { completed = true; break }
+		if done { completed = true }
 	}
-	if !completed { t.Fatal("partial block did not complete") }
+	if !completed { t.Fatal("partial block did not complete from parity-only input") }
 	if len(got) != len(want) { t.Fatalf("decoded=%d want=%d", len(got), len(want)) }
-	seen := make(map[byte][]byte)
-	for _, p := range got { if len(p) != 0 { seen[p[0]] = p } }
 	for i := range want {
-		if !bytes.Equal(seen[byte(i+1)], want[i]) { t.Fatalf("partial packet %d mismatch", i) }
+		if !bytes.Equal(got[i], want[i]) { t.Fatalf("partial packet %d mismatch", i) }
+	}
+}
+
+func TestFastBlockEncoderSinglePacketFlushIsTwoDatagramsNotTwentyOne(t *testing.T) {
+	codec := NewFastReedSolomon20x20()
+	enc, _ := NewFastBlockEncoder(codec, 1400, 8*time.Millisecond, 11)
+	t0 := time.Unix(200, 0)
+	if out, err := enc.Add([]byte("one"), t0); err != nil || len(out) != 1 {
+		t.Fatalf("Add out=%d err=%v", len(out), err)
+	}
+	parity, err := enc.FlushDue(t0.Add(8 * time.Millisecond))
+	if err != nil { t.Fatal(err) }
+	if len(parity) != 1 {
+		t.Fatalf("single-packet partial block parity=%d want=1", len(parity))
 	}
 }
 
