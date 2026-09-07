@@ -39,6 +39,15 @@ func TestFixedPathPartialWireAmplificationBounded(t *testing.T) {
 			if st.InnerTXBytes != uint64(n*packetSize) {
 				t.Fatalf("sources=%d inner_tx_bytes=%d want=%d", n, st.InnerTXBytes, n*packetSize)
 			}
+			// Equal-sized originals plus fixed 20:20 redundancy must produce a
+			// byte-symmetric source/repair set. This catches cases where packet
+			// counts look 1:1 but repair shards are silently oversized or padded.
+			if st.FECSystematicTXBytes != st.FECRepairTXBytes {
+				t.Fatalf("sources=%d systematic_bytes=%d repair_bytes=%d", n, st.FECSystematicTXBytes, st.FECRepairTXBytes)
+			}
+			if st.WireTXBytes != st.FECSystematicTXBytes+st.FECRepairTXBytes {
+				t.Fatalf("sources=%d wire_bytes=%d systematic_plus_repair=%d", n, st.WireTXBytes, st.FECSystematicTXBytes+st.FECRepairTXBytes)
+			}
 			// At 1200-byte payloads the 56-byte FEC header makes 20:20 about
 			// 2.093x at this layer. 2.10x leaves a small integer-safe ceiling
 			// while still catching the old N+20 partial-block explosion.
