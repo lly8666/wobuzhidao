@@ -2,9 +2,9 @@ package releasecontract
 
 import "testing"
 
-// Qualification kick: restart the immutable exact-head matrix after the Game
-// replacement path gained the missing Ready-to-payload publish barrier while
-// preserving the existing high-RTT qualification budgets.
+// Qualification kick: restart the immutable exact-head matrix after the Windows
+// portable payload gained the missing route-rebind script and Game LINK MTU now
+// budgets both WBDP and WGL1 framing over the configurable inner/Wintun MTU.
 func TestExactHeadReleaseQualificationMatrixMatchesAuthorityDoc(t *testing.T) {
 	workflow := readRepoFile(t, ".github/workflows/release-qualification-kick.yml")
 	doc := readRepoFile(t, "docs/development/QUALIFICATION_KICK.md")
