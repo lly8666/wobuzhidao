@@ -42,6 +42,9 @@ if printf '%s\n' "$out" | grep -q 'very-secret-password'; then echo 'show-config
 # Invalid or obsolete settings fail instead of being silently accepted.
 if run_manager set WBD_PORT 0 >/tmp/wbd-settings-bad.log 2>&1; then echo 'WBD_PORT=0 unexpectedly accepted' >&2; exit 1; fi
 if run_manager set WBD_PORT 65536 >/tmp/wbd-settings-bad.log 2>&1; then echo 'WBD_PORT=65536 unexpectedly accepted' >&2; exit 1; fi
+# Failed set attempts intentionally leave the invalid value visible for repair,
+# so restore the port before isolating MTU validation failures.
+run_manager set WBD_PORT 443 >/dev/null
 if run_manager set WBD_MTU 575 >/tmp/wbd-settings-bad.log 2>&1; then echo 'WBD_MTU=575 unexpectedly accepted' >&2; exit 1; fi
 if run_manager set WBD_MTU 1501 >/tmp/wbd-settings-bad.log 2>&1; then echo 'WBD_MTU=1501 unexpectedly accepted' >&2; exit 1; fi
 # Restore the supported value after failed set attempts: set writes first, then
