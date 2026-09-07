@@ -3,8 +3,9 @@ package releasecontract
 import "testing"
 
 // Qualification kick: restart the immutable exact-head matrix after the Windows
-// portable payload gained the missing route-rebind script and Game LINK MTU now
-// budgets both WBDP and WGL1 framing over the configurable inner/Wintun MTU.
+// portable payload gained the missing route-rebind script and Game LINK MTU is
+// derived from each configurable inner/Wintun MTU plus WBDP/WGL1 framing while
+// remaining inside the live LINK policy instead of pinning one product MTU.
 func TestExactHeadReleaseQualificationMatrixMatchesAuthorityDoc(t *testing.T) {
 	workflow := readRepoFile(t, ".github/workflows/release-qualification-kick.yml")
 	doc := readRepoFile(t, "docs/development/QUALIFICATION_KICK.md")
