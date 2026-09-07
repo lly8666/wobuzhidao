@@ -7,9 +7,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/lly8666/wobuzhidao/internal/dataplane"
-	"github.com/lly8666/wobuzhidao/internal/gamelane"
 )
 
 const makeBeforeBreakCandidateSlot = 5
@@ -26,6 +23,7 @@ func BuildCandidateLaneBootstrap(profile Profile, base Underlay, laneID int) (La
 func BuildCandidateLaneBootstrapSlot(profile Profile, base Underlay, laneID, slot int) (LaneBootstrap, error) {
 	profile = profile.normalized()
 	if err := profile.Validate(); err != nil { return LaneBootstrap{}, err }
+	if _, err := gameLinkPlaintextMTU(profile.MTU); err != nil { return LaneBootstrap{}, err }
 	if _, err := lanePort(0, laneID); err != nil { return LaneBootstrap{}, err }
 	if _, err := transportSlotPort(0, slot); err != nil { return LaneBootstrap{}, err }
 	if err := base.Validate(); err != nil { return LaneBootstrap{}, err }
@@ -74,6 +72,8 @@ func BuildCandidateLanePlanSlot(profile Profile, bootstrap LaneBootstrap, slot i
 func buildLanePlanForSlot(profile Profile, bootstrap LaneBootstrap, slot int, candidate bool) (LanePlan, error) {
 	profile = profile.normalized()
 	if err := profile.Validate(); err != nil { return LanePlan{}, err }
+	gameLinkMTU, err := gameLinkPlaintextMTU(profile.MTU)
+	if err != nil { return LanePlan{}, err }
 	if err := bootstrap.ValidateAuthenticated(nil); err != nil { return LanePlan{}, err }
 	if _, err := transportSlotPort(0, slot); err != nil { return LanePlan{}, err }
 
@@ -85,11 +85,6 @@ func buildLanePlanForSlot(profile Profile, bootstrap LaneBootstrap, slot int, ca
 	if err != nil { return LanePlan{}, err }
 	linkListen, err := transportSlotLoopback(defaultLinkListenPort, slot)
 	if err != nil { return LanePlan{}, err }
-	// profile.MTU is the user-visible inner/Wintun IP-packet MTU. wbd-tun
-	// first wraps each IP packet in the fixed WBDP dataplane header, then Game
-	// adds its fixed WGL1 envelope. LINK's immutable plaintext MTU must budget
-	// both headers so a legal inner packet is never rejected as too large.
-	gameLinkMTU := profile.MTU + dataplane.HeaderLen + gamelane.HeaderSize
 
 	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
 	suffix := strconv.Itoa(bootstrap.ID)
