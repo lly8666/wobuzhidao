@@ -2,6 +2,9 @@ package releasecontract
 
 import "testing"
 
+// Qualification kick: restart the immutable exact-head matrix after the Linux
+// server installer learned to source-fence upgrades and restart an already
+// active service so disk/runtime binaries cannot silently diverge.
 func TestExactHeadReleaseQualificationMatrixMatchesAuthorityDoc(t *testing.T) {
 	workflow := readRepoFile(t, ".github/workflows/release-qualification-kick.yml")
 	doc := readRepoFile(t, "docs/development/QUALIFICATION_KICK.md")
