@@ -173,20 +173,23 @@ grep -q '^127.0.0.1:49100$' "$GAME_LOG"
 grep -q '^-max-lanes$' "$GAME_LOG"
 grep -q '^4$' "$GAME_LOG"
 
-# LINK feeds Game for raced packet service and also knows the authenticated raw
-# IP shared gateway boundary.
+# LINK feeds Game for raced packet service, knows the authenticated raw IP
+# shared-gateway boundary, and receives the exact same configured inner IP MTU.
 grep -q '^-listen$' "$LINK_LOG"
 grep -q '^127.0.0.1:47000$' "$LINK_LOG"
 grep -q '^-service$' "$LINK_LOG"
 grep -q '^127.0.0.1:48500$' "$LINK_LOG"
 grep -q '^-raw-ip-service$' "$LINK_LOG"
 grep -q '^127.0.0.1:49100$' "$LINK_LOG"
+grep -q '^-mtu$' "$LINK_LOG"
+grep -q '^1280$' "$LINK_LOG"
 
 run_start=$(awk '/^run_server\(\) \{/{on=1} /^uninstall_files\(\) \{/{on=0} on{print}' "$MANAGER")
 printf '%s\n' "$run_start" | grep -Fq 'wbd-ip-gateway-shared" -listen "$WBD_SHARED_TUN_LISTEN"'
 printf '%s\n' "$run_start" | grep -Fq -- '-tun-if "$WBD_SHARED_TUN_IF" -mtu "$WBD_MTU"'
 printf '%s\n' "$run_start" | grep -Fq 'wbd-game-lane-server" -listen "$WBD_GAME_LISTEN" -service "$WBD_SHARED_TUN_LISTEN"'
 printf '%s\n' "$run_start" | grep -Fq 'wbd-link-server-mux" -listen "$WBD_LINK_LISTEN" -service "$WBD_GAME_LISTEN" -raw-ip-service "$WBD_SHARED_TUN_LISTEN"'
+printf '%s\n' "$run_start" | grep -Fq -- '-max-sessions "$WBD_MAX_SESSIONS" -mtu "$WBD_MTU"'
 if printf '%s\n' "$run_start" | grep -q 'wbd-platform-proxy-server'; then echo 'product manager still starts legacy platform proxy' >&2; exit 1; fi
 
 # The systemd unit must rely on normal control-group termination and cap storms.
@@ -194,4 +197,4 @@ if grep -q 'ExecStop=/bin/kill' "$MANAGER"; then echo 'manager still emits fragi
 grep -q 'StartLimitBurst=5' "$MANAGER"
 grep -q 'KillMode=control-group' "$MANAGER"
 
-echo 'WBD_LINUX_SERVER_SETTINGS_PASS shared_public_raw_mux=1 per_lane_single_flow=1 max_tunnel_lanes=4 game_product=1 shared_tun=1 host_nat=1 inner_mtu=1280 wildcard_raw_ipv4=resolved restart_storm=capped migration=fail_closed secrets=redacted'
+echo 'WBD_LINUX_SERVER_SETTINGS_PASS shared_public_raw_mux=1 per_lane_single_flow=1 max_tunnel_lanes=4 game_product=1 shared_tun=1 host_nat=1 inner_mtu=1280 link_mtu=1280 wildcard_raw_ipv4=resolved restart_storm=capped migration=fail_closed secrets=redacted'
