@@ -36,13 +36,13 @@ func testLinkConfig(fixed bool) control.LinkConfig {
 	if !fixed {
 		return control.LinkConfig{
 			FECMode: control.FECOff, Scheduler: control.FECSchedulerNone,
-			MTU: 1400, LaneCount: 1,
+			MTU: defaultInnerMTU, LaneCount: 1,
 		}
 	}
 	return control.LinkConfig{
 		FECMode: control.FECFixed, Scheduler: control.FECSchedulerTailRS,
 		DataShards: 20, ParityShards: 20, FlushMillis: 8,
-		MTU: 1400, LaneCount: 1,
+		MTU: defaultInnerMTU, LaneCount: 1,
 	}
 }
 
