@@ -46,7 +46,10 @@ if run_manager set WBD_PORT 65536 >/tmp/wbd-settings-bad.log 2>&1; then echo 'WB
 # so restore the port before isolating MTU validation failures.
 run_manager set WBD_PORT 443 >/dev/null
 if run_manager set WBD_MTU 575 >/tmp/wbd-settings-bad.log 2>&1; then echo 'WBD_MTU=575 unexpectedly accepted' >&2; exit 1; fi
-if run_manager set WBD_MTU 1501 >/tmp/wbd-settings-bad.log 2>&1; then echo 'WBD_MTU=1501 unexpectedly accepted' >&2; exit 1; fi
+# 1460 inner + 40 bytes private Game/WBDP envelope exactly reaches LINK 1500.
+run_manager set WBD_MTU 1460 >/dev/null
+grep -q "^WBD_MTU='1460'$" "$CONFIG"
+if run_manager set WBD_MTU 1461 >/tmp/wbd-settings-bad.log 2>&1; then echo 'WBD_MTU=1461 unexpectedly accepted' >&2; exit 1; fi
 # Restore the supported value after failed set attempts: set writes first, then
 # validates, so an invalid value intentionally remains visible for repair.
 run_manager set WBD_MTU 1280 >/dev/null
@@ -176,8 +179,8 @@ grep -q '^127.0.0.1:49100$' "$GAME_LOG"
 grep -q '^-max-lanes$' "$GAME_LOG"
 grep -q '^4$' "$GAME_LOG"
 
-# LINK feeds Game for raced packet service, knows the authenticated raw IP
-# shared-gateway boundary, and receives the exact same configured inner IP MTU.
+# LINK mux receives the same user-visible inner MTU; it alone converts that
+# value to the immutable LINK plaintext MTU by adding the private Game budget.
 grep -q '^-listen$' "$LINK_LOG"
 grep -q '^127.0.0.1:47000$' "$LINK_LOG"
 grep -q '^-service$' "$LINK_LOG"
@@ -200,4 +203,4 @@ if grep -q 'ExecStop=/bin/kill' "$MANAGER"; then echo 'manager still emits fragi
 grep -q 'StartLimitBurst=5' "$MANAGER"
 grep -q 'KillMode=control-group' "$MANAGER"
 
-echo 'WBD_LINUX_SERVER_SETTINGS_PASS shared_public_raw_mux=1 per_lane_single_flow=1 max_tunnel_lanes=4 game_product=1 shared_tun=1 host_nat=1 inner_mtu=1280 link_mtu=1280 wildcard_raw_ipv4=resolved restart_storm=capped migration=fail_closed secrets=redacted'
+echo 'WBD_LINUX_SERVER_SETTINGS_PASS shared_public_raw_mux=1 per_lane_single_flow=1 max_tunnel_lanes=4 game_product=1 shared_tun=1 host_nat=1 inner_mtu=1280 link_config_inner_mtu=1280 wildcard_raw_ipv4=resolved restart_storm=capped migration=fail_closed secrets=redacted'
