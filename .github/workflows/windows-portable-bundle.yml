@@ -20,6 +20,7 @@ on:
       - 'internal/releasecontract/**'
       - 'native/dtls/**'
       - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_tun_rebind.ps1'
       - 'scripts/windows_ipv6_killswitch.ps1'
       - 'scripts/windows_faketcp_underlay.ps1'
       - 'scripts/windows_npcap_prepare.ps1'
@@ -46,6 +47,7 @@ on:
       - 'internal/releasecontract/**'
       - 'native/dtls/**'
       - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_tun_rebind.ps1'
       - 'scripts/windows_ipv6_killswitch.ps1'
       - 'scripts/windows_faketcp_underlay.ps1'
       - 'scripts/windows_npcap_prepare.ps1'
@@ -151,12 +153,13 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $payload = 'build\windows-runtime'
           Copy-Item scripts\windows_tun_route.ps1 "$payload\windows_tun_route.ps1"
+          Copy-Item scripts\windows_tun_rebind.ps1 "$payload\windows_tun_rebind.ps1"
           Copy-Item scripts\windows_ipv6_killswitch.ps1 "$payload\windows_ipv6_killswitch.ps1"
           Copy-Item scripts\windows_faketcp_underlay.ps1 "$payload\windows_faketcp_underlay.ps1"
           Copy-Item scripts\windows_npcap_prepare.ps1 "$payload\windows_npcap_prepare.ps1"
           $required = @(
             'wbd-reality-front.exe','wbd-faketcp.exe','wbd_dtls_shim.exe','wbd-link-proxy.exe','wbd-game-lane-client.exe','wbd-tun.exe','wbd-windows-gui.exe',
-            'wintun.dll','WINTUN-LICENSE.txt','windows_tun_route.ps1','windows_ipv6_killswitch.ps1','windows_faketcp_underlay.ps1','windows_npcap_prepare.ps1'
+            'wintun.dll','WINTUN-LICENSE.txt','windows_tun_route.ps1','windows_tun_rebind.ps1','windows_ipv6_killswitch.ps1','windows_faketcp_underlay.ps1','windows_npcap_prepare.ps1'
           )
           foreach ($name in $required) {
             if (-not (Test-Path (Join-Path $payload $name))) { throw "portable payload missing $name" }
@@ -211,7 +214,7 @@ jobs:
             if !info.Bundled || info.PayloadSHA == "" { panic("embedded runtime metadata is incomplete") }
             required := []string{
               "wbd-reality-front.exe", "wbd-faketcp.exe", "wbd_dtls_shim.exe", "wbd-link-proxy.exe", "wbd-game-lane-client.exe", "wbd-tun.exe", "wbd-windows-gui.exe",
-              "wintun.dll", "WINTUN-LICENSE.txt", "windows_tun_route.ps1", "windows_ipv6_killswitch.ps1", "windows_faketcp_underlay.ps1", "windows_npcap_prepare.ps1",
+              "wintun.dll", "WINTUN-LICENSE.txt", "windows_tun_route.ps1", "windows_tun_rebind.ps1", "windows_ipv6_killswitch.ps1", "windows_faketcp_underlay.ps1", "windows_npcap_prepare.ps1",
             }
             for _, name := range required {
               st, err := os.Stat(filepath.Join(info.Dir, name))
