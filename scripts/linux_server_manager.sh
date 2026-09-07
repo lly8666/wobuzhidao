@@ -34,7 +34,8 @@ WBD_TICKET_TTL=60s
 WBD_BOOTSTRAP_TIMEOUT=12s
 WBD_TUNNEL_POOL=10.66.0.0/16
 # Inner IP MTU: full IPv4/IPv6 packet on the WBD virtual interface. Excludes
-# WBD/FEC, Reality/TLS, FakeTCP, outer IP and link-layer overhead.
+# WBD/FEC, Reality/TLS, FakeTCP, outer IP and link-layer overhead. Game adds a
+# 40-byte private WBDP+lane envelope before the immutable LINK MTU check.
 WBD_MTU=1360
 WBD_SHARED_TUN_LISTEN=127.0.0.1:49100
 WBD_SHARED_TUN_IF=wbdg0
@@ -83,7 +84,7 @@ load_config() {
     WBD_RAW_PORT=$WBD_PORT
 
     case "$WBD_MTU" in *[!0-9]*|'') echo 'WBD_MTU must be numeric' >&2; exit 1;; esac
-    [ "$WBD_MTU" -ge 576 ] && [ "$WBD_MTU" -le 1500 ] || { echo 'WBD_MTU must be 576..1500 (inner IP MTU)' >&2; exit 1; }
+    [ "$WBD_MTU" -ge 576 ] && [ "$WBD_MTU" -le 1460 ] || { echo 'WBD_MTU must be 576..1460 (inner IP MTU; Game adds 40 bytes before LINK)' >&2; exit 1; }
     [ -n "${WBD_ROUTE_KEY:-}" ] && [ ${#WBD_ROUTE_KEY} -ge 16 ] || { echo 'WBD_ROUTE_KEY must be >=16 chars' >&2; exit 1; }
     [ -n "${WBD_USERNAME:-}" ] && [ -n "${WBD_PASSWORD:-}" ] || { echo 'WBD_USERNAME/WBD_PASSWORD required' >&2; exit 1; }
     case "$WBD_FIREWALL_BACKEND" in auto|nft|iptables) ;; *) echo 'WBD_FIREWALL_BACKEND must be auto, nft, or iptables' >&2; exit 1;; esac
@@ -356,7 +357,7 @@ usage: wbd-server COMMAND
 
 Main settings: WBD_PORT, WBD_LISTEN_IP, WBD_SERVER_NAME, WBD_DECOY_TARGET,
 WBD_ROUTE_KEY, WBD_USERNAME, WBD_PASSWORD, WBD_MAX_SESSIONS, WBD_TUNNEL_POOL,
-WBD_MTU (inner IP MTU), WBD_SHARED_TUN_LISTEN, WBD_SHARED_TUN_IF,
+WBD_MTU (inner IP MTU, 576..1460), WBD_SHARED_TUN_LISTEN, WBD_SHARED_TUN_IF,
 WBD_GAME_LISTEN, WBD_LINK_LISTEN, WBD_BOOTSTRAP_TIMEOUT and firewall backend.
 
 ADR-0011 single-flow is per Transport Lane. ADR-0012 allows one Logical Tunnel
