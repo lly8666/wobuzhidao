@@ -4,10 +4,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/lly8666/wobuzhidao/internal/dataplane"
 	"github.com/lly8666/wobuzhidao/internal/gamelane"
 )
 
-func TestInitialGameLaneLinkMTUBudgetsEnvelopeHeader(t *testing.T) {
+func TestInitialGameLaneLinkMTUBudgetsDataplaneAndEnvelopeHeaders(t *testing.T) {
 	p := testProfile()
 	p.Lanes = 1
 	p.MTU = 1300
@@ -23,8 +24,8 @@ func TestInitialGameLaneLinkMTUBudgetsEnvelopeHeader(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := 1300 + gamelane.HeaderSize
-	if len(plan.Lanes) != 1 || !argPair(plan.Lanes[0].Link.Args, "-mtu", "1332") || want != 1332 {
-		t.Fatalf("initial Game LINK args=%v want inner+header=%d", plan.Lanes[0].Link.Args, want)
+	want := 1300 + dataplane.HeaderLen + gamelane.HeaderSize
+	if len(plan.Lanes) != 1 || !argPair(plan.Lanes[0].Link.Args, "-mtu", "1340") || want != 1340 {
+		t.Fatalf("initial Game LINK args=%v want inner+dataplane+game headers=%d", plan.Lanes[0].Link.Args, want)
 	}
 }
