@@ -46,6 +46,7 @@ type config struct {
 	setupTimeout time.Duration
 	idleTimeout  time.Duration
 	maxSessions  int
+	mtu          int
 }
 
 type startupSession interface {
@@ -116,6 +117,7 @@ type server struct {
 	serviceAddr      *net.UDPAddr
 	rawIPServiceAddr *net.UDPAddr
 	plane            *session.DataPlane
+	linkPolicy       control.LinkPolicy
 
 	mu    sync.RWMutex
 	peers map[string]*peerSession
@@ -131,6 +133,7 @@ func main() {
 	flag.DurationVar(&c.setupTimeout, "setup-timeout", 10*time.Second, "ticket bind + LINK_INIT deadline per peer")
 	flag.DurationVar(&c.idleTimeout, "idle-timeout", defaultIdleTimeout, "active session lease without data or PING activity")
 	flag.IntVar(&c.maxSessions, "max-sessions", 32, "maximum simultaneous sessions")
+	flag.IntVar(&c.mtu, "mtu", defaultInnerMTU, "expected inner IP MTU; full inner IPv4/IPv6 packet, excluding WBD and outer overhead")
 	flag.Parse()
 
 	s, err := newServer(c)
@@ -141,7 +144,7 @@ func main() {
 	defer s.Close()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-	fmt.Printf("WBD_LINK_SERVER_MUX_READY listen=%s service=%s raw_ip_service=%s max_sessions=%d ticket_auth=1 logical_tunnel=1 game_backend=1 idle_timeout=%s\n", s.conn.LocalAddr(), c.service, c.rawIPService, c.maxSessions, s.cfg.idleTimeout)
+	fmt.Printf("WBD_LINK_SERVER_MUX_READY listen=%s service=%s raw_ip_service=%s max_sessions=%d mtu=%d ticket_auth=1 logical_tunnel=1 game_backend=1 idle_timeout=%s\n", s.conn.LocalAddr(), c.service, c.rawIPService, c.maxSessions, s.cfg.mtu, s.cfg.idleTimeout)
 	if err := s.Run(ctx); err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, os.ErrClosed) {
 		fmt.Fprintln(os.Stderr, "WBD_LINK_SERVER_MUX_FAIL", err)
 		os.Exit(1)
@@ -151,6 +154,13 @@ func main() {
 func newServer(c config) (*server, error) {
 	if c.idleTimeout <= 0 {
 		c.idleTimeout = defaultIdleTimeout
+	}
+	if c.mtu == 0 {
+		c.mtu = defaultInnerMTU
+	}
+	linkPolicy, err := linkPolicyForInnerMTU(c.mtu)
+	if err != nil {
+		return nil, err
 	}
 	if c.listen == "" || c.service == "" || c.ticketDir == "" || c.ticketTTL <= 0 || c.setupTimeout <= 0 || c.maxSessions <= 0 {
 		return nil, errors.New("-listen, -service, -ticket-dir and positive ttl/timeout/max-sessions are required")
@@ -181,7 +191,7 @@ func newServer(c config) (*server, error) {
 		_ = conn.Close()
 		return nil, err
 	}
-	return &server{cfg: c, conn: conn, serviceAddr: serviceAddr, rawIPServiceAddr: rawIPServiceAddr, plane: plane, peers: make(map[string]*peerSession)}, nil
+	return &server{cfg: c, conn: conn, serviceAddr: serviceAddr, rawIPServiceAddr: rawIPServiceAddr, plane: plane, linkPolicy: linkPolicy, peers: make(map[string]*peerSession)}, nil
 }
 
 func (s *server) Addr() *net.UDPAddr {
@@ -307,7 +317,7 @@ func (s *server) newPeer(peer *net.UDPAddr, now time.Time) (*peerSession, error)
 	}
 	ps := &peerSession{peer: cloneUDPAddr(peer), key: key, created: now, lastActivity: now}
 	verify := func(bind [control.DemoWitnessLen]byte) error { return s.consumeLogicalTunnelTicket(ps, bind) }
-	startup, err := control.NewDemoTicketReliableLinkServerSession(1, 1, control.CurrentLinkPolicy(), verify)
+	startup, err := control.NewDemoTicketReliableLinkServerSession(1, 1, s.linkPolicy, verify)
 	if err != nil {
 		s.mu.Unlock()
 		return nil, err
