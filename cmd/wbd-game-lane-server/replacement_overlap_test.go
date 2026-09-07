@@ -12,7 +12,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/rawipbackend"
 )
 
-func TestSameLogicalLaneAllowsOneReplacementPeerAndPromotesOnLeave(t *testing.T) {
+func TestSameLogicalLaneRecoversLostLeaveOnNextReplacement(t *testing.T) {
 	var sid gamelane.SessionID
 	for i := range sid { sid[i] = byte(i + 1) }
 	meta := rawipbackend.TunnelMeta{TunnelID:logicaltunnel.TunnelID(hex.EncodeToString(sid[:])), Address4:netip.MustParseAddr("10.66.0.9")}
@@ -29,16 +29,23 @@ func TestSameLogicalLaneAllowsOneReplacementPeerAndPromotesOnLeave(t *testing.T)
 	if _, err := s.bindLane(sid, 1, candidatePeer, meta, time.Now()); err != nil { t.Fatal(err) }
 	if got := gs.lanes[1]; got == nil || got.String() != oldPeer.String() { t.Fatalf("primary=%v want=%s", got, oldPeer) }
 	if got := gs.overlap[1]; got == nil || got.String() != candidatePeer.String() { t.Fatalf("candidate=%v want=%s", got, candidatePeer) }
-	if len(gs.lanes) != 1 || len(gs.overlap) != 1 { t.Fatalf("logical=%d overlap=%d", len(gs.lanes), len(gs.overlap)) }
 
-	if _, err := s.bindLane(sid, 1, thirdPeer, meta, time.Now()); err == nil { t.Fatal("third transport incarnation for one LaneID was accepted") }
+	// Simulate a lost CLIENT_LEAVE after the client has already promoted the
+	// qualified candidate. The next authenticated same-session incarnation is
+	// proof that the client advanced its local generation. The server must roll
+	// the stale A+B state forward to B+C instead of wedging the LaneID forever.
+	if _, err := s.bindLane(sid, 1, thirdPeer, meta, time.Now()); err != nil { t.Fatalf("lost-leave recovery: %v", err) }
+	if got := gs.lanes[1]; got == nil || got.String() != candidatePeer.String() { t.Fatalf("recovered primary=%v want=%s", got, candidatePeer) }
+	if got := gs.overlap[1]; got == nil || got.String() != thirdPeer.String() { t.Fatalf("next candidate=%v want=%s", got, thirdPeer) }
+	if _, ok := gs.peerLane[oldPeer.String()]; ok { t.Fatal("stale primary peerLane survived lost-leave recovery") }
+	if _, ok := s.peerSession[oldPeer.String()]; ok { t.Fatal("stale primary peerSession survived lost-leave recovery") }
+	if _, ok := s.peerMeta[oldPeer.String()]; ok { t.Fatal("stale primary metadata survived lost-leave recovery") }
+	if got := gs.peerLane[candidatePeer.String()]; got != 1 { t.Fatalf("promoted peer lane=%d", got) }
+	if got := gs.peerLane[thirdPeer.String()]; got != 1 { t.Fatalf("next candidate peer lane=%d", got) }
+
 	if _, err := s.bindLane(sid, 2, otherLanePeer, meta, time.Now()); err == nil { t.Fatal("second logical LaneID bypassed maxLanes=1") }
 
-	if err := s.unbindLane(sid, 1, oldPeer, time.Now(), "test_cutover"); err != nil { t.Fatal(err) }
-	if got := gs.lanes[1]; got == nil || got.String() != candidatePeer.String() { t.Fatalf("candidate was not promoted: %v", got) }
-	if len(gs.overlap) != 0 { t.Fatalf("overlap remained after old leave: %v", gs.overlap) }
-	if got := gs.peerLane[candidatePeer.String()]; got != 1 { t.Fatalf("candidate peer lane=%d", got) }
-	if _, ok := s.peerSession[candidatePeer.String()]; !ok { t.Fatal("candidate session mapping was lost") }
-	if _, ok := s.peerMeta[candidatePeer.String()]; !ok { t.Fatal("candidate metadata was lost") }
-	if _, ok := s.peerSession[oldPeer.String()]; ok { t.Fatal("old peer session mapping survived leave") }
+	if err := s.unbindLane(sid, 1, candidatePeer, time.Now(), "test_cutover"); err != nil { t.Fatal(err) }
+	if got := gs.lanes[1]; got == nil || got.String() != thirdPeer.String() { t.Fatalf("next candidate was not promoted: %v", got) }
+	if len(gs.overlap) != 0 { t.Fatalf("overlap remained after promoted peer leave: %v", gs.overlap) }
 }
