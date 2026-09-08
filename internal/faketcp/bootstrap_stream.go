@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	DefaultBootstrapChunk    = 1200
+	DefaultBootstrapChunk     = 1200
 	MaxBootstrapPendingChunks = 64
 	MaxBootstrapBufferedBytes = 256 << 10
+	bootstrapRetransmitCeiling = 2 * time.Second
 )
 
 var (
@@ -20,6 +21,11 @@ var (
 	ErrBootstrapTimeout  = errors.New("faketcp: bootstrap stream deadline exceeded")
 	ErrBootstrapOverflow = errors.New("faketcp: bootstrap stream buffer limit exceeded")
 )
+
+var bootstrapPayloads = struct {
+	sync.RWMutex
+	active map[*byte]int
+}{active: make(map[*byte]int)}
 
 // BootstrapSend emits one TCP-shaped payload segment and returns the cumulative
 // ACK value that proves that segment has arrived. Implementations must not
@@ -165,7 +171,7 @@ func (c *BootstrapStream) Write(p []byte) (int, error) {
 		if chunk > len(p) {
 			chunk = len(p)
 		}
-		end, err := c.send(p[:chunk])
+		end, err := sendBootstrapPayload(c.send, p[:chunk])
 		if err != nil {
 			return written, err
 		}
@@ -176,6 +182,41 @@ func (c *BootstrapStream) Write(p []byte) (int, error) {
 		p = p[chunk:]
 	}
 	return written, nil
+}
+
+// sendBootstrapPayload marks only the exact slice passed synchronously through
+// BootstrapSend. Sender.Enqueue copies that slice before this call returns, so
+// the marker can tag bootstrap pending data without changing the stable callback
+// API or accidentally changing steady-state Enqueue behavior on the same flow.
+func sendBootstrapPayload(send BootstrapSend, payload []byte) (uint32, error) {
+	if len(payload) == 0 {
+		return send(payload)
+	}
+	key := &payload[0]
+	bootstrapPayloads.Lock()
+	bootstrapPayloads.active[key]++
+	bootstrapPayloads.Unlock()
+	defer func() {
+		bootstrapPayloads.Lock()
+		if bootstrapPayloads.active[key] <= 1 {
+			delete(bootstrapPayloads.active, key)
+		} else {
+			bootstrapPayloads.active[key]--
+		}
+		bootstrapPayloads.Unlock()
+	}()
+	return send(payload)
+}
+
+func isBootstrapPayload(payload []byte) bool {
+	if len(payload) == 0 {
+		return false
+	}
+	key := &payload[0]
+	bootstrapPayloads.RLock()
+	marked := bootstrapPayloads.active[key] != 0
+	bootstrapPayloads.RUnlock()
+	return marked
 }
 
 func (c *BootstrapStream) Close() error {
