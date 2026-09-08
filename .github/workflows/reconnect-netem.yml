@@ -82,19 +82,19 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
-      - name: Characterize current peer RST and client blackhole behavior
+      - name: Require peer RST retirement and characterize client blackhole behavior
         run: |
           set -euo pipefail
           go test ./cmd/wbd-faketcp \
-            -run 'Test(CurrentPeerRSTIsNonTerminal|CurrentBlackholeRetransmissionHasNoRetryCeiling|StartupBudgetsSupport300msOneWayPath)$' \
+            -run 'Test(PeerRSTTerminatesCurrentAssociation|CurrentBlackholeRetransmissionHasNoRetryCeiling|StartupBudgetsSupport300msOneWayPath)$' \
             -count=1 -v
-      - name: Verify current server-side blackhole expiry
+      - name: Require server RST cleanup and verify current blackhole expiry
         run: |
           set -euo pipefail
           go test ./cmd/wbd-faketcp-mux \
-            -run 'Test(StaleDataAssociationTimeout|ClientReceiveRefreshesDataAssociation)$' \
+            -run 'Test(HandlePeerResetRemovesCurrentSession|StaleDataAssociationTimeout|ClientReceiveRefreshesDataAssociation)$' \
             -count=1 -v
-          echo 'WBD_FAKETCP_LIVENESS_CHARACTERIZATION peer_rst=nonterminal client_blackhole_retry_ceiling=none server_no_client_rx_expiry=60s'
+          echo 'WBD_FAKETCP_LIVENESS peer_rst=terminal client_blackhole_retry_ceiling=none server_no_client_rx_expiry=60s'
 
   build-game-assets:
     runs-on: ubuntu-24.04
@@ -126,7 +126,7 @@ jobs:
           gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
             native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
 
-          go test ./internal/gamelane ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server ./cmd/wbd-link-server-mux -count=1
+          go test ./internal/gamelane ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server ./cmd/wbd-link-server-mux -count=1
           go build -trimpath -o "$ASSET/wbd-reality-front" ./cmd/wbd-reality-front
           go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
           go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
