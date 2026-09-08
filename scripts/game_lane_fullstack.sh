@@ -6,6 +6,12 @@ LOG_DIR=${2:-/tmp/wbd-game-lane-fullstack}
 LANES=${LANES:-4}
 FEC=${FEC:-off}
 PROBE_COUNT=${PROBE_COUNT:-20}
+# This harness launches the low-level LINK tools directly. Keep the two
+# MTU layers explicit: server-mux consumes operator inner IP MTU, while
+# link-proxy consumes LINK plaintext MTU. Product launchers perform the
+# inner->LINK conversion exactly once via gamepath.LinkPlaintextMTU.
+INNER_MTU=${INNER_MTU:-1360}
+LINK_PLAINTEXT_MTU=${LINK_PLAINTEXT_MTU:-1400}
 
 case "$LANES" in
   1|2|3|4) ;;
@@ -100,7 +106,7 @@ for _ in $(seq 1 200); do grep -q "WBD_GAME_LANE_SERVER_READY.*max_lanes=${LANES
 grep -q "WBD_GAME_LANE_SERVER_READY.*max_lanes=${LANES}" "$LOG_DIR/game-server.log"
 
 sudo ip netns exec "$S" "$ASSET_DIR/wbd-link-server-mux" \
-  -listen 127.0.0.1:${LINK} -service 127.0.0.1:${GAME} \
+  -listen 127.0.0.1:${LINK} -service 127.0.0.1:${GAME} -mtu "$INNER_MTU" \
   -ticket-dir "$LOG_DIR/tickets" -ticket-ttl 60s -max-sessions 8 \
   >"$LOG_DIR/link-server.log" 2>&1 &
 LINKPID=$!; PIDS+=("$LINKPID")
@@ -203,6 +209,7 @@ for i in $(seq 1 "$LANES"); do
   lport=$((47100+i)); dport=$((46100+i))
   sudo ip netns exec "$C" "$ASSET_DIR/wbd-link-proxy" \
     -mode client -listen 127.0.0.1:${lport} -dtls 127.0.0.1:${dport} -fec "$FEC" -lanes 1 \
+    -mtu "$LINK_PLAINTEXT_MTU" \
     -demo-reality-ticket "$ticket" >"$LOG_DIR/link-${i}.log" 2>&1 &
   pid=$!; PIDS+=("$pid")
 done
