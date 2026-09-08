@@ -235,7 +235,7 @@ func (s *server) bindLane(id gamelane.SessionID, laneID uint8, peer *net.UDPAddr
 			fmt.Printf("WBD_GAME_LANE_UNBIND tunnel_id_prefix=%s lane=%d association_peer=%s lanes=%d targets=%d reason=lost_leave_rebind_recovery\n", tunnelIDPrefix(gs.meta), laneID, staleKey, len(gs.lanes), len(gs.lanes)+len(gs.overlap))
 			primary = candidate
 		}
-		if len(gs.overlap) >= 1 {
+		if len(gs.overlap) >= 1 && !s.rollForwardSerializedOverlapLocked(gs, laneID) {
 			return nil, errors.New("another logical lane already has a replacement overlap")
 		}
 		gs.overlap[laneID] = cloneUDPAddr(peer)
