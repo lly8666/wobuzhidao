@@ -15,7 +15,8 @@ LINK_KEEPALIVE=${SFSTRESS_LINK_KEEPALIVE:-100ms}
 LINK_IDLE_TIMEOUT=${SFSTRESS_LINK_IDLE_TIMEOUT:-500ms}
 BOOTSTRAP_TIMEOUT=${SFSTRESS_BOOTSTRAP_TIMEOUT:-20s}
 REALITY_TIMEOUT=${SFSTRESS_REALITY_TIMEOUT:-20s}
-LINK_MTU=${SFSTRESS_LINK_MTU:-1360}
+INNER_MTU=${SFSTRESS_INNER_MTU:-1360}
+LINK_PLAINTEXT_MTU=${SFSTRESS_LINK_PLAINTEXT_MTU:-1400}
 ONE_WAY_DELAY=${SFSTRESS_ONE_WAY_DELAY:-}
 FAKE_READY_POLLS=${SFSTRESS_FAKE_READY_POLLS:-1000}
 REAP_POLLS=${SFSTRESS_REAP_POLLS:-200}
@@ -92,7 +93,7 @@ for _ in $(seq 1 200); do grep -q 'WBD_PLATFORM_PROXY_SERVER_READY' "$ROOT/platf
 grep -q 'WBD_PLATFORM_PROXY_SERVER_READY' "$ROOT/platform-server.log"
 
 sudo ip netns exec "$S" "$ROOT/wbd-link-server-mux" \
-  -listen 127.0.0.1:47000 -service 127.0.0.1:48000 \
+  -listen 127.0.0.1:47000 -service 127.0.0.1:48000 -mtu "$INNER_MTU" \
   -ticket-dir "$ROOT/tickets" -ticket-ttl 60s -max-sessions 64 -idle-timeout "$LINK_IDLE_TIMEOUT" \
   >"$ROOT/link-server.log" 2>&1 & LINK_SERVER_PID=$!
 SERVER_PIDS="$SERVER_PIDS $LINK_SERVER_PID"
@@ -280,7 +281,7 @@ for round in $(seq 1 "$ROUNDS"); do
   assert_pid_file "$ROOT/dtls.pid"
 
   sudo ip netns exec "$C" sh -c "echo \$\$ >'$ROOT/link.pid'; exec '$ROOT/wbd-link-proxy' -mode client \
-    -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off -mtu '$LINK_MTU' -lanes 1 -keepalive '$LINK_KEEPALIVE' -demo-reality-ticket '$ticket'" \
+    -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off -mtu '$LINK_PLAINTEXT_MTU' -lanes 1 -keepalive '$LINK_KEEPALIVE' -demo-reality-ticket '$ticket'" \
     >"$ROOT/link.log" 2>&1 &
   for _ in $(seq 1 800); do grep -q 'WBD_LINK_READY role=client' "$ROOT/link.log" && break; sleep .05; done
   grep -q 'WBD_LINK_READY role=client' "$ROOT/link.log"
@@ -305,4 +306,4 @@ test "$(grep -c 'WBD_LINK_SESSION_COUNTERS tunnel_id_prefix=' "$ROOT/link-server
 kill -0 "$MUX_PID"
 kill -0 "$LINK_SERVER_PID"
 kill -0 "$PLATFORM_PID"
-echo "SINGLE_FLOW_STARTUP_STRESS_PASS rounds=${ROUNDS} nat=1 dirty_exit=1 full_stack=1 logical_tunnel=1 platformproxy=1 transport_reap=1 one_way_delay=${ONE_WAY_DELAY:-off} mtu=${LINK_MTU}"
+echo "SINGLE_FLOW_STARTUP_STRESS_PASS rounds=${ROUNDS} nat=1 dirty_exit=1 full_stack=1 logical_tunnel=1 platformproxy=1 transport_reap=1 one_way_delay=${ONE_WAY_DELAY:-off} inner_mtu=${INNER_MTU} link_plaintext_mtu=${LINK_PLAINTEXT_MTU}"

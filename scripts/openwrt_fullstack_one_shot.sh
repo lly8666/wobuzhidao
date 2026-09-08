@@ -31,6 +31,8 @@ S=wbdoss$$
 T=wbdost$$
 PIDS=()
 PLATFORM_CLIENT_PID=
+INNER_MTU=${WBD_INNER_MTU:-1360}
+LINK_PLAINTEXT_MTU=${WBD_LINK_PLAINTEXT_MTU:-1400}
 
 cleanup() {
     set +e
@@ -229,7 +231,7 @@ TUNNEL_FILE="$TMP/tunnel.json"
 
 tip="127.0.0.1:${LINK}"
 ip netns exec "$S" "$ASSET_DIR/wbd-link-server-mux" \
-    -listen "$tip" -service 127.0.0.1:49000 \
+    -listen "$tip" -service 127.0.0.1:49000 -mtu "$INNER_MTU" \
     -ticket-dir "$TICKET_DIR" -ticket-ttl 60s -max-sessions 4 \
     >"$LOG_DIR/link-server.log" 2>&1 & LINK_PID=$!; PIDS+=("$LINK_PID")
 wait_log "$LOG_DIR/link-server.log" 'WBD_LINK_SERVER_MUX_READY.*logical_tunnel=1'
@@ -277,7 +279,7 @@ wait_log "$LOG_DIR/faketcp-mux.log" 'WBD_DTLS_SERVER_ACCEPT_PASS version=DTLSv1.
 
 ip netns exec "$R" "$ASSET_DIR/wbd-link-proxy" \
     -mode client -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off \
-    -demo-reality-ticket "$TICKET" >"$LOG_DIR/link-client.log" 2>&1 & LINK_CLIENT_PID=$!; PIDS+=("$LINK_CLIENT_PID")
+    -mtu "$LINK_PLAINTEXT_MTU" -demo-reality-ticket "$TICKET" >"$LOG_DIR/link-client.log" 2>&1 & LINK_CLIENT_PID=$!; PIDS+=("$LINK_CLIENT_PID")
 wait_log "$LOG_DIR/link-client.log" 'WBD_LINK_READY role=client' 900
 wait_log "$LOG_DIR/link-server.log" "WBD_LINK_MUX_SESSION_READY tunnel_id_prefix=${TUNNEL_PREFIX}.*lanes=1" 900
 test "$(find "$TICKET_DIR" -type f | wc -l)" -eq 0

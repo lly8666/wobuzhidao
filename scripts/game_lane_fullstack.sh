@@ -186,6 +186,11 @@ t=[(p/f'ticket-{i}.txt').read_text().strip() for i in range(1,n+1)]
 print(f'WBD_GAME_LANE_SINGLE_FLOW_TICKETS_PASS unique={len(set(t))} tunnel_id_prefix={sid[:8]}')
 PY
 
+for _ in $(seq 1 900); do
+  server_bootstraps=$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$LOG_DIR/faketcp-mux.log" || true)
+  if [[ "$server_bootstraps" -ge "$LANES" ]]; then break; fi
+  sleep .05
+done
 test "$(grep -c 'WBD_SINGLE_FLOW_BOOTSTRAP_READY.*same_flow=1' "$LOG_DIR/faketcp-mux.log")" -eq "$LANES"
 
 for i in $(seq 1 "$LANES"); do
