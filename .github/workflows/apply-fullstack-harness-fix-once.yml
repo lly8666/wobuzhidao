@@ -6,6 +6,7 @@ on:
       - feat/single-flow-reality-faketcp
     paths:
       - '.github/workflows/apply-fullstack-harness-fix-once.yml'
+      - '.github/scripts/apply-fullstack-harness-fix-once.py'
 
 permissions:
   contents: write
