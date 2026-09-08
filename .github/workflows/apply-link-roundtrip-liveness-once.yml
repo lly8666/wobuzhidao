@@ -1,0 +1,560 @@
+name: Apply LINK roundtrip liveness once
+
+on:
+  push:
+    branches:
+      - tmp/link-roundtrip-liveness
+    paths:
+      - '.github/workflows/apply-link-roundtrip-liveness-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply qualified round-trip keepalive policy and tests
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              s = p.read_text()
+              if old not in s:
+                  raise SystemExit(f'replacement anchor missing: {path}: {old[:100]!r}')
+              p.write_text(s.replace(old, new, 1))
+
+          Path('cmd/wbd-link-proxy/liveness.go').write_text(r'''package main
+
+import "time"
+
+const (
+	clientRemoteRXTimeoutWindows       = 3
+	clientKeepaliveMissWindows         = 4
+	clientKeepaliveAttemptsPerMiss     = 3
+	clientKeepaliveTotalProbeAttempts  = clientKeepaliveMissWindows * clientKeepaliveAttemptsPerMiss
+)
+
+func clientRemoteRXTimeout(keepalive time.Duration) time.Duration {
+	if keepalive <= 0 {
+		return 0
+	}
+	const maxDuration = time.Duration(1<<63 - 1)
+	if keepalive > maxDuration/clientRemoteRXTimeoutWindows {
+		return maxDuration
+	}
+	return keepalive * clientRemoteRXTimeoutWindows
+}
+
+// clientRemoteRXExpired remains a budget helper for compatibility tests. Live
+// retirement is stricter: only a matching PONG proves the complete client ->
+// server -> client lane round trip, so unrelated downstream traffic cannot hide
+// an upstream blackhole.
+func clientRemoteRXExpired(lastRemoteRX, now time.Time, keepalive time.Duration) bool {
+	timeout := clientRemoteRXTimeout(keepalive)
+	return timeout > 0 && !now.Before(lastRemoteRX.Add(timeout))
+}
+
+func clientKeepaliveDue(nextPing, now time.Time, keepalive time.Duration) bool {
+	return keepalive > 0 && !now.Before(nextPing)
+}
+
+// Twelve probes fit inside the historical 3*keepalive retirement budget. The
+// first probe is sent after one keepalive interval; the remaining 2*keepalive
+// budget is split into twelve response windows. At 20% independent loss in each
+// direction, a probe round trip fails with probability 0.36, so all twelve
+// probes failing is about 4.7e-6 instead of 0.36^3 for three bare probes.
+func clientKeepaliveProbeWait(keepalive time.Duration) time.Duration {
+	if keepalive <= 0 {
+		return 0
+	}
+	wait := keepalive / 6
+	if wait <= 0 {
+		return time.Nanosecond
+	}
+	return wait
+}
+
+type clientKeepaliveTracker struct {
+	nextProbe time.Time
+	probing   bool
+	nonce     uint64
+	attempts  int
+}
+
+func newClientKeepaliveTracker(now time.Time, keepalive time.Duration) clientKeepaliveTracker {
+	var t clientKeepaliveTracker
+	if keepalive > 0 {
+		t.nextProbe = now.Add(keepalive)
+	}
+	return t
+}
+
+// poll returns whether to send a PING, the round nonce, and whether the full
+// 3*keepalive budget has expired without a matching PONG.
+func (t *clientKeepaliveTracker) poll(now time.Time, keepalive time.Duration) (bool, uint64, bool) {
+	if keepalive <= 0 {
+		return false, 0, false
+	}
+	if t.nextProbe.IsZero() {
+		t.nextProbe = now.Add(keepalive)
+		return false, 0, false
+	}
+	if now.Before(t.nextProbe) {
+		return false, 0, false
+	}
+	wait := clientKeepaliveProbeWait(keepalive)
+	if !t.probing {
+		t.probing = true
+		t.nonce = uint64(now.UnixNano())
+		if t.nonce == 0 {
+			t.nonce = 1
+		}
+		t.attempts = 1
+		t.nextProbe = now.Add(wait)
+		return true, t.nonce, false
+	}
+	if t.attempts >= clientKeepaliveTotalProbeAttempts {
+		return false, 0, true
+	}
+	t.attempts++
+	t.nextProbe = now.Add(wait)
+	return true, t.nonce, false
+}
+
+func (t *clientKeepaliveTracker) observePong(nonce uint64, now time.Time, keepalive time.Duration) bool {
+	if keepalive <= 0 || !t.probing || nonce != t.nonce {
+		return false
+	}
+	t.probing = false
+	t.nonce = 0
+	t.attempts = 0
+	t.nextProbe = now.Add(keepalive)
+	return true
+}
+''')
+
+          replace_once('cmd/wbd-link-proxy/main.go', '''func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
+	if o.dtls == "" {
+		return errors.New("client requires -dtls")
+	}
+''', '''func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
+	if o.dtls == "" {
+		return errors.New("client requires -dtls")
+	}
+	if o.keepalive < 0 {
+		return errors.New("client -keepalive must be non-negative")
+	}
+''')
+          replace_once('cmd/wbd-link-proxy/main.go', '''	var appPeer *net.UDPAddr
+	lastRemoteRX := time.Now()
+	nextPing := lastRemoteRX.Add(keepalive)
+''', '''	var appPeer *net.UDPAddr
+	liveness := newClientKeepaliveTracker(time.Now(), keepalive)
+''')
+          replace_once('cmd/wbd-link-proxy/main.go', '''		now := time.Now()
+		if clientRemoteRXExpired(lastRemoteRX, now, keepalive) {
+			return fmt.Errorf("WBD link liveness timeout after %s without remote receive", clientRemoteRXTimeout(keepalive))
+		}
+		if clientKeepaliveDue(nextPing, now, keepalive) {
+			if err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: uint64(now.UnixNano())}); err != nil {
+				return err
+			}
+			nextPing = now.Add(keepalive)
+		}
+''', '''		now := time.Now()
+		sendPing, pingNonce, dead := liveness.poll(now, keepalive)
+		if dead {
+			return fmt.Errorf("WBD link liveness timeout after %s without keepalive round-trip", clientRemoteRXTimeout(keepalive))
+		}
+		if sendPing {
+			if err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: pingNonce}); err != nil {
+				return err
+			}
+		}
+''')
+          replace_once('cmd/wbd-link-proxy/main.go', '''				lastRemoteRX = now
+				nextPing = now.Add(keepalive)
+				continue
+''', '''				continue
+''')
+          replace_once('cmd/wbd-link-proxy/main.go', '''				case control.Pong:
+					lastRemoteRX = now
+					nextPing = now.Add(keepalive)
+					continue
+''', '''				case control.Pong:
+					liveness.observePong(f.Nonce, now, keepalive)
+					continue
+''')
+          replace_once('cmd/wbd-link-proxy/main.go', '''					lastRemoteRX = now
+					nextPing = now.Add(keepalive)
+					continue
+				case control.Close:
+''', '''					continue
+				case control.Close:
+''')
+          replace_once('cmd/wbd-link-proxy/main.go', '''			lastRemoteRX = now
+			nextPing = now.Add(keepalive)
+		} else {
+''', '''		} else {
+''')
+
+          Path('cmd/wbd-link-proxy/liveness_test.go').write_text(r'''package main
+
+import (
+	"os"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/lly8666/wobuzhidao/internal/control"
+	"github.com/lly8666/wobuzhidao/internal/linkdata"
+)
+
+func testLinkPath(t *testing.T) *linkdata.Path {
+	t.Helper()
+	path, err := linkdata.New(control.LinkConfig{
+		FECMode: control.FECOff, Scheduler: control.FECSchedulerNone,
+		MTU: 1400, LaneCount: 1,
+	}, maxBlocks)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+func TestClientRemoteRXDeadlineUsesThreeKeepaliveWindows(t *testing.T) {
+	base := time.Unix(1_700_000_000, 0)
+	keepalive := 10 * time.Second
+	if clientRemoteRXExpired(base, base.Add(3*keepalive-time.Nanosecond), keepalive) {
+		t.Fatal("liveness budget expired before three keepalive windows")
+	}
+	if !clientRemoteRXExpired(base, base.Add(3*keepalive), keepalive) {
+		t.Fatal("liveness budget did not expire at three keepalive windows")
+	}
+}
+
+func TestKeepaliveTrackerUsesTwelveProbesInsideThreeWindowBudget(t *testing.T) {
+	start := time.Unix(1_700_000_000, 0)
+	keepalive := 6 * time.Second
+	wait := clientKeepaliveProbeWait(keepalive)
+	tracker := newClientKeepaliveTracker(start, keepalive)
+	now := start.Add(keepalive)
+	var nonce uint64
+	for i := 1; i <= clientKeepaliveTotalProbeAttempts; i++ {
+		send, gotNonce, dead := tracker.poll(now, keepalive)
+		if dead || !send {
+			t.Fatalf("attempt %d send=%t dead=%t", i, send, dead)
+		}
+		if i == 1 {
+			nonce = gotNonce
+		} else if gotNonce != nonce {
+			t.Fatalf("attempt %d changed nonce: got=%d want=%d", i, gotNonce, nonce)
+		}
+		now = now.Add(wait)
+	}
+	if now.Sub(start) != clientRemoteRXTimeout(keepalive) {
+		t.Fatalf("retirement point=%s want=%s", now.Sub(start), clientRemoteRXTimeout(keepalive))
+	}
+	if send, _, dead := tracker.poll(now, keepalive); send || !dead {
+		t.Fatalf("after 12 misses send=%t dead=%t", send, dead)
+	}
+}
+
+func TestKeepaliveTrackerTwelfthProbePongRecovers(t *testing.T) {
+	start := time.Unix(1_700_000_000, 0)
+	keepalive := 60 * time.Millisecond
+	wait := clientKeepaliveProbeWait(keepalive)
+	tracker := newClientKeepaliveTracker(start, keepalive)
+	now := start.Add(keepalive)
+	var nonce uint64
+	for i := 1; i <= clientKeepaliveTotalProbeAttempts; i++ {
+		send, gotNonce, dead := tracker.poll(now, keepalive)
+		if !send || dead {
+			t.Fatalf("attempt %d send=%t dead=%t", i, send, dead)
+		}
+		nonce = gotNonce
+		if i != clientKeepaliveTotalProbeAttempts {
+			now = now.Add(wait)
+		}
+	}
+	pongAt := now.Add(wait / 2)
+	if !tracker.observePong(nonce, pongAt, keepalive) {
+		t.Fatal("matching PONG on final allowed probe did not recover")
+	}
+	if send, _, dead := tracker.poll(start.Add(clientRemoteRXTimeout(keepalive)), keepalive); send || dead {
+		t.Fatalf("recovered tracker fired at old deadline send=%t dead=%t", send, dead)
+	}
+}
+
+func TestKeepaliveTrackerRejectsUnmatchedPong(t *testing.T) {
+	start := time.Unix(1_700_000_000, 0)
+	keepalive := 30 * time.Millisecond
+	tracker := newClientKeepaliveTracker(start, keepalive)
+	_, nonce, _ := tracker.poll(start.Add(keepalive), keepalive)
+	if tracker.observePong(nonce+1, start.Add(keepalive+time.Millisecond), keepalive) {
+		t.Fatal("unmatched PONG proved liveness")
+	}
+}
+
+func TestClientDataLoopOutboundTrafficCannotMaskMissingRoundTrip(t *testing.T) {
+	client := udp4(t)
+	dtls := udp4(t)
+	app := udp4(t)
+	defer client.Close()
+	defer dtls.Close()
+	defer app.Close()
+
+	stop := make(chan os.Signal, 1)
+	done := make(chan error, 1)
+	keepalive := 10 * time.Millisecond
+	go func() {
+		done <- clientDataLoop(client, addr(dtls), testLinkPath(t), establishedStartup{}, keepalive, stop)
+	}()
+
+	deadline := time.Now().Add(500 * time.Millisecond)
+	for time.Now().Before(deadline) {
+		_, _ = app.WriteToUDP([]byte("outbound-does-not-prove-peer-liveness"), addr(client))
+		select {
+		case err := <-done:
+			if err == nil || !strings.Contains(err.Error(), "liveness timeout") {
+				t.Fatalf("client loop error=%v", err)
+			}
+			return
+		case <-time.After(5 * time.Millisecond):
+		}
+	}
+	stop <- os.Interrupt
+	t.Fatal("continuous outbound traffic masked keepalive round-trip failure")
+}
+
+func TestClientDataLoopInboundTrafficCannotMaskUpstreamBlackhole(t *testing.T) {
+	client := udp4(t)
+	dtls := udp4(t)
+	defer client.Close()
+	defer dtls.Close()
+
+	wire, err := control.MarshalLink(control.Ping{Nonce: 7})
+	if err != nil {
+		t.Fatal(err)
+	}
+	stopInbound := make(chan struct{})
+	go func() {
+		ticker := time.NewTicker(2 * time.Millisecond)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-stopInbound:
+				return
+			case <-ticker.C:
+				_, _ = dtls.WriteToUDP(wire, addr(client))
+			}
+		}
+	}()
+	defer close(stopInbound)
+
+	stop := make(chan os.Signal, 1)
+	done := make(chan error, 1)
+	go func() {
+		done <- clientDataLoop(client, addr(dtls), testLinkPath(t), establishedStartup{}, 20*time.Millisecond, stop)
+	}()
+	select {
+	case err := <-done:
+		if err == nil || !strings.Contains(err.Error(), "liveness timeout") {
+			t.Fatalf("client loop error=%v", err)
+		}
+	case <-time.After(400 * time.Millisecond):
+		stop <- os.Interrupt
+		t.Fatal("continuous downstream traffic masked missing client->server->client round trip")
+	}
+}
+
+func TestClientDataLoopKeepaliveSurvives300msRTTAndTwoDroppedProbes(t *testing.T) {
+	client := udp4(t)
+	dtls := udp4(t)
+	defer client.Close()
+	defer dtls.Close()
+
+	peerStop := make(chan struct{})
+	go func() {
+		buf := make([]byte, 65535)
+		seen := 0
+		for {
+			_ = dtls.SetReadDeadline(time.Now().Add(20 * time.Millisecond))
+			n, peer, err := dtls.ReadFromUDP(buf)
+			if err != nil {
+				select {
+				case <-peerStop:
+					return
+				default:
+					continue
+				}
+			}
+			frame, err := control.UnmarshalLink(buf[:n])
+			if err != nil {
+				continue
+			}
+			ping, ok := frame.(control.Ping)
+			if !ok {
+				continue
+			}
+			seen++
+			if seen <= 2 {
+				continue
+			}
+			pong, err := control.MarshalLink(control.Pong{Nonce: ping.Nonce})
+			if err != nil {
+				continue
+			}
+			go func(dst *net.UDPAddr, b []byte) {
+				time.Sleep(300 * time.Millisecond)
+				_, _ = dtls.WriteToUDP(b, dst)
+			}(peer, pong)
+		}
+	}()
+	defer close(peerStop)
+
+	stop := make(chan os.Signal, 1)
+	done := make(chan error, 1)
+	go func() {
+		done <- clientDataLoop(client, addr(dtls), testLinkPath(t), establishedStartup{}, 300*time.Millisecond, stop)
+	}()
+
+	select {
+	case err := <-done:
+		t.Fatalf("300ms RTT/two dropped probes caused false retirement: %v", err)
+	case <-time.After(850 * time.Millisecond):
+	}
+	stop <- os.Interrupt
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatalf("shutdown error=%v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("client loop did not stop")
+	}
+}
+'''.replace('"net"\n', '"net"\n'))
+
+          # liveness_test uses net.UDPAddr in the delayed responder.
+          p = Path('cmd/wbd-link-proxy/liveness_test.go')
+          s = p.read_text()
+          s = s.replace('import (\n\t"os"', 'import (\n\t"net"\n\t"os"', 1)
+          p.write_text(s)
+
+          Path('internal/faketcp/liveness_contract_test.go').write_text(r'''package faketcp
+
+import (
+	"testing"
+	"time"
+)
+
+// The ARQ sender intentionally has no retry ceiling. Blackhole retirement is
+// owned by the existing LINK keepalive/liveness contract above FakeTCP, so a
+// silent peer must not silently change the mature ARQ wire behavior.
+func TestSenderRTOBackoffKeepsRetryingWithoutCeiling(t *testing.T) {
+	now := time.Unix(1_700_000_000, 0)
+	s := NewSender(100, time.Second)
+	p := s.Enqueue([]byte("x"), now)
+
+	const retries = 24
+	for i := 0; i < retries; i++ {
+		now = now.Add(s.RTO())
+		if got := s.RetransmitDue(now); got != p {
+			t.Fatalf("retry %d got=%p want=%p", i+1, got, p)
+		}
+	}
+	if p.Retries != retries {
+		t.Fatalf("retries=%d want=%d", p.Retries, retries)
+	}
+	if got, want := s.RTO(), 60*time.Second; got != want {
+		t.Fatalf("RTO=%s want=%s", got, want)
+	}
+	if got := s.Stats().RTOTransmits; got != retries {
+		t.Fatalf("RTOTransmits=%d want=%d", got, retries)
+	}
+	if s.Pending() != 1 {
+		t.Fatalf("pending=%d want=1 before LINK liveness retires the transport", s.Pending())
+	}
+}
+''')
+
+          replace_once('tests/test_handoff.py', '        self.assertIn("never as a fifth logical lane", replacement)\n', '''        self.assertIn("At most 4 logical lanes", replacement)
+        self.assertIn("fifth physical slot", replacement)
+        self.assertIn("replacement overlap only", replacement)
+''')
+
+          replace_once('.github/workflows/reconnect-netem.yml', '''      - name: Require peer RST retirement and characterize client blackhole behavior
+        run: |
+          set -euo pipefail
+          go test ./cmd/wbd-faketcp \\
+            -run 'Test(PeerRSTTerminatesCurrentAssociation|CurrentBlackholeRetransmissionHasNoRetryCeiling|StartupBudgetsSupport300msOneWayPath)$' \\
+            -count=1 -v
+      - name: Require server RST cleanup and verify current blackhole expiry
+        run: |
+          set -euo pipefail
+          go test ./cmd/wbd-faketcp-mux \\
+            -run 'Test(HandlePeerResetRemovesCurrentSession|StaleDataAssociationTimeout|ClientReceiveRefreshesDataAssociation)$' \\
+            -count=1 -v
+          echo 'WBD_FAKETCP_LIVENESS peer_rst=terminal client_blackhole_retry_ceiling=none server_no_client_rx_expiry=60s'
+''', '''      - name: Qualify LINK round-trip keepalive and FakeTCP terminal boundaries under race detector
+        run: |
+          set -euo pipefail
+          go test -race ./cmd/wbd-link-proxy ./internal/faketcp ./cmd/wbd-faketcp -count=1 -v
+          go test -race ./cmd/wbd-faketcp-mux \\
+            -run 'Test(HandlePeerResetRemovesCurrentSession|StaleDataAssociationTimeout|ClientReceiveRefreshesDataAssociation)$' \\
+            -count=1 -v
+          echo 'WBD_LINK_LIVENESS_KEEPALIVE_PASS roundtrip_required=1 attempts=12 timeout_windows=3 keepalive_zero=disabled'
+          echo 'WBD_FAKETCP_LIVENESS peer_rst=terminal arq_retry_ceiling=none server_no_client_rx_expiry=60s'
+''')
+          replace_once('.github/workflows/reconnect-netem.yml', '''          sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem limit 50000 delay 150ms loss random 20%
+          sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem limit 50000 delay 150ms loss random 20%
+          sudo ip netns exec "$C" tc -s qdisc show dev gc0 >"$LOG_DIR/netem-client.txt"
+          sudo ip netns exec "$S" tc -s qdisc show dev gs0 >"$LOG_DIR/netem-server.txt"
+''', '''          sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem limit 50000 delay 150ms loss random 20%
+          sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem limit 50000 delay 150ms loss random 20%
+''')
+          replace_once('.github/workflows/reconnect-netem.yml', '''          s=s.replace('sleep .25\\n','sleep 12\\n',1)
+          p.write_text(s)
+''', '''          s=s.replace('sleep .25\\n','sleep 12\\n',1)
+          receipt='echo "WBD_GAME_LANE_FULLSTACK_PASS lanes=${LANES} logical_delivery_once=1 outer_flows_distinct=1 per_lane_single_flow=1 shared_logical_tunnel=1 fec=${FEC}"\\n'
+          stats='''sudo ip netns exec "$C" tc -s qdisc show dev gc0 >"$LOG_DIR/netem-client.txt"
+sudo ip netns exec "$S" tc -s qdisc show dev gs0 >"$LOG_DIR/netem-server.txt"
+'''
+          if receipt not in s:
+              raise SystemExit('fullstack receipt insertion point not found')
+          s=s.replace(receipt,stats+receipt,1)
+          p.write_text(s)
+''')
+          replace_once('.github/workflows/reconnect-netem.yml', '''          grep -q 'delay 150ms' "$LOG/netem-server.txt"
+          grep -q 'loss 20%' "$LOG/netem-server.txt"
+          echo "WBD_GAME_RECONNECT_NETEM_PASS source_sha=${GITHUB_SHA} lanes=4 rtt_ms=300 loss_pct=20 fec=${{ matrix.fec }} impairment_from_syn=1"
+''', '''          grep -q 'delay 150ms' "$LOG/netem-server.txt"
+          grep -q 'loss 20%' "$LOG/netem-server.txt"
+          python3 - "$LOG/netem-client.txt" "$LOG/netem-server.txt" <<'PY'
+          import pathlib,re,sys
+          for name in sys.argv[1:]:
+              text=pathlib.Path(name).read_text()
+              m=re.search(r'Sent \\d+ bytes (\\d+) pkt', text)
+              if not m or int(m.group(1)) <= 0:
+                  raise SystemExit(f'netem qdisc carried no packets: {name}\\n{text}')
+          print('WBD_NETEM_TRAFFIC_PROOF_PASS directions=2 packets_positive=1')
+          PY
+          echo "WBD_GAME_RECONNECT_NETEM_PASS source_sha=${GITHUB_SHA} lanes=4 rtt_ms=300 loss_pct=20 fec=${{ matrix.fec }} impairment_from_syn=1"
+''')
+
+          Path('.github/workflows/apply-link-roundtrip-liveness-once.yml').unlink()
+          PY
+      - name: Commit staging tree
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'fix(link): require round-trip keepalive for blackhole retirement [publish-test]'
+          git push origin HEAD:tmp/link-roundtrip-liveness
