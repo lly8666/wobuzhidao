@@ -132,6 +132,8 @@ func (e *Executor) StopDynamicLanePlan(lane LanePlan) error {
 		found++
 		if stopErr := p.proc.Stop(); stopErr != nil {
 			errs = append(errs, fmt.Errorf("stop %s: %w", p.name, stopErr))
+		} else if waitErr := waitDynamicLaneProcessStopped(p.proc); waitErr != nil {
+			errs = append(errs, fmt.Errorf("wait %s exit: %w", p.name, waitErr))
 		}
 		e.processes = append(e.processes[:i], e.processes[i+1:]...)
 	}
