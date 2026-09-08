@@ -122,13 +122,6 @@ func (a *ServerAssociation) HandleSegment(seg Segment, now time.Time) (ServerSeg
 		out.FastRetransmit = a.sender.AckSelective(seg.Ack, seg.SACK[:seg.SACKN], now)
 	}
 	if len(seg.Payload) == 0 {
-		// Mirror the classic TCP keepalive contract: only RCV.NXT-1 probes get
-		// an ACK. An ordinary ACK-only segment must remain silent or the two
-		// peers can create an ACK ping-pong loop.
-		if IsKeepaliveProbe(seg, a.receiver.Next()) {
-			out.AckNeeded = true
-			out.Ack = a.receiver.Next()
-		}
 		return out, nil
 	}
 	deliver, sackNeeded := a.receiver.Accept(seg.Seq, len(seg.Payload))

@@ -9,10 +9,9 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 )
 
-// RST is an exact-flow terminal signal. The Sender itself deliberately keeps
-// its long-standing unbounded retransmission behavior; endpoint-level keepalive
-// now owns blackhole retirement so ARQ wire behavior does not grow a second,
-// conflicting retry ceiling.
+// Blackhole behavior remains a characterization until an explicit dead-peer
+// policy is qualified. RST, however, is an exact-flow terminal signal and must
+// retire the current transport incarnation so the lane watchdog can replace it.
 
 type livenessRaw struct {
 	mu     sync.Mutex
@@ -82,12 +81,14 @@ func TestPeerRSTTerminatesCurrentAssociation(t *testing.T) {
 	}
 	select {
 	case <-e.stop:
+		// The bootstrap/data child must be closed too; merely returning rawLoop
+		// is insufficient while a TLS bootstrap is blocked on the same stream.
 	default:
 		t.Fatal("peer RST did not close endpoint incarnation")
 	}
 }
 
-func TestUnderlyingARQStillHasNoRetryCeiling(t *testing.T) {
+func TestCurrentBlackholeRetransmissionHasNoRetryCeiling(t *testing.T) {
 	now := time.Unix(1000, 0)
 	s := faketcp.NewSender(1000, 1200*time.Millisecond)
 	p := s.Enqueue([]byte("blackhole-probe"), now)
@@ -105,6 +106,6 @@ func TestUnderlyingARQStillHasNoRetryCeiling(t *testing.T) {
 	if got := s.RTO(); got != 60*time.Second {
 		t.Fatalf("backed-off RTO=%s want 60s clamp", got)
 	}
-	// Endpoint liveness is intentionally orthogonal: it can retire the process
-	// while this mature Sender remains capable of TCP-like retransmission.
+	// There is intentionally no retry-limit assertion here: receiving no ACK
+	// does not currently convert the client association into a terminal state.
 }

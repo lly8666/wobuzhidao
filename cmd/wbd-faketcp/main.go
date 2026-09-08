@@ -574,12 +574,6 @@ func (e *endpoint) rawLoop() error {
 			}
 		}
 		if len(seg.Payload) == 0 {
-			if faketcp.IsKeepaliveProbe(seg, e.receiverNext()) {
-				if err := e.send(e.senderNext(), e.receiverNext(), faketcp.FlagACK, nil, nil); err != nil {
-					return err
-				}
-				atomic.AddUint64(&e.ackTx, 1)
-			}
 			continue
 		}
 		var sackBuf [4]faketcp.SACKBlock
@@ -663,7 +657,6 @@ func udpEqual(a, b *net.UDPAddr) bool {
 func (e *endpoint) retransmitLoop() error {
 	t := time.NewTicker(2 * time.Millisecond)
 	defer t.Stop()
-	tracker := newKeepaliveTracker(defaultKeepalivePolicy)
 	for {
 		select {
 		case <-e.stop:
@@ -675,40 +668,9 @@ func (e *endpoint) retransmitLoop() error {
 			if p != nil {
 				err = e.sendDataPending(p)
 			}
-			ss := e.sender.Stats()
-			snap := keepaliveSnapshot{
-				RawRX: atomic.LoadUint64(&e.rawRx), DataRX: atomic.LoadUint64(&e.dataRx),
-				Pending: e.sender.Pending(), LastACK: e.sender.LastAck(), Acked: ss.Acked, SACKed: ss.SACKed, RTO: e.sender.RTO(),
-			}
-			senderNext := e.sender.NextSeq()
 			e.senderMu.Unlock()
 			if err != nil {
 				return err
-			}
-
-			// Reality/TLS bootstrap has its own authenticated deadline. Do not let
-			// steady-state keepalive race the admission stream; start liveness only
-			// after the single-flow bootstrap barrier has cleared.
-			if e.cfg.singleFlowEnabled() && e.bootstrapStream() != nil {
-				tracker.reset(now, snap)
-				continue
-			}
-
-			switch tracker.observe(now, snap) {
-			case keepaliveSendProbe:
-				if err := e.send(senderNext-1, e.receiverNext(), faketcp.FlagACK, nil, nil); err != nil {
-					return err
-				}
-			case keepaliveDeclareDead:
-				window, attempt := tracker.position()
-				fmt.Printf("WBD_FAKETCP_DEAD_PEER role=%s source_port=%d remote_port=%d windows=%d attempts_per_window=%d final_window=%d final_attempt=%d\n",
-					e.cfg.role, e.srcPort, e.dstPort, defaultKeepalivePolicy.MissWindows, defaultKeepalivePolicy.AttemptsPerMiss, window, attempt)
-				// Best-effort RST immediately releases the server-side incarnation when
-				// the client->server direction is still usable (for example a pure
-				// server->client blackhole). Other blackholes fall back to server expiry.
-				_ = e.send(senderNext, e.receiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
-				e.close()
-				return errDeadPeer
 			}
 		}
 	}
