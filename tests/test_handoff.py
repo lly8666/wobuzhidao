@@ -72,7 +72,8 @@ class HandoffContractTest(unittest.TestCase):
         self.assertIn("single-flow is PER TRANSPORT LANE", guard)
         self.assertIn("1..4 logical lanes", guard)
         self.assertIn("A -> A+B -> B", replacement)
-        self.assertIn("never as a fifth logical lane", replacement)
+        self.assertIn("At most 4 logical lanes exist", replacement)
+        self.assertIn("fifth physical slot is replacement overlap only", replacement)
         self.assertIn("source == server-issued Logical Tunnel lease", handoff["architecture_override"]["lease_source_boundary"])
         self.assertFalse(handoff["qualification_snapshot"]["release_authorized"])
 

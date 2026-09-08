@@ -175,6 +175,9 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if o.dtls == "" {
 		return errors.New("client requires -dtls")
 	}
+	if o.keepalive < 0 {
+		return errors.New("client -keepalive must be non-negative")
+	}
 	dtlsAddr, err := net.ResolveUDPAddr("udp4", o.dtls)
 	if err != nil {
 		return err
@@ -376,8 +379,7 @@ func serverStartup(conn *net.UDPConn, serviceAddr *net.UDPAddr, startup serverSt
 func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Path, startup clientStartupSession, keepalive time.Duration, stop <-chan os.Signal) error {
 	buf := make([]byte, 65535)
 	var appPeer *net.UDPAddr
-	lastRemoteRX := time.Now()
-	nextPing := lastRemoteRX.Add(keepalive)
+	liveness := newClientKeepaliveTracker(time.Now(), keepalive)
 	for {
 		select {
 		case <-stop:
@@ -389,14 +391,14 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 		default:
 		}
 		now := time.Now()
-		if clientRemoteRXExpired(lastRemoteRX, now, keepalive) {
-			return fmt.Errorf("WBD link liveness timeout after %s without remote receive", clientRemoteRXTimeout(keepalive))
+		sendPing, pingNonce, dead := liveness.poll(now, keepalive)
+		if dead {
+			return fmt.Errorf("WBD link liveness timeout after %s without keepalive round-trip", clientRemoteRXTimeout(keepalive))
 		}
-		if clientKeepaliveDue(nextPing, now, keepalive) {
-			if err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: uint64(now.UnixNano())}); err != nil {
+		if sendPing {
+			if err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: pingNonce}); err != nil {
 				return err
 			}
-			nextPing = now.Add(keepalive)
 		}
 		_ = conn.SetReadDeadline(time.Now().Add(time.Millisecond))
 		n, from, err := conn.ReadFromUDP(buf)
@@ -414,8 +416,6 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 						return err
 					}
 				}
-				lastRemoteRX = now
-				nextPing = now.Add(keepalive)
 				continue
 			}
 			if isLifecycleControl(buf[:n]) {
@@ -425,15 +425,12 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 				}
 				switch f := frame.(type) {
 				case control.Pong:
-					lastRemoteRX = now
-					nextPing = now.Add(keepalive)
+					liveness.observePong(f.Nonce, now, keepalive)
 					continue
 				case control.Ping:
 					if err := sendLifecycle(conn, dtlsAddr, control.Pong{Nonce: f.Nonce}); err != nil {
 						return err
 					}
-					lastRemoteRX = now
-					nextPing = now.Add(keepalive)
 					continue
 				case control.Close:
 					return fmt.Errorf("server closed WBD link reason=%d detail=%q reconnect=%t", f.Reason, f.Detail, control.ReconnectAllowed(f.Reason))
@@ -451,8 +448,6 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 					}
 				}
 			}
-			lastRemoteRX = now
-			nextPing = now.Add(keepalive)
 		} else {
 			appPeer = cloneUDPAddr(from)
 			wire, err := path.Encode(buf[:n], now)

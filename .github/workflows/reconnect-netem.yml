@@ -76,17 +76,17 @@ jobs:
 
   faketcp-liveness-characterization:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
-      - name: Require peer RST retirement and characterize client blackhole behavior
+      - name: Require peer RST retirement and characterize underlying ARQ blackhole behavior
         run: |
           set -euo pipefail
           go test ./cmd/wbd-faketcp \
-            -run 'Test(PeerRSTTerminatesCurrentAssociation|CurrentBlackholeRetransmissionHasNoRetryCeiling|StartupBudgetsSupport300msOneWayPath)$' \
+            -run 'Test(PeerRSTTerminatesCurrentAssociation|UnderlyingARQStillHasNoRetryCeiling|StartupBudgetsSupport300msOneWayPath)$' \
             -count=1 -v
       - name: Require server RST cleanup and verify current blackhole expiry
         run: |
@@ -95,6 +95,13 @@ jobs:
             -run 'Test(HandlePeerResetRemovesCurrentSession|StaleDataAssociationTimeout|ClientReceiveRefreshesDataAssociation)$' \
             -count=1 -v
           echo 'WBD_FAKETCP_LIVENESS peer_rst=terminal client_blackhole_retry_ceiling=none server_no_client_rx_expiry=60s'
+      - name: Stress existing LINK keepalive zero and bidirectional proof semantics
+        run: |
+          set -euo pipefail
+          go test -race ./cmd/wbd-link-proxy \
+            -run 'Test(ClientKeepaliveTracker|ClientDataLoopKeepaliveZero|ClientDataLoopOutboundTrafficCannotMaskNoRoundTrip|ClientDataLoopDownstreamPingTrafficCannotMaskUpstreamBlackhole|ClientDataLoopHeartbeatAndGracefulClose)$' \
+            -count=10 -v
+          echo 'WBD_LINK_KEEPALIVE_STRESS_PASS keepalive_zero=no_forced_liveness matching_pong=roundtrip_proof probes=12 race=1'
 
   build-game-assets:
     runs-on: ubuntu-24.04
@@ -126,7 +133,7 @@ jobs:
           gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
             native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
 
-          go test ./internal/gamelane ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server ./cmd/wbd-link-server-mux -count=1
+          go test ./internal/gamelane ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux -count=1
           go build -trimpath -o "$ASSET/wbd-reality-front" ./cmd/wbd-reality-front
           go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
           go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
@@ -186,8 +193,6 @@ jobs:
           # traverse the same weak path. 150ms each egress gives ~300ms RTT.
           sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem limit 50000 delay 150ms loss random 20%
           sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem limit 50000 delay 150ms loss random 20%
-          sudo ip netns exec "$C" tc -s qdisc show dev gc0 >"$LOG_DIR/netem-client.txt"
-          sudo ip netns exec "$S" tc -s qdisc show dev gs0 >"$LOG_DIR/netem-server.txt"
           '''
           if needle not in s:
               raise SystemExit('netem insertion point not found')
@@ -200,8 +205,16 @@ jobs:
           s=re.sub(r'(?m)^(\s*)\[\[ (.+) \]\] && break$', r'\1if [[ \2 ]]; then break; fi', s)
           s=s.replace('--bootstrap-timeout 12s','--bootstrap-timeout 30s')
           s=s.replace('--reality-timeout 12s','--reality-timeout 30s')
+          s=s.replace('-demo-reality-ticket "$ticket" >"$LOG_DIR/link-${i}.log"', '-demo-reality-ticket "$ticket" -keepalive 2s >"$LOG_DIR/link-${i}.log"')
           s=s.replace('s.settimeout(4)','s.settimeout(10)')
           s=s.replace('sleep .25\n','sleep 12\n',1)
+          receipt='''sudo ip netns exec "$C" tc -s qdisc show dev gc0 >"$LOG_DIR/netem-client.txt"
+          sudo ip netns exec "$S" tc -s qdisc show dev gs0 >"$LOG_DIR/netem-server.txt"
+          '''
+          marker='echo "WBD_GAME_LANE_FULLSTACK_PASS lanes=${LANES} logical_delivery_once=1 outer_flows_distinct=1 per_lane_single_flow=1 shared_logical_tunnel=1 fec=${FEC}"'
+          if marker not in s:
+              raise SystemExit('post-traffic netem receipt insertion point not found')
+          s=s.replace(marker, receipt + marker, 1)
           p.write_text(s)
           PY
           chmod +x "$RUNNER_TEMP/game_lane_fullstack_netem.sh"
@@ -219,7 +232,11 @@ jobs:
           grep -q 'loss 20%' "$LOG/netem-client.txt"
           grep -q 'delay 150ms' "$LOG/netem-server.txt"
           grep -q 'loss 20%' "$LOG/netem-server.txt"
-          echo "WBD_GAME_RECONNECT_NETEM_PASS source_sha=${GITHUB_SHA} lanes=4 rtt_ms=300 loss_pct=20 fec=${{ matrix.fec }} impairment_from_syn=1"
+          client_pkts="$(awk '/Sent / {for (i=1;i<=NF;i++) if ($i=="pkt") {print $(i-1); exit}}' "$LOG/netem-client.txt")"
+          server_pkts="$(awk '/Sent / {for (i=1;i<=NF;i++) if ($i=="pkt") {print $(i-1); exit}}' "$LOG/netem-server.txt")"
+          [[ "$client_pkts" =~ ^[0-9]+$ && "$client_pkts" -gt 0 ]]
+          [[ "$server_pkts" =~ ^[0-9]+$ && "$server_pkts" -gt 0 ]]
+          echo "WBD_GAME_RECONNECT_NETEM_PASS source_sha=${GITHUB_SHA} lanes=4 rtt_ms=300 loss_pct=20 fec=${{ matrix.fec }} impairment_from_syn=1 keepalive=2s client_qdisc_pkts=${client_pkts} server_qdisc_pkts=${server_pkts}"
       - name: Diagnose high-latency/loss failure
         if: failure()
         run: |
