@@ -25,6 +25,9 @@ func TestSenderRTOBackoffKeepsRetryingWithoutCeiling(t *testing.T) {
 	if got, want := s.RTO(), 60*time.Second; got != want {
 		t.Fatalf("RTO=%s want=%s", got, want)
 	}
+	if got := s.Stats().RTOTransmits; got != 20 {
+		t.Fatalf("RTOTransmits=%d want=20", got)
+	}
 	if s.Pending() != 1 {
 		t.Fatalf("pending=%d want=1 before LINK liveness retires the transport", s.Pending())
 	}

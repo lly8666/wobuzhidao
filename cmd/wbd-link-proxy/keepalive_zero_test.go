@@ -62,7 +62,7 @@ func TestClientDataLoopKeepaliveZeroDoesNotRetireSilentPeer(t *testing.T) {
 	select {
 	case err := <-done:
 		t.Fatalf("keepalive=0 retired silent peer unexpectedly: %v", err)
-	case <-time.After(80 * time.Millisecond):
+	case <-time.After(100 * time.Millisecond):
 	}
 
 	stop <- os.Interrupt
