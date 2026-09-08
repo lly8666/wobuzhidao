@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -8,10 +9,9 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 )
 
-// These tests intentionally characterize the current transport-liveness
-// contract. They are not an endorsement of the behavior: the Actions job that
-// runs them labels the RST/blackhole result as a known-gap characterization so
-// a later terminal-policy change has an explicit test to update.
+// Blackhole behavior remains a characterization until an explicit dead-peer
+// policy is qualified. RST, however, is an exact-flow terminal signal and must
+// retire the current transport incarnation so the lane watchdog can replace it.
 
 type livenessRaw struct {
 	mu     sync.Mutex
@@ -48,7 +48,7 @@ func (r *livenessRaw) Close() error {
 	return nil
 }
 
-func TestCurrentPeerRSTIsNonTerminal(t *testing.T) {
+func TestPeerRSTTerminatesCurrentAssociation(t *testing.T) {
 	clientIP := [4]byte{10, 91, 0, 2}
 	serverIP := [4]byte{10, 91, 0, 1}
 	raw := &livenessRaw{packet: faketcp.MarshalIPv4TCP(
@@ -73,19 +73,18 @@ func TestCurrentPeerRSTIsNonTerminal(t *testing.T) {
 	go func() { done <- e.rawLoop() }()
 	select {
 	case err := <-done:
-		t.Fatalf("current raw loop unexpectedly treated peer RST as terminal: %v", err)
-	case <-time.After(75 * time.Millisecond):
-		// Current behavior: exact-flow RST has no payload and is ignored after
-		// ordinary ACK processing. Therefore the child stays alive.
-	}
-	e.close()
-	select {
-	case err := <-done:
-		if err != nil {
-			t.Fatalf("raw loop close: %v", err)
+		if !errors.Is(err, errPeerReset) {
+			t.Fatalf("raw loop error=%v want peer reset", err)
 		}
 	case <-time.After(time.Second):
-		t.Fatal("raw loop did not stop after endpoint close")
+		t.Fatal("peer RST did not retire current FakeTCP association")
+	}
+	select {
+	case <-e.stop:
+		// The bootstrap/data child must be closed too; merely returning rawLoop
+		// is insufficient while a TLS bootstrap is blocked on the same stream.
+	default:
+		t.Fatal("peer RST did not close endpoint incarnation")
 	}
 }
 
