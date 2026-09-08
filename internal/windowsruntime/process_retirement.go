@@ -3,6 +3,7 @@ package windowsruntime
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -10,6 +11,26 @@ const dynamicLaneProcessStopWait = 5 * time.Second
 
 type stoppedProcess interface {
 	WaitStopped(time.Duration) error
+}
+
+type gracefulStoppedProcess interface {
+	GracefulStop(time.Duration) error
+}
+
+func isDynamicLaneLinkProcess(name string) bool {
+	return name == "link" || strings.HasPrefix(name, "link-")
+}
+
+func stopDynamicLaneProcess(name string, proc Process) error {
+	if isDynamicLaneLinkProcess(name) {
+		if graceful, ok := proc.(gracefulStoppedProcess); ok {
+			return graceful.GracefulStop(dynamicLaneProcessStopWait)
+		}
+	}
+	if err := proc.Stop(); err != nil {
+		return err
+	}
+	return waitDynamicLaneProcessStopped(proc)
 }
 
 // waitDynamicLaneProcessStopped turns Process.Stop from a kill request into a

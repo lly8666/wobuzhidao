@@ -133,6 +133,9 @@ func run(o options) error {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	defer signal.Stop(stop)
+	if o.mode == "client" {
+		armSupervisorShutdown(stop)
+	}
 
 	if o.mode == "client" {
 		return runClient(conn, o, stop)
@@ -382,7 +385,10 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 	liveness := newClientKeepaliveTracker(time.Now(), keepalive)
 	for {
 		select {
-		case <-stop:
+		case sig := <-stop:
+			if isSupervisorRetireSignal(sig) {
+				return gracefulClientRetirement(conn, dtlsAddr, path, supervisorCloseAckTimeout)
+			}
 			if err := flushPath(conn, dtlsAddr, path); err != nil {
 				return err
 			}
