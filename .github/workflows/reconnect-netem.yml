@@ -1,0 +1,243 @@
+name: reconnect-netem
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/reconnect-netem.yml'
+      - 'scripts/game_lane_fullstack.sh'
+      - 'scripts/analyze_game_lane_pcap.py'
+      - 'internal/windowsruntime/**'
+      - 'internal/faketcp/**'
+      - 'internal/gamelane/**'
+      - 'internal/session/**'
+      - 'internal/realityfront/**'
+      - 'internal/dtlsworker/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-game-lane-client/**'
+      - 'cmd/wbd-game-lane-server/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-reality-front/**'
+      - 'native/dtls/**'
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - '.github/workflows/reconnect-netem.yml'
+      - 'scripts/game_lane_fullstack.sh'
+      - 'scripts/analyze_game_lane_pcap.py'
+      - 'internal/windowsruntime/**'
+      - 'internal/faketcp/**'
+      - 'internal/gamelane/**'
+      - 'internal/session/**'
+      - 'internal/realityfront/**'
+      - 'internal/dtlsworker/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-game-lane-client/**'
+      - 'cmd/wbd-game-lane-server/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-reality-front/**'
+      - 'native/dtls/**'
+
+concurrency:
+  group: reconnect-netem-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  lifecycle-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Stress Windows retirement barrier under delayed exit
+        run: |
+          set -euo pipefail
+          go test -race ./internal/windowsruntime \
+            -run 'TestStopDynamicLanePlan(WaitsForRetiredChildren|ReportsRetirementWaitFailure|WaitsThroughDelayedChildExit)$' \
+            -count=20
+      - name: Stress lost-LEAVE convergence across all four logical lanes
+        run: |
+          set -euo pipefail
+          go test -race ./cmd/wbd-game-lane-server \
+            -run 'Test(SameLogicalLaneRecoversLostLeaveOnNextReplacement|SerializedReconnectAdvancesLostLeaveAcrossLogicalLanes)$' \
+            -count=100
+          echo 'WBD_RECONNECT_MEMBERSHIP_STRESS_PASS lanes=4 lost_leave=1 serialized=1 race=1'
+
+  faketcp-liveness-characterization:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Characterize current peer RST and client blackhole behavior
+        run: |
+          set -euo pipefail
+          go test ./cmd/wbd-faketcp \
+            -run 'Test(CurrentPeerRSTIsNonTerminal|CurrentBlackholeRetransmissionHasNoRetryCeiling|StartupBudgetsSupport300msOneWayPath)$' \
+            -count=1 -v
+      - name: Verify current server-side blackhole expiry
+        run: |
+          set -euo pipefail
+          go test ./cmd/wbd-faketcp-mux \
+            -run 'Test(StaleDataAssociationTimeout|ClientReceiveRefreshesDataAssociation)$' \
+            -count=1 -v
+          echo 'WBD_FAKETCP_LIVENESS_CHARACTERIZATION peer_rst=nonterminal client_blackhole_retry_ceiling=none server_no_client_rx_expiry=60s'
+
+  build-game-assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl
+      - name: Build exact-source pinned-DTLS 4-lane stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/wbd-reconnect-assets"
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build "$ASSET"
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
+
+          go test ./internal/gamelane ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server ./cmd/wbd-link-server-mux -count=1
+          go build -trimpath -o "$ASSET/wbd-reality-front" ./cmd/wbd-reality-front
+          go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
+          go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+          go build -trimpath -o "$ASSET/wbd-link-proxy" ./cmd/wbd-link-proxy
+          go build -trimpath -o "$ASSET/wbd-link-server-mux" ./cmd/wbd-link-server-mux
+          go build -trimpath -o "$ASSET/wbd-game-lane-client" ./cmd/wbd-game-lane-client
+          go build -trimpath -o "$ASSET/wbd-game-lane-server" ./cmd/wbd-game-lane-server
+          printf '%s\n' "$GITHUB_SHA" >"$ASSET/SOURCE_SHA.txt"
+
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-dtls.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reconnect-netem-assets
+          path: ${{ runner.temp }}/wbd-reconnect-assets
+          retention-days: 1
+
+  game-4lane-300ms-rtt-20loss:
+    needs: build-game-assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        fec: ['off', '20:20']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install namespace and packet tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump
+      - uses: actions/download-artifact@v4
+        with:
+          name: reconnect-netem-assets
+          path: ${{ runner.temp }}/wbd-reconnect-assets
+      - name: Restore executable bits
+        run: |
+          chmod +x "$RUNNER_TEMP"/wbd-reconnect-assets/wbd-* "$RUNNER_TEMP"/wbd-reconnect-assets/wbd_dtls_shim
+      - name: Prepare 300ms RTT / 20 percent loss full-stack harness
+        run: |
+          set -euo pipefail
+          cp scripts/game_lane_fullstack.sh "$RUNNER_TEMP/game_lane_fullstack_netem.sh"
+          python3 - "$RUNNER_TEMP/game_lane_fullstack_netem.sh" <<'PY'
+          import pathlib,sys
+          p=pathlib.Path(sys.argv[1])
+          s=p.read_text()
+          needle='sudo ip -n "$S" link set gs0 up\n'
+          insert='''sudo ip -n "$S" link set gs0 up
+          # Qualification impairment is active before the first FakeTCP SYN, so
+          # raw handshake, Reality-like TLS bootstrap, DTLS, LINK and Game all
+          # traverse the same weak path. 150ms each egress gives ~300ms RTT.
+          sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem limit 50000 delay 150ms loss random 20% seed 41001
+          sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem limit 50000 delay 150ms loss random 20% seed 41002
+          sudo ip netns exec "$C" tc -s qdisc show dev gc0 >"$LOG_DIR/netem-client.txt"
+          sudo ip netns exec "$S" tc -s qdisc show dev gs0 >"$LOG_DIR/netem-server.txt"
+          '''
+          if needle not in s:
+              raise SystemExit('netem insertion point not found')
+          s=s.replace(needle,insert,1)
+          s=s.replace('--bootstrap-timeout 12s','--bootstrap-timeout 30s')
+          s=s.replace('--reality-timeout 12s','--reality-timeout 30s')
+          s=s.replace('s.settimeout(4)','s.settimeout(10)')
+          s=s.replace('sleep .25\n','sleep 12\n',1)
+          p.write_text(s)
+          PY
+          chmod +x "$RUNNER_TEMP/game_lane_fullstack_netem.sh"
+      - name: Exercise four lanes from SYN through Game under 300ms RTT and 20 percent loss
+        env:
+          LANES: '4'
+          FEC: ${{ matrix.fec }}
+          PROBE_COUNT: '4'
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/reconnect-netem-${{ matrix.fec }}"
+          mkdir -p "$LOG"
+          sudo -E "$RUNNER_TEMP/game_lane_fullstack_netem.sh" "$RUNNER_TEMP/wbd-reconnect-assets" "$LOG"
+          grep -q 'delay 150ms' "$LOG/netem-client.txt"
+          grep -q 'loss 20%' "$LOG/netem-client.txt"
+          grep -q 'delay 150ms' "$LOG/netem-server.txt"
+          grep -q 'loss 20%' "$LOG/netem-server.txt"
+          echo "WBD_GAME_RECONNECT_NETEM_PASS source_sha=${GITHUB_SHA} lanes=4 rtt_ms=300 loss_pct=20 fec=${{ matrix.fec }} impairment_from_syn=1"
+      - name: Diagnose high-latency/loss failure
+        if: failure()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/reconnect-netem-${{ matrix.fec }}"
+          echo '=== NETEM RECEIPTS ==='
+          cat "$LOG/netem-client.txt" 2>/dev/null || true
+          cat "$LOG/netem-server.txt" 2>/dev/null || true
+          for f in faketcp-mux.log link-server.log game-server.log game-client.log probe-warm.log probe.log tcpdump.log; do
+            echo "--- $f ---"
+            tail -n 160 "$LOG/$f" 2>/dev/null || true
+          done
+          for i in 1 2 3 4; do
+            for stem in faketcp dtls link; do
+              echo "--- ${stem}-${i}.log ---"
+              tail -n 160 "$LOG/${stem}-${i}.log" 2>/dev/null || true
+            done
+          done
+      - name: Scrub one-time auth material
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/reconnect-netem-${{ matrix.fec }}"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/front-*.log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reconnect-netem-4lane-300ms-rtt-20loss-${{ matrix.fec }}
+          path: ${{ runner.temp }}/reconnect-netem-${{ matrix.fec }}
+          retention-days: 14
