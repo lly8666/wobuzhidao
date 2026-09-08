@@ -29,6 +29,7 @@ type Pending struct {
 	Retries    uint32
 	WasRetried bool
 	SACKed     bool
+	Bootstrap  bool
 	slot       int
 }
 
@@ -97,11 +98,12 @@ func (s *Sender) RecoveryMode() RecoveryMode      { return s.recovery }
 func (s *Sender) Outstanding(seq uint32) *Pending { return s.bySeq[seq] }
 
 func (s *Sender) Enqueue(payload []byte, now time.Time) *Pending {
+	bootstrap := isBootstrapPayload(payload)
 	buf := s.allocPayload(len(payload))
 	copy(buf, payload)
 	p := &Pending{
 		Seq: s.nextSeq, End: s.nextSeq + uint32(len(payload)),
-		Payload: buf, FirstSent: now, LastSent: now, slot: len(s.pending),
+		Payload: buf, FirstSent: now, LastSent: now, Bootstrap: bootstrap, slot: len(s.pending),
 	}
 	s.nextSeq = p.End
 	s.pending = append(s.pending, p)
@@ -347,11 +349,24 @@ func (s *Sender) advanceHead() {
 
 func (s *Sender) RetransmitDue(now time.Time) *Pending {
 	p := s.oldest()
-	if p == nil || now.Sub(p.LastSent) < s.rto {
+	if p == nil {
+		return nil
+	}
+	rto := s.rto
+	if p.Bootstrap && rto > bootstrapRetransmitCeiling {
+		rto = bootstrapRetransmitCeiling
+	}
+	if now.Sub(p.LastSent) < rto {
 		return nil
 	}
 	s.markRetry(p, now, false)
-	s.rto = clampRTO(s.rto * 2)
+	// Bootstrap is an intentionally short stop-and-wait stream with an absolute
+	// admission deadline. Keep retries frequent enough to make progress through
+	// weak-link loss, but preserve the mature TCP-like exponential backoff once
+	// the same association crosses the bootstrap barrier into steady-state data.
+	if !p.Bootstrap {
+		s.rto = clampRTO(s.rto * 2)
+	}
 	return p
 }
 
