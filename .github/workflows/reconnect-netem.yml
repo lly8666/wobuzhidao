@@ -180,8 +180,8 @@ jobs:
           # Qualification impairment is active before the first FakeTCP SYN, so
           # raw handshake, Reality-like TLS bootstrap, DTLS, LINK and Game all
           # traverse the same weak path. 150ms each egress gives ~300ms RTT.
-          sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem limit 50000 delay 150ms loss random 20% seed 41001
-          sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem limit 50000 delay 150ms loss random 20% seed 41002
+          sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem limit 50000 delay 150ms loss random 20%
+          sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem limit 50000 delay 150ms loss random 20%
           sudo ip netns exec "$C" tc -s qdisc show dev gc0 >"$LOG_DIR/netem-client.txt"
           sudo ip netns exec "$S" tc -s qdisc show dev gs0 >"$LOG_DIR/netem-server.txt"
           '''
