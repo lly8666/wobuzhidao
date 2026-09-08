@@ -10,6 +10,12 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/linkdata"
 )
 
+func TestDefaultKeepaliveRemainsExistingFifteenSeconds(t *testing.T) {
+	if defaultKeepalive != 15*time.Second {
+		t.Fatalf("defaultKeepalive=%s want=15s", defaultKeepalive)
+	}
+}
+
 func TestClientRemoteRXDeadlineUsesThreeKeepaliveWindows(t *testing.T) {
 	base := time.Unix(1_700_000_000, 0)
 	keepalive := 10 * time.Second
