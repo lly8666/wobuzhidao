@@ -1,0 +1,198 @@
+name: Apply fullstack harness alignment once
+
+on:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - '.github/workflows/apply-fullstack-harness-fix-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/single-flow-reality-faketcp
+          fetch-depth: 0
+      - name: Align low-level MTU inputs and harden polling
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              s = p.read_text()
+              if old not in s:
+                  raise SystemExit(f'pattern not found in {path}: {old!r}')
+              p.write_text(s.replace(old, new, 1))
+
+          # OpenWrt one-shot launches low-level LINK directly: server mux takes
+          # operator inner MTU, while link-proxy takes LINK plaintext MTU.
+          p = Path('scripts/openwrt_fullstack_one_shot.sh')
+          s = p.read_text()
+          if 'LINK_PLAINTEXT_MTU=' not in s:
+              anchor = 'PLATFORM_CLIENT_PID=\n'
+              insert = '''PLATFORM_CLIENT_PID=
+INNER_MTU=${WBD_INNER_MTU:-1360}
+LINK_PLAINTEXT_MTU=${WBD_LINK_PLAINTEXT_MTU:-1400}
+'''
+              if anchor not in s:
+                  raise SystemExit('OpenWrt MTU variable insertion point not found')
+              s = s.replace(anchor, insert, 1)
+          old = '''ip netns exec "$S" "$ASSET_DIR/wbd-link-server-mux" \\
+    -listen "$tip" -service 127.0.0.1:49000 \\
+    -ticket-dir "$TICKET_DIR" -ticket-ttl 60s -max-sessions 4 \\
+'''
+          new = '''ip netns exec "$S" "$ASSET_DIR/wbd-link-server-mux" \\
+    -listen "$tip" -service 127.0.0.1:49000 -mtu "$INNER_MTU" \\
+    -ticket-dir "$TICKET_DIR" -ticket-ttl 60s -max-sessions 4 \\
+'''
+          if old not in s:
+              raise SystemExit('OpenWrt server-mux MTU insertion point not found')
+          s = s.replace(old, new, 1)
+          old = '''ip netns exec "$R" "$ASSET_DIR/wbd-link-proxy" \\
+    -mode client -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off \\
+    -demo-reality-ticket "$TICKET"'''
+          new = '''ip netns exec "$R" "$ASSET_DIR/wbd-link-proxy" \\
+    -mode client -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec off \\
+    -mtu "$LINK_PLAINTEXT_MTU" -demo-reality-ticket "$TICKET"'''
+          if old not in s:
+              raise SystemExit('OpenWrt link-proxy MTU insertion point not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          # Startup stress had one ambiguous LINK_MTU=1360 value feeding the
+          # low-level proxy. Split the two layers and make the server input explicit.
+          p = Path('.github/scripts/single-flow-startup-stress.sh')
+          s = p.read_text()
+          old = 'LINK_MTU=${SFSTRESS_LINK_MTU:-1360}\n'
+          new = 'INNER_MTU=${SFSTRESS_INNER_MTU:-1360}\nLINK_PLAINTEXT_MTU=${SFSTRESS_LINK_PLAINTEXT_MTU:-1400}\n'
+          if old not in s:
+              raise SystemExit('startup-stress MTU variable not found')
+          s = s.replace(old, new, 1)
+          old = '''sudo ip netns exec "$S" "$ROOT/wbd-link-server-mux" \\
+  -listen 127.0.0.1:47000 -service 127.0.0.1:48000 \\
+  -ticket-dir "$ROOT/tickets"'''
+          new = '''sudo ip netns exec "$S" "$ROOT/wbd-link-server-mux" \\
+  -listen 127.0.0.1:47000 -service 127.0.0.1:48000 -mtu "$INNER_MTU" \\
+  -ticket-dir "$ROOT/tickets"'''
+          if old not in s:
+              raise SystemExit('startup-stress server-mux insertion point not found')
+          s = s.replace(old, new, 1)
+          if "-mtu '$LINK_MTU'" not in s:
+              raise SystemExit('startup-stress low-level LINK MTU use not found')
+          s = s.replace("-mtu '$LINK_MTU'", "-mtu '$LINK_PLAINTEXT_MTU'", 1)
+          if 'mtu=${LINK_MTU}' not in s:
+              raise SystemExit('startup-stress PASS MTU field not found')
+          s = s.replace('mtu=${LINK_MTU}', 'inner_mtu=${INNER_MTU} link_plaintext_mtu=${LINK_PLAINTEXT_MTU}', 1)
+          p.write_text(s)
+
+          # Make base full-stack polling errexit-safe persistently instead of
+          # mutating it at runtime in the netem workflow. Also fail with useful
+          # DTLS diagnostics if a freshly launched shim exits before READY.
+          p = Path('scripts/game_lane_fullstack.sh')
+          s = p.read_text()
+          pattern = re.compile(r'(?m)^([ \t]*)\[\[ (.+) \]\] && break$')
+          s, n = pattern.subn(r'\1if [[ \2 ]]; then break; fi', s)
+          if n < 3:
+              raise SystemExit(f'expected at least 3 errexit-sensitive polling lines, got {n}')
+          if 'DTLS_PIDS=()' not in s:
+              s = s.replace('PIDS=()\nTPID=\n', 'PIDS=()\nDTLS_PIDS=()\nTPID=\n', 1)
+          old = '''  sudo ip netns exec "$C" "$ASSET_DIR/wbd_dtls_shim" client ${dport} 127.0.0.1 ${fport} none none \\
+    >"$LOG_DIR/dtls-${i}.log" 2>&1 &
+  pid=$!; PIDS+=("$pid")
+done
+for _ in $(seq 1 900); do
+  ok=1
+  for i in $(seq 1 "$LANES"); do grep -q 'READY role=client version=DTLSv1.3.*verify=none' "$LOG_DIR/dtls-${i}.log" || ok=0; done
+  bound=$(grep -c 'BOUND role=server.*inherited=yes' "$LOG_DIR/faketcp-mux.log" || true)
+'''
+          new = '''  sudo ip netns exec "$C" "$ASSET_DIR/wbd_dtls_shim" client ${dport} 127.0.0.1 ${fport} none none \\
+    >"$LOG_DIR/dtls-${i}.log" 2>&1 &
+  pid=$!; PIDS+=("$pid"); DTLS_PIDS+=("$pid")
+done
+for _ in $(seq 1 900); do
+  ok=1
+  for i in $(seq 1 "$LANES"); do
+    if grep -q 'READY role=client version=DTLSv1.3.*verify=none' "$LOG_DIR/dtls-${i}.log"; then
+      :
+    else
+      ok=0
+      dtls_pid="${DTLS_PIDS[$((i-1))]}"
+      if ! sudo kill -0 "$dtls_pid" 2>/dev/null; then
+        echo "DTLS client exited before READY lane=$i pid=$dtls_pid" >&2
+        cat "$LOG_DIR/dtls-${i}.log" >&2 || true
+        exit 1
+      fi
+    fi
+  done
+  bound=$(grep -c 'BOUND role=server.*inherited=yes' "$LOG_DIR/faketcp-mux.log" || true)
+'''
+          if old not in s:
+              raise SystemExit('Game DTLS polling block not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          # Netem should consume the now-safe base harness, not patch shell
+          # control-flow dynamically. Pin the two MTU layers in the qualification.
+          p = Path('.github/workflows/reconnect-netem.yml')
+          s = p.read_text()
+          old = '''          # The base harness historically used `[[ condition ]] && break` in
+          # polling loops. Under `set -e`, a legitimately false first poll can
+          # abort the script before a high-latency child becomes READY. Rewrite
+          # those generated-copy polls to an explicit conditional without
+          # weakening the final assertions.
+          s=re.sub(r'(?m)^(\\s*)\\[\\[ (.+) \\]\\] && break$', r'\\1if [[ \\2 ]]; then break; fi', s)
+'''
+          new = '''          if re.search(r'(?m)^[ \\t]*\\[\\[ .+ \\]\\] && break$', s):
+              raise SystemExit('base harness contains errexit-sensitive polling')
+'''
+          if old not in s:
+              raise SystemExit('netem runtime polling rewrite block not found')
+          s = s.replace(old, new, 1)
+          old = '''        env:
+          LANES: '4'
+          FEC: ${{ matrix.fec }}
+          PROBE_COUNT: '4'
+'''
+          new = '''        env:
+          LANES: '4'
+          FEC: ${{ matrix.fec }}
+          PROBE_COUNT: '4'
+          INNER_MTU: '1360'
+          LINK_PLAINTEXT_MTU: '1400'
+'''
+          if old not in s:
+              raise SystemExit('netem matrix env insertion point not found')
+          s = s.replace(old, new, 1)
+          old = 'impairment_from_syn=1 keepalive=2s client_qdisc_pkts=${client_pkts}'
+          new = 'impairment_from_syn=1 keepalive=2s inner_mtu=${INNER_MTU} link_plaintext_mtu=${LINK_PLAINTEXT_MTU} client_qdisc_pkts=${client_pkts}'
+          if old not in s:
+              raise SystemExit('netem PASS line insertion point not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+
+          bash -n scripts/openwrt_fullstack_one_shot.sh
+          bash -n .github/scripts/single-flow-startup-stress.sh
+          bash -n scripts/game_lane_fullstack.sh
+          grep -q 'LINK_PLAINTEXT_MTU=${WBD_LINK_PLAINTEXT_MTU:-1400}' scripts/openwrt_fullstack_one_shot.sh
+          grep -q 'LINK_PLAINTEXT_MTU=${SFSTRESS_LINK_PLAINTEXT_MTU:-1400}' .github/scripts/single-flow-startup-stress.sh
+          grep -q -- '-mtu "$LINK_PLAINTEXT_MTU"' scripts/game_lane_fullstack.sh
+          git diff --check
+      - name: Commit patch and remove one-shot workflow
+        run: |
+          set -euo pipefail
+          rm .github/workflows/apply-fullstack-harness-fix-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/openwrt_fullstack_one_shot.sh .github/scripts/single-flow-startup-stress.sh scripts/game_lane_fullstack.sh .github/workflows/reconnect-netem.yml .github/workflows/apply-fullstack-harness-fix-once.yml
+          git diff --cached --check
+          git commit -m 'test: align fullstack MTU layers and harden DTLS polling'
+          git push origin HEAD:feat/single-flow-reality-faketcp
