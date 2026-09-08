@@ -72,7 +72,7 @@ func main() {
 	flag.StringVar(&o.token, "token", "", "client bearer token for normal/legacy-witness startup")
 	flag.StringVar(&o.expectedToken, "expected-token", "", "server bearer token; empty disables AUTH")
 	flag.DurationVar(&o.setupTimeout, "setup-timeout", defaultSetupTimeout, "LINK_INIT/AUTH startup deadline")
-	flag.DurationVar(&o.keepalive, "keepalive", defaultKeepalive, "client heartbeat interval for DTLS-protected WBD PING")
+	flag.DurationVar(&o.keepalive, "keepalive", defaultKeepalive, "client heartbeat interval for DTLS-protected WBD PING; 0 disables heartbeat/liveness enforcement")
 	flag.StringVar(&o.demoRealityWitness, "demo-reality-witness", "", "legacy mirror demo: 64-hex ClientHello witness")
 	flag.StringVar(&o.demoRealityWitnessDir, "demo-reality-witness-dir", "", "legacy mirror demo server: local witness directory")
 	flag.StringVar(&o.demoRealityServerName, "demo-reality-server-name", "", "legacy mirror demo server: target SNI bound to witness")
@@ -184,9 +184,6 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 		return err
 	}
 	keepalive := o.keepalive
-	if keepalive <= 0 {
-		keepalive = defaultKeepalive
-	}
 	init := control.LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: cfg}
 	var startup clientStartupSession
 	demoKind := "off"
@@ -395,7 +392,7 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 		if clientRemoteRXExpired(lastRemoteRX, now, keepalive) {
 			return fmt.Errorf("WBD link liveness timeout after %s without remote receive", clientRemoteRXTimeout(keepalive))
 		}
-		if !now.Before(nextPing) {
+		if clientKeepaliveDue(nextPing, now, keepalive) {
 			if err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: uint64(now.UnixNano())}); err != nil {
 				return err
 			}

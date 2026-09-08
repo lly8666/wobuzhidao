@@ -19,3 +19,7 @@ func clientRemoteRXExpired(lastRemoteRX, now time.Time, keepalive time.Duration)
 	timeout := clientRemoteRXTimeout(keepalive)
 	return timeout > 0 && !now.Before(lastRemoteRX.Add(timeout))
 }
+
+func clientKeepaliveDue(nextPing, now time.Time, keepalive time.Duration) bool {
+	return keepalive > 0 && !now.Before(nextPing)
+}
