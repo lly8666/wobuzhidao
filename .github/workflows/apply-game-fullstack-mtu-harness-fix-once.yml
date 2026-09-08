@@ -1,0 +1,100 @@
+name: Apply Game fullstack MTU harness fix once
+
+on:
+  push:
+    branches:
+      - feat/single-flow-reality-faketcp
+    paths:
+      - .github/workflows/apply-game-fullstack-mtu-harness-fix-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/single-flow-reality-faketcp
+          fetch-depth: 0
+
+      - name: Patch explicit MTU layers in Game fullstack harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/game_lane_fullstack.sh')
+          text = path.read_text()
+
+          old = '''LANES=${LANES:-4}
+          FEC=${FEC:-off}
+          PROBE_COUNT=${PROBE_COUNT:-20}
+          '''
+          new = '''LANES=${LANES:-4}
+          FEC=${FEC:-off}
+          PROBE_COUNT=${PROBE_COUNT:-20}
+          # This harness launches the low-level LINK tools directly. Keep the two
+          # MTU layers explicit: server-mux consumes operator inner IP MTU, while
+          # link-proxy consumes LINK plaintext MTU. Product launchers perform the
+          # inner->LINK conversion exactly once via gamepath.LinkPlaintextMTU.
+          INNER_MTU=${INNER_MTU:-1360}
+          LINK_PLAINTEXT_MTU=${LINK_PLAINTEXT_MTU:-1400}
+          '''
+          if text.count(old) != 1:
+              raise SystemExit(f'default block match count={text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          old = '''sudo ip netns exec "$S" "$ASSET_DIR/wbd-link-server-mux" \\
+            -listen 127.0.0.1:${LINK} -service 127.0.0.1:${GAME} \\
+            -ticket-dir "$LOG_DIR/tickets" -ticket-ttl 60s -max-sessions 8 \\
+          '''
+          new = '''sudo ip netns exec "$S" "$ASSET_DIR/wbd-link-server-mux" \\
+            -listen 127.0.0.1:${LINK} -service 127.0.0.1:${GAME} -mtu "$INNER_MTU" \\
+            -ticket-dir "$LOG_DIR/tickets" -ticket-ttl 60s -max-sessions 8 \\
+          '''
+          if text.count(old) != 1:
+              raise SystemExit(f'server mux block match count={text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          old = '''sudo ip netns exec "$C" "$ASSET_DIR/wbd-link-proxy" \\
+              -mode client -listen 127.0.0.1:${lport} -dtls 127.0.0.1:${dport} -fec "$FEC" -lanes 1 \\
+              -demo-reality-ticket "$ticket" >"$LOG_DIR/link-${i}.log" 2>&1 &
+          '''
+          new = '''sudo ip netns exec "$C" "$ASSET_DIR/wbd-link-proxy" \\
+              -mode client -listen 127.0.0.1:${lport} -dtls 127.0.0.1:${dport} -fec "$FEC" -lanes 1 \\
+              -mtu "$LINK_PLAINTEXT_MTU" \\
+              -demo-reality-ticket "$ticket" >"$LOG_DIR/link-${i}.log" 2>&1 &
+          '''
+          if text.count(old) != 1:
+              raise SystemExit(f'link proxy block match count={text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          path.write_text(text)
+          PY
+
+          bash -n scripts/game_lane_fullstack.sh
+          grep -Fq 'INNER_MTU=${INNER_MTU:-1360}' scripts/game_lane_fullstack.sh
+          grep -Fq 'LINK_PLAINTEXT_MTU=${LINK_PLAINTEXT_MTU:-1400}' scripts/game_lane_fullstack.sh
+          grep -Fq -- '-mtu "$INNER_MTU"' scripts/game_lane_fullstack.sh
+          grep -Fq -- '-mtu "$LINK_PLAINTEXT_MTU"' scripts/game_lane_fullstack.sh
+
+      - name: Verify shared MTU policy tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./internal/gamepath ./cmd/wbd-link-server-mux
+
+      - name: Commit patch and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/apply-game-fullstack-mtu-harness-fix-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/game_lane_fullstack.sh .github/workflows/apply-game-fullstack-mtu-harness-fix-once.yml
+          git diff --cached --check
+          git commit -m 'test(fullstack): pass explicit inner and LINK MTU layers'
+          git push origin HEAD:feat/single-flow-reality-faketcp
