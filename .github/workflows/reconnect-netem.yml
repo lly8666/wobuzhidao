@@ -153,7 +153,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        fec: ['off', '20:20']
+        include:
+          - fec: 'off'
+            slug: off
+          - fec: '20:20'
+            slug: fec20
     steps:
       - uses: actions/checkout@v4
       - name: Install namespace and packet tools
@@ -172,7 +176,7 @@ jobs:
           set -euo pipefail
           cp scripts/game_lane_fullstack.sh "$RUNNER_TEMP/game_lane_fullstack_netem.sh"
           python3 - "$RUNNER_TEMP/game_lane_fullstack_netem.sh" <<'PY'
-          import pathlib,sys
+          import pathlib,re,sys
           p=pathlib.Path(sys.argv[1])
           s=p.read_text()
           needle='sudo ip -n "$S" link set gs0 up\n'
@@ -188,6 +192,12 @@ jobs:
           if needle not in s:
               raise SystemExit('netem insertion point not found')
           s=s.replace(needle,insert,1)
+          # The base harness historically used `[[ condition ]] && break` in
+          # polling loops. Under `set -e`, a legitimately false first poll can
+          # abort the script before a high-latency child becomes READY. Rewrite
+          # those generated-copy polls to an explicit conditional without
+          # weakening the final assertions.
+          s=re.sub(r'(?m)^(\s*)\[\[ (.+) \]\] && break$', r'\1if [[ \2 ]]; then break; fi', s)
           s=s.replace('--bootstrap-timeout 12s','--bootstrap-timeout 30s')
           s=s.replace('--reality-timeout 12s','--reality-timeout 30s')
           s=s.replace('s.settimeout(4)','s.settimeout(10)')
@@ -202,7 +212,7 @@ jobs:
           PROBE_COUNT: '4'
         run: |
           set -euo pipefail
-          LOG="$RUNNER_TEMP/reconnect-netem-${{ matrix.fec }}"
+          LOG="$RUNNER_TEMP/reconnect-netem-${{ matrix.slug }}"
           mkdir -p "$LOG"
           sudo -E "$RUNNER_TEMP/game_lane_fullstack_netem.sh" "$RUNNER_TEMP/wbd-reconnect-assets" "$LOG"
           grep -q 'delay 150ms' "$LOG/netem-client.txt"
@@ -214,7 +224,7 @@ jobs:
         if: failure()
         run: |
           set +e
-          LOG="$RUNNER_TEMP/reconnect-netem-${{ matrix.fec }}"
+          LOG="$RUNNER_TEMP/reconnect-netem-${{ matrix.slug }}"
           echo '=== NETEM RECEIPTS ==='
           cat "$LOG/netem-client.txt" 2>/dev/null || true
           cat "$LOG/netem-server.txt" 2>/dev/null || true
@@ -232,12 +242,12 @@ jobs:
         if: always()
         run: |
           set +e
-          LOG="$RUNNER_TEMP/reconnect-netem-${{ matrix.fec }}"
+          LOG="$RUNNER_TEMP/reconnect-netem-${{ matrix.slug }}"
           sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/front-*.log
           sudo chmod -R a+rX "$LOG" 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: reconnect-netem-4lane-300ms-rtt-20loss-${{ matrix.fec }}
-          path: ${{ runner.temp }}/reconnect-netem-${{ matrix.fec }}
+          name: reconnect-netem-4lane-300ms-rtt-20loss-${{ matrix.slug }}
+          path: ${{ runner.temp }}/reconnect-netem-${{ matrix.slug }}
           retention-days: 14
