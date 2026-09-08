@@ -1,5 +1,7 @@
 from pathlib import Path
 
+# One-shot qualification-harness patch. This file deletes itself after apply.
+
 
 def one(path: str, old: str, new: str) -> None:
     p = Path(path)
