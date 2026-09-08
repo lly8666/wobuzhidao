@@ -1,21 +1,21 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 104,
+  "continuity_sequence": 105,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
-  "current_head_sha": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
-  "runtime_test_candidate_sha": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
-  "runtime_behavior_base_sha": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
-  "last_hosted_green_runtime_sha": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
+  "checkpoint_based_on_head_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+  "current_head_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+  "runtime_test_candidate_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+  "runtime_behavior_base_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+  "last_hosted_green_runtime_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease + one SessionID/PacketID race namespace + 1..4 independent replaceable Transport Lanes. Each lane is one complete same-association raw FakeTCP -> Reality-like real TLS 1.3 bootstrap -> barrier -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC -> Game/race path.",
-    "current_milestone": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8 is the exact-source hosted-green physical test candidate. It includes the Windows retired-slot child-exit barrier, serialized cross-lane lost-LEAVE recovery for simultaneous lane failures, reconnect regression coverage, and exact-source Linux Game-server artifact triggers. Same-source Windows portable and Linux ARM64 artifacts were produced successfully; fresh physical Windows11+Npcap -> Ubuntu ARM64 acceptance is still required.",
-    "stop_rule": "Do not redesign mature FakeTCP/Reality-like TLS/DTLS/LINK/Game/FEC wire absent deterministic evidence. Do not resurrect negotiated-MTU V3. Never call release-qualified before one exact SOURCE_SHA has same-source hosted artifacts and fresh physical Windows11+Npcap -> Ubuntu ARM64 evidence."
+    "current_milestone": "0755738d1ac99e9bbc5493c81c493038c38d4c90 is the exact-source substantive hosted test candidate after reconnect/RST/liveness and fullstack harness corrections. Its exact-SHA Actions trigger set has completed with no failure/cancelled/timed_out result observed in the live snapshot. Fresh exact-source Windows/Linux ARM64 artifact download/package assembly and physical Windows11+Npcap -> Ubuntu ARM64 qualification are still pending.",
+    "stop_rule": "Do not redesign mature FakeTCP/Reality-like TLS/DTLS/LINK/Game/FEC wire absent deterministic evidence. Do not resurrect negotiated-MTU V3. Reuse the existing LINK keepalive parameter; never introduce a second user-visible FakeTCP idle/dead-peer/keepalive API. Never call release-qualified before one exact SOURCE_SHA has same-source hosted artifacts and fresh physical Windows11+Npcap -> Ubuntu ARM64 evidence."
   },
   "architecture_override": {
     "authority": "ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs each lane same-association bootstrap/no-HOL.",
@@ -24,6 +24,18 @@
     "windows_outer_path": "Windows product path remains real Npcap/raw FakeTCP; Reality-like TLS bootstrap, DTLS, LINK and payload stay on the same raw FakeTCP association.",
     "server_path": "Linux final path remains one shared WBD TUN + root routing + one WBD-owned host NAT."
   },
+  "keepalive_contract": {
+    "authority": "Existing cmd/wbd-link-proxy keepalive flag and DTLS-protected WBD PING/PONG are authoritative.",
+    "default": "15s",
+    "positive_behavior": "keepalive > 0 schedules LINK PING/PONG and remote-RX liveness expiry remains 3 x keepalive; expiry exits the LINK child and feeds the existing lane-replacement lifecycle.",
+    "zero_behavior": "keepalive=0 disables heartbeat scheduling and remote-RX liveness enforcement. It must not force-close a silent/blackholed lane merely to maintain connection state.",
+    "terminal_exceptions": "Explicit exact-flow peer RST and genuine fatal errors remain terminal regardless of keepalive=0.",
+    "non_goal": "Do not restore the reverted independent FakeTCP active keepalive prototype or invent a second idle/dead-peer parameter."
+  },
+  "rst_fin_contract": {
+    "rst": "Client exact-flow peer RST logs WBD_FAKETCP_PEER_RESET, tears down the association and exits; Linux mux logs WBD_FAKETCP_MUX_PEER_RESET, removes the session and cleans bootstrap/relay/DTLS/table state before further RX bookkeeping.",
+    "fin": "Dedicated FIN-as-terminal behavior remains intentionally deferred. The mux fallback can emit FIN|ACK during ordinary TCP decoy fallback state release, so any future FIN terminal policy must be stage-aware rather than blindly fatal."
+  },
   "mtu_contract": {
     "user_visible_semantics": "Both Windows and Linux configure INNER IP MTU.",
     "default_inner_mtu": 1360,
@@ -31,7 +43,10 @@
     "valid_inner_mtu_max": 1460,
     "game_private_envelope_bytes": 40,
     "default_link_plaintext_mtu": 1400,
-    "example_physical_retest": "Windows mtu=1300 and Linux WBD_MTU=1300; expect LINK proposal/policy 1340."
+    "regression_contracts": [
+      "inner 1360 -> LINK plaintext 1400",
+      "inner 1300 -> LINK plaintext 1340"
+    ]
   },
   "fec_contract": {
     "product_path": "cmd/wbd-link-proxy -> internal/linkdata.Path -> internal/fec.FastBlockEncoder",
@@ -39,56 +54,65 @@
     "partial_block": "FastBlockEncoder partial flush remains N source + N repair; do not regress to N+20."
   },
   "implemented_since_last_handoff": [
-    "Audited the Windows authoritative-lane exit watchdog: it watches the exact current lane plan, ignores exits from retired incarnations, replaces unexpected current child exits, and retries failed recovery with backoff.",
-    "Found a deterministic simultaneous-failure conflict: after all lanes hard-die, lane1 can recover client-side while its CLIENT_LEAVE is lost, leaving server A1+B1; the globally single overlap then previously rejected lane2 recovery indefinitely.",
-    "Added wire-compatible serialized lost-LEAVE convergence: an authenticated candidate for a different LaneID proves the prior serialized overlap was promoted client-side, so server rolls stale A+B -> B, removes stale peer metadata, logs reason=lost_leave_serialized_recovery, and admits the next lane candidate.",
-    "Added TestSerializedReconnectAdvancesLostLeaveAcrossLogicalLanes covering four initial lanes, simultaneous hard failure, serialized lane1->lane4 reconnect with lost LEAVEs, stale peer cleanup, and final existing same-LaneID third-incarnation recovery.",
-    "Fixed linux-server-release path filters to rebuild when cmd/wbd-game-lane-server/** changes, and added release-contract tests that fence Game membership changes into exact-source Linux bundles and force the exact-source Windows/Linux artifact pair to rebuild.",
-    "Exact 7812 hosted checks completed with no new non-excluded failure. windows-portable-bundle run 34182609738 succeeded; linux-server-release run 34182609662 settings/amd64/arm64 all succeeded.",
-    "Downloaded artifacts were independently checked: Windows artifact digest fbca7f6090e6be8aeb1e5e24260ae3670f25286c12499d5c8b1665ec2c1a9b28 matched GitHub; Linux ARM64 artifact digest be993460c5854f0a7ed49695ddb65a3e0e9f4eb3b7e63de77043461b3951609a matched GitHub; inner Linux tar.gz sha256 verified; SOURCE_SHA markers identify 7812 in the Linux bundle and Windows portable payload.",
-    "Source audit found a remaining liveness boundary: established raw FakeTCP does not have a general dead-peer/no-ACK timeout, and exact-flow FIN/RST is not currently a dedicated lifecycle terminal event. A pure blackhole can therefore leave the local FakeTCP process alive and may not promptly trigger the child-exit watchdog. No arbitrary dead-peer timeout was added without physical evidence."
+    "Retained the Windows retired-slot child-exit barrier and serialized cross-lane lost-LEAVE convergence from the prior candidate; healthy replacement remains A->A+B->B and candidate failure preserves A.",
+    "Added exact-flow FakeTCP peer-RST lifecycle handling on the client and Linux mux. Client RST is terminal and drives existing lane replacement; server mux removes the matching session and dependent bootstrap/relay/DTLS state before RX bookkeeping.",
+    "Audited silent-blackhole behavior and rejected a duplicate FakeTCP active keepalive API after confirming the product already owns an authoritative LINK keepalive parameter.",
+    "Fixed existing LINK keepalive zero semantics: keepalive=0 no longer gets coerced to the 15s default, does not schedule PING, and does not expire remote RX. Positive keepalive keeps the existing DTLS-protected PING/PONG and 3x liveness window.",
+    "Kept FIN terminal handling deferred because ordinary decoy/fallback state can emit FIN|ACK; future work must be stage-aware.",
+    "Fixed OpenWrt fullstack and startup-stress harness MTU layering so user/inner MTU 1360 maps to low-level LINK plaintext MTU 1400 instead of passing 1360 into both layers.",
+    "Fixed the 300ms RTT / 20% loss fullstack startup barrier by waiting for all four server FakeTCP bootstrap observations before starting DTLS, avoiding a harness race where client tickets were ready before the fourth server log arrived.",
+    "Pinned reconnect-netem MTU layers and hardened shell control flow; weak-net FEC-off and FEC20 cases are intended to exercise 300ms RTT / 20% loss without the previous startup-barrier false failure.",
+    "Added/retained MTU regression contracts for 1360->1400 and 1300->1340.",
+    "Final substantive candidate 0755738d1ac99e9bbc5493c81c493038c38d4c90 carries [publish-test], contains no temporary one-shot/helper workflow, and is the only SOURCE_SHA for the next package/physical qualification phase.",
+    "Live exact-SHA Actions snapshot for 0755738d1ac99e9bbc5493c81c493038c38d4c90 contains 24 completed workflow runs; no failure, cancelled, or timed_out conclusion was observed. The stale negotiated-MTU V3 workflow remains explicitly excluded from product/release-gate authority."
   ],
   "known_pending": [
     {
-      "priority": "physical-blocker",
-      "item": "Run exact 7812 physical Windows11+real Npcap -> Ubuntu ARM64 4-lane Game rotation. Confirm lane2/lane3 physical-slot reuse no longer receives stale DEMO_BIND_OK and repeated rotation stays bidirectional."
+      "priority": "artifact-blocker",
+      "item": "Enumerate and download the Windows portable and Linux ARM64 artifacts produced from exact SOURCE_SHA=0755738d1ac99e9bbc5493c81c493038c38d4c90. Verify source markers/digests, then assemble a fresh combined physical test ZIP + manifest + SHA256. Do not reuse any 7812 artifact or package."
     },
     {
       "priority": "physical-blocker",
-      "item": "Run hard-failure reconnect matrix: kill one current lane, two lanes, all four lanes, candidate during A+B, and old primary after qualification. All-four recovery must not wedge on another logical lane already has a replacement overlap; lost_leave_serialized_recovery may appear and later rotations must continue."
+      "item": "Run fresh Windows11+real Npcap -> Ubuntu ARM64 physical qualification against exact SOURCE_SHA=0755738d1ac99e9bbc5493c81c493038c38d4c90: initial 4 lanes, repeated physical-slot recycle, one/two/all-four hard failures, A+B candidate failure, old-primary exit, bidirectional application traffic, cleanup, MTU/FEC/DNS/UDP/TCP."
     },
     {
-      "priority": "liveness-characterization",
-      "item": "Physically test exact-flow FIN/RST, two-way blackhole and one-way blackhole while keeping local FakeTCP process alive. Current source does not guarantee prompt replacement for silent dead-peer/no-ACK conditions. Use evidence to decide whether FIN/RST termination and/or a bounded association liveness policy is safe; do not invent a timeout merely for completeness."
+      "priority": "liveness-physical",
+      "item": "Physically verify peer RST is promptly terminal; with keepalive>0 verify blackhole eventually exits LINK after the existing 3x keepalive remote-RX window and enters replacement; with keepalive=0 verify silent/blackhole conditions do not force-close due heartbeat/liveness enforcement."
     },
     {
-      "priority": "after-physical-or-if-new-candidate-is-required",
-      "item": "internal/fec/block.go reference/simple BlockEncoder still emits partial N+20; product FastBlockEncoder is already N+N. Align only after the current physical candidate unless another substantive source is already required."
+      "priority": "weak-net-evidence",
+      "item": "If the current reconnect-netem workflow does not already assert post-traffic qdisc packet counters, capture tc -s qdisc AFTER traffic and require nonzero packet counts. Earlier pre-traffic snapshots with Sent 0 pkt are not valid proof that 300ms/20% netem was traversed."
+    },
+    {
+      "priority": "deferred-policy",
+      "item": "Design FIN terminal handling only with deterministic stage-aware evidence; do not blindly treat every FIN/FIN|ACK as fatal because fallback/decoy state can emit FIN|ACK during normal release."
     }
   ],
   "excluded_or_stale_paths": {
     ".github/workflows/apply-server-negotiated-mtu-fix.yml": "Stale negotiated-MTU V3 workflow. Its failure is not architecture/product-gate authority."
   },
   "continuation_cursor": {
-    "last_completed_action": "Fixed the deterministic cross-lane stale-overlap reconnect conflict, fenced Game-server changes into exact-source artifact builds, completed exact 7812 hosted qualification, verified Windows/Linux ARM64 artifacts, and assembled a physical test kit including reconnect/blackhole test cases.",
-    "current_task": "Physically qualify exact source 7812f66f2d57d3a2052ff11e7d12b1641429a7e8 on Windows11+real Npcap -> Ubuntu ARM64, focusing first on repeated 4-lane rotation and simultaneous hard-cut recovery, then characterize FIN/RST and silent blackhole liveness.",
-    "why_now": "The original 0703 physical failure exposed retired-slot leakage; the follow-up reconnect audit found a second deterministic server/client state conflict when multiple lanes die before best-effort LEAVEs can arrive. Both deterministic lifecycle defects are addressed without changing wire protocol, but silent established-association liveness is not yet physically characterized.",
-    "done_when": "Exact 7812 repeatedly establishes active=1,2,3,4; rotates through recycled physical slots without DEMO_BIND_OK mismatch; recovers one/two/all-four hard lane failures without permanent overlap conflict; candidate-failure preserves healthy primary; application traffic remains bidirectional; MTU/FEC/DNS/UDP/TCP/cleanup remain green; and FIN/RST/blackhole behavior is captured well enough to decide whether an additional liveness policy is required.",
-    "next_atomic_action": "Ingest the fresh 7812 physical logs from the supplied test kit. If normal rotation or hard-cut recovery fails, diagnose exact lane/slot/ticket/membership state first. If only silent FIN/RST/blackhole fails to trigger prompt recovery, keep that isolated as the next liveness-policy task rather than redesigning membership or wire protocol."
+    "last_completed_action": "Fixed LINK keepalive=0 semantics without introducing a second keepalive API, retained exact-flow RST termination, corrected fullstack/startup/weak-net qualification harness MTU and bootstrap barriers, produced final substantive candidate 0755738d1ac99e9bbc5493c81c493038c38d4c90, and refreshed its 24-run exact-SHA Actions snapshot after completion.",
+    "current_task": "Turn exact hosted-green substantive candidate 0755738d1ac99e9bbc5493c81c493038c38d4c90 into a fresh exact-source physical test package, then run Windows11+Npcap -> Ubuntu ARM64 physical qualification. No further product-code change is justified unless exact-source package/physical evidence exposes a deterministic defect.",
+    "why_now": "The remaining boundary is evidence and packaging, not another architecture redesign. Earlier 7812 artifacts and physical kit are stale because runtime/liveness/harness source changed after them.",
+    "done_when": "Fresh Windows and Linux ARM64 artifacts both prove SOURCE_SHA=0755738d1ac99e9bbc5493c81c493038c38d4c90; a new combined package and SHA256 manifest are assembled; physical 4-lane rotation/replacement/application traffic pass on Windows11+real Npcap -> Ubuntu ARM64; RST and keepalive zero/positive liveness behavior match contract; weak-net evidence proves netem actually saw traffic; only then may release authorization be reconsidered.",
+    "next_atomic_action": "Refresh live branch/PR and exact-SHA Actions, identify the artifact-producing workflow runs for 0755738d1ac99e9bbc5493c81c493038c38d4c90, download the Windows portable and Linux ARM64 artifacts, verify their SOURCE_SHA markers/digests, and assemble a brand-new exact-source physical test package."
   },
   "recent_physical_history": {
     "0df0e0ad10306d56bb8d8a553967d7caf68cad60": "FAILED diagnostic candidate: old MTU semantics, lifecycle divergence, and N+20 partial FEC amplification.",
-    "0703d26125c14345a1b500ce241f86d08f6c9066": "FAILED physical diagnostic candidate. Single-lane and initial 4-lane active=1,2,3,4 worked, but lane2/lane3 replacement after lane1 rotation observed stale DEMO_BIND_OK witness mismatch and WBD_LANE_ROTATION_RETRY.",
-    "99976756dd93a42b1b58e091672d6ffce999a2d4": "Superseded automated candidate containing the retired-slot child-exit barrier; reconnect audit required further substantive server recovery changes.",
-    "7812f66f2d57d3a2052ff11e7d12b1641429a7e8": "Current exact-source hosted-green physical test candidate with retired-slot barrier plus serialized cross-lane lost-LEAVE convergence. Fresh physical qualification pending."
+    "0703d26125c14345a1b500ce241f86d08f6c9066": "FAILED physical diagnostic candidate. Initial 4 lanes worked, but replacement after slot rotation exposed stale DEMO_BIND_OK witness mismatch.",
+    "7812f66f2d57d3a2052ff11e7d12b1641429a7e8": "Superseded hosted-green physical candidate. Its Windows/Linux artifacts and combined kit are stale for current runtime and must not be used as qualification evidence for 0755738d.",
+    "0755738d1ac99e9bbc5493c81c493038c38d4c90": "Current substantive exact-source hosted test candidate after RST, LINK keepalive=0 semantics, MTU-layer and weak-net bootstrap-barrier corrections. Fresh exact-source artifact packaging and physical qualification pending."
   },
   "physical_retest_plan": [
-    "Fence every artifact/action to SOURCE_SHA=7812f66f2d57d3a2052ff11e7d12b1641429a7e8; reject mixed-SHA evidence.",
-    "Use Windows mtu=1300 and Linux WBD_MTU=1300 for the MTU regression boundary; expect LINK 1340.",
-    "Confirm initial client active=1,2,3,4 and server lane1..4 binds, then exercise repeated physical-slot recycle lane1->slot5, lane2->retired slot1, lane3->retired slot2, lane4->retired slot3 and later cycles.",
+    "Fence every artifact/action/log to SOURCE_SHA=0755738d1ac99e9bbc5493c81c493038c38d4c90; reject mixed-SHA evidence and never substitute the handoff-only commit SHA.",
+    "Verify the default MTU contract inner 1360 -> LINK plaintext 1400, and include the physical regression boundary Windows mtu=1300 / Linux WBD_MTU=1300 -> LINK 1340.",
+    "Confirm initial client active=1,2,3,4 and server lane1..4 binds, then exercise repeated physical-slot recycling; the fifth physical slot is replacement overlap only, never logical lane5.",
     "Hard-cut current authoritative lane processes: one lane, two lanes and all four nearly together. Require serialized recovery without permanent global-overlap conflict; reason=lost_leave_serialized_recovery is acceptable evidence of lost-LEAVE convergence.",
-    "Kill candidate during A+B and verify healthy A survives; kill old primary after qualification and verify retired-incarnation exit cannot replace/poison the new authoritative plan.",
-    "Characterize exact-flow FIN/RST, full blackhole and one-way blackhole separately. Current source does not promise prompt dead-peer detection if local FakeTCP remains alive.",
+    "Kill candidate during A+B and verify healthy A survives; kill old primary after qualification and verify retired-incarnation exit cannot replace or poison the new authoritative plan.",
+    "Verify exact-flow peer RST promptly tears the lane down and enters existing replacement lifecycle.",
+    "For keepalive>0, verify DTLS-protected LINK PING/PONG and the existing 3x remote-RX expiry drive recovery under blackhole. For keepalive=0, verify no heartbeat/liveness force-close occurs solely because the peer is silent.",
+    "Under 300ms RTT / 20% loss with FEC off and FEC20, verify no false liveness kill with default 15s keepalive and capture post-traffic tc -s qdisc nonzero packet counters if CI does not already assert them.",
     "Re-check FEC20 sustained traffic, DNS, generic UDP, TCP, reverse path, raw IPv4, lease-source exclusivity and cleanup."
   ],
   "resume_read_set": [
@@ -96,50 +120,54 @@
     ".wbd/handoff/README.md",
     "docs/architecture/ADR-0011-single-public-flow-reality-bootstrap.md",
     "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
-    "internal/windowsruntime/process_liveness.go",
-    "internal/windowsruntime/process_retirement.go",
+    "cmd/wbd-link-proxy/main.go",
+    "cmd/wbd-link-proxy/liveness.go",
+    "cmd/wbd-link-proxy/keepalive_zero_test.go",
+    "cmd/wbd-faketcp/main.go",
+    "cmd/wbd-faketcp-mux/main_linux.go",
+    "internal/faketcp/arq.go",
     "cmd/wbd-game-lane-server/replacement_recovery.go",
     "cmd/wbd-game-lane-server/serialized_reconnect_test.go",
-    "cmd/wbd-faketcp/main.go",
-    "internal/faketcp/arq.go",
+    "scripts/openwrt_fullstack_one_shot.sh",
+    "scripts/single-flow-startup-stress.sh",
+    ".github/workflows/reconnect-netem.yml",
     ".github/workflows/linux-server-release.yml",
     "docs/testing/PHYSICAL_TEST_PACKAGE.md"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
-    "result": "not_run"
+    "tested_commit": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+    "result": "not_run_locally; rely on live exact-SHA hosted Actions snapshot and re-refresh before execution"
   },
   "automated_exact_head_snapshot": {
-    "runtime_source_head": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
-    "result": "HOSTED PRODUCT CHECKS COMPLETE FOR CURRENT TRIGGER SET; NO NEW NON-EXCLUDED FAILURE. Windows portable and Linux amd64/arm64 exact-source artifacts succeeded. Stale negotiated-MTU V3 failure remains excluded.",
+    "runtime_source_head": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+    "workflow_run_count": 24,
+    "result": "ALL OBSERVED EXACT-SHA WORKFLOW RUNS COMPLETED; LIVE SNAPSHOT SHOWED NO failure/cancelled/timed_out CONCLUSION. Stale negotiated-MTU V3 remains excluded from product/release authority.",
     "release_authorized": false
   },
   "qualification_snapshot": {
-    "runtime_source_head": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
-    "runtime_behavior_base_sha": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
-    "result": "HOSTED-GREEN EXACT-SOURCE PHYSICAL TEST CANDIDATE; FRESH PHYSICAL QUALIFICATION PENDING",
-    "known_incomplete": "Need fresh repeated 4-lane rotation, simultaneous hard-cut recovery, application-path regression, and FIN/RST/blackhole liveness characterization on real Windows11+Npcap -> Ubuntu ARM64.",
+    "runtime_source_head": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+    "runtime_behavior_base_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+    "result": "HOSTED EXACT-SHA TEST PHASE COMPLETE; FRESH CURRENT-SHA ARTIFACT PACKAGE AND PHYSICAL QUALIFICATION PENDING",
+    "known_incomplete": "Need fresh exact-source Windows/Linux ARM64 artifact receipt/package plus real Windows11+Npcap -> Ubuntu ARM64 repeated 4-lane rotation/replacement/application-path qualification, RST and keepalive zero/positive liveness evidence, and post-traffic netem qdisc proof if CI does not already assert it.",
     "release_authorized": false
   },
   "artifact_snapshot": {
-    "windows": {
-      "workflow_run_id": 34182609738,
-      "artifact_id": 10039455840,
-      "artifact_digest_sha256": "fbca7f6090e6be8aeb1e5e24260ae3670f25286c12499d5c8b1665ec2c1a9b28"
-    },
-    "linux_arm64": {
-      "workflow_run_id": 34182609662,
-      "artifact_id": 10039459264,
-      "artifact_digest_sha256": "be993460c5854f0a7ed49695ddb65a3e0e9f4eb3b7e63de77043461b3951609a"
+    "current_source_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+    "status": "fresh exact-source Windows and Linux ARM64 artifacts/package not yet downloaded and independently verified in this handoff phase",
+    "stale_previous_candidate": {
+      "source_sha": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
+      "combined_package_path": "/mnt/data/wbd-7812f66f-4lane-reconnect-physical-test-kit.zip",
+      "combined_package_sha256": "f11714d37206516bc7ec4d2e459860c36a571b73f9df4121a3adb6012d6f3376",
+      "warning": "STALE. Never send or qualify this package as current."
     }
   },
   "operational_continuity": {
-    "previous_sequence": 103,
-    "substantive_commit": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
-    "runtime_behavior_base_sha": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
-    "metadata_note": "Sequence 104 records the reconnect audit/fix and exact artifact receipts. This repository write is handoff-only and must not replace substantive checkpoint 7812f66f2d57d3a2052ff11e7d12b1641429a7e8.",
-    "rule": "Live-refresh before execution; exact-source fence all automated/artifact/physical evidence; never stitch qualification across source SHAs."
+    "previous_sequence": 104,
+    "substantive_commit": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+    "runtime_behavior_base_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+    "metadata_note": "Sequence 105 records the RST/LINK keepalive-zero/harness correction phase and current exact-SHA hosted snapshot. This repository write is handoff-only and must not replace substantive checkpoint/SOURCE_SHA 0755738d1ac99e9bbc5493c81c493038c38d4c90.",
+    "rule": "Live-refresh before execution; exact-source fence all automated/artifact/physical evidence; never stitch qualification across source SHAs; release_authorized remains false until fresh physical qualification."
   }
 }
