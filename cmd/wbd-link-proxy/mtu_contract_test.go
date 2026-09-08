@@ -11,11 +11,21 @@ import (
 // Keep this cross-layer contract explicit so the +40 Game envelope adjustment
 // remains centralized in gamepath.LinkPlaintextMTU and is applied exactly once.
 func TestGameInnerMTUContractFeedsLinkProxyPlaintextMTU(t *testing.T) {
-	got, err := gamepath.LinkPlaintextMTU(1360)
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		inner int
+		want  int
+	}{
+		{inner: 1360, want: 1400},
+		{inner: 1300, want: 1340},
 	}
-	if got != 1400 {
-		t.Fatalf("LINK plaintext MTU=%d want=1400 for inner MTU 1360", got)
+
+	for _, tt := range tests {
+		got, err := gamepath.LinkPlaintextMTU(tt.inner)
+		if err != nil {
+			t.Fatalf("inner MTU %d: %v", tt.inner, err)
+		}
+		if got != tt.want {
+			t.Fatalf("LINK plaintext MTU=%d want=%d for inner MTU %d", got, tt.want, tt.inner)
+		}
 	}
 }
