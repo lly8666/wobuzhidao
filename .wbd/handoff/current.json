@@ -33,7 +33,7 @@
     "non_goal": "Do not restore the reverted independent FakeTCP active keepalive prototype or invent a second idle/dead-peer parameter."
   },
   "rst_fin_contract": {
-    "rst": "Client exact-flow peer RST logs WBD_FAKETCP_PEER_RESET, tears down the association and exits; Linux mux logs WBD_FAKETCP_MUX_PEER_RESET, removes the session and cleans bootstrap/relay/DTLS/table state before further RX bookkeeping.",
+    "rst": "Client exact-flow peer RST logs WBD_FAKETCP_PEER_RESET, tears down the association and exits; Linux mux logs WBD_FAKETCP_MUX_PEER_RESET, removes the session and cleans bootstrap/relay/DTLS/table state before RX bookkeeping.",
     "fin": "Dedicated FIN-as-terminal behavior remains intentionally deferred. The mux fallback can emit FIN|ACK during ordinary TCP decoy fallback state release, so any future FIN terminal policy must be stage-aware rather than blindly fatal."
   },
   "mtu_contract": {
@@ -116,29 +116,24 @@
     "Re-check FEC20 sustained traffic, DNS, generic UDP, TCP, reverse path, raw IPv4, lease-source exclusivity and cleanup."
   ],
   "resume_read_set": [
-    ".wbd/handoff/current.json",
     ".wbd/handoff/README.md",
+    ".wbd/handoff/current.json",
     "docs/architecture/ADR-0011-single-public-flow-reality-bootstrap.md",
     "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
-    "cmd/wbd-link-proxy/main.go",
-    "cmd/wbd-link-proxy/liveness.go",
-    "cmd/wbd-link-proxy/keepalive_zero_test.go",
+    "internal/faketcp/bootstrap_stream.go",
+    "internal/faketcp/arq.go",
+    "internal/faketcp/bootstrap_retransmit_test.go",
+    ".github/workflows/reconnect-netem.yml",
+    ".github/scripts/single-flow-startup-stress.sh",
     "cmd/wbd-faketcp/main.go",
     "cmd/wbd-faketcp-mux/main_linux.go",
-    "internal/faketcp/arq.go",
-    "cmd/wbd-game-lane-server/replacement_recovery.go",
-    "cmd/wbd-game-lane-server/serialized_reconnect_test.go",
-    "scripts/openwrt_fullstack_one_shot.sh",
-    "scripts/single-flow-startup-stress.sh",
-    ".github/workflows/reconnect-netem.yml",
-    ".github/workflows/linux-server-release.yml",
     "docs/testing/PHYSICAL_TEST_PACKAGE.md"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
     "tested_commit": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
-    "result": "not_run_locally; rely on live exact-SHA hosted Actions snapshot and re-refresh before execution"
+    "result": "not_run"
   },
   "automated_exact_head_snapshot": {
     "runtime_source_head": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
