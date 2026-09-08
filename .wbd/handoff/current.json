@@ -1,80 +1,135 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 101,
+  "continuity_sequence": 102,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "a769d30b369016f579163866df73cab5644c94f1",
-  "current_head_sha": "a769d30b369016f579163866df73cab5644c94f1",
-  "runtime_test_candidate_sha": "a769d30b369016f579163866df73cab5644c94f1",
-  "runtime_behavior_base_sha": "4470f0ab9c8518021d514efe5853489e70549013",
-  "last_hosted_green_runtime_sha": "2e44c407eee677252897f2c75942407687ff8450",
+  "checkpoint_based_on_head_sha": "0703d26125c14345a1b500ce241f86d08f6c9066",
+  "current_head_sha": "0703d26125c14345a1b500ce241f86d08f6c9066",
+  "runtime_test_candidate_sha": "0703d26125c14345a1b500ce241f86d08f6c9066",
+  "runtime_behavior_base_sha": "0703d26125c14345a1b500ce241f86d08f6c9066",
+  "last_hosted_green_runtime_sha": "0703d26125c14345a1b500ce241f86d08f6c9066",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
-    "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease + one SessionID/PacketID race namespace + 1..4 independent replaceable Transport Lanes. Each lane owns one complete same-association raw FakeTCP -> Reality-like real TLS 1.3 bootstrap -> barrier -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/data lineage.",
-    "current_milestone": "4470f0ab9c8518021d514efe5853489e70549013 is the newest runtime behavior change: it strengthens the Windows leased-source fence and adds configurable lane rotation. a769d30b369016f579163866df73cab5644c94f1 adds only the stale handoff-contract test repair on top of that runtime behavior and is the next exact-source qualification candidate. It has no inherited physical qualification from 2e44.",
-    "stop_rule": "Do not redesign FakeTCP/Reality-like TLS/DTLS/LINK/Game/FEC wire absent deterministic evidence. FEC primary functional path remains off; fixed 20:20 is compatibility smoke only. Never call RELEASE-QUALIFIED before one exact candidate SOURCE_SHA has hosted-green same-source artifacts and fresh physical Windows 11 + Npcap -> Ubuntu ARM64 application-path evidence."
+    "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease + one SessionID/PacketID race namespace + 1..4 independent replaceable Transport Lanes. Each lane owns one complete same-association raw FakeTCP -> Reality-like real TLS 1.3 bootstrap -> barrier -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/data lineage -> Game/race. Linux terminates into one shared WBD TUN with one WBD-owned host NAT.",
+    "current_milestone": "0703d26125c14345a1b500ce241f86d08f6c9066 is the exact-source automated qualification candidate after fixing the inner-MTU/LINK-MTU contract, lost-LEAVE replacement convergence, and pathological partial-block FastBlockEncoder amplification. Hosted product gates completed for this exact source; fresh physical Windows 11 + real Npcap -> Ubuntu ARM64 acceptance is still required and has not been inherited from any older SHA.",
+    "stop_rule": "Do not redesign mature FakeTCP/Reality-like TLS/DTLS/LINK/Game/FEC wire absent deterministic evidence. Do not resurrect negotiated-MTU V3 metadata merely to satisfy the stale apply-server-negotiated-mtu-fix workflow. Never call RELEASE-QUALIFIED before one exact candidate SOURCE_SHA has hosted-green same-source artifacts and fresh physical Windows 11 + real Npcap -> Ubuntu ARM64 application-path evidence."
   },
   "architecture_override": {
     "authority": "ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs each lane's same-association bootstrap/no-HOL. Withdrawn ADR-0014 must not globalize single-flow or restore break-before-make.",
-    "critical_guard": "single-flow is PER TRANSPORT LANE. One Logical Tunnel owns stable TunnelID/lease and one SessionID/PacketID race domain with 1..4 logical lanes. Normal desired=1; Game/weak desired=2..4. Game is first-arrival + dedup with no cross-lane HOL; FEC never crosses lanes.",
-    "replacement": "Healthy replacement is A -> A+B -> B; candidate failure preserves A. At most 4 logical lanes exist. A fifth physical slot is replacement overlap only, never as a fifth logical lane.",
-    "windows_outer_path": "Sustained Windows outer path is Npcap/raw FakeTCP; there is no ordinary kernel-TCP Reality preconnection.",
+    "critical_guard": "single-flow is PER TRANSPORT LANE / TRANSPORT EPOCH. One Logical Tunnel owns stable TunnelID/lease and one SessionID/PacketID race domain with 1..4 logical lanes. Each lane is a complete transport association; Game is first-arrival + dedup with no cross-lane HOL; FEC never crosses lanes.",
+    "replacement": "Healthy replacement is A -> A+B -> B; candidate failure preserves A. At most 4 logical lanes exist. A fifth physical slot is replacement overlap only, never as a fifth logical lane. Server may recover a lost client LEAVE from a later authenticated same-session same-LaneID incarnation without adding a new wire ACK/version.",
+    "windows_outer_path": "Sustained Windows outer path is real Npcap/raw FakeTCP. Reality-like real TLS 1.3 bootstrap and pinned wolfSSL DTLS 1.3 remain on the SAME raw FakeTCP association; there is no ordinary kernel-TCP Reality preconnection.",
     "server_path": "Linux final path is one shared WBD TUN + root routing + one WBD-owned host NAT.",
     "lease_source_boundary": "Raw IPv4 ingress requires source == server-issued Logical Tunnel lease. Wintun must not leak APIPA/arbitrary IPv4 or non-IPv4 into the IPv4 Game/raw-IP backend.",
     "ipv6": "Windows product IPv6 remains fail-closed until qualified."
   },
+  "mtu_contract": {
+    "user_visible_semantics": "Both Windows and Linux configure INNER IP MTU: the complete inner IPv4/IPv6 packet seen by WBD virtual interfaces, including the inner IP header. It excludes the WBD/Game/FEC envelope, Reality/TLS, FakeTCP, outer IP, and L2/link-layer overhead.",
+    "default_inner_mtu": 1360,
+    "valid_inner_mtu_min": 576,
+    "valid_inner_mtu_max": 1460,
+    "game_private_envelope_bytes": 40,
+    "default_link_plaintext_mtu": 1400,
+    "example_physical_retest": "Configure Windows mtu=1300 and Linux WBD_MTU=1300; the internal LINK proposal/policy must be 1340. Never use Windows=1300/Linux=1340 as the final user-facing configuration contract.",
+    "implementation": "internal/gamepath/mtu.go is the shared inner->LINK authority; Windows runtime delegates to it and wbd-link-server-mux interprets -mtu as inner MTU then converts internally. scripts/linux_server_manager.sh already validates user WBD_MTU as 576..1460."
+  },
+  "fec_contract": {
+    "product_path": "cmd/wbd-link-proxy -> internal/linkdata.Path -> internal/fec.FastBlockEncoder",
+    "wire_geometry": "Fixed systematic Reed-Solomon 20:20; header/version and codec geometry are unchanged.",
+    "full_block": "20 source + 20 repair remains unchanged.",
+    "partial_block": "FastBlockEncoder now emits N source + N repair after partial flush instead of N source + 20 repair.",
+    "why": "The old partial N+20 policy caused severe low-rate wire amplification: N=1 produced 21 FEC datagrams and N=3 produced 23. The new live-path behavior restores the intended approximately 100% FEC redundancy target without changing wire format.",
+    "expected_measurement": "For near-MTU traffic, Game/FEC bytes are roughly about 2.1..2.3x inner bytes before DTLS/FakeTCP/outer-IP/L2 overhead. Aggregate NIC TX+RX, inner fragmentation, and brief make-before-break overlap can raise observed physical ratios. Do not call the previous extra repair 'zero reliability benefit'; it added repeated transmission opportunities but exceeded the fixed redundancy target and did not increase algebraic reconstruction rank after N parity."
+  },
+  "implemented_since_last_handoff": [
+    "Added shared internal/gamepath MTU conversion/bounds and tests: Game private envelope is 40 bytes; 1360 inner -> 1400 LINK; 1460 inner -> 1500 LINK.",
+    "Converted server mux MTU policy from user-visible inner MTU to exact LINK plaintext MTU, so both endpoints may use the same user-facing inner value.",
+    "Added lost-LEAVE server roll-forward: stale A primary + B overlap + authenticated later C rolls A+B -> B, removes stale A bookkeeping, logs WBD_GAME_LANE_UNBIND reason=lost_leave_rebind_recovery, then admits C as the next overlap.",
+    "Changed the live FastBlockEncoder partial flush from N+20 to N+N while keeping full 20+20 and the existing wire/header geometry.",
+    "Updated FastBlockEncoder and live internal/linkdata.Path tests to pin bounded partial repair and recovery behavior.",
+    "Linux WBD_MTU validation now rejects values above the valid 1460 inner-MTU maximum.",
+    "Checkpoint 0703d26125c14345a1b500ce241f86d08f6c9066 adds the product MTU regression contract that explicitly pins default 1360->1400 and max 1460->1500 and ensures the final exact-source candidate triggers the relevant Windows/Linux build paths."
+  ],
+  "known_pending": [
+    {
+      "priority": "after-physical-or-if-new-candidate-is-required",
+      "item": "internal/fec/block.go reference/simple BlockEncoder still emits partial N+20. The physical/product path uses FastBlockEncoder and is fixed, but the reference encoder and internal/fec/block_test.go should be aligned to partial N+N for semantic consistency; add parity-only partial recovery coverage. Any substantive change creates a new source candidate and must not inherit 0703 physical qualification."
+    },
+    {
+      "priority": "workflow-hygiene",
+      "item": ".github/workflows/windows-portable-bundle.yml paths do not include internal/linkdata/** even though the portable bundle builds the live link proxy. A future linkdata-only runtime change could fail to rebuild Windows. Add that path before relying on future linkdata-only candidates."
+    },
+    {
+      "priority": "optional-observability",
+      "item": "cmd/wbd-link-proxy does not currently emit WBD_LINK_PATH_STATS. internal/linkdata.PathStats already has inner/wire/systematic/repair TX/RX counters. A low-noise teardown/rotation summary would make physical FEC amplification verification direct rather than inferred from NIC graphs."
+    },
+    {
+      "priority": "evidence-driven-only",
+      "item": "Client lane LEAVE remains fire-and-forget. Do not add a new membership ACK/op/version unless the 0703 physical retest proves server lost-leave roll-forward insufficient. Prefer minimal wire-compatible retirement drain/retry first if further convergence work is needed."
+    }
+  ],
+  "excluded_or_stale_paths": {
+    ".github/workflows/apply-server-negotiated-mtu-fix.yml": "Stale/obsolete negotiated-MTU V3 staging workflow. Its failure is not architecture authority and must not be 'fixed' by reviving V3 metadata without new deterministic evidence."
+  },
   "continuation_cursor": {
-    "last_completed_action": "Live-refreshed PR #9 at 4470f0ab9c8518021d514efe5853489e70549013, re-read ADR-0012, ADR-0011, PROJECT_CONSTITUTION, ARCHITECTURE, ROADMAP and the stale handoff, and repaired tests/test_handoff.py at a769d30b369016f579163866df73cab5644c94f1 so the handoff contract checks current ADR-0012 authority instead of deleted ADR-0014/human-authority fields.",
-    "current_task": "Qualify one exact post-repair candidate source without inheriting 2e44 physical status: first verify exact-head hosted CI/handoff, then build same-source Windows portable and Linux ARM64/amd64 packages, then run fresh Windows 11 + Npcap -> Ubuntu ARM64 physical DNS/UDP/TCP, leased-source RX/TX and cleanup acceptance.",
-    "why_now": "The live runtime moved from 2e44 to 4470. The previous handoff still named 2e44, exceeded resume_read_set maxItems=12, omitted schema-required local_test_snapshot, and the handoff contract test asserted stale fields. Evidence from 2e44 therefore remains historical only.",
-    "done_when": "One exact candidate SOURCE_SHA is hosted-green, its Windows/Linux packages are produced from that same SHA, and fresh physical Windows 11 + Npcap -> Ubuntu ARM64 evidence proves leased-source exclusivity/no APIPA leakage, shared raw IPv4 RX/TX, DNS, generic UDP, TCP, return path and cleanup. Until then RELEASE-QUALIFIED is forbidden.",
-    "next_atomic_action": "Refresh branch HEAD after this handoff-only write, resolve exact-head ci and handoff-verify runs, and run hosted/package qualification from one exact source. Do not stitch 2e44, 4470 or post-repair SHA evidence."
+    "last_completed_action": "Refreshed PR #9 and exact-source Actions at 0703d26125c14345a1b500ce241f86d08f6c9066, froze the automated candidate after the MTU/FEC/lost-LEAVE fixes, and separated the remaining physical release blocker from non-blocking reference/workflow/observability cleanup.",
+    "current_task": "Physically requalify exact source 0703d26125c14345a1b500ce241f86d08f6c9066 on Windows 11 with real Npcap -> Ubuntu ARM64. Use same-source Windows portable and Linux ARM64 artifacts only; verify inner MTU 1300 on both endpoints maps to LINK 1340; run FEC-off rotation sanity then sustained FEC20 traffic and prove replacement convergence and bounded FEC amplification.",
+    "why_now": "The older physical candidate 0df0e0ad10306d56bb8d8a553967d7caf68cad60 definitively failed: it exposed the inner-vs-LINK +40 MTU mismatch, then under sustained FEC20 rotation the client could log LEAVE/PASS while the server retained stale replacement state and eventually rejected later candidates. Source inspection also proved low-rate FastBlockEncoder partial blocks emitted N+20 repair. All three root causes are now addressed in the 0703 source lineage, but hosted success cannot substitute for fresh physical evidence.",
+    "done_when": "The exact 0703 source is exercised with its own Windows/Linux artifacts on real Windows 11 + Npcap -> Ubuntu ARM64; both endpoints use the same inner MTU; LINK_READY reports the derived LINK value; repeated rotations do not permanently wedge on 'logical lane already has a replacement transport incarnation'; a missed LEAVE can recover via reason=lost_leave_rebind_recovery and subsequent rotations continue; FEC20 sustained traffic no longer shows the old many-x partial-block amplification; DNS/generic UDP/TCP/return path/cleanup still pass. Only then may release qualification be considered for this exact source SHA.",
+    "next_atomic_action": "After this handoff-only commit, refresh live PR HEAD and classify the intervening commit as handoff-only. Keep 0703d26125c14345a1b500ce241f86d08f6c9066 as the runtime checkpoint. Retrieve/verify Windows portable and Linux ARM64 artifacts whose workflow head_sha is exactly 0703, then execute or ingest the fresh physical Windows11+Npcap -> Ubuntu ARM64 retest. Do not advance runtime code merely to tidy non-blocking items before collecting this evidence."
   },
   "recent_physical_history": {
-    "be7607093b3065bddce024048ba376f2e5d21cdd": "Physical Windows 11/Npcap :443 proved one FakeTCP association SYN/SYNACK -> Reality-like TLS ClientHello-like bootstrap -> DTLS -> LINK; stopped because the Windows package lacked wbd-game-lane-client.exe.",
-    "cf8298f9cb30c7aa9d60ca00611a783c401ba735": "Physical test reached Game + Wintun + server shared-TUN; Wintun leaked APIPA 169.254.* / non-IPv4 and the server correctly rejected it under lease anti-spoof.",
-    "2e44c407eee677252897f2c75942407687ff8450": "Implemented Wintun lease exclusivity/non-IPv4 fence and completed hosted/package qualification, but fresh same-source physical application E2E remained pending and its qualification does not transfer to newer runtime behavior.",
-    "4470f0ab9c8518021d514efe5853489e70549013": "Newest runtime behavior base: stronger leased-source fence plus configurable lane rotation; no inherited physical qualification."
+    "0df0e0ad10306d56bb8d8a553967d7caf68cad60": "FAILED physical candidate. Windows inner/TUN 1300 + server WBD_MTU 1300 failed before LINK_READY because the old server policy expected 1300 while the Game client proposed 1340. A temporary server=1340 workaround proved the +40 private envelope but is not the final config contract. In sustained FEC20 rotation, client->server could remain healthy while server->client degraded and future rotations were poisoned by stale replacement bookkeeping; about 220 'logical lane already has a replacement transport incarnation' errors were observed. This candidate is diagnostic only and never release-qualified.",
+    "0703d26125c14345a1b500ce241f86d08f6c9066": "Current automated candidate after the three root-cause fixes. Fresh physical Windows11+Npcap -> Ubuntu ARM64 qualification has not yet been completed; no old physical PASS transfers to it."
   },
+  "physical_retest_plan": [
+    "Fence every action and artifact to SOURCE_SHA=0703d26125c14345a1b500ce241f86d08f6c9066. Reject mixed-SHA evidence.",
+    "Windows user config mtu=1300; Linux WBD_MTU=1300; expect LINK plaintext MTU 1340.",
+    "Run FEC off first for long rotation sanity and verify repeated A -> A+B -> B lifecycle without permanent replacement wedge.",
+    "Run fixed 20:20 FEC sustained for roughly 450 seconds across many rotations. A lost LEAVE may produce reason=lost_leave_rebind_recovery, after which later OVERLAP/QUALIFIED cycles must continue.",
+    "Measure inner vs wire traffic. The old low-rate N+20 amplification must be gone; near-MTU steady FEC overhead should be roughly 2.1..2.3x before outer wrappers, not pathological 6x..20x from tiny partial blocks.",
+    "Re-check physical DNS, generic UDP, TCP, reverse/return path, leased-source exclusivity, raw IPv4 RX/TX, and cleanup. If reverse loss remains materially high after lifecycle convergence, investigate FEC/data path separately rather than masking it with lifecycle changes."
+  ],
   "resume_read_set": [
     ".wbd/handoff/current.json",
     ".wbd/handoff/README.md",
     "PROJECT_CONSTITUTION.md",
     "ARCHITECTURE.md",
-    "ROADMAP.md",
     "docs/architecture/ADR-0011-single-public-flow-reality-bootstrap.md",
     "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
-    ".github/workflows/ci.yml",
-    ".github/workflows/release-qualification-kick.yml",
+    "internal/gamepath/mtu.go",
+    "cmd/wbd-game-lane-server/replacement_overlap_test.go",
+    "internal/fec/fastblock_encoder.go",
+    "internal/linkdata/path.go",
     ".github/workflows/windows-portable-bundle.yml",
     "docs/testing/PHYSICAL_TEST_PACKAGE.md"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "a769d30b369016f579163866df73cab5644c94f1",
+    "tested_commit": "0703d26125c14345a1b500ce241f86d08f6c9066",
     "result": "not_run"
   },
   "automated_exact_head_snapshot": {
-    "runtime_source_head": "2e44c407eee677252897f2c75942407687ff8450",
-    "result": "HISTORICAL HOSTED-GREEN + SAME-SOURCE ARTIFACTS ONLY; NOT TRANSFERABLE TO CURRENT CANDIDATE",
+    "runtime_source_head": "0703d26125c14345a1b500ce241f86d08f6c9066",
+    "result": "AUTOMATED PRODUCT-GATE CANDIDATE COMPLETE FOR THIS SOURCE; NO RELEASE AUTHORITY. The stale apply-server-negotiated-mtu-fix V3 workflow is explicitly excluded from architecture/product-gate authority.",
     "release_authorized": false
   },
   "qualification_snapshot": {
-    "runtime_source_head": "a769d30b369016f579163866df73cab5644c94f1",
-    "runtime_behavior_base_sha": "4470f0ab9c8518021d514efe5853489e70549013",
-    "result": "POST-4470 CONTRACT-REPAIR CANDIDATE; HOSTED/PACKAGE/PHYSICAL QUALIFICATION PENDING",
-    "known_incomplete": "Need exact-source hosted CI and package receipts, then fresh physical lease-source RX/TX + DNS/UDP/TCP + cleanup evidence.",
+    "runtime_source_head": "0703d26125c14345a1b500ce241f86d08f6c9066",
+    "runtime_behavior_base_sha": "0703d26125c14345a1b500ce241f86d08f6c9066",
+    "result": "AUTOMATED QUALIFICATION CANDIDATE FROZEN; FRESH PHYSICAL WINDOWS11+NPCAP -> UBUNTU ARM64 QUALIFICATION PENDING",
+    "known_incomplete": "Need fresh exact-source physical evidence for inner-MTU/LINK behavior, long replacement rotation including lost-LEAVE recovery, sustained FEC20 amplification/traffic, application DNS/UDP/TCP return path and cleanup.",
     "release_authorized": false
   },
   "operational_continuity": {
-    "previous_sequence": 100,
-    "substantive_commit": "a769d30b369016f579163866df73cab5644c94f1",
-    "runtime_behavior_base_sha": "4470f0ab9c8518021d514efe5853489e70549013",
-    "metadata_note": "Sequence 101 repairs stale/truncated handoff facts after the 4470 runtime change. This commit is handoff-only and cannot self-reference as the substantive checkpoint.",
+    "previous_sequence": 101,
+    "substantive_commit": "0703d26125c14345a1b500ce241f86d08f6c9066",
+    "runtime_behavior_base_sha": "0703d26125c14345a1b500ce241f86d08f6c9066",
+    "metadata_note": "Sequence 102 records the completed MTU/FEC/lost-LEAVE source fixes and the exact physical retest boundary. This repository write is handoff-only; its own commit SHA must not replace the substantive 0703 checkpoint.",
     "rule": "Live-refresh before execution; exact-source fence hosted artifacts and physical evidence; never stitch release evidence across different source SHAs."
   }
 }
