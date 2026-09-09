@@ -19,6 +19,13 @@ var (
 // Final parity shards keep flags=0 and carry the authoritative block metadata.
 const headerFlagStreamingSystematic uint16 = 1
 
+// Keep enough compact retired-block delivery state to cover the product's
+// longest weak-link recovery horizon without letting a long-running transport
+// grow memory with every FEC BlockID. At the default 8ms partial flush this is
+// more than 65 seconds of one-partial-block-per-flush history. Each entry keeps
+// only a 20-bit delivered-source mask and optional DataCount, not shard bytes.
+const maxRetiredBlocks = 8192
+
 // BlockEncoder is the simple reference encoder. It retains the original
 // all-at-flush behavior; FastBlockEncoder is the performance data path and
 // streams systematic shards immediately.
@@ -134,7 +141,7 @@ type decodeBlock struct {
 	present []bool
 	count   int
 
-	// Streaming sources are retained only as retransformation inputs. Their
+	// Streaming sources are retained only as reconstruction inputs. Their
 	// payload has already been delivered to the inner path on first arrival.
 	sources       [DataShards][]byte
 	sourcePresent [DataShards]bool
@@ -142,17 +149,37 @@ type decodeBlock struct {
 	delivered     [DataShards]bool
 }
 
-// BlockDecoder keeps a bounded number of in-flight blocks and compact exact
-// completion history so arbitrarily late parity/source retransmissions cannot
-// recreate blocks that already delivered their originals. Streaming systematic
-// shards are returned immediately; parity later supplies final metadata and
-// reconstructs only sources that never arrived.
+type retiredBlock struct {
+	delivered uint32
+	dataCount uint8
+}
+
+// BlockDecoder keeps a bounded number of full reconstruction states and compact
+// exact completion history so arbitrarily late parity/source retransmissions
+// cannot recreate blocks that already delivered their originals. Streaming
+// systematic shards are returned immediately; parity later supplies final
+// metadata and reconstructs only sources that never arrived.
+//
+// A partial streaming block can lose every final-metadata parity shard after one
+// or more systematic sources were already delivered. Such a block can never
+// self-complete, so treating it as a permanent reconstruction slot eventually
+// poisons the whole maxBlocks window. On pressure we retire the oldest incomplete
+// block into a compact delivery tombstone instead: late systematic sources may
+// still be delivered, while late parity is ignored rather than duplicating data
+// whose reconstruction inputs were intentionally discarded.
 type BlockDecoder struct {
 	codec         Codec
 	maxPacketSize int
 	maxBlocks     int
 	blocks        map[uint32]*decodeBlock
-	completed     completedBlockSet
+	blockOrder    []uint32
+	blockHead     int
+
+	retired      map[uint32]retiredBlock
+	retiredOrder []uint32
+	retiredHead  int
+
+	completed completedBlockSet
 }
 
 func NewBlockDecoder(codec Codec, maxPacketSize, maxBlocks int) (*BlockDecoder, error) {
@@ -161,7 +188,7 @@ func NewBlockDecoder(codec Codec, maxPacketSize, maxBlocks int) (*BlockDecoder, 
 	}
 	return &BlockDecoder{
 		codec: codec, maxPacketSize: maxPacketSize, maxBlocks: maxBlocks,
-		blocks: make(map[uint32]*decodeBlock),
+		blocks: make(map[uint32]*decodeBlock), retired: make(map[uint32]retiredBlock),
 	}, nil
 }
 
@@ -191,14 +218,18 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 	if d.completed.contains(h.BlockID) {
 		return nil, false, nil
 	}
+	if r, ok := d.retired[h.BlockID]; ok {
+		return d.addRetired(h, datagram[HeaderSize:], streaming, r)
+	}
 
 	b := d.blocks[h.BlockID]
 	if b == nil {
-		if len(d.blocks) >= d.maxBlocks {
-			return nil, false, ErrDecoderFull
+		if err := d.makeRoom(); err != nil {
+			return nil, false, err
 		}
 		b = &decodeBlock{}
 		d.blocks[h.BlockID] = b
+		d.blockOrder = append(d.blockOrder, h.BlockID)
 	}
 	if streaming {
 		return d.addStreamingSource(b, h, datagram[HeaderSize:])
@@ -286,6 +317,49 @@ func (d *BlockDecoder) addFinalShard(b *decodeBlock, h BlockHeader, payload []by
 	return d.maybeComplete(h.BlockID, b)
 }
 
+func (d *BlockDecoder) addRetired(h BlockHeader, payload []byte, streaming bool, r retiredBlock) ([][]byte, bool, error) {
+	if !streaming {
+		if r.dataCount != 0 && r.dataCount != h.DataCount {
+			return nil, false, ErrHeaderMismatch
+		}
+		r.dataCount = h.DataCount
+		d.retired[h.BlockID] = r
+		if retiredAllDelivered(r) {
+			d.markCompleted(h.BlockID)
+			return nil, true, nil
+		}
+		// Reconstruction shard bytes are deliberately not retained after block
+		// retirement. The lower FakeTCP layer can still deliver any missing
+		// systematic source on its own retransmission path.
+		return nil, false, nil
+	}
+
+	idx := int(h.ShardIndex)
+	if r.dataCount != 0 && idx >= int(r.dataCount) {
+		return nil, false, ErrHeaderMismatch
+	}
+	bit := uint32(1) << uint(idx)
+	if r.delivered&bit != 0 {
+		return nil, false, nil
+	}
+	r.delivered |= bit
+	d.retired[h.BlockID] = r
+	out := [][]byte{append([]byte(nil), payload...)}
+	if retiredAllDelivered(r) {
+		d.markCompleted(h.BlockID)
+		return out, true, nil
+	}
+	return out, false, nil
+}
+
+func retiredAllDelivered(r retiredBlock) bool {
+	if r.dataCount == 0 {
+		return false
+	}
+	mask := uint32(1)<<uint(r.dataCount) - 1
+	return r.delivered&mask == mask
+}
+
 func (d *BlockDecoder) finalizeMetadata(b *decodeBlock, h BlockHeader) error {
 	b.header = h
 	b.final = true
@@ -359,6 +433,94 @@ func sameBlockHeader(a, b BlockHeader) bool {
 	return a.BlockID == b.BlockID && a.DataCount == b.DataCount && a.ShardSize == b.ShardSize && a.OriginalLengths == b.OriginalLengths
 }
 
+func (d *BlockDecoder) makeRoom() error {
+	for len(d.blocks) >= d.maxBlocks {
+		id, b, ok := d.oldestBlock()
+		if !ok {
+			return ErrDecoderFull
+		}
+		d.retireBlock(id, b)
+	}
+	return nil
+}
+
+func (d *BlockDecoder) oldestBlock() (uint32, *decodeBlock, bool) {
+	for d.blockHead < len(d.blockOrder) {
+		id := d.blockOrder[d.blockHead]
+		d.blockHead++
+		if b := d.blocks[id]; b != nil {
+			d.compactBlockOrder()
+			return id, b, true
+		}
+	}
+	d.compactBlockOrder()
+	return 0, nil, false
+}
+
+func (d *BlockDecoder) retireBlock(id uint32, b *decodeBlock) {
+	delete(d.blocks, id)
+	var r retiredBlock
+	if b.final {
+		r.dataCount = b.header.DataCount
+	}
+	for i, delivered := range b.delivered {
+		if delivered {
+			r.delivered |= uint32(1) << uint(i)
+		}
+	}
+	if retiredAllDelivered(r) {
+		d.markCompleted(id)
+		return
+	}
+	d.retired[id] = r
+	d.retiredOrder = append(d.retiredOrder, id)
+	d.trimRetired()
+}
+
+func (d *BlockDecoder) trimRetired() {
+	for len(d.retired) > maxRetiredBlocks {
+		for d.retiredHead < len(d.retiredOrder) {
+			id := d.retiredOrder[d.retiredHead]
+			d.retiredHead++
+			if _, ok := d.retired[id]; !ok {
+				continue
+			}
+			delete(d.retired, id)
+			// Once compact late-delivery history itself ages out, ignore all later
+			// shards for that BlockID. This preserves a hard memory ceiling and
+			// avoids duplicate reconstruction from very old parity.
+			d.completed.add(id)
+			break
+		}
+	}
+	d.compactRetiredOrder()
+}
+
+func (d *BlockDecoder) compactBlockOrder() {
+	if d.blockHead >= 1024 && d.blockHead*2 >= len(d.blockOrder) {
+		copy(d.blockOrder, d.blockOrder[d.blockHead:])
+		d.blockOrder = d.blockOrder[:len(d.blockOrder)-d.blockHead]
+		d.blockHead = 0
+	}
+}
+
+func (d *BlockDecoder) compactRetiredOrder() {
+	for d.retiredHead < len(d.retiredOrder) {
+		if _, ok := d.retired[d.retiredOrder[d.retiredHead]]; ok {
+			break
+		}
+		d.retiredHead++
+	}
+	if d.retiredHead >= 1024 && d.retiredHead*2 >= len(d.retiredOrder) {
+		copy(d.retiredOrder, d.retiredOrder[d.retiredHead:])
+		d.retiredOrder = d.retiredOrder[:len(d.retiredOrder)-d.retiredHead]
+		d.retiredHead = 0
+	}
+}
+
 func (d *BlockDecoder) markCompleted(id uint32) {
+	delete(d.retired, id)
 	d.completed.add(id)
+	d.compactBlockOrder()
+	d.compactRetiredOrder()
 }
