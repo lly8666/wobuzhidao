@@ -15,9 +15,28 @@ s = p.read_text()
 # The base full-stack harness starts the Game client without its runtime control
 # socket. Hosted replacement must use the same dynamic-membership API as the
 # product runtime, otherwise killing a LINK proxy is (correctly) classified as
-# lane_fail instead of planned client_leave.
+# lane_fail instead of planned client_leave. Apply the requested weak network on
+# both public veth egress directions before any Reality/FakeTCP bootstrap.
 needle = "tail = r'''DURATION_SEC=${DURATION_SEC:-500}"
-insert = '''prefix = prefix.replace('-session-id "$SESSION_ID" >"$LOG_DIR/game-client.log"',\n                        '-session-id "$SESSION_ID" -control 127.0.0.1:47499 >"$LOG_DIR/game-client.log"')\n'''
+insert = r"""prefix = prefix.replace('-session-id \"$SESSION_ID\" >\"$LOG_DIR/game-client.log\"',
+                        '-session-id \"$SESSION_ID\" -control 127.0.0.1:47499 >\"$LOG_DIR/game-client.log\"')
+netem_anchor = 'sudo ip netns exec \"$S\" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP\n'
+netem_block = netem_anchor + r'''NETEM_DELAY_MS=${NETEM_DELAY_MS:-0}
+NETEM_LOSS_PCT=${NETEM_LOSS_PCT:-0}
+if [[ \"$NETEM_DELAY_MS\" != 0 || \"$NETEM_LOSS_PCT\" != 0 ]]; then
+  sudo ip netns exec \"$C\" tc qdisc replace dev gc0 root netem delay \"${NETEM_DELAY_MS}ms\" loss random \"${NETEM_LOSS_PCT}%\"
+  sudo ip netns exec \"$S\" tc qdisc replace dev gs0 root netem delay \"${NETEM_DELAY_MS}ms\" loss random \"${NETEM_LOSS_PCT}%\"
+  {
+    echo \"WBD_HOSTED_NETEM_READY delay_ms=${NETEM_DELAY_MS} loss_pct=${NETEM_LOSS_PCT} direction=bidirectional\"
+    sudo ip netns exec \"$C\" tc qdisc show dev gc0
+    sudo ip netns exec \"$S\" tc qdisc show dev gs0
+  } | tee \"$LOG_DIR/netem.log\"
+fi
+'''
+if netem_anchor not in prefix:
+    raise SystemExit('control wrapper: netem insertion point not found')
+prefix = prefix.replace(netem_anchor, netem_block, 1)
+"""
 if needle not in s:
     raise SystemExit('control wrapper: inner patcher insertion point not found')
 s = s.replace(needle, insert + needle, 1)
@@ -78,7 +97,7 @@ retire_lane() {
   drop_pid "$old_dtls"
 
   send_retire_rst "$old_sport"
-  wait_count_gt 'WBD_FAKETCP_MUX_PEER_RESET ' "$LOG_DIR/faketcp-mux.log" "$before_reset" 200
+  wait_count_gt 'WBD_FAKETCP_MUX_PEER_RESET ' "$LOG_DIR/faketcp-mux.log" "$before_reset" 400
   sudo kill -TERM "$old_fake" 2>/dev/null || true
   wait "$old_fake" 2>/dev/null || true
   drop_pid "$old_fake"
@@ -93,7 +112,7 @@ start_replacement_lane() {
   before_game_bind=$(count_marker "WBD_GAME_LANE_BIND.*lane=${lane}" "$LOG_DIR/game-server.log")
   start_replacement_lane_transport "$lane" "$gen"
   game_control_set 0 >>"$LOG_DIR/rotation.log" 2>&1
-  wait_count_gt "WBD_GAME_LANE_BIND.*lane=${lane}" "$LOG_DIR/game-server.log" "$before_game_bind" 400
+  wait_count_gt "WBD_GAME_LANE_BIND.*lane=${lane}" "$LOG_DIR/game-server.log" "$before_game_bind" 600
 }
 
 '''
