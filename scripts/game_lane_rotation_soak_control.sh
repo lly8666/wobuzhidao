@@ -55,7 +55,7 @@ if marker not in s:
 override = r'''game_control_set() {
   local exclude=${1:-0}
   sudo ip netns exec "$C" python3 - "$exclude" <<'PY_CONTROL'
-import json, socket, sys
+import base64, json, socket, sys
 exclude=int(sys.argv[1])
 lanes=[{'id':i,'address':f'127.0.0.1:{47100+i}'} for i in range(1,5) if i != exclude]
 cmd={'op':'set','lanes':lanes}
@@ -65,8 +65,14 @@ s.sendto(json.dumps(cmd,separators=(',',':')).encode(),('127.0.0.1',47499))
 raw,_=s.recvfrom(4096)
 r=json.loads(raw)
 expected=[i for i in range(1,5) if i != exclude]
+active=r.get('active',[])
+# Go's encoding/json treats []uint8 as bytes and emits base64; tolerate an
+# ordinary JSON array too so the harness follows the semantic API, not one
+# representation detail.
+if isinstance(active,str):
+    active=list(base64.b64decode(active))
 assert r.get('ok') is True, r
-assert sorted(r.get('active',[])) == expected, (r,expected)
+assert sorted(active) == expected, (r,active,expected)
 print('WBD_HOSTED_GAME_CONTROL_PASS exclude=%d active=%s' % (exclude, ','.join(map(str,expected))))
 PY_CONTROL
 }
