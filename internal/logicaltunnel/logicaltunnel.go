@@ -24,11 +24,15 @@ const (
 	MinProductPublicTransportLanes = 1
 	MaxProductPublicTransportLanes = 4
 
-	// Planned healthy replacement is make-before-break. At the four-lane product
-	// ceiling, one additional physical transport incarnation must coexist during
-	// the bounded A -> A+B -> B overlap. This is capacity for a replacement of an
-	// existing logical LaneID, not permission for a fifth product logical lane.
-	MaxConcurrentPublicTransportIncarnations = MaxProductPublicTransportLanes + 1
+	// Retiring physical incarnations can outlive their logical LaneID briefly when
+	// best-effort LEAVE/CLOSE is lost on a weak path. Keep bounded server headroom
+	// for those draining associations so the next authenticated replacement is
+	// not rejected merely because teardown is delayed. This is physical lifecycle
+	// capacity only: Game/control remains authoritative for the 1..4 logical lane
+	// product limit. Six retiring slots plus four authoritative lanes gives a
+	// bounded maximum of ten concurrent public transport incarnations per tunnel.
+	MaxRetiringPublicTransportIncarnations   = 6
+	MaxConcurrentPublicTransportIncarnations = MaxProductPublicTransportLanes + MaxRetiringPublicTransportIncarnations
 )
 
 var (
