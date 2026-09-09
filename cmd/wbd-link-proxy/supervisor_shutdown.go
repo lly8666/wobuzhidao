@@ -34,7 +34,10 @@ func gracefulClientRetirement(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *li
 	}
 
 	deadline := time.Now().Add(timeout)
-	buf := make([]byte, control.HeaderLen+control.MaxBodyLen)
+	// Close ACK races with already-in-flight LINK data. Keep the retirement
+	// receive buffer at full UDP datagram size so Windows recvfrom does not
+	// fail with WSAEMSGSIZE before the matching control.Close echo arrives.
+	buf := make([]byte, 65535)
 	for {
 		if err := conn.SetReadDeadline(deadline); err != nil {
 			return err

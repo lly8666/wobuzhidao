@@ -9,7 +9,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/linkdata"
 )
 
-func TestGracefulClientRetirementWaitsForServerCloseAck(t *testing.T) {
+func TestGracefulClientRetirementIgnoresDataBeforeServerCloseAck(t *testing.T) {
 	client, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1)})
 	if err != nil {
 		t.Fatal(err)
@@ -47,6 +47,16 @@ func TestGracefulClientRetirementWaitsForServerCloseAck(t *testing.T) {
 			serverDone <- &unexpectedCloseFrameError{frame: frame}
 			return
 		}
+
+		// A promoted Game lane can still leave ordinary LINK data in flight on
+		// the retiring transport. This datagram is intentionally larger than
+		// the control-only buffer used before the Windows physical regression.
+		inFlightData := make([]byte, control.HeaderLen+control.MaxBodyLen+512)
+		if _, err := server.WriteToUDP(inFlightData, peer); err != nil {
+			serverDone <- err
+			return
+		}
+
 		wire, err := control.MarshalLink(control.Close{Reason: control.CloseNormal, Detail: closeFrame.Detail})
 		if err != nil {
 			serverDone <- err
