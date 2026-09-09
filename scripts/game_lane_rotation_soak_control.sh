@@ -41,6 +41,15 @@ if needle not in s:
     raise SystemExit('control wrapper: inner patcher insertion point not found')
 s = s.replace(needle, insert + needle, 1)
 
+# Match the production/physical LINK liveness budget. The generic stress script
+# used 2s to accelerate failures, which leaves only a 6s 3x keepalive budget and
+# can turn sustained weak-net ARQ/FEC queueing into an unrelated lane death.
+# Keep liveness enabled and preserve the frozen 3x semantics; only use the
+# production interval (15s, hence a 45s liveness budget).
+if s.count('-keepalive 2s') < 2:
+    raise SystemExit('control wrapper: expected initial and replacement 2s keepalive markers')
+s = s.replace('-keepalive 2s', '-keepalive 15s')
+
 # Preserve the existing transport builder under a private name. Product
 # replacement is make-before-break, so the replacement LINK proxy must have a
 # generation-specific Game-facing UDP port and coexist with the old LINK proxy
@@ -204,4 +213,9 @@ grep -Fq 'sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem' "$OUT"
 grep -Fq 'WBD_HOSTED_GAME_QUALIFICATION_PASS' "$OUT"
 grep -Fq 'game_control_cutover overlap "$lane"' "$OUT"
 grep -Fq 'local lport=$((47100 + gen*100 + lane))' "$OUT"
+grep -Fq -- '-keepalive 15s' "$OUT"
+if grep -Fq -- '-keepalive 2s' "$OUT"; then
+  echo 'control wrapper: stale accelerated 2s keepalive survived generation' >&2
+  exit 1
+fi
 exec "$OUT" "$@"
