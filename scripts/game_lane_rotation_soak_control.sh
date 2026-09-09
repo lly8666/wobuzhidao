@@ -130,16 +130,18 @@ retire_lane() {
 }
 
 # Rebuild the complete Reality -> FakeTCP -> DTLS -> LINK transport first, then
-# atomically add that logical lane back through the Game control socket. Waiting
-# for the new authenticated Game bind is the end-to-end proof that any lost old
-# leave/close did not block serialized replacement.
+# atomically add that logical lane back through the Game control socket. The
+# authenticated LaneReady/QUALIFIED barrier is the product cutover proof. A new
+# BIND marker is intentionally not required: when CLIENT_LEAVE was lost, the
+# server may retain bounded A+B overlap and deterministically roll it forward on
+# the next serialized replacement (or the next same-lane incarnation).
 start_replacement_lane() {
   local lane=$1 gen=$2
-  local before_game_bind
-  before_game_bind=$(count_marker "WBD_GAME_LANE_BIND.*lane=${lane}" "$LOG_DIR/game-server.log")
+  local before_game_qualified
+  before_game_qualified=$(count_marker "WBD_GAME_LANE_QUALIFIED.*lane=${lane}" "$LOG_DIR/game-server.log")
   start_replacement_lane_transport "$lane" "$gen"
   game_control_set 0 >>"$LOG_DIR/rotation.log" 2>&1
-  wait_count_gt "WBD_GAME_LANE_BIND.*lane=${lane}" "$LOG_DIR/game-server.log" "$before_game_bind" 600
+  wait_count_gt "WBD_GAME_LANE_QUALIFIED.*lane=${lane}" "$LOG_DIR/game-server.log" "$before_game_qualified" 600
 }
 
 '''
@@ -163,4 +165,5 @@ bash -n "$OUT"
 grep -Fq 'sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem' "$OUT"
 grep -Fq 'sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem' "$OUT"
 grep -Fq 'WBD_HOSTED_GRACEFUL_LOST' "$OUT"
+grep -Fq 'WBD_GAME_LANE_QUALIFIED.*lane=${lane}' "$OUT"
 exec "$OUT" "$@"
