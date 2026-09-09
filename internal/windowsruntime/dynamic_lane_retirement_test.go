@@ -75,7 +75,7 @@ func TestStopDynamicLanePlanReportsRetirementWaitFailure(t *testing.T) {
 	e := &Executor{running: true, processes: processes}
 
 	err := e.StopDynamicLanePlan(lane)
-	if err == nil || !strings.Contains(err.Error(), "wait "+lane.DTLS.Name+" exit") || !strings.Contains(err.Error(), "still exiting") {
+	if err == nil || !strings.Contains(err.Error(), "retire "+lane.DTLS.Name) || !strings.Contains(err.Error(), "still exiting") {
 		t.Fatalf("retirement wait error=%v", err)
 	}
 }
