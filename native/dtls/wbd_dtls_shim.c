@@ -113,20 +113,20 @@ static int insecure_verify_arg(const char* s) {
 
 /*
  * The transport underneath DTLS is FakeTCP carried across an impaired link.
- * Five seconds was enough on clean links but could expire before FakeTCP had
- * completed its own association when 10-20% loss was already active. Keep the
- * socket blocking during the handshake and give wolfSSL/FakeTCP room to retry;
- * the benchmark harness still owns the outer case deadline.
+ * FakeTCP steady-state recovery deliberately permits a 60-second maximum RTO.
+ * Keep handshake sockets blocking and allow one complete maximum-RTO recovery
+ * plus margin before classifying DTLS admission as failed. The outer product or
+ * qualification harness still owns the overall association deadline.
  */
 static void timeout_fd(wbd_socket_t fd) {
 #ifdef _WIN32
-    DWORD ms = 20000;
+    DWORD ms = 70000;
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&ms, (int)sizeof(ms)) == SOCKET_ERROR ||
         setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (const char*)&ms, (int)sizeof(ms)) == SOCKET_ERROR) {
         die_socket("setsockopt timeout");
     }
 #else
-    struct timeval tv = {20, 0};
+    struct timeval tv = {70, 0};
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0 ||
         setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) < 0) {
         die_socket("setsockopt timeout");
@@ -323,6 +323,18 @@ static int run_client(int listen_port, const char* transport_ip, int transport_p
         }
     }
 
+    /*
+     * Reserve the application-facing plaintext port before asking the kernel
+     * for the DTLS transport's ephemeral UDP source port. Without this ordering
+     * an unlucky ephemeral allocation can consume listen_port first, and the
+     * later plaintext bind fails with EADDRINUSE/WSAEADDRINUSE. Keeping p open
+     * through the handshake makes the exclusion deterministic on Linux/Windows.
+     */
+    p = socket(AF_INET, SOCK_DGRAM, 0);
+    if (p == WBD_INVALID_SOCKET) die_socket("plain socket");
+    pa = addr4("127.0.0.1", listen_port);
+    if (socket_failed(bind(p, (struct sockaddr*)&pa, (int)sizeof(pa)))) die_socket("plain bind");
+
     t = socket(AF_INET, SOCK_DGRAM, 0);
     if (t == WBD_INVALID_SOCKET) die_socket("transport socket");
     blocking(t);
@@ -333,17 +345,20 @@ static int run_client(int listen_port, const char* transport_ip, int transport_p
     ssl = wolfSSL_new(ctx);
     if (!ssl) {
         close_socket(t);
+        close_socket(p);
         wolfSSL_CTX_free(ctx);
         return 2;
     }
     if (wolfSSL_set_fd(ssl, (int)t) != WOLFSSL_SUCCESS) {
         close_socket(t);
+        close_socket(p);
         wolfSSL_free(ssl);
         wolfSSL_CTX_free(ctx);
         return 2;
     }
     if (!insecure && !insecure_verify_arg(host) && wolfSSL_check_domain_name(ssl, host) != WOLFSSL_SUCCESS) {
         close_socket(t);
+        close_socket(p);
         wolfSSL_free(ssl);
         wolfSSL_CTX_free(ctx);
         return 2;
@@ -355,6 +370,7 @@ static int run_client(int listen_port, const char* transport_ip, int transport_p
     if (r != WOLFSSL_SUCCESS) {
         ssl_log("client handshake", ssl, r);
         close_socket(t);
+        close_socket(p);
         wolfSSL_free(ssl);
         wolfSSL_CTX_free(ctx);
         return 3;
@@ -363,10 +379,6 @@ static int run_client(int listen_port, const char* transport_ip, int transport_p
         wolfSSL_get_version(ssl), wolfSSL_get_cipher(ssl));
     fflush(stderr);
 
-    p = socket(AF_INET, SOCK_DGRAM, 0);
-    if (p == WBD_INVALID_SOCKET) die_socket("plain socket");
-    pa = addr4("127.0.0.1", listen_port);
-    if (socket_failed(bind(p, (struct sockaddr*)&pa, (int)sizeof(pa)))) die_socket("plain bind");
     printf("READY role=client version=%s cipher=%s listen=%d verify=%s\n",
         wolfSSL_get_version(ssl), wolfSSL_get_cipher(ssl), listen_port, insecure ? "none" : "peer-hostname");
     fflush(stdout);
