@@ -75,7 +75,7 @@ Policy targets are distinct from the architectural ceiling:
 - Dormant/disconnected Logical Tunnel: active lanes = 0.
 - Planned replacement may temporarily overlap an old lane and one or more authenticated replacement incarnations while retiring physical associations drain.
 
-A fifth simultaneously active **product logical Transport Lane** is rejected. This is unchanged.
+A fifth simultaneously active product logical Transport Lane is rejected. This is unchanged.
 
 Physical transport incarnations are a separate lifecycle resource. On lossy paths, best-effort Game `LEAVE` or LINK close may be lost even after the replacement has crossed the authenticated Game qualification barrier and the old FakeTCP exact-flow reset has been sent. A retiring physical association can therefore remain visible to the LINK server until its independent liveness/idle cleanup runs. Rejecting the next healthy replacement merely because such bounded teardown is delayed makes correctness depend on one best-effort teardown packet.
 
