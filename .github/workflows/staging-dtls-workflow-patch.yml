@@ -1,0 +1,101 @@
+name: staging-dtls-workflow-patch
+
+on:
+  push:
+    branches:
+      - agent/fec-zombie-fix-7d859
+    paths:
+      - '.github/workflows/staging-dtls-workflow-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Generate asserted workflow patch
+        run: |
+          set -euo pipefail
+          python3 scripts/staging_patch_dtls_workflows.py
+          git diff --check
+          for f in $(grep -rl -E 'native[/\\]dtls[/\\]wbd_dtls_shim\.c' .github/workflows --include='*.yml'); do
+            echo "DTLS_BUILD_ENTRY $f"
+            grep -q 'WOLFSSL_DTLS_WINDOW_WORDS=128' "$f"
+          done
+          grep -q 'agent/fec-zombie-fix-7d859' .github/workflows/windows-portable-bundle.yml
+          grep -q 'agent/fec-zombie-fix-7d859' .github/workflows/reconnect-netem.yml
+          grep -q 'agent/fec-zombie-fix-7d859' .github/workflows/linux-server-release.yml
+      - name: Create detached GitHub commit object
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/staging-dtls-workflow-patch.yml scripts/staging_patch_dtls_workflows.py
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import urllib.request
+
+          repo = os.environ['GITHUB_REPOSITORY']
+          token = os.environ['GH_TOKEN']
+          base = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          base_tree = subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip()
+
+          def api(path, payload):
+              req = urllib.request.Request(
+                  f'https://api.github.com/repos/{repo}{path}',
+                  data=json.dumps(payload).encode(),
+                  method='POST',
+                  headers={
+                      'Authorization': f'Bearer {token}',
+                      'Accept': 'application/vnd.github+json',
+                      'X-GitHub-Api-Version': '2022-11-28',
+                      'User-Agent': 'wbd-staging-dtls-workflow-patch',
+                      'Content-Type': 'application/json',
+                  },
+              )
+              with urllib.request.urlopen(req) as r:
+                  return json.load(r)
+
+          raw = subprocess.check_output(['git', 'diff', '--name-status', '-z', 'HEAD'])
+          parts = raw.decode().split('\0')
+          entries = []
+          changed = []
+          i = 0
+          while i < len(parts) and parts[i]:
+              status = parts[i]
+              path = parts[i + 1]
+              i += 2
+              if status.startswith('R'):
+                  old_path = path
+                  path = parts[i]
+                  i += 1
+                  entries.append({'path': old_path, 'mode': '100644', 'type': 'blob', 'sha': None})
+              if status.startswith('D'):
+                  entries.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': None})
+                  changed.append(f'D:{path}')
+                  continue
+              data = Path(path).read_bytes()
+              blob = api('/git/blobs', {'content': base64.b64encode(data).decode(), 'encoding': 'base64'})
+              entries.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
+              changed.append(f'M:{path}')
+
+          if not entries:
+              raise SystemExit('no detached tree changes generated')
+          tree = api('/git/trees', {'base_tree': base_tree, 'tree': entries})
+          commit = api('/git/commits', {
+              'message': 'ci(dtls): pin replay window across native build gates',
+              'tree': tree['sha'],
+              'parents': [base],
+          })
+          print('WBD_STAGING_DTLS_WORKFLOW_COMMIT sha=' + commit['sha'])
+          print('WBD_STAGING_DTLS_WORKFLOW_CHANGED ' + ' '.join(changed))
+          PY
