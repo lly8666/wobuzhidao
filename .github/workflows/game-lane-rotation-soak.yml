@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/game-lane-rotation-soak.yml'
       - 'scripts/game_lane_rotation_soak.sh'
+      - 'scripts/game_lane_rotation_soak_control.sh'
 
 concurrency:
   group: game-lane-rotation-soak-${{ github.head_ref || github.ref_name }}
@@ -71,18 +72,33 @@ jobs:
           path: ${{ runner.temp }}/wbd-soak-assets
           retention-days: 1
 
-  soak-500s-4lane-1mbps:
+  soak-500s-4lane-1mbps-weaknet:
     needs: build-assets
     runs-on: ubuntu-24.04
-    timeout-minutes: 24
+    timeout-minutes: 35
     strategy:
       fail-fast: false
+      max-parallel: 6
       matrix:
         include:
           - fec: 'off'
             slug: off
+            replica: 1
+          - fec: 'off'
+            slug: off
+            replica: 2
+          - fec: 'off'
+            slug: off
+            replica: 3
           - fec: '20:20'
             slug: fec20
+            replica: 1
+          - fec: '20:20'
+            slug: fec20
+            replica: 2
+          - fec: '20:20'
+            slug: fec20
+            replica: 3
     steps:
       - uses: actions/checkout@v4
       - name: Install namespace tools
@@ -98,7 +114,7 @@ jobs:
           set -euo pipefail
           chmod +x "$RUNNER_TEMP"/wbd-soak-assets/wbd-* "$RUNNER_TEMP"/wbd-soak-assets/wbd_dtls_shim
           test "$(cat "$RUNNER_TEMP/wbd-soak-assets/SOURCE_SHA.txt")" = "$GITHUB_SHA"
-      - name: Run 500 second four-lane rotation soak at 1 Mbps each direction
+      - name: Run 500 second four-lane rotation soak at 1 Mbps each direction with 300ms 20pct loss
         env:
           LANES: '4'
           FEC: ${{ matrix.fec }}
@@ -107,11 +123,15 @@ jobs:
           PAYLOAD_BYTES: '1000'
           ROTATE_INTERVAL_SEC: '25'
           ROTATIONS: '16'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+          SOAK_REPLICA: ${{ matrix.replica }}
         run: |
           set -euo pipefail
-          LOG="$RUNNER_TEMP/game-lane-rotation-${{ matrix.slug }}"
+          LOG="$RUNNER_TEMP/game-lane-rotation-${{ matrix.slug }}-r${{ matrix.replica }}"
           mkdir -p "$LOG"
-          sudo -E "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak.sh" "$RUNNER_TEMP/wbd-soak-assets" "$LOG"
+          sudo -E "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$RUNNER_TEMP/wbd-soak-assets" "$LOG"
+          grep -q 'WBD_HOSTED_NETEM_READY delay_ms=300 loss_pct=20 direction=bidirectional' "$LOG/netem.log"
           python3 - "$LOG/load-result.json" <<'PY'
           import json,sys
           d=json.load(open(sys.argv[1]))
@@ -126,7 +146,9 @@ jobs:
         if: failure()
         run: |
           set +e
-          LOG="$RUNNER_TEMP/game-lane-rotation-${{ matrix.slug }}"
+          LOG="$RUNNER_TEMP/game-lane-rotation-${{ matrix.slug }}-r${{ matrix.replica }}"
+          echo '=== NETEM ==='
+          cat "$LOG/netem.log" 2>/dev/null || true
           echo '=== LOAD RESULT ==='
           cat "$LOG/load-result.json" 2>/dev/null || true
           echo '=== ROTATIONS ==='
@@ -143,20 +165,20 @@ jobs:
         if: always()
         run: |
           set +e
-          LOG="$RUNNER_TEMP/game-lane-rotation-${{ matrix.slug }}"
+          LOG="$RUNNER_TEMP/game-lane-rotation-${{ matrix.slug }}-r${{ matrix.replica }}"
           sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
           sudo chmod -R a+rX "$LOG" 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: game-lane-rotation-soak-500s-1mbps-${{ matrix.slug }}
-          path: ${{ runner.temp }}/game-lane-rotation-${{ matrix.slug }}
+          name: game-lane-rotation-soak-500s-1mbps-300ms-loss20-${{ matrix.slug }}-r${{ matrix.replica }}
+          path: ${{ runner.temp }}/game-lane-rotation-${{ matrix.slug }}-r${{ matrix.replica }}
           retention-days: 14
 
   aggregate:
-    needs: soak-500s-4lane-1mbps
+    needs: soak-500s-4lane-1mbps-weaknet
     runs-on: ubuntu-24.04
     steps:
       - name: Publish matrix marker
         run: |
-          echo "WBD_GAME_LANE_ROTATION_SOAK_MATRIX_PASS source_sha=${GITHUB_SHA} duration_sec=500 lanes=4 payload_bps_each_direction=1000000 rotations=16 fec=off,20:20"
+          echo "WBD_GAME_LANE_ROTATION_SOAK_MATRIX_PASS source_sha=${GITHUB_SHA} duration_sec=500 lanes=4 payload_bps_each_direction=1000000 netem_delay_ms=300 netem_loss_pct=20 replicas_per_fec=3 rotations=16 fec=off,20:20"
