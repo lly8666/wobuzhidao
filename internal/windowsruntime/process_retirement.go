@@ -17,14 +17,27 @@ type gracefulStoppedProcess interface {
 	GracefulStop(time.Duration) error
 }
 
+type peerResetStoppedProcess interface {
+	PeerResetStop(time.Duration) error
+}
+
 func isDynamicLaneLinkProcess(name string) bool {
 	return name == "link" || strings.HasPrefix(name, "link-")
+}
+
+func isDynamicLaneFakeTCPProcess(name string) bool {
+	return name == "faketcp" || strings.HasPrefix(name, "faketcp-")
 }
 
 func stopDynamicLaneProcess(name string, proc Process) error {
 	if isDynamicLaneLinkProcess(name) {
 		if graceful, ok := proc.(gracefulStoppedProcess); ok {
 			return graceful.GracefulStop(dynamicLaneProcessStopWait)
+		}
+	}
+	if isDynamicLaneFakeTCPProcess(name) {
+		if resetter, ok := proc.(peerResetStoppedProcess); ok {
+			return resetter.PeerResetStop(dynamicLaneProcessStopWait)
 		}
 	}
 	if err := proc.Stop(); err != nil {

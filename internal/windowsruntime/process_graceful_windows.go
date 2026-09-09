@@ -12,11 +12,26 @@ import (
 )
 
 const (
-	linkSupervisorEventPrefix = `Local\WBDLinkShutdown-`
-	linkCloseAckMarker        = "WBD_LINK_CLOSE_ACK"
+	linkSupervisorEventPrefix    = `Local\WBDLinkShutdown-`
+	linkCloseAckMarker           = "WBD_LINK_CLOSE_ACK"
+	fakeTCPSupervisorEventPrefix = `Local\WBDFakeTCPShutdown-`
+	fakeTCPRetireResetMarker     = "WBD_FAKETCP_RETIRE_RESET_TX"
 )
 
 func (p *osProcess) GracefulStop(timeout time.Duration) error {
+	return p.signalAndWaitStop(timeout, linkSupervisorEventPrefix, linkCloseAckMarker, "LINK")
+}
+
+// PeerResetStop asks an established Windows FakeTCP client to send an exact-flow
+// peer RST before it exits. Normal replacement retirement calls this only after
+// the LINK CloseNormal exchange has completed and the DTLS child is gone. The
+// server mux already treats peer RST as terminal for that four-tuple, so this
+// closes the retired underlay immediately instead of leaving it to idle GC.
+func (p *osProcess) PeerResetStop(timeout time.Duration) error {
+	return p.signalAndWaitStop(timeout, fakeTCPSupervisorEventPrefix, fakeTCPRetireResetMarker, "FakeTCP")
+}
+
+func (p *osProcess) signalAndWaitStop(timeout time.Duration, eventPrefix, marker, label string) error {
 	if timeout <= 0 {
 		return errors.New("graceful process retirement timeout must be positive")
 	}
@@ -27,54 +42,54 @@ func (p *osProcess) GracefulStop(timeout time.Duration) error {
 	proc := p.cmd.Process
 	p.mu.Unlock()
 	if exited {
-		if p.out.contains(linkCloseAckMarker) {
+		if p.out.contains(marker) {
 			return nil
 		}
-		return errors.New("LINK process exited before graceful retirement ACK")
+		return fmt.Errorf("%s process exited before graceful retirement marker %q", label, marker)
 	}
 	if proc == nil {
-		return errors.New("graceful process retirement has no child process")
+		return fmt.Errorf("%s graceful process retirement has no child process", label)
 	}
 
-	name, err := windows.UTF16PtrFromString(linkSupervisorEventPrefix + strconv.Itoa(proc.Pid))
+	name, err := windows.UTF16PtrFromString(eventPrefix + strconv.Itoa(proc.Pid))
 	if err != nil {
-		return p.failGracefulStop(deadline, fmt.Errorf("encode LINK supervisor event: %w", err))
+		return p.failSignaledStop(deadline, label, fmt.Errorf("encode %s supervisor event: %w", label, err))
 	}
 	h, err := windows.OpenEvent(windows.EVENT_MODIFY_STATE, false, name)
 	if err != nil {
-		return p.failGracefulStop(deadline, fmt.Errorf("open LINK supervisor event: %w", err))
+		return p.failSignaledStop(deadline, label, fmt.Errorf("open %s supervisor event: %w", label, err))
 	}
 	defer windows.CloseHandle(h)
 	if err := windows.SetEvent(h); err != nil {
-		return p.failGracefulStop(deadline, fmt.Errorf("signal LINK supervisor event: %w", err))
+		return p.failSignaledStop(deadline, label, fmt.Errorf("signal %s supervisor event: %w", label, err))
 	}
 
 	remaining := time.Until(deadline)
 	if remaining <= 0 {
-		return p.failGracefulStop(deadline, errors.New("LINK graceful retirement deadline expired before close ACK"))
+		return p.failSignaledStop(deadline, label, fmt.Errorf("%s graceful retirement deadline expired before marker", label))
 	}
-	if err := p.WaitReady(linkCloseAckMarker, remaining); err != nil {
-		return p.failGracefulStop(deadline, fmt.Errorf("wait LINK close ACK: %w", err))
+	if err := p.WaitReady(marker, remaining); err != nil {
+		return p.failSignaledStop(deadline, label, fmt.Errorf("wait %s retirement marker: %w", label, err))
 	}
 	remaining = time.Until(deadline)
 	if remaining <= 0 {
-		return p.failGracefulStop(deadline, errors.New("LINK graceful retirement deadline expired before process exit"))
+		return p.failSignaledStop(deadline, label, fmt.Errorf("%s graceful retirement deadline expired before process exit", label))
 	}
 	if err := p.WaitStopped(remaining); err != nil {
-		return p.failGracefulStop(deadline, fmt.Errorf("wait LINK process exit: %w", err))
+		return p.failSignaledStop(deadline, label, fmt.Errorf("wait %s process exit: %w", label, err))
 	}
 	return nil
 }
 
-func (p *osProcess) failGracefulStop(deadline time.Time, cause error) error {
+func (p *osProcess) failSignaledStop(deadline time.Time, label string, cause error) error {
 	var errs []error
 	errs = append(errs, cause)
 	if err := p.Stop(); err != nil {
-		errs = append(errs, fmt.Errorf("fallback kill: %w", err))
+		errs = append(errs, fmt.Errorf("%s fallback kill: %w", label, err))
 	}
 	if remaining := time.Until(deadline); remaining > 0 {
 		if err := p.WaitStopped(remaining); err != nil {
-			errs = append(errs, fmt.Errorf("wait fallback kill: %w", err))
+			errs = append(errs, fmt.Errorf("wait %s fallback kill: %w", label, err))
 		}
 	}
 	return errors.Join(errs...)
