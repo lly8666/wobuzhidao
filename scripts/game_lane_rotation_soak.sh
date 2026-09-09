@@ -31,11 +31,22 @@ PAYLOAD_BYTES=${PAYLOAD_BYTES:-1000}
 [[ "$ROTATE_INTERVAL_SEC" =~ ^[0-9]+$ && "$ROTATE_INTERVAL_SEC" -ge 1 ]] || { echo "ROTATE_INTERVAL_SEC must be positive" >&2; exit 2; }
 [[ "$PAYLOAD_BYTES" =~ ^[0-9]+$ && "$PAYLOAD_BYTES" -ge 64 ]] || { echo "PAYLOAD_BYTES must be >=64" >&2; exit 2; }
 
+drop_pid() {
+  local dead=$1 p
+  local kept=()
+  for p in "${PIDS[@]}"; do
+    [[ -n "$p" && "$p" != "$dead" ]] && kept+=("$p")
+  done
+  PIDS=("${kept[@]}")
+}
+
 # The base harness starts tcpdump before bootstrap to prove single-flow lineage.
 # That proof is covered by its own workflow; stop it before the 500 s soak so the
 # qualification artifact stays small and does not retain full payloads.
-sudo kill -INT "$TPID" 2>/dev/null || true
-wait "$TPID" 2>/dev/null || true
+old_tpid=$TPID
+sudo kill -INT "$old_tpid" 2>/dev/null || true
+wait "$old_tpid" 2>/dev/null || true
+drop_pid "$old_tpid"
 TPID=
 rm -f "$LOG_DIR/game-lanes.pcap"
 
@@ -57,10 +68,15 @@ wait_count_gt() {
 }
 
 pid_one() {
-  local pattern=$1
-  mapfile -t hits < <(pgrep -f "$pattern" || true)
+  local pattern=$1 expected_exe=$2 p exe
+  local hits=()
+  while read -r p; do
+    [[ -n "$p" ]] || continue
+    exe=$(sudo readlink -f "/proc/$p/exe" 2>/dev/null || true)
+    [[ "${exe##*/}" == "$expected_exe" ]] && hits+=("$p")
+  done < <(pgrep -f "$pattern" || true)
   if [[ ${#hits[@]} -ne 1 ]]; then
-    echo "expected one pid for pattern=$pattern; got ${#hits[@]}: ${hits[*]:-}" >&2
+    echo "expected one $expected_exe pid for pattern=$pattern; got ${#hits[@]}: ${hits[*]:-}" >&2
     return 1
   fi
   printf '%s\n' "${hits[0]}"
@@ -71,22 +87,21 @@ pid_one() {
 # transport below it.
 declare -a LINK_PIDS DTLS_PIDS FAKETCP_PIDS LANE_GEN LANE_SPORT
 for i in $(seq 1 4); do
-  LINK_PIDS[$i]=$(pid_one "wbd-link-proxy.*-listen 127.0.0.1:$((47100+i))")
-  DTLS_PIDS[$i]=$(pid_one "wbd_dtls_shim client $((46100+i)) 127.0.0.1 $((45100+i))")
-  FAKETCP_PIDS[$i]=$(pid_one "wbd-faketcp client.*--source 10.89.0.2:$((41000+i))")
+  LINK_PIDS[$i]=$(pid_one "wbd-link-proxy.*-listen 127.0.0.1:$((47100+i))" wbd-link-proxy)
+  DTLS_PIDS[$i]=$(pid_one "wbd_dtls_shim client $((46100+i)) 127.0.0.1 $((45100+i))" wbd_dtls_shim)
+  FAKETCP_PIDS[$i]=$(pid_one "wbd-faketcp client.*--source 10.89.0.2:$((41000+i))" wbd-faketcp)
   LANE_GEN[$i]=0
   LANE_SPORT[$i]=$((41000+i))
 done
 
-# Make sure the initial server-side bindings are fully visible before load.
+# Make sure the initial transport bindings are visible before load. Game lane
+# binding is traffic-driven, so assert it only after the load generator starts.
 for _ in $(seq 1 400); do
   link_binds=$(count_marker 'WBD_LINK_LOGICAL_TUNNEL_BIND ' "$LOG_DIR/link-server.log")
-  game_binds=$(count_marker 'WBD_GAME_LANE_BIND ' "$LOG_DIR/game-server.log")
-  if (( link_binds >= 4 && game_binds >= 4 )); then break; fi
+  if (( link_binds >= 4 )); then break; fi
   sleep .05
 done
 (( $(count_marker 'WBD_LINK_LOGICAL_TUNNEL_BIND ' "$LOG_DIR/link-server.log") >= 4 ))
-(( $(count_marker 'WBD_GAME_LANE_BIND ' "$LOG_DIR/game-server.log") >= 4 ))
 
 cat >"$LOG_DIR/send_rst.py" <<'PY_RST'
 import socket, struct, sys, time
@@ -104,9 +119,10 @@ tcp = struct.pack('!HHLLBBHHH', sport, dport, 0, 0, 5 << 4, 0x04, 0, 0, 0)
 tcp_sum = csum(srcb + dstb + struct.pack('!BBH', 0, socket.IPPROTO_TCP, len(tcp)) + tcp)
 tcp = struct.pack('!HHLLBBH', sport, dport, 0, 0, 5 << 4, 0x04, 0) + struct.pack('!H', tcp_sum) + struct.pack('!H', 0)
 ver_ihl = (4 << 4) | 5
-ip = struct.pack('!BBHHHBBH4s4s', ver_ihl, 0, 20 + len(tcp), int(time.time_ns()) & 0xffff, 0, 64, socket.IPPROTO_TCP, 0, srcb, dstb)
+ident = int(time.time_ns()) & 0xffff
+ip = struct.pack('!BBHHHBBH4s4s', ver_ihl, 0, 20 + len(tcp), ident, 0, 64, socket.IPPROTO_TCP, 0, srcb, dstb)
 ip_sum = csum(ip)
-ip = struct.pack('!BBHHHBBH4s4s', ver_ihl, 0, 20 + len(tcp), int(time.time_ns()) & 0xffff, 0, 64, socket.IPPROTO_TCP, ip_sum, srcb, dstb)
+ip = struct.pack('!BBHHHBBH4s4s', ver_ihl, 0, 20 + len(tcp), ident, 0, 64, socket.IPPROTO_TCP, ip_sum, srcb, dstb)
 s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
 s.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
 for _ in range(3):
@@ -207,14 +223,17 @@ retire_lane() {
 
   sudo kill -TERM "$old_link" 2>/dev/null || true
   wait "$old_link" 2>/dev/null || true
+  drop_pid "$old_link"
   wait_count_gt 'WBD_GAME_LANE_UNBIND reason=client_leave' "$LOG_DIR/game-server.log" "$before_leave" 400
 
   sudo kill -TERM "$old_dtls" 2>/dev/null || true
   wait "$old_dtls" 2>/dev/null || true
+  drop_pid "$old_dtls"
   send_retire_rst "$old_sport"
   wait_count_gt 'WBD_FAKETCP_MUX_PEER_RESET ' "$LOG_DIR/faketcp-mux.log" "$before_reset" 200
   sudo kill -TERM "$old_fake" 2>/dev/null || true
   wait "$old_fake" 2>/dev/null || true
+  drop_pid "$old_fake"
 }
 
 cat >"$LOG_DIR/load.py" <<'PY_LOAD'
@@ -272,6 +291,13 @@ PY_LOAD
 sudo ip netns exec "$C" python3 "$LOG_DIR/load.py" "$LOG_DIR/load-result.json" "$DURATION_SEC" "$RATE_BPS" "$PAYLOAD_BYTES" >"$LOG_DIR/load.log" 2>&1 &
 LOAD_PID=$!; PIDS+=("$LOAD_PID")
 load_start=$(date +%s)
+for _ in $(seq 1 400); do
+  game_binds=$(count_marker 'WBD_GAME_LANE_BIND ' "$LOG_DIR/game-server.log")
+  if (( game_binds >= 4 )); then break; fi
+  kill -0 "$LOAD_PID" 2>/dev/null || { cat "$LOG_DIR/load.log" >&2; exit 1; }
+  sleep .05
+done
+(( $(count_marker 'WBD_GAME_LANE_BIND ' "$LOG_DIR/game-server.log") >= 4 ))
 
 for r in $(seq 1 "$ROTATIONS"); do
   target=$((load_start + r*ROTATE_INTERVAL_SEC))
@@ -288,7 +314,7 @@ for r in $(seq 1 "$ROTATIONS"); do
 done
 
 wait "$LOAD_PID"
-PIDS=("${PIDS[@]/$LOAD_PID}")
+drop_pid "$LOAD_PID"
 cat "$LOG_DIR/load.log"
 cat "$LOG_DIR/load-result.json"
 
@@ -315,10 +341,10 @@ PY_SUM
 # Stop Game endpoints so their final statistics are available in the artifact.
 sudo kill -TERM "$GCPID" 2>/dev/null || true
 wait "$GCPID" 2>/dev/null || true
-PIDS=("${PIDS[@]/$GCPID}")
+drop_pid "$GCPID"
 sudo kill -TERM "$GSPID" 2>/dev/null || true
 wait "$GSPID" 2>/dev/null || true
-PIDS=("${PIDS[@]/$GSPID}")
+drop_pid "$GSPID"
 '''
 pathlib.Path(sys.argv[2]).write_text(prefix + tail)
 PY_PATCHER
