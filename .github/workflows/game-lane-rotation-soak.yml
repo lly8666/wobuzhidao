@@ -9,6 +9,9 @@ on:
       - '.github/workflows/game-lane-rotation-soak.yml'
       - 'scripts/game_lane_rotation_soak.sh'
       - 'scripts/game_lane_rotation_soak_control.sh'
+      - 'internal/logicaltunnel/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-game-lane-server/**'
 
 concurrency:
   group: game-lane-rotation-soak-${{ github.head_ref || github.ref_name }}
@@ -78,7 +81,7 @@ jobs:
     timeout-minutes: 35
     strategy:
       fail-fast: false
-      max-parallel: 6
+      max-parallel: 10
       matrix:
         include:
           - fec: 'off'
@@ -90,6 +93,12 @@ jobs:
           - fec: 'off'
             slug: off
             replica: 3
+          - fec: 'off'
+            slug: off
+            replica: 4
+          - fec: 'off'
+            slug: off
+            replica: 5
           - fec: '20:20'
             slug: fec20
             replica: 1
@@ -99,6 +108,12 @@ jobs:
           - fec: '20:20'
             slug: fec20
             replica: 3
+          - fec: '20:20'
+            slug: fec20
+            replica: 4
+          - fec: '20:20'
+            slug: fec20
+            replica: 5
     steps:
       - uses: actions/checkout@v4
       - name: Install namespace tools
@@ -181,4 +196,4 @@ jobs:
     steps:
       - name: Publish matrix marker
         run: |
-          echo "WBD_GAME_LANE_ROTATION_SOAK_MATRIX_PASS source_sha=${GITHUB_SHA} duration_sec=500 lanes=4 payload_bps_each_direction=1000000 netem_delay_ms=300 netem_loss_pct=20 replicas_per_fec=3 rotations=16 fec=off,20:20"
+          echo "WBD_GAME_LANE_ROTATION_SOAK_MATRIX_PASS source_sha=${GITHUB_SHA} duration_sec=500 lanes=4 payload_bps_each_direction=1000000 netem_delay_ms=300 netem_loss_pct=20 replicas_per_fec=5 rotations=16 fec=off,20:20"
