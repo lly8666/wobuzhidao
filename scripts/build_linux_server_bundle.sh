@@ -43,11 +43,12 @@ source_tar=$(find "$work/wolf-art" -maxdepth 1 -type f -name 'wolfssl-*-source.t
 printf '%s  %s\n' "$source_sha" "$source_tar" | sha256sum -c -
 tar -xzf "$source_tar" -C "$work/wolf/src" --strip-components=1
 (cd "$work/wolf/src" && ./autogen.sh)
-(cd "$work/wolf/build" && "$work/wolf/src/configure" --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -fPIC')
+(cd "$work/wolf/build" && "$work/wolf/src/configure" --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -fPIC -DWOLFSSL_DTLS_WINDOW_WORDS=128')
 make -C "$work/wolf/build" -j2 src/libwolfssl.la
-gcc -O2 -Wall -Wextra -Werror -static -I"$work/wolf/build" -I"$work/wolf/src" \
+gcc -O2 -Wall -Wextra -Werror -static -DWOLFSSL_DTLS_WINDOW_WORDS=128 -I"$work/wolf/build" -I"$work/wolf/src" \
   native/dtls/wbd_dtls_shim.c "$work/wolf/build/src/.libs/libwolfssl.a" -lm -lpthread \
   -o "$root/bin/wbd_dtls_shim"
+echo "WBD_DTLS_REPLAY_WINDOW_BUILD_PASS words=128 records=4096"
 
 export CGO_ENABLED=0 GOOS=linux GOARCH="$ARCH"
 go test ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./internal/gamelane ./internal/logicaltunnel ./internal/rawipbackend ./cmd/wbd-game-lane-server ./cmd/wbd-link-server-mux ./cmd/wbd-ip-gateway-shared ./cmd/wbd-server-cert -count=1

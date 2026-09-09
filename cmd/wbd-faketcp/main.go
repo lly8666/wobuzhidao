@@ -638,7 +638,17 @@ func (e *endpoint) udpLoop() error {
 		}
 		now := time.Now()
 		e.senderMu.Lock()
-		p := e.sender.Enqueue(buf[:n], now)
+		p, enqueueErr := e.sender.EnqueueSteadyState(buf[:n], now)
+		if enqueueErr != nil {
+			pending := e.sender.Pending()
+			seq := e.sender.NextSeq()
+			e.senderMu.Unlock()
+			if errors.Is(enqueueErr, faketcp.ErrSteadyStateOutstandingFull) {
+				fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=%s pending=%d limit=%d action=rst\n", e.cfg.role, pending, faketcp.MaxSteadyStateOutstandingDatagrams)
+				_ = e.send(seq, e.receiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
+			}
+			return enqueueErr
+		}
 		err = e.sendDataPending(p)
 		e.senderMu.Unlock()
 		if err != nil {

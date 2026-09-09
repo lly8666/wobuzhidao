@@ -652,9 +652,14 @@ func (s *muxServer) relayLoop(sess *muxSession) {
 		if err != nil {
 			return
 		}
-		p, err := sess.assoc.Enqueue(buf[:n], time.Now())
+		p, err := sess.assoc.EnqueueSteadyState(buf[:n], time.Now())
 		if err != nil {
-			continue
+			if errors.Is(err, faketcp.ErrSteadyStateOutstandingFull) {
+				fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=server-mux client=%d server=%d limit=%d action=rst\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
+				_ = s.sendRaw(sess.flow, sess.assoc.SenderNext(), sess.assoc.ReceiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
+				s.removeSessionMatch(sess.flow, sess)
+			}
+			return
 		}
 		if err := s.sendPending(sess, p); err != nil {
 			return

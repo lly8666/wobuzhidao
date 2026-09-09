@@ -1,6 +1,13 @@
 #include <wolfssl/options.h>
 #include <wolfssl/ssl.h>
 
+#ifndef WOLFSSL_DTLS_WINDOW_WORDS
+#error "WBD requires an explicit pinned WOLFSSL_DTLS_WINDOW_WORDS build contract"
+#endif
+#if WOLFSSL_DTLS_WINDOW_WORDS != 128
+#error "WBD pinned DTLS replay window must be 128 words / 4096 records"
+#endif
+
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN

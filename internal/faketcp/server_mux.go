@@ -146,6 +146,18 @@ func (a *ServerAssociation) Enqueue(payload []byte, now time.Time) (*Pending, er
 	return a.sender.Enqueue(payload, now), nil
 }
 
+// EnqueueSteadyState applies the bounded outstanding-window contract while
+// holding the same association lock used by ACK processing. Bootstrap keeps
+// using Enqueue because that stream is separately ACK-gated stop-and-wait.
+func (a *ServerAssociation) EnqueueSteadyState(payload []byte, now time.Time) (*Pending, error) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.state != ServerAssociationEstablished {
+		return nil, ErrHandshakeState
+	}
+	return a.sender.EnqueueSteadyState(payload, now)
+}
+
 func (a *ServerAssociation) RetransmitDue(now time.Time) *Pending {
 	a.mu.Lock()
 	defer a.mu.Unlock()
