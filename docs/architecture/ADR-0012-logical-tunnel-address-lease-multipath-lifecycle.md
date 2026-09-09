@@ -1,6 +1,6 @@
 # ADR-0012: Stable logical tunnel, server-assigned address lease, and replaceable multipath transports
 
-Status: **ACCEPTED / CURRENT LIFECYCLE AND MULTIPATH AUTHORITY — REAFFIRMED 2026-08-31**
+Status: **ACCEPTED / CURRENT LIFECYCLE AND MULTIPATH AUTHORITY — REAFFIRMED 2026-08-31; RETIREMENT HEADROOM AMENDED 2026-09-09**
 
 ## Authority guard
 
@@ -59,9 +59,9 @@ raw FakeTCP SYN lineage / 4-tuple / sequence space
 
 `LiveID`, FakeTCP 4-tuple, DTLS state and LINK state belong to a lane/transport epoch. They do **not** own the tunnel address lease.
 
-### 2. Product transport cardinality and policy
+### 2. Product transport cardinality and bounded retirement headroom
 
-The product contract is:
+The product logical-lane contract remains:
 
 ```text
 MinProductPublicTransportLanes = 1
@@ -73,9 +73,23 @@ Policy targets are distinct from the architectural ceiling:
 - Normal steady mode: desired lanes = 1.
 - Game / weak-network mode: desired lanes = 2..4.
 - Dormant/disconnected Logical Tunnel: active lanes = 0.
-- Planned replacement may temporarily overlap an old lane and one candidate beyond the steady desired count when required by the replacement state machine, while remaining within explicit architectural/policy bounds.
+- Planned replacement may temporarily overlap an old lane and one or more authenticated replacement incarnations while retiring physical associations drain.
 
-A fifth simultaneously active product Transport Lane is rejected.
+A fifth simultaneously active **product logical Transport Lane** is rejected. This is unchanged.
+
+Physical transport incarnations are a separate lifecycle resource. On lossy paths, best-effort Game `LEAVE` or LINK close may be lost even after the replacement has crossed the authenticated Game qualification barrier and the old FakeTCP exact-flow reset has been sent. A retiring physical association can therefore remain visible to the LINK server until its independent liveness/idle cleanup runs. Rejecting the next healthy replacement merely because such bounded teardown is delayed makes correctness depend on one best-effort teardown packet.
+
+The server therefore reserves bounded retirement headroom:
+
+```text
+MaxProductPublicTransportLanes             = 4
+MaxRetiringPublicTransportIncarnations     = 6
+MaxConcurrentPublicTransportIncarnations   = 10
+```
+
+This permits up to 10 concurrent physical transport incarnations for one Logical Tunnel, but it does **not** permit ten logical Game lanes. At most four logical LaneIDs may be authoritative for product traffic; the additional slots exist only so already-retiring or temporarily overlapping physical incarnations cannot block a later authenticated replacement. The 11th concurrent physical incarnation is rejected.
+
+The headroom is deliberately bounded rather than unbounded. It absorbs several serialized replacement intervals under severe loss while retaining a hard per-tunnel resource ceiling. Logical-lane admission, Game/race scheduling and delivery remain governed by the 1..4 product contract.
 
 ### 3. The single-flow invariant applies per lane, not per whole VPN
 
@@ -174,6 +188,8 @@ old lane ACTIVE
 
 Candidate failure leaves the healthy old lane untouched. Game mode rotates one lane at a time, for example `A+B -> A+B+C -> B+C`.
 
+The authenticated Game `LaneReady` / `WBD_GAME_LANE_QUALIFIED` transition is the replacement qualification barrier. A fresh server-side `BIND` marker is not itself required for correctness when a prior best-effort `LEAVE` was lost: bounded A+B overlap may remain, then roll forward on the next serialized replacement or same-lane replacement incarnation. Exact-flow FakeTCP RST remains the terminal lower-layer peer cleanup mechanism; LINK/Game graceful teardown remains an optimization and observability signal rather than a single-packet correctness dependency.
+
 ### 10. One replacement state machine handles path change and failure
 
 Use one replacement mechanism for scheduled rotation, NIC/default-route/public-IP change, NAT/path failure, liveness failure, FakeTCP/DTLS/LINK child failure, server-requested replacement and manual reconnect. Lane generations fence stale paths and prevent retired processes from resurrecting transport ownership.
@@ -196,7 +212,7 @@ Do not combine this architecture correction with DTLS HRR removal, LINK bind/ini
 
 One Wintun belongs to the Logical Tunnel. Product orchestration may create 1..4 `LaneBootstrap` instances. Each lane has an independent source port, FakeTCP child, same-association Reality-like bootstrap state, DTLS state and LINK child. The Game/race layer aggregates active lane-local LINK transports before the single Wintun.
 
-Normal mode creates one lane. Game/weak-network mode may maintain 2..4. Replacement may briefly overlap old and candidate lanes.
+Normal mode creates one lane. Game/weak-network mode may maintain 2..4. Replacement may briefly overlap old and candidate lanes. Delayed teardown may leave additional retiring physical incarnations server-side, bounded by the ten-incarnation lifecycle ceiling; these are not additional product lanes.
 
 ### Linux
 
@@ -224,7 +240,7 @@ One public server port does **not** mean one Transport Lane per Logical Tunnel.
 Before artifact delivery, exact-head automation must prove at minimum:
 
 1. each lane has one SYN lineage through Reality-like TLS bootstrap -> barrier -> DTLS -> LINK -> payload, with no second WBD payload SYN;
-2. a connected Logical Tunnel accepts 1, 2, 3 and 4 active lanes and rejects a fifth;
+2. a connected Logical Tunnel accepts 1, 2, 3 and 4 logical lanes and rejects a fifth logical lane; replacement tests additionally prove up to 10 concurrent physical transport incarnations are bounded retirement headroom and the 11th is rejected;
 3. normal policy targets one lane and Game/weak-network policy supports 2..4;
 4. Game/race first-arrival delivery and duplicate suppression work across independent lanes without cross-lane HOL;
 5. scheduled `A -> A+B -> B` replacement is make-before-break and does not duplicate delivered payload;
