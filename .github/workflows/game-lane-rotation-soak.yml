@@ -9,6 +9,8 @@ on:
       - '.github/workflows/game-lane-rotation-soak.yml'
       - 'scripts/game_lane_rotation_soak.sh'
       - 'scripts/game_lane_rotation_soak_control.sh'
+      - 'internal/fec/**'
+      - 'internal/linkdata/**'
       - 'internal/logicaltunnel/**'
       - 'internal/releasecontract/**'
       - 'cmd/wbd-link-server-mux/**'
@@ -54,7 +56,7 @@ jobs:
           gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
             native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
 
-          go test ./internal/gamelane ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker \
+          go test ./internal/fec ./internal/linkdata ./internal/gamelane ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker \
             ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server \
             ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux -count=1
           go build -trimpath -o "$ASSET/wbd-reality-front" ./cmd/wbd-reality-front
