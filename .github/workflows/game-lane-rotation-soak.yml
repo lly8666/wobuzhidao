@@ -80,6 +80,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     strategy:
+      # Five independent random-loss replicas per release FEC mode exercise the
+      # bounded ten-incarnation retirement headroom on the exact candidate SHA.
       fail-fast: false
       max-parallel: 10
       matrix:
