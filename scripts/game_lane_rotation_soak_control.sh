@@ -57,6 +57,18 @@ if s.count('-keepalive 2s') < 2:
     raise SystemExit('control wrapper: expected initial and replacement 2s keepalive markers')
 s = s.replace('-keepalive 2s', '-keepalive 15s')
 
+# The generic load probe stopped receiving after at most five seconds. Legacy
+# FakeTCP steady-state recovery intentionally permits a 60-second maximum RTO,
+# so a packet still in the reliable queue at second 500 was being counted as
+# final application loss before the transport contract had time to recover it.
+# Sending still stops exactly at DURATION_SEC and goodput is still divided by
+# that 500-second send window; only the post-send receive drain is extended.
+drain_old = '    if now >= deadline and (now-last_rx >= 2.0 or now >= deadline+5.0):\n        break\n'
+drain_new = '    if now >= deadline and (len(unique) == sent or now >= deadline+65.0):\n        break\n'
+if drain_old not in s:
+    raise SystemExit('control wrapper: load drain insertion point not found')
+s = s.replace(drain_old, drain_new, 1)
+
 # Preserve the existing transport builder under a private name. Product
 # replacement is make-before-break, so the replacement LINK proxy must have a
 # generation-specific Game-facing UDP port and coexist with the old LINK proxy
@@ -238,6 +250,7 @@ grep -Fq 'game_control_cutover overlap "$lane"' "$OUT"
 grep -Fq 'local lport=$((47100 + gen*100 + lane))' "$OUT"
 grep -Fq -- '-keepalive 15s' "$OUT"
 grep -Fq "b.startswith(b'WBD1')" "$OUT"
+grep -Fq 'deadline+65.0' "$OUT"
 grep -Fq 'WBD_HOSTED_RETIRE_RST_ACK' "$OUT"
 grep -Fq 'WBD_HOSTED_RETIRE_RST_FAIL' "$OUT"
 if grep -Fq -- '-keepalive 2s' "$OUT"; then
