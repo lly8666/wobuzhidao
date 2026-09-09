@@ -45,7 +45,7 @@ func TestADR0012MultipathAuthority(t *testing.T) {
 		"ACCEPTED / CURRENT LIFECYCLE AND MULTIPATH AUTHORITY",
 		"single-flow is a per-Transport-Lane invariant",
 		"1..4 independent complete WBD Transport Lanes",
-		"A fifth simultaneously active product Transport Lane is rejected",
+		"A fifth simultaneously active product logical Transport Lane is rejected",
 		"up to 10 concurrent physical transport incarnations",
 		"make-before-break",
 	} { requireContains(t, adr12, want, "ADR-0012") }
