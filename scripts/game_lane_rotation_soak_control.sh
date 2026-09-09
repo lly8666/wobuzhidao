@@ -16,10 +16,17 @@ s = p.read_text()
 # The base full-stack harness starts the Game client without its runtime control
 # socket. Hosted replacement must use the same dynamic-membership API as the
 # product runtime. Apply the requested weak network on both public veth egress
-# directions before any Reality/FakeTCP bootstrap.
+# directions before any Reality/FakeTCP bootstrap. The base echo intentionally
+# accepts only warm/game probes; extend that whitelist for the soak's WBD1 load
+# so the 1 Mbps reverse path is actually measured as well.
 needle = "tail = r'''DURATION_SEC=${DURATION_SEC:-500}"
 insert = r"""prefix = prefix.replace('-session-id \"$SESSION_ID\" >\"$LOG_DIR/game-client.log\"',
                         '-session-id \"$SESSION_ID\" -control 127.0.0.1:47499 >\"$LOG_DIR/game-client.log\"')
+echo_guard = "    if not (b.startswith(b'warm') or b.startswith(b'game')):\n"
+echo_guard_soak = "    if not (b.startswith(b'warm') or b.startswith(b'game') or b.startswith(b'WBD1')):\n"
+if echo_guard not in prefix:
+    raise SystemExit('control wrapper: soak echo guard insertion point not found')
+prefix = prefix.replace(echo_guard, echo_guard_soak, 1)
 netem_anchor = 'sudo ip netns exec \"$S\" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP\n'
 netem_block = netem_anchor + r'''NETEM_DELAY_MS=${NETEM_DELAY_MS:-0}
 NETEM_LOSS_PCT=${NETEM_LOSS_PCT:-0}
@@ -125,9 +132,10 @@ observe_marker() {
 
 retire_old_transport() {
   local old_link=$1 old_dtls=$2 old_fake=$3 old_sport=$4
-  local before_link_close before_reset
+  local before_link_close before_reset reset_pattern attempt reset_seen=0
   before_link_close=$(count_marker 'WBD_LINK_MUX_SESSION_CLOSE ' "$LOG_DIR/link-server.log")
-  before_reset=$(count_marker 'WBD_FAKETCP_MUX_PEER_RESET ' "$LOG_DIR/faketcp-mux.log")
+  reset_pattern="WBD_FAKETCP_MUX_PEER_RESET client=${old_sport} server=${RAW}"
+  before_reset=$(count_marker "$reset_pattern" "$LOG_DIR/faketcp-mux.log")
 
   # Once the candidate crossed Game Probe/Ready and the control plane committed
   # candidate-only membership, the old physical stack may retire. LINK close is
@@ -142,8 +150,23 @@ retire_old_transport() {
   wait "$old_dtls" 2>/dev/null || true
   drop_pid "$old_dtls"
 
-  send_retire_rst "$old_sport"
-  wait_count_gt 'WBD_FAKETCP_MUX_PEER_RESET ' "$LOG_DIR/faketcp-mux.log" "$before_reset" 400
+  # A retirement RST is itself subject to the configured weak-net loss. Retry
+  # the same exact 5-tuple in a small bounded loop, and advance only after the
+  # server has observed the reset for this specific old association.
+  for attempt in 1 2 3 4; do
+    send_retire_rst "$old_sport"
+    if wait_count_gt "$reset_pattern" "$LOG_DIR/faketcp-mux.log" "$before_reset" 40; then
+      echo "WBD_HOSTED_RETIRE_RST_ACK source_port=${old_sport} remote_port=${RAW} attempt=${attempt}" >>"$LOG_DIR/rotation.log"
+      reset_seen=1
+      break
+    fi
+    echo "WBD_HOSTED_RETIRE_RST_RETRY source_port=${old_sport} remote_port=${RAW} attempt=${attempt}" >>"$LOG_DIR/rotation.log"
+  done
+  if (( reset_seen != 1 )); then
+    echo "WBD_HOSTED_RETIRE_RST_FAIL source_port=${old_sport} remote_port=${RAW} attempts=4" >&2
+    return 1
+  fi
+
   sudo kill -TERM "$old_fake" 2>/dev/null || true
   wait "$old_fake" 2>/dev/null || true
   drop_pid "$old_fake"
@@ -214,6 +237,9 @@ grep -Fq 'WBD_HOSTED_GAME_QUALIFICATION_PASS' "$OUT"
 grep -Fq 'game_control_cutover overlap "$lane"' "$OUT"
 grep -Fq 'local lport=$((47100 + gen*100 + lane))' "$OUT"
 grep -Fq -- '-keepalive 15s' "$OUT"
+grep -Fq "b.startswith(b'WBD1')" "$OUT"
+grep -Fq 'WBD_HOSTED_RETIRE_RST_ACK' "$OUT"
+grep -Fq 'WBD_HOSTED_RETIRE_RST_FAIL' "$OUT"
 if grep -Fq -- '-keepalive 2s' "$OUT"; then
   echo 'control wrapper: stale accelerated 2s keepalive survived generation' >&2
   exit 1
