@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
@@ -27,31 +28,26 @@ func resetTunnelTransportTestState() {
 	activeTunnelPeersMu.Unlock()
 }
 
-func TestClaimTunnelTransportReservesOneBoundedReplacementIncarnation(t *testing.T) {
+func TestClaimTunnelTransportReservesBoundedRetirementHeadroom(t *testing.T) {
 	resetTunnelTransportTestState(); t.Cleanup(resetTunnelTransportTestState)
 	if logicaltunnel.MaxProductPublicTransportLanes != 4 { t.Fatalf("product transport max=%d want=4", logicaltunnel.MaxProductPublicTransportLanes) }
-	if logicaltunnel.MaxConcurrentPublicTransportIncarnations != 5 { t.Fatalf("transport incarnation max=%d want=5", logicaltunnel.MaxConcurrentPublicTransportIncarnations) }
+	if logicaltunnel.MaxRetiringPublicTransportIncarnations != 6 { t.Fatalf("retiring transport headroom=%d want=6", logicaltunnel.MaxRetiringPublicTransportIncarnations) }
+	if logicaltunnel.MaxConcurrentPublicTransportIncarnations != 10 { t.Fatalf("transport incarnation max=%d want=10", logicaltunnel.MaxConcurrentPublicTransportIncarnations) }
 	if err := logicaltunnel.ValidateProductTransportLaneCount(5); !errors.Is(err, logicaltunnel.ErrTransportLanes) { t.Fatalf("fifth product logical lane accepted: %v", err) }
 
 	binding := testTunnelBinding()
-	peers := make([]*peerSession, 0, 5)
-	for i := 1; i <= 4; i++ {
-		peer := &peerSession{key: "lane-" + string(rune('0'+i))}
-		if err := claimTunnelTransport(peer, binding); err != nil { t.Fatalf("claim product lane transport %d: %v", i, err) }
+	peers := make([]*peerSession, 0, logicaltunnel.MaxConcurrentPublicTransportIncarnations)
+	for i := 1; i <= logicaltunnel.MaxConcurrentPublicTransportIncarnations; i++ {
+		peer := &peerSession{key: fmt.Sprintf("incarnation-%d", i)}
+		if err := claimTunnelTransport(peer, binding); err != nil { t.Fatalf("claim transport incarnation %d: %v", i, err) }
 		peerTunnelBindings.Store(peer, binding)
 		peers = append(peers, peer)
-		if got := activeTunnelTransportCount(binding.Config.TunnelID); got != i { t.Fatalf("after peer %d active=%d", i, got) }
+		if got := activeTunnelTransportCount(binding.Config.TunnelID); got != i { t.Fatalf("after incarnation %d active=%d", i, got) }
 	}
 
-	candidate := &peerSession{key: "replacement-candidate"}
-	if err := claimTunnelTransport(candidate, binding); err != nil { t.Fatalf("bounded fifth replacement incarnation rejected: %v", err) }
-	peerTunnelBindings.Store(candidate, binding)
-	peers = append(peers, candidate)
-	if got := activeTunnelTransportCount(binding.Config.TunnelID); got != 5 { t.Fatalf("replacement overlap active=%d want=5", got) }
-
-	sixth := &peerSession{key: "sixth-incarnation"}
-	if err := claimTunnelTransport(sixth, binding); !errors.Is(err, errTransportIncarnationLimit) { t.Fatalf("sixth public transport incarnation was not rejected: %v", err) }
-	if got := activeTunnelTransportCount(binding.Config.TunnelID); got != 5 { t.Fatalf("rejected sixth claim changed active=%d", got) }
+	overLimit := &peerSession{key: "incarnation-11"}
+	if err := claimTunnelTransport(overLimit, binding); !errors.Is(err, errTransportIncarnationLimit) { t.Fatalf("eleventh public transport incarnation was not rejected: %v", err) }
+	if got := activeTunnelTransportCount(binding.Config.TunnelID); got != 10 { t.Fatalf("rejected eleventh claim changed active=%d", got) }
 }
 
 func TestClaimTunnelTransportIsIdempotentForSamePeer(t *testing.T) {
@@ -80,20 +76,20 @@ func TestReleaseTunnelTransportAllowsMakeBeforeBreakReplacement(t *testing.T) {
 	if bound.Config.TunnelID != binding.Config.TunnelID || bound.Config.Address4 != binding.Config.Address4 { t.Fatal("replacement changed tunnel identity/lease") }
 }
 
-func TestRejectedSixthIncarnationLeavesExistingTransportsClaimed(t *testing.T) {
+func TestRejectedEleventhIncarnationLeavesExistingTransportsClaimed(t *testing.T) {
 	resetTunnelTransportTestState(); t.Cleanup(resetTunnelTransportTestState)
 	binding := testTunnelBinding()
-	peers := make([]*peerSession, 0, 5)
-	for i := 1; i <= 5; i++ {
-		peer := &peerSession{key: "existing-" + string(rune('0'+i))}
+	peers := make([]*peerSession, 0, logicaltunnel.MaxConcurrentPublicTransportIncarnations)
+	for i := 1; i <= logicaltunnel.MaxConcurrentPublicTransportIncarnations; i++ {
+		peer := &peerSession{key: fmt.Sprintf("existing-%d", i)}
 		if err := claimTunnelTransport(peer, binding); err != nil { t.Fatal(err) }
 		peerTunnelBindings.Store(peer, binding)
 		peers = append(peers, peer)
 	}
-	sixth := &peerSession{key:"sixth"}
-	if err := claimTunnelTransport(sixth, binding); !errors.Is(err, errTransportIncarnationLimit) { t.Fatalf("sixth transport rejection=%v", err) }
-	if got := activeTunnelTransportCount(binding.Config.TunnelID); got != 5 { t.Fatalf("sixth transport rejection disturbed active transports: active=%d", got) }
+	overLimit := &peerSession{key:"eleventh"}
+	if err := claimTunnelTransport(overLimit, binding); !errors.Is(err, errTransportIncarnationLimit) { t.Fatalf("eleventh transport rejection=%v", err) }
+	if got := activeTunnelTransportCount(binding.Config.TunnelID); got != logicaltunnel.MaxConcurrentPublicTransportIncarnations { t.Fatalf("eleventh transport rejection disturbed active transports: active=%d", got) }
 	for i, peer := range peers {
-		if _, ok := peerTunnelBinding(peer); !ok { t.Fatalf("sixth transport rejection removed existing binding %d", i+1) }
+		if _, ok := peerTunnelBinding(peer); !ok { t.Fatalf("eleventh transport rejection removed existing binding %d", i+1) }
 	}
 }
