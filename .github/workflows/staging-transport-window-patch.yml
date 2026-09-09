@@ -1,0 +1,252 @@
+name: staging-transport-window-patch
+
+on:
+  push:
+    branches:
+      - agent/fec-zombie-fix-7d859
+    paths:
+      - '.github/workflows/staging-transport-window-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply asserted transport-window patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new, count=1):
+              p = Path(path)
+              s = p.read_text()
+              got = s.count(old)
+              if got != count:
+                  raise SystemExit(f'{path}: replacement count {got}, want {count}: {old[:120]!r}')
+              p.write_text(s.replace(old, new, count))
+
+          Path('internal/faketcp/window.go').write_text(r'''package faketcp
+
+import (
+    "errors"
+    "time"
+)
+
+const (
+    // MaxSteadyStateOutstandingDatagrams is the hard per-association bound for
+    // DTLS ciphertext datagrams admitted into FakeTCP steady state. Product DTLS
+    // emits one application record per LINK datagram, so keeping this bound equal
+    // to the pinned wolfSSL replay window prevents a live association from
+    // creating a record-reordering span larger than the receiver can authenticate.
+    MaxSteadyStateOutstandingDatagrams = 4096
+
+    // PinnedDTLSReplayWindowWords is compiled into the pinned wolfSSL library and
+    // wbd_dtls_shim. wolfSSL word32 replay windows have 32 bits per word.
+    PinnedDTLSReplayWindowWords   = 128
+    PinnedDTLSReplayWindowRecords = PinnedDTLSReplayWindowWords * 32
+)
+
+var ErrSteadyStateOutstandingFull = errors.New("faketcp: steady-state outstanding datagram window full")
+
+// EnqueueSteadyState admits one post-bootstrap datagram without allowing the
+// sender's retained/retransmittable set to grow without bound. Callers own the
+// Sender synchronization exactly as they do for Enqueue/AckSelective.
+func (s *Sender) EnqueueSteadyState(payload []byte, now time.Time) (*Pending, error) {
+    if s.Pending() >= MaxSteadyStateOutstandingDatagrams {
+        return nil, ErrSteadyStateOutstandingFull
+    }
+    return s.Enqueue(payload, now), nil
+}
+''')
+
+          Path('internal/faketcp/window_test.go').write_text(r'''package faketcp
+
+import (
+    "errors"
+    "testing"
+    "time"
+)
+
+func TestSteadyStateOutstandingWindowMatchesPinnedDTLSReplayWindow(t *testing.T) {
+    if got, want := PinnedDTLSReplayWindowRecords, MaxSteadyStateOutstandingDatagrams; got != want {
+        t.Fatalf("DTLS replay records=%d want FakeTCP outstanding limit=%d", got, want)
+    }
+    if PinnedDTLSReplayWindowWords != 128 || PinnedDTLSReplayWindowRecords != 4096 {
+        t.Fatalf("unexpected pinned replay contract words=%d records=%d", PinnedDTLSReplayWindowWords, PinnedDTLSReplayWindowRecords)
+    }
+}
+
+func TestSteadyStateOutstandingWindowCovers40Mbps600msBDP(t *testing.T) {
+    const (
+        targetBitsPerSecond      int64 = 40_000_000
+        conservativeRecordBytes int64 = 900
+    )
+    const targetRTT = 600 * time.Millisecond
+    bdpBytes := targetBitsPerSecond / 8 * int64(targetRTT) / int64(time.Second)
+    required := (bdpBytes + conservativeRecordBytes - 1) / conservativeRecordBytes
+    if int64(MaxSteadyStateOutstandingDatagrams) < required {
+        t.Fatalf("outstanding limit=%d cannot cover target BDP: need at least %d records", MaxSteadyStateOutstandingDatagrams, required)
+    }
+}
+
+func TestEnqueueSteadyStateHardBoundsPending(t *testing.T) {
+    s := NewSenderWithRecovery(100, time.Second, RecoveryLegacy)
+    now := time.Unix(1, 0)
+    for i := 0; i < MaxSteadyStateOutstandingDatagrams; i++ {
+        if _, err := s.EnqueueSteadyState([]byte{byte(i)}, now); err != nil {
+            t.Fatalf("enqueue %d: %v", i, err)
+        }
+    }
+    if got := s.Pending(); got != MaxSteadyStateOutstandingDatagrams {
+        t.Fatalf("pending=%d want=%d", got, MaxSteadyStateOutstandingDatagrams)
+    }
+    if _, err := s.EnqueueSteadyState([]byte{0xff}, now); !errors.Is(err, ErrSteadyStateOutstandingFull) {
+        t.Fatalf("overflow err=%v want %v", err, ErrSteadyStateOutstandingFull)
+    }
+    if got := s.Pending(); got != MaxSteadyStateOutstandingDatagrams {
+        t.Fatalf("overflow changed pending=%d", got)
+    }
+    if got := s.Stats().PeakPending; got != MaxSteadyStateOutstandingDatagrams {
+        t.Fatalf("peak pending=%d want=%d", got, MaxSteadyStateOutstandingDatagrams)
+    }
+    s.Ack(101, now.Add(time.Millisecond))
+    if got := s.Pending(); got != MaxSteadyStateOutstandingDatagrams-1 {
+        t.Fatalf("pending after ACK=%d", got)
+    }
+    if _, err := s.EnqueueSteadyState([]byte{0xee}, now.Add(2*time.Millisecond)); err != nil {
+        t.Fatalf("enqueue after ACK: %v", err)
+    }
+    if got := s.Pending(); got != MaxSteadyStateOutstandingDatagrams {
+        t.Fatalf("pending after refill=%d", got)
+    }
+}
+''')
+
+          replace('internal/faketcp/server_mux.go', r'''func (a *ServerAssociation) Enqueue(payload []byte, now time.Time) (*Pending, error) {
+    a.mu.Lock()
+    defer a.mu.Unlock()
+    if a.state != ServerAssociationEstablished {
+        return nil, ErrHandshakeState
+    }
+    return a.sender.Enqueue(payload, now), nil
+}
+''', r'''func (a *ServerAssociation) Enqueue(payload []byte, now time.Time) (*Pending, error) {
+    a.mu.Lock()
+    defer a.mu.Unlock()
+    if a.state != ServerAssociationEstablished {
+        return nil, ErrHandshakeState
+    }
+    return a.sender.Enqueue(payload, now), nil
+}
+
+// EnqueueSteadyState applies the bounded outstanding-window contract while
+// holding the same association lock used by ACK processing. Bootstrap keeps
+// using Enqueue because that stream is separately ACK-gated stop-and-wait.
+func (a *ServerAssociation) EnqueueSteadyState(payload []byte, now time.Time) (*Pending, error) {
+    a.mu.Lock()
+    defer a.mu.Unlock()
+    if a.state != ServerAssociationEstablished {
+        return nil, ErrHandshakeState
+    }
+    return a.sender.EnqueueSteadyState(payload, now)
+}
+''')
+
+          replace('cmd/wbd-faketcp/main.go', r'''        now := time.Now()
+        e.senderMu.Lock()
+        p := e.sender.Enqueue(buf[:n], now)
+        err = e.sendDataPending(p)
+        e.senderMu.Unlock()
+        if err != nil {
+            return err
+        }
+''', r'''        now := time.Now()
+        e.senderMu.Lock()
+        p, enqueueErr := e.sender.EnqueueSteadyState(buf[:n], now)
+        if enqueueErr != nil {
+            pending := e.sender.Pending()
+            seq := e.sender.NextSeq()
+            e.senderMu.Unlock()
+            if errors.Is(enqueueErr, faketcp.ErrSteadyStateOutstandingFull) {
+                fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=%s pending=%d limit=%d action=rst\n", e.cfg.role, pending, faketcp.MaxSteadyStateOutstandingDatagrams)
+                _ = e.send(seq, e.receiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
+            }
+            return enqueueErr
+        }
+        err = e.sendDataPending(p)
+        e.senderMu.Unlock()
+        if err != nil {
+            return err
+        }
+''')
+
+          replace('cmd/wbd-faketcp-mux/main_linux.go', r'''        p, err := sess.assoc.Enqueue(buf[:n], time.Now())
+        if err != nil {
+            continue
+        }
+        if err := s.sendPending(sess, p); err != nil {
+            return
+        }
+''', r'''        p, err := sess.assoc.EnqueueSteadyState(buf[:n], time.Now())
+        if err != nil {
+            if errors.Is(err, faketcp.ErrSteadyStateOutstandingFull) {
+                fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=server-mux client=%d server=%d limit=%d action=rst\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
+                _ = s.sendRaw(sess.flow, sess.assoc.SenderNext(), sess.assoc.ReceiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
+                s.removeSessionMatch(sess.flow, sess)
+            }
+            return
+        }
+        if err := s.sendPending(sess, p); err != nil {
+            return
+        }
+''')
+
+          replace('native/dtls/wbd_dtls_shim.c', '#include <wolfssl/options.h>\n#include <wolfssl/ssl.h>\n', '''#include <wolfssl/options.h>\n#include <wolfssl/ssl.h>\n\n#ifndef WOLFSSL_DTLS_WINDOW_WORDS\n#error "WBD requires an explicit pinned WOLFSSL_DTLS_WINDOW_WORDS build contract"\n#endif\n#if WOLFSSL_DTLS_WINDOW_WORDS != 128\n#error "WBD pinned DTLS replay window must be 128 words / 4096 records"\n#endif\n''')
+
+          replace('.github/workflows/windows-portable-bundle.yml', "      - 'cmd/wbd-faketcp/**'\n", "      - 'cmd/wbd-faketcp/**'\n      - 'internal/faketcp/**'\n", 2)
+          replace('.github/workflows/windows-portable-bundle.yml', '          cmake -S . -B build -DWOLFSSL_DTLS13=yes -DWOLFSSL_DTLS=yes -DWOLFSSL_EXAMPLES=no -DWOLFSSL_CRYPT_TESTS=no -DBUILD_SHARED_LIBS=OFF -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded\n', '          cmake -S . -B build -DWOLFSSL_DTLS13=yes -DWOLFSSL_DTLS=yes -DWOLFSSL_EXAMPLES=no -DWOLFSSL_CRYPT_TESTS=no -DBUILD_SHARED_LIBS=OFF -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \'-DCMAKE_C_FLAGS=/DWOLFSSL_DTLS_WINDOW_WORDS=128\'\n')
+          replace('.github/workflows/windows-portable-bundle.yml', '          cl /nologo /O2 /MT /Iupstream-wolfssl /Iupstream-wolfssl\\build /Iupstream-wolfssl\\wolfssl native\\dtls\\wbd_dtls_shim.c /Fe:build\\windows-runtime\\wbd_dtls_shim.exe /link upstream-wolfssl\\build\\Release\\wolfssl.lib ws2_32.lib crypt32.lib advapi32.lib\n', '          cl /nologo /O2 /MT /DWOLFSSL_DTLS_WINDOW_WORDS=128 /Iupstream-wolfssl /Iupstream-wolfssl\\build /Iupstream-wolfssl\\wolfssl native\\dtls\\wbd_dtls_shim.c /Fe:build\\windows-runtime\\wbd_dtls_shim.exe /link upstream-wolfssl\\build\\Release\\wolfssl.lib ws2_32.lib crypt32.lib advapi32.lib\n')
+          replace('.github/workflows/windows-portable-bundle.yml', '          if ($LASTEXITCODE -ne 0) { throw "DTLS shim build failed: $LASTEXITCODE" }\n', '          if ($LASTEXITCODE -ne 0) { throw "DTLS shim build failed: $LASTEXITCODE" }\n          Write-Output \'WBD_DTLS_REPLAY_WINDOW_BUILD_PASS words=128 records=4096\'\n')
+
+          replace('scripts/build_linux_server_bundle.sh', "(cd \"$work/wolf/build\" && \"$work/wolf/src/configure\" --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -fPIC')\n", "(cd \"$work/wolf/build\" && \"$work/wolf/src/configure\" --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -fPIC -DWOLFSSL_DTLS_WINDOW_WORDS=128')\n")
+          replace('scripts/build_linux_server_bundle.sh', 'gcc -O2 -Wall -Wextra -Werror -static -I"$work/wolf/build" -I"$work/wolf/src" \\\n', 'gcc -O2 -Wall -Wextra -Werror -static -DWOLFSSL_DTLS_WINDOW_WORDS=128 -I"$work/wolf/build" -I"$work/wolf/src" \\\n')
+          replace('scripts/build_linux_server_bundle.sh', '  -o "$root/bin/wbd_dtls_shim"\n\nexport CGO_ENABLED=0', '  -o "$root/bin/wbd_dtls_shim"\necho "WBD_DTLS_REPLAY_WINDOW_BUILD_PASS words=128 records=4096"\n\nexport CGO_ENABLED=0')
+
+          replace('.github/workflows/reconnect-netem.yml', '          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)\n', "          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')\n")
+          replace('.github/workflows/reconnect-netem.yml', '          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \\\n', '          gcc -O2 -Wall -Wextra -Werror -DWOLFSSL_DTLS_WINDOW_WORDS=128 -I/tmp/wolf/build -I/tmp/wolf/src \\\n')
+          replace('.github/workflows/reconnect-netem.yml', '            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"\n\n          go test', '            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"\n          echo \'WBD_DTLS_REPLAY_WINDOW_BUILD_PASS words=128 records=4096\'\n\n          go test')
+
+          for path in [
+              'internal/faketcp/window.go',
+              'internal/faketcp/window_test.go',
+              'internal/faketcp/server_mux.go',
+              'cmd/wbd-faketcp/main.go',
+              'cmd/wbd-faketcp-mux/main_linux.go',
+              'native/dtls/wbd_dtls_shim.c',
+              '.github/workflows/windows-portable-bundle.yml',
+              'scripts/build_linux_server_bundle.sh',
+              '.github/workflows/reconnect-netem.yml',
+          ]:
+              print('PATCHED', path)
+          PY
+          gofmt -w internal/faketcp/window.go internal/faketcp/window_test.go internal/faketcp/server_mux.go cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/main_linux.go
+          go test ./internal/faketcp ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux -count=1
+          git diff --check
+      - name: Commit patch and self-remove
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/staging-transport-window-patch.yml
+          git config user.name 'lly8666'
+          git config user.email '30583594+lly8666@users.noreply.github.com'
+          git add internal/faketcp/window.go internal/faketcp/window_test.go internal/faketcp/server_mux.go cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/main_linux.go native/dtls/wbd_dtls_shim.c .github/workflows/windows-portable-bundle.yml scripts/build_linux_server_bundle.sh .github/workflows/reconnect-netem.yml
+          git commit -m 'fix(transport): bound FakeTCP window to DTLS replay budget'
+          git push origin HEAD:agent/fec-zombie-fix-7d859
