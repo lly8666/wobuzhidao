@@ -10,8 +10,10 @@ on:
       - 'scripts/game_lane_rotation_soak.sh'
       - 'scripts/game_lane_rotation_soak_control.sh'
       - 'internal/logicaltunnel/**'
+      - 'internal/releasecontract/**'
       - 'cmd/wbd-link-server-mux/**'
       - 'cmd/wbd-game-lane-server/**'
+      - 'docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md'
 
 concurrency:
   group: game-lane-rotation-soak-${{ github.head_ref || github.ref_name }}
