@@ -1,0 +1,41 @@
+name: staging-shim-shapin
+
+on:
+  push:
+    branches:
+      - agent/fec-zombie-fix-7d859-shapin
+    paths:
+      - '.github/workflows/staging-shim-shapin.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync benchmark shim source pin
+        run: |
+          set -euo pipefail
+          actual="$(sha256sum native/dtls/wbd_dtls_shim.c | awk '{print $1}')"
+          blob="$(git hash-object native/dtls/wbd_dtls_shim.c)"
+          test "$blob" = '51185414b09518f53cf664480eeb9dc9309d9285'
+          python3 - "$actual" <<'PY'
+          import sys
+          from pathlib import Path
+          p=Path('scripts/bench_v2_transport_20x20.py')
+          s=p.read_text()
+          old='QUALIFIED_DTLS_SHIM_SOURCE_SHA256 = "b5b8a1031c045af973b27c18178205f2057330f28e2bc5350ba82a5556d272a1"'
+          new=f'QUALIFIED_DTLS_SHIM_SOURCE_SHA256 = "{sys.argv[1]}"'
+          if s.count(old) != 1:
+              raise SystemExit(f'old pin count={s.count(old)}')
+          p.write_text(s.replace(old,new))
+          PY
+          git diff --check
+          echo "WBD_DTLS_SHIM_SOURCE_PIN sha256=$actual git_blob=$blob"
+          git config user.name 'wbd-staging-bot'
+          git config user.email 'wbd-staging-bot@users.noreply.github.com'
+          git add scripts/bench_v2_transport_20x20.py
+          git commit -m 'test(transport): refresh DTLS shim source pin'
+          git push origin HEAD:agent/fec-zombie-fix-7d859-shapin
