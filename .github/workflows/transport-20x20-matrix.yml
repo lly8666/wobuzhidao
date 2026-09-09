@@ -53,7 +53,7 @@ jobs:
           mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build
           unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
           echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
-          echo 'b5b8a1031c045af973b27c18178205f2057330f28e2bc5350ba82a5556d272a1  native/dtls/wbd_dtls_shim.c' | sha256sum -c -
+          echo '962a641e8c31a6cd1575d978c873939855721274dbd7d5d1b6a807b109529890  native/dtls/wbd_dtls_shim.c' | sha256sum -c -
           tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
           (cd /tmp/wolf/src && ./autogen.sh)
           (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
@@ -93,7 +93,7 @@ jobs:
             'wolfssl_tag':'v5.9.2-stable',
             'wolfssl_commit':'ac01707f552c611fbd135cc723b2682b3e7f80f2',
             'wolfssl_source_sha256':'4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b',
-            'dtls_shim_source_sha256':'b5b8a1031c045af973b27c18178205f2057330f28e2bc5350ba82a5556d272a1',
+            'dtls_shim_source_sha256':'962a641e8c31a6cd1575d978c873939855721274dbd7d5d1b6a807b109529890',
             'benchmark_dtls_shim_sha256':h('/tmp/assets/wbd_dtls_shim'),
             'historical_qualified_dtls_shim_sha256':'63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a',
             'runner':platform.platform(),
