@@ -130,7 +130,7 @@ jobs:
           set -euo pipefail
           LOG="$RUNNER_TEMP/game-lane-rotation-${{ matrix.slug }}-r${{ matrix.replica }}"
           mkdir -p "$LOG"
-          sudo -E "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$RUNNER_TEMP/wbd-soak-assets" "$LOG"
+          sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$RUNNER_TEMP/wbd-soak-assets" "$LOG"
           grep -q 'WBD_HOSTED_NETEM_READY delay_ms=300 loss_pct=20 direction=bidirectional' "$LOG/netem.log"
           python3 - "$LOG/load-result.json" <<'PY'
           import json,sys
