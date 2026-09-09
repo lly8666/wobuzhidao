@@ -50,12 +50,12 @@ jobs:
         run: |
           set -euo pipefail
           (cd /tmp/sfdiag-wolf/src && ./autogen.sh)
-          (cd /tmp/sfdiag-wolf/build && /tmp/sfdiag-wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          (cd /tmp/sfdiag-wolf/build && /tmp/sfdiag-wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
       - name: Build pinned wolfSSL static library
         run: make -C /tmp/sfdiag-wolf/build -j2 src/libwolfssl.la
       - name: Build native DTLS shim with warnings as errors
         run: |
-          gcc -O2 -Wall -Wextra -Werror -I/tmp/sfdiag-wolf/build -I/tmp/sfdiag-wolf/src \
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/sfdiag-wolf/build -I/tmp/sfdiag-wolf/src \
             native/dtls/wbd_dtls_shim.c /tmp/sfdiag-wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/wbd_dtls_shim
       - name: Run raw-IP Go unit tests
         run: go test ./internal/diag ./internal/rawipbackend ./cmd/wbd-link-server-mux ./cmd/wbd-ip-gateway-server -count=1 -v

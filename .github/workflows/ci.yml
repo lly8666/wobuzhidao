@@ -67,9 +67,9 @@ jobs:
           echo 'b5b8a1031c045af973b27c18178205f2057330f28e2bc5350ba82a5556d272a1  native/dtls/wbd_dtls_shim.c' | sha256sum -c -
           tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
           (cd /tmp/wolf/src && ./autogen.sh)
-          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
           make -C /tmp/wolf/build -j2 src/libwolfssl.la
-          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
             native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm \
             -o /tmp/assets/wbd_dtls_shim
           chmod +x /tmp/assets/wbd_dtls_shim

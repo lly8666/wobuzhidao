@@ -24,6 +24,7 @@ on:
     branches:
       - dev/wbd-raw-fec-v2
       - feat/single-flow-reality-faketcp
+      - agent/fec-zombie-fix-7d859
     paths:
       - '.github/workflows/linux-server-release.yml'
       - 'scripts/build_linux_server_bundle.sh'

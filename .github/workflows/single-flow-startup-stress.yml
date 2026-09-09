@@ -67,9 +67,9 @@ jobs:
           echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-stress-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
           tar -xzf /tmp/wolf-stress-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf-stress/src --strip-components=1
           (cd /tmp/wolf-stress/src && ./autogen.sh)
-          (cd /tmp/wolf-stress/build && /tmp/wolf-stress/src/configure --enable-dtls13 --disable-shared --enable-static)
+          (cd /tmp/wolf-stress/build && /tmp/wolf-stress/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
           make -C /tmp/wolf-stress/build -j2 src/libwolfssl.la
-          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf-stress/build -I/tmp/wolf-stress/src \
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/wolf-stress/build -I/tmp/wolf-stress/src \
             native/dtls/wbd_dtls_shim.c /tmp/wolf-stress/build/src/.libs/libwolfssl.a -lm -o /tmp/sfstress/wbd_dtls_shim
           go build -trimpath -o /tmp/sfstress/wbd-faketcp ./cmd/wbd-faketcp
           go build -trimpath -o /tmp/sfstress/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
