@@ -1,0 +1,212 @@
+name: staging-matrix-harness-fix
+
+on:
+  push:
+    branches:
+      - agent/matrix-harness-fix-f885
+    paths:
+      - '.github/workflows/staging-matrix-harness-fix.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply asserted harness patch
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('scripts/bench_v2_transport_20x20.py')
+          s = p.read_text()
+          old = '''def install_netem(ns: str, dev: str, rtt_ms: int, loss_pct: float, seed: int) -> None:
+              half = rtt_ms / 2.0
+              cmd = ["tc", "qdisc", "replace", "dev", dev, "root", "netem", "limit", "10000",
+                     "delay", f"{half:g}ms"]
+              if loss_pct > 0:
+                  cmd += ["loss", "random", f"{loss_pct:g}%", "seed", str(seed)]
+              run_ns(ns, cmd)
+          '''
+          new = '''def install_netem(ns: str, dev: str, rtt_ms: int, loss_pct: float, seed: int) -> None:
+              half = rtt_ms / 2.0
+              base = ["tc", "qdisc", "replace", "dev", dev, "root", "netem", "limit", "10000",
+                      "delay", f"{half:g}ms"]
+              if loss_pct <= 0:
+                  run_ns(ns, base)
+                  return
+
+              seeded = [*base, "loss", "random", f"{loss_pct:g}%", "seed", str(seed)]
+              cp = run_ns(ns, seeded, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+              if cp.returncode == 0:
+                  return
+
+              # Older hosted-runner iproute2 builds reject netem's optional RNG seed.
+              # Preserve the requested random loss/delay and fail if even the portable
+              # unseeded form cannot be installed. The fallback is always surfaced in
+              # logs so evidence does not pretend the RNG stream was deterministic.
+              fallback = [*base, "loss", "random", f"{loss_pct:g}%"]
+              fb = run_ns(ns, fallback, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+              if fb.returncode != 0:
+                  raise RuntimeError(
+                      f"netem install failed seeded_rc={cp.returncode} seeded={cp.stdout!r} "
+                      f"fallback_rc={fb.returncode} fallback={fb.stdout!r}"
+                  )
+              detail = (cp.stdout or "").strip().replace("\\n", " ")[:400]
+              print(
+                  f"WBD_NETEM_SEED_UNSUPPORTED ns={ns} dev={dev} seed={seed} "
+                  f"loss_pct={loss_pct:g} detail={detail!r}",
+                  file=sys.stderr,
+                  flush=True,
+              )
+          '''
+          if s.count(old) != 1:
+              raise SystemExit(f'install_netem old block count={s.count(old)}')
+          s = s.replace(old, new)
+
+          old = '''            write_results(rows, a.out, a.seed)
+              return 0
+          '''
+          new = '''            write_results(rows, a.out, a.seed)
+              harness_errors = [r for r in rows if r.get("case_status") == "harness_error"]
+              baseline_failures = [
+                  r for r in rows
+                  if float(r.get("loss_pct_per_direction", -1)) == 0.0
+                  and (r.get("case_status") != "pass" or not (r.get("delivery_ratio") or 0) > 0)
+              ]
+              if harness_errors or baseline_failures:
+                  print(
+                      f"MATRIX_SEED_INVALID seed={a.seed} harness_errors={len(harness_errors)} "
+                      f"baseline_failures={len(baseline_failures)}",
+                      file=sys.stderr,
+                  )
+                  return 2
+              return 0
+          '''
+          if s.count(old) != 1:
+              raise SystemExit(f'benchmark tail old block count={s.count(old)}')
+          s = s.replace(old, new)
+
+          old = '''    if not rows:
+                  raise SystemExit("no seed result CSVs found")
+              keys: list[str] = []
+          '''
+          new = '''    if not rows:
+                  raise SystemExit("no seed result CSVs found")
+              status_counts = Counter(str(r.get("case_status") or "missing") for r in rows)
+              harness_errors = status_counts.get("harness_error", 0)
+              baseline_failures = sum(
+                  float(r.get("loss_pct_per_direction", -1)) == 0.0
+                  and (r.get("case_status") != "pass" or not (r.get("delivery_ratio") or 0) > 0)
+                  for r in rows
+              )
+              keys: list[str] = []
+          '''
+          if s.count(old) != 1:
+              raise SystemExit(f'aggregate header old block count={s.count(old)}')
+          s = s.replace(old, new)
+
+          old = '''        "cases": len(rows),
+                  "handshake_failures": sum(r.get("case_status") == "handshake_fail" for r in rows),
+          '''
+          new = '''        "cases": len(rows),
+                  "case_status_counts": dict(sorted(status_counts.items())),
+                  "harness_errors": harness_errors,
+                  "zero_loss_baseline_failures": baseline_failures,
+                  "handshake_failures": sum(r.get("case_status") == "handshake_fail" for r in rows),
+          '''
+          if s.count(old) != 1:
+              raise SystemExit(f'receipt old block count={s.count(old)}')
+          s = s.replace(old, new)
+
+          old = '''    (a.out / "report.md").write_text("\\n".join(report) + "\\n")
+              return 0
+          '''
+          new = '''    (a.out / "report.md").write_text("\\n".join(report) + "\\n")
+              if harness_errors or baseline_failures:
+                  print(
+                      f"MATRIX_INVALID harness_errors={harness_errors} "
+                      f"zero_loss_baseline_failures={baseline_failures} status_counts={dict(status_counts)}",
+                      file=sys.stderr,
+                  )
+                  return 2
+              return 0
+          '''
+          if s.count(old) != 1:
+              raise SystemExit(f'aggregate tail old block count={s.count(old)}')
+          p.write_text(s.replace(old, new))
+
+          y = Path('.github/workflows/transport-20x20-matrix.yml')
+          t = y.read_text()
+          old = '''      - uses: actions/download-artifact@v4
+                  with:
+                    name: transport-bench-assets
+                    path: /tmp/assets
+                - name: Preflight namespace/raw networking
+          '''
+          new = '''      - uses: actions/download-artifact@v4
+                  with:
+                    name: transport-bench-assets
+                    path: /tmp/assets
+                - name: Restore executable modes lost through artifact transport
+                  run: chmod +x /tmp/assets/udp2raw_amd64 /tmp/assets/speederv2_amd64 /tmp/assets/wbd_dtls_shim
+                - name: Preflight namespace/raw networking
+          '''
+          if t.count(old) != 1:
+              raise SystemExit(f'chmod insertion old block count={t.count(old)}')
+          t = t.replace(old, new)
+
+          old = '''          if receipt.get('cases') != 126: problems.append(f"cases={receipt.get('cases')} want=126")
+                    if receipt.get('rtt_ms') != want_rtt: problems.append(f"rtt={receipt.get('rtt_ms')}")
+          '''
+          new = '''          if receipt.get('cases') != 126: problems.append(f"cases={receipt.get('cases')} want=126")
+                    if receipt.get('harness_errors') != 0: problems.append(f"harness_errors={receipt.get('harness_errors')}")
+                    if receipt.get('zero_loss_baseline_failures') != 0: problems.append(f"zero_loss_baseline_failures={receipt.get('zero_loss_baseline_failures')}")
+                    if receipt.get('rtt_ms') != want_rtt: problems.append(f"rtt={receipt.get('rtt_ms')}")
+          '''
+          if t.count(old) != 1:
+              raise SystemExit(f'completeness old block count={t.count(old)}')
+          t = t.replace(old, new)
+
+          old = '''      - uses: actions/github-script@v7
+                  with:
+          '''
+          new = '''      - uses: actions/github-script@v7
+                  continue-on-error: true
+                  with:
+          '''
+          if t.count(old) != 1:
+              raise SystemExit(f'notify old block count={t.count(old)}')
+          y.write_text(t.replace(old, new))
+          PY
+          python3 -m py_compile scripts/bench_v2_transport_20x20.py
+          git diff --check
+      - name: Exercise netem compatibility path on this runner
+        run: |
+          set -euo pipefail
+          sudo ip netns add wbd-seed-probe
+          trap 'sudo ip netns del wbd-seed-probe 2>/dev/null || true' EXIT
+          sudo ip netns exec wbd-seed-probe ip link set lo up
+          sudo python3 - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('m','scripts/bench_v2_transport_20x20.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          m.install_netem('wbd-seed-probe','lo',20,1.0,12345)
+          PY
+          sudo ip netns exec wbd-seed-probe tc qdisc show dev lo
+      - name: Package patched files
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/matrix-fix/scripts /tmp/matrix-fix/.github/workflows
+          cp scripts/bench_v2_transport_20x20.py /tmp/matrix-fix/scripts/
+          cp .github/workflows/transport-20x20-matrix.yml /tmp/matrix-fix/.github/workflows/
+          sha256sum scripts/bench_v2_transport_20x20.py .github/workflows/transport-20x20-matrix.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: matrix-harness-fix
+          path: /tmp/matrix-fix
+          retention-days: 1
