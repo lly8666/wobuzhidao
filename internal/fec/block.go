@@ -142,18 +142,17 @@ type decodeBlock struct {
 	delivered     [DataShards]bool
 }
 
-// BlockDecoder keeps a bounded number of in-flight blocks and a bounded recent
-// completion set so late parity/source shards do not recreate completed blocks.
-// Streaming systematic shards are returned immediately; parity later supplies
-// final metadata and reconstructs only sources that never arrived.
+// BlockDecoder keeps a bounded number of in-flight blocks and compact exact
+// completion history so arbitrarily late parity/source retransmissions cannot
+// recreate blocks that already delivered their originals. Streaming systematic
+// shards are returned immediately; parity later supplies final metadata and
+// reconstructs only sources that never arrived.
 type BlockDecoder struct {
 	codec         Codec
 	maxPacketSize int
 	maxBlocks     int
 	blocks        map[uint32]*decodeBlock
-	completed     map[uint32]struct{}
-	completedQ    []uint32
-	maxCompleted  int
+	completed     completedBlockSet
 }
 
 func NewBlockDecoder(codec Codec, maxPacketSize, maxBlocks int) (*BlockDecoder, error) {
@@ -162,7 +161,7 @@ func NewBlockDecoder(codec Codec, maxPacketSize, maxBlocks int) (*BlockDecoder, 
 	}
 	return &BlockDecoder{
 		codec: codec, maxPacketSize: maxPacketSize, maxBlocks: maxBlocks,
-		blocks: make(map[uint32]*decodeBlock), completed: make(map[uint32]struct{}), maxCompleted: maxBlocks * 4,
+		blocks: make(map[uint32]*decodeBlock),
 	}, nil
 }
 
@@ -189,7 +188,7 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 			return nil, false, err
 		}
 	}
-	if _, ok := d.completed[h.BlockID]; ok {
+	if d.completed.contains(h.BlockID) {
 		return nil, false, nil
 	}
 
@@ -361,11 +360,5 @@ func sameBlockHeader(a, b BlockHeader) bool {
 }
 
 func (d *BlockDecoder) markCompleted(id uint32) {
-	d.completed[id] = struct{}{}
-	d.completedQ = append(d.completedQ, id)
-	if len(d.completedQ) > d.maxCompleted {
-		old := d.completedQ[0]
-		d.completedQ = d.completedQ[1:]
-		delete(d.completed, old)
-	}
+	d.completed.add(id)
 }
