@@ -1,0 +1,149 @@
+name: recovery-rack-materialize
+
+on:
+  push:
+    branches:
+      - agent/recovery-candidate-89a
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.event.head_commit.message != 'fix(faketcp): allow repeated RACK repair with fresh evidence'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Patch RACK and permanent regression contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('internal/faketcp/arq.go')
+          s = p.read_text()
+          old = '''\t\t// RACK is deliberately restricted to one failed-repair inference. The
+          \t\t// SACK scoreboard/classic dup-ACK path owns the first fast repair. Once
+          \t\t// that repair has itself been inferred lost, a second fast repair is
+          \t\t// allowed; further attempts fall back to the existing backed-off RTO.
+          \t\t// This bounds duplicate traffic when old SACK ranges fall out of the
+          \t\t// receiver's four-block advertisement under a large outstanding window.
+          \t\tif p == nil || p.SACKed || p.LastSent.IsZero() || !p.WasRetried || p.Retries != 1 {
+          '''
+          new = '''\t\t// A retransmission may itself be lost more than once on a harsh path.
+          \t\t// Permit another RACK repair only after data transmitted later than the
+          \t\t// previous repair has newly been proven delivered and the reordering
+          \t\t// window has elapsed. Identical/stale SACK evidence therefore cannot
+          \t\t// retrigger the same hole, while fresh delivery evidence can repair an
+          \t\t// arbitrary run of independent retransmission losses without waiting for
+          \t\t// the association-wide exponentially backed-off RTO.
+          \t\tif p == nil || p.SACKed || p.LastSent.IsZero() || !p.WasRetried {
+          '''
+          if s.count(old) != 1:
+              raise SystemExit(f'arq policy anchor count={s.count(old)}')
+          p.write_text(s.replace(old, new, 1))
+
+          t = Path('internal/faketcp/retransmit_storm_test.go')
+          x = t.read_text()
+          start = x.index('func TestRACKBoundsFastRepairsPerPacket(')
+          end = x.index('func TestRACKDoesNotInferUnrepairedOriginalByTimeAlone(', start)
+          replacement = '''func TestRACKRequiresFreshEvidenceForEveryRepeatedRepair(t *testing.T) {
+          \tt0 := time.Unix(20, 0)
+          \ts := NewSenderWithRecovery(100, time.Second, RecoverySACKRACK)
+
+          \tp1 := s.Enqueue(make([]byte, 10), t0) // first original is lost
+          \t_ = s.Enqueue(make([]byte, 10), t0)   // 110..120 delivered
+          \t_ = s.Enqueue(make([]byte, 10), t0)   // 120..130 delivered
+          \t_ = s.Enqueue(make([]byte, 10), t0)   // 130..140 delivered
+
+          \t// Three SACKed originals prove the first hole and trigger the scoreboard
+          \t// repair. RACK must never bypass this first-loss proof.
+          \tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: 140}}, t0.Add(10*time.Millisecond)); got != p1 {
+          \t\tt.Fatalf("first repair=%#v want p1", got)
+          \t}
+          \tif p1.Retries != 1 {
+          \t\tt.Fatalf("retries after scoreboard repair=%d want 1", p1.Retries)
+          \t}
+
+          \t// New packets sent after repair #1 are delivered, making rackLatestTx
+          \t// newer than p1.LastSent. Fresh evidence alone is not enough before the
+          \t// conservative reordering window has elapsed.
+          \tfor i := 0; i < 3; i++ {
+          \t\ts.Enqueue(make([]byte, 10), t0.Add(12*time.Millisecond))
+          \t}
+          \tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: 170}}, t0.Add(19*time.Millisecond)); got == p1 {
+          \t\tt.Fatal("fresh evidence bypassed RACK reordering window")
+          \t}
+          \tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: 170}}, t0.Add(21*time.Millisecond)); got != p1 {
+          \t\tt.Fatalf("fresh evidence after reordering window did not trigger repair #2: %#v", got)
+          \t}
+          \tif p1.Retries != 2 {
+          \t\tt.Fatalf("retries after repair #2=%d want 2", p1.Retries)
+          \t}
+
+          \t// The evidence that justified repair #2 is now stale because it predates
+          \t// p1.LastSent. Repeating exactly the same SACK must not cause a storm.
+          \tfor i := 0; i < 8; i++ {
+          \t\tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: 170}}, t0.Add(time.Duration(30+i)*time.Millisecond)); got == p1 {
+          \t\t\tt.Fatalf("stale evidence retriggered p1 at repeat %d", i)
+          \t\t}
+          \t}
+
+          \t// Each later repair needs evidence from data transmitted after the
+          \t// previous repair. Prove both a third and fourth fast repair so this
+          \t// contract cannot regress to a hidden retry-count cap.
+          \tfor wantRetry, sentAt, ackAt := range []struct {
+          \t\twant   uint32
+          \t\tsentAt time.Duration
+          \t\tackAt  time.Duration
+          \t}{
+          \t\t{want: 3, sentAt: 41 * time.Millisecond, ackAt: 55 * time.Millisecond},
+          \t\t{want: 4, sentAt: 60 * time.Millisecond, ackAt: 75 * time.Millisecond},
+          \t} {
+          \t\t_ = wantRetry
+          \t\tfor i := 0; i < 3; i++ {
+          \t\t\ts.Enqueue(make([]byte, 10), t0.Add(sentAt))
+          \t\t}
+          \t\tend := s.NextSeq()
+          \t\tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: end}}, t0.Add(ackAt)); got != p1 {
+          \t\t\tt.Fatalf("fresh evidence did not trigger repair #%d: %#v", wantRetry.want, got)
+          \t\t}
+          \t\tif p1.Retries != wantRetry.want {
+          \t\t\tt.Fatalf("retries=%d want %d", p1.Retries, wantRetry.want)
+          \t\t}
+          \t\tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: end}}, t0.Add(ackAt+5*time.Millisecond)); got == p1 {
+          \t\t\tt.Fatalf("identical evidence retriggered after repair #%d", wantRetry.want)
+          \t\t}
+          \t}
+
+          \tst := s.Stats()
+          \tif st.FastRetransmits != 4 {
+          \t\tt.Fatalf("fast retransmits=%d want 4; stats=%#v", st.FastRetransmits, st)
+          \t}
+          \tif st.LossMarked != 1 {
+          \t\tt.Fatalf("loss marks=%d want one unique packet", st.LossMarked)
+          \t}
+          }
+
+          '''
+          t.write_text(x[:start] + replacement + x[end:])
+          PY
+          gofmt -w internal/faketcp/arq.go internal/faketcp/retransmit_storm_test.go
+          go test ./internal/faketcp -count=1
+      - name: Commit candidate source and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add internal/faketcp/arq.go internal/faketcp/retransmit_storm_test.go
+          git diff --cached --check
+          git commit -m 'fix(faketcp): allow repeated RACK repair with fresh evidence'
+          git push origin HEAD:refs/heads/agent/recovery-candidate-89a
