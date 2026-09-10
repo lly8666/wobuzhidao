@@ -81,10 +81,11 @@ def percentile(values, q):
     return values[lo] * (1 - frac) + values[hi] * frac
 
 
-# Fast fail before the 30-minute clock starts. This uses the exact same socket
-# and payload framing as the measured traffic, so a peer-identity or ingress
-# mismatch is detected in seconds rather than after a full long-run allocation.
-preflight = make_packet(0, 128, time.monotonic_ns())
+# Fast fail before the measured clock starts. This uses the exact same socket
+# and payload framing as the measured traffic, and deliberately exercises the
+# largest 1320-byte application datagram in the profile so FEC/DTLS MTU
+# expansion failures are detected in seconds rather than after a long run.
+preflight = make_packet(0, 1320, time.monotonic_ns())
 sock.sendto(preflight, ("127.0.0.1", 47500))
 preflight_deadline = time.monotonic() + 20.0
 preflight_ok = False
@@ -103,8 +104,8 @@ while time.monotonic() < preflight_deadline:
     if preflight_ok:
         break
 if not preflight_ok:
-    raise SystemExit("WBD_REALISTIC_LOAD_PREFLIGHT_FAIL no exact echo on pinned app peer")
-print("WBD_REALISTIC_LOAD_PREFLIGHT_PASS source=127.0.0.1:47601")
+    raise SystemExit("WBD_REALISTIC_LOAD_PREFLIGHT_FAIL no exact 1320-byte echo on pinned app peer")
+print("WBD_REALISTIC_LOAD_PREFLIGHT_PASS source=127.0.0.1:47601 payload_bytes=1320")
 
 start = time.monotonic()
 deadline = start + duration
@@ -203,6 +204,5 @@ summary = {
     },
 }
 with open(out, "w", encoding="utf-8") as f:
-    json.dump(summary, f, sort_keys=True, indent=2)
-    f.write("\n")
+    json.dump(summary, f, sort_keys=True, indent=2) + "\n"
 print("WBD_REALISTIC_LOAD_RESULT " + json.dumps(summary, sort_keys=True))
