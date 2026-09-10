@@ -72,8 +72,100 @@ jobs:
           path: ${{ runner.temp }}/wbd-realistic-assets
           retention-days: 1
 
-  analysis:
+  smoke:
     needs: build-assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - fec: 'off'
+            slug: off
+          - fec: '20:20'
+            slug: fec20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate analysis harness syntax
+        run: |
+          set -euo pipefail
+          bash -n scripts/game_lane_realistic_analysis.sh
+          python3 -m py_compile scripts/realistic_game_load.py scripts/realistic_process_monitor.py scripts/realistic_analysis_summary.py
+      - name: Install namespace and firewall tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump
+      - uses: actions/download-artifact@v4
+        with:
+          name: realistic-1lane-assets
+          path: ${{ runner.temp }}/wbd-realistic-assets
+      - name: Verify exact product assets
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP"/wbd-realistic-assets/wbd-* "$RUNNER_TEMP"/wbd-realistic-assets/wbd_dtls_shim
+          test "$(cat "$RUNNER_TEMP/wbd-realistic-assets/SOURCE_SHA.txt")" = "$SOURCE_SHA"
+      - name: Run two minute realistic smoke
+        env:
+          LANES: '1'
+          FEC: ${{ matrix.fec }}
+          DURATION_SEC: '120'
+          SMOKE_STRICT: '1'
+          RATE_BPS: '10000000'
+          PROFILE_SEED: '20260910'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/realistic-1lane-smoke-${{ matrix.slug }}"
+          mkdir -p "$LOG"
+          sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_realistic_analysis.sh" "$RUNNER_TEMP/wbd-realistic-assets" "$LOG"
+          python3 - "$LOG/analysis-result.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d['analysis_only'] is True and d['qualification_authority'] is False,d
+          assert d['lanes']==1 and d['fec'] in ('off','20:20'),d
+          assert d['requested_duration_sec']==120 and d['requested_bps_each_direction']==10_000_000,d
+          assert d['application']['sent'] > 0 and d['application']['received_unique'] > 0,d
+          assert d['application']['sent_by_size'].get('1320',0) > 0,d
+          assert d['application']['duplicates']==0 and d['application']['bad_payload']==0,d
+          print('WBD_REALISTIC_2M_JOB_COMPLETE '+json.dumps(d,sort_keys=True))
+          PY
+      - name: Diagnose smoke failure
+        if: failure()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/realistic-1lane-smoke-${{ matrix.slug }}"
+          for f in environment-setup.log load.log load-result.json analysis.log analysis-result.json firewall-final.txt netem-final.txt game-client.log game-server.log faketcp-mux.log; do
+            echo "=== $f ==="
+            tail -n 240 "$LOG/$f" 2>/dev/null || true
+          done
+          for f in "$LOG"/faketcp-*.log "$LOG"/link-*.log "$LOG"/dtls-*.log; do
+            [[ -e "$f" ]] || continue
+            echo "=== $f ==="
+            tail -n 100 "$f" || true
+          done
+      - name: Scrub one-time authentication material
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/realistic-1lane-smoke-${{ matrix.slug }}"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: realistic-2m-10mbps-300ms-loss20-1lane-${{ matrix.slug }}
+          path: ${{ runner.temp }}/realistic-1lane-smoke-${{ matrix.slug }}
+          retention-days: 14
+
+  analysis:
+    needs: [build-assets, smoke]
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     strategy:
@@ -130,8 +222,6 @@ jobs:
           assert d['analysis_only'] is True and d['qualification_authority'] is False,d
           assert d['lanes']==1 and d['fec'] in ('off','20:20'),d
           assert d['requested_duration_sec']==1800 and d['requested_bps_each_direction']==10_000_000,d
-          # Loss is deliberately descriptive only. Duplicate delivery/corruption
-          # remain hard correctness failures in the wrapper.
           print('WBD_REALISTIC_ANALYSIS_JOB_COMPLETE '+json.dumps(d,sort_keys=True))
           PY
       - name: Diagnose analysis failure
