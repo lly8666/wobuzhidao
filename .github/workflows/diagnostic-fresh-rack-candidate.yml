@@ -27,9 +27,18 @@ jobs:
       - name: Format and test
         run: |
           set -euo pipefail
-          gofmt -w internal/faketcp/arq.go internal/faketcp/rack_fresh_evidence_test.go
+          gofmt -w internal/faketcp/arq.go internal/faketcp/retransmit_storm_test.go internal/faketcp/rack_fresh_evidence_test.go
           go test ./internal/faketcp -count=1
           go test ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux -count=1
           git diff --check
+      - name: Export validated source files
+        uses: actions/upload-artifact@v4
+        with:
+          name: fresh-rack-candidate-files
+          path: |
+            internal/faketcp/arq.go
+            internal/faketcp/retransmit_storm_test.go
+            internal/faketcp/rack_fresh_evidence_test.go
+          retention-days: 7
       - name: Show candidate diff
-        run: git diff -- internal/faketcp/arq.go internal/faketcp/rack_fresh_evidence_test.go
+        run: git diff -- internal/faketcp/arq.go internal/faketcp/retransmit_storm_test.go internal/faketcp/rack_fresh_evidence_test.go
