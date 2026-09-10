@@ -45,10 +45,11 @@ type server struct {
 	maxLanes     int
 	idle         time.Duration
 
-	mu          sync.Mutex
-	sessions    map[gamelane.SessionID]*gameSession
-	peerSession map[string]gamelane.SessionID
-	peerMeta    map[string]rawipbackend.TunnelMeta
+	mu           sync.Mutex
+	sessions     map[gamelane.SessionID]*gameSession
+	peerSession  map[string]gamelane.SessionID
+	peerMeta     map[string]rawipbackend.TunnelMeta
+	peerMetaSeen map[string]time.Time
 }
 
 func main() {
@@ -73,7 +74,7 @@ func main() {
 	if err != nil { fatal(err) }
 	s := &server{
 		conn: conn, serviceAddr: sa, replayWindow: replayWindow, maxSessions: maxSessions, maxLanes: maxLanes, idle: idle,
-		sessions: make(map[gamelane.SessionID]*gameSession), peerSession: make(map[string]gamelane.SessionID), peerMeta: make(map[string]rawipbackend.TunnelMeta),
+		sessions: make(map[gamelane.SessionID]*gameSession), peerSession: make(map[string]gamelane.SessionID), peerMeta: make(map[string]rawipbackend.TunnelMeta), peerMetaSeen: make(map[string]time.Time),
 	}
 	defer s.Close()
 	_ = conn.SetReadBuffer(4 << 20)
@@ -165,12 +166,19 @@ func (s *server) registerPeerMeta(peer *net.UDPAddr, meta rawipbackend.TunnelMet
 	key := peer.String()
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.peerMetaSeen == nil { s.peerMetaSeen = make(map[string]time.Time) }
 	if existing, ok := s.peerMeta[key]; ok {
 		if existing.TunnelID != meta.TunnelID || existing.Address4 != meta.Address4 { return errors.New("authenticated Logical Tunnel metadata changed for active lane peer") }
-		if gs := s.sessions[s.peerSession[key]]; gs != nil { gs.mu.Lock(); gs.last = now; gs.mu.Unlock() }
+		if gs := s.sessions[s.peerSession[key]]; gs != nil {
+			gs.mu.Lock(); gs.last = now; gs.mu.Unlock()
+			delete(s.peerMetaSeen, key)
+		} else {
+			s.peerMetaSeen[key] = now
+		}
 		return nil
 	}
 	s.peerMeta[key] = meta
+	s.peerMetaSeen[key] = now
 	fmt.Printf("WBD_GAME_LANE_TUNNEL_META_READY tunnel_id_prefix=%s address4=%s association_peer=%s\n", tunnelIDPrefix(meta), meta.Address4, key)
 	return nil
 }
@@ -215,6 +223,7 @@ func (s *server) bindLane(id gamelane.SessionID, laneID uint8, peer *net.UDPAddr
 	if gs.overlap == nil { gs.overlap = make(map[uint8]*net.UDPAddr, 1) }
 	if oldLane, ok := gs.peerLane[key]; ok {
 		if oldLane != laneID { return nil, errors.New("one WBD association cannot impersonate another lane id") }
+		delete(s.peerMetaSeen, key)
 		gs.last = now
 		return gs, nil
 	}
@@ -232,6 +241,7 @@ func (s *server) bindLane(id gamelane.SessionID, laneID uint8, peer *net.UDPAddr
 			delete(gs.peerLane, staleKey)
 			delete(s.peerSession, staleKey)
 			delete(s.peerMeta, staleKey)
+			delete(s.peerMetaSeen, staleKey)
 			fmt.Printf("WBD_GAME_LANE_UNBIND tunnel_id_prefix=%s lane=%d association_peer=%s lanes=%d targets=%d reason=lost_leave_rebind_recovery\n", tunnelIDPrefix(gs.meta), laneID, staleKey, len(gs.lanes), len(gs.lanes)+len(gs.overlap))
 			primary = candidate
 		}
@@ -241,6 +251,7 @@ func (s *server) bindLane(id gamelane.SessionID, laneID uint8, peer *net.UDPAddr
 		gs.overlap[laneID] = cloneUDPAddr(peer)
 		gs.peerLane[key] = laneID
 		s.peerSession[key] = id
+		delete(s.peerMetaSeen, key)
 		gs.last = now
 		fmt.Printf("WBD_GAME_LANE_OVERLAP tunnel_id_prefix=%s lane=%d primary_peer=%s candidate_peer=%s lanes=%d targets=%d\n", tunnelIDPrefix(meta), laneID, primary, key, len(gs.lanes), len(gs.lanes)+len(gs.overlap))
 		return gs, nil
@@ -249,6 +260,7 @@ func (s *server) bindLane(id gamelane.SessionID, laneID uint8, peer *net.UDPAddr
 	gs.lanes[laneID] = cloneUDPAddr(peer)
 	gs.peerLane[key] = laneID
 	s.peerSession[key] = id
+	delete(s.peerMetaSeen, key)
 	gs.last = now
 	fmt.Printf("WBD_GAME_LANE_BIND tunnel_id_prefix=%s lane=%d association_peer=%s lanes=%d\n", tunnelIDPrefix(meta), laneID, key, len(gs.lanes))
 	return gs, nil
@@ -277,6 +289,7 @@ func (s *server) unbindLane(id gamelane.SessionID, laneID uint8, peer *net.UDPAd
 	delete(gs.peerLane, key)
 	delete(s.peerSession, key)
 	delete(s.peerMeta, key)
+	delete(s.peerMetaSeen, key)
 	gs.last = now
 	fmt.Printf("WBD_GAME_LANE_UNBIND tunnel_id_prefix=%s lane=%d association_peer=%s lanes=%d targets=%d reason=%s\n", tunnelIDPrefix(gs.meta), laneID, key, len(gs.lanes), len(gs.lanes)+len(gs.overlap), reason)
 	return nil
@@ -321,6 +334,16 @@ func (s *server) expire(now time.Time) {
 	var expired []gamelane.SessionID
 	s.mu.Lock()
 	for id, gs := range s.sessions { gs.mu.Lock(); last:=gs.last; gs.mu.Unlock(); if now.Sub(last)>=s.idle { expired=append(expired,id) } }
+	for key, last := range s.peerMetaSeen {
+		if _, bound := s.peerSession[key]; bound {
+			delete(s.peerMetaSeen, key)
+			continue
+		}
+		if now.Sub(last) >= s.idle {
+			delete(s.peerMeta, key)
+			delete(s.peerMetaSeen, key)
+		}
+	}
 	s.mu.Unlock()
 	for _, id := range expired { s.remove(id,"idle") }
 }
@@ -331,7 +354,7 @@ func (s *server) remove(id gamelane.SessionID, reason string) {
 	if gs == nil { s.mu.Unlock(); return }
 	delete(s.sessions,id)
 	gs.mu.Lock()
-	for key := range gs.peerLane { delete(s.peerSession,key); delete(s.peerMeta,key) }
+	for key := range gs.peerLane { delete(s.peerSession,key); delete(s.peerMeta,key); delete(s.peerMetaSeen,key) }
 	gs.closed = true
 	inFirst,inDup,outLogic,outLane,dormantDrop := gs.inFirst,gs.inDup,gs.outLogic,gs.outLane,gs.dormantDrop
 	gs.mu.Unlock(); s.mu.Unlock()
