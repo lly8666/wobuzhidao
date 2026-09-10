@@ -1,0 +1,90 @@
+name: staging-faketcp-resource-bench
+
+on:
+  push:
+    branches:
+      - agent/matrix-harness-fix-f885
+    paths:
+      - '.github/workflows/staging-faketcp-resource-bench.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Restore exact failing FakeTCP source
+        run: |
+          set -euo pipefail
+          BASE=89a4650b09c4f3862ba02316cec2ae258a8f0853
+          git fetch origin "$BASE" --depth=1
+          git checkout --detach "$BASE"
+      - name: Generate ephemeral resource probes
+        run: |
+          cat > internal/faketcp/resource_probe_test.go <<'EOF'
+          package faketcp
+
+          import (
+            "fmt"
+            "testing"
+            "time"
+            "unsafe"
+          )
+
+          func TestWBDResourceProbe(t *testing.T) {
+            s := NewSenderWithRecovery(100, time.Second, RecoveryLegacy)
+            now := time.Unix(1, 0)
+            var caps int
+            for i := 0; i < MaxSteadyStateOutstandingDatagrams; i++ {
+              p, err := s.EnqueueSteadyState(make([]byte, 1000), now)
+              if err != nil { t.Fatal(err) }
+              caps += cap(p.Payload)
+            }
+            fmt.Printf("WBD_RESOURCE pending_struct_bytes=%d records=%d payload_len_bytes=%d payload_cap_bytes=%d pointer_array_bytes=%d\n",
+              unsafe.Sizeof(Pending{}), MaxSteadyStateOutstandingDatagrams,
+              MaxSteadyStateOutstandingDatagrams*1000, caps,
+              MaxSteadyStateOutstandingDatagrams*int(unsafe.Sizeof((*Pending)(nil))))
+          }
+
+          func BenchmarkAckNoSACK(b *testing.B) {
+            s := NewSenderWithRecovery(100, time.Second, RecoveryLegacy)
+            now := time.Unix(1, 0)
+            for i := 0; i < MaxSteadyStateOutstandingDatagrams; i++ { _, _ = s.EnqueueSteadyState([]byte{1}, now) }
+            b.ReportAllocs()
+            b.ResetTimer()
+            for i := 0; i < b.N; i++ { s.AckSelective(100, nil, now) }
+          }
+
+          func BenchmarkRepeated4095RecordSACK(b *testing.B) {
+            s := NewSenderWithRecovery(100, time.Second, RecoveryLegacy)
+            now := time.Unix(1, 0)
+            for i := 0; i < MaxSteadyStateOutstandingDatagrams; i++ { _, _ = s.EnqueueSteadyState([]byte{1}, now) }
+            sacks := []SACKBlock{{Start: 101, End: 100 + uint32(MaxSteadyStateOutstandingDatagrams)}}
+            s.AckSelective(100, sacks, now)
+            b.ReportAllocs()
+            b.ResetTimer()
+            for i := 0; i < b.N; i++ { s.AckSelective(100, sacks, now) }
+          }
+
+          func BenchmarkNonblockingCreditSignal(b *testing.B) {
+            ch := make(chan struct{}, 1)
+            b.ReportAllocs()
+            b.ResetTimer()
+            for i := 0; i < b.N; i++ {
+              select { case ch <- struct{}{}: default: }
+              select { case <-ch: default: }
+            }
+          }
+          EOF
+          gofmt -w internal/faketcp/resource_probe_test.go
+      - name: Run probes
+        run: |
+          set -euo pipefail
+          go test ./internal/faketcp -run TestWBDResourceProbe -v -count=1
+          go test ./internal/faketcp -run '^$' -bench 'Benchmark(AckNoSACK|Repeated4095RecordSACK|NonblockingCreditSignal)$' -benchmem -benchtime=2s -count=3
