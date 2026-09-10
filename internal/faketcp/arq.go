@@ -177,20 +177,16 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 
 	if s.recovery == RecoverySACKRACK {
 		if p := s.rackLossCandidate(now); p != nil {
-			if p.Seq == s.lastAck {
-				s.fastRetxSeq = p.Seq
-				s.fastRetxDone = true
-				s.dupAcks = 0
-			}
+			s.fastRetxSeq = p.Seq
+			s.fastRetxDone = true
+			s.dupAcks = 0
 			s.markRetry(p, now, true)
 			return p
 		}
 		if p := s.sackLossCandidate(); p != nil {
-			if p.Seq == s.lastAck {
-				s.fastRetxSeq = p.Seq
-				s.fastRetxDone = true
-				s.dupAcks = 0
-			}
+			s.fastRetxSeq = p.Seq
+			s.fastRetxDone = true
+			s.dupAcks = 0
 			s.markRetry(p, now, true)
 			return p
 		}
@@ -209,55 +205,50 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 	return nil
 }
 
+// sackLossCandidate deliberately considers only the cumulative-ACK boundary.
+// The receiver can advertise only four recent SACK ranges, so absence from the
+// current SACK blocks is not proof that an arbitrary non-head segment is lost.
+// The segment starting at lastAck is different: while later data is SACKed and
+// the cumulative ACK remains pinned there, that oldest hole is authoritative.
 func (s *Sender) sackLossCandidate() *Pending {
-	var candidate *Pending
+	candidate := s.oldest()
+	if candidate == nil || candidate.Seq != s.lastAck || candidate.SACKed || candidate.WasRetried {
+		return nil
+	}
 	sackedAbove := 0
-	for i := s.head; i < len(s.pending); i++ {
+	for i := candidate.slot + 1; i < len(s.pending); i++ {
 		p := s.pending[i]
-		if p == nil {
+		if p == nil || !p.SACKed {
 			continue
 		}
-		if candidate == nil {
-			if !p.SACKed && !p.WasRetried {
-				candidate = p
-			}
-			continue
-		}
-		if p.SACKed {
-			sackedAbove++
-			if sackedAbove >= 3 {
-				return candidate
-			}
+		sackedAbove++
+		if sackedAbove >= 3 {
+			return candidate
 		}
 	}
 	return nil
 }
 
+// rackLossCandidate permits exactly one fast repair of a lost first repair,
+// and only for the cumulative-ACK boundary. A newer delivered transmission
+// must have a LastSent timestamp after the repair plus the reordering window.
+// Non-head holes wait until cumulative ACK advances to them; this avoids turning
+// four-block SACK omission into a full-window retransmission storm.
 func (s *Sender) rackLossCandidate(now time.Time) *Pending {
 	if s.rackLatestTx.IsZero() {
 		return nil
 	}
-	reo := s.rackReorderingWindow()
-	for i := s.head; i < len(s.pending); i++ {
-		p := s.pending[i]
-		// RACK is deliberately restricted to one failed-repair inference. The
-		// SACK scoreboard/classic dup-ACK path owns the first fast repair. Once
-		// that repair has itself been inferred lost, a second fast repair is
-		// allowed; further attempts fall back to the existing backed-off RTO.
-		// This bounds duplicate traffic when old SACK ranges fall out of the
-		// receiver's four-block advertisement under a large outstanding window.
-		if p == nil || p.SACKed || p.LastSent.IsZero() || !p.WasRetried || p.Retries != 1 {
-			continue
-		}
-		if !p.LastSent.Before(s.rackLatestTx) {
-			continue
-		}
-		if now.Sub(p.LastSent) < reo {
-			continue
-		}
-		return p
+	p := s.oldest()
+	if p == nil || p.Seq != s.lastAck || p.SACKed || p.LastSent.IsZero() || !p.WasRetried || p.Retries != 1 {
+		return nil
 	}
-	return nil
+	if !p.LastSent.Before(s.rackLatestTx) {
+		return nil
+	}
+	if now.Sub(p.LastSent) < s.rackReorderingWindow() {
+		return nil
+	}
+	return p
 }
 
 func (s *Sender) rackReorderingWindow() time.Duration {
