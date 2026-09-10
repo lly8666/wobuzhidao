@@ -1,4 +1,4 @@
-name: staging-publish-qualification-trigger-blobs
+name: staging-validate-faketcp-backpressure-fix
 
 on:
   push:
@@ -11,47 +11,264 @@ permissions:
   contents: write
 
 jobs:
-  publish:
+  patch-test-publish:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Generate asserted workflow blobs from exact staging SHA
+      - name: Restore exact failing product source
         run: |
           set -euo pipefail
-          BASE=1bfd86dda5fe030dd0e475f097038fd835ea0957
+          BASE=89a4650b09c4f3862ba02316cec2ae258a8f0853
           git fetch origin "$BASE" --depth=1
-          git show "$BASE":.github/workflows/game-lane-rotation-soak.yml > /tmp/soak.yml
-          git show "$BASE":.github/workflows/transport-20x20-matrix.yml > /tmp/matrix.yml
+          git show "$BASE":cmd/wbd-faketcp/main.go > cmd/wbd-faketcp/main.go
+          git show "$BASE":cmd/wbd-faketcp-mux/main_linux.go > cmd/wbd-faketcp-mux/main_linux.go
+          git show "$BASE":internal/faketcp/window_test.go > internal/faketcp/window_test.go
+      - name: Apply asserted bounded-backpressure patch
+        run: |
+          set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          soak=Path('/tmp/soak.yml')
-          s=soak.read_text()
-          old="""    branches:\n      - feat/single-flow-reality-faketcp\n"""
-          new="""    branches:\n      - feat/single-flow-reality-faketcp\n      - agent/fec-zombie-fix-7d859\n"""
-          assert s.count(old)==1, s.count(old)
-          soak.write_text(s.replace(old,new,1))
 
-          matrix=Path('/tmp/matrix.yml')
-          m=matrix.read_text()
-          oldm="""      - 'scripts/bench_v2_transport_20x20.py'\n      - '.github/workflows/transport-20x20-matrix.yml'\n"""
-          newm="""      - 'scripts/bench_v2_transport_20x20.py'\n      - '.github/workflows/transport-20x20-matrix.yml'\n      - '.github/workflows/game-lane-rotation-soak.yml'\n"""
-          assert m.count(oldm)==1, m.count(oldm)
-          matrix.write_text(m.replace(oldm,newm,1))
+          p=Path('cmd/wbd-faketcp/main.go')
+          s=p.read_text()
+          old='\tdefaultRealityTimeout  = 20 * time.Second\n'
+          new=old+'\tsteadyStateBackpressureTimeout = 60 * time.Second\n'
+          assert s.count(old)==1, s.count(old)
+          s=s.replace(old,new,1)
+          a=s.index('func (e *endpoint) udpLoop() error {')
+          b=s.index('\nfunc udpEqual', a)
+          repl=r'''func (e *endpoint) udpLoop() error {
+	buf := make([]byte, 65535)
+	for {
+		n, from, err := e.udp.ReadFromUDP(buf)
+		if err != nil {
+			select {
+			case <-e.stop:
+				return nil
+			default:
+				return err
+			}
+		}
+		if e.cfg.role == "client" {
+			e.innerMu.Lock()
+			if e.inner == nil {
+				cp := *from
+				e.inner = &cp
+			}
+			known := e.inner
+			e.innerMu.Unlock()
+			if !udpEqual(from, known) {
+				continue
+			}
+		} else if !udpEqual(from, e.innerPeer()) {
+			continue
+		}
+		if n == 0 {
+			continue
+		}
+
+		var blockedAt time.Time
+		for {
+			now := time.Now()
+			e.senderMu.Lock()
+			pendingPacket, enqueueErr := e.sender.EnqueueSteadyState(buf[:n], now)
+			pending := e.sender.Pending()
+			seq := e.sender.NextSeq()
+			if enqueueErr == nil {
+				err = e.sendDataPending(pendingPacket)
+				e.senderMu.Unlock()
+				if !blockedAt.IsZero() {
+					fmt.Printf("WBD_FAKETCP_OUTSTANDING_RECOVERED role=%s pending=%d limit=%d action=resume\n", e.cfg.role, pending, faketcp.MaxSteadyStateOutstandingDatagrams)
+				}
+				if err != nil {
+					return err
+				}
+				break
+			}
+			e.senderMu.Unlock()
+			if !errors.Is(enqueueErr, faketcp.ErrSteadyStateOutstandingFull) {
+				return enqueueErr
+			}
+			if blockedAt.IsZero() {
+				blockedAt = now
+				fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=%s pending=%d limit=%d action=backpressure\n", e.cfg.role, pending, faketcp.MaxSteadyStateOutstandingDatagrams)
+			}
+			remaining := steadyStateBackpressureTimeout - time.Since(blockedAt)
+			if remaining <= 0 {
+				fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=%s pending=%d limit=%d action=rst_timeout\n", e.cfg.role, pending, faketcp.MaxSteadyStateOutstandingDatagrams)
+				_ = e.send(seq, e.receiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
+				return enqueueErr
+			}
+			timer := time.NewTimer(remaining)
+			select {
+			case <-e.bootstrapAck:
+				if !timer.Stop() {
+					select { case <-timer.C: default: }
+				}
+			case <-e.stop:
+				if !timer.Stop() {
+					select { case <-timer.C: default: }
+				}
+				return nil
+			case <-timer.C:
+				fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=%s pending=%d limit=%d action=rst_timeout\n", e.cfg.role, pending, faketcp.MaxSteadyStateOutstandingDatagrams)
+				_ = e.send(seq, e.receiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
+				return enqueueErr
+			}
+		}
+	}
+}
+'''
+          s=s[:a]+repl+s[b:]
+          assert 'action=rst\\n' not in s
+          p.write_text(s)
+
+          p=Path('cmd/wbd-faketcp-mux/main_linux.go')
+          s=p.read_text()
+          old='\tstaleDataAssociationTimeout = 60 * time.Second\n'
+          new=old+'\tsteadyStateBackpressureTimeout = 60 * time.Second\n'
+          assert s.count(old)==1, s.count(old)
+          s=s.replace(old,new,1)
+          old='\tackNotify    chan struct{}\n\trelay        *net.UDPConn\n'
+          new='\tackNotify    chan struct{}\n\tdone         chan struct{}\n\tdoneOnce     sync.Once\n\trelay        *net.UDPConn\n'
+          assert s.count(old)==1, s.count(old)
+          s=s.replace(old,new,1)
+          old='sess := &muxSession{flow: flow, assoc: assoc, stage: stageHandshake, lastClientRX: now, ackNotify: make(chan struct{}, 1)}'
+          new='sess := &muxSession{flow: flow, assoc: assoc, stage: stageHandshake, lastClientRX: now, ackNotify: make(chan struct{}, 1), done: make(chan struct{})}'
+          assert s.count(old)==1, s.count(old)
+          s=s.replace(old,new,1)
+          old='''\tif sess == nil {\n\t\treturn\n\t}\n\tsess.mu.Lock()\n'''
+          new='''\tif sess == nil {\n\t\treturn\n\t}\n\tsess.doneOnce.Do(func() { close(sess.done) })\n\tsess.mu.Lock()\n'''
+          assert s.count(old)==1, s.count(old)
+          s=s.replace(old,new,1)
+          a=s.index('func (s *muxServer) relayLoop(sess *muxSession) {')
+          b=s.index('\nfunc (s *muxServer) retransmitLoop()', a)
+          repl=r'''func (s *muxServer) relayLoop(sess *muxSession) {
+	buf := make([]byte, 65535)
+	for {
+		sess.mu.RLock()
+		relay := sess.relay
+		sess.mu.RUnlock()
+		if relay == nil {
+			return
+		}
+		n, err := relay.Read(buf)
+		if err != nil {
+			return
+		}
+
+		var blockedAt time.Time
+		for {
+			p, enqueueErr := sess.assoc.EnqueueSteadyState(buf[:n], time.Now())
+			if enqueueErr == nil {
+				if !blockedAt.IsZero() {
+					fmt.Printf("WBD_FAKETCP_OUTSTANDING_RECOVERED role=server-mux client=%d server=%d limit=%d action=resume\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
+				}
+				if err := s.sendPending(sess, p); err != nil {
+					return
+				}
+				break
+			}
+			if !errors.Is(enqueueErr, faketcp.ErrSteadyStateOutstandingFull) {
+				return
+			}
+			if blockedAt.IsZero() {
+				blockedAt = time.Now()
+				fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=server-mux client=%d server=%d limit=%d action=backpressure\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
+			}
+			remaining := steadyStateBackpressureTimeout - time.Since(blockedAt)
+			if remaining <= 0 {
+				fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=server-mux client=%d server=%d limit=%d action=rst_timeout\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
+				_ = s.sendRaw(sess.flow, sess.assoc.SenderNext(), sess.assoc.ReceiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
+				s.removeSessionMatch(sess.flow, sess)
+				return
+			}
+			timer := time.NewTimer(remaining)
+			select {
+			case <-sess.ackNotify:
+				if !timer.Stop() {
+					select { case <-timer.C: default: }
+				}
+			case <-sess.done:
+				if !timer.Stop() {
+					select { case <-timer.C: default: }
+				}
+				return
+			case <-s.ctx.Done():
+				if !timer.Stop() {
+					select { case <-timer.C: default: }
+				}
+				return
+			case <-timer.C:
+				fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=server-mux client=%d server=%d limit=%d action=rst_timeout\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
+				_ = s.sendRaw(sess.flow, sess.assoc.SenderNext(), sess.assoc.ReceiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
+				s.removeSessionMatch(sess.flow, sess)
+				return
+			}
+		}
+	}
+}
+'''
+          s=s[:a]+repl+s[b:]
+          assert 'action=rst\\n' not in s
+          p.write_text(s)
+
+          p=Path('internal/faketcp/window_test.go')
+          s=p.read_text()
+          assert 'TestSACKDoesNotFreeReplayWindowAdmission' not in s
+          s += r'''
+
+func TestSACKDoesNotFreeReplayWindowAdmission(t *testing.T) {
+	s := NewSenderWithRecovery(100, time.Second, RecoverySACKRACK)
+	now := time.Unix(2, 0)
+	for i := 0; i < MaxSteadyStateOutstandingDatagrams; i++ {
+		if _, err := s.EnqueueSteadyState([]byte{byte(i)}, now); err != nil {
+			t.Fatalf("enqueue %d: %v", i, err)
+		}
+	}
+
+	// Everything above the first missing record is known delivered, but keeping
+	// it inside admission prevents a repaired old DTLS record from falling more
+	// than the pinned 4096-record replay horizon behind newly admitted records.
+	s.AckSelective(100, []SACKBlock{{Start: 101, End: 100 + uint32(MaxSteadyStateOutstandingDatagrams)}}, now.Add(time.Millisecond))
+	if got := s.Pending(); got != MaxSteadyStateOutstandingDatagrams {
+		t.Fatalf("SACK changed replay admission pending=%d want=%d", got, MaxSteadyStateOutstandingDatagrams)
+	}
+	if _, err := s.EnqueueSteadyState([]byte{0xaa}, now.Add(2*time.Millisecond)); !errors.Is(err, ErrSteadyStateOutstandingFull) {
+		t.Fatalf("SACK-only overflow err=%v want %v", err, ErrSteadyStateOutstandingFull)
+	}
+
+	// Once the missing record arrives, the receiver's cumulative ACK jumps over
+	// the contiguous SACK range and safely reopens the sender window.
+	s.Ack(100+uint32(MaxSteadyStateOutstandingDatagrams), now.Add(3*time.Millisecond))
+	if got := s.Pending(); got != 0 {
+		t.Fatalf("pending after cumulative recovery=%d want=0", got)
+	}
+	if _, err := s.EnqueueSteadyState([]byte{0xbb}, now.Add(4*time.Millisecond)); err != nil {
+		t.Fatalf("enqueue after cumulative recovery: %v", err)
+	}
+}
+'''
+          p.write_text(s)
           PY
-          grep -q -- "- agent/fec-zombie-fix-7d859" /tmp/soak.yml
-          grep -q -- "- '.github/workflows/game-lane-rotation-soak.yml'" /tmp/matrix.yml
-          mkdir -p scripts
-          cp /tmp/soak.yml scripts/staging_game_lane_rotation_soak_trigger.yml
-          cp /tmp/matrix.yml scripts/staging_transport_20x20_soak_trigger.yml
-          git diff --no-index /dev/null scripts/staging_game_lane_rotation_soak_trigger.yml >/tmp/soak.diff || test $? -eq 1
-          git diff --no-index /dev/null scripts/staging_transport_20x20_soak_trigger.yml >/tmp/matrix.diff || test $? -eq 1
-      - name: Publish content-addressed blobs on helper branch
+          gofmt -w cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/main_linux.go internal/faketcp/window_test.go
+          git diff --check
+          grep -q 'action=backpressure' cmd/wbd-faketcp/main.go
+          grep -q 'action=backpressure' cmd/wbd-faketcp-mux/main_linux.go
+          ! grep -q 'action=rst$' cmd/wbd-faketcp/main.go
+          ! grep -q 'action=rst$' cmd/wbd-faketcp-mux/main_linux.go
+      - name: Run focused Go regression tests
+        run: |
+          set -euo pipefail
+          go test ./internal/faketcp ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux
+          GOOS=windows GOARCH=amd64 go test ./cmd/wbd-faketcp
+      - name: Publish validated product blobs on helper branch
         run: |
           set -euo pipefail
           git config user.name 'wbd-staging-bot'
           git config user.email 'wbd-staging-bot@users.noreply.github.com'
-          git add scripts/staging_game_lane_rotation_soak_trigger.yml scripts/staging_transport_20x20_soak_trigger.yml
+          git add cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/main_linux.go internal/faketcp/window_test.go
           git diff --cached --check
-          git commit -m 'test(staging): publish qualification trigger blobs'
+          git commit -m 'faketcp: backpressure replay-window saturation'
           git push origin HEAD:agent/matrix-harness-fix-f885
