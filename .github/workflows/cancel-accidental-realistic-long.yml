@@ -1,0 +1,36 @@
+name: cancel accidental realistic long runs
+
+on:
+  push:
+    branches:
+      - agent/analysis-realistic-d1e2
+    paths:
+      - '.github/workflows/cancel-accidental-realistic-long.yml'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel ungated analysis runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for run in 34486384696 34486384714; do
+            code=$(curl -sS -o /tmp/cancel-${run}.out -w '%{http_code}' \
+              -X POST \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run}/cancel")
+            if [[ "$code" != 202 && "$code" != 409 ]]; then
+              cat /tmp/cancel-${run}.out >&2
+              echo "unexpected cancel status run=${run} http=${code}" >&2
+              exit 1
+            fi
+            echo "WBD_CANCELLED_UNGATED_ANALYSIS run=${run} http=${code}"
+          done
