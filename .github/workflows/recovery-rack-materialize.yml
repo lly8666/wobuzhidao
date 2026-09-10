@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   materialize:
-    if: github.event.head_commit.message != 'fix(faketcp): allow repeated RACK repair with fresh evidence'
+    if: github.event.head_commit.message != 'rack-materialized'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -63,8 +63,8 @@ jobs:
           \t_ = s.Enqueue(make([]byte, 10), t0)   // 120..130 delivered
           \t_ = s.Enqueue(make([]byte, 10), t0)   // 130..140 delivered
 
-          \t// Three SACKed originals prove the first hole and trigger the scoreboard
-          \t// repair. RACK must never bypass this first-loss proof.
+          \t// Three SACKed originals prove the first hole and trigger the first
+          \t// scoreboard repair. RACK must never bypass this first-loss proof.
           \tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: 140}}, t0.Add(10*time.Millisecond)); got != p1 {
           \t\tt.Fatalf("first repair=%#v want p1", got)
           \t}
@@ -72,9 +72,8 @@ jobs:
           \t\tt.Fatalf("retries after scoreboard repair=%d want 1", p1.Retries)
           \t}
 
-          \t// New packets sent after repair #1 are delivered, making rackLatestTx
-          \t// newer than p1.LastSent. Fresh evidence alone is not enough before the
-          \t// conservative reordering window has elapsed.
+          \t// Later packets sent after repair #1 become fresh delivery evidence.
+          \t// Fresh evidence alone must not bypass the conservative reordering window.
           \tfor i := 0; i < 3; i++ {
           \t\ts.Enqueue(make([]byte, 10), t0.Add(12*time.Millisecond))
           \t}
@@ -88,38 +87,37 @@ jobs:
           \t\tt.Fatalf("retries after repair #2=%d want 2", p1.Retries)
           \t}
 
-          \t// The evidence that justified repair #2 is now stale because it predates
-          \t// p1.LastSent. Repeating exactly the same SACK must not cause a storm.
+          \t// The evidence that justified repair #2 now predates p1.LastSent. Repeating
+          \t// exactly the same SACK must not cause a retransmission storm.
           \tfor i := 0; i < 8; i++ {
           \t\tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: 170}}, t0.Add(time.Duration(30+i)*time.Millisecond)); got == p1 {
           \t\t\tt.Fatalf("stale evidence retriggered p1 at repeat %d", i)
           \t\t}
           \t}
 
-          \t// Each later repair needs evidence from data transmitted after the
-          \t// previous repair. Prove both a third and fourth fast repair so this
-          \t// contract cannot regress to a hidden retry-count cap.
-          \tfor wantRetry, sentAt, ackAt := range []struct {
+          \t// Prove both a third and fourth fast repair. Every repair needs delivery
+          \t// evidence from data transmitted after the previous p1 repair.
+          \tcases := []struct {
           \t\twant   uint32
           \t\tsentAt time.Duration
           \t\tackAt  time.Duration
           \t}{
           \t\t{want: 3, sentAt: 41 * time.Millisecond, ackAt: 55 * time.Millisecond},
           \t\t{want: 4, sentAt: 60 * time.Millisecond, ackAt: 75 * time.Millisecond},
-          \t} {
-          \t\t_ = wantRetry
+          \t}
+          \tfor _, tc := range cases {
           \t\tfor i := 0; i < 3; i++ {
-          \t\t\ts.Enqueue(make([]byte, 10), t0.Add(sentAt))
+          \t\t\ts.Enqueue(make([]byte, 10), t0.Add(tc.sentAt))
           \t\t}
           \t\tend := s.NextSeq()
-          \t\tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: end}}, t0.Add(ackAt)); got != p1 {
-          \t\t\tt.Fatalf("fresh evidence did not trigger repair #%d: %#v", wantRetry.want, got)
+          \t\tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: end}}, t0.Add(tc.ackAt)); got != p1 {
+          \t\t\tt.Fatalf("fresh evidence did not trigger repair #%d: %#v", tc.want, got)
           \t\t}
-          \t\tif p1.Retries != wantRetry.want {
-          \t\t\tt.Fatalf("retries=%d want %d", p1.Retries, wantRetry.want)
+          \t\tif p1.Retries != tc.want {
+          \t\t\tt.Fatalf("retries=%d want %d", p1.Retries, tc.want)
           \t\t}
-          \t\tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: end}}, t0.Add(ackAt+5*time.Millisecond)); got == p1 {
-          \t\t\tt.Fatalf("identical evidence retriggered after repair #%d", wantRetry.want)
+          \t\tif got := s.AckSelective(100, []SACKBlock{{Start: 110, End: end}}, t0.Add(tc.ackAt+5*time.Millisecond)); got == p1 {
+          \t\t\tt.Fatalf("identical evidence retriggered after repair #%d", tc.want)
           \t\t}
           \t}
 
@@ -136,6 +134,7 @@ jobs:
           t.write_text(x[:start] + replacement + x[end:])
           PY
           gofmt -w internal/faketcp/arq.go internal/faketcp/retransmit_storm_test.go
+          git diff --check
           go test ./internal/faketcp -count=1
       - name: Commit candidate source and tests
         shell: bash
@@ -145,5 +144,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add internal/faketcp/arq.go internal/faketcp/retransmit_storm_test.go
           git diff --cached --check
-          git commit -m 'fix(faketcp): allow repeated RACK repair with fresh evidence'
+          git commit -m 'rack-materialized'
           git push origin HEAD:refs/heads/agent/recovery-candidate-89a
