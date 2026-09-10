@@ -1,168 +1,158 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 105,
+  "continuity_sequence": 107,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "feat/single-flow-reality-faketcp",
   "active_issue": 1,
   "active_pr": 9,
-  "checkpoint_based_on_head_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
-  "current_head_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
-  "runtime_test_candidate_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
-  "runtime_behavior_base_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
-  "last_hosted_green_runtime_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+  "checkpoint_based_on_head_sha": "6361fa61fa961a21d603b19e1e95e8adfb8acc3e",
+  "current_head_sha": "6361fa61fa961a21d603b19e1e95e8adfb8acc3e",
+  "runtime_test_candidate_sha": "40c9454f5fb75e7253e64ace435108efb9b4f63c",
+  "runtime_behavior_base_sha": "89a4650b09c4f3862ba02316cec2ae258a8f0853",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "strategic_horizon": {
     "terminal_goal": "ADR-0012 WBD: stable Logical Tunnel identity/lease + one SessionID/PacketID race namespace + 1..4 independent replaceable Transport Lanes. Each lane is one complete same-association raw FakeTCP -> Reality-like real TLS 1.3 bootstrap -> barrier -> pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC -> Game/race path.",
-    "current_milestone": "0755738d1ac99e9bbc5493c81c493038c38d4c90 is the exact-source substantive hosted test candidate after reconnect/RST/liveness and fullstack harness corrections. Its exact-SHA Actions trigger set has completed with no failure/cancelled/timed_out result observed in the live snapshot. Fresh exact-source Windows/Linux ARM64 artifact download/package assembly and physical Windows11+Npcap -> Ubuntu ARM64 qualification are still pending.",
-    "stop_rule": "Do not redesign mature FakeTCP/Reality-like TLS/DTLS/LINK/Game/FEC wire absent deterministic evidence. Do not resurrect negotiated-MTU V3. Reuse the existing LINK keepalive parameter; never introduce a second user-visible FakeTCP idle/dead-peer/keepalive API. Never call release-qualified before one exact SOURCE_SHA has same-source hosted artifacts and fresh physical Windows11+Npcap -> Ubuntu ARM64 evidence."
+    "current_milestone": "Formal-side integration candidate 40c9454f5fb75e7253e64ace435108efb9b4f63c has a deterministic RTO loss-episode regression, the minimal Karn-safe timeout-backoff reset, and a deterministic FEC pressure-order test fix. One exact source SHA now passes all ordinary hosted gates including strict faketcp-native 1000/1000. Severe phase-one 4x500s qualification has been launched against this exact source SHA through an isolated validation-only helper and is not yet recorded as passed.",
+    "stop_rule": "Do not redesign mature FakeTCP/Reality-like TLS/DTLS/LINK/Game/FEC wire absent deterministic evidence. Do not weaken complete-delivery gates. Do not resurrect negotiated-MTU V3. Keep legacy FakeTCP recovery as product default and sack-rack experimental until qualification completes. Never call release-qualified before one exact integrated SOURCE_SHA has ordinary hosted evidence, required severe soak, deliberate formal/live reconciliation, and fresh physical Windows11+Npcap -> Ubuntu ARM64 evidence."
   },
   "architecture_override": {
     "authority": "ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs each lane same-association bootstrap/no-HOL.",
     "critical_guard": "single-flow is PER TRANSPORT LANE / TRANSPORT EPOCH. One tunnel owns stable TunnelID/lease and one SessionID/PacketID race domain with 1..4 logical lanes; FEC remains lane-local.",
-    "replacement": "Healthy replacement is A -> A+B -> B; candidate failure preserves A. At most 4 logical lanes exist. One fifth physical slot is replacement overlap only. Client replacement is serialized and server has at most one replacement overlap globally.",
+    "replacement": "Healthy replacement is A -> A+B -> B; candidate failure preserves A. At most 4 logical lanes exist. One fifth physical slot is replacement overlap only.",
     "windows_outer_path": "Windows product path remains real Npcap/raw FakeTCP; Reality-like TLS bootstrap, DTLS, LINK and payload stay on the same raw FakeTCP association.",
     "server_path": "Linux final path remains one shared WBD TUN + root routing + one WBD-owned host NAT."
   },
-  "keepalive_contract": {
-    "authority": "Existing cmd/wbd-link-proxy keepalive flag and DTLS-protected WBD PING/PONG are authoritative.",
-    "default": "15s",
-    "positive_behavior": "keepalive > 0 schedules LINK PING/PONG and remote-RX liveness expiry remains 3 x keepalive; expiry exits the LINK child and feeds the existing lane-replacement lifecycle.",
-    "zero_behavior": "keepalive=0 disables heartbeat scheduling and remote-RX liveness enforcement. It must not force-close a silent/blackholed lane merely to maintain connection state.",
-    "terminal_exceptions": "Explicit exact-flow peer RST and genuine fatal errors remain terminal regardless of keepalive=0.",
-    "non_goal": "Do not restore the reverted independent FakeTCP active keepalive prototype or invent a second idle/dead-peer parameter."
-  },
-  "rst_fin_contract": {
-    "rst": "Client exact-flow peer RST logs WBD_FAKETCP_PEER_RESET, tears down the association and exits; Linux mux logs WBD_FAKETCP_MUX_PEER_RESET, removes the session and cleans bootstrap/relay/DTLS/table state before RX bookkeeping.",
-    "fin": "Dedicated FIN-as-terminal behavior remains intentionally deferred. The mux fallback can emit FIN|ACK during ordinary TCP decoy fallback state release, so any future FIN terminal policy must be stage-aware rather than blindly fatal."
-  },
-  "mtu_contract": {
-    "user_visible_semantics": "Both Windows and Linux configure INNER IP MTU.",
-    "default_inner_mtu": 1360,
-    "valid_inner_mtu_min": 576,
-    "valid_inner_mtu_max": 1460,
-    "game_private_envelope_bytes": 40,
-    "default_link_plaintext_mtu": 1400,
-    "regression_contracts": [
-      "inner 1360 -> LINK plaintext 1400",
-      "inner 1300 -> LINK plaintext 1340"
-    ]
+  "recovery_contract": {
+    "product_default": "legacy",
+    "candidate_mode": "sack-rack",
+    "sack_loss_authority": "Because the receiver advertises only four recent SACK ranges, absence from SACK is not proof for arbitrary non-head data. Initial SACK fast recovery is restricted to the cumulative-ACK boundary/oldest hole with at least three SACKed segments above it.",
+    "rack_freshness": "A retried cumulative oldest hole may be fast-repaired again only when rackLatestTx proves delivery of a transmission sent after that hole's latest LastSent and the reordering window has elapsed. markRetry refreshes LastSent, so evidence consumed for one repair becomes stale immediately. Replaying the same old ACK/SACK cannot self-trigger. There is no arbitrary Retries==1/two-repair ceiling when genuinely newer delivery evidence exists.",
+    "rto_episode": "Estimator-derived baseRTO is distinct from the current timeout episode's effective rto. Repeated timeouts of the same unresolved oldest segment still back off exponentially. Cumulative ACK coverage of the timed-out oldest segment ends that episode and restores effective rto to baseRTO without taking an ambiguous retransmission RTT sample. Partial/duplicate ACK and stale SACK evidence do not reset the episode.",
+    "do_not_regress": "Do not restore all-window/non-head loss inference from the older 30cc178 experiment, do not restore the later Retries==1 cap, and do not reset timeout backoff on duplicate/partial progress unless deterministic evidence changes the contract."
   },
   "fec_contract": {
     "product_path": "cmd/wbd-link-proxy -> internal/linkdata.Path -> internal/fec.FastBlockEncoder",
-    "wire_geometry": "Fixed systematic Reed-Solomon 20:20; full block remains 20 source + 20 repair.",
-    "partial_block": "FastBlockEncoder partial flush remains N source + N repair; do not regress to N+20."
+    "wire_geometry": "Fixed systematic Reed-Solomon 20:20; full block stays 20 source + 20 repair; partial streaming flush stays N source + N repair.",
+    "heavy_state": "Product decoder heavy reconstruction window remains bounded at maxBlocks=64.",
+    "retired_state": "Use the formal 89a compact retired/tombstone container with hard maxRetiredBlocks=8192. Never use the unbounded degraded map from 5411e924 as product state.",
+    "pressure_policy": "On pressure, safely degradable old streaming state may be retired compactly. If every heavy victim is unsafe, a new streaming block enters bounded ARQ-only retired state instead of ErrDecoderFull permanently blocking forward progress. Unsafe reference/final state must not be evicted. Aged retired entries are folded into completed history so memory remains bounded and very-late shards cannot reopen them."
+  },
+  "branch_state": {
+    "live_feature": {
+      "branch": "feat/single-flow-reality-faketcp",
+      "substantive_head_before_this_handoff": "6361fa61fa961a21d603b19e1e95e8adfb8acc3e",
+      "status": "experimental divergent line; do not use as the integration experiment workspace"
+    },
+    "formal_baseline": "89a4650b09c4f3862ba02316cec2ae258a8f0853",
+    "integration_branch": "agent/integrated-89a-bounded-fec-fresh-rack",
+    "integration_head": "40c9454f5fb75e7253e64ace435108efb9b4f63c",
+    "integration_commits": [
+      "3af4d04aa4cdc9b81a1b92a891d4a8872665e480 - integrate bounded pressure recovery and fresh-evidence RACK",
+      "383afad762e435b6030241dc9a8dac836bad9696 - strengthen repeated-RACK/storm regression around fresh evidence",
+      "253d17b557701d34a0707e3be910d6c41667b8ab - deterministic regression exposing RTO backoff carryover across a new oldest loss episode",
+      "3e551cfc3758931ba09684ed52c576e6bdcbc07e - split estimator base RTO from timeout-episode backoff and reset only when cumulative ACK covers the timed-out oldest segment",
+      "40c9454f5fb75e7253e64ace435108efb9b4f63c - make FEC pressure victim-order regression deterministic without changing the FEC decoder implementation"
+    ],
+    "validation_helper": {
+      "branch": "agent/integrated-89a-bounded-fec-fresh-rack-severe4-40c9454",
+      "helper_head": "d67b32e05bf56a4379e0cb1bdb920e9ccd95f87f",
+      "runtime_source_sha": "40c9454f5fb75e7253e64ace435108efb9b4f63c",
+      "purpose": "validation-only exact-source 4x500s severe phase-one trigger; never promote/cherry-pick this helper into product history"
+    },
+    "divergence": "89a and live feature diverged after merge base 7d859d76f4f6efb26b312fc46d0bc631a8739cc4. The formal side contains important DTLS/replay-window/qualification work absent from the later experimental line; never substitute or cherry-pick wholesale without deliberate compare.",
+    "stale_scratch_branches": [
+      "agent/integrated-89a-bounded-fec-fresh-rack-validate",
+      "agent/integrated-89a-bounded-fec-fresh-rack-validate2",
+      "agent/integrated-89a-bounded-fec-fresh-rack-work"
+    ]
   },
   "implemented_since_last_handoff": [
-    "Retained the Windows retired-slot child-exit barrier and serialized cross-lane lost-LEAVE convergence from the prior candidate; healthy replacement remains A->A+B->B and candidate failure preserves A.",
-    "Added exact-flow FakeTCP peer-RST lifecycle handling on the client and Linux mux. Client RST is terminal and drives existing lane replacement; server mux removes the matching session and dependent bootstrap/relay/DTLS state before RX bookkeeping.",
-    "Audited silent-blackhole behavior and rejected a duplicate FakeTCP active keepalive API after confirming the product already owns an authoritative LINK keepalive parameter.",
-    "Fixed existing LINK keepalive zero semantics: keepalive=0 no longer gets coerced to the 15s default, does not schedule PING, and does not expire remote RX. Positive keepalive keeps the existing DTLS-protected PING/PONG and 3x liveness window.",
-    "Kept FIN terminal handling deferred because ordinary decoy/fallback state can emit FIN|ACK; future work must be stage-aware.",
-    "Fixed OpenWrt fullstack and startup-stress harness MTU layering so user/inner MTU 1360 maps to low-level LINK plaintext MTU 1400 instead of passing 1360 into both layers.",
-    "Fixed the 300ms RTT / 20% loss fullstack startup barrier by waiting for all four server FakeTCP bootstrap observations before starting DTLS, avoiding a harness race where client tickets were ready before the fourth server log arrived.",
-    "Pinned reconnect-netem MTU layers and hardened shell control flow; weak-net FEC-off and FEC20 cases are intended to exercise 300ms RTT / 20% loss without the previous startup-barrier false failure.",
-    "Added/retained MTU regression contracts for 1360->1400 and 1300->1340.",
-    "Final substantive candidate 0755738d1ac99e9bbc5493c81c493038c38d4c90 carries [publish-test], contains no temporary one-shot/helper workflow, and is the only SOURCE_SHA for the next package/physical qualification phase.",
-    "Live exact-SHA Actions snapshot for 0755738d1ac99e9bbc5493c81c493038c38d4c90 contains 24 completed workflow runs; no failure, cancelled, or timed_out conclusion was observed. The stale negotiated-MTU V3 workflow remains explicitly excluded from product/release-gate authority."
+    "Live refresh confirmed feature HEAD 23bda61db1c351fd1f25f87767946cbcd85bc332 was handoff-only on substantive 6361fa61fa961a21d603b19e1e95e8adfb8acc3e; PR #9 remained open/draft; integration HEAD initially remained 383afad762e435b6030241dc9a8dac836bad9696.",
+    "Added deterministic RTO episode tests at 253d17b557701d34a0707e3be910d6c41667b8ab. The exact-SHA faketcp-native run failed in unit tests specifically because a new oldest hole inherited 4s backoff and because cumulative coverage left 2s backoff, proving the leading hypothesis before implementation changes.",
+    "Commit 3e551cfc3758931ba09684ed52c576e6bdcbc07e implemented the minimal loss-episode fix: baseRTO and effective rto are separate; repeated timeout backoff is preserved; cumulative ACK coverage of the timed-out oldest ends the episode; Karn-safe RTT sampling remains unchanged; partial/duplicate ACK and stale SACK do not reset it.",
+    "An exact 3e551c fullstack matrix exposed an unrelated pre-existing flaky FEC pressure test: Go map iteration randomized insertion order while the assertion hard-coded block 1 as oldest. Product decoder victim selection correctly follows insertion order. Commit 40c9454f5fb75e7253e64ace435108efb9b4f63c changed only the test to insert blocks 1 then 2 deterministically; FEC product implementation and bounded-memory contract were not changed.",
+    "Exact candidate 40c9454f5fb75e7253e64ace435108efb9b4f63c passes ci, faketcp-native, faketcp-pcap-20loss, faketcp-first-arrival, fullstack-first-arrival, openwrt-tcp-tproxy and handoff-verify. Native full log confirms explicit sack-rack, sent=1000 received=1000, about 7.33s wall time, client/server Acked=1000/1000 and final rto_ms=1000. No complete-delivery threshold or deadline was weakened.",
+    "Because the repository severe workflow hard-codes 5+5 replicas and the connector exposes no workflow-dispatch action, created isolated validation helper d67b32e05bf56a4379e0cb1bdb920e9ccd95f87f. Its severe4 workflow explicitly checks out and verifies SOURCE_SHA 40c9454f5fb75e7253e64ace435108efb9b4f63c and runs only FEC off x2 plus FEC20 x2 under the established 500s/4-lane/1Mbps/300ms/20pct/16-rotation strict contract. Run 34453945291 is launched; do not treat it as passed until all four jobs and aggregate marker succeed and logs/artifacts are inspected."
   ],
   "known_pending": [
     {
-      "priority": "artifact-blocker",
-      "item": "Enumerate and download the Windows portable and Linux ARM64 artifacts produced from exact SOURCE_SHA=0755738d1ac99e9bbc5493c81c493038c38d4c90. Verify source markers/digests, then assemble a fresh combined physical test ZIP + manifest + SHA256. Do not reuse any 7812 artifact or package."
+      "priority": "P1-severe4",
+      "item": "Inspect GitHub Actions run 34453945291 for validation helper d67b32e05bf56a4379e0cb1bdb920e9ccd95f87f. Verify build and each of four soak jobs use exact runtime SOURCE_SHA 40c9454f5fb75e7253e64ace435108efb9b4f63c. Require FEC off x2 and FEC20 x2 to satisfy 500s, 4 lanes, 1 Mbps each direction, 300ms bidirectional delay/loss contract, 16 rotations, duplicates=0, bad_payload=0, peer_resets=16, no_client_rx_expire=0. On any failure, read logs/artifacts and classify; do not probabilistically rerun."
     },
     {
-      "priority": "physical-blocker",
-      "item": "Run fresh Windows11+real Npcap -> Ubuntu ARM64 physical qualification against exact SOURCE_SHA=0755738d1ac99e9bbc5493c81c493038c38d4c90: initial 4 lanes, repeated physical-slot recycle, one/two/all-four hard failures, A+B candidate failure, old-primary exit, bidirectional application traffic, cleanup, MTU/FEC/DNS/UDP/TCP."
+      "priority": "P1-severe10",
+      "item": "Only if severe4 is clean, run the full 10x500s matrix (FEC off x5 + FEC20 x5) against the same exact product SOURCE_SHA. Keep validation helper commits separate from product history and preserve exact-SHA evidence."
     },
     {
-      "priority": "liveness-physical",
-      "item": "Physically verify peer RST is promptly terminal; with keepalive>0 verify blackhole eventually exits LINK after the existing 3x keepalive remote-RX window and enters replacement; with keepalive=0 verify silent/blackhole conditions do not force-close due heartbeat/liveness enforcement."
-    },
-    {
-      "priority": "weak-net-evidence",
-      "item": "If the current reconnect-netem workflow does not already assert post-traffic qdisc packet counters, capture tc -s qdisc AFTER traffic and require nonzero packet counts. Earlier pre-traffic snapshots with Sent 0 pkt are not valid proof that 300ms/20% netem was traversed."
-    },
-    {
-      "priority": "deferred-policy",
-      "item": "Design FIN terminal handling only with deterministic stage-aware evidence; do not blindly treat every FIN/FIN|ACK as fatal because fallback/decoy state can emit FIN|ACK during normal release."
+      "priority": "P2-formal-promotion",
+      "item": "Only after exact integrated ordinary + severe success, compare formal baseline/integrated/live histories and construct a clean candidate excluding validation-only helpers. Rerun exact-source hosted gates before fresh Windows11+real Npcap -> Ubuntu ARM64 physical qualification. release_authorized remains false."
     }
   ],
   "excluded_or_stale_paths": {
-    ".github/workflows/apply-server-negotiated-mtu-fix.yml": "Stale negotiated-MTU V3 workflow. Its failure is not architecture/product-gate authority."
+    ".github/workflows/apply-server-negotiated-mtu-fix.yml": "Stale negotiated-MTU V3 helper. Its fast failure is not product/release-gate authority."
+  },
+  "excluded_or_stale_branches": {
+    "agent/integrated-89a-bounded-fec-fresh-rack-validate": "empty scratch branch at the formal baseline; do not use",
+    "agent/integrated-89a-bounded-fec-fresh-rack-validate2": "empty scratch branch at the formal baseline; do not use",
+    "agent/integrated-89a-bounded-fec-fresh-rack-work": "empty scratch branch at the formal baseline; do not use"
   },
   "continuation_cursor": {
-    "last_completed_action": "Fixed LINK keepalive=0 semantics without introducing a second keepalive API, retained exact-flow RST termination, corrected fullstack/startup/weak-net qualification harness MTU and bootstrap barriers, produced final substantive candidate 0755738d1ac99e9bbc5493c81c493038c38d4c90, and refreshed its 24-run exact-SHA Actions snapshot after completion.",
-    "current_task": "Turn exact hosted-green substantive candidate 0755738d1ac99e9bbc5493c81c493038c38d4c90 into a fresh exact-source physical test package, then run Windows11+Npcap -> Ubuntu ARM64 physical qualification. No further product-code change is justified unless exact-source package/physical evidence exposes a deterministic defect.",
-    "why_now": "The remaining boundary is evidence and packaging, not another architecture redesign. Earlier 7812 artifacts and physical kit are stale because runtime/liveness/harness source changed after them.",
-    "done_when": "Fresh Windows and Linux ARM64 artifacts both prove SOURCE_SHA=0755738d1ac99e9bbc5493c81c493038c38d4c90; a new combined package and SHA256 manifest are assembled; physical 4-lane rotation/replacement/application traffic pass on Windows11+real Npcap -> Ubuntu ARM64; RST and keepalive zero/positive liveness behavior match contract; weak-net evidence proves netem actually saw traffic; only then may release authorization be reconsidered.",
-    "next_atomic_action": "Refresh live branch/PR and exact-SHA Actions, identify the artifact-producing workflow runs for 0755738d1ac99e9bbc5493c81c493038c38d4c90, download the Windows portable and Linux ARM64 artifacts, verify their SOURCE_SHA markers/digests, and assemble a brand-new exact-source physical test package."
+    "last_completed_action": "Proved the global-RTO carryover hypothesis with a deterministic red regression, committed the minimal Karn-safe loss-episode reset, fixed only the nondeterministic FEC pressure test ordering, and established exact-source ordinary hosted success for 40c9454 including strict faketcp-native 1000/1000. Then launched severe phase one through an isolated validation-only helper.",
+    "current_task": "Qualify exact product SOURCE_SHA 40c9454f5fb75e7253e64ace435108efb9b4f63c under staged severe hosted conditions without changing product architecture or weakening gates.",
+    "why_now": "The previous sole P0 faketcp-native blocker is deterministically explained and fixed, and every required ordinary hosted gate is green on one exact candidate SHA. The next authorized qualification stage is severe4, not formal/live reconciliation or physical release qualification.",
+    "done_when": "Run 34453945291 proves all four 500s severe replicas clean on exact SOURCE_SHA 40c9454; then a full 10x500s matrix on that same product SHA passes. Only after severe hosted success may formal/live reconciliation begin. release_authorized stays false until fresh physical same-SHA evidence is complete.",
+    "next_atomic_action": "Refresh run 34453945291 and inspect its build/soak job logs. Confirm exact SOURCE_SHA 40c9454f5fb75e7253e64ace435108efb9b4f63c rather than helper SHA d67b32e05bf56a4379e0cb1bdb920e9ccd95f87f. If all four severe jobs are green, inspect load-result evidence for every replica and only then launch the full 10x500s severe matrix. If any job fails, classify its job/artifact/log before changing code or rerunning."
   },
-  "recent_physical_history": {
-    "0df0e0ad10306d56bb8d8a553967d7caf68cad60": "FAILED diagnostic candidate: old MTU semantics, lifecycle divergence, and N+20 partial FEC amplification.",
-    "0703d26125c14345a1b500ce241f86d08f6c9066": "FAILED physical diagnostic candidate. Initial 4 lanes worked, but replacement after slot rotation exposed stale DEMO_BIND_OK witness mismatch.",
-    "7812f66f2d57d3a2052ff11e7d12b1641429a7e8": "Superseded hosted-green physical candidate. Its Windows/Linux artifacts and combined kit are stale for current runtime and must not be used as qualification evidence for 0755738d.",
-    "0755738d1ac99e9bbc5493c81c493038c38d4c90": "Current substantive exact-source hosted test candidate after RST, LINK keepalive=0 semantics, MTU-layer and weak-net bootstrap-barrier corrections. Fresh exact-source artifact packaging and physical qualification pending."
-  },
-  "physical_retest_plan": [
-    "Fence every artifact/action/log to SOURCE_SHA=0755738d1ac99e9bbc5493c81c493038c38d4c90; reject mixed-SHA evidence and never substitute the handoff-only commit SHA.",
-    "Verify the default MTU contract inner 1360 -> LINK plaintext 1400, and include the physical regression boundary Windows mtu=1300 / Linux WBD_MTU=1300 -> LINK 1340.",
-    "Confirm initial client active=1,2,3,4 and server lane1..4 binds, then exercise repeated physical-slot recycling; the fifth physical slot is replacement overlap only, never logical lane5.",
-    "Hard-cut current authoritative lane processes: one lane, two lanes and all four nearly together. Require serialized recovery without permanent global-overlap conflict; reason=lost_leave_serialized_recovery is acceptable evidence of lost-LEAVE convergence.",
-    "Kill candidate during A+B and verify healthy A survives; kill old primary after qualification and verify retired-incarnation exit cannot replace or poison the new authoritative plan.",
-    "Verify exact-flow peer RST promptly tears the lane down and enters existing replacement lifecycle.",
-    "For keepalive>0, verify DTLS-protected LINK PING/PONG and the existing 3x remote-RX expiry drive recovery under blackhole. For keepalive=0, verify no heartbeat/liveness force-close occurs solely because the peer is silent.",
-    "Under 300ms RTT / 20% loss with FEC off and FEC20, verify no false liveness kill with default 15s keepalive and capture post-traffic tc -s qdisc nonzero packet counters if CI does not already assert them.",
-    "Re-check FEC20 sustained traffic, DNS, generic UDP, TCP, reverse path, raw IPv4, lease-source exclusivity and cleanup."
-  ],
   "resume_read_set": [
     ".wbd/handoff/README.md",
     ".wbd/handoff/current.json",
     "docs/architecture/ADR-0011-single-public-flow-reality-bootstrap.md",
     "docs/architecture/ADR-0012-logical-tunnel-address-lease-multipath-lifecycle.md",
-    "internal/faketcp/bootstrap_stream.go",
     "internal/faketcp/arq.go",
-    "internal/faketcp/bootstrap_retransmit_test.go",
-    ".github/workflows/reconnect-netem.yml",
-    ".github/scripts/single-flow-startup-stress.sh",
-    "cmd/wbd-faketcp/main.go",
-    "cmd/wbd-faketcp-mux/main_linux.go",
-    "docs/testing/PHYSICAL_TEST_PACKAGE.md"
+    "internal/faketcp/rto_episode_test.go",
+    "internal/faketcp/arq_fresh_evidence_test.go",
+    "internal/faketcp/retransmit_storm_test.go",
+    "internal/fec/block.go",
+    "internal/fec/window_pressure_test.go",
+    ".github/workflows/faketcp-native.yml",
+    ".github/workflows/game-lane-rotation-soak.yml",
+    "cmd/wbd-faketcp/main.go"
   ],
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
+    "tested_commit": "40c9454f5fb75e7253e64ace435108efb9b4f63c",
     "result": "not_run"
   },
   "automated_exact_head_snapshot": {
-    "runtime_source_head": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
-    "workflow_run_count": 24,
-    "result": "ALL OBSERVED EXACT-SHA WORKFLOW RUNS COMPLETED; LIVE SNAPSHOT SHOWED NO failure/cancelled/timed_out CONCLUSION. Stale negotiated-MTU V3 remains excluded from product/release authority.",
+    "runtime_source_head": "40c9454f5fb75e7253e64ace435108efb9b4f63c",
+    "observed_success": [
+      "ci run 34453404986",
+      "faketcp-native run 34453405026 strict 1000/1000",
+      "faketcp-pcap-20loss run 34453405039",
+      "faketcp-first-arrival run 34453405079",
+      "fullstack-first-arrival run 34453405004",
+      "openwrt-tcp-tproxy run 34453405036",
+      "handoff-verify run 34453405032"
+    ],
+    "authoritative_failure": null,
+    "non_authoritative_failure": "apply-server-negotiated-mtu-fix stale negotiated-MTU V3 helper",
+    "release_authorized": false
+  },
+  "severe_phase_one_snapshot": {
+    "runtime_source_head": "40c9454f5fb75e7253e64ace435108efb9b4f63c",
+    "validation_helper_head": "d67b32e05bf56a4379e0cb1bdb920e9ccd95f87f",
+    "workflow_run_id": 34453945291,
+    "last_observed_status": "in_progress_build_assets",
+    "result": "NOT YET QUALIFIED; launched with exact-source checkout guard",
     "release_authorized": false
   },
   "qualification_snapshot": {
-    "runtime_source_head": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
-    "runtime_behavior_base_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
-    "result": "HOSTED EXACT-SHA TEST PHASE COMPLETE; FRESH CURRENT-SHA ARTIFACT PACKAGE AND PHYSICAL QUALIFICATION PENDING",
-    "known_incomplete": "Need fresh exact-source Windows/Linux ARM64 artifact receipt/package plus real Windows11+Npcap -> Ubuntu ARM64 repeated 4-lane rotation/replacement/application-path qualification, RST and keepalive zero/positive liveness evidence, and post-traffic netem qdisc proof if CI does not already assert it.",
+    "runtime_source_head": "40c9454f5fb75e7253e64ace435108efb9b4f63c",
+    "runtime_behavior_base_sha": "89a4650b09c4f3862ba02316cec2ae258a8f0853",
+    "result": "EXACT-SOURCE ORDINARY HOSTED GATES PASS INCLUDING FAKETCP-NATIVE 1000/1000. SEVERE PHASE ONE IS RUNNING AND IS NOT YET QUALIFIED. FORMAL/LIVE RECONCILIATION AND PHYSICAL QUALIFICATION ARE NOT YET AUTHORIZED.",
+    "known_incomplete": "Need severe4 completion and log/artifact inspection, then full severe10 on the same product SHA, deliberate formal/live reconciliation, fresh same-source Windows11+Npcap -> Ubuntu ARM64 physical qualification, and only then release decision.",
     "release_authorized": false
-  },
-  "artifact_snapshot": {
-    "current_source_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
-    "status": "fresh exact-source Windows and Linux ARM64 artifacts/package not yet downloaded and independently verified in this handoff phase",
-    "stale_previous_candidate": {
-      "source_sha": "7812f66f2d57d3a2052ff11e7d12b1641429a7e8",
-      "combined_package_path": "/mnt/data/wbd-7812f66f-4lane-reconnect-physical-test-kit.zip",
-      "combined_package_sha256": "f11714d37206516bc7ec4d2e459860c36a571b73f9df4121a3adb6012d6f3376",
-      "warning": "STALE. Never send or qualify this package as current."
-    }
-  },
-  "operational_continuity": {
-    "previous_sequence": 104,
-    "substantive_commit": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
-    "runtime_behavior_base_sha": "0755738d1ac99e9bbc5493c81c493038c38d4c90",
-    "metadata_note": "Sequence 105 records the RST/LINK keepalive-zero/harness correction phase and current exact-SHA hosted snapshot. This repository write is handoff-only and must not replace substantive checkpoint/SOURCE_SHA 0755738d1ac99e9bbc5493c81c493038c38d4c90.",
-    "rule": "Live-refresh before execution; exact-source fence all automated/artifact/physical evidence; never stitch qualification across source SHAs; release_authorized remains false until fresh physical qualification."
   }
 }
