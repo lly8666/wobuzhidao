@@ -93,10 +93,10 @@ func (e *BlockEncoder) flush() ([][]byte, error) {
 	wire := make([][]byte, 0, dataCount+ParityShards)
 	appendShard := func(index int) error {
 		h := BlockHeader{
-			BlockID:          e.nextBlockID,
-			ShardIndex:       uint8(index),
-			DataCount:        uint8(dataCount),
-			ShardSize:        uint16(shardSize),
+			BlockID:         e.nextBlockID,
+			ShardIndex:      uint8(index),
+			DataCount:       uint8(dataCount),
+			ShardSize:       uint16(shardSize),
 			OriginalLengths: lengths,
 		}
 		hb, err := h.MarshalBinary()
@@ -142,16 +142,31 @@ type decodeBlock struct {
 	delivered     [DataShards]bool
 }
 
-// BlockDecoder keeps a bounded number of in-flight blocks and compact exact
-// completion history so arbitrarily late parity/source retransmissions cannot
-// recreate blocks that already delivered their originals. Streaming systematic
-// shards are returned immediately; parity later supplies final metadata and
-// reconstructs only sources that never arrived.
+// degradedBlock is the bounded-pressure fallback for the streaming production
+// path. It deliberately retains no FEC shard payloads: an old incomplete block
+// may lose early reconstruction, but later systematic retransmissions can still
+// be delivered exactly once while newer blocks keep access to the heavy decoder
+// window. Final metadata is retained only to validate those late sources.
+type degradedBlock struct {
+	header    BlockHeader
+	final     bool
+	delivered uint32
+}
+
+// BlockDecoder keeps a bounded number of heavy in-flight reconstruction blocks,
+// compact exact completion history, and lightweight degraded state for blocks
+// shed under streaming-window pressure. The heavy maxBlocks limit therefore
+// remains a memory bound rather than becoming a permanent forward-progress
+// failure when lower-layer ARQ delivers old holes far behind newer BlockIDs.
+// Streaming systematic shards are returned immediately; parity later supplies
+// final metadata and reconstructs only sources that never arrived while the
+// block remains in the heavy window.
 type BlockDecoder struct {
 	codec         Codec
 	maxPacketSize int
 	maxBlocks     int
 	blocks        map[uint32]*decodeBlock
+	degraded      map[uint32]*degradedBlock
 	completed     completedBlockSet
 }
 
@@ -161,7 +176,7 @@ func NewBlockDecoder(codec Codec, maxPacketSize, maxBlocks int) (*BlockDecoder, 
 	}
 	return &BlockDecoder{
 		codec: codec, maxPacketSize: maxPacketSize, maxBlocks: maxBlocks,
-		blocks: make(map[uint32]*decodeBlock),
+		blocks: make(map[uint32]*decodeBlock), degraded: make(map[uint32]*degradedBlock),
 	}, nil
 }
 
@@ -179,7 +194,7 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 		return nil, false, ErrPacketTooLarge
 	}
 	flags := binary.BigEndian.Uint16(datagram[14:16])
-	if flags & ^headerFlagStreamingSystematic != 0 {
+	if flags&^headerFlagStreamingSystematic != 0 {
 		return nil, false, ErrHeaderMismatch
 	}
 	streaming := flags&headerFlagStreamingSystematic != 0
@@ -191,11 +206,31 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 	if d.completed.contains(h.BlockID) {
 		return nil, false, nil
 	}
+	if b := d.degraded[h.BlockID]; b != nil {
+		return d.addDegraded(h.BlockID, b, h, datagram[HeaderSize:], streaming)
+	}
 
 	b := d.blocks[h.BlockID]
 	if b == nil {
 		if len(d.blocks) >= d.maxBlocks {
-			return nil, false, ErrDecoderFull
+			// Production FastBlockEncoder emits a streaming systematic shard as the
+			// first useful payload for each block. Prefer shedding an older safe
+			// reconstruction block so the newer block retains FEC. If every older
+			// heavy block is unsafe to shed, degrade this new streaming block rather
+			// than turning maxBlocks into a permanent drop wall. Reference/final-only
+			// input keeps the historical ErrDecoderFull behavior when no safe victim
+			// exists because it may still hold undelivered source payloads.
+			if streaming {
+				if victim, ok := d.oldestDegradableBefore(h.BlockID); ok {
+					d.degradeHeavy(victim)
+				} else {
+					light := &degradedBlock{}
+					d.degraded[h.BlockID] = light
+					return d.addDegraded(h.BlockID, light, h, datagram[HeaderSize:], true)
+				}
+			} else {
+				return nil, false, ErrDecoderFull
+			}
 		}
 		b = &decodeBlock{}
 		d.blocks[h.BlockID] = b
@@ -357,6 +392,136 @@ func allDataDelivered(b *decodeBlock) bool {
 
 func sameBlockHeader(a, b BlockHeader) bool {
 	return a.BlockID == b.BlockID && a.DataCount == b.DataCount && a.ShardSize == b.ShardSize && a.OriginalLengths == b.OriginalLengths
+}
+
+func canDegradeBlock(b *decodeBlock) bool {
+	if b == nil {
+		return false
+	}
+	if !b.final {
+		// Before final metadata only streaming systematic sources can be present,
+		// and addStreamingSource delivers each of them before retaining its copy.
+		return true
+	}
+	for i := 0; i < int(b.header.DataCount); i++ {
+		if b.present[i] && !b.delivered[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (d *BlockDecoder) oldestDegradableBefore(limit uint32) (uint32, bool) {
+	var oldest uint32
+	found := false
+	for id, b := range d.blocks {
+		if id >= limit || !canDegradeBlock(b) {
+			continue
+		}
+		if !found || id < oldest {
+			oldest, found = id, true
+		}
+	}
+	return oldest, found
+}
+
+func (d *BlockDecoder) degradeHeavy(id uint32) {
+	b := d.blocks[id]
+	if b == nil || !canDegradeBlock(b) {
+		return
+	}
+	light := &degradedBlock{final: b.final}
+	if b.final {
+		light.header = b.header
+	}
+	for i := 0; i < DataShards; i++ {
+		if b.delivered[i] {
+			light.delivered |= uint32(1) << uint(i)
+		}
+		if !b.final && b.sourcePresent[i] {
+			light.header.OriginalLengths[i] = uint16(len(b.sources[i]))
+		}
+	}
+	delete(d.blocks, id)
+	d.degraded[id] = light
+	if degradedComplete(light) {
+		delete(d.degraded, id)
+		d.markCompleted(id)
+	}
+}
+
+func (d *BlockDecoder) addDegraded(blockID uint32, b *degradedBlock, h BlockHeader, payload []byte, streaming bool) ([][]byte, bool, error) {
+	if streaming {
+		idx := int(h.ShardIndex)
+		if b.final {
+			if idx >= int(b.header.DataCount) || int(b.header.OriginalLengths[idx]) != len(payload) {
+				return nil, false, ErrHeaderMismatch
+			}
+		}
+		bit := uint32(1) << uint(idx)
+		if b.delivered&bit != 0 {
+			return nil, false, nil
+		}
+		if !b.final {
+			b.header.OriginalLengths[idx] = uint16(len(payload))
+		}
+		b.delivered |= bit
+		out := [][]byte{append([]byte(nil), payload...)}
+		if degradedComplete(b) {
+			delete(d.degraded, blockID)
+			d.markCompleted(blockID)
+			return out, true, nil
+		}
+		return out, false, nil
+	}
+
+	if !b.final {
+		for i := 0; i < DataShards; i++ {
+			bit := uint32(1) << uint(i)
+			if b.delivered&bit == 0 {
+				continue
+			}
+			if i >= int(h.DataCount) || b.header.OriginalLengths[i] != h.OriginalLengths[i] {
+				return nil, false, ErrHeaderMismatch
+			}
+		}
+		b.header = h
+		b.final = true
+	} else if !sameBlockHeader(b.header, h) {
+		return nil, false, ErrHeaderMismatch
+	}
+
+	var out [][]byte
+	idx := int(h.ShardIndex)
+	if idx < int(h.DataCount) {
+		bit := uint32(1) << uint(idx)
+		if b.delivered&bit == 0 {
+			n := int(h.OriginalLengths[idx])
+			if n > len(payload) {
+				return nil, false, ErrHeaderMismatch
+			}
+			out = append(out, append([]byte(nil), payload[:n]...))
+			b.delivered |= bit
+		}
+	}
+	if degradedComplete(b) {
+		delete(d.degraded, blockID)
+		d.markCompleted(blockID)
+		return out, true, nil
+	}
+	return out, false, nil
+}
+
+func degradedComplete(b *degradedBlock) bool {
+	if b == nil {
+		return false
+	}
+	count := DataShards
+	if b.final {
+		count = int(b.header.DataCount)
+	}
+	mask := (uint32(1) << uint(count)) - 1
+	return b.delivered&mask == mask
 }
 
 func (d *BlockDecoder) markCompleted(id uint32) {
