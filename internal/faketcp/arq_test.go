@@ -149,31 +149,64 @@ func TestSenderRACKDetectsLostRetransmission(t *testing.T) {
 	now := time.Unix(7, 0)
 	s := NewSender(100, time.Second)
 	p1 := s.Enqueue(make([]byte, 10), now) // 100 lost, first repair will also be lost
-	p2 := s.Enqueue(make([]byte, 10), now) // 110 lost, repair arrives later
+	_ = s.Enqueue(make([]byte, 10), now)   // 110 received
 	_ = s.Enqueue(make([]byte, 10), now)   // 120 received
 	_ = s.Enqueue(make([]byte, 10), now)   // 130 received
-	_ = s.Enqueue(make([]byte, 10), now)   // 140 received
 
-	// Three later SACKed originals infer p1 at t=10ms.
-	if got := s.AckSelective(100, []SACKBlock{{Start:120, End:150}}, now.Add(10*time.Millisecond)); got != p1 {
+	// Three later SACKed originals prove the cumulative hole and trigger its
+	// first fast repair at t=10ms.
+	if got := s.AckSelective(100, []SACKBlock{{Start:110, End:140}}, now.Add(10*time.Millisecond)); got != p1 {
 		t.Fatalf("first scoreboard repair=%#v", got)
 	}
-	// Same persistent SACK evidence infers p2 at t=20ms; this transmission is
-	// chronologically newer than p1's failed repair.
-	if got := s.AckSelective(100, []SACKBlock{{Start:120, End:150}}, now.Add(20*time.Millisecond)); got != p2 {
-		t.Fatalf("second scoreboard repair=%#v", got)
-	}
-	// p2's repair arrives and becomes a new SACK. Its LastSent timestamp is newer
-	// than p1's repair, so after the conservative 10ms reordering window RACK
-	// identifies the lost p1 retransmission without waiting for the 1s RTO.
-	if got := s.AckSelective(100, []SACKBlock{{Start:110, End:150}}, now.Add(30*time.Millisecond)); got != p1 {
+
+	// Data transmitted after that repair is delivered. Its later transmit time
+	// provides RACK evidence that the first repair itself was lost, allowing one
+	// second fast repair without waiting for the 1s+ RTO path.
+	_ = s.Enqueue(make([]byte, 10), now.Add(20*time.Millisecond))
+	_ = s.Enqueue(make([]byte, 10), now.Add(20*time.Millisecond))
+	_ = s.Enqueue(make([]byte, 10), now.Add(20*time.Millisecond))
+	if got := s.AckSelective(100, []SACKBlock{{Start:110, End:170}}, now.Add(30*time.Millisecond)); got != p1 {
 		t.Fatalf("RACK did not recover lost retransmission: %#v", got)
 	}
 	if p1.Retries != 2 {
 		t.Fatalf("p1 retries=%d want 2", p1.Retries)
 	}
-	if st := s.Stats(); st.FastRetransmits != 3 || st.RTOTransmits != 0 || st.LossMarked != 2 {
+	if st := s.Stats(); st.FastRetransmits != 2 || st.RTOTransmits != 0 || st.LossMarked != 1 {
 		t.Fatalf("unexpected RACK accounting: %#v", st)
+	}
+}
+
+func TestSACKRACKDoesNotRepairNonHeadHoleBeforeCumulativeAdvance(t *testing.T) {
+	now := time.Unix(8, 0)
+	s := NewSender(100, time.Second)
+	p1 := s.Enqueue(make([]byte, 10), now) // 100 missing
+	p2 := s.Enqueue(make([]byte, 10), now) // 110 missing
+	_ = s.Enqueue(make([]byte, 10), now)   // 120 received
+	_ = s.Enqueue(make([]byte, 10), now)   // 130 received
+	_ = s.Enqueue(make([]byte, 10), now)   // 140 received
+
+	// Three SACKed segments prove p1, the cumulative boundary, is missing.
+	if got := s.AckSelective(100, []SACKBlock{{Start:120, End:150}}, now.Add(10*time.Millisecond)); got != p1 {
+		t.Fatalf("first cumulative-hole repair=%#v want p1", got)
+	}
+	// Repeating the same four-block-limited SACK evidence must not cause p2 to
+	// be repaired while p1 still pins cumulative ACK at 100. Absence from the
+	// current SACK advertisement is not proof that an arbitrary non-head packet
+	// was lost.
+	if got := s.AckSelective(100, []SACKBlock{{Start:120, End:150}}, now.Add(20*time.Millisecond)); got != nil {
+		t.Fatalf("non-head hole repaired before cumulative advance: %#v", got)
+	}
+	if p2.Retries != 0 {
+		t.Fatalf("non-head retries=%d want 0", p2.Retries)
+	}
+
+	// Once p1 arrives, ACK advances to 110. p2 is now the authoritative oldest
+	// hole and the same later SACK evidence can legitimately repair it.
+	if got := s.AckSelective(110, []SACKBlock{{Start:120, End:150}}, now.Add(30*time.Millisecond)); got != p2 {
+		t.Fatalf("new cumulative-hole repair=%#v want p2", got)
+	}
+	if p2.Retries != 1 {
+		t.Fatalf("p2 retries after boundary advance=%d want 1", p2.Retries)
 	}
 }
 
