@@ -71,12 +71,18 @@ tail = r'''
 DURATION_SEC=${DURATION_SEC:-1800}
 RATE_BPS=${RATE_BPS:-10000000}
 PROFILE_SEED=${PROFILE_SEED:-20260910}
+SMOKE_STRICT=${SMOKE_STRICT:-0}
 
 case "$LANES" in 1|4) ;; *) echo "analysis LANES must be 1 or 4" >&2; exit 2;; esac
 case "$FEC" in off|20:20) ;; *) echo "analysis FEC must be off or 20:20" >&2; exit 2;; esac
-[[ "$DURATION_SEC" == 1800 ]] || { echo "analysis duration must be exactly 1800s" >&2; exit 2; }
+case "$DURATION_SEC" in 120|1800) ;; *) echo "analysis duration must be 120s smoke or 1800s long run" >&2; exit 2;; esac
+case "$SMOKE_STRICT" in 0|1) ;; *) echo "analysis SMOKE_STRICT must be 0 or 1" >&2; exit 2;; esac
 [[ "$RATE_BPS" == 10000000 ]] || { echo "analysis rate must be exactly 10000000 bps" >&2; exit 2; }
 [[ "${NETEM_DELAY_MS}" == 300 && "${NETEM_LOSS_PCT}" == 20 ]] || { echo "analysis weaknet must be 300ms/20pct" >&2; exit 2; }
+if [[ "$DURATION_SEC" == 120 && "$SMOKE_STRICT" != 1 ]]; then
+  echo "120s analysis must use SMOKE_STRICT=1" >&2
+  exit 2
+fi
 
 drop_pid() {
   local dead=$1 p
@@ -88,8 +94,8 @@ drop_pid() {
 }
 
 # The short bootstrap pcap proves flow lineage in dedicated gates. Keeping a
-# 30-minute payload capture would create a huge artifact and perturb CPU/I/O,
-# so long-run wire cost is measured from public-interface counters instead.
+# sustained payload capture would create a huge artifact and perturb CPU/I/O,
+# so measured-run wire cost is taken from public-interface counters instead.
 if [[ -n "${TPID:-}" ]]; then
   old_tpid=$TPID
   sudo kill -INT "$old_tpid" 2>/dev/null || true
@@ -181,6 +187,20 @@ cat "$LOG_DIR/load.log"
   sudo ip netns exec "$S" tc -s qdisc show dev gs0
 } >"$LOG_DIR/netem-final.txt" 2>&1
 
+# A smoke run is a fail-fast health gate, not a performance qualification run.
+# Reject known transport exits even if a few packets were delivered before the
+# process died, so a long run cannot start behind a partially-live data plane.
+if [[ "$SMOKE_STRICT" == 1 ]]; then
+  if grep -q 'DTLS trying to send too much in single datagram' "$LOG_DIR"/dtls-*.log 2>/dev/null; then
+    echo 'WBD_REALISTIC_SMOKE_FAIL reason=dtls_datagram_too_large' >&2
+    exit 1
+  fi
+  if grep -q 'WBD_LINK_PROXY_FAIL' "$LOG_DIR"/link-*.log 2>/dev/null; then
+    echo 'WBD_REALISTIC_SMOKE_FAIL reason=link_proxy_failure' >&2
+    exit 1
+  fi
+fi
+
 # Ask each client FakeTCP to exit normally enough to emit its lifetime sender
 # statistics. Match by exact executable basename + client argv, not broad pgrep.
 for p in "${PIDS[@]:-}"; do
@@ -196,21 +216,31 @@ done
 sleep 1
 
 python3 "$GITHUB_WORKSPACE/scripts/realistic_analysis_summary.py" "$LOG_DIR" "$LANES" "$FEC" "$DURATION_SEC" "$RATE_BPS" | tee "$LOG_DIR/analysis.log"
-python3 - "$LOG_DIR/analysis-result.json" "$LANES" "$FEC" <<'PY_CHECK'
+python3 - "$LOG_DIR/analysis-result.json" "$LANES" "$FEC" "$DURATION_SEC" "$SMOKE_STRICT" <<'PY_CHECK'
 import json,sys
-p,lanes,fec=sys.argv[1],int(sys.argv[2]),sys.argv[3]
+p,lanes,fec,duration,smoke=sys.argv[1],int(sys.argv[2]),sys.argv[3],int(sys.argv[4]),int(sys.argv[5])
 d=json.load(open(p))
 assert d['analysis_only'] is True and d['qualification_authority'] is False,d
 assert d['loss_gate']=='disabled_analysis_only',d
 assert d['lanes']==lanes and d['fec']==fec,d
-assert d['requested_duration_sec']==1800 and d['requested_bps_each_direction']==10_000_000,d
+assert d['requested_duration_sec']==duration and d['requested_bps_each_direction']==10_000_000,d
 assert d['application']['duplicates']==0,d
 assert d['application']['bad_payload']==0,d
 assert d['client_faketcp_lifetime']['lanes_with_final_stats']==lanes,d
+if smoke:
+    app=d['application']
+    wire=d['public_wire']['interface_delta']
+    assert app['sent'] > 0 and app['sent_payload_bytes'] > 0,d
+    assert app['received_unique'] > 0 and app['received_payload_bytes'] > 0,d
+    assert app['sent_by_size'].get('1320',0) > 0,d
+    assert d['client_faketcp_lifetime']['enqueued_bytes'] > 0,d
+    for k in ('client_tx_bytes','client_rx_bytes','server_tx_bytes','server_rx_bytes'):
+        assert wire.get(k,0) > 0,(k,d)
+    print('WBD_REALISTIC_SMOKE_PASS')
 print('WBD_REALISTIC_ANALYSIS_STRUCTURE_PASS')
 PY_CHECK
 
-echo "WBD_REALISTIC_ANALYSIS_COMPLETE source_sha=d1e2c827183415b32d94082e2ca2a59cefdc544b lanes=${LANES} fec=${FEC} duration_sec=${DURATION_SEC} rate_bps=${RATE_BPS} netem_each_direction=300ms_loss20 firewall=public-default-drop loss_gate=disabled"
+echo "WBD_REALISTIC_ANALYSIS_COMPLETE source_sha=d1e2c827183415b32d94082e2ca2a59cefdc544b lanes=${LANES} fec=${FEC} duration_sec=${DURATION_SEC} rate_bps=${RATE_BPS} netem_each_direction=300ms_loss20 firewall=public-default-drop loss_gate=disabled smoke_strict=${SMOKE_STRICT}"
 '''
 out.write_text(prefix + tail)
 PY_PATCHER
