@@ -5,17 +5,16 @@ import (
 	"time"
 )
 
-func TestRACKBoundsFastRepairsPerPacket(t *testing.T) {
+func TestRACKRepeatedRepairsRequireFreshEvidence(t *testing.T) {
 	t0 := time.Unix(20, 0)
 	s := NewSenderWithRecovery(100, time.Second, RecoverySACKRACK)
 
-	p1 := s.Enqueue(make([]byte, 10), t0) // first original is lost
-	_ = s.Enqueue(make([]byte, 10), t0)   // 110..120 delivered
-	_ = s.Enqueue(make([]byte, 10), t0)   // 120..130 delivered
-	_ = s.Enqueue(make([]byte, 10), t0)   // 130..140 delivered
+	p1 := s.Enqueue(make([]byte, 10), t0)
+	_ = s.Enqueue(make([]byte, 10), t0)
+	_ = s.Enqueue(make([]byte, 10), t0)
+	_ = s.Enqueue(make([]byte, 10), t0)
 
-	// Three SACKed originals prove the first hole and trigger exactly one
-	// scoreboard repair.
+	// Three delivered originals prove the first hole and trigger the scoreboard repair.
 	if got := s.AckSelective(100, []SACKBlock{{Start: 110, End: 140}}, t0.Add(10*time.Millisecond)); got != p1 {
 		t.Fatalf("first repair=%#v want p1", got)
 	}
@@ -23,39 +22,37 @@ func TestRACKBoundsFastRepairsPerPacket(t *testing.T) {
 		t.Fatalf("retries after scoreboard repair=%d want 1", p1.Retries)
 	}
 
-	// Later data sent after the first repair is delivered. This is sufficient
-	// RACK evidence that the first repair itself may have been lost, so one
-	// second fast repair is allowed.
-	for i := 0; i < 3; i++ {
-		s.Enqueue(make([]byte, 10), t0.Add(20*time.Millisecond))
-	}
-	if got := s.AckSelective(100, []SACKBlock{{Start: 110, End: 170}}, t0.Add(35*time.Millisecond)); got != p1 {
-		t.Fatalf("lost-repair RACK retry=%#v want p1", got)
-	}
-	if p1.Retries != 2 {
-		t.Fatalf("retries after RACK repair=%d want 2", p1.Retries)
-	}
-
-	// Keep presenting newer delivered data while the cumulative ACK remains
-	// stuck. Before the storm fix every such ACK could retransmit p1 again.
-	// The bounded policy must not generate a third fast repair; further recovery
-	// is left to the backed-off RTO path.
-	for round := 0; round < 20; round++ {
+	// Each round creates genuinely newer delivered data. That can prove the previous
+	// repair lost and permit exactly one more fast repair. Replaying the same ACK/SACK
+	// immediately afterwards must never trigger another repair.
+	for round := 0; round < 8; round++ {
+		sentAt := t0.Add(time.Duration(20+round*30) * time.Millisecond)
 		for i := 0; i < 3; i++ {
-			s.Enqueue(make([]byte, 10), t0.Add(time.Duration(40+round*20)*time.Millisecond))
+			s.Enqueue(make([]byte, 10), sentAt)
 		}
 		end := s.NextSeq()
-		if got := s.AckSelective(100, []SACKBlock{{Start: 110, End: end}}, t0.Add(time.Duration(55+round*20)*time.Millisecond)); got == p1 {
-			t.Fatalf("round %d generated third-or-later fast repair for same hole", round)
+		ackAt := sentAt.Add(15 * time.Millisecond)
+		if got := s.AckSelective(100, []SACKBlock{{Start: 110, End: end}}, ackAt); got != p1 {
+			t.Fatalf("round %d fresh evidence repair=%#v want p1", round, got)
+		}
+		wantRetries := uint32(round + 2)
+		if p1.Retries != wantRetries {
+			t.Fatalf("round %d retries=%d want %d", round, p1.Retries, wantRetries)
+		}
+		if got := s.AckSelective(100, []SACKBlock{{Start: 110, End: end}}, ackAt.Add(12*time.Millisecond)); got != nil {
+			t.Fatalf("round %d stale evidence retriggered repair: %#v", round, got)
 		}
 	}
 
-	st := s.Stats()
-	if st.FastRetransmits != 2 {
-		t.Fatalf("fast retransmits=%d want 2; stats=%#v", st.FastRetransmits, st)
+	stt := s.Stats()
+	if stt.FastRetransmits != 9 {
+		t.Fatalf("fast retransmits=%d want 9; stats=%#v", stt.FastRetransmits, stt)
 	}
-	if st.LossMarked != 1 {
-		t.Fatalf("loss marks=%d want one unique packet", st.LossMarked)
+	if stt.RTOTransmits != 0 {
+		t.Fatalf("fresh-evidence path unexpectedly used RTO: %#v", stt)
+	}
+	if stt.LossMarked != 1 {
+		t.Fatalf("loss marks=%d want one unique packet", stt.LossMarked)
 	}
 }
 

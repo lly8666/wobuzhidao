@@ -81,10 +81,10 @@ func NewSenderWithRecovery(nextSeq uint32, initialRTO time.Duration, recovery Re
 		recovery = RecoverySACKRACK
 	}
 	return &Sender{
-		nextSeq: nextSeq,
-		lastAck: nextSeq,
-		rto:     clampRTO(initialRTO),
-		bySeq:   make(map[uint32]*Pending),
+		nextSeq:  nextSeq,
+		lastAck:  nextSeq,
+		rto:      clampRTO(initialRTO),
+		bySeq:    make(map[uint32]*Pending),
 		recovery: recovery,
 	}
 }
@@ -240,13 +240,11 @@ func (s *Sender) rackLossCandidate(now time.Time) *Pending {
 	reo := s.rackReorderingWindow()
 	for i := s.head; i < len(s.pending); i++ {
 		p := s.pending[i]
-		// RACK is deliberately restricted to one failed-repair inference. The
-		// SACK scoreboard/classic dup-ACK path owns the first fast repair. Once
-		// that repair has itself been inferred lost, a second fast repair is
-		// allowed; further attempts fall back to the existing backed-off RTO.
-		// This bounds duplicate traffic when old SACK ranges fall out of the
-		// receiver's four-block advertisement under a large outstanding window.
-		if p == nil || p.SACKed || p.LastSent.IsZero() || !p.WasRetried || p.Retries != 1 {
+		// A retransmission may be repaired again only after the receiver has
+		// delivered a transmission that was sent later than that repair. The
+		// rackLatestTx fence plus the reordering window make the evidence fresh:
+		// replaying the same old SACK blocks cannot repeatedly retransmit a hole.
+		if p == nil || p.SACKed || p.LastSent.IsZero() || !p.WasRetried {
 			continue
 		}
 		if !p.LastSent.Before(s.rackLatestTx) {
@@ -447,7 +445,7 @@ func NewReceiver(nextSeq uint32) *Receiver {
 		sackStartByEnd: make(map[uint32]uint32),
 	}
 }
-func (r *Receiver) Next() uint32          { return r.next }
+func (r *Receiver) Next() uint32         { return r.next }
 func (r *Receiver) Stats() ReceiverStats { return r.stats }
 
 func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool) {
