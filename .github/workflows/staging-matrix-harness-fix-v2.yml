@@ -1,0 +1,49 @@
+name: staging-matrix-harness-fix-v2
+
+on:
+  push:
+    branches:
+      - agent/matrix-harness-fix-f885
+    paths:
+      - '.github/workflows/staging-matrix-harness-fix-v2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply asserted harness patch
+        run: |
+          set -euo pipefail
+          python3 scripts/staging_matrix_harness_patch.py
+          python3 -m py_compile scripts/bench_v2_transport_20x20.py
+          git diff --check
+      - name: Exercise netem compatibility path on this runner
+        run: |
+          set -euo pipefail
+          sudo ip netns add wbd-seed-probe
+          trap 'sudo ip netns del wbd-seed-probe 2>/dev/null || true' EXIT
+          sudo ip netns exec wbd-seed-probe ip link set lo up
+          sudo python3 - <<'PY'
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('m','scripts/bench_v2_transport_20x20.py')
+          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+          m.install_netem('wbd-seed-probe','lo',20,1.0,12345)
+          PY
+          sudo ip netns exec wbd-seed-probe tc qdisc show dev lo
+      - name: Package patched files
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/matrix-fix/scripts /tmp/matrix-fix/.github/workflows
+          cp scripts/bench_v2_transport_20x20.py /tmp/matrix-fix/scripts/
+          cp .github/workflows/transport-20x20-matrix.yml /tmp/matrix-fix/.github/workflows/
+          sha256sum scripts/bench_v2_transport_20x20.py .github/workflows/transport-20x20-matrix.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: matrix-harness-fix-v2
+          path: /tmp/matrix-fix
+          retention-days: 1
