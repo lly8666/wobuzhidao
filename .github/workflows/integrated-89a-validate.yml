@@ -1,0 +1,41 @@
+name: integrated-89a-bounded-fec-fresh-rack-validate
+
+on:
+  push:
+    branches:
+      - agent/integrated-89a-bounded-fec-fresh-rack-work2
+    paths:
+      - '.github/workflows/integrated-89a-validate.yml'
+      - 'scripts/materialize_integrated_candidate.py'
+
+permissions:
+  contents: write
+
+jobs:
+  materialize-and-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Apply asserted integrated patch
+        run: python3 scripts/materialize_integrated_candidate.py
+      - name: Format and test exact candidate sources
+        run: |
+          set -euo pipefail
+          gofmt -w internal/fec/block.go internal/fec/window_pressure_test.go internal/faketcp/arq.go internal/faketcp/arq_test.go
+          go test ./internal/fec ./internal/faketcp -count=1
+          go test ./... -count=1
+          git diff --check
+      - name: Commit validated source only
+        run: |
+          set -euo pipefail
+          git config user.name 'lly8666'
+          git config user.email '30583594+lly8666@users.noreply.github.com'
+          git add internal/fec/block.go internal/fec/window_pressure_test.go internal/faketcp/arq.go internal/faketcp/arq_test.go
+          git commit -m 'fix: integrate bounded FEC pressure recovery with fresh-evidence RACK'
+          git push origin HEAD:agent/integrated-89a-bounded-fec-fresh-rack-work2
