@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feat/single-flow-reality-faketcp
+      - agent/fec-zombie-fix-7d859
     paths:
       - '.github/workflows/game-lane-rotation-soak.yml'
       - 'scripts/game_lane_rotation_soak.sh'

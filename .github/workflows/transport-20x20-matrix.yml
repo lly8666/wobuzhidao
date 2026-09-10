@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/bench_v2_transport_20x20.py'
       - '.github/workflows/transport-20x20-matrix.yml'
+      - '.github/workflows/game-lane-rotation-soak.yml'
 
 permissions:
   contents: read
