@@ -73,6 +73,7 @@ jobs:
           front=int(sys.argv[1]); server=int(sys.argv[2]); mark=sys.argv[3]; log=sys.argv[4]
           a=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); a.bind(('127.0.0.1',front))
           b=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); b.bind(('127.0.0.1',0)); b.connect(('127.0.0.1',server))
+          print('RELAY_READY', flush=True)
           client=None
           with open(log,'a',buffering=1) as f:
             while True:
@@ -103,13 +104,20 @@ jobs:
           trap 'rc=$?; if [ $rc -ne 0 ]; then dump_diag exit; fi; cleanup_all; exit $rc' EXIT
           for n in 1352 1400 1408 1456; do
             unset C S R
-            rm -f /tmp/probe/mark /tmp/probe/relay-${n}.log /tmp/probe/client-${n}.log /tmp/probe/server-${n}.log
+            rm -f /tmp/probe/mark /tmp/probe/relay-${n}.log /tmp/probe/client-${n}.log /tmp/probe/server-${n}.log /tmp/probe/relay-${n}.stdout
             echo "WBD_DTLS_MTU_CASE_BEGIN plaintext=$n"
             /tmp/probe/wbd_dtls_shim_mtu server 42080 127.0.0.1 48080 /tmp/probe/cert.pem /tmp/probe/key.pem >/tmp/probe/server-${n}.log 2>&1 & S=$!
             python3 /tmp/probe/relay.py 43080 42080 /tmp/probe/mark /tmp/probe/relay-${n}.log >/tmp/probe/relay-${n}.stdout 2>&1 & R=$!
+            relay_ok=0
+            for i in $(seq 1 200); do
+              if grep -q '^RELAY_READY$' /tmp/probe/relay-${n}.stdout 2>/dev/null; then relay_ok=1; break; fi
+              if ! kill -0 "$R" 2>/dev/null; then break; fi
+              sleep .01
+            done
+            if [ "$relay_ok" -ne 1 ]; then dump_diag relay-readiness; exit 20; fi
             /tmp/probe/wbd_dtls_shim_mtu client 41080 127.0.0.1 43080 none none >/tmp/probe/client-${n}.log 2>&1 & C=$!
             ok=0
-            for i in $(seq 1 200); do
+            for i in $(seq 1 400); do
               if grep -q 'READY role=client' /tmp/probe/client-${n}.log && grep -q 'READY role=server' /tmp/probe/server-${n}.log; then ok=1; break; fi
               if ! kill -0 "$C" 2>/dev/null || ! kill -0 "$S" 2>/dev/null || ! kill -0 "$R" 2>/dev/null; then break; fi
               sleep .05
