@@ -56,10 +56,22 @@ type Sender struct {
 	dupAcks      int
 	fastRetxSeq  uint32
 	fastRetxDone bool
-	rto          time.Duration
-	srtt         time.Duration
-	rttvar       time.Duration
-	recovery     RecoveryMode
+
+	// baseRTO is the estimator-derived timeout. rto is the effective timeout for
+	// the current loss episode and may be exponentially backed off after RTOs.
+	// Keeping them separate lets cumulative forward progress end one timeout
+	// episode without fabricating an RTT sample for a retransmitted segment.
+	rto       time.Duration
+	baseRTO   time.Duration
+	srtt      time.Duration
+	rttvar    time.Duration
+	recovery  RecoveryMode
+
+	// timeoutEpisodeEnd is the end sequence of the oldest segment whose timeout
+	// started the active exponential-backoff episode. Partial/duplicate ACKs and
+	// SACK evidence cannot end the episode; cumulative ACK coverage can.
+	timeoutEpisode    bool
+	timeoutEpisodeEnd uint32
 
 	// rackLatestTx is used only in RecoverySACKRACK. It is intentionally absent
 	// from the first-send decision and can never gate a new inner datagram.
@@ -80,11 +92,13 @@ func NewSenderWithRecovery(nextSeq uint32, initialRTO time.Duration, recovery Re
 	if recovery != RecoveryLegacy && recovery != RecoverySACKRACK {
 		recovery = RecoverySACKRACK
 	}
+	initialRTO = clampRTO(initialRTO)
 	return &Sender{
-		nextSeq: nextSeq,
-		lastAck: nextSeq,
-		rto:     clampRTO(initialRTO),
-		bySeq:   make(map[uint32]*Pending),
+		nextSeq:  nextSeq,
+		lastAck:  nextSeq,
+		rto:      initialRTO,
+		baseRTO:  initialRTO,
+		bySeq:    make(map[uint32]*Pending),
 		recovery: recovery,
 	}
 }
@@ -306,6 +320,11 @@ func (s *Sender) ackCumulative(oldAck, ack uint32, now time.Time) {
 	if sample != nil {
 		s.observeRTT(now.Sub(sample.FirstSent))
 	}
+	if s.timeoutEpisode && seqLE(s.timeoutEpisodeEnd, ack) {
+		s.timeoutEpisode = false
+		s.timeoutEpisodeEnd = 0
+		s.rto = s.baseRTO
+	}
 	s.advanceHead()
 }
 
@@ -358,6 +377,10 @@ func (s *Sender) RetransmitDue(now time.Time) *Pending {
 	// weak-link loss, but preserve the mature TCP-like exponential backoff once
 	// the same association crosses the bootstrap barrier into steady-state data.
 	if !p.Bootstrap {
+		if !s.timeoutEpisode {
+			s.timeoutEpisode = true
+			s.timeoutEpisodeEnd = p.End
+		}
 		s.rto = clampRTO(s.rto * 2)
 	}
 	return p
@@ -403,7 +426,10 @@ func (s *Sender) observeRTT(sample time.Duration) {
 		s.rttvar = (3*s.rttvar + d) / 4
 		s.srtt = (7*s.srtt + sample) / 8
 	}
-	s.rto = clampRTO(s.srtt + 4*s.rttvar)
+	s.baseRTO = clampRTO(s.srtt + 4*s.rttvar)
+	if !s.timeoutEpisode {
+		s.rto = s.baseRTO
+	}
 }
 
 func clampRTO(v time.Duration) time.Duration {
