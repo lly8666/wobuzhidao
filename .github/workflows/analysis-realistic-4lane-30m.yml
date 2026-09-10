@@ -1,0 +1,157 @@
+name: analysis-realistic-4lane-30m
+
+on:
+  push:
+    branches:
+      - agent/analysis-realistic-d1e2
+    paths:
+      - '.github/workflows/analysis-realistic-4lane-30m.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SOURCE_SHA: d1e2c827183415b32d94082e2ca2a59cefdc544b
+
+jobs:
+  build-assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact product source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "WBD_REALISTIC_SOURCE_PASS source_sha=$SOURCE_SHA"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl
+      - name: Build exact product stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/wbd-realistic-assets"
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build "$ASSET"
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
+          go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
+          go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+          go build -trimpath -o "$ASSET/wbd-link-proxy" ./cmd/wbd-link-proxy
+          go build -trimpath -o "$ASSET/wbd-link-server-mux" ./cmd/wbd-link-server-mux
+          go build -trimpath -o "$ASSET/wbd-game-lane-client" ./cmd/wbd-game-lane-client
+          go build -trimpath -o "$ASSET/wbd-game-lane-server" ./cmd/wbd-game-lane-server
+          printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-dtls.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+          echo "WBD_REALISTIC_BUILD_PASS source_sha=$SOURCE_SHA"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: realistic-4lane-assets
+          path: ${{ runner.temp }}/wbd-realistic-assets
+          retention-days: 1
+
+  analysis:
+    needs: build-assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - fec: 'off'
+            slug: off
+          - fec: '20:20'
+            slug: fec20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate analysis harness syntax
+        run: |
+          set -euo pipefail
+          bash -n scripts/game_lane_realistic_analysis.sh
+          python3 -m py_compile scripts/realistic_game_load.py scripts/realistic_process_monitor.py scripts/realistic_analysis_summary.py
+      - name: Install namespace and firewall tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump
+      - uses: actions/download-artifact@v4
+        with:
+          name: realistic-4lane-assets
+          path: ${{ runner.temp }}/wbd-realistic-assets
+      - name: Verify exact product assets
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP"/wbd-realistic-assets/wbd-* "$RUNNER_TEMP"/wbd-realistic-assets/wbd_dtls_shim
+          test "$(cat "$RUNNER_TEMP/wbd-realistic-assets/SOURCE_SHA.txt")" = "$SOURCE_SHA"
+      - name: Run 30 minute realistic weak-network analysis
+        env:
+          LANES: '4'
+          FEC: ${{ matrix.fec }}
+          DURATION_SEC: '1800'
+          RATE_BPS: '10000000'
+          PROFILE_SEED: '20260910'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/realistic-4lane-${{ matrix.slug }}"
+          mkdir -p "$LOG"
+          sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_realistic_analysis.sh" "$RUNNER_TEMP/wbd-realistic-assets" "$LOG"
+          python3 - "$LOG/analysis-result.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d['analysis_only'] is True and d['qualification_authority'] is False,d
+          assert d['lanes']==4 and d['fec'] in ('off','20:20'),d
+          assert d['requested_duration_sec']==1800 and d['requested_bps_each_direction']==10_000_000,d
+          print('WBD_REALISTIC_ANALYSIS_JOB_COMPLETE '+json.dumps(d,sort_keys=True))
+          PY
+      - name: Diagnose analysis failure
+        if: failure()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/realistic-4lane-${{ matrix.slug }}"
+          for f in environment-setup.log load.log load-result.json analysis.log analysis-result.json firewall-final.txt netem-final.txt game-client.log game-server.log faketcp-mux.log; do
+            echo "=== $f ==="
+            tail -n 240 "$LOG/$f" 2>/dev/null || true
+          done
+          for f in "$LOG"/faketcp-*.log "$LOG"/link-*.log "$LOG"/dtls-*.log; do
+            [[ -e "$f" ]] || continue
+            echo "=== $f ==="
+            tail -n 100 "$f" || true
+          done
+      - name: Scrub one-time authentication material
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/realistic-4lane-${{ matrix.slug }}"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: realistic-30m-10mbps-300ms-loss20-4lane-${{ matrix.slug }}
+          path: ${{ runner.temp }}/realistic-4lane-${{ matrix.slug }}
+          retention-days: 14
