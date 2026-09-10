@@ -179,11 +179,34 @@ def counter_delta(before: dict, after: dict) -> dict[str, int | None]:
 
 def install_netem(ns: str, dev: str, rtt_ms: int, loss_pct: float, seed: int) -> None:
     half = rtt_ms / 2.0
-    cmd = ["tc", "qdisc", "replace", "dev", dev, "root", "netem", "limit", "10000",
-           "delay", f"{half:g}ms"]
-    if loss_pct > 0:
-        cmd += ["loss", "random", f"{loss_pct:g}%", "seed", str(seed)]
-    run_ns(ns, cmd)
+    base = ["tc", "qdisc", "replace", "dev", dev, "root", "netem", "limit", "10000",
+            "delay", f"{half:g}ms"]
+    if loss_pct <= 0:
+        run_ns(ns, base)
+        return
+
+    seeded = [*base, "loss", "random", f"{loss_pct:g}%", "seed", str(seed)]
+    cp = run_ns(ns, seeded, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if cp.returncode == 0:
+        return
+
+    # Some hosted runner iproute2 builds reject netem's optional RNG seed.
+    # Keep the requested random loss/delay. If the portable unseeded form also
+    # fails, surface the original and fallback errors instead of hiding them.
+    fallback = [*base, "loss", "random", f"{loss_pct:g}%"]
+    fb = run_ns(ns, fallback, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if fb.returncode != 0:
+        raise RuntimeError(
+            f"netem install failed seeded_rc={cp.returncode} seeded={cp.stdout!r} "
+            f"fallback_rc={fb.returncode} fallback={fb.stdout!r}"
+        )
+    detail = (cp.stdout or "").strip().replace("\n", " ")[:400]
+    print(
+        f"WBD_NETEM_SEED_UNSUPPORTED ns={ns} dev={dev} seed={seed} "
+        f"loss_pct={loss_pct:g} detail={detail!r}",
+        file=sys.stderr,
+        flush=True,
+    )
 
 
 # ---------------- helper: app datagram probe ----------------
@@ -717,6 +740,13 @@ def aggregate_main(argv: list[str]) -> int:
                 rows.append(parsed)
     if not rows:
         raise SystemExit("no seed result CSVs found")
+    status_counts = Counter(str(r.get("case_status") or "missing") for r in rows)
+    harness_errors = status_counts.get("harness_error", 0)
+    baseline_failures = sum(
+        float(r.get("loss_pct_per_direction", -1)) == 0.0
+        and (r.get("case_status") != "pass" or not (r.get("delivery_ratio") or 0) > 0)
+        for r in rows
+    )
     keys: list[str] = []
     seen: set[str] = set()
     for row in rows:
@@ -766,6 +796,9 @@ def aggregate_main(argv: list[str]) -> int:
         "loss_pct_per_direction": sorted({float(r["loss_pct_per_direction"]) for r in rows}),
         "seeds": sorted({int(r["seed"]) for r in rows}),
         "cases": len(rows),
+        "case_status_counts": dict(sorted(status_counts.items())),
+        "harness_errors": harness_errors,
+        "zero_loss_baseline_failures": baseline_failures,
         "handshake_failures": sum(r.get("case_status") == "handshake_fail" for r in rows),
         "outer_rst_total": sum((r.get("outer_rst_total") or 0) for r in rows),
         "tcp_like_stable_cases": sum(r.get("tcp_like") == "stable" for r in rows),
@@ -793,6 +826,13 @@ def aggregate_main(argv: list[str]) -> int:
             f"{m['tcp_like_stable_cases']}/{m['cases']} | {m['udp_like_stable_cases']}/{m['cases']} | {m['outer_rst_total']} |"
         )
     (a.out / "report.md").write_text("\n".join(report) + "\n")
+    if harness_errors or baseline_failures:
+        print(
+            f"MATRIX_INVALID harness_errors={harness_errors} "
+            f"zero_loss_baseline_failures={baseline_failures} status_counts={dict(status_counts)}",
+            file=sys.stderr,
+        )
+        return 2
     return 0
 
 
@@ -858,6 +898,19 @@ def benchmark_main(argv: list[str]) -> int:
                 flush=True,
             )
             write_results(rows, a.out, a.seed)
+    harness_errors = [r for r in rows if r.get("case_status") == "harness_error"]
+    baseline_failures = [
+        r for r in rows
+        if float(r.get("loss_pct_per_direction", -1)) == 0.0
+        and (r.get("case_status") != "pass" or not (r.get("delivery_ratio") or 0) > 0)
+    ]
+    if harness_errors or baseline_failures:
+        print(
+            f"MATRIX_SEED_INVALID seed={a.seed} harness_errors={len(harness_errors)} "
+            f"baseline_failures={len(baseline_failures)}",
+            file=sys.stderr,
+        )
+        return 2
     return 0
 
 
