@@ -61,11 +61,11 @@ type Sender struct {
 	// the current loss episode and may be exponentially backed off after RTOs.
 	// Keeping them separate lets cumulative forward progress end one timeout
 	// episode without fabricating an RTT sample for a retransmitted segment.
-	rto       time.Duration
-	baseRTO   time.Duration
-	srtt      time.Duration
-	rttvar    time.Duration
-	recovery  RecoveryMode
+	rto      time.Duration
+	baseRTO  time.Duration
+	srtt     time.Duration
+	rttvar   time.Duration
+	recovery RecoveryMode
 
 	// timeoutEpisodeEnd is the end sequence of the oldest segment whose timeout
 	// started the active exponential-backoff episode. Partial/duplicate ACKs and
@@ -73,8 +73,10 @@ type Sender struct {
 	timeoutEpisode    bool
 	timeoutEpisodeEnd uint32
 
-	// rackLatestTx is used only in RecoverySACKRACK. It is intentionally absent
-	// from the first-send decision and can never gate a new inner datagram.
+	// rackLatestTx records the freshest transmission time for data proven
+	// delivered by ACK/SACK. RACK uses it for immediate inference; legacy uses
+	// only fresh post-retry evidence to keep a live path from sitting behind an
+	// already-backed-off RTO. It never gates admission of a new inner datagram.
 	rackLatestTx time.Time
 
 	freeSlabs [][]byte
@@ -279,7 +281,7 @@ func (s *Sender) rackReorderingWindow() time.Duration {
 }
 
 func (s *Sender) noteDelivered(p *Pending) {
-	if s.recovery != RecoverySACKRACK || p == nil || p.LastSent.IsZero() {
+	if p == nil || p.LastSent.IsZero() {
 		return
 	}
 	if s.rackLatestTx.IsZero() || s.rackLatestTx.Before(p.LastSent) {
@@ -365,6 +367,15 @@ func (s *Sender) RetransmitDue(now time.Time) *Pending {
 		return nil
 	}
 	rto := s.rto
+	// Legacy keeps its classic retransmission path: SACK evidence never causes
+	// an immediate repair. But once a post-retry transmission is proven delivered,
+	// the path is live and that fresh evidence may bound the next timer wait to the
+	// estimator-derived base RTO. markRetry advances LastSent, making the evidence
+	// stale after exactly one repair unless newer data is subsequently delivered.
+	if s.recovery == RecoveryLegacy && !p.Bootstrap && !s.rackLatestTx.IsZero() &&
+		p.LastSent.Before(s.rackLatestTx) && s.baseRTO < rto {
+		rto = s.baseRTO
+	}
 	if p.Bootstrap && rto > bootstrapRetransmitCeiling {
 		rto = bootstrapRetransmitCeiling
 	}
