@@ -1,4 +1,4 @@
-name: staging-faketcp-resource-bench
+name: diagnostic-sack-delta-cache
 
 on:
   push:
@@ -19,85 +19,166 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Restore exact failing FakeTCP source
+      - name: Restore exact source and add fixed-size SACK delta cache
         run: |
           set -euo pipefail
           BASE=89a4650b09c4f3862ba02316cec2ae258a8f0853
           git fetch origin "$BASE" --depth=1
           git checkout --detach "$BASE"
-      - name: Generate ephemeral resource probes
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('internal/faketcp/arq.go')
+          s=p.read_text()
+          old='''\t// rackLatestTx is used only in RecoverySACKRACK. It is intentionally absent\n\t// from the first-send decision and can never gate a new inner datagram.\n\trackLatestTx time.Time\n\n\tfreeSlabs [][]byte\n'''
+          new='''\t// rackLatestTx is used only in RecoverySACKRACK. It is intentionally absent\n\t// from the first-send decision and can never gate a new inner datagram.\n\trackLatestTx time.Time\n\n\t// The wire format advertises at most four SACK blocks. Cache only the\n\t// immediately previous advertisement so repeated/growing blocks can subtract\n\t// already-processed coverage instead of rescanning thousands of Pending\n\t// records. This is an optimization only: Pending.SACKed remains authoritative.\n\tsackRecent  [4]SACKBlock\n\tsackRecentN int\n\n\tfreeSlabs [][]byte\n'''
+          assert s.count(old)==1, s.count(old)
+          s=s.replace(old,new,1)
+
+          oldloop='''\tfor _, b := range sacks {\n\t\tif b.Start == b.End || seqLT(b.End, b.Start) {\n\t\t\tcontinue\n\t\t}\n\t\tseq := b.Start\n\t\tfor {\n\t\t\tp := s.bySeq[seq]\n\t\t\tif p == nil || seqLT(b.End, p.End) {\n\t\t\t\tbreak\n\t\t\t}\n\t\t\tnext := p.End\n\t\t\ts.markSACK(p, now)\n\t\t\tif next == b.End {\n\t\t\t\tbreak\n\t\t\t}\n\t\t\tseq = next\n\t\t}\n\t}\n\n\tif s.recovery == RecoverySACKRACK {\n'''
+          newloop='''\ts.applySACKAdvertisement(sacks, now)\n\n\tif s.recovery == RecoverySACKRACK {\n'''
+          assert s.count(oldloop)==1, s.count(oldloop)
+          s=s.replace(oldloop,newloop,1)
+
+          marker='''func (s *Sender) sackLossCandidate() *Pending {\n'''
+          helper=r'''type sackOffsetRange struct { lo, hi int64 }
+
+func (s *Sender) applySACKAdvertisement(sacks []SACKBlock, now time.Time) {
+	var next [4]SACKBlock
+	nextN := 0
+	for _, b := range sacks {
+		if b.Start == b.End || seqLT(b.End, b.Start) {
+			continue
+		}
+		if s.applySACKDelta(b, now) && nextN < len(next) {
+			next[nextN] = b
+			nextN++
+		}
+	}
+	s.sackRecent = next
+	s.sackRecentN = nextN
+}
+
+func (s *Sender) applySACKDelta(b SACKBlock, now time.Time) bool {
+	span := int64(uint32(b.End - b.Start))
+	if span <= 0 || span > int64(^uint32(0)>>1) {
+		return false
+	}
+	var covered [4]sackOffsetRange
+	n := 0
+	for i := 0; i < s.sackRecentN; i++ {
+		old := s.sackRecent[i]
+		lo := int64(int32(old.Start - b.Start))
+		hi := int64(int32(old.End - b.Start))
+		if hi <= lo || hi <= 0 || lo >= span {
+			continue
+		}
+		if lo < 0 { lo = 0 }
+		if hi > span { hi = span }
+		if lo >= hi { continue }
+		covered[n] = sackOffsetRange{lo: lo, hi: hi}
+		n++
+	}
+	for i := 1; i < n; i++ {
+		v := covered[i]
+		j := i
+		for j > 0 && covered[j-1].lo > v.lo {
+			covered[j] = covered[j-1]
+			j--
+		}
+		covered[j] = v
+	}
+	cur := int64(0)
+	for i := 0; i < n; i++ {
+		r := covered[i]
+		if r.lo > cur && !s.markSACKRange(b.Start+uint32(cur), b.Start+uint32(r.lo), now) {
+			return false
+		}
+		if r.hi > cur { cur = r.hi }
+	}
+	if cur < span && !s.markSACKRange(b.Start+uint32(cur), b.End, now) {
+		return false
+	}
+	return true
+}
+
+func (s *Sender) markSACKRange(start, end uint32, now time.Time) bool {
+	if start == end { return true }
+	seq := start
+	for {
+		p := s.bySeq[seq]
+		if p == nil || seqLT(end, p.End) {
+			return false
+		}
+		next := p.End
+		s.markSACK(p, now)
+		if next == end { return true }
+		seq = next
+	}
+}
+
+'''
+          assert s.count(marker)==1
+          s=s.replace(marker,helper+marker,1)
+          p.write_text(s)
+          PY
+          gofmt -w internal/faketcp/arq.go
+      - name: Add semantic and benchmark probes
         run: |
-          cat > internal/faketcp/resource_probe_test.go <<'EOF'
+          cat > internal/faketcp/sack_delta_probe_test.go <<'EOF'
           package faketcp
 
           import (
-            "fmt"
             "testing"
             "time"
             "unsafe"
           )
 
-          func TestWBDResourceProbe(t *testing.T) {
-            s := NewSenderWithRecovery(100, time.Second, RecoveryLegacy)
-            now := time.Unix(1, 0)
-            var caps int
-            for i := 0; i < MaxSteadyStateOutstandingDatagrams; i++ {
-              p, err := s.EnqueueSteadyState(make([]byte, 1000), now)
-              if err != nil { t.Fatal(err) }
-              caps += cap(p.Payload)
-            }
-            fmt.Printf("WBD_RESOURCE pending_struct_bytes=%d records=%d payload_len_bytes=%d payload_cap_bytes=%d pointer_array_bytes=%d chan_handle_bytes=%d timer_handle_bytes=%d\n",
-              unsafe.Sizeof(Pending{}), MaxSteadyStateOutstandingDatagrams,
-              MaxSteadyStateOutstandingDatagrams*1000, caps,
-              MaxSteadyStateOutstandingDatagrams*int(unsafe.Sizeof((*Pending)(nil))),
-              unsafe.Sizeof((chan struct{})(nil)), unsafe.Sizeof((*time.Timer)(nil)))
+          func TestSACKDeltaCacheRepeatedGrowMergeAndRetention(t *testing.T) {
+            t0 := time.Unix(1,0)
+            s := NewSenderWithRecovery(100,time.Second,RecoveryLegacy)
+            p0 := s.Enqueue(make([]byte,10),t0)
+            p1 := s.Enqueue(make([]byte,10),t0)
+            p2 := s.Enqueue(make([]byte,10),t0)
+            p3 := s.Enqueue(make([]byte,10),t0)
+            _ = p0
+            s.AckSelective(100, []SACKBlock{{Start:110,End:130}}, t0.Add(time.Millisecond))
+            if !p1.SACKed || !p2.SACKed || p3.SACKed { t.Fatalf("first SACK state wrong") }
+            before:=s.Stats().SACKed
+            s.AckSelective(100, []SACKBlock{{Start:110,End:130}}, t0.Add(2*time.Millisecond))
+            if s.Stats().SACKed != before { t.Fatal("repeat changed SACK count") }
+            s.AckSelective(100, []SACKBlock{{Start:110,End:140}}, t0.Add(3*time.Millisecond))
+            if !p3.SACKed || s.Stats().SACKed != before+1 { t.Fatal("growth did not process only new tail") }
+            if s.Pending()!=4 || len(p1.Payload)==0 || len(p2.Payload)==0 || len(p3.Payload)==0 { t.Fatal("SACK changed retention/admission semantics") }
           }
 
-          func BenchmarkAckNoSACK(b *testing.B) {
-            s := NewSenderWithRecovery(100, time.Second, RecoveryLegacy)
-            now := time.Unix(1, 0)
-            for i := 0; i < MaxSteadyStateOutstandingDatagrams; i++ { _, _ = s.EnqueueSteadyState([]byte{1}, now) }
-            b.ReportAllocs(); b.ResetTimer()
-            for i := 0; i < b.N; i++ { s.AckSelective(100, nil, now) }
+          func TestSACKDeltaCacheMergeProcessesGap(t *testing.T) {
+            t0 := time.Unix(2,0)
+            s := NewSenderWithRecovery(100,time.Second,RecoveryLegacy)
+            ps:=make([]*Pending,5)
+            for i:=range ps { ps[i]=s.Enqueue(make([]byte,10),t0) }
+            s.AckSelective(100, []SACKBlock{{Start:110,End:120},{Start:130,End:150}}, t0.Add(time.Millisecond))
+            if ps[2].SACKed { t.Fatal("gap unexpectedly SACKed") }
+            s.AckSelective(100, []SACKBlock{{Start:110,End:150}}, t0.Add(2*time.Millisecond))
+            if !ps[2].SACKed { t.Fatal("merged SACK did not process newly covered gap") }
           }
 
-          func BenchmarkRepeated4095RecordSACK(b *testing.B) {
-            s := NewSenderWithRecovery(100, time.Second, RecoveryLegacy)
-            now := time.Unix(1, 0)
-            for i := 0; i < MaxSteadyStateOutstandingDatagrams; i++ { _, _ = s.EnqueueSteadyState([]byte{1}, now) }
-            sacks := []SACKBlock{{Start: 101, End: 100 + uint32(MaxSteadyStateOutstandingDatagrams)}}
-            s.AckSelective(100, sacks, now)
-            b.ReportAllocs(); b.ResetTimer()
-            for i := 0; i < b.N; i++ { s.AckSelective(100, sacks, now) }
+          func TestSACKDeltaCacheHasFixedSmallSenderCost(t *testing.T) {
+            // This is a guard against accidentally turning the optimization into
+            // per-window dynamic state. Exact Sender size is architecture-specific;
+            // the delta cache itself is one fixed [4]SACKBlock plus an int.
+            if got:=unsafe.Sizeof([4]SACKBlock{}); got!=32 { t.Fatalf("cache block bytes=%d",got) }
           }
 
-          func BenchmarkNonblockingCreditSignal(b *testing.B) {
-            ch := make(chan struct{}, 1)
+          func BenchmarkRepeated4095RecordSACKDelta(b *testing.B) {
+            s:=NewSenderWithRecovery(100,time.Second,RecoveryLegacy)
+            now:=time.Unix(1,0)
+            for i:=0;i<MaxSteadyStateOutstandingDatagrams;i++ { _,_=s.EnqueueSteadyState([]byte{1},now) }
+            sacks:=[]SACKBlock{{Start:101,End:100+uint32(MaxSteadyStateOutstandingDatagrams)}}
+            s.AckSelective(100,sacks,now)
             b.ReportAllocs(); b.ResetTimer()
-            for i := 0; i < b.N; i++ {
-              select { case ch <- struct{}{}: default: }
-              select { case <-ch: default: }
-            }
-          }
-
-          func BenchmarkCreditChannelCreate(b *testing.B) {
-            var sink chan struct{}
-            b.ReportAllocs(); b.ResetTimer()
-            for i := 0; i < b.N; i++ { sink = make(chan struct{}, 1) }
-            _ = sink
-          }
-
-          func BenchmarkTimerCreateStop(b *testing.B) {
-            b.ReportAllocs(); b.ResetTimer()
-            for i := 0; i < b.N; i++ {
-              t := time.NewTimer(time.Hour)
-              if !t.Stop() { <-t.C }
-            }
+            for i:=0;i<b.N;i++ { s.AckSelective(100,sacks,now) }
           }
           EOF
-          gofmt -w internal/faketcp/resource_probe_test.go
-      - name: Run probes
-        run: |
-          set -euo pipefail
-          go test ./internal/faketcp -run TestWBDResourceProbe -v -count=1
-          go test ./internal/faketcp -run '^$' -bench 'Benchmark(AckNoSACK|Repeated4095RecordSACK|NonblockingCreditSignal|CreditChannelCreate|TimerCreateStop)$' -benchmem -benchtime=2s -count=3
+          gofmt -w internal/faketcp/sack_delta_probe_test.go
+          go test ./internal/faketcp -count=1
+          go test ./internal/faketcp -run '^$' -bench BenchmarkRepeated4095RecordSACKDelta -benchmem -benchtime=2s -count=3
