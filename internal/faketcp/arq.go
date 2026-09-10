@@ -73,6 +73,15 @@ type Sender struct {
 	timeoutEpisode    bool
 	timeoutEpisodeEnd uint32
 
+	// Steady-state bounded senders may sweep all datagrams that were already
+	// expired when one real RTO epoch began. The ordinary RetransmitDue API still
+	// returns at most one packet per caller tick, so the existing 2ms product loop
+	// paces a large loss episode instead of emitting an unbounded retransmit burst.
+	steadyStateRTOSweep bool
+	rtoSweepActive      bool
+	rtoSweepStarted     time.Time
+	rtoSweepRTO         time.Duration
+
 	// rackLatestTx records the freshest transmission time for data proven
 	// delivered by ACK/SACK. RACK uses it for immediate inference; legacy uses
 	// only fresh post-retry evidence to keep a live path from sitting behind an
@@ -326,6 +335,7 @@ func (s *Sender) ackCumulative(oldAck, ack uint32, now time.Time) {
 		s.timeoutEpisode = false
 		s.timeoutEpisodeEnd = 0
 		s.rto = s.baseRTO
+		s.clearRTOSweep()
 	}
 	s.advanceHead()
 }
@@ -362,23 +372,114 @@ func (s *Sender) advanceHead() {
 }
 
 func (s *Sender) RetransmitDue(now time.Time) *Pending {
+	if s.recovery == RecoveryLegacy && s.steadyStateRTOSweep {
+		batch := s.RetransmitDueBatch(now, 1)
+		if len(batch) != 0 {
+			return batch[0]
+		}
+		return nil
+	}
+	return s.retransmitDueSingle(now)
+}
+
+// RetransmitDueBatch returns at most max timer-expired repairs. RecoveryLegacy
+// may sweep multiple packets that were already expired when the current RTO
+// epoch began; one connection-wide exponential backoff is charged for that
+// epoch no matter how many bounded batches the caller needs to drain it.
+// SACK-proven delivered packets remain retained for cumulative ACK accounting
+// but are never retransmitted by the sweep. Other recovery modes preserve the
+// mature single-head timer behavior.
+func (s *Sender) RetransmitDueBatch(now time.Time, max int) []*Pending {
+	if max <= 0 {
+		return nil
+	}
+	if s.recovery != RecoveryLegacy {
+		if p := s.retransmitDueSingle(now); p != nil {
+			return []*Pending{p}
+		}
+		return nil
+	}
+	if s.rtoSweepActive {
+		return s.collectLegacyRTOSweep(now, max)
+	}
 	p := s.oldest()
 	if p == nil {
 		return nil
 	}
-	rto := s.rto
-	// Legacy keeps its classic retransmission path: SACK evidence never causes
-	// an immediate repair. But once a post-retry transmission is proven delivered,
-	// the path is live and that fresh evidence may bound the next timer wait to the
-	// estimator-derived base RTO. markRetry advances LastSent, making the evidence
-	// stale after exactly one repair unless newer data is subsequently delivered.
-	if s.recovery == RecoveryLegacy && !p.Bootstrap && !s.rackLatestTx.IsZero() &&
-		p.LastSent.Before(s.rackLatestTx) && s.baseRTO < rto {
-		rto = s.baseRTO
+	if p.Bootstrap {
+		if p := s.retransmitDueSingle(now); p != nil {
+			return []*Pending{p}
+		}
+		return nil
 	}
-	if p.Bootstrap && rto > bootstrapRetransmitCeiling {
-		rto = bootstrapRetransmitCeiling
+	rto := s.effectiveRTO(p)
+	if now.Sub(p.LastSent) < rto {
+		return nil
 	}
+
+	// Snapshot the expiry instant and interval. Later packets can join this epoch
+	// only if they were already timer-expired at this instant; data admitted after
+	// the epoch begins cannot be pulled forward by the sweep.
+	s.rtoSweepActive = true
+	s.rtoSweepStarted = now
+	s.rtoSweepRTO = rto
+	if !s.timeoutEpisode {
+		s.timeoutEpisode = true
+		s.timeoutEpisodeEnd = p.End
+	}
+	s.rto = clampRTO(s.rto * 2)
+	return s.collectLegacyRTOSweep(now, max)
+}
+
+func (s *Sender) collectLegacyRTOSweep(now time.Time, max int) []*Pending {
+	out := make([]*Pending, 0, max)
+	for i := s.head; i < len(s.pending) && len(out) < max; i++ {
+		p := s.pending[i]
+		if !s.legacySweepEligible(p) {
+			continue
+		}
+		s.markRetry(p, now, false)
+		out = append(out, p)
+	}
+	if !s.hasLegacySweepEligible() {
+		s.clearRTOSweep()
+	}
+	return out
+}
+
+func (s *Sender) legacySweepEligible(p *Pending) bool {
+	if !s.rtoSweepActive || p == nil || p.Bootstrap || p.SACKed || p.LastSent.IsZero() {
+		return false
+	}
+	// LastSent at/after rtoSweepStarted means this packet was either admitted or
+	// retransmitted after the epoch snapshot and therefore is not part of it.
+	if !p.LastSent.Before(s.rtoSweepStarted) {
+		return false
+	}
+	return s.rtoSweepStarted.Sub(p.LastSent) >= s.rtoSweepRTO
+}
+
+func (s *Sender) hasLegacySweepEligible() bool {
+	for i := s.head; i < len(s.pending); i++ {
+		if s.legacySweepEligible(s.pending[i]) {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Sender) clearRTOSweep() {
+	s.rtoSweepActive = false
+	s.rtoSweepStarted = time.Time{}
+	s.rtoSweepRTO = 0
+}
+
+func (s *Sender) retransmitDueSingle(now time.Time) *Pending {
+	p := s.oldest()
+	if p == nil {
+		return nil
+	}
+	rto := s.effectiveRTO(p)
 	if now.Sub(p.LastSent) < rto {
 		return nil
 	}
@@ -395,6 +496,23 @@ func (s *Sender) RetransmitDue(now time.Time) *Pending {
 		s.rto = clampRTO(s.rto * 2)
 	}
 	return p
+}
+
+func (s *Sender) effectiveRTO(p *Pending) time.Duration {
+	rto := s.rto
+	// Legacy keeps its classic retransmission path: SACK evidence never causes
+	// an immediate repair. But once a post-retry transmission is proven delivered,
+	// the path is live and that fresh evidence may bound the next timer wait to the
+	// estimator-derived base RTO. markRetry advances LastSent, making the evidence
+	// stale after exactly one repair unless newer data is subsequently delivered.
+	if s.recovery == RecoveryLegacy && p != nil && !p.Bootstrap && !s.rackLatestTx.IsZero() &&
+		p.LastSent.Before(s.rackLatestTx) && s.baseRTO < rto {
+		rto = s.baseRTO
+	}
+	if p != nil && p.Bootstrap && rto > bootstrapRetransmitCeiling {
+		rto = bootstrapRetransmitCeiling
+	}
+	return rto
 }
 
 func (s *Sender) oldest() *Pending {
