@@ -199,6 +199,20 @@ func (c *client) controlLoop() error {
 	}
 }
 
+func cloneLaneMap(in map[uint8]*laneConn) map[uint8]*laneConn {
+	out := make(map[uint8]*laneConn, len(in))
+	for id, lane := range in { out[id] = lane }
+	return out
+}
+
+func sameLaneMap(a, b map[uint8]*laneConn) bool {
+	if len(a) != len(b) { return false }
+	for id, lane := range a {
+		if b[id] != lane { return false }
+	}
+	return true
+}
+
 func (c *client) setLaneTargets(targets []gamelane.LaneTarget) ([]uint8, error) {
 	cmd := gamelane.LaneSetCommand{Op: gamelane.LaneControlSet, Lanes: targets}
 	if err := cmd.Validate(); err != nil { return nil, err }
@@ -207,6 +221,8 @@ func (c *client) setLaneTargets(targets []gamelane.LaneTarget) ([]uint8, error) 
 	c.lanesMu.Lock()
 	if c.lanes == nil { c.lanes = make(map[uint8]*laneConn, gamelane.MaxLanes) }
 	if c.overlap == nil { c.overlap = make(map[uint8]*laneConn, 1) }
+	baseLanes := cloneLaneMap(c.lanes)
+	baseOverlap := cloneLaneMap(c.overlap)
 	grouped := make(map[uint8][]gamelane.LaneTarget, gamelane.MaxLanes)
 	ids := make([]uint8, 0, gamelane.MaxLanes)
 	for _, target := range targets {
@@ -217,8 +233,8 @@ func (c *client) setLaneTargets(targets []gamelane.LaneTarget) ([]uint8, error) 
 	nextOverlap := make(map[uint8]*laneConn, 1)
 	created := make([]*laneConn, 0, len(targets))
 	resolve := func(target gamelane.LaneTarget) (*laneConn, error) {
-		if existing := c.lanes[target.ID]; existing != nil && existing.addr == target.Address { return existing, nil }
-		if existing := c.overlap[target.ID]; existing != nil && existing.addr == target.Address { return existing, nil }
+		if existing := baseLanes[target.ID]; existing != nil && existing.addr == target.Address { return existing, nil }
+		if existing := baseOverlap[target.ID]; existing != nil && existing.addr == target.Address { return existing, nil }
 		ra, err := net.ResolveUDPAddr("udp4", target.Address)
 		if err != nil { return nil, err }
 		conn, err := net.DialUDP("udp4", nil, ra)
@@ -228,48 +244,73 @@ func (c *client) setLaneTargets(targets []gamelane.LaneTarget) ([]uint8, error) 
 		created = append(created, lane)
 		return lane, nil
 	}
-	fail := func(err error) ([]uint8, error) {
-		for _, lane := range created { _ = lane.conn.Close() }
+	failPlan := func(err error) ([]uint8, error) {
 		c.lanesMu.Unlock()
+		for _, lane := range created { _ = lane.conn.Close() }
 		return nil, err
 	}
 	for _, id := range ids {
 		wanted := grouped[id]
 		primaryIndex := 0
-		if current := c.lanes[id]; current != nil {
+		if current := baseLanes[id]; current != nil {
 			for i, target := range wanted {
 				if target.Address == current.addr { primaryIndex = i; break }
 			}
 		}
 		primary, err := resolve(wanted[primaryIndex])
-		if err != nil { return fail(err) }
+		if err != nil { return failPlan(err) }
 		next[id] = primary
 		if len(wanted) == 2 {
 			other := 1 - primaryIndex
 			candidate, err := resolve(wanted[other])
-			if err != nil { return fail(err) }
+			if err != nil { return failPlan(err) }
 			nextOverlap[id] = candidate
 		}
+	}
+	c.lanesMu.Unlock()
+
+	started := make(map[*laneConn]bool, len(created))
+	isCreated := func(lane *laneConn) bool {
+		for _, candidate := range created { if candidate == lane { return true } }
+		return false
+	}
+	for _, lane := range nextOverlap {
+		if isCreated(lane) && !started[lane] {
+			started[lane] = true
+			go c.laneLoop(lane)
+		}
+		if !laneMembershipReady(lane) {
+			if err := c.qualifyLane(lane, laneQualificationTimeout); err != nil {
+				for _, candidate := range created { _ = candidate.conn.Close() }
+				return nil, err
+			}
+		}
+	}
+
+	// Qualification may take seconds on weak paths. A concurrent physical lane
+	// failure must not be overwritten by this older control-plane snapshot.
+	c.lanesMu.Lock()
+	if !sameLaneMap(c.lanes, baseLanes) || !sameLaneMap(c.overlap, baseOverlap) {
+		c.lanesMu.Unlock()
+		for _, candidate := range created { _ = candidate.conn.Close() }
+		return nil, errors.New("game lane membership changed during candidate qualification")
 	}
 	kept := make(map[*laneConn]bool, len(next)+len(nextOverlap))
 	for _, lane := range next { kept[lane] = true }
 	for _, lane := range nextOverlap { kept[lane] = true }
-	removed := make([]*laneConn, 0, len(c.lanes)+len(c.overlap))
-	for _, lane := range c.lanes { if !kept[lane] { removed = append(removed, lane) } }
-	for _, lane := range c.overlap { if !kept[lane] { removed = append(removed, lane) } }
+	removed := make([]*laneConn, 0, len(baseLanes)+len(baseOverlap))
+	for _, lane := range baseLanes { if !kept[lane] { removed = append(removed, lane) } }
+	for _, lane := range baseOverlap { if !kept[lane] { removed = append(removed, lane) } }
 	c.lanes = next
 	c.overlap = nextOverlap
 	c.lanesMu.Unlock()
 
+	for _, lane := range created {
+		if !started[lane] { go c.laneLoop(lane) }
+	}
 	for _, lane := range removed {
 		c.announceLaneLeave(lane)
 		_ = lane.conn.Close()
-	}
-	for _, lane := range created { go c.laneLoop(lane) }
-	for _, lane := range nextOverlap {
-		if err := c.qualifyLane(lane, laneQualificationTimeout); err != nil {
-			return nil, err
-		}
 	}
 	idsOut := c.activeIDs(); c.logLaneState(idsOut, "control"); return idsOut, nil
 }
