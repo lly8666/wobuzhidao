@@ -23,10 +23,15 @@ var ErrSteadyStateOutstandingFull = errors.New("faketcp: steady-state outstandin
 
 // EnqueueSteadyState admits one post-bootstrap datagram without allowing the
 // sender's retained/retransmittable set to grow without bound. Callers own the
-// Sender synchronization exactly as they do for Enqueue/AckSelective.
+// Sender synchronization exactly as they do for Enqueue/AckSelective. A bounded
+// legacy sender also enables pressure-safe RTO sweeping: once a real timer epoch
+// expires, the normal paced retransmit loop can service all packets that were
+// already expired in that epoch instead of letting the cumulative head monopolize
+// recovery indefinitely.
 func (s *Sender) EnqueueSteadyState(payload []byte, now time.Time) (*Pending, error) {
 	if s.Pending() >= MaxSteadyStateOutstandingDatagrams {
 		return nil, ErrSteadyStateOutstandingFull
 	}
+	s.steadyStateRTOSweep = true
 	return s.Enqueue(payload, now), nil
 }
