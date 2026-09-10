@@ -229,17 +229,19 @@ func (s *Sender) sackLossCandidate() *Pending {
 	return nil
 }
 
-// rackLossCandidate permits exactly one fast repair of a lost first repair,
-// and only for the cumulative-ACK boundary. A newer delivered transmission
-// must have a LastSent timestamp after the repair plus the reordering window.
-// Non-head holes wait until cumulative ACK advances to them; this avoids turning
-// four-block SACK omission into a full-window retransmission storm.
+// rackLossCandidate permits repeated fast repair of the cumulative-ACK
+// boundary only when delivery evidence is fresher than that hole's most recent
+// transmission. markRetry refreshes LastSent, so the evidence that authorized
+// one repair immediately becomes stale; replaying the same SACK blocks cannot
+// self-trigger another repair. A later ACK/SACK of a transmission sent after
+// that repair can advance rackLatestTx and authorize the next repair after the
+// reordering window. Non-head holes still wait for cumulative ACK advance.
 func (s *Sender) rackLossCandidate(now time.Time) *Pending {
 	if s.rackLatestTx.IsZero() {
 		return nil
 	}
 	p := s.oldest()
-	if p == nil || p.Seq != s.lastAck || p.SACKed || p.LastSent.IsZero() || !p.WasRetried || p.Retries != 1 {
+	if p == nil || p.Seq != s.lastAck || p.SACKed || p.LastSent.IsZero() || !p.WasRetried {
 		return nil
 	}
 	if !p.LastSent.Before(s.rackLatestTx) {
