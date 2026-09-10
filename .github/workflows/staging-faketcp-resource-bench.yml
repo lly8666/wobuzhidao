@@ -46,18 +46,18 @@ jobs:
               if err != nil { t.Fatal(err) }
               caps += cap(p.Payload)
             }
-            fmt.Printf("WBD_RESOURCE pending_struct_bytes=%d records=%d payload_len_bytes=%d payload_cap_bytes=%d pointer_array_bytes=%d\n",
+            fmt.Printf("WBD_RESOURCE pending_struct_bytes=%d records=%d payload_len_bytes=%d payload_cap_bytes=%d pointer_array_bytes=%d chan_handle_bytes=%d timer_handle_bytes=%d\n",
               unsafe.Sizeof(Pending{}), MaxSteadyStateOutstandingDatagrams,
               MaxSteadyStateOutstandingDatagrams*1000, caps,
-              MaxSteadyStateOutstandingDatagrams*int(unsafe.Sizeof((*Pending)(nil))))
+              MaxSteadyStateOutstandingDatagrams*int(unsafe.Sizeof((*Pending)(nil))),
+              unsafe.Sizeof((chan struct{})(nil)), unsafe.Sizeof((*time.Timer)(nil)))
           }
 
           func BenchmarkAckNoSACK(b *testing.B) {
             s := NewSenderWithRecovery(100, time.Second, RecoveryLegacy)
             now := time.Unix(1, 0)
             for i := 0; i < MaxSteadyStateOutstandingDatagrams; i++ { _, _ = s.EnqueueSteadyState([]byte{1}, now) }
-            b.ReportAllocs()
-            b.ResetTimer()
+            b.ReportAllocs(); b.ResetTimer()
             for i := 0; i < b.N; i++ { s.AckSelective(100, nil, now) }
           }
 
@@ -67,18 +67,31 @@ jobs:
             for i := 0; i < MaxSteadyStateOutstandingDatagrams; i++ { _, _ = s.EnqueueSteadyState([]byte{1}, now) }
             sacks := []SACKBlock{{Start: 101, End: 100 + uint32(MaxSteadyStateOutstandingDatagrams)}}
             s.AckSelective(100, sacks, now)
-            b.ReportAllocs()
-            b.ResetTimer()
+            b.ReportAllocs(); b.ResetTimer()
             for i := 0; i < b.N; i++ { s.AckSelective(100, sacks, now) }
           }
 
           func BenchmarkNonblockingCreditSignal(b *testing.B) {
             ch := make(chan struct{}, 1)
-            b.ReportAllocs()
-            b.ResetTimer()
+            b.ReportAllocs(); b.ResetTimer()
             for i := 0; i < b.N; i++ {
               select { case ch <- struct{}{}: default: }
               select { case <-ch: default: }
+            }
+          }
+
+          func BenchmarkCreditChannelCreate(b *testing.B) {
+            var sink chan struct{}
+            b.ReportAllocs(); b.ResetTimer()
+            for i := 0; i < b.N; i++ { sink = make(chan struct{}, 1) }
+            _ = sink
+          }
+
+          func BenchmarkTimerCreateStop(b *testing.B) {
+            b.ReportAllocs(); b.ResetTimer()
+            for i := 0; i < b.N; i++ {
+              t := time.NewTimer(time.Hour)
+              if !t.Stop() { <-t.C }
             }
           }
           EOF
@@ -87,4 +100,4 @@ jobs:
         run: |
           set -euo pipefail
           go test ./internal/faketcp -run TestWBDResourceProbe -v -count=1
-          go test ./internal/faketcp -run '^$' -bench 'Benchmark(AckNoSACK|Repeated4095RecordSACK|NonblockingCreditSignal)$' -benchmem -benchtime=2s -count=3
+          go test ./internal/faketcp -run '^$' -bench 'Benchmark(AckNoSACK|Repeated4095RecordSACK|NonblockingCreditSignal|CreditChannelCreate|TimerCreateStop)$' -benchmem -benchtime=2s -count=3
