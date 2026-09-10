@@ -16,6 +16,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Restore exact f885 matrix inputs
+        run: |
+          set -euo pipefail
+          git fetch origin f8855c34b91b9434331477f2f86baf68cd1826bd --depth=1
+          git show f8855c34b91b9434331477f2f86baf68cd1826bd:scripts/bench_v2_transport_20x20.py > scripts/bench_v2_transport_20x20.py
+          git show f8855c34b91b9434331477f2f86baf68cd1826bd:.github/workflows/transport-20x20-matrix.yml > .github/workflows/transport-20x20-matrix.yml
       - name: Apply asserted harness patch
         run: |
           set -euo pipefail
@@ -35,12 +41,13 @@ jobs:
           m.install_netem('wbd-seed-probe','lo',20,1.0,12345)
           PY
           sudo ip netns exec wbd-seed-probe tc qdisc show dev lo
-      - name: Publish validated Python source on helper branch
+      - name: Publish validated matrix blobs on helper branch
         run: |
           set -euo pipefail
+          cp .github/workflows/transport-20x20-matrix.yml scripts/staging_transport_20x20_patched.yml
           git config user.name 'wbd-staging-bot'
           git config user.email 'wbd-staging-bot@users.noreply.github.com'
-          git add scripts/bench_v2_transport_20x20.py
+          git add scripts/bench_v2_transport_20x20.py scripts/staging_transport_20x20_patched.yml
           git diff --cached --check
-          git commit -m 'test(transport): make matrix benchmark fail closed'
+          git commit -m 'test(transport): publish validated matrix blobs'
           git push origin HEAD:agent/matrix-harness-fix-f885
