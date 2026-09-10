@@ -23,7 +23,10 @@ hdr = struct.calcsize(fmt)
 latency_stride = 8
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(("127.0.0.1", 47600))
+# game-lane-client deliberately pins the first application UDP peer by IP:port.
+# The realistic harness warm-up uses 47601, so the measured load must use the
+# same source identity rather than being silently rejected as a second peer.
+sock.bind(("127.0.0.1", 47601))
 sock.setblocking(False)
 seen = bytearray()
 latency_us = []
@@ -77,6 +80,31 @@ def percentile(values, q):
     frac = x - lo
     return values[lo] * (1 - frac) + values[hi] * frac
 
+
+# Fast fail before the 30-minute clock starts. This uses the exact same socket
+# and payload framing as the measured traffic, so a peer-identity or ingress
+# mismatch is detected in seconds rather than after a full long-run allocation.
+preflight = make_packet(0, 128, time.monotonic_ns())
+sock.sendto(preflight, ("127.0.0.1", 47500))
+preflight_deadline = time.monotonic() + 20.0
+preflight_ok = False
+while time.monotonic() < preflight_deadline:
+    ready, _, _ = select.select([sock], [], [], 0.25)
+    if not ready:
+        continue
+    while True:
+        try:
+            data, _ = sock.recvfrom(65535)
+        except BlockingIOError:
+            break
+        if data == preflight:
+            preflight_ok = True
+            break
+    if preflight_ok:
+        break
+if not preflight_ok:
+    raise SystemExit("WBD_REALISTIC_LOAD_PREFLIGHT_FAIL no exact echo on pinned app peer")
+print("WBD_REALISTIC_LOAD_PREFLIGHT_PASS source=127.0.0.1:47601")
 
 start = time.monotonic()
 deadline = start + duration
