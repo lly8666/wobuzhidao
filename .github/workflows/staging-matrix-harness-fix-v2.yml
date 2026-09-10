@@ -1,4 +1,4 @@
-name: staging-matrix-harness-fix-v2
+name: staging-publish-qualification-trigger-blobs
 
 on:
   push:
@@ -11,43 +11,47 @@ permissions:
   contents: write
 
 jobs:
-  patch-and-validate:
+  publish:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Restore exact f885 matrix inputs
+      - name: Generate asserted workflow blobs from exact staging SHA
         run: |
           set -euo pipefail
-          git fetch origin f8855c34b91b9434331477f2f86baf68cd1826bd --depth=1
-          git show f8855c34b91b9434331477f2f86baf68cd1826bd:scripts/bench_v2_transport_20x20.py > scripts/bench_v2_transport_20x20.py
-          git show f8855c34b91b9434331477f2f86baf68cd1826bd:.github/workflows/transport-20x20-matrix.yml > .github/workflows/transport-20x20-matrix.yml
-      - name: Apply asserted harness patch
-        run: |
-          set -euo pipefail
-          python3 scripts/staging_matrix_harness_patch.py
-          python3 -m py_compile scripts/bench_v2_transport_20x20.py
-          git diff --check
-      - name: Exercise netem compatibility path on this runner
-        run: |
-          set -euo pipefail
-          sudo ip netns add wbd-seed-probe
-          trap 'sudo ip netns del wbd-seed-probe 2>/dev/null || true' EXIT
-          sudo ip netns exec wbd-seed-probe ip link set lo up
-          sudo python3 - <<'PY'
-          import importlib.util
-          spec=importlib.util.spec_from_file_location('m','scripts/bench_v2_transport_20x20.py')
-          m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-          m.install_netem('wbd-seed-probe','lo',20,1.0,12345)
+          BASE=1bfd86dda5fe030dd0e475f097038fd835ea0957
+          git fetch origin "$BASE" --depth=1
+          git show "$BASE":.github/workflows/game-lane-rotation-soak.yml > /tmp/soak.yml
+          git show "$BASE":.github/workflows/transport-20x20-matrix.yml > /tmp/matrix.yml
+          python3 - <<'PY'
+          from pathlib import Path
+          soak=Path('/tmp/soak.yml')
+          s=soak.read_text()
+          old="""    branches:\n      - feat/single-flow-reality-faketcp\n"""
+          new="""    branches:\n      - feat/single-flow-reality-faketcp\n      - agent/fec-zombie-fix-7d859\n"""
+          assert s.count(old)==1, s.count(old)
+          soak.write_text(s.replace(old,new,1))
+
+          matrix=Path('/tmp/matrix.yml')
+          m=matrix.read_text()
+          oldm="""      - 'scripts/bench_v2_transport_20x20.py'\n      - '.github/workflows/transport-20x20-matrix.yml'\n"""
+          newm="""      - 'scripts/bench_v2_transport_20x20.py'\n      - '.github/workflows/transport-20x20-matrix.yml'\n      - '.github/workflows/game-lane-rotation-soak.yml'\n"""
+          assert m.count(oldm)==1, m.count(oldm)
+          matrix.write_text(m.replace(oldm,newm,1))
           PY
-          sudo ip netns exec wbd-seed-probe tc qdisc show dev lo
-      - name: Publish validated matrix blobs on helper branch
+          grep -q -- "- agent/fec-zombie-fix-7d859" /tmp/soak.yml
+          grep -q -- "- '.github/workflows/game-lane-rotation-soak.yml'" /tmp/matrix.yml
+          mkdir -p scripts
+          cp /tmp/soak.yml scripts/staging_game_lane_rotation_soak_trigger.yml
+          cp /tmp/matrix.yml scripts/staging_transport_20x20_soak_trigger.yml
+          git diff --no-index /dev/null scripts/staging_game_lane_rotation_soak_trigger.yml >/tmp/soak.diff || test $? -eq 1
+          git diff --no-index /dev/null scripts/staging_transport_20x20_soak_trigger.yml >/tmp/matrix.diff || test $? -eq 1
+      - name: Publish content-addressed blobs on helper branch
         run: |
           set -euo pipefail
-          cp .github/workflows/transport-20x20-matrix.yml scripts/staging_transport_20x20_patched.yml
           git config user.name 'wbd-staging-bot'
           git config user.email 'wbd-staging-bot@users.noreply.github.com'
-          git add scripts/bench_v2_transport_20x20.py scripts/staging_transport_20x20_patched.yml
+          git add scripts/staging_game_lane_rotation_soak_trigger.yml scripts/staging_transport_20x20_soak_trigger.yml
           git diff --cached --check
-          git commit -m 'test(transport): publish validated matrix blobs'
+          git commit -m 'test(staging): publish qualification trigger blobs'
           git push origin HEAD:agent/matrix-harness-fix-f885
