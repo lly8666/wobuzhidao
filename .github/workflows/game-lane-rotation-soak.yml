@@ -196,6 +196,121 @@ jobs:
           path: ${{ runner.temp }}/game-lane-rotation-${{ matrix.slug }}-r${{ matrix.replica }}
           retention-days: 14
 
+  recovery-oracle-sack-rack:
+    needs: build-assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      # Non-authoritative A/B oracle: same severe path/load/rotation contract,
+      # but both FakeTCP endpoints use the existing experimental SACK/RACK
+      # recovery. The release matrix above remains legacy and authoritative.
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - fec: 'off'
+            slug: off
+            replica: 1
+          - fec: 'off'
+            slug: off
+            replica: 2
+          - fec: '20:20'
+            slug: fec20
+            replica: 1
+          - fec: '20:20'
+            slug: fec20
+            replica: 2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install namespace tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump
+      - uses: actions/download-artifact@v4
+        with:
+          name: game-lane-rotation-soak-assets
+          path: ${{ runner.temp }}/wbd-soak-assets
+      - name: Restore executables and verify source identity
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP"/wbd-soak-assets/wbd-* "$RUNNER_TEMP"/wbd-soak-assets/wbd_dtls_shim
+          test "$(cat "$RUNNER_TEMP/wbd-soak-assets/SOURCE_SHA.txt")" = "$GITHUB_SHA"
+      - name: Patch harness locally to use SACK/RACK on both FakeTCP endpoints
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          full = Path('scripts/game_lane_fullstack.sh')
+          s = full.read_text()
+          marker = '--fallback-target 127.0.0.1:9 --bootstrap-timeout 12s --max-sessions 8 \\\n'
+          replacement = '--fallback-target 127.0.0.1:9 --bootstrap-timeout 12s --max-sessions 8 --shadow-recovery sack-rack \\\n'
+          if marker not in s:
+              raise SystemExit('SACK/RACK oracle: server mux insertion point not found')
+          s = s.replace(marker, replacement, 1)
+          if '--shadow-recovery legacy' not in s or 'recovery=legacy' not in s:
+              raise SystemExit('SACK/RACK oracle: client/marker insertion point not found')
+          s = s.replace('--shadow-recovery legacy', '--shadow-recovery sack-rack')
+          s = s.replace('recovery=legacy', 'recovery=sack-rack')
+          full.write_text(s)
+
+          soak = Path('scripts/game_lane_rotation_soak.sh')
+          s = soak.read_text()
+          if '--shadow-recovery legacy' not in s:
+              raise SystemExit('SACK/RACK oracle: replacement client insertion point not found')
+          soak.write_text(s.replace('--shadow-recovery legacy', '--shadow-recovery sack-rack'))
+          PY
+      - name: Run non-authoritative SACK/RACK oracle under exact severe conditions
+        env:
+          LANES: '4'
+          FEC: ${{ matrix.fec }}
+          DURATION_SEC: '500'
+          RATE_BPS: '1000000'
+          PAYLOAD_BYTES: '1000'
+          ROTATE_INTERVAL_SEC: '25'
+          ROTATIONS: '16'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+          SOAK_REPLICA: ${{ matrix.replica }}
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/game-lane-recovery-oracle-${{ matrix.slug }}-r${{ matrix.replica }}"
+          mkdir -p "$LOG"
+          sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$RUNNER_TEMP/wbd-soak-assets" "$LOG"
+          grep -q 'WBD_HOSTED_NETEM_READY delay_ms=300 loss_pct=20 direction=bidirectional' "$LOG/netem.log"
+          grep -q 'READY role=server-mux.*recovery=sack-rack' "$LOG/faketcp-mux.log"
+          python3 - "$LOG/load-result.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d['requested_duration_sec'] == 500, d
+          assert d['lanes'] == 4 and d['rotations'] == 16, d
+          assert d['requested_bps_each_direction'] == 1_000_000, d
+          assert d['peer_resets'] == 16 and d['no_client_rx_expire'] == 0, d
+          assert d['duplicates'] == 0 and d['bad_payload'] == 0, d
+          print('WBD_SACK_RACK_ORACLE_PASS '+json.dumps(d,sort_keys=True))
+          PY
+      - name: Diagnose SACK/RACK oracle
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/game-lane-recovery-oracle-${{ matrix.slug }}-r${{ matrix.replica }}"
+          echo '=== LOAD RESULT ==='
+          cat "$LOG/load-result.json" 2>/dev/null || true
+          echo '=== RECOVERY STATS ==='
+          grep -h 'WBD_FAKETCP_STATS' "$LOG"/faketcp-*.log "$LOG"/lane-*-faketcp.log 2>/dev/null || true
+      - name: Scrub one-time auth material
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/game-lane-recovery-oracle-${{ matrix.slug }}-r${{ matrix.replica }}"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: game-lane-recovery-oracle-500s-1mbps-300ms-loss20-${{ matrix.slug }}-r${{ matrix.replica }}
+          path: ${{ runner.temp }}/game-lane-recovery-oracle-${{ matrix.slug }}-r${{ matrix.replica }}
+          retention-days: 14
+
   aggregate:
     needs: soak-500s-4lane-1mbps-weaknet
     runs-on: ubuntu-24.04
