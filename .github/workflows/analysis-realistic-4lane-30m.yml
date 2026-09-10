@@ -6,6 +6,10 @@ on:
       - agent/analysis-realistic-d1e2
     paths:
       - '.github/workflows/analysis-realistic-4lane-30m.yml'
+      - 'scripts/game_lane_realistic_analysis.sh'
+      - 'scripts/realistic_game_load.py'
+      - 'scripts/realistic_process_monitor.py'
+      - 'scripts/realistic_analysis_summary.py'
   workflow_dispatch:
 
 permissions:
