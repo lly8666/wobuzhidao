@@ -204,5 +204,6 @@ summary = {
     },
 }
 with open(out, "w", encoding="utf-8") as f:
-    json.dump(summary, f, sort_keys=True, indent=2) + "\n"
+    json.dump(summary, f, sort_keys=True, indent=2)
+    f.write("\n")
 print("WBD_REALISTIC_LOAD_RESULT " + json.dumps(summary, sort_keys=True))
