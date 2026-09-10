@@ -8,7 +8,7 @@ on:
       - '.github/workflows/staging-matrix-harness-fix-v2.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   patch-and-validate:
@@ -35,15 +35,12 @@ jobs:
           m.install_netem('wbd-seed-probe','lo',20,1.0,12345)
           PY
           sudo ip netns exec wbd-seed-probe tc qdisc show dev lo
-      - name: Package patched files
+      - name: Publish validated Python source on helper branch
         run: |
           set -euo pipefail
-          mkdir -p /tmp/matrix-fix/scripts /tmp/matrix-fix/.github/workflows
-          cp scripts/bench_v2_transport_20x20.py /tmp/matrix-fix/scripts/
-          cp .github/workflows/transport-20x20-matrix.yml /tmp/matrix-fix/.github/workflows/
-          sha256sum scripts/bench_v2_transport_20x20.py .github/workflows/transport-20x20-matrix.yml
-      - uses: actions/upload-artifact@v4
-        with:
-          name: matrix-harness-fix-v2
-          path: /tmp/matrix-fix
-          retention-days: 1
+          git config user.name 'wbd-staging-bot'
+          git config user.email 'wbd-staging-bot@users.noreply.github.com'
+          git add scripts/bench_v2_transport_20x20.py
+          git diff --cached --check
+          git commit -m 'test(transport): make matrix benchmark fail closed'
+          git push origin HEAD:agent/matrix-harness-fix-f885
