@@ -1,0 +1,142 @@
+name: probe-dtls-fec-mtu-diag
+
+on:
+  push:
+    branches:
+      - agent/probe-dtls-fec-mtu-d1e2
+    paths:
+      - '.github/workflows/probe-dtls-fec-mtu-diag.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SOURCE_SHA: d1e2c827183415b32d94082e2ca2a59cefdc544b
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact product source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "WBD_DTLS_MTU_PROBE_SOURCE_PASS source_sha=$SOURCE_SHA"
+      - name: Install build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl
+      - name: Build pinned wolfSSL with explicit DTLS path MTU support
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/probe
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128 -DWOLFSSL_DTLS_MTU')
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('native/dtls/wbd_dtls_shim.c').read_text()
+          c='WOLFSSL_CTX* ctx = wolfSSL_CTX_new(wolfDTLSv1_3_client_method());'
+          r='WOLFSSL_CTX* ctx = wolfSSL_CTX_new(wolfDTLSv1_3_client_method());\n    if (ctx && wolfSSL_CTX_dtls_set_mtu(ctx, 1600) != WOLFSSL_SUCCESS) { fprintf(stderr, "client set mtu failed\\n"); wolfSSL_CTX_free(ctx); return 2; }'
+          assert s.count(c)==1
+          s=s.replace(c,r)
+          c='WOLFSSL_CTX* ctx = wolfSSL_CTX_new(wolfDTLSv1_3_server_method());'
+          r='WOLFSSL_CTX* ctx = wolfSSL_CTX_new(wolfDTLSv1_3_server_method());\n    if (ctx && wolfSSL_CTX_dtls_set_mtu(ctx, 1600) != WOLFSSL_SUCCESS) { fprintf(stderr, "server set mtu failed\\n"); wolfSSL_CTX_free(ctx); return 2; }'
+          assert s.count(c)==1
+          s=s.replace(c,r)
+          Path('/tmp/probe/shim_mtu.c').write_text(s)
+          PY
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -DWOLFSSL_DTLS_MTU -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            /tmp/probe/shim_mtu.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/probe/wbd_dtls_shim_mtu
+      - name: Generate probe certificate
+        run: |
+          set -euo pipefail
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 1 -subj '/CN=probe.invalid' \
+            -keyout /tmp/probe/key.pem -out /tmp/probe/cert.pem >/dev/null 2>&1
+      - name: Measure plaintext to encrypted datagram sizes with diagnostics
+        run: |
+          set -u
+          cat >/tmp/probe/relay.py <<'PY'
+          import os,select,socket,sys
+          front=int(sys.argv[1]); server=int(sys.argv[2]); mark=sys.argv[3]; log=sys.argv[4]
+          a=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); a.bind(('127.0.0.1',front))
+          b=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); b.bind(('127.0.0.1',0)); b.connect(('127.0.0.1',server))
+          client=None
+          with open(log,'a',buffering=1) as f:
+            while True:
+              r,_,_=select.select([a,b],[],[],0.2)
+              for s in r:
+                if s is a:
+                  data,addr=a.recvfrom(65535); client=addr; b.send(data)
+                  f.write(f'c2s={len(data)} marked={int(os.path.exists(mark))}\n')
+                else:
+                  data=b.recv(65535)
+                  if client: a.sendto(data,client)
+                  f.write(f's2c={len(data)} marked={int(os.path.exists(mark))}\n')
+          PY
+          cat >/tmp/probe/echo.py <<'PY'
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind(('127.0.0.1',48080))
+          while True:
+            b,a=s.recvfrom(65535); s.sendto(b,a)
+          PY
+          python3 /tmp/probe/echo.py >/tmp/probe/echo.log 2>&1 & E=$!
+          cleanup_all() { kill ${C:-} ${S:-} ${R:-} ${E:-} 2>/dev/null || true; }
+          dump_diag() {
+            echo "WBD_DTLS_MTU_DIAG stage=${1:-unknown} n=${n:-unknown}"
+            for f in /tmp/probe/client-${n:-x}.log /tmp/probe/server-${n:-x}.log /tmp/probe/relay-${n:-x}.log /tmp/probe/relay-${n:-x}.stdout /tmp/probe/echo.log; do
+              echo "--- $f"; test -f "$f" && cat "$f" || true
+            done
+          }
+          trap 'rc=$?; if [ $rc -ne 0 ]; then dump_diag exit; fi; cleanup_all; exit $rc' EXIT
+          for n in 1352 1400 1408 1456; do
+            unset C S R
+            rm -f /tmp/probe/mark /tmp/probe/relay-${n}.log /tmp/probe/client-${n}.log /tmp/probe/server-${n}.log
+            echo "WBD_DTLS_MTU_CASE_BEGIN plaintext=$n"
+            /tmp/probe/wbd_dtls_shim_mtu server 42080 127.0.0.1 48080 /tmp/probe/cert.pem /tmp/probe/key.pem >/tmp/probe/server-${n}.log 2>&1 & S=$!
+            python3 /tmp/probe/relay.py 43080 42080 /tmp/probe/mark /tmp/probe/relay-${n}.log >/tmp/probe/relay-${n}.stdout 2>&1 & R=$!
+            /tmp/probe/wbd_dtls_shim_mtu client 41080 127.0.0.1 43080 none none >/tmp/probe/client-${n}.log 2>&1 & C=$!
+            ok=0
+            for i in $(seq 1 200); do
+              if grep -q 'READY role=client' /tmp/probe/client-${n}.log && grep -q 'READY role=server' /tmp/probe/server-${n}.log; then ok=1; break; fi
+              if ! kill -0 "$C" 2>/dev/null || ! kill -0 "$S" 2>/dev/null || ! kill -0 "$R" 2>/dev/null; then break; fi
+              sleep .05
+            done
+            if [ "$ok" -ne 1 ]; then dump_diag readiness; exit 21; fi
+            touch /tmp/probe/mark
+            if ! python3 - "$n" <<'PY'
+          import socket,sys
+          n=int(sys.argv[1]); p=bytes([n&255])*n
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind(('127.0.0.1',0)); s.settimeout(4)
+          s.sendto(p,('127.0.0.1',41080)); got,_=s.recvfrom(65535)
+          assert got==p,(len(got),n)
+          PY
+            then dump_diag payload; exit 22; fi
+            sleep .2
+            kill -TERM "$C" "$S" "$R" 2>/dev/null || true
+            wait "$C" 2>/dev/null || true; wait "$S" 2>/dev/null || true; wait "$R" 2>/dev/null || true
+            python3 - "$n" /tmp/probe/relay-${n}.log <<'PY'
+          import pathlib,sys
+          n=int(sys.argv[1]); p=pathlib.Path(sys.argv[2])
+          vals=[]
+          for line in p.read_text().splitlines():
+            if line.startswith('c2s=') and 'marked=1' in line: vals.append(int(line.split()[0].split('=',1)[1]))
+          assert vals,(n,p.read_text())
+          encrypted=max(vals)
+          print(f'WBD_DTLS_MTU_SIZE plaintext={n} encrypted_udp={encrypted} dtls_overhead={encrypted-n} faketcp_ipv4_total={encrypted+40}')
+          PY
+            rc=$?; if [ $rc -ne 0 ]; then dump_diag parse; exit 23; fi
+          done
+          echo 'WBD_DTLS_MTU_PROBE_PASS explicit_path_mtu=1600'
