@@ -38,13 +38,18 @@ func TestBlockDecoderStreamingWindowPressureRetiresOldestSafeBlock(t *testing.T)
 	two := pressureFastWire(t, codec, 2)
 	three := pressureFastWire(t, codec, 3)
 
-	for block, wire := range map[uint32][][]byte{1: one, 2: two} {
-		packets, done, err := dec.Add(wire[0])
+	// Preserve insertion order explicitly: blockOrder defines "oldest", while Go
+	// map iteration is intentionally randomized and made this regression flaky.
+	for _, item := range []struct {
+		block uint32
+		wire  [][]byte
+	}{{1, one}, {2, two}} {
+		packets, done, err := dec.Add(item.wire[0])
 		if err != nil {
-			t.Fatalf("block %d first source: %v", block, err)
+			t.Fatalf("block %d first source: %v", item.block, err)
 		}
 		if done || len(packets) != 1 {
-			t.Fatalf("block %d packets=%d done=%t", block, len(packets), done)
+			t.Fatalf("block %d packets=%d done=%t", item.block, len(packets), done)
 		}
 	}
 	if dec.InFlight() != 2 {
