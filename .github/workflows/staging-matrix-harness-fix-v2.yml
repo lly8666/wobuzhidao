@@ -1,4 +1,4 @@
-name: diagnostic-sack-rack-weaknet
+name: diagnostic-rack-fresh-evidence
 
 on:
   push:
@@ -12,9 +12,95 @@ permissions:
   contents: read
 
 jobs:
-  sack-rack-diagnostic:
+  build-prototype:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/download-artifact@v4
+        with:
+          name: game-lane-rotation-soak-assets
+          path: ${{ runner.temp }}/prototype-assets
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: lly8666/wobuzhidao
+          run-id: 34424978270
+      - name: Restore exact failing source and patch RACK fresh-evidence retry
+        run: |
+          set -euo pipefail
+          BASE=89a4650b09c4f3862ba02316cec2ae258a8f0853
+          git fetch origin "$BASE" --depth=1
+          git checkout --detach "$BASE"
+          test "$(cat "$RUNNER_TEMP/prototype-assets/SOURCE_SHA.txt")" = "$BASE"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('internal/faketcp/arq.go')
+          s=p.read_text()
+          old='''\t\t// RACK is deliberately restricted to one failed-repair inference. The\n\t\t// SACK scoreboard/classic dup-ACK path owns the first fast repair. Once\n\t\t// that repair has itself been inferred lost, a second fast repair is\n\t\t// allowed; further attempts fall back to the existing backed-off RTO.\n\t\t// This bounds duplicate traffic when old SACK ranges fall out of the\n\t\t// receiver's four-block advertisement under a large outstanding window.\n\t\tif p == nil || p.SACKed || p.LastSent.IsZero() || !p.WasRetried || p.Retries != 1 {\n'''
+          new='''\t\t// A retransmission may itself be lost more than once on a harsh path.\n\t\t// Permit another RACK repair only after data transmitted later than the\n\t\t// previous repair has newly been proven delivered and the reordering\n\t\t// window has elapsed. Identical/stale SACK evidence therefore cannot\n\t\t// retrigger the same hole, while fresh delivery evidence can repair an\n\t\t// arbitrary run of independent retransmission losses without waiting for\n\t\t// the association-wide exponentially backed-off RTO.\n\t\tif p == nil || p.SACKed || p.LastSent.IsZero() || !p.WasRetried {\n'''
+          assert s.count(old)==1, s.count(old)
+          p.write_text(s.replace(old,new,1))
+
+          # The old test encoded the two-fast-repair policy itself. Disable only
+          # that policy assertion in this ephemeral prototype and replace it with
+          # fresh-evidence / stale-evidence tests below.
+          t=Path('internal/faketcp/retransmit_storm_test.go')
+          x=t.read_text()
+          assert x.count('func TestRACKBoundsFastRepairsPerPacket(')==1
+          t.write_text(x.replace('func TestRACKBoundsFastRepairsPerPacket(', 'func XTestRACKBoundsFastRepairsPerPacket(', 1))
+          PY
+          cat > internal/faketcp/rack_fresh_evidence_probe_test.go <<'EOF'
+          package faketcp
+
+          import (
+            "testing"
+            "time"
+          )
+
+          func TestRACKFreshEvidenceAllowsThirdRepairButStaleEvidenceDoesNot(t *testing.T) {
+            t0 := time.Unix(30, 0)
+            s := NewSenderWithRecovery(100, time.Second, RecoverySACKRACK)
+            p := s.Enqueue(make([]byte, 10), t0)
+            for i := 0; i < 3; i++ { s.Enqueue(make([]byte, 10), t0) }
+            if got := s.AckSelective(100, []SACKBlock{{Start:110, End:140}}, t0.Add(20*time.Millisecond)); got != p {
+              t.Fatalf("first repair=%#v", got)
+            }
+            for i := 0; i < 3; i++ { s.Enqueue(make([]byte, 10), t0.Add(30*time.Millisecond)) }
+            if got := s.AckSelective(100, []SACKBlock{{Start:110, End:170}}, t0.Add(50*time.Millisecond)); got != p {
+              t.Fatalf("second repair=%#v", got)
+            }
+            // No newly SACKed packet was sent after the second repair.
+            if got := s.AckSelective(100, []SACKBlock{{Start:110, End:170}}, t0.Add(80*time.Millisecond)); got == p {
+              t.Fatal("stale SACK evidence retriggered repair")
+            }
+            for i := 0; i < 3; i++ { s.Enqueue(make([]byte, 10), t0.Add(90*time.Millisecond)) }
+            if got := s.AckSelective(100, []SACKBlock{{Start:110, End:200}}, t0.Add(120*time.Millisecond)); got != p {
+              t.Fatalf("fresh evidence did not trigger third repair: %#v", got)
+            }
+            if p.Retries != 3 { t.Fatalf("retries=%d want 3", p.Retries) }
+            if got := s.AckSelective(100, []SACKBlock{{Start:110, End:200}}, t0.Add(150*time.Millisecond)); got == p {
+              t.Fatal("identical evidence retriggered fourth repair")
+            }
+          }
+          EOF
+          gofmt -w internal/faketcp/arq.go internal/faketcp/retransmit_storm_test.go internal/faketcp/rack_fresh_evidence_probe_test.go
+          go test ./internal/faketcp -count=1
+          go build -trimpath -o "$RUNNER_TEMP/prototype-assets/wbd-faketcp" ./cmd/wbd-faketcp
+          go build -trimpath -o "$RUNNER_TEMP/prototype-assets/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+          printf '%s\n' "$BASE+rack-fresh-evidence" > "$RUNNER_TEMP/prototype-assets/PROTOTYPE_ID.txt"
+          chmod +x "$RUNNER_TEMP/prototype-assets"/wbd-* "$RUNNER_TEMP/prototype-assets"/wbd_dtls_shim
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rack-fresh-evidence-prototype-assets
+          path: ${{ runner.temp }}/prototype-assets
+          retention-days: 1
+
+  weaknet:
+    needs: build-prototype
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
     strategy:
       fail-fast: false
       matrix:
@@ -29,7 +115,7 @@ jobs:
             label: fec20-r2
     steps:
       - uses: actions/checkout@v4
-      - name: Restore exact failing soak harness
+      - name: Restore exact harness
         run: |
           set -euo pipefail
           BASE=89a4650b09c4f3862ba02316cec2ae258a8f0853
@@ -43,17 +129,12 @@ jobs:
           sudo apt-get install -y iproute2 iptables tcpdump
       - uses: actions/download-artifact@v4
         with:
-          name: game-lane-rotation-soak-assets
-          path: ${{ runner.temp }}/wbd-soak-assets
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          repository: lly8666/wobuzhidao
-          run-id: 34424978270
-      - name: Verify exact product SHA and switch diagnostic recovery only
+          name: rack-fresh-evidence-prototype-assets
+          path: ${{ runner.temp }}/prototype-assets
+      - name: Configure SACK-RACK diagnostic
         run: |
           set -euo pipefail
-          ASSET="$RUNNER_TEMP/wbd-soak-assets"
-          chmod +x "$ASSET"/wbd-* "$ASSET"/wbd_dtls_shim
-          test "$(cat "$ASSET/SOURCE_SHA.txt")" = 89a4650b09c4f3862ba02316cec2ae258a8f0853
+          chmod +x "$RUNNER_TEMP/prototype-assets"/wbd-* "$RUNNER_TEMP/prototype-assets"/wbd_dtls_shim
           python3 - <<'PY'
           from pathlib import Path
           base=Path('scripts/game_lane_fullstack.sh')
@@ -65,7 +146,6 @@ jobs:
           assert s.count(old)==1, s.count(old)
           s=s.replace(old,new,1).replace('recovery=legacy','recovery=sack-rack')
           base.write_text(s)
-
           soak=Path('scripts/game_lane_rotation_soak.sh')
           c=soak.read_text()
           assert c.count('--shadow-recovery legacy') >= 1
@@ -75,10 +155,7 @@ jobs:
           c=c.replace('DURATION_SEC must be >=500','DURATION_SEC must be >=120',1)
           soak.write_text(c)
           PY
-          grep -q -- '--shadow-recovery sack-rack' scripts/game_lane_fullstack.sh
-          grep -q -- '--shadow-recovery sack-rack' scripts/game_lane_rotation_soak.sh
-          ! grep -q 'recovery=legacy' scripts/game_lane_fullstack.sh
-      - name: Run exact-product SACK-RACK weak-net diagnostic
+      - name: Run fresh-evidence RACK weak-net prototype
         env:
           LANES: '4'
           FEC: ${{ matrix.fec }}
@@ -91,25 +168,38 @@ jobs:
           NETEM_LOSS_PCT: '20'
         run: |
           set -euo pipefail
-          LOG="$RUNNER_TEMP/sack-rack-${{ matrix.label }}"
+          LOG="$RUNNER_TEMP/rack-fresh-${{ matrix.label }}"
           mkdir -p "$LOG"
-          sudo -E bash scripts/game_lane_rotation_soak_control.sh "$RUNNER_TEMP/wbd-soak-assets" "$LOG"
+          sudo -E bash scripts/game_lane_rotation_soak_control.sh "$RUNNER_TEMP/prototype-assets" "$LOG"
           grep -q 'WBD_HOSTED_NETEM_READY delay_ms=300 loss_pct=20 direction=bidirectional' "$LOG/netem.log"
           grep -q 'READY role=server-mux.*recovery=sack-rack' "$LOG/faketcp-mux.log"
           ! grep -q 'WBD_FAKETCP_OUTSTANDING_LIMIT.*action=rst' "$LOG/faketcp-mux.log"
-          echo "WBD_SACK_RACK_DIAGNOSTIC_PASS fec=${{ matrix.fec }} label=${{ matrix.label }}"
+          python3 - "$LOG/load-result.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d['sent']==d['received_unique'] and d['duplicates']==0 and d['bad_payload']==0, d
+          assert d['peer_resets']==3 and d['no_client_rx_expire']==0, d
+          print('WBD_RACK_FRESH_EVIDENCE_DIAGNOSTIC_PASS',json.dumps(d,sort_keys=True))
+          PY
       - name: Diagnose
         if: failure()
         run: |
           set +e
-          LOG="$RUNNER_TEMP/sack-rack-${{ matrix.label }}"
+          LOG="$RUNNER_TEMP/rack-fresh-${{ matrix.label }}"
           for f in faketcp-mux.log rotation.log game-server.log game-client.log load-result.json; do
             echo "=== $f ==="; tail -n 220 "$LOG/$f" 2>/dev/null || true
           done
           find "$LOG" -maxdepth 1 -name '*faketcp.log' -print 2>/dev/null | sort | while read -r f; do echo "=== $f ==="; tail -n 80 "$f"; done
+      - name: Scrub logs
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/rack-fresh-${{ matrix.label }}"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: sack-rack-diagnostic-${{ matrix.label }}
-          path: ${{ runner.temp }}/sack-rack-${{ matrix.label }}
+          name: rack-fresh-evidence-${{ matrix.label }}
+          path: ${{ runner.temp }}/rack-fresh-${{ matrix.label }}
           retention-days: 7
