@@ -25,6 +25,7 @@ on:
       - dev/wbd-raw-fec-v2
       - feat/single-flow-reality-faketcp
       - agent/fec-zombie-fix-7d859
+      - agent/integrate-pressure-mtu-dtls-20b7
     paths:
       - '.github/workflows/linux-server-release.yml'
       - 'scripts/build_linux_server_bundle.sh'
@@ -56,6 +57,14 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.WBD_SOURCE_SHA }}
+      - name: Verify exact package source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$WBD_SOURCE_SHA"
+          echo "WBD_LINUX_RELEASE_SOURCE source_sha=$WBD_SOURCE_SHA run_sha=$GITHUB_SHA"
       - name: Qualify server configuration surface
         shell: bash
         run: |
@@ -71,6 +80,13 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.WBD_SOURCE_SHA }}
+      - name: Verify exact package source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$WBD_SOURCE_SHA"
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
@@ -90,7 +106,7 @@ jobs:
           scripts/build_linux_server_bundle.sh amd64 "$RUNNER_TEMP"
       - uses: actions/upload-artifact@v4
         with:
-          name: wbd-linux-server-amd64-${{ github.event.pull_request.head.sha || github.sha }}
+          name: wbd-linux-server-amd64-${{ env.WBD_SOURCE_SHA }}
           path: |
             ${{ runner.temp }}/wbd-linux-server-amd64.tar.gz
             ${{ runner.temp }}/wbd-linux-server-amd64.tar.gz.sha256
@@ -103,6 +119,13 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.WBD_SOURCE_SHA }}
+      - name: Verify exact package source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$WBD_SOURCE_SHA"
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
@@ -122,7 +145,7 @@ jobs:
           scripts/build_linux_server_bundle.sh arm64 "$RUNNER_TEMP"
       - uses: actions/upload-artifact@v4
         with:
-          name: wbd-linux-server-arm64-${{ github.event.pull_request.head.sha || github.sha }}
+          name: wbd-linux-server-arm64-${{ env.WBD_SOURCE_SHA }}
           path: |
             ${{ runner.temp }}/wbd-linux-server-arm64.tar.gz
             ${{ runner.temp }}/wbd-linux-server-arm64.tar.gz.sha256
