@@ -15,12 +15,12 @@ set(WOLFSSL_DTLS13 yes CACHE STRING "" FORCE)
 set(WOLFSSL_EXAMPLES no CACHE STRING "" FORCE)
 set(WOLFSSL_CRYPT_TESTS no CACHE STRING "" FORCE)
 
-# Keep the pinned wolfSSL compile-time transport contract identical to the
-# Linux/package build paths. WOLFSSL_MAX_MTU raises only wolfSSL's logical DTLS
-# record/datagram ceiling; physical packet sizing remains the FakeTCP carrier's
-# responsibility. The replay-window definition is likewise part of the frozen
-# product build contract and must reach both wolfSSL and the shim translation
-# unit.
+# Keep the pinned wolfSSL compile-time transport contract identical to every
+# product package path. WOLFSSL_MAX_MTU is the logical DTLS record/datagram
+# ceiling only; it is deliberately not the physical outer MTU. FakeTCP carrier
+# fragmentation remains solely responsible for fitting ciphertext into physical
+# packets. The replay-window definition is likewise part of the frozen product
+# build contract and must reach both wolfSSL and the shim translation unit.
 add_compile_definitions(
   WOLFSSL_DTLS_WINDOW_WORDS=128
   WOLFSSL_MAX_MTU=16384
