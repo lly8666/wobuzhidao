@@ -43,13 +43,14 @@ func (r *pressureTestRaw) counts() (writes, resets int) {
 	defer r.mu.Unlock()
 	return r.writes, r.resets
 }
-func (r *pressureTestRaw) firstPayload() []byte {
+func (r *pressureTestRaw) payloadSnapshot() [][]byte {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if len(r.payloads) == 0 {
-		return nil
+	out := make([][]byte, len(r.payloads))
+	for i := range r.payloads {
+		out[i] = append([]byte(nil), r.payloads[i]...)
 	}
-	return append([]byte(nil), r.payloads[0]...)
+	return out
 }
 
 func newPressureEndpoint(t *testing.T) (*endpoint, *pressureTestRaw, *faketcp.Pending) {
@@ -74,7 +75,7 @@ func newPressureEndpoint(t *testing.T) (*endpoint, *pressureTestRaw, *faketcp.Pe
 		carrierMTU:   1500,
 		fragmenter:   fragmenter,
 		reassembler:  faketcp.NewCarrierReassembler(),
-		sender:       faketcp.NewSenderWithRecovery(100, time.Second, faketcp.RecoveryLegacy),
+		sender:       faketcp.NewSenderWithRecovery(100, time.Second, faketcp.RecoverySACKRACK),
 		receiver:     faketcp.NewReceiver(500),
 		sendBuf:      make([]byte, 65535),
 		stop:         make(chan struct{}),
@@ -95,8 +96,9 @@ func newPressureEndpoint(t *testing.T) (*endpoint, *pressureTestRaw, *faketcp.Pe
 	return e, raw, first
 }
 
-func TestUDPLoopWaitsForOutstandingCapacityInsteadOfResetting(t *testing.T) {
+func TestUDPLoopAdmitsFreshWithoutResetAtRepairCeiling(t *testing.T) {
 	e, raw, first := newPressureEndpoint(t)
+	defer e.close()
 
 	errCh := make(chan error, 1)
 	go func() { errCh <- e.udpLoop() }()
@@ -106,48 +108,50 @@ func TestUDPLoopWaitsForOutstandingCapacityInsteadOfResetting(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer peer.Close()
-	if _, err := peer.Write([]byte("pressure-datagram")); err != nil {
+	payload := []byte("pressure-datagram")
+	if _, err := peer.Write(payload); err != nil {
 		t.Fatal(err)
 	}
 
-	select {
-	case loopErr := <-errCh:
-		t.Fatalf("udpLoop returned under transient full-window pressure: %v; want bounded wait", loopErr)
-	case <-time.After(25 * time.Millisecond):
-	}
-	if _, resets := raw.counts(); resets != 0 {
-		t.Fatalf("transient full-window pressure emitted %d RST packets; want 0", resets)
-	}
-
-	e.senderMu.Lock()
-	e.sender.Ack(first.End, time.Now())
-	e.senderMu.Unlock()
-
 	deadline := time.Now().Add(250 * time.Millisecond)
 	for time.Now().Before(deadline) {
-		writes, resets := raw.counts()
-		if resets != 0 {
-			t.Fatalf("capacity recovery emitted %d RST packets; want 0", resets)
+		ps := raw.payloadSnapshot()
+		if len(ps) == 0 {
+			time.Sleep(2 * time.Millisecond)
+			continue
 		}
-		if writes > 0 {
-			e.close()
-			select {
-			case loopErr := <-errCh:
-				if loopErr != nil {
-					t.Fatalf("udpLoop close: %v", loopErr)
-				}
-			case <-time.After(time.Second):
-				t.Fatal("udpLoop did not stop after close")
-			}
-			return
+		reassembler := faketcp.NewCarrierReassembler()
+		datagram, complete, frameErr := reassembler.Push(ps[0])
+		if frameErr != nil || !complete {
+			t.Fatalf("reassemble fresh datagram complete=%t err=%v", complete, frameErr)
 		}
-		time.Sleep(2 * time.Millisecond)
+		if !bytes.Equal(datagram, payload) {
+			t.Fatalf("fresh datagram=%q want=%q", datagram, payload)
+		}
+		if _, resets := raw.counts(); resets != 0 {
+			t.Fatalf("repair ceiling emitted %d RST packets; want 0", resets)
+		}
+		e.senderMu.Lock()
+		retired := e.sender.Outstanding(first.Seq) == nil && first.Payload == nil && first.Retired
+		pending := e.sender.Pending()
+		e.senderMu.Unlock()
+		if !retired {
+			t.Fatal("oldest optional repair was not retired to admit fresh data")
+		}
+		if pending != faketcp.MaxSteadyStateOutstandingDatagrams {
+			t.Fatalf("pending=%d want=%d", pending, faketcp.MaxSteadyStateOutstandingDatagrams)
+		}
+		return
 	}
-	e.close()
-	t.Fatal("datagram was not sent after cumulative ACK reopened one steady-state slot")
+	select {
+	case loopErr := <-errCh:
+		t.Fatalf("udpLoop returned before fresh admission: %v", loopErr)
+	default:
+	}
+	t.Fatal("fresh datagram was HOL-blocked by full shadow repair debt")
 }
 
-func TestUDPLoopShedsBulkIngressSoSmallControlCanUseReservedCapacity(t *testing.T) {
+func TestUDPLoopFullRepairDebtPreservesFreshFIFOWithoutSizeHeuristic(t *testing.T) {
 	e, raw, first := newPressureEndpoint(t)
 	defer e.close()
 
@@ -169,45 +173,44 @@ func TestUDPLoopShedsBulkIngressSoSmallControlCanUseReservedCapacity(t *testing.
 		t.Fatal(err)
 	}
 
-	select {
-	case loopErr := <-errCh:
-		t.Fatalf("udpLoop returned under overload admission pressure: %v", loopErr)
-	case <-time.After(25 * time.Millisecond):
-	}
-	if _, resets := raw.counts(); resets != 0 {
-		t.Fatalf("overload admission emitted %d RST packets; want 0", resets)
-	}
-
-	// Free exactly one reliable ARQ slot. Under the desired overload policy the
-	// already-full bulk record has been shed before admission, so the subsequent
-	// small DTLS record must be the first newly transmitted record. The existing
-	// e50 behavior blocks on bulk and therefore deterministically sends bulk first.
-	e.senderMu.Lock()
-	e.sender.Ack(first.End, time.Now())
-	e.senderMu.Unlock()
-
 	deadline := time.Now().Add(250 * time.Millisecond)
 	for time.Now().Before(deadline) {
-		payload := raw.firstPayload()
-		if len(payload) == 0 {
+		ps := raw.payloadSnapshot()
+		if len(ps) < 2 {
 			time.Sleep(2 * time.Millisecond)
 			continue
 		}
 		reassembler := faketcp.NewCarrierReassembler()
-		datagram, complete, frameErr := reassembler.Push(payload)
-		if frameErr != nil {
-			t.Fatalf("reassemble first post-pressure carrier frame: %v", frameErr)
+		firstDatagram, complete, frameErr := reassembler.Push(ps[0])
+		if frameErr != nil || !complete {
+			t.Fatalf("first carrier complete=%t err=%v", complete, frameErr)
 		}
-		if !complete {
-			t.Fatalf("first post-pressure carrier frame was fragmented; test records should fit one frame")
+		secondDatagram, complete, frameErr := reassembler.Push(ps[1])
+		if frameErr != nil || !complete {
+			t.Fatalf("second carrier complete=%t err=%v", complete, frameErr)
 		}
-		if !bytes.Equal(datagram, controlSized) {
-			t.Fatalf("first admitted datagram after full-window pressure was %d-byte bulk data; want %d-byte control-sized datagram", len(datagram), len(controlSized))
+		if !bytes.Equal(firstDatagram, bulk) || !bytes.Equal(secondDatagram, controlSized) {
+			t.Fatalf("fresh FIFO changed: first=%d second=%d want=%d,%d", len(firstDatagram), len(secondDatagram), len(bulk), len(controlSized))
 		}
 		if _, resets := raw.counts(); resets != 0 {
-			t.Fatalf("priority recovery emitted %d RST packets; want 0", resets)
+			t.Fatalf("repair debt admission emitted %d RST packets; want 0", resets)
+		}
+		e.senderMu.Lock()
+		oldestRetired := e.sender.Outstanding(first.Seq) == nil && first.Payload == nil && first.Retired
+		pending := e.sender.Pending()
+		e.senderMu.Unlock()
+		if !oldestRetired {
+			t.Fatal("old shadow repair remained eligible after fresh FIFO admission")
+		}
+		if pending != faketcp.MaxSteadyStateOutstandingDatagrams {
+			t.Fatalf("pending=%d want=%d", pending, faketcp.MaxSteadyStateOutstandingDatagrams)
 		}
 		return
 	}
-	t.Fatal("small control-sized datagram did not enter ARQ after one slot reopened")
+	select {
+	case loopErr := <-errCh:
+		t.Fatalf("udpLoop returned under repair debt pressure: %v", loopErr)
+	default:
+	}
+	t.Fatal("fresh bulk/control pair did not pass repair ceiling without HOL")
 }
