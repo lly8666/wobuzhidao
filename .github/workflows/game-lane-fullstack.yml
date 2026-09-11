@@ -13,7 +13,7 @@ permissions:
   actions: read
 
 env:
-  SOURCE_SHA: 2d68ee5008a3ea8dbb50d94ed4058e082f96f691
+  SOURCE_SHA: feb9ff2028c5a050778efa5355763266f903bf1d
 
 jobs:
   regression:
