@@ -3,6 +3,7 @@ package faketcp
 import (
 	"bytes"
 	"testing"
+	"time"
 )
 
 func deterministicCarrierPayload(n int) []byte {
@@ -27,10 +28,6 @@ func TestCarrierPayloadBudgetForIPv4TCPPathMTU(t *testing.T) {
 }
 
 func TestCarrierFragmentationRoundTripsOversizeDTLSDatagram(t *testing.T) {
-	// The pinned wolfSSL 5.9.2 diagnostic probe observed a 1456-byte plaintext
-	// datagram as a 1478-byte DTLS transport datagram. A 1500-byte IPv4 path can
-	// carry only 1460 bytes after the outer FakeTCP IPv4+TCP headers, so this exact
-	// case must be split below FakeTCP and restored before wolfSSL sees it.
 	const pathMTU = 1500
 	original := deterministicCarrierPayload(1478)
 	fragmenter, err := NewCarrierFragmenter(pathMTU)
@@ -51,9 +48,6 @@ func TestCarrierFragmentationRoundTripsOversizeDTLSDatagram(t *testing.T) {
 		}
 	}
 
-	// FakeTCP intentionally accepts out-of-order first-arrival payloads and uses
-	// SACK/RTO only for background recovery. Carrier reassembly therefore cannot
-	// assume fragment arrival order.
 	reassembler := NewCarrierReassembler()
 	var got []byte
 	complete := false
@@ -101,5 +95,76 @@ func TestCarrierFramingPreservesSmallDatagram(t *testing.T) {
 	}
 	if !bytes.Equal(got, original) {
 		t.Fatal("single-frame carrier round trip changed payload")
+	}
+}
+
+func TestCarrierReassemblyExpiryDropsLateFragmentsWithoutResurrection(t *testing.T) {
+	fragmenter, err := NewCarrierFragmenter(1500)
+	if err != nil {
+		t.Fatal(err)
+	}
+	frames, err := fragmenter.Fragment(deterministicCarrierPayload(3000))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(frames) < 3 {
+		t.Fatalf("frames=%d want at least 3", len(frames))
+	}
+
+	r := NewCarrierReassembler()
+	t0 := time.Unix(1000, 0)
+	if out, done, err := r.pushAt(frames[0], t0); err != nil || done || out != nil {
+		t.Fatalf("first partial: out=%d done=%t err=%v", len(out), done, err)
+	}
+	if len(r.assemblies) != 1 {
+		t.Fatalf("assemblies=%d want=1", len(r.assemblies))
+	}
+
+	// At the partial-reliability horizon the old assembly is retired first; the
+	// arriving sibling fragment for the same datagram ID must be ignored rather
+	// than resurrecting payload state.
+	if out, done, err := r.pushAt(frames[1], t0.Add(carrierAssemblyTTL)); err != nil || done || out != nil {
+		t.Fatalf("late retired fragment: out=%d done=%t err=%v", len(out), done, err)
+	}
+	if len(r.assemblies) != 0 {
+		t.Fatalf("late fragment resurrected %d assembly(s)", len(r.assemblies))
+	}
+	if len(r.retired) != 1 {
+		t.Fatalf("retired tombstones=%d want=1", len(r.retired))
+	}
+	if out, done, err := r.pushAt(frames[2], t0.Add(carrierAssemblyTTL+time.Second)); err != nil || done || out != nil {
+		t.Fatalf("second late retired fragment: out=%d done=%t err=%v", len(out), done, err)
+	}
+	if len(r.assemblies) != 0 {
+		t.Fatalf("second late fragment resurrected %d assembly(s)", len(r.assemblies))
+	}
+}
+
+func TestCarrierCompletedDatagramTombstoneDropsDuplicateFragments(t *testing.T) {
+	fragmenter, err := NewCarrierFragmenter(1500)
+	if err != nil {
+		t.Fatal(err)
+	}
+	frames, err := fragmenter.Fragment(deterministicCarrierPayload(1478))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := NewCarrierReassembler()
+	t0 := time.Unix(2000, 0)
+	complete := false
+	for _, frame := range frames {
+		_, complete, err = r.pushAt(frame, t0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	if !complete || len(r.assemblies) != 0 || len(r.retired) != 1 {
+		t.Fatalf("completed state complete=%t assemblies=%d retired=%d", complete, len(r.assemblies), len(r.retired))
+	}
+	if out, done, err := r.pushAt(frames[0], t0.Add(time.Second)); err != nil || done || out != nil {
+		t.Fatalf("duplicate after completion: out=%d done=%t err=%v", len(out), done, err)
+	}
+	if len(r.assemblies) != 0 {
+		t.Fatalf("duplicate completed fragment resurrected %d assembly(s)", len(r.assemblies))
 	}
 }
