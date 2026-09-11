@@ -1,30 +1,33 @@
 package main
 
-import "testing"
+import (
+	"testing"
 
-func TestLinkPolicyForInnerMTU(t *testing.T) {
-	policy, err := linkPolicyForInnerMTU(defaultInnerMTU)
+	"github.com/lly8666/wobuzhidao/internal/gamepath"
+)
+
+func TestLinkPolicyForInnerMTUUsesGameCompatibleRange(t *testing.T) {
+	minInner, maxInner, err := gamepath.InnerMTUBounds()
 	if err != nil {
-		t.Fatalf("default policy: %v", err)
+		t.Fatal(err)
 	}
-	if policy.MinMTU != 1400 || policy.MaxMTU != 1400 {
-		t.Fatalf("default inner MTU %d policy = %d..%d, want LINK 1400", defaultInnerMTU, policy.MinMTU, policy.MaxMTU)
+	wantMin, err := gamepath.LinkPlaintextMTU(minInner)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantMax, err := gamepath.LinkPlaintextMTU(maxInner)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	policy, err = linkPolicyForInnerMTU(1280)
-	if err != nil {
-		t.Fatalf("1280 policy: %v", err)
-	}
-	if policy.MinMTU != 1320 || policy.MaxMTU != 1320 {
-		t.Fatalf("1280 inner MTU policy = %d..%d, want LINK 1320", policy.MinMTU, policy.MaxMTU)
-	}
-
-	policy, err = linkPolicyForInnerMTU(1300)
-	if err != nil {
-		t.Fatalf("1300 policy: %v", err)
-	}
-	if policy.MinMTU != 1340 || policy.MaxMTU != 1340 {
-		t.Fatalf("1300 inner MTU policy = %d..%d, want LINK 1340", policy.MinMTU, policy.MaxMTU)
+	for _, serverDefault := range []int{1280, 1300, defaultInnerMTU, maxInner} {
+		policy, err := linkPolicyForInnerMTU(serverDefault)
+		if err != nil {
+			t.Fatalf("server default inner MTU %d: %v", serverDefault, err)
+		}
+		if policy.MinMTU != uint16(wantMin) || policy.MaxMTU != uint16(wantMax) {
+			t.Fatalf("server default inner MTU %d policy=%d..%d want shared Game LINK range=%d..%d", serverDefault, policy.MinMTU, policy.MaxMTU, wantMin, wantMax)
+		}
 	}
 }
 
