@@ -1,0 +1,38 @@
+name: faketcp-mtu-fix-qualification
+
+on:
+  push:
+    branches:
+      - agent/fix-fec-dtls-mtu-d1e2
+    paths:
+      - '.github/workflows/faketcp-mtu-fix-qualification.yml'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'internal/faketcp/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  windows-faketcp:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Windows FakeTCP core and backend tests
+        shell: pwsh
+        run: go test ./internal/faketcp ./cmd/wbd-faketcp -count=1 -v
+      - name: Build Windows FakeTCP child
+        shell: pwsh
+        run: go build -trimpath -o "$env:RUNNER_TEMP\wbd-faketcp.exe" ./cmd/wbd-faketcp
+      - name: Record hosted Windows qualification marker
+        shell: pwsh
+        run: Write-Output "WBD_FAKETCP_MTU_WINDOWS_BUILD_PASS source_sha=$env:GITHUB_SHA physical_npcap=false"
+
+  rawip-fullstack:
+    uses: ./.github/workflows/single-flow-rawip-e2e.yml
