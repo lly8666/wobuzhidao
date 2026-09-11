@@ -73,6 +73,9 @@ type endpoint struct {
 	srcIP, dstIP     [4]byte
 	srcPort, dstPort uint16
 	udp              *net.UDPConn
+	carrierMTU       int
+	fragmenter       *faketcp.CarrierFragmenter
+	reassembler      *faketcp.CarrierReassembler
 	innerMu          sync.RWMutex
 	inner            *net.UDPAddr
 	senderMu         sync.Mutex
@@ -189,7 +192,7 @@ func main() {
 	e.senderMu.Lock()
 	startupRTO := e.sender.RTO()
 	e.senderMu.Unlock()
-	fmt.Printf("READY role=%s rto_ms=%.3f recovery=%s single_flow_bootstrap=%t\n", role, float64(startupRTO)/float64(time.Millisecond), c.recovery, c.singleFlowEnabled())
+	fmt.Printf("READY role=%s rto_ms=%.3f carrier_mtu=%d recovery=%s single_flow_bootstrap=%t\n", role, float64(startupRTO)/float64(time.Millisecond), e.carrierMTU, c.recovery, c.singleFlowEnabled())
 
 	if !rawStarted {
 		go func() { errCh <- e.rawLoop() }()
@@ -310,6 +313,17 @@ func newEndpoint(c config) (*endpoint, error) {
 			return nil, errors.New("raw remote address must be IPv4")
 		}
 	}
+	e.carrierMTU, err = faketcp.InterfaceMTUForIPv4(rawLocal.IP)
+	if err != nil {
+		e.close()
+		return nil, err
+	}
+	e.fragmenter, err = faketcp.NewCarrierFragmenter(e.carrierMTU)
+	if err != nil {
+		e.close()
+		return nil, err
+	}
+	e.reassembler = faketcp.NewCarrierReassembler()
 	e.raw, err = openRawPacketIO(c, e.srcIP)
 	if err != nil {
 		e.close()
@@ -599,9 +613,16 @@ func (e *endpoint) rawLoop() error {
 				stream.Feed(seg.Seq, seg.Payload)
 				continue
 			}
+			datagram, complete, frameErr := e.reassembler.Push(seg.Payload)
+			if frameErr != nil {
+				return frameErr
+			}
+			if !complete {
+				continue
+			}
 			peer := e.innerPeer()
 			if peer != nil {
-				_, _ = e.udp.WriteToUDP(seg.Payload, peer)
+				_, _ = e.udp.WriteToUDP(datagram, peer)
 			}
 		}
 	}
@@ -636,9 +657,13 @@ func (e *endpoint) udpLoop() error {
 		if n == 0 {
 			continue
 		}
+		frames, err := e.fragmenter.Fragment(buf[:n])
+		if err != nil {
+			return err
+		}
 		now := time.Now()
 		e.senderMu.Lock()
-		p, enqueueErr := e.sender.EnqueueSteadyState(buf[:n], now)
+		pendingFrames, enqueueErr := e.sender.EnqueueSteadyStateBatch(frames, now)
 		if enqueueErr != nil {
 			pending := e.sender.Pending()
 			seq := e.sender.NextSeq()
@@ -649,7 +674,11 @@ func (e *endpoint) udpLoop() error {
 			}
 			return enqueueErr
 		}
-		err = e.sendDataPending(p)
+		for _, p := range pendingFrames {
+			if err = e.sendDataPending(p); err != nil {
+				break
+			}
+		}
 		e.senderMu.Unlock()
 		if err != nil {
 			return err

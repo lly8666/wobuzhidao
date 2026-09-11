@@ -76,6 +76,8 @@ type muxSession struct {
 	ackNotify    chan struct{}
 	relay        *net.UDPConn
 	worker       *dtlsworker.Worker
+	fragmenter   *faketcp.CarrierFragmenter
+	reassembler  *faketcp.CarrierReassembler
 	pendingData  [][]byte
 }
 
@@ -102,6 +104,7 @@ type muxServer struct {
 	fd            int
 	serverIP      [4]byte
 	serverPort    uint16
+	carrierMTU    int
 	table         *faketcp.ServerAssociationTable
 	frontTLS      *tls.Config
 	tunnelManager *logicaltunnel.Manager
@@ -154,7 +157,7 @@ func main() {
 	defer stop()
 	s.ctx, s.cancel = context.WithCancel(sigCtx)
 
-	fmt.Printf("READY role=server-mux listen=%s max_sessions=%d recovery=%s link_target=%s single_flow_bootstrap=%t fallback=%t logical_tunnel=%t\n", c.listen, c.maxSessions, c.recovery, c.linkTarget, c.bootstrapEnabled(), c.fallbackTarget != "", s.tunnelManager != nil)
+	fmt.Printf("READY role=server-mux listen=%s carrier_mtu=%d max_sessions=%d recovery=%s link_target=%s single_flow_bootstrap=%t fallback=%t logical_tunnel=%t\n", c.listen, s.carrierMTU, c.maxSessions, c.recovery, c.linkTarget, c.bootstrapEnabled(), c.fallbackTarget != "", s.tunnelManager != nil)
 	if err := s.Run(); err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, os.ErrClosed) {
 		fmt.Fprintln(os.Stderr, "wbd-faketcp-mux:", err)
 		os.Exit(1)
@@ -210,6 +213,10 @@ func newMuxServer(c config) (*muxServer, error) {
 	if !ok || serverIP == ([4]byte{}) {
 		return nil, errors.New("--listen must use a concrete IPv4 address")
 	}
+	carrierMTU, err := faketcp.InterfaceMTUForIPv4(la.IP)
+	if err != nil {
+		return nil, err
+	}
 	if c.dtlsShim == "" || c.cert == "" || c.key == "" || c.maxSessions <= 0 {
 		return nil, errors.New("--dtls-shim, --cert, --key and positive --max-sessions are required")
 	}
@@ -256,7 +263,7 @@ func newMuxServer(c config) (*muxServer, error) {
 		_ = syscall.Close(fd)
 		return nil, err
 	}
-	s := &muxServer{cfg: c, fd: fd, serverIP: serverIP, serverPort: uint16(la.Port), table: table, sessions: make(map[faketcp.ServerFlow]*muxSession), sendBuf: make([]byte, 65535), tunnelManager: tunnelManager}
+	s := &muxServer{cfg: c, fd: fd, serverIP: serverIP, serverPort: uint16(la.Port), carrierMTU: carrierMTU, table: table, sessions: make(map[faketcp.ServerFlow]*muxSession), sendBuf: make([]byte, 65535), tunnelManager: tunnelManager}
 	if c.bootstrapEnabled() {
 		cert, err := tls.LoadX509KeyPair(c.frontCert, c.frontKey)
 		if err != nil {
@@ -389,8 +396,13 @@ func (s *muxServer) acceptSYN(seg faketcp.Segment) error {
 		return err
 	}
 	flow := faketcp.ServerFlowFromSegment(seg)
+	fragmenter, err := faketcp.NewCarrierFragmenter(s.carrierMTU)
+	if err != nil {
+		s.table.Remove(flow)
+		return err
+	}
 	now := time.Now()
-	sess := &muxSession{flow: flow, assoc: assoc, stage: stageHandshake, lastClientRX: now, ackNotify: make(chan struct{}, 1)}
+	sess := &muxSession{flow: flow, assoc: assoc, stage: stageHandshake, lastClientRX: now, ackNotify: make(chan struct{}, 1), fragmenter: fragmenter, reassembler: faketcp.NewCarrierReassembler()}
 	s.mu.Lock()
 	if _, exists := s.sessions[flow]; exists {
 		s.mu.Unlock()
@@ -585,8 +597,16 @@ func (sess *muxSession) routeDeliver(seq uint32, payload []byte) error {
 	}
 	if sess.relay != nil && sess.stage == stageData {
 		relay := sess.relay
+		reassembler := sess.reassembler
 		sess.mu.Unlock()
-		_, err := relay.Write(payload)
+		datagram, complete, err := reassembler.Push(payload)
+		if err != nil {
+			return err
+		}
+		if !complete {
+			return nil
+		}
+		_, err = relay.Write(datagram)
 		return err
 	}
 	if sess.stage == stageTransition {
@@ -628,9 +648,17 @@ func (s *muxServer) activateDTLS(sess *muxSession) error {
 	sess.worker = worker
 	sess.relay = relay
 	sess.stage = stageData
+	reassembler := sess.reassembler
 	sess.mu.Unlock()
 	for _, p := range pending {
-		if _, err := relay.Write(p); err != nil {
+		datagram, complete, frameErr := reassembler.Push(p)
+		if frameErr != nil {
+			return frameErr
+		}
+		if !complete {
+			continue
+		}
+		if _, err := relay.Write(datagram); err != nil {
 			return err
 		}
 	}
@@ -644,6 +672,7 @@ func (s *muxServer) relayLoop(sess *muxSession) {
 	for {
 		sess.mu.RLock()
 		relay := sess.relay
+		fragmenter := sess.fragmenter
 		sess.mu.RUnlock()
 		if relay == nil {
 			return
@@ -652,7 +681,11 @@ func (s *muxServer) relayLoop(sess *muxSession) {
 		if err != nil {
 			return
 		}
-		p, err := sess.assoc.EnqueueSteadyState(buf[:n], time.Now())
+		frames, err := fragmenter.Fragment(buf[:n])
+		if err != nil {
+			return
+		}
+		pendingFrames, err := sess.assoc.EnqueueSteadyStateBatch(frames, time.Now())
 		if err != nil {
 			if errors.Is(err, faketcp.ErrSteadyStateOutstandingFull) {
 				fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=server-mux client=%d server=%d limit=%d action=rst\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
@@ -661,8 +694,10 @@ func (s *muxServer) relayLoop(sess *muxSession) {
 			}
 			return
 		}
-		if err := s.sendPending(sess, p); err != nil {
-			return
+		for _, p := range pendingFrames {
+			if err := s.sendPending(sess, p); err != nil {
+				return
+			}
 		}
 	}
 }
