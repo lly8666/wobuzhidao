@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/validate-10m-300oneway-20loss-tcdiag.yml'
       - 'scripts/validate_perlane_tc_diag_d3b.sh'
+      - 'scripts/patch_linkrx_counters_d3b.py'
 
 permissions:
   contents: read
@@ -36,6 +37,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool make gcc iproute2 iptables tcpdump curl unzip openssl
+
+      - name: Add diagnostic-only LINK RX counters
+        run: |
+          python3 "$GITHUB_WORKSPACE/helper/scripts/patch_linkrx_counters_d3b.py" "$GITHUB_WORKSPACE/product"
+          (cd "$GITHUB_WORKSPACE/product" && gofmt -w internal/linkdata/path.go cmd/wbd-link-server-mux/main.go)
 
       - name: Run low-overhead exact-source tc diagnostic
         env:
