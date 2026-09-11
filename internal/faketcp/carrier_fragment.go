@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	carrierIPv4HeaderLen = 20
-	carrierTCPHeaderLen  = 20
-	carrierFrameHeaderLen = 16
-	carrierFrameMagic     = uint32(0x57424446) // "WBDF"
+	carrierIPv4HeaderLen  = 20
+	carrierTCPHeaderLen   = 20
+	carrierFrameHeaderLen = 20
+	carrierFrameMagic     = uint64(0x5742444652414731) // "WBDFRAG1"
 	carrierFrameVersion   = byte(1)
 	maxCarrierDatagramLen = 65535
 	maxCarrierAssemblies  = MaxSteadyStateOutstandingDatagrams
@@ -34,12 +34,19 @@ func CarrierPayloadBudget(pathMTU int) (int, error) {
 	if budget <= 0 {
 		return 0, ErrCarrierPathMTU
 	}
+	// An IPv4 packet cannot exceed 65535 bytes even when a loopback or tunnel
+	// interface reports a larger MTU.
+	maxPayload := 65535 - carrierIPv4HeaderLen - carrierTCPHeaderLen
+	if budget > maxPayload {
+		budget = maxPayload
+	}
 	return budget, nil
 }
 
-// CarrierFragmenter frames every post-bootstrap UDP datagram before FakeTCP.
-// Framing small datagrams too gives the receiver an unambiguous discriminator;
-// TLS bootstrap bytes never pass through this object.
+// CarrierFragmenter leaves an in-budget steady-state UDP datagram byte-for-byte
+// unchanged on the wire. Only datagrams that cannot fit in one FakeTCP IPv4/TCP
+// packet are wrapped in the versioned carrier-fragment extension. TLS bootstrap
+// bytes never pass through this object.
 type CarrierFragmenter struct {
 	mu            sync.Mutex
 	payloadBudget int
@@ -64,9 +71,13 @@ func (f *CarrierFragmenter) Fragment(datagram []byte) ([][]byte, error) {
 	if len(datagram) == 0 || len(datagram) > maxCarrierDatagramLen {
 		return nil, ErrCarrierDatagram
 	}
+	if len(datagram) <= f.payloadBudget {
+		return [][]byte{append([]byte(nil), datagram...)}, nil
+	}
+
 	chunkBudget := f.payloadBudget - carrierFrameHeaderLen
 	count := (len(datagram) + chunkBudget - 1) / chunkBudget
-	if count <= 0 || count > 0xffff {
+	if count < 2 || count > 0xffff {
 		return nil, ErrCarrierDatagram
 	}
 
@@ -85,13 +96,13 @@ func (f *CarrierFragmenter) Fragment(datagram []byte) ([][]byte, error) {
 			n = chunkBudget
 		}
 		frame := make([]byte, carrierFrameHeaderLen+n)
-		binary.BigEndian.PutUint32(frame[0:4], carrierFrameMagic)
-		frame[4] = carrierFrameVersion
-		frame[5] = 0
-		binary.BigEndian.PutUint16(frame[6:8], uint16(i))
-		binary.BigEndian.PutUint16(frame[8:10], uint16(count))
-		binary.BigEndian.PutUint16(frame[10:12], uint16(len(datagram)))
-		binary.BigEndian.PutUint32(frame[12:16], id)
+		binary.BigEndian.PutUint64(frame[0:8], carrierFrameMagic)
+		frame[8] = carrierFrameVersion
+		frame[9] = 0
+		binary.BigEndian.PutUint16(frame[10:12], uint16(i))
+		binary.BigEndian.PutUint16(frame[12:14], uint16(count))
+		binary.BigEndian.PutUint16(frame[14:16], uint16(len(datagram)))
+		binary.BigEndian.PutUint32(frame[16:20], id)
 		copy(frame[carrierFrameHeaderLen:], datagram[off:off+n])
 		frames = append(frames, frame)
 		off += n
@@ -110,7 +121,9 @@ type carrierAssembly struct {
 
 // CarrierReassembler restores the original UDP datagram before it is returned
 // to wolfSSL. FakeTCP may deliver first-arrival payloads out of sequence, so
-// reassembly is keyed by carrier datagram id rather than arrival order.
+// reassembly is keyed by carrier datagram id rather than arrival order. Payloads
+// without the strong carrier marker are legacy/in-budget datagrams and pass
+// through unchanged.
 type CarrierReassembler struct {
 	mu         sync.Mutex
 	assemblies map[uint32]*carrierAssembly
@@ -121,25 +134,25 @@ func NewCarrierReassembler() *CarrierReassembler {
 }
 
 func (r *CarrierReassembler) Push(frame []byte) ([]byte, bool, error) {
-	if r == nil || len(frame) < carrierFrameHeaderLen {
+	if r == nil {
 		return nil, false, ErrCarrierFrame
 	}
-	if binary.BigEndian.Uint32(frame[0:4]) != carrierFrameMagic || frame[4] != carrierFrameVersion || frame[5] != 0 {
-		return nil, false, ErrCarrierFrame
-	}
-	index := binary.BigEndian.Uint16(frame[6:8])
-	count := binary.BigEndian.Uint16(frame[8:10])
-	total := int(binary.BigEndian.Uint16(frame[10:12]))
-	id := binary.BigEndian.Uint32(frame[12:16])
-	payload := frame[carrierFrameHeaderLen:]
-	if id == 0 || count == 0 || index >= count || total <= 0 || total > maxCarrierDatagramLen || len(payload) == 0 || len(payload) > total {
-		return nil, false, ErrCarrierFrame
-	}
-	if count == 1 {
-		if index != 0 || len(payload) != total {
+	if len(frame) < carrierFrameHeaderLen ||
+		binary.BigEndian.Uint64(frame[0:8]) != carrierFrameMagic ||
+		frame[8] != carrierFrameVersion || frame[9] != 0 {
+		if len(frame) == 0 || len(frame) > maxCarrierDatagramLen {
 			return nil, false, ErrCarrierFrame
 		}
-		return append([]byte(nil), payload...), true, nil
+		return append([]byte(nil), frame...), true, nil
+	}
+
+	index := binary.BigEndian.Uint16(frame[10:12])
+	count := binary.BigEndian.Uint16(frame[12:14])
+	total := int(binary.BigEndian.Uint16(frame[14:16]))
+	id := binary.BigEndian.Uint32(frame[16:20])
+	payload := frame[carrierFrameHeaderLen:]
+	if id == 0 || count < 2 || index >= count || total <= 0 || total > maxCarrierDatagramLen || len(payload) == 0 || len(payload) > total {
+		return nil, false, ErrCarrierFrame
 	}
 
 	r.mu.Lock()
