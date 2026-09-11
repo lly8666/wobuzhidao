@@ -3,9 +3,12 @@ name: dtls-max-logical-datagram-regression
 on:
   push:
     branches:
-      - agent/validate-dtls-max-red-2d68
+      - agent/integrate-pressure-mtu-dtls-20b7
     paths:
       - '.github/workflows/game-lane-fullstack.yml'
+      - 'scripts/dtls_max_datagram_regression.sh'
+      - 'native/dtls/**'
+      - 'deps/security-lock.json'
   workflow_dispatch: {}
 
 permissions:
@@ -13,7 +16,7 @@ permissions:
   actions: read
 
 env:
-  SOURCE_SHA: feb9ff2028c5a050778efa5355763266f903bf1d
+  SOURCE_SHA: ${{ github.sha }}
 
 jobs:
   regression:
