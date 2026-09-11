@@ -1,0 +1,212 @@
+name: validate-10m-300rtt-20loss-nocap
+
+on:
+  push:
+    branches:
+      - agent/validate-10m-300rtt-20loss-nocap-d3b
+    paths:
+      - '.github/workflows/validate-10m-300rtt-20loss-nocap.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SOURCE_SHA: d3b54dced255cc9becb3e501991f71a034e7438f
+  WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
+
+jobs:
+  exact-source-10m:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact product source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "WBD_10M_SOURCE product_source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc iproute2 iptables tcpdump curl unzip openssl
+
+      - name: Build complete data plane from exact source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/wbd-assets"
+          mkdir -p "$ASSET" /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${WOLFSSL_SOURCE_ARTIFACT_ID}/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static \
+            CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128 -DWOLFSSL_MAX_MTU=16384')
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -DWOLFSSL_MAX_MTU=16384 -O2 -Wall -Wextra -Werror \
+            -I/tmp/wolf/build -I/tmp/wolf/src native/dtls/wbd_dtls_shim.c \
+            /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
+
+          go test ./internal/fec ./internal/faketcp -count=1
+          go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
+          go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+          go build -trimpath -o "$ASSET/wbd-link-proxy" ./cmd/wbd-link-proxy
+          go build -trimpath -o "$ASSET/wbd-link-server-mux" ./cmd/wbd-link-server-mux
+          go build -trimpath -o "$ASSET/wbd-game-lane-client" ./cmd/wbd-game-lane-client
+          go build -trimpath -o "$ASSET/wbd-game-lane-server" ./cmd/wbd-game-lane-server
+
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 1 -subj '/CN=target.example' \
+            -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 1 -subj '/CN=wbd-dtls.test' \
+            -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+          printf '%s\n' "$SOURCE_SHA" >"$ASSET/PRODUCT_SOURCE_SHA.txt"
+          chmod +x "$ASSET"/wbd-* "$ASSET/wbd_dtls_shim"
+          echo "WBD_10M_BUILD product_source_sha=$(cat "$ASSET/PRODUCT_SOURCE_SHA.txt") wolfssl_sha256=4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b"
+
+      - name: Adapt severe harness for clean 10 Mbps diagnosis
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          rotation=Path('scripts/game_lane_rotation_soak.sh')
+          s=rotation.read_text()
+          replacements={
+            '[[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge 500 ]] || { echo "DURATION_SEC must be >=500" >&2; exit 2; }':
+              '[[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge 20 ]] || { echo "DURATION_SEC must be >=20" >&2; exit 2; }',
+            '[[ "$RATE_BPS" == 1000000 ]] || { echo "RATE_BPS must be exactly 1000000" >&2; exit 2; }':
+              '[[ "$RATE_BPS" == 10000000 ]] || { echo "RATE_BPS must be exactly 10000000" >&2; exit 2; }',
+            '[[ "$ROTATIONS" =~ ^[0-9]+$ && "$ROTATIONS" -ge 1 ]] || { echo "ROTATIONS must be positive" >&2; exit 2; }':
+              '[[ "$ROTATIONS" =~ ^[0-9]+$ ]] || { echo "ROTATIONS must be non-negative" >&2; exit 2; }',
+            "if summary['loss_ratio'] > 0.001: raise SystemExit(13)":
+              "# exact-source workflow evaluates loss after all diagnostics are emitted",
+            "if summary['down_payload_bps'] < rate_bps*0.995: raise SystemExit(14)":
+              "# exact-source workflow evaluates goodput after all diagnostics are emitted",
+          }
+          for old,new in replacements.items():
+            if s.count(old)!=1:
+              raise SystemExit('rotation guard drift: '+old)
+            s=s.replace(old,new,1)
+          if '--shadow-recovery legacy' not in s:
+            raise SystemExit('replacement recovery marker missing')
+          s=s.replace('--shadow-recovery legacy','--shadow-recovery sack-rack').replace('recovery=legacy','recovery=sack-rack')
+          rotation.write_text(s)
+
+          full=Path('scripts/game_lane_fullstack.sh')
+          s=full.read_text()
+          if '--shadow-recovery legacy' not in s:
+            raise SystemExit('initial recovery marker missing')
+          s=s.replace('--shadow-recovery legacy','--shadow-recovery sack-rack').replace('recovery=legacy','recovery=sack-rack')
+          old='"$ASSET_DIR/wbd-faketcp-mux" server \\\n  --listen 10.89.0.1:${RAW} --dtls-shim "$ASSET_DIR/wbd_dtls_shim" \\\n'
+          new='"$ASSET_DIR/wbd-faketcp-mux" server \\\n  --shadow-recovery sack-rack \\\n  --listen 10.89.0.1:${RAW} --dtls-shim "$ASSET_DIR/wbd_dtls_shim" \\\n'
+          if s.count(old)!=1:
+            raise SystemExit('server mux marker drift')
+          s=s.replace(old,new,1)
+
+          cleanup='cleanup() {\n  set +e\n'
+          diag='cleanup() {\n  set +e\n  if sudo ip netns exec "$C" true 2>/dev/null; then\n    sudo ip netns exec "$C" tc -s qdisc show dev gc0 >"$LOG_DIR/tc-client-qdisc.txt" 2>&1 || true\n  fi\n  if sudo ip netns exec "$S" true 2>/dev/null; then\n    sudo ip netns exec "$S" tc -s qdisc show dev gs0 >"$LOG_DIR/tc-server-qdisc.txt" 2>&1 || true\n  fi\n'
+          if s.count(cleanup)!=1:
+            raise SystemExit('cleanup marker drift')
+          full.write_text(s.replace(cleanup,diag,1))
+
+          control=Path('scripts/game_lane_rotation_soak_control.sh').read_text()
+          if 'rate 100mbit' in control or 'rate 100Mbit' in control:
+            raise SystemExit('unexpected bandwidth cap in source control wrapper')
+          expected='tc qdisc replace dev gc0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%"'
+          if expected not in control:
+            raise SystemExit('expected uncapped netem command missing')
+          PY
+          bash -n scripts/game_lane_fullstack.sh
+          bash -n scripts/game_lane_rotation_soak.sh
+          bash -n scripts/game_lane_rotation_soak_control.sh
+          echo 'WBD_10M_NETEM_CONTRACT target_rtt_ms=300 one_way_delay_ms=150 loss_pct_each_direction=20 rate_cap=none'
+
+      - name: Run 10 Mbps / 300 ms RTT / 20% loss / FEC 20:20
+        env:
+          LANES: '4'
+          FEC: '20:20'
+          DURATION_SEC: '20'
+          RATE_BPS: '10000000'
+          PAYLOAD_BYTES: '1000'
+          ROTATE_INTERVAL_SEC: '10'
+          ROTATIONS: '0'
+          NETEM_DELAY_MS: '150'
+          NETEM_LOSS_PCT: '20'
+          SOAK_REPLICA: '1'
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/tenm-300rtt-20loss"
+          mkdir -p "$LOG"
+          sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$RUNNER_TEMP/wbd-assets" "$LOG"
+
+      - name: Analyze layered result
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/tenm-300rtt-20loss"
+          python3 - "$LOG" <<'PY'
+          import glob,json,os,re,sys
+          root=sys.argv[1]
+          d=json.load(open(os.path.join(root,'load-result.json')))
+          stats=[]
+          for path in glob.glob(os.path.join(root,'*faketcp*.log')) + glob.glob(os.path.join(root,'lane-*-faketcp.log')):
+            try:
+              lines=open(path,errors='replace')
+            except OSError:
+              continue
+            for line in lines:
+              if 'WBD_FAKETCP_STATS ' not in line: continue
+              try: stats.append(json.loads(line.split('WBD_FAKETCP_STATS ',1)[1]))
+              except Exception: pass
+          senders=[x['sender'] for x in stats if x.get('role')=='client' and 'sender' in x]
+          receivers=[x['receiver'] for x in stats if x.get('role')=='client' and 'receiver' in x]
+          result={
+            'product_source_sha':os.environ['SOURCE_SHA'],
+            'target_bps':10_000_000,
+            'target_rtt_ms':300,
+            'one_way_netem_ms':150,
+            'loss_pct_each_direction':20,
+            'rate_cap':'none',
+            'fec':'20:20','lanes':4,
+            'sent':d['sent'],'received_unique':d['received_unique'],
+            'loss_ratio':d['loss_ratio'],'down_payload_bps':d['down_payload_bps'],
+            'bad_payload':d['bad_payload'],'duplicates':d['duplicates'],
+            'peak_pending':max((x.get('PeakPending',0) for x in senders),default=0),
+            'forgiven_gaps':sum(x.get('ForgivenGaps',0) for x in receivers),
+            'enqueued_bytes':sum(x.get('EnqueuedBytes',0) for x in senders),
+            'retransmit_bytes':sum(x.get('RetransmitBytes',0) for x in senders),
+          }
+          if result['enqueued_bytes']:
+            result['repair_to_fresh_bytes']=result['retransmit_bytes']/result['enqueued_bytes']
+          print('WBD_10M_LAYERED_RESULT '+json.dumps(result,sort_keys=True))
+          assert d['bad_payload']==0, result
+          assert d['duplicates']==0, result
+          assert d['loss_ratio'] <= 0.001, result
+          assert d['down_payload_bps'] >= 9_950_000, result
+          PY
+
+      - name: Emit diagnostics
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/tenm-300rtt-20loss"
+          echo '=== load-result ==='
+          cat "$LOG/load-result.json" 2>/dev/null || true
+          echo '=== qdisc client ==='
+          cat "$LOG/tc-client-qdisc.txt" 2>/dev/null || true
+          echo '=== qdisc server ==='
+          cat "$LOG/tc-server-qdisc.txt" 2>/dev/null || true
+          echo '=== FEC/LINK markers ==='
+          grep -R -E 'WBD_(FEC|LINK).*?(STAT|RECOVER|DROP|READY)|fec=' "$LOG" 2>/dev/null | tail -n 300 || true
+          echo '=== FakeTCP markers ==='
+          grep -R -E 'WBD_FAKETCP_(STATS|OUTSTANDING_PRESSURE)' "$LOG" 2>/dev/null | tail -n 300 || true
