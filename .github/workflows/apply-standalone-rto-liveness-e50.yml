@@ -24,74 +24,25 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
-      - name: Apply standalone bounded RTO and server liveness regression
+      - name: Apply and verify source changes
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-
+          import base64
           p = Path('cmd/wbd-faketcp/main.go')
           s = p.read_text()
-          old = '''\t\tcase now := <-t.C:\n\t\t\te.senderMu.Lock()\n\t\t\tp := e.sender.RetransmitDue(now)\n\t\t\tvar err error\n\t\t\tif p != nil {\n\t\t\t\terr = e.sendDataPending(p)\n\t\t\t}\n\t\t\te.senderMu.Unlock()\n\t\t\tif err != nil {\n\t\t\t\treturn err\n\t\t\t}\n'''
-          new = '''\t\tcase now := <-t.C:\n\t\t\te.senderMu.Lock()\n\t\t\tpending := e.sender.RetransmitDueBatch(now, faketcp.SteadyStateRetransmitBatch)\n\t\t\tvar err error\n\t\t\tfor _, p := range pending {\n\t\t\t\tif err = e.sendDataPending(p); err != nil {\n\t\t\t\t\tbreak\n\t\t\t\t}\n\t\t\t}\n\t\t\te.senderMu.Unlock()\n\t\t\tif err != nil {\n\t\t\t\treturn err\n\t\t\t}\n'''
+          old = "\t\tcase now := <-t.C:\n\t\t\te.senderMu.Lock()\n\t\t\tp := e.sender.RetransmitDue(now)\n\t\t\tvar err error\n\t\t\tif p != nil {\n\t\t\t\terr = e.sendDataPending(p)\n\t\t\t}\n\t\t\te.senderMu.Unlock()\n\t\t\tif err != nil {\n\t\t\t\treturn err\n\t\t\t}\n"
+          new = "\t\tcase now := <-t.C:\n\t\t\te.senderMu.Lock()\n\t\t\tpending := e.sender.RetransmitDueBatch(now, faketcp.SteadyStateRetransmitBatch)\n\t\t\tvar err error\n\t\t\tfor _, p := range pending {\n\t\t\t\tif err = e.sendDataPending(p); err != nil {\n\t\t\t\t\tbreak\n\t\t\t\t}\n\t\t\t}\n\t\t\te.senderMu.Unlock()\n\t\t\tif err != nil {\n\t\t\t\treturn err\n\t\t\t}\n"
           if s.count(old) != 1:
               raise SystemExit('standalone retransmit anchor mismatch')
           p.write_text(s.replace(old, new, 1))
-
-          Path('cmd/wbd-faketcp-mux/liveness_test.go').write_text(r'''//go:build linux
-
-package main
-
-import (
-    "testing"
-    "time"
-)
-
-func TestMuxDataSessionValidTrafficRefreshesExpiryWindow(t *testing.T) {
-    base := time.Unix(1_700_000_000, 0)
-    sess := &muxSession{stage: stageData, lastClientRX: base}
-
-    if stale, _ := sess.staleDataAssociation(base.Add(staleDataAssociationTimeout - time.Nanosecond)); stale {
-        t.Fatal("data session expired before server idle window")
-    }
-    if stale, _ := sess.staleDataAssociation(base.Add(staleDataAssociationTimeout)); !stale {
-        t.Fatal("data session did not expire at server idle window")
-    }
-
-    // Model protocol-valid FakeTCP traffic being accepted every 30 seconds.
-    // Each accepted segment refreshes lastClientRX; LINK keepalive traffic is
-    // not required to keep a genuinely active association alive.
-    first := base.Add(30 * time.Second)
-    sess.noteClientRX(first)
-    if stale, _ := sess.staleDataAssociation(first.Add(staleDataAssociationTimeout - time.Nanosecond)); stale {
-        t.Fatal("valid FakeTCP traffic did not refresh server liveness")
-    }
-    second := first.Add(30 * time.Second)
-    sess.noteClientRX(second)
-    if stale, _ := sess.staleDataAssociation(second.Add(staleDataAssociationTimeout - time.Nanosecond)); stale {
-        t.Fatal("repeated valid FakeTCP traffic did not keep server association alive")
-    }
-    if stale, _ := sess.staleDataAssociation(second.Add(staleDataAssociationTimeout)); !stale {
-        t.Fatal("server association did not expire after traffic actually stopped")
-    }
-}
-
-func TestMuxNonDataStagesAreNotRetiredByDataIdleTimer(t *testing.T) {
-    base := time.Unix(1_700_000_000, 0)
-    for _, stage := range []sessionStage{stageHandshake, stageBootstrap, stageFallback, stageTransition} {
-        sess := &muxSession{stage: stage, lastClientRX: base}
-        if stale, _ := sess.staleDataAssociation(base.Add(10 * staleDataAssociationTimeout)); stale {
-            t.Fatalf("stage %d incorrectly retired by data idle timer", stage)
-        }
-    }
-}
-''')
+          test_b64 = 'Ly9nbzpidWlsZCBsaW51eAoKcGFja2FnZSBtYWluCgppbXBvcnQgKAoJInRlc3RpbmciCgkidGltZSIKKQoKZnVuYyBUZXN0TXV4RGF0YVNlc3Npb25WYWxpZFRyYWZmaWNSZWZyZXNoZXNFeHBpcnlXaW5kb3codCAqdGVzdGluZy5UKSB7CgJiYXNlIDo9IHRpbWUuVW5peCgxXzcwMF8wMDBfMDAwLCAwKQoJc2VzcyA6PSAmbXV4U2Vzc2lvbntzdGFnZTogc3RhZ2VEYXRhLCBsYXN0Q2xpZW50Ulg6IGJhc2V9CgppZiBzdGFsZSwgXyA6PSBzZXNzLnN0YWxlRGF0YUFzc29jaWF0aW9uKGJhc2UuQWRkKHN0YWxlRGF0YUFzc29jaWF0aW9uVGltZW91dCAtIHRpbWUuTmFub3NlY29uZCkpOyBzdGFsZSB7CgkJdC5GYXRhbCgiZGF0YSBzZXNzaW9uIGV4cGlyZWQgYmVmb3JlIHNlcnZlciBpZGxlIHdpbmRvdyIpCgl9CglpZiBzdGFsZSwgXyA6PSBzZXNzLnN0YWxlRGF0YUFzc29jaWF0aW9uKGJhc2UuQWRkKHN0YWxlRGF0YUFzc29jaWF0aW9uVGltZW91dCkpOyAhc3RhbGUgewoJCXQuRmF0YWwoImRhdGEgc2Vzc2lvbiBkaWQgbm90IGV4cGlyZSBhdCBzZXJ2ZXIgaWRsZSB3aW5kb3ciKQoJfQoKCS8vIE1vZGVsIHByb3RvY29sLXZhbGlkIEZha2VUQ1AgdHJhZmZpYyBiZWluZyBhY2NlcHRlZCBldmVyeSAzMCBzZWNvbmRzLgoJLy8gRWFjaCBhY2NlcHRlZCBzZWdtZW50IHJlZnJlc2hlcyBsYXN0Q2xpZW50Ulg7IExJTksga2VlcGFsaXZlIHRyYWZmaWMgaXMKCS8vIG5vdCByZXF1aXJlZCB0byBrZWVwIGEgZ2VudWluZWx5IGFjdGl2ZSBhc3NvY2lhdGlvbiBhbGl2ZS4KCWZpcnN0IDo9IGJhc2UuQWRkKDMwICogdGltZS5TZWNvbmQpCglzZXNzLm5vdGVDbGllbnRSWChmaXJzdCkKCWlmIHN0YWxlLCBfIDo9IHNlc3Muc3RhbGVEYXRhQXNzb2NpYXRpb24oZmlyc3QuQWRkKHN0YWxlRGF0YUFzc29jaWF0aW9uVGltZW91dCAtIHRpbWUuTmFub3NlY29uZCkpOyBzdGFsZSB7CgkJdC5GYXRhbCgidmFsaWQgRmFrZVRDUCB0cmFmZmljIGRpZCBub3QgcmVmcmVzaCBzZXJ2ZXIgbGl2ZW5lc3MiKQoJfQoJc2Vjb25kIDo9IGZpcnN0LkFkZCgzMCAqIHRpbWUuU2Vjb25kKQoJc2Vzcy5ub3RlQ2xpZW50Ulgo c2Vjb25kKQoJaWYgc3RhbGUsIF8gOj0gc2Vzcy5zdGFsZURhdGFBc3NvY2lhdGlvbihzZWNvbmQuQWRkKHN0YWxlRGF0YUFzc29jaWF0aW9uVGltZW91dCAtIHRpbWUuTmFub3NlY29uZCkpOyBzdGFsZSB7CgkJdC5GYXRhbCgicmVwZWF0ZWQgdmFsaWQgRmFrZVRDUCB0cmFmZmljIGRpZCBub3Qga2VlcCBzZXJ2ZXIgYXNzb2NpYXRpb24gYWxpdmUiKQoJfQoJaWYgc3RhbGUsIF8gOj0gc2Vzcy5zdGFsZURhdGFBc3NvY2lhdGlvbihzZWNvbmQuQWRkKHN0YWxlRGF0YUFzc29jaWF0aW9uVGltZW91dCkpOyAhc3RhbGUgewoJCXQuRmF0YWwoInNlcnZlciBhc3NvY2lhdGlvbiBkaWQgbm90IGV4cGlyZSBhZnRlciB0cmFmZmljIGFjdHVhbGx5IHN0b3BwZWQiKQoJfQp9CgpmdW5jIFRlc3RNdXhOb25EYXRhU3RhZ2VzQXJlTm90UmV0aXJlZEJ5RGF0YUlkbGVUaW1lcih0ICp0ZXN0aW5nLlQpIHsKCWJhc2UgOj0gdGltZS5Vbml4KDFfNzAwXzAwMF8wMDAsIDApCglmb3IgXywgc3RhZ2UgOj0gcmFuZ2UgW11zZXNzaW9uU3RhZ2V7c3RhZ2VIYW5kc2hha2UsIHN0YWdlQm9vdHN0cmFwLCBzdGFnZUZhbGxiYWNrLCBzdGFnZVRyYW5zaXRpb259IHsKCQlzZXNzIDo9ICZtdXhTZXNzaW9ue3N0YWdlOiBzdGFnZSwgbGFzdENsaWVudFJYOiBiYXNlfQoJCWlmIHN0YWxlLCBfIDo9IHNlc3Muc3RhbGVEYXRhQXNzb2NpYXRpb24oYmFzZS5BZGQoMTAgKiBzdGFsZURhdGFBc3NvY2lhdGlvblRpbWVvdXQpKTsgc3RhbGUgewoJCQl0LkZhdGFsZigic3RhZ2UgJWQgaW5jb3JyZWN0bHkgcmV0aXJlZCBieSBkYXRhIGlkbGUgdGltZXIiLCBzdGFnZSkKCQl9Cgl9Cn0K'.replace(' ', '')
+          Path('cmd/wbd-faketcp-mux/liveness_test.go').write_bytes(base64.b64decode(test_b64))
           PY
-
           gofmt -w cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/liveness_test.go
           go test ./internal/faketcp ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux ./cmd/wbd-link-proxy -count=1
-
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm .github/workflows/apply-standalone-rto-liveness-e50.yml
