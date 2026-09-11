@@ -13,7 +13,7 @@ permissions:
 
 env:
   SOURCE_SHA: 07f0adfca0dc75ab2b60a4185e54019627e34ae4
-  BASE_ASSET_ARTIFACT_ID: '10265398086'
+  BASE_ASSET_ARTIFACT_ID: '10265571219'
 
 jobs:
   quick-severe:
