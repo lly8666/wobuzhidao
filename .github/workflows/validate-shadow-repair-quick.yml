@@ -12,7 +12,7 @@ permissions:
   actions: read
 
 env:
-  SOURCE_SHA: 62f68bcfbc8a1cebb99ab9b8cf2984b1bea29f95
+  SOURCE_SHA: 73c814334ea509fb5c1ea1fe595ddc399ca337b4
   BASE_ASSET_ARTIFACT_ID: '10265571219'
 
 jobs:
@@ -47,36 +47,13 @@ jobs:
           unzip -q /tmp/base-assets.zip -d "$ASSET"
           test "$(cat "$ASSET/SOURCE_SHA.txt")" = "0967f983c36504dfd430bb76456e1e8f8331dea8"
 
-          # Validation-only A/B: keep the exact 62f source as the authority, but
-          # probe a 1536-record receive horizon before productizing the constant.
-          # 1536 is 3/8 of the 4096 hard debt ceiling and sits just above the
-          # ~1500-record 10-Mbit/FEC20:20 BDP at the 600ms target RTT.
-          python3 - <<'PY'
-          from pathlib import Path
-          arq = Path('internal/faketcp/arq.go')
-          s = arq.read_text()
-          old = 'PartialReliabilityReorderSoftLimit = MaxSteadyStateOutstandingDatagrams / 2'
-          new = 'PartialReliabilityReorderSoftLimit = (MaxSteadyStateOutstandingDatagrams * 3) / 8'
-          if s.count(old) != 1:
-              raise SystemExit('partial-reliability horizon marker drift')
-          arq.write_text(s.replace(old, new, 1))
-
-          test = Path('internal/faketcp/partial_reliability_ack_test.go')
-          s = test.read_text()
-          old = 'MaxSteadyStateOutstandingDatagrams/2'
-          new = '(MaxSteadyStateOutstandingDatagrams*3)/8'
-          if s.count(old) != 1:
-              raise SystemExit('partial-reliability test expectation drift')
-          test.write_text(s.replace(old, new, 1))
-          PY
-
           go test ./internal/faketcp ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux -count=1
           go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
           go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
           printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
           chmod +x "$ASSET"/wbd-* "$ASSET/wbd_dtls_shim"
-          echo "WBD_QUICK_BUILD_PASS source_sha=$SOURCE_SHA validation_horizon=1536"
-      - name: Patch only validation duration, rate, recovery mode, and netem queue
+          echo "WBD_QUICK_BUILD_PASS source_sha=$SOURCE_SHA product_horizon=1536"
+      - name: Patch only validation duration, rate, recovery mode, netem queue, and load gate
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -89,6 +66,10 @@ jobs:
                '[[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge 20 ]] || { echo "DURATION_SEC must be >=20" >&2; exit 2; }'),
               ('[[ "$RATE_BPS" == 1000000 ]] || { echo "RATE_BPS must be exactly 1000000" >&2; exit 2; }',
                '[[ "$RATE_BPS" == 10000000 ]] || { echo "RATE_BPS must be exactly 10000000" >&2; exit 2; }'),
+              ("if summary['loss_ratio'] > 0.001: raise SystemExit(13)",
+               "# policy probe records loss; workflow below owns the partial-reliability assertion"),
+              ("if summary['down_payload_bps'] < rate_bps*0.995: raise SystemExit(14)",
+               "# policy probe records goodput; workflow below owns the partial-reliability assertion"),
           ]
           for old,new in pairs:
               if s.count(old) != 1:
@@ -121,7 +102,7 @@ jobs:
           s = s.replace(old, old + ' limit 20000')
           control.write_text(s)
           PY
-          echo "WBD_QUICK_HARNESS duration_sec=20 inner_rate_bps=10000000 recovery=sack-rack netem_limit_pkts=20000 horizon=1536"
+          echo "WBD_QUICK_HARNESS duration_sec=20 inner_rate_bps=10000000 recovery=sack-rack netem_limit_pkts=20000 product_horizon=1536"
       - name: Run 20 second 4-lane FEC20 severe iteration
         env:
           LANES: '4'
@@ -144,7 +125,7 @@ jobs:
           grep -q 'limit 20000' "$LOG/netem.log"
           grep -q 'READY role=server-mux.*recovery=sack-rack' "$LOG/faketcp-mux.log"
           ! grep -R -q 'pending=4096 limit=4096 action=wait' "$LOG" || {
-            echo 'fresh path still reached hard repair pressure' >&2
+            echo 'fresh path entered hard repair pressure wait' >&2
             exit 21
           }
           python3 - "$LOG" <<'PY'
@@ -173,8 +154,9 @@ jobs:
           forgiven_bytes=sum(x.get('ForgivenBytes',0) for x in receivers)
           peak_oo=max(x.get('PeakBufferedOO',0) for x in receivers)
           ratio=(retx/enq) if enq else 0
-          print('WBD_QUICK_POLICY_RESULT '+json.dumps({
+          result={
               'down_payload_bps':d['down_payload_bps'],
+              'loss_ratio':d['loss_ratio'],
               'received_unique':d['received_unique'],
               'sent':d['sent'],
               'max_peak_repair_pending':peak,
@@ -184,11 +166,16 @@ jobs:
               'forgiven_gaps':forgiven,
               'forgiven_bytes':forgiven_bytes,
               'peak_receiver_out_of_order':peak_oo,
-          },sort_keys=True))
-          if peak >= 4096:
-              raise SystemExit('repair pending saturated 4096')
+          }
+          print('WBD_QUICK_POLICY_RESULT '+json.dumps(result,sort_keys=True))
           if peak_oo != 1536:
               raise SystemExit(f'unexpected receiver horizon peak {peak_oo}')
+          if forgiven == 0:
+              raise SystemExit('partial-reliability horizon never engaged')
+          if ratio > 0.15:
+              raise SystemExit(f'repair/fresh ratio unexpectedly high {ratio:.4f}')
+          if d['down_payload_bps'] < 7_000_000:
+              raise SystemExit(f'first-arrival goodput regressed {d["down_payload_bps"]}')
           PY
       - name: Diagnose failure
         if: failure()
