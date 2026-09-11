@@ -16,10 +16,10 @@ type pressureTestRaw struct {
 	resets int
 }
 
-func (r *pressureTestRaw) ReadPacket([]byte) (int, error) { return 0, os.ErrClosed }
+func (r *pressureTestRaw) ReadPacket([]byte) (int, error)     { return 0, os.ErrClosed }
 func (r *pressureTestRaw) SetReadTimeout(time.Duration) error { return nil }
-func (r *pressureTestRaw) ClearReadTimeout() error { return nil }
-func (r *pressureTestRaw) Close() error { return nil }
+func (r *pressureTestRaw) ClearReadTimeout() error            { return nil }
+func (r *pressureTestRaw) Close() error                       { return nil }
 func (r *pressureTestRaw) WritePacket(pkt []byte, _ [4]byte) error {
 	seg, err := faketcp.ParseIPv4TCP(pkt)
 	if err != nil {

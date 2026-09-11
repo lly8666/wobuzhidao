@@ -685,19 +685,36 @@ func (s *muxServer) relayLoop(sess *muxSession) {
 		if err != nil {
 			return
 		}
-		pendingFrames, err := sess.assoc.EnqueueSteadyStateBatch(frames, time.Now())
-		if err != nil {
-			if errors.Is(err, faketcp.ErrSteadyStateOutstandingFull) {
-				fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=server-mux client=%d server=%d limit=%d action=rst\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
-				_ = s.sendRaw(sess.flow, sess.assoc.SenderNext(), sess.assoc.ReceiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
-				s.removeSessionMatch(sess.flow, sess)
+		pressureLogged := false
+		for {
+			pendingFrames, enqueueErr := sess.assoc.EnqueueSteadyStateBatch(frames, time.Now())
+			if enqueueErr == nil {
+				for _, p := range pendingFrames {
+					if err := s.sendPending(sess, p); err != nil {
+						return
+					}
+				}
+				if pressureLogged {
+					fmt.Printf("WBD_FAKETCP_OUTSTANDING_PRESSURE role=server-mux client=%d server=%d limit=%d action=resumed\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
+				}
+				break
 			}
-			return
-		}
-		for _, p := range pendingFrames {
-			if err := s.sendPending(sess, p); err != nil {
+			if !errors.Is(enqueueErr, faketcp.ErrSteadyStateOutstandingFull) {
 				return
 			}
+			if !pressureLogged {
+				fmt.Printf("WBD_FAKETCP_OUTSTANDING_PRESSURE role=server-mux client=%d server=%d limit=%d action=wait\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
+				pressureLogged = true
+			}
+			select {
+			case <-s.ctx.Done():
+				return
+			default:
+			}
+			if s.getSession(sess.flow) != sess {
+				return
+			}
+			time.Sleep(2 * time.Millisecond)
 		}
 	}
 }

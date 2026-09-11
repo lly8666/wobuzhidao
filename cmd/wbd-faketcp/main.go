@@ -661,27 +661,40 @@ func (e *endpoint) udpLoop() error {
 		if err != nil {
 			return err
 		}
-		now := time.Now()
-		e.senderMu.Lock()
-		pendingFrames, enqueueErr := e.sender.EnqueueSteadyStateBatch(frames, now)
-		if enqueueErr != nil {
-			pending := e.sender.Pending()
-			seq := e.sender.NextSeq()
-			e.senderMu.Unlock()
-			if errors.Is(enqueueErr, faketcp.ErrSteadyStateOutstandingFull) {
-				fmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=%s pending=%d limit=%d action=rst\n", e.cfg.role, pending, faketcp.MaxSteadyStateOutstandingDatagrams)
-				_ = e.send(seq, e.receiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
-			}
-			return enqueueErr
-		}
-		for _, p := range pendingFrames {
-			if err = e.sendDataPending(p); err != nil {
+		pressureLogged := false
+		for {
+			e.senderMu.Lock()
+			pendingFrames, enqueueErr := e.sender.EnqueueSteadyStateBatch(frames, time.Now())
+			if enqueueErr == nil {
+				for _, p := range pendingFrames {
+					if err = e.sendDataPending(p); err != nil {
+						break
+					}
+				}
+				e.senderMu.Unlock()
+				if err != nil {
+					return err
+				}
+				if pressureLogged {
+					fmt.Printf("WBD_FAKETCP_OUTSTANDING_PRESSURE role=%s limit=%d action=resumed\n", e.cfg.role, faketcp.MaxSteadyStateOutstandingDatagrams)
+				}
 				break
 			}
-		}
-		e.senderMu.Unlock()
-		if err != nil {
-			return err
+			pending := e.sender.Pending()
+			e.senderMu.Unlock()
+			if !errors.Is(enqueueErr, faketcp.ErrSteadyStateOutstandingFull) {
+				return enqueueErr
+			}
+			if !pressureLogged {
+				fmt.Printf("WBD_FAKETCP_OUTSTANDING_PRESSURE role=%s pending=%d limit=%d action=wait\n", e.cfg.role, pending, faketcp.MaxSteadyStateOutstandingDatagrams)
+				pressureLogged = true
+			}
+			select {
+			case <-e.stop:
+				return nil
+			default:
+			}
+			time.Sleep(2 * time.Millisecond)
 		}
 	}
 }
