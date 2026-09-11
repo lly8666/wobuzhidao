@@ -42,8 +42,32 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          bash "$GITHUB_WORKSPACE/helper/scripts/validate_perlane_diag_d3b.sh" \
-            "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+          HELPER="$GITHUB_WORKSPACE/helper/scripts/validate_perlane_diag_d3b.sh"
+          python3 - "$HELPER" <<'PY'
+          from pathlib import Path
+          import sys
+          p = Path(sys.argv[1])
+          lines = p.read_text().splitlines(keepends=True)
+          out = []
+          hits = 0
+          for line in lines:
+              if "new_line = old_line.replace('root netem delay'" in line:
+                  out.append("    new_line = old_line.replace('root netem delay', 'root netem limit 24000 delay', 1)\n")
+                  hits += 1
+              else:
+                  out.append(line)
+          if hits != 1:
+              raise SystemExit(f'expected one netem patch line, found {hits}')
+          p.write_text(''.join(out))
+          PY
+          set +e
+          bash "$HELPER" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+          rc=$?
+          set -e
+          if [ -e "$RUNNER_TEMP/tenm-300oneway-20loss" ]; then
+            sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TEMP/tenm-300oneway-20loss" || true
+          fi
+          exit "$rc"
 
       - name: Upload per-lane diagnostics
         if: always()
