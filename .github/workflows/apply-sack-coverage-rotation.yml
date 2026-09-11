@@ -8,17 +8,17 @@ on:
       - '.github/workflows/apply-sack-coverage-rotation.yml'
 
 permissions:
-  contents: write
+  contents: read
+  actions: read
 
 jobs:
-  apply:
+  build-patch:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: agent/shadow-repair-nohol-0967
-          fetch-depth: 0
+          ref: 570d4669a0552e11eb365e2ff6f73e1d0d974347
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
@@ -217,11 +217,10 @@ jobs:
         run: |
           set -euo pipefail
           go test ./internal/faketcp ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux -count=1
-      - name: Commit exact product change
-        run: |
-          set -euo pipefail
-          git config user.name 'wbd-ci'
-          git config user.email 'wbd-ci@users.noreply.github.com'
-          git add internal/faketcp/arq.go internal/faketcp/sack_coverage_rotation_test.go
-          git commit -m 'fix(faketcp): rotate SACK coverage under severe reordering'
-          git push origin HEAD:agent/shadow-repair-nohol-0967
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sack-coverage-patch
+          path: |
+            internal/faketcp/arq.go
+            internal/faketcp/sack_coverage_rotation_test.go
+          if-no-files-found: error
