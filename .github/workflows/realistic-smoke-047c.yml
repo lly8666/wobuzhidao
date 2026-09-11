@@ -1,0 +1,193 @@
+name: realistic-smoke-047c
+
+on:
+  push:
+    branches:
+      - agent/realistic-smoke-047c
+    paths:
+      - '.github/workflows/realistic-smoke-047c.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SOURCE_SHA: 047c168e8308d96e90a00d2c308d3f166270de32
+  HARNESS_SHA: 8922a2b9e57c403d36679bc10abe115c31c61aab
+
+jobs:
+  build-assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact product source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "WBD_REALISTIC_SMOKE_SOURCE_PASS source_sha=$SOURCE_SHA"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl
+      - name: Build exact product stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/wbd-realistic-assets"
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build "$ASSET"
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
+          for pkg in wbd-faketcp wbd-faketcp-mux wbd-link-proxy wbd-link-server-mux wbd-game-lane-client wbd-game-lane-server wbd-reality-front; do
+            go build -trimpath -o "$ASSET/$pkg" "./cmd/$pkg"
+          done
+          printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-dtls.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+          echo "WBD_REALISTIC_SMOKE_BUILD_PASS source_sha=$SOURCE_SHA"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: realistic-smoke-047c-assets
+          path: ${{ runner.temp }}/wbd-realistic-assets
+          retention-days: 1
+
+  smoke-120s:
+    needs: build-assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - lanes: 1
+            fec: 'off'
+            slug: 1lane-off
+          - lanes: 1
+            fec: '20:20'
+            slug: 1lane-fec20
+          - lanes: 4
+            fec: 'off'
+            slug: 4lane-off
+          - lanes: 4
+            fec: '20:20'
+            slug: 4lane-fec20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Materialize frozen realistic harness over exact product tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
+          git fetch --no-tags origin "$HARNESS_SHA"
+          mkdir -p scripts
+          git show "$SOURCE_SHA:scripts/game_lane_fullstack.sh" > scripts/game_lane_fullstack.sh
+          for f in game_lane_realistic_analysis.sh realistic_game_load.py realistic_process_monitor.py realistic_analysis_summary.py; do
+            git show "$HARNESS_SHA:scripts/$f" >"scripts/$f"
+          done
+          sed -i "s/source_sha=d1e2c827183415b32d94082e2ca2a59cefdc544b/source_sha=$SOURCE_SHA/" scripts/game_lane_realistic_analysis.sh
+          chmod +x scripts/game_lane_fullstack.sh scripts/game_lane_realistic_analysis.sh scripts/realistic_game_load.py scripts/realistic_process_monitor.py scripts/realistic_analysis_summary.py
+          bash -n scripts/game_lane_realistic_analysis.sh
+          python3 -m py_compile scripts/realistic_game_load.py scripts/realistic_process_monitor.py scripts/realistic_analysis_summary.py
+          grep -Fq 'cat >"$LOG_DIR/probe.py" <<' scripts/game_lane_fullstack.sh
+          grep -Fq -- '--bootstrap-timeout 12s' scripts/game_lane_fullstack.sh
+          grep -Fq -- '--reality-timeout 12s' scripts/game_lane_fullstack.sh
+          grep -Fq -- '-demo-reality-ticket "$ticket" >"$LOG_DIR/link-${i}.log"' scripts/game_lane_fullstack.sh
+          grep -Fq 'if not (b.startswith(b' scripts/game_lane_fullstack.sh
+          grep -Fq 'iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP' scripts/game_lane_fullstack.sh
+          echo "WBD_REALISTIC_HARNESS_COMPAT_PASS source_sha=$SOURCE_SHA harness_sha=$HARNESS_SHA"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install namespace and firewall tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump
+      - uses: actions/download-artifact@v4
+        with:
+          name: realistic-smoke-047c-assets
+          path: ${{ runner.temp }}/wbd-realistic-assets
+      - name: Verify exact product assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP"/wbd-realistic-assets/wbd-* "$RUNNER_TEMP"/wbd-realistic-assets/wbd_dtls_shim
+          test "$(cat "$RUNNER_TEMP/wbd-realistic-assets/SOURCE_SHA.txt")" = "$SOURCE_SHA"
+      - name: Run strict two-minute realistic smoke
+        env:
+          LANES: ${{ matrix.lanes }}
+          FEC: ${{ matrix.fec }}
+          DURATION_SEC: '120'
+          SMOKE_STRICT: '1'
+          RATE_BPS: '10000000'
+          PROFILE_SEED: '20260910'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+        shell: bash
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/realistic-smoke-${{ matrix.slug }}"
+          mkdir -p "$LOG"
+          sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_realistic_analysis.sh" "$RUNNER_TEMP/wbd-realistic-assets" "$LOG"
+          python3 - "$LOG/analysis-result.json" "${{ matrix.lanes }}" "${{ matrix.fec }}" <<'PY'
+          import json,sys
+          p,lanes,fec=sys.argv[1],int(sys.argv[2]),sys.argv[3]
+          d=json.load(open(p))
+          assert d['analysis_only'] is True and d['qualification_authority'] is False,d
+          assert d['lanes']==lanes and d['fec']==fec,d
+          assert d['requested_duration_sec']==120 and d['requested_bps_each_direction']==10_000_000,d
+          app=d['application']
+          assert app['payload_profile']=={'128':0.35,'256':0.25,'512':0.20,'1000':0.15,'1320':0.05},app
+          assert app['sent'] > 0 and app['received_unique'] > 0,app
+          assert app['sent_by_size'].get('1320',0) > 0,app
+          assert app['duplicates']==0 and app['bad_payload']==0,app
+          print('WBD_REALISTIC_2M_MATRIX_PASS '+json.dumps({'lanes':lanes,'fec':fec,'sent':app['sent'],'received_unique':app['received_unique'],'loss_ratio':app['loss_ratio']},sort_keys=True))
+          PY
+      - name: Diagnose smoke failure
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/realistic-smoke-${{ matrix.slug }}"
+          for f in environment-setup.log load.log load-result.json analysis.log analysis-result.json firewall-final.txt netem-final.txt game-client.log game-server.log faketcp-mux.log; do
+            echo "=== $f ==="
+            tail -n 260 "$LOG/$f" 2>/dev/null || true
+          done
+          for f in "$LOG"/faketcp-*.log "$LOG"/link-*.log "$LOG"/dtls-*.log; do
+            [[ -e "$f" ]] || continue
+            echo "=== $f ==="
+            tail -n 140 "$f" || true
+          done
+      - name: Scrub one-time authentication material
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/realistic-smoke-${{ matrix.slug }}"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: realistic-smoke-047c-${{ matrix.slug }}
+          path: ${{ runner.temp }}/realistic-smoke-${{ matrix.slug }}
+          retention-days: 7
