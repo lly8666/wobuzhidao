@@ -647,6 +647,8 @@ type Receiver struct {
 	sackStartByEnd map[uint32]uint32
 	recentSACK     [4]uint32
 	recentSACKN    int
+	coverageQueue  []uint32
+	coverageAt     int
 	stats          ReceiverStats
 }
 
@@ -691,8 +693,30 @@ func (r *Receiver) SACKBlocks(dst *[4]SACKBlock) int {
 	if dst == nil {
 		return 0
 	}
+	// Preserve the mature newest-first wire image whenever RFC 2018's four
+	// blocks are enough. Rotation is only a severe-reordering fallback.
+	if len(r.sacksByStart) <= len(dst) {
+		n := 0
+		for i := 0; i < r.recentSACKN && n < len(dst); i++ {
+			start := r.recentSACK[i]
+			end, ok := r.sacksByStart[start]
+			if !ok || seqLT(start, r.next) {
+				continue
+			}
+			dst[n] = SACKBlock{Start: start, End: end}
+			n++
+		}
+		return n
+	}
+
+	// Block zero stays TCP-like: it describes the most recently arrived live
+	// range. The remaining three slots rotate across older live ranges. This
+	// makes ACK loss unable to strand thousands of already-delivered records in
+	// the sender's repair window while keeping the on-wire option standard.
 	n := 0
-	for i := 0; i < r.recentSACKN && n < len(dst); i++ {
+	var primary uint32
+	havePrimary := false
+	for i := 0; i < r.recentSACKN; i++ {
 		start := r.recentSACK[i]
 		end, ok := r.sacksByStart[start]
 		if !ok || seqLT(start, r.next) {
@@ -700,8 +724,62 @@ func (r *Receiver) SACKBlocks(dst *[4]SACKBlock) int {
 		}
 		dst[n] = SACKBlock{Start: start, End: end}
 		n++
+		primary = start
+		havePrimary = true
+		break
+	}
+
+	for n < len(dst) {
+		start, end, ok := r.nextCoverageRange(primary, havePrimary, dst[:n])
+		if !ok {
+			break
+		}
+		dst[n] = SACKBlock{Start: start, End: end}
+		n++
 	}
 	return n
+}
+
+func (r *Receiver) nextCoverageRange(primary uint32, havePrimary bool, selected []SACKBlock) (uint32, uint32, bool) {
+	// Every queued entry is consumed at most once before compaction, so stale
+	// merge entries are amortized O(1) rather than forcing a sort on every ACK.
+	for pass := 0; pass < 2; pass++ {
+		for r.coverageAt < len(r.coverageQueue) {
+			start := r.coverageQueue[r.coverageAt]
+			r.coverageAt++
+			end, ok := r.sacksByStart[start]
+			if !ok || seqLT(start, r.next) || (havePrimary && start == primary) {
+				continue
+			}
+			duplicate := false
+			for _, b := range selected {
+				if b.Start == start {
+					duplicate = true
+					break
+				}
+			}
+			if duplicate {
+				continue
+			}
+			return start, end, true
+		}
+		r.compactCoverageQueue()
+		if len(r.coverageQueue) == 0 {
+			break
+		}
+	}
+	return 0, 0, false
+}
+
+func (r *Receiver) compactCoverageQueue() {
+	q := r.coverageQueue[:0]
+	for start := range r.sacksByStart {
+		if !seqLT(start, r.next) {
+			q = append(q, start)
+		}
+	}
+	r.coverageQueue = q
+	r.coverageAt = 0
 }
 
 func (r *Receiver) insertSACKRange(seq, end uint32) {
@@ -722,6 +800,7 @@ func (r *Receiver) insertSACKRange(seq, end uint32) {
 	r.sacksByStart[start] = finish
 	r.sackStartByEnd[finish] = start
 	r.touchRecentSACK(start)
+	r.coverageQueue = append(r.coverageQueue, start)
 }
 
 func (r *Receiver) consumeContiguousSACKs() {
