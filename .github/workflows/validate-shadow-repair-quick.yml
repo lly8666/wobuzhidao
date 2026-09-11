@@ -47,12 +47,35 @@ jobs:
           unzip -q /tmp/base-assets.zip -d "$ASSET"
           test "$(cat "$ASSET/SOURCE_SHA.txt")" = "0967f983c36504dfd430bb76456e1e8f8331dea8"
 
+          # Validation-only A/B: keep the exact 62f source as the authority, but
+          # probe a 1536-record receive horizon before productizing the constant.
+          # 1536 is 3/8 of the 4096 hard debt ceiling and sits just above the
+          # ~1500-record 10-Mbit/FEC20:20 BDP at the 600ms target RTT.
+          python3 - <<'PY'
+          from pathlib import Path
+          arq = Path('internal/faketcp/arq.go')
+          s = arq.read_text()
+          old = 'PartialReliabilityReorderSoftLimit = MaxSteadyStateOutstandingDatagrams / 2'
+          new = 'PartialReliabilityReorderSoftLimit = (MaxSteadyStateOutstandingDatagrams * 3) / 8'
+          if s.count(old) != 1:
+              raise SystemExit('partial-reliability horizon marker drift')
+          arq.write_text(s.replace(old, new, 1))
+
+          test = Path('internal/faketcp/partial_reliability_ack_test.go')
+          s = test.read_text()
+          old = 'MaxSteadyStateOutstandingDatagrams/2'
+          new = '(MaxSteadyStateOutstandingDatagrams*3)/8'
+          if s.count(old) != 1:
+              raise SystemExit('partial-reliability test expectation drift')
+          test.write_text(s.replace(old, new, 1))
+          PY
+
           go test ./internal/faketcp ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux -count=1
           go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
           go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
           printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
           chmod +x "$ASSET"/wbd-* "$ASSET/wbd_dtls_shim"
-          echo "WBD_QUICK_BUILD_PASS source_sha=$SOURCE_SHA"
+          echo "WBD_QUICK_BUILD_PASS source_sha=$SOURCE_SHA validation_horizon=1536"
       - name: Patch only validation duration, rate, recovery mode, and netem queue
         run: |
           set -euo pipefail
@@ -98,7 +121,7 @@ jobs:
           s = s.replace(old, old + ' limit 20000')
           control.write_text(s)
           PY
-          echo "WBD_QUICK_HARNESS duration_sec=20 inner_rate_bps=10000000 recovery=sack-rack netem_limit_pkts=20000"
+          echo "WBD_QUICK_HARNESS duration_sec=20 inner_rate_bps=10000000 recovery=sack-rack netem_limit_pkts=20000 horizon=1536"
       - name: Run 20 second 4-lane FEC20 severe iteration
         env:
           LANES: '4'
@@ -164,6 +187,8 @@ jobs:
           },sort_keys=True))
           if peak >= 4096:
               raise SystemExit('repair pending saturated 4096')
+          if peak_oo != 1536:
+              raise SystemExit(f'unexpected receiver horizon peak {peak_oo}')
           PY
       - name: Diagnose failure
         if: failure()
