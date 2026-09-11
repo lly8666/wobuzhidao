@@ -120,7 +120,7 @@ func TestPartialReliabilitySoftLimitLeavesHardWindowHeadroom(t *testing.T) {
 	if PartialReliabilityReorderSoftLimit <= 0 || PartialReliabilityReorderSoftLimit >= MaxSteadyStateOutstandingDatagrams {
 		t.Fatalf("soft=%d hard=%d", PartialReliabilityReorderSoftLimit, MaxSteadyStateOutstandingDatagrams)
 	}
-	if got, want := PartialReliabilityReorderSoftLimit, MaxSteadyStateOutstandingDatagrams/2; got != want {
+	if got, want := PartialReliabilityReorderSoftLimit, (MaxSteadyStateOutstandingDatagrams*3)/8; got != want {
 		t.Fatalf("soft=%d want=%d", got, want)
 	}
 }
