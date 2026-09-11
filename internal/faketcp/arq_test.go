@@ -38,8 +38,6 @@ func TestReceiverSACKRangesMergeAndPersist(t *testing.T) {
 	if n != 2 || blocks[0] != (SACKBlock{Start:150, End:160}) || blocks[1] != (SACKBlock{Start:110, End:130}) {
 		t.Fatalf("persistent SACK order=%v n=%d", blocks[:n], n)
 	}
-	// Repairing the first hole advances ACK through 110..130, but 150..160 is
-	// still live. A real SACK TCP ACK must continue advertising that later data.
 	if _, sack := r.Accept(100, 10); !sack { t.Fatal("later SACK state must survive partial hole repair") }
 	if r.Next() != 130 { t.Fatalf("next=%d want 130", r.Next()) }
 	n = r.SACKBlocks(&blocks)
@@ -73,37 +71,40 @@ func TestSenderFastRetransmitAndAck(t *testing.T) {
 	}
 }
 
-func TestSACKRetainsBytesUntilCumulativeAck(t *testing.T) {
+func TestSACKReleasesRepairBytesBeforeCumulativeAck(t *testing.T) {
 	now := time.Unix(3, 0)
 	s := NewSender(100, time.Second)
 	_ = s.Enqueue(make([]byte, 10), now)
 	p2 := s.Enqueue([]byte("abcdefghij"), now)
 	s.AckSelective(100, []SACKBlock{{Start: 110, End: 120}}, now.Add(10*time.Millisecond))
-	if !p2.SACKed {
-		t.Fatal("segment not marked SACKed")
+	if !p2.SACKed || !p2.Retired {
+		t.Fatal("SACKed segment was not retired from repair ownership")
 	}
-	if len(p2.Payload) != 10 {
-		t.Fatal("SACK incorrectly released retransmission bytes")
+	if p2.Payload != nil {
+		t.Fatal("SACK-proven first arrival retained repair payload")
 	}
-	if s.Pending() != 2 {
-		t.Fatalf("SACK must not reduce cumulatively-unacked pending count: %d", s.Pending())
+	if s.Pending() != 1 {
+		t.Fatalf("SACK-proven data must not consume repair/admission window: %d", s.Pending())
+	}
+	if s.Outstanding(p2.Seq) != p2 {
+		t.Fatal("SACK retirement lost seq tombstone before cumulative ACK")
 	}
 	s.AckSelective(120, nil, now.Add(20*time.Millisecond))
 	if s.Pending() != 0 {
 		t.Fatalf("pending=%d after cumulative ACK", s.Pending())
 	}
-	if p2.Payload != nil {
-		t.Fatal("cumulative ACK did not release payload")
+	if s.Outstanding(p2.Seq) != nil {
+		t.Fatal("cumulative ACK did not remove retired seq tombstone")
 	}
 }
 
 func TestSenderSelectiveAckRepairsProvenHoleImmediately(t *testing.T) {
 	now := time.Unix(4, 0)
 	s := NewSender(100, time.Second)
-	p1 := s.Enqueue(make([]byte, 10), now) // 100..110 missing
-	p2 := s.Enqueue(make([]byte, 10), now) // 110..120 received
-	p3 := s.Enqueue(make([]byte, 10), now) // 120..130 received
-	p4 := s.Enqueue(make([]byte, 10), now) // 130..140 received
+	p1 := s.Enqueue(make([]byte, 10), now)
+	p2 := s.Enqueue(make([]byte, 10), now)
+	p3 := s.Enqueue(make([]byte, 10), now)
+	p4 := s.Enqueue(make([]byte, 10), now)
 
 	got := s.AckSelective(100, []SACKBlock{{Start: 110, End: 140}}, now.Add(10*time.Millisecond))
 	if !p2.SACKed || !p3.SACKed || !p4.SACKed {
@@ -112,30 +113,30 @@ func TestSenderSelectiveAckRepairsProvenHoleImmediately(t *testing.T) {
 	if got != p1 || got.Retries != 1 {
 		t.Fatalf("three SACKed segments should infer first hole immediately, got %#v", got)
 	}
-	if s.Pending() != 4 {
-		t.Fatalf("all bytes must remain until cumulative ACK, pending=%d", s.Pending())
+	if s.Pending() != 1 {
+		t.Fatalf("only unresolved repair hole should remain pending, got=%d", s.Pending())
+	}
+	if !p2.Retired || !p3.Retired || !p4.Retired || p2.Payload != nil || p3.Payload != nil || p4.Payload != nil {
+		t.Fatal("SACK-proven segments retained repair ownership")
 	}
 }
 
 func TestSenderSACKRecoveryContinuesAfterCumulativeAdvance(t *testing.T) {
 	now := time.Unix(6, 0)
 	s := NewSender(100, time.Second)
-	p1 := s.Enqueue(make([]byte, 10), now) // 100 missing
-	_ = s.Enqueue(make([]byte, 10), now)   // 110 received
-	_ = s.Enqueue(make([]byte, 10), now)   // 120 received
-	_ = s.Enqueue(make([]byte, 10), now)   // 130 received
-	p5 := s.Enqueue(make([]byte, 10), now) // 140 missing
-	_ = s.Enqueue(make([]byte, 10), now)   // 150 received
-	_ = s.Enqueue(make([]byte, 10), now)   // 160 received
-	_ = s.Enqueue(make([]byte, 10), now)   // 170 received
+	p1 := s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
+	p5 := s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
 
 	got := s.AckSelective(100, []SACKBlock{{Start:110, End:140}, {Start:150, End:180}}, now.Add(10*time.Millisecond))
 	if got != p1 {
 		t.Fatalf("first loss recovery=%#v want p1", got)
 	}
-	// Once p1 arrives, the receiver cumulatively ACKs through 140 while still
-	// advertising 150..180. The next SACK-proven hole must be repaired now, not
-	// one or more exponentially backed-off RTOs later.
 	got = s.AckSelective(140, []SACKBlock{{Start:150, End:180}}, now.Add(20*time.Millisecond))
 	if got != p5 || got.Retries != 1 {
 		t.Fatalf("second SACK-proven hole not chained after ACK advance: %#v", got)
@@ -148,20 +149,15 @@ func TestSenderSACKRecoveryContinuesAfterCumulativeAdvance(t *testing.T) {
 func TestSenderRACKDetectsLostRetransmission(t *testing.T) {
 	now := time.Unix(7, 0)
 	s := NewSender(100, time.Second)
-	p1 := s.Enqueue(make([]byte, 10), now) // 100 lost, first repair will also be lost
-	_ = s.Enqueue(make([]byte, 10), now)   // 110 received
-	_ = s.Enqueue(make([]byte, 10), now)   // 120 received
-	_ = s.Enqueue(make([]byte, 10), now)   // 130 received
+	p1 := s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
 
-	// Three later SACKed originals prove the cumulative hole and trigger its
-	// first fast repair at t=10ms.
 	if got := s.AckSelective(100, []SACKBlock{{Start:110, End:140}}, now.Add(10*time.Millisecond)); got != p1 {
 		t.Fatalf("first scoreboard repair=%#v", got)
 	}
 
-	// Data transmitted after that repair is delivered. Its later transmit time
-	// provides RACK evidence that the first repair itself was lost, allowing one
-	// second fast repair without waiting for the 1s+ RTO path.
 	_ = s.Enqueue(make([]byte, 10), now.Add(20*time.Millisecond))
 	_ = s.Enqueue(make([]byte, 10), now.Add(20*time.Millisecond))
 	_ = s.Enqueue(make([]byte, 10), now.Add(20*time.Millisecond))
@@ -179,20 +175,15 @@ func TestSenderRACKDetectsLostRetransmission(t *testing.T) {
 func TestSACKRACKDoesNotRepairNonHeadHoleBeforeCumulativeAdvance(t *testing.T) {
 	now := time.Unix(8, 0)
 	s := NewSender(100, time.Second)
-	p1 := s.Enqueue(make([]byte, 10), now) // 100 missing
-	p2 := s.Enqueue(make([]byte, 10), now) // 110 missing
-	_ = s.Enqueue(make([]byte, 10), now)   // 120 received
-	_ = s.Enqueue(make([]byte, 10), now)   // 130 received
-	_ = s.Enqueue(make([]byte, 10), now)   // 140 received
+	p1 := s.Enqueue(make([]byte, 10), now)
+	p2 := s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
+	_ = s.Enqueue(make([]byte, 10), now)
 
-	// Three SACKed segments prove p1, the cumulative boundary, is missing.
 	if got := s.AckSelective(100, []SACKBlock{{Start:120, End:150}}, now.Add(10*time.Millisecond)); got != p1 {
 		t.Fatalf("first cumulative-hole repair=%#v want p1", got)
 	}
-	// Repeating the same four-block-limited SACK evidence must not cause p2 to
-	// be repaired while p1 still pins cumulative ACK at 100. Absence from the
-	// current SACK advertisement is not proof that an arbitrary non-head packet
-	// was lost.
 	if got := s.AckSelective(100, []SACKBlock{{Start:120, End:150}}, now.Add(20*time.Millisecond)); got != nil {
 		t.Fatalf("non-head hole repaired before cumulative advance: %#v", got)
 	}
@@ -200,8 +191,6 @@ func TestSACKRACKDoesNotRepairNonHeadHoleBeforeCumulativeAdvance(t *testing.T) {
 		t.Fatalf("non-head retries=%d want 0", p2.Retries)
 	}
 
-	// Once p1 arrives, ACK advances to 110. p2 is now the authoritative oldest
-	// hole and the same later SACK evidence can legitimately repair it.
 	if got := s.AckSelective(110, []SACKBlock{{Start:120, End:150}}, now.Add(30*time.Millisecond)); got != p2 {
 		t.Fatalf("new cumulative-hole repair=%#v want p2", got)
 	}
