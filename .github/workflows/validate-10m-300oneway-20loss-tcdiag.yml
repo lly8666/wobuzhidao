@@ -1,0 +1,60 @@
+name: validate-10m-300oneway-20loss-tcdiag
+
+on:
+  push:
+    branches:
+      - agent/validate-10m-300oneway-20loss-perlane-d3b
+    paths:
+      - '.github/workflows/validate-10m-300oneway-20loss-tcdiag.yml'
+      - 'scripts/validate_perlane_tc_diag_d3b.sh'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  exact-source-tcdiag:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout helper branch
+        uses: actions/checkout@v4
+        with:
+          path: helper
+
+      - name: Checkout exact product source
+        uses: actions/checkout@v4
+        with:
+          ref: d3b54dced255cc9becb3e501991f71a034e7438f
+          path: product
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc iproute2 iptables tcpdump curl unzip openssl
+
+      - name: Run low-overhead exact-source tc diagnostic
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          bash "$GITHUB_WORKSPACE/helper/scripts/validate_perlane_tc_diag_d3b.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+          rc=$?
+          set -e
+          if [ -e "$RUNNER_TEMP/tenm-300oneway-20loss-tc" ]; then
+            sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TEMP/tenm-300oneway-20loss-tc" || true
+          fi
+          exit "$rc"
+
+      - name: Upload tc diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcdiag-10m-300oneway-20loss-${{ github.sha }}
+          path: ${{ runner.temp }}/tenm-300oneway-20loss-tc
+          if-no-files-found: warn
+          retention-days: 7
