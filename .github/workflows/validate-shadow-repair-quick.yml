@@ -12,7 +12,7 @@ permissions:
   actions: read
 
 env:
-  SOURCE_SHA: bdac140dbb2f496d9b196546429885a162bbef60
+  SOURCE_SHA: 07f0adfca0dc75ab2b60a4185e54019627e34ae4
   BASE_ASSET_ARTIFACT_ID: '10265398086'
 
 jobs:
@@ -116,7 +116,7 @@ jobs:
             exit 21
           }
           python3 - "$LOG" <<'PY'
-          import glob,json,os,re,sys
+          import glob,json,os,sys
           root=sys.argv[1]
           d=json.load(open(os.path.join(root,'load-result.json')))
           assert d['requested_duration_sec']==20, d
