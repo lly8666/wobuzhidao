@@ -21,9 +21,8 @@ func clientRemoteRXTimeout(keepalive time.Duration) time.Duration {
 }
 
 // clientRemoteRXExpired remains a budget helper for compatibility tests. Live
-// retirement is stricter: only a matching PONG proves the complete client ->
-// server -> client lane round trip, so unrelated downstream traffic cannot hide
-// an upstream blackhole.
+// retirement is driven by the keepalive tracker: authenticated LINK data is
+// peer-liveness evidence, while outbound-only traffic never refreshes it.
 func clientRemoteRXExpired(lastRemoteRX, now time.Time, keepalive time.Duration) bool {
 	timeout := clientRemoteRXTimeout(keepalive)
 	return timeout > 0 && !now.Before(lastRemoteRX.Add(timeout))
@@ -65,7 +64,9 @@ func newClientKeepaliveTracker(now time.Time, keepalive time.Duration) clientKee
 }
 
 // poll returns whether to send a PING, the current round nonce, and whether the
-// full 3*keepalive budget has expired without a matching PONG.
+// full 3*keepalive budget has expired without valid authenticated remote LINK
+// activity. During active receive traffic, observeRemoteActivity keeps this
+// tracker out of probing state so keepalive remains an idle-path fallback.
 func (t *clientKeepaliveTracker) poll(now time.Time, keepalive time.Duration) (bool, uint64, bool) {
 	if keepalive <= 0 {
 		return false, 0, false
@@ -96,13 +97,24 @@ func (t *clientKeepaliveTracker) poll(now time.Time, keepalive time.Duration) (b
 	return true, t.nonce, false
 }
 
-func (t *clientKeepaliveTracker) observePong(nonce uint64, now time.Time, keepalive time.Duration) bool {
-	if keepalive <= 0 || !t.probing || nonce != t.nonce {
-		return false
+// observeRemoteActivity records authenticated, successfully decoded LINK data.
+// It deliberately has no outbound counterpart: local writes cannot prove that
+// the peer or the path is still reachable. Valid remote activity cancels an
+// outstanding idle probe and restarts the idle interval.
+func (t *clientKeepaliveTracker) observeRemoteActivity(now time.Time, keepalive time.Duration) {
+	if keepalive <= 0 {
+		return
 	}
 	t.probing = false
 	t.nonce = 0
 	t.attempts = 0
 	t.nextProbe = now.Add(keepalive)
+}
+
+func (t *clientKeepaliveTracker) observePong(nonce uint64, now time.Time, keepalive time.Duration) bool {
+	if keepalive <= 0 || !t.probing || nonce != t.nonce {
+		return false
+	}
+	t.observeRemoteActivity(now, keepalive)
 	return true
 }
