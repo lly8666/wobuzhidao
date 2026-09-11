@@ -37,3 +37,24 @@ func TestGameLaneLinkMTUBudgetsDataplaneAndEnvelopeHeaders(t *testing.T) {
 		t.Fatalf("Game LINK args=%v want inner+dataplane+game headers=%d", plan.Link.Args, want)
 	}
 }
+
+// BuildPlan remains a public runtime planning primitive even though current
+// product Connect wraps it with BuildMultiLanePlan. Keep its two MTU domains
+// explicit so a future caller cannot accidentally feed the user-visible inner
+// MTU directly into LINK again.
+func TestBuildPlanKeepsInnerAndLinkMTUSeparate(t *testing.T) {
+	p := testProfile()
+	p.MTU = 1280
+	p.TunnelIPv4 = testAuthenticatedTunnel().Address4
+	u := testUnderlay()
+	plan, err := BuildPlan(p, u, strings.Repeat("ab", 32))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !argPair(plan.TUN.Args, "-mtu", "1280") {
+		t.Fatalf("TUN args=%v want user inner MTU 1280", plan.TUN.Args)
+	}
+	if !argPair(plan.Link.Args, "-mtu", "1320") {
+		t.Fatalf("LINK args=%v want derived LINK plaintext MTU 1320", plan.Link.Args)
+	}
+}
