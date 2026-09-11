@@ -22,10 +22,10 @@ const (
 	// beyond an old hole, the receiver stops paying unbounded TCP-like repair
 	// debt for that hole: it advances cumulative ACK to the oldest live SACK
 	// range and lets normal ACK processing retire the abandoned sender state.
-	// Half the hard window leaves roughly another 2048 records of ACK-flight
-	// headroom, which is larger than the ~1500-record 10-Mbit/FEC20:20 BDP at
-	// the project's 600ms target RTT.
-	PartialReliabilityReorderSoftLimit = MaxSteadyStateOutstandingDatagrams / 2
+	// Three eighths of the hard window is 1536 records, approximately one 10-Mbit
+	// FEC20:20 BDP at the project's 600ms target RTT, while leaving 2560 records
+	// of headroom for ACK flight/loss before the hard debt ceiling.
+	PartialReliabilityReorderSoftLimit = (MaxSteadyStateOutstandingDatagrams * 3) / 8
 )
 
 type RecoveryMode uint8
