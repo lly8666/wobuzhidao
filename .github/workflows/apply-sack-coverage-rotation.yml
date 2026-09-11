@@ -1,0 +1,227 @@
+name: apply-sack-coverage-rotation
+
+on:
+  push:
+    branches:
+      - agent/apply-sack-coverage-rotation-570d
+    paths:
+      - '.github/workflows/apply-sack-coverage-rotation.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/shadow-repair-nohol-0967
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Verify exact target
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "570d4669a0552e11eb365e2ff6f73e1d0d974347"
+      - name: Apply rotating SACK coverage
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('internal/faketcp/arq.go')
+          s = p.read_text()
+
+          old = 'import "time"'
+          new = 'import (\n\t"sort"\n\t"time"\n)'
+          if s.count(old) != 1:
+              raise SystemExit('import marker drift')
+          s = s.replace(old, new, 1)
+
+          old = '''type Receiver struct {
+\tnext           uint32
+\toutOfOrder     map[uint32]uint32
+\tsacksByStart   map[uint32]uint32
+\tsackStartByEnd map[uint32]uint32
+\trecentSACK     [4]uint32
+\trecentSACKN    int
+\tstats          ReceiverStats
+}'''
+          new = '''type Receiver struct {
+\tnext               uint32
+\toutOfOrder         map[uint32]uint32
+\tsacksByStart       map[uint32]uint32
+\tsackStartByEnd     map[uint32]uint32
+\trecentSACK         [4]uint32
+\trecentSACKN        int
+\tsackCoverageCursor uint64
+\tstats              ReceiverStats
+}'''
+          if s.count(old) != 1:
+              raise SystemExit('receiver marker drift')
+          s = s.replace(old, new, 1)
+
+          old = '''func (r *Receiver) SACKBlocks(dst *[4]SACKBlock) int {
+\tif dst == nil {
+\t\treturn 0
+\t}
+\tn := 0
+\tfor i := 0; i < r.recentSACKN && n < len(dst); i++ {
+\t\tstart := r.recentSACK[i]
+\t\tend, ok := r.sacksByStart[start]
+\t\tif !ok || seqLT(start, r.next) {
+\t\t\tcontinue
+\t\t}
+\t\tdst[n] = SACKBlock{Start: start, End: end}
+\t\tn++
+\t}
+\treturn n
+}'''
+          new = '''func (r *Receiver) SACKBlocks(dst *[4]SACKBlock) int {
+\tif dst == nil {
+\t\treturn 0
+\t}
+
+\t// Stay byte-for-byte TCP-like in the normal case: when all live ranges fit
+\t// in the RFC 2018 four-block option, preserve the mature recency order.
+\tif len(r.sacksByStart) <= len(dst) {
+\t\tn := 0
+\t\tfor i := 0; i < r.recentSACKN && n < len(dst); i++ {
+\t\t\tstart := r.recentSACK[i]
+\t\t\tend, ok := r.sacksByStart[start]
+\t\t\tif !ok || seqLT(start, r.next) {
+\t\t\t\tcontinue
+\t\t\t}
+\t\t\tdst[n] = SACKBlock{Start: start, End: end}
+\t\t\tn++
+\t\t}
+\t\treturn n
+\t}
+
+\t// Under severe reordering there can be far more than four live ranges. RFC
+\t// 2018 still gives us only four blocks. Keep block 0 as the range containing
+\t// the segment that triggered this ACK, then rotate the other three slots
+\t// over older received ranges. This preserves a TCP-looking wire image while
+\t// making ACK loss unable to strand thousands of already-delivered records in
+\t// the sender's repair window.
+\tn := 0
+\tvar primary uint32
+\thavePrimary := false
+\tfor i := 0; i < r.recentSACKN; i++ {
+\t\tstart := r.recentSACK[i]
+\t\tend, ok := r.sacksByStart[start]
+\t\tif !ok || seqLT(start, r.next) {
+\t\t\tcontinue
+\t\t}
+\t\tdst[n] = SACKBlock{Start: start, End: end}
+\t\tn++
+\t\tprimary = start
+\t\thavePrimary = true
+\t\tbreak
+\t}
+
+\tstarts := make([]uint32, 0, len(r.sacksByStart))
+\tfor start := range r.sacksByStart {
+\t\tif seqLT(start, r.next) || (havePrimary && start == primary) {
+\t\t\tcontinue
+\t\t}
+\t\tstarts = append(starts, start)
+\t}
+\tif len(starts) == 0 || n >= len(dst) {
+\t\treturn n
+\t}
+\tsort.Slice(starts, func(i, j int) bool {
+\t\treturn uint32(starts[i]-r.next) < uint32(starts[j]-r.next)
+\t})
+
+\tcursor := int(r.sackCoverageCursor % uint64(len(starts)))
+\tselected := 0
+\tfor n < len(dst) && selected < len(starts) {
+\t\tstart := starts[cursor]
+\t\tend, ok := r.sacksByStart[start]
+\t\tif ok && !seqLT(start, r.next) {
+\t\t\tdst[n] = SACKBlock{Start: start, End: end}
+\t\t\tn++
+\t\t}
+\t\tselected++
+\t\tcursor++
+\t\tif cursor == len(starts) {
+\t\t\tcursor = 0
+\t\t}
+\t}
+\tr.sackCoverageCursor += uint64(selected)
+\treturn n
+}'''
+          if s.count(old) != 1:
+              raise SystemExit('SACKBlocks marker drift')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+
+          cat > internal/faketcp/sack_coverage_rotation_test.go <<'EOF'
+          package faketcp
+
+          import "testing"
+
+          func TestReceiverSACKCoverageRotatesOlderRanges(t *testing.T) {
+          	r := NewReceiver(100)
+          	for _, seq := range []uint32{110, 130, 150, 170, 190, 210, 230} {
+          		if deliver, sack := r.Accept(seq, 10); !deliver || !sack {
+          			t.Fatalf("Accept(%d): deliver=%v sack=%v", seq, deliver, sack)
+          		}
+          	}
+
+          	seen := map[uint32]bool{}
+          	for round := 0; round < 3; round++ {
+          		var blocks [4]SACKBlock
+          		n := r.SACKBlocks(&blocks)
+          		if n != 4 {
+          			t.Fatalf("round %d: n=%d blocks=%v", round, n, blocks[:n])
+          		}
+          		if blocks[0] != (SACKBlock{Start: 230, End: 240}) {
+          			t.Fatalf("round %d: first block lost latest-arrival semantics: %v", round, blocks[:n])
+          		}
+          		for _, b := range blocks[1:n] {
+          			seen[b.Start] = true
+          		}
+          	}
+          	for _, start := range []uint32{110, 130, 150, 170, 190, 210} {
+          		if !seen[start] {
+          			t.Fatalf("older received range %d was never covered; seen=%v", start, seen)
+          		}
+          	}
+          }
+
+          func TestReceiverSACKCoverageKeepsNormalRecentOrder(t *testing.T) {
+          	r := NewReceiver(100)
+          	for _, seq := range []uint32{110, 130, 150, 170} {
+          		r.Accept(seq, 10)
+          	}
+          	var blocks [4]SACKBlock
+          	n := r.SACKBlocks(&blocks)
+          	want := []SACKBlock{{170, 180}, {150, 160}, {130, 140}, {110, 120}}
+          	if n != len(want) {
+          		t.Fatalf("n=%d want=%d blocks=%v", n, len(want), blocks[:n])
+          	}
+          	for i := range want {
+          		if blocks[i] != want[i] {
+          			t.Fatalf("block[%d]=%v want=%v", i, blocks[i], want[i])
+          		}
+          	}
+          }
+          EOF
+          gofmt -w internal/faketcp/arq.go internal/faketcp/sack_coverage_rotation_test.go
+      - name: Test focused FakeTCP recovery
+        run: |
+          set -euo pipefail
+          go test ./internal/faketcp ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux -count=1
+      - name: Commit exact product change
+        run: |
+          set -euo pipefail
+          git config user.name 'wbd-ci'
+          git config user.email 'wbd-ci@users.noreply.github.com'
+          git add internal/faketcp/arq.go internal/faketcp/sack_coverage_rotation_test.go
+          git commit -m 'fix(faketcp): rotate SACK coverage under severe reordering'
+          git push origin HEAD:agent/shadow-repair-nohol-0967
