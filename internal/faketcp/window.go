@@ -7,10 +7,9 @@ import (
 
 const (
 	// MaxSteadyStateOutstandingDatagrams is the hard per-association bound for
-	// DTLS ciphertext datagrams admitted into FakeTCP steady state. Product DTLS
-	// emits one application record per LINK datagram, so keeping this bound equal
-	// to the pinned wolfSSL replay window prevents a live association from
-	// creating a record-reordering span larger than the receiver can authenticate.
+	// retransmittable DTLS ciphertext state retained by FakeTCP steady state.
+	// Fresh first-arrival traffic is allowed to displace old optional shadow
+	// repair debt instead of waiting behind it.
 	MaxSteadyStateOutstandingDatagrams = 4096
 
 	// PinnedDTLSReplayWindowWords is compiled into the pinned wolfSSL library and
@@ -21,15 +20,13 @@ const (
 
 var ErrSteadyStateOutstandingFull = errors.New("faketcp: steady-state outstanding datagram window full")
 
-// EnqueueSteadyState admits one post-bootstrap datagram without allowing the
-// sender's retained/retransmittable set to grow without bound. Callers own the
-// Sender synchronization exactly as they do for Enqueue/AckSelective. A bounded
-// legacy sender also enables pressure-safe RTO sweeping: once a real timer epoch
-// expires, the normal paced retransmit loop can service all packets that were
-// already expired in that epoch instead of letting the cumulative head monopolize
-// recovery indefinitely.
+// EnqueueSteadyState admits one post-bootstrap datagram. The fixed 4096 bound
+// caps retained TCP-like repair state rather than fresh-data latency: when the
+// repair horizon is full, the oldest non-bootstrap repair candidate gives up
+// its future retransmission state so this new first-arrival can proceed.
+// Bootstrap remains separately ACK-gated stop-and-wait and is never evicted.
 func (s *Sender) EnqueueSteadyState(payload []byte, now time.Time) (*Pending, error) {
-	if s.Pending() >= MaxSteadyStateOutstandingDatagrams {
+	if !s.ensureSteadyStateRepairCapacity(1) {
 		return nil, ErrSteadyStateOutstandingFull
 	}
 	s.steadyStateRTOSweep = true
