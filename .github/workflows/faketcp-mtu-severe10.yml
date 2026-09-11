@@ -1,0 +1,248 @@
+name: faketcp-mtu-severe10
+
+on:
+  push:
+    branches:
+      - agent/fix-fec-dtls-mtu-d1e2
+    paths:
+      - '.github/workflows/faketcp-mtu-severe10.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SOURCE_SHA: 0194cd259e7588a85569abbedf23a781ca49f9ea
+
+jobs:
+  build-assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact product checkout
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "WBD_VALIDATION_SOURCE source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl
+      - name: Build exact-source upstream and downstream stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/wbd-soak-assets"
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build "$ASSET"
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
+
+          go test ./internal/fec ./internal/linkdata ./internal/gamelane ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker \
+            ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server \
+            ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux -count=1
+          go build -trimpath -o "$ASSET/wbd-reality-front" ./cmd/wbd-reality-front
+          go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
+          go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+          go build -trimpath -o "$ASSET/wbd-link-proxy" ./cmd/wbd-link-proxy
+          go build -trimpath -o "$ASSET/wbd-link-server-mux" ./cmd/wbd-link-server-mux
+          go build -trimpath -o "$ASSET/wbd-game-lane-client" ./cmd/wbd-game-lane-client
+          go build -trimpath -o "$ASSET/wbd-game-lane-server" ./cmd/wbd-game-lane-server
+          printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
+
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-dtls.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+          echo "WBD_SOAK_BUILD_PASS source_sha=${SOURCE_SHA} upstream=source downstream=source dtls=pinned-source-build validation_helper_sha=${GITHUB_SHA}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: faketcp-mtu-severe10-assets
+          path: ${{ runner.temp }}/wbd-soak-assets
+          retention-days: 1
+
+  soak-500s-4lane-1mbps-weaknet:
+    needs: build-assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - fec: 'off'
+            slug: off
+            replica: 1
+          - fec: 'off'
+            slug: off
+            replica: 2
+          - fec: 'off'
+            slug: off
+            replica: 3
+          - fec: 'off'
+            slug: off
+            replica: 4
+          - fec: 'off'
+            slug: off
+            replica: 5
+          - fec: '20:20'
+            slug: fec20
+            replica: 1
+          - fec: '20:20'
+            slug: fec20
+            replica: 2
+          - fec: '20:20'
+            slug: fec20
+            replica: 3
+          - fec: '20:20'
+            slug: fec20
+            replica: 4
+          - fec: '20:20'
+            slug: fec20
+            replica: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact product checkout
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+      - name: Install namespace tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump
+      - uses: actions/download-artifact@v4
+        with:
+          name: faketcp-mtu-severe10-assets
+          path: ${{ runner.temp }}/wbd-soak-assets
+      - name: Restore executables and verify source identity
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP"/wbd-soak-assets/wbd-* "$RUNNER_TEMP"/wbd-soak-assets/wbd_dtls_shim
+          test "$(cat "$RUNNER_TEMP/wbd-soak-assets/SOURCE_SHA.txt")" = "$SOURCE_SHA"
+          echo "WBD_VALIDATION_RUNTIME_SOURCE source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA fec=${{ matrix.fec }} replica=${{ matrix.replica }}"
+      - name: Prepare collision-safe validation harness
+        run: |
+          set -euo pipefail
+          HARNESS="$RUNNER_TEMP/game_lane_rotation_soak_control_severe10.sh"
+          cp "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$HARNESS"
+          python3 - "$HARNESS" <<'PY'
+          import pathlib,sys
+          p=pathlib.Path(sys.argv[1])
+          s=p.read_text()
+          reps=[
+              ("new_lport = '  local lport=$((47100 + gen*100 + lane))\\n'",
+               "new_lport = '  local lport=$((21000 + gen*100 + lane))\\n'"),
+              ('  p1=$((47100 + ${LANE_GEN[1]}*100 + 1))',
+               '  p1=$(( ${LANE_GEN[1]} == 0 ? 47101 : 21000 + ${LANE_GEN[1]}*100 + 1 ))'),
+              ('  p2=$((47100 + ${LANE_GEN[2]}*100 + 2))',
+               '  p2=$(( ${LANE_GEN[2]} == 0 ? 47102 : 21000 + ${LANE_GEN[2]}*100 + 2 ))'),
+              ('  p3=$((47100 + ${LANE_GEN[3]}*100 + 3))',
+               '  p3=$(( ${LANE_GEN[3]} == 0 ? 47103 : 21000 + ${LANE_GEN[3]}*100 + 3 ))'),
+              ('  p4=$((47100 + ${LANE_GEN[4]}*100 + 4))',
+               '  p4=$(( ${LANE_GEN[4]} == 0 ? 47104 : 21000 + ${LANE_GEN[4]}*100 + 4 ))'),
+              ('  local old_lport=$((47100 + old_gen*100 + lane))',
+               '  local old_lport=$(( old_gen == 0 ? 47100 + lane : 21000 + old_gen*100 + lane ))'),
+              ('  local new_lport=$((47100 + gen*100 + lane))',
+               '  local new_lport=$((21000 + gen*100 + lane))'),
+              ("grep -Fq 'local lport=$((47100 + gen*100 + lane))' \"$OUT\"",
+               "grep -Fq 'local lport=$((21000 + gen*100 + lane))' \"$OUT\""),
+          ]
+          for old,new in reps:
+              if old not in s:
+                  raise SystemExit('validation port patch insertion not found: '+old)
+              s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+          chmod +x "$HARNESS"
+          bash -n "$HARNESS"
+          grep -Fq '21000 + gen*100 + lane' "$HARNESS"
+          if grep -Fq 'local new_lport=$((47100 + gen*100 + lane))' "$HARNESS"; then
+            echo 'stale ephemeral replacement port allocator survived validation patch' >&2
+            exit 1
+          fi
+          echo 'WBD_VALIDATION_PORT_ALLOCATOR replacement_base=21000 initial_base=47100 reason=avoid-ephemeral-collision'
+      - name: Run 500 second four-lane rotation soak at 1 Mbps each direction with 300ms 20pct loss
+        env:
+          LANES: '4'
+          FEC: ${{ matrix.fec }}
+          DURATION_SEC: '500'
+          RATE_BPS: '1000000'
+          PAYLOAD_BYTES: '1000'
+          ROTATE_INTERVAL_SEC: '25'
+          ROTATIONS: '16'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+          SOAK_REPLICA: ${{ matrix.replica }}
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/mtu-severe10-${{ matrix.slug }}-r${{ matrix.replica }}"
+          mkdir -p "$LOG"
+          sudo -E bash "$RUNNER_TEMP/game_lane_rotation_soak_control_severe10.sh" "$RUNNER_TEMP/wbd-soak-assets" "$LOG"
+          grep -q 'WBD_HOSTED_NETEM_READY delay_ms=300 loss_pct=20 direction=bidirectional' "$LOG/netem.log"
+          python3 - "$LOG/load-result.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d['requested_duration_sec'] == 500, d
+          assert d['lanes'] == 4 and d['rotations'] == 16, d
+          assert d['requested_bps_each_direction'] == 1_000_000, d
+          assert d['peer_resets'] == 16 and d['no_client_rx_expire'] == 0, d
+          assert d['duplicates'] == 0 and d['bad_payload'] == 0, d
+          print('WBD_SOAK_QUALIFICATION_PASS '+json.dumps(d,sort_keys=True))
+          PY
+      - name: Diagnose soak failure
+        if: failure()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/mtu-severe10-${{ matrix.slug }}-r${{ matrix.replica }}"
+          echo '=== NETEM ==='
+          cat "$LOG/netem.log" 2>/dev/null || true
+          echo '=== LOAD RESULT ==='
+          cat "$LOG/load-result.json" 2>/dev/null || true
+          echo '=== ROTATIONS ==='
+          cat "$LOG/rotation.log" 2>/dev/null || true
+          for f in faketcp-mux.log link-server.log game-server.log game-client.log load.log; do
+            echo "--- $f ---"
+            tail -n 240 "$LOG/$f" 2>/dev/null || true
+          done
+          find "$LOG" -maxdepth 1 -name 'lane-*.log' -print | sort | while read -r f; do
+            echo "--- $f ---"
+            tail -n 100 "$f" 2>/dev/null || true
+          done
+      - name: Scrub one-time auth material
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/mtu-severe10-${{ matrix.slug }}-r${{ matrix.replica }}"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: faketcp-mtu-severe10-${{ matrix.slug }}-r${{ matrix.replica }}
+          path: ${{ runner.temp }}/mtu-severe10-${{ matrix.slug }}-r${{ matrix.replica }}
+          retention-days: 14
+
+  aggregate:
+    needs: soak-500s-4lane-1mbps-weaknet
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Publish exact phase-two marker
+        run: |
+          echo "WBD_MTU_SEVERE10_PASS source_sha=${SOURCE_SHA} helper_sha=${GITHUB_SHA} duration_sec=500 lanes=4 payload_bps_each_direction=1000000 netem_delay_ms=300 netem_loss_pct=20 replicas_per_fec=5 rotations=16 fec=off,20:20 validation_replacement_port_base=21000"
