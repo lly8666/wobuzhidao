@@ -399,7 +399,7 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 		now := time.Now()
 		sendPing, pingNonce, dead := liveness.poll(now, keepalive)
 		if dead {
-			return fmt.Errorf("WBD link liveness timeout after %s without keepalive round-trip", clientRemoteRXTimeout(keepalive))
+			return fmt.Errorf("WBD link liveness timeout after %s without valid remote LINK activity", clientRemoteRXTimeout(keepalive))
 		}
 		if sendPing {
 			if err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: pingNonce}); err != nil {
@@ -447,10 +447,13 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 				if !errors.Is(err, fec.ErrDecoderFull) {
 					return err
 				}
-			} else if appPeer != nil {
-				for _, packet := range packets {
-					if _, err := conn.WriteToUDP(packet, appPeer); err != nil {
-						return err
+			} else {
+				liveness.observeRemoteActivity(now, keepalive)
+				if appPeer != nil {
+					for _, packet := range packets {
+						if _, err := conn.WriteToUDP(packet, appPeer); err != nil {
+							return err
+						}
 					}
 				}
 			}
