@@ -1,72 +1,43 @@
-name: game-lane-fullstack
+name: dtls-max-logical-datagram-regression
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - '.github/workflows/game-lane-fullstack.yml'
-      - 'scripts/game_lane_fullstack.sh'
-      - 'scripts/analyze_game_lane_pcap.py'
-      - 'internal/gamelane/**'
-      - 'cmd/wbd-game-lane-client/**'
-      - 'cmd/wbd-game-lane-server/**'
-      - 'cmd/wbd-link-proxy/**'
-      - 'cmd/wbd-link-server-mux/**'
-      - 'cmd/wbd-faketcp/**'
-      - 'cmd/wbd-faketcp-mux/**'
-      - 'cmd/wbd-reality-front/**'
-      - 'internal/faketcp/**'
-      - 'internal/session/**'
-      - 'internal/realityfront/**'
-      - 'internal/dtlsworker/**'
-      - 'native/dtls/**'
   push:
     branches:
-      - dev/wbd-raw-fec-v2
-      - feat/single-flow-reality-faketcp
+      - agent/validate-dtls-max-red-2d68
     paths:
       - '.github/workflows/game-lane-fullstack.yml'
-      - 'scripts/game_lane_fullstack.sh'
-      - 'scripts/analyze_game_lane_pcap.py'
-      - 'internal/gamelane/**'
-      - 'cmd/wbd-game-lane-client/**'
-      - 'cmd/wbd-game-lane-server/**'
-      - 'cmd/wbd-link-proxy/**'
-      - 'cmd/wbd-link-server-mux/**'
-      - 'cmd/wbd-reality-front/**'
-      - 'internal/faketcp/**'
-      - 'internal/session/**'
-      - 'internal/realityfront/**'
-      - 'internal/dtlsworker/**'
-      - 'native/dtls/**'
-
-concurrency:
-  group: game-lane-fullstack-${{ github.head_ref || github.ref_name }}
-  cancel-in-progress: true
+  workflow_dispatch: {}
 
 permissions:
   contents: read
   actions: read
 
+env:
+  SOURCE_SHA: 2d68ee5008a3ea8dbb50d94ed4058e082f96f691
+
 jobs:
-  build:
+  regression:
     runs-on: ubuntu-24.04
-    timeout-minutes: 18
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
         with:
-          go-version: '1.23.x'
-      - name: Install build tools
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact regression source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "WBD_DTLS_REGRESSION_SOURCE source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA"
+      - name: Install pinned wolfSSL build prerequisites
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl
-      - name: Build pinned DTLS and game stack once
+      - name: Build pinned wolfSSL and exact-source shim
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          ASSET="$RUNNER_TEMP/wbd-game-lane-assets"
+          ASSET="$RUNNER_TEMP/dtls-regression-assets"
           mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build "$ASSET"
           curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
@@ -78,100 +49,9 @@ jobs:
           make -C /tmp/wolf/build -j2 src/libwolfssl.la
           gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
             native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
-
-          go test ./internal/gamelane ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server ./cmd/wbd-link-server-mux -count=1
-          go build -trimpath -o "$ASSET/wbd-reality-front" ./cmd/wbd-reality-front
-          go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
-          go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
-          go build -trimpath -o "$ASSET/wbd-link-proxy" ./cmd/wbd-link-proxy
-          go build -trimpath -o "$ASSET/wbd-link-server-mux" ./cmd/wbd-link-server-mux
-          go build -trimpath -o "$ASSET/wbd-game-lane-client" ./cmd/wbd-game-lane-client
-          go build -trimpath -o "$ASSET/wbd-game-lane-server" ./cmd/wbd-game-lane-server
-
           openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
-            -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
-          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
-            -subj '/CN=unrelated-dtls.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
-      - uses: actions/upload-artifact@v4
-        with:
-          name: game-lane-assets
-          path: ${{ runner.temp }}/wbd-game-lane-assets
-          retention-days: 1
-
-  runtime-matrix:
-    needs: build
-    runs-on: ubuntu-24.04
-    timeout-minutes: 12
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - lanes: 1
-            fec: off
-            label: off
-          - lanes: 2
-            fec: off
-            label: off
-          - lanes: 3
-            fec: off
-            label: off
-          - lanes: 4
-            fec: off
-            label: off
-          - lanes: 1
-            fec: '20:20'
-            label: fixed20x20-smoke
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install namespace and packet tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y iproute2 iptables tcpdump
-      - uses: actions/download-artifact@v4
-        with:
-          name: game-lane-assets
-          path: ${{ runner.temp }}/wbd-game-lane-assets
-      - name: Restore executable bits lost by Actions artifact transport
+            -subj '/CN=dtls-regression.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+      - name: Reproduce maximum logical DTLS datagram failure
         run: |
           set -euo pipefail
-          chmod +x "$RUNNER_TEMP"/wbd-game-lane-assets/wbd-* "$RUNNER_TEMP"/wbd-game-lane-assets/wbd_dtls_shim
-      - name: Exercise product lanes; FEC off is primary and 20:20 is smoke-only
-        env:
-          LANES: ${{ matrix.lanes }}
-          FEC: ${{ matrix.fec }}
-        run: |
-          set -euo pipefail
-          LOG="$RUNNER_TEMP/wbd-game-lane-logs"
-          mkdir -p "$LOG"
-          sudo -E scripts/game_lane_fullstack.sh "$RUNNER_TEMP/wbd-game-lane-assets" "$LOG"
-      - name: Diagnose failed lane/FEC wiring
-        if: failure()
-        env:
-          LANES: ${{ matrix.lanes }}
-        run: |
-          set +e
-          LOG="$RUNNER_TEMP/wbd-game-lane-logs"
-          echo '=== WBD_GAME_LANE_DIAGNOSTIC_BEGIN ==='
-          for f in game-server.log link-server.log faketcp-mux.log tcpdump.log game-client.log probe-warm.log probe.log echo.log echo-count.log; do
-            if sudo test -f "$LOG/$f"; then echo "--- $f ---"; sudo tail -n 120 "$LOG/$f"; fi
-          done
-          for i in $(seq 1 "$LANES"); do
-            for stem in faketcp dtls link; do
-              f="$LOG/${stem}-${i}.log"
-              if sudo test -f "$f"; then echo "--- ${stem}-${i}.log ---"; sudo tail -n 120 "$f"; fi
-            done
-          done
-          echo '=== WBD_GAME_LANE_DIAGNOSTIC_END ==='
-      - name: Remove one-time auth material from evidence
-        if: always()
-        run: |
-          set +e
-          LOG="$RUNNER_TEMP/wbd-game-lane-logs"
-          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/front-*.log
-          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: game-lane-${{ matrix.lanes }}-${{ matrix.label }}
-          path: ${{ runner.temp }}/wbd-game-lane-logs
-          retention-days: 14
+          bash scripts/dtls_max_datagram_regression.sh "$RUNNER_TEMP/dtls-regression-assets"
