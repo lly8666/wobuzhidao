@@ -18,7 +18,19 @@ cleanup() {
   for p in "${PIDS[@]:-}"; do kill -TERM "$p" 2>/dev/null || true; done
   for p in "${PIDS[@]:-}"; do wait "$p" 2>/dev/null || true; done
 }
+diagnose() {
+  rc=$?
+  set +e
+  echo '=== WBD_DTLS_MAX_DATAGRAM_DIAGNOSTIC_BEGIN ===' >&2
+  for f in client.log server.log echo.log; do
+    echo "--- $f ---" >&2
+    cat "$TMP/$f" >&2 2>/dev/null || true
+  done
+  echo '=== WBD_DTLS_MAX_DATAGRAM_DIAGNOSTIC_END ===' >&2
+  exit "$rc"
+}
 trap cleanup EXIT
+trap diagnose ERR
 
 cat >"$TMP/echo.py" <<'PY'
 import socket
