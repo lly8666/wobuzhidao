@@ -8,6 +8,7 @@ on:
       - '.github/workflows/validate-10m-300oneway-20loss-tcdiag.yml'
       - 'scripts/validate_perlane_tc_diag_d3b.sh'
       - 'scripts/patch_linkrx_counters_d3b.py'
+      - 'scripts/patch_mux_teardown_stats_d3b.py'
 
 permissions:
   contents: read
@@ -15,8 +16,14 @@ permissions:
 
 jobs:
   exact-source-tcdiag:
+    name: tcdiag-${{ matrix.linkrx }}-r${{ matrix.replica }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        linkrx: [off, on]
+        replica: [1, 2, 3]
     steps:
       - name: Checkout helper branch
         uses: actions/checkout@v4
@@ -38,7 +45,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool make gcc iproute2 iptables tcpdump curl unzip openssl
 
+      - name: Add teardown-only server FakeTCP stats
+        run: |
+          python3 "$GITHUB_WORKSPACE/helper/scripts/patch_mux_teardown_stats_d3b.py" "$GITHUB_WORKSPACE/product"
+          (cd "$GITHUB_WORKSPACE/product" && gofmt -w cmd/wbd-faketcp-mux/main_linux.go)
+
       - name: Add diagnostic-only LINK RX counters
+        if: matrix.linkrx == 'on'
         run: |
           python3 "$GITHUB_WORKSPACE/helper/scripts/patch_linkrx_counters_d3b.py" "$GITHUB_WORKSPACE/product"
           (cd "$GITHUB_WORKSPACE/product" && gofmt -w internal/linkdata/path.go cmd/wbd-link-server-mux/main.go)
@@ -46,6 +59,8 @@ jobs:
       - name: Run low-overhead exact-source tc diagnostic
         env:
           GH_TOKEN: ${{ github.token }}
+          SOAK_REPLICA: ${{ matrix.replica }}
+          DIAG_LINKRX: ${{ matrix.linkrx }}
         run: |
           set +e
           bash "$GITHUB_WORKSPACE/helper/scripts/validate_perlane_tc_diag_d3b.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
@@ -56,11 +71,16 @@ jobs:
           fi
           exit "$rc"
 
+      - name: Show server FakeTCP stats
+        if: always()
+        run: |
+          grep -E 'WBD_FAKETCP_MUX_STATS|WBD_LINK_PATH_STATS' "$RUNNER_TEMP/tenm-300oneway-20loss-tc/faketcp-mux.log" "$RUNNER_TEMP/tenm-300oneway-20loss-tc/link-server.log" 2>/dev/null || true
+
       - name: Upload tc diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tcdiag-10m-300oneway-20loss-${{ github.sha }}
+          name: tcdiag-10m-${{ matrix.linkrx }}-r${{ matrix.replica }}-${{ github.sha }}
           path: ${{ runner.temp }}/tenm-300oneway-20loss-tc
           if-no-files-found: warn
           retention-days: 7
