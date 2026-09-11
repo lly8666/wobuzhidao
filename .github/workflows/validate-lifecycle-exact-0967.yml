@@ -1,0 +1,69 @@
+name: validate-lifecycle-exact-0967f983
+
+on:
+  push:
+    branches:
+      - agent/audit-backlog-exact-0967
+    paths:
+      - '.github/workflows/validate-lifecycle-exact-0967.yml'
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_SHA: 0967f983c36504dfd430bb76456e1e8f8331dea8
+
+jobs:
+  linux-control-plane:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact candidate checkout
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "WBD_VALIDATION_SOURCE source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA os=linux"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Test Logical Tunnel lifecycle, Game membership, Dormant/wake and MBB
+        run: |
+          set -euo pipefail
+          go test ./internal/logicaltunnel ./internal/gamelane ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server ./internal/windowsruntime -count=1
+          echo "WBD_PRODUCT_LIFECYCLE_LINUX_PASS source_sha=$SOURCE_SHA lanes=1..4 mbb=1 dormant_wake=1 logical_tunnel=1"
+
+  windows-control-plane:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact candidate checkout
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $head = (git rev-parse HEAD).Trim()
+          if ($head -ne $env:SOURCE_SHA) { throw "source mismatch: $head != $env:SOURCE_SHA" }
+          Write-Host "WBD_VALIDATION_SOURCE source_sha=$env:SOURCE_SHA helper_sha=$env:GITHUB_SHA os=windows"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Test Windows exact lifecycle controller
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          go test ./internal/logicaltunnel ./internal/gamelane ./internal/windowsruntime -count=1
+          if ($LASTEXITCODE -ne 0) { throw 'Windows lifecycle tests failed' }
+          Write-Host "WBD_PRODUCT_LIFECYCLE_WINDOWS_PASS source_sha=$env:SOURCE_SHA lanes=1..4 mbb=1 dormant_wake=1"
+
+  aggregate:
+    needs: [linux-control-plane, windows-control-plane]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Publish exact-source lifecycle marker
+        run: |
+          echo "WBD_PRODUCT_LIFECYCLE_PASS source_sha=${SOURCE_SHA} windows=1 linux=1 logical_tunnel=1 lanes=1..4 mbb=1 dormant_wake=1"
