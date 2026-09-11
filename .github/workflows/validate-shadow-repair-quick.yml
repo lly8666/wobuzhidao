@@ -12,7 +12,7 @@ permissions:
   actions: read
 
 env:
-  SOURCE_SHA: 07f0adfca0dc75ab2b60a4185e54019627e34ae4
+  SOURCE_SHA: 533d02cd2db9df7f1b57c2961e32c3637f54b24c
   BASE_ASSET_ARTIFACT_ID: '10265571219'
 
 jobs:
