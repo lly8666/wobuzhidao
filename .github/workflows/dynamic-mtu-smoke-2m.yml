@@ -1,0 +1,208 @@
+name: dynamic-mtu-smoke-2m
+
+on:
+  push:
+    branches:
+      - agent/validate-dynamic-mtu-20b7
+    paths:
+      - '.github/workflows/dynamic-mtu-smoke-2m.yml'
+      - 'scripts/game_lane_dynamic_mtu_smoke.sh'
+  workflow_dispatch: {}
+
+concurrency:
+  group: dynamic-mtu-smoke-2m-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SOURCE_SHA: 20b7c63d483a441920e2abc75e0c275eb4c692aa
+
+jobs:
+  build-assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact product checkout
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "WBD_DYNAMIC_MTU_BUILD_SOURCE source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl
+      - name: Build exact-source stack and pinned wolfSSL DTLS
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/wbd-dynamic-mtu-assets"
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build "$ASSET"
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
+
+          go test ./internal/fec ./internal/linkdata ./internal/gamelane ./internal/gamepath ./internal/faketcp ./internal/dtlsworker \
+            ./internal/windowsruntime ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux \
+            ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server -count=1
+          go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
+          go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+          go build -trimpath -o "$ASSET/wbd-link-proxy" ./cmd/wbd-link-proxy
+          go build -trimpath -o "$ASSET/wbd-link-server-mux" ./cmd/wbd-link-server-mux
+          go build -trimpath -o "$ASSET/wbd-game-lane-client" ./cmd/wbd-game-lane-client
+          go build -trimpath -o "$ASSET/wbd-game-lane-server" ./cmd/wbd-game-lane-server
+          printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
+
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-dtls.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+          echo "WBD_DYNAMIC_MTU_BUILD_PASS source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dynamic-mtu-assets
+          path: ${{ runner.temp }}/wbd-dynamic-mtu-assets
+          retention-days: 1
+
+  smoke:
+    needs: build-assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - user_mtu: 1300
+            link_mtu: 1340
+            lanes: 1
+            fec: 'off'
+            slug: c1300-1lane-off
+          - user_mtu: 1300
+            link_mtu: 1340
+            lanes: 1
+            fec: '20:20'
+            slug: c1300-1lane-fec20
+          - user_mtu: 1300
+            link_mtu: 1340
+            lanes: 4
+            fec: 'off'
+            slug: c1300-4lane-off
+          - user_mtu: 1300
+            link_mtu: 1340
+            lanes: 4
+            fec: '20:20'
+            slug: c1300-4lane-fec20
+          - user_mtu: 1360
+            link_mtu: 1400
+            lanes: 1
+            fec: 'off'
+            slug: c1360-1lane-off
+          - user_mtu: 1360
+            link_mtu: 1400
+            lanes: 1
+            fec: '20:20'
+            slug: c1360-1lane-fec20
+          - user_mtu: 1360
+            link_mtu: 1400
+            lanes: 4
+            fec: 'off'
+            slug: c1360-4lane-off
+          - user_mtu: 1360
+            link_mtu: 1400
+            lanes: 4
+            fec: '20:20'
+            slug: c1360-4lane-fec20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record helper and product identity
+        run: |
+          set -euo pipefail
+          echo "WBD_DYNAMIC_MTU_RUNTIME_SOURCE source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA slug=${{ matrix.slug }}"
+      - name: Install namespace and packet tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump
+      - uses: actions/download-artifact@v4
+        with:
+          name: dynamic-mtu-assets
+          path: ${{ runner.temp }}/wbd-dynamic-mtu-assets
+      - name: Restore executables and verify exact product source
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP"/wbd-dynamic-mtu-assets/wbd-* "$RUNNER_TEMP"/wbd-dynamic-mtu-assets/wbd_dtls_shim
+          test "$(cat "$RUNNER_TEMP/wbd-dynamic-mtu-assets/SOURCE_SHA.txt")" = "$SOURCE_SHA"
+      - name: Run strict two-minute dynamic MTU weak-network smoke
+        env:
+          LANES: ${{ matrix.lanes }}
+          FEC: ${{ matrix.fec }}
+          INNER_MTU: '1360'
+          SERVER_INNER_MTU: '1360'
+          USER_INNER_MTU: ${{ matrix.user_mtu }}
+          LINK_PLAINTEXT_MTU: ${{ matrix.link_mtu }}
+          DURATION_SEC: '120'
+          RATE_BPS: '10000000'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/dynamic-mtu-${{ matrix.slug }}"
+          mkdir -p "$LOG"
+          sudo -E scripts/game_lane_dynamic_mtu_smoke.sh "$RUNNER_TEMP/wbd-dynamic-mtu-assets" "$LOG"
+          grep -q 'WBD_DYNAMIC_MTU_NETEM_READY delay_ms=300 loss_pct=20 direction=bidirectional' "$LOG/netem.log"
+          grep -q 'WBD_DYNAMIC_MTU_MAX_PAYLOAD_PASS' "$LOG/load.log"
+          grep -q 'WBD_DYNAMIC_MTU_SMOKE_PASS' "$LOG/load.log"
+      - name: Diagnose smoke failure
+        if: failure()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/dynamic-mtu-${{ matrix.slug }}"
+          echo '=== NETEM ==='; cat "$LOG/netem.log" 2>/dev/null || true
+          echo '=== LOAD ==='; cat "$LOG/load.log" 2>/dev/null || true
+          echo '=== RESULT ==='; cat "$LOG/load-result.json" 2>/dev/null || true
+          for f in faketcp-mux.log link-server.log game-server.log game-client.log tcpdump.log; do
+            echo "--- $f ---"; tail -n 240 "$LOG/$f" 2>/dev/null || true
+          done
+          for i in 1 2 3 4; do
+            for stem in faketcp dtls link; do
+              f="$LOG/${stem}-${i}.log"
+              [[ -f "$f" ]] && { echo "--- ${stem}-${i}.log ---"; tail -n 160 "$f"; }
+            done
+          done
+      - name: Scrub one-time authentication material
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/dynamic-mtu-${{ matrix.slug }}"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dynamic-mtu-${{ matrix.slug }}
+          path: ${{ runner.temp }}/dynamic-mtu-${{ matrix.slug }}
+          retention-days: 14
+
+  aggregate:
+    needs: smoke
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Publish strict smoke gate marker
+        run: |
+          echo "WBD_DYNAMIC_MTU_2M_GATE_PASS source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA user_mtu=1300,1360 link_mtu=1340,1400 lanes=1,4 fec=off,20:20 duration_sec=120 bps_each_direction=10000000 netem_delay_ms=300 netem_loss_pct=20 max_parallel=2"
