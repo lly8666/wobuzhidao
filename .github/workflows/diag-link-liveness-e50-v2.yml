@@ -1,0 +1,174 @@
+name: diag-link-liveness-e50-v2
+
+on:
+  push:
+    branches:
+      - agent/diag-link-liveness-e50-v2
+    paths:
+      - '.github/workflows/diag-link-liveness-e50-v2.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SOURCE_SHA: e50a2df34d19e6f698cd2cff26eaa085aab2acd6
+  HARNESS_SHA: 33464e21df8ddac9a457e077aa463e9b4c75249b
+
+jobs:
+  diag-1lane-fec20-120s:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Verify lineage and add trace-only instrumentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
+          git cat-file -e "$SOURCE_SHA^{commit}"
+          git cat-file -e "$HARNESS_SHA^{commit}"
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # Client-side lifecycle trace in wbd-link-proxy.
+          p=Path('cmd/wbd-link-proxy/main.go')
+          s=p.read_text()
+          pairs=[
+          ("\t\tif sendPing {\n\t\t\tif err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: pingNonce}); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t}\n",
+           "\t\tif sendPing {\n\t\t\tfmt.Printf(\"WBD_LINK_LIVENESS_TRACE role=client event=PING_SENT nonce=%d ts_unix_nano=%d\\n\", pingNonce, now.UnixNano())\n\t\t\tif err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: pingNonce}); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t}\n"),
+          ("\t\t\t\tcase control.Pong:\n\t\t\t\t\tliveness.observePong(f.Nonce, now, keepalive)\n\t\t\t\t\tcontinue\n",
+           "\t\t\t\tcase control.Pong:\n\t\t\t\t\tmatched := liveness.observePong(f.Nonce, now, keepalive)\n\t\t\t\t\tfmt.Printf(\"WBD_LINK_LIVENESS_TRACE role=client event=PONG_RX nonce=%d matched=%t ts_unix_nano=%d\\n\", f.Nonce, matched, now.UnixNano())\n\t\t\t\t\tcontinue\n")]
+          for old,new in pairs:
+              if s.count(old)!=1:
+                  raise SystemExit('client trace anchor mismatch')
+              s=s.replace(old,new,1)
+          p.write_text(s)
+
+          # Server-side lifecycle trace around the exact plaintext control frame
+          # boundary. This does not alter replies or protocol state.
+          p=Path('cmd/wbd-link-server-mux/main.go')
+          s=p.read_text()
+          old='''func (s *server) handleControl(ps *peerSession, packet []byte, now time.Time) error {\n\treply, err := ps.startup.HandleWire(packet, uint64(now.UnixNano()))\n'''
+          new='''func (s *server) handleControl(ps *peerSession, packet []byte, now time.Time) error {\n\tif frame, traceErr := control.UnmarshalLink(packet); traceErr == nil {\n\t\tif ping, ok := frame.(control.Ping); ok {\n\t\t\tfmt.Printf("WBD_LINK_LIVENESS_TRACE role=server event=PING_RX nonce=%d ts_unix_nano=%d\\n", ping.Nonce, now.UnixNano())\n\t\t}\n\t}\n\treply, err := ps.startup.HandleWire(packet, uint64(now.UnixNano()))\n'''
+          if s.count(old)!=1:
+              raise SystemExit('server receive trace anchor mismatch')
+          s=s.replace(old,new,1)
+          old='''\tif len(reply) != 0 {\n\t\tif _, err := s.conn.WriteToUDP(reply, ps.peer); err != nil {\n\t\t\treturn err\n\t\t}\n\t}\n'''
+          new='''\tif len(reply) != 0 {\n\t\tif frame, traceErr := control.UnmarshalLink(reply); traceErr == nil {\n\t\t\tif pong, ok := frame.(control.Pong); ok {\n\t\t\t\tfmt.Printf("WBD_LINK_LIVENESS_TRACE role=server event=PONG_TX nonce=%d ts_unix_nano=%d\\n", pong.Nonce, now.UnixNano())\n\t\t\t}\n\t\t}\n\t\tif _, err := s.conn.WriteToUDP(reply, ps.peer); err != nil {\n\t\t\treturn err\n\t\t}\n\t}\n'''
+          if s.count(old)!=1:
+              raise SystemExit('server reply trace anchor mismatch')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+          gofmt -w cmd/wbd-link-proxy/main.go cmd/wbd-link-server-mux/main.go
+          go test ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux -count=1
+
+      - name: Install build and namespace prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables tcpdump
+
+      - name: Build exact-source stack with trace-only binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/wbd-diag-assets"
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build "$ASSET"
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
+          for pkg in wbd-faketcp wbd-faketcp-mux wbd-link-proxy wbd-link-server-mux wbd-game-lane-client wbd-game-lane-server wbd-reality-front; do
+            go build -trimpath -o "$ASSET/$pkg" "./cmd/$pkg"
+          done
+          printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-dtls.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+
+      - name: Materialize corrected 120s analysis harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show "$HARNESS_SHA:scripts/game_lane_long_analysis.sh" >"$RUNNER_TEMP/game_lane_long_analysis.sh"
+          python3 - "$RUNNER_TEMP/game_lane_long_analysis.sh" <<'PY'
+          import pathlib,sys
+          p=pathlib.Path(sys.argv[1]); s=p.read_text()
+          old='[[ "$DURATION_SEC" == 1800 ]] || { echo "analysis duration must be exactly 1800 seconds" >&2; exit 2; }'
+          new='[[ "$DURATION_SEC" == 120 ]] || { echo "diag duration must be exactly 120 seconds" >&2; exit 2; }'
+          if s.count(old)!=1: raise SystemExit('duration guard anchor mismatch')
+          p.write_text(s.replace(old,new,1))
+          PY
+          git show "$SOURCE_SHA:scripts/game_lane_fullstack.sh" >"$RUNNER_TEMP/game_lane_fullstack_exact.sh"
+          chmod +x "$RUNNER_TEMP/game_lane_long_analysis.sh" "$RUNNER_TEMP/game_lane_fullstack_exact.sh"
+
+      - name: Run lifecycle and UDP queue diagnostic
+        env:
+          LANES: '1'
+          FEC: '20:20'
+          DURATION_SEC: '120'
+          RATE_BPS: '10000000'
+          PAYLOAD_BYTES: '1000'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+          SAMPLE_INTERVAL_SEC: '5'
+          BASE_SCRIPT: ${{ runner.temp }}/game_lane_fullstack_exact.sh
+        shell: bash
+        run: |
+          set +e
+          chmod +x "$RUNNER_TEMP"/wbd-diag-assets/wbd-* "$RUNNER_TEMP"/wbd-diag-assets/wbd_dtls_shim
+          LOG="$RUNNER_TEMP/diag-link-liveness-v2"
+          mkdir -p "$LOG"
+
+          # Watch per-network-namespace UDP MIB counters while the harness owns
+          # the transient namespaces. This is observation only.
+          (
+            while true; do
+              ts=$(date +%s.%N)
+              for ns in $(sudo ip netns list 2>/dev/null | awk '/^wbdgl[cs][0-9]+/ {print $1}'); do
+                echo "=== ts=$ts ns=$ns ==="
+                sudo ip netns exec "$ns" sh -c "grep '^Udp:' /proc/net/snmp; grep '^UdpLite:' /proc/net/snmp" 2>/dev/null || true
+              done
+              sleep 1
+            done
+          ) >"$LOG/udp-snmp-timeseries.log" 2>&1 &
+          SNMP_PID=$!
+
+          sudo -E bash "$RUNNER_TEMP/game_lane_long_analysis.sh" "$RUNNER_TEMP/wbd-diag-assets" "$LOG"
+          rc=$?
+          kill "$SNMP_PID" 2>/dev/null || true
+          wait "$SNMP_PID" 2>/dev/null || true
+
+          echo "WBD_DIAG_RUN_RC=$rc"
+          echo '=== lifecycle traces ==='
+          grep 'WBD_LINK_LIVENESS_TRACE' "$LOG"/link-*.log "$LOG"/link-server.log 2>/dev/null || true
+          echo '=== UDP MIB tail ==='
+          tail -n 120 "$LOG/udp-snmp-timeseries.log" 2>/dev/null || true
+          echo '=== FakeTCP pressure tail ==='
+          grep 'WBD_FAKETCP_OUTSTANDING_PRESSURE' "$LOG"/faketcp-*.log "$LOG"/faketcp-mux.log 2>/dev/null | tail -n 120 || true
+
+          # Do not let artifact permissions turn a diagnostic result red.
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log 2>/dev/null || true
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
+          exit "$rc"
+
+      - name: Upload diagnostic artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diag-link-liveness-e50-v2
+          path: ${{ runner.temp }}/diag-link-liveness-v2
+          retention-days: 3
