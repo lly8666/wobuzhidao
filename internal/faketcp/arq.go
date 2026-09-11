@@ -16,6 +16,16 @@ const (
 	shadowRepairBudgetDivisor = uint64(5)
 	shadowRepairBurstBytes    = uint64(128 * 1024)
 	shadowRepairDefer         = 100 * time.Millisecond
+
+	// PartialReliabilityReorderSoftLimit is deliberately below the 4096-record
+	// sender hard ceiling. Once this many first-arrival records are buffered
+	// beyond an old hole, the receiver stops paying unbounded TCP-like repair
+	// debt for that hole: it advances cumulative ACK to the oldest live SACK
+	// range and lets normal ACK processing retire the abandoned sender state.
+	// Half the hard window leaves roughly another 2048 records of ACK-flight
+	// headroom, which is larger than the ~1500-record 10-Mbit/FEC20:20 BDP at
+	// the project's 600ms target RTT.
+	PartialReliabilityReorderSoftLimit = MaxSteadyStateOutstandingDatagrams / 2
 )
 
 type RecoveryMode uint8
@@ -635,9 +645,12 @@ func clampRTO(v time.Duration) time.Duration {
 }
 
 type ReceiverStats struct {
-	Delivered  uint64
-	Duplicates uint64
-	OutOfOrder uint64
+	Delivered      uint64
+	Duplicates     uint64
+	OutOfOrder     uint64
+	ForgivenGaps   uint64
+	ForgivenBytes  uint64
+	PeakBufferedOO int
 }
 
 type Receiver struct {
@@ -680,13 +693,67 @@ func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool)
 	if seq != r.next {
 		r.stats.OutOfOrder++
 		r.outOfOrder[seq] = end
+		if n := len(r.outOfOrder); n > r.stats.PeakBufferedOO {
+			r.stats.PeakBufferedOO = n
+		}
 		r.insertSACKRange(seq, end)
-		return true, true
+		r.maybeForgiveReorderPressure()
+		return true, len(r.sacksByStart) != 0
 	}
 
 	r.next = end
 	r.consumeContiguousSACKs()
 	return true, len(r.sacksByStart) != 0
+}
+
+// maybeForgiveReorderPressure turns the 4096 sender window into a bounded
+// TCP-like repair budget rather than an application head-of-line boundary.
+// The receiver has already delivered every out-of-order first arrival to the
+// datagram layer, so advancing ACK across the oldest still-missing byte range
+// only abandons shadow repair; it never fabricates application payload.
+//
+// No extra control packet is required. The next ordinary ACK carries the new
+// cumulative value, and normal sender ACK processing releases both unresolved
+// payload and SACK-retired tombstones below it. A very late repair then lands
+// below r.next and is treated as a duplicate, so abandonment cannot create a
+// second repair cascade.
+func (r *Receiver) maybeForgiveReorderPressure() {
+	for len(r.outOfOrder) >= PartialReliabilityReorderSoftLimit {
+		start, ok := r.oldestLiveSACKStart()
+		if !ok || start == r.next {
+			return
+		}
+		gapBytes := uint32(start - r.next)
+		if gapBytes == 0 || gapBytes >= 1<<31 {
+			return
+		}
+		r.next = start
+		r.stats.ForgivenGaps++
+		r.stats.ForgivenBytes += uint64(gapBytes)
+		before := len(r.outOfOrder)
+		r.consumeContiguousSACKs()
+		if len(r.outOfOrder) >= before {
+			return
+		}
+	}
+}
+
+func (r *Receiver) oldestLiveSACKStart() (uint32, bool) {
+	var best uint32
+	var bestDistance uint32
+	found := false
+	for start := range r.sacksByStart {
+		distance := uint32(start - r.next)
+		if distance == 0 || distance >= 1<<31 {
+			continue
+		}
+		if !found || distance < bestDistance {
+			best = start
+			bestDistance = distance
+			found = true
+		}
+	}
+	return best, found
 }
 
 func (r *Receiver) SACKBlocks(dst *[4]SACKBlock) int {
@@ -782,6 +849,19 @@ func (r *Receiver) compactCoverageQueue() {
 	r.coverageAt = 0
 }
 
+func (r *Receiver) maybeCompactCoverageQueue() {
+	live := len(r.sacksByStart)
+	if live == 0 {
+		r.coverageQueue = r.coverageQueue[:0]
+		r.coverageAt = 0
+		return
+	}
+	remaining := len(r.coverageQueue) - r.coverageAt
+	if remaining > live*4+256 {
+		r.compactCoverageQueue()
+	}
+}
+
 func (r *Receiver) insertSACKRange(seq, end uint32) {
 	start := seq
 	finish := end
@@ -801,6 +881,7 @@ func (r *Receiver) insertSACKRange(seq, end uint32) {
 	r.sackStartByEnd[finish] = start
 	r.touchRecentSACK(start)
 	r.coverageQueue = append(r.coverageQueue, start)
+	r.maybeCompactCoverageQueue()
 }
 
 func (r *Receiver) consumeContiguousSACKs() {
@@ -808,6 +889,7 @@ func (r *Receiver) consumeContiguousSACKs() {
 		start := r.next
 		end, ok := r.sacksByStart[start]
 		if !ok {
+			r.maybeCompactCoverageQueue()
 			return
 		}
 		delete(r.sacksByStart, start)
