@@ -46,20 +46,99 @@ jobs:
           python3 - "$HELPER" <<'PY'
           from pathlib import Path
           import sys
+
           p = Path(sys.argv[1])
-          lines = p.read_text().splitlines(keepends=True)
-          out = []
-          hits = 0
-          for line in lines:
-              if "new_line = old_line.replace('root netem delay'" in line:
-                  out.append("    new_line = old_line.replace('root netem delay', 'root netem limit 24000 delay', 1)\n")
-                  hits += 1
-              else:
-                  out.append(line)
-          if hits != 1:
-              raise SystemExit(f'expected one netem patch line, found {hits}')
-          p.write_text(''.join(out))
+          text = p.read_text()
+
+          # Keep the hosted qdisc deep enough that only configured random loss fires.
+          old = "    new_line = old_line.replace('root netem delay', 'root netem limit \\\\" + '"${NETEM_LIMIT_PACKETS}"' + "\\\\ delay', 1)"
+          new = "    new_line = old_line.replace('root netem delay', 'root netem limit 24000 delay', 1)"
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one netem patch line, found {text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          # Outer and post-FEC diagnostics only need headers, not full payloads.
+          for old, new in (
+              ('-i gs0 -s 0 -U -w "$LOG_DIR/game-lanes-server.pcap"',
+               '-i gs0 -s 96 -U -w "$LOG_DIR/game-lanes-server.pcap"'),
+              ('-i lo -s 0 -U -w "$LOG_DIR/game-after-fec-server.pcap"',
+               '-i lo -s 96 -U -w "$LOG_DIR/game-after-fec-server.pcap"'),
+          ):
+              if text.count(old) != 1:
+                  raise SystemExit(f'snaplen marker drift: {old}')
+              text = text.replace(old, new, 1)
+
+          # Rotation soak intentionally deletes the bootstrap lineage pcap. Restart
+          # aligned client+server header-only captures immediately after that point.
+          anchor = 'rotation.write_text(s)\n'
+          injected = """capture_marker = 'rm -f \"$LOG_DIR/game-lanes.pcap\"\\n'
+          capture_block = r'''# Stop the bootstrap-time server capture so both outer pcaps cover the same interval.
+          old_spid=$SPID
+          sudo kill -INT \"$old_spid\" 2>/dev/null || true
+          wait \"$old_spid\" 2>/dev/null || true
+          drop_pid \"$old_spid\"
+          SPID=
+          rm -f \"$LOG_DIR/game-lanes-server.pcap\"
+
+          sudo ip netns exec \"$C\" tcpdump --immediate-mode -i gc0 -s 96 -U -w \"$LOG_DIR/game-lanes-soak.pcap\" \"tcp port ${RAW}\" >\"$LOG_DIR/tcpdump-soak.log\" 2>&1 &
+          TPID=$!
+          for _ in $(seq 1 200); do grep -q 'listening on gc0' \"$LOG_DIR/tcpdump-soak.log\" && break; sleep .05; done
+          grep -q 'listening on gc0' \"$LOG_DIR/tcpdump-soak.log\"
+
+          sudo ip netns exec \"$S\" tcpdump --immediate-mode -i gs0 -s 96 -U -w \"$LOG_DIR/game-lanes-server-soak.pcap\" \"tcp port ${RAW}\" >\"$LOG_DIR/tcpdump-server-soak.log\" 2>&1 &
+          SPID=$!; PIDS+=(\"$SPID\")
+          for _ in $(seq 1 200); do grep -q 'listening on gs0' \"$LOG_DIR/tcpdump-server-soak.log\" && break; sleep .05; done
+          grep -q 'listening on gs0' \"$LOG_DIR/tcpdump-server-soak.log\"
+          '''
+          if s.count(capture_marker) != 1:
+              raise SystemExit('rotation capture marker drift')
+          s = s.replace(capture_marker, capture_marker + capture_block, 1)
+          rotation.write_text(s)
+          """
+          if text.count(anchor) != 1:
+              raise SystemExit(f'rotation write anchor drift: {text.count(anchor)}')
+          text = text.replace(anchor, injected, 1)
+
+          if text.count("c_outer = tcpdump_lines('game-lanes.pcap')") != 1:
+              raise SystemExit('client pcap analysis marker drift')
+          text = text.replace("c_outer = tcpdump_lines('game-lanes.pcap')",
+                              "c_outer = tcpdump_lines('game-lanes-soak.pcap')", 1)
+          if text.count("s_outer = tcpdump_lines('game-lanes-server.pcap')") != 1:
+              raise SystemExit('server pcap analysis marker drift')
+          text = text.replace("s_outer = tcpdump_lines('game-lanes-server.pcap')",
+                              "s_outer = tcpdump_lines('game-lanes-server-soak.pcap')", 1)
+
+          # Add reverse-direction post-FEC residuals from the Game client's own
+          # per-lane receive counters, using server out_logical as denominator.
+          game_anchor = "game_log = (root / 'game-server.log').read_text(errors='replace')\n"
+          game_insert = game_anchor + "client_game_log = (root / 'game-client.log').read_text(errors='replace')\n" + \
+              "m_close = re.search(r'WBD_GAME_LANE_SESSION_CLOSE .*?out_logical=(\\d+)', game_log)\n" + \
+              "if not m_close: raise SystemExit('server session close stats missing')\n" + \
+              "reverse_expected = int(m_close.group(1))\n" + \
+              "reverse_rx = {int(a): int(b) for a,b in re.findall(r'WBD_GAME_LANE_CLIENT_LANE_STATS lane=(\\d+) tx=\\d+ rx=(\\d+)', client_game_log)}\n" + \
+              "if sorted(reverse_rx) != [1, 2, 3, 4]: raise SystemExit(f'client per-lane stats missing: {reverse_rx}')\n"
+          if text.count(game_anchor) != 1:
+              raise SystemExit('game-log analysis marker drift')
+          text = text.replace(game_anchor, game_insert, 1)
+
+          row_anchor = '    per_lane.append(row)\n'
+          row_insert = """    row.update({
+              'post_fec_forward_expected': expected,
+              'post_fec_forward_rx': delivered,
+              'post_fec_forward_loss': (max(0, expected-delivered)/expected if expected else None),
+              'post_fec_reverse_expected': reverse_expected,
+              'post_fec_reverse_rx': reverse_rx[lane],
+              'post_fec_reverse_loss': (max(0, reverse_expected-reverse_rx[lane])/reverse_expected if reverse_expected else None),
+          })
+              per_lane.append(row)
+          """
+          if text.count(row_anchor) != 1:
+              raise SystemExit('per-lane row marker drift')
+          text = text.replace(row_anchor, row_insert, 1)
+
+          p.write_text(text)
           PY
+
           set +e
           bash "$HELPER" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
           rc=$?
