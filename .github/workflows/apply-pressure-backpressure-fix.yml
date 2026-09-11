@@ -1,0 +1,163 @@
+name: apply-pressure-backpressure-fix
+
+on:
+  push:
+    branches:
+      - agent/apply-pressure-backpressure-cae0
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cae0abe4554aec7efbfeb20d6ddff4da5c5f11da
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Apply exact pressure backpressure patch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          client = Path('cmd/wbd-faketcp/main.go')
+          s = client.read_text()
+          old = '''\t\tnow := time.Now()
+          \t\te.senderMu.Lock()
+          \t\tpendingFrames, enqueueErr := e.sender.EnqueueSteadyStateBatch(frames, now)
+          \t\tif enqueueErr != nil {
+          \t\t\tpending := e.sender.Pending()
+          \t\t\tseq := e.sender.NextSeq()
+          \t\t\te.senderMu.Unlock()
+          \t\t\tif errors.Is(enqueueErr, faketcp.ErrSteadyStateOutstandingFull) {
+          \t\t\t\tfmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=%s pending=%d limit=%d action=rst\\n", e.cfg.role, pending, faketcp.MaxSteadyStateOutstandingDatagrams)
+          \t\t\t\t_ = e.send(seq, e.receiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
+          \t\t\t}
+          \t\t\treturn enqueueErr
+          \t\t}
+          \t\tfor _, p := range pendingFrames {
+          \t\t\tif err = e.sendDataPending(p); err != nil {
+          \t\t\t\tbreak
+          \t\t\t}
+          \t\t}
+          \t\te.senderMu.Unlock()
+          \t\tif err != nil {
+          \t\t\treturn err
+          \t\t}
+          '''
+          new = '''\t\tpressureLogged := false
+          \t\tfor {
+          \t\t\te.senderMu.Lock()
+          \t\t\tpendingFrames, enqueueErr := e.sender.EnqueueSteadyStateBatch(frames, time.Now())
+          \t\t\tif enqueueErr == nil {
+          \t\t\t\tfor _, p := range pendingFrames {
+          \t\t\t\t\tif err = e.sendDataPending(p); err != nil {
+          \t\t\t\t\t\tbreak
+          \t\t\t\t\t}
+          \t\t\t\t}
+          \t\t\t\te.senderMu.Unlock()
+          \t\t\t\tif err != nil {
+          \t\t\t\t\treturn err
+          \t\t\t\t}
+          \t\t\t\tif pressureLogged {
+          \t\t\t\t\tfmt.Printf("WBD_FAKETCP_OUTSTANDING_PRESSURE role=%s limit=%d action=resumed\\n", e.cfg.role, faketcp.MaxSteadyStateOutstandingDatagrams)
+          \t\t\t\t}
+          \t\t\t\tbreak
+          \t\t\t}
+          \t\t\tpending := e.sender.Pending()
+          \t\t\te.senderMu.Unlock()
+          \t\t\tif !errors.Is(enqueueErr, faketcp.ErrSteadyStateOutstandingFull) {
+          \t\t\t\treturn enqueueErr
+          \t\t\t}
+          \t\t\tif !pressureLogged {
+          \t\t\t\tfmt.Printf("WBD_FAKETCP_OUTSTANDING_PRESSURE role=%s pending=%d limit=%d action=wait\\n", e.cfg.role, pending, faketcp.MaxSteadyStateOutstandingDatagrams)
+          \t\t\t\tpressureLogged = true
+          \t\t\t}
+          \t\t\tselect {
+          \t\t\tcase <-e.stop:
+          \t\t\t\treturn nil
+          \t\t\tdefault:
+          \t\t\t}
+          \t\t\ttime.Sleep(2 * time.Millisecond)
+          \t\t}
+          '''
+          if s.count(old) != 1:
+              raise SystemExit(f'client patch anchor count={s.count(old)} want=1')
+          client.write_text(s.replace(old, new, 1))
+
+          mux = Path('cmd/wbd-faketcp-mux/main_linux.go')
+          s = mux.read_text()
+          old = '''\t\tpendingFrames, err := sess.assoc.EnqueueSteadyStateBatch(frames, time.Now())
+          \t\tif err != nil {
+          \t\t\tif errors.Is(err, faketcp.ErrSteadyStateOutstandingFull) {
+          \t\t\t\tfmt.Printf("WBD_FAKETCP_OUTSTANDING_LIMIT role=server-mux client=%d server=%d limit=%d action=rst\\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
+          \t\t\t\t_ = s.sendRaw(sess.flow, sess.assoc.SenderNext(), sess.assoc.ReceiverNext(), faketcp.FlagRST|faketcp.FlagACK, nil, nil)
+          \t\t\t\ts.removeSessionMatch(sess.flow, sess)
+          \t\t\t}
+          \t\t\treturn
+          \t\t}
+          \t\tfor _, p := range pendingFrames {
+          \t\t\tif err := s.sendPending(sess, p); err != nil {
+          \t\t\t\treturn
+          \t\t\t}
+          \t\t}
+          '''
+          new = '''\t\tpressureLogged := false
+          \t\tfor {
+          \t\t\tpendingFrames, enqueueErr := sess.assoc.EnqueueSteadyStateBatch(frames, time.Now())
+          \t\t\tif enqueueErr == nil {
+          \t\t\t\tfor _, p := range pendingFrames {
+          \t\t\t\t\tif err := s.sendPending(sess, p); err != nil {
+          \t\t\t\t\t\treturn
+          \t\t\t\t\t}
+          \t\t\t\t}
+          \t\t\t\tif pressureLogged {
+          \t\t\t\t\tfmt.Printf("WBD_FAKETCP_OUTSTANDING_PRESSURE role=server-mux client=%d server=%d limit=%d action=resumed\\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
+          \t\t\t\t}
+          \t\t\t\tbreak
+          \t\t\t}
+          \t\t\tif !errors.Is(enqueueErr, faketcp.ErrSteadyStateOutstandingFull) {
+          \t\t\t\treturn
+          \t\t\t}
+          \t\t\tif !pressureLogged {
+          \t\t\t\tfmt.Printf("WBD_FAKETCP_OUTSTANDING_PRESSURE role=server-mux client=%d server=%d limit=%d action=wait\\n", sess.flow.ClientPort, sess.flow.ServerPort, faketcp.MaxSteadyStateOutstandingDatagrams)
+          \t\t\t\tpressureLogged = true
+          \t\t\t}
+          \t\t\tselect {
+          \t\t\tcase <-s.ctx.Done():
+          \t\t\t\treturn
+          \t\t\tdefault:
+          \t\t\t}
+          \t\t\tif s.getSession(sess.flow) != sess {
+          \t\t\t\treturn
+          \t\t\t}
+          \t\t\ttime.Sleep(2 * time.Millisecond)
+          \t\t}
+          '''
+          if s.count(old) != 1:
+              raise SystemExit(f'mux patch anchor count={s.count(old)} want=1')
+          mux.write_text(s.replace(old, new, 1))
+          PY
+          gofmt -w cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/main_linux.go cmd/wbd-faketcp/steady_state_pressure_test.go
+          git diff --check
+          git diff -- cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/main_linux.go cmd/wbd-faketcp/steady_state_pressure_test.go
+      - name: Run focused tests
+        run: |
+          go test ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux -count=1
+      - name: Commit product-only fix to output branch
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "cae0abe4554aec7efbfeb20d6ddff4da5c5f11da"
+          git config user.name "lly8666"
+          git config user.email "30583594+lly8666@users.noreply.github.com"
+          git add cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/main_linux.go cmd/wbd-faketcp/steady_state_pressure_test.go
+          git diff --cached --quiet && { echo 'no patch produced' >&2; exit 1; }
+          git commit -m "fix(faketcp): backpressure steady-state full window"
+          git push --force origin HEAD:refs/heads/agent/pressure-backpressure-output
+          echo "OUTPUT_SHA=$(git rev-parse HEAD)"
