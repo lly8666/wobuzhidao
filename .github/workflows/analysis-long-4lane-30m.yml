@@ -1,0 +1,178 @@
+name: analysis-long-4lane-30m
+
+on:
+  push:
+    branches:
+      - agent/analysis-30m-0194
+    paths:
+      - '.github/workflows/analysis-long-4lane-30m.yml'
+      - 'scripts/game_lane_long_analysis.sh'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SOURCE_SHA: 0194cd259e7588a85569abbedf23a781ca49f9ea
+
+jobs:
+  build-assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact product checkout
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "WBD_ANALYSIS_SOURCE source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA lanes=4"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl
+      - name: Build exact-source upstream and downstream stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/wbd-analysis-assets"
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build "$ASSET"
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
+
+          go test ./internal/fec ./internal/linkdata ./internal/gamelane ./internal/realityfront ./internal/session ./internal/faketcp ./internal/dtlsworker \
+            ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux ./cmd/wbd-game-lane-client ./cmd/wbd-game-lane-server \
+            ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux -count=1
+          go build -trimpath -o "$ASSET/wbd-reality-front" ./cmd/wbd-reality-front
+          go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
+          go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+          go build -trimpath -o "$ASSET/wbd-link-proxy" ./cmd/wbd-link-proxy
+          go build -trimpath -o "$ASSET/wbd-link-server-mux" ./cmd/wbd-link-server-mux
+          go build -trimpath -o "$ASSET/wbd-game-lane-client" ./cmd/wbd-game-lane-client
+          go build -trimpath -o "$ASSET/wbd-game-lane-server" ./cmd/wbd-game-lane-server
+          printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
+
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-dtls.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+          echo "WBD_LONG_ANALYSIS_BUILD_PASS source_sha=$SOURCE_SHA lanes=4"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wbd-long-analysis-4lane-assets
+          path: ${{ runner.temp }}/wbd-analysis-assets
+          retention-days: 1
+
+  analyze-1800s-4lane-10mbps-weaknet:
+    needs: build-assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - fec: 'off'
+            slug: off
+          - fec: '20:20'
+            slug: fec20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Verify helper lineage and materialize exact-source base harness
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
+          git cat-file -e "$SOURCE_SHA^{commit}"
+          git show "$SOURCE_SHA:scripts/game_lane_fullstack.sh" >"$RUNNER_TEMP/game_lane_fullstack_exact.sh"
+          chmod +x "$RUNNER_TEMP/game_lane_fullstack_exact.sh" scripts/game_lane_long_analysis.sh
+          echo "WBD_ANALYSIS_RUNTIME_SOURCE source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA lanes=4 fec=${{ matrix.fec }}"
+      - name: Install namespace tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump
+      - uses: actions/download-artifact@v4
+        with:
+          name: wbd-long-analysis-4lane-assets
+          path: ${{ runner.temp }}/wbd-analysis-assets
+      - name: Restore executables and verify source identity
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP"/wbd-analysis-assets/wbd-* "$RUNNER_TEMP"/wbd-analysis-assets/wbd_dtls_shim
+          test "$(cat "$RUNNER_TEMP/wbd-analysis-assets/SOURCE_SHA.txt")" = "$SOURCE_SHA"
+      - name: Run 30 minute analysis at 10 Mbps with 300ms and 20pct random loss
+        env:
+          LANES: '4'
+          FEC: ${{ matrix.fec }}
+          DURATION_SEC: '1800'
+          RATE_BPS: '10000000'
+          PAYLOAD_BYTES: '1000'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+          SAMPLE_INTERVAL_SEC: '5'
+          BASE_SCRIPT: ${{ runner.temp }}/game_lane_fullstack_exact.sh
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/long-analysis-4lane-${{ matrix.slug }}"
+          mkdir -p "$LOG"
+          sudo -E bash scripts/game_lane_long_analysis.sh "$RUNNER_TEMP/wbd-analysis-assets" "$LOG"
+          python3 - "$LOG/analysis-summary.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d['analysis_only'] is True and d['loss_is_not_a_hard_gate'] is True, d
+          assert d['lanes'] == 4 and d['fec'] == '${{ matrix.fec }}', d
+          assert d['requested_duration_sec'] == 1800 and d['requested_bps_each_direction'] == 10_000_000, d
+          print('WBD_LONG_ANALYSIS_RESULT '+json.dumps({
+              'lanes':d['lanes'],'fec':d['fec'],
+              'loss_ratio':d['load']['loss_ratio'],
+              'down_payload_bps':d['load']['down_payload_bps'],
+              'rtt_p50_ms':d['load']['rtt_p50_ms'],'rtt_p95_ms':d['load']['rtt_p95_ms'],
+              'rtt_p99_ms':d['load']['rtt_p99_ms'],'rtt_p999_ms':d['load']['rtt_p999_ms'],
+              'client_retx_ratio':d['client_arq']['retransmit_overhead_ratio'],
+              'wire_amp':d['wire_amplification']['aggregate_attempted_over_logical'],
+              'cpu_avg':d['cpu_memory']['total']['avg_cpu_pct'],
+              'cpu_peak':d['cpu_memory']['total']['peak_cpu_pct'],
+              'rss_avg_mb':d['cpu_memory']['total']['avg_rss_mb'],
+              'rss_peak_mb':d['cpu_memory']['total']['peak_rss_mb'],
+          },sort_keys=True))
+          PY
+      - name: Diagnose analysis failure
+        if: failure()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/long-analysis-4lane-${{ matrix.slug }}"
+          for f in netem-start.log netem-end.log warm.log load.log process-summary.json analysis-summary.json faketcp-mux.log game-server.log game-client.log link-server.log; do
+            echo "--- $f ---"
+            tail -n 240 "$LOG/$f" 2>/dev/null || true
+          done
+          find "$LOG" -maxdepth 1 -name 'faketcp-*.log' -print | sort | while read -r f; do
+            echo "--- $f ---"; tail -n 160 "$f" 2>/dev/null || true
+          done
+      - name: Scrub one-time auth material and normalize artifact permissions
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/long-analysis-4lane-${{ matrix.slug }}"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: long-analysis-4lane-${{ matrix.slug }}
+          path: ${{ runner.temp }}/long-analysis-4lane-${{ matrix.slug }}
+          retention-days: 14
