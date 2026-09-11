@@ -24,6 +24,12 @@ const (
 	// reliability ACK horizon cannot pin fragment memory for the association's
 	// lifetime. Duplicate fragments do not refresh this deadline.
 	carrierAssemblyTTL = 5 * time.Second
+
+	// A tiny ID-only tombstone stops late fragments from resurrecting a datagram
+	// that already completed or whose incomplete assembly was deliberately
+	// abandoned. No payload is retained here and the set is independently bounded.
+	carrierRetiredTTL    = 10 * time.Second
+	maxCarrierRetiredIDs = MaxSteadyStateOutstandingDatagrams
 )
 
 var (
@@ -33,10 +39,6 @@ var (
 	ErrCarrierReassemblyFull = errors.New("faketcp: carrier reassembly window full")
 )
 
-// CarrierPayloadBudget returns the largest FakeTCP data payload that fits in an
-// IPv4 path MTU. Steady-state data packets carry no TCP options; SACK options
-// are emitted only on payload-free ACKs, so the data-path outer overhead is the
-// fixed 20-byte IPv4 header plus the fixed 20-byte TCP header.
 func CarrierPayloadBudget(pathMTU int) (int, error) {
 	budget := pathMTU - carrierIPv4HeaderLen - carrierTCPHeaderLen
 	if budget <= 0 {
@@ -49,10 +51,6 @@ func CarrierPayloadBudget(pathMTU int) (int, error) {
 	return budget, nil
 }
 
-// CarrierFragmenter leaves an in-budget steady-state UDP datagram byte-for-byte
-// unchanged on the wire. Only datagrams that cannot fit in one FakeTCP IPv4/TCP
-// packet are wrapped in the versioned carrier-fragment extension. TLS bootstrap
-// bytes never pass through this object.
 type CarrierFragmenter struct {
 	mu            sync.Mutex
 	payloadBudget int
@@ -126,18 +124,17 @@ type carrierAssembly struct {
 	createdAt time.Time
 }
 
-// CarrierReassembler restores the original UDP datagram before it is returned
-// to wolfSSL. FakeTCP may deliver first-arrival payloads out of sequence, so
-// reassembly is keyed by carrier datagram id rather than arrival order. Payloads
-// without the strong carrier marker are legacy/in-budget datagrams and pass
-// through unchanged.
 type CarrierReassembler struct {
 	mu         sync.Mutex
 	assemblies map[uint32]*carrierAssembly
+	retired    map[uint32]time.Time
 }
 
 func NewCarrierReassembler() *CarrierReassembler {
-	return &CarrierReassembler{assemblies: make(map[uint32]*carrierAssembly)}
+	return &CarrierReassembler{
+		assemblies: make(map[uint32]*carrierAssembly),
+		retired:    make(map[uint32]time.Time),
+	}
 }
 
 func (r *CarrierReassembler) Push(frame []byte) ([]byte, bool, error) {
@@ -171,9 +168,15 @@ func (r *CarrierReassembler) pushAt(frame []byte, now time.Time) ([]byte, bool, 
 	if r.assemblies == nil {
 		r.assemblies = make(map[uint32]*carrierAssembly)
 	}
+	if r.retired == nil {
+		r.retired = make(map[uint32]time.Time)
+	}
 	r.expireLocked(now)
 	a := r.assemblies[id]
 	if a == nil {
+		if _, retired := r.retired[id]; retired {
+			return nil, false, nil
+		}
 		if len(r.assemblies) >= maxCarrierAssemblies {
 			return nil, false, ErrCarrierReassemblyFull
 		}
@@ -200,6 +203,7 @@ func (r *CarrierReassembler) pushAt(frame []byte, now time.Time) ([]byte, bool, 
 	a.bytes += len(payload)
 	if a.bytes > a.total {
 		delete(r.assemblies, id)
+		r.retireLocked(id, now)
 		return nil, false, ErrCarrierFrame
 	}
 	if a.received != int(a.count) {
@@ -207,17 +211,20 @@ func (r *CarrierReassembler) pushAt(frame []byte, now time.Time) ([]byte, bool, 
 	}
 	if a.bytes != a.total {
 		delete(r.assemblies, id)
+		r.retireLocked(id, now)
 		return nil, false, ErrCarrierFrame
 	}
 	out := make([]byte, 0, a.total)
 	for _, part := range a.parts {
 		if len(part) == 0 {
 			delete(r.assemblies, id)
+			r.retireLocked(id, now)
 			return nil, false, ErrCarrierFrame
 		}
 		out = append(out, part...)
 	}
 	delete(r.assemblies, id)
+	r.retireLocked(id, now)
 	if len(out) != a.total {
 		return nil, false, ErrCarrierFrame
 	}
@@ -225,12 +232,35 @@ func (r *CarrierReassembler) pushAt(frame []byte, now time.Time) ([]byte, bool, 
 }
 
 func (r *CarrierReassembler) expireLocked(now time.Time) {
-	if now.IsZero() || len(r.assemblies) == 0 {
+	if now.IsZero() {
 		return
 	}
 	for id, a := range r.assemblies {
 		if a == nil || (!a.createdAt.IsZero() && now.Sub(a.createdAt) >= carrierAssemblyTTL) {
 			delete(r.assemblies, id)
+			r.retireLocked(id, now)
 		}
 	}
+	for id, retiredAt := range r.retired {
+		if !retiredAt.IsZero() && now.Sub(retiredAt) >= carrierRetiredTTL {
+			delete(r.retired, id)
+		}
+	}
+}
+
+func (r *CarrierReassembler) retireLocked(id uint32, now time.Time) {
+	if id == 0 {
+		return
+	}
+	if len(r.retired) >= maxCarrierRetiredIDs {
+		var oldestID uint32
+		var oldest time.Time
+		for candidate, retiredAt := range r.retired {
+			if oldest.IsZero() || retiredAt.Before(oldest) {
+				oldestID, oldest = candidate, retiredAt
+			}
+		}
+		delete(r.retired, oldestID)
+	}
+	r.retired[id] = now
 }
