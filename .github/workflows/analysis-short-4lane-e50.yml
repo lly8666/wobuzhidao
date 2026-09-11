@@ -1,0 +1,143 @@
+name: analysis-short-4lane-e50
+
+on:
+  push:
+    branches:
+      - agent/analysis-short-e50
+    paths:
+      - '.github/workflows/analysis-short-4lane-e50.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SOURCE_SHA: e50a2df34d19e6f698cd2cff26eaa085aab2acd6
+  HARNESS_SHA: 33464e21df8ddac9a457e077aa463e9b4c75249b
+
+jobs:
+  build-assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Build exact-source full-stack assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl
+          ASSET="$RUNNER_TEMP/wbd-analysis-assets"
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build "$ASSET"
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
+          for pkg in wbd-faketcp wbd-faketcp-mux wbd-link-proxy wbd-link-server-mux wbd-game-lane-client wbd-game-lane-server; do
+            go build -trimpath -o "$ASSET/$pkg" "./cmd/$pkg"
+          done
+          printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-dtls.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+          echo "WBD_SHORT_ANALYSIS_BUILD_PASS source_sha=$SOURCE_SHA lanes=4"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wbd-short-analysis-4lane-assets
+          path: ${{ runner.temp }}/wbd-analysis-assets
+          retention-days: 1
+
+  analyze-120s-4lane-10mbps-weaknet:
+    needs: build-assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - fec: 'off'
+            slug: off
+          - fec: '20:20'
+            slug: fec20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Materialize validation harness and exact-source base
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
+          git cat-file -e "$HARNESS_SHA^{commit}"
+          git show "$HARNESS_SHA:scripts/game_lane_long_analysis.sh" >"$RUNNER_TEMP/game_lane_long_analysis.sh"
+          git show "$SOURCE_SHA:scripts/game_lane_fullstack.sh" >"$RUNNER_TEMP/game_lane_fullstack_exact.sh"
+          chmod +x "$RUNNER_TEMP/game_lane_long_analysis.sh" "$RUNNER_TEMP/game_lane_fullstack_exact.sh"
+          echo "WBD_SHORT_ANALYSIS_SOURCE source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA lanes=4 fec=${{ matrix.fec }}"
+      - name: Install namespace tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump
+      - uses: actions/download-artifact@v4
+        with:
+          name: wbd-short-analysis-4lane-assets
+          path: ${{ runner.temp }}/wbd-analysis-assets
+      - name: Run 120 second pressure diagnostic
+        env:
+          LANES: '4'
+          FEC: ${{ matrix.fec }}
+          DURATION_SEC: '120'
+          RATE_BPS: '10000000'
+          PAYLOAD_BYTES: '1000'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+          SAMPLE_INTERVAL_SEC: '5'
+          BASE_SCRIPT: ${{ runner.temp }}/game_lane_fullstack_exact.sh
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP"/wbd-analysis-assets/wbd-* "$RUNNER_TEMP"/wbd-analysis-assets/wbd_dtls_shim
+          test "$(cat "$RUNNER_TEMP/wbd-analysis-assets/SOURCE_SHA.txt")" = "$SOURCE_SHA"
+          LOG="$RUNNER_TEMP/short-analysis-4lane-${{ matrix.slug }}"
+          mkdir -p "$LOG"
+          sudo -E bash "$RUNNER_TEMP/game_lane_long_analysis.sh" "$RUNNER_TEMP/wbd-analysis-assets" "$LOG"
+          python3 - "$LOG/analysis-summary.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          print('WBD_SHORT_ANALYSIS_RESULT '+json.dumps(d,sort_keys=True))
+          PY
+      - name: Diagnose failure
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/short-analysis-4lane-${{ matrix.slug }}"
+          for f in load.log analysis-summary.json faketcp-mux.log game-client.log game-server.log link-server.log; do echo "--- $f ---"; tail -n 240 "$LOG/$f" 2>/dev/null || true; done
+          find "$LOG" -maxdepth 1 -name 'faketcp-*.log' -print | sort | while read -r f; do echo "--- $f ---"; tail -n 180 "$f" 2>/dev/null || true; done
+      - name: Scrub auth material
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/short-analysis-4lane-${{ matrix.slug }}"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: short-analysis-4lane-${{ matrix.slug }}
+          path: ${{ runner.temp }}/short-analysis-4lane-${{ matrix.slug }}
+          retention-days: 3
