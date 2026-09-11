@@ -50,12 +50,20 @@ jobs:
           p = Path(sys.argv[1])
           text = p.read_text()
 
-          # Keep the hosted qdisc deep enough that only configured random loss fires.
-          old = "    new_line = old_line.replace('root netem delay', 'root netem limit \\\\" + '"${NETEM_LIMIT_PACKETS}"' + "\\\\ delay', 1)"
-          new = "    new_line = old_line.replace('root netem delay', 'root netem limit 24000 delay', 1)"
-          if text.count(old) != 1:
-              raise SystemExit(f'expected one netem patch line, found {text.count(old)}')
-          text = text.replace(old, new, 1)
+          # Do not match the deeply escaped literal exactly. This marker is unique
+          # and the line-based replacement already proved stable in the prior run.
+          lines = text.splitlines(keepends=True)
+          out = []
+          hits = 0
+          for line in lines:
+              if "new_line = old_line.replace('root netem delay'" in line:
+                  out.append("    new_line = old_line.replace('root netem delay', 'root netem limit 24000 delay', 1)\n")
+                  hits += 1
+              else:
+                  out.append(line)
+          if hits != 1:
+              raise SystemExit(f'expected one netem patch line, found {hits}')
+          text = ''.join(out)
 
           # Outer and post-FEC diagnostics only need headers, not full payloads.
           for old, new in (
@@ -99,37 +107,40 @@ jobs:
               raise SystemExit(f'rotation write anchor drift: {text.count(anchor)}')
           text = text.replace(anchor, injected, 1)
 
-          if text.count("c_outer = tcpdump_lines('game-lanes.pcap')") != 1:
-              raise SystemExit('client pcap analysis marker drift')
-          text = text.replace("c_outer = tcpdump_lines('game-lanes.pcap')",
-                              "c_outer = tcpdump_lines('game-lanes-soak.pcap')", 1)
-          if text.count("s_outer = tcpdump_lines('game-lanes-server.pcap')") != 1:
-              raise SystemExit('server pcap analysis marker drift')
-          text = text.replace("s_outer = tcpdump_lines('game-lanes-server.pcap')",
-                              "s_outer = tcpdump_lines('game-lanes-server-soak.pcap')", 1)
+          for old, new in (
+              ("c_outer = tcpdump_lines('game-lanes.pcap')",
+               "c_outer = tcpdump_lines('game-lanes-soak.pcap')"),
+              ("s_outer = tcpdump_lines('game-lanes-server.pcap')",
+               "s_outer = tcpdump_lines('game-lanes-server-soak.pcap')"),
+          ):
+              if text.count(old) != 1:
+                  raise SystemExit(f'pcap analysis marker drift: {old}')
+              text = text.replace(old, new, 1)
 
-          # Add reverse-direction post-FEC residuals from the Game client's own
-          # per-lane receive counters, using server out_logical as denominator.
+          # Reverse post-FEC residuals come from the Game client's per-lane receive
+          # counters; the denominator is the server's logical reply count.
           game_anchor = "game_log = (root / 'game-server.log').read_text(errors='replace')\n"
-          game_insert = game_anchor + "client_game_log = (root / 'game-client.log').read_text(errors='replace')\n" + \
-              "m_close = re.search(r'WBD_GAME_LANE_SESSION_CLOSE .*?out_logical=(\\d+)', game_log)\n" + \
-              "if not m_close: raise SystemExit('server session close stats missing')\n" + \
-              "reverse_expected = int(m_close.group(1))\n" + \
-              "reverse_rx = {int(a): int(b) for a,b in re.findall(r'WBD_GAME_LANE_CLIENT_LANE_STATS lane=(\\d+) tx=\\d+ rx=(\\d+)', client_game_log)}\n" + \
+          game_insert = game_anchor + (
+              "client_game_log = (root / 'game-client.log').read_text(errors='replace')\n"
+              "m_close = re.search(r'WBD_GAME_LANE_SESSION_CLOSE .*?out_logical=(\\d+)', game_log)\n"
+              "if not m_close: raise SystemExit('server session close stats missing')\n"
+              "reverse_expected = int(m_close.group(1))\n"
+              "reverse_rx = {int(a): int(b) for a,b in re.findall(r'WBD_GAME_LANE_CLIENT_LANE_STATS lane=(\\d+) tx=\\d+ rx=(\\d+)', client_game_log)}\n"
               "if sorted(reverse_rx) != [1, 2, 3, 4]: raise SystemExit(f'client per-lane stats missing: {reverse_rx}')\n"
+          )
           if text.count(game_anchor) != 1:
               raise SystemExit('game-log analysis marker drift')
           text = text.replace(game_anchor, game_insert, 1)
 
           row_anchor = '    per_lane.append(row)\n'
           row_insert = """    row.update({
-              'post_fec_forward_expected': expected,
-              'post_fec_forward_rx': delivered,
-              'post_fec_forward_loss': (max(0, expected-delivered)/expected if expected else None),
-              'post_fec_reverse_expected': reverse_expected,
-              'post_fec_reverse_rx': reverse_rx[lane],
-              'post_fec_reverse_loss': (max(0, reverse_expected-reverse_rx[lane])/reverse_expected if reverse_expected else None),
-          })
+                  'post_fec_forward_expected': expected,
+                  'post_fec_forward_rx': delivered,
+                  'post_fec_forward_loss': (max(0, expected-delivered)/expected if expected else None),
+                  'post_fec_reverse_expected': reverse_expected,
+                  'post_fec_reverse_rx': reverse_rx[lane],
+                  'post_fec_reverse_loss': (max(0, reverse_expected-reverse_rx[lane])/reverse_expected if reverse_expected else None),
+              })
               per_lane.append(row)
           """
           if text.count(row_anchor) != 1:
