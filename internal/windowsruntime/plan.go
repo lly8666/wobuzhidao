@@ -243,6 +243,8 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	if len(strings.TrimSpace(ticket)) != 64 { return Plan{}, errors.New("Reality ticket must be 64 hex characters") }
 	for _, c := range ticket { if !strings.ContainsRune("0123456789abcdefABCDEF", c) { return Plan{}, errors.New("Reality ticket must be hexadecimal") } }
 	if strings.TrimSpace(profile.TunnelIPv4) == "" { return Plan{}, errors.New("authenticated tunnel IPv4 is required before runtime plan build") }
+	gameLinkMTU, err := gameLinkPlaintextMTU(profile.MTU)
+	if err != nil { return Plan{}, err }
 
 	raw, _ := netip.ParseAddrPort(profile.ServerRaw)
 	tunnelPrefix, _ := netip.ParsePrefix(profile.TunnelIPv4)
@@ -253,7 +255,7 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	fake, err := BuildFakeTCPCommand(profile, underlay)
 	if err != nil { return Plan{}, err }
 	dtlsArgs := []string{"client", strconv.Itoa(defaultDTLSPlainPort), "127.0.0.1", strconv.Itoa(defaultFakeTCPLocalPort), "none", "none"}
-	linkArgs := []string{"-mode", "client", "-listen", loop(defaultLinkListenPort), "-dtls", loop(defaultDTLSPlainPort), "-fec", profile.FEC, "-mtu", strconv.Itoa(profile.MTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(ticket)}
+	linkArgs := []string{"-mode", "client", "-listen", loop(defaultLinkListenPort), "-dtls", loop(defaultDTLSPlainPort), "-fec", profile.FEC, "-mtu", strconv.Itoa(gameLinkMTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(ticket)}
 	tunArgs := []string{"-mode", "client", "-ifname", profile.IfName, "-mtu", strconv.Itoa(profile.MTU), "-transport", loop(defaultLinkListenPort), "-expected-source-ipv4", tunnelPrefix.Addr().String()}
 
 	psMode := "Full"
