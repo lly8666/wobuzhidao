@@ -8,23 +8,20 @@ const (
 	minRTO = time.Second
 	maxRTO = 60 * time.Second
 
-	// Shadow repairs are cosmetic/recovery traffic below the real first-arrival
-	// data path. Bound their long-run byte cost so a lossy outer path cannot let
-	// retransmissions crowd fresh inner traffic out of a fixed-rate bottleneck.
-	shadowRepairBudgetDivisor = uint64(5) // 20% of admitted fresh bytes
+	// Shadow repairs are recovery/persona traffic below the real first-arrival
+	// path. Their virtual spend is bounded to 20% of admitted fresh bytes plus a
+	// small burst. Repeated repairs cost progressively more virtual credit, so an
+	// isolated low-loss retry stays TCP-like while a lossy path cannot turn into
+	// a retransmission bandwidth storm.
+	shadowRepairBudgetDivisor = uint64(5)
 	shadowRepairBurstBytes    = uint64(128 * 1024)
 	shadowRepairDefer         = 100 * time.Millisecond
-	shadowHighLossPercent     = uint64(5)
 )
 
 type RecoveryMode uint8
 
 const (
-	// RecoveryLegacy keeps only classic cumulative ACK / third-duplicate-ACK
-	// fast retransmit plus RFC6298-style RTO. It exists as a performance oracle.
 	RecoveryLegacy RecoveryMode = iota
-	// RecoverySACKRACK adds the persistent SACK scoreboard and compact RACK-style
-	// lost-retransmission inference. Neither mode owns inner delivery.
 	RecoverySACKRACK
 )
 
@@ -39,32 +36,32 @@ type Pending struct {
 	SACKed     bool
 	Bootstrap  bool
 
-	// Retired means the peer has SACK-proven first arrival. Keep only the tiny
-	// sequence tombstone until cumulative ACK catches up, so future merged SACK
-	// ranges can still be walked without retaining payload or consuming the
-	// steady-state repair/admission window.
+	// Retired means SACK has proved first arrival. The payload and repair-window
+	// ownership are released immediately, but the tiny seq/end tombstone remains
+	// until cumulative ACK catches up so merged SACK ranges stay walkable.
 	Retired bool
 
-	// RepairNotBefore paces a retry whose global repair-byte budget was empty.
-	// Deferral is local scheduling only; it never delays fresh admission.
+	// Local pacing fence used only when repair credit is empty. Fresh data never
+	// waits on this timestamp.
 	RepairNotBefore time.Time
 	slot            int
 }
 
 type SenderStats struct {
-	Enqueued              uint64
-	EnqueuedBytes         uint64
-	Acked                 uint64
-	SACKed                uint64
-	RetiredSACKed         uint64
-	FastRetransmits       uint64
-	RTOTransmits          uint64
-	RetransmitBytes       uint64
-	RepairDeferred        uint64
-	RepairDeferredBytes   uint64
-	LossMarked            uint64
-	LossMarkedBytes       uint64
-	PeakPending           int
+	Enqueued            uint64
+	EnqueuedBytes       uint64
+	Acked               uint64
+	SACKed              uint64
+	RetiredSACKed       uint64
+	FastRetransmits     uint64
+	RTOTransmits        uint64
+	RetransmitBytes     uint64
+	RepairBudgetSpent   uint64
+	RepairDeferred      uint64
+	RepairDeferredBytes uint64
+	LossMarked          uint64
+	LossMarkedBytes     uint64
+	PeakPending         int
 }
 
 type Sender struct {
@@ -72,16 +69,14 @@ type Sender struct {
 	pending      []*Pending
 	bySeq        map[uint32]*Pending
 	head         int
-	// active is repair-bearing shadow state, not every historical sequence
-	// tombstone. SACK-proven first arrivals leave this count immediately.
+	// active counts only records that still own repair payload/state. SACK-proven
+	// first arrivals leave it immediately even while their seq tombstones remain.
 	active       int
 	lastAck      uint32
 	dupAcks      int
 	fastRetxSeq  uint32
 	fastRetxDone bool
 
-	// baseRTO is the estimator-derived timeout. rto is the effective timeout for
-	// the current loss episode and may be exponentially backed off after RTOs.
 	rto      time.Duration
 	baseRTO  time.Duration
 	srtt     time.Duration
@@ -96,11 +91,11 @@ type Sender struct {
 	rtoSweepStarted     time.Time
 	rtoSweepRTO         time.Duration
 
-	// Freshest transmission time for data proven delivered by ACK/SACK.
 	rackLatestTx time.Time
 
-	freeSlabs [][]byte
-	stats     SenderStats
+	repairBudgetSpent uint64
+	freeSlabs         [][]byte
+	stats             SenderStats
 }
 
 func NewSender(nextSeq uint32, initialRTO time.Duration) *Sender {
@@ -176,9 +171,6 @@ func (s *Sender) Ack(ack uint32, now time.Time) *Pending {
 	return s.AckSelective(ack, nil, now)
 }
 
-// AckSelective consumes cumulative ACK plus SACK information. SACK proves
-// first-arrival and therefore releases payload/admission pressure immediately;
-// cumulative ACK bookkeeping is retained as a lightweight sequence tombstone.
 func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pending {
 	oldAck := s.lastAck
 	advanced := seqLT(oldAck, ack)
@@ -214,7 +206,7 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 	if s.recovery == RecoverySACKRACK {
 		candidate := s.rackLossCandidate(now)
 		if candidate == nil {
-			candidate = s.sackLossCandidate()
+			candidate = s.sackLossCandidate(now)
 		}
 		if candidate != nil && s.tryMarkRetry(candidate, now, true) {
 			s.fastRetxSeq = candidate.Seq
@@ -236,18 +228,18 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 		}
 	}
 
-	// Do this only after the current ACK's loss inference: the just-observed SACK
-	// evidence may be needed to select the hole repaired above.
+	// The current ACK's SACK evidence must remain visible until candidate
+	// selection completes. After that, delivered payload has no repair value.
 	s.retireSACKedPayloads()
 	return repair
 }
 
-func (s *Sender) sackLossCandidate() *Pending {
+func (s *Sender) sackLossCandidate(now time.Time) *Pending {
 	candidate := s.oldest()
 	if candidate == nil || candidate.Seq != s.lastAck || candidate.SACKed || candidate.Retired || candidate.WasRetried {
 		return nil
 	}
-	if !candidate.RepairNotBefore.IsZero() && time.Now().Before(candidate.RepairNotBefore) {
+	if !candidate.RepairNotBefore.IsZero() && now.Before(candidate.RepairNotBefore) {
 		return nil
 	}
 	sackedAbove := 0
@@ -264,9 +256,9 @@ func (s *Sender) sackLossCandidate() *Pending {
 	return nil
 }
 
-// rackLossCandidate permits repeated fast repair only while that remains cheap.
-// At measured high loss, one fast repair is enough TCP-like evidence; any later
-// attempt falls back to paced RTO and the global repair-byte budget.
+// Every repeated fast repair still requires genuinely newer delivery evidence.
+// Bandwidth control is deliberately orthogonal: progressive virtual repair cost
+// throttles pathological repetition without adding an arbitrary retry-count cliff.
 func (s *Sender) rackLossCandidate(now time.Time) *Pending {
 	if s.rackLatestTx.IsZero() {
 		return nil
@@ -278,9 +270,6 @@ func (s *Sender) rackLossCandidate(now time.Time) *Pending {
 	if !p.RepairNotBefore.IsZero() && now.Before(p.RepairNotBefore) {
 		return nil
 	}
-	if !s.fastRepairAllowed(p) {
-		return nil
-	}
 	if !p.LastSent.Before(s.rackLatestTx) {
 		return nil
 	}
@@ -288,25 +277,6 @@ func (s *Sender) rackLossCandidate(now time.Time) *Pending {
 		return nil
 	}
 	return p
-}
-
-func (s *Sender) fastRepairAllowed(p *Pending) bool {
-	if p == nil || p.Bootstrap {
-		return true
-	}
-	maxFast := uint32(2)
-	if s.highLoss() {
-		maxFast = 1
-	}
-	return p.Retries < maxFast
-}
-
-func (s *Sender) highLoss() bool {
-	// Avoid classifying from the first handful of packets.
-	if s.stats.Enqueued < 128 {
-		return false
-	}
-	return s.stats.LossMarked*100 > s.stats.Enqueued*shadowHighLossPercent
 }
 
 func (s *Sender) rackReorderingWindow() time.Duration {
@@ -469,8 +439,6 @@ func (s *Sender) RetransmitDueBatch(now time.Time, max int) []*Pending {
 		s.timeoutEpisode = true
 		s.timeoutEpisodeEnd = p.End
 	}
-	// Backoff is charged only after an actual retransmission leaves the repair
-	// scheduler; an empty byte budget must not pretend a packet was sent.
 	out := s.collectLegacyRTOSweep(now, max)
 	if len(out) != 0 {
 		s.rto = clampRTO(s.rto * 2)
@@ -569,22 +537,40 @@ func (s *Sender) oldest() *Pending {
 	return s.pending[s.head]
 }
 
+func (s *Sender) shadowRepairCost(p *Pending) uint64 {
+	if p == nil {
+		return 0
+	}
+	cost := uint64(len(p.Payload))
+	if cost == 0 || p.Bootstrap {
+		return cost
+	}
+	// First repair costs 1x credit, then 2x, 4x, 8x. Cap the multiplier so a
+	// single pathological hole cannot overflow arithmetic yet remains expensive.
+	shift := p.Retries
+	if shift > 3 {
+		shift = 3
+	}
+	return cost << shift
+}
+
 func (s *Sender) repairBudgetAllows(p *Pending) bool {
 	if p == nil || p.Bootstrap {
 		return true
 	}
-	cost := uint64(len(p.Payload))
+	cost := s.shadowRepairCost(p)
 	if cost == 0 {
 		return false
 	}
 	budget := s.stats.EnqueuedBytes/shadowRepairBudgetDivisor + shadowRepairBurstBytes
-	return s.stats.RetransmitBytes+cost <= budget
+	return s.repairBudgetSpent+cost <= budget
 }
 
 func (s *Sender) tryMarkRetry(p *Pending, now time.Time, fast bool) bool {
 	if p == nil || p.SACKed || p.Retired || len(p.Payload) == 0 {
 		return false
 	}
+	cost := s.shadowRepairCost(p)
 	if !p.Bootstrap && !s.repairBudgetAllows(p) {
 		p.RepairNotBefore = now.Add(shadowRepairDefer)
 		s.stats.RepairDeferred++
@@ -592,6 +578,10 @@ func (s *Sender) tryMarkRetry(p *Pending, now time.Time, fast bool) bool {
 		return false
 	}
 	p.RepairNotBefore = time.Time{}
+	if !p.Bootstrap {
+		s.repairBudgetSpent += cost
+		s.stats.RepairBudgetSpent = s.repairBudgetSpent
+	}
 	s.markRetry(p, now, fast)
 	return true
 }
