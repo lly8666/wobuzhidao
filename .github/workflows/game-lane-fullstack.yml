@@ -132,7 +132,7 @@ jobs:
           set -euo pipefail
           LOG="$RUNNER_TEMP/dynamic-mtu-${{ matrix.slug }}"
           mkdir -p "$LOG"
-          sudo -E scripts/game_lane_dynamic_mtu_smoke.sh "$RUNNER_TEMP/wbd-dynamic-mtu-assets" "$LOG"
+          sudo -E bash scripts/game_lane_dynamic_mtu_smoke.sh "$RUNNER_TEMP/wbd-dynamic-mtu-assets" "$LOG"
           grep -q 'WBD_DYNAMIC_MTU_NETEM_READY delay_ms=300 loss_pct=20 direction=bidirectional' "$LOG/netem.log"
           grep -q 'WBD_DYNAMIC_MTU_MAX_PAYLOAD_PASS' "$LOG/load.log"
           grep -q 'WBD_DYNAMIC_MTU_SMOKE_PASS' "$LOG/load.log"
