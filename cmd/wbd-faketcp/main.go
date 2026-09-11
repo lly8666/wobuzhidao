@@ -715,10 +715,12 @@ func (e *endpoint) retransmitLoop() error {
 			return nil
 		case now := <-t.C:
 			e.senderMu.Lock()
-			p := e.sender.RetransmitDue(now)
+			pending := e.sender.RetransmitDueBatch(now, faketcp.SteadyStateRetransmitBatch)
 			var err error
-			if p != nil {
-				err = e.sendDataPending(p)
+			for _, p := range pending {
+				if err = e.sendDataPending(p); err != nil {
+					break
+				}
 			}
 			e.senderMu.Unlock()
 			if err != nil {
