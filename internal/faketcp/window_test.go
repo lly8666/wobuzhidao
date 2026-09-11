@@ -1,7 +1,6 @@
 package faketcp
 
 import (
-	"errors"
 	"testing"
 	"time"
 )
@@ -28,36 +27,45 @@ func TestSteadyStateOutstandingWindowCovers40Mbps600msBDP(t *testing.T) {
 	}
 }
 
-func TestEnqueueSteadyStateHardBoundsPending(t *testing.T) {
-	s := NewSenderWithRecovery(100, time.Second, RecoveryLegacy)
+func TestEnqueueSteadyStateHardBoundsRepairDebtWithoutBlockingFresh(t *testing.T) {
+	s := NewSenderWithRecovery(100, time.Second, RecoverySACKRACK)
 	now := time.Unix(1, 0)
+	var oldest *Pending
 	for i := 0; i < MaxSteadyStateOutstandingDatagrams; i++ {
-		if _, err := s.EnqueueSteadyState([]byte{byte(i)}, now); err != nil {
+		p, err := s.EnqueueSteadyState([]byte{byte(i)}, now)
+		if err != nil {
 			t.Fatalf("enqueue %d: %v", i, err)
+		}
+		if i == 0 {
+			oldest = p
 		}
 	}
 	if got := s.Pending(); got != MaxSteadyStateOutstandingDatagrams {
 		t.Fatalf("pending=%d want=%d", got, MaxSteadyStateOutstandingDatagrams)
 	}
-	if _, err := s.EnqueueSteadyState([]byte{0xff}, now); !errors.Is(err, ErrSteadyStateOutstandingFull) {
-		t.Fatalf("overflow err=%v want %v", err, ErrSteadyStateOutstandingFull)
+
+	fresh, err := s.EnqueueSteadyState([]byte{0xff}, now.Add(time.Millisecond))
+	if err != nil {
+		t.Fatalf("fresh enqueue at repair ceiling: %v", err)
+	}
+	if fresh == nil {
+		t.Fatal("fresh enqueue returned nil")
 	}
 	if got := s.Pending(); got != MaxSteadyStateOutstandingDatagrams {
-		t.Fatalf("overflow changed pending=%d", got)
+		t.Fatalf("repair ceiling changed pending=%d", got)
+	}
+	if s.Outstanding(oldest.Seq) != nil || oldest.Payload != nil || !oldest.Retired {
+		t.Fatalf("old repair state was not retired: outstanding=%v payload=%d retired=%t", s.Outstanding(oldest.Seq) != nil, len(oldest.Payload), oldest.Retired)
 	}
 	if got := s.Stats().PeakPending; got != MaxSteadyStateOutstandingDatagrams {
 		t.Fatalf("peak pending=%d want=%d", got, MaxSteadyStateOutstandingDatagrams)
 	}
 
-	// Cumulative ACK of the first one-byte datagram reopens exactly one slot.
-	s.Ack(101, now.Add(time.Millisecond))
-	if got := s.Pending(); got != MaxSteadyStateOutstandingDatagrams-1 {
-		t.Fatalf("pending after ACK=%d", got)
+	s.Ack(fresh.End, now.Add(2*time.Millisecond))
+	if got := s.Pending(); got != 0 {
+		t.Fatalf("pending after cumulative ACK=%d", got)
 	}
-	if _, err := s.EnqueueSteadyState([]byte{0xee}, now.Add(2*time.Millisecond)); err != nil {
-		t.Fatalf("enqueue after ACK: %v", err)
-	}
-	if got := s.Pending(); got != MaxSteadyStateOutstandingDatagrams {
-		t.Fatalf("pending after refill=%d", got)
+	if p := s.RetransmitDue(now.Add(3 * time.Second)); p != nil {
+		t.Fatalf("retired repair reappeared after cumulative ACK: %#v", p)
 	}
 }
