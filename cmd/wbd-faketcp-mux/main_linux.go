@@ -329,7 +329,6 @@ func (s *muxServer) rawLoop() error {
 			continue
 		}
 		now := time.Now()
-		sess.noteClientRX(now)
 		if seg.Flags&faketcp.FlagSYN != 0 && sess.assoc.State() == faketcp.ServerAssociationAwaitACK {
 			if !s.cfg.bootstrapEnabled() && !faketcp.IsWBDHandshakeSegment(seg) {
 				continue
@@ -359,6 +358,10 @@ func (s *muxServer) rawLoop() error {
 		if err != nil {
 			continue
 		}
+		// Only protocol-valid FakeTCP traffic is peer-liveness evidence. A raw
+		// five-tuple match that fails association validation must not keep a data
+		// session alive indefinitely.
+		sess.noteClientRX(now)
 		if seg.Flags&faketcp.FlagACK != 0 {
 			sess.signalAck()
 		}
@@ -733,7 +736,7 @@ func (s *muxServer) retransmitLoop() error {
 					s.removeSessionMatch(sess.flow, sess)
 					continue
 				}
-				if p := sess.assoc.RetransmitDue(now); p != nil {
+				for _, p := range sess.assoc.RetransmitDueBatch(now, faketcp.SteadyStateRetransmitBatch) {
 					if err := s.sendPending(sess, p); err != nil {
 						return err
 					}
