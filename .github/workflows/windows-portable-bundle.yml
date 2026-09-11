@@ -32,6 +32,7 @@ on:
       - dev/wbd-raw-fec-v2
       - feat/single-flow-reality-faketcp
       - agent/fec-zombie-fix-7d859
+      - agent/integrate-pressure-mtu-dtls-20b7
     paths:
       - '.github/workflows/windows-portable-bundle.yml'
       - 'cmd/wbd-windows-portable/**'
@@ -69,6 +70,15 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.WBD_SOURCE_SHA }}
+      - name: Verify exact package source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $got = (git rev-parse HEAD).Trim()
+          if ($got -ne $env:WBD_SOURCE_SHA) { throw "source mismatch: got=$got want=$env:WBD_SOURCE_SHA" }
+          Write-Output "WBD_WINDOWS_RELEASE_SOURCE source_sha=$env:WBD_SOURCE_SHA run_sha=$env:GITHUB_SHA"
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
@@ -162,9 +172,10 @@ jobs:
           Copy-Item scripts\windows_ipv6_killswitch.ps1 "$payload\windows_ipv6_killswitch.ps1"
           Copy-Item scripts\windows_faketcp_underlay.ps1 "$payload\windows_faketcp_underlay.ps1"
           Copy-Item scripts\windows_npcap_prepare.ps1 "$payload\windows_npcap_prepare.ps1"
+          Set-Content -LiteralPath "$payload\SOURCE_SHA.txt" -Encoding ascii -Value $env:WBD_SOURCE_SHA
           $required = @(
             'wbd-reality-front.exe','wbd-faketcp.exe','wbd_dtls_shim.exe','wbd-link-proxy.exe','wbd-game-lane-client.exe','wbd-tun.exe','wbd-windows-gui.exe',
-            'wintun.dll','WINTUN-LICENSE.txt','windows_tun_route.ps1','windows_tun_rebind.ps1','windows_ipv6_killswitch.ps1','windows_faketcp_underlay.ps1','windows_npcap_prepare.ps1'
+            'wintun.dll','WINTUN-LICENSE.txt','SOURCE_SHA.txt','windows_tun_route.ps1','windows_tun_rebind.ps1','windows_ipv6_killswitch.ps1','windows_faketcp_underlay.ps1','windows_npcap_prepare.ps1'
           )
           foreach ($name in $required) {
             if (-not (Test-Path (Join-Path $payload $name))) { throw "portable payload missing $name" }
@@ -209,6 +220,7 @@ jobs:
             "fmt"
             "os"
             "path/filepath"
+            "strings"
 
             "github.com/lly8666/wobuzhidao/internal/windowsbundle"
           )
@@ -219,13 +231,16 @@ jobs:
             if !info.Bundled || info.PayloadSHA == "" { panic("embedded runtime metadata is incomplete") }
             required := []string{
               "wbd-reality-front.exe", "wbd-faketcp.exe", "wbd_dtls_shim.exe", "wbd-link-proxy.exe", "wbd-game-lane-client.exe", "wbd-tun.exe", "wbd-windows-gui.exe",
-              "wintun.dll", "WINTUN-LICENSE.txt", "windows_tun_route.ps1", "windows_tun_rebind.ps1", "windows_ipv6_killswitch.ps1", "windows_faketcp_underlay.ps1", "windows_npcap_prepare.ps1",
+              "wintun.dll", "WINTUN-LICENSE.txt", "SOURCE_SHA.txt", "windows_tun_route.ps1", "windows_tun_rebind.ps1", "windows_ipv6_killswitch.ps1", "windows_faketcp_underlay.ps1", "windows_npcap_prepare.ps1",
             }
             for _, name := range required {
               st, err := os.Stat(filepath.Join(info.Dir, name))
               if err != nil || st.IsDir() { panic(fmt.Sprintf("embedded runtime missing %s: %v", name, err)) }
             }
-            fmt.Printf("WBD_WINDOWS_PORTABLE_EXTRACT_PASS payload_sha256=%s\n", info.PayloadSHA)
+            source, err := os.ReadFile(filepath.Join(info.Dir, "SOURCE_SHA.txt"))
+            if err != nil { panic(err) }
+            if strings.TrimSpace(string(source)) == "" { panic("embedded SOURCE_SHA is empty") }
+            fmt.Printf("WBD_WINDOWS_PORTABLE_EXTRACT_PASS source_sha=%s payload_sha256=%s\n", strings.TrimSpace(string(source)), info.PayloadSHA)
           }
           '@ | Set-Content -LiteralPath build\portable-verify\main.go -Encoding utf8
           go run -tags wbd_bundle .\build\portable-verify\main.go
