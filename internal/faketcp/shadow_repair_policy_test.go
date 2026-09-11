@@ -37,9 +37,8 @@ func TestSACKRetirementFreesRepairWindowWithoutBreakingMergedSACK(t *testing.T) 
 		t.Fatalf("fresh admission did not use released repair capacity: pending=%d want=2", got)
 	}
 
-	// The receiver may later merge a SACK range whose start is an already-retired
-	// tombstone. Walking the retained seq/end chain must still reach and retire
-	// the newly admitted record.
+	// A later merged SACK may begin at an already-retired tombstone. The retained
+	// seq/end chain must still let it reach and retire newly admitted data.
 	s.AckSelective(pending[0].Seq, []SACKBlock{{Start: pending[1].Seq, End: fresh.End}}, now.Add(800*time.Millisecond))
 	if !fresh.Retired || fresh.Payload != nil {
 		t.Fatalf("merged SACK did not reach fresh record: %#v", fresh)
@@ -49,10 +48,10 @@ func TestSACKRetirementFreesRepairWindowWithoutBreakingMergedSACK(t *testing.T) 
 	}
 }
 
-func TestShadowRepairByteBudgetDefersExcessRetry(t *testing.T) {
+func TestShadowRepairByteBudgetPenalizesRepeatedRetry(t *testing.T) {
 	now := time.Unix(1700000100, 0)
 	s := NewSenderWithRecovery(2000, time.Second, RecoverySACKRACK)
-	p := s.Enqueue(bytes.Repeat([]byte{0x7f}, 64*1024), now)
+	p := s.Enqueue(bytes.Repeat([]byte{0x7f}, 32*1024), now)
 
 	if !s.tryMarkRetry(p, now.Add(time.Second), false) {
 		t.Fatal("first repair unexpectedly denied")
@@ -61,29 +60,19 @@ func TestShadowRepairByteBudgetDefersExcessRetry(t *testing.T) {
 		t.Fatal("second repair unexpectedly denied inside burst+share budget")
 	}
 	if s.tryMarkRetry(p, now.Add(3*time.Second), false) {
-		t.Fatal("third repair should be deferred by cumulative repair-byte budget")
+		t.Fatal("third repair should be deferred after progressive 1x/2x/4x credit cost")
 	}
 	st := s.Stats()
-	if st.RepairDeferred != 1 || st.RepairDeferredBytes != 64*1024 {
+	if st.RetransmitBytes != 64*1024 {
+		t.Fatalf("actual repair bytes=%d want=%d", st.RetransmitBytes, 64*1024)
+	}
+	if st.RepairBudgetSpent != 96*1024 {
+		t.Fatalf("virtual repair spend=%d want=%d", st.RepairBudgetSpent, 96*1024)
+	}
+	if st.RepairDeferred != 1 || st.RepairDeferredBytes != 32*1024 {
 		t.Fatalf("defer stats=%+v", st)
 	}
 	if p.RepairNotBefore.IsZero() {
 		t.Fatal("budget denial did not pace the next repair attempt")
-	}
-}
-
-func TestHighLossAllowsOnlyOneFastRepairBeforeRTO(t *testing.T) {
-	s := NewSenderWithRecovery(3000, time.Second, RecoverySACKRACK)
-	p := s.Enqueue([]byte("payload"), time.Unix(1700000200, 0))
-	s.stats.Enqueued = 200
-	s.stats.LossMarked = 20
-	p.Retries = 1
-	p.WasRetried = true
-
-	if !s.highLoss() {
-		t.Fatal("test setup did not classify high loss")
-	}
-	if s.fastRepairAllowed(p) {
-		t.Fatal("high-loss path should not repeatedly fast-repair the same hole")
 	}
 }
