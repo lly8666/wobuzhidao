@@ -7,6 +7,14 @@ const payloadSlabSize = 2048
 const (
 	minRTO = time.Second
 	maxRTO = 60 * time.Second
+
+	// Shadow repairs are cosmetic/recovery traffic below the real first-arrival
+	// data path. Bound their long-run byte cost so a lossy outer path cannot let
+	// retransmissions crowd fresh inner traffic out of a fixed-rate bottleneck.
+	shadowRepairBudgetDivisor = uint64(5) // 20% of admitted fresh bytes
+	shadowRepairBurstBytes    = uint64(128 * 1024)
+	shadowRepairDefer         = 100 * time.Millisecond
+	shadowHighLossPercent     = uint64(5)
 )
 
 type RecoveryMode uint8
@@ -30,20 +38,33 @@ type Pending struct {
 	WasRetried bool
 	SACKed     bool
 	Bootstrap  bool
-	slot       int
+
+	// Retired means the peer has SACK-proven first arrival. Keep only the tiny
+	// sequence tombstone until cumulative ACK catches up, so future merged SACK
+	// ranges can still be walked without retaining payload or consuming the
+	// steady-state repair/admission window.
+	Retired bool
+
+	// RepairNotBefore paces a retry whose global repair-byte budget was empty.
+	// Deferral is local scheduling only; it never delays fresh admission.
+	RepairNotBefore time.Time
+	slot            int
 }
 
 type SenderStats struct {
-	Enqueued        uint64
-	EnqueuedBytes   uint64
-	Acked           uint64
-	SACKed          uint64
-	FastRetransmits uint64
-	RTOTransmits    uint64
-	RetransmitBytes uint64
-	LossMarked      uint64
-	LossMarkedBytes uint64
-	PeakPending     int
+	Enqueued              uint64
+	EnqueuedBytes         uint64
+	Acked                 uint64
+	SACKed                uint64
+	RetiredSACKed         uint64
+	FastRetransmits       uint64
+	RTOTransmits          uint64
+	RetransmitBytes       uint64
+	RepairDeferred        uint64
+	RepairDeferredBytes   uint64
+	LossMarked            uint64
+	LossMarkedBytes       uint64
+	PeakPending           int
 }
 
 type Sender struct {
@@ -51,6 +72,8 @@ type Sender struct {
 	pending      []*Pending
 	bySeq        map[uint32]*Pending
 	head         int
+	// active is repair-bearing shadow state, not every historical sequence
+	// tombstone. SACK-proven first arrivals leave this count immediately.
 	active       int
 	lastAck      uint32
 	dupAcks      int
@@ -59,33 +82,21 @@ type Sender struct {
 
 	// baseRTO is the estimator-derived timeout. rto is the effective timeout for
 	// the current loss episode and may be exponentially backed off after RTOs.
-	// Keeping them separate lets cumulative forward progress end one timeout
-	// episode without fabricating an RTT sample for a retransmitted segment.
 	rto      time.Duration
 	baseRTO  time.Duration
 	srtt     time.Duration
 	rttvar   time.Duration
 	recovery RecoveryMode
 
-	// timeoutEpisodeEnd is the end sequence of the oldest segment whose timeout
-	// started the active exponential-backoff episode. Partial/duplicate ACKs and
-	// SACK evidence cannot end the episode; cumulative ACK coverage can.
 	timeoutEpisode    bool
 	timeoutEpisodeEnd uint32
 
-	// Steady-state bounded senders may sweep all datagrams that were already
-	// expired when one real RTO epoch began. The ordinary RetransmitDue API still
-	// returns at most one packet per caller tick, so the existing 2ms product loop
-	// paces a large loss episode instead of emitting an unbounded retransmit burst.
 	steadyStateRTOSweep bool
 	rtoSweepActive      bool
 	rtoSweepStarted     time.Time
 	rtoSweepRTO         time.Duration
 
-	// rackLatestTx records the freshest transmission time for data proven
-	// delivered by ACK/SACK. RACK uses it for immediate inference; legacy uses
-	// only fresh post-retry evidence to keep a live path from sitting behind an
-	// already-backed-off RTO. It never gates admission of a new inner datagram.
+	// Freshest transmission time for data proven delivered by ACK/SACK.
 	rackLatestTx time.Time
 
 	freeSlabs [][]byte
@@ -165,10 +176,9 @@ func (s *Sender) Ack(ack uint32, now time.Time) *Pending {
 	return s.AckSelective(ack, nil, now)
 }
 
-// AckSelective consumes cumulative ACK plus SACK information. Both recovery
-// modes retain packet-preserving, no-HOL inner semantics; the selector changes
-// only background TCP-like shadow retransmission behavior so first-arrival can
-// be measured A/B without changing any other carrier code.
+// AckSelective consumes cumulative ACK plus SACK information. SACK proves
+// first-arrival and therefore releases payload/admission pressure immediately;
+// cumulative ACK bookkeeping is retained as a lightweight sequence tombstone.
 func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pending {
 	oldAck := s.lastAck
 	advanced := seqLT(oldAck, ack)
@@ -200,44 +210,44 @@ func (s *Sender) AckSelective(ack uint32, sacks []SACKBlock, now time.Time) *Pen
 		}
 	}
 
+	var repair *Pending
 	if s.recovery == RecoverySACKRACK {
-		if p := s.rackLossCandidate(now); p != nil {
-			s.fastRetxSeq = p.Seq
-			s.fastRetxDone = true
-			s.dupAcks = 0
-			s.markRetry(p, now, true)
-			return p
+		candidate := s.rackLossCandidate(now)
+		if candidate == nil {
+			candidate = s.sackLossCandidate()
 		}
-		if p := s.sackLossCandidate(); p != nil {
-			s.fastRetxSeq = p.Seq
+		if candidate != nil && s.tryMarkRetry(candidate, now, true) {
+			s.fastRetxSeq = candidate.Seq
 			s.fastRetxDone = true
 			s.dupAcks = 0
-			s.markRetry(p, now, true)
-			return p
+			repair = candidate
 		}
 	}
 
-	if !advanced && ack == s.lastAck && s.dupAcks >= 3 {
+	if repair == nil && !advanced && ack == s.lastAck && s.dupAcks >= 3 {
 		s.dupAcks = 0
 		p := s.oldest()
 		if p != nil && p.Seq == ack && !p.WasRetried && (!s.fastRetxDone || s.fastRetxSeq != p.Seq) {
-			s.fastRetxSeq = p.Seq
-			s.fastRetxDone = true
-			s.markRetry(p, now, true)
-			return p
+			if s.tryMarkRetry(p, now, true) {
+				s.fastRetxSeq = p.Seq
+				s.fastRetxDone = true
+				repair = p
+			}
 		}
 	}
-	return nil
+
+	// Do this only after the current ACK's loss inference: the just-observed SACK
+	// evidence may be needed to select the hole repaired above.
+	s.retireSACKedPayloads()
+	return repair
 }
 
-// sackLossCandidate deliberately considers only the cumulative-ACK boundary.
-// The receiver can advertise only four recent SACK ranges, so absence from the
-// current SACK blocks is not proof that an arbitrary non-head segment is lost.
-// The segment starting at lastAck is different: while later data is SACKed and
-// the cumulative ACK remains pinned there, that oldest hole is authoritative.
 func (s *Sender) sackLossCandidate() *Pending {
 	candidate := s.oldest()
-	if candidate == nil || candidate.Seq != s.lastAck || candidate.SACKed || candidate.WasRetried {
+	if candidate == nil || candidate.Seq != s.lastAck || candidate.SACKed || candidate.Retired || candidate.WasRetried {
+		return nil
+	}
+	if !candidate.RepairNotBefore.IsZero() && time.Now().Before(candidate.RepairNotBefore) {
 		return nil
 	}
 	sackedAbove := 0
@@ -254,19 +264,21 @@ func (s *Sender) sackLossCandidate() *Pending {
 	return nil
 }
 
-// rackLossCandidate permits repeated fast repair of the cumulative-ACK
-// boundary only when delivery evidence is fresher than that hole's most recent
-// transmission. markRetry refreshes LastSent, so the evidence that authorized
-// one repair immediately becomes stale; replaying the same SACK blocks cannot
-// self-trigger another repair. A later ACK/SACK of a transmission sent after
-// that repair can advance rackLatestTx and authorize the next repair after the
-// reordering window. Non-head holes still wait for cumulative ACK advance.
+// rackLossCandidate permits repeated fast repair only while that remains cheap.
+// At measured high loss, one fast repair is enough TCP-like evidence; any later
+// attempt falls back to paced RTO and the global repair-byte budget.
 func (s *Sender) rackLossCandidate(now time.Time) *Pending {
 	if s.rackLatestTx.IsZero() {
 		return nil
 	}
 	p := s.oldest()
-	if p == nil || p.Seq != s.lastAck || p.SACKed || p.LastSent.IsZero() || !p.WasRetried {
+	if p == nil || p.Seq != s.lastAck || p.SACKed || p.Retired || p.LastSent.IsZero() || !p.WasRetried {
+		return nil
+	}
+	if !p.RepairNotBefore.IsZero() && now.Before(p.RepairNotBefore) {
+		return nil
+	}
+	if !s.fastRepairAllowed(p) {
 		return nil
 	}
 	if !p.LastSent.Before(s.rackLatestTx) {
@@ -276,6 +288,25 @@ func (s *Sender) rackLossCandidate(now time.Time) *Pending {
 		return nil
 	}
 	return p
+}
+
+func (s *Sender) fastRepairAllowed(p *Pending) bool {
+	if p == nil || p.Bootstrap {
+		return true
+	}
+	maxFast := uint32(2)
+	if s.highLoss() {
+		maxFast = 1
+	}
+	return p.Retries < maxFast
+}
+
+func (s *Sender) highLoss() bool {
+	// Avoid classifying from the first handful of packets.
+	if s.stats.Enqueued < 128 {
+		return false
+	}
+	return s.stats.LossMarked*100 > s.stats.Enqueued*shadowHighLossPercent
 }
 
 func (s *Sender) rackReorderingWindow() time.Duration {
@@ -312,6 +343,23 @@ func (s *Sender) markSACK(p *Pending, now time.Time) {
 	}
 }
 
+func (s *Sender) retireSACKedPayloads() {
+	for i := s.head; i < len(s.pending); i++ {
+		p := s.pending[i]
+		if p == nil || !p.SACKed || p.Retired || p.Bootstrap {
+			continue
+		}
+		s.releasePayload(p.Payload)
+		p.Payload = nil
+		p.Retired = true
+		p.RepairNotBefore = time.Time{}
+		if s.active > 0 {
+			s.active--
+		}
+		s.stats.RetiredSACKed++
+	}
+}
+
 func (s *Sender) ackCumulative(oldAck, ack uint32, now time.Time) {
 	var sample *Pending
 	if p := s.bySeq[oldAck]; p != nil && p.End == ack && !p.WasRetried {
@@ -345,9 +393,13 @@ func (s *Sender) ackOne(p *Pending) {
 		return
 	}
 	delete(s.bySeq, p.Seq)
-	s.releasePayload(p.Payload)
-	p.Payload = nil
-	s.active--
+	if !p.Retired {
+		s.releasePayload(p.Payload)
+		p.Payload = nil
+		if s.active > 0 {
+			s.active--
+		}
+	}
 	s.stats.Acked++
 	if p.slot >= 0 && p.slot < len(s.pending) && s.pending[p.slot] == p {
 		s.pending[p.slot] = nil
@@ -382,13 +434,6 @@ func (s *Sender) RetransmitDue(now time.Time) *Pending {
 	return s.retransmitDueSingle(now)
 }
 
-// RetransmitDueBatch returns at most max timer-expired repairs. RecoveryLegacy
-// may sweep multiple packets that were already expired when the current RTO
-// epoch began; one connection-wide exponential backoff is charged for that
-// epoch no matter how many bounded batches the caller needs to drain it.
-// SACK-proven delivered packets remain retained for cumulative ACK accounting
-// but are never retransmitted by the sweep. Other recovery modes preserve the
-// mature single-head timer behavior.
 func (s *Sender) RetransmitDueBatch(now time.Time, max int) []*Pending {
 	if max <= 0 {
 		return nil
@@ -417,9 +462,6 @@ func (s *Sender) RetransmitDueBatch(now time.Time, max int) []*Pending {
 		return nil
 	}
 
-	// Snapshot the expiry instant and interval. Later packets can join this epoch
-	// only if they were already timer-expired at this instant; data admitted after
-	// the epoch begins cannot be pulled forward by the sweep.
 	s.rtoSweepActive = true
 	s.rtoSweepStarted = now
 	s.rtoSweepRTO = rto
@@ -427,41 +469,49 @@ func (s *Sender) RetransmitDueBatch(now time.Time, max int) []*Pending {
 		s.timeoutEpisode = true
 		s.timeoutEpisodeEnd = p.End
 	}
-	s.rto = clampRTO(s.rto * 2)
-	return s.collectLegacyRTOSweep(now, max)
+	// Backoff is charged only after an actual retransmission leaves the repair
+	// scheduler; an empty byte budget must not pretend a packet was sent.
+	out := s.collectLegacyRTOSweep(now, max)
+	if len(out) != 0 {
+		s.rto = clampRTO(s.rto * 2)
+	}
+	return out
 }
 
 func (s *Sender) collectLegacyRTOSweep(now time.Time, max int) []*Pending {
 	out := make([]*Pending, 0, max)
 	for i := s.head; i < len(s.pending) && len(out) < max; i++ {
 		p := s.pending[i]
-		if !s.legacySweepEligible(p) {
+		if !s.legacySweepEligible(p, now) {
 			continue
 		}
-		s.markRetry(p, now, false)
+		if !s.tryMarkRetry(p, now, false) {
+			continue
+		}
 		out = append(out, p)
 	}
-	if !s.hasLegacySweepEligible() {
+	if !s.hasLegacySweepEligible(now) {
 		s.clearRTOSweep()
 	}
 	return out
 }
 
-func (s *Sender) legacySweepEligible(p *Pending) bool {
-	if !s.rtoSweepActive || p == nil || p.Bootstrap || p.SACKed || p.LastSent.IsZero() {
+func (s *Sender) legacySweepEligible(p *Pending, now time.Time) bool {
+	if !s.rtoSweepActive || p == nil || p.Bootstrap || p.SACKed || p.Retired || p.LastSent.IsZero() {
 		return false
 	}
-	// LastSent at/after rtoSweepStarted means this packet was either admitted or
-	// retransmitted after the epoch snapshot and therefore is not part of it.
+	if !p.RepairNotBefore.IsZero() && now.Before(p.RepairNotBefore) {
+		return false
+	}
 	if !p.LastSent.Before(s.rtoSweepStarted) {
 		return false
 	}
 	return s.rtoSweepStarted.Sub(p.LastSent) >= s.rtoSweepRTO
 }
 
-func (s *Sender) hasLegacySweepEligible() bool {
+func (s *Sender) hasLegacySweepEligible(now time.Time) bool {
 	for i := s.head; i < len(s.pending); i++ {
-		if s.legacySweepEligible(s.pending[i]) {
+		if s.legacySweepEligible(s.pending[i], now) {
 			return true
 		}
 	}
@@ -476,18 +526,19 @@ func (s *Sender) clearRTOSweep() {
 
 func (s *Sender) retransmitDueSingle(now time.Time) *Pending {
 	p := s.oldest()
-	if p == nil {
+	if p == nil || p.Retired || p.SACKed || len(p.Payload) == 0 {
+		return nil
+	}
+	if !p.RepairNotBefore.IsZero() && now.Before(p.RepairNotBefore) {
 		return nil
 	}
 	rto := s.effectiveRTO(p)
 	if now.Sub(p.LastSent) < rto {
 		return nil
 	}
-	s.markRetry(p, now, false)
-	// Bootstrap is an intentionally short stop-and-wait stream with an absolute
-	// admission deadline. Keep retries frequent enough to make progress through
-	// weak-link loss, but preserve the mature TCP-like exponential backoff once
-	// the same association crosses the bootstrap barrier into steady-state data.
+	if !s.tryMarkRetry(p, now, false) {
+		return nil
+	}
 	if !p.Bootstrap {
 		if !s.timeoutEpisode {
 			s.timeoutEpisode = true
@@ -500,11 +551,6 @@ func (s *Sender) retransmitDueSingle(now time.Time) *Pending {
 
 func (s *Sender) effectiveRTO(p *Pending) time.Duration {
 	rto := s.rto
-	// Legacy keeps its classic retransmission path: SACK evidence never causes
-	// an immediate repair. But once a post-retry transmission is proven delivered,
-	// the path is live and that fresh evidence may bound the next timer wait to the
-	// estimator-derived base RTO. markRetry advances LastSent, making the evidence
-	// stale after exactly one repair unless newer data is subsequently delivered.
 	if s.recovery == RecoveryLegacy && p != nil && !p.Bootstrap && !s.rackLatestTx.IsZero() &&
 		p.LastSent.Before(s.rackLatestTx) && s.baseRTO < rto {
 		rto = s.baseRTO
@@ -521,6 +567,33 @@ func (s *Sender) oldest() *Pending {
 		return nil
 	}
 	return s.pending[s.head]
+}
+
+func (s *Sender) repairBudgetAllows(p *Pending) bool {
+	if p == nil || p.Bootstrap {
+		return true
+	}
+	cost := uint64(len(p.Payload))
+	if cost == 0 {
+		return false
+	}
+	budget := s.stats.EnqueuedBytes/shadowRepairBudgetDivisor + shadowRepairBurstBytes
+	return s.stats.RetransmitBytes+cost <= budget
+}
+
+func (s *Sender) tryMarkRetry(p *Pending, now time.Time, fast bool) bool {
+	if p == nil || p.SACKed || p.Retired || len(p.Payload) == 0 {
+		return false
+	}
+	if !p.Bootstrap && !s.repairBudgetAllows(p) {
+		p.RepairNotBefore = now.Add(shadowRepairDefer)
+		s.stats.RepairDeferred++
+		s.stats.RepairDeferredBytes += uint64(len(p.Payload))
+		return false
+	}
+	p.RepairNotBefore = time.Time{}
+	s.markRetry(p, now, fast)
+	return true
 }
 
 func (s *Sender) markRetry(p *Pending, now time.Time, fast bool) {
