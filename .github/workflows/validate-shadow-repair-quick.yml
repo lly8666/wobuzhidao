@@ -12,7 +12,7 @@ permissions:
   actions: read
 
 env:
-  SOURCE_SHA: 533d02cd2db9df7f1b57c2961e32c3637f54b24c
+  SOURCE_SHA: 62f68bcfbc8a1cebb99ab9b8cf2984b1bea29f95
   BASE_ASSET_ARTIFACT_ID: '10265571219'
 
 jobs:
@@ -138,13 +138,17 @@ jobs:
                   try: stats.append(json.loads(line.split('WBD_FAKETCP_STATS ',1)[1]))
                   except Exception: pass
           senders=[x['sender'] for x in stats if x.get('role')=='client' and 'sender' in x]
-          if not senders:
-              raise SystemExit('no client sender stats')
+          receivers=[x['receiver'] for x in stats if x.get('role')=='client' and 'receiver' in x]
+          if not senders or not receivers:
+              raise SystemExit('missing client sender/receiver stats')
           peak=max(x.get('PeakPending',0) for x in senders)
           enq=sum(x.get('EnqueuedBytes',0) for x in senders)
           retx=sum(x.get('RetransmitBytes',0) for x in senders)
           deferred=sum(x.get('RepairDeferredBytes',0) for x in senders)
           retired=sum(x.get('RetiredSACKed',0) for x in senders)
+          forgiven=sum(x.get('ForgivenGaps',0) for x in receivers)
+          forgiven_bytes=sum(x.get('ForgivenBytes',0) for x in receivers)
+          peak_oo=max(x.get('PeakBufferedOO',0) for x in receivers)
           ratio=(retx/enq) if enq else 0
           print('WBD_QUICK_POLICY_RESULT '+json.dumps({
               'down_payload_bps':d['down_payload_bps'],
@@ -154,6 +158,9 @@ jobs:
               'retransmit_to_fresh_bytes':ratio,
               'repair_deferred_bytes':deferred,
               'retired_sacked':retired,
+              'forgiven_gaps':forgiven,
+              'forgiven_bytes':forgiven_bytes,
+              'peak_receiver_out_of_order':peak_oo,
           },sort_keys=True))
           if peak >= 4096:
               raise SystemExit('repair pending saturated 4096')
