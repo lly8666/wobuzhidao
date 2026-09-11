@@ -1,0 +1,166 @@
+name: validate-shadow-repair-quick
+
+on:
+  push:
+    branches:
+      - agent/shadow-repair-nohol-0967
+    paths:
+      - '.github/workflows/validate-shadow-repair-quick.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SOURCE_SHA: bdac140dbb2f496d9b196546429885a162bbef60
+  BASE_ASSET_ARTIFACT_ID: '10265398086'
+
+jobs:
+  quick-severe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact product source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "WBD_QUICK_SOURCE source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install namespace tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump unzip
+      - name: Reuse frozen native assets and rebuild changed FakeTCP binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/wbd-quick-assets"
+          mkdir -p "$ASSET"
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${BASE_ASSET_ARTIFACT_ID}/zip" -o /tmp/base-assets.zip
+          unzip -q /tmp/base-assets.zip -d "$ASSET"
+          test "$(cat "$ASSET/SOURCE_SHA.txt")" = "0967f983c36504dfd430bb76456e1e8f8331dea8"
+
+          go test ./internal/faketcp ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux -count=1
+          go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
+          go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+          printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
+          chmod +x "$ASSET"/wbd-* "$ASSET/wbd_dtls_shim"
+          echo "WBD_QUICK_BUILD_PASS source_sha=$SOURCE_SHA"
+      - name: Patch only validation duration, rate, and recovery mode
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          rotation = Path('scripts/game_lane_rotation_soak.sh')
+          s = rotation.read_text()
+          pairs = [
+              ('[[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge 500 ]] || { echo "DURATION_SEC must be >=500" >&2; exit 2; }',
+               '[[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge 20 ]] || { echo "DURATION_SEC must be >=20" >&2; exit 2; }'),
+              ('[[ "$RATE_BPS" == 1000000 ]] || { echo "RATE_BPS must be exactly 1000000" >&2; exit 2; }',
+               '[[ "$RATE_BPS" == 10000000 ]] || { echo "RATE_BPS must be exactly 10000000" >&2; exit 2; }'),
+          ]
+          for old,new in pairs:
+              if s.count(old) != 1:
+                  raise SystemExit('validation guard drift: '+old)
+              s = s.replace(old,new,1)
+          if '--shadow-recovery legacy' not in s:
+              raise SystemExit('replacement recovery marker missing')
+          s = s.replace('--shadow-recovery legacy','--shadow-recovery sack-rack')
+          s = s.replace('recovery=legacy','recovery=sack-rack')
+          rotation.write_text(s)
+
+          base = Path('scripts/game_lane_fullstack.sh')
+          s = base.read_text()
+          if '--shadow-recovery legacy' not in s:
+              raise SystemExit('initial recovery marker missing')
+          s = s.replace('--shadow-recovery legacy','--shadow-recovery sack-rack')
+          mux = '"$ASSET_DIR/wbd-faketcp-mux" server \\\n  --listen 10.89.0.1:${RAW} --dtls-shim "$ASSET_DIR/wbd_dtls_shim" \\\n'
+          mux_new = '"$ASSET_DIR/wbd-faketcp-mux" server \\\n  --shadow-recovery sack-rack \\\n  --listen 10.89.0.1:${RAW} --dtls-shim "$ASSET_DIR/wbd_dtls_shim" \\\n'
+          if s.count(mux) != 1:
+              raise SystemExit('server mux launch marker drift')
+          s = s.replace(mux,mux_new,1)
+          s = s.replace('recovery=legacy','recovery=sack-rack')
+          base.write_text(s)
+          PY
+          echo "WBD_QUICK_HARNESS duration_sec=20 inner_rate_bps=10000000 recovery=sack-rack"
+      - name: Run 20 second 4-lane FEC20 severe iteration
+        env:
+          LANES: '4'
+          FEC: '20:20'
+          DURATION_SEC: '20'
+          RATE_BPS: '10000000'
+          PAYLOAD_BYTES: '1000'
+          ROTATE_INTERVAL_SEC: '10'
+          ROTATIONS: '1'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+          SOAK_REPLICA: '1'
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/shadow-quick"
+          mkdir -p "$LOG"
+          sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$RUNNER_TEMP/wbd-quick-assets" "$LOG"
+          cat "$LOG/load-result.json"
+          grep -q 'WBD_HOSTED_NETEM_READY delay_ms=300 loss_pct=20 direction=bidirectional' "$LOG/netem.log"
+          grep -q 'READY role=server-mux.*recovery=sack-rack' "$LOG/faketcp-mux.log"
+          ! grep -R -q 'pending=4096 limit=4096 action=wait' "$LOG" || {
+            echo 'fresh path still reached hard repair pressure' >&2
+            exit 21
+          }
+          python3 - "$LOG" <<'PY'
+          import glob,json,os,re,sys
+          root=sys.argv[1]
+          d=json.load(open(os.path.join(root,'load-result.json')))
+          assert d['requested_duration_sec']==20, d
+          assert d['requested_bps_each_direction']==10_000_000, d
+          assert d['duplicates']==0 and d['bad_payload']==0, d
+          stats=[]
+          for path in glob.glob(root+'/*faketcp*.log'):
+              for line in open(path,errors='replace'):
+                  if 'WBD_FAKETCP_STATS ' not in line: continue
+                  try: stats.append(json.loads(line.split('WBD_FAKETCP_STATS ',1)[1]))
+                  except Exception: pass
+          senders=[x['sender'] for x in stats if x.get('role')=='client' and 'sender' in x]
+          if not senders:
+              raise SystemExit('no client sender stats')
+          peak=max(x.get('PeakPending',0) for x in senders)
+          enq=sum(x.get('EnqueuedBytes',0) for x in senders)
+          retx=sum(x.get('RetransmitBytes',0) for x in senders)
+          deferred=sum(x.get('RepairDeferredBytes',0) for x in senders)
+          retired=sum(x.get('RetiredSACKed',0) for x in senders)
+          ratio=(retx/enq) if enq else 0
+          print('WBD_QUICK_POLICY_RESULT '+json.dumps({
+              'down_payload_bps':d['down_payload_bps'],
+              'received_unique':d['received_unique'],
+              'sent':d['sent'],
+              'max_peak_repair_pending':peak,
+              'retransmit_to_fresh_bytes':ratio,
+              'repair_deferred_bytes':deferred,
+              'retired_sacked':retired,
+          },sort_keys=True))
+          if peak >= 4096:
+              raise SystemExit('repair pending saturated 4096')
+          PY
+      - name: Diagnose failure
+        if: failure()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/shadow-quick"
+          echo '=== LOAD ==='; cat "$LOG/load-result.json" 2>/dev/null || true
+          echo '=== PRESSURE ==='; grep -R 'WBD_FAKETCP_OUTSTANDING_PRESSURE' "$LOG" 2>/dev/null || true
+          echo '=== STATS ==='; grep -R 'WBD_FAKETCP_STATS' "$LOG" 2>/dev/null || true
+          tail -n 160 "$LOG/faketcp-mux.log" 2>/dev/null || true
+      - name: Scrub one-time auth material
+        if: always()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/shadow-quick"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
