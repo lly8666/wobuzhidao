@@ -53,7 +53,7 @@ jobs:
           printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
           chmod +x "$ASSET"/wbd-* "$ASSET/wbd_dtls_shim"
           echo "WBD_QUICK_BUILD_PASS source_sha=$SOURCE_SHA"
-      - name: Patch only validation duration, rate, and recovery mode
+      - name: Patch only validation duration, rate, recovery mode, and netem queue
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -89,8 +89,16 @@ jobs:
           s = s.replace(mux,mux_new,1)
           s = s.replace('recovery=legacy','recovery=sack-rack')
           base.write_text(s)
+
+          control = Path('scripts/game_lane_rotation_soak_control.sh')
+          s = control.read_text()
+          old = 'loss random "${NETEM_LOSS_PCT}%"'
+          if s.count(old) != 2:
+              raise SystemExit('netem queue insertion point drift')
+          s = s.replace(old, old + ' limit 20000')
+          control.write_text(s)
           PY
-          echo "WBD_QUICK_HARNESS duration_sec=20 inner_rate_bps=10000000 recovery=sack-rack"
+          echo "WBD_QUICK_HARNESS duration_sec=20 inner_rate_bps=10000000 recovery=sack-rack netem_limit_pkts=20000"
       - name: Run 20 second 4-lane FEC20 severe iteration
         env:
           LANES: '4'
@@ -110,6 +118,7 @@ jobs:
           sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$RUNNER_TEMP/wbd-quick-assets" "$LOG"
           cat "$LOG/load-result.json"
           grep -q 'WBD_HOSTED_NETEM_READY delay_ms=300 loss_pct=20 direction=bidirectional' "$LOG/netem.log"
+          grep -q 'limit 20000' "$LOG/netem.log"
           grep -q 'READY role=server-mux.*recovery=sack-rack' "$LOG/faketcp-mux.log"
           ! grep -R -q 'pending=4096 limit=4096 action=wait' "$LOG" || {
             echo 'fresh path still reached hard repair pressure' >&2
