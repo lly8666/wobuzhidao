@@ -15,6 +15,18 @@ set(WOLFSSL_DTLS13 yes CACHE STRING "" FORCE)
 set(WOLFSSL_EXAMPLES no CACHE STRING "" FORCE)
 set(WOLFSSL_CRYPT_TESTS no CACHE STRING "" FORCE)
 
+# Keep the pinned wolfSSL compile-time transport contract identical to the
+# Linux/package build paths. WOLFSSL_MAX_MTU raises only wolfSSL's logical DTLS
+# record/datagram ceiling; physical packet sizing remains the FakeTCP carrier's
+# responsibility. The replay-window definition is likewise part of the frozen
+# product build contract and must reach both wolfSSL and the shim translation
+# unit.
+add_compile_definitions(
+  WOLFSSL_DTLS_WINDOW_WORDS=128
+  WOLFSSL_MAX_MTU=16384
+)
+message(STATUS "WBD DTLS build contract: replay_words=128 logical_mtu=16384")
+
 # The Windows client is staged as a portable application. Keep the Microsoft C
 # runtime static for the shim and the embedded wolfSSL build so a clean machine
 # does not need a side-by-side VCRUNTIME/MSVCP payload. This changes packaging
