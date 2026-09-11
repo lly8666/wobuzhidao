@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 )
 
 const (
@@ -16,6 +17,13 @@ const (
 	carrierFrameVersion   = byte(1)
 	maxCarrierDatagramLen = 65535
 	maxCarrierAssemblies  = MaxSteadyStateOutstandingDatagrams
+
+	// Carrier fragments are optional recovery state below the real first-arrival
+	// path. Five seconds is deliberately much larger than the project's 600ms
+	// target RTT, but short enough that a datagram abandoned by the partial-
+	// reliability ACK horizon cannot pin fragment memory for the association's
+	// lifetime. Duplicate fragments do not refresh this deadline.
+	carrierAssemblyTTL = 5 * time.Second
 )
 
 var (
@@ -34,8 +42,6 @@ func CarrierPayloadBudget(pathMTU int) (int, error) {
 	if budget <= 0 {
 		return 0, ErrCarrierPathMTU
 	}
-	// An IPv4 packet cannot exceed 65535 bytes even when a loopback or tunnel
-	// interface reports a larger MTU.
 	maxPayload := 65535 - carrierIPv4HeaderLen - carrierTCPHeaderLen
 	if budget > maxPayload {
 		budget = maxPayload
@@ -111,12 +117,13 @@ func (f *CarrierFragmenter) Fragment(datagram []byte) ([][]byte, error) {
 }
 
 type carrierAssembly struct {
-	count    uint16
-	total    int
-	parts    [][]byte
-	present  []bool
-	received int
-	bytes    int
+	count     uint16
+	total     int
+	parts     [][]byte
+	present   []bool
+	received  int
+	bytes     int
+	createdAt time.Time
 }
 
 // CarrierReassembler restores the original UDP datagram before it is returned
@@ -134,6 +141,10 @@ func NewCarrierReassembler() *CarrierReassembler {
 }
 
 func (r *CarrierReassembler) Push(frame []byte) ([]byte, bool, error) {
+	return r.pushAt(frame, time.Now())
+}
+
+func (r *CarrierReassembler) pushAt(frame []byte, now time.Time) ([]byte, bool, error) {
 	if r == nil {
 		return nil, false, ErrCarrierFrame
 	}
@@ -160,16 +171,16 @@ func (r *CarrierReassembler) Push(frame []byte) ([]byte, bool, error) {
 	if r.assemblies == nil {
 		r.assemblies = make(map[uint32]*carrierAssembly)
 	}
+	r.expireLocked(now)
 	a := r.assemblies[id]
 	if a == nil {
 		if len(r.assemblies) >= maxCarrierAssemblies {
 			return nil, false, ErrCarrierReassemblyFull
 		}
 		a = &carrierAssembly{
-			count:   count,
-			total:   total,
-			parts:   make([][]byte, int(count)),
-			present: make([]bool, int(count)),
+			count: count, total: total,
+			parts: make([][]byte, int(count)), present: make([]bool, int(count)),
+			createdAt: now,
 		}
 		r.assemblies[id] = a
 	} else if a.count != count || a.total != total {
@@ -211,4 +222,15 @@ func (r *CarrierReassembler) Push(frame []byte) ([]byte, bool, error) {
 		return nil, false, ErrCarrierFrame
 	}
 	return out, true, nil
+}
+
+func (r *CarrierReassembler) expireLocked(now time.Time) {
+	if now.IsZero() || len(r.assemblies) == 0 {
+		return
+	}
+	for id, a := range r.assemblies {
+		if a == nil || (!a.createdAt.IsZero() && now.Sub(a.createdAt) >= carrierAssemblyTTL) {
+			delete(r.assemblies, id)
+		}
+	}
 }
