@@ -32,10 +32,14 @@ jobs:
             *) echo "bad candidate for A/B probe: $CANDIDATE" >&2; exit 2 ;;
           esac
           case "$LOSS_PCT" in 20|30) ;; *) echo "bad loss for A/B probe: $LOSS_PCT" >&2; exit 2 ;; esac
+          case "$TRAFFIC_PROFILE" in fixed1000|realistic-mix-v1) ;; *) echo "bad traffic profile: $TRAFFIC_PROFILE" >&2; exit 2 ;; esac
+          case "$LOSS_MODEL" in iid|burst) ;; *) echo "bad loss model: $LOSS_MODEL" >&2; exit 2 ;; esac
           [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "bad source sha" >&2; exit 2; }
           echo "candidate=$CANDIDATE" >> "$GITHUB_OUTPUT"
           echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
           echo "loss_pct=$LOSS_PCT" >> "$GITHUB_OUTPUT"
+          echo "traffic_profile=$TRAFFIC_PROFILE" >> "$GITHUB_OUTPUT"
+          echo "loss_model=$LOSS_MODEL" >> "$GITHUB_OUTPUT"
       - name: Checkout exact product candidate
         uses: actions/checkout@v4
         with:
@@ -54,6 +58,8 @@ jobs:
           CANDIDATE: ${{ steps.case.outputs.candidate }}
           SOURCE_SHA: ${{ steps.case.outputs.source_sha }}
           LOSS_PCT: ${{ steps.case.outputs.loss_pct }}
+          TRAFFIC_PROFILE: ${{ steps.case.outputs.traffic_profile }}
+          LOSS_MODEL: ${{ steps.case.outputs.loss_model }}
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
           set -euo pipefail
@@ -62,7 +68,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-ab-${{ steps.case.outputs.candidate }}-loss${{ steps.case.outputs.loss_pct }}
+          name: singlelane-ab-${{ steps.case.outputs.candidate }}-${{ steps.case.outputs.traffic_profile }}-${{ steps.case.outputs.loss_model }}-loss${{ steps.case.outputs.loss_pct }}
           path: ${{ runner.temp }}/singlelane-${{ steps.case.outputs.candidate }}
           if-no-files-found: warn
           retention-days: 7
