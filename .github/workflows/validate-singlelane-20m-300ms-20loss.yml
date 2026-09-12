@@ -14,23 +14,9 @@ permissions:
 
 jobs:
   severe:
-    name: severe-${{ matrix.candidate }}
+    name: d3b-baseline-loss20
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - candidate: d3b-baseline
-            source_sha: d3b54dced255cc9becb3e501991f71a034e7438f
-          - candidate: eb3de-late-first
-            source_sha: eb3de969b045fab1e88034345bfbf0f641cfd592
-          - candidate: shadow-a-bounded
-            source_sha: 484e29463bb83c503ee3baf669c23b013dd44d6c
-          - candidate: shadow-b-adaptive
-            source_sha: 8bc9e89f07e05a5be74761b16e37fb180f84864a
-          - candidate: shadow-c-conservative
-            source_sha: 1276eeffd13c86934105dcfc2af68ac44f46a84c
     steps:
       - name: Checkout helper
         uses: actions/checkout@v4
@@ -39,7 +25,7 @@ jobs:
       - name: Checkout exact product candidate
         uses: actions/checkout@v4
         with:
-          ref: ${{ matrix.source_sha }}
+          ref: d3b54dced255cc9becb3e501991f71a034e7438f
           path: product
       - uses: actions/setup-go@v5
         with:
@@ -48,22 +34,25 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl
-      - name: Run exact candidate severe
+      - name: Run isolated severe case
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE: ${{ matrix.candidate }}
-          SOURCE_SHA: ${{ matrix.source_sha }}
+          CANDIDATE: d3b-baseline
+          SOURCE_SHA: d3b54dced255cc9becb3e501991f71a034e7438f
+          LOSS_PCT: '20'
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
           set -euo pipefail
-          bash "$GITHUB_WORKSPACE/helper/.github/scripts/validate_singlelane_shadow_candidate.sh" \
-            "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+          cp "$GITHUB_WORKSPACE/helper/.github/scripts/validate_singlelane_shadow_candidate.sh" "$RUNNER_TEMP/run-singlelane-case.sh"
+          sed -i "s/loss_pct_each_direction=20/loss_pct_each_direction=${LOSS_PCT}/" "$RUNNER_TEMP/run-singlelane-case.sh"
+          sed -i "s/export NETEM_LOSS_PCT=20/export NETEM_LOSS_PCT=${LOSS_PCT}/" "$RUNNER_TEMP/run-singlelane-case.sh"
+          bash "$RUNNER_TEMP/run-singlelane-case.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
       - name: Upload candidate diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-shadow-${{ matrix.candidate }}-${{ matrix.source_sha }}
+          name: singlelane-d3b-baseline-loss20
           path: |
-            ${{ runner.temp }}/singlelane-${{ matrix.candidate }}
+            ${{ runner.temp }}/singlelane-d3b-baseline
           if-no-files-found: warn
           retention-days: 7
