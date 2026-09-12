@@ -8,7 +8,7 @@ import (
 const (
 	PartialReliabilityEmergencyLimit = MaxSteadyStateOutstandingDatagrams - 512
 	pressureRateInterval             = 100 * time.Millisecond
-	pressureHoleRTTs                 = 1
+	pressureHoleRTTs                 = 2
 )
 
 // This is receiver delivery-rate pressure, not a measurement of sender BDP:
