@@ -190,7 +190,7 @@ jobs:
           }
           EOF
           gofmt -w "$GITHUB_WORKSPACE/product/internal/fec/block.go" "$GITHUB_WORKSPACE/product/internal/fec/recovery_horizon_test.go"
-          go test "$GITHUB_WORKSPACE/product/internal/fec" -count=1
+          (cd "$GITHUB_WORKSPACE/product" && go test ./internal/fec -count=1)
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
