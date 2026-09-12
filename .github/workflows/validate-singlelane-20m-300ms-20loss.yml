@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   severe:
-    name: shadow-a-bounded-loss20
+    name: shadow-b-adaptive-loss20
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout exact product candidate
         uses: actions/checkout@v4
         with:
-          ref: 484e29463bb83c503ee3baf669c23b013dd44d6c
+          ref: 8bc9e89f07e05a5be74761b16e37fb180f84864a
           path: product
       - uses: actions/setup-go@v5
         with:
@@ -37,8 +37,8 @@ jobs:
       - name: Run isolated severe case
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE: shadow-a-bounded
-          SOURCE_SHA: 484e29463bb83c503ee3baf669c23b013dd44d6c
+          CANDIDATE: shadow-b-adaptive
+          SOURCE_SHA: 8bc9e89f07e05a5be74761b16e37fb180f84864a
           LOSS_PCT: '20'
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
@@ -51,8 +51,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-shadow-a-bounded-loss20
+          name: singlelane-shadow-b-adaptive-loss20
           path: |
-            ${{ runner.temp }}/singlelane-shadow-a-bounded
+            ${{ runner.temp }}/singlelane-shadow-b-adaptive
           if-no-files-found: warn
           retention-days: 7
