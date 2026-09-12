@@ -146,6 +146,90 @@ func TestBlockDoesNotCompleteBeyondParityBudget(t *testing.T) {
 	}
 }
 
+func TestBlockDecoderPressurePreservesRecoverableOlderBlock(t *testing.T) {
+	codec := NewReedSolomon20x20()
+	makeBlock := func(blockID uint32) ([][]byte, [][]byte, [][]byte) {
+		t.Helper()
+		enc, err := NewFastBlockEncoder(codec, 1400, time.Millisecond, blockID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := testPackets(DataShards)
+		sources := make([][]byte, 0, DataShards)
+		var parity [][]byte
+		for i, packet := range want {
+			out, err := enc.Add(packet, time.Unix(0, int64(i)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(out) == 0 {
+				t.Fatalf("block %d source %d emitted no systematic shard", blockID, i)
+			}
+			sources = append(sources, append([]byte(nil), out[0]...))
+			if len(out) > 1 {
+				for _, wire := range out[1:] {
+					parity = append(parity, append([]byte(nil), wire...))
+				}
+			}
+		}
+		if len(sources) != DataShards || len(parity) != ParityShards {
+			t.Fatalf("block %d sources=%d parity=%d", blockID, len(sources), len(parity))
+		}
+		return want, sources, parity
+	}
+
+	want1, source1, parity1 := makeBlock(1)
+	_, source2, _ := makeBlock(2)
+	dec, err := NewBlockDecoder(codec, 1400, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const missing = 7
+	for i, wire := range source1 {
+		if i == missing {
+			continue
+		}
+		packets, done, err := dec.Add(wire)
+		if err != nil {
+			t.Fatalf("block1 source %d: %v", i, err)
+		}
+		if done {
+			t.Fatalf("block1 completed before missing source %d was recoverable", missing)
+		}
+		if len(packets) != 1 || !bytes.Equal(packets[0], want1[i]) {
+			t.Fatalf("block1 source %d first delivery mismatch", i)
+		}
+	}
+
+	// The only heavy slot is occupied by an older generation that still needs
+	// parity to recover source 7. The newer streaming source must first-deliver
+	// through compact state instead of evicting the recoverable older block.
+	packets, done, err := dec.Add(source2[0])
+	if err != nil {
+		t.Fatalf("new streaming block under pressure: %v", err)
+	}
+	if done || len(packets) != 1 {
+		t.Fatalf("new streaming block done=%v delivered=%d", done, len(packets))
+	}
+	if dec.blocks[1] == nil {
+		t.Fatal("recoverable older block was retired under decoder pressure")
+	}
+	if _, ok := dec.retired[2]; !ok {
+		t.Fatal("new streaming block did not fall back to compact retired state")
+	}
+
+	packets, done, err = dec.Add(parity1[0])
+	if err != nil {
+		t.Fatalf("block1 parity: %v", err)
+	}
+	if !done {
+		t.Fatal("older block did not complete after parity arrived")
+	}
+	if len(packets) != 1 || !bytes.Equal(packets[0], want1[missing]) {
+		t.Fatalf("recovered=%d want missing source %d", len(packets), missing)
+	}
+}
+
 func TestBlockDecoderWindowBounded(t *testing.T) {
 	codec := NewReedSolomon20x20()
 	dec, _ := NewBlockDecoder(codec, 1400, 2)
