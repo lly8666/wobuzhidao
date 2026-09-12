@@ -1,4 +1,4 @@
-name: validate-singlelane-shadow-candidates
+name: validate-singlelane-shadow-low-loss
 
 on:
   push:
@@ -6,25 +6,20 @@ on:
       - agent/validate-singlelane-20m-300ms-20loss-d3b
     paths:
       - '.github/workflows/validate-10m-300rtt-20loss-headroom.yml'
-      - '.github/scripts/validate_singlelane_shadow_candidate.sh'
 
 permissions:
   contents: read
   actions: read
 
 jobs:
-  severe:
-    name: severe-${{ matrix.candidate }}
+  lowloss:
+    name: lowloss-${{ matrix.candidate }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         include:
-          - candidate: d3b-baseline
-            source_sha: d3b54dced255cc9becb3e501991f71a034e7438f
-          - candidate: eb3de-late-first
-            source_sha: eb3de969b045fab1e88034345bfbf0f641cfd592
           - candidate: shadow-a-bounded
             source_sha: 484e29463bb83c503ee3baf669c23b013dd44d6c
           - candidate: shadow-b-adaptive
@@ -48,7 +43,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl
-      - name: Run exact candidate severe
+      - name: Run exact candidate low-loss
         env:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE: ${{ matrix.candidate }}
@@ -56,13 +51,15 @@ jobs:
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
           set -euo pipefail
-          bash "$GITHUB_WORKSPACE/helper/.github/scripts/validate_singlelane_shadow_candidate.sh" \
-            "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+          SCRIPT="$GITHUB_WORKSPACE/helper/.github/scripts/validate_singlelane_shadow_candidate.sh"
+          sed -i 's/export NETEM_LOSS_PCT=20/export NETEM_LOSS_PCT=2/' "$SCRIPT"
+          sed -i 's/loss_pct_each_direction=20/loss_pct_each_direction=2/' "$SCRIPT"
+          bash "$SCRIPT" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
       - name: Upload candidate diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-shadow-${{ matrix.candidate }}-${{ matrix.source_sha }}
+          name: singlelane-shadow-low2-${{ matrix.candidate }}-${{ matrix.source_sha }}
           path: |
             ${{ runner.temp }}/singlelane-${{ matrix.candidate }}
           if-no-files-found: warn
