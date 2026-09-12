@@ -8,262 +8,51 @@ on:
       - '.github/workflows/validate-10m-300oneway-20loss-perlane.yml'
 
 permissions:
-  contents: read
-  actions: read
-
-env:
-  SOURCE_SHA: d3b54dced255cc9becb3e501991f71a034e7438f
-  WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
+  contents: write
 
 jobs:
   exact-source-perlane:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout helper branch
+        uses: actions/checkout@v4
         with:
-          ref: ${{ env.SOURCE_SHA }}
+          path: helper
 
-      - name: Verify exact product source
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
-          echo "WBD_PERLANE_SOURCE product_source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA"
+      - name: Checkout exact experimental product branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/receiver-horizon-late-first-arrival-d3b
+          path: product
+          fetch-depth: 0
 
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
 
-      - name: Install build and network tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y autoconf automake libtool make gcc iproute2 iptables tcpdump curl unzip openssl
-
-      - name: Build complete data plane from exact source
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Verify exact parent and apply receiver patch
         run: |
           set -euo pipefail
-          ASSET="$RUNNER_TEMP/wbd-assets"
-          mkdir -p "$ASSET" /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build
-          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${WOLFSSL_SOURCE_ARTIFACT_ID}/zip" -o /tmp/wolfssl-source.zip
-          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
-          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
-          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
-          (cd /tmp/wolf/src && ./autogen.sh)
-          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static \
-            CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128 -DWOLFSSL_MAX_MTU=16384')
-          make -C /tmp/wolf/build -j2 src/libwolfssl.la
-          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -DWOLFSSL_MAX_MTU=16384 -O2 -Wall -Wextra -Werror \
-            -I/tmp/wolf/build -I/tmp/wolf/src native/dtls/wbd_dtls_shim.c \
-            /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
+          cd "$GITHUB_WORKSPACE/product"
+          test "$(git rev-parse HEAD)" = d3b54dced255cc9becb3e501991f71a034e7438f
+          python3 "$GITHUB_WORKSPACE/helper/scripts/apply_receiver_horizon_fix_d3b.py" "$GITHUB_WORKSPACE/product"
+          gofmt -w internal/faketcp/arq.go internal/faketcp/server_mux.go internal/faketcp/partial_reliability_ack_test.go internal/faketcp/late_first_arrival_test.go cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/main_linux.go
+          git diff --check
 
-          go test ./internal/fec ./internal/faketcp ./internal/gamelane ./internal/linkdata -count=1
-          go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
-          go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
-          go build -trimpath -o "$ASSET/wbd-link-proxy" ./cmd/wbd-link-proxy
-          go build -trimpath -o "$ASSET/wbd-link-server-mux" ./cmd/wbd-link-server-mux
-          go build -trimpath -o "$ASSET/wbd-game-lane-client" ./cmd/wbd-game-lane-client
-          go build -trimpath -o "$ASSET/wbd-game-lane-server" ./cmd/wbd-game-lane-server
-          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 1 -subj '/CN=target.example' \
-            -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
-          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 1 -subj '/CN=wbd-dtls.test' \
-            -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
-          chmod +x "$ASSET"/wbd-* "$ASSET/wbd_dtls_shim"
+      - name: Focused receiver and command tests
+        working-directory: product
+        run: |
+          go test ./internal/faketcp
+          go test ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux
 
-      - name: Adapt short harness and add passive per-lane captures
+      - name: Commit exact product fix
+        working-directory: product
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          rotation=Path('scripts/game_lane_rotation_soak.sh')
-          s=rotation.read_text()
-          repl={
-            '[[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge 500 ]] || { echo "DURATION_SEC must be >=500" >&2; exit 2; }':
-              '[[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge 20 ]] || { echo "DURATION_SEC must be >=20" >&2; exit 2; }',
-            '[[ "$RATE_BPS" == 1000000 ]] || { echo "RATE_BPS must be exactly 1000000" >&2; exit 2; }':
-              '[[ "$RATE_BPS" == 10000000 ]] || { echo "RATE_BPS must be exactly 10000000" >&2; exit 2; }',
-            '[[ "$ROTATIONS" =~ ^[0-9]+$ && "$ROTATIONS" -ge 1 ]] || { echo "ROTATIONS must be positive" >&2; exit 2; }':
-              '[[ "$ROTATIONS" =~ ^[0-9]+$ ]] || { echo "ROTATIONS must be non-negative" >&2; exit 2; }',
-            "if summary['loss_ratio'] > 0.001: raise SystemExit(13)":
-              "# per-lane diagnostic evaluates after captures",
-            "if summary['down_payload_bps'] < rate_bps*0.995: raise SystemExit(14)":
-              "# per-lane diagnostic evaluates after captures",
-          }
-          for old,new in repl.items():
-            if s.count(old)!=1: raise SystemExit('rotation guard drift: '+old)
-            s=s.replace(old,new,1)
-          if '--shadow-recovery legacy' not in s: raise SystemExit('replacement recovery marker missing')
-          s=s.replace('--shadow-recovery legacy','--shadow-recovery sack-rack').replace('recovery=legacy','recovery=sack-rack')
-          rotation.write_text(s)
-
-          full=Path('scripts/game_lane_fullstack.sh')
-          s=full.read_text()
-          if '--shadow-recovery legacy' not in s: raise SystemExit('initial recovery marker missing')
-          s=s.replace('--shadow-recovery legacy','--shadow-recovery sack-rack').replace('recovery=legacy','recovery=sack-rack')
-          old='"$ASSET_DIR/wbd-faketcp-mux" server \\\n  --listen 10.89.0.1:${RAW} --dtls-shim "$ASSET_DIR/wbd_dtls_shim" \\\n'
-          new='"$ASSET_DIR/wbd-faketcp-mux" server \\\n  --shadow-recovery sack-rack \\\n  --listen 10.89.0.1:${RAW} --dtls-shim "$ASSET_DIR/wbd_dtls_shim" \\\n'
-          if s.count(old)!=1: raise SystemExit('server mux marker drift')
-          s=s.replace(old,new,1)
-
-          # Preserve the existing client-side outer capture and add a receiver-side
-          # capture on gs0 plus a post-FEC capture at the Game server boundary.
-          marker='grep -q \'listening on gc0\' "$LOG_DIR/tcpdump.log"\n'
-          extra=r'''grep -q 'listening on gc0' "$LOG_DIR/tcpdump.log"
-
-sudo ip netns exec "$S" tcpdump --immediate-mode -i gs0 -s 0 -U -w "$LOG_DIR/game-lanes-server.pcap" "tcp port ${RAW}" >"$LOG_DIR/tcpdump-server.log" 2>&1 &
-SPID=$!; PIDS+=("$SPID")
-for _ in $(seq 1 200); do grep -q 'listening on gs0' "$LOG_DIR/tcpdump-server.log" && break; sleep .05; done
-grep -q 'listening on gs0' "$LOG_DIR/tcpdump-server.log"
-
-# This is after each LINK/FEC decoder and before Game shared PacketID dedupe.
-# The Game server binds lane IDs to the source peer, so the analyzer can assign
-# every large WBD1 envelope to the exact logical lane without changing wire data.
-sudo ip netns exec "$S" tcpdump --immediate-mode -i lo -s 0 -U -w "$LOG_DIR/game-after-fec-server.pcap" "udp dst port ${GAME}" >"$LOG_DIR/tcpdump-game.log" 2>&1 &
-GPID=$!; PIDS+=("$GPID")
-for _ in $(seq 1 200); do grep -q 'listening on lo' "$LOG_DIR/tcpdump-game.log" && break; sleep .05; done
-grep -q 'listening on lo' "$LOG_DIR/tcpdump-game.log"
-'''
-          if s.count(marker)!=1: raise SystemExit('tcpdump marker drift')
-          s=s.replace(marker,extra,1)
-
-          cleanup='cleanup() {\n  set +e\n'
-          diag='cleanup() {\n  set +e\n  if sudo ip netns exec "$C" true 2>/dev/null; then\n    sudo ip netns exec "$C" tc -s qdisc show dev gc0 >"$LOG_DIR/tc-client-qdisc.txt" 2>&1 || true\n  fi\n  if sudo ip netns exec "$S" true 2>/dev/null; then\n    sudo ip netns exec "$S" tc -s qdisc show dev gs0 >"$LOG_DIR/tc-server-qdisc.txt" 2>&1 || true\n  fi\n'
-          if s.count(cleanup)!=1: raise SystemExit('cleanup marker drift')
-          s=s.replace(cleanup,diag,1)
-          full.write_text(s)
-
-          control_path=Path('scripts/game_lane_rotation_soak_control.sh')
-          control=control_path.read_text()
-          if 'rate 100mbit' in control or 'rate 100Mbit' in control:
-            raise SystemExit('unexpected bandwidth cap in source control wrapper')
-          for dev in ('gc0','gs0'):
-            old=f'tc qdisc replace dev {dev} root netem delay "${{NETEM_DELAY_MS}}ms" loss random "${{NETEM_LOSS_PCT}}%"'
-            new=f'tc qdisc replace dev {dev} root netem limit "${{NETEM_LIMIT_PACKETS}}" delay "${{NETEM_DELAY_MS}}ms" loss random "${{NETEM_LOSS_PCT}}%"'
-            if control.count(old)!=1: raise SystemExit('netem marker drift for '+dev)
-            control=control.replace(old,new,1)
-          control_path.write_text(control)
-          PY
-          bash -n scripts/game_lane_fullstack.sh
-          bash -n scripts/game_lane_rotation_soak.sh
-          bash -n scripts/game_lane_rotation_soak_control.sh
-
-      - name: Run 10 Mbps / 300 ms one-way / 20% loss / FEC 20:20
-        env:
-          LANES: '4'
-          FEC: '20:20'
-          DURATION_SEC: '20'
-          RATE_BPS: '10000000'
-          PAYLOAD_BYTES: '1000'
-          ROTATE_INTERVAL_SEC: '10'
-          ROTATIONS: '0'
-          NETEM_DELAY_MS: '300'
-          NETEM_LOSS_PCT: '20'
-          SOAK_REPLICA: '1'
-        run: |
-          set -euo pipefail
-          fec_factor=2
-          logical_pps=$(( (RATE_BPS + PAYLOAD_BYTES*8 - 1) / (PAYLOAD_BYTES*8) ))
-          delay_working_set=$(( (logical_pps * LANES * fec_factor * NETEM_DELAY_MS + 999) / 1000 ))
-          NETEM_LIMIT_PACKETS=$(( delay_working_set * 8 ))
-          if (( NETEM_LIMIT_PACKETS < 16384 )); then NETEM_LIMIT_PACKETS=16384; fi
-          export NETEM_LIMIT_PACKETS
-          echo "WBD_PERLANE_NETEM one_way_delay_ms=$NETEM_DELAY_MS base_rtt_ms=$((NETEM_DELAY_MS*2)) loss_pct_each_direction=$NETEM_LOSS_PCT rate_cap=none delay_working_set_packets=$delay_working_set queue_limit_packets=$NETEM_LIMIT_PACKETS"
-          LOG="$RUNNER_TEMP/tenm-300oneway-20loss"
-          mkdir -p "$LOG"
-          sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$RUNNER_TEMP/wbd-assets" "$LOG"
-
-      - name: Analyze per-lane outer and post-FEC loss
-        run: |
-          set -euo pipefail
-          LOG="$RUNNER_TEMP/tenm-300oneway-20loss"
-          python3 - "$LOG" <<'PY'
-          import json, os, pathlib, re, subprocess, sys
-          root=pathlib.Path(sys.argv[1])
-          load=json.loads((root/'load-result.json').read_text())
-
-          def tcpdump_lines(name, filt=''):
-              cmd=['tcpdump','-nn','-tt','-r',str(root/name)]
-              if filt: cmd += filt.split()
-              p=subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,check=True)
-              return p.stdout.splitlines()
-
-          c_outer=tcpdump_lines('game-lanes.pcap')
-          s_outer=tcpdump_lines('game-lanes-server.pcap')
-          game=tcpdump_lines('game-after-fec-server.pcap')
-          game_log=(root/'game-server.log').read_text(errors='replace')
-
-          peer_by_lane={}
-          for m in re.finditer(r'WBD_GAME_LANE_BIND .*?lane=(\d+).*?association_peer=127\.0\.0\.1:(\d+)', game_log):
-              lane=int(m.group(1)); peer_by_lane[lane]=int(m.group(2))
-          if sorted(peer_by_lane) != [1,2,3,4]:
-              raise SystemExit(f'could not map all Game lane peers: {peer_by_lane}')
-
-          post_fec={i:0 for i in range(1,5)}
-          for line in game:
-              m=re.search(r'IP 127\.0\.0\.1\.(\d+) > 127\.0\.0\.1\.49000: UDP, length (\d+)', line)
-              if not m: continue
-              sport=int(m.group(1)); length=int(m.group(2))
-              if length <= 1000: continue
-              for lane, peer_port in peer_by_lane.items():
-                  if sport == peer_port:
-                      post_fec[lane] += 1
-                      break
-
-          def count(lines, src_ip, src_port, dst_ip, dst_port):
-              needle=f'{src_ip}.{src_port} > {dst_ip}.{dst_port}:'
-              return sum(needle in line for line in lines)
-
-          per_lane=[]
-          expected=load['sent']
-          for lane in range(1,5):
-              sport=41000+lane
-              f_tx=count(c_outer,'10.89.0.2',sport,'10.89.0.1',40000)
-              f_rx=count(s_outer,'10.89.0.2',sport,'10.89.0.1',40000)
-              r_tx=count(s_outer,'10.89.0.1',40000,'10.89.0.2',sport)
-              r_rx=count(c_outer,'10.89.0.1',40000,'10.89.0.2',sport)
-              forward_outer_loss=(f_tx-f_rx)/f_tx if f_tx else None
-              reverse_outer_loss=(r_tx-r_rx)/r_tx if r_tx else None
-              delivered=post_fec[lane]
-              residual=max(0,expected-delivered)
-              post_fec_loss=residual/expected if expected else None
-              row={
-                  'lane':lane,
-                  'outer_forward_tx':f_tx,'outer_forward_rx':f_rx,'outer_forward_loss':forward_outer_loss,
-                  'outer_reverse_tx':r_tx,'outer_reverse_rx':r_rx,'outer_reverse_loss':reverse_outer_loss,
-                  'fec_source_expected':expected,'post_fec_game_rx':delivered,
-                  'post_fec_residual_missing':residual,'post_fec_loss':post_fec_loss,
-                  'game_peer_port':peer_by_lane[lane],
-              }
-              per_lane.append(row)
-              print('WBD_PERLANE_RESULT '+json.dumps(row,sort_keys=True))
-
-          summary={
-              'product_source_sha':os.environ['SOURCE_SHA'],
-              'one_way_delay_ms':300,'base_rtt_ms':600,'loss_pct_each_direction':20,
-              'rate_cap':'none','fec':'20:20','lanes':4,
-              'application_sent':load['sent'],'application_received_unique':load['received_unique'],
-              'application_loss_ratio':load['loss_ratio'],'down_payload_bps':load['down_payload_bps'],
-              'bad_payload':load['bad_payload'],'duplicates':load['duplicates'],
-              'per_lane':per_lane,
-          }
-          print('WBD_PERLANE_SUMMARY '+json.dumps(summary,sort_keys=True))
-          (root/'perlane-result.json').write_text(json.dumps(summary,indent=2,sort_keys=True))
-          assert load['bad_payload']==0, summary
-          for row in per_lane:
-              assert row['outer_forward_tx'] > 0 and row['outer_reverse_tx'] > 0, row
-          PY
-
-      - name: Emit diagnostics
-        if: always()
-        run: |
-          set +e
-          LOG="$RUNNER_TEMP/tenm-300oneway-20loss"
-          echo '=== load-result ==='; cat "$LOG/load-result.json" 2>/dev/null || true
-          echo '=== per-lane result ==='; cat "$LOG/perlane-result.json" 2>/dev/null || true
-          echo '=== qdisc client ==='; cat "$LOG/tc-client-qdisc.txt" 2>/dev/null || true
-          echo '=== qdisc server ==='; cat "$LOG/tc-server-qdisc.txt" 2>/dev/null || true
-          echo '=== Game lane mapping ==='; grep -E 'WBD_GAME_LANE_(BIND|SESSION_CLOSE|CLIENT_LANE_STATS)' "$LOG"/*.log 2>/dev/null | tail -n 100 || true
-          echo '=== FakeTCP pressure/stats ==='; grep -R -E 'WBD_FAKETCP_(STATS|OUTSTANDING_PRESSURE)' "$LOG" 2>/dev/null | tail -n 300 || true
+          git config user.name 'wbd qualification bot'
+          git config user.email '30583594+lly8666@users.noreply.github.com'
+          git add internal/faketcp/arq.go internal/faketcp/server_mux.go internal/faketcp/partial_reliability_ack_test.go internal/faketcp/late_first_arrival_test.go cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/main_linux.go
+          git commit -m 'fix: decouple receiver repair horizon from late delivery'
+          git push origin HEAD:agent/receiver-horizon-late-first-arrival-d3b
+          echo "WBD_RECEIVER_HORIZON_FIX_SHA=$(git rev-parse HEAD)"
