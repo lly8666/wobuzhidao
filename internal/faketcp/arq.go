@@ -423,6 +423,21 @@ func (s *Sender) advanceHead() {
 		}
 		s.head = 0
 	}
+	// A protected bootstrap entry can pin the head while optional entries after
+	// it are evicted. Bound the sparse index too, not just live map entries.
+	if len(s.pending) >= 2*MaxSteadyStateTrackedRecords && len(s.bySeq)*2 <= len(s.pending) {
+		n := 0
+		for _, p := range s.pending {
+			if p != nil {
+				s.pending[n] = p
+				p.slot = n
+				n++
+			}
+		}
+		clear(s.pending[n:])
+		s.pending = s.pending[:n]
+		s.head = 0
+	}
 }
 
 func (s *Sender) RetransmitDue(now time.Time) *Pending {

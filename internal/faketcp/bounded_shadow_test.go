@@ -116,3 +116,23 @@ func TestBootstrapNeverForgivesGapUnderPressure(t *testing.T) {
 		t.Fatal("bootstrap lost reliable gap")
 	}
 }
+
+func TestProtectedBootstrapDoesNotPinUnboundedSparseIndex(t *testing.T) {
+	s := NewSender(100, time.Second)
+	var bootstrap *Pending
+	sendBootstrapPayload(func(b []byte) (uint32, error) {
+		bootstrap = s.Enqueue(b, time.Unix(1, 0))
+		return bootstrap.End, nil
+	}, []byte{1})
+	for i := 0; i < 30000; i++ {
+		if _, err := s.EnqueueSteadyState([]byte{2}, time.Unix(1, 0)); err != nil {
+			t.Fatal(err)
+		}
+		if len(s.pending) > 2*MaxSteadyStateTrackedRecords {
+			t.Fatal("protected head pinned sparse index")
+		}
+	}
+	if s.Outstanding(bootstrap.Seq) != bootstrap || bootstrap.Payload == nil {
+		t.Fatal("bootstrap was evicted")
+	}
+}
