@@ -1,5 +1,6 @@
 name: apply-receiver-horizon-fix-d3b
 
+# Exact-source product patch runner; helper-only workflow.
 on:
   push:
     branches:
