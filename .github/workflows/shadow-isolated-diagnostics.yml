@@ -1,0 +1,56 @@
+name: shadow-isolated-diagnostics
+run-name: isolated ${{ inputs.profile || 'profile-file' }} / ${{ github.ref_name }}
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Exactly one diagnostic profile
+        type: choice
+        default: direct80
+        options: [direct80, a20-loss20, a80-loss0, a80-loss2]
+  push:
+    branches: ['run/shadow-isolated-*']
+    paths: ['.github/scripts/shadow-diagnostics/profile.txt']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  single-case:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: helper
+      - uses: actions/checkout@v4
+        with:
+          ref: 484e29463bb83c503ee3baf669c23b013dd44d6c
+          path: product
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl
+      - name: One profile only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROFILE: ${{ inputs.profile }}
+          WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
+        run: bash "$GITHUB_WORKSPACE/helper/.github/scripts/shadow-diagnostics/run.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isolated-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/singlelane-isolated-*/load-result.json
+            ${{ runner.temp }}/singlelane-isolated-*/provenance.json
+            ${{ runner.temp }}/singlelane-isolated-*/resource-samples.jsonl
+            ${{ runner.temp }}/singlelane-isolated-*/shadow-*.json
+            ${{ runner.temp }}/singlelane-isolated-*/*.log
+            ${{ runner.temp }}/singlelane-isolated-*/harness.patch
+            ${{ runner.temp }}/singlelane-isolated-*/binary-sha256.txt
+          if-no-files-found: error
+          retention-days: 7
