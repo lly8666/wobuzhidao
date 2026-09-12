@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   severe:
-    name: eb3de-late-first-loss20
+    name: shadow-a-bounded-loss20
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout exact product candidate
         uses: actions/checkout@v4
         with:
-          ref: eb3de969b045fab1e88034345bfbf0f641cfd592
+          ref: 484e29463bb83c503ee3baf669c23b013dd44d6c
           path: product
       - uses: actions/setup-go@v5
         with:
@@ -37,8 +37,8 @@ jobs:
       - name: Run isolated severe case
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE: eb3de-late-first
-          SOURCE_SHA: eb3de969b045fab1e88034345bfbf0f641cfd592
+          CANDIDATE: shadow-a-bounded
+          SOURCE_SHA: 484e29463bb83c503ee3baf669c23b013dd44d6c
           LOSS_PCT: '20'
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
@@ -51,8 +51,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-eb3de-late-first-loss20
+          name: singlelane-shadow-a-bounded-loss20
           path: |
-            ${{ runner.temp }}/singlelane-eb3de-late-first
+            ${{ runner.temp }}/singlelane-shadow-a-bounded
           if-no-files-found: warn
           retention-days: 7
