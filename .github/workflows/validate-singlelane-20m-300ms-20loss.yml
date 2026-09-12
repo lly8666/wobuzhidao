@@ -1,10 +1,9 @@
-name: validate-singlelane-ab-observability
+name: validate-logic64-flush32-5m-transient
 
 on:
   push:
     branches:
-      - run/ab-5m-transient-a-20260912
-      - run/ab-5m-transient-b-20260912
+      - run/logic64-flush32-5m-transient-20260912
     paths:
       - '.github/singlelane-case.env'
 
@@ -14,7 +13,7 @@ permissions:
 
 jobs:
   severe:
-    name: isolated-singlelane-ab-case
+    name: logic64-flush32-5m-5to30
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -28,20 +27,18 @@ jobs:
         run: |
           set -euo pipefail
           source "$GITHUB_WORKSPACE/helper/.github/singlelane-case.env"
-          case "$CANDIDATE" in
-            shadow-a-bounded|shadow-b-adaptive) ;;
-            *) echo "bad candidate for A/B transient probe: $CANDIDATE" >&2; exit 2 ;;
-          esac
+          [[ "$CANDIDATE" == logic64-flush32 ]] || { echo "candidate must be logic64-flush32" >&2; exit 2; }
+          [[ "$SOURCE_SHA" == e4210ab543a283554bb60cbce16479ea18ae45e4 ]] || { echo "source must be fixed logic-64 exact sha" >&2; exit 2; }
+          [[ "$FEC_FLUSH_MS" == 32 ]] || { echo "flush must be 32ms" >&2; exit 2; }
           [[ "$LOSS_PCT" == 5 ]] || { echo "baseline loss must be 5" >&2; exit 2; }
           [[ "$TRAFFIC_PROFILE" == realistic-mix-v1 ]] || { echo "traffic profile must be realistic-mix-v1" >&2; exit 2; }
           [[ "$LOSS_MODEL" == transient ]] || { echo "loss model must be transient" >&2; exit 2; }
           [[ "$TEST_RATE_BPS" == 5000000 ]] || { echo "rate must be 5Mbps" >&2; exit 2; }
           [[ "$TEST_DURATION_SEC" == 45 ]] || { echo "duration must be 45s" >&2; exit 2; }
           [[ "$SPIKE_LOSS_PCT" == 30 && "$SPIKE_START_SEC" == 15 && "$SPIKE_DURATION_SEC" == 15 ]] || { echo "bad spike profile" >&2; exit 2; }
-          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "bad source sha" >&2; exit 2; }
-          for k in candidate source_sha loss_pct traffic_profile loss_model test_rate_bps test_duration_sec spike_loss_pct spike_start_sec spike_duration_sec; do :; done
           echo "candidate=$CANDIDATE" >> "$GITHUB_OUTPUT"
           echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "fec_flush_ms=$FEC_FLUSH_MS" >> "$GITHUB_OUTPUT"
           echo "loss_pct=$LOSS_PCT" >> "$GITHUB_OUTPUT"
           echo "traffic_profile=$TRAFFIC_PROFILE" >> "$GITHUB_OUTPUT"
           echo "loss_model=$LOSS_MODEL" >> "$GITHUB_OUTPUT"
@@ -62,7 +59,24 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl
-      - name: Run isolated A/B transient case
+      - name: Pin test-only FEC flush to 32ms
+        shell: bash
+        env:
+          FEC_FLUSH_MS: ${{ steps.case.outputs.fec_flush_ms }}
+        run: |
+          set -euo pipefail
+          python3 - "$GITHUB_WORKSPACE/product/scripts/game_lane_fullstack.sh" "$FEC_FLUSH_MS" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); flush=sys.argv[2]; s=p.read_text()
+          old='-fec "$FEC" -lanes 1'
+          if s.count(old) != 1:
+              raise SystemExit(f'fec flush injection marker drift: {s.count(old)}')
+          s=s.replace(old, f'-fec "$FEC" -fec-flush-ms {flush} -lanes 1', 1)
+          p.write_text(s)
+          PY
+          grep -n -- '-fec-flush-ms 32' "$GITHUB_WORKSPACE/product/scripts/game_lane_fullstack.sh"
+      - name: Run one isolated logic64 32ms transient case
         env:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE: ${{ steps.case.outputs.candidate }}
@@ -83,7 +97,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-ab-transient-${{ steps.case.outputs.candidate }}-5m-5to30
+          name: logic64-flush32-5m-5to30
           path: ${{ runner.temp }}/singlelane-${{ steps.case.outputs.candidate }}
           if-no-files-found: warn
           retention-days: 7
