@@ -5,8 +5,7 @@ on:
     branches:
       - agent/validate-singlelane-20m-300ms-20loss-d3b
     paths:
-      - '.github/workflows/validate-singlelane-20m-300ms-20loss.yml'
-      - '.github/scripts/validate_singlelane_shadow_candidate.sh'
+      - '.github/singlelane-case.env'
 
 permissions:
   contents: read
@@ -14,7 +13,7 @@ permissions:
 
 jobs:
   severe:
-    name: shadow-c-conservative-loss40
+    name: isolated-singlelane-case
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -22,10 +21,25 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: helper
+      - name: Read exact case
+        id: case
+        shell: bash
+        run: |
+          set -euo pipefail
+          source "$GITHUB_WORKSPACE/helper/.github/singlelane-case.env"
+          case "$CANDIDATE" in
+            d3b-baseline|eb3de-late-first|shadow-a-bounded|shadow-b-adaptive|shadow-c-conservative) ;;
+            *) echo "bad candidate: $CANDIDATE" >&2; exit 2 ;;
+          esac
+          case "$LOSS_PCT" in 20|30|40) ;; *) echo "bad loss: $LOSS_PCT" >&2; exit 2 ;; esac
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "bad source sha" >&2; exit 2; }
+          echo "candidate=$CANDIDATE" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "loss_pct=$LOSS_PCT" >> "$GITHUB_OUTPUT"
       - name: Checkout exact product candidate
         uses: actions/checkout@v4
         with:
-          ref: 1276eeffd13c86934105dcfc2af68ac44f46a84c
+          ref: ${{ steps.case.outputs.source_sha }}
           path: product
       - uses: actions/setup-go@v5
         with:
@@ -37,9 +51,9 @@ jobs:
       - name: Run isolated severe case
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE: shadow-c-conservative
-          SOURCE_SHA: 1276eeffd13c86934105dcfc2af68ac44f46a84c
-          LOSS_PCT: '40'
+          CANDIDATE: ${{ steps.case.outputs.candidate }}
+          SOURCE_SHA: ${{ steps.case.outputs.source_sha }}
+          LOSS_PCT: ${{ steps.case.outputs.loss_pct }}
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
           set -euo pipefail
@@ -51,8 +65,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-shadow-c-conservative-loss40
-          path: |
-            ${{ runner.temp }}/singlelane-shadow-c-conservative
+          name: singlelane-${{ steps.case.outputs.candidate }}-loss${{ steps.case.outputs.loss_pct }}
+          path: ${{ runner.temp }}/singlelane-${{ steps.case.outputs.candidate }}
           if-no-files-found: warn
           retention-days: 7
