@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - agent/validate-singlelane-20m-300ms-20loss-d3b
+      - agent/diagnose-realistic-host-pressure
     paths:
       - '.github/singlelane-case.env'
 
