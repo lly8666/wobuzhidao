@@ -29,7 +29,7 @@ from pathlib import Path
 import sys
 p=Path(sys.argv[1]); s=p.read_text()
 marker='bash -n scripts/game_lane_fullstack.sh\n'
-insert='python3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_observability.py" "$PRODUCT_DIR"\nTRAFFIC_PROFILE="$TRAFFIC_PROFILE" LOSS_MODEL=iid LOSS_PCT=20 python3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_realistic_burst.py" "$PRODUCT_DIR"\npython3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_host_pressure.py" "$PRODUCT_DIR"\npython3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_5m_profile.py" "$PRODUCT_DIR"\npython3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_transient_spike.py" "$PRODUCT_DIR"\n\n'
+insert='python3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_observability.py" "$PRODUCT_DIR"\nTRAFFIC_PROFILE="$TRAFFIC_PROFILE" LOSS_MODEL=iid LOSS_PCT=20 python3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_realistic_burst.py" "$PRODUCT_DIR"\npython3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_host_pressure.py" "$PRODUCT_DIR"\npython3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_5m_profile.py" "$PRODUCT_DIR"\npython3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_transient_spike.py" "$PRODUCT_DIR"\npython3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_transient_qdisc_change.py" "$PRODUCT_DIR"\n\n'
 if s.count(marker) != 1:
     raise SystemExit('A/B wrapper: validator insertion marker drift')
 s=s.replace(marker,insert+marker,1)
