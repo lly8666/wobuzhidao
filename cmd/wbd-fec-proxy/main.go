@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/binary"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -20,159 +18,6 @@ const (
 	flushAfter    = 8 * time.Millisecond
 	maxBlocks     = 64
 )
-
-type observedCodec struct {
-	inner                    fec.Codec
-	reconstructCalls         uint64
-	reconstructSuccess       uint64
-	reconstructMissingSource uint64
-}
-
-func (c *observedCodec) Encode(shards [][]byte) error { return c.inner.Encode(shards) }
-
-func (c *observedCodec) Reconstruct(shards [][]byte, present []bool) error {
-	c.reconstructCalls++
-	missing := 0
-	for i := 0; i < fec.DataShards && i < len(present); i++ {
-		if !present[i] {
-			missing++
-		}
-	}
-	c.reconstructMissingSource += uint64(missing)
-	err := c.inner.Reconstruct(shards, present)
-	if err == nil {
-		c.reconstructSuccess++
-	}
-	return err
-}
-
-type fecDiag struct {
-	role                     string
-	started                  time.Time
-	lastReport               time.Time
-	codec                     *observedCodec
-	blocks                    [fec.DataShards + 1]uint64
-	encodedBlocks             uint64
-	inputPackets              uint64
-	rxShards                  uint64
-	rxStreaming               uint64
-	rxFinal                   uint64
-	outputPackets             uint64
-	decoderFull               uint64
-	pressureRetireEvents      uint64
-	lastRetired               int
-	peakInFlight              int
-	peakRetired               int
-	peakRetiredIncomplete     int
-	peakRetiredMissingSources int
-}
-
-type fecDiagReport struct {
-	Role                     string                   `json:"role"`
-	ElapsedMS                int64                    `json:"elapsed_ms"`
-	InputPackets             uint64                   `json:"input_packets"`
-	EncodedBlocks            uint64                   `json:"encoded_blocks"`
-	BlockSizeHistogram       [fec.DataShards + 1]uint64 `json:"block_size_histogram"`
-	RXShards                 uint64                   `json:"rx_shards"`
-	RXStreaming              uint64                   `json:"rx_streaming"`
-	RXFinal                  uint64                   `json:"rx_final"`
-	OutputPackets            uint64                   `json:"output_packets"`
-	DecoderFull              uint64                   `json:"decoder_full"`
-	PressureRetireEvents     uint64                   `json:"pressure_retire_events"`
-	PeakInFlight             int                      `json:"peak_in_flight"`
-	PeakRetired              int                      `json:"peak_retired"`
-	PeakRetiredIncomplete    int                      `json:"peak_retired_incomplete"`
-	PeakRetiredMissingSource int                      `json:"peak_retired_missing_sources"`
-	ReconstructCalls         uint64                   `json:"reconstruct_calls"`
-	ReconstructSuccess       uint64                   `json:"reconstruct_success"`
-	ReconstructMissingSource uint64                   `json:"reconstruct_missing_sources"`
-	Decoder                  fec.DecoderPressureStats `json:"decoder"`
-}
-
-func (d *fecDiag) observeEncoded(wire [][]byte) {
-	for _, datagram := range wire {
-		if len(datagram) < fec.HeaderSize {
-			continue
-		}
-		h, err := fec.ParseBlockHeader(datagram[:fec.HeaderSize])
-		if err != nil || h.ShardIndex < fec.DataShards {
-			continue
-		}
-		n := int(h.DataCount)
-		if n >= 1 && n <= fec.DataShards {
-			d.blocks[n]++
-			d.encodedBlocks++
-		}
-		return
-	}
-}
-
-func (d *fecDiag) observeRX(datagram []byte) {
-	d.rxShards++
-	if len(datagram) < fec.HeaderSize {
-		return
-	}
-	if binary.BigEndian.Uint16(datagram[14:16])&1 != 0 {
-		d.rxStreaming++
-	} else {
-		d.rxFinal++
-	}
-}
-
-func (d *fecDiag) observeDecoder(dec *fec.BlockDecoder) {
-	s := dec.PressureStats()
-	if s.Retired > d.lastRetired {
-		d.pressureRetireEvents += uint64(s.Retired - d.lastRetired)
-	}
-	d.lastRetired = s.Retired
-	if s.InFlight > d.peakInFlight {
-		d.peakInFlight = s.InFlight
-	}
-	if s.Retired > d.peakRetired {
-		d.peakRetired = s.Retired
-	}
-	if s.RetiredIncomplete > d.peakRetiredIncomplete {
-		d.peakRetiredIncomplete = s.RetiredIncomplete
-	}
-	if s.RetiredMissingSources > d.peakRetiredMissingSources {
-		d.peakRetiredMissingSources = s.RetiredMissingSources
-	}
-}
-
-func (d *fecDiag) report(dec *fec.BlockDecoder, now time.Time, final bool) {
-	if !final && !d.lastReport.IsZero() && now.Sub(d.lastReport) < time.Second {
-		return
-	}
-	d.lastReport = now
-	d.observeDecoder(dec)
-	r := fecDiagReport{
-		Role:                     d.role,
-		ElapsedMS:                now.Sub(d.started).Milliseconds(),
-		InputPackets:             d.inputPackets,
-		EncodedBlocks:            d.encodedBlocks,
-		BlockSizeHistogram:       d.blocks,
-		RXShards:                 d.rxShards,
-		RXStreaming:              d.rxStreaming,
-		RXFinal:                  d.rxFinal,
-		OutputPackets:            d.outputPackets,
-		DecoderFull:              d.decoderFull,
-		PressureRetireEvents:     d.pressureRetireEvents,
-		PeakInFlight:             d.peakInFlight,
-		PeakRetired:              d.peakRetired,
-		PeakRetiredIncomplete:    d.peakRetiredIncomplete,
-		PeakRetiredMissingSource: d.peakRetiredMissingSources,
-		ReconstructCalls:         d.codec.reconstructCalls,
-		ReconstructSuccess:       d.codec.reconstructSuccess,
-		ReconstructMissingSource: d.codec.reconstructMissingSource,
-		Decoder:                  dec.PressureStats(),
-	}
-	b, _ := json.Marshal(r)
-	marker := "WBD_FEC_DIAG"
-	if final {
-		marker = "WBD_FEC_DIAG_FINAL"
-	}
-	fmt.Printf("%s %s\n", marker, b)
-}
 
 func usage() {
 	fmt.Fprintln(os.Stderr, "usage: wbd-fec-proxy client LISTEN_PORT DTLS_PORT | server LISTEN_PORT DTLS_PORT SERVICE_PORT")
@@ -239,7 +84,7 @@ func run(args []string) error {
 		return err
 	}
 
-	codec := &observedCodec{inner: fec.NewFastReedSolomon20x20()}
+	codec := fec.NewFastReedSolomon20x20()
 	enc, err := fec.NewFastBlockEncoder(codec, maxPacketSize, flushAfter, 1)
 	if err != nil {
 		return err
@@ -248,7 +93,6 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
-	diag := &fecDiag{role: mode, started: time.Now(), codec: codec}
 
 	// The DTLS client plaintext socket is bound to dtlsPort, so the client-side
 	// FEC proxy has a stable peer. The DTLS server creates a separate connected
@@ -280,10 +124,8 @@ func run(args []string) error {
 		select {
 		case <-stop:
 			if wire, err := enc.Flush(); err == nil {
-				diag.observeEncoded(wire)
 				_ = sendWire(conn, wireDest(), wire)
 			}
-			diag.report(dec, time.Now(), true)
 			return nil
 		default:
 		}
@@ -307,16 +149,12 @@ func run(args []string) error {
 				if mode == "server" {
 					learnedDTLSPeer = cloneUDPAddr(from)
 				}
-				diag.observeRX(buf[:n])
 				packets, _, err := dec.Add(buf[:n])
-				diag.observeDecoder(dec)
 				if err != nil {
 					if !errors.Is(err, fec.ErrDecoderFull) {
 						return err
 					}
-					diag.decoderFull++
 				} else if len(packets) != 0 {
-					diag.outputPackets += uint64(len(packets))
 					var dst *net.UDPAddr
 					if mode == "server" {
 						dst = serviceAddr
@@ -340,12 +178,10 @@ func run(args []string) error {
 				} else if from.Port != servicePort {
 					continue
 				}
-				diag.inputPackets++
 				wire, err := enc.Add(buf[:n], now)
 				if err != nil {
 					return err
 				}
-				diag.observeEncoded(wire)
 				if err := sendWire(conn, wireDest(), wire); err != nil {
 					return err
 				}
@@ -356,11 +192,9 @@ func run(args []string) error {
 		if err != nil {
 			return err
 		}
-		diag.observeEncoded(wire)
 		if err := sendWire(conn, wireDest(), wire); err != nil {
 			return err
 		}
-		diag.report(dec, now, false)
 	}
 }
 
