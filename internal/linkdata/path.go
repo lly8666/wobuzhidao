@@ -21,8 +21,8 @@ type PathStats struct {
 	FECRepairTXPackets     uint64
 	FECRepairTXBytes       uint64
 
-	WireRXPackets uint64
-	WireRXBytes   uint64
+	WireRXPackets  uint64
+	WireRXBytes    uint64
 	InnerRXPackets uint64
 	InnerRXBytes   uint64
 }
@@ -55,7 +55,7 @@ func New(config control.LinkConfig, maxBlocks int) (*Path, error) {
 	if err != nil {
 		return nil, err
 	}
-	dec, err := fec.NewBlockDecoder(codec, int(config.MTU), maxBlocks)
+	dec, err := fec.NewBlockDecoder(installFECObserver(p, codec), int(config.MTU), maxBlocks)
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +64,8 @@ func New(config control.LinkConfig, maxBlocks int) (*Path, error) {
 }
 
 func (p *Path) Config() control.LinkConfig { return p.config }
-func (p *Path) FECEnabled() bool { return p.config.FECMode == control.FECFixed }
-func (p *Path) Stats() PathStats { return p.stats }
+func (p *Path) FECEnabled() bool           { return p.config.FECMode == control.FECFixed }
+func (p *Path) Stats() PathStats           { return p.stats }
 
 // Encode returns datagrams ready for DTLS. In off mode the input datagram is
 // returned directly and remains valid only as long as the caller's input; the
@@ -77,7 +77,7 @@ func (p *Path) Encode(packet []byte, now time.Time) ([][]byte, error) {
 	}
 	var (
 		wire [][]byte
-		err error
+		err  error
 	)
 	if !p.FECEnabled() {
 		wire = [][]byte{packet}
@@ -128,6 +128,7 @@ func (p *Path) recordWireTX(wire [][]byte) {
 		if err != nil {
 			continue
 		}
+		observeFECWire(p, h)
 		if int(h.ShardIndex) < fec.DataShards {
 			p.stats.FECSystematicTXPackets++
 			p.stats.FECSystematicTXBytes += uint64(len(datagram))
@@ -150,7 +151,7 @@ func (p *Path) Decode(wire []byte) ([][]byte, error) {
 	p.stats.WireRXBytes += uint64(len(wire))
 	var (
 		packets [][]byte
-		err error
+		err     error
 	)
 	if !p.FECEnabled() {
 		if len(wire) > int(p.config.MTU) {
@@ -159,6 +160,7 @@ func (p *Path) Decode(wire []byte) ([][]byte, error) {
 		packets = [][]byte{wire}
 	} else {
 		packets, _, err = p.dec.Add(wire)
+		observeFECDecoder(p, time.Now())
 		if err != nil {
 			return nil, err
 		}
