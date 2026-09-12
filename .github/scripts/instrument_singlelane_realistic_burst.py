@@ -20,10 +20,11 @@ s = rotation.read_text()
 
 if profile == 'realistic-mix-v1':
     # Packet-count distribution: 35% 64B, 15% 128B, 10% 256B,
-    # 10% 512B, 10% 1000B, 5% 1200B, 15% 1400B. Average 488.4B.
-    # Pacing is by actual payload bytes so RATE_BPS remains source-business bps.
+    # 10% 512B, 10% 1000B, 5% 1200B, 15% 1360B. Average 482.4B.
+    # 1360B is the configured inner MTU in this harness. Pacing is by actual
+    # payload bytes so RATE_BPS remains source-business bps rather than pps.
     old = "duration=float(sys.argv[2]); rate_bps=int(sys.argv[3]); payload_bytes=int(sys.argv[4])\npps=rate_bps/(payload_bytes*8.0)\ninterval=1.0/pps\n"
-    new = "duration=float(sys.argv[2]); rate_bps=int(sys.argv[3]); payload_bytes=int(sys.argv[4])\nsize_cycle=([64]*35+[128]*15+[256]*10+[512]*10+[1000]*10+[1200]*5+[1400]*15)\navg_payload_bytes=sum(size_cycle)/len(size_cycle)\n"
+    new = "duration=float(sys.argv[2]); rate_bps=int(sys.argv[3]); payload_bytes=int(sys.argv[4])\nsize_cycle=([64]*35+[128]*15+[256]*10+[512]*10+[1000]*10+[1200]*5+[1360]*15)\navg_payload_bytes=sum(size_cycle)/len(size_cycle)\n"
     if s.count(old) != 1:
         raise SystemExit('realistic mix: pacing marker drift')
     s = s.replace(old, new, 1)
