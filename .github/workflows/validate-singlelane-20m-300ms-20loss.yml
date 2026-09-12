@@ -1,9 +1,9 @@
-name: validate-logic64-flush32-fecdiag-5m-transient
+name: validate-logic64-horizon64-flush32-5m-transient
 
 on:
   push:
     branches:
-      - run/logic64-flush32-fecdiag-20260912
+      - run/logic64-horizon64-flush32-transient-20260912
     paths:
       - '.github/singlelane-case.env'
 
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   severe:
-    name: logic64-flush32-fecdiag-5m-5to30
+    name: logic64-horizon64-flush32-5m-5to30
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -27,8 +27,8 @@ jobs:
         run: |
           set -euo pipefail
           source "$GITHUB_WORKSPACE/helper/.github/singlelane-case.env"
-          [[ "$CANDIDATE" == logic64-flush32-fecdiag ]] || { echo "candidate must be logic64-flush32-fecdiag" >&2; exit 2; }
-          [[ "$SOURCE_SHA" == d32992c902eeda03273671733a0509b211e5a987 ]] || { echo "source must be fixed logic-64 FEC diagnostic sha" >&2; exit 2; }
+          [[ "$CANDIDATE" == logic64-horizon64-flush32-fecdiag ]] || { echo "candidate must be logic64-horizon64-flush32-fecdiag" >&2; exit 2; }
+          [[ "$SOURCE_SHA" == d32992c902eeda03273671733a0509b211e5a987 ]] || { echo "source must be corrected logic-64 FEC diagnostic sha" >&2; exit 2; }
           [[ "$FEC_FLUSH_MS" == 32 ]] || { echo "flush must be 32ms" >&2; exit 2; }
           [[ "$LOSS_PCT" == 5 ]] || { echo "baseline loss must be 5" >&2; exit 2; }
           [[ "$TRAFFIC_PROFILE" == realistic-mix-v1 ]] || { echo "traffic profile must be realistic-mix-v1" >&2; exit 2; }
@@ -47,11 +47,150 @@ jobs:
           echo "spike_loss_pct=$SPIKE_LOSS_PCT" >> "$GITHUB_OUTPUT"
           echo "spike_start_sec=$SPIKE_START_SEC" >> "$GITHUB_OUTPUT"
           echo "spike_duration_sec=$SPIKE_DURATION_SEC" >> "$GITHUB_OUTPUT"
-      - name: Checkout exact diagnostic candidate
+      - name: Checkout exact diagnostic source
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.case.outputs.source_sha }}
           path: product
+      - name: Apply test-only bounded recovery horizon
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$GITHUB_WORKSPACE/product/internal/fec/block.go" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); s=p.read_text()
+          old='''func (d *BlockDecoder) oldestRetirableBefore(limit uint32) (uint32, *decodeBlock, bool) {
+          \tfor i := d.blockHead; i < len(d.blockOrder); i++ {
+          \t\tid := d.blockOrder[i]
+          \t\tb := d.blocks[id]
+          \t\tif b == nil {
+          \t\t\tif i == d.blockHead {
+          \t\t\t\td.blockHead++
+          \t\t\t}
+          \t\t\tcontinue
+          \t\t}
+          \t\tif id >= limit || !canRetireBlock(b) {
+          \t\t\tcontinue
+          \t\t}
+          \t\td.compactBlockOrder()
+          \t\treturn id, b, true
+          \t}
+          \td.compactBlockOrder()
+          \treturn 0, nil, false
+          }
+          
+          func (d *BlockDecoder) retireBlock(id uint32, b *decodeBlock) {
+          \tif b == nil || !canRetireBlock(b) {
+          \t\treturn
+          \t}
+          '''
+          new='''func (d *BlockDecoder) oldestRetirableBefore(limit uint32) (uint32, *decodeBlock, bool) {
+          \tfor i := d.blockHead; i < len(d.blockOrder); i++ {
+          \t\tid := d.blockOrder[i]
+          \t\tb := d.blocks[id]
+          \t\tif b == nil {
+          \t\t\tif i == d.blockHead {
+          \t\t\t\td.blockHead++
+          \t\t\t}
+          \t\t\tcontinue
+          \t\t}
+          \t\tif id >= limit {
+          \t\t\tcontinue
+          \t\t}
+          \t\t// Preserve every still-recoverable heavy generation for one full
+          \t\t// decoder window. Once a generation has fallen farther behind the
+          \t\t// newest observed BlockID than maxBlocks, keeping its shard payload
+          \t\t// forever would pin the entire heavy window after a loss spike.
+          \t\tage := limit - id
+          \t\tif !canRetireBlock(b) && age <= uint32(d.maxBlocks) {
+          \t\t\tcontinue
+          \t\t}
+          \t\td.compactBlockOrder()
+          \t\treturn id, b, true
+          \t}
+          \td.compactBlockOrder()
+          \treturn 0, nil, false
+          }
+          
+          func (d *BlockDecoder) retireBlock(id uint32, b *decodeBlock) {
+          \tif b == nil {
+          \t\treturn
+          \t}
+          \t// oldestRetirableBefore admits either fully delivered state or a
+          \t// generation whose bounded recovery horizon has expired. In the
+          \t// latter case compact state preserves first-delivery bookkeeping but
+          \t// intentionally releases shard payload that can no longer own a heavy slot.
+          '''
+          if s.count(old) != 1:
+              raise SystemExit(f'bounded-horizon patch marker drift: {s.count(old)}')
+          p.write_text(s.replace(old,new,1))
+          PY
+          cat > "$GITHUB_WORKSPACE/product/internal/fec/recovery_horizon_test.go" <<'EOF'
+          package fec
+
+          import (
+          	"bytes"
+          	"testing"
+          	"time"
+          )
+
+          func TestBlockDecoderPressureExpiresBeyondRecoveryHorizon(t *testing.T) {
+          	codec := NewReedSolomon20x20()
+          	makeBlock := func(blockID uint32) ([][]byte, [][]byte, [][]byte) {
+          		t.Helper()
+          		enc, err := NewFastBlockEncoder(codec, 1400, time.Millisecond, blockID)
+          		if err != nil { t.Fatal(err) }
+          		want := testPackets(DataShards)
+          		sources := make([][]byte, 0, DataShards)
+          		var parity [][]byte
+          		for i, packet := range want {
+          			out, err := enc.Add(packet, time.Unix(0, int64(i)))
+          			if err != nil { t.Fatal(err) }
+          			if len(out) == 0 { t.Fatalf("block %d source %d emitted no systematic shard", blockID, i) }
+          			sources = append(sources, append([]byte(nil), out[0]...))
+          			for _, wire := range out[1:] { parity = append(parity, append([]byte(nil), wire...)) }
+          		}
+          		return want, sources, parity
+          	}
+
+          	want1, source1, parity1 := makeBlock(1)
+          	_, source2, _ := makeBlock(2)
+          	_, source3, _ := makeBlock(3)
+          	dec, err := NewBlockDecoder(codec, 1400, 1)
+          	if err != nil { t.Fatal(err) }
+          	const missing = 7
+          	for i, wire := range source1 {
+          		if i == missing { continue }
+          		packets, done, err := dec.Add(wire)
+          		if err != nil { t.Fatalf("block1 source %d: %v", i, err) }
+          		if done || len(packets) != 1 { t.Fatalf("block1 source %d done=%v delivered=%d", i, done, len(packets)) }
+          	}
+
+          	if _, _, err := dec.Add(source2[0]); err != nil { t.Fatalf("block2: %v", err) }
+          	if dec.blocks[1] == nil { t.Fatal("block2 evicted still-recoverable block1 inside horizon") }
+          	if _, ok := dec.retired[2]; !ok { t.Fatal("block2 should use compact fallback while block1 is protected") }
+
+          	packets, done, err := dec.Add(source3[0])
+          	if err != nil { t.Fatalf("block3: %v", err) }
+          	if done || len(packets) != 1 { t.Fatalf("block3 done=%v delivered=%d", done, len(packets)) }
+          	if dec.blocks[1] != nil { t.Fatal("block1 still owns heavy slot after exceeding one-window recovery horizon") }
+          	if _, ok := dec.retired[1]; !ok { t.Fatal("expired block1 did not retain compact first-delivery state") }
+          	if dec.blocks[3] == nil { t.Fatal("block3 did not acquire released heavy slot") }
+
+          	packets, done, err = dec.Add(parity1[0])
+          	if err != nil { t.Fatalf("late block1 parity: %v", err) }
+          	if done || len(packets) != 0 { t.Fatalf("expired block reconstructed from discarded heavy shards: done=%v packets=%d", done, len(packets)) }
+
+          	packets, done, err = dec.Add(source1[missing])
+          	if err != nil { t.Fatalf("late block1 systematic: %v", err) }
+          	if !done || len(packets) != 1 || !bytes.Equal(packets[0], want1[missing]) {
+          		t.Fatalf("late systematic first delivery after expiry: done=%v packets=%d", done, len(packets))
+          	}
+          }
+          EOF
+          gofmt -w "$GITHUB_WORKSPACE/product/internal/fec/block.go" "$GITHUB_WORKSPACE/product/internal/fec/recovery_horizon_test.go"
+          go test "$GITHUB_WORKSPACE/product/internal/fec" -count=1
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
@@ -76,7 +215,7 @@ jobs:
           p.write_text(s)
           PY
           grep -n -- '-fec-flush-ms 32' "$GITHUB_WORKSPACE/product/scripts/game_lane_fullstack.sh"
-      - name: Run one isolated logic64 32ms FEC diagnostic case
+      - name: Run one isolated horizon64 32ms transient case
         env:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE: ${{ steps.case.outputs.candidate }}
@@ -97,7 +236,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: logic64-flush32-fecdiag-5m-5to30
+          name: logic64-horizon64-flush32-5m-5to30
           path: ${{ runner.temp }}/singlelane-${{ steps.case.outputs.candidate }}
           if-no-files-found: warn
           retention-days: 7
