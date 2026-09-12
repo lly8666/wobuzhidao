@@ -56,7 +56,6 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-
           rotation=Path('scripts/game_lane_rotation_soak.sh')
           s=rotation.read_text()
           repl={
@@ -72,50 +71,28 @@ jobs:
             if s.count(old)!=1: raise SystemExit('rotation guard drift: '+old)
             s=s.replace(old,new,1)
           s=s.replace('for i in $(seq 1 4); do','for i in $(seq 1 "$LANES"); do')
-          s=s.replace('link_binds >= 4','link_binds >= LANES')
-          s=s.replace("'>= 4 ))","'>= \"$LANES\" ))")
-          s=s.replace('game_binds >= 4','game_binds >= LANES')
+          s=s.replace('if (( link_binds >= 4 )); then','if (( link_binds >= LANES )); then')
+          s=s.replace('if (( game_binds >= 4 )); then','if (( game_binds >= LANES )); then')
+          s=s.replace('>= 4 ))','>= LANES ))')
           s=s.replace('(r-1)%4 + 1','(r-1)%LANES + 1')
           if '--shadow-recovery legacy' not in s: raise SystemExit('replacement recovery marker missing')
           s=s.replace('--shadow-recovery legacy','--shadow-recovery sack-rack').replace('recovery=legacy','recovery=sack-rack')
-
-          old="sent=0; unique=set(); dup=0; bad=0; last_rx=start"
-          new="sent=0; unique=set(); dup=0; bad=0; last_rx=start; latencies=[]; ontime1=0; ontime2=0"
+          old='sent=0; unique=set(); dup=0; bad=0; last_rx=start'
+          new='sent=0; unique=set(); dup=0; bad=0; last_rx=start; latencies=[]; ontime1=0; ontime2=0'
           if s.count(old)!=1: raise SystemExit('load state marker drift')
           s=s.replace(old,new,1)
-          old="                if seq in unique: dup+=1\n                else: unique.add(seq)"
-          new="""                if seq in unique: dup+=1
-                else:
-                    unique.add(seq)
-                    sent_rel=struct.unpack('!d',data[12:20])[0]
-                    latency=max(0.0,time.monotonic()-start-sent_rel)
-                    latencies.append(latency)
-                    if latency <= 1.0: ontime1+=1
-                    if latency <= 2.0: ontime2+=1"""
+          old='                if seq in unique: dup+=1\n                else: unique.add(seq)'
+          new='                if seq in unique: dup+=1\n                else:\n                    unique.add(seq)\n                    sent_rel=struct.unpack("!d",data[12:20])[0]\n                    latency=max(0.0,time.monotonic()-start-sent_rel)\n                    latencies.append(latency)\n                    if latency <= 1.0: ontime1+=1\n                    if latency <= 2.0: ontime2+=1'
           if s.count(old)!=1: raise SystemExit('latency marker drift')
           s=s.replace(old,new,1)
-          old="elapsed=max(duration,1e-9)\nrecv=len(unique); lost=max(0,sent-recv)\nsummary={"
-          new="""elapsed=max(duration,1e-9)
-recv=len(unique); lost=max(0,sent-recv)
-latencies.sort()
-def pct(q):
-    if not latencies: return None
-    i=min(len(latencies)-1,max(0,int(round((len(latencies)-1)*q))))
-    return latencies[i]
-summary={"""
+          old='recv=len(unique); lost=max(0,sent-recv)\nsummary={'
+          new='recv=len(unique); lost=max(0,sent-recv)\nlatencies.sort()\ndef pct(q):\n    if not latencies: return None\n    i=min(len(latencies)-1,max(0,int(round((len(latencies)-1)*q))))\n    return latencies[i]\nsummary={'
           if s.count(old)!=1: raise SystemExit('summary marker drift')
           s=s.replace(old,new,1)
           old="  'loss_ratio':(lost/sent if sent else 1.0),\n}"
-          new="""  'loss_ratio':(lost/sent if sent else 1.0),
-  'echo_rtt_p50_sec':pct(0.50),'echo_rtt_p95_sec':pct(0.95),'echo_rtt_p99_sec':pct(0.99),
-  'echo_rtt_max_sec':(latencies[-1] if latencies else None),
-  'ontime_1s_count':ontime1,'ontime_2s_count':ontime2,
-  'ontime_1s_ratio_of_sent':(ontime1/sent if sent else 0.0),
-  'ontime_2s_ratio_of_sent':(ontime2/sent if sent else 0.0),
-}"""
+          new="  'loss_ratio':(lost/sent if sent else 1.0),\n  'echo_rtt_p50_sec':pct(0.50),'echo_rtt_p95_sec':pct(0.95),'echo_rtt_p99_sec':pct(0.99),\n  'echo_rtt_max_sec':(latencies[-1] if latencies else None),\n  'ontime_1s_count':ontime1,'ontime_2s_count':ontime2,\n  'ontime_1s_ratio_of_sent':(ontime1/sent if sent else 0.0),\n  'ontime_2s_ratio_of_sent':(ontime2/sent if sent else 0.0),\n}"
           if s.count(old)!=1: raise SystemExit('summary fields marker drift')
           rotation.write_text(s.replace(old,new,1))
-
           full=Path('scripts/game_lane_fullstack.sh')
           s=full.read_text()
           if '--shadow-recovery legacy' not in s: raise SystemExit('initial recovery marker missing')
@@ -124,7 +101,6 @@ summary={"""
           new='"$ASSET_DIR/wbd-faketcp-mux" server \\\n  --shadow-recovery sack-rack \\\n  --listen 10.89.0.1:${RAW} --dtls-shim "$ASSET_DIR/wbd_dtls_shim" \\\n'
           if s.count(old)!=1: raise SystemExit('server mux marker drift')
           full.write_text(s.replace(old,new,1))
-
           control=Path('scripts/game_lane_rotation_soak_control.sh')
           s=control.read_text()
           old_c='sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%"'
@@ -168,13 +144,13 @@ summary={"""
           enq=sum(x.get('EnqueuedBytes',0) for x in senders)
           retx=sum(x.get('RetransmitBytes',0) for x in senders)
           result={
-            'down_payload_bps':d['down_payload_bps'], 'loss_ratio':d['loss_ratio'],
-            'sent':d['sent'], 'received_unique':d['received_unique'],
-            'echo_rtt_p50_sec':d.get('echo_rtt_p50_sec'), 'echo_rtt_p95_sec':d.get('echo_rtt_p95_sec'),
-            'echo_rtt_p99_sec':d.get('echo_rtt_p99_sec'), 'echo_rtt_max_sec':d.get('echo_rtt_max_sec'),
+            'down_payload_bps':d['down_payload_bps'],'loss_ratio':d['loss_ratio'],
+            'sent':d['sent'],'received_unique':d['received_unique'],
+            'echo_rtt_p50_sec':d.get('echo_rtt_p50_sec'),'echo_rtt_p95_sec':d.get('echo_rtt_p95_sec'),
+            'echo_rtt_p99_sec':d.get('echo_rtt_p99_sec'),'echo_rtt_max_sec':d.get('echo_rtt_max_sec'),
             'ontime_1s_ratio_of_sent':d.get('ontime_1s_ratio_of_sent'),
             'ontime_2s_ratio_of_sent':d.get('ontime_2s_ratio_of_sent'),
-            'fresh_bytes':enq, 'retransmit_bytes':retx,
+            'fresh_bytes':enq,'retransmit_bytes':retx,
             'repair_to_fresh_bytes':retx/enq if enq else 0,
             'peak_pending':max(x.get('PeakPending',0) for x in senders),
             'forgiven_gaps':sum(x.get('ForgivenGaps',0) for x in receivers),
