@@ -1,4 +1,4 @@
-name: validate-singlelane-shadow-edge-matrix
+name: validate-singlelane-shadow-latency-sweep
 
 on:
   push:
@@ -12,98 +12,117 @@ permissions:
   actions: read
 
 jobs:
-  edge:
-    name: ${{ matrix.case }}-${{ matrix.candidate }}
+  sweep:
+    name: ${{ matrix.profile.name }}-${{ matrix.candidate }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
-      max-parallel: 6
+      max-parallel: 8
       matrix:
-        include:
-          - case: low1-p1000
-            candidate: shadow-a-bounded
-            source_sha: 484e29463bb83c503ee3baf669c23b013dd44d6c
-            loss_pct: '1'
-            payload_bytes: '1000'
-          - case: low1-p1000
-            candidate: shadow-b-adaptive
-            source_sha: 8bc9e89f07e05a5be74761b16e37fb180f84864a
-            loss_pct: '1'
-            payload_bytes: '1000'
-          - case: low1-p1000
-            candidate: shadow-c-conservative
-            source_sha: 1276eeffd13c86934105dcfc2af68ac44f46a84c
-            loss_pct: '1'
-            payload_bytes: '1000'
-          - case: loss20-p512
-            candidate: shadow-a-bounded
-            source_sha: 484e29463bb83c503ee3baf669c23b013dd44d6c
+        candidate:
+          - shadow-a-bounded
+          - shadow-b-adaptive
+          - shadow-b2-pressure-age
+          - shadow-c-conservative
+        profile:
+          - name: low2-rate20m
+            loss_pct: '2'
+            rate_bps: '20000000'
+          - name: low2-rate80m
+            loss_pct: '2'
+            rate_bps: '80000000'
+          - name: loss20-rate20m
             loss_pct: '20'
-            payload_bytes: '512'
-          - case: loss20-p512
-            candidate: shadow-b-adaptive
-            source_sha: 8bc9e89f07e05a5be74761b16e37fb180f84864a
+            rate_bps: '20000000'
+          - name: loss25-rate20m
+            loss_pct: '25'
+            rate_bps: '20000000'
+          - name: loss30-rate20m
+            loss_pct: '30'
+            rate_bps: '20000000'
+          - name: loss35-rate20m
+            loss_pct: '35'
+            rate_bps: '20000000'
+          - name: loss40-rate20m
+            loss_pct: '40'
+            rate_bps: '20000000'
+          - name: loss20-rate40m
             loss_pct: '20'
-            payload_bytes: '512'
-          - case: loss20-p512
-            candidate: shadow-c-conservative
-            source_sha: 1276eeffd13c86934105dcfc2af68ac44f46a84c
+            rate_bps: '40000000'
+          - name: loss20-rate80m
             loss_pct: '20'
-            payload_bytes: '512'
-          - case: loss20-p1360
-            candidate: shadow-a-bounded
-            source_sha: 484e29463bb83c503ee3baf669c23b013dd44d6c
+            rate_bps: '80000000'
+          - name: loss20-rate120m
             loss_pct: '20'
-            payload_bytes: '1360'
-          - case: loss20-p1360
-            candidate: shadow-b-adaptive
-            source_sha: 8bc9e89f07e05a5be74761b16e37fb180f84864a
-            loss_pct: '20'
-            payload_bytes: '1360'
-          - case: loss20-p1360
-            candidate: shadow-c-conservative
-            source_sha: 1276eeffd13c86934105dcfc2af68ac44f46a84c
-            loss_pct: '20'
-            payload_bytes: '1360'
+            rate_bps: '120000000'
+          - name: loss30-rate40m
+            loss_pct: '30'
+            rate_bps: '40000000'
+          - name: loss30-rate80m
+            loss_pct: '30'
+            rate_bps: '80000000'
+          - name: loss35-rate40m
+            loss_pct: '35'
+            rate_bps: '40000000'
+          - name: loss35-rate80m
+            loss_pct: '35'
+            rate_bps: '80000000'
     steps:
       - name: Checkout helper
         uses: actions/checkout@v4
         with:
           path: helper
+
+      - name: Resolve exact candidate SHA
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          case '${{ matrix.candidate }}' in
+            shadow-a-bounded) sha='484e29463bb83c503ee3baf669c23b013dd44d6c' ;;
+            shadow-b-adaptive) sha='8bc9e89f07e05a5be74761b16e37fb180f84864a' ;;
+            shadow-b2-pressure-age) sha='e10887a55a6b830c7c6c07d0f84b22d89435dfa4' ;;
+            shadow-c-conservative) sha='1276eeffd13c86934105dcfc2af68ac44f46a84c' ;;
+            *) echo 'unknown candidate' >&2; exit 2 ;;
+          esac
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
       - name: Checkout exact product candidate
         uses: actions/checkout@v4
         with:
-          ref: ${{ matrix.source_sha }}
+          ref: ${{ steps.source.outputs.sha }}
           path: product
+
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
+
       - name: Install build/network tools
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl
-      - name: Run exact candidate edge case
+
+      - name: Run latency/loss/rate case
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE: ${{ matrix.candidate }}-${{ matrix.case }}
-          SOURCE_SHA: ${{ matrix.source_sha }}
-          TEST_LOSS_PCT: ${{ matrix.loss_pct }}
-          TEST_PAYLOAD_BYTES: ${{ matrix.payload_bytes }}
+          CANDIDATE: ${{ matrix.candidate }}-${{ matrix.profile.name }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          TEST_LOSS_PCT: ${{ matrix.profile.loss_pct }}
+          TEST_RATE_BPS: ${{ matrix.profile.rate_bps }}
+          TEST_PAYLOAD_BYTES: '1000'
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
           set -euo pipefail
-          SCRIPT="$GITHUB_WORKSPACE/helper/.github/scripts/validate_singlelane_shadow_candidate.sh"
-          sed -i "s/export NETEM_LOSS_PCT=20/export NETEM_LOSS_PCT=${TEST_LOSS_PCT}/" "$SCRIPT"
-          sed -i "s/loss_pct_each_direction=20/loss_pct_each_direction=${TEST_LOSS_PCT}/" "$SCRIPT"
-          sed -i "s/export PAYLOAD_BYTES=1000/export PAYLOAD_BYTES=${TEST_PAYLOAD_BYTES}/" "$SCRIPT"
-          bash "$SCRIPT" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+          bash "$GITHUB_WORKSPACE/helper/.github/scripts/validate_shadow_latency_matrix.sh" \
+            "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+
       - name: Upload candidate diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-shadow-${{ matrix.case }}-${{ matrix.candidate }}-${{ matrix.source_sha }}
+          name: shadow-latency-${{ matrix.profile.name }}-${{ matrix.candidate }}-${{ steps.source.outputs.sha }}
           path: |
-            ${{ runner.temp }}/singlelane-${{ matrix.candidate }}-${{ matrix.case }}
+            ${{ runner.temp }}/singlelane-${{ matrix.candidate }}-${{ matrix.profile.name }}
           if-no-files-found: warn
           retention-days: 7
