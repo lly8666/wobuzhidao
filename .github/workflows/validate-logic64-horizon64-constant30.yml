@@ -1,0 +1,94 @@
+name: validate-logic64-horizon64-flush32-5m-constant30
+
+on:
+  push:
+    branches:
+      - run/logic64-flush32-constant30-ref-20260912
+    paths:
+      - '.github/constant30-run.marker'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  constant30:
+    name: logic64-horizon64-flush32-5m-constant30
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout helper
+        uses: actions/checkout@v4
+        with:
+          path: helper
+      - name: Read exact case
+        id: case
+        shell: bash
+        run: |
+          set -euo pipefail
+          source "$GITHUB_WORKSPACE/helper/.github/singlelane-case.env"
+          [[ "$CANDIDATE" == logic64-flush32-constant30-ref ]] || exit 2
+          [[ "$SOURCE_SHA" == d32992c902eeda03273671733a0509b211e5a987 ]] || exit 2
+          [[ "$FEC_FLUSH_MS" == 32 ]] || exit 2
+          [[ "$LOSS_PCT" == 30 ]] || exit 2
+          [[ "$TRAFFIC_PROFILE" == realistic-mix-v1 ]] || exit 2
+          [[ "$LOSS_MODEL" == iid ]] || exit 2
+          [[ "$TEST_RATE_BPS" == 5000000 ]] || exit 2
+          [[ "$TEST_DURATION_SEC" == 45 ]] || exit 2
+          echo "candidate=$CANDIDATE" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "fec_flush_ms=$FEC_FLUSH_MS" >> "$GITHUB_OUTPUT"
+          echo "loss_pct=$LOSS_PCT" >> "$GITHUB_OUTPUT"
+          echo "traffic_profile=$TRAFFIC_PROFILE" >> "$GITHUB_OUTPUT"
+          echo "loss_model=$LOSS_MODEL" >> "$GITHUB_OUTPUT"
+          echo "test_rate_bps=$TEST_RATE_BPS" >> "$GITHUB_OUTPUT"
+          echo "test_duration_sec=$TEST_DURATION_SEC" >> "$GITHUB_OUTPUT"
+      - name: Checkout exact diagnostic source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.case.outputs.source_sha }}
+          path: product
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build/network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl
+      - name: Pin test-only FEC flush to 32ms
+        shell: bash
+        env:
+          FEC_FLUSH_MS: ${{ steps.case.outputs.fec_flush_ms }}
+        run: |
+          set -euo pipefail
+          python3 - "$GITHUB_WORKSPACE/product/scripts/game_lane_fullstack.sh" "$FEC_FLUSH_MS" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); flush=sys.argv[2]; s=p.read_text()
+          old='-fec "$FEC" -lanes 1'
+          if s.count(old) != 1:
+              raise SystemExit(f'fec flush injection marker drift: {s.count(old)}')
+          p.write_text(s.replace(old, f'-fec "$FEC" -fec-flush-ms {flush} -lanes 1', 1))
+          PY
+      - name: Run one isolated constant-30 reference case
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE: ${{ steps.case.outputs.candidate }}
+          SOURCE_SHA: ${{ steps.case.outputs.source_sha }}
+          LOSS_PCT: ${{ steps.case.outputs.loss_pct }}
+          TRAFFIC_PROFILE: ${{ steps.case.outputs.traffic_profile }}
+          LOSS_MODEL: ${{ steps.case.outputs.loss_model }}
+          TEST_RATE_BPS: ${{ steps.case.outputs.test_rate_bps }}
+          TEST_DURATION_SEC: ${{ steps.case.outputs.test_duration_sec }}
+          WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
+        run: |
+          set -euo pipefail
+          bash "$GITHUB_WORKSPACE/helper/.github/scripts/run_singlelane_constant30_observability.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+      - name: Upload candidate diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logic64-horizon64-flush32-5m-constant30
+          path: ${{ runner.temp }}/singlelane-${{ steps.case.outputs.candidate }}
+          if-no-files-found: warn
+          retention-days: 7
