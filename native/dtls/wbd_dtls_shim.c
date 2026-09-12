@@ -40,6 +40,7 @@ typedef socklen_t wbd_socklen_t;
 
 static volatile sig_atomic_t g_stop = 0;
 static int g_trace = 0;
+static const char* g_cipher_suite = "TLS13-AES128-GCM-SHA256";
 
 static void on_signal(int sig) { (void)sig; g_stop = 1; }
 
@@ -116,6 +117,14 @@ static struct sockaddr_in addr4(const char* ip, int port) {
 
 static int insecure_verify_arg(const char* s) {
     return s && (!strcmp(s, "-") || !strcmp(s, "none") || !strcmp(s, "insecure"));
+}
+
+static int configure_cipher(WOLFSSL_CTX* ctx) {
+    if (wolfSSL_CTX_set_cipher_list(ctx, g_cipher_suite) != WOLFSSL_SUCCESS) {
+        fprintf(stderr, "DTLS cipher configuration failed suite=%s\n", g_cipher_suite);
+        return 0;
+    }
+    return 1;
 }
 
 /*
@@ -318,6 +327,10 @@ static int run_client(int listen_port, const char* transport_ip, int transport_p
         fprintf(stderr, "ctx client failed\n");
         return 2;
     }
+    if (!configure_cipher(ctx)) {
+        wolfSSL_CTX_free(ctx);
+        return 2;
+    }
     insecure = insecure_verify_arg(ca);
     if (insecure) {
         wolfSSL_CTX_set_verify(ctx, WOLFSSL_VERIFY_NONE, NULL);
@@ -443,6 +456,10 @@ static int run_server(int listen_port, const char* target_ip, int target_port, c
     int rc;
 
     if (!ctx) return 2;
+    if (!configure_cipher(ctx)) {
+        wolfSSL_CTX_free(ctx);
+        return 2;
+    }
     if (wolfSSL_CTX_use_certificate_chain_file(ctx, cert) != WOLFSSL_SUCCESS) {
         wolfSSL_CTX_free(ctx);
         return 2;
