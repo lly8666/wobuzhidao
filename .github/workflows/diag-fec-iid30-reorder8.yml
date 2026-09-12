@@ -1,0 +1,37 @@
+name: diag-fec-iid30-reorder8
+
+on:
+  push:
+    branches:
+      - run/logic64-h64-diag-batch-20260913
+    paths:
+      - '.github/diag-fec-iid30-reorder8.marker'
+
+permissions:
+  contents: read
+
+jobs:
+  reorder8:
+    name: fec-iid30-reorder8
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout helper
+        uses: actions/checkout@v4
+        with:
+          path: helper
+      - name: Checkout exact diagnostic source
+        uses: actions/checkout@v4
+        with:
+          ref: d32992c902eeda03273671733a0509b211e5a987
+          path: product
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Run one deterministic reorder8 iid30 block-codec probe
+        env:
+          PROBE_REORDER: '1'
+          WBD_HELPER_DIR: ${{ github.workspace }}/helper
+        run: |
+          set -euo pipefail
+          bash "$GITHUB_WORKSPACE/helper/.github/scripts/run_fec_iid30_probe.sh" "$GITHUB_WORKSPACE/product"
