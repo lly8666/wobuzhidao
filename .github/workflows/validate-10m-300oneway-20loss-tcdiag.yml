@@ -6,10 +6,7 @@ on:
       - agent/validate-10m-300oneway-20loss-perlane-d3b
     paths:
       - '.github/workflows/validate-10m-300oneway-20loss-tcdiag.yml'
-      - 'scripts/validate_perlane_tc_diag_d3b.sh'
       - 'scripts/patch_mux_teardown_stats_d3b.py'
-      - 'scripts/patch_raw_rcvbuf_d3b.py'
-      - 'scripts/patch_tc_data_counters_d3b.py'
 
 permissions:
   contents: read
@@ -17,24 +14,23 @@ permissions:
 
 jobs:
   exact-source-tcdiag:
-    name: tcdiag-rcvbuf-${{ matrix.rcvbuf }}-r${{ matrix.replica }}
+    name: receiver-horizon-r${{ matrix.replica }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        rcvbuf: [default, 16m]
-        replica: [1, 2]
+        replica: [1, 2, 3]
     steps:
       - name: Checkout helper branch
         uses: actions/checkout@v4
         with:
           path: helper
 
-      - name: Checkout exact product source
+      - name: Checkout exact receiver-horizon candidate
         uses: actions/checkout@v4
         with:
-          ref: d3b54dced255cc9becb3e501991f71a034e7438f
+          ref: eb3de969b045fab1e88034345bfbf0f641cfd592
           path: product
 
       - uses: actions/setup-go@v5
@@ -46,46 +42,44 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool make gcc iproute2 iptables tcpdump curl unzip openssl
 
-      - name: Add teardown-only server FakeTCP stats
+      - name: Verify exact source and focused semantics
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE/product"
+          test "$(git rev-parse HEAD)" = eb3de969b045fab1e88034345bfbf0f641cfd592
+          go test ./internal/faketcp -count=1
+          go test ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux -count=1
+
+      - name: Add teardown-only receiver evidence
         run: |
           python3 "$GITHUB_WORKSPACE/helper/scripts/patch_mux_teardown_stats_d3b.py" "$GITHUB_WORKSPACE/product"
-
-      - name: Add raw receive-buffer diagnostic hook
-        run: |
-          python3 "$GITHUB_WORKSPACE/helper/scripts/patch_raw_rcvbuf_d3b.py" "$GITHUB_WORKSPACE/product"
           (cd "$GITHUB_WORKSPACE/product" && gofmt -w cmd/wbd-faketcp-mux/main_linux.go)
 
-      - name: Add data-only tc counters to helper
-        run: |
-          python3 "$GITHUB_WORKSPACE/helper/scripts/patch_tc_data_counters_d3b.py" "$GITHUB_WORKSPACE/helper/scripts/validate_perlane_tc_diag_d3b.sh"
-          bash -n "$GITHUB_WORKSPACE/helper/scripts/validate_perlane_tc_diag_d3b.sh"
-
-      - name: Run low-overhead exact-source tc diagnostic
+      - name: Run unchanged 20-second severe diagnostic
         env:
           GH_TOKEN: ${{ github.token }}
           SOAK_REPLICA: ${{ matrix.replica }}
-          DIAG_LINKRX: off
-          WBD_DIAG_RAW_RCVBUF_BYTES: ${{ matrix.rcvbuf == '16m' && '16777216' || '' }}
         run: |
-          set +e
-          bash "$GITHUB_WORKSPACE/helper/scripts/validate_perlane_tc_diag_d3b.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
-          rc=$?
-          set -e
+          set -euo pipefail
+          cp "$GITHUB_WORKSPACE/helper/scripts/validate_perlane_tc_diag_d3b.sh" "$RUNNER_TEMP/receiver-horizon-tcdiag.sh"
+          sed -i 's/d3b54dced255cc9becb3e501991f71a034e7438f/eb3de969b045fab1e88034345bfbf0f641cfd592/g' "$RUNNER_TEMP/receiver-horizon-tcdiag.sh"
+          bash "$RUNNER_TEMP/receiver-horizon-tcdiag.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
           if [ -e "$RUNNER_TEMP/tenm-300oneway-20loss-tc" ]; then
             sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TEMP/tenm-300oneway-20loss-tc" || true
           fi
-          exit "$rc"
 
-      - name: Show receive-path evidence
+      - name: Show receiver horizon evidence
         if: always()
         run: |
-          grep -E 'WBD_RAW_RCVBUF|WBD_FAKETCP_MUX_STATS|WBD_TCDIAG_RESULT|WBD_TCDIAG_SUMMARY' "$RUNNER_TEMP/tenm-300oneway-20loss-tc/faketcp-mux.log" "$RUNNER_TEMP/tenm-300oneway-20loss-tc/tcdiag-result.json" 2>/dev/null || true
+          echo '=== receiver candidate ==='
+          grep -hE 'WBD_SOAK_LOAD_RESULT|WBD_TCDIAG_SUMMARY|WBD_FAKETCP_MUX_STATS|WBD_FAKETCP_STATS' "$RUNNER_TEMP/tenm-300oneway-20loss-tc"/*.log 2>/dev/null || true
+          cat "$RUNNER_TEMP/tenm-300oneway-20loss-tc/tcdiag-result.json" 2>/dev/null || true
 
-      - name: Upload tc diagnostics
+      - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tcdiag-10m-rcvbuf-${{ matrix.rcvbuf }}-r${{ matrix.replica }}-${{ github.sha }}
+          name: receiver-horizon-10m-r${{ matrix.replica }}-${{ github.sha }}
           path: ${{ runner.temp }}/tenm-300oneway-20loss-tc
           if-no-files-found: warn
           retention-days: 7
