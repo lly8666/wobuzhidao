@@ -28,7 +28,7 @@ func pressureFastWire(t *testing.T, codec Codec, blockID uint32) [][]byte {
 	return wire
 }
 
-func TestBlockDecoderStreamingWindowPressureRetiresOldestSafeBlock(t *testing.T) {
+func TestBlockDecoderStreamingWindowPressurePreservesRecoverableOldBlocks(t *testing.T) {
 	codec := NewFastReedSolomon20x20()
 	dec, err := NewBlockDecoder(codec, 1400, 2)
 	if err != nil {
@@ -38,8 +38,9 @@ func TestBlockDecoderStreamingWindowPressureRetiresOldestSafeBlock(t *testing.T)
 	two := pressureFastWire(t, codec, 2)
 	three := pressureFastWire(t, codec, 3)
 
-	// Preserve insertion order explicitly: blockOrder defines "oldest", while Go
-	// map iteration is intentionally randomized and made this regression flaky.
+	// A provisional streaming block with only one source observed is not safe to
+	// compact: until final metadata arrives it may still be a full generation
+	// whose missing originals can be recovered by later parity.
 	for _, item := range []struct {
 		block uint32
 		wire  [][]byte
@@ -56,6 +57,9 @@ func TestBlockDecoderStreamingWindowPressureRetiresOldestSafeBlock(t *testing.T)
 		t.Fatalf("in_flight=%d want=2", dec.InFlight())
 	}
 
+	// With every heavy slot still recoverable, a newer streaming generation must
+	// fall back to compact first-delivery state instead of evicting either old
+	// reconstruction generation.
 	packets, done, err := dec.Add(three[0])
 	if err != nil {
 		t.Fatalf("new streaming block hit pressure error: %v", err)
@@ -66,51 +70,41 @@ func TestBlockDecoderStreamingWindowPressureRetiresOldestSafeBlock(t *testing.T)
 	if dec.InFlight() != 2 {
 		t.Fatalf("in_flight=%d want=2 after pressure", dec.InFlight())
 	}
-	if _, ok := dec.blocks[1]; ok {
-		t.Fatal("oldest safe block 1 remained in heavy window")
+	if dec.blocks[1] == nil || dec.blocks[2] == nil {
+		t.Fatalf("recoverable old heavy state was evicted: %v", dec.blocks)
 	}
-	if _, ok := dec.retired[1]; !ok {
-		t.Fatal("oldest safe block 1 missing bounded retired state")
-	}
-	if dec.blocks[2] == nil || dec.blocks[3] == nil {
-		t.Fatalf("heavy blocks after pressure: %v", dec.blocks)
+	if _, ok := dec.retired[3]; !ok {
+		t.Fatal("new streaming block did not enter bounded compact state")
 	}
 
-	// Final parity supplies authoritative metadata without reopening heavy state.
-	packets, done, err = dec.Add(one[DataShards])
-	if err != nil {
-		t.Fatalf("late parity: %v", err)
-	}
-	if done || len(packets) != 0 || dec.InFlight() != 2 {
-		t.Fatalf("late parity packets=%d done=%t in_flight=%d", len(packets), done, dec.InFlight())
-	}
-
-	// Lower-layer ARQ can finish the compacted block from systematic repairs,
-	// each delivered exactly once.
+	// Nineteen parity shards plus the one retained systematic source provide the
+	// twenty equations needed to reconstruct all nineteen missing originals in
+	// the oldest generation. This is exactly the recovery value pressure must not
+	// destroy.
 	want := testPackets(DataShards)
-	for i := 1; i < DataShards; i++ {
-		packets, done, err = dec.Add(one[i])
+	for p := DataShards; p < DataShards+DataShards-1; p++ {
+		packets, done, err = dec.Add(one[p])
 		if err != nil {
-			t.Fatalf("late source %d: %v", i, err)
+			t.Fatalf("block 1 parity %d: %v", p-DataShards, err)
 		}
-		if len(packets) != 1 || !bytes.Equal(packets[0], want[i]) {
-			t.Fatalf("late source %d packets=%d", i, len(packets))
-		}
-		if i == 1 {
-			dup, dupDone, dupErr := dec.Add(one[i])
-			if dupErr != nil || dupDone || len(dup) != 0 {
-				t.Fatalf("duplicate late source: packets=%d done=%t err=%v", len(dup), dupDone, dupErr)
-			}
-		}
-		if done != (i == DataShards-1) {
-			t.Fatalf("source %d done=%t", i, done)
+		if done || len(packets) != 0 {
+			t.Fatalf("block 1 parity %d packets=%d done=%t before recoverable", p-DataShards, len(packets), done)
 		}
 	}
-	if _, ok := dec.retired[1]; ok {
-		t.Fatal("completed retired block 1 retained")
+	packets, done, err = dec.Add(one[DataShards+DataShards-1])
+	if err != nil {
+		t.Fatalf("block 1 final recovery parity: %v", err)
 	}
-	if !dec.completed.contains(1) {
-		t.Fatal("completed retired block 1 missing completion history")
+	if !done || len(packets) != DataShards-1 {
+		t.Fatalf("block 1 recovered packets=%d done=%t want=%d,true", len(packets), done, DataShards-1)
+	}
+	for i, packet := range packets {
+		if !bytes.Equal(packet, want[i+1]) {
+			t.Fatalf("recovered source %d mismatch", i+1)
+		}
+	}
+	if dec.blocks[1] != nil || !dec.completed.contains(1) {
+		t.Fatal("recovered oldest block did not complete")
 	}
 }
 
