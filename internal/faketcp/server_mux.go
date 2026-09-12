@@ -89,6 +89,12 @@ func (a *ServerAssociation) State() ServerAssociationState {
 	return a.state
 }
 
+func (a *ServerAssociation) EnableSteadyStateDelivery() {
+	a.mu.Lock()
+	a.receiver.EnableSteadyStateDelivery()
+	a.mu.Unlock()
+}
+
 func (a *ServerAssociation) SYNACK() (seq, ack uint32, err error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()

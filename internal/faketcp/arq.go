@@ -17,15 +17,19 @@ const (
 	shadowRepairBurstBytes    = uint64(128 * 1024)
 	shadowRepairDefer         = 100 * time.Millisecond
 
-	// PartialReliabilityReorderSoftLimit is deliberately below the 4096-record
-	// sender hard ceiling. Once this many first-arrival records are buffered
-	// beyond an old hole, the receiver stops paying unbounded TCP-like repair
-	// debt for that hole: it advances cumulative ACK to the oldest live SACK
-	// range and lets normal ACK processing retire the abandoned sender state.
-	// Three eighths of the hard window is 1536 records, approximately one 10-Mbit
-	// FEC20:20 BDP at the project's 600ms target RTT, while leaving 2560 records
-	// of headroom for ACK flight/loss before the hard debt ceiling.
-	PartialReliabilityReorderSoftLimit = (MaxSteadyStateOutstandingDatagrams * 3) / 8
+	// PartialReliabilityReorderSoftLimit bounds receiver-side TCP-like repair
+	// debt, not application delivery. The previous 1536-record value was only
+	// about one 10-Mbit/FEC20:20 BDP at 600ms RTT and therefore had essentially
+	// no reordering/loss margin. Fresh admission is already independent of the
+	// shadow-repair window, so use the full bounded 4096-record debt horizon.
+	// Late first arrivals below a forgiven ACK remain eligible for steady-state
+	// datagram delivery; crossing this horizon gives up repair, not real data.
+	PartialReliabilityReorderSoftLimit = MaxSteadyStateOutstandingDatagrams
+
+	// Keep just enough exact delivery history to suppress normal late repairs.
+	// Once an entry ages out, steady-state carrier/DTLS replay protection remains
+	// authoritative, so FakeTCP prefers a possible duplicate over a false drop.
+	recentDeliveryHistoryLimit = MaxSteadyStateOutstandingDatagrams
 )
 
 type RecoveryMode uint8
@@ -75,10 +79,10 @@ type SenderStats struct {
 }
 
 type Sender struct {
-	nextSeq      uint32
-	pending      []*Pending
-	bySeq        map[uint32]*Pending
-	head         int
+	nextSeq uint32
+	pending []*Pending
+	bySeq   map[uint32]*Pending
+	head    int
 	// active counts only records that still own repair payload/state. SACK-proven
 	// first arrivals leave it immediately even while their seq tombstones remain.
 	active       int
@@ -645,12 +649,15 @@ func clampRTO(v time.Duration) time.Duration {
 }
 
 type ReceiverStats struct {
-	Delivered      uint64
-	Duplicates     uint64
-	OutOfOrder     uint64
-	ForgivenGaps   uint64
-	ForgivenBytes  uint64
-	PeakBufferedOO int
+	Delivered          uint64
+	Duplicates         uint64
+	OutOfOrder         uint64
+	LateBelowACK       uint64
+	BelowNextDrops     uint64
+	BufferedDuplicates uint64
+	ForgivenGaps       uint64
+	ForgivenBytes      uint64
+	PeakBufferedOO     int
 }
 
 type Receiver struct {
@@ -662,7 +669,20 @@ type Receiver struct {
 	recentSACKN    int
 	coverageQueue  []uint32
 	coverageAt     int
-	stats          ReceiverStats
+
+	// Bootstrap is strict TCP. Steady-state carrier traffic can instead deliver
+	// a packet below a forgiven cumulative ACK when FakeTCP has no evidence that
+	// exact record was already delivered. A bounded recent-delivery set suppresses
+	// ordinary late repairs; older ambiguity is left to carrier/DTLS replay logic.
+	steadyStateDelivery bool
+	steadyFloor         uint32
+	steadyFloorActive   bool
+	steadyDelivered     uint64
+	deliveredBySeq      map[uint32]uint32
+	deliveryOrder       []uint32
+	deliveryHead        int
+
+	stats ReceiverStats
 }
 
 func NewReceiver(nextSeq uint32) *Receiver {
@@ -673,8 +693,22 @@ func NewReceiver(nextSeq uint32) *Receiver {
 		sackStartByEnd: make(map[uint32]uint32),
 	}
 }
-func (r *Receiver) Next() uint32          { return r.next }
+func (r *Receiver) Next() uint32         { return r.next }
 func (r *Receiver) Stats() ReceiverStats { return r.stats }
+
+// EnableSteadyStateDelivery is called only after the TLS/bootstrap stream has
+// finished. From this point onward payload is datagram carrier/DTLS traffic:
+// advancing cumulative ACK may abandon optional FakeTCP repair, but must not
+// make a possibly fresh late record undeliverable.
+func (r *Receiver) EnableSteadyStateDelivery() {
+	if r.steadyStateDelivery {
+		return
+	}
+	r.steadyStateDelivery = true
+	r.steadyFloor = r.next
+	r.steadyFloorActive = true
+	r.deliveredBySeq = make(map[uint32]uint32)
+}
 
 func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool) {
 	if payloadLen <= 0 {
@@ -682,14 +716,35 @@ func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool)
 	}
 	end := seq + uint32(payloadLen)
 	if seqLT(seq, r.next) {
-		r.stats.Duplicates++
-		return false, len(r.sacksByStart) != 0
+		// Keep pre-steady/bootstrap sequence space strict. During the first bounded
+		// steady-state history window this also prevents a straggling TLS repair
+		// from being mistaken for a DTLS datagram.
+		if !r.steadyStateDelivery || (r.steadyFloorActive && seqLT(seq, r.steadyFloor)) {
+			r.stats.Duplicates++
+			r.stats.BelowNextDrops++
+			return false, len(r.sacksByStart) != 0
+		}
+		if _, alreadyDelivered := r.deliveredBySeq[seq]; alreadyDelivered {
+			r.stats.Duplicates++
+			r.stats.BelowNextDrops++
+			return false, len(r.sacksByStart) != 0
+		}
+
+		// Cumulative ACK has already crossed this sequence, so it cannot recreate
+		// sender repair debt or SACK state. Deliver once locally and let the bounded
+		// carrier/DTLS replay layer resolve ambiguity older than our exact history.
+		r.stats.Delivered++
+		r.stats.LateBelowACK++
+		r.rememberDelivered(seq, end)
+		return true, len(r.sacksByStart) != 0
 	}
 	if _, exists := r.outOfOrder[seq]; exists {
 		r.stats.Duplicates++
+		r.stats.BufferedDuplicates++
 		return false, len(r.sacksByStart) != 0
 	}
 	r.stats.Delivered++
+	r.rememberDelivered(seq, end)
 	if seq != r.next {
 		r.stats.OutOfOrder++
 		r.outOfOrder[seq] = end
@@ -706,6 +761,39 @@ func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool)
 	return true, len(r.sacksByStart) != 0
 }
 
+func (r *Receiver) rememberDelivered(seq, end uint32) {
+	if !r.steadyStateDelivery {
+		return
+	}
+	if r.deliveredBySeq == nil {
+		r.deliveredBySeq = make(map[uint32]uint32)
+	}
+	if _, exists := r.deliveredBySeq[seq]; exists {
+		return
+	}
+	r.deliveredBySeq[seq] = end
+	r.deliveryOrder = append(r.deliveryOrder, seq)
+	r.steadyDelivered++
+	if r.steadyDelivered >= recentDeliveryHistoryLimit {
+		r.steadyFloorActive = false
+	}
+	for len(r.deliveredBySeq) > recentDeliveryHistoryLimit {
+		for r.deliveryHead < len(r.deliveryOrder) {
+			old := r.deliveryOrder[r.deliveryHead]
+			r.deliveryHead++
+			if _, live := r.deliveredBySeq[old]; live {
+				delete(r.deliveredBySeq, old)
+				break
+			}
+		}
+	}
+	if r.deliveryHead >= recentDeliveryHistoryLimit && r.deliveryHead*2 >= len(r.deliveryOrder) {
+		copy(r.deliveryOrder, r.deliveryOrder[r.deliveryHead:])
+		r.deliveryOrder = r.deliveryOrder[:len(r.deliveryOrder)-r.deliveryHead]
+		r.deliveryHead = 0
+	}
+}
+
 // maybeForgiveReorderPressure turns the 4096 sender window into a bounded
 // TCP-like repair budget rather than an application head-of-line boundary.
 // The receiver has already delivered every out-of-order first arrival to the
@@ -714,9 +802,10 @@ func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool)
 //
 // No extra control packet is required. The next ordinary ACK carries the new
 // cumulative value, and normal sender ACK processing releases both unresolved
-// payload and SACK-retired tombstones below it. A very late repair then lands
-// below r.next and is treated as a duplicate, so abandonment cannot create a
-// second repair cascade.
+// payload and SACK-retired tombstones below it. In strict/bootstrap mode a late
+// packet below r.next is discarded as before. In steady-state datagram mode an
+// exact recent duplicate is suppressed, while an unknown late record may still
+// be delivered upward without recreating ACK/SACK repair debt.
 func (r *Receiver) maybeForgiveReorderPressure() {
 	for len(r.outOfOrder) >= PartialReliabilityReorderSoftLimit {
 		start, ok := r.oldestLiveSACKStart()

@@ -189,6 +189,10 @@ func main() {
 		fmt.Printf("WBD_SINGLE_FLOW_BOOTSTRAP_READY tls=%x server_name=%s same_flow=1 logical_tunnel=1\n", tlsState.Version, c.realityServerName)
 	}
 
+	e.receiverMu.Lock()
+	e.receiver.EnableSteadyStateDelivery()
+	e.receiverMu.Unlock()
+
 	e.senderMu.Lock()
 	startupRTO := e.sender.RTO()
 	e.senderMu.Unlock()

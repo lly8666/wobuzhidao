@@ -630,6 +630,7 @@ func (s *muxServer) activateDTLS(sess *muxSession) error {
 	if err != nil {
 		return err
 	}
+	sess.assoc.EnableSteadyStateDelivery()
 	worker, err := dtlsworker.StartServer(s.ctx, dtlsworker.ServerSpec{ShimPath: s.cfg.dtlsShim, TargetIP: linkAddr.IP.String(), TargetPort: linkAddr.Port, CertPath: s.cfg.cert, KeyPath: s.cfg.key, Stdout: os.Stdout, Stderr: os.Stderr})
 	if err != nil {
 		return err
