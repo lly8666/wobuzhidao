@@ -40,6 +40,7 @@ typedef socklen_t wbd_socklen_t;
 
 static volatile sig_atomic_t g_stop = 0;
 static int g_trace = 0;
+static const char* g_cipher_suite = "TLS13-CHACHA20-POLY1305-SHA256";
 
 static void on_signal(int sig) { (void)sig; g_stop = 1; }
 
@@ -118,6 +119,14 @@ static int insecure_verify_arg(const char* s) {
     return s && (!strcmp(s, "-") || !strcmp(s, "none") || !strcmp(s, "insecure"));
 }
 
+static int configure_cipher(WOLFSSL_CTX* ctx) {
+    if (wolfSSL_CTX_set_cipher_list(ctx, g_cipher_suite) != WOLFSSL_SUCCESS) {
+        fprintf(stderr, "DTLS cipher configuration failed suite=%s\n", g_cipher_suite);
+        return 0;
+    }
+    return 1;
+}
+
 /*
  * The transport underneath DTLS is FakeTCP carried across an impaired link.
  * FakeTCP steady-state recovery deliberately permits a 60-second maximum RTO.
@@ -173,7 +182,7 @@ static int wait_one(wbd_socket_t fd, int want_write, int timeout_ms) {
     tv.tv_sec = timeout_ms / 1000;
     tv.tv_usec = (timeout_ms % 1000) * 1000;
 #ifdef _WIN32
-    nfds = 0; /* ignored by Winsock select */
+    nfds = 0;
 #else
     nfds = fd + 1;
 #endif
@@ -318,6 +327,10 @@ static int run_client(int listen_port, const char* transport_ip, int transport_p
         fprintf(stderr, "ctx client failed\n");
         return 2;
     }
+    if (!configure_cipher(ctx)) {
+        wolfSSL_CTX_free(ctx);
+        return 2;
+    }
     insecure = insecure_verify_arg(ca);
     if (insecure) {
         wolfSSL_CTX_set_verify(ctx, WOLFSSL_VERIFY_NONE, NULL);
@@ -330,13 +343,6 @@ static int run_client(int listen_port, const char* transport_ip, int transport_p
         }
     }
 
-    /*
-     * Reserve the application-facing plaintext port before asking the kernel
-     * for the DTLS transport's ephemeral UDP source port. Without this ordering
-     * an unlucky ephemeral allocation can consume listen_port first, and the
-     * later plaintext bind fails with EADDRINUSE/WSAEADDRINUSE. Keeping p open
-     * through the handshake makes the exclusion deterministic on Linux/Windows.
-     */
     p = socket(AF_INET, SOCK_DGRAM, 0);
     if (p == WBD_INVALID_SOCKET) die_socket("plain socket");
     pa = addr4("127.0.0.1", listen_port);
@@ -443,6 +449,10 @@ static int run_server(int listen_port, const char* target_ip, int target_port, c
     int rc;
 
     if (!ctx) return 2;
+    if (!configure_cipher(ctx)) {
+        wolfSSL_CTX_free(ctx);
+        return 2;
+    }
     if (wolfSSL_CTX_use_certificate_chain_file(ctx, cert) != WOLFSSL_SUCCESS) {
         wolfSSL_CTX_free(ctx);
         return 2;
