@@ -17,6 +17,10 @@ TMP_ROOT=${2:?runner temp required}
 [[ "$TEST_RATE_BPS" == 5000000 && "$TEST_DURATION_SEC" == 45 ]] || { echo "constant reference requires 5Mbps/45s" >&2; exit 2; }
 
 HELPER_DIR=${WBD_HELPER_DIR:-${GITHUB_WORKSPACE:?}/helper}
+python3 "$HELPER_DIR/.github/scripts/apply_test_fec_horizon64.py" "$PRODUCT_DIR"
+gofmt -w "$PRODUCT_DIR/internal/fec/block.go" "$PRODUCT_DIR/internal/fec/recovery_horizon_test.go"
+(cd "$PRODUCT_DIR" && go test ./internal/fec -count=1)
+
 BASE="$HELPER_DIR/.github/scripts/validate_singlelane_shadow_candidate.sh"
 RUNNER="$TMP_ROOT/validate-singlelane-constant30-instrumented.sh"
 cp "$BASE" "$RUNNER"
