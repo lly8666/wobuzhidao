@@ -1,0 +1,59 @@
+name: apply-receiver-horizon-fix-d3b
+
+on:
+  push:
+    branches:
+      - agent/validate-10m-300oneway-20loss-perlane-d3b
+    paths:
+      - '.github/workflows/apply-receiver-horizon-fix-d3b.yml'
+      - 'scripts/apply_receiver_horizon_fix_d3b.py'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout helper branch
+        uses: actions/checkout@v4
+        with:
+          path: helper
+
+      - name: Checkout exact experimental product branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/receiver-horizon-late-first-arrival-d3b
+          path: product
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Verify exact parent and apply patch
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE/product"
+          test "$(git rev-parse HEAD)" = d3b54dced255cc9becb3e501991f71a034e7438f
+          python3 "$GITHUB_WORKSPACE/helper/scripts/apply_receiver_horizon_fix_d3b.py" "$GITHUB_WORKSPACE/product"
+          gofmt -w internal/faketcp/arq.go internal/faketcp/server_mux.go internal/faketcp/partial_reliability_ack_test.go internal/faketcp/late_first_arrival_test.go cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/main_linux.go
+          git diff --check
+
+      - name: Focused receiver and command tests
+        working-directory: product
+        run: |
+          go test ./internal/faketcp
+          go test ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux
+
+      - name: Commit exact product fix
+        working-directory: product
+        run: |
+          set -euo pipefail
+          git config user.name 'wbd qualification bot'
+          git config user.email '30583594+lly8666@users.noreply.github.com'
+          git add internal/faketcp/arq.go internal/faketcp/server_mux.go internal/faketcp/partial_reliability_ack_test.go internal/faketcp/late_first_arrival_test.go cmd/wbd-faketcp/main.go cmd/wbd-faketcp-mux/main_linux.go
+          git commit -m 'fix: decouple receiver repair horizon from late delivery'
+          git push origin HEAD:agent/receiver-horizon-late-first-arrival-d3b
+          echo "WBD_RECEIVER_HORIZON_FIX_SHA=$(git rev-parse HEAD)"
