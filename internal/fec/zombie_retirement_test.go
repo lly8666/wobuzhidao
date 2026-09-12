@@ -33,7 +33,7 @@ func makeSinglePacketFastBlock(t *testing.T, blockID uint32, payload []byte) (so
 	return source, parity
 }
 
-func TestBlockDecoderRetiresProvisionalZombieUnderWindowPressure(t *testing.T) {
+func TestBlockDecoderKeepsProvisionalOldBlockUntilFinalMetadata(t *testing.T) {
 	dec, err := NewBlockDecoder(NewFastReedSolomon20x20(), 1400, 2)
 	if err != nil {
 		t.Fatal(err)
@@ -41,7 +41,7 @@ func TestBlockDecoderRetiresProvisionalZombieUnderWindowPressure(t *testing.T) {
 
 	s1, p1 := makeSinglePacketFastBlock(t, 1, []byte("one"))
 	s2, _ := makeSinglePacketFastBlock(t, 2, []byte("two"))
-	s3, _ := makeSinglePacketFastBlock(t, 3, []byte("three"))
+	s3, p3 := makeSinglePacketFastBlock(t, 3, []byte("three"))
 
 	for i, tc := range []struct {
 		wire []byte
@@ -59,16 +59,20 @@ func TestBlockDecoderRetiresProvisionalZombieUnderWindowPressure(t *testing.T) {
 	if dec.InFlight() != 2 {
 		t.Fatalf("inflight=%d want=2", dec.InFlight())
 	}
-	if _, ok := dec.retired[1]; !ok {
-		t.Fatal("oldest provisional block was not retired under pressure")
+	// Before final metadata, block 1 could still be a larger generation with
+	// missing source payloads that later parity can reconstruct. It therefore
+	// must remain heavy; the newer block falls back to compact first-delivery
+	// state instead of evicting the older recoverable generation.
+	if dec.blocks[1] == nil || dec.blocks[2] == nil {
+		t.Fatal("provisional recoverable block was retired under pressure")
 	}
-	if _, ok := dec.blocks[1]; ok {
-		t.Fatal("retired provisional block still occupies reconstruction window")
+	if _, ok := dec.retired[3]; !ok {
+		t.Fatal("new provisional block did not enter compact fallback state")
 	}
 
-	// The missing final-metadata parity may arrive later. Because the only data
-	// source was already delivered, it should close the compact tombstone without
-	// delivering a duplicate packet or recreating a reconstruction slot.
+	// Final metadata proves block 1 really contained only the already-delivered
+	// source. It can now complete and release its heavy slot without duplicate
+	// delivery.
 	packets, done, err := dec.Add(p1)
 	if err != nil {
 		t.Fatal(err)
@@ -76,8 +80,8 @@ func TestBlockDecoderRetiresProvisionalZombieUnderWindowPressure(t *testing.T) {
 	if len(packets) != 0 || !done {
 		t.Fatalf("late parity packets=%d done=%v want=0,true", len(packets), done)
 	}
-	if _, ok := dec.retired[1]; ok {
-		t.Fatal("completed retired block tombstone was not released")
+	if dec.blocks[1] != nil || !dec.completed.contains(1) {
+		t.Fatal("finalized one-source block did not release heavy state")
 	}
 
 	packets, done, err = dec.Add(s1)
@@ -86,6 +90,22 @@ func TestBlockDecoderRetiresProvisionalZombieUnderWindowPressure(t *testing.T) {
 	}
 	if len(packets) != 0 || done {
 		t.Fatalf("late duplicate source packets=%d done=%v want=0,false", len(packets), done)
+	}
+
+	// The compact fallback for block 3 also closes cleanly once its final parity
+	// reveals that its sole source was already delivered.
+	packets, done, err = dec.Add(p3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(packets) != 0 || !done {
+		t.Fatalf("compact late parity packets=%d done=%v want=0,true", len(packets), done)
+	}
+	if _, ok := dec.retired[3]; ok {
+		t.Fatal("completed compact fallback state was not released")
+	}
+	if !dec.completed.contains(3) {
+		t.Fatal("completed compact fallback missing completion history")
 	}
 }
 
