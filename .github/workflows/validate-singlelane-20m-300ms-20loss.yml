@@ -28,7 +28,7 @@ jobs:
           set -euo pipefail
           source "$GITHUB_WORKSPACE/helper/.github/singlelane-case.env"
           [[ "$CANDIDATE" == logic64-flush32 ]] || { echo "candidate must be logic64-flush32" >&2; exit 2; }
-          [[ "$SOURCE_SHA" == e4210ab543a283554bb60cbce16479ea18ae45e4 ]] || { echo "source must be fixed logic-64 exact sha" >&2; exit 2; }
+          [[ "$SOURCE_SHA" == 43cbe3069c11bffac0622d6365dfb68815bfbd7a ]] || { echo "source must be fixed logic-64 exact sha" >&2; exit 2; }
           [[ "$FEC_FLUSH_MS" == 32 ]] || { echo "flush must be 32ms" >&2; exit 2; }
           [[ "$LOSS_PCT" == 5 ]] || { echo "baseline loss must be 5" >&2; exit 2; }
           [[ "$TRAFFIC_PROFILE" == realistic-mix-v1 ]] || { echo "traffic profile must be realistic-mix-v1" >&2; exit 2; }
