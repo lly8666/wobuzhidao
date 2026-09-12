@@ -1,0 +1,68 @@
+name: diag-logic64-h64-flush32-5m-constant5
+
+on:
+  push:
+    branches:
+      - run/logic64-h64-diag-batch-20260913
+    paths:
+      - '.github/diag-constant5.marker'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  constant5:
+    name: logic64-h64-flush32-5m-constant5
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout helper
+        uses: actions/checkout@v4
+        with:
+          path: helper
+      - name: Checkout exact diagnostic source
+        uses: actions/checkout@v4
+        with:
+          ref: d32992c902eeda03273671733a0509b211e5a987
+          path: product
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build/network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl
+      - name: Pin test-only FEC flush to 32ms
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$GITHUB_WORKSPACE/product/scripts/game_lane_fullstack.sh" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); s=p.read_text(); old='-fec "$FEC" -lanes 1'
+          if s.count(old) != 1: raise SystemExit(f'fec flush injection marker drift: {s.count(old)}')
+          p.write_text(s.replace(old, '-fec "$FEC" -fec-flush-ms 32 -lanes 1', 1))
+          PY
+      - name: Run one isolated constant-5 scenario
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE: logic64-h64-flush32-constant5
+          SOURCE_SHA: d32992c902eeda03273671733a0509b211e5a987
+          LOSS_PCT: '5'
+          TRAFFIC_PROFILE: realistic-mix-v1
+          LOSS_MODEL: iid
+          TEST_RATE_BPS: '5000000'
+          TEST_DURATION_SEC: '45'
+          WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
+        run: |
+          set -euo pipefail
+          bash "$GITHUB_WORKSPACE/helper/.github/scripts/run_singlelane_constant_observability.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logic64-h64-flush32-5m-constant5
+          path: ${{ runner.temp }}/singlelane-logic64-h64-flush32-constant5
+          if-no-files-found: warn
+          retention-days: 7
