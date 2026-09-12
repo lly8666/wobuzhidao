@@ -18,7 +18,7 @@ from pathlib import Path
 import sys
 p=Path(sys.argv[1]); s=p.read_text()
 marker='bash -n scripts/game_lane_fullstack.sh\n'
-insert='python3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_observability.py" "$PRODUCT_DIR"\npython3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_realistic_burst.py" "$PRODUCT_DIR"\n\n'
+insert='python3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_observability.py" "$PRODUCT_DIR"\npython3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_realistic_burst.py" "$PRODUCT_DIR"\npython3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_host_pressure.py" "$PRODUCT_DIR"\n\n'
 if s.count(marker) != 1:
     raise SystemExit('A/B wrapper: validator insertion marker drift')
 s=s.replace(marker,insert+marker,1)
@@ -45,6 +45,7 @@ def read(name):
 load=read('load-result.json')
 resource=read('resource-metrics.json')
 shadow=read('shadow-matrix-result.json')
+host=read('host-pressure.json')
 out={
  'candidate':candidate,'product_source_sha':source_sha,'loss_pct_each_direction':int(loss),
  'traffic_profile':profile,'loss_model':loss_model,
@@ -67,6 +68,15 @@ out={
  'avg_cpu_percent_one_core':resource.get('avg_cpu_percent_one_core'),
  'avg_cpu_percent_machine':resource.get('avg_cpu_percent_machine'),
  'cpu_cores_by_component':resource.get('cpu_cores_by_component'),
+ 'host_cpu_busy_cores':host.get('host_cpu_busy_cores'),
+ 'host_cpu_busy_fraction':host.get('host_cpu_busy_fraction'),
+ 'host_cpu_count':host.get('host_cpu_count'),
+ 'softnet_dropped_delta':host.get('softnet_dropped_delta'),
+ 'softnet_time_squeeze_delta':host.get('softnet_time_squeeze_delta'),
+ 'client_udp_delta':host.get('client_udp_delta'),
+ 'server_udp_delta':host.get('server_udp_delta'),
+ 'client_netem_delta':host.get('client_netem_delta'),
+ 'server_netem_delta':host.get('server_netem_delta'),
  'repair_to_fresh_bytes':shadow.get('repair_to_fresh_bytes'),
  'peak_pending':shadow.get('peak_pending'),'peak_buffered_oo':shadow.get('peak_buffered_oo'),
  'repair_evicted':shadow.get('repair_evicted'),'forgiven_gaps':shadow.get('forgiven_gaps'),
