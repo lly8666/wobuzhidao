@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -817,6 +818,19 @@ func (s *muxServer) removeSessionMatch(flow faketcp.ServerFlow, expected *muxSes
 	}
 	if worker != nil {
 		_ = worker.Stop()
+	}
+	// One bounded teardown record per association; never log payload or account
+	// secrets. Keep full typed counters available for exact-source comparisons.
+	if sess.assoc != nil {
+		stats := struct {
+			ClientPort uint16                `json:"client_port"`
+			ServerPort uint16                `json:"server_port"`
+			Sender     faketcp.SenderStats   `json:"sender"`
+			Receiver   faketcp.ReceiverStats `json:"receiver"`
+		}{flow.ClientPort, flow.ServerPort, sess.assoc.SenderStats(), sess.assoc.ReceiverStats()}
+		if encoded, err := json.Marshal(stats); err == nil {
+			fmt.Printf("WBD_FAKETCP_MUX_SHADOW_STATS %s\n", encoded)
+		}
 	}
 	s.table.Remove(flow)
 }
