@@ -1,0 +1,43 @@
+name: apply-fec-window-640-simple
+
+on:
+  push:
+    branches:
+      - agent/fec-window-640-b-apply
+    paths:
+      - '.github/workflows/apply-fec-window-640-simple.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Patch only the two active block limits
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "8bc9e89f07e05a5be74761b16e37fb180f84864a"
+          perl -0pi -e 's/maxBlocks           = 64/maxBlocks           = 640/' cmd/wbd-link-proxy/main.go
+          perl -0pi -e 's/maxBlocks                  = 64/maxBlocks                  = 640/' cmd/wbd-link-server-mux/main.go
+          git diff --check
+          gofmt -w cmd/wbd-link-proxy/main.go cmd/wbd-link-server-mux/main.go
+          go test ./internal/fec ./internal/linkdata ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux -count=1
+          go test ./... -count=1
+      - name: Commit tested product tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/apply-fec-window-640-simple.yml
+          git config user.name 'Codex'
+          git config user.email 'codex@localhost'
+          git add cmd/wbd-link-proxy/main.go cmd/wbd-link-server-mux/main.go
+          git commit -m 'experiment(fec): expand active block window to 640'
+          git push origin HEAD:agent/fec-window-640-b-apply
