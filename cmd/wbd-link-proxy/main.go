@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	maxBlocks           = 64
+	maxBlocks           = 640
 	setupRetryAfter     = time.Second
 	defaultSetupTimeout = 20 * time.Second
 	defaultKeepalive    = 15 * time.Second
