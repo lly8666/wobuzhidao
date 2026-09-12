@@ -31,8 +31,7 @@ func TestDiagnosticIID30BlockProbe(t *testing.T) {
         reorder = true
     }
 
-    codec, err := NewCodec(DataShards, ParityShards)
-    if err != nil { t.Fatal(err) }
+    codec := NewFastReedSolomon20x20()
     enc, err := NewFastBlockEncoder(codec, maxPacket, 32*time.Millisecond, 1)
     if err != nil { t.Fatal(err) }
     dec, err := NewBlockDecoder(codec, maxPacket, 64)
@@ -58,6 +57,7 @@ func TestDiagnosticIID30BlockProbe(t *testing.T) {
             if err != nil { t.Fatalf("encode block=%d source=%d: %v", b, i, err) }
             now = now.Add(time.Microsecond)
             for _, w := range wires {
+                // FastBlockEncoder output is only valid until the next Add, so retain an owned copy.
                 copyWire := append([]byte(nil), w...)
                 h, err := ParseBlockHeader(copyWire[:HeaderSize])
                 if err != nil { t.Fatal(err) }
@@ -136,7 +136,7 @@ func TestDiagnosticIID30BlockProbe(t *testing.T) {
     }
 }
 EOF
-# Add a tiny package-local env helper without importing os into the diagnostic test body generator.
+# Add a tiny package-local env helper without cluttering the generated test template above.
 python3 - "$PRODUCT_DIR/internal/fec/diagnostic_iid30_probe_test.go" <<'PY'
 from pathlib import Path
 p=Path(__import__('sys').argv[1]); s=p.read_text()
