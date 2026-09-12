@@ -60,6 +60,27 @@ func (p *repairPressure) softLimit() int {
 	return int(math.Ceil(soft))
 }
 
+// requiredHoleAge keeps a full RTT of repair opportunity when pressure first
+// reaches the adaptive soft horizon, then continuously shortens that grace as
+// out-of-order debt approaches the emergency horizon. The emergency limit is
+// therefore a safety fuse instead of the normal steady-state controller.
+func (p *repairPressure) requiredHoleAge(n int) time.Duration {
+	if p.rtt <= 0 {
+		return 0
+	}
+	soft := p.softLimit()
+	if soft >= PartialReliabilityEmergencyLimit || n <= soft {
+		return time.Duration(pressureHoleRTTs) * p.rtt
+	}
+	if n >= PartialReliabilityEmergencyLimit {
+		return 0
+	}
+	span := PartialReliabilityEmergencyLimit - soft
+	remaining := PartialReliabilityEmergencyLimit - n
+	fraction := float64(remaining) / float64(span)
+	return time.Duration(float64(time.Duration(pressureHoleRTTs)*p.rtt) * fraction)
+}
+
 func (r *Receiver) updatePressureHole(now time.Time) {
 	p := &r.pressure
 	if len(r.outOfOrder) == 0 {
@@ -78,6 +99,9 @@ func (r *Receiver) pressureAllowsForgiveness(now time.Time) bool {
 		return true
 	}
 	p := &r.pressure
-	return n >= p.softLimit() && p.rtt > 0 && p.holeActive &&
-		now.Sub(p.holeSince) >= pressureHoleRTTs*p.rtt
+	soft := p.softLimit()
+	if n < soft || p.rtt <= 0 || !p.holeActive {
+		return false
+	}
+	return now.Sub(p.holeSince) >= p.requiredHoleAge(n)
 }
