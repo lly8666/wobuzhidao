@@ -11,8 +11,10 @@ mkdir -p "$LOG"
 case "$PROFILE" in
   direct80) rate=80000000; loss=0 ;;
   a20-loss20) rate=20000000; loss=20 ;;
+  a50-loss20) rate=50000000; loss=20 ;;
   a80-loss0) rate=80000000; loss=0 ;;
   a80-loss2) rate=80000000; loss=2 ;;
+  a80-loss20) rate=80000000; loss=20 ;;
   *) echo 'Unknown profile' >&2; exit 2 ;;
 esac
 export DIAG_HERE="$HERE"

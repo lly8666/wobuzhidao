@@ -7,7 +7,7 @@ on:
         description: Exactly one diagnostic profile
         type: choice
         default: direct80
-        options: [direct80, a20-loss20, a80-loss0, a80-loss2]
+        options: [direct80, a20-loss20, a50-loss20, a80-loss0, a80-loss2, a80-loss20]
   push:
     branches: ['run/shadow-isolated-*']
     paths: ['.github/scripts/shadow-diagnostics/profile.txt']
