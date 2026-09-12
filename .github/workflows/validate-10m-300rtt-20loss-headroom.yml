@@ -1,0 +1,69 @@
+name: validate-singlelane-shadow-candidates
+
+on:
+  push:
+    branches:
+      - agent/validate-singlelane-20m-300ms-20loss-d3b
+    paths:
+      - '.github/workflows/validate-10m-300rtt-20loss-headroom.yml'
+      - '.github/scripts/validate_singlelane_shadow_candidate.sh'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  severe:
+    name: severe-${{ matrix.candidate }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - candidate: d3b-baseline
+            source_sha: d3b54dced255cc9becb3e501991f71a034e7438f
+          - candidate: eb3de-late-first
+            source_sha: eb3de969b045fab1e88034345bfbf0f641cfd592
+          - candidate: shadow-a-bounded
+            source_sha: 484e29463bb83c503ee3baf669c23b013dd44d6c
+          - candidate: shadow-b-adaptive
+            source_sha: 8bc9e89f07e05a5be74761b16e37fb180f84864a
+          - candidate: shadow-c-conservative
+            source_sha: 1276eeffd13c86934105dcfc2af68ac44f46a84c
+    steps:
+      - name: Checkout helper
+        uses: actions/checkout@v4
+        with:
+          path: helper
+      - name: Checkout exact product candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.source_sha }}
+          path: product
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build/network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl
+      - name: Run exact candidate severe
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE: ${{ matrix.candidate }}
+          SOURCE_SHA: ${{ matrix.source_sha }}
+          WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
+        run: |
+          set -euo pipefail
+          bash "$GITHUB_WORKSPACE/helper/.github/scripts/validate_singlelane_shadow_candidate.sh" \
+            "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+      - name: Upload candidate diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: singlelane-shadow-${{ matrix.candidate }}-${{ matrix.source_sha }}
+          path: |
+            ${{ runner.temp }}/singlelane-${{ matrix.candidate }}
+          if-no-files-found: warn
+          retention-days: 7
