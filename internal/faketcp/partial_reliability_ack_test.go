@@ -118,14 +118,14 @@ func TestPartialReliabilityCumulativeAckStopsFurtherRepairAndReleasesPayload(t *
 	}
 }
 
-func TestPartialReliabilityHorizonUsesFullBoundedRepairWindow(t *testing.T) {
-	if got, want := PartialReliabilityReorderSoftLimit, MaxSteadyStateOutstandingDatagrams; got != want {
+func TestPartialReliabilityHorizonReservesEmergencyHeadroom(t *testing.T) {
+	if got, want := PartialReliabilityReorderSoftLimit, MaxSteadyStateOutstandingDatagrams-512; got != want {
 		t.Fatalf("receiver horizon=%d want=%d", got, want)
 	}
 	// 10 Mbit/s of 1000-byte source packets with FEC20:20 is about 2500
 	// carrier records/s; at 600ms RTT that is ~1500 records in flight. The old
-	// 1536 threshold left ~2.4%% margin. 4096 leaves substantial room while
-	// remaining independently bounded.
+	// 1536 threshold left ~2.4%% margin. The emergency ceiling remains larger;
+	// normal pressure below it also requires the configured hole age.
 	if PartialReliabilityReorderSoftLimit <= 2*1500 {
 		t.Fatalf("receiver horizon=%d leaves insufficient 10M/600ms BDP margin", PartialReliabilityReorderSoftLimit)
 	}

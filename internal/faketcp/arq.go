@@ -9,22 +9,17 @@ const (
 	maxRTO = 60 * time.Second
 
 	// Shadow repairs are recovery/persona traffic below the real first-arrival
-	// path. Their virtual spend is bounded to 20% of admitted fresh bytes plus a
-	// small burst. Repeated repairs cost progressively more virtual credit, so an
+	// path. A finite 128 KiB bucket earns one credit byte per five non-bootstrap
+	// fresh bytes. Repeated repairs cost progressively more virtual credit, so an
 	// isolated low-loss retry stays TCP-like while a lossy path cannot turn into
 	// a retransmission bandwidth storm.
 	shadowRepairBudgetDivisor = uint64(5)
 	shadowRepairBurstBytes    = uint64(128 * 1024)
 	shadowRepairDefer         = 100 * time.Millisecond
 
-	// PartialReliabilityReorderSoftLimit bounds receiver-side TCP-like repair
-	// debt, not application delivery. The previous 1536-record value was only
-	// about one 10-Mbit/FEC20:20 BDP at 600ms RTT and therefore had essentially
-	// no reordering/loss margin. Fresh admission is already independent of the
-	// shadow-repair window, so use the full bounded 4096-record debt horizon.
-	// Late first arrivals below a forgiven ACK remain eligible for steady-state
-	// datagram delivery; crossing this horizon gives up repair, not real data.
-	PartialReliabilityReorderSoftLimit = MaxSteadyStateOutstandingDatagrams
+	// Compatibility name for the cold-start/emergency bound. The normal soft
+	// limit is measured per receiver by repairPressure.softLimit().
+	PartialReliabilityReorderSoftLimit = PartialReliabilityEmergencyLimit
 
 	// Keep just enough exact delivery history to suppress normal late repairs.
 	// Once an entry ages out, steady-state carrier/DTLS replay protection remains
@@ -155,6 +150,7 @@ func (s *Sender) Stats() SenderStats {
 }
 func (s *Sender) LastAck() uint32                 { return s.lastAck }
 func (s *Sender) RecoveryMode() RecoveryMode      { return s.recovery }
+func (s *Sender) SRTT() time.Duration             { return s.srtt }
 func (s *Sender) Outstanding(seq uint32) *Pending { return s.bySeq[seq] }
 
 func (s *Sender) Enqueue(payload []byte, now time.Time) *Pending {
@@ -699,15 +695,20 @@ func clampRTO(v time.Duration) time.Duration {
 }
 
 type ReceiverStats struct {
-	Delivered          uint64
-	Duplicates         uint64
-	OutOfOrder         uint64
-	LateBelowACK       uint64
-	BelowNextDrops     uint64
-	BufferedDuplicates uint64
-	ForgivenGaps       uint64
-	ForgivenBytes      uint64
-	PeakBufferedOO     int
+	Delivered             uint64
+	Duplicates            uint64
+	OutOfOrder            uint64
+	LateBelowACK          uint64
+	BelowNextDrops        uint64
+	BufferedDuplicates    uint64
+	ForgivenGaps          uint64
+	ForgivenBytes         uint64
+	PeakBufferedOO        int
+	PressureSoftLimit     int
+	PressureRate          float64
+	PressureSRTTMillis    int64
+	SoftForgivenGaps      uint64
+	EmergencyForgivenGaps uint64
 }
 
 type Receiver struct {
@@ -732,7 +733,8 @@ type Receiver struct {
 	deliveryOrder       []uint32
 	deliveryHead        int
 
-	stats ReceiverStats
+	stats    ReceiverStats
+	pressure repairPressure
 }
 
 func NewReceiver(nextSeq uint32) *Receiver {
@@ -743,8 +745,14 @@ func NewReceiver(nextSeq uint32) *Receiver {
 		sackStartByEnd: make(map[uint32]uint32),
 	}
 }
-func (r *Receiver) Next() uint32         { return r.next }
-func (r *Receiver) Stats() ReceiverStats { return r.stats }
+func (r *Receiver) Next() uint32 { return r.next }
+func (r *Receiver) Stats() ReceiverStats {
+	stats := r.stats
+	stats.PressureSoftLimit = r.pressure.softLimit()
+	stats.PressureRate = r.pressure.rate
+	stats.PressureSRTTMillis = r.pressure.rtt.Milliseconds()
+	return stats
+}
 
 // EnableSteadyStateDelivery is called only after the TLS/bootstrap stream has
 // finished. From this point onward payload is datagram carrier/DTLS traffic:
@@ -755,12 +763,20 @@ func (r *Receiver) EnableSteadyStateDelivery() {
 		return
 	}
 	r.steadyStateDelivery = true
+	r.pressure = repairPressure{}
 	r.steadyFloor = r.next
 	r.steadyFloorActive = true
 	r.deliveredBySeq = make(map[uint32]uint32)
 }
 
 func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool) {
+	return r.AcceptAt(seq, payloadLen, time.Now(), 0)
+}
+
+// AcceptAt uses the caller's receive timestamp and its same-association sender
+// SRTT. RTO (including backoff) is deliberately not a substitute for path RTT.
+// Callers serialize this with all other receiver mutations.
+func (r *Receiver) AcceptAt(seq uint32, payloadLen int, now time.Time, srtt time.Duration) (deliver, sackNeeded bool) {
 	if payloadLen <= 0 {
 		return false, false
 	}
@@ -795,6 +811,9 @@ func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool)
 	}
 	r.stats.Delivered++
 	r.rememberDelivered(seq, end)
+	if r.steadyStateDelivery {
+		r.pressure.observe(now, srtt)
+	}
 	if seq != r.next {
 		r.stats.OutOfOrder++
 		r.outOfOrder[seq] = end
@@ -802,12 +821,14 @@ func (r *Receiver) Accept(seq uint32, payloadLen int) (deliver, sackNeeded bool)
 			r.stats.PeakBufferedOO = n
 		}
 		r.insertSACKRange(seq, end)
-		r.maybeForgiveReorderPressure()
+		r.updatePressureHole(now)
+		r.maybeForgiveReorderPressure(now)
 		return true, len(r.sacksByStart) != 0
 	}
 
 	r.next = end
 	r.consumeContiguousSACKs()
+	r.updatePressureHole(now)
 	return true, len(r.sacksByStart) != 0
 }
 
@@ -844,8 +865,8 @@ func (r *Receiver) rememberDelivered(seq, end uint32) {
 	}
 }
 
-// maybeForgiveReorderPressure turns the 4096 sender window into a bounded
-// TCP-like repair budget rather than an application head-of-line boundary.
+// maybeForgiveReorderPressure bounds receiver repair debt using delivery-rate
+// pressure plus hole age, with a separate emergency bound below the hard limit.
 // The receiver has already delivered every out-of-order first arrival to the
 // datagram layer, so advancing ACK across the oldest still-missing byte range
 // only abandons shadow repair; it never fabricates application payload.
@@ -856,11 +877,11 @@ func (r *Receiver) rememberDelivered(seq, end uint32) {
 // packet below r.next is discarded as before. In steady-state datagram mode an
 // exact recent duplicate is suppressed, while an unknown late record may still
 // be delivered upward without recreating ACK/SACK repair debt.
-func (r *Receiver) maybeForgiveReorderPressure() {
+func (r *Receiver) maybeForgiveReorderPressure(now time.Time) {
 	if !r.steadyStateDelivery {
 		return
 	}
-	for len(r.outOfOrder) >= PartialReliabilityReorderSoftLimit {
+	for r.pressureAllowsForgiveness(now) {
 		start, ok := r.oldestLiveSACKStart()
 		if !ok || start == r.next {
 			return
@@ -870,10 +891,16 @@ func (r *Receiver) maybeForgiveReorderPressure() {
 			return
 		}
 		r.next = start
+		if len(r.outOfOrder) >= PartialReliabilityEmergencyLimit {
+			r.stats.EmergencyForgivenGaps++
+		} else {
+			r.stats.SoftForgivenGaps++
+		}
 		r.stats.ForgivenGaps++
 		r.stats.ForgivenBytes += uint64(gapBytes)
 		before := len(r.outOfOrder)
 		r.consumeContiguousSACKs()
+		r.updatePressureHole(now)
 		if len(r.outOfOrder) >= before {
 			return
 		}

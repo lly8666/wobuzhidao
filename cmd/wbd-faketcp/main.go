@@ -595,8 +595,11 @@ func (e *endpoint) rawLoop() error {
 			continue
 		}
 		var sackBuf [4]faketcp.SACKBlock
+		e.senderMu.Lock()
+		srtt := e.sender.SRTT()
+		e.senderMu.Unlock()
 		e.receiverMu.Lock()
-		deliver, oo := e.receiver.Accept(seg.Seq, len(seg.Payload))
+		deliver, oo := e.receiver.AcceptAt(seg.Seq, len(seg.Payload), now, srtt)
 		ack := e.receiver.Next()
 		sackN := 0
 		if oo {

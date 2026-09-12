@@ -130,7 +130,7 @@ func (a *ServerAssociation) HandleSegment(seg Segment, now time.Time) (ServerSeg
 	if len(seg.Payload) == 0 {
 		return out, nil
 	}
-	deliver, sackNeeded := a.receiver.Accept(seg.Seq, len(seg.Payload))
+	deliver, sackNeeded := a.receiver.AcceptAt(seg.Seq, len(seg.Payload), now, a.sender.SRTT())
 	out.AckNeeded = true
 	out.Ack = a.receiver.Next()
 	if sackNeeded {
