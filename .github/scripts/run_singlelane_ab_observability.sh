@@ -6,6 +6,8 @@ TMP_ROOT=${2:?runner temp required}
 : "${CANDIDATE:?candidate required}"
 : "${SOURCE_SHA:?source sha required}"
 : "${LOSS_PCT:?loss required}"
+: "${TRAFFIC_PROFILE:=fixed1000}"
+: "${LOSS_MODEL:=iid}"
 
 HELPER_DIR=${WBD_HELPER_DIR:-${GITHUB_WORKSPACE:?}/helper}
 BASE="$HELPER_DIR/.github/scripts/validate_singlelane_shadow_candidate.sh"
@@ -16,7 +18,7 @@ from pathlib import Path
 import sys
 p=Path(sys.argv[1]); s=p.read_text()
 marker='bash -n scripts/game_lane_fullstack.sh\n'
-insert='python3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_observability.py" "$PRODUCT_DIR"\n\n'
+insert='python3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_observability.py" "$PRODUCT_DIR"\npython3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_singlelane_realistic_burst.py" "$PRODUCT_DIR"\n\n'
 if s.count(marker) != 1:
     raise SystemExit('A/B wrapper: validator insertion marker drift')
 s=s.replace(marker,insert+marker,1)
@@ -27,15 +29,16 @@ sed -i "s/export NETEM_LOSS_PCT=20/export NETEM_LOSS_PCT=${LOSS_PCT}/" "$RUNNER"
 chmod +x "$RUNNER"
 
 export WBD_HELPER_DIR="$HELPER_DIR"
+export TRAFFIC_PROFILE LOSS_MODEL LOSS_PCT
 set +e
 bash "$RUNNER" "$PRODUCT_DIR" "$TMP_ROOT"
 rc=$?
 set -e
 
 LOG="$TMP_ROOT/singlelane-$CANDIDATE"
-python3 - "$LOG" "$CANDIDATE" "$SOURCE_SHA" "$LOSS_PCT" <<'PY'
+python3 - "$LOG" "$CANDIDATE" "$SOURCE_SHA" "$LOSS_PCT" "$TRAFFIC_PROFILE" "$LOSS_MODEL" <<'PY'
 import json, os, sys
-root,candidate,source_sha,loss=sys.argv[1:]
+root,candidate,source_sha,loss,profile,loss_model=sys.argv[1:]
 def read(name):
     p=os.path.join(root,name)
     return json.load(open(p)) if os.path.exists(p) else {}
@@ -44,8 +47,12 @@ resource=read('resource-metrics.json')
 shadow=read('shadow-matrix-result.json')
 out={
  'candidate':candidate,'product_source_sha':source_sha,'loss_pct_each_direction':int(loss),
+ 'traffic_profile':profile,'loss_model':loss_model,
  'sent':load.get('sent'),'received_unique':load.get('received_unique'),
- 'app_loss_ratio':load.get('loss_ratio'),'goodput_mbps':((load.get('down_payload_bps') or 0)/1e6),
+ 'app_loss_ratio':load.get('loss_ratio'),'byte_loss_ratio':load.get('byte_loss_ratio'),
+ 'avg_payload_bytes':load.get('avg_payload_bytes'),'sent_payload_bytes':load.get('sent_payload_bytes'),
+ 'received_payload_bytes':load.get('received_payload_bytes'),
+ 'goodput_mbps':((load.get('down_payload_bps') or 0)/1e6),
  'duplicates':load.get('duplicates'),'bad_payload':load.get('bad_payload'),
  'rtt_samples':load.get('rtt_samples'),'rtt_ms_p50':load.get('rtt_ms_p50'),
  'rtt_ms_p95':load.get('rtt_ms_p95'),'rtt_ms_p99':load.get('rtt_ms_p99'),
