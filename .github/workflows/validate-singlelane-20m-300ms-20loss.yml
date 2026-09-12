@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   severe:
-    name: shadow-c-conservative-loss30
+    name: d3b-baseline-loss40
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout exact product candidate
         uses: actions/checkout@v4
         with:
-          ref: 1276eeffd13c86934105dcfc2af68ac44f46a84c
+          ref: d3b54dced255cc9becb3e501991f71a034e7438f
           path: product
       - uses: actions/setup-go@v5
         with:
@@ -37,9 +37,9 @@ jobs:
       - name: Run isolated severe case
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE: shadow-c-conservative
-          SOURCE_SHA: 1276eeffd13c86934105dcfc2af68ac44f46a84c
-          LOSS_PCT: '30'
+          CANDIDATE: d3b-baseline
+          SOURCE_SHA: d3b54dced255cc9becb3e501991f71a034e7438f
+          LOSS_PCT: '40'
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
           set -euo pipefail
@@ -51,8 +51,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-shadow-c-conservative-loss30
+          name: singlelane-d3b-baseline-loss40
           path: |
-            ${{ runner.temp }}/singlelane-shadow-c-conservative
+            ${{ runner.temp }}/singlelane-d3b-baseline
           if-no-files-found: warn
           retention-days: 7
