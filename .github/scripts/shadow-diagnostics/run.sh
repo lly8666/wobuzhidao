@@ -50,6 +50,7 @@ s=(Path(here).parent/'validate_singlelane_shadow_candidate.sh').read_text()
 s=s.replace('20000000',rate)
 assert s.count('export NETEM_LOSS_PCT=20')==1
 s=s.replace('export NETEM_LOSS_PCT=20','export NETEM_LOSS_PCT='+loss)
+s=s.replace('loss_pct_each_direction=20', 'loss_pct_each_direction='+loss)
 # Diagnostics must preserve the harness patch and binary/source provenance.
 anchor='set +e\nsudo -E bash'
 assert s.count(anchor)==1

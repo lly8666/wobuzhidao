@@ -29,7 +29,8 @@
 4. 首条 direct80 与当前默认值相同时，可在该文件增加一个末尾空行形成变更；shell 会移除末尾换行。
 5. 运行提交不要带 `[skip ci]`。仓库已有普通 CI 可能也响应 push，但本诊断 run 始终只有一个场景。
 
-未触发任何线上实验。交接提交的 `[skip ci]` 用于阻止发布框架时启动原有 push CI。
+未启动这四条诊断实验。交接提交的 `[skip ci]` 用于阻止发布框架时启动原有 push CI。
+首次提交因本地作者配置缺失而失败，随后误将旧 HEAD 发布为新分支，触发了 7 个原有 CI；其中 2 个迅速完成，另外 5 个已请求取消。它们不是本框架的验证结果。
 
 ## 改动和读数
 
@@ -56,6 +57,6 @@ a80-loss0 正常而 a80-loss2 异常：再检查损失触发的 ACK/repair 开�
 
 ## 已完成验证
 
-对固定 A 的原始测试脚本离线生成完整最终 harness，检查替换标记、单 lane/netem 配置、echo 热路径和监控插入点，完成 shell/Python 语法检查。没有启动网络负载，也没有执行 Actions。
+对固定 A 的原始测试脚本离线生成完整最终 harness，检查替换标记、单 lane/netem 配置、echo 热路径和监控插入点，完成 shell/Python 语法检查。没有运行本框架的网络负载或诊断 Actions。
 
 可复查：`python3 .github/scripts/shadow-diagnostics/check_generation.py <A-checkout>`（Linux）。
