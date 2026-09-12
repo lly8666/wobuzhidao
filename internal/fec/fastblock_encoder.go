@@ -8,8 +8,9 @@ import (
 
 // FastBlockEncoder is the performance-first transport encoder. Every complete
 // systematic source datagram is emitted immediately on Add, so an unlost inner
-// packet never waits for a 20-packet FEC block or the flush timer. The source is
-// retained in preallocated shard storage only so parity can be computed later.
+// packet never waits for a 20-packet FEC block or the flush timer. The payload
+// is retained in the preallocated wire buffer itself so parity can be computed
+// later without a second source copy.
 //
 // When the block fills, or a partial block reaches flushAfter, the encoder emits
 // enough parity to preserve the fixed 100% redundancy ratio: a full block is
@@ -29,7 +30,6 @@ type FastBlockEncoder struct {
 	dataCount     int
 	shardSize     int
 	lengths       [DataShards]uint16
-	shardBuf      [TotalShards][]byte
 	shardView     [TotalShards][]byte
 	wireBuf       [TotalShards][]byte
 	out           [ParityShards + 1][]byte
@@ -43,7 +43,6 @@ func NewFastBlockEncoder(codec Codec, maxPacketSize int, flushAfter time.Duratio
 		codec: codec, maxPacketSize: maxPacketSize, flushAfter: flushAfter, nextBlockID: firstBlockID,
 	}
 	for i := 0; i < TotalShards; i++ {
-		e.shardBuf[i] = make([]byte, maxPacketSize)
 		e.wireBuf[i] = make([]byte, HeaderSize+maxPacketSize)
 	}
 	return e, nil
@@ -57,19 +56,16 @@ func (e *FastBlockEncoder) Add(packet []byte, now time.Time) ([][]byte, error) {
 		e.firstAt = now
 	}
 	idx := e.dataCount
-	buf := e.shardBuf[idx]
-	clear(buf)
-	copy(buf, packet)
 	e.lengths[idx] = uint16(len(packet))
 	if len(packet) > e.shardSize {
 		e.shardSize = len(packet)
 	}
 	e.dataCount++
 
-	// Provisional source metadata is intentionally self-contained: the packet is
-	// complete now, while final DataCount/max ShardSize/other original lengths
-	// are unknown until the block closes. Reserved header flag bit 0 tells the
-	// WBD decoder it may deliver this payload immediately.
+	// The payload lives directly in the wire backing slot. At flushParity the
+	// same bytes become the systematic RS shard, eliminating the old
+	// packet -> shardBuf -> wireBuf double copy. Any zero padding required by a
+	// larger peer shard is cleared only when the block closes.
 	wire := e.wireBuf[idx][:HeaderSize+len(packet)]
 	marshalStreamingSourceHeader(wire[:HeaderSize], e.nextBlockID, idx, len(packet))
 	copy(wire[HeaderSize:], packet)
@@ -100,11 +96,26 @@ func (e *FastBlockEncoder) Pending() int { return e.dataCount }
 func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 	dataCount := e.dataCount
 	shardSize := e.shardSize
-	for i := dataCount; i < DataShards; i++ {
-		clear(e.shardBuf[i][:shardSize])
+
+	// Systematic payloads already live in wireBuf. Clear only the padding that
+	// participates in this block's RS equations instead of clearing a full
+	// maxPacketSize scratch shard on every Add. Unused systematic slots are
+	// known-zero inputs for partial blocks.
+	for i := 0; i < dataCount; i++ {
+		payload := e.wireBuf[i][HeaderSize : HeaderSize+shardSize]
+		clear(payload[int(e.lengths[i]):])
+		e.shardView[i] = payload
 	}
-	for i := 0; i < TotalShards; i++ {
-		e.shardView[i] = e.shardBuf[i][:shardSize]
+	for i := dataCount; i < DataShards; i++ {
+		payload := e.wireBuf[i][HeaderSize : HeaderSize+shardSize]
+		clear(payload)
+		e.shardView[i] = payload
+	}
+	// Encode parity directly into the payload region of its final wire slot.
+	// FastReedSolomon20x20 clears each parity output before accumulating, so no
+	// separate parity scratch buffer or copy is required.
+	for i := DataShards; i < TotalShards; i++ {
+		e.shardView[i] = e.wireBuf[i][HeaderSize : HeaderSize+shardSize]
 	}
 	if err := e.codec.Encode(e.shardView[:]); err != nil {
 		return nil, err
@@ -122,7 +133,6 @@ func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 		index := DataShards + p
 		b := e.wireBuf[index][:HeaderSize+shardSize]
 		marshalFastHeader(b[:HeaderSize], e.nextBlockID, index, dataCount, shardSize, e.lengths)
-		copy(b[HeaderSize:], e.shardBuf[index][:shardSize])
 		e.out[offset+p] = b
 	}
 
