@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   severe:
-    name: d3b-baseline-loss20
+    name: eb3de-late-first-loss20
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout exact product candidate
         uses: actions/checkout@v4
         with:
-          ref: d3b54dced255cc9becb3e501991f71a034e7438f
+          ref: eb3de969b045fab1e88034345bfbf0f641cfd592
           path: product
       - uses: actions/setup-go@v5
         with:
@@ -37,8 +37,8 @@ jobs:
       - name: Run isolated severe case
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE: d3b-baseline
-          SOURCE_SHA: d3b54dced255cc9becb3e501991f71a034e7438f
+          CANDIDATE: eb3de-late-first
+          SOURCE_SHA: eb3de969b045fab1e88034345bfbf0f641cfd592
           LOSS_PCT: '20'
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
@@ -51,8 +51,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-d3b-baseline-loss20
+          name: singlelane-eb3de-late-first-loss20
           path: |
-            ${{ runner.temp }}/singlelane-d3b-baseline
+            ${{ runner.temp }}/singlelane-eb3de-late-first
           if-no-files-found: warn
           retention-days: 7
