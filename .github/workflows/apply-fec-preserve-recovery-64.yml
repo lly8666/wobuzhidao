@@ -1,0 +1,142 @@
+name: apply-fec-preserve-recovery-64
+
+on:
+  push:
+    branches:
+      - agent/fec-preserve-recovery-64-b-build
+    paths:
+      - '.github/workflows/apply-fec-preserve-recovery-64.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Patch decoder retirement semantics and regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "8bc9e89f07e05a5be74761b16e37fb180f84864a"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('internal/fec/block.go')
+          s=p.read_text()
+          old='''func canRetireBlock(b *decodeBlock) bool {\n\tif b == nil {\n\t\treturn false\n\t}\n\tif !b.final {\n\t\t// Before final metadata only streaming systematic sources can be present,\n\t\t// and addStreamingSource delivers each one before retaining its copy.\n\t\treturn true\n\t}\n\tfor i := 0; i < int(b.header.DataCount); i++ {\n\t\tif b.present[i] && !b.delivered[i] {\n\t\t\treturn false\n\t\t}\n\t}\n\treturn true\n}\n'''
+          new='''func canRetireBlock(b *decodeBlock) bool {\n\tif b == nil {\n\t\treturn false\n\t}\n\t// A heavy block is safe to compact only after every original application\n\t// datagram has been delivered. A missing source is precisely what later\n\t// parity may still recover; discarding its retained shards just because the\n\t// sources currently present were first-delivered destroys FEC recovery.\n\treturn allDataDelivered(b)\n}\n'''
+          if s.count(old) != 1:
+              raise SystemExit('canRetireBlock anchor drift')
+          p.write_text(s.replace(old,new,1))
+
+          t=Path('internal/fec/block_test.go')
+          s=t.read_text()
+          marker='''func TestBlockDecoderWindowBounded(t *testing.T) {\n'''
+          if s.count(marker) != 1:
+              raise SystemExit('block test anchor drift')
+          test=r'''func TestBlockDecoderPressurePreservesRecoverableOlderBlock(t *testing.T) {
+	codec := NewReedSolomon20x20()
+	makeBlock := func(blockID uint32) ([][]byte, [][]byte, [][]byte) {
+		t.Helper()
+		enc, err := NewFastBlockEncoder(codec, 1400, time.Millisecond, blockID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := testPackets(DataShards)
+		sources := make([][]byte, 0, DataShards)
+		var parity [][]byte
+		for i, packet := range want {
+			out, err := enc.Add(packet, time.Unix(0, int64(i)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(out) == 0 {
+				t.Fatalf("block %d source %d emitted no systematic shard", blockID, i)
+			}
+			sources = append(sources, append([]byte(nil), out[0]...))
+			if len(out) > 1 {
+				for _, wire := range out[1:] {
+					parity = append(parity, append([]byte(nil), wire...))
+				}
+			}
+		}
+		if len(sources) != DataShards || len(parity) != ParityShards {
+			t.Fatalf("block %d sources=%d parity=%d", blockID, len(sources), len(parity))
+		}
+		return want, sources, parity
+	}
+
+	want1, source1, parity1 := makeBlock(1)
+	_, source2, _ := makeBlock(2)
+	dec, err := NewBlockDecoder(codec, 1400, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const missing = 7
+	for i, wire := range source1 {
+		if i == missing {
+			continue
+		}
+		packets, done, err := dec.Add(wire)
+		if err != nil {
+			t.Fatalf("block1 source %d: %v", i, err)
+		}
+		if done {
+			t.Fatalf("block1 completed before missing source %d was recoverable", missing)
+		}
+		if len(packets) != 1 || !bytes.Equal(packets[0], want1[i]) {
+			t.Fatalf("block1 source %d first delivery mismatch", i)
+		}
+	}
+
+	// The only heavy slot is occupied by an older generation that still needs
+	// parity to recover source 7. The newer streaming source must first-deliver
+	// through compact state instead of evicting the recoverable older block.
+	packets, done, err := dec.Add(source2[0])
+	if err != nil {
+		t.Fatalf("new streaming block under pressure: %v", err)
+	}
+	if done || len(packets) != 1 {
+		t.Fatalf("new streaming block done=%v delivered=%d", done, len(packets))
+	}
+	if dec.blocks[1] == nil {
+		t.Fatal("recoverable older block was retired under decoder pressure")
+	}
+	if _, ok := dec.retired[2]; !ok {
+		t.Fatal("new streaming block did not fall back to compact retired state")
+	}
+
+	packets, done, err = dec.Add(parity1[0])
+	if err != nil {
+		t.Fatalf("block1 parity: %v", err)
+	}
+	if !done {
+		t.Fatal("older block did not complete after parity arrived")
+	}
+	if len(packets) != 1 || !bytes.Equal(packets[0], want1[missing]) {
+		t.Fatalf("recovered=%d want missing source %d", len(packets), missing)
+	}
+}
+
+'''
+          t.write_text(s.replace(marker,test+marker,1))
+          PY
+          gofmt -w internal/fec/block.go internal/fec/block_test.go
+          go test ./internal/fec ./internal/linkdata -count=1
+          go test ./... -count=1
+      - name: Commit product-only change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/apply-fec-preserve-recovery-64.yml
+          git config user.name 'Codex'
+          git config user.email 'codex@localhost'
+          git add internal/fec/block.go internal/fec/block_test.go
+          git commit -m 'fix(fec): preserve recoverable blocks under decoder pressure'
+          git push origin HEAD:agent/fec-preserve-recovery-64-b-build
