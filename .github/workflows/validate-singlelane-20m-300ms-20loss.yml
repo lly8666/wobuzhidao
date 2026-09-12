@@ -1,9 +1,9 @@
-name: validate-logic64-flush32-5m-transient
+name: validate-logic64-flush32-fecdiag-5m-transient
 
 on:
   push:
     branches:
-      - run/logic64-flush32-5m-transient-20260912
+      - run/logic64-flush32-fecdiag-20260912
     paths:
       - '.github/singlelane-case.env'
 
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   severe:
-    name: logic64-flush32-5m-5to30
+    name: logic64-flush32-fecdiag-5m-5to30
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -27,8 +27,8 @@ jobs:
         run: |
           set -euo pipefail
           source "$GITHUB_WORKSPACE/helper/.github/singlelane-case.env"
-          [[ "$CANDIDATE" == logic64-flush32 ]] || { echo "candidate must be logic64-flush32" >&2; exit 2; }
-          [[ "$SOURCE_SHA" == 4529bacbacec5bd20d4cac26f57fd41617770e30 ]] || { echo "source must be fixed logic-64 exact sha" >&2; exit 2; }
+          [[ "$CANDIDATE" == logic64-flush32-fecdiag ]] || { echo "candidate must be logic64-flush32-fecdiag" >&2; exit 2; }
+          [[ "$SOURCE_SHA" == d32992c902eeda03273671733a0509b211e5a987 ]] || { echo "source must be fixed logic-64 FEC diagnostic sha" >&2; exit 2; }
           [[ "$FEC_FLUSH_MS" == 32 ]] || { echo "flush must be 32ms" >&2; exit 2; }
           [[ "$LOSS_PCT" == 5 ]] || { echo "baseline loss must be 5" >&2; exit 2; }
           [[ "$TRAFFIC_PROFILE" == realistic-mix-v1 ]] || { echo "traffic profile must be realistic-mix-v1" >&2; exit 2; }
@@ -47,7 +47,7 @@ jobs:
           echo "spike_loss_pct=$SPIKE_LOSS_PCT" >> "$GITHUB_OUTPUT"
           echo "spike_start_sec=$SPIKE_START_SEC" >> "$GITHUB_OUTPUT"
           echo "spike_duration_sec=$SPIKE_DURATION_SEC" >> "$GITHUB_OUTPUT"
-      - name: Checkout exact product candidate
+      - name: Checkout exact diagnostic candidate
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.case.outputs.source_sha }}
@@ -76,7 +76,7 @@ jobs:
           p.write_text(s)
           PY
           grep -n -- '-fec-flush-ms 32' "$GITHUB_WORKSPACE/product/scripts/game_lane_fullstack.sh"
-      - name: Run one isolated logic64 32ms transient case
+      - name: Run one isolated logic64 32ms FEC diagnostic case
         env:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE: ${{ steps.case.outputs.candidate }}
@@ -97,7 +97,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: logic64-flush32-5m-5to30
+          name: logic64-flush32-fecdiag-5m-5to30
           path: ${{ runner.temp }}/singlelane-${{ steps.case.outputs.candidate }}
           if-no-files-found: warn
           retention-days: 7
