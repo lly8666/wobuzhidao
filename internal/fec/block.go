@@ -480,17 +480,11 @@ func canRetireBlock(b *decodeBlock) bool {
 	if b == nil {
 		return false
 	}
-	if !b.final {
-		// Before final metadata only streaming systematic sources can be present,
-		// and addStreamingSource delivers each one before retaining its copy.
-		return true
-	}
-	for i := 0; i < int(b.header.DataCount); i++ {
-		if b.present[i] && !b.delivered[i] {
-			return false
-		}
-	}
-	return true
+	// A heavy block is safe to compact only after every original application
+	// datagram has been delivered. A missing source is precisely what later
+	// parity may still recover; discarding its retained shards just because the
+	// sources currently present were first-delivered destroys FEC recovery.
+	return allDataDelivered(b)
 }
 
 func (d *BlockDecoder) oldestRetirableBefore(limit uint32) (uint32, *decodeBlock, bool) {
