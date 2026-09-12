@@ -1,9 +1,9 @@
-name: validate-logic64-flush32-fecdiag-5m-transient
+name: validate-logic64-flush32-5m-constant30
 
 on:
   push:
     branches:
-      - run/logic64-flush32-fecdiag-20260912
+      - run/logic64-flush32-constant30-ref-20260912
     paths:
       - '.github/singlelane-case.env'
 
@@ -12,8 +12,8 @@ permissions:
   actions: read
 
 jobs:
-  severe:
-    name: logic64-flush32-fecdiag-5m-5to30
+  constant30:
+    name: logic64-flush32-5m-constant30
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -27,15 +27,14 @@ jobs:
         run: |
           set -euo pipefail
           source "$GITHUB_WORKSPACE/helper/.github/singlelane-case.env"
-          [[ "$CANDIDATE" == logic64-flush32-fecdiag ]] || { echo "candidate must be logic64-flush32-fecdiag" >&2; exit 2; }
-          [[ "$SOURCE_SHA" == d32992c902eeda03273671733a0509b211e5a987 ]] || { echo "source must be fixed logic-64 FEC diagnostic sha" >&2; exit 2; }
+          [[ "$CANDIDATE" == logic64-flush32-constant30-ref ]] || { echo "candidate must be logic64-flush32-constant30-ref" >&2; exit 2; }
+          [[ "$SOURCE_SHA" == d32992c902eeda03273671733a0509b211e5a987 ]] || { echo "source must be corrected logic-64 FEC diagnostic sha" >&2; exit 2; }
           [[ "$FEC_FLUSH_MS" == 32 ]] || { echo "flush must be 32ms" >&2; exit 2; }
-          [[ "$LOSS_PCT" == 5 ]] || { echo "baseline loss must be 5" >&2; exit 2; }
+          [[ "$LOSS_PCT" == 30 ]] || { echo "loss must stay 30pct" >&2; exit 2; }
           [[ "$TRAFFIC_PROFILE" == realistic-mix-v1 ]] || { echo "traffic profile must be realistic-mix-v1" >&2; exit 2; }
-          [[ "$LOSS_MODEL" == transient ]] || { echo "loss model must be transient" >&2; exit 2; }
+          [[ "$LOSS_MODEL" == iid ]] || { echo "loss model must be iid" >&2; exit 2; }
           [[ "$TEST_RATE_BPS" == 5000000 ]] || { echo "rate must be 5Mbps" >&2; exit 2; }
           [[ "$TEST_DURATION_SEC" == 45 ]] || { echo "duration must be 45s" >&2; exit 2; }
-          [[ "$SPIKE_LOSS_PCT" == 30 && "$SPIKE_START_SEC" == 15 && "$SPIKE_DURATION_SEC" == 15 ]] || { echo "bad spike profile" >&2; exit 2; }
           echo "candidate=$CANDIDATE" >> "$GITHUB_OUTPUT"
           echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
           echo "fec_flush_ms=$FEC_FLUSH_MS" >> "$GITHUB_OUTPUT"
@@ -44,10 +43,7 @@ jobs:
           echo "loss_model=$LOSS_MODEL" >> "$GITHUB_OUTPUT"
           echo "test_rate_bps=$TEST_RATE_BPS" >> "$GITHUB_OUTPUT"
           echo "test_duration_sec=$TEST_DURATION_SEC" >> "$GITHUB_OUTPUT"
-          echo "spike_loss_pct=$SPIKE_LOSS_PCT" >> "$GITHUB_OUTPUT"
-          echo "spike_start_sec=$SPIKE_START_SEC" >> "$GITHUB_OUTPUT"
-          echo "spike_duration_sec=$SPIKE_DURATION_SEC" >> "$GITHUB_OUTPUT"
-      - name: Checkout exact diagnostic candidate
+      - name: Checkout exact diagnostic source
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.case.outputs.source_sha }}
@@ -76,7 +72,7 @@ jobs:
           p.write_text(s)
           PY
           grep -n -- '-fec-flush-ms 32' "$GITHUB_WORKSPACE/product/scripts/game_lane_fullstack.sh"
-      - name: Run one isolated logic64 32ms FEC diagnostic case
+      - name: Run one isolated 5m constant-30 reference case
         env:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE: ${{ steps.case.outputs.candidate }}
@@ -86,18 +82,15 @@ jobs:
           LOSS_MODEL: ${{ steps.case.outputs.loss_model }}
           TEST_RATE_BPS: ${{ steps.case.outputs.test_rate_bps }}
           TEST_DURATION_SEC: ${{ steps.case.outputs.test_duration_sec }}
-          SPIKE_LOSS_PCT: ${{ steps.case.outputs.spike_loss_pct }}
-          SPIKE_START_SEC: ${{ steps.case.outputs.spike_start_sec }}
-          SPIKE_DURATION_SEC: ${{ steps.case.outputs.spike_duration_sec }}
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
           set -euo pipefail
-          bash "$GITHUB_WORKSPACE/helper/.github/scripts/run_singlelane_ab_observability.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+          bash "$GITHUB_WORKSPACE/helper/.github/scripts/run_singlelane_constant30_observability.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
       - name: Upload candidate diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: logic64-flush32-fecdiag-5m-5to30
+          name: logic64-flush32-5m-constant30
           path: ${{ runner.temp }}/singlelane-${{ steps.case.outputs.candidate }}
           if-no-files-found: warn
           retention-days: 7
