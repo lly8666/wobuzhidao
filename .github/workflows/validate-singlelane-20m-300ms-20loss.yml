@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   severe:
-    name: shadow-b-adaptive-loss30
+    name: shadow-c-conservative-loss30
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout exact product candidate
         uses: actions/checkout@v4
         with:
-          ref: 8bc9e89f07e05a5be74761b16e37fb180f84864a
+          ref: 1276eeffd13c86934105dcfc2af68ac44f46a84c
           path: product
       - uses: actions/setup-go@v5
         with:
@@ -37,8 +37,8 @@ jobs:
       - name: Run isolated severe case
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE: shadow-b-adaptive
-          SOURCE_SHA: 8bc9e89f07e05a5be74761b16e37fb180f84864a
+          CANDIDATE: shadow-c-conservative
+          SOURCE_SHA: 1276eeffd13c86934105dcfc2af68ac44f46a84c
           LOSS_PCT: '30'
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
@@ -51,8 +51,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-shadow-b-adaptive-loss30
+          name: singlelane-shadow-c-conservative-loss30
           path: |
-            ${{ runner.temp }}/singlelane-shadow-b-adaptive
+            ${{ runner.temp }}/singlelane-shadow-c-conservative
           if-no-files-found: warn
           retention-days: 7
