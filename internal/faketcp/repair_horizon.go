@@ -2,6 +2,10 @@ package faketcp
 
 import "time"
 
+// SACK tombstones need their own bound: active payload count alone does not
+// limit metadata when cumulative ACK is stuck but later records are SACKed.
+const MaxSteadyStateTrackedRecords = 2 * MaxSteadyStateOutstandingDatagrams
+
 // ensureSteadyStateRepairCapacity keeps the fixed 4096-entry bound as a
 // shadow-repair debt ceiling, not as a first-arrival admission barrier.
 //
@@ -17,9 +21,6 @@ func (s *Sender) ensureSteadyStateRepairCapacity(required int) bool {
 		return false
 	}
 	deficit := s.Pending() + required - MaxSteadyStateOutstandingDatagrams
-	if deficit <= 0 {
-		return true
-	}
 	for i := s.head; i < len(s.pending) && deficit > 0; i++ {
 		p := s.pending[i]
 		if p == nil || p.Bootstrap || p.Retired {
@@ -29,7 +30,24 @@ func (s *Sender) ensureSteadyStateRepairCapacity(required int) bool {
 		deficit--
 	}
 	s.advanceHead()
-	return deficit == 0
+	if deficit > 0 {
+		return false
+	}
+	for i := s.head; i < len(s.pending) && len(s.bySeq)+required > MaxSteadyStateTrackedRecords; i++ {
+		p := s.pending[i]
+		if p == nil || p.Bootstrap {
+			continue
+		}
+		if !p.Retired {
+			s.abandonShadowRepair(p)
+		} else {
+			delete(s.bySeq, p.Seq)
+			s.pending[i] = nil
+			s.stats.RepairMetadataEvicted++
+		}
+	}
+	s.advanceHead()
+	return len(s.bySeq)+required <= MaxSteadyStateTrackedRecords
 }
 
 func (s *Sender) abandonShadowRepair(p *Pending) {
@@ -37,6 +55,8 @@ func (s *Sender) abandonShadowRepair(p *Pending) {
 		return
 	}
 	delete(s.bySeq, p.Seq)
+	s.stats.RepairEvicted++
+	s.stats.RepairEvictedBytes += uint64(len(p.Payload))
 	s.releasePayload(p.Payload)
 	p.Payload = nil
 	p.Retired = true

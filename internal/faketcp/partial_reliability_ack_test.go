@@ -9,6 +9,7 @@ import (
 func TestPartialReliabilityBelowPressureKeepsNormalSACK(t *testing.T) {
 	const start = uint32(1000)
 	r := NewReceiver(start)
+	r.EnableSteadyStateDelivery()
 
 	for i := 1; i < PartialReliabilityReorderSoftLimit; i++ {
 		seq := start + uint32(i*100)
@@ -33,6 +34,7 @@ func TestPartialReliabilityPressureForgivesOldestGapAndBoundsReceiverState(t *te
 		missing = uint32(record)
 	)
 	r := NewReceiver(start)
+	r.EnableSteadyStateDelivery()
 
 	var lastEnd uint32
 	for i := 1; i <= PartialReliabilityReorderSoftLimit; i++ {
@@ -61,14 +63,13 @@ func TestPartialReliabilityPressureForgivesOldestGapAndBoundsReceiverState(t *te
 		t.Fatalf("peak buffered=%d want=%d", st.PeakBufferedOO, PartialReliabilityReorderSoftLimit)
 	}
 
-	// A repair already in flight after the receiver crossed the horizon is a
-	// harmless duplicate. It must not be delivered upward or recreate SACK debt.
+	// This missing record is a late first arrival, not a duplicate.
 	deliver, sack := r.Accept(start, record)
-	if deliver || sack {
+	if !deliver || sack {
 		t.Fatalf("late abandoned repair deliver=%t sack=%t", deliver, sack)
 	}
-	if r.Stats().Duplicates == 0 {
-		t.Fatal("late abandoned repair was not classified as duplicate")
+	if r.Stats().LateBelowACK != 1 {
+		t.Fatal("late first arrival was not accounted")
 	}
 }
 
@@ -80,6 +81,7 @@ func TestPartialReliabilityCumulativeAckStopsFurtherRepairAndReleasesPayload(t *
 	now := time.Unix(1700000200, 0)
 	s := NewSenderWithRecovery(start, time.Second, RecoverySACKRACK)
 	r := NewReceiver(start)
+	r.EnableSteadyStateDelivery()
 
 	pending := make([]*Pending, 0, PartialReliabilityReorderSoftLimit+1)
 	for i := 0; i <= PartialReliabilityReorderSoftLimit; i++ {

@@ -31,6 +31,7 @@ func (s *Sender) EnqueueSteadyStateBatch(payloads [][]byte, now time.Time) ([]*P
 		return nil, nil
 	}
 	if !s.ensureSteadyStateRepairCapacity(len(payloads)) {
+		s.stats.FreshBlockedByRepair += uint64(len(payloads))
 		return nil, ErrSteadyStateOutstandingFull
 	}
 	out := make([]*Pending, 0, len(payloads))

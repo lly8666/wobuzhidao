@@ -27,8 +27,12 @@ var ErrSteadyStateOutstandingFull = errors.New("faketcp: steady-state outstandin
 // Bootstrap remains separately ACK-gated stop-and-wait and is never evicted.
 func (s *Sender) EnqueueSteadyState(payload []byte, now time.Time) (*Pending, error) {
 	if !s.ensureSteadyStateRepairCapacity(1) {
+		s.stats.FreshBlockedByRepair++
 		return nil, ErrSteadyStateOutstandingFull
 	}
 	s.steadyStateRTOSweep = true
-	return s.Enqueue(payload, now), nil
+	p := s.Enqueue(payload, now)
+	s.stats.FreshAdmitted++
+	s.stats.FreshAdmittedBytes += uint64(len(payload))
+	return p, nil
 }

@@ -62,20 +62,28 @@ type Pending struct {
 }
 
 type SenderStats struct {
-	Enqueued            uint64
-	EnqueuedBytes       uint64
-	Acked               uint64
-	SACKed              uint64
-	RetiredSACKed       uint64
-	FastRetransmits     uint64
-	RTOTransmits        uint64
-	RetransmitBytes     uint64
-	RepairBudgetSpent   uint64
-	RepairDeferred      uint64
-	RepairDeferredBytes uint64
-	LossMarked          uint64
-	LossMarkedBytes     uint64
-	PeakPending         int
+	Enqueued              uint64
+	EnqueuedBytes         uint64
+	Acked                 uint64
+	SACKed                uint64
+	RetiredSACKed         uint64
+	FastRetransmits       uint64
+	RTOTransmits          uint64
+	RetransmitBytes       uint64
+	RepairBudgetSpent     uint64
+	RepairDeferred        uint64
+	RepairDeferredBytes   uint64
+	LossMarked            uint64
+	LossMarkedBytes       uint64
+	PeakPending           int
+	FreshAdmitted         uint64
+	FreshAdmittedBytes    uint64
+	FreshBlockedByRepair  uint64
+	RepairEvicted         uint64
+	RepairEvictedBytes    uint64
+	RepairMetadataEvicted uint64
+	RepairCreditBytes     uint64
+	ShadowRetransmitBytes uint64
 }
 
 type Sender struct {
@@ -108,6 +116,8 @@ type Sender struct {
 	rackLatestTx time.Time
 
 	repairBudgetSpent uint64
+	repairCredit      uint64
+	repairRemainder   uint64
 	freeSlabs         [][]byte
 	stats             SenderStats
 }
@@ -125,19 +135,24 @@ func NewSenderWithRecovery(nextSeq uint32, initialRTO time.Duration, recovery Re
 	}
 	initialRTO = clampRTO(initialRTO)
 	return &Sender{
-		nextSeq:  nextSeq,
-		lastAck:  nextSeq,
-		rto:      initialRTO,
-		baseRTO:  initialRTO,
-		bySeq:    make(map[uint32]*Pending),
-		recovery: recovery,
+		nextSeq:      nextSeq,
+		lastAck:      nextSeq,
+		rto:          initialRTO,
+		baseRTO:      initialRTO,
+		bySeq:        make(map[uint32]*Pending),
+		recovery:     recovery,
+		repairCredit: shadowRepairBurstBytes,
 	}
 }
 
-func (s *Sender) NextSeq() uint32                 { return s.nextSeq }
-func (s *Sender) RTO() time.Duration              { return s.rto }
-func (s *Sender) Pending() int                    { return s.active }
-func (s *Sender) Stats() SenderStats              { return s.stats }
+func (s *Sender) NextSeq() uint32    { return s.nextSeq }
+func (s *Sender) RTO() time.Duration { return s.rto }
+func (s *Sender) Pending() int       { return s.active }
+func (s *Sender) Stats() SenderStats {
+	stats := s.stats
+	stats.RepairCreditBytes = s.repairCredit
+	return stats
+}
 func (s *Sender) LastAck() uint32                 { return s.lastAck }
 func (s *Sender) RecoveryMode() RecoveryMode      { return s.recovery }
 func (s *Sender) Outstanding(seq uint32) *Pending { return s.bySeq[seq] }
@@ -156,6 +171,9 @@ func (s *Sender) Enqueue(payload []byte, now time.Time) *Pending {
 	s.active++
 	s.stats.Enqueued++
 	s.stats.EnqueuedBytes += uint64(len(payload))
+	if !bootstrap {
+		s.refillShadowRepair(uint64(len(payload)))
+	}
 	if s.active > s.stats.PeakPending {
 		s.stats.PeakPending = s.active
 	}
@@ -576,8 +594,23 @@ func (s *Sender) repairBudgetAllows(p *Pending) bool {
 	if cost == 0 {
 		return false
 	}
-	budget := s.stats.EnqueuedBytes/shadowRepairBudgetDivisor + shadowRepairBurstBytes
-	return s.repairBudgetSpent+cost <= budget
+	return cost <= s.repairCredit
+}
+
+// Only fresh bytes earn credit. Unused credit is capped; idle time and
+// bootstrap bytes cannot build a bank for a later repair storm. Preserve
+// fractional fifths so small datagrams are not systematically under-credited.
+func (s *Sender) refillShadowRepair(fresh uint64) {
+	credit := fresh / shadowRepairBudgetDivisor
+	s.repairRemainder += fresh % shadowRepairBudgetDivisor
+	credit += s.repairRemainder / shadowRepairBudgetDivisor
+	s.repairRemainder %= shadowRepairBudgetDivisor
+	if credit >= shadowRepairBurstBytes-s.repairCredit {
+		s.repairCredit = shadowRepairBurstBytes
+		s.repairRemainder = 0
+	} else {
+		s.repairCredit += credit
+	}
 }
 
 func (s *Sender) tryMarkRetry(p *Pending, now time.Time, fast bool) bool {
@@ -593,8 +626,10 @@ func (s *Sender) tryMarkRetry(p *Pending, now time.Time, fast bool) bool {
 	}
 	p.RepairNotBefore = time.Time{}
 	if !p.Bootstrap {
+		s.repairCredit -= cost
 		s.repairBudgetSpent += cost
 		s.stats.RepairBudgetSpent = s.repairBudgetSpent
+		s.stats.ShadowRetransmitBytes += uint64(len(p.Payload))
 	}
 	s.markRetry(p, now, fast)
 	return true
@@ -807,6 +842,9 @@ func (r *Receiver) rememberDelivered(seq, end uint32) {
 // exact recent duplicate is suppressed, while an unknown late record may still
 // be delivered upward without recreating ACK/SACK repair debt.
 func (r *Receiver) maybeForgiveReorderPressure() {
+	if !r.steadyStateDelivery {
+		return
+	}
 	for len(r.outOfOrder) >= PartialReliabilityReorderSoftLimit {
 		start, ok := r.oldestLiveSACKStart()
 		if !ok || start == r.next {
