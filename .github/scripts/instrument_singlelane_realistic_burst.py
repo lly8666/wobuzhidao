@@ -12,8 +12,10 @@ if profile not in ('fixed1000', 'realistic-mix-v1'):
     raise SystemExit('unknown TRAFFIC_PROFILE: '+profile)
 if loss_model not in ('iid', 'burst'):
     raise SystemExit('unknown LOSS_MODEL: '+loss_model)
-if loss_pct not in (20, 30):
-    raise SystemExit('LOSS_PCT must be 20 or 30')
+if not 0 <= loss_pct <= 100:
+    raise SystemExit('LOSS_PCT must be 0..100')
+if loss_model == 'burst' and loss_pct not in (20, 30):
+    raise SystemExit('burst LOSS_PCT must be 20 or 30')
 
 rotation = product / 'scripts/game_lane_rotation_soak.sh'
 s = rotation.read_text()
