@@ -1,4 +1,4 @@
-name: validate-singlelane-shadow-candidates
+name: validate-singlelane-ab-observability
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   severe:
-    name: isolated-singlelane-case
+    name: isolated-singlelane-ab-case
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -28,10 +28,10 @@ jobs:
           set -euo pipefail
           source "$GITHUB_WORKSPACE/helper/.github/singlelane-case.env"
           case "$CANDIDATE" in
-            d3b-baseline|eb3de-late-first|shadow-a-bounded|shadow-b-adaptive|shadow-c-conservative) ;;
-            *) echo "bad candidate: $CANDIDATE" >&2; exit 2 ;;
+            shadow-a-bounded|shadow-b-adaptive) ;;
+            *) echo "bad candidate for A/B probe: $CANDIDATE" >&2; exit 2 ;;
           esac
-          case "$LOSS_PCT" in 20|30|40) ;; *) echo "bad loss: $LOSS_PCT" >&2; exit 2 ;; esac
+          case "$LOSS_PCT" in 20|30) ;; *) echo "bad loss for A/B probe: $LOSS_PCT" >&2; exit 2 ;; esac
           [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "bad source sha" >&2; exit 2; }
           echo "candidate=$CANDIDATE" >> "$GITHUB_OUTPUT"
           echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
@@ -48,7 +48,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl
-      - name: Run isolated severe case
+      - name: Run isolated A/B observability case
         env:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE: ${{ steps.case.outputs.candidate }}
@@ -57,15 +57,12 @@ jobs:
           WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
         run: |
           set -euo pipefail
-          cp "$GITHUB_WORKSPACE/helper/.github/scripts/validate_singlelane_shadow_candidate.sh" "$RUNNER_TEMP/run-singlelane-case.sh"
-          sed -i "s/loss_pct_each_direction=20/loss_pct_each_direction=${LOSS_PCT}/" "$RUNNER_TEMP/run-singlelane-case.sh"
-          sed -i "s/export NETEM_LOSS_PCT=20/export NETEM_LOSS_PCT=${LOSS_PCT}/" "$RUNNER_TEMP/run-singlelane-case.sh"
-          bash "$RUNNER_TEMP/run-singlelane-case.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+          bash "$GITHUB_WORKSPACE/helper/.github/scripts/run_singlelane_ab_observability.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
       - name: Upload candidate diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: singlelane-${{ steps.case.outputs.candidate }}-loss${{ steps.case.outputs.loss_pct }}
+          name: singlelane-ab-${{ steps.case.outputs.candidate }}-loss${{ steps.case.outputs.loss_pct }}
           path: ${{ runner.temp }}/singlelane-${{ steps.case.outputs.candidate }}
           if-no-files-found: warn
           retention-days: 7
