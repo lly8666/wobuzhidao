@@ -22,6 +22,8 @@ if s.count(marker) != 1:
 s=s.replace(marker,insert+marker,1)
 p.write_text(s)
 PY
+sed -i "s/loss_pct_each_direction=20/loss_pct_each_direction=${LOSS_PCT}/" "$RUNNER"
+sed -i "s/export NETEM_LOSS_PCT=20/export NETEM_LOSS_PCT=${LOSS_PCT}/" "$RUNNER"
 chmod +x "$RUNNER"
 
 export WBD_HELPER_DIR="$HELPER_DIR"
