@@ -77,12 +77,12 @@ func TestBlockDecoderStreamingWindowPressurePreservesRecoverableOldBlocks(t *tes
 		t.Fatal("new streaming block did not enter bounded compact state")
 	}
 
-	// Nineteen parity shards plus the one retained systematic source provide the
-	// twenty equations needed to reconstruct all nineteen missing originals in
-	// the oldest generation. This is exactly the recovery value pressure must not
-	// destroy.
+	// One retained systematic source plus nineteen parity shards provide the
+	// twenty equations needed to reconstruct all nineteen missing originals.
+	// The first eighteen parity shards must not complete the block; the nineteenth
+	// must recover it. This is exactly the recovery value pressure must not destroy.
 	want := testPackets(DataShards)
-	for p := DataShards; p < DataShards+DataShards-1; p++ {
+	for p := DataShards; p < DataShards+DataShards-2; p++ {
 		packets, done, err = dec.Add(one[p])
 		if err != nil {
 			t.Fatalf("block 1 parity %d: %v", p-DataShards, err)
@@ -91,9 +91,9 @@ func TestBlockDecoderStreamingWindowPressurePreservesRecoverableOldBlocks(t *tes
 			t.Fatalf("block 1 parity %d packets=%d done=%t before recoverable", p-DataShards, len(packets), done)
 		}
 	}
-	packets, done, err = dec.Add(one[DataShards+DataShards-1])
+	packets, done, err = dec.Add(one[DataShards+DataShards-2])
 	if err != nil {
-		t.Fatalf("block 1 final recovery parity: %v", err)
+		t.Fatalf("block 1 recovery parity: %v", err)
 	}
 	if !done || len(packets) != DataShards-1 {
 		t.Fatalf("block 1 recovered packets=%d done=%t want=%d,true", len(packets), done, DataShards-1)
@@ -105,6 +105,13 @@ func TestBlockDecoderStreamingWindowPressurePreservesRecoverableOldBlocks(t *tes
 	}
 	if dec.blocks[1] != nil || !dec.completed.contains(1) {
 		t.Fatal("recovered oldest block did not complete")
+	}
+	packets, done, err = dec.Add(one[DataShards+DataShards-1])
+	if err != nil {
+		t.Fatalf("block 1 late extra parity: %v", err)
+	}
+	if done || len(packets) != 0 {
+		t.Fatalf("block 1 late extra parity packets=%d done=%t want=0,false", len(packets), done)
 	}
 }
 
