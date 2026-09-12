@@ -34,8 +34,8 @@ func TestAdaptivePressurePaced20Mbps600ms(t *testing.T) {
 	if r.Stats().ForgivenGaps != 1 {
 		t.Fatalf("horizon did not converge: %+v", r.Stats())
 	}
-	if pressureHoleRTTs == 1 && r.Stats().SoftForgivenGaps != 1 {
-		t.Fatal("one-RTT profile missed soft pressure")
+	if r.Stats().SoftForgivenGaps != 1 || r.Stats().EmergencyForgivenGaps != 0 {
+		t.Fatalf("adaptive pressure should retire before emergency: %+v", r.Stats())
 	}
 	if deliver, _ := r.AcceptAt(hole, 1000, now, rtt); !deliver {
 		t.Fatal("late first arrival lost")
@@ -45,7 +45,26 @@ func TestAdaptivePressurePaced20Mbps600ms(t *testing.T) {
 	}
 }
 
-func TestAdaptivePressureBurstWaitsForHoleAgeAndResetsNextHole(t *testing.T) {
+func TestAdaptivePressureRequiredHoleAgeTapersContinuously(t *testing.T) {
+	p := repairPressure{rate: 100, rtt: 600 * time.Millisecond}
+	soft := p.softLimit()
+	if soft != 188 {
+		t.Fatalf("unexpected soft limit: %d", soft)
+	}
+	if got := p.requiredHoleAge(soft); got != 600*time.Millisecond {
+		t.Fatalf("soft horizon should keep full RTT, got %s", got)
+	}
+	mid := soft + (PartialReliabilityEmergencyLimit-soft)/2
+	got := p.requiredHoleAge(mid)
+	if got < 299*time.Millisecond || got > 301*time.Millisecond {
+		t.Fatalf("mid-pressure age should be about half RTT, got %s", got)
+	}
+	if got := p.requiredHoleAge(PartialReliabilityEmergencyLimit); got != 0 {
+		t.Fatalf("emergency horizon should have no age grace, got %s", got)
+	}
+}
+
+func TestAdaptivePressureBurstWaitsForPressureAdjustedHoleAgeAndResetsNextHole(t *testing.T) {
 	r := NewReceiver(100)
 	r.EnableSteadyStateDelivery()
 	now := time.Unix(1, 0)
@@ -55,23 +74,28 @@ func TestAdaptivePressureBurstWaitsForHoleAgeAndResetsNextHole(t *testing.T) {
 		now = now.Add(10 * time.Millisecond)
 	}
 	hole := r.Next()
-	// Keep two holes so one retirement must not lend its age to the next.
+	// Keep many sparse records so one retirement must not lend its age to the next.
 	for i := 1; i <= 300; i++ {
 		r.AcceptAt(hole+uint32(i*20), 10, now, rtt)
 	}
 	if r.Next() != hole {
 		t.Fatal("burst bypassed hole age")
 	}
-	wait := time.Duration(pressureHoleRTTs) * rtt
-	r.AcceptAt(hole+6020, 10, now.Add(wait-time.Nanosecond), rtt)
+	firstHoleSince := r.pressure.holeSince
+	nextN := len(r.outOfOrder) + 1
+	wait := r.pressure.requiredHoleAge(nextN)
+	r.AcceptAt(hole+6020, 10, firstHoleSince.Add(wait-time.Nanosecond), rtt)
 	if r.Next() != hole {
-		t.Fatal("hole retired before one configured wait")
+		t.Fatal("hole retired before pressure-adjusted wait")
 	}
-	r.AcceptAt(hole+6040, 10, now.Add(wait), rtt)
+	nextN = len(r.outOfOrder) + 1
+	wait = r.pressure.requiredHoleAge(nextN)
+	retireAt := firstHoleSince.Add(wait)
+	r.AcceptAt(hole+6040, 10, retireAt, rtt)
 	if r.Stats().SoftForgivenGaps != 1 {
-		t.Fatalf("expected exactly one aged hole: %+v", r.Stats())
+		t.Fatalf("expected exactly one pressure-aged hole: %+v", r.Stats())
 	}
-	if r.pressure.holeSince != now.Add(wait) {
+	if r.pressure.holeSince != retireAt {
 		t.Fatal("new hole inherited old age")
 	}
 }
