@@ -1,0 +1,203 @@
+name: validate-singlelane-20m-300ms-20loss
+
+on:
+  push:
+    branches:
+      - agent/validate-singlelane-20m-300ms-20loss-d3b
+    paths:
+      - '.github/workflows/validate-singlelane-20m-300ms-20loss.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SOURCE_SHA: d3b54dced255cc9becb3e501991f71a034e7438f
+  BASE_ASSET_ARTIFACT_ID: '10265571219'
+
+jobs:
+  singlelane-severe-baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - name: Verify exact source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          echo "WBD_SINGLELANE_SEVERE_SOURCE source_sha=$SOURCE_SHA helper_sha=$GITHUB_SHA"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables tcpdump unzip
+      - name: Restore frozen native assets and rebuild FakeTCP
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/wbd-assets"
+          mkdir -p "$ASSET"
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${BASE_ASSET_ARTIFACT_ID}/zip" -o /tmp/base-assets.zip
+          unzip -q /tmp/base-assets.zip -d "$ASSET"
+          test "$(cat "$ASSET/SOURCE_SHA.txt")" = "0967f983c36504dfd430bb76456e1e8f8331dea8"
+          go test ./internal/faketcp ./cmd/wbd-faketcp ./cmd/wbd-faketcp-mux -count=1
+          go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
+          go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+          printf '%s\n' "$SOURCE_SHA" >"$ASSET/SOURCE_SHA.txt"
+          chmod +x "$ASSET"/wbd-* "$ASSET/wbd_dtls_shim"
+      - name: Patch isolated single-lane severe harness
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          rotation=Path('scripts/game_lane_rotation_soak.sh')
+          s=rotation.read_text()
+          repl={
+            '[[ "$LANES" == 4 ]] || { echo "soak requires LANES=4" >&2; exit 2; }':'[[ "$LANES" == 1 ]] || { echo "single-lane probe requires LANES=1" >&2; exit 2; }',
+            '[[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge 500 ]] || { echo "DURATION_SEC must be >=500" >&2; exit 2; }':'[[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge 20 ]] || { echo "DURATION_SEC must be >=20" >&2; exit 2; }',
+            '[[ "$RATE_BPS" == 1000000 ]] || { echo "RATE_BPS must be exactly 1000000" >&2; exit 2; }':'[[ "$RATE_BPS" == 20000000 ]] || { echo "RATE_BPS must be exactly 20000000" >&2; exit 2; }',
+            '[[ "$ROTATIONS" =~ ^[0-9]+$ && "$ROTATIONS" -ge 1 ]] || { echo "ROTATIONS must be positive" >&2; exit 2; }':'[[ "$ROTATIONS" =~ ^[0-9]+$ ]] || { echo "ROTATIONS must be non-negative" >&2; exit 2; }',
+            "if summary['loss_ratio'] > 0.001: raise SystemExit(13)":"# diagnostic baseline: result step evaluates completeness",
+            "if summary['down_payload_bps'] < rate_bps*0.995: raise SystemExit(14)":"# diagnostic baseline: result step evaluates goodput",
+            "d.update({'fec':fec,'lanes':4,":"d.update({'fec':fec,'lanes':1,",
+          }
+          for old,new in repl.items():
+            if s.count(old)!=1: raise SystemExit('rotation guard drift: '+old)
+            s=s.replace(old,new,1)
+          s=s.replace('for i in $(seq 1 4); do','for i in $(seq 1 "$LANES"); do')
+          s=s.replace('link_binds >= 4','link_binds >= LANES')
+          s=s.replace("'>= 4 ))","'>= \"$LANES\" ))")
+          s=s.replace('game_binds >= 4','game_binds >= LANES')
+          s=s.replace('(r-1)%4 + 1','(r-1)%LANES + 1')
+          if '--shadow-recovery legacy' not in s: raise SystemExit('replacement recovery marker missing')
+          s=s.replace('--shadow-recovery legacy','--shadow-recovery sack-rack').replace('recovery=legacy','recovery=sack-rack')
+
+          old="sent=0; unique=set(); dup=0; bad=0; last_rx=start"
+          new="sent=0; unique=set(); dup=0; bad=0; last_rx=start; latencies=[]; ontime1=0; ontime2=0"
+          if s.count(old)!=1: raise SystemExit('load state marker drift')
+          s=s.replace(old,new,1)
+          old="                if seq in unique: dup+=1\n                else: unique.add(seq)"
+          new="""                if seq in unique: dup+=1
+                else:
+                    unique.add(seq)
+                    sent_rel=struct.unpack('!d',data[12:20])[0]
+                    latency=max(0.0,time.monotonic()-start-sent_rel)
+                    latencies.append(latency)
+                    if latency <= 1.0: ontime1+=1
+                    if latency <= 2.0: ontime2+=1"""
+          if s.count(old)!=1: raise SystemExit('latency marker drift')
+          s=s.replace(old,new,1)
+          old="elapsed=max(duration,1e-9)\nrecv=len(unique); lost=max(0,sent-recv)\nsummary={"
+          new="""elapsed=max(duration,1e-9)
+recv=len(unique); lost=max(0,sent-recv)
+latencies.sort()
+def pct(q):
+    if not latencies: return None
+    i=min(len(latencies)-1,max(0,int(round((len(latencies)-1)*q))))
+    return latencies[i]
+summary={"""
+          if s.count(old)!=1: raise SystemExit('summary marker drift')
+          s=s.replace(old,new,1)
+          old="  'loss_ratio':(lost/sent if sent else 1.0),\n}"
+          new="""  'loss_ratio':(lost/sent if sent else 1.0),
+  'echo_rtt_p50_sec':pct(0.50),'echo_rtt_p95_sec':pct(0.95),'echo_rtt_p99_sec':pct(0.99),
+  'echo_rtt_max_sec':(latencies[-1] if latencies else None),
+  'ontime_1s_count':ontime1,'ontime_2s_count':ontime2,
+  'ontime_1s_ratio_of_sent':(ontime1/sent if sent else 0.0),
+  'ontime_2s_ratio_of_sent':(ontime2/sent if sent else 0.0),
+}"""
+          if s.count(old)!=1: raise SystemExit('summary fields marker drift')
+          rotation.write_text(s.replace(old,new,1))
+
+          full=Path('scripts/game_lane_fullstack.sh')
+          s=full.read_text()
+          if '--shadow-recovery legacy' not in s: raise SystemExit('initial recovery marker missing')
+          s=s.replace('--shadow-recovery legacy','--shadow-recovery sack-rack').replace('recovery=legacy','recovery=sack-rack')
+          old='"$ASSET_DIR/wbd-faketcp-mux" server \\\n  --listen 10.89.0.1:${RAW} --dtls-shim "$ASSET_DIR/wbd_dtls_shim" \\\n'
+          new='"$ASSET_DIR/wbd-faketcp-mux" server \\\n  --shadow-recovery sack-rack \\\n  --listen 10.89.0.1:${RAW} --dtls-shim "$ASSET_DIR/wbd_dtls_shim" \\\n'
+          if s.count(old)!=1: raise SystemExit('server mux marker drift')
+          full.write_text(s.replace(old,new,1))
+
+          control=Path('scripts/game_lane_rotation_soak_control.sh')
+          s=control.read_text()
+          old_c='sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%"'
+          old_s='sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%"'
+          new_c='sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem limit 20000 rate 100mbit delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%"'
+          new_s='sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem limit 20000 rate 100mbit delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%"'
+          if s.count(old_c)!=1 or s.count(old_s)!=1: raise SystemExit('netem marker drift')
+          control.write_text(s.replace(old_c,new_c,1).replace(old_s,new_s,1))
+          PY
+      - name: Run single-lane 20 Mbps severe baseline
+        env:
+          LANES: '1'
+          FEC: '20:20'
+          DURATION_SEC: '20'
+          RATE_BPS: '20000000'
+          PAYLOAD_BYTES: '1000'
+          ROTATE_INTERVAL_SEC: '10'
+          ROTATIONS: '0'
+          NETEM_DELAY_MS: '300'
+          NETEM_LOSS_PCT: '20'
+          SOAK_REPLICA: '1'
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/singlelane-20m"
+          mkdir -p "$LOG"
+          sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$RUNNER_TEMP/wbd-assets" "$LOG"
+          sudo chmod -R a+rX "$LOG" || true
+          python3 - "$LOG" <<'PY'
+          import glob,json,os,sys
+          root=sys.argv[1]
+          d=json.load(open(os.path.join(root,'load-result.json')))
+          stats=[]
+          for path in glob.glob(root+'/*faketcp*.log'):
+            for line in open(path,errors='replace'):
+              if 'WBD_FAKETCP_STATS ' not in line: continue
+              try: stats.append(json.loads(line.split('WBD_FAKETCP_STATS ',1)[1]))
+              except Exception: pass
+          senders=[x['sender'] for x in stats if x.get('role')=='client' and 'sender' in x]
+          receivers=[x['receiver'] for x in stats if x.get('role')=='client' and 'receiver' in x]
+          if not senders or not receivers: raise SystemExit('missing client stats')
+          enq=sum(x.get('EnqueuedBytes',0) for x in senders)
+          retx=sum(x.get('RetransmitBytes',0) for x in senders)
+          result={
+            'down_payload_bps':d['down_payload_bps'], 'loss_ratio':d['loss_ratio'],
+            'sent':d['sent'], 'received_unique':d['received_unique'],
+            'echo_rtt_p50_sec':d.get('echo_rtt_p50_sec'), 'echo_rtt_p95_sec':d.get('echo_rtt_p95_sec'),
+            'echo_rtt_p99_sec':d.get('echo_rtt_p99_sec'), 'echo_rtt_max_sec':d.get('echo_rtt_max_sec'),
+            'ontime_1s_ratio_of_sent':d.get('ontime_1s_ratio_of_sent'),
+            'ontime_2s_ratio_of_sent':d.get('ontime_2s_ratio_of_sent'),
+            'fresh_bytes':enq, 'retransmit_bytes':retx,
+            'repair_to_fresh_bytes':retx/enq if enq else 0,
+            'peak_pending':max(x.get('PeakPending',0) for x in senders),
+            'forgiven_gaps':sum(x.get('ForgivenGaps',0) for x in receivers),
+            'forgiven_bytes':sum(x.get('ForgivenBytes',0) for x in receivers),
+            'repair_deferred':sum(x.get('RepairDeferred',0) for x in senders),
+            'loss_marked':sum(x.get('LossMarked',0) for x in senders),
+          }
+          print('WBD_SINGLELANE_SEVERE_RESULT '+json.dumps(result,sort_keys=True))
+          print('WBD_SINGLELANE_RAW_STATS '+json.dumps(stats,sort_keys=True))
+          assert d['bad_payload']==0 and d['duplicates']==0, d
+          assert result['peak_pending'] <= 4096, result
+          assert result['repair_to_fresh_bytes'] <= 0.20, result
+          PY
+          if grep -R -q 'pending=4096 limit=4096 action=wait' "$LOG"; then
+            echo 'unexpected fresh HOL at repair ceiling' >&2
+            exit 1
+          fi
+          cat "$LOG/load-result.json"
+      - name: Diagnose failure
+        if: failure()
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/singlelane-20m"
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
+          cat "$LOG/load-result.json" 2>/dev/null || true
+          grep -R 'WBD_FAKETCP_OUTSTANDING_PRESSURE\|WBD_FAKETCP_STATS\|WBD_SOAK_LOAD_RESULT' "$LOG" 2>/dev/null || true
