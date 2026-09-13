@@ -1,5 +1,25 @@
 # 综合审查与实验交接
 
+## 最新接手入口（2026-09-13）
+
+新 agent 请先读同目录的 `2026-09-13-loss-unit-agent-bootstrap.md`。那一页是当前执行入口，包含 exact-SHA lineage、四条 Action 顺序、样本有效性门、尺寸错误分类、carrier fragmentation 判决树和产品修复后的验收纪律。
+
+当前可信链路：
+
+- B liveness：`8bc9e89f07e05a5be74761b16e37fb180f84864a`
+- logic-64 产品修复：`323c7a3522b339a6b57ca4c42df837886e3c7cba`
+- logic-64 回归：`e4210ab543a283554bb60cbce16479ea18ae45e4`
+- FEC observer 诊断基线：`d32992c902eeda03273671733a0509b211e5a987`
+- loss-unit review：`3d7310c3510fb819e6bb8682a9c9fe9cdb4f7b34`
+- artifact audit v2：`7153b7e70bbc55e60f04ea32be852f5ea3b6f7b4`
+- pure-640 控制组：`0af0c0f05aecabd32c759e8c8023e878a2b770bd`，仅用于容量假说对照，不是当前正式方向。
+
+当前没有新的 loss-unit Action 结果。下一步仍是严格串行：`30%/1500 → 30%/1600 → 20%/1500 → 20%/1600`，每条一个 Action、一个 job、一个配置。不要在四条对照完成前修改 FEC wire format、64 window、horizon 或默认全局 MTU。
+
+特别纠偏：carrier fragmentation 是优先验证的强假说，但还不是已确定根因；旧 run `34728895268` 因 LINK 退出、`lane_fail=1`、`dormant_drop=1854` 不能作为 clean constant30 稳态曲线。该 artifact 的正确 observer 数字是 7.61% / 8.64% under-required，平均缺 2.23 / 2.44 shard。
+
+新版 `.github/scripts/audit_loss_unit.py` 会先判定样本是否可用于稳态比较，并输出 encode/decode 尺寸错误分类、lane/dormant 状态、FEC under-required 摘要、carrier fragmentation 比例、load/host pressure 和 exact-source provenance。拿到新 artifact 后先跑 audit，再看 app loss。
+
 ## 当前判断
 
 优先级：先查真实 LINK 尺寸错误与实验存活性，再验证分片损失放大。暂不修改 FEC wire format、窗口容量、horizon 或全局 MTU 默认值。
@@ -49,7 +69,7 @@ FEC 1456 字节位于 DTLS 之前，必须计算或实测 DTLS 输出，不能�
 
 1. 保持错误类别和退出行为，补充 Encode/Decode 方向、实际长度、MTU、block/shard ID、声明长度和期待长度。原来的 `fec: packet too large` 同时代表超限和长度不匹配，仅凭旧日志不能确定原因。
 2. CarrierFragmenter 增加成功处理的输入数据报、字节数、被拆分数据报和生成 frame 数；客户端及 server mux teardown 输出 `WBD_CARRIER_FRAGMENT_STATS`。只计碎片生成决策，不把它冒充实际 raw 发送数或 FEC symbol 数；控制/握手也包含在内。
-3. 新增 artifact 审查脚本，检查 FAIL、lane_fail、dormant_drop、缺失分片计数，输出 `loss-unit-audit.json`。旧样本被正确标记为非干净稳态。
+3. 新增 artifact 审查脚本，检查 FAIL、lane_fail、dormant_drop、缺失分片计数，输出 `loss-unit-audit.json`。audit v2 还会输出尺寸错误分类、FEC/载荷/host pressure 摘要和 exact-source provenance，并带明确解释 guardrails。
 4. 单场景工作流固定旧 helper SHA cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d，产品使用执行提交的 exact SHA；保留 logic64+horizon64、32ms、5Mbps、45s、realistic mix、300ms/方向、FEC20:20。horizon/observer overlay 保存为 artifact，不能把仅 checkout SHA 称为完整构建内容。
 
 本轮是产品诊断能力与实验有效性修正，还没有证实并修复造成尺寸错误的根因。拒绝直接吞掉错误、扩大上限或改变分片格式来掩盖它。
@@ -58,7 +78,7 @@ FEC 1456 字节位于 DTLS 之前，必须计算或实测 DTLS 输出，不能�
 
 每次只跑一个 Action、一个 job、一个配置，上一条完成后再发下一条。不使用 matrix。
 
-修改 `.github/loss-unit-case.json`，从本交接提交建 `run/fec-loss-unit-<case>-<id>` 分支，提交该文件再推送。工作流只在该分支前缀及该文件变更时触发；默认配置未变时可修改 JSON 格式产生变更。实验提交勿带 skip ci。若 workflow 已在默认分支注册，也可 dispatch 指定实验分支。
+修改 `.github/loss-unit-case.json`，从本交接分支建 `run/fec-loss-unit-<case>-<id>` 分支，提交该文件再推送。工作流只在该分支前缀及该文件变更时触发；默认配置未变时可修改 JSON 格式产生变更。实验提交勿带 skip ci。若 workflow 已在默认分支注册，也可 dispatch 指定实验分支。
 
 | 顺序 | loss_pct | carrier_mtu | 目的 |
 | --- | ---: | ---: | --- |
@@ -70,11 +90,12 @@ FEC 1456 字节位于 DTLS 之前，必须计算或实测 DTLS 输出，不能�
 1600 只用于同机 veth 因果实验，绝不宣称互联网路径支持它，也不作为产品修复发布。若仍有分片，这个控制组未成功隔离变量，应先核对实际尺寸，再调整实验。
 
 第一条若报 Encode 超限，查上游 datagram 来源、完整 framing 和峰值尺寸；若报 Decode 声明/实际不一致，查传输边界、截断和 framing。不要因字符串中有“too large”就扩大 MTU。
-四条要同时核对存活、实际分片比例、业务损失、各尺寸业务分布、FEC 不足组、资源错误；建议关键 30% 对照各另跑一次，避免 runner 差异。
+四条要同时核对存活、实际分片比例、业务损失、各尺寸业务分布、FEC 不足组、资源错误；关键 30% 对照应各另跑一次，避免 runner 差异。
 若 1600 消除分片且稳定显著改善，才进入可兼容的 source 分块/重组设计，并建立经过真实 DTLS 的 encoded shard 单 carrier 回归。仅用假造固定 DTLS overhead 的单测不能替代该回归。
 产品修复完成后才运行 constant20、constant30、5→30→5 的三条独立验收；暂不沿用旧样本承诺“数量级改善”。
 
 ## 验证状态
 
 本地 Linux Go 1.23.12：internal/faketcp、internal/linkdata、internal/fec、cmd/wbd-faketcp、cmd/wbd-faketcp-mux 通过；另外在副本应用原 helper 的 horizon64、origin、shard-flow overlay 后，FEC/LINK 测试通过。
-不启动 Actions 或远程负载，由其他 agent 执行。发布框架的提交带 `[skip ci]`，避免意外启动仓库普通 push CI。
+
+旧 run `34728895268` 已用 audit v2 本地回放，能正确判为 invalid，并还原 7.61% / 8.64% under-required 与 2.23 / 2.44 平均缺口。新四条 loss-unit Actions 尚未运行。
