@@ -23,7 +23,7 @@ func BuildCandidateLaneBootstrap(profile Profile, base Underlay, laneID int) (La
 func BuildCandidateLaneBootstrapSlot(profile Profile, base Underlay, laneID, slot int) (LaneBootstrap, error) {
 	profile = profile.normalized()
 	if err := profile.Validate(); err != nil { return LaneBootstrap{}, err }
-	if _, err := gameLinkPlaintextMTU(profile.MTU); err != nil { return LaneBootstrap{}, err }
+	if _, err := gameConnectionMTUBudget(profile.MTU, profile.FEC); err != nil { return LaneBootstrap{}, err }
 	if _, err := lanePort(0, laneID); err != nil { return LaneBootstrap{}, err }
 	if _, err := transportSlotPort(0, slot); err != nil { return LaneBootstrap{}, err }
 	if err := base.Validate(); err != nil { return LaneBootstrap{}, err }
@@ -72,7 +72,7 @@ func BuildCandidateLanePlanSlot(profile Profile, bootstrap LaneBootstrap, slot i
 func buildLanePlanForSlot(profile Profile, bootstrap LaneBootstrap, slot int, candidate bool) (LanePlan, error) {
 	profile = profile.normalized()
 	if err := profile.Validate(); err != nil { return LanePlan{}, err }
-	gameLinkMTU, err := gameLinkPlaintextMTU(profile.MTU)
+	mtuBudget, err := gameConnectionMTUBudget(profile.MTU, profile.FEC)
 	if err != nil { return LanePlan{}, err }
 	if err := bootstrap.ValidateAuthenticated(nil); err != nil { return LanePlan{}, err }
 	if _, err := transportSlotPort(0, slot); err != nil { return LanePlan{}, err }
@@ -104,7 +104,7 @@ func buildLanePlanForSlot(profile Profile, bootstrap LaneBootstrap, slot int, ca
 		Link: Command{
 			Name: "link-" + suffix,
 			Path: bin("wbd-link-proxy.exe"),
-			Args: []string{"-mode", "client", "-listen", linkListen, "-dtls", dtlsPlain, "-fec", profile.FEC, "-mtu", strconv.Itoa(gameLinkMTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(bootstrap.Ticket)},
+			Args: []string{"-mode", "client", "-listen", linkListen, "-dtls", dtlsPlain, "-fec", profile.FEC, "-mtu", strconv.Itoa(mtuBudget.LinkPlaintextMTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(bootstrap.Ticket)},
 		},
 	}, nil
 }
