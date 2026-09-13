@@ -48,5 +48,11 @@ if s.count(insert_before) != 1:
     raise SystemExit(f"diag insertion marker drift: {s.count(insert_before)}")
 s = s.replace(insert_before, diag + insert_before, 1)
 
+old = '''\tfmt.Printf("WBD_GAME_LANE_CLIENT_STATS logical_tx=%d delivered=%d duplicate=%d stale=%d lane_fail=%d dormant_drop=%d\\n",\n\t\tatomic.LoadUint64(&c.logicalTX), atomic.LoadUint64(&c.delivered), atomic.LoadUint64(&c.duplicate), atomic.LoadUint64(&c.stale), atomic.LoadUint64(&c.laneFail), atomic.LoadUint64(&c.dormantDrop))'''
+new = '''\tfmt.Printf("WBD_GAME_LANE_CLIENT_STATS logical_tx=%d delivered=%d duplicate=%d stale=%d lane_fail=%d dormant_drop=%d\\n",\n\t\tatomic.LoadUint64(&c.logicalTX), atomic.LoadUint64(&c.delivered), atomic.LoadUint64(&c.duplicate), atomic.LoadUint64(&c.stale), atomic.LoadUint64(&c.laneFail), atomic.LoadUint64(&c.dormantDrop))\n\tfmt.Printf("WBD_GAME_PATH_FINAL app_rx_packets=%d app_rx_bytes=%d lane_tx_bytes=%d lane_rx_bytes=%d lane_write_err=%d app_tx_packets=%d app_tx_bytes=%d app_write_err=%d\\n",\n\t\tatomic.LoadUint64(&c.diagAppRXPackets), atomic.LoadUint64(&c.diagAppRXBytes),\n\t\tatomic.LoadUint64(&c.diagLaneTXBytes), atomic.LoadUint64(&c.diagLaneRXBytes),\n\t\tatomic.LoadUint64(&c.diagLaneWriteErr), atomic.LoadUint64(&c.diagAppTXPackets),\n\t\tatomic.LoadUint64(&c.diagAppTXBytes), atomic.LoadUint64(&c.diagAppWriteErr))'''
+if s.count(old) != 1:
+    raise SystemExit(f"final stats marker drift: {s.count(old)}")
+s = s.replace(old, new, 1)
+
 p.write_text(s)
-print("WBD_GAME_CLIENT_PATH_DIAG_PATCHED interval_sec=1 per_packet_logging=0")
+print("WBD_GAME_CLIENT_PATH_DIAG_PATCHED interval_sec=1 per_packet_logging=0 final_exact=1")
