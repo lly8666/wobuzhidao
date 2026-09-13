@@ -65,13 +65,19 @@ bash -n "$PRODUCT_DIR/.github/scripts/run_mtu_global_single.sh"
 set +e
 (
   cd "$PRODUCT_DIR"
-  WBD_TEST_MTU="$MTU" bash .github/scripts/run_mtu_global_single.sh
+  # The product qualification helper was originally authored for a root checkout
+  # and resolves its pcap analyzer from $GITHUB_WORKSPACE/scripts. This suite
+  # deliberately checks product into a subdir to keep exact source separate from
+  # the test overlay, so scope GITHUB_WORKSPACE to the product only for this child.
+  GITHUB_WORKSPACE="$PRODUCT_DIR" WBD_TEST_MTU="$MTU" bash .github/scripts/run_mtu_global_single.sh
 ) 2>&1 | tee "$OUT/action.log"
 run_rc=${PIPESTATUS[0]}
 set -e
 
-# Keep a stable copy even if later cleanup or artifact glob semantics change.
+# The full-stack helper creates a few ticket files as root inside netns setup.
+# Normalize ownership after teardown so audit/copy/upload can read all diagnostics.
 if [[ -d "$PRODUCT_LOG" ]]; then
+  sudo chown -R "$(id -u):$(id -g)" "$(dirname "$PRODUCT_LOG")" || true
   cp -a "$PRODUCT_LOG" "$OUT/runtime-log"
 fi
 
