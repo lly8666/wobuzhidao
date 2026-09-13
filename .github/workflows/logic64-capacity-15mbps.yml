@@ -1,0 +1,48 @@
+name: logic64-capacity-15mbps
+on:
+  push:
+    branches: [fix/unified-path-mtu-20260913]
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  capacity15mbps:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact product source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: product
+      - name: Checkout diagnostic harness only
+        uses: actions/checkout@v4
+        with:
+          ref: run/logic64-h64-diag-batch-20260913
+          path: helper
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - name: Install network and native build tools
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl
+      - name: Run one 15 Mbps logic64 capacity case
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE: logic64-capacity-15mbps
+          SOURCE_SHA: ${{ github.sha }}
+          TEST_RATE_BPS: '15000000'
+          TEST_DURATION_SEC: '45'
+          LOSS_PCT: '20'
+          TRAFFIC_PROFILE: realistic-mix-v1
+          LOSS_MODEL: iid
+          WBD_HELPER_DIR: ${{ github.workspace }}/helper
+          WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
+        run: bash "$GITHUB_WORKSPACE/product/.github/scripts/run_logic64_capacity_observability.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logic64-capacity-15mbps
+          path: ${{ runner.temp }}/singlelane-logic64-capacity-15mbps
+          if-no-files-found: warn
+          retention-days: 7
