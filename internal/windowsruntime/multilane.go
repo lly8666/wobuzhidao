@@ -79,7 +79,7 @@ func transportSlotLoopback(base, slot int) (string, error) {
 func BuildLaneBootstrap(profile Profile, base Underlay, laneID int) (LaneBootstrap, error) {
 	profile = profile.normalized()
 	if err := profile.Validate(); err != nil { return LaneBootstrap{}, err }
-	if _, err := gameLinkPlaintextMTU(profile.MTU); err != nil { return LaneBootstrap{}, err }
+	if _, err := gameConnectionMTUBudget(profile.MTU, profile.FEC); err != nil { return LaneBootstrap{}, err }
 	if err := base.Validate(); err != nil { return LaneBootstrap{}, err }
 	localUDP, err := laneLoopback(defaultFakeTCPLocalPort, laneID); if err != nil { return LaneBootstrap{}, err }
 	ticketPath, err := laneStatePath(profile.TicketPath, laneID); if err != nil { return LaneBootstrap{}, err }
@@ -125,7 +125,7 @@ func sameStringSet(a,b []string) bool {
 
 func BuildMultiLanePlan(profile Profile, bootstraps []LaneBootstrap) (MultiLanePlan, error) {
 	profile=profile.normalized();if err:=profile.Validate();err!=nil{return MultiLanePlan{},err}
-	gameLinkMTU,err:=gameLinkPlaintextMTU(profile.MTU);if err!=nil{return MultiLanePlan{},err}
+	mtuBudget,err:=gameConnectionMTUBudget(profile.MTU,profile.FEC);if err!=nil{return MultiLanePlan{},err}
 	if len(bootstraps)!=profile.Lanes{return MultiLanePlan{},fmt.Errorf("authenticated lane count=%d want=%d",len(bootstraps),profile.Lanes)}
 	if err:=logicaltunnel.ValidateProductTransportLaneCount(len(bootstraps));err!=nil{return MultiLanePlan{},err}
 
@@ -143,7 +143,7 @@ func BuildMultiLanePlan(profile Profile, bootstraps []LaneBootstrap) (MultiLaneP
 	lanes:=make([]LanePlan,0,len(bootstraps));linkAddresses:=make([]string,0,len(bootstraps))
 	for _,b:=range bootstraps{
 		dtlsPlain,_:=laneLoopback(defaultDTLSPlainPort,b.ID);linkListen,_:=laneLoopback(defaultLinkListenPort,b.ID);dtlsPort,_:=lanePort(defaultDTLSPlainPort,b.ID);fakePort,_:=lanePort(defaultFakeTCPLocalPort,b.ID)
-		lanes=append(lanes,LanePlan{ID:b.ID,Slot:b.ID,FakeTCP:b.FakeTCP,DTLS:Command{Name:fmt.Sprintf("dtls-%d",b.ID),Path:bin("wbd_dtls_shim.exe"),Args:[]string{"client",strconv.Itoa(dtlsPort),"127.0.0.1",strconv.Itoa(fakePort),"none","none"}},Link:Command{Name:fmt.Sprintf("link-%d",b.ID),Path:bin("wbd-link-proxy.exe"),Args:[]string{"-mode","client","-listen",linkListen,"-dtls",dtlsPlain,"-fec",profile.FEC,"-mtu",strconv.Itoa(gameLinkMTU),"-lanes","1","-demo-reality-ticket",strings.TrimSpace(b.Ticket)}}})
+		lanes=append(lanes,LanePlan{ID:b.ID,Slot:b.ID,FakeTCP:b.FakeTCP,DTLS:Command{Name:fmt.Sprintf("dtls-%d",b.ID),Path:bin("wbd_dtls_shim.exe"),Args:[]string{"client",strconv.Itoa(dtlsPort),"127.0.0.1",strconv.Itoa(fakePort),"none","none"}},Link:Command{Name:fmt.Sprintf("link-%d",b.ID),Path:bin("wbd-link-proxy.exe"),Args:[]string{"-mode","client","-listen",linkListen,"-dtls",dtlsPlain,"-fec",profile.FEC,"-mtu",strconv.Itoa(mtuBudget.LinkPlaintextMTU),"-lanes","1","-demo-reality-ticket",strings.TrimSpace(b.Ticket)}}})
 		linkAddresses=append(linkAddresses,linkListen)
 	}
 	gameListen,gameControl,err:=selectGameLoopbackPair();if err!=nil{return MultiLanePlan{},err}
