@@ -148,7 +148,13 @@ func (d *DataPlane) Outbound(id LiveID, packet []byte, now time.Time) (string, [
 		return "", nil, ErrSessionInactive
 	}
 	wire, err := s.path.Encode(packet, now)
-	return e.Peer, wire, err
+	if err != nil {
+		return "", nil, err
+	}
+	if s.path.FECEnabled() {
+		wire = ownWire(wire)
+	}
+	return e.Peer, wire, nil
 }
 
 func (d *DataPlane) FlushDue(id LiveID, now time.Time) (string, [][]byte, error) {
@@ -166,7 +172,10 @@ func (d *DataPlane) FlushDue(id LiveID, now time.Time) (string, [][]byte, error)
 		return "", nil, ErrSessionInactive
 	}
 	wire, err := s.path.FlushDue(now)
-	return e.Peer, wire, err
+	if err != nil {
+		return "", nil, err
+	}
+	return e.Peer, ownWire(wire), nil
 }
 
 func (d *DataPlane) Flush(id LiveID) (string, [][]byte, error) {
@@ -184,7 +193,26 @@ func (d *DataPlane) Flush(id LiveID) (string, [][]byte, error) {
 		return "", nil, ErrSessionInactive
 	}
 	wire, err := s.path.Flush()
-	return e.Peer, wire, err
+	if err != nil {
+		return "", nil, err
+	}
+	return e.Peer, ownWire(wire), nil
+}
+
+// ownWire transfers reusable FEC output across the DataPlane concurrency
+// boundary. FastBlockEncoder deliberately lends preallocated buffers, while the
+// server mux sends returned frames after this session mutex is released and may
+// concurrently enter Outbound/FlushDue on the same path. Copy while the mutex is
+// still held so a later encoder call cannot rewrite bytes queued for the sender.
+func ownWire(wire [][]byte) [][]byte {
+	if len(wire) == 0 {
+		return nil
+	}
+	owned := make([][]byte, len(wire))
+	for i, packet := range wire {
+		owned[i] = append([]byte(nil), packet...)
+	}
+	return owned
 }
 
 // Remove drops both identity and peer-route state. The caller owns socket/path
