@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "fixed_conditions": {
+    "helper_sha": "cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d",
+    "lanes": 1,
+    "source_rate_bps_each_direction": 5000000,
+    "duration_sec": 45,
+    "traffic_profile": "realistic-mix-v1",
+    "one_way_delay_ms": 300,
+    "loss_model": "iid",
+    "fec": "20:20",
+    "fec_flush_ms": 32,
+    "decoder_policy": "logic64+horizon64 observer overlay"
+  },
+  "ordered_cases": [
+    {
+      "id": "30-1500",
+      "loss_pct": 30,
+      "carrier_mtu": 1500,
+      "purpose": "Reproduce the high-loss problem with size context and real carrier-fragmentation counts."
+    },
+    {
+      "id": "30-1600",
+      "loss_pct": 30,
+      "carrier_mtu": 1600,
+      "purpose": "Same business and recovery algorithm; enlarge only the in-lab carrier space."
+    },
+    {
+      "id": "20-1500",
+      "loss_pct": 20,
+      "carrier_mtu": 1500,
+      "purpose": "Healthy-side baseline under the normal carrier MTU."
+    },
+    {
+      "id": "20-1600",
+      "loss_pct": 20,
+      "carrier_mtu": 1600,
+      "purpose": "Control for side effects caused by the experimental carrier MTU itself."
+    }
+  ],
+  "execution_rules": [
+    "Run exactly one Action, one job, and one case at a time.",
+    "Wait for the previous artifact and audit it before starting the next case.",
+    "Do not use a matrix.",
+    "MTU 1600 is an in-lab causal control, not a product or Internet-path recommendation.",
+    "Do not change FEC wire format, decoder window, horizon, or recovery policy during this four-case experiment."
+  ],
+  "after_primary_matrix": {
+    "repeat_if_clean": ["30-1500", "30-1600"],
+    "reason": "Repeat the decisive high-loss pair once to reduce runner/noise risk before a product change."
+  }
+}
