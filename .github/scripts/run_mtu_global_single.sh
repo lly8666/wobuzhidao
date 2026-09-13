@@ -57,17 +57,18 @@ func TestActionConfiguredMTUFlowsThroughWindowsPlan(t *testing.T) {
 GO
 
 cat > "$ROOT/internal/faketcp/mtu_action_test.go" <<'GO'
-package faketcp
+package faketcp_test
 import (
   "os"
   "strconv"
   "testing"
+  "github.com/lly8666/wobuzhidao/internal/faketcp"
   "github.com/lly8666/wobuzhidao/internal/pathmtu"
 )
 func TestActionConfiguredLogicalMTUIsSafeOnPhysical1500Carrier(t *testing.T) {
   mtu, err := strconv.Atoi(os.Getenv("WBD_TEST_MTU")); if err != nil { t.Fatal(err) }
   b, err := pathmtu.Derive(mtu, pathmtu.Features{FEC:true, Game:true}); if err != nil { t.Fatal(err) }
-  f, err := NewCarrierFragmenter(1500); if err != nil { t.Fatal(err) }
+  f, err := faketcp.NewCarrierFragmenter(1500); if err != nil { t.Fatal(err) }
   frames, err := f.Fragment(make([]byte, b.MaxDTLSDatagram())); if err != nil { t.Fatal(err) }
   for i, frame := range frames { if len(frame) > 1460 { t.Fatalf("frame %d len=%d > physical carrier payload 1460", i, len(frame)) } }
   if b.MaxDTLSDatagram() > 1460 && len(frames) < 2 { t.Fatalf("logical datagram=%d was not carrier-fragmented", b.MaxDTLSDatagram()) }

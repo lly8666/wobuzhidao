@@ -255,7 +255,7 @@ func (u Underlay) Validate() error {
 	if ip, err := netip.ParseAddr(u.SourceIP); err != nil || !ip.Is4() {
 		return errors.New("underlay source IP must be IPv4")
 	}
-	if !strings.HasPrefix(u.PacketDevice, `\\Device\\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
+	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
 		return errors.New("underlay packet device must be an Npcap device")
 	}
 	if !validMAC(u.SourceMAC) || !validMAC(u.NextHopMAC) {
@@ -397,7 +397,7 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 		RouteApply:   Command{Name: "route-apply", Path: "powershell.exe", Args: routeArgs},
 		RouteCleanup: Command{Name: "route-cleanup", Path: "powershell.exe", Args: cleanupArgs},
 		IPv6Cleanup:  psScript("ipv6-cleanup", "windows_ipv6_killswitch.ps1", "Cleanup"),
-		TicketPath: profile.TicketPath, TunnelConfigPath: profile.TunnelConfigPath,
+		TicketPath:   profile.TicketPath, TunnelConfigPath: profile.TunnelConfigPath,
 	}, nil
 }
 
