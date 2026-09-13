@@ -6,11 +6,14 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/windowsruntime"
 )
 
-// The Windows profile and Linux server configuration use the same inner-IP MTU
-// contract. Keep the Windows product default explicit so a future default drift
-// cannot silently produce a client/server LINK mismatch.
-func TestProductInnerMTUDefaultIs1360(t *testing.T) {
-	if windowsruntime.DefaultTunnelMTU != 1360 {
-		t.Fatalf("Windows inner MTU default=%d want=1360", windowsruntime.DefaultTunnelMTU)
+// The Settings MTU field is the maximum connection/carrier MTU. Runtime
+// planning derives the smaller LINK and Wintun MTUs from enabled transport
+// wrappers; the GUI must never label or freeze this value as inner-IP MTU.
+func TestProductConnectionMTUDefaultIs1500(t *testing.T) {
+	if windowsruntime.DefaultConnectionMTU != 1500 {
+		t.Fatalf("Windows connection MTU default=%d want=1500", windowsruntime.DefaultConnectionMTU)
+	}
+	if windowsruntime.DefaultTunnelMTU != windowsruntime.DefaultConnectionMTU {
+		t.Fatalf("compatibility MTU alias=%d want connection default=%d", windowsruntime.DefaultTunnelMTU, windowsruntime.DefaultConnectionMTU)
 	}
 }
