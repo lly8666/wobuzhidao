@@ -25,7 +25,8 @@ jobs:
           cache: true
       - name: Verify formatting
         run: |
-          test -z "$(gofmt -d internal/fec/block.go internal/fec/decoder_observe.go internal/fec/block_horizon_test.go)"
+          gofmt -d internal/fec/block.go internal/fec/decoder_observe.go internal/fec/block_horizon_test.go | tee /tmp/gofmt.diff
+          test ! -s /tmp/gofmt.diff
       - name: FEC unit tests
         run: go test ./internal/fec/...
       - name: FEC and session race tests
