@@ -1,1 +1,4 @@
-{"loss_pct":30,"carrier_mtu":1500}
+{
+  "loss_pct": 30,
+  "carrier_mtu": 1500
+}
