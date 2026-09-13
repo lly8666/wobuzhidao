@@ -1,0 +1,42 @@
+name: fec-dualhorizon5s-verify
+on:
+  push:
+    branches: [agent/fec-dualbound-link-hotspot-20260914]
+    paths: ['.github/triggers/fec-dualhorizon5s-verify.trigger']
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout horizon64 product candidate
+        uses: actions/checkout@v4
+        with:
+          ref: d7d5d18d768c3dd14be067e7b46541e6d00c7b2c
+          path: product
+      - name: Checkout suite
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - name: Apply 64-generation OR 5s dual horizon candidate
+        run: python3 "$GITHUB_WORKSPACE/suite/.github/scripts/instrument_fec_dual_horizon5s_diag.py" "$GITHUB_WORKSPACE/product"
+      - name: Format candidate
+        working-directory: product
+        run: gofmt -w internal/fec/block.go internal/fec/decoder_observe.go internal/fec/block_dual_horizon_test.go internal/linkdata/path.go internal/linkdata/fec_observe.go
+      - name: FEC and linkdata unit tests
+        working-directory: product
+        run: go test ./internal/fec/... ./internal/linkdata/...
+      - name: FEC session and linkdata race tests
+        working-directory: product
+        run: go test -race ./internal/fec/... ./internal/linkdata/... ./internal/session/...
+      - name: Focused dual-horizon tests repeated
+        working-directory: product
+        run: go test ./internal/fec -run 'TestBlockDecoder(RecoveryHorizon|LateFirstSeen|TimeHorizon|GenerationReason)' -count=20
+      - name: Compile server mux with timer-driven expiry
+        working-directory: product
+        run: go test ./cmd/wbd-link-server-mux ./cmd/wbd-link-proxy
