@@ -38,7 +38,7 @@ jobs:
           PRODUCT_SOURCE_SHA: 'bfca8bdc8bc42840607a1a5cc6de18b806e02bb8'
           HELPER_SOURCE_SHA: 'cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d'
           GH_TOKEN: ${{ github.token }}
-        run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_transient_profile_300ms.sh" "$GITHUB_WORKSPACE/product" "$GITHUB_WORKSPACE/helper"
+        run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_transient_profile_300ms_v2.sh" "$GITHUB_WORKSPACE/product" "$GITHUB_WORKSPACE/helper"
       - name: Upload complete transient diagnostics
         if: always()
         uses: actions/upload-artifact@v4
