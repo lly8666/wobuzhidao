@@ -1,7 +1,7 @@
 suite=size-probe-v1
-product_sha=076f91e9fbb08a94ef24d44778607e8508b844e4
+product_sha=bfca8bdc8bc42840607a1a5cc6de18b806e02bb8
 helper_sha=cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
 connection_mtu=1500
 loss_pct_each_direction=5
 duration_sec=20
-rates_bps=20000000,30000000
+rates_bps=20000000
