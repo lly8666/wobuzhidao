@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import subprocess
 import sys
 
 if len(sys.argv) != 2:
@@ -128,4 +129,8 @@ func TestBlockDecoderPressureExpiresBeyondRecoveryHorizon(t *testing.T) {
     }
 }
 ''')
+
+origin_diag = Path(__file__).with_name("apply_test_fec_horizon_origin_diag.py")
+if origin_diag.exists():
+    subprocess.run([sys.executable, str(origin_diag), str(root)], check=True)
 print("WBD_TEST_FEC_HORIZON64_PATCHED", p)
