@@ -1,0 +1,22 @@
+name: mtu-wire-link-off-boundary
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/mtu-wire-qualification-6661
+    paths:
+      - '.github/workflows/mtu-wire-link-off-boundary.yml'
+      - '.github/workflows/mtu-wire-case-reusable.yml'
+      - '.github/scripts/qualify_mtu_wire_case.sh'
+      - 'scripts/analyze_mtu_boundary_pcap.py'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  single:
+    uses: ./.github/workflows/mtu-wire-case-reusable.yml
+    with:
+      case: link-off
