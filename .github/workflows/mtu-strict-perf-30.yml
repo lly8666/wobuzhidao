@@ -1,0 +1,20 @@
+name: mtu-strict-perf-30
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/mtu-wire-qualification-6661
+    paths:
+      - '.github/workflows/mtu-strict-perf-30.yml'
+      - '.github/workflows/mtu-perf-case-reusable.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  single:
+    uses: ./.github/workflows/mtu-perf-case-reusable.yml
+    with:
+      loss: 30
