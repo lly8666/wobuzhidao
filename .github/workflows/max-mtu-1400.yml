@@ -1,0 +1,44 @@
+name: max-mtu-1400
+on:
+  push:
+    branches: [agent/max-mtu-transient-suite-20260913]
+    paths: ['.github/max-mtu-transient-suite-trigger']
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  mtu1400:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact product source
+        uses: actions/checkout@v4
+        with:
+          ref: 076f91e9fbb08a94ef24d44778607e8508b844e4
+          path: product
+      - name: Checkout suite overlay
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - name: Install network and native build tools
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl
+      - name: Run one maximum-datagram MTU case
+        env:
+          WBD_TEST_MTU: '1400'
+          PRODUCT_SOURCE_SHA: '076f91e9fbb08a94ef24d44778607e8508b844e4'
+          GH_TOKEN: ${{ github.token }}
+        run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_mtu_max_case.sh" "$GITHUB_WORKSPACE/product"
+      - name: Upload MTU diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: max-mtu-1400
+          path: |
+            ${{ runner.temp }}/max-mtu-1400
+            ${{ runner.temp }}/wbd-mtu-1400
+          if-no-files-found: warn
+          retention-days: 7
