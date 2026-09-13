@@ -165,10 +165,11 @@ func TestDataPlaneFixedFECWireOwnershipSurvivesEncoderReuse(t *testing.T) {
 			if err != nil || len(held) != 1 {
 				t.Fatalf("first flush wire=%d err=%v", len(held), err)
 			}
-			if got, want := len(held[0]), fec.HeaderSize+tc.firstSize; got != want {
+			frame := held[0]
+			if got, want := len(frame), fec.HeaderSize+tc.firstSize; got != want {
 				t.Fatalf("first parity len=%d want=%d", got, want)
 			}
-			snapshot := append([]byte(nil), held[0]...)
+			snapshot := append([]byte(nil), frame...)
 
 			if _, _, err := d.Outbound(id, bytes.Repeat([]byte{0x5a}, tc.secondSize), now.Add(time.Millisecond)); err != nil {
 				t.Fatal(err)
@@ -180,8 +181,12 @@ func TestDataPlaneFixedFECWireOwnershipSurvivesEncoderReuse(t *testing.T) {
 			if got, want := len(next[0]), fec.HeaderSize+tc.secondSize; got != want {
 				t.Fatalf("second parity len=%d want=%d", got, want)
 			}
-			if !bytes.Equal(held[0], snapshot) {
-				t.Fatalf("returned FEC wire mutated after encoder reuse: held_len=%d first_shard=%d second_shard=%d", len(held[0]), tc.firstSize, tc.secondSize)
+			if !bytes.Equal(frame, snapshot) {
+				h, parseErr := fec.ParseBlockHeader(frame[:fec.HeaderSize])
+				if parseErr != nil {
+					t.Fatalf("returned FEC wire mutated after encoder reuse: frame_len=%d parse_header=%v first_shard=%d second_shard=%d", len(frame), parseErr, tc.firstSize, tc.secondSize)
+				}
+				t.Fatalf("returned FEC wire mutated after encoder reuse: frame_len=%d declared_shard_bytes=%d expected_wire_bytes=%d first_shard=%d second_shard=%d", len(frame), h.ShardSize, fec.HeaderSize+int(h.ShardSize), tc.firstSize, tc.secondSize)
 			}
 		})
 	}
