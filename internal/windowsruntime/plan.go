@@ -24,10 +24,14 @@ const (
 	defaultDTLSPlainPort     = 46101
 	defaultLinkListenPort    = 47101
 	defaultGameListenPort    = 48101
-	defaultMTU               = 1360
-	// DefaultTunnelMTU is the user-visible inner/Wintun MTU used when a profile
-	// omits mtu. Product Game lanes add their private envelope budget separately.
-	DefaultTunnelMTU = defaultMTU
+	defaultMTU               = 1500
+
+	// DefaultConnectionMTU is the user-visible connection/carrier ceiling used
+	// when a profile omits mtu. TUN/LINK MTUs are derived from enabled wrappers.
+	DefaultConnectionMTU = defaultMTU
+	// DefaultTunnelMTU is retained as an API compatibility alias. Its value now
+	// follows the product connection-MTU contract rather than naming Wintun MTU.
+	DefaultTunnelMTU = DefaultConnectionMTU
 
 	RouteFull    = "Full"
 	RouteForeign = "Foreign"
@@ -59,12 +63,14 @@ type Profile struct {
 	VerifyServer bool
 	FEC          string
 	IfName       string
-	MTU          int
-	RouteMode    string
-	Prefix4      []string
-	CNSetDir     string
-	DNSMode      string
-	DNSServer    string
+	// MTU is the operator-visible maximum connection/carrier MTU. BuildPlan
+	// derives the actual LINK and Wintun MTUs from FEC/Game/DTLS/FakeTCP costs.
+	MTU       int
+	RouteMode string
+	Prefix4   []string
+	CNSetDir  string
+	DNSMode   string
+	DNSServer string
 
 	// InstallationID is stable for this WBD installation. All lanes use the same
 	// value so independent same-flow bootstraps acquire fresh one-time tickets
@@ -123,74 +129,149 @@ type Plan struct {
 }
 
 func (p Plan) ProcessSequence() []Command { return []Command{p.FakeTCP, p.DTLS, p.Link, p.TUN} }
-func (p Plan) StartSequence() []Command { return []Command{p.FakeTCP, p.DTLS, p.Link, p.TUN, p.IPv6Apply, p.RouteApply} }
-func (p Plan) StopSequence() []Command { return []Command{p.RouteCleanup, p.IPv6Cleanup, p.TUN, p.Link, p.DTLS, p.FakeTCP} }
+func (p Plan) StartSequence() []Command {
+	return []Command{p.FakeTCP, p.DTLS, p.Link, p.TUN, p.IPv6Apply, p.RouteApply}
+}
+func (p Plan) StopSequence() []Command {
+	return []Command{p.RouteCleanup, p.IPv6Cleanup, p.TUN, p.Link, p.DTLS, p.FakeTCP}
+}
 
 func (p Profile) normalized() Profile {
-	if p.FEC == "" { p.FEC = "off" }
-	if p.IfName == "" { p.IfName = "WBD" }
-	if p.MTU == 0 { p.MTU = defaultMTU }
-	if p.RouteMode == "" { p.RouteMode = RouteFull }
-	if p.DNSMode == "" { p.DNSMode = DNSAuto }
-	if p.Lanes == 0 { p.Lanes = logicaltunnel.MinProductPublicTransportLanes }
+	if p.FEC == "" {
+		p.FEC = "off"
+	}
+	if p.IfName == "" {
+		p.IfName = "WBD"
+	}
+	if p.MTU == 0 {
+		p.MTU = defaultMTU
+	}
+	if p.RouteMode == "" {
+		p.RouteMode = RouteFull
+	}
+	if p.DNSMode == "" {
+		p.DNSMode = DNSAuto
+	}
+	if p.Lanes == 0 {
+		p.Lanes = logicaltunnel.MinProductPublicTransportLanes
+	}
 	return p
 }
 
 func (p Profile) Validate() error {
 	p = p.normalized()
-	if strings.TrimSpace(p.BinDir) == "" { return errors.New("bin directory is required") }
+	if strings.TrimSpace(p.BinDir) == "" {
+		return errors.New("bin directory is required")
+	}
 	front, err := netip.ParseAddrPort(p.ServerFront)
-	if err != nil || !front.Addr().Is4() { return errors.New("server front must be an IPv4 address:port") }
-	if strings.TrimSpace(p.ServerName) == "" { return errors.New("server name is required") }
-	if len(p.RouteKey) < 16 { return errors.New("route key must be at least 16 bytes") }
-	if p.Username == "" || p.Password == "" { return errors.New("username and password are required") }
+	if err != nil || !front.Addr().Is4() {
+		return errors.New("server front must be an IPv4 address:port")
+	}
+	if strings.TrimSpace(p.ServerName) == "" {
+		return errors.New("server name is required")
+	}
+	if len(p.RouteKey) < 16 {
+		return errors.New("route key must be at least 16 bytes")
+	}
+	if p.Username == "" || p.Password == "" {
+		return errors.New("username and password are required")
+	}
 	raw, err := netip.ParseAddrPort(p.ServerRaw)
-	if err != nil || !raw.Addr().Is4() { return errors.New("server raw must be an IPv4 address:port") }
-	if front != raw { return errors.New("per-lane single-flow requires server front and raw endpoints to be identical") }
-	if p.FEC != "off" && p.FEC != "20:20" { return errors.New("FEC must be off or 20:20") }
-	if p.MTU < 576 || p.MTU > 9000 { return errors.New("MTU must be 576..9000") }
-	if err := logicaltunnel.ValidateProductTransportLaneCount(p.Lanes); err != nil { return err }
-	if err := validateIdleTimeoutSeconds(p.IdleTimeoutSeconds); err != nil { return err }
-	if err := validateLaneRotationProfile(p); err != nil { return err }
-	if _, err := logicaltunnel.ParseInstallationID(strings.TrimSpace(p.InstallationID)); err != nil { return errors.New("stable installation id must be exactly 32 hex characters") }
-	if p.RouteMode != RouteFull && p.RouteMode != RouteForeign && p.RouteMode != RouteChina { return errors.New("route mode must be Full, Foreign, or China") }
-	if (p.RouteMode == RouteForeign || p.RouteMode == RouteChina) && strings.TrimSpace(p.CNSetDir) == "" { return errors.New("China/Foreign route mode requires the WBD CN ipset directory") }
+	if err != nil || !raw.Addr().Is4() {
+		return errors.New("server raw must be an IPv4 address:port")
+	}
+	if front != raw {
+		return errors.New("per-lane single-flow requires server front and raw endpoints to be identical")
+	}
+	if p.FEC != "off" && p.FEC != "20:20" {
+		return errors.New("FEC must be off or 20:20")
+	}
+	if p.MTU < 576 || p.MTU > 9000 {
+		return errors.New("MTU must be 576..9000")
+	}
+	if _, err := gameConnectionMTUBudget(p.MTU, p.FEC); err != nil {
+		return fmt.Errorf("connection MTU %d: %w", p.MTU, err)
+	}
+	if err := logicaltunnel.ValidateProductTransportLaneCount(p.Lanes); err != nil {
+		return err
+	}
+	if err := validateIdleTimeoutSeconds(p.IdleTimeoutSeconds); err != nil {
+		return err
+	}
+	if err := validateLaneRotationProfile(p); err != nil {
+		return err
+	}
+	if _, err := logicaltunnel.ParseInstallationID(strings.TrimSpace(p.InstallationID)); err != nil {
+		return errors.New("stable installation id must be exactly 32 hex characters")
+	}
+	if p.RouteMode != RouteFull && p.RouteMode != RouteForeign && p.RouteMode != RouteChina {
+		return errors.New("route mode must be Full, Foreign, or China")
+	}
+	if (p.RouteMode == RouteForeign || p.RouteMode == RouteChina) && strings.TrimSpace(p.CNSetDir) == "" {
+		return errors.New("China/Foreign route mode requires the WBD CN ipset directory")
+	}
 	for _, prefix := range p.Prefix4 {
 		px, err := netip.ParsePrefix(prefix)
-		if err != nil || !px.Addr().Is4() { return fmt.Errorf("invalid IPv4 capture prefix %q", prefix) }
+		if err != nil || !px.Addr().Is4() {
+			return fmt.Errorf("invalid IPv4 capture prefix %q", prefix)
+		}
 	}
-	if p.DNSMode != DNSAuto && p.DNSMode != DNSSystem && p.DNSMode != DNSCloudflare && p.DNSMode != DNSCustom { return errors.New("DNS mode must be Auto, System, Cloudflare, or Custom") }
+	if p.DNSMode != DNSAuto && p.DNSMode != DNSSystem && p.DNSMode != DNSCloudflare && p.DNSMode != DNSCustom {
+		return errors.New("DNS mode must be Auto, System, Cloudflare, or Custom")
+	}
 	if p.DNSMode == DNSCustom {
 		ip, err := netip.ParseAddr(strings.TrimSpace(p.DNSServer))
-		if err != nil || !ip.Is4() { return errors.New("custom DNS server must be one IPv4 address") }
+		if err != nil || !ip.Is4() {
+			return errors.New("custom DNS server must be one IPv4 address")
+		}
 	}
 	if strings.TrimSpace(p.TunnelIPv4) != "" {
-		if px, err := netip.ParsePrefix(p.TunnelIPv4); err != nil || !px.Addr().Is4() { return errors.New("authenticated tunnel IPv4 must be an IPv4 CIDR") }
+		if px, err := netip.ParsePrefix(p.TunnelIPv4); err != nil || !px.Addr().Is4() {
+			return errors.New("authenticated tunnel IPv4 must be an IPv4 CIDR")
+		}
 	}
-	if strings.TrimSpace(p.TicketPath) == "" || strings.TrimSpace(p.TunnelConfigPath) == "" || strings.TrimSpace(p.RouteState) == "" { return errors.New("ticket, tunnel-config and route-state paths are required") }
+	if strings.TrimSpace(p.TicketPath) == "" || strings.TrimSpace(p.TunnelConfigPath) == "" || strings.TrimSpace(p.RouteState) == "" {
+		return errors.New("ticket, tunnel-config and route-state paths are required")
+	}
 	return nil
 }
 
 func ValidateRoutingAssets(profile Profile) error {
 	profile = profile.normalized()
-	if err := profile.Validate(); err != nil { return err }
-	if profile.RouteMode != RouteForeign && profile.RouteMode != RouteChina { return nil }
-	if _, err := ipset.VerifyCNBundle(profile.CNSetDir); err != nil { return fmt.Errorf("verify WBD CN ipset: %w", err) }
+	if err := profile.Validate(); err != nil {
+		return err
+	}
+	if profile.RouteMode != RouteForeign && profile.RouteMode != RouteChina {
+		return nil
+	}
+	if _, err := ipset.VerifyCNBundle(profile.CNSetDir); err != nil {
+		return fmt.Errorf("verify WBD CN ipset: %w", err)
+	}
 	return nil
 }
 
 func (u Underlay) Validate() error {
-	if ip, err := netip.ParseAddr(u.SourceIP); err != nil || !ip.Is4() { return errors.New("underlay source IP must be IPv4") }
-	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") { return errors.New("underlay packet device must be an Npcap device") }
-	if !validMAC(u.SourceMAC) || !validMAC(u.NextHopMAC) { return errors.New("underlay source and next-hop MACs are required") }
-	if u.SourcePort != 0 && (u.SourcePort < windowsDynamicPortMin || int(u.SourcePort) >= windowsDynamicPortMin+windowsDynamicPortCount) { return errors.New("underlay FakeTCP source port must be in the Windows dynamic TCP port range") }
+	if ip, err := netip.ParseAddr(u.SourceIP); err != nil || !ip.Is4() {
+		return errors.New("underlay source IP must be IPv4")
+	}
+	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
+		return errors.New("underlay packet device must be an Npcap device")
+	}
+	if !validMAC(u.SourceMAC) || !validMAC(u.NextHopMAC) {
+		return errors.New("underlay source and next-hop MACs are required")
+	}
+	if u.SourcePort != 0 && (u.SourcePort < windowsDynamicPortMin || int(u.SourcePort) >= windowsDynamicPortMin+windowsDynamicPortCount) {
+		return errors.New("underlay FakeTCP source port must be in the Windows dynamic TCP port range")
+	}
 	return nil
 }
 
 func nextFakeTCPSourcePort() uint16 {
 	fakeTCPPortSeedOnce.Do(func() {
 		var b [2]byte
-		if _, err := rand.Read(b[:]); err == nil { fakeTCPPortSeed = uint32(binary.BigEndian.Uint16(b[:]) & (windowsDynamicPortCount - 1)) }
+		if _, err := rand.Read(b[:]); err == nil {
+			fakeTCPPortSeed = uint32(binary.BigEndian.Uint16(b[:]) & (windowsDynamicPortCount - 1))
+		}
 	})
 	n := fakeTCPPortCounter.Add(1) - 1
 	return uint16(windowsDynamicPortMin + int((fakeTCPPortSeed+n)&(windowsDynamicPortCount-1)))
@@ -198,7 +279,9 @@ func nextFakeTCPSourcePort() uint16 {
 
 func BuildBootstrap(profile Profile) (Command, error) {
 	profile = profile.normalized()
-	if err := profile.Validate(); err != nil { return Command{}, err }
+	if err := profile.Validate(); err != nil {
+		return Command{}, err
+	}
 	return buildBootstrapCommand(profile), nil
 }
 
@@ -208,13 +291,19 @@ func buildBootstrapCommand(profile Profile) Command {
 
 func BuildFakeTCPCommand(profile Profile, underlay Underlay) (Command, error) {
 	profile = profile.normalized()
-	if err := ValidateRoutingAssets(profile); err != nil { return Command{}, err }
-	if err := underlay.Validate(); err != nil { return Command{}, err }
+	if err := ValidateRoutingAssets(profile); err != nil {
+		return Command{}, err
+	}
+	if err := underlay.Validate(); err != nil {
+		return Command{}, err
+	}
 	raw, _ := netip.ParseAddrPort(profile.ServerRaw)
 	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
 	loop := func(port int) string { return "127.0.0.1:" + strconv.Itoa(port) }
 	sourcePort := underlay.SourcePort
-	if sourcePort == 0 { sourcePort = defaultFakeTCPSourcePort }
+	if sourcePort == 0 {
+		sourcePort = defaultFakeTCPSourcePort
+	}
 	args := []string{
 		"client",
 		"--local-udp", loop(defaultFakeTCPLocalPort),
@@ -238,48 +327,75 @@ func BuildFakeTCPCommand(profile Profile, underlay Underlay) (Command, error) {
 
 func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) {
 	profile = profile.normalized()
-	if err := ValidateRoutingAssets(profile); err != nil { return Plan{}, err }
-	if err := underlay.Validate(); err != nil { return Plan{}, err }
-	if len(strings.TrimSpace(ticket)) != 64 { return Plan{}, errors.New("Reality ticket must be 64 hex characters") }
-	for _, c := range ticket { if !strings.ContainsRune("0123456789abcdefABCDEF", c) { return Plan{}, errors.New("Reality ticket must be hexadecimal") } }
-	if strings.TrimSpace(profile.TunnelIPv4) == "" { return Plan{}, errors.New("authenticated tunnel IPv4 is required before runtime plan build") }
-	gameLinkMTU, err := gameLinkPlaintextMTU(profile.MTU)
-	if err != nil { return Plan{}, err }
+	if err := ValidateRoutingAssets(profile); err != nil {
+		return Plan{}, err
+	}
+	if err := underlay.Validate(); err != nil {
+		return Plan{}, err
+	}
+	if len(strings.TrimSpace(ticket)) != 64 {
+		return Plan{}, errors.New("Reality ticket must be 64 hex characters")
+	}
+	for _, c := range ticket {
+		if !strings.ContainsRune("0123456789abcdefABCDEF", c) {
+			return Plan{}, errors.New("Reality ticket must be hexadecimal")
+		}
+	}
+	if strings.TrimSpace(profile.TunnelIPv4) == "" {
+		return Plan{}, errors.New("authenticated tunnel IPv4 is required before runtime plan build")
+	}
+	mtuBudget, err := gameConnectionMTUBudget(profile.MTU, profile.FEC)
+	if err != nil {
+		return Plan{}, err
+	}
 
 	raw, _ := netip.ParseAddrPort(profile.ServerRaw)
 	tunnelPrefix, _ := netip.ParsePrefix(profile.TunnelIPv4)
 	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
 	loop := func(port int) string { return "127.0.0.1:" + strconv.Itoa(port) }
-	psScript := func(name, script, action string) Command { return Command{Name: name, Path: "powershell.exe", Args: []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin(script), "-Action", action}} }
+	psScript := func(name, script, action string) Command {
+		return Command{Name: name, Path: "powershell.exe", Args: []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin(script), "-Action", action}}
+	}
 
 	fake, err := BuildFakeTCPCommand(profile, underlay)
-	if err != nil { return Plan{}, err }
+	if err != nil {
+		return Plan{}, err
+	}
 	dtlsArgs := []string{"client", strconv.Itoa(defaultDTLSPlainPort), "127.0.0.1", strconv.Itoa(defaultFakeTCPLocalPort), "none", "none"}
-	linkArgs := []string{"-mode", "client", "-listen", loop(defaultLinkListenPort), "-dtls", loop(defaultDTLSPlainPort), "-fec", profile.FEC, "-mtu", strconv.Itoa(gameLinkMTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(ticket)}
-	tunArgs := []string{"-mode", "client", "-ifname", profile.IfName, "-mtu", strconv.Itoa(profile.MTU), "-transport", loop(defaultLinkListenPort), "-expected-source-ipv4", tunnelPrefix.Addr().String()}
+	linkArgs := []string{"-mode", "client", "-listen", loop(defaultLinkListenPort), "-dtls", loop(defaultDTLSPlainPort), "-fec", profile.FEC, "-mtu", strconv.Itoa(mtuBudget.LinkPlaintextMTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(ticket)}
+	tunArgs := []string{"-mode", "client", "-ifname", profile.IfName, "-mtu", strconv.Itoa(mtuBudget.InnerMTU), "-transport", loop(defaultLinkListenPort), "-expected-source-ipv4", tunnelPrefix.Addr().String()}
 
 	psMode := "Full"
 	var prefixFile, directFile string
 	switch profile.RouteMode {
-	case RouteForeign: directFile = filepath.Join(profile.CNSetDir, ipset.CNIPv4File)
-	case RouteChina: psMode = "Split"; prefixFile = filepath.Join(profile.CNSetDir, ipset.CNIPv4File)
+	case RouteForeign:
+		directFile = filepath.Join(profile.CNSetDir, ipset.CNIPv4File)
+	case RouteChina:
+		psMode = "Split"
+		prefixFile = filepath.Join(profile.CNSetDir, ipset.CNIPv4File)
 	}
 	dnsServers := resolvedDNSServers(profile)
-	routeArgs := []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_tun_route.ps1"), "-Action", "Apply", "-Mode", psMode, "-AdapterAlias", profile.IfName, "-TunnelAddress4", profile.TunnelIPv4, "-Underlay4", raw.Addr().String(), "-MTU", strconv.Itoa(profile.MTU), "-StatePath", profile.RouteState}
-	if prefixFile != "" { routeArgs = append(routeArgs, "-PrefixFile4", prefixFile) }
-	if directFile != "" { routeArgs = append(routeArgs, "-DirectPrefixFile4", directFile) }
-	if len(dnsServers) > 0 { routeArgs = append(routeArgs, "-DNSServer", strings.Join(dnsServers, ",")) }
+	routeArgs := []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_tun_route.ps1"), "-Action", "Apply", "-Mode", psMode, "-AdapterAlias", profile.IfName, "-TunnelAddress4", profile.TunnelIPv4, "-Underlay4", raw.Addr().String(), "-MTU", strconv.Itoa(mtuBudget.InnerMTU), "-StatePath", profile.RouteState}
+	if prefixFile != "" {
+		routeArgs = append(routeArgs, "-PrefixFile4", prefixFile)
+	}
+	if directFile != "" {
+		routeArgs = append(routeArgs, "-DirectPrefixFile4", directFile)
+	}
+	if len(dnsServers) > 0 {
+		routeArgs = append(routeArgs, "-DNSServer", strings.Join(dnsServers, ","))
+	}
 	cleanupArgs := []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_tun_route.ps1"), "-Action", "Cleanup", "-StatePath", profile.RouteState}
 
 	return Plan{
 		Bootstrap: buildBootstrapCommand(profile), FakeTCP: fake,
-		DTLS: Command{Name: "dtls", Path: bin("wbd_dtls_shim.exe"), Args: dtlsArgs},
-		Link: Command{Name: "link", Path: bin("wbd-link-proxy.exe"), Args: linkArgs},
-		TUN: Command{Name: "tun", Path: bin("wbd-tun.exe"), Args: tunArgs},
-		IPv6Apply: psScript("ipv6-apply", "windows_ipv6_killswitch.ps1", "Apply"),
-		RouteApply: Command{Name: "route-apply", Path: "powershell.exe", Args: routeArgs},
+		DTLS:         Command{Name: "dtls", Path: bin("wbd_dtls_shim.exe"), Args: dtlsArgs},
+		Link:         Command{Name: "link", Path: bin("wbd-link-proxy.exe"), Args: linkArgs},
+		TUN:          Command{Name: "tun", Path: bin("wbd-tun.exe"), Args: tunArgs},
+		IPv6Apply:    psScript("ipv6-apply", "windows_ipv6_killswitch.ps1", "Apply"),
+		RouteApply:   Command{Name: "route-apply", Path: "powershell.exe", Args: routeArgs},
 		RouteCleanup: Command{Name: "route-cleanup", Path: "powershell.exe", Args: cleanupArgs},
-		IPv6Cleanup: psScript("ipv6-cleanup", "windows_ipv6_killswitch.ps1", "Cleanup"),
+		IPv6Cleanup:  psScript("ipv6-cleanup", "windows_ipv6_killswitch.ps1", "Cleanup"),
 		TicketPath: profile.TicketPath, TunnelConfigPath: profile.TunnelConfigPath,
 	}, nil
 }
@@ -287,22 +403,36 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 func resolvedDNSServers(profile Profile) []string {
 	profile = profile.normalized()
 	switch profile.DNSMode {
-	case DNSSystem: return nil
-	case DNSCloudflare: return []string{"1.1.1.1", "1.0.0.1"}
-	case DNSCustom: return []string{strings.TrimSpace(profile.DNSServer)}
-	case DNSAuto:
-		if profile.RouteMode == RouteChina { return nil }
+	case DNSSystem:
+		return nil
+	case DNSCloudflare:
 		return []string{"1.1.1.1", "1.0.0.1"}
-	default: return nil
+	case DNSCustom:
+		return []string{strings.TrimSpace(profile.DNSServer)}
+	case DNSAuto:
+		if profile.RouteMode == RouteChina {
+			return nil
+		}
+		return []string{"1.1.1.1", "1.0.0.1"}
+	default:
+		return nil
 	}
 }
 
 func validMAC(s string) bool {
 	parts := strings.Split(strings.ToLower(strings.TrimSpace(s)), ":")
-	if len(parts) != 6 { return false }
+	if len(parts) != 6 {
+		return false
+	}
 	for _, part := range parts {
-		if len(part) != 2 { return false }
-		for _, c := range part { if !strings.ContainsRune("0123456789abcdef", c) { return false } }
+		if len(part) != 2 {
+			return false
+		}
+		for _, c := range part {
+			if !strings.ContainsRune("0123456789abcdef", c) {
+				return false
+			}
+		}
 	}
 	return true
 }

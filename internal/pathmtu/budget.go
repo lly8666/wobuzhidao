@@ -1,0 +1,103 @@
+package pathmtu
+
+import (
+	"errors"
+	"fmt"
+
+	"github.com/lly8666/wobuzhidao/internal/control"
+	"github.com/lly8666/wobuzhidao/internal/faketcp"
+	"github.com/lly8666/wobuzhidao/internal/fec"
+	"github.com/lly8666/wobuzhidao/internal/gamepath"
+)
+
+const (
+	// DTLS13RecordReserve is the product-side ciphertext expansion reserve for
+	// one DTLS 1.3 application record on the pinned wolfSSL path. It covers the
+	// protected record header, TLSInnerPlaintext content type and AEAD tag, with
+	// margin for the current no-CID record form. It is deliberately a reserve,
+	// not an estimate of average overhead: the resulting datagram must fit in a
+	// single FakeTCP carrier payload without invoking CarrierFragmenter.
+	DTLS13RecordReserve = 32
+)
+
+var ErrConnectionMTU = errors.New("pathmtu: connection MTU cannot satisfy enabled feature budget")
+
+type Features struct {
+	FEC  bool
+	Game bool
+}
+
+type Budget struct {
+	ConnectionMTU      int
+	CarrierPayloadMTU  int
+	DTLSPlaintextMTU   int
+	LinkPlaintextMTU   int
+	InnerMTU           int
+	FECOverhead        int
+	GameOverhead       int
+	DTLSRecordReserve  int
+}
+
+// Derive turns the operator-visible connection MTU ceiling into the nested
+// product limits used by each layer. The configured value is never passed
+// through as a TUN/LINK MTU. Instead every enabled wrapper consumes budget
+// before the next inner layer is sized.
+func Derive(connectionMTU int, features Features) (Budget, error) {
+	carrier, err := faketcp.CarrierPayloadBudget(connectionMTU)
+	if err != nil {
+		return Budget{}, fmt.Errorf("%w: connection=%d: %v", ErrConnectionMTU, connectionMTU, err)
+	}
+	b := Budget{
+		ConnectionMTU:     connectionMTU,
+		CarrierPayloadMTU: carrier,
+		DTLSRecordReserve: DTLS13RecordReserve,
+	}
+	b.DTLSPlaintextMTU = carrier - DTLS13RecordReserve
+	if b.DTLSPlaintextMTU <= 0 {
+		return Budget{}, fmt.Errorf("%w: connection=%d leaves no DTLS plaintext", ErrConnectionMTU, connectionMTU)
+	}
+
+	link := b.DTLSPlaintextMTU
+	if features.FEC {
+		b.FECOverhead = fec.HeaderSize
+		link -= b.FECOverhead
+	}
+	if link <= 0 {
+		return Budget{}, fmt.Errorf("%w: connection=%d leaves no LINK plaintext", ErrConnectionMTU, connectionMTU)
+	}
+
+	// A connection MTU is a ceiling, not a request to inflate LINK beyond the
+	// protocol's negotiated product maximum. Jumbo underlays therefore keep the
+	// existing LINK maximum while still respecting the configured outer ceiling.
+	policy := control.CurrentLinkPolicy()
+	if link > int(policy.MaxMTU) {
+		link = int(policy.MaxMTU)
+	}
+	if link < int(policy.MinMTU) {
+		return Budget{}, fmt.Errorf("%w: derived LINK MTU=%d below protocol minimum=%d", ErrConnectionMTU, link, policy.MinMTU)
+	}
+	b.LinkPlaintextMTU = link
+
+	inner := link
+	if features.Game {
+		b.GameOverhead = gamepath.DatagramOverhead()
+		inner -= b.GameOverhead
+		if inner < gamepath.MinimumInnerMTU {
+			return Budget{}, fmt.Errorf("%w: derived Game inner MTU=%d below product minimum=%d", ErrConnectionMTU, inner, gamepath.MinimumInnerMTU)
+		}
+	}
+	b.InnerMTU = inner
+	return b, nil
+}
+
+func (b Budget) MaxDTLSDatagram() int {
+	return b.DTLSPlaintextMTU + b.DTLSRecordReserve
+}
+
+func (b Budget) MaxFECWireDatagram() int {
+	return b.LinkPlaintextMTU + b.FECOverhead
+}
+
+func (b Budget) MaxGameDatagram() int {
+	return b.InnerMTU + b.GameOverhead
+}

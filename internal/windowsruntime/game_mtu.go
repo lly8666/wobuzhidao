@@ -1,17 +1,31 @@
 package windowsruntime
 
-import "github.com/lly8666/wobuzhidao/internal/gamepath"
+import (
+	"fmt"
+
+	"github.com/lly8666/wobuzhidao/internal/gamepath"
+	"github.com/lly8666/wobuzhidao/internal/pathmtu"
+)
 
 const minimumGameInnerMTU = gamepath.MinimumInnerMTU
 
-func gameDatagramOverhead() int {
-	return gamepath.DatagramOverhead()
-}
+func gameDatagramOverhead() int { return gamepath.DatagramOverhead() }
 
-func gameInnerMTUBounds() (int, int, error) {
-	return gamepath.InnerMTUBounds()
-}
+func gameInnerMTUBounds() (int, int, error) { return gamepath.InnerMTUBounds() }
 
-func gameLinkPlaintextMTU(innerMTU int) (int, error) {
-	return gamepath.LinkPlaintextMTU(innerMTU)
+func gameLinkPlaintextMTU(innerMTU int) (int, error) { return gamepath.LinkPlaintextMTU(innerMTU) }
+
+// gameConnectionMTUBudget applies the product-facing MTU meaning. Profile.MTU
+// is the maximum outer connection MTU; it is not the Wintun or LINK MTU. Game
+// and FEC consume their own budget only when those features are enabled.
+func gameConnectionMTUBudget(connectionMTU int, fecMode string) (pathmtu.Budget, error) {
+	fecEnabled := false
+	switch fecMode {
+	case "", "off":
+	case "20:20":
+		fecEnabled = true
+	default:
+		return pathmtu.Budget{}, fmt.Errorf("unsupported FEC mode %q for MTU budget", fecMode)
+	}
+	return pathmtu.Derive(connectionMTU, pathmtu.Features{FEC: fecEnabled, Game: true})
 }
