@@ -42,7 +42,7 @@ func TestConnectionMTUBudgetByFeatureSet(t *testing.T) {
 	}
 }
 
-func TestConnectionMTU1600RetainsSingleCarrierBudget(t *testing.T) {
+func TestConnectionMTU1600IsNotClampedByLegacyLinkLimit(t *testing.T) {
 	b, err := Derive(1600, Features{FEC: true, Game: true})
 	if err != nil {
 		t.Fatal(err)
@@ -52,17 +52,32 @@ func TestConnectionMTU1600RetainsSingleCarrierBudget(t *testing.T) {
 	}
 }
 
-func TestJumboConnectionIsCeilingNotLinkInflation(t *testing.T) {
+func TestJumboConnectionUsesWholeConfiguredBudget(t *testing.T) {
 	b, err := Derive(9000, Features{FEC: true, Game: true})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if b.LinkPlaintextMTU != 1500 || b.InnerMTU != 1460 {
-		t.Fatalf("jumbo connection should keep protocol LINK cap: %+v", b)
+	if b.CarrierPayloadMTU != 8960 || b.DTLSPlaintextMTU != 8928 || b.LinkPlaintextMTU != 8872 || b.InnerMTU != 8832 {
+		t.Fatalf("jumbo connection was capped by a lower-layer legacy MTU: %+v", b)
 	}
 }
 
-func TestTooSmallConnectionMTURejected(t *testing.T) {
+func TestConnectionMTURangeIsCentralized(t *testing.T) {
+	if err := ValidateConnectionMTU(MinConnectionMTU); err != nil {
+		t.Fatalf("minimum outer MTU: %v", err)
+	}
+	if err := ValidateConnectionMTU(MaxConnectionMTU); err != nil {
+		t.Fatalf("maximum outer MTU: %v", err)
+	}
+	if err := ValidateConnectionMTU(MinConnectionMTU - 1); err == nil {
+		t.Fatal("below-minimum outer MTU unexpectedly accepted")
+	}
+	if err := ValidateConnectionMTU(MaxConnectionMTU + 1); err == nil {
+		t.Fatal("above-maximum outer MTU unexpectedly accepted")
+	}
+}
+
+func TestTooSmallConnectionMTURejectedForEnabledWrappers(t *testing.T) {
 	if _, err := Derive(576, Features{FEC: true, Game: true}); err == nil {
 		t.Fatal("576 connection MTU unexpectedly accepted for FEC+Game")
 	}
