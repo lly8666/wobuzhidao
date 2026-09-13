@@ -1,4 +1,5 @@
 scenario=30m-300ms-5-30-5
-replica=1
+replica=2
 product_sha=bfca8bdc8bc42840607a1a5cc6de18b806e02bb8
 helper_sha=cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+phase_accounting=delta-v2
