@@ -11,6 +11,14 @@ import (
 )
 
 const (
+	// DefaultConnectionMTU is only a default for profiles that omit MTU. It is
+	// never an additional runtime cap.
+	DefaultConnectionMTU = 1500
+	// MinConnectionMTU and MaxConnectionMTU define the operator-visible product
+	// range. Every inner limit is derived from this one outer ceiling.
+	MinConnectionMTU = 576
+	MaxConnectionMTU = 9000
+
 	// DTLS13RecordReserve is the product-side ciphertext expansion reserve for
 	// one DTLS 1.3 application record on the pinned wolfSSL path. It covers the
 	// protected record header, TLSInnerPlaintext content type and AEAD tag, with
@@ -28,14 +36,24 @@ type Features struct {
 }
 
 type Budget struct {
-	ConnectionMTU      int
-	CarrierPayloadMTU  int
-	DTLSPlaintextMTU   int
-	LinkPlaintextMTU   int
-	InnerMTU           int
-	FECOverhead        int
-	GameOverhead       int
-	DTLSRecordReserve  int
+	ConnectionMTU     int
+	CarrierPayloadMTU int
+	DTLSPlaintextMTU  int
+	LinkPlaintextMTU  int
+	InnerMTU          int
+	FECOverhead       int
+	GameOverhead      int
+	DTLSRecordReserve int
+}
+
+// ValidateConnectionMTU validates the sole operator-visible MTU. Lower layers
+// must not impose their own historical 1360/1400/1500 ceilings; they derive a
+// budget from this value and may only reject immutable protocol impossibilities.
+func ValidateConnectionMTU(connectionMTU int) error {
+	if connectionMTU < MinConnectionMTU || connectionMTU > MaxConnectionMTU {
+		return fmt.Errorf("%w: connection=%d outside product range %d..%d", ErrConnectionMTU, connectionMTU, MinConnectionMTU, MaxConnectionMTU)
+	}
+	return nil
 }
 
 // Derive turns the operator-visible connection MTU ceiling into the nested
@@ -43,6 +61,9 @@ type Budget struct {
 // through as a TUN/LINK MTU. Instead every enabled wrapper consumes budget
 // before the next inner layer is sized.
 func Derive(connectionMTU int, features Features) (Budget, error) {
+	if err := ValidateConnectionMTU(connectionMTU); err != nil {
+		return Budget{}, err
+	}
 	carrier, err := faketcp.CarrierPayloadBudget(connectionMTU)
 	if err != nil {
 		return Budget{}, fmt.Errorf("%w: connection=%d: %v", ErrConnectionMTU, connectionMTU, err)
@@ -66,15 +87,12 @@ func Derive(connectionMTU int, features Features) (Budget, error) {
 		return Budget{}, fmt.Errorf("%w: connection=%d leaves no LINK plaintext", ErrConnectionMTU, connectionMTU)
 	}
 
-	// A connection MTU is a ceiling, not a request to inflate LINK beyond the
-	// protocol's negotiated product maximum. Jumbo underlays therefore keep the
-	// existing LINK maximum while still respecting the configured outer ceiling.
+	// CurrentLinkPolicy's MTU range is now a protocol representation/sanity
+	// boundary only. It must never shrink a valid product connection MTU. Fail
+	// explicitly if a future wire format cannot represent the derived value.
 	policy := control.CurrentLinkPolicy()
-	if link > int(policy.MaxMTU) {
-		link = int(policy.MaxMTU)
-	}
-	if link < int(policy.MinMTU) {
-		return Budget{}, fmt.Errorf("%w: derived LINK MTU=%d below protocol minimum=%d", ErrConnectionMTU, link, policy.MinMTU)
+	if link < int(policy.MinMTU) || link > int(policy.MaxMTU) {
+		return Budget{}, fmt.Errorf("%w: derived LINK MTU=%d outside protocol range %d..%d", ErrConnectionMTU, link, policy.MinMTU, policy.MaxMTU)
 	}
 	b.LinkPlaintextMTU = link
 
