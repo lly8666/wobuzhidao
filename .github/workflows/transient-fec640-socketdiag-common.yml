@@ -1,0 +1,86 @@
+name: transient-fec640-socketdiag-common
+on:
+  workflow_call:
+    inputs:
+      rate_label:
+        required: true
+        type: string
+      rate_bps:
+        required: true
+        type: string
+      spike_loss:
+        required: true
+        type: string
+      product_ref:
+        required: true
+        type: string
+      variant:
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transient:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - name: Checkout exact product candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.product_ref }}
+          path: product
+      - name: Checkout exact diagnostic helper
+        uses: actions/checkout@v4
+        with:
+          ref: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+          path: helper
+      - name: Checkout suite overlay
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - name: Install network and native build tools
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl util-linux
+      - name: Run FEC640 transient with per-socket diagnostics
+        env:
+          TEST_RATE_BPS: ${{ inputs.rate_bps }}
+          SPIKE_LOSS_PCT: ${{ inputs.spike_loss }}
+          PRODUCT_SOURCE_SHA: ${{ inputs.product_ref }}
+          HELPER_SOURCE_SHA: 'cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d'
+          WBD_TEST_VARIANT: ${{ inputs.variant }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_transient_profile_300ms_v5_socketdiag.sh" "$GITHUB_WORKSPACE/product" "$GITHUB_WORKSPACE/helper"
+      - name: Print focused diagnostics
+        if: always()
+        env:
+          RATE_LABEL: ${{ inputs.rate_label }}
+          SPIKE_LOSS: ${{ inputs.spike_loss }}
+        run: |
+          AUDIT="$RUNNER_TEMP/transient-${RATE_LABEL}-5-${SPIKE_LOSS}-5-300ms-120s/transient-audit.json"
+          if [[ -f "$AUDIT" ]]; then
+            python3 - "$AUDIT" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          sd=d.get("runtime_socket_diag") or {}
+          print("SOCKET_PHASE_TOTALS",json.dumps(sd.get("phase_totals") or {},sort_keys=True))
+          print("SOCKET_TOP",json.dumps((sd.get("sockets") or [])[:12],sort_keys=True))
+          print("THREAD_TOP",json.dumps((sd.get("top_threads") or [])[:16],sort_keys=True))
+          print("FEC640_SUMMARY",json.dumps(d.get("fec640") or {},sort_keys=True))
+          print("CPU_SUMMARY",json.dumps(d.get("resource") or {},sort_keys=True))
+          PY
+          else
+            echo "SUMMARY audit missing: $AUDIT"
+          fi
+      - name: Upload complete transient diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: socketdiag-${{ inputs.variant }}-${{ inputs.rate_label }}-5-${{ inputs.spike_loss }}-5-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/transient-${{ inputs.rate_label }}-5-${{ inputs.spike_loss }}-5-300ms-120s
+            ${{ runner.temp }}/singlelane-transient-${{ inputs.rate_label }}-5to${{ inputs.spike_loss }}to5-300ms-120s
+          if-no-files-found: warn
+          retention-days: 7

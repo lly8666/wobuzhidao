@@ -1,0 +1,18 @@
+name: socketdiag-retire64-20m-5-20-5
+on:
+  push:
+    branches: [agent/socket-diag-fec640-20260913]
+    paths: ['.github/triggers/socketdiag-retire64-20m-5-20-5.trigger']
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  run:
+    uses: ./.github/workflows/transient-fec640-socketdiag-common.yml
+    with:
+      rate_label: '20m'
+      rate_bps: '20000000'
+      spike_loss: '20'
+      product_ref: 'd7d5d18d768c3dd14be067e7b46541e6d00c7b2c'
+      variant: 'retire64'
