@@ -14,6 +14,7 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/ipset"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
+	"github.com/lly8666/wobuzhidao/internal/pathmtu"
 )
 
 const (
@@ -24,7 +25,7 @@ const (
 	defaultDTLSPlainPort     = 46101
 	defaultLinkListenPort    = 47101
 	defaultGameListenPort    = 48101
-	defaultMTU               = 1500
+	defaultMTU               = pathmtu.DefaultConnectionMTU
 
 	// DefaultConnectionMTU is the user-visible connection/carrier ceiling used
 	// when a profile omits mtu. TUN/LINK MTUs are derived from enabled wrappers.
@@ -186,8 +187,8 @@ func (p Profile) Validate() error {
 	if p.FEC != "off" && p.FEC != "20:20" {
 		return errors.New("FEC must be off or 20:20")
 	}
-	if p.MTU < 576 || p.MTU > 9000 {
-		return errors.New("MTU must be 576..9000")
+	if err := pathmtu.ValidateConnectionMTU(p.MTU); err != nil {
+		return err
 	}
 	if _, err := gameConnectionMTUBudget(p.MTU, p.FEC); err != nil {
 		return fmt.Errorf("connection MTU %d: %w", p.MTU, err)
@@ -254,7 +255,7 @@ func (u Underlay) Validate() error {
 	if ip, err := netip.ParseAddr(u.SourceIP); err != nil || !ip.Is4() {
 		return errors.New("underlay source IP must be IPv4")
 	}
-	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
+	if !strings.HasPrefix(u.PacketDevice, `\\Device\\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
 		return errors.New("underlay packet device must be an Npcap device")
 	}
 	if !validMAC(u.SourceMAC) || !validMAC(u.NextHopMAC) {
