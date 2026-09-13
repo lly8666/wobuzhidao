@@ -26,6 +26,15 @@ const headerFlagStreamingSystematic uint16 = 1
 // only compact delivery/metadata state, never FEC shard payloads.
 const maxRetiredBlocks = 8192
 
+// A heavy decoder block keeps full shard payloads for parity reconstruction for
+// at most this many newer FEC generations. Once the sender has advanced this
+// far, the probability/value of reconstructing that old block is outweighed by
+// the risk of permanently pinning a reconstruction slot. Expired blocks move to
+// compact retired state: late systematic/source retransmissions can still make
+// their first delivery, while old parity is no longer allowed to retain heavy
+// memory indefinitely.
+const heavyRecoveryHorizonBlocks uint32 = 64
+
 // BlockEncoder is the simple reference encoder. It retains the original
 // all-at-flush behavior; FastBlockEncoder is the performance data path and
 // streams systematic shards immediately.
@@ -140,6 +149,7 @@ type decodeBlock struct {
 	shards  [][]byte
 	present []bool
 	count   int
+	firstAt time.Time
 
 	// Streaming sources are retained only as reconstruction inputs. Their
 	// payload has already been delivered to the inner path on first arrival.
@@ -165,12 +175,12 @@ type retiredBlock struct {
 // systematic shards are returned immediately; parity later supplies final
 // metadata and reconstructs only sources that never arrived.
 //
-// Under decoder pressure, any old block whose retained payload is no longer
-// required for first delivery can be compacted into bounded retired state. If
-// every heavy slot is unsafe to shed, a new streaming block itself enters that
-// bounded ARQ-only state instead of turning maxBlocks into a permanent drop
-// wall. Reference/final-only input preserves ErrDecoderFull when no safe victim
-// exists because it may still contain undelivered source payloads.
+// Heavy reconstruction state also has a generation-based recovery horizon.
+// Once a block is heavyRecoveryHorizonBlocks behind the newest observed block,
+// its shard payloads are retired even when some originals remain missing. The
+// compact state preserves the delivered mask and authoritative metadata, so a
+// late source/systematic retransmission can still make its first delivery; only
+// parity reconstruction beyond the bounded horizon is intentionally abandoned.
 type BlockDecoder struct {
 	codec         Codec
 	maxPacketSize int
@@ -182,6 +192,11 @@ type BlockDecoder struct {
 	retired      map[uint32]retiredBlock
 	retiredOrder []uint32
 	retiredHead  int
+
+	latestBlockID            uint32
+	haveLatestBlockID        bool
+	horizonRetireEvents      uint64
+	horizonRetiredIncomplete uint64
 
 	completed completedBlockSet
 }
@@ -197,6 +212,50 @@ func NewBlockDecoder(codec Codec, maxPacketSize, maxBlocks int) (*BlockDecoder, 
 }
 
 func (d *BlockDecoder) InFlight() int { return len(d.blocks) }
+
+func blockIDAhead(a, b uint32) bool {
+	return int32(a-b) > 0
+}
+
+func blockIDAge(newest, older uint32) (uint32, bool) {
+	delta := int32(newest - older)
+	if delta < 0 {
+		return 0, false
+	}
+	return uint32(delta), true
+}
+
+func (d *BlockDecoder) observeBlockID(id uint32) {
+	if !d.haveLatestBlockID {
+		d.latestBlockID = id
+		d.haveLatestBlockID = true
+		return
+	}
+	if !blockIDAhead(id, d.latestBlockID) {
+		return
+	}
+	d.latestBlockID = id
+	d.retireExpiredHeavy()
+}
+
+func (d *BlockDecoder) blockPastRecoveryHorizon(id uint32) bool {
+	if !d.haveLatestBlockID {
+		return false
+	}
+	age, ok := blockIDAge(d.latestBlockID, id)
+	return ok && age >= heavyRecoveryHorizonBlocks
+}
+
+func (d *BlockDecoder) retireExpiredHeavy() {
+	for _, id := range d.blockOrder[d.blockHead:] {
+		b := d.blocks[id]
+		if b == nil || !d.blockPastRecoveryHorizon(id) {
+			continue
+		}
+		d.retireBlockAfterHorizon(id, b)
+	}
+	d.compactBlockOrder()
+}
 
 func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 	if len(datagram) < HeaderSize {
@@ -219,6 +278,8 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 			return nil, false, err
 		}
 	}
+
+	d.observeBlockID(h.BlockID)
 	if d.completed.contains(h.BlockID) {
 		return nil, false, nil
 	}
@@ -227,6 +288,13 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 	}
 
 	b := d.blocks[h.BlockID]
+	if b == nil && d.blockPastRecoveryHorizon(h.BlockID) {
+		d.addRetiredState(h.BlockID, retiredBlock{})
+		if d.completed.contains(h.BlockID) {
+			return nil, false, nil
+		}
+		return d.addRetired(h, datagram[HeaderSize:], streaming, d.retired[h.BlockID])
+	}
 	if b == nil {
 		if len(d.blocks) >= d.maxBlocks {
 			if id, victim, ok := d.oldestRetirableBefore(h.BlockID); ok {
@@ -242,7 +310,7 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 				return nil, false, ErrDecoderFull
 			}
 		}
-		b = &decodeBlock{}
+		b = &decodeBlock{firstAt: time.Now()}
 		d.blocks[h.BlockID] = b
 		d.blockOrder = append(d.blockOrder, h.BlockID)
 	}
@@ -480,10 +548,10 @@ func canRetireBlock(b *decodeBlock) bool {
 	if b == nil {
 		return false
 	}
-	// A heavy block is safe to compact only after every original application
-	// datagram has been delivered. A missing source is precisely what later
-	// parity may still recover; discarding its retained shards just because the
-	// sources currently present were first-delivered destroys FEC recovery.
+	// Pressure-driven compaction remains conservative inside the recovery
+	// horizon: a missing source is precisely what later parity may still recover.
+	// The separate horizon retirement path is the only place that intentionally
+	// gives up old parity reconstruction while preserving late source delivery.
 	return allDataDelivered(b)
 }
 
@@ -507,11 +575,7 @@ func (d *BlockDecoder) oldestRetirableBefore(limit uint32) (uint32, *decodeBlock
 	return 0, nil, false
 }
 
-func (d *BlockDecoder) retireBlock(id uint32, b *decodeBlock) {
-	if b == nil || !canRetireBlock(b) {
-		return
-	}
-	delete(d.blocks, id)
+func retiredStateFromBlock(b *decodeBlock) retiredBlock {
 	r := retiredBlock{header: b.header, final: b.final}
 	for i, delivered := range b.delivered {
 		if delivered {
@@ -521,8 +585,34 @@ func (d *BlockDecoder) retireBlock(id uint32, b *decodeBlock) {
 			r.header.OriginalLengths[i] = uint16(len(b.sources[i]))
 		}
 	}
+	return r
+}
+
+func (d *BlockDecoder) retireBlock(id uint32, b *decodeBlock) {
+	if b == nil || !canRetireBlock(b) {
+		return
+	}
+	delete(d.blocks, id)
+	r := retiredStateFromBlock(b)
 	d.addRetiredState(id, r)
 	d.compactBlockOrder()
+	if retiredAllDelivered(r) {
+		d.markCompleted(id)
+	}
+}
+
+func (d *BlockDecoder) retireBlockAfterHorizon(id uint32, b *decodeBlock) {
+	if b == nil || !d.blockPastRecoveryHorizon(id) {
+		return
+	}
+	incomplete := !allDataDelivered(b)
+	delete(d.blocks, id)
+	r := retiredStateFromBlock(b)
+	d.addRetiredState(id, r)
+	d.horizonRetireEvents++
+	if incomplete {
+		d.horizonRetiredIncomplete++
+	}
 	if retiredAllDelivered(r) {
 		d.markCompleted(id)
 	}
