@@ -1,0 +1,284 @@
+name: loadpath-buffer-paired-lab
+on:
+  push:
+    branches:
+      - agent/loadpath-measurement-lab-20260914
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PRODUCT_REF: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8
+  HELPER_REF: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+
+jobs:
+  preflight:
+    name: measurement-preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout suite
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - name: Checkout exact baseline product
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PRODUCT_REF }}
+          path: product
+      - name: Checkout exact helper
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.HELPER_REF }}
+          path: helper
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Syntax-check measurement harness
+        run: |
+          python3 -m py_compile \
+            suite/.github/scripts/paced_udp_load_v2.py \
+            suite/.github/scripts/instrument_server_link_rcvbuf_diag.py \
+            suite/.github/scripts/instrument_singlelane_measurement_v2.py \
+            suite/.github/scripts/instrument_game_client_path_diag.py \
+            suite/.github/scripts/instrument_server_mux_perf_diag.py \
+            suite/.github/scripts/analyze_loadpath_buffer_lab.py
+          bash -n suite/.github/scripts/run_udp_echo_calibration_v2.sh
+          bash -n suite/.github/scripts/run_measured_transient_300ms_v6.sh
+      - name: Verify helper patch markers
+        run: |
+          cp -a helper "$RUNNER_TEMP/helper-smoke"
+          python3 suite/.github/scripts/instrument_singlelane_measurement_v2.py \
+            "$RUNNER_TEMP/helper-smoke" suite/.github/scripts/paced_udp_load_v2.py
+          python3 -m py_compile "$RUNNER_TEMP/helper-smoke/scripts/game_lane_rotation_soak.sh" 2>/dev/null || true
+          grep -q 'WBD_LOAD_PHASE_SPEC' "$RUNNER_TEMP/helper-smoke/scripts/game_lane_rotation_soak.sh"
+          grep -q 'diag-rcvbuf-effective-bytes' "$RUNNER_TEMP/helper-smoke/scripts/game_lane_rotation_soak.sh"
+      - name: Verify product diagnostic patches compile
+        run: |
+          python3 suite/.github/scripts/instrument_fec_maxblocks640_diag.py product
+          python3 suite/.github/scripts/instrument_server_link_rcvbuf_diag.py product
+          python3 suite/.github/scripts/instrument_server_mux_perf_diag.py product
+          python3 suite/.github/scripts/instrument_game_client_path_diag.py product
+          gofmt -w product/cmd/wbd-link-server-mux/main.go product/cmd/wbd-game-lane-client/main.go product/cmd/wbd-link-proxy/main.go product/internal/fec/block.go product/internal/linkdata/path.go
+          cd product
+          go test ./cmd/wbd-link-server-mux ./cmd/wbd-game-lane-client ./internal/fec ./internal/linkdata
+
+  calibration:
+    name: calibration-${{ matrix.case_id }}
+    needs: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - {case_id: cal15-r1, rate_bps: '15000000'}
+          - {case_id: cal15-r2, rate_bps: '15000000'}
+          - {case_id: cal20-r1, rate_bps: '20000000'}
+          - {case_id: cal20-r2, rate_bps: '20000000'}
+    steps:
+      - name: Checkout suite
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - name: Checkout exact baseline product for MTU derivation
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PRODUCT_REF }}
+          path: product
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install network tools
+        run: sudo apt-get update && sudo apt-get install -y iproute2
+      - name: Derive exact mixed-traffic maximum payload
+        id: mtu
+        run: |
+          cat > product/mtu_cal_tmp.go <<'GO'
+          package main
+          import (
+            "fmt"
+            "github.com/lly8666/wobuzhidao/internal/pathmtu"
+          )
+          func main() {
+            b, err := pathmtu.Derive(1500, pathmtu.Features{FEC:true, Game:true})
+            if err != nil { panic(err) }
+            fmt.Println(b.InnerMTU)
+          }
+          GO
+          inner=$(cd product && go run ./mtu_cal_tmp.go)
+          rm -f product/mtu_cal_tmp.go
+          echo "inner=$inner" >> "$GITHUB_OUTPUT"
+          echo "WBD_CALIBRATION_INNER_MTU=$inner"
+      - name: Run product-free UDP echo calibration
+        env:
+          CAL_DURATION_SEC: '30'
+        run: |
+          bash suite/.github/scripts/run_udp_echo_calibration_v2.sh \
+            '${{ matrix.rate_bps }}' '${{ matrix.case_id }}' '${{ steps.mtu.outputs.inner }}'
+      - name: Upload calibration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-${{ matrix.case_id }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/udp-echo-cal-${{ matrix.case_id }}
+          if-no-files-found: warn
+          retention-days: 7
+
+  calibration-gate:
+    name: calibration-gate
+    needs: calibration
+    if: always()
+    runs-on: ubuntu-24.04
+    outputs:
+      cal15_ok: ${{ steps.gate.outputs.cal15_ok }}
+      cal20_ok: ${{ steps.gate.outputs.cal20_ok }}
+    steps:
+      - name: Download calibration evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: calibration-*
+          path: calibration-artifacts
+      - name: Evaluate calibration validity
+        id: gate
+        run: |
+          python3 - <<'PY'
+          import json,pathlib,os
+          root=pathlib.Path('calibration-artifacts')
+          rows=[]
+          for p in root.rglob('calibration-summary.json'):
+              d=json.load(open(p)); rows.append(d)
+          rows.sort(key=lambda x:x.get('case_id',''))
+          print(json.dumps(rows,indent=2,sort_keys=True))
+          c15=[r for r in rows if int(r.get('target_bps',0))==15000000]
+          c20=[r for r in rows if int(r.get('target_bps',0))==20000000]
+          ok15=len(c15)==2 and all(bool(r.get('calibration_valid')) for r in c15)
+          ok20=len(c20)==2 and all(bool(r.get('calibration_valid')) for r in c20)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              f.write(f'cal15_ok={str(ok15).lower()}\n')
+              f.write(f'cal20_ok={str(ok20).lower()}\n')
+          md=['# UDP echo calibration','',f'15M qualified: **{ok15}**  ','20M qualified: **{}**'.format(ok20),'',
+              '| case | target Mbps | actual Mbps | ratio | lag p99 ms | local valid |','|---|---:|---:|---:|---:|---|']
+          for r in rows:
+              md.append('| `{}` | {:.1f} | {:.3f} | {:.5f} | {} | {} |'.format(r.get('case_id'),r.get('target_bps',0)/1e6,(r.get('actual_injection_bps') or 0)/1e6,r.get('actual_injection_ratio') or 0,r.get('send_lag_ms_p99'),r.get('calibration_valid')))
+          pathlib.Path('calibration-gate.md').write_text('\n'.join(md)+'\n')
+          print('\n'.join(md))
+          PY
+          cat calibration-gate.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload calibration gate summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-gate-${{ github.run_id }}
+          path: calibration-gate.md
+          retention-days: 7
+
+  buffer-pair:
+    name: pair-${{ matrix.pair }}-${{ matrix.order }}
+    needs: [preflight, calibration-gate]
+    if: ${{ needs.calibration-gate.outputs.cal15_ok == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - {pair: '1', order: AB, first: A, first_buf: '2097152', second: B, second_buf: '8388608'}
+          - {pair: '2', order: AB, first: A, first_buf: '2097152', second: B, second_buf: '8388608'}
+          - {pair: '3', order: BA, first: B, first_buf: '8388608', second: A, second_buf: '2097152'}
+          - {pair: '4', order: BA, first: B, first_buf: '8388608', second: A, second_buf: '2097152'}
+    steps:
+      - name: Checkout suite
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - name: Checkout exact baseline product
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PRODUCT_REF }}
+          path: product-base
+      - name: Checkout exact helper
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.HELPER_REF }}
+          path: helper-base
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install network and native build tools
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl util-linux
+      - name: Run paired samples sequentially on the same runner
+        env:
+          PAIR: ${{ matrix.pair }}
+          FIRST: ${{ matrix.first }}
+          FIRST_BUF: ${{ matrix.first_buf }}
+          SECOND: ${{ matrix.second }}
+          SECOND_BUF: ${{ matrix.second_buf }}
+        run: |
+          set -u
+          run_one() {
+            local variant=$1 order=$2 buf=$3 case_id="p${PAIR}-${variant}-o${order}"
+            local src="$RUNNER_TEMP/transient-15m-5-20-5-300ms-120s"
+            local dst="$RUNNER_TEMP/result-${case_id}"
+            rm -rf "$src" "$dst"
+            set +e
+            bash suite/.github/scripts/run_measured_transient_300ms_v6.sh \
+              "$GITHUB_WORKSPACE/product-base" "$GITHUB_WORKSPACE/helper-base" \
+              "$case_id" 15000000 20 "$buf" "$PRODUCT_REF" false
+            local rc=$?
+            set -e
+            if [[ -d "$src" ]]; then mv "$src" "$dst"; else mkdir -p "$dst"; fi
+            printf '%s\n' "$rc" > "$dst/run-rc.txt"
+            cat > "$dst/pair-metadata.json" <<JSON
+          {"pair":${PAIR},"variant":"${variant}","order":${order},"effective_rcvbuf_bytes":${buf},"product_ref":"${PRODUCT_REF}","helper_ref":"${HELPER_REF}","run_rc":${rc}}
+          JSON
+            echo "WBD_PAIR_SAMPLE_DONE case=$case_id rcvbuf_effective=$buf run_rc=$rc"
+          }
+          run_one "$FIRST" 1 "$FIRST_BUF"
+          run_one "$SECOND" 2 "$SECOND_BUF"
+          exit 0
+      - name: Upload paired raw evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buffer-pair-${{ matrix.pair }}-${{ matrix.order }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/result-p${{ matrix.pair }}-*
+          if-no-files-found: warn
+          retention-days: 7
+
+  aggregate:
+    name: aggregate-measurement-evidence
+    needs: [calibration-gate, buffer-pair]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout suite
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - name: Download paired evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: buffer-pair-*
+          path: artifacts
+        continue-on-error: true
+      - name: Analyze validity, timelines, and paired deltas
+        run: |
+          python3 suite/.github/scripts/analyze_loadpath_buffer_lab.py artifacts analysis
+          cat analysis/sample-validity.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n' >> "$GITHUB_STEP_SUMMARY"
+          cat analysis/paired-deltas.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n' >> "$GITHUB_STEP_SUMMARY"
+          cat analysis/failure-timelines.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload final analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: loadpath-buffer-analysis-${{ github.run_id }}
+          path: analysis
+          retention-days: 14
