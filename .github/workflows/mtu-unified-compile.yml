@@ -1,0 +1,20 @@
+name: mtu-unified-compile
+
+on:
+  push:
+    branches: [fix/unified-path-mtu-20260913]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Compile all packages without running tests
+        run: go test -run '^$' ./...
