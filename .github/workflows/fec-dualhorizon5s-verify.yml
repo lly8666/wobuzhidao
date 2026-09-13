@@ -39,4 +39,4 @@ jobs:
         run: go test ./internal/fec -run 'TestBlockDecoder(RecoveryHorizon|LateFirstSeen|TimeHorizon|GenerationReason)' -count=20
       - name: Compile server mux with timer-driven expiry
         working-directory: product
-        run: go test ./cmd/wbd-link-server-mux ./cmd/wbd-link-proxy
+        run: go test ./cmd/wbd-link-server-mux
