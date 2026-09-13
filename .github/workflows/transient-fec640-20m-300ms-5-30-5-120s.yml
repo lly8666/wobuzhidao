@@ -1,0 +1,16 @@
+name: transient-fec640-20m-300ms-5-30-5-120s
+on:
+  push:
+    branches: [agent/fec640-transient-20260913]
+    paths: ['.github/triggers/transient-fec640-20m-300ms-5-30-5-120s.trigger']
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  run:
+    uses: ./.github/workflows/transient-fec640-common.yml
+    with:
+      rate_label: '20m'
+      rate_bps: '20000000'
+      spike_loss: '30'
