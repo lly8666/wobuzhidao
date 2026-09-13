@@ -1,0 +1,72 @@
+name: mtu-source-harness-fix-once
+
+on:
+  push:
+    branches: [fix/unified-path-mtu-20260913]
+    paths: ['.github/workflows/mtu-source-harness-fix-once.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/unified-path-mtu-20260913
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - name: Apply exact source and harness fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('internal/windowsruntime/plan.go')
+          s=p.read_text()
+          old='strings.HasPrefix(u.PacketDevice, `\\\\Device\\\\NPF_{`)'
+          new='strings.HasPrefix(u.PacketDevice, `\\Device\\NPF_{`)'
+          if s.count(old) != 1: raise SystemExit(f'Npcap marker drift: {s.count(old)}')
+          p.write_text(s.replace(old,new,1))
+
+          p=Path('.github/scripts/run_mtu_global_single.sh')
+          s=p.read_text()
+          old="cat > \"$ROOT/internal/faketcp/mtu_action_test.go\" <<'GO'\npackage faketcp\nimport ("
+          new="cat > \"$ROOT/internal/faketcp/mtu_action_test.go\" <<'GO'\npackage faketcp_test\nimport ("
+          if s.count(old) != 1: raise SystemExit(f'faketcp package marker drift: {s.count(old)}')
+          s=s.replace(old,new,1)
+          idx=s.index('package faketcp_test')
+          tail=s[idx:]
+          old='  "github.com/lly8666/wobuzhidao/internal/pathmtu"\n)'
+          new='  "github.com/lly8666/wobuzhidao/internal/faketcp"\n  "github.com/lly8666/wobuzhidao/internal/pathmtu"\n)'
+          if old not in tail: raise SystemExit('faketcp import marker missing')
+          tail=tail.replace(old,new,1)
+          s=s[:idx]+tail
+          old='f, err := NewCarrierFragmenter(1500)'
+          new='f, err := faketcp.NewCarrierFragmenter(1500)'
+          if s.count(old) != 1: raise SystemExit(f'fragmenter marker drift: {s.count(old)}')
+          p.write_text(s.replace(old,new,1))
+          PY
+          cat > internal/windowsruntime/underlay_npcap_test.go <<'GO'
+          package windowsruntime
+          import "testing"
+          func TestUnderlayValidateAcceptsCanonicalNpcapDevice(t *testing.T) {
+              u := testUnderlay()
+              if err := u.Validate(); err != nil { t.Fatalf("canonical Npcap device rejected: %v", err) }
+          }
+          func TestUnderlayValidateRejectsNonNpcapDevice(t *testing.T) {
+              u := testUnderlay(); u.PacketDevice = `eth0`
+              if err := u.Validate(); err == nil { t.Fatal("non-Npcap device unexpectedly accepted") }
+          }
+          GO
+          gofmt -w internal/windowsruntime/plan.go internal/windowsruntime/underlay_npcap_test.go
+          bash -n .github/scripts/run_mtu_global_single.sh
+      - name: Verify affected packages
+        run: go test ./internal/windowsruntime ./internal/pathmtu ./internal/faketcp ./internal/control -count=1
+      - name: Commit verified fix
+        run: |
+          git config user.name 'wbd-mtu-fix-bot'
+          git config user.email '30583594+lly8666@users.noreply.github.com'
+          git add internal/windowsruntime/plan.go internal/windowsruntime/underlay_npcap_test.go .github/scripts/run_mtu_global_single.sh
+          git commit -m 'fix(mtu): accept canonical Npcap device and repair qualification harness'
+          git push origin HEAD:fix/unified-path-mtu-20260913
