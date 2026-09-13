@@ -33,7 +33,7 @@ if s.count(old) != 1:
 s = s.replace(old, new, 1)
 
 old = '''sudo ip netns exec "$C" python3 "$LOG_DIR/load.py" "$LOG_DIR/load-result.json" "$DURATION_SEC" "$RATE_BPS" "$PAYLOAD_BYTES" >"$LOG_DIR/load.log" 2>&1 &'''
-new = '''sudo ip netns exec "$C" env \\
+new = '''date +%s%N >"$LOG_DIR/load-start-epoch-ns.txt"\nsudo ip netns exec "$C" env \\
   WBD_LOAD_MAX_PAYLOAD="$INNER_MTU" \\
   WBD_LOAD_PHASE_SPEC="${WBD_LOAD_PHASE_SPEC:-}" \\
   WBD_LOAD_DRAIN_SEC="${WBD_LOAD_DRAIN_SEC:-15}" \\
@@ -45,4 +45,4 @@ if s.count(old) != 1:
 s = s.replace(old, new, 1)
 
 rotation.write_text(s)
-print("WBD_SINGLELANE_MEASUREMENT_V2_PATCHED actual_tx_timestamp=1 bounded_catchup=1 phase_actual_tx=1 isolated_link_rcvbuf=1")
+print("WBD_SINGLELANE_MEASUREMENT_V2_PATCHED actual_tx_timestamp=1 bounded_catchup=1 phase_actual_tx=1 isolated_link_rcvbuf=1 timeline_epoch=1")
