@@ -37,8 +37,16 @@ jobs:
           root=pathlib.Path(os.environ['GITHUB_WORKSPACE'])
           c=json.loads((root/'review/.github/loss-unit-case.json').read_text())
           assert c['loss_pct'] in (20,30) and c['carrier_mtu'] in (1500,1600)
+          connection_mtu=int(c['carrier_mtu'])
+          # Fullstack fixture is FEC20:20 + Game: IPv4/TCP 40, DTLS reserve 32,
+          # FEC header 56, Game envelope 40. Mirror the product pathmtu contract.
+          link_mtu=connection_mtu-40-32-56
+          inner_mtu=link_mtu-40
           with open(os.environ['GITHUB_ENV'],'a') as f:
               f.write('LOSS_PCT='+str(c['loss_pct'])+'\n')
+              f.write('CONNECTION_MTU='+str(connection_mtu)+'\n')
+              f.write('LINK_PLAINTEXT_MTU='+str(link_mtu)+'\n')
+              f.write('INNER_MTU='+str(inner_mtu)+'\n')
           p=root/'product/scripts/game_lane_fullstack.sh'
           s=p.read_text()
           changes={'-fec "$FEC" -lanes 1':'-fec "$FEC" -fec-flush-ms 32 -lanes 1',
@@ -67,6 +75,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/singlelane-loss-unit"
           cp "$GITHUB_WORKSPACE/review/.github/loss-unit-case.json" "$RUNNER_TEMP/singlelane-loss-unit/selected-case.json"
+          printf 'connection_mtu=%s\nlink_plaintext_mtu=%s\ninner_mtu=%s\nfec_flush_ms=32\n' "$CONNECTION_MTU" "$LINK_PLAINTEXT_MTU" "$INNER_MTU" > "$RUNNER_TEMP/singlelane-loss-unit/mtu-budget.txt"
           git -C "$GITHUB_WORKSPACE/product" diff > "$RUNNER_TEMP/singlelane-loss-unit/test-overlay.patch"
           git -C "$GITHUB_WORKSPACE/product" rev-parse HEAD > "$RUNNER_TEMP/singlelane-loss-unit/source-sha.txt"
           python3 "$GITHUB_WORKSPACE/review/.github/scripts/audit_loss_unit.py" "$RUNNER_TEMP/singlelane-loss-unit"
@@ -81,6 +90,7 @@ jobs:
             ${{ runner.temp }}/singlelane-loss-unit/host-*
             ${{ runner.temp }}/singlelane-loss-unit/loss-unit-audit.json
             ${{ runner.temp }}/singlelane-loss-unit/selected-case.json
+            ${{ runner.temp }}/singlelane-loss-unit/mtu-budget.txt
             ${{ runner.temp }}/singlelane-loss-unit/test-overlay.patch
             ${{ runner.temp }}/singlelane-loss-unit/source-sha.txt
           if-no-files-found: error
