@@ -797,6 +797,9 @@ func (e *endpoint) close() {
 }
 
 func (e *endpoint) printStats() {
+	if b, err := json.Marshal(e.fragmenter.Stats()); err == nil {
+		fmt.Printf("WBD_CARRIER_FRAGMENT_STATS %s\n", b)
+	}
 	if e.sender == nil || e.receiver == nil {
 		return
 	}

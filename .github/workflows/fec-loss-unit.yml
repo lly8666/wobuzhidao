@@ -1,0 +1,86 @@
+name: fec-loss-unit-single-case
+on:
+  workflow_dispatch:
+  push:
+    branches: ['run/fec-loss-unit-*']
+    paths: ['.github/loss-unit-case.json']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  single:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: review
+      - uses: actions/checkout@v4
+        with:
+          ref: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+          path: helper
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: product
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl
+      - name: Configure one controlled case
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib
+          root=pathlib.Path(os.environ['GITHUB_WORKSPACE'])
+          c=json.loads((root/'review/.github/loss-unit-case.json').read_text())
+          assert c['loss_pct'] in (20,30) and c['carrier_mtu'] in (1500,1600)
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('LOSS_PCT='+str(c['loss_pct'])+'\n')
+          p=root/'product/scripts/game_lane_fullstack.sh'
+          s=p.read_text()
+          changes={'-fec "$FEC" -lanes 1':'-fec "$FEC" -fec-flush-ms 32 -lanes 1',
+                   'link set gc0 up':'link set gc0 mtu '+str(c['carrier_mtu'])+' up',
+                   'link set gs0 up':'link set gs0 mtu '+str(c['carrier_mtu'])+' up'}
+          for old,new in changes.items():
+              assert s.count(old)==1,old
+              s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+      - name: Run exactly one 5Mbps 45s case
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.sha }}
+          CANDIDATE: loss-unit
+          TRAFFIC_PROFILE: realistic-mix-v1
+          LOSS_MODEL: iid
+          TEST_RATE_BPS: '5000000'
+          TEST_DURATION_SEC: '45'
+          WBD_LINK_FEC_DIAG: '1'
+          WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
+        run: |
+          bash "$GITHUB_WORKSPACE/helper/.github/scripts/run_singlelane_constant_observability.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+      - name: Classify sample validity and save provenance
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/singlelane-loss-unit"
+          cp "$GITHUB_WORKSPACE/review/.github/loss-unit-case.json" "$RUNNER_TEMP/singlelane-loss-unit/selected-case.json"
+          git -C "$GITHUB_WORKSPACE/product" diff > "$RUNNER_TEMP/singlelane-loss-unit/test-overlay.patch"
+          git -C "$GITHUB_WORKSPACE/product" rev-parse HEAD > "$RUNNER_TEMP/singlelane-loss-unit/source-sha.txt"
+          python3 "$GITHUB_WORKSPACE/review/.github/scripts/audit_loss_unit.py" "$RUNNER_TEMP/singlelane-loss-unit"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: loss-unit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/singlelane-loss-unit/*.log
+            ${{ runner.temp }}/singlelane-loss-unit/*result.json
+            ${{ runner.temp }}/singlelane-loss-unit/*stats.json
+            ${{ runner.temp }}/singlelane-loss-unit/host-*
+            ${{ runner.temp }}/singlelane-loss-unit/loss-unit-audit.json
+            ${{ runner.temp }}/singlelane-loss-unit/selected-case.json
+            ${{ runner.temp }}/singlelane-loss-unit/test-overlay.patch
+            ${{ runner.temp }}/singlelane-loss-unit/source-sha.txt
+          if-no-files-found: error

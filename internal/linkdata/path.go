@@ -2,6 +2,7 @@ package linkdata
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/control"
@@ -73,7 +74,7 @@ func (p *Path) Stats() PathStats           { return p.stats }
 // the lifetime documented by FastBlockEncoder.
 func (p *Path) Encode(packet []byte, now time.Time) ([][]byte, error) {
 	if len(packet) == 0 || len(packet) > int(p.config.MTU) {
-		return nil, fec.ErrPacketTooLarge
+		return nil, fmt.Errorf("linkdata encode: input_bytes=%d configured_mtu=%d: %w", len(packet), p.config.MTU, fec.ErrPacketTooLarge)
 	}
 	var (
 		wire [][]byte
@@ -155,14 +156,14 @@ func (p *Path) Decode(wire []byte) ([][]byte, error) {
 	)
 	if !p.FECEnabled() {
 		if len(wire) > int(p.config.MTU) {
-			return nil, fec.ErrPacketTooLarge
+			return nil, fmt.Errorf("linkdata decode off: wire_bytes=%d configured_mtu=%d: %w", len(wire), p.config.MTU, fec.ErrPacketTooLarge)
 		}
 		packets = [][]byte{wire}
 	} else {
 		packets, _, err = p.dec.Add(wire)
 		observeFECDecoder(p, time.Now())
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("linkdata decode: wire_bytes=%d configured_mtu=%d: %w", len(wire), p.config.MTU, err)
 		}
 	}
 	for _, packet := range packets {

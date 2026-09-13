@@ -822,6 +822,9 @@ func (s *muxServer) removeSessionMatch(flow faketcp.ServerFlow, expected *muxSes
 	// One bounded teardown record per association; never log payload or account
 	// secrets. Keep full typed counters available for exact-source comparisons.
 	if sess.assoc != nil {
+		if b, err := json.Marshal(sess.fragmenter.Stats()); err == nil {
+			fmt.Printf("WBD_CARRIER_FRAGMENT_STATS %s\n", b)
+		}
 		stats := struct {
 			ClientPort uint16                `json:"client_port"`
 			ServerPort uint16                `json:"server_port"`

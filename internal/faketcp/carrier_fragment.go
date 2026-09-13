@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -55,6 +56,36 @@ type CarrierFragmenter struct {
 	mu            sync.Mutex
 	payloadBudget int
 	nextID        uint32
+	datagrams     atomic.Uint64
+	fragmented    atomic.Uint64
+	frames        atomic.Uint64
+	inputBytes    atomic.Uint64
+}
+
+// CarrierFragmentStats counts successful fragmentation decisions, before raw
+// send/repair. It does not claim that every resulting frame reached the wire.
+type CarrierFragmentStats struct {
+	PayloadBudget       int    `json:"payload_budget"`
+	Datagrams           uint64 `json:"datagrams"`
+	FragmentedDatagrams uint64 `json:"fragmented_datagrams"`
+	Frames              uint64 `json:"frames"`
+	InputBytes          uint64 `json:"input_bytes"`
+}
+
+func (f *CarrierFragmenter) Stats() CarrierFragmentStats {
+	if f == nil {
+		return CarrierFragmentStats{}
+	}
+	return CarrierFragmentStats{f.payloadBudget, f.datagrams.Load(), f.fragmented.Load(), f.frames.Load(), f.inputBytes.Load()}
+}
+
+func (f *CarrierFragmenter) record(n, frames int) {
+	f.datagrams.Add(1)
+	f.inputBytes.Add(uint64(n))
+	f.frames.Add(uint64(frames))
+	if frames > 1 {
+		f.fragmented.Add(1)
+	}
 }
 
 func NewCarrierFragmenter(pathMTU int) (*CarrierFragmenter, error) {
@@ -76,6 +107,7 @@ func (f *CarrierFragmenter) Fragment(datagram []byte) ([][]byte, error) {
 		return nil, ErrCarrierDatagram
 	}
 	if len(datagram) <= f.payloadBudget {
+		f.record(len(datagram), 1)
 		return [][]byte{append([]byte(nil), datagram...)}, nil
 	}
 
@@ -111,6 +143,7 @@ func (f *CarrierFragmenter) Fragment(datagram []byte) ([][]byte, error) {
 		frames = append(frames, frame)
 		off += n
 	}
+	f.record(len(datagram), len(frames))
 	return frames, nil
 }
 

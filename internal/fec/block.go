@@ -207,7 +207,7 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 		return nil, false, err
 	}
 	if int(h.ShardSize) > d.maxPacketSize || len(datagram) != HeaderSize+int(h.ShardSize) {
-		return nil, false, ErrPacketTooLarge
+		return nil, false, fmt.Errorf("%w: block=%d shard=%d wire_bytes=%d declared_shard_bytes=%d max_packet_bytes=%d expected_wire_bytes=%d", ErrPacketTooLarge, h.BlockID, h.ShardIndex, len(datagram), h.ShardSize, d.maxPacketSize, HeaderSize+int(h.ShardSize))
 	}
 	flags := binary.BigEndian.Uint16(datagram[14:16])
 	if flags&^headerFlagStreamingSystematic != 0 {
