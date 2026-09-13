@@ -1,0 +1,111 @@
+name: transient-fec640-socketdiag-parallel-common
+on:
+  workflow_call:
+    inputs:
+      case_id:
+        required: true
+        type: string
+      rate_label:
+        required: true
+        type: string
+      rate_bps:
+        required: true
+        type: string
+      spike_loss:
+        required: true
+        type: string
+      product_ref:
+        required: true
+        type: string
+      dual_horizon_patch:
+        required: false
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transient:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - name: Checkout exact product candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.product_ref }}
+          path: product
+      - name: Checkout exact diagnostic helper
+        uses: actions/checkout@v4
+        with:
+          ref: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+          path: helper
+      - name: Checkout suite overlay
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - name: Apply FEC dual-bound horizon candidate
+        if: ${{ inputs.dual_horizon_patch }}
+        run: |
+          python3 "$GITHUB_WORKSPACE/suite/.github/scripts/instrument_fec_dual_horizon5s_diag.py" "$GITHUB_WORKSPACE/product"
+          gofmt -w \
+            "$GITHUB_WORKSPACE/product/internal/fec/block.go" \
+            "$GITHUB_WORKSPACE/product/internal/fec/decoder_observe.go" \
+            "$GITHUB_WORKSPACE/product/internal/fec/block_dual_horizon_test.go" \
+            "$GITHUB_WORKSPACE/product/internal/linkdata/path.go" \
+            "$GITHUB_WORKSPACE/product/internal/linkdata/fec_observe.go"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Verify dual-bound patch semantics
+        if: ${{ inputs.dual_horizon_patch }}
+        working-directory: product
+        run: |
+          go test ./internal/fec ./internal/linkdata
+      - name: Install network and native build tools
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl util-linux
+      - name: Run FEC640 transient with per-socket diagnostics
+        env:
+          TEST_RATE_BPS: ${{ inputs.rate_bps }}
+          SPIKE_LOSS_PCT: ${{ inputs.spike_loss }}
+          PRODUCT_SOURCE_SHA: ${{ inputs.product_ref }}
+          HELPER_SOURCE_SHA: 'cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d'
+          WBD_TEST_VARIANT: ${{ inputs.case_id }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_transient_profile_300ms_v5_socketdiag.sh" "$GITHUB_WORKSPACE/product" "$GITHUB_WORKSPACE/helper"
+      - name: Print focused diagnostics
+        if: always()
+        env:
+          RATE_LABEL: ${{ inputs.rate_label }}
+          SPIKE_LOSS: ${{ inputs.spike_loss }}
+          CASE_ID: ${{ inputs.case_id }}
+        run: |
+          AUDIT="$RUNNER_TEMP/transient-${RATE_LABEL}-5-${SPIKE_LOSS}-5-300ms-120s/transient-audit.json"
+          echo "CASE_ID=$CASE_ID"
+          if [[ -f "$AUDIT" ]]; then
+            python3 - "$AUDIT" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          sd=d.get("runtime_socket_diag") or {}
+          print("AUDIT_SUMMARY",json.dumps({
+              "variant": d.get("test_variant"),
+              "phase_totals": sd.get("phase_totals") or {},
+              "socket_top": (sd.get("sockets") or [])[:12],
+              "thread_top": (sd.get("top_threads") or [])[:16],
+              "fec640": d.get("fec640") or {},
+              "resource": d.get("resource") or {},
+          },sort_keys=True))
+          PY
+          else
+            echo "SUMMARY audit missing: $AUDIT"
+          fi
+      - name: Upload complete transient diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallel-${{ inputs.case_id }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/transient-${{ inputs.rate_label }}-5-${{ inputs.spike_loss }}-5-300ms-120s
+            ${{ runner.temp }}/singlelane-transient-${{ inputs.rate_label }}-5to${{ inputs.spike_loss }}to5-300ms-120s
+          if-no-files-found: warn
+          retention-days: 7

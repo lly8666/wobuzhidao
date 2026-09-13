@@ -1,0 +1,97 @@
+name: fec-dualbound-parallel-lab
+on:
+  push:
+    branches:
+      - agent/fec-parallel-lab-20260914
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  experiment:
+    name: ${{ matrix.case_id }}
+    strategy:
+      fail-fast: false
+      max-parallel: 13
+      matrix:
+        include:
+          - {case_id: b15-20-r1, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: false}
+          - {case_id: b15-20-r2, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: false}
+          - {case_id: b15-20-r3, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: false}
+          - {case_id: b20-20-r1, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: false}
+          - {case_id: b20-20-r2, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: false}
+          - {case_id: d5-30-r1, rate_label: 5m, rate_bps: '5000000', loss: '30', dual: true}
+          - {case_id: d5-30-r2, rate_label: 5m, rate_bps: '5000000', loss: '30', dual: true}
+          - {case_id: d15-20-r1, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: true}
+          - {case_id: d15-20-r2, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: true}
+          - {case_id: d15-20-r3, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: true}
+          - {case_id: d20-20-r1, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: true}
+          - {case_id: d20-20-r2, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: true}
+          - {case_id: d20-20-r3, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: true}
+    uses: ./.github/workflows/transient-fec640-socketdiag-parallel-common.yml
+    with:
+      case_id: ${{ matrix.case_id }}
+      rate_label: ${{ matrix.rate_label }}
+      rate_bps: ${{ matrix.rate_bps }}
+      spike_loss: ${{ matrix.loss }}
+      product_ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8
+      dual_horizon_patch: ${{ matrix.dual }}
+  aggregate:
+    name: aggregate-results
+    needs: experiment
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download experiment artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: parallel-*
+          path: artifacts
+      - name: Build cross-case summary
+        run: |
+          python3 - <<'PY'
+          import csv,json,pathlib
+          root=pathlib.Path("artifacts")
+          rows=[]
+          for p in root.rglob("transient-audit.json"):
+              try:
+                  d=json.loads(p.read_text())
+              except Exception as e:
+                  print(f"WARN unreadable {p}: {e}")
+                  continue
+              case=d.get("test_variant") or (p.parts[1] if len(p.parts)>1 else str(p))
+              sd=d.get("runtime_socket_diag") or {}
+              fec=d.get("fec640") or {}
+              res=d.get("resource") or {}
+              rows.append({
+                  "case_id":case,
+                  "audit":str(p),
+                  "phase_totals":json.dumps(sd.get("phase_totals") or {},sort_keys=True),
+                  "socket_top":json.dumps((sd.get("sockets") or [])[:6],sort_keys=True),
+                  "fec640":json.dumps(fec,sort_keys=True),
+                  "resource":json.dumps(res,sort_keys=True),
+              })
+          rows.sort(key=lambda r:r["case_id"])
+          fields=["case_id","audit","phase_totals","socket_top","fec640","resource"]
+          with open("parallel-summary.csv","w",newline="") as f:
+              w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(rows)
+          md=["# Parallel FEC lab summary","",f"Cases with audit: **{len(rows)}**","",
+              "| case | phase totals | fec640 | resource |",
+              "|---|---|---|---|"]
+          def clip(s,n=350):
+              s=s.replace("|","\\|").replace("\n"," ")
+              return s if len(s)<=n else s[:n]+"…"
+          for r in rows:
+              md.append(f"| `{r['case_id']}` | `{clip(r['phase_totals'])}` | `{clip(r['fec640'])}` | `{clip(r['resource'])}` |")
+          pathlib.Path("parallel-summary.md").write_text("\n".join(md)+"\n")
+          print("\n".join(md))
+          PY
+          cat parallel-summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload aggregate summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallel-lab-summary-${{ github.run_id }}
+          path: |
+            parallel-summary.csv
+            parallel-summary.md
+          retention-days: 7
