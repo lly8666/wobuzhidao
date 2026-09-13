@@ -2,7 +2,7 @@ name: transient-30m-5-30-5-60s
 on:
   push:
     branches: [agent/max-mtu-transient-suite-20260913]
-    paths: ['.github/max-mtu-transient-suite-trigger']
+    paths: ['.github/transient-unified-mtu-trigger']
   workflow_dispatch: {}
 permissions:
   contents: read
@@ -31,18 +31,18 @@ jobs:
         with: {go-version: '1.23.x'}
       - name: Install network and native build tools
         run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl
-      - name: Run one 5-30-5 transient case with 60s at 30 percent random loss
+      - name: Run one unified-MTU 5-30-5 transient case with 60s at 30 percent random loss
         env:
           TEST_RATE_BPS: '30000000'
           PRODUCT_SOURCE_SHA: '076f91e9fbb08a94ef24d44778607e8508b844e4'
           HELPER_SOURCE_SHA: 'cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d'
           GH_TOKEN: ${{ github.token }}
-        run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_transient_5_30_5_60s.sh" "$GITHUB_WORKSPACE/product" "$GITHUB_WORKSPACE/helper"
+        run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_transient_unified_mtu_5_30_5_60s.sh" "$GITHUB_WORKSPACE/product" "$GITHUB_WORKSPACE/helper"
       - name: Upload transient diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: transient-30m-5-30-5-60s
+          name: transient-30m-5-30-5-60s-unified-mtu
           path: |
             ${{ runner.temp }}/transient-30m-5-30-5-60s
             ${{ runner.temp }}/singlelane-transient-30m-5to30to5-60s
