@@ -1,0 +1,7 @@
+suite=unified-mtu-transient-v2
+product_sha=076f91e9fbb08a94ef24d44778607e8508b844e4
+helper_sha=cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+connection_mtu=1500
+rates_bps=20000000,30000000
+loss_profile=5pct-15s,30pct-60s,5pct-15s
+netem_accounting=phase-delta
