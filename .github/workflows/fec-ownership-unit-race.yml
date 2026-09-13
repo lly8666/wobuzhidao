@@ -1,0 +1,29 @@
+name: fec-ownership-unit-race
+
+on:
+  push:
+    branches:
+      - agent/fec-ownership-verify-20260913
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Exact product provenance
+        run: |
+          echo 'PRODUCT_SHA=bfca8bdc8bc42840607a1a5cc6de18b806e02bb8'
+          test "$(git rev-parse HEAD)" = 'bfca8bdc8bc42840607a1a5cc6de18b806e02bb8'
+      - name: Relevant unit tests
+        run: go test ./internal/fec/... ./internal/linkdata/... ./internal/session/... -count=1
+      - name: Session race tests
+        run: go test -race ./internal/session/... -count=1
