@@ -130,7 +130,8 @@ func TestBlockDecoderPressureExpiresBeyondRecoveryHorizon(t *testing.T) {
 }
 ''')
 
-origin_diag = Path(__file__).with_name("apply_test_fec_horizon_origin_diag.py")
-if origin_diag.exists():
-    subprocess.run([sys.executable, str(origin_diag), str(root)], check=True)
+for name in ("apply_test_fec_horizon_origin_diag.py", "apply_test_fec_shard_flow_diag.py"):
+    diag = Path(__file__).with_name(name)
+    if diag.exists():
+        subprocess.run([sys.executable, str(diag), str(root)], check=True)
 print("WBD_TEST_FEC_HORIZON64_PATCHED", p)
