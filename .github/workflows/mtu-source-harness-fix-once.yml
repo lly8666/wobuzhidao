@@ -95,4 +95,11 @@ jobs:
           git add internal/windowsruntime/plan.go internal/windowsruntime/underlay_npcap_test.go .github/scripts/run_mtu_global_single.sh
           git diff --cached --check
           git commit -m 'fix(mtu): accept canonical Npcap device and repair qualification harness'
-          git push origin HEAD:fix/unified-path-mtu-20260913
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:fix/unified-path-mtu-20260913; then
+              exit 0
+            fi
+            echo "push attempt $attempt failed; retrying"
+            sleep $((attempt * 2))
+          done
+          exit 1
