@@ -1,0 +1,64 @@
+name: transient-15m-300ms-5-20-5-120s
+on:
+  push:
+    branches: [agent/fec-ownership-transient-300ms-20260913]
+    paths: ['.github/triggers/transient-15m-300ms-5-20-5-120s.trigger']
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transient15m20:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact product fix
+        uses: actions/checkout@v4
+        with:
+          ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8
+          path: product
+      - name: Checkout exact diagnostic helper
+        uses: actions/checkout@v4
+        with:
+          ref: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+          path: helper
+      - name: Checkout suite overlay
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - name: Install network and native build tools
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl
+      - name: Run 15M 300ms iid 5-20-5 transient
+        env:
+          TEST_RATE_BPS: '15000000'
+          SPIKE_LOSS_PCT: '20'
+          PRODUCT_SOURCE_SHA: 'bfca8bdc8bc42840607a1a5cc6de18b806e02bb8'
+          HELPER_SOURCE_SHA: 'cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d'
+          GH_TOKEN: ${{ github.token }}
+        run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_transient_profile_300ms_v3.sh" "$GITHUB_WORKSPACE/product" "$GITHUB_WORKSPACE/helper"
+      - name: Print CPU summary
+        if: always()
+        run: |
+          AUDIT="$RUNNER_TEMP/transient-15m-5-20-5-300ms-120s/transient-audit.json"
+          if [[ -f "$AUDIT" ]]; then
+            python3 - "$AUDIT" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          print("CPU_SUMMARY", json.dumps(d.get("resource") or {}, sort_keys=True))
+          PY
+          else
+            echo "CPU_SUMMARY audit missing: $AUDIT"
+          fi
+      - name: Upload complete transient diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transient-15m-300ms-5-20-5-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/transient-15m-5-20-5-300ms-120s
+            ${{ runner.temp }}/singlelane-transient-15m-5to20to5-300ms-120s
+          if-no-files-found: warn
+          retention-days: 7
