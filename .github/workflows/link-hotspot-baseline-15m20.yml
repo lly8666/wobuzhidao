@@ -1,0 +1,74 @@
+name: link-hotspot-baseline-15m-20
+on:
+  push:
+    branches: [agent/fec-dualbound-link-hotspot-20260914]
+    paths: ['.github/triggers/link-hotspot-15m20.trigger']
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - name: Checkout exact baseline product
+        uses: actions/checkout@v4
+        with:
+          ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8
+          path: product
+      - name: Checkout exact helper
+        uses: actions/checkout@v4
+        with:
+          ref: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+          path: helper
+      - name: Checkout diagnostic suite
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - name: Install network and native build tools
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl util-linux
+      - name: Apply observation-only LINK hotspot diagnostics
+        run: |
+          python3 "$GITHUB_WORKSPACE/suite/.github/scripts/instrument_link_server_pprof_diag.py" "$GITHUB_WORKSPACE/product"
+          python3 "$GITHUB_WORKSPACE/suite/.github/scripts/instrument_fec_hotspot_timing_diag.py" "$GITHUB_WORKSPACE/product"
+          gofmt -w "$GITHUB_WORKSPACE/product/cmd/wbd-link-server-mux/main.go" "$GITHUB_WORKSPACE/product/internal/linkdata/path.go" "$GITHUB_WORKSPACE/product/internal/linkdata/fec_observe.go"
+          cd "$GITHUB_WORKSPACE/product"
+          go test ./internal/linkdata ./cmd/wbd-link-server-mux
+      - name: Run fixed baseline 15M 5-20-5 with finite hotspot profile
+        env:
+          TEST_RATE_BPS: '15000000'
+          SPIKE_LOSS_PCT: '20'
+          PRODUCT_SOURCE_SHA: 'bfca8bdc8bc42840607a1a5cc6de18b806e02bb8'
+          HELPER_SOURCE_SHA: 'cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d'
+          WBD_TEST_VARIANT: 'baseline-fec640-link-hotspot'
+          GH_TOKEN: ${{ github.token }}
+        run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_link_hotspot_profile_15m20.sh" "$GITHUB_WORKSPACE/product" "$GITHUB_WORKSPACE/helper"
+      - name: Print hotspot evidence
+        if: always()
+        run: |
+          OUT="$RUNNER_TEMP/transient-15m-5-20-5-300ms-120s"
+          for f in "$OUT/pprof/status.txt" "$OUT/pprof/runner-cpu.txt" "$OUT/pprof/profile-meta.json" "$OUT/pprof/cpu-top.txt" "$OUT/pprof/allocs-top.txt" "$OUT/pprof/mutex-top.txt" "$OUT/pprof/block-top.txt"; do
+            echo "===== $f ====="; test -f "$f" && sed -n '1,80p' "$f" || true
+          done
+          test -f "$OUT/transient-audit.json" && python3 - "$OUT/transient-audit.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1])); sd=d.get('runtime_socket_diag') or {}
+          print('SOCKET_PHASE_TOTALS',json.dumps(sd.get('phase_totals') or {},sort_keys=True))
+          print('SOCKET_TOP',json.dumps((sd.get('sockets') or [])[:16],sort_keys=True))
+          print('THREAD_TOP',json.dumps((sd.get('top_threads') or [])[:20],sort_keys=True))
+          print('FEC',json.dumps(d.get('fec640') or {},sort_keys=True))
+          PY
+      - name: Upload hotspot artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: link-hotspot-baseline-15m20-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/transient-15m-5-20-5-300ms-120s
+            ${{ runner.temp }}/singlelane-transient-15m-5to20to5-300ms-120s
+          if-no-files-found: warn
+          retention-days: 7
