@@ -21,6 +21,10 @@ on:
         required: false
         type: boolean
         default: false
+      fec_time_horizon_patch:
+        required: false
+        type: boolean
+        default: false
 permissions:
   contents: read
   actions: read
@@ -47,6 +51,11 @@ jobs:
       - name: Apply DTLS relay fairness candidate
         if: ${{ inputs.fairness_patch }}
         run: python3 "$GITHUB_WORKSPACE/suite/.github/scripts/instrument_dtls_relay_fairness.py" "$GITHUB_WORKSPACE/product"
+      - name: Apply FEC 5s wall-clock horizon candidate
+        if: ${{ inputs.fec_time_horizon_patch }}
+        run: |
+          python3 "$GITHUB_WORKSPACE/suite/.github/scripts/instrument_fec_time_horizon5s_diag.py" "$GITHUB_WORKSPACE/product"
+          gofmt -w "$GITHUB_WORKSPACE/product/internal/fec/block.go" "$GITHUB_WORKSPACE/product/internal/fec/decoder_observe.go" "$GITHUB_WORKSPACE/product/internal/fec/block_time_horizon_test.go"
       - uses: actions/setup-go@v5
         with: {go-version: '1.23.x'}
       - name: Install network and native build tools
