@@ -17,15 +17,31 @@ TARGET_MARKERS = (
 )
 CLK_TCK = os.sysconf(os.sysconf_names["SC_CLK_TCK"])
 
+
 def on_signal(_sig, _frame):
     global STOP
     STOP = True
+
 
 def read_text(path):
     try:
         return Path(path).read_text(errors="replace")
     except Exception:
         return ""
+
+
+def canonical_process(proc):
+    exe = proc.get("exe") or ""
+    if exe:
+        name = Path(exe).name
+        if name not in ("sudo", "ip"):
+            return name
+    cmd = proc.get("cmdline") or ""
+    for marker in TARGET_MARKERS:
+        if marker in cmd:
+            return marker
+    return proc.get("comm") or ""
+
 
 def discover_processes():
     out = []
@@ -47,8 +63,11 @@ def discover_processes():
             netns = os.readlink(f"/proc/{pid}/ns/net")
         except OSError:
             continue
-        out.append({"pid": pid, "comm": comm, "exe": exe, "cmdline": cmdline, "netns": netns})
+        p = {"pid": pid, "comm": comm, "exe": exe, "cmdline": cmdline, "netns": netns}
+        p["process"] = canonical_process(p)
+        out.append(p)
     return out
+
 
 def fd_sockets(pid):
     result = {}
@@ -63,10 +82,10 @@ def fd_sockets(pid):
         except OSError:
             continue
         m = re.fullmatch(r"socket:\[(\d+)\]", target)
-        if not m:
-            continue
-        result.setdefault(m.group(1), []).append(int(p.name))
+        if m:
+            result.setdefault(m.group(1), []).append(int(p.name))
     return result
+
 
 def decode_endpoint(raw, ipv6=False):
     try:
@@ -78,6 +97,7 @@ def decode_endpoint(raw, ipv6=False):
         return f"{addr_hex}:{port}"
     except Exception:
         return raw
+
 
 def proc_udp_rows(pid, wanted):
     rows = {}
@@ -93,12 +113,10 @@ def proc_udp_rows(pid, wanted):
             q = p[4].split(":")
             txq = int(q[0], 16) if len(q) == 2 else 0
             rxq = int(q[1], 16) if len(q) == 2 else 0
-            drops = 0
-            if len(p) >= 13:
-                try:
-                    drops = int(p[-1])
-                except ValueError:
-                    pass
+            try:
+                drops = int(p[-1]) if len(p) >= 13 else 0
+            except ValueError:
+                drops = 0
             rows[inode] = {
                 "family": filename,
                 "local": decode_endpoint(p[1], ipv6),
@@ -109,6 +127,7 @@ def proc_udp_rows(pid, wanted):
                 "drops": drops,
             }
     return rows
+
 
 def nsenter(pid, args):
     try:
@@ -121,24 +140,37 @@ def nsenter(pid, args):
     except Exception as e:
         return f"ERROR {e}"
 
+
+def parse_skmem(entry, text):
+    mm = re.search(r"skmem:\(([^)]*)\)", text)
+    if not mm:
+        return
+    for token in mm.group(1).split(","):
+        token = token.strip()
+        m = re.fullmatch(r"(rb|r|d|tb|t|f|w|o|bl)(\d+)", token)
+        if m:
+            entry[m.group(1)] = int(m.group(2))
+
+
 def ss_skmem(pid):
+    # `ss -m` commonly emits skmem on an indented continuation line after the
+    # line containing `ino:`. Carry the last inode forward so rb/r/d are joined
+    # to the right socket instead of silently disappearing.
     text = nsenter(pid, ["ss", "-uapnemH"])
     result = {}
+    current_inode = None
     for line in text.splitlines():
         mi = re.search(r"\bino:(\d+)\b", line)
-        if not mi:
+        if mi:
+            current_inode = mi.group(1)
+            result.setdefault(current_inode, {"raw": ""})
+        if current_inode is None:
             continue
-        inode = mi.group(1)
-        entry = {"raw": line}
-        mm = re.search(r"skmem:\(([^)]*)\)", line)
-        if mm:
-            for token in mm.group(1).split(","):
-                token = token.strip()
-                m = re.fullmatch(r"(rb|r|d|tb|t|f|w|o|bl)(\d+)", token)
-                if m:
-                    entry[m.group(1)] = int(m.group(2))
-        result[inode] = entry
+        entry = result.setdefault(current_inode, {"raw": ""})
+        entry["raw"] = (entry.get("raw", "") + "\n" + line).strip()
+        parse_skmem(entry, line)
     return result
+
 
 def netem_loss_pct(pid):
     text = nsenter(pid, ["tc", "qdisc", "show"])
@@ -148,6 +180,7 @@ def netem_loss_pct(pid):
         if m:
             vals.append(float(m.group(1)))
     return vals, text
+
 
 def thread_rows(proc):
     pid = proc["pid"]
@@ -162,25 +195,29 @@ def thread_rows(proc):
             stat = (t / "stat").read_text()
             close = stat.rfind(")")
             tail = stat[close + 2:].split()
-            # tail[0] is field 3 (state); utime/stime are fields 14/15.
             utime = int(tail[11])
             stime = int(tail[12])
             comm = (t / "comm").read_text(errors="replace").strip()
             out.append({
-                "pid": pid, "tid": int(t.name), "comm": comm,
-                "process": proc["comm"], "cpu_ticks": utime + stime,
+                "pid": pid,
+                "tid": int(t.name),
+                "comm": comm,
+                "process": proc.get("process") or proc["comm"],
+                "cpu_ticks": utime + stime,
             })
         except Exception:
             continue
     return out
 
+
 def infer_role(processes):
-    hay = " ".join((p.get("comm","") + " " + p.get("cmdline","")) for p in processes)
+    hay = " ".join((p.get("process", "") + " " + p.get("cmdline", "")) for p in processes)
     if "wbd-link-server-mux" in hay or "wbd-game-lane-server" in hay:
         return "server"
     if "wbd-link-proxy" in hay or "wbd-game-lane-client" in hay:
         return "client"
     return "other"
+
 
 def sample():
     procs = discover_processes()
@@ -195,8 +232,11 @@ def sample():
         losses, qdisc = netem_loss_pct(rep)
         role = infer_role(group)
         namespaces.append({
-            "netns": netns, "role": role, "representative_pid": rep,
-            "loss_pct": losses, "qdisc": qdisc,
+            "netns": netns,
+            "role": role,
+            "representative_pid": rep,
+            "loss_pct": losses,
+            "qdisc": qdisc,
         })
         for p in group:
             fds = fd_sockets(p["pid"])
@@ -213,7 +253,8 @@ def sample():
                     "netns": netns,
                     "role": role,
                     "pid": p["pid"],
-                    "process": p["comm"],
+                    "process": p.get("process") or p["comm"],
+                    "comm": p["comm"],
                     "cmdline": p["cmdline"],
                     "fds": sorted(fdlist),
                     "inode": int(inode),
@@ -227,8 +268,6 @@ def sample():
             loss_candidates.extend(ns["loss_pct"])
     loss_pct = None
     if loss_candidates:
-        # Both impaired namespaces are configured identically; keep one value
-        # only when they agree to within tc's printed precision.
         lo, hi = min(loss_candidates), max(loss_candidates)
         if hi - lo < 0.001:
             loss_pct = lo
@@ -242,6 +281,7 @@ def sample():
         "sockets": sockets,
         "threads": [t for p in procs for t in thread_rows(p)],
     }
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -257,8 +297,7 @@ def main():
         with open(args.output, "a", buffering=1) as f:
             while not STOP:
                 started = time.monotonic()
-                rec = sample()
-                f.write(json.dumps(rec, sort_keys=True) + "\n")
+                f.write(json.dumps(sample(), sort_keys=True) + "\n")
                 remain = args.interval - (time.monotonic() - started)
                 if remain > 0:
                     time.sleep(remain)
@@ -267,6 +306,7 @@ def main():
             pid_path.unlink()
         except FileNotFoundError:
             pass
+
 
 if __name__ == "__main__":
     main()
