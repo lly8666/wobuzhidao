@@ -1,0 +1,109 @@
+name: mtu-perf-case-reusable
+
+on:
+  workflow_call:
+    inputs:
+      loss:
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  single:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: review
+      - uses: actions/checkout@v4
+        with:
+          ref: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+          path: helper
+      - uses: actions/checkout@v4
+        with:
+          ref: 66612d348fd52852ffe6c03fcbb52807a3a54883
+          path: product
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+      - name: Install strict-test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl
+      - name: Configure MTU-aware strict case
+        run: |
+          set -euo pipefail
+          LOSS='${{ inputs.loss }}'
+          test "$LOSS" = 20 -o "$LOSS" = 30
+          python3 - "$GITHUB_WORKSPACE/product/scripts/game_lane_fullstack.sh" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); s=p.read_text()
+          changes={
+              'INNER_MTU=${INNER_MTU:-1360}':'INNER_MTU=${INNER_MTU:-1332}',
+              'LINK_PLAINTEXT_MTU=${LINK_PLAINTEXT_MTU:-1400}':'LINK_PLAINTEXT_MTU=${LINK_PLAINTEXT_MTU:-1372}',
+              '-fec "$FEC" -lanes 1':'-fec "$FEC" -fec-flush-ms 32 -lanes 1',
+              'link set gc0 up':'link set gc0 mtu 1500 up',
+              'link set gs0 up':'link set gs0 mtu 1500 up',
+          }
+          for old,new in changes.items():
+              if s.count(old)!=1:
+                  raise SystemExit(f'product test-overlay marker drift {old!r} count={s.count(old)}')
+              s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+          python3 - "$GITHUB_WORKSPACE/helper/.github/scripts/instrument_singlelane_realistic_burst.py" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1]); s=p.read_text()
+          old='+[1360]*15)'
+          new='+[1332]*15)'
+          if s.count(old)!=1:
+              raise SystemExit(f'realistic large-bucket marker drift count={s.count(old)}')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+          mkdir -p "$RUNNER_TEMP/perf-provenance"
+          git -C "$GITHUB_WORKSPACE/product" diff >"$RUNNER_TEMP/perf-provenance/pre-run-product-overlay.patch"
+          git -C "$GITHUB_WORKSPACE/helper" diff >"$RUNNER_TEMP/perf-provenance/helper-overlay.patch"
+          printf '%s\n' 66612d348fd52852ffe6c03fcbb52807a3a54883 >"$RUNNER_TEMP/perf-provenance/product-source-sha.txt"
+          printf '{"loss_pct":%s,"carrier_mtu":1500,"inner_mtu":1332,"link_plaintext_mtu":1372,"large_bucket":1332,"fec":"20:20","fec_flush_ms":32}\n' "$LOSS" \
+            >"$RUNNER_TEMP/perf-provenance/selected-case.json"
+      - name: Run exactly one 5Mbps 45s strict case
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: 66612d348fd52852ffe6c03fcbb52807a3a54883
+          CANDIDATE: mtu-strict-${{ inputs.loss }}
+          LOSS_PCT: ${{ inputs.loss }}
+          TRAFFIC_PROFILE: realistic-mix-v1
+          LOSS_MODEL: iid
+          TEST_RATE_BPS: '5000000'
+          TEST_DURATION_SEC: '45'
+          WBD_LINK_FEC_DIAG: '1'
+          WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
+        run: |
+          set +e
+          bash "$GITHUB_WORKSPACE/helper/.github/scripts/run_singlelane_constant_observability.sh" \
+            "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+          rc=$?
+          set -e
+          LOG="$RUNNER_TEMP/singlelane-mtu-strict-${{ inputs.loss }}"
+          mkdir -p "$LOG"
+          cp "$RUNNER_TEMP/perf-provenance/selected-case.json" "$LOG/selected-case.json"
+          cp "$RUNNER_TEMP/perf-provenance/product-source-sha.txt" "$LOG/source-sha.txt"
+          cp "$RUNNER_TEMP/perf-provenance/helper-overlay.patch" "$LOG/helper-overlay.patch"
+          cp "$RUNNER_TEMP/perf-provenance/pre-run-product-overlay.patch" "$LOG/pre-run-product-overlay.patch"
+          git -C "$GITHUB_WORKSPACE/product" diff >"$LOG/final-product-overlay.patch"
+          python3 "$GITHUB_WORKSPACE/review/.github/scripts/audit_loss_unit.py" "$LOG" || true
+          exit "$rc"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mtu-strict-${{ inputs.loss }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/singlelane-mtu-strict-${{ inputs.loss }}/**
+          if-no-files-found: error
