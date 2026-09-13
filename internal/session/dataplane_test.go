@@ -1,12 +1,14 @@
 package session
 
 import (
+	"bytes"
 	"errors"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/control"
+	"github.com/lly8666/wobuzhidao/internal/fec"
 )
 
 func offConfig() control.LinkConfig {
@@ -132,6 +134,59 @@ func TestDataPlaneFixedFECStateIsPerSession(t *testing.T) {
 	}
 }
 
+func TestDataPlaneFixedFECWireOwnershipSurvivesEncoderReuse(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		firstSize  int
+		secondSize int
+	}{
+		{name: "large_then_small", firstSize: 1364, secondSize: 96},
+		{name: "small_then_large", firstSize: 160, secondSize: 1364},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			d, err := NewDataPlane(1, 64)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var id LiveID
+			id[0] = 21
+			if err := d.Reserve("solo", id, "127.0.0.1:44001", time.Now()); err != nil {
+				t.Fatal(err)
+			}
+			if err := d.Activate(id, fixedConfig()); err != nil {
+				t.Fatal(err)
+			}
+
+			now := time.Now()
+			if _, _, err := d.Outbound(id, bytes.Repeat([]byte{0xa5}, tc.firstSize), now); err != nil {
+				t.Fatal(err)
+			}
+			_, held, err := d.Flush(id)
+			if err != nil || len(held) != 1 {
+				t.Fatalf("first flush wire=%d err=%v", len(held), err)
+			}
+			if got, want := len(held[0]), fec.HeaderSize+tc.firstSize; got != want {
+				t.Fatalf("first parity len=%d want=%d", got, want)
+			}
+			snapshot := append([]byte(nil), held[0]...)
+
+			if _, _, err := d.Outbound(id, bytes.Repeat([]byte{0x5a}, tc.secondSize), now.Add(time.Millisecond)); err != nil {
+				t.Fatal(err)
+			}
+			_, next, err := d.Flush(id)
+			if err != nil || len(next) != 1 {
+				t.Fatalf("second flush wire=%d err=%v", len(next), err)
+			}
+			if got, want := len(next[0]), fec.HeaderSize+tc.secondSize; got != want {
+				t.Fatalf("second parity len=%d want=%d", got, want)
+			}
+			if !bytes.Equal(held[0], snapshot) {
+				t.Fatalf("returned FEC wire mutated after encoder reuse: held_len=%d first_shard=%d second_shard=%d", len(held[0]), tc.firstSize, tc.secondSize)
+			}
+		})
+	}
+}
+
 func TestDataPlaneConcurrentSharedAccountDemux(t *testing.T) {
 	const n = 32
 	d, err := NewDataPlane(n, 64)
@@ -175,7 +230,7 @@ func TestDataPlaneConcurrentSharedAccountDemux(t *testing.T) {
 				}
 				return
 			}
-		errCh <- nil
+			errCh <- nil
 		}()
 	}
 	wg.Wait()
