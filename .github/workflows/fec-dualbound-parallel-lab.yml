@@ -15,26 +15,26 @@ jobs:
       max-parallel: 13
       matrix:
         include:
-          - {case_id: b15-20-r1, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: false}
-          - {case_id: b15-20-r2, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: false}
-          - {case_id: b15-20-r3, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: false}
-          - {case_id: b20-20-r1, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: false}
-          - {case_id: b20-20-r2, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: false}
-          - {case_id: d5-30-r1, rate_label: 5m, rate_bps: '5000000', loss: '30', dual: true}
-          - {case_id: d5-30-r2, rate_label: 5m, rate_bps: '5000000', loss: '30', dual: true}
-          - {case_id: d15-20-r1, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: true}
-          - {case_id: d15-20-r2, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: true}
-          - {case_id: d15-20-r3, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: true}
-          - {case_id: d20-20-r1, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: true}
-          - {case_id: d20-20-r2, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: true}
-          - {case_id: d20-20-r3, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: true}
+          - {case_id: b15-20-r1, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: false, product_ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8}
+          - {case_id: b15-20-r2, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: false, product_ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8}
+          - {case_id: b15-20-r3, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: false, product_ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8}
+          - {case_id: b20-20-r1, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: false, product_ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8}
+          - {case_id: b20-20-r2, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: false, product_ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8}
+          - {case_id: d5-30-r1, rate_label: 5m, rate_bps: '5000000', loss: '30', dual: true, product_ref: d7d5d18d768c3dd14be067e7b46541e6d00c7b2c}
+          - {case_id: d5-30-r2, rate_label: 5m, rate_bps: '5000000', loss: '30', dual: true, product_ref: d7d5d18d768c3dd14be067e7b46541e6d00c7b2c}
+          - {case_id: d15-20-r1, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: true, product_ref: d7d5d18d768c3dd14be067e7b46541e6d00c7b2c}
+          - {case_id: d15-20-r2, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: true, product_ref: d7d5d18d768c3dd14be067e7b46541e6d00c7b2c}
+          - {case_id: d15-20-r3, rate_label: 15m, rate_bps: '15000000', loss: '20', dual: true, product_ref: d7d5d18d768c3dd14be067e7b46541e6d00c7b2c}
+          - {case_id: d20-20-r1, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: true, product_ref: d7d5d18d768c3dd14be067e7b46541e6d00c7b2c}
+          - {case_id: d20-20-r2, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: true, product_ref: d7d5d18d768c3dd14be067e7b46541e6d00c7b2c}
+          - {case_id: d20-20-r3, rate_label: 20m, rate_bps: '20000000', loss: '20', dual: true, product_ref: d7d5d18d768c3dd14be067e7b46541e6d00c7b2c}
     uses: ./.github/workflows/transient-fec640-socketdiag-parallel-common.yml
     with:
       case_id: ${{ matrix.case_id }}
       rate_label: ${{ matrix.rate_label }}
       rate_bps: ${{ matrix.rate_bps }}
       spike_loss: ${{ matrix.loss }}
-      product_ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8
+      product_ref: ${{ matrix.product_ref }}
       dual_horizon_patch: ${{ matrix.dual }}
   aggregate:
     name: aggregate-results
