@@ -1,0 +1,6 @@
+suite=2026-09-13T19:35:00+09:00
+product_sha=076f91e9fbb08a94ef24d44778607e8508b844e4
+helper_sha=cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+mtu_cases=1280,1400,1500,1600,9000
+transient_rates_bps=20000000,30000000
+loss_profile=5pct-15s,30pct-60s,5pct-15s
