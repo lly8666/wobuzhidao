@@ -5,30 +5,30 @@ import "time"
 // DecoderPressureStats is a read-only snapshot for diagnostics. It does not
 // change decoder admission, retirement, reconstruction, or wire behavior.
 type DecoderPressureStats struct {
-	InFlight                  int    `json:"in_flight"`
-	MaxBlocks                 int    `json:"max_blocks"`
-	Retired                   int    `json:"retired"`
-	RetiredIncomplete         int    `json:"retired_incomplete"`
-	RetiredMissingSources     int    `json:"retired_missing_sources"`
-	ActiveFinal               int    `json:"active_final"`
-	ActiveProvisional         int    `json:"active_provisional"`
-	ActiveMissingSources      int    `json:"active_missing_sources"`
-	RecoveryHorizonBlocks     uint32 `json:"recovery_horizon_blocks"`
-	NewestBlockID             uint32 `json:"newest_block_id"`
-	OldestActiveAgeBlocks     uint32 `json:"oldest_active_age_blocks"`
-	OldestActiveAgeMillis     int64  `json:"oldest_active_age_ms"`
-	HorizonRetireEvents       uint64 `json:"horizon_retire_events"`
+	InFlight                 int    `json:"in_flight"`
+	MaxBlocks                int    `json:"max_blocks"`
+	Retired                  int    `json:"retired"`
+	RetiredIncomplete        int    `json:"retired_incomplete"`
+	RetiredMissingSources    int    `json:"retired_missing_sources"`
+	ActiveFinal              int    `json:"active_final"`
+	ActiveProvisional        int    `json:"active_provisional"`
+	ActiveMissingSources     int    `json:"active_missing_sources"`
+	RecoveryHorizonBlocks    uint32 `json:"recovery_horizon_blocks"`
+	NewestBlockID            uint32 `json:"newest_block_id"`
+	OldestActiveAgeBlocks    uint32 `json:"oldest_active_age_blocks"`
+	OldestActiveAgeMillis    int64  `json:"oldest_active_age_ms"`
+	HorizonRetireEvents      uint64 `json:"horizon_retire_events"`
 	HorizonRetiredIncomplete uint64 `json:"horizon_retired_incomplete"`
 }
 
 func (d *BlockDecoder) PressureStats() DecoderPressureStats {
 	s := DecoderPressureStats{
-		InFlight:                  len(d.blocks),
-		MaxBlocks:                 d.maxBlocks,
-		Retired:                   len(d.retired),
-		RecoveryHorizonBlocks:     heavyRecoveryHorizonBlocks,
-		NewestBlockID:             d.latestBlockID,
-		HorizonRetireEvents:       d.horizonRetireEvents,
+		InFlight:                 len(d.blocks),
+		MaxBlocks:                d.maxBlocks,
+		Retired:                  len(d.retired),
+		RecoveryHorizonBlocks:    heavyRecoveryHorizonBlocks,
+		NewestBlockID:            d.latestBlockID,
+		HorizonRetireEvents:      d.horizonRetireEvents,
 		HorizonRetiredIncomplete: d.horizonRetiredIncomplete,
 	}
 	now := time.Now()
