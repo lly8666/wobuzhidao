@@ -1,4 +1,4 @@
-replica=1
+replica=2
 phase_accounting=delta-v3
 cpu_summary=enabled
-trigger_seq=first
+trigger_seq=second
