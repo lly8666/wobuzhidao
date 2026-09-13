@@ -1,7 +1,7 @@
 name: size-probe-20m-constant5
 on:
   push:
-    branches: [agent/max-mtu-transient-suite-20260913]
+    branches: [agent/fec-ownership-sizeprobe-20260913]
     paths: ['.github/size-probe-trigger']
   workflow_dispatch: {}
 permissions:
@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Checkout exact product source
         uses: actions/checkout@v4
-        with: {ref: 076f91e9fbb08a94ef24d44778607e8508b844e4, path: product}
+        with: {ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8, path: product}
       - name: Checkout exact diagnostic helper
         uses: actions/checkout@v4
         with: {ref: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d, path: helper}
@@ -28,7 +28,7 @@ jobs:
       - name: Run one 20M constant 5 percent exact-size diagnostic
         env:
           TEST_RATE_BPS: '20000000'
-          PRODUCT_SOURCE_SHA: '076f91e9fbb08a94ef24d44778607e8508b844e4'
+          PRODUCT_SOURCE_SHA: 'bfca8bdc8bc42840607a1a5cc6de18b806e02bb8'
           HELPER_SOURCE_SHA: 'cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d'
           GH_TOKEN: '${{ github.token }}'
         run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_constant5_size_failure_probe.sh" "$GITHUB_WORKSPACE/product" "$GITHUB_WORKSPACE/helper"
