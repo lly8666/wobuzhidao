@@ -8,6 +8,12 @@ import (
 const (
 	TypeLinkInit   Type = 11
 	TypeLinkAccept Type = 12
+
+	// MinLinkMTU is the protocol sanity floor for LINK plaintext. MaxLinkMTU is
+	// the uint16 wire representation ceiling. Neither is an operator path-MTU
+	// policy; product path sizing is owned by internal/pathmtu.
+	MinLinkMTU uint16 = 576
+	MaxLinkMTU uint16 = ^uint16(0)
 )
 
 type FECMode byte
@@ -66,13 +72,15 @@ type LinkPolicy struct {
 	AllowedFixedFEC []FixedFECProfile
 }
 
-// CurrentLinkPolicy mirrors the live transport, not simulator research. The
-// live WBD codec is still fixed systematic 20+20 tail-RS and one raw lane.
+// CurrentLinkPolicy mirrors live protocol capabilities. MTU bounds here are
+// representation/sanity bounds only: they must not act as a second path-MTU
+// authority. The operator-facing outer ceiling is validated and derived by
+// internal/pathmtu before LinkConfig is created.
 func CurrentLinkPolicy() LinkPolicy {
 	return LinkPolicy{
 		AllowFECOff:     true,
-		MinMTU:          576,
-		MaxMTU:          1500,
+		MinMTU:          MinLinkMTU,
+		MaxMTU:          MaxLinkMTU,
 		MaxFlushMillis:  100,
 		MaxLaneCount:    1,
 		AllowedFixedFEC: []FixedFECProfile{{DataShards: 20, ParityShards: 20, Scheduler: FECSchedulerTailRS}},
