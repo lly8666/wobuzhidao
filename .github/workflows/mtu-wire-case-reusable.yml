@@ -1,0 +1,84 @@
+name: mtu-wire-case-reusable
+
+on:
+  workflow_call:
+    inputs:
+      case:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  single:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: review
+      - uses: actions/checkout@v4
+        with:
+          ref: 66612d348fd52852ffe6c03fcbb52807a3a54883
+          path: product
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+      - name: Install build and capture tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends autoconf automake libtool make gcc curl unzip openssl iproute2 iptables tcpdump ethtool
+      - name: Build exact product and pinned DTLS
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET="$RUNNER_TEMP/mtu-assets"
+          WOLF="$RUNNER_TEMP/mtu-wolf"
+          ART="$RUNNER_TEMP/mtu-wolf-art"
+          mkdir -p "$ASSET" "$WOLF/src" "$WOLF/build" "$ART"
+          curl -fL -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/9529710833/zip" \
+            -o "$RUNNER_TEMP/wolfssl-source.zip"
+          unzip -q "$RUNNER_TEMP/wolfssl-source.zip" -d "$ART"
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  '"$ART/wolfssl-ac01707f-source.tar.gz" | sha256sum -c -
+          tar -xzf "$ART/wolfssl-ac01707f-source.tar.gz" -C "$WOLF/src" --strip-components=1
+          (cd "$WOLF/src" && ./autogen.sh)
+          (cd "$WOLF/build" && "$WOLF/src/configure" --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
+          make -C "$WOLF/build" -j2 src/libwolfssl.la
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror \
+            -I"$WOLF/build" -I"$WOLF/src" \
+            "$GITHUB_WORKSPACE/product/native/dtls/wbd_dtls_shim.c" \
+            "$WOLF/build/src/.libs/libwolfssl.a" -lm -o "$ASSET/wbd_dtls_shim"
+          (
+            cd "$GITHUB_WORKSPACE/product"
+            go build -trimpath -o "$ASSET/wbd-faketcp" ./cmd/wbd-faketcp
+            go build -trimpath -o "$ASSET/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+            go build -trimpath -o "$ASSET/wbd-link-proxy" ./cmd/wbd-link-proxy
+            go build -trimpath -o "$ASSET/wbd-link-server-mux" ./cmd/wbd-link-server-mux
+            go build -trimpath -o "$ASSET/wbd-game-lane-client" ./cmd/wbd-game-lane-client
+            go build -trimpath -o "$ASSET/wbd-game-lane-server" ./cmd/wbd-game-lane-server
+          )
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=target.example' -addext 'subjectAltName=DNS:target.example' \
+            -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=dtls.wbd.test' \
+            -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+          echo "WBD_MTU_BUILD_PASS product_sha=66612d348fd52852ffe6c03fcbb52807a3a54883"
+      - name: Run exactly one MTU wire case
+        run: |
+          set -euo pipefail
+          CASE='${{ inputs.case }}'
+          OUT="$RUNNER_TEMP/mtu-wire-$CASE"
+          bash "$GITHUB_WORKSPACE/review/.github/scripts/qualify_mtu_wire_case.sh" \
+            "$CASE" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP/mtu-assets" "$OUT"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mtu-wire-${{ inputs.case }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/mtu-wire-${{ inputs.case }}/**
+          if-no-files-found: error
