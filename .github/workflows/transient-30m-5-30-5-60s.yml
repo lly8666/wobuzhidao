@@ -1,0 +1,50 @@
+name: transient-30m-5-30-5-60s
+on:
+  push:
+    branches: [agent/max-mtu-transient-suite-20260913]
+    paths: ['.github/max-mtu-transient-suite-trigger']
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transient30m:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout exact product source
+        uses: actions/checkout@v4
+        with:
+          ref: 076f91e9fbb08a94ef24d44778607e8508b844e4
+          path: product
+      - name: Checkout exact diagnostic helper
+        uses: actions/checkout@v4
+        with:
+          ref: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+          path: helper
+      - name: Checkout suite overlay
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - name: Install network and native build tools
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl
+      - name: Run one 5-30-5 transient case with 60s at 30 percent random loss
+        env:
+          TEST_RATE_BPS: '30000000'
+          PRODUCT_SOURCE_SHA: '076f91e9fbb08a94ef24d44778607e8508b844e4'
+          HELPER_SOURCE_SHA: 'cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d'
+          GH_TOKEN: ${{ github.token }}
+        run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_transient_5_30_5_60s.sh" "$GITHUB_WORKSPACE/product" "$GITHUB_WORKSPACE/helper"
+      - name: Upload transient diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transient-30m-5-30-5-60s
+          path: |
+            ${{ runner.temp }}/transient-30m-5-30-5-60s
+            ${{ runner.temp }}/singlelane-transient-30m-5to30to5-60s
+          if-no-files-found: warn
+          retention-days: 7
