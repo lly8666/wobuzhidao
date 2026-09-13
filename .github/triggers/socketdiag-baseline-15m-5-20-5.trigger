@@ -1,1 +1,1 @@
-2026-09-13 socketdiag replica 1 trigger 2
+2026-09-13 socketdiag baseline 15m replica 2 corrected skmem probe
