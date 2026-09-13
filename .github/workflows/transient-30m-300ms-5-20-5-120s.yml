@@ -1,0 +1,51 @@
+name: transient-30m-300ms-5-20-5-120s
+on:
+  push:
+    branches: [agent/fec-ownership-transient-300ms-20260913]
+    paths: ['.github/triggers/transient-30m-300ms-5-20-5.trigger']
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transient30m20:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact product fix
+        uses: actions/checkout@v4
+        with:
+          ref: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8
+          path: product
+      - name: Checkout exact diagnostic helper
+        uses: actions/checkout@v4
+        with:
+          ref: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+          path: helper
+      - name: Checkout suite overlay
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - name: Install network and native build tools
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl
+      - name: Run 30M 300ms iid 5-20-5 transient
+        env:
+          TEST_RATE_BPS: '30000000'
+          SPIKE_LOSS_PCT: '20'
+          PRODUCT_SOURCE_SHA: 'bfca8bdc8bc42840607a1a5cc6de18b806e02bb8'
+          HELPER_SOURCE_SHA: 'cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d'
+          GH_TOKEN: ${{ github.token }}
+        run: bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_transient_profile_300ms.sh" "$GITHUB_WORKSPACE/product" "$GITHUB_WORKSPACE/helper"
+      - name: Upload complete transient diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transient-30m-300ms-5-20-5-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/transient-30m-5-20-5-300ms-120s
+            ${{ runner.temp }}/singlelane-transient-30m-5to20to5-300ms-120s
+          if-no-files-found: warn
+          retention-days: 7
