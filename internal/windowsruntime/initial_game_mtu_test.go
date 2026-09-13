@@ -3,12 +3,9 @@ package windowsruntime
 import (
 	"strings"
 	"testing"
-
-	"github.com/lly8666/wobuzhidao/internal/dataplane"
-	"github.com/lly8666/wobuzhidao/internal/gamelane"
 )
 
-func TestInitialGameLaneLinkMTUBudgetsDataplaneAndEnvelopeHeaders(t *testing.T) {
+func TestInitialGameLaneDerivesMTUsFromConnectionCeiling(t *testing.T) {
 	p := testProfile()
 	p.Lanes = 1
 	p.MTU = 1300
@@ -24,8 +21,12 @@ func TestInitialGameLaneLinkMTUBudgetsDataplaneAndEnvelopeHeaders(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := 1300 + dataplane.HeaderLen + gamelane.HeaderSize
-	if len(plan.Lanes) != 1 || !argPair(plan.Lanes[0].Link.Args, "-mtu", "1340") || want != 1340 {
-		t.Fatalf("initial Game LINK args=%v want inner+dataplane+game headers=%d", plan.Lanes[0].Link.Args, want)
+	// 1300 connection - 40 IPv4/TCP - 32 DTLS reserve - 56 FEC = 1172 LINK;
+	// Game consumes another 40 bytes, leaving 1132 inner IP for Wintun.
+	if len(plan.Lanes) != 1 || !argPair(plan.Lanes[0].Link.Args, "-mtu", "1172") {
+		t.Fatalf("initial Game LINK args=%v want derived MTU 1172", plan.Lanes[0].Link.Args)
+	}
+	if !argPair(plan.TUN.Args, "-mtu", "1132") {
+		t.Fatalf("initial Game TUN args=%v want derived inner MTU 1132", plan.TUN.Args)
 	}
 }
