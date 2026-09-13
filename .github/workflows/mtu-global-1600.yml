@@ -1,0 +1,24 @@
+name: mtu-global-1600
+on:
+  push:
+    branches: [fix/unified-path-mtu-20260913]
+    paths: ['.github/mtu-validation-trigger']
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  mtu1600:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - name: Install network and native build tools
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl
+      - name: Validate one configured MTU end to end
+        env:
+          WBD_TEST_MTU: '1600'
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/run_mtu_global_single.sh

@@ -1,0 +1,51 @@
+name: mtu-current-5to30to5
+on:
+  push:
+    branches: [fix/unified-path-mtu-20260913]
+    paths: ['.github/mtu-validation-trigger']
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transient5to30to5:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact product source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: product
+      - name: Checkout diagnostic harness only
+        uses: actions/checkout@v4
+        with:
+          ref: run/logic64-h64-diag-batch-20260913
+          path: helper
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.x'}
+      - name: Install network and native build tools
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl
+      - name: Run one current-source 5-30-5 full-stack case
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE: mtu-unified-current-5to30to5
+          SOURCE_SHA: ${{ github.sha }}
+          LOSS_PCT: '5'
+          TRAFFIC_PROFILE: realistic-mix-v1
+          LOSS_MODEL: transient
+          TEST_RATE_BPS: '5000000'
+          TEST_DURATION_SEC: '45'
+          SPIKE_LOSS_PCT: '30'
+          SPIKE_START_SEC: '15'
+          SPIKE_DURATION_SEC: '15'
+          WOLFSSL_SOURCE_ARTIFACT_ID: '9529710833'
+        run: bash "$GITHUB_WORKSPACE/helper/.github/scripts/run_singlelane_ab_observability.sh" "$GITHUB_WORKSPACE/product" "$RUNNER_TEMP"
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mtu-current-5to30to5
+          path: ${{ runner.temp }}/singlelane-mtu-unified-current-5to30to5
+          if-no-files-found: warn
+          retention-days: 7
