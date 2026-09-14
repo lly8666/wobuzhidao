@@ -2,6 +2,8 @@
 
 本版本用于后续 FEC 生命周期开发，不是性能验收完成的生产版本。
 
+发布后MTU问题的具体核对与修复要求见 [MTU_FOLLOWUP.md](MTU_FOLLOWUP.md)。该补充在发布分支上，原始tag不变。
+
 ## 冻结内容
 
 - 产品父提交：bfca8bdc8bc42840607a1a5cc6de18b806e02bb8，包含 DataPlane FEC wire ownership 修复和已有统一路径 MTU 预算代码。
