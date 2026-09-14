@@ -20,7 +20,7 @@ func TestLinkPolicyForInnerMTUUsesGameCompatibleRange(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, serverDefault := range []int{1280, 1300, defaultInnerMTU, maxInner} {
+	for _, serverDefault := range []int{minInner, 1280, 1300, defaultInnerMTU, maxInner} {
 		policy, err := linkPolicyForInnerMTU(serverDefault)
 		if err != nil {
 			t.Fatalf("server default inner MTU %d: %v", serverDefault, err)
@@ -31,10 +31,26 @@ func TestLinkPolicyForInnerMTUUsesGameCompatibleRange(t *testing.T) {
 	}
 }
 
-func TestLinkPolicyForInnerMTURejectsOutOfRange(t *testing.T) {
-	for _, mtu := range []int{575, 1461, 1501} {
-		if _, err := linkPolicyForInnerMTU(mtu); err == nil {
-			t.Fatalf("mtu=%d unexpectedly accepted", mtu)
+func TestLinkPolicyForInnerMTUProtocolBoundary(t *testing.T) {
+	minInner, maxInner, err := gamepath.InnerMTUBounds()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		mtu     int
+		wantErr bool
+	}{
+		{mtu: minInner - 1, wantErr: true},
+		{mtu: minInner},
+		{mtu: maxInner},
+		{mtu: maxInner + 1, wantErr: true},
+	} {
+		_, err := linkPolicyForInnerMTU(tc.mtu)
+		if tc.wantErr && err == nil {
+			t.Fatalf("mtu=%d unexpectedly accepted", tc.mtu)
+		}
+		if !tc.wantErr && err != nil {
+			t.Fatalf("mtu=%d unexpectedly rejected: %v", tc.mtu, err)
 		}
 	}
 }
