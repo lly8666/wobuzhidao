@@ -24,9 +24,12 @@ chmod +x "$ASSET_DIR"/wbd-* "$ASSET_DIR/wbd_dtls_shim"
 IFACE=$(ip route show default | awk 'NR==1 {print $5}')
 SERVER_IP=$(ip -4 addr show dev "$IFACE" | awk '/inet / {sub(/\/.*/,"",$2); print $2; exit}')
 [[ -n "$SERVER_IP" ]] || { echo 'no WSL IPv4' >&2; exit 1; }
+ORIGINAL_INPUT_POLICY=$(iptables -S INPUT | awk 'NR==1 {print $3}')
+[[ "$ORIGINAL_INPUT_POLICY" == ACCEPT || "$ORIGINAL_INPUT_POLICY" == DROP ]] || ORIGINAL_INPUT_POLICY=ACCEPT
 
 cleanup() {
   set +e
+  iptables -P INPUT "$ORIGINAL_INPUT_POLICY" 2>/dev/null || true
   iptables -D OUTPUT -p tcp --sport "$RAW" --tcp-flags RST RST -j DROP 2>/dev/null || true
   iptables -D INPUT -p tcp --dport "$RAW" -m statistic --mode random --probability "0.$LOSS_PCT" -j DROP 2>/dev/null || true
   iptables -D INPUT -p tcp --dport "$RAW" -j ACCEPT 2>/dev/null || true
@@ -39,16 +42,18 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Test-scoped firewall: unsolicited traffic to the public FakeTCP port is denied
-# except the explicit service rule; one random rule injects 15% ingress loss.
+# Test-scoped stateful perimeter: deny unsolicited ingress by default, permit
+# loopback/ICMP plus the one public FakeTCP port, and inject 15% random loss on
+# that explicit public rule before acceptance.
 iptables -I INPUT 1 -i lo -j ACCEPT
 iptables -I INPUT 2 -p icmp -j ACCEPT
 iptables -I INPUT 3 -p tcp --dport "$RAW" -m statistic --mode random --probability "0.$LOSS_PCT" -j DROP
 iptables -I INPUT 4 -p tcp --dport "$RAW" -j ACCEPT
+iptables -P INPUT DROP
 iptables -I OUTPUT 1 -p tcp --sport "$RAW" --tcp-flags RST RST -j DROP
 tc qdisc replace dev "$IFACE" root netem loss random "${LOSS_PCT}%"
 {
-  echo "WBD_WSL_FIREWALL_READY iface=$IFACE raw_port=$RAW ingress_loss_pct=$LOSS_PCT egress_loss_pct=$LOSS_PCT"
+  echo "WBD_WSL_FIREWALL_READY iface=$IFACE raw_port=$RAW input_policy=DROP ingress_loss_pct=$LOSS_PCT egress_loss_pct=$LOSS_PCT"
   iptables -L INPUT -n -v -x
   tc -s qdisc show dev "$IFACE"
 } >"$LOG_DIR/network-start.log" 2>&1
