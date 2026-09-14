@@ -6,6 +6,7 @@ INNER_MTU=${3:?inner mtu}
 CONNECTION_MTU=${4:?connection mtu}
 MAX_LANES=${5:?max lanes}
 LOSS_PCT=${6:-15}
+LINK_IDLE_TIMEOUT=${7:-180s}
 STOP_FILE="$LOG_DIR/stop.server"
 RAW=40000
 LINK=47000
@@ -66,7 +67,7 @@ tc filter replace dev "$IFACE" protocol ip parent 1:0 prio 1 u32 \
   flowid 1:3
 
 "$ASSET_DIR/wbd-game-lane-server" -listen 127.0.0.1:${GAME} -service 127.0.0.1:${GATEWAY} -max-lanes "$MAX_LANES" >"$LOG_DIR/game-server.log" 2>&1 & PIDS+=("$!")
-"$ASSET_DIR/wbd-link-server-mux" -listen 127.0.0.1:${LINK} -service 127.0.0.1:${GAME} -mtu "$INNER_MTU" -connection-mtu "$CONNECTION_MTU" -ticket-dir "$LOG_DIR/tickets" -ticket-ttl 120s -setup-timeout 30s -idle-timeout 180s -max-sessions 16 >"$LOG_DIR/link-server.log" 2>&1 & PIDS+=("$!")
+"$ASSET_DIR/wbd-link-server-mux" -listen 127.0.0.1:${LINK} -service 127.0.0.1:${GAME} -mtu "$INNER_MTU" -connection-mtu "$CONNECTION_MTU" -ticket-dir "$LOG_DIR/tickets" -ticket-ttl 120s -setup-timeout 30s -idle-timeout "$LINK_IDLE_TIMEOUT" -max-sessions 16 >"$LOG_DIR/link-server.log" 2>&1 & PIDS+=("$!")
 "$ASSET_DIR/wbd-faketcp-mux" server --listen "${SERVER_IP}:${RAW}" --dtls-shim "$ASSET_DIR/wbd_dtls_shim" --link-target 127.0.0.1:${LINK} --cert "$ASSET_DIR/dtls.pem" --key "$ASSET_DIR/dtls.key" --front-cert "$ASSET_DIR/front.pem" --front-key "$ASSET_DIR/front.key" --server-name target.example --route-key WBD_REALITY_ROUTE_KEY_0123456789abcdef --username solo --password shared-password --ticket-dir "$LOG_DIR/tickets" --fallback-target 127.0.0.1:9 --bootstrap-timeout 30s --max-sessions 16 >"$LOG_DIR/faketcp-mux.log" 2>&1 & PIDS+=("$!")
 for _ in $(seq 1 600); do
   grep -q "WBD_GAME_LANE_SERVER_READY.*max_lanes=${MAX_LANES}" "$LOG_DIR/game-server.log" 2>/dev/null && grep -q 'WBD_LINK_SERVER_MUX_READY' "$LOG_DIR/link-server.log" 2>/dev/null && grep -q 'READY role=server-mux' "$LOG_DIR/faketcp-mux.log" 2>/dev/null && break
@@ -75,8 +76,8 @@ done
 grep -q "WBD_GAME_LANE_SERVER_READY.*max_lanes=${MAX_LANES}" "$LOG_DIR/game-server.log"
 grep -q 'WBD_LINK_SERVER_MUX_READY' "$LOG_DIR/link-server.log"
 grep -q 'READY role=server-mux' "$LOG_DIR/faketcp-mux.log"
-printf '{"server_ip":"%s","inner_mtu":%s,"connection_mtu":%s,"max_lanes":%s,"loss_pct":%s,"echo_ip":"%s","echo_port":%s,"tun_if":"%s"}\n' "$SERVER_IP" "$INNER_MTU" "$CONNECTION_MTU" "$MAX_LANES" "$LOSS_PCT" "$ECHO_IP" "$ECHO_PORT" "$TUN_IF" >"$LOG_DIR/server-ready.json"
-echo "WBD_WSL_WINTUN_SOAK_READY server_ip=$SERVER_IP tun=$TUN_IF echo=$ECHO_IP:$ECHO_PORT loss_pct=$LOSS_PCT"
+printf '{"server_ip":"%s","inner_mtu":%s,"connection_mtu":%s,"max_lanes":%s,"loss_pct":%s,"link_idle_timeout":"%s","echo_ip":"%s","echo_port":%s,"tun_if":"%s"}\n' "$SERVER_IP" "$INNER_MTU" "$CONNECTION_MTU" "$MAX_LANES" "$LOSS_PCT" "$LINK_IDLE_TIMEOUT" "$ECHO_IP" "$ECHO_PORT" "$TUN_IF" >"$LOG_DIR/server-ready.json"
+echo "WBD_WSL_WINTUN_SOAK_READY server_ip=$SERVER_IP tun=$TUN_IF echo=$ECHO_IP:$ECHO_PORT loss_pct=$LOSS_PCT link_idle_timeout=$LINK_IDLE_TIMEOUT"
 while [[ ! -e "$STOP_FILE" ]]; do for p in "${PIDS[@]}"; do kill -0 "$p" 2>/dev/null || { echo "server child died pid=$p" >&2; exit 1; }; done; sleep 1; done
 {
   echo '=== outer pre-netem ==='; iptables -t mangle -L "$OUTER_CHAIN" -nvx
@@ -84,4 +85,4 @@ while [[ ! -e "$STOP_FILE" ]]; do for p in "${PIDS[@]}"; do kill -0 "$p" 2>/dev/
   echo '=== shared tun ==='; ip -s link show dev "$TUN_IF"
   echo '=== shared route ==='; ip route show 10.66.0.0/16
 } >"$LOG_DIR/network-end.log" 2>&1
-echo "WBD_WSL_WINTUN_SOAK_PASS server_ip=$SERVER_IP inner_mtu=$INNER_MTU max_lanes=$MAX_LANES loss_pct=$LOSS_PCT"
+echo "WBD_WSL_WINTUN_SOAK_PASS server_ip=$SERVER_IP inner_mtu=$INNER_MTU max_lanes=$MAX_LANES loss_pct=$LOSS_PCT link_idle_timeout=$LINK_IDLE_TIMEOUT"
