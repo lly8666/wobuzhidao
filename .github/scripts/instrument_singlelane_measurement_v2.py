@@ -75,17 +75,36 @@ def install_helper_hook(root: Path) -> None:
     if not wrapper.exists():
         raise SystemExit(f"A/B helper wrapper missing: {wrapper}")
     s = wrapper.read_text()
-    hook = '''export WBD_MEASUREMENT_FINALIZER="${GITHUB_WORKSPACE:?}/suite/.github/scripts/instrument_singlelane_measurement_v2.py"
+
+    # The six historical product-instrumentation commands are embedded inside a
+    # Python string in this wrapper, so matching one of those textual commands is
+    # intentionally avoided.  Instead, wait until the wrapper has generated its
+    # temporary validator RUNNER, then patch that generated validator at its
+    # stable preflight marker.  At RUNNER execution time the historical six
+    # instrumentations therefore run first, followed by --install-control.
+    install = '''export WBD_MEASUREMENT_FINALIZER="${GITHUB_WORKSPACE:?}/suite/.github/scripts/instrument_singlelane_measurement_v2.py"
 export WBD_PACED_LOAD_SCRIPT="${GITHUB_WORKSPACE:?}/suite/.github/scripts/paced_udp_load_v2.py"
-python3 "$WBD_MEASUREMENT_FINALIZER" --install-control "$PRODUCT_DIR" "$WBD_PACED_LOAD_SCRIPT"
+python3 - "$RUNNER" <<'PY_WBD_MEASUREMENT_HOOK'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+s = p.read_text()
+marker = 'bash -n scripts/game_lane_fullstack.sh\\n'
+hook = 'python3 "${WBD_MEASUREMENT_FINALIZER:?}" --install-control "$PRODUCT_DIR" "${WBD_PACED_LOAD_SCRIPT:?}"\\n'
+if hook not in s:
+    if s.count(marker) != 1:
+        raise SystemExit(f"generated validator measurement marker drift: {s.count(marker)}")
+    s = s.replace(marker, hook + marker, 1)
+p.write_text(s)
+PY_WBD_MEASUREMENT_HOOK
 '''
-    if hook not in s:
-        marker = 'python3 "${WBD_HELPER_DIR:?}/.github/scripts/instrument_transient_qdisc_change.py" "$PRODUCT_DIR"\n\n'
+    if 'PY_WBD_MEASUREMENT_HOOK' not in s:
+        marker = 'chmod +x "$RUNNER"\n'
         if s.count(marker) != 1:
-            raise SystemExit(f"A/B helper hook marker drift: {s.count(marker)}")
-        s = s.replace(marker, marker + hook + '\n', 1)
+            raise SystemExit(f"A/B helper generated-runner marker drift: {s.count(marker)}")
+        s = s.replace(marker, marker + install, 1)
         wrapper.write_text(s)
-    print("WBD_SINGLELANE_MEASUREMENT_V2_HELPER_HOOK finalizer=1")
+    print("WBD_SINGLELANE_MEASUREMENT_V2_HELPER_HOOK generated_validator_finalizer=1")
 
 
 def main() -> None:
@@ -93,9 +112,6 @@ def main() -> None:
         patch_generated(Path(sys.argv[2]), Path(sys.argv[3]).read_text())
         return
     if len(sys.argv) == 4 and sys.argv[1] == "--install-control":
-        # Third argument is deliberately accepted/validated here so the same
-        # invocation contract carries the paced-load provenance through all
-        # stages even though the control hook reads it from the exported path.
         load = Path(sys.argv[3])
         if not load.is_file():
             raise SystemExit(f"paced load script missing: {load}")
