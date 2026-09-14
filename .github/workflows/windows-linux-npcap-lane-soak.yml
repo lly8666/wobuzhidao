@@ -9,19 +9,25 @@ on:
       - '.github/workflows/windows-linux-npcap-lane-soak.yml'
       - '.github/scripts/mtu_budget.go'
       - '.github/scripts/windows_game_load.py'
-      - 'scripts/windows_linux_npcap_lane_soak.ps1'
+      - 'scripts/windows_linux_wintun_lane_soak.ps1'
       - 'scripts/windows_npcap_ephemeral_ci.ps1'
-      - 'scripts/wsl_lane_soak_server.sh'
+      - 'scripts/wsl_wintun_lane_soak_server.sh'
       - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_tun_route.ps1'
+      - 'scripts/linux_shared_tun_firewall.sh'
       - 'cmd/wbd-faketcp/**'
       - 'cmd/wbd-faketcp-mux/**'
       - 'cmd/wbd-link-proxy/**'
       - 'cmd/wbd-link-server-mux/**'
       - 'cmd/wbd-game-lane-client/**'
       - 'cmd/wbd-game-lane-server/**'
+      - 'cmd/wbd-tun/**'
+      - 'cmd/wbd-ip-gateway-shared/**'
       - 'internal/fec/**'
       - 'internal/linkdata/**'
       - 'internal/pathmtu/**'
+      - 'internal/tunnel/**'
+      - 'internal/dataplane/**'
       - 'internal/windowsruntime/**'
 
 permissions:
@@ -82,6 +88,9 @@ jobs:
           go build -trimpath -o "$RUNNER_TEMP/linux-assets/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
           go build -trimpath -o "$RUNNER_TEMP/linux-assets/wbd-link-server-mux" ./cmd/wbd-link-server-mux
           go build -trimpath -o "$RUNNER_TEMP/linux-assets/wbd-game-lane-server" ./cmd/wbd-game-lane-server
+          go build -trimpath -o "$RUNNER_TEMP/linux-assets/wbd-ip-gateway-shared" ./cmd/wbd-ip-gateway-shared
+          cp scripts/linux_shared_tun_firewall.sh "$RUNNER_TEMP/linux-assets/linux_shared_tun_firewall.sh"
+          chmod +x "$RUNNER_TEMP/linux-assets/linux_shared_tun_firewall.sh"
           openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-front.invalid' -keyout "$RUNNER_TEMP/linux-assets/front.key" -out "$RUNNER_TEMP/linux-assets/front.pem" >/dev/null 2>&1
           openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-dtls.invalid' -keyout "$RUNNER_TEMP/linux-assets/dtls.key" -out "$RUNNER_TEMP/linux-assets/dtls.pem" >/dev/null 2>&1
           printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/linux-assets/SOURCE_SHA.txt"
@@ -111,6 +120,19 @@ jobs:
           if($LASTEXITCODE){throw 'wbd-link-proxy build failed'}
           go build -trimpath -o (Join-Path $out 'wbd-game-lane-client.exe') .\cmd\wbd-game-lane-client
           if($LASTEXITCODE){throw 'wbd-game-lane-client build failed'}
+          go build -trimpath -o (Join-Path $out 'wbd-tun.exe') .\cmd\wbd-tun
+          if($LASTEXITCODE){throw 'wbd-tun build failed'}
+          $wintunZip=Join-Path $env:RUNNER_TEMP 'wintun-0.14.1.zip'
+          Invoke-WebRequest -UseBasicParsing 'https://www.wintun.net/builds/wintun-0.14.1.zip' -OutFile $wintunZip
+          $got=(Get-FileHash -Algorithm SHA256 $wintunZip).Hash.ToLowerInvariant()
+          $want='07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51'
+          if($got -ne $want){throw "Wintun ZIP SHA256 mismatch: got=$got want=$want"}
+          $wintunDir=Join-Path $env:RUNNER_TEMP 'wintun'
+          Expand-Archive -LiteralPath $wintunZip -DestinationPath $wintunDir
+          $wintunDll=Get-ChildItem -Path $wintunDir -Recurse -Filter wintun.dll | Where-Object {$_.FullName -match '[\\/]amd64[\\/]'} | Select-Object -First 1
+          if(-not $wintunDll){throw 'amd64 wintun.dll not found in locked archive'}
+          Copy-Item -LiteralPath $wintunDll.FullName -Destination (Join-Path $out 'wintun.dll')
+          Write-Output "WBD_WINDOWS_WINTUN_COMPAT_ARTIFACT_PASS sha256=$got"
           git clone --depth 1 --branch v5.9.2-stable https://github.com/wolfSSL/wolfssl.git "$env:RUNNER_TEMP\wolfssl"
           Push-Location "$env:RUNNER_TEMP\wolfssl"
           if((git rev-parse HEAD).Trim() -ne 'ac01707f552c611fbd135cc723b2682b3e7f80f2'){throw 'wolfSSL pin mismatch'}
@@ -149,16 +171,20 @@ jobs:
         include:
           - lanes: 1
             fec: 'off'
-            slug: '1lane-fec-off'
+            loss: 15
+            slug: '1lane-fec-off-loss15'
           - lanes: 1
             fec: '20:20'
-            slug: '1lane-fec-on'
+            loss: 30
+            slug: '1lane-fec-on-loss30'
           - lanes: 4
             fec: 'off'
-            slug: '4lane-fec-off'
+            loss: 15
+            slug: '4lane-fec-off-loss15'
           - lanes: 4
             fec: '20:20'
-            slug: '4lane-fec-on'
+            loss: 30
+            slug: '4lane-fec-on-loss30'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -231,13 +257,13 @@ jobs:
           .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Install -InstallerPath $installer -InstallerSHA256 $env:NPCAP_INSTALLER_SHA256
           .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Status
 
-      - name: Run 300 second Windows Npcap to WSL Linux lane soak
+      - name: Run 300 second physical-path Wintun plus Npcap soak
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
           $log=Join-Path $env:RUNNER_TEMP 'wbd-soak-${{ matrix.slug }}'
           New-Item -ItemType Directory -Force $log | Out-Null
-          .\scripts\windows_linux_npcap_lane_soak.ps1 `
+          .\scripts\windows_linux_wintun_lane_soak.ps1 `
             -BinDir "$env:RUNNER_TEMP\windows-assets" `
             -LinuxAssets "$env:RUNNER_TEMP\linux-assets" `
             -Lanes ${{ matrix.lanes }} `
@@ -245,7 +271,7 @@ jobs:
             -ConnectionMTU 1420 `
             -DurationSec 300 `
             -RateBps 2000000 `
-            -LossPct 15 `
+            -LossPct ${{ matrix.loss }} `
             -RotateEverySec 90 `
             -LogDir $log
 
@@ -254,6 +280,7 @@ jobs:
         shell: pwsh
         run: |
           $log=Join-Path $env:RUNNER_TEMP 'wbd-soak-${{ matrix.slug }}'
+          if(Test-Path "$log\mtu-budget.json"){Get-Content "$log\mtu-budget.json"}
           if(Test-Path "$log\summary.json"){Get-Content "$log\summary.json"}
           if(Test-Path "$log\load-result.json"){Get-Content "$log\load-result.json" | Select-Object -First 1}
           if(Test-Path "$log\network-end.log"){Get-Content "$log\network-end.log"}
@@ -288,7 +315,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: windows-linux-npcap-lane-soak-${{ matrix.slug }}-${{ github.run_id }}
+          name: windows-linux-npcap-wintun-soak-${{ matrix.slug }}-${{ github.run_id }}
           path: ${{ runner.temp }}\wbd-soak-${{ matrix.slug }}
           if-no-files-found: warn
           retention-days: 14
