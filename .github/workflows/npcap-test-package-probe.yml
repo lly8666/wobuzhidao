@@ -7,6 +7,7 @@ on:
       - agent/fix-per-association-mtu-20260914
     paths:
       - '.github/workflows/npcap-test-package-probe.yml'
+      - 'scripts/windows_npcap_driver_ci.ps1'
 
 permissions:
   contents: read
@@ -16,6 +17,8 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v4
+
       - name: Inspect approved Npcap test package
         shell: pwsh
         run: |
@@ -25,6 +28,8 @@ jobs:
           $dir=Join-Path $env:RUNNER_TEMP 'npcap-test'
           Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $zip
           $zipHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLowerInvariant()
+          $want='6380ebe6d5b06bbb0dc03a43151ee05a4a25be97efebd742c463e0e466621a32'
+          if($zipHash-ne$want){throw "approved Npcap test ZIP hash mismatch: got=$zipHash want=$want"}
           Expand-Archive -LiteralPath $zip -DestinationPath $dir -Force
           Write-Output "WBD_NPCAP_TEST_ZIP sha256=$zipHash"
           Get-ChildItem -LiteralPath $dir -Recurse -File | Sort-Object Name | ForEach-Object {
@@ -33,13 +38,6 @@ jobs:
             $vi=$_.VersionInfo
             Write-Output ("WBD_NPCAP_TEST_FILE name={0} size={1} file_version={2} product_version={3} signature={4} signer={5} sha256={6}" -f $_.Name,$_.Length,$vi.FileVersion,$vi.ProductVersion,[string]$sig.Status,$subject,(Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLowerInvariant())
           }
-          $npf=Get-ChildItem -LiteralPath $dir -Recurse -File -Filter 'NPFInstall.exe' | Select-Object -First 1
-          if(-not $npf){throw 'NPFInstall.exe missing'}
-          Push-Location $npf.DirectoryName
-          try {
-            & $npf.FullName 2>&1 | ForEach-Object { Write-Output "WBD_NPFINSTALL_HELP $_" }
-            Write-Output "WBD_NPFINSTALL_HELP_EXIT code=$LASTEXITCODE"
-          } finally { Pop-Location }
 
       - name: Inspect signed Npcap 1.88 userland payload
         shell: pwsh
@@ -53,18 +51,36 @@ jobs:
           $subject=if($sig.SignerCertificate){[string]$sig.SignerCertificate.Subject}else{''}
           if($sig.Status -ne [System.Management.Automation.SignatureStatus]::Valid -or $subject -notmatch 'Nmap Software LLC'){throw "Npcap 1.88 installer signature invalid: status=$($sig.Status) signer=$subject"}
           $hash=(Get-FileHash -Algorithm SHA256 -LiteralPath $installer).Hash.ToLowerInvariant()
+          $want='a2f4ec1e5ea353ff67efd24b2ebf081ba44532410fae8d5e146af0310aa4f56b'
+          if($hash-ne$want){throw "Npcap 1.88 installer hash mismatch: got=$hash want=$want"}
           Write-Output "WBD_NPCAP_OFFICIAL_INSTALLER version=1.88 signature=Valid signer=$subject sha256=$hash"
           New-Item -ItemType Directory -Force $extract | Out-Null
           & 7z x -y "-o$extract" $installer | Out-Null
           if($LASTEXITCODE){throw "7z extraction failed: $LASTEXITCODE"}
           $dlls=@(Get-ChildItem -LiteralPath $extract -Recurse -File | Where-Object {$_.Name -in @('wpcap.dll','Packet.dll')})
-          if($dlls.Count -eq 0){
-            $interesting=@(Get-ChildItem -LiteralPath $extract -Recurse -File | Where-Object {$_.Extension -eq '.dll'} | ForEach-Object {$_.FullName.Substring($extract.Length+1)}) -join ','
-            throw "Npcap userland DLLs not found after extraction; dlls=$interesting"
-          }
+          if($dlls.Count -eq 0){throw 'Npcap userland DLLs not found after extraction'}
           foreach($dll in $dlls){
             $ds=Get-AuthenticodeSignature -FilePath $dll.FullName
             $dsub=if($ds.SignerCertificate){[string]$ds.SignerCertificate.Subject}else{''}
             $rel=$dll.FullName.Substring($extract.Length+1)
             Write-Output ("WBD_NPCAP_OFFICIAL_DLL path={0} file_version={1} product_version={2} signature={3} signer={4} sha256={5}" -f $rel,$dll.VersionInfo.FileVersion,$dll.VersionInfo.ProductVersion,[string]$ds.Status,$dsub,(Get-FileHash -Algorithm SHA256 -LiteralPath $dll.FullName).Hash.ToLowerInvariant())
           }
+
+      - name: Install and verify ephemeral Npcap runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Install -DriverPackageDir "$env:RUNNER_TEMP\npcap-test" -UserlandExtractDir "$env:RUNNER_TEMP\npcap-1.88-extract"
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Status
+          Add-Content -LiteralPath $env:GITHUB_PATH -Value "$env:SystemRoot\System32\Npcap"
+          $svc=Get-Service -Name npcap -ErrorAction Stop
+          if([string]$svc.Status-ne'Running'){throw "Npcap service status=$($svc.Status)"}
+          Write-Output "WBD_NPCAP_EPHEMERAL_RUNTIME_PASS service=$($svc.Status)"
+
+      - name: Cleanup ephemeral Npcap runtime
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Continue'
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Cleanup
+          if($LASTEXITCODE){exit $LASTEXITCODE}
