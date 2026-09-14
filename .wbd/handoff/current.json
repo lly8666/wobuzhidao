@@ -1,16 +1,24 @@
 {
   "schema_version": "wbd-session-handoff/v1",
-  "continuity_sequence": 106,
+  "continuity_sequence": 107,
   "repository": "lly8666/wobuzhidao",
   "active_branch": "release/20260914-fec-baseline",
-  "checkpoint_based_on_head_sha": "b273ede100ed4284dc2189f2c2e1164ceb2fa19e",
-  "current_head_sha": "b273ede100ed4284dc2189f2c2e1164ceb2fa19e",
+  "checkpoint_based_on_head_sha": "2a77d199d5d4853e678bb7a016bf90344f5d372b",
+  "current_head_sha": "2a77d199d5d4853e678bb7a016bf90344f5d372b",
   "live_refresh_required": true,
   "do_not_ask_user_to_repeat": true,
   "phase": {
     "name": "post-preview FEC lifecycle merged; MTU follow-up next",
     "release_authorized": false,
     "reason": "FEC lifecycle work is merged, but MTU negotiation/per-association budget enforcement and oversize handling are not fully closed, and known repository-wide CI red checks remain."
+  },
+  "architecture_override": {
+    "authority": "ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs each lane same-association bootstrap/no-HOL.",
+    "critical_guard": "single-flow is PER TRANSPORT LANE / TRANSPORT EPOCH. One tunnel owns stable TunnelID/lease and one SessionID/PacketID race domain with 1..4 logical lanes; FEC remains lane-local.",
+    "replacement": "Healthy replacement is A -> A+B -> B; candidate failure preserves A. At most 4 logical lanes exist. One fifth physical slot is replacement overlap only. Client replacement is serialized and server has at most one replacement overlap globally.",
+    "lease_source_boundary": "Accept inner source only when source == server-issued Logical Tunnel lease; MTU/FEC follow-up must not weaken this source authority.",
+    "windows_outer_path": "Windows product path remains real Npcap/raw FakeTCP; Reality-like TLS bootstrap, DTLS, LINK and payload stay on the same raw FakeTCP association per lane.",
+    "server_path": "Linux final path remains one shared WBD TUN + root routing + one WBD-owned host NAT."
   },
   "merged_fec_lifecycle": {
     "pr": 13,
@@ -71,8 +79,13 @@
     "faketcp_native": "Existing SACK/RACK 10% loss smoke requires 1000/1000. Stats-only parent produced 991/1000 and later FEC head produced 986/1000 after unit/build passed.",
     "apply_server_negotiated_mtu_fix": "Historical/stale MTU workflow; not authority for FEC lifecycle regression classification."
   },
+  "qualification_snapshot": {
+    "runtime_source_head": "2a77d199d5d4853e678bb7a016bf90344f5d372b",
+    "result": "FEC lifecycle merged; MTU follow-up incomplete",
+    "release_authorized": false
+  },
   "continuation_cursor": {
-    "last_completed_action": "Merged PR #13 into release/20260914-fec-baseline at f8951a7065001a0850e178dd0bfb182cb4973ae2, then wrote the substantive FEC/MTU handoff record at b273ede100ed4284dc2189f2c2e1164ceb2fa19e.",
+    "last_completed_action": "Merged PR #13 into release/20260914-fec-baseline at f8951a7065001a0850e178dd0bfb182cb4973ae2; wrote the detailed FEC/MTU handoff record; then corrected that record at 2a77d199d5d4853e678bb7a016bf90344f5d372b to preserve the still-authoritative ADR-0012 per-lane multipath contract required by repository handoff tests.",
     "current_task": "Complete the post-preview MTU follow-up as a separate engineering phase. FEC lifecycle work is merged and should not be reopened without deterministic evidence.",
     "why_now": "The release baseline explicitly says MTU is not fully fixed. The remaining risk is not the old FEC ownership corruption; it is stale range tests plus missing proof/enforcement that negotiated MTU fits the actual per-association carrier/FEC/Game budget, including explicit oversize-datagram behavior.",
     "done_when": "Stale range tests are corrected; LINK_INIT-to-activation enforces the canonical per-association transport budget; 1500/FEC/Game accepts LINK plaintext 1372 and rejects 1373 before transfer; FEC-off and multiple simultaneous association budgets are tested; oversize backend data has explicit tested behavior with a subsequent legal packet; real FEC + native DTLS + FakeTCP boundary validation passes for 1500 plus one smaller and one explicitly supported large-MTU case; no transport-integrity error is introduced.",
@@ -93,7 +106,7 @@
   "required_data_plane_assets": [],
   "local_test_snapshot": {
     "authority": "snapshot_not_live",
-    "tested_commit": "b273ede100ed4284dc2189f2c2e1164ceb2fa19e",
+    "tested_commit": "2a77d199d5d4853e678bb7a016bf90344f5d372b",
     "result": "not_run"
   }
 }
