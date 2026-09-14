@@ -164,13 +164,13 @@ jobs:
           baseline_floor=980
           missing=probe['sent']-probe['received']
           reasons={
-              'forgiven_gaps':sum(r['Receiver']['ForgivenGaps'] for r in rows),
-              'soft_forgiven_gaps':sum(r['Receiver']['SoftForgivenGaps'] for r in rows),
-              'emergency_forgiven_gaps':sum(r['Receiver']['EmergencyForgivenGaps'] for r in rows),
-              'repair_evicted':sum(r['Sender']['RepairEvicted'] for r in rows),
-              'repair_metadata_evicted':sum(r['Sender']['RepairMetadataEvicted'] for r in rows),
-              'repair_deferred':sum(r['Sender']['RepairDeferred'] for r in rows),
-              'repair_budget_spent':sum(r['Sender']['RepairBudgetSpent'] for r in rows),
+              'forgiven_gaps':sum(r['receiver']['ForgivenGaps'] for r in rows),
+              'soft_forgiven_gaps':sum(r['receiver']['SoftForgivenGaps'] for r in rows),
+              'emergency_forgiven_gaps':sum(r['receiver']['EmergencyForgivenGaps'] for r in rows),
+              'repair_evicted':sum(r['sender']['RepairEvicted'] for r in rows),
+              'repair_metadata_evicted':sum(r['sender']['RepairMetadataEvicted'] for r in rows),
+              'repair_deferred':sum(r['sender']['RepairDeferred'] for r in rows),
+              'repair_budget_spent':sum(r['sender']['RepairBudgetSpent'] for r in rows),
           }
           summary={
               'probe':probe,
@@ -183,16 +183,17 @@ jobs:
 
           # Integrity and liveness are independent gates.
           assert not probe['bad'], probe
+          assert probe['duplicates'] == 0, probe
           assert probe['received'] >= baseline_floor, summary
           assert probe['max_received'] >= probe['sent']-probe['tail_window'], summary
           assert probe['tail_received'] >= 48, summary
-          assert all(r['Recovery']=='sack-rack' for r in rows), rows
-          assert sum(r['Sender']['FastRetransmits']+r['Sender']['RTOTransmits'] for r in rows)>0, rows
-          assert sum(r['Sender']['SACKed'] for r in rows)>0, rows
+          assert all(r['recovery']=='sack-rack' for r in rows), rows
+          assert sum(r['sender']['FastRetransmits']+r['sender']['RTOTransmits'] for r in rows)>0, rows
+          assert sum(r['sender']['SACKed'] for r in rows)>0, rows
 
           # Concrete state bounds and fresh-data isolation remain product gates.
-          assert all(r['Sender']['PeakPending'] <= 4096 for r in rows), rows
-          assert all(r['Sender']['FreshBlockedByRepair'] == 0 for r in rows), rows
+          assert all(r['sender']['PeakPending'] <= 4096 for r in rows), rows
+          assert all(r['sender']['FreshBlockedByRepair'] == 0 for r in rows), rows
 
           # Finite recovery may explain random-smoke loss, but unexplained loss
           # is never accepted merely because the delivery ratio cleared a floor.
