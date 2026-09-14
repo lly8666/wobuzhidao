@@ -14,6 +14,7 @@ GATEWAY=49100
 ECHO_PORT=48000
 ECHO_IP=198.18.0.1
 TUN_IF=wbdg0
+OUTER_CHAIN=WBD_SOAK_OUTER_METRICS
 PIDS=()
 mkdir -p "$LOG_DIR" "$LOG_DIR/tickets"
 rm -f "$STOP_FILE" "$LOG_DIR/server-ready.json" "$LOG_DIR/shared-tun-firewall.state"
@@ -25,6 +26,9 @@ SERVER_IP=$(ip -4 addr show dev "$IFACE" | awk '/inet / {sub(/\/.*/,"",$2); prin
 cleanup() {
   set +e
   tc qdisc del dev "$IFACE" root 2>/dev/null || true
+  iptables -t mangle -D OUTPUT -j "$OUTER_CHAIN" 2>/dev/null || true
+  iptables -t mangle -F "$OUTER_CHAIN" 2>/dev/null || true
+  iptables -t mangle -X "$OUTER_CHAIN" 2>/dev/null || true
   for p in "${PIDS[@]:-}"; do kill -TERM "$p" 2>/dev/null || true; done
   sleep .5
   for p in "${PIDS[@]:-}"; do kill -KILL "$p" 2>/dev/null || true; done
@@ -47,7 +51,20 @@ python3 "$LOG_DIR/echo.py" >"$LOG_DIR/echo.log" 2>&1 & PIDS+=("$!")
 "$ASSET_DIR/wbd-ip-gateway-shared" -listen 127.0.0.1:${GATEWAY} -firewall-helper "$ASSET_DIR/linux_shared_tun_firewall.sh" -backend iptables -firewall-state "$LOG_DIR/shared-tun-firewall.state" -lease-prefix 10.66.0.0/16 -tun-if "$TUN_IF" -mtu "$INNER_MTU" -idle-timeout 180s -max-sessions 16 >"$LOG_DIR/shared-tun-gateway.log" 2>&1 & PIDS+=("$!")
 for _ in $(seq 1 200); do grep -q 'WBD_SHARED_TUN_GATEWAY_READY' "$LOG_DIR/shared-tun-gateway.log" 2>/dev/null && break; sleep .1; done
 grep -q 'WBD_SHARED_TUN_GATEWAY_READY' "$LOG_DIR/shared-tun-gateway.log"
-tc qdisc replace dev "$IFACE" root netem loss random "${LOSS_PCT}%"
+
+# Count only the FakeTCP carrier before netem, then apply the requested random
+# loss only to server egress from the FakeTCP public source port. Unrelated WSL
+# traffic is excluded from formal outer packet/byte loss accounting.
+iptables -t mangle -N "$OUTER_CHAIN"
+iptables -t mangle -A "$OUTER_CHAIN" -p tcp --sport "$RAW" -j RETURN
+iptables -t mangle -A OUTPUT -j "$OUTER_CHAIN"
+tc qdisc replace dev "$IFACE" root handle 1: prio bands 3
+tc qdisc replace dev "$IFACE" parent 1:3 handle 30: netem loss random "${LOSS_PCT}%"
+tc filter replace dev "$IFACE" protocol ip parent 1:0 prio 1 u32 \
+  match ip protocol 6 0xff \
+  match ip sport "$RAW" 0xffff \
+  flowid 1:3
+
 "$ASSET_DIR/wbd-game-lane-server" -listen 127.0.0.1:${GAME} -service 127.0.0.1:${GATEWAY} -max-lanes "$MAX_LANES" >"$LOG_DIR/game-server.log" 2>&1 & PIDS+=("$!")
 "$ASSET_DIR/wbd-link-server-mux" -listen 127.0.0.1:${LINK} -service 127.0.0.1:${GAME} -mtu "$INNER_MTU" -connection-mtu "$CONNECTION_MTU" -ticket-dir "$LOG_DIR/tickets" -ticket-ttl 120s -setup-timeout 30s -idle-timeout 180s -max-sessions 16 >"$LOG_DIR/link-server.log" 2>&1 & PIDS+=("$!")
 "$ASSET_DIR/wbd-faketcp-mux" server --listen "${SERVER_IP}:${RAW}" --dtls-shim "$ASSET_DIR/wbd_dtls_shim" --link-target 127.0.0.1:${LINK} --cert "$ASSET_DIR/dtls.pem" --key "$ASSET_DIR/dtls.key" --front-cert "$ASSET_DIR/front.pem" --front-key "$ASSET_DIR/front.key" --server-name target.example --route-key WBD_REALITY_ROUTE_KEY_0123456789abcdef --username solo --password shared-password --ticket-dir "$LOG_DIR/tickets" --fallback-target 127.0.0.1:9 --bootstrap-timeout 30s --max-sessions 16 >"$LOG_DIR/faketcp-mux.log" 2>&1 & PIDS+=("$!")
@@ -62,6 +79,7 @@ printf '{"server_ip":"%s","inner_mtu":%s,"connection_mtu":%s,"max_lanes":%s,"los
 echo "WBD_WSL_WINTUN_SOAK_READY server_ip=$SERVER_IP tun=$TUN_IF echo=$ECHO_IP:$ECHO_PORT loss_pct=$LOSS_PCT"
 while [[ ! -e "$STOP_FILE" ]]; do for p in "${PIDS[@]}"; do kill -0 "$p" 2>/dev/null || { echo "server child died pid=$p" >&2; exit 1; }; done; sleep 1; done
 {
+  echo '=== outer pre-netem ==='; iptables -t mangle -L "$OUTER_CHAIN" -nvx
   echo '=== tc netem ==='; tc -s qdisc show dev "$IFACE"
   echo '=== shared tun ==='; ip -s link show dev "$TUN_IF"
   echo '=== shared route ==='; ip route show 10.66.0.0/16
