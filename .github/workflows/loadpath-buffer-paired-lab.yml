@@ -47,6 +47,7 @@ jobs:
             suite/.github/scripts/analyze_loadpath_buffer_lab.py
           bash -n suite/.github/scripts/run_udp_echo_calibration_v2.sh
           bash -n suite/.github/scripts/run_measured_transient_300ms_v6.sh
+          bash -uc 'PAIR=1; f(){ local variant=$1 order=$2 buf=$3; local case_id="p${PAIR}-${variant}-o${order}"; test "$case_id" = p1-A-o1; }; f A 1 2097152'
       - name: Verify helper patch markers
         run: |
           cp -a helper "$RUNNER_TEMP/helper-smoke"
@@ -222,7 +223,8 @@ jobs:
         run: |
           set -u
           run_one() {
-            local variant=$1 order=$2 buf=$3 case_id="p${PAIR}-${variant}-o${order}"
+            local variant=$1 order=$2 buf=$3
+            local case_id="p${PAIR}-${variant}-o${order}"
             local src="$RUNNER_TEMP/transient-15m-5-20-5-300ms-120s"
             local dst="$RUNNER_TEMP/result-${case_id}"
             rm -rf "$src" "$dst"
