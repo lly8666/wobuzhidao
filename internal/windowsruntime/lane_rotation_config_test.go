@@ -6,10 +6,17 @@ import (
 	"time"
 )
 
-func TestLaneRotationBoundsDefaults(t *testing.T) {
-	minAge, maxAge := laneRotationBounds(Profile{})
-	if minAge != 30*time.Minute || maxAge != 60*time.Minute {
-		t.Fatalf("defaults=%s..%s", minAge, maxAge)
+func TestLaneRotationBoundsZeroDisablesAutomaticRotation(t *testing.T) {
+	p := Profile{}
+	minAge, maxAge := laneRotationBounds(p)
+	if minAge != 0 || maxAge != 0 {
+		t.Fatalf("disabled bounds=%s..%s want=0..0", minAge, maxAge)
+	}
+	if automaticLaneRotationEnabled(p) {
+		t.Fatal("0/0 unexpectedly enables automatic lane rotation")
+	}
+	if err := validateLaneRotationProfile(p); err != nil {
+		t.Fatalf("0/0 must be valid disabled configuration: %v", err)
 	}
 }
 
@@ -18,6 +25,9 @@ func TestLaneRotationBoundsConfigurableAndFixed(t *testing.T) {
 	minAge, maxAge := laneRotationBounds(p)
 	if minAge != 75*time.Second || maxAge != 125*time.Second {
 		t.Fatalf("bounds=%s..%s", minAge, maxAge)
+	}
+	if !automaticLaneRotationEnabled(p) {
+		t.Fatal("positive bounds unexpectedly disable automatic lane rotation")
 	}
 	fixed := Profile{LaneRotationMinSeconds: 90, LaneRotationMaxSeconds: 90}
 	minAge, maxAge = laneRotationBounds(fixed)
@@ -32,6 +42,8 @@ func TestLaneRotationValidation(t *testing.T) {
 		p    Profile
 		want string
 	}{
+		{"zero-min-only", Profile{LaneRotationMinSeconds: 0, LaneRotationMaxSeconds: 60}, "both be zero"},
+		{"zero-max-only", Profile{LaneRotationMinSeconds: 60, LaneRotationMaxSeconds: 0}, "both be zero"},
 		{"too-short", Profile{LaneRotationMinSeconds: 9, LaneRotationMaxSeconds: 60}, "at least 10 seconds"},
 		{"reversed", Profile{LaneRotationMinSeconds: 120, LaneRotationMaxSeconds: 60}, "maximum must be greater"},
 	} {
@@ -40,6 +52,22 @@ func TestLaneRotationValidation(t *testing.T) {
 				t.Fatalf("err=%v want substring %q", err, tc.want)
 			}
 		})
+	}
+}
+
+func TestLaneAgeTickDisabledClearsScheduledDeadlines(t *testing.T) {
+	now := time.Unix(1000, 0)
+	ages := newLaneAgeState()
+	ages.deadlines[1] = now.Add(-time.Second)
+	ages.slots[1] = 1
+	c := &Controller{
+		state: RuntimeConnected,
+		profile: Profile{LaneRotationMinSeconds: 0, LaneRotationMaxSeconds: 0},
+		lanePlans: map[int]LanePlan{1: {ID: 1, Slot: 1}},
+	}
+	c.runLaneAgeTick(ages, now)
+	if len(ages.deadlines) != 0 || len(ages.slots) != 0 {
+		t.Fatalf("disabled automatic rotation retained age state: deadlines=%v slots=%v", ages.deadlines, ages.slots)
 	}
 }
 
