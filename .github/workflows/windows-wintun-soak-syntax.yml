@@ -1,0 +1,55 @@
+name: windows-wintun-soak-syntax
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/windows-wintun-soak-syntax.yml'
+      - '.github/scripts/windows_game_load.py'
+      - 'scripts/windows_linux_wintun_lane_soak.ps1'
+      - 'scripts/wsl_wintun_lane_soak_server.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Parse Linux and Python harnesses
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/wsl_wintun_lane_soak_server.sh
+          python3 -m py_compile .github/scripts/windows_game_load.py
+      - name: Run focused MTU and TUN tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./cmd/wbd-ip-gateway-shared ./cmd/wbd-link-server-mux ./internal/pathmtu ./internal/tunnel -count=1
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell harness
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $tokens=$null
+          $errors=$null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path '.\scripts\windows_linux_wintun_lane_soak.ps1'),
+            [ref]$tokens,
+            [ref]$errors)
+          foreach($e in $errors){ Write-Host ($e | Out-String) }
+          if($errors.Count -ne 0){ throw "PowerShell parse errors: $($errors.Count)" }
+          Write-Output 'WBD_WINDOWS_WINTUN_SOAK_POWERSHELL_PARSE_PASS'
