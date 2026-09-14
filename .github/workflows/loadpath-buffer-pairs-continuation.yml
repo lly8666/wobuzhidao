@@ -1,0 +1,124 @@
+name: loadpath-buffer-pairs-continuation
+on:
+  push:
+    branches:
+      - agent/loadpath-measurement-lab-20260914
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PRODUCT_REF: bfca8bdc8bc42840607a1a5cc6de18b806e02bb8
+  HELPER_REF: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+  CALIBRATION_SOURCE_RUN: '34792244268'
+
+jobs:
+  pair:
+    name: pair-${{ matrix.pair }}-${{ matrix.order }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - {pair: '1', order: AB, first: A, first_buf: '2097152', second: B, second_buf: '8388608'}
+          - {pair: '2', order: AB, first: A, first_buf: '2097152', second: B, second_buf: '8388608'}
+          - {pair: '3', order: BA, first: B, first_buf: '8388608', second: A, second_buf: '2097152'}
+          - {pair: '4', order: BA, first: B, first_buf: '8388608', second: A, second_buf: '2097152'}
+    steps:
+      - name: Checkout measurement suite
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - name: Checkout exact baseline product
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PRODUCT_REF }}
+          path: product-base
+      - name: Checkout exact helper
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.HELPER_REF }}
+          path: helper-base
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native/network dependencies
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl util-linux
+      - name: Run paired samples sequentially
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PAIR: ${{ matrix.pair }}
+          FIRST: ${{ matrix.first }}
+          FIRST_BUF: ${{ matrix.first_buf }}
+          SECOND: ${{ matrix.second }}
+          SECOND_BUF: ${{ matrix.second_buf }}
+        run: |
+          set -u
+          run_one() {
+            local variant=$1 order=$2 buf=$3
+            local case_id="p${PAIR}-${variant}-o${order}"
+            local src="$RUNNER_TEMP/transient-15m-5-20-5-300ms-120s"
+            local dst="$RUNNER_TEMP/result-${case_id}"
+            rm -rf "$src" "$dst"
+            local start_epoch
+            start_epoch=$(date +%s)
+            set +e
+            bash suite/.github/scripts/run_measured_transient_300ms_v6.sh \
+              "$GITHUB_WORKSPACE/product-base" "$GITHUB_WORKSPACE/helper-base" \
+              "$case_id" 15000000 20 "$buf" "$PRODUCT_REF" false
+            local rc=$?
+            set -e
+            local elapsed=$(( $(date +%s) - start_epoch ))
+            if [[ -d "$src" ]]; then mv "$src" "$dst"; else mkdir -p "$dst"; fi
+            printf '%s\n' "$rc" > "$dst/run-rc.txt"
+            printf '%s\n' "$elapsed" > "$dst/wall-elapsed-sec.txt"
+            cat > "$dst/pair-metadata.json" <<JSON
+          {"pair":${PAIR},"variant":"${variant}","order":${order},"effective_rcvbuf_bytes":${buf},"product_ref":"${PRODUCT_REF}","helper_ref":"${HELPER_REF}","calibration_source_run":${CALIBRATION_SOURCE_RUN},"run_rc":${rc},"wall_elapsed_sec":${elapsed}}
+          JSON
+            echo "WBD_PAIR_SAMPLE_DONE case=$case_id rcvbuf_effective=$buf run_rc=$rc elapsed_sec=$elapsed"
+          }
+          run_one "$FIRST" 1 "$FIRST_BUF"
+          run_one "$SECOND" 2 "$SECOND_BUF"
+      - name: Upload paired raw evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buffer-pair-cont-${{ matrix.pair }}-${{ matrix.order }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/result-p${{ matrix.pair }}-*
+          if-no-files-found: error
+          retention-days: 7
+
+  aggregate:
+    name: aggregate-continuation-evidence
+    needs: pair
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout measurement suite
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: suite
+      - name: Download paired evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: buffer-pair-cont-*
+          path: artifacts
+      - name: Analyze validity, timelines, paired deltas
+        run: |
+          python3 suite/.github/scripts/analyze_loadpath_buffer_lab.py artifacts analysis
+          cat analysis/sample-validity.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n' >> "$GITHUB_STEP_SUMMARY"
+          cat analysis/paired-deltas.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n' >> "$GITHUB_STEP_SUMMARY"
+          cat analysis/failure-timelines.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload final analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: loadpath-buffer-cont-analysis-${{ github.run_id }}
+          path: analysis
+          retention-days: 14
