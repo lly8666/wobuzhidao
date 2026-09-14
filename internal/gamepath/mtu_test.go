@@ -1,6 +1,10 @@
 package gamepath
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/lly8666/wobuzhidao/internal/control"
+)
 
 func TestLinkPlaintextMTUUsesPrivateEnvelopeBudget(t *testing.T) {
 	if got := DatagramOverhead(); got != 40 {
@@ -22,12 +26,25 @@ func TestInnerMTUBoundsAccountForEnvelope(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if minMTU != 576 || maxMTU != 1460 {
-		t.Fatalf("inner bounds=%d..%d want=576..1460", minMTU, maxMTU)
+	wantMax := int(control.MaxLinkMTU) - DatagramOverhead()
+	if minMTU != MinimumInnerMTU || maxMTU != wantMax {
+		t.Fatalf("inner bounds=%d..%d want=%d..%d", minMTU, maxMTU, MinimumInnerMTU, wantMax)
 	}
-	for _, mtu := range []int{575, 1461} {
-		if _, err := LinkPlaintextMTU(mtu); err == nil {
-			t.Fatalf("inner MTU %d unexpectedly accepted", mtu)
+	for _, tc := range []struct {
+		mtu     int
+		wantErr bool
+	}{
+		{mtu: minMTU - 1, wantErr: true},
+		{mtu: minMTU},
+		{mtu: maxMTU},
+		{mtu: maxMTU + 1, wantErr: true},
+	} {
+		_, err := LinkPlaintextMTU(tc.mtu)
+		if tc.wantErr && err == nil {
+			t.Fatalf("inner MTU %d unexpectedly accepted", tc.mtu)
+		}
+		if !tc.wantErr && err != nil {
+			t.Fatalf("inner MTU %d unexpectedly rejected: %v", tc.mtu, err)
 		}
 	}
 }
