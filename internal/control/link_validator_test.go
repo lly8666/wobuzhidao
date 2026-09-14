@@ -15,16 +15,29 @@ func testOffLinkConfig(mtu uint16) LinkConfig {
 	}
 }
 
+func testPolicyWithCeiling(ceiling uint16) LinkPolicy {
+	policy := CurrentLinkPolicy()
+	policy.ValidateConfig = func(cfg LinkConfig) error {
+		if cfg.MTU > ceiling {
+			return fmt.Errorf("%w: mtu %d exceeds carrier ceiling %d", ErrLimit, cfg.MTU, ceiling)
+		}
+		return nil
+	}
+	return policy
+}
+
 func TestLinkConfigValidatorRejectsBeforeAccept(t *testing.T) {
 	cfg := testOffLinkConfig(1201)
 	calls := 0
-	server, err := NewLinkServerSessionWithValidator(1, 1, nil, CurrentLinkPolicy(), func(got LinkConfig) error {
+	policy := CurrentLinkPolicy()
+	policy.ValidateConfig = func(got LinkConfig) error {
 		calls++
 		if got != cfg {
 			return fmt.Errorf("validator got config %#v want %#v", got, cfg)
 		}
 		return fmt.Errorf("%w: carrier ceiling exceeded", ErrLimit)
-	})
+	}
+	server, err := NewLinkServerSession(1, 1, nil, policy)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,13 +94,7 @@ func TestReliableLinkStartupDifferentMTUsWithThirtyPercentLossConcurrent(t *test
 
 func TestReliableLinkStartupOverCeilingNeverAcceptsWithThirtyPercentLoss(t *testing.T) {
 	const ceiling uint16 = 1372
-	validator := func(cfg LinkConfig) error {
-		if cfg.MTU > ceiling {
-			return fmt.Errorf("%w: mtu %d exceeds carrier ceiling %d", ErrLimit, cfg.MTU, ceiling)
-		}
-		return nil
-	}
-	server, err := NewReliableLinkServerSessionWithValidator(1, 1, nil, CurrentLinkPolicy(), validator)
+	server, err := NewReliableLinkServerSession(1, 1, nil, testPolicyWithCeiling(ceiling))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,13 +145,7 @@ func TestReliableLinkStartupOverCeilingNeverAcceptsWithThirtyPercentLoss(t *test
 
 func runLossyReliableStartup(mtu uint16, seed int) error {
 	const ceiling uint16 = 1372
-	validator := func(cfg LinkConfig) error {
-		if cfg.MTU > ceiling {
-			return fmt.Errorf("%w: mtu %d exceeds carrier ceiling %d", ErrLimit, cfg.MTU, ceiling)
-		}
-		return nil
-	}
-	server, err := NewReliableLinkServerSessionWithValidator(1, 1, nil, CurrentLinkPolicy(), validator)
+	server, err := NewReliableLinkServerSession(1, 1, nil, testPolicyWithCeiling(ceiling))
 	if err != nil {
 		return err
 	}
