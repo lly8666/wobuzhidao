@@ -73,7 +73,7 @@ function Assert-RuntimeReady {
 switch($Action){
     'Install' {
         if([string]::IsNullOrWhiteSpace($DriverPackageDir)-or[string]::IsNullOrWhiteSpace($UserlandExtractDir)){throw 'Install requires -DriverPackageDir and -UserlandExtractDir'}
-        if(Get-NpcapService){throw 'refusing to modify a runner with a pre-existing npcap service'}
+        if((Get-NpcapService)){throw 'refusing to modify a runner with a pre-existing npcap service'}
         $npf=Join-Path $DriverPackageDir 'NPFInstall.exe'
         $sys=Join-Path $DriverPackageDir 'npcap.sys'
         $cat=Join-Path $DriverPackageDir 'npcap.cat'
@@ -81,7 +81,9 @@ switch($Action){
         [void](Assert-NmapSignature $npf 'Npcap NPFInstall.exe')
         [void](Assert-NmapSignature $sys 'Npcap npcap.sys')
         [void](Assert-CatalogSignature $cat)
-        if($npf.VersionInfo.FileVersion-ne$NpcapVersion-or$sys.VersionInfo.FileVersion-ne$NpcapVersion){throw "Npcap driver package version mismatch: npfinstall=$($npf.VersionInfo.FileVersion) sys=$($sys.VersionInfo.FileVersion) want=$NpcapVersion"}
+        $npfVersion=(Get-Item -LiteralPath $npf).VersionInfo.FileVersion
+        $sysVersion=(Get-Item -LiteralPath $sys).VersionInfo.FileVersion
+        if($npfVersion-ne$NpcapVersion-or$sysVersion-ne$NpcapVersion){throw "Npcap driver package version mismatch: npfinstall=$npfVersion sys=$sysVersion want=$NpcapVersion"}
         $packetSrc=Find-UserlandByHash $UserlandExtractDir 'Packet.dll' $ExpectedPacketHash
         $wpcapSrc=Find-UserlandByHash $UserlandExtractDir 'wpcap.dll' $ExpectedWpcapHash
         [void](Assert-NmapSignature $packetSrc 'Npcap extracted Packet.dll')
@@ -113,7 +115,7 @@ switch($Action){
             exit 0
         }
         $state=Get-Content -LiteralPath $StatePath -Raw|ConvertFrom-Json
-        if(-not[bool]$state.installed_by_job){throw 'Npcap CI state exists but does not authorize uninstall'}
+        if(-not [bool]$state.installed_by_job){throw 'Npcap CI state exists but does not authorize uninstall'}
         $npf=Join-Path ([string]$state.driver_package_dir) 'NPFInstall.exe'
         if(Test-Path -LiteralPath $npf){
             [void](Assert-Hash $npf $ExpectedDriverHashes['NPFInstall.exe'] 'Npcap NPFInstall.exe cleanup')
@@ -127,7 +129,7 @@ switch($Action){
         }
         $deadline=[DateTime]::UtcNow.AddSeconds(15)
         do {$svc=Get-NpcapService;if($null-eq$svc){break};Start-Sleep -Milliseconds 250}while([DateTime]::UtcNow-lt$deadline)
-        if(Get-NpcapService){throw 'npcap service remains after CI cleanup'}
+        if((Get-NpcapService)){throw 'npcap service remains after CI cleanup'}
         Remove-Item -LiteralPath $StatePath -Force -ErrorAction SilentlyContinue
         Write-Output 'WBD_NPCAP_DRIVER_CI_CLEANUP_PASS'
     }
