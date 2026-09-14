@@ -1,0 +1,42 @@
+name: npcap-test-package-probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/npcap-test-package-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Inspect approved Npcap test package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $url='https://github.com/user-attachments/files/32200327/npcap.zip'
+          $zip=Join-Path $env:RUNNER_TEMP 'npcap-test.zip'
+          $dir=Join-Path $env:RUNNER_TEMP 'npcap-test'
+          Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $zip
+          $zipHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLowerInvariant()
+          Expand-Archive -LiteralPath $zip -DestinationPath $dir -Force
+          Write-Output "WBD_NPCAP_TEST_ZIP sha256=$zipHash"
+          Get-ChildItem -LiteralPath $dir -Recurse -File | Sort-Object Name | ForEach-Object {
+            $sig=Get-AuthenticodeSignature -FilePath $_.FullName
+            $subject=if($sig.SignerCertificate){[string]$sig.SignerCertificate.Subject}else{''}
+            $vi=$_.VersionInfo
+            Write-Output ("WBD_NPCAP_TEST_FILE name={0} size={1} file_version={2} product_version={3} signature={4} signer={5} sha256={6}" -f $_.Name,$_.Length,$vi.FileVersion,$vi.ProductVersion,[string]$sig.Status,$subject,(Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLowerInvariant())
+          }
+          $npf=Get-ChildItem -LiteralPath $dir -Recurse -File -Filter 'NPFInstall.exe' | Select-Object -First 1
+          if(-not $npf){throw 'NPFInstall.exe missing'}
+          Push-Location $npf.DirectoryName
+          try {
+            & $npf.FullName 2>&1 | ForEach-Object { Write-Output "WBD_NPFINSTALL_HELP $_" }
+            Write-Output "WBD_NPFINSTALL_HELP_EXIT code=$LASTEXITCODE"
+          } finally { Pop-Location }
