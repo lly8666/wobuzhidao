@@ -156,6 +156,7 @@ func (c *Controller) runLaneAgeTick(ages *laneAgeState, now time.Time) {
 	if state == RuntimeDormant { ages.clear(); return }
 	if state != RuntimeConnected { return }
 	minAge, maxAge := c.currentLaneRotationBounds()
+	if minAge == 0 && maxAge == 0 { ages.clear(); return }
 	ages.reconcileWithin(plans, now, randomLaneAgeOffset, minAge, maxAge)
 	laneID, ok := ages.nextDue(now); if !ok { return }
 	ages.deadlines[laneID] = now.Add(laneAgeRetryDelay)
