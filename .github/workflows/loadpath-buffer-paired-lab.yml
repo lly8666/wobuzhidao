@@ -54,7 +54,7 @@ jobs:
             "$RUNNER_TEMP/helper-smoke" suite/.github/scripts/paced_udp_load_v2.py
           python3 -m py_compile "$RUNNER_TEMP/helper-smoke/scripts/game_lane_rotation_soak.sh" 2>/dev/null || true
           grep -q 'WBD_LOAD_PHASE_SPEC' "$RUNNER_TEMP/helper-smoke/scripts/game_lane_rotation_soak.sh"
-          grep -q 'diag-rcvbuf-effective-bytes' "$RUNNER_TEMP/helper-smoke/scripts/game_lane_rotation_soak.sh"
+          grep -q 'diag-rcvbuf-effective-bytes' "$RUNNER_TEMP/helper-smoke/scripts/game_lane_fullstack.sh"
       - name: Verify product diagnostic patches compile
         run: |
           python3 suite/.github/scripts/instrument_fec_maxblocks640_diag.py product
