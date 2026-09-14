@@ -84,8 +84,8 @@ type Profile struct {
 	// automatic DORMANT disabled. Transport liveness/control never refreshes it.
 	IdleTimeoutSeconds int
 	// LaneRotationMinSeconds and LaneRotationMaxSeconds bound scheduled
-	// per-lane age replacement. Zero values mean the product defaults (30..60m).
-	// They never disable age rotation; min==max requests a fixed interval.
+	// per-lane age replacement. 0/0 disables automatic age rotation; otherwise
+	// both must be positive. min==max requests a fixed interval.
 	LaneRotationMinSeconds int
 	LaneRotationMaxSeconds int
 
@@ -221,7 +221,7 @@ func (p Profile) Validate() error {
 		return errors.New("DNS mode must be Auto, System, Cloudflare, or Custom")
 	}
 	if p.DNSMode == DNSCustom {
-		ip, err := netip.ParseAddr(strings.TrimSpace(p.DNSServer))
+		ip, err := netip.ParseAddr(strings.TrimSpace(profile.DNSServer))
 		if err != nil || !ip.Is4() {
 			return errors.New("custom DNS server must be one IPv4 address")
 		}
