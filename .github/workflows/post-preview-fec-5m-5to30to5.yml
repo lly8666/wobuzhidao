@@ -1,0 +1,262 @@
+name: post-preview-fec-5m-5to30to5
+
+on:
+  push:
+    branches:
+      - fix/post-preview-fec-lifecycle-20260914
+    paths:
+      - '.github/workflows/post-preview-fec-5m-5to30to5.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PREVIEW_REF: v0.0.0-preview.20260914
+  STATS_REF: 1f478df414bc21fc548a4e6d0b28fe0d5cbb715f
+  SUITE_REF: b5030a6030397809b4a1bdfcd890223dc49ea1a3
+  HELPER_REF: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+
+jobs:
+  three-way-5m:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    steps:
+      - name: Checkout preview product
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PREVIEW_REF }}
+          path: product-preview
+      - name: Checkout stats-only product
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.STATS_REF }}
+          path: product-stats
+      - name: Checkout bounded-recovery product
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: product-bounded
+      - name: Checkout reference measurement suite
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SUITE_REF }}
+          path: suite
+      - name: Checkout exact diagnostic helper
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.HELPER_REF }}
+          path: helper
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native and network dependencies
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl util-linux
+      - name: Make reference suite accept product-native maxBlocks 640
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('suite/.github/scripts/run_measured_transient_300ms_v6.sh')
+          s=p.read_text()
+          old='python3 "$GITHUB_WORKSPACE/suite/.github/scripts/instrument_fec_maxblocks640_diag.py" "$PRODUCT_DIR"\n'
+          new='''if grep -Eq 'maxBlocks[[:space:]]*=[[:space:]]*640' "$PRODUCT_DIR/cmd/wbd-link-proxy/main.go" && \\
+             grep -Eq 'maxBlocks[[:space:]]*=[[:space:]]*640' "$PRODUCT_DIR/cmd/wbd-link-server-mux/main.go"; then
+            echo "WBD_DIAGNOSTIC_PATCH fec_max_blocks=640 source=product-native behavior_change=none"
+          else
+            python3 "$GITHUB_WORKSPACE/suite/.github/scripts/instrument_fec_maxblocks640_diag.py" "$PRODUCT_DIR"
+          fi
+          '''
+          if s.count(old) != 1:
+              raise SystemExit(f'maxBlocks compatibility marker drift: {s.count(old)}')
+          p.write_text(s.replace(old,new,1))
+          PY
+          bash -n suite/.github/scripts/run_measured_transient_300ms_v6.sh
+      - name: Run preview, stats-only, and bounded recovery on one runner
+        id: cases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          fail=0
+          run_one() {
+            local label=$1 product=$2
+            local sha src dst rc
+            sha=$(git -C "$product" rev-parse HEAD)
+            src="$RUNNER_TEMP/transient-5m-5-30-5-300ms-120s"
+            dst="$RUNNER_TEMP/fec-5m-$label"
+            rm -rf "$src" "$dst"
+            echo "WBD_FEC_5M_CASE_START label=$label product_sha=$sha"
+            set +e
+            bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_measured_transient_300ms_v6.sh" \
+              "$GITHUB_WORKSPACE/$product" "$GITHUB_WORKSPACE/helper" \
+              "$label" 5000000 30 0 "$sha" false \
+              2>&1 | tee "$RUNNER_TEMP/fec-5m-$label-runner.log"
+            rc=${PIPESTATUS[0]}
+            set -e
+            if [[ -d "$src" ]]; then
+              mv "$src" "$dst"
+            else
+              mkdir -p "$dst"
+            fi
+            cp "$RUNNER_TEMP/fec-5m-$label-runner.log" "$dst/runner.log" 2>/dev/null || true
+            printf '%s\n' "$rc" > "$dst/run-rc.txt"
+            printf '%s\n' "$sha" > "$dst/product-sha.txt"
+            echo "WBD_FEC_5M_CASE_DONE label=$label product_sha=$sha rc=$rc"
+            if (( rc != 0 )); then fail=1; fi
+          }
+          run_one preview product-preview
+          run_one stats product-stats
+          run_one bounded product-bounded
+          exit "$fail"
+      - name: Build three-way comparison summary
+        if: always()
+        run: |
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import glob,json,os,sys
+          root=sys.argv[1]
+          labels=('preview','stats','bounded')
+
+          def read_json(path):
+              try:
+                  return json.load(open(path))
+              except Exception:
+                  return {}
+
+          def fec_diag(case_root):
+              per_file=[]
+              for path in glob.glob(os.path.join(case_root,'**','*.log'),recursive=True):
+                  rows=[]
+                  try:
+                      lines=open(path,errors='replace')
+                  except OSError:
+                      continue
+                  for line in lines:
+                      if 'WBD_LINK_FEC_DIAG ' not in line:
+                          continue
+                      raw=line.split('WBD_LINK_FEC_DIAG ',1)[1].strip()
+                      try: rows.append(json.loads(raw))
+                      except Exception: pass
+                  if not rows:
+                      continue
+                  def mx(key): return max(int(x.get(key,0) or 0) for x in rows)
+                  def dmx(key): return max(int((x.get('decoder') or {}).get(key,0) or 0) for x in rows)
+                  def rmx(key): return max(int((x.get('recovery') or {}).get(key,0) or 0) for x in rows)
+                  per_file.append({
+                      'file':os.path.relpath(path,case_root),'samples':len(rows),
+                      'peak_in_flight':mx('peak_in_flight'),'peak_retired':mx('peak_retired'),
+                      'peak_retired_missing_sources':mx('peak_retired_missing_sources'),
+                      'max_active_missing_sources':dmx('active_missing_sources'),
+                      'reconstruct_calls':mx('reconstruct_calls'),'reconstruct_success':mx('reconstruct_success'),
+                      'reconstruct_missing_sources':mx('reconstruct_missing_sources'),
+                      'pressure_detail_scans':mx('pressure_detail_scans'),
+                      'recovery_horizon_ms':rmx('horizon_millis'),
+                      'recovery_expire_events':rmx('expire_events'),
+                      'recovery_expired_incomplete':rmx('expired_incomplete'),
+                      'recovery_expired_missing_sources':rmx('expired_missing_sources'),
+                  })
+              return {
+                  'streams':len(per_file),'per_file':per_file,
+                  'peak_in_flight':max([x['peak_in_flight'] for x in per_file] or [0]),
+                  'peak_retired':max([x['peak_retired'] for x in per_file] or [0]),
+                  'peak_retired_missing_sources':max([x['peak_retired_missing_sources'] for x in per_file] or [0]),
+                  'max_active_missing_sources':max([x['max_active_missing_sources'] for x in per_file] or [0]),
+                  'reconstruct_calls_sum':sum(x['reconstruct_calls'] for x in per_file),
+                  'reconstruct_success_sum':sum(x['reconstruct_success'] for x in per_file),
+                  'reconstruct_missing_sources_sum':sum(x['reconstruct_missing_sources'] for x in per_file),
+                  'pressure_detail_scans_sum':sum(x['pressure_detail_scans'] for x in per_file),
+                  'recovery_horizon_ms':max([x['recovery_horizon_ms'] for x in per_file] or [0]),
+                  'recovery_expire_events_sum':sum(x['recovery_expire_events'] for x in per_file),
+                  'recovery_expired_incomplete_sum':sum(x['recovery_expired_incomplete'] for x in per_file),
+                  'recovery_expired_missing_sources_sum':sum(x['recovery_expired_missing_sources'] for x in per_file),
+              }
+
+          def app_totals(phases):
+              if not isinstance(phases,dict): return {}
+              sent=recv=0
+              timely1=timely2=0.0
+              have1=have2=False
+              for v in phases.values():
+                  if not isinstance(v,dict): continue
+                  s=int(v.get('sent',0) or 0); r=int(v.get('received_unique',0) or 0)
+                  sent+=s; recv+=r
+                  if v.get('timely_1s_ratio') is not None:
+                      timely1 += float(v['timely_1s_ratio'])*s; have1=True
+                  if v.get('timely_2s_ratio') is not None:
+                      timely2 += float(v['timely_2s_ratio'])*s; have2=True
+              return {
+                  'sent':sent,'received_unique':recv,
+                  'loss_ratio':((sent-recv)/sent if sent else None),
+                  'timely_1s_ratio':(timely1/sent if sent and have1 else None),
+                  'timely_2s_ratio':(timely2/sent if sent and have2 else None),
+              }
+
+          out={'profile':{'rate_bps_each_direction':5000000,'one_way_delay_ms':300,'duration_sec':120,'phases':'5%@0-30s,30%@30-90s,5%@90-120s','rcvbuf_override_bytes':0},'cases':{}}
+          for label in labels:
+              case_root=os.path.join(root,f'fec-5m-{label}')
+              audit=read_json(os.path.join(case_root,'transient-audit.json'))
+              load=audit.get('load_measurement') or {}
+              phases=load.get('phase_metrics') or {}
+              runtime=audit.get('runtime_socket_diag') or {}
+              resource=audit.get('resource') or {}
+              out['cases'][label]={
+                  'product_sha':(open(os.path.join(case_root,'product-sha.txt')).read().strip() if os.path.exists(os.path.join(case_root,'product-sha.txt')) else None),
+                  'run_rc':(int(open(os.path.join(case_root,'run-rc.txt')).read().strip()) if os.path.exists(os.path.join(case_root,'run-rc.txt')) else None),
+                  'sample_validity':audit.get('sample_validity'),
+                  'checks':audit.get('checks'),
+                  'app_total':app_totals(phases),'phase_metrics':phases,
+                  'resource':{k:resource.get(k) for k in ('avg_cpu_cores','avg_cpu_percent_machine','cpu_cores_by_component','host_cpu_busy_cores','softnet_dropped_delta','softnet_time_squeeze_delta','client_udp_delta','server_udp_delta') if k in resource},
+                  'socket_phase_totals':runtime.get('phase_totals'),
+                  'fec':fec_diag(case_root),
+              }
+
+          def num(case,path):
+              cur=out['cases'][case]
+              for key in path:
+                  cur=(cur or {}).get(key) if isinstance(cur,dict) else None
+              return cur if isinstance(cur,(int,float)) else None
+          def delta(a,b,path):
+              av,bv=num(a,path),num(b,path)
+              return (av-bv) if av is not None and bv is not None else None
+
+          out['deltas']={
+              'stats_minus_preview':{
+                  'app_loss_ratio':delta('stats','preview',('app_total','loss_ratio')),
+                  'timely_1s_ratio':delta('stats','preview',('app_total','timely_1s_ratio')),
+                  'timely_2s_ratio':delta('stats','preview',('app_total','timely_2s_ratio')),
+                  'peak_in_flight':delta('stats','preview',('fec','peak_in_flight')),
+                  'pressure_detail_scans_sum':delta('stats','preview',('fec','pressure_detail_scans_sum')),
+              },
+              'bounded_minus_stats':{
+                  'app_loss_ratio':delta('bounded','stats',('app_total','loss_ratio')),
+                  'timely_1s_ratio':delta('bounded','stats',('app_total','timely_1s_ratio')),
+                  'timely_2s_ratio':delta('bounded','stats',('app_total','timely_2s_ratio')),
+                  'peak_in_flight':delta('bounded','stats',('fec','peak_in_flight')),
+                  'peak_retired_missing_sources':delta('bounded','stats',('fec','peak_retired_missing_sources')),
+                  'reconstruct_success_sum':delta('bounded','stats',('fec','reconstruct_success_sum')),
+              },
+          }
+          path=os.path.join(root,'fec-5m-three-way-summary.json')
+          with open(path,'w') as f: json.dump(out,f,indent=2,sort_keys=True); f.write('\n')
+          print('WBD_FEC_5M_THREE_WAY '+json.dumps(out,sort_keys=True))
+          md=os.environ.get('GITHUB_STEP_SUMMARY')
+          if md:
+              with open(md,'a') as f:
+                  f.write('## Post-preview FEC 5M / 5→30→5 three-way\n\n')
+                  for label in labels:
+                      c=out['cases'][label]; a=c['app_total']; fec=c['fec']
+                      f.write(f"- **{label}** rc={c['run_rc']} loss={a.get('loss_ratio')} timely1={a.get('timely_1s_ratio')} timely2={a.get('timely_2s_ratio')} peakHeavy={fec.get('peak_in_flight')} expiredMissing={fec.get('recovery_expired_missing_sources_sum')}\n")
+                  f.write('\n```json\n'+json.dumps(out['deltas'],indent=2,sort_keys=True)+'\n```\n')
+          PY
+      - name: Upload raw evidence and summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-preview-fec-5m-5to30to5-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/fec-5m-preview
+            ${{ runner.temp }}/fec-5m-stats
+            ${{ runner.temp }}/fec-5m-bounded
+            ${{ runner.temp }}/fec-5m-three-way-summary.json
+          if-no-files-found: warn
+          retention-days: 14
