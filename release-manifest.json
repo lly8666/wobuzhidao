@@ -1,0 +1,21 @@
+{
+  "tag": "v0.0.0-preview.20260914",
+  "release_kind": "source-prerelease",
+  "branch": "release/20260914-fec-baseline",
+  "product_parent_sha": "bfca8bdc8bc42840607a1a5cc6de18b806e02bb8",
+  "behavior_delta": {
+    "cmd/wbd-link-proxy/main.go": "maxBlocks 64 -> 640",
+    "cmd/wbd-link-server-mux/main.go": "maxBlocks 64 -> 640"
+  },
+  "reference_helper_sha": "cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d",
+  "reference_suite_sha": "b5030a6030397809b4a1bdfcd890223dc49ea1a3",
+  "reference_run_id": 34798317918,
+  "go_validation_version": "1.23.12",
+  "new_fullstack_run_performed": false,
+  "binary_assets": false,
+  "known_failed_test": "cmd/wbd-link-server-mux: TestLinkPolicyForInnerMTURejectsOutOfRange; reproduced at parent SHA",
+  "next_work": [
+    "remove per-shard full PressureStats scan without changing recovery semantics",
+    "implement and validate bounded FEC recovery lifecycle in separate commits"
+  ]
+}

@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	maxBlocks                  = 64
+	maxBlocks                  = 640
 	defaultIdleTimeout         = 90 * time.Second
 	backendMetaRefreshInterval = 30 * time.Second
 )
