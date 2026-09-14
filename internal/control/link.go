@@ -63,6 +63,8 @@ type FixedFECProfile struct {
 	Scheduler    FECScheduler
 }
 
+type LinkConfigValidator func(LinkConfig) error
+
 type LinkPolicy struct {
 	AllowFECOff     bool
 	MinMTU          uint16
@@ -70,6 +72,12 @@ type LinkPolicy struct {
 	MaxFlushMillis  uint16
 	MaxLaneCount    uint8
 	AllowedFixedFEC []FixedFECProfile
+
+	// ValidateConfig is an optional product admission hook. It runs only after
+	// protocol shape/range/FEC checks succeed and before LINK_ACCEPT is built,
+	// so callers can enforce association-specific local carrying constraints
+	// without making control depend on transport/path-budget packages.
+	ValidateConfig LinkConfigValidator
 }
 
 // CurrentLinkPolicy mirrors live protocol capabilities. MTU bounds here are
@@ -126,17 +134,24 @@ func (p LinkPolicy) Validate(c LinkConfig) error {
 		if !p.AllowFECOff {
 			return fmt.Errorf("%w: fec off disabled", ErrUnsupported)
 		}
-		return nil
+		return p.validateProductConfig(c)
 	}
 	if c.FlushMillis > p.MaxFlushMillis {
 		return fmt.Errorf("%w: flush %d > %d", ErrLimit, c.FlushMillis, p.MaxFlushMillis)
 	}
 	for _, allowed := range p.AllowedFixedFEC {
 		if c.DataShards == allowed.DataShards && c.ParityShards == allowed.ParityShards && c.Scheduler == allowed.Scheduler {
-			return nil
+			return p.validateProductConfig(c)
 		}
 	}
 	return fmt.Errorf("%w: fixed fec %d:%d scheduler=%d", ErrUnsupported, c.DataShards, c.ParityShards, c.Scheduler)
+}
+
+func (p LinkPolicy) validateProductConfig(c LinkConfig) error {
+	if p.ValidateConfig == nil {
+		return nil
+	}
+	return p.ValidateConfig(c)
 }
 
 func marshalLinkConfig(dst []byte, c LinkConfig) {
