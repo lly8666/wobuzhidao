@@ -1,0 +1,197 @@
+name: physical-qualification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/physical-qualification.yml'
+      - 'cmd/wbd-tun/**'
+      - 'internal/control/**'
+      - 'internal/pathmtu/**'
+      - 'internal/tunnel/**'
+      - 'internal/dataplane/**'
+      - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_tun_dataplane_probe.go'
+      - 'scripts/windows_npcap_ephemeral_ci.ps1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: physical-qualification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mtu-loss-go:
+    name: mtu-loss-go
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Run all Go tests including MTU and 30 percent startup-loss coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./... -count=1
+          echo 'WBD_MTU_LOSS_GO_PASS'
+
+  wintun-admin-real-dataplane:
+    name: wintun-admin-real-dataplane
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Download locked Wintun runtime and build probe
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $zip=Join-Path $env:RUNNER_TEMP 'wintun-0.14.1.zip'
+          Invoke-WebRequest -UseBasicParsing 'https://www.wintun.net/builds/wintun-0.14.1.zip' -OutFile $zip
+          $got=(Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant()
+          $want='07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51'
+          if($got -ne $want){throw "Wintun ZIP SHA256 mismatch: got=$got want=$want"}
+          $dir=Join-Path $env:RUNNER_TEMP 'wintun'
+          Expand-Archive -LiteralPath $zip -DestinationPath $dir
+          $dll=Get-ChildItem -Path $dir -Recurse -Filter wintun.dll | Where-Object {$_.FullName -match '[\\/]amd64[\\/]'} | Select-Object -First 1
+          if(-not $dll){throw 'amd64 wintun.dll not found'}
+          Copy-Item -LiteralPath $dll.FullName -Destination (Join-Path $env:RUNNER_TEMP 'wintun.dll')
+          go test ./internal/tunnel ./internal/dataplane ./cmd/wbd-tun -count=1
+          if($LASTEXITCODE){throw 'Wintun focused Go tests failed'}
+          go build -trimpath -o (Join-Path $env:RUNNER_TEMP 'wbd-tun.exe') ./cmd/wbd-tun
+          if($LASTEXITCODE){throw 'wbd-tun build failed'}
+          go build -trimpath -o (Join-Path $env:RUNNER_TEMP 'wbd-tun-dataplane-probe.exe') ./scripts/windows_tun_dataplane_probe.go
+          if($LASTEXITCODE){throw 'dataplane probe build failed'}
+          Write-Output "WBD_WINDOWS_WINTUN_ASSET_PASS sha256=$got"
+      - name: Run real administrator Wintun bidirectional dataplane
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $id=[Security.Principal.WindowsIdentity]::GetCurrent()
+          $principal=[Security.Principal.WindowsPrincipal]::new($id)
+          if(-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'runner is not administrator'}
+          $exe=Join-Path $env:RUNNER_TEMP 'wbd-tun.exe'
+          $probeExe=Join-Path $env:RUNNER_TEMP 'wbd-tun-dataplane-probe.exe'
+          $state=Join-Path $env:RUNNER_TEMP 'wbd-qualification-route-state.json'
+          $stdout=Join-Path $env:RUNNER_TEMP 'wbd-tun.stdout.log'
+          $stderr=Join-Path $env:RUNNER_TEMP 'wbd-tun.stderr.log'
+          $probeOut=Join-Path $env:RUNNER_TEMP 'wbd-probe.stdout.log'
+          $probeErr=Join-Path $env:RUNNER_TEMP 'wbd-probe.stderr.log'
+          $proc=$null
+          $probe=$null
+          try {
+            $probe=Start-Process -FilePath $probeExe -ArgumentList @('-listen','127.0.0.1:49999','-target','203.0.113.7','-timeout','60s') -PassThru -RedirectStandardOutput $probeOut -RedirectStandardError $probeErr
+            $ready=$false
+            for($i=0;$i -lt 60;$i++){
+              if($probe.HasExited){break}
+              if((Test-Path $probeOut) -and ((Get-Content $probeOut -Raw) -match 'WBD_WINDOWS_TUN_DATAPLANE_PROBE_READY')){$ready=$true;break}
+              Start-Sleep -Milliseconds 100
+            }
+            if(-not $ready){if(Test-Path $probeErr){Get-Content $probeErr};throw 'dataplane probe not ready'}
+
+            $proc=Start-Process -FilePath $exe -ArgumentList @('-mode','client','-ifname','WBDQUAL','-mtu','1400','-transport','127.0.0.1:49999','-run-for','75s') -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+            $tunReady=$false
+            for($i=0;$i -lt 120;$i++){
+              if($proc.HasExited){break}
+              if((Test-Path $stderr) -and ((Get-Content $stderr -Raw) -match 'WBD_TUN_READY')){$tunReady=$true;break}
+              Start-Sleep -Milliseconds 100
+            }
+            if(-not $tunReady){if(Test-Path $stderr){Get-Content $stderr};throw 'Wintun-backed wbd-tun not ready'}
+            $adapter=Get-NetAdapter -Name WBDQUAL -ErrorAction Stop
+            $ifIndex=[uint32]$adapter.ifIndex
+            Write-Output "WBD_WINDOWS_WINTUN_ADAPTER_PASS ifindex=$ifIndex"
+
+            & ./scripts/windows_tun_route.ps1 -Action Apply -Mode Split -AdapterAlias WBDQUAL -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -Prefix4 203.0.113.0/24 -DNSServer 9.9.9.9 -MTU 1400 -StatePath $state
+            if($LASTEXITCODE){throw 'route apply failed'}
+            if(-not (Get-NetRoute -DestinationPrefix 203.0.113.0/24 -InterfaceIndex $ifIndex -ErrorAction SilentlyContinue)){throw 'capture route missing'}
+            & "$env:SystemRoot\System32\PING.EXE" -n 1 -w 5000 203.0.113.7
+            if($LASTEXITCODE -ne 0){if(Test-Path $probeOut){Get-Content $probeOut};if(Test-Path $probeErr){Get-Content $probeErr};if(Test-Path $stderr){Get-Content $stderr};throw 'real Wintun dataplane ping failed'}
+            if(-not $probe.WaitForExit(5000)){throw 'dataplane probe did not exit'}
+            $probe.Refresh()
+            if($probe.ExitCode -ne 0){if(Test-Path $probeErr){Get-Content $probeErr};throw "probe exited $($probe.ExitCode)"}
+            $probeLog=Get-Content $probeOut -Raw
+            if($probeLog -notmatch 'WBD_WINDOWS_TUN_DATAPLANE_PROBE_PASS'){throw 'dataplane pass marker missing'}
+            Get-Content $probeOut
+            Write-Output 'WBD_WINDOWS_WINTUN_REAL_DATAPLANE_PASS direction=bidirectional mtu=1400'
+          } finally {
+            try { & ./scripts/windows_tun_route.ps1 -Action Cleanup -StatePath $state 2>$null | Out-Null } catch {}
+            if($probe -and -not $probe.HasExited){Stop-Process -Id $probe.Id -Force -ErrorAction SilentlyContinue}
+            if($proc -and -not $proc.HasExited){Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue}
+          }
+
+  wsl-runtime:
+    name: wsl-runtime
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify or provision WSL2 Linux peer runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          wsl.exe --status
+          if($LASTEXITCODE){throw 'WSL runtime unavailable'}
+          $distros=@(& wsl.exe -l -q | ForEach-Object {$_.Trim([char]0).Trim()} | Where-Object {$_})
+          if($distros.Count -eq 0){
+            $d='Ubuntu-24.04'
+            & wsl.exe --install -d $d --no-launch --web-download
+            if($LASTEXITCODE){throw 'WSL distro install failed'}
+            $deadline=[DateTime]::UtcNow.AddMinutes(4)
+            do {
+              Start-Sleep -Seconds 2
+              $distros=@(& wsl.exe -l -q | ForEach-Object {$_.Trim([char]0).Trim()} | Where-Object {$_})
+            } while(($distros -notcontains $d) -and [DateTime]::UtcNow -lt $deadline)
+            if($distros -notcontains $d){throw 'WSL distro did not register'}
+          } else {$d=$distros[0]}
+          & wsl.exe -d $d -u root -- bash -lc 'uname -a; ip link; python3 --version || true'
+          if($LASTEXITCODE){throw 'WSL Linux peer command failed'}
+          Write-Output "WBD_WSL_RUNTIME_PASS distro=$d"
+
+  npcap-required-readiness:
+    name: npcap-required-readiness
+    runs-on: windows-latest
+    timeout-minutes: 8
+    env:
+      NPCAP_INSTALLER_URL: ${{ secrets.NPCAP_INSTALLER_URL }}
+      NPCAP_INSTALLER_SHA256: ${{ secrets.NPCAP_INSTALLER_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reuse preinstalled or install authorized Npcap
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $svc=Get-Service -Name npcap -ErrorAction SilentlyContinue
+          $root=Join-Path $env:SystemRoot 'System32\Npcap'
+          $runtimeReady=$svc -and (Test-Path (Join-Path $root 'wpcap.dll')) -and (Test-Path (Join-Path $root 'Packet.dll'))
+          if($runtimeReady){
+            Write-Output 'WBD_NPCAP_READY mode=preinstalled'
+            .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Install -InstallerPath (Join-Path $env:RUNNER_TEMP 'unused.exe') -InstallerSHA256 ''
+            .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Status
+            exit 0
+          }
+          if([string]::IsNullOrWhiteSpace($env:NPCAP_INSTALLER_URL) -or [string]::IsNullOrWhiteSpace($env:NPCAP_INSTALLER_SHA256)){
+            Write-Error 'WBD_NPCAP_UNAVAILABLE: windows-latest has no Npcap and authorized NPCAP_INSTALLER_URL/NPCAP_INSTALLER_SHA256 secrets are not configured. Full Npcap physical-path soak cannot be truthfully executed on this runner.'
+            exit 1
+          }
+          if($env:NPCAP_INSTALLER_SHA256 -notmatch '^[0-9A-Fa-f]{64}$'){throw 'NPCAP_INSTALLER_SHA256 must be 64 hex characters'}
+          $uri=[Uri]$env:NPCAP_INSTALLER_URL
+          if($uri.Scheme -ne 'https'){throw 'NPCAP_INSTALLER_URL must use HTTPS'}
+          $installer=Join-Path $env:RUNNER_TEMP 'npcap-authorized.exe'
+          Invoke-WebRequest -UseBasicParsing -Uri $uri.AbsoluteUri -OutFile $installer
+          if(-not (Test-Path $installer)){throw 'authorized Npcap installer download failed'}
+          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Install -InstallerPath $installer -InstallerSHA256 $env:NPCAP_INSTALLER_SHA256
+          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Status
+          Write-Output 'WBD_NPCAP_READY mode=authorized-installer'
+      - name: Cleanup only job-installed Npcap
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Continue'
+          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Cleanup
+          if($LASTEXITCODE){exit $LASTEXITCODE}
