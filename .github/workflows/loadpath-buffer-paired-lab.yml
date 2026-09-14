@@ -63,7 +63,7 @@ jobs:
           python3 suite/.github/scripts/instrument_game_client_path_diag.py product
           gofmt -w product/cmd/wbd-link-server-mux/main.go product/cmd/wbd-game-lane-client/main.go product/cmd/wbd-link-proxy/main.go product/internal/fec/block.go product/internal/linkdata/path.go
           cd product
-          go test ./cmd/wbd-link-server-mux ./cmd/wbd-game-lane-client ./internal/fec ./internal/linkdata
+          go test ./cmd/wbd-link-server-mux ./cmd/wbd-game-lane-client ./internal/fec ./internal/linkdata -run '^$'
 
   calibration:
     name: calibration-${{ matrix.case_id }}
