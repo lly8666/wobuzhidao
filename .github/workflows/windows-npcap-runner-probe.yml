@@ -1,0 +1,44 @@
+name: windows-npcap-runner-probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/windows-npcap-runner-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe runner admin and Npcap runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $id=[Security.Principal.WindowsIdentity]::GetCurrent()
+          $principal=[Security.Principal.WindowsPrincipal]::new($id)
+          $admin=$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+          $svc=Get-Service -Name npcap -ErrorAction SilentlyContinue
+          $root=Join-Path $env:SystemRoot 'System32\Npcap'
+          $wpcap=Join-Path $root 'wpcap.dll'
+          $packet=Join-Path $root 'Packet.dll'
+          $result=[ordered]@{
+            runner_os=$env:RUNNER_OS
+            windows_version=[Environment]::OSVersion.VersionString
+            administrator=$admin
+            npcap_service=if($svc){[string]$svc.Status}else{'missing'}
+            wpcap_present=(Test-Path -LiteralPath $wpcap)
+            packet_present=(Test-Path -LiteralPath $packet)
+          }
+          $result | ConvertTo-Json -Compress
+          if($admin){Write-Output 'WBD_WINDOWS_RUNNER_ADMIN_PASS'}else{Write-Output 'WBD_WINDOWS_RUNNER_ADMIN_FAIL'}
+          if($svc -and (Test-Path -LiteralPath $wpcap) -and (Test-Path -LiteralPath $packet)){
+            Write-Output 'WBD_WINDOWS_RUNNER_NPCAP_PRESENT'
+          } else {
+            Write-Output 'WBD_WINDOWS_RUNNER_NPCAP_ABSENT'
+          }
