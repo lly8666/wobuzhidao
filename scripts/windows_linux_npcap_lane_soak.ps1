@@ -162,6 +162,27 @@ try {
         if($fecPeak -ge 640){throw "FEC decoder reached capacity: peak=$fecPeak capacity=640"}
     } elseif($fecRows.Count -ne 0){ throw 'FEC off emitted FEC decoder diagnostics unexpectedly' }
 
+    $pressureCapacity=4096; $pressurePeak=0; $pressureMaxCurrent=0; $pressureSamples=0; $pressureByProcess=@()
+    $fakeProcesses=@($all | Where-Object {$_.Name -like '*faketcp'})
+    $expectedFakeProcesses=$Lanes+3
+    if($fakeProcesses.Count -ne $expectedFakeProcesses){throw "unexpected FakeTCP process count=$($fakeProcesses.Count) want=$expectedFakeProcesses"}
+    foreach($fp in $fakeProcesses){
+        $sampleCount=0; $processPeak=0; $processMaxCurrent=0
+        if(-not(Test-Path $fp.Out)){throw "FakeTCP pressure log missing for $($fp.Name)"}
+        foreach($line in Get-Content $fp.Out){
+            if($line -match '^WBD_FAKETCP_PRESSURE role=client pending=(\d+) peak_pending=(\d+) capacity=(\d+)$'){
+                $pending=[int]$Matches[1]; $peak=[int]$Matches[2]; $capacity=[int]$Matches[3]
+                if($capacity -ne $pressureCapacity){throw "unexpected FakeTCP outstanding capacity=$capacity process=$($fp.Name)"}
+                $sampleCount++; $pressureSamples++; $processMaxCurrent=[Math]::Max($processMaxCurrent,$pending); $processPeak=[Math]::Max($processPeak,$peak)
+                $pressureMaxCurrent=[Math]::Max($pressureMaxCurrent,$pending); $pressurePeak=[Math]::Max($pressurePeak,$peak)
+            }
+        }
+        if($sampleCount -eq 0){throw "no FakeTCP pressure samples for $($fp.Name)"}
+        if(Select-String -LiteralPath $fp.Out -Pattern 'WBD_FAKETCP_OUTSTANDING_PRESSURE .*action=wait' -Quiet -ErrorAction SilentlyContinue){throw "FakeTCP outstanding window saturated for $($fp.Name)"}
+        if($processPeak -ge $pressureCapacity -or $processMaxCurrent -ge $pressureCapacity){throw "FakeTCP outstanding pressure reached capacity process=$($fp.Name) current_peak=$processMaxCurrent sender_peak=$processPeak capacity=$pressureCapacity"}
+        $pressureByProcess += [ordered]@{process=$fp.Name;samples=$sampleCount;max_pending=$processMaxCurrent;peak_pending=$processPeak;capacity=$pressureCapacity}
+    }
+
     $net=Get-Content (Join-Path $LogDir 'network-end.log') -Raw
     $drop=0;$accept=0;$sent=0;$qdrop=0
     foreach($line in ($net -split "`n")){
@@ -177,9 +198,9 @@ try {
     $fatal=@(); Get-ChildItem $LogDir -Filter '*.log' | ForEach-Object { $fatal += Select-String -LiteralPath $_.FullName -Pattern 'panic:|fatal error:|WBD_[A-Z0-9_]+_FAIL' -ErrorAction SilentlyContinue }
     if($fatal.Count -gt 0){ $fatal | Out-String | Set-Content (Join-Path $LogDir 'unexpected-errors.txt'); throw "unexpected fatal markers found: $($fatal.Count)" }
 
-    $summary=[ordered]@{lanes=$Lanes;fec=$FEC;connection_mtu=$ConnectionMTU;link_plaintext_mtu=$linkMTU;inner_mtu=$innerMTU;duration_sec=$DurationSec;rate_bps=$RateBps;configured_loss_pct=$LossPct;inner_loss_pct=[double]$loadStats.inner_loss_pct;max_rx_gap_ms=[double]$loadStats.max_rx_gap_ms;outer_ingress_loss_pct=$ingressLoss;outer_egress_loss_pct=$egressLoss;fec_decoder_capacity=$fecCapacity;fec_peak_in_flight=$fecPeak;fec_samples=$fecRows.Count;rotations=$rotations;npcap_raw_handshakes=$all.Where({$_.Name -like '*faketcp'}).Count}
+    $summary=[ordered]@{lanes=$Lanes;fec=$FEC;connection_mtu=$ConnectionMTU;link_plaintext_mtu=$linkMTU;inner_mtu=$innerMTU;duration_sec=$DurationSec;rate_bps=$RateBps;configured_loss_pct=$LossPct;inner_loss_pct=[double]$loadStats.inner_loss_pct;max_rx_gap_ms=[double]$loadStats.max_rx_gap_ms;outer_ingress_loss_pct=$ingressLoss;outer_egress_loss_pct=$egressLoss;fec_decoder_capacity=$fecCapacity;fec_peak_in_flight=$fecPeak;fec_samples=$fecRows.Count;faketcp_outstanding_capacity=$pressureCapacity;faketcp_max_sampled_pending=$pressureMaxCurrent;faketcp_peak_pending=$pressurePeak;faketcp_pressure_samples=$pressureSamples;faketcp_pressure_by_process=$pressureByProcess;rotations=$rotations;npcap_raw_handshakes=$fakeProcesses.Count}
     $summary | ConvertTo-Json -Depth 8 | Set-Content (Join-Path $LogDir 'summary.json') -Encoding utf8
-    Write-Output ("WBD_WINDOWS_LINUX_NPCAP_SOAK_PASS lanes={0} fec={1} inner_loss_pct={2:F4} outer_in_loss_pct={3:F3} outer_out_loss_pct={4:F3} fec_peak={5}/640 rotations=3" -f $Lanes,$FEC,[double]$loadStats.inner_loss_pct,$ingressLoss,$egressLoss,$fecPeak)
+    Write-Output ("WBD_WINDOWS_LINUX_NPCAP_SOAK_PASS lanes={0} fec={1} inner_loss_pct={2:F4} outer_in_loss_pct={3:F3} outer_out_loss_pct={4:F3} fec_peak={5}/640 faketcp_pending_peak={6}/4096 rotations=3" -f $Lanes,$FEC,[double]$loadStats.inner_loss_pct,$ingressLoss,$egressLoss,$fecPeak,$pressurePeak)
 }
 finally {
     if($load -and -not $load.HasExited){try{Stop-Process -Id $load.Id -Force}catch{}}
