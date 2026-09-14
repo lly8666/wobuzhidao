@@ -191,6 +191,8 @@ func main() {
 
 	e.receiverMu.Lock()
 	e.receiver.EnableSteadyStateDelivery()
+	recoveryMode, _ := parseRecovery(c.recovery)
+	e.receiver.SetSteadyStateRecoveryMode(recoveryMode)
 	e.receiverMu.Unlock()
 
 	e.senderMu.Lock()
@@ -678,7 +680,6 @@ func (e *endpoint) udpLoop() error {
 					if err = e.sendDataPending(p); err != nil {
 						break
 					}
-				}
 				e.senderMu.Unlock()
 				if err != nil {
 					return err
