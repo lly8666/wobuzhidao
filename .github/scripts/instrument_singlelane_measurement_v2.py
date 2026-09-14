@@ -7,9 +7,8 @@ import sys
 def patch_generated(path: Path, load_src: str) -> None:
     s = path.read_text()
 
-    # Replace the final generated load only after every legacy helper/control
-    # transformation has completed.  The delimiter is intentionally changed so
-    # a second invocation is visible/idempotent rather than silently stacking.
+    # This function receives the actual fullstack script produced by the
+    # rotation wrapper (PATCHED), not either of the two wrapper scripts above it.
     start = 'cat >"$LOG_DIR/load.py" <<\'PY_LOAD\'\n'
     measured_start = 'cat >"$LOG_DIR/load.py" <<\'PY_LOAD_V2\'\n'
     if measured_start not in s:
@@ -36,21 +35,28 @@ sudo ip netns exec "$C" env \\
             raise SystemExit(f"generated load launch marker drift: {s.count(old_launch)}")
         s = s.replace(old_launch, new_launch, 1)
 
-    # The generated script already contains the fully materialized fullstack
-    # prefix.  Add the diagnostic buffer flag to that one server LINK listener,
-    # after all earlier instrumentation has finished.
     flag = '-diag-rcvbuf-effective-bytes "${WBD_SERVER_LINK_RCVBUF_EFFECTIVE_BYTES:-0}"'
     if flag not in s:
-        pat = re.compile(r'(?m)^(\s*)>"\$LOG_DIR/link-server\.log" 2>&1 &$')
-        hits = list(pat.finditer(s))
+        # Match the unique server LINK command block rather than relying on one
+        # exact redirection layout.  The flag is inserted immediately before the
+        # command's final log redirection, so only :47000 is affected.
+        block_re = re.compile(
+            r'(?ms)(sudo ip netns exec "\$S" "\$ASSET_DIR/wbd-link-server-mux" \\\n'
+            r'.*?)(\s*>"\$LOG_DIR/link-server\.log" 2>&1 &)'
+        )
+        hits = list(block_re.finditer(s))
         if len(hits) != 1:
-            raise SystemExit(f"generated server LINK redirect marker drift: {len(hits)}")
-        indent = hits[0].group(1)
-        repl = indent + flag + ' \\\n' + indent + '>"$LOG_DIR/link-server.log" 2>&1 &'
-        s = pat.sub(lambda _m: repl, s, count=1)
+            raise SystemExit(f"generated server LINK command marker drift: {len(hits)}")
+        m = hits[0]
+        prefix = m.group(1)
+        redirect = m.group(2)
+        if not prefix.endswith('\\\n'):
+            raise SystemExit("generated server LINK command does not end in continuation")
+        replacement = prefix + '  ' + flag + ' \\\n' + redirect.lstrip()
+        s = s[:m.start()] + replacement + s[m.end():]
 
     path.write_text(s)
-    print("WBD_SINGLELANE_MEASUREMENT_V2_GENERATED actual_tx_timestamp=1 bounded_catchup=1 isolated_link_rcvbuf=1")
+    print("WBD_SINGLELANE_MEASUREMENT_V2_GENERATED actual_tx_timestamp=1 bounded_catchup=1 isolated_link_rcvbuf=1 final_fullstack=1")
 
 
 def install_control_hook(root: Path) -> None:
@@ -58,16 +64,31 @@ def install_control_hook(root: Path) -> None:
     if not control.exists():
         raise SystemExit(f"control wrapper missing: {control}")
     s = control.read_text()
-    hook = 'python3 "${WBD_MEASUREMENT_FINALIZER:?}" --generated "$OUT" "${WBD_PACED_LOAD_SCRIPT:?}"\nbash -n "$OUT"\n'
-    if hook not in s:
+
+    # The control wrapper produces another wrapper (OUT).  That rotation wrapper
+    # later produces the actual fullstack script (PATCHED).  Therefore edit OUT
+    # so that it finalizes PATCHED immediately before PATCHED is executed.
+    installer = '''python3 - "$OUT" <<'PY_WBD_ROTATION_FINALIZER_HOOK'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+s = p.read_text()
+marker = 'exec "$PATCHED" "$@"\\n'
+hook = 'python3 "${WBD_MEASUREMENT_FINALIZER:?}" --generated "$PATCHED" "${WBD_PACED_LOAD_SCRIPT:?}"\\nbash -n "$PATCHED"\\n'
+if hook not in s:
+    if s.count(marker) != 1:
+        raise SystemExit(f"rotation final exec marker drift: {s.count(marker)}")
+    s = s.replace(marker, hook + marker, 1)
+p.write_text(s)
+PY_WBD_ROTATION_FINALIZER_HOOK
+'''
+    if 'PY_WBD_ROTATION_FINALIZER_HOOK' not in s:
         marker = 'exec "$OUT" "$@"\n'
         if s.count(marker) != 1:
             raise SystemExit(f"control final exec marker drift: {s.count(marker)}")
-        # Keep every legacy control-wrapper assertion ahead of this hook.  The
-        # generated script is modified only after those transforms/checks pass.
-        s = s.replace(marker, hook + marker, 1)
+        s = s.replace(marker, installer + marker, 1)
         control.write_text(s)
-    print("WBD_SINGLELANE_MEASUREMENT_V2_CONTROL_HOOK final_generated_patch=1")
+    print("WBD_SINGLELANE_MEASUREMENT_V2_CONTROL_HOOK rotation_finalizer=1")
 
 
 def install_helper_hook(root: Path) -> None:
@@ -76,12 +97,6 @@ def install_helper_hook(root: Path) -> None:
         raise SystemExit(f"A/B helper wrapper missing: {wrapper}")
     s = wrapper.read_text()
 
-    # The six historical product-instrumentation commands are embedded inside a
-    # Python string in this wrapper, so matching one of those textual commands is
-    # intentionally avoided.  Instead, wait until the wrapper has generated its
-    # temporary validator RUNNER, then patch that generated validator at its
-    # stable preflight marker.  At RUNNER execution time the historical six
-    # instrumentations therefore run first, followed by --install-control.
     install = '''export WBD_MEASUREMENT_FINALIZER="${GITHUB_WORKSPACE:?}/suite/.github/scripts/instrument_singlelane_measurement_v2.py"
 export WBD_PACED_LOAD_SCRIPT="${GITHUB_WORKSPACE:?}/suite/.github/scripts/paced_udp_load_v2.py"
 python3 - "$RUNNER" <<'PY_WBD_MEASUREMENT_HOOK'
