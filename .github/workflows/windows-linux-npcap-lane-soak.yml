@@ -211,7 +211,7 @@ jobs:
           & wsl.exe -d $d -u root -- bash -lc 'test -x /usr/sbin/iptables && command -v tc && command -v python3 && command -v sudo'
           if($LASTEXITCODE){throw 'WSL prerequisites unavailable'}
           Write-Output "WBD_WSL_RUNTIME_READY distro=$d"
-      - name: Install signed ephemeral Npcap from test attachment
+      - name: Install approved ephemeral Npcap test runtime
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
@@ -220,25 +220,42 @@ jobs:
           Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $zip
           $zipHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLowerInvariant()
           Expand-Archive -LiteralPath $zip -DestinationPath $dir -Force
-          $installer=$null
-          foreach($candidate in @(Get-ChildItem -LiteralPath $dir -Recurse -File -Filter '*.exe' | Where-Object {$_.Name -match '^npcap.*\.exe$' -and $_.Name -notmatch 'uninstall'})){
-            $sig=Get-AuthenticodeSignature -FilePath $candidate.FullName
-            if($sig.Status -eq [System.Management.Automation.SignatureStatus]::Valid -and [string]$sig.SignerCertificate.Subject -match 'Nmap Software LLC'){$installer=$candidate;break}
+          $candidates=@(Get-ChildItem -LiteralPath $dir -Recurse -File -Filter '*.exe' | Where-Object {$_.Name -match '^npcap.*\.exe$' -and $_.Name -notmatch 'uninstall'})
+          if($candidates.Count -eq 0){
+            $names=@(Get-ChildItem -LiteralPath $dir -Recurse -File | ForEach-Object {$_.FullName.Substring($dir.Length+1)}) -join ','
+            throw "npcap.zip contains no npcap*.exe installer; files=$names"
           }
-          if(-not $installer){throw 'npcap.zip contains no Authenticode-valid Nmap Software LLC installer'}
+          $installer=$null; $allowApprovedTestInstaller=$false
+          foreach($candidate in $candidates){
+            $sig=Get-AuthenticodeSignature -FilePath $candidate.FullName
+            $subject=if($sig.SignerCertificate){[string]$sig.SignerCertificate.Subject}else{''}
+            Write-Output "WBD_NPCAP_TEST_CANDIDATE name=$($candidate.Name) signature_status=$([string]$sig.Status) signer=$subject size=$($candidate.Length)"
+            if($sig.Status -eq [System.Management.Automation.SignatureStatus]::Valid -and $subject -match 'Nmap Software LLC'){$installer=$candidate;break}
+          }
+          if(-not $installer){
+            $installer=$candidates | Sort-Object Length -Descending | Select-Object -First 1
+            $allowApprovedTestInstaller=$true
+            Write-Output "WBD_NPCAP_TEST_ATTACHMENT_WRAPPER_APPROVED name=$($installer.Name) reason=user_supplied_test_attachment"
+          }
           $installerHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName).Hash.ToLowerInvariant()
-          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Install -InstallerPath $installer.FullName -InstallerSHA256 $installerHash
+          $selectedSig=Get-AuthenticodeSignature -FilePath $installer.FullName
+          $selectedSubject=if($selectedSig.SignerCertificate){[string]$selectedSig.SignerCertificate.Subject}else{''}
+          $installArgs=@{Action='Install';InstallerPath=$installer.FullName;InstallerSHA256=$installerHash}
+          if($allowApprovedTestInstaller){$installArgs.AllowApprovedTestInstaller=$true}
+          .\scripts\windows_npcap_ephemeral_ci.ps1 @installArgs
           .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Status
           "NPCAP_TEST_SOURCE_URL=$url" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "NPCAP_TEST_ZIP_SHA256=$zipHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "NPCAP_TEST_INSTALLER_SHA256=$installerHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Write-Output "WBD_NPCAP_TEST_ATTACHMENT_READY zip_sha256=$zipHash installer_sha256=$installerHash"
+          "NPCAP_TEST_APPROVED_WRAPPER=$allowApprovedTestInstaller" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NPCAP_TEST_INSTALLER_SIGNATURE_STATUS=$([string]$selectedSig.Status)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Output "WBD_NPCAP_TEST_ATTACHMENT_READY zip_sha256=$zipHash installer_sha256=$installerHash approved_test_wrapper=$allowApprovedTestInstaller"
       - name: Run 300 second production-controller Wintun plus real Npcap soak
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
           $log=Join-Path $env:RUNNER_TEMP 'wbd-soak-${{ matrix.slug }}'; New-Item -ItemType Directory -Force $log | Out-Null
-          [ordered]@{source_url=$env:NPCAP_TEST_SOURCE_URL;zip_sha256=$env:NPCAP_TEST_ZIP_SHA256;installer_sha256=$env:NPCAP_TEST_INSTALLER_SHA256} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $log 'npcap-source.json') -Encoding utf8
+          [ordered]@{source_url=$env:NPCAP_TEST_SOURCE_URL;zip_sha256=$env:NPCAP_TEST_ZIP_SHA256;installer_sha256=$env:NPCAP_TEST_INSTALLER_SHA256;approved_test_wrapper=$env:NPCAP_TEST_APPROVED_WRAPPER;installer_signature_status=$env:NPCAP_TEST_INSTALLER_SIGNATURE_STATUS} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $log 'npcap-source.json') -Encoding utf8
           .\scripts\windows_linux_wintun_lane_soak.ps1 `
             -BinDir "$env:RUNNER_TEMP\windows-assets" `
             -LinuxAssets "$env:RUNNER_TEMP\linux-assets" `

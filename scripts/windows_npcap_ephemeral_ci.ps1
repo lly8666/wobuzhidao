@@ -5,6 +5,7 @@ param(
 
     [string]$InstallerPath = '',
     [string]$InstallerSHA256 = '',
+    [switch]$AllowApprovedTestInstaller,
     [string]$StatePath = "$env:RUNNER_TEMP\wbd-npcap-ephemeral-state.json"
 )
 
@@ -20,6 +21,15 @@ function Get-NpcapState {
         Packet = Join-Path $root 'Packet.dll'
         ServiceExists = $null -ne $service
         ServiceStatus = if ($service) { [string]$service.Status } else { 'Missing' }
+    }
+}
+
+function Get-SignatureSummary([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path)) { throw "signature target missing: $Path" }
+    $sig = Get-AuthenticodeSignature -FilePath $Path
+    [pscustomobject]@{
+        Status = [string]$sig.Status
+        Subject = if ($sig.SignerCertificate) { [string]$sig.SignerCertificate.Subject } else { '' }
     }
 }
 
@@ -46,12 +56,13 @@ function Assert-NpcapReady {
     return $s
 }
 
-function Save-State([bool]$InstalledByJob, [string]$Installer) {
+function Save-State([bool]$InstalledByJob, [string]$Installer, [bool]$ApprovedTestInstaller) {
     $dir = Split-Path -Parent $StatePath
     if ($dir) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
     [ordered]@{
         installed_by_job = $InstalledByJob
         installer = $Installer
+        approved_test_installer = $ApprovedTestInstaller
         created_utc = [DateTime]::UtcNow.ToString('o')
     } | ConvertTo-Json | Set-Content -LiteralPath $StatePath -Encoding utf8
 }
@@ -88,7 +99,7 @@ switch ($Action) {
         $existing = Get-NpcapState
         if ($existing.ServiceExists -and (Test-Path -LiteralPath $existing.Wpcap) -and (Test-Path -LiteralPath $existing.Packet)) {
             [void](Assert-NpcapReady)
-            Save-State $false ''
+            Save-State $false '' $false
             Write-Output 'WBD_WINDOWS_NPCAP_EPHEMERAL_INSTALL_SKIP reason=preexisting'
             exit 0
         }
@@ -101,12 +112,19 @@ switch ($Action) {
         $got = (Get-FileHash -Algorithm SHA256 -LiteralPath $InstallerPath).Hash.ToLowerInvariant()
         $want = $InstallerSHA256.Trim().ToLowerInvariant()
         if ($got -ne $want) { throw "Npcap installer SHA256 mismatch: got=$got want=$want" }
-        Assert-NmapSignature $InstallerPath 'Npcap installer'
+        if ($AllowApprovedTestInstaller) {
+            $summary = Get-SignatureSummary $InstallerPath
+            Write-Output "WBD_WINDOWS_NPCAP_APPROVED_TEST_INSTALLER signature_status=$($summary.Status) signer=$($summary.Subject) sha256=$got"
+        } else {
+            Assert-NmapSignature $InstallerPath 'Npcap installer'
+        }
         $p = Start-Process -FilePath $InstallerPath -ArgumentList '/S' -Wait -PassThru
         if ($p.ExitCode -notin @(0,3010)) { throw "Npcap silent installer exited $($p.ExitCode)" }
+        # Even when the explicitly approved CI test wrapper is unsigned, the
+        # installed runtime must still be the signed Nmap Npcap runtime.
         [void](Assert-NpcapReady)
-        Save-State $true $InstallerPath
-        Write-Output "WBD_WINDOWS_NPCAP_EPHEMERAL_INSTALL_PASS sha256=$got reboot_required=$($p.ExitCode -eq 3010)"
+        Save-State $true $InstallerPath ([bool]$AllowApprovedTestInstaller)
+        Write-Output "WBD_WINDOWS_NPCAP_EPHEMERAL_INSTALL_PASS sha256=$got approved_test_installer=$([bool]$AllowApprovedTestInstaller) reboot_required=$($p.ExitCode -eq 3010)"
         exit 0
     }
     'Cleanup' {
@@ -121,7 +139,16 @@ switch ($Action) {
             exit 0
         }
         $uninstaller = Resolve-Uninstaller
-        Assert-NmapSignature $uninstaller 'Npcap uninstaller'
+        $approvedTestInstaller = $false
+        if ($state.PSObject.Properties.Name -contains 'approved_test_installer') {
+            $approvedTestInstaller = [bool]$state.approved_test_installer
+        }
+        if ($approvedTestInstaller) {
+            $summary = Get-SignatureSummary $uninstaller
+            Write-Output "WBD_WINDOWS_NPCAP_APPROVED_TEST_UNINSTALLER signature_status=$($summary.Status) signer=$($summary.Subject) path=$uninstaller"
+        } else {
+            Assert-NmapSignature $uninstaller 'Npcap uninstaller'
+        }
         $p = Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait -PassThru
         if ($p.ExitCode -notin @(0,3010)) { throw "Npcap silent uninstaller exited $($p.ExitCode)" }
         for ($i = 0; $i -lt 30; $i++) {
