@@ -17,26 +17,13 @@ func testOffLinkConfig(mtu uint16) LinkConfig {
 
 func testPolicyWithCeiling(ceiling uint16) LinkPolicy {
 	policy := CurrentLinkPolicy()
-	policy.ValidateConfig = func(cfg LinkConfig) error {
-		if cfg.MTU > ceiling {
-			return fmt.Errorf("%w: mtu %d exceeds carrier ceiling %d", ErrLimit, cfg.MTU, ceiling)
-		}
-		return nil
-	}
+	policy.MaxMTU = ceiling
 	return policy
 }
 
-func TestLinkConfigValidatorRejectsBeforeAccept(t *testing.T) {
+func TestLinkPolicyRejectsBeforeAccept(t *testing.T) {
 	cfg := testOffLinkConfig(1201)
-	calls := 0
-	policy := CurrentLinkPolicy()
-	policy.ValidateConfig = func(got LinkConfig) error {
-		calls++
-		if got != cfg {
-			return fmt.Errorf("validator got config %#v want %#v", got, cfg)
-		}
-		return fmt.Errorf("%w: carrier ceiling exceeded", ErrLimit)
-	}
+	policy := testPolicyWithCeiling(1200)
 	server, err := NewLinkServerSession(1, 1, nil, policy)
 	if err != nil {
 		t.Fatal(err)
@@ -54,14 +41,11 @@ func TestLinkConfigValidatorRejectsBeforeAccept(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, ok := reply.(LinkAccept); ok {
-		t.Fatal("carrier-invalid LINK_INIT was accepted")
+		t.Fatal("policy-invalid LINK_INIT was accepted")
 	}
 	policyErr, ok := reply.(Error)
 	if !ok || policyErr.Code != ErrorPolicy {
 		t.Fatalf("reply=%T %#v want ErrorPolicy", reply, reply)
-	}
-	if calls != 1 {
-		t.Fatalf("validator calls=%d want=1", calls)
 	}
 	if server.State() != StateFailed {
 		t.Fatalf("state=%v want failed", server.State())
