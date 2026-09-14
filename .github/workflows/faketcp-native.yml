@@ -124,6 +124,7 @@ jobs:
           tail_received=sum(1 for i in range(N-TAIL,N) if i in got)
           out={
               'sent':N,
+              'record_bytes':SIZE,
               'received':len(got),
               'missing':missing,
               'ratio':len(got)/N,
@@ -156,6 +157,9 @@ jobs:
               m=re.findall(r'WBD_FAKETCP_STATS (\{.*\})',txt)
               assert m,p
               rows.append(json.loads(m[-1]))
+          by_role={r['role']:r for r in rows}
+          client=by_role['client']
+          server=by_role['server']
 
           # Historical bounded-recovery runs before the temporary strict-mode
           # regression delivered roughly 984-986/1000 in this random scenario.
@@ -165,18 +169,41 @@ jobs:
           missing=probe['sent']-probe['received']
           reasons={
               'forgiven_gaps':sum(r['receiver']['ForgivenGaps'] for r in rows),
+              'forgiven_bytes':sum(r['receiver']['ForgivenBytes'] for r in rows),
               'soft_forgiven_gaps':sum(r['receiver']['SoftForgivenGaps'] for r in rows),
               'emergency_forgiven_gaps':sum(r['receiver']['EmergencyForgivenGaps'] for r in rows),
               'repair_evicted':sum(r['sender']['RepairEvicted'] for r in rows),
+              'repair_evicted_bytes':sum(r['sender']['RepairEvictedBytes'] for r in rows),
               'repair_metadata_evicted':sum(r['sender']['RepairMetadataEvicted'] for r in rows),
               'repair_deferred':sum(r['sender']['RepairDeferred'] for r in rows),
               'repair_budget_spent':sum(r['sender']['RepairBudgetSpent'] for r in rows),
+          }
+
+          # Split end-to-end loss by direction using the product counters. Every
+          # datagram delivered by the server is echoed once; every echoed datagram
+          # is then eligible for client delivery. Missing records must therefore
+          # be attributable on the direction where progress skipped them.
+          forward_missing=probe['sent']-server['receiver']['Delivered']
+          echoed=server['sender']['Enqueued']
+          return_missing=echoed-client['receiver']['Delivered']
+          directional={
+              'forward_missing':forward_missing,
+              'return_missing':return_missing,
+              'forward_forgiven_bytes':server['receiver']['ForgivenBytes'],
+              'return_forgiven_bytes':client['receiver']['ForgivenBytes'],
+              'forward_sender_evicted':client['sender']['RepairEvicted'],
+              'forward_sender_evicted_bytes':client['sender']['RepairEvictedBytes'],
+              'forward_sender_metadata_evicted':client['sender']['RepairMetadataEvicted'],
+              'return_sender_evicted':server['sender']['RepairEvicted'],
+              'return_sender_evicted_bytes':server['sender']['RepairEvictedBytes'],
+              'return_sender_metadata_evicted':server['sender']['RepairMetadataEvicted'],
           }
           summary={
               'probe':probe,
               'bounded_recovery_baseline_reference':baseline_reference,
               'delta_from_reference':probe['received']-baseline_reference,
               'loss_reason_counters':reasons,
+              'directional_loss_explanation':directional,
               'arq':rows,
           }
           print('BOUNDED_RECOVERY_FINAL',json.dumps(summary,sort_keys=True))
@@ -195,10 +222,24 @@ jobs:
           assert all(r['sender']['PeakPending'] <= 4096 for r in rows), rows
           assert all(r['sender']['FreshBlockedByRepair'] == 0 for r in rows), rows
 
-          # Finite recovery may explain random-smoke loss, but unexplained loss
-          # is never accepted merely because the delivery ratio cleared a floor.
-          if missing:
-              explained=(reasons['forgiven_gaps'] + reasons['repair_evicted'] +
-                         reasons['repair_metadata_evicted'] + reasons['repair_deferred'])
-              assert explained > 0, summary
+          # Cross-check application delivery with transport delivery before using
+          # transport counters as the explanation for missing application IDs.
+          assert forward_missing >= 0 and return_missing >= 0, summary
+          assert echoed == server['receiver']['Delivered'], summary
+          assert probe['received'] == client['receiver']['Delivered'], summary
+          assert missing == forward_missing + return_missing, summary
+
+          # A permanent miss needs directional abandonment evidence. Budget defer
+          # alone is deliberately not accepted as an explanation: it is temporary.
+          # Forgiven sequence bytes and evicted repair records are the existing
+          # finite-recovery mechanisms that can make a miss permanent.
+          size=probe['record_bytes']
+          forward_explainable=(server['receiver']['ForgivenBytes']//size +
+                               client['sender']['RepairEvicted'] +
+                               client['sender']['RepairMetadataEvicted'])
+          return_explainable=(client['receiver']['ForgivenBytes']//size +
+                              server['sender']['RepairEvicted'] +
+                              server['sender']['RepairMetadataEvicted'])
+          assert forward_missing <= forward_explainable, summary
+          assert return_missing <= return_explainable, summary
           PY
