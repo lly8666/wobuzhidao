@@ -221,7 +221,7 @@ func (p Profile) Validate() error {
 		return errors.New("DNS mode must be Auto, System, Cloudflare, or Custom")
 	}
 	if p.DNSMode == DNSCustom {
-		ip, err := netip.ParseAddr(strings.TrimSpace(profile.DNSServer))
+		ip, err := netip.ParseAddr(strings.TrimSpace(p.DNSServer))
 		if err != nil || !ip.Is4() {
 			return errors.New("custom DNS server must be one IPv4 address")
 		}
