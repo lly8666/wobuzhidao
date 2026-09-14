@@ -13,19 +13,22 @@ const (
 )
 
 func laneRotationSeconds(profile Profile) (int, int) {
-	minSeconds := profile.LaneRotationMinSeconds
-	maxSeconds := profile.LaneRotationMaxSeconds
-	if minSeconds == 0 {
-		minSeconds = DefaultLaneRotationMinSeconds
-	}
-	if maxSeconds == 0 {
-		maxSeconds = DefaultLaneRotationMaxSeconds
-	}
-	return minSeconds, maxSeconds
+	return profile.LaneRotationMinSeconds, profile.LaneRotationMaxSeconds
+}
+
+func automaticLaneRotationEnabled(profile Profile) bool {
+	minSeconds, maxSeconds := laneRotationSeconds(profile)
+	return minSeconds > 0 && maxSeconds > 0
 }
 
 func validateLaneRotationProfile(profile Profile) error {
 	minSeconds, maxSeconds := laneRotationSeconds(profile)
+	if minSeconds == 0 && maxSeconds == 0 {
+		return nil
+	}
+	if minSeconds == 0 || maxSeconds == 0 {
+		return errors.New("lane rotation minimum and maximum must both be zero to disable automatic rotation, or both be positive")
+	}
 	if minSeconds < int(minConfigurableLaneRotation/time.Second) {
 		return fmt.Errorf("lane rotation minimum must be at least %d seconds", int(minConfigurableLaneRotation/time.Second))
 	}
