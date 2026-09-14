@@ -40,3 +40,31 @@ jobs:
             & $npf.FullName 2>&1 | ForEach-Object { Write-Output "WBD_NPFINSTALL_HELP $_" }
             Write-Output "WBD_NPFINSTALL_HELP_EXIT code=$LASTEXITCODE"
           } finally { Pop-Location }
+
+      - name: Inspect signed Npcap 1.88 userland payload
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $url='https://npcap.com/dist/npcap-1.88.exe'
+          $installer=Join-Path $env:RUNNER_TEMP 'npcap-1.88.exe'
+          $extract=Join-Path $env:RUNNER_TEMP 'npcap-1.88-extract'
+          Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $installer
+          $sig=Get-AuthenticodeSignature -FilePath $installer
+          $subject=if($sig.SignerCertificate){[string]$sig.SignerCertificate.Subject}else{''}
+          if($sig.Status -ne [System.Management.Automation.SignatureStatus]::Valid -or $subject -notmatch 'Nmap Software LLC'){throw "Npcap 1.88 installer signature invalid: status=$($sig.Status) signer=$subject"}
+          $hash=(Get-FileHash -Algorithm SHA256 -LiteralPath $installer).Hash.ToLowerInvariant()
+          Write-Output "WBD_NPCAP_OFFICIAL_INSTALLER version=1.88 signature=Valid signer=$subject sha256=$hash"
+          New-Item -ItemType Directory -Force $extract | Out-Null
+          & 7z x -y "-o$extract" $installer | Out-Null
+          if($LASTEXITCODE){throw "7z extraction failed: $LASTEXITCODE"}
+          $dlls=@(Get-ChildItem -LiteralPath $extract -Recurse -File | Where-Object {$_.Name -in @('wpcap.dll','Packet.dll')})
+          if($dlls.Count -eq 0){
+            $interesting=@(Get-ChildItem -LiteralPath $extract -Recurse -File | Where-Object {$_.Extension -eq '.dll'} | ForEach-Object {$_.FullName.Substring($extract.Length+1)}) -join ','
+            throw "Npcap userland DLLs not found after extraction; dlls=$interesting"
+          }
+          foreach($dll in $dlls){
+            $ds=Get-AuthenticodeSignature -FilePath $dll.FullName
+            $dsub=if($ds.SignerCertificate){[string]$ds.SignerCertificate.Subject}else{''}
+            $rel=$dll.FullName.Substring($extract.Length+1)
+            Write-Output ("WBD_NPCAP_OFFICIAL_DLL path={0} file_version={1} product_version={2} signature={3} signer={4} sha256={5}" -f $rel,$dll.VersionInfo.FileVersion,$dll.VersionInfo.ProductVersion,[string]$ds.Status,$dsub,(Get-FileHash -Algorithm SHA256 -LiteralPath $dll.FullName).Hash.ToLowerInvariant())
+          }
