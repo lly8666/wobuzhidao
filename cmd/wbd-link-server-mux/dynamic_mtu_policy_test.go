@@ -5,19 +5,26 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/control"
 	"github.com/lly8666/wobuzhidao/internal/gamepath"
+	"github.com/lly8666/wobuzhidao/internal/pathmtu"
 )
 
-// The operator-visible MTU belongs to the client tunnel interface. A shared
-// server must accept every valid Game inner MTU and freeze that client's
-// derived LINK plaintext MTU for the lifetime of the association. The server's
-// own default must not force every client to use the same MTU.
-func TestServerLinkPolicyAcceptsClientSelectedInnerMTU(t *testing.T) {
+// A shared server accepts different client-selected MTUs as long as each one
+// fits both the Game protocol range and this server's actual local carrier
+// budget. The server default must not force every client to one MTU.
+func TestServerLinkPolicyAcceptsClientSelectedInnerMTUWithinCarrier(t *testing.T) {
+	old := serverConnectionMTU
+	serverConnectionMTU = pathmtu.DefaultConnectionMTU
+	defer func() { serverConnectionMTU = old }()
 	policy, err := linkPolicyForInnerMTU(defaultInnerMTU)
 	if err != nil {
 		t.Fatalf("build server LINK policy: %v", err)
 	}
+	budget, err := pathmtu.Derive(serverConnectionMTU, pathmtu.Features{Game: true})
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	for _, innerMTU := range []int{576, 1280, 1300, 1360, 1460} {
+	for _, innerMTU := range []int{576, 900, 1280, budget.InnerMTU} {
 		linkMTU, err := gamepath.LinkPlaintextMTU(innerMTU)
 		if err != nil {
 			t.Fatalf("inner MTU %d -> LINK plaintext MTU: %v", innerMTU, err)
@@ -32,9 +39,20 @@ func TestServerLinkPolicyAcceptsClientSelectedInnerMTU(t *testing.T) {
 			t.Fatalf("server default inner MTU %d rejected client inner MTU %d (LINK %d): %v", defaultInnerMTU, innerMTU, linkMTU, err)
 		}
 	}
+
+	over, err := gamepath.LinkPlaintextMTU(budget.InnerMTU + 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := policy.Validate(control.LinkConfig{FECMode: control.FECOff, Scheduler: control.FECSchedulerNone, LaneCount: 1, MTU: uint16(over)}); err == nil {
+		t.Fatalf("inner MTU %d above carrier-derived ceiling unexpectedly accepted", budget.InnerMTU+1)
+	}
 }
 
 func TestServerEchoesClientSelectedMTUWithoutRewrite(t *testing.T) {
+	old := serverConnectionMTU
+	serverConnectionMTU = pathmtu.DefaultConnectionMTU
+	defer func() { serverConnectionMTU = old }()
 	policy, err := linkPolicyForInnerMTU(defaultInnerMTU)
 	if err != nil {
 		t.Fatal(err)
