@@ -12,15 +12,17 @@ import (
 // FECObserveStats is diagnostic-only state for the live LINK-embedded FEC path.
 // It is read-only with respect to admission, reconstruction and wire behavior.
 type FECObserveStats struct {
-	Decoder                   fec.DecoderPressureStats    `json:"decoder"`
-	PeakInFlight              int                         `json:"peak_in_flight"`
-	PeakRetired               int                         `json:"peak_retired"`
-	PeakRetiredIncomplete     int                         `json:"peak_retired_incomplete"`
-	PeakRetiredMissingSources int                         `json:"peak_retired_missing_sources"`
-	PressureRetireEvents      uint64                      `json:"pressure_retire_events"`
-	ReconstructCalls          uint64                      `json:"reconstruct_calls"`
-	ReconstructSuccess        uint64                      `json:"reconstruct_success"`
-	ReconstructMissingSources uint64                      `json:"reconstruct_missing_sources"`
+	Decoder                   fec.DecoderPressureStats   `json:"decoder"`
+	Recovery                  FECRecoveryStats           `json:"recovery"`
+	PeakInFlight              int                        `json:"peak_in_flight"`
+	PeakRetired               int                        `json:"peak_retired"`
+	PeakRetiredIncomplete     int                        `json:"peak_retired_incomplete"`
+	PeakRetiredMissingSources int                        `json:"peak_retired_missing_sources"`
+	PressureRetireEvents      uint64                     `json:"pressure_retire_events"`
+	PressureDetailScans       uint64                     `json:"pressure_detail_scans"`
+	ReconstructCalls          uint64                     `json:"reconstruct_calls"`
+	ReconstructSuccess        uint64                     `json:"reconstruct_success"`
+	ReconstructMissingSources uint64                     `json:"reconstruct_missing_sources"`
 	BlockSizeHistogram        [fec.DataShards + 1]uint64 `json:"block_size_histogram"`
 }
 
@@ -59,15 +61,16 @@ func (c *observedDecoderCodec) snapshot() (uint64, uint64, uint64) {
 }
 
 type fecObserveState struct {
-	codec              *observedDecoderCodec
-	peakInFlight       int
-	peakRetired        int
+	codec                 *observedDecoderCodec
+	peakInFlight          int
+	peakRetired           int
 	peakRetiredIncomplete int
-	peakRetiredMissing int
-	lastRetired        int
-	retireEvents       uint64
-	hist               [fec.DataShards + 1]uint64
-	lastReport         time.Time
+	peakRetiredMissing    int
+	lastRetired           int
+	retireEvents          uint64
+	pressureDetailScans   uint64
+	hist                  [fec.DataShards + 1]uint64
+	lastReport            time.Time
 }
 
 var fecObserve sync.Map // map[*Path]*fecObserveState
@@ -99,28 +102,61 @@ func observeFECDecoder(p *Path, now time.Time) {
 		return
 	}
 	s := v.(*fecObserveState)
+
+	// The hot path only samples constant-time occupancy counts. The old code
+	// walked every heavy and retired block for every received FEC datagram.
+	c := p.dec.PressureCounts()
+	if c.InFlight > s.peakInFlight {
+		s.peakInFlight = c.InFlight
+	}
+	if c.Retired > s.peakRetired {
+		s.peakRetired = c.Retired
+	}
+
+	retiredIncreased := c.Retired > s.lastRetired
+	if retiredIncreased {
+		s.retireEvents += uint64(c.Retired - s.lastRetired)
+	}
+	s.lastRetired = c.Retired
+
+	reportDue := s.lastReport.IsZero() || now.Sub(s.lastReport) >= time.Second
+	if !retiredIncreased && !reportDue {
+		return
+	}
+
+	// Detailed missing-source accounting is needed when compact state grows so
+	// its peak remains exact for normal pre-cap operation, and at the one-second
+	// report cadence. It is no longer a per-datagram scan.
 	d := p.dec.PressureStats()
-	if d.InFlight > s.peakInFlight {
-		s.peakInFlight = d.InFlight
-	}
-	if d.Retired > s.peakRetired {
-		s.peakRetired = d.Retired
-	}
+	s.pressureDetailScans++
 	if d.RetiredIncomplete > s.peakRetiredIncomplete {
 		s.peakRetiredIncomplete = d.RetiredIncomplete
 	}
 	if d.RetiredMissingSources > s.peakRetiredMissing {
 		s.peakRetiredMissing = d.RetiredMissingSources
 	}
-	if d.Retired > s.lastRetired {
-		s.retireEvents += uint64(d.Retired - s.lastRetired)
-	}
-	s.lastRetired = d.Retired
-	if s.lastReport.IsZero() || now.Sub(s.lastReport) >= time.Second {
+
+	if reportDue {
 		s.lastReport = now
-		b, _ := json.Marshal(p.FECObserveStats())
+		b, _ := json.Marshal(p.fecObserveStats(d, s))
 		fmt.Printf("WBD_LINK_FEC_DIAG %s\n", b)
 	}
+}
+
+func (p *Path) fecObserveStats(d fec.DecoderPressureStats, s *fecObserveState) FECObserveStats {
+	out := FECObserveStats{Decoder: d, Recovery: p.FECRecoveryStats()}
+	if s == nil {
+		return out
+	}
+	out.PeakInFlight = s.peakInFlight
+	out.PeakRetired = s.peakRetired
+	out.PeakRetiredIncomplete = s.peakRetiredIncomplete
+	out.PeakRetiredMissingSources = s.peakRetiredMissing
+	out.PressureRetireEvents = s.retireEvents
+	out.PressureDetailScans = s.pressureDetailScans
+	out.BlockSizeHistogram = s.hist
+	out.ReconstructCalls, out.ReconstructSuccess, out.ReconstructMissingSources = s.codec.snapshot()
+	return out
 }
 
 func (p *Path) FECObserveStats() FECObserveStats {
@@ -128,18 +164,20 @@ func (p *Path) FECObserveStats() FECObserveStats {
 	if p == nil || p.dec == nil {
 		return out
 	}
-	out.Decoder = p.dec.PressureStats()
+	d := p.dec.PressureStats()
 	v, ok := fecObserve.Load(p)
 	if !ok {
+		out.Decoder = d
+		out.Recovery = p.FECRecoveryStats()
 		return out
 	}
 	s := v.(*fecObserveState)
-	out.PeakInFlight = s.peakInFlight
-	out.PeakRetired = s.peakRetired
-	out.PeakRetiredIncomplete = s.peakRetiredIncomplete
-	out.PeakRetiredMissingSources = s.peakRetiredMissing
-	out.PressureRetireEvents = s.retireEvents
-	out.BlockSizeHistogram = s.hist
-	out.ReconstructCalls, out.ReconstructSuccess, out.ReconstructMissingSources = s.codec.snapshot()
-	return out
+	s.pressureDetailScans++
+	if d.RetiredIncomplete > s.peakRetiredIncomplete {
+		s.peakRetiredIncomplete = d.RetiredIncomplete
+	}
+	if d.RetiredMissingSources > s.peakRetiredMissing {
+		s.peakRetiredMissing = d.RetiredMissingSources
+	}
+	return p.fecObserveStats(d, s)
 }

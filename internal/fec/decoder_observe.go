@@ -1,7 +1,29 @@
 package fec
 
-// DecoderPressureStats is a read-only snapshot for diagnostics. It does not
-// change decoder admission, retirement, reconstruction, or wire behavior.
+// DecoderPressureCounts is the constant-time portion of decoder pressure state.
+// It is safe to sample on the per-datagram hot path because it only reads map
+// lengths and immutable configuration; it never walks heavy or retired blocks.
+type DecoderPressureCounts struct {
+	InFlight  int `json:"in_flight"`
+	MaxBlocks int `json:"max_blocks"`
+	Retired   int `json:"retired"`
+}
+
+// PressureCounts returns the constant-time decoder pressure counters used for
+// exact hot-path occupancy peaks. Detailed missing-source accounting remains in
+// PressureStats and should be sampled at diagnostic/reporting cadence instead
+// of once per received FEC datagram.
+func (d *BlockDecoder) PressureCounts() DecoderPressureCounts {
+	return DecoderPressureCounts{
+		InFlight:  len(d.blocks),
+		MaxBlocks: d.maxBlocks,
+		Retired:   len(d.retired),
+	}
+}
+
+// DecoderPressureStats is a read-only detailed snapshot for diagnostics. It
+// walks the current heavy and compact states to count missing source delivery,
+// so callers must keep it off the per-datagram hot path.
 type DecoderPressureStats struct {
 	InFlight              int `json:"in_flight"`
 	MaxBlocks             int `json:"max_blocks"`
