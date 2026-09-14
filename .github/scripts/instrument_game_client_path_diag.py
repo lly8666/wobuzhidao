@@ -36,11 +36,21 @@ if s.count(old) != 1:
     raise SystemExit(f"lane rx marker drift: {s.count(old)}")
 s = s.replace(old, new, 1)
 
-old = '''\t\tif _, err := c.app.WriteToUDP(result.Payload, peer); err != nil { return err }\n\t\tatomic.AddUint64(&c.delivered, 1)'''
-new = '''\t\tif _, err := c.app.WriteToUDP(result.Payload, peer); err != nil {\n\t\t\tatomic.AddUint64(&c.diagAppWriteErr, 1)\n\t\t\treturn err\n\t\t}\n\t\tif len(result.Payload) >= 4 && string(result.Payload[:4]) == "WBD1" {\n\t\t\tatomic.AddUint64(&c.diagAppTXPackets, 1)\n\t\t\tatomic.AddUint64(&c.diagAppTXBytes, uint64(len(result.Payload)))\n\t\t}\n\t\tatomic.AddUint64(&c.delivered, 1)'''
+# Patch the application delivery write and accounting with independent, stable
+# anchors.  Keeping the write line and delivered counter as separate markers
+# avoids coupling this diagnostic patch to gofmt/adjacent-line drift while
+# still requiring each baseline semantic anchor to occur exactly once.
+old = '''\t\tif _, err := c.app.WriteToUDP(result.Payload, peer); err != nil { return err }'''
+new = '''\t\tif _, err := c.app.WriteToUDP(result.Payload, peer); err != nil {\n\t\t\tatomic.AddUint64(&c.diagAppWriteErr, 1)\n\t\t\treturn err\n\t\t}\n\t\tif len(result.Payload) >= 4 && string(result.Payload[:4]) == "WBD1" {\n\t\t\tatomic.AddUint64(&c.diagAppTXPackets, 1)\n\t\t\tatomic.AddUint64(&c.diagAppTXBytes, uint64(len(result.Payload)))\n\t\t}'''
 if s.count(old) != 1:
-    raise SystemExit(f"app tx marker drift: {s.count(old)}")
+    raise SystemExit(f"app write marker drift: {s.count(old)}")
 s = s.replace(old, new, 1)
+
+old = '''\t\tatomic.AddUint64(&c.delivered, 1)'''
+if s.count(old) != 1:
+    raise SystemExit(f"delivered marker drift: {s.count(old)}")
+# The delivered counter remains in place; the exact-once check above protects
+# the intended delivery site without making the write patch depend on adjacency.
 
 insert_before = '''func (c *client) appLoop() error {'''
 diag = '''func (c *client) diagPathLoop() {\n\tt := time.NewTicker(time.Second)\n\tdefer t.Stop()\n\tfor now := range t.C {\n\t\tfmt.Printf("WBD_GAME_PATH_DIAG epoch_ns=%d app_rx_packets=%d app_rx_bytes=%d lane_tx_bytes=%d lane_rx_bytes=%d lane_write_err=%d app_tx_packets=%d app_tx_bytes=%d app_write_err=%d\\n",\n\t\t\tnow.UnixNano(),\n\t\t\tatomic.LoadUint64(&c.diagAppRXPackets), atomic.LoadUint64(&c.diagAppRXBytes),\n\t\t\tatomic.LoadUint64(&c.diagLaneTXBytes), atomic.LoadUint64(&c.diagLaneRXBytes),\n\t\t\tatomic.LoadUint64(&c.diagLaneWriteErr), atomic.LoadUint64(&c.diagAppTXPackets),\n\t\t\tatomic.LoadUint64(&c.diagAppTXBytes), atomic.LoadUint64(&c.diagAppWriteErr))\n\t}\n}\n\n'''
@@ -55,4 +65,4 @@ if s.count(old) != 1:
 s = s.replace(old, new, 1)
 
 p.write_text(s)
-print("WBD_GAME_CLIENT_PATH_DIAG_PATCHED interval_sec=1 per_packet_logging=0 final_exact=1")
+print("WBD_GAME_CLIENT_PATH_DIAG_PATCHED interval_sec=1 per_packet_logging=0 final_exact=1 stable_delivery_anchor=1")
