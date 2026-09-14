@@ -32,7 +32,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  preflight_npcap:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    env:
+      NPCAP_INSTALLER_URL: ${{ secrets.NPCAP_INSTALLER_URL }}
+      NPCAP_INSTALLER_SHA256: ${{ secrets.NPCAP_INSTALLER_SHA256 }}
+    steps:
+      - name: Verify authorized Npcap installer source
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${NPCAP_INSTALLER_URL}" || -z "${NPCAP_INSTALLER_SHA256}" ]]; then
+            echo '::error::NPCAP_INSTALLER_URL and NPCAP_INSTALLER_SHA256 repository/environment secrets are required. The URL must point to an authorized unattended Npcap installer; the installer itself is intentionally not stored in GitHub secrets or this repository.'
+            exit 1
+          fi
+          if [[ "${NPCAP_INSTALLER_URL}" != https://* ]]; then
+            echo '::error::NPCAP_INSTALLER_URL must use HTTPS.'
+            exit 1
+          fi
+          if [[ ! "${NPCAP_INSTALLER_SHA256}" =~ ^[0-9A-Fa-f]{64}$ ]]; then
+            echo '::error::NPCAP_INSTALLER_SHA256 must be exactly 64 hexadecimal characters.'
+            exit 1
+          fi
+          echo 'WBD_NPCAP_AUTHORIZED_SOURCE_PREFLIGHT_PASS'
+
   build-linux:
+    needs: preflight_npcap
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -66,6 +92,7 @@ jobs:
           retention-days: 1
 
   build-windows:
+    needs: preflight_npcap
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
@@ -186,17 +213,20 @@ jobs:
       - name: Install authorized ephemeral Npcap
         shell: pwsh
         env:
-          NPCAP_INSTALLER_B64: ${{ secrets.NPCAP_INSTALLER_B64 }}
+          NPCAP_INSTALLER_URL: ${{ secrets.NPCAP_INSTALLER_URL }}
           NPCAP_INSTALLER_SHA256: ${{ secrets.NPCAP_INSTALLER_SHA256 }}
         run: |
           $ErrorActionPreference='Stop'
           $existing=Get-Service -Name npcap -ErrorAction SilentlyContinue
           $installer=Join-Path $env:RUNNER_TEMP 'npcap-authorized.exe'
           if(-not $existing){
-            if([string]::IsNullOrWhiteSpace($env:NPCAP_INSTALLER_B64) -or [string]::IsNullOrWhiteSpace($env:NPCAP_INSTALLER_SHA256)){
-              throw 'Npcap is absent and NPCAP_INSTALLER_B64/NPCAP_INSTALLER_SHA256 secrets are required for the authorized unattended installer'
+            if([string]::IsNullOrWhiteSpace($env:NPCAP_INSTALLER_URL) -or [string]::IsNullOrWhiteSpace($env:NPCAP_INSTALLER_SHA256)){
+              throw 'Npcap is absent and NPCAP_INSTALLER_URL/NPCAP_INSTALLER_SHA256 secrets are required for the authorized unattended installer'
             }
-            [IO.File]::WriteAllBytes($installer,[Convert]::FromBase64String($env:NPCAP_INSTALLER_B64))
+            $uri=[Uri]$env:NPCAP_INSTALLER_URL
+            if($uri.Scheme -ne 'https'){throw 'NPCAP_INSTALLER_URL must use HTTPS'}
+            Invoke-WebRequest -Uri $uri.AbsoluteUri -OutFile $installer
+            if(-not (Test-Path -LiteralPath $installer)){throw 'authorized Npcap installer download did not create a file'}
           }
           .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Install -InstallerPath $installer -InstallerSHA256 $env:NPCAP_INSTALLER_SHA256
           .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Status
