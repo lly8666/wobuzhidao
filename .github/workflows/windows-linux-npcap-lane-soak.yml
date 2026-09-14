@@ -10,7 +10,7 @@ on:
       - '.github/scripts/mtu_budget.go'
       - '.github/scripts/windows_game_load.py'
       - 'scripts/windows_linux_wintun_lane_soak.ps1'
-      - 'scripts/windows_npcap_ephemeral_ci.ps1'
+      - 'scripts/windows_npcap_driver_ci.ps1'
       - 'scripts/wsl_wintun_lane_soak_server.sh'
       - 'scripts/windows_faketcp_underlay.ps1'
       - 'scripts/windows_npcap_prepare.ps1'
@@ -211,51 +211,46 @@ jobs:
           & wsl.exe -d $d -u root -- bash -lc 'test -x /usr/sbin/iptables && command -v tc && command -v python3 && command -v sudo'
           if($LASTEXITCODE){throw 'WSL prerequisites unavailable'}
           Write-Output "WBD_WSL_RUNTIME_READY distro=$d"
-      - name: Install approved ephemeral Npcap test runtime
+      - name: Install signed ephemeral Npcap 1.88 runtime
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
-          $url='https://github.com/user-attachments/files/32200327/npcap.zip'
-          $zip=Join-Path $env:RUNNER_TEMP 'npcap-test.zip'; $dir=Join-Path $env:RUNNER_TEMP 'npcap-test'
-          Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $zip
-          $zipHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLowerInvariant()
-          Expand-Archive -LiteralPath $zip -DestinationPath $dir -Force
-          $candidates=@(Get-ChildItem -LiteralPath $dir -Recurse -File -Filter '*.exe' | Where-Object {$_.Name -match '^npcap.*\.exe$' -and $_.Name -notmatch 'uninstall'})
-          if($candidates.Count -eq 0){
-            $names=@(Get-ChildItem -LiteralPath $dir -Recurse -File | ForEach-Object {$_.FullName.Substring($dir.Length+1)}) -join ','
-            throw "npcap.zip contains no npcap*.exe installer; files=$names"
-          }
-          $installer=$null; $allowApprovedTestInstaller=$false
-          foreach($candidate in $candidates){
-            $sig=Get-AuthenticodeSignature -FilePath $candidate.FullName
-            $subject=if($sig.SignerCertificate){[string]$sig.SignerCertificate.Subject}else{''}
-            Write-Output "WBD_NPCAP_TEST_CANDIDATE name=$($candidate.Name) signature_status=$([string]$sig.Status) signer=$subject size=$($candidate.Length)"
-            if($sig.Status -eq [System.Management.Automation.SignatureStatus]::Valid -and $subject -match 'Nmap Software LLC'){$installer=$candidate;break}
-          }
-          if(-not $installer){
-            $installer=$candidates | Sort-Object Length -Descending | Select-Object -First 1
-            $allowApprovedTestInstaller=$true
-            Write-Output "WBD_NPCAP_TEST_ATTACHMENT_WRAPPER_APPROVED name=$($installer.Name) reason=user_supplied_test_attachment"
-          }
-          $installerHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName).Hash.ToLowerInvariant()
-          $selectedSig=Get-AuthenticodeSignature -FilePath $installer.FullName
-          $selectedSubject=if($selectedSig.SignerCertificate){[string]$selectedSig.SignerCertificate.Subject}else{''}
-          $installArgs=@{Action='Install';InstallerPath=$installer.FullName;InstallerSHA256=$installerHash}
-          if($allowApprovedTestInstaller){$installArgs.AllowApprovedTestInstaller=$true}
-          .\scripts\windows_npcap_ephemeral_ci.ps1 @installArgs
-          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Status
-          "NPCAP_TEST_SOURCE_URL=$url" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "NPCAP_TEST_ZIP_SHA256=$zipHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "NPCAP_TEST_INSTALLER_SHA256=$installerHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "NPCAP_TEST_APPROVED_WRAPPER=$allowApprovedTestInstaller" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "NPCAP_TEST_INSTALLER_SIGNATURE_STATUS=$([string]$selectedSig.Status)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Write-Output "WBD_NPCAP_TEST_ATTACHMENT_READY zip_sha256=$zipHash installer_sha256=$installerHash approved_test_wrapper=$allowApprovedTestInstaller"
+          $driverUrl='https://github.com/user-attachments/files/32200327/npcap.zip'
+          $driverZip=Join-Path $env:RUNNER_TEMP 'npcap-test.zip'
+          $driverDir=Join-Path $env:RUNNER_TEMP 'npcap-test'
+          Invoke-WebRequest -UseBasicParsing -Uri $driverUrl -OutFile $driverZip
+          $driverHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $driverZip).Hash.ToLowerInvariant()
+          $driverWant='6380ebe6d5b06bbb0dc03a43151ee05a4a25be97efebd742c463e0e466621a32'
+          if($driverHash-ne$driverWant){throw "approved Npcap driver ZIP hash mismatch: got=$driverHash want=$driverWant"}
+          Expand-Archive -LiteralPath $driverZip -DestinationPath $driverDir -Force
+
+          $officialUrl='https://npcap.com/dist/npcap-1.88.exe'
+          $official=Join-Path $env:RUNNER_TEMP 'npcap-1.88.exe'
+          $extract=Join-Path $env:RUNNER_TEMP 'npcap-1.88-extract'
+          Invoke-WebRequest -UseBasicParsing -Uri $officialUrl -OutFile $official
+          $officialHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $official).Hash.ToLowerInvariant()
+          $officialWant='a2f4ec1e5ea353ff67efd24b2ebf081ba44532410fae8d5e146af0310aa4f56b'
+          if($officialHash-ne$officialWant){throw "Npcap 1.88 official installer hash mismatch: got=$officialHash want=$officialWant"}
+          $sig=Get-AuthenticodeSignature -FilePath $official
+          $subject=if($sig.SignerCertificate){[string]$sig.SignerCertificate.Subject}else{''}
+          if($sig.Status-ne[System.Management.Automation.SignatureStatus]::Valid-or$subject-notmatch'Nmap Software LLC'){throw "Npcap official installer signature invalid: status=$($sig.Status) signer=$subject"}
+          New-Item -ItemType Directory -Force $extract|Out-Null
+          & 7z x -y "-o$extract" $official|Out-Null
+          if($LASTEXITCODE){throw "Npcap 1.88 extraction failed: $LASTEXITCODE"}
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Install -DriverPackageDir $driverDir -UserlandExtractDir $extract
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Status
+          Add-Content -LiteralPath $env:GITHUB_PATH -Value "$env:SystemRoot\System32\Npcap"
+          "NPCAP_TEST_SOURCE_URL=$driverUrl"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NPCAP_TEST_ZIP_SHA256=$driverHash"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NPCAP_OFFICIAL_URL=$officialUrl"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NPCAP_OFFICIAL_SHA256=$officialHash"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Output "WBD_NPCAP_TEST_RUNTIME_READY version=1.88 driver_zip_sha256=$driverHash official_sha256=$officialHash"
       - name: Run 300 second production-controller Wintun plus real Npcap soak
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
           $log=Join-Path $env:RUNNER_TEMP 'wbd-soak-${{ matrix.slug }}'; New-Item -ItemType Directory -Force $log | Out-Null
-          [ordered]@{source_url=$env:NPCAP_TEST_SOURCE_URL;zip_sha256=$env:NPCAP_TEST_ZIP_SHA256;installer_sha256=$env:NPCAP_TEST_INSTALLER_SHA256;approved_test_wrapper=$env:NPCAP_TEST_APPROVED_WRAPPER;installer_signature_status=$env:NPCAP_TEST_INSTALLER_SIGNATURE_STATUS} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $log 'npcap-source.json') -Encoding utf8
+          [ordered]@{version='1.88';driver_source_url=$env:NPCAP_TEST_SOURCE_URL;driver_zip_sha256=$env:NPCAP_TEST_ZIP_SHA256;official_userland_source_url=$env:NPCAP_OFFICIAL_URL;official_userland_container_sha256=$env:NPCAP_OFFICIAL_SHA256;packet_sha256='2793ce72f0e04d5885aaee1273a7373441d01934b2cff3886b031c13ca826345';wpcap_sha256='d1ca7fcf9128d02a75eaf29ce9a9d85c5697377460f92420d976da187521cf39'} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $log 'npcap-source.json') -Encoding utf8
           .\scripts\windows_linux_wintun_lane_soak.ps1 `
             -BinDir "$env:RUNNER_TEMP\windows-assets" `
             -LinuxAssets "$env:RUNNER_TEMP\linux-assets" `
@@ -278,7 +273,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference='Continue'
-          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Cleanup
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Cleanup
           if($LASTEXITCODE){exit $LASTEXITCODE}
       - name: Remove ephemeral WSL distribution
         if: always()
