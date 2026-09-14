@@ -197,6 +197,7 @@ func main() {
 	startupRTO := e.sender.RTO()
 	e.senderMu.Unlock()
 	fmt.Printf("READY role=%s rto_ms=%.3f carrier_mtu=%d recovery=%s single_flow_bootstrap=%t\n", role, float64(startupRTO)/float64(time.Millisecond), e.carrierMTU, c.recovery, c.singleFlowEnabled())
+	go e.pressureLoop()
 
 	if !rawStarted {
 		go func() { errCh <- e.rawLoop() }()
@@ -711,6 +712,27 @@ func udpEqual(a, b *net.UDPAddr) bool {
 		return false
 	}
 	return a.Port == b.Port && a.IP.Equal(b.IP)
+}
+
+func (e *endpoint) pressureLoop() {
+	t := time.NewTicker(time.Second)
+	defer t.Stop()
+	for {
+		select {
+		case <-e.stop:
+			return
+		case <-t.C:
+			e.senderMu.Lock()
+			if e.sender == nil {
+				e.senderMu.Unlock()
+				continue
+			}
+			pending := e.sender.Pending()
+			stats := e.sender.Stats()
+			e.senderMu.Unlock()
+			fmt.Printf("WBD_FAKETCP_PRESSURE role=%s pending=%d peak_pending=%d capacity=%d\n", e.cfg.role, pending, stats.PeakPending, faketcp.MaxSteadyStateOutstandingDatagrams)
+		}
+	}
 }
 
 func (e *endpoint) retransmitLoop() error {
