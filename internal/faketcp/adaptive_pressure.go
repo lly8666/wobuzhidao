@@ -15,13 +15,14 @@ const (
 // lost records cannot be counted here without changing the wire. Directional
 // traffic stays separate; only the association's locally measured RTT is shared.
 type repairPressure struct {
-	epoch      time.Time
-	count      uint64
-	rate       float64
-	rtt        time.Duration
-	holeSince  time.Time
-	holeSeq    uint32
-	holeActive bool
+	epoch              time.Time
+	count              uint64
+	rate               float64
+	rtt                time.Duration
+	holeSince          time.Time
+	holeSeq            uint32
+	holeActive         bool
+	forgivenessDisabled bool
 }
 
 func (p *repairPressure) observe(now time.Time, srtt time.Duration) {
@@ -73,11 +74,14 @@ func (r *Receiver) updatePressureHole(now time.Time) {
 }
 
 func (r *Receiver) pressureAllowsForgiveness(now time.Time) bool {
+	p := &r.pressure
+	if p.forgivenessDisabled {
+		return false
+	}
 	n := len(r.outOfOrder)
 	if n >= PartialReliabilityEmergencyLimit {
 		return true
 	}
-	p := &r.pressure
 	return n >= p.softLimit() && p.rtt > 0 && p.holeActive &&
 		now.Sub(p.holeSince) >= pressureHoleRTTs*p.rtt
 }
