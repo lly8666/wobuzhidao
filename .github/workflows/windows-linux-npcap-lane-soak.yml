@@ -1,0 +1,224 @@
+name: windows-linux-npcap-lane-soak
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/windows-linux-npcap-lane-soak.yml'
+      - '.github/scripts/mtu_budget.go'
+      - '.github/scripts/windows_game_load.py'
+      - 'scripts/windows_linux_npcap_lane_soak.ps1'
+      - 'scripts/windows_npcap_ephemeral_ci.ps1'
+      - 'scripts/wsl_lane_soak_server.sh'
+      - 'scripts/windows_faketcp_underlay.ps1'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-game-lane-client/**'
+      - 'cmd/wbd-game-lane-server/**'
+      - 'internal/fec/**'
+      - 'internal/linkdata/**'
+      - 'internal/pathmtu/**'
+      - 'internal/windowsruntime/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-linux-npcap-lane-soak-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Build Linux server assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc openssl
+          git clone --depth 1 --branch v5.9.2-stable https://github.com/wolfSSL/wolfssl.git "$RUNNER_TEMP/wolfssl"
+          test "$(git -C "$RUNNER_TEMP/wolfssl" rev-parse HEAD)" = ac01707f552c611fbd135cc723b2682b3e7f80f2
+          (cd "$RUNNER_TEMP/wolfssl" && ./autogen.sh)
+          mkdir -p "$RUNNER_TEMP/wolf-build" "$RUNNER_TEMP/linux-assets"
+          (cd "$RUNNER_TEMP/wolf-build" && "$RUNNER_TEMP/wolfssl/configure" --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
+          make -C "$RUNNER_TEMP/wolf-build" -j2 src/libwolfssl.la
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I"$RUNNER_TEMP/wolf-build" -I"$RUNNER_TEMP/wolfssl" native/dtls/wbd_dtls_shim.c "$RUNNER_TEMP/wolf-build/src/.libs/libwolfssl.a" -lm -o "$RUNNER_TEMP/linux-assets/wbd_dtls_shim"
+          go build -trimpath -o "$RUNNER_TEMP/linux-assets/wbd-faketcp-mux" ./cmd/wbd-faketcp-mux
+          go build -trimpath -o "$RUNNER_TEMP/linux-assets/wbd-link-server-mux" ./cmd/wbd-link-server-mux
+          go build -trimpath -o "$RUNNER_TEMP/linux-assets/wbd-game-lane-server" ./cmd/wbd-game-lane-server
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-front.invalid' -keyout "$RUNNER_TEMP/linux-assets/front.key" -out "$RUNNER_TEMP/linux-assets/front.pem" >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=unrelated-dtls.invalid' -keyout "$RUNNER_TEMP/linux-assets/dtls.key" -out "$RUNNER_TEMP/linux-assets/dtls.pem" >/dev/null 2>&1
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/linux-assets/SOURCE_SHA.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-linux-soak-linux-assets
+          path: ${{ runner.temp }}/linux-assets
+          retention-days: 1
+
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Build native Windows client assets
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'windows-assets'; New-Item -ItemType Directory -Force $out | Out-Null
+          go build -trimpath -o (Join-Path $out 'wbd-faketcp.exe') .\cmd\wbd-faketcp
+          if($LASTEXITCODE){throw 'wbd-faketcp build failed'}
+          go build -trimpath -o (Join-Path $out 'wbd-link-proxy.exe') .\cmd\wbd-link-proxy
+          if($LASTEXITCODE){throw 'wbd-link-proxy build failed'}
+          go build -trimpath -o (Join-Path $out 'wbd-game-lane-client.exe') .\cmd\wbd-game-lane-client
+          if($LASTEXITCODE){throw 'wbd-game-lane-client build failed'}
+          git clone --depth 1 --branch v5.9.2-stable https://github.com/wolfSSL/wolfssl.git "$env:RUNNER_TEMP\wolfssl"
+          Push-Location "$env:RUNNER_TEMP\wolfssl"
+          if((git rev-parse HEAD).Trim() -ne 'ac01707f552c611fbd135cc723b2682b3e7f80f2'){throw 'wolfSSL pin mismatch'}
+          cmake -S . -B build -DWOLFSSL_DTLS13=yes -DWOLFSSL_DTLS=yes -DWOLFSSL_EXAMPLES=no -DWOLFSSL_CRYPT_TESTS=no -DBUILD_SHARED_LIBS=OFF -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded '-DCMAKE_C_FLAGS=/DWOLFSSL_DTLS_WINDOW_WORDS=128 /DWOLFSSL_MAX_MTU=16384'
+          if($LASTEXITCODE){throw 'wolfSSL configure failed'}
+          cmake --build build --config Release --target wolfssl
+          if($LASTEXITCODE){throw 'wolfSSL build failed'}
+          Pop-Location
+          $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $vsInstall=(& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | Select-Object -First 1)
+          $vcvars=Join-Path $vsInstall 'VC\Auxiliary\Build\vcvars64.bat'
+          $cmd=Join-Path $env:RUNNER_TEMP 'build-dtls.cmd'
+          @"
+          @echo off
+          call "$vcvars" >nul
+          if errorlevel 1 exit /b %errorlevel%
+          cl /nologo /O2 /MT /DWOLFSSL_DTLS_WINDOW_WORDS=128 /DWOLFSSL_MAX_MTU=16384 /I"$env:RUNNER_TEMP\wolfssl" /I"$env:RUNNER_TEMP\wolfssl\build" /I"$env:RUNNER_TEMP\wolfssl\wolfssl" native\dtls\wbd_dtls_shim.c /Fe:"$out\wbd_dtls_shim.exe" /link "$env:RUNNER_TEMP\wolfssl\build\Release\wolfssl.lib" ws2_32.lib crypt32.lib advapi32.lib
+          "@ | Set-Content -LiteralPath $cmd -Encoding ascii
+          & $cmd
+          if($LASTEXITCODE){throw 'DTLS shim build failed'}
+          Set-Content -LiteralPath (Join-Path $out 'SOURCE_SHA.txt') -Value $env:GITHUB_SHA -Encoding ascii
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-linux-soak-windows-assets
+          path: ${{ runner.temp }}\windows-assets
+          retention-days: 1
+
+  soak:
+    needs: [build-linux, build-windows]
+    runs-on: windows-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - lanes: 1
+            fec: 'off'
+            slug: '1lane-fec-off'
+          - lanes: 1
+            fec: '20:20'
+            slug: '1lane-fec-on'
+          - lanes: 4
+            fec: 'off'
+            slug: '4lane-fec-off'
+          - lanes: 4
+            fec: '20:20'
+            slug: '4lane-fec-on'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-linux-soak-linux-assets
+          path: ${{ runner.temp }}\linux-assets
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-linux-soak-windows-assets
+          path: ${{ runner.temp }}\windows-assets
+
+      - name: Verify WSL Linux runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          wsl.exe --status
+          $distros=@(& wsl.exe -l -q | ForEach-Object {$_.Trim([char]0).Trim()} | Where-Object {$_})
+          if($distros.Count -eq 0){throw 'windows-latest has no usable WSL distribution'}
+          $d=$distros[0]
+          & wsl.exe -d $d -- sudo bash -lc 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables python3'
+          if($LASTEXITCODE){throw 'WSL prerequisite install failed'}
+          & wsl.exe -d $d -- sudo bash -lc 'test -x /usr/sbin/iptables && command -v tc && command -v python3'
+          if($LASTEXITCODE){throw 'WSL prerequisites unavailable'}
+
+      - name: Install authorized ephemeral Npcap
+        shell: pwsh
+        env:
+          NPCAP_INSTALLER_B64: ${{ secrets.NPCAP_INSTALLER_B64 }}
+          NPCAP_INSTALLER_SHA256: ${{ secrets.NPCAP_INSTALLER_SHA256 }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $existing=Get-Service -Name npcap -ErrorAction SilentlyContinue
+          $installer=Join-Path $env:RUNNER_TEMP 'npcap-authorized.exe'
+          if(-not $existing){
+            if([string]::IsNullOrWhiteSpace($env:NPCAP_INSTALLER_B64) -or [string]::IsNullOrWhiteSpace($env:NPCAP_INSTALLER_SHA256)){
+              throw 'Npcap is absent and NPCAP_INSTALLER_B64/NPCAP_INSTALLER_SHA256 secrets are required for the authorized unattended installer'
+            }
+            [IO.File]::WriteAllBytes($installer,[Convert]::FromBase64String($env:NPCAP_INSTALLER_B64))
+          }
+          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Install -InstallerPath $installer -InstallerSHA256 $env:NPCAP_INSTALLER_SHA256
+          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Status
+
+      - name: Run 300 second Windows Npcap to WSL Linux lane soak
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $log=Join-Path $env:RUNNER_TEMP 'wbd-soak-${{ matrix.slug }}'
+          New-Item -ItemType Directory -Force $log | Out-Null
+          .\scripts\windows_linux_npcap_lane_soak.ps1 `
+            -BinDir "$env:RUNNER_TEMP\windows-assets" `
+            -LinuxAssets "$env:RUNNER_TEMP\linux-assets" `
+            -Lanes ${{ matrix.lanes }} `
+            -FEC '${{ matrix.fec }}' `
+            -ConnectionMTU 1420 `
+            -DurationSec 300 `
+            -RateBps 2000000 `
+            -LossPct 15 `
+            -RotateEverySec 90 `
+            -LogDir $log
+
+      - name: Print scenario summary
+        if: always()
+        shell: pwsh
+        run: |
+          $log=Join-Path $env:RUNNER_TEMP 'wbd-soak-${{ matrix.slug }}'
+          if(Test-Path "$log\summary.json"){Get-Content "$log\summary.json"}
+          if(Test-Path "$log\load-result.json"){Get-Content "$log\load-result.json" | Select-Object -First 1}
+          if(Test-Path "$log\network-end.log"){Get-Content "$log\network-end.log"}
+
+      - name: Remove ephemeral Npcap
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Continue'
+          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Cleanup
+          if($LASTEXITCODE){exit $LASTEXITCODE}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-linux-npcap-lane-soak-${{ matrix.slug }}-${{ github.run_id }}
+          path: ${{ runner.temp }}\wbd-soak-${{ matrix.slug }}
+          if-no-files-found: warn
+          retention-days: 14
