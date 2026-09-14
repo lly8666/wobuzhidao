@@ -5,9 +5,16 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/control"
 	"github.com/lly8666/wobuzhidao/internal/gamepath"
+	"github.com/lly8666/wobuzhidao/internal/pathmtu"
 )
 
-const defaultInnerMTU = 1360
+var defaultInnerMTU = func() int {
+	budget, err := pathmtu.Derive(pathmtu.DefaultConnectionMTU, pathmtu.Features{FEC: true, Game: true})
+	if err != nil {
+		panic(fmt.Sprintf("derive default inner MTU: %v", err))
+	}
+	return budget.InnerMTU
+}()
 
 // linkPolicyForInnerMTU validates the server's compatibility/default inner MTU
 // while keeping the protocol-representable range independent of that value.
