@@ -38,8 +38,9 @@ sudo ip netns exec "$C" env \\
     flag = '-diag-rcvbuf-effective-bytes "${WBD_SERVER_LINK_RCVBUF_EFFECTIVE_BYTES:-0}"'
     if flag not in s:
         # Match the unique server LINK command block rather than relying on one
-        # exact redirection layout.  The flag is inserted immediately before the
-        # command's final log redirection, so only :47000 is affected.
+        # exact redirection layout.  The regex intentionally lets the redirect
+        # capture own the newline/indentation, so prefix ends at the existing
+        # shell continuation backslash.
         block_re = re.compile(
             r'(?ms)(sudo ip netns exec "\$S" "\$ASSET_DIR/wbd-link-server-mux" \\\n'
             r'.*?)(\s*>"\$LOG_DIR/link-server\.log" 2>&1 &)'
@@ -50,9 +51,9 @@ sudo ip netns exec "$C" env \\
         m = hits[0]
         prefix = m.group(1)
         redirect = m.group(2)
-        if not prefix.endswith('\\\n'):
-            raise SystemExit("generated server LINK command does not end in continuation")
-        replacement = prefix + '  ' + flag + ' \\\n' + redirect.lstrip()
+        if not prefix.endswith('\\'):
+            raise SystemExit("generated server LINK command missing continuation before redirect")
+        replacement = prefix + '\n  ' + flag + ' \\\n  ' + redirect.lstrip()
         s = s[:m.start()] + replacement + s[m.end():]
 
     path.write_text(s)
