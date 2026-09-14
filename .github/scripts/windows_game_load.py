@@ -2,6 +2,7 @@ import argparse,json,select,socket,struct,time
 
 p=argparse.ArgumentParser()
 p.add_argument('--target',default='127.0.0.1:47500')
+p.add_argument('--bind',default='127.0.0.1',help='local IPv4 source address; bind the authenticated TUN lease for real TUN qualification')
 p.add_argument('--duration',type=float,default=300)
 p.add_argument('--rate-bps',type=int,default=2_000_000)
 p.add_argument('--payload-bytes',type=int,default=1000)
@@ -9,7 +10,7 @@ p.add_argument('--out',required=True)
 a=p.parse_args()
 host,port=a.target.rsplit(':',1); port=int(port)
 pps=a.rate_bps/(a.payload_bytes*8.0); interval=1.0/pps
-s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind(('127.0.0.1',0)); s.setblocking(False)
+s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind((a.bind,0)); s.setblocking(False)
 start=time.monotonic(); deadline=start+a.duration; next_tx=start
 sent=0; seen=set(); dup=bad=0; rx_times=[]; last_rx=start
 pad=b'Z'*max(0,a.payload_bytes-20)
@@ -35,6 +36,7 @@ while True:
 max_gap=0.0
 if len(rx_times)>1: max_gap=max(b-a for a,b in zip(rx_times,rx_times[1:]))
 result={
+ 'target':a.target,'bind':a.bind,
  'requested_duration_sec':a.duration,'requested_bps':a.rate_bps,'payload_bytes':a.payload_bytes,
  'sent':sent,'unique_rx':len(seen),'duplicate':dup,'bad_payload':bad,
  'inner_loss_pct':(100.0*(sent-len(seen))/sent if sent else 100.0),
