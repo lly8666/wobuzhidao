@@ -17,6 +17,21 @@ This record is the substantive development handoff after merging the bounded FEC
 
 The published preview/tag remains unchanged. The release branch is the post-preview development line.
 
+## Still-authoritative architecture contract
+
+The FEC/MTU follow-up does **not** replace the existing Logical Tunnel architecture authority. The following remains authoritative and must be persisted in `.wbd/handoff/current.json` because repository contract tests depend on it:
+
+- ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs each lane's same-association bootstrap/no-HOL behavior.
+- single-flow is PER TRANSPORT LANE / TRANSPORT EPOCH, not globally one public flow per Logical Tunnel.
+- One Logical Tunnel owns 1..4 logical lanes. FEC remains lane-local.
+- Healthy replacement remains `A -> A+B -> B`; candidate failure preserves the healthy old lane.
+- At most 4 logical lanes exist. A fifth physical slot is replacement overlap only, never logical lane 5.
+- The server-issued Logical Tunnel lease remains the source authority: accepted inner traffic must satisfy `source == server-issued Logical Tunnel lease` wherever this boundary is enforced.
+- Windows outer transport remains real Npcap/raw FakeTCP; Reality-like TLS bootstrap, DTLS, LINK and payload remain on the same raw FakeTCP association per lane.
+- Linux server final path remains one shared WBD TUN + root routing + one WBD-owned host NAT.
+
+This architecture contract is orthogonal to the FEC lifecycle bound and to the MTU follow-up below. Do not remove or reinterpret it while fixing MTU.
+
 ## What was merged in PR #13
 
 The six commits merged above the FEC640 baseline are:
@@ -144,4 +159,4 @@ The first atomic action is to trace the negotiated MTU value from LINK_INIT thro
 
 ## Repository handoff rule
 
-After this substantive record, `.wbd/handoff/current.json` must be refreshed in a separate final handoff-only commit. Its `checkpoint_based_on_head_sha` must point to the commit that adds this record, not to the handoff-only commit itself.
+After this substantive record, `.wbd/handoff/current.json` must be refreshed in a separate final handoff-only commit. Its `checkpoint_based_on_head_sha` must point to the commit that adds or last substantively corrects this record, not to the handoff-only commit itself.
