@@ -83,6 +83,9 @@ type Profile struct {
 	// IdleTimeoutSeconds is application/TUN payload-idle policy only. Zero keeps
 	// automatic DORMANT disabled. Transport liveness/control never refreshes it.
 	IdleTimeoutSeconds int
+	// KeepaliveSeconds controls LINK heartbeat/liveness. Nil preserves the link
+	// proxy default for backward compatibility; explicit 0 disables keepalive.
+	KeepaliveSeconds *int
 	// LaneRotationMinSeconds and LaneRotationMaxSeconds bound scheduled
 	// per-lane age replacement. 0/0 disables automatic age rotation; otherwise
 	// both must be positive. min==max requests a fixed interval.
@@ -197,6 +200,9 @@ func (p Profile) Validate() error {
 		return err
 	}
 	if err := validateIdleTimeoutSeconds(p.IdleTimeoutSeconds); err != nil {
+		return err
+	}
+	if err := validateKeepaliveSeconds(p.KeepaliveSeconds); err != nil {
 		return err
 	}
 	if err := validateLaneRotationProfile(p); err != nil {
@@ -364,6 +370,9 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	}
 	dtlsArgs := []string{"client", strconv.Itoa(defaultDTLSPlainPort), "127.0.0.1", strconv.Itoa(defaultFakeTCPLocalPort), "none", "none"}
 	linkArgs := []string{"-mode", "client", "-listen", loop(defaultLinkListenPort), "-dtls", loop(defaultDTLSPlainPort), "-fec", profile.FEC, "-mtu", strconv.Itoa(mtuBudget.LinkPlaintextMTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(ticket)}
+	if profile.KeepaliveSeconds != nil {
+		linkArgs = append(linkArgs, "-keepalive", strconv.Itoa(*profile.KeepaliveSeconds)+"s")
+	}
 	tunArgs := []string{"-mode", "client", "-ifname", profile.IfName, "-mtu", strconv.Itoa(mtuBudget.InnerMTU), "-transport", loop(defaultLinkListenPort), "-expected-source-ipv4", tunnelPrefix.Addr().String()}
 
 	psMode := "Full"
