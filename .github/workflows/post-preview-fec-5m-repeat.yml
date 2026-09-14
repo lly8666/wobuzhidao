@@ -1,0 +1,231 @@
+name: post-preview-fec-5m-repeat
+
+on:
+  push:
+    branches:
+      - fix/post-preview-fec-lifecycle-20260914
+    paths:
+      - '.github/workflows/post-preview-fec-5m-repeat.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  STATS_REF: 1f478df414bc21fc548a4e6d0b28fe0d5cbb715f
+  BOUNDED_REF: 335d00129930251cb6210dfd4af3f0d28555c77e
+  SUITE_REF: b5030a6030397809b4a1bdfcd890223dc49ea1a3
+  HELPER_REF: cd5a78f7fd34df2d83854fbee7b3cf5e2f09632d
+
+jobs:
+  paired-repeat:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout stats-only product
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.STATS_REF }}
+          path: product-stats
+      - name: Checkout bounded-recovery product
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BOUNDED_REF }}
+          path: product-bounded
+      - name: Checkout reference measurement suite
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SUITE_REF }}
+          path: suite
+      - name: Checkout exact diagnostic helper
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.HELPER_REF }}
+          path: helper
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native and network dependencies
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool iproute2 iptables tcpdump unzip gcc make openssl curl util-linux
+      - name: Make reference suite accept product-native maxBlocks 640
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('suite/.github/scripts/run_measured_transient_300ms_v6.sh')
+          s=p.read_text()
+          old='python3 "$GITHUB_WORKSPACE/suite/.github/scripts/instrument_fec_maxblocks640_diag.py" "$PRODUCT_DIR"\n'
+          new='''if grep -Eq 'maxBlocks[[:space:]]*=[[:space:]]*640' "$PRODUCT_DIR/cmd/wbd-link-proxy/main.go" && \\
+             grep -Eq 'maxBlocks[[:space:]]*=[[:space:]]*640' "$PRODUCT_DIR/cmd/wbd-link-server-mux/main.go"; then
+            echo "WBD_DIAGNOSTIC_PATCH fec_max_blocks=640 source=product-native behavior_change=none"
+          else
+            python3 "$GITHUB_WORKSPACE/suite/.github/scripts/instrument_fec_maxblocks640_diag.py" "$PRODUCT_DIR"
+          fi
+          '''
+          if s.count(old) != 1:
+              raise SystemExit(f'maxBlocks compatibility marker drift: {s.count(old)}')
+          p.write_text(s.replace(old,new,1))
+          PY
+          bash -n suite/.github/scripts/run_measured_transient_300ms_v6.sh
+      - name: Run two additional counterbalanced pairs on one runner
+        id: cases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          fail=0
+          run_one() {
+            local label=$1 product=$2 expected=$3
+            local sha src dst rc
+            sha=$(git -C "$product" rev-parse HEAD)
+            test "$sha" = "$expected"
+            src="$RUNNER_TEMP/transient-5m-5-30-5-300ms-120s"
+            dst="$RUNNER_TEMP/fec-5m-$label"
+            rm -rf "$src" "$dst"
+            echo "WBD_FEC_5M_REPEAT_START label=$label product_sha=$sha"
+            set +e
+            bash "$GITHUB_WORKSPACE/suite/.github/scripts/run_measured_transient_300ms_v6.sh" \
+              "$GITHUB_WORKSPACE/$product" "$GITHUB_WORKSPACE/helper" \
+              "$label" 5000000 30 0 "$sha" false \
+              2>&1 | tee "$RUNNER_TEMP/fec-5m-$label-runner.log"
+            rc=${PIPESTATUS[0]}
+            set -e
+            if [[ -d "$src" ]]; then
+              mv "$src" "$dst"
+            else
+              mkdir -p "$dst"
+            fi
+            cp "$RUNNER_TEMP/fec-5m-$label-runner.log" "$dst/runner.log" 2>/dev/null || true
+            printf '%s\n' "$rc" > "$dst/run-rc.txt"
+            printf '%s\n' "$sha" > "$dst/product-sha.txt"
+            echo "WBD_FEC_5M_REPEAT_DONE label=$label product_sha=$sha rc=$rc"
+            if (( rc != 0 )); then fail=1; fi
+          }
+          # Existing run 34803505742 supplied pair 1 in stats -> bounded order.
+          # Pair 2 reverses the order, pair 3 restores it to reduce order/thermal bias.
+          run_one bounded-r2 product-bounded "$BOUNDED_REF"
+          run_one stats-r2 product-stats "$STATS_REF"
+          run_one stats-r3 product-stats "$STATS_REF"
+          run_one bounded-r3 product-bounded "$BOUNDED_REF"
+          exit "$fail"
+      - name: Build repeat comparison summary
+        if: always()
+        run: |
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import glob,json,os,statistics,sys
+          root=sys.argv[1]
+          labels=('bounded-r2','stats-r2','stats-r3','bounded-r3')
+
+          def read_json(path):
+              try: return json.load(open(path))
+              except Exception: return {}
+
+          def phase_netem_ratio(netem, side, start_key, end_key):
+              a=(netem.get(start_key) or {}).get(side) or {}
+              b=(netem.get(end_key) or {}).get(side) or {}
+              packets=(b.get('packets') or 0)-(a.get('packets') or 0)
+              drops=(b.get('drops') or 0)-(a.get('drops') or 0)
+              return (drops/packets) if packets else None
+
+          def fec_diag(case_root):
+              streams=[]
+              for path in glob.glob(os.path.join(case_root,'logs','link*.log')):
+                  rows=[]
+                  for line in open(path,errors='replace'):
+                      if 'WBD_LINK_FEC_DIAG ' not in line: continue
+                      try: rows.append(json.loads(line.split('WBD_LINK_FEC_DIAG ',1)[1].strip()))
+                      except Exception: pass
+                  if not rows: continue
+                  def mx(key): return max(int(x.get(key,0) or 0) for x in rows)
+                  def dmx(key): return max(int((x.get('decoder') or {}).get(key,0) or 0) for x in rows)
+                  def rmx(key): return max(int((x.get('recovery') or {}).get(key,0) or 0) for x in rows)
+                  streams.append({
+                    'peak_in_flight':mx('peak_in_flight'),
+                    'max_active_missing_sources':dmx('active_missing_sources'),
+                    'reconstruct_success':mx('reconstruct_success'),
+                    'reconstruct_missing_sources':mx('reconstruct_missing_sources'),
+                    'expire_events':rmx('expire_events'),
+                    'expired_missing_sources':rmx('expired_missing_sources'),
+                  })
+              return {
+                'peak_in_flight':max([x['peak_in_flight'] for x in streams] or [0]),
+                'max_active_missing_sources':max([x['max_active_missing_sources'] for x in streams] or [0]),
+                'reconstruct_success_sum':sum(x['reconstruct_success'] for x in streams),
+                'reconstruct_missing_sources_sum':sum(x['reconstruct_missing_sources'] for x in streams),
+                'expire_events_sum':sum(x['expire_events'] for x in streams),
+                'expired_missing_sources_sum':sum(x['expired_missing_sources'] for x in streams),
+              }
+
+          out={'profile':{'rate_bps_each_direction':5000000,'one_way_delay_ms':300,'duration_sec':120,'phases':'5%@0-30s,30%@30-90s,5%@90-120s'},'cases':{}}
+          for label in labels:
+              case_root=os.path.join(root,f'fec-5m-{label}')
+              audit=read_json(os.path.join(case_root,'transient-audit.json'))
+              load=audit.get('load_measurement') or {}
+              phases=load.get('phase_metrics') or {}
+              spike=phases.get('spike30') or {}
+              resource=audit.get('resource') or {}
+              netem=read_json(os.path.join(case_root,'logs','transient-netem-result.json'))
+              q_client=phase_netem_ratio(netem,'client','pre5','spike30')
+              q_server=phase_netem_ratio(netem,'server','pre5','spike30')
+              out['cases'][label]={
+                'product_sha':(open(os.path.join(case_root,'product-sha.txt')).read().strip() if os.path.exists(os.path.join(case_root,'product-sha.txt')) else None),
+                'run_rc':(int(open(os.path.join(case_root,'run-rc.txt')).read().strip()) if os.path.exists(os.path.join(case_root,'run-rc.txt')) else None),
+                'valid':bool((audit.get('sample_validity') or {}).get('valid_for_buffer_capacity_compare')),
+                'spike_app_loss_ratio':spike.get('loss_ratio'),
+                'spike_timely_1s_ratio':spike.get('timely_1s_ratio'),
+                'spike_timely_2s_ratio':spike.get('timely_2s_ratio'),
+                'spike_rtt_p99_ms':spike.get('rtt_ms_p99'),
+                'spike_netem_client_drop_ratio':q_client,
+                'spike_netem_server_drop_ratio':q_server,
+                'spike_netem_mean_drop_ratio':((q_client+q_server)/2 if q_client is not None and q_server is not None else None),
+                'link_cpu_cores':((resource.get('cpu_cores_by_component') or {}).get('link')),
+                'fec':fec_diag(case_root),
+              }
+
+          def values(prefix,key):
+              return [v[key] for k,v in out['cases'].items() if k.startswith(prefix) and isinstance(v.get(key),(int,float))]
+          out['groups']={}
+          for prefix in ('stats','bounded'):
+              g={}
+              for key in ('spike_app_loss_ratio','spike_timely_1s_ratio','spike_rtt_p99_ms','spike_netem_mean_drop_ratio','link_cpu_cores'):
+                  vals=values(prefix,key)
+                  if vals:
+                      g[key]={'values':vals,'mean':statistics.mean(vals),'median':statistics.median(vals)}
+              out['groups'][prefix]=g
+
+          out['pairs']={}
+          for n in (2,3):
+              b=out['cases'][f'bounded-r{n}']; s=out['cases'][f'stats-r{n}']
+              out['pairs'][f'r{n}']={
+                'bounded_minus_stats_spike_app_loss_ratio':b['spike_app_loss_ratio']-s['spike_app_loss_ratio'],
+                'bounded_minus_stats_spike_netem_mean_drop_ratio':b['spike_netem_mean_drop_ratio']-s['spike_netem_mean_drop_ratio'],
+                'bounded_minus_stats_link_cpu_cores':b['link_cpu_cores']-s['link_cpu_cores'],
+                'bounded_minus_stats_peak_in_flight':b['fec']['peak_in_flight']-s['fec']['peak_in_flight'],
+                'bounded_expired_missing_sources':b['fec']['expired_missing_sources_sum'],
+              }
+
+          path=os.path.join(root,'fec-5m-repeat-summary.json')
+          with open(path,'w') as f: json.dump(out,f,indent=2,sort_keys=True); f.write('\n')
+          print('WBD_FEC_5M_REPEAT_SUMMARY '+json.dumps(out,sort_keys=True))
+          md=os.environ.get('GITHUB_STEP_SUMMARY')
+          if md:
+              with open(md,'a') as f:
+                  f.write('## Post-preview FEC 5M repeat pairs\n\n')
+                  for label in labels:
+                      c=out['cases'][label]
+                      f.write(f"- **{label}** valid={c['valid']} spikeLoss={c['spike_app_loss_ratio']} netemMean={c['spike_netem_mean_drop_ratio']} linkCPU={c['link_cpu_cores']} peakHeavy={c['fec']['peak_in_flight']} expiredMissing={c['fec']['expired_missing_sources_sum']}\n")
+                  f.write('\n```json\n'+json.dumps(out['pairs'],indent=2,sort_keys=True)+'\n```\n')
+          PY
+      - name: Upload repeat raw evidence and summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-preview-fec-5m-repeat-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/fec-5m-bounded-r2
+            ${{ runner.temp }}/fec-5m-stats-r2
+            ${{ runner.temp }}/fec-5m-stats-r3
+            ${{ runner.temp }}/fec-5m-bounded-r3
+            ${{ runner.temp }}/fec-5m-repeat-summary.json
+          if-no-files-found: warn
+          retention-days: 14
