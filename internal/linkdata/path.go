@@ -1,6 +1,7 @@
 package linkdata
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"time"
@@ -32,10 +33,11 @@ type PathStats struct {
 // lifetime of an association. It deliberately contains no runtime mode switch
 // or config-epoch machinery.
 type Path struct {
-	config control.LinkConfig
-	enc    *fec.FastBlockEncoder
-	dec    *fec.BlockDecoder
-	stats  PathStats
+	config   control.LinkConfig
+	enc      *fec.FastBlockEncoder
+	dec      *fec.BlockDecoder
+	recovery *fecRecoveryTracker
+	stats    PathStats
 }
 
 func New(config control.LinkConfig, maxBlocks int) (*Path, error) {
@@ -61,6 +63,7 @@ func New(config control.LinkConfig, maxBlocks int) (*Path, error) {
 		return nil, err
 	}
 	p.enc, p.dec = enc, dec
+	p.recovery = newFECRecoveryTracker(candidateFECRecoveryHorizon)
 	return p, nil
 }
 
@@ -98,6 +101,8 @@ func (p *Path) FlushDue(now time.Time) ([][]byte, error) {
 	if !p.FECEnabled() {
 		return nil, nil
 	}
+	p.expireFECRecovery(now)
+	observeFECDecoder(p, now)
 	wire, err := p.enc.FlushDue(now)
 	if err != nil {
 		return nil, err
@@ -145,6 +150,10 @@ func (p *Path) recordWireTX(wire [][]byte) {
 // surviving systematic sources can be returned immediately while missing ones
 // are returned at their earliest FEC reconstruction time.
 func (p *Path) Decode(wire []byte) ([][]byte, error) {
+	return p.decodeAt(wire, time.Now())
+}
+
+func (p *Path) decodeAt(wire []byte, now time.Time) ([][]byte, error) {
 	if len(wire) == 0 {
 		return nil, fec.ErrInvalidShardSet
 	}
@@ -160,8 +169,17 @@ func (p *Path) Decode(wire []byte) ([][]byte, error) {
 		}
 		packets = [][]byte{wire}
 	} else {
+		p.expireFECRecovery(now)
 		packets, _, err = p.dec.Add(wire)
-		observeFECDecoder(p, time.Now())
+		if err == nil && len(wire) >= 8 && p.recovery != nil {
+			blockID := binary.BigEndian.Uint32(wire[4:8])
+			if p.dec.IsHeavyBlock(blockID) {
+				p.recovery.observeHeavy(blockID, now)
+			} else {
+				p.recovery.forget(blockID)
+			}
+		}
+		observeFECDecoder(p, now)
 		if err != nil {
 			return nil, fmt.Errorf("linkdata decode: wire_bytes=%d configured_mtu=%d: %w", len(wire), p.config.MTU, err)
 		}

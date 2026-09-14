@@ -13,6 +13,7 @@ import (
 // It is read-only with respect to admission, reconstruction and wire behavior.
 type FECObserveStats struct {
 	Decoder                   fec.DecoderPressureStats   `json:"decoder"`
+	Recovery                  FECRecoveryStats           `json:"recovery"`
 	PeakInFlight              int                        `json:"peak_in_flight"`
 	PeakRetired               int                        `json:"peak_retired"`
 	PeakRetiredIncomplete     int                        `json:"peak_retired_incomplete"`
@@ -60,16 +61,16 @@ func (c *observedDecoderCodec) snapshot() (uint64, uint64, uint64) {
 }
 
 type fecObserveState struct {
-	codec                  *observedDecoderCodec
-	peakInFlight           int
-	peakRetired            int
-	peakRetiredIncomplete  int
-	peakRetiredMissing     int
-	lastRetired            int
-	retireEvents           uint64
-	pressureDetailScans    uint64
-	hist                    [fec.DataShards + 1]uint64
-	lastReport              time.Time
+	codec                 *observedDecoderCodec
+	peakInFlight          int
+	peakRetired           int
+	peakRetiredIncomplete int
+	peakRetiredMissing    int
+	lastRetired           int
+	retireEvents          uint64
+	pressureDetailScans   uint64
+	hist                  [fec.DataShards + 1]uint64
+	lastReport            time.Time
 }
 
 var fecObserve sync.Map // map[*Path]*fecObserveState
@@ -143,7 +144,7 @@ func observeFECDecoder(p *Path, now time.Time) {
 }
 
 func (p *Path) fecObserveStats(d fec.DecoderPressureStats, s *fecObserveState) FECObserveStats {
-	out := FECObserveStats{Decoder: d}
+	out := FECObserveStats{Decoder: d, Recovery: p.FECRecoveryStats()}
 	if s == nil {
 		return out
 	}
@@ -167,6 +168,7 @@ func (p *Path) FECObserveStats() FECObserveStats {
 	v, ok := fecObserve.Load(p)
 	if !ok {
 		out.Decoder = d
+		out.Recovery = p.FECRecoveryStats()
 		return out
 	}
 	s := v.(*fecObserveState)
