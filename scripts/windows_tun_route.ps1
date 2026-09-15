@@ -230,6 +230,7 @@ if ($Mode -eq 'Full') {
 # more-specific domestic direct route would otherwise match it.
 $capture4 = @($capture4) + @($DNSServers | ForEach-Object { "$_/32" })
 $capture4 = @($capture4 | Select-Object -Unique)
+$configureIPv6 = ($null -ne $addr6) -or ($capture6.Count -gt 0)
 
 if ($Action -eq 'Render') {
     Write-Output "WBD_WINDOWS_TUN_PLAN mode=$Mode adapter=$AdapterAlias mtu=$MTU"
@@ -284,7 +285,7 @@ $state = [ordered]@{
     AdapterAlias = $AdapterAlias
     AdapterInterfaceIndex = $ifIndex
     MTU4 = if ($ipif4) { [uint32]$ipif4.NlMtu } else { $null }
-    MTU6 = if ($ipif6) { [uint32]$ipif6.NlMtu } else { $null }
+    MTU6 = if ($configureIPv6 -and $ipif6) { [uint32]$ipif6.NlMtu } else { $null }
     DNSConfigured = $false
     NRPTRuleName = ''
     Addresses = @()
@@ -328,7 +329,7 @@ try {
     }
 
     if ($ipif4) { Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -NlMtuBytes $MTU }
-    if ($ipif6) { Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv6 -NlMtuBytes $MTU }
+    if ($configureIPv6 -and $ipif6) { Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv6 -NlMtuBytes $MTU }
 
     foreach ($a in @(@{Parsed=$addr4; Family='IPv4'}, @{Parsed=$addr6; Family='IPv6'})) {
         if (-not $a.Parsed) { continue }
