@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # This harness must remain LF-only because Windows Actions executes it under WSL.
+# Formal matrix trigger: Npcap preflight now preserves Windows PowerShell modules.
 set -euo pipefail
 ASSET_DIR=${1:?asset dir}
 LOG_DIR=${2:?log dir}
