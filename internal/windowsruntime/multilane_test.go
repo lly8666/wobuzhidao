@@ -77,6 +77,8 @@ func TestBuildMultiLanePlanPropagatesKeepaliveToInitialLinks(t *testing.T) {
 		wantPair bool
 	}{
 		{name:"1lane-explicit-zero",lanes:1,keepalive:&zero,wantPair:true},
+		{name:"2lane-explicit-zero",lanes:2,keepalive:&zero,wantPair:true},
+		{name:"3lane-explicit-zero",lanes:3,keepalive:&zero,wantPair:true},
 		{name:"4lane-explicit-zero",lanes:4,keepalive:&zero,wantPair:true},
 		{name:"1lane-default",lanes:1,keepalive:nil,wantPair:false},
 		{name:"4lane-default",lanes:4,keepalive:nil,wantPair:false},
