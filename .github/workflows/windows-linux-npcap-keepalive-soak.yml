@@ -54,7 +54,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           run-id: 34910039256
-      - name: Validate keepalive harness and isolate gateway idle lease
+      - name: Validate keepalive harness and isolated gateway lease
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
@@ -62,19 +62,19 @@ jobs:
           $tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile($h,[ref]$tokens,[ref]$errors)
           if($errors.Count){$errors|ForEach-Object{Write-Error $_};throw 'keepalive harness PowerShell parse failed'}
           python -m py_compile .\.github\scripts\windows_game_pause_resume.py
-          $server='.\scripts\wsl_wintun_lane_soak_server.sh';$text=Get-Content -LiteralPath $server -Raw
-          $old='-idle-timeout 180s -max-sessions 16';$new='-idle-timeout 420s -max-sessions 16'
-          if(-not$text.Contains($old)){throw 'shared-TUN gateway idle source line changed'}
-          $text=$text.Replace($old,$new);Set-Content -LiteralPath $server -Value $text -Encoding utf8 -NoNewline
-          if((Get-Content -LiteralPath $server -Raw)-notmatch'-idle-timeout 420s'){throw 'gateway idle patch failed'}
+          $serverText=Get-Content -LiteralPath '.\scripts\wsl_wintun_lane_soak_server.sh' -Raw
+          if($serverText-notmatch'(?m)^SHARED_TUN_IDLE_TIMEOUT=\$\{8:-180s\}$'){throw 'shared-TUN idle parameter missing'}
+          if(-not$serverText.Contains('-idle-timeout "$SHARED_TUN_IDLE_TIMEOUT"')){throw 'shared-TUN gateway does not use parameterized idle timeout'}
+          $harnessText=Get-Content -LiteralPath $h -Raw
+          if(-not$harnessText.Contains('${ServerIdleSec}s 420s')){throw 'keepalive harness does not request isolated 420s gateway lease'}
           Write-Output 'WBD_KEEPALIVE_SOAK_PRECHECK_PASS gateway_idle=420s link_idle=60s'
       - name: Provision and verify WSL Linux runtime
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop';wsl.exe --status;if($LASTEXITCODE){throw 'WSL2 runtime unavailable'}
-          $marker=Join-Path $env:RUNNER_TEMP 'wbd-soak-ephemeral-wsl.txt';$distros=@(& wsl.exe -l -q|ForEach-Object{$_.Trim([char]0).Trim()}|Where-Object{$_})
-          if($distros.Count-eq0){$d='Ubuntu-24.04';& wsl.exe --install -d $d --no-launch --web-download;if($LASTEXITCODE){throw 'WSL distro install failed'};$deadline=[DateTime]::UtcNow.AddMinutes(3);do{Start-Sleep 2;$distros=@(& wsl.exe -l -q|ForEach-Object{$_.Trim([char]0).Trim()}|Where-Object{$_})}while(($distros-notcontains$d)-and[DateTime]::UtcNow-lt$deadline);if($distros-notcontains$d){throw 'WSL distro did not register'};Set-Content $marker $d -Encoding ascii;& wsl.exe -d $d -u root -- bash -lc "printf '[user]\ndefault=root\n' > /etc/wsl.conf";& wsl.exe --terminate $d}else{$d=[string]$distros[0]}
-          & wsl.exe -d $d -u root -- bash -lc 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables python3 sudo';if($LASTEXITCODE){throw 'WSL prerequisites failed'}
+          $marker=Join-Path $env:RUNNER_TEMP 'wbd-soak-ephemeral-wsl.txt';$distros=@(& wsl.exe -l -q|ForEach-Object{$_.Replace([string][char]0,'').Trim()}|Where-Object{$_})
+          if($distros.Count-eq0){$d='Ubuntu-24.04';& wsl.exe --install -d $d --no-launch --web-download;if($LASTEXITCODE){throw 'WSL distro install failed'};$deadline=[DateTime]::UtcNow.AddMinutes(3);do{Start-Sleep 2;$distros=@(& wsl.exe -l -q|ForEach-Object{$_.Replace([string][char]0,'').Trim()}|Where-Object{$_})}while(($distros-notcontains$d)-and[DateTime]::UtcNow-lt$deadline);if($distros-notcontains$d){throw 'WSL distro did not register'};Set-Content $marker $d -Encoding ascii;& wsl.exe -d $d -u root -- bash -lc "printf '[user]\ndefault=root\n' > /etc/wsl.conf";& wsl.exe --terminate $d}else{$d=[string]$distros[0]}
+          $d=$d.Replace([string][char]0,'').Trim();& wsl.exe -d $d -u root -- bash -lc 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables python3 sudo';if($LASTEXITCODE){throw 'WSL prerequisites failed'}
           & wsl.exe -d $d -- true;if($LASTEXITCODE){throw 'selected WSL distro preflight failed'}
           Write-Output "WBD_WSL_RUNTIME_READY distro=$d"
       - name: Install signed ephemeral Npcap 1.88 runtime
