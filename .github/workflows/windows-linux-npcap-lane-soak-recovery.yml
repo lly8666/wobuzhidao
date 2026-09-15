@@ -70,7 +70,7 @@ jobs:
           $path='.\scripts\windows_linux_wintun_lane_soak.ps1'
           $text=Get-Content -LiteralPath $path -Raw
           $oldDistro='$distro=@(& wsl.exe -l -q|ForEach-Object{$_.Trim([char]0).Trim()}|Where-Object{$_})|Select-Object -First 1;if(-not$distro){throw ''no WSL distribution''}'
-          $newDistro='[string]$distro=[string](@(& wsl.exe -l -q|ForEach-Object{$_.Trim([char]0).Trim()}|Where-Object{$_})|Select-Object -First 1);$distro=$distro.Trim([char]0).Trim();if(-not$distro){throw ''no WSL distribution''}'
+          $newDistro='[string]$distro=[string](@(& wsl.exe -l -q|ForEach-Object{$_.Replace([string][char]0,'''').Trim()}|Where-Object{$_})|Select-Object -First 1);$distro=$distro.Replace([string][char]0,'''').Trim();if(-not$distro){throw ''no WSL distribution''}'
           $preflight='& wsl.exe -d $distro -- true;if($LASTEXITCODE){throw "selected WSL distribution is unavailable: $distro"};Write-Output "WBD_WSL_DISTRO_SELECTED distro=$distro"'
           $oldArgs='[string[]]$serverArgs=@(''-d'',[string]$distro,''--'',''sudo'',''bash'',[string]$wslServerScript,[string]$wslAssets,[string]$wslLog,"$innerMTU","$ConnectionMTU","$Lanes","$LossPct")'
           $newArgs='$serverArgumentLine="-d `"$distro`" -- sudo bash `"$wslServerScript`" `"$wslAssets`" `"$wslLog`" $innerMTU $ConnectionMTU $Lanes $LossPct"'
@@ -89,21 +89,21 @@ jobs:
           wsl.exe --status
           if($LASTEXITCODE){throw 'WSL2 runtime is unavailable'}
           $marker=Join-Path $env:RUNNER_TEMP 'wbd-soak-ephemeral-wsl.txt'
-          $distros=@(& wsl.exe -l -q | ForEach-Object {$_.Trim([char]0).Trim()} | Where-Object {$_})
+          $distros=@(& wsl.exe -l -q | ForEach-Object {$_.Replace([string][char]0,'').Trim()} | Where-Object {$_})
           if($distros.Count -eq 0){
             $d='Ubuntu-24.04'
             Write-Output "WBD_WSL_DISTRO_INSTALL_BEGIN distro=$d"
             & wsl.exe --install -d $d --no-launch --web-download
             if($LASTEXITCODE){throw "WSL distro install failed: $LASTEXITCODE"}
             $deadline=[DateTime]::UtcNow.AddMinutes(3)
-            do { Start-Sleep -Seconds 2; $distros=@(& wsl.exe -l -q | ForEach-Object {$_.Trim([char]0).Trim()} | Where-Object {$_}) } while(($distros -notcontains $d) -and [DateTime]::UtcNow -lt $deadline)
+            do { Start-Sleep -Seconds 2; $distros=@(& wsl.exe -l -q | ForEach-Object {$_.Replace([string][char]0,'').Trim()} | Where-Object {$_}) } while(($distros -notcontains $d) -and [DateTime]::UtcNow -lt $deadline)
             if($distros -notcontains $d){throw "WSL distro $d did not register"}
             Set-Content -LiteralPath $marker -Value $d -Encoding ascii
             & wsl.exe -d $d -u root -- bash -lc "printf '[user]\ndefault=root\n' > /etc/wsl.conf"
             if($LASTEXITCODE){throw 'failed to configure ephemeral WSL default user'}
             & wsl.exe --terminate $d
             Write-Output "WBD_WSL_DISTRO_INSTALL_PASS distro=$d"
-          } else { $d=$distros[0]; Write-Output "WBD_WSL_DISTRO_REUSE distro=$d" }
+          } else { $d=[string]$distros[0]; Write-Output "WBD_WSL_DISTRO_REUSE distro=$d" }
           & wsl.exe -d $d -u root -- bash -lc 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables python3 sudo'
           if($LASTEXITCODE){throw 'WSL prerequisite install failed'}
           & wsl.exe -d $d -u root -- bash -lc 'test -x /usr/sbin/iptables && command -v tc && command -v python3 && command -v sudo'
