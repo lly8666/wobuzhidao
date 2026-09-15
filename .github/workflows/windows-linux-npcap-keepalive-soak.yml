@@ -54,11 +54,25 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           run-id: 34910039256
-      - name: Validate keepalive harness and isolated gateway lease
+      - name: Patch and validate keepalive exact-argv WSL launcher
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
           $h=(Resolve-Path '.\scripts\windows_linux_wintun_keepalive_soak.ps1').Path
+          $patched=New-Object System.Collections.Generic.List[string]
+          $argLineCount=0;$startLineCount=0
+          foreach($line in (Get-Content -LiteralPath $h)){
+            if($line.StartsWith('$serverArgumentLine=')){
+              $argLineCount++
+              $patched.Add('function Start-WslServer([string[]]$Arguments){$psi=[System.Diagnostics.ProcessStartInfo]::new();$psi.FileName=''wsl.exe'';$psi.UseShellExecute=$false;foreach($arg in $Arguments){[void]$psi.ArgumentList.Add([string]$arg)};$proc=[System.Diagnostics.Process]::new();$proc.StartInfo=$psi;if(-not$proc.Start()){throw ''failed to start WSL keepalive server''};return $proc}')
+              $patched.Add('[string[]]$serverArgs=@(''-d'',$distro,''--'',''sudo'',''bash'',$wslServerScript,$wslAssets,$wslLog,"$innerMTU","$ConnectionMTU","$Lanes","$LossPct","${ServerIdleSec}s",''420s'')')
+              continue
+            }
+            if($line.StartsWith('$server=Start-Process -FilePath ''wsl.exe''')){$startLineCount++;$patched.Add('$server=Start-WslServer $serverArgs');continue}
+            $patched.Add($line)
+          }
+          if($argLineCount-ne1-or$startLineCount-ne1){throw "keepalive launcher source shape changed arg_line=$argLineCount start_line=$startLineCount"}
+          Set-Content -LiteralPath $h -Value $patched -Encoding utf8
           $tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile($h,[ref]$tokens,[ref]$errors)
           if($errors.Count){$errors|ForEach-Object{Write-Error $_};throw 'keepalive harness PowerShell parse failed'}
           python -m py_compile .\.github\scripts\windows_game_pause_resume.py
@@ -66,8 +80,8 @@ jobs:
           if($serverText-notmatch'(?m)^SHARED_TUN_IDLE_TIMEOUT=\$\{8:-180s\}$'){throw 'shared-TUN idle parameter missing'}
           if(-not$serverText.Contains('-idle-timeout "$SHARED_TUN_IDLE_TIMEOUT"')){throw 'shared-TUN gateway does not use parameterized idle timeout'}
           $harnessText=Get-Content -LiteralPath $h -Raw
-          if(-not$harnessText.Contains('${ServerIdleSec}s 420s')){throw 'keepalive harness does not request isolated 420s gateway lease'}
-          Write-Output 'WBD_KEEPALIVE_SOAK_PRECHECK_PASS gateway_idle=420s link_idle=60s'
+          if(-not$harnessText.Contains('ArgumentList.Add')-or-not$harnessText.Contains("'420s'")){throw 'keepalive harness exact-argv/420s launch missing'}
+          Write-Output 'WBD_KEEPALIVE_SOAK_PRECHECK_PASS gateway_idle=420s link_idle=60s launch=exact-argv'
       - name: Provision and verify WSL Linux runtime
         shell: pwsh
         run: |
