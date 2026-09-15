@@ -72,12 +72,14 @@ jobs:
           $oldDistro='$distro=@(& wsl.exe -l -q|ForEach-Object{$_.Trim([char]0).Trim()}|Where-Object{$_})|Select-Object -First 1;if(-not$distro){throw ''no WSL distribution''}'
           $newDistro='[string]$distro=[string](@(& wsl.exe -l -q|ForEach-Object{$_.Replace([string][char]0,'''').Trim()}|Where-Object{$_})|Select-Object -First 1);$distro=$distro.Replace([string][char]0,'''').Trim();if(-not$distro){throw ''no WSL distribution''}'
           $preflight='& wsl.exe -d $distro -- true;if($LASTEXITCODE){throw "selected WSL distribution is unavailable: $distro"};Write-Output "WBD_WSL_DISTRO_SELECTED distro=$distro"'
+          $oldWslPath='function WslPath([string]$Path){(& wsl.exe -d $distro -- wslpath -a $Path).Trim()}'
+          $newWslPath='function WslPath([string]$Path){$full=[System.IO.Path]::GetFullPath($Path);if($full-notmatch''^([A-Za-z]):[\/](.*)$''){throw "unsupported Windows path for WSL: $Path"};$drive=$Matches[1].ToLowerInvariant();$rest=$Matches[2].Replace([char]92,''/'');return "/mnt/$drive/$rest"}'
           $oldArgs='[string[]]$serverArgs=@(''-d'',[string]$distro,''--'',''sudo'',''bash'',[string]$wslServerScript,[string]$wslAssets,[string]$wslLog,"$innerMTU","$ConnectionMTU","$Lanes","$LossPct")'
           $newArgs='$serverArgumentLine="-d `"$distro`" -- sudo bash `"$wslServerScript`" `"$wslAssets`" `"$wslLog`" $innerMTU $ConnectionMTU $Lanes $LossPct"'
           $oldStart='$server=Start-Process -FilePath ''wsl.exe'' -ArgumentList $serverArgs -RedirectStandardOutput $serverOut -RedirectStandardError $serverErr -PassThru -NoNewWindow'
           $newStart='$server=Start-Process -FilePath ''wsl.exe'' -ArgumentList $serverArgumentLine -RedirectStandardOutput $serverOut -RedirectStandardError $serverErr -PassThru -NoNewWindow'
-          foreach($needle in @($oldDistro,$oldArgs,$oldStart)){if(-not$text.Contains($needle)){throw "expected launcher source line missing: $needle"}}
-          $text=$text.Replace($oldDistro,"$newDistro`n$preflight").Replace($oldArgs,$newArgs).Replace($oldStart,$newStart)
+          foreach($needle in @($oldDistro,$oldWslPath,$oldArgs,$oldStart)){if(-not$text.Contains($needle)){throw "expected launcher source line missing: $needle"}}
+          $text=$text.Replace($oldDistro,"$newDistro`n$preflight").Replace($oldWslPath,$newWslPath).Replace($oldArgs,$newArgs).Replace($oldStart,$newStart)
           Set-Content -LiteralPath $path -Value $text -Encoding utf8 -NoNewline
           $tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path),[ref]$tokens,[ref]$errors)
           if($errors.Count){$errors|ForEach-Object{Write-Error $_};throw 'patched harness parse failed'}
