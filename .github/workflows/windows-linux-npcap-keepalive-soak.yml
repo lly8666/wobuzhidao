@@ -10,6 +10,9 @@ on:
       - 'scripts/windows_linux_wintun_keepalive_soak.ps1'
       - '.github/scripts/windows_game_pause_resume.py'
       - 'scripts/wsl_wintun_lane_soak_server.sh'
+      - 'internal/windowsruntime/**'
+      - 'internal/windowsgui/**'
+      - 'cmd/wbd-windows-qualify/**'
 
 permissions:
   contents: read
@@ -54,13 +57,22 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           run-id: 34910039256
-      - name: Patch and validate keepalive exact-argv WSL launcher
+      - name: Rebuild current Windows qualifier
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP 'windows-assets\wbd-windows-qualify.exe'
+          go build -trimpath -o $out .\cmd\wbd-windows-qualify
+          if($LASTEXITCODE){throw 'current wbd-windows-qualify build failed'}
+          Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'windows-assets\QUALIFIER_SOURCE_SHA.txt') -Value $env:GITHUB_SHA -Encoding ascii
+          Write-Output "WBD_CURRENT_QUALIFIER_READY sha=$env:GITHUB_SHA"
+      - name: Patch and validate keepalive formal harness
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
           $h=(Resolve-Path '.\scripts\windows_linux_wintun_keepalive_soak.ps1').Path
           $patched=New-Object System.Collections.Generic.List[string]
-          $argLineCount=0;$startLineCount=0
+          $argLineCount=0;$startLineCount=0;$proofCount=0
           foreach($line in (Get-Content -LiteralPath $h)){
             if($line.StartsWith('$serverArgumentLine=')){
               $argLineCount++
@@ -69,9 +81,16 @@ jobs:
               continue
             }
             if($line.StartsWith('$server=Start-Process -FilePath ''wsl.exe''')){$startLineCount++;$patched.Add('$server=Start-WslServer $serverArgs');continue}
+            if($line.Contains('initial real-Npcap production connection proof missing')){
+              $proofCount++
+              $patched.Add('  $qualStdout=Get-Content -LiteralPath $qualOut -Raw;$qualStderr=if(Test-Path -LiteralPath $qualErr){Get-Content -LiteralPath $qualErr -Raw}else{''''};$qualText=$qualStdout+"`n"+$qualStderr')
+              $patched.Add('  if($qualText-notmatch''WBD_FAKETCP_WINDOWS_RAW_SYNACK_RX''-or$qualStdout-notmatch''WBD_WINDOWS_QUALIFY_CONNECTED''){throw ''initial real-Npcap production connection proof missing''}')
+              $patched.Add('  $keepaliveReady=([regex]::Matches($qualStdout,''WBD_LINK_READY role=client[^\r\n]*keepalive=0s'')).Count;if($keepaliveReady-lt$Lanes){throw "explicit keepalive=0 not active on all initial lanes: ready=$keepaliveReady want=$Lanes"};Write-Output "WBD_KEEPALIVE_ZERO_LINK_READY lanes=$keepaliveReady"')
+              continue
+            }
             $patched.Add($line)
           }
-          if($argLineCount-ne1-or$startLineCount-ne1){throw "keepalive launcher source shape changed arg_line=$argLineCount start_line=$startLineCount"}
+          if($argLineCount-ne1-or$startLineCount-ne1-or$proofCount-ne1){throw "keepalive source shape changed arg_line=$argLineCount start_line=$startLineCount proof_line=$proofCount"}
           Set-Content -LiteralPath $h -Value $patched -Encoding utf8
           $tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile($h,[ref]$tokens,[ref]$errors)
           if($errors.Count){$errors|ForEach-Object{Write-Error $_};throw 'keepalive harness PowerShell parse failed'}
@@ -81,7 +100,8 @@ jobs:
           if(-not$serverText.Contains('-idle-timeout "$SHARED_TUN_IDLE_TIMEOUT"')){throw 'shared-TUN gateway does not use parameterized idle timeout'}
           $harnessText=Get-Content -LiteralPath $h -Raw
           if(-not$harnessText.Contains('ArgumentList.Add')-or-not$harnessText.Contains("'420s'")){throw 'keepalive harness exact-argv/420s launch missing'}
-          Write-Output 'WBD_KEEPALIVE_SOAK_PRECHECK_PASS gateway_idle=420s link_idle=60s launch=exact-argv'
+          if(-not$harnessText.Contains('keepalive=0s')){throw 'keepalive=0 runtime proof missing'}
+          Write-Output 'WBD_KEEPALIVE_SOAK_PRECHECK_PASS gateway_idle=420s link_idle=60s launch=exact-argv evidence=stdout+stderr keepalive=0s'
       - name: Provision and verify WSL Linux runtime
         shell: pwsh
         run: |
@@ -104,12 +124,13 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop';$log=Join-Path $env:RUNNER_TEMP 'keepalive-${{ matrix.slug }}';New-Item -ItemType Directory -Force $log|Out-Null
+          [ordered]@{qualifier_source_sha=$env:GITHUB_SHA;base_artifact_source_sha='4cd0c700fc386de21734b3e66e7b58182ce538bf';artifact_run_id=34910039256}|ConvertTo-Json|Set-Content -LiteralPath(Join-Path $log 'product-source.json') -Encoding utf8
           .\scripts\windows_linux_wintun_keepalive_soak.ps1 -BinDir "$env:RUNNER_TEMP\windows-assets" -LinuxAssets "$env:RUNNER_TEMP\linux-assets" -Lanes ${{ matrix.lanes }} -FEC '${{ matrix.fec }}' -ConnectionMTU 1420 -RateBps 2000000 -LossPct 15 -FirstDurationSec 20 -PauseDurationSec 220 -SecondDurationSec 60 -ServerIdleSec 60 -LogDir $log
       - name: Print keepalive summary
         if: always()
         shell: pwsh
         run: |
-          $log=Join-Path $env:RUNNER_TEMP 'keepalive-${{ matrix.slug }}';foreach($n in @('summary.json','pause-resume-result.json','mtu-budget.json','network-end.log','error-scan.log','qualifier.stdout.log','link-server.log','wsl-wrapper.stderr.log')){$p=Join-Path $log $n;if(Test-Path $p){Write-Output "=== $n ===";Get-Content $p|Select-Object -First 350}}
+          $log=Join-Path $env:RUNNER_TEMP 'keepalive-${{ matrix.slug }}';foreach($n in @('product-source.json','summary.json','pause-resume-result.json','mtu-budget.json','network-end.log','error-scan.log','qualifier.stdout.log','qualifier.stderr.log','link-server.log','wsl-wrapper.stderr.log')){$p=Join-Path $log $n;if(Test-Path $p){Write-Output "=== $n ===";Get-Content $p|Select-Object -First 350}}
       - name: Remove ephemeral Npcap
         if: always()
         shell: pwsh
