@@ -143,7 +143,9 @@ func BuildMultiLanePlan(profile Profile, bootstraps []LaneBootstrap) (MultiLaneP
 	lanes:=make([]LanePlan,0,len(bootstraps));linkAddresses:=make([]string,0,len(bootstraps))
 	for _,b:=range bootstraps{
 		dtlsPlain,_:=laneLoopback(defaultDTLSPlainPort,b.ID);linkListen,_:=laneLoopback(defaultLinkListenPort,b.ID);dtlsPort,_:=lanePort(defaultDTLSPlainPort,b.ID);fakePort,_:=lanePort(defaultFakeTCPLocalPort,b.ID)
-		lanes=append(lanes,LanePlan{ID:b.ID,Slot:b.ID,FakeTCP:b.FakeTCP,DTLS:Command{Name:fmt.Sprintf("dtls-%d",b.ID),Path:bin("wbd_dtls_shim.exe"),Args:[]string{"client",strconv.Itoa(dtlsPort),"127.0.0.1",strconv.Itoa(fakePort),"none","none"}},Link:Command{Name:fmt.Sprintf("link-%d",b.ID),Path:bin("wbd-link-proxy.exe"),Args:[]string{"-mode","client","-listen",linkListen,"-dtls",dtlsPlain,"-fec",profile.FEC,"-mtu",strconv.Itoa(mtuBudget.LinkPlaintextMTU),"-lanes","1","-demo-reality-ticket",strings.TrimSpace(b.Ticket)}}})
+		linkArgs:=[]string{"-mode","client","-listen",linkListen,"-dtls",dtlsPlain,"-fec",profile.FEC,"-mtu",strconv.Itoa(mtuBudget.LinkPlaintextMTU),"-lanes","1","-demo-reality-ticket",strings.TrimSpace(b.Ticket)}
+		if profile.KeepaliveSeconds!=nil{linkArgs=append(linkArgs,"-keepalive",strconv.Itoa(*profile.KeepaliveSeconds)+"s")}
+		lanes=append(lanes,LanePlan{ID:b.ID,Slot:b.ID,FakeTCP:b.FakeTCP,DTLS:Command{Name:fmt.Sprintf("dtls-%d",b.ID),Path:bin("wbd_dtls_shim.exe"),Args:[]string{"client",strconv.Itoa(dtlsPort),"127.0.0.1",strconv.Itoa(fakePort),"none","none"}},Link:Command{Name:fmt.Sprintf("link-%d",b.ID),Path:bin("wbd-link-proxy.exe"),Args:linkArgs}})
 		linkAddresses=append(linkAddresses,linkListen)
 	}
 	gameListen,gameControl,err:=selectGameLoopbackPair();if err!=nil{return MultiLanePlan{},err}

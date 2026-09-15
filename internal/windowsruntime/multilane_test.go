@@ -67,6 +67,38 @@ func TestBuildMultiLanePlanProducesAuthorizedTransportCounts(t *testing.T) {
 	}
 }
 
+func TestBuildMultiLanePlanPropagatesKeepaliveToInitialLinks(t *testing.T) {
+	tunnel:=testAuthenticatedTunnel()
+	zero:=0
+	for _,tc:=range []struct{
+		name string
+		lanes int
+		keepalive *int
+		wantPair bool
+	}{
+		{name:"1lane-explicit-zero",lanes:1,keepalive:&zero,wantPair:true},
+		{name:"4lane-explicit-zero",lanes:4,keepalive:&zero,wantPair:true},
+		{name:"1lane-default",lanes:1,keepalive:nil,wantPair:false},
+		{name:"4lane-default",lanes:4,keepalive:nil,wantPair:false},
+	}{
+		t.Run(tc.name,func(t *testing.T){
+			p:=testProfile();p.TunnelIPv4="";p.Lanes=tc.lanes;p.KeepaliveSeconds=tc.keepalive
+			boots:=make([]LaneBootstrap,0,tc.lanes)
+			for id:=1;id<=tc.lanes;id++{boots=append(boots,authenticatedLane(t,p,id,uint16(windowsDynamicPortMin+id),tunnel))}
+			plan,err:=BuildMultiLanePlan(p,boots);if err!=nil{t.Fatal(err)}
+			for _,lane:=range plan.Lanes{
+				hasFlag:=false
+				for _,arg:=range lane.Link.Args{if arg=="-keepalive"{hasFlag=true;break}}
+				if tc.wantPair{
+					if !argPair(lane.Link.Args,"-keepalive","0s"){t.Fatalf("lane %d link args=%v; want explicit -keepalive 0s",lane.ID,lane.Link.Args)}
+				}else if hasFlag{
+					t.Fatalf("lane %d link args=%v; omitted keepalive must preserve proxy default",lane.ID,lane.Link.Args)
+				}
+			}
+		})
+	}
+}
+
 func TestBuildMultiLanePlanRejectsFifthProductLane(t *testing.T) {
 	p:=testProfile();p.TunnelIPv4="";p.Lanes=5
 	if _,err:=BuildMultiLanePlan(p,nil);!errors.Is(err,logicaltunnel.ErrTransportLanes){t.Fatalf("lanes=5 err=%v",err)}
