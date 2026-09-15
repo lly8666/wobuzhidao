@@ -1,4 +1,4 @@
-import argparse,ipaddress,json,select,socket,struct,subprocess,time
+import argparse,ipaddress,json,pathlib,select,shutil,socket,struct,subprocess,time
 
 p=argparse.ArgumentParser()
 p.add_argument('--target',required=True)
@@ -18,6 +18,15 @@ pps=a.rate_bps/(a.payload_bytes*8.0); interval=1.0/pps
 
 def powershell(script):
     return subprocess.run(['powershell.exe','-NoProfile','-NonInteractive','-Command',script],check=True,text=True,capture_output=True).stdout.strip()
+
+def provision_rebind_script():
+    source=pathlib.Path(__file__).resolve().parents[2]/'scripts'/'windows_tun_rebind.ps1'
+    if not source.is_file():
+        raise RuntimeError(f'current-HEAD route rebind script is missing: {source}')
+    qualifier_path=powershell("(Get-Process -Name 'wbd-windows-qualify' -ErrorAction Stop | Select-Object -First 1 -ExpandProperty Path)")
+    destination=pathlib.Path(qualifier_path).resolve().parent/'windows_tun_rebind.ps1'
+    shutil.copy2(source,destination)
+    print(f'WBD_KEEPALIVE_REBIND_ASSET_READY path={destination}',flush=True)
 
 def isolate_wintun_target():
     ifindex=int(powershell(f"(Get-NetIPAddress -IPAddress '{bind_ip}' -AddressFamily IPv4 -ErrorAction Stop | Select-Object -First 1 -ExpandProperty InterfaceIndex)"))
@@ -41,6 +50,7 @@ def cleanup_isolation(ifindex,target,added):
     if added:
         subprocess.run(['powershell.exe','-NoProfile','-NonInteractive','-Command',f"Remove-NetRoute -DestinationPrefix '{target}' -InterfaceIndex {ifindex} -NextHop '0.0.0.0' -PolicyStore ActiveStore -Confirm:$false -ErrorAction SilentlyContinue"],check=False)
 
+provision_rebind_script()
 s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind((bind_ip,0)); s.setblocking(False)
 isolation=isolate_wintun_target()
 try:
@@ -54,9 +64,6 @@ try:
     last_rx=start
 
     def send_due(phase,deadline):
-        nonlocal_state=None
-        global_dummy=None
-        nonlocal_state=nonlocal_state
         global seq
         now=time.monotonic()
         while next_tx[phase] < deadline and now >= next_tx[phase]:
