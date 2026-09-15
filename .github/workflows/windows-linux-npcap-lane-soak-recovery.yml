@@ -56,41 +56,64 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           run-id: 34910039256
-      - name: Rebuild current Windows qualifier
+      - name: Refresh all product assets from current HEAD
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
-          $out=Join-Path $env:RUNNER_TEMP 'windows-assets\wbd-windows-qualify.exe'
-          go build -trimpath -o $out .\cmd\wbd-windows-qualify
-          if($LASTEXITCODE){throw 'current wbd-windows-qualify build failed'}
-          Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'windows-assets\QUALIFIER_SOURCE_SHA.txt') -Value $env:GITHUB_SHA -Encoding ascii
-          Write-Output "WBD_CURRENT_QUALIFIER_READY sha=$env:GITHUB_SHA"
-      - name: Patch and validate lane soak evidence reader
+          $win=Join-Path $env:RUNNER_TEMP 'windows-assets'
+          $linux=Join-Path $env:RUNNER_TEMP 'linux-assets'
+          New-Item -ItemType Directory -Force $win,$linux|Out-Null
+          $windowsBuilds=[ordered]@{
+            'wbd-faketcp.exe'='.\cmd\wbd-faketcp'
+            'wbd-link-proxy.exe'='.\cmd\wbd-link-proxy'
+            'wbd-game-lane-client.exe'='.\cmd\wbd-game-lane-client'
+            'wbd-tun.exe'='.\cmd\wbd-tun'
+            'wbd-windows-qualify.exe'='.\cmd\wbd-windows-qualify'
+          }
+          foreach($entry in $windowsBuilds.GetEnumerator()){
+            go build -trimpath -o (Join-Path $win $entry.Key) $entry.Value
+            if($LASTEXITCODE){throw "current Windows build failed: $($entry.Key)"}
+          }
+          foreach($script in @('windows_npcap_prepare.ps1','windows_faketcp_underlay.ps1','windows_tun_route.ps1','windows_ipv6_killswitch.ps1')){
+            Copy-Item -LiteralPath (Join-Path '.\scripts' $script) -Destination (Join-Path $win $script) -Force
+          }
+          $savedGoos=$env:GOOS;$savedGoarch=$env:GOARCH;$savedCgo=$env:CGO_ENABLED
+          try{
+            $env:GOOS='linux';$env:GOARCH='amd64';$env:CGO_ENABLED='0'
+            $linuxBuilds=[ordered]@{
+              'wbd-faketcp-mux'='.\cmd\wbd-faketcp-mux'
+              'wbd-link-server-mux'='.\cmd\wbd-link-server-mux'
+              'wbd-game-lane-server'='.\cmd\wbd-game-lane-server'
+              'wbd-ip-gateway-shared'='.\cmd\wbd-ip-gateway-shared'
+            }
+            foreach($entry in $linuxBuilds.GetEnumerator()){
+              go build -trimpath -o (Join-Path $linux $entry.Key) $entry.Value
+              if($LASTEXITCODE){throw "current Linux build failed: $($entry.Key)"}
+            }
+          }finally{
+            $env:GOOS=$savedGoos;$env:GOARCH=$savedGoarch;$env:CGO_ENABLED=$savedCgo
+          }
+          Copy-Item -LiteralPath '.\scripts\linux_shared_tun_firewall.sh' -Destination (Join-Path $linux 'linux_shared_tun_firewall.sh') -Force
+          Set-Content -LiteralPath (Join-Path $win 'SOURCE_SHA.txt') -Value $env:GITHUB_SHA -Encoding ascii
+          Set-Content -LiteralPath (Join-Path $linux 'SOURCE_SHA.txt') -Value $env:GITHUB_SHA -Encoding ascii
+          $winSha=(Get-Content -LiteralPath (Join-Path $win 'SOURCE_SHA.txt') -Raw).Trim()
+          $linuxSha=(Get-Content -LiteralPath (Join-Path $linux 'SOURCE_SHA.txt') -Raw).Trim()
+          if($winSha-ne$env:GITHUB_SHA-or$linuxSha-ne$env:GITHUB_SHA){throw "product provenance mismatch windows=$winSha linux=$linuxSha expected=$env:GITHUB_SHA"}
+          $routeHash=(Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $win 'windows_tun_route.ps1')).Hash.ToLowerInvariant()
+          Write-Output "WBD_RECOVERY_PRODUCT_ASSETS_READY sha=$env:GITHUB_SHA windows=$winSha linux=$linuxSha route_sha256=$routeHash native_base_run=34910039256"
+      - name: Validate permanent lane soak harness
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
           $path=(Resolve-Path '.\scripts\windows_linux_wintun_lane_soak.ps1').Path
-          $patched=New-Object System.Collections.Generic.List[string]
-          $proofCount=0
-          foreach($line in (Get-Content -LiteralPath $path)){
-            if($line.Contains('real Npcap raw SYN/SYNACK proof marker missing')){
-              $proofCount++
-              $patched.Add(' $qualStdout=Get-Content -LiteralPath $qualOut -Raw;$qualStderr=if(Test-Path -LiteralPath $qualErr){Get-Content -LiteralPath $qualErr -Raw}else{''''};$qualText=$qualStdout+"`n"+$qualStderr')
-              $patched.Add(' if($qualText-notmatch''WBD_FAKETCP_WINDOWS_RAW_SYNACK_RX''){throw ''real Npcap raw SYN/SYNACK proof marker missing''};if($qualStdout-notmatch''WBD_WINDOWS_QUALIFY_CONNECTED''){throw ''production controller connected marker missing''}')
-              continue
-            }
-            $patched.Add($line)
-          }
-          if($proofCount-ne1){throw "lane soak proof source shape changed count=$proofCount"}
-          Set-Content -LiteralPath $path -Value $patched -Encoding utf8
           $tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
           if($errors.Count){$errors|ForEach-Object{Write-Error $_};throw 'lane soak harness parse failed'}
           $text=Get-Content -LiteralPath $path -Raw
           if(-not$text.Contains('ArgumentList.Add')){throw 'lane soak exact-argv WSL launcher missing'}
-          if(-not$text.Contains('capacity=(\d+)$')){throw 'FakeTCP 4096 capacity parser missing'}
-          if(-not$text.Contains('faketcp_capacity=$pressureCapacity')){throw 'FakeTCP capacity summary missing'}
-          if(-not$text.Contains('$qualStderr')){throw 'lane soak stderr evidence reader missing'}
-          Write-Output 'WBD_LANE_SOAK_HARNESS_READY launch=exact-argv faketcp_capacity=4096 evidence=stdout+stderr'
+          if(-not$text.Contains('$qualStderr')){throw 'lane soak stdout+stderr raw proof reader missing'}
+          if(-not$text.Contains('capacity=(\d+)$')-or-not$text.Contains('faketcp_capacity=$pressureCapacity')){throw 'FakeTCP 4096 pressure parser/summary missing'}
+          if(-not$text.Contains('faketcp_repair_evicted=$repairEvicted')-or-not$text.Contains('faketcp_repair_metadata_evicted=$repairMetadataEvicted')){throw 'FakeTCP repair eviction summary missing'}
+          Write-Output 'WBD_LANE_SOAK_HARNESS_READY launch=exact-argv faketcp_capacity=4096 repair_eviction=1 evidence=stdout+stderr permanent=1'
       - name: Provision and verify WSL Linux runtime
         shell: pwsh
         run: |
@@ -140,14 +163,20 @@ jobs:
           .\scripts\windows_npcap_driver_ci.ps1 -Action Install -DriverPackageDir $driverDir -UserlandExtractDir $extract
           .\scripts\windows_npcap_driver_ci.ps1 -Action Status
           Add-Content -LiteralPath $env:GITHUB_PATH -Value "$env:SystemRoot\System32\Npcap"
-          "NPCAP_TEST_SOURCE_URL=$driverUrl"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8;"NPCAP_TEST_ZIP_SHA256=$driverHash"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8;"NPCAP_OFFICIAL_URL=$officialUrl"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8;"NPCAP_OFFICIAL_SHA256=$officialHash"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NPCAP_TEST_SOURCE_URL=$driverUrl"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NPCAP_TEST_ZIP_SHA256=$driverHash"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NPCAP_OFFICIAL_URL=$officialUrl"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NPCAP_OFFICIAL_SHA256=$officialHash"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Write-Output "WBD_NPCAP_TEST_RUNTIME_READY version=1.88 driver_zip_sha256=$driverHash official_sha256=$officialHash"
       - name: Run 300 second production-controller Wintun plus real Npcap soak
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
           $log=Join-Path $env:RUNNER_TEMP 'wbd-soak-${{ matrix.slug }}';New-Item -ItemType Directory -Force $log|Out-Null
-          [ordered]@{version='1.88';qualifier_source_sha=$env:GITHUB_SHA;base_artifact_source_sha='4cd0c700fc386de21734b3e66e7b58182ce538bf';artifact_run_id=34910039256;driver_source_url=$env:NPCAP_TEST_SOURCE_URL;driver_zip_sha256=$env:NPCAP_TEST_ZIP_SHA256;official_userland_source_url=$env:NPCAP_OFFICIAL_URL;official_userland_container_sha256=$env:NPCAP_OFFICIAL_SHA256;packet_sha256='2793ce72f0e04d5885aaee1273a7373441d01934b2cff3886b031c13ca826345';wpcap_sha256='d1ca7fcf9128d02a75eaf29ce9a9d85c5697377460f92420d976da187521cf39'}|ConvertTo-Json|Set-Content -LiteralPath(Join-Path $log 'npcap-source.json') -Encoding utf8
+          $winSha=(Get-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'windows-assets\SOURCE_SHA.txt') -Raw).Trim()
+          $linuxSha=(Get-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'linux-assets\SOURCE_SHA.txt') -Raw).Trim()
+          if($winSha-ne$env:GITHUB_SHA-or$linuxSha-ne$env:GITHUB_SHA){throw "refusing mixed product assets windows=$winSha linux=$linuxSha expected=$env:GITHUB_SHA"}
+          [ordered]@{version='1.88';product_source_sha=$env:GITHUB_SHA;windows_product_source_sha=$winSha;linux_product_source_sha=$linuxSha;native_base_artifact_source_sha='4cd0c700fc386de21734b3e66e7b58182ce538bf';native_base_artifact_run_id=34910039256;native_base_scope='pinned DTLS shim, Wintun DLL, test certificates only';driver_source_url=$env:NPCAP_TEST_SOURCE_URL;driver_zip_sha256=$env:NPCAP_TEST_ZIP_SHA256;official_userland_source_url=$env:NPCAP_OFFICIAL_URL;official_userland_container_sha256=$env:NPCAP_OFFICIAL_SHA256;packet_sha256='2793ce72f0e04d5885aaee1273a7373441d01934b2cff3886b031c13ca826345';wpcap_sha256='d1ca7fcf9128d02a75eaf29ce9a9d85c5697377460f92420d976da187521cf39'}|ConvertTo-Json|Set-Content -LiteralPath(Join-Path $log 'npcap-source.json') -Encoding utf8
           .\scripts\windows_linux_wintun_lane_soak.ps1 -BinDir "$env:RUNNER_TEMP\windows-assets" -LinuxAssets "$env:RUNNER_TEMP\linux-assets" -Lanes ${{ matrix.lanes }} -FEC '${{ matrix.fec }}' -ConnectionMTU 1420 -DurationSec 300 -RateBps 2000000 -LossPct ${{ matrix.loss }} -RotateEverySec 90 -LogDir $log
       - name: Print scenario summary
         if: always()
