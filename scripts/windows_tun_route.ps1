@@ -230,7 +230,7 @@ if ($Mode -eq 'Full') {
 # more-specific domestic direct route would otherwise match it.
 $capture4 = @($capture4) + @($DNSServers | ForEach-Object { "$_/32" })
 $capture4 = @($capture4 | Select-Object -Unique)
-$configureIPv6 = ($null -ne $addr6) -or ($capture6.Count -gt 0)
+$configureIPv6 = ($null -ne $addr6) -or (@($capture6).Count -gt 0)
 
 if ($Action -eq 'Render') {
     Write-Output "WBD_WINDOWS_TUN_PLAN mode=$Mode adapter=$AdapterAlias mtu=$MTU"
@@ -278,6 +278,7 @@ Remove-StaleWBDNRPT
 $adapter = Wait-NetAdapterByName -Name $AdapterAlias
 $ifIndex = [uint32]$adapter.ifIndex
 Write-Output "WBD_WINDOWS_TUN_ADAPTER_READY adapter=$AdapterAlias ifindex=$ifIndex"
+
 $ipif4 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue | Select-Object -First 1
 $ipif6 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv6 -ErrorAction SilentlyContinue | Select-Object -First 1
 $state = [ordered]@{
