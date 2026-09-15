@@ -12,6 +12,8 @@ func TestBuildMultiLanePlanPropagatesNonzeroKeepaliveToInitialLinks(t *testing.T
 		seconds int
 	}{
 		{lanes: 1, seconds: 7},
+		{lanes: 2, seconds: 15},
+		{lanes: 3, seconds: 22},
 		{lanes: 4, seconds: 30},
 	} {
 		t.Run(fmt.Sprintf("%dlane-%ds", tc.lanes, tc.seconds), func(t *testing.T) {
