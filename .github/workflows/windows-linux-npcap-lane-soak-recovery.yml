@@ -1,0 +1,188 @@
+name: windows-linux-npcap-lane-soak-recovery
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/windows-linux-npcap-lane-soak-recovery.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: windows-linux-npcap-lane-soak-recovery-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  soak:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - lanes: 1
+            fec: 'off'
+            loss: 15
+            slug: '1lane-fec-off-loss15'
+          - lanes: 1
+            fec: '20:20'
+            loss: 15
+            slug: '1lane-fec-on-loss15'
+          - lanes: 4
+            fec: 'off'
+            loss: 15
+            slug: '4lane-fec-off-loss15'
+          - lanes: 4
+            fec: '20:20'
+            loss: 15
+            slug: '4lane-fec-on-loss15'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-linux-soak-linux-assets
+          path: ${{ runner.temp }}\linux-assets
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 34910039256
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-linux-soak-windows-assets
+          path: ${{ runner.temp }}\windows-assets
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 34910039256
+      - name: Patch WSL launcher in checkout
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $path='.\scripts\windows_linux_wintun_lane_soak.ps1'
+          $text=Get-Content -LiteralPath $path -Raw
+          $oldDistro='$distro=@(& wsl.exe -l -q|ForEach-Object{$_.Trim([char]0).Trim()}|Where-Object{$_})|Select-Object -First 1;if(-not$distro){throw ''no WSL distribution''}'
+          $newDistro='[string]$distro=[string](@(& wsl.exe -l -q|ForEach-Object{$_.Trim([char]0).Trim()}|Where-Object{$_})|Select-Object -First 1);$distro=$distro.Trim([char]0).Trim();if(-not$distro){throw ''no WSL distribution''}'
+          $preflight='& wsl.exe -d $distro -- true;if($LASTEXITCODE){throw "selected WSL distribution is unavailable: $distro"};Write-Output "WBD_WSL_DISTRO_SELECTED distro=$distro"'
+          $oldArgs='[string[]]$serverArgs=@(''-d'',[string]$distro,''--'',''sudo'',''bash'',[string]$wslServerScript,[string]$wslAssets,[string]$wslLog,"$innerMTU","$ConnectionMTU","$Lanes","$LossPct")'
+          $newArgs='$serverArgumentLine="-d `"$distro`" -- sudo bash `"$wslServerScript`" `"$wslAssets`" `"$wslLog`" $innerMTU $ConnectionMTU $Lanes $LossPct"'
+          $oldStart='$server=Start-Process -FilePath ''wsl.exe'' -ArgumentList $serverArgs -RedirectStandardOutput $serverOut -RedirectStandardError $serverErr -PassThru -NoNewWindow'
+          $newStart='$server=Start-Process -FilePath ''wsl.exe'' -ArgumentList $serverArgumentLine -RedirectStandardOutput $serverOut -RedirectStandardError $serverErr -PassThru -NoNewWindow'
+          foreach($needle in @($oldDistro,$oldArgs,$oldStart)){if(-not$text.Contains($needle)){throw "expected launcher source line missing: $needle"}}
+          $text=$text.Replace($oldDistro,"$newDistro`n$preflight").Replace($oldArgs,$newArgs).Replace($oldStart,$newStart)
+          Set-Content -LiteralPath $path -Value $text -Encoding utf8 -NoNewline
+          $tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path),[ref]$tokens,[ref]$errors)
+          if($errors.Count){$errors|ForEach-Object{Write-Error $_};throw 'patched harness parse failed'}
+          Write-Output 'WBD_WSL_LAUNCHER_RUNTIME_PATCH_PASS'
+      - name: Provision and verify WSL Linux runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          wsl.exe --status
+          if($LASTEXITCODE){throw 'WSL2 runtime is unavailable'}
+          $marker=Join-Path $env:RUNNER_TEMP 'wbd-soak-ephemeral-wsl.txt'
+          $distros=@(& wsl.exe -l -q | ForEach-Object {$_.Trim([char]0).Trim()} | Where-Object {$_})
+          if($distros.Count -eq 0){
+            $d='Ubuntu-24.04'
+            Write-Output "WBD_WSL_DISTRO_INSTALL_BEGIN distro=$d"
+            & wsl.exe --install -d $d --no-launch --web-download
+            if($LASTEXITCODE){throw "WSL distro install failed: $LASTEXITCODE"}
+            $deadline=[DateTime]::UtcNow.AddMinutes(3)
+            do { Start-Sleep -Seconds 2; $distros=@(& wsl.exe -l -q | ForEach-Object {$_.Trim([char]0).Trim()} | Where-Object {$_}) } while(($distros -notcontains $d) -and [DateTime]::UtcNow -lt $deadline)
+            if($distros -notcontains $d){throw "WSL distro $d did not register"}
+            Set-Content -LiteralPath $marker -Value $d -Encoding ascii
+            & wsl.exe -d $d -u root -- bash -lc "printf '[user]\ndefault=root\n' > /etc/wsl.conf"
+            if($LASTEXITCODE){throw 'failed to configure ephemeral WSL default user'}
+            & wsl.exe --terminate $d
+            Write-Output "WBD_WSL_DISTRO_INSTALL_PASS distro=$d"
+          } else { $d=$distros[0]; Write-Output "WBD_WSL_DISTRO_REUSE distro=$d" }
+          & wsl.exe -d $d -u root -- bash -lc 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables python3 sudo'
+          if($LASTEXITCODE){throw 'WSL prerequisite install failed'}
+          & wsl.exe -d $d -u root -- bash -lc 'test -x /usr/sbin/iptables && command -v tc && command -v python3 && command -v sudo'
+          if($LASTEXITCODE){throw 'WSL prerequisites unavailable'}
+          Write-Output "WBD_WSL_RUNTIME_READY distro=$d"
+      - name: Install signed ephemeral Npcap 1.88 runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $driverUrl='https://github.com/user-attachments/files/32200327/npcap.zip'
+          $driverZip=Join-Path $env:RUNNER_TEMP 'npcap-test.zip'
+          $driverDir=Join-Path $env:RUNNER_TEMP 'npcap-test'
+          Invoke-WebRequest -UseBasicParsing -Uri $driverUrl -OutFile $driverZip
+          $driverHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $driverZip).Hash.ToLowerInvariant()
+          $driverWant='6380ebe6d5b06bbb0dc03a43151ee05a4a25be97efebd742c463e0e466621a32'
+          if($driverHash-ne$driverWant){throw "approved Npcap driver ZIP hash mismatch: got=$driverHash want=$driverWant"}
+          Expand-Archive -LiteralPath $driverZip -DestinationPath $driverDir -Force
+          $officialUrl='https://npcap.com/dist/npcap-1.88.exe'
+          $official=Join-Path $env:RUNNER_TEMP 'npcap-1.88.exe'
+          $extract=Join-Path $env:RUNNER_TEMP 'npcap-1.88-extract'
+          Invoke-WebRequest -UseBasicParsing -Uri $officialUrl -OutFile $official
+          $officialHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $official).Hash.ToLowerInvariant()
+          $officialWant='a2f4ec1e5ea353ff67efd24b2ebf081ba44532410fae8d5e146af0310aa4f56b'
+          if($officialHash-ne$officialWant){throw "Npcap 1.88 official installer hash mismatch: got=$officialHash want=$officialWant"}
+          $sig=Get-AuthenticodeSignature -FilePath $official
+          $subject=if($sig.SignerCertificate){[string]$sig.SignerCertificate.Subject}else{''}
+          if($sig.Status-ne[System.Management.Automation.SignatureStatus]::Valid-or$subject-notmatch'Nmap Software LLC'){throw "Npcap official installer signature invalid: status=$($sig.Status) signer=$subject"}
+          New-Item -ItemType Directory -Force $extract|Out-Null
+          & 7z x -y "-o$extract" $official|Out-Null
+          if($LASTEXITCODE){throw "Npcap 1.88 extraction failed: $LASTEXITCODE"}
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Install -DriverPackageDir $driverDir -UserlandExtractDir $extract
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Status
+          Add-Content -LiteralPath $env:GITHUB_PATH -Value "$env:SystemRoot\System32\Npcap"
+          "NPCAP_TEST_SOURCE_URL=$driverUrl"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NPCAP_TEST_ZIP_SHA256=$driverHash"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NPCAP_OFFICIAL_URL=$officialUrl"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NPCAP_OFFICIAL_SHA256=$officialHash"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Output "WBD_NPCAP_TEST_RUNTIME_READY version=1.88 driver_zip_sha256=$driverHash official_sha256=$officialHash"
+      - name: Run 300 second production-controller Wintun plus real Npcap soak
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $log=Join-Path $env:RUNNER_TEMP 'wbd-soak-${{ matrix.slug }}'; New-Item -ItemType Directory -Force $log | Out-Null
+          [ordered]@{version='1.88';product_source_sha='4cd0c700fc386de21734b3e66e7b58182ce538bf';artifact_run_id=34910039256;driver_source_url=$env:NPCAP_TEST_SOURCE_URL;driver_zip_sha256=$env:NPCAP_TEST_ZIP_SHA256;official_userland_source_url=$env:NPCAP_OFFICIAL_URL;official_userland_container_sha256=$env:NPCAP_OFFICIAL_SHA256;packet_sha256='2793ce72f0e04d5885aaee1273a7373441d01934b2cff3886b031c13ca826345';wpcap_sha256='d1ca7fcf9128d02a75eaf29ce9a9d85c5697377460f92420d976da187521cf39'} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $log 'npcap-source.json') -Encoding utf8
+          .\scripts\windows_linux_wintun_lane_soak.ps1 `
+            -BinDir "$env:RUNNER_TEMP\windows-assets" `
+            -LinuxAssets "$env:RUNNER_TEMP\linux-assets" `
+            -Lanes ${{ matrix.lanes }} `
+            -FEC '${{ matrix.fec }}' `
+            -ConnectionMTU 1420 `
+            -DurationSec 300 `
+            -RateBps 2000000 `
+            -LossPct ${{ matrix.loss }} `
+            -RotateEverySec 90 `
+            -LogDir $log
+      - name: Print scenario summary
+        if: always()
+        shell: pwsh
+        run: |
+          $log=Join-Path $env:RUNNER_TEMP 'wbd-soak-${{ matrix.slug }}'
+          foreach($name in @('npcap-source.json','mtu-budget.json','summary.json','load-result.json','network-end.log','error-scan.log','wsl-wrapper.stdout.log','wsl-wrapper.stderr.log')){$path=Join-Path $log $name;if(Test-Path -LiteralPath $path){Write-Output "=== $name ===";Get-Content -LiteralPath $path|Select-Object -First 300}}
+      - name: Remove ephemeral Npcap
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Continue'
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Cleanup
+          if($LASTEXITCODE){exit $LASTEXITCODE}
+      - name: Remove ephemeral WSL distribution
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Continue'
+          $marker=Join-Path $env:RUNNER_TEMP 'wbd-soak-ephemeral-wsl.txt'
+          if(Test-Path -LiteralPath $marker){$d=(Get-Content -LiteralPath $marker -Raw).Trim();if($d){& wsl.exe --terminate $d 2>$null;& wsl.exe --unregister $d;if($LASTEXITCODE){throw "failed to unregister ephemeral WSL distro $d"};Write-Output "WBD_WSL_DISTRO_CLEANUP_PASS distro=$d"};Remove-Item -LiteralPath $marker -Force -ErrorAction SilentlyContinue}else{Write-Output 'WBD_WSL_DISTRO_CLEANUP_SKIP reason=preexisting_or_not_installed'}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-linux-npcap-wintun-soak-recovery-${{ matrix.slug }}-${{ github.run_id }}
+          path: ${{ runner.temp }}\wbd-soak-${{ matrix.slug }}
+          if-no-files-found: warn
+          retention-days: 14
