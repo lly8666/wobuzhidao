@@ -91,6 +91,10 @@ func buildLanePlanForSlot(profile Profile, bootstrap LaneBootstrap, slot int, ca
 	if candidate { suffix += "-candidate-s" + strconv.Itoa(slot) }
 	fake := bootstrap.FakeTCP
 	if candidate { fake.Name = "faketcp-" + suffix }
+	linkArgs := []string{"-mode", "client", "-listen", linkListen, "-dtls", dtlsPlain, "-fec", profile.FEC, "-mtu", strconv.Itoa(mtuBudget.LinkPlaintextMTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(bootstrap.Ticket)}
+	if profile.KeepaliveSeconds != nil {
+		linkArgs = append(linkArgs, "-keepalive", strconv.Itoa(*profile.KeepaliveSeconds)+"s")
+	}
 
 	return LanePlan{
 		ID: bootstrap.ID,
@@ -104,7 +108,7 @@ func buildLanePlanForSlot(profile Profile, bootstrap LaneBootstrap, slot int, ca
 		Link: Command{
 			Name: "link-" + suffix,
 			Path: bin("wbd-link-proxy.exe"),
-			Args: []string{"-mode", "client", "-listen", linkListen, "-dtls", dtlsPlain, "-fec", profile.FEC, "-mtu", strconv.Itoa(mtuBudget.LinkPlaintextMTU), "-lanes", "1", "-demo-reality-ticket", strings.TrimSpace(bootstrap.Ticket)},
+			Args: linkArgs,
 		},
 	}, nil
 }
