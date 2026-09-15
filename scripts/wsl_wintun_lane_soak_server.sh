@@ -7,6 +7,7 @@ CONNECTION_MTU=${4:?connection mtu}
 MAX_LANES=${5:?max lanes}
 LOSS_PCT=${6:-15}
 LINK_IDLE_TIMEOUT=${7:-180s}
+SHARED_TUN_IDLE_TIMEOUT=${8:-180s}
 STOP_FILE="$LOG_DIR/stop.server"
 RAW=40000
 LINK=47000
@@ -49,7 +50,7 @@ while True:
         s.sendto(b,a)
 PY
 python3 "$LOG_DIR/echo.py" >"$LOG_DIR/echo.log" 2>&1 & PIDS+=("$!")
-"$ASSET_DIR/wbd-ip-gateway-shared" -listen 127.0.0.1:${GATEWAY} -firewall-helper "$ASSET_DIR/linux_shared_tun_firewall.sh" -backend iptables -firewall-state "$LOG_DIR/shared-tun-firewall.state" -lease-prefix 10.66.0.0/16 -tun-if "$TUN_IF" -mtu "$INNER_MTU" -idle-timeout 180s -max-sessions 16 >"$LOG_DIR/shared-tun-gateway.log" 2>&1 & PIDS+=("$!")
+"$ASSET_DIR/wbd-ip-gateway-shared" -listen 127.0.0.1:${GATEWAY} -firewall-helper "$ASSET_DIR/linux_shared_tun_firewall.sh" -backend iptables -firewall-state "$LOG_DIR/shared-tun-firewall.state" -lease-prefix 10.66.0.0/16 -tun-if "$TUN_IF" -mtu "$INNER_MTU" -idle-timeout "$SHARED_TUN_IDLE_TIMEOUT" -max-sessions 16 >"$LOG_DIR/shared-tun-gateway.log" 2>&1 & PIDS+=("$!")
 for _ in $(seq 1 200); do grep -q 'WBD_SHARED_TUN_GATEWAY_READY' "$LOG_DIR/shared-tun-gateway.log" 2>/dev/null && break; sleep .1; done
 grep -q 'WBD_SHARED_TUN_GATEWAY_READY' "$LOG_DIR/shared-tun-gateway.log"
 
@@ -76,8 +77,8 @@ done
 grep -q "WBD_GAME_LANE_SERVER_READY.*max_lanes=${MAX_LANES}" "$LOG_DIR/game-server.log"
 grep -q 'WBD_LINK_SERVER_MUX_READY' "$LOG_DIR/link-server.log"
 grep -q 'READY role=server-mux' "$LOG_DIR/faketcp-mux.log"
-printf '{"server_ip":"%s","inner_mtu":%s,"connection_mtu":%s,"max_lanes":%s,"loss_pct":%s,"link_idle_timeout":"%s","echo_ip":"%s","echo_port":%s,"tun_if":"%s"}\n' "$SERVER_IP" "$INNER_MTU" "$CONNECTION_MTU" "$MAX_LANES" "$LOSS_PCT" "$LINK_IDLE_TIMEOUT" "$ECHO_IP" "$ECHO_PORT" "$TUN_IF" >"$LOG_DIR/server-ready.json"
-echo "WBD_WSL_WINTUN_SOAK_READY server_ip=$SERVER_IP tun=$TUN_IF echo=$ECHO_IP:$ECHO_PORT loss_pct=$LOSS_PCT link_idle_timeout=$LINK_IDLE_TIMEOUT"
+printf '{"server_ip":"%s","inner_mtu":%s,"connection_mtu":%s,"max_lanes":%s,"loss_pct":%s,"link_idle_timeout":"%s","shared_tun_idle_timeout":"%s","echo_ip":"%s","echo_port":%s,"tun_if":"%s"}\n' "$SERVER_IP" "$INNER_MTU" "$CONNECTION_MTU" "$MAX_LANES" "$LOSS_PCT" "$LINK_IDLE_TIMEOUT" "$SHARED_TUN_IDLE_TIMEOUT" "$ECHO_IP" "$ECHO_PORT" "$TUN_IF" >"$LOG_DIR/server-ready.json"
+echo "WBD_WSL_WINTUN_SOAK_READY server_ip=$SERVER_IP tun=$TUN_IF echo=$ECHO_IP:$ECHO_PORT loss_pct=$LOSS_PCT link_idle_timeout=$LINK_IDLE_TIMEOUT shared_tun_idle_timeout=$SHARED_TUN_IDLE_TIMEOUT"
 while [[ ! -e "$STOP_FILE" ]]; do for p in "${PIDS[@]}"; do kill -0 "$p" 2>/dev/null || { echo "server child died pid=$p" >&2; exit 1; }; done; sleep 1; done
 {
   echo '=== outer pre-netem ==='; iptables -t mangle -L "$OUTER_CHAIN" -nvx
@@ -85,4 +86,4 @@ while [[ ! -e "$STOP_FILE" ]]; do for p in "${PIDS[@]}"; do kill -0 "$p" 2>/dev/
   echo '=== shared tun ==='; ip -s link show dev "$TUN_IF"
   echo '=== shared route ==='; ip route show 10.66.0.0/16
 } >"$LOG_DIR/network-end.log" 2>&1
-echo "WBD_WSL_WINTUN_SOAK_PASS server_ip=$SERVER_IP inner_mtu=$INNER_MTU max_lanes=$MAX_LANES loss_pct=$LOSS_PCT link_idle_timeout=$LINK_IDLE_TIMEOUT"
+echo "WBD_WSL_WINTUN_SOAK_PASS server_ip=$SERVER_IP inner_mtu=$INNER_MTU max_lanes=$MAX_LANES loss_pct=$LOSS_PCT link_idle_timeout=$LINK_IDLE_TIMEOUT shared_tun_idle_timeout=$SHARED_TUN_IDLE_TIMEOUT"
