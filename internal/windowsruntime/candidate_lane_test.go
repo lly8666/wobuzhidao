@@ -38,6 +38,45 @@ func TestCandidateLaneUsesPrivateSlotFiveWithSameLogicalID(t *testing.T) {
 	}
 }
 
+func TestLanePlanPropagatesExplicitKeepaliveZero(t *testing.T) {
+	p := testProfile()
+	p.TunnelIPv4 = ""
+	zero := 0
+	p.KeepaliveSeconds = &zero
+	u := testUnderlay()
+	u.SourcePort = windowsDynamicPortMin + 101
+
+	b, err := BuildCandidateLaneBootstrapSlot(p, u, 1, 1)
+	if err != nil { t.Fatal(err) }
+	b.Ticket = strings.Repeat("ab", 32)
+	b.TunnelConfig = testAuthenticatedTunnel()
+	plan, err := BuildAuthenticatedLanePlan(p, b)
+	if err != nil { t.Fatal(err) }
+	if !argPair(plan.Link.Args, "-keepalive", "0s") {
+		t.Fatalf("explicit keepalive=0 not propagated to lane LINK args: %v", plan.Link.Args)
+	}
+}
+
+func TestLanePlanOmitsKeepaliveWhenProfileUnspecified(t *testing.T) {
+	p := testProfile()
+	p.TunnelIPv4 = ""
+	p.KeepaliveSeconds = nil
+	u := testUnderlay()
+	u.SourcePort = windowsDynamicPortMin + 102
+
+	b, err := BuildCandidateLaneBootstrapSlot(p, u, 1, 1)
+	if err != nil { t.Fatal(err) }
+	b.Ticket = strings.Repeat("ab", 32)
+	b.TunnelConfig = testAuthenticatedTunnel()
+	plan, err := BuildAuthenticatedLanePlan(p, b)
+	if err != nil { t.Fatal(err) }
+	for i, arg := range plan.Link.Args {
+		if arg == "-keepalive" {
+			t.Fatalf("unspecified keepalive unexpectedly propagated at arg %d: %v", i, plan.Link.Args)
+		}
+	}
+}
+
 func TestCandidateLaneKeepsLogicalRangeAndPrivateSlotBounded(t *testing.T) {
 	p := testProfile()
 	p.TunnelIPv4 = ""
