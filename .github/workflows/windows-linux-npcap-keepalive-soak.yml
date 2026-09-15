@@ -10,9 +10,27 @@ on:
       - 'scripts/windows_linux_wintun_keepalive_soak.ps1'
       - '.github/scripts/windows_game_pause_resume.py'
       - 'scripts/wsl_wintun_lane_soak_server.sh'
+      - 'scripts/windows_npcap_prepare.ps1'
+      - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_ipv6_killswitch.ps1'
+      - 'scripts/linux_shared_tun_firewall.sh'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-game-lane-client/**'
+      - 'cmd/wbd-game-lane-server/**'
+      - 'cmd/wbd-tun/**'
+      - 'cmd/wbd-ip-gateway-shared/**'
+      - 'cmd/wbd-windows-qualify/**'
+      - 'internal/fec/**'
+      - 'internal/linkdata/**'
+      - 'internal/pathmtu/**'
+      - 'internal/tunnel/**'
+      - 'internal/dataplane/**'
       - 'internal/windowsruntime/**'
       - 'internal/windowsgui/**'
-      - 'cmd/wbd-windows-qualify/**'
 
 permissions:
   contents: read
@@ -57,15 +75,51 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           run-id: 34910039256
-      - name: Rebuild current Windows qualifier
+      - name: Refresh all product assets from current HEAD
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
-          $out=Join-Path $env:RUNNER_TEMP 'windows-assets\wbd-windows-qualify.exe'
-          go build -trimpath -o $out .\cmd\wbd-windows-qualify
-          if($LASTEXITCODE){throw 'current wbd-windows-qualify build failed'}
-          Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'windows-assets\QUALIFIER_SOURCE_SHA.txt') -Value $env:GITHUB_SHA -Encoding ascii
-          Write-Output "WBD_CURRENT_QUALIFIER_READY sha=$env:GITHUB_SHA"
+          $win=Join-Path $env:RUNNER_TEMP 'windows-assets'
+          $linux=Join-Path $env:RUNNER_TEMP 'linux-assets'
+          New-Item -ItemType Directory -Force $win,$linux|Out-Null
+          $windowsBuilds=[ordered]@{
+            'wbd-faketcp.exe'='.\cmd\wbd-faketcp'
+            'wbd-link-proxy.exe'='.\cmd\wbd-link-proxy'
+            'wbd-game-lane-client.exe'='.\cmd\wbd-game-lane-client'
+            'wbd-tun.exe'='.\cmd\wbd-tun'
+            'wbd-windows-qualify.exe'='.\cmd\wbd-windows-qualify'
+          }
+          foreach($entry in $windowsBuilds.GetEnumerator()){
+            go build -trimpath -o (Join-Path $win $entry.Key) $entry.Value
+            if($LASTEXITCODE){throw "current Windows build failed: $($entry.Key)"}
+          }
+          foreach($script in @('windows_npcap_prepare.ps1','windows_faketcp_underlay.ps1','windows_tun_route.ps1','windows_ipv6_killswitch.ps1')){
+            Copy-Item -LiteralPath (Join-Path '.\scripts' $script) -Destination (Join-Path $win $script) -Force
+          }
+          $savedGoos=$env:GOOS;$savedGoarch=$env:GOARCH;$savedCgo=$env:CGO_ENABLED
+          try{
+            $env:GOOS='linux';$env:GOARCH='amd64';$env:CGO_ENABLED='0'
+            $linuxBuilds=[ordered]@{
+              'wbd-faketcp-mux'='.\cmd\wbd-faketcp-mux'
+              'wbd-link-server-mux'='.\cmd\wbd-link-server-mux'
+              'wbd-game-lane-server'='.\cmd\wbd-game-lane-server'
+              'wbd-ip-gateway-shared'='.\cmd\wbd-ip-gateway-shared'
+            }
+            foreach($entry in $linuxBuilds.GetEnumerator()){
+              go build -trimpath -o (Join-Path $linux $entry.Key) $entry.Value
+              if($LASTEXITCODE){throw "current Linux build failed: $($entry.Key)"}
+            }
+          }finally{
+            $env:GOOS=$savedGoos;$env:GOARCH=$savedGoarch;$env:CGO_ENABLED=$savedCgo
+          }
+          Copy-Item -LiteralPath '.\scripts\linux_shared_tun_firewall.sh' -Destination (Join-Path $linux 'linux_shared_tun_firewall.sh') -Force
+          Set-Content -LiteralPath (Join-Path $win 'SOURCE_SHA.txt') -Value $env:GITHUB_SHA -Encoding ascii
+          Set-Content -LiteralPath (Join-Path $linux 'SOURCE_SHA.txt') -Value $env:GITHUB_SHA -Encoding ascii
+          $winSha=(Get-Content -LiteralPath (Join-Path $win 'SOURCE_SHA.txt') -Raw).Trim()
+          $linuxSha=(Get-Content -LiteralPath (Join-Path $linux 'SOURCE_SHA.txt') -Raw).Trim()
+          if($winSha-ne$env:GITHUB_SHA-or$linuxSha-ne$env:GITHUB_SHA){throw "product provenance mismatch windows=$winSha linux=$linuxSha expected=$env:GITHUB_SHA"}
+          $routeHash=(Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $win 'windows_tun_route.ps1')).Hash.ToLowerInvariant()
+          Write-Output "WBD_KEEPALIVE_PRODUCT_ASSETS_READY sha=$env:GITHUB_SHA windows=$winSha linux=$linuxSha route_sha256=$routeHash native_base_run=34910039256"
       - name: Patch and validate keepalive formal harness
         shell: pwsh
         run: |
@@ -124,7 +178,9 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop';$log=Join-Path $env:RUNNER_TEMP 'keepalive-${{ matrix.slug }}';New-Item -ItemType Directory -Force $log|Out-Null
-          [ordered]@{qualifier_source_sha=$env:GITHUB_SHA;base_artifact_source_sha='4cd0c700fc386de21734b3e66e7b58182ce538bf';artifact_run_id=34910039256}|ConvertTo-Json|Set-Content -LiteralPath(Join-Path $log 'product-source.json') -Encoding utf8
+          $winSha=(Get-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'windows-assets\SOURCE_SHA.txt') -Raw).Trim();$linuxSha=(Get-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'linux-assets\SOURCE_SHA.txt') -Raw).Trim()
+          if($winSha-ne$env:GITHUB_SHA-or$linuxSha-ne$env:GITHUB_SHA){throw "refusing mixed product assets windows=$winSha linux=$linuxSha expected=$env:GITHUB_SHA"}
+          [ordered]@{product_source_sha=$env:GITHUB_SHA;windows_product_source_sha=$winSha;linux_product_source_sha=$linuxSha;native_base_artifact_source_sha='4cd0c700fc386de21734b3e66e7b58182ce538bf';native_base_artifact_run_id=34910039256;native_base_scope='pinned DTLS shim, Wintun DLL, test certificates only'}|ConvertTo-Json|Set-Content -LiteralPath(Join-Path $log 'product-source.json') -Encoding utf8
           .\scripts\windows_linux_wintun_keepalive_soak.ps1 -BinDir "$env:RUNNER_TEMP\windows-assets" -LinuxAssets "$env:RUNNER_TEMP\linux-assets" -Lanes ${{ matrix.lanes }} -FEC '${{ matrix.fec }}' -ConnectionMTU 1420 -RateBps 2000000 -LossPct 15 -FirstDurationSec 20 -PauseDurationSec 220 -SecondDurationSec 60 -ServerIdleSec 60 -LogDir $log
       - name: Print keepalive summary
         if: always()
