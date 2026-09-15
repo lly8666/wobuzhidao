@@ -55,6 +55,26 @@ function Find-UserlandByHash([string]$Root,[string]$Name,[string]$Hash) {
     if($matches.Count-ne1){throw "expected exactly one signed x64 $Name with locked hash, found $($matches.Count)"}
     return $matches[0].FullName
 }
+function Publish-WindowsPowerShellModulePath {
+    $required=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\Modules'
+    $machine=[string][Environment]::GetEnvironmentVariable('PSModulePath','Machine')
+    $parts=New-Object System.Collections.Generic.List[string]
+    foreach($candidate in @($required)+@($machine -split ';')+@([string]$env:PSModulePath -split ';')){
+        if([string]::IsNullOrWhiteSpace($candidate)){continue}
+        $normalized=$candidate.Trim()
+        if(-not($parts|Where-Object{$_-ieq$normalized})){[void]$parts.Add($normalized)}
+    }
+    $value=[string]::Join(';',$parts)
+    if([string]::IsNullOrWhiteSpace($value)){throw 'unable to construct Windows PowerShell module path'}
+    $env:PSModulePath=$value
+    $powershell=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    & $powershell -NoProfile -NonInteractive -Command "Import-Module Microsoft.PowerShell.Security -ErrorAction Stop; if(-not(Get-Command Get-AuthenticodeSignature -ErrorAction Stop)){exit 2}"
+    if($LASTEXITCODE){throw "Windows PowerShell security-module probe failed: $LASTEXITCODE"}
+    if(-not[string]::IsNullOrWhiteSpace([string]$env:GITHUB_ENV)){
+        "PSModulePath=$value"|Out-File -LiteralPath $env:GITHUB_ENV -Append -Encoding utf8
+    }
+    Write-Output "WBD_WINDOWS_POWERSHELL_MODULE_PATH_READY security_module=Microsoft.PowerShell.Security"
+}
 function Assert-RuntimeReady {
     $svc=Get-NpcapService
     if($null-eq$svc){throw 'npcap service is missing'}
@@ -67,6 +87,7 @@ function Assert-RuntimeReady {
     [void](Assert-Hash $RuntimeWpcap $ExpectedWpcapHash 'Npcap wpcap.dll')
     [void](Assert-NmapSignature $RuntimePacket 'Npcap Packet.dll')
     [void](Assert-NmapSignature $RuntimeWpcap 'Npcap wpcap.dll')
+    Publish-WindowsPowerShellModulePath
     Write-Output "WBD_NPCAP_DRIVER_CI_READY version=$NpcapVersion service=$($svc.Status) packet_sha256=$ExpectedPacketHash wpcap_sha256=$ExpectedWpcapHash"
 }
 
