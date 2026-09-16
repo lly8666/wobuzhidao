@@ -33,3 +33,4 @@ jobs:
           & pktmon.exe etl2pcap help
           Write-Output "exit=$LASTEXITCODE"
           Write-Output 'WBD_PKTMON_PROBE_PASS'
+          # trigger-after-create
