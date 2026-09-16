@@ -1,0 +1,55 @@
+name: Apply Link keepalive read-before-probe fix
+
+on:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/apply-link-keepalive-read-before-probe.yml'
+      - 'tools/apply_link_keepalive_read_before_probe.py'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-per-association-mtu-20260914
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Apply liveness ordering fix
+        shell: pwsh
+        run: python tools/apply_link_keepalive_read_before_probe.py
+      - name: Format and inspect
+        shell: pwsh
+        run: |
+          gofmt -w cmd/wbd-link-proxy/main.go
+          git diff --check
+          git status --short
+      - name: Stress continuous remote activity
+        shell: pwsh
+        run: |
+          go test ./cmd/wbd-link-proxy -run '^TestClientDataLoopContinuousRemoteDataSuppressesKeepaliveAndStaysLive$' -count=30
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run Link proxy regression suite
+        shell: pwsh
+        run: |
+          go test ./cmd/wbd-link-proxy -count=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go test ./internal/control ./internal/linkdata -count=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Commit tested product change
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cmd/wbd-link-proxy/main.go
+          git commit -m "fix: process remote traffic before idle keepalive probe"
+          git push origin HEAD:agent/fix-per-association-mtu-20260914
