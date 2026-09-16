@@ -275,16 +275,61 @@ jobs:
           LINUX_RUN: ${{ steps.producers.outputs.linux_run }}
         run: |
           set -euo pipefail
-          mapfile -t win_files < <(find stage/windows -type f -name wbd.exe -print)
+          mapfile -t win_manifests < <(find stage/windows -type f -name manifest.json -print)
           mapfile -t amd_files < <(find stage/linux-amd64 -type f -name 'wbd-linux-server-amd64.tar.gz' -print)
           mapfile -t arm_files < <(find stage/linux-arm64 -type f -name 'wbd-linux-server-arm64.tar.gz' -print)
-          [[ ${#win_files[@]} -eq 1 ]] || { echo "expected exactly one wbd.exe" >&2; exit 1; }
+          [[ ${#win_manifests[@]} -eq 1 ]] || { echo "expected exactly one Windows install-directory manifest" >&2; exit 1; }
           [[ ${#amd_files[@]} -eq 1 ]] || { echo "expected exactly one amd64 server tarball" >&2; exit 1; }
           [[ ${#arm_files[@]} -eq 1 ]] || { echo "expected exactly one arm64 server tarball" >&2; exit 1; }
 
+          win_root="$(dirname "${win_manifests[0]}")"
+          required=(
+            wbd.exe
+            wbd-reality-front.exe
+            wbd-faketcp.exe
+            wbd_dtls_shim.exe
+            wbd-link-proxy.exe
+            wbd-game-lane-client.exe
+            wbd-tun.exe
+            wbd-windows-gui.exe
+            wintun.dll
+            WINTUN-LICENSE.txt
+            SOURCE_SHA.txt
+            windows_tun_route.ps1
+            windows_tun_rebind.ps1
+            windows_ipv6_killswitch.ps1
+            windows_faketcp_underlay.ps1
+            windows_npcap_prepare.ps1
+            manifest.json
+          )
+          for file in "${required[@]}"; do
+            [[ -f "$win_root/$file" ]] || { echo "Windows install directory missing $file" >&2; exit 1; }
+          done
+
+          [[ "$(jq -r '.schema' "$win_root/manifest.json")" == 'wbd-windows-install-directory/v1' ]] || {
+            echo 'Windows manifest schema mismatch' >&2
+            exit 1
+          }
+          [[ "$(jq -r '.launch' "$win_root/manifest.json")" == 'wbd.exe' ]] || {
+            echo 'Windows manifest launch entry mismatch' >&2
+            exit 1
+          }
+          [[ "$(jq -r '.extraction' "$win_root/manifest.json")" == 'false' ]] || {
+            echo 'Windows manifest unexpectedly enables extraction' >&2
+            exit 1
+          }
+          [[ "$(tr -d '\r\n' < "$win_root/SOURCE_SHA.txt")" == "$SOURCE_SHA" ]] || {
+            echo 'Windows artifact SOURCE_SHA mismatch' >&2
+            exit 1
+          }
+          (
+            cd "$win_root"
+            jq -r '.files | to_entries[] | "\(.value)  \(.key)"' manifest.json | sha256sum -c -
+          )
+
           mkdir -p release/windows release/test-tools
-          cp "${win_files[0]}" release/windows/wbd.exe
-          (cd release/windows && zip -q "../wbd-windows-portable-$SOURCE_SHA.zip" wbd.exe)
+          cp -a "$win_root/." release/windows/
+          (cd release/windows && zip -q -r "../wbd-windows-portable-$SOURCE_SHA.zip" .)
           cp "${amd_files[0]}" "release/wbd-linux-server-amd64-$SOURCE_SHA.tar.gz"
           cp "${arm_files[0]}" "release/wbd-linux-server-arm64-$SOURCE_SHA.tar.gz"
 
@@ -319,8 +364,9 @@ jobs:
           - Windows portable producer run: \`$WINDOWS_RUN\`
           - Linux server producer run: \`$LINUX_RUN\`
           - Windows 11 + real Npcap -> Ubuntu ARM64 physical qualification: **pending**
-          - Functional/lifecycle FEC: **off**
-          - Compatibility FEC smoke only: **20:20**
+          - Windows runtime packaging: **install-directory**, no temp/cache extraction
+          - Client FEC profiles included: **off, 20:4, 20:8, 20:10, 20:12, 20:16, 20:20**
+          - Hosted mixed-session FEC qualification: tracked by the exact-source full-stack matrix
 
           Download \`TESTING.md\`, \`wbd.example.json\`, \`SOURCE_SHA.txt\`, \`PRODUCERS.json\` and \`SHA256SUMS.txt\` together with the platform packages. Do not mix artifacts from different source SHAs.
           EOF
