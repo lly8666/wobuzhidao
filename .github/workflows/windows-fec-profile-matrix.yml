@@ -36,16 +36,25 @@ jobs:
           FEC_PROFILE: ${{ matrix.profile }}
         run: |
           $ErrorActionPreference = 'Stop'
+
+          # Shared immutable-link and Windows admission contracts remain common
+          # to every cell. Link-proxy execution itself is deliberately scoped to
+          # the profile under test so unrelated liveness timing tests cannot be
+          # mistaken for an FEC-profile failure; those remain covered by normal CI.
+          go test ./internal/control ./internal/linkdata ./internal/windowsruntime -count=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
           if ($env:FEC_PROFILE -eq 'off') {
-            go test ./internal/control ./internal/linkdata ./cmd/wbd-link-proxy ./internal/windowsruntime -count=1
+            go test ./cmd/wbd-link-proxy -run '^TestImmutableLinkProxyOffNoAuth$' -count=1
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           } else {
             $repair = [int]($env:FEC_PROFILE.Split(':')[1])
             go test ./internal/fec -run "^TestFixedParityProfileMatrixRecoversEquivalentSystematicLoss/20_$repair$" -count=1
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            go test ./internal/control ./internal/linkdata ./cmd/wbd-link-proxy ./internal/windowsruntime -count=1
+            go test ./cmd/wbd-link-proxy -run "^TestImmutableLinkProxyFixedProfileMatrix/20_$repair$" -count=1
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
+
           go build -trimpath -o $env:RUNNER_TEMP\wbd-link-proxy.exe .\cmd\wbd-link-proxy
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Write-Output "WBD_FEC_PROFILE_MATRIX_PASS profile=$env:FEC_PROFILE"
