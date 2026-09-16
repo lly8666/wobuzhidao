@@ -13,5 +13,6 @@
   "dns_mode": "Auto",
   "dns_server": "",
   "lanes": 1,
-  "idle_timeout": 120
+  "idle_timeout": 120,
+  "keepalive": 15
 }
