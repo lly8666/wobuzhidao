@@ -68,10 +68,16 @@ type Profile struct {
 	// derives the actual LINK and Wintun MTUs from FEC/Game/DTLS/FakeTCP costs.
 	MTU       int
 	RouteMode string
-	Prefix4   []string
-	CNSetDir  string
-	DNSMode   string
-	DNSServer string
+	// RoutingPolicy is the product routing model. Nil preserves the legacy
+	// Full/Foreign/China route_mode mapping.
+	RoutingPolicy *RoutingPolicy
+	// AutoUpdateCN refreshes the verified APNIC CN bundle during product
+	// preflight when China and Other have different proxy decisions.
+	AutoUpdateCN bool
+	Prefix4      []string
+	CNSetDir     string
+	DNSMode      string
+	DNSServer    string
 
 	// InstallationID is stable for this WBD installation. All lanes use the same
 	// value so independent same-flow bootstraps acquire fresh one-time tickets
@@ -214,8 +220,8 @@ func (p Profile) Validate() error {
 	if p.RouteMode != RouteFull && p.RouteMode != RouteForeign && p.RouteMode != RouteChina {
 		return errors.New("route mode must be Full, Foreign, or China")
 	}
-	if (p.RouteMode == RouteForeign || p.RouteMode == RouteChina) && strings.TrimSpace(p.CNSetDir) == "" {
-		return errors.New("China/Foreign route mode requires the WBD CN ipset directory")
+	if p.RequiresCNSet() && strings.TrimSpace(p.CNSetDir) == "" {
+		return errors.New("routing policy requires the WBD CN ipset directory")
 	}
 	for _, prefix := range p.Prefix4 {
 		px, err := netip.ParsePrefix(prefix)
@@ -248,7 +254,7 @@ func ValidateRoutingAssets(profile Profile) error {
 	if err := profile.Validate(); err != nil {
 		return err
 	}
-	if profile.RouteMode != RouteForeign && profile.RouteMode != RouteChina {
+	if !profile.RequiresCNSet() {
 		return nil
 	}
 	if _, err := ipset.VerifyCNBundle(profile.CNSetDir); err != nil {
@@ -375,15 +381,10 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	}
 	tunArgs := []string{"-mode", "client", "-ifname", profile.IfName, "-mtu", strconv.Itoa(mtuBudget.InnerMTU), "-transport", loop(defaultLinkListenPort), "-expected-source-ipv4", tunnelPrefix.Addr().String()}
 
-	psMode := "Full"
-	var prefixFile, directFile string
-	switch profile.RouteMode {
-	case RouteForeign:
-		directFile = filepath.Join(profile.CNSetDir, ipset.CNIPv4File)
-	case RouteChina:
-		psMode = "Split"
-		prefixFile = filepath.Join(profile.CNSetDir, ipset.CNIPv4File)
-	}
+	routing := buildRoutingPlan(profile)
+	psMode := routing.Mode
+	prefixFile := routing.PrefixFile4
+	directFile := routing.DirectPrefixFile4
 	dnsServers := resolvedDNSServers(profile)
 	routeArgs := []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_tun_route.ps1"), "-Action", "Apply", "-Mode", psMode, "-AdapterAlias", profile.IfName, "-TunnelAddress4", profile.TunnelIPv4, "-Underlay4", raw.Addr().String(), "-MTU", strconv.Itoa(mtuBudget.InnerMTU), "-StatePath", profile.RouteState}
 	if prefixFile != "" {
@@ -391,6 +392,9 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	}
 	if directFile != "" {
 		routeArgs = append(routeArgs, "-DirectPrefixFile4", directFile)
+	}
+	if routing.CaptureLAN {
+		routeArgs = append(routeArgs, "-CaptureLAN")
 	}
 	if len(dnsServers) > 0 {
 		routeArgs = append(routeArgs, "-DNSServer", strings.Join(dnsServers, ","))
@@ -420,7 +424,7 @@ func resolvedDNSServers(profile Profile) []string {
 	case DNSCustom:
 		return []string{strings.TrimSpace(profile.DNSServer)}
 	case DNSAuto:
-		if profile.RouteMode == RouteChina {
+		if !profile.EffectiveRoutingPolicy().ProxyOther {
 			return nil
 		}
 		return []string{"1.1.1.1", "1.0.0.1"}

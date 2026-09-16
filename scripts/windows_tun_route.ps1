@@ -2,7 +2,7 @@ param(
     [ValidateSet('Render','Apply','Cleanup')]
     [string]$Action = 'Render',
     [string]$AdapterAlias = 'WBD',
-    [ValidateSet('Full','Split')]
+    [ValidateSet('Full','Split','None')]
     [string]$Mode = 'Full',
     [string]$TunnelAddress4 = '10.66.0.2/30',
     [string]$TunnelAddress6 = '',
@@ -13,6 +13,7 @@ param(
     [string]$PrefixFile4 = '',
     [string[]]$DirectPrefix4 = @(),
     [string]$DirectPrefixFile4 = '',
+    [switch]$CaptureLAN,
     # Comma/semicolon separated by design: powershell.exe -File is launched by
     # the Go controller and scalar CLI transport is deterministic across Windows
     # PowerShell versions, unlike repeated external string[] argument binding.
@@ -45,6 +46,31 @@ function Parse-CIDR([string]$CIDR, [System.Net.Sockets.AddressFamily]$Family, [s
     $max = if ($Family -eq [System.Net.Sockets.AddressFamily]::InterNetwork) { 32 } else { 128 }
     if ($prefix -lt 0 -or $prefix -gt $max) { throw "$Label has invalid prefix: $CIDR" }
     return [pscustomobject]@{ IP = $parts[0]; PrefixLength = $prefix; CIDR = $CIDR }
+}
+
+function Test-RFC1918Prefix([string]$CIDR) {
+    $parsed = Parse-CIDR $CIDR ([System.Net.Sockets.AddressFamily]::InterNetwork) 'RFC1918 route'
+    if (-not $parsed) { return $false }
+    $octets = @($parsed.IP.Split('.') | ForEach-Object { [int]$_ })
+    if ($octets[0] -eq 10) { return $parsed.PrefixLength -ge 8 }
+    if ($octets[0] -eq 172 -and $octets[1] -ge 16 -and $octets[1] -le 31) { return $parsed.PrefixLength -ge 12 }
+    if ($octets[0] -eq 192 -and $octets[1] -eq 168) { return $parsed.PrefixLength -ge 16 }
+    return $false
+}
+
+function Test-RFC1918Address([string]$IPAddress) {
+    if ([string]::IsNullOrWhiteSpace($IPAddress) -or $IPAddress -eq '0.0.0.0') { return $false }
+    return Test-RFC1918Prefix "$IPAddress/32"
+}
+
+function Get-PhysicalRFC1918RoutePrefixes([uint32]$TunnelInterfaceIndex) {
+    $out = @()
+    foreach ($route in @(Get-NetRoute -AddressFamily IPv4 -PolicyStore ActiveStore -ErrorAction SilentlyContinue)) {
+        if ([uint32]$route.InterfaceIndex -eq $TunnelInterfaceIndex) { continue }
+        $prefix = [string]$route.DestinationPrefix
+        if (Test-RFC1918Prefix $prefix) { $out += $prefix }
+    }
+    return @($out | Select-Object -Unique)
 }
 
 function Read-PrefixFile([string]$Path, [System.Net.Sockets.AddressFamily]$Family, [string]$Label) {
@@ -194,6 +220,9 @@ function Remove-Owned-State($State) {
     if ($State.PSObject.Properties.Name -contains 'MTU4' -and $null -ne $State.MTU4) {
         Set-NetIPInterface -InterfaceIndex ([uint32]$State.AdapterInterfaceIndex) -AddressFamily IPv4 -NlMtuBytes ([uint32]$State.MTU4) -ErrorAction SilentlyContinue
     }
+    if ($State.PSObject.Properties.Name -contains 'InterfaceMetric4' -and $null -ne $State.InterfaceMetric4) {
+        Set-NetIPInterface -InterfaceIndex ([uint32]$State.AdapterInterfaceIndex) -AddressFamily IPv4 -InterfaceMetric ([uint32]$State.InterfaceMetric4) -ErrorAction SilentlyContinue
+    }
     if ($State.PSObject.Properties.Name -contains 'MTU6' -and $null -ne $State.MTU6) {
         Set-NetIPInterface -InterfaceIndex ([uint32]$State.AdapterInterfaceIndex) -AddressFamily IPv6 -NlMtuBytes ([uint32]$State.MTU6) -ErrorAction SilentlyContinue
     }
@@ -221,11 +250,15 @@ if ($DirectPrefix4.Count -gt 0 -and -not $Underlay4) { throw 'DirectPrefix4 requ
 if ($Mode -eq 'Full') {
     $capture4 = @('0.0.0.0/1','128.0.0.0/1')
     $capture6 = if ($addr6) { @('::/1','8000::/1') } else { @() }
-} else {
+} elseif ($Mode -eq 'Split') {
     $capture4 = @($Prefix4)
     $capture6 = @($Prefix6)
-    if ($capture4.Count -eq 0 -and $capture6.Count -eq 0 -and $DNSServers.Count -eq 0) { throw 'Split mode requires Prefix4/Prefix6 and/or DNSServer' }
+} else {
+    $capture4 = @()
+    $capture6 = @()
 }
+if ($CaptureLAN) { $capture4 = @($capture4) + @('10.0.0.0/8','172.16.0.0/12','192.168.0.0/16') }
+if ($Mode -eq 'Split' -and $capture4.Count -eq 0 -and $capture6.Count -eq 0 -and $DNSServers.Count -eq 0) { throw 'Split mode requires Prefix4/Prefix6, CaptureLAN and/or DNSServer' }
 # Every configured DNS upstream is explicitly captured through WBD, even when a
 # more-specific domestic direct route would otherwise match it.
 $capture4 = @($capture4) + @($DNSServers | ForEach-Object { "$_/32" })
@@ -233,7 +266,7 @@ $capture4 = @($capture4 | Select-Object -Unique)
 $configureIPv6 = ($null -ne $addr6) -or (@($capture6).Count -gt 0)
 
 if ($Action -eq 'Render') {
-    Write-Output "WBD_WINDOWS_TUN_PLAN mode=$Mode adapter=$AdapterAlias mtu=$MTU"
+    Write-Output "WBD_WINDOWS_TUN_PLAN mode=$Mode adapter=$AdapterAlias mtu=$MTU capture_lan=$([int]$CaptureLAN.IsPresent)"
     if ($Underlay4) { Write-Output "01 ESCAPE IPv4 $Underlay4/32 through the pre-WBD best route before capture routes" }
     if ($Underlay6) { Write-Output "01 ESCAPE IPv6 $Underlay6/128 through the pre-WBD best route before capture routes" }
     foreach ($p in $DirectPrefix4) { Write-Output "01 DIRECT IPv4 $p through the pre-WBD physical route" }
@@ -278,6 +311,11 @@ Remove-StaleWBDNRPT
 $adapter = Wait-NetAdapterByName -Name $AdapterAlias
 $ifIndex = [uint32]$adapter.ifIndex
 Write-Output "WBD_WINDOWS_TUN_ADAPTER_READY adapter=$AdapterAlias ifindex=$ifIndex"
+if ($CaptureLAN) {
+    $physicalLAN = @(Get-PhysicalRFC1918RoutePrefixes -TunnelInterfaceIndex $ifIndex)
+    $capture4 = @($capture4 + $physicalLAN | Select-Object -Unique)
+    Write-Output "WBD_WINDOWS_TUN_LAN_CAPTURE_PLAN physical_prefixes=$($physicalLAN.Count) total_capture4=$($capture4.Count)"
+}
 
 $ipif4 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue | Select-Object -First 1
 $ipif6 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv6 -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -286,6 +324,7 @@ $state = [ordered]@{
     AdapterAlias = $AdapterAlias
     AdapterInterfaceIndex = $ifIndex
     MTU4 = if ($ipif4) { [uint32]$ipif4.NlMtu } else { $null }
+    InterfaceMetric4 = if ($ipif4) { [uint32]$ipif4.InterfaceMetric } else { $null }
     MTU6 = if ($configureIPv6 -and $ipif6) { [uint32]$ipif6.NlMtu } else { $null }
     DNSConfigured = $false
     NRPTRuleName = ''
@@ -313,13 +352,20 @@ try {
         }
     }
 
-    if ($DirectPrefix4.Count -gt 0) {
-        if (-not $underlayRoute4) { throw 'pre-WBD IPv4 route is unavailable for direct-prefix routing' }
+    if ($DirectPrefix4.Count -gt 0 -or $CaptureLAN) {
+        if (-not $underlayRoute4) { throw 'pre-WBD IPv4 route is unavailable for direct-prefix/LAN routing' }
         $directCreate = @()
         foreach ($prefix in $DirectPrefix4) {
             $existing = Get-NetRoute -DestinationPrefix $prefix -InterfaceIndex ([uint32]$underlayRoute4.InterfaceIndex) -NextHop ([string]$underlayRoute4.NextHop) -PolicyStore ActiveStore -ErrorAction SilentlyContinue
             if (-not $existing) {
                 $directCreate += [ordered]@{ DestinationPrefix=$prefix; InterfaceIndex=[uint32]$underlayRoute4.InterfaceIndex; NextHop=[string]$underlayRoute4.NextHop }
+            }
+        }
+        if ($CaptureLAN -and $underlayRoute4 -and (Test-RFC1918Address ([string]$underlayRoute4.NextHop))) {
+            $gatewayPrefix = "$([string]$underlayRoute4.NextHop)/32"
+            $gatewayExists = Get-NetRoute -DestinationPrefix $gatewayPrefix -InterfaceIndex ([uint32]$underlayRoute4.InterfaceIndex) -NextHop ([string]$underlayRoute4.NextHop) -PolicyStore ActiveStore -ErrorAction SilentlyContinue
+            if (-not $gatewayExists) {
+                $directCreate += [ordered]@{ DestinationPrefix=$gatewayPrefix; InterfaceIndex=[uint32]$underlayRoute4.InterfaceIndex; NextHop=[string]$underlayRoute4.NextHop }
             }
         }
         $state.DirectRoutes = @($directCreate)
@@ -329,7 +375,7 @@ try {
         }
     }
 
-    if ($ipif4) { Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -NlMtuBytes $MTU }
+    if ($ipif4) { if ($CaptureLAN) { Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -InterfaceMetric 5 }; Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -NlMtuBytes $MTU }
     if ($configureIPv6 -and $ipif6) { Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv6 -NlMtuBytes $MTU }
 
     foreach ($a in @(@{Parsed=$addr4; Family='IPv4'}, @{Parsed=$addr6; Family='IPv6'})) {
@@ -377,7 +423,7 @@ try {
         Save-State $state
     }
 
-    Write-Output "WBD_WINDOWS_TUN_READY mode=$Mode adapter=$AdapterAlias ifindex=$ifIndex mtu=$MTU direct4=$($DirectPrefix4.Count) capture4=$($capture4.Count) dns=$($DNSServers.Count)"
+    Write-Output "WBD_WINDOWS_TUN_READY mode=$Mode adapter=$AdapterAlias ifindex=$ifIndex mtu=$MTU direct4=$($DirectPrefix4.Count) capture4=$($capture4.Count) capture_lan=$([int]$CaptureLAN.IsPresent) dns=$($DNSServers.Count)"
     if ($Underlay4) { Write-Output "WBD_WINDOWS_TUN_UNDERLAY4_LOCKED $Underlay4" }
     if ($Underlay6) { Write-Output "WBD_WINDOWS_TUN_UNDERLAY6_LOCKED $Underlay6" }
     if ($DNSServers.Count -gt 0) { Write-Output "WBD_WINDOWS_DNS_READY mode=nrpt namespace=. servers=$($DNSServers -join ',') via_wbd=1 rule=$($state.NRPTRuleName)" }
