@@ -126,9 +126,11 @@ func TestArtifactsCarryMatchingSubstantiveSourceSHAEvidence(t *testing.T) {
 	requireContains(t, linux, `WBD_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}`, "Linux release workflow")
 
 	windows := readRepoFile(t, ".github/workflows/windows-portable-bundle.yml")
-	requireContains(t, windows, `WBD_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}`, "Windows portable workflow")
-	requireContains(t, windows, `source_sha=$env:WBD_SOURCE_SHA payload_sha256=$payloadSHA`, "Windows embedded portable payload evidence")
-	requireContains(t, windows, `name: wbd-windows-portable-${{ env.WBD_SOURCE_SHA }}`, "Windows portable artifact identity")
+	requireContains(t, windows, `WBD_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}`, "Windows install-directory workflow")
+	requireContains(t, windows, `WBD_WINDOWS_INSTALL_DIR_PASS source_sha=$env:WBD_SOURCE_SHA`, "Windows install-directory source evidence")
+	requireContains(t, windows, `schema = 'wbd-windows-install-directory/v1'`, "Windows install-directory manifest schema")
+	requireContains(t, windows, `extraction = $false`, "Windows install-directory no-extraction contract")
+	requireContains(t, windows, `name: wbd-windows-portable-${{ env.WBD_SOURCE_SHA }}`, "Windows install-directory artifact identity")
 	if strings.Contains(windows, "source_sha=$env:GITHUB_SHA") || strings.Contains(windows, "-source-sha $env:GITHUB_SHA") {
 		t.Fatal("Windows artifact source identity must not use pull_request merge GITHUB_SHA")
 	}
