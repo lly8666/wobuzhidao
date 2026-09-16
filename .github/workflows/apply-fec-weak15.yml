@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/apply-fec-weak15.yml
       - tools/apply_fec_weak15.py
+      - tools/fix_fec_weak15_contract_tests.py
 
 permissions:
   contents: write
@@ -40,11 +41,13 @@ jobs:
           '@ | python -
       - name: Apply FEC implementation
         shell: pwsh
-        run: python tools/apply_fec_weak15.py
+        run: |
+          python tools/apply_fec_weak15.py
+          python tools/fix_fec_weak15_contract_tests.py
       - name: Format and inspect
         shell: pwsh
         run: |
-          gofmt -w internal/fec/fec.go internal/fec/fastblock_encoder.go internal/fec/block.go internal/fec/weak15_test.go internal/control/link.go internal/linkdata/path.go internal/linkdata/weak15_test.go cmd/wbd-link-proxy/main.go cmd/wbd-link-proxy/main_test.go internal/windowsruntime/plan.go internal/windowsruntime/game_mtu.go
+          gofmt -w internal/fec/fec.go internal/fec/fastblock_encoder.go internal/fec/block.go internal/fec/weak15_test.go internal/control/link.go internal/control/link_test.go internal/linkdata/path.go internal/linkdata/weak15_test.go cmd/wbd-link-proxy/main.go cmd/wbd-link-proxy/main_test.go internal/windowsruntime/plan.go internal/windowsruntime/game_mtu.go
           git diff --check
           git status --short
       - name: Test FEC codec and immutable link
@@ -61,6 +64,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add internal/fec/fec.go internal/fec/fastblock_encoder.go internal/fec/block.go internal/fec/weak15_test.go internal/control/link.go internal/linkdata/path.go internal/linkdata/weak15_test.go cmd/wbd-link-proxy/main.go cmd/wbd-link-proxy/main_test.go internal/windowsruntime/plan.go internal/windowsruntime/game_mtu.go
+          git add internal/fec/fec.go internal/fec/fastblock_encoder.go internal/fec/block.go internal/fec/weak15_test.go internal/control/link.go internal/control/link_test.go internal/linkdata/path.go internal/linkdata/weak15_test.go cmd/wbd-link-proxy/main.go cmd/wbd-link-proxy/main_test.go internal/windowsruntime/plan.go internal/windowsruntime/game_mtu.go
           git commit -m "feat: restore live FEC weak-1.5x profile"
           git push origin HEAD:agent/fix-per-association-mtu-20260914
