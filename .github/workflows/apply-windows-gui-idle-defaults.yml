@@ -1,0 +1,61 @@
+name: apply-windows-gui-idle-defaults
+
+on:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/apply-windows-gui-idle-defaults.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-per-association-mtu-20260914
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Make new profiles explicit about idle and keepalive
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('cmd/wbd-windows-gui/profile_ui_windows.go')
+          s = p.read_text()
+          old = '''func defaultProfileConfig() windowsgui.RuntimeProfileFile {
+          \ta, b := false, true
+          \treturn windowsgui.RuntimeProfileFile{FEC: "off", IfName: "WBD", MTU: windowsruntime.DefaultTunnelMTU, ProxyLAN: &a, ProxyChina: &b, ProxyOther: &b, DNSMode: windowsruntime.DNSAuto, Lanes: 1}
+          }'''
+          new = '''func defaultProfileConfig() windowsgui.RuntimeProfileFile {
+          \ta, b := false, true
+          \tidle, keepalive := 120, 15
+          \treturn windowsgui.RuntimeProfileFile{FEC: "off", IfName: "WBD", MTU: windowsruntime.DefaultTunnelMTU, ProxyLAN: &a, ProxyChina: &b, ProxyOther: &b, DNSMode: windowsruntime.DNSAuto, Lanes: 1, IdleTimeout: &idle, KeepaliveSeconds: &keepalive}
+          }'''
+          if s.count(old) != 1:
+              raise SystemExit(f'defaultProfileConfig contract mismatch count={s.count(old)}')
+          p.write_text(s.replace(old, new))
+          PY
+          gofmt -w cmd/wbd-windows-gui/profile_ui_windows.go
+          git diff --check
+          go test ./internal/windowsgui -count=1
+          GOOS=windows GOARCH=amd64 go build -trimpath -o /tmp/wbd-windows-gui.exe ./cmd/wbd-windows-gui
+      - name: Commit product change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add cmd/wbd-windows-gui/profile_ui_windows.go
+          if git diff --cached --quiet; then
+            echo 'No product change needed'
+            exit 0
+          fi
+          git commit -m 'fix: make Windows idle defaults explicit in UI'
+          git push origin HEAD:agent/fix-per-association-mtu-20260914
