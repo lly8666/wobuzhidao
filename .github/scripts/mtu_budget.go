@@ -11,13 +11,20 @@ import (
 
 func main() {
 	connection := flag.Int("connection-mtu", 1420, "operator-visible connection MTU")
-	fecMode := flag.String("fec", "off", "off or 20:20")
+	fecMode := flag.String("fec", "off", "off or fixed 20:x profile")
 	flag.Parse()
-	if *fecMode != "off" && *fecMode != "20:20" {
+
+	fecEnabled := false
+	switch *fecMode {
+	case "off":
+	case "20:4", "20:8", "20:10", "20:12", "20:16", "20:20":
+		fecEnabled = true
+	default:
 		fmt.Fprintln(os.Stderr, "unsupported FEC mode")
 		os.Exit(2)
 	}
-	b, err := pathmtu.Derive(*connection, pathmtu.Features{FEC: *fecMode == "20:20", Game: true})
+
+	b, err := pathmtu.Derive(*connection, pathmtu.Features{FEC: fecEnabled, Game: true})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
