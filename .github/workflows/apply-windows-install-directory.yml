@@ -1,0 +1,52 @@
+name: Apply Windows install-directory producer
+
+on:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/apply-windows-install-directory.yml'
+      - 'tools/apply_windows_install_directory_bundle.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-windows-install-directory-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-per-association-mtu-20260914
+          fetch-depth: 0
+      - name: Apply install-directory packaging
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/apply_windows_install_directory_bundle.py
+          git diff --check
+          grep -F "schema = 'wbd-windows-install-directory/v1'" .github/workflows/windows-portable-bundle.yml
+          grep -F 'extraction = $false' .github/workflows/windows-portable-bundle.yml
+          grep -F 'path: build/windows-runtime/**' .github/workflows/windows-portable-bundle.yml
+          ! grep -F 'EnsureRuntime()' .github/workflows/windows-portable-bundle.yml
+          ! grep -F 'embedded portable runtime extraction' .github/workflows/windows-portable-bundle.yml
+          echo 'WBD_WINDOWS_INSTALL_DIR_WORKFLOW_PATCH_PASS'
+      - name: Commit producer change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/windows-portable-bundle.yml
+          if git diff --cached --quiet; then
+            echo 'producer already install-directory based'
+            exit 0
+          fi
+          git commit -m 'build: publish Windows install-directory runtime'
+          git pull --rebase origin agent/fix-per-association-mtu-20260914
+          git push origin HEAD:agent/fix-per-association-mtu-20260914
