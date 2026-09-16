@@ -55,13 +55,44 @@ func soakLaneSourcesAndKeepalive(t *testing.T, c *Controller, lanes int) map[int
 	return out
 }
 
+func assertDormantLaneShutdown(t *testing.T, c *Controller, r *recordingRunner, lanes int, phase string) {
+	t.Helper()
+	if got := c.State(); got != RuntimeDormant {
+		t.Fatalf("%s: runtime self-woke without payload: %s", phase, got)
+	}
+	if got := c.executor.DynamicLaneIDs(); len(got) != 0 {
+		t.Fatalf("%s: DORMANT retained public lanes=%v", phase, got)
+	}
+	for id := 1; id <= lanes; id++ {
+		lane := strconv.Itoa(id)
+		if got := soakEventCount(r.events, "stop:link-"+lane); got != 1 {
+			t.Fatalf("%s: lane %d link stop count=%d events=%v", phase, id, got, r.events)
+		}
+		if got := soakEventCount(r.events, "stop:dtls-"+lane); got != 1 {
+			t.Fatalf("%s: lane %d DTLS stop count=%d events=%v", phase, id, got, r.events)
+		}
+		if got := soakEventCount(r.events, "stop:faketcp-"+lane); got != 1 {
+			t.Fatalf("%s: lane %d FakeTCP stop count=%d events=%v", phase, id, got, r.events)
+		}
+		if got := soakEventCount(r.events, "start:link-"+lane); got != 1 {
+			t.Fatalf("%s: lane %d LINK restarted while dormant count=%d events=%v", phase, id, got, r.events)
+		}
+		if got := soakEventCount(r.events, "start:dtls-"+lane); got != 1 {
+			t.Fatalf("%s: lane %d DTLS restarted while dormant count=%d events=%v", phase, id, got, r.events)
+		}
+		if got := soakEventCount(r.events, "start:faketcp-"+lane); got != 1 {
+			t.Fatalf("%s: lane %d FakeTCP restarted while dormant count=%d events=%v", phase, id, got, r.events)
+		}
+	}
+}
+
 // TestPayloadIdleTwoMinuteSoakDormantAndWake is intentionally gated because it
 // uses the real product idle interval. The dedicated Windows Actions workflow
 // runs lanes=1 and lanes=4 in parallel. It proves that real payload inactivity,
 // not keepalive/control traffic, tears down every public Transport Lane after
-// two minutes; that DORMANT remains quiet; and that the first later payload
-// activity rebuilds fresh lanes after an underlay change without restarting the
-// shared Game/TUN/network context.
+// two minutes; that DORMANT stays fully quiescent for a further 105 seconds;
+// and that the first later payload activity rebuilds fresh lanes after an
+// underlay change without restarting the shared Game/TUN/network context.
 func TestPayloadIdleTwoMinuteSoakDormantAndWake(t *testing.T) {
 	if os.Getenv("WBD_IDLE_WAKE_SOAK") != "1" {
 		t.Skip("set WBD_IDLE_WAKE_SOAK=1 in the dedicated real-time soak workflow")
@@ -113,25 +144,34 @@ func TestPayloadIdleTwoMinuteSoakDormantAndWake(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		t.Fatal("DORMANT did not publish an empty Game lane set")
 	}
-	for id := 1; id <= lanes; id++ {
-		if got := soakEventCount(r.events, "stop:link-"+strconv.Itoa(id)); got != 1 {
-			t.Fatalf("lane %d link stop count=%d events=%v", id, got, r.events)
-		}
-		if got := soakEventCount(r.events, "stop:dtls-"+strconv.Itoa(id)); got != 1 {
-			t.Fatalf("lane %d DTLS stop count=%d events=%v", id, got, r.events)
-		}
-		if got := soakEventCount(r.events, "stop:faketcp-"+strconv.Itoa(id)); got != 1 {
-			t.Fatalf("lane %d FakeTCP stop count=%d events=%v", id, got, r.events)
-		}
-	}
+	assertDormantLaneShutdown(t, c, r, lanes, "entry")
 	fmt.Printf("WBD_IDLE_WAKE_DORMANT_PASS lanes=%d elapsed=%s keepalive=15s idle=120s\n", lanes, dormantAfter.Round(time.Millisecond))
 
-	// Leave more than one keepalive interval of margin. With every public lane
-	// stopped, no LINK PING can be emitted and control traffic cannot wake it.
-	time.Sleep(20 * time.Second)
-	if got := c.State(); got != RuntimeDormant {
-		t.Fatalf("runtime self-woke without payload after quiet margin: %s", got)
+	// Observe the closed-link state for a full 105 seconds (1m45s) before
+	// injecting any new payload. Sampling every five seconds proves the runtime
+	// remains dormant and no FakeTCP/DTLS/LINK lane self-restarts because of
+	// keepalive, control traffic, timers, or scheduler jitter.
+	quietObservation := 105 * time.Second
+	quietStarted := time.Now()
+	quietDeadline := quietStarted.Add(quietObservation)
+	for sample := 1; ; sample++ {
+		remaining := time.Until(quietDeadline)
+		if remaining <= 0 {
+			break
+		}
+		sleep := 5 * time.Second
+		if remaining < sleep {
+			sleep = remaining
+		}
+		time.Sleep(sleep)
+		assertDormantLaneShutdown(t, c, r, lanes, fmt.Sprintf("quiet-sample-%d", sample))
 	}
+	quietElapsed := time.Since(quietStarted)
+	if quietElapsed < quietObservation {
+		t.Fatalf("quiet observation ended early after %s want>=%s", quietElapsed, quietObservation)
+	}
+	assertDormantLaneShutdown(t, c, r, lanes, "quiet-final")
+	fmt.Printf("WBD_IDLE_WAKE_QUIET_PASS lanes=%d quiet=%s state=dormant dynamic_lanes=0\n", lanes, quietElapsed.Round(time.Millisecond))
 
 	// Simulate the physical link changing while dormant. Wake must rediscover the
 	// underlay and build fresh public associations when a new payload arrives.
@@ -182,5 +222,5 @@ func TestPayloadIdleTwoMinuteSoakDormantAndWake(t *testing.T) {
 			t.Fatalf("wake Game lane publication stopped at %d want=%d", finalCount, lanes)
 		}
 	}
-	fmt.Printf("WBD_IDLE_WAKE_RECONNECT_PASS lanes=%d wake=%s old_sources=%v new_sources=%v\n", lanes, wakeElapsed.Round(time.Millisecond), beforeSources, afterSources)
+	fmt.Printf("WBD_IDLE_WAKE_RECONNECT_PASS lanes=%d wake=%s quiet=%s old_sources=%v new_sources=%v\n", lanes, wakeElapsed.Round(time.Millisecond), quietElapsed.Round(time.Millisecond), beforeSources, afterSources)
 }
