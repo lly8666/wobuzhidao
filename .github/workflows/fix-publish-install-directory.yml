@@ -90,16 +90,16 @@ jobs:
           (cd release/windows && zip -q -r "../wbd-windows-portable-$SOURCE_SHA.zip" .)
           cp "${amd_files[0]}" "release/wbd-linux-server-amd64-$SOURCE_SHA.tar.gz"
           cp "${arm_files[0]}" "release/wbd-linux-server-arm64-$SOURCE_SHA.tar.gz"
-'''
+          '''
           s = s[:start] + replacement + s[end:]
 
           old_notes = '''          - Functional/lifecycle FEC: **off**
           - Compatibility FEC smoke only: **20:20**
-'''
+          '''
           new_notes = '''          - Windows runtime packaging: **install-directory**, no temp/cache extraction
           - Client FEC profiles included: **off, 20:4, 20:8, 20:10, 20:12, 20:16, 20:20**
           - Hosted mixed-session FEC qualification: tracked by the exact-source full-stack matrix
-'''
+          '''
           if s.count(old_notes) != 1:
               raise SystemExit('release-note FEC markers changed unexpectedly')
           s = s.replace(old_notes, new_notes)
