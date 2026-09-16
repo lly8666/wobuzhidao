@@ -1,6 +1,7 @@
 name: Apply Windows install-directory producer
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - agent/fix-per-association-mtu-20260914
