@@ -1,5 +1,5 @@
 name: Apply Windows routing policy implementation
-# Bootstrap revision: Windows GUI readiness fixture aligned with current runtime.
+# Bootstrap revision: push tested product code; formal workflow is added separately by the connected GitHub client.
 
 on:
   push:
@@ -61,6 +61,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add internal/ipset internal/windowsruntime internal/windowsgui cmd/wbd-windows-gui scripts/windows_tun_route.ps1 scripts/windows_routing_policy_action_test.ps1 .github/workflows/windows-routing-policy.yml
+          git add internal/ipset internal/windowsruntime internal/windowsgui cmd/wbd-windows-gui scripts/windows_tun_route.ps1 scripts/windows_routing_policy_action_test.ps1
           git commit -m "feat: add explicit Windows IP routing policy"
           git push origin HEAD:agent/fix-per-association-mtu-20260914
