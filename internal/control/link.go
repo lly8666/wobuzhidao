@@ -92,7 +92,11 @@ func CurrentLinkPolicy() LinkPolicy {
 		MaxFlushMillis: 100,
 		MaxLaneCount:   1,
 		AllowedFixedFEC: []FixedFECProfile{
+			{DataShards: 20, ParityShards: 4, Scheduler: FECSchedulerTailRS},
+			{DataShards: 20, ParityShards: 8, Scheduler: FECSchedulerTailRS},
 			{DataShards: 20, ParityShards: 10, Scheduler: FECSchedulerTailRS},
+			{DataShards: 20, ParityShards: 12, Scheduler: FECSchedulerTailRS},
+			{DataShards: 20, ParityShards: 16, Scheduler: FECSchedulerTailRS},
 			{DataShards: 20, ParityShards: 20, Scheduler: FECSchedulerTailRS},
 		},
 	}

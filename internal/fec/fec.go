@@ -221,7 +221,14 @@ type BlockHeader struct {
 	OriginalLengths [DataShards]uint16
 }
 
-func validParityCount(n int) bool { return n == WeakParityShards || n == ParityShards }
+func validParityCount(n int) bool {
+	switch n {
+	case 4, 8, WeakParityShards, 12, 16, ParityShards:
+		return true
+	default:
+		return false
+	}
+}
 func (h BlockHeader) EffectiveParityCount() int {
 	if h.ParityCount == 0 {
 		return ParityShards

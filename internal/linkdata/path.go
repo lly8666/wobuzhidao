@@ -12,6 +12,15 @@ import (
 
 var ErrUnsupportedLinkConfig = errors.New("linkdata: unsupported immutable link config")
 
+func supportedFixedParityShards(n uint8) bool {
+	switch n {
+	case 4, 8, 10, 12, 16, 20:
+		return true
+	default:
+		return false
+	}
+}
+
 type PathStats struct {
 	InnerTXPackets uint64
 	InnerTXBytes   uint64
@@ -51,7 +60,7 @@ func New(config control.LinkConfig, maxBlocks int) (*Path, error) {
 	if config.FECMode != control.FECFixed ||
 		config.Scheduler != control.FECSchedulerTailRS ||
 		config.DataShards != fec.DataShards ||
-		(config.ParityShards != fec.WeakParityShards && config.ParityShards != fec.ParityShards) {
+		!supportedFixedParityShards(config.ParityShards) {
 		return nil, ErrUnsupportedLinkConfig
 	}
 	codec := fec.NewFastReedSolomon20x20()

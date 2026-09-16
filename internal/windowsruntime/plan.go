@@ -193,8 +193,10 @@ func (p Profile) Validate() error {
 	if front != raw {
 		return errors.New("per-lane single-flow requires server front and raw endpoints to be identical")
 	}
-	if p.FEC != "off" && p.FEC != "20:10" && p.FEC != "20:20" {
-		return errors.New("FEC must be off, 20:10, or 20:20")
+	switch p.FEC {
+	case "off", "20:4", "20:8", "20:10", "20:12", "20:16", "20:20":
+	default:
+		return errors.New("FEC must be off, 20:4, 20:8, 20:10, 20:12, 20:16, or 20:20")
 	}
 	if err := pathmtu.ValidateConnectionMTU(p.MTU); err != nil {
 		return err

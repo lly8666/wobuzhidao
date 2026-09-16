@@ -331,6 +331,7 @@ func (PowerShellUnderlayDiscoverer) Preflight(profile Profile) error {
 	}
 	script := filepath.Join(profile.BinDir, "windows_npcap_prepare.ps1")
 	cmd := exec.Command("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, "-Action", "Status")
+	configureHiddenProcess(cmd)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		text := strings.TrimSpace(string(output))
@@ -349,6 +350,7 @@ func (PowerShellUnderlayDiscoverer) Discover(profile Profile) (Underlay, error) 
 	raw, _ := netip.ParseAddrPort(profile.ServerRaw)
 	script := filepath.Join(profile.BinDir, "windows_faketcp_underlay.ps1")
 	cmd := exec.Command("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, "-RemoteIPAddress", raw.Addr().String())
+	configureHiddenProcess(cmd)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return Underlay{}, fmt.Errorf("%v: %s", err, strings.TrimSpace(string(output)))

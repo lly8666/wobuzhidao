@@ -158,6 +158,7 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 	if installNpcap {
 		script := filepath.Join(runtimeDir, "windows_npcap_prepare.ps1")
 		cmd := exec.Command("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, "-Action", "Install")
+		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: 0x08000000}
 		if output, err := cmd.CombinedOutput(); err != nil {
 			return fmt.Errorf("Npcap preparation failed: %w: %s", err, string(output))
 		}
@@ -223,6 +224,7 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 		return fmt.Errorf("open runtime log %s: %w", logPath, err)
 	}
 	cmd := exec.Command(gui, args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: 0x08000000}
 	cmd.Dir = portableDir
 	cmd.Env = append(os.Environ(), "WBD_PORTABLE_DIR="+portableDir, "WBD_RUNTIME_LOG="+logPath)
 	cmd.Stdout = logFile

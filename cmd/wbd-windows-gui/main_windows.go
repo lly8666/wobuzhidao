@@ -456,6 +456,7 @@ func beginNpcapSetup(hwnd uintptr) {
 	refreshControls()
 	go func() {
 		cmd := exec.Command("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, "-Action", "Install")
+		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: 0x08000000}
 		out, runErr := cmd.CombinedOutput()
 		detail := strings.TrimSpace(string(out))
 		if runErr != nil {

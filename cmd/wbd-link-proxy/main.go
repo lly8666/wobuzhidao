@@ -65,7 +65,7 @@ func main() {
 	flag.StringVar(&o.listen, "listen", "", "local UDP address used by application/service and DTLS plaintext")
 	flag.StringVar(&o.dtls, "dtls", "", "client: fixed DTLS plaintext UDP address; server: informational DTLS transport/plain port is learned")
 	flag.StringVar(&o.service, "service", "", "server: local UDP service address")
-	flag.StringVar(&o.fec, "fec", "20:20", "client immutable FEC profile: off or 20:20")
+	flag.StringVar(&o.fec, "fec", "20:20", "client immutable FEC profile: off, 20:4, 20:8, 20:10, 20:12, 20:16, or 20:20")
 	flag.IntVar(&o.mtu, "mtu", 1360, "immutable maximum plaintext datagram size")
 	flag.IntVar(&o.flushMS, "fec-flush-ms", 8, "immutable fixed-FEC partial-block flush")
 	flag.IntVar(&o.lanes, "lanes", 1, "immutable raw lane count (currently 1)")
@@ -152,23 +152,18 @@ func clientLinkConfig(o options) (control.LinkConfig, error) {
 	case "off", "normal":
 		cfg.FECMode = control.FECOff
 		cfg.Scheduler = control.FECSchedulerNone
-	case "20:20", "weak-2x":
+	case "20:4", "20:8", "20:10", "20:12", "20:16", "20:20", "weak-1.5x", "weak-2x":
 		if o.flushMS <= 0 {
-			return control.LinkConfig{}, errors.New("20:20 requires positive -fec-flush-ms")
+			return control.LinkConfig{}, fmt.Errorf("%s requires positive -fec-flush-ms", o.fec)
 		}
+		parity := map[string]uint8{
+			"20:4": 4, "20:8": 8, "20:10": 10, "20:12": 12, "20:16": 16, "20:20": 20,
+			"weak-1.5x": 10, "weak-2x": 20,
+		}[o.fec]
 		cfg.FECMode = control.FECFixed
 		cfg.Scheduler = control.FECSchedulerTailRS
 		cfg.DataShards = 20
-		cfg.ParityShards = 20
-		cfg.FlushMillis = uint16(o.flushMS)
-	case "20:10", "weak-1.5x":
-		if o.flushMS <= 0 {
-			return control.LinkConfig{}, errors.New("20:10 requires positive -fec-flush-ms")
-		}
-		cfg.FECMode = control.FECFixed
-		cfg.Scheduler = control.FECSchedulerTailRS
-		cfg.DataShards = 20
-		cfg.ParityShards = 10
+		cfg.ParityShards = parity
 		cfg.FlushMillis = uint16(o.flushMS)
 	case "auto":
 		return control.LinkConfig{}, errors.New("auto FEC is deferred advanced research")
