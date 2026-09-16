@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/apply-native-windows-underlay.yml'
       - 'tools/apply_native_windows_underlay.py'
+      - 'tools/fix_native_windows_underlay_legacy_iphelper.py'
 
 permissions:
   contents: write
@@ -26,7 +27,11 @@ jobs:
           cache: false
       - name: Apply native underlay implementation
         shell: pwsh
-        run: python tools/apply_native_windows_underlay.py
+        run: |
+          python tools/apply_native_windows_underlay.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/fix_native_windows_underlay_legacy_iphelper.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Format and inspect
         shell: pwsh
         run: |
@@ -54,10 +59,11 @@ jobs:
           $controller = Get-Content internal\windowsruntime\controller.go -Raw
           if ($controller -notmatch 'defaultUnderlayDiscoverer\(\)') { throw 'controller default did not switch to platform-native underlay discovery' }
           $native = Get-Content internal\windowsruntime\underlay_native_windows.go -Raw
-          foreach ($needle in @('GetIpForwardTable2','GetAdaptersAddresses','SendARP')) {
+          foreach ($needle in @('GetIpForwardTable','GetAdaptersAddresses','SendARP')) {
             if ($native -notmatch $needle) { throw "native underlay missing $needle" }
           }
-          Write-Output 'WBD_WINDOWS_NATIVE_UNDERLAY_PASS route=iphlpapi adapters=iphlpapi arp=iphlpapi'
+          if ($native -match 'GetIpForwardTable2') { throw 'underlay still depends on unavailable GetIpForwardTable2 wrapper' }
+          Write-Output 'WBD_WINDOWS_NATIVE_UNDERLAY_PASS route=iphlpapi-v4 adapters=iphlpapi arp=iphlpapi powershell_steady_state=0'
       - name: Commit tested product changes
         shell: pwsh
         run: |
