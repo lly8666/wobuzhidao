@@ -23,6 +23,16 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
+      - name: Prepare bootstrap generator
+        shell: pwsh
+        run: |
+          $path = 'tools/apply_fec_weak15.py'
+          $text = [IO.File]::ReadAllText($path)
+          $oldGuard = "if n != 1:`n        raise SystemExit(f'{path}: expected 1 occurrence, got {n}: {old[:100]!r}')`n    p.write_text(text.replace(old, new), encoding='utf-8')"
+          $newGuard = "if n < 1:`n        raise SystemExit(f'{path}: expected at least 1 occurrence, got {n}: {old[:100]!r}')`n    p.write_text(text.replace(old, new, 1), encoding='utf-8')"
+          if (-not $text.Contains($oldGuard)) { throw 'bootstrap replace_once implementation changed unexpectedly' }
+          $text = $text.Replace($oldGuard, $newGuard)
+          [IO.File]::WriteAllText($path, $text, (New-Object Text.UTF8Encoding($false)))
       - name: Apply FEC implementation
         shell: pwsh
         run: python tools/apply_fec_weak15.py
