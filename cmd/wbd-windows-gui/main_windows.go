@@ -162,11 +162,9 @@ func main() {
 	app.controller = windowsruntime.NewController(nil, nil, nil)
 	app.results = make(chan runtimeResult, 4)
 	app.profilePath = *profilePath
-	if *profilePath != "" {
-		if err := loadRuntimeProfile(*profilePath); err != nil {
-			app.profileErr = err
-			messageBox("WBD Windows GUI profile", err.Error())
-		}
+	if err := initializeProfiles(*profilePath); err != nil {
+		app.profileErr = err
+		messageBox("WBD 配置", err.Error())
 	}
 	runtime.LockOSThread()
 	exitCode := 0
@@ -232,8 +230,8 @@ func run() error {
 		return fmt.Errorf("RegisterClassExW: %v", callErr)
 	}
 	app.taskbarCreated = registerWindowMessage("TaskbarCreated")
-	title := utf16Ptr("WBD Windows Client")
-	hwnd, _, callErr := procCreateWindowExW.Call(0, uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(title)), wsOverlappedWindow, 180, 140, 780, 445, 0, 0, instance, 0)
+	title := utf16Ptr("WBD Windows 客户端")
+	hwnd, _, callErr := procCreateWindowExW.Call(0, uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(title)), wsOverlappedWindow, 70, 60, 1180, 760, 0, 0, instance, 0)
 	if hwnd == 0 {
 		return fmt.Errorf("CreateWindowExW: %v", callErr)
 	}
@@ -282,6 +280,9 @@ func windowProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uintptr {
 		procShowWindow.Call(hwnd, swHide)
 		return 0
 	case wmCommand:
+		if handleProfileCommand(hwnd, wParam) {
+			return 0
+		}
 		switch lowWord(wParam) {
 		case idConnectButton:
 			beginConnect(hwnd)
@@ -329,7 +330,7 @@ func windowProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uintptr {
 	return r
 }
 
-func createControls(hwnd uintptr) {
+func createLegacyControls(hwnd uintptr) {
 	status := "Status: disconnected; put wbd.json beside wbd.exe to connect"
 	if app.profileReady {
 		status = "Status: disconnected; portable profile loaded"
@@ -396,6 +397,10 @@ func beginConnect(hwnd uintptr) {
 	if app.operation != "" || app.exitRequested {
 		return
 	}
+	if err := saveActiveProfileFromUI(); err != nil {
+		messageBox("连接配置无效", err.Error())
+		return
+	}
 	if !app.profileReady {
 		if app.profileErr != nil {
 			messageBox("WBD Windows GUI profile", app.profileErr.Error())
@@ -409,7 +414,7 @@ func beginConnect(hwnd uintptr) {
 	profile.AutoUpdateCN = true
 	app.operation = "connect"
 	app.cleanupFailed = false
-	setStatus("Status: connecting; preparing routing policy and CN IP ranges if required")
+	setStatus("状态：正在连接，准备路由策略和国内 IP 列表")
 	refreshControls()
 	go func() { postRuntimeResult(runtimeResult{action: "connect", err: app.controller.Connect(profile)}) }()
 }
@@ -426,7 +431,7 @@ func launchDisconnect() {
 	} else if app.cleanupFailed {
 		setStatus("Status: retrying network cleanup")
 	} else {
-		setStatus("Status: disconnecting; removing routes, DNS and IPv6 block")
+		setStatus("状态：正在断开，清理路由、DNS 与 IPv6 阻断")
 	}
 	refreshControls()
 	go func() { postRuntimeResult(runtimeResult{action: "disconnect", err: app.controller.Disconnect()}) }()
@@ -436,7 +441,7 @@ func beginReconnect(hwnd uintptr) {
 		return
 	}
 	app.operation = "reconnect"
-	setStatus("Status: reconnecting transport lanes with make-before-break; Wintun/routes stay active")
+	setStatus("状态：正在重连传输线路，Wintun 与路由保持工作")
 	refreshControls()
 	go func() { postRuntimeResult(runtimeResult{action: "reconnect", err: app.controller.RotateActiveLanes()}) }()
 }
@@ -452,7 +457,7 @@ func beginNpcapSetup(hwnd uintptr) {
 	}
 	script := filepath.Join(filepath.Dir(exe), "windows_npcap_prepare.ps1")
 	app.operation = "npcap"
-	setStatus("Status: Npcap setup; downloading and verifying official installer")
+	setStatus("状态：正在安装/修复 Npcap 并验证官方安装包")
 	refreshControls()
 	go func() {
 		cmd := exec.Command("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, "-Action", "Install")
@@ -509,12 +514,12 @@ func handleRuntimeResult(hwnd uintptr) {
 	switch result.action {
 	case "connect":
 		if result.err != nil {
-			setStatus("Status: disconnected; connect failed: " + result.err.Error())
+			setStatus("状态：未连接；连接失败：" + result.err.Error())
 			if !app.exitRequested {
 				messageBox("WBD Connect failed", result.err.Error())
 			}
 		} else {
-			setStatus("Status: connected; IPv4 WBD active; device IPv6 blocked")
+			setStatus("状态：已连接；IPv4 WBD 工作中，设备 IPv6 已阻断")
 		}
 		if app.exitRequested {
 			launchDisconnect()
@@ -527,7 +532,7 @@ func handleRuntimeResult(hwnd uintptr) {
 				messageBox("WBD transport reconnect failed", result.err.Error())
 			}
 		} else {
-			setStatus("Status: connected; transport lanes refreshed; Wintun/routes stayed active")
+			setStatus("状态：已连接；传输线路已刷新，Wintun/路由未中断")
 		}
 		if app.exitRequested {
 			launchDisconnect()
@@ -541,7 +546,7 @@ func handleRuntimeResult(hwnd uintptr) {
 			app.exitRequested = false
 		} else {
 			app.cleanupFailed = false
-			setStatus("Status: disconnected; WBD routes/DNS/IPv6 block removed and runtime stopped")
+			setStatus("状态：已断开；路由、DNS、IPv6 阻断和运行进程均已清理")
 			if app.exitRequested {
 				finalizeExit(hwnd)
 				return
@@ -552,7 +557,7 @@ func handleRuntimeResult(hwnd uintptr) {
 			setStatus("Status: disconnected; Npcap setup failed")
 			messageBox("WBD Npcap setup failed", result.err.Error())
 		} else {
-			setStatus("Status: disconnected; Npcap ready")
+			setStatus("状态：未连接；Npcap 已就绪")
 			messageBoxInfo("WBD Npcap", "Npcap is installed and verified. WBD can now connect.")
 		}
 		if app.exitRequested {
@@ -580,6 +585,7 @@ func refreshControls() {
 	setEnabled(app.proxyLAN, routingEnabled)
 	setEnabled(app.proxyChina, routingEnabled)
 	setEnabled(app.proxyOther, routingEnabled)
+	setProfileEditorEnabled(routingEnabled)
 	setEnabled(app.hideButton, !app.exitRequested)
 	setEnabled(app.exitButton, !app.exitRequested)
 }
@@ -608,7 +614,7 @@ func finalizeExit(hwnd uintptr) { app.state.Exit(); deleteTrayIcon(hwnd); procPo
 
 func addTrayIcon(hwnd uintptr) error {
 	nid := notifyIconData{CbSize: uint32(unsafe.Sizeof(notifyIconData{})), HWnd: hwnd, UID: trayIconID, UFlags: nifMessage | nifIcon | nifTip, UCallbackMessage: trayCallbackMessage, HIcon: app.icon}
-	copyUTF16(nid.SzTip[:], "WBD Windows Client")
+	copyUTF16(nid.SzTip[:], "WBD Windows 客户端")
 	r, _, callErr := procShellNotifyIconW.Call(nimAdd, uintptr(unsafe.Pointer(&nid)))
 	if r == 0 {
 		return fmt.Errorf("Shell_NotifyIconW(NIM_ADD): %v", callErr)
@@ -628,9 +634,9 @@ func showTrayMenu(hwnd uintptr) {
 		return
 	}
 	defer procDestroyMenu.Call(menu)
-	appendMenu(menu, mfString, idTrayShow, "Show WBD")
+	appendMenu(menu, mfString, idTrayShow, "显示 WBD")
 	appendMenu(menu, mfSeparator, 0, "")
-	appendMenu(menu, mfString, idTrayExit, "Exit WBD")
+	appendMenu(menu, mfString, idTrayExit, "退出 WBD")
 	var p point
 	procGetCursorPos.Call(uintptr(unsafe.Pointer(&p)))
 	procSetForegroundWindow.Call(hwnd)
