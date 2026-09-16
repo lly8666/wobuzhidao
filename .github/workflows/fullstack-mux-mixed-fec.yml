@@ -1,0 +1,164 @@
+name: fullstack-mux-mixed-fec
+
+on:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mixed-fec-two-client:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: off-vs-20x4
+            fec_a: off
+            fec_b: '20:4'
+          - label: 20x8-vs-20x10
+            fec_a: '20:8'
+            fec_b: '20:10'
+          - label: 20x12-vs-20x16
+            fec_a: '20:12'
+            fec_b: '20:16'
+          - label: 20x20-vs-20x4
+            fec_a: '20:20'
+            fec_b: '20:4'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc openssl iproute2 iptables
+      - name: Build current mux stack and pinned DTLS shim
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wolf/src /tmp/wolf/build /tmp/mixedfec
+          git clone --depth 1 --branch v5.9.2-stable https://github.com/wolfSSL/wolfssl.git /tmp/wolf/src
+          test "$(git -C /tmp/wolf/src rev-parse HEAD)" = 'ac01707f552c611fbd135cc723b2682b3e7f80f2'
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128 -DWOLFSSL_MAX_MTU=16384')
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -DWOLFSSL_MAX_MTU=16384 -O2 -Wall -Wextra -Werror \
+            -I/tmp/wolf/build -I/tmp/wolf/src native/dtls/wbd_dtls_shim.c \
+            /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/mixedfec/wbd_dtls_shim
+          go test ./internal/control ./internal/linkdata ./internal/fec ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux -count=1
+          go build -trimpath -o /tmp/mixedfec/wbd-reality-front ./cmd/wbd-reality-front
+          go build -trimpath -o /tmp/mixedfec/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/mixedfec/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/mixedfec/wbd-link-proxy ./cmd/wbd-link-proxy
+          go build -trimpath -o /tmp/mixedfec/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=front.invalid' -keyout /tmp/mixedfec/front.key -out /tmp/mixedfec/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 -subj '/CN=dtls.invalid' -keyout /tmp/mixedfec/dtls.key -out /tmp/mixedfec/dtls.pem >/dev/null 2>&1
+      - name: Two concurrent clients negotiate different FEC profiles
+        env:
+          FEC_A: ${{ matrix.fec_a }}
+          FEC_B: ${{ matrix.fec_b }}
+          LABEL: ${{ matrix.label }}
+        run: |
+          set -euo pipefail
+          S=wbdmfs$$; A=wbdmfa$$; B=wbdmfb$$; PIDS=''
+          cleanup() {
+            set +e
+            for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null || kill -TERM "$p" 2>/dev/null || true; done
+            sleep .2
+            sudo ip netns del "$A" 2>/dev/null || true
+            sudo ip netns del "$B" 2>/dev/null || true
+            sudo ip netns del "$S" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          D=/tmp/mixedfec/${LABEL}; mkdir -p "$D"; mkdir -m 700 "$D/tickets"
+          ROUTE_KEY='WBD_REALITY_ROUTE_KEY_0123456789abcdef'; USERNAME='solo'; PASSWORD='shared-password'; TARGET='target.example'
+          FRONT=40443; RAW=40000; LINK=47000; ECHO=48000
+
+          sudo ip netns add "$S"; sudo ip netns add "$A"; sudo ip netns add "$B"
+          sudo ip link add va type veth peer name sa; sudo ip link add vb type veth peer name sb
+          sudo ip link set va netns "$A"; sudo ip link set vb netns "$B"; sudo ip link set sa netns "$S"; sudo ip link set sb netns "$S"
+          sudo ip netns exec "$S" ip link add br0 type bridge
+          sudo ip netns exec "$S" ip link set sa master br0; sudo ip netns exec "$S" ip link set sb master br0
+          sudo ip -n "$S" addr add 10.78.0.1/24 dev br0; sudo ip -n "$A" addr add 10.78.0.2/24 dev va; sudo ip -n "$B" addr add 10.78.0.3/24 dev vb
+          for ns in "$S" "$A" "$B"; do sudo ip -n "$ns" link set lo up; sudo ip netns exec "$ns" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP; done
+          sudo ip -n "$S" link set br0 up; sudo ip -n "$S" link set sa up; sudo ip -n "$S" link set sb up; sudo ip -n "$A" link set va up; sudo ip -n "$B" link set vb up
+
+          cat > /tmp/mixedfec/echo.py <<'PY'
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind(('127.0.0.1',48000))
+          while True:
+              b,a=s.recvfrom(65535)
+              if b: s.sendto(b,a)
+          PY
+          sudo ip netns exec "$S" python3 /tmp/mixedfec/echo.py >"$D/echo.log" 2>&1 & PIDS="$PIDS $!"
+
+          sudo ip netns exec "$S" /tmp/mixedfec/wbd-reality-front server -listen 10.78.0.1:${FRONT} -target 127.0.0.1:9 -server-name "$TARGET" -cert /tmp/mixedfec/front.pem -key /tmp/mixedfec/front.key -route-key "$ROUTE_KEY" -username "$USERNAME" -password "$PASSWORD" -ticket-dir "$D/tickets" >"$D/front-server.log" 2>&1 & PIDS="$PIDS $!"
+          for _ in $(seq 1 300); do grep -q 'WBD_REALITY_FRONT_READY' "$D/front-server.log" 2>/dev/null && break; sleep .05; done
+          grep -q 'WBD_REALITY_FRONT_READY' "$D/front-server.log"
+          sudo ip netns exec "$A" /tmp/mixedfec/wbd-reality-front client -addr 10.78.0.1:${FRONT} -server-name "$TARGET" -route-key "$ROUTE_KEY" -username "$USERNAME" -password "$PASSWORD" -verify-server=false -ticket-out "$D/ticket-a.txt" >"$D/front-a.log" 2>&1
+          sudo ip netns exec "$B" /tmp/mixedfec/wbd-reality-front client -addr 10.78.0.1:${FRONT} -server-name "$TARGET" -route-key "$ROUTE_KEY" -username "$USERNAME" -password "$PASSWORD" -verify-server=false -ticket-out "$D/ticket-b.txt" >"$D/front-b.log" 2>&1
+          TA=$(sudo cat "$D/ticket-a.txt" | tr -d '\r\n'); TB=$(sudo cat "$D/ticket-b.txt" | tr -d '\r\n')
+          test ${#TA} -eq 64; test ${#TB} -eq 64; test "$TA" != "$TB"
+
+          sudo ip netns exec "$S" /tmp/mixedfec/wbd-link-server-mux -listen 127.0.0.1:${LINK} -service 127.0.0.1:${ECHO} -ticket-dir "$D/tickets" -ticket-ttl 60s -max-sessions 8 >"$D/link-server.log" 2>&1 & LINKPID=$!; PIDS="$PIDS $LINKPID"
+          for _ in $(seq 1 200); do grep -q 'WBD_LINK_SERVER_MUX_READY' "$D/link-server.log" 2>/dev/null && break; sleep .05; done
+          grep -q 'WBD_LINK_SERVER_MUX_READY' "$D/link-server.log"
+          sudo ip netns exec "$S" /tmp/mixedfec/wbd-faketcp-mux server --listen 10.78.0.1:${RAW} --dtls-shim /tmp/mixedfec/wbd_dtls_shim --link-target 127.0.0.1:${LINK} --cert /tmp/mixedfec/dtls.pem --key /tmp/mixedfec/dtls.key --max-sessions 8 >"$D/faketcp-mux.log" 2>&1 & MUXPID=$!; PIDS="$PIDS $MUXPID"
+          for _ in $(seq 1 300); do grep -q 'READY role=server-mux' "$D/faketcp-mux.log" 2>/dev/null && break; sleep .05; done
+          grep -q 'READY role=server-mux' "$D/faketcp-mux.log"
+
+          sudo ip netns exec "$A" /tmp/mixedfec/wbd-faketcp client --local-udp 127.0.0.1:45101 --source 10.78.0.2:41001 --remote 10.78.0.1:${RAW} >"$D/faketcp-a.log" 2>&1 & FCA=$!; PIDS="$PIDS $FCA"
+          sudo ip netns exec "$B" /tmp/mixedfec/wbd-faketcp client --local-udp 127.0.0.1:45102 --source 10.78.0.3:41002 --remote 10.78.0.1:${RAW} >"$D/faketcp-b.log" 2>&1 & FCB=$!; PIDS="$PIDS $FCB"
+          for _ in $(seq 1 400); do grep -q 'READY role=client' "$D/faketcp-a.log" 2>/dev/null && grep -q 'READY role=client' "$D/faketcp-b.log" 2>/dev/null && break; sleep .05; done
+          grep -q 'READY role=client' "$D/faketcp-a.log"; grep -q 'READY role=client' "$D/faketcp-b.log"
+
+          sudo ip netns exec "$A" /tmp/mixedfec/wbd_dtls_shim client 46101 127.0.0.1 45101 none none >"$D/dtls-a.log" 2>&1 & PIDS="$PIDS $!"
+          sudo ip netns exec "$B" /tmp/mixedfec/wbd_dtls_shim client 46102 127.0.0.1 45102 none none >"$D/dtls-b.log" 2>&1 & PIDS="$PIDS $!"
+          for _ in $(seq 1 800); do grep -q 'READY role=client version=DTLSv1.3' "$D/dtls-a.log" 2>/dev/null && grep -q 'READY role=client version=DTLSv1.3' "$D/dtls-b.log" 2>/dev/null && break; sleep .05; done
+          grep -q 'READY role=client version=DTLSv1.3' "$D/dtls-a.log"; grep -q 'READY role=client version=DTLSv1.3' "$D/dtls-b.log"
+
+          sudo ip netns exec "$A" /tmp/mixedfec/wbd-link-proxy -mode client -listen 127.0.0.1:47101 -dtls 127.0.0.1:46101 -fec "$FEC_A" -demo-reality-ticket "$TA" >"$D/link-a.log" 2>&1 & LA=$!; PIDS="$PIDS $LA"
+          sudo ip netns exec "$B" /tmp/mixedfec/wbd-link-proxy -mode client -listen 127.0.0.1:47102 -dtls 127.0.0.1:46102 -fec "$FEC_B" -demo-reality-ticket "$TB" >"$D/link-b.log" 2>&1 & LB=$!; PIDS="$PIDS $LB"
+          for _ in $(seq 1 800); do
+            if grep -q "WBD_LINK_READY role=client fec=${FEC_A} mtu=1360 lanes=1" "$D/link-a.log" 2>/dev/null && grep -q "WBD_LINK_READY role=client fec=${FEC_B} mtu=1360 lanes=1" "$D/link-b.log" 2>/dev/null && test "$(grep -c 'WBD_LINK_MUX_SESSION_READY' "$D/link-server.log" 2>/dev/null || true)" -ge 2; then break; fi
+            sleep .05
+          done
+          grep -q "WBD_LINK_READY role=client fec=${FEC_A} mtu=1360 lanes=1" "$D/link-a.log"
+          grep -q "WBD_LINK_READY role=client fec=${FEC_B} mtu=1360 lanes=1" "$D/link-b.log"
+          test "$(grep -c 'WBD_LINK_MUX_SESSION_READY' "$D/link-server.log")" -eq 2
+          expected_server() { if [ "$1" = off ]; then echo 'fec_mode=0 fec=0:0 mtu=1360 lanes=1'; else echo "fec_mode=1 fec=20:${1#*:} mtu=1360 lanes=1"; fi; }
+          EA=$(expected_server "$FEC_A"); EB=$(expected_server "$FEC_B")
+          grep -q "WBD_LINK_MUX_SESSION_READY .*${EA}" "$D/link-server.log"
+          grep -q "WBD_LINK_MUX_SESSION_READY .*${EB}" "$D/link-server.log"
+
+          cat > /tmp/mixedfec/probe.py <<'PY'
+          import socket,sys
+          port=int(sys.argv[1]); prefix=sys.argv[2]
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.bind(('127.0.0.1',0)); s.settimeout(1.0)
+          for i in range(30):
+              b=(f'{prefix}-{i}-'+('x'*512)).encode(); s.sendto(b,('127.0.0.1',port)); r,_=s.recvfrom(65535)
+              if r != b: raise SystemExit(f'echo mismatch {prefix} {i}')
+          print(f'WBD_MIXED_FEC_CLIENT_ECHO_PASS client={prefix} rounds=30')
+          PY
+          sudo ip netns exec "$A" python3 /tmp/mixedfec/probe.py 47101 A >"$D/probe-a.log" 2>&1 & PA=$!
+          sudo ip netns exec "$B" python3 /tmp/mixedfec/probe.py 47102 B >"$D/probe-b.log" 2>&1 & PB=$!
+          wait $PA; wait $PB
+          grep -q 'WBD_MIXED_FEC_CLIENT_ECHO_PASS client=A rounds=30' "$D/probe-a.log"
+          grep -q 'WBD_MIXED_FEC_CLIENT_ECHO_PASS client=B rounds=30' "$D/probe-b.log"
+          kill -0 "$LINKPID"; kill -0 "$MUXPID"; kill -0 "$LA"; kill -0 "$LB"
+          test "$(grep -c 'WBD_LINK_MUX_SESSION_READY' "$D/link-server.log")" -eq 2
+          echo "WBD_MIXED_FEC_SESSION_ISOLATION_PASS fec_a=${FEC_A} fec_b=${FEC_B} mtu=1360 lanes=1 sessions=2 client_a=ok client_b=ok server=ok"
+      - name: Upload mixed-FEC evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mixed-fec-${{ matrix.label }}-${{ github.sha }}
+          path: /tmp/mixedfec/${{ matrix.label }}
+          if-no-files-found: warn
+          retention-days: 14
