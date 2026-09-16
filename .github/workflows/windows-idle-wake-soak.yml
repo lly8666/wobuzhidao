@@ -42,7 +42,7 @@ jobs:
   idle-wake:
     needs: contract
     runs-on: windows-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -53,9 +53,9 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-      - name: Real 120-second dormant and payload-triggered reconnect
+      - name: Real 120-second dormant, 105-second quiet observation, and payload-triggered reconnect
         shell: pwsh
         env:
           WBD_IDLE_WAKE_SOAK: '1'
           WBD_IDLE_WAKE_LANES: ${{ matrix.lanes }}
-        run: go test ./internal/windowsruntime -run '^TestPayloadIdleTwoMinuteSoakDormantAndWake$' -count=1 -timeout=4m30s -v
+        run: go test ./internal/windowsruntime -run '^TestPayloadIdleTwoMinuteSoakDormantAndWake$' -count=1 -timeout=6m30s -v
