@@ -35,6 +35,17 @@ func (p *exitTestProcess) Stop() error {
 	return nil
 }
 
+func (p *exitTestProcess) WaitReady(marker string, timeout time.Duration) error {
+	if strings.TrimSpace(marker) == "" || timeout <= 0 {
+		return &exitTestReadinessError{}
+	}
+	return nil
+}
+
+type exitTestReadinessError struct{}
+
+func (*exitTestReadinessError) Error() string { return "invalid readiness contract" }
+
 type exitTestDiscoverer struct{}
 
 func (exitTestDiscoverer) Discover(windowsruntime.Profile) (windowsruntime.Underlay, error) {
@@ -49,7 +60,10 @@ func (exitTestDiscoverer) Discover(windowsruntime.Profile) (windowsruntime.Under
 type exitTestTickets struct{}
 
 func (exitTestTickets) Clear(string) error { return nil }
-func (exitTestTickets) Read(string) (string, error) {
+func (exitTestTickets) Read(path string) (string, error) {
+	if strings.Contains(strings.ToLower(path), "tunnel-config") {
+		return `{"tunnel_id":"11223344556677889900aabbccddeeff","address4":"10.66.0.1/32","routes4":["0.0.0.0/0"]}`, nil
+	}
 	return strings.Repeat("ab", 32), nil
 }
 
@@ -79,9 +93,10 @@ func wantExitLifecycle() []string {
 		"run:route-cleanup",
 		"run:ipv6-cleanup",
 		"stop:tun",
-		"stop:link",
-		"stop:dtls",
-		"stop:faketcp",
+		"stop:game",
+		"stop:link-1",
+		"stop:dtls-1",
+		"stop:faketcp-1",
 	}
 }
 
