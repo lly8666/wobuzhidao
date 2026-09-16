@@ -1,0 +1,51 @@
+name: windows-fec-profile-matrix
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/windows-fec-profile-matrix.yml'
+      - 'internal/fec/**'
+      - 'internal/control/**'
+      - 'internal/linkdata/**'
+      - 'internal/windowsruntime/**'
+      - 'cmd/wbd-link-proxy/**'
+
+permissions:
+  contents: read
+
+jobs:
+  fec-profile:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: ['off', '20:4', '20:8', '20:10', '20:12', '20:16', '20:20']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Verify exact FEC profile
+        shell: pwsh
+        env:
+          FEC_PROFILE: ${{ matrix.profile }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:FEC_PROFILE -eq 'off') {
+            go test ./internal/control ./internal/linkdata ./cmd/wbd-link-proxy ./internal/windowsruntime -count=1
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } else {
+            $repair = [int]($env:FEC_PROFILE.Split(':')[1])
+            go test ./internal/fec -run "^TestFixedParityProfileMatrixRecoversEquivalentSystematicLoss/20_$repair$" -count=1
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            go test ./internal/control ./internal/linkdata ./cmd/wbd-link-proxy ./internal/windowsruntime -count=1
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          go build -trimpath -o $env:RUNNER_TEMP\wbd-link-proxy.exe .\cmd\wbd-link-proxy
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Write-Output "WBD_FEC_PROFILE_MATRIX_PASS profile=$env:FEC_PROFILE"
