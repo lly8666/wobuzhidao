@@ -35,7 +35,7 @@ jobs:
         shell: pwsh
         run: |
           go test ./internal/windowsgui -run 'TestLoadRuntimeProfileDefaultsPayloadIdleToTwoMinutesAndKeepsHeartbeatDefault|TestLoadRuntimeProfileIdleTimeoutOverrideStillWorks' -count=1
-          go test ./cmd/wbd-link-proxy -run '^TestDefaultKeepaliveRemainsFifteenSeconds$' -count=1
+          go test ./cmd/wbd-link-proxy -run 'TestDefaultKeepaliveRemainsFifteenSeconds|TestDefaultKeepaliveEmitsRealPingAtFifteenSeconds' -count=1 -timeout=40s -v
           go test ./internal/windowsruntime -run 'TestPayloadIdleMonitorDormantsWithoutPayloadAndWakesOnSequenceAdvance|TestControllerDormantWakeKeepsSharedGameTunAndNetwork' -count=1
 
   idle-wake:
