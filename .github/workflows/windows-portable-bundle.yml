@@ -33,6 +33,7 @@ on:
       - feat/single-flow-reality-faketcp
       - agent/fec-zombie-fix-7d859
       - agent/integrate-pressure-mtu-dtls-20b7
+      - agent/fix-per-association-mtu-20260914
     paths:
       - '.github/workflows/windows-portable-bundle.yml'
       - 'cmd/wbd-windows-portable/**'
@@ -162,7 +163,7 @@ jobs:
             $bad = @($deps | Where-Object { $allowed -notcontains $_ })
             if ($bad.Count -gt 0) { throw "$($_.Name) unexpected runtime dependencies: $($bad -join ', ')" }
           }
-      - name: Manifest hash and embed portable payload
+      - name: Assemble install-directory client
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -173,12 +174,18 @@ jobs:
           Copy-Item scripts\windows_faketcp_underlay.ps1 "$payload\windows_faketcp_underlay.ps1"
           Copy-Item scripts\windows_npcap_prepare.ps1 "$payload\windows_npcap_prepare.ps1"
           Set-Content -LiteralPath "$payload\SOURCE_SHA.txt" -Encoding ascii -Value $env:WBD_SOURCE_SHA
+          go build -trimpath -ldflags "-s -w -H=windowsgui" -o "$payload\wbd.exe" .\cmd\wbd-windows-portable
+          if ($LASTEXITCODE -ne 0) { throw "installed launcher build failed: $LASTEXITCODE" }
           $required = @(
-            'wbd-reality-front.exe','wbd-faketcp.exe','wbd_dtls_shim.exe','wbd-link-proxy.exe','wbd-game-lane-client.exe','wbd-tun.exe','wbd-windows-gui.exe',
+            'wbd.exe','wbd-reality-front.exe','wbd-faketcp.exe','wbd_dtls_shim.exe','wbd-link-proxy.exe','wbd-game-lane-client.exe','wbd-tun.exe','wbd-windows-gui.exe',
             'wintun.dll','WINTUN-LICENSE.txt','SOURCE_SHA.txt','windows_tun_route.ps1','windows_tun_rebind.ps1','windows_ipv6_killswitch.ps1','windows_faketcp_underlay.ps1','windows_npcap_prepare.ps1'
           )
           foreach ($name in $required) {
-            if (-not (Test-Path (Join-Path $payload $name))) { throw "portable payload missing $name" }
+            if (-not (Test-Path (Join-Path $payload $name))) { throw "install directory missing $name" }
+          }
+          if (Test-Path 'internal\windowsbundle\payload.zip') {
+            $length = (Get-Item 'internal\windowsbundle\payload.zip').Length
+            if ($length -gt 0) { throw 'release packaging must not consume an embedded payload.zip' }
           }
           $files = [ordered]@{}
           Get-ChildItem $payload -File | Sort-Object Name | ForEach-Object {
@@ -187,64 +194,26 @@ jobs:
             }
           }
           $manifest = [ordered]@{
-            schema = 'wbd-windows-runtime/v1'
+            schema = 'wbd-windows-install-directory/v1'
+            launch = 'wbd.exe'
+            extraction = $false
             files = $files
             wintun_version = '0.14.1'
             wintun_zip_sha256 = '07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51'
           }
           $manifest | ConvertTo-Json -Depth 6 | Set-Content "$payload\manifest.json" -Encoding utf8
-          $embedded = 'internal\windowsbundle\payload.zip'
-          if (Test-Path $embedded) { Remove-Item -LiteralPath $embedded -Force }
-          Compress-Archive -Path "$payload\*" -DestinationPath $embedded -CompressionLevel Optimal
-          if (-not (Test-Path $embedded)) { throw 'embedded payload.zip was not produced' }
-          $payloadSHA = (Get-FileHash -Algorithm SHA256 $embedded).Hash.ToLowerInvariant()
-          Write-Output "WBD_WINDOWS_PORTABLE_PAYLOAD_PASS source_sha=$env:WBD_SOURCE_SHA payload_sha256=$payloadSHA"
-      - name: Build WBD portable launcher
+          Write-Output "WBD_WINDOWS_INSTALL_DIR_PASS source_sha=$env:WBD_SOURCE_SHA files=$($files.Count) extraction=0"
+      - name: Qualify installed runtime directory
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          go build -tags wbd_bundle -trimpath -ldflags "-s -w -H=windowsgui" -o build\wbd.exe .\cmd\wbd-windows-portable
-          if ($LASTEXITCODE -ne 0) { throw "portable launcher build failed: $LASTEXITCODE" }
-          if (-not (Test-Path build\wbd.exe)) { throw 'portable launcher was not produced' }
-      - name: Qualify embedded portable runtime extraction
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'wbd-portable-extract'
-          Remove-Item -Recurse -Force $env:LOCALAPPDATA -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path build\portable-verify | Out-Null
-          @'
-          package main
-
-          import (
-            "fmt"
-            "os"
-            "path/filepath"
-            "strings"
-
-            "github.com/lly8666/wobuzhidao/internal/windowsbundle"
-          )
-
-          func main() {
-            info, err := windowsbundle.EnsureRuntime()
-            if err != nil { panic(err) }
-            if !info.Bundled || info.PayloadSHA == "" { panic("embedded runtime metadata is incomplete") }
-            required := []string{
-              "wbd-reality-front.exe", "wbd-faketcp.exe", "wbd_dtls_shim.exe", "wbd-link-proxy.exe", "wbd-game-lane-client.exe", "wbd-tun.exe", "wbd-windows-gui.exe",
-              "wintun.dll", "WINTUN-LICENSE.txt", "SOURCE_SHA.txt", "windows_tun_route.ps1", "windows_tun_rebind.ps1", "windows_ipv6_killswitch.ps1", "windows_faketcp_underlay.ps1", "windows_npcap_prepare.ps1",
-            }
-            for _, name := range required {
-              st, err := os.Stat(filepath.Join(info.Dir, name))
-              if err != nil || st.IsDir() { panic(fmt.Sprintf("embedded runtime missing %s: %v", name, err)) }
-            }
-            source, err := os.ReadFile(filepath.Join(info.Dir, "SOURCE_SHA.txt"))
-            if err != nil { panic(err) }
-            if strings.TrimSpace(string(source)) == "" { panic("embedded SOURCE_SHA is empty") }
-            fmt.Printf("WBD_WINDOWS_PORTABLE_EXTRACT_PASS source_sha=%s payload_sha256=%s\n", strings.TrimSpace(string(source)), info.PayloadSHA)
-          }
-          '@ | Set-Content -LiteralPath build\portable-verify\main.go -Encoding utf8
-          go run -tags wbd_bundle .\build\portable-verify\main.go
-          if ($LASTEXITCODE -ne 0) { throw "embedded runtime extraction qualification failed: $LASTEXITCODE" }
+          go test ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-windows-gui ./cmd/wbd-windows-portable -count=1
+          if ($LASTEXITCODE -ne 0) { throw "installed runtime tests failed: $LASTEXITCODE" }
+          $manifest = Get-Content build\windows-runtime\manifest.json -Raw | ConvertFrom-Json
+          if ($manifest.schema -ne 'wbd-windows-install-directory/v1') { throw 'wrong install-directory manifest schema' }
+          if ($manifest.extraction -ne $false) { throw 'install-directory manifest unexpectedly enables extraction' }
+          if ($manifest.launch -ne 'wbd.exe') { throw 'install-directory launch entry is not wbd.exe' }
+          Write-Output 'WBD_WINDOWS_NO_EXTRACTION_PASS temp_payload=0 installed_runtime=1'
       - name: Verify portable EXE PE dependencies
         shell: pwsh
         run: |
@@ -253,12 +222,12 @@ jobs:
           if (-not (Test-Path $vswhere)) { throw "vswhere.exe not found: $vswhere" }
           $dumpbin = (& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -find 'VC\Tools\MSVC\**\bin\Hostx64\x64\dumpbin.exe' | Select-Object -First 1)
           if ([string]::IsNullOrWhiteSpace($dumpbin) -or -not (Test-Path $dumpbin)) { throw 'dumpbin.exe not found in Visual Studio C++ toolchain' }
-          $deps = & $dumpbin /dependents build\wbd.exe | Out-String
+          $deps = & $dumpbin /dependents build\windows-runtime\wbd.exe | Out-String
           if ($deps -match '(?im)^\s*(VCRUNTIME|MSVCP|ucrtbase)[^\s]*\.dll\s*$') { throw "portable outer EXE imports dynamic CRT:`n$deps" }
-          Write-Output 'WBD_WINDOWS_PORTABLE_OUTER_DEPS_PASS dynamic_crt=0'
-      - name: Upload portable bundle
+          Write-Output 'WBD_WINDOWS_INSTALL_ENTRY_DEPS_PASS dynamic_crt=0'
+      - name: Upload install-directory bundle
         uses: actions/upload-artifact@v4
         with:
           name: wbd-windows-portable-${{ env.WBD_SOURCE_SHA }}
-          path: build/wbd.exe
+          path: build/windows-runtime/**
           if-no-files-found: error
