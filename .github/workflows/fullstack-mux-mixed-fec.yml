@@ -66,17 +66,29 @@ jobs:
           LABEL: ${{ matrix.label }}
         run: |
           set -euo pipefail
-          S=wbdmfs$$; A=wbdmfa$$; B=wbdmfb$$; PIDS=''
+          S=wbdmfs$$; A=wbdmfa$$; B=wbdmfb$$; PIDS=''; D=/tmp/mixedfec/${LABEL}
+          mkdir -p "$D"; mkdir -m 700 "$D/tickets"
           cleanup() {
+            rc=$?
+            trap - EXIT
             set +e
+            if [ "$rc" -ne 0 ]; then
+              echo "WBD_MIXED_FEC_FAILURE_DIAGNOSTICS rc=$rc fec_a=$FEC_A fec_b=$FEC_B"
+              for f in "$D"/*.log; do
+                [ -e "$f" ] || continue
+                echo "=== $(basename "$f") ==="
+                sudo tail -n 240 "$f" 2>/dev/null || tail -n 240 "$f" 2>/dev/null || true
+              done
+            fi
+            sudo chmod -R a+rX "$D" 2>/dev/null || true
             for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null || kill -TERM "$p" 2>/dev/null || true; done
             sleep .2
             sudo ip netns del "$A" 2>/dev/null || true
             sudo ip netns del "$B" 2>/dev/null || true
             sudo ip netns del "$S" 2>/dev/null || true
+            exit "$rc"
           }
           trap cleanup EXIT
-          D=/tmp/mixedfec/${LABEL}; mkdir -p "$D"; mkdir -m 700 "$D/tickets"
           ROUTE_KEY='WBD_REALITY_ROUTE_KEY_0123456789abcdef'; USERNAME='solo'; PASSWORD='shared-password'; TARGET='target.example'
           FRONT=40443; RAW=40000; LINK=47000; ECHO=48000
 
