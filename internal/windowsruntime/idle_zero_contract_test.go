@@ -17,6 +17,9 @@ func TestIdleTimeoutZeroIsValidAndNegativeIsRejected(t *testing.T) {
 	if err := validateIdleTimeoutSeconds(0); err != nil {
 		t.Fatalf("idle_timeout=0 must disable idle teardown: %v", err)
 	}
+	if err := validateIdleTimeoutSeconds(1); err != nil {
+		t.Fatalf("positive idle timeout must remain a finite valid lease: %v", err)
+	}
 	if err := validateIdleTimeoutSeconds(-1); err == nil {
 		t.Fatal("negative idle timeout unexpectedly accepted")
 	}
