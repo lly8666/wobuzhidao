@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   contract:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
@@ -32,8 +32,9 @@ jobs:
           go-version-file: go.mod
           cache: false
       - name: Lock 120s payload idle and 15s keepalive defaults
-        shell: pwsh
+        shell: bash
         run: |
+          set -euo pipefail
           go test ./internal/windowsgui -run 'TestLoadRuntimeProfileDefaultsPayloadIdleToTwoMinutesAndKeepsHeartbeatDefault|TestLoadRuntimeProfileIdleTimeoutOverrideStillWorks' -count=1
           go test ./cmd/wbd-link-proxy -run 'TestDefaultKeepaliveRemainsFifteenSeconds|TestDefaultKeepaliveEmitsRealPingAtFifteenSeconds' -count=1 -timeout=40s -v
           go test ./internal/windowsruntime -run 'TestPayloadIdleMonitorDormantsWithoutPayloadAndWakesOnSequenceAdvance|TestControllerDormantWakeKeepsSharedGameTunAndNetwork' -count=1
