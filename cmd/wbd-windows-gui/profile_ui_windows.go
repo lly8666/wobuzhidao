@@ -58,7 +58,8 @@ var dnsOptions = []comboOption{{"自动", "Auto"}, {"系统 DNS", "System"}, {"C
 
 func defaultProfileConfig() windowsgui.RuntimeProfileFile {
 	a, b := false, true
-	return windowsgui.RuntimeProfileFile{FEC: "off", IfName: "WBD", MTU: windowsruntime.DefaultTunnelMTU, ProxyLAN: &a, ProxyChina: &b, ProxyOther: &b, DNSMode: windowsruntime.DNSAuto, Lanes: 1}
+	idle, keepalive := 120, 15
+	return windowsgui.RuntimeProfileFile{FEC: "off", IfName: "WBD", MTU: windowsruntime.DefaultTunnelMTU, ProxyLAN: &a, ProxyChina: &b, ProxyOther: &b, DNSMode: windowsruntime.DNSAuto, Lanes: 1, IdleTimeout: &idle, KeepaliveSeconds: &keepalive}
 }
 func initializeProfiles(importPath string) error {
 	pd := os.Getenv("ProgramData")
