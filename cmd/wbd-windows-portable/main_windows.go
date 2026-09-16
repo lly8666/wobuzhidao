@@ -15,17 +15,16 @@ import (
 	"unsafe"
 
 	"github.com/lly8666/wobuzhidao/internal/ipset"
-	"github.com/lly8666/wobuzhidao/internal/windowsbundle"
 	"github.com/lly8666/wobuzhidao/internal/windowsdiag"
 	"github.com/lly8666/wobuzhidao/internal/windowsgui"
 )
 
 var (
-	user32Portable = syscall.NewLazyDLL("user32.dll")
+	user32Portable  = syscall.NewLazyDLL("user32.dll")
 	shell32Portable = syscall.NewLazyDLL("shell32.dll")
-	messageBoxW = user32Portable.NewProc("MessageBoxW")
-	isUserAnAdmin = shell32Portable.NewProc("IsUserAnAdmin")
-	shellExecuteW = shell32Portable.NewProc("ShellExecuteW")
+	messageBoxW     = user32Portable.NewProc("MessageBoxW")
+	isUserAnAdmin   = shell32Portable.NewProc("IsUserAnAdmin")
+	shellExecuteW   = shell32Portable.NewProc("ShellExecuteW")
 )
 
 func main() {
@@ -83,87 +82,183 @@ func ensureElevated() (bool, error) {
 
 func timestampedLogPath(portableDir, prefix, ext string) (string, error) {
 	logDir := filepath.Join(portableDir, "logs")
-	if err := os.MkdirAll(logDir, 0o700); err != nil { return "", err }
+	if err := os.MkdirAll(logDir, 0o700); err != nil {
+		return "", err
+	}
 	return filepath.Join(logDir, prefix+time.Now().Format("20060102-150405.000")+ext), nil
 }
 
 func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollbackCN, installNpcap, show bool) error {
 	exe, err := os.Executable()
-	if err != nil { return fmt.Errorf("resolve portable executable: %w", err) }
+	if err != nil {
+		return fmt.Errorf("resolve portable executable: %w", err)
+	}
 	portableDir := filepath.Dir(exe)
-	if err := os.Setenv("WBD_PORTABLE_DIR", portableDir); err != nil { return fmt.Errorf("set portable directory: %w", err) }
+	if err := os.Setenv("WBD_PORTABLE_DIR", portableDir); err != nil {
+		return fmt.Errorf("set portable directory: %w", err)
+	}
 
 	programData := os.Getenv("ProgramData")
-	if programData == "" { return errors.New("ProgramData is not set") }
+	if programData == "" {
+		return errors.New("ProgramData is not set")
+	}
 	stateDir := filepath.Join(programData, "WBD")
-	if err := os.MkdirAll(stateDir, 0o700); err != nil { return err }
+	if err := os.MkdirAll(stateDir, 0o700); err != nil {
+		return err
+	}
 	cnDir := portableDir
 
 	modeCount := 0
-	for _, active := range []bool{selfTest, importCN != "", rollbackCN, installNpcap} { if active { modeCount++ } }
-	if modeCount > 1 { return errors.New("choose only one command mode: self-test, import-cn, rollback-cn, or install-npcap") }
+	for _, active := range []bool{selfTest, importCN != "", rollbackCN, installNpcap} {
+		if active {
+			modeCount++
+		}
+	}
+	if modeCount > 1 {
+		return errors.New("choose only one command mode: self-test, import-cn, rollback-cn, or install-npcap")
+	}
 
 	if importCN != "" {
-		path, err := filepath.Abs(importCN); if err != nil { return err }
-		f, err := os.Open(path); if err != nil { return err }
-		prefixes, parseErr := ipset.ParseCN(f); _ = f.Close(); if parseErr != nil { return parseErr }
-		m, err := ipset.WriteCNBundle(cnDir, "manual:"+filepath.Base(path), prefixes); if err != nil { return err }
+		path, err := filepath.Abs(importCN)
+		if err != nil {
+			return err
+		}
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		prefixes, parseErr := ipset.ParseCN(f)
+		_ = f.Close()
+		if parseErr != nil {
+			return parseErr
+		}
+		m, err := ipset.WriteCNBundle(cnDir, "manual:"+filepath.Base(path), prefixes)
+		if err != nil {
+			return err
+		}
 		showMessage("WBD IP ranges", fmt.Sprintf("IP range update succeeded beside wbd.exe.\n\nIPv4: %d\nIPv6: %d\n\nFiles: cn4.txt, cn6.txt, cn-manifest.json\nThe new list is used on the next Connect.", m.IPv4Count, m.IPv6Count), false)
 		return nil
 	}
 	if rollbackCN {
-		if err := ipset.RestorePrevious(cnDir); err != nil { return err }
-		m, err := ipset.VerifyCNBundle(cnDir); if err != nil { return err }
+		if err := ipset.RestorePrevious(cnDir); err != nil {
+			return err
+		}
+		m, err := ipset.VerifyCNBundle(cnDir)
+		if err != nil {
+			return err
+		}
 		showMessage("WBD IP ranges", fmt.Sprintf("Previous IP range list restored beside wbd.exe.\n\nIPv4: %d\nIPv6: %d\n\nReconnect WBD to apply it.", m.IPv4Count, m.IPv6Count), false)
 		return nil
 	}
 
-	runtimeInfo, err := windowsbundle.EnsureRuntime()
-	if err != nil { return fmt.Errorf("prepare embedded WBD runtime: %w", err) }
+	runtimeDir := portableDir
+	if err := validateInstalledRuntime(runtimeDir); err != nil {
+		return err
+	}
 	if installNpcap {
-		script := filepath.Join(runtimeInfo.Dir, "windows_npcap_prepare.ps1")
+		script := filepath.Join(runtimeDir, "windows_npcap_prepare.ps1")
 		cmd := exec.Command("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, "-Action", "Install")
-		if output, err := cmd.CombinedOutput(); err != nil { return fmt.Errorf("Npcap preparation failed: %w: %s", err, string(output)) }
+		if output, err := cmd.CombinedOutput(); err != nil {
+			return fmt.Errorf("Npcap preparation failed: %w: %s", err, string(output))
+		}
 		showMessage("WBD Npcap", "Npcap preparation completed. You can now Connect.", false)
 		return nil
 	}
 
 	if profilePath == "" {
 		candidate := filepath.Join(portableDir, "wbd.json")
-		if _, statErr := os.Stat(candidate); statErr == nil { profilePath = candidate } else if !errors.Is(statErr, os.ErrNotExist) { return fmt.Errorf("inspect default profile: %w", statErr) }
+		if _, statErr := os.Stat(candidate); statErr == nil {
+			profilePath = candidate
+		} else if !errors.Is(statErr, os.ErrNotExist) {
+			return fmt.Errorf("inspect default profile: %w", statErr)
+		}
 	}
-	if profilePath != "" { profilePath, err = filepath.Abs(profilePath); if err != nil { return err } }
+	if profilePath != "" {
+		profilePath, err = filepath.Abs(profilePath)
+		if err != nil {
+			return err
+		}
+	}
 	if selfTest {
-		if profilePath == "" { return errors.New("self-test requires wbd.json beside wbd.exe or -profile <path>") }
+		if profilePath == "" {
+			return errors.New("self-test requires wbd.json beside wbd.exe or -profile <path>")
+		}
 		if strings.TrimSpace(selfTestLog) == "" {
 			selfTestLog, err = timestampedLogPath(portableDir, "self-test-", ".jsonl")
-			if err != nil { return fmt.Errorf("prepare self-test log beside wbd.exe: %w", err) }
+			if err != nil {
+				return fmt.Errorf("prepare self-test log beside wbd.exe: %w", err)
+			}
 		}
-		diagState := filepath.Join(stateDir, "diagnostics"); if err := os.MkdirAll(diagState, 0o700); err != nil { return err }
-		profile, err := windowsgui.LoadRuntimeProfile(profilePath, runtimeInfo.Dir, diagState); if err != nil { return err }
+		diagState := filepath.Join(stateDir, "diagnostics")
+		if err := os.MkdirAll(diagState, 0o700); err != nil {
+			return err
+		}
+		profile, err := windowsgui.LoadRuntimeProfile(profilePath, runtimeDir, diagState)
+		if err != nil {
+			return err
+		}
 		result, testErr := windowsdiag.Run(profile, selfTestLog)
-		if testErr != nil { showMessage("WBD self-test failed", fmt.Sprintf("The test finished and cleanup was attempted.\n\nSupport log:\n%s\n\nSend this JSONL log for diagnosis.\n\nError: %v", result.LogPath, testErr), true); return testErr }
-		showMessage("WBD self-test", fmt.Sprintf("Automatic test passed, including cleanup.\n\nSupport log:\n%s", result.LogPath), false); return nil
+		if testErr != nil {
+			showMessage("WBD self-test failed", fmt.Sprintf("The test finished and cleanup was attempted.\n\nSupport log:\n%s\n\nSend this JSONL log for diagnosis.\n\nError: %v", result.LogPath, testErr), true)
+			return testErr
+		}
+		showMessage("WBD self-test", fmt.Sprintf("Automatic test passed, including cleanup.\n\nSupport log:\n%s", result.LogPath), false)
+		return nil
 	}
 
-	gui := filepath.Join(runtimeInfo.Dir, "wbd-windows-gui.exe")
-	args := []string{"-start-minimized=true"}; if show { args[0] = "-start-minimized=false" }; if profilePath != "" { args = append(args, "-profile", profilePath) }
+	gui := filepath.Join(runtimeDir, "wbd-windows-gui.exe")
+	args := []string{"-start-minimized=true"}
+	if show {
+		args[0] = "-start-minimized=false"
+	}
+	if profilePath != "" {
+		args = append(args, "-profile", profilePath)
+	}
 	logPath, err := timestampedLogPath(portableDir, "runtime-", ".log")
-	if err != nil { return fmt.Errorf("prepare runtime log beside wbd.exe: %w", err) }
+	if err != nil {
+		return fmt.Errorf("prepare runtime log beside wbd.exe: %w", err)
+	}
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
-	if err != nil { return fmt.Errorf("open runtime log %s: %w", logPath, err) }
+	if err != nil {
+		return fmt.Errorf("open runtime log %s: %w", logPath, err)
+	}
 	cmd := exec.Command(gui, args...)
 	cmd.Dir = portableDir
 	cmd.Env = append(os.Environ(), "WBD_PORTABLE_DIR="+portableDir, "WBD_RUNTIME_LOG="+logPath)
 	cmd.Stdout = logFile
 	cmd.Stderr = logFile
-	if err := cmd.Start(); err != nil { _ = logFile.Close(); return fmt.Errorf("start WBD GUI: %w", err) }
+	if err := cmd.Start(); err != nil {
+		_ = logFile.Close()
+		return fmt.Errorf("start WBD GUI: %w", err)
+	}
 	_ = logFile.Close()
 	return nil
 }
 
+var requiredInstalledRuntimeFiles = []string{
+	"wbd-reality-front.exe", "wbd-faketcp.exe", "wbd_dtls_shim.exe", "wbd-link-proxy.exe", "wbd-game-lane-client.exe", "wbd-tun.exe", "wbd-windows-gui.exe",
+	"wintun.dll", "windows_tun_route.ps1", "windows_tun_rebind.ps1", "windows_ipv6_killswitch.ps1", "windows_faketcp_underlay.ps1", "windows_npcap_prepare.ps1",
+}
+
+func validateInstalledRuntime(dir string) error {
+	if strings.TrimSpace(dir) == "" {
+		return errors.New("WBD 安装目录为空")
+	}
+	for _, name := range requiredInstalledRuntimeFiles {
+		info, err := os.Stat(filepath.Join(dir, name))
+		if err != nil || info.IsDir() {
+			return fmt.Errorf("WBD 安装目录缺少运行文件 %s: %v", name, err)
+		}
+	}
+	return nil
+}
+
 func showMessage(title, text string, isError bool) {
-	flags := uintptr(0x40); if isError { flags = 0x10 }
-	titlePtr, _ := syscall.UTF16PtrFromString(title); textPtr, _ := syscall.UTF16PtrFromString(text)
+	flags := uintptr(0x40)
+	if isError {
+		flags = 0x10
+	}
+	titlePtr, _ := syscall.UTF16PtrFromString(title)
+	textPtr, _ := syscall.UTF16PtrFromString(text)
 	messageBoxW.Call(0, uintptr(unsafe.Pointer(textPtr)), uintptr(unsafe.Pointer(titlePtr)), flags)
 }
