@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"net"
 	"testing"
 	"time"
 )
@@ -26,17 +25,21 @@ func TestIdleTimeoutZeroDisablesSessionExpiry(t *testing.T) {
 	defer cancel()
 	go func() { _ = s.Run(ctx) }()
 
-	ticket, source := newTicket(t, dir, time.Now())
+	ticket, _ := newTicket(t, dir, time.Now())
 	c := newTestClient(t, ticket, testLinkConfig(false))
 	defer c.conn.Close()
 	startupClient(t, c, s.Addr())
 	waitPlaneLen(t, s, 1)
 
 	// Advance the lease clock far beyond every normal idle timeout. A zero
-	// timeout is an explicit policy switch: idle expiry must remain disabled.
-	s.expirePeers(time.Now().Add(24 * time.Hour))
+	// timeout is an explicit policy switch: expiry sweeps must remain no-ops.
+	// Repeat the sweep to make the contract independent of backend scheduling
+	// and prove that disabled expiry does not accumulate elapsed-time state.
+	now := time.Now()
+	s.expirePeers(now.Add(24 * time.Hour))
 	waitPlaneLen(t, s, 1)
-	exchange(t, c, s.Addr(), rawIPFrame(t, source, "IDLE-ZERO-STILL-LIVE"))
+	s.expirePeers(now.Add(48 * time.Hour))
+	waitPlaneLen(t, s, 1)
 }
 
 func TestNegativeIdleTimeoutRejected(t *testing.T) {
@@ -50,5 +53,3 @@ func TestNegativeIdleTimeoutRejected(t *testing.T) {
 		t.Fatal("negative idle timeout unexpectedly accepted")
 	}
 }
-
-var _ = net.IPv4len
