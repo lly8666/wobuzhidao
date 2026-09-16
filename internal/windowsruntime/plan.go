@@ -324,6 +324,7 @@ func BuildFakeTCPCommand(profile Profile, underlay Underlay) (Command, error) {
 		"--local-udp", loop(defaultFakeTCPLocalPort),
 		"--source", netip.AddrPortFrom(netip.MustParseAddr(underlay.SourceIP), sourcePort).String(),
 		"--remote", raw.String(),
+		"--connection-mtu", strconv.Itoa(profile.MTU),
 		"--shadow-recovery", "legacy",
 		"--packet-device", underlay.PacketDevice,
 		"--source-mac", underlay.SourceMAC,

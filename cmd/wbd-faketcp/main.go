@@ -44,13 +44,14 @@ type rawPacketIO interface {
 }
 
 type config struct {
-	role      string
-	localUDP  string
-	targetUDP string
-	source    string
-	listen    string
-	remote    string
-	recovery  string
+	role          string
+	localUDP      string
+	targetUDP     string
+	source        string
+	listen        string
+	remote        string
+	recovery      string
+	connectionMTU int
 
 	packetDevice string
 	sourceMAC    string
@@ -124,6 +125,7 @@ func main() {
 	fs.StringVar(&c.listen, "listen", "", "server raw listen ip:port")
 	fs.StringVar(&c.remote, "remote", "", "client raw remote ip:port")
 	fs.StringVar(&c.recovery, "shadow-recovery", "legacy", "TCP-like shadow recovery: legacy (default) or sack-rack experimental")
+	fs.IntVar(&c.connectionMTU, "connection-mtu", 0, "outer FakeTCP connection MTU ceiling; 0 uses local interface MTU")
 	fs.StringVar(&c.packetDevice, "packet-device", "", "Windows/Npcap capture device, for example \\Device\\NPF_{GUID}")
 	fs.StringVar(&c.sourceMAC, "source-mac", "", "Windows/Npcap physical source MAC")
 	fs.StringVar(&c.nextHopMAC, "next-hop-mac", "", "Windows/Npcap routed next-hop MAC")
@@ -318,7 +320,7 @@ func newEndpoint(c config) (*endpoint, error) {
 			return nil, errors.New("raw remote address must be IPv4")
 		}
 	}
-	e.carrierMTU, err = faketcp.InterfaceMTUForIPv4(rawLocal.IP)
+	e.carrierMTU, err = faketcp.CarrierMTUForIPv4(rawLocal.IP, c.connectionMTU)
 	if err != nil {
 		e.close()
 		return nil, err

@@ -35,13 +35,14 @@ const (
 )
 
 type config struct {
-	listen      string
-	dtlsShim    string
-	linkTarget  string
-	cert        string
-	key         string
-	maxSessions int
-	recovery    string
+	listen        string
+	dtlsShim      string
+	linkTarget    string
+	cert          string
+	key           string
+	maxSessions   int
+	recovery      string
+	connectionMTU int
 
 	frontCert        string
 	frontKey         string
@@ -134,6 +135,7 @@ func main() {
 	fs.StringVar(&c.cert, "cert", "", "DTLS server certificate chain")
 	fs.StringVar(&c.key, "key", "", "DTLS server private key")
 	fs.IntVar(&c.maxSessions, "max-sessions", 32, "maximum simultaneous raw/DTLS associations")
+	fs.IntVar(&c.connectionMTU, "connection-mtu", 0, "outer FakeTCP connection MTU ceiling; 0 uses local interface MTU")
 	fs.StringVar(&c.recovery, "shadow-recovery", "legacy", "legacy (default) or sack-rack experimental")
 	fs.StringVar(&c.frontCert, "front-cert", "", "single-flow TLS bootstrap certificate")
 	fs.StringVar(&c.frontKey, "front-key", "", "single-flow TLS bootstrap private key")
@@ -170,7 +172,7 @@ func (c config) bootstrapEnabled() bool {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: wbd-faketcp-mux server --listen IP:PORT --dtls-shim PATH --link-target IP:PORT --cert CERT --key KEY [--max-sessions 32] [--shadow-recovery legacy|sack-rack]")
+	fmt.Fprintln(os.Stderr, "usage: wbd-faketcp-mux server --listen IP:PORT --dtls-shim PATH --link-target IP:PORT --cert CERT --key KEY [--max-sessions 32] [--connection-mtu 1500] [--shadow-recovery legacy|sack-rack]")
 	fmt.Fprintln(os.Stderr, "  product single-flow mode additionally requires --front-cert --front-key --server-name --route-key --username --password --ticket-dir --fallback-target [--tunnel-pool CIDR] [--tunnel-routes4 CIDR,...]")
 }
 
@@ -214,7 +216,7 @@ func newMuxServer(c config) (*muxServer, error) {
 	if !ok || serverIP == ([4]byte{}) {
 		return nil, errors.New("--listen must use a concrete IPv4 address")
 	}
-	carrierMTU, err := faketcp.InterfaceMTUForIPv4(la.IP)
+	carrierMTU, err := faketcp.CarrierMTUForIPv4(la.IP, c.connectionMTU)
 	if err != nil {
 		return nil, err
 	}

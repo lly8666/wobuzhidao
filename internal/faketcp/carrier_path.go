@@ -46,3 +46,38 @@ func InterfaceMTUForIPv4(ip net.IP) (int, error) {
 	}
 	return 0, fmt.Errorf("%w: no local interface owns %s", ErrCarrierPathMTU, target.String())
 }
+
+// EffectiveCarrierMTU applies an optional configured outer connection-MTU
+// ceiling to a concrete local interface MTU. A configured value of zero keeps
+// legacy standalone behavior. The configured ceiling can only shrink the
+// carrier; it can never manufacture a larger path than the local interface.
+func EffectiveCarrierMTU(interfaceMTU, configured int) (int, error) {
+	if _, err := CarrierPayloadBudget(interfaceMTU); err != nil {
+		return 0, fmt.Errorf("carrier interface mtu=%d: %w", interfaceMTU, err)
+	}
+	if configured == 0 {
+		return interfaceMTU, nil
+	}
+	if configured < 0 {
+		return 0, fmt.Errorf("%w: configured connection MTU must be non-negative", ErrCarrierPathMTU)
+	}
+	if _, err := CarrierPayloadBudget(configured); err != nil {
+		return 0, fmt.Errorf("configured connection mtu=%d: %w", configured, err)
+	}
+	if configured < interfaceMTU {
+		return configured, nil
+	}
+	return interfaceMTU, nil
+}
+
+// CarrierMTUForIPv4 resolves the concrete local interface and then applies the
+// operator/configured outer connection-MTU ceiling. It intentionally does not
+// claim to discover end-to-end PMTU; callers must provide that ceiling when
+// the local interface MTU is larger than the real path.
+func CarrierMTUForIPv4(ip net.IP, configured int) (int, error) {
+	interfaceMTU, err := InterfaceMTUForIPv4(ip)
+	if err != nil {
+		return 0, err
+	}
+	return EffectiveCarrierMTU(interfaceMTU, configured)
+}

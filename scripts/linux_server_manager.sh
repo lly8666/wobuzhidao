@@ -37,6 +37,9 @@ WBD_TUNNEL_POOL=10.66.0.0/16
 # WBD/FEC, Reality/TLS, FakeTCP, outer IP and link-layer overhead. Game adds a
 # 40-byte private WBDP+lane envelope before the immutable LINK MTU check.
 WBD_MTU=1360
+# Outer IPv4/TCP FakeTCP connection MTU ceiling. This is distinct from WBD_MTU.
+# Set it to the real path ceiling when the WAN is below the local NIC MTU.
+WBD_CONNECTION_MTU=1500
 WBD_SHARED_TUN_LISTEN=127.0.0.1:49100
 WBD_SHARED_TUN_IF=wbdg0
 WBD_SHARED_TUN_IDLE=2m
@@ -61,7 +64,7 @@ load_config() {
     : "${WBD_LISTEN_IP:=0.0.0.0}"
     : "${WBD_SERVER_NAME:=www.cloudflare.com}" "${WBD_DECOY_TARGET:=www.cloudflare.com:443}"
     : "${WBD_MAX_SESSIONS:=64}" "${WBD_TICKET_TTL:=60s}" "${WBD_BOOTSTRAP_TIMEOUT:=12s}"
-    : "${WBD_TUNNEL_POOL:=10.66.0.0/16}" "${WBD_MTU:=1360}" "${WBD_SHARED_TUN_LISTEN:=127.0.0.1:49100}" "${WBD_SHARED_TUN_IF:=wbdg0}" "${WBD_SHARED_TUN_IDLE:=2m}"
+    : "${WBD_TUNNEL_POOL:=10.66.0.0/16}" "${WBD_MTU:=1360}" "${WBD_CONNECTION_MTU:=1500}" "${WBD_SHARED_TUN_LISTEN:=127.0.0.1:49100}" "${WBD_SHARED_TUN_IF:=wbdg0}" "${WBD_SHARED_TUN_IDLE:=2m}"
     : "${WBD_GAME_LISTEN:=127.0.0.1:48500}" "${WBD_LINK_LISTEN:=127.0.0.1:47000}" "${WBD_PLATFORM_LISTEN:=127.0.0.1:49000}"
     : "${WBD_UDP_IDLE:=30s}" "${WBD_TCP_IDLE:=30s}" "${WBD_FIREWALL_BACKEND:=auto}" "${WBD_NFT_INPUT:=}" "${WBD_NFT_FORWARD:=}"
 
@@ -85,6 +88,8 @@ load_config() {
 
     case "$WBD_MTU" in *[!0-9]*|'') echo 'WBD_MTU must be numeric' >&2; exit 1;; esac
     [ "$WBD_MTU" -ge 576 ] && [ "$WBD_MTU" -le 1460 ] || { echo 'WBD_MTU must be 576..1460 (inner IP MTU; Game adds 40 bytes before LINK)' >&2; exit 1; }
+    case "$WBD_CONNECTION_MTU" in *[!0-9]*|'') echo 'WBD_CONNECTION_MTU must be numeric' >&2; exit 1;; esac
+    [ "$WBD_CONNECTION_MTU" -ge 576 ] && [ "$WBD_CONNECTION_MTU" -le 9000 ] || { echo 'WBD_CONNECTION_MTU must be 576..9000 (outer FakeTCP connection MTU ceiling)' >&2; exit 1; }
     [ -n "${WBD_ROUTE_KEY:-}" ] && [ ${#WBD_ROUTE_KEY} -ge 16 ] || { echo 'WBD_ROUTE_KEY must be >=16 chars' >&2; exit 1; }
     [ -n "${WBD_USERNAME:-}" ] && [ -n "${WBD_PASSWORD:-}" ] || { echo 'WBD_USERNAME/WBD_PASSWORD required' >&2; exit 1; }
     case "$WBD_FIREWALL_BACKEND" in auto|nft|iptables) ;; *) echo 'WBD_FIREWALL_BACKEND must be auto, nft, or iptables' >&2; exit 1;; esac
@@ -115,7 +120,7 @@ set_config() {
     need_root; write_default_config
     key=${1:-}; value=${2-}
     case "$key" in
-      WBD_LISTEN_IP|WBD_PORT|WBD_SERVER_NAME|WBD_DECOY_TARGET|WBD_ROUTE_KEY|WBD_USERNAME|WBD_PASSWORD|WBD_MAX_SESSIONS|WBD_TICKET_TTL|WBD_BOOTSTRAP_TIMEOUT|WBD_TUNNEL_POOL|WBD_MTU|WBD_SHARED_TUN_LISTEN|WBD_SHARED_TUN_IF|WBD_SHARED_TUN_IDLE|WBD_GAME_LISTEN|WBD_LINK_LISTEN|WBD_PLATFORM_LISTEN|WBD_UDP_IDLE|WBD_TCP_IDLE|WBD_FIREWALL_BACKEND|WBD_NFT_INPUT|WBD_NFT_FORWARD) ;;
+      WBD_LISTEN_IP|WBD_PORT|WBD_SERVER_NAME|WBD_DECOY_TARGET|WBD_ROUTE_KEY|WBD_USERNAME|WBD_PASSWORD|WBD_MAX_SESSIONS|WBD_TICKET_TTL|WBD_BOOTSTRAP_TIMEOUT|WBD_TUNNEL_POOL|WBD_MTU|WBD_CONNECTION_MTU|WBD_SHARED_TUN_LISTEN|WBD_SHARED_TUN_IF|WBD_SHARED_TUN_IDLE|WBD_GAME_LISTEN|WBD_LINK_LISTEN|WBD_PLATFORM_LISTEN|WBD_UDP_IDLE|WBD_TCP_IDLE|WBD_FIREWALL_BACKEND|WBD_NFT_INPUT|WBD_NFT_FORWARD) ;;
       *) echo "unsupported setting: $key" >&2; exit 2;;
     esac
     quoted=$(q "$value")
@@ -243,7 +248,7 @@ run_server() {
     trap cleanup EXIT
     trap 'exit 0' INT TERM HUP
     echo "WBD_LINUX_SERVER_SOURCE source_sha=$source_sha"
-    echo "WBD_LINUX_SERVER_BIND public_raw=$raw_listen_ip:$WBD_PORT max_tunnel_lanes=4 link=$WBD_LINK_LISTEN game=$WBD_GAME_LISTEN shared_tun=$WBD_SHARED_TUN_LISTEN tun_if=$WBD_SHARED_TUN_IF lease_pool=$WBD_TUNNEL_POOL inner_mtu=$WBD_MTU"
+    echo "WBD_LINUX_SERVER_BIND public_raw=$raw_listen_ip:$WBD_PORT max_tunnel_lanes=4 link=$WBD_LINK_LISTEN game=$WBD_GAME_LISTEN shared_tun=$WBD_SHARED_TUN_LISTEN tun_if=$WBD_SHARED_TUN_IF lease_pool=$WBD_TUNNEL_POOL inner_mtu=$WBD_MTU connection_mtu=$WBD_CONNECTION_MTU"
 
     set -- "$PREFIX/bin/wbd-ip-gateway-shared" -listen "$WBD_SHARED_TUN_LISTEN" \
         -firewall-helper "$PREFIX/bin/linux_shared_tun_firewall.sh" -backend "$WBD_FIREWALL_BACKEND" \
@@ -260,6 +265,7 @@ run_server() {
     [ -z "$WBD_NFT_INPUT" ] || set -- "$@" --nft-input "$WBD_NFT_INPUT"
     set -- "$@" -- "$PREFIX/bin/wbd-faketcp-mux" server \
         --listen "$raw_listen_ip:$WBD_PORT" \
+        --connection-mtu "$WBD_CONNECTION_MTU" \
         --dtls-shim "$PREFIX/bin/wbd_dtls_shim" --link-target "$WBD_LINK_LISTEN" \
         --cert "$ETC/dtls.pem" --key "$ETC/dtls.key" --max-sessions "$WBD_MAX_SESSIONS" \
         --front-cert "$ETC/front.pem" --front-key "$ETC/front.key" \
@@ -317,7 +323,7 @@ doctor() {
     [ -r "$ETC/front.pem" ] && [ -r "$ETC/front.key" ] && echo 'bootstrap TLS certificate: OK' || { echo 'bootstrap TLS certificate: MISSING'; fail=1; }
     [ -r "$ETC/dtls.pem" ] && [ -r "$ETC/dtls.key" ] && echo 'DTLS certificate: OK' || { echo 'DTLS certificate: MISSING'; fail=1; }
     if raw_listen_ip=$(resolve_faketcp_listen_ip); then echo "public: raw_mux=$raw_listen_ip:$WBD_PORT max_tunnel_lanes=4"; else echo 'public: FakeTCP concrete IPv4 resolution FAILED'; fail=1; fi
-    echo "private: link=$WBD_LINK_LISTEN game=$WBD_GAME_LISTEN shared_tun=$WBD_SHARED_TUN_LISTEN tun_if=$WBD_SHARED_TUN_IF lease_pool=$WBD_TUNNEL_POOL nat=host inner_mtu=$WBD_MTU"
+    echo "private: link=$WBD_LINK_LISTEN game=$WBD_GAME_LISTEN shared_tun=$WBD_SHARED_TUN_LISTEN tun_if=$WBD_SHARED_TUN_IF lease_pool=$WBD_TUNNEL_POOL nat=host inner_mtu=$WBD_MTU connection_mtu=$WBD_CONNECTION_MTU"
     echo "bootstrap: server_name=$WBD_SERVER_NAME fallback_target=$WBD_DECOY_TARGET"
     echo "limits: sessions=$WBD_MAX_SESSIONS lanes_per_tunnel=4 ticket_ttl=$WBD_TICKET_TTL bootstrap_timeout=$WBD_BOOTSTRAP_TIMEOUT"
     if [ "$fail" -ne 0 ]; then echo 'WBD_SERVER_DOCTOR_FAIL'; return 1; fi
@@ -357,7 +363,7 @@ usage: wbd-server COMMAND
 
 Main settings: WBD_PORT, WBD_LISTEN_IP, WBD_SERVER_NAME, WBD_DECOY_TARGET,
 WBD_ROUTE_KEY, WBD_USERNAME, WBD_PASSWORD, WBD_MAX_SESSIONS, WBD_TUNNEL_POOL,
-WBD_MTU (inner IP MTU, 576..1460), WBD_SHARED_TUN_LISTEN, WBD_SHARED_TUN_IF,
+WBD_MTU (inner IP MTU, 576..1460), WBD_CONNECTION_MTU (outer carrier ceiling, 576..9000), WBD_SHARED_TUN_LISTEN, WBD_SHARED_TUN_IF,
 WBD_GAME_LISTEN, WBD_LINK_LISTEN, WBD_BOOTSTRAP_TIMEOUT and firewall backend.
 
 ADR-0011 single-flow is per Transport Lane. ADR-0012 allows one Logical Tunnel
