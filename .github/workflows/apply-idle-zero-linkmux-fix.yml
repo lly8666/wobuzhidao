@@ -1,0 +1,54 @@
+name: apply-idle-zero-linkmux-fix
+
+on:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - 'tools/apply_idle_zero_linkmux_fix.py'
+      - '.github/workflows/apply-idle-zero-linkmux-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-per-association-mtu-20260914
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Apply idle-zero fix
+        run: python3 tools/apply_idle_zero_linkmux_fix.py
+      - name: Format and test
+        run: |
+          set -euo pipefail
+          gofmt -w cmd/wbd-link-server-mux/main.go cmd/wbd-link-server-mux/idle_timeout_disabled_test.go
+          git diff --check
+          go test ./cmd/wbd-link-server-mux -count=1
+          go test ./internal/windowsruntime -count=1
+      - name: Assert zero-disabled contract
+        run: |
+          set -euo pipefail
+          grep -q 'idleTimeout <= 0 || ps.idleFor' cmd/wbd-link-server-mux/main.go
+          grep -q 'TestIdleTimeoutZeroDisablesSessionExpiry' cmd/wbd-link-server-mux/idle_timeout_disabled_test.go
+          echo 'WBD_IDLE_ZERO_CONTRACT_PASS client=disabled server=disabled negative=reject'
+      - name: Commit product fix
+        run: |
+          set -euo pipefail
+          git config user.name 'wbd-ci'
+          git config user.email 'wbd-ci@users.noreply.github.com'
+          git add cmd/wbd-link-server-mux/main.go cmd/wbd-link-server-mux/idle_timeout_disabled_test.go
+          if git diff --cached --quiet; then
+            echo 'product fix already applied'
+            exit 0
+          fi
+          git commit -m 'fix: restore idle timeout zero semantics'
+          git pull --rebase origin agent/fix-per-association-mtu-20260914
+          git push origin HEAD:agent/fix-per-association-mtu-20260914
