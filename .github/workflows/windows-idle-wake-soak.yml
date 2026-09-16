@@ -1,0 +1,60 @@
+name: Windows idle wake soak
+
+on:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - 'internal/windowsgui/config.go'
+      - 'internal/windowsgui/idle_default_test.go'
+      - 'internal/windowsruntime/controller_idle.go'
+      - 'internal/windowsruntime/controller_idle_soak_test.go'
+      - 'internal/windowsruntime/controller_lifecycle.go'
+      - 'cmd/wbd-link-proxy/**'
+      - '.github/workflows/windows-idle-wake-soak.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-idle-wake-soak-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: windows-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Lock 120s payload idle and 15s keepalive defaults
+        shell: pwsh
+        run: |
+          go test ./internal/windowsgui -run 'TestLoadRuntimeProfileDefaultsPayloadIdleToTwoMinutesAndKeepsHeartbeatDefault|TestLoadRuntimeProfileIdleTimeoutOverrideStillWorks' -count=1
+          go test ./cmd/wbd-link-proxy -run '^TestDefaultKeepaliveRemainsFifteenSeconds$' -count=1
+          go test ./internal/windowsruntime -run 'TestPayloadIdleMonitorDormantsWithoutPayloadAndWakesOnSequenceAdvance|TestControllerDormantWakeKeepsSharedGameTunAndNetwork' -count=1
+
+  idle-wake:
+    needs: contract
+    runs-on: windows-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        lanes: [1, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Real 120-second dormant and payload-triggered reconnect
+        shell: pwsh
+        env:
+          WBD_IDLE_WAKE_SOAK: '1'
+          WBD_IDLE_WAKE_LANES: ${{ matrix.lanes }}
+        run: go test ./internal/windowsruntime -run '^TestPayloadIdleTwoMinuteSoakDormantAndWake$' -count=1 -timeout=4m30s -v
