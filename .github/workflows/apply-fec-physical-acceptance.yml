@@ -33,6 +33,7 @@ jobs:
           if ($errors.Count -ne 0) { $errors | Format-List | Out-String | Write-Error; throw 'PowerShell parse failed' }
           Select-String -LiteralPath scripts/windows_linux_wintun_lane_soak.ps1 -SimpleMatch "ValidateSet('off','20:4','20:8','20:10','20:12','20:16','20:20')" | Out-Null
           Select-String -LiteralPath scripts/windows_linux_wintun_lane_soak.ps1 -SimpleMatch 'WBD_FEC_NEGOTIATION_BIDIRECTIONAL_PASS' | Out-Null
+          Select-String -LiteralPath scripts/windows_linux_wintun_lane_soak.ps1 -SimpleMatch '$_.observed_commit_sec' | Out-Null
           Write-Output 'WBD_FEC_PHYSICAL_PATCH_PARSE_PASS'
       - name: Commit physical FEC acceptance changes
         shell: pwsh
@@ -42,7 +43,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add scripts/windows_linux_wintun_lane_soak.ps1
           if (git diff --cached --quiet) { Write-Output 'script already patched'; exit 0 }
-          git commit -m 'test: generalize Windows physical FEC acceptance'
+          git commit -m 'test: fix physical FEC acceptance timing field'
           git pull --rebase origin agent/fix-per-association-mtu-20260914
           git push origin HEAD:agent/fix-per-association-mtu-20260914
-          # trigger-after-create
+          # trigger-idempotent-v2
