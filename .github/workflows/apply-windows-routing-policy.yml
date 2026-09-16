@@ -1,0 +1,56 @@
+name: Apply Windows routing policy implementation
+
+on:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - .github/workflows/apply-windows-routing-policy.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-per-association-mtu-20260914
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Apply implementation
+        shell: pwsh
+        run: python tools/apply_windows_routing_policy.py
+      - name: Format and inspect
+        shell: pwsh
+        run: |
+          gofmt -w internal/ipset/update.go internal/ipset/update_test.go internal/windowsruntime/routing_policy.go internal/windowsruntime/routing_policy_test.go internal/windowsruntime/plan.go internal/windowsruntime/controller.go internal/windowsgui/config.go internal/windowsgui/routing_config.go internal/windowsgui/routing_config_test.go cmd/wbd-windows-gui/main_windows.go
+          git diff --check
+          git status --short
+      - name: Go routing tests
+        shell: pwsh
+        run: |
+          go test ./internal/ipset ./internal/windowsruntime ./internal/windowsgui
+          go test ./cmd/wbd-windows-gui ./cmd/wbd-windows-portable
+      - name: Eight routing combinations
+        shell: pwsh
+        run: |
+          foreach ($policy in @('000','001','010','011','100','101','110','111')) {
+            $env:WBD_ROUTING_POLICY_CASE = $policy
+            go test ./internal/windowsruntime -run TestRoutingPolicyActionCase -count=1
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/windows_routing_policy_action_test.ps1 -Policy $policy
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Commit implementation
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add internal/ipset internal/windowsruntime internal/windowsgui cmd/wbd-windows-gui scripts/windows_tun_route.ps1 scripts/windows_routing_policy_action_test.ps1 .github/workflows/windows-routing-policy.yml
+          git commit -m "feat: add explicit Windows IP routing policy"
+          git push origin HEAD:agent/fix-per-association-mtu-20260914
