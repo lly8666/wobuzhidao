@@ -1,4 +1,5 @@
 name: Apply Windows routing policy implementation
+# Bootstrap revision: Windows GUI readiness fixture aligned with current runtime.
 
 on:
   push:
