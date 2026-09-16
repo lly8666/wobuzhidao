@@ -152,8 +152,8 @@ func main() {
 }
 
 func newServer(c config) (*server, error) {
-	if c.idleTimeout <= 0 {
-		c.idleTimeout = defaultIdleTimeout
+	if c.idleTimeout < 0 {
+		return nil, errors.New("-idle-timeout must be zero (disabled) or a positive duration")
 	}
 	if c.mtu == 0 {
 		c.mtu = defaultInnerMTU
@@ -316,7 +316,13 @@ func (s *server) newPeer(peer *net.UDPAddr, now time.Time) (*peerSession, error)
 		return nil, session.ErrRegistryFull
 	}
 	ps := &peerSession{peer: cloneUDPAddr(peer), key: key, created: now, lastActivity: now}
-	verify := func(bind [control.DemoWitnessLen]byte) error { return s.consumeLogicalTunnelTicket(ps, bind) }
+	verify := func(bind [control.DemoWitnessLen]byte) error {
+		err := s.consumeLogicalTunnelTicket(ps, bind)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "WBD_LINK_MUX_BIND_REJECT peer=%s err=%v\n", ps.peer, err)
+		}
+		return err
+	}
 	startup, err := control.NewDemoTicketReliableLinkServerSession(1, 1, s.linkPolicy, verify)
 	if err != nil {
 		s.mu.Unlock()
@@ -492,7 +498,7 @@ func (s *server) expirePeers(now time.Time) {
 			}
 			continue
 		}
-		if ps.idleFor(now) < s.cfg.idleTimeout {
+		if s.cfg.idleTimeout <= 0 || ps.idleFor(now) < s.cfg.idleTimeout {
 			continue
 		}
 		if wire, err := control.MarshalLink(control.Close{Reason: control.CloseIdleTimeout, Detail: "session idle lease expired"}); err == nil {
