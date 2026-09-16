@@ -67,14 +67,14 @@ jobs:
           path: ${{ runner.temp }}\linux-assets
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          run-id: 34910039256
+          run-id: 35000905689
       - uses: actions/download-artifact@v4
         with:
           name: windows-linux-soak-windows-assets
           path: ${{ runner.temp }}\windows-assets
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          run-id: 34910039256
+          run-id: 35000905689
       - name: Refresh all product assets from current HEAD
         shell: pwsh
         run: |
@@ -119,7 +119,7 @@ jobs:
           $linuxSha=(Get-Content -LiteralPath (Join-Path $linux 'SOURCE_SHA.txt') -Raw).Trim()
           if($winSha-ne$env:GITHUB_SHA-or$linuxSha-ne$env:GITHUB_SHA){throw "product provenance mismatch windows=$winSha linux=$linuxSha expected=$env:GITHUB_SHA"}
           $routeHash=(Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $win 'windows_tun_route.ps1')).Hash.ToLowerInvariant()
-          Write-Output "WBD_KEEPALIVE_PRODUCT_ASSETS_READY sha=$env:GITHUB_SHA windows=$winSha linux=$linuxSha route_sha256=$routeHash native_base_run=34910039256"
+          Write-Output "WBD_KEEPALIVE_PRODUCT_ASSETS_READY sha=$env:GITHUB_SHA windows=$winSha linux=$linuxSha route_sha256=$routeHash native_base_run=35000905689"
       - name: Validate permanent keepalive harness
         shell: pwsh
         run: |
@@ -151,7 +151,7 @@ jobs:
         run: |
           $ErrorActionPreference='Stop';$driverUrl='https://github.com/user-attachments/files/32200327/npcap.zip';$driverZip=Join-Path $env:RUNNER_TEMP 'npcap-test.zip';$driverDir=Join-Path $env:RUNNER_TEMP 'npcap-test';Invoke-WebRequest -UseBasicParsing -Uri $driverUrl -OutFile $driverZip
           $driverHash=(Get-FileHash -Algorithm SHA256 $driverZip).Hash.ToLowerInvariant();if($driverHash-ne'6380ebe6d5b06bbb0dc03a43151ee05a4a25be97efebd742c463e0e466621a32'){throw 'Npcap driver ZIP hash mismatch'};Expand-Archive $driverZip $driverDir -Force
-          $officialUrl='https://npcap.com/dist/npcap-1.88.exe';$official=Join-Path $env:RUNNER_TEMP 'npcap-1.88.exe';$extract=Join-Path $env:RUNNER_TEMP 'npcap-1.88-extract';Invoke-WebRequest -UseBasicParsing $officialUrl -OutFile $official;$officialHash=(Get-FileHash -Algorithm SHA256 $official).Hash.ToLowerInvariant();if($officialHash-ne'a2f4ec1e5ea353ff67efd24b2ebf081ba44532410fae8d5e146af0310aa4f56b'){throw 'Npcap official container hash mismatch'}
+          $officialUrl='https://npcap.com/dist/npcap-1.88.exe';$official=Join-Path $env:RUNNER_TEMP 'npcap-1.88-extract';$extract=Join-Path $env:RUNNER_TEMP 'npcap-1.88-extract';Invoke-WebRequest -UseBasicParsing $officialUrl -OutFile $official;$officialHash=(Get-FileHash -Algorithm SHA256 $official).Hash.ToLowerInvariant();if($officialHash-ne'a2f4ec1e5ea353ff67efd24b2ebf081ba44532410fae8d5e146af0310aa4f56b'){throw 'Npcap official container hash mismatch'}
           $sig=Get-AuthenticodeSignature $official;$subject=if($sig.SignerCertificate){[string]$sig.SignerCertificate.Subject}else{''};if($sig.Status-ne'Valid'-or$subject-notmatch'Nmap Software LLC'){throw 'Npcap official signature invalid'};New-Item -ItemType Directory -Force $extract|Out-Null;& 7z x -y "-o$extract" $official|Out-Null;if($LASTEXITCODE){throw 'Npcap extraction failed'}
           .\scripts\windows_npcap_driver_ci.ps1 -Action Install -DriverPackageDir $driverDir -UserlandExtractDir $extract;.\scripts\windows_npcap_driver_ci.ps1 -Action Status;Add-Content $env:GITHUB_PATH "$env:SystemRoot\System32\Npcap"
           Write-Output "WBD_NPCAP_TEST_RUNTIME_READY version=1.88 driver_zip_sha256=$driverHash official_sha256=$officialHash"
@@ -161,7 +161,7 @@ jobs:
           $ErrorActionPreference='Stop';$log=Join-Path $env:RUNNER_TEMP 'keepalive-${{ matrix.slug }}';New-Item -ItemType Directory -Force $log|Out-Null
           $winSha=(Get-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'windows-assets\SOURCE_SHA.txt') -Raw).Trim();$linuxSha=(Get-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'linux-assets\SOURCE_SHA.txt') -Raw).Trim()
           if($winSha-ne$env:GITHUB_SHA-or$linuxSha-ne$env:GITHUB_SHA){throw "refusing mixed product assets windows=$winSha linux=$linuxSha expected=$env:GITHUB_SHA"}
-          [ordered]@{product_source_sha=$env:GITHUB_SHA;windows_product_source_sha=$winSha;linux_product_source_sha=$linuxSha;native_base_artifact_source_sha='4cd0c700fc386de21734b3e66e7b58182ce538bf';native_base_artifact_run_id=34910039256;native_base_scope='pinned DTLS shim, Wintun DLL, test certificates only'}|ConvertTo-Json|Set-Content -LiteralPath(Join-Path $log 'product-source.json') -Encoding utf8
+          [ordered]@{product_source_sha=$env:GITHUB_SHA;windows_product_source_sha=$winSha;linux_product_source_sha=$linuxSha;native_base_artifact_source_sha='98654cd26437f01662731b0fc38504462542b90d';native_base_artifact_run_id=35000905689;native_base_scope='pinned DTLS shim, Wintun DLL, test certificates only'}|ConvertTo-Json|Set-Content -LiteralPath(Join-Path $log 'product-source.json') -Encoding utf8
           .\scripts\windows_linux_wintun_keepalive_soak.ps1 -BinDir "$env:RUNNER_TEMP\windows-assets" -LinuxAssets "$env:RUNNER_TEMP\linux-assets" -Lanes ${{ matrix.lanes }} -FEC '${{ matrix.fec }}' -ConnectionMTU 1420 -RateBps 2000000 -LossPct 15 -FirstDurationSec 20 -PauseDurationSec 220 -SecondDurationSec 60 -ServerIdleSec 60 -LogDir $log
       - name: Print keepalive summary
         if: always()
