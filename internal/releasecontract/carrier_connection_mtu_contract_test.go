@@ -21,6 +21,8 @@ func TestCarrierConnectionMTUReleaseContract(t *testing.T) {
 
 	requireContains(t, linuxManager, `WBD_MTU=1360`, "Linux inner IP MTU compatibility setting")
 	requireContains(t, linuxManager, `WBD_CONNECTION_MTU=1500`, "Linux explicit outer connection MTU setting")
+	requireContains(t, linuxManager, `WBD_CONNECTION_MTU must be numeric`, "Linux outer connection MTU validation")
+	requireContains(t, linuxManager, `WBD_CONNECTION_MTU must be 576..9000`, "Linux outer connection MTU range validation")
 	requireContains(t, linuxManager, `--connection-mtu "$WBD_CONNECTION_MTU"`, "Linux manager must pass outer connection MTU to FakeTCP mux")
 	requireContains(t, linuxManager, `WBD_MTU (inner IP MTU, 576..1460)`, "Linux WBD_MTU must remain inner IP MTU")
 }
