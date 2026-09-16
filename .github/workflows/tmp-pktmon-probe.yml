@@ -1,0 +1,35 @@
+name: tmp-pktmon-probe
+
+on:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/tmp-pktmon-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe pktmon syntax
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          Write-Output '=== pktmon help ==='
+          & pktmon.exe help
+          Write-Output "exit=$LASTEXITCODE"
+          Write-Output '=== pktmon start help ==='
+          & pktmon.exe start help
+          Write-Output "exit=$LASTEXITCODE"
+          Write-Output '=== pktmon pcapng help ==='
+          & pktmon.exe pcapng help
+          Write-Output "exit=$LASTEXITCODE"
+          Write-Output '=== pktmon etl2pcap help ==='
+          & pktmon.exe etl2pcap help
+          Write-Output "exit=$LASTEXITCODE"
+          Write-Output 'WBD_PKTMON_PROBE_PASS'
