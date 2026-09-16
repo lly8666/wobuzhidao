@@ -71,7 +71,7 @@ func NewController(runner Runner, discoverer UnderlayDiscoverer, tickets TicketS
 		runner = OSRunner{}
 	}
 	if discoverer == nil {
-		discoverer = PowerShellUnderlayDiscoverer{}
+		discoverer = defaultUnderlayDiscoverer()
 	}
 	if tickets == nil {
 		tickets = FileTicketStore{}

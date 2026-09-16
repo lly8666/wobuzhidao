@@ -116,6 +116,7 @@ func (PowerShellUnderlayDiscoverer) DiscoverPathObservation(profile Profile) (un
 		return underlayPathObservation{}, err
 	}
 	cmd := exec.Command("powershell.exe", args...)
+	configureHiddenProcess(cmd)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return underlayPathObservation{}, fmt.Errorf("%v: %s", err, strings.TrimSpace(string(output)))
