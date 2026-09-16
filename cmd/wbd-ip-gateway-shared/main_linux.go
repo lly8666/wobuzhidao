@@ -284,14 +284,32 @@ func (g *sharedGateway) register(key string, peer *net.UDPAddr, meta rawipbacken
 		existing.touch(now)
 		return nil
 	}
+
+	byLease := g.byLease[meta.Address4]
+	byTunnel := g.byTunnel[meta.TunnelID]
+	if byLease != nil || byTunnel != nil {
+		if byLease == nil || byTunnel == nil || byLease != byTunnel || byLease.tunnelID != meta.TunnelID || byLease.lease != meta.Address4 {
+			if byLease != nil && byLease.tunnelID != meta.TunnelID {
+				return fmt.Errorf("Logical Tunnel lease %s already belongs to tunnel %s", meta.Address4, tunnelIDPrefix(byLease.tunnelID))
+			}
+			if byTunnel != nil && byTunnel.lease != meta.Address4 {
+				return fmt.Errorf("Logical Tunnel %s already registered by peer %s", tunnelIDPrefix(meta.TunnelID), byTunnel.peer)
+			}
+			return errors.New("inconsistent shared-TUN Logical Tunnel registry")
+		}
+		oldKey := byLease.key
+		oldPeer := byLease.peer
+		delete(g.byPeer, oldKey)
+		byLease.key = key
+		byLease.peer = cloneUDPAddr(peer)
+		byLease.touch(now)
+		g.byPeer[key] = byLease
+		fmt.Printf("WBD_SHARED_TUN_SESSION_REBIND tunnel_id_prefix=%s address4=%s old_peer=%s peer=%s tun=%s nat=host\n", tunnelIDPrefix(byLease.tunnelID), byLease.lease, oldPeer, byLease.peer, g.tun.Name())
+		return nil
+	}
+
 	if len(g.byPeer) >= g.cfg.maxSessions {
 		return errors.New("shared-TUN gateway session capacity reached")
-	}
-	if existing := g.byLease[meta.Address4]; existing != nil {
-		return fmt.Errorf("Logical Tunnel lease %s already belongs to tunnel %s", meta.Address4, tunnelIDPrefix(existing.tunnelID))
-	}
-	if existing := g.byTunnel[meta.TunnelID]; existing != nil {
-		return fmt.Errorf("Logical Tunnel %s already registered by peer %s", tunnelIDPrefix(meta.TunnelID), existing.peer)
 	}
 	s := &sharedSession{key: key, tunnelID: meta.TunnelID, lease: meta.Address4, peer: cloneUDPAddr(peer), last: now}
 	g.byPeer[key] = s
