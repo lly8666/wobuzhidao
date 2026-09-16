@@ -45,3 +45,4 @@ jobs:
           git commit -m 'test: generalize Windows physical FEC acceptance'
           git pull --rebase origin agent/fix-per-association-mtu-20260914
           git push origin HEAD:agent/fix-per-association-mtu-20260914
+          # trigger-after-create
