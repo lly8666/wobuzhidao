@@ -13,7 +13,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/windowsruntime"
 )
 
-const defaultPayloadIdleTimeoutSeconds = 15 * 60
+const defaultPayloadIdleTimeoutSeconds = 2 * 60
 
 type RuntimeProfileFile struct {
 	ServerIP   string `json:"server_ip"`
