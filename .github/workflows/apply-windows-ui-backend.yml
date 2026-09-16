@@ -1,0 +1,53 @@
+name: Apply Windows UI profile backend
+
+on:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - .github/workflows/apply-windows-ui-backend.yml
+      - tools/apply_windows_ui_backend.py
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-per-association-mtu-20260914
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Apply backend/direct-install implementation
+        shell: pwsh
+        run: python tools/apply_windows_ui_backend.py
+      - name: Format and inspect
+        shell: pwsh
+        run: |
+          gofmt -w internal/windowsgui/profile_store.go internal/windowsgui/profile_store_test.go cmd/wbd-windows-portable/main_windows.go cmd/wbd-windows-portable/main_windows_test.go
+          git diff --check
+          git status --short
+      - name: Test Windows profile backend and direct install
+        shell: pwsh
+        run: |
+          go test ./internal/windowsgui ./internal/windowsruntime
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go test ./cmd/wbd-windows-portable ./cmd/wbd-windows-gui
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go build -trimpath -ldflags "-H=windowsgui" -o "$env:RUNNER_TEMP\wbd.exe" ./cmd/wbd-windows-portable
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go build -trimpath -ldflags "-H=windowsgui" -o "$env:RUNNER_TEMP\wbd-windows-gui.exe" ./cmd/wbd-windows-gui
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Commit product implementation
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add internal/windowsgui/profile_store.go internal/windowsgui/profile_store_test.go cmd/wbd-windows-portable/main_windows.go cmd/wbd-windows-portable/main_windows_test.go
+          git commit -m "feat: add Windows multi-profile backend and direct install runtime"
+          git push origin HEAD:agent/fix-per-association-mtu-20260914
