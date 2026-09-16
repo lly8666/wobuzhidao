@@ -1,0 +1,92 @@
+name: Apply and validate Chinese multi-server Windows UI
+
+on:
+  push:
+    branches:
+      - agent/fix-per-association-mtu-20260914
+    paths:
+      - '.github/workflows/apply-windows-ui-cn.yml'
+      - 'tools/apply_windows_ui_cn.py'
+      - 'tools/patch_windows_ui_fec_and_acceptance.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-windows-ui-cn-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  apply-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-per-association-mtu-20260914
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Apply Chinese multi-server UI
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python tools/apply_windows_ui_cn.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/patch_windows_ui_fec_and_acceptance.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          gofmt -w internal/windowsgui/editor.go internal/windowsgui/editor_test.go internal/windowsgui/profile_switch_acceptance_test.go cmd/wbd-windows-gui/profile_ui_windows.go cmd/wbd-windows-gui/main_windows.go
+          git diff --check
+
+      - name: Validate profile editing switching and settings
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          go test ./internal/windowsgui -run 'Test(ProfileEditor|AllFixedFEC|ProfileStoreSwitches)' -count=1 -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go test ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-windows-gui ./cmd/wbd-windows-portable -count=1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Write-Output 'WBD_WINDOWS_PROFILE_SETTINGS_PASS editor=roundtrip switch=A-B-A fec_profiles=7'
+
+      - name: Build GUI and installed launcher
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          go build -trimpath -ldflags "-H=windowsgui" -o $env:RUNNER_TEMP\wbd-windows-gui.exe .\cmd\wbd-windows-gui
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go build -trimpath -ldflags "-H=windowsgui" -o $env:RUNNER_TEMP\wbd.exe .\cmd\wbd-windows-portable
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Assert Chinese UI and complete FEC menu
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ui = Get-Content cmd\wbd-windows-gui\profile_ui_windows.go -Raw
+          foreach ($profile in @('off','20:4','20:8','20:10','20:12','20:16','20:20')) {
+            if ($ui -notmatch [regex]::Escape('"' + $profile + '"')) { throw "GUI FEC option missing $profile" }
+          }
+          foreach ($label in @('服务器','新增','保存','删除','设为当前','连接','断开','重连传输','最小化到托盘')) {
+            if ($ui -notmatch $label) { throw "Chinese UI label missing: $label" }
+          }
+          $main = Get-Content cmd\wbd-windows-gui\main_windows.go -Raw
+          if ($main -notmatch 'WBD Windows 客户端') { throw 'Chinese window title missing' }
+          if ($ui -notmatch 'LoadProfileStore' -or $ui -notmatch 'SaveProfileStore' -or $ui -notmatch 'loadCurrentRuntimeProfile') { throw 'multi-server profile store/switch path is not wired' }
+          Write-Output 'WBD_WINDOWS_CHINESE_MULTI_SERVER_UI_PASS fec_profiles=7 server_switch=enabled'
+
+      - name: Commit tested UI product changes
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add internal/windowsgui/editor.go internal/windowsgui/editor_test.go internal/windowsgui/profile_switch_acceptance_test.go cmd/wbd-windows-gui/profile_ui_windows.go cmd/wbd-windows-gui/main_windows.go
+          if (-not (git diff --cached --quiet)) {
+            git commit -m "feat: add Chinese multi-server Windows profile UI"
+            git pull --rebase origin agent/fix-per-association-mtu-20260914
+            git push origin HEAD:agent/fix-per-association-mtu-20260914
+          } else {
+            Write-Output 'UI product changes already present'
+          }
