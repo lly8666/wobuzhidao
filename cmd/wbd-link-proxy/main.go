@@ -67,7 +67,7 @@ func main() {
 	flag.StringVar(&o.service, "service", "", "server: local UDP service address")
 	flag.StringVar(&o.fec, "fec", "20:20", "client immutable FEC profile: off or 20:20")
 	flag.IntVar(&o.mtu, "mtu", 1360, "immutable maximum plaintext datagram size")
-	flag.IntVar(&o.flushMS, "fec-flush-ms", 8, "immutable 20:20 partial-block flush")
+	flag.IntVar(&o.flushMS, "fec-flush-ms", 8, "immutable fixed-FEC partial-block flush")
 	flag.IntVar(&o.lanes, "lanes", 1, "immutable raw lane count (currently 1)")
 	flag.StringVar(&o.token, "token", "", "client bearer token for normal/legacy-witness startup")
 	flag.StringVar(&o.expectedToken, "expected-token", "", "server bearer token; empty disables AUTH")
@@ -162,7 +162,14 @@ func clientLinkConfig(o options) (control.LinkConfig, error) {
 		cfg.ParityShards = 20
 		cfg.FlushMillis = uint16(o.flushMS)
 	case "20:10", "weak-1.5x":
-		return control.LinkConfig{}, errors.New("20:10 is not implemented by the live WBD codec")
+		if o.flushMS <= 0 {
+			return control.LinkConfig{}, errors.New("20:10 requires positive -fec-flush-ms")
+		}
+		cfg.FECMode = control.FECFixed
+		cfg.Scheduler = control.FECSchedulerTailRS
+		cfg.DataShards = 20
+		cfg.ParityShards = 10
+		cfg.FlushMillis = uint16(o.flushMS)
 	case "auto":
 		return control.LinkConfig{}, errors.New("auto FEC is deferred advanced research")
 	default:

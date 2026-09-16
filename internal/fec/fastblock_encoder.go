@@ -22,6 +22,7 @@ import (
 // reused. The UDP proxy sends returned slices synchronously before the next Add.
 type FastBlockEncoder struct {
 	codec         Codec
+	parityShards  int
 	maxPacketSize int
 	flushAfter    time.Duration
 	nextBlockID   uint32
@@ -36,11 +37,15 @@ type FastBlockEncoder struct {
 }
 
 func NewFastBlockEncoder(codec Codec, maxPacketSize int, flushAfter time.Duration, firstBlockID uint32) (*FastBlockEncoder, error) {
-	if codec == nil || maxPacketSize <= 0 || maxPacketSize > 0xffff || flushAfter <= 0 {
+	return NewFastBlockEncoderWithParity(codec, maxPacketSize, flushAfter, firstBlockID, ParityShards)
+}
+
+func NewFastBlockEncoderWithParity(codec Codec, maxPacketSize int, flushAfter time.Duration, firstBlockID uint32, parityShards int) (*FastBlockEncoder, error) {
+	if codec == nil || maxPacketSize <= 0 || maxPacketSize > 0xffff || flushAfter <= 0 || !validParityCount(parityShards) {
 		return nil, errors.New("fec: invalid fast block encoder config")
 	}
 	e := &FastBlockEncoder{
-		codec: codec, maxPacketSize: maxPacketSize, flushAfter: flushAfter, nextBlockID: firstBlockID,
+		codec: codec, parityShards: parityShards, maxPacketSize: maxPacketSize, flushAfter: flushAfter, nextBlockID: firstBlockID,
 	}
 	for i := 0; i < TotalShards; i++ {
 		e.shardBuf[i] = make([]byte, maxPacketSize)
@@ -71,7 +76,7 @@ func (e *FastBlockEncoder) Add(packet []byte, now time.Time) ([][]byte, error) {
 	// are unknown until the block closes. Reserved header flag bit 0 tells the
 	// WBD decoder it may deliver this payload immediately.
 	wire := e.wireBuf[idx][:HeaderSize+len(packet)]
-	marshalStreamingSourceHeader(wire[:HeaderSize], e.nextBlockID, idx, len(packet))
+	marshalStreamingSourceHeader(wire[:HeaderSize], e.nextBlockID, idx, len(packet), e.parityShards)
 	copy(wire[HeaderSize:], packet)
 	e.out[0] = wire
 
@@ -115,13 +120,13 @@ func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 	// sufficient even if every real source datagram is lost: known zeros plus
 	// parity still provide the 20 equations required by the fixed 20x20 codec.
 	parityCount := dataCount
-	if parityCount > ParityShards {
-		parityCount = ParityShards
+	if parityCount > e.parityShards {
+		parityCount = e.parityShards
 	}
 	for p := 0; p < parityCount; p++ {
 		index := DataShards + p
 		b := e.wireBuf[index][:HeaderSize+shardSize]
-		marshalFastHeader(b[:HeaderSize], e.nextBlockID, index, dataCount, shardSize, e.lengths)
+		marshalFastHeader(b[:HeaderSize], e.nextBlockID, index, dataCount, shardSize, e.parityShards, e.lengths)
 		copy(b[HeaderSize:], e.shardBuf[index][:shardSize])
 		e.out[offset+p] = b
 	}
@@ -134,14 +139,14 @@ func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 	return e.out[:offset+parityCount], nil
 }
 
-func marshalStreamingSourceHeader(dst []byte, blockID uint32, shardIndex, packetLen int) {
+func marshalStreamingSourceHeader(dst []byte, blockID uint32, shardIndex, packetLen, parityShards int) {
 	clear(dst)
 	dst[0], dst[1] = 'W', 'F'
 	dst[2] = HeaderVersion
 	binary.BigEndian.PutUint32(dst[4:8], blockID)
 	dst[8] = byte(shardIndex)
 	dst[9] = DataShards
-	dst[10] = ParityShards
+	dst[10] = byte(parityShards)
 	// The final block DataCount is not known yet. DataShards is a legal placeholder
 	// for ParseBlockHeader; headerFlagStreamingSystematic defines its provisional
 	// meaning. Only this source's original length is authoritative.
@@ -151,14 +156,14 @@ func marshalStreamingSourceHeader(dst []byte, blockID uint32, shardIndex, packet
 	binary.BigEndian.PutUint16(dst[16+shardIndex*2:18+shardIndex*2], uint16(packetLen))
 }
 
-func marshalFastHeader(dst []byte, blockID uint32, shardIndex, dataCount, shardSize int, lengths [DataShards]uint16) {
+func marshalFastHeader(dst []byte, blockID uint32, shardIndex, dataCount, shardSize, parityShards int, lengths [DataShards]uint16) {
 	clear(dst)
 	dst[0], dst[1] = 'W', 'F'
 	dst[2] = HeaderVersion
 	binary.BigEndian.PutUint32(dst[4:8], blockID)
 	dst[8] = byte(shardIndex)
 	dst[9] = DataShards
-	dst[10] = ParityShards
+	dst[10] = byte(parityShards)
 	dst[11] = byte(dataCount)
 	binary.BigEndian.PutUint16(dst[12:14], uint16(shardSize))
 	for i, n := range lengths {

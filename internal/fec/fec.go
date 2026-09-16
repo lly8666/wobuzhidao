@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	DataShards   = 20
-	ParityShards = 20
-	TotalShards  = DataShards + ParityShards
+	DataShards       = 20
+	WeakParityShards = 10
+	ParityShards     = 20
+	TotalShards      = DataShards + ParityShards
 
 	HeaderVersion = 1
 	HeaderSize    = 56
@@ -209,11 +210,23 @@ func (p *BufferPool) ShardSize() int { return p.shardSize }
 // BlockHeader is repeated with each shard so packet lengths survive arbitrary
 // shard loss/reorder. Source packets are padded only inside the FEC block.
 type BlockHeader struct {
-	BlockID         uint32
-	ShardIndex      uint8
-	DataCount       uint8
-	ShardSize       uint16
+	BlockID    uint32
+	ShardIndex uint8
+	DataCount  uint8
+	ShardSize  uint16
+	// ParityCount is the immutable negotiated repair-shard geometry. Zero is
+	// retained as a source/API compatibility alias for the historical 20:20
+	// default; parsed wire headers always carry an explicit value.
+	ParityCount     uint8
 	OriginalLengths [DataShards]uint16
+}
+
+func validParityCount(n int) bool { return n == WeakParityShards || n == ParityShards }
+func (h BlockHeader) EffectiveParityCount() int {
+	if h.ParityCount == 0 {
+		return ParityShards
+	}
+	return int(h.ParityCount)
 }
 
 func (h BlockHeader) MarshalBinary() ([]byte, error) {
@@ -227,7 +240,7 @@ func (h BlockHeader) MarshalBinary() ([]byte, error) {
 	binary.BigEndian.PutUint32(b[4:8], h.BlockID)
 	b[8] = h.ShardIndex
 	b[9] = DataShards
-	b[10] = ParityShards
+	b[10] = byte(h.EffectiveParityCount())
 	b[11] = h.DataCount
 	binary.BigEndian.PutUint16(b[12:14], h.ShardSize)
 	// bytes 14:16 are reserved for future flags/format expansion.
@@ -245,10 +258,13 @@ func ParseBlockHeader(b []byte) (BlockHeader, error) {
 	if b[0] != 'W' || b[1] != 'F' || b[2] != HeaderVersion {
 		return h, errors.New("fec: invalid header magic/version")
 	}
-	if b[9] != DataShards || b[10] != ParityShards {
+	if b[9] != DataShards || !validParityCount(int(b[10])) {
 		return h, errors.New("fec: incompatible shard geometry")
 	}
 	h.BlockID = binary.BigEndian.Uint32(b[4:8])
+	if b[10] != ParityShards {
+		h.ParityCount = b[10]
+	}
 	h.ShardIndex = b[8]
 	h.DataCount = b[11]
 	h.ShardSize = binary.BigEndian.Uint16(b[12:14])
@@ -259,8 +275,12 @@ func ParseBlockHeader(b []byte) (BlockHeader, error) {
 }
 
 func (h BlockHeader) Validate() error {
-	if h.ShardIndex >= TotalShards {
-		return fmt.Errorf("fec: shard index %d out of range", h.ShardIndex)
+	parity := h.EffectiveParityCount()
+	if !validParityCount(parity) {
+		return fmt.Errorf("fec: parity count %d unsupported", parity)
+	}
+	if int(h.ShardIndex) >= DataShards+parity {
+		return fmt.Errorf("fec: shard index %d out of range for 20:%d", h.ShardIndex, parity)
 	}
 	if h.DataCount == 0 || h.DataCount > DataShards {
 		return fmt.Errorf("fec: data count %d out of range", h.DataCount)

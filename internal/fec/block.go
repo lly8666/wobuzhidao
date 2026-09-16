@@ -173,6 +173,7 @@ type retiredBlock struct {
 // exists because it may still contain undelivered source payloads.
 type BlockDecoder struct {
 	codec         Codec
+	parityShards  int
 	maxPacketSize int
 	maxBlocks     int
 	blocks        map[uint32]*decodeBlock
@@ -187,11 +188,15 @@ type BlockDecoder struct {
 }
 
 func NewBlockDecoder(codec Codec, maxPacketSize, maxBlocks int) (*BlockDecoder, error) {
-	if codec == nil || maxPacketSize <= 0 || maxPacketSize > 0xffff || maxBlocks <= 0 {
+	return NewBlockDecoderWithParity(codec, maxPacketSize, maxBlocks, ParityShards)
+}
+
+func NewBlockDecoderWithParity(codec Codec, maxPacketSize, maxBlocks, parityShards int) (*BlockDecoder, error) {
+	if codec == nil || maxPacketSize <= 0 || maxPacketSize > 0xffff || maxBlocks <= 0 || !validParityCount(parityShards) {
 		return nil, errors.New("fec: invalid block decoder config")
 	}
 	return &BlockDecoder{
-		codec: codec, maxPacketSize: maxPacketSize, maxBlocks: maxBlocks,
+		codec: codec, parityShards: parityShards, maxPacketSize: maxPacketSize, maxBlocks: maxBlocks,
 		blocks: make(map[uint32]*decodeBlock), retired: make(map[uint32]retiredBlock),
 	}, nil
 }
@@ -205,6 +210,9 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 	h, err := ParseBlockHeader(datagram[:HeaderSize])
 	if err != nil {
 		return nil, false, err
+	}
+	if h.EffectiveParityCount() != d.parityShards {
+		return nil, false, ErrHeaderMismatch
 	}
 	if int(h.ShardSize) > d.maxPacketSize || len(datagram) != HeaderSize+int(h.ShardSize) {
 		return nil, false, fmt.Errorf("%w: block=%d shard=%d wire_bytes=%d declared_shard_bytes=%d max_packet_bytes=%d expected_wire_bytes=%d", ErrPacketTooLarge, h.BlockID, h.ShardIndex, len(datagram), h.ShardSize, d.maxPacketSize, HeaderSize+int(h.ShardSize))
@@ -473,7 +481,7 @@ func allDataDelivered(b *decodeBlock) bool {
 }
 
 func sameBlockHeader(a, b BlockHeader) bool {
-	return a.BlockID == b.BlockID && a.DataCount == b.DataCount && a.ShardSize == b.ShardSize && a.OriginalLengths == b.OriginalLengths
+	return a.BlockID == b.BlockID && a.DataCount == b.DataCount && a.ShardSize == b.ShardSize && a.EffectiveParityCount() == b.EffectiveParityCount() && a.OriginalLengths == b.OriginalLengths
 }
 
 func canRetireBlock(b *decodeBlock) bool {

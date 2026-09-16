@@ -86,12 +86,15 @@ type LinkPolicy struct {
 // internal/pathmtu before LinkConfig is created.
 func CurrentLinkPolicy() LinkPolicy {
 	return LinkPolicy{
-		AllowFECOff:     true,
-		MinMTU:          MinLinkMTU,
-		MaxMTU:          MaxLinkMTU,
-		MaxFlushMillis:  100,
-		MaxLaneCount:    1,
-		AllowedFixedFEC: []FixedFECProfile{{DataShards: 20, ParityShards: 20, Scheduler: FECSchedulerTailRS}},
+		AllowFECOff:    true,
+		MinMTU:         MinLinkMTU,
+		MaxMTU:         MaxLinkMTU,
+		MaxFlushMillis: 100,
+		MaxLaneCount:   1,
+		AllowedFixedFEC: []FixedFECProfile{
+			{DataShards: 20, ParityShards: 10, Scheduler: FECSchedulerTailRS},
+			{DataShards: 20, ParityShards: 20, Scheduler: FECSchedulerTailRS},
+		},
 	}
 }
 

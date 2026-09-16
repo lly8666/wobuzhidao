@@ -23,6 +23,7 @@ func TestLinkWireRoundTrip(t *testing.T) {
 		LinkInit{MinProtocol: 1, MaxProtocol: 2, Config: fixed20x20Link()},
 		LinkAccept{Protocol: 1, AuthRequired: true, Config: offLink()},
 		LinkAccept{Protocol: 1, AuthRequired: false, Config: fixed20x20Link()},
+		LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: LinkConfig{FECMode: FECFixed, Scheduler: FECSchedulerTailRS, DataShards: 20, ParityShards: 10, LaneCount: 1, FlushMillis: 8, MTU: 1400}},
 	} {
 		wire, err := MarshalLink(in)
 		if err != nil {
@@ -47,10 +48,15 @@ func TestCurrentLinkPolicyAdmitsOnlyLiveProfiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	weak := fixed20x20Link()
+	weak.ParityShards = 10
+	if err := p.Validate(weak); err != nil {
+		t.Fatalf("20:10 historical product profile must be admitted, err=%v", err)
+	}
 	bad := fixed20x20Link()
-	bad.ParityShards = 10
+	bad.ParityShards = 9
 	if err := p.Validate(bad); !errors.Is(err, ErrUnsupported) {
-		t.Fatalf("20:10 should remain unsupported by live WBD codec, err=%v", err)
+		t.Fatalf("20:9 non-product profile must remain unsupported, err=%v", err)
 	}
 	bad = fixed20x20Link()
 	bad.Scheduler = FECSchedulerCausal
@@ -149,7 +155,7 @@ func TestLinkServerAdvertisesAuthDisabled(t *testing.T) {
 func TestLinkServerRejectedProposalPoisonsAssociation(t *testing.T) {
 	s, _ := NewLinkServerSession(1, 1, nil, CurrentLinkPolicy())
 	bad := fixed20x20Link()
-	bad.ParityShards = 10
+	bad.ParityShards = 9
 	wire, _ := MarshalLink(LinkInit{MinProtocol: 1, MaxProtocol: 1, Config: bad})
 	replyWire, err := s.HandleWire(wire, 1)
 	if err != nil {

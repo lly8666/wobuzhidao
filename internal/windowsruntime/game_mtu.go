@@ -22,7 +22,7 @@ func gameConnectionMTUBudget(connectionMTU int, fecMode string) (pathmtu.Budget,
 	fecEnabled := false
 	switch fecMode {
 	case "", "off":
-	case "20:20":
+	case "20:10", "20:20":
 		fecEnabled = true
 	default:
 		return pathmtu.Budget{}, fmt.Errorf("unsupported FEC mode %q for MTU budget", fecMode)

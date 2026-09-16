@@ -31,15 +31,19 @@ func TestImmutableLinkProxyFixed20x20WithAuth(t *testing.T) {
 	runProxyIntegration(t, "20:20", true, false)
 }
 
+func TestImmutableLinkProxyFixed20x10WithAuth(t *testing.T) {
+	runProxyIntegration(t, "20:10", true, false)
+}
+
 func TestImmutableLinkProxyRealityDemoGateThenEncryptedData(t *testing.T) {
 	runProxyIntegration(t, "off", true, true)
 }
 
 type establishedStartup struct{}
 
-func (establishedStartup) Established() bool { return true }
-func (establishedStartup) RetryWire() ([]byte, error) { return nil, nil }
-func (establishedStartup) HandleWire([]byte) ([]byte, error) { return nil, nil }
+func (establishedStartup) Established() bool                  { return true }
+func (establishedStartup) RetryWire() ([]byte, error)         { return nil, nil }
+func (establishedStartup) HandleWire([]byte) ([]byte, error)  { return nil, nil }
 func (establishedStartup) Accept() (control.LinkAccept, bool) { return control.LinkAccept{}, true }
 
 func TestClientDataLoopHeartbeatAndGracefulClose(t *testing.T) {

@@ -50,15 +50,16 @@ func New(config control.LinkConfig, maxBlocks int) (*Path, error) {
 	}
 	if config.FECMode != control.FECFixed ||
 		config.Scheduler != control.FECSchedulerTailRS ||
-		config.DataShards != fec.DataShards || config.ParityShards != fec.ParityShards {
+		config.DataShards != fec.DataShards ||
+		(config.ParityShards != fec.WeakParityShards && config.ParityShards != fec.ParityShards) {
 		return nil, ErrUnsupportedLinkConfig
 	}
 	codec := fec.NewFastReedSolomon20x20()
-	enc, err := fec.NewFastBlockEncoder(codec, int(config.MTU), time.Duration(config.FlushMillis)*time.Millisecond, 1)
+	enc, err := fec.NewFastBlockEncoderWithParity(codec, int(config.MTU), time.Duration(config.FlushMillis)*time.Millisecond, 1, int(config.ParityShards))
 	if err != nil {
 		return nil, err
 	}
-	dec, err := fec.NewBlockDecoder(installFECObserver(p, codec), int(config.MTU), maxBlocks)
+	dec, err := fec.NewBlockDecoderWithParity(installFECObserver(p, codec), int(config.MTU), maxBlocks, int(config.ParityShards))
 	if err != nil {
 		return nil, err
 	}
