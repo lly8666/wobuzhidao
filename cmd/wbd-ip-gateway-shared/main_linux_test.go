@@ -58,6 +58,49 @@ func TestRegisterDistinctLeasesDemuxIndependently(t *testing.T) {
 	}
 }
 
+func TestRegisterRebindsSameTunnelAndLeaseToNewPeer(t *testing.T) {
+	g := testGateway()
+	g.cfg.maxSessions = 1
+	first := time.Unix(1, 0)
+	second := first.Add(time.Minute)
+	peerA := &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: 41001}
+	peerB := &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: 41002}
+	meta := rawipbackend.TunnelMeta{TunnelID: mustTunnelID(t, "00112233445566778899aabbccddeeff"), Address4: netip.MustParseAddr("10.66.0.1")}
+
+	if err := g.register(peerA.String(), peerA, meta, first); err != nil {
+		t.Fatal(err)
+	}
+	original := g.byPeer[peerA.String()]
+	if original == nil {
+		t.Fatal("initial peer was not registered")
+	}
+	if err := g.register(peerB.String(), peerB, meta, second); err != nil {
+		t.Fatalf("same Logical Tunnel peer migration failed: %v", err)
+	}
+	if g.byPeer[peerA.String()] != nil {
+		t.Fatal("old downstream peer remained registered after migration")
+	}
+	migrated := g.byPeer[peerB.String()]
+	if migrated == nil || migrated != original {
+		t.Fatalf("new downstream peer did not take over the existing logical session: %#v", migrated)
+	}
+	if migrated.key != peerB.String() || migrated.peer.String() != peerB.String() {
+		t.Fatalf("migrated peer identity mismatch key=%q peer=%v", migrated.key, migrated.peer)
+	}
+	if got := g.byLease[meta.Address4]; got != migrated {
+		t.Fatal("lease mapping did not follow downstream peer migration")
+	}
+	if got := g.byTunnel[meta.TunnelID]; got != migrated {
+		t.Fatal("tunnel mapping did not follow downstream peer migration")
+	}
+	if got := migrated.idleFor(second); got != 0 {
+		t.Fatalf("migration did not refresh activity time: idle=%v", got)
+	}
+	if len(g.byPeer) != 1 || len(g.byLease) != 1 || len(g.byTunnel) != 1 {
+		t.Fatalf("peer migration changed logical capacity peers=%d leases=%d tunnels=%d", len(g.byPeer), len(g.byLease), len(g.byTunnel))
+	}
+}
+
 func TestRegisterRejectsDuplicateLeaseOrTunnel(t *testing.T) {
 	g := testGateway()
 	now := time.Unix(1, 0)
