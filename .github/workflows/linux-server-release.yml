@@ -26,6 +26,7 @@ on:
       - feat/single-flow-reality-faketcp
       - agent/fec-zombie-fix-7d859
       - agent/integrate-pressure-mtu-dtls-20b7
+      - agent/fix-per-association-mtu-20260914
     paths:
       - '.github/workflows/linux-server-release.yml'
       - 'scripts/build_linux_server_bundle.sh'
