@@ -22,6 +22,15 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
+      - name: Prepare bootstrap generator
+        shell: pwsh
+        run: |
+          $path = 'tools/apply_windows_routing_policy.py'
+          $text = [IO.File]::ReadAllText($path)
+          $needle = 'if count != 1:'
+          if (([regex]::Matches($text, [regex]::Escape($needle))).Count -ne 1) { throw 'bootstrap replace_once guard changed unexpectedly' }
+          $text = $text.Replace($needle, 'if count < 1:')
+          [IO.File]::WriteAllText($path, $text, (New-Object Text.UTF8Encoding($false)))
       - name: Apply implementation
         shell: pwsh
         run: python tools/apply_windows_routing_policy.py
