@@ -398,19 +398,13 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 			return nil
 		default:
 		}
-		now := time.Now()
-		sendPing, pingNonce, dead := liveness.poll(now, keepalive)
-		if dead {
-			return fmt.Errorf("WBD link liveness timeout after %s without valid remote LINK activity", clientRemoteRXTimeout(keepalive))
-		}
-		if sendPing {
-			if err := sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: pingNonce}); err != nil {
-				return err
-			}
-		}
+		// Read first so already-queued authenticated remote traffic gets a chance
+		// to refresh liveness before we decide the path is idle. This avoids
+		// emitting an idle PING solely because the goroutine was descheduled past
+		// the deadline while remote business data was waiting in the socket.
 		_ = conn.SetReadDeadline(time.Now().Add(time.Millisecond))
 		n, from, err := conn.ReadFromUDP(buf)
-		now = time.Now()
+		now := time.Now()
 		if err != nil {
 			if ne, ok := err.(net.Error); !ok || !ne.Timeout() {
 				return err
@@ -424,6 +418,9 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 						return err
 					}
 				}
+				if err := serviceClientKeepalive(conn, dtlsAddr, &liveness, now, keepalive); err != nil {
+					return err
+				}
 				continue
 			}
 			if isLifecycleControl(buf[:n]) {
@@ -434,9 +431,15 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 				switch f := frame.(type) {
 				case control.Pong:
 					liveness.observePong(f.Nonce, now, keepalive)
+					if err := serviceClientKeepalive(conn, dtlsAddr, &liveness, now, keepalive); err != nil {
+						return err
+					}
 					continue
 				case control.Ping:
 					if err := sendLifecycle(conn, dtlsAddr, control.Pong{Nonce: f.Nonce}); err != nil {
+						return err
+					}
+					if err := serviceClientKeepalive(conn, dtlsAddr, &liveness, now, keepalive); err != nil {
 						return err
 					}
 					continue
@@ -469,6 +472,9 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 				return err
 			}
 		}
+		if err := serviceClientKeepalive(conn, dtlsAddr, &liveness, now, keepalive); err != nil {
+			return err
+		}
 		wire, err := path.FlushDue(now)
 		if err != nil {
 			return err
@@ -477,6 +483,17 @@ func clientDataLoop(conn *net.UDPConn, dtlsAddr *net.UDPAddr, path *linkdata.Pat
 			return err
 		}
 	}
+}
+
+func serviceClientKeepalive(conn *net.UDPConn, dtlsAddr *net.UDPAddr, liveness *clientKeepaliveTracker, now time.Time, keepalive time.Duration) error {
+	sendPing, pingNonce, dead := liveness.poll(now, keepalive)
+	if dead {
+		return fmt.Errorf("WBD link liveness timeout after %s without valid remote LINK activity", clientRemoteRXTimeout(keepalive))
+	}
+	if sendPing {
+		return sendLifecycle(conn, dtlsAddr, control.Ping{Nonce: pingNonce})
+	}
+	return nil
 }
 
 func serverDataLoop(conn *net.UDPConn, serviceAddr, dtlsPeer *net.UDPAddr, path *linkdata.Path, startup serverStartupSession, stop <-chan os.Signal) error {
