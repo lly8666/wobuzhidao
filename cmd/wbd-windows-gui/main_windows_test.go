@@ -55,20 +55,22 @@ func (exitTestTickets) Read(string) (string, error) {
 
 func exitTestProfile() windowsruntime.Profile {
 	return windowsruntime.Profile{
-		BinDir:      `C:\Program Files\WBD`,
-		ServerFront: "198.51.100.10:40443",
-		ServerName:  "front.example",
-		RouteKey:    "0123456789abcdef",
-		Username:    "solo",
-		Password:    "shared-password",
-		ServerRaw:   "198.51.100.10:40000",
-		FEC:         "off",
-		IfName:      "WBD",
-		MTU:         1400,
-		RouteMode:   "Full",
-		TunnelIPv4:  "10.66.0.2/30",
-		TicketPath:  `C:\ProgramData\WBD\ticket.tmp`,
-		RouteState:  `C:\ProgramData\WBD\route-state.json`,
+		BinDir:           `C:\Program Files\WBD`,
+		ServerFront:      "198.51.100.10:40443",
+		ServerName:       "front.example",
+		RouteKey:         "0123456789abcdef",
+		Username:         "solo",
+		Password:         "shared-password",
+		ServerRaw:        "198.51.100.10:40443",
+		FEC:              "off",
+		IfName:           "WBD",
+		MTU:              1400,
+		RouteMode:        "Full",
+		InstallationID:   "00112233445566778899aabbccddeeff",
+		TunnelIPv4:       "10.66.0.2/30",
+		TicketPath:       `C:\ProgramData\WBD\ticket.tmp`,
+		TunnelConfigPath: `C:\ProgramData\WBD\tunnel-config.json`,
+		RouteState:       `C:\ProgramData\WBD\route-state.json`,
 	}
 }
 
