@@ -34,10 +34,20 @@ jobs:
       - name: Apply implementation
         shell: pwsh
         run: python tools/apply_windows_routing_policy.py
+      - name: Refresh stale Windows test fixture
+        shell: pwsh
+        run: |
+          $path = 'cmd/wbd-windows-gui/main_windows_test.go'
+          $text = [IO.File]::ReadAllText($path)
+          $old = 'ServerRaw:   "198.51.100.10:40000"'
+          $new = 'ServerRaw:   "198.51.100.10:40443"'
+          if (([regex]::Matches($text, [regex]::Escape($old))).Count -ne 1) { throw 'expected stale exit-test ServerRaw fixture exactly once' }
+          $text = $text.Replace($old, $new)
+          [IO.File]::WriteAllText($path, $text, (New-Object Text.UTF8Encoding($false)))
       - name: Format and inspect
         shell: pwsh
         run: |
-          gofmt -w internal/ipset/update.go internal/ipset/update_test.go internal/windowsruntime/routing_policy.go internal/windowsruntime/routing_policy_test.go internal/windowsruntime/plan.go internal/windowsruntime/controller.go internal/windowsgui/config.go internal/windowsgui/routing_config.go internal/windowsgui/routing_config_test.go cmd/wbd-windows-gui/main_windows.go
+          gofmt -w internal/ipset/update.go internal/ipset/update_test.go internal/windowsruntime/routing_policy.go internal/windowsruntime/routing_policy_test.go internal/windowsruntime/plan.go internal/windowsruntime/controller.go internal/windowsgui/config.go internal/windowsgui/routing_config.go internal/windowsgui/routing_config_test.go cmd/wbd-windows-gui/main_windows.go cmd/wbd-windows-gui/main_windows_test.go
           git diff --check
           git status --short
       - name: Go routing tests
