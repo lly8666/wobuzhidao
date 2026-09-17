@@ -1,0 +1,3 @@
+BASELINE_SHA=4004e29d7c346f264fd486bbaff8e57c73dea7c3
+PURPOSE=latest-baseline recovery A/B fixture trigger
+RECOVERY_MODE_UNDER_TEST=sack-rack
