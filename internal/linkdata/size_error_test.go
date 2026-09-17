@@ -15,8 +15,8 @@ func TestSizeFailureIdentifiesDirectionAndPreservesSentinel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = p.Encode(make([]byte, 1401), time.Now())
-	if !errors.Is(err, fec.ErrPacketTooLarge) || !strings.Contains(err.Error(), "encode: input_bytes=1401") {
+	_, err = p.Encode(make([]byte, maxLinkDatagramLen+1), time.Now())
+	if !errors.Is(err, fec.ErrPacketTooLarge) || !strings.Contains(err.Error(), "encode: input_bytes=65536") {
 		t.Fatalf("missing encode context: %v", err)
 	}
 	_, err = p.Decode(make([]byte, 1401))
