@@ -27,6 +27,9 @@ func newPacketEndpoint() *packetEndpoint {
 func (e *packetEndpoint) ReadPacket(p []byte) (int, error) {
 	select {
 	case b := <-e.in:
+		if len(b) > len(p) {
+			return 0, io.ErrShortBuffer
+		}
 		copy(p, b)
 		return len(b), nil
 	case <-e.closed:
@@ -123,23 +126,52 @@ func TestBridgeBidirectionalAndStats(t *testing.T) {
 	}
 }
 
-func TestBridgeDropsOversize(t *testing.T) {
-	tun := newPacketEndpoint()
-	netep := newPacketEndpoint()
-	b := &Bridge{TUN: tun, Transport: netep, MTU: 576}
+func TestBridgeCarriesLogicalPacketAboveInterfaceMTU(t *testing.T) {
+	for _, outbound := range []bool{true, false} {
+		t.Run(map[bool]string{true: "tun-to-network", false: "network-to-tun"}[outbound], func(t *testing.T) {
+			tun := newPacketEndpoint()
+			netep := newPacketEndpoint()
+			b := &Bridge{TUN: tun, Transport: netep, MTU: 576}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	done := make(chan Stats, 1)
-	go func() {
-		stats, _ := b.Run(ctx)
-		done <- stats
-	}()
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan Stats, 1)
+			go func() {
+				stats, _ := b.Run(ctx)
+				done <- stats
+			}()
 
-	tun.in <- make([]byte, 577)
-	time.Sleep(20 * time.Millisecond)
-	cancel()
-	stats := <-done
-	if stats.DroppedPackets == 0 {
-		t.Fatalf("expected oversize drop: %+v", stats)
+			packet := make([]byte, 1400)
+			packet[0] = 0x45
+			binary.BigEndian.PutUint16(packet[2:4], uint16(len(packet)))
+			packet[8] = 64
+			packet[9] = 17
+			if outbound {
+				tun.in <- packet
+				select {
+				case got := <-netep.out:
+					if string(got) != string(packet) {
+						t.Fatal("logical packet mismatch")
+					}
+				case <-time.After(time.Second):
+					t.Fatal("logical packet timeout")
+				}
+			} else {
+				netep.in <- packet
+				select {
+				case got := <-tun.out:
+					if string(got) != string(packet) {
+						t.Fatal("logical packet mismatch")
+					}
+				case <-time.After(time.Second):
+					t.Fatal("logical packet timeout")
+				}
+			}
+
+			cancel()
+			stats := <-done
+			if stats.DroppedPackets != 0 {
+				t.Fatalf("packet above interface MTU was dropped: %+v", stats)
+			}
+		})
 	}
 }
