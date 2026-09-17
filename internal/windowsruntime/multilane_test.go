@@ -34,13 +34,14 @@ func TestProductProfileAcceptsOneToFourPublicTransports(t *testing.T) {
 }
 
 func TestProductLaneBootstrapUsesOneSameFlowEndpointPerLane(t *testing.T) {
-	p := testProfile(); p.TunnelIPv4=""; p.Lanes=4
+	p := testProfile(); p.TunnelIPv4=""; p.Lanes=4; p.MTU=1300
 	seenSource := map[string]bool{}
 	for laneID := 1; laneID <= 4; laneID++ {
 		u:=testUnderlay(); u.SourcePort=uint16(windowsDynamicPortMin+laneID)
 		b,err:=BuildLaneBootstrap(p,u,laneID); if err!=nil{t.Fatal(err)}
 		wantLocal := fmt.Sprintf("127.0.0.1:%d", defaultFakeTCPLocalPort+laneID-1)
 		if !argPair(b.FakeTCP.Args,"--local-udp",wantLocal){t.Fatalf("lane %d local UDP args=%v",laneID,b.FakeTCP.Args)}
+		if !argPair(b.FakeTCP.Args,"--connection-mtu","1300"){t.Fatalf("lane %d connection MTU args=%v",laneID,b.FakeTCP.Args)}
 		if !argPair(b.FakeTCP.Args,"--reality-installation-id",p.InstallationID){t.Fatalf("lane %d changed installation identity", laneID)}
 		if !strings.HasSuffix(b.TicketPath,fmt.Sprintf(".lane%d",laneID)) || !strings.HasSuffix(b.TunnelConfigPath,fmt.Sprintf(".lane%d",laneID)){t.Fatalf("lane %d state paths ticket=%q config=%q",laneID,b.TicketPath,b.TunnelConfigPath)}
 		for i, arg := range b.FakeTCP.Args {
