@@ -15,7 +15,9 @@ func TestCarrierConnectionMTUReleaseContract(t *testing.T) {
 	linuxManager := readRepoFile(t, "scripts/linux_server_manager.sh")
 
 	requireContains(t, windowsPlan, `"--connection-mtu", strconv.Itoa(profile.MTU)`, "Windows diagnostic FakeTCP command must fence carrier MTU")
+	requireContains(t, windowsPlan, `"--shadow-recovery", "legacy"`, "Windows diagnostic FakeTCP command must keep legacy recovery")
 	requireContains(t, windowsLanes, `"--connection-mtu", strconv.Itoa(profile.MTU)`, "Windows product lane bootstrap must pass Profile.MTU to FakeTCP")
+	requireContains(t, windowsLanes, `"--shadow-recovery", "legacy"`, "Windows product lane bootstrap must keep legacy recovery")
 	requireContains(t, client, `faketcp.CarrierMTUForIPv4(rawLocal.IP, c.connectionMTU)`, "Windows FakeTCP must apply configured connection MTU")
 	requireContains(t, mux, `faketcp.CarrierMTUForIPv4(la.IP, c.connectionMTU)`, "Linux mux must apply configured connection MTU")
 	requireContains(t, carrier, `if configured < interfaceMTU`, "configured carrier ceiling may only shrink local interface MTU")
