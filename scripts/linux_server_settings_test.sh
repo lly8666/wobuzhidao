@@ -15,12 +15,13 @@ run_manager() { env WBD_ETC="$ETC" WBD_PREFIX="$PREFIX" WBD_RUN="$RUN" sh "$MANA
 
 [ "$(id -u)" -eq 0 ] || { echo 'linux_server_settings_test.sh requires root' >&2; exit 1; }
 
-# A fresh config exposes one public port, one inner-IP MTU, and no historical
-# split-port knobs.
+# A fresh config exposes one public port, one inner-IP MTU, one outer
+# connection-MTU ceiling, and no historical split-port knobs.
 run_manager set WBD_PORT 443 >/tmp/wbd-settings-set.log
 CONFIG=$ETC/server.env
 grep -q "^WBD_PORT='443'$" "$CONFIG"
 grep -q '^WBD_MTU=1360$' "$CONFIG"
+grep -q '^WBD_CONNECTION_MTU=1500$' "$CONFIG"
 if grep -Eq '^WBD_(FRONT|RAW)_PORT=' "$CONFIG"; then
     echo 'fresh config still exposes split public ports' >&2; cat "$CONFIG" >&2; exit 1
 fi
@@ -32,11 +33,14 @@ run_manager set WBD_USERNAME shared-user >/dev/null
 run_manager set WBD_PASSWORD very-secret-password >/dev/null
 run_manager set WBD_ROUTE_KEY 0123456789abcdef0123456789abcdef >/dev/null
 run_manager set WBD_MTU 1280 >/dev/null
+run_manager set WBD_CONNECTION_MTU 1400 >/dev/null
 grep -q "^WBD_MTU='1280'$" "$CONFIG"
+grep -q "^WBD_CONNECTION_MTU='1400'$" "$CONFIG"
 out=$(run_manager show-config)
 printf '%s\n' "$out" | grep -q '^WBD_PASSWORD=<redacted>$'
 printf '%s\n' "$out" | grep -q '^WBD_ROUTE_KEY=<redacted>$'
 printf '%s\n' "$out" | grep -q "^WBD_MTU='1280'$"
+printf '%s\n' "$out" | grep -q "^WBD_CONNECTION_MTU='1400'$"
 if printf '%s\n' "$out" | grep -q 'very-secret-password'; then echo 'show-config leaked password' >&2; exit 1; fi
 
 # Invalid or obsolete settings fail instead of being silently accepted.
@@ -53,10 +57,15 @@ if run_manager set WBD_MTU 1461 >/tmp/wbd-settings-bad.log 2>&1; then echo 'WBD_
 # Restore the supported value after failed set attempts: set writes first, then
 # validates, so an invalid value intentionally remains visible for repair.
 run_manager set WBD_MTU 1280 >/dev/null
+if run_manager set WBD_CONNECTION_MTU 575 >/tmp/wbd-settings-bad.log 2>&1; then echo 'WBD_CONNECTION_MTU=575 unexpectedly accepted' >&2; exit 1; fi
+run_manager set WBD_CONNECTION_MTU 1400 >/dev/null
+if run_manager set WBD_CONNECTION_MTU 9001 >/tmp/wbd-settings-bad.log 2>&1; then echo 'WBD_CONNECTION_MTU=9001 unexpectedly accepted' >&2; exit 1; fi
+run_manager set WBD_CONNECTION_MTU 1400 >/dev/null
 if run_manager set WBD_FRONT_PORT 443 >/tmp/wbd-settings-bad.log 2>&1; then echo 'obsolete WBD_FRONT_PORT unexpectedly accepted' >&2; exit 1; fi
 
 # Historical equal-port config remains readable for a zero-surprise migration.
-# Missing WBD_MTU is backward-compatible and defaults to the product inner MTU.
+# Missing WBD_MTU/WBD_CONNECTION_MTU are backward-compatible and default at
+# runtime to the product inner/outer ceilings.
 rm -rf "$ETC"; mkdir -p "$ETC"
 cat >"$ETC/server.env" <<'EOF'
 WBD_LISTEN_IP=0.0.0.0
@@ -77,8 +86,10 @@ if run_manager show-config >/tmp/wbd-settings-legacy-diff.log 2>&1; then echo 'd
 grep -q 'legacy WBD_FRONT_PORT/WBD_RAW_PORT differ' /tmp/wbd-settings-legacy-diff.log
 run_manager set WBD_PORT 8443 >/dev/null
 run_manager set WBD_MTU 1280 >/dev/null
+run_manager set WBD_CONNECTION_MTU 1234 >/dev/null
 grep -q "^WBD_PORT='8443'$" "$ETC/server.env"
 grep -q "^WBD_MTU='1280'$" "$ETC/server.env"
+grep -q "^WBD_CONNECTION_MTU='1234'$" "$ETC/server.env"
 if grep -Eq '^WBD_(FRONT|RAW)_PORT=' "$ETC/server.env"; then echo 'explicit WBD_PORT migration left legacy keys behind' >&2; exit 1; fi
 
 # Current product authority: single-flow is PER Transport Lane. One Logical
@@ -151,10 +162,13 @@ grep -q 'max_tunnel_lanes=4' /tmp/wbd-settings-wildcard.log
 grep -q 'shared_tun=127.0.0.1:49100' /tmp/wbd-settings-wildcard.log
 grep -q 'game=127.0.0.1:48500' /tmp/wbd-settings-wildcard.log
 grep -q 'inner_mtu=1280' /tmp/wbd-settings-wildcard.log
+grep -q 'connection_mtu=1234' /tmp/wbd-settings-wildcard.log
 grep -q '^--front-cert$' "$GUARD_LOG"
 grep -q '^--server-name$' "$GUARD_LOG"
 grep -q '^--ticket-dir$' "$GUARD_LOG"
 grep -q '^--tunnel-pool$' "$GUARD_LOG"
+grep -q '^--connection-mtu$' "$GUARD_LOG"
+grep -q '^1234$' "$GUARD_LOG"
 if grep -Eq 'wbd-reality-front"[[:space:]]+server' "$MANAGER"; then echo 'product manager still starts a parallel Reality TCP listener' >&2; exit 1; fi
 
 # Shared gateway owns the one Linux TUN/NAT product boundary and receives the
@@ -179,8 +193,8 @@ grep -q '^127.0.0.1:49100$' "$GAME_LOG"
 grep -q '^-max-lanes$' "$GAME_LOG"
 grep -q '^4$' "$GAME_LOG"
 
-# LINK mux receives the same user-visible inner MTU; it alone converts that
-# value to the immutable LINK plaintext MTU by adding the private Game budget.
+# LINK mux receives both the user-visible inner MTU compatibility value and the
+# exact same outer connection MTU ceiling as FakeTCP admission.
 grep -q '^-listen$' "$LINK_LOG"
 grep -q '^127.0.0.1:47000$' "$LINK_LOG"
 grep -q '^-service$' "$LINK_LOG"
@@ -189,13 +203,15 @@ grep -q '^-raw-ip-service$' "$LINK_LOG"
 grep -q '^127.0.0.1:49100$' "$LINK_LOG"
 grep -q '^-mtu$' "$LINK_LOG"
 grep -q '^1280$' "$LINK_LOG"
+grep -q '^-connection-mtu$' "$LINK_LOG"
+grep -q '^1234$' "$LINK_LOG"
 
 run_start=$(awk '/^run_server\(\) \{/{on=1} /^uninstall_files\(\) \{/{on=0} on{print}' "$MANAGER")
 printf '%s\n' "$run_start" | grep -Fq 'wbd-ip-gateway-shared" -listen "$WBD_SHARED_TUN_LISTEN"'
 printf '%s\n' "$run_start" | grep -Fq -- '-tun-if "$WBD_SHARED_TUN_IF" -mtu "$WBD_MTU"'
 printf '%s\n' "$run_start" | grep -Fq 'wbd-game-lane-server" -listen "$WBD_GAME_LISTEN" -service "$WBD_SHARED_TUN_LISTEN"'
 printf '%s\n' "$run_start" | grep -Fq 'wbd-link-server-mux" -listen "$WBD_LINK_LISTEN" -service "$WBD_GAME_LISTEN" -raw-ip-service "$WBD_SHARED_TUN_LISTEN"'
-printf '%s\n' "$run_start" | grep -Fq -- '-max-sessions "$WBD_MAX_SESSIONS" -mtu "$WBD_MTU"'
+printf '%s\n' "$run_start" | grep -Fq -- '-max-sessions "$WBD_MAX_SESSIONS" -mtu "$WBD_MTU" -connection-mtu "$WBD_CONNECTION_MTU"'
 if printf '%s\n' "$run_start" | grep -q 'wbd-platform-proxy-server'; then echo 'product manager still starts legacy platform proxy' >&2; exit 1; fi
 
 # The systemd unit must rely on normal control-group termination and cap storms.
@@ -203,4 +219,4 @@ if grep -q 'ExecStop=/bin/kill' "$MANAGER"; then echo 'manager still emits fragi
 grep -q 'StartLimitBurst=5' "$MANAGER"
 grep -q 'KillMode=control-group' "$MANAGER"
 
-echo 'WBD_LINUX_SERVER_SETTINGS_PASS shared_public_raw_mux=1 per_lane_single_flow=1 max_tunnel_lanes=4 game_product=1 shared_tun=1 host_nat=1 inner_mtu=1280 link_config_inner_mtu=1280 wildcard_raw_ipv4=resolved restart_storm=capped migration=fail_closed secrets=redacted'
+echo 'WBD_LINUX_SERVER_SETTINGS_PASS shared_public_raw_mux=1 per_lane_single_flow=1 max_tunnel_lanes=4 game_product=1 shared_tun=1 host_nat=1 inner_mtu=1280 connection_mtu=1234 link_connection_mtu=1234 wildcard_raw_ipv4=resolved restart_storm=capped migration=fail_closed secrets=redacted'
