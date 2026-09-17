@@ -17,6 +17,37 @@ func TestDefaultConnectionMTUIsConfigurableCeiling(t *testing.T) {
 	}
 }
 
+func TestGameConnectionMTUBudgetTracksConfiguredValueAndFEC(t *testing.T) {
+	// These are representative inputs, not product constants. The contract is
+	// that every derived MTU follows the configured connection MTU and feature
+	// overhead instead of being frozen to one qualification value.
+	for _, fecMode := range []string{"off", "20:4", "20:20"} {
+		low, err := gameConnectionMTUBudget(1300, fecMode)
+		if err != nil {
+			t.Fatal(err)
+		}
+		high, err := gameConnectionMTUBudget(1500, fecMode)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if high.ConnectionMTU-low.ConnectionMTU != 200 || high.LinkPlaintextMTU-low.LinkPlaintextMTU != 200 || high.InnerMTU-low.InnerMTU != 200 {
+			t.Fatalf("fec=%s budget did not track configured MTU: low=%+v high=%+v", fecMode, low, high)
+		}
+	}
+
+	off, err := gameConnectionMTUBudget(1400, "off")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fec20, err := gameConnectionMTUBudget(1400, "20:20")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fec20.LinkPlaintextMTU >= off.LinkPlaintextMTU || fec20.InnerMTU >= off.InnerMTU {
+		t.Fatalf("FEC overhead was not reflected dynamically: off=%+v fec20=%+v", off, fec20)
+	}
+}
+
 func TestGameLaneDerivesLinkMTUFromConnectionCeiling(t *testing.T) {
 	p := testProfile()
 	p.MTU = 1280
