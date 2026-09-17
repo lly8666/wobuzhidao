@@ -86,8 +86,16 @@ func (v ProfileEditorValues) ApplyToSavedProfile(p SavedProfile) (SavedProfile, 
 	if c.ServerPort, err = parseIntField("服务器端口", v.ServerPort); err != nil {
 		return p, err
 	}
-	c.ServerFront = strings.TrimSpace(v.ServerFront)
-	c.ServerRaw = strings.TrimSpace(v.ServerRaw)
+	// server_front/server_raw are decode-only migration inputs. As soon as the
+	// operator uses the current server_ip + server_port fields, remove the old
+	// endpoint pair so a migrated profile cannot become an invalid mixed form.
+	if c.ServerIP != "" || c.ServerPort != 0 {
+		c.ServerFront = ""
+		c.ServerRaw = ""
+	} else {
+		c.ServerFront = strings.TrimSpace(v.ServerFront)
+		c.ServerRaw = strings.TrimSpace(v.ServerRaw)
+	}
 	c.ServerName = strings.TrimSpace(v.ServerName)
 	c.RouteKey = strings.TrimSpace(v.RouteKey)
 	c.Username = strings.TrimSpace(v.Username)
@@ -119,7 +127,9 @@ func (v ProfileEditorValues) ApplyToSavedProfile(p SavedProfile) (SavedProfile, 
 	if c.LaneRotationMaxSeconds, err = parseOptionalInt("线路轮换最大秒数", v.RotationMax); err != nil {
 		return p, err
 	}
-	c.TunnelIPv4 = strings.TrimSpace(v.TunnelIPv4)
+	// tunnel_ipv4 is server-assigned authenticated state. Preserve compatibility
+	// when reading old files, but never write an operator-edited value back.
+	c.TunnelIPv4 = ""
 	p.Config = c
 	return p, nil
 }
