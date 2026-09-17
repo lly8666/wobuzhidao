@@ -462,11 +462,21 @@ func (s *server) serviceLoop(ps *peerSession, service *net.UDPConn) {
 			fmt.Printf("WBD_LINK_TX_FIRST tunnel_id_prefix=%s bytes=%d backend=%s\n", ps.sid, n, ps.backend)
 		})
 		peerKey, wire, err := s.plane.Outbound(ps.id, buf[:n], now)
-		if err != nil || peerKey != ps.key {
+		if err != nil {
 			ps.drop.Add(1)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_SERVICE_DROP tunnel_id_prefix=%s backend=%s err=%v\n", ps.sid, ps.backend, err)
+			fmt.Fprintf(os.Stderr, "WBD_LINK_SERVER_MUX_SERVICE_DROP tunnel_id_prefix=%s backend=%s bytes=%d err=%v\n", ps.sid, ps.backend, n, err)
+			if errors.Is(err, fec.ErrPacketTooLarge) {
+				// One backend/application datagram exceeding the immutable negotiated
+				// LINK MTU is a per-packet policy violation, not an association failure.
+				// Drop it and keep the backend reader alive so a following legal packet
+				// can still use the established association. Other encoder errors remain
+				// fail-closed below.
+				continue
 			}
+			return
+		}
+		if peerKey != ps.key {
+			ps.drop.Add(1)
 			return
 		}
 		if err := sendWire(s.conn, ps.peer, wire); err != nil {
