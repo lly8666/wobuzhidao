@@ -91,6 +91,7 @@ func BuildLaneBootstrap(profile Profile, base Underlay, laneID int) (LaneBootstr
 		"--local-udp", localUDP,
 		"--source", netip.AddrPortFrom(netip.MustParseAddr(base.SourceIP), base.SourcePort).String(),
 		"--remote", raw.String(),
+		"--connection-mtu", strconv.Itoa(profile.MTU),
 		"--shadow-recovery", "legacy",
 		"--packet-device", base.PacketDevice,
 		"--source-mac", base.SourceMAC,
