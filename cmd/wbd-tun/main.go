@@ -73,7 +73,7 @@ func main() {
 	var (
 		mode               = flag.String("mode", "client", "client or server")
 		ifname             = flag.String("ifname", "wbd0", "TUN interface name")
-		mtu                = flag.Int("mtu", 1400, "maximum IP packet size")
+		mtu                = flag.Int("mtu", 1400, "configured IP-interface MTU; WBD logical packets may be larger and are fragmented below LINK")
 		transport          = flag.String("transport", "127.0.0.1:4090", "client: local UDP transport target")
 		local              = flag.String("local", "", "client: optional local UDP bind address")
 		listen             = flag.String("listen", "127.0.0.1:4091", "server: UDP listen address for decoded transport")
@@ -84,6 +84,16 @@ func main() {
 
 	tunDev, err := tunnel.OpenTUN(*ifname)
 	fatalIf(err)
+	restoreInterfaceMTU, err := configureTunnelInterfaceMTU(tunDev.Name(), *mtu)
+	if err != nil {
+		_ = tunDev.Close()
+		fatalIf(err)
+	}
+	defer func() {
+		if err := restoreInterfaceMTU(); err != nil {
+			fmt.Fprintf(os.Stderr, "WBD_TUN_MTU_RESTORE_WARN error=%q\n", err)
+		}
+	}()
 
 	var tunEndpoint tunnel.Endpoint = tunDev
 	var expectedSource netip.Addr
