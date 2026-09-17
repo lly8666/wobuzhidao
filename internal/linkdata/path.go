@@ -42,18 +42,24 @@ type PathStats struct {
 // lifetime of an association. It deliberately contains no runtime mode switch
 // or config-epoch machinery.
 type Path struct {
-	config   control.LinkConfig
-	enc      *fec.FastBlockEncoder
-	dec      *fec.BlockDecoder
-	recovery *fecRecoveryTracker
-	stats    PathStats
+	config      control.LinkConfig
+	enc         *fec.FastBlockEncoder
+	dec         *fec.BlockDecoder
+	recovery    *fecRecoveryTracker
+	fragmenter  *datagramFragmenter
+	reassembler *datagramReassembler
+	stats       PathStats
 }
 
 func New(config control.LinkConfig, maxBlocks int) (*Path, error) {
 	if err := control.CurrentLinkPolicy().Validate(config); err != nil {
 		return nil, err
 	}
-	p := &Path{config: config}
+	fragmenter, err := newDatagramFragmenter(int(config.MTU))
+	if err != nil {
+		return nil, err
+	}
+	p := &Path{config: config, fragmenter: fragmenter, reassembler: newDatagramReassembler()}
 	if config.FECMode == control.FECOff {
 		return p, nil
 	}
@@ -81,25 +87,27 @@ func (p *Path) Config() control.LinkConfig { return p.config }
 func (p *Path) FECEnabled() bool           { return p.config.FECMode == control.FECFixed }
 func (p *Path) Stats() PathStats           { return p.stats }
 
-// Encode returns datagrams ready for DTLS. In off mode the input datagram is
-// returned directly and remains valid only as long as the caller's input; the
-// product proxy sends it synchronously. In fixed mode returned FEC buffers have
-// the lifetime documented by FastBlockEncoder.
+// Encode returns datagrams ready for DTLS. A legal application datagram keeps
+// the historical zero-copy/zero-wait first-arrival path. An oversized logical
+// datagram is first split into LINK-sized fragment frames; FEC, when enabled,
+// protects those frames independently. This makes LINK MTU a wire-datagram
+// ceiling rather than an application-datagram drop threshold.
 func (p *Path) Encode(packet []byte, now time.Time) ([][]byte, error) {
-	if len(packet) == 0 || len(packet) > int(p.config.MTU) {
-		return nil, fmt.Errorf("linkdata encode: input_bytes=%d configured_mtu=%d: %w", len(packet), p.config.MTU, fec.ErrPacketTooLarge)
+	fragments, err := p.fragmenter.Fragment(packet)
+	if err != nil {
+		return nil, fmt.Errorf("linkdata encode: input_bytes=%d configured_mtu=%d: %w", len(packet), p.config.MTU, err)
 	}
-	var (
-		wire [][]byte
-		err  error
-	)
-	if !p.FECEnabled() {
-		wire = [][]byte{packet}
-	} else {
-		wire, err = p.enc.Add(packet, now)
-		if err != nil {
-			return nil, err
+	wire := make([][]byte, 0, len(fragments))
+	for _, fragment := range fragments {
+		if !p.FECEnabled() {
+			wire = append(wire, fragment)
+			continue
 		}
+		encoded, err := p.enc.Add(fragment, now)
+		if err != nil {
+			return nil, fmt.Errorf("linkdata encode fragment_bytes=%d configured_mtu=%d: %w", len(fragment), p.config.MTU, err)
+		}
+		wire = append(wire, encoded...)
 	}
 	p.stats.InnerTXPackets++
 	p.stats.InnerTXBytes += uint64(len(packet))
@@ -155,10 +163,10 @@ func (p *Path) recordWireTX(wire [][]byte) {
 	}
 }
 
-// Decode returns first-complete original datagrams. Off mode is a zero-wait
-// packet-preserving pass-through. Fixed mode preserves the existing WBD rule:
-// surviving systematic sources can be returned immediately while missing ones
-// are returned at their earliest FEC reconstruction time.
+// Decode returns first-complete original application datagrams. FEC recovery
+// happens before logical fragment reassembly, so one lost fragment can still be
+// reconstructed from parity. Ordinary non-fragmented traffic remains a direct
+// pass-through.
 func (p *Path) Decode(wire []byte) ([][]byte, error) {
 	return p.decodeAt(wire, time.Now())
 }
@@ -170,17 +178,17 @@ func (p *Path) decodeAt(wire []byte, now time.Time) ([][]byte, error) {
 	p.stats.WireRXPackets++
 	p.stats.WireRXBytes += uint64(len(wire))
 	var (
-		packets [][]byte
-		err     error
+		candidates [][]byte
+		err        error
 	)
 	if !p.FECEnabled() {
 		if len(wire) > int(p.config.MTU) {
 			return nil, fmt.Errorf("linkdata decode off: wire_bytes=%d configured_mtu=%d: %w", len(wire), p.config.MTU, fec.ErrPacketTooLarge)
 		}
-		packets = [][]byte{wire}
+		candidates = [][]byte{wire}
 	} else {
 		p.expireFECRecovery(now)
-		packets, _, err = p.dec.Add(wire)
+		candidates, _, err = p.dec.Add(wire)
 		if err == nil && len(wire) >= 8 && p.recovery != nil {
 			blockID := binary.BigEndian.Uint32(wire[4:8])
 			if p.dec.IsHeavyBlock(blockID) {
@@ -194,7 +202,17 @@ func (p *Path) decodeAt(wire []byte, now time.Time) ([][]byte, error) {
 			return nil, fmt.Errorf("linkdata decode: wire_bytes=%d configured_mtu=%d: %w", len(wire), p.config.MTU, err)
 		}
 	}
-	for _, packet := range packets {
+
+	packets := make([][]byte, 0, len(candidates))
+	for _, candidate := range candidates {
+		packet, complete, err := p.reassembler.Push(candidate, now)
+		if err != nil {
+			return nil, fmt.Errorf("linkdata reassemble: wire_bytes=%d configured_mtu=%d: %w", len(wire), p.config.MTU, err)
+		}
+		if !complete {
+			continue
+		}
+		packets = append(packets, packet)
 		p.stats.InnerRXPackets++
 		p.stats.InnerRXBytes += uint64(len(packet))
 	}
