@@ -5,7 +5,8 @@ import "testing"
 // The operator-visible Windows MTU is the outer connection ceiling. It must
 // reach FakeTCP before DTLS so a WAN PMTU below the local NIC MTU cannot create
 // full-interface-sized carrier fragments. Linux keeps its historical WBD_MTU
-// as inner IP MTU and exposes a distinct outer connection ceiling.
+// as inner IP MTU and exposes a distinct outer connection ceiling. The same
+// connection ceiling must reach both FakeTCP and LINK admission.
 func TestCarrierConnectionMTUReleaseContract(t *testing.T) {
 	windowsPlan := readRepoFile(t, "internal/windowsruntime/plan.go")
 	windowsLanes := readRepoFile(t, "internal/windowsruntime/multilane.go")
@@ -27,6 +28,7 @@ func TestCarrierConnectionMTUReleaseContract(t *testing.T) {
 	requireContains(t, linuxManager, `WBD_CONNECTION_MTU=1500`, "Linux explicit outer connection MTU setting")
 	requireContains(t, linuxManager, `WBD_CONNECTION_MTU must be numeric`, "Linux outer connection MTU validation")
 	requireContains(t, linuxManager, `WBD_CONNECTION_MTU must be 576..9000`, "Linux outer connection MTU range validation")
+	requireContains(t, linuxManager, `-mtu "$WBD_MTU" -connection-mtu "$WBD_CONNECTION_MTU"`, "Linux manager must pass outer connection MTU to LINK admission")
 	requireContains(t, linuxManager, `--connection-mtu "$WBD_CONNECTION_MTU"`, "Linux manager must pass outer connection MTU to FakeTCP mux")
 	requireContains(t, linuxManager, `WBD_MTU (inner IP MTU, 576..1460)`, "Linux WBD_MTU must remain inner IP MTU")
 }
