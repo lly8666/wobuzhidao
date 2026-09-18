@@ -219,6 +219,11 @@ func (h *directHandler) handleUDP(origin adapter.UDPConn) {
 		return
 	}
 	remote := &net.UDPAddr{IP: net.IP(dst.Unmap().AsSlice()), Port: int(id.LocalPort)}
+	ifIndex := h.interfaceIndex()
+	if ifIndex == 0 {
+		fmt.Fprintf(os.Stderr, "WBD_TUN_DIRECT_UDP_OPEN_FAIL dst=%s error=%q\n", remote, "physical interface unavailable")
+		return
+	}
 	pc, err := h.d.ListenPacketWithOptions("udp4", "0.0.0.0:0", &dialer.Options{InterfaceIndex: ifIndex})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "WBD_TUN_DIRECT_UDP_OPEN_FAIL dst=%s ifindex=%d error=%q\n", remote, ifIndex, err)
