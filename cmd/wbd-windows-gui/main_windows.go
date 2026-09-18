@@ -329,7 +329,7 @@ func createLegacyControls(hwnd uintptr) {
 		status = "Status: disconnected; profile invalid"
 	}
 	app.status = createControl(hwnd, "STATIC", status, 24, 22, 710, 30, 0)
-	createControl(hwnd, "STATIC", "WBD blocks all device IPv6 while connected. Minimize/X keeps VPN running. Routing choices below apply on the next Connect; CN ranges auto-refresh from APNIC when classification is needed.", 24, 56, 710, 44, 0)
+	createControl(hwnd, "STATIC", "WBD blocks all device IPv6 while connected. Minimize/X keeps VPN running. Routing choices below apply on the next Connect; mainland-China IPv4 classification uses the verified portable baseline shipped beside WBD and does not require an online refresh.", 24, 56, 710, 44, 0)
 	policy := windowsruntime.RoutingPolicy{ProxyLAN: false, ProxyChina: true, ProxyOther: true}
 	if app.profileReady {
 		policy = app.profile.EffectiveRoutingPolicy()
