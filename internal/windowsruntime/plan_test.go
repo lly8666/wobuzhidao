@@ -59,17 +59,30 @@ func TestProfileAllowsTunnelAddressToBeEmptyUntilAuthenticatedBootstrap(t *testi
 	if _,err:=BuildPlan(p,testUnderlay(),strings.Repeat("ab",32));err==nil||!strings.Contains(err.Error(),"authenticated tunnel IPv4"){t.Fatalf("runtime plan accepted missing authenticated address: %v",err)}
 }
 
-func TestBuildPlanForeignAndChinaPoliciesUseVerifiedCNBundle(t *testing.T) {
+func TestBuildPlanForeignAndChinaPoliciesUseVerifiedCNBundleInsideTun(t *testing.T) {
 	dir:=t.TempDir();if _,err:=ipset.WriteCNBundle(dir,"test",[]netip.Prefix{netip.MustParsePrefix("1.2.0.0/16")});err!=nil{t.Fatal(err)}
+	cn4:=filepath.Join(dir,ipset.CNIPv4File)
+
 	foreign:=testProfile();foreign.RouteMode=RouteForeign;foreign.CNSetDir=dir
 	p,err:=BuildPlan(foreign,testUnderlay(),strings.Repeat("ab",32));if err!=nil{t.Fatal(err)}
-	cn4:=filepath.Join(dir,ipset.CNIPv4File)
-	if !argPair(p.RouteApply.Args,"-Mode","Full")||!argPair(p.RouteApply.Args,"-DirectPrefixFile4",cn4){t.Fatalf("Foreign route args = %v",p.RouteApply.Args)}
+	if !argPair(p.RouteApply.Args,"-Mode","Full") || !slices.Contains(p.RouteApply.Args,"-CaptureLAN") {t.Fatalf("Foreign host route args = %v",p.RouteApply.Args)}
+	if slices.Contains(p.RouteApply.Args,"-DirectPrefixFile4") || slices.Contains(p.RouteApply.Args,"-PrefixFile4") {t.Fatalf("Foreign leaked CN routes = %v",p.RouteApply.Args)}
+	if !slices.Contains(p.TUN.Args,"-proxy-china=false") || !slices.Contains(p.TUN.Args,"-proxy-other=true") || !argPair(p.TUN.Args,"-cn4",cn4) {t.Fatalf("Foreign TUN split args = %v",p.TUN.Args)}
 	if !argPair(p.RouteApply.Args,"-DNSServer","1.1.1.1,1.0.0.1"){t.Fatalf("Foreign Auto DNS must stay inside WBD: %v",p.RouteApply.Args)}
+
 	china:=testProfile();china.RouteMode=RouteChina;china.CNSetDir=dir
 	p,err=BuildPlan(china,testUnderlay(),strings.Repeat("ab",32));if err!=nil{t.Fatal(err)}
-	if !argPair(p.RouteApply.Args,"-Mode","Split")||!argPair(p.RouteApply.Args,"-PrefixFile4",cn4){t.Fatalf("China route args = %v",p.RouteApply.Args)}
+	if !argPair(p.RouteApply.Args,"-Mode","Full") || !slices.Contains(p.RouteApply.Args,"-CaptureLAN") {t.Fatalf("China host route args = %v",p.RouteApply.Args)}
+	if slices.Contains(p.RouteApply.Args,"-DirectPrefixFile4") || slices.Contains(p.RouteApply.Args,"-PrefixFile4") {t.Fatalf("China leaked CN routes = %v",p.RouteApply.Args)}
+	if !slices.Contains(p.TUN.Args,"-proxy-china=true") || !slices.Contains(p.TUN.Args,"-proxy-other=false") || !argPair(p.TUN.Args,"-cn4",cn4) {t.Fatalf("China TUN split args = %v",p.TUN.Args)}
 	if slices.Contains(p.RouteApply.Args,"-DNSServer"){t.Fatalf("China Auto DNS should keep the system resolver: %v",p.RouteApply.Args)}
+}
+
+func TestBuildPlanDirectPolicyRequiresPhysicalInterface(t *testing.T) {
+	p:=testProfile()
+	u:=testUnderlay()
+	u.InterfaceIndex=0
+	if _,err:=BuildPlan(p,u,strings.Repeat("ab",32));err==nil||!strings.Contains(err.Error(),"physical interface index"){t.Fatalf("direct split accepted missing physical interface: %v",err)}
 }
 
 func TestBuildPlanRejectsTamperedCNBundle(t *testing.T) {
