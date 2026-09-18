@@ -245,6 +245,11 @@ start_replacement_lane() {
   wait_count_gt "WBD_GAME_LANE_QUALIFIED.*lane=${lane}" "$LOG_DIR/game-server.log" "$before_server_qualified" 100
   echo "WBD_HOSTED_GAME_QUALIFICATION_PASS lane=${lane} old_port=${old_lport} candidate_port=${new_lport}" >>"$LOG_DIR/rotation.log"
 
+  # Match the product runtime's bounded post-qualification drain. On the
+  # supported 300ms-one-way weak path, 100ms closed A before delayed Game/FEC
+  # payload had any realistic chance to arrive.
+  sleep 3
+
   game_control_cutover commit "$lane" "$old_lport" "$new_lport" >>"$LOG_DIR/rotation.log" 2>&1
   observe_marker 'WBD_GAME_LANE_UNBIND.*reason=client_leave' "$LOG_DIR/game-server.log" "$before_leave" 40 game_client_leave
   retire_old_transport "$old_link" "$old_dtls" "$old_fake" "$old_sport"
