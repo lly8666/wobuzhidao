@@ -15,7 +15,9 @@ on:
       - 'internal/dataplane/**'
       - 'scripts/windows_tun_route.ps1'
       - 'scripts/windows_tun_dataplane_probe.go'
+      - 'scripts/windows_tun_split_probe.go'
       - 'scripts/windows_npcap_ephemeral_ci.ps1'
+      - 'scripts/windows_npcap_driver_ci.ps1'
 
 permissions:
   contents: read
@@ -70,6 +72,8 @@ jobs:
           if($LASTEXITCODE){throw 'wbd-tun build failed'}
           go build -trimpath -o (Join-Path $env:RUNNER_TEMP 'wbd-tun-dataplane-probe.exe') ./scripts/windows_tun_dataplane_probe.go
           if($LASTEXITCODE){throw 'dataplane probe build failed'}
+          go build -trimpath -o (Join-Path $env:RUNNER_TEMP 'wbd-tun-split-probe.exe') ./scripts/windows_tun_split_probe.go
+          if($LASTEXITCODE){throw 'split probe build failed'}
           Write-Output "WBD_WINDOWS_WINTUN_ASSET_PASS sha256=$got"
       - name: Run real administrator Wintun bidirectional dataplane
         shell: pwsh
@@ -128,6 +132,78 @@ jobs:
             if($proc -and -not $proc.HasExited){Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue}
           }
 
+      - name: Qualify real in-TUN direct and proxy TCP UDP behavior
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $exe=Join-Path $env:RUNNER_TEMP 'wbd-tun.exe'
+          $probeExe=Join-Path $env:RUNNER_TEMP 'wbd-tun-split-probe.exe'
+          $tcpIP=([System.Net.Dns]::GetHostAddresses('github.com') | Where-Object {$_.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetwork} | Select-Object -First 1)
+          if(-not $tcpIP){throw 'no IPv4 address resolved for github.com before Wintun capture'}
+          $tcpTarget=('{0}:443' -f $tcpIP.IPAddressToString)
+          $best=@(Find-NetRoute -RemoteIPAddress $tcpIP.IPAddressToString | Where-Object {$_.PSObject.Properties.Name -contains 'NextHop'} | Select-Object -First 1)
+          if(-not $best){throw "no pre-Wintun physical route to $($tcpIP.IPAddressToString)"}
+          $physicalIf=[uint32]$best.InterfaceIndex
+          if($physicalIf-eq0){throw 'physical interface index is zero'}
+          $dnsIP=@(Get-DnsClientServerAddress -InterfaceIndex $physicalIf -AddressFamily IPv4 -ErrorAction SilentlyContinue | ForEach-Object {$_.ServerAddresses} | Where-Object {$_ -match '^\d{1,3}(\.\d{1,3}){3}$' -and $_ -notmatch '^127\.'} | Select-Object -First 1)
+          if(-not $dnsIP){$dnsIP='1.1.1.1'}
+          $udpTarget=('{0}:53' -f $dnsIP)
+          Write-Output "WBD_WINDOWS_TUN_SPLIT_TARGETS physical_if=$physicalIf tcp=$tcpTarget udp=$udpTarget"
+
+          function Wait-Marker($proc,[string]$path,[string]$pattern,[string]$label,[int]$loops=150) {
+            for($i=0;$i-lt$loops;$i++){
+              if($proc.HasExited){break}
+              if((Test-Path -LiteralPath $path)-and((Get-Content -LiteralPath $path -Raw)-match$pattern)){return}
+              Start-Sleep -Milliseconds 100
+            }
+            if(Test-Path -LiteralPath $path){Get-Content -LiteralPath $path}
+            throw "$label did not become ready"
+          }
+          function Run-SplitCase([string]$name,[bool]$direct,[int]$port) {
+            $ifName="WBD$($name.ToUpperInvariant())"
+            $state=Join-Path $env:RUNNER_TEMP "wbd-$name-route-state.json"
+            $tunOut=Join-Path $env:RUNNER_TEMP "wbd-$name-tun.stdout.log"
+            $tunErr=Join-Path $env:RUNNER_TEMP "wbd-$name-tun.stderr.log"
+            $obsOut=Join-Path $env:RUNNER_TEMP "wbd-$name-observer.stdout.log"
+            $obsErr=Join-Path $env:RUNNER_TEMP "wbd-$name-observer.stderr.log"
+            $transport="127.0.0.1:$port"
+            $expectation=if($direct){'forbid'}else{'expect'}
+            $observer=$null
+            $tun=$null
+            try {
+              $observer=Start-Process -FilePath $probeExe -ArgumentList @('-mode','observer','-transport',$transport,'-expectation',$expectation,'-tcp-target',$tcpTarget,'-udp-target',$udpTarget,'-timeout','15s') -PassThru -RedirectStandardOutput $obsOut -RedirectStandardError $obsErr
+              Wait-Marker $observer $obsOut 'WBD_WINDOWS_TUN_SPLIT_OBSERVER_READY' "$name observer"
+              $args=@('-mode','client','-ifname',$ifName,'-mtu','1400','-transport',$transport,'-proxy-lan='+(-not$direct).ToString().ToLowerInvariant(),'-proxy-china='+(-not$direct).ToString().ToLowerInvariant(),'-proxy-other='+(-not$direct).ToString().ToLowerInvariant(),'-direct-ifindex',"$physicalIf",'-route-state',$state,'-run-for','90s')
+              $tun=Start-Process -FilePath $exe -ArgumentList $args -PassThru -RedirectStandardOutput $tunOut -RedirectStandardError $tunErr
+              Wait-Marker $tun $tunErr 'WBD_TUN_SPLIT_READY' "$name wbd-tun"
+              & ./scripts/windows_tun_route.ps1 -Action Apply -Mode Full -CaptureLAN -AdapterAlias $ifName -TunnelAddress4 '10.66.10.2/30' -Underlay4 '192.0.2.254' -MTU 1400 -StatePath $state
+              if($LASTEXITCODE){throw "$name route apply failed"}
+              $routeState=Get-Content -LiteralPath $state -Raw | ConvertFrom-Json
+              if([uint32]$routeState.PhysicalInterfaceIndex-ne$physicalIf){throw "$name route-state physical ifindex=$($routeState.PhysicalInterfaceIndex) want=$physicalIf"}
+              $clientArgs=@('-mode','client','-tcp-target',$tcpTarget,'-udp-target',$udpTarget,'-timeout',$(if($direct){'5s'}else{'2s'}))
+              if($direct){$clientArgs+='-require-success'}
+              & $probeExe @clientArgs
+              if($LASTEXITCODE){throw "$name application probe failed"}
+              if(-not$observer.WaitForExit(18000)){throw "$name observer did not finish"}
+              $observer.Refresh()
+              if($observer.ExitCode-ne0){if(Test-Path $obsErr){Get-Content $obsErr};throw "$name observer exited $($observer.ExitCode)"}
+              $obsText=Get-Content -LiteralPath $obsOut -Raw
+              $want=if($direct){'WBD_WINDOWS_TUN_SPLIT_OBSERVER_PASS expectation=forbid tcp=0 udp=0'}else{'WBD_WINDOWS_TUN_SPLIT_OBSERVER_PASS expectation=expect tcp=1 udp=1'}
+              if($obsText-notmatch[regex]::Escape($want)){Get-Content $obsOut;throw "$name observer pass marker missing"}
+              Get-Content $obsOut
+              Get-Content $tunErr
+              Write-Output "WBD_WINDOWS_TUN_SPLIT_CASE_PASS case=$name direct=$([int]$direct) tcp=1 udp=1 physical_if=$physicalIf"
+            } finally {
+              try { & ./scripts/windows_tun_route.ps1 -Action Cleanup -StatePath $state 2>$null | Out-Null } catch {}
+              if($observer-and-not$observer.HasExited){Stop-Process -Id $observer.Id -Force -ErrorAction SilentlyContinue}
+              if($tun-and-not$tun.HasExited){Stop-Process -Id $tun.Id -Force -ErrorAction SilentlyContinue}
+            }
+          }
+
+          Run-SplitCase 'direct' $true 49998
+          Run-SplitCase 'proxy' $false 49997
+          Write-Output 'WBD_WINDOWS_TUN_SPLIT_REAL_PASS direct_tcp=1 direct_udp=1 proxy_transport_tcp=1 proxy_transport_udp=1'
+
   wsl-runtime:
     name: wsl-runtime
     runs-on: windows-latest
@@ -158,42 +234,42 @@ jobs:
   npcap-required-readiness:
     name: npcap-required-readiness
     runs-on: windows-latest
-    timeout-minutes: 8
-    env:
-      NPCAP_INSTALLER_URL: ${{ secrets.NPCAP_INSTALLER_URL }}
-      NPCAP_INSTALLER_SHA256: ${{ secrets.NPCAP_INSTALLER_SHA256 }}
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Reuse preinstalled or install authorized Npcap
+      - name: Install pinned signed ephemeral Npcap 1.88 runtime
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
-          $svc=Get-Service -Name npcap -ErrorAction SilentlyContinue
-          $root=Join-Path $env:SystemRoot 'System32\Npcap'
-          $runtimeReady=$svc -and (Test-Path (Join-Path $root 'wpcap.dll')) -and (Test-Path (Join-Path $root 'Packet.dll'))
-          if($runtimeReady){
-            Write-Output 'WBD_NPCAP_READY mode=preinstalled'
-            .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Install -InstallerPath (Join-Path $env:RUNNER_TEMP 'unused.exe') -InstallerSHA256 ''
-            .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Status
-            exit 0
-          }
-          if([string]::IsNullOrWhiteSpace($env:NPCAP_INSTALLER_URL) -or [string]::IsNullOrWhiteSpace($env:NPCAP_INSTALLER_SHA256)){
-            Write-Error 'WBD_NPCAP_UNAVAILABLE: windows-latest has no Npcap and authorized NPCAP_INSTALLER_URL/NPCAP_INSTALLER_SHA256 secrets are not configured. Full Npcap physical-path soak cannot be truthfully executed on this runner.'
-            exit 1
-          }
-          if($env:NPCAP_INSTALLER_SHA256 -notmatch '^[0-9A-Fa-f]{64}$'){throw 'NPCAP_INSTALLER_SHA256 must be 64 hex characters'}
-          $uri=[Uri]$env:NPCAP_INSTALLER_URL
-          if($uri.Scheme -ne 'https'){throw 'NPCAP_INSTALLER_URL must use HTTPS'}
-          $installer=Join-Path $env:RUNNER_TEMP 'npcap-authorized.exe'
-          Invoke-WebRequest -UseBasicParsing -Uri $uri.AbsoluteUri -OutFile $installer
-          if(-not (Test-Path $installer)){throw 'authorized Npcap installer download failed'}
-          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Install -InstallerPath $installer -InstallerSHA256 $env:NPCAP_INSTALLER_SHA256
-          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Status
-          Write-Output 'WBD_NPCAP_READY mode=authorized-installer'
-      - name: Cleanup only job-installed Npcap
+          $driverUrl='https://github.com/user-attachments/files/32200327/npcap.zip'
+          $driverZip=Join-Path $env:RUNNER_TEMP 'npcap-test.zip'
+          $driverDir=Join-Path $env:RUNNER_TEMP 'npcap-test'
+          Invoke-WebRequest -UseBasicParsing -Uri $driverUrl -OutFile $driverZip
+          $driverHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $driverZip).Hash.ToLowerInvariant()
+          $driverWant='6380ebe6d5b06bbb0dc03a43151ee05a4a25be97efebd742c463e0e466621a32'
+          if($driverHash-ne$driverWant){throw "approved Npcap driver ZIP hash mismatch: got=$driverHash want=$driverWant"}
+          Expand-Archive -LiteralPath $driverZip -DestinationPath $driverDir -Force
+
+          $officialUrl='https://npcap.com/dist/npcap-1.88.exe'
+          $official=Join-Path $env:RUNNER_TEMP 'npcap-1.88.exe'
+          $extract=Join-Path $env:RUNNER_TEMP 'npcap-1.88-extract'
+          Invoke-WebRequest -UseBasicParsing -Uri $officialUrl -OutFile $official
+          $officialHash=(Get-FileHash -Algorithm SHA256 -LiteralPath $official).Hash.ToLowerInvariant()
+          $officialWant='a2f4ec1e5ea353ff67efd24b2ebf081ba44532410fae8d5e146af0310aa4f56b'
+          if($officialHash-ne$officialWant){throw "Npcap 1.88 official installer hash mismatch: got=$officialHash want=$officialWant"}
+          $sig=Get-AuthenticodeSignature -FilePath $official
+          $subject=if($sig.SignerCertificate){[string]$sig.SignerCertificate.Subject}else{''}
+          if($sig.Status-ne[System.Management.Automation.SignatureStatus]::Valid-or$subject-notmatch'Nmap Software LLC'){throw "Npcap official installer signature invalid: status=$($sig.Status) signer=$subject"}
+          New-Item -ItemType Directory -Force $extract|Out-Null
+          & 7z x -y "-o$extract" $official|Out-Null
+          if($LASTEXITCODE){throw "Npcap 1.88 extraction failed: $LASTEXITCODE"}
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Install -DriverPackageDir $driverDir -UserlandExtractDir $extract
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Status
+          Write-Output "WBD_NPCAP_READY mode=pinned-signed-ephemeral version=1.88 driver_sha256=$driverHash installer_sha256=$officialHash"
+      - name: Remove pinned ephemeral Npcap
         if: always()
         shell: pwsh
         run: |
           $ErrorActionPreference='Continue'
-          .\scripts\windows_npcap_ephemeral_ci.ps1 -Action Cleanup
+          .\scripts\windows_npcap_driver_ci.ps1 -Action Cleanup
           if($LASTEXITCODE){exit $LASTEXITCODE}

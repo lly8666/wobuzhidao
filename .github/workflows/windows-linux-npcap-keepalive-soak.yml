@@ -2,47 +2,33 @@ name: windows-linux-npcap-keepalive-soak
 
 on:
   workflow_dispatch:
-  push:
+    inputs:
+      base_run_id:
+        description: Same-SHA windows-linux-npcap-lane-soak run id
+        required: true
+        type: string
+  workflow_run:
+    workflows:
+      - windows-linux-npcap-lane-soak
+    types:
+      - completed
     branches:
       - agent/fix-per-association-mtu-20260914
-    paths:
-      - '.github/workflows/windows-linux-npcap-keepalive-soak.yml'
-      - 'scripts/windows_linux_wintun_keepalive_soak.ps1'
-      - '.github/scripts/windows_game_pause_resume.py'
-      - 'scripts/wsl_wintun_lane_soak_server.sh'
-      - 'scripts/windows_npcap_prepare.ps1'
-      - 'scripts/windows_faketcp_underlay.ps1'
-      - 'scripts/windows_tun_route.ps1'
-      - 'scripts/windows_ipv6_killswitch.ps1'
-      - 'scripts/linux_shared_tun_firewall.sh'
-      - 'cmd/wbd-faketcp/**'
-      - 'cmd/wbd-faketcp-mux/**'
-      - 'cmd/wbd-link-proxy/**'
-      - 'cmd/wbd-link-server-mux/**'
-      - 'cmd/wbd-game-lane-client/**'
-      - 'cmd/wbd-game-lane-server/**'
-      - 'cmd/wbd-tun/**'
-      - 'cmd/wbd-ip-gateway-shared/**'
-      - 'cmd/wbd-windows-qualify/**'
-      - 'internal/fec/**'
-      - 'internal/linkdata/**'
-      - 'internal/pathmtu/**'
-      - 'internal/tunnel/**'
-      - 'internal/dataplane/**'
-      - 'internal/windowsruntime/**'
-      - 'internal/windowsgui/**'
-
 permissions:
   contents: read
   actions: read
 
 concurrency:
-  group: windows-linux-npcap-keepalive-soak-${{ github.ref }}
+  group: windows-linux-npcap-keepalive-soak-${{ github.event.workflow_run.head_sha || github.ref }}
   cancel-in-progress: true
 
 jobs:
   soak:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: windows-latest
+    env:
+      WBD_SOURCE_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      WBD_BASE_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || inputs.base_run_id }}
     timeout-minutes: 35
     strategy:
       fail-fast: false
@@ -55,6 +41,8 @@ jobs:
           - { lanes: 4, fec: '20:20', slug: '4lane-fec-on' }
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.WBD_SOURCE_SHA }}
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
@@ -67,14 +55,14 @@ jobs:
           path: ${{ runner.temp }}\linux-assets
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          run-id: 35000905689
+          run-id: ${{ env.WBD_BASE_RUN_ID }}
       - uses: actions/download-artifact@v4
         with:
           name: windows-linux-soak-windows-assets
           path: ${{ runner.temp }}\windows-assets
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          run-id: 35000905689
+          run-id: ${{ env.WBD_BASE_RUN_ID }}
       - name: Refresh all product assets from current HEAD
         shell: pwsh
         run: |
@@ -113,13 +101,13 @@ jobs:
             $env:GOOS=$savedGoos;$env:GOARCH=$savedGoarch;$env:CGO_ENABLED=$savedCgo
           }
           Copy-Item -LiteralPath '.\scripts\linux_shared_tun_firewall.sh' -Destination (Join-Path $linux 'linux_shared_tun_firewall.sh') -Force
-          Set-Content -LiteralPath (Join-Path $win 'SOURCE_SHA.txt') -Value $env:GITHUB_SHA -Encoding ascii
-          Set-Content -LiteralPath (Join-Path $linux 'SOURCE_SHA.txt') -Value $env:GITHUB_SHA -Encoding ascii
+          Set-Content -LiteralPath (Join-Path $win 'SOURCE_SHA.txt') -Value $env:WBD_SOURCE_SHA -Encoding ascii
+          Set-Content -LiteralPath (Join-Path $linux 'SOURCE_SHA.txt') -Value $env:WBD_SOURCE_SHA -Encoding ascii
           $winSha=(Get-Content -LiteralPath (Join-Path $win 'SOURCE_SHA.txt') -Raw).Trim()
           $linuxSha=(Get-Content -LiteralPath (Join-Path $linux 'SOURCE_SHA.txt') -Raw).Trim()
-          if($winSha-ne$env:GITHUB_SHA-or$linuxSha-ne$env:GITHUB_SHA){throw "product provenance mismatch windows=$winSha linux=$linuxSha expected=$env:GITHUB_SHA"}
+          if($winSha-ne$env:WBD_SOURCE_SHA-or$linuxSha-ne$env:WBD_SOURCE_SHA){throw "product provenance mismatch windows=$winSha linux=$linuxSha expected=$env:WBD_SOURCE_SHA"}
           $routeHash=(Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $win 'windows_tun_route.ps1')).Hash.ToLowerInvariant()
-          Write-Output "WBD_KEEPALIVE_PRODUCT_ASSETS_READY sha=$env:GITHUB_SHA windows=$winSha linux=$linuxSha route_sha256=$routeHash native_base_run=35000905689"
+          Write-Output "WBD_KEEPALIVE_PRODUCT_ASSETS_READY sha=$env:WBD_SOURCE_SHA windows=$winSha linux=$linuxSha route_sha256=$routeHash native_base_run=$env:WBD_BASE_RUN_ID"
       - name: Validate permanent keepalive harness
         shell: pwsh
         run: |
@@ -160,8 +148,8 @@ jobs:
         run: |
           $ErrorActionPreference='Stop';$log=Join-Path $env:RUNNER_TEMP 'keepalive-${{ matrix.slug }}';New-Item -ItemType Directory -Force $log|Out-Null
           $winSha=(Get-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'windows-assets\SOURCE_SHA.txt') -Raw).Trim();$linuxSha=(Get-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'linux-assets\SOURCE_SHA.txt') -Raw).Trim()
-          if($winSha-ne$env:GITHUB_SHA-or$linuxSha-ne$env:GITHUB_SHA){throw "refusing mixed product assets windows=$winSha linux=$linuxSha expected=$env:GITHUB_SHA"}
-          [ordered]@{product_source_sha=$env:GITHUB_SHA;windows_product_source_sha=$winSha;linux_product_source_sha=$linuxSha;native_base_artifact_source_sha='98654cd26437f01662731b0fc38504462542b90d';native_base_artifact_run_id=35000905689;native_base_scope='pinned DTLS shim, Wintun DLL, test certificates only'}|ConvertTo-Json|Set-Content -LiteralPath(Join-Path $log 'product-source.json') -Encoding utf8
+          if($winSha-ne$env:WBD_SOURCE_SHA-or$linuxSha-ne$env:WBD_SOURCE_SHA){throw "refusing mixed product assets windows=$winSha linux=$linuxSha expected=$env:WBD_SOURCE_SHA"}
+          [ordered]@{product_source_sha=$env:WBD_SOURCE_SHA;windows_product_source_sha=$winSha;linux_product_source_sha=$linuxSha;native_base_artifact_source_sha=$env:WBD_SOURCE_SHA;native_base_artifact_run_id=$env:WBD_BASE_RUN_ID;native_base_scope='pinned DTLS shim, Wintun DLL, test certificates only'}|ConvertTo-Json|Set-Content -LiteralPath(Join-Path $log 'product-source.json') -Encoding utf8
           .\scripts\windows_linux_wintun_keepalive_soak.ps1 -BinDir "$env:RUNNER_TEMP\windows-assets" -LinuxAssets "$env:RUNNER_TEMP\linux-assets" -Lanes ${{ matrix.lanes }} -FEC '${{ matrix.fec }}' -ConnectionMTU 1420 -RateBps 2000000 -LossPct 15 -FirstDurationSec 20 -PauseDurationSec 220 -SecondDurationSec 60 -ServerIdleSec 60 -LogDir $log
       - name: Print keepalive summary
         if: always()

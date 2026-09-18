@@ -50,7 +50,8 @@ type exitTestDiscoverer struct{}
 
 func (exitTestDiscoverer) Discover(windowsruntime.Profile) (windowsruntime.Underlay, error) {
 	return windowsruntime.Underlay{
-		SourceIP:     "192.0.2.20",
+		SourceIP:       "192.0.2.20",
+		InterfaceIndex: 12,
 		PacketDevice: `\Device\NPF_{01234567-89AB-CDEF-0123-456789ABCDEF}`,
 		SourceMAC:    "00:11:22:33:44:55",
 		NextHopMAC:   "66:77:88:99:aa:bb",
