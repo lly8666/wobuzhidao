@@ -272,7 +272,7 @@ if ($Action -eq 'Render') {
     foreach ($p in $DirectPrefix4) { Write-Output "01 DIRECT IPv4 $p through the pre-WBD physical route" }
     if ($addr4) { Write-Output "02 ADDRESS IPv4 $($addr4.CIDR) exclusively on $AdapterAlias and wait for DAD Preferred state" }
     if ($addr6) { Write-Output "02 ADDRESS IPv6 $($addr6.CIDR) on $AdapterAlias and wait for DAD Preferred state" }
-    Write-Output "02 MTU $MTU on $AdapterAlias"
+    Write-Output "02 MTU $MTU already owned and verified by wbd-tun; route script does not mutate interface MTU"
     if ($DNSServers.Count -gt 0) { Write-Output "02 DNS NRPT namespace=. servers=$($DNSServers -join ',') capture_resolvers_through_wbd=1" }
     foreach ($p in $capture4) { Write-Output "03 CAPTURE IPv4 $p on $AdapterAlias" }
     foreach ($p in $capture6) { Write-Output "03 CAPTURE IPv6 $p on $AdapterAlias" }
@@ -317,15 +317,15 @@ if ($CaptureLAN) {
     Write-Output "WBD_WINDOWS_TUN_LAN_CAPTURE_PLAN physical_prefixes=$($physicalLAN.Count) total_capture4=$($capture4.Count)"
 }
 
-$ipif4 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue | Select-Object -First 1
-$ipif6 = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv6 -ErrorAction SilentlyContinue | Select-Object -First 1
+# wbd-tun already owns and verifies the Wintun IPv4 MTU before emitting
+# WBD_TUN_READY. Do not call Get/Set-NetIPInterface here: on fresh Wintun
+# adapters the NetTCPIP provider can block while rows are materializing, which
+# used to stall every route-capture mode before route-state was even persisted.
+# Route application owns only addresses, routes and NRPT state.
 $state = [ordered]@{
-    Schema = 'wbd-windows-route-state/v3'
+    Schema = 'wbd-windows-route-state/v4'
     AdapterAlias = $AdapterAlias
     AdapterInterfaceIndex = $ifIndex
-    MTU4 = if ($ipif4) { [uint32]$ipif4.NlMtu } else { $null }
-    InterfaceMetric4 = if ($ipif4) { [uint32]$ipif4.InterfaceMetric } else { $null }
-    MTU6 = if ($configureIPv6 -and $ipif6) { [uint32]$ipif6.NlMtu } else { $null }
     DNSConfigured = $false
     NRPTRuleName = ''
     Addresses = @()
@@ -334,6 +334,7 @@ $state = [ordered]@{
     CaptureRoutes = @()
 }
 Save-State $state
+Write-Output "WBD_WINDOWS_TUN_ROUTE_STATE_READY path=$StatePath ifindex=$ifIndex"
 
 try {
     $underlayRoute4 = $null
@@ -374,9 +375,6 @@ try {
             New-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -RouteMetric 1 -PolicyStore ActiveStore | Out-Null
         }
     }
-
-    if ($ipif4) { if ($CaptureLAN) { Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -InterfaceMetric 5 }; Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -NlMtuBytes $MTU }
-    if ($configureIPv6 -and $ipif6) { Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv6 -NlMtuBytes $MTU }
 
     foreach ($a in @(@{Parsed=$addr4; Family='IPv4'}, @{Parsed=$addr6; Family='IPv6'})) {
         if (-not $a.Parsed) { continue }
