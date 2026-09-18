@@ -107,10 +107,12 @@ type Profile struct {
 }
 
 type Underlay struct {
-	SourceIP     string
-	PacketDevice string
-	SourceMAC    string
-	NextHopMAC   string
+	SourceIP       string
+	InterfaceIndex uint32
+	PacketDevice   string
+	SourceMAC      string
+	NextHopIP      string
+	NextHopMAC     string
 	// SourcePort is per-lane TCP-shaped metadata. Product orchestration assigns a
 	// distinct dynamic-range port to every lane/candidate.
 	SourcePort uint16
@@ -268,6 +270,9 @@ func ValidateRoutingAssets(profile Profile) error {
 func (u Underlay) Validate() error {
 	if ip, err := netip.ParseAddr(u.SourceIP); err != nil || !ip.Is4() {
 		return errors.New("underlay source IP must be IPv4")
+	}
+	if u.InterfaceIndex == 0 {
+		return errors.New("underlay physical interface index is required")
 	}
 	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
 		return errors.New("underlay packet device must be an Npcap device")
