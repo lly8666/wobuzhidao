@@ -376,15 +376,17 @@ func (PowerShellUnderlayDiscoverer) Discover(profile Profile) (Underlay, error) 
 		return Underlay{}, fmt.Errorf("underlay discovery returned no JSON: %s", strings.TrimSpace(string(output)))
 	}
 	var result struct {
-		SourceIP     string `json:"source_ip"`
-		PacketDevice string `json:"packet_device"`
-		SourceMAC    string `json:"source_mac"`
-		NextHopMAC   string `json:"next_hop_mac"`
+		SourceIP       string `json:"source_ip"`
+		InterfaceIndex uint32 `json:"interface_index"`
+		PacketDevice   string `json:"packet_device"`
+		SourceMAC      string `json:"source_mac"`
+		NextHopIP      string `json:"next_hop_ip"`
+		NextHopMAC     string `json:"next_hop_mac"`
 	}
 	if err := json.Unmarshal([]byte(jsonLine), &result); err != nil {
 		return Underlay{}, fmt.Errorf("decode underlay discovery: %w", err)
 	}
-	underlay := Underlay{SourceIP: result.SourceIP, PacketDevice: result.PacketDevice, SourceMAC: result.SourceMAC, NextHopMAC: result.NextHopMAC}
+	underlay := Underlay{SourceIP: result.SourceIP, InterfaceIndex: result.InterfaceIndex, PacketDevice: result.PacketDevice, SourceMAC: result.SourceMAC, NextHopIP: result.NextHopIP, NextHopMAC: result.NextHopMAC}
 	if err := underlay.Validate(); err != nil {
 		return Underlay{}, err
 	}
