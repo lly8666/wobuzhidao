@@ -40,13 +40,9 @@ func run() (retErr error) {
 	if err != nil {
 		return fmt.Errorf("resolve qualifier executable: %w", err)
 	}
-	programData := os.Getenv("ProgramData")
-	if programData == "" {
-		return errors.New("ProgramData is not set")
-	}
-	stateDir := filepath.Join(programData, "WBD", "qualification")
+	stateDir := filepath.Join(filepath.Dir(exe), "qualification")
 	if err := os.MkdirAll(stateDir, 0o700); err != nil {
-		return fmt.Errorf("create qualification state directory: %w", err)
+		return fmt.Errorf("create portable qualification state directory: %w", err)
 	}
 	profile, err := windowsgui.LoadRuntimeProfile(*profilePath, filepath.Dir(exe), stateDir)
 	if err != nil {
