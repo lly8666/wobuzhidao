@@ -358,17 +358,26 @@ try {
     if ($DirectPrefix4.Count -gt 0 -or $CaptureLAN) {
         if (-not $underlayRoute4) { throw 'pre-WBD IPv4 route is unavailable for direct-prefix/LAN routing' }
         $directCreate = @()
+        # Query the physical route table once. CN split mode can contain thousands
+        # of prefixes; one Get-NetRoute CIM call per prefix made startup scale
+        # catastrophically and could exceed the product readiness timeout.
+        $existingDirect = @{}
+        foreach ($existingRoute in @(Get-NetRoute -AddressFamily IPv4 -InterfaceIndex ([uint32]$underlayRoute4.InterfaceIndex) -PolicyStore ActiveStore -ErrorAction SilentlyContinue)) {
+            $key = "$([string]$existingRoute.DestinationPrefix)|$([string]$existingRoute.NextHop)"
+            $existingDirect[$key] = $true
+        }
+        $physicalNextHop4 = [string]$underlayRoute4.NextHop
         foreach ($prefix in $DirectPrefix4) {
-            $existing = Get-NetRoute -DestinationPrefix $prefix -InterfaceIndex ([uint32]$underlayRoute4.InterfaceIndex) -NextHop ([string]$underlayRoute4.NextHop) -PolicyStore ActiveStore -ErrorAction SilentlyContinue
-            if (-not $existing) {
-                $directCreate += [ordered]@{ DestinationPrefix=$prefix; InterfaceIndex=[uint32]$underlayRoute4.InterfaceIndex; NextHop=[string]$underlayRoute4.NextHop }
+            $key = "$prefix|$physicalNextHop4"
+            if (-not $existingDirect.ContainsKey($key)) {
+                $directCreate += [ordered]@{ DestinationPrefix=$prefix; InterfaceIndex=[uint32]$underlayRoute4.InterfaceIndex; NextHop=$physicalNextHop4 }
             }
         }
-        if ($CaptureLAN -and $underlayRoute4 -and (Test-RFC1918Address ([string]$underlayRoute4.NextHop))) {
-            $gatewayPrefix = "$([string]$underlayRoute4.NextHop)/32"
-            $gatewayExists = Get-NetRoute -DestinationPrefix $gatewayPrefix -InterfaceIndex ([uint32]$underlayRoute4.InterfaceIndex) -NextHop ([string]$underlayRoute4.NextHop) -PolicyStore ActiveStore -ErrorAction SilentlyContinue
-            if (-not $gatewayExists) {
-                $directCreate += [ordered]@{ DestinationPrefix=$gatewayPrefix; InterfaceIndex=[uint32]$underlayRoute4.InterfaceIndex; NextHop=[string]$underlayRoute4.NextHop }
+        if ($CaptureLAN -and $underlayRoute4 -and (Test-RFC1918Address $physicalNextHop4)) {
+            $gatewayPrefix = "$physicalNextHop4/32"
+            $key = "$gatewayPrefix|$physicalNextHop4"
+            if (-not $existingDirect.ContainsKey($key)) {
+                $directCreate += [ordered]@{ DestinationPrefix=$gatewayPrefix; InterfaceIndex=[uint32]$underlayRoute4.InterfaceIndex; NextHop=$physicalNextHop4 }
             }
         }
         $state.DirectRoutes = @($directCreate)
@@ -402,10 +411,17 @@ try {
     # cleanup after a partial New-NetRoute failure is complete and never removes
     # pre-existing user routes.
     $captureCreate = @()
+    # Same rule for Wintun capture routes: snapshot once, compare in memory, then
+    # create only WBD-owned missing entries. Avoid thousands of CIM round trips.
+    $existingCapture = @{}
+    foreach ($existingRoute in @(Get-NetRoute -InterfaceIndex $ifIndex -PolicyStore ActiveStore -ErrorAction SilentlyContinue)) {
+        $key = "$([string]$existingRoute.DestinationPrefix)|$([string]$existingRoute.NextHop)"
+        $existingCapture[$key] = $true
+    }
     foreach ($item in @(@{Family='IPv4'; Prefixes=$capture4; NextHop='0.0.0.0'}, @{Family='IPv6'; Prefixes=$capture6; NextHop='::'})) {
         foreach ($prefix in @($item.Prefixes)) {
-            $existing = Get-NetRoute -DestinationPrefix $prefix -InterfaceIndex $ifIndex -NextHop $item.NextHop -PolicyStore ActiveStore -ErrorAction SilentlyContinue
-            if (-not $existing) {
+            $key = "$prefix|$($item.NextHop)"
+            if (-not $existingCapture.ContainsKey($key)) {
                 $captureCreate += [ordered]@{ DestinationPrefix=$prefix; InterfaceIndex=$ifIndex; NextHop=$item.NextHop }
             }
         }
