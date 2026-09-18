@@ -188,6 +188,32 @@ function Remove-StaleWBDNRPT {
     }
 }
 
+function Remove-OwnedRoutes($Routes, [string]$Label) {
+    $groups = @{}
+    foreach ($route in @($Routes)) {
+        if ($null -eq $route) { continue }
+        $ifIndex = [uint32]$route.InterfaceIndex
+        $nextHop = [string]$route.NextHop
+        $key = "$ifIndex|$nextHop"
+        if (-not $groups.ContainsKey($key)) {
+            $groups[$key] = [pscustomobject]@{
+                InterfaceIndex = $ifIndex
+                NextHop = $nextHop
+                Prefixes = [System.Collections.Generic.List[string]]::new()
+            }
+        }
+        [void]$groups[$key].Prefixes.Add([string]$route.DestinationPrefix)
+    }
+    $removed = 0
+    foreach ($batch in $groups.Values) {
+        $prefixes = @($batch.Prefixes)
+        if ($prefixes.Count -eq 0) { continue }
+        Remove-NetRoute -DestinationPrefix $prefixes -InterfaceIndex ([uint32]$batch.InterfaceIndex) -NextHop ([string]$batch.NextHop) -PolicyStore ActiveStore -Confirm:$false -ErrorAction SilentlyContinue
+        $removed += $prefixes.Count
+    }
+    if ($removed -gt 0) { Write-Output "WBD_WINDOWS_TUN_ROUTE_CLEAN_BATCH label=$Label routes=$removed groups=$($groups.Count)" }
+}
+
 function Remove-Owned-State($State) {
     # Stop steering new ordinary DNS queries first. Then remove WBD routes while
     # Wintun/LINK/DTLS/FakeTCP are still alive; process teardown remains outside
@@ -198,19 +224,13 @@ function Remove-Owned-State($State) {
         Remove-StaleWBDNRPT
     }
     if ($State.PSObject.Properties.Name -contains 'CaptureRoutes') {
-        foreach ($route in @($State.CaptureRoutes)) {
-            Remove-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -PolicyStore ActiveStore -Confirm:$false -ErrorAction SilentlyContinue
-        }
+        Remove-OwnedRoutes $State.CaptureRoutes 'capture'
     }
     if ($State.PSObject.Properties.Name -contains 'DirectRoutes') {
-        foreach ($route in @($State.DirectRoutes)) {
-            Remove-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -PolicyStore ActiveStore -Confirm:$false -ErrorAction SilentlyContinue
-        }
+        Remove-OwnedRoutes $State.DirectRoutes 'direct'
     }
     if ($State.PSObject.Properties.Name -contains 'UnderlayRoutes') {
-        foreach ($route in @($State.UnderlayRoutes)) {
-            Remove-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -PolicyStore ActiveStore -Confirm:$false -ErrorAction SilentlyContinue
-        }
+        Remove-OwnedRoutes $State.UnderlayRoutes 'underlay'
     }
     if ($State.PSObject.Properties.Name -contains 'Addresses') {
         foreach ($addr in @($State.Addresses)) {
