@@ -1,0 +1,37 @@
+package releasecontract
+
+import (
+	"strings"
+	"testing"
+)
+
+func TestWindowsRouteApplyDoesNotReownTunInterfaceMTU(t *testing.T) {
+	script := readRepoFile(t, "scripts/windows_tun_route.ps1")
+	requireContains(t, script, "Schema = 'wbd-windows-route-state/v4'", "Windows route-state schema")
+	requireContains(t, script, "WBD_WINDOWS_TUN_ROUTE_STATE_READY", "Windows route-state readiness marker")
+	requireContains(t, script, "already owned and verified by wbd-tun", "single MTU owner contract")
+	requireNotContains(t, script, "$ipif4 = Get-NetIPInterface", "route apply duplicate IPv4 interface query")
+	requireNotContains(t, script, "$ipif6 = Get-NetIPInterface", "route apply duplicate IPv6 interface query")
+	requireNotContains(t, script, "-NlMtuBytes $MTU", "route apply duplicate MTU mutation")
+	requireNotContains(t, script, "-InterfaceMetric 5", "route apply interface metric mutation")
+
+	stateAt := strings.Index(script, "WBD_WINDOWS_TUN_ROUTE_STATE_READY")
+	findRouteAt := strings.Index(script, "$found = @(Find-NetRoute -RemoteIPAddress $item.IP)")
+	if stateAt < 0 || findRouteAt < 0 || stateAt >= findRouteAt {
+		t.Fatalf("route state must be persisted before physical route discovery: state=%d find=%d", stateAt, findRouteAt)
+	}
+}
+
+func TestWindowsPortableShipsVerifiedCNBundle(t *testing.T) {
+	workflow := readRepoFile(t, ".github/workflows/windows-portable-bundle.yml")
+	for _, want := range []string{
+		"Seed verified portable CN routing bundle",
+		"https://ftp.apnic.net/stats/apnic/delegated-apnic-latest",
+		"go run .\\cmd\\wbd-ipset -action install",
+		"go run .\\cmd\\wbd-ipset -action verify",
+		"'cn4.txt','cn6.txt','cn-manifest.json'",
+		"WBD_WINDOWS_CN_BUNDLE_PASS",
+	} {
+		requireContains(t, workflow, want, "Windows portable CN routing bundle")
+	}
+}
