@@ -402,14 +402,14 @@ func beginConnect(hwnd uintptr) {
 	}
 	profile := app.profile
 	profile.RoutingPolicy = &windowsruntime.RoutingPolicy{ProxyLAN: isChecked(app.proxyLAN), ProxyChina: isChecked(app.proxyChina), ProxyOther: isChecked(app.proxyOther)}
-	profile.AutoUpdateCN = true
+	profile.AutoUpdateCN = false // portable product uses the verified bundled baseline; refresh is explicit, never connection-blocking
 	policy := profile.EffectiveRoutingPolicy()
 	fmt.Printf("WBD_GUI_EFFECTIVE_CONFIG profile=%s fec=%s connection_mtu=%d lanes=%d rotation_min=%d rotation_max=%d proxy_lan=%d proxy_china=%d proxy_other=%d portable_dir=%s\n",
 		filepath.Base(app.profilePath), profile.FEC, profile.MTU, profile.Lanes, profile.LaneRotationMinSeconds, profile.LaneRotationMaxSeconds,
 		boolInt(policy.ProxyLAN), boolInt(policy.ProxyChina), boolInt(policy.ProxyOther), filepath.Dir(app.profilePath))
 	app.operation = "connect"
 	app.cleanupFailed = false
-	setStatus("状态：正在连接，准备路由策略和国内 IP 列表")
+	setStatus("状态：正在连接，准备路由策略和内置国内 IP 列表")
 	refreshControls()
 	go func() { postRuntimeResult(runtimeResult{action: "connect", err: app.controller.Connect(profile)}) }()
 }
@@ -509,11 +509,13 @@ func handleRuntimeResult(hwnd uintptr) {
 	switch result.action {
 	case "connect":
 		if result.err != nil {
+			fmt.Printf("WBD_GUI_CONNECT_FAIL err=%q\n", result.err.Error())
 			setStatus("状态：未连接；连接失败：" + result.err.Error())
 			if !app.exitRequested {
 				messageBox("WBD Connect failed", result.err.Error())
 			}
 		} else {
+			fmt.Printf("WBD_GUI_CONNECTED state=connected routes_ready=1\n")
 			setStatus("状态：已连接；IPv4 WBD 工作中，设备 IPv6 已阻断")
 		}
 		if app.exitRequested {
