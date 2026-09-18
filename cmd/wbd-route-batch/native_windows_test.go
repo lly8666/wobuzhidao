@@ -12,10 +12,10 @@ func TestMakeIPv4RouteRow(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if row.ForwardDest != 0x007100cb || row.ForwardMask != 0x00ffffff || row.ForwardNextHop != 0x010200c0 {
-		t.Fatalf("route network fields dest=%#x mask=%#x next=%#x", row.ForwardDest, row.ForwardMask, row.ForwardNextHop)
+	if row.DestinationPrefix.Prefix.Data[0] != 0x007100cb || row.DestinationPrefix.PrefixLength != 24 || row.NextHop.Data[0] != 0x010200c0 {
+		t.Fatalf("route network fields dest=%#x/%d next=%#x", row.DestinationPrefix.Prefix.Data[0], row.DestinationPrefix.PrefixLength, row.NextHop.Data[0])
 	}
-	if row.ForwardIfIndex != 29 || row.ForwardType != mibIPRouteTypeIndirect || row.ForwardProto != mibIPProtoNetMgmt || row.ForwardMetric1 != 7 {
+	if row.InterfaceIndex != 29 || row.DestinationPrefix.Prefix.Family != addressFamilyInet || row.NextHop.Family != addressFamilyInet || row.Protocol != mibIPProtoNetMgmt || row.Metric != 7 {
 		t.Fatalf("route metadata=%+v", row)
 	}
 }
@@ -25,7 +25,7 @@ func TestMakeIPv4OnLinkRouteRow(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if row.ForwardType != mibIPRouteTypeDirect || row.ForwardNextHop != 0 {
+	if row.NextHop.Family != addressFamilyInet || row.NextHop.Data[0] != 0 || row.Metric != 5 {
 		t.Fatalf("on-link route=%+v", row)
 	}
 }
