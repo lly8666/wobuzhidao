@@ -233,7 +233,6 @@ function Invoke-WBDIPv4RouteBatch([string]$BatchAction, $Routes, [uint32]$Metric
     if ($done -gt 0) {
         Write-Output "WBD_WINDOWS_TUN_ROUTE_NATIVE_BATCH label=$Label action=$BatchAction routes=$done groups=$($groups.Count)"
     }
-    return $done
 }
 
 function Remove-OwnedRoutes($Routes, [string]$Label) {
@@ -451,7 +450,8 @@ try {
         $state.DirectRoutes = @($directCreate)
         Save-State $state
         Write-Output "WBD_WINDOWS_TUN_DIRECT_ROUTES_PLAN total=$($directCreate.Count)"
-        $directDone = Invoke-WBDIPv4RouteBatch 'add' $directCreate 1 'direct'
+        Invoke-WBDIPv4RouteBatch 'add' $directCreate 1 'direct'
+        $directDone = $directCreate.Count
         Write-Output "WBD_WINDOWS_TUN_DIRECT_ROUTES_READY total=$directDone"
     }
 
@@ -494,7 +494,8 @@ try {
     Write-Output "WBD_WINDOWS_TUN_CAPTURE_ROUTES_PLAN total=$($captureCreate.Count)"
     $captureIPv4 = @($captureCreate | Where-Object { [string]$_.NextHop -ne '::' })
     $captureIPv6 = @($captureCreate | Where-Object { [string]$_.NextHop -eq '::' })
-    $captureDone = Invoke-WBDIPv4RouteBatch 'add' $captureIPv4 5 'capture4'
+    Invoke-WBDIPv4RouteBatch 'add' $captureIPv4 5 'capture4'
+    $captureDone = $captureIPv4.Count
     foreach ($route in $captureIPv6) {
         New-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -RouteMetric 5 -PolicyStore ActiveStore | Out-Null
         $captureDone++
