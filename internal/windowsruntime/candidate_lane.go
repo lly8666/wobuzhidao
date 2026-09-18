@@ -37,7 +37,7 @@ func BuildCandidateLaneBootstrapSlot(profile Profile, base Underlay, laneID, slo
 	args := []string{
 		"client", "--local-udp", localUDP,
 		"--source", netip.AddrPortFrom(netip.MustParseAddr(base.SourceIP), base.SourcePort).String(),
-		"--remote", raw.String(), "--shadow-recovery", "legacy",
+		"--remote", raw.String(), "--connection-mtu", strconv.Itoa(profile.MTU), "--shadow-recovery", "legacy",
 		"--packet-device", base.PacketDevice, "--source-mac", base.SourceMAC, "--next-hop-mac", base.NextHopMAC,
 		"--reality-server-name", profile.ServerName, "--reality-route-key", profile.RouteKey,
 		"--reality-username", profile.Username, "--reality-password", profile.Password,
