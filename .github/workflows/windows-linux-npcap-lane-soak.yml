@@ -211,6 +211,21 @@ jobs:
           & wsl.exe -d $d -u root -- bash -lc 'test -x /usr/sbin/iptables && command -v tc && command -v python3 && command -v sudo'
           if($LASTEXITCODE){throw 'WSL prerequisites unavailable'}
           Write-Output "WBD_WSL_RUNTIME_READY distro=$d"
+
+          # Npcap injects FakeTCP onto WSL's Hyper-V vEthernet. Admit only
+          # the product public carrier port through the WSL Hyper-V firewall.
+          $vmCreator='{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}'
+          foreach($cmd in @('Get-NetFirewallHyperVVMSetting','New-NetFirewallHyperVRule','Get-NetFirewallHyperVRule','Remove-NetFirewallHyperVRule')){
+            if(-not(Get-Command $cmd -ErrorAction SilentlyContinue)){throw "required Hyper-V firewall cmdlet unavailable: $cmd"}
+          }
+          $setting=Get-NetFirewallHyperVVMSetting -PolicyStore ActiveStore -Name $vmCreator -ErrorAction Stop
+          Write-Output "WBD_WSL_HYPERV_FIREWALL_STATE creator=$vmCreator inbound=$($setting.DefaultInboundAction) outbound=$($setting.DefaultOutboundAction) merge=$($setting.AllowHostPolicyMerge)"
+          $ruleName="WBDNpcapWSL-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT-${{ matrix.slug }}"
+          Get-NetFirewallHyperVRule -Name $ruleName -ErrorAction SilentlyContinue | Remove-NetFirewallHyperVRule -ErrorAction SilentlyContinue
+          New-NetFirewallHyperVRule -Name $ruleName -DisplayName $ruleName -Direction Inbound -Action Allow -VMCreatorId $vmCreator -Protocol TCP -LocalPorts 40000 -ErrorAction Stop | Out-Null
+          if(-not(Get-NetFirewallHyperVRule -Name $ruleName -ErrorAction SilentlyContinue)){throw "WSL Hyper-V firewall rule was not persisted: $ruleName"}
+          "WBD_WSL_HYPERV_RULE=$ruleName"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Output "WBD_WSL_HYPERV_FIREWALL_READY creator=$vmCreator protocol=tcp local_port=40000 rule=$ruleName"
       - name: Install signed ephemeral Npcap 1.88 runtime
         shell: pwsh
         run: |
@@ -280,6 +295,10 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference='Continue'
+          if($env:WBD_WSL_HYPERV_RULE){
+            Get-NetFirewallHyperVRule -Name $env:WBD_WSL_HYPERV_RULE -ErrorAction SilentlyContinue | Remove-NetFirewallHyperVRule -ErrorAction SilentlyContinue
+            Write-Output "WBD_WSL_HYPERV_FIREWALL_CLEANUP rule=$env:WBD_WSL_HYPERV_RULE"
+          }
           $marker=Join-Path $env:RUNNER_TEMP 'wbd-soak-ephemeral-wsl.txt'
           if(Test-Path -LiteralPath $marker){$d=(Get-Content -LiteralPath $marker -Raw).Trim();if($d){& wsl.exe --terminate $d 2>$null;& wsl.exe --unregister $d;if($LASTEXITCODE){throw "failed to unregister ephemeral WSL distro $d"};Write-Output "WBD_WSL_DISTRO_CLEANUP_PASS distro=$d"};Remove-Item -LiteralPath $marker -Force -ErrorAction SilentlyContinue}else{Write-Output 'WBD_WSL_DISTRO_CLEANUP_SKIP reason=preexisting_or_not_installed'}
       - uses: actions/upload-artifact@v4
