@@ -11,6 +11,7 @@ on:
       - 'internal/control/**'
       - 'internal/pathmtu/**'
       - 'internal/tunnel/**'
+      - 'internal/tunsplit/**'
       - 'internal/dataplane/**'
       - 'scripts/windows_tun_route.ps1'
       - 'scripts/windows_tun_dataplane_probe.go'
