@@ -22,6 +22,17 @@ func TestWindowsRouteApplyDoesNotReownTunInterfaceMTU(t *testing.T) {
 	}
 }
 
+func TestWindowsLargeSplitRoutingUsesSingleRouteSnapshots(t *testing.T) {
+	script := readRepoFile(t, "scripts/windows_tun_route.ps1")
+	requireContains(t, script, "Get-NetRoute -AddressFamily IPv4 -InterfaceIndex ([uint32]$underlayRoute4.InterfaceIndex)", "physical direct-route snapshot")
+	requireContains(t, script, "Get-NetRoute -InterfaceIndex $ifIndex -PolicyStore ActiveStore", "Wintun capture-route snapshot")
+	requireContains(t, script, "$existingDirect.ContainsKey($key)", "in-memory direct-route lookup")
+	requireContains(t, script, "$existingCapture.ContainsKey($key)", "in-memory capture-route lookup")
+	requireContains(t, script, "WBD_WINDOWS_TUN_DIRECT_ROUTES_PROGRESS", "large direct-route progress")
+	requireContains(t, script, "WBD_WINDOWS_TUN_CAPTURE_ROUTES_PROGRESS", "large capture-route progress")
+	requireNotContains(t, script, "Get-NetRoute -DestinationPrefix $prefix", "per-prefix route CIM query")
+}
+
 func TestWindowsPortableShipsVerifiedCNBundle(t *testing.T) {
 	workflow := readRepoFile(t, ".github/workflows/windows-portable-bundle.yml")
 	for _, want := range []string{
