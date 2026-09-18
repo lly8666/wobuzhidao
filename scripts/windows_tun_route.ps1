@@ -20,13 +20,17 @@ param(
     [string]$DNSServer = '',
     [ValidateRange(576,9000)]
     [int]$MTU = 1400,
-    [string]$StatePath = "$PSScriptRoot\route-state.json"
+    [string]$StatePath = "$PSScriptRoot\route-state.json",
+    [string]$RouteBatchExe = ''
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $NRPTDisplayName = 'WBD Runtime DNS'
 $NRPTComment = 'wbd-owned-runtime-dns/v1'
+if ([string]::IsNullOrWhiteSpace($RouteBatchExe)) {
+    $RouteBatchExe = Join-Path $PSScriptRoot 'wbd-route-batch.exe'
+}
 
 function Assert-IP([string]$Value, [System.Net.Sockets.AddressFamily]$Family, [string]$Label) {
     if ([string]::IsNullOrWhiteSpace($Value)) { return }
@@ -186,6 +190,50 @@ function Remove-StaleWBDNRPT {
     foreach ($rule in $rules) {
         Remove-WBDNRPTRuleByName ([string]$rule.Name)
     }
+}
+
+function Invoke-WBDIPv4RouteBatch([string]$BatchAction, $Routes, [uint32]$Metric, [string]$Label) {
+    $items = @($Routes)
+    if ($items.Count -eq 0) { return 0 }
+    if (-not (Test-Path -LiteralPath $RouteBatchExe)) {
+        throw "native route batch helper not found: $RouteBatchExe"
+    }
+    $groups = @{}
+    foreach ($route in $items) {
+        if ($null -eq $route) { continue }
+        $nextHop = [string]$route.NextHop
+        if ($nextHop -eq '::') { continue }
+        $ifIndex = [uint32]$route.InterfaceIndex
+        $key = "$ifIndex|$nextHop"
+        if (-not $groups.ContainsKey($key)) {
+            $groups[$key] = [pscustomobject]@{
+                InterfaceIndex = $ifIndex
+                NextHop = $nextHop
+                Prefixes = [System.Collections.Generic.List[string]]::new()
+            }
+        }
+        [void]$groups[$key].Prefixes.Add([string]$route.DestinationPrefix)
+    }
+    $done = 0
+    foreach ($batch in $groups.Values) {
+        $prefixes = @($batch.Prefixes)
+        if ($prefixes.Count -eq 0) { continue }
+        $batchArgs = @(
+            $BatchAction,
+            '--ifindex', [string]([uint32]$batch.InterfaceIndex),
+            '--next-hop', [string]$batch.NextHop,
+            '--metric', [string]$Metric
+        )
+        $prefixes | & $RouteBatchExe @batchArgs
+        if ($LASTEXITCODE -ne 0) {
+            throw "native route batch $BatchAction failed for $Label ifindex=$($batch.InterfaceIndex) next_hop=$($batch.NextHop) exit=$LASTEXITCODE"
+        }
+        $done += $prefixes.Count
+    }
+    if ($done -gt 0) {
+        Write-Output "WBD_WINDOWS_TUN_ROUTE_NATIVE_BATCH label=$Label action=$BatchAction routes=$done groups=$($groups.Count)"
+    }
+    return $done
 }
 
 function Remove-OwnedRoutes($Routes, [string]$Label) {
@@ -403,12 +451,7 @@ try {
         $state.DirectRoutes = @($directCreate)
         Save-State $state
         Write-Output "WBD_WINDOWS_TUN_DIRECT_ROUTES_PLAN total=$($directCreate.Count)"
-        $directDone = 0
-        foreach ($route in $directCreate) {
-            New-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -RouteMetric 1 -PolicyStore ActiveStore | Out-Null
-            $directDone++
-            if (($directDone % 500) -eq 0) { Write-Output "WBD_WINDOWS_TUN_DIRECT_ROUTES_PROGRESS done=$directDone total=$($directCreate.Count)" }
-        }
+        $directDone = Invoke-WBDIPv4RouteBatch 'add' $directCreate 1 'direct'
         Write-Output "WBD_WINDOWS_TUN_DIRECT_ROUTES_READY total=$directDone"
     }
 
@@ -449,11 +492,12 @@ try {
     $state.CaptureRoutes = @($captureCreate)
     Save-State $state
     Write-Output "WBD_WINDOWS_TUN_CAPTURE_ROUTES_PLAN total=$($captureCreate.Count)"
-    $captureDone = 0
-    foreach ($route in $captureCreate) {
+    $captureIPv4 = @($captureCreate | Where-Object { [string]$_.NextHop -ne '::' })
+    $captureIPv6 = @($captureCreate | Where-Object { [string]$_.NextHop -eq '::' })
+    $captureDone = Invoke-WBDIPv4RouteBatch 'add' $captureIPv4 5 'capture4'
+    foreach ($route in $captureIPv6) {
         New-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -RouteMetric 5 -PolicyStore ActiveStore | Out-Null
         $captureDone++
-        if (($captureDone % 500) -eq 0) { Write-Output "WBD_WINDOWS_TUN_CAPTURE_ROUTES_PROGRESS done=$captureDone total=$($captureCreate.Count)" }
     }
     Write-Output "WBD_WINDOWS_TUN_CAPTURE_ROUTES_READY total=$captureDone"
 
