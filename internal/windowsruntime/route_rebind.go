@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lly8666/wobuzhidao/internal/ipset"
 )
 
 // underlayPathObservation keeps kernel-route identity separate from the raw
@@ -65,17 +64,13 @@ func buildRouteRebindCommand(profile Profile, observed underlayPathObservation) 
 	}
 	raw, _ := netip.ParseAddrPort(profile.ServerRaw)
 	args := []string{
-		"-NoProfile", "-ExecutionPolicy", "Bypass",
-		"-File", filepath.Join(profile.BinDir, "windows_tun_rebind.ps1"),
-		"-Underlay4", raw.Addr().String(),
-		"-ExpectedPhysicalInterfaceIndex", strconv.FormatUint(uint64(observed.InterfaceIndex), 10),
-		"-ExpectedPhysicalNextHop4", strings.TrimSpace(observed.NextHopIP),
-		"-StatePath", profile.RouteState,
+		"rebind",
+		"--underlay4", raw.Addr().String(),
+		"--physical-ifindex", strconv.FormatUint(uint64(observed.InterfaceIndex), 10),
+		"--physical-next-hop4", strings.TrimSpace(observed.NextHopIP),
+		"--state", profile.RouteState,
 	}
-	if profile.RouteMode == RouteForeign {
-		args = append(args, "-DirectPrefixFile4", filepath.Join(profile.CNSetDir, ipset.CNIPv4File))
-	}
-	return Command{Name: "route-rebind", Path: "powershell.exe", Args: args}, nil
+	return Command{Name: "route-rebind", Path: filepath.Join(profile.BinDir, "wbd-win-net.exe"), Args: args}, nil
 }
 
 func (c *Controller) rebindPhysicalRoutes(profile Profile, observed underlayPathObservation) error {
