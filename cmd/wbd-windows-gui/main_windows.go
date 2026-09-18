@@ -156,13 +156,11 @@ var app struct {
 
 func main() {
 	startMinimized := flag.Bool("start-minimized", false, "start with the main window hidden in the notification area")
-	profilePath := flag.String("profile", "", "path to the WBD Windows client JSON profile")
 	flag.Parse()
 	app.state = windowsgui.NewWindowState(*startMinimized)
 	app.controller = windowsruntime.NewController(nil, nil, nil)
 	app.results = make(chan runtimeResult, 4)
-	app.profilePath = *profilePath
-	if err := initializeProfiles(*profilePath); err != nil {
+	if err := initializeProfiles(); err != nil {
 		app.profileErr = err
 		messageBox("WBD 配置", err.Error())
 	}
@@ -197,15 +195,8 @@ func loadRuntimeProfile(path string) error {
 	if err != nil {
 		return fmt.Errorf("resolve GUI executable: %w", err)
 	}
-	programData := os.Getenv("ProgramData")
-	if programData == "" {
-		return fmt.Errorf("ProgramData is not set")
-	}
-	stateDir := filepath.Join(programData, "WBD")
-	if err := os.MkdirAll(stateDir, 0o700); err != nil {
-		return fmt.Errorf("create WBD state directory: %w", err)
-	}
-	profile, err := windowsgui.LoadRuntimeProfile(path, filepath.Dir(exe), stateDir)
+	portableDir := filepath.Dir(exe)
+	profile, err := windowsgui.LoadRuntimeProfile(path, portableDir, portableDir)
 	if err != nil {
 		return err
 	}
@@ -412,6 +403,10 @@ func beginConnect(hwnd uintptr) {
 	profile := app.profile
 	profile.RoutingPolicy = &windowsruntime.RoutingPolicy{ProxyLAN: isChecked(app.proxyLAN), ProxyChina: isChecked(app.proxyChina), ProxyOther: isChecked(app.proxyOther)}
 	profile.AutoUpdateCN = true
+	policy := profile.EffectiveRoutingPolicy()
+	fmt.Printf("WBD_GUI_EFFECTIVE_CONFIG profile=%s fec=%s connection_mtu=%d lanes=%d rotation_min=%d rotation_max=%d proxy_lan=%d proxy_china=%d proxy_other=%d portable_dir=%s\n",
+		filepath.Base(app.profilePath), profile.FEC, profile.MTU, profile.Lanes, profile.LaneRotationMinSeconds, profile.LaneRotationMaxSeconds,
+		boolInt(policy.ProxyLAN), boolInt(policy.ProxyChina), boolInt(policy.ProxyOther), filepath.Dir(app.profilePath))
 	app.operation = "connect"
 	app.cleanupFailed = false
 	setStatus("状态：正在连接，准备路由策略和国内 IP 列表")
@@ -680,3 +675,8 @@ func copyUTF16(dst []uint16, src string) {
 	copy(dst, encoded)
 }
 func lowWord(v uintptr) uintptr { return v & 0xffff }
+
+func boolInt(v bool) int {
+	if v { return 1 }
+	return 0
+}
