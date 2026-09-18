@@ -150,12 +150,15 @@ func main() {
 		sharedTUN := tunsplit.NewSerialEndpoint(tunEndpoint)
 		var direct *tunsplit.DirectEngine
 		if !*proxyLAN || !*proxyChina || !*proxyOther {
+			if *routeState == "" {
+				fatalIf(fmt.Errorf("direct split requires the portable route-state path"))
+			}
 			direct, err = tunsplit.NewDirectEngine(uint32(*directIfIndex), *routeState, *mtu, sharedTUN)
 			fatalIf(err)
 		}
 		splitBridge = &tunsplit.Bridge{TUN: sharedTUN, Proxy: transportEndpoint, Classifier: classifier, Direct: direct, MTU: *mtu}
-		fmt.Fprintf(os.Stderr, "WBD_TUN_SPLIT_READY proxy_lan=%d proxy_china=%d proxy_other=%d direct_ifindex=%d cn_required=%d\n",
-			boolInt(*proxyLAN), boolInt(*proxyChina), boolInt(*proxyOther), *directIfIndex, boolInt(*proxyChina != *proxyOther))
+		fmt.Fprintf(os.Stderr, "WBD_TUN_SPLIT_READY proxy_lan=%d proxy_china=%d proxy_other=%d direct_ifindex=%d route_state=%d cn_required=%d\n",
+			boolInt(*proxyLAN), boolInt(*proxyChina), boolInt(*proxyOther), *directIfIndex, boolInt(*routeState != ""), boolInt(*proxyChina != *proxyOther))
 	} else {
 		legacyBridge = &tunnel.Bridge{TUN: tunEndpoint, Transport: transportEndpoint, MTU: *mtu}
 	}

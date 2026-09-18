@@ -90,6 +90,26 @@ func TestBuildPlanLANDirectStillCapturesLANIntoTun(t *testing.T) {
 	}
 }
 
+
+func TestRouteRebindNeverReceivesSplitPolicyPrefixes(t *testing.T) {
+	obs := observedPath(testUnderlay(), 12, "192.0.2.1")
+	for bits := 0; bits < 8; bits++ {
+		policy := RoutingPolicy{ProxyLAN: bits&4 != 0, ProxyChina: bits&2 != 0, ProxyOther: bits&1 != 0}
+		p := testProfile()
+		p.RoutingPolicy = &policy
+		p.CNSetDir = filepath.Join("C:\\", "wbd-cn")
+		cmd, err := buildRouteRebindCommand(p, obs)
+		if err != nil {
+			t.Fatalf("case=%03b route rebind: %v", bits, err)
+		}
+		for _, arg := range cmd.Args {
+			if arg == "-DirectPrefix4" || arg == "-DirectPrefixFile4" || arg == "-Prefix4" || arg == "-PrefixFile4" {
+				t.Fatalf("case=%03b route rebind leaked split-policy host route flag %q: %v", bits, arg, cmd.Args)
+			}
+		}
+	}
+}
+
 func TestRoutingPolicyAutoDNSFollowsOtherTraffic(t *testing.T) {
 	for _, tc := range []struct {
 		other bool
