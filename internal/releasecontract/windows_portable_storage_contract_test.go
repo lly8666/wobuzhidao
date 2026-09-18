@@ -36,7 +36,8 @@ func TestWindowsPortableUserRuntimeNeverUsesSystemStorage(t *testing.T) {
 	requireNotContains(t, launcher, `"-profile"`, "portable launcher child GUI arguments")
 
 	gui := files["GUI runtime"]
-	requireNotContains(t, gui, `flag.String("profile"`, "GUI profile override")\n\trequireNotContains(t, gui, "-profile", "GUI legacy profile override text")
+	requireNotContains(t, gui, `flag.String("profile"`, "GUI profile override")
+	requireNotContains(t, gui, "-profile", "GUI legacy profile override text")
 	requireContains(t, gui, "windowsgui.LoadRuntimeProfile(path, portableDir, portableDir)", "GUI portable state")
 
 	profileUI := files["GUI profile"]
