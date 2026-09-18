@@ -32,8 +32,10 @@ func TestWindowsLargeSplitRoutingUsesSingleRouteSnapshots(t *testing.T) {
 	requireContains(t, script, "Remove-OwnedRoutes $State.DirectRoutes 'direct'", "batched direct-route cleanup")
 	requireContains(t, script, "Remove-OwnedRoutes $State.CaptureRoutes 'capture'", "batched capture-route cleanup")
 	requireContains(t, script, "WBD_WINDOWS_TUN_ROUTE_CLEAN_BATCH", "batched route-cleanup marker")
-	requireContains(t, script, "WBD_WINDOWS_TUN_DIRECT_ROUTES_PROGRESS", "large direct-route progress")
-	requireContains(t, script, "WBD_WINDOWS_TUN_CAPTURE_ROUTES_PROGRESS", "large capture-route progress")
+	requireContains(t, script, "Invoke-WBDIPv4RouteBatch 'add' $directCreate 1 'direct'", "native direct-route creation")
+	requireContains(t, script, "Invoke-WBDIPv4RouteBatch 'add' $captureIPv4 5 'capture4'", "native capture-route creation")
+	requireContains(t, script, "WBD_WINDOWS_TUN_ROUTE_NATIVE_BATCH", "native batch route marker")
+	requireContains(t, script, "wbd-route-batch.exe", "portable native route helper")
 	requireNotContains(t, script, "Get-NetRoute -DestinationPrefix $prefix", "per-prefix route CIM query")
 }
 
@@ -45,6 +47,8 @@ func TestWindowsPortableShipsVerifiedCNBundle(t *testing.T) {
 		"go run .\\cmd\\wbd-ipset -action install",
 		"go run .\\cmd\\wbd-ipset -action verify",
 		"'cn4.txt','cn6.txt','cn-manifest.json'",
+		"wbd-route-batch.exe",
+		".\\cmd\\wbd-route-batch",
 		"WBD_WINDOWS_CN_BUNDLE_PASS source=repository-frozen",
 	} {
 		requireContains(t, workflow, want, "Windows portable CN routing bundle")
