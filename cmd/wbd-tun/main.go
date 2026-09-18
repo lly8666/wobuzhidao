@@ -13,6 +13,7 @@ import (
 	"syscall"
 
 	"github.com/lly8666/wobuzhidao/internal/tunnel"
+	"github.com/lly8666/wobuzhidao/internal/tunsplit"
 )
 
 type sourceIPv4Endpoint struct {
@@ -78,6 +79,11 @@ func main() {
 		local              = flag.String("local", "", "client: optional local UDP bind address")
 		listen             = flag.String("listen", "127.0.0.1:4091", "server: UDP listen address for decoded transport")
 		expectedSourceIPv4 = flag.String("expected-source-ipv4", "", "client: fail-closed source IPv4 lease for TUN outbound packets")
+		proxyLAN           = flag.Bool("proxy-lan", true, "client: proxy RFC1918 destinations through WBD")
+		proxyChina         = flag.Bool("proxy-china", true, "client: proxy mainland-China IPv4 destinations through WBD")
+		proxyOther         = flag.Bool("proxy-other", true, "client: proxy non-LAN/non-China IPv4 destinations through WBD")
+		cn4                = flag.String("cn4", "", "client: verified mainland-China IPv4 prefix file used for in-TUN classification")
+		directIfIndex      = flag.Uint("direct-ifindex", 0, "client: physical Windows interface index for userspace direct TCP/UDP sockets")
 		runFor             = flag.Duration("run-for", 0, "optional qualification lifetime; 0 runs until signal")
 	)
 	flag.Parse()
@@ -130,7 +136,28 @@ func main() {
 	}
 
 	transportEndpoint := &tunnel.FramedEndpoint{Raw: raw}
-	bridge := &tunnel.Bridge{TUN: tunEndpoint, Transport: transportEndpoint, MTU: *mtu}
+	var legacyBridge *tunnel.Bridge
+	var splitBridge *tunsplit.Bridge
+	if *mode == "client" {
+		if *directIfIndex > uint(^uint32(0)) {
+			fatalIf(fmt.Errorf("direct-ifindex is out of range"))
+		}
+		classifier, err := tunsplit.NewClassifier(tunsplit.Policy{
+			ProxyLAN: *proxyLAN, ProxyChina: *proxyChina, ProxyOther: *proxyOther,
+		}, *cn4)
+		fatalIf(err)
+		sharedTUN := tunsplit.NewSerialEndpoint(tunEndpoint)
+		var direct *tunsplit.DirectEngine
+		if !*proxyLAN || !*proxyChina || !*proxyOther {
+			direct, err = tunsplit.NewDirectEngine(uint32(*directIfIndex), *mtu, sharedTUN)
+			fatalIf(err)
+		}
+		splitBridge = &tunsplit.Bridge{TUN: sharedTUN, Proxy: transportEndpoint, Classifier: classifier, Direct: direct, MTU: *mtu}
+		fmt.Fprintf(os.Stderr, "WBD_TUN_SPLIT_READY proxy_lan=%d proxy_china=%d proxy_other=%d direct_ifindex=%d cn_required=%d\n",
+			boolInt(*proxyLAN), boolInt(*proxyChina), boolInt(*proxyOther), *directIfIndex, boolInt(*proxyChina != *proxyOther))
+	} else {
+		legacyBridge = &tunnel.Bridge{TUN: tunEndpoint, Transport: transportEndpoint, MTU: *mtu}
+	}
 
 	if expectedSource.IsValid() {
 		fmt.Fprintf(os.Stderr, "WBD_TUN_SOURCE_IPV4_FENCE expected=%s fail_closed=1\n", expectedSource.Unmap())
@@ -148,12 +175,24 @@ func main() {
 		defer cancel()
 	}
 
-	stats, err := bridge.Run(ctx)
+	var stats any
+	if splitBridge != nil {
+		stats, err = splitBridge.Run(ctx)
+	} else {
+		stats, err = legacyBridge.Run(ctx)
+	}
 	if err != nil {
 		fatalIf(err)
 	}
 	enc := json.NewEncoder(os.Stdout)
 	_ = enc.Encode(stats)
+}
+
+func boolInt(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
 }
 
 func fatalIf(err error) {
