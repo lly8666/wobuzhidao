@@ -173,7 +173,8 @@ jobs:
             try {
               $observer=Start-Process -FilePath $probeExe -ArgumentList @('-mode','observer','-transport',$transport,'-expectation',$expectation,'-tcp-target',$tcpTarget,'-udp-target',$udpTarget,'-timeout','15s') -PassThru -RedirectStandardOutput $obsOut -RedirectStandardError $obsErr
               Wait-Marker $observer $obsOut 'WBD_WINDOWS_TUN_SPLIT_OBSERVER_READY' "$name observer"
-              $args=@('-mode','client','-ifname',$ifName,'-mtu','1400','-transport',$transport,'-proxy-lan='+(-not$direct).ToString().ToLowerInvariant(),'-proxy-china='+(-not$direct).ToString().ToLowerInvariant(),'-proxy-other='+(-not$direct).ToString().ToLowerInvariant(),'-direct-ifindex',"$physicalIf",'-route-state',$state,'-run-for','90s')
+              $proxy=if($direct){'false'}else{'true'}
+              $args=@('-mode','client','-ifname',$ifName,'-mtu','1400','-transport',$transport,"-proxy-lan=$proxy","-proxy-china=$proxy","-proxy-other=$proxy",'-direct-ifindex',"$physicalIf",'-route-state',$state,'-run-for','90s')
               $tun=Start-Process -FilePath $exe -ArgumentList $args -PassThru -RedirectStandardOutput $tunOut -RedirectStandardError $tunErr
               Wait-Marker $tun $tunErr 'WBD_TUN_SPLIT_READY' "$name wbd-tun"
               & ./scripts/windows_tun_route.ps1 -Action Apply -Mode Full -CaptureLAN -AdapterAlias $ifName -TunnelAddress4 '10.66.10.2/30' -Underlay4 '192.0.2.254' -MTU 1400 -StatePath $state
