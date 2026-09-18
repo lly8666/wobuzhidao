@@ -60,3 +60,29 @@ func TestParseCNRejectsMalformedDelegatedIPv4Range(t *testing.T) {
 		t.Fatalf("err = %v", err)
 	}
 }
+
+
+func TestParseCNDelegatedFileSkipsMetadataAndSummaryRows(t *testing.T) {
+	got, err := ParseCN(strings.NewReader(`
+2|apnic|20260918|0|0|0|0
+apnic|*|asn|*|12345|summary
+apnic|*|ipv4|*|54321|summary
+apnic|*|ipv6|*|6789|summary
+apnic|CN|ipv4|1.2.0.0|65536|20110414|allocated
+apnic|CN|ipv6|240e::|20|20110414|allocated
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	v4, v6 := SplitFamilies(got)
+	if !reflect.DeepEqual(v4, []string{"1.2.0.0/16"}) || !reflect.DeepEqual(v6, []string{"240e::/20"}) {
+		t.Fatalf("metadata/summary filtering produced IPv4=%v IPv6=%v", v4, v6)
+	}
+}
+
+func TestParseCNRejectsStructurallyIncompleteCNDelegatedRow(t *testing.T) {
+	_, err := ParseCN(strings.NewReader("apnic|CN|ipv4|1.2.0.0|65536|20110414\n"))
+	if err == nil || !strings.Contains(err.Error(), "invalid delegated-statistics CN row") {
+		t.Fatalf("err = %v", err)
+	}
+}
