@@ -68,6 +68,7 @@ func TestBuildPlanExplicitRoutingPolicyMovesDecisionIntoTun(t *testing.T) {
 		}
 	}
 	if !argPair(plan.TUN.Args, "-direct-ifindex", "12") ||
+		!argPair(plan.TUN.Args, "-route-state", p.RouteState) ||
 		!argPair(plan.TUN.Args, "-cn4", filepath.Join(dir, ipset.CNIPv4File)) {
 		t.Fatalf("TUN split inputs=%v", plan.TUN.Args)
 	}

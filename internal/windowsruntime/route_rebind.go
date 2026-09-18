@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lly8666/wobuzhidao/internal/ipset"
 )
 
 // underlayPathObservation keeps kernel-route identity separate from the raw
@@ -71,9 +70,6 @@ func buildRouteRebindCommand(profile Profile, observed underlayPathObservation) 
 		"-ExpectedPhysicalInterfaceIndex", strconv.FormatUint(uint64(observed.InterfaceIndex), 10),
 		"-ExpectedPhysicalNextHop4", strings.TrimSpace(observed.NextHopIP),
 		"-StatePath", profile.RouteState,
-	}
-	if profile.RouteMode == RouteForeign {
-		args = append(args, "-DirectPrefixFile4", filepath.Join(profile.CNSetDir, ipset.CNIPv4File))
 	}
 	return Command{Name: "route-rebind", Path: "powershell.exe", Args: args}, nil
 }

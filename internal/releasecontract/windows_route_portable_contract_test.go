@@ -25,12 +25,14 @@ func TestWindowsRouteApplyDoesNotReownTunInterfaceMTU(t *testing.T) {
 func TestWindowsSplitPolicyStaysInsideTun(t *testing.T) {
 	routing := readRepoFile(t, "internal/windowsruntime/routing_policy.go")
 	plan := readRepoFile(t, "internal/windowsruntime/plan.go")
+	rebind := readRepoFile(t, "internal/windowsruntime/route_rebind.go")
 	tunMain := readRepoFile(t, "cmd/wbd-tun/main.go")
 
 	requireContains(t, routing, `return routingPlan{Mode: "Full", CaptureLAN: true}`, "policy-agnostic host routing")
 	requireNotContains(t, plan, "-PrefixFile4", "CN capture routes in runtime plan")
 	requireNotContains(t, plan, "-DirectPrefixFile4", "CN direct routes in runtime plan")
-	for _, want := range []string{"-proxy-lan=", "-proxy-china=", "-proxy-other=", "-direct-ifindex", "-cn4"} {
+	requireNotContains(t, rebind, "-DirectPrefixFile4", "CN direct routes during physical-route rebind")
+	for _, want := range []string{"-proxy-lan=", "-proxy-china=", "-proxy-other=", "-direct-ifindex", "-route-state", "-cn4"} {
 		requireContains(t, plan, want, "TUN split policy argument")
 	}
 	requireContains(t, tunMain, "tunsplit.NewClassifier", "in-TUN split classifier")

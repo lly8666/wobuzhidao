@@ -84,6 +84,7 @@ func main() {
 		proxyOther         = flag.Bool("proxy-other", true, "client: proxy non-LAN/non-China IPv4 destinations through WBD")
 		cn4                = flag.String("cn4", "", "client: verified mainland-China IPv4 prefix file used for in-TUN classification")
 		directIfIndex      = flag.Uint("direct-ifindex", 0, "client: physical Windows interface index for userspace direct TCP/UDP sockets")
+		routeState         = flag.String("route-state", "", "client: portable route-state path used to resolve the current physical interface for new direct flows")
 		runFor             = flag.Duration("run-for", 0, "optional qualification lifetime; 0 runs until signal")
 	)
 	flag.Parse()
@@ -149,7 +150,7 @@ func main() {
 		sharedTUN := tunsplit.NewSerialEndpoint(tunEndpoint)
 		var direct *tunsplit.DirectEngine
 		if !*proxyLAN || !*proxyChina || !*proxyOther {
-			direct, err = tunsplit.NewDirectEngine(uint32(*directIfIndex), *mtu, sharedTUN)
+			direct, err = tunsplit.NewDirectEngine(uint32(*directIfIndex), *routeState, *mtu, sharedTUN)
 			fatalIf(err)
 		}
 		splitBridge = &tunsplit.Bridge{TUN: sharedTUN, Proxy: transportEndpoint, Classifier: classifier, Direct: direct, MTU: *mtu}

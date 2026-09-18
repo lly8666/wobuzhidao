@@ -399,6 +399,7 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 		"-proxy-china=" + strconv.FormatBool(policy.ProxyChina),
 		"-proxy-other=" + strconv.FormatBool(policy.ProxyOther),
 		"-direct-ifindex", strconv.FormatUint(uint64(underlay.InterfaceIndex), 10),
+		"-route-state", profile.RouteState,
 	}
 	if profile.RequiresCNSet() {
 		tunArgs = append(tunArgs, "-cn4", filepath.Join(profile.CNSetDir, ipset.CNIPv4File))

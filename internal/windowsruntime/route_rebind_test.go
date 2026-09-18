@@ -2,14 +2,12 @@ package windowsruntime
 
 import (
 	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/lly8666/wobuzhidao/internal/ipset"
 )
 
 type observedPathDiscoverer struct {
@@ -71,10 +69,9 @@ func TestDecodeUnderlayDiscoveryObservationKeepsPhysicalRouteMetadata(t *testing
 	}
 }
 
-func TestBuildRouteRebindCommandUsesObservedRouteAndForeignDirectFile(t *testing.T) {
+func TestBuildRouteRebindCommandUsesObservedPhysicalRouteOnly(t *testing.T) {
 	p := testProfile()
 	p.RouteMode = RouteForeign
-	p.CNSetDir = t.TempDir()
 	obs := observedPath(testUnderlay(), 12, "192.0.2.1")
 	cmd, err := buildRouteRebindCommand(p, obs)
 	if err != nil {
@@ -88,10 +85,14 @@ func TestBuildRouteRebindCommandUsesObservedRouteAndForeignDirectFile(t *testing
 		"-ExpectedPhysicalInterfaceIndex": "12",
 		"-ExpectedPhysicalNextHop4":        "192.0.2.1",
 		"-StatePath":                       p.RouteState,
-		"-DirectPrefixFile4":               filepath.Join(p.CNSetDir, ipset.CNIPv4File),
 	} {
 		if !argPair(cmd.Args, flag, want) {
 			t.Fatalf("route rebind args=%v missing %s=%q", cmd.Args, flag, want)
+		}
+	}
+	for _, arg := range cmd.Args {
+		if arg == "-DirectPrefix4" || arg == "-DirectPrefixFile4" {
+			t.Fatalf("route rebind leaked CN/direct host route argument %q: %v", arg, cmd.Args)
 		}
 	}
 }
