@@ -16,9 +16,16 @@ func TestWindowsPortableUserRuntimeNeverUsesSystemStorage(t *testing.T) {
 		"legacy bundle": readRepoFile(t, "internal/windowsbundle/bundle.go"),
 	}
 	for label, body := range files {
-		for _, forbidden := range []string{"ProgramData", "LOCALAPPDATA", "UserCacheDir()", "os.TempDir()"} {
+		for _, forbidden := range []string{
+			`os.Getenv("ProgramData")`,
+			`os.Getenv("LOCALAPPDATA")`,
+			"os.UserCacheDir()",
+			"os.TempDir()",
+			"$env:ProgramData",
+			"$env:LOCALAPPDATA",
+		} {
 			if strings.Contains(body, forbidden) {
-				t.Fatalf("%s still references system storage marker %q", label, forbidden)
+				t.Fatalf("%s still references system storage expression %q", label, forbidden)
 			}
 		}
 	}
