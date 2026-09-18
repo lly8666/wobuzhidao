@@ -20,7 +20,7 @@ param(
     [string]$DNSServer = '',
     [ValidateRange(576,9000)]
     [int]$MTU = 1400,
-    [string]$StatePath = "$env:ProgramData\WBD\windows-route-state.json"
+    [string]$StatePath = "$PSScriptRoot\route-state.json"
 )
 
 $ErrorActionPreference = 'Stop'
