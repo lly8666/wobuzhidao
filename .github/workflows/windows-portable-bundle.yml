@@ -13,7 +13,6 @@ on:
       - 'cmd/wbd-link-proxy/**'
       - 'cmd/wbd-game-lane-client/**'
       - 'cmd/wbd-tun/**'
-      - 'cmd/wbd-route-batch/**'
       - 'internal/windowsbundle/**'
       - 'internal/windowsdiag/**'
       - 'internal/windowsruntime/**'
@@ -45,7 +44,6 @@ on:
       - 'cmd/wbd-link-proxy/**'
       - 'cmd/wbd-game-lane-client/**'
       - 'cmd/wbd-tun/**'
-      - 'cmd/wbd-route-batch/**'
       - 'internal/windowsbundle/**'
       - 'internal/windowsdiag/**'
       - 'internal/windowsruntime/**'
@@ -100,8 +98,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "wbd-game-lane-client build failed: $LASTEXITCODE" }
           go build -trimpath -ldflags "-s -w" -o build\windows-runtime\wbd-tun.exe .\cmd\wbd-tun
           if ($LASTEXITCODE -ne 0) { throw "wbd-tun build failed: $LASTEXITCODE" }
-          go build -trimpath -ldflags "-s -w" -o build\windows-runtime\wbd-route-batch.exe .\cmd\wbd-route-batch
-          if ($LASTEXITCODE -ne 0) { throw "wbd-route-batch build failed: $LASTEXITCODE" }
           go build -trimpath -ldflags "-s -w -H=windowsgui" -o build\windows-runtime\wbd-windows-gui.exe .\cmd\wbd-windows-gui
           if ($LASTEXITCODE -ne 0) { throw "wbd-windows-gui build failed: $LASTEXITCODE" }
       - name: Build pinned wolfSSL DTLS shim with static CRT
@@ -198,7 +194,7 @@ jobs:
           go build -trimpath -ldflags "-s -w -H=windowsgui" -o "$payload\wbd.exe" .\cmd\wbd-windows-portable
           if ($LASTEXITCODE -ne 0) { throw "installed launcher build failed: $LASTEXITCODE" }
           $required = @(
-            'wbd.exe','wbd-reality-front.exe','wbd-faketcp.exe','wbd_dtls_shim.exe','wbd-link-proxy.exe','wbd-game-lane-client.exe','wbd-tun.exe','wbd-route-batch.exe','wbd-windows-gui.exe',
+            'wbd.exe','wbd-reality-front.exe','wbd-faketcp.exe','wbd_dtls_shim.exe','wbd-link-proxy.exe','wbd-game-lane-client.exe','wbd-tun.exe','wbd-windows-gui.exe',
             'wintun.dll','WINTUN-LICENSE.txt','SOURCE_SHA.txt','wbd.example.json','cn4.txt','cn6.txt','cn-manifest.json','windows_tun_route.ps1','windows_tun_rebind.ps1','windows_ipv6_killswitch.ps1','windows_faketcp_underlay.ps1','windows_npcap_prepare.ps1'
           )
           foreach ($name in $required) {
@@ -228,7 +224,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          go test ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-windows-gui ./cmd/wbd-windows-portable ./cmd/wbd-route-batch -count=1
+          go test ./internal/windowsgui ./internal/windowsruntime ./cmd/wbd-windows-gui ./cmd/wbd-windows-portable -count=1
           if ($LASTEXITCODE -ne 0) { throw "installed runtime tests failed: $LASTEXITCODE" }
           $manifest = Get-Content build\windows-runtime\manifest.json -Raw | ConvertFrom-Json
           if ($manifest.schema -ne 'wbd-windows-install-directory/v1') { throw 'wrong install-directory manifest schema' }
