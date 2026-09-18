@@ -321,9 +321,18 @@ func (PowerShellUnderlayDiscoverer) Preflight(profile Profile) error {
 	if err := profile.Validate(); err != nil {
 		return err
 	}
-	if profile.RequiresCNSet() && profile.AutoUpdateCN {
-		if _, err := ipset.EnsureCNBundle(context.Background(), profile.CNSetDir); err != nil {
-			return fmt.Errorf("refresh mainland-China IP ranges: %w", err)
+	if profile.RequiresCNSet() {
+		manifest, installed, err := ipset.EnsureEmbeddedCNBaseline(profile.CNSetDir)
+		if err != nil {
+			return fmt.Errorf("prepare offline mainland-China IP ranges: %w", err)
+		}
+		fmt.Printf("WBD_WINDOWS_CN_BASELINE_READY ipv4=%d ipv6=%d installed=%d source=%s\n", manifest.IPv4Count, manifest.IPv6Count, boolToInt(installed), manifest.Source)
+		if profile.AutoUpdateCN {
+			if refreshed, err := ipset.EnsureCNBundle(context.Background(), profile.CNSetDir); err != nil {
+				return fmt.Errorf("refresh mainland-China IP ranges: %w", err)
+			} else {
+				fmt.Printf("WBD_WINDOWS_CN_REFRESH_READY refreshed=%d stale=%d ipv4=%d ipv6=%d\n", boolToInt(refreshed.Refreshed), boolToInt(refreshed.UsedStale), refreshed.Manifest.IPv4Count, refreshed.Manifest.IPv6Count)
+			}
 		}
 	}
 	if err := ValidateRoutingAssets(profile); err != nil {
@@ -380,4 +389,9 @@ func (PowerShellUnderlayDiscoverer) Discover(profile Profile) (Underlay, error) 
 		return Underlay{}, err
 	}
 	return underlay, nil
+}
+
+func boolToInt(v bool) int {
+	if v { return 1 }
+	return 0
 }
