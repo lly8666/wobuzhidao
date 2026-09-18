@@ -5,14 +5,15 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/lly8666/wobuzhidao/internal/windowsgui"
-	"github.com/lly8666/wobuzhidao/internal/windowsruntime"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
 	"unsafe"
+
+	"github.com/lly8666/wobuzhidao/internal/windowsgui"
+	"github.com/lly8666/wobuzhidao/internal/windowsruntime"
 )
 
 const (
@@ -242,7 +243,7 @@ func loadEditor(id string) {
 	}
 	profileUI.editingID = id
 	v := windowsgui.EditorValuesFromSavedProfile(p)
-		setText(profileUI.serverIP, v.ServerIP)
+	setText(profileUI.serverIP, v.ServerIP)
 	setText(profileUI.serverPort, v.ServerPort)
 	setText(profileUI.serverFront, v.ServerFront)
 	setText(profileUI.serverRaw, v.ServerRaw)
