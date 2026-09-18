@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
 )
 
 // underlayPathObservation keeps kernel-route identity separate from the raw

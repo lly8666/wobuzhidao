@@ -60,6 +60,19 @@ function Save-State($State) {
     [System.IO.File]::WriteAllText($StatePath, $json + [Environment]::NewLine, $utf8NoBom)
 }
 
+function Set-PhysicalPathState($State, [uint32]$InterfaceIndex, [string]$NextHop) {
+    if ($State.PSObject.Properties.Name -contains 'PhysicalInterfaceIndex') {
+        $State.PhysicalInterfaceIndex = $InterfaceIndex
+    } else {
+        $State | Add-Member -NotePropertyName PhysicalInterfaceIndex -NotePropertyValue $InterfaceIndex
+    }
+    if ($State.PSObject.Properties.Name -contains 'PhysicalNextHop4') {
+        $State.PhysicalNextHop4 = $NextHop
+    } else {
+        $State | Add-Member -NotePropertyName PhysicalNextHop4 -NotePropertyValue $NextHop
+    }
+}
+
 function Route-Key($Route) {
     return ('{0}|{1}|{2}' -f ([string]$Route.DestinationPrefix).ToLowerInvariant(), [uint32]$Route.InterfaceIndex, ([string]$Route.NextHop).ToLowerInvariant())
 }
@@ -201,5 +214,9 @@ foreach ($route in @($oldUnderlay) + @($oldDirect)) {
 
 $state.UnderlayRoutes = @($newUnderlayOwned)
 $state.DirectRoutes = @($newDirectOwned)
+# Publish the new physical identity only after all new routes are established
+# and all obsolete WBD-owned routes have retired successfully. New direct
+# sockets can then follow this state without observing a half-applied cutover.
+Set-PhysicalPathState $state $ExpectedPhysicalInterfaceIndex $ExpectedPhysicalNextHop4
 Save-State $state
 Write-Output "WBD_WINDOWS_TUN_REBIND_PASS underlay4=$Underlay4 ifindex=$ExpectedPhysicalInterfaceIndex next_hop=$ExpectedPhysicalNextHop4 direct4=$($DirectPrefix4.Count) created=$($created.Count) retired=$retired"

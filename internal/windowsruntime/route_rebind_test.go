@@ -2,12 +2,12 @@ package windowsruntime
 
 import (
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
 	"testing"
 	"time"
-
 )
 
 type observedPathDiscoverer struct {
@@ -279,6 +279,9 @@ func TestWindowsRouteRebindScriptKeepsTransactionalOwnershipGuards(t *testing.T)
 		"$state.DirectRoutes = @(Merge-OwnedRoutes $oldDirect $createDirect)",
 		"New-NetRoute",
 		"Remove-NetRoute",
+		"Set-PhysicalPathState",
+		"PhysicalInterfaceIndex",
+		"PhysicalNextHop4",
 		"WBD_WINDOWS_TUN_REBIND_PASS",
 	} {
 		if !strings.Contains(text, want) {
@@ -288,8 +291,11 @@ func TestWindowsRouteRebindScriptKeepsTransactionalOwnershipGuards(t *testing.T)
 	stage := strings.Index(text, "$state.DirectRoutes = @(Merge-OwnedRoutes $oldDirect $createDirect)")
 	create := strings.Index(text, "foreach ($route in @($createUnderlay) + @($createDirect))")
 	retire := strings.LastIndex(text, "foreach ($route in @($oldUnderlay) + @($oldDirect))")
-	if stage < 0 || create < 0 || retire < 0 || !(stage < create && create < retire) {
-		t.Fatalf("route rebind transaction order changed: stage=%d create=%d retire=%d", stage, create, retire)
+	physical := strings.LastIndex(text, "Set-PhysicalPathState $state $ExpectedPhysicalInterfaceIndex $ExpectedPhysicalNextHop4")
+	finalSave := strings.LastIndex(text, "Save-State $state")
+	if stage < 0 || create < 0 || retire < 0 || physical < 0 || finalSave < 0 ||
+		!(stage < create && create < retire && retire < physical && physical < finalSave) {
+		t.Fatalf("route rebind transaction order changed: stage=%d create=%d retire=%d physical=%d save=%d", stage, create, retire, physical, finalSave)
 	}
 }
 

@@ -9,6 +9,8 @@ func TestWindowsRouteApplyDoesNotReownTunInterfaceMTU(t *testing.T) {
 	script := readRepoFile(t, "scripts/windows_tun_route.ps1")
 	requireContains(t, script, "Schema = 'wbd-windows-route-state/v4'", "Windows route-state schema")
 	requireContains(t, script, "WBD_WINDOWS_TUN_ROUTE_STATE_READY", "Windows route-state readiness marker")
+	requireContains(t, script, "PhysicalInterfaceIndex", "current physical interface route-state metadata")
+	requireContains(t, script, "PhysicalNextHop4", "current physical next-hop route-state metadata")
 	requireContains(t, script, "already owned and verified by wbd-tun", "single MTU owner contract")
 	requireNotContains(t, script, "$ipif4 = Get-NetIPInterface", "route apply duplicate IPv4 interface query")
 	requireNotContains(t, script, "$ipif6 = Get-NetIPInterface", "route apply duplicate IPv6 interface query")

@@ -139,7 +139,8 @@ type directHandler struct {
 }
 
 type directRouteState struct {
-	UnderlayRoutes []struct {
+	PhysicalInterfaceIndex uint32 `json:"PhysicalInterfaceIndex"`
+	UnderlayRoutes          []struct {
 		InterfaceIndex uint32 `json:"InterfaceIndex"`
 	} `json:"UnderlayRoutes"`
 }
@@ -149,6 +150,9 @@ func (h *directHandler) interfaceIndex() int {
 		if raw, err := os.ReadFile(h.routeStatePath); err == nil {
 			var state directRouteState
 			if json.Unmarshal(raw, &state) == nil {
+				if state.PhysicalInterfaceIndex != 0 {
+					return int(state.PhysicalInterfaceIndex)
+				}
 				for _, route := range state.UnderlayRoutes {
 					if route.InterfaceIndex != 0 {
 						return int(route.InterfaceIndex)

@@ -346,6 +346,8 @@ $state = [ordered]@{
     Schema = 'wbd-windows-route-state/v4'
     AdapterAlias = $AdapterAlias
     AdapterInterfaceIndex = $ifIndex
+    PhysicalInterfaceIndex = [uint32]0
+    PhysicalNextHop4 = ''
     DNSConfigured = $false
     NRPTRuleName = ''
     Addresses = @()
@@ -371,6 +373,15 @@ try {
             Save-State $state
             New-NetRoute -DestinationPrefix $item.Prefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop ([string]$route.NextHop) -RouteMetric 1 -PolicyStore ActiveStore | Out-Null
         }
+    }
+
+    if ($underlayRoute4) {
+        # Current physical-path identity is runtime metadata, not cleanup
+        # ownership. Persist it even when the exact server /32 already existed
+        # and therefore was deliberately not added to UnderlayRoutes.
+        $state.PhysicalInterfaceIndex = [uint32]$underlayRoute4.InterfaceIndex
+        $state.PhysicalNextHop4 = [string]$underlayRoute4.NextHop
+        Save-State $state
     }
 
     Write-Output "WBD_WINDOWS_TUN_UNDERLAY_ROUTES_READY underlay4=$([int](-not [string]::IsNullOrWhiteSpace($Underlay4))) underlay6=$([int](-not [string]::IsNullOrWhiteSpace($Underlay6)))"
