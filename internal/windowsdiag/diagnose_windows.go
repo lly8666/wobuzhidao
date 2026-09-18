@@ -36,7 +36,7 @@ type logger struct {
 
 func Run(profile windowsruntime.Profile, logPath string) (result Result, retErr error) {
 	if strings.TrimSpace(logPath) == "" {
-		logPath = filepath.Join(os.TempDir(), "WBD", "support-"+time.Now().Format("20060102-150405")+".jsonl")
+		logPath = filepath.Join(profile.BinDir, "logs", "support-"+time.Now().Format("20060102-150405")+".jsonl")
 	}
 	if err := os.MkdirAll(filepath.Dir(logPath), 0o700); err != nil {
 		return result, err
