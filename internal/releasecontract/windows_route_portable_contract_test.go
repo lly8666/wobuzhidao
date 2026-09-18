@@ -26,12 +26,13 @@ func TestWindowsPortableShipsVerifiedCNBundle(t *testing.T) {
 	workflow := readRepoFile(t, ".github/workflows/windows-portable-bundle.yml")
 	for _, want := range []string{
 		"Seed verified portable CN routing bundle",
-		"https://ftp.apnic.net/stats/apnic/delegated-apnic-latest",
+		"internal\\ipset\\seed\\cn4.txt",
 		"go run .\\cmd\\wbd-ipset -action install",
 		"go run .\\cmd\\wbd-ipset -action verify",
 		"'cn4.txt','cn6.txt','cn-manifest.json'",
-		"WBD_WINDOWS_CN_BUNDLE_PASS",
+		"WBD_WINDOWS_CN_BUNDLE_PASS source=repository-frozen",
 	} {
 		requireContains(t, workflow, want, "Windows portable CN routing bundle")
 	}
+	requireNotContains(t, workflow, "ftp.apnic.net/stats/apnic/delegated-apnic-latest", "Windows portable CN live build dependency")
 }
