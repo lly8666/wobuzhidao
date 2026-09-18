@@ -51,22 +51,10 @@ type routingPlan struct {
 	CaptureLAN        bool
 }
 
+// Windows routing is deliberately policy-agnostic. All ordinary IPv4 traffic,
+// including RFC1918/LAN destinations, is first captured by Wintun. The
+// proxy_lan/proxy_china/proxy_other decision is made in wbd-tun so the CN
+// database never becomes thousands of entries in the host route table.
 func buildRoutingPlan(profile Profile) routingPlan {
-	policy := profile.EffectiveRoutingPolicy()
-	plan := routingPlan{Mode: "None", CaptureLAN: policy.ProxyLAN}
-	switch {
-	case policy.ProxyOther:
-		plan.Mode = "Full"
-	case policy.ProxyChina || policy.ProxyLAN:
-		plan.Mode = "Split"
-	}
-	if policy.ProxyChina != policy.ProxyOther {
-		cn4 := filepath.Join(profile.CNSetDir, ipset.CNIPv4File)
-		if policy.ProxyChina {
-			plan.PrefixFile4 = cn4
-		} else {
-			plan.DirectPrefixFile4 = cn4
-		}
-	}
-	return plan
+	return routingPlan{Mode: "Full", CaptureLAN: true}
 }
