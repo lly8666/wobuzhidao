@@ -43,11 +43,12 @@ prefix = prefix.replace(mtu_anchor, mtu_block, 1)
 netem_anchor = 'sudo ip netns exec \"$S\" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP\n'
 netem_block = netem_anchor + r'''NETEM_DELAY_MS=${NETEM_DELAY_MS:-0}
 NETEM_LOSS_PCT=${NETEM_LOSS_PCT:-0}
+NETEM_SEED=${SOAK_REPLICA:-1}
 if [[ "$NETEM_DELAY_MS" != 0 || "$NETEM_LOSS_PCT" != 0 ]]; then
-  sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%"
-  sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%"
+  sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%" seed "$NETEM_SEED"
+  sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%" seed "$NETEM_SEED"
   {
-    echo "WBD_HOSTED_NETEM_READY delay_ms=${NETEM_DELAY_MS} loss_pct=${NETEM_LOSS_PCT} direction=bidirectional"
+    echo "WBD_HOSTED_NETEM_READY delay_ms=${NETEM_DELAY_MS} loss_pct=${NETEM_LOSS_PCT} direction=bidirectional seed=${NETEM_SEED}"
     sudo ip netns exec "$C" tc qdisc show dev gc0
     sudo ip netns exec "$S" tc qdisc show dev gs0
   } | tee "$LOG_DIR/netem.log"
