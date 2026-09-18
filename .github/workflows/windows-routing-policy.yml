@@ -23,7 +23,7 @@ jobs:
       - name: Go routing packages
         shell: pwsh
         run: |
-          go test ./internal/ipset ./internal/windowsruntime ./internal/windowsgui
+          go test ./internal/ipset ./internal/tunsplit ./internal/windowsruntime ./internal/windowsgui
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           go test ./cmd/wbd-windows-gui ./cmd/wbd-windows-portable
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
