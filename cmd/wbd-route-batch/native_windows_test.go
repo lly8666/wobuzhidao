@@ -5,7 +5,14 @@ package main
 import (
 	"net/netip"
 	"testing"
+	"unsafe"
 )
+
+func TestMibIpForwardRow2ABILayout(t *testing.T) {
+	if got := unsafe.Sizeof(mibIPForwardRow2{}); got != 104 {
+		t.Fatalf("MIB_IPFORWARD_ROW2 ABI size=%d want=104", got)
+	}
+}
 
 func TestMakeIPv4RouteRow(t *testing.T) {
 	row, err := makeIPv4RouteRow(netip.MustParsePrefix("203.0.113.0/24"), 29, netip.MustParseAddr("192.0.2.1"), 7)
