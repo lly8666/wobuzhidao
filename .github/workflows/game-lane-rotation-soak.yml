@@ -88,7 +88,8 @@ jobs:
     strategy:
       # Five independent seeded random-loss replicas per release FEC mode exercise
       # the bounded ten-incarnation retirement headroom on the exact candidate SHA.
-      # SOAK_REPLICA is also the netem RNG seed, so a failing replica is reproducible.
+      # SOAK_REPLICA deterministically derives independent client/server netem RNG
+      # seeds, so a failing replica is reproducible without correlating directions.
       fail-fast: false
       max-parallel: 10
       matrix:
