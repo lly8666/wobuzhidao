@@ -215,17 +215,21 @@ jobs:
           # Npcap injects FakeTCP onto WSL's Hyper-V vEthernet. Admit only
           # the product public carrier port through the WSL Hyper-V firewall.
           $vmCreator='{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}'
-          foreach($cmd in @('Get-NetFirewallHyperVVMSetting','New-NetFirewallHyperVRule','Get-NetFirewallHyperVRule','Remove-NetFirewallHyperVRule')){
+          foreach($cmd in @('Get-NetFirewallHyperVVMSetting','Set-NetFirewallHyperVVMSetting')){
             if(-not(Get-Command $cmd -ErrorAction SilentlyContinue)){throw "required Hyper-V firewall cmdlet unavailable: $cmd"}
           }
           $setting=Get-NetFirewallHyperVVMSetting -PolicyStore ActiveStore -Name $vmCreator -ErrorAction Stop
-          Write-Output "WBD_WSL_HYPERV_FIREWALL_STATE creator=$vmCreator inbound=$($setting.DefaultInboundAction) outbound=$($setting.DefaultOutboundAction) merge=$($setting.AllowHostPolicyMerge)"
-          $ruleName="WBDNpcapWSL-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT-${{ matrix.slug }}"
-          Get-NetFirewallHyperVRule -Name $ruleName -ErrorAction SilentlyContinue | Remove-NetFirewallHyperVRule -ErrorAction SilentlyContinue
-          New-NetFirewallHyperVRule -Name $ruleName -DisplayName $ruleName -Direction Inbound -Action Allow -VMCreatorId $vmCreator -Protocol TCP -LocalPorts 40000 -ErrorAction Stop | Out-Null
-          if(-not(Get-NetFirewallHyperVRule -Name $ruleName -ErrorAction SilentlyContinue)){throw "WSL Hyper-V firewall rule was not persisted: $ruleName"}
-          "WBD_WSL_HYPERV_RULE=$ruleName"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Write-Output "WBD_WSL_HYPERV_FIREWALL_READY creator=$vmCreator protocol=tcp local_port=40000 rule=$ruleName"
+          $oldInbound=[string]$setting.DefaultInboundAction
+          Write-Output "WBD_WSL_HYPERV_FIREWALL_STATE creator=$vmCreator inbound=$oldInbound outbound=$($setting.DefaultOutboundAction) merge=$($setting.AllowHostPolicyMerge)"
+          # Raw Npcap injection enters below the host TCP stack. A port-scoped
+          # Hyper-V rule did not admit those frames on hosted WSL, so use the
+          # documented WSL VM default inbound switch only for this isolated
+          # qualification window, then restore the runner's original value.
+          Set-NetFirewallHyperVVMSetting -Name $vmCreator -DefaultInboundAction Allow -ErrorAction Stop
+          $applied=Get-NetFirewallHyperVVMSetting -PolicyStore ActiveStore -Name $vmCreator -ErrorAction Stop
+          if([string]$applied.DefaultInboundAction-ne'Allow'){throw "failed to set WSL Hyper-V default inbound allow: $($applied.DefaultInboundAction)"}
+          "WBD_WSL_HYPERV_OLD_INBOUND=$oldInbound"|Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Output "WBD_WSL_HYPERV_FIREWALL_READY creator=$vmCreator inbound=Allow scope=qualification restore=$oldInbound"
       - name: Install signed ephemeral Npcap 1.88 runtime
         shell: pwsh
         run: |
@@ -295,9 +299,10 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference='Continue'
-          if($env:WBD_WSL_HYPERV_RULE){
-            Get-NetFirewallHyperVRule -Name $env:WBD_WSL_HYPERV_RULE -ErrorAction SilentlyContinue | Remove-NetFirewallHyperVRule -ErrorAction SilentlyContinue
-            Write-Output "WBD_WSL_HYPERV_FIREWALL_CLEANUP rule=$env:WBD_WSL_HYPERV_RULE"
+          if($env:WBD_WSL_HYPERV_OLD_INBOUND){
+            $vmCreator='{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}'
+            Set-NetFirewallHyperVVMSetting -Name $vmCreator -DefaultInboundAction $env:WBD_WSL_HYPERV_OLD_INBOUND -ErrorAction SilentlyContinue
+            Write-Output "WBD_WSL_HYPERV_FIREWALL_CLEANUP creator=$vmCreator inbound=$env:WBD_WSL_HYPERV_OLD_INBOUND"
           }
           $marker=Join-Path $env:RUNNER_TEMP 'wbd-soak-ephemeral-wsl.txt'
           if(Test-Path -LiteralPath $marker){$d=(Get-Content -LiteralPath $marker -Raw).Trim();if($d){& wsl.exe --terminate $d 2>$null;& wsl.exe --unregister $d;if($LASTEXITCODE){throw "failed to unregister ephemeral WSL distro $d"};Write-Output "WBD_WSL_DISTRO_CLEANUP_PASS distro=$d"};Remove-Item -LiteralPath $marker -Force -ErrorAction SilentlyContinue}else{Write-Output 'WBD_WSL_DISTRO_CLEANUP_SKIP reason=preexisting_or_not_installed'}
