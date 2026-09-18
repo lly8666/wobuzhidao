@@ -328,8 +328,11 @@ func (PowerShellUnderlayDiscoverer) Preflight(profile Profile) error {
 		}
 		fmt.Printf("WBD_WINDOWS_CN_BASELINE_READY ipv4=%d ipv6=%d installed=%d source=%s\n", manifest.IPv4Count, manifest.IPv6Count, boolToInt(installed), manifest.Source)
 		if profile.AutoUpdateCN {
-			if refreshed, err := ipset.EnsureCNBundle(context.Background(), profile.CNSetDir); err != nil {
-				return fmt.Errorf("refresh mainland-China IP ranges: %w", err)
+			refreshCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			refreshed, refreshErr := ipset.EnsureCNBundle(refreshCtx, profile.CNSetDir)
+			cancel()
+			if refreshErr != nil {
+				fmt.Printf("WBD_WINDOWS_CN_REFRESH_WARN baseline_kept=1 error=%q\n", refreshErr)
 			} else {
 				fmt.Printf("WBD_WINDOWS_CN_REFRESH_READY refreshed=%d stale=%d ipv4=%d ipv6=%d\n", boolToInt(refreshed.Refreshed), boolToInt(refreshed.UsedStale), refreshed.Manifest.IPv4Count, refreshed.Manifest.IPv6Count)
 			}
