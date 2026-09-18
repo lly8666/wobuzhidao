@@ -4,6 +4,7 @@ package tunsplit
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -34,7 +35,7 @@ type DirectEngine struct {
 	closeOnce sync.Once
 }
 
-func NewDirectEngine(interfaceIndex uint32, mtu int, output tunnel.Endpoint) (*DirectEngine, error) {
+func NewDirectEngine(interfaceIndex uint32, routeStatePath string, mtu int, output tunnel.Endpoint) (*DirectEngine, error) {
 	if interfaceIndex == 0 {
 		return nil, errors.New("direct split requires a physical interface index")
 	}
@@ -49,7 +50,7 @@ func NewDirectEngine(interfaceIndex uint32, mtu int, output tunnel.Endpoint) (*D
 	if err != nil {
 		return nil, fmt.Errorf("create userspace direct link endpoint: %w", err)
 	}
-	handler := &directHandler{interfaceIndex: int(interfaceIndex)}
+	handler := &directHandler{fallbackInterfaceIndex: interfaceIndex, routeStatePath: routeStatePath}
 	s, err := core.CreateStack(&core.Config{LinkEndpoint: link, TransportHandler: handler})
 	if err != nil {
 		rw.Close()
@@ -132,8 +133,31 @@ func (rw *directPacketRW) Close() {
 }
 
 type directHandler struct {
-	interfaceIndex int
-	d               dialer.Dialer
+	fallbackInterfaceIndex uint32
+	routeStatePath         string
+	d                      dialer.Dialer
+}
+
+type directRouteState struct {
+	UnderlayRoutes []struct {
+		InterfaceIndex uint32 `json:"InterfaceIndex"`
+	} `json:"UnderlayRoutes"`
+}
+
+func (h *directHandler) interfaceIndex() int {
+	if h.routeStatePath != "" {
+		if raw, err := os.ReadFile(h.routeStatePath); err == nil {
+			var state directRouteState
+			if json.Unmarshal(raw, &state) == nil {
+				for _, route := range state.UnderlayRoutes {
+					if route.InterfaceIndex != 0 {
+						return int(route.InterfaceIndex)
+					}
+				}
+			}
+		}
+	}
+	return int(h.fallbackInterfaceIndex)
 }
 
 func (h *directHandler) HandleTCP(origin adapter.TCPConn) {
@@ -152,11 +176,16 @@ func (h *directHandler) handleTCP(origin adapter.TCPConn) {
 		return
 	}
 	target := net.JoinHostPort(dst.Unmap().String(), strconv.Itoa(int(id.LocalPort)))
+	ifIndex := h.interfaceIndex()
+	if ifIndex == 0 {
+		fmt.Fprintf(os.Stderr, "WBD_TUN_DIRECT_TCP_DIAL_FAIL dst=%s error=%q\n", target, "physical interface unavailable")
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), directDialTimeout)
 	defer cancel()
-	remote, err := h.d.DialContextWithOptions(ctx, "tcp4", target, &dialer.Options{InterfaceIndex: h.interfaceIndex})
+	remote, err := h.d.DialContextWithOptions(ctx, "tcp4", target, &dialer.Options{InterfaceIndex: ifIndex})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "WBD_TUN_DIRECT_TCP_DIAL_FAIL dst=%s ifindex=%d error=%q\n", target, h.interfaceIndex, err)
+		fmt.Fprintf(os.Stderr, "WBD_TUN_DIRECT_TCP_DIAL_FAIL dst=%s ifindex=%d error=%q\n", target, ifIndex, err)
 		return
 	}
 	defer remote.Close()
@@ -190,9 +219,9 @@ func (h *directHandler) handleUDP(origin adapter.UDPConn) {
 		return
 	}
 	remote := &net.UDPAddr{IP: net.IP(dst.Unmap().AsSlice()), Port: int(id.LocalPort)}
-	pc, err := h.d.ListenPacketWithOptions("udp4", "0.0.0.0:0", &dialer.Options{InterfaceIndex: h.interfaceIndex})
+	pc, err := h.d.ListenPacketWithOptions("udp4", "0.0.0.0:0", &dialer.Options{InterfaceIndex: ifIndex})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "WBD_TUN_DIRECT_UDP_OPEN_FAIL dst=%s ifindex=%d error=%q\n", remote, h.interfaceIndex, err)
+		fmt.Fprintf(os.Stderr, "WBD_TUN_DIRECT_UDP_OPEN_FAIL dst=%s ifindex=%d error=%q\n", remote, ifIndex, err)
 		return
 	}
 	defer pc.Close()
