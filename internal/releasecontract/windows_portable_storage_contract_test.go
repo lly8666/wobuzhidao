@@ -57,3 +57,20 @@ func TestWindowsPortableDefaultRoutingKeepsLANDirect(t *testing.T) {
 	requireContains(t, example, `"proxy_other": true`, "portable example Other policy")
 	requireNotContains(t, example, `"route_mode"`, "portable example legacy routing")
 }
+
+func TestWindowsPortableCNBaselineIsRepositoryOwnedAndNonBlocking(t *testing.T) {
+	workflow := readRepoFile(t, ".github/workflows/windows-portable-bundle.yml")
+	requireContains(t, workflow, `internal\ipset\seed\cn4.txt`, "Windows portable repository CN seed")
+	requireContains(t, workflow, `source=repository-frozen`, "Windows portable frozen CN source marker")
+	requireNotContains(t, workflow, "ftp.apnic.net/stats/apnic/delegated-apnic-latest", "Windows portable CN live build dependency")
+
+	gui := readRepoFile(t, "cmd/wbd-windows-gui/main_windows.go")
+	requireContains(t, gui, "profile.AutoUpdateCN = false", "portable GUI non-blocking CN policy")
+	requireContains(t, gui, "WBD_GUI_CONNECTED state=connected routes_ready=1", "portable GUI final routing readiness marker")
+
+	controller := readRepoFile(t, "internal/windowsruntime/controller.go")
+	requireContains(t, controller, "ipset.EnsureEmbeddedCNBaseline(profile.CNSetDir)", "Windows runtime embedded CN fallback")
+
+	seed := readRepoFile(t, "internal/ipset/seed/cn4.txt")
+	requireContains(t, seed, "1.0.1.0/24", "repository CN baseline representative route")
+}
