@@ -32,6 +32,71 @@ func testStreamingBlock(t *testing.T, blockID uint32) ([][]byte, [][]byte) {
 	return want, sources
 }
 
+func testStreamingBlockWithParity(t *testing.T, blockID uint32) ([][]byte, [][]byte) {
+	t.Helper()
+	codec := fec.NewFastReedSolomon20x20()
+	enc, err := fec.NewFastBlockEncoder(codec, 1400, time.Millisecond, blockID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := make([][]byte, fec.DataShards)
+	wire := make([][]byte, 0, fec.TotalShards)
+	base := time.Unix(1, 0)
+	for i := 0; i < fec.DataShards; i++ {
+		want[i] = bytes.Repeat([]byte{byte(i + 1)}, 80+i)
+		out, err := enc.Add(want[i], base.Add(time.Duration(i)*time.Microsecond))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, datagram := range out {
+			wire = append(wire, append([]byte(nil), datagram...))
+		}
+	}
+	if len(wire) != fec.TotalShards {
+		t.Fatalf("wire=%d want=%d", len(wire), fec.TotalShards)
+	}
+	return want, wire
+}
+
+func TestHighLatencyRecoveryWindowAllowsLateParityAtTwoPointFiveSeconds(t *testing.T) {
+	p, err := New(fixedConfig(), 64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, wire := testStreamingBlockWithParity(t, 66)
+	t0 := time.Unix(90, 0)
+
+	got, err := p.decodeAt(wire[0], t0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || !bytes.Equal(got[0], want[0]) {
+		t.Fatalf("first delivery=%q", got)
+	}
+
+	late := t0.Add(2500 * time.Millisecond)
+	recovered := make([][]byte, 0, fec.DataShards-1)
+	for i := fec.DataShards; i < fec.DataShards+fec.DataShards-1; i++ {
+		got, err = p.decodeAt(wire[i], late.Add(time.Duration(i-fec.DataShards)*time.Microsecond))
+		if err != nil {
+			t.Fatalf("late parity %d: %v", i-fec.DataShards, err)
+		}
+		recovered = append(recovered, got...)
+	}
+	if len(recovered) != fec.DataShards-1 {
+		t.Fatalf("late parity recovered=%d want=%d", len(recovered), fec.DataShards-1)
+	}
+	for i, packet := range recovered {
+		if !bytes.Equal(packet, want[i+1]) {
+			t.Fatalf("recovered source %d mismatch", i+1)
+		}
+	}
+	st := p.FECObserveStats()
+	if st.Recovery.ExpireEvents != 0 || st.Decoder.InFlight != 0 {
+		t.Fatalf("late parity recovery stats=%+v", st)
+	}
+}
+
 func TestBoundedRecoveryExpiresWithoutInputAndLateSystematicDeliversOnce(t *testing.T) {
 	p, err := New(fixedConfig(), 64)
 	if err != nil {

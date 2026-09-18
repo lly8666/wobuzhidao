@@ -6,12 +6,13 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/fec"
 )
 
-// candidateFECRecoveryHorizon is the first bounded-recovery candidate from
-// PRE_RELEASE.md. It is intentionally a fixed experiment point inside the
-// documented 1-3 second exploration range, not a claimed final production
-// default. A later change can derive this from smoothed RTT without changing
-// the absolute-deadline semantics below.
-const candidateFECRecoveryHorizon = 2 * time.Second
+// candidateFECRecoveryHorizon is the bounded high-latency candidate from
+// PRE_RELEASE.md. The 300ms-one-way qualification path showed that 2 seconds
+// can retire an otherwise recoverable block before a later FakeTCP repair
+// arrives. Keep the documented absolute-deadline semantics, but use the
+// exploration range's 3-second ceiling until LINK can derive this from a
+// smoothed RTT without changing wire format or the FakeTCP recovery core.
+const candidateFECRecoveryHorizon = 3 * time.Second
 
 type FECRecoveryStats struct {
 	HorizonMillis         int64  `json:"horizon_millis"`
