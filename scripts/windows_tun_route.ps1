@@ -357,7 +357,7 @@ try {
 
     if ($DirectPrefix4.Count -gt 0 -or $CaptureLAN) {
         if (-not $underlayRoute4) { throw 'pre-WBD IPv4 route is unavailable for direct-prefix/LAN routing' }
-        $directCreate = @()
+        $directCreate = [System.Collections.Generic.List[object]]::new()
         # Query the physical route table once. CN split mode can contain thousands
         # of prefixes; one Get-NetRoute CIM call per prefix made startup scale
         # catastrophically and could exceed the product readiness timeout.
@@ -370,14 +370,14 @@ try {
         foreach ($prefix in $DirectPrefix4) {
             $key = "$prefix|$physicalNextHop4"
             if (-not $existingDirect.ContainsKey($key)) {
-                $directCreate += [ordered]@{ DestinationPrefix=$prefix; InterfaceIndex=[uint32]$underlayRoute4.InterfaceIndex; NextHop=$physicalNextHop4 }
+                [void]$directCreate.Add([ordered]@{ DestinationPrefix=$prefix; InterfaceIndex=[uint32]$underlayRoute4.InterfaceIndex; NextHop=$physicalNextHop4 })
             }
         }
         if ($CaptureLAN -and $underlayRoute4 -and (Test-RFC1918Address $physicalNextHop4)) {
             $gatewayPrefix = "$physicalNextHop4/32"
             $key = "$gatewayPrefix|$physicalNextHop4"
             if (-not $existingDirect.ContainsKey($key)) {
-                $directCreate += [ordered]@{ DestinationPrefix=$gatewayPrefix; InterfaceIndex=[uint32]$underlayRoute4.InterfaceIndex; NextHop=$physicalNextHop4 }
+                [void]$directCreate.Add([ordered]@{ DestinationPrefix=$gatewayPrefix; InterfaceIndex=[uint32]$underlayRoute4.InterfaceIndex; NextHop=$physicalNextHop4 })
             }
         }
         $state.DirectRoutes = @($directCreate)
@@ -410,7 +410,7 @@ try {
     # Plan and persist all WBD-owned capture routes before creating the batch so
     # cleanup after a partial New-NetRoute failure is complete and never removes
     # pre-existing user routes.
-    $captureCreate = @()
+    $captureCreate = [System.Collections.Generic.List[object]]::new()
     # Same rule for Wintun capture routes: snapshot once, compare in memory, then
     # create only WBD-owned missing entries. Avoid thousands of CIM round trips.
     $existingCapture = @{}
@@ -422,7 +422,7 @@ try {
         foreach ($prefix in @($item.Prefixes)) {
             $key = "$prefix|$($item.NextHop)"
             if (-not $existingCapture.ContainsKey($key)) {
-                $captureCreate += [ordered]@{ DestinationPrefix=$prefix; InterfaceIndex=$ifIndex; NextHop=$item.NextHop }
+                [void]$captureCreate.Add([ordered]@{ DestinationPrefix=$prefix; InterfaceIndex=$ifIndex; NextHop=$item.NextHop })
             }
         }
     }
