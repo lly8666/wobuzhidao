@@ -228,23 +228,32 @@ func (h *directHandler) handleUDP(origin adapter.UDPConn) {
 		fmt.Fprintf(os.Stderr, "WBD_TUN_DIRECT_UDP_OPEN_FAIL dst=%s error=%q\n", remote, "physical interface unavailable")
 		return
 	}
-	pc, err := h.d.ListenPacketWithOptions("udp4", "0.0.0.0:0", &dialer.Options{InterfaceIndex: ifIndex})
+	target := remote.String()
+	ctx, cancel := context.WithTimeout(context.Background(), directDialTimeout)
+	pc, err := h.d.DialContextWithOptions(ctx, "udp4", target, &dialer.Options{InterfaceIndex: ifIndex})
+	cancel()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "WBD_TUN_DIRECT_UDP_OPEN_FAIL dst=%s ifindex=%d error=%q\n", remote, ifIndex, err)
+		fmt.Fprintf(os.Stderr, "WBD_TUN_DIRECT_UDP_OPEN_FAIL dst=%s ifindex=%d error=%q\n", target, ifIndex, err)
 		return
 	}
 	defer pc.Close()
 
+	// Use a connected UDP socket to the real destination. On Windows the
+	// tun2socks dialer deliberately skips IP_UNICAST_IF for wildcard addresses
+	// such as 0.0.0.0, so ListenPacket("0.0.0.0:0") would silently lose the
+	// physical-interface binding required by the direct path.
 	done := make(chan struct{}, 2)
 	go func() {
 		buf := make([]byte, 65535)
 		for {
-			_ = origin.SetReadDeadline(time.Now().Add(directUDPTimeout))
-			n, _, err := origin.ReadFrom(buf)
+			deadline := time.Now().Add(directUDPTimeout)
+			_ = origin.SetReadDeadline(deadline)
+			_ = pc.SetWriteDeadline(deadline)
+			n, err := origin.Read(buf)
 			if err != nil {
 				break
 			}
-			if _, err := pc.WriteTo(buf[:n], remote); err != nil {
+			if _, err := pc.Write(buf[:n]); err != nil {
 				break
 			}
 		}
@@ -253,15 +262,14 @@ func (h *directHandler) handleUDP(origin adapter.UDPConn) {
 	go func() {
 		buf := make([]byte, 65535)
 		for {
-			_ = pc.SetReadDeadline(time.Now().Add(directUDPTimeout))
-			n, from, err := pc.ReadFrom(buf)
+			deadline := time.Now().Add(directUDPTimeout)
+			_ = pc.SetReadDeadline(deadline)
+			_ = origin.SetWriteDeadline(deadline)
+			n, err := pc.Read(buf)
 			if err != nil {
 				break
 			}
-			if from == nil || from.String() != remote.String() {
-				continue
-			}
-			if _, err := origin.WriteTo(buf[:n], nil); err != nil {
+			if _, err := origin.Write(buf[:n]); err != nil {
 				break
 			}
 		}

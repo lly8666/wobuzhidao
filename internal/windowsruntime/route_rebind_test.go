@@ -72,6 +72,7 @@ func TestDecodeUnderlayDiscoveryObservationKeepsPhysicalRouteMetadata(t *testing
 func TestBuildRouteRebindCommandUsesObservedPhysicalRouteOnly(t *testing.T) {
 	p := testProfile()
 	p.RouteMode = RouteForeign
+	p.CNSetDir = t.TempDir()
 	obs := observedPath(testUnderlay(), 12, "192.0.2.1")
 	cmd, err := buildRouteRebindCommand(p, obs)
 	if err != nil {

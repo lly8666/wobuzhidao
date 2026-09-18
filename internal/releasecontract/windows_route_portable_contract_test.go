@@ -29,6 +29,7 @@ func TestWindowsSplitPolicyStaysInsideTun(t *testing.T) {
 	plan := readRepoFile(t, "internal/windowsruntime/plan.go")
 	rebind := readRepoFile(t, "internal/windowsruntime/route_rebind.go")
 	tunMain := readRepoFile(t, "cmd/wbd-tun/main.go")
+	directWindows := readRepoFile(t, "internal/tunsplit/direct_windows.go")
 
 	requireContains(t, routing, `return routingPlan{Mode: "Full", CaptureLAN: true}`, "policy-agnostic host routing")
 	requireNotContains(t, plan, "-PrefixFile4", "CN capture routes in runtime plan")
@@ -40,6 +41,8 @@ func TestWindowsSplitPolicyStaysInsideTun(t *testing.T) {
 	requireContains(t, tunMain, "tunsplit.NewClassifier", "in-TUN split classifier")
 	requireContains(t, tunMain, "tunsplit.NewDirectEngine", "userspace direct stack")
 	requireContains(t, tunMain, "WBD_TUN_SPLIT_READY", "split readiness marker")
+	requireContains(t, directWindows, `DialContextWithOptions(ctx, "udp4", target`, "connected UDP direct socket with interface binding")
+	requireNotContains(t, directWindows, `ListenPacketWithOptions("udp4", "0.0.0.0:0"`, "wildcard UDP socket that bypasses Windows interface binding")
 }
 
 func TestWindowsPortableShipsVerifiedCNBundle(t *testing.T) {
