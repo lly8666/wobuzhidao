@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/physical-qualification.yml'
       - 'cmd/wbd-tun/**'
+      - 'cmd/wbd-route-batch/**'
       - 'internal/control/**'
       - 'internal/pathmtu/**'
       - 'internal/tunnel/**'
@@ -69,6 +70,8 @@ jobs:
           if($LASTEXITCODE){throw 'wbd-tun build failed'}
           go build -trimpath -o (Join-Path $env:RUNNER_TEMP 'wbd-tun-dataplane-probe.exe') ./scripts/windows_tun_dataplane_probe.go
           if($LASTEXITCODE){throw 'dataplane probe build failed'}
+          go build -trimpath -o (Join-Path $env:RUNNER_TEMP 'wbd-route-batch.exe') ./cmd/wbd-route-batch
+          if($LASTEXITCODE){throw 'wbd-route-batch build failed'}
           Write-Output "WBD_WINDOWS_WINTUN_ASSET_PASS sha256=$got"
       - name: Run real administrator Wintun bidirectional dataplane
         shell: pwsh
@@ -79,6 +82,7 @@ jobs:
           if(-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'runner is not administrator'}
           $exe=Join-Path $env:RUNNER_TEMP 'wbd-tun.exe'
           $probeExe=Join-Path $env:RUNNER_TEMP 'wbd-tun-dataplane-probe.exe'
+          $routeBatchExe=Join-Path $env:RUNNER_TEMP 'wbd-route-batch.exe'
           $state=Join-Path $env:RUNNER_TEMP 'wbd-qualification-route-state.json'
           $stdout=Join-Path $env:RUNNER_TEMP 'wbd-tun.stdout.log'
           $stderr=Join-Path $env:RUNNER_TEMP 'wbd-tun.stderr.log'
@@ -108,7 +112,7 @@ jobs:
             $ifIndex=[uint32]$adapter.ifIndex
             Write-Output "WBD_WINDOWS_WINTUN_ADAPTER_PASS ifindex=$ifIndex"
 
-            & ./scripts/windows_tun_route.ps1 -Action Apply -Mode Split -AdapterAlias WBDQUAL -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -Prefix4 203.0.113.0/24 -DNSServer 9.9.9.9 -MTU 1400 -StatePath $state
+            & ./scripts/windows_tun_route.ps1 -Action Apply -Mode Split -AdapterAlias WBDQUAL -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -Prefix4 203.0.113.0/24 -DNSServer 9.9.9.9 -MTU 1400 -StatePath $state -RouteBatchExe $routeBatchExe
             if($LASTEXITCODE){throw 'route apply failed'}
             if(-not (Get-NetRoute -DestinationPrefix 203.0.113.0/24 -InterfaceIndex $ifIndex -ErrorAction SilentlyContinue)){throw 'capture route missing'}
             & "$env:SystemRoot\System32\PING.EXE" -n 1 -w 5000 203.0.113.7
@@ -127,7 +131,7 @@ jobs:
             # entries and their cleanup.
             $seed=(Resolve-Path '.\internal\ipset\seed\cn4.txt').Path
             $applyWatch=[Diagnostics.Stopwatch]::StartNew()
-            $largeLog=@(& ./scripts/windows_tun_route.ps1 -Action Apply -Mode None -AdapterAlias WBDQUAL -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -DirectPrefixFile4 $seed -MTU 1400 -StatePath $state)
+            $largeLog=@(& ./scripts/windows_tun_route.ps1 -Action Apply -Mode None -AdapterAlias WBDQUAL -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -DirectPrefixFile4 $seed -MTU 1400 -StatePath $state -RouteBatchExe $routeBatchExe)
             $applyWatch.Stop()
             $largeLog | ForEach-Object { Write-Output $_ }
             if(($largeLog -join [Environment]::NewLine) -notmatch 'WBD_WINDOWS_TUN_READY'){throw 'large CN route apply readiness marker missing'}
