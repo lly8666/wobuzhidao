@@ -3,6 +3,7 @@
 package windowsruntime
 
 import (
+	"context"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -13,18 +14,49 @@ import (
 	"sort"
 	"strings"
 	"syscall"
+	"time"
 	"unsafe"
 
+	"github.com/lly8666/wobuzhidao/internal/ipset"
 	"golang.org/x/sys/windows"
 )
 
-// NativeWindowsUnderlayDiscoverer replaces steady-state NetTCPIP PowerShell
-// discovery with IP Helper APIs. PowerShell is retained only by the dependency
-// preflight/installer compatibility path while that separate surface is migrated.
+// NativeWindowsUnderlayDiscoverer keeps the production Windows discovery and
+// dependency preflight independent of PowerShell. All persistent state remains
+// inside the portable WBD directory.
 type NativeWindowsUnderlayDiscoverer struct{}
 
 func (NativeWindowsUnderlayDiscoverer) Preflight(profile Profile) error {
-	return PowerShellUnderlayDiscoverer{}.Preflight(profile)
+	profile = profile.normalized()
+	if err := profile.Validate(); err != nil {
+		return err
+	}
+	if profile.RequiresCNSet() {
+		manifest, installed, err := ipset.EnsureEmbeddedCNBaseline(profile.CNSetDir)
+		if err != nil {
+			return fmt.Errorf("prepare offline mainland-China IP ranges: %w", err)
+		}
+		fmt.Printf("WBD_WINDOWS_CN_BASELINE_READY ipv4=%d ipv6=%d installed=%d source=%s\n", manifest.IPv4Count, manifest.IPv6Count, boolToInt(installed), manifest.Source)
+		if profile.AutoUpdateCN {
+			refreshCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			refreshed, refreshErr := ipset.EnsureCNBundle(refreshCtx, profile.CNSetDir)
+			cancel()
+			if refreshErr != nil {
+				fmt.Printf("WBD_WINDOWS_CN_REFRESH_WARN baseline_kept=1 error=%q\n", refreshErr)
+			} else {
+				fmt.Printf("WBD_WINDOWS_CN_REFRESH_READY refreshed=%d stale=%d ipv4=%d ipv6=%d\n", boolToInt(refreshed.Refreshed), boolToInt(refreshed.UsedStale), refreshed.Manifest.IPv4Count, refreshed.Manifest.IPv6Count)
+			}
+		}
+	}
+	if err := ValidateRoutingAssets(profile); err != nil {
+		return err
+	}
+	state, err := ensureNpcapReady()
+	if err != nil {
+		return fmt.Errorf("Npcap runtime is not ready: %w; use wbd.exe -install-npcap", err)
+	}
+	fmt.Printf("WBD_WINDOWS_NPCAP_READY version=%s service=%s control=program\n", npcapVersion, state)
+	return nil
 }
 
 func (NativeWindowsUnderlayDiscoverer) Discover(profile Profile) (Underlay, error) {
