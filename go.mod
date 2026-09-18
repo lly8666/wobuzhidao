@@ -2,7 +2,10 @@ module github.com/lly8666/wobuzhidao
 
 go 1.23
 
-require github.com/refraction-networking/utls v1.6.5
+require (
+	github.com/refraction-networking/utls v1.6.5
+	github.com/xjasonlyu/tun2socks/v2 v2.6.0
+)
 
 require (
 	github.com/andybalholm/brotli v1.0.6 // indirect
