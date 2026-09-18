@@ -103,12 +103,16 @@ jobs:
 
             $proc=Start-Process -FilePath $exe -ArgumentList @('-mode','client','-ifname','WBDQUAL','-mtu','1400','-transport','127.0.0.1:49999','-run-for','360s') -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
             $tunReady=$false
-            for($i=0;$i -lt 120;$i++){
+            for($i=0;$i -lt 300;$i++){
               if($proc.HasExited){break}
               if((Test-Path $stderr) -and ((Get-Content $stderr -Raw) -match 'WBD_TUN_READY')){$tunReady=$true;break}
               Start-Sleep -Milliseconds 100
             }
-            if(-not $tunReady){if(Test-Path $stderr){Get-Content $stderr};throw 'Wintun-backed wbd-tun not ready'}
+            if(-not $tunReady){
+              $exitState=if($proc.HasExited){"exited code=$($proc.ExitCode)"}else{'still-running'}
+              if(Test-Path $stderr){Get-Content $stderr}
+              throw "Wintun-backed wbd-tun not ready after 30s process=$exitState"
+            }
             $adapter=Get-NetAdapter -Name WBDQUAL -ErrorAction Stop
             $ifIndex=[uint32]$adapter.ifIndex
             Write-Output "WBD_WINDOWS_WINTUN_ADAPTER_PASS ifindex=$ifIndex"
