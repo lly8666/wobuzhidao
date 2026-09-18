@@ -57,10 +57,6 @@ fi
 if netem_anchor not in prefix:
     raise SystemExit('control wrapper: netem insertion point not found')
 prefix = prefix.replace(netem_anchor, netem_block, 1)
-"""
-if needle not in s:
-    raise SystemExit('control wrapper: inner patcher insertion point not found')
-s = s.replace(needle, insert + needle, 1)
 
 # Preserve qdisc counters even when the strict load gate exits non-zero. These
 # counters distinguish transport/application loss from local netem queue drops
@@ -79,6 +75,10 @@ cleanup_block = r'''cleanup() {
 if cleanup_anchor not in prefix:
     raise SystemExit('control wrapper: cleanup diagnostic insertion point not found')
 prefix = prefix.replace(cleanup_anchor, cleanup_block, 1)
+"""
+if needle not in s:
+    raise SystemExit('control wrapper: inner patcher insertion point not found')
+s = s.replace(needle, insert + needle, 1)
 
 # Match the production/physical LINK liveness budget. The generic stress script
 # used 2s to accelerate failures, which leaves only a 6s 3x keepalive budget and
