@@ -22,19 +22,20 @@ func TestWindowsRouteApplyDoesNotReownTunInterfaceMTU(t *testing.T) {
 	}
 }
 
-func TestWindowsLargeSplitRoutingUsesSingleRouteSnapshots(t *testing.T) {
-	script := readRepoFile(t, "scripts/windows_tun_route.ps1")
-	requireContains(t, script, "Get-NetRoute -AddressFamily IPv4 -InterfaceIndex ([uint32]$underlayRoute4.InterfaceIndex)", "physical direct-route snapshot")
-	requireContains(t, script, "Get-NetRoute -InterfaceIndex $ifIndex -PolicyStore ActiveStore", "Wintun capture-route snapshot")
-	requireContains(t, script, "$existingDirect.ContainsKey($key)", "in-memory direct-route lookup")
-	requireContains(t, script, "$existingCapture.ContainsKey($key)", "in-memory capture-route lookup")
-	requireContains(t, script, "[System.Collections.Generic.List[object]]::new()", "linear large-route planning")
-	requireContains(t, script, "Remove-OwnedRoutes $State.DirectRoutes 'direct'", "batched direct-route cleanup")
-	requireContains(t, script, "Remove-OwnedRoutes $State.CaptureRoutes 'capture'", "batched capture-route cleanup")
-	requireContains(t, script, "WBD_WINDOWS_TUN_ROUTE_CLEAN_BATCH", "batched route-cleanup marker")
-	requireContains(t, script, "WBD_WINDOWS_TUN_DIRECT_ROUTES_PROGRESS", "large direct-route progress")
-	requireContains(t, script, "WBD_WINDOWS_TUN_CAPTURE_ROUTES_PROGRESS", "large capture-route progress")
-	requireNotContains(t, script, "Get-NetRoute -DestinationPrefix $prefix", "per-prefix route CIM query")
+func TestWindowsSplitPolicyStaysInsideTun(t *testing.T) {
+	routing := readRepoFile(t, "internal/windowsruntime/routing_policy.go")
+	plan := readRepoFile(t, "internal/windowsruntime/plan.go")
+	tunMain := readRepoFile(t, "cmd/wbd-tun/main.go")
+
+	requireContains(t, routing, `return routingPlan{Mode: "Full", CaptureLAN: true}`, "policy-agnostic host routing")
+	requireNotContains(t, plan, "-PrefixFile4", "CN capture routes in runtime plan")
+	requireNotContains(t, plan, "-DirectPrefixFile4", "CN direct routes in runtime plan")
+	for _, want := range []string{"-proxy-lan=", "-proxy-china=", "-proxy-other=", "-direct-ifindex", "-cn4"} {
+		requireContains(t, plan, want, "TUN split policy argument")
+	}
+	requireContains(t, tunMain, "tunsplit.NewClassifier", "in-TUN split classifier")
+	requireContains(t, tunMain, "tunsplit.NewDirectEngine", "userspace direct stack")
+	requireContains(t, tunMain, "WBD_TUN_SPLIT_READY", "split readiness marker")
 }
 
 func TestWindowsPortableShipsVerifiedCNBundle(t *testing.T) {
