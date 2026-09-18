@@ -353,6 +353,8 @@ try {
         }
     }
 
+    Write-Output "WBD_WINDOWS_TUN_UNDERLAY_ROUTES_READY underlay4=$([int](-not [string]::IsNullOrWhiteSpace($Underlay4))) underlay6=$([int](-not [string]::IsNullOrWhiteSpace($Underlay6)))"
+
     if ($DirectPrefix4.Count -gt 0 -or $CaptureLAN) {
         if (-not $underlayRoute4) { throw 'pre-WBD IPv4 route is unavailable for direct-prefix/LAN routing' }
         $directCreate = @()
@@ -371,9 +373,14 @@ try {
         }
         $state.DirectRoutes = @($directCreate)
         Save-State $state
+        Write-Output "WBD_WINDOWS_TUN_DIRECT_ROUTES_PLAN total=$($directCreate.Count)"
+        $directDone = 0
         foreach ($route in $directCreate) {
             New-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -RouteMetric 1 -PolicyStore ActiveStore | Out-Null
+            $directDone++
+            if (($directDone % 500) -eq 0) { Write-Output "WBD_WINDOWS_TUN_DIRECT_ROUTES_PROGRESS done=$directDone total=$($directCreate.Count)" }
         }
+        Write-Output "WBD_WINDOWS_TUN_DIRECT_ROUTES_READY total=$directDone"
     }
 
     foreach ($a in @(@{Parsed=$addr4; Family='IPv4'}, @{Parsed=$addr6; Family='IPv6'})) {
@@ -389,6 +396,7 @@ try {
     if ($addr4) {
         Set-ExclusiveTunnelIPv4 -InterfaceIndex $ifIndex -IPAddress $addr4.IP
     }
+    Write-Output "WBD_WINDOWS_TUN_ADDRESSES_READY ipv4=$([int]($null -ne $addr4)) ipv6=$([int]($null -ne $addr6))"
 
     # Plan and persist all WBD-owned capture routes before creating the batch so
     # cleanup after a partial New-NetRoute failure is complete and never removes
@@ -404,9 +412,14 @@ try {
     }
     $state.CaptureRoutes = @($captureCreate)
     Save-State $state
+    Write-Output "WBD_WINDOWS_TUN_CAPTURE_ROUTES_PLAN total=$($captureCreate.Count)"
+    $captureDone = 0
     foreach ($route in $captureCreate) {
         New-NetRoute -DestinationPrefix $route.DestinationPrefix -InterfaceIndex ([uint32]$route.InterfaceIndex) -NextHop $route.NextHop -RouteMetric 5 -PolicyStore ActiveStore | Out-Null
+        $captureDone++
+        if (($captureDone % 500) -eq 0) { Write-Output "WBD_WINDOWS_TUN_CAPTURE_ROUTES_PROGRESS done=$captureDone total=$($captureCreate.Count)" }
     }
+    Write-Output "WBD_WINDOWS_TUN_CAPTURE_ROUTES_READY total=$captureDone"
 
     # Install the Any-namespace NRPT rule only after each DNS resolver /32 is
     # already captured through WBD. Existing adapter DNS settings are untouched.
