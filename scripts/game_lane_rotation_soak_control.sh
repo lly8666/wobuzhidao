@@ -43,14 +43,12 @@ prefix = prefix.replace(mtu_anchor, mtu_block, 1)
 netem_anchor = 'sudo ip netns exec \"$S\" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP\n'
 netem_block = netem_anchor + r'''NETEM_DELAY_MS=${NETEM_DELAY_MS:-0}
 NETEM_LOSS_PCT=${NETEM_LOSS_PCT:-0}
-NETEM_REPLICA=${SOAK_REPLICA:-1}
-NETEM_CLIENT_SEED=$((1000 + NETEM_REPLICA*2))
-NETEM_SERVER_SEED=$((NETEM_CLIENT_SEED + 1))
 if [[ "$NETEM_DELAY_MS" != 0 || "$NETEM_LOSS_PCT" != 0 ]]; then
-  sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%" seed "$NETEM_CLIENT_SEED"
-  sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%" seed "$NETEM_SERVER_SEED"
+  sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%"
+  sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem delay "${NETEM_DELAY_MS}ms" loss random "${NETEM_LOSS_PCT}%"
   {
-    echo "WBD_HOSTED_NETEM_READY delay_ms=${NETEM_DELAY_MS} loss_pct=${NETEM_LOSS_PCT} direction=bidirectional client_seed=${NETEM_CLIENT_SEED} server_seed=${NETEM_SERVER_SEED}"
+    echo "WBD_HOSTED_NETEM_READY delay_ms=${NETEM_DELAY_MS} loss_pct=${NETEM_LOSS_PCT} direction=bidirectional"
+    tc -V
     sudo ip netns exec "$C" tc qdisc show dev gc0
     sudo ip netns exec "$S" tc qdisc show dev gs0
   } | tee "$LOG_DIR/netem.log"
@@ -63,6 +61,24 @@ prefix = prefix.replace(netem_anchor, netem_block, 1)
 if needle not in s:
     raise SystemExit('control wrapper: inner patcher insertion point not found')
 s = s.replace(needle, insert + needle, 1)
+
+# Preserve qdisc counters even when the strict load gate exits non-zero. These
+# counters distinguish transport/application loss from local netem queue drops
+# without changing the weak-network model or its thresholds.
+cleanup_anchor = 'cleanup() {\n  set +e\n'
+cleanup_block = r'''cleanup() {
+  set +e
+  if sudo ip netns exec "$C" true 2>/dev/null; then
+    {
+      echo "WBD_HOSTED_NETEM_FINAL"
+      sudo ip netns exec "$C" tc -s qdisc show dev gc0
+      sudo ip netns exec "$S" tc -s qdisc show dev gs0
+    } >>"$LOG_DIR/netem.log" 2>&1
+  fi
+'''
+if cleanup_anchor not in prefix:
+    raise SystemExit('control wrapper: cleanup diagnostic insertion point not found')
+prefix = prefix.replace(cleanup_anchor, cleanup_block, 1)
 
 # Match the production/physical LINK liveness budget. The generic stress script
 # used 2s to accelerate failures, which leaves only a 6s 3x keepalive budget and

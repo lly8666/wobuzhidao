@@ -32,6 +32,7 @@ type gameSession struct {
 	closed      bool
 	inFirst     uint64
 	inDup       uint64
+	inStale     uint64
 	outLogic    uint64
 	outLane     uint64
 	dormantDrop uint64
@@ -128,7 +129,9 @@ func (s *server) handle(peer *net.UDPAddr, wire []byte, now time.Time) error {
 	if bound := gs.peerLane[peer.String()]; bound != h.LaneID { gs.mu.Unlock(); return fmt.Errorf("peer %s lane changed from %d to %d", peer, bound, h.LaneID) }
 	result, err := gs.dec.Add(wire)
 	gs.last = now
-	if err == nil {
+	if errors.Is(err, gamelane.ErrReplayTooOld) {
+		gs.inStale++
+	} else if err == nil {
 		if result.Duplicate { gs.inDup++ }
 		if result.Deliver { gs.inFirst++ }
 	}
@@ -356,10 +359,10 @@ func (s *server) remove(id gamelane.SessionID, reason string) {
 	gs.mu.Lock()
 	for key := range gs.peerLane { delete(s.peerSession,key); delete(s.peerMeta,key); delete(s.peerMetaSeen,key) }
 	gs.closed = true
-	inFirst,inDup,outLogic,outLane,dormantDrop := gs.inFirst,gs.inDup,gs.outLogic,gs.outLane,gs.dormantDrop
+	inFirst,inDup,inStale,outLogic,outLane,dormantDrop := gs.inFirst,gs.inDup,gs.inStale,gs.outLogic,gs.outLane,gs.dormantDrop
 	gs.mu.Unlock(); s.mu.Unlock()
 	_ = gs.service.Close()
-	fmt.Printf("WBD_GAME_LANE_SESSION_CLOSE tunnel_id_prefix=%s reason=%s in_first=%d in_dup=%d out_logical=%d out_lane=%d dormant_drop=%d\n", tunnelIDPrefix(gs.meta),reason,inFirst,inDup,outLogic,outLane,dormantDrop)
+	fmt.Printf("WBD_GAME_LANE_SESSION_CLOSE tunnel_id_prefix=%s reason=%s in_first=%d in_dup=%d in_stale=%d out_logical=%d out_lane=%d dormant_drop=%d\n", tunnelIDPrefix(gs.meta),reason,inFirst,inDup,inStale,outLogic,outLane,dormantDrop)
 }
 
 func (s *server) Close() {
