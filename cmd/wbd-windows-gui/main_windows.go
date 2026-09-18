@@ -396,7 +396,7 @@ func beginConnect(hwnd uintptr) {
 		if app.profileErr != nil {
 			messageBox("WBD Windows GUI profile", app.profileErr.Error())
 		} else {
-			messageBox("WBD Windows GUI", "No profile loaded. Put wbd.json beside wbd.exe and restart WBD, or launch with -profile <path>.")
+			messageBox("WBD Windows GUI", "No valid profile loaded. Edit wbd.json beside wbd.exe, save it, and Connect again.")
 		}
 		return
 	}
