@@ -1,11 +1,5 @@
 package windowsruntime
 
-import (
-	"path/filepath"
-
-	"github.com/lly8666/wobuzhidao/internal/ipset"
-)
-
 // RoutingPolicy classifies IPv4 destinations into three user-visible groups.
 // LAN means RFC1918 private IPv4. China means the verified APNIC CN allocation
 // bundle. Other means all remaining IPv4 destinations.
