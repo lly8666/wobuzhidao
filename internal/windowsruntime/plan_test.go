@@ -19,7 +19,7 @@ func testProfile() Profile {
 		TicketPath:`C:\ProgramData\WBD\ticket.tmp`, TunnelConfigPath:`C:\ProgramData\WBD\tunnel-config.json`, RouteState:`C:\ProgramData\WBD\route-state.json`,
 	}
 }
-func testUnderlay() Underlay { return Underlay{SourceIP:"192.0.2.20", PacketDevice:`\Device\NPF_{01234567-89AB-CDEF-0123-456789ABCDEF}`, SourceMAC:"00:11:22:33:44:55", NextHopMAC:"66:77:88:99:aa:bb"} }
+func testUnderlay() Underlay { return Underlay{SourceIP:"192.0.2.20", InterfaceIndex:12, PacketDevice:`\Device\NPF_{01234567-89AB-CDEF-0123-456789ABCDEF}`, SourceMAC:"00:11:22:33:44:55", NextHopIP:"192.0.2.1", NextHopMAC:"66:77:88:99:aa:bb"} }
 
 func TestBuildPlanUsesPerLaneSameFlowWindowsStack(t *testing.T) {
 	p, err := BuildPlan(testProfile(), testUnderlay(), strings.Repeat("ab", 32)); if err != nil { t.Fatal(err) }
