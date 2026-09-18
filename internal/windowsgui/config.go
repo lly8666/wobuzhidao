@@ -189,7 +189,7 @@ func LoadRuntimeProfile(path, binDir, stateDir string) (windowsruntime.Profile, 
 		cnSetDir = filepath.Clean(portable)
 	}
 	profile := windowsruntime.Profile{
-		BinDir: filepath.Clean(binDir), ServerFront: serverFront, ServerName: cfg.ServerName, RouteKey: cfg.RouteKey, Username: cfg.Username, Password: cfg.Password, ServerRaw: serverRaw, VerifyServer: cfg.VerifyServer, FEC: cfg.FEC, IfName: cfg.IfName, MTU: cfg.MTU, RouteMode: cfg.RouteMode, RoutingPolicy: routingPolicy, AutoUpdateCN: true, CNSetDir: cnSetDir, DNSMode: cfg.DNSMode, DNSServer: cfg.DNSServer,
+		BinDir: filepath.Clean(binDir), ServerFront: serverFront, ServerName: cfg.ServerName, RouteKey: cfg.RouteKey, Username: cfg.Username, Password: cfg.Password, ServerRaw: serverRaw, VerifyServer: cfg.VerifyServer, FEC: cfg.FEC, IfName: cfg.IfName, MTU: cfg.MTU, RouteMode: cfg.RouteMode, RoutingPolicy: routingPolicy, AutoUpdateCN: false, CNSetDir: cnSetDir, DNSMode: cfg.DNSMode, DNSServer: cfg.DNSServer,
 		InstallationID: string(installationID), Lanes: cfg.Lanes, IdleTimeoutSeconds: idleTimeoutSeconds, KeepaliveSeconds: cfg.KeepaliveSeconds, LaneRotationMinSeconds: laneRotationMinSeconds, LaneRotationMaxSeconds: laneRotationMaxSeconds, TunnelIPv4: "",
 		TicketPath: filepath.Join(stateDir, "reality-ticket.tmp"), TunnelConfigPath: filepath.Join(stateDir, "tunnel-config.json"), RouteState: filepath.Join(stateDir, "route-state.json"),
 	}
