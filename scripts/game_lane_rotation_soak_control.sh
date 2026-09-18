@@ -27,7 +27,7 @@ echo_guard_soak = "    if not (b.startswith(b'warm') or b.startswith(b'game') or
 if echo_guard not in prefix:
     raise SystemExit('control wrapper: soak echo guard insertion point not found')
 prefix = prefix.replace(echo_guard, echo_guard_soak, 1)
-mtu_anchor = 'LINK_PLAINTEXT_MTU=${LINK_PLAINTEXT_MTU:-1400}\\n'
+mtu_anchor = 'LINK_PLAINTEXT_MTU=${LINK_PLAINTEXT_MTU:-1400}\n'
 mtu_block = mtu_anchor + r'''if [[ "$FEC" != off ]]; then
   budget_json=$(go run "$GITHUB_WORKSPACE/.github/scripts/mtu_budget.go" -connection-mtu 1500 -fec "$FEC")
   read -r INNER_MTU LINK_PLAINTEXT_MTU < <(
