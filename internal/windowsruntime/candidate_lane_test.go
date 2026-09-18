@@ -41,6 +41,42 @@ func TestCandidateLaneUsesPrivateSlotFiveWithSameLogicalID(t *testing.T) {
 	}
 }
 
+
+func TestFourLaneReplacementCandidatesKeepConfiguredMTUAndLegacyRecovery(t *testing.T) {
+	p := testProfile()
+	p.TunnelIPv4 = ""
+	p.Lanes = 4
+	p.MTU = 1376 // representative configured value; not a product constant
+	u := testUnderlay()
+
+	plans := map[int]LanePlan{
+		1: {ID: 1, Slot: 1},
+		2: {ID: 2, Slot: 2},
+		3: {ID: 3, Slot: 3},
+		4: {ID: 4, Slot: 4},
+	}
+	for laneID := 1; laneID <= 4; laneID++ {
+		current := plans[laneID]
+		slot, err := NextReplacementSlotForPlans(current, plans)
+		if err != nil {
+			t.Fatalf("lane %d replacement slot: %v", laneID, err)
+		}
+		laneUnderlay := u
+		laneUnderlay.SourcePort = windowsDynamicPortMin + 200 + laneID
+		b, err := BuildCandidateLaneBootstrapSlot(p, laneUnderlay, laneID, slot)
+		if err != nil {
+			t.Fatalf("lane %d candidate: %v", laneID, err)
+		}
+		if !argPair(b.FakeTCP.Args, "--connection-mtu", "1376") {
+			t.Fatalf("lane %d candidate lost configured connection MTU: %v", laneID, b.FakeTCP.Args)
+		}
+		if !argPair(b.FakeTCP.Args, "--shadow-recovery", "legacy") {
+			t.Fatalf("lane %d candidate lost legacy shadow recovery: %v", laneID, b.FakeTCP.Args)
+		}
+		plans[laneID] = LanePlan{ID: laneID, Slot: slot}
+	}
+}
+
 func TestLanePlanPropagatesExplicitKeepaliveZero(t *testing.T) {
 	p := testProfile()
 	p.TunnelIPv4 = ""
