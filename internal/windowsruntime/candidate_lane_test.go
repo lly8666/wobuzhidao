@@ -62,7 +62,7 @@ func TestFourLaneReplacementCandidatesKeepConfiguredMTUAndLegacyRecovery(t *test
 			t.Fatalf("lane %d replacement slot: %v", laneID, err)
 		}
 		laneUnderlay := u
-		laneUnderlay.SourcePort = windowsDynamicPortMin + 200 + laneID
+		laneUnderlay.SourcePort = uint16(windowsDynamicPortMin + 200 + laneID)
 		b, err := BuildCandidateLaneBootstrapSlot(p, laneUnderlay, laneID, slot)
 		if err != nil {
 			t.Fatalf("lane %d candidate: %v", laneID, err)

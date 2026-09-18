@@ -23,8 +23,8 @@ func TestLoadRuntimeProfileAcceptsExplicitRoutingPolicy(t *testing.T) {
 	if !got.ProxyLAN || got.ProxyChina || !got.ProxyOther {
 		t.Fatalf("routing policy=%+v", got)
 	}
-	if !profile.AutoUpdateCN {
-		t.Fatal("Windows product profile must enable automatic CN bundle refresh")
+	if profile.AutoUpdateCN {
+		t.Fatal("Windows product profile must not require online CN refresh when a verified portable baseline is available")
 	}
 }
 
