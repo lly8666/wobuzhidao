@@ -11,34 +11,46 @@ import (
 )
 
 const (
-	mibIPRouteTypeDirect   = 3
-	mibIPRouteTypeIndirect = 4
-	mibIPProtoNetMgmt      = 3
-	mibMetricUnused        = ^uint32(0)
-	errorNotFound          = 1168
+	addressFamilyInet     = 2
+	mibIPProtoNetMgmt     = 3
+	routeLifetimeInfinite = ^uint32(0)
+	errorNotFound         = 1168
 )
 
-type mibIPForwardRow struct {
-	ForwardDest      uint32
-	ForwardMask      uint32
-	ForwardPolicy    uint32
-	ForwardNextHop   uint32
-	ForwardIfIndex   uint32
-	ForwardType      uint32
-	ForwardProto     uint32
-	ForwardAge       uint32
-	ForwardNextHopAS uint32
-	ForwardMetric1   uint32
-	ForwardMetric2   uint32
-	ForwardMetric3   uint32
-	ForwardMetric4   uint32
-	ForwardMetric5   uint32
+type rawSockaddrInet struct {
+	Family uint16
+	Port   uint16
+	Data   [6]uint32
+}
+
+type ipAddressPrefix struct {
+	Prefix       rawSockaddrInet
+	PrefixLength uint8
+}
+
+type mibIPForwardRow2 struct {
+	InterfaceLuid        uint64
+	InterfaceIndex       uint32
+	DestinationPrefix    ipAddressPrefix
+	NextHop              rawSockaddrInet
+	SitePrefixLength     uint8
+	ValidLifetime        uint32
+	PreferredLifetime    uint32
+	Metric               uint32
+	Protocol             uint32
+	Loopback             uint8
+	AutoconfigureAddress uint8
+	Publish              uint8
+	Immortal             uint8
+	Age                  uint32
+	Origin               uint32
 }
 
 var (
-	iphlpapiDLL             = syscall.NewLazyDLL("iphlpapi.dll")
-	createIPForwardEntryProc = iphlpapiDLL.NewProc("CreateIpForwardEntry")
-	deleteIPForwardEntryProc = iphlpapiDLL.NewProc("DeleteIpForwardEntry")
+	iphlpapiDLL               = syscall.NewLazyDLL("iphlpapi.dll")
+	initializeIPForwardEntry   = iphlpapiDLL.NewProc("InitializeIpForwardEntry")
+	createIPForwardEntry2Proc  = iphlpapiDLL.NewProc("CreateIpForwardEntry2")
+	deleteIPForwardEntry2Proc  = iphlpapiDLL.NewProc("DeleteIpForwardEntry2")
 )
 
 func mutateIPv4Route(action string, prefix netip.Prefix, ifIndex uint32, nextHop netip.Addr, metric uint32) error {
@@ -49,9 +61,9 @@ func mutateIPv4Route(action string, prefix netip.Prefix, ifIndex uint32, nextHop
 	var proc *syscall.LazyProc
 	switch action {
 	case "add":
-		proc = createIPForwardEntryProc
+		proc = createIPForwardEntry2Proc
 	case "delete":
-		proc = deleteIPForwardEntryProc
+		proc = deleteIPForwardEntry2Proc
 	default:
 		return fmt.Errorf("unsupported route action %q", action)
 	}
@@ -63,39 +75,48 @@ func mutateIPv4Route(action string, prefix netip.Prefix, ifIndex uint32, nextHop
 	return syscall.Errno(code)
 }
 
-func makeIPv4RouteRow(prefix netip.Prefix, ifIndex uint32, nextHop netip.Addr, metric uint32) (mibIPForwardRow, error) {
+func makeIPv4RouteRow(prefix netip.Prefix, ifIndex uint32, nextHop netip.Addr, metric uint32) (mibIPForwardRow2, error) {
 	if !prefix.IsValid() || !prefix.Addr().Is4() || prefix.Bits() < 0 || prefix.Bits() > 32 {
-		return mibIPForwardRow{}, fmt.Errorf("invalid IPv4 prefix %q", prefix)
+		return mibIPForwardRow2{}, fmt.Errorf("invalid IPv4 prefix %q", prefix)
 	}
 	if ifIndex == 0 {
-		return mibIPForwardRow{}, fmt.Errorf("interface index is required")
+		return mibIPForwardRow2{}, fmt.Errorf("interface index is required")
 	}
 	if !nextHop.Is4() {
-		return mibIPForwardRow{}, fmt.Errorf("next hop must be IPv4")
+		return mibIPForwardRow2{}, fmt.Errorf("next hop must be IPv4")
 	}
+
+	var row mibIPForwardRow2
+	// Microsoft requires InitializeIpForwardEntry before CreateIpForwardEntry2.
+	// It seeds infinite lifetimes and ABI defaults; explicitly overwrite every
+	// policy field we own below so route semantics stay deterministic.
+	initializeIPForwardEntry.Call(uintptr(unsafe.Pointer(&row)))
+
 	prefix = prefix.Masked()
 	dest4 := prefix.Addr().As4()
 	next4 := nextHop.As4()
-	var mask4 [4]byte
-	bits := prefix.Bits()
-	for i := 0; i < bits; i++ {
-		mask4[i/8] |= 1 << uint(7-(i%8))
+	row.InterfaceLuid = 0
+	row.InterfaceIndex = ifIndex
+	row.DestinationPrefix.Prefix = ipv4Sockaddr(dest4)
+	row.DestinationPrefix.PrefixLength = uint8(prefix.Bits())
+	row.NextHop = ipv4Sockaddr(next4)
+	row.SitePrefixLength = uint8(prefix.Bits())
+	row.ValidLifetime = routeLifetimeInfinite
+	row.PreferredLifetime = routeLifetimeInfinite
+	row.Metric = metric
+	row.Protocol = mibIPProtoNetMgmt
+	row.Loopback = 0
+	row.AutoconfigureAddress = 0
+	row.Publish = 0
+	row.Immortal = 0
+	row.Age = 0
+	row.Origin = 0
+	return row, nil
+}
+
+func ipv4Sockaddr(addr [4]byte) rawSockaddrInet {
+	return rawSockaddrInet{
+		Family: addressFamilyInet,
+		Data:   [6]uint32{binary.LittleEndian.Uint32(addr[:])},
 	}
-	routeType := uint32(mibIPRouteTypeIndirect)
-	if nextHop == netip.IPv4Unspecified() {
-		routeType = mibIPRouteTypeDirect
-	}
-	return mibIPForwardRow{
-		ForwardDest:      binary.LittleEndian.Uint32(dest4[:]),
-		ForwardMask:      binary.LittleEndian.Uint32(mask4[:]),
-		ForwardNextHop:   binary.LittleEndian.Uint32(next4[:]),
-		ForwardIfIndex:   ifIndex,
-		ForwardType:      routeType,
-		ForwardProto:     mibIPProtoNetMgmt,
-		ForwardMetric1:   metric,
-		ForwardMetric2:   mibMetricUnused,
-		ForwardMetric3:   mibMetricUnused,
-		ForwardMetric4:   mibMetricUnused,
-		ForwardMetric5:   mibMetricUnused,
-	}, nil
 }
