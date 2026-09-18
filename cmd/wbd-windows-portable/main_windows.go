@@ -35,7 +35,6 @@ func main() {
 		return
 	}
 
-	profilePath := flag.String("profile", "", "path to the WBD Windows client JSON profile; default is wbd.json beside wbd.exe")
 	selfTest := flag.Bool("self-test", false, "run full automatic diagnostics then cleanup and exit")
 	selfTestLog := flag.String("self-test-log", "", "support JSONL log path; default is logs\\self-test-*.jsonl beside wbd.exe")
 	importCN := flag.String("import-cn", "", "manually import a CIDR/APNIC delegated CN IP range file")
@@ -44,7 +43,7 @@ func main() {
 	show := flag.Bool("show", false, "show the GUI immediately instead of the default tray-minimized startup")
 	flag.Parse()
 
-	if err := run(*profilePath, *selfTest, *selfTestLog, *importCN, *rollbackCN, *installNpcap, *show); err != nil {
+	if err := run(*selfTest, *selfTestLog, *importCN, *rollbackCN, *installNpcap, *show); err != nil {
 		showMessage("WBD", err.Error(), true)
 		os.Exit(1)
 	}
@@ -88,7 +87,7 @@ func timestampedLogPath(portableDir, prefix, ext string) (string, error) {
 	return filepath.Join(logDir, prefix+time.Now().Format("20060102-150405.000")+ext), nil
 }
 
-func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollbackCN, installNpcap, show bool) error {
+func run(selfTest bool, selfTestLog, importCN string, rollbackCN, installNpcap, show bool) error {
 	exe, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("resolve portable executable: %w", err)
@@ -98,14 +97,10 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 		return fmt.Errorf("set portable directory: %w", err)
 	}
 
-	programData := os.Getenv("ProgramData")
-	if programData == "" {
-		return errors.New("ProgramData is not set")
-	}
-	stateDir := filepath.Join(programData, "WBD")
-	if err := os.MkdirAll(stateDir, 0o700); err != nil {
-		return err
-	}
+	// Portable mode is strict: every WBD-owned config/state/log/runtime file
+	// lives beside wbd.exe (or in a child directory of that folder). Never use
+	// ProgramData, LocalAppData, TEMP, or another machine-wide/user-wide store.
+	stateDir := portableDir
 	cnDir := portableDir
 
 	modeCount := 0
@@ -166,23 +161,10 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 		return nil
 	}
 
-	if profilePath == "" {
-		candidate := filepath.Join(portableDir, "wbd.json")
-		if _, statErr := os.Stat(candidate); statErr == nil {
-			profilePath = candidate
-		} else if !errors.Is(statErr, os.ErrNotExist) {
-			return fmt.Errorf("inspect default profile: %w", statErr)
-		}
-	}
-	if profilePath != "" {
-		profilePath, err = filepath.Abs(profilePath)
-		if err != nil {
-			return err
-		}
-	}
+	profilePath := filepath.Join(portableDir, "wbd.json")
 	if selfTest {
 		if profilePath == "" {
-			return errors.New("self-test requires wbd.json beside wbd.exe or -profile <path>")
+			return errors.New("self-test requires wbd.json beside wbd.exe")
 		}
 		if strings.TrimSpace(selfTestLog) == "" {
 			selfTestLog, err = timestampedLogPath(portableDir, "self-test-", ".jsonl")
@@ -190,11 +172,7 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 				return fmt.Errorf("prepare self-test log beside wbd.exe: %w", err)
 			}
 		}
-		diagState := filepath.Join(stateDir, "diagnostics")
-		if err := os.MkdirAll(diagState, 0o700); err != nil {
-			return err
-		}
-		profile, err := windowsgui.LoadRuntimeProfile(profilePath, runtimeDir, diagState)
+		profile, err := windowsgui.LoadRuntimeProfile(profilePath, runtimeDir, stateDir)
 		if err != nil {
 			return err
 		}
@@ -211,9 +189,6 @@ func run(profilePath string, selfTest bool, selfTestLog, importCN string, rollba
 	args := []string{"-start-minimized=true"}
 	if show {
 		args[0] = "-start-minimized=false"
-	}
-	if profilePath != "" {
-		args = append(args, "-profile", profilePath)
 	}
 	logPath, err := timestampedLogPath(portableDir, "runtime-", ".log")
 	if err != nil {
