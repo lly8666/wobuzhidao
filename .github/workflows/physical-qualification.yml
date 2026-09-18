@@ -146,7 +146,27 @@ jobs:
             $cleanupWatch.Stop()
             if(Test-Path -LiteralPath $state){throw 'large CN route state survived cleanup'}
             if($cleanupWatch.Elapsed.TotalSeconds -ge 90){throw "large CN route cleanup too slow: $([math]::Round($cleanupWatch.Elapsed.TotalSeconds,2))s"}
-            Write-Output "WBD_WINDOWS_CN_ROUTE_SCALE_PASS phase=cleanup seconds=$([math]::Round($cleanupWatch.Elapsed.TotalSeconds,2))"
+            Write-Output "WBD_WINDOWS_CN_ROUTE_SCALE_PASS phase=cleanup direction=direct seconds=$([math]::Round($cleanupWatch.Elapsed.TotalSeconds,2))"
+
+            # Exercise the opposite China-routing direction too: the same exact
+            # source-controlled CN list becomes on-link capture routes on Wintun.
+            $captureWatch=[Diagnostics.Stopwatch]::StartNew()
+            $captureLog=@(& ./scripts/windows_tun_route.ps1 -Action Apply -Mode Split -AdapterAlias WBDQUAL -TunnelAddress4 10.66.0.2/30 -Underlay4 1.1.1.1 -PrefixFile4 $seed -MTU 1400 -StatePath $state -RouteBatchExe $routeBatchExe)
+            $captureWatch.Stop()
+            $captureLog | ForEach-Object { Write-Output $_ }
+            if(($captureLog -join [Environment]::NewLine) -notmatch 'WBD_WINDOWS_TUN_READY'){throw 'large CN capture apply readiness marker missing'}
+            $captured=Get-Content -LiteralPath $state -Raw | ConvertFrom-Json
+            $ownedCapture=@($captured.CaptureRoutes).Count
+            if($ownedCapture -lt 5000){throw "large CN capture apply owned only $ownedCapture capture routes"}
+            if($captureWatch.Elapsed.TotalSeconds -ge 180){throw "large CN capture apply too slow: $([math]::Round($captureWatch.Elapsed.TotalSeconds,2))s"}
+            Write-Output "WBD_WINDOWS_CN_ROUTE_SCALE_PASS phase=apply direction=capture routes=$ownedCapture seconds=$([math]::Round($captureWatch.Elapsed.TotalSeconds,2))"
+
+            $captureCleanupWatch=[Diagnostics.Stopwatch]::StartNew()
+            & ./scripts/windows_tun_route.ps1 -Action Cleanup -StatePath $state | ForEach-Object { Write-Output $_ }
+            $captureCleanupWatch.Stop()
+            if(Test-Path -LiteralPath $state){throw 'large CN capture route state survived cleanup'}
+            if($captureCleanupWatch.Elapsed.TotalSeconds -ge 90){throw "large CN capture cleanup too slow: $([math]::Round($captureCleanupWatch.Elapsed.TotalSeconds,2))s"}
+            Write-Output "WBD_WINDOWS_CN_ROUTE_SCALE_PASS phase=cleanup direction=capture seconds=$([math]::Round($captureCleanupWatch.Elapsed.TotalSeconds,2))"
           } finally {
             try { & ./scripts/windows_tun_route.ps1 -Action Cleanup -StatePath $state 2>$null | Out-Null } catch {}
             if($probe -and -not $probe.HasExited){Stop-Process -Id $probe.Id -Force -ErrorAction SilentlyContinue}
