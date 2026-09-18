@@ -76,7 +76,7 @@ func TestPhysicalTestProfileTemplateContract(t *testing.T) {
 	if err := json.Unmarshal([]byte(raw), &cfg); err != nil {
 		t.Fatalf("decode physical test profile template: %v", err)
 	}
-	for _, key := range []string{"server_ip", "server_port", "server_name", "route_key", "username", "password", "fec", "route_mode", "dns_mode", "lanes"} {
+	for _, key := range []string{"server_ip", "server_port", "server_name", "route_key", "username", "password", "fec", "proxy_lan", "proxy_china", "proxy_other", "dns_mode", "lanes"} {
 		if _, ok := cfg[key]; !ok {
 			t.Fatalf("physical test profile template missing %q", key)
 		}
@@ -86,6 +86,18 @@ func TestPhysicalTestProfileTemplateContract(t *testing.T) {
 	}
 	if got := cfg["lanes"]; got != float64(1) {
 		t.Fatalf("primary physical test profile lanes = %v, want 1", got)
+	}
+	if got := cfg["proxy_lan"]; got != false {
+		t.Fatalf("primary physical test profile proxy_lan = %v, want false", got)
+	}
+	if got := cfg["proxy_china"]; got != true {
+		t.Fatalf("primary physical test profile proxy_china = %v, want true", got)
+	}
+	if got := cfg["proxy_other"]; got != true {
+		t.Fatalf("primary physical test profile proxy_other = %v, want true", got)
+	}
+	if _, legacy := cfg["route_mode"]; legacy {
+		t.Fatal("new physical test profile must not resurrect legacy route_mode")
 	}
 	if _, legacy := cfg["server_front"]; legacy {
 		t.Fatal("new physical test profile must not resurrect legacy server_front")
