@@ -151,8 +151,9 @@ func run(selfTest bool, selfTestLog, importCN string, rollbackCN, installNpcap, 
 		return err
 	}
 	if installNpcap {
-		downloadDir := filepath.Join(portableDir, "downloads")
-		cmd := exec.Command(filepath.Join(runtimeDir, "wbd-win-net.exe"), "npcap", "install", "--download-dir", downloadDir)
+		script := filepath.Join(runtimeDir, "windows_npcap_prepare.ps1")
+		cmd := exec.Command("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, "-Action", "Install")
+		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: 0x08000000}
 		if output, err := cmd.CombinedOutput(); err != nil {
 			return fmt.Errorf("Npcap preparation failed: %w: %s", err, string(output))
 		}
@@ -212,8 +213,8 @@ func run(selfTest bool, selfTestLog, importCN string, rollbackCN, installNpcap, 
 }
 
 var requiredInstalledRuntimeFiles = []string{
-	"wbd-reality-front.exe", "wbd-faketcp.exe", "wbd_dtls_shim.exe", "wbd-link-proxy.exe", "wbd-game-lane-client.exe", "wbd-tun.exe", "wbd-win-net.exe", "wbd-windows-gui.exe",
-	"wintun.dll",
+	"wbd-reality-front.exe", "wbd-faketcp.exe", "wbd_dtls_shim.exe", "wbd-link-proxy.exe", "wbd-game-lane-client.exe", "wbd-tun.exe", "wbd-windows-gui.exe",
+	"wintun.dll", "windows_tun_route.ps1", "windows_tun_rebind.ps1", "windows_ipv6_killswitch.ps1", "windows_faketcp_underlay.ps1", "windows_npcap_prepare.ps1",
 }
 
 func validateInstalledRuntime(dir string) error {

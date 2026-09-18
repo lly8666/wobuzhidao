@@ -82,10 +82,10 @@ func NewController(runner Runner, discoverer UnderlayDiscoverer, tickets TicketS
 func (c *Controller) State() RuntimeState { c.mu.Lock(); defer c.mu.Unlock(); return c.state }
 
 func startupRecoveryCommands(profile Profile) []Command {
-	bin := filepath.Join(profile.BinDir, "wbd-win-net.exe")
+	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
 	return []Command{
-		{Name: "route-cleanup", Path: bin, Args: []string{"route", "cleanup", "--state", profile.RouteState}},
-		{Name: "ipv6-cleanup", Path: bin, Args: []string{"ipv6", "cleanup"}},
+		{Name: "route-cleanup", Path: "powershell.exe", Args: []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_tun_route.ps1"), "-Action", "Cleanup", "-StatePath", profile.RouteState}},
+		{Name: "ipv6-cleanup", Path: "powershell.exe", Args: []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_ipv6_killswitch.ps1"), "-Action", "Cleanup"}},
 	}
 }
 

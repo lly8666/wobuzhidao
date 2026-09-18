@@ -371,6 +371,9 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	tunnelPrefix, _ := netip.ParsePrefix(profile.TunnelIPv4)
 	bin := func(name string) string { return filepath.Join(profile.BinDir, name) }
 	loop := func(port int) string { return "127.0.0.1:" + strconv.Itoa(port) }
+	psScript := func(name, script, action string) Command {
+		return Command{Name: name, Path: "powershell.exe", Args: []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin(script), "-Action", action}}
+	}
 
 	fake, err := BuildFakeTCPCommand(profile, underlay)
 	if err != nil {
@@ -402,33 +405,26 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	}
 
 	routing := buildRoutingPlan(profile)
+	psMode := routing.Mode
 	dnsServers := resolvedDNSServers(profile)
-	routeArgs := []string{
-		"route", "apply",
-		"--adapter", profile.IfName,
-		"--tunnel-address4", profile.TunnelIPv4,
-		"--underlay4", raw.Addr().String(),
-		"--physical-ifindex", strconv.FormatUint(uint64(underlay.InterfaceIndex), 10),
-		"--physical-next-hop4", strings.TrimSpace(underlay.NextHopIP),
-		"--state", profile.RouteState,
-	}
+	routeArgs := []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_tun_route.ps1"), "-Action", "Apply", "-Mode", psMode, "-AdapterAlias", profile.IfName, "-TunnelAddress4", profile.TunnelIPv4, "-Underlay4", raw.Addr().String(), "-MTU", strconv.Itoa(mtuBudget.InnerMTU), "-StatePath", profile.RouteState}
 	if routing.CaptureLAN {
-		routeArgs = append(routeArgs, "--capture-lan=true")
+		routeArgs = append(routeArgs, "-CaptureLAN")
 	}
 	if len(dnsServers) > 0 {
-		routeArgs = append(routeArgs, "--dns-server", strings.Join(dnsServers, ","))
+		routeArgs = append(routeArgs, "-DNSServer", strings.Join(dnsServers, ","))
 	}
-	cleanupArgs := []string{"route", "cleanup", "--state", profile.RouteState}
+	cleanupArgs := []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_tun_route.ps1"), "-Action", "Cleanup", "-StatePath", profile.RouteState}
 
 	return Plan{
 		Bootstrap: buildBootstrapCommand(profile), FakeTCP: fake,
 		DTLS:         Command{Name: "dtls", Path: bin("wbd_dtls_shim.exe"), Args: dtlsArgs},
 		Link:         Command{Name: "link", Path: bin("wbd-link-proxy.exe"), Args: linkArgs},
 		TUN:          Command{Name: "tun", Path: bin("wbd-tun.exe"), Args: tunArgs},
-		IPv6Apply:    Command{Name: "ipv6-apply", Path: bin("wbd-win-net.exe"), Args: []string{"ipv6", "apply"}},
-		RouteApply:   Command{Name: "route-apply", Path: bin("wbd-win-net.exe"), Args: routeArgs},
-		RouteCleanup: Command{Name: "route-cleanup", Path: bin("wbd-win-net.exe"), Args: cleanupArgs},
-		IPv6Cleanup:  Command{Name: "ipv6-cleanup", Path: bin("wbd-win-net.exe"), Args: []string{"ipv6", "cleanup"}},
+		IPv6Apply:    psScript("ipv6-apply", "windows_ipv6_killswitch.ps1", "Apply"),
+		RouteApply:   Command{Name: "route-apply", Path: "powershell.exe", Args: routeArgs},
+		RouteCleanup: Command{Name: "route-cleanup", Path: "powershell.exe", Args: cleanupArgs},
+		IPv6Cleanup:  psScript("ipv6-cleanup", "windows_ipv6_killswitch.ps1", "Cleanup"),
 		TicketPath:   profile.TicketPath, TunnelConfigPath: profile.TunnelConfigPath,
 	}, nil
 }

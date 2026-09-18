@@ -13,7 +13,6 @@ on:
       - 'cmd/wbd-link-proxy/**'
       - 'cmd/wbd-game-lane-client/**'
       - 'cmd/wbd-tun/**'
-      - 'cmd/wbd-win-net/**'
       - 'internal/windowsbundle/**'
       - 'internal/windowsdiag/**'
       - 'internal/windowsruntime/**'
@@ -22,6 +21,11 @@ on:
       - 'internal/ipset/**'
       - 'internal/releasecontract/**'
       - 'native/dtls/**'
+      - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_tun_rebind.ps1'
+      - 'scripts/windows_ipv6_killswitch.ps1'
+      - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_npcap_prepare.ps1'
       - 'deps/platform-lock.json'
       - 'deps/upstream-lock.json'
   push:
@@ -41,7 +45,6 @@ on:
       - 'cmd/wbd-link-proxy/**'
       - 'cmd/wbd-game-lane-client/**'
       - 'cmd/wbd-tun/**'
-      - 'cmd/wbd-win-net/**'
       - 'internal/windowsbundle/**'
       - 'internal/windowsdiag/**'
       - 'internal/windowsruntime/**'
@@ -50,6 +53,11 @@ on:
       - 'internal/ipset/**'
       - 'internal/releasecontract/**'
       - 'native/dtls/**'
+      - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_tun_rebind.ps1'
+      - 'scripts/windows_ipv6_killswitch.ps1'
+      - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_npcap_prepare.ps1'
       - 'deps/platform-lock.json'
       - 'deps/upstream-lock.json'
 
@@ -92,8 +100,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "wbd-game-lane-client build failed: $LASTEXITCODE" }
           go build -trimpath -ldflags "-s -w" -o build\windows-runtime\wbd-tun.exe .\cmd\wbd-tun
           if ($LASTEXITCODE -ne 0) { throw "wbd-tun build failed: $LASTEXITCODE" }
-          go build -trimpath -ldflags "-s -w" -o build\windows-runtime\wbd-win-net.exe .\cmd\wbd-win-net
-          if ($LASTEXITCODE -ne 0) { throw "wbd-win-net build failed: $LASTEXITCODE" }
           go build -trimpath -ldflags "-s -w -H=windowsgui" -o build\windows-runtime\wbd-windows-gui.exe .\cmd\wbd-windows-gui
           if ($LASTEXITCODE -ne 0) { throw "wbd-windows-gui build failed: $LASTEXITCODE" }
       - name: Build pinned wolfSSL DTLS shim with static CRT
@@ -180,13 +186,18 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $payload = 'build\windows-runtime'
+          Copy-Item scripts\windows_tun_route.ps1 "$payload\windows_tun_route.ps1"
+          Copy-Item scripts\windows_tun_rebind.ps1 "$payload\windows_tun_rebind.ps1"
+          Copy-Item scripts\windows_ipv6_killswitch.ps1 "$payload\windows_ipv6_killswitch.ps1"
+          Copy-Item scripts\windows_faketcp_underlay.ps1 "$payload\windows_faketcp_underlay.ps1"
+          Copy-Item scripts\windows_npcap_prepare.ps1 "$payload\windows_npcap_prepare.ps1"
           Copy-Item docs\testing\wbd.example.json "$payload\wbd.example.json"
           Set-Content -LiteralPath "$payload\SOURCE_SHA.txt" -Encoding ascii -Value $env:WBD_SOURCE_SHA
           go build -trimpath -ldflags "-s -w -H=windowsgui" -o "$payload\wbd.exe" .\cmd\wbd-windows-portable
           if ($LASTEXITCODE -ne 0) { throw "installed launcher build failed: $LASTEXITCODE" }
           $required = @(
-            'wbd.exe','wbd-reality-front.exe','wbd-faketcp.exe','wbd_dtls_shim.exe','wbd-link-proxy.exe','wbd-game-lane-client.exe','wbd-tun.exe','wbd-win-net.exe','wbd-windows-gui.exe',
-            'wintun.dll','WINTUN-LICENSE.txt','SOURCE_SHA.txt','wbd.example.json','cn4.txt','cn6.txt','cn-manifest.json'
+            'wbd.exe','wbd-reality-front.exe','wbd-faketcp.exe','wbd_dtls_shim.exe','wbd-link-proxy.exe','wbd-game-lane-client.exe','wbd-tun.exe','wbd-windows-gui.exe',
+            'wintun.dll','WINTUN-LICENSE.txt','SOURCE_SHA.txt','wbd.example.json','cn4.txt','cn6.txt','cn-manifest.json','windows_tun_route.ps1','windows_tun_rebind.ps1','windows_ipv6_killswitch.ps1','windows_faketcp_underlay.ps1','windows_npcap_prepare.ps1'
           )
           foreach ($name in $required) {
             if (-not (Test-Path (Join-Path $payload $name))) { throw "install directory missing $name" }
