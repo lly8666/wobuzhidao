@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/lly8666/wobuzhidao/internal/windowsgui"
 	"github.com/lly8666/wobuzhidao/internal/windowsruntime"
@@ -41,7 +42,7 @@ var procGetWindowTextW = user32.NewProc("GetWindowTextW")
 
 type profileUIState struct {
 	store                                                                                                   windowsgui.ProfileStore
-	storePath, activePath, editingID                                                                        string
+	configPath, editingID                                                                                   string
 	list, name, serverIP, serverPort, serverFront, serverRaw, serverName, routeKey, username, password      uintptr
 	verify, fec, ifName, mtu, routeMode, dnsMode, dnsServer, lanes, idle, keepalive, rotMin, rotMax, tunnel uintptr
 	add, save, del, current                                                                                 uintptr
@@ -61,57 +62,43 @@ func defaultProfileConfig() windowsgui.RuntimeProfileFile {
 	idle, keepalive := 120, 15
 	return windowsgui.RuntimeProfileFile{FEC: "off", IfName: "WBD", MTU: windowsruntime.DefaultTunnelMTU, ProxyLAN: &a, ProxyChina: &b, ProxyOther: &b, DNSMode: windowsruntime.DNSAuto, Lanes: 1, IdleTimeout: &idle, KeepaliveSeconds: &keepalive}
 }
-func initializeProfiles(importPath string) error {
-	pd := os.Getenv("ProgramData")
-	if pd == "" {
-		return fmt.Errorf("ProgramData 未设置")
-	}
-	dir := filepath.Join(pd, "WBD")
-	if err := os.MkdirAll(dir, 0o700); err != nil {
-		return err
-	}
-	profileUI.storePath = filepath.Join(dir, "profiles.json")
-	profileUI.activePath = filepath.Join(dir, "active-profile.json")
-	s, err := windowsgui.LoadProfileStore(profileUI.storePath)
+const portableProfileID = "portable-wbd-json"
+
+func initializeProfiles() error {
+	exe, err := os.Executable()
 	if err != nil {
+		return fmt.Errorf("resolve GUI executable: %w", err)
+	}
+	dir := filepath.Dir(exe)
+	profileUI.configPath = filepath.Join(dir, "wbd.json")
+	cfg, err := windowsgui.ReadRuntimeProfileFile(profileUI.configPath)
+	if errors.Is(err, os.ErrNotExist) {
+		cfg = defaultProfileConfig()
+		if err := windowsgui.WriteRuntimeProfileFile(profileUI.configPath, cfg); err != nil {
+			return fmt.Errorf("create portable wbd.json: %w", err)
+		}
+	} else if err != nil {
 		return err
 	}
-	profileUI.store = s
-	if len(s.Profiles) == 0 && strings.TrimSpace(importPath) != "" {
-		p, e := windowsgui.ImportRuntimeProfile(importPath, "已导入服务器")
-		if e != nil {
-			return e
-		}
-		profileUI.store.Profiles = append(profileUI.store.Profiles, p)
-		profileUI.store.SelectedID = p.ID
+	profileUI.store = windowsgui.NewProfileStore()
+	profileUI.store.Profiles = []windowsgui.SavedProfile{{ID: portableProfileID, Name: "wbd.json", Config: cfg}}
+	profileUI.store.SelectedID = portableProfileID
+	profileUI.editingID = portableProfileID
+	if err := loadCurrentRuntimeProfile(); err != nil {
+		// Keep the editor usable for a new/incomplete local wbd.json. Connect stays
+		// disabled until the operator saves a valid configuration.
+		app.profileReady = false
+		app.profileErr = err
 	}
-	if len(profileUI.store.Profiles) == 0 {
-		p, e := profileUI.store.Add("新服务器", defaultProfileConfig())
-		if e != nil {
-			return e
-		}
-		profileUI.store.SelectedID = p.ID
-	}
-	if err := windowsgui.SaveProfileStore(profileUI.storePath, profileUI.store); err != nil {
-		return err
-	}
-	profileUI.editingID = profileUI.store.SelectedID
-	_ = loadCurrentRuntimeProfile()
 	return nil
 }
 func loadCurrentRuntimeProfile() error {
-	p, ok := profileUI.store.Selected()
-	if !ok {
+	if _, ok := profileUI.store.Selected(); !ok {
 		app.profileReady = false
-		return fmt.Errorf("没有当前服务器配置")
+		return fmt.Errorf("portable wbd.json is not loaded")
 	}
-	if err := windowsgui.WriteRuntimeProfileFile(profileUI.activePath, p.Config); err != nil {
-		app.profileReady = false
-		app.profileErr = err
-		return err
-	}
-	app.profilePath = profileUI.activePath
-	if err := loadRuntimeProfile(profileUI.activePath); err != nil {
+	app.profilePath = profileUI.configPath
+	if err := loadRuntimeProfile(profileUI.configPath); err != nil {
 		app.profileReady = false
 		app.profileErr = err
 		return err
@@ -190,12 +177,9 @@ func setProfileEditorEnabled(v bool) {
 }
 
 func createControls(hwnd uintptr) {
-	label(hwnd, "服务器", 18, 18, 80)
-	profileUI.add = createControl(hwnd, "BUTTON", "新增", 18, 44, 60, 28, idProfileAdd)
-	profileUI.save = createControl(hwnd, "BUTTON", "保存", 84, 44, 60, 28, idProfileSave)
-	profileUI.del = createControl(hwnd, "BUTTON", "删除", 150, 44, 60, 28, idProfileDelete)
-	profileUI.current = createControl(hwnd, "BUTTON", "设为当前", 216, 44, 82, 28, idProfileCurrent)
-	profileUI.list = createStyled(hwnd, "LISTBOX", "", 18, 80, 280, 565, idProfileList, wsBorder|wsVScroll|lbsNotify)
+	label(hwnd, "便携配置", 18, 18, 80)
+	createControl(hwnd, "STATIC", "wbd.json（仅程序目录）", 104, 16, 190, 24, 0)
+	profileUI.save = createControl(hwnd, "BUTTON", "保存 wbd.json", 18, 48, 130, 30, idProfileSave)
 	x1, lw, ew := 320, 110, 215
 	x2 := 675
 	row := func(y int, title string, e *uintptr, password bool) {
@@ -206,10 +190,10 @@ func createControls(hwnd uintptr) {
 		label(hwnd, title, x2, y, lw)
 		*e = edit(hwnd, x2+lw, y-2, ew, password)
 	}
-	row(82, "配置名称", &profileUI.name, false)
-	row2(82, "服务器 IP", &profileUI.serverIP, false)
-	row(116, "服务器端口", &profileUI.serverPort, false)
-	row2(116, "SNI/服务器名", &profileUI.serverName, false)
+	row(82, "服务器 IP", &profileUI.serverIP, false)
+	row2(82, "服务器端口", &profileUI.serverPort, false)
+	row(116, "SNI/服务器名", &profileUI.serverName, false)
+	row2(116, "Wintun 名称", &profileUI.ifName, false)
 	row(150, "Route Key", &profileUI.routeKey, false)
 	row2(150, "用户名", &profileUI.username, false)
 	row(184, "密码", &profileUI.password, true)
@@ -218,8 +202,6 @@ func createControls(hwnd uintptr) {
 	profileUI.editors = append(profileUI.editors, profileUI.verify)
 	label(hwnd, "FEC", x1, 218, lw)
 	profileUI.fec = combo(hwnd, x1+lw, 214, ew, fecOptions)
-	label(hwnd, "Wintun 名称", x2, 218, lw)
-	profileUI.ifName = edit(hwnd, x2+lw, 214, ew, false)
 	row(252, "连接 MTU", &profileUI.mtu, false)
 	label(hwnd, "旧 route_mode（保存时迁移）", x2, 252, lw)
 	profileUI.routeMode = combo(hwnd, x2+lw, 248, ew, routeOptions)
@@ -249,28 +231,10 @@ func createControls(hwnd uintptr) {
 	app.exitButton = createControl(hwnd, "BUTTON", "退出 WBD", 925, 548, 100, 34, idExitButton)
 	app.status = createControl(hwnd, "STATIC", "状态：未连接", 320, 602, 795, 48, 0)
 	createControl(hwnd, "STATIC", "提示：关闭窗口或最小化不会断开；真正退出会先清理路由、DNS 与 IPv6 阻断，再停止运行进程。", 320, 655, 795, 36, 0)
-	refreshProfileList()
 	loadEditor(profileUI.editingID)
 	refreshControls()
 }
-func refreshProfileList() {
-	if profileUI.list == 0 {
-		return
-	}
-	procSendMessageW.Call(profileUI.list, lbResetContent, 0, 0)
-	sel := 0
-	for i, p := range profileUI.store.Profiles {
-		prefix := "  "
-		if p.ID == profileUI.store.SelectedID {
-			prefix = "● "
-		}
-		procSendMessageW.Call(profileUI.list, lbAddString, 0, uintptr(unsafe.Pointer(utf16Ptr(prefix+p.Name))))
-		if p.ID == profileUI.editingID {
-			sel = i
-		}
-	}
-	procSendMessageW.Call(profileUI.list, lbSetCurSel, uintptr(sel), 0)
-}
+func refreshProfileList() {}
 func loadEditor(id string) {
 	p, ok := profileUI.store.Find(id)
 	if !ok {
@@ -278,8 +242,7 @@ func loadEditor(id string) {
 	}
 	profileUI.editingID = id
 	v := windowsgui.EditorValuesFromSavedProfile(p)
-	setText(profileUI.name, v.Name)
-	setText(profileUI.serverIP, v.ServerIP)
+		setText(profileUI.serverIP, v.ServerIP)
 	setText(profileUI.serverPort, v.ServerPort)
 	setText(profileUI.serverFront, v.ServerFront)
 	setText(profileUI.serverRaw, v.ServerRaw)
@@ -305,95 +268,39 @@ func loadEditor(id string) {
 	setText(profileUI.tunnel, v.TunnelIPv4)
 }
 func editorValues() windowsgui.ProfileEditorValues {
-	return windowsgui.ProfileEditorValues{Name: getText(profileUI.name), ServerIP: getText(profileUI.serverIP), ServerPort: getText(profileUI.serverPort), ServerFront: getText(profileUI.serverFront), ServerRaw: getText(profileUI.serverRaw), ServerName: getText(profileUI.serverName), RouteKey: getText(profileUI.routeKey), Username: getText(profileUI.username), Password: getText(profileUI.password), VerifyServer: isChecked(profileUI.verify), FEC: getCombo(profileUI.fec, fecOptions), IfName: getText(profileUI.ifName), MTU: getText(profileUI.mtu), RouteMode: getCombo(profileUI.routeMode, routeOptions), ProxyLAN: isChecked(app.proxyLAN), ProxyChina: isChecked(app.proxyChina), ProxyOther: isChecked(app.proxyOther), DNSMode: getCombo(profileUI.dnsMode, dnsOptions), DNSServer: getText(profileUI.dnsServer), Lanes: getText(profileUI.lanes), IdleTimeout: getText(profileUI.idle), Keepalive: getText(profileUI.keepalive), RotationMin: getText(profileUI.rotMin), RotationMax: getText(profileUI.rotMax), TunnelIPv4: getText(profileUI.tunnel)}
+	return windowsgui.ProfileEditorValues{Name: "wbd.json", ServerIP: getText(profileUI.serverIP), ServerPort: getText(profileUI.serverPort), ServerFront: getText(profileUI.serverFront), ServerRaw: getText(profileUI.serverRaw), ServerName: getText(profileUI.serverName), RouteKey: getText(profileUI.routeKey), Username: getText(profileUI.username), Password: getText(profileUI.password), VerifyServer: isChecked(profileUI.verify), FEC: getCombo(profileUI.fec, fecOptions), IfName: getText(profileUI.ifName), MTU: getText(profileUI.mtu), RouteMode: getCombo(profileUI.routeMode, routeOptions), ProxyLAN: isChecked(app.proxyLAN), ProxyChina: isChecked(app.proxyChina), ProxyOther: isChecked(app.proxyOther), DNSMode: getCombo(profileUI.dnsMode, dnsOptions), DNSServer: getText(profileUI.dnsServer), Lanes: getText(profileUI.lanes), IdleTimeout: getText(profileUI.idle), Keepalive: getText(profileUI.keepalive), RotationMin: getText(profileUI.rotMin), RotationMax: getText(profileUI.rotMax), TunnelIPv4: getText(profileUI.tunnel)}
 }
 func saveEditing(selectCurrent bool) error {
 	p, ok := profileUI.store.Find(profileUI.editingID)
 	if !ok {
-		return fmt.Errorf("找不到正在编辑的服务器")
+		return fmt.Errorf("portable wbd.json is not loaded")
 	}
 	var err error
 	p, err = editorValues().ApplyToSavedProfile(p)
 	if err != nil {
 		return err
 	}
-	if err = profileUI.store.Upsert(p); err != nil {
+	p.ID = portableProfileID
+	p.Name = "wbd.json"
+	profileUI.store.Profiles = []windowsgui.SavedProfile{p}
+	profileUI.store.SelectedID = portableProfileID
+	profileUI.editingID = portableProfileID
+	if err := windowsgui.WriteRuntimeProfileFile(profileUI.configPath, p.Config); err != nil {
 		return err
 	}
-	if selectCurrent {
-		profileUI.store.SelectedID = p.ID
-	}
-	if err = windowsgui.SaveProfileStore(profileUI.storePath, profileUI.store); err != nil {
-		return err
-	}
-	refreshProfileList()
-	if p.ID == profileUI.store.SelectedID {
-		return loadCurrentRuntimeProfile()
-	}
-	return nil
+	return loadCurrentRuntimeProfile()
 }
 func saveActiveProfileFromUI() error { return saveEditing(true) }
 func handleProfileCommand(hwnd, wParam uintptr) bool {
-	id := lowWord(wParam)
-	notify := highWord(wParam)
-	if id == idProfileList && notify == lbnSelChange {
-		if app.controller.State() != windowsruntime.RuntimeDisconnected || app.operation != "" {
-			return true
-		}
-		idx, _, _ := procSendMessageW.Call(profileUI.list, lbGetCurSel, 0, 0)
-		if int(idx) >= 0 && int(idx) < len(profileUI.store.Profiles) {
-			loadEditor(profileUI.store.Profiles[idx].ID)
-		}
-		return true
+	if lowWord(wParam) != idProfileSave {
+		return false
 	}
-	switch id {
-	case idProfileAdd:
-		if app.controller.State() != windowsruntime.RuntimeDisconnected {
-			return true
-		}
-		p, e := profileUI.store.Add("新服务器", defaultProfileConfig())
-		if e != nil {
-			messageBox("WBD", e.Error())
-			return true
-		}
-		profileUI.editingID = p.ID
-		_ = windowsgui.SaveProfileStore(profileUI.storePath, profileUI.store)
-		refreshProfileList()
-		loadEditor(p.ID)
-		return true
-	case idProfileSave:
-		if e := saveEditing(false); e != nil {
-			messageBox("保存配置", e.Error())
-		} else {
-			messageBoxInfo("保存配置", "配置已保存")
-		}
-		return true
-	case idProfileCurrent:
-		if e := saveEditing(true); e != nil {
-			messageBox("设为当前", e.Error())
-		} else {
-			messageBoxInfo("设为当前", "已切换当前服务器")
-		}
-		return true
-	case idProfileDelete:
-		if app.controller.State() != windowsruntime.RuntimeDisconnected {
-			return true
-		}
-		if !profileUI.store.Delete(profileUI.editingID) {
-			return true
-		}
-		if len(profileUI.store.Profiles) == 0 {
-			p, _ := profileUI.store.Add("新服务器", defaultProfileConfig())
-			profileUI.store.SelectedID = p.ID
-		}
-		profileUI.editingID = profileUI.store.SelectedID
-		_ = windowsgui.SaveProfileStore(profileUI.storePath, profileUI.store)
-		_ = loadCurrentRuntimeProfile()
-		refreshProfileList()
-		loadEditor(profileUI.editingID)
-		return true
+	if e := saveEditing(true); e != nil {
+		messageBox("保存配置", e.Error())
+	} else {
+		messageBoxInfo("保存配置", "wbd.json 已保存到程序目录")
 	}
-	return false
+	return true
 }
 func highWord(v uintptr) uintptr   { return (v >> 16) & 0xffff }
 func parseDisplayInt(s string) int { v, _ := strconv.Atoi(strings.TrimSpace(s)); return v }
