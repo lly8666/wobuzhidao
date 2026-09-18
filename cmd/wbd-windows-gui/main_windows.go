@@ -677,6 +677,8 @@ func copyUTF16(dst []uint16, src string) {
 func lowWord(v uintptr) uintptr { return v & 0xffff }
 
 func boolInt(v bool) int {
-	if v { return 1 }
+	if v {
+		return 1
+	}
 	return 0
 }
