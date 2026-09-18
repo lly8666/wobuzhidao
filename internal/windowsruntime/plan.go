@@ -406,16 +406,8 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 
 	routing := buildRoutingPlan(profile)
 	psMode := routing.Mode
-	prefixFile := routing.PrefixFile4
-	directFile := routing.DirectPrefixFile4
 	dnsServers := resolvedDNSServers(profile)
 	routeArgs := []string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bin("windows_tun_route.ps1"), "-Action", "Apply", "-Mode", psMode, "-AdapterAlias", profile.IfName, "-TunnelAddress4", profile.TunnelIPv4, "-Underlay4", raw.Addr().String(), "-MTU", strconv.Itoa(mtuBudget.InnerMTU), "-StatePath", profile.RouteState}
-	if prefixFile != "" {
-		routeArgs = append(routeArgs, "-PrefixFile4", prefixFile)
-	}
-	if directFile != "" {
-		routeArgs = append(routeArgs, "-DirectPrefixFile4", directFile)
-	}
 	if routing.CaptureLAN {
 		routeArgs = append(routeArgs, "-CaptureLAN")
 	}
