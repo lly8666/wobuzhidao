@@ -12,6 +12,7 @@ func TestCandidateLaneUsesPrivateSlotFiveWithSameLogicalID(t *testing.T) {
 	p := testProfile()
 	p.TunnelIPv4 = ""
 	p.Lanes = 4
+	p.MTU = 1280 // representative configured value; candidate must not fall back to a fixed/default MTU
 	u := testUnderlay()
 	u.SourcePort = windowsDynamicPortMin + 99
 
@@ -24,7 +25,7 @@ func TestCandidateLaneUsesPrivateSlotFiveWithSameLogicalID(t *testing.T) {
 	if b.FakeTCP.Name != "faketcp-4-candidate-s5" { t.Fatalf("candidate bootstrap name=%q", b.FakeTCP.Name) }
 	if !argPair(b.FakeTCP.Args, "--local-udp", "127.0.0.1:45105") { t.Fatalf("candidate FakeTCP args=%v", b.FakeTCP.Args) }
 	if !argPair(b.FakeTCP.Args, "--source", "192.0.2.20:49251") { t.Fatalf("candidate source port missing: %v", b.FakeTCP.Args) }
-	if !argPair(b.FakeTCP.Args, "--connection-mtu", "1400") { t.Fatalf("candidate connection MTU missing: %v", b.FakeTCP.Args) }
+	if !argPair(b.FakeTCP.Args, "--connection-mtu", "1280") { t.Fatalf("candidate connection MTU missing: %v", b.FakeTCP.Args) }
 	if !argPair(b.FakeTCP.Args, "--shadow-recovery", "legacy") { t.Fatalf("candidate legacy shadow recovery missing: %v", b.FakeTCP.Args) }
 
 	b.Ticket = strings.Repeat("ab", 32)
