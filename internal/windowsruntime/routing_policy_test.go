@@ -75,6 +75,22 @@ func TestBuildPlanExplicitRoutingPolicyUsesCNAndLANArguments(t *testing.T) {
 	}
 }
 
+func TestBuildPlanLANDirectNeverEnablesCaptureLAN(t *testing.T) {
+	p := testProfile()
+	p.RoutingPolicy = &RoutingPolicy{ProxyLAN: false, ProxyChina: true, ProxyOther: true}
+	p.DNSMode = DNSSystem
+	plan, err := BuildPlan(p, testUnderlay(), strings.Repeat("ab", 32))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if slices.Contains(plan.RouteApply.Args, "-CaptureLAN") {
+		t.Fatalf("LAN-direct policy unexpectedly enabled -CaptureLAN: %v", plan.RouteApply.Args)
+	}
+	if !argPair(plan.RouteApply.Args, "-Mode", "Full") {
+		t.Fatalf("unexpected route mode for LAN-direct full proxy: %v", plan.RouteApply.Args)
+	}
+}
+
 func TestRoutingPolicyAutoDNSFollowsOtherTraffic(t *testing.T) {
 	for _, tc := range []struct {
 		other bool
