@@ -73,10 +73,12 @@ func decodeUnderlayDiscoveryObservation(output []byte) (underlayPathObservation,
 	}
 	observed := underlayPathObservation{
 		Underlay: Underlay{
-			SourceIP:     result.SourceIP,
-			PacketDevice: result.PacketDevice,
-			SourceMAC:    result.SourceMAC,
-			NextHopMAC:   result.NextHopMAC,
+			SourceIP:       result.SourceIP,
+			InterfaceIndex: result.InterfaceIndex,
+			PacketDevice:   result.PacketDevice,
+			SourceMAC:      result.SourceMAC,
+			NextHopIP:      result.NextHopIP,
+			NextHopMAC:     result.NextHopMAC,
 		},
 		InterfaceIndex: result.InterfaceIndex,
 		NextHopIP:      result.NextHopIP,
