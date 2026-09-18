@@ -1,7 +1,7 @@
 param(
     [ValidateSet('Status','Fetch','Install')]
     [string]$Action = 'Status',
-    [string]$DownloadDirectory = "$env:LOCALAPPDATA\WBD\downloads"
+    [string]$DownloadDirectory = "$PSScriptRoot\downloads"
 )
 
 $ErrorActionPreference = 'Stop'
