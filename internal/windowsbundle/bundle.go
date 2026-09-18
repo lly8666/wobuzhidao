@@ -136,12 +136,12 @@ func extractPayload(payload []byte, payloadSHA, base string) (string, error) {
 }
 
 func runtimeBaseDir() (string, error) {
-	if local := os.Getenv("LOCALAPPDATA"); local != "" {
-		return filepath.Join(local, "WBD", "runtime"), nil
-	}
-	cache, err := os.UserCacheDir()
+	exe, err := os.Executable()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(cache, "WBD", "runtime"), nil
+	// Even legacy embedded-runtime builds must stay portable. If extraction is
+	// ever enabled again, keep it underneath the executable directory rather
+	// than LocalAppData/UserCacheDir.
+	return filepath.Join(filepath.Dir(exe), ".wbd-runtime"), nil
 }
