@@ -10,7 +10,7 @@ import (
 
 type DirectEngine struct{}
 
-func NewDirectEngine(interfaceIndex uint32, mtu int, output tunnel.Endpoint) (*DirectEngine, error) {
+func NewDirectEngine(interfaceIndex uint32, routeStatePath string, mtu int, output tunnel.Endpoint) (*DirectEngine, error) {
 	return nil, errors.New("userspace direct split is Windows-only")
 }
 
