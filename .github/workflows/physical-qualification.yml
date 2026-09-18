@@ -145,9 +145,27 @@ jobs:
           if(-not $best){throw "no pre-Wintun physical route to $($tcpIP.IPAddressToString)"}
           $physicalIf=[uint32]$best.InterfaceIndex
           if($physicalIf-eq0){throw 'physical interface index is zero'}
-          $dnsIP=@(Get-DnsClientServerAddress -InterfaceIndex $physicalIf -AddressFamily IPv4 -ErrorAction SilentlyContinue | ForEach-Object {$_.ServerAddresses} | Where-Object {$_ -match '^\d{1,3}(\.\d{1,3}){3}$' -and $_ -notmatch '^127\.'} | Select-Object -First 1)
-          if(-not $dnsIP){$dnsIP='1.1.1.1'}
-          $udpTarget=('{0}:53' -f $dnsIP)
+          # Do not use the runner's interface DNS here. Hosted Windows runners
+          # commonly expose Azure's 168.63.129.16 through a platform-owned
+          # more-specific route, which intentionally wins over WBD's /1 capture
+          # routes and would make a proxy-path test bypass Wintun. Pick a public
+          # DNS target that is reachable before capture and currently resolves
+          # through the ordinary physical default route, so Full capture must
+          # move its UDP packets into Wintun.
+          $udpTarget=$null
+          foreach($candidate in @('1.1.1.1','8.8.8.8','9.9.9.9')){
+            $candidateRoute=@(Find-NetRoute -RemoteIPAddress $candidate | Where-Object {$_.PSObject.Properties.Name -contains 'NextHop'} | Select-Object -First 1)
+            if(-not $candidateRoute){continue}
+            if([uint32]$candidateRoute.InterfaceIndex-ne$physicalIf){continue}
+            if([string]$candidateRoute.DestinationPrefix-ne'0.0.0.0/0'){continue}
+            $candidateTarget=('{0}:53' -f $candidate)
+            $probeText=@(& $probeExe -mode client -tcp-target $tcpTarget -udp-target $candidateTarget -timeout 2s) -join "`n"
+            if($probeText-match'udp_ok=1'){
+              $udpTarget=$candidateTarget
+              break
+            }
+          }
+          if(-not $udpTarget){throw 'no public UDP DNS target reachable through the ordinary physical default route before Wintun capture'}
           Write-Output "WBD_WINDOWS_TUN_SPLIT_TARGETS physical_if=$physicalIf tcp=$tcpTarget udp=$udpTarget"
 
           function Wait-Marker($proc,[string]$path,[string]$pattern,[string]$label,[int]$loops=150) {
