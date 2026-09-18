@@ -60,12 +60,22 @@ func ParseCN(r io.Reader) ([]netip.Prefix, error) {
 
 func parseDelegatedCN(line string) (netip.Prefix, bool, error) {
 	parts := strings.Split(line, "|")
-	if len(parts) < 7 {
-		return netip.Prefix{}, false, errors.New("invalid delegated-statistics row")
+	// delegated-apnic-latest also contains metadata and summary rows, including
+	// short rows such as apnic|*|ipv4|...|summary. They are not allocation
+	// records and must be ignored. Still fail closed for a row that explicitly
+	// claims to be a CN resource but is structurally incomplete.
+	if len(parts) < 2 {
+		return netip.Prefix{}, false, nil
 	}
 	cc := strings.ToUpper(strings.TrimSpace(parts[1]))
+	if cc != "CN" {
+		return netip.Prefix{}, false, nil
+	}
+	if len(parts) < 7 {
+		return netip.Prefix{}, false, errors.New("invalid delegated-statistics CN row")
+	}
 	typ := strings.ToLower(strings.TrimSpace(parts[2]))
-	if cc != "CN" || (typ != "ipv4" && typ != "ipv6") {
+	if typ != "ipv4" && typ != "ipv6" {
 		return netip.Prefix{}, false, nil
 	}
 	status := strings.ToLower(strings.TrimSpace(parts[6]))
