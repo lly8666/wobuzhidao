@@ -271,9 +271,6 @@ func (u Underlay) Validate() error {
 	if ip, err := netip.ParseAddr(u.SourceIP); err != nil || !ip.Is4() {
 		return errors.New("underlay source IP must be IPv4")
 	}
-	if u.InterfaceIndex == 0 {
-		return errors.New("underlay physical interface index is required")
-	}
 	if !strings.HasPrefix(u.PacketDevice, `\Device\NPF_{`) || !strings.HasSuffix(u.PacketDevice, "}") {
 		return errors.New("underlay packet device must be an Npcap device")
 	}
@@ -387,7 +384,25 @@ func BuildPlan(profile Profile, underlay Underlay, ticket string) (Plan, error) 
 	if profile.KeepaliveSeconds != nil {
 		linkArgs = append(linkArgs, "-keepalive", strconv.Itoa(*profile.KeepaliveSeconds)+"s")
 	}
-	tunArgs := []string{"-mode", "client", "-ifname", profile.IfName, "-mtu", strconv.Itoa(mtuBudget.InnerMTU), "-transport", loop(defaultLinkListenPort), "-expected-source-ipv4", tunnelPrefix.Addr().String()}
+	policy := profile.EffectiveRoutingPolicy()
+	needsDirect := !policy.ProxyLAN || !policy.ProxyChina || !policy.ProxyOther
+	if needsDirect && underlay.InterfaceIndex == 0 {
+		return Plan{}, errors.New("userspace direct split requires the physical interface index")
+	}
+	tunArgs := []string{
+		"-mode", "client",
+		"-ifname", profile.IfName,
+		"-mtu", strconv.Itoa(mtuBudget.InnerMTU),
+		"-transport", loop(defaultLinkListenPort),
+		"-expected-source-ipv4", tunnelPrefix.Addr().String(),
+		"-proxy-lan=" + strconv.FormatBool(policy.ProxyLAN),
+		"-proxy-china=" + strconv.FormatBool(policy.ProxyChina),
+		"-proxy-other=" + strconv.FormatBool(policy.ProxyOther),
+		"-direct-ifindex", strconv.FormatUint(uint64(underlay.InterfaceIndex), 10),
+	}
+	if profile.RequiresCNSet() {
+		tunArgs = append(tunArgs, "-cn4", filepath.Join(profile.CNSetDir, ipset.CNIPv4File))
+	}
 
 	routing := buildRoutingPlan(profile)
 	psMode := routing.Mode
