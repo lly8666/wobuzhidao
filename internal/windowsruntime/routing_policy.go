@@ -39,10 +39,8 @@ func (p Profile) RequiresCNSet() bool {
 }
 
 type routingPlan struct {
-	Mode              string
-	PrefixFile4       string
-	DirectPrefixFile4 string
-	CaptureLAN        bool
+	Mode       string
+	CaptureLAN bool
 }
 
 // Windows routing is deliberately policy-agnostic. All ordinary IPv4 traffic,
