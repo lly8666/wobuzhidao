@@ -126,10 +126,12 @@ func nativeUnderlayObservation(profile Profile, monitor bool) (underlayPathObser
 	}
 	observed := underlayPathObservation{
 		Underlay: Underlay{
-			SourceIP:     selected.adapter.source.String(),
-			PacketDevice: packetDevice,
-			SourceMAC:    selected.adapter.sourceMAC,
-			NextHopMAC:   nextHopMAC,
+			SourceIP:       selected.adapter.source.String(),
+			InterfaceIndex: selected.ifIndex,
+			PacketDevice:   packetDevice,
+			SourceMAC:      selected.adapter.sourceMAC,
+			NextHopIP:      nextHop.String(),
+			NextHopMAC:     nextHopMAC,
 		},
 		InterfaceIndex: selected.ifIndex,
 		NextHopIP:      nextHop.String(),
