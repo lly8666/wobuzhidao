@@ -167,17 +167,17 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $input = Join-Path $env:RUNNER_TEMP 'delegated-apnic-latest'
-          Invoke-WebRequest -UseBasicParsing 'https://ftp.apnic.net/stats/apnic/delegated-apnic-latest' -OutFile $input
+          $input = 'internal\ipset\seed\cn4.txt'
+          if (-not (Test-Path $input)) { throw "source-controlled CN baseline missing: $input" }
           $sourceSha = (Get-FileHash -Algorithm SHA256 $input).Hash.ToLowerInvariant()
-          go run .\cmd\wbd-ipset -action install -input $input -dir build\windows-runtime -source "apnic-release:$sourceSha"
+          go run .\cmd\wbd-ipset -action install -input $input -dir build\windows-runtime -source "wbd-frozen-cn4:$sourceSha"
           if ($LASTEXITCODE -ne 0) { throw "portable CN ipset install failed: $LASTEXITCODE" }
           go run .\cmd\wbd-ipset -action verify -dir build\windows-runtime
           if ($LASTEXITCODE -ne 0) { throw "portable CN ipset verify failed: $LASTEXITCODE" }
           foreach ($name in @('cn4.txt','cn6.txt','cn-manifest.json')) {
             if (-not (Test-Path (Join-Path 'build\windows-runtime' $name))) { throw "portable CN ipset missing $name" }
           }
-          Write-Output "WBD_WINDOWS_CN_BUNDLE_PASS source_sha256=$sourceSha dir=build\windows-runtime"
+          Write-Output "WBD_WINDOWS_CN_BUNDLE_PASS source=repository-frozen source_sha256=$sourceSha dir=build\windows-runtime"
 
       - name: Assemble install-directory client
         shell: pwsh
