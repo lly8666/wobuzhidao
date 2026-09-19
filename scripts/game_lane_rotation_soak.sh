@@ -14,25 +14,41 @@ if pos < 0:
 # generous bootstrap budget. The generated script otherwise preserves the
 # established full-stack setup verbatim.
 prefix = src[:pos]
+prefix = prefix.replace('LANES=${LANES:-4}\\n', 'LANES=${LANES:-4}\\nCONNECTION_MTU=${CONNECTION_MTU:-1500}\\n')
 prefix = prefix.replace('--bootstrap-timeout 12s', '--bootstrap-timeout 30s')
 prefix = prefix.replace('--reality-timeout 12s', '--reality-timeout 30s')
 prefix = prefix.replace('-demo-reality-ticket "$ticket" >"$LOG_DIR/link-${i}.log"',
                         '-demo-reality-ticket "$ticket" -keepalive 2s >"$LOG_DIR/link-${i}.log"')
+prefix = prefix.replace('-max-sessions 8', '-max-sessions 8 -connection-mtu "$CONNECTION_MTU"', 1)
+prefix = prefix.replace('--max-sessions 8', '--max-sessions 8 --connection-mtu "$CONNECTION_MTU"', 1)
+prefix = prefix.replace('--shadow-recovery legacy', '--shadow-recovery legacy --connection-mtu "$CONNECTION_MTU"')
 tail = r'''DURATION_SEC=${DURATION_SEC:-500}
+MIN_DURATION_SEC=${MIN_DURATION_SEC:-500}
 RATE_BPS=${RATE_BPS:-1000000}
 ROTATE_INTERVAL_SEC=${ROTATE_INTERVAL_SEC:-25}
 ROTATIONS=${ROTATIONS:-16}
 PAYLOAD_BYTES=${PAYLOAD_BYTES:-1000}
+POST_SMALL_PROBE_BYTES=${POST_SMALL_PROBE_BYTES:-0}
+REQUIRE_LINK_FRAGMENTATION=${REQUIRE_LINK_FRAGMENTATION:-0}
 MAX_LOSS_RATIO=${MAX_LOSS_RATIO:-0.001}
 STRICT_LOAD_QUALITY=${STRICT_LOAD_QUALITY:-1}
 
 [[ "$LANES" == 4 ]] || { echo "soak requires LANES=4" >&2; exit 2; }
-[[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge 500 ]] || { echo "DURATION_SEC must be >=500" >&2; exit 2; }
+[[ "$CONNECTION_MTU" =~ ^[0-9]+$ && "$CONNECTION_MTU" -ge 576 && "$CONNECTION_MTU" -le 9000 ]] || { echo "CONNECTION_MTU must be 576..9000" >&2; exit 2; }
+[[ "$MIN_DURATION_SEC" =~ ^[0-9]+$ && "$MIN_DURATION_SEC" -ge 1 ]] || { echo "MIN_DURATION_SEC must be positive" >&2; exit 2; }
+[[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge "$MIN_DURATION_SEC" ]] || { echo "DURATION_SEC must be >=$MIN_DURATION_SEC" >&2; exit 2; }
 [[ "$RATE_BPS" == 1000000 ]] || { echo "RATE_BPS must be exactly 1000000" >&2; exit 2; }
 [[ "$ROTATIONS" =~ ^[0-9]+$ && "$ROTATIONS" -ge 1 ]] || { echo "ROTATIONS must be positive" >&2; exit 2; }
 [[ "$ROTATE_INTERVAL_SEC" =~ ^[0-9]+$ && "$ROTATE_INTERVAL_SEC" -ge 1 ]] || { echo "ROTATE_INTERVAL_SEC must be positive" >&2; exit 2; }
 [[ "$PAYLOAD_BYTES" =~ ^[0-9]+$ && "$PAYLOAD_BYTES" -ge 64 ]] || { echo "PAYLOAD_BYTES must be >=64" >&2; exit 2; }
 [[ "$STRICT_LOAD_QUALITY" == 0 || "$STRICT_LOAD_QUALITY" == 1 ]] || { echo "STRICT_LOAD_QUALITY must be 0 or 1" >&2; exit 2; }
+[[ "$POST_SMALL_PROBE_BYTES" =~ ^[0-9]+$ ]] || { echo "POST_SMALL_PROBE_BYTES must be >=0" >&2; exit 2; }
+(( POST_SMALL_PROBE_BYTES == 0 || POST_SMALL_PROBE_BYTES >= 64 )) || { echo "POST_SMALL_PROBE_BYTES must be 0 or >=64" >&2; exit 2; }
+[[ "$REQUIRE_LINK_FRAGMENTATION" == 0 || "$REQUIRE_LINK_FRAGMENTATION" == 1 ]] || { echo "REQUIRE_LINK_FRAGMENTATION must be 0 or 1" >&2; exit 2; }
+if [[ "$REQUIRE_LINK_FRAGMENTATION" == 1 ]]; then
+  (( PAYLOAD_BYTES > LINK_PLAINTEXT_MTU )) || { echo "fragmentation-required payload=$PAYLOAD_BYTES must exceed LINK plaintext MTU=$LINK_PLAINTEXT_MTU" >&2; exit 2; }
+  echo "WBD_SOAK_LINK_FRAGMENTATION_REQUIRED payload=$PAYLOAD_BYTES link_mtu=$LINK_PLAINTEXT_MTU connection_mtu=$CONNECTION_MTU fec=$FEC" | tee -a "$LOG_DIR/rotation.log"
+fi
 
 # Replacement FakeTCP local-UDP and DTLS plain-side listeners are test-harness
 # sockets. Do not place them inside Linux's ephemeral range: the long-lived Game
@@ -180,7 +196,7 @@ start_replacement_lane() {
 
   sudo ip netns exec "$C" "$ASSET_DIR/wbd-faketcp" client \
     --local-udp 127.0.0.1:${fport} --source 10.89.0.2:${sport} --remote 10.89.0.1:${RAW} \
-    --shadow-recovery legacy \
+    --shadow-recovery legacy --connection-mtu "$CONNECTION_MTU" \
     --reality-server-name "$TARGET" --reality-route-key "$ROUTE_KEY" \
     --reality-username "$USERNAME" --reality-password "$PASSWORD" \
     --reality-ticket-out "$ticket_file" \
@@ -343,6 +359,22 @@ wait "$LOAD_PID"
 drop_pid "$LOAD_PID"
 cat "$LOG_DIR/load.log"
 cat "$LOG_DIR/load-result.json"
+
+if (( POST_SMALL_PROBE_BYTES > 0 )); then
+  cat >"$LOG_DIR/post-small-probe.py" <<'PY_SMALL'
+import socket,sys
+n=int(sys.argv[1])
+payload=b'WBD1'+b'S'*(n-4)
+s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+s.bind(('127.0.0.1',0)); s.settimeout(8)
+s.sendto(payload,('127.0.0.1',47500))
+got,_=s.recvfrom(65535)
+assert got==payload,(len(got),len(payload))
+print(f'WBD_SOAK_POST_SMALL_PROBE_PASS bytes={n}')
+PY_SMALL
+  sudo ip netns exec "$C" python3 "$LOG_DIR/post-small-probe.py" "$POST_SMALL_PROBE_BYTES" | tee "$LOG_DIR/post-small-probe.log"
+fi
+
 
 peer_resets=$(count_marker 'WBD_FAKETCP_MUX_PEER_RESET ' "$LOG_DIR/faketcp-mux.log")
 idle_expire=$(count_marker 'WBD_FAKETCP_MUX_SESSION_EXPIRE reason=no_client_rx' "$LOG_DIR/faketcp-mux.log")
