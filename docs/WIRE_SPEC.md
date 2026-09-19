@@ -125,6 +125,8 @@ fragment_payload  1..N bytes
 
 P3 只复用归档 live LINK 路径实际使用的 FEC v1，不启用归档中另行存在的 profile-v2 试验 wire。固定集合为：FEC off，以及 TailRS 的 20:4、20:8、20:10、20:12、20:16、20:20。K 固定为 20；R 只能取 4/8/10/12/16/20，其他几何明确拒绝。
 
+FEC 挡位是一个 lane incarnation 的不可变建立参数：encoder、decoder、统一 MTU budget 与后续 owner 必须持有同一个 path-level parity 配置，构造时不一致即失败；不得在现有 BlockID/FEC block 中热切换。path-level `ParityShards=0` 只表示 **FEC off**。归档 FEC v1 header 中历史 `parity=0` 的兼容解释仍仅属于 header parser 的既有 20:20 语义，不能被新 owner 当作 off，也不能据此创建第二套 profile 表。P4 如需改挡位，应通过候选 lane/incarnation 替换旧 lane，本阶段不做自动调档或挡位选型。
+
 FEC 开启时，每个 LINK fragment frame 作为一个 systematic source shard；FEC 发生在 LINK 分片之后、TLS-like record 之前。FEC shard datagram 头固定 56 字节：
 
 ```text
