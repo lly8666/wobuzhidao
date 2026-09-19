@@ -28,14 +28,12 @@ if echo_guard not in prefix:
     raise SystemExit('control wrapper: soak echo guard insertion point not found')
 prefix = prefix.replace(echo_guard, echo_guard_soak, 1)
 mtu_anchor = 'LINK_PLAINTEXT_MTU=${LINK_PLAINTEXT_MTU:-1400}\n'
-mtu_block = mtu_anchor + r'''if [[ "$FEC" != off ]]; then
-  budget_json=$(go run "$GITHUB_WORKSPACE/.github/scripts/mtu_budget.go" -connection-mtu 1500 -fec "$FEC")
-  read -r INNER_MTU LINK_PLAINTEXT_MTU < <(
-    python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["InnerMTU"], d["LinkPlaintextMTU"])' <<<"$budget_json"
-  )
-  export INNER_MTU LINK_PLAINTEXT_MTU
-  echo "WBD_HOSTED_MTU_BUDGET connection=1500 fec=$FEC link=$LINK_PLAINTEXT_MTU inner=$INNER_MTU"
-fi
+mtu_block = mtu_anchor + r'''budget_json=$(go run "$GITHUB_WORKSPACE/.github/scripts/mtu_budget.go" -connection-mtu "$CONNECTION_MTU" -fec "$FEC")
+read -r INNER_MTU LINK_PLAINTEXT_MTU < <(
+  python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["InnerMTU"], d["LinkPlaintextMTU"])' <<<"$budget_json"
+)
+export INNER_MTU LINK_PLAINTEXT_MTU
+echo "WBD_HOSTED_MTU_BUDGET connection=$CONNECTION_MTU fec=$FEC link=$LINK_PLAINTEXT_MTU inner=$INNER_MTU"
 '''
 if mtu_anchor not in prefix:
     raise SystemExit('control wrapper: MTU derivation insertion point not found')
@@ -298,7 +296,7 @@ grep -Fq "b.startswith(b'WBD1')" "$OUT"
 grep -Fq 'deadline+65.0' "$OUT"
 grep -Fq 'WBD_HOSTED_RETIRE_RST_ACK' "$OUT"
 grep -Fq 'WBD_HOSTED_RETIRE_RST_FAIL' "$OUT"
-grep -Fq 'WBD_HOSTED_MTU_BUDGET connection=1500' "$OUT"
+grep -Fq 'WBD_HOSTED_MTU_BUDGET connection=$CONNECTION_MTU' "$OUT"
 if grep -Fq -- '-keepalive 2s' "$OUT"; then
   echo 'control wrapper: stale accelerated 2s keepalive survived generation' >&2
   exit 1
