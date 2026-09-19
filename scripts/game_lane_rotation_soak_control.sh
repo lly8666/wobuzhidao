@@ -110,7 +110,8 @@ if old not in s:
     raise SystemExit('control wrapper: replacement function not found')
 s = s.replace(old, 'start_replacement_lane_transport() {', 1)
 old_lport = '  local lport=$((47100 + lane))\n'
-new_lport = '  local lport=$((47100 + gen*100 + lane))\n'
+new_lport = ('  local lport=$((CANDIDATE_LPORT_BASE + gen*100 + lane))\n'
+             '  (( lport > 1024 && lport < EPHEMERAL_PORT_LOW )) || { echo "candidate LINK/Game port entered ephemeral range: $lport" >&2; return 1; }\n')
 if old_lport not in s:
     raise SystemExit('control wrapper: replacement LINK listen port not found')
 s = s.replace(old_lport, new_lport, 1)
@@ -119,13 +120,22 @@ marker = ': >"$LOG_DIR/rotation.log"\n'
 if marker not in s:
     raise SystemExit('control wrapper: rotation marker not found')
 
-override = r'''game_control_cutover() {
+override = r'''game_port_for() {
+  local lane=$1 gen=$2
+  if (( gen == 0 )); then
+    printf '%s\n' "$((47100 + lane))"
+  else
+    printf '%s\n' "$((CANDIDATE_LPORT_BASE + gen*100 + lane))"
+  fi
+}
+
+game_control_cutover() {
   local phase=$1 lane=$2 old_lport=${3:-0} new_lport=${4:-0}
   local p1 p2 p3 p4
-  p1=$((47100 + ${LANE_GEN[1]}*100 + 1))
-  p2=$((47100 + ${LANE_GEN[2]}*100 + 2))
-  p3=$((47100 + ${LANE_GEN[3]}*100 + 3))
-  p4=$((47100 + ${LANE_GEN[4]}*100 + 4))
+  p1=$(game_port_for 1 "${LANE_GEN[1]}")
+  p2=$(game_port_for 2 "${LANE_GEN[2]}")
+  p3=$(game_port_for 3 "${LANE_GEN[3]}")
+  p4=$(game_port_for 4 "${LANE_GEN[4]}")
   sudo ip netns exec "$C" python3 - "$phase" "$lane" "$old_lport" "$new_lport" "$p1" "$p2" "$p3" "$p4" <<'PY_CONTROL'
 import base64, json, socket, sys
 phase=sys.argv[1]
@@ -228,8 +238,9 @@ start_replacement_lane() {
   local lane=$1 gen=$2
   local old_link=${LINK_PIDS[$lane]} old_dtls=${DTLS_PIDS[$lane]} old_fake=${FAKETCP_PIDS[$lane]}
   local old_sport=${LANE_SPORT[$lane]} old_gen=${LANE_GEN[$lane]}
-  local old_lport=$((47100 + old_gen*100 + lane))
-  local new_lport=$((47100 + gen*100 + lane))
+  local old_lport new_lport
+  old_lport=$(game_port_for "$lane" "$old_gen")
+  new_lport=$(game_port_for "$lane" "$gen")
   local before_client_qualified before_server_qualified before_leave
 
   before_client_qualified=$(count_marker "WBD_GAME_LANE_CLIENT_QUALIFIED lane=${lane} " "$LOG_DIR/game-client.log")
@@ -279,7 +290,9 @@ grep -Fq 'sudo ip netns exec "$C" tc qdisc replace dev gc0 root netem' "$OUT"
 grep -Fq 'sudo ip netns exec "$S" tc qdisc replace dev gs0 root netem' "$OUT"
 grep -Fq 'WBD_HOSTED_GAME_QUALIFICATION_PASS' "$OUT"
 grep -Fq 'game_control_cutover overlap "$lane"' "$OUT"
-grep -Fq 'local lport=$((47100 + gen*100 + lane))' "$OUT"
+grep -Fq 'local lport=$((CANDIDATE_LPORT_BASE + gen*100 + lane))' "$OUT"
+grep -Fq 'game_port_for() {' "$OUT"
+grep -Fq 'candidate LINK/Game port entered ephemeral range' "$OUT"
 grep -Fq -- '-keepalive 15s' "$OUT"
 grep -Fq "b.startswith(b'WBD1')" "$OUT"
 grep -Fq 'deadline+65.0' "$OUT"
