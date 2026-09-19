@@ -11,6 +11,7 @@ on:
       - 'scripts/game_lane_rotation_soak_control.sh'
       - 'internal/linkdata/**'
       - 'internal/pathmtu/**'
+      - 'internal/releasecontract/**'
       - 'cmd/wbd-link-proxy/**'
       - 'cmd/wbd-link-server-mux/**'
       - 'cmd/wbd-faketcp/**'
@@ -131,8 +132,7 @@ jobs:
           NETEM_LOSS_PCT: '0'
         run: |
           set -euo pipefail
-          slug="${{ matrix.connection_mtu }}-${{ matrix.fec }}"
-          slug="${slug//:/x}"
+          slug="${{ matrix.connection_mtu }}-${{ matrix.fec_slug }}"
           LOG="$RUNNER_TEMP/game-lane-rotation-oversize-$slug"
           mkdir -p "$LOG"
           sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$RUNNER_TEMP/wbd-oversize-assets" "$LOG"
@@ -155,9 +155,9 @@ jobs:
           assert len(fake_logs)>=4 and len(link_logs)>=4, (len(fake_logs),len(link_logs))
           for p in fake_logs:
               txt=p.read_text(errors='replace')
-              assert re.search(rf'READY role=client .*carrier_mtu={connection}\\b', txt), (p,connection)
+              assert re.search(rf'READY role=client .*carrier_mtu={connection}\b', txt), (p,connection)
 
-          stat_re=re.compile(r'WBD_LINK_PATH_STATS role=client mtu=(\\d+).*fragmented_tx=(\\d+).*fragment_tx_frames=(\\d+).*max_fragment_tx=(\\d+).*fragment_rx_frames=(\\d+).*max_fragment_rx=(\\d+).*reassembled_rx=(\\d+)')
+          stat_re=re.compile(r'WBD_LINK_PATH_STATS role=client mtu=(\d+).*fragmented_tx=(\d+).*fragment_tx_frames=(\d+).*max_fragment_tx=(\d+).*fragment_rx_frames=(\d+).*max_fragment_rx=(\d+).*reassembled_rx=(\d+)')
           for p in link_logs:
               txt=p.read_text(errors='replace')
               rows=stat_re.findall(txt)
@@ -168,7 +168,7 @@ jobs:
               assert max_tx<=mtu and max_rx<=mtu, (p,rows[-1])
 
           server_txt=(root/'link-server.log').read_text(errors='replace')
-          server_re=re.compile(r'WBD_LINK_SERVER_PATH_STATS .*?mtu=(\\d+).*?fragmented_tx=(\\d+).*?fragment_tx_frames=(\\d+).*?max_fragment_tx=(\\d+).*?fragment_rx_frames=(\\d+).*?max_fragment_rx=(\\d+).*?reassembled_rx=(\\d+)')
+          server_re=re.compile(r'WBD_LINK_SERVER_PATH_STATS .*?mtu=(\d+).*?fragmented_tx=(\d+).*?fragment_tx_frames=(\d+).*?max_fragment_tx=(\d+).*?fragment_rx_frames=(\d+).*?max_fragment_rx=(\d+).*?reassembled_rx=(\d+)')
           server_rows=server_re.findall(server_txt)
           assert len(server_rows)>=8, len(server_rows)
           for row in server_rows:
@@ -185,8 +185,7 @@ jobs:
         if: failure()
         run: |
           set +e
-          slug="${{ matrix.connection_mtu }}-${{ matrix.fec }}"
-          slug="${slug//:/x}"
+          slug="${{ matrix.connection_mtu }}-${{ matrix.fec_slug }}"
           LOG="$RUNNER_TEMP/game-lane-rotation-oversize-$slug"
           for f in "$LOG"/*.log; do
             echo "--- $f"

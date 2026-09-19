@@ -74,6 +74,7 @@ jobs:
             -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
           openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
             -subj '/CN=unrelated-dtls.invalid' -keyout "$ASSET/dtls.key" -out "$ASSET/dtls.pem" >/dev/null 2>&1
+          echo "WBD_DTLS_LOGICAL_MTU_BUILD logical_mtu=16384 source=wolfssl-max-record"
           echo "WBD_SOAK_BUILD_PASS source_sha=${GITHUB_SHA} upstream=source downstream=source dtls=pinned-source-build"
       - uses: actions/upload-artifact@v4
         with:
