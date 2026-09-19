@@ -2,7 +2,7 @@
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
-  "milestone": "P2",
+  "milestone": "P3",
   "product_state": "IN_PROGRESS",
   "updated_at": "2026-09-19",
   "completed": [
@@ -16,12 +16,13 @@
     "P2子任务：真实TLS/uTLS Firefox120 persona、ClientHello分类/replay与真实exporter在同association上通过Actions",
     "P2子任务：TLS内受保护admission、最小username/password认证、v1/nonce/TunnelID/双向record limits协商与prepare/detach通过Actions",
     "P2子任务：真实decoy fallback（单ClientHello分类、byte-exact raw replay、同association双向splice、recognized零fallback dial）通过Actions",
-    "P2子任务：最后bootstrap payload loss/ACK loss与首条新record整包丢失后的record no-HOL资格通过Actions"
+    "P2子任务：最后bootstrap payload loss/ACK loss与首条新record整包丢失后的record no-HOL资格通过Actions",
+    "P2：FakeTCP同流bootstrap、真实TLS/persona/exporter、受保护认证/admission、真实fallback、阶段移交、loss/no-HOL与hosted wire-format核心资格全部通过Actions"
   ],
-  "in_progress": "P2退出资格收口：35e5b0d3的bootstrap loss/ACK loss/record no-HOL测试已通过Actions；当前补hosted wire-format资格，把真实TLS/admission双向Segment通过正式packet serializer转为IPv4/TCP字节，验证TLS record连续可解析、DF/checksum/MSS/options正确且受保护admission不明文泄露。该测试不冒充raw socket/Npcap实抓。",
-  "next_task": "P2：验证hosted wire-format qualification的repository-contract、Windows/Linux unit/build与Linux race；通过后写最终P2 ACCEPTANCE覆盖矩阵，区分ACTIONS_PASS核心资格与DEFERRED到P5/P7的真实raw/Npcap抓包/平台I/O，再决定是否切入P3。",
-  "latest_log": "docs/devlog/20260919-214500-p2-hosted-wire-format-qualification.md",
-  "last_tested_source_sha": "35e5b0d3e81a4295ae283322094aeb580e848d67",
+  "in_progress": "P3启动：按MODULE_MAP提取LINK/FEC/MTU和必要session核心。第一原子任务只提取old/internal/linkdata的数据报分片/重组与wire约束，先建立单数据报完整性、乱序分片、重复分片、过期/有界状态测试；暂不接FEC和平台I/O。",
+  "next_task": "P3：定向读取old/internal/linkdata及直接tests/imports，提取单数据报LINK fragmentation/reassembly最小闭包；固定wire字段、PacketID/fragment identity、最大分片/长度边界、乱序与重复行为、超时退役。通过Actions后再接old/internal/fec systematic fast-path，不在同提交混做MTU/FEC调参。",
+  "latest_log": "docs/devlog/20260919-215500-p2-actions-pass-p3-handoff.md",
+  "last_tested_source_sha": "f3df77e8b9e3170e1d9c52a501985a5b384e0fba",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -155,17 +156,22 @@
       "scope": "P2-transition-loss-record-nohol",
       "status": "PASS",
       "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build、race、既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。新增同association最后bootstrap payload loss重传、ACK loss不重复交付、首条新record整包丢失后第二条RouteRecord并以PN=1立即open测试均进入unit/race范围。"
+    },
+    {
+      "source_sha": "f3df77e8b9e3170e1d9c52a501985a5b384e0fba",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35446331156",
+      "scope": "P2-hosted-wire-format",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build/race、既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。真实TLS/admission双向Segment经正式MarshalSegment后逐包验证IPv4/TCP checksum、DF、MSS/chunk、无数据段自定义TCP options；按Seq重组后TLS records连续可解析，protected admission magic/凭据/TunnelID不以明文出现。此证据是hosted wire serialization，不替代raw/Npcap实抓。"
     }
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "本次hosted wire-format qualification尚待Actions验证",
-    "真实raw socket/Npcap抓包与capture-loss统计尚未实现；hosted Segment->packet序列化测试不能替代P5/P7真实抓包",
+    "真实raw socket/Npcap抓包与capture-loss统计未实现；hosted wire serialization资格不替代P5 fullstack capture或P7物理验收",
     "平台raw packet IO尚未从old提取；当前association仍以SegmentEmitter作为I/O边界",
-    "ticket/lease/installation ID/CLI未迁移，属于后续产品层",
-    "steady-state完整Receiver/SACK/RACK/FEC数据面尚未迁移，属于P3",
+    "ticket/lease/installation ID/CLI尚未迁移，属于后续P4产品层",
+    "P3 LINK/FEC/MTU/session数据面尚未实现",
     "尚无可运行client/server完整网络产品入口",
-    "P2完整资格将在hosted wire-format结果后最终判定",
     "物理机验收留到P7"
   ],
   "required_read_set": [
