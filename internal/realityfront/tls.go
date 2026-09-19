@@ -70,6 +70,19 @@ func newFirefox120Client(conn net.Conn, cfg ClientConfig) (*utls.UConn, error) {
 	copy(random[:], hello.Random)
 	marker := markerFor(cfg.RouteKey, cfg.ServerName, random)
 	hello.SessionId = append([]byte(nil), marker[:]...)
+
+	// HelloFirefox_120 intentionally includes the renegotiation_info extension.
+	// In uTLS v1.6.5 that extension also mutates Config.Renegotiation to
+	// RenegotiateOnceAsClient during ApplyConfig, which disables RFC 5705/8446
+	// exporters even on a TLS 1.3 connection. Keep the extension (and therefore
+	// the Firefox wire persona) but make its internal acceptance policy Never.
+	// uTLS documents that RenegotiationInfoExtension is still serialized when
+	// this field is RenegotiateNever.
+	for _, ext := range uconn.Extensions {
+		if reneg, ok := ext.(*utls.RenegotiationInfoExtension); ok {
+			reneg.Renegotiation = utls.RenegotiateNever
+		}
+	}
 	if err := uconn.BuildHandshakeState(); err != nil {
 		return nil, err
 	}
