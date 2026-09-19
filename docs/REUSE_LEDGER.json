@@ -1,5 +1,18 @@
 {
   "source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
-  "entries": [],
-  "note": "P0 只建立归档和规范，尚未提取任何产品代码。每次迁移追加 source/destination/behavior_changes/tests。"
+  "entries": [
+    {
+      "source": "old/internal/faketcp/bootstrap_stream.go",
+      "destination": "internal/faketcp/bootstrap_stream.go",
+      "behavior_changes": "Preserve bounded ordered bootstrap buffering, ACK-gated chunked writes, deadlines, close semantics, and synchronous bootstrap payload tagging. Comments are updated for the TLS-like dataplane; no DTLS runtime dependency is carried forward. Sender/RTO integration is intentionally deferred to the next ARQ extraction task.",
+      "tests": "internal/faketcp/bootstrap_stream_test.go covers reordering, per-chunk ACK gating, deadlines, chunk/byte bounds, uint32 sequence wrap, marker scope, and close/EOF."
+    },
+    {
+      "source": "old/internal/faketcp/arq.go",
+      "destination": "internal/faketcp/sequence.go",
+      "behavior_changes": "Extract only the wrap-aware seqLT helper required by BootstrapStream. Sender, Receiver, SACK/RACK, repair pressure, and DTLS-era comments are not migrated in this atomic task.",
+      "tests": "internal/faketcp/bootstrap_stream_test.go exercises sequence wrap through BootstrapStream."
+    }
+  ],
+  "note": "P2 has started with a minimal bootstrap-only extraction. bootstrap_retransmit_test.go and the post-bootstrap Receiver assertion were inspected but are deferred because they directly require the Sender/Receiver ARQ core; the archive remains read-only."
 }
