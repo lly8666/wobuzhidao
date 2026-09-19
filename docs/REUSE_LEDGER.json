@@ -4,15 +4,21 @@
     {
       "source": "old/internal/faketcp/bootstrap_stream.go",
       "destination": "internal/faketcp/bootstrap_stream.go",
-      "behavior_changes": "Preserve bounded ordered bootstrap buffering, ACK-gated chunked writes, deadlines, close semantics, and synchronous bootstrap payload tagging. Comments are updated for the TLS-like dataplane; no DTLS runtime dependency is carried forward. Sender/RTO integration is intentionally deferred to the next ARQ extraction task.",
+      "behavior_changes": "Preserve bounded ordered bootstrap buffering, ACK-gated chunked writes, deadlines, close semantics, and synchronous bootstrap payload tagging. Comments are updated for the TLS-like dataplane; no DTLS runtime dependency is carried forward.",
       "tests": "internal/faketcp/bootstrap_stream_test.go covers reordering, per-chunk ACK gating, deadlines, chunk/byte bounds, uint32 sequence wrap, marker scope, and close/EOF."
     },
     {
       "source": "old/internal/faketcp/arq.go",
       "destination": "internal/faketcp/sequence.go",
-      "behavior_changes": "Extract only the wrap-aware seqLT helper required by BootstrapStream. Sender, Receiver, SACK/RACK, repair pressure, and DTLS-era comments are not migrated in this atomic task.",
-      "tests": "internal/faketcp/bootstrap_stream_test.go exercises sequence wrap through BootstrapStream."
+      "behavior_changes": "Extract wrap-aware seqLT/seqLE only. No Receiver, SACK/RACK, repair pressure, or steady-state delivery policy is migrated here.",
+      "tests": "bootstrap and transition tests exercise comparisons across uint32 wrap."
+    },
+    {
+      "source": "old/internal/faketcp/arq.go + old/internal/faketcp/bootstrap_retransmit_test.go",
+      "destination": "internal/faketcp/bootstrap_sender.go",
+      "behavior_changes": "Extract only copied Pending payload ownership, cumulative ACK release, ACK waiting, oldest-payload RTO retransmit, bootstrap 2s retransmit ceiling, and the invariant that bootstrap retries do not back off the shared RTO. Steady-state SACK/RACK/repair-budget/partial-reliability logic is intentionally not migrated in this task.",
+      "tests": "internal/faketcp/bootstrap_sender_test.go covers the archived bootstrap ceiling invariant, later ordinary RTO backoff, cumulative ACK wait/deadline, retransmit Seq/payload identity, and uint32 wrap."
     }
   ],
-  "note": "P2 has started with a minimal bootstrap-only extraction. bootstrap_retransmit_test.go and the post-bootstrap Receiver assertion were inspected but are deferred because they directly require the Sender/Receiver ARQ core; the archive remains read-only."
+  "note": "P2 now has the temporary bootstrap stream plus the minimum sender behavior required to ACK-gate it. internal/faketcp/transition.go is new code implementing DEVELOPMENT_PLAN section 3 ownership boundaries; it is not copied from old. The archive remains read-only and steady-state ARQ/FEC remain deferred."
 }
