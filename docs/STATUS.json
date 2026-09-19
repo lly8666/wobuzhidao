@@ -23,10 +23,10 @@
     "P3子任务：FEC off + 20:4/8/10/12/16/20 live v1全固定挡位、systematic first-arrival、3秒绝对恢复期限、bounded retirement与LINK接线通过Actions",
     "P3子任务：统一MTU/预算（connection/local packet MTU、actual IPv4/TCP headers、peer MSS、record limit、TLS-like/FEC/LINK开销）通过Actions"
   ],
-  "in_progress": "P2 faketcp建连/生命周期/bootstrap窗口已绑定3f8e921 Actions PASS；本提交收口recognized WBD本地TLS策略：TLS1.3、无ALPN、真实stdlib ticket生成但显式拒绝恢复/0-RTT，并在admission成功detach后移除旧TLS writer。普通fallback真实kernel TLS/HTTP/pcap硬门仍未执行。P3成果保留。",
-  "next_task": "本TLS策略提交Actions通过后，提取最小Linux raw FakeTCP I/O测试适配：普通内核TCP+crypto/tls客户端访问127/8受控decoy，信任测试CA验证证书，完整HTTP响应/正常FIN关闭；Actions用tcpdump连续pcap并检查capture loss、同流Seq/ACK、MSS/window/checksum、重传同字节、无RST/分片。",
-  "latest_log": "docs/devlog/20260920-014000-p2-tls-ticket-ownership.md",
-  "last_tested_source_sha": "3f8e921a59d987172b58302eb71ba5d2418bc752",
+  "in_progress": "P2 faketcp生命周期/窗口与recognized TLS ticket/ALPN/writer策略均已Actions PASS。本提交增加最小Linux raw IPv4/TCP适配和独立p2-kernel-fallback Actions job：普通内核TCP+crypto/tls客户端经FakeTCP真实loopback入口访问受控decoy，测试CA证书验证、完整HTTP、TLS/FIN关闭，并连续pcap/0 capture-loss/Seq-ACK/checksum/MSS-window/无RST分片/同Seq重传字节一致。当前新网络门待Actions。P3成果保留。",
+  "next_task": "以本提交SOURCE_SHA运行新增p2-kernel-fallback及既有Linux/Windows unit/build/race/fuzz；若真实网络pcap门PASS，复核artifact与SOURCE_SHA后更新唯一STATUS关闭P2并明确剩余目标网站指纹差异/P3交接；若FAIL按pcap或raw adapter原始证据修复，不降低门槛。",
+  "latest_log": "docs/devlog/20260920-015500-p2-kernel-fallback-pcap.md",
+  "last_tested_source_sha": "b71b57502db65b221037e803935058f27423c703",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -230,13 +230,20 @@
       "scope": "P2-peer-window-short-segment",
       "status": "PASS",
       "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build/race、既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。新增scaled peer小窗口512-byte短段、不越窗续发及本端256KiB实际容量窗口通告测试均通过。"
+    },
+    {
+      "source_sha": "b71b57502db65b221037e803935058f27423c703",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35458197765",
+      "scope": "P2-tls-ticket-alpn-ownership",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build/race、tlsrecord fuzz/reference全部PASS。recognized WBD TLS1.3策略测试确认无ALPN、真实stdlib单ticket生成、显式拒绝resumption，admission成功detach后client/server返回结构不再保留旧TLS writer。"
     }
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
     "已识别WBD连接仍由本地Go TLS server完成握手；当前只证明真实TLS与Firefox120 ClientHello/persona，不证明服务端ALPN/扩展/握手长度与分段/会话恢复与指定借用网站一致",
-    "真实raw socket/Npcap抓包、普通内核TCP浏览器访问与capture-loss统计尚未实现；hosted wire serialization不替代P5/P7实抓",
-    "平台raw packet IO尚未从old提取；当前association仍以SegmentEmitter作为I/O边界",
+    "Linux hosted raw-loopback普通内核TCP/TLS fallback与pcap适配已实现待Actions；Windows物理Npcap仍留P7，hosted loopback不等于物理网卡资格",
+    "仅提取P2所需Linux最小RawIPv4Endpoint用于hosted真实网络资格；完整Windows/Npcap、TUN和产品平台I/O仍属后续P4/P7",
     "ticket/lease/installation ID/CLI尚未迁移，属于后续P4产品层",
     "P3 LINK fragmentation/reassembly、FEC off + 20:4/8/10/12/16/20 live v1 全挡位、统一MTU/预算均已由 hosted Actions 通过；必要 session/owner 串接仍未实现",
     "尚无可运行client/server完整网络产品入口",
@@ -253,7 +260,7 @@
     "docs/ACCEPTANCE.md"
   ],
   "workstreams": {
-    "P2": "REOPENED: faketcp生命周期/窗口Actions PASS；recognized TLS ticket/ALPN/writer策略待Actions；真实网络资格OPEN",
+    "P2": "REOPENED: faketcp+TLS策略Actions PASS；kernel TCP/TLS HTTP/pcap资格实现待Actions",
     "P3": "IN_PROGRESS:保留LINK/FEC/MTU已测SHA；session/owner与可选padding待实现",
     "P4": "PLANNED:既有lane复用、可选padding预算/默认off",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
