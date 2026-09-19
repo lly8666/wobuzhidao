@@ -14,10 +14,10 @@
     "P2子任务：bootstrap Sender/Pending重传与ACK wait、StageTransition prepare/detach边界通过Actions",
     "P2子任务：SYN/packet/persona/ServerAssociation最小闭包与同association bootstrap/transition接线通过Actions"
   ],
-  "in_progress": "P2：realityfront真实TLS/uTLS/exporter代码已提交；88c3efa6的Actions在go list阶段因x/text间接版本不满足MVS而FAIL，已将x/text从v0.14.0修正为v0.25.0并等待新SHA验证。",
-  "next_task": "P2：验证module metadata修复后的repository-contract、Windows/Linux unit/build与Linux race；通过后提取受保护admission参数(record_version=1、incarnation nonce、TunnelID、双向record limits)及最小认证闭包，在TLS内交换并用协商参数驱动prepare/detach；仍不接lease/steady-state FEC。",
-  "latest_log": "docs/devlog/20260919-190800-p2-utls-module-fix.md",
-  "last_tested_source_sha": "88c3efa6df92f6af24aef9fbede36befdc477fc9",
+  "in_progress": "P2：realityfront真实TLS/uTLS/exporter代码已提交；88c3efa6先因x/text MVS元数据FAIL，f176d687随后修正Firefox persona/exporter保持但因缺少STATUS+devlog被repository-contract拦截。当前仅补证据文档并重跑完整Actions，不改产品代码。",
+  "next_task": "P2：验证文档修复提交的repository-contract、Windows/Linux unit/build与Linux race；通过后提取受保护admission参数(record_version=1、incarnation nonce、TunnelID、双向record limits)及最小认证闭包，在TLS内交换并用协商参数驱动prepare/detach；仍不接lease/steady-state FEC。",
+  "latest_log": "docs/devlog/20260919-200200-p2-exporter-contract-fix.md",
+  "last_tested_source_sha": "f176d687cb33036b7bba5a7e31e46fc800b77d51",
   "actions": [
     {"source_sha": "3335b13a913cbd4b1adc689d75605b159280afac", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35433878751", "scope": "repository-foundation-only", "status": "PASS", "note": "repository-contract通过；active-go-tests按尚无产品module明确SKIPPED，不是产品资格。"},
     {"source_sha": "de284220bef3880ef126a67e3cb7ef43e02a98fe", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434610338", "scope": "P1-root-go-and-tlsrecord", "status": "FAIL", "note": "repository-contract PASS；Ubuntu active-go-tests在go list阶段报告go.mod需要tidy，race/fuzz/reference未运行。"},
@@ -27,11 +27,12 @@
     {"source_sha": "cb6000400ce8fa5c90af68a8ee4910e8ab5fbbc4", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35437027533", "scope": "P2-bootstrap-sender-transition", "status": "FAIL", "note": "repository-contract在Go jobs前FAIL：REUSE_LEDGER source误写为两个路径的说明字符串。"},
     {"source_sha": "525175a19165d392b825a96e95594b0507aa2878", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35437066295", "scope": "P2-bootstrap-sender-transition", "status": "PASS", "note": "repository-contract、Windows/Linux unit/build、Linux race、fuzz/reference全部PASS。"},
     {"source_sha": "d1a2501edf772b999cf20ded707ae36b31603740", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35438696722", "scope": "P2-faketcp-association-bootstrap", "status": "PASS", "note": "repository-contract、Windows/Linux unit/build、Linux race、fuzz/reference全部PASS。"},
-    {"source_sha": "88c3efa6df92f6af24aef9fbede36befdc477fc9", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35439009012", "scope": "P2-realityfront-exporter", "status": "FAIL", "note": "repository-contract PASS；Windows/Linux均在go list ./...失败，日志明确要求go mod tidy。根因是go.mod显式x/text v0.14.0低于x/crypto v0.38.0要求的v0.25.0；产品unit/race未运行。"}
+    {"source_sha": "88c3efa6df92f6af24aef9fbede36befdc477fc9", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35439009012", "scope": "P2-realityfront-exporter", "status": "FAIL", "note": "repository-contract PASS；Windows/Linux均在go list ./...失败，日志明确要求go mod tidy。根因是go.mod显式x/text v0.14.0低于x/crypto v0.38.0要求的v0.25.0；产品unit/race未运行。"},
+    {"source_sha": "f176d687cb33036b7bba5a7e31e46fc800b77d51", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35440654089", "scope": "P2-realityfront-exporter", "status": "FAIL", "note": "repository-contract在Go jobs前FAIL：Each change needs STATUS update / Each change needs a new development log。该SHA修正了Firefox persona/exporter保持，但缺少配套状态文档；非runner问题，Go unit/race未运行。"}
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "realityfront/uTLS/exporter产品代码尚未获得unit/race Actions结果，因为首次run被module metadata挡住",
+    "realityfront/uTLS/exporter产品代码尚未获得unit/race Actions结果；最近两个run分别被module metadata和repository contract挡住",
     "认证、ticket、record_version/nonce/limits受保护admission尚未接入",
     "unrecognized ClientHello目前只保留raw用于未来fallback，尚未实现真实decoy splice",
     "association仍使用SegmentEmitter测试边界，尚未接Linux raw socket/Npcap",
