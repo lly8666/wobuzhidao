@@ -146,5 +146,5 @@
       "tests": "internal/linkdata/fec_path_test.go fixes the exact public profile list; internal/fec/fec_profiles_test.go rejects non-live parity values."
     }
   ],
-  "note": "P2 audit closure remains qualified at SOURCE_SHA 079a11a51a8afb7e977f5140d8cdcd21db1c81c5. P3 LINK fragmentation/reassembly remains qualified at SOURCE_SHA 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a. Per the user's updated P3 requirement, the active tree now implements the archived live FEC v1 fixed matrix in one atom: off plus 20:4/8/10/12/16/20, with systematic first-arrival, bounded decoder/retirement, 3-second absolute recovery expiry and LINK integration. This implementation is NOT_RUN until its exact new SOURCE_SHA completes Actions; unified MTU and session/owner integration remain deferred."
+  "note": "P2 audit closure remains qualified at SOURCE_SHA 079a11a51a8afb7e977f5140d8cdcd21db1c81c5. P3 LINK fragmentation/reassembly remains qualified at SOURCE_SHA 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a. The user-requested one-shot extraction of the archived live FEC v1 fixed matrix (off plus 20:4/8/10/12/16/20), systematic first-arrival, bounded decoder/retirement, 3-second absolute recovery expiry and LINK integration is qualified at SOURCE_SHA e8e38d09b98b1898b41ad30335546989bed4f0a5 by Actions run 35454264241. Unified MTU and session/owner integration remain deferred."
 }
