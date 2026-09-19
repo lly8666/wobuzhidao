@@ -2,7 +2,7 @@
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
-  "milestone": "P2",
+  "milestone": "P3",
   "product_state": "IN_PROGRESS",
   "updated_at": "2026-09-19",
   "completed": [
@@ -16,12 +16,14 @@
     "P2子任务：真实TLS/uTLS Firefox120 persona、ClientHello分类/replay与真实exporter在同association上通过Actions",
     "P2子任务：TLS内受保护admission、最小username/password认证、v1/nonce/TunnelID/双向record limits协商与prepare/detach通过Actions",
     "P2子任务：真实decoy fallback（单ClientHello分类、byte-exact raw replay、同association双向splice、recognized零fallback dial）通过Actions",
-    "P2子任务：最后bootstrap payload loss/ACK loss与首条新record整包丢失后的record no-HOL资格通过Actions"
+    "P2子任务：最后bootstrap payload loss/ACK loss与首条新record整包丢失后的record no-HOL资格通过Actions",
+    "P2审计返工：普通合法SYN入口、peer MSS/WS/SACK协商与绝对候选建连期限通过Actions",
+    "P2：hosted核心建连/fallback/切换/no-HOL资格完成；目标网站完整服务端握手指纹与真实raw/Npcap抓包明确留待后续验收"
   ],
-  "in_progress": "P2审计返工：58999418 repository-contract PASS，但Windows/Linux unit在进入新运行期测试前FAIL：旧association测试仍要求非WBD固定SYN指纹被拒绝，与审计修复目标冲突；audit_closure_test另有未使用变量编译错误。当前只修测试契约/编译，不改产品实现。",
-  "next_task": "P2审计返工：重新验证普通SYN兼容和绝对候选建连期限；若unit进入运行期后再失败，按具体SYN/fallback/timeout/cancel/final-ACK断言修产品逻辑。全套Actions PASS后恢复P3。",
-  "latest_log": "docs/devlog/20260919-225300-p2-audit-test-contract-fix.md",
-  "last_tested_source_sha": "589994182bc6216f6468475a085ec8d9ed165bfc",
+  "in_progress": "P3启动：P2审计返工已通过Actions。按MODULE_MAP提取LINK/FEC/MTU和必要session核心；第一原子任务仍只提取old/internal/linkdata的数据报分片/重组与wire约束，暂不接FEC和平台I/O。",
+  "next_task": "P3：定向读取old/internal/linkdata及直接tests/imports，提取单数据报LINK fragmentation/reassembly最小闭包；固定wire字段、PacketID/fragment identity、最大分片/长度边界、乱序与重复行为、超时退役。通过Actions后再接old/internal/fec systematic fast-path，不在同提交混做MTU/FEC调参。",
+  "latest_log": "docs/devlog/20260919-231800-p2-audit-closure-pass.md",
+  "last_tested_source_sha": "079a11a51a8afb7e977f5140d8cdcd21db1c81c5",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -169,16 +171,22 @@
       "scope": "P2-audit-syn-deadline",
       "status": "FAIL",
       "note": "repository-contract PASS；Windows/Linux unit均FAIL。internal/faketcp旧测试TestServerAssociationRejectsNonWBDAndCrossFlowHandshake仍把MSS=1460的合法普通SYN期望为ErrBadServerSYN，与本次审计修复目标冲突；internal/realityfront/audit_closure_test.go另有未使用client变量导致编译失败。race/fuzz/reference未运行，尚无新运行期语义结论。"
+    },
+    {
+      "source_sha": "079a11a51a8afb7e977f5140d8cdcd21db1c81c5",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35451109678",
+      "scope": "P2-audit-syn-deadline-final",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。新增普通合法SYN不同MSS/WS/SACK/无选项进入ClientHello/fallback、peer MSS限制bootstrap、协商SYN-ACK、TLS后沉默、半认证、context cancel、最终admission回复ACK不到、成功handoff清deadline等审计测试均进入unit/race范围。"
     }
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "本次审计返工代码尚未获得Actions结果，P2暂不重新盖章完成",
-    "已识别WBD连接由本地Go TLS server完成握手；当前只证明真实TLS与Firefox120 ClientHello/persona，不证明服务端ALPN/扩展/握手分段/会话恢复与指定借用网站一致",
-    "真实raw socket/Npcap抓包与普通内核TCP浏览器访问尚未实现；hosted wire serialization不替代P5/P7实抓",
+    "已识别WBD连接仍由本地Go TLS server完成握手；当前只证明真实TLS与Firefox120 ClientHello/persona，不证明服务端ALPN/扩展/握手长度与分段/会话恢复与指定借用网站一致",
+    "真实raw socket/Npcap抓包、普通内核TCP浏览器访问与capture-loss统计尚未实现；hosted wire serialization不替代P5/P7实抓",
     "平台raw packet IO尚未从old提取；当前association仍以SegmentEmitter作为I/O边界",
     "ticket/lease/installation ID/CLI尚未迁移，属于后续P4产品层",
-    "P3 LINK/FEC/MTU/session数据面尚未实现，本轮审计返工通过前暂停P3实现",
+    "P3 LINK/FEC/MTU/session数据面尚未实现",
     "尚无可运行client/server完整网络产品入口",
     "物理机验收留到P7"
   ],

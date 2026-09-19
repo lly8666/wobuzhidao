@@ -2,7 +2,7 @@
 
 TCP-like 外层、TLS-like 独立加密记录、稳态无跨包 HOL 的弱网隧道。
 
-**当前状态：P2 核心链路已经过 Actions，但审计发现“普通合法 SYN 到 fallback”入口与“识别→TLS→admission→移交”的绝对建连期限仍需收口，因此暂不进入 P3 实现。** P1 no-HOL 语义保持不动。真实 raw/Npcap、普通浏览器实抓、完整 client/server 产品入口与 P3 数据面仍未完成；hosted wire 测试不能等同物理抓包或“指定网站完整握手指纹一致”。现有代码在 `old/` 仅作为定向复用素材；此分支尚不能当可运行发布包。
+**当前状态：P2 hosted 核心链路及审计返工已通过 GitHub Actions，项目重新进入 P3。** 普通合法 SYN 已可到达 ClientHello/fallback，peer MSS/WS/SACK 正确参与 bootstrap/SYN-ACK，候选绝对期限覆盖识别→TLS→admission→最终回复 ACK→detach；P1 no-HOL 语义保持不动。真实 raw/Npcap、普通浏览器实抓、完整 client/server 产品入口与 P3 数据面仍未完成；hosted wire 测试不能等同物理抓包，也不能宣称“指定网站完整服务端握手指纹一致”。现有代码在 `old/` 仅作为定向复用素材；此分支尚不能当可运行发布包。
 
 新 agent 从 [AGENTS.md](AGENTS.md) 开始。唯一进度入口为 [docs/STATUS.json](docs/STATUS.json)。
 
