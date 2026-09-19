@@ -223,6 +223,8 @@ type associationPeerConn struct {
 	recvSeq      uint32
 	readBuf      bytes.Buffer
 	closed       bool
+	readEOF      bool
+	writeClosed  bool
 	readDeadline time.Time
 	writeDeadline time.Time
 	onServerPayload func(faketcp.Segment)
@@ -285,7 +287,7 @@ func (c *associationPeerConn) Read(p []byte) (int, error) {
 			c.mu.Unlock()
 			return n, err
 		}
-		if c.closed {
+		if c.closed || c.readEOF {
 			c.mu.Unlock()
 			return 0, io.EOF
 		}
@@ -331,7 +333,7 @@ func (c *associationPeerConn) Read(p []byte) (int, error) {
 		if !ok {
 			return 0, io.EOF
 		}
-		if len(seg.Payload) == 0 {
+		if len(seg.Payload) == 0 && seg.Flags&faketcp.FlagFIN == 0 {
 			continue
 		}
 
@@ -341,13 +343,19 @@ func (c *associationPeerConn) Read(p []byte) (int, error) {
 			return 0, errors.New("test peer: unexpected server sequence")
 		}
 		c.recvSeq += uint32(len(seg.Payload))
+		if len(seg.Payload) != 0 {
+			_, _ = c.readBuf.Write(seg.Payload)
+		}
+		if seg.Flags&faketcp.FlagFIN != 0 {
+			c.recvSeq++
+			c.readEOF = true
+		}
 		ack := c.recvSeq
 		seq := c.sendSeq
-		_, _ = c.readBuf.Write(seg.Payload)
 		hook := c.onServerPayload
 		c.mu.Unlock()
 
-		if hook != nil {
+		if hook != nil && len(seg.Payload) != 0 {
 			hook(seg)
 		}
 
@@ -356,7 +364,8 @@ func (c *associationPeerConn) Read(p []byte) (int, error) {
 		ackSeg.Seq = seq
 		ackSeg.Ack = ack
 		ackSeg.Payload = nil
-		if _, err := c.assoc.HandleSegment(ackSeg, time.Now()); err != nil {
+		if _, err := c.assoc.HandleSegment(ackSeg, time.Now()); err != nil &&
+			c.assoc.State() != faketcp.ServerAssociationClosed {
 			return 0, err
 		}
 	}
@@ -383,7 +392,7 @@ func (c *associationPeerConn) writePayload(p []byte, requireAckAdvance bool) (in
 		}
 
 		c.mu.Lock()
-		if c.closed {
+		if c.closed || c.writeClosed {
 			c.mu.Unlock()
 			return written, net.ErrClosed
 		}
@@ -431,7 +440,39 @@ func (c *associationPeerConn) NextSendSeq() uint32 {
 	return c.sendSeq
 }
 
+func (c *associationPeerConn) CloseWrite() error {
+	c.mu.Lock()
+	if c.closed {
+		c.mu.Unlock()
+		return net.ErrClosed
+	}
+	if c.writeClosed {
+		c.mu.Unlock()
+		return nil
+	}
+	seq := c.sendSeq
+	ack := c.recvSeq
+	c.writeClosed = true
+	c.sendSeq++
+	c.mu.Unlock()
+
+	seg := c.base
+	seg.Flags = faketcp.FlagACK | faketcp.FlagFIN
+	seg.Seq = seq
+	seg.Ack = ack
+	seg.Payload = nil
+	res, err := c.assoc.HandleSegment(seg, time.Now())
+	if err != nil {
+		return err
+	}
+	if !res.AckNeeded || res.Ack != seq+1 {
+		return errors.New("test peer: FIN cumulative ACK did not advance")
+	}
+	return nil
+}
+
 func (c *associationPeerConn) Close() error {
+	_ = c.CloseWrite()
 	c.mu.Lock()
 	c.closed = true
 	c.mu.Unlock()

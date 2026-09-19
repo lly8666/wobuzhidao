@@ -128,6 +128,12 @@ func TestUnrecognizedHelloFallsBackOnSameAssociationWithExactReplay(t *testing.T
 		t.Fatalf("fallback TLS shutdown: n=%d err=%v want EOF", n, err)
 	}
 	_ = clientTLS.SetReadDeadline(time.Time{})
+	// The application has consumed the decoy's TLS close and now half-closes its
+	// TCP send side. This lets the opposite fallback copy drain without relying
+	// on the old full-close workaround.
+	if err := peer.CloseWrite(); err != nil {
+		t.Fatal(err)
+	}
 
 	if err := <-targetDone; err != nil && !errors.Is(err, net.ErrClosed) && !errors.Is(err, io.ErrClosedPipe) {
 		t.Fatal(err)

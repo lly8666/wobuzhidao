@@ -545,7 +545,11 @@ func TestDuplicateSYNKeepsOriginalSYNACKAndISN(t *testing.T) {
 			t.Fatalf("retry %d due=%v err=%v", i, due, err)
 		}
 		retry := <-emitted
-		if retry != first {
+		if retry.Seq != first.Seq || retry.Ack != first.Ack ||
+			retry.Flags != first.Flags || retry.Window != first.Window ||
+			retry.SrcIP != first.SrcIP || retry.DstIP != first.DstIP ||
+			retry.SrcPort != first.SrcPort || retry.DstPort != first.DstPort ||
+			!bytes.Equal(retry.Payload, first.Payload) {
 			t.Fatalf("retry %d changed SYN-ACK: %#v", i, retry)
 		}
 	}
