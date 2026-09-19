@@ -45,10 +45,15 @@ func TestOversizedGameRotationReleaseContract(t *testing.T) {
 	}{
 		{"standard rotation", soakWorkflow},
 		{"oversized rotation", workflow},
-		{"transport quality", transport},
 	} {
 		requireContains(t, body.text, "WOLFSSL_MAX_MTU=16384", body.name+" DTLS logical MTU build")
 		requireContains(t, body.text, "WBD_DTLS_LOGICAL_MTU_BUILD logical_mtu=16384 source=wolfssl-max-record", body.name+" DTLS logical MTU marker")
+	}
+	for _, want := range []string{
+		"CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128'",
+		"gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror",
+	} {
+		requireContains(t, transport, want, "frozen transport benchmark DTLS build")
 	}
 
 	for _, want := range []string{
