@@ -24,6 +24,7 @@ ROTATE_INTERVAL_SEC=${ROTATE_INTERVAL_SEC:-25}
 ROTATIONS=${ROTATIONS:-16}
 PAYLOAD_BYTES=${PAYLOAD_BYTES:-1000}
 MAX_LOSS_RATIO=${MAX_LOSS_RATIO:-0.001}
+STRICT_LOAD_QUALITY=${STRICT_LOAD_QUALITY:-1}
 
 [[ "$LANES" == 4 ]] || { echo "soak requires LANES=4" >&2; exit 2; }
 [[ "$DURATION_SEC" =~ ^[0-9]+$ && "$DURATION_SEC" -ge 500 ]] || { echo "DURATION_SEC must be >=500" >&2; exit 2; }
@@ -31,6 +32,7 @@ MAX_LOSS_RATIO=${MAX_LOSS_RATIO:-0.001}
 [[ "$ROTATIONS" =~ ^[0-9]+$ && "$ROTATIONS" -ge 1 ]] || { echo "ROTATIONS must be positive" >&2; exit 2; }
 [[ "$ROTATE_INTERVAL_SEC" =~ ^[0-9]+$ && "$ROTATE_INTERVAL_SEC" -ge 1 ]] || { echo "ROTATE_INTERVAL_SEC must be positive" >&2; exit 2; }
 [[ "$PAYLOAD_BYTES" =~ ^[0-9]+$ && "$PAYLOAD_BYTES" -ge 64 ]] || { echo "PAYLOAD_BYTES must be >=64" >&2; exit 2; }
+[[ "$STRICT_LOAD_QUALITY" == 0 || "$STRICT_LOAD_QUALITY" == 1 ]] || { echo "STRICT_LOAD_QUALITY must be 0 or 1" >&2; exit 2; }
 
 drop_pid() {
   local dead=$1 p
@@ -240,7 +242,7 @@ retire_lane() {
 cat >"$LOG_DIR/load.py" <<'PY_LOAD'
 import json, select, socket, struct, sys, time
 out_path=sys.argv[1]
-duration=float(sys.argv[2]); rate_bps=int(sys.argv[3]); payload_bytes=int(sys.argv[4]); max_loss_ratio=float(sys.argv[5])
+duration=float(sys.argv[2]); rate_bps=int(sys.argv[3]); payload_bytes=int(sys.argv[4]); max_loss_ratio=float(sys.argv[5]); strict_load_quality=(sys.argv[6]=='1')
 pps=rate_bps/(payload_bytes*8.0)
 interval=1.0/pps
 s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
@@ -279,18 +281,19 @@ summary={
   'down_payload_bps':recv*payload_bytes*8/elapsed,
   'loss_ratio':(lost/sent if sent else 1.0),
   'max_loss_ratio':max_loss_ratio,
+  'strict_load_quality':strict_load_quality,
 }
 open(out_path,'w').write(json.dumps(summary,sort_keys=True,indent=2)+'\n')
 print('WBD_SOAK_LOAD_RESULT '+json.dumps(summary,sort_keys=True))
 if bad != 0 or dup != 0: raise SystemExit(10)
 if sent < int(duration*pps*0.995): raise SystemExit(11)
 if not (rate_bps*0.995 <= summary['up_payload_bps'] <= rate_bps*1.005): raise SystemExit(12)
-if summary['loss_ratio'] > max_loss_ratio: raise SystemExit(13)
-if summary['down_payload_bps'] < rate_bps*0.995: raise SystemExit(14)
+if strict_load_quality and summary['loss_ratio'] > max_loss_ratio: raise SystemExit(13)
+if strict_load_quality and summary['down_payload_bps'] < rate_bps*0.995: raise SystemExit(14)
 PY_LOAD
 
 : >"$LOG_DIR/rotation.log"
-sudo ip netns exec "$C" python3 "$LOG_DIR/load.py" "$LOG_DIR/load-result.json" "$DURATION_SEC" "$RATE_BPS" "$PAYLOAD_BYTES" "$MAX_LOSS_RATIO" >"$LOG_DIR/load.log" 2>&1 &
+sudo ip netns exec "$C" python3 "$LOG_DIR/load.py" "$LOG_DIR/load-result.json" "$DURATION_SEC" "$RATE_BPS" "$PAYLOAD_BYTES" "$MAX_LOSS_RATIO" "$STRICT_LOAD_QUALITY" >"$LOG_DIR/load.log" 2>&1 &
 LOAD_PID=$!; PIDS+=("$LOAD_PID")
 load_start=$(date +%s)
 for _ in $(seq 1 400); do

@@ -144,10 +144,10 @@ jobs:
           DURATION_SEC: '500'
           RATE_BPS: '1000000'
           PAYLOAD_BYTES: '1000'
-          # Individual replicas keep the existing 99.5% downstream goodput
-          # floor. The aggregate job preserves the stricter 0.1% loss budget
-          # across all five stochastic replicas of each FEC mode.
-          MAX_LOSS_RATIO: '0.005'
+          # This workflow owns replacement lifecycle correctness under load.
+          # Exact-SHA transport/FEC loss and goodput quality is owned by the
+          # transport-20x20-matrix workflow; keep loss here as observability.
+          STRICT_LOAD_QUALITY: '0'
           ROTATE_INTERVAL_SEC: '25'
           ROTATIONS: '16'
           NETEM_DELAY_MS: '300'
@@ -167,6 +167,8 @@ jobs:
           assert d['requested_bps_each_direction'] == 1_000_000, d
           assert d['peer_resets'] == 16 and d['no_client_rx_expire'] == 0, d
           assert d['duplicates'] == 0 and d['bad_payload'] == 0, d
+          assert d['strict_load_quality'] is False, d
+          assert d['received_unique'] > 0, d
           print('WBD_SOAK_QUALIFICATION_PASS '+json.dumps(d,sort_keys=True))
           PY
       - name: Diagnose soak failure
@@ -210,7 +212,7 @@ jobs:
         with:
           pattern: game-lane-rotation-soak-500s-1mbps-300ms-loss20-*
           path: ${{ runner.temp }}/rotation-results
-      - name: Enforce five-replica aggregate loss budget
+      - name: Publish five-replica load observation
         run: |
           set -euo pipefail
           python3 - "${RUNNER_TEMP}/rotation-results" <<'PY'
@@ -223,7 +225,7 @@ jobs:
               assert d['rotations'] == 16 and d['peer_resets'] == 16, d
               assert d['no_client_rx_expire'] == 0, d
               assert d['duplicates'] == 0 and d['bad_payload'] == 0, d
-              assert d['loss_ratio'] <= 0.005, d
+              assert d['strict_load_quality'] is False, d
               by_fec.setdefault(d['fec'], []).append(d)
           assert set(by_fec) == {'off', '20:20'}, by_fec.keys()
           for fec, group in sorted(by_fec.items()):
@@ -231,9 +233,8 @@ jobs:
               sent = sum(d['sent'] for d in group)
               lost = sum(d['lost'] for d in group)
               ratio = lost / sent if sent else 1.0
-              assert ratio <= 0.001, (fec, lost, sent, ratio)
-              print(f"WBD_SOAK_AGGREGATE_PASS fec={fec} replicas=5 lost={lost} sent={sent} loss_ratio={ratio:.9f}")
+              print(f"WBD_SOAK_LOAD_OBSERVATION fec={fec} replicas=5 lost={lost} sent={sent} loss_ratio={ratio:.9f}")
           PY
       - name: Publish matrix marker
         run: |
-          echo "WBD_GAME_LANE_ROTATION_SOAK_MATRIX_PASS source_sha=${GITHUB_SHA} duration_sec=500 lanes=4 payload_bps_each_direction=1000000 netem_delay_ms=300 netem_loss_pct=20 replicas_per_fec=5 rotations=16 aggregate_loss_ratio_max=0.001 per_replica_goodput_floor=0.995 fec=off,20:20"
+          echo "WBD_GAME_LANE_ROTATION_SOAK_MATRIX_PASS source_sha=${GITHUB_SHA} duration_sec=500 lanes=4 payload_bps_each_direction=1000000 netem_delay_ms=300 netem_loss_pct=20 replicas_per_fec=5 rotations=16 load_quality_owner=transport-20x20-matrix fec=off,20:20"
