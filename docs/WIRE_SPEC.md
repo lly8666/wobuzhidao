@@ -93,6 +93,37 @@ fragment_payload  1..N bytes
 
 首版资源语义固定为：最多 16 个 incomplete assemblies；单 PacketID 最多 65535 个 fragments；全 reassembler 最多保存 65535 个 fragment entries 和 `16 * 65535` 字节 fragment payload；assembly 绝对 TTL 5 秒；completed/expired/evicted PacketID 最多保留 64 项、retired TTL 10 秒。fragment entry 使用按实际到达稀疏分配，声明 count=65535 本身不能触发 65535 项预分配。owner 必须能在没有新流量时主动执行 expiry，不能把退役依赖在下一包到达。
 
+### 5.2 FEC v1 wire 与全部固定挡位
+
+P3 只复用归档 live LINK 路径实际使用的 FEC v1，不启用归档中另行存在的 profile-v2 试验 wire。固定集合为：FEC off，以及 TailRS 的 20:4、20:8、20:10、20:12、20:16、20:20。K 固定为 20；R 只能取 4/8/10/12/16/20，其他几何明确拒绝。
+
+FEC 开启时，每个 LINK fragment frame 作为一个 systematic source shard；FEC 发生在 LINK 分片之后、TLS-like record 之前。FEC shard datagram 头固定 56 字节：
+
+```text
+bytes 0..1   magic="WF"
+byte  2      version=1
+byte  3      reserved=0
+bytes 4..7   BlockID u32 big endian
+byte  8      shard_index
+byte  9      data_shards=20
+byte 10      parity_shards=R
+byte 11      data_count
+bytes 12..13 shard_size u16 big endian
+bytes 14..15 flags u16 big endian
+bytes 16..55 original_lengths[20]，每项 u16 big endian
+payload       shard_size bytes
+```
+
+flags bit0 为 `streaming_systematic`。systematic source 在到达 encoder 时立即发送，不等待 20 个 source 或 flush timer；此时 `data_count=20` 是 provisional 占位，`shard_size` 等于本 source 长度，只有自己的 `original_lengths[index]` 非零。最终 parity shard 的 flags=0，并携带该 block 权威的 data_count、最大 shard_size 和 original_lengths。
+
+full block 发送 R 个 parity。partial block 有 N 个 source 时只发送 `min(N,R)` 个 parity；unused systematic slots 作为已知零 shard，因此不得恢复旧的 “N + R(固定20)” 放大行为。所有挡位使用同一 systematic 20+20 generator 的前 R 个 parity rows，20:20 的既有数学/wire 行为保持不变。
+
+BlockID 只在一个 lane/path FEC 实例内标识 generation，不从 record PN、LINK PacketID 或 TCP Seq 推导。decoder 按 association 已确定的 R 精确配置；收到不同 R、非法 header/reserved/flags、长度不一致或 active state 中同 shard identity 的 conflicting payload 时拒绝该 shard，不覆盖 first arrival。相同合法 shard 重复到达幂等。FEC state 不跨 lane 共享。
+
+heavy reconstruction state 的恢复期限从该 BlockID 第一次进入 heavy decoder state 起固定为 3 秒绝对 deadline；后续 source/parity/duplicate 进展不刷新。owner 必须在停流时仍主动执行 expiry。deadline 到期后释放 heavy parity/reconstruction payload，保留 bounded compact first-delivery 状态；之后迟到 systematic source 仍可 first-deliver 一次，但不重新开启 parity reconstruction。compact retired state 固定最多 8192 个 BlockID；full/heavy block 数量由调用方 maxBlocks 明确限制。
+
+FEC encoder 返回的内部 wire backing slot 可以复用，因此进入统一数据面前必须明确所有权。当前 LINK/FEC 适配层返回 owned immutable wire copies，保证一个大 datagram 跨越多个 20-source block 时，先前待发送 wire 不会被后续 Add 覆写。
+
 ## 6. 必须固定的测试向量
 
 提交实现时同时提交 exporter/HKDF 方向派生、PN=0/1/跨32位/接近64位上限、空或最小 payload、多条 record、位翻转、深度乱序与重传一致性向量。expected bytes 应有独立计算/审阅来源，不能用待测函数动态生成期望再声称验证。

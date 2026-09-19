@@ -85,9 +85,9 @@ seal 后的 bytes 不可变。只有准备提交的记录才分配 TCP Seq；已
 
 ## 7. FEC 与业务层
 
-复用固定档位与编码/解码实现，保留 source first-arrival 和 compact/retired 行为、绝对 3 秒恢复期限。首次测试 off 与20:20，再覆盖源代码已支持的其他固定档位；不新增自动调 FEC/动态比例方案。
+复用 live LINK 路径实际允许的完整固定集合，并在同一个 P3 原子任务一次性提取/验收：off、20:4、20:8、20:10、20:12、20:16、20:20。固定 K=20、TailRS 和既有 FEC v1 56-byte wire；不得因为归档里存在 profile-v2 试验代码就引入第二套 wire。所有 fixed profile 保留 source first-arrival、partial-block 只发送有用 parity、compact/retired 行为和绝对 3 秒恢复期限；不新增自动调 FEC、动态比例或参数 sweep。
 
-FEC 不能跨 lane 或阻止其他 block 的 source。过期扫描只处理到期项，空闲时定时器也能退役，重复包不能刷新绝对期限。
+FEC 不能跨 lane 或阻止其他 block 的 source。每个固定挡位都必须独立测试 systematic 快路、其 parity budget 内恢复、超过 budget 不伪恢复、重复 shard、header/profile mismatch 与跨 block no-HOL。过期扫描只处理到期项，空闲时定时器也能退役，任何进展/重复包都不能刷新绝对 3 秒期限。
 
 Game 1..4 逻辑 lane、物理退休余量、PacketID、replacement、DORMANT、idle/age 等按章程完整复用。统一进程不能删成“临时单 lane UDP 转发器”然后宣称产品完成。
 

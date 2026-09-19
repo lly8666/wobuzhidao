@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P3",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-19",
+  "updated_at": "2026-09-20",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -21,9 +21,9 @@
     "P2：hosted核心建连/fallback/切换/no-HOL资格完成；目标网站完整服务端握手指纹与真实raw/Npcap抓包明确留待后续验收",
     "P3子任务：LINK单数据报fragmentation/reassembly最小闭包、wire/PacketID/乱序重复/冲突语义、超时与条数/字节边界、跨数据报no-HOL通过Actions"
   ],
-  "in_progress": "P3继续：LINK fragmentation/reassembly 原子任务已由精确 SOURCE_SHA Actions 通过。下一原子任务按 MODULE_MAP 定向提取 old/internal/fec 的 systematic fast-path；先做 FEC off / 20:20 所需最小闭包，不混入统一 MTU、steady-state FakeTCP recovery 或平台 I/O。",
-  "next_task": "P3：定向读取 old/internal/fec 及其直接 tests/imports，提取 lane-local systematic fast-path 最小闭包；保持 source first-arrival 立即交付、固定 20:20、3 秒绝对恢复期限、block 之间无 HOL、重复 shard 幂等/损坏拒绝。首次只接 LINK fragment frame 的 FEC 前后接口，不顺手做 MTU 调参、FakeTCP SACK/RACK、Tunnel/Game 或平台 I/O。",
-  "latest_log": "docs/devlog/20260919-233300-p3-linkdata-actions-pass.md",
+  "in_progress": "P3 FEC全固定挡位原子任务实现完成，等待该代码提交精确 SOURCE_SHA 的 GitHub Actions；当前不得标 PASS。范围按用户最新要求一次性包含 FEC off、20:4、20:8、20:10、20:12、20:16、20:20 的 live v1 systematic fast-path、LINK前后接线、3秒绝对恢复期限与有界 retirement；未接统一MTU、steady-state FakeTCP SACK/RACK、Tunnel/Game或平台I/O。",
+  "next_task": "先取得本次 P3 FEC全固定挡位提交精确 SHA 的完整 Actions 结果；失败则读取具体 job logs，仅修 FEC/LINK 接线并保留 FAIL 证据；成功后记录 PASS，再继续 P3 统一 MTU 与必要 session/owner 接线。",
+  "latest_log": "docs/devlog/20260920-010000-p3-fec-all-profiles.md",
   "last_tested_source_sha": "310cdf95a2da601f6a6b4398ce9b8b178aa6a48a",
   "actions": [
     {
@@ -194,7 +194,7 @@
     "真实raw socket/Npcap抓包、普通内核TCP浏览器访问与capture-loss统计尚未实现；hosted wire serialization不替代P5/P7实抓",
     "平台raw packet IO尚未从old提取；当前association仍以SegmentEmitter作为I/O边界",
     "ticket/lease/installation ID/CLI尚未迁移，属于后续P4产品层",
-    "P3 LINK fragmentation/reassembly 已由 SOURCE_SHA 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a 通过 hosted Actions；FEC systematic fast-path、统一MTU、session接线仍未实现",
+    "P3 LINK fragmentation/reassembly 已由 SOURCE_SHA 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a 通过 hosted Actions；FEC off + 20:4/8/10/12/16/20 live v1 全挡位已实现但本提交尚未获得精确 SHA Actions 资格；统一MTU、session/owner接线仍未实现",
     "尚无可运行client/server完整网络产品入口",
     "物理机验收留到P7"
   ],

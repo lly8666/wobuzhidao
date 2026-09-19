@@ -11,7 +11,7 @@
 | `old/internal/logicaltunnel/` | 复用 | lease、installation、身份隔离、生命周期参数；从旧 CLI 中提取必要协调逻辑 |
 | `old/internal/gamelane/`、`old/internal/gamepath/` | 复用 | PacketID 竞速/去重、多 lane；用新 owner API 接入 |
 | `old/cmd/wbd-game-lane-client/`、`old/cmd/wbd-game-lane-server/` | 提取成熟行为 | rotation、qualification、DORMANT/wake、generation fencing、退休余量；不保留独立子进程形态 |
-| `old/internal/fec/`、`old/internal/linkdata/` | 复用算法和 wire 内容 | fixed FEC 档位、3 秒期限、systematic 快路、既有单数据报分片；不引入 record 层分片 |
+| `old/internal/fec/`、`old/internal/linkdata/` | 复用算法和 wire 内容 | 一次性提取 live v1 固定集合 off、20:4/8/10/12/16/20，保留 56-byte FEC v1 header、3 秒绝对期限、systematic 快路、bounded compact retirement 与既有单数据报分片；不迁移未进入 live policy 的 profile-v2 平行 wire，不引入 record 层分片 |
 | `old/internal/session/` | 保留所有权约束、重写接线 | 自有 payload、并发/生命周期边界不能删；移除无用 socket 适配 |
 | `old/internal/pathmtu/` | 扩展现有推导 | 以 TLS-like 确定开销替换 DTLS reserve；实际 TCP 选项与 peer MSS 纳入 |
 | `old/internal/windowsruntime/`、`old/cmd/wbd-tun/` 等平台模块 | 定向复用 | Wintun、lease 排他、路由/DNS、物理 NIC、IPv6 fail-closed、断开清理、分流；去掉 DTLS 子进程编排 |

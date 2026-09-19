@@ -84,7 +84,67 @@
       "destination": "internal/linkdata/datagram_fragment.go",
       "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Preserve WBDLFRG1 20-byte LINK fragment wire, non-zero uint32 PacketID identity, 65535-byte original datagram limit, out-of-order completion, identical-duplicate idempotence, conflicting duplicate/metadata rejection, 16 incomplete assemblies, 5s assembly TTL, 64 retired IDs and 10s retired TTL. Remove the archived dependency on internal/fec error sentinels and all Path/FEC runtime coupling. Reassembly storage is sparse instead of allocating declared fragment_count up front; add explicit buffered fragment/payload bounds and an owner-callable Expire method so idle traffic can still retire incomplete datagrams.",
       "tests": "internal/linkdata/datagram_fragment_test.go fixes exact wire fields, PacketID increment/wrap and reserved-magic escape; covers normal/out-of-order reassembly, identical duplicates, conflicting duplicates without replacing first arrival, explicit idle expiry, max fragment-count metadata without preallocation, entry/byte/assembly/retired bounds, malformed/oversize isolation, and the P3 no-HOL case where datagram A permanently misses one fragment while later complete datagram B is delivered first."
+    },
+    {
+      "source": "old/internal/fec/fec.go",
+      "destination": "internal/fec/fec.go",
+      "behavior_changes": "Preserve live FEC v1 constants, 56-byte WF header, systematic 20+20 generator/GF(256) math, and the authoritative parity byte. Export the exact archived live fixed set 20:4/8/10/12/16/20 for the new path; tighten reserved header byte 3 to zero. FEC off remains a LINK/path mode rather than an RS geometry.",
+      "tests": "internal/fec/fec_profiles_test.go fixes the exact supported matrix, rejects non-live geometries, checks byte-level streaming v1 headers for every profile, and cross-checks fast 20:20 parity against the reference codec."
+    },
+    {
+      "source": "old/internal/fec/fastcodec.go",
+      "destination": "internal/fec/fastcodec.go",
+      "behavior_changes": "Preserve the qualified fast systematic 20+20 codec and shared GF multiply table. The live v1 encoder continues to compute the same generator and transmits only the negotiated first R parity rows; no profile-v2 codec/wire is introduced.",
+      "tests": "internal/fec/fec_profiles_test.go exercises recovery for every live R and compares fast parity against the reference implementation."
+    },
+    {
+      "source": "old/internal/fec/fastblock_encoder.go",
+      "destination": "internal/fec/fastblock_encoder.go",
+      "behavior_changes": "Preserve immediate systematic source emission, immutable BlockID/shard identity, full-block R parity, and partial-block min(dataCount,R) parity so short blocks do not expand to N+20. Returned low-level slices retain the archived borrowed-slot contract; internal/linkdata/fec_path.go adds the owned-copy product boundary.",
+      "tests": "internal/fec/fec_profiles_test.go covers systematic first-arrival, all six parity counts, full recovery and partial-block parity counts; internal/linkdata/fec_path_test.go covers cross-20-source ownership and LINK integration."
+    },
+    {
+      "source": "old/internal/fec/block.go",
+      "destination": "internal/fec/block.go",
+      "behavior_changes": "Preserve bounded heavy decoder state, immediate first-delivery of streaming sources, known-zero partial-block semantics, compact retired fallback and late systematic delivery. Add explicit active conflicting-duplicate payload rejection (ErrShardMismatch) instead of silently accepting a different payload for an already-present shard; identical duplicates remain idempotent.",
+      "tests": "internal/fec/fec_profiles_test.go covers every fixed profile, cross-block no-HOL under maxBlocks pressure, identical/conflicting duplicates, profile mismatch isolation and bounded retired state."
+    },
+    {
+      "source": "old/internal/fec/completed_blocks.go",
+      "destination": "internal/fec/completed_blocks.go",
+      "behavior_changes": "Preserve compact contiguous completed-BlockID history and out-of-order range merging; no expected-BlockID receive window is added.",
+      "tests": "internal/fec/fec_profiles_test.go covers long sequential completion compaction."
+    },
+    {
+      "source": "old/internal/fec/recovery.go",
+      "destination": "internal/fec/recovery.go",
+      "behavior_changes": "Preserve RetireRecoveryExpired: release heavy parity/reconstruction payload while retaining compact exact first-delivery state so late systematic sources remain deliverable once.",
+      "tests": "internal/linkdata/fec_path_test.go drives idle 3-second expiry and verifies late systematic first-arrival/duplicate behavior."
+    },
+    {
+      "source": "old/internal/fec/decoder_observe.go",
+      "destination": "internal/fec/decoder_observe.go",
+      "behavior_changes": "Preserve constant-time decoder pressure counters and detailed bounded-state diagnostics used by the new LINK/FEC path tests; no global/shared decoder is introduced.",
+      "tests": "internal/linkdata/fec_path_test.go asserts heavy/retired state around pressure and expiry."
+    },
+    {
+      "source": "old/internal/linkdata/recovery.go",
+      "destination": "internal/linkdata/fec_path.go",
+      "behavior_changes": "Extract the 3-second absolute FEC recovery deadline tracker and adapt it to an explicit owner-callable Expire method. Progress and duplicates do not refresh the deadline; expiry can run with zero inbound traffic.",
+      "tests": "internal/linkdata/fec_path_test.go covers absolute non-refreshing deadline, idle expiry, compact retirement and late first-arrival."
+    },
+    {
+      "source": "old/internal/linkdata/path.go",
+      "destination": "internal/linkdata/fec_path.go",
+      "behavior_changes": "Extract only LINK-fragment -> lane-local FEC -> LINK-reassembly ordering and the archived live fixed profile behavior. Remove control/runtime/statistics coupling, DTLS wording and FEC observer plumbing. The adapter returns owned wire copies so a single datagram spanning multiple 20-source blocks cannot be corrupted by encoder backing-slot reuse.",
+      "tests": "internal/linkdata/fec_path_test.go covers off plus all six fixed profiles, systematic delivery before parity flush, missing-fragment recovery, malformed-input isolation, lane-local state and a large datagram crossing an FEC block boundary."
+    },
+    {
+      "source": "old/internal/control/link.go",
+      "destination": "internal/linkdata/fec_path.go",
+      "behavior_changes": "Extract only the authoritative archived live fixed FEC policy set: off and TailRS 20:4/8/10/12/16/20. Startup/auth/control state is not migrated in this P3 atom; non-live 20:9 and causal/profile-v2 choices remain unsupported.",
+      "tests": "internal/linkdata/fec_path_test.go fixes the exact public profile list; internal/fec/fec_profiles_test.go rejects non-live parity values."
     }
   ],
-  "note": "P2 audit closure remains qualified at product SOURCE_SHA 079a11a51a8afb7e977f5140d8cdcd21db1c81c5. P3 LINK fragmentation/reassembly extraction from archive source b5c848f4e9afdffd15d1bc451560edf4e9390a35 is qualified at SOURCE_SHA 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a by Actions run 35451984199. FEC systematic fast-path, unified MTU, session and platform integration remain deferred."
+  "note": "P2 audit closure remains qualified at SOURCE_SHA 079a11a51a8afb7e977f5140d8cdcd21db1c81c5. P3 LINK fragmentation/reassembly remains qualified at SOURCE_SHA 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a. Per the user's updated P3 requirement, the active tree now implements the archived live FEC v1 fixed matrix in one atom: off plus 20:4/8/10/12/16/20, with systematic first-arrival, bounded decoder/retirement, 3-second absolute recovery expiry and LINK integration. This implementation is NOT_RUN until its exact new SOURCE_SHA completes Actions; unified MTU and session/owner integration remain deferred."
 }

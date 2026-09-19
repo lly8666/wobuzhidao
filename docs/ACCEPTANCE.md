@@ -28,7 +28,7 @@ Go unit：Linux、Windows；race：Linux；定向 fuzz：Linux。固定 keys 与
 
 no-HOL：永久丢A，50ms后发B，B在A未恢复时交付；多洞连续超过4096/8192条记录仍前进且状态有界。大包A缺片不阻塞完整B；FEC某block缺失不阻塞其他source。停流后定时退役仍执行。
 
-FEC off/20:20首批，之后源快照已实现的其他固定档位。所有数据有序号/内容校验，bad_payload、header/shard mismatch、wrong lane、ownership损坏必须为零。MTU覆盖576/1280/1400/1500/1600/9000中的有效组合，无效组合明确拒绝；超大输入后同业务peer合法包仍可用。
+FEC 在本次 P3 提取中一次性覆盖 live policy 全集合：off、20:4、20:8、20:10、20:12、20:16、20:20；不得只用20:20结果代表其他挡位。每个 fixed profile 都要验证 systematic source 首到立即交付、partial block parity 数量、parity budget 内恢复、某 block 永久缺失不阻塞其他 source、3 秒绝对期限且停流 timer 可退役、迟到 systematic first-arrival、重复 shard 幂等和 active conflicting duplicate/header/profile mismatch 拒绝。所有数据有序号/内容校验，bad_payload、header/shard mismatch、wrong lane、ownership损坏必须为零。MTU覆盖576/1280/1400/1500/1600/9000中的有效组合，无效组合明确拒绝；超大输入后同业务peer合法包仍可用。
 
 ## P4 产品
 
