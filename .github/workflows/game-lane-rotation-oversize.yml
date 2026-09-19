@@ -85,8 +85,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        connection_mtu: [1280, 1500]
-        fec: ['off', '20:20']
+        include:
+          - connection_mtu: 1280
+            fec: 'off'
+            fec_slug: off
+          - connection_mtu: 1280
+            fec: '20:20'
+            fec_slug: fec20
+          - connection_mtu: 1500
+            fec: 'off'
+            fec_slug: off
+          - connection_mtu: 1500
+            fec: '20:20'
+            fec_slug: fec20
     steps:
       - uses: actions/checkout@v4
       - name: Install namespace tools
@@ -183,6 +194,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: game-lane-rotation-oversize-${{ matrix.connection_mtu }}-${{ matrix.fec }}
+          name: game-lane-rotation-oversize-${{ matrix.connection_mtu }}-${{ matrix.fec_slug }}
           path: ${{ runner.temp }}/game-lane-rotation-oversize-*
           retention-days: 14
