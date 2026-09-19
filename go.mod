@@ -15,5 +15,5 @@ require (
 	github.com/klauspost/compress v1.17.4 // indirect
 	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 )
