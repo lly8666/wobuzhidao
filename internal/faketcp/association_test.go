@@ -57,12 +57,17 @@ func establishP2(t *testing.T, emit SegmentEmitter) (*ServerAssociation, Segment
 	return a, syn
 }
 
-func TestServerAssociationRejectsNonWBDAndCrossFlowHandshake(t *testing.T) {
-	bad := p2SYN(21001, 1000)
-	bad.MSS = 1460
-	if _, err := NewServerAssociation(bad, 5000, time.Second, nil); !errors.Is(err, ErrBadServerSYN) {
-		t.Fatalf("bad fingerprint err=%v", err)
+func TestServerAssociationRejectsCrossFlowHandshake(t *testing.T) {
+	ordinary := p2SYN(21001, 1000)
+	ordinary.MSS = 1460
+	if IsWBDHandshakeSegment(ordinary) {
+		t.Fatal("ordinary SYN unexpectedly matches WBD presentation")
 	}
+	ordinaryAssoc, err := NewServerAssociation(ordinary, 5000, time.Second, nil)
+	if err != nil {
+		t.Fatalf("ordinary legal SYN rejected: %v", err)
+	}
+	ordinaryAssoc.Close()
 
 	a, syn := establishP2(t, func(Segment) error { return nil })
 	wrong := p2SYN(21002, syn.Seq)

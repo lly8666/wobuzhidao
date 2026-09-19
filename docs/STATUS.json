@@ -18,10 +18,10 @@
     "P2子任务：真实decoy fallback（单ClientHello分类、byte-exact raw replay、同association双向splice、recognized零fallback dial）通过Actions",
     "P2子任务：最后bootstrap payload loss/ACK loss与首条新record整包丢失后的record no-HOL资格通过Actions"
   ],
-  "in_progress": "P2审计返工：核心TLS/no-HOL/fallback/transition证据保留；正在补普通合法SYN入口与一个覆盖ClientHello识别→TLS→admission→最终回复ACK→detach的绝对候选建连期限。已修改代码与方案文件，等待精确SOURCE_SHA Actions。",
-  "next_task": "P2审计返工：验证普通SYN不同MSS/WS/SACK/无选项均可进入ClientHello/fallback、peer MSS约束bootstrap且SYN-ACK按对端选项协商；验证TLS后沉默、半认证、context取消、最终admission回复ACK不到均在绝对期限内关闭候选并清理transition。全部Actions PASS后更新P2覆盖矩阵并恢复P3 linkdata任务。",
-  "latest_log": "docs/devlog/20260919-224500-p2-audit-entry-deadline-fix.md",
-  "last_tested_source_sha": "f3df77e8b9e3170e1d9c52a501985a5b384e0fba",
+  "in_progress": "P2审计返工：58999418 repository-contract PASS，但Windows/Linux unit在进入新运行期测试前FAIL：旧association测试仍要求非WBD固定SYN指纹被拒绝，与审计修复目标冲突；audit_closure_test另有未使用变量编译错误。当前只修测试契约/编译，不改产品实现。",
+  "next_task": "P2审计返工：重新验证普通SYN兼容和绝对候选建连期限；若unit进入运行期后再失败，按具体SYN/fallback/timeout/cancel/final-ACK断言修产品逻辑。全套Actions PASS后恢复P3。",
+  "latest_log": "docs/devlog/20260919-225300-p2-audit-test-contract-fix.md",
+  "last_tested_source_sha": "589994182bc6216f6468475a085ec8d9ed165bfc",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -162,6 +162,13 @@
       "scope": "P2-hosted-wire-format",
       "status": "PASS",
       "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build/race、既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。真实TLS/admission双向Segment经正式MarshalSegment后逐包验证IPv4/TCP checksum、DF、MSS/chunk、无数据段自定义TCP options；按Seq重组后TLS records连续可解析，protected admission magic/凭据/TunnelID不以明文出现。此证据是hosted wire serialization，不替代raw/Npcap实抓。"
+    },
+    {
+      "source_sha": "589994182bc6216f6468475a085ec8d9ed165bfc",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35449863782",
+      "scope": "P2-audit-syn-deadline",
+      "status": "FAIL",
+      "note": "repository-contract PASS；Windows/Linux unit均FAIL。internal/faketcp旧测试TestServerAssociationRejectsNonWBDAndCrossFlowHandshake仍把MSS=1460的合法普通SYN期望为ErrBadServerSYN，与本次审计修复目标冲突；internal/realityfront/audit_closure_test.go另有未使用client变量导致编译失败。race/fuzz/reference未运行，尚无新运行期语义结论。"
     }
   ],
   "physical_status": "NOT_RUN",

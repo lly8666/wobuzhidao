@@ -409,7 +409,7 @@ func TestCandidateDeadlineDoesNotLeakAfterSuccessfulHandoff(t *testing.T) {
 		serverDone <- err
 	}()
 
-	client, err := EstablishClient(context.Background(), peer, ClientAdmissionConfig{
+	_, err := EstablishClient(context.Background(), peer, ClientAdmissionConfig{
 		TLS: ClientConfig{
 			ServerName: "target.test",
 			RouteKey:   routeKey,
