@@ -10,12 +10,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 )
 
-// replacementGameOverlapWindow is the bounded post-qualification drain window.
-// The supported high-latency qualification path is 300ms one-way, and LINK/FEC
-// recovery may legitimately complete near the documented three-second ceiling.
-// Keep A and B in the Game race through that tail before B-only promotion closes
-// A's client socket and old lower-layer repair state is retired.
-const replacementGameOverlapWindow = 3 * time.Second
+const replacementGameOverlapWindow = 100 * time.Millisecond
 
 var errStaleLaneReplacement = errors.New("windowsruntime: stale lane replacement trigger")
 

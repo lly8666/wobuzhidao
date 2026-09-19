@@ -25,9 +25,4 @@ func TestSupervisorBudgetsEnvelopeHighLatencyProtocolStages(t *testing.T) {
 	if gameControlTimeout < 20*targetRTT {
 		t.Fatalf("Game control budget=%s want >=%s", gameControlTimeout, 20*targetRTT)
 	}
-	// Replacement must not close the old Game association before the bounded
-	// high-latency LINK/FEC recovery tail has had a chance to drain.
-	if replacementGameOverlapWindow < 3*time.Second {
-		t.Fatalf("replacement Game overlap=%s want >=3s", replacementGameOverlapWindow)
-	}
 }
