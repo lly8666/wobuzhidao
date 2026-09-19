@@ -38,7 +38,7 @@ raw IO -> 当前首次到达接收 -> record 独立 open
 
 保留 SYN persona、同四元组/序列空间、识别、fallback、真实 TLS、账户认证、租约与 ticket。WBD 客户端继续使用当前 SYN persona，但服务端入口不得把该 persona 当身份：任何合法初始 SYN 都先建立同一 FakeTCP association，记录 peer MSS/WS/SACK；MSS 约束 bootstrap 分段，SYN-ACK 的 WS/SACK 只在对端提出时协商。WBD/普通访客的区分推迟到 ClientHello/受保护路径。只有受保护 admission message 做新版本扩展，以携带 WIRE_SPEC 参数。旧 V2 无需兼容；不修改 ClientHello 以宣告自定义数据协议。
 
-不新增 READY/COMMIT/SYNC_ACK 迷你握手。复用成熟 ACK-gated write 和 stageTransition，但补齐所有权界限：
+不新增 READY/COMMIT/SYNC_ACK 迷你握手。复用可靠 bootstrap 和 stageTransition；允许建连阶段有界多分段在途，移交边界保留 ACK 屏障，不把逐 chunk stop-and-wait 当作不可改变的目标。补齐所有权界限：
 
 1. Server 验证并读完最后一条请求后，记录客户端 bootstrap 结束序列位置，准备新数据接收；server 的最终 TLS 应答与 TCP ACK/修复仍可继续。
 2. 最终应答前 exporter keys 与接收器就绪；晚到旧 bootstrap 按边界处理，不把提前新记录重新 Feed 到 TLS。
@@ -53,7 +53,13 @@ Transition queue 首版沿用最多 64 条并增加总字节上限 `64 * negotia
 
 ### 外观能力边界
 
-“真实 TLS + Firefox120 风格 ClientHello”只证明客户端 hello/persona 与协议格式，不等于已复刻指定借用网站的服务端握手指纹。未识别访客会把原始 ClientHello byte-exact replay 到 decoy；已识别 WBD 仍由本地 Go `tls.Server` 完成 TLS 1.3，并为避免 transition 后残留 writer 禁用 Session Tickets。ALPN、服务端扩展/参数、握手报文长度与分段、恢复行为的相似性在 P2 hosted 阶段不作“网站一致”结论，待平台 I/O 后由普通内核 TCP 客户端访问和真实抓包验收。不得为追求外观破坏 no-HOL 或 prepare/detach 边界。
+“真实 TLS + Firefox120 风格 ClientHello”不等于复刻指定网站的服务端握手。未识别访客 byte-exact replay 到 decoy；已识别 WBD 由本地 Go TLS server 完成握手。当前代码禁用 Session Tickets；P2 重新打开后须明确票据策略、ALPN/证书/服务端参数与实际差异。票据只能由真实 TLS 库生成，在明确的 bootstrap 所有权边界内处理；不强制每次两张，不单改开关、不固定睡眠等票据。支持票据不等于支持会话恢复，不引入 0-RTT。切换后禁止旧 TLS writer 续写 ticket/close_notify/KeyUpdate。不能为外观破坏 no-HOL。
+
+### P2 重开收口（2026-09-20）
+
+保留已修复的普通 SYN 与候选总超时，继续补：重复 SYN/一致 SYN-ACK 与有界握手重传；ACK 合法性；FIN/RST/尾部数据/半关闭和资源释放；bootstrap 有界发送窗口、peer window/zero-window 与真实接收容量。内部 detach 不等于网络关闭，不重写稳态有限恢复。普通回落必须能完成真实 TLS 证书验证、HTTP 响应和关闭。
+
+P2 关闭需要 Actions 普通内核 TCP 客户端经真实网络入口的建连/回落及连续抓包。若缺平台 I/O，仅提取必要最小适配，不扩成完整 P5；没有此证据保持 P2 OPEN。物理 Windows/Npcap 仍属 P7。完整目标网站指纹一致性不以小样本或 serializer 测试宣称。内层业务指纹不属于 P2 关闭条件。
 
 ## 4. 加密记录与无 HOL
 
@@ -69,7 +75,7 @@ Transition queue 首版沿用最多 64 条并增加总字节上限 `64 * negotia
 
 现有产品 connection MTU 576..9000 范围可保留，但若 enabled features 无法容纳最小合法包，配置阶段明确拒绝，不生成负容量。IPv6 外层若未实现不可假定 IPv4 开销适用。
 
-TLS-like 31 字节开销固定，padding=0。SOURCE 和最大 PARITY 均必须 fit。超大业务由 LINK 先分片；不拆加密 record，不调用 carrier 分片。
+TLS-like 基础开销固定 31 字节，默认 padding=0。P3 增加显式非零 padding 能力时，只用当前 record 的剩余预算；现有无填充 LINK/FEC 容量公式不缩小，不因填充增加分片。SOURCE 和最大 PARITY 均必须 fit。超大业务由 LINK 先分片；不拆加密 record，不调用 carrier 分片。
 
 路径变小通过新 lane 的正确预算解决；不重新切割已分配 TCP Seq 的旧密文。配置 MTU 不是端到端 PMTU 探测，日志明确区分。
 
@@ -132,3 +138,15 @@ Linux 用共享 TUN/单 host NAT、多客户端 lease 和源地址校验。Windo
 ## 12. 不需要做的事
 
 不兼容旧数据协议/CLI；不维护 both；不重新设计身份/lease；不引入第三套分片；不照搬 QUIC 或普通 TLS 可靠流；不为99%外观生成随机业务或延迟凑包；不把旧40Mbps历史成绩当新性能证据；不因 CI 环境限制提前要求物理机或归咎 runner。
+
+## 13. 内层业务流量特征：P3/P4/P5 职责
+
+风险来自长度、方向、突发字节数和往返节奏的组合，不是某个固定 ClientHello 大小。外层加密算法、FEC 或票据不能证明风险消失。只做低成本能力与证据收口，不开展反检测算法赛。
+
+P3：保留零填充默认及既有向量，增加显式、受长度校验的加密内 padding 接口，接入单一 MTU。位置为 FEC 输出之后、seal 之前；open 去 padding 后原样交 FEC。padding 不参与 FEC，不影响 original_lengths，不生成额外 record；满尺寸 source/parity 可零填充直接发。策略层只能即时决定填多少，额度不足立即零填充，不能等令牌或其他包。协议容量之外还必须有每包和累计额外字节上限；生产策略尚未启用，不能仅有 API 就宣称降低了识别率。记录请求/实际 padding bytes 和预算不足跳过次数；不读取内层 TLS，不逐包输出日志。FakeTCP 缓存最终密文，重传不重新 padding/seal。
+
+P4：多个真实业务会话复用现有 Tunnel/lane，不将每个 HTTPS flow 绑定新外层连接。保留 Normal=1、Game=2..4、现有竞速/去重、轮换与 DORMANT，不能把多 lane 竞速改成跨包条带化来“混流”。业务稀疏不等待别的流，不为了外观保活延迟休眠。若暴露可选填充配置，默认 off；策略 owner 同时执行每包上限与累计 padding/有效负载比例预算，无额度立即跳过。不得在各 lane 独立额度之外绕过 tunnel/server 总预算；不把多 lane/FEC/repair 放大算作有效业务来获取填充额度。
+
+P5：增加受控真实 HTTPS 客户端/服务器，覆盖首个与复用 lane 上的后续连接、稀疏单连接/自然并发、不同证书链、完整/恢复握手、FEC off/实际启用挡位、无损/既定弱网。采集 outer packet 与 TLS-like record 长度、方向、时间间隔、突发字节数；分开 capture loss、网络丢包、FEC、repair、padding。记录业务延迟/CPU/PPS/线上字节与 padding 成本。生产默认零填充；可选能力只验证正确性和成本，启用为生产策略需单独证据与决策。正常 HTTPS 仅作外观参考，不是 DTLS 旧项目 A/B。样本按站点/会话分组，不用同一会话切片同时作训练和评估；如果报告分类结果必须报告样本来源、误报/漏报及范围，禁止从少量样本推导不可识别。
+
+阶段协调：P2 是当前未关闭的前置验收门；用户授权 P3 的独立工作继续。P2 owner 修改 faketcp/realityfront，P3 owner 修改 tlsrecord/pathmtu/datapath 接口，各自只合并本任务提交；修改共享 wire/STATUS 前先同步远端。唯一 STATUS 同时记录两条工作流，不回滚 P3 成果。P2 未关闭不宣称后续整体验收完成。

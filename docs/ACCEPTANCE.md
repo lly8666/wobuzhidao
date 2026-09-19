@@ -22,7 +22,11 @@ Go unit：Linux、Windows；race：Linux；定向 fuzz：Linux。固定 keys 与
 
 抓包格式门槛：无损且无capture loss时TLS记录连续可解析；重传相同Seq下payload完全相同；无明文私有外层头；MTU/checksum/options/MSS正确，无意外IP分片。真实丢包的乱序、SACK、Dup ACK提示单独解释；有限gap forgiveness造成的标准TCP差异单独计数，不要求消灭。
 
-外观结论必须分层：hosted serializer/unit 只能证明 TCP/IP/TLS 格式与本地 persona，不得宣称“已与指定借用网站握手指纹一致”。未识别访客的 byte-exact ClientHello replay + decoy splice 与已识别 WBD 的本地 Go TLS server 是两条不同路径。指定网站的服务端参数、ALPN、握手长度/分段、会话恢复等相似性只有在平台 I/O 接入后的真实普通浏览器访问和连续抓包中才能验收；禁用 Session Tickets 的阶段切换安全性优先，不得为外观擅自重新开启。
+外观结论必须分层：serializer/unit 只能证明格式。回落的真实目标 TLS 与 WBD 本地 TLS server 是两条路径，不能混称目标网站一致。P2 重开后至少验收：重复 SYN/一致 ISN、SYN-ACK 丢失/有界重传、重复或带数据 ACK、非法 ACK 不释放状态；FIN占序列号/带尾部数据/重复乱序/重传、合法 RST、半关闭与资源释放；bootstrap 多 chunk 有界在途、peer window/zero-window、窗口容量一致、候选总期限；票据启用/禁用的明确策略及与认证合并/拆分/丢包/切换的边界，切换后无旧 TLS writer。不能只改 SessionTicketsDisabled 开关。
+
+P2 关闭必须有 Actions 普通内核 TCP TLS 客户端经真实网络入口访问受控 decoy、验证证书、完成 HTTP 响应及正常关闭的证据，以及同流连续 pcap/capture-loss 记录。受控本地 CA 可用于测试但客户端必须信任并实际验证，不以 InsecureSkipVerify 冒充验证。缺平台 I/O 则最小提取；未跑记 NOT_RUN，不用内存 peer 或 serializer 替代。无损下无额外内核 RST、非法 Seq/ACK、错误重传内容或意外分片。普通互通仍不证明指定网站完整指纹一致。物理 Npcap 留在 P7。
+
+内层 TLS 的长度/方向/突发/往返特征属于 P3/P4/P5，不是 P2 关闭条件。外层 ticket 或握手 PASS 不代表内层特征消失，不增加假 HTTP/随机睡眠/凑包等待。
 
 ## P3 数据面
 
@@ -30,13 +34,19 @@ no-HOL：永久丢A，50ms后发B，B在A未恢复时交付；多洞连续超过
 
 FEC 在本次 P3 提取中一次性覆盖 live policy 全集合：off、20:4、20:8、20:10、20:12、20:16、20:20；不得只用20:20结果代表其他挡位。每个 fixed profile 都要验证 systematic source 首到立即交付、partial block parity 数量、parity budget 内恢复、某 block 永久缺失不阻塞其他 source、3 秒绝对期限且停流 timer 可退役、迟到 systematic first-arrival、重复 shard 幂等和 active conflicting duplicate/header/profile mismatch 拒绝。所有数据有序号/内容校验，bad_payload、header/shard mismatch、wrong lane、ownership损坏必须为零。MTU覆盖576/1280/1400/1500/1600/9000中的有效组合，无效组合明确拒绝；超大输入后同业务peer合法包仍可用。
 
-## P4 产品
+### P3 可选填充资格
+
+P3 新增 padding 能力专项门槛：保留 Seal 默认零填充向量；显式非零填充具独立向量和尾零payload/非法padding/边界/tag破坏测试；open 去填充后 FEC/LINK 字节完全一致。FEC off及全部固定挡位、满尺寸 source/parity、MTU576..9000有效组合均不超 peer MSS/record/packet 限制；不足余量策略跳过，显式非法请求拒绝，不多生成一个分片或record。预算不足不等待，丢A仍交B，同Seq重传完全一致；接口和生产启用状态分开报告。相关统计无每包日志。
+
+## P4 产品（生命周期与可选填充）
 
 Normal=1，Game=2/3/4；第5权威logical lane拒绝；物理incarnation最多10，第11拒绝；退休占用不阻塞合法替换。多installation地址不同，lane更换lease不随意变化，source anti-spoof保留。
 
 A->A+B->B，候选失败保留A，逐lane轮换，generation fencing，DORMANT/wake，keepalive不刷新payload idle，手动断开/退出确定清理。
 
 Linux共享TUN/单host NAT/DNS/UDP/TCP、Windows路由/分流/lease/IPv6清理、OpenWrt策略路由。真实数据端到端输出，不只看READY。
+
+多个真实业务 flow 复用既有 lane，不每flow重建外层；不改变 Game 竞速/PacketID 语义、不增加 lane 数、不等其他业务混流。可选 padding 默认 off；若实现配置，验证每包与累计额外字节预算、tunnel/server总上限、无额度立即零填充。padding/keepalive 不刷新 payload idle，空闲无假流量，DORMANT/wake 和轮换行为不退化。
 
 ## P5 弱网、负载和长测（仅新版本）
 
@@ -52,7 +62,11 @@ Linux共享TUN/单host NAT/DNS/UDP/TCP、Windows路由/分流/lease/IPv6清理�
 
 硬失败：任何内容损坏、错误隧道交付、nonce重用（不同新记录）、lane-wide等待缺失前包、状态无界、超时不释放、意外业务中断/资源清理破坏。一般性能和有损场景loss先报告，结合FEC能力与输入校验归因，不硬要求有限恢复随机丢包下100%收到。
 
-## P6/P7 状态
+### P5 流量外观专项
+
+P5 流量外观专项：受控真实 HTTPS 覆盖新外层首连接、已建lane后续连接、稀疏单连接/自然并发、不同证书链、完整/恢复握手、FEC off/实际挡位及无损/既定弱网。普通 UDP 混合包测试不能替代。分层记录 outer packet/record 长度、方向、间隔、突发字节与往返节奏；标注 capture loss 和丢包位置，分开 FEC/repair/padding 放大及 CPU/延迟/线上开销。正常 HTTPS 是参考，不要求每业务都像浏览网页、不做旧 DTLS A/B。保留可复现原始数据/分析口径；不得只凭固定200..550字节规则或小样本“检测失败”宣称不可识别。若报告分类结果，按独立会话/站点分组并报告误报漏报，不能同会话切片泄漏到训练与评估。当前生产默认0，任何启用决策需另行记录，不能把代码能力等同于抵抗流量分析通过。
+
+## P6/P7 状态与发布
 
 逐个区分 IMPLEMENTED、ACTIONS_PASS、PHYSICAL_PASS、RELEASE_QUALIFIED。build包含源SHA与文件哈希，客户端/服务端同源码。Windows hosted若不具备真实Npcap驱动/TUN能力则明确UNSUPPORTED，提供可测适配路径但不替代物理证明。
 

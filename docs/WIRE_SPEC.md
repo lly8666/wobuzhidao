@@ -29,7 +29,7 @@ plaintext:
   padding         0..P 个 0x00
 ```
 
-V1 发送端 padding 固定为 0；接收端支持合法尾部零填充。没有 FRAGMENT/ACK/NACK/RETIRE record kind。控制流量通过已有 LINK 控制数据报承载。未知 kind 只丢本记录并计数。
+V1 发送端默认 padding=0，既有 Seal 与固定向量保持不变；P3 新增显式非零 padding 编码能力，接收端支持合法尾部零填充。此为计划中的 API 能力，不表示当前实现或生产默认已启用。padding 加在 inner_type 之后并纳入 AEAD，不另加明文长度字段、不改变 version/kind/PN/AAD。没有 FRAGMENT/ACK/NACK/RETIRE record kind。控制流量通过已有 LINK 控制数据报承载。未知 kind 只丢本记录并计数。
 
 每个方向独立完整 uint64 PN，从 0 开始；仅新建记录消耗 PN，失败编码可跳号但绝不重用。PN 不从 TCP Seq、Game PacketID 或 FEC BlockID 推导。使用完最大编号后必须拒绝新建记录并触发现有 lane replacement，不回绕。
 
@@ -93,6 +93,8 @@ link_fragment_payload_mtu    = link_frame_mtu - 20
 ```
 
 其中 31 是 `tlsrecord.FixedWireOverhead`，56 是 FEC v1 header，20 是 `WBDLFRG1` fragment header。所有固定 FEC 挡位的 MTU 开销相同；R 只改变 repair 数量，不改变 shard header 长度。实际 header 长度必须是合法的 IPv4/TCP 4-byte 对齐长度；当前普通 data segment 没有 SYN options 时是 20+20，但预算 API 不把 40 写死。
+
+可选 padding 不改变上述无填充业务容量：`padding_headroom = record_wire_mtu - 31 - len(actual_record_payload)`。显式编码 API 对负值或超过 headroom 的 padding 请求明确报错；策略层在调用前按 headroom、每包上限和累计预算选择合法值，无预算用 0，不等候。基础 payload 本身超限仍按原规则拒绝，不能靠 padding 降级掩盖。`actual_record_wire_len = 31 + len(payload) + padding_len`，必须满足全部限幅。padding 不强迫 LINK 多切一片，不改变 FEC shard 长度；同 Seq 重传原密文和原 padding。
 
 `negotiated_record_wire_limit` 必须落在 TLS-like V1 可表示范围内；若任一限幅后不足以容纳 TLS-like 固定开销，或扣除启用 wrapper 后 `link_frame_mtu <= 20`，配置阶段明确拒绝。不得生成零/负 fragment payload。
 
