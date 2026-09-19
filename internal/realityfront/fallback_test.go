@@ -119,13 +119,28 @@ func TestUnrecognizedHelloFallsBackOnSameAssociationWithExactReplay(t *testing.T
 		t.Fatalf("response=%q", response)
 	}
 	_ = clientTLS.Close()
-	_ = peer.Close()
 
-	if err := <-targetDone; err != nil && !errors.Is(err, net.ErrClosed) {
+	// Application Close does not stop a real TCP stack from ACKing the peer's
+	// close_notify. The in-memory FakeTCP peer generates ACKs from Read, so
+	// drain the final target TLS record once before closing the test transport.
+	_ = peer.SetReadDeadline(time.Now().Add(time.Second))
+	closeBuf := make([]byte, 4096)
+	if n, err := peer.Read(closeBuf); err != nil || n == 0 {
+		t.Fatalf("failed to drain/ACK fallback close_notify: n=%d err=%v", n, err)
+	}
+	_ = peer.SetReadDeadline(time.Time{})
+
+	if err := <-targetDone; err != nil && !errors.Is(err, net.ErrClosed) && !errors.Is(err, io.ErrClosedPipe) {
 		t.Fatal(err)
 	}
-	sr := <-serverDone
-	if sr.err != nil && !errors.Is(sr.err, net.ErrClosed) {
+	var sr serverResult
+	select {
+	case sr = <-serverDone:
+	case <-time.After(2 * time.Second):
+		t.Fatal("fallback splice did not terminate after target close")
+	}
+	_ = peer.Close()
+	if sr.err != nil && !benignFallbackCopyError(sr.err) {
 		t.Fatal(sr.err)
 	}
 	if sr.result.Branch != "fallback" || sr.result.Fallback == nil || sr.result.Admission != nil {

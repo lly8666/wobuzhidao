@@ -16,10 +16,10 @@
     "P2子任务：真实TLS/uTLS Firefox120 persona、ClientHello分类/replay与真实exporter在同association上通过Actions",
     "P2子任务：TLS内受保护admission、最小username/password认证、v1/nonce/TunnelID/双向record limits协商与prepare/detach通过Actions"
   ],
-  "in_progress": "P2：fallback测试已进入运行期并暴露两个退出问题：目标先关闭时BootstrapConn无CloseWrite导致另一copy阻塞到deadline；测试peer.Close不唤醒阻塞Read。已准备fallback专用无half-close退化为Close，以及测试peer done唤醒；识别/raw replay/admission语义不变，等待新SHA Actions。",
-  "next_task": "P2：验证fallback退出修复的repository-contract、Windows/Linux unit/build与Linux race；通过后核对P2剩余资格：最后bootstrap丢包/ACK丢失、首条新record提前/丢失、reader预读、退出候选、transition队列上限及record no-HOL核心资格。",
-  "latest_log": "docs/devlog/20260919-211100-p2-fallback-splice-exit-fix.md",
-  "last_tested_source_sha": "b0d6f780a7bbd16e5d722be5183e826dbb145287",
+  "in_progress": "P2：fallback退出修复后SNI拒绝问题已消失，但2abd15206c028e3c5eaba90fff939a5195d5b573仍在正常fallback测试5s处返回closed pipe。根因进一步定位为测试peer在client TLS Close后停止读取，无法像真实TCP内核那样继续ACK decoy close_notify。已准备测试中drain/ACK最终TLS记录，并将close竞态的io.ErrClosedPipe/ErrBootstrapClosed视为正常splice结束；等待新SHA Actions。",
+  "next_task": "P2：验证fallback close_notify ACK修复的repository-contract、Windows/Linux unit/build与Linux race；通过后核对P2剩余资格：最后bootstrap丢包/ACK丢失、首条新record提前/丢失、reader预读、退出候选、transition队列上限及record no-HOL核心资格。",
+  "latest_log": "docs/devlog/20260919-211600-p2-fallback-close-notify-ack.md",
+  "last_tested_source_sha": "2abd15206c028e3c5eaba90fff939a5195d5b573",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -125,6 +125,13 @@
       "scope": "P2-real-decoy-fallback",
       "status": "FAIL",
       "note": "repository-contract PASS；Windows/Linux unit运行期均FAIL。TestUnrecognizedHelloFallsBackOnSameAssociationWithExactReplay在5s后返回io: read/write on closed pipe，证实无half-close的BootstrapConn使另一splice方向阻塞到deadline；TestFallbackSNIMismatchDoesNotDialTarget中test peer Close未唤醒阻塞Read。race/fuzz/reference未运行。"
+    },
+    {
+      "source_sha": "2abd15206c028e3c5eaba90fff939a5195d5b573",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35444882035",
+      "scope": "P2-real-decoy-fallback",
+      "status": "FAIL",
+      "note": "repository-contract PASS；Windows/Linux unit均只剩TestUnrecognizedHelloFallsBackOnSameAssociationWithExactReplay失败，约5s后server fallback返回io: read/write on closed pipe；SNI mismatch测试已PASS。根因是测试peer在clientTLS.Close后不再Read，因此不能为decoy close_notify生成FakeTCP ACK，BootstrapStream.Write等到SessionTimeout。race/fuzz/reference未运行。"
     }
   ],
   "physical_status": "NOT_RUN",

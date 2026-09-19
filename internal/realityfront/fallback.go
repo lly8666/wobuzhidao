@@ -166,7 +166,8 @@ func FallbackFromHello(ctx context.Context, client net.Conn, hello Hello, cfg Fa
 }
 
 func benignFallbackCopyError(err error) bool {
-	return err == nil || errors.Is(err, io.EOF) || errors.Is(err, net.ErrClosed) ||
+	return err == nil || errors.Is(err, io.EOF) || errors.Is(err, io.ErrClosedPipe) ||
+		errors.Is(err, net.ErrClosed) || errors.Is(err, faketcp.ErrBootstrapClosed) ||
 		errors.Is(err, syscall.ECONNRESET) || errors.Is(err, syscall.EPIPE)
 }
 
