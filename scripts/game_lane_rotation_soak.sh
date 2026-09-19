@@ -279,7 +279,7 @@ retire_lane() {
 cat >"$LOG_DIR/load.py" <<'PY_LOAD'
 import json, select, socket, struct, sys, time
 out_path=sys.argv[1]
-duration=float(sys.argv[2]); rate_bps=int(sys.argv[3]); payload_bytes=int(sys.argv[4]); max_loss_ratio=float(sys.argv[5]); strict_load_quality=(sys.argv[6]=='1')
+duration=float(sys.argv[2]); rate_bps=int(sys.argv[3]); payload_bytes=int(sys.argv[4]); max_loss_ratio=float(sys.argv[5]); strict_load_quality=(sys.argv[6]=='1'); post_small_probe_bytes=int(sys.argv[7])
 pps=rate_bps/(payload_bytes*8.0)
 interval=1.0/pps
 s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
@@ -309,6 +309,25 @@ while True:
                 else: unique.add(seq)
     if now >= deadline and (now-last_rx >= 2.0 or now >= deadline+5.0):
         break
+
+post_small_probe_pass=(post_small_probe_bytes == 0)
+if post_small_probe_bytes:
+    probe=b'WBD1'+b'S'*(post_small_probe_bytes-4)
+    s.sendto(probe,('127.0.0.1',47500))
+    probe_deadline=time.monotonic()+8.0
+    while time.monotonic() < probe_deadline:
+        r,_,_=select.select([s],[],[],0.1)
+        if not r:
+            continue
+        try: data,_=s.recvfrom(65535)
+        except BlockingIOError: continue
+        if data == probe:
+            post_small_probe_pass=True
+            break
+    if not post_small_probe_pass:
+        raise SystemExit(15)
+    print(f'WBD_SOAK_POST_SMALL_PROBE_PASS bytes={post_small_probe_bytes}')
+
 elapsed=max(duration,1e-9)
 recv=len(unique); lost=max(0,sent-recv)
 summary={
@@ -319,6 +338,8 @@ summary={
   'loss_ratio':(lost/sent if sent else 1.0),
   'max_loss_ratio':max_loss_ratio,
   'strict_load_quality':strict_load_quality,
+  'post_small_probe_bytes':post_small_probe_bytes,
+  'post_small_probe_pass':post_small_probe_pass,
 }
 open(out_path,'w').write(json.dumps(summary,sort_keys=True,indent=2)+'\n')
 print('WBD_SOAK_LOAD_RESULT '+json.dumps(summary,sort_keys=True))
@@ -330,7 +351,7 @@ if strict_load_quality and summary['down_payload_bps'] < rate_bps*0.995: raise S
 PY_LOAD
 
 : >"$LOG_DIR/rotation.log"
-sudo ip netns exec "$C" python3 "$LOG_DIR/load.py" "$LOG_DIR/load-result.json" "$DURATION_SEC" "$RATE_BPS" "$PAYLOAD_BYTES" "$MAX_LOSS_RATIO" "$STRICT_LOAD_QUALITY" >"$LOG_DIR/load.log" 2>&1 &
+sudo ip netns exec "$C" python3 "$LOG_DIR/load.py" "$LOG_DIR/load-result.json" "$DURATION_SEC" "$RATE_BPS" "$PAYLOAD_BYTES" "$MAX_LOSS_RATIO" "$STRICT_LOAD_QUALITY" "$POST_SMALL_PROBE_BYTES" >"$LOG_DIR/load.log" 2>&1 &
 LOAD_PID=$!; PIDS+=("$LOAD_PID")
 load_start=$(date +%s)
 for _ in $(seq 1 400); do
@@ -359,22 +380,6 @@ wait "$LOAD_PID"
 drop_pid "$LOAD_PID"
 cat "$LOG_DIR/load.log"
 cat "$LOG_DIR/load-result.json"
-
-if (( POST_SMALL_PROBE_BYTES > 0 )); then
-  cat >"$LOG_DIR/post-small-probe.py" <<'PY_SMALL'
-import socket,sys
-n=int(sys.argv[1])
-payload=b'WBD1'+b'S'*(n-4)
-s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-s.bind(('127.0.0.1',0)); s.settimeout(8)
-s.sendto(payload,('127.0.0.1',47500))
-got,_=s.recvfrom(65535)
-assert got==payload,(len(got),len(payload))
-print(f'WBD_SOAK_POST_SMALL_PROBE_PASS bytes={n}')
-PY_SMALL
-  sudo ip netns exec "$C" python3 "$LOG_DIR/post-small-probe.py" "$POST_SMALL_PROBE_BYTES" | tee "$LOG_DIR/post-small-probe.log"
-fi
-
 
 peer_resets=$(count_marker 'WBD_FAKETCP_MUX_PEER_RESET ' "$LOG_DIR/faketcp-mux.log")
 idle_expire=$(count_marker 'WBD_FAKETCP_MUX_SESSION_EXPIRE reason=no_client_rx' "$LOG_DIR/faketcp-mux.log")
