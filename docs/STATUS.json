@@ -25,9 +25,9 @@
     "P2关闭：建连重传/ACK、FIN/RST/半关闭、bootstrap有界窗口、TLS票据/ALPN/移交所有权及普通内核TCP/TLS真实fallback+HTTP+连续pcap均由Actions通过",
     "P3子任务：lane-owned session/datapath 串接（immutable FEC profile、方向record limits/keys、统一MTU、LINK/FEC、record seal/open、detach handoff、owner expiry）通过Actions"
   ],
-  "in_progress": "P3 显式有界 record padding 原子任务实现完成第一阶段，等待该代码提交精确 SOURCE_SHA Actions。实现包含 tlsrecord 严格 SealWithPadding、unified MTU PaddingHeadroom、datapath 非阻塞 owner padding request/skip 统计、全FEC/MTU/no-HOL/retransmit专项测试，并扩独立 primitive-level vector generator；生产默认仍为0/off。最终 PASS 前还必须从该 SHA Actions artifact 取得 padded 独立向量并钉成静态测试，再跑完整 Actions。",
-  "next_task": "提交并运行本次 padding 实现精确 SHA Actions；若基础测试失败按 logs 修。若成功，读取 tlsrecord-reference artifact 的 pn7_padded_tailzero_p9 独立 wire bytes，新增静态固定向量测试后形成第二个精确 SHA，再跑完整 Actions；只有第二个 SHA completed/success 才标 P3 padding PASS。",
-  "latest_log": "docs/devlog/20260920-040000-p3-record-padding-implementation.md",
+  "in_progress": "P3 显式有界 record padding 第一阶段 Actions 已产生历史 FAIL：SOURCE_SHA 046d84e11561aef74578b7c1ede3b6e05306b001 / run 35461114443 在 Windows/Linux unit 编译 padding_test.go 时因测试字符串未转义换行失败；repository-contract 与 P2 kernel fallback 回归 PASS，race/fuzz/reference generator 未运行。产品实现语义尚无该 run 的运行期资格。现已只修测试静态语法，等待新精确 SHA Actions；最终仍需取得独立 padded vector 并钉成静态测试后二次完整 Actions。",
+  "next_task": "提交 padding_test.go 未转义换行修复并跑精确 SHA Actions。若成功，从 Linux job 的独立 tools/tlsrecordvector 输出/artifact 取得 pn7_padded_tailzero_p9 wire hex，新增静态独立固定向量测试，再形成最终候选 SHA 并跑完整 Actions；只有最终 SHA completed/success 才标 padding PASS。",
+  "latest_log": "docs/devlog/20260920-041000-p3-padding-test-syntax-fix.md",
   "last_tested_source_sha": "05a544818ff04f49332b09779c9ab3a4cf9b09fd",
   "actions": [
     {
@@ -274,6 +274,13 @@
       "scope": "P3-lane-owner-session-handoff",
       "status": "PASS",
       "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build/race PASS；tlsrecord directed fuzz/reference/artifacts PASS；P2 kernel fallback回归PASS。新增 internal/datapath 覆盖 off+20:4/8/10/12/16/20 双向owner、profile/方向limit mismatch fail-closed、admission peer MSS绑定、record PN逆序与每挡丢A后B立即交付、停流FEC expiry/late source、detach transition handoff、wire ownership、close隔离和并发PN串行化。Artifacts: foundation 10589323962；tlsrecord-reference 10589354002；p2-kernel-fallback 10588903523。"
+    },
+    {
+      "source_sha": "046d84e11561aef74578b7c1ede3b6e05306b001",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35461114443",
+      "scope": "P3-record-padding-pre-static-vector",
+      "status": "FAIL",
+      "note": "repository-contract PASS；P2 kernel fallback 回归 PASS；Windows/Linux active-go-tests 都在 internal/datapath/padding_test.go:58 编译失败：string literal not terminated。根因是专项测试 fatalf 字符串中的换行未转义；padding 实现、pathmtu 与 tlsrecord 包在 Linux 到达失败点前可编译/其各自测试通过，但整仓 unit/build 未通过，race/fuzz/independent reference generator 未运行，因此无 padded 独立向量 artifact，不能继承任何 PASS 资格。"
     }
   ],
   "physical_status": "NOT_RUN",

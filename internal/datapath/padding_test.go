@@ -55,9 +55,7 @@ func TestPaddingLeavesFECAndLINKPayloadByteExactForEveryProfile(t *testing.T) {
 				t.Fatal(err)
 			}
 			if !bytes.Equal(plainRecord.Payload, paddedRecord.Payload) {
-				t.Fatalf("profile=%d padding changed LINK/FEC payload
-plain=%x
-padded=%x", parity, plainRecord.Payload, paddedRecord.Payload)
+				t.Fatalf("profile=%d padding changed LINK/FEC payload\nplain=%x\npadded=%x", parity, plainRecord.Payload, paddedRecord.Payload)
 			}
 
 			result, err := server.InboundPayload(padded[0].Wire, time.Unix(100, 0))
