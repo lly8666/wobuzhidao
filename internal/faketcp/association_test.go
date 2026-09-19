@@ -864,3 +864,72 @@ func TestClosedAssociationSweepAllowsFourTupleReuse(t *testing.T) {
 		t.Fatalf("new incarnation ISN=%d want=2000", synack.Seq)
 	}
 }
+
+
+func TestBootstrapSmallPeerWindowUsesShortSegment(t *testing.T) {
+	emitCh := make(chan Segment, 8)
+	a, syn := establishP2(t, func(seg Segment) error {
+		emitCh <- seg
+		return nil
+	})
+	defer a.Close()
+
+	// Client offered WS=8. A raw window of 2 means 512 bytes, deliberately
+	// smaller than both peer MSS and DefaultBootstrapChunk.
+	window := syn
+	window.Flags = FlagACK
+	window.Seq = syn.Seq + 1
+	window.Ack = a.SenderLastAck()
+	window.Window = 2
+	if _, err := a.HandleSegment(window, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+
+	payload := bytes.Repeat([]byte{0x44}, 900)
+	done := make(chan error, 1)
+	go func() {
+		n, err := a.BootstrapConn().Write(payload)
+		if err == nil && n != len(payload) {
+			err = io.ErrShortWrite
+		}
+		done <- err
+	}()
+
+	first := <-emitCh
+	if len(first.Payload) != 512 {
+		t.Fatalf("first payload len=%d want 512 from scaled peer window", len(first.Payload))
+	}
+	select {
+	case second := <-emitCh:
+		t.Fatalf("sender exceeded peer window with second segment %#v", second)
+	case <-time.After(20 * time.Millisecond):
+	}
+
+	ack := window
+	ack.Ack = first.Seq + uint32(len(first.Payload))
+	if _, err := a.HandleSegment(ack, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	second := <-emitCh
+	if len(second.Payload) != 388 {
+		t.Fatalf("second payload len=%d want 388", len(second.Payload))
+	}
+	ack.Ack = second.Seq + uint32(len(second.Payload))
+	if _, err := a.HandleSegment(ack, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestAdvertisedBootstrapWindowMatchesBoundedCapacity(t *testing.T) {
+	a, _ := establishP2(t, func(Segment) error { return nil })
+	defer a.Close()
+
+	seg := a.ACKSegment(a.BootstrapNext())
+	want := uint16(MaxBootstrapBufferedBytes >> DefaultWindowScale)
+	if seg.Window != want {
+		t.Fatalf("advertised window=%d want=%d (capacity=%d scale=%d)", seg.Window, want, MaxBootstrapBufferedBytes, DefaultWindowScale)
+	}
+}

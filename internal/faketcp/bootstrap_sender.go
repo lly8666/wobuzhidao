@@ -191,31 +191,40 @@ func (s *Sender) UpdatePeerWindow(raw uint16, scale uint8, scaleSet bool) {
 // WaitWindow waits until both the peer window and the bootstrap-local flight cap
 // can admit need bytes. A zero peer window therefore blocks new sends but ACK or
 // window-update segments wake the waiter. No artificial pacing sleep is used.
-func (s *Sender) WaitWindow(need, localCap int, deadline time.Time) error {
-	if need <= 0 || localCap <= 0 || need > localCap {
-		return ErrBootstrapOverflow
+func (s *Sender) WaitWindow(maxNeed, localCap int, deadline time.Time) (int, error) {
+	if maxNeed <= 0 || localCap <= 0 {
+		return 0, ErrBootstrapOverflow
+	}
+	if maxNeed > localCap {
+		maxNeed = localCap
 	}
 	for {
 		s.mu.Lock()
 		if s.fail != nil {
 			err := s.fail
 			s.mu.Unlock()
-			return err
+			return 0, err
 		}
 		limit := uint32(localCap)
 		if s.peerWindowKnown && s.peerWindow < limit {
 			limit = s.peerWindow
 		}
 		outstanding := s.nextSeq - s.lastAck
-		if uint32(need) <= limit && outstanding <= limit-uint32(need) {
-			s.mu.Unlock()
-			return nil
+		if outstanding < limit {
+			available := int(limit - outstanding)
+			if available > maxNeed {
+				available = maxNeed
+			}
+			if available > 0 {
+				s.mu.Unlock()
+				return available, nil
+			}
 		}
 		ch := s.notify
 		s.mu.Unlock()
 
 		if err := waitSenderNotify(ch, deadline); err != nil {
-			return err
+			return 0, err
 		}
 	}
 }

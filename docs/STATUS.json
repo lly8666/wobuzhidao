@@ -23,9 +23,9 @@
     "P3子任务：FEC off + 20:4/8/10/12/16/20 live v1全固定挡位、systematic first-arrival、3秒绝对恢复期限、bounded retirement与LINK接线通过Actions",
     "P3子任务：统一MTU/预算（connection/local packet MTU、actual IPv4/TCP headers、peer MSS、record limit、TLS-like/FEC/LINK开销）通过Actions"
   ],
-  "in_progress": "P2 TCP生命周期/bootstrap窗口按Actions失败证据继续收敛：修正剩余Segment比较，并把realityfront内存peer升级为FIN/ACK半关闭模型；产品fallback保持CloseWrite而不退回全关闭。等待新SOURCE_SHA Actions。P3成果不变。",
-  "next_task": "以本提交SOURCE_SHA重跑Linux/Windows unit/build、Linux race/fuzz；通过后记录P2 TCP原子任务PASS，再进入ticket/ALPN/TLS writer所有权与真实网络fallback/pcap资格。",
-  "latest_log": "docs/devlog/20260920-012500-p2-halfclose-test-model-fix.md",
+  "in_progress": "P2 faketcp第一轮Actions已PASS；静态复核发现peer非零窗口小于MSS时仍会等待而非发送可容纳短段，本原子提交修正为按实际可用window切短segment，并新增window容量通告测试。P3成果保持不变。",
+  "next_task": "本小窗口修正通过Actions后，P2进入realityfront：明确Go1.23 TLS1.3 ticket/ALPN/persona/证书边界，切断admission成功后旧TLS writer所有权，再做普通kernel TCP/TLS真实fallback与pcap资格。",
+  "latest_log": "docs/devlog/20260920-013000-p2-peer-window-short-segment.md",
   "last_tested_source_sha": "dbd305950984652361d6bab34f05c66558461311",
   "actions": [
     {
@@ -209,6 +209,20 @@
       "scope": "P2-tcp-lifecycle-bootstrap-window",
       "status": "FAIL",
       "note": "repository-contract PASS；Windows/Linux unit均FAIL。新增association测试有两处直接比较含[]byte的Segment导致编译失败；realityfront既有fallback测试依赖旧BootstrapConn无CloseWrite时的全关闭hack，半关闭实现后测试peer未发送FIN而超时。P3 fec/linkdata/pathmtu/tlsrecord包在到达失败点前未见产品回归结论；race/fuzz未运行。"
+    },
+    {
+      "source_sha": "0128163f747e7c1cfd45e4aff6ee2a2309908f4c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35457047673",
+      "scope": "P2-tcp-lifecycle-static-fix",
+      "status": "FAIL",
+      "note": "repository-contract PASS；Windows/Linux unit均FAIL。首个不可比较Segment已修正，但SYN-ACK retry测试仍有一处retry != first编译错误；fallback半关闭测试仍使用旧内存peer模型而2秒超时。race/fuzz未运行。"
+    },
+    {
+      "source_sha": "8f1ad19b39069f395db74f06ddc259482f3ac6f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35457167177",
+      "scope": "P2-tcp-lifecycle-halfclose",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。新增重复SYN/同ISN、有界SYN-ACK重传、future ACK拒绝、4-chunk bootstrap flight、zero-window、FIN尾数据/乱序FIN、RST合法性、CloseWrite半关闭、四元组复用，以及fallback FIN/ACK测试peer均通过。Artifacts: foundation 10588725361；tlsrecord-reference 10588735352。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -232,7 +246,7 @@
     "docs/ACCEPTANCE.md"
   ],
   "workstreams": {
-    "P2": "REOPENED: TCP生命周期/bootstrap窗口实现待Actions；TLS外观与真实网络资格仍NOT_RUN",
+    "P2": "REOPENED: TCP生命周期主体已Actions PASS；small peer-window修正待Actions，TLS外观/真实网络资格仍OPEN",
     "P3": "IN_PROGRESS:保留LINK/FEC/MTU已测SHA；session/owner与可选padding待实现",
     "P4": "PLANNED:既有lane复用、可选padding预算/默认off",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"

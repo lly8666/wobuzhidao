@@ -30,7 +30,7 @@ var bootstrapPayloads = struct {
 
 type BootstrapSend func([]byte) (end uint32, err error)
 type BootstrapWaitAck func(end uint32, deadline time.Time) error
-type BootstrapWaitWindow func(need, localCap int, deadline time.Time) error
+type BootstrapWaitWindow func(maxNeed, localCap int, deadline time.Time) (allowed int, err error)
 type BootstrapCloseWrite func() error
 
 // BootstrapStream is the temporary reliable ordered adapter used only while TLS
@@ -278,8 +278,15 @@ func (c *BootstrapStream) Write(p []byte) (int, error) {
 				if localCap <= 0 {
 					localCap = DefaultBootstrapChunk * maxFlight
 				}
-				if err := waitWindow(chunk, localCap, deadline); err != nil {
+				allowed, err := waitWindow(chunk, localCap, deadline)
+				if err != nil {
 					return written, err
+				}
+				if allowed <= 0 {
+					return written, ErrBootstrapOverflow
+				}
+				if allowed < chunk {
+					chunk = allowed
 				}
 			}
 			end, err := sendBootstrapPayload(c.send, p[:chunk])
