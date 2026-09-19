@@ -6,15 +6,16 @@
   "product_state": "IN_PROGRESS",
   "updated_at": "2026-09-19",
   "completed": ["新架构决策和项目主旨固定", "旧代码/文档/工作流整体隔离到old", "建立新agent入口、阶段计划、开发日志和Actions基础检查"],
-  "in_progress": "P1：根Go module与internal/tlsrecord已提交；首次Actions发现go.mod缺x/sys间接依赖，正在按原固定版本修复并重跑。",
-  "next_task": "P1：确认修复提交的Linux/Windows unit、Linux race/fuzz通过并读取独立tlsrecord reference vector，将expected keys/wire bytes固化为静态测试。",
-  "latest_log": "docs/devlog/20260919-172600-p1-go-mod-deps.md",
-  "last_tested_source_sha": "de284220bef3880ef126a67e3cb7ef43e02a98fe",
+  "in_progress": "P1：根Go module与internal/tlsrecord基础实现已在65184f80通过Linux/Windows unit/build、Linux race/fuzz；现将独立Actions reference artifact中的固定keys/wire bytes固化为静态测试并补深度乱序/失败状态边界。",
+  "next_task": "P1：验证静态reference-vector提交的Linux/Windows unit、Linux race/fuzz全部通过；以该精确SOURCE_SHA写回最终P1证据后进入P2。",
+  "latest_log": "docs/devlog/20260919-172800-p1-static-vectors.md",
+  "last_tested_source_sha": "65184f80bde05240071fd8954a15db4118d59609",
   "actions": [
     {"source_sha": "3335b13a913cbd4b1adc689d75605b159280afac", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35433878751", "scope": "repository-foundation-only", "status": "PASS", "note": "repository-contract通过；active-go-tests按尚无产品module明确SKIPPED，不是产品资格。"},
-    {"source_sha": "de284220bef3880ef126a67e3cb7ef43e02a98fe", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434610338", "scope": "P1-root-go-and-tlsrecord", "status": "FAIL", "note": "repository-contract PASS；Ubuntu active-go-tests在go list阶段报告go.mod需要tidy，race/fuzz/reference未运行。该失败是依赖元数据缺失证据，不归因runner。"}
+    {"source_sha": "de284220bef3880ef126a67e3cb7ef43e02a98fe", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434610338", "scope": "P1-root-go-and-tlsrecord", "status": "FAIL", "note": "repository-contract PASS；Ubuntu active-go-tests在go list阶段报告go.mod需要tidy，race/fuzz/reference未运行。"},
+    {"source_sha": "65184f80bde05240071fd8954a15db4118d59609", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434673830", "scope": "P1-tlsrecord-pre-static-vectors", "status": "PASS", "note": "Windows unit/build PASS；Linux unit/build、race、15s定向fuzz PASS；独立reference generator PASS并上传artifact 10581128027。静态expected bytes尚在后续提交验证。"}
   ],
   "physical_status": "NOT_RUN",
-  "known_limits": ["P1尚未获得完整Actions PASS", "固定expected wire bytes尚待独立reference artifact生成后固化", "尚无可运行client/server或真实握手/网络数据面", "旧分支测试结果不属于新产品", "物理机验收留到P7"],
+  "known_limits": ["静态固定向量提交尚未获得Actions结果，因此P1尚未完成", "尚无可运行client/server或真实TLS exporter/FakeTCP阶段移交", "旧分支测试结果不属于新产品", "物理机验收留到P7"],
   "required_read_set": ["AGENTS.md", "PROJECT_CHARTER.md", "docs/ROADMAP.md", "docs/DEVELOPMENT_PLAN.md", "docs/WIRE_SPEC.md", "docs/MODULE_MAP.md", "docs/ACCEPTANCE.md"]
 }
