@@ -2,7 +2,7 @@
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
-  "milestone": "P3",
+  "milestone": "P2",
   "product_state": "IN_PROGRESS",
   "updated_at": "2026-09-19",
   "completed": [
@@ -16,12 +16,11 @@
     "P2子任务：真实TLS/uTLS Firefox120 persona、ClientHello分类/replay与真实exporter在同association上通过Actions",
     "P2子任务：TLS内受保护admission、最小username/password认证、v1/nonce/TunnelID/双向record limits协商与prepare/detach通过Actions",
     "P2子任务：真实decoy fallback（单ClientHello分类、byte-exact raw replay、同association双向splice、recognized零fallback dial）通过Actions",
-    "P2子任务：最后bootstrap payload loss/ACK loss与首条新record整包丢失后的record no-HOL资格通过Actions",
-    "P2：FakeTCP同流bootstrap、真实TLS/persona/exporter、受保护认证/admission、真实fallback、阶段移交、loss/no-HOL与hosted wire-format核心资格全部通过Actions"
+    "P2子任务：最后bootstrap payload loss/ACK loss与首条新record整包丢失后的record no-HOL资格通过Actions"
   ],
-  "in_progress": "P3启动：按MODULE_MAP提取LINK/FEC/MTU和必要session核心。第一原子任务只提取old/internal/linkdata的数据报分片/重组与wire约束，先建立单数据报完整性、乱序分片、重复分片、过期/有界状态测试；暂不接FEC和平台I/O。",
-  "next_task": "P3：定向读取old/internal/linkdata及直接tests/imports，提取单数据报LINK fragmentation/reassembly最小闭包；固定wire字段、PacketID/fragment identity、最大分片/长度边界、乱序与重复行为、超时退役。通过Actions后再接old/internal/fec systematic fast-path，不在同提交混做MTU/FEC调参。",
-  "latest_log": "docs/devlog/20260919-215500-p2-actions-pass-p3-handoff.md",
+  "in_progress": "P2审计返工：核心TLS/no-HOL/fallback/transition证据保留；正在补普通合法SYN入口与一个覆盖ClientHello识别→TLS→admission→最终回复ACK→detach的绝对候选建连期限。已修改代码与方案文件，等待精确SOURCE_SHA Actions。",
+  "next_task": "P2审计返工：验证普通SYN不同MSS/WS/SACK/无选项均可进入ClientHello/fallback、peer MSS约束bootstrap且SYN-ACK按对端选项协商；验证TLS后沉默、半认证、context取消、最终admission回复ACK不到均在绝对期限内关闭候选并清理transition。全部Actions PASS后更新P2覆盖矩阵并恢复P3 linkdata任务。",
+  "latest_log": "docs/devlog/20260919-224500-p2-audit-entry-deadline-fix.md",
   "last_tested_source_sha": "f3df77e8b9e3170e1d9c52a501985a5b384e0fba",
   "actions": [
     {
@@ -167,10 +166,12 @@
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "真实raw socket/Npcap抓包与capture-loss统计未实现；hosted wire serialization资格不替代P5 fullstack capture或P7物理验收",
+    "本次审计返工代码尚未获得Actions结果，P2暂不重新盖章完成",
+    "已识别WBD连接由本地Go TLS server完成握手；当前只证明真实TLS与Firefox120 ClientHello/persona，不证明服务端ALPN/扩展/握手分段/会话恢复与指定借用网站一致",
+    "真实raw socket/Npcap抓包与普通内核TCP浏览器访问尚未实现；hosted wire serialization不替代P5/P7实抓",
     "平台raw packet IO尚未从old提取；当前association仍以SegmentEmitter作为I/O边界",
     "ticket/lease/installation ID/CLI尚未迁移，属于后续P4产品层",
-    "P3 LINK/FEC/MTU/session数据面尚未实现",
+    "P3 LINK/FEC/MTU/session数据面尚未实现，本轮审计返工通过前暂停P3实现",
     "尚无可运行client/server完整网络产品入口",
     "物理机验收留到P7"
   ],

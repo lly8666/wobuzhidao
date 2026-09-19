@@ -4,9 +4,9 @@
 
 | 模块 | 决定 | 具体边界 |
 |---|---|---|
-| `old/internal/realityfront/` | 复用为主 | 保留真实 TLS/uTLS persona、识别、账户与 fallback；改返回值携带真实 exporter 派生结果 |
+| `old/internal/realityfront/` | 复用为主 | 保留真实 TLS/uTLS persona、识别、账户与 fallback；改返回值携带真实 exporter 派生结果；候选 absolute deadline 覆盖识别/TLS/admission/移交，不能在 TLS 后重置预算 |
 | `old/internal/faketcp/bootstrap_stream.go` 及测试 | 复用 | 保留有界顺序和 ACK-gated write；增加内部 prepare/detach/边界验证，不新增公开握手 |
-| `old/internal/faketcp` 的 raw packet/persona/platform IO | 提取复用 | SYN、checksum、options、seq wrap、Npcap/raw IO；去掉 DTLS/旧进程绑定 |
+| `old/internal/faketcp` 的 raw packet/persona/platform IO | 提取复用 | 保留 WBD 客户端 SYN persona，但服务端接受普通合法初始 SYN；正确记录 peer MSS/WS/SACK、按 peer MSS 限制 bootstrap、按协商序列化 SYN-ACK；保留 checksum/options/seq wrap/Npcap/raw IO；去掉 DTLS/旧进程绑定 |
 | `old/internal/faketcp/arq.go`、`repair_horizon.go`、`adaptive_pressure.go` | 行为复用 | 默认 legacy、4096 有效记录、元数据上限、修复预算、自适应放弃、late first-arrival；不重新选型 |
 | `old/internal/logicaltunnel/` | 复用 | lease、installation、身份隔离、生命周期参数；从旧 CLI 中提取必要协调逻辑 |
 | `old/internal/gamelane/`、`old/internal/gamepath/` | 复用 | PacketID 竞速/去重、多 lane；用新 owner API 接入 |

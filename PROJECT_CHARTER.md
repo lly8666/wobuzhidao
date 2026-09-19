@@ -41,7 +41,9 @@ DORMANT 关闭传输但保留 Tunnel、lease、TUN、路由/DNS，真实业务�
 
 ## 5. 外观与性能的诚实边界
 
-目标是握手自然、稳态 TLS record 格式正确、无明文私有 framing、重传一致、MTU/checksum/序列计算正确。网络真实丢包引起的重传/乱序提示不等于协议异常。
+目标是握手自然、稳态 TLS record 格式正确、无明文私有 framing、重传一致、MTU/checksum/序列计算正确。普通合法 TCP SYN 必须能进入 ClientHello/fallback 路径，WBD 固定 SYN persona 不是服务端身份条件。网络真实丢包引起的重传/乱序提示不等于协议异常。
+
+“真实 TLS / 浏览器风格 ClientHello”与“指定借用网站完整服务端握手指纹一致”是不同能力。前者可在 hosted Actions 验证；后者必须等平台 I/O、普通浏览器访问和真实抓包后再下结论。已识别 WBD 当前由本地 TLS server 握手，不能因为 SNI/证书正确就宣称服务端 ALPN、扩展、分段、会话恢复等已经与目标网站一致。
 
 有限恢复的缺口放弃与严格 TCP 累计 ACK 语义存在差异。必须报告，不能承诺所有主动/双端观察都识别不出。不得为了隐藏差异牺牲无 HOL、有界状态或制造替代密文。
 

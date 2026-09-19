@@ -50,22 +50,42 @@ func HandleServerAssociation(ctx context.Context, assoc *faketcp.ServerAssociati
 		return out, ErrAdmissionParams
 	}
 	conn := assoc.BootstrapConn()
-	hello, err := ReadHello(conn, admission.TLS.ServerName, admission.TLS.RouteKey, admission.TLS.Timeout)
+	guard, err := beginCandidateDeadline(ctx, conn, admission.TLS.Timeout)
 	if err != nil {
 		return out, err
 	}
+
+	hello, err := ReadHello(conn, admission.TLS.ServerName, admission.TLS.RouteKey, guard.Remaining())
+	if err != nil {
+		guard.Finish(false)
+		assoc.Close()
+		return out, candidateError(ctx, err)
+	}
+	if err := guard.Rearm(); err != nil {
+		guard.Finish(false)
+		assoc.Close()
+		return out, err
+	}
 	if hello.Recognized {
-		session, err := establishServerRecognized(ctx, assoc, hello, admission)
+		session, err := establishServerRecognized(ctx, assoc, hello, admission, guard)
 		if err != nil {
+			guard.Finish(false)
+			assoc.Close()
 			return out, err
 		}
+		guard.Finish(true)
 		out.Branch = "wbd"
 		out.Admission = session
 		return out, nil
 	}
 
+	// Once classified as an ordinary visitor, this is no longer a WBD
+	// candidate. Clear the candidate deadline before entering the decoy splice;
+	// fallback has its own dial/session bounds.
+	guard.Finish(true)
 	result, err := FallbackFromHello(ctx, conn, hello, fallback)
 	if err != nil {
+		assoc.Close()
 		return out, err
 	}
 	out.Branch = "fallback"

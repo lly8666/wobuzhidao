@@ -16,9 +16,13 @@ Go unit：Linux、Windows；race：Linux；定向 fuzz：Linux。固定 keys 与
 
 ## P2 建连和外观
 
-真实 TLS/persona/fallback/认证、同 lane一个SYN lineage、无第二公开连接；最后bootstrap丢包/重传/ACK丢失、首条新记录丢失/提前到达、reader预读、退出候选、transition队列上限。新版本拒绝不支持版本，不降级。
+真实 TLS/persona/fallback/认证、同 lane一个SYN lineage、无第二公开连接；服务端不得用 WBD 固定 MSS/WS/SACK 组合做入口身份门槛，普通合法 TCP SYN（含不同 MSS、窗口缩放、SACK 组合及无选项情形）必须能完成三次握手并到达 ClientHello 分类，身份只在后续 TLS/受保护路径判断。对端 MSS 必须约束 bootstrap 发包，WS/SACK 只按合法 SYN 协商。最后bootstrap丢包/重传/ACK丢失、首条新记录丢失/提前到达、reader预读、退出候选、transition队列上限。新版本拒绝不支持版本，不降级。
+
+候选建连必须有一个绝对期限覆盖 ClientHello 识别 -> TLS -> admission -> prepare/final reply ACK -> detach；各子阶段不得重新获得完整 timeout。TLS 完成后沉默、认证只发送一部分、context 取消、最终应答无法获得 FakeTCP ACK 都必须在该期限内释放候选连接、等待者和 transition buffer；成功 detach 后才清除候选 deadline。
 
 抓包格式门槛：无损且无capture loss时TLS记录连续可解析；重传相同Seq下payload完全相同；无明文私有外层头；MTU/checksum/options/MSS正确，无意外IP分片。真实丢包的乱序、SACK、Dup ACK提示单独解释；有限gap forgiveness造成的标准TCP差异单独计数，不要求消灭。
+
+外观结论必须分层：hosted serializer/unit 只能证明 TCP/IP/TLS 格式与本地 persona，不得宣称“已与指定借用网站握手指纹一致”。未识别访客的 byte-exact ClientHello replay + decoy splice 与已识别 WBD 的本地 Go TLS server 是两条不同路径。指定网站的服务端参数、ALPN、握手长度/分段、会话恢复等相似性只有在平台 I/O 接入后的真实普通浏览器访问和连续抓包中才能验收；禁用 Session Tickets 的阶段切换安全性优先，不得为外观擅自重新开启。
 
 ## P3 数据面
 

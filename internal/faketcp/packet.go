@@ -15,6 +15,8 @@ const (
 
 	DefaultWindowScale = 8
 	DefaultMSS         = 1360
+	DefaultIPv4PeerMSS = 536
+	MaxWindowScale     = 14
 
 	synOptionLen = 12
 )
@@ -44,10 +46,30 @@ type Segment struct {
 	Payload        []byte
 }
 
-// IsWBDHandshakeSegment recognizes the already-existing SYN option profile. It
-// adds no private cleartext marker and therefore does not change the public wire.
+// IsInitialSYN accepts a normal initial TCP SYN independently of the WBD client
+// presentation. ECE/CWR bits are intentionally tolerated; ACK/FIN/RST/PSH,
+// SYN payload, invalid option values, or zero ports are not.
+func IsInitialSYN(s Segment) bool {
+	if s.Flags&FlagSYN == 0 ||
+		s.Flags&(FlagACK|FlagFIN|FlagRST|FlagPSH) != 0 ||
+		len(s.Payload) != 0 ||
+		s.SrcPort == 0 || s.DstPort == 0 {
+		return false
+	}
+	if s.MSSSet && s.MSS == 0 {
+		return false
+	}
+	if s.WindowScaleSet && s.WindowScale > MaxWindowScale {
+		return false
+	}
+	return true
+}
+
+// IsWBDHandshakeSegment recognizes the client presentation currently emitted by
+// WBD. It is an appearance helper only and is deliberately NOT a server
+// admission predicate; identity is decided later from the protected TLS path.
 func IsWBDHandshakeSegment(s Segment) bool {
-	return s.Flags&FlagSYN != 0 && len(s.Payload) == 0 &&
+	return IsInitialSYN(s) &&
 		s.MSSSet && s.MSS == DefaultMSS &&
 		s.SACKPermitted && s.WindowScaleSet && s.WindowScale == DefaultWindowScale
 }
@@ -73,16 +95,14 @@ func PacketLen(flags uint8, payloadLen int) int {
 	return 40 + packetOptionLen(flags) + payloadLen
 }
 
+// MarshalSegment serializes the options carried by Segment itself. This is
+// needed for server SYN-ACK negotiation: SACK/window-scale are only offered
+// when the peer offered them. The legacy MarshalIPv4TCP helpers below keep the
+// fixed WBD client SYN presentation.
 func MarshalSegment(seg Segment, ipID uint16, persona PacketPersona) []byte {
-	buf := make([]byte, PacketLen(seg.Flags, len(seg.Payload)))
-	return MarshalIPv4TCPPersonaInto(
-		buf,
-		seg.SrcIP, seg.DstIP,
-		seg.SrcPort, seg.DstPort,
-		seg.Seq, seg.Ack,
-		seg.Flags, seg.Window,
-		seg.Payload, ipID, persona,
-	)
+	opts := segmentSYNOptions(seg, persona)
+	buf := make([]byte, 40+len(opts)+len(seg.Payload))
+	return marshalIPv4TCPSegmentInto(buf, seg, opts, ipID, persona)
 }
 
 func MarshalIPv4TCP(srcIP, dstIP [4]byte, srcPort, dstPort uint16, seq, ack uint32, flags uint8, window uint16, payload []byte, ipID uint16) []byte {
@@ -161,6 +181,91 @@ func marshalIPv4TCPBaseInto(buf []byte, srcIP, dstIP [4]byte, srcPort, dstPort u
 	copy(tcp[20+optLen:], payload)
 	binary.BigEndian.PutUint16(tcp[16:18], tcpChecksum(srcIP, dstIP, tcp))
 	return buf
+}
+
+func marshalIPv4TCPSegmentInto(buf []byte, seg Segment, opts []byte, ipID uint16, persona PacketPersona) []byte {
+	need := 40 + len(opts) + len(seg.Payload)
+	if len(buf) < need {
+		panic("faketcp: marshal buffer too small")
+	}
+	buf = buf[:need]
+	clear(buf[:40+len(opts)])
+
+	ip := buf[:20]
+	ip[0] = 0x45
+	binary.BigEndian.PutUint16(ip[2:4], uint16(len(buf)))
+	binary.BigEndian.PutUint16(ip[4:6], ipID)
+	binary.BigEndian.PutUint16(ip[6:8], 0x4000)
+	if persona == PacketPersonaWindows11 {
+		ip[8] = 128
+	} else {
+		ip[8] = 64
+	}
+	ip[9] = 6
+	copy(ip[12:16], seg.SrcIP[:])
+	copy(ip[16:20], seg.DstIP[:])
+	binary.BigEndian.PutUint16(ip[10:12], checksum(ip))
+
+	tcp := buf[20:]
+	binary.BigEndian.PutUint16(tcp[0:2], seg.SrcPort)
+	binary.BigEndian.PutUint16(tcp[2:4], seg.DstPort)
+	binary.BigEndian.PutUint32(tcp[4:8], seg.Seq)
+	binary.BigEndian.PutUint32(tcp[8:12], seg.Ack)
+	tcp[12] = byte((20 + len(opts)) / 4 << 4)
+	tcp[13] = seg.Flags
+	binary.BigEndian.PutUint16(tcp[14:16], seg.Window)
+	copy(tcp[20:20+len(opts)], opts)
+	copy(tcp[20+len(opts):], seg.Payload)
+	binary.BigEndian.PutUint16(tcp[16:18], tcpChecksum(seg.SrcIP, seg.DstIP, tcp))
+	return buf
+}
+
+func segmentSYNOptions(seg Segment, persona PacketPersona) []byte {
+	if seg.Flags&FlagSYN == 0 {
+		return nil
+	}
+	opts := make([]byte, 0, synOptionLen)
+	appendMSS := func() {
+		if !seg.MSSSet {
+			return
+		}
+		opts = append(opts, 2, 4, 0, 0)
+		binary.BigEndian.PutUint16(opts[len(opts)-2:], seg.MSS)
+	}
+	appendSACK := func() {
+		if seg.SACKPermitted {
+			opts = append(opts, 4, 2)
+		}
+	}
+	appendWS := func() {
+		if !seg.WindowScaleSet {
+			return
+		}
+		opts = append(opts, 3, 3, seg.WindowScale)
+	}
+
+	if persona == PacketPersonaWindows11 {
+		appendMSS()
+		if seg.WindowScaleSet {
+			opts = append(opts, 1)
+			appendWS()
+		}
+		if seg.SACKPermitted {
+			opts = append(opts, 1, 1)
+			appendSACK()
+		}
+	} else {
+		appendMSS()
+		appendSACK()
+		if seg.WindowScaleSet {
+			opts = append(opts, 1)
+			appendWS()
+		}
+	}
+	for len(opts)%4 != 0 {
+		opts = append(opts, 1)
+	}
+	return opts
 }
 
 func ParseIPv4TCP(packet []byte) (Segment, error) {

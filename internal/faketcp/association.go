@@ -54,6 +54,14 @@ type ServerSegmentResult struct {
 	Record      *TransitionPacket
 }
 
+type PeerTCPProfile struct {
+	AdvertisedMSS  bool
+	MSS            uint16
+	SACKPermitted  bool
+	WindowScale    uint8
+	WindowScaleSet bool
+}
+
 // ServerAssociation is the P2 handshake/bootstrap closure. It keeps one
 // four-tuple and one pair of TCP sequence spaces from SYN through TLS bootstrap
 // and the prepare/detach barrier. It intentionally contains no steady-state
@@ -65,6 +73,7 @@ type ServerAssociation struct {
 	state     ServerAssociationState
 	serverISN uint32
 	peerStart uint32
+	peer      PeerTCPProfile
 
 	sender     *Sender
 	bootstrap  *BootstrapStream
@@ -73,18 +82,28 @@ type ServerAssociation struct {
 }
 
 func NewServerAssociation(syn Segment, serverISN uint32, initialRTO time.Duration, emit SegmentEmitter) (*ServerAssociation, error) {
-	if syn.Flags&FlagSYN == 0 || syn.Flags&FlagACK != 0 || !IsWBDHandshakeSegment(syn) ||
-		syn.SrcPort == 0 || syn.DstPort == 0 {
+	if !IsInitialSYN(syn) {
 		return nil, ErrBadServerSYN
 	}
 
+	peerMSS := uint16(DefaultIPv4PeerMSS)
+	if syn.MSSSet {
+		peerMSS = syn.MSS
+	}
 	a := &ServerAssociation{
 		flow:      ServerFlowFromSegment(syn),
 		state:     ServerAssociationAwaitACK,
 		serverISN: serverISN,
 		peerStart: syn.Seq + 1,
-		sender:    NewSender(serverISN+1, initialRTO),
-		emit:      emit,
+		peer: PeerTCPProfile{
+			AdvertisedMSS:  syn.MSSSet,
+			MSS:            peerMSS,
+			SACKPermitted:  syn.SACKPermitted,
+			WindowScale:    syn.WindowScale,
+			WindowScaleSet: syn.WindowScaleSet,
+		},
+		sender: NewSender(serverISN+1, initialRTO),
+		emit:   emit,
 	}
 	local := &net.TCPAddr{
 		IP:   net.IPv4(a.flow.ServerIP[0], a.flow.ServerIP[1], a.flow.ServerIP[2], a.flow.ServerIP[3]),
@@ -97,6 +116,9 @@ func NewServerAssociation(syn Segment, serverISN uint32, initialRTO time.Duratio
 	stream, err := NewBootstrapStream(a.peerStart, a.sendBootstrap, a.sender.WaitAck, local, remote)
 	if err != nil {
 		return nil, err
+	}
+	if peerMSS < DefaultBootstrapChunk {
+		stream.chunk = int(peerMSS)
 	}
 	a.bootstrap = stream
 	return a, nil
@@ -112,6 +134,12 @@ func (a *ServerAssociation) State() ServerAssociationState {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	return a.state
+}
+
+func (a *ServerAssociation) PeerTCPProfile() PeerTCPProfile {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.peer
 }
 
 func (a *ServerAssociation) BootstrapConn() net.Conn {
@@ -146,8 +174,8 @@ func (a *ServerAssociation) SYNACKSegment() (Segment, error) {
 		Seq: a.serverISN, Ack: a.peerStart,
 		Flags: FlagSYN | FlagACK, Window: 65535,
 		MSS: DefaultMSS, MSSSet: true,
-		SACKPermitted: true,
-		WindowScale: DefaultWindowScale, WindowScaleSet: true,
+		SACKPermitted: a.peer.SACKPermitted,
+		WindowScale: DefaultWindowScale, WindowScaleSet: a.peer.WindowScaleSet,
 	}, nil
 }
 

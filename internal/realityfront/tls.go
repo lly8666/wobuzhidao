@@ -17,14 +17,19 @@ type ClientConfig struct {
 	ServerName   string
 	RouteKey     []byte
 	VerifyServer bool
-	Timeout      time.Duration
+	// Timeout is the absolute candidate establishment budget when used by
+	// EstablishClient/HandleServerAssociation. Handshake-only helpers use it as
+	// their phase timeout.
+	Timeout time.Duration
 }
 
 type ServerConfig struct {
 	ServerName string
 	RouteKey   []byte
 	TLSConfig  *tls.Config
-	Timeout    time.Duration
+	// Timeout is the absolute candidate establishment budget when used by the
+	// admission/server-association entry points.
+	Timeout time.Duration
 }
 
 type ExporterParams struct {

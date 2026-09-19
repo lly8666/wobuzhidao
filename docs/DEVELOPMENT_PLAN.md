@@ -36,7 +36,7 @@ raw IO -> 当前首次到达接收 -> record 独立 open
 
 ## 3. 建连与阶段移交
 
-保留 SYN persona、同四元组/序列空间、识别、fallback、真实 TLS、账户认证、租约与 ticket。只有受保护 admission message 做新版本扩展，以携带 WIRE_SPEC 参数。旧 V2 无需兼容；不修改 ClientHello 以宣告自定义数据协议。
+保留 SYN persona、同四元组/序列空间、识别、fallback、真实 TLS、账户认证、租约与 ticket。WBD 客户端继续使用当前 SYN persona，但服务端入口不得把该 persona 当身份：任何合法初始 SYN 都先建立同一 FakeTCP association，记录 peer MSS/WS/SACK；MSS 约束 bootstrap 分段，SYN-ACK 的 WS/SACK 只在对端提出时协商。WBD/普通访客的区分推迟到 ClientHello/受保护路径。只有受保护 admission message 做新版本扩展，以携带 WIRE_SPEC 参数。旧 V2 无需兼容；不修改 ClientHello 以宣告自定义数据协议。
 
 不新增 READY/COMMIT/SYNC_ACK 迷你握手。复用成熟 ACK-gated write 和 stageTransition，但补齐所有权界限：
 
@@ -49,7 +49,11 @@ raw IO -> 当前首次到达接收 -> record 独立 open
 
 方向边界保存于 session，不通过 TLS header 字节猜模式。使用正确 wrap 比较，纯 ACK 始终交 FakeTCP。读预取、残留 TLS writer、post-handshake ticket 和关闭行为必须专项测试；必要的 prepare/detach 是内部 API，不是第二个网络握手。
 
-Transition queue 首版沿用最多 64 条并增加总字节上限 `64 * negotiated_record_wire_max`，受当前 bootstrap 总超时限制。满或失败只退出候选并清理所有 buffer，不杀旧 ACTIVE lane。
+Transition queue 首版沿用最多 64 条并增加总字节上限 `64 * negotiated_record_wire_max`。每个候选只有一个绝对建连期限，覆盖 ClientHello 识别、TLS、受保护 admission、prepare、最终应答获得 FakeTCP ACK 与 detach；子阶段只能使用剩余预算，不能 TLS 成功后清空 deadline 重新计时。context 取消立即唤醒阻塞 I/O。超时/取消/失败必须关闭候选 association、解除 ACK wait 并清理 transition buffer；只有成功移交后才清除候选 deadline，不杀旧 ACTIVE lane。
+
+### 外观能力边界
+
+“真实 TLS + Firefox120 风格 ClientHello”只证明客户端 hello/persona 与协议格式，不等于已复刻指定借用网站的服务端握手指纹。未识别访客会把原始 ClientHello byte-exact replay 到 decoy；已识别 WBD 仍由本地 Go `tls.Server` 完成 TLS 1.3，并为避免 transition 后残留 writer 禁用 Session Tickets。ALPN、服务端扩展/参数、握手报文长度与分段、恢复行为的相似性在 P2 hosted 阶段不作“网站一致”结论，待平台 I/O 后由普通内核 TCP 客户端访问和真实抓包验收。不得为追求外观破坏 no-HOL 或 prepare/detach 边界。
 
 ## 4. 加密记录与无 HOL
 

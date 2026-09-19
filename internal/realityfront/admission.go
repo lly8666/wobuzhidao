@@ -107,16 +107,33 @@ func EstablishClient(ctx context.Context, conn net.Conn, cfg ClientAdmissionConf
 		return nil, err
 	}
 
-	uconn, err := handshakeClientConn(ctx, conn, cfg.TLS)
+	guard, err := beginCandidateDeadline(ctx, conn, cfg.TLS.Timeout)
 	if err != nil {
+		return nil, err
+	}
+	success := false
+	defer func() {
+		guard.Finish(success)
+		if !success {
+			_ = conn.Close()
+		}
+	}()
+
+	tlsCfg := cfg.TLS
+	tlsCfg.Timeout = guard.Remaining()
+	uconn, err := handshakeClientConn(ctx, conn, tlsCfg)
+	if err != nil {
+		return nil, candidateError(ctx, err)
+	}
+	if err := guard.Rearm(); err != nil {
 		return nil, err
 	}
 	if err := writeFull(uconn, wire); err != nil {
-		return nil, err
+		return nil, candidateError(ctx, err)
 	}
 	result, err := readAdmissionReply(uconn, req)
 	if err != nil {
-		return nil, err
+		return nil, candidateError(ctx, err)
 	}
 
 	state := uconn.ConnectionState()
@@ -125,6 +142,7 @@ func EstablishClient(ctx context.Context, conn net.Conn, cfg ClientAdmissionConf
 		return nil, err
 	}
 	result.Keys = keys
+	success = true
 	return &ClientAdmissionSession{
 		TLS:        &ClientSession{Conn: uconn, Keys: keys},
 		Negotiated: result,
@@ -140,19 +158,39 @@ func EstablishServer(ctx context.Context, assoc *faketcp.ServerAssociation, cfg 
 		return nil, ErrAdmissionParams
 	}
 	conn := assoc.BootstrapConn()
-	hello, err := ReadHello(conn, cfg.TLS.ServerName, cfg.TLS.RouteKey, cfg.TLS.Timeout)
+	guard, err := beginCandidateDeadline(ctx, conn, cfg.TLS.Timeout)
 	if err != nil {
+		return nil, err
+	}
+	success := false
+	defer func() {
+		guard.Finish(success)
+		if !success {
+			assoc.Close()
+		}
+	}()
+
+	hello, err := ReadHello(conn, cfg.TLS.ServerName, cfg.TLS.RouteKey, guard.Remaining())
+	if err != nil {
+		return nil, candidateError(ctx, err)
+	}
+	if err := guard.Rearm(); err != nil {
 		return nil, err
 	}
 	if !hello.Recognized {
 		return nil, ErrMarker
 	}
-	return establishServerRecognized(ctx, assoc, hello, cfg)
+	session, err := establishServerRecognized(ctx, assoc, hello, cfg, guard)
+	if err != nil {
+		return nil, err
+	}
+	success = true
+	return session, nil
 }
 
 // establishServerRecognized takes ownership after one ClientHello has already
 // been classified. It must never read or classify another ClientHello.
-func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssociation, hello Hello, cfg ServerAdmissionConfig) (*ServerAdmissionSession, error) {
+func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssociation, hello Hello, cfg ServerAdmissionConfig, guard *candidateDeadline) (*ServerAdmissionSession, error) {
 	if assoc == nil || !hello.Recognized {
 		return nil, ErrAdmissionParams
 	}
@@ -160,15 +198,24 @@ func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssocia
 		return nil, ErrAdmissionParams
 	}
 	conn := assoc.BootstrapConn()
-	tlsConn, err := handshakeServerRecognizedConn(ctx, conn, hello, cfg.TLS)
+	tlsCfg := cfg.TLS
+	if guard != nil {
+		tlsCfg.Timeout = guard.Remaining()
+	}
+	tlsConn, err := handshakeServerRecognizedConn(ctx, conn, hello, tlsCfg)
 	if err != nil {
-		return nil, err
+		return nil, candidateError(ctx, err)
+	}
+	if guard != nil {
+		if err := guard.Rearm(); err != nil {
+			return nil, err
+		}
 	}
 
 	req, err := readAdmissionRequest(tlsConn)
 	if err != nil {
 		_ = writeAdmissionFailure(tlsConn, admissionStatus(err))
-		return nil, err
+		return nil, candidateError(ctx, err)
 	}
 	if !credentialsMatch(req.Username, req.Password, cfg.ExpectedUsername, cfg.ExpectedPassword) {
 		_ = writeAdmissionFailure(tlsConn, admissionAuthFail)
@@ -208,7 +255,7 @@ func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssocia
 	}
 	if err := writeFull(tlsConn, reply); err != nil {
 		assoc.AbortTransition()
-		return nil, err
+		return nil, candidateError(ctx, err)
 	}
 	early, err := assoc.DetachTransition()
 	if err != nil {
