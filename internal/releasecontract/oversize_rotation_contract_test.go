@@ -31,6 +31,14 @@ func TestOversizedGameRotationReleaseContract(t *testing.T) {
 		requireContains(t, workflow, want, "oversized rotation exact-source matrix")
 	}
 
+	for _, want := range []string{
+		"scripts/game_lane_rotation_soak.sh",
+		"scripts/game_lane_rotation_soak_control.sh",
+		"internal/releasecontract/**",
+	} {
+		requireContains(t, transport, want, "transport matrix exact-source path triggers")
+	}
+
 	for _, body := range []struct {
 		name string
 		text string

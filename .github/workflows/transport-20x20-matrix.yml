@@ -7,6 +7,9 @@ on:
       - 'scripts/bench_v2_transport_20x20.py'
       - '.github/workflows/transport-20x20-matrix.yml'
       - '.github/workflows/game-lane-rotation-soak.yml'
+      - 'scripts/game_lane_rotation_soak.sh'
+      - 'scripts/game_lane_rotation_soak_control.sh'
+      - 'internal/releasecontract/**'
 
 permissions:
   contents: read
