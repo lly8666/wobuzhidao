@@ -144,6 +144,10 @@ jobs:
           DURATION_SEC: '500'
           RATE_BPS: '1000000'
           PAYLOAD_BYTES: '1000'
+          # Individual replicas keep the existing 99.5% downstream goodput
+          # floor. The aggregate job preserves the stricter 0.1% loss budget
+          # across all five stochastic replicas of each FEC mode.
+          MAX_LOSS_RATIO: '0.005'
           ROTATE_INTERVAL_SEC: '25'
           ROTATIONS: '16'
           NETEM_DELAY_MS: '300'
@@ -202,6 +206,34 @@ jobs:
     needs: soak-500s-4lane-1mbps-weaknet
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: game-lane-rotation-soak-500s-1mbps-300ms-loss20-*
+          path: ${{ runner.temp }}/rotation-results
+      - name: Enforce five-replica aggregate loss budget
+        run: |
+          set -euo pipefail
+          python3 - "${RUNNER_TEMP}/rotation-results" <<'PY'
+          import json, pathlib, sys
+          root = pathlib.Path(sys.argv[1])
+          rows = [json.loads(p.read_text()) for p in sorted(root.rglob('load-result.json'))]
+          assert len(rows) == 10, len(rows)
+          by_fec = {}
+          for d in rows:
+              assert d['rotations'] == 16 and d['peer_resets'] == 16, d
+              assert d['no_client_rx_expire'] == 0, d
+              assert d['duplicates'] == 0 and d['bad_payload'] == 0, d
+              assert d['loss_ratio'] <= 0.005, d
+              by_fec.setdefault(d['fec'], []).append(d)
+          assert set(by_fec) == {'off', '20:20'}, by_fec.keys()
+          for fec, group in sorted(by_fec.items()):
+              assert len(group) == 5, (fec, len(group))
+              sent = sum(d['sent'] for d in group)
+              lost = sum(d['lost'] for d in group)
+              ratio = lost / sent if sent else 1.0
+              assert ratio <= 0.001, (fec, lost, sent, ratio)
+              print(f"WBD_SOAK_AGGREGATE_PASS fec={fec} replicas=5 lost={lost} sent={sent} loss_ratio={ratio:.9f}")
+          PY
       - name: Publish matrix marker
         run: |
-          echo "WBD_GAME_LANE_ROTATION_SOAK_MATRIX_PASS source_sha=${GITHUB_SHA} duration_sec=500 lanes=4 payload_bps_each_direction=1000000 netem_delay_ms=300 netem_loss_pct=20 replicas_per_fec=5 rotations=16 fec=off,20:20"
+          echo "WBD_GAME_LANE_ROTATION_SOAK_MATRIX_PASS source_sha=${GITHUB_SHA} duration_sec=500 lanes=4 payload_bps_each_direction=1000000 netem_delay_ms=300 netem_loss_pct=20 replicas_per_fec=5 rotations=16 aggregate_loss_ratio_max=0.001 per_replica_goodput_floor=0.995 fec=off,20:20"
