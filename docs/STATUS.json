@@ -13,12 +13,13 @@
     "P2子任务：FakeTCP BootstrapStream最小闭包提取、复用登记及基础Actions验证",
     "P2子任务：bootstrap Sender/Pending重传与ACK wait、StageTransition prepare/detach边界通过Actions",
     "P2子任务：SYN/packet/persona/ServerAssociation最小闭包与同association bootstrap/transition接线通过Actions",
-    "P2子任务：真实TLS/uTLS Firefox120 persona、ClientHello分类/replay与真实exporter在同association上通过Actions"
+    "P2子任务：真实TLS/uTLS Firefox120 persona、ClientHello分类/replay与真实exporter在同association上通过Actions",
+    "P2子任务：TLS内受保护admission、最小username/password认证、v1/nonce/TunnelID/双向record limits协商与prepare/detach通过Actions"
   ],
-  "in_progress": "P2：受保护admission最小闭包已准备提交：TLS内username/password认证、record_version=1、16-byte TunnelID、双向record wire limits、server生成16-byte incarnation nonce；协商结果直接驱动原TLS对象exporter和ServerAssociation prepare/detach。等待新SHA Actions。",
-  "next_task": "P2：验证admission提交的repository-contract、Windows/Linux unit/build与Linux race；通过后再做unrecognized ClientHello真实decoy fallback splice，或按ROADMAP下一最小闭包推进；仍不接ticket/lease/CLI/steady-state FEC。",
-  "latest_log": "docs/devlog/20260919-202700-p2-protected-admission.md",
-  "last_tested_source_sha": "f26b88427c20dd960fbc70661fd4ea951b8a29ae",
+  "in_progress": "P2：真实TLS/persona/auth/exporter/同association阶段移交已具备Actions证据；下一原子任务实现未识别ClientHello在同一入站FakeTCP association上的真实decoy fallback splice。",
+  "next_task": "P2：定向提取old/internal/realitymirror/mirror.go的target dial + raw ClientHello replay + 双向splice最小闭包，接ServerAssociation.BootstrapConn；测试必须证明unrecognized raw字节原样到达decoy、decoy响应回到同一client流、recognized分支绝不拨decoy、失败不prepare transition。仍不搬CLI/lease/steady-state。",
+  "latest_log": "docs/devlog/20260919-203000-p2-protected-admission-pass.md",
+  "last_tested_source_sha": "d4acf7ae1389920c67a192a4359ade4120675387",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -103,17 +104,23 @@
       "scope": "P2-realityfront-exporter",
       "status": "PASS",
       "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。真实uTLS/crypto-tls exporter同key测试及renegotiation_info wire-byte identity专项测试包含在unit/race范围。"
+    },
+    {
+      "source_sha": "d4acf7ae1389920c67a192a4359ade4120675387",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35442811807",
+      "scope": "P2-protected-admission",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。真实FakeTCP+TLS admission、prepare-before-final-reply、auth/version/context/bounds专项测试包含在unit/race范围。"
     }
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "protected admission实现等待Actions验证；尚未标记完成",
+    "未识别ClientHello尚未真实splice到decoy target；这是当前P2主要缺口",
     "ticket/lease/installation ID/CLI未迁移",
-    "unrecognized ClientHello目前只保留raw用于未来fallback，尚未实现真实decoy splice",
     "association仍使用SegmentEmitter测试边界，尚未接Linux raw socket/Npcap",
     "steady-state Receiver/SACK/RACK/FEC与record数据面接线尚未实现",
     "尚无可运行client/server或网络数据面",
-    "P2完整资格及后续阶段未验证",
+    "P2完整资格及抓包门槛未验证",
     "物理机验收留到P7"
   ],
   "required_read_set": [
