@@ -18,12 +18,13 @@
     "P2子任务：真实decoy fallback（单ClientHello分类、byte-exact raw replay、同association双向splice、recognized零fallback dial）通过Actions",
     "P2子任务：最后bootstrap payload loss/ACK loss与首条新record整包丢失后的record no-HOL资格通过Actions",
     "P2审计返工：普通合法SYN入口、peer MSS/WS/SACK协商与绝对候选建连期限通过Actions",
-    "P2：hosted核心建连/fallback/切换/no-HOL资格完成；目标网站完整服务端握手指纹与真实raw/Npcap抓包明确留待后续验收"
+    "P2：hosted核心建连/fallback/切换/no-HOL资格完成；目标网站完整服务端握手指纹与真实raw/Npcap抓包明确留待后续验收",
+    "P3子任务：LINK单数据报fragmentation/reassembly最小闭包、wire/PacketID/乱序重复/冲突语义、超时与条数/字节边界、跨数据报no-HOL通过Actions"
   ],
-  "in_progress": "P3 LINK fragmentation/reassembly 最小闭包实现完成，等待该代码提交精确 SOURCE_SHA 的 GitHub Actions；当前不得标 PASS。实现只包含单数据报 LINK wire/fragmentation/reassembly、资源边界和定时退役，未接 FEC/MTU/platform I/O。",
-  "next_task": "先取得本次 P3 LINK fragmentation/reassembly 精确 SHA 的完整 Actions 结果；失败则按具体 job logs 只修 linkdata，成功后记录 PASS 证据并再进入 old/internal/fec systematic fast-path。",
-  "latest_log": "docs/devlog/20260919-232100-p3-linkdata-fragmentation.md",
-  "last_tested_source_sha": "079a11a51a8afb7e977f5140d8cdcd21db1c81c5",
+  "in_progress": "P3继续：LINK fragmentation/reassembly 原子任务已由精确 SOURCE_SHA Actions 通过。下一原子任务按 MODULE_MAP 定向提取 old/internal/fec 的 systematic fast-path；先做 FEC off / 20:20 所需最小闭包，不混入统一 MTU、steady-state FakeTCP recovery 或平台 I/O。",
+  "next_task": "P3：定向读取 old/internal/fec 及其直接 tests/imports，提取 lane-local systematic fast-path 最小闭包；保持 source first-arrival 立即交付、固定 20:20、3 秒绝对恢复期限、block 之间无 HOL、重复 shard 幂等/损坏拒绝。首次只接 LINK fragment frame 的 FEC 前后接口，不顺手做 MTU 调参、FakeTCP SACK/RACK、Tunnel/Game 或平台 I/O。",
+  "latest_log": "docs/devlog/20260919-233300-p3-linkdata-actions-pass.md",
+  "last_tested_source_sha": "310cdf95a2da601f6a6b4398ce9b8b178aa6a48a",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -178,6 +179,13 @@
       "scope": "P2-audit-syn-deadline-final",
       "status": "PASS",
       "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。新增普通合法SYN不同MSS/WS/SACK/无选项进入ClientHello/fallback、peer MSS限制bootstrap、协商SYN-ACK、TLS后沉默、半认证、context cancel、最终admission回复ACK不到、成功handoff清deadline等审计测试均进入unit/race范围。"
+    },
+    {
+      "source_sha": "310cdf95a2da601f6a6b4398ce9b8b178aa6a48a",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35451984199",
+      "scope": "P3-link-fragment-reassembly",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。新增LINK wire/PacketID/长度与fragment count边界、reserved-magic escape、乱序重组、相同重复片幂等、conflicting duplicate拒绝且不覆盖first arrival、显式idle expiry、assembly/fragment/byte/retired有界、恶意输入后健康数据报继续可用，以及A永久缺片时B先完整交付的no-HOL测试均进入unit/race范围。Artifacts: foundation 10587371480；tlsrecord-reference 10586409782。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -186,7 +194,7 @@
     "真实raw socket/Npcap抓包、普通内核TCP浏览器访问与capture-loss统计尚未实现；hosted wire serialization不替代P5/P7实抓",
     "平台raw packet IO尚未从old提取；当前association仍以SegmentEmitter作为I/O边界",
     "ticket/lease/installation ID/CLI尚未迁移，属于后续P4产品层",
-    "P3 LINK fragmentation/reassembly 已实现但本提交尚未获得精确 SHA Actions 资格；FEC/统一MTU/session接线仍未实现",
+    "P3 LINK fragmentation/reassembly 已由 SOURCE_SHA 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a 通过 hosted Actions；FEC systematic fast-path、统一MTU、session接线仍未实现",
     "尚无可运行client/server完整网络产品入口",
     "物理机验收留到P7"
   ],

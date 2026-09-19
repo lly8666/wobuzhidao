@@ -86,5 +86,5 @@
       "tests": "internal/linkdata/datagram_fragment_test.go fixes exact wire fields, PacketID increment/wrap and reserved-magic escape; covers normal/out-of-order reassembly, identical duplicates, conflicting duplicates without replacing first arrival, explicit idle expiry, max fragment-count metadata without preallocation, entry/byte/assembly/retired bounds, malformed/oversize isolation, and the P3 no-HOL case where datagram A permanently misses one fragment while later complete datagram B is delivered first."
     }
   ],
-  "note": "P2 audit closure remains qualified at product SOURCE_SHA 079a11a51a8afb7e977f5140d8cdcd21db1c81c5. P3 LINK fragmentation/reassembly has now been extracted from archive source b5c848f4e9afdffd15d1bc451560edf4e9390a35 into the active tree, but this implementation commit is NOT_RUN until its exact SHA completes Actions; FEC/MTU/session/platform integration remains deferred."
+  "note": "P2 audit closure remains qualified at product SOURCE_SHA 079a11a51a8afb7e977f5140d8cdcd21db1c81c5. P3 LINK fragmentation/reassembly extraction from archive source b5c848f4e9afdffd15d1bc451560edf4e9390a35 is qualified at SOURCE_SHA 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a by Actions run 35451984199. FEC systematic fast-path, unified MTU, session and platform integration remain deferred."
 }
