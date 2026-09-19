@@ -89,11 +89,10 @@ func newFirefox120Client(conn net.Conn, cfg ClientConfig) (*utls.UConn, error) {
 	return uconn, nil
 }
 
-// HandshakeClient performs real TLS over the provided already-established
-// transport. It never dials or replaces the connection. Exporter material is
-// derived directly from uTLS's real ConnectionState, not from a copied
-// crypto/tls state that would lose the exporter closure.
-func HandshakeClient(ctx context.Context, conn net.Conn, cfg ClientConfig, params ExporterParams) (*ClientSession, error) {
+// handshakeClientConn performs the real uTLS handshake but deliberately does
+// not derive record keys. Admission needs to negotiate the exporter context
+// inside this already-protected connection first.
+func handshakeClientConn(ctx context.Context, conn net.Conn, cfg ClientConfig) (*utls.UConn, error) {
 	if conn == nil || normalizeName(cfg.ServerName) == "" || len(cfg.RouteKey) < 16 {
 		return nil, errors.New("realityfront: incomplete client config")
 	}
@@ -113,18 +112,30 @@ func HandshakeClient(ctx context.Context, conn net.Conn, cfg ClientConfig, param
 	if state.Version != utls.VersionTLS13 || !state.HandshakeComplete {
 		return nil, errors.New("realityfront: TLS 1.3 handshake not complete")
 	}
+	_ = conn.SetDeadline(time.Time{})
+	return uconn, nil
+}
+
+// HandshakeClient performs real TLS over the provided already-established
+// transport and derives record keys when all exporter parameters are already
+// known. Admission-oriented callers use handshakeClientConn first instead.
+func HandshakeClient(ctx context.Context, conn net.Conn, cfg ClientConfig, params ExporterParams) (*ClientSession, error) {
+	uconn, err := handshakeClientConn(ctx, conn, cfg)
+	if err != nil {
+		return nil, err
+	}
+	state := uconn.ConnectionState()
 	keys, err := deriveRecordKeys(&state, params)
 	if err != nil {
 		return nil, err
 	}
-	_ = conn.SetDeadline(time.Time{})
 	return &ClientSession{Conn: uconn, Keys: keys}, nil
 }
 
-// HandshakeServerRecognized replays exactly the classified ClientHello into a
-// real crypto/tls server on the same transport. Session tickets are disabled so
-// no post-handshake TLS writer remains after the explicit transition prepare.
-func HandshakeServerRecognized(ctx context.Context, conn net.Conn, hello Hello, cfg ServerConfig, params ExporterParams) (*ServerSession, error) {
+// handshakeServerRecognizedConn replays exactly the classified ClientHello into
+// a real crypto/tls server but waits to derive record keys until admission has
+// fixed the exporter context.
+func handshakeServerRecognizedConn(ctx context.Context, conn net.Conn, hello Hello, cfg ServerConfig) (*tls.Conn, error) {
 	if conn == nil || cfg.TLSConfig == nil || normalizeName(cfg.ServerName) == "" ||
 		len(cfg.RouteKey) < 16 || len(hello.Raw) == 0 {
 		return nil, errors.New("realityfront: incomplete recognized server config")
@@ -153,11 +164,22 @@ func HandshakeServerRecognized(ctx context.Context, conn net.Conn, hello Hello, 
 	if state.Version != tls.VersionTLS13 || !state.HandshakeComplete {
 		return nil, errors.New("realityfront: TLS 1.3 server handshake not complete")
 	}
+	_ = conn.SetDeadline(time.Time{})
+	return tlsConn, nil
+}
+
+// HandshakeServerRecognized is the compatibility helper for callers that
+// already know the exporter context before the TLS takeover.
+func HandshakeServerRecognized(ctx context.Context, conn net.Conn, hello Hello, cfg ServerConfig, params ExporterParams) (*ServerSession, error) {
+	tlsConn, err := handshakeServerRecognizedConn(ctx, conn, hello, cfg)
+	if err != nil {
+		return nil, err
+	}
+	state := tlsConn.ConnectionState()
 	keys, err := deriveRecordKeys(&state, params)
 	if err != nil {
 		return nil, err
 	}
-	_ = conn.SetDeadline(time.Time{})
 	return &ServerSession{Conn: tlsConn, Hello: hello, Keys: keys}, nil
 }
 

@@ -15,9 +15,9 @@
     "P2子任务：SYN/packet/persona/ServerAssociation最小闭包与同association bootstrap/transition接线通过Actions",
     "P2子任务：真实TLS/uTLS Firefox120 persona、ClientHello分类/replay与真实exporter在同association上通过Actions"
   ],
-  "in_progress": "P2：真实TLS/uTLS/exporter子任务已通过Actions；下一原子任务进入TLS内受保护admission参数与最小认证，协商结果必须直接驱动exporter context和prepare/detach。",
-  "next_task": "P2：定向读取old/internal/realityfront/simple_auth.go/simple_auth_v2.go及直接测试，只提取username/password最小认证和record_version=1、server生成incarnation nonce、TunnelID、client/server record limits的受保护请求/应答；未知版本拒绝。让协商结果直接派生exporter keys并调用ServerAssociation.PrepareTransition，仍不搬ticket/lease/CLI/steady-state FEC。",
-  "latest_log": "docs/devlog/20260919-201600-p2-realityfront-exporter-pass.md",
+  "in_progress": "P2：受保护admission最小闭包已准备提交：TLS内username/password认证、record_version=1、16-byte TunnelID、双向record wire limits、server生成16-byte incarnation nonce；协商结果直接驱动原TLS对象exporter和ServerAssociation prepare/detach。等待新SHA Actions。",
+  "next_task": "P2：验证admission提交的repository-contract、Windows/Linux unit/build与Linux race；通过后再做unrecognized ClientHello真实decoy fallback splice，或按ROADMAP下一最小闭包推进；仍不接ticket/lease/CLI/steady-state FEC。",
+  "latest_log": "docs/devlog/20260919-202700-p2-protected-admission.md",
   "last_tested_source_sha": "f26b88427c20dd960fbc70661fd4ea951b8a29ae",
   "actions": [
     {
@@ -107,7 +107,8 @@
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "认证、record_version/incarnation nonce/TunnelID/双向record limits受保护admission尚未接入",
+    "protected admission实现等待Actions验证；尚未标记完成",
+    "ticket/lease/installation ID/CLI未迁移",
     "unrecognized ClientHello目前只保留raw用于未来fallback，尚未实现真实decoy splice",
     "association仍使用SegmentEmitter测试边界，尚未接Linux raw socket/Npcap",
     "steady-state Receiver/SACK/RACK/FEC与record数据面接线尚未实现",

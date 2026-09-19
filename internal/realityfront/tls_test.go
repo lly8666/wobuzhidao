@@ -225,6 +225,7 @@ type associationPeerConn struct {
 	closed       bool
 	readDeadline time.Time
 	writeDeadline time.Time
+	onServerPayload func(faketcp.Segment)
 }
 
 func newAssociationPeer(t *testing.T) (*faketcp.ServerAssociation, *associationPeerConn) {
@@ -327,7 +328,12 @@ func (c *associationPeerConn) Read(p []byte) (int, error) {
 		ack := c.recvSeq
 		seq := c.sendSeq
 		_, _ = c.readBuf.Write(seg.Payload)
+		hook := c.onServerPayload
 		c.mu.Unlock()
+
+		if hook != nil {
+			hook(seg)
+		}
 
 		ackSeg := c.base
 		ackSeg.Flags = faketcp.FlagACK
