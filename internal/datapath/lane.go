@@ -48,9 +48,18 @@ type LaneConfig struct {
 	RxMTU pathmtu.Config
 }
 
+type PaddingRequest struct {
+	// Bytes is the desired encrypted padding per emitted record. It is a
+	// non-blocking policy-layer request: when actual record headroom is smaller,
+	// the owner immediately selects zero and records a budget skip. Exact
+	// padding validation lives in tlsrecord.SealWithPadding.
+	Bytes int
+}
+
 type WireRecord struct {
-	PN   uint64
-	Wire []byte
+	PN           uint64
+	PaddingBytes int
+	Wire         []byte
 }
 
 type InboundResult struct {
@@ -68,6 +77,13 @@ type LaneStats struct {
 	RecordErrors       uint64
 	PathErrors         uint64
 	ExpireCalls        uint64
+
+	PaddingRequests       uint64
+	RequestedPaddingBytes uint64
+	PaddedRecords         uint64
+	PaddingBytes          uint64
+	PaddingBudgetSkips    uint64
+	PaddingRejected       uint64
 
 	Decoder tlsrecord.DecoderStats
 	TxPath  linkdata.FECPathState
@@ -194,59 +210,131 @@ func (l *Lane) RxBudget() pathmtu.Budget {
 	return l.rxBudget
 }
 
-// Outbound owns all returned wire bytes. A caller may retain a WireRecord and
-// retransmit its Wire at the same TCP sequence without invoking Seal again.
+// Outbound owns all returned wire bytes. It preserves the production-default
+// padding=0 path and uses tlsrecord.Seal, so existing zero-padding vectors stay
+// byte-for-byte unchanged. A caller may retain a WireRecord and retransmit its
+// Wire at the same TCP sequence without invoking Seal again.
 func (l *Lane) Outbound(packet []byte, now time.Time) ([]WireRecord, error) {
+	return l.outbound(packet, now, nil)
+}
+
+// OutboundWithPadding is the explicit owner policy hook. The requested value is
+// evaluated independently for each already-formed LINK/FEC record payload.
+// Insufficient headroom selects zero immediately; no wait, extra record,
+// fragment, timer, or FEC change is introduced.
+func (l *Lane) OutboundWithPadding(packet []byte, now time.Time, request PaddingRequest) ([]WireRecord, error) {
+	return l.outbound(packet, now, &request)
+}
+
+func (l *Lane) outbound(packet []byte, now time.Time, request *PaddingRequest) ([]WireRecord, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.closed {
 		return nil, ErrLaneClosed
+	}
+	if request != nil && request.Bytes < 0 {
+		l.stats.PaddingRejected++
+		return nil, tlsrecord.ErrInvalidPadding
 	}
 	wire, err := l.txPath.Encode(packet, now)
 	if err != nil {
 		return nil, err
 	}
 	l.stats.OutboundDatagrams++
-	return l.sealLocked(wire)
+	return l.sealLocked(wire, request)
 }
 
 func (l *Lane) FlushDue(now time.Time) ([]WireRecord, error) {
+	return l.flushDue(now, nil)
+}
+
+func (l *Lane) FlushDueWithPadding(now time.Time, request PaddingRequest) ([]WireRecord, error) {
+	return l.flushDue(now, &request)
+}
+
+func (l *Lane) flushDue(now time.Time, request *PaddingRequest) ([]WireRecord, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.closed {
 		return nil, ErrLaneClosed
+	}
+	if request != nil && request.Bytes < 0 {
+		l.stats.PaddingRejected++
+		return nil, tlsrecord.ErrInvalidPadding
 	}
 	wire, err := l.txPath.FlushDue(now)
 	if err != nil {
 		return nil, err
 	}
-	return l.sealLocked(wire)
+	return l.sealLocked(wire, request)
 }
 
 func (l *Lane) Flush() ([]WireRecord, error) {
+	return l.flush(nil)
+}
+
+func (l *Lane) FlushWithPadding(request PaddingRequest) ([]WireRecord, error) {
+	return l.flush(&request)
+}
+
+func (l *Lane) flush(request *PaddingRequest) ([]WireRecord, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.closed {
 		return nil, ErrLaneClosed
 	}
+	if request != nil && request.Bytes < 0 {
+		l.stats.PaddingRejected++
+		return nil, tlsrecord.ErrInvalidPadding
+	}
 	wire, err := l.txPath.Flush()
 	if err != nil {
 		return nil, err
 	}
-	return l.sealLocked(wire)
+	return l.sealLocked(wire, request)
 }
 
-func (l *Lane) sealLocked(datagrams [][]byte) ([]WireRecord, error) {
+func (l *Lane) sealLocked(datagrams [][]byte, request *PaddingRequest) ([]WireRecord, error) {
 	if len(datagrams) == 0 {
 		return nil, nil
 	}
-	out := make([]WireRecord, 0, len(datagrams))
-	for _, datagram := range datagrams {
+	paddings := make([]int, len(datagrams))
+	var skips uint64
+	for i, datagram := range datagrams {
 		if len(datagram) > l.txBudget.RecordPayloadMTU {
 			return nil, fmt.Errorf("%w: payload=%d record_payload_mtu=%d",
 				ErrRecordOversize, len(datagram), l.txBudget.RecordPayloadMTU)
 		}
-		wire, pn, err := l.sealer.Seal(datagram)
+		if request == nil {
+			continue
+		}
+		headroom, err := l.txBudget.PaddingHeadroom(len(datagram))
+		if err != nil {
+			return nil, err
+		}
+		if request.Bytes > headroom {
+			paddings[i] = 0
+			skips++
+			continue
+		}
+		paddings[i] = request.Bytes
+	}
+
+	out := make([]WireRecord, 0, len(datagrams))
+	var appliedBytes uint64
+	var paddedRecords uint64
+	for i, datagram := range datagrams {
+		padding := paddings[i]
+		var (
+			wire []byte
+			pn   uint64
+			err  error
+		)
+		if request == nil {
+			wire, pn, err = l.sealer.Seal(datagram)
+		} else {
+			wire, pn, err = l.sealer.SealWithPadding(datagram, padding)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -254,8 +342,25 @@ func (l *Lane) sealLocked(datagrams [][]byte) ([]WireRecord, error) {
 			return nil, fmt.Errorf("%w: wire=%d record_wire_mtu=%d",
 				ErrRecordOversize, len(wire), l.txBudget.RecordWireMTU)
 		}
-		out = append(out, WireRecord{PN: pn, Wire: append([]byte(nil), wire...)})
+		out = append(out, WireRecord{
+			PN:           pn,
+			PaddingBytes: padding,
+			Wire:         append([]byte(nil), wire...),
+		})
 		l.stats.OutboundRecords++
+		if padding > 0 {
+			appliedBytes += uint64(padding)
+			paddedRecords++
+		}
+	}
+	if request != nil {
+		l.stats.PaddingRequests += uint64(len(datagrams))
+		if request.Bytes > 0 {
+			l.stats.RequestedPaddingBytes += uint64(request.Bytes) * uint64(len(datagrams))
+		}
+		l.stats.PaddingBudgetSkips += skips
+		l.stats.PaddingBytes += appliedBytes
+		l.stats.PaddedRecords += paddedRecords
 	}
 	return out, nil
 }

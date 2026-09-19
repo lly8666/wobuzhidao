@@ -12,7 +12,12 @@ func FuzzDecoderOpenPayload(f *testing.F) {
 	if err != nil {
 		f.Fatal(err)
 	}
+	padded, _, err := sealer.SealWithPadding([]byte{'t', 'a', 'i', 'l', 0, 0}, 17)
+	if err != nil {
+		f.Fatal(err)
+	}
 	f.Add(valid)
+	f.Add(padded)
 	f.Add([]byte{})
 	f.Add([]byte{0x17, 0x03, 0x03, 0x00, 0x1a})
 

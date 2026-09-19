@@ -38,11 +38,12 @@ func main() {
 	s2c := derive(master[:], nonce, "WBD-TLSLIKE-V1/s2c")
 
 	records := map[string]string{
-		"pn0_empty":               hex.EncodeToString(seal(c2s, 0, nil)),
-		"pn1_ascii":               hex.EncodeToString(seal(c2s, 1, []byte("hello"))),
-		"pn_2pow32_plus1_binary":  hex.EncodeToString(seal(c2s, (1<<32)+1, []byte{0x00, 0xff, 0x10, 0x20})),
-		"pn_max_minus1":           hex.EncodeToString(seal(c2s, ^uint64(0)-1, []byte("near-max"))),
-		"pn_max":                  hex.EncodeToString(seal(c2s, ^uint64(0), nil)),
+		"pn0_empty":               hex.EncodeToString(seal(c2s, 0, nil, 0)),
+		"pn1_ascii":               hex.EncodeToString(seal(c2s, 1, []byte("hello"), 0)),
+		"pn_2pow32_plus1_binary":  hex.EncodeToString(seal(c2s, (1<<32)+1, []byte{0x00, 0xff, 0x10, 0x20}, 0)),
+		"pn_max_minus1":           hex.EncodeToString(seal(c2s, ^uint64(0)-1, []byte("near-max"), 0)),
+		"pn_max":                  hex.EncodeToString(seal(c2s, ^uint64(0), nil, 0)),
+		"pn7_padded_tailzero_p9":  hex.EncodeToString(seal(c2s, 7, []byte{0x41, 0x00, 0x42, 0x00, 0x00}, 9)),
 	}
 	out := map[string]any{
 		"source":        "docs/WIRE_SPEC.md; independent primitive-level Go generator",
@@ -97,19 +98,22 @@ func derive(master []byte, nonce [16]byte, info string) direction {
 	return d
 }
 
-func seal(keys direction, pn uint64, payload []byte) []byte {
+func seal(keys direction, pn uint64, payload []byte, padding int) []byte {
 	aead, err := chacha20poly1305.New(keys.aead[:])
 	if err != nil {
 		panic(err)
 	}
-	return sealWithAEAD(keys, aead, pn, payload)
+	return sealWithAEAD(keys, aead, pn, payload, padding)
 }
 
-func sealWithAEAD(keys direction, aead cipher.AEAD, pn uint64, payload []byte) []byte {
-	plain := make([]byte, 2+len(payload))
+func sealWithAEAD(keys direction, aead cipher.AEAD, pn uint64, payload []byte, padding int) []byte {
+	if padding < 0 {
+		panic("negative padding")
+	}
+	plain := make([]byte, 2+len(payload)+padding)
 	plain[0] = 0
 	copy(plain[1:], payload)
-	plain[len(plain)-1] = 0x17
+	plain[1+len(payload)] = 0x17
 
 	bodyLen := 8 + len(plain) + aead.Overhead()
 	var header [5]byte

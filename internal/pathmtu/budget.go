@@ -32,6 +32,7 @@ var (
 	ErrInvalidMSS    = errors.New("pathmtu: invalid peer MSS")
 	ErrRecordLimit   = errors.New("pathmtu: invalid negotiated record wire limit")
 	ErrFECProfile    = errors.New("pathmtu: unsupported fixed FEC profile")
+	ErrPayloadBudget = errors.New("pathmtu: record payload exceeds unified MTU budget")
 )
 
 type Config struct {
@@ -209,4 +210,14 @@ func (b Budget) MaxFECWireDatagram() int {
 // steady-state record wire of n bytes under the headers used for this budget.
 func (b Budget) OuterPacketLenForRecord(n int) int {
 	return b.IPv4HeaderLen + b.TCPHeaderLen + n
+}
+
+// PaddingHeadroom returns the exact encrypted-padding capacity remaining after
+// one already-formed LINK/FEC record payload. It never changes LinkFrameMTU;
+// padding consumes only otherwise-unused record wire budget.
+func (b Budget) PaddingHeadroom(actualRecordPayload int) (int, error) {
+	if actualRecordPayload < 0 || actualRecordPayload > b.RecordPayloadMTU {
+		return 0, fmt.Errorf("%w: payload=%d record_payload_mtu=%d", ErrPayloadBudget, actualRecordPayload, b.RecordPayloadMTU)
+	}
+	return b.RecordWireMTU - tlsrecord.FixedWireOverhead - actualRecordPayload, nil
 }

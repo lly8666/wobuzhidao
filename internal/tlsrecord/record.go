@@ -27,6 +27,8 @@ const (
 var (
 	ErrInvalidWireLimit        = errors.New("tlsrecord: wire limit is too small")
 	ErrPayloadTooLarge         = errors.New("tlsrecord: payload exceeds negotiated record limit")
+	ErrInvalidPadding          = errors.New("tlsrecord: invalid padding length")
+	ErrPaddingTooLarge         = errors.New("tlsrecord: padding exceeds record headroom")
 	ErrPNExhausted             = errors.New("tlsrecord: packet number exhausted")
 	ErrInvalidLength           = errors.New("tlsrecord: invalid record length")
 	ErrUnexpectedOuterType     = errors.New("tlsrecord: unexpected outer type")
@@ -44,6 +46,16 @@ type Sealer struct {
 	maxBody   int
 	nextPN    uint64
 	exhausted bool
+	stats     SealerStats
+}
+
+type SealerStats struct {
+	Records               uint64
+	Failed                uint64
+	PaddingRequests       uint64
+	RequestedPaddingBytes uint64
+	PaddedRecords         uint64
+	PaddingBytes          uint64
 }
 
 type Opener struct {
@@ -85,9 +97,22 @@ func NewOpener(keys Keys, maxWire int) (*Opener, error) {
 	return &Opener{keys: keys, aead: aead, maxBody: maxBody}, nil
 }
 
-// Seal reserves exactly one new PN before encoding. If encoding fails, that PN
-// is intentionally skipped and is never reused.
+// Seal reserves exactly one new PN before encoding and preserves the V1
+// default padding=0 behavior byte-for-byte. If encoding fails, that PN is
+// intentionally skipped and is never reused.
 func (s *Sealer) Seal(payload []byte) ([]byte, uint64, error) {
+	return s.seal(payload, 0, false)
+}
+
+// SealWithPadding is the explicit non-default padding API. Padding bytes are
+// encrypted zero bytes after inner_type; they do not change PN, kind, version
+// or payload bytes. Negative padding and requests beyond this sealer's wire
+// headroom are rejected explicitly.
+func (s *Sealer) SealWithPadding(payload []byte, padding int) ([]byte, uint64, error) {
+	return s.seal(payload, padding, true)
+}
+
+func (s *Sealer) seal(payload []byte, padding int, explicitPadding bool) ([]byte, uint64, error) {
 	if s.exhausted {
 		return nil, 0, ErrPNExhausted
 	}
@@ -97,8 +122,27 @@ func (s *Sealer) Seal(payload []byte) ([]byte, uint64, error) {
 	} else {
 		s.nextPN++
 	}
-	wire, err := sealRecord(s.keys, s.aead, s.maxBody, pn, KindLINK, payload, 0)
-	return wire, pn, err
+	if explicitPadding {
+		s.stats.PaddingRequests++
+		if padding > 0 {
+			s.stats.RequestedPaddingBytes += uint64(padding)
+		}
+	}
+	wire, err := sealRecord(s.keys, s.aead, s.maxBody, pn, KindLINK, payload, padding)
+	if err != nil {
+		s.stats.Failed++
+		return nil, pn, err
+	}
+	s.stats.Records++
+	if padding > 0 {
+		s.stats.PaddedRecords++
+		s.stats.PaddingBytes += uint64(padding)
+	}
+	return wire, pn, nil
+}
+
+func (s *Sealer) Stats() SealerStats {
+	return s.stats
 }
 
 func (o *Opener) OpenRecord(wire []byte) (Record, error) {
@@ -170,7 +214,14 @@ func effectiveBodyLimit(maxWire int) (int, error) {
 
 func sealRecord(keys Keys, aead cipher.AEAD, maxBody int, pn uint64, kind byte, payload []byte, padding int) ([]byte, error) {
 	if padding < 0 {
+		return nil, ErrInvalidPadding
+	}
+	maxPayloadAndPadding := maxBody - ProtectedPNLen - aead.Overhead() - PlainFixedLen
+	if maxPayloadAndPadding < 0 || len(payload) > maxPayloadAndPadding {
 		return nil, ErrPayloadTooLarge
+	}
+	if padding > maxPayloadAndPadding-len(payload) {
+		return nil, ErrPaddingTooLarge
 	}
 	plainLen := PlainFixedLen + len(payload) + padding
 	bodyLen := ProtectedPNLen + plainLen + aead.Overhead()
