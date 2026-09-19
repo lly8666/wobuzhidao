@@ -10,24 +10,26 @@
     "旧代码/文档/工作流整体隔离到old",
     "建立新agent入口、阶段计划、开发日志和Actions基础检查",
     "P1：根Go module与internal/tlsrecord keys/seal/open/parser/65536近期PN去重/独立固定向量通过Actions",
-    "P2子任务：FakeTCP BootstrapStream最小闭包提取、复用登记及基础Actions验证"
+    "P2子任务：FakeTCP BootstrapStream最小闭包提取、复用登记及基础Actions验证",
+    "P2子任务：bootstrap Sender/Pending重传与ACK wait、StageTransition prepare/detach边界通过Actions"
   ],
-  "in_progress": "P2：Sender/Pending与StageTransition代码已提交；cb600040的repository-contract因REUSE_LEDGER source不是单一真实路径而FAIL，已修正台账格式，等待新SHA验证。",
-  "next_task": "P2：验证台账修复提交的repository-contract、Windows/Linux unit/build与Linux race；通过后定向提取FakeTCP SYN/packet/persona最小闭包并把真实TLS bootstrap接到同一association，仍不接steady-state完整ARQ/FEC。",
-  "latest_log": "docs/devlog/20260919-192300-p2-reuse-ledger-fix.md",
-  "last_tested_source_sha": "23cef50c0f50a5ca2c8ab7b752cadfe1ac9acdc3",
+  "in_progress": "P2：bootstrap stream/sender/transition基础已通过Actions；下一原子任务进入FakeTCP SYN/packet/persona最小闭包与同association TLS bootstrap接线。",
+  "next_task": "P2：只定向读取 old/internal/faketcp/packet.go、tcp_persona.go、server_mux.go 中SYN/ACK/association直接依赖及对应测试，提取同四元组/序列空间的最小association；先接BootstrapStream+Sender+StageTransition接口，不搬steady-state Receiver/SACK/RACK/FEC。",
+  "latest_log": "docs/devlog/20260919-192500-p2-sender-transition-pass.md",
+  "last_tested_source_sha": "525175a19165d392b825a96e95594b0507aa2878",
   "actions": [
     {"source_sha": "3335b13a913cbd4b1adc689d75605b159280afac", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35433878751", "scope": "repository-foundation-only", "status": "PASS", "note": "repository-contract通过；active-go-tests按尚无产品module明确SKIPPED，不是产品资格。"},
     {"source_sha": "de284220bef3880ef126a67e3cb7ef43e02a98fe", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434610338", "scope": "P1-root-go-and-tlsrecord", "status": "FAIL", "note": "repository-contract PASS；Ubuntu active-go-tests在go list阶段报告go.mod需要tidy，race/fuzz/reference未运行。"},
     {"source_sha": "65184f80bde05240071fd8954a15db4118d59609", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434673830", "scope": "P1-tlsrecord-pre-static-vectors", "status": "PASS", "note": "Windows unit/build PASS；Linux unit/build、race、15s定向fuzz PASS；独立reference generator PASS并上传artifact 10581128027。"},
     {"source_sha": "39c35a86c1403aff619e6eba0dd883a7277b4a93", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434817555", "scope": "P1-tlsrecord-final", "status": "PASS", "note": "repository-contract、Windows unit/build、Linux unit/build/race/15s fuzz、独立reference generator和artifact上传全部PASS；fuzz 186815 executions；artifact 10581943258。"},
     {"source_sha": "23cef50c0f50a5ca2c8ab7b752cadfe1ac9acdc3", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35436393242", "scope": "P2-bootstrap-minimal", "status": "PASS", "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build、race、既有tlsrecord定向fuzz、reference generator与artifact上传全部PASS。"},
-    {"source_sha": "cb6000400ce8fa5c90af68a8ee4910e8ab5fbbc4", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35437027533", "scope": "P2-bootstrap-sender-transition", "status": "FAIL", "note": "repository-contract在Go jobs前FAIL：check_repository.py报告Missing reuse source。原因是REUSE_LEDGER source字段误写为两个路径的说明字符串；非runner问题，产品Go测试未运行。"}
+    {"source_sha": "cb6000400ce8fa5c90af68a8ee4910e8ab5fbbc4", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35437027533", "scope": "P2-bootstrap-sender-transition", "status": "FAIL", "note": "repository-contract在Go jobs前FAIL：REUSE_LEDGER source误写为两个路径的说明字符串，check_repository.py报告Missing reuse source；产品Go测试未运行。"},
+    {"source_sha": "525175a19165d392b825a96e95594b0507aa2878", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35437066295", "scope": "P2-bootstrap-sender-transition", "status": "PASS", "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build、race、既有tlsrecord定向fuzz、reference generator与artifact上传全部PASS。Sender WaitAck/retransmit与StageTransition测试均包含在go test ./...和race范围。"}
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "Sender/transition代码尚未获得Go Actions结果，因为首次run在repository-contract阶段被台账格式拦截",
-    "StageTransition目前是内部边界组件，尚未接真实packet association/TLS reader",
+    "当前P2 PASS只覆盖bootstrap stream/sender/transition内部组件，不代表真实TLS/FakeTCP同流移交通过",
+    "尚未提取SYN/raw packet/persona association接线，StageTransition也尚未挂真实packet receive loop",
     "steady-state Receiver/SACK/RACK/FEC、真实TLS exporter、fallback尚未实现",
     "尚无可运行client/server或网络数据面",
     "P2完整资格及后续阶段未验证",
