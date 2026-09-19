@@ -164,5 +164,5 @@
       "tests": "internal/datapath/lane_test.go verifies server admission direction limits/MSS/profile binding and that detached transition records are delivered by record PN/FEC/LINK semantics rather than TCP Seq ordering."
     }
   ],
-  "note": "P2 CLOSED remains qualified at SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 / Actions 35458896477. P3 LINK is qualified at 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a, all live FEC v1 fixed profiles at e8e38d09b98b1898b41ad30335546989bed4f0a5, and unified MTU at dbd305950984652361d6bab34f05c66558461311. The session/datapath owner extraction from old/internal/session/dataplane.go is implemented in the active tree but NOT_RUN until its exact new SOURCE_SHA completes Actions. Explicit record padding remains a separate following P3 atom and production default remains zero/off."
+  "note": "P2 CLOSED remains qualified at SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 / Actions 35458896477. P3 LINK is qualified at 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a, all live FEC v1 fixed profiles at e8e38d09b98b1898b41ad30335546989bed4f0a5, unified MTU at dbd305950984652361d6bab34f05c66558461311, and lane-owned session/datapath handoff at SOURCE_SHA 05a544818ff04f49332b09779c9ab3a4cf9b09fd by Actions run 35460675364. Explicit record padding remains the next separate P3 atom; production default remains zero/off."
 }

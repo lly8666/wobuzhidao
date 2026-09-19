@@ -22,12 +22,13 @@
     "P3子任务：LINK单数据报fragmentation/reassembly最小闭包、wire/PacketID/乱序重复/冲突语义、超时与条数/字节边界、跨数据报no-HOL通过Actions",
     "P3子任务：FEC off + 20:4/8/10/12/16/20 live v1全固定挡位、systematic first-arrival、3秒绝对恢复期限、bounded retirement与LINK接线通过Actions",
     "P3子任务：统一MTU/预算（connection/local packet MTU、actual IPv4/TCP headers、peer MSS、record limit、TLS-like/FEC/LINK开销）通过Actions",
-    "P2关闭：建连重传/ACK、FIN/RST/半关闭、bootstrap有界窗口、TLS票据/ALPN/移交所有权及普通内核TCP/TLS真实fallback+HTTP+连续pcap均由Actions通过"
+    "P2关闭：建连重传/ACK、FIN/RST/半关闭、bootstrap有界窗口、TLS票据/ALPN/移交所有权及普通内核TCP/TLS真实fallback+HTTP+连续pcap均由Actions通过",
+    "P3子任务：lane-owned session/datapath 串接（immutable FEC profile、方向record limits/keys、统一MTU、LINK/FEC、record seal/open、detach handoff、owner expiry）通过Actions"
   ],
-  "in_progress": "P3 session/owner 原子任务实现完成，等待该代码提交精确 SOURCE_SHA Actions；当前不得标 PASS。新增 internal/datapath lane owner，把 immutable FEC profile、方向 record limits/keys、统一 MTU、LINK/FEC path、record seal/open、detach early-record handoff 与停流 expiry 串成 lane-local 闭包；P2 CLOSED 证据保持不变。显式 record padding 尚未实现，将在 owner Actions 通过后独立提交。",
-  "next_task": "先取得本次 P3 session/owner 提交精确 SHA 的完整 Actions；失败则按 job logs 只修 datapath owner，不覆盖 P2 CLOSED 证据。成功后记录 PASS，再独立实现 DEVELOPMENT_PLAN 第13节的显式有界 tlsrecord padding（默认0/off、使用统一 MTU headroom、无等待/无额外record、不改FEC）。",
-  "latest_log": "docs/devlog/20260920-031000-p3-lane-owner.md",
-  "last_tested_source_sha": "04f57fa880837e3bc16374cd93bcff6aa8bc4202",
+  "in_progress": "P3继续：session/owner 原子任务已由精确 SOURCE_SHA Actions 通过；P2 CLOSED 证据保持不变。下一独立原子任务实现 DEVELOPMENT_PLAN 第13节显式有界 record padding：默认 Seal=0 行为/向量不变，非零 padding 只走新显式 API，并由 unified MTU headroom 约束；生产策略仍未启用。",
+  "next_task": "P3：独立实现 tlsrecord 显式 padding + datapath owner接口。要求 FEC输出后、seal前；open去padding后byte-exact交FEC/LINK；显式负值/超过headroom拒绝，预算不足策略立即0且不等待/不多切片/不增record；统计padding bytes/request/skip；保持默认0旧向量、全FEC挡位、MTU/peer MSS/record limit、no-HOL和重传密文一致。",
+  "latest_log": "docs/devlog/20260920-033000-p3-lane-owner-pass.md",
+  "last_tested_source_sha": "05a544818ff04f49332b09779c9ab3a4cf9b09fd",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -266,6 +267,13 @@
       "scope": "P2-closure-kernel-tls-http-pcap",
       "status": "PASS",
       "note": "P2关闭证据。repository-contract PASS；Windows unit/build PASS；Linux unit/build/race、tlsrecord directed fuzz、independent reference generator PASS；privileged p2-kernel-fallback PASS。普通内核TCP+crypto/tls客户端经127.0.0.2 raw FakeTCP入口访问受控target.test decoy，使用测试CA实际VerifiedChains、ALPN=http/1.1、完整HTTP响应和正常TLS/双向FIN关闭。kernel test 1.24s（显式raw endpoint Close<=1s）。连续pcap artifact 10589721030：29 flow packets、58 received by filter、0 kernel capture drop、server checksum 14/14、MSS1360/WS8/SACK、无RST/IPv4分片、双向FIN；同Seq=1510000975 payload在1.024768s后重传字节一致。Artifact zip SHA256 4518f772a84f10d61b7a355f805e74f6cedacd7c078c27479554ab4088c8993a；foundation 10588996549；tlsrecord-reference 10589696286。"
+    },
+    {
+      "source_sha": "05a544818ff04f49332b09779c9ab3a4cf9b09fd",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35460675364",
+      "scope": "P3-lane-owner-session-handoff",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build/race PASS；tlsrecord directed fuzz/reference/artifacts PASS；P2 kernel fallback回归PASS。新增 internal/datapath 覆盖 off+20:4/8/10/12/16/20 双向owner、profile/方向limit mismatch fail-closed、admission peer MSS绑定、record PN逆序与每挡丢A后B立即交付、停流FEC expiry/late source、detach transition handoff、wire ownership、close隔离和并发PN串行化。Artifacts: foundation 10589323962；tlsrecord-reference 10589354002；p2-kernel-fallback 10588903523。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -274,7 +282,7 @@
     "Linux hosted raw-loopback普通内核TCP/TLS fallback、证书验证、HTTP、正常关闭和连续pcap已在P2精确SOURCE_SHA通过；这不替代P7物理Windows/Npcap网卡资格。",
     "P2仅提取Linux最小RawIPv4Endpoint用于hosted真实网络资格；完整Windows/Npcap、TUN和产品平台I/O仍属P4/P7。",
     "TLS 1.3 ticket策略已在P2收口；lease/installation ID/CLI及完整产品入口仍属后续P4。",
-    "P3 LINK fragmentation/reassembly、FEC off + 20:4/8/10/12/16/20、统一MTU/预算已由 hosted Actions 通过；session/owner 串接已实现但本提交尚未获得精确 SHA Actions 资格；显式 record padding 仍未实现且生产默认0/off",
+    "P3 LINK/FEC全固定挡位/统一MTU/session-owner 均已由 hosted Actions 通过；显式 record padding 仍未实现且生产默认0/off，P4/P5流量外观策略与真实HTTPS验收尚未进行",
     "尚无可运行client/server完整网络产品入口",
     "物理机验收留到P7",
     "内层TLS长度/方向/突发/时序指纹不属P2关闭条件；P3显式record padding能力仍待实现且生产默认0/off，P4/P5继续真实业务复用与流量外观/成本验收。"
@@ -290,7 +298,7 @@
   ],
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
-    "P3": "IN_PROGRESS: LINK/FEC/统一MTU已Actions PASS；session/owner 已实现等待精确SHA Actions；随后独立实现显式有界record padding（默认off）",
+    "P3": "IN_PROGRESS: LINK/FEC/统一MTU/session-owner 已Actions PASS；下一独立原子任务为显式有界record padding（默认off）",
     "P4": "PLANNED:既有lane复用、可选padding预算/默认off",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
