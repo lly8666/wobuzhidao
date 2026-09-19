@@ -34,6 +34,24 @@ STRICT_LOAD_QUALITY=${STRICT_LOAD_QUALITY:-1}
 [[ "$PAYLOAD_BYTES" =~ ^[0-9]+$ && "$PAYLOAD_BYTES" -ge 64 ]] || { echo "PAYLOAD_BYTES must be >=64" >&2; exit 2; }
 [[ "$STRICT_LOAD_QUALITY" == 0 || "$STRICT_LOAD_QUALITY" == 1 ]] || { echo "STRICT_LOAD_QUALITY must be 0 or 1" >&2; exit 2; }
 
+# Replacement FakeTCP local-UDP and DTLS plain-side listeners are test-harness
+# sockets. Do not place them inside Linux's ephemeral range: the long-lived Game
+# client already owns randomly allocated UDP sockets there, and a stochastic
+# collision would make candidate bootstrap fail with EADDRINUSE before the
+# product replacement lifecycle is exercised.
+read -r EPHEMERAL_PORT_LOW EPHEMERAL_PORT_HIGH < <(
+  sudo ip netns exec "$C" cat /proc/sys/net/ipv4/ip_local_port_range
+)
+MAX_LANE_GEN=$(( (ROTATIONS + 3) / 4 ))
+CANDIDATE_PORT_SPAN=$(( MAX_LANE_GEN*100 + 4 ))
+CANDIDATE_DPORT_BASE=$(( EPHEMERAL_PORT_LOW - CANDIDATE_PORT_SPAN - 64 ))
+CANDIDATE_FPORT_BASE=$(( CANDIDATE_DPORT_BASE - CANDIDATE_PORT_SPAN - 64 ))
+(( CANDIDATE_FPORT_BASE > 1024 )) || {
+  echo "ephemeral range leaves no safe candidate harness ports: low=$EPHEMERAL_PORT_LOW rotations=$ROTATIONS" >&2
+  exit 2
+}
+echo "WBD_SOAK_CANDIDATE_PORT_PLAN ephemeral=$EPHEMERAL_PORT_LOW-$EPHEMERAL_PORT_HIGH faketcp_base=$CANDIDATE_FPORT_BASE dtls_base=$CANDIDATE_DPORT_BASE max_generation=$MAX_LANE_GEN"
+
 drop_pid() {
   local dead=$1 p
   local kept=()
@@ -145,9 +163,11 @@ send_retire_rst() {
 
 start_replacement_lane() {
   local lane=$1 gen=$2
-  local fport=$((45100 + gen*100 + lane))
-  local dport=$((46100 + gen*100 + lane))
+  local fport=$((CANDIDATE_FPORT_BASE + gen*100 + lane))
+  local dport=$((CANDIDATE_DPORT_BASE + gen*100 + lane))
   local sport=$((41000 + gen*100 + lane))
+  (( fport > 1024 && fport < EPHEMERAL_PORT_LOW )) || { echo "candidate FakeTCP local UDP port entered ephemeral range: $fport" >&2; return 1; }
+  (( dport > 1024 && dport < EPHEMERAL_PORT_LOW )) || { echo "candidate DTLS plain port entered ephemeral range: $dport" >&2; return 1; }
   local lport=$((47100 + lane))
   local ticket_file="$LOG_DIR/ticket-${lane}-g${gen}.txt"
   local tunnel_file="$LOG_DIR/tunnel-${lane}-g${gen}.json"
