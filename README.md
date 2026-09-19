@@ -2,7 +2,7 @@
 
 TCP-like 外层、TLS-like 独立加密记录、稳态无跨包 HOL 的弱网隧道。
 
-**当前状态：P1 开发中。根 Go module 与 TLS-like record 基础实现正在接受 Actions 验证；新的 client/server、真实握手与完整数据面尚未实现。** 现有代码在 `old/` 仅作为定向复用素材；此分支尚不能当可运行发布包。
+**当前状态：P1 TLS-like record foundation 已通过 GitHub Actions，项目进入 P2。FakeTCP/bootstrap/auth、真实 TLS exporter 接线、新 client/server 与完整网络数据面仍未实现。** 现有代码在 `old/` 仅作为定向复用素材；此分支尚不能当可运行发布包。
 
 新 agent 从 [AGENTS.md](AGENTS.md) 开始。唯一进度入口为 [docs/STATUS.json](docs/STATUS.json)。
 
@@ -16,4 +16,4 @@ TCP-like 外层、TLS-like 独立加密记录、稳态无跨包 HOL 的弱网隧
 
 DTLS 基线保存在独立分支 [`release/dtls-preview-20260919`](https://github.com/lly8666/wobuzhidao/tree/release/dtls-preview-20260919)，源码锚点 `b5c848f4e9afdffd15d1bc451560edf4e9390a35`。旧架构不与新产品并存，不做旧产品性能 A/B。
 
-开发和测试环境：只使用 GitHub Actions。最后一轮才安排真实物理机。根目录 `next-foundation` 工作流在根 Go module 存在后执行新代码基础构建/测试；其成功仍不代表隧道端到端或物理网络资格。
+开发和测试环境：只使用 GitHub Actions。最后一轮才安排真实物理机。根目录 `next-foundation` 工作流执行新根 module 的 Linux/Windows 基础构建与测试，并在 Linux 跑 race/fuzz；阶段 PASS 仍不代表后续握手、端到端或物理网络资格。

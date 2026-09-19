@@ -2,20 +2,32 @@
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
-  "milestone": "P1",
+  "milestone": "P2",
   "product_state": "IN_PROGRESS",
   "updated_at": "2026-09-19",
-  "completed": ["新架构决策和项目主旨固定", "旧代码/文档/工作流整体隔离到old", "建立新agent入口、阶段计划、开发日志和Actions基础检查"],
-  "in_progress": "P1：根Go module与internal/tlsrecord基础实现已在65184f80通过Linux/Windows unit/build、Linux race/fuzz；现将独立Actions reference artifact中的固定keys/wire bytes固化为静态测试并补深度乱序/失败状态边界。",
-  "next_task": "P1：验证静态reference-vector提交的Linux/Windows unit、Linux race/fuzz全部通过；以该精确SOURCE_SHA写回最终P1证据后进入P2。",
-  "latest_log": "docs/devlog/20260919-172800-p1-static-vectors.md",
-  "last_tested_source_sha": "65184f80bde05240071fd8954a15db4118d59609",
+  "completed": [
+    "新架构决策和项目主旨固定",
+    "旧代码/文档/工作流整体隔离到old",
+    "建立新agent入口、阶段计划、开发日志和Actions基础检查",
+    "P1：根Go module与internal/tlsrecord keys/seal/open/parser/65536近期PN去重/独立固定向量通过Actions"
+  ],
+  "in_progress": "P2：尚未开始代码提取；下一原子任务先审查FakeTCP bootstrap最小复用闭包并登记迁移证据。",
+  "next_task": "P2：只定向读取 old/internal/faketcp/bootstrap_stream.go、对应测试及其直接imports，列出最小提取闭包并登记REUSE_LEDGER；先提取bootstrap阶段所需行为，不搬整个old/internal/faketcp，不接FEC。",
+  "latest_log": "docs/devlog/20260919-173100-p1-complete.md",
+  "last_tested_source_sha": "39c35a86c1403aff619e6eba0dd883a7277b4a93",
   "actions": [
     {"source_sha": "3335b13a913cbd4b1adc689d75605b159280afac", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35433878751", "scope": "repository-foundation-only", "status": "PASS", "note": "repository-contract通过；active-go-tests按尚无产品module明确SKIPPED，不是产品资格。"},
     {"source_sha": "de284220bef3880ef126a67e3cb7ef43e02a98fe", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434610338", "scope": "P1-root-go-and-tlsrecord", "status": "FAIL", "note": "repository-contract PASS；Ubuntu active-go-tests在go list阶段报告go.mod需要tidy，race/fuzz/reference未运行。"},
-    {"source_sha": "65184f80bde05240071fd8954a15db4118d59609", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434673830", "scope": "P1-tlsrecord-pre-static-vectors", "status": "PASS", "note": "Windows unit/build PASS；Linux unit/build、race、15s定向fuzz PASS；独立reference generator PASS并上传artifact 10581128027。静态expected bytes尚在后续提交验证。"}
+    {"source_sha": "65184f80bde05240071fd8954a15db4118d59609", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434673830", "scope": "P1-tlsrecord-pre-static-vectors", "status": "PASS", "note": "Windows unit/build PASS；Linux unit/build、race、15s定向fuzz PASS；独立reference generator PASS并上传artifact 10581128027。"},
+    {"source_sha": "39c35a86c1403aff619e6eba0dd883a7277b4a93", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434817555", "scope": "P1-tlsrecord-final", "status": "PASS", "note": "repository-contract、Windows unit/build、Linux unit/build/race/15s fuzz、独立reference generator和artifact上传全部PASS；fuzz 186815 executions；artifact 10581943258。"}
   ],
   "physical_status": "NOT_RUN",
-  "known_limits": ["静态固定向量提交尚未获得Actions结果，因此P1尚未完成", "尚无可运行client/server或真实TLS exporter/FakeTCP阶段移交", "旧分支测试结果不属于新产品", "物理机验收留到P7"],
+  "known_limits": [
+    "P1通过只证明TLS-like record层，不表示P2真实握手/FakeTCP阶段移交通过",
+    "尚无可运行client/server、真实TLS exporter接线或网络数据面",
+    "P2及后续阶段均未验证",
+    "旧分支测试结果不属于新产品",
+    "物理机验收留到P7"
+  ],
   "required_read_set": ["AGENTS.md", "PROJECT_CHARTER.md", "docs/ROADMAP.md", "docs/DEVELOPMENT_PLAN.md", "docs/WIRE_SPEC.md", "docs/MODULE_MAP.md", "docs/ACCEPTANCE.md"]
 }
