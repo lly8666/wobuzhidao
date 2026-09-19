@@ -9,24 +9,26 @@
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
     "建立新agent入口、阶段计划、开发日志和Actions基础检查",
-    "P1：根Go module与internal/tlsrecord keys/seal/open/parser/65536近期PN去重/独立固定向量通过Actions"
+    "P1：根Go module与internal/tlsrecord keys/seal/open/parser/65536近期PN去重/独立固定向量通过Actions",
+    "P2子任务：FakeTCP BootstrapStream最小闭包提取、复用登记及基础Actions验证"
   ],
-  "in_progress": "P2：已完成FakeTCP bootstrap最小闭包审查并准备提取BootstrapStream与seqLT；不迁移完整ARQ，等待Actions验证。",
-  "next_task": "P2：确认bootstrap最小提取的Linux/Windows unit/build与Linux race通过；随后只提取满足bootstrap retransmit/ACK等待所需的Sender/Pending最小行为并设计prepare/detach边界，不接FEC或steady-state完整ARQ。",
-  "latest_log": "docs/devlog/20260919-174000-p2-bootstrap-minimal.md",
-  "last_tested_source_sha": "39c35a86c1403aff619e6eba0dd883a7277b4a93",
+  "in_progress": "P2：BootstrapStream最小提取已在23cef50c通过Actions；Sender/Pending的bootstrap retransmit与prepare/detach阶段边界尚未提取。",
+  "next_task": "P2：定向读取 old/internal/faketcp/arq.go 中Pending/Sender的bootstrap所需路径及调用方，只提取bootstrap retransmit/ACK wait最小闭包；设计prepare/detach接收边界API和对应阶段测试，不搬steady-state SACK/RACK完整ARQ，不接FEC。",
+  "latest_log": "docs/devlog/20260919-190600-p2-bootstrap-actions.md",
+  "last_tested_source_sha": "23cef50c0f50a5ca2c8ab7b752cadfe1ac9acdc3",
   "actions": [
     {"source_sha": "3335b13a913cbd4b1adc689d75605b159280afac", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35433878751", "scope": "repository-foundation-only", "status": "PASS", "note": "repository-contract通过；active-go-tests按尚无产品module明确SKIPPED，不是产品资格。"},
     {"source_sha": "de284220bef3880ef126a67e3cb7ef43e02a98fe", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434610338", "scope": "P1-root-go-and-tlsrecord", "status": "FAIL", "note": "repository-contract PASS；Ubuntu active-go-tests在go list阶段报告go.mod需要tidy，race/fuzz/reference未运行。"},
     {"source_sha": "65184f80bde05240071fd8954a15db4118d59609", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434673830", "scope": "P1-tlsrecord-pre-static-vectors", "status": "PASS", "note": "Windows unit/build PASS；Linux unit/build、race、15s定向fuzz PASS；独立reference generator PASS并上传artifact 10581128027。"},
-    {"source_sha": "39c35a86c1403aff619e6eba0dd883a7277b4a93", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434817555", "scope": "P1-tlsrecord-final", "status": "PASS", "note": "repository-contract、Windows unit/build、Linux unit/build/race/15s fuzz、独立reference generator和artifact上传全部PASS；fuzz 186815 executions；artifact 10581943258。"}
+    {"source_sha": "39c35a86c1403aff619e6eba0dd883a7277b4a93", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35434817555", "scope": "P1-tlsrecord-final", "status": "PASS", "note": "repository-contract、Windows unit/build、Linux unit/build/race/15s fuzz、独立reference generator和artifact上传全部PASS；fuzz 186815 executions；artifact 10581943258。"},
+    {"source_sha": "23cef50c0f50a5ca2c8ab7b752cadfe1ac9acdc3", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35436393242", "scope": "P2-bootstrap-minimal", "status": "PASS", "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build、race、既有tlsrecord定向fuzz、reference generator与artifact上传全部PASS。新增BootstrapStream测试包含在go test ./...中。"}
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "P2 bootstrap提取尚未获得Actions结果",
-    "Sender/Receiver、真实TLS exporter、FakeTCP阶段移交与fallback尚未实现",
+    "当前P2 PASS仅覆盖BootstrapStream最小提取，不代表真实TLS/FakeTCP阶段移交通过",
+    "Sender/Pending bootstrap重传、Receiver切换边界、prepare/detach、真实TLS exporter、fallback尚未实现",
     "尚无可运行client/server或网络数据面",
-    "P2及后续完整资格未验证",
+    "P2完整资格及后续阶段未验证",
     "物理机验收留到P7"
   ],
   "required_read_set": ["AGENTS.md", "PROJECT_CHARTER.md", "docs/ROADMAP.md", "docs/DEVELOPMENT_PLAN.md", "docs/WIRE_SPEC.md", "docs/MODULE_MAP.md", "docs/ACCEPTANCE.md"]
