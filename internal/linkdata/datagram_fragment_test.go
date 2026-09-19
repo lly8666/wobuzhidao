@@ -48,9 +48,15 @@ func TestOffPathFragmentsOversizeDatagramAndReassemblesOutOfOrder(t *testing.T) 
 	if st.InnerTXPackets != 1 || st.InnerTXBytes != uint64(len(payload)) || st.WireTXPackets != uint64(len(wire)) {
 		t.Fatalf("encode stats=%+v wire=%d", st, len(wire))
 	}
+	if st.FragmentedTXDatagrams != 1 || st.FragmentTXFrames != uint64(len(wire)) || st.MaxFragmentTXBytes > uint64(enc.Config().MTU) {
+		t.Fatalf("encode fragment stats=%+v wire=%d", st, len(wire))
+	}
 	st = dec.Stats()
 	if st.InnerRXPackets != 1 || st.InnerRXBytes != uint64(len(payload)) || st.WireRXPackets != uint64(len(wire)) {
 		t.Fatalf("decode stats=%+v wire=%d", st, len(wire))
+	}
+	if st.FragmentRXFrames != uint64(len(wire)) || st.ReassembledRXDatagrams != 1 || st.MaxFragmentRXBytes > uint64(dec.Config().MTU) {
+		t.Fatalf("decode fragment stats=%+v wire=%d", st, len(wire))
 	}
 }
 
@@ -84,6 +90,14 @@ func TestFixedPathFragmentsBeforeFECAndReassembles(t *testing.T) {
 	}
 	if len(got) != 1 || !bytes.Equal(got[0], payload) {
 		t.Fatalf("FEC reassembled datagrams=%d", len(got))
+	}
+	encStats := enc.Stats()
+	if encStats.FragmentedTXDatagrams != 1 || encStats.FragmentTXFrames < 2 || encStats.MaxFragmentTXBytes > uint64(enc.Config().MTU) {
+		t.Fatalf("FEC encode fragment stats=%+v", encStats)
+	}
+	decStats := dec.Stats()
+	if decStats.FragmentRXFrames < 2 || decStats.ReassembledRXDatagrams != 1 || decStats.MaxFragmentRXBytes > uint64(dec.Config().MTU) {
+		t.Fatalf("FEC decode fragment stats=%+v", decStats)
 	}
 }
 

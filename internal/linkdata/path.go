@@ -27,6 +27,13 @@ type PathStats struct {
 	WireTXPackets  uint64
 	WireTXBytes    uint64
 
+	FragmentedTXDatagrams  uint64
+	FragmentTXFrames       uint64
+	MaxFragmentTXBytes     uint64
+	FragmentRXFrames       uint64
+	MaxFragmentRXBytes     uint64
+	ReassembledRXDatagrams uint64
+
 	FECSystematicTXPackets uint64
 	FECSystematicTXBytes   uint64
 	FECRepairTXPackets     uint64
@@ -97,8 +104,17 @@ func (p *Path) Encode(packet []byte, now time.Time) ([][]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("linkdata encode: input_bytes=%d configured_mtu=%d: %w", len(packet), p.config.MTU, err)
 	}
+	if len(fragments) > 1 {
+		p.stats.FragmentedTXDatagrams++
+	}
 	wire := make([][]byte, 0, len(fragments))
 	for _, fragment := range fragments {
+		if hasLinkFragmentMagic(fragment) {
+			p.stats.FragmentTXFrames++
+			if n := uint64(len(fragment)); n > p.stats.MaxFragmentTXBytes {
+				p.stats.MaxFragmentTXBytes = n
+			}
+		}
 		if !p.FECEnabled() {
 			wire = append(wire, fragment)
 			continue
@@ -205,12 +221,22 @@ func (p *Path) decodeAt(wire []byte, now time.Time) ([][]byte, error) {
 
 	packets := make([][]byte, 0, len(candidates))
 	for _, candidate := range candidates {
+		wrappedFragment := hasLinkFragmentMagic(candidate)
+		if wrappedFragment {
+			p.stats.FragmentRXFrames++
+			if n := uint64(len(candidate)); n > p.stats.MaxFragmentRXBytes {
+				p.stats.MaxFragmentRXBytes = n
+			}
+		}
 		packet, complete, err := p.reassembler.Push(candidate, now)
 		if err != nil {
 			return nil, fmt.Errorf("linkdata reassemble: wire_bytes=%d configured_mtu=%d: %w", len(wire), p.config.MTU, err)
 		}
 		if !complete {
 			continue
+		}
+		if wrappedFragment {
+			p.stats.ReassembledRXDatagrams++
 		}
 		packets = append(packets, packet)
 		p.stats.InnerRXPackets++

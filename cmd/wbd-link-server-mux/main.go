@@ -552,6 +552,13 @@ func (s *server) removePeer(key string, flush bool) {
 				_ = sendWire(s.conn, ps.peer, wire)
 			}
 		}
+		if st, err := s.plane.Stats(ps.id); err == nil {
+			cfg := ps.startup.Stats().Config
+			fmt.Printf("WBD_LINK_SERVER_PATH_STATS tunnel_id_prefix=%s mtu=%d inner_tx=%d inner_rx=%d wire_tx=%d wire_rx=%d fragmented_tx=%d fragment_tx_frames=%d max_fragment_tx=%d fragment_rx_frames=%d max_fragment_rx=%d reassembled_rx=%d\n",
+				printableSID(ps), cfg.MTU, st.InnerTXPackets, st.InnerRXPackets, st.WireTXPackets, st.WireRXPackets,
+				st.FragmentedTXDatagrams, st.FragmentTXFrames, st.MaxFragmentTXBytes,
+				st.FragmentRXFrames, st.MaxFragmentRXBytes, st.ReassembledRXDatagrams)
+		}
 		s.plane.Remove(ps.id)
 	}
 	if ps.service != nil {

@@ -232,8 +232,21 @@ func runClient(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if err != nil {
 		return err
 	}
+	defer printLinkPathStats("client", path)
 	fmt.Printf("WBD_LINK_READY role=client fec=%s mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t demo_kind=%s keepalive=%s\n", o.fec, cfg.MTU, cfg.LaneCount, startupAcceptAuth(startup), demoKind != "off", demoKind, keepalive)
 	return clientDataLoop(conn, dtlsAddr, path, startup, keepalive, stop)
+}
+
+func printLinkPathStats(role string, path *linkdata.Path) {
+	if path == nil {
+		return
+	}
+	st := path.Stats()
+	cfg := path.Config()
+	fmt.Printf("WBD_LINK_PATH_STATS role=%s mtu=%d inner_tx=%d inner_rx=%d wire_tx=%d wire_rx=%d fragmented_tx=%d fragment_tx_frames=%d max_fragment_tx=%d fragment_rx_frames=%d max_fragment_rx=%d reassembled_rx=%d\n",
+		role, cfg.MTU, st.InnerTXPackets, st.InnerRXPackets, st.WireTXPackets, st.WireRXPackets,
+		st.FragmentedTXDatagrams, st.FragmentTXFrames, st.MaxFragmentTXBytes,
+		st.FragmentRXFrames, st.MaxFragmentRXBytes, st.ReassembledRXDatagrams)
 }
 
 func startupAcceptAuth(s clientStartupSession) bool {
@@ -336,6 +349,7 @@ func runServer(conn *net.UDPConn, o options, stop <-chan os.Signal) error {
 	if err != nil {
 		return err
 	}
+	defer printLinkPathStats("server", path)
 	fmt.Printf("WBD_LINK_READY role=server fec_mode=%d fec=%d:%d mtu=%d lanes=%d immutable=1 auth=%t demo_reality=%t demo_kind=%s\n",
 		cfg.FECMode, cfg.DataShards, cfg.ParityShards, cfg.MTU, cfg.LaneCount, startup.Stats().AuthRequired, demoKind != "off", demoKind)
 	return serverDataLoop(conn, serviceAddr, dtlsPeer, path, startup, stop)
