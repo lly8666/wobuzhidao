@@ -20,12 +20,13 @@
     "P2审计返工：普通合法SYN入口、peer MSS/WS/SACK协商与绝对候选建连期限通过Actions",
     "P2：hosted核心建连/fallback/切换/no-HOL资格完成；目标网站完整服务端握手指纹与真实raw/Npcap抓包明确留待后续验收",
     "P3子任务：LINK单数据报fragmentation/reassembly最小闭包、wire/PacketID/乱序重复/冲突语义、超时与条数/字节边界、跨数据报no-HOL通过Actions",
-    "P3子任务：FEC off + 20:4/8/10/12/16/20 live v1全固定挡位、systematic first-arrival、3秒绝对恢复期限、bounded retirement与LINK接线通过Actions"
+    "P3子任务：FEC off + 20:4/8/10/12/16/20 live v1全固定挡位、systematic first-arrival、3秒绝对恢复期限、bounded retirement与LINK接线通过Actions",
+    "P3子任务：统一MTU/预算（connection/local packet MTU、actual IPv4/TCP headers、peer MSS、record limit、TLS-like/FEC/LINK开销）通过Actions"
   ],
-  "in_progress": "P3 统一 MTU/预算原子任务实现完成，等待该代码提交精确 SOURCE_SHA 的 GitHub Actions；当前不得标 PASS。实现已把 connection/local packet MTU、实际 IPv4/TCP header、peer effective MSS（未声明时536）、negotiated record wire limit、TLS-like 31B、FEC v1 56B 与 LINK fragment 20B 收敛为单一预算；尚未接必要 session/owner 或平台 raw I/O。",
-  "next_task": "先取得本次 P3 统一 MTU提交精确 SHA 的完整 Actions 结果；失败则按具体 job logs 只修 pathmtu/跨层预算，保留 FAIL 证据；成功后更新 PASS receipt，再进入 P3 必要 session/owner 串接。",
-  "latest_log": "docs/devlog/20260920-020000-p3-unified-mtu.md",
-  "last_tested_source_sha": "e8e38d09b98b1898b41ad30335546989bed4f0a5",
+  "in_progress": "P3继续：LINK、FEC全固定挡位和统一MTU均已由精确 SOURCE_SHA Actions 通过。下一原子任务按 STATUS 接必要 session/owner 串接：把 admission negotiated record limits、FakeTCP peer profile、pathmtu Budget、LINK/FEC path 与 tlsrecord sealer/opener 绑定为 lane-owned 数据面闭包；仍不接 platform raw I/O、Tunnel/Game 或 CLI。",
+  "next_task": "P3：定向读取 old/internal/session 及当前 active realityfront/faketcp/tlsrecord/linkdata/pathmtu 接口，提取必要所有权/生命周期约束并新建最小 lane owner 串接。要求方向 record limit 与 peer MSS/actual headers 进入统一 Budget，LINK/FEC 输出逐条 seal 成不可变 record wire，接收逐条 open 后进入 FEC/LINK；owner timer 驱动 FEC/LINK expiry；失败/close 释放状态，不引入跨lane共享或第二网络握手。",
+  "latest_log": "docs/devlog/20260920-023000-p3-unified-mtu-pass.md",
+  "last_tested_source_sha": "dbd305950984652361d6bab34f05c66558461311",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -194,6 +195,13 @@
       "scope": "P3-fec-all-fixed-profiles",
       "status": "PASS",
       "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。新增 FEC off + 20:4/8/10/12/16/20 exact profile matrix、v1 56-byte wire、systematic first-arrival、full/partial parity、各挡位 parity-budget recovery、跨block no-HOL、duplicate/conflicting duplicate、profile/header mismatch isolation、8192 retired bound、3秒绝对deadline/停流expiry/late systematic、LINK缺片恢复、跨20-source ownership与lane-local state测试均进入unit/race范围。Artifacts: foundation 10587627303；tlsrecord-reference 10587349743。"
+    },
+    {
+      "source_sha": "dbd305950984652361d6bab34f05c66558461311",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35455148999",
+      "scope": "P3-unified-mtu-budget",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。新增 pathmtu 覆盖 connection MTU 576/1280/1400/1500/1600/9000、FEC off/on及全部 fixed profile同开销、actual TCP header/options、local packet ceiling、peer MSS与missing-MSS IPv4=536、negotiated record limit、非法/零容量拒绝；跨层测试用预算实际驱动 linkdata FECPath + tlsrecord Sealer，验证 FEC/LINK wire<=record payload、record<=peer MSS/limit、outer IPv4/TCP packet<=effective MTU。Artifacts: foundation 10588495998；tlsrecord-reference 10588061668。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -202,7 +210,7 @@
     "真实raw socket/Npcap抓包、普通内核TCP浏览器访问与capture-loss统计尚未实现；hosted wire serialization不替代P5/P7实抓",
     "平台raw packet IO尚未从old提取；当前association仍以SegmentEmitter作为I/O边界",
     "ticket/lease/installation ID/CLI尚未迁移，属于后续P4产品层",
-    "P3 LINK fragmentation/reassembly 与 FEC off + 20:4/8/10/12/16/20 live v1 全挡位已通过 hosted Actions；统一 MTU/预算已实现但本提交尚未获得精确 SHA Actions 资格；session/owner接线仍未实现",
+    "P3 LINK fragmentation/reassembly、FEC off + 20:4/8/10/12/16/20 live v1 全挡位、统一MTU/预算均已由 hosted Actions 通过；必要 session/owner 串接仍未实现",
     "尚无可运行client/server完整网络产品入口",
     "物理机验收留到P7"
   ],
