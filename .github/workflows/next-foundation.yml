@@ -136,8 +136,29 @@ jobs:
           TCPDUMP_PID=$!
           sleep 1
 
-          sudo env WBD_P2_KERNEL_NET=1 GITHUB_SHA="$GITHUB_SHA" /tmp/p2-kernel-fallback.test             -test.v -test.run '^TestKernelTLSFallbackVerifiedHTTPAndNormalClose$'             | tee artifacts/p2-kernel-test.log
+          sudo env WBD_P2_KERNEL_NET=1 GITHUB_SHA="$GITHUB_SHA" /tmp/p2-kernel-fallback.test             -test.v -test.run '^TestKernelTLSFallbackVerifiedHTTPAndNormalClose
+          wait "$TCPDUMP_PID" || true
+          TCPDUMP_PID=""
+          sudo chmod -R a+r artifacts
 
+          cat artifacts/p2-tcpdump.stderr
+          python tools/check_p2_pcap.py             --pcap artifacts/p2-fallback.pcap             --tcpdump-stderr artifacts/p2-tcpdump.stderr             --server-ip 127.0.0.2             --port 24443             --source-sha "$GITHUB_SHA"             --output artifacts/p2-pcap-summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p2-kernel-fallback-${{ github.sha }}
+          path: |
+            artifacts/p2-fallback.pcap
+            artifacts/p2-tcpdump.stderr
+            artifacts/p2-kernel-test.log
+            artifacts/p2-pcap-summary.json
+          if-no-files-found: warn
+             | tee artifacts/p2-kernel-test.log
+
+          # Protocol sockets are already closed. This bounded wait only lets
+          # tcpdump drain packets already queued in the kernel capture socket;
+          # it does not pace or alter FakeTCP/TLS traffic.
+          sleep 1
           sudo kill -INT "$TCPDUMP_PID"
           wait "$TCPDUMP_PID" || true
           TCPDUMP_PID=""

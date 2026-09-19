@@ -23,10 +23,10 @@
     "P3子任务：FEC off + 20:4/8/10/12/16/20 live v1全固定挡位、systematic first-arrival、3秒绝对恢复期限、bounded retirement与LINK接线通过Actions",
     "P3子任务：统一MTU/预算（connection/local packet MTU、actual IPv4/TCP headers、peer MSS、record limit、TLS-like/FEC/LINK开销）通过Actions"
   ],
-  "in_progress": "P2真实kernel TCP/TLS/HTTP/pcap功能门在2d4be948已PASS，但原始日志显示测试耗时60.24s，定位为Linux RawIPv4Endpoint关闭时AF_PACKET阻塞Recvfrom不能及时唤醒。本提交给recv socket 200ms有界超时并显式测试server.Close<=1s；通过前P2保持OPEN。P3成果不变。",
-  "next_task": "以本关闭边界修正SOURCE_SHA重跑全部Actions；要求p2-kernel-fallback仍保持证书验证/HTTP/pcap全部PASS且TestKernelTLSFallback耗时显著回落、显式Close<=1s。通过后复核新pcap artifact并提交唯一STATUS关闭P2、保留P3当前进度和剩余目标网站指纹差异。",
-  "latest_log": "docs/devlog/20260920-017000-p2-raw-close-bound.md",
-  "last_tested_source_sha": "2d4be9486e7c6efc4c0aaed5d7a80e189708b843",
+  "in_progress": "P2 raw关闭边界已由9679f4c kernel test 1.03s验证；该run基础回归全PASS，但pcap job因测试返回后立即SIGINT导致capture进程未消费已在kernel filter中的全部包（13 captured/56 received/filter、drop=0），最终抓包门仍OPEN。本提交只给tcpdump增加协议结束后的1s有界drain再停止capture；不改产品I/O。P3成果不变。",
+  "next_task": "重跑本SOURCE_SHA全部Actions；要求kernel Go test仍约1s且Close<=1s，tcpdump完整落盘且drop=0，pcap summary确认同Seq重传/MSS-window/checksum/无RST分片/双向FIN。全部PASS后核对artifact并关闭P2。",
+  "latest_log": "docs/devlog/20260920-017500-p2-pcap-drain-sync.md",
+  "last_tested_source_sha": "9679f4c65688a83fc8f57237880d651a08dfcda1",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -244,6 +244,13 @@
       "scope": "P2-kernel-tls-fallback-pcap-pre-close-bound",
       "status": "PASS",
       "note": "repository-contract、Windows/Linux unit/build、Linux race/fuzz及p2-kernel-fallback均PASS。普通内核crypto/tls客户端实际验证target.test测试CA链并完成HTTP/正常关闭；pcap artifact 10588624911（zip SHA256 92bfed6475a6eb08ab4ac5ccd64557c09c62ea7f977327595252a48f5bfb23d7）记录29包、capture drop=0、server checksum 14/14、MSS1360/WS8/SACK、无RST/分片、双向FIN，同Seq=1509996997密文1.024446s后重传一致。测试总耗时60.24s暴露AF_PACKET阻塞Read在Close时唤醒过慢，因此P2暂不关闭。"
+    },
+    {
+      "source_sha": "9679f4c65688a83fc8f57237880d651a08dfcda1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35458665989",
+      "scope": "P2-raw-close-bound-and-capture-drain",
+      "status": "FAIL",
+      "note": "repository-contract、Windows/Linux unit/build、Linux race/fuzz均PASS；kernel Go测试PASS且耗时由60.24s降至1.03s，证明RawIPv4Endpoint Close有界。p2-kernel-fallback最终FAIL仅在pcap分析：测试结束后立即SIGINT tcpdump，13 packets captured而56 packets received by filter、kernel drop=0，未落盘>=0.5s同Seq重传；artifact 10588991467（zip SHA256 40cc38c14e07fefe277783f828c593fa38742698da88f1c323c065a066b4d0c1）缺summary。功能/关闭通过但抓包门未通过。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -267,7 +274,7 @@
     "docs/ACCEPTANCE.md"
   ],
   "workstreams": {
-    "P2": "REOPENED: kernel TLS/HTTP/pcap功能PASS；RawIPv4Endpoint关闭唤醒有界修正待Actions",
+    "P2": "REOPENED: raw close bound PASS；pcap capture-drain同步修正待Actions",
     "P3": "IN_PROGRESS:保留LINK/FEC/MTU已测SHA；session/owner与可选padding待实现",
     "P4": "PLANNED:既有lane复用、可选padding预算/默认off",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
