@@ -14,9 +14,9 @@
       "tests": "bootstrap and transition tests exercise comparisons across uint32 wrap."
     },
     {
-      "source": "old/internal/faketcp/arq.go + old/internal/faketcp/bootstrap_retransmit_test.go",
+      "source": "old/internal/faketcp/arq.go",
       "destination": "internal/faketcp/bootstrap_sender.go",
-      "behavior_changes": "Extract only copied Pending payload ownership, cumulative ACK release, ACK waiting, oldest-payload RTO retransmit, bootstrap 2s retransmit ceiling, and the invariant that bootstrap retries do not back off the shared RTO. Steady-state SACK/RACK/repair-budget/partial-reliability logic is intentionally not migrated in this task.",
+      "behavior_changes": "Extract only copied Pending payload ownership, cumulative ACK release, ACK waiting, oldest-payload RTO retransmit, bootstrap 2s retransmit ceiling, and the invariant that bootstrap retries do not back off the shared RTO. The archived bootstrap_retransmit_test.go was also inspected as behavioral evidence, but the ledger source field remains the single code source path required by repository contract. Steady-state SACK/RACK/repair-budget/partial-reliability logic is intentionally not migrated in this task.",
       "tests": "internal/faketcp/bootstrap_sender_test.go covers the archived bootstrap ceiling invariant, later ordinary RTO backoff, cumulative ACK wait/deadline, retransmit Seq/payload identity, and uint32 wrap."
     }
   ],
