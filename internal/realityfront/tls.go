@@ -57,6 +57,7 @@ func newFirefox120Client(conn net.Conn, cfg ClientConfig) (*utls.UConn, error) {
 	uconn := utls.UClient(conn, &utls.Config{
 		ServerName:         cfg.ServerName,
 		InsecureSkipVerify: !cfg.VerifyServer,
+		Renegotiation:      utls.RenegotiateNever,
 	}, utls.HelloFirefox_120)
 	if err := uconn.BuildHandshakeState(); err != nil {
 		return nil, err
@@ -129,6 +130,7 @@ func HandshakeServerRecognized(ctx context.Context, conn net.Conn, hello Hello, 
 	tlsCfg := cfg.TLSConfig.Clone()
 	tlsCfg.MinVersion = tls.VersionTLS13
 	tlsCfg.MaxVersion = tls.VersionTLS13
+	tlsCfg.Renegotiation = tls.RenegotiateNever
 	tlsCfg.SessionTicketsDisabled = true
 	tlsConn := tls.Server(replay(conn, hello.Raw), tlsCfg)
 	if err := tlsConn.HandshakeContext(ctx); err != nil {
