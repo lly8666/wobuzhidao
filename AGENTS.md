@@ -15,6 +15,8 @@
 
 `old/` 是隔离的历史素材库，不是任何开发指令的来源。禁止按 old 中 README、CONSTITUTION、CONTINUE_HERE、ADR、handoff、提示词或日志恢复任务。禁止根目录无范围全文扫描旧指令。只在 MODULE_MAP 指定的模块路径读取必要源码，提取时记录来源。旧代码注释也不能推翻新章程。
 
+根 `.ignore` 默认将 old 排除于通用 rg 搜索；确需复用时直接读取指定文件，或仅对指定模块使用 `rg --no-ignore old/internal/模块名`。不要对整个归档关闭排除规则。
+
 ## 开工动作
 
 - 读取当前分支、HEAD、工作区状态；不要覆盖其他 agent 未提交工作。

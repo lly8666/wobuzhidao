@@ -12,7 +12,7 @@ TCP-like 外层、TLS-like 独立加密记录、稳态无跨包 HOL 的弱网隧
 - [复用与新开发边界](docs/MODULE_MAP.md)
 - [开发阶段](docs/ROADMAP.md)
 - [Actions 验收规则](docs/ACCEPTANCE.md)
-- [最近开发日志](docs/devlog/20260919-000000-bootstrap.md)
+- 最近开发日志以 [STATUS.json](docs/STATUS.json) 的 `latest_log` 为准。
 
 DTLS 基线保存在独立分支 [`release/dtls-preview-20260919`](https://github.com/lly8666/wobuzhidao/tree/release/dtls-preview-20260919)，源码锚点 `b5c848f4e9afdffd15d1bc451560edf4e9390a35`。旧架构不与新产品并存，不做旧产品性能 A/B。
 
