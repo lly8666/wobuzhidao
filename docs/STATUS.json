@@ -16,9 +16,9 @@
     "P2子任务：真实TLS/uTLS Firefox120 persona、ClientHello分类/replay与真实exporter在同association上通过Actions",
     "P2子任务：TLS内受保护admission、最小username/password认证、v1/nonce/TunnelID/双向record limits协商与prepare/detach通过Actions"
   ],
-  "in_progress": "P2：真实TLS/persona/auth/exporter/同association阶段移交已具备Actions证据；下一原子任务实现未识别ClientHello在同一入站FakeTCP association上的真实decoy fallback splice。",
-  "next_task": "P2：定向提取old/internal/realitymirror/mirror.go的target dial + raw ClientHello replay + 双向splice最小闭包，接ServerAssociation.BootstrapConn；测试必须证明unrecognized raw字节原样到达decoy、decoy响应回到同一client流、recognized分支绝不拨decoy、失败不prepare transition。仍不搬CLI/lease/steady-state。",
-  "latest_log": "docs/devlog/20260919-203000-p2-protected-admission-pass.md",
+  "in_progress": "P2：真实decoy fallback最小闭包已准备提交：单入口只消费一次ClientHello；recognized进入现有protected admission且零fallback dial，unrecognized在同一FakeTCP BootstrapConn上把raw ClientHello逐字节replay到decoy并双向splice；等待新SHA Actions。",
+  "next_task": "P2：验证fallback提交的repository-contract、Windows/Linux unit/build与Linux race；通过后核对P2剩余资格：最后bootstrap丢包/ACK丢失、首条新record提前/丢失、reader预读、退出候选、transition队列上限及record no-HOL核心资格，按最小缺口补测试/实现，不进入P3。",
+  "latest_log": "docs/devlog/20260919-204500-p2-real-decoy-fallback.md",
   "last_tested_source_sha": "d4acf7ae1389920c67a192a4359ade4120675387",
   "actions": [
     {
@@ -115,9 +115,10 @@
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "未识别ClientHello尚未真实splice到decoy target；这是当前P2主要缺口",
+    "真实decoy fallback实现等待Actions验证；通过前不标记完成",
     "ticket/lease/installation ID/CLI未迁移",
     "association仍使用SegmentEmitter测试边界，尚未接Linux raw socket/Npcap",
+    "P2的最后bootstrap丢包/ACK丢失、首条新record丢失等完整资格尚未系统收口",
     "steady-state Receiver/SACK/RACK/FEC与record数据面接线尚未实现",
     "尚无可运行client/server或网络数据面",
     "P2完整资格及抓包门槛未验证",

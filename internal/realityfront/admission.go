@@ -131,17 +131,12 @@ func EstablishClient(ctx context.Context, conn net.Conn, cfg ClientAdmissionConf
 	}, nil
 }
 
-// EstablishServer classifies and takes over the same FakeTCP bootstrap
-// association, authenticates one protected request, derives exporter keys,
-// installs the receive transition boundary BEFORE the final TLS response, then
-// writes the response. BootstrapStream.Write waits for the response ACK. Detach
-// happens after that ACK; any first new-mode record that raced the response is
-// transferred in EarlyRecords instead of being fed back into TLS.
+// EstablishServer is the recognized-only compatibility entry point. It reads
+// the ClientHello once and rejects unrecognized sessions instead of dialing a
+// fallback target. HandleServerAssociation owns the branch when fallback is
+// configured.
 func EstablishServer(ctx context.Context, assoc *faketcp.ServerAssociation, cfg ServerAdmissionConfig) (*ServerAdmissionSession, error) {
 	if assoc == nil {
-		return nil, ErrAdmissionParams
-	}
-	if cfg.ExpectedUsername == "" || cfg.ExpectedPassword == "" || !validRecordLimit(cfg.ServerLimit) {
 		return nil, ErrAdmissionParams
 	}
 	conn := assoc.BootstrapConn()
@@ -152,6 +147,19 @@ func EstablishServer(ctx context.Context, assoc *faketcp.ServerAssociation, cfg 
 	if !hello.Recognized {
 		return nil, ErrMarker
 	}
+	return establishServerRecognized(ctx, assoc, hello, cfg)
+}
+
+// establishServerRecognized takes ownership after one ClientHello has already
+// been classified. It must never read or classify another ClientHello.
+func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssociation, hello Hello, cfg ServerAdmissionConfig) (*ServerAdmissionSession, error) {
+	if assoc == nil || !hello.Recognized {
+		return nil, ErrAdmissionParams
+	}
+	if cfg.ExpectedUsername == "" || cfg.ExpectedPassword == "" || !validRecordLimit(cfg.ServerLimit) {
+		return nil, ErrAdmissionParams
+	}
+	conn := assoc.BootstrapConn()
 	tlsConn, err := handshakeServerRecognizedConn(ctx, conn, hello, cfg.TLS)
 	if err != nil {
 		return nil, err
