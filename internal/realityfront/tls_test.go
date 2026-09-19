@@ -226,6 +226,7 @@ type associationPeerConn struct {
 	readDeadline time.Time
 	writeDeadline time.Time
 	onServerPayload func(faketcp.Segment)
+	onClientPayload func(faketcp.Segment)
 	done            chan struct{}
 	closeOnce       sync.Once
 }
@@ -400,6 +401,12 @@ func (c *associationPeerConn) writePayload(p []byte, requireAckAdvance bool) (in
 		seg.Seq = seq
 		seg.Ack = ack
 		seg.Payload = payload
+		c.mu.Lock()
+		hook := c.onClientPayload
+		c.mu.Unlock()
+		if hook != nil {
+			hook(seg)
+		}
 		res, err := c.assoc.HandleSegment(seg, time.Now())
 		if err != nil {
 			return written, err
