@@ -23,9 +23,9 @@
     "P3子任务：FEC off + 20:4/8/10/12/16/20 live v1全固定挡位、systematic first-arrival、3秒绝对恢复期限、bounded retirement与LINK接线通过Actions",
     "P3子任务：统一MTU/预算（connection/local packet MTU、actual IPv4/TCP headers、peer MSS、record limit、TLS-like/FEC/LINK开销）通过Actions"
   ],
-  "in_progress": "P2 raw关闭边界已由9679f4c kernel test 1.03s验证；该run基础回归全PASS，但pcap job因测试返回后立即SIGINT导致capture进程未消费已在kernel filter中的全部包（13 captured/56 received/filter、drop=0），最终抓包门仍OPEN。本提交只给tcpdump增加协议结束后的1s有界drain再停止capture；不改产品I/O。P3成果不变。",
-  "next_task": "重跑本SOURCE_SHA全部Actions；要求kernel Go test仍约1s且Close<=1s，tcpdump完整落盘且drop=0，pcap summary确认同Seq重传/MSS-window/checksum/无RST分片/双向FIN。全部PASS后核对artifact并关闭P2。",
-  "latest_log": "docs/devlog/20260920-017500-p2-pcap-drain-sync.md",
+  "in_progress": "P2协议/关闭实现仍以9679f4c为最新已执行源码；d96d2fd仅CI文本损坏导致pre-dispatch FAIL。本提交从9679f4c已解析成功的workflow完整恢复，只在kernel测试结束后、停止tcpdump前加入1s capture-drain；产品源码不变。P3成果保持不变。",
+  "next_task": "以本SOURCE_SHA重跑完整Actions。要求repository-contract、Windows/Linux unit/build、Linux race/fuzz和p2-kernel-fallback全部PASS；kernel测试约1s、tcpdump drop=0且完整pcap含同Seq一致重传/合法Seq-ACK/checksum/MSS-window/无RST分片/双向FIN。通过后核对artifact并关闭P2。",
+  "latest_log": "docs/devlog/20260920-018000-p2-workflow-repair.md",
   "last_tested_source_sha": "9679f4c65688a83fc8f57237880d651a08dfcda1",
   "actions": [
     {
@@ -251,6 +251,13 @@
       "scope": "P2-raw-close-bound-and-capture-drain",
       "status": "FAIL",
       "note": "repository-contract、Windows/Linux unit/build、Linux race/fuzz均PASS；kernel Go测试PASS且耗时由60.24s降至1.03s，证明RawIPv4Endpoint Close有界。p2-kernel-fallback最终FAIL仅在pcap分析：测试结束后立即SIGINT tcpdump，13 packets captured而56 packets received by filter、kernel drop=0，未落盘>=0.5s同Seq重传；artifact 10588991467（zip SHA256 40cc38c14e07fefe277783f828c593fa38742698da88f1c323c065a066b4d0c1）缺summary。功能/关闭通过但抓包门未通过。"
+    },
+    {
+      "source_sha": "d96d2fdadf229aa3112d11a6a3e6eaef237167fc",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35458809874",
+      "scope": "P2-pcap-drain-workflow-syntax",
+      "status": "FAIL",
+      "note": "GitHub Actions在调度前FAIL、无job记录。提交diff显示workflow文本替换截断了-test.run引号并重复插入后半job，属于CI YAML/script生成错误；没有产品测试执行，不能继承为资格。产品源码未变。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -274,7 +281,7 @@
     "docs/ACCEPTANCE.md"
   ],
   "workstreams": {
-    "P2": "REOPENED: raw close bound PASS；pcap capture-drain同步修正待Actions",
+    "P2": "REOPENED: 关闭边界已验证；修复pcap drain workflow语法后待Actions",
     "P3": "IN_PROGRESS:保留LINK/FEC/MTU已测SHA；session/owner与可选padding待实现",
     "P4": "PLANNED:既有lane复用、可选padding预算/默认off",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
