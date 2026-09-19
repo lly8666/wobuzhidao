@@ -14,12 +14,13 @@
     "P2子任务：bootstrap Sender/Pending重传与ACK wait、StageTransition prepare/detach边界通过Actions",
     "P2子任务：SYN/packet/persona/ServerAssociation最小闭包与同association bootstrap/transition接线通过Actions",
     "P2子任务：真实TLS/uTLS Firefox120 persona、ClientHello分类/replay与真实exporter在同association上通过Actions",
-    "P2子任务：TLS内受保护admission、最小username/password认证、v1/nonce/TunnelID/双向record limits协商与prepare/detach通过Actions"
+    "P2子任务：TLS内受保护admission、最小username/password认证、v1/nonce/TunnelID/双向record limits协商与prepare/detach通过Actions",
+    "P2子任务：真实decoy fallback（单ClientHello分类、byte-exact raw replay、同association双向splice、recognized零fallback dial）通过Actions"
   ],
-  "in_progress": "P2：44b13410c4c641bd601699b69227b4822bfecceb已证明fallback 5s阻塞消失，unit在0s内只因测试先调用uTLS.Close导致底层peer提前关闭、随后drain立即EOF而FAIL。当前改为由decoy先close，clientTLS.Read消费close_notify并产生FakeTCP ACK，再关闭底层transport；产品fallback语义不再改，等待新SHA Actions。",
-  "next_task": "P2：验证fallback TLS shutdown测试顺序修复的repository-contract、Windows/Linux unit/build与Linux race；通过后正式标记fallback完成并核对P2剩余资格。",
-  "latest_log": "docs/devlog/20260919-212100-p2-fallback-tls-shutdown-order.md",
-  "last_tested_source_sha": "44b13410c4c641bd601699b69227b4822bfecceb",
+  "in_progress": "P2：真实TLS/persona/auth/exporter/fallback/同association阶段移交均有Actions PASS证据；当前进入P2退出条件收口，逐项核对bootstrap丢包/ACK丢失、首条新record丢失/提前、reader预读、退出候选、transition队列上限和record no-HOL核心资格。",
+  "next_task": "P2：读取现有faketcp/tlsrecord/realityfront测试与MODULE_MAP/DEVELOPMENT_PLAN，建立ACCEPTANCE逐项覆盖矩阵；只对未覆盖项补最小实现/测试。优先确认最后bootstrap丢包+ACK丢失的同association集成、first-new-record loss/early、reader prefetch、exit candidate、transition queue bound和record no-HOL。",
+  "latest_log": "docs/devlog/20260919-212500-p2-fallback-pass.md",
+  "last_tested_source_sha": "f9bb007f81da5cf772d83ff37d8086987ce91543",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -139,16 +140,22 @@
       "scope": "P2-real-decoy-fallback",
       "status": "FAIL",
       "note": "repository-contract PASS；Windows/Linux unit中TestUnrecognizedHelloFallsBackOnSameAssociationWithExactReplay均0s快速失败：测试先clientTLS.Close关闭底层associationPeerConn，随后raw peer.Read自然得到EOF。上一轮5s splice阻塞已消失；这是测试TLS shutdown顺序错误，race/fuzz/reference未运行。"
+    },
+    {
+      "source_sha": "f9bb007f81da5cf772d83ff37d8086987ce91543",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35445121111",
+      "scope": "P2-real-decoy-fallback",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。真实decoy TLS、byte-exact raw ClientHello replay、同association ping/pong、recognized零fallback dial、SNI拒绝和TLS shutdown测试均在unit/race范围。"
     }
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "真实decoy fallback实现等待Actions验证；通过前不标记完成",
-    "ticket/lease/installation ID/CLI未迁移",
-    "association仍使用SegmentEmitter测试边界，尚未接Linux raw socket/Npcap",
-    "P2的最后bootstrap丢包/ACK丢失、首条新record丢失等完整资格尚未系统收口",
-    "steady-state Receiver/SACK/RACK/FEC与record数据面接线尚未实现",
-    "尚无可运行client/server或网络数据面",
+    "P2退出条件尚未逐项收口：bootstrap丢包/ACK丢失、first-new-record loss/early、reader prefetch、exit candidate、transition queue bound与record no-HOL需建立最终证据矩阵",
+    "ticket/lease/installation ID/CLI未迁移，属于后续产品层而非当前fallback闭包",
+    "association仍使用SegmentEmitter测试边界，尚未接Linux raw socket/Npcap；抓包格式门槛尚未验证",
+    "steady-state Receiver/SACK/RACK/FEC与完整record数据面尚未实现",
+    "尚无可运行client/server完整网络产品入口",
     "P2完整资格及抓包门槛未验证",
     "物理机验收留到P7"
   ],
