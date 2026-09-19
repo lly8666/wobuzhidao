@@ -48,7 +48,25 @@
       "destination": "internal/faketcp/association.go",
       "behavior_changes": "Extract only ServerFlow, bounded association table, SYN/SYN-ACK/final-ACK state, one shared send sequence space, bootstrap stream/sender wiring, and prepare/detach transition routing. The old steady-state Receiver, SACK/RACK, fast retransmit, EnqueueSteadyState, repair pressure and recovery-mode selection are not migrated.",
       "tests": "internal/faketcp/association_test.go covers WBD SYN admission, cross-flow isolation, data-bearing final ACK delivery, real BootstrapStream Write -> Sender WaitAck -> incoming ACK unblock, exact transition boundary, early-record queue/detach, pure ACK ownership, and table duplicate/cap behavior."
+    },
+    {
+      "source": "old/internal/realityfront/front.go",
+      "destination": "internal/realityfront/hello.go",
+      "behavior_changes": "Extract the REALITY-like HMAC SessionID route marker, exact ClientHello identity parsing, replay connection and name normalization only. Ticket/auth/fallback dialing code is not migrated in this atomic task.",
+      "tests": "internal/realityfront/tls_test.go validates the route marker on the pinned Firefox120 ClientHello and recognized/unrecognized classification behavior."
+    },
+    {
+      "source": "old/internal/realitymirror/mirror.go",
+      "destination": "internal/realityfront/hello.go",
+      "behavior_changes": "Extract only bounded TLS ClientHello record reading plus SNI/ALPN parsing so classification can retain byte-exact raw hello for later fallback or replay. Target dialing, bidirectional splice and transfer limits remain deferred.",
+      "tests": "internal/realityfront/tls_test.go verifies an unrecognized hello retains raw bytes and SNI for later fallback rather than being consumed irreversibly."
+    },
+    {
+      "source": "old/internal/realityfront/single_flow.go",
+      "destination": "internal/realityfront/tls.go",
+      "behavior_changes": "Preserve the pinned uTLS Firefox120 ClientHello persona and same-connection crypto/tls server takeover, but remove username/password/ticket coupling from this atomic layer. Exporter keys are now derived directly from the original uTLS/crypto-tls ConnectionState using WIRE_SPEC context; the old hand-copy into tls.ConnectionState is deliberately not reused because it would lose exporter capability.",
+      "tests": "internal/realityfront/tls_test.go compares Firefox120 preset fields, performs real TLS 1.3 over ServerAssociation.BootstrapConn through an in-memory SegmentEmitter peer, requires client/server exporter-derived tlsrecord KeyPair equality, context binding, and early-record prepare/detach preservation."
     }
   ],
-  "note": "P2 now has a minimal same-association FakeTCP handshake/bootstrap closure. internal/faketcp/transition.go remains a new implementation of DEVELOPMENT_PLAN section 3 rather than copied archive code. Raw socket backends, real TLS/uTLS exporter/auth/fallback, and steady-state Receiver/SACK/RACK/FEC remain deferred."
+  "note": "P2 now has same-association FakeTCP bootstrap plus a minimal real TLS/uTLS/exporter layer. uTLS is pinned at source-project v1.6.5. Authentication/ticket/lease, actual fallback target splice, raw socket/Npcap, and steady-state Receiver/SACK/RACK/FEC remain deferred."
 }

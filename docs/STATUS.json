@@ -14,9 +14,9 @@
     "P2子任务：bootstrap Sender/Pending重传与ACK wait、StageTransition prepare/detach边界通过Actions",
     "P2子任务：SYN/packet/persona/ServerAssociation最小闭包与同association bootstrap/transition接线通过Actions"
   ],
-  "in_progress": "P2：FakeTCP同四元组/同序列空间握手与bootstrap基础已通过Actions；下一原子任务进入真实TLS/uTLS persona与真实exporter最小闭包。",
-  "next_task": "P2：只定向读取old/internal/realityfront及其直接imports/tests中真实TLS/uTLS persona、证书/识别、exporter所需最小闭包；让真实tls/uTLS连接跑在ServerAssociation.BootstrapConn上，并以真实connection state/exporter派生tlsrecord keys，先做内存SegmentEmitter双端握手/prepare-detach测试，不搬账户/lease/CLI全栈。",
-  "latest_log": "docs/devlog/20260919-185700-p2-association-actions-pass.md",
+  "in_progress": "P2：已实现但尚未Actions验证的realityfront最小真实TLS/uTLS/ClientHello分类/exporter闭包；真实TLS 1.3在ServerAssociation.BootstrapConn上跑，双方直接从原始ConnectionState导出tlsrecord keys。",
+  "next_task": "P2：先验证本次realityfront/uTLS/exporter提交的repository-contract、go mod一致性、Windows/Linux unit/build与Linux race；通过后提取受保护admission参数(record_version=1、incarnation nonce、TunnelID、双向record limits)及最小认证闭包，在TLS内交换并用协商参数驱动prepare/detach；仍不接lease/steady-state FEC。",
+  "latest_log": "docs/devlog/20260919-190300-p2-realityfront-exporter.md",
   "last_tested_source_sha": "d1a2501edf772b999cf20ded707ae36b31603740",
   "actions": [
     {"source_sha": "3335b13a913cbd4b1adc689d75605b159280afac", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35433878751", "scope": "repository-foundation-only", "status": "PASS", "note": "repository-contract通过；active-go-tests按尚无产品module明确SKIPPED，不是产品资格。"},
@@ -26,12 +26,14 @@
     {"source_sha": "23cef50c0f50a5ca2c8ab7b752cadfe1ac9acdc3", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35436393242", "scope": "P2-bootstrap-minimal", "status": "PASS", "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build、race、既有tlsrecord定向fuzz、reference generator与artifact上传全部PASS。"},
     {"source_sha": "cb6000400ce8fa5c90af68a8ee4910e8ab5fbbc4", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35437027533", "scope": "P2-bootstrap-sender-transition", "status": "FAIL", "note": "repository-contract在Go jobs前FAIL：REUSE_LEDGER source误写为两个路径的说明字符串，check_repository.py报告Missing reuse source；产品Go测试未运行。"},
     {"source_sha": "525175a19165d392b825a96e95594b0507aa2878", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35437066295", "scope": "P2-bootstrap-sender-transition", "status": "PASS", "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build、race、既有tlsrecord定向fuzz、reference generator与artifact上传全部PASS。"},
-    {"source_sha": "d1a2501edf772b999cf20ded707ae36b31603740", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35438696722", "scope": "P2-faketcp-association-bootstrap", "status": "PASS", "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build、race、既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。新增packet/persona/association接线测试包含在go test ./...与Linux race。"}
+    {"source_sha": "d1a2501edf772b999cf20ded707ae36b31603740", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35438696722", "scope": "P2-faketcp-association-bootstrap", "status": "PASS", "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build、race、既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。"}
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "当前association使用SegmentEmitter测试边界，尚未接Linux raw socket/Npcap真实收发",
-    "尚未把真实TLS/uTLS、真实exporter、认证/fallback跑在BootstrapConn上",
+    "本次realityfront/uTLS/exporter代码尚未获得Actions结果",
+    "认证、ticket、record_version/nonce/limits受保护admission尚未接入",
+    "unrecognized ClientHello目前只保留raw用于未来fallback，尚未实现真实decoy splice",
+    "association仍使用SegmentEmitter测试边界，尚未接Linux raw socket/Npcap",
     "steady-state Receiver/SACK/RACK/FEC与record数据面接线尚未实现",
     "尚无可运行client/server或网络数据面",
     "P2完整资格及后续阶段未验证",
