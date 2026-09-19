@@ -527,13 +527,20 @@ func TestDuplicateSYNKeepsOriginalSYNACKAndISN(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if first != second || second.Seq != 9000 {
+	if first.Seq != second.Seq || first.Ack != second.Ack ||
+		first.Flags != second.Flags || first.Window != second.Window ||
+		first.MSS != second.MSS || first.MSSSet != second.MSSSet ||
+		first.SACKPermitted != second.SACKPermitted ||
+		first.WindowScale != second.WindowScale || first.WindowScaleSet != second.WindowScaleSet ||
+		first.SrcIP != second.SrcIP || first.DstIP != second.DstIP ||
+		first.SrcPort != second.SrcPort || first.DstPort != second.DstPort ||
+		!bytes.Equal(first.Payload, second.Payload) || second.Seq != 9000 {
 		t.Fatalf("duplicate SYN changed SYN-ACK: first=%#v second=%#v", first, second)
 	}
 
 	base := time.Now().Add(2 * time.Second)
 	for i := 0; i < MaxSYNACKRetries; i++ {
-		due, err := a.EmitRetransmitDue(base.Add(time.Duration(i) * 2 * time.Second))
+		due, err := a.EmitRetransmitDue(base.Add(time.Duration(i*2) * time.Second))
 		if err != nil || !due {
 			t.Fatalf("retry %d due=%v err=%v", i, due, err)
 		}

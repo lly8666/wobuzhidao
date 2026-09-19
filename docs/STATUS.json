@@ -23,9 +23,9 @@
     "P3子任务：FEC off + 20:4/8/10/12/16/20 live v1全固定挡位、systematic first-arrival、3秒绝对恢复期限、bounded retirement与LINK接线通过Actions",
     "P3子任务：统一MTU/预算（connection/local packet MTU、actual IPv4/TCP headers、peer MSS、record limit、TLS-like/FEC/LINK开销）通过Actions"
   ],
-  "in_progress": "P2 TCP生命周期/bootstrap窗口第一原子任务已实现待Actions：重复SYN复用同association/ISN、SYN-ACK有界重传、future ACK拒绝、FIN/RST/half-close、半连接清理、4-chunk有界bootstrap flight与peer zero-window/本端窗口容量；P3现有LINK/FEC/统一MTU成果保持不变并可独立继续。",
-  "next_task": "等待本提交next-foundation Linux/Windows unit/build/race与既有fuzz结果；通过后记录精确SOURCE_SHA，再继续P2 realityfront的ticket/ALPN/TLS writer所有权与普通fallback真实网络入口/pcap资格。若失败只按Actions证据修复本原子任务，不触碰P3 FEC/tlsrecord/pathmtu/datapath。",
-  "latest_log": "docs/devlog/20260920-011500-p2-tcp-lifecycle-window.md",
+  "in_progress": "P2 TCP生命周期/bootstrap窗口实现已做静态Go语义复核并修正新增测试中的不可比较Segment与Duration表达式；当前等待精确SOURCE_SHA Actions。P3现有LINK/FEC/统一MTU成果保持不变并可独立继续。",
+  "next_task": "以本修正提交SOURCE_SHA检查next-foundation Linux/Windows unit/build/race/fuzz；通过后记录证据并继续realityfront ticket/ALPN/TLS writer所有权及真实网络fallback/pcap资格。",
+  "latest_log": "docs/devlog/20260920-012000-p2-tcp-static-test-fix.md",
   "last_tested_source_sha": "dbd305950984652361d6bab34f05c66558461311",
   "actions": [
     {
