@@ -72,6 +72,27 @@ V1 采用每方向最多 65536 项的精确近期 PN 集合，按插入顺序淘
 
 使用既有 LINK 业务分片，在 FEC 之前完成。记录层不分片，TLS-like 路径不调用旧 CarrierFragmenter，不发送 WBDFRAG1。oversize 必须提前处理或明确拒绝，后续合法业务继续。
 
+### 5.1 LINK 单数据报分片 wire
+
+P3 复用归档既有 LINK 业务分片，分片发生在 FEC 之前；普通不分片数据报不增加 LINK 头。保留的 fragment envelope 为：
+
+```text
+magic="WBDLFRG1"  8 bytes
+version=1         u8
+flags=0           u8
+fragment_index    u16 big endian
+fragment_count    u16 big endian
+original_length   u16 big endian
+PacketID          u32 big endian, non-zero
+fragment_payload  1..N bytes
+```
+
+固定边界：fragment header 20 字节；原始单数据报最大 65535 字节；fragment_count 为 1..65535；每个 fragment frame 不得超过当前 LINK datagram/MTU 上限。PacketID 仅标识该 lane/path reassembler 内的一个逻辑数据报，发送端递增并在 uint32 回绕时跳过 0。普通 payload 若以保留 magic 开头，即使本来不超 MTU，也必须用 count=1 或必要的多片 envelope 转义，避免被接收端误判。
+
+重组按 PacketID 独立进行，不存在 expected PacketID 或跨数据报接收窗口。乱序允许；相同 index 且 payload 完全相同的重复片幂等忽略；相同 PacketID 的 count/original_length 冲突，或同 index payload 冲突，明确判无效且不得覆盖已经保存的首次片。一个 incomplete 数据报不得阻塞另一个完整数据报交付。
+
+首版资源语义固定为：最多 16 个 incomplete assemblies；单 PacketID 最多 65535 个 fragments；全 reassembler 最多保存 65535 个 fragment entries 和 `16 * 65535` 字节 fragment payload；assembly 绝对 TTL 5 秒；completed/expired/evicted PacketID 最多保留 64 项、retired TTL 10 秒。fragment entry 使用按实际到达稀疏分配，声明 count=65535 本身不能触发 65535 项预分配。owner 必须能在没有新流量时主动执行 expiry，不能把退役依赖在下一包到达。
+
 ## 6. 必须固定的测试向量
 
 提交实现时同时提交 exporter/HKDF 方向派生、PN=0/1/跨32位/接近64位上限、空或最小 payload、多条 record、位翻转、深度乱序与重传一致性向量。expected bytes 应有独立计算/审阅来源，不能用待测函数动态生成期望再声称验证。

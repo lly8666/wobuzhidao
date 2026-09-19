@@ -20,9 +20,9 @@
     "P2审计返工：普通合法SYN入口、peer MSS/WS/SACK协商与绝对候选建连期限通过Actions",
     "P2：hosted核心建连/fallback/切换/no-HOL资格完成；目标网站完整服务端握手指纹与真实raw/Npcap抓包明确留待后续验收"
   ],
-  "in_progress": "P3启动：P2审计返工已通过Actions。按MODULE_MAP提取LINK/FEC/MTU和必要session核心；第一原子任务仍只提取old/internal/linkdata的数据报分片/重组与wire约束，暂不接FEC和平台I/O。",
-  "next_task": "P3：定向读取old/internal/linkdata及直接tests/imports，提取单数据报LINK fragmentation/reassembly最小闭包；固定wire字段、PacketID/fragment identity、最大分片/长度边界、乱序与重复行为、超时退役。通过Actions后再接old/internal/fec systematic fast-path，不在同提交混做MTU/FEC调参。",
-  "latest_log": "docs/devlog/20260919-231800-p2-audit-closure-pass.md",
+  "in_progress": "P3 LINK fragmentation/reassembly 最小闭包实现完成，等待该代码提交精确 SOURCE_SHA 的 GitHub Actions；当前不得标 PASS。实现只包含单数据报 LINK wire/fragmentation/reassembly、资源边界和定时退役，未接 FEC/MTU/platform I/O。",
+  "next_task": "先取得本次 P3 LINK fragmentation/reassembly 精确 SHA 的完整 Actions 结果；失败则按具体 job logs 只修 linkdata，成功后记录 PASS 证据并再进入 old/internal/fec systematic fast-path。",
+  "latest_log": "docs/devlog/20260919-232100-p3-linkdata-fragmentation.md",
   "last_tested_source_sha": "079a11a51a8afb7e977f5140d8cdcd21db1c81c5",
   "actions": [
     {
@@ -186,7 +186,7 @@
     "真实raw socket/Npcap抓包、普通内核TCP浏览器访问与capture-loss统计尚未实现；hosted wire serialization不替代P5/P7实抓",
     "平台raw packet IO尚未从old提取；当前association仍以SegmentEmitter作为I/O边界",
     "ticket/lease/installation ID/CLI尚未迁移，属于后续P4产品层",
-    "P3 LINK/FEC/MTU/session数据面尚未实现",
+    "P3 LINK fragmentation/reassembly 已实现但本提交尚未获得精确 SHA Actions 资格；FEC/统一MTU/session接线仍未实现",
     "尚无可运行client/server完整网络产品入口",
     "物理机验收留到P7"
   ],
