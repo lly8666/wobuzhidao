@@ -74,3 +74,20 @@ jobs:
       - name: Race
         if: runner.os == 'Linux'
         run: go test -race ./... -count=1
+      - name: Directed parser fuzz
+        if: runner.os == 'Linux'
+        run: go test ./internal/tlsrecord -run='^$' -fuzz='^FuzzDecoderOpenPayload$' -fuzztime=15s
+      - name: Generate independent P1 reference vectors
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          go run ./tools/tlsrecordvector > artifacts/tlsrecord-vectors.json
+          cat artifacts/tlsrecord-vectors.json
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux'
+        with:
+          name: tlsrecord-reference-${{ github.sha }}
+          path: artifacts/tlsrecord-vectors.json
+          if-no-files-found: error
