@@ -17,9 +17,9 @@
     "P2子任务：TLS内受保护admission、最小username/password认证、v1/nonce/TunnelID/双向record limits协商与prepare/detach通过Actions",
     "P2子任务：真实decoy fallback（单ClientHello分类、byte-exact raw replay、同association双向splice、recognized零fallback dial）通过Actions"
   ],
-  "in_progress": "P2：真实TLS/persona/auth/exporter/fallback/同association阶段移交均有Actions PASS证据；当前进入P2退出条件收口，逐项核对bootstrap丢包/ACK丢失、首条新record丢失/提前、reader预读、退出候选、transition队列上限和record no-HOL核心资格。",
-  "next_task": "P2：读取现有faketcp/tlsrecord/realityfront测试与MODULE_MAP/DEVELOPMENT_PLAN，建立ACCEPTANCE逐项覆盖矩阵；只对未覆盖项补最小实现/测试。优先确认最后bootstrap丢包+ACK丢失的同association集成、first-new-record loss/early、reader prefetch、exit candidate、transition queue bound和record no-HOL。",
-  "latest_log": "docs/devlog/20260919-212500-p2-fallback-pass.md",
+  "in_progress": "P2退出资格收口：审计确认transition提前到达/reader隔离/candidate清理/queue bound已有测试，tlsrecord已有PN乱序no-HOL；当前补ServerAssociation跨层资格证据：最后bootstrap payload loss重传、ACK loss不重复交付、首条新record整包丢失后第二条仍RouteRecord并以PN=1立即解密。产品协议代码不改，等待新SHA Actions。",
+  "next_task": "P2：验证本次qualification tests的repository-contract、Windows/Linux unit/build与Linux race；通过后把ACCEPTANCE覆盖矩阵写入devlog/STATUS，并继续检查退出候选/reader prefetch是否需要更强同TLS集成证据，以及抓包格式门槛能否在hosted adapter中证明。",
+  "latest_log": "docs/devlog/20260919-213200-p2-transition-loss-qualification.md",
   "last_tested_source_sha": "f9bb007f81da5cf772d83ff37d8086987ce91543",
   "actions": [
     {
@@ -151,12 +151,12 @@
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "P2退出条件尚未逐项收口：bootstrap丢包/ACK丢失、first-new-record loss/early、reader prefetch、exit candidate、transition queue bound与record no-HOL需建立最终证据矩阵",
-    "ticket/lease/installation ID/CLI未迁移，属于后续产品层而非当前fallback闭包",
-    "association仍使用SegmentEmitter测试边界，尚未接Linux raw socket/Npcap；抓包格式门槛尚未验证",
-    "steady-state Receiver/SACK/RACK/FEC与完整record数据面尚未实现",
+    "本次ServerAssociation loss/no-HOL资格测试尚待Actions验证",
+    "抓包格式门槛尚未验证；当前association仍使用SegmentEmitter adapter，未接Linux raw socket/Npcap",
+    "ticket/lease/installation ID/CLI未迁移，属于后续产品层",
+    "steady-state完整Receiver/SACK/RACK/FEC数据面尚未迁移；本次只验证P2 record独立交付边界",
     "尚无可运行client/server完整网络产品入口",
-    "P2完整资格及抓包门槛未验证",
+    "P2完整资格尚未最终宣布",
     "物理机验收留到P7"
   ],
   "required_read_set": [

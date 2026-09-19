@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/lly8666/wobuzhidao/internal/tlsrecord"
 )
 
 func p2SYN(clientPort uint16, seq uint32) Segment {
@@ -274,5 +276,217 @@ func TestServerAssociationTableFlowIsolationAndCap(t *testing.T) {
 	}
 	if _, err := table.AddSYN(p2SYN(22003, 300), 4000, time.Second); err != nil {
 		t.Fatalf("slot not reusable: %v", err)
+	}
+}
+
+func TestAssociationLastBootstrapPayloadLossRetransmitsSameBytesAndSeq(t *testing.T) {
+	emitCh := make(chan Segment, 4)
+	a, syn := establishP2(t, func(seg Segment) error {
+		emitCh <- seg
+		return nil
+	})
+	defer a.Close()
+
+	writeDone := make(chan error, 1)
+	go func() {
+		_, err := a.BootstrapConn().Write([]byte("final-bootstrap-reply"))
+		writeDone <- err
+	}()
+
+	var first Segment
+	select {
+	case first = <-emitCh:
+	case <-time.After(time.Second):
+		t.Fatal("initial bootstrap segment not emitted")
+	}
+	// Simulate payload loss: the peer never sees first, so no ACK exists.
+	select {
+	case err := <-writeDone:
+		t.Fatalf("write returned despite lost payload: %v", err)
+	default:
+	}
+
+	due, err := a.EmitRetransmitDue(time.Now().Add(bootstrapRetransmitCeiling + time.Second))
+	if err != nil || !due {
+		t.Fatalf("retransmit due=%v err=%v", due, err)
+	}
+	var retry Segment
+	select {
+	case retry = <-emitCh:
+	case <-time.After(time.Second):
+		t.Fatal("lost final bootstrap segment was not retransmitted")
+	}
+	if retry.Seq != first.Seq || retry.Ack != first.Ack ||
+		retry.SrcIP != first.SrcIP || retry.DstIP != first.DstIP ||
+		retry.SrcPort != first.SrcPort || retry.DstPort != first.DstPort ||
+		!bytes.Equal(retry.Payload, first.Payload) {
+		t.Fatalf("retry changed association/seq/payload: first=%#v retry=%#v", first, retry)
+	}
+
+	ack := syn
+	ack.Flags = FlagACK
+	ack.Seq = syn.Seq + 1
+	ack.Ack = retry.Seq + uint32(len(retry.Payload))
+	ack.Payload = nil
+	if _, err := a.HandleSegment(ack, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case err := <-writeDone:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("bootstrap write stayed blocked after retransmit ACK")
+	}
+	if st := a.SenderStats(); st.RTOTransmits != 1 {
+		t.Fatalf("sender stats=%#v want one retransmit", st)
+	}
+}
+
+func TestAssociationLastBootstrapACKLossRetransmitDoesNotRedeliverPeerBytes(t *testing.T) {
+	emitCh := make(chan Segment, 4)
+	a, syn := establishP2(t, func(seg Segment) error {
+		emitCh <- seg
+		return nil
+	})
+	defer a.Close()
+
+	writeDone := make(chan error, 1)
+	go func() {
+		_, err := a.BootstrapConn().Write([]byte("final-bootstrap-reply"))
+		writeDone <- err
+	}()
+
+	var first Segment
+	select {
+	case first = <-emitCh:
+	case <-time.After(time.Second):
+		t.Fatal("initial bootstrap segment not emitted")
+	}
+
+	peer, err := NewBootstrapStream(
+		first.Seq,
+		func([]byte) (uint32, error) { return 0, nil },
+		func(uint32, time.Time) error { return nil },
+		nil, nil,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer peer.Close()
+	peer.Feed(first.Seq, first.Payload)
+	got := make([]byte, len(first.Payload))
+	if _, err := io.ReadFull(peer, got); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, first.Payload) {
+		t.Fatalf("peer got=%q want=%q", got, first.Payload)
+	}
+	// Simulate ACK loss: data was delivered once, but the server never sees ACK.
+
+	due, err := a.EmitRetransmitDue(time.Now().Add(bootstrapRetransmitCeiling + time.Second))
+	if err != nil || !due {
+		t.Fatalf("retransmit due=%v err=%v", due, err)
+	}
+	var retry Segment
+	select {
+	case retry = <-emitCh:
+	case <-time.After(time.Second):
+		t.Fatal("ACK loss did not cause retransmit")
+	}
+	if retry.Seq != first.Seq || !bytes.Equal(retry.Payload, first.Payload) {
+		t.Fatalf("ACK-loss retry changed seq/payload: first=%#v retry=%#v", first, retry)
+	}
+
+	peer.Feed(retry.Seq, retry.Payload)
+	if err := peer.SetReadDeadline(time.Now().Add(10 * time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	var one [1]byte
+	if n, err := peer.Read(one[:]); n != 0 || !errors.Is(err, ErrBootstrapTimeout) {
+		t.Fatalf("duplicate retransmit redelivered peer bytes: n=%d err=%v", n, err)
+	}
+	_ = peer.SetReadDeadline(time.Time{})
+
+	ack := syn
+	ack.Flags = FlagACK
+	ack.Seq = syn.Seq + 1
+	ack.Ack = retry.Seq + uint32(len(retry.Payload))
+	ack.Payload = nil
+	if _, err := a.HandleSegment(ack, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case err := <-writeDone:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("bootstrap write stayed blocked after delayed ACK")
+	}
+}
+
+func TestAssociationDroppedFirstNewRecordDoesNotBlockSecondRecord(t *testing.T) {
+	a, syn := establishP2(t, func(Segment) error { return nil })
+	defer a.Close()
+
+	boundary, err := a.PrepareTransition(tlsrecord.MaxWireLen)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.DetachTransition(); err != nil {
+		t.Fatal(err)
+	}
+
+	master := bytes.Repeat([]byte{0x42}, 32)
+	var nonce [16]byte
+	for i := range nonce {
+		nonce[i] = byte(i)
+	}
+	pair, err := tlsrecord.DeriveKeys(master, nonce)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sealer, err := tlsrecord.NewSealer(pair.C2S, tlsrecord.MaxWireLen)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoder, err := tlsrecord.NewDecoder(pair.C2S, tlsrecord.MaxWireLen)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lost, lostPN, err := sealer.Seal([]byte("lost-first"))
+	if err != nil || lostPN != 0 {
+		t.Fatalf("lost record pn=%d err=%v", lostPN, err)
+	}
+	second, secondPN, err := sealer.Seal([]byte("second-survives"))
+	if err != nil || secondPN != 1 {
+		t.Fatalf("second record pn=%d err=%v", secondPN, err)
+	}
+
+	// The first new-mode record consumed this TCP-shaped sequence interval but
+	// was lost on the network. Do not feed it to the association at all.
+	secondSeg := syn
+	secondSeg.Flags = FlagACK | FlagPSH
+	secondSeg.Seq = boundary + uint32(len(lost))
+	secondSeg.Ack = 5001
+	secondSeg.Payload = second
+	res, err := a.HandleSegment(secondSeg, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Disposition != RouteRecord || res.Record == nil ||
+		res.Record.Seq != secondSeg.Seq || !bytes.Equal(res.Record.Payload, second) {
+		t.Fatalf("second record route=%#v", res)
+	}
+
+	opened := decoder.OpenPayload(res.Record.Payload)
+	if len(opened) != 1 || opened[0].Err != nil ||
+		opened[0].PN != 1 || string(opened[0].Payload) != "second-survives" {
+		t.Fatalf("second record decode=%#v", opened)
+	}
+	if decoder.Stats().Delivered != 1 {
+		t.Fatalf("delivered=%d want=1", decoder.Stats().Delivered)
 	}
 }

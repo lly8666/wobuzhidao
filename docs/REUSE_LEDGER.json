@@ -47,7 +47,7 @@
       "source": "old/internal/faketcp/server_mux.go",
       "destination": "internal/faketcp/association.go",
       "behavior_changes": "Extract only ServerFlow, bounded association table, SYN/SYN-ACK/final-ACK state, one shared send sequence space, bootstrap stream/sender wiring, and prepare/detach transition routing. The old steady-state Receiver, SACK/RACK, fast retransmit, EnqueueSteadyState, repair pressure and recovery-mode selection are not migrated.",
-      "tests": "internal/faketcp/association_test.go covers WBD SYN admission, cross-flow isolation, data-bearing final ACK delivery, real BootstrapStream Write -> Sender WaitAck -> incoming ACK unblock, exact transition boundary, early-record queue/detach, pure ACK ownership, and table duplicate/cap behavior."
+      "tests": "internal/faketcp/association_test.go covers WBD SYN admission, cross-flow isolation, data-bearing final ACK delivery, real BootstrapStream Write -> Sender WaitAck -> incoming ACK unblock, exact transition boundary, early-record queue/detach, pure ACK ownership, table duplicate/cap behavior, same-association final-bootstrap payload loss retransmit with identical Seq/payload, ACK-loss retransmit without duplicate peer delivery, and a dropped first new-mode record whose successor still routes immediately; the successor is opened by tlsrecord at PN=1 to prove no HOL at the handoff."
     },
     {
       "source": "old/internal/realityfront/front.go",
