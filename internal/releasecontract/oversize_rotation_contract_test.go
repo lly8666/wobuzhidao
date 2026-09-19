@@ -45,6 +45,8 @@ func TestOversizedGameRotationReleaseContract(t *testing.T) {
 
 	for _, want := range []string{
 		"CONNECTION_MTU=${CONNECTION_MTU:-1500}",
+		"connection_anchor = \'LANES=${LANES:-4}\\n\'",
+		"raise SystemExit(\'soak: CONNECTION_MTU insertion point not found\')",
 		"--connection-mtu \"$CONNECTION_MTU\"",
 		"WBD_SOAK_CANDIDATE_PORT_PLAN",
 		"post_small_probe_pass",

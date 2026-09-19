@@ -14,7 +14,10 @@ if pos < 0:
 # generous bootstrap budget. The generated script otherwise preserves the
 # established full-stack setup verbatim.
 prefix = src[:pos]
-prefix = prefix.replace('LANES=${LANES:-4}\\n', 'LANES=${LANES:-4}\\nCONNECTION_MTU=${CONNECTION_MTU:-1500}\\n')
+connection_anchor = 'LANES=${LANES:-4}\n'
+if connection_anchor not in prefix:
+    raise SystemExit('soak: CONNECTION_MTU insertion point not found')
+prefix = prefix.replace(connection_anchor, connection_anchor + 'CONNECTION_MTU=${CONNECTION_MTU:-1500}\n', 1)
 prefix = prefix.replace('--bootstrap-timeout 12s', '--bootstrap-timeout 30s')
 prefix = prefix.replace('--reality-timeout 12s', '--reality-timeout 30s')
 prefix = prefix.replace('-demo-reality-ticket "$ticket" >"$LOG_DIR/link-${i}.log"',
