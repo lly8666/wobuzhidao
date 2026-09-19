@@ -23,10 +23,10 @@
     "P3子任务：FEC off + 20:4/8/10/12/16/20 live v1全固定挡位、systematic first-arrival、3秒绝对恢复期限、bounded retirement与LINK接线通过Actions",
     "P3子任务：统一MTU/预算（connection/local packet MTU、actual IPv4/TCP headers、peer MSS、record limit、TLS-like/FEC/LINK开销）通过Actions"
   ],
-  "in_progress": "P2 faketcp生命周期/窗口与recognized TLS ticket/ALPN/writer策略均已Actions PASS。本提交增加最小Linux raw IPv4/TCP适配和独立p2-kernel-fallback Actions job：普通内核TCP+crypto/tls客户端经FakeTCP真实loopback入口访问受控decoy，测试CA证书验证、完整HTTP、TLS/FIN关闭，并连续pcap/0 capture-loss/Seq-ACK/checksum/MSS-window/无RST分片/同Seq重传字节一致。当前新网络门待Actions。P3成果保留。",
-  "next_task": "以本提交SOURCE_SHA运行新增p2-kernel-fallback及既有Linux/Windows unit/build/race/fuzz；若真实网络pcap门PASS，复核artifact与SOURCE_SHA后更新唯一STATUS关闭P2并明确剩余目标网站指纹差异/P3交接；若FAIL按pcap或raw adapter原始证据修复，不降低门槛。",
-  "latest_log": "docs/devlog/20260920-015500-p2-kernel-fallback-pcap.md",
-  "last_tested_source_sha": "b71b57502db65b221037e803935058f27423c703",
+  "in_progress": "P2真实kernel TCP/TLS/HTTP/pcap功能门在2d4be948已PASS，但原始日志显示测试耗时60.24s，定位为Linux RawIPv4Endpoint关闭时AF_PACKET阻塞Recvfrom不能及时唤醒。本提交给recv socket 200ms有界超时并显式测试server.Close<=1s；通过前P2保持OPEN。P3成果不变。",
+  "next_task": "以本关闭边界修正SOURCE_SHA重跑全部Actions；要求p2-kernel-fallback仍保持证书验证/HTTP/pcap全部PASS且TestKernelTLSFallback耗时显著回落、显式Close<=1s。通过后复核新pcap artifact并提交唯一STATUS关闭P2、保留P3当前进度和剩余目标网站指纹差异。",
+  "latest_log": "docs/devlog/20260920-017000-p2-raw-close-bound.md",
+  "last_tested_source_sha": "2d4be9486e7c6efc4c0aaed5d7a80e189708b843",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -237,6 +237,13 @@
       "scope": "P2-tls-ticket-alpn-ownership",
       "status": "PASS",
       "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build/race、tlsrecord fuzz/reference全部PASS。recognized WBD TLS1.3策略测试确认无ALPN、真实stdlib单ticket生成、显式拒绝resumption，admission成功detach后client/server返回结构不再保留旧TLS writer。"
+    },
+    {
+      "source_sha": "2d4be9486e7c6efc4c0aaed5d7a80e189708b843",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35458499023",
+      "scope": "P2-kernel-tls-fallback-pcap-pre-close-bound",
+      "status": "PASS",
+      "note": "repository-contract、Windows/Linux unit/build、Linux race/fuzz及p2-kernel-fallback均PASS。普通内核crypto/tls客户端实际验证target.test测试CA链并完成HTTP/正常关闭；pcap artifact 10588624911（zip SHA256 92bfed6475a6eb08ab4ac5ccd64557c09c62ea7f977327595252a48f5bfb23d7）记录29包、capture drop=0、server checksum 14/14、MSS1360/WS8/SACK、无RST/分片、双向FIN，同Seq=1509996997密文1.024446s后重传一致。测试总耗时60.24s暴露AF_PACKET阻塞Read在Close时唤醒过慢，因此P2暂不关闭。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -260,7 +267,7 @@
     "docs/ACCEPTANCE.md"
   ],
   "workstreams": {
-    "P2": "REOPENED: faketcp+TLS策略Actions PASS；kernel TCP/TLS HTTP/pcap资格实现待Actions",
+    "P2": "REOPENED: kernel TLS/HTTP/pcap功能PASS；RawIPv4Endpoint关闭唤醒有界修正待Actions",
     "P3": "IN_PROGRESS:保留LINK/FEC/MTU已测SHA；session/owner与可选padding待实现",
     "P4": "PLANNED:既有lane复用、可选padding预算/默认off",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"

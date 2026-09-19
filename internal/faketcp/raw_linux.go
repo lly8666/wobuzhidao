@@ -26,9 +26,10 @@ type RawIPv4Endpoint struct {
 	localIP [4]byte
 	persona PacketPersona
 
-	mu   sync.Mutex
-	ipID uint16
-	once sync.Once
+	mu     sync.Mutex
+	ipID   uint16
+	closed bool
+	once   sync.Once
 }
 
 func OpenRawIPv4Endpoint(interfaceName string, localIP [4]byte, persona PacketPersona) (*RawIPv4Endpoint, error) {
@@ -50,6 +51,9 @@ func OpenRawIPv4Endpoint(interfaceName string, localIP [4]byte, persona PacketPe
 			_ = syscall.Close(recvFD)
 		}
 	}()
+	if err := syscall.SetsockoptTimeval(recvFD, syscall.SOL_SOCKET, syscall.SO_RCVTIMEO, &syscall.Timeval{Usec: 200000}); err != nil {
+		return nil, err
+	}
 	if err := syscall.Bind(recvFD, &syscall.SockaddrLinklayer{
 		Protocol: rawHTONS(rawEthPIPv4),
 		Ifindex:  iface.Index,
@@ -91,6 +95,15 @@ func (e *RawIPv4Endpoint) ReadSegment() (Segment, []byte, error) {
 	for {
 		n, from, err := syscall.Recvfrom(e.recvFD, buf, 0)
 		if err != nil {
+			if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) {
+				e.mu.Lock()
+				closed := e.closed
+				e.mu.Unlock()
+				if closed {
+					return Segment{}, nil, net.ErrClosed
+				}
+				continue
+			}
 			return Segment{}, nil, err
 		}
 		if ll, ok := from.(*syscall.SockaddrLinklayer); ok && ll.Pkttype == rawPacketOutgoing {
@@ -139,6 +152,9 @@ func (e *RawIPv4Endpoint) Close() error {
 	}
 	var first error
 	e.once.Do(func() {
+		e.mu.Lock()
+		e.closed = true
+		e.mu.Unlock()
 		if err := syscall.Close(e.recvFD); err != nil {
 			first = err
 		}

@@ -374,6 +374,12 @@ func TestKernelTLSFallbackVerifiedHTTPAndNormalClose(t *testing.T) {
 	if server.table.Len() != 0 {
 		t.Fatalf("association table retained %d entries after normal close", server.table.Len())
 	}
+
+	closeStart := time.Now()
+	server.Close()
+	if elapsed := time.Since(closeStart); elapsed > time.Second {
+		t.Fatalf("raw endpoint/server close took %v want <=1s", elapsed)
+	}
 }
 
 func makeKernelFallbackPKI(t *testing.T) (tls.Certificate, *x509.CertPool) {
