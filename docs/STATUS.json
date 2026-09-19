@@ -23,9 +23,9 @@
     "P3子任务：FEC off + 20:4/8/10/12/16/20 live v1全固定挡位、systematic first-arrival、3秒绝对恢复期限、bounded retirement与LINK接线通过Actions",
     "P3子任务：统一MTU/预算（connection/local packet MTU、actual IPv4/TCP headers、peer MSS、record limit、TLS-like/FEC/LINK开销）通过Actions"
   ],
-  "in_progress": "用户重开P2：TCP生命周期/bootstrap窗口/TLS外观与真实网络回落资格尚待实现验收。P3已通过LINK/FEC/统一MTU成果保留，独立session/owner工作可继续，新增默认关闭的有界record padding能力按DEVELOPMENT_PLAN第13节执行。",
-  "next_task": "P2 agent先同步最新源码核实握手重传/关闭/窗口/票据差异，逐项修复并以Actions真实网络资格关闭P2；P3 agent继续session/owner，独立原子提交实现tlsrecord显式padding和MTU余量约束，默认0，不改P2或FEC。共享STATUS更新须保留两条工作流。",
-  "latest_log": "docs/devlog/20260920-p2-reopen-traffic-appearance-plan.md",
+  "in_progress": "P2 TCP生命周期/bootstrap窗口第一原子任务已实现待Actions：重复SYN复用同association/ISN、SYN-ACK有界重传、future ACK拒绝、FIN/RST/half-close、半连接清理、4-chunk有界bootstrap flight与peer zero-window/本端窗口容量；P3现有LINK/FEC/统一MTU成果保持不变并可独立继续。",
+  "next_task": "等待本提交next-foundation Linux/Windows unit/build/race与既有fuzz结果；通过后记录精确SOURCE_SHA，再继续P2 realityfront的ticket/ALPN/TLS writer所有权与普通fallback真实网络入口/pcap资格。若失败只按Actions证据修复本原子任务，不触碰P3 FEC/tlsrecord/pathmtu/datapath。",
+  "latest_log": "docs/devlog/20260920-011500-p2-tcp-lifecycle-window.md",
   "last_tested_source_sha": "dbd305950984652361d6bab34f05c66558461311",
   "actions": [
     {
@@ -225,7 +225,7 @@
     "docs/ACCEPTANCE.md"
   ],
   "workstreams": {
-    "P2": "REOPENED:建连与外观收口，真实网络资格NOT_RUN",
+    "P2": "REOPENED: TCP生命周期/bootstrap窗口实现待Actions；TLS外观与真实网络资格仍NOT_RUN",
     "P3": "IN_PROGRESS:保留LINK/FEC/MTU已测SHA；session/owner与可选padding待实现",
     "P4": "PLANNED:既有lane复用、可选padding预算/默认off",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"

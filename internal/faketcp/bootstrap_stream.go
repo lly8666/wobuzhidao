@@ -13,6 +13,7 @@ const (
 	DefaultBootstrapChunk      = 1200
 	MaxBootstrapPendingChunks  = 64
 	MaxBootstrapBufferedBytes  = 256 << 10
+	MaxBootstrapFlightChunks   = 4
 	bootstrapRetransmitCeiling = 2 * time.Second
 )
 
@@ -27,20 +28,17 @@ var bootstrapPayloads = struct {
 	active map[*byte]int
 }{active: make(map[*byte]int)}
 
-// BootstrapSend emits one TCP-shaped payload segment and returns the cumulative
-// ACK value that proves that segment has arrived. Implementations must not
-// enqueue another bootstrap segment until BootstrapWaitAck confirms this end.
 type BootstrapSend func([]byte) (end uint32, err error)
-
 type BootstrapWaitAck func(end uint32, deadline time.Time) error
+type BootstrapWaitWindow func(need, localCap int, deadline time.Time) error
+type BootstrapCloseWrite func() error
 
-// BootstrapStream is a deliberately temporary net.Conn adapter for the first
-// few seconds of one FakeTCP association. It provides the reliable ordered byte
-// semantics crypto/tls expects without assigning steady-state tunnel payload to
-// a kernel TCP byte stream. After TLS/admission completes, the same FakeTCP
-// association, four-tuple and sequence space are handed to datagram mode.
+// BootstrapStream is the temporary reliable ordered adapter used only while TLS
+// and fallback own one FakeTCP association. Writes may keep a small bounded
+// flight in progress, while each batch retains a cumulative ACK barrier.
 type BootstrapStream struct {
-	mu sync.Mutex
+	mu      sync.Mutex
+	writeMu sync.Mutex
 
 	next         uint32
 	pending      map[uint32][]byte
@@ -48,16 +46,24 @@ type BootstrapStream struct {
 	readBuf      bytes.Buffer
 	notify       chan struct{}
 	closed       bool
+	readEOF      bool
+	writeClosed  bool
 	fail         error
+
+	finPending bool
+	finSeq     uint32
 
 	readDeadline  time.Time
 	writeDeadline time.Time
 
-	chunk   int
-	send    BootstrapSend
-	waitAck BootstrapWaitAck
-	local   net.Addr
-	remote  net.Addr
+	chunk        int
+	maxFlight    int
+	send         BootstrapSend
+	waitAck      BootstrapWaitAck
+	waitWindow   BootstrapWaitWindow
+	closeWrite   BootstrapCloseWrite
+	local        net.Addr
+	remote       net.Addr
 }
 
 func NewBootstrapStream(next uint32, send BootstrapSend, waitAck BootstrapWaitAck, local, remote net.Addr) (*BootstrapStream, error) {
@@ -66,35 +72,74 @@ func NewBootstrapStream(next uint32, send BootstrapSend, waitAck BootstrapWaitAc
 	}
 	return &BootstrapStream{
 		next: next, pending: make(map[uint32][]byte), notify: make(chan struct{}, 1),
-		chunk: DefaultBootstrapChunk, send: send, waitAck: waitAck, local: local, remote: remote,
+		chunk: DefaultBootstrapChunk, maxFlight: 1,
+		send: send, waitAck: waitAck, local: local, remote: remote,
 	}, nil
 }
 
-// NextSeq returns the first sequence byte not yet assembled into the ordered
-// bootstrap stream. Association transition preparation uses this exact value as
-// the ownership boundary; it does not infer a mode from payload bytes.
+func (c *BootstrapStream) ConfigureWriteWindow(wait BootstrapWaitWindow, maxChunks int) {
+	c.mu.Lock()
+	c.waitWindow = wait
+	if maxChunks <= 0 {
+		maxChunks = 1
+	}
+	if maxChunks > MaxBootstrapFlightChunks {
+		maxChunks = MaxBootstrapFlightChunks
+	}
+	c.maxFlight = maxChunks
+	c.mu.Unlock()
+}
+
+func (c *BootstrapStream) ConfigureCloseWrite(closeWrite BootstrapCloseWrite) {
+	c.mu.Lock()
+	c.closeWrite = closeWrite
+	c.mu.Unlock()
+}
+
 func (c *BootstrapStream) NextSeq() uint32 {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.next
 }
 
-// Feed accepts a first-arrival FakeTCP payload. Out-of-order payload is retained
-// only for this short bootstrap phase; contiguous bytes become visible to TLS.
-// Both contiguous unread bytes and out-of-order storage are hard bounded so an
-// unauthenticated peer cannot turn setup into an unbounded buffer.
+func (c *BootstrapStream) ReadEOF() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.readEOF
+}
+
+func (c *BootstrapStream) AvailableReceiveWindow() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.closed || c.readEOF {
+		return 0
+	}
+	n := MaxBootstrapBufferedBytes - c.readBuf.Len() - c.pendingBytes
+	if n < 0 {
+		return 0
+	}
+	return n
+}
+
+// Feed retains only bounded bootstrap reordering. A retransmission overlapping
+// already-consumed bytes is trimmed rather than duplicating data.
 func (c *BootstrapStream) Feed(seq uint32, payload []byte) {
 	if len(payload) == 0 {
 		return
 	}
 	c.mu.Lock()
-	if c.closed {
+	if c.closed || c.readEOF {
 		c.mu.Unlock()
 		return
 	}
 	if seqLT(seq, c.next) {
-		c.mu.Unlock()
-		return
+		skip := int(c.next - seq)
+		if skip >= len(payload) {
+			c.mu.Unlock()
+			return
+		}
+		seq = c.next
+		payload = payload[skip:]
 	}
 	if c.readBuf.Len()+c.pendingBytes+len(payload) > MaxBootstrapBufferedBytes {
 		c.fail = ErrBootstrapOverflow
@@ -116,6 +161,7 @@ func (c *BootstrapStream) Feed(seq uint32, payload []byte) {
 			_, _ = c.readBuf.Write(p)
 			c.next += uint32(len(p))
 		}
+		c.consumePendingFINLocked()
 	} else if _, exists := c.pending[seq]; !exists {
 		if len(c.pending) >= MaxBootstrapPendingChunks {
 			c.fail = ErrBootstrapOverflow
@@ -132,6 +178,34 @@ func (c *BootstrapStream) Feed(seq uint32, payload []byte) {
 	c.signal()
 }
 
+// FeedFIN records FIN at its sequence position. FIN consumes one sequence number
+// only once and EOF becomes visible only after all preceding bytes are present.
+func (c *BootstrapStream) FeedFIN(seq uint32) {
+	c.mu.Lock()
+	if c.closed || c.readEOF || seqLT(seq, c.next) {
+		c.mu.Unlock()
+		return
+	}
+	if seq == c.next {
+		c.next++
+		c.readEOF = true
+		c.finPending = false
+	} else if !c.finPending || seqLT(seq, c.finSeq) {
+		c.finPending = true
+		c.finSeq = seq
+	}
+	c.mu.Unlock()
+	c.signal()
+}
+
+func (c *BootstrapStream) consumePendingFINLocked() {
+	if c.finPending && c.finSeq == c.next {
+		c.next++
+		c.readEOF = true
+		c.finPending = false
+	}
+}
+
 func (c *BootstrapStream) Read(p []byte) (int, error) {
 	for {
 		c.mu.Lock()
@@ -145,7 +219,7 @@ func (c *BootstrapStream) Read(p []byte) (int, error) {
 			c.mu.Unlock()
 			return 0, err
 		}
-		if c.closed {
+		if c.closed || c.readEOF {
 			c.mu.Unlock()
 			return 0, io.EOF
 		}
@@ -157,44 +231,81 @@ func (c *BootstrapStream) Read(p []byte) (int, error) {
 	}
 }
 
+// Write uses a bounded small flight. It never sends beyond the current peer
+// receive window or local flight cap, and waits for a cumulative ACK at the end
+// of each flight before reporting those bytes written.
 func (c *BootstrapStream) Write(p []byte) (int, error) {
+	c.writeMu.Lock()
+	defer c.writeMu.Unlock()
+
 	written := 0
 	for len(p) != 0 {
+		batchBytes := 0
+		var batchEnd uint32
+		sentChunks := 0
+
+		for len(p) != 0 {
+			c.mu.Lock()
+			if c.fail != nil {
+				err := c.fail
+				c.mu.Unlock()
+				return written, err
+			}
+			if c.closed || c.writeClosed {
+				c.mu.Unlock()
+				return written, ErrBootstrapClosed
+			}
+			chunk := c.chunk
+			deadline := c.writeDeadline
+			maxFlight := c.maxFlight
+			waitWindow := c.waitWindow
+			c.mu.Unlock()
+
+			if chunk <= 0 {
+				chunk = DefaultBootstrapChunk
+			}
+			if maxFlight <= 0 {
+				maxFlight = 1
+			}
+			if sentChunks >= maxFlight {
+				break
+			}
+			if chunk > len(p) {
+				chunk = len(p)
+			}
+			if waitWindow != nil {
+				localCap := c.chunk * maxFlight
+				if localCap <= 0 {
+					localCap = DefaultBootstrapChunk * maxFlight
+				}
+				if err := waitWindow(chunk, localCap, deadline); err != nil {
+					return written, err
+				}
+			}
+			end, err := sendBootstrapPayload(c.send, p[:chunk])
+			if err != nil {
+				return written, err
+			}
+			batchEnd = end
+			batchBytes += chunk
+			sentChunks++
+			p = p[chunk:]
+		}
+
+		if batchBytes == 0 {
+			return written, ErrBootstrapOverflow
+		}
 		c.mu.Lock()
-		if c.fail != nil {
-			err := c.fail
-			c.mu.Unlock()
-			return written, err
-		}
-		if c.closed {
-			c.mu.Unlock()
-			return written, ErrBootstrapClosed
-		}
-		chunk := c.chunk
 		deadline := c.writeDeadline
 		c.mu.Unlock()
-		if chunk <= 0 {
-			chunk = DefaultBootstrapChunk
-		}
-		if chunk > len(p) {
-			chunk = len(p)
-		}
-		end, err := sendBootstrapPayload(c.send, p[:chunk])
-		if err != nil {
+		if err := c.waitAck(batchEnd, deadline); err != nil {
 			return written, err
 		}
-		if err := c.waitAck(end, deadline); err != nil {
-			return written, err
-		}
-		written += chunk
-		p = p[chunk:]
+		written += batchBytes
 	}
 	return written, nil
 }
 
-// sendBootstrapPayload marks only the exact slice passed synchronously through
-// BootstrapSend. Sender.Enqueue copies that slice while the marker is live so
-// bootstrap retransmission policy cannot leak into later steady-state records.
 func sendBootstrapPayload(send BootstrapSend, payload []byte) (uint32, error) {
 	if len(payload) == 0 {
 		return send(payload)
@@ -226,12 +337,54 @@ func isBootstrapPayload(payload []byte) bool {
 	return marked
 }
 
-func (c *BootstrapStream) Close() error {
+// CloseWrite is a real TCP half-close hook for ordinary fallback. It does not
+// close the receive side and therefore cannot truncate the opposite response.
+func (c *BootstrapStream) CloseWrite() error {
+	c.mu.Lock()
+	if c.closed {
+		c.mu.Unlock()
+		return ErrBootstrapClosed
+	}
+	if c.writeClosed {
+		c.mu.Unlock()
+		return nil
+	}
+	c.writeClosed = true
+	fn := c.closeWrite
+	c.mu.Unlock()
+	if fn != nil {
+		return fn()
+	}
+	return nil
+}
+
+// Detach closes only this temporary adapter. It does not close the outer
+// association and deliberately does not emit FIN.
+func (c *BootstrapStream) Detach() error {
 	c.mu.Lock()
 	c.closed = true
+	c.writeClosed = true
 	c.mu.Unlock()
 	c.signal()
 	return nil
+}
+
+func (c *BootstrapStream) Abort(err error) {
+	if err == nil {
+		err = ErrBootstrapClosed
+	}
+	c.mu.Lock()
+	if c.fail == nil {
+		c.fail = err
+	}
+	c.closed = true
+	c.writeClosed = true
+	c.mu.Unlock()
+	c.signal()
+}
+
+func (c *BootstrapStream) Close() error {
+	return c.Detach()
 }
 
 func (c *BootstrapStream) LocalAddr() net.Addr  { return c.local }

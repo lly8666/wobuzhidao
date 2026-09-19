@@ -1,6 +1,7 @@
 package faketcp
 
 import (
+	"errors"
 	"sync"
 	"time"
 )
@@ -10,13 +11,16 @@ const (
 	senderMaxRTO = 60 * time.Second
 )
 
-// Pending is the minimal retransmittable FakeTCP payload state required during
-// P2 bootstrap. Steady-state SACK/RACK/repair-budget fields are intentionally
-// not present yet.
+var ErrInvalidACK = errors.New("faketcp: ACK exceeds sent sequence space")
+
+// Pending is the minimal retransmittable FakeTCP payload/control state required
+// during bootstrap. Payload is copied and Flags/sequence are immutable so a
+// retransmission of the same TCP sequence always emits the same bytes/control.
 type Pending struct {
 	Seq        uint32
 	End        uint32
 	Payload    []byte
+	Flags      uint8
 	FirstSent  time.Time
 	LastSent   time.Time
 	Retries    uint32
@@ -24,9 +28,6 @@ type Pending struct {
 	Bootstrap  bool
 }
 
-// SenderStats is deliberately limited to counters exercised by the bootstrap
-// path. Later steady-state ARQ extraction can extend it without changing these
-// meanings.
 type SenderStats struct {
 	Enqueued        uint64
 	EnqueuedBytes   uint64
@@ -35,12 +36,10 @@ type SenderStats struct {
 	RetransmitBytes uint64
 }
 
-// Sender is the smallest reusable portion of the archived ARQ sender needed to
-// make BootstrapStream's ACK-gated writes real: copied retransmission payload,
-// cumulative ACK release, a bounded bootstrap RTO, and ACK wait notification.
-//
-// It is internally synchronized because BootstrapStream.Write may wait for ACK
-// while the packet receive loop advances the cumulative ACK concurrently.
+// Sender owns the reliable bootstrap send sequence. It is intentionally not the
+// steady-state finite-repair sender. It additionally tracks the peer's current
+// TCP receive window so bootstrap can have a small bounded flight instead of
+// stop-and-wait without overrunning a zero/small window.
 type Sender struct {
 	mu sync.Mutex
 
@@ -52,7 +51,10 @@ type Sender struct {
 	baseRTO time.Duration
 	stats   SenderStats
 
-	notify chan struct{}
+	peerWindow      uint32
+	peerWindowKnown bool
+	fail            error
+	notify          chan struct{}
 }
 
 func NewSender(nextSeq uint32, initialRTO time.Duration) *Sender {
@@ -62,6 +64,7 @@ func NewSender(nextSeq uint32, initialRTO time.Duration) *Sender {
 		lastAck: nextSeq,
 		rto:     initialRTO,
 		baseRTO: initialRTO,
+		peerWindow: 65535,
 		notify:  make(chan struct{}),
 	}
 }
@@ -96,9 +99,6 @@ func (s *Sender) Stats() SenderStats {
 	return s.stats
 }
 
-// Enqueue copies payload ownership exactly like the archived sender. The
-// synchronous marker installed by BootstrapStream makes bootstrap entries use
-// the special retransmission ceiling without leaking that policy to later data.
 func (s *Sender) Enqueue(payload []byte, now time.Time) *Pending {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -108,6 +108,7 @@ func (s *Sender) Enqueue(payload []byte, now time.Time) *Pending {
 		Seq:       s.nextSeq,
 		End:       s.nextSeq + uint32(len(buf)),
 		Payload:   buf,
+		Flags:     FlagACK | FlagPSH,
 		FirstSent: now,
 		LastSent:  now,
 		Bootstrap: isBootstrapPayload(payload),
@@ -119,14 +120,42 @@ func (s *Sender) Enqueue(payload []byte, now time.Time) *Pending {
 	return p
 }
 
-// Ack applies only cumulative ACK semantics needed by bootstrap. SACK/RACK are
-// intentionally absent from this P2 subtask.
-func (s *Sender) Ack(ack uint32, _ time.Time) {
+// EnqueueFIN allocates exactly one sequence number and retains the control flag
+// for retransmission. It is used only by the temporary TCP lifecycle/fallback
+// path, not by the steady-state data plane.
+func (s *Sender) EnqueueFIN(now time.Time) *Pending {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	p := &Pending{
+		Seq:       s.nextSeq,
+		End:       s.nextSeq + 1,
+		Flags:     FlagACK | FlagFIN,
+		FirstSent: now,
+		LastSent:  now,
+		Bootstrap: true,
+	}
+	s.nextSeq = p.End
+	s.pending = append(s.pending, p)
+	s.stats.Enqueued++
+	return p
+}
+
+// Ack keeps the legacy void helper for existing focused tests. New association
+// code uses AckChecked so an ACK beyond nextSeq cannot advance state.
+func (s *Sender) Ack(ack uint32, now time.Time) {
+	_ = s.AckChecked(ack, now)
+}
+
+func (s *Sender) AckChecked(ack uint32, _ time.Time) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if seqLT(s.nextSeq, ack) {
+		return ErrInvalidACK
+	}
 	if !seqLT(s.lastAck, ack) {
-		return
+		return nil
 	}
 	s.lastAck = ack
 
@@ -141,13 +170,64 @@ func (s *Sender) Ack(ack uint32, _ time.Time) {
 		s.pending = s.pending[:len(s.pending)-n]
 	}
 	s.signalLocked()
+	return nil
 }
 
-// WaitAck blocks until the cumulative ACK reaches end. It is suitable directly
-// as BootstrapWaitAck. A zero deadline means no local deadline.
+// UpdatePeerWindow records the receive window advertised by the peer. Window
+// scaling applies only after the SYN exchange, which is exactly where callers
+// use this method.
+func (s *Sender) UpdatePeerWindow(raw uint16, scale uint8, scaleSet bool) {
+	s.mu.Lock()
+	if scaleSet && scale <= MaxWindowScale {
+		s.peerWindow = uint32(raw) << scale
+	} else {
+		s.peerWindow = uint32(raw)
+	}
+	s.peerWindowKnown = true
+	s.signalLocked()
+	s.mu.Unlock()
+}
+
+// WaitWindow waits until both the peer window and the bootstrap-local flight cap
+// can admit need bytes. A zero peer window therefore blocks new sends but ACK or
+// window-update segments wake the waiter. No artificial pacing sleep is used.
+func (s *Sender) WaitWindow(need, localCap int, deadline time.Time) error {
+	if need <= 0 || localCap <= 0 || need > localCap {
+		return ErrBootstrapOverflow
+	}
+	for {
+		s.mu.Lock()
+		if s.fail != nil {
+			err := s.fail
+			s.mu.Unlock()
+			return err
+		}
+		limit := uint32(localCap)
+		if s.peerWindowKnown && s.peerWindow < limit {
+			limit = s.peerWindow
+		}
+		outstanding := s.nextSeq - s.lastAck
+		if uint32(need) <= limit && outstanding <= limit-uint32(need) {
+			s.mu.Unlock()
+			return nil
+		}
+		ch := s.notify
+		s.mu.Unlock()
+
+		if err := waitSenderNotify(ch, deadline); err != nil {
+			return err
+		}
+	}
+}
+
 func (s *Sender) WaitAck(end uint32, deadline time.Time) error {
 	for {
 		s.mu.Lock()
+		if s.fail != nil {
+			err := s.fail
+			s.mu.Unlock()
+			return err
+		}
 		if seqLE(end, s.lastAck) {
 			s.mu.Unlock()
 			return nil
@@ -155,37 +235,32 @@ func (s *Sender) WaitAck(end uint32, deadline time.Time) error {
 		ch := s.notify
 		s.mu.Unlock()
 
-		if deadline.IsZero() {
-			<-ch
-			continue
-		}
-		d := time.Until(deadline)
-		if d <= 0 {
-			return ErrBootstrapTimeout
-		}
-		timer := time.NewTimer(d)
-		select {
-		case <-ch:
-			if !timer.Stop() {
-				select {
-				case <-timer.C:
-				default:
-				}
-			}
-		case <-timer.C:
-			return ErrBootstrapTimeout
+		if err := waitSenderNotify(ch, deadline); err != nil {
+			return err
 		}
 	}
 }
 
-// RetransmitDue returns the oldest due payload. Bootstrap retransmissions use a
-// hard 2s ceiling and do not back off the shared RTO. A later ordinary payload
-// retains normal exponential RTO backoff, preserving the archived invariant.
+// Abort wakes all window/ACK waiters. It does not manufacture ACK progress.
+func (s *Sender) Abort(err error) {
+	if err == nil {
+		err = ErrBootstrapClosed
+	}
+	s.mu.Lock()
+	if s.fail == nil {
+		s.fail = err
+		s.signalLocked()
+	}
+	s.mu.Unlock()
+}
+
+// RetransmitDue returns the oldest due item. Bootstrap data and FIN use a hard
+// 2s ceiling and keep immutable sequence/payload/control state.
 func (s *Sender) RetransmitDue(now time.Time) *Pending {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if len(s.pending) == 0 {
+	if s.fail != nil || len(s.pending) == 0 {
 		return nil
 	}
 	p := s.pending[0]
@@ -212,6 +287,25 @@ func (s *Sender) RetransmitDue(now time.Time) *Pending {
 func (s *Sender) signalLocked() {
 	close(s.notify)
 	s.notify = make(chan struct{})
+}
+
+func waitSenderNotify(ch <-chan struct{}, deadline time.Time) error {
+	if deadline.IsZero() {
+		<-ch
+		return nil
+	}
+	d := time.Until(deadline)
+	if d <= 0 {
+		return ErrBootstrapTimeout
+	}
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-ch:
+		return nil
+	case <-timer.C:
+		return ErrBootstrapTimeout
+	}
 }
 
 func clampSenderRTO(v time.Duration) time.Duration {

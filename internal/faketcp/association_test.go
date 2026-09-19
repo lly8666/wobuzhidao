@@ -263,8 +263,9 @@ func TestServerAssociationTableFlowIsolationAndCap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := table.AddSYN(p2SYN(22001, 100), 2000, time.Second); !errors.Is(err, ErrAssociationExists) {
-		t.Fatalf("duplicate err=%v", err)
+	dup, err := table.AddSYN(p2SYN(22001, 100), 2000, time.Second)
+	if err != nil || dup != a {
+		t.Fatalf("duplicate SYN did not reuse half-open association: dup=%p a=%p err=%v", dup, a, err)
 	}
 	b, err := table.AddSYN(p2SYN(22002, 200), 3000, time.Second)
 	if err != nil {
@@ -493,5 +494,362 @@ func TestAssociationDroppedFirstNewRecordDoesNotBlockSecondRecord(t *testing.T) 
 	}
 	if decoder.Stats().Delivered != 1 {
 		t.Fatalf("delivered=%d want=1", decoder.Stats().Delivered)
+	}
+}
+
+
+func TestDuplicateSYNKeepsOriginalSYNACKAndISN(t *testing.T) {
+	emitted := make(chan Segment, 8)
+	table, err := NewServerAssociationTable(2, func(seg Segment) error {
+		emitted <- seg
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	syn := p2SYN(24001, 700)
+	a, err := table.AddSYN(syn, 9000, time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	first, err := a.SYNACKSegment()
+	if err != nil {
+		t.Fatal(err)
+	}
+	dup, err := table.AddSYN(syn, 123456, time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dup != a {
+		t.Fatal("duplicate SYN created another association")
+	}
+	second, err := dup.SYNACKSegment()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first != second || second.Seq != 9000 {
+		t.Fatalf("duplicate SYN changed SYN-ACK: first=%#v second=%#v", first, second)
+	}
+
+	base := time.Now().Add(2 * time.Second)
+	for i := 0; i < MaxSYNACKRetries; i++ {
+		due, err := a.EmitRetransmitDue(base.Add(time.Duration(i) * 2 * time.Second))
+		if err != nil || !due {
+			t.Fatalf("retry %d due=%v err=%v", i, due, err)
+		}
+		retry := <-emitted
+		if retry != first {
+			t.Fatalf("retry %d changed SYN-ACK: %#v", i, retry)
+		}
+	}
+	if due, err := a.EmitRetransmitDue(base.Add((MaxSYNACKRetries + 1) * 2 * time.Second)); err != nil || due {
+		t.Fatalf("post-cap due=%v err=%v", due, err)
+	}
+	if a.State() != ServerAssociationClosed {
+		t.Fatalf("half-open state=%v want closed", a.State())
+	}
+}
+
+func TestFutureACKDoesNotReleaseUnsentState(t *testing.T) {
+	emitCh := make(chan Segment, 8)
+	a, syn := establishP2(t, func(seg Segment) error {
+		emitCh <- seg
+		return nil
+	})
+	defer a.Close()
+
+	done := make(chan error, 1)
+	go func() {
+		_, err := a.BootstrapConn().Write([]byte("bootstrap-data"))
+		done <- err
+	}()
+	sent := <-emitCh
+	if a.SenderPending() != 1 {
+		t.Fatalf("pending=%d want=1", a.SenderPending())
+	}
+
+	bad := syn
+	bad.Flags = FlagACK
+	bad.Seq = syn.Seq + 1
+	bad.Ack = sent.Seq + uint32(len(sent.Payload)) + 100
+	bad.Window = 65535
+	if _, err := a.HandleSegment(bad, time.Now()); !errors.Is(err, ErrInvalidACK) {
+		t.Fatalf("future ACK err=%v want ErrInvalidACK", err)
+	}
+	if a.SenderPending() != 1 || a.SenderLastAck() != sent.Seq {
+		t.Fatalf("future ACK advanced sender pending=%d lastAck=%d", a.SenderPending(), a.SenderLastAck())
+	}
+	select {
+	case err := <-done:
+		t.Fatalf("write unblocked on invalid ACK: %v", err)
+	case <-time.After(20 * time.Millisecond):
+	}
+
+	good := bad
+	good.Ack = sent.Seq + uint32(len(sent.Payload))
+	if _, err := a.HandleSegment(good, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestBootstrapWindowAllowsBoundedMultiChunkFlight(t *testing.T) {
+	emitCh := make(chan Segment, 16)
+	a, syn := establishP2(t, func(seg Segment) error {
+		emitCh <- seg
+		return nil
+	})
+	defer a.Close()
+
+	payload := bytes.Repeat([]byte{0x5a}, DefaultBootstrapChunk*3)
+	done := make(chan error, 1)
+	go func() {
+		n, err := a.BootstrapConn().Write(payload)
+		if err == nil && n != len(payload) {
+			err = io.ErrShortWrite
+		}
+		done <- err
+	}()
+
+	var sent []Segment
+	for len(sent) < 3 {
+		select {
+		case seg := <-emitCh:
+			sent = append(sent, seg)
+		case <-time.After(time.Second):
+			t.Fatalf("only %d chunks entered bounded flight", len(sent))
+		}
+	}
+	select {
+	case err := <-done:
+		t.Fatalf("write returned before flight ACK: %v", err)
+	default:
+	}
+	for i := 1; i < len(sent); i++ {
+		if sent[i].Seq != sent[i-1].Seq+uint32(len(sent[i-1].Payload)) {
+			t.Fatalf("non-contiguous send flight: %#v", sent)
+		}
+	}
+
+	ack := syn
+	ack.Flags = FlagACK
+	ack.Seq = syn.Seq + 1
+	ack.Ack = sent[len(sent)-1].Seq + uint32(len(sent[len(sent)-1].Payload))
+	ack.Window = 65535
+	if _, err := a.HandleSegment(ack, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("multi-chunk write did not finish after cumulative ACK")
+	}
+}
+
+func TestBootstrapZeroWindowBlocksUntilWindowUpdate(t *testing.T) {
+	emitCh := make(chan Segment, 8)
+	a, syn := establishP2(t, func(seg Segment) error {
+		emitCh <- seg
+		return nil
+	})
+	defer a.Close()
+
+	zero := syn
+	zero.Flags = FlagACK
+	zero.Seq = syn.Seq + 1
+	zero.Ack = a.SenderLastAck()
+	zero.Window = 0
+	if _, err := a.HandleSegment(zero, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+
+	done := make(chan error, 1)
+	go func() {
+		_, err := a.BootstrapConn().Write(bytes.Repeat([]byte{1}, 100))
+		done <- err
+	}()
+	select {
+	case seg := <-emitCh:
+		t.Fatalf("zero-window unexpectedly emitted %#v", seg)
+	case <-time.After(20 * time.Millisecond):
+	}
+
+	update := zero
+	update.Window = 1 // WS=8 => 256 bytes, enough for this write.
+	if _, err := a.HandleSegment(update, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	var sent Segment
+	select {
+	case sent = <-emitCh:
+	case <-time.After(time.Second):
+		t.Fatal("window update did not wake bootstrap sender")
+	}
+	ack := update
+	ack.Ack = sent.Seq + uint32(len(sent.Payload))
+	if _, err := a.HandleSegment(ack, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestFINWithTailPayloadConsumesSequenceAndPreservesTail(t *testing.T) {
+	a, syn := establishP2(t, func(Segment) error { return nil })
+	defer a.Close()
+
+	seg := syn
+	seg.Flags = FlagACK | FlagPSH | FlagFIN
+	seg.Seq = syn.Seq + 1
+	seg.Ack = 5001
+	seg.Payload = []byte("tail")
+	res, err := a.HandleSegment(seg, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantAck := seg.Seq + uint32(len(seg.Payload)) + 1
+	if !res.AckNeeded || res.Ack != wantAck {
+		t.Fatalf("FIN ACK=%d need=%v want=%d", res.Ack, res.AckNeeded, wantAck)
+	}
+	got := make([]byte, len(seg.Payload))
+	if _, err := io.ReadFull(a.BootstrapConn(), got); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, seg.Payload) {
+		t.Fatalf("tail=%q want=%q", got, seg.Payload)
+	}
+	var one [1]byte
+	if n, err := a.BootstrapConn().Read(one[:]); n != 0 || !errors.Is(err, io.EOF) {
+		t.Fatalf("post-FIN read n=%d err=%v", n, err)
+	}
+}
+
+func TestOutOfOrderFINWaitsForMissingPayload(t *testing.T) {
+	a, syn := establishP2(t, func(Segment) error { return nil })
+	defer a.Close()
+
+	fin := syn
+	fin.Flags = FlagACK | FlagFIN
+	fin.Seq = syn.Seq + 5
+	fin.Ack = 5001
+	res, err := a.HandleSegment(fin, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Ack != syn.Seq+1 {
+		t.Fatalf("out-of-order FIN advanced ACK=%d", res.Ack)
+	}
+
+	data := syn
+	data.Flags = FlagACK | FlagPSH
+	data.Seq = syn.Seq + 1
+	data.Ack = 5001
+	data.Payload = []byte("1234")
+	res, err = a.HandleSegment(data, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Ack != syn.Seq+6 {
+		t.Fatalf("missing payload did not release queued FIN ACK=%d", res.Ack)
+	}
+	got := make([]byte, 4)
+	if _, err := io.ReadFull(a.BootstrapConn(), got); err != nil {
+		t.Fatal(err)
+	}
+	var one [1]byte
+	if _, err := a.BootstrapConn().Read(one[:]); !errors.Is(err, io.EOF) {
+		t.Fatalf("queued FIN did not produce EOF: %v", err)
+	}
+}
+
+func TestRSTMustMatchCurrentReceiveSequence(t *testing.T) {
+	a, syn := establishP2(t, func(Segment) error { return nil })
+	defer a.Close()
+
+	rst := syn
+	rst.Flags = FlagRST
+	rst.Seq = syn.Seq + 2
+	res, err := a.HandleSegment(rst, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a.State() != ServerAssociationEstablished || !res.AckNeeded {
+		t.Fatalf("forged RST changed state=%v result=%#v", a.State(), res)
+	}
+
+	rst.Seq = syn.Seq + 1
+	if _, err := a.HandleSegment(rst, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if a.State() != ServerAssociationClosed {
+		t.Fatalf("valid RST state=%v want closed", a.State())
+	}
+}
+
+func TestBootstrapCloseWriteEmitsFINWithoutClosingReadSide(t *testing.T) {
+	emitCh := make(chan Segment, 8)
+	a, syn := establishP2(t, func(seg Segment) error {
+		emitCh <- seg
+		return nil
+	})
+	defer a.Close()
+
+	cw, ok := a.BootstrapConn().(interface{ CloseWrite() error })
+	if !ok {
+		t.Fatal("bootstrap conn lacks CloseWrite")
+	}
+	if err := cw.CloseWrite(); err != nil {
+		t.Fatal(err)
+	}
+	fin := <-emitCh
+	if fin.Flags != FlagACK|FlagFIN || len(fin.Payload) != 0 || fin.Seq != 5001 {
+		t.Fatalf("bad local FIN %#v", fin)
+	}
+	ack := syn
+	ack.Flags = FlagACK
+	ack.Seq = syn.Seq + 1
+	ack.Ack = fin.Seq + 1
+	ack.Window = 65535
+	if _, err := a.HandleSegment(ack, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if a.State() != ServerAssociationEstablished {
+		t.Fatalf("one-sided FIN prematurely closed association: %v", a.State())
+	}
+}
+
+func TestClosedAssociationSweepAllowsFourTupleReuse(t *testing.T) {
+	table, err := NewServerAssociationTable(1, func(Segment) error { return nil })
+	if err != nil {
+		t.Fatal(err)
+	}
+	syn := p2SYN(25001, 100)
+	first, err := table.AddSYN(syn, 1000, time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	first.Close()
+	if got := table.Sweep(time.Now()); got != 1 {
+		t.Fatalf("sweep=%d want=1", got)
+	}
+	second, err := table.AddSYN(syn, 2000, time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if second == first {
+		t.Fatal("four-tuple reuse resurrected retired association")
+	}
+	synack, err := second.SYNACKSegment()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if synack.Seq != 2000 {
+		t.Fatalf("new incarnation ISN=%d want=2000", synack.Seq)
 	}
 }
