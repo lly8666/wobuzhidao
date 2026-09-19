@@ -136,7 +136,6 @@ jobs:
           LOG="$RUNNER_TEMP/game-lane-rotation-oversize-$slug"
           mkdir -p "$LOG"
           sudo -E bash "$GITHUB_WORKSPACE/scripts/game_lane_rotation_soak_control.sh" "$RUNNER_TEMP/wbd-oversize-assets" "$LOG"
-          grep -q 'WBD_SOAK_POST_SMALL_PROBE_PASS bytes=256' "$LOG/post-small-probe.log"
           python3 - "$LOG" "${{ matrix.connection_mtu }}" "${{ matrix.fec }}" <<'PY'
           import json,pathlib,re,subprocess,sys
           root=pathlib.Path(sys.argv[1]); connection=int(sys.argv[2]); fec=sys.argv[3]
@@ -144,6 +143,7 @@ jobs:
           assert result['rotations']==4 and result['peer_resets']==4, result
           assert result['no_client_rx_expire']==0 and result['duplicates']==0 and result['bad_payload']==0, result
           assert result['lost']==0, result
+          assert result['post_small_probe_bytes']==256 and result['post_small_probe_pass'] is True, result
           budget=json.loads(subprocess.check_output([
               'go','run',str(pathlib.Path.cwd()/'.github/scripts/mtu_budget.go'),
               '-connection-mtu',str(connection),'-fec',fec], text=True))
