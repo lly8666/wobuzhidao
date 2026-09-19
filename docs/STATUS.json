@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "branch": "next/tlslike-dataplane",
+  "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
+  "milestone": "P0",
+  "product_state": "NOT_IMPLEMENTED",
+  "updated_at": "2026-09-19",
+  "completed": ["新架构决策和项目主旨固定", "旧代码/文档/工作流整体隔离到old", "建立新agent入口、阶段计划、开发日志和Actions基础检查"],
+  "in_progress": "发布新分支并核对第一次foundation Actions结果",
+  "next_task": "P1：创建根Go module，按WIRE_SPEC实现tlsrecord密钥派生、seal/open和固定测试向量；仅在Actions运行测试。",
+  "latest_log": "docs/devlog/20260919-000000-bootstrap.md",
+  "last_tested_source_sha": null,
+  "actions": [],
+  "physical_status": "NOT_RUN",
+  "known_limits": ["尚无新产品Go module或可运行程序", "当前foundation检查不代表产品或网络资格", "旧分支测试结果不属于新产品", "物理机验收留到P7"],
+  "required_read_set": ["AGENTS.md", "PROJECT_CHARTER.md", "docs/ROADMAP.md", "docs/DEVELOPMENT_PLAN.md", "docs/WIRE_SPEC.md", "docs/MODULE_MAP.md", "docs/ACCEPTANCE.md"]
+}

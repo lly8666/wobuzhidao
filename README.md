@@ -1,32 +1,19 @@
-# wobuzhidao
+# WBD NEXT
 
-Personal weak-network VPN transport for **OpenWrt/Linux ↔ Linux or Windows**.
+TCP-like 外层、TLS-like 独立加密记录、稳态无跨包 HOL 的弱网隧道。
 
-V2.4 separates the long-lived logical VPN from its replaceable public transports:
+**当前状态：设计与仓库隔离完成，新的运行程序尚未实现。** 现有代码在 `old/` 仅作为定向复用素材；此分支尚不能当可运行发布包。
 
-```text
-Logical Tunnel
-  - server-assigned unique tunnel IP lease
-  - stable race SessionID / PacketID space
-  - 1..N active Transport Lanes
+新 agent 从 [AGENTS.md](AGENTS.md) 开始。唯一进度入口为 [docs/STATUS.json](docs/STATUS.json)。
 
-Each Transport Lane:
-  one FakeTCP SYN lineage
-    -> bounded reliable ordered TLS/bootstrap on the same raw association
-    -> real TLS 1.3 / Reality-like recognition + admission
-    -> same lane 4-tuple / sequence space
-    -> DTLS 1.3
-    -> LINK
-    -> lane-local optional fixed FEC
-    -> packet/datagram VPN payload
-```
+- [项目主旨](PROJECT_CHARTER.md)
+- [详细开发方案](docs/DEVELOPMENT_PLAN.md)
+- [记录协议](docs/WIRE_SPEC.md)
+- [复用与新开发边界](docs/MODULE_MAP.md)
+- [开发阶段](docs/ROADMAP.md)
+- [Actions 验收规则](docs/ACCEPTANCE.md)
+- [最近开发日志](docs/devlog/20260919-000000-bootstrap.md)
 
-The carrier is **TCP-shaped, not an ordinary kernel TCP byte stream**. Ordered behavior exists only for the short TLS/bootstrap phase of each lane. Sustained VPN payload returns to datagram semantics so an earlier missing FakeTCP range does not recreate ordinary TCP head-of-line blocking.
+DTLS 基线保存在独立分支 [`release/dtls-preview-20260919`](https://github.com/lly8666/wobuzhidao/tree/release/dtls-preview-20260919)，源码锚点 `b5c848f4e9afdffd15d1bc451560edf4e9390a35`。旧架构不与新产品并存，不做旧产品性能 A/B。
 
-Normal mode targets one steady lane. The later Game Lane/race layer may use 2..4 independent complete WBD associations for first-arrival delivery and duplicate suppression, and make-before-break replacement may briefly overlap an old lane with a candidate. This is not the rejected V1 ordinary-kernel-TCP multilane architecture.
-
-Windows raw-L3 product direction is server-assigned unique tunnel IPs, one shared Linux TUN and one WBD-owned host NAT. The per-LiveID netns/veth/double-NAT implementation is historical/reference evidence, not the selected final product.
-
-Current frozen release limits remain: `legacy` FakeTCP shadow recovery, pinned wolfSSL DTLS 1.3, FEC `off` or fixed systematic `20:20`, <=100 Mbit/s weak-link qualification ceiling, and **40 Mbit/s aggregate-inner** conservative release operating point.
-
-Read ADR-0012, `PROJECT_CONSTITUTION.md`, `ARCHITECTURE.md`, `.wbd/handoff/current.json` and `CONTINUE_HERE.md` on the active development branch before editing.
+开发和测试环境：只使用 GitHub Actions。最后一轮才安排真实物理机。根目录 `next-foundation` 工作流目前仅验证交接、归档与仓库契约；未来存在正式 Go module 后才启用新代码的基础构建/测试。基础 CI 通过不代表隧道实现完成。

@@ -1,0 +1,76 @@
+name: next-foundation
+
+on:
+  push:
+    branches: ['next/**']
+  pull_request:
+    branches: ['next/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: next-foundation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  repository-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      has_go: ${{ steps.layout.outputs.has_go }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check authority, archive and handoff (not product tests)
+        env:
+          CHANGE_BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python tools/check_repository.py
+      - id: layout
+        name: Detect active module
+        shell: bash
+        run: |
+          if test -f go.mod; then
+            echo 'has_go=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'has_go=false' >> "$GITHUB_OUTPUT"
+            echo 'Product module NOT_IMPLEMENTED; no product test claim.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: foundation-${{ github.sha }}
+          path: artifacts/foundation-receipt.json
+          if-no-files-found: error
+
+  active-go-tests:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - name: Verify active packages and unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          packages=$(go list ./...)
+          test -n "$packages"
+          go test ./... -count=1
+          go build ./...
+      - name: Race
+        if: runner.os == 'Linux'
+        run: go test -race ./... -count=1
