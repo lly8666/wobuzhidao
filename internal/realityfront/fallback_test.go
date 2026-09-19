@@ -270,7 +270,7 @@ func TestFallbackSNIMismatchDoesNotDialTarget(t *testing.T) {
 	if err := <-serverDone; err == nil {
 		t.Fatal("SNI mismatch unexpectedly accepted")
 	}
-	_ = assoc.Close()
+	assoc.Close()
 	_ = peer.Close()
 	select {
 	case <-clientErr:

@@ -16,10 +16,10 @@
     "P2子任务：真实TLS/uTLS Firefox120 persona、ClientHello分类/replay与真实exporter在同association上通过Actions",
     "P2子任务：TLS内受保护admission、最小username/password认证、v1/nonce/TunnelID/双向record limits协商与prepare/detach通过Actions"
   ],
-  "in_progress": "P2：真实decoy fallback最小闭包已准备提交：单入口只消费一次ClientHello；recognized进入现有protected admission且零fallback dial，unrecognized在同一FakeTCP BootstrapConn上把raw ClientHello逐字节replay到decoy并双向splice；等待新SHA Actions。",
-  "next_task": "P2：验证fallback提交的repository-contract、Windows/Linux unit/build与Linux race；通过后核对P2剩余资格：最后bootstrap丢包/ACK丢失、首条新record提前/丢失、reader预读、退出候选、transition队列上限及record no-HOL核心资格，按最小缺口补测试/实现，不进入P3。",
-  "latest_log": "docs/devlog/20260919-204500-p2-real-decoy-fallback.md",
-  "last_tested_source_sha": "d4acf7ae1389920c67a192a4359ade4120675387",
+  "in_progress": "P2：真实decoy fallback实现已提交，但e98ee2cd40d22f133b57af39e875574975e878d4在Windows/Linux go test编译阶段因fallback_test.go误把无返回值assoc.Close()用于赋值而FAIL；当前仅修测试编译错误，产品fallback代码不变，等待新SHA Actions。",
+  "next_task": "P2：验证fallback测试编译修复后的repository-contract、Windows/Linux unit/build与Linux race；通过后核对P2剩余资格：最后bootstrap丢包/ACK丢失、首条新record提前/丢失、reader预读、退出候选、transition队列上限及record no-HOL核心资格。",
+  "latest_log": "docs/devlog/20260919-210600-p2-fallback-test-compile-fix.md",
+  "last_tested_source_sha": "e98ee2cd40d22f133b57af39e875574975e878d4",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -111,6 +111,13 @@
       "scope": "P2-protected-admission",
       "status": "PASS",
       "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。真实FakeTCP+TLS admission、prepare-before-final-reply、auth/version/context/bounds专项测试包含在unit/race范围。"
+    },
+    {
+      "source_sha": "e98ee2cd40d22f133b57af39e875574975e878d4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35443074386",
+      "scope": "P2-real-decoy-fallback",
+      "status": "FAIL",
+      "note": "repository-contract PASS；Windows/Linux均在go test编译阶段FAIL：internal/realityfront/fallback_test.go:273:6 assoc.Close() (no value) used as value。产品fallback代码尚未进入运行期测试，race/fuzz/reference未运行。"
     }
   ],
   "physical_status": "NOT_RUN",
