@@ -134,12 +134,12 @@ func FallbackFromHello(ctx context.Context, client net.Conn, hello Hello, cfg Fa
 	ch := make(chan copyResult, 2)
 	go func() {
 		n, err := fallbackCopyLimited(target, client, cfg.MaxBytes)
-		closeWrite(target)
+		fallbackCloseWrite(target)
 		ch <- copyResult{direction: 'u', n: n, err: err}
 	}()
 	go func() {
 		n, err := fallbackCopyLimited(client, target, cfg.MaxBytes)
-		closeWrite(client)
+		fallbackCloseWrite(client)
 		ch <- copyResult{direction: 'd', n: n, err: err}
 	}()
 
@@ -198,8 +198,14 @@ func (r *fallbackLimitReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-func closeWrite(conn net.Conn) {
+func fallbackCloseWrite(conn net.Conn) {
 	if c, ok := conn.(interface{ CloseWrite() error }); ok {
 		_ = c.CloseWrite()
+		return
 	}
+	// FakeTCP BootstrapConn and test in-memory connections do not expose a
+	// half-close. When one splice direction is finished, a no-op here would
+	// leave the peer copy blocked until an arbitrary session deadline. Full
+	// close is the only available termination signal for those transports.
+	_ = conn.Close()
 }

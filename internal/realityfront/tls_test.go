@@ -226,6 +226,8 @@ type associationPeerConn struct {
 	readDeadline time.Time
 	writeDeadline time.Time
 	onServerPayload func(faketcp.Segment)
+	done            chan struct{}
+	closeOnce       sync.Once
 }
 
 func newAssociationPeer(t *testing.T) (*faketcp.ServerAssociation, *associationPeerConn) {
@@ -270,6 +272,7 @@ func newAssociationPeer(t *testing.T) (*faketcp.ServerAssociation, *associationP
 		emitted: emitted,
 		sendSeq: 1001,
 		recvSeq: 5001,
+		done:    make(chan struct{}),
 	}
 }
 
@@ -293,7 +296,11 @@ func (c *associationPeerConn) Read(p []byte) (int, error) {
 			ok  bool
 		)
 		if deadline.IsZero() {
-			seg, ok = <-c.emitted
+			select {
+			case seg, ok = <-c.emitted:
+			case <-c.done:
+				return 0, io.EOF
+			}
 		} else {
 			d := time.Until(deadline)
 			if d <= 0 {
@@ -308,6 +315,14 @@ func (c *associationPeerConn) Read(p []byte) (int, error) {
 					default:
 					}
 				}
+			case <-c.done:
+				if !timer.Stop() {
+					select {
+					case <-timer.C:
+					default:
+					}
+				}
+				return 0, io.EOF
 			case <-timer.C:
 				return 0, timeoutError{}
 			}
@@ -413,6 +428,7 @@ func (c *associationPeerConn) Close() error {
 	c.mu.Lock()
 	c.closed = true
 	c.mu.Unlock()
+	c.closeOnce.Do(func() { close(c.done) })
 	return nil
 }
 
