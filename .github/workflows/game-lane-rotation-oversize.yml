@@ -52,9 +52,9 @@ jobs:
           echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
           tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
           (cd /tmp/wolf/src && ./autogen.sh)
-          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128')
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static CFLAGS='-O2 -DWOLFSSL_DTLS_WINDOW_WORDS=128 -DWOLFSSL_MAX_MTU=16384')
           make -C /tmp/wolf/build -j2 src/libwolfssl.la
-          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+          gcc -DWOLFSSL_DTLS_WINDOW_WORDS=128 -DWOLFSSL_MAX_MTU=16384 -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
             native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o "$ASSET/wbd_dtls_shim"
 
           go test ./internal/linkdata ./internal/pathmtu ./internal/gamelane ./internal/faketcp ./internal/session \
@@ -67,6 +67,7 @@ jobs:
           go build -trimpath -o "$ASSET/wbd-game-lane-client" ./cmd/wbd-game-lane-client
           go build -trimpath -o "$ASSET/wbd-game-lane-server" ./cmd/wbd-game-lane-server
           printf '%s\n' "$GITHUB_SHA" >"$ASSET/SOURCE_SHA.txt"
+          echo "WBD_DTLS_LOGICAL_MTU_BUILD logical_mtu=16384 source=wolfssl-max-record"
 
           openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
             -subj '/CN=unrelated-front.invalid' -keyout "$ASSET/front.key" -out "$ASSET/front.pem" >/dev/null 2>&1
@@ -191,6 +192,14 @@ jobs:
             echo "--- $f"
             tail -n 160 "$f" 2>/dev/null || true
           done
+      - name: Scrub one-time auth material
+        if: always()
+        run: |
+          set +e
+          slug="${{ matrix.connection_mtu }}-${{ matrix.fec_slug }}"
+          LOG="$RUNNER_TEMP/game-lane-rotation-oversize-$slug"
+          sudo rm -rf "$LOG/tickets" "$LOG"/ticket-*.txt "$LOG"/tunnel-*.json "$LOG"/front-*.log
+          sudo chmod -R a+rX "$LOG" 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
