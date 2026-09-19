@@ -13,9 +13,9 @@
     "P2子任务：FakeTCP BootstrapStream最小闭包提取、复用登记及基础Actions验证",
     "P2子任务：bootstrap Sender/Pending重传与ACK wait、StageTransition prepare/detach边界通过Actions"
   ],
-  "in_progress": "P2：bootstrap stream/sender/transition基础已通过Actions；下一原子任务进入FakeTCP SYN/packet/persona最小闭包与同association TLS bootstrap接线。",
-  "next_task": "P2：只定向读取 old/internal/faketcp/packet.go、tcp_persona.go、server_mux.go 中SYN/ACK/association直接依赖及对应测试，提取同四元组/序列空间的最小association；先接BootstrapStream+Sender+StageTransition接口，不搬steady-state Receiver/SACK/RACK/FEC。",
-  "latest_log": "docs/devlog/20260919-192500-p2-sender-transition-pass.md",
+  "in_progress": "P2：已实现但尚未Actions验证的SYN/packet/persona/ServerAssociation最小闭包，把BootstrapStream+Sender+StageTransition接到同四元组和同一序列空间；未迁移steady-state Receiver/SACK/RACK/FEC。",
+  "next_task": "P2：先验证本次SYN/packet/persona/association提交的repository-contract、Windows/Linux unit/build与Linux race；通过后定向提取old/internal/realityfront真实TLS/uTLS persona与exporter所需最小闭包，并把tls.Conn跑在ServerAssociation.BootstrapConn上，先做本地双端真实TLS/exporter/prepare-detach测试，不接账户/lease全栈。",
+  "latest_log": "docs/devlog/20260919-185300-p2-association-bootstrap-wiring.md",
   "last_tested_source_sha": "525175a19165d392b825a96e95594b0507aa2878",
   "actions": [
     {"source_sha": "3335b13a913cbd4b1adc689d75605b159280afac", "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35433878751", "scope": "repository-foundation-only", "status": "PASS", "note": "repository-contract通过；active-go-tests按尚无产品module明确SKIPPED，不是产品资格。"},
@@ -28,9 +28,10 @@
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "当前P2 PASS只覆盖bootstrap stream/sender/transition内部组件，不代表真实TLS/FakeTCP同流移交通过",
-    "尚未提取SYN/raw packet/persona association接线，StageTransition也尚未挂真实packet receive loop",
-    "steady-state Receiver/SACK/RACK/FEC、真实TLS exporter、fallback尚未实现",
+    "本次SYN/packet/persona/association代码尚未获得Actions结果",
+    "association目前使用SegmentEmitter接口，尚未接Linux raw socket/Npcap真实收发",
+    "尚未把真实TLS/uTLS与exporter/auth/fallback跑在BootstrapConn上",
+    "steady-state Receiver/SACK/RACK/FEC与record数据面接线尚未实现",
     "尚无可运行client/server或网络数据面",
     "P2完整资格及后续阶段未验证",
     "物理机验收留到P7"

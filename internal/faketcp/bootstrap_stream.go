@@ -70,6 +70,15 @@ func NewBootstrapStream(next uint32, send BootstrapSend, waitAck BootstrapWaitAc
 	}, nil
 }
 
+// NextSeq returns the first sequence byte not yet assembled into the ordered
+// bootstrap stream. Association transition preparation uses this exact value as
+// the ownership boundary; it does not infer a mode from payload bytes.
+func (c *BootstrapStream) NextSeq() uint32 {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.next
+}
+
 // Feed accepts a first-arrival FakeTCP payload. Out-of-order payload is retained
 // only for this short bootstrap phase; contiguous bytes become visible to TLS.
 // Both contiguous unread bytes and out-of-order storage are hard bounded so an
@@ -184,9 +193,8 @@ func (c *BootstrapStream) Write(p []byte) (int, error) {
 }
 
 // sendBootstrapPayload marks only the exact slice passed synchronously through
-// BootstrapSend. The future Sender extraction can copy that slice and preserve
-// the mature bootstrap retransmit classification without changing this callback
-// contract or leaking the marker into steady-state records.
+// BootstrapSend. Sender.Enqueue copies that slice while the marker is live so
+// bootstrap retransmission policy cannot leak into later steady-state records.
 func sendBootstrapPayload(send BootstrapSend, payload []byte) (uint32, error) {
 	if len(payload) == 0 {
 		return send(payload)

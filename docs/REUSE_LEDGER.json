@@ -4,8 +4,8 @@
     {
       "source": "old/internal/faketcp/bootstrap_stream.go",
       "destination": "internal/faketcp/bootstrap_stream.go",
-      "behavior_changes": "Preserve bounded ordered bootstrap buffering, ACK-gated chunked writes, deadlines, close semantics, and synchronous bootstrap payload tagging. Comments are updated for the TLS-like dataplane; no DTLS runtime dependency is carried forward.",
-      "tests": "internal/faketcp/bootstrap_stream_test.go covers reordering, per-chunk ACK gating, deadlines, chunk/byte bounds, uint32 sequence wrap, marker scope, and close/EOF."
+      "behavior_changes": "Preserve bounded ordered bootstrap buffering, ACK-gated chunked writes, deadlines, close semantics, and synchronous bootstrap payload tagging. Add a locked NextSeq accessor so the association can freeze the exact receive ownership boundary for prepare/detach; no payload-byte mode guessing is introduced.",
+      "tests": "internal/faketcp/bootstrap_stream_test.go covers reordering, per-chunk ACK gating, deadlines, chunk/byte bounds, uint32 sequence wrap, marker scope, and close/EOF; association tests use NextSeq as the transition boundary."
     },
     {
       "source": "old/internal/faketcp/arq.go",
@@ -16,9 +16,39 @@
     {
       "source": "old/internal/faketcp/arq.go",
       "destination": "internal/faketcp/bootstrap_sender.go",
-      "behavior_changes": "Extract only copied Pending payload ownership, cumulative ACK release, ACK waiting, oldest-payload RTO retransmit, bootstrap 2s retransmit ceiling, and the invariant that bootstrap retries do not back off the shared RTO. The archived bootstrap_retransmit_test.go was also inspected as behavioral evidence, but the ledger source field remains the single code source path required by repository contract. Steady-state SACK/RACK/repair-budget/partial-reliability logic is intentionally not migrated in this task.",
+      "behavior_changes": "Extract only copied Pending payload ownership, cumulative ACK release, ACK waiting, oldest-payload RTO retransmit, bootstrap 2s retransmit ceiling, and the invariant that bootstrap retries do not back off the shared RTO. The archived bootstrap_retransmit_test.go was also inspected as behavioral evidence. Steady-state SACK/RACK/repair-budget/partial-reliability logic is intentionally not migrated.",
       "tests": "internal/faketcp/bootstrap_sender_test.go covers the archived bootstrap ceiling invariant, later ordinary RTO backoff, cumulative ACK wait/deadline, retransmit Seq/payload identity, and uint32 wrap."
+    },
+    {
+      "source": "old/internal/faketcp/packet.go",
+      "destination": "internal/faketcp/packet.go",
+      "behavior_changes": "Extract only IPv4/TCP handshake/bootstrap build+parse, SYN MSS/SACK-permitted/window-scale profile, WBD handshake recognition, DF/IP/TCP checksums, and payload offsets. Steady-state SACK block encode/decode and MaxHeaderSize recovery coupling are deliberately omitted until steady-state ARQ/MTU work.",
+      "tests": "internal/faketcp/packet_test.go covers bootstrap payload round-trip, IPv4/TCP checksums, SYN option parsing/fingerprint rejection, and packet header offsets."
+    },
+    {
+      "source": "old/internal/faketcp/tcp_persona.go",
+      "destination": "internal/faketcp/tcp_persona.go",
+      "behavior_changes": "Preserve presentation-only legacy/windows11 persona selection while moving the actual SYN rewrite into the extracted packet builder. No sequence/reliability behavior depends on persona.",
+      "tests": "internal/faketcp/packet_test.go fixes the Windows TTL/DF/SYN option ordering/checksum shape and proves the explicit legacy persona remains byte-identical to the base builder."
+    },
+    {
+      "source": "old/internal/faketcp/tcp_persona_default_other.go",
+      "destination": "internal/faketcp/tcp_persona_default_other.go",
+      "behavior_changes": "Preserve non-Windows default legacy persona.",
+      "tests": "Cross-platform Actions compile and run packet tests; explicit legacy persona wire identity is covered in packet_test.go."
+    },
+    {
+      "source": "old/internal/faketcp/tcp_persona_default_windows.go",
+      "destination": "internal/faketcp/tcp_persona_default_windows.go",
+      "behavior_changes": "Preserve Windows default windows11 packet persona.",
+      "tests": "Windows Actions compile/run the package; packet_test.go explicitly validates windows11 SYN presentation."
+    },
+    {
+      "source": "old/internal/faketcp/server_mux.go",
+      "destination": "internal/faketcp/association.go",
+      "behavior_changes": "Extract only ServerFlow, bounded association table, SYN/SYN-ACK/final-ACK state, one shared send sequence space, bootstrap stream/sender wiring, and prepare/detach transition routing. The old steady-state Receiver, SACK/RACK, fast retransmit, EnqueueSteadyState, repair pressure and recovery-mode selection are not migrated.",
+      "tests": "internal/faketcp/association_test.go covers WBD SYN admission, cross-flow isolation, data-bearing final ACK delivery, real BootstrapStream Write -> Sender WaitAck -> incoming ACK unblock, exact transition boundary, early-record queue/detach, pure ACK ownership, and table duplicate/cap behavior."
     }
   ],
-  "note": "P2 now has the temporary bootstrap stream plus the minimum sender behavior required to ACK-gate it. internal/faketcp/transition.go is new code implementing DEVELOPMENT_PLAN section 3 ownership boundaries; it is not copied from old. The archive remains read-only and steady-state ARQ/FEC remain deferred."
+  "note": "P2 now has a minimal same-association FakeTCP handshake/bootstrap closure. internal/faketcp/transition.go remains a new implementation of DEVELOPMENT_PLAN section 3 rather than copied archive code. Raw socket backends, real TLS/uTLS exporter/auth/fallback, and steady-state Receiver/SACK/RACK/FEC remain deferred."
 }
