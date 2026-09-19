@@ -68,9 +68,35 @@ V1 采用每方向最多 65536 项的精确近期 PN 集合，按插入顺序淘
 
 ## 5. MTU 和分片
 
-最终 outer MTU 扣实际 IP/TCP 头、会发送的选项，并受 peer MSS/接收限制约束，得到 record wire 上限，再扣 31 字节得到 LINK/FEC datagram 上限。FEC parity 最大包同样必须装得下。
+P3 只有一个预算来源。operator-visible `connection_mtu` 合法范围固定为 576..9000；可再受更小的本地实际 packet ceiling 约束。steady-state 每方向按实际序列化 IPv4/TCP header 长度、peer effective MSS 和受保护 admission 协商出的 record wire limit 推导，不再有隐藏的 1360/1400/1500 cap。
 
-使用既有 LINK 业务分片，在 FEC 之前完成。记录层不分片，TLS-like 路径不调用旧 CarrierFragmenter，不发送 WBDFRAG1。oversize 必须提前处理或明确拒绝，后续合法业务继续。
+IPv4 当前公式固定为：
+
+```text
+effective_packet_mtu = min(connection_mtu, local_packet_mtu_if_smaller)
+packet_payload_mtu   = effective_packet_mtu - ipv4_header_len - tcp_header_len
+
+peer_effective_mss   = advertised_mss
+                     = 536 when peer omitted MSS on IPv4
+
+carrier_payload_mtu  = min(packet_payload_mtu, peer_effective_mss)
+record_wire_mtu      = min(carrier_payload_mtu, negotiated_record_wire_limit)
+record_payload_mtu   = record_wire_mtu - 31
+
+FEC off:
+  link_frame_mtu             = record_payload_mtu
+
+FEC 20:4/8/10/12/16/20:
+  link_frame_mtu             = record_payload_mtu - 56
+
+link_fragment_payload_mtu    = link_frame_mtu - 20
+```
+
+其中 31 是 `tlsrecord.FixedWireOverhead`，56 是 FEC v1 header，20 是 `WBDLFRG1` fragment header。所有固定 FEC 挡位的 MTU 开销相同；R 只改变 repair 数量，不改变 shard header 长度。实际 header 长度必须是合法的 IPv4/TCP 4-byte 对齐长度；当前普通 data segment 没有 SYN options 时是 20+20，但预算 API 不把 40 写死。
+
+`negotiated_record_wire_limit` 必须落在 TLS-like V1 可表示范围内；若任一限幅后不足以容纳 TLS-like 固定开销，或扣除启用 wrapper 后 `link_frame_mtu <= 20`，配置阶段明确拒绝。不得生成零/负 fragment payload。
+
+LINK 业务分片只发生一次，在 FEC 之前完成。FEC 开启时每个 LINK fragment frame 是一个 systematic source shard；FEC wire 必须完整放进一条 TLS-like record payload，record wire 又必须完整放进一个 FakeTCP payload。记录层不分片，TLS-like 路径不调用旧 CarrierFragmenter，不发送 WBDFRAG1。oversize 必须提前分片或明确拒绝，后续合法业务继续。
 
 ### 5.1 LINK 单数据报分片 wire
 
