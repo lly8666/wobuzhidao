@@ -12,12 +12,13 @@
     "P1：根Go module与internal/tlsrecord keys/seal/open/parser/65536近期PN去重/独立固定向量通过Actions",
     "P2子任务：FakeTCP BootstrapStream最小闭包提取、复用登记及基础Actions验证",
     "P2子任务：bootstrap Sender/Pending重传与ACK wait、StageTransition prepare/detach边界通过Actions",
-    "P2子任务：SYN/packet/persona/ServerAssociation最小闭包与同association bootstrap/transition接线通过Actions"
+    "P2子任务：SYN/packet/persona/ServerAssociation最小闭包与同association bootstrap/transition接线通过Actions",
+    "P2子任务：真实TLS/uTLS Firefox120 persona、ClientHello分类/replay与真实exporter在同association上通过Actions"
   ],
-  "in_progress": "P2：真实TLS/uTLS/exporter首次进入Go测试后暴露uTLS Firefox120 preset把Renegotiation设为OnceAsClient、导致ExportKeyingMaterial被禁用；已准备保留renegotiation_info wire字节但将内部policy置为Never的最小修复，等待新SHA Actions。",
-  "next_task": "P2：验证Firefox120 exporter修复的repository-contract、Windows/Linux unit/build与Linux race；通过后提取受保护admission参数(record_version=1、incarnation nonce、TunnelID、双向record limits)及最小认证闭包，在TLS内交换并用协商参数驱动prepare/detach；仍不接lease/steady-state FEC。",
-  "latest_log": "docs/devlog/20260919-201000-p2-utls-renegotiation-exporter-fix.md",
-  "last_tested_source_sha": "edecd3d37d3c34eb1ff1155b86b1fa6f5d2c99cf",
+  "in_progress": "P2：真实TLS/uTLS/exporter子任务已通过Actions；下一原子任务进入TLS内受保护admission参数与最小认证，协商结果必须直接驱动exporter context和prepare/detach。",
+  "next_task": "P2：定向读取old/internal/realityfront/simple_auth.go/simple_auth_v2.go及直接测试，只提取username/password最小认证和record_version=1、server生成incarnation nonce、TunnelID、client/server record limits的受保护请求/应答；未知版本拒绝。让协商结果直接派生exporter keys并调用ServerAssociation.PrepareTransition，仍不搬ticket/lease/CLI/steady-state FEC。",
+  "latest_log": "docs/devlog/20260919-201600-p2-realityfront-exporter-pass.md",
+  "last_tested_source_sha": "f26b88427c20dd960fbc70661fd4ea951b8a29ae",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -95,12 +96,18 @@
       "scope": "P2-realityfront-exporter",
       "status": "FAIL",
       "note": "repository-contract PASS；Windows/Linux均在go test ./...的TestRealTLSExporterOverServerAssociationAndTransition失败：crypto/tls: ExportKeyingMaterial is unavailable when renegotiation is enabled。uTLS v1.6.5 HelloFirefox_120 preset的RenegotiationInfoExtension会在ApplyConfig时把config改为RenegotiateOnceAsClient；race/fuzz/reference因unit失败未运行。"
+    },
+    {
+      "source_sha": "f26b88427c20dd960fbc70661fd4ea951b8a29ae",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35441797398",
+      "scope": "P2-realityfront-exporter",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。真实uTLS/crypto-tls exporter同key测试及renegotiation_info wire-byte identity专项测试包含在unit/race范围。"
     }
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "realityfront/uTLS/exporter产品代码已进入真实unit测试但尚未PASS；当前修复等待Actions",
-    "认证、ticket、record_version/nonce/limits受保护admission尚未接入",
+    "认证、record_version/incarnation nonce/TunnelID/双向record limits受保护admission尚未接入",
     "unrecognized ClientHello目前只保留raw用于未来fallback，尚未实现真实decoy splice",
     "association仍使用SegmentEmitter测试边界，尚未接Linux raw socket/Npcap",
     "steady-state Receiver/SACK/RACK/FEC与record数据面接线尚未实现",
