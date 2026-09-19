@@ -143,8 +143,12 @@ func EstablishClient(ctx context.Context, conn net.Conn, cfg ClientAdmissionConf
 	}
 	result.Keys = keys
 	success = true
+	// Successful admission transfers the underlying association to the
+	// TLS-like data plane. Do not return the uTLS writer: Close, KeyUpdate-like
+	// operations, or any future post-handshake write must not be able to append
+	// TLS records after the sequence-space ownership boundary.
 	return &ClientAdmissionSession{
-		TLS:        &ClientSession{Conn: uconn, Keys: keys},
+		TLS:        &ClientSession{Keys: keys},
 		Negotiated: result,
 	}, nil
 }
@@ -262,8 +266,12 @@ func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssocia
 		assoc.AbortTransition()
 		return nil, err
 	}
+	// DetachTransition has transferred sequence-space ownership. Retain only
+	// immutable handshake results; the old tls.Conn writer is intentionally not
+	// reachable from the returned session, so it cannot emit close_notify,
+	// KeyUpdate, or another ticket after handoff.
 	return &ServerAdmissionSession{
-		TLS:          &ServerSession{Conn: tlsConn, Hello: hello, Keys: keys},
+		TLS:          &ServerSession{Hello: hello, Keys: keys},
 		Negotiated:   result,
 		Boundary:     boundary,
 		EarlyRecords: early,

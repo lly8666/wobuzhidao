@@ -23,10 +23,10 @@
     "P3子任务：FEC off + 20:4/8/10/12/16/20 live v1全固定挡位、systematic first-arrival、3秒绝对恢复期限、bounded retirement与LINK接线通过Actions",
     "P3子任务：统一MTU/预算（connection/local packet MTU、actual IPv4/TCP headers、peer MSS、record limit、TLS-like/FEC/LINK开销）通过Actions"
   ],
-  "in_progress": "P2 faketcp第一轮Actions已PASS；静态复核发现peer非零窗口小于MSS时仍会等待而非发送可容纳短段，本原子提交修正为按实际可用window切短segment，并新增window容量通告测试。P3成果保持不变。",
-  "next_task": "本小窗口修正通过Actions后，P2进入realityfront：明确Go1.23 TLS1.3 ticket/ALPN/persona/证书边界，切断admission成功后旧TLS writer所有权，再做普通kernel TCP/TLS真实fallback与pcap资格。",
-  "latest_log": "docs/devlog/20260920-013000-p2-peer-window-short-segment.md",
-  "last_tested_source_sha": "dbd305950984652361d6bab34f05c66558461311",
+  "in_progress": "P2 faketcp建连/生命周期/bootstrap窗口已绑定3f8e921 Actions PASS；本提交收口recognized WBD本地TLS策略：TLS1.3、无ALPN、真实stdlib ticket生成但显式拒绝恢复/0-RTT，并在admission成功detach后移除旧TLS writer。普通fallback真实kernel TLS/HTTP/pcap硬门仍未执行。P3成果保留。",
+  "next_task": "本TLS策略提交Actions通过后，提取最小Linux raw FakeTCP I/O测试适配：普通内核TCP+crypto/tls客户端访问127/8受控decoy，信任测试CA验证证书，完整HTTP响应/正常FIN关闭；Actions用tcpdump连续pcap并检查capture loss、同流Seq/ACK、MSS/window/checksum、重传同字节、无RST/分片。",
+  "latest_log": "docs/devlog/20260920-014000-p2-tls-ticket-ownership.md",
+  "last_tested_source_sha": "3f8e921a59d987172b58302eb71ba5d2418bc752",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -223,6 +223,13 @@
       "scope": "P2-tcp-lifecycle-halfclose",
       "status": "PASS",
       "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build PASS；Linux race PASS；既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。新增重复SYN/同ISN、有界SYN-ACK重传、future ACK拒绝、4-chunk bootstrap flight、zero-window、FIN尾数据/乱序FIN、RST合法性、CloseWrite半关闭、四元组复用，以及fallback FIN/ACK测试peer均通过。Artifacts: foundation 10588725361；tlsrecord-reference 10588735352。"
+    },
+    {
+      "source_sha": "3f8e921a59d987172b58302eb71ba5d2418bc752",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35457317441",
+      "scope": "P2-peer-window-short-segment",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows unit/build PASS；Linux unit/build/race、既有tlsrecord directed fuzz、independent reference generator与artifact上传全部PASS。新增scaled peer小窗口512-byte短段、不越窗续发及本端256KiB实际容量窗口通告测试均通过。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -246,7 +253,7 @@
     "docs/ACCEPTANCE.md"
   ],
   "workstreams": {
-    "P2": "REOPENED: TCP生命周期主体已Actions PASS；small peer-window修正待Actions，TLS外观/真实网络资格仍OPEN",
+    "P2": "REOPENED: faketcp生命周期/窗口Actions PASS；recognized TLS ticket/ALPN/writer策略待Actions；真实网络资格OPEN",
     "P3": "IN_PROGRESS:保留LINK/FEC/MTU已测SHA；session/owner与可选padding待实现",
     "P4": "PLANNED:既有lane复用、可选padding预算/默认off",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"

@@ -93,6 +93,9 @@ func TestProtectedAdmissionNegotiatesExporterContextBeforeFinalReply(t *testing.
 		server.session.TLS.Keys != server.session.Negotiated.Keys {
 		t.Fatal("session keys are not the negotiated exporter keys")
 	}
+	if clientSession.TLS.Conn != nil || server.session.TLS.Conn != nil {
+		t.Fatal("successful admission retained an old TLS writer after detach")
+	}
 	if len(server.session.EarlyRecords) != 0 {
 		t.Fatalf("unexpected early records: %#v", server.session.EarlyRecords)
 	}

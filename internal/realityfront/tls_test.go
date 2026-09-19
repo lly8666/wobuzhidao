@@ -538,3 +538,110 @@ func makeServerCert(t *testing.T) tls.Certificate {
 	}
 	return tls.Certificate{Certificate: [][]byte{der}, PrivateKey: priv}
 }
+
+
+func TestRecognizedServerTLSPolicyIsExplicitAndRejectsResumption(t *testing.T) {
+	base := &tls.Config{
+		NextProtos:             []string{"h2", "http/1.1"},
+		SessionTicketsDisabled: true,
+		GetConfigForClient: func(*tls.ClientHelloInfo) (*tls.Config, error) {
+			return &tls.Config{NextProtos: []string{"h2"}}, nil
+		},
+	}
+	got := recognizedServerTLSConfig(base)
+	if got.MinVersion != tls.VersionTLS13 || got.MaxVersion != tls.VersionTLS13 {
+		t.Fatalf("version range=%x..%x want TLS1.3 only", got.MinVersion, got.MaxVersion)
+	}
+	if got.Renegotiation != tls.RenegotiateNever {
+		t.Fatalf("renegotiation=%v want never", got.Renegotiation)
+	}
+	if got.SessionTicketsDisabled {
+		t.Fatal("real TLS 1.3 ticket generation remained disabled")
+	}
+	if len(got.NextProtos) != 0 {
+		t.Fatalf("recognized WBD path negotiated unsupported ALPNs: %v", got.NextProtos)
+	}
+	if got.GetConfigForClient != nil {
+		t.Fatal("dynamic config callback could bypass recognized TLS policy")
+	}
+	if got.UnwrapSession == nil {
+		t.Fatal("resumption rejection hook is missing")
+	}
+	state, err := got.UnwrapSession([]byte("opaque-ticket"), tls.ConnectionState{})
+	if err != nil || state != nil {
+		t.Fatalf("resumption hook state=%v err=%v want nil,nil", state, err)
+	}
+	if !base.SessionTicketsDisabled || !reflect.DeepEqual(base.NextProtos, []string{"h2", "http/1.1"}) {
+		t.Fatal("recognized policy mutated caller TLS config")
+	}
+}
+
+func TestRecognizedServerUsesRealSingleTLS13TicketAndNoALPN(t *testing.T) {
+	cert := makeServerCert(t)
+	routeKey := []byte("0123456789abcdef0123456789abcdef")
+	assoc, peer := newAssociationPeer(t)
+	defer peer.Close()
+	defer assoc.Close()
+
+	params := ExporterParams{
+		Version:          1,
+		IncarnationNonce: [16]byte{1, 3, 5, 7, 9, 11, 13, 15},
+		TunnelID:         []byte("ticket-policy"),
+		ClientLimit:      1400,
+		ServerLimit:      1400,
+	}
+
+	ticketCount := 0
+	serverDone := make(chan *ServerSession, 1)
+	errDone := make(chan error, 1)
+	go func() {
+		session, err := HandshakeServer(context.Background(), assoc.BootstrapConn(), ServerConfig{
+			ServerName: "target.test",
+			RouteKey:   routeKey,
+			TLSConfig: &tls.Config{
+				Certificates:           []tls.Certificate{cert},
+				NextProtos:             []string{"h2", "http/1.1"},
+				SessionTicketsDisabled: true,
+				WrapSession: func(_ tls.ConnectionState, state *tls.SessionState) ([]byte, error) {
+					ticketCount++
+					return state.Bytes()
+				},
+			},
+			Timeout: 3 * time.Second,
+		}, params)
+		if err != nil {
+			errDone <- err
+			return
+		}
+		serverDone <- session
+	}()
+
+	client, err := HandshakeClient(context.Background(), peer, ClientConfig{
+		ServerName: "target.test",
+		RouteKey:   routeKey,
+		Timeout:    3 * time.Second,
+	}, params)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var server *ServerSession
+	select {
+	case err := <-errDone:
+		t.Fatal(err)
+	case server = <-serverDone:
+	case <-time.After(5 * time.Second):
+		t.Fatal("server TLS handshake did not finish")
+	}
+	if ticketCount != 1 {
+		t.Fatalf("TLS implementation generated %d tickets want exactly 1", ticketCount)
+	}
+	if got := client.Conn.ConnectionState().NegotiatedProtocol; got != "" {
+		t.Fatalf("client ALPN=%q want empty on recognized WBD path", got)
+	}
+	if got := server.Conn.ConnectionState().NegotiatedProtocol; got != "" {
+		t.Fatalf("server ALPN=%q want empty on recognized WBD path", got)
+	}
+	if client.Conn.ConnectionState().DidResume || server.Conn.ConnectionState().DidResume {
+		t.Fatal("recognized WBD handshake unexpectedly resumed")
+	}
+}

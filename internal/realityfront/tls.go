@@ -55,6 +55,40 @@ type keyingMaterialExporter interface {
 	ExportKeyingMaterial(label string, context []byte, length int) ([]byte, error)
 }
 
+// recognizedServerTLSConfig fixes the local WBD server-side TLS policy. This is
+// intentionally not presented as a target-site fingerprint clone:
+//
+//   - TLS version is exactly 1.3.
+//   - certificate selection comes from the configured Certificates/GetCertificate.
+//   - ALPN is deliberately empty because WBD does not implement h2/http/1.1 on
+//     this recognized path.
+//   - Go TLS 1.3 session tickets are enabled so the real TLS implementation emits
+//     its normal post-handshake ticket in the handshake flight, but resumption is
+//     explicitly rejected. Every WBD lane therefore still performs a full TLS
+//     handshake, protected admission, fresh exporter context and fresh nonce.
+//   - 0-RTT is not enabled; crypto/tls TCP rejects TLS 1.3 early_data.
+//
+// Go 1.23.12 sends at most one automatic TLS 1.3 ticket from
+// serverHandshakeStateTLS13.sendSessionTickets before Handshake returns. Keeping
+// ticket generation inside that ownership interval means the later
+// PrepareTransition/final admission reply/DetachTransition sequence never relies
+// on sleeps and never retains a TLS writer for a deferred ticket.
+func recognizedServerTLSConfig(base *tls.Config) *tls.Config {
+	cfg := base.Clone()
+	cfg.MinVersion = tls.VersionTLS13
+	cfg.MaxVersion = tls.VersionTLS13
+	cfg.Renegotiation = tls.RenegotiateNever
+	cfg.NextProtos = nil
+	cfg.SessionTicketsDisabled = false
+	// A callback could otherwise swap in an unrestricted config after the policy
+	// above. Certificates/GetCertificate remain available for the configured SNI.
+	cfg.GetConfigForClient = nil
+	cfg.UnwrapSession = func([]byte, tls.ConnectionState) (*tls.SessionState, error) {
+		return nil, nil
+	}
+	return cfg
+}
+
 func newFirefox120Client(conn net.Conn, cfg ClientConfig) (*utls.UConn, error) {
 	if conn == nil || normalizeName(cfg.ServerName) == "" || len(cfg.RouteKey) < 16 {
 		return nil, errors.New("realityfront: incomplete Firefox 120 client config")
@@ -156,11 +190,7 @@ func handshakeServerRecognizedConn(ctx context.Context, conn net.Conn, hello Hel
 	}
 	_ = conn.SetDeadline(time.Now().Add(timeout))
 
-	tlsCfg := cfg.TLSConfig.Clone()
-	tlsCfg.MinVersion = tls.VersionTLS13
-	tlsCfg.MaxVersion = tls.VersionTLS13
-	tlsCfg.Renegotiation = tls.RenegotiateNever
-	tlsCfg.SessionTicketsDisabled = true
+	tlsCfg := recognizedServerTLSConfig(cfg.TLSConfig)
 	tlsConn := tls.Server(replay(conn, hello.Raw), tlsCfg)
 	if err := tlsConn.HandshakeContext(ctx); err != nil {
 		return nil, err
