@@ -33,9 +33,9 @@
     "P4子任务：tunnel-owner production padding budget（默认off、per-record cap、tunnel-wide ratio/total cap、Normal/Game共享预算）通过Actions；Game/FEC放大不重复赚useful credit，replacement/DORMANT/wake不重置预算",
     "P4子任务：Linux server shared-TUN hosted platform core 通过Actions；shared registry直接绑定leased TunnelOwner，按lease /32 demux Normal/Game，exact rebind stale-token fencing，Linux TUN primitive与WBD-owned route/FORWARD/NAT/sysctl/DNS-unchanged plan均通过跨平台unit/race"
   ],
-  "in_progress": "P4 Linux privileged shared-TUN runtime executor 产品代码已提交于 45b17953ebaa57dec5f05ba31377f00509507143，但 Actions 35488432157 在任何job创建前整体FAIL。根因是新增 workflow 的 nft setup heredoc 内容未保持 YAML block-scalar 缩进，GitHub 无法解析 workflow；没有 repository-contract/unit/runtime job 被执行，因此该SHA无任何产品测试结论。修复仅把 nft setup 改为缩进安全的 printf pipe 到 nft -f -，runtime/product Go源码 byte-identical，等待新 exact SHA Actions。",
-  "next_task": "等待 workflow YAML 修复提交自己的 exact SOURCE_SHA Actions；要求 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference、P2 kernel fallback，以及 p4-linux-shared-tun-privileged 的 iptables/nft 两个matrix job全部成功。45b17953... / run 35488432157 保留为 workflow-parse FAIL 证据，不得视为产品失败或PASS。",
-  "latest_log": "docs/devlog/20260920-122000-p4-linux-runtime-workflow-parse-fix.md",
+  "in_progress": "P4 Linux privileged shared-TUN runtime executor 在 SOURCE_SHA 5d7a05de5ee58535e2463cff9593234a5e7b9f03 / Actions 35488488384 已真正创建并执行全部6个job。repository-contract、Windows unit/build、Ubuntu unit/build/race/fuzz/reference、P2 kernel fallback均PASS；iptables与nft privileged jobs都成功安装工具、modprobe tun、build测试并进入真实runtime apply，但在同一test断言失败：`ip -4 route show 10.66.0.0/16 dev wbdg0` 已返回 `10.66.0.0/16 scope link`，证明dev过滤下route存在，但测试额外要求输出文本含`wbdg0`，iproute2在该过滤输出中省略接口名。该FAIL是test-harness assertion，不是runtime apply失败。修复只移除多余interface-name文本断言，仍由命令本身的`dev wbdg0`过滤保证route绑定；Go runtime产品代码不变，等待新exact SHA Actions。",
+  "next_task": "等待 privileged test assertion 修复提交自己的 exact SOURCE_SHA Actions；必须看到两个 backend 都继续穿过 route 检查并完成 firewall/sysctl/registry/cleanup assertions，且全部基础jobs保持PASS。5d7a05de... / run 35488488384 保留为 dual-backend privileged test-harness FAIL。",
+  "latest_log": "docs/devlog/20260920-122500-p4-linux-runtime-route-assert-fix.md",
   "last_tested_source_sha": "3d1c3831fb7726971ee8d52a076800a07af36d5f",
   "actions": [
     {
@@ -366,6 +366,13 @@
       "scope": "P4-linux-privileged-runtime-pre-workflow-parse-fix",
       "status": "FAIL",
       "note": "Workflow definition parse failure before job creation: actions run completed/failure with total jobs=0. Root cause is unindented heredoc body inside YAML run block for nft forward-chain setup. No repository-contract, Go unit/build/race/fuzz, P2, or privileged runtime test executed, so this run carries no product-runtime verdict. Fix is CI-only: replace heredoc with indentation-safe printf | nft -f -."
+    },
+    {
+      "source_sha": "5d7a05de5ee58535e2463cff9593234a5e7b9f03",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35488488384",
+      "scope": "P4-linux-privileged-runtime-pre-route-assert-fix",
+      "status": "FAIL",
+      "note": "Workflow parsed and all 6 jobs executed. repository-contract PASS; Windows unit/build PASS; Ubuntu unit/build/race/fuzz/reference PASS; P2 kernel fallback PASS. Both privileged iptables and nft jobs reached real shared-TUN runtime after /dev/net/tun setup and failed at the same route assertion: `ip -4 route show 10.66.0.0/16 dev wbdg0` returned `10.66.0.0/16 scope link`, but test additionally required literal `wbdg0` in filtered output. Artifacts: iptables 10597834100; nft 10598383332. Runtime product code is unchanged by the fixture-only correction."
     }
   ],
   "physical_status": "NOT_RUN",
@@ -391,7 +398,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: Linux privileged runtime product implementation exists; 45b17953 Actions failed at workflow YAML parse before tests. CI-only parse fix prepared; product Go code unchanged.",
+    "P4": "IN_PROGRESS: Linux privileged runtime executes on both backends; first dual-backend gate exposed only an over-strict route-output assertion. Test-only fix prepared; runtime product code unchanged.",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }

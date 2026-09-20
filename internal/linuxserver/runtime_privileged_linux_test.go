@@ -61,7 +61,7 @@ func TestPrivilegedSharedTUNRuntime(t *testing.T) {
 	}
 	mustCommand(t, "ip", "link", "show", "dev", "wbdg0")
 	route := mustCommand(t, "ip", "-4", "route", "show", "10.66.0.0/16", "dev", "wbdg0")
-	if !strings.Contains(route, "10.66.0.0/16") || !strings.Contains(route, "wbdg0") {
+	if !strings.Contains(route, "10.66.0.0/16") {
 		t.Fatalf("route=%q", route)
 	}
 	if got, err := readSysctl("net.ipv4.ip_forward"); err != nil || got != "1" {
