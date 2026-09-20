@@ -44,8 +44,8 @@ func TestNetworkPlanOrdersBypassBeforeTCPAndUDP(t *testing.T) {
 		"ip saddr 198.51.100.10 return",
 		"fib daddr type local return",
 		"ip daddr 198.51.100.10 return",
-		"meta nfproto ipv4 meta l4proto tcp tproxy to :12345 meta mark set 0x66 accept",
-		"meta nfproto ipv4 meta l4proto udp tproxy to :12345 meta mark set 0x66 accept",
+		"meta nfproto ipv4 meta l4proto tcp tproxy ip to :12345 meta mark set 0x66 accept",
+		"meta nfproto ipv4 meta l4proto udp tproxy ip to :12345 meta mark set 0x66 accept",
 		"comment \"wbd-tproxy-tcp\"",
 		"comment \"wbd-tproxy-udp\"",
 	} {
