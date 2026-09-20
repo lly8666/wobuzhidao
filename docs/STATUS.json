@@ -30,12 +30,13 @@
     "P4子任务：stable Account+Installation -> TunnelID/IPv4 lease identity、leased TunnelOwner 与 protected-admission TunnelID binding 通过Actions；同identity稳定lease、跨installation隔离、rotation/DORMANT/wake不换lease",
     "P4子任务：IPv4 lease source anti-spoof 接 leased TunnelOwner client-outbound/server-inbound owner boundary，通过Actions；错误source/IPv6/malformed fail-closed且不消耗客户端PN，server解封后再次校验",
     "P4子任务：Game PacketID racing/dedupe 接 TunnelOwner/Lane active API，通过Actions；Game=2/3/4，同一PacketID多lane竞速、首次有效到达交付、其余去重、unique乱序无HOL，PacketID/dedupe跨replacement与DORMANT/wake保持",
-    "P4子任务：tunnel-owner production padding budget（默认off、per-record cap、tunnel-wide ratio/total cap、Normal/Game共享预算）通过Actions；Game/FEC放大不重复赚useful credit，replacement/DORMANT/wake不重置预算"
+    "P4子任务：tunnel-owner production padding budget（默认off、per-record cap、tunnel-wide ratio/total cap、Normal/Game共享预算）通过Actions；Game/FEC放大不重复赚useful credit，replacement/DORMANT/wake不重置预算",
+    "P4子任务：Linux server shared-TUN hosted platform core 通过Actions；shared registry直接绑定leased TunnelOwner，按lease /32 demux Normal/Game，exact rebind stale-token fencing，Linux TUN primitive与WBD-owned route/FORWARD/NAT/sysctl/DNS-unchanged plan均通过跨平台unit/race"
   ],
-  "in_progress": "P4 Linux server shared-TUN platform core 原子任务已实现，等待自己的精确 SOURCE_SHA Actions。新增 internal/linuxserver：shared-TUN lease registry/router 直接绑定 active leased TunnelOwner，不恢复旧 rawipbackend localhost UDP metadata bridge；一个 lease /32 与 stable TunnelID 唯一绑定，exact identity runtime rebind 发新 BindingToken 并使旧 token 失效。TUN->network-return 方向按 inner IPv4 destination lease demux 到正确 owner，desired=1 走新 TunnelOwner.NormalOutbound，desired=2/3/4 走既有 GameOutbound；不会创建 BusinessFlow 或 lane。owner->shared-TUN 方向要求当前 binding token 且再次验证 source==lease 后才 WritePacket，短写 fail-closed。新增最小 Linux /dev/net/tun IFF_TUN|IFF_NO_PI device 实现与非 Linux unsupported stub。NetworkPlan 只描述 WBD-owned shared TUN link/lease route、ip_forward 与 tun rp_filter save/restore、三条带 marker 的 FORWARD/NAT 规则；server host DNS 明确 unchanged，DNS packet 作为普通 inner IPv4 经同一 NAT。未恢复 per-user netns/veth/double NAT、旧独立 gateway 进程/CLI，也未执行真实 root TUN/firewall hosted 资格。",
-  "next_task": "等待本次 P4 Linux shared-TUN platform core 产品提交的精确 SOURCE_SHA GitHub Actions。若失败读取具体 job logs，只修本 atomic scope 并保留 FAIL 证据；若全部成功，记录精确 SHA/run/jobs/artifacts 做 evidence closure，并明确该 PASS 仅为 hosted core/adapter（真实 root shared-TUN/netfilter 尚未执行），再重新读取 STATUS 决定 Linux runtime executor / Windows / OpenWrt 后续原子任务。",
-  "latest_log": "docs/devlog/20260920-113000-p4-linux-shared-tun-core.md",
-  "last_tested_source_sha": "3bd086e1562cf590dc3364c92f9f5be86415e45d",
+  "in_progress": "P4 Linux server shared-TUN platform core 已在 SOURCE_SHA 3d1c3831fb7726971ee8d52a076800a07af36d5f / Actions 35487091018 完整通过 hosted core/adapter 资格。repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；directed fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS。该PASS证明 shared-TUN router/lease demux、Normal/Game owner dispatch、exact TunnelID+/32 rebind token fencing、source defense-in-depth、Linux/!Linux TUN编译边界和纯NetworkPlan语义；它没有以root实际打开 /dev/net/tun，也没有执行 nft/iptables/sysctl，因此不得标记为物理Linux平台PASS。P4下一步进入 Linux privileged runtime executor：真实创建shared TUN、apply/cleanup WBD-owned route/sysctls/netfilter并在Actions可用的privileged runner上做最小root gate；Windows/Wintun/Npcap与OpenWrt随后。",
+  "next_task": "P4 下一原子任务：把 internal/linuxserver.NetworkPlan 与 TUN primitive 接成 Linux privileged runtime executor，严格只创建/清理 WBD-owned shared TUN、lease route、保存/恢复 ip_forward 与 tun rp_filter、WBD marker 的 FORWARD/NAT 规则；优先复用/改造 next-foundation Linux privileged job 做 root smoke（若runner具备 /dev/net/tun、CAP_NET_ADMIN 与 nft/iptables），至少证明 apply -> one shared TUN -> two lease registry packets -> cleanup 后 route/rules/sysctl恢复。若 hosted runner缺设施，保留可验证的 executor dry-run/command adapter 并明确阻塞点，不伪造PASS。仍不得恢复per-user netns/veth/double NAT，不接Windows/OpenWrt，不提前做P5/P7。",
+  "latest_log": "docs/devlog/20260920-114500-p4-linux-shared-tun-core-actions-pass.md",
+  "last_tested_source_sha": "3d1c3831fb7726971ee8d52a076800a07af36d5f",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -351,6 +352,13 @@
       "scope": "P4-tunnel-owner-padding-budget-final",
       "status": "PASS",
       "note": "repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；tlsrecord directed fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS。专项覆盖默认off、配置锁定、Normal sibling flow共享ratio/total cap、20:4 full-block parity不增加useful credit、Game 3-lane copies不乘useful credit、same-ID replacement/DORMANT/wake预算连续。P2 kernel test PASS 1.24s；pcap 29 captured / 58 received by filter / 0 kernel drop。Artifacts: foundation 10597740074；tlsrecord-reference 10597845055；p2-kernel-fallback 10597413211。"
+    },
+    {
+      "source_sha": "3d1c3831fb7726971ee8d52a076800a07af36d5f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35487091018",
+      "scope": "P4-linux-shared-tun-hosted-core-final",
+      "status": "PASS",
+      "note": "Hosted core/adapter qualification only. repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；tlsrecord directed fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS。SharedTUNRouter专项覆盖two-lease Normal/Game destination demux、duplicate lease/TunnelID拒绝、exact identity rebind stale-token fencing、source-spoof/short-write/malformed/no-route fail-closed；NetworkPlan覆盖shared-TUN route、sysctl save/restore intent、三条WBD-owned firewall marker与host DNS unchanged；NormalOutbound不创建BusinessFlow。P2 kernel test PASS 1.24s；pcap 29 captured / 58 received by filter / 0 kernel drop。Artifacts: foundation 10597846826；tlsrecord-reference 10597442965；p2-kernel-fallback 10598275716。未执行真实root /dev/net/tun/netfilter。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -376,7 +384,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding 均 PASS；Linux server shared-TUN router/TUN device/network ownership plan 已实现等待 Actions；真实 root runtime executor、Windows/Wintun、OpenWrt 仍未接",
+    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding与Linux shared-TUN hosted core均精确SHA Actions PASS；下一步Linux privileged runtime executor/root smoke，Windows/Wintun/Npcap与OpenWrt随后",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
