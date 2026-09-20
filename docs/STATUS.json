@@ -42,9 +42,9 @@
     "P4子任务：可执行入口 multi-lane/lifecycle hosted闭包通过Actions；protected admission显式 lane_id=1..4，单进程 runtimeentry 绑定每lane独立FakeTCP association，Game 2-lane hosted闭环覆盖PacketID racing、失败候选保留旧generation、same-ID A->A+B->B replacement/retire、DORMANT/wake与稳定leased TunnelOwner；Linux/OpenWrt raw shared SegmentMux、Windows Npcap per-incarnation endpoint及cmd --lanes/idle/rotation配置均跨平台编译。SOURCE_SHA fa9b60315ca01ec140c34a65799dc62916f2275d / Actions 35505737597 7/7 PASS；Windows/Npcap physical仍NOT_RUN。",
     "P4关闭：closure audit SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639 7/7 PASS。入口级runtimeentry显式覆盖Game desiredLanes=3/4的真实FakeTCP+TLS/protected-admission全lane steady qualification/双向PacketID竞速去重；自动rotation timer触发same-ID generation前进并收敛回desired physical lanes；持续ACK/runtime tick不刷新payload idle，client/server自动DORMANT，下一笔真实业务自动wake且leased TunnelOwner/TunnelID/IPv4/Installation保持不变。P4平台入口、lifecycle、padding预算与回归门槛全部满足hosted关闭条件；Windows/Npcap物理资格仍留P7。"
   ],
-  "in_progress": "P4 CLOSED。当前为阶段交接点：尚未开始任何P5产品代码或测试实现。P1/P2/P3/P4均已按各自门槛取得exact-SHA Actions资格；P4最终closure audit为 SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639，7/7 PASS。真实Windows/Npcap物理NIC仍为P7 NOT_RUN，不影响P4 hosted关闭。",
-  "next_task": "由全新agent启动P5。第一原子任务应先复核远端authority与P5文档门槛，再建立受控真实HTTPS fullstack采集/验收的最小可复现基座：覆盖首个与已建lane后的后续HTTPS连接，保留原始outer packet/TLS-like record长度、方向、时间间隔、突发与业务延迟/CPU/PPS/线上字节统计，并明确区分capture loss、网络drop、FEC、repair、padding；生产padding继续默认0/off。不做旧版本A/B、不做算法参数选型、不宣称抗识别、不调用P7物理Windows。仍遵守一原子任务一提交/STATUS/devlog/必要REUSE_LEDGER/exact-SHA Actions规则。",
-  "latest_log": "docs/devlog/20260920-233000-p4-closed-handoff.md",
+  "in_progress": "P5 第一原子任务候选已实现，等待 exact-SHA GitHub Actions 资格：受控真实 HTTPS hosted measurement harness 复用正式 runtimeentry/Tunnel/Normal lane 与 platformflow TCP service；在同一外层 FakeTCP+TLS lane 上依次承载首个 HTTPS flow 与已建 lane 后的后续 HTTPS flow，并保存 hosted SegmentIO 边界的 raw-IPv4 PCAP、outer packet/TLS-like record/HTTPS flow JSONL、manifest。该 atom 固定 FEC off、生产 padding=0/off、无弱网注入，不做性能结论/分类器/参数调优/P7 Windows physical。",
+  "next_task": "只资格当前 P5 measurement-base atom：对本候选 SOURCE_SHA 运行完整 next-foundation，并要求新增 p5-https-measurement-base gate 与既有全部 jobs 同 SHA PASS；失败时保留失败 run，仅修当前 atom 并生成新 SOURCE_SHA。该 atom closure 后再设计下一 P5 弱网/负载/长测原子任务，不在本 atom 扩展矩阵。",
+  "latest_log": "docs/devlog/20260920-234500-p5-https-measurement-base-candidate.md",
   "last_tested_source_sha": "76a20c865bf86edf2098f0ef40c44a31298679dd",
   "actions": [
     {
@@ -537,6 +537,6 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "PLANNED/NEXT: 新版本fullstack弱网/负载/长测 + 受控真实HTTPS内层业务外观与成本验收；同SHA完整证据，分开长度/方向/突发/时序、capture loss/网络drop/FEC/repair/padding、goodput/延迟/CPU/PPS/内存/GC/队列/wire amplification。无旧版本A/B，无抗识别承诺。"
+    "P5": "IN_PROGRESS: 第一原子任务为受控真实 HTTPS fullstack hosted measurement base；候选实现覆盖首个+后续 HTTPS flow 复用同一正式 outer lane、raw-IPv4 PCAP/JSONL/manifest 与独立 Actions validator，当前等待 exact-SHA Actions。弱网矩阵/负载/长测/证书链/恢复握手/FEC固定挡位/性能结论均未在本 atom 开始。"
   }
 }
