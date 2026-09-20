@@ -2,7 +2,9 @@ package platformflow
 
 import (
 	"bytes"
+	"context"
 	"errors"
+	"net"
 	"net/netip"
 	"sync"
 	"testing"
@@ -265,5 +267,86 @@ func TestTCPReliabilityOutOfOrderAndRetransmit(t *testing.T) {
 	retry, err := tx.RetransmitDue(start.Add(10 * time.Millisecond))
 	if err != nil || len(retry) != 1 || retry[0].Offset != 4 || string(retry[0].Payload) != "efgh" {
 		t.Fatalf("retry=%+v err=%v", retry, err)
+	}
+}
+
+
+func TestTCPRetiredFlowTailIsBoundedAndUnknownStillFailsClosed(t *testing.T) {
+	start := time.Unix(500, 0)
+	retiredTimeout := 20 * time.Millisecond
+	client := &TCPClient{
+		flows:   make(map[uint64]*tcpClientFlow),
+		retired: newTCPRetiredSet(retiredTimeout, 2),
+	}
+	server := &TCPServer{
+		flows:   make(map[uint64]*tcpServerFlow),
+		retired: newTCPRetiredSet(retiredTimeout, 2),
+		dial: func(context.Context, string, string) (net.Conn, error) {
+			t.Fatal("retired TCPOpen must not redial an upstream")
+			return nil, ErrMalformed
+		},
+	}
+
+	client.mu.Lock()
+	client.retired.add(7, start)
+	client.mu.Unlock()
+	server.mu.Lock()
+	server.retired.add(7, start)
+	server.mu.Unlock()
+
+	tails := []Frame{
+		{Kind: KindTCPAck, FlowID: 7, Offset: 99},
+		{Kind: KindTCPData, FlowID: 7, Offset: 99, Payload: []byte("late")},
+		{Kind: KindTCPData, FlowID: 7, Offset: 103, FIN: true},
+		{Kind: KindTCPClose, FlowID: 7},
+	}
+	for _, frame := range tails {
+		if err := client.Handle(frame, start.Add(time.Millisecond)); err != nil {
+			t.Fatalf("client retired tail kind=%d err=%v", frame.Kind, err)
+		}
+		if err := server.Handle(frame, start.Add(time.Millisecond)); err != nil {
+			t.Fatalf("server retired tail kind=%d err=%v", frame.Kind, err)
+		}
+	}
+
+	open := Frame{
+		Kind: KindTCPOpen, FlowID: 7,
+		Peer: netip.MustParseAddrPort("198.51.100.20:443"),
+	}
+	if err := server.Handle(open, start.Add(time.Millisecond)); err != nil {
+		t.Fatalf("retired duplicate open err=%v", err)
+	}
+	if server.Len() != 0 {
+		t.Fatalf("retired duplicate open recreated flow: %d", server.Len())
+	}
+
+	unknown := Frame{Kind: KindTCPAck, FlowID: 8}
+	if err := client.Handle(unknown, start.Add(time.Millisecond)); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("unknown client flow err=%v want ErrMalformed", err)
+	}
+	if err := server.Handle(unknown, start.Add(time.Millisecond)); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("unknown server flow err=%v want ErrMalformed", err)
+	}
+
+	expired := start.Add(retiredTimeout)
+	if err := client.Handle(Frame{Kind: KindTCPAck, FlowID: 7}, expired); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("expired client tombstone err=%v want ErrMalformed", err)
+	}
+	if err := server.Handle(Frame{Kind: KindTCPAck, FlowID: 7}, expired); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("expired server tombstone err=%v want ErrMalformed", err)
+	}
+
+	set := newTCPRetiredSet(time.Second, 2)
+	set.add(1, start)
+	set.add(2, start.Add(time.Millisecond))
+	set.add(3, start.Add(2*time.Millisecond))
+	if got := set.len(start.Add(3 * time.Millisecond)); got != 2 {
+		t.Fatalf("retired set size=%d want=2", got)
+	}
+	if set.contains(1, start.Add(3*time.Millisecond)) {
+		t.Fatal("oldest retired flow was not evicted at capacity")
+	}
+	if !set.contains(2, start.Add(3*time.Millisecond)) || !set.contains(3, start.Add(3*time.Millisecond)) {
+		t.Fatal("newest retired flow tombstones missing")
 	}
 }

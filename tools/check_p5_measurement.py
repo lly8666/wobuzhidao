@@ -36,6 +36,8 @@ def main() -> None:
         fail("expected exactly two controlled HTTPS flows")
     if scenario.get("outer_connection_count") != 1:
         fail("expected one reused outer connection")
+    if scenario.get("sequential_close_before_next") is not True:
+        fail("expected first HTTPS flow to close before the subsequent flow")
     if scenario.get("fec_parity_shards") != 0:
         fail("first atom must keep FEC off")
     if scenario.get("padding") != "off":
@@ -75,19 +77,28 @@ def main() -> None:
     flows.sort(key=lambda e: e.get("flow_ordinal", 0))
     expected = [
         "first_https_flow_on_initial_outer_connection",
-        "subsequent_https_flow_existing_lane",
+        "subsequent_https_flow_after_first_close_existing_lane",
     ]
     if [e.get("scenario") for e in flows] != expected:
         fail("HTTPS flow scenario labels")
+    flow_ids = set()
     for i, e in enumerate(flows, 1):
         if e.get("flow_ordinal") != i or e.get("outer_connection_id") != 1:
             fail("flow ordinal/outer connection identity")
+        if e.get("flow_closed") is not True:
+            fail("HTTPS flow was not fully closed before measurement completion")
+        flow_id = e.get("business_flow_id", 0)
+        if not isinstance(flow_id, int) or flow_id <= 0:
+            fail("business flow id evidence")
+        flow_ids.add(flow_id)
         if e.get("http_status") != 200 or e.get("response_bytes", 0) <= 0:
             fail("real HTTPS response evidence")
         if e.get("business_latency_ns", 0) <= 0 or e.get("handshake_ns", 0) <= 0:
             fail("business/handshake timing evidence")
         if e.get("wire_bytes_c2s", 0) <= 0 or e.get("wire_bytes_s2c", 0) <= 0:
             fail("per-flow wire byte evidence")
+    if len(flow_ids) != 2:
+        fail("expected two distinct inner TCP flow ids")
 
     with open(args.pcap, "rb") as f:
         header = f.read(24)
@@ -106,6 +117,7 @@ def main() -> None:
         "tlslike_record_events": len(records),
         "https_flows": len(flows),
         "outer_connections": 1,
+        "sequential_close_before_next": True,
         "capture_loss_packets": capture["capture_loss_packets"],
         "network_drop_injected": capture["network_drop_injected"],
         "fec_recovery": transport["fec_recovery"],
@@ -117,7 +129,7 @@ def main() -> None:
         f.write("\n")
     print(
         f"WBD_P5_HTTPS_MEASUREMENT_BASE_PASS source_sha={args.source_sha} "
-        "flows=2 outer_connections=1 fec=off padding=off"
+        "flows=2 outer_connections=1 sequential_close=pass fec=off padding=off"
     )
 
 

@@ -12,9 +12,11 @@ import (
 )
 
 const (
-	DefaultTCPIdleTimeout = 90 * time.Second
-	DefaultTCPDialTimeout = 10 * time.Second
-	DefaultMaxTCPFlows    = 4096
+	DefaultTCPIdleTimeout    = 90 * time.Second
+	DefaultTCPDialTimeout    = 10 * time.Second
+	DefaultMaxTCPFlows       = 4096
+	DefaultTCPRetiredTimeout = 5 * time.Second
+	DefaultMaxTCPRetired     = 4096
 )
 
 type TCPConfig struct {
@@ -24,6 +26,8 @@ type TCPConfig struct {
 	MaxOpenRetransmit int
 	DialTimeout       time.Duration
 	MaxFlows          int
+	RetiredTimeout    time.Duration
+	MaxRetiredFlows   int
 }
 
 func DefaultTCPConfig() TCPConfig {
@@ -34,6 +38,8 @@ func DefaultTCPConfig() TCPConfig {
 		MaxOpenRetransmit: 8,
 		DialTimeout:       DefaultTCPDialTimeout,
 		MaxFlows:          DefaultMaxTCPFlows,
+		RetiredTimeout:    DefaultTCPRetiredTimeout,
+		MaxRetiredFlows:   DefaultMaxTCPRetired,
 	}
 }
 
@@ -59,7 +65,75 @@ func (c *TCPConfig) normalize() error {
 	if c.MaxFlows <= 0 {
 		c.MaxFlows = DefaultMaxTCPFlows
 	}
+	if c.RetiredTimeout <= 0 {
+		c.RetiredTimeout = DefaultTCPRetiredTimeout
+	}
+	if c.MaxRetiredFlows <= 0 {
+		c.MaxRetiredFlows = DefaultMaxTCPRetired
+	}
 	return nil
+}
+
+type tcpRetiredSet struct {
+	timeout time.Duration
+	max     int
+	ids     map[uint64]time.Time
+}
+
+func newTCPRetiredSet(timeout time.Duration, max int) tcpRetiredSet {
+	return tcpRetiredSet{timeout: timeout, max: max, ids: make(map[uint64]time.Time)}
+}
+
+func (s *tcpRetiredSet) add(id uint64, now time.Time) {
+	s.prune(now)
+	if _, ok := s.ids[id]; !ok && len(s.ids) >= s.max {
+		var oldestID uint64
+		var oldest time.Time
+		for candidate, retiredAt := range s.ids {
+			if oldestID == 0 || retiredAt.Before(oldest) {
+				oldestID = candidate
+				oldest = retiredAt
+			}
+		}
+		if oldestID != 0 {
+			delete(s.ids, oldestID)
+		}
+	}
+	s.ids[id] = now
+}
+
+func (s *tcpRetiredSet) contains(id uint64, now time.Time) bool {
+	retiredAt, ok := s.ids[id]
+	if !ok {
+		return false
+	}
+	if !now.Before(retiredAt.Add(s.timeout)) {
+		delete(s.ids, id)
+		return false
+	}
+	return true
+}
+
+func (s *tcpRetiredSet) prune(now time.Time) {
+	for id, retiredAt := range s.ids {
+		if !now.Before(retiredAt.Add(s.timeout)) {
+			delete(s.ids, id)
+		}
+	}
+}
+
+func (s *tcpRetiredSet) len(now time.Time) int {
+	s.prune(now)
+	return len(s.ids)
+}
+
+func retiredTCPFrame(frame Frame) bool {
+	switch frame.Kind {
+	case KindTCPData, KindTCPAck, KindTCPClose:
+		return true
+	default:
+		return false
+	}
 }
 
 type tcpClientFlow struct {
@@ -104,9 +178,10 @@ type TCPClient struct {
 	channel *TunnelChannel
 	cfg     TCPConfig
 
-	mu    sync.Mutex
-	next  uint64
-	flows map[uint64]*tcpClientFlow
+	mu      sync.Mutex
+	next    uint64
+	flows   map[uint64]*tcpClientFlow
+	retired tcpRetiredSet
 }
 
 func NewTCPClient(channel *TunnelChannel, cfg TCPConfig) (*TCPClient, error) {
@@ -116,7 +191,10 @@ func NewTCPClient(channel *TunnelChannel, cfg TCPConfig) (*TCPClient, error) {
 	if err := cfg.normalize(); err != nil {
 		return nil, err
 	}
-	return &TCPClient{channel: channel, cfg: cfg, flows: make(map[uint64]*tcpClientFlow)}, nil
+	return &TCPClient{
+		channel: channel, cfg: cfg, flows: make(map[uint64]*tcpClientFlow),
+		retired: newTCPRetiredSet(cfg.RetiredTimeout, cfg.MaxRetiredFlows),
+	}, nil
 }
 
 func (c *TCPClient) Add(conn net.Conn, target netip.AddrPort, now time.Time) (uint64, error) {
@@ -159,7 +237,7 @@ func (c *TCPClient) Add(conn net.Conn, target netip.AddrPort, now time.Time) (ui
 	c.mu.Unlock()
 
 	if err := tunnel.Send(Frame{Kind: KindTCPOpen, FlowID: id, Peer: target}, now); err != nil {
-		c.remove(flow)
+		c.removeAt(flow, now)
 		return 0, err
 	}
 	go c.readLocal(flow)
@@ -175,6 +253,9 @@ func (c *TCPClient) Handle(frame Frame, now time.Time) error {
 		if frame.Kind == KindTCPClose {
 			return nil
 		}
+		if retiredTCPFrame(frame) && c.isRetired(frame.FlowID, now) {
+			return nil
+		}
 		return fmt.Errorf("%w: unknown TCP client flow", ErrMalformed)
 	}
 	switch frame.Kind {
@@ -183,7 +264,7 @@ func (c *TCPClient) Handle(frame Frame, now time.Time) error {
 	case KindTCPData:
 		return c.handleData(flow, frame, now)
 	case KindTCPClose:
-		c.remove(flow)
+		c.removeAt(flow, now)
 		return nil
 	default:
 		return ErrUnsupported
@@ -217,7 +298,7 @@ func (c *TCPClient) handleAck(flow *tcpClientFlow, frame Frame, now time.Time) e
 	flow.mu.Unlock()
 	if finished {
 		_ = flow.tunnel.Send(Frame{Kind: KindTCPClose, FlowID: flow.id}, now)
-		c.remove(flow)
+		c.removeAt(flow, now)
 	}
 	return nil
 }
@@ -257,7 +338,7 @@ func (c *TCPClient) handleData(flow *tcpClientFlow, frame Frame, now time.Time) 
 	}
 	if finished {
 		_ = flow.tunnel.Send(Frame{Kind: KindTCPClose, FlowID: flow.id}, now)
-		c.remove(flow)
+		c.removeAt(flow, now)
 	}
 	return nil
 }
@@ -372,8 +453,9 @@ func (c *TCPClient) Tick(now time.Time) {
 }
 
 func (c *TCPClient) Close() {
+	now := time.Now()
 	for _, flow := range c.snapshot() {
-		c.remove(flow)
+		c.removeAt(flow, now)
 	}
 }
 
@@ -385,7 +467,7 @@ func (c *TCPClient) Len() int {
 
 func (c *TCPClient) abort(flow *tcpClientFlow, now time.Time) {
 	_ = flow.tunnel.Send(Frame{Kind: KindTCPClose, FlowID: flow.id}, now)
-	c.remove(flow)
+	c.removeAt(flow, now)
 }
 
 func (c *TCPClient) allocateIDLocked() (uint64, error) {
@@ -408,6 +490,12 @@ func (c *TCPClient) get(id uint64) *tcpClientFlow {
 	return flow
 }
 
+func (c *TCPClient) isRetired(id uint64, now time.Time) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.retired.contains(id, now)
+}
+
 func (c *TCPClient) snapshot() []*tcpClientFlow {
 	c.mu.Lock()
 	out := make([]*tcpClientFlow, 0, len(c.flows))
@@ -418,10 +506,11 @@ func (c *TCPClient) snapshot() []*tcpClientFlow {
 	return out
 }
 
-func (c *TCPClient) remove(want *tcpClientFlow) {
+func (c *TCPClient) removeAt(want *tcpClientFlow, now time.Time) {
 	c.mu.Lock()
 	if c.flows[want.id] == want {
 		delete(c.flows, want.id)
+		c.retired.add(want.id, now)
 	}
 	c.mu.Unlock()
 	want.close()
@@ -466,9 +555,10 @@ type TCPServer struct {
 	channel *TunnelChannel
 	cfg     TCPConfig
 
-	mu    sync.Mutex
-	flows map[uint64]*tcpServerFlow
-	dial  func(context.Context, string, string) (net.Conn, error)
+	mu      sync.Mutex
+	flows   map[uint64]*tcpServerFlow
+	retired tcpRetiredSet
+	dial    func(context.Context, string, string) (net.Conn, error)
 }
 
 func NewTCPServer(channel *TunnelChannel, cfg TCPConfig) (*TCPServer, error) {
@@ -481,6 +571,7 @@ func NewTCPServer(channel *TunnelChannel, cfg TCPConfig) (*TCPServer, error) {
 	dialer := &net.Dialer{Timeout: cfg.DialTimeout}
 	return &TCPServer{
 		channel: channel, cfg: cfg, flows: make(map[uint64]*tcpServerFlow),
+		retired: newTCPRetiredSet(cfg.RetiredTimeout, cfg.MaxRetiredFlows),
 		dial: dialer.DialContext,
 	}, nil
 }
@@ -501,6 +592,9 @@ func (s *TCPServer) Handle(frame Frame, now time.Time) error {
 		if frame.Kind == KindTCPClose {
 			return nil
 		}
+		if retiredTCPFrame(frame) && s.isRetired(frame.FlowID, now) {
+			return nil
+		}
 		return fmt.Errorf("%w: unknown TCP server flow", ErrMalformed)
 	}
 	switch frame.Kind {
@@ -509,7 +603,7 @@ func (s *TCPServer) Handle(frame Frame, now time.Time) error {
 	case KindTCPAck:
 		return s.handleAck(flow, frame, now)
 	case KindTCPClose:
-		s.remove(flow)
+		s.removeAt(flow, now)
 		return nil
 	}
 	return ErrUnsupported
@@ -520,6 +614,10 @@ func (s *TCPServer) handleOpen(frame Frame, now time.Time) error {
 		return ErrMalformed
 	}
 	s.mu.Lock()
+	if s.retired.contains(frame.FlowID, now) {
+		s.mu.Unlock()
+		return nil
+	}
 	if current := s.flows[frame.FlowID]; current != nil {
 		if current.target != frame.Peer {
 			s.mu.Unlock()
@@ -580,7 +678,7 @@ func (s *TCPServer) handleOpen(frame Frame, now time.Time) error {
 	s.mu.Unlock()
 
 	if err := tunnel.Send(Frame{Kind: KindTCPAck, FlowID: frame.FlowID, Offset: 0}, now); err != nil {
-		s.remove(flow)
+		s.removeAt(flow, now)
 		return err
 	}
 	go s.readUpstream(flow)
@@ -622,7 +720,7 @@ func (s *TCPServer) handleData(flow *tcpServerFlow, frame Frame, now time.Time) 
 	}
 	if finished {
 		_ = flow.tunnel.Send(Frame{Kind: KindTCPClose, FlowID: flow.id}, now)
-		s.remove(flow)
+		s.removeAt(flow, now)
 	}
 	return nil
 }
@@ -643,7 +741,7 @@ func (s *TCPServer) handleAck(flow *tcpServerFlow, frame Frame, now time.Time) e
 	flow.mu.Unlock()
 	if finished {
 		_ = flow.tunnel.Send(Frame{Kind: KindTCPClose, FlowID: flow.id}, now)
-		s.remove(flow)
+		s.removeAt(flow, now)
 	}
 	return nil
 }
@@ -724,8 +822,9 @@ func (s *TCPServer) Tick(now time.Time) {
 }
 
 func (s *TCPServer) Close() {
+	now := time.Now()
 	for _, flow := range s.snapshot() {
-		s.remove(flow)
+		s.removeAt(flow, now)
 	}
 }
 
@@ -737,7 +836,7 @@ func (s *TCPServer) Len() int {
 
 func (s *TCPServer) abort(flow *tcpServerFlow, now time.Time) {
 	_ = flow.tunnel.Send(Frame{Kind: KindTCPClose, FlowID: flow.id}, now)
-	s.remove(flow)
+	s.removeAt(flow, now)
 }
 
 func (s *TCPServer) get(id uint64) *tcpServerFlow {
@@ -745,6 +844,12 @@ func (s *TCPServer) get(id uint64) *tcpServerFlow {
 	flow := s.flows[id]
 	s.mu.Unlock()
 	return flow
+}
+
+func (s *TCPServer) isRetired(id uint64, now time.Time) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.retired.contains(id, now)
 }
 
 func (s *TCPServer) snapshot() []*tcpServerFlow {
@@ -757,10 +862,11 @@ func (s *TCPServer) snapshot() []*tcpServerFlow {
 	return out
 }
 
-func (s *TCPServer) remove(want *tcpServerFlow) {
+func (s *TCPServer) removeAt(want *tcpServerFlow, now time.Time) {
 	s.mu.Lock()
 	if s.flows[want.id] == want {
 		delete(s.flows, want.id)
+		s.retired.add(want.id, now)
 	}
 	s.mu.Unlock()
 	want.close()

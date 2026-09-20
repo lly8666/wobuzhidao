@@ -43,9 +43,9 @@
     "P4关闭：closure audit SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639 7/7 PASS。入口级runtimeentry显式覆盖Game desiredLanes=3/4的真实FakeTCP+TLS/protected-admission全lane steady qualification/双向PacketID竞速去重；自动rotation timer触发same-ID generation前进并收敛回desired physical lanes；持续ACK/runtime tick不刷新payload idle，client/server自动DORMANT，下一笔真实业务自动wake且leased TunnelOwner/TunnelID/IPv4/Installation保持不变。P4平台入口、lifecycle、padding预算与回归门槛全部满足hosted关闭条件；Windows/Npcap物理资格仍留P7。",
     "P5第一原子任务关闭：受控真实HTTPS fullstack hosted measurement base 在 SOURCE_SHA 043da6298a2be091b55fb470b63c69e605bb61d8 / Actions 35516700104 取得 8/8 PASS。两个独立真实TLS+HTTP flow复用同一正式 outer FakeTCP+TLS/protected-admission Normal lane；保存 raw DLT_RAW IPv4 PCAP、outer packet/TLS-like record/HTTPS flow JSONL、manifest/summary/test.log，并由 exact-SHA 独立validator确认 flows=2、outer_connections=1、FEC=off、padding=off。P5 artifact 10606459773，sha256:8eda8c0f3ec2df0bf08afd1d771c251a2800a6fcd881df0c14a73a67c84fb66f。"
   ],
-  "in_progress": "P5 第一原子任务已 CLOSED，产品资格 SOURCE_SHA 043da6298a2be091b55fb470b63c69e605bb61d8 / Actions 35516700104，8/8 PASS。该资格只覆盖最小 hosted measurement base：首个与已建lane后的后续独立真实HTTPS flow在测量结束前保持连接存活；不包含首个 flow 完整 close 后再建下一 flow 的 close-tail lifecycle 资格，不包含弱网/负载/长测、不同证书链、恢复握手、FEC固定挡位、padding成本矩阵或分类器。",
-  "next_task": "P5 第二原子任务：只修复并资格化 measurement base 暴露的 platformflow TCP 正常关闭尾帧幂等性，使第一条真实 HTTPS 正常 TLS/HTTP close 完成后，旧 flow 的合法 late ACK/terminal control 不会以 unknown TCP server/client flow 终止 runtime，并能随后在同一已建立 outer lane 上建立第二条独立 HTTPS flow。不得借机重做 TCP reliability 算法、RTO/FEC/padding，也不扩展弱网矩阵；修复后新增精确回归并跑完整 next-foundation exact-SHA。",
-  "latest_log": "docs/devlog/20260920-235900-p5-https-measurement-base-closed.md",
+  "in_progress": "P5 第二原子任务候选：只修复 platformflow TCP 已退休 FlowID 的 close-tail/late-frame 生命周期。候选增加 5s / 最多4096条的有界 tombstone；近期已退休 FlowID 的迟到 TCP Data/ACK/Close 幂等丢弃，server 对该 FlowID 的迟到重复 TCPOpen 不重新拨号；从未见过或 tombstone 已过期的未知 Data/ACK 仍 ErrMalformed fail-closed。P5 measurement gate 恢复第一条真实 HTTPS `Connection: close` + TLS close，并要求 client/server 两侧 TCPFlows 均归零后才启动第二条独立 HTTPS flow，第二条必须继续复用同一 outer lane。候选待 exact-SHA Actions，不改变 RTO/FEC/padding/拓扑。",
+  "next_task": "只资格当前 P5 close-tail atom：完整 next-foundation 必须在同一候选 SOURCE_SHA 上全部 PASS，尤其 platformflow retired-flow unit/race 与 p5-https-measurement-base 的 sequential_close=pass。失败时保留 SHA/run，仅修该 lifecycle atom；通过前 `last_tested_source_sha` 继续保持 043da6298a2be091b55fb470b63c69e605bb61d8。",
+  "latest_log": "docs/devlog/20260920-235959-p5-close-tail-candidate.md",
   "last_tested_source_sha": "043da6298a2be091b55fb470b63c69e605bb61d8",
   "actions": [
     {
@@ -530,6 +530,13 @@
       "scope": "P5-https-measurement-base-final",
       "status": "PASS",
       "note": "Run attempt 1 completed/success，新增 p5-https-measurement-base 后共 8 jobs 全部 PASS：repository-contract、Windows active-go-tests、Ubuntu active-go-tests+race+tlsrecord directed fuzz/reference、P2 kernel fallback、Linux shared-TUN privileged iptables/nft、OpenWrt privileged TPROXY/SocketTunnel、P5 HTTPS measurement base。P5 marker: WBD_P5_HTTPS_MEASUREMENT_BASE_CAPTURED source_sha=043da6298a2be091b55fb470b63c69e605bb61d8 flows=2 outer_connections=1 fec=off padding=off records=30；独立validator marker同SHA PASS。P5 artifact 10606459773，19031 bytes，sha256:8eda8c0f3ec2df0bf08afd1d771c251a2800a6fcd881df0c14a73a67c84fb66f，包含5个文件：outer.pcap、events.jsonl、manifest.json、summary.json、test.log。其他 artifacts：foundation 10606594348 sha256:6346cb1d7d3835a6ada6fbd15627a0ef0203c38c5e45a6df0ceb4b8967352fc9；tlsrecord-reference 10606788864 sha256:d3273fcc562360d5b2b67fed965ba8ea5bd90e6dbf609520f0b02dd2d3c82012；P2 10606803842 sha256:3c1f8fef71b746404d169e71e87cee59d18476834377a7b15fa9e46e7043f0b9；shared-TUN iptables 10606564473 sha256:33bff81413b6ee7f5772ed283cfd574e6ff6fffe785d3a30fa98dce6a30d5abe；nft 10606539451 sha256:3ce4741c97d621b648a09ffb8f3f9a560259fec3dbc633280717e27c34c10ded；OpenWrt 10606339687 sha256:0365ee88a52fecfed519660545acaf54ad654fdbe9ed6a31c6104244c93691ca。Hosted SegmentIO PCAP不是P7物理抓包；Windows/Npcap physical仍NOT_RUN。"
+    },
+    {
+      "source_sha": "b3171a9f8f9b6b34c1794b680742f8ca25ad0258",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35517168976",
+      "scope": "P5-https-measurement-base-docs-closure",
+      "status": "PASS",
+      "note": "Docs-only closure run completed/success，8/8 jobs PASS。该 SHA 只更新 STATUS/devlog，没有产品代码变化；因此不会覆盖产品资格 SOURCE_SHA，`last_tested_source_sha` 继续保持 043da6298a2be091b55fb470b63c69e605bb61d8。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -560,6 +567,6 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "IN_PROGRESS: 第一原子任务 measurement base 已 CLOSED（SOURCE_SHA 043da6298a2be091b55fb470b63c69e605bb61d8 / Actions 35516700104 / 8/8 PASS）。下一原子任务先收口正常内层HTTPS关闭后的 platformflow close-tail/late-frame 幂等性，再扩展弱网/负载/长测、证书链、恢复握手和FEC固定挡位测量。"
+    "P5": "IN_PROGRESS: 第一原子 measurement base 已资格（043da629… / 35516700104 / 8/8 PASS）；第二原子任务正在修复正常内层 HTTPS 完整关闭后的 platformflow close-tail late-frame 幂等性，并把 P5 gate 收紧为第一条彻底关闭后再开第二条。弱网/负载/长测/证书链/恢复握手/FEC固定挡位尚未展开。"
   }
 }

@@ -59,6 +59,8 @@ type p5MeasurementEvent struct {
 	FlowOrdinal       int    `json:"flow_ordinal,omitempty"`
 	Scenario          string `json:"scenario,omitempty"`
 	OuterConnection   int    `json:"outer_connection_id,omitempty"`
+	BusinessFlowID    uint64 `json:"business_flow_id,omitempty"`
+	FlowClosed        bool   `json:"flow_closed,omitempty"`
 	HandshakeNS       int64  `json:"handshake_ns,omitempty"`
 	BusinessLatencyNS int64  `json:"business_latency_ns,omitempty"`
 	HTTPStatus        int    `json:"http_status,omitempty"`
@@ -427,17 +429,24 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 		}
 	}()
 
+	server.mu.Lock()
+	serverTunnel := server.byTunnel[tunnelID]
+	server.mu.Unlock()
+	if serverTunnel == nil || serverTunnel.service == nil {
+		t.Fatal("server platformflow service missing before HTTPS flows")
+	}
+
 	recorder.markSteady()
 	initialRef := client.Ref()
 	if initialRef.ID != 1 || initialRef.Generation == 0 {
 		t.Fatalf("unexpected initial lane ref: %+v", initialRef)
 	}
 
-	runP5HTTPSFlow(t, recorder, svc, innerTLS, targetAddr, 1, "first_https_flow_on_initial_outer_connection")
+	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, innerTLS, targetAddr, 1, "first_https_flow_on_initial_outer_connection")
 	if got := client.Ref(); got != initialRef {
 		t.Fatalf("first HTTPS flow replaced outer lane: got=%+v want=%+v", got, initialRef)
 	}
-	runP5HTTPSFlow(t, recorder, svc, innerTLS, targetAddr, 2, "subsequent_https_flow_existing_lane")
+	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, innerTLS, targetAddr, 2, "subsequent_https_flow_after_first_close_existing_lane")
 	if got := client.Ref(); got != initialRef {
 		t.Fatalf("second HTTPS flow replaced outer lane: got=%+v want=%+v", got, initialRef)
 	}
@@ -454,12 +463,6 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 	if !ok {
 		t.Fatal("client transport stats unavailable")
 	}
-	server.mu.Lock()
-	serverTunnel := server.byTunnel[tunnelID]
-	server.mu.Unlock()
-	if serverTunnel == nil {
-		t.Fatal("server tunnel missing after HTTPS flows")
-	}
 	serverTransport, ok := serverTunnel.rt.TransportStats(serverTunnel.ref)
 	if !ok {
 		t.Fatal("server transport stats unavailable")
@@ -474,9 +477,10 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 			"name":                   "controlled-real-https-first-and-subsequent-flow",
 			"seed":                   20260920,
 			"cryptographic_rng":      "system",
-			"https_flows":            2,
-			"outer_connection_count": 1,
-			"connection_mtu":         1500,
+			"https_flows":                  2,
+			"outer_connection_count":       1,
+			"sequential_close_before_next": true,
+			"connection_mtu":               1500,
 			"desired_lanes":          1,
 			"fec_parity_shards":      0,
 			"padding":                "off",
@@ -523,10 +527,10 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("WBD_P5_HTTPS_MEASUREMENT_BASE_CAPTURED source_sha=%s flows=2 outer_connections=1 fec=off padding=off records=%d\n", sourceSHA, recordEvents)
+	fmt.Printf("WBD_P5_HTTPS_MEASUREMENT_BASE_CAPTURED source_sha=%s flows=2 outer_connections=1 sequential_close=pass fec=off padding=off records=%d\n", sourceSHA, recordEvents)
 }
 
-func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platformflow.Client, tlsCfg *tls.Config, target netip.AddrPort, ordinal int, scenario string) {
+func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platformflow.Client, serverSvc *platformflow.Server, tlsCfg *tls.Config, target netip.AddrPort, ordinal int, scenario string) {
 	t.Helper()
 	listener, err := net.Listen("tcp4", "127.0.0.1:0")
 	if err != nil {
@@ -546,7 +550,7 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 		_ = listener.Close()
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { _ = appConn.Close() })
+	defer appConn.Close()
 	peer := <-accepted
 	_ = listener.Close()
 	if peer.err != nil {
@@ -556,7 +560,8 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 
 	beforeC2S, beforeS2C := recorder.wireSnapshot()
 	started := time.Now()
-	if _, err := svc.AddTCP(tunnelConn, target, started); err != nil {
+	flowID, err := svc.AddTCP(tunnelConn, target, started)
+	if err != nil {
 		_ = tunnelConn.Close()
 		t.Fatal(err)
 	}
@@ -570,6 +575,7 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 
 	reqURL := &url.URL{Scheme: "https", Host: target.String(), Path: fmt.Sprintf("/flow/%d", ordinal)}
 	req := &http.Request{Method: http.MethodGet, URL: reqURL, Host: "target.test", Header: make(http.Header)}
+	req.Header.Set("Connection", "close")
 	if err := req.Write(tlsConn); err != nil {
 		t.Fatal(err)
 	}
@@ -583,9 +589,9 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 		t.Fatal(err)
 	}
 	_ = resp.Body.Close()
-	// Keep each independent HTTPS connection alive until the measurement has
-	// captured the subsequent flow. Cleanup closes the application socket only
-	// after the runtimeentry/server measurement path has been cancelled.
+	_ = tlsConn.Close()
+	waitP5TCPFlowCount(t, "client", svc.TCPFlows, 0, 2*time.Second)
+	waitP5TCPFlowCount(t, "server", serverSvc.TCPFlows, 0, 2*time.Second)
 	wantBody := fmt.Sprintf("wbd-p5 path=/flow/%d", ordinal)
 	if string(body) != wantBody {
 		t.Fatalf("inner HTTPS body mismatch got=%q want=%q", body, wantBody)
@@ -596,10 +602,28 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 	afterC2S, afterS2C := recorder.wireSnapshot()
 	if err := recorder.recordHTTPSFlow(p5MeasurementEvent{
 		FlowOrdinal: ordinal, Scenario: scenario, OuterConnection: 1,
+		BusinessFlowID: flowID, FlowClosed: true,
 		HandshakeNS: handshakeNS, BusinessLatencyNS: time.Since(started).Nanoseconds(),
 		HTTPStatus: resp.StatusCode, ResponseBytes: len(body),
 		WireBytesC2S: afterC2S - beforeC2S, WireBytesS2C: afterS2C - beforeS2C,
 	}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+
+func waitP5TCPFlowCount(t *testing.T, side string, current func() int, want int, timeout time.Duration) {
+	t.Helper()
+	deadline := time.Now().Add(timeout)
+	ticker := time.NewTicker(5 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		if got := current(); got == want {
+			return
+		}
+		if !time.Now().Before(deadline) {
+			t.Fatalf("%s TCP flow count did not converge: got=%d want=%d", side, current(), want)
+		}
+		<-ticker.C
 	}
 }
