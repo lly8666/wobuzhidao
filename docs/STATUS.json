@@ -37,9 +37,9 @@
     "P4子任务：Windows Npcap/physical underlay hosted core 通过Actions；Windows IP Helper物理NIC/next-hop发现、server /32与Npcap同源path、exact four-tuple BPF+用户态过滤、source-port/peer/MAC绑定、owned ingress、generation fencing与有界shutdown均完成hosted Windows compile/mock资格，真实Npcap/NIC物理资格仍NOT_RUN",
     "P4子任务：OpenWrt IPv4 TCP/UDP TPROXY kernel ownership 通过Actions；真实root netns中dedicated nft TPROXY、fwmark policy route、local route、TCP/UDP IP_TRANSPARENT capture、server underlay双协议bypass、state-conflict fail-closed、foreign-state preservation与owned-only cleanup全部PASS，IPv6明确NOT_IMPLEMENTED"
   ],
-  "in_progress": "P4 OpenWrt transparent TCP/UDP socket -> leased TunnelOwner candidate 已实现，尚未取得Actions资格。新增 internal/platformflow：新WBPF v1业务frame被严格封装在IPv4 protocol=253的service packet中，src/dst均固定为该Tunnel lease /32，保留existing source==lease anti-spoof；reserved protocol malformed fail-closed。TunnelChannel每个TCP flow/UDP mapping打开现有BusinessFlow；Normal直接BusinessFlow.Outbound，Game直接TunnelOwner.GameOutbound，均不创建lane。UDP client以原始client source endpoint为mapping identity保持EIM，server使用unconnected bounded UDP mapping允许EIF；TCP保留bounded offset/ACK/retransmit/reorder/idle状态。OpenWrt Linux SocketAdapter直接使用IP_TRANSPARENT TCP/UDP与UDP original-destination ancillary data，不存在127.0.0.1 UDP bridge。Linux SharedTUNRouter新增current BindingToken scoped ServiceHandler：service packet无handler、malformed或stale token均不写TUN；exact rebind清空旧handler。现有OpenWrt root-netns harness新增真实socket contract：TPROXY client TCP/UDP -> client TunnelOwner/lane -> server TunnelOwner/router platform service -> real target sockets -> reverse owner -> original client socket；验证TCP目标只接受server-side 10.20.0.1来源、UDP EIM/EIF、lane不增长、service_tun_leak=0。该hosted contract的owner/lane wire carrier在单进程内用WireSink回送，不是物理raw/Npcap链路。",
-  "next_task": "提交 OpenWrt socket/TunnelOwner candidate，并只认该 exact SOURCE_SHA 的完整 next-foundation Actions。必须检查 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference、P2 kernel fallback、Linux shared-TUN privileged双backend、OpenWrt privileged job两个marker（既有TPROXY ownership + 新 WBD_P4_OPENWRT_SOCKET_TUNNEL_PASS）。若失败只修本atom；若全绿再做 evidence closure，下一原子任务才进入统一 client/server runtime 的真实 transport WireSink/accept-loop 接线，不恢复旧platform proxy进程或localhost UDP/DTLS链。",
-  "latest_log": "docs/devlog/20260920-174000-p4-openwrt-socket-tunnel-candidate.md",
+  "in_progress": "P4 OpenWrt socket/TunnelOwner first candidate SOURCE_SHA 64b54310215898fbc9a2a559bbd7104acea9dcda / Actions 35496266975：repository-contract PASS；Windows/Linux unit/build PASS；Linux race/fuzz/reference PASS；P2 kernel fallback PASS；Linux privileged shared-TUN iptables+nft PASS。唯一FAIL为 p4-openwrt-tproxy-privileged，但 active Go privileged test binary 已编译成功，失败发生在 namespace harness 启动前：scripts/openwrt_tproxy_netns.sh 第73行 unexpected EOF（未闭合单引号）。检查branch脚本同时发现前一轮文本替换未写入目标namespace 10.20.0.4/10.20.0.5 aliases。故该run没有执行既有TPROXY ownership测试或新socket/TunnelOwner root-netns测试，没有root-netns产品行为结论。修复仅重写harness：显式为target加入.2/.3/.4/.5，并使用闭合的test regex；产品Go代码/workflow门槛不变。",
+  "next_task": "提交 OpenWrt root-netns harness quoting/address fixture 修复并读取新 exact SOURCE_SHA 的完整 next-foundation。64b54310... / run 35496266975 保留为 harness-parse FAIL；新SHA必须重新执行全部现有回归，并在同一OpenWrt job同时出现 WBD_P4_OPENWRT_TPROXY_PASS 与 WBD_P4_OPENWRT_SOCKET_TUNNEL_PASS。",
+  "latest_log": "docs/devlog/20260920-181000-p4-openwrt-socket-harness-parse-fix.md",
   "last_tested_source_sha": "5018dc2f417f195f8b1210e5f50208db7a8ba3ca",
   "actions": [
     {
@@ -433,6 +433,13 @@
       "scope": "P4-openwrt-tproxy-ownership-final",
       "status": "PASS",
       "note": "Run attempt 1 completed/success，7 jobs全部PASS。p4-openwrt-tproxy-privileged真实root-netns PASS并输出 `WBD_P4_OPENWRT_TPROXY_PASS tcp=1 udp=1 underlay_bypass=1 cleanup=owned-only ipv6=NOT_IMPLEMENTED`；dedicated nft table、fwmark rule、local route、TCP/UDP IP_TRANSPARENT capture、underlay bypass、second-runtime state conflict、foreign nft/ip-rule preservation、owned cleanup及cleanup后direct routing均由同一Go privileged test覆盖。Windows unit/build + Wintun/Npcap contracts PASS；Ubuntu unit/build/race/fuzz/reference PASS；P2 kernel fallback PASS（1.24s，29 captured / 58 received by filter / 0 dropped，analyzer PASS）；Linux shared-TUN iptables+nft PASS。Artifacts: OpenWrt 10600436689 digest sha256:8c4963953fd77ae443951ee67660999142dc40aacaf3506c0bec81f08b121b65；foundation 10599807832；tlsrecord-reference 10599463359；P2 10599503348；shared-TUN iptables 10599742963；nft 10600381872。IPv6 TPROXY仍NOT_IMPLEMENTED。"
+    },
+    {
+      "source_sha": "64b54310215898fbc9a2a559bbd7104acea9dcda",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35496266975",
+      "scope": "P4-openwrt-socket-tunnel-pre-harness-parse-fix",
+      "status": "FAIL",
+      "note": "repository-contract, Windows/Linux unit/build, Linux race/fuzz/reference, P2 kernel fallback and Linux shared-TUN privileged iptables+nft all PASS. OpenWrt privileged Go test binary build PASS, but scripts/openwrt_tproxy_netns.sh exited before tests with line 73 unexpected EOF from an unclosed single-quoted -test.run regex; inspection also showed intended target aliases 10.20.0.4/.5 were absent. Therefore no TPROXY/socket root-netns behavior ran. Artifact 10601440103, digest sha256:7536911fcaf09c86955658673885f8dbe8f75248a9bcd004b0a5980287c9cb79. Fix is harness-only."
     }
   ],
   "physical_status": "NOT_RUN",

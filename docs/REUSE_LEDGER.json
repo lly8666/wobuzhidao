@@ -420,7 +420,13 @@
       "destination": ".github/workflows/next-foundation.yml",
       "behavior_changes": "Reuse only the hosted ubuntu root-netns/socket qualification capability. The existing p4-openwrt-tproxy-privileged job now runs both kernel ownership and the new socket/TunnelOwner contract in one active test binary and requires both markers; it does not download archived artifacts or build DTLS/platform-proxy executables.",
       "tests": "Exact-SHA next-foundation still runs repository contract, Windows/Linux unit/build, Linux race/fuzz/reference, P2 kernel fallback, Linux shared-TUN iptables+nft and the expanded OpenWrt privileged job."
+    },
+    {
+      "source": "old/scripts/openwrt_udp_tproxy_netns.sh",
+      "destination": "scripts/openwrt_tproxy_netns.sh",
+      "behavior_changes": "Fixture-only correction for the active combined OpenWrt qualification harness: retain the archived multi-address target shape by assigning 10.20.0.2/.3/.4/.5 to one target interface, and invoke both active privileged tests with one correctly quoted anchored regex. No archived platform proxy executable, localhost UDP bridge, DTLS or process topology is restored.",
+      "tests": "The next exact-SHA p4-openwrt-tproxy-privileged job must execute both TestPrivilegedOpenWrtTPROXYRuntime and TestPrivilegedOpenWrtSocketTunnelAdapter rather than failing at shell parse time, and the workflow still requires both explicit PASS markers."
     }
   ],
-  "note": "P4 OpenWrt socket/TunnelOwner candidate extracts only direct in-process platform flow semantics. New WBPF service frames are lease-bound inside IPv4 protocol 253 and are not old WBDP compatibility. No localhost UDP WBD bridge, DTLS shim or platform-proxy subprocess is restored. The hosted privileged path uses an in-process WireSink between active client/server Lane owners; final unified raw transport wiring remains a later atom."
+  "note": "P4 OpenWrt socket/TunnelOwner candidate remains a direct in-process platform-flow extraction. The follow-up after 64b54310 is harness-only: it fixes a truncated shell regex and restores target .4/.5 aliases needed by the real UDP EIM/EIF fixture; product Go semantics are unchanged."
 }

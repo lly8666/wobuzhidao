@@ -61,8 +61,9 @@ ip -n "$R" addr add 10.20.0.1/24 dev "$r1"
 ip -n "$R" link set "$r1" up
 ip netns exec "$R" sysctl -qw net.ipv4.ip_forward=1
 
-ip -n "$T" addr add 10.20.0.2/24 dev "$tif"
-ip -n "$T" addr add 10.20.0.3/24 dev "$tif"
+for addr in 10.20.0.2 10.20.0.3 10.20.0.4 10.20.0.5; do
+  ip -n "$T" addr add "$addr/24" dev "$tif"
+done
 ip -n "$T" link set "$tif" up
 ip -n "$T" route add 10.10.0.0/24 via 10.20.0.1
 
@@ -70,5 +71,4 @@ ip netns exec "$R" env \
   WBD_P4_OPENWRT_TPROXY_NET=1 \
   WBD_P4_OPENWRT_CLIENT_NS="$C" \
   WBD_P4_OPENWRT_TARGET_NS="$T" \
-  "$TEST_BIN" -test.v -test.run '^TestPrivilegedOpenWrt(TPROXYRuntime|SocketTunnelAdapter)
-
+  "$TEST_BIN" -test.v -test.run '^TestPrivilegedOpenWrt(TPROXYRuntime|SocketTunnelAdapter)$'
