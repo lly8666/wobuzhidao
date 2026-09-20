@@ -42,12 +42,13 @@
     "P4子任务：可执行入口 multi-lane/lifecycle hosted闭包通过Actions；protected admission显式 lane_id=1..4，单进程 runtimeentry 绑定每lane独立FakeTCP association，Game 2-lane hosted闭环覆盖PacketID racing、失败候选保留旧generation、same-ID A->A+B->B replacement/retire、DORMANT/wake与稳定leased TunnelOwner；Linux/OpenWrt raw shared SegmentMux、Windows Npcap per-incarnation endpoint及cmd --lanes/idle/rotation配置均跨平台编译。SOURCE_SHA fa9b60315ca01ec140c34a65799dc62916f2275d / Actions 35505737597 7/7 PASS；Windows/Npcap physical仍NOT_RUN。",
     "P4关闭：closure audit SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639 7/7 PASS。入口级runtimeentry显式覆盖Game desiredLanes=3/4的真实FakeTCP+TLS/protected-admission全lane steady qualification/双向PacketID竞速去重；自动rotation timer触发same-ID generation前进并收敛回desired physical lanes；持续ACK/runtime tick不刷新payload idle，client/server自动DORMANT，下一笔真实业务自动wake且leased TunnelOwner/TunnelID/IPv4/Installation保持不变。P4平台入口、lifecycle、padding预算与回归门槛全部满足hosted关闭条件；Windows/Npcap物理资格仍留P7。",
     "P5第一原子任务关闭：受控真实HTTPS fullstack hosted measurement base 在 SOURCE_SHA 043da6298a2be091b55fb470b63c69e605bb61d8 / Actions 35516700104 取得 8/8 PASS。两个独立真实TLS+HTTP flow复用同一正式 outer FakeTCP+TLS/protected-admission Normal lane；保存 raw DLT_RAW IPv4 PCAP、outer packet/TLS-like record/HTTPS flow JSONL、manifest/summary/test.log，并由 exact-SHA 独立validator确认 flows=2、outer_connections=1、FEC=off、padding=off。P5 artifact 10606459773，sha256:8eda8c0f3ec2df0bf08afd1d771c251a2800a6fcd881df0c14a73a67c84fb66f。",
-    "P5第二原子任务关闭：platformflow TCP close-tail/concurrent-retire 生命周期在 SOURCE_SHA a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f / Actions 35520092389 取得 8/8 PASS。5s/4096 bounded retired FlowID tombstone + handler已持有flow指针后的closed幂等 + 单业务flow本地socket关闭错误隔离，使第一条真实HTTPS完整Connection: close/TLS close且client/server TCPFlows归零后，第二条独立HTTPS仍在同一outer lane成功；validator确认两个distinct business FlowID、sequential_close=pass、outer SYN仍为1。"
+    "P5第二原子任务关闭：platformflow TCP close-tail/concurrent-retire 生命周期在 SOURCE_SHA a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f / Actions 35520092389 取得 8/8 PASS。5s/4096 bounded retired FlowID tombstone + handler已持有flow指针后的closed幂等 + 单业务flow本地socket关闭错误隔离，使第一条真实HTTPS完整Connection: close/TLS close且client/server TCPFlows归零后，第二条独立HTTPS仍在同一outer lane成功；validator确认两个distinct business FlowID、sequential_close=pass、outer SYN仍为1。",
+    "P5第三原子任务关闭：受控真实inner HTTPS TLS1.3 full vs resumed handshake measurement 在 SOURCE_SHA 1fb65c90b272454e09a624eaa23e6a432de7955a / Actions 35522367146 取得 8/8 PASS。flow1 DidResume=false 且真实session ticket写入共享LRU cache，flow2 DidResume=true 且真实cache hit；第一条完整close后第二条继续复用同一outer lane，outer SYN=1。validator同SHA确认 `sequential_close=pass handshakes=full,resumed`；P5 artifact 10609266231，sha256:866acf9477379ec69f8f60c073b00d41d3efab5b783a1e000dd63a58343c18eb。"
   ],
-  "in_progress": "P5 第三原子任务第三候选待 exact-SHA Actions。第二候选 e0650911ed2268c5b2f0744006016de924ea462d / Actions 35522232171 为 7/8 PASS，仅 P5 gate 在业务开始前 0.00s 报 `server platformflow service missing before HTTPS flows`；P2 本轮恢复 PASS（1.24s、29 captured、0 dropped），Windows/Linux race及所有平台门均PASS。失败根因是 harness 在 DialClient 返回后立即读取 server.byTunnel/service，与server admission goroutine安装service存在readiness race。第三候选只新增条件驱动的 server-tunnel/service readiness wait：1ms ticker、2s绝对deadline，ready即立即返回；发生在 recorder.markSteady 前，不是固定sleep、不改变产品传输或业务测量时序。full→resumed/session-cache逻辑本身不变。",
-  "next_task": "对第三候选 SOURCE_SHA 跑完整 next-foundation。要求8/8同SHA PASS，P5继续输出 `sequential_close=pass handshakes=full,resumed` 并证明session cache put/hit。若失败只修当前handshake measurement atom；通过前 last_tested_source_sha 仍保持 a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f。",
-  "latest_log": "docs/devlog/20260921-003000-p5-handshake-readiness-fix.md",
-  "last_tested_source_sha": "a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f",
+  "in_progress": "P5 measurement base、顺序 close-tail、TLS1.3 full/resumed handshake 三个原子任务均已取得 exact-SHA hosted 产品资格。尚未开始不同证书链、稀疏单连接/自然并发、FEC固定挡位、弱网/负载/长测等后续维度；生产 padding 继续 0/off。",
+  "next_task": "P5 第四原子任务：只扩展受控真实 HTTPS measurement harness 的不同证书链维度。至少使用两套独立受控 CA/leaf chain（不同根/链来源，客户端分别真实验证），在同一正式 runtimeentry/Tunnel/lane 路径上采集并保存原始 PCAP/JSONL/manifest，显式记录 certificate scenario/chain identity 与握手模式。保持 TLS1.3、FEC off、padding=0/off、无弱网注入；本 atom 不混入负载/并发/FEC-on/性能结论或 classifier。",
+  "latest_log": "docs/devlog/20260921-003500-p5-full-resumed-handshake-closed.md",
+  "last_tested_source_sha": "1fb65c90b272454e09a624eaa23e6a432de7955a",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -573,6 +574,13 @@
       "scope": "P5-full-resumed-handshake-second-candidate",
       "status": "FAIL",
       "note": "Run attempt 1 completed/failure，8 jobs 中7 PASS，仅 p5-https-measurement-base FAIL。P5 在进入任何inner HTTPS flow前 0.00s 失败：`p5_https_measurement_test.go:492: server platformflow service missing before HTTPS flows`；失败 artifact 10609261179，sha256:01a3bc4b10456fab88cfed495a315a4c5841cb71ba83133575b551f7df255a23。根因是测试直接读取 server.byTunnel/service，与server admission goroutine安装service存在readiness race；不是full/resumed协议失败。P2 kernel fallback 本轮 PASS 1.24s，29 packets captured/58 filter/0 dropped，artifact 10609166459 sha256:da9fe54bf57475e73da6b56836673be4b5c41bbf0226134eb8de0635a3252208；repository-contract、Windows、Ubuntu unit/race/fuzz/reference、OpenWrt、shared-TUN iptables/nft全部PASS。第三候选仅在 markSteady 前增加有界条件等待，不用固定sleep。"
+    },
+    {
+      "source_sha": "1fb65c90b272454e09a624eaa23e6a432de7955a",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35522367146",
+      "scope": "P5-full-resumed-handshake-final",
+      "status": "PASS",
+      "note": "Run attempt 1 completed/success，8/8 jobs 全部 PASS。P5 marker: `WBD_P5_HTTPS_MEASUREMENT_BASE_CAPTURED source_sha=1fb65c90b272454e09a624eaa23e6a432de7955a flows=2 outer_connections=1 sequential_close=pass handshakes=full,resumed fec=off padding=off records=41`；独立validator同SHA输出相同 full,resumed 资格语义，证明 TLS1.3 flow1 full/session-ticket Put、flow2 DidResume=true/session-cache Hit。P5 artifact 10609266231，21045 bytes，sha256:866acf9477379ec69f8f60c073b00d41d3efab5b783a1e000dd63a58343c18eb。其余 gates 同SHA PASS：repository-contract；Windows active-go-tests；Ubuntu unit/build/race/directed fuzz/reference；P2 kernel fallback；OpenWrt privileged；Linux shared-TUN iptables/nft。Artifacts: foundation 10609041900 sha256:c60a4ad1f200035591d711b563287e4394045496c1ecd40ebfc40ed60b8973cc；tlsrecord-reference 10609051081 sha256:d835c0237990f8e84bdb05673f1b05d5f7a3410460eb6f13063dd596585c2ee1；P2 10608862171 sha256:04af3c0ba961f0cfd0b641d82afd7c9c1841aab032103a44a6a8a090dca25f16；iptables 10608611603 sha256:e335508c7a76580074fd0af1d11b80ee5f4a1845c9fcce0ffeb799a0dff69b97；nft 10609131813 sha256:984b004bf5341975890c43189c3269d844a0ea1a203fdc89a637aa8fe38edcb3；OpenWrt 10609101785 sha256:c55fbc50674f34a52f82900b93bfd13d38cee2b0aa184376c8ba39d308cee31a。Windows/Npcap physical仍P7 NOT_RUN。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -603,6 +611,6 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "IN_PROGRESS: measurement base 与 close-tail 已资格；full-vs-resumed atom 首候选P5 gate PASS但整轮P2 EOF，第二候选P2恢复PASS而P5暴露server service readiness race。第三候选只修harness readiness同步，产品传输/full-resumed逻辑不变。"
+    "P5": "IN_PROGRESS: measurement base（043da629…）、顺序 close-tail（a9b92c26…）和 TLS1.3 full-vs-resumed handshake（1fb65c90… / 35522367146 / 8/8 PASS）已资格。下一原子只覆盖不同证书链；稀疏/自然并发、FEC固定挡位、弱网/负载/长测后续分别推进。"
   }
 }
