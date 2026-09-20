@@ -26,12 +26,13 @@
     "P3子任务：lane-owned session/datapath 串接（immutable FEC profile、方向record limits/keys、统一MTU、LINK/FEC、record seal/open、detach handoff、owner expiry）通过Actions",
     "P3子任务：显式有界record padding（默认0/off、统一MTU headroom、独立静态向量、全FEC/MTU/no-HOL/不可变重传）通过Actions",
     "P3关闭：LINK fragmentation/reassembly、FEC off+20:4/8/10/12/16/20、统一MTU、lane-owned session/datapath、显式有界record padding全部取得精确SOURCE_SHA Actions资格",
-    "P4子任务：logicaltunnel最小lifecycle/policy + 有界TunnelOwner/BusinessFlow registry，多业务复用既有Normal lane、generation fencing、DORMANT/wake与6过渡/10物理上限通过Actions"
+    "P4子任务：logicaltunnel最小lifecycle/policy + 有界TunnelOwner/BusinessFlow registry，多业务复用既有Normal lane、generation fencing、DORMANT/wake与6过渡/10物理上限通过Actions",
+    "P4子任务：stable Account+Installation -> TunnelID/IPv4 lease identity、leased TunnelOwner 与 protected-admission TunnelID binding 通过Actions；同identity稳定lease、跨installation隔离、rotation/DORMANT/wake不换lease"
   ],
-  "in_progress": "P4 stable identity/lease 产品代码在 SOURCE_SHA 977eeb0b30c4f23f60b17dba8241752811706aa0 的 repository-contract、Windows unit/build、Linux unit/build/race/fuzz/reference 均 PASS；P2 kernel Go测试本身 PASS 1.24s，但连续pcap资格失败：tcpdump只落盘13包、filter收到58包、kernel drop=0，未捕获>=0.5s同Seq重传。日志确认成功路径在协议测试后立即SIGINT tcpdump，已有1s drain只存在trap cleanup而未用于成功路径，属于qualification harness capture-drain缺口；产品identity/lease代码无运行期失败证据。已准备仅workflow+状态文档的 bounded 1s capture-drain 修复，等待该新精确SHA Actions。",
-  "next_task": "等待 capture-drain 修复提交自己的精确 SOURCE_SHA GitHub Actions。必须同时确认 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference 与 P2 kernel fallback/pcap 全部成功；若仍失败读取新日志，不盲重跑。通过后把 stable identity/lease 原子任务锚定到该精确SHA并做证据 closure，再继续 P4 source anti-spoof/lease packet binding。",
-  "latest_log": "docs/devlog/20260920-095200-p4-identity-pcap-drain-fix.md",
-  "last_tested_source_sha": "7994d1a2656079e4a27f6a5ddc4c7ad9b619488f",
+  "in_progress": "P4 stable Logical Tunnel identity/lease 原子任务已在 SOURCE_SHA 9f35f885b56194612f240c14bb802b6650dd7d6c / Actions 35482460272 完整通过。该SHA包含 identity/lease 产品代码及仅用于qualification的pcap bounded-drain修复：repository-contract PASS；Windows unit/build PASS；Ubuntu unit/build/race PASS；tlsrecord directed fuzz/reference PASS；P2 kernel fallback Go test PASS 1.24s，连续pcap 29 packets captured / 58 received by filter / 0 kernel drop 并通过既有 analyzer。stable identity/lease 行为：account+installation为identity key；同active identity重取同TunnelID+/32 lease；同账户不同installation隔离；TunnelID exact 16-byte对接protected admission；leased owner在lane membership前锁定TunnelID；rotation/DORMANT/wake保持lease；跨installation admission/lane fail-closed。P4仍未关闭，source anti-spoof/lease packet binding、Game owner API、platform入口和生产padding budget仍待后续。",
+  "next_task": "P4 下一原子任务：按 MODULE_MAP/PROJECT_CHARTER 定向提取 old logicaltunnel/raw-IP/TUN 中的 IPv4 source anti-spoof 最小语义，并把 lease source validation 接到 active leased TunnelOwner 的业务 packet ingress/egress owner 边界；要求业务IPv4 source必须等于该Tunnel lease，非IPv4/错误source fail-closed，且不迁移旧netns/raw gateway/CLI。保持多个BusinessFlow复用既有lane，不改Game竞速，不提前接完整platform runtime或P5/P7。",
+  "latest_log": "docs/devlog/20260920-095400-p4-logical-identity-lease-actions-pass.md",
+  "last_tested_source_sha": "9f35f885b56194612f240c14bb802b6650dd7d6c",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -312,6 +313,13 @@
       "scope": "P4-stable-identity-lease-pre-pcap-drain",
       "status": "FAIL",
       "note": "repository-contract PASS；Windows unit/build PASS；Ubuntu unit/build/race PASS；tlsrecord directed fuzz/reference PASS。P2 kernel Go test TestKernelTLSFallbackVerifiedHTTPAndNormalClose PASS 1.24s，但pcap check FAIL：13 packets captured / 58 received by filter / 0 kernel drop，未捕获>=0.5s same-sequence server retransmission。成功路径协议测试后立即SIGINT tcpdump，1s drain只在trap cleanup分支，故本SHA整体不能作为产品资格。Artifacts: foundation 10595839630；tlsrecord-reference 10596400801；p2-kernel-fallback 10595609985（无summary，zip内kernel test/pcap/stderr）。"
+    },
+    {
+      "source_sha": "9f35f885b56194612f240c14bb802b6650dd7d6c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35482460272",
+      "scope": "P4-stable-identity-lease-final",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；tlsrecord directed fuzz/reference PASS；P2 kernel fallback Go test PASS 1.24s，连续pcap 29 packets captured / 58 received by filter / 0 kernel drop，既有pcap analyzer PASS。该SHA包含stable Installation/TunnelID/IPv4 lease manager、leased TunnelOwner/admission TunnelID binding，以及仅在协议测试结束后执行的bounded 1s tcpdump drain修复；未放宽pcap门槛、未改变产品发送时序。Artifacts: foundation 10595804831；tlsrecord-reference 10596470906；p2-kernel-fallback 10596650535。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -337,7 +345,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: stable identity/lease 产品单测/race已在 977eeb... PASS，但该SHA因P2 pcap成功路径无drain而整体FAIL；已准备qualification harness bounded drain修复，等待新精确SHA",
+    "P4": "IN_PROGRESS: stable logical identity/lease 已在 SOURCE_SHA 9f35f885b56194612f240c14bb802b6650dd7d6c / Actions 35482460272 PASS；下一步 source anti-spoof / lease packet binding；logical-flow lane reuse已PASS，padding生产默认off",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
