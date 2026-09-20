@@ -34,12 +34,13 @@
     "P4子任务：Linux server shared-TUN hosted platform core 通过Actions；shared registry直接绑定leased TunnelOwner，按lease /32 demux Normal/Game，exact rebind stale-token fencing，Linux TUN primitive与WBD-owned route/FORWARD/NAT/sysctl/DNS-unchanged plan均通过跨平台unit/race",
     "P4子任务：Linux privileged shared-TUN runtime executor 通过Actions；GitHub-hosted ubuntu root netns 中真实 /dev/net/tun + route/sysctl + iptables/nft WBD-owned FORWARD/NAT apply/cleanup 双backend均PASS，两个lease registry smoke与既有DROP policy保留",
     "P4子任务：Windows Wintun client platform core 通过Actions；单Wintun L3 adapter、IPv4-only TUN边界、stable lease /32排他、underlay /32锁物理path、full IPv4 capture/direct routes、NRPT DNS、device-wide IPv6 fail-closed与state-owned cleanup完成hosted Windows资格",
-    "P4子任务：Windows Npcap/physical underlay hosted core 通过Actions；Windows IP Helper物理NIC/next-hop发现、server /32与Npcap同源path、exact four-tuple BPF+用户态过滤、source-port/peer/MAC绑定、owned ingress、generation fencing与有界shutdown均完成hosted Windows compile/mock资格，真实Npcap/NIC物理资格仍NOT_RUN"
+    "P4子任务：Windows Npcap/physical underlay hosted core 通过Actions；Windows IP Helper物理NIC/next-hop发现、server /32与Npcap同源path、exact four-tuple BPF+用户态过滤、source-port/peer/MAC绑定、owned ingress、generation fencing与有界shutdown均完成hosted Windows compile/mock资格，真实Npcap/NIC物理资格仍NOT_RUN",
+    "P4子任务：OpenWrt IPv4 TCP/UDP TPROXY kernel ownership 通过Actions；真实root netns中dedicated nft TPROXY、fwmark policy route、local route、TCP/UDP IP_TRANSPARENT capture、server underlay双协议bypass、state-conflict fail-closed、foreign-state preservation与owned-only cleanup全部PASS，IPv6明确NOT_IMPLEMENTED"
   ],
-  "in_progress": "P4 OpenWrt TPROXY third candidate SOURCE_SHA 79ac8ee9a9bb69f5569208cebd96ebdc4f13a00e / Actions 35494040188：repository-contract PASS，explicit `tproxy ip` 修复有效，真实netns中的 nft table、fwmark policy rule、local route 已成功 Apply。OpenWrt gate随后只在 harness 的 local-route存在断言FAIL：内核/iproute2把 `ip route add local 0.0.0.0/0 dev lo table 1066` 规范化显示为 `local default dev lo scope host`，测试却只匹配字面 `local 0.0.0.0/0 dev lo`。这是fixture断言过严，产品runtime无新失败；TCP/UDP capture断言尚未执行。修复仅接受两种等价route显示，不改TPROXY plan/runtime。",
-  "next_task": "提交 OpenWrt privileged route-display assertion 修复并读取新 exact SOURCE_SHA Actions。79ac8ee9... / run 35494040188 保留为 fixture FAIL；新SHA必须继续越过kernel ownership assertion并实际执行 TCP/UDP transparent capture、underlay bypass、state conflict、foreign-state preservation、owned cleanup与cleanup后普通路由恢复。",
-  "latest_log": "docs/devlog/20260920-160000-p4-openwrt-route-display-fixture-fix.md",
-  "last_tested_source_sha": "1ec7d667564a8e0f26a3afb811cb89eb484ea5dd",
+  "in_progress": "P4 OpenWrt IPv4 TPROXY ownership 已在 SOURCE_SHA 5018dc2f417f195f8b1210e5f50208db7a8ba3ca / Actions 35494105026 完整通过。7 jobs全部PASS：repository-contract；Windows 2022 unit/build + Wintun Render + Npcap hosted contract；Ubuntu unit/build/race/fuzz/reference；P2 kernel fallback连续pcap；Linux privileged shared-TUN iptables+nft；新增OpenWrt privileged root-netns。OpenWrt gate真实安装 inet wbd_tproxy + fwmark rule + local route，IP_TRANSPARENT TCP/UDP listener均捕获远端目标；配置的underlay IPv4对TCP/UDP绕过；第二Runtime因state conflict拒绝；Close保留foreign nft table/ip rule并只清WBD state；cleanup后普通TCP/UDP路由恢复。marker为 WBD_P4_OPENWRT_TPROXY_PASS tcp=1 udp=1 underlay_bypass=1 cleanup=owned-only ipv6=NOT_IMPLEMENTED。",
+  "next_task": "P4 下一原子任务：透明 TCP/UDP socket ingress -> 已有 leased TunnelOwner 的单进程适配。定向读取 old/cmd/wbd-platform-proxy-openwrt、old/cmd/wbd-platform-proxy-server 及其TCP/UDP/full-cone/hairpin测试，只提取业务流语义：TCP连接边界、UDP original-destination/session key、EIM/EIF所需bounded mapping、source/destination ownership、shutdown/idle expiry。直接调用现有 TunnelOwner/BusinessFlow Normal/Game API，不恢复127.0.0.1 UDP bridge、DTLS shim、子进程控制面或旧platform proxy进程拓扑。先做hosted socket adapter/unit/race和Linux root-netns最小真实socket contract；OpenWrt IPv6仍NOT_IMPLEMENTED。",
+  "latest_log": "docs/devlog/20260920-162000-p4-openwrt-tproxy-actions-pass.md",
+  "last_tested_source_sha": "5018dc2f417f195f8b1210e5f50208db7a8ba3ca",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -425,6 +426,13 @@
       "scope": "P4-openwrt-tproxy-pre-route-display-fixture-fix",
       "status": "FAIL",
       "note": "repository-contract PASS；explicit IPv4 nft TPROXY syntax修复有效，OpenRuntime已成功创建dedicated nft table、fwmark policy rule和local route。privileged test随后在assertKernelOwnership失败：`ip -4 route show table 1066`输出`local default dev lo scope host`，fixture只接受`local 0.0.0.0/0 dev lo`。这是iproute2 canonical display差异；尚未执行TCP/UDP capture断言，不能给出数据行为结论。artifact 10599892602，zip digest sha256:7e257f61fee7b5cbad62c7439192af4d032f167c6bd5de1539ee5854fb37dd29。产品runtime不变，只放宽为两个等价route显示。"
+    },
+    {
+      "source_sha": "5018dc2f417f195f8b1210e5f50208db7a8ba3ca",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35494105026",
+      "scope": "P4-openwrt-tproxy-ownership-final",
+      "status": "PASS",
+      "note": "Run attempt 1 completed/success，7 jobs全部PASS。p4-openwrt-tproxy-privileged真实root-netns PASS并输出 `WBD_P4_OPENWRT_TPROXY_PASS tcp=1 udp=1 underlay_bypass=1 cleanup=owned-only ipv6=NOT_IMPLEMENTED`；dedicated nft table、fwmark rule、local route、TCP/UDP IP_TRANSPARENT capture、underlay bypass、second-runtime state conflict、foreign nft/ip-rule preservation、owned cleanup及cleanup后direct routing均由同一Go privileged test覆盖。Windows unit/build + Wintun/Npcap contracts PASS；Ubuntu unit/build/race/fuzz/reference PASS；P2 kernel fallback PASS（1.24s，29 captured / 58 received by filter / 0 dropped，analyzer PASS）；Linux shared-TUN iptables+nft PASS。Artifacts: OpenWrt 10600436689 digest sha256:8c4963953fd77ae443951ee67660999142dc40aacaf3506c0bec81f08b121b65；foundation 10599807832；tlsrecord-reference 10599463359；P2 10599503348；shared-TUN iptables 10599742963；nft 10600381872。IPv6 TPROXY仍NOT_IMPLEMENTED。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -451,7 +459,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding、Linux shared-TUN privileged runtime、Windows Wintun、Windows Npcap hosted underlay均精确SHA Actions PASS；OpenWrt IPv4 TCP/UDP TPROXY ownership candidate 已实现，等待 exact-SHA root-netns Actions；其后接透明socket ingress到TunnelOwner并统一runtime收口。",
+    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding、Linux shared-TUN privileged runtime、Windows Wintun、Windows Npcap hosted underlay、OpenWrt IPv4 TCP/UDP TPROXY ownership均精确SHA Actions PASS；下一步透明TCP/UDP socket ingress直接适配TunnelOwner，之后统一runtime收口。",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
