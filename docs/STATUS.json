@@ -33,12 +33,13 @@
     "P4子任务：tunnel-owner production padding budget（默认off、per-record cap、tunnel-wide ratio/total cap、Normal/Game共享预算）通过Actions；Game/FEC放大不重复赚useful credit，replacement/DORMANT/wake不重置预算",
     "P4子任务：Linux server shared-TUN hosted platform core 通过Actions；shared registry直接绑定leased TunnelOwner，按lease /32 demux Normal/Game，exact rebind stale-token fencing，Linux TUN primitive与WBD-owned route/FORWARD/NAT/sysctl/DNS-unchanged plan均通过跨平台unit/race",
     "P4子任务：Linux privileged shared-TUN runtime executor 通过Actions；GitHub-hosted ubuntu root netns 中真实 /dev/net/tun + route/sysctl + iptables/nft WBD-owned FORWARD/NAT apply/cleanup 双backend均PASS，两个lease registry smoke与既有DROP policy保留",
-    "P4子任务：Windows Wintun client platform core 通过Actions；单Wintun L3 adapter、IPv4-only TUN边界、stable lease /32排他、underlay /32锁物理path、full IPv4 capture/direct routes、NRPT DNS、device-wide IPv6 fail-closed与state-owned cleanup完成hosted Windows资格"
+    "P4子任务：Windows Wintun client platform core 通过Actions；单Wintun L3 adapter、IPv4-only TUN边界、stable lease /32排他、underlay /32锁物理path、full IPv4 capture/direct routes、NRPT DNS、device-wide IPv6 fail-closed与state-owned cleanup完成hosted Windows资格",
+    "P4子任务：Windows Npcap/physical underlay hosted core 通过Actions；Windows IP Helper物理NIC/next-hop发现、server /32与Npcap同源path、exact four-tuple BPF+用户态过滤、source-port/peer/MAC绑定、owned ingress、generation fencing与有界shutdown均完成hosted Windows compile/mock资格，真实Npcap/NIC物理资格仍NOT_RUN"
   ],
-  "in_progress": "P4 Npcap/physical Windows underlay hosted-core candidate 已提交实现边界：Windows IP Helper 选择到 server IPv4 的最长前缀/最低metric物理接口并解析 next-hop MAC；同一 immutable observation 同时生成现有 Wintun NetworkPlan 的 server /32 physical path 与 faketcp NpcapConfig。Npcap adapter 使用 pcap_open_live、Ethernet DLT、MODE_SENDTORX_CLEAR、pcap_compile+pcap_setfilter exact inbound four-tuple BPF、用户态二次flow/fragment校验、owned packet copy、pcap_sendpacket、source-port/peer/MAC绑定、generation fencing 与 close/breakloop/active-call drain。该candidate只声明 hosted compile/mock contract；真实 Npcap driver、管理员 NIC capture/injection 和物理链路仍 NOT_RUN。",
-  "next_task": "读取本次 P4 Windows Npcap hosted-core candidate exact SOURCE_SHA 的 next-foundation Actions；Windows/Linux unit/build、Windows targeted Npcap/PhysicalUnderlay contract、Linux race/fuzz/reference、P2 kernel fallback、Linux privileged shared-TUN 必须逐项核实。若 hosted Windows 无 Npcap driver，不尝试物理资格；全部通过后新增 evidence closure，并继续 OpenWrt platform glue / TPROXY ownership。",
-  "latest_log": "docs/devlog/20260920-132000-p4-windows-npcap-hosted-core.md",
-  "last_tested_source_sha": "eb7d0850b4f50f0d2de06c3d6523a72182c3444b",
+  "in_progress": "P4 Windows Npcap hosted core 已在 SOURCE_SHA 1ec7d667564a8e0f26a3afb811cb89eb484ea5dd / Actions 35493372121 完整通过 hosted core/adapter 资格。6 jobs 全PASS：repository-contract；Windows 2022 unit/build + Wintun route render + targeted Npcap/PhysicalUnderlay contract；Ubuntu unit/build/race/fuzz/reference；P2 kernel fallback连续pcap；Linux privileged shared-TUN iptables+nft。Windows日志明确输出 WBD_WINDOWS_NPCAP_HOSTED_CORE_PASS physical=NOT_RUN。真实wpcap driver、Administrator、physical NIC capture/injection、真实Wintun管理员Apply仍未运行，physical_status保持NOT_RUN。",
+  "next_task": "P4 下一原子任务：OpenWrt platform glue / TPROXY ownership 最小闭包。定向读取 old/scripts/openwrt_tproxy.sh、openwrt_tcp_tproxy_netns.sh、openwrt_udp_tproxy_netns.sh、openwrt_udp_hairpin_netns.sh、openwrt_fullstack_one_shot.sh 及相关旧workflow；只提取 WBD-owned TPROXY/策略路由/firewall/bypass/cleanup 语义到 active 单进程入口并接 TunnelOwner，不迁移旧 localhost UDP、DTLS shim、Controller/process topology。先做纯plan和Linux root-netns privileged Actions，覆盖TCP/UDP、server underlay防递归、owned-only cleanup，再决定统一runtime接线。",
+  "latest_log": "docs/devlog/20260920-151000-p4-windows-npcap-actions-pass.md",
+  "last_tested_source_sha": "1ec7d667564a8e0f26a3afb811cb89eb484ea5dd",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -396,13 +397,20 @@
       "scope": "P4-windows-wintun-platform-core-final",
       "status": "PASS",
       "note": "Hosted Windows platform-core/contract qualification. repository-contract PASS；Windows 2022 internal/windowsclient unit/build PASS；PowerShell Render contract PASS with WBD_WINDOWS_CLIENT_PLAN, UNDERLAY server /32, ADDRESS_EXCLUSIVE lease /32, DNS_NRPT namespace='.', IPV6_FAIL_CLOSED and CLEANUP state_owned_only markers；Ubuntu unit/build/race/fuzz/reference PASS；P2 kernel fallback PASS（1.24s, pcap 29 captured / 58 received by filter / 0 kernel drop）；Linux privileged shared-TUN iptables+nft regression PASS。Artifacts: foundation 10598966009；tlsrecord-reference 10597799038；p2-kernel-fallback 10597753963；linux privileged iptables 10599080822；linux privileged nft 10597709133。真实wintun.dll/admin route/firewall与Npcap raw underlay未在本atom执行。"
+    },
+    {
+      "source_sha": "1ec7d667564a8e0f26a3afb811cb89eb484ea5dd",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35493372121",
+      "scope": "P4-windows-npcap-hosted-core-final",
+      "status": "PASS",
+      "note": "Hosted core/adapter qualification only；run attempt 1 completed/success，6 jobs全部PASS。Windows 2022整仓unit/build PASS；既有Wintun Render contract PASS并输出 WBD_WINDOWS_CLIENT_PLAN / UNDERLAY 198.51.100.10/32 / ADDRESS_EXCLUSIVE / DNS_NRPT / IPV6_FAIL_CLOSED / CLEANUP；新增targeted Npcap/PhysicalUnderlay contract PASS并输出 WBD_WINDOWS_NPCAP_HOSTED_CORE_PASS physical=NOT_RUN。Ubuntu unit/build/race/fuzz/reference PASS；P2 kernel fallback PASS（TestKernelTLSFallbackVerifiedHTTPAndNormalClose 1.24s；28 packets captured / 56 received by filter / 0 dropped，pcap analyzer PASS）；Linux privileged shared-TUN iptables+nft PASS。Artifacts: foundation 10599402708；tlsrecord-reference 10599921615；p2-kernel-fallback 10599339989；iptables 10600395602；nft 10600220880。未执行真实Npcap driver/physical NIC，因此不是PHYSICAL_PASS。"
     }
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
     "已识别WBD仍由本地Go TLS 1.3 server握手；Firefox120是固定客户端persona，不是当前浏览器模板。recognized路径不协商ALPN；真实TLS 1.3 ticket由stdlib生成，但resumption显式拒绝且无0-RTT。P2不证明ServerHello/cipher/curve/扩展/证书链/握手长度与分段等与指定借用网站完整指纹一致。",
     "Linux hosted raw-loopback普通内核TCP/TLS fallback、证书验证、HTTP、正常关闭和连续pcap已在P2精确SOURCE_SHA通过；这不替代P7物理Windows/Npcap网卡资格。",
-    "P2仅提取Linux最小RawIPv4Endpoint用于hosted真实网络资格；完整Windows/Npcap、TUN和产品平台I/O仍属P4/P7。",
+    "P4 Windows Npcap physical-underlay adapter 已在 SOURCE_SHA 1ec7d667564a8e0f26a3afb811cb89eb484ea5dd 取得 hosted Windows compile/mock资格；真实 Npcap driver、管理员物理NIC capture/injection 仍未运行，不能替代 P7 物理资格。",
     "TLS 1.3 ticket策略已在P2收口；lease/installation ID/CLI及完整产品入口仍属后续P4。",
     "P3 LINK/FEC全固定挡位/统一MTU/session-owner/显式record padding均已由精确SOURCE_SHA hosted Actions通过；padding生产默认0/off，P4每包+累计策略预算和P5真实HTTPS外观/成本验收尚未进行",
     "尚无可运行client/server完整网络产品入口",
@@ -421,7 +429,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding、Linux shared-TUN privileged runtime、Windows Wintun platform core均精确SHA Actions PASS；下一步Npcap/physical Windows underlay，之后OpenWrt与统一runtime收口",
+    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding、Linux shared-TUN privileged runtime、Windows Wintun platform core、Windows Npcap hosted underlay core均精确SHA Actions PASS；physical Windows/Npcap仍NOT_RUN；下一步OpenWrt TPROXY/策略路由 ownership，之后统一runtime收口。",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
