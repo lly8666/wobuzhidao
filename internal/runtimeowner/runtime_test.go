@@ -109,8 +109,8 @@ func runtimeIPv4(src, dst netip.Addr, payload []byte) []byte {
 }
 
 func transportPair(clientEmit, serverEmit faketcp.SegmentEmitter, lane uint8, base uint32) (TransportConfig, TransportConfig) {
-	clientPort := uint16(40000 + lane)
-	serverPort := uint16(440 + lane)
+	clientPort := uint16(40000) + uint16(lane)
+	serverPort := uint16(440) + uint16(lane)
 	clientIP := [4]byte{192, 0, 2, 10}
 	serverIP := [4]byte{198, 51, 100, 20}
 	client := TransportConfig{
