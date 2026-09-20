@@ -31,9 +31,9 @@
     "P4子任务：IPv4 lease source anti-spoof 接 leased TunnelOwner client-outbound/server-inbound owner boundary，通过Actions；错误source/IPv6/malformed fail-closed且不消耗客户端PN，server解封后再次校验",
     "P4子任务：Game PacketID racing/dedupe 接 TunnelOwner/Lane active API，通过Actions；Game=2/3/4，同一PacketID多lane竞速、首次有效到达交付、其余去重、unique乱序无HOL，PacketID/dedupe跨replacement与DORMANT/wake保持"
   ],
-  "in_progress": "P4 Game PacketID racing/dedupe owner API 已在 SOURCE_SHA 7a32b425b66e1018bc536cd3af8bd8e621ed38ce / Actions 35484254427 完整通过。repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；directed fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS。active internal/gamelane 固定WGL1 32-byte envelope、16-byte SessionID=stable TunnelID、uint64 tunnel-wide PacketID、bounded first-arrival dedupe；TunnelOwner GameOutbound 对当前authoritative lanes fan-out同PacketID lane-distinct copies，每lane独立LINK/FEC/record，client source fence在PacketID分配前；GameInboundPayload 先generation/session/LaneID与server lease source校验，再提交共享dedupe，错误source/错误LaneID不能毒死合法同ID副本。PacketID/dedupe state跨same-ID replacement与DORMANT/wake保留；业务flow增长不创建lane。P4仍未关闭，owner-level production padding budget与platform入口仍待后续。",
-  "next_task": "P4 下一原子任务：按 DEVELOPMENT_PLAN 的P4 padding职责，对照当前 internal/datapath PaddingRequest/Stats、pathmtu headroom 与 P3 已通过的显式padding能力，加入 tunnel-owner 级可选生产padding预算策略，但默认必须off。策略同时限制每record最大padding与累计 padding/有效业务payload 比例/总量；额度不足立即选择0、不等待、不凑包。Normal多个BusinessFlow共享同一tunnel预算；Game一个logical packet的有效业务字节只能记一次，2/3/4 lane副本、FEC/parity/repair不得重复赚取padding额度；replacement/DORMANT/wake保持预算语义，padding不得创建lane或刷新payload idle。先不接CLI/platform配置、不做P5流量外观结论。",
-  "latest_log": "docs/devlog/20260920-103500-p4-game-packetid-actions-pass.md",
+  "in_progress": "P4 tunnel-owner production padding budget 原子任务已实现，等待自己的精确 SOURCE_SHA Actions。新增 TunnelPaddingPolicy：零值/default严格off；启用时固定 BytesPerRecord 作为per-record hard cap，并同时受 tunnel-wide MaxPaddingBytes 与 MaxPaddingRatioPPM(useful logical payload)约束；任何 record 的MTU headroom或累计额度不足都立即选择0，不等待、不凑包、不新增record。策略必须在首条transport attach前配置，运行中不可重置预算。Lane新增owner-only逐record padding selector/reservation/finalize，在LINK/FEC已形成record后依据精确headroom原子预留tunnel额度，seal成功才计实际padding，失败释放reservation。Normal sibling BusinessFlow共用同一预算；Game每个logical packet只按原始业务packet长度记一次useful bytes，2/3/4 lane copies和FEC/parity只消耗额度、不重复赚credit。same-ID replacement、DORMANT/wake不清padding state。未接CLI/platform配置，未新增payload-idle逻辑，未做P5流量外观结论。",
+  "next_task": "等待本次 P4 tunnel-owner production padding budget 产品提交的精确 SOURCE_SHA GitHub Actions。若失败读取具体job logs，只修本atomic scope并保留FAIL证据；若全部成功，记录精确SHA/run/jobs/artifacts做evidence closure，再重新读取STATUS决定下一P4 platform/runtime原子任务。",
+  "latest_log": "docs/devlog/20260920-110500-p4-owner-padding-budget.md",
   "last_tested_source_sha": "7a32b425b66e1018bc536cd3af8bd8e621ed38ce",
   "actions": [
     {
@@ -368,7 +368,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: stable identity/lease、lease IPv4 source anti-spoof、Game PacketID racing/dedupe均已精确SHA Actions PASS；下一步tunnel-owner production padding budget（默认off），之后platform入口仍待接",
+    "P4": "IN_PROGRESS: stable identity/lease、lease source anti-spoof、Game PacketID racing/dedupe均已PASS；tunnel-owner production padding budget已实现等待精确SOURCE_SHA Actions；CLI/platform入口仍未接",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }

@@ -48,7 +48,8 @@ type TunnelOwnerStats struct {
 	GameDuplicates      uint64
 	GameStale           uint64
 	GameLaneMismatches  uint64
-	Dormant            bool
+	Padding             TunnelPaddingStats
+	Dormant             bool
 	Closed             bool
 }
 
@@ -85,6 +86,7 @@ type TunnelOwner struct {
 	generationDiscards uint64
 	sourceDiscards     uint64
 	game               *gameTunnelState
+	padding            tunnelPaddingState
 	closed             bool
 }
 
@@ -177,7 +179,13 @@ func (f *BusinessFlow) Outbound(packet []byte, now time.Time) ([]WireRecord, err
 			return nil, err
 		}
 	}
-	records, err := binding.lane.Outbound(packet, now)
+	selector := f.owner.paddingSelectorForPayload(len(packet))
+	var records []WireRecord
+	if selector == nil {
+		records, err = binding.lane.Outbound(packet, now)
+	} else {
+		records, err = binding.lane.outboundWithPaddingSelector(packet, now, selector)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -492,6 +500,7 @@ func (o *TunnelOwner) Stats() TunnelOwnerStats {
 		out.GameStale = o.game.stale
 		out.GameLaneMismatches = o.game.laneMismatches
 	}
+	out.Padding = o.paddingStatsLocked()
 	return out
 }
 

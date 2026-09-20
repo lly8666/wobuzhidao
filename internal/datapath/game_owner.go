@@ -112,6 +112,7 @@ func (o *TunnelOwner) GameOutbound(packet []byte, now time.Time) (GameOutboundRe
 	for i, id := range ids {
 		bindings[i] = o.active[id]
 	}
+	selector := o.paddingSelectorForPayloadLocked(len(packet))
 	state.logicalOutbound++
 	state.laneCopies += uint64(len(copies))
 	o.mu.Unlock()
@@ -126,7 +127,12 @@ func (o *TunnelOwner) GameOutbound(packet []byte, now time.Time) (GameOutboundRe
 			out.Failures = append(out.Failures, GameLaneFailure{Ref: binding.ref, Err: ErrGameLaneMismatch})
 			continue
 		}
-		records, err := binding.lane.Outbound(copy.Wire, now)
+		var records []WireRecord
+		if selector == nil {
+			records, err = binding.lane.Outbound(copy.Wire, now)
+		} else {
+			records, err = binding.lane.outboundWithPaddingSelector(copy.Wire, now, selector)
+		}
 		if err != nil {
 			out.Failures = append(out.Failures, GameLaneFailure{Ref: binding.ref, Err: err})
 			continue

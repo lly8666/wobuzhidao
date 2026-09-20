@@ -56,6 +56,15 @@ type PaddingRequest struct {
 	Bytes int
 }
 
+type paddingSelection struct {
+	requested int
+	bytes     int
+	skipped   bool
+	finish    func(success bool)
+}
+
+type paddingSelector func(headroom int) (paddingSelection, error)
+
 type WireRecord struct {
 	PN           uint64
 	PaddingBytes int
@@ -210,6 +219,19 @@ func (l *Lane) RxBudget() pathmtu.Budget {
 	return l.rxBudget
 }
 
+func (l *Lane) rejectInvalidPadding(request PaddingRequest) error {
+	if request.Bytes >= 0 {
+		return nil
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.closed {
+		return ErrLaneClosed
+	}
+	l.stats.PaddingRejected++
+	return tlsrecord.ErrInvalidPadding
+}
+
 // Outbound owns all returned wire bytes. It preserves the production-default
 // padding=0 path and uses tlsrecord.Seal, so existing zero-padding vectors stay
 // byte-for-byte unchanged. A caller may retain a WireRecord and retransmit its
@@ -218,30 +240,36 @@ func (l *Lane) Outbound(packet []byte, now time.Time) ([]WireRecord, error) {
 	return l.outbound(packet, now, nil)
 }
 
-// OutboundWithPadding is the explicit owner policy hook. The requested value is
+// OutboundWithPadding is the explicit P3 padding API. The fixed request is
 // evaluated independently for each already-formed LINK/FEC record payload.
 // Insufficient headroom selects zero immediately; no wait, extra record,
 // fragment, timer, or FEC change is introduced.
 func (l *Lane) OutboundWithPadding(packet []byte, now time.Time, request PaddingRequest) ([]WireRecord, error) {
-	return l.outbound(packet, now, &request)
+	if err := l.rejectInvalidPadding(request); err != nil {
+		return nil, err
+	}
+	return l.outbound(packet, now, fixedPaddingSelector(request))
 }
 
-func (l *Lane) outbound(packet []byte, now time.Time, request *PaddingRequest) ([]WireRecord, error) {
+// outboundWithPaddingSelector is the P4 owner hook. The selector runs once per
+// already-formed record payload after exact MTU headroom is known. It may reserve
+// tunnel-wide budget and receives a success/failure finalizer after sealing.
+func (l *Lane) outboundWithPaddingSelector(packet []byte, now time.Time, selector paddingSelector) ([]WireRecord, error) {
+	return l.outbound(packet, now, selector)
+}
+
+func (l *Lane) outbound(packet []byte, now time.Time, selector paddingSelector) ([]WireRecord, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.closed {
 		return nil, ErrLaneClosed
-	}
-	if request != nil && request.Bytes < 0 {
-		l.stats.PaddingRejected++
-		return nil, tlsrecord.ErrInvalidPadding
 	}
 	wire, err := l.txPath.Encode(packet, now)
 	if err != nil {
 		return nil, err
 	}
 	l.stats.OutboundDatagrams++
-	return l.sealLocked(wire, request)
+	return l.sealLocked(wire, selector)
 }
 
 func (l *Lane) FlushDue(now time.Time) ([]WireRecord, error) {
@@ -249,24 +277,23 @@ func (l *Lane) FlushDue(now time.Time) ([]WireRecord, error) {
 }
 
 func (l *Lane) FlushDueWithPadding(now time.Time, request PaddingRequest) ([]WireRecord, error) {
-	return l.flushDue(now, &request)
+	if err := l.rejectInvalidPadding(request); err != nil {
+		return nil, err
+	}
+	return l.flushDue(now, fixedPaddingSelector(request))
 }
 
-func (l *Lane) flushDue(now time.Time, request *PaddingRequest) ([]WireRecord, error) {
+func (l *Lane) flushDue(now time.Time, selector paddingSelector) ([]WireRecord, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.closed {
 		return nil, ErrLaneClosed
 	}
-	if request != nil && request.Bytes < 0 {
-		l.stats.PaddingRejected++
-		return nil, tlsrecord.ErrInvalidPadding
-	}
 	wire, err := l.txPath.FlushDue(now)
 	if err != nil {
 		return nil, err
 	}
-	return l.sealLocked(wire, request)
+	return l.sealLocked(wire, selector)
 }
 
 func (l *Lane) Flush() ([]WireRecord, error) {
@@ -274,73 +301,122 @@ func (l *Lane) Flush() ([]WireRecord, error) {
 }
 
 func (l *Lane) FlushWithPadding(request PaddingRequest) ([]WireRecord, error) {
-	return l.flush(&request)
+	if err := l.rejectInvalidPadding(request); err != nil {
+		return nil, err
+	}
+	return l.flush(fixedPaddingSelector(request))
 }
 
-func (l *Lane) flush(request *PaddingRequest) ([]WireRecord, error) {
+func (l *Lane) flush(selector paddingSelector) ([]WireRecord, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.closed {
 		return nil, ErrLaneClosed
 	}
-	if request != nil && request.Bytes < 0 {
-		l.stats.PaddingRejected++
-		return nil, tlsrecord.ErrInvalidPadding
-	}
 	wire, err := l.txPath.Flush()
 	if err != nil {
 		return nil, err
 	}
-	return l.sealLocked(wire, request)
+	return l.sealLocked(wire, selector)
 }
 
-func (l *Lane) sealLocked(datagrams [][]byte, request *PaddingRequest) ([]WireRecord, error) {
+func fixedPaddingSelector(request PaddingRequest) paddingSelector {
+	return func(headroom int) (paddingSelection, error) {
+		if request.Bytes > headroom {
+			return paddingSelection{requested: request.Bytes, skipped: true}, nil
+		}
+		return paddingSelection{requested: request.Bytes, bytes: request.Bytes}, nil
+	}
+}
+
+func (l *Lane) sealLocked(datagrams [][]byte, selector paddingSelector) ([]WireRecord, error) {
 	if len(datagrams) == 0 {
 		return nil, nil
 	}
-	paddings := make([]int, len(datagrams))
+	selections := make([]paddingSelection, len(datagrams))
+	cancelPending := func(from int) {
+		for i := from; i < len(selections); i++ {
+			if selections[i].finish != nil {
+				selections[i].finish(false)
+				selections[i].finish = nil
+			}
+		}
+	}
+
+	var requestedBytes uint64
 	var skips uint64
 	for i, datagram := range datagrams {
 		if len(datagram) > l.txBudget.RecordPayloadMTU {
+			cancelPending(0)
 			return nil, fmt.Errorf("%w: payload=%d record_payload_mtu=%d",
 				ErrRecordOversize, len(datagram), l.txBudget.RecordPayloadMTU)
 		}
-		if request == nil {
+		if selector == nil {
 			continue
 		}
 		headroom, err := l.txBudget.PaddingHeadroom(len(datagram))
 		if err != nil {
+			cancelPending(0)
 			return nil, err
 		}
-		if request.Bytes > headroom {
-			paddings[i] = 0
-			skips++
-			continue
+		selection, err := selector(headroom)
+		if err != nil {
+			cancelPending(0)
+			return nil, err
 		}
-		paddings[i] = request.Bytes
+		if selection.requested < 0 || selection.bytes < 0 || selection.bytes > selection.requested || selection.bytes > headroom {
+			if selection.finish != nil {
+				selection.finish(false)
+			}
+			cancelPending(0)
+			l.stats.PaddingRejected++
+			return nil, tlsrecord.ErrInvalidPadding
+		}
+		selections[i] = selection
+		if selection.requested > 0 {
+			requestedBytes += uint64(selection.requested)
+		}
+		if selection.skipped {
+			skips++
+		}
 	}
 
 	out := make([]WireRecord, 0, len(datagrams))
 	var appliedBytes uint64
 	var paddedRecords uint64
 	for i, datagram := range datagrams {
-		padding := paddings[i]
+		selection := selections[i]
+		padding := selection.bytes
 		var (
 			wire []byte
 			pn   uint64
 			err  error
 		)
-		if request == nil {
+		if selector == nil {
 			wire, pn, err = l.sealer.Seal(datagram)
 		} else {
 			wire, pn, err = l.sealer.SealWithPadding(datagram, padding)
 		}
 		if err != nil {
+			if selection.finish != nil {
+				selection.finish(false)
+				selections[i].finish = nil
+			}
+			cancelPending(i + 1)
 			return nil, err
 		}
 		if len(wire) > l.txBudget.RecordWireMTU {
+			if selection.finish != nil {
+				selection.finish(false)
+				selections[i].finish = nil
+			}
+			cancelPending(i + 1)
 			return nil, fmt.Errorf("%w: wire=%d record_wire_mtu=%d",
 				ErrRecordOversize, len(wire), l.txBudget.RecordWireMTU)
+		}
+		if selection.finish != nil {
+			selection.finish(true)
+			selections[i].finish = nil
 		}
 		out = append(out, WireRecord{
 			PN:           pn,
@@ -353,11 +429,9 @@ func (l *Lane) sealLocked(datagrams [][]byte, request *PaddingRequest) ([]WireRe
 			paddedRecords++
 		}
 	}
-	if request != nil {
+	if selector != nil {
 		l.stats.PaddingRequests += uint64(len(datagrams))
-		if request.Bytes > 0 {
-			l.stats.RequestedPaddingBytes += uint64(request.Bytes) * uint64(len(datagrams))
-		}
+		l.stats.RequestedPaddingBytes += requestedBytes
 		l.stats.PaddingBudgetSkips += skips
 		l.stats.PaddingBytes += appliedBytes
 		l.stats.PaddedRecords += paddedRecords
