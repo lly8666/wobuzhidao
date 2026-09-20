@@ -28,9 +28,9 @@
     "P3关闭：LINK fragmentation/reassembly、FEC off+20:4/8/10/12/16/20、统一MTU、lane-owned session/datapath、显式有界record padding全部取得精确SOURCE_SHA Actions资格",
     "P4子任务：logicaltunnel最小lifecycle/policy + 有界TunnelOwner/BusinessFlow registry，多业务复用既有Normal lane、generation fencing、DORMANT/wake与6过渡/10物理上限通过Actions"
   ],
-  "in_progress": "P4 stable Logical Tunnel identity/lease 原子任务已实现：active logicaltunnel 提取 InstallationID/TunnelID、IPv4 lease Manager 与 account+installation identity isolation；同一 active identity 重取同一 TunnelID+/32 lease，同账户不同 installation 及不同账户同 installation 均隔离，release 后地址可复用但新 TunnelID；TunnelID 以固定16-byte active类型对接 protected admission raw TunnelID。datapath 新增 leased TunnelOwner 与 leased admission handoff：owner 在任何 lane membership 前锁定 lease TunnelID，跨 installation admission/lane fail-closed；rotation/DORMANT/wake 不改变 lease，多个 BusinessFlow 继续复用现有 lane。本实现尚未取得自己的精确 SOURCE_SHA Actions 资格，当前不得标 PASS；last_tested_source_sha 保持上一真实通过的 P4 logical-flow SHA。",
-  "next_task": "等待本次 P4 stable identity/lease 产品提交的精确 SOURCE_SHA GitHub Actions。若失败，读取具体 job logs，仅修本 atomic task 并保留 FAIL 证据；若顶层 completed/success 且相关 jobs 全部成功，则记录精确 SHA/run/jobs/artifacts 完成本原子任务证据 closure，再按最新 STATUS 继续 P4（优先 source anti-spoof/lease packet binding，再接 Game/platform，不提前进入P5/P7）。",
-  "latest_log": "docs/devlog/20260920-094400-p4-logical-identity-lease.md",
+  "in_progress": "P4 stable identity/lease 产品代码在 SOURCE_SHA 977eeb0b30c4f23f60b17dba8241752811706aa0 的 repository-contract、Windows unit/build、Linux unit/build/race/fuzz/reference 均 PASS；P2 kernel Go测试本身 PASS 1.24s，但连续pcap资格失败：tcpdump只落盘13包、filter收到58包、kernel drop=0，未捕获>=0.5s同Seq重传。日志确认成功路径在协议测试后立即SIGINT tcpdump，已有1s drain只存在trap cleanup而未用于成功路径，属于qualification harness capture-drain缺口；产品identity/lease代码无运行期失败证据。已准备仅workflow+状态文档的 bounded 1s capture-drain 修复，等待该新精确SHA Actions。",
+  "next_task": "等待 capture-drain 修复提交自己的精确 SOURCE_SHA GitHub Actions。必须同时确认 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference 与 P2 kernel fallback/pcap 全部成功；若仍失败读取新日志，不盲重跑。通过后把 stable identity/lease 原子任务锚定到该精确SHA并做证据 closure，再继续 P4 source anti-spoof/lease packet binding。",
+  "latest_log": "docs/devlog/20260920-095200-p4-identity-pcap-drain-fix.md",
   "last_tested_source_sha": "7994d1a2656079e4a27f6a5ddc4c7ad9b619488f",
   "actions": [
     {
@@ -305,6 +305,13 @@
       "scope": "P4-logical-flow-lane-reuse",
       "status": "PASS",
       "note": "repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build PASS；Linux race PASS；tlsrecord directed fuzz PASS；独立 tools/tlsrecordvector PASS；P2 kernel fallback连续pcap回归 PASS。P4专项覆盖多个业务flow共用一个Normal lane/共享PN、flow close隔离、bounded flow registry且业务增长不增加lane、same-ID candidate replacement与late old generation丢弃、candidate failure保持旧lane、DORMANT/wake新generation、FEC profile按incarnation immutable、1..4 logical lane、最多6个退休/过渡余量、最多10个物理incarnation、BusinessFlow默认padding off、32并发flow由race覆盖。Artifacts: foundation 10595875377；tlsrecord-reference 10594968224；p2-kernel-fallback 10595800613。"
+    },
+    {
+      "source_sha": "977eeb0b30c4f23f60b17dba8241752811706aa0",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35482353963",
+      "scope": "P4-stable-identity-lease-pre-pcap-drain",
+      "status": "FAIL",
+      "note": "repository-contract PASS；Windows unit/build PASS；Ubuntu unit/build/race PASS；tlsrecord directed fuzz/reference PASS。P2 kernel Go test TestKernelTLSFallbackVerifiedHTTPAndNormalClose PASS 1.24s，但pcap check FAIL：13 packets captured / 58 received by filter / 0 kernel drop，未捕获>=0.5s same-sequence server retransmission。成功路径协议测试后立即SIGINT tcpdump，1s drain只在trap cleanup分支，故本SHA整体不能作为产品资格。Artifacts: foundation 10595839630；tlsrecord-reference 10596400801；p2-kernel-fallback 10595609985（无summary，zip内kernel test/pcap/stderr）。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -330,7 +337,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: stable Installation/TunnelID/IPv4 lease manager + leased owner/admission binding 已实现，等待精确 SOURCE_SHA Actions；上一 logical-flow lane reuse 已 PASS，padding生产默认off",
+    "P4": "IN_PROGRESS: stable identity/lease 产品单测/race已在 977eeb... PASS，但该SHA因P2 pcap成功路径无drain而整体FAIL；已准备qualification harness bounded drain修复，等待新精确SHA",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
