@@ -32,12 +32,13 @@
     "P4子任务：Game PacketID racing/dedupe 接 TunnelOwner/Lane active API，通过Actions；Game=2/3/4，同一PacketID多lane竞速、首次有效到达交付、其余去重、unique乱序无HOL，PacketID/dedupe跨replacement与DORMANT/wake保持",
     "P4子任务：tunnel-owner production padding budget（默认off、per-record cap、tunnel-wide ratio/total cap、Normal/Game共享预算）通过Actions；Game/FEC放大不重复赚useful credit，replacement/DORMANT/wake不重置预算",
     "P4子任务：Linux server shared-TUN hosted platform core 通过Actions；shared registry直接绑定leased TunnelOwner，按lease /32 demux Normal/Game，exact rebind stale-token fencing，Linux TUN primitive与WBD-owned route/FORWARD/NAT/sysctl/DNS-unchanged plan均通过跨平台unit/race",
-    "P4子任务：Linux privileged shared-TUN runtime executor 通过Actions；GitHub-hosted ubuntu root netns 中真实 /dev/net/tun + route/sysctl + iptables/nft WBD-owned FORWARD/NAT apply/cleanup 双backend均PASS，两个lease registry smoke与既有DROP policy保留"
+    "P4子任务：Linux privileged shared-TUN runtime executor 通过Actions；GitHub-hosted ubuntu root netns 中真实 /dev/net/tun + route/sysctl + iptables/nft WBD-owned FORWARD/NAT apply/cleanup 双backend均PASS，两个lease registry smoke与既有DROP policy保留",
+    "P4子任务：Windows Wintun client platform core 通过Actions；单Wintun L3 adapter、IPv4-only TUN边界、stable lease /32排他、underlay /32锁物理path、full IPv4 capture/direct routes、NRPT DNS、device-wide IPv6 fail-closed与state-owned cleanup完成hosted Windows资格"
   ],
-  "in_progress": "P4 Windows Wintun platform core product SHA db2c990bfbc3efcb6e2b13b96471bd760df8a458 / Actions 35489839173 在 repository-contract 阶段FAIL，产品jobs均未运行。根因仅为 REUSE_LEDGER 一条 destination 错误地用分号写了两个active路径，违反ledger单destination约束；不是Windows代码或PowerShell失败。修复仅拆成两个source相同、destination各自单一路径的ledger entries，Windows产品源码/workflow byte-identical，等待新exact SHA Actions。",
-  "next_task": "等待 REUSE_LEDGER contract 修复提交的 exact SOURCE_SHA Actions；db2c990b... / run 35489839173 保留为repository-contract FAIL证据。新SHA必须执行Windows/Linux unit/build、Windows PowerShell Render、Linux race/fuzz/reference、P2与Linux privileged iptables/nft回归。",
-  "latest_log": "docs/devlog/20260920-125000-p4-windows-reuse-ledger-contract-fix.md",
-  "last_tested_source_sha": "a2cf881445f0efb4dcca87663074d594894db6ff",
+  "in_progress": "P4 Windows Wintun platform core 已在 SOURCE_SHA eb7d0850b4f50f0d2de06c3d6523a72182c3444b / Actions 35489890541 完整通过 hosted Windows core/contract 资格。repository-contract PASS；Windows 2022 internal/windowsclient unit/build PASS，PowerShell Render contract PASS并输出 WBD_WINDOWS_CLIENT_PLAN / UNDERLAY / ADDRESS_EXCLUSIVE / DNS_NRPT / IPV6_FAIL_CLOSED / CLEANUP markers；Ubuntu unit/build/race/fuzz/reference PASS；P2 kernel fallback/pcap PASS；Linux privileged shared-TUN iptables+nft回归PASS。active Windows core保留单Wintun L3 adapter、TUN read非IPv4 fail-closed、TUN->owner source==lease、owner->Wintun destination==lease、lease /32排他、server underlay /32与direct prefixes锁已观测物理path、full IPv4 capture /1 routes、DNS resolver capture+WBD-owned NRPT namespace='.'、device-wide IPv6 ::/1+8000::/1双向block、state-owned precise cleanup。不迁移旧Controller/Game child/DTLS orchestration。该PASS仍未执行真实wintun.dll管理员route/firewall，也未接Npcap physical raw underlay。",
+  "next_task": "P4 下一原子任务：Npcap/physical Windows underlay 最小闭包。定向读取 old/internal/windowsruntime/underlay_native_windows.go、underlay_npcap_test.go、underlay_path.go、old/cmd/wbd-faketcp/main_windows.go 与 physical Npcap workflows/releasecontract；只提取单进程 active raw FakeTCP underlay 所需的物理NIC/interface selection、Npcap open/send/receive/filter、source-port/peer path绑定、ingress ownership与shutdown语义，接现有 faketcp/realityfront/lane owner，不迁移旧 Controller/Game child/DTLS/process orchestration。先做Windows可编译/mock adapter与Actions contract；若GitHub-hosted runner无Npcap driver则明确 hosted core/adapter PASS，真实Npcap物理机资格留P7/专用runner。保持当前Wintun route plan里的server /32锁物理path，防止capture route递归。",
+  "latest_log": "docs/devlog/20260920-130500-p4-windows-wintun-actions-pass.md",
+  "last_tested_source_sha": "eb7d0850b4f50f0d2de06c3d6523a72182c3444b",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -388,6 +389,13 @@
       "scope": "P4-windows-wintun-pre-reuse-ledger-fix",
       "status": "FAIL",
       "note": "repository-contract FAIL before product qualification: check_repository reported `Invalid reuse destination`. Root cause was one REUSE_LEDGER entry using `internal/windowsclient/network_plan.go; scripts/windows_client_network.ps1` as a multi-path destination. active-go-tests and P2 were skipped. Product Windows code/workflow were not evaluated. Foundation artifact 10598508350. Fix is ledger-only: split into two single-destination entries."
+    },
+    {
+      "source_sha": "eb7d0850b4f50f0d2de06c3d6523a72182c3444b",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35489890541",
+      "scope": "P4-windows-wintun-platform-core-final",
+      "status": "PASS",
+      "note": "Hosted Windows platform-core/contract qualification. repository-contract PASS；Windows 2022 internal/windowsclient unit/build PASS；PowerShell Render contract PASS with WBD_WINDOWS_CLIENT_PLAN, UNDERLAY server /32, ADDRESS_EXCLUSIVE lease /32, DNS_NRPT namespace='.', IPV6_FAIL_CLOSED and CLEANUP state_owned_only markers；Ubuntu unit/build/race/fuzz/reference PASS；P2 kernel fallback PASS（1.24s, pcap 29 captured / 58 received by filter / 0 kernel drop）；Linux privileged shared-TUN iptables+nft regression PASS。Artifacts: foundation 10598966009；tlsrecord-reference 10597799038；p2-kernel-fallback 10597753963；linux privileged iptables 10599080822；linux privileged nft 10597709133。真实wintun.dll/admin route/firewall与Npcap raw underlay未在本atom执行。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -413,7 +421,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: Windows Wintun core implemented; first candidate blocked only by REUSE_LEDGER schema before product tests. Ledger-only fix prepared.",
+    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding、Linux shared-TUN privileged runtime、Windows Wintun platform core均精确SHA Actions PASS；下一步Npcap/physical Windows underlay，之后OpenWrt与统一runtime收口",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
