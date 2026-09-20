@@ -44,9 +44,9 @@
     "P5第一原子任务关闭：受控真实HTTPS fullstack hosted measurement base 在 SOURCE_SHA 043da6298a2be091b55fb470b63c69e605bb61d8 / Actions 35516700104 取得 8/8 PASS。两个独立真实TLS+HTTP flow复用同一正式 outer FakeTCP+TLS/protected-admission Normal lane；保存 raw DLT_RAW IPv4 PCAP、outer packet/TLS-like record/HTTPS flow JSONL、manifest/summary/test.log，并由 exact-SHA 独立validator确认 flows=2、outer_connections=1、FEC=off、padding=off。P5 artifact 10606459773，sha256:8eda8c0f3ec2df0bf08afd1d771c251a2800a6fcd881df0c14a73a67c84fb66f。",
     "P5第二原子任务关闭：platformflow TCP close-tail/concurrent-retire 生命周期在 SOURCE_SHA a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f / Actions 35520092389 取得 8/8 PASS。5s/4096 bounded retired FlowID tombstone + handler已持有flow指针后的closed幂等 + 单业务flow本地socket关闭错误隔离，使第一条真实HTTPS完整Connection: close/TLS close且client/server TCPFlows归零后，第二条独立HTTPS仍在同一outer lane成功；validator确认两个distinct business FlowID、sequential_close=pass、outer SYN仍为1。"
   ],
-  "in_progress": "P5 第三原子任务第二候选仅做资格重试，产品/harness 实现相对 82b391408cb61703e69dc4ed1db3eae9d8671004 不变。首候选 Actions 35522085204 为 7/8 PASS：strengthened P5 full→resumed gate、repository-contract、Windows、Ubuntu unit/race/fuzz/reference、OpenWrt、Linux shared-TUN iptables/nft 均 PASS；只有未修改的 P2 kernel fallback 在 `TestKernelTLSFallbackVerifiedHTTPAndNormalClose` 约10秒后 `unexpected EOF`。P2 artifact 10608672257 已保留。因本 atom 与 P2 代码/workflow 无交集，本候选不修改 P2，只记录失败证据并以新 SOURCE_SHA 重跑完整资格。",
-  "next_task": "对第二候选 SOURCE_SHA 重跑完整 next-foundation。必须同 SHA 看到8/8 PASS，并继续要求 P5 marker/validator `handshakes=full,resumed`、真实session cache put/hit、sequential_close=pass。若 P2 再次失败，再基于两次独立 raw evidence 判断是否存在可复现 P2 缺口；在此之前不为一次 unrelated privileged runtime EOF 扩大当前 atom。",
-  "latest_log": "docs/devlog/20260921-002500-p5-full-resumed-qualification-retry.md",
+  "in_progress": "P5 第三原子任务第三候选待 exact-SHA Actions。第二候选 e0650911ed2268c5b2f0744006016de924ea462d / Actions 35522232171 为 7/8 PASS，仅 P5 gate 在业务开始前 0.00s 报 `server platformflow service missing before HTTPS flows`；P2 本轮恢复 PASS（1.24s、29 captured、0 dropped），Windows/Linux race及所有平台门均PASS。失败根因是 harness 在 DialClient 返回后立即读取 server.byTunnel/service，与server admission goroutine安装service存在readiness race。第三候选只新增条件驱动的 server-tunnel/service readiness wait：1ms ticker、2s绝对deadline，ready即立即返回；发生在 recorder.markSteady 前，不是固定sleep、不改变产品传输或业务测量时序。full→resumed/session-cache逻辑本身不变。",
+  "next_task": "对第三候选 SOURCE_SHA 跑完整 next-foundation。要求8/8同SHA PASS，P5继续输出 `sequential_close=pass handshakes=full,resumed` 并证明session cache put/hit。若失败只修当前handshake measurement atom；通过前 last_tested_source_sha 仍保持 a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f。",
+  "latest_log": "docs/devlog/20260921-003000-p5-handshake-readiness-fix.md",
   "last_tested_source_sha": "a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f",
   "actions": [
     {
@@ -566,6 +566,13 @@
       "scope": "P5-full-resumed-handshake-first-candidate",
       "status": "FAIL",
       "note": "Run attempt 1 completed/failure，8 jobs 中 7 PASS。P5 strengthened gate PASS：validator marker `flows=2 outer_connections=1 sequential_close=pass handshakes=full,resumed fec=off padding=off`；P5 artifact 10609066398，21065 bytes，sha256:441630efa8e5c0b9c1a86032de21c2acc34f7c6597631f9b121f2b7c90847623。repository-contract、Windows active-go-tests、Ubuntu active-go-tests+race+directed fuzz/reference、OpenWrt privileged、Linux shared-TUN iptables/nft全部PASS。唯一失败为未修改 P2 kernel fallback：`TestKernelTLSFallbackVerifiedHTTPAndNormalClose` 运行约10s后 kernel_fallback_linux_test.go:318 `unexpected EOF`；P2 artifact 10608672257，5072 bytes，sha256:16bfe37f4bd696e51d83cfee9c929548948ea9f24f562def7a981869e8e891da。当前候选变更文件仅 P5 measurement test、P5 validator、STATUS/devlog，不含 P2 产品代码/workflow，因此本 atom 不修改 P2，生成新SHA做完整资格重试。"
+    },
+    {
+      "source_sha": "e0650911ed2268c5b2f0744006016de924ea462d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35522232171",
+      "scope": "P5-full-resumed-handshake-second-candidate",
+      "status": "FAIL",
+      "note": "Run attempt 1 completed/failure，8 jobs 中7 PASS，仅 p5-https-measurement-base FAIL。P5 在进入任何inner HTTPS flow前 0.00s 失败：`p5_https_measurement_test.go:492: server platformflow service missing before HTTPS flows`；失败 artifact 10609261179，sha256:01a3bc4b10456fab88cfed495a315a4c5841cb71ba83133575b551f7df255a23。根因是测试直接读取 server.byTunnel/service，与server admission goroutine安装service存在readiness race；不是full/resumed协议失败。P2 kernel fallback 本轮 PASS 1.24s，29 packets captured/58 filter/0 dropped，artifact 10609166459 sha256:da9fe54bf57475e73da6b56836673be4b5c41bbf0226134eb8de0635a3252208；repository-contract、Windows、Ubuntu unit/race/fuzz/reference、OpenWrt、shared-TUN iptables/nft全部PASS。第三候选仅在 markSteady 前增加有界条件等待，不用固定sleep。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -596,6 +603,6 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "IN_PROGRESS: measurement base 与 close-tail 已资格；full-vs-resumed 首候选 82b39140… 的 P5 gate 已 PASS，但整轮因 unrelated P2 privileged runtime EOF 为7/8。第二候选不改实现，仅记录失败证据并重跑 exact-SHA 全门。证书链、弱网/负载/长测、FEC固定挡位后续分别推进。"
+    "P5": "IN_PROGRESS: measurement base 与 close-tail 已资格；full-vs-resumed atom 首候选P5 gate PASS但整轮P2 EOF，第二候选P2恢复PASS而P5暴露server service readiness race。第三候选只修harness readiness同步，产品传输/full-resumed逻辑不变。"
   }
 }

@@ -485,12 +485,7 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 		}
 	}()
 
-	server.mu.Lock()
-	serverTunnel := server.byTunnel[tunnelID]
-	server.mu.Unlock()
-	if serverTunnel == nil || serverTunnel.service == nil {
-		t.Fatal("server platformflow service missing before HTTPS flows")
-	}
+	serverTunnel := waitP5ServerTunnelReady(t, server, tunnelID, 2*time.Second)
 
 	recorder.markSteady()
 	initialRef := client.Ref()
@@ -734,5 +729,25 @@ func assertNoP5ClientRuntimeError(t *testing.T, client *Client, stage string) {
 	case err := <-client.Errors():
 		t.Fatalf("client runtime error %s: %v", stage, err)
 	default:
+	}
+}
+
+
+func waitP5ServerTunnelReady(t *testing.T, server *Server, tunnelID logicaltunnel.TunnelID, timeout time.Duration) *serverTunnel {
+	t.Helper()
+	deadline := time.Now().Add(timeout)
+	ticker := time.NewTicker(time.Millisecond)
+	defer ticker.Stop()
+	for {
+		server.mu.Lock()
+		tunnel := server.byTunnel[tunnelID]
+		server.mu.Unlock()
+		if tunnel != nil && tunnel.service != nil {
+			return tunnel
+		}
+		if !time.Now().Before(deadline) {
+			t.Fatal("server platformflow service did not become ready before HTTPS measurement")
+		}
+		<-ticker.C
 	}
 }
