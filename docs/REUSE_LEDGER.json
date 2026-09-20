@@ -264,7 +264,25 @@
       "destination": ".github/workflows/next-foundation.yml",
       "behavior_changes": "Reuse only the archived evidence that ubuntu-24.04 GitHub-hosted runners can modprobe tun and run root network namespaces. The active gate is much smaller and targets the new in-process linuxserver runtime: two parallel backend jobs (iptables,nft), one isolated namespace each, no archived DTLS/faketcp subprocess stack, and no per-client namespaces. The gate distinguishes real privileged TUN/netfilter execution from ordinary hosted unit tests.",
       "tests": "Each matrix job builds the internal/linuxserver test binary, verifies /dev/net/tun, applies the runtime inside a temporary netns, registers two logical tunnel leases, exercises owner/shared-TUN packet boundaries, closes the runtime, then asserts no WBD TUN/firewall marker remains and the pre-existing forward DROP policy is preserved."
+    },
+    {
+      "source": "old/internal/tunnel/tun_windows.go",
+      "destination": "internal/windowsclient/tun_windows.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract the single Wintun L3 adapter primitive: open-or-create WBD adapter, start one bounded ring session, close-wakeup fencing, receive/release, send allocation with bounded scheduler backoff, and fail-closed non-IPv4 receive filtering before bytes enter the active dataplane. Remove all old process/controller coupling. A !windows stub is explicit unsupported.",
+      "tests": "internal/windowsclient/router_test.go covers the platform packet boundary; Windows Actions compile the real syscall/LazyDLL implementation while Linux compiles the explicit stub. The physical Wintun DLL/admin gate remains deferred."
+    },
+    {
+      "source": "old/scripts/windows_tun_route.ps1",
+      "destination": "internal/windowsclient/network_plan.go; scripts/windows_client_network.ps1",
+      "behavior_changes": "Extract only the final route ownership semantics needed by the new single-process client: stable lease must be an exclusive IPv4 /32 on Wintun; server underlay /32 is pinned to an already-observed physical interface/next-hop before broad capture; optional direct prefixes stay on that physical path; full IPv4 capture is the two /1 routes; DNS resolver /32s are captured and ordinary DNS is steered by one WBD-owned NRPT namespace='.' rule. Apply persists WBD ownership before creation and Cleanup removes only recorded objects. CN bundle/split classifier/controller subprocess orchestration are not migrated.",
+      "tests": "internal/windowsclient/network_plan_test.go validates the normalized plan/PowerShell args; script_contract_test.go checks ownership guards; Windows next-foundation executes the Render action in PowerShell and asserts underlay/address/DNS/IPv6/cleanup markers."
+    },
+    {
+      "source": "old/scripts/windows_ipv6_killswitch.ps1",
+      "destination": "scripts/windows_client_network.ps1",
+      "behavior_changes": "Preserve device-wide IPv6 fail-closed semantics while IPv6 tunneling is unimplemented: exact ::/1 and 8000::/1 inbound/outbound block rules, exact WBD group/description ownership, and refusal to connect when any Windows Firewall profile is disabled rather than silently changing user global policy. Cleanup removes only WBD-owned rules.",
+      "tests": "script_contract_test.go requires both IPv6 /1 ranges and exact ownership markers; the Windows PowerShell Render gate emits IPV6_FAIL_CLOSED. Administrator-level firewall mutation remains a later physical Windows gate."
     }
   ],
-  "note": "P4 Linux shared-TUN core is already hosted-qualified at 3d1c3831fb7726971ee8d52a076800a07af36d5f. Current candidate adds the actual privileged runtime executor and dual-backend root smoke to next-foundation. It still does not restore per-user netns/veth/double NAT or the archived multi-process stack."
+  "note": "Linux privileged shared-TUN is qualified. Current candidate adds Windows Wintun client platform core and PowerShell route/DNS/IPv6 ownership contract. It deliberately stops before Npcap physical raw underlay and before administrator-level Wintun/route/firewall qualification."
 }

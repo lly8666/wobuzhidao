@@ -34,9 +34,9 @@
     "P4子任务：Linux server shared-TUN hosted platform core 通过Actions；shared registry直接绑定leased TunnelOwner，按lease /32 demux Normal/Game，exact rebind stale-token fencing，Linux TUN primitive与WBD-owned route/FORWARD/NAT/sysctl/DNS-unchanged plan均通过跨平台unit/race",
     "P4子任务：Linux privileged shared-TUN runtime executor 通过Actions；GitHub-hosted ubuntu root netns 中真实 /dev/net/tun + route/sysctl + iptables/nft WBD-owned FORWARD/NAT apply/cleanup 双backend均PASS，两个lease registry smoke与既有DROP policy保留"
   ],
-  "in_progress": "P4 Linux server hosted privileged platform gate 已在 SOURCE_SHA a2cf881445f0efb4dcca87663074d594894db6ff / Actions 35488614508 完整通过。repository-contract PASS；Windows unit/build PASS；Ubuntu unit/build/race/fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS；新增 p4-linux-shared-tun-privileged 的 iptables 与 nft 两个 matrix job 均真实 root PASS。两backend均在独立network namespace中modprobe tun、打开 /dev/net/tun、创建wbdg0、配置lease route与sysctl、安装WBD-owned forwarding/NAT、注册2条Logical Tunnel lease并执行owner/TUN边界smoke；Close后wbdg0/route/marker消失且预置FORWARD/nft policy DROP保持。该资格是GitHub-hosted privileged Linux平台PASS，但仍不是P7物理机长期/性能/故障资格。",
-  "next_task": "P4 下一原子任务：按 MODULE_MAP 定向提取 Windows client Wintun + lease/route/DNS/IPv6 fail-closed 最小 platform core。读取 old/internal/tunnel/tun_windows.go、old/scripts/windows_tun_route.ps1、old/scripts/windows_ipv6_killswitch.ps1 与直接tests/imports；active目标是一条Wintun L3 adapter承载当前Logical Tunnel lease，客户端TUN read只接受IPv4并在owner source fence前送入Normal/Game，owner解封回包写Wintun；定义只拥有WBD创建的address/capture/direct/underlay routes与NRPT DNS规则的apply/cleanup state，稳定lease /32在adapter上排他， underlay server /32锁到物理route防递归，IPv6在未实现代理前device-wide fail-closed。先做Windows可编译/可mock的platform core与PowerShell command/state contract，不迁移旧多进程Controller/Game child/DTLS orchestration；Npcap physical underlay作为下一独立atom。",
-  "latest_log": "docs/devlog/20260920-123500-p4-linux-privileged-runtime-actions-pass.md",
+  "in_progress": "P4 Windows client Wintun + lease/route/DNS/IPv6 fail-closed platform core 已实现，等待 exact SOURCE_SHA Actions。新增 internal/windowsclient：Windows-only Wintun L3 adapter（Open/Create、session ring、Read/Write/Close，Read在复制到active dataplane前丢弃非IPv4）与 !windows unsupported stub；Router 绑定单个stable Logical Tunnel lease，TUN->owner先 strict IPv4/source==lease 后按desired=1 NormalOutbound、2/3/4 GameOutbound，owner->Wintun 再要求destination==lease，均不创建BusinessFlow/lane。NetworkPlan要求lease严格/32，underlay server /32锁到已观测物理ifindex+next-hop，Full capture使用0.0.0.0/1+128.0.0.0/1，显式Direct4走物理route，DNS upstream /32也capture并用NRPT namespace='.'；IPv6在未实现代理前设备级双向fail-closed，使用::/1+8000::/1两段且只拥有WBD exact firewall group/description。新增 scripts/windows_client_network.ps1，Render无需管理员；Apply/Cleanup只对state记录的WBD address/routes/NRPT以及exact IPv6 marker做事务式清理，Windows Firewall profile关闭时拒绝连接。Npcap raw underlay仍未接。",
+  "next_task": "等待本次 P4 Windows Wintun platform core 产品提交的 exact SOURCE_SHA GitHub Actions；要求 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference、P2 kernel fallback、Linux privileged iptables/nft回归继续PASS，并且Windows active-go-tests新增 PowerShell Render contract PASS。若失败只修本atomic scope并保留FAIL；若全部通过做evidence closure，明确这是Windows compile/mock/script-render core资格，不是Wintun.dll/Npcap物理管理员资格；随后进入Npcap physical underlay最小atom。",
+  "latest_log": "docs/devlog/20260920-124500-p4-windows-wintun-platform-core.md",
   "last_tested_source_sha": "a2cf881445f0efb4dcca87663074d594894db6ff",
   "actions": [
     {
@@ -406,7 +406,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: Tunnel/Game/source/padding与Linux server shared-TUN hosted privileged runtime均精确SHA PASS；下一步Windows Wintun route/DNS/IPv6 client platform core，Npcap physical underlay随后，OpenWrt后置",
+    "P4": "IN_PROGRESS: Linux server hosted privileged gate PASS；Windows Wintun/lease-route-DNS/IPv6 fail-closed platform core已实现等待Actions；Npcap physical underlay与OpenWrt随后",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }

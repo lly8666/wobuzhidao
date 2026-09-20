@@ -71,6 +71,19 @@ jobs:
           test -n "$packages"
           go test ./... -count=1
           go build ./...
+      - name: Windows client route DNS IPv6 render contract
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $out = & .\scripts\windows_client_network.ps1 -Action Render -AdapterAlias WBD -TunnelAddress4 10.66.0.7/32 -Underlay4 198.51.100.10 -PhysicalInterfaceIndex 12 -PhysicalNextHop4 192.0.2.1 -DNSServer '1.1.1.1,8.8.8.8' -DirectPrefix4 '203.0.113.0/24' -StatePath "$env:RUNNER_TEMP\wbd-route-state.json"
+          $text = $out -join [Environment]::NewLine
+          Write-Host $text
+          foreach ($marker in @('WBD_WINDOWS_CLIENT_PLAN','UNDERLAY 198.51.100.10/32','ADDRESS_EXCLUSIVE 10.66.0.7/32','DNS_NRPT namespace=.','IPV6_FAIL_CLOSED','CLEANUP state_owned_only=1')) {
+            if ($text -notmatch [regex]::Escape($marker)) {
+              throw "missing Windows client render marker: $marker"
+            }
+          }
+
       - name: Race
         if: runner.os == 'Linux'
         run: go test -race ./... -count=1
