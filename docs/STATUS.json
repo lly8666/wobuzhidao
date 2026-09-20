@@ -31,12 +31,13 @@
     "P4子任务：IPv4 lease source anti-spoof 接 leased TunnelOwner client-outbound/server-inbound owner boundary，通过Actions；错误source/IPv6/malformed fail-closed且不消耗客户端PN，server解封后再次校验",
     "P4子任务：Game PacketID racing/dedupe 接 TunnelOwner/Lane active API，通过Actions；Game=2/3/4，同一PacketID多lane竞速、首次有效到达交付、其余去重、unique乱序无HOL，PacketID/dedupe跨replacement与DORMANT/wake保持",
     "P4子任务：tunnel-owner production padding budget（默认off、per-record cap、tunnel-wide ratio/total cap、Normal/Game共享预算）通过Actions；Game/FEC放大不重复赚useful credit，replacement/DORMANT/wake不重置预算",
-    "P4子任务：Linux server shared-TUN hosted platform core 通过Actions；shared registry直接绑定leased TunnelOwner，按lease /32 demux Normal/Game，exact rebind stale-token fencing，Linux TUN primitive与WBD-owned route/FORWARD/NAT/sysctl/DNS-unchanged plan均通过跨平台unit/race"
+    "P4子任务：Linux server shared-TUN hosted platform core 通过Actions；shared registry直接绑定leased TunnelOwner，按lease /32 demux Normal/Game，exact rebind stale-token fencing，Linux TUN primitive与WBD-owned route/FORWARD/NAT/sysctl/DNS-unchanged plan均通过跨平台unit/race",
+    "P4子任务：Linux privileged shared-TUN runtime executor 通过Actions；GitHub-hosted ubuntu root netns 中真实 /dev/net/tun + route/sysctl + iptables/nft WBD-owned FORWARD/NAT apply/cleanup 双backend均PASS，两个lease registry smoke与既有DROP policy保留"
   ],
-  "in_progress": "P4 Linux privileged shared-TUN runtime executor 在 SOURCE_SHA 5d7a05de5ee58535e2463cff9593234a5e7b9f03 / Actions 35488488384 已真正创建并执行全部6个job。repository-contract、Windows unit/build、Ubuntu unit/build/race/fuzz/reference、P2 kernel fallback均PASS；iptables与nft privileged jobs都成功安装工具、modprobe tun、build测试并进入真实runtime apply，但在同一test断言失败：`ip -4 route show 10.66.0.0/16 dev wbdg0` 已返回 `10.66.0.0/16 scope link`，证明dev过滤下route存在，但测试额外要求输出文本含`wbdg0`，iproute2在该过滤输出中省略接口名。该FAIL是test-harness assertion，不是runtime apply失败。修复只移除多余interface-name文本断言，仍由命令本身的`dev wbdg0`过滤保证route绑定；Go runtime产品代码不变，等待新exact SHA Actions。",
-  "next_task": "等待 privileged test assertion 修复提交自己的 exact SOURCE_SHA Actions；必须看到两个 backend 都继续穿过 route 检查并完成 firewall/sysctl/registry/cleanup assertions，且全部基础jobs保持PASS。5d7a05de... / run 35488488384 保留为 dual-backend privileged test-harness FAIL。",
-  "latest_log": "docs/devlog/20260920-122500-p4-linux-runtime-route-assert-fix.md",
-  "last_tested_source_sha": "3d1c3831fb7726971ee8d52a076800a07af36d5f",
+  "in_progress": "P4 Linux server hosted privileged platform gate 已在 SOURCE_SHA a2cf881445f0efb4dcca87663074d594894db6ff / Actions 35488614508 完整通过。repository-contract PASS；Windows unit/build PASS；Ubuntu unit/build/race/fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS；新增 p4-linux-shared-tun-privileged 的 iptables 与 nft 两个 matrix job 均真实 root PASS。两backend均在独立network namespace中modprobe tun、打开 /dev/net/tun、创建wbdg0、配置lease route与sysctl、安装WBD-owned forwarding/NAT、注册2条Logical Tunnel lease并执行owner/TUN边界smoke；Close后wbdg0/route/marker消失且预置FORWARD/nft policy DROP保持。该资格是GitHub-hosted privileged Linux平台PASS，但仍不是P7物理机长期/性能/故障资格。",
+  "next_task": "P4 下一原子任务：按 MODULE_MAP 定向提取 Windows client Wintun + lease/route/DNS/IPv6 fail-closed 最小 platform core。读取 old/internal/tunnel/tun_windows.go、old/scripts/windows_tun_route.ps1、old/scripts/windows_ipv6_killswitch.ps1 与直接tests/imports；active目标是一条Wintun L3 adapter承载当前Logical Tunnel lease，客户端TUN read只接受IPv4并在owner source fence前送入Normal/Game，owner解封回包写Wintun；定义只拥有WBD创建的address/capture/direct/underlay routes与NRPT DNS规则的apply/cleanup state，稳定lease /32在adapter上排他， underlay server /32锁到物理route防递归，IPv6在未实现代理前device-wide fail-closed。先做Windows可编译/可mock的platform core与PowerShell command/state contract，不迁移旧多进程Controller/Game child/DTLS orchestration；Npcap physical underlay作为下一独立atom。",
+  "latest_log": "docs/devlog/20260920-123500-p4-linux-privileged-runtime-actions-pass.md",
+  "last_tested_source_sha": "a2cf881445f0efb4dcca87663074d594894db6ff",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -373,6 +374,13 @@
       "scope": "P4-linux-privileged-runtime-pre-route-assert-fix",
       "status": "FAIL",
       "note": "Workflow parsed and all 6 jobs executed. repository-contract PASS; Windows unit/build PASS; Ubuntu unit/build/race/fuzz/reference PASS; P2 kernel fallback PASS. Both privileged iptables and nft jobs reached real shared-TUN runtime after /dev/net/tun setup and failed at the same route assertion: `ip -4 route show 10.66.0.0/16 dev wbdg0` returned `10.66.0.0/16 scope link`, but test additionally required literal `wbdg0` in filtered output. Artifacts: iptables 10597834100; nft 10598383332. Runtime product code is unchanged by the fixture-only correction."
+    },
+    {
+      "source_sha": "a2cf881445f0efb4dcca87663074d594894db6ff",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35488614508",
+      "scope": "P4-linux-privileged-runtime-final",
+      "status": "PASS",
+      "note": "All 6 jobs PASS. repository-contract; Windows unit/build; Ubuntu unit/build/race/fuzz/reference; P2 kernel fallback/continuous pcap; privileged shared-TUN iptables; privileged shared-TUN nft. Both privileged tests emitted WBD_P4_LINUX_SHARED_TUN_PASS with active_tunnels=2 cleanup=owned-only dns=host-dns-unchanged (iptables 0.08s, nft 0.12s). P2 kernel test PASS 1.24s; pcap 29 captured / 58 received by filter / 0 kernel drop. Artifacts: foundation 10597644172; tlsrecord-reference 10598128874; p2-kernel-fallback 10597659274; privileged iptables 10598437116; privileged nft 10597902454."
     }
   ],
   "physical_status": "NOT_RUN",
@@ -398,7 +406,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: Linux privileged runtime executes on both backends; first dual-backend gate exposed only an over-strict route-output assertion. Test-only fix prepared; runtime product code unchanged.",
+    "P4": "IN_PROGRESS: Tunnel/Game/source/padding与Linux server shared-TUN hosted privileged runtime均精确SHA PASS；下一步Windows Wintun route/DNS/IPv6 client platform core，Npcap physical underlay随后，OpenWrt后置",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
