@@ -42,6 +42,12 @@ type TunnelOwnerStats struct {
 	PhysicalLanes      int
 	GenerationDiscards uint64
 	SourceDiscards     uint64
+	GameLogicalOutbound uint64
+	GameLaneCopies      uint64
+	GameDelivered       uint64
+	GameDuplicates      uint64
+	GameStale           uint64
+	GameLaneMismatches  uint64
 	Dormant            bool
 	Closed             bool
 }
@@ -78,6 +84,7 @@ type TunnelOwner struct {
 
 	generationDiscards uint64
 	sourceDiscards     uint64
+	game               *gameTunnelState
 	closed             bool
 }
 
@@ -445,6 +452,7 @@ func (o *TunnelOwner) Close() {
 	clear(o.candidates)
 	clear(o.retiring)
 	clear(o.flows)
+	o.game = nil
 	o.closed = true
 	o.mu.Unlock()
 	closeLaneSet(lanes)
@@ -464,7 +472,7 @@ func (o *TunnelOwner) ActiveLanes() []TunnelLaneSnapshot {
 func (o *TunnelOwner) Stats() TunnelOwnerStats {
 	o.mu.Lock()
 	defer o.mu.Unlock()
-	return TunnelOwnerStats{
+	out := TunnelOwnerStats{
 		DesiredLanes:       o.desired,
 		BusinessFlows:      len(o.flows),
 		ActiveLogicalLanes: len(o.active),
@@ -476,6 +484,15 @@ func (o *TunnelOwner) Stats() TunnelOwnerStats {
 		Dormant:            len(o.active) == 0,
 		Closed:             o.closed,
 	}
+	if o.game != nil {
+		out.GameLogicalOutbound = o.game.logicalOutbound
+		out.GameLaneCopies = o.game.laneCopies
+		out.GameDelivered = o.game.delivered
+		out.GameDuplicates = o.game.duplicates
+		out.GameStale = o.game.stale
+		out.GameLaneMismatches = o.game.laneMismatches
+	}
+	return out
 }
 
 func (o *TunnelOwner) physicalLocked() int {

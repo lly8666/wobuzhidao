@@ -30,9 +30,9 @@
     "P4子任务：stable Account+Installation -> TunnelID/IPv4 lease identity、leased TunnelOwner 与 protected-admission TunnelID binding 通过Actions；同identity稳定lease、跨installation隔离、rotation/DORMANT/wake不换lease",
     "P4子任务：IPv4 lease source anti-spoof 接 leased TunnelOwner client-outbound/server-inbound owner boundary，通过Actions；错误source/IPv6/malformed fail-closed且不消耗客户端PN，server解封后再次校验"
   ],
-  "in_progress": "P4 IPv4 source anti-spoof / lease packet binding 原子任务已在 SOURCE_SHA 8d922df623305d169eee581ef02cea8dd6446a26 / Actions 35483525187 attempt 2 完整通过。repository-contract、Windows unit/build、Ubuntu unit/build/race、tlsrecord directed fuzz/reference、P2 kernel fallback/continuous pcap 均成功。产品语义：logicaltunnel.ValidateIPv4Source 要求well-formed IPv4、<=9000、合法IHL/total length且source==/32 lease；leased RoleClient BusinessFlow.Outbound 在Lane前验证，因此拒绝包不消耗PN/LINK/FEC/record状态；TunnelOwner.InboundPayload 对当前generation解封后在leased RoleServer再次验证source，错误datagram不交付并计入SourceDiscards；RoleClient receive方向不误拦互联网source。SOURCE_SHA d7ca5ce... 的首轮Windows/Linux unit FAIL（旧测试夹具仍传字符串）已保留；8d922df run attempt 1 唯一失败是hosted RawIPv4Endpoint Recvfrom一次EINTR，诊断后仅对同SHA失败P2 job targeted retry，attempt 2 PASS，产品代码未因该事件改变。P4仍未关闭；Game PacketID racing/dedupe owner API、platform入口和生产padding budget仍待后续。",
-  "next_task": "P4 下一原子任务：按 MODULE_MAP 定向读取 old/internal/gamelane、old/internal/gamepath 及直接 tests/imports，并对照当前 TunnelOwner/Lane owner API，提取最小 Game PacketID racing/dedupe active 闭包。保持 Game=2/3/4 authoritative logical lanes、同一业务PacketID可在多个现有lane竞速、首次有效到达交付其余去重、FEC仍lane-local、业务flow增长不创建lane；不得改成跨包条带化，不迁移旧独立game子进程/CLI，不提前接完整platform runtime或P5/P7。",
-  "latest_log": "docs/devlog/20260920-102000-p4-lease-source-fence-actions-pass.md",
+  "in_progress": "P4 Game PacketID racing/dedupe owner API 原子任务已实现，等待自己的精确 SOURCE_SHA Actions。active internal/gamelane 提取归档 WGL1 32-byte envelope：稳定16-byte SessionID、tunnel-wide uint64 PacketID、1..4 lane-distinct copies、bounded first-arrival replay/dedupe window、乱序unique无HOL。TunnelOwner 在 desired=2/3/4 时提供 GameOutbound/GameInboundPayload：Game SessionID直接绑定owner稳定TunnelID；每个业务packet只分配一个PacketID并fan-out到当前authoritative lanes，每lane继续独立LINK/FEC/record；client leased source fence发生在PacketID分配前；server在Game envelope/session/LaneID检查和lease source验证后才提交共享dedupe，伪造source/错误LaneID不能毒死合法同PacketID副本。PacketID/dedupe state跨same-ID replacement与DORMANT/wake保留；业务flow注册不创建lane。未迁移旧game UDP子进程/control/pacer/rawip metadata/CLI，不改成跨包条带化，不接platform runtime或P5/P7。",
+  "next_task": "等待本次 P4 Game PacketID racing/dedupe 产品提交的精确 SOURCE_SHA GitHub Actions。若失败，读取具体job logs，只修本atomic scope并保留FAIL证据；若完整通过，则记录SHA/run/jobs/artifacts做evidence closure，再重新读取STATUS决定下一P4原子任务。",
+  "latest_log": "docs/devlog/20260920-103000-p4-game-packetid-race.md",
   "last_tested_source_sha": "8d922df623305d169eee581ef02cea8dd6446a26",
   "actions": [
     {
@@ -360,7 +360,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: stable identity/lease与lease IPv4 source anti-spoof均已精确SHA Actions PASS；下一步按MODULE_MAP提取 Game PacketID racing/dedupe 并接新 owner API；platform/padding production policy仍未接",
+    "P4": "IN_PROGRESS: stable identity/lease、lease IPv4 source anti-spoof已PASS；Game PacketID racing/dedupe owner API已实现并等待精确SOURCE_SHA Actions；platform入口/padding production policy仍未接",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }

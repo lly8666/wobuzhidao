@@ -216,7 +216,25 @@
       "destination": "internal/datapath/tunnel_owner.go",
       "behavior_changes": "Adapt only the archived server-side post-decode source==lease fence into TunnelOwner.InboundPayload. The owner first validates the authoritative lane generation, decodes through the existing Lane, generation-fences completion, then on RoleServer leased owners drops each decoded inner datagram whose IPv4 source is not the lease and reports the error via PathErrors/SourceDiscards. Old raw-IP metadata, per-session netns/TUN and NAT runtime are not migrated.",
       "tests": "internal/datapath/tunnel_source_test.go sends a forged packet directly through a client Lane to bypass the client owner and proves the leased server owner drops it after decrypt/FEC/LINK decode; valid leased traffic is delivered and a retired generation is rejected before business delivery."
+    },
+    {
+      "source": "old/internal/gamelane/gamelane.go",
+      "destination": "internal/gamelane/gamelane.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract only the WGL1 Game data envelope and tunnel-wide PacketID first-arrival dedupe semantics: 32-byte header, 16-byte SessionID, uint64 PacketID, lane-distinct copies, 1..4 encoded LaneIDs, bounded replay state, duplicate suppression and out-of-order unique delivery without expected-ID HOL. Add the archived product default replay window 4096 as an active constant. Local UDP control, membership wire, pacer and subprocess runtime are not migrated.",
+      "tests": "internal/gamelane/gamelane_test.go covers one PacketID across four lane-distinct envelopes, first-arrival delivery with later lane copies deduplicated, out-of-order unique PacketIDs without HOL, bounded replay/stale rejection, wrong-session and invalid-lane/reserved-byte fail-closed behavior."
+    },
+    {
+      "source": "old/cmd/wbd-game-lane-client/main.go",
+      "destination": "internal/datapath/game_owner.go",
+      "behavior_changes": "Adapt only the archived client race fan-out into the single-process TunnelOwner. GameOutbound allocates one tunnel-wide PacketID and sends a lane-distinct copy through every currently authoritative Lane; candidate/retiring incarnations do not create a second PacketID namespace. Each Lane retains independent LINK/FEC/record state. Leased client IPv4 source validation happens before PacketID allocation or Lane mutation. No UDP loopback process, control socket, pacer, CLI or lane-address registry is migrated.",
+      "tests": "internal/datapath/game_owner_test.go covers 3-lane same-PacketID fan-out, one Lane outbound datagram per authoritative lane, first-arrival racing, unique PacketID out-of-order delivery, client source rejection before PacketID allocation, business-flow growth without lane growth, and PacketID continuity across same-ID replacement plus DORMANT/wake."
+    },
+    {
+      "source": "old/cmd/wbd-game-lane-server/main.go",
+      "destination": "internal/datapath/game_owner.go",
+      "behavior_changes": "Adapt the archived server shared Game decoder into the active owner boundary. Game SessionID is the exact stable 16-byte TunnelID; inbound work is generation-fenced, Game envelope LaneID must match the authoritative transport LaneRef, and leased server source validation is performed on the inner IPv4 packet before committing PacketID dedupe so an invalid first copy cannot suppress a later valid copy. Duplicate/stale state is tunnel-wide while FEC remains lane-local. Old rawip metadata, UDP service bridge, membership sockets and session subprocess lifecycle are not migrated.",
+      "tests": "internal/datapath/game_owner_test.go proves lane3-first delivery with lane1/lane2 duplicate suppression, spoofed source and wrong-LaneID copies do not poison the same PacketID, reverse server-to-client internet-source packets remain valid, and Game statistics expose logical sends/copies/delivery/duplicate/mismatch counts."
     }
   ],
-  "note": "P4 stable identity/lease remains qualified at SOURCE_SHA 9f35f885b56194612f240c14bb802b6650dd7d6c / Actions 35482460272. The current candidate adds lease IPv4 source anti-spoof at the active leased owner boundaries and awaits its own exact SOURCE_SHA Actions. Old raw-IP/TUN/netns/platform runtime, Game racing and production padding policy remain deferred."
+  "note": "P4 identity/lease and IPv4 source anti-spoof remain qualified through SOURCE_SHA 8d922df623305d169eee581ef02cea8dd6446a26 / Actions 35483525187. Current candidate adds the minimal Game PacketID racing/dedupe owner API and awaits its own exact SOURCE_SHA Actions. Archived game control/pacer/subprocess/CLI, rawip metadata, platform runtime and production padding policy remain deferred."
 }
