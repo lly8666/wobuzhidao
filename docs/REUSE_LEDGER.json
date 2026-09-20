@@ -288,7 +288,37 @@
       "destination": "scripts/windows_client_network.ps1",
       "behavior_changes": "Preserve device-wide IPv6 fail-closed semantics while IPv6 tunneling is unimplemented: exact ::/1 and 8000::/1 inbound/outbound block rules, exact WBD group/description ownership, and refusal to connect when any Windows Firewall profile is disabled rather than silently changing user global policy. Cleanup removes only WBD-owned rules.",
       "tests": "script_contract_test.go requires both IPv6 /1 ranges and exact ownership markers; the Windows PowerShell Render gate emits IPV6_FAIL_CLOSED. Administrator-level firewall mutation remains a later physical Windows gate."
+    },
+    {
+      "source": "old/internal/windowsruntime/underlay_native_windows.go",
+      "destination": "internal/windowsclient/underlay.go",
+      "behavior_changes": "Extract only the physical-underlay value boundary shared by active Windows route ownership and FakeTCP Npcap: server/source IPv4, physical interface index, canonical NPF device, source/next-hop MAC, and next-hop IPv4. The same immutable observation produces both NetworkPlan.PhysicalPath and a generation-bound faketcp.NpcapConfig, preventing Wintun capture routes from recursively owning the server underlay. Old Controller, route-rebind monitor, PowerShell discovery, Game child, process lifecycle and DTLS orchestration are not migrated.",
+      "tests": "internal/windowsclient/underlay_test.go validates canonical NPF adapter identity, longest-prefix/metric/interface route selection, exact source-port/peer Npcap binding, and that the same physical observation pins the existing server /32 NetworkPlan while capture routes remain Wintun-owned."
+    },
+    {
+      "source": "old/internal/windowsruntime/underlay_native_windows.go",
+      "destination": "internal/windowsclient/underlay_windows.go",
+      "behavior_changes": "Extract the direct Windows IP Helper physical path observation only: GetAdaptersAddresses, GetIpForwardTable, longest-prefix route selection, APIPA/loopback exclusion, optional interface exclusion, SendARP next-hop resolution and adapter-GUID to NPF mapping. No route monitoring/replacement controller or archived runtime state is migrated.",
+      "tests": "Windows Actions compile the real x/sys/windows implementation; platform-neutral underlay tests lock deterministic selection and binding semantics without requiring a physical NIC qualification run."
+    },
+    {
+      "source": "old/cmd/wbd-faketcp/main_windows.go",
+      "destination": "internal/faketcp/npcap.go",
+      "behavior_changes": "Extract the product Npcap packet ownership boundary as platform-neutral logic: canonical NPF config, exact inbound BPF expression, Ethernet/VLAN IPv4 extraction, exact four-tuple and no-fragment fencing, owned receive copies, outbound source/peer binding, Ethernet MAC wrapping and a generation-aware close gate. Old command/CLI, process signals, DTLS endpoint and runtime logging are not migrated.",
+      "tests": "internal/faketcp/npcap_test.go covers BPF ownership, noisy/wrong-direction/wrong-port/fragment rejection, receive packet lifetime, outbound MAC/four-tuple fencing, stale generation rejection, and close waiting for active I/O."
+    },
+    {
+      "source": "old/cmd/wbd-faketcp/main_windows.go",
+      "destination": "internal/faketcp/npcap_windows.go",
+      "behavior_changes": "Extract only single-process Npcap open/send/receive/close primitives. The active adapter dynamically loads wpcap.dll, requires Ethernet DLT and MODE_SENDTORX_CLEAR, installs one exact inbound BPF with pcap_compile/pcap_setfilter, copies accepted packet bytes before the next capture call, sends immutable Ethernet frames with pcap_sendpacket, and closes by fencing new calls, requesting breakloop, draining active calls, then freeing the handle/DLL. Each call carries the lane generation so stale transport work cannot use a replacement handle.",
+      "tests": "Windows next-foundation compiles the real syscall implementation and reruns Npcap/PhysicalUnderlay mock contracts. Hosted CI does not claim driver/NIC execution; real Npcap capture/injection remains P7 or a dedicated runner."
+    },
+    {
+      "source": "old/.github/workflows/windows-npcap-runner-probe.yml",
+      "destination": ".github/workflows/next-foundation.yml",
+      "behavior_changes": "Reuse only the qualification boundary that GitHub-hosted Windows may lack an installed Npcap driver. The active workflow explicitly reruns Npcap/physical-underlay compile/mock contracts and emits WBD_WINDOWS_NPCAP_HOSTED_CORE_PASS physical=NOT_RUN; it does not install a driver or turn hosted compile success into physical qualification.",
+      "tests": "The Windows active-go-tests job compiles all active Windows code, runs the targeted Npcap/PhysicalUnderlay unit contracts, and prints the hosted-core marker while exact-SHA Actions still run all existing repository, Linux race/fuzz/reference, P2 and Linux privileged regressions."
     }
   ],
-  "note": "Windows Wintun core candidate is unchanged; this ledger-only follow-up splits one invalid multi-destination reuse entry into repository-contract-compliant single destinations."
+  "note": "P4 Windows Npcap hosted-core candidate is an active single-process physical-I/O extraction only; old Windows Controller/Game/DTLS/process orchestration remains archived and real Npcap/NIC qualification remains NOT_RUN until P7 or a dedicated runner."
 }

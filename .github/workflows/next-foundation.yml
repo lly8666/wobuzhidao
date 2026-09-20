@@ -84,6 +84,14 @@ jobs:
             }
           }
 
+      - name: Windows Npcap hosted adapter contract
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./internal/faketcp ./internal/windowsclient -count=1 -run='Npcap|PhysicalUnderlay'
+          echo 'WBD_WINDOWS_NPCAP_HOSTED_CORE_PASS physical=NOT_RUN'
+
       - name: Race
         if: runner.os == 'Linux'
         run: go test -race ./... -count=1
