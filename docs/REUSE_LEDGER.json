@@ -234,7 +234,25 @@
       "destination": "internal/datapath/game_owner.go",
       "behavior_changes": "Adapt the archived server shared Game decoder into the active owner boundary. Game SessionID is the exact stable 16-byte TunnelID; inbound work is generation-fenced, Game envelope LaneID must match the authoritative transport LaneRef, and leased server source validation is performed on the inner IPv4 packet before committing PacketID dedupe so an invalid first copy cannot suppress a later valid copy. Duplicate/stale state is tunnel-wide while FEC remains lane-local. Old rawip metadata, UDP service bridge, membership sockets and session subprocess lifecycle are not migrated.",
       "tests": "internal/datapath/game_owner_test.go proves lane3-first delivery with lane1/lane2 duplicate suppression, spoofed source and wrong-LaneID copies do not poison the same PacketID, reverse server-to-client internet-source packets remain valid, and Game statistics expose logical sends/copies/delivery/duplicate/mismatch counts."
+    },
+    {
+      "source": "old/cmd/wbd-ip-gateway-shared/main_linux.go",
+      "destination": "internal/linuxserver/router.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract the final shared-root-TUN lease demultiplexing semantic but remove the old localhost UDP/rawipbackend metadata bridge and process/session peer registry. Active registration binds an already-admitted leased TunnelOwner directly by stable TunnelID+/32; exact runtime rebind gets a fresh token and stale owners are fenced. Shared-TUN return packets demux by IPv4 destination lease to Normal/Game owner APIs; owner-decoded client egress is source==lease checked again before TUN write. The superseded per-session netns/veth/double-NAT gateway path is explicitly not migrated.",
+      "tests": "internal/linuxserver/router_test.go covers two independent leases, Normal/Game destination demux, duplicate lease/tunnel rejection, exact identity rebind with stale-token fencing, source-spoof rejection, malformed IPv4/no-route/short-TUN-write fail-closed behavior and independent unregister."
+    },
+    {
+      "source": "old/scripts/linux_shared_tun_firewall.sh",
+      "destination": "internal/linuxserver/network_plan.go",
+      "behavior_changes": "Extract only ownership semantics into a structured non-executing plan: one shared TUN route for the lease pool, saved/restored ip_forward and TUN rp_filter sysctls, WBD-marked outbound/established-return FORWARD rules and one host MASQUERADE rule. No global ruleset flush/restore, no per-session NAT operation. Server host DNS is deliberately unchanged; DNS packets are ordinary tunneled IPv4. The later privileged runtime executor must materialize and clean only these owned objects.",
+      "tests": "internal/linuxserver/network_plan_test.go verifies exact route/setup/teardown, saved sysctl intent, three WBD markers, DNS unchanged, nft forward-chain validation and fail-closed invalid TUN/prefix/MTU/backend inputs."
+    },
+    {
+      "source": "old/internal/tunnel/tun_linux.go",
+      "destination": "internal/linuxserver/tun_linux.go",
+      "behavior_changes": "Extract the minimal Linux shared-TUN device primitive only: /dev/net/tun, IFF_TUN|IFF_NO_PI, bounded interface name, ReadPacket/WritePacket/Close. No archived UDP/framed bridge or platform subprocess orchestration is migrated. A !linux stub reports unsupported so Windows repository builds remain explicit.",
+      "tests": "Linux/Windows Actions compile the platform-specific files through package enumeration; shared-TUN packet semantics are tested against the PacketWriter adapter without requiring root/CAP_NET_ADMIN. Real privileged TUN execution remains a later platform qualification gate."
     }
   ],
-  "note": "P4 identity/lease and IPv4 source anti-spoof remain qualified through SOURCE_SHA 8d922df623305d169eee581ef02cea8dd6446a26 / Actions 35483525187. Current candidate adds the minimal Game PacketID racing/dedupe owner API and awaits its own exact SOURCE_SHA Actions. Archived game control/pacer/subprocess/CLI, rawip metadata, platform runtime and production padding policy remain deferred."
+  "note": "P4 core through tunnel-owner padding is qualified. Current candidate introduces Linux shared-TUN platform core by adapting the archived final shared-TUN architecture, while explicitly rejecting the older per-session netns/veth/double-NAT and rawip UDP bridge. It awaits exact SOURCE_SHA Actions; hosted unit/race evidence will be labeled core/adapter only until a privileged Linux runtime gate exercises real TUN/netfilter."
 }

@@ -32,9 +32,9 @@
     "P4子任务：Game PacketID racing/dedupe 接 TunnelOwner/Lane active API，通过Actions；Game=2/3/4，同一PacketID多lane竞速、首次有效到达交付、其余去重、unique乱序无HOL，PacketID/dedupe跨replacement与DORMANT/wake保持",
     "P4子任务：tunnel-owner production padding budget（默认off、per-record cap、tunnel-wide ratio/total cap、Normal/Game共享预算）通过Actions；Game/FEC放大不重复赚useful credit，replacement/DORMANT/wake不重置预算"
   ],
-  "in_progress": "P4 tunnel-owner production padding budget 已在 SOURCE_SHA 3bd086e1562cf590dc3364c92f9f5be86415e45d / Actions 35485851261 完整通过。repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；directed fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS。TunnelPaddingPolicy零值严格off；启用时 BytesPerRecord 为固定request/per-record hard cap，并受 tunnel-wide MaxPaddingBytes 与 MaxPaddingRatioPPM(useful logical payload)双重上限。Lane owner selector在实际LINK/FEC record形成后按精确MTU headroom做原子reservation，seal成功才计实际padding，失败释放；预算/headroom不足立即0，无等待/凑包/额外record。Normal sibling flows共用预算；Game logical packet只记一次原始业务bytes，lane copies/FEC/parity只能消耗不能增加credit；same-ID replacement与DORMANT/wake不清预算。P4仍未关闭：Linux/Windows/OpenWrt platform入口、统一client/server runtime与真实TUN/Npcap接线仍待后续。",
-  "next_task": "P4 下一原子任务：按 MODULE_MAP 定向读取 old/cmd/wbd-ip-gateway-server、old/internal/rawipbackend、old/scripts 中 Linux TUN/NAT/DNS 直接依赖与测试，提取 Linux 服务端 shared-TUN 最小 active 平台核心。目标是一个共享TUN承载多个Logical Tunnel lease，按目标/源lease把inner IPv4 packet路由到正确 TunnelOwner owner API，出站继续复用Normal/Game既有lane并保留server source anti-spoof；定义WBD-owned单host NAT/forwarding/DNS配置与确定清理边界。严禁恢复per-user netns/veth/double NAT、旧rawip UDP bridge/独立子进程或旧CLI；先做可Actions测试的platform core/command-plan，若hosted runner不具备真实TUN权限则明确区分adapter资格，不提前声称物理平台PASS。",
-  "latest_log": "docs/devlog/20260920-111500-p4-owner-padding-actions-pass.md",
+  "in_progress": "P4 Linux server shared-TUN platform core 原子任务已实现，等待自己的精确 SOURCE_SHA Actions。新增 internal/linuxserver：shared-TUN lease registry/router 直接绑定 active leased TunnelOwner，不恢复旧 rawipbackend localhost UDP metadata bridge；一个 lease /32 与 stable TunnelID 唯一绑定，exact identity runtime rebind 发新 BindingToken 并使旧 token 失效。TUN->network-return 方向按 inner IPv4 destination lease demux 到正确 owner，desired=1 走新 TunnelOwner.NormalOutbound，desired=2/3/4 走既有 GameOutbound；不会创建 BusinessFlow 或 lane。owner->shared-TUN 方向要求当前 binding token 且再次验证 source==lease 后才 WritePacket，短写 fail-closed。新增最小 Linux /dev/net/tun IFF_TUN|IFF_NO_PI device 实现与非 Linux unsupported stub。NetworkPlan 只描述 WBD-owned shared TUN link/lease route、ip_forward 与 tun rp_filter save/restore、三条带 marker 的 FORWARD/NAT 规则；server host DNS 明确 unchanged，DNS packet 作为普通 inner IPv4 经同一 NAT。未恢复 per-user netns/veth/double NAT、旧独立 gateway 进程/CLI，也未执行真实 root TUN/firewall hosted 资格。",
+  "next_task": "等待本次 P4 Linux shared-TUN platform core 产品提交的精确 SOURCE_SHA GitHub Actions。若失败读取具体 job logs，只修本 atomic scope 并保留 FAIL 证据；若全部成功，记录精确 SHA/run/jobs/artifacts 做 evidence closure，并明确该 PASS 仅为 hosted core/adapter（真实 root shared-TUN/netfilter 尚未执行），再重新读取 STATUS 决定 Linux runtime executor / Windows / OpenWrt 后续原子任务。",
+  "latest_log": "docs/devlog/20260920-113000-p4-linux-shared-tun-core.md",
   "last_tested_source_sha": "3bd086e1562cf590dc3364c92f9f5be86415e45d",
   "actions": [
     {
@@ -376,7 +376,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: stable identity/lease、source anti-spoof、Game PacketID racing/dedupe、tunnel-owner padding budget均已精确SHA Actions PASS；下一步Linux server shared-TUN/NAT/DNS platform core，Windows/OpenWrt随后",
+    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding 均 PASS；Linux server shared-TUN router/TUN device/network ownership plan 已实现等待 Actions；真实 root runtime executor、Windows/Wintun、OpenWrt 仍未接",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }

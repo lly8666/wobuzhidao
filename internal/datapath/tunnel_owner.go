@@ -192,6 +192,56 @@ func (f *BusinessFlow) Outbound(packet []byte, now time.Time) ([]WireRecord, err
 	return f.owner.FenceOutbound(binding.ref, records)
 }
 
+// NormalOutbound is the owner-level Normal-mode send boundary used by a
+// platform packet router such as the Linux shared TUN. It does not create a
+// BusinessFlow and therefore does not turn inner application flows into
+// transport-lane membership. RoleClient leased owners still enforce the same
+// source==lease fence before touching Lane state.
+func (o *TunnelOwner) NormalOutbound(packet []byte, now time.Time) ([]WireRecord, error) {
+	if o == nil {
+		return nil, ErrTunnelOwnerClosed
+	}
+	o.mu.Lock()
+	if o.closed {
+		o.mu.Unlock()
+		return nil, ErrTunnelOwnerClosed
+	}
+	if o.desired != 1 {
+		o.mu.Unlock()
+		return nil, ErrNormalLaneMode
+	}
+	binding, ok := o.active[1]
+	if !ok {
+		dormant := len(o.active) == 0
+		o.mu.Unlock()
+		if dormant {
+			return nil, ErrTunnelDormant
+		}
+		return nil, ErrLaneUnavailable
+	}
+	o.mu.Unlock()
+
+	if binding.lane.Config().Role == RoleClient {
+		if err := o.validateLeasedIPv4Source(packet); err != nil {
+			return nil, err
+		}
+	}
+	selector := o.paddingSelectorForPayload(len(packet))
+	var (
+		records []WireRecord
+		err     error
+	)
+	if selector == nil {
+		records, err = binding.lane.Outbound(packet, now)
+	} else {
+		records, err = binding.lane.outboundWithPaddingSelector(packet, now, selector)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return o.FenceOutbound(binding.ref, records)
+}
+
 func (f *BusinessFlow) Close() error {
 	if f == nil || f.owner == nil || f.id == 0 {
 		return ErrFlowClosed
