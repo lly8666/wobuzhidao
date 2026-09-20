@@ -162,6 +162,24 @@
       "destination": "internal/datapath/handoff.go",
       "behavior_changes": "Extract only the post-admission ownership handoff shape: bind one authenticated association to one immutable lane configuration and consume copied transition payloads after detach. The new server adapter reads existing realityfront AdmissionResult plus faketcp PeerTCPProfile without changing P2 interfaces; server TX uses ClientLimit/S2C and peer advertised MSS, server RX uses ServerLimit/C2S and the server-advertised IPv4 MSS. TCP Seq is not converted into record ordering.",
       "tests": "internal/datapath/lane_test.go verifies server admission direction limits/MSS/profile binding and that detached transition records are delivered by record PN/FEC/LINK semantics rather than TCP Seq ordering."
+    },
+    {
+      "source": "old/internal/logicaltunnel/logicaltunnel.go",
+      "destination": "internal/logicaltunnel/policy.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract only the product transport cardinality policy: 1..4 authoritative logical lanes, six retiring/transition headroom incarnations, and ten total concurrent physical incarnations. Lease manager, installation allocation, source anti-spoof, CLI and platform state are deliberately not migrated in this atomic task.",
+      "tests": "internal/logicaltunnel/lifecycle_test.go fixes the 1..4 policy and fifth-lane rejection; internal/datapath/tunnel_owner_test.go separately enforces six transition headroom and ten total physical incarnations."
+    },
+    {
+      "source": "old/internal/logicaltunnel/lifecycle.go",
+      "destination": "internal/logicaltunnel/lifecycle.go",
+      "behavior_changes": "Preserve lane membership refs, monotonic generation fencing, same-ID promotion, candidate/draining lifecycle primitives, and DORMANT clearing of transport membership while retaining desired wake policy. The extracted lifecycle owns no FakeTCP, TLS-like record, LINK, FEC, socket or Game wire state.",
+      "tests": "internal/logicaltunnel/lifecycle_test.go covers desired cardinality, same-ID generation advance with one logical lane, stale-generation rejection, and DORMANT followed by a fresh wake generation."
+    },
+    {
+      "source": "old/internal/logicaltunnel/lifecycle.go",
+      "destination": "internal/datapath/tunnel_owner.go",
+      "behavior_changes": "Adapt the archived logical membership/generation model into a bounded coordinator over already-created internal/datapath Lane incarnations. Business flows are bounded logical registrations and never create or close a lane; Normal flows resolve the existing lane 1 at send time. Same-ID candidate promotion moves the prior Lane into bounded retirement, stale completions are fenced, candidate failure preserves the old lane, and DORMANT closes transport incarnations while preserving flow registrations for wake. Game PacketID/racing, lane creation, padding policy and FEC internals are not reimplemented.",
+      "tests": "internal/datapath/tunnel_owner_test.go covers multiple sibling flows sharing one Normal lane, flow-close isolation, bounded registry/no lane growth, same-ID replacement and late-old generation discard, candidate failure, DORMANT/wake, immutable per-incarnation FEC profiles, 1..4 logical lanes, six transition headroom, ten physical-incarnation bound, default padding off, and concurrent shared-lane PN serialization under the Actions race job."
     }
   ],
   "note": "P2 CLOSED remains qualified at SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 / Actions 35458896477. P3 LINK is qualified at 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a, all live FEC v1 fixed profiles at e8e38d09b98b1898b41ad30335546989bed4f0a5, unified MTU at dbd305950984652361d6bab34f05c66558461311, and lane-owned session/datapath handoff at SOURCE_SHA 05a544818ff04f49332b09779c9ab3a4cf9b09fd by Actions run 35460675364. Explicit record padding remains the next separate P3 atom; production default remains zero/off."
