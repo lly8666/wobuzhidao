@@ -34,9 +34,9 @@
     "P4子任务：Linux server shared-TUN hosted platform core 通过Actions；shared registry直接绑定leased TunnelOwner，按lease /32 demux Normal/Game，exact rebind stale-token fencing，Linux TUN primitive与WBD-owned route/FORWARD/NAT/sysctl/DNS-unchanged plan均通过跨平台unit/race",
     "P4子任务：Linux privileged shared-TUN runtime executor 通过Actions；GitHub-hosted ubuntu root netns 中真实 /dev/net/tun + route/sysctl + iptables/nft WBD-owned FORWARD/NAT apply/cleanup 双backend均PASS，两个lease registry smoke与既有DROP policy保留"
   ],
-  "in_progress": "P4 Windows client Wintun + lease/route/DNS/IPv6 fail-closed platform core 已实现，等待 exact SOURCE_SHA Actions。新增 internal/windowsclient：Windows-only Wintun L3 adapter（Open/Create、session ring、Read/Write/Close，Read在复制到active dataplane前丢弃非IPv4）与 !windows unsupported stub；Router 绑定单个stable Logical Tunnel lease，TUN->owner先 strict IPv4/source==lease 后按desired=1 NormalOutbound、2/3/4 GameOutbound，owner->Wintun 再要求destination==lease，均不创建BusinessFlow/lane。NetworkPlan要求lease严格/32，underlay server /32锁到已观测物理ifindex+next-hop，Full capture使用0.0.0.0/1+128.0.0.0/1，显式Direct4走物理route，DNS upstream /32也capture并用NRPT namespace='.'；IPv6在未实现代理前设备级双向fail-closed，使用::/1+8000::/1两段且只拥有WBD exact firewall group/description。新增 scripts/windows_client_network.ps1，Render无需管理员；Apply/Cleanup只对state记录的WBD address/routes/NRPT以及exact IPv6 marker做事务式清理，Windows Firewall profile关闭时拒绝连接。Npcap raw underlay仍未接。",
-  "next_task": "等待本次 P4 Windows Wintun platform core 产品提交的 exact SOURCE_SHA GitHub Actions；要求 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference、P2 kernel fallback、Linux privileged iptables/nft回归继续PASS，并且Windows active-go-tests新增 PowerShell Render contract PASS。若失败只修本atomic scope并保留FAIL；若全部通过做evidence closure，明确这是Windows compile/mock/script-render core资格，不是Wintun.dll/Npcap物理管理员资格；随后进入Npcap physical underlay最小atom。",
-  "latest_log": "docs/devlog/20260920-124500-p4-windows-wintun-platform-core.md",
+  "in_progress": "P4 Windows Wintun platform core product SHA db2c990bfbc3efcb6e2b13b96471bd760df8a458 / Actions 35489839173 在 repository-contract 阶段FAIL，产品jobs均未运行。根因仅为 REUSE_LEDGER 一条 destination 错误地用分号写了两个active路径，违反ledger单destination约束；不是Windows代码或PowerShell失败。修复仅拆成两个source相同、destination各自单一路径的ledger entries，Windows产品源码/workflow byte-identical，等待新exact SHA Actions。",
+  "next_task": "等待 REUSE_LEDGER contract 修复提交的 exact SOURCE_SHA Actions；db2c990b... / run 35489839173 保留为repository-contract FAIL证据。新SHA必须执行Windows/Linux unit/build、Windows PowerShell Render、Linux race/fuzz/reference、P2与Linux privileged iptables/nft回归。",
+  "latest_log": "docs/devlog/20260920-125000-p4-windows-reuse-ledger-contract-fix.md",
   "last_tested_source_sha": "a2cf881445f0efb4dcca87663074d594894db6ff",
   "actions": [
     {
@@ -381,6 +381,13 @@
       "scope": "P4-linux-privileged-runtime-final",
       "status": "PASS",
       "note": "All 6 jobs PASS. repository-contract; Windows unit/build; Ubuntu unit/build/race/fuzz/reference; P2 kernel fallback/continuous pcap; privileged shared-TUN iptables; privileged shared-TUN nft. Both privileged tests emitted WBD_P4_LINUX_SHARED_TUN_PASS with active_tunnels=2 cleanup=owned-only dns=host-dns-unchanged (iptables 0.08s, nft 0.12s). P2 kernel test PASS 1.24s; pcap 29 captured / 58 received by filter / 0 kernel drop. Artifacts: foundation 10597644172; tlsrecord-reference 10598128874; p2-kernel-fallback 10597659274; privileged iptables 10598437116; privileged nft 10597902454."
+    },
+    {
+      "source_sha": "db2c990bfbc3efcb6e2b13b96471bd760df8a458",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35489839173",
+      "scope": "P4-windows-wintun-pre-reuse-ledger-fix",
+      "status": "FAIL",
+      "note": "repository-contract FAIL before product qualification: check_repository reported `Invalid reuse destination`. Root cause was one REUSE_LEDGER entry using `internal/windowsclient/network_plan.go; scripts/windows_client_network.ps1` as a multi-path destination. active-go-tests and P2 were skipped. Product Windows code/workflow were not evaluated. Foundation artifact 10598508350. Fix is ledger-only: split into two single-destination entries."
     }
   ],
   "physical_status": "NOT_RUN",
@@ -406,7 +413,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: Linux server hosted privileged gate PASS；Windows Wintun/lease-route-DNS/IPv6 fail-closed platform core已实现等待Actions；Npcap physical underlay与OpenWrt随后",
+    "P4": "IN_PROGRESS: Windows Wintun core implemented; first candidate blocked only by REUSE_LEDGER schema before product tests. Ledger-only fix prepared.",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
