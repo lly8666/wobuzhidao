@@ -444,7 +444,19 @@
       "destination": "internal/runtimeowner/runtime.go",
       "behavior_changes": "Extract the same-association steady loop shape after TLS/admission detach: encrypted record payloads occupy the existing TCP-shaped four-tuple/sequence space, inbound payloads are ACKed and passed to the Lane owner, and retransmission reuses identical bytes/sequence. The old localhost UDP bridge, endpoint command/process topology, DTLS/carrier framing and signal-owned subprocess lifecycle are not restored; platform adapters call Runtime directly.",
       "tests": "runtimeowner loopback tests exchange real faketcp.Segment values between client/server Runtime instances for Normal and Game, exercise same-ID replacement/generation fencing, and never open a localhost UDP service channel."
+    },
+    {
+      "source": "old/cmd/wbd-faketcp/main.go",
+      "destination": "internal/faketcp/client_association.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract only the client-side SYN/SYN-ACK/final-ACK loop, same-four-tuple BootstrapStream ownership, immutable sequence handoff and bounded SYN/bootstrap retransmit shape needed to complement the active ServerAssociation. The active implementation uses the current Sender/BootstrapStream APIs and protected-admission detach contract. It does not restore the archived localhost UDP carrier, CarrierFragmenter, DTLS/data-channel choices, steady Receiver/SACK controller, or command topology.",
+      "tests": "internal/faketcp/client_association_test.go drives WBD SYN presentation, peer MSS/window negotiation, bootstrap write/ACK, inbound bootstrap delivery and exact send/receive handoff sequence."
+    },
+    {
+      "source": "old/cmd/wbd-faketcp/main.go",
+      "destination": "internal/runtimeentry/runtime.go",
+      "behavior_changes": "Reuse only the archived idea that one endpoint read loop owns a single FakeTCP association from bootstrap into steady-state. Rewrite ownership around active ClientAssociation/ServerAssociationTable, realityfront admission, runtimeowner, leased TunnelOwner, shared-TUN router and in-process platformflow service. The server gates business egress until the first valid detached steady record. No localhost UDP bridge, target-UDP relay, old Controller, DTLS shim or subprocess orchestration is restored.",
+      "tests": "internal/runtimeentry/runtime_test.go uses an in-memory segment endpoint to complete real TLS/protected admission on the same FakeTCP association, attach runtimeowner, carry one leased IPv4 packet to shared-TUN and a reverse IPv4 packet back to the client."
     }
   ],
-  "note": "P4 unified runtime transport owner is now exact-SHA hosted qualified at ef269081e45bc516ae41943e56a01a8032e4cf8a / Actions 35498412990. The extraction remains narrow: same-association steady TLS-like record payload ownership, finite cumulative-ACK repair horizon, lifecycle/generation binding, and direct platform callbacks only. Archived localhost UDP carrier/service bridges, DTLS, subprocess topology, old Controller, and full SACK/RACK/adaptive-pressure policy remain out. The preceding 12dfe1c run failed only in a uint8 test-port fixture compile expression; the follow-up changed no product semantics."
+  "note": "P4 runnable single-process entry candidate now narrows archive reuse to client SYN/bootstrap endpoint-loop behavior only. New cmd/wbd-server and cmd/wbd-client are fresh thin platform entry shells over active Linux shared-TUN/raw, OpenWrt TPROXY SocketAdapter/raw, and Windows Wintun/Npcap APIs. This candidate is not yet exact-SHA Actions qualified; previous qualified product source remains ef269081e45bc516ae41943e56a01a8032e4cf8a. Archived localhost UDP carrier/service bridges, DTLS, subprocess topology, old Controller and full SACK/RACK/adaptive-pressure policy remain out."
 }

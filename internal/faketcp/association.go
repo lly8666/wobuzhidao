@@ -637,3 +637,36 @@ func (t *ServerAssociationTable) Len() int {
 	t.mu.RUnlock()
 	return n
 }
+
+func (t *ServerAssociationTable) EmitRetransmitDue(now time.Time) error {
+	t.mu.RLock()
+	associations := make([]*ServerAssociation, 0, len(t.m))
+	for _, a := range t.m {
+		associations = append(associations, a)
+	}
+	t.mu.RUnlock()
+
+	var errs []error
+	for _, a := range associations {
+		if _, err := a.EmitRetransmitDue(now); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
+
+func (t *ServerAssociationTable) Close() {
+	if t == nil {
+		return
+	}
+	t.mu.Lock()
+	associations := make([]*ServerAssociation, 0, len(t.m))
+	for flow, a := range t.m {
+		delete(t.m, flow)
+		associations = append(associations, a)
+	}
+	t.mu.Unlock()
+	for _, a := range associations {
+		a.Close()
+	}
+}

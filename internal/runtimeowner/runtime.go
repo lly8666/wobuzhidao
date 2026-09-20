@@ -772,23 +772,35 @@ func (r *Runtime) HandleSegment(ref logicaltunnel.LaneRef, seg faketcp.Segment, 
 }
 
 func (r *Runtime) HandleServerSegment(ref logicaltunnel.LaneRef, assoc *faketcp.ServerAssociation, seg faketcp.Segment, now time.Time) error {
+	_, err := r.HandleServerSegmentQualified(ref, assoc, seg, now)
+	return err
+}
+
+// HandleServerSegmentQualified reports whether this segment carried the first
+// detached steady-state record path. Callers use the signal only to gate server
+// business egress until the client has proved it owns the post-admission
+// sequence space; record validation and delivery remain owned by Runtime/Lane.
+func (r *Runtime) HandleServerSegmentQualified(ref logicaltunnel.LaneRef, assoc *faketcp.ServerAssociation, seg faketcp.Segment, now time.Time) (bool, error) {
 	if assoc == nil {
-		return ErrTransportConfig
+		return false, ErrTransportConfig
 	}
 	result, err := assoc.HandleSegment(seg, now)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if result.Disposition == faketcp.RouteRecord && result.Record != nil {
-		return r.HandleSegment(ref, seg, now)
+		if err := r.HandleSegment(ref, seg, now); err != nil {
+			return false, err
+		}
+		return true, nil
 	}
 	if result.AckNeeded {
-		return r.emitForRef(ref, assoc.ACKSegment(result.Ack))
+		return false, r.emitForRef(ref, assoc.ACKSegment(result.Ack))
 	}
 	if seg.Flags&faketcp.FlagACK != 0 {
-		return r.handleACKOnly(ref, seg)
+		return false, r.handleACKOnly(ref, seg)
 	}
-	return nil
+	return false, nil
 }
 
 func (r *Runtime) handleACKOnly(ref logicaltunnel.LaneRef, seg faketcp.Segment) error {
