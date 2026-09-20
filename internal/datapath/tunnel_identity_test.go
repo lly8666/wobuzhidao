@@ -58,6 +58,10 @@ func TestLeasedOwnerPreservesIdentityAcrossReplacementDormantAndWake(t *testing.
 		t.Fatal(err)
 	}
 	defer owner.Close()
+	leaseAddr, err := lease.Config.LeaseIPv4()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	initial := leasedTestLane(t, RoleClient, 4, 1, lease)
 	snap, err := owner.AttachInitial(1, initial)
@@ -72,10 +76,10 @@ func TestLeasedOwnerPreservesIdentityAcrossReplacementDormantAndWake(t *testing.
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := a.Outbound([]byte("flow-a"), time.Unix(300, 0)); err != nil {
+	if _, err := a.Outbound(businessIPv4Packet(leaseAddr, leaseAddr, []byte("flow-a")), time.Unix(300, 0)); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := b.Outbound([]byte("flow-b"), time.Unix(300, int64(time.Millisecond))); err != nil {
+	if _, err := b.Outbound(businessIPv4Packet(leaseAddr, leaseAddr, []byte("flow-b")), time.Unix(300, int64(time.Millisecond))); err != nil {
 		t.Fatal(err)
 	}
 
@@ -115,7 +119,7 @@ func TestLeasedOwnerPreservesIdentityAcrossReplacementDormantAndWake(t *testing.
 	if wakeSnap.Ref.Generation <= fresh.Ref.Generation {
 		t.Fatalf("wake generation fresh=%+v wake=%+v", fresh.Ref, wakeSnap.Ref)
 	}
-	if _, err := b.Outbound([]byte("awake"), time.Unix(302, 0)); err != nil {
+	if _, err := b.Outbound(businessIPv4Packet(leaseAddr, leaseAddr, []byte("awake")), time.Unix(302, 0)); err != nil {
 		t.Fatalf("preserved flow did not reuse wake lane: %v", err)
 	}
 }

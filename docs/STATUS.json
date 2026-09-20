@@ -29,9 +29,9 @@
     "P4子任务：logicaltunnel最小lifecycle/policy + 有界TunnelOwner/BusinessFlow registry，多业务复用既有Normal lane、generation fencing、DORMANT/wake与6过渡/10物理上限通过Actions",
     "P4子任务：stable Account+Installation -> TunnelID/IPv4 lease identity、leased TunnelOwner 与 protected-admission TunnelID binding 通过Actions；同identity稳定lease、跨installation隔离、rotation/DORMANT/wake不换lease"
   ],
-  "in_progress": "P4 IPv4 source anti-spoof / lease packet binding 原子任务已实现，等待自己的精确 SOURCE_SHA Actions：active logicaltunnel 新增 transport-independent ValidateIPv4Source，严格要求单个well-formed IPv4 packet、最大9000 bytes、合法IHL/total length且source byte-exact等于Logical Tunnel /32 lease；IPv6、错误source、malformed packet fail-closed。leased client 的 BusinessFlow.Outbound 在进入Lane/LINK/FEC/record前执行校验，因此拒绝包不消耗record PN也不改变lane发送状态；TunnelOwner新增generation-fenced InboundPayload owner边界，leased server 对解封后的每个inner datagram再次做source==lease校验，伪造包不交付并计入SourceDiscards。client receive方向不套source fence，server->client互联网source正常通过。未迁移旧TUN/raw gateway/netns/CLI，也未修改Game竞速。",
-  "next_task": "等待本次 P4 source anti-spoof 产品提交的精确 SOURCE_SHA GitHub Actions。若失败，读取具体job logs，仅修本atomic task并保留FAIL证据；若全部成功，则记录精确SHA/run/jobs/artifacts完成证据closure，再重新读取STATUS决定下一P4原子任务。",
-  "latest_log": "docs/devlog/20260920-101000-p4-lease-source-fence.md",
+  "in_progress": "P4 lease IPv4 source anti-spoof 产品实现已进入 SOURCE_SHA d7ca5ce1d393499429048cbd9cb41aed6b46bd9c / Actions 35483439066，但该SHA整体 FAIL。repository-contract PASS，P2 kernel fallback/pcap PASS；Windows/Linux unit 都在既有 TestLeasedOwnerPreservesIdentityAcrossReplacementDormantAndWake 失败，因为上一轮 leased-client 测试仍向 BusinessFlow.Outbound 发送任意字符串（flow-a/flow-b/awake），新 source fence 正确将其拒绝为 logicaltunnel: invalid IPv4 packet。internal/logicaltunnel 新validator专项包本身PASS；失败是旧测试夹具未更新到新的产品输入契约，不应放宽实现。已准备只把该既有测试改为使用当前lease source的合法IPv4 packet，产品Go源码不变；等待新精确SHA Actions。",
+  "next_task": "等待测试夹具修复提交自己的精确 SOURCE_SHA GitHub Actions。必须重新取得 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference 与 P2 kernel fallback 全部成功；若仍失败读取新日志，不盲重跑。通过后记录 source anti-spoof 原子任务精确SHA/run/artifacts并做证据closure。",
+  "latest_log": "docs/devlog/20260920-101500-p4-source-fence-test-fixture-fix.md",
   "last_tested_source_sha": "9f35f885b56194612f240c14bb802b6650dd7d6c",
   "actions": [
     {
@@ -320,6 +320,13 @@
       "scope": "P4-stable-identity-lease-final",
       "status": "PASS",
       "note": "repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；tlsrecord directed fuzz/reference PASS；P2 kernel fallback Go test PASS 1.24s，连续pcap 29 packets captured / 58 received by filter / 0 kernel drop，既有pcap analyzer PASS。该SHA包含stable Installation/TunnelID/IPv4 lease manager、leased TunnelOwner/admission TunnelID binding，以及仅在协议测试结束后执行的bounded 1s tcpdump drain修复；未放宽pcap门槛、未改变产品发送时序。Artifacts: foundation 10595804831；tlsrecord-reference 10596470906；p2-kernel-fallback 10596650535。"
+    },
+    {
+      "source_sha": "d7ca5ce1d393499429048cbd9cb41aed6b46bd9c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35483439066",
+      "scope": "P4-lease-source-fence-pre-fixture-fix",
+      "status": "FAIL",
+      "note": "repository-contract PASS；P2 kernel fallback/continuous pcap PASS（artifact 10597300736）；Windows/Linux active unit 均 FAIL 于既有 TestLeasedOwnerPreservesIdentityAcrossReplacementDormantAndWake：tunnel_identity_test.go:76 logicaltunnel: invalid IPv4 packet: length=6。根因是上一轮 leased-client 测试仍用任意字符串作为 BusinessFlow.Outbound 业务包，新产品source fence正确收紧为IPv4。internal/logicaltunnel source validator专项包PASS；race/fuzz/reference因unit失败未运行。foundation artifact 10596971243。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -345,7 +352,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: stable identity/lease已PASS；lease IPv4 source anti-spoof已实现并接leased owner client-outbound/server-inbound边界，等待精确SOURCE_SHA Actions；Game/platform/padding policy仍未接",
+    "P4": "IN_PROGRESS: lease source anti-spoof产品实现已落地；d7ca5ce... 因旧leased-client测试夹具仍发送字符串而Windows/Linux unit FAIL，产品实现未放宽；已准备fixture-only修复等待新Actions",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
