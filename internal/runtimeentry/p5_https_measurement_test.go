@@ -443,10 +443,12 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 	}
 
 	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, innerTLS, targetAddr, 1, "first_https_flow_on_initial_outer_connection")
+	assertNoP5ClientRuntimeError(t, client, "after first HTTPS close")
 	if got := client.Ref(); got != initialRef {
 		t.Fatalf("first HTTPS flow replaced outer lane: got=%+v want=%+v", got, initialRef)
 	}
 	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, innerTLS, targetAddr, 2, "subsequent_https_flow_after_first_close_existing_lane")
+	assertNoP5ClientRuntimeError(t, client, "after second HTTPS close")
 	if got := client.Ref(); got != initialRef {
 		t.Fatalf("second HTTPS flow replaced outer lane: got=%+v want=%+v", got, initialRef)
 	}
@@ -625,5 +627,15 @@ func waitP5TCPFlowCount(t *testing.T, side string, current func() int, want int,
 			t.Fatalf("%s TCP flow count did not converge: got=%d want=%d", side, current(), want)
 		}
 		<-ticker.C
+	}
+}
+
+
+func assertNoP5ClientRuntimeError(t *testing.T, client *Client, stage string) {
+	t.Helper()
+	select {
+	case err := <-client.Errors():
+		t.Fatalf("client runtime error %s: %v", stage, err)
+	default:
 	}
 }

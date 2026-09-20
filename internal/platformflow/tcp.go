@@ -275,7 +275,7 @@ func (c *TCPClient) handleAck(flow *tcpClientFlow, frame Frame, now time.Time) e
 	flow.mu.Lock()
 	if flow.closed {
 		flow.mu.Unlock()
-		return ErrClosed
+		return nil
 	}
 	if !flow.opened {
 		if frame.Offset != 0 {
@@ -307,7 +307,7 @@ func (c *TCPClient) handleData(flow *tcpClientFlow, frame Frame, now time.Time) 
 	flow.mu.Lock()
 	if flow.closed {
 		flow.mu.Unlock()
-		return ErrClosed
+		return nil
 	}
 	result, err := flow.rx.Push(frame)
 	if err == nil {
@@ -321,18 +321,21 @@ func (c *TCPClient) handleData(flow *tcpClientFlow, frame Frame, now time.Time) 
 	if len(result.Delivered) > 0 {
 		if err := writeFull(flow.conn, result.Delivered); err != nil {
 			c.abort(flow, now)
-			return err
+			return nil
 		}
 	}
 	if result.FIN && !result.Duplicate {
 		if cw, ok := flow.conn.(interface{ CloseWrite() error }); ok {
 			if err := cw.CloseWrite(); err != nil {
 				c.abort(flow, now)
-				return err
+				return nil
 			}
 		}
 	}
 	if err := flow.tunnel.Send(result.Ack, now); err != nil {
+		if c.retiredOrClosed(flow, now) {
+			return nil
+		}
 		c.abort(flow, now)
 		return err
 	}
@@ -494,6 +497,16 @@ func (c *TCPClient) isRetired(id uint64, now time.Time) bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.retired.contains(id, now)
+}
+
+func (c *TCPClient) retiredOrClosed(flow *tcpClientFlow, now time.Time) bool {
+	if c.isRetired(flow.id, now) {
+		return true
+	}
+	flow.mu.Lock()
+	closed := flow.closed
+	flow.mu.Unlock()
+	return closed
 }
 
 func (c *TCPClient) snapshot() []*tcpClientFlow {
@@ -689,7 +702,7 @@ func (s *TCPServer) handleData(flow *tcpServerFlow, frame Frame, now time.Time) 
 	flow.mu.Lock()
 	if flow.closed {
 		flow.mu.Unlock()
-		return ErrClosed
+		return nil
 	}
 	result, err := flow.rx.Push(frame)
 	if err == nil {
@@ -703,18 +716,21 @@ func (s *TCPServer) handleData(flow *tcpServerFlow, frame Frame, now time.Time) 
 	if len(result.Delivered) > 0 {
 		if err := writeFull(flow.conn, result.Delivered); err != nil {
 			s.abort(flow, now)
-			return err
+			return nil
 		}
 	}
 	if result.FIN && !result.Duplicate {
 		if cw, ok := flow.conn.(interface{ CloseWrite() error }); ok {
 			if err := cw.CloseWrite(); err != nil {
 				s.abort(flow, now)
-				return err
+				return nil
 			}
 		}
 	}
 	if err := flow.tunnel.Send(result.Ack, now); err != nil {
+		if s.retiredOrClosed(flow, now) {
+			return nil
+		}
 		s.abort(flow, now)
 		return err
 	}
@@ -729,7 +745,7 @@ func (s *TCPServer) handleAck(flow *tcpServerFlow, frame Frame, now time.Time) e
 	flow.mu.Lock()
 	if flow.closed {
 		flow.mu.Unlock()
-		return ErrClosed
+		return nil
 	}
 	if err := flow.tx.Ack(frame.Offset); err != nil {
 		flow.mu.Unlock()
@@ -850,6 +866,16 @@ func (s *TCPServer) isRetired(id uint64, now time.Time) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.retired.contains(id, now)
+}
+
+func (s *TCPServer) retiredOrClosed(flow *tcpServerFlow, now time.Time) bool {
+	if s.isRetired(flow.id, now) {
+		return true
+	}
+	flow.mu.Lock()
+	closed := flow.closed
+	flow.mu.Unlock()
+	return closed
 }
 
 func (s *TCPServer) snapshot() []*tcpServerFlow {

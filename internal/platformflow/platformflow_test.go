@@ -349,4 +349,19 @@ func TestTCPRetiredFlowTailIsBoundedAndUnknownStillFailsClosed(t *testing.T) {
 	if !set.contains(2, start.Add(3*time.Millisecond)) || !set.contains(3, start.Add(3*time.Millisecond)) {
 		t.Fatal("newest retired flow tombstones missing")
 	}
+
+	closedClient := &tcpClientFlow{id: 11, closed: true}
+	if err := client.handleAck(closedClient, Frame{Kind: KindTCPAck, FlowID: 11}, start); err != nil {
+		t.Fatalf("concurrent closed client ACK err=%v", err)
+	}
+	if err := client.handleData(closedClient, Frame{Kind: KindTCPData, FlowID: 11, Payload: []byte("late")}, start); err != nil {
+		t.Fatalf("concurrent closed client data err=%v", err)
+	}
+	closedServer := &tcpServerFlow{id: 12, closed: true}
+	if err := server.handleAck(closedServer, Frame{Kind: KindTCPAck, FlowID: 12}, start); err != nil {
+		t.Fatalf("concurrent closed server ACK err=%v", err)
+	}
+	if err := server.handleData(closedServer, Frame{Kind: KindTCPData, FlowID: 12, Payload: []byte("late")}, start); err != nil {
+		t.Fatalf("concurrent closed server data err=%v", err)
+	}
 }
