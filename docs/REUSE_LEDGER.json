@@ -198,7 +198,25 @@
       "destination": "internal/datapath/lease_handoff.go",
       "behavior_changes": "Add the minimal protected-admission bridge: require the admission's exact 16-byte TunnelID to equal the Manager-issued lease TunnelID before constructing the server LaneConfig. This does not change the P2 admission wire, credentials, exporter context, FakeTCP transition or lane crypto ownership.",
       "tests": "internal/datapath/tunnel_identity_test.go constructs admission handoff for two isolated installations, requires cross-installation TunnelID rejection, then proves the matching Manager lease creates a Lane accepted by the leased TunnelOwner."
+    },
+    {
+      "source": "old/internal/logicaltunnel/logicaltunnel.go",
+      "destination": "internal/logicaltunnel/source.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract only the Logical Tunnel IPv4 source anti-spoof semantic without importing the archived dataplane package: require one well-formed IPv4 packet, archived 9000-byte product ceiling, valid IHL/total-length, and source exactly equal to the /32 lease. IPv6, another lease source and malformed packets fail closed. No raw-IP metadata, gateway, TUN, netns or platform runtime is migrated.",
+      "tests": "internal/logicaltunnel/source_test.go covers exact/mapped lease acceptance, other-lease and IPv6 rejection, invalid lease, short/bad-IHL/length-mismatch and oversize malformed packets."
+    },
+    {
+      "source": "old/cmd/wbd-tun/main.go",
+      "destination": "internal/datapath/tunnel_owner.go",
+      "behavior_changes": "Adapt the archived client TUN source-fence placement to the active leased TunnelOwner: RoleClient BusinessFlow.Outbound validates the inner IPv4 source before Lane.Outbound, so rejected packets cannot consume PN, LINK/FEC state or padding/record state. Apply only to leased owners; unleased lower-level owner tests/adapters retain their previous generic-datagram behavior. Do not migrate the old TUN bridge, split engine, CLI or logging.",
+      "tests": "internal/datapath/tunnel_source_test.go proves spoofed/non-IPv4/malformed leased-client packets fail before lane state/PN mutation, a sibling valid BusinessFlow still uses PN=0, and client receive of server-to-client internet-source packets remains allowed."
+    },
+    {
+      "source": "old/cmd/wbd-ip-gateway-server/main_linux.go",
+      "destination": "internal/datapath/tunnel_owner.go",
+      "behavior_changes": "Adapt only the archived server-side post-decode source==lease fence into TunnelOwner.InboundPayload. The owner first validates the authoritative lane generation, decodes through the existing Lane, generation-fences completion, then on RoleServer leased owners drops each decoded inner datagram whose IPv4 source is not the lease and reports the error via PathErrors/SourceDiscards. Old raw-IP metadata, per-session netns/TUN and NAT runtime are not migrated.",
+      "tests": "internal/datapath/tunnel_source_test.go sends a forged packet directly through a client Lane to bypass the client owner and proves the leased server owner drops it after decrypt/FEC/LINK decode; valid leased traffic is delivered and a retired generation is rejected before business delivery."
     }
   ],
-  "note": "P2 and P3 qualifications remain unchanged. P4 logical-flow lane reuse is qualified at SOURCE_SHA 7994d1a2656079e4a27f6a5ddc4c7ad9b619488f / Actions 35479653320. Stable Installation/TunnelID/IPv4 lease identity plus leased owner/admission binding is implemented in the current candidate and awaits its own exact SOURCE_SHA Actions; source anti-spoof/platform/Game/padding policy remain later P4 atoms."
+  "note": "P4 stable identity/lease remains qualified at SOURCE_SHA 9f35f885b56194612f240c14bb802b6650dd7d6c / Actions 35482460272. The current candidate adds lease IPv4 source anti-spoof at the active leased owner boundaries and awaits its own exact SOURCE_SHA Actions. Old raw-IP/TUN/netns/platform runtime, Game racing and production padding policy remain deferred."
 }

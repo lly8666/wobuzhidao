@@ -29,9 +29,9 @@
     "P4子任务：logicaltunnel最小lifecycle/policy + 有界TunnelOwner/BusinessFlow registry，多业务复用既有Normal lane、generation fencing、DORMANT/wake与6过渡/10物理上限通过Actions",
     "P4子任务：stable Account+Installation -> TunnelID/IPv4 lease identity、leased TunnelOwner 与 protected-admission TunnelID binding 通过Actions；同identity稳定lease、跨installation隔离、rotation/DORMANT/wake不换lease"
   ],
-  "in_progress": "P4 stable Logical Tunnel identity/lease 原子任务已在 SOURCE_SHA 9f35f885b56194612f240c14bb802b6650dd7d6c / Actions 35482460272 完整通过。该SHA包含 identity/lease 产品代码及仅用于qualification的pcap bounded-drain修复：repository-contract PASS；Windows unit/build PASS；Ubuntu unit/build/race PASS；tlsrecord directed fuzz/reference PASS；P2 kernel fallback Go test PASS 1.24s，连续pcap 29 packets captured / 58 received by filter / 0 kernel drop 并通过既有 analyzer。stable identity/lease 行为：account+installation为identity key；同active identity重取同TunnelID+/32 lease；同账户不同installation隔离；TunnelID exact 16-byte对接protected admission；leased owner在lane membership前锁定TunnelID；rotation/DORMANT/wake保持lease；跨installation admission/lane fail-closed。P4仍未关闭，source anti-spoof/lease packet binding、Game owner API、platform入口和生产padding budget仍待后续。",
-  "next_task": "P4 下一原子任务：按 MODULE_MAP/PROJECT_CHARTER 定向提取 old logicaltunnel/raw-IP/TUN 中的 IPv4 source anti-spoof 最小语义，并把 lease source validation 接到 active leased TunnelOwner 的业务 packet ingress/egress owner 边界；要求业务IPv4 source必须等于该Tunnel lease，非IPv4/错误source fail-closed，且不迁移旧netns/raw gateway/CLI。保持多个BusinessFlow复用既有lane，不改Game竞速，不提前接完整platform runtime或P5/P7。",
-  "latest_log": "docs/devlog/20260920-095400-p4-logical-identity-lease-actions-pass.md",
+  "in_progress": "P4 IPv4 source anti-spoof / lease packet binding 原子任务已实现，等待自己的精确 SOURCE_SHA Actions：active logicaltunnel 新增 transport-independent ValidateIPv4Source，严格要求单个well-formed IPv4 packet、最大9000 bytes、合法IHL/total length且source byte-exact等于Logical Tunnel /32 lease；IPv6、错误source、malformed packet fail-closed。leased client 的 BusinessFlow.Outbound 在进入Lane/LINK/FEC/record前执行校验，因此拒绝包不消耗record PN也不改变lane发送状态；TunnelOwner新增generation-fenced InboundPayload owner边界，leased server 对解封后的每个inner datagram再次做source==lease校验，伪造包不交付并计入SourceDiscards。client receive方向不套source fence，server->client互联网source正常通过。未迁移旧TUN/raw gateway/netns/CLI，也未修改Game竞速。",
+  "next_task": "等待本次 P4 source anti-spoof 产品提交的精确 SOURCE_SHA GitHub Actions。若失败，读取具体job logs，仅修本atomic task并保留FAIL证据；若全部成功，则记录精确SHA/run/jobs/artifacts完成证据closure，再重新读取STATUS决定下一P4原子任务。",
+  "latest_log": "docs/devlog/20260920-101000-p4-lease-source-fence.md",
   "last_tested_source_sha": "9f35f885b56194612f240c14bb802b6650dd7d6c",
   "actions": [
     {
@@ -345,7 +345,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: stable logical identity/lease 已在 SOURCE_SHA 9f35f885b56194612f240c14bb802b6650dd7d6c / Actions 35482460272 PASS；下一步 source anti-spoof / lease packet binding；logical-flow lane reuse已PASS，padding生产默认off",
+    "P4": "IN_PROGRESS: stable identity/lease已PASS；lease IPv4 source anti-spoof已实现并接leased owner client-outbound/server-inbound边界，等待精确SOURCE_SHA Actions；Game/platform/padding policy仍未接",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }

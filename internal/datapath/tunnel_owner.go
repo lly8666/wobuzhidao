@@ -41,6 +41,7 @@ type TunnelOwnerStats struct {
 	Retiring           int
 	PhysicalLanes      int
 	GenerationDiscards uint64
+	SourceDiscards     uint64
 	Dormant            bool
 	Closed             bool
 }
@@ -76,6 +77,7 @@ type TunnelOwner struct {
 	identified bool
 
 	generationDiscards uint64
+	sourceDiscards     uint64
 	closed             bool
 }
 
@@ -162,6 +164,11 @@ func (f *BusinessFlow) Outbound(packet []byte, now time.Time) ([]WireRecord, err
 	binding, err := f.owner.normalBinding(f.id)
 	if err != nil {
 		return nil, err
+	}
+	if binding.lane.Config().Role == RoleClient {
+		if err := f.owner.validateLeasedIPv4Source(packet); err != nil {
+			return nil, err
+		}
 	}
 	records, err := binding.lane.Outbound(packet, now)
 	if err != nil {
@@ -312,6 +319,84 @@ func (o *TunnelOwner) FenceOutbound(ref logicaltunnel.LaneRef, records []WireRec
 	return records, nil
 }
 
+// InboundPayload is the owner boundary for one authoritative Lane incarnation.
+// It generation-fences late transport work before exposing decoded business
+// packets. On the server side, a leased owner additionally drops every inner
+// datagram whose IPv4 source is not the Logical Tunnel lease.
+func (o *TunnelOwner) InboundPayload(ref logicaltunnel.LaneRef, payload []byte, now time.Time) (InboundResult, error) {
+	o.mu.Lock()
+	if o.closed {
+		o.mu.Unlock()
+		return InboundResult{}, ErrTunnelOwnerClosed
+	}
+	binding, ok := o.active[ref.ID]
+	if !ok {
+		o.mu.Unlock()
+		return InboundResult{}, fmt.Errorf("%w: lane=%d got=%d current=none", logicaltunnel.ErrStaleLaneGeneration, ref.ID, ref.Generation)
+	}
+	if binding.ref != ref {
+		current := binding.ref
+		o.mu.Unlock()
+		return InboundResult{}, staleGeneration(ref, current)
+	}
+	role := o.role
+	lease := o.lease.Clone()
+	hasLease := o.hasLease
+	o.mu.Unlock()
+
+	result, err := binding.lane.InboundPayload(payload, now)
+	if err != nil {
+		return InboundResult{}, err
+	}
+	if err := o.ValidateGeneration(ref); err != nil {
+		return InboundResult{}, err
+	}
+	if role != RoleServer || !hasLease {
+		return result, nil
+	}
+	leased, err := lease.Config.LeaseIPv4()
+	if err != nil {
+		return InboundResult{}, err
+	}
+	kept := result.Datagrams[:0]
+	for _, packet := range result.Datagrams {
+		if err := logicaltunnel.ValidateIPv4Source(packet, leased); err != nil {
+			result.PathErrors = append(result.PathErrors, err)
+			o.noteSourceDiscard()
+			continue
+		}
+		kept = append(kept, packet)
+	}
+	result.Datagrams = kept
+	return result, nil
+}
+
+func (o *TunnelOwner) validateLeasedIPv4Source(packet []byte) error {
+	o.mu.Lock()
+	if !o.hasLease {
+		o.mu.Unlock()
+		return nil
+	}
+	lease := o.lease.Clone()
+	o.mu.Unlock()
+
+	leased, err := lease.Config.LeaseIPv4()
+	if err != nil {
+		return err
+	}
+	if err := logicaltunnel.ValidateIPv4Source(packet, leased); err != nil {
+		o.noteSourceDiscard()
+		return err
+	}
+	return nil
+}
+
+func (o *TunnelOwner) noteSourceDiscard() {
+	o.mu.Lock()
+	o.sourceDiscards++
+	o.mu.Unlock()
+}
+
 func (o *TunnelOwner) ValidateGeneration(ref logicaltunnel.LaneRef) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
@@ -387,6 +472,7 @@ func (o *TunnelOwner) Stats() TunnelOwnerStats {
 		Retiring:           len(o.retiring),
 		PhysicalLanes:      o.physicalLocked(),
 		GenerationDiscards: o.generationDiscards,
+		SourceDiscards:     o.sourceDiscards,
 		Dormant:            len(o.active) == 0,
 		Closed:             o.closed,
 	}
