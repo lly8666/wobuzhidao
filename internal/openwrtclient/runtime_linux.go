@@ -124,14 +124,26 @@ func ensureUnowned(plan NetworkPlan) error {
 		}
 	}
 
-	out, err = exec.Command("ip", "-4", "route", "show", "table", strconv.FormatUint(uint64(plan.Table), 10)).CombinedOutput()
+	routes, err := routeTableState(plan.Table)
 	if err != nil {
-		return fmt.Errorf("openwrtclient: ip route show table: %w: %s", err, strings.TrimSpace(string(out)))
+		return err
 	}
-	if strings.TrimSpace(string(out)) != "" {
+	if strings.TrimSpace(routes) != "" {
 		return fmt.Errorf("%w: route table %d is not empty", ErrStateConflict, plan.Table)
 	}
 	return nil
+}
+
+func routeTableState(table uint32) (string, error) {
+	out, err := exec.Command("ip", "-4", "route", "show", "table", strconv.FormatUint(uint64(table), 10)).CombinedOutput()
+	if err == nil {
+		return string(out), nil
+	}
+	text := strings.TrimSpace(string(out))
+	if strings.Contains(text, "FIB table does not exist") {
+		return "", nil
+	}
+	return "", fmt.Errorf("openwrtclient: ip route show table %d: %w: %s", table, err, text)
 }
 
 func runNFTScript(script string) error {

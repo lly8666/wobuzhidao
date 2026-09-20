@@ -308,7 +308,10 @@ func assertKernelOwnership(t *testing.T, plan NetworkPlan, want bool) {
 	if hasRule != want {
 		t.Fatalf("policy rule present=%v want=%v rules=%s", hasRule, want, rules)
 	}
-	routes := mustCommand(t, "ip", "-4", "route", "show", "table", strconv.FormatUint(uint64(plan.Table), 10))
+	routes, err := routeTableState(plan.Table)
+	if err != nil {
+		t.Fatal(err)
+	}
 	hasRoute := strings.Contains(routes, "local 0.0.0.0/0 dev lo")
 	if hasRoute != want {
 		t.Fatalf("local route present=%v want=%v routes=%s", hasRoute, want, routes)

@@ -36,9 +36,9 @@
     "P4子任务：Windows Wintun client platform core 通过Actions；单Wintun L3 adapter、IPv4-only TUN边界、stable lease /32排他、underlay /32锁物理path、full IPv4 capture/direct routes、NRPT DNS、device-wide IPv6 fail-closed与state-owned cleanup完成hosted Windows资格",
     "P4子任务：Windows Npcap/physical underlay hosted core 通过Actions；Windows IP Helper物理NIC/next-hop发现、server /32与Npcap同源path、exact four-tuple BPF+用户态过滤、source-port/peer/MAC绑定、owned ingress、generation fencing与有界shutdown均完成hosted Windows compile/mock资格，真实Npcap/NIC物理资格仍NOT_RUN"
   ],
-  "in_progress": "P4 OpenWrt TPROXY ownership candidate 已实现：新增 active internal/openwrtclient 纯 NetworkPlan 与 Linux in-process Runtime，只拥有 IPv4 TCP/UDP TPROXY 所需的专用 inet wbd_tproxy prerouting table、fwmark policy rule 和 local route table；规则顺序先 already-marked、underlay source、local destination、underlay destination bypass，再 TCP/UDP TPROXY，防止外层 server underlay 递归。Runtime apply 前对同名 nft table、priority/mark/table policy rule 与 route table 做冲突检测并 fail-closed；Close 先停 capture，再精确删除 WBD rule/route，不 flush 全局 ruleset。新增 root-netns privileged harness 使用真实 IP_TRANSPARENT TCP/UDP listeners、三 namespace 路由、foreign nft table/foreign ip rule，验证 TCP capture、UDP capture、underlay bypass、state-conflict refusal、owned-only cleanup 和 cleanup 后普通路由恢复。未迁移旧 platform-proxy、localhost UDP、DTLS shim、full-cone/hairpin process topology；IPv6 capture 本 atom 明确 NOT_IMPLEMENTED。",
-  "next_task": "对 OpenWrt TPROXY candidate 的 exact SOURCE_SHA 跑完整 next-foundation Actions。必须读取 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference、P2 kernel fallback、Linux privileged shared-TUN 两backend，以及新增 p4-openwrt-tproxy-privileged root-netns 结果。若新 gate PASS，再做 evidence closure，并进入透明 TCP/UDP socket ingress -> 已有 TunnelOwner 的单进程适配；不要恢复旧 platform proxy/UDP relay。",
-  "latest_log": "docs/devlog/20260920-153000-p4-openwrt-tproxy-candidate.md",
+  "in_progress": "P4 OpenWrt TPROXY first candidate SOURCE_SHA 6ab8f70782175c4e88bb848f1947f664085ca34b / Actions 35493873345：repository-contract PASS，OpenWrt privileged test binary compile PASS，但真实netns gate在 Runtime preflight 立即FAIL。日志明确 `ip route show table 1066` 对尚不存在的策略路由表返回 exit status 2 / `FIB table does not exist`；代码错误地把正常“空/未创建表”当成冲突查询失败，尚未进入 nft TPROXY apply，因此没有 TCP/UDP 行为结论。修复仅规范化该 Linux iproute2 表不存在返回为 empty state，并让 cleanup assertion复用同一查询语义；TPROXY plan/runtime规则与workflow保持不变。",
+  "next_task": "提交 OpenWrt route-table absent-state 修复并读取新 exact SOURCE_SHA next-foundation。6ab8f707... / run 35493873345 保留为 preflight FAIL 证据；新SHA必须重新执行真实 TCP/UDP TPROXY、underlay bypass、state conflict、owned-only cleanup，并保留全部现有回归。",
+  "latest_log": "docs/devlog/20260920-154000-p4-openwrt-route-table-absent-fix.md",
   "last_tested_source_sha": "1ec7d667564a8e0f26a3afb811cb89eb484ea5dd",
   "actions": [
     {
@@ -404,6 +404,13 @@
       "scope": "P4-windows-npcap-hosted-core-final",
       "status": "PASS",
       "note": "Hosted core/adapter qualification only；run attempt 1 completed/success，6 jobs全部PASS。Windows 2022整仓unit/build PASS；既有Wintun Render contract PASS并输出 WBD_WINDOWS_CLIENT_PLAN / UNDERLAY 198.51.100.10/32 / ADDRESS_EXCLUSIVE / DNS_NRPT / IPV6_FAIL_CLOSED / CLEANUP；新增targeted Npcap/PhysicalUnderlay contract PASS并输出 WBD_WINDOWS_NPCAP_HOSTED_CORE_PASS physical=NOT_RUN。Ubuntu unit/build/race/fuzz/reference PASS；P2 kernel fallback PASS（TestKernelTLSFallbackVerifiedHTTPAndNormalClose 1.24s；28 packets captured / 56 received by filter / 0 dropped，pcap analyzer PASS）；Linux privileged shared-TUN iptables+nft PASS。Artifacts: foundation 10599402708；tlsrecord-reference 10599921615；p2-kernel-fallback 10599339989；iptables 10600395602；nft 10600220880。未执行真实Npcap driver/physical NIC，因此不是PHYSICAL_PASS。"
+    },
+    {
+      "source_sha": "6ab8f70782175c4e88bb848f1947f664085ca34b",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35493873345",
+      "scope": "P4-openwrt-tproxy-pre-route-table-absent-fix",
+      "status": "FAIL",
+      "note": "repository-contract PASS；p4-openwrt-tproxy-privileged build PASS，真实netns test启动后在OpenRuntime preflight立即FAIL：`ip -4 route show table 1066` 对未创建FIB table返回exit 2 + `FIB table does not exist`，代码误当查询错误。失败发生在任何nft TPROXY apply/TCP/UDP capture之前，因此没有产品行为结论。artifact 10599722692。修复只把该明确iproute2 absent状态视为空table，并同步cleanup assertion。"
     }
   ],
   "physical_status": "NOT_RUN",
