@@ -29,12 +29,13 @@
     "P4子任务：logicaltunnel最小lifecycle/policy + 有界TunnelOwner/BusinessFlow registry，多业务复用既有Normal lane、generation fencing、DORMANT/wake与6过渡/10物理上限通过Actions",
     "P4子任务：stable Account+Installation -> TunnelID/IPv4 lease identity、leased TunnelOwner 与 protected-admission TunnelID binding 通过Actions；同identity稳定lease、跨installation隔离、rotation/DORMANT/wake不换lease",
     "P4子任务：IPv4 lease source anti-spoof 接 leased TunnelOwner client-outbound/server-inbound owner boundary，通过Actions；错误source/IPv6/malformed fail-closed且不消耗客户端PN，server解封后再次校验",
-    "P4子任务：Game PacketID racing/dedupe 接 TunnelOwner/Lane active API，通过Actions；Game=2/3/4，同一PacketID多lane竞速、首次有效到达交付、其余去重、unique乱序无HOL，PacketID/dedupe跨replacement与DORMANT/wake保持"
+    "P4子任务：Game PacketID racing/dedupe 接 TunnelOwner/Lane active API，通过Actions；Game=2/3/4，同一PacketID多lane竞速、首次有效到达交付、其余去重、unique乱序无HOL，PacketID/dedupe跨replacement与DORMANT/wake保持",
+    "P4子任务：tunnel-owner production padding budget（默认off、per-record cap、tunnel-wide ratio/total cap、Normal/Game共享预算）通过Actions；Game/FEC放大不重复赚useful credit，replacement/DORMANT/wake不重置预算"
   ],
-  "in_progress": "P4 tunnel-owner production padding budget 原子任务已实现，等待自己的精确 SOURCE_SHA Actions。新增 TunnelPaddingPolicy：零值/default严格off；启用时固定 BytesPerRecord 作为per-record hard cap，并同时受 tunnel-wide MaxPaddingBytes 与 MaxPaddingRatioPPM(useful logical payload)约束；任何 record 的MTU headroom或累计额度不足都立即选择0，不等待、不凑包、不新增record。策略必须在首条transport attach前配置，运行中不可重置预算。Lane新增owner-only逐record padding selector/reservation/finalize，在LINK/FEC已形成record后依据精确headroom原子预留tunnel额度，seal成功才计实际padding，失败释放reservation。Normal sibling BusinessFlow共用同一预算；Game每个logical packet只按原始业务packet长度记一次useful bytes，2/3/4 lane copies和FEC/parity只消耗额度、不重复赚credit。same-ID replacement、DORMANT/wake不清padding state。未接CLI/platform配置，未新增payload-idle逻辑，未做P5流量外观结论。",
-  "next_task": "等待本次 P4 tunnel-owner production padding budget 产品提交的精确 SOURCE_SHA GitHub Actions。若失败读取具体job logs，只修本atomic scope并保留FAIL证据；若全部成功，记录精确SHA/run/jobs/artifacts做evidence closure，再重新读取STATUS决定下一P4 platform/runtime原子任务。",
-  "latest_log": "docs/devlog/20260920-110500-p4-owner-padding-budget.md",
-  "last_tested_source_sha": "7a32b425b66e1018bc536cd3af8bd8e621ed38ce",
+  "in_progress": "P4 tunnel-owner production padding budget 已在 SOURCE_SHA 3bd086e1562cf590dc3364c92f9f5be86415e45d / Actions 35485851261 完整通过。repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；directed fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS。TunnelPaddingPolicy零值严格off；启用时 BytesPerRecord 为固定request/per-record hard cap，并受 tunnel-wide MaxPaddingBytes 与 MaxPaddingRatioPPM(useful logical payload)双重上限。Lane owner selector在实际LINK/FEC record形成后按精确MTU headroom做原子reservation，seal成功才计实际padding，失败释放；预算/headroom不足立即0，无等待/凑包/额外record。Normal sibling flows共用预算；Game logical packet只记一次原始业务bytes，lane copies/FEC/parity只能消耗不能增加credit；same-ID replacement与DORMANT/wake不清预算。P4仍未关闭：Linux/Windows/OpenWrt platform入口、统一client/server runtime与真实TUN/Npcap接线仍待后续。",
+  "next_task": "P4 下一原子任务：按 MODULE_MAP 定向读取 old/cmd/wbd-ip-gateway-server、old/internal/rawipbackend、old/scripts 中 Linux TUN/NAT/DNS 直接依赖与测试，提取 Linux 服务端 shared-TUN 最小 active 平台核心。目标是一个共享TUN承载多个Logical Tunnel lease，按目标/源lease把inner IPv4 packet路由到正确 TunnelOwner owner API，出站继续复用Normal/Game既有lane并保留server source anti-spoof；定义WBD-owned单host NAT/forwarding/DNS配置与确定清理边界。严禁恢复per-user netns/veth/double NAT、旧rawip UDP bridge/独立子进程或旧CLI；先做可Actions测试的platform core/command-plan，若hosted runner不具备真实TUN权限则明确区分adapter资格，不提前声称物理平台PASS。",
+  "latest_log": "docs/devlog/20260920-111500-p4-owner-padding-actions-pass.md",
+  "last_tested_source_sha": "3bd086e1562cf590dc3364c92f9f5be86415e45d",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -343,6 +344,13 @@
       "scope": "P4-game-packetid-racing-dedupe-final",
       "status": "PASS",
       "note": "repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；tlsrecord directed fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS。Game专项覆盖3-lane同PacketID fan-out/first-arrival dedupe、unique PacketID乱序无HOL、client source fence在PacketID分配前、server错误source/错误LaneID不污染同ID dedupe、server->client互联网source、same-ID replacement与DORMANT/wake后PacketID连续、BusinessFlow增长不增加lane、Normal单lane拒绝Game API。P2 kernel test PASS 1.24s；pcap 28 captured / 56 received by filter / 0 kernel drop。Artifacts: foundation 10596572469；tlsrecord-reference 10596312986；p2-kernel-fallback 10596987541。"
+    },
+    {
+      "source_sha": "3bd086e1562cf590dc3364c92f9f5be86415e45d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35485851261",
+      "scope": "P4-tunnel-owner-padding-budget-final",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；tlsrecord directed fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS。专项覆盖默认off、配置锁定、Normal sibling flow共享ratio/total cap、20:4 full-block parity不增加useful credit、Game 3-lane copies不乘useful credit、same-ID replacement/DORMANT/wake预算连续。P2 kernel test PASS 1.24s；pcap 29 captured / 58 received by filter / 0 kernel drop。Artifacts: foundation 10597740074；tlsrecord-reference 10597845055；p2-kernel-fallback 10597413211。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -368,7 +376,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: stable identity/lease、lease source anti-spoof、Game PacketID racing/dedupe均已PASS；tunnel-owner production padding budget已实现等待精确SOURCE_SHA Actions；CLI/platform入口仍未接",
+    "P4": "IN_PROGRESS: stable identity/lease、source anti-spoof、Game PacketID racing/dedupe、tunnel-owner padding budget均已精确SHA Actions PASS；下一步Linux server shared-TUN/NAT/DNS platform core，Windows/OpenWrt随后",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
