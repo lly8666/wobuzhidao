@@ -212,9 +212,7 @@ jobs:
           NFT_FORWARD=''
           if test "$BACKEND" = nft; then
             sudo ip netns exec "$NS" nft add table inet filter
-            sudo ip netns exec "$NS" nft -f - <<'EOF'
-add chain inet filter forward { type filter hook forward priority 0; policy drop; }
-EOF
+            printf '%s\n' 'add chain inet filter forward { type filter hook forward priority 0; policy drop; }' | sudo ip netns exec "$NS" nft -f -
             NFT_FORWARD='inet:filter:forward'
           else
             sudo ip netns exec "$NS" iptables -P FORWARD DROP

@@ -33,9 +33,9 @@
     "P4子任务：tunnel-owner production padding budget（默认off、per-record cap、tunnel-wide ratio/total cap、Normal/Game共享预算）通过Actions；Game/FEC放大不重复赚useful credit，replacement/DORMANT/wake不重置预算",
     "P4子任务：Linux server shared-TUN hosted platform core 通过Actions；shared registry直接绑定leased TunnelOwner，按lease /32 demux Normal/Game，exact rebind stale-token fencing，Linux TUN primitive与WBD-owned route/FORWARD/NAT/sysctl/DNS-unchanged plan均通过跨平台unit/race"
   ],
-  "in_progress": "P4 Linux privileged shared-TUN runtime executor 原子任务已实现，等待 exact SOURCE_SHA Actions。新增 internal/linuxserver Runtime：OpenRuntime 重新规范化 NetworkPlan、真实打开 /dev/net/tun、选择 iptables/nft backend、保存 ip_forward 与 tun rp_filter、apply TUN link/MTU/lease route、只安装 WBD marker 的 FORWARD/NAT rules；Close 按反向顺序只清理 WBD-owned firewall/route，恢复已保存 sysctl，关闭非persistent TUN，任何 apply 中途失败调用同一 rollback。iptables 只精确 -C/-D 自己三条comment规则，不改既有policy；nft 显式 forward chain 时只按handle删 WBD marker，并把 NAT 放在独立 inet wbd_shared_tun table，未指定chain且检测到未知 forward hook 时 fail-closed。next-foundation 新增 ubuntu privileged matrix [iptables,nft]：独立 netns、modprobe tun、真实 /dev/net/tun、existing forward policy=DROP、两个lease registry packet smoke、Close后验证 TUN/route/markers消失且既有policy保留。Windows 保持 !linux unsupported compile。",
-  "next_task": "等待本次 P4 Linux privileged shared-TUN runtime executor 产品提交的 exact SOURCE_SHA GitHub Actions；要求 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference、P2 kernel fallback，以及新增 p4-linux-shared-tun-privileged 的 iptables 与 nft 两个 matrix job 全部成功。若某 backend 失败读取该 job logs，只修本 atomic scope并保留FAIL。全部通过后 evidence closure，并将 Linux server hosted privileged gate 标为PASS；随后进入 Windows Wintun/Npcap 最小 platform atom，OpenWrt后置。",
-  "latest_log": "docs/devlog/20260920-121500-p4-linux-privileged-runtime.md",
+  "in_progress": "P4 Linux privileged shared-TUN runtime executor 产品代码已提交于 45b17953ebaa57dec5f05ba31377f00509507143，但 Actions 35488432157 在任何job创建前整体FAIL。根因是新增 workflow 的 nft setup heredoc 内容未保持 YAML block-scalar 缩进，GitHub 无法解析 workflow；没有 repository-contract/unit/runtime job 被执行，因此该SHA无任何产品测试结论。修复仅把 nft setup 改为缩进安全的 printf pipe 到 nft -f -，runtime/product Go源码 byte-identical，等待新 exact SHA Actions。",
+  "next_task": "等待 workflow YAML 修复提交自己的 exact SOURCE_SHA Actions；要求 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference、P2 kernel fallback，以及 p4-linux-shared-tun-privileged 的 iptables/nft 两个matrix job全部成功。45b17953... / run 35488432157 保留为 workflow-parse FAIL 证据，不得视为产品失败或PASS。",
+  "latest_log": "docs/devlog/20260920-122000-p4-linux-runtime-workflow-parse-fix.md",
   "last_tested_source_sha": "3d1c3831fb7726971ee8d52a076800a07af36d5f",
   "actions": [
     {
@@ -359,6 +359,13 @@
       "scope": "P4-linux-shared-tun-hosted-core-final",
       "status": "PASS",
       "note": "Hosted core/adapter qualification only. repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；tlsrecord directed fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS。SharedTUNRouter专项覆盖two-lease Normal/Game destination demux、duplicate lease/TunnelID拒绝、exact identity rebind stale-token fencing、source-spoof/short-write/malformed/no-route fail-closed；NetworkPlan覆盖shared-TUN route、sysctl save/restore intent、三条WBD-owned firewall marker与host DNS unchanged；NormalOutbound不创建BusinessFlow。P2 kernel test PASS 1.24s；pcap 29 captured / 58 received by filter / 0 kernel drop。Artifacts: foundation 10597846826；tlsrecord-reference 10597442965；p2-kernel-fallback 10598275716。未执行真实root /dev/net/tun/netfilter。"
+    },
+    {
+      "source_sha": "45b17953ebaa57dec5f05ba31377f00509507143",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35488432157",
+      "scope": "P4-linux-privileged-runtime-pre-workflow-parse-fix",
+      "status": "FAIL",
+      "note": "Workflow definition parse failure before job creation: actions run completed/failure with total jobs=0. Root cause is unindented heredoc body inside YAML run block for nft forward-chain setup. No repository-contract, Go unit/build/race/fuzz, P2, or privileged runtime test executed, so this run carries no product-runtime verdict. Fix is CI-only: replace heredoc with indentation-safe printf | nft -f -."
     }
   ],
   "physical_status": "NOT_RUN",
@@ -384,7 +391,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding与Linux shared-TUN hosted core均PASS；Linux privileged runtime executor + iptables/nft root smoke已实现等待Actions；Windows/Wintun/Npcap、OpenWrt仍未接",
+    "P4": "IN_PROGRESS: Linux privileged runtime product implementation exists; 45b17953 Actions failed at workflow YAML parse before tests. CI-only parse fix prepared; product Go code unchanged.",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
