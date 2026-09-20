@@ -232,8 +232,15 @@ func (a *ServerAssociation) HandleSegment(seg Segment, now time.Time) (ServerSeg
 
 	if seg.Flags&FlagACK != 0 {
 		a.sender.UpdatePeerWindow(seg.Window, a.peer.WindowScale, a.peer.WindowScaleSet)
-		if err := a.sender.AckChecked(seg.Ack, now); err != nil {
-			return out, err
+		detached := a.transition != nil && a.transition.State() == TransitionDetached
+		// Bootstrap sender ownership ends at detach. A steady-state ACK may
+		// legitimately advance beyond the final TLS/admission byte; the runtime
+		// owner consumes that sequence space instead of treating it as a bad
+		// bootstrap ACK. ACKs inside the bootstrap range remain validated here.
+		if !detached || !seqLT(a.sender.NextSeq(), seg.Ack) {
+			if err := a.sender.AckChecked(seg.Ack, now); err != nil {
+				return out, err
+			}
 		}
 	}
 

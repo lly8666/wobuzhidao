@@ -400,8 +400,8 @@
     {
       "source": "old/cmd/wbd-platform-proxy-openwrt/main_linux.go",
       "destination": "internal/openwrtclient/socket_linux.go",
-      "behavior_changes": "Extract only IPv4 transparent socket I/O in-process: IP_TRANSPARENT TCP accept with original destination from LocalAddr, UDP IP_RECVORIGDSTADDR ancillary parsing, bounded transparent source-socket cache for reverse UDP, shutdown and periodic flow expiry. Captured traffic calls platformflow.Client directly; no -wbd localhost UDP socket, signal-owned child process, IPv6 socket or archived command topology is migrated.",
-      "tests": "Unit/build/race compile the real Linux adapter; TestPrivilegedOpenWrtSocketTunnelAdapter runs it behind the active nft TPROXY rules and validates TCP plus UDP EIM/EIF against real namespace sockets."
+      "behavior_changes": "Extract only IPv4 transparent socket I/O in-process: IP_TRANSPARENT TCP accept with original destination from LocalAddr, UDP IP_RECVORIGDSTADDR ancillary parsing, bounded transparent source-socket cache for reverse UDP, shutdown and periodic flow expiry. Captured traffic calls platformflow.Client directly; no -wbd localhost UDP socket, signal-owned child process, IPv6 socket or archived command topology is migrated. This runtime atom also exposes DeliverFromOwner so decoded lease-bound service packets return directly into the same in-process platformflow.Client rather than reaching into adapter internals or recreating a service socket.",
+      "tests": "Unit/build/race compile the real Linux adapter; TestPrivilegedOpenWrtSocketTunnelAdapter runs it behind the active nft TPROXY rules and validates TCP plus UDP EIM/EIF against real namespace sockets. The existing privileged root-netns socket test now uses DeliverFromOwner for the reverse path."
     },
     {
       "source": "old/cmd/wbd-platform-proxy-server/main.go",
@@ -426,7 +426,25 @@
       "destination": "scripts/openwrt_tproxy_netns.sh",
       "behavior_changes": "Fixture-only correction for the active combined OpenWrt qualification harness: retain the archived multi-address target shape by assigning 10.20.0.2/.3/.4/.5 to one target interface, and invoke both active privileged tests with one correctly quoted anchored regex. No archived platform proxy executable, localhost UDP bridge, DTLS or process topology is restored.",
       "tests": "The next exact-SHA p4-openwrt-tproxy-privileged job must execute both TestPrivilegedOpenWrtTPROXYRuntime and TestPrivilegedOpenWrtSocketTunnelAdapter rather than failing at shell parse time, and the workflow still requires both explicit PASS markers."
+    },
+    {
+      "source": "old/internal/faketcp/arq.go",
+      "destination": "internal/runtimeowner/runtime.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract only the post-bootstrap first-arrival/no-business-HOL sequencing shape and finite outstanding repair ownership into the new single-process runtime owner. The active atom uses cumulative ACK plus a hard 4096-record metadata bound; it does not restore the archived UDP carrier process, strict ordered delivery, or the full SACK/RACK/adaptive-pressure implementation.",
+      "tests": "internal/runtimeowner/runtime_test.go drops the first TLS-like record, delivers the second immediately across the FakeTCP sequence gap, then requires exact same-sequence/payload repair and cumulative ACK retirement; Windows/Linux active unit plus Linux race cover the package."
+    },
+    {
+      "source": "old/internal/faketcp/repair_horizon.go",
+      "destination": "internal/runtimeowner/runtime.go",
+      "behavior_changes": "Extract the finite-repair principle only: every steady TLS-like payload has an absolute first-send horizon and is abandoned rather than blocking fresh records forever. The active default is a 3s horizon with 1s initial repair interval, separate from TLS-like record/FEC/Game replay ownership.",
+      "tests": "runtimeowner hosted tests verify a missing record can be repaired without delaying later record delivery; TransportStats exposes retransmit/abandon/outstanding state and all queues remain bounded."
+    },
+    {
+      "source": "old/cmd/wbd-faketcp/main.go",
+      "destination": "internal/runtimeowner/runtime.go",
+      "behavior_changes": "Extract the same-association steady loop shape after TLS/admission detach: encrypted record payloads occupy the existing TCP-shaped four-tuple/sequence space, inbound payloads are ACKed and passed to the Lane owner, and retransmission reuses identical bytes/sequence. The old localhost UDP bridge, endpoint command/process topology, DTLS/carrier framing and signal-owned subprocess lifecycle are not restored; platform adapters call Runtime directly.",
+      "tests": "runtimeowner loopback tests exchange real faketcp.Segment values between client/server Runtime instances for Normal and Game, exercise same-ID replacement/generation fencing, and never open a localhost UDP service channel."
     }
   ],
-  "note": "P4 OpenWrt socket/TunnelOwner candidate remains a direct in-process platform-flow extraction. The follow-up after 64b54310 is harness-only: it fixes a truncated shell regex and restores target .4/.5 aliases needed by the real UDP EIM/EIF fixture; product Go semantics are unchanged."
+  "note": "P4 unified runtime transport candidate continues narrow archive extraction only. Post-admission FakeTCP steady payload ownership is now an in-process runtime layer with finite cumulative-ACK repair and no business HOL; full archived SACK/RACK/adaptive pressure and all old UDP/DTLS/process topology remain out. Exact-SHA Actions qualification is pending for the candidate."
 }

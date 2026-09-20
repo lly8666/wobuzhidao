@@ -145,6 +145,25 @@ func (a *SocketAdapter) Close() error {
 	return a.closeErr
 }
 
+// DeliverFromOwner is the in-process reverse path from the leased TunnelOwner.
+// OpenWrt socket mode owns only platform-service packets; ordinary leased IPv4
+// is not silently accepted by this adapter.
+func (a *SocketAdapter) DeliverFromOwner(packets [][]byte, now time.Time) error {
+	if a == nil || a.client == nil {
+		return ErrSocketClosed
+	}
+	for _, packet := range packets {
+		handled, err := a.client.HandleServicePacket(packet, now)
+		if err != nil {
+			return err
+		}
+		if !handled {
+			return platformflow.ErrUnsupported
+		}
+	}
+	return nil
+}
+
 func (a *SocketAdapter) udpLoop() error {
 	payload := make([]byte, platformflow.MaxPayload+1)
 	oob := make([]byte, 256)

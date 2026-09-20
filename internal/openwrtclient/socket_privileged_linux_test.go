@@ -109,17 +109,11 @@ func TestPrivilegedOpenWrtSocketTunnelAdapter(t *testing.T) {
 			if len(result.RecordErrors) != 0 || len(result.PathErrors) != 0 {
 				return fmt.Errorf("client inbound record=%v path=%v", result.RecordErrors, result.PathErrors)
 			}
-			if adapter == nil || adapter.client == nil {
+			if adapter == nil {
 				return errors.New("client socket adapter unavailable")
 			}
-			for _, packet := range result.Datagrams {
-				handled, err := adapter.client.HandleServicePacket(packet, now)
-				if err != nil {
-					return err
-				}
-				if !handled {
-					return errors.New("server response was not a platform service packet")
-				}
+			if err := adapter.DeliverFromOwner(result.Datagrams, now); err != nil {
+				return err
 			}
 		}
 		return nil

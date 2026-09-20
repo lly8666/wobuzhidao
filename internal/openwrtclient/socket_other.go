@@ -2,7 +2,10 @@
 
 package openwrtclient
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type SocketAdapter struct{}
 
@@ -11,6 +14,10 @@ func OpenSocketAdapter(SocketConfig) (*SocketAdapter, error) {
 }
 
 func (*SocketAdapter) Run(context.Context) error {
+	return ErrSocketUnsupported
+}
+
+func (*SocketAdapter) DeliverFromOwner([][]byte, time.Time) error {
 	return ErrSocketUnsupported
 }
 
