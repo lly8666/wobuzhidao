@@ -40,9 +40,9 @@
     "P4子任务：统一client/server runtime transport owner hosted闭包通过Actions；post-admission TLS-like WireRecord回到同FakeTCP四元组/序列空间，Normal/Game direct dispatch、首次到达无业务HOL、有界4096-record repair metadata、1s默认RTO/3s绝对repair horizon、client admission handoff、same-ID replacement/generation fence/DORMANT以及OpenWrt公开reverse delivery接口均在exact-SHA Windows/Linux unit + Linux race通过；未恢复localhost UDP/DTLS/旧Controller。",
     "P4子任务：可运行单进程client/server entry + endpoint loop最小闭包通过Actions；新增client FakeTCP association与同association TLS/admission->runtimeowner handoff，Linux server shared-TUN+raw、OpenWrt TPROXY SocketAdapter+raw、Windows Wintun+Npcap命令入口均跨平台编译，内存segment endpoint真实TLS/admission双向IPv4闭环unit/race PASS；server首条合法steady record前禁止业务egress，未恢复localhost UDP/DTLS/旧Controller。"
   ],
-  "in_progress": "P4 可执行入口多lane/lifecycle候选已完成代码接线，待 exact-SHA Actions：protected admission 新增并回显 lane_id=1..4，用于把每条独立 FakeTCP association 显式绑定同一 Logical Tunnel 的 authoritative lane / same-ID replacement；runtimeentry 新增共享 raw SegmentMux、Game 2..4 单进程 client/server lifecycle、serialized replacement、失败候选保留旧 generation、A+B physical overlap + 有界 retire、payload-idle DORMANT/wake 与稳定 leased TunnelOwner；Linux/OpenWrt/Windows cmd 新增 --lanes、idle-dormant 和 bounded rotation。未恢复旧Controller/UDP Game进程/localhost carrier/DTLS，真实Windows/Npcap physical仍NOT_RUN。",
-  "next_task": "先对当前多lane/lifecycle产品候选做 exact-SHA next-foundation 资格；若任一 gate 失败，只修本 atom 直到 Windows/Linux unit/build、Linux race/fuzz/reference、P2 kernel fallback、Linux shared-TUN iptables/nft、OpenWrt TPROXY+SocketTunnel 全部PASS。PASS后记录证据并判断P4是否满足关闭条件；不进入P5。",
-  "latest_log": "docs/devlog/20260920-214500-p4-entry-lifecycle-candidate.md",
+  "in_progress": "P4 多lane/lifecycle产品候选 runtime code 已落在 173f9de06153bed38454adf27ac39a9601754c6a；Actions 35505359301 仅 repository-contract FAIL，原因是 REUSE_LEDGER 两条记录错误地在单 source/destination 字段写入多个路径，所有产品 jobs 因依赖 SKIPPED，尚无 runtime 失败结论。当前修复只拆分 ledger 路径记录，代码不变；下一 exact-SHA 继续跑完整矩阵。",
+  "next_task": "提交 REUSE_LEDGER 契约修复并对新精确 SOURCE_SHA 跑 next-foundation；若进入产品 jobs 后失败，只修本多lane/lifecycle atom。全部PASS后写 evidence closure、更新 last_tested_source_sha，并判断P4关闭条件；不进入P5。",
+  "latest_log": "docs/devlog/20260920-220000-p4-entry-lifecycle-ledger-fix.md",
   "last_tested_source_sha": "79c6e9ddcbc3e7f74b85dcc6d162d5c1a3c4e3f9",
   "actions": [
     {
@@ -471,6 +471,13 @@
       "scope": "P4-single-process-entry-endpoint-loop-final",
       "status": "PASS",
       "note": "Run attempt 1 completed/success，7 jobs全部PASS。Ubuntu整仓unit/build中 internal/runtimeentry PASS 0.011s、internal/faketcp PASS 0.134s；go test -race ./... 中 runtimeentry PASS 1.027s、faketcp PASS 1.148s；tlsrecord directed fuzz 15s累计164994 execs后PASS。Windows 2022整仓unit/build中 runtimeentry PASS 0.026s、faketcp PASS 0.156s；Wintun Render继续输出 WBD_WINDOWS_CLIENT_PLAN，Npcap hosted marker WBD_WINDOWS_NPCAP_HOSTED_CORE_PASS physical=NOT_RUN。P2 kernel fallback PASS 1.24s，29 captured / 58 received by filter / 0 dropped，analyzer PASS。Linux shared-TUN iptables PASS 0.08s、nft PASS 0.11s，均 active_tunnels=2 cleanup=owned-only dns=host-dns-unchanged。OpenWrt TPROXY PASS 0.22s；SocketTunnelAdapter PASS 0.13s，tcp=1 udp=1 eim=1 eif=1 tunnelowner=1 lanes=1 service_tun_leak=0。Artifacts: foundation 10602685418 sha256:4a290ea40232396d539011028117e4c31a3f5768ecf269a8fdcd8fece53b9741；tlsrecord-reference 10602276961 sha256:d2706276ebddc139934cf19681289b117f9a502f34db96ea2adae01e7829f9d8；P2 10602496386 sha256:876267991e1bc1867d1551b8afa3c4c864ebb2666a3497cb715d542409903348；shared-TUN iptables 10602635555 sha256:1eef01e803b948672187c6ad670fafcb10d4e2d5a9d4e2190a2444f10397911c；nft 10602017146 sha256:072a9c27fa65642d26b441c0da5bb4f2fea4d9b72c67a6a20ede9097aee97943；OpenWrt 10601952488 sha256:6d3577a5b66035cf5902ace6ddaa9258be59de4624d7172ce8eabaddae6bca03。真实Windows/Npcap driver/NIC仍NOT_RUN。"
+    },
+    {
+      "source_sha": "173f9de06153bed38454adf27ac39a9601754c6a",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35505359301",
+      "scope": "P4-entry-multilane-lifecycle-candidate",
+      "status": "FAIL",
+      "note": "repository-contract FAIL: REUSE_LEDGER contained combined multi-path source/destination fields (Missing reuse source / Invalid reuse destination); all downstream product jobs SKIPPED. No runtime behavior verdict."
     }
   ],
   "physical_status": "NOT_RUN",

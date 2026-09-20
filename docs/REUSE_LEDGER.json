@@ -458,17 +458,29 @@
       "tests": "internal/runtimeentry/runtime_test.go uses an in-memory segment endpoint to complete real TLS/protected admission on the same FakeTCP association, attach runtimeowner, carry one leased IPv4 packet to shared-TUN and a reverse IPv4 packet back to the client."
     },
     {
-      "source": "old/cmd/wbd-game-lane-client/activity_control.go; old/cmd/wbd-game-lane-client/qualification.go",
-      "destination": "internal/runtimeentry/lifecycle.go; cmd/wbd-client/main_linux.go; cmd/wbd-client/main_windows.go",
-      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract only payload-idle ownership, serialized per-LaneID lifecycle changes, candidate-before-retire discipline and bounded qualification/overlap release. Active code binds LaneID inside protected TLS admission, keeps transport ACK/timer work from refreshing payload idle, and owns all lanes in one process over current raw/Npcap endpoints. It does not restore archived UDP Game process/control sockets, localhost carrier, old Controller, or target-list subprocess topology.",
-      "tests": "internal/runtimeentry/lifecycle_test.go covers Game multi-lane entry, failed replacement preserving authoritative generations, physical A+B overlap, bounded retirement, DORMANT/wake and stable lease identity; cross-platform Actions compile the Linux/OpenWrt and Windows command shells."
+      "source": "old/cmd/wbd-game-lane-client/activity_control.go",
+      "destination": "internal/runtimeentry/lifecycle.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract only the payload-activity boundary: real business/platform payload refreshes idle time, while transport ACK/timer/qualification traffic does not. Active DORMANT keeps the leased TunnelOwner identity and does not restore the archived UDP Game control process.",
+      "tests": "internal/runtimeentry/lifecycle_test.go exercises DORMANT/wake with stable lease identity; lifecycle timers are hosted/race qualified by next-foundation."
     },
     {
-      "source": "old/cmd/wbd-game-lane-server/replacement_recovery.go; old/cmd/wbd-game-lane-server/serialized_reconnect_test.go",
+      "source": "old/cmd/wbd-game-lane-client/qualification.go",
       "destination": "internal/runtimeentry/lifecycle.go",
-      "behavior_changes": "Reuse only the serialized replacement convergence invariant: at most one same-ID transition is orchestrated at a time and stale physical incarnations cannot permanently consume transition capacity. The active runtime uses TunnelOwner/runtimeowner generation fencing, protected LaneID and a bounded replacement grace instead of archived CLIENT_LEAVE control messages or UDP peer maps.",
-      "tests": "Hosted lifecycle integration requires 2 authoritative Game lanes, 3 physical incarnations during one replacement, then retirement back to 2; owner limits remain the existing 4 authoritative / 10 physical bound."
+      "behavior_changes": "Extract only serialized same-LaneID candidate qualification and old-incarnation retention until the replacement association is protected-admission complete, then bounded A+B physical overlap/retire. The active implementation uses current FakeTCP/TLS admission and TunnelOwner/runtimeowner generation fencing, not archived UDP MembershipProbe/Ready control wire.",
+      "tests": "Lifecycle integration covers failed candidate preserving authoritative generations, 2 authoritative/3 physical A+B overlap, steady qualification and bounded retirement."
+    },
+    {
+      "source": "old/cmd/wbd-game-lane-server/replacement_recovery.go",
+      "destination": "internal/runtimeentry/lifecycle.go",
+      "behavior_changes": "Reuse only the serialized replacement convergence principle so one stale overlap cannot permanently consume transition capacity. Active code uses protected LaneID plus bounded replacement grace and exact generation fencing; archived CLIENT_LEAVE messages and UDP peer maps are not migrated.",
+      "tests": "Lifecycle server allows only one replacement transition at a time and returns to the desired physical lane count after qualification/grace."
+    },
+    {
+      "source": "old/cmd/wbd-game-lane-server/serialized_reconnect_test.go",
+      "destination": "internal/runtimeentry/lifecycle_test.go",
+      "behavior_changes": "Reuse the assertion intent that per-lane reconnect/replacement is serialized and converges without changing logical LaneID. The active test runs current FakeTCP/TLS/runtimeowner in-process rather than archived UDP lane peers.",
+      "tests": "TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease checks failed replacement, successful same-ID rotation, generation advance, DORMANT/wake and Game PacketID continuity."
     }
   ],
-  "note": "P4 runnable single-process entry remains qualified at 79c6e9ddcbc3e7f74b85dcc6d162d5c1a3c4e3f9 / Actions 35500769979. Current candidate extends that entry with protected LaneID, Game 2..4 lifecycle orchestration, serialized same-ID replacement, bounded A+B retirement, DORMANT/wake and stable lease identity. Archive reuse is limited to lifecycle/qualification invariants; archived UDP Game processes, old Controller/control sockets, localhost carrier and subprocess topology remain out. Exact-SHA Actions qualification is pending for this candidate."
+  "note": "P4 runnable single-process entry remains qualified at 79c6e9ddcbc3e7f74b85dcc6d162d5c1a3c4e3f9 / Actions 35500769979. Multi-lane/lifecycle candidate SHA 173f9de06153bed38454adf27ac39a9601754c6a failed only repository-contract in Actions 35505359301 because two REUSE_LEDGER entries encoded multiple paths in one source/destination field; downstream product jobs were skipped. This commit fixes ledger shape only; runtime code is unchanged."
 }
