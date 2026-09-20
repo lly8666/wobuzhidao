@@ -25,12 +25,13 @@
     "P2关闭：建连重传/ACK、FIN/RST/半关闭、bootstrap有界窗口、TLS票据/ALPN/移交所有权及普通内核TCP/TLS真实fallback+HTTP+连续pcap均由Actions通过",
     "P3子任务：lane-owned session/datapath 串接（immutable FEC profile、方向record limits/keys、统一MTU、LINK/FEC、record seal/open、detach handoff、owner expiry）通过Actions",
     "P3子任务：显式有界record padding（默认0/off、统一MTU headroom、独立静态向量、全FEC/MTU/no-HOL/不可变重传）通过Actions",
-    "P3关闭：LINK fragmentation/reassembly、FEC off+20:4/8/10/12/16/20、统一MTU、lane-owned session/datapath、显式有界record padding全部取得精确SOURCE_SHA Actions资格"
+    "P3关闭：LINK fragmentation/reassembly、FEC off+20:4/8/10/12/16/20、统一MTU、lane-owned session/datapath、显式有界record padding全部取得精确SOURCE_SHA Actions资格",
+    "P4子任务：logicaltunnel最小lifecycle/policy + 有界TunnelOwner/BusinessFlow registry，多业务复用既有Normal lane、generation fencing、DORMANT/wake与6过渡/10物理上限通过Actions"
   ],
-  "in_progress": "P4 首个 logical tunnel/lane reuse 原子任务已实现：提取最小 logicaltunnel lane policy/lifecycle，并在 internal/datapath 增加只引用既有 Lane incarnation 的有界 TunnelOwner/BusinessFlow registry。Normal 多业务 flow 复用同一 lane 1；flow close 不关闭 lane；same-ID replacement 保留 generation fencing、candidate failure、retiring headroom 与 DORMANT/wake；Game 1..4 逻辑 lane/最多6个退休过渡余量/最多10个物理incarnation边界不变；FEC profile 仍按 incarnation immutable；BusinessFlow 默认调用无 padding 的 Lane.Outbound。该实现尚未取得自己的精确 SOURCE_SHA Actions 资格，当前不得标 PASS；last_tested_source_sha 继续保持上一真实通过的 P3 产品 SHA。",
-  "next_task": "等待本次 P4 logical-flow lane-reuse 产品提交的精确 SOURCE_SHA GitHub Actions。若失败，读取具体 job logs，仅修本 atomic task 并保留 FAIL 证据；若顶层 completed/success 且相关 jobs 全部成功，则记录精确 SHA/run/jobs/artifacts 完成本原子任务证据 closure，再按最新 STATUS 继续 P4 后续 lifecycle/rotation/platform 接线。",
-  "latest_log": "docs/devlog/20260920-083400-p4-logical-flow-registry.md",
-  "last_tested_source_sha": "47483a4250ad240d000c5bf0d65e7be6f1af0a97",
+  "in_progress": "P4 logical-flow lane-reuse 原子任务已在 SOURCE_SHA 7994d1a2656079e4a27f6a5ddc4c7ad9b619488f / Actions 35479653320 完整通过：repository-contract、Windows unit/build、Linux unit/build/race、tlsrecord directed fuzz、独立reference vectors、P2 kernel fallback 均成功。多个业务 flow 可复用同一已有 Normal lane；flow close 不关闭 lane；same-ID replacement generation fencing、candidate failure、DORMANT/wake、6个退休/过渡余量和10个物理incarnation上限均有专项测试。P4 仍未关闭；尚未提取/接入 stable installation/lease identity、Game owner API/platform入口或生产 padding budget。",
+  "next_task": "P4 下一原子任务：按 MODULE_MAP 定向读取 old/internal/logicaltunnel 的 lease/installation/identity isolation 及直接 tests/imports，并对照当前 realityfront admission TunnelID 与新 TunnelOwner，提取稳定 Logical Tunnel identity/lease 的最小 active 闭包。保持一个 Installation 对应稳定 TunnelID/lease、多个业务 flow 继续复用既有 lane；不迁移旧 CLI/完整 runtime，不改 Game 竞速，不提前接 P5/P7。",
+  "latest_log": "docs/devlog/20260920-084900-p4-logical-flow-registry-actions-pass.md",
+  "last_tested_source_sha": "7994d1a2656079e4a27f6a5ddc4c7ad9b619488f",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -297,6 +298,13 @@
       "scope": "P3-record-padding-final",
       "status": "PASS",
       "note": "P3 padding最终资格。repository-contract PASS；Windows unit/build PASS；Linux unit/build/race PASS；tlsrecord directed fuzz PASS；独立 tools/tlsrecordvector PASS；P2 kernel fallback回归 PASS。静态 TestIndependentReferencePaddedWireBytes 与独立 generator 的 pn7_padded_tailzero_p9 wire byte-exact一致：1703030028e3d8459f5f18173ec163a7d2d5ab11d076c7e54a0b2032728b93c8712cd3cf74b3987efd151496db。专项覆盖默认Seal零padding不变、尾零payload、显式非法padding/超headroom、认证失败、open后FEC/LINK byte-exact、off+20:4/8/10/12/16/20、满尺寸source/parity预算不足立即0、MTU 576/1280/1400/1500/1600/9000、peer MSS/record limit、不增加fragment/record、丢A后B立即交付、返回密文不可变/重传复用原wire。Artifacts: foundation 10593321530；tlsrecord-reference 10594096705；p2-kernel-fallback 10594041753。"
+    },
+    {
+      "source_sha": "7994d1a2656079e4a27f6a5ddc4c7ad9b619488f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35479653320",
+      "scope": "P4-logical-flow-lane-reuse",
+      "status": "PASS",
+      "note": "repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build PASS；Linux race PASS；tlsrecord directed fuzz PASS；独立 tools/tlsrecordvector PASS；P2 kernel fallback连续pcap回归 PASS。P4专项覆盖多个业务flow共用一个Normal lane/共享PN、flow close隔离、bounded flow registry且业务增长不增加lane、same-ID candidate replacement与late old generation丢弃、candidate failure保持旧lane、DORMANT/wake新generation、FEC profile按incarnation immutable、1..4 logical lane、最多6个退休/过渡余量、最多10个物理incarnation、BusinessFlow默认padding off、32并发flow由race覆盖。Artifacts: foundation 10595875377；tlsrecord-reference 10594968224；p2-kernel-fallback 10595800613。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -322,7 +330,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: logicaltunnel policy/lifecycle + bounded TunnelOwner/BusinessFlow lane reuse 已实现，等待精确 SOURCE_SHA Actions；Normal=1、Game=2..4、generation fencing/DORMANT/6过渡余量/10物理上限保持，padding生产默认off",
+    "P4": "IN_PROGRESS: logical-flow lane reuse/lifecycle owner 已在 SOURCE_SHA 7994d1a2656079e4a27f6a5ddc4c7ad9b619488f / Actions 35479653320 PASS；下一步提取 stable installation/lease Logical Tunnel identity 并接 existing owner；padding生产默认off",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
