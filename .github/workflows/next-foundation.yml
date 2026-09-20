@@ -264,3 +264,41 @@ jobs:
           name: p4-linux-shared-tun-${{ matrix.backend }}-${{ github.sha }}
           path: artifacts/p4-linux-shared-tun-${{ matrix.backend }}.log
           if-no-files-found: warn
+
+  p4-openwrt-tproxy-privileged:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - name: Install OpenWrt TPROXY qualification tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v ip >/dev/null 2>&1 || ! command -v nft >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 nftables python3
+          fi
+          sudo modprobe nf_tproxy_ipv4 2>/dev/null || true
+          sudo modprobe nft_tproxy 2>/dev/null || true
+      - name: Build OpenWrt TPROXY privileged test
+        shell: bash
+        run: go test -c ./internal/openwrtclient -o /tmp/p4-openwrt-tproxy.test
+      - name: Qualify real TCP UDP TPROXY ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          sudo scripts/openwrt_tproxy_netns.sh /tmp/p4-openwrt-tproxy.test             | tee artifacts/p4-openwrt-tproxy.log
+          grep -q 'WBD_P4_OPENWRT_TPROXY_PASS tcp=1 udp=1 underlay_bypass=1 cleanup=owned-only ipv6=NOT_IMPLEMENTED' artifacts/p4-openwrt-tproxy.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p4-openwrt-tproxy-${{ github.sha }}
+          path: artifacts/p4-openwrt-tproxy.log
+          if-no-files-found: warn

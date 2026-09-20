@@ -318,7 +318,43 @@
       "destination": ".github/workflows/next-foundation.yml",
       "behavior_changes": "Reuse only the qualification boundary that GitHub-hosted Windows may lack an installed Npcap driver. The active workflow explicitly reruns Npcap/physical-underlay compile/mock contracts and emits WBD_WINDOWS_NPCAP_HOSTED_CORE_PASS physical=NOT_RUN; it does not install a driver or turn hosted compile success into physical qualification.",
       "tests": "The Windows active-go-tests job compiles all active Windows code, runs the targeted Npcap/PhysicalUnderlay unit contracts, and prints the hosted-core marker while exact-SHA Actions still run all existing repository, Linux race/fuzz/reference, P2 and Linux privileged regressions."
+    },
+    {
+      "source": "old/scripts/openwrt_tproxy.sh",
+      "destination": "internal/openwrtclient/network_plan.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract only the OpenWrt IPv4 kernel ownership plan: one dedicated inet wbd_tproxy prerouting table, already-marked bypass, underlay source/destination bypass, local-destination bypass, TCP+UDP TPROXY to one local port, one fwmark policy rule and one local default route in a dedicated table. The plan is non-executing and does not migrate mode geo sets, localhost UDP relays, platform proxy, DTLS, DNS process handling or old CLI. IPv6 capture is explicitly not implemented in this atom.",
+      "tests": "internal/openwrtclient/network_plan_test.go fixes bypass-before-capture ordering, exact TCP/UDP TPROXY actions, policy rule/local route ownership, rule comment markers and fail-closed invalid/non-IPv4 inputs."
+    },
+    {
+      "source": "old/scripts/openwrt_tproxy.sh",
+      "destination": "internal/openwrtclient/runtime_linux.go",
+      "behavior_changes": "Materialize only the active plan in-process on Linux. Before Apply, refuse an existing WBD nft table or conflicting policy priority/fwmark/route table instead of deleting unknown state. Apply local route then fwmark rule then nft capture; Close removes the nft table first and then deletes the exact WBD rule and local route. No global nft/iptables flush, no foreign policy cleanup and no proxy subprocess topology.",
+      "tests": "The privileged OpenWrt gate applies this runtime inside a real router namespace, proves a second runtime fails with ErrStateConflict, preserves a foreign nft table and foreign ip rule through Close, and confirms all WBD nft/rule/route state is gone afterward."
+    },
+    {
+      "source": "old/scripts/openwrt_tcp_tproxy_netns.sh",
+      "destination": "internal/openwrtclient/runtime_privileged_linux_test.go",
+      "behavior_changes": "Reuse only the real root-netns TCP TPROXY evidence shape. The active test uses an IP_TRANSPARENT TCP listener in the router namespace and verifies a client connection to a remote target is intercepted while preserving the original destination. The archived platform client/server binaries and localhost relay are not used.",
+      "tests": "TestPrivilegedOpenWrtTPROXYRuntime requires the TCP transparent listener to receive 10.20.0.2:8080 traffic and return a response before any target TCP service can serve that captured flow."
+    },
+    {
+      "source": "old/scripts/openwrt_udp_tproxy_netns.sh",
+      "destination": "internal/openwrtclient/runtime_privileged_linux_test.go",
+      "behavior_changes": "Reuse only UDP TPROXY capture and underlay-bypass/cleanup assertions. Full-cone EIM/EIF mapping belongs to the future transparent-socket-to-TunnelOwner adapter and is not recreated with a legacy platform proxy in this kernel-ownership atom.",
+      "tests": "The privileged test requires an IP_TRANSPARENT UDP listener to receive the client datagram, proves TCP and UDP to the configured underlay address bypass capture, and after Close proves ordinary TCP/UDP routing to the previously captured destination is restored."
+    },
+    {
+      "source": "old/scripts/openwrt_tcp_tproxy_netns.sh",
+      "destination": "scripts/openwrt_tproxy_netns.sh",
+      "behavior_changes": "Extract only the disposable three-namespace topology harness for Actions: client -> router -> target, IPv4 forwarding and deterministic addresses. It runs the active Go privileged test binary inside the router namespace; it does not build or start archived platform/FakeTCP/DTLS processes.",
+      "tests": "next-foundation p4-openwrt-tproxy-privileged invokes the harness as root and requires the active Go test marker."
+    },
+    {
+      "source": "old/.github/workflows/openwrt-tcp-tproxy.yml",
+      "destination": ".github/workflows/next-foundation.yml",
+      "behavior_changes": "Reuse only the demonstrated ubuntu-24.04 root netns+nft TPROXY qualification capability. The active job builds internal/openwrtclient, runs the new namespace harness, and requires one explicit marker covering real TCP/UDP TPROXY, underlay bypass and owned-only cleanup. No archived binaries, wolfSSL, DTLS shim or old release artifacts are downloaded.",
+      "tests": "p4-openwrt-tproxy-privileged runs beside all existing Windows/Linux unit/race/fuzz, P2 pcap and Linux shared-TUN privileged regressions for the same exact SOURCE_SHA."
     }
   ],
-  "note": "P4 Windows Npcap hosted-core candidate is an active single-process physical-I/O extraction only; old Windows Controller/Game/DTLS/process orchestration remains archived and real Npcap/NIC qualification remains NOT_RUN until P7 or a dedicated runner."
+  "note": "P4 OpenWrt candidate extracts only IPv4 kernel TPROXY/policy-route ownership and a privileged namespace qualification harness. The transparent TCP/UDP socket-to-TunnelOwner data adapter remains the next atom; old platform-proxy/local UDP/DTLS process topology remains archived."
 }
