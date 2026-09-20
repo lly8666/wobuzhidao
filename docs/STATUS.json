@@ -37,9 +37,9 @@
     "P4子任务：Windows Npcap/physical underlay hosted core 通过Actions；Windows IP Helper物理NIC/next-hop发现、server /32与Npcap同源path、exact four-tuple BPF+用户态过滤、source-port/peer/MAC绑定、owned ingress、generation fencing与有界shutdown均完成hosted Windows compile/mock资格，真实Npcap/NIC物理资格仍NOT_RUN",
     "P4子任务：OpenWrt IPv4 TCP/UDP TPROXY kernel ownership 通过Actions；真实root netns中dedicated nft TPROXY、fwmark policy route、local route、TCP/UDP IP_TRANSPARENT capture、server underlay双协议bypass、state-conflict fail-closed、foreign-state preservation与owned-only cleanup全部PASS，IPv6明确NOT_IMPLEMENTED"
   ],
-  "in_progress": "P4 OpenWrt IPv4 TPROXY ownership 已在 SOURCE_SHA 5018dc2f417f195f8b1210e5f50208db7a8ba3ca / Actions 35494105026 完整通过。7 jobs全部PASS：repository-contract；Windows 2022 unit/build + Wintun Render + Npcap hosted contract；Ubuntu unit/build/race/fuzz/reference；P2 kernel fallback连续pcap；Linux privileged shared-TUN iptables+nft；新增OpenWrt privileged root-netns。OpenWrt gate真实安装 inet wbd_tproxy + fwmark rule + local route，IP_TRANSPARENT TCP/UDP listener均捕获远端目标；配置的underlay IPv4对TCP/UDP绕过；第二Runtime因state conflict拒绝；Close保留foreign nft table/ip rule并只清WBD state；cleanup后普通TCP/UDP路由恢复。marker为 WBD_P4_OPENWRT_TPROXY_PASS tcp=1 udp=1 underlay_bypass=1 cleanup=owned-only ipv6=NOT_IMPLEMENTED。",
-  "next_task": "P4 下一原子任务：透明 TCP/UDP socket ingress -> 已有 leased TunnelOwner 的单进程适配。定向读取 old/cmd/wbd-platform-proxy-openwrt、old/cmd/wbd-platform-proxy-server 及其TCP/UDP/full-cone/hairpin测试，只提取业务流语义：TCP连接边界、UDP original-destination/session key、EIM/EIF所需bounded mapping、source/destination ownership、shutdown/idle expiry。直接调用现有 TunnelOwner/BusinessFlow Normal/Game API，不恢复127.0.0.1 UDP bridge、DTLS shim、子进程控制面或旧platform proxy进程拓扑。先做hosted socket adapter/unit/race和Linux root-netns最小真实socket contract；OpenWrt IPv6仍NOT_IMPLEMENTED。",
-  "latest_log": "docs/devlog/20260920-162000-p4-openwrt-tproxy-actions-pass.md",
+  "in_progress": "P4 OpenWrt transparent TCP/UDP socket -> leased TunnelOwner candidate 已实现，尚未取得Actions资格。新增 internal/platformflow：新WBPF v1业务frame被严格封装在IPv4 protocol=253的service packet中，src/dst均固定为该Tunnel lease /32，保留existing source==lease anti-spoof；reserved protocol malformed fail-closed。TunnelChannel每个TCP flow/UDP mapping打开现有BusinessFlow；Normal直接BusinessFlow.Outbound，Game直接TunnelOwner.GameOutbound，均不创建lane。UDP client以原始client source endpoint为mapping identity保持EIM，server使用unconnected bounded UDP mapping允许EIF；TCP保留bounded offset/ACK/retransmit/reorder/idle状态。OpenWrt Linux SocketAdapter直接使用IP_TRANSPARENT TCP/UDP与UDP original-destination ancillary data，不存在127.0.0.1 UDP bridge。Linux SharedTUNRouter新增current BindingToken scoped ServiceHandler：service packet无handler、malformed或stale token均不写TUN；exact rebind清空旧handler。现有OpenWrt root-netns harness新增真实socket contract：TPROXY client TCP/UDP -> client TunnelOwner/lane -> server TunnelOwner/router platform service -> real target sockets -> reverse owner -> original client socket；验证TCP目标只接受server-side 10.20.0.1来源、UDP EIM/EIF、lane不增长、service_tun_leak=0。该hosted contract的owner/lane wire carrier在单进程内用WireSink回送，不是物理raw/Npcap链路。",
+  "next_task": "提交 OpenWrt socket/TunnelOwner candidate，并只认该 exact SOURCE_SHA 的完整 next-foundation Actions。必须检查 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference、P2 kernel fallback、Linux shared-TUN privileged双backend、OpenWrt privileged job两个marker（既有TPROXY ownership + 新 WBD_P4_OPENWRT_SOCKET_TUNNEL_PASS）。若失败只修本atom；若全绿再做 evidence closure，下一原子任务才进入统一 client/server runtime 的真实 transport WireSink/accept-loop 接线，不恢复旧platform proxy进程或localhost UDP/DTLS链。",
+  "latest_log": "docs/devlog/20260920-174000-p4-openwrt-socket-tunnel-candidate.md",
   "last_tested_source_sha": "5018dc2f417f195f8b1210e5f50208db7a8ba3ca",
   "actions": [
     {
@@ -445,7 +445,8 @@
     "尚无可运行client/server完整网络产品入口",
     "物理机验收留到P7",
     "内层TLS长度/方向/突发/时序指纹不属P2关闭条件；P3显式record padding能力已通过Actions但生产默认0/off，不能据此声称降低或防止TLS-in-TLS/流量分析识别；P4/P5继续真实业务复用与流量外观/成本验收。",
-    "OpenWrt IPv6 TPROXY/capture 当前 NOT_IMPLEMENTED；本 P4 atom 只资格 IPv4 TCP/UDP kernel TPROXY ownership，不能据此声称 IPv6 业务已代理或 fail-closed。"
+    "OpenWrt IPv6 TPROXY/capture 当前 NOT_IMPLEMENTED；本 P4 atom 只资格 IPv4 TCP/UDP kernel TPROXY ownership，不能据此声称 IPv6 业务已代理或 fail-closed。",
+    "OpenWrt socket/TunnelOwner candidate 的root-netns业务路径使用同进程WireSink在client/server Lane之间递送既有TLS-like records，以资格socket/flow/owner边界；尚未接入最终统一runtime的真实FakeTCP raw/Npcap transport I/O，因此不能当作物理网络端到端或P7资格。"
   ],
   "required_read_set": [
     "AGENTS.md",
@@ -459,7 +460,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding、Linux shared-TUN privileged runtime、Windows Wintun、Windows Npcap hosted underlay、OpenWrt IPv4 TCP/UDP TPROXY ownership均精确SHA Actions PASS；下一步透明TCP/UDP socket ingress直接适配TunnelOwner，之后统一runtime收口。",
+    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding、Linux shared-TUN privileged、Windows Wintun、Windows Npcap hosted underlay、OpenWrt IPv4 TPROXY ownership均exact-SHA PASS；透明TCP/UDP socket -> leased TunnelOwner/platform service candidate 已实现，等待exact-SHA unit/race+root-netns资格；通过后再做统一runtime真实transport接线。",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }

@@ -70,4 +70,5 @@ ip netns exec "$R" env \
   WBD_P4_OPENWRT_TPROXY_NET=1 \
   WBD_P4_OPENWRT_CLIENT_NS="$C" \
   WBD_P4_OPENWRT_TARGET_NS="$T" \
-  "$TEST_BIN" -test.v -test.run '^TestPrivilegedOpenWrtTPROXYRuntime$'
+  "$TEST_BIN" -test.v -test.run '^TestPrivilegedOpenWrt(TPROXYRuntime|SocketTunnelAdapter)
+

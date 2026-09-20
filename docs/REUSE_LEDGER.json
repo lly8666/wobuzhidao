@@ -354,7 +354,73 @@
       "destination": ".github/workflows/next-foundation.yml",
       "behavior_changes": "Reuse only the demonstrated ubuntu-24.04 root netns+nft TPROXY qualification capability. The active job builds internal/openwrtclient, runs the new namespace harness, and requires one explicit marker covering real TCP/UDP TPROXY, underlay bypass and owned-only cleanup. No archived binaries, wolfSSL, DTLS shim or old release artifacts are downloaded.",
       "tests": "p4-openwrt-tproxy-privileged runs beside all existing Windows/Linux unit/race/fuzz, P2 pcap and Linux shared-TUN privileged regressions for the same exact SOURCE_SHA."
+    },
+    {
+      "source": "old/internal/platformproxy/frame.go",
+      "destination": "internal/platformflow/frame.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract only the platform-flow kind/FlowID/offset/peer/payload semantics, but define a new WBPF v1 internal frame rather than retaining old WBDP compatibility. Payload ceiling is derived from the active 9000-byte leased IPv4 packet ceiling minus service IPv4+frame headers. No localhost UDP service transport or old CLI is retained.",
+      "tests": "internal/platformflow/platformflow_test.go round-trips UDP service frames, checks reserved/malformed handling, and exercises the frame inside the lease-bound service packet."
+    },
+    {
+      "source": "old/internal/platformproxy/frame.go",
+      "destination": "internal/platformflow/packet.go",
+      "behavior_changes": "Add a new lease-bound IPv4 service envelope for platform frames: IPv4 protocol 253, DF, exact total length/header checksum, and both source/destination fixed to the tunnel lease. This preserves the existing client/server source==lease anti-spoof fence and lets the server distinguish internal platform service traffic before shared-TUN egress. Protocol-253 malformed packets are fail-closed and never downgraded to ordinary TUN traffic.",
+      "tests": "platformflow packet tests cover round-trip, malformed reserved traffic and ordinary non-service IPv4; linuxserver service-router tests prove reserved service data cannot leak into the shared TUN."
+    },
+    {
+      "source": "old/internal/platformproxy/udp_client_flows.go",
+      "destination": "internal/platformflow/udp.go",
+      "behavior_changes": "Extract endpoint-independent client mapping identity: one FlowID per intercepted client source endpoint across changing peers, bounded mapping count and idle expiry. Each mapping owns one active BusinessFlow/TunnelFlow; reverse delivery accepts an unseen peer of the same address family for EIF.",
+      "tests": "TestTunnelChannelNormalUDPMappingEIMEIFAndExpiry proves stable FlowID across two peers, unseen-peer reverse delivery, one BusinessFlow only, and expiry releasing the flow without changing lane count."
+    },
+    {
+      "source": "old/internal/platformproxy/udp_relay.go",
+      "destination": "internal/platformflow/udp.go",
+      "behavior_changes": "Extract server-side unconnected UDP mapping behavior without the old service-peer UDP socket. One platform Server is already scoped to one Logical Tunnel, so mappings key by remote FlowID inside that tunnel; an unconnected upstream socket supplies EIM/EIF and bounded idle cleanup, while responses are sent back through the same TunnelFlow.",
+      "tests": "The new root-netns socket contract sends one client socket to two remote UDP endpoints and requires the same observed server mapping port, then injects from a never-contacted third endpoint and requires delivery with its real source."
+    },
+    {
+      "source": "old/internal/platformproxy/tcp_reliability.go",
+      "destination": "internal/platformflow/tcp_reliability.go",
+      "behavior_changes": "Extract only bounded application-TCP byte-stream reliability above the no-HOL tunnel datagrams: offset chunks, cumulative ACK, bounded in-flight/reorder buffers, exact duplicate idempotence, RTO retransmit limit and FIN state. It remains separate from FakeTCP repair, FEC and TLS-like record semantics.",
+      "tests": "platformflow hosted tests cover out-of-order DATA becoming contiguous, cumulative ACK and retransmission of only the unacknowledged range; Linux race runs the same package."
+    },
+    {
+      "source": "old/internal/platformproxy/tcp_client.go",
+      "destination": "internal/platformflow/tcp.go",
+      "behavior_changes": "Extract transparent client TCP flow lifecycle into a direct TunnelChannel adapter. Each accepted TCP connection opens one BusinessFlow, sends OPEN/DATA/ACK/CLOSE through Normal or Game owner APIs, applies bounded backpressure/retransmit/idle semantics, and closes only that BusinessFlow. No UDP localhost WBD transport or subprocess control remains.",
+      "tests": "The OpenWrt root-netns contract captures a real remote TCP connection and requires end-to-end response through client TunnelOwner/lane and server-side TCP relay while lane count remains one."
+    },
+    {
+      "source": "old/internal/platformproxy/tcp_relay.go",
+      "destination": "internal/platformflow/tcp.go",
+      "behavior_changes": "Extract server TCP target ownership per tunnel: FlowID has one immutable target, OPEN is idempotent, server dials the actual target socket, DATA/ACK/FIN/CLOSE use the bounded reliability state and responses return through the same BusinessFlow/TunnelOwner. Old service-peer UDP isolation is unnecessary because Server is scoped by Logical Tunnel/lease.",
+      "tests": "The privileged target service rejects non-10.20.0.1 peers, so successful client TCP proves server-side re-originated target I/O rather than direct routing."
+    },
+    {
+      "source": "old/cmd/wbd-platform-proxy-openwrt/main_linux.go",
+      "destination": "internal/openwrtclient/socket_linux.go",
+      "behavior_changes": "Extract only IPv4 transparent socket I/O in-process: IP_TRANSPARENT TCP accept with original destination from LocalAddr, UDP IP_RECVORIGDSTADDR ancillary parsing, bounded transparent source-socket cache for reverse UDP, shutdown and periodic flow expiry. Captured traffic calls platformflow.Client directly; no -wbd localhost UDP socket, signal-owned child process, IPv6 socket or archived command topology is migrated.",
+      "tests": "Unit/build/race compile the real Linux adapter; TestPrivilegedOpenWrtSocketTunnelAdapter runs it behind the active nft TPROXY rules and validates TCP plus UDP EIM/EIF against real namespace sockets."
+    },
+    {
+      "source": "old/cmd/wbd-platform-proxy-server/main.go",
+      "destination": "internal/platformflow/service.go",
+      "behavior_changes": "Replace the old standalone UDP service listener process with in-process Client/Server aggregators over TunnelChannel. Server consumes lease-bound platform service packets directly from the shared-TUN router handler and uses ordinary target sockets; Client receives reverse service packets directly from the owner/lane delivery path.",
+      "tests": "linuxserver service-router tests plus the OpenWrt privileged socket contract verify service-handler ownership, no shared-TUN leak, real target I/O and reverse delivery."
+    },
+    {
+      "source": "old/scripts/openwrt_fullstack_one_shot.sh",
+      "destination": "internal/openwrtclient/socket_privileged_linux_test.go",
+      "behavior_changes": "Reuse only end-to-end application assertions in a much smaller active topology: real TCP target re-originated by server side, UDP EIM/EIF including unseen endpoint injection, and underlay-compatible namespace routing. The active test uses the new TunnelOwner/Lane/platformflow path and does not start old FakeTCP/LINK/DTLS/platform-proxy subprocess stacks.",
+      "tests": "Marker WBD_P4_OPENWRT_SOCKET_TUNNEL_PASS requires tcp=1 udp=1 eim=1 eif=1 tunnelowner=1 lanes=1 service_tun_leak=0 and ipv6=NOT_IMPLEMENTED."
+    },
+    {
+      "source": "old/.github/workflows/openwrt-fullstack-one-shot.yml",
+      "destination": ".github/workflows/next-foundation.yml",
+      "behavior_changes": "Reuse only the hosted ubuntu root-netns/socket qualification capability. The existing p4-openwrt-tproxy-privileged job now runs both kernel ownership and the new socket/TunnelOwner contract in one active test binary and requires both markers; it does not download archived artifacts or build DTLS/platform-proxy executables.",
+      "tests": "Exact-SHA next-foundation still runs repository contract, Windows/Linux unit/build, Linux race/fuzz/reference, P2 kernel fallback, Linux shared-TUN iptables+nft and the expanded OpenWrt privileged job."
     }
   ],
-  "note": "P4 OpenWrt candidate extracts only IPv4 kernel TPROXY/policy-route ownership and a privileged namespace qualification harness. The transparent TCP/UDP socket-to-TunnelOwner data adapter remains the next atom; old platform-proxy/local UDP/DTLS process topology remains archived."
+  "note": "P4 OpenWrt socket/TunnelOwner candidate extracts only direct in-process platform flow semantics. New WBPF service frames are lease-bound inside IPv4 protocol 253 and are not old WBDP compatibility. No localhost UDP WBD bridge, DTLS shim or platform-proxy subprocess is restored. The hosted privileged path uses an in-process WireSink between active client/server Lane owners; final unified raw transport wiring remains a later atom."
 }

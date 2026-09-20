@@ -296,6 +296,7 @@ jobs:
           mkdir -p artifacts
           sudo scripts/openwrt_tproxy_netns.sh /tmp/p4-openwrt-tproxy.test             | tee artifacts/p4-openwrt-tproxy.log
           grep -q 'WBD_P4_OPENWRT_TPROXY_PASS tcp=1 udp=1 underlay_bypass=1 cleanup=owned-only ipv6=NOT_IMPLEMENTED' artifacts/p4-openwrt-tproxy.log
+          grep -q 'WBD_P4_OPENWRT_SOCKET_TUNNEL_PASS tcp=1 udp=1 eim=1 eif=1 tunnelowner=1 lanes=1 service_tun_leak=0 ipv6=NOT_IMPLEMENTED' artifacts/p4-openwrt-tproxy.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:

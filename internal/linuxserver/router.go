@@ -10,17 +10,19 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/datapath"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
+	"github.com/lly8666/wobuzhidao/internal/platformflow"
 )
 
 var (
-	ErrInvalidLeasePool = errors.New("linuxserver: invalid shared-TUN lease pool")
-	ErrRouterCapacity   = errors.New("linuxserver: shared-TUN router capacity reached")
-	ErrLeaseInUse       = errors.New("linuxserver: leased IPv4 already registered")
-	ErrTunnelInUse      = errors.New("linuxserver: tunnel id already registered with another lease")
-	ErrNoLeaseRoute     = errors.New("linuxserver: no live Logical Tunnel for IPv4 destination")
-	ErrStaleBinding     = errors.New("linuxserver: stale shared-TUN binding")
-	ErrShortTUNWrite    = errors.New("linuxserver: short shared-TUN write")
-	ErrInvalidIPv4      = errors.New("linuxserver: invalid IPv4 packet")
+	ErrInvalidLeasePool   = errors.New("linuxserver: invalid shared-TUN lease pool")
+	ErrRouterCapacity     = errors.New("linuxserver: shared-TUN router capacity reached")
+	ErrLeaseInUse         = errors.New("linuxserver: leased IPv4 already registered")
+	ErrTunnelInUse        = errors.New("linuxserver: tunnel id already registered with another lease")
+	ErrNoLeaseRoute       = errors.New("linuxserver: no live Logical Tunnel for IPv4 destination")
+	ErrStaleBinding       = errors.New("linuxserver: stale shared-TUN binding")
+	ErrShortTUNWrite      = errors.New("linuxserver: short shared-TUN write")
+	ErrInvalidIPv4        = errors.New("linuxserver: invalid IPv4 packet")
+	ErrServiceUnavailable = errors.New("linuxserver: platform service handler unavailable")
 )
 
 type Owner interface {
@@ -28,6 +30,10 @@ type Owner interface {
 	Stats() datapath.TunnelOwnerStats
 	NormalOutbound([]byte, time.Time) ([]datapath.WireRecord, error)
 	GameOutbound([]byte, time.Time) (datapath.GameOutboundResult, error)
+}
+
+type ServiceHandler interface {
+	HandleServicePacket([]byte, time.Time) (bool, error)
 }
 
 type PacketWriter interface {
@@ -40,9 +46,10 @@ type BindingToken struct {
 }
 
 type routeBinding struct {
-	lease  logicaltunnel.Lease
-	owner  Owner
-	serial uint64
+	lease   logicaltunnel.Lease
+	owner   Owner
+	service ServiceHandler
+	serial  uint64
 }
 
 type SharedTUNRouter struct {
@@ -84,9 +91,6 @@ func (r *SharedTUNRouter) LeasePool() netip.Prefix {
 	return r.pool
 }
 
-// Register binds one stable Logical Tunnel lease to its current owner. Rebinding
-// the exact same TunnelID+/32 to a replacement runtime owner is allowed and
-// returns a fresh token; stale tokens can no longer write into the shared TUN.
 func (r *SharedTUNRouter) Register(owner Owner) (BindingToken, error) {
 	if r == nil || owner == nil {
 		return BindingToken{}, logicaltunnel.ErrInvalidIdentity
@@ -125,6 +129,7 @@ func (r *SharedTUNRouter) Register(owner Owner) (BindingToken, error) {
 			return BindingToken{}, fmt.Errorf("%w: tunnel=%s", ErrTunnelInUse, tunnelID.String())
 		}
 		byLease.owner = owner
+		byLease.service = nil
 		byLease.serial = r.takeSerialLocked()
 		return BindingToken{TunnelID: tunnelID, serial: byLease.serial}, nil
 	}
@@ -132,21 +137,31 @@ func (r *SharedTUNRouter) Register(owner Owner) (BindingToken, error) {
 		return BindingToken{}, ErrRouterCapacity
 	}
 	binding := &routeBinding{
-		lease:  lease.Clone(),
-		owner:  owner,
-		serial: r.takeSerialLocked(),
+		lease: lease.Clone(), owner: owner, serial: r.takeSerialLocked(),
 	}
 	r.byLease[addr] = binding
 	r.byTunnel[tunnelID] = binding
 	return BindingToken{TunnelID: tunnelID, serial: binding.serial}, nil
 }
 
+func (r *SharedTUNRouter) SetServiceHandler(token BindingToken, handler ServiceHandler) error {
+	if r == nil || token.serial == 0 || handler == nil {
+		return ErrStaleBinding
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	binding := r.byTunnel[token.TunnelID]
+	if binding == nil || binding.serial != token.serial {
+		return ErrStaleBinding
+	}
+	binding.service = handler
+	return nil
+}
+
 func (r *SharedTUNRouter) takeSerialLocked() uint64 {
 	serial := r.nextSerial
 	r.nextSerial++
 	if serial == 0 || r.nextSerial == 0 {
-		// Zero is reserved for an invalid token. Saturation is practically
-		// unreachable, but keep stale-token fencing fail-closed.
 		r.nextSerial = 1
 	}
 	return serial
@@ -179,9 +194,6 @@ type RoutedOutbound struct {
 	IsGame bool
 }
 
-// RouteFromTUN demultiplexes one return IPv4 packet by destination lease, then
-// sends it through the already-existing TunnelOwner. It never creates a lane or
-// a BusinessFlow.
 func (r *SharedTUNRouter) RouteFromTUN(packet []byte, now time.Time) (RoutedOutbound, error) {
 	_, dst, err := ipv4Endpoints(packet)
 	if err != nil {
@@ -199,10 +211,7 @@ func (r *SharedTUNRouter) RouteFromTUN(packet []byte, now time.Time) (RoutedOutb
 	r.mu.Unlock()
 
 	stats := owner.Stats()
-	out := RoutedOutbound{
-		TunnelID: lease.Config.TunnelID,
-		Lease:    dst,
-	}
+	out := RoutedOutbound{TunnelID: lease.Config.TunnelID, Lease: dst}
 	switch stats.DesiredLanes {
 	case 1:
 		out.Normal, err = owner.NormalOutbound(packet, now)
@@ -216,12 +225,11 @@ func (r *SharedTUNRouter) RouteFromTUN(packet []byte, now time.Time) (RoutedOutb
 	}
 }
 
-// DeliverFromOwner writes already-decoded client->Internet packets into the
-// shared TUN. The current binding token is required so a retired/rebound runtime
-// cannot write after ownership moved. Source==lease is checked again at the
-// platform boundary as defense in depth; the TunnelOwner server ingress fence
-// remains authoritative earlier in the path.
 func (r *SharedTUNRouter) DeliverFromOwner(token BindingToken, packets [][]byte) error {
+	return r.DeliverFromOwnerAt(token, packets, time.Now())
+}
+
+func (r *SharedTUNRouter) DeliverFromOwnerAt(token BindingToken, packets [][]byte, now time.Time) error {
 	if r == nil || token.serial == 0 {
 		return ErrStaleBinding
 	}
@@ -233,6 +241,7 @@ func (r *SharedTUNRouter) DeliverFromOwner(token BindingToken, packets [][]byte)
 	}
 	lease := binding.lease.Clone()
 	tun := r.tun
+	service := binding.service
 	r.mu.Unlock()
 
 	addr, err := lease.Config.LeaseIPv4()
@@ -244,6 +253,23 @@ func (r *SharedTUNRouter) DeliverFromOwner(token BindingToken, packets [][]byte)
 			return err
 		}
 		owned := append([]byte(nil), packet...)
+		_, reserved, parseErr := platformflow.ParsePacket(owned, addr)
+		if reserved {
+			if parseErr != nil {
+				return parseErr
+			}
+			if service == nil {
+				return ErrServiceUnavailable
+			}
+			handled, err := service.HandleServicePacket(owned, now)
+			if err != nil {
+				return err
+			}
+			if !handled {
+				return ErrServiceUnavailable
+			}
+			continue
+		}
 		n, err := tun.WritePacket(owned)
 		if err != nil {
 			return err
