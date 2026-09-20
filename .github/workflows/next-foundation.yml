@@ -325,11 +325,13 @@ jobs:
           WBD_P5_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-https-base
           WBD_P5_SPARSE_MEASURE: '1'
           WBD_P5_SPARSE_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-sparse-single
+          WBD_P5_CONCURRENT_MEASURE: '1'
+          WBD_P5_CONCURRENT_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-natural-concurrency
         run: |
           set -euo pipefail
-          mkdir -p "$WBD_P5_ARTIFACT_DIR" "$WBD_P5_SPARSE_ARTIFACT_DIR"
-          go test ./internal/runtimeentry -count=1 -run='^(TestP5ControlledHTTPSMeasurementHarness|TestP5SparseSingleConnectionMeasurementHarness)$' -v \
-            | tee "$WBD_P5_ARTIFACT_DIR/test.log" "$WBD_P5_SPARSE_ARTIFACT_DIR/test.log"
+          mkdir -p "$WBD_P5_ARTIFACT_DIR" "$WBD_P5_SPARSE_ARTIFACT_DIR" "$WBD_P5_CONCURRENT_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^(TestP5ControlledHTTPSMeasurementHarness|TestP5SparseSingleConnectionMeasurementHarness|TestP5NaturalConcurrencyMeasurementHarness)$' -v \
+            | tee "$WBD_P5_ARTIFACT_DIR/test.log" "$WBD_P5_SPARSE_ARTIFACT_DIR/test.log" "$WBD_P5_CONCURRENT_ARTIFACT_DIR/test.log"
           python3 tools/check_p5_measurement.py \
             --manifest "$WBD_P5_ARTIFACT_DIR/manifest.json" \
             --events "$WBD_P5_ARTIFACT_DIR/events.jsonl" \
@@ -342,6 +344,12 @@ jobs:
             --pcap "$WBD_P5_SPARSE_ARTIFACT_DIR/outer.pcap" \
             --source-sha "$GITHUB_SHA" \
             --output "$WBD_P5_SPARSE_ARTIFACT_DIR/summary.json"
+          python3 tools/check_p5_concurrent_measurement.py \
+            --manifest "$WBD_P5_CONCURRENT_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_CONCURRENT_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_CONCURRENT_ARTIFACT_DIR/outer.pcap" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_CONCURRENT_ARTIFACT_DIR/summary.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -349,4 +357,5 @@ jobs:
           path: |
             artifacts/p5-https-base
             artifacts/p5-sparse-single
+            artifacts/p5-natural-concurrency
           if-no-files-found: error

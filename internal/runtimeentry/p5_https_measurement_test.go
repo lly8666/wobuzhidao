@@ -148,6 +148,17 @@ type p5CertificateScenario struct {
 
 func newP5CertificateScenario(t *testing.T, name, chainID string, serialBase int64) *p5CertificateScenario {
 	t.Helper()
+	return newP5CertificateScenarioWithHandler(t, name, chainID, serialBase, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		_, _ = fmt.Fprintf(w, "wbd-p5 path=%s", req.URL.Path)
+	}))
+}
+
+func newP5CertificateScenarioWithHandler(t *testing.T, name, chainID string, serialBase int64, handler http.Handler) *p5CertificateScenario {
+	t.Helper()
+	if handler == nil {
+		t.Fatal("certificate scenario handler is required")
+	}
 	now := time.Now()
 
 	rootKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -216,10 +227,6 @@ func newP5CertificateScenario(t *testing.T, name, chainID string, serialBase int
 		PrivateKey: leafKey,
 		Leaf: leafCert,
 	}
-	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		_, _ = fmt.Fprintf(w, "wbd-p5 path=%s", req.URL.Path)
-	})
 	server := httptest.NewUnstartedServer(handler)
 	server.EnableHTTP2 = false
 	server.TLS = &tls.Config{
