@@ -43,12 +43,13 @@
     "P4关闭：closure audit SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639 7/7 PASS。入口级runtimeentry显式覆盖Game desiredLanes=3/4的真实FakeTCP+TLS/protected-admission全lane steady qualification/双向PacketID竞速去重；自动rotation timer触发same-ID generation前进并收敛回desired physical lanes；持续ACK/runtime tick不刷新payload idle，client/server自动DORMANT，下一笔真实业务自动wake且leased TunnelOwner/TunnelID/IPv4/Installation保持不变。P4平台入口、lifecycle、padding预算与回归门槛全部满足hosted关闭条件；Windows/Npcap物理资格仍留P7。",
     "P5第一原子任务关闭：受控真实HTTPS fullstack hosted measurement base 在 SOURCE_SHA 043da6298a2be091b55fb470b63c69e605bb61d8 / Actions 35516700104 取得 8/8 PASS。两个独立真实TLS+HTTP flow复用同一正式 outer FakeTCP+TLS/protected-admission Normal lane；保存 raw DLT_RAW IPv4 PCAP、outer packet/TLS-like record/HTTPS flow JSONL、manifest/summary/test.log，并由 exact-SHA 独立validator确认 flows=2、outer_connections=1、FEC=off、padding=off。P5 artifact 10606459773，sha256:8eda8c0f3ec2df0bf08afd1d771c251a2800a6fcd881df0c14a73a67c84fb66f。",
     "P5第二原子任务关闭：platformflow TCP close-tail/concurrent-retire 生命周期在 SOURCE_SHA a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f / Actions 35520092389 取得 8/8 PASS。5s/4096 bounded retired FlowID tombstone + handler已持有flow指针后的closed幂等 + 单业务flow本地socket关闭错误隔离，使第一条真实HTTPS完整Connection: close/TLS close且client/server TCPFlows归零后，第二条独立HTTPS仍在同一outer lane成功；validator确认两个distinct business FlowID、sequential_close=pass、outer SYN仍为1。",
-    "P5第三原子任务关闭：受控真实inner HTTPS TLS1.3 full vs resumed handshake measurement 在 SOURCE_SHA 1fb65c90b272454e09a624eaa23e6a432de7955a / Actions 35522367146 取得 8/8 PASS。flow1 DidResume=false 且真实session ticket写入共享LRU cache，flow2 DidResume=true 且真实cache hit；第一条完整close后第二条继续复用同一outer lane，outer SYN=1。validator同SHA确认 `sequential_close=pass handshakes=full,resumed`；P5 artifact 10609266231，sha256:866acf9477379ec69f8f60c073b00d41d3efab5b783a1e000dd63a58343c18eb。"
+    "P5第三原子任务关闭：受控真实inner HTTPS TLS1.3 full vs resumed handshake measurement 在 SOURCE_SHA 1fb65c90b272454e09a624eaa23e6a432de7955a / Actions 35522367146 取得 8/8 PASS。flow1 DidResume=false 且真实session ticket写入共享LRU cache，flow2 DidResume=true 且真实cache hit；第一条完整close后第二条继续复用同一outer lane，outer SYN=1。validator同SHA确认 `sequential_close=pass handshakes=full,resumed`；P5 artifact 10609266231，sha256:866acf9477379ec69f8f60c073b00d41d3efab5b783a1e000dd63a58343c18eb。",
+    "P5第四原子任务关闭：不同受控证书链 measurement 在 SOURCE_SHA e2c1d6685f678df8fa4157f97a29de54ef84b803 / Actions 35524123958 取得 8/8 PASS。三条顺序真实inner HTTPS flow为 chain-a full、chain-a resumed、chain-b full；chain-a/chain-b 分别为独立 Root CA -> Intermediate CA -> leaf(target.test)，客户端只信任对应root，Go TLS VerifiedChains真实验证3级链且root/intermediate/leaf SHA-256与manifest/event一致。三条flow复用同一outer lane，outer SYN=1；validator确认 flows=3、handshakes=full,resumed,full、certificate_chains=2。P5 artifact 10609303454，sha256:029ce15d396bf5400be547e669b7efb1c6416f2e51a256d8a107f4ebef379fc6。"
   ],
-  "in_progress": "P5 第四原子任务候选待 exact-SHA Actions：只扩展受控真实 HTTPS measurement harness 的不同证书链维度，并保留既有 full/resumed 回归。候选使用三条顺序 inner HTTPS flow：chain-a full、chain-a resumed、chain-b full；chain-a/chain-b 各自运行独立 Root CA -> Intermediate CA -> leaf(target.test) 信任链，服务器发送 leaf+intermediate，客户端仅信任对应 root，并要求 Go TLS VerifiedChains 恰为3级且 root/intermediate/leaf SHA-256 与manifest一致。三条flow继续复用同一正式outer lane、完整close后再开下一条；FEC off、padding=0/off、无弱网注入，不做性能结论/分类器。",
-  "next_task": "只资格当前 P5 different-certificate-chain atom：对候选 SOURCE_SHA 跑完整 next-foundation。p5-https-measurement-base 必须同SHA证明 flows=3、handshakes=full,resumed,full、certificate_chains=2；flow1/2 为chain-a且保留真实session-ticket put/cache hit，flow3 为独立chain-b full且无resume hit；两个root/intermediate/leaf fingerprint均不同、每条TLS连接真实验证3级链、outer SYN仍为1。其余既有8-job门槛同SHA PASS后才收口；通过前 last_tested_source_sha 保持 1fb65c90b272454e09a624eaa23e6a432de7955a。",
-  "latest_log": "docs/devlog/20260921-004500-p5-different-certificate-chains-candidate.md",
-  "last_tested_source_sha": "1fb65c90b272454e09a624eaa23e6a432de7955a",
+  "in_progress": "P5 measurement base、顺序 close-tail、TLS1.3 full/resumed、不同独立证书链四个原子任务均已取得 exact-SHA hosted 产品资格。尚未开始稀疏单连接、自然并发、FEC固定挡位、弱网/负载/长测；生产 padding 继续 0/off。",
+  "next_task": "P5 第五原子任务：只覆盖稀疏单连接真实 HTTPS workload。保持一个已验证的 inner TLS/HTTP 连接和同一正式 outer lane，在无并发业务下按显式、可记录的应用到达计划发出少量顺序请求，采集请求间业务空闲、outer packet/record inter-arrival、burst、业务latency与wire bytes；应用到达计划必须属于measurement workload而非传输层固定sleep/凑包逻辑。保持单证书链、TLS1.3 full握手起始、FEC off、padding=0/off、无弱网注入；不同时引入自然并发/FEC-on/性能结论/classifier。",
+  "latest_log": "docs/devlog/20260921-005500-p5-different-certificate-chains-closed.md",
+  "last_tested_source_sha": "e2c1d6685f678df8fa4157f97a29de54ef84b803",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -588,6 +589,13 @@
       "scope": "P5-full-resumed-handshake-docs-closure",
       "status": "PASS",
       "note": "Docs-only closure run completed/success，8/8 jobs PASS。该SHA仅更新STATUS/devlog；产品资格 SOURCE_SHA 保持 1fb65c90b272454e09a624eaa23e6a432de7955a / Actions 35522367146，docs-only closure 不覆盖 last_tested_source_sha。"
+    },
+    {
+      "source_sha": "e2c1d6685f678df8fa4157f97a29de54ef84b803",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35524123958",
+      "scope": "P5-different-certificate-chains-final",
+      "status": "PASS",
+      "note": "Run attempt 1 completed/success，8/8 jobs 全部 PASS。P5 marker: `WBD_P5_HTTPS_MEASUREMENT_BASE_CAPTURED source_sha=e2c1d6685f678df8fa4157f97a29de54ef84b803 flows=3 outer_connections=1 sequential_close=pass handshakes=full,resumed,full certificate_chains=2 fec=off padding=off records=65`；独立validator同SHA输出相同资格语义。P5 artifact 10609303454，30758 bytes，sha256:029ce15d396bf5400be547e669b7efb1c6416f2e51a256d8a107f4ebef379fc6。其余同SHA artifacts: foundation 10609303417 sha256:850895b3d58996257a4479c7edfc0cbee165e3e10879c0935f537ec48d381ef2；P2 10608798220 sha256:18814c37770340fbb8312d7c32af8d234b7e623ff30f8e3b2426ffa27682126d；iptables 10608839649 sha256:8a15b2dfca581b17ab9961300435a3a56171ec43ee1617caaf572d99072c3b5b；nft 10609218921 sha256:769b383f383c521458e4a40ee022185591fb7dcc37954f0b9d861f61db69d7f4；OpenWrt 10609455020 sha256:77ac499436e487f3bb9de4744aa520747be5406d5fccb7753b043d134c07f870；tlsrecord-reference 10608974737 sha256:62576fb2dbc51f1df891fdcf65d7572811cd46aa3eff43e7e52c233f99385f05。Windows/Npcap physical仍P7 NOT_RUN。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -618,6 +626,6 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "IN_PROGRESS: measurement base（043da629…）、顺序 close-tail（a9b92c26…）和 TLS1.3 full-vs-resumed（1fb65c90…）已资格。第四原子候选新增两套独立Root->Intermediate->leaf受控证书链，并用chain-a full/resumed + chain-b full三条顺序真实HTTPS flow验证；稀疏/自然并发、FEC固定挡位、弱网/负载/长测后续分别推进。"
+    "P5": "IN_PROGRESS: measurement base（043da629…）、顺序 close-tail（a9b92c26…）、TLS1.3 full-vs-resumed（1fb65c90…）和不同独立证书链（e2c1d668… / 35524123958 / 8/8 PASS）已资格。下一原子只覆盖稀疏单连接业务到达/时序测量；自然并发、FEC固定挡位、弱网/负载/长测后续分别推进。"
   }
 }
