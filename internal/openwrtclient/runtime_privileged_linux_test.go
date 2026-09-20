@@ -312,7 +312,8 @@ func assertKernelOwnership(t *testing.T, plan NetworkPlan, want bool) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	hasRoute := strings.Contains(routes, "local 0.0.0.0/0 dev lo")
+	hasRoute := strings.Contains(routes, "local default dev lo") ||
+		strings.Contains(routes, "local 0.0.0.0/0 dev lo")
 	if hasRoute != want {
 		t.Fatalf("local route present=%v want=%v routes=%s", hasRoute, want, routes)
 	}

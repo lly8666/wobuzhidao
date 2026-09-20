@@ -36,9 +36,9 @@
     "P4子任务：Windows Wintun client platform core 通过Actions；单Wintun L3 adapter、IPv4-only TUN边界、stable lease /32排他、underlay /32锁物理path、full IPv4 capture/direct routes、NRPT DNS、device-wide IPv6 fail-closed与state-owned cleanup完成hosted Windows资格",
     "P4子任务：Windows Npcap/physical underlay hosted core 通过Actions；Windows IP Helper物理NIC/next-hop发现、server /32与Npcap同源path、exact four-tuple BPF+用户态过滤、source-port/peer/MAC绑定、owned ingress、generation fencing与有界shutdown均完成hosted Windows compile/mock资格，真实Npcap/NIC物理资格仍NOT_RUN"
   ],
-  "in_progress": "P4 OpenWrt TPROXY second candidate SOURCE_SHA e67f53d180cc34b224bd6d77506ed528fd59ab62 / Actions 35493933423：repository-contract PASS，route-table absent-state preflight 已越过，OpenWrt privileged test binary compile PASS，但真实netns gate在 nft apply 阶段FAIL。runner nft明确报 `conflicting protocols specified: ip vs. unknown. You must specify ip or ip6 family in tproxy statement`，对应 TCP/UDP 两条 `meta nfproto ipv4 ... tproxy to :12345`。因此尚未进入透明socket capture；修复只把 action 改为 `tproxy ip to :12345`，显式把 inet table 中的 TPROXY statement 绑定 IPv4，其他规则顺序、policy route、runtime cleanup、harness/workflow不变。",
-  "next_task": "提交 nft TPROXY explicit-IPv4 syntax 修复并读取新 exact SOURCE_SHA next-foundation。e67f53d... / run 35493933423 保留为 nft-parse FAIL 证据；新SHA必须首次真正执行 TCP/UDP transparent capture、underlay bypass、state-conflict refusal、foreign-state preservation、owned-only cleanup和普通路由恢复，同时全部既有回归必须PASS。",
-  "latest_log": "docs/devlog/20260920-155000-p4-openwrt-nft-tproxy-ip-fix.md",
+  "in_progress": "P4 OpenWrt TPROXY third candidate SOURCE_SHA 79ac8ee9a9bb69f5569208cebd96ebdc4f13a00e / Actions 35494040188：repository-contract PASS，explicit `tproxy ip` 修复有效，真实netns中的 nft table、fwmark policy rule、local route 已成功 Apply。OpenWrt gate随后只在 harness 的 local-route存在断言FAIL：内核/iproute2把 `ip route add local 0.0.0.0/0 dev lo table 1066` 规范化显示为 `local default dev lo scope host`，测试却只匹配字面 `local 0.0.0.0/0 dev lo`。这是fixture断言过严，产品runtime无新失败；TCP/UDP capture断言尚未执行。修复仅接受两种等价route显示，不改TPROXY plan/runtime。",
+  "next_task": "提交 OpenWrt privileged route-display assertion 修复并读取新 exact SOURCE_SHA Actions。79ac8ee9... / run 35494040188 保留为 fixture FAIL；新SHA必须继续越过kernel ownership assertion并实际执行 TCP/UDP transparent capture、underlay bypass、state conflict、foreign-state preservation、owned cleanup与cleanup后普通路由恢复。",
+  "latest_log": "docs/devlog/20260920-160000-p4-openwrt-route-display-fixture-fix.md",
   "last_tested_source_sha": "1ec7d667564a8e0f26a3afb811cb89eb484ea5dd",
   "actions": [
     {
@@ -418,6 +418,13 @@
       "scope": "P4-openwrt-tproxy-pre-explicit-ip-fix",
       "status": "FAIL",
       "note": "repository-contract PASS；route-table absent-state修复有效，OpenWrt privileged binary compile PASS并进入nft apply。nft在两条capture rule解析阶段FAIL：`conflicting protocols specified: ip vs. unknown. You must specify ip or ip6 family in tproxy statement`，原规则为 `meta nfproto ipv4 meta l4proto {tcp|udp} tproxy to :12345 ...`。失败发生在capture规则安装时，尚无TCP/UDP透明socket行为结论。artifact 10599787732，zip digest sha256:5b995116d4af35719b2b05c2006645db6523154d161293ab80a22bc00eff6408。修复仅在TPROXY statement显式增加IPv4 family：`tproxy ip to`。"
+    },
+    {
+      "source_sha": "79ac8ee9a9bb69f5569208cebd96ebdc4f13a00e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35494040188",
+      "scope": "P4-openwrt-tproxy-pre-route-display-fixture-fix",
+      "status": "FAIL",
+      "note": "repository-contract PASS；explicit IPv4 nft TPROXY syntax修复有效，OpenRuntime已成功创建dedicated nft table、fwmark policy rule和local route。privileged test随后在assertKernelOwnership失败：`ip -4 route show table 1066`输出`local default dev lo scope host`，fixture只接受`local 0.0.0.0/0 dev lo`。这是iproute2 canonical display差异；尚未执行TCP/UDP capture断言，不能给出数据行为结论。artifact 10599892602，zip digest sha256:7e257f61fee7b5cbad62c7439192af4d032f167c6bd5de1539ee5854fb37dd29。产品runtime不变，只放宽为两个等价route显示。"
     }
   ],
   "physical_status": "NOT_RUN",
