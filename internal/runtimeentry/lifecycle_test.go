@@ -235,7 +235,8 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 		cs := client.Owner().Stats()
 		ss, ok := server.TunnelStats(tunnelID)
 		return ok && cs.ActiveLogicalLanes == 2 && ss.ActiveLogicalLanes == 2 &&
-			cs.GameLogicalOutbound == 3 && ss.GameDelivered == 3
+			cs.GameLogicalOutbound == 3 && ss.GameDelivered == 3 &&
+			server.TunnelQualified(tunnelID)
 	})
 
 	reverse := ipv4Packet([4]byte{8, 8, 4, 4}, [4]byte{10, 66, 0, 3}, 6)

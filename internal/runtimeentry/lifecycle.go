@@ -1659,6 +1659,24 @@ func (s *LifecycleServer) dormantGroup(group *serverLifecycleTunnel) error {
 	return nil
 }
 
+func (s *LifecycleServer) TunnelQualified(id logicaltunnel.TunnelID) bool {
+	if s == nil {
+		return false
+	}
+	s.mu.Lock()
+	group := s.byTunnel[id]
+	ready := s.groupReadyLocked(group)
+	s.mu.Unlock()
+	if group == nil || ready {
+		return ready
+	}
+	s.refreshQualifiedFromTransport(group)
+	s.mu.Lock()
+	ready = s.groupReadyLocked(group)
+	s.mu.Unlock()
+	return ready
+}
+
 func (s *LifecycleServer) TunnelStats(id logicaltunnel.TunnelID) (datapath.TunnelOwnerStats, bool) {
 	s.mu.Lock()
 	group := s.byTunnel[id]
