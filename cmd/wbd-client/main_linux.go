@@ -45,6 +45,10 @@ func main() {
 		mark = flag.Uint("mark", 0x42, "TPROXY fwmark")
 		table = flag.Uint("route-table", 1066, "TPROXY policy route table")
 		priority = flag.Uint("rule-priority", 1066, "TPROXY policy rule priority")
+		lanes = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
+		idleDormant = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
+		rotateMin = flag.Duration("rotate-min", 0, "minimum lane rotation interval; 0 disables rotation")
+		rotateMax = flag.Duration("rotate-max", 0, "maximum lane rotation interval; must pair with rotate-min")
 	)
 	flag.Parse()
 	if *rawIface == "" || *localIPText == "" || *serverIPText == "" || *tunnelText == "" ||
@@ -56,6 +60,16 @@ func main() {
 	if *sourcePort == 0 || *sourcePort > 65535 || *serverPort == 0 || *serverPort > 65535 ||
 		*tproxyPort == 0 || *tproxyPort > 65535 || *clientLimit > 65535 {
 		log.Fatal("invalid port or record limit")
+	}
+	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
+		log.Fatal(err)
+	}
+	if *idleDormant < 0 || *rotateMin < 0 || *rotateMax < 0 ||
+		(*rotateMin == 0) != (*rotateMax == 0) || (*rotateMin > 0 && *rotateMax < *rotateMin) {
+		log.Fatal("invalid lifecycle durations")
+	}
+	if _, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), 1); err != nil {
+		log.Fatal("source-port must leave a 1024-port bounded rotation window")
 	}
 
 	localIP, err := netip.ParseAddr(*localIPText)
@@ -109,7 +123,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	io := runtimeentry.SegmentIO{
+	baseIO := runtimeentry.SegmentIO{
 		Read: func() (faketcp.Segment, error) {
 			seg, _, err := raw.ReadSegment()
 			return seg, err
@@ -120,15 +134,28 @@ func main() {
 		},
 		Close: raw.Close,
 	}
+	mux, err := runtimeentry.NewSegmentMux(baseIO)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer mux.Close()
 
 	var adapter *openwrtclient.SocketAdapter
-	client, err := runtimeentry.DialClient(context.Background(), runtimeentry.ClientConfig{
-		IO: io,
-		Flow: faketcp.ClientFlow{
-			LocalIP: localIP.As4(), PeerIP: serverIP.As4(),
-			LocalPort: uint16(*sourcePort), PeerPort: uint16(*serverPort),
+	client, err := runtimeentry.DialTunnelClient(context.Background(), runtimeentry.TunnelClientConfig{
+		OpenLane: func(_ uint8, incarnation uint64) (runtimeentry.SegmentIO, faketcp.ClientFlow, error) {
+			port, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), incarnation)
+			if err != nil {
+				return runtimeentry.SegmentIO{}, faketcp.ClientFlow{}, err
+			}
+			flow := faketcp.ClientFlow{
+				LocalIP: localIP.As4(), PeerIP: serverIP.As4(),
+				LocalPort: port, PeerPort: uint16(*serverPort),
+			}
+			laneIO, err := mux.Open(flow)
+			return laneIO, flow, err
 		},
 		Lease: lease,
+		DesiredLanes: *lanes,
 		Admission: realityfront.ClientAdmissionConfig{
 			TLS: realityfront.ClientConfig{
 				ServerName: *serverName, RouteKey: routeKey, Timeout: 15 * time.Second,
@@ -147,6 +174,9 @@ func main() {
 			}
 			return adapter.DeliverFromOwner(packets, now)
 		},
+		DormantAfter: *idleDormant,
+		RotateMin: *rotateMin,
+		RotateMax: *rotateMax,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -161,6 +191,11 @@ func main() {
 		ListenPort: uint16(*tproxyPort),
 		Channel: channel,
 		Client: platformflow.DefaultClientConfig(),
+		BeforeBusiness: func() error {
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
+			return client.PrepareBusiness(ctx)
+		},
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -169,11 +204,18 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	errCh := make(chan error, 2)
+	errCh := make(chan error, 3)
 	go func() { errCh <- adapter.Run(ctx) }()
 	go func() {
 		select {
 		case err := <-client.Errors():
+			errCh <- err
+		case <-ctx.Done():
+		}
+	}()
+	go func() {
+		select {
+		case err := <-mux.Errors():
 			errCh <- err
 		case <-ctx.Done():
 		}
@@ -187,5 +229,5 @@ func main() {
 		}
 		cancel()
 	}
-	fmt.Println("WBD_OPENWRT_CLIENT_STOPPED cleanup=owned-only ipv6=NOT_IMPLEMENTED")
+	fmt.Printf("WBD_OPENWRT_CLIENT_STOPPED cleanup=owned-only lanes=%d ipv6=NOT_IMPLEMENTED\n", *lanes)
 }

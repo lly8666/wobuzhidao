@@ -4,9 +4,9 @@
 
 ## 1. 会话建立与 keys
 
-继续现有真实 TLS/Reality-like 建连及账户 admission。在受保护的应用请求/应答中使用新协议版本，携带 record_version=1、双方 record 上限、服务端生成的 16 字节 incarnation nonce。未知版本明确拒绝，无 DTLS fallback，无 both 模式。
+继续现有真实 TLS/Reality-like 建连及账户 admission。在受保护的应用请求/应答中使用新协议版本，携带 record_version=1、双方 record 上限、服务端生成的 16 字节 incarnation nonce，以及 `lane_id(u8)`。lane_id 固定为 1..4，由客户端在 TLS 内请求、服务端原值回显；0/越界或回显不一致明确拒绝。它只用于把每条同 TunnelID 的独立 FakeTCP association 绑定到权威 logical lane / same-ID replacement，不增加公开 SYN/TLS 标记，不恢复额外控制信道。未知版本明确拒绝，无 DTLS fallback，无 both 模式。
 
-受保护的参数采用明确字节长度与网络字节序。每方向最大记录大小分别计算。上下文固定编码：`version(u16) || incarnation_nonce(16) || TunnelID长度(u16) || TunnelID字节 || client_limit(u16) || server_limit(u16)`。TunnelID 使用既有规范编码，不依赖 JSON 字段顺序。
+受保护的参数采用明确字节长度与网络字节序。每方向最大记录大小分别计算。TLS-like exporter 上下文保持既有固定编码，不把 lane_id 加入静态向量：`version(u16) || incarnation_nonce(16) || TunnelID长度(u16) || TunnelID字节 || client_limit(u16) || server_limit(u16)`。TunnelID 使用既有规范编码，不依赖 JSON 字段顺序。
 
 双方在原 TLS/uTLS 对象上调用 exporter，label `EXPORTER-WBD-TLSLIKE-V1`，context 为上述编码的 SHA-256，输出 32 字节 master。禁止从手工复制的不完整 tls.ConnectionState 派生。
 

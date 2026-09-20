@@ -20,6 +20,10 @@ type SocketConfig struct {
 	Client          platformflow.ClientConfig
 	MaxReplySockets int
 	TickInterval    time.Duration
+	// BeforeBusiness runs only when a real intercepted TCP/UDP flow is about to
+	// enter the tunnel. It lets the single-process runtime wake a DORMANT tunnel
+	// without treating transport ACK/timer activity as payload activity.
+	BeforeBusiness func() error
 }
 
 func (c *SocketConfig) normalize() error {

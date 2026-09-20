@@ -183,6 +183,11 @@ func (a *SocketAdapter) udpLoop() error {
 		if !client.Addr().Unmap().Is4() {
 			continue
 		}
+		if a.cfg.BeforeBusiness != nil {
+			if err := a.cfg.BeforeBusiness(); err != nil {
+				continue
+			}
+		}
 		if err := a.client.ForwardUDP(client, target, append([]byte(nil), payload[:n]...), time.Now()); err != nil {
 			continue
 		}
@@ -199,6 +204,12 @@ func (a *SocketAdapter) tcpLoop() error {
 		if err != nil {
 			_ = conn.Close()
 			continue
+		}
+		if a.cfg.BeforeBusiness != nil {
+			if err := a.cfg.BeforeBusiness(); err != nil {
+				_ = conn.Close()
+				continue
+			}
 		}
 		if _, err := a.client.AddTCP(conn, target, time.Now()); err != nil {
 			_ = conn.Close()

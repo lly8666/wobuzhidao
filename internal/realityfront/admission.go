@@ -18,8 +18,8 @@ const (
 	RecordVersionV1 uint16 = 1
 
 	admissionMagic      = "WBAD"
-	admissionRequestLen = 14
-	admissionReplyLen   = 25
+	admissionRequestLen = 15
+	admissionReplyLen   = 26
 	maxAdmissionUserLen = 255
 	maxAdmissionPassLen = 1024
 	tunnelIDLen          = 16
@@ -38,6 +38,7 @@ var (
 
 type AdmissionRequest struct {
 	RecordVersion uint16
+	LaneID        uint8
 	TunnelID      []byte
 	ClientLimit   uint16
 	Username      string
@@ -46,6 +47,7 @@ type AdmissionRequest struct {
 
 type AdmissionResult struct {
 	RecordVersion    uint16
+	LaneID           uint8
 	IncarnationNonce [16]byte
 	TunnelID         []byte
 	ClientLimit      uint16
@@ -69,7 +71,12 @@ type ClientAdmissionConfig struct {
 	Password    string
 	TunnelID    []byte
 	ClientLimit uint16
+	// LaneID is the protected Logical Tunnel lane identity. Zero keeps legacy
+	// single-lane callers source-compatible and is normalized to lane 1.
+	LaneID      uint8
 }
+
+type AdmissionRequestValidator func(AdmissionRequest) error
 
 type ServerAdmissionConfig struct {
 	TLS              ServerConfig
@@ -77,6 +84,10 @@ type ServerAdmissionConfig struct {
 	ExpectedPassword string
 	ServerLimit      uint16
 	Random           io.Reader
+	// ValidateRequest runs after TLS protection + credential verification but
+	// before the success reply is emitted. It lets the runtime fail closed when
+	// a TunnelID/LaneID cannot be bound to current lifecycle state.
+	ValidateRequest  AdmissionRequestValidator
 }
 
 type ClientAdmissionSession struct {
@@ -95,8 +106,13 @@ type ServerAdmissionSession struct {
 // request, fully reads and validates the protected response, and only then
 // derives the record keys from the original uTLS ConnectionState.
 func EstablishClient(ctx context.Context, conn net.Conn, cfg ClientAdmissionConfig) (*ClientAdmissionSession, error) {
+	laneID := cfg.LaneID
+	if laneID == 0 {
+		laneID = 1
+	}
 	req := AdmissionRequest{
 		RecordVersion: RecordVersionV1,
+		LaneID:        laneID,
 		TunnelID:      append([]byte(nil), cfg.TunnelID...),
 		ClientLimit:   cfg.ClientLimit,
 		Username:      cfg.Username,
@@ -225,6 +241,12 @@ func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssocia
 		_ = writeAdmissionFailure(tlsConn, admissionAuthFail)
 		return nil, ErrAdmissionAuth
 	}
+	if cfg.ValidateRequest != nil {
+		if err := cfg.ValidateRequest(req); err != nil {
+			_ = writeAdmissionFailure(tlsConn, admissionParamFail)
+			return nil, errors.Join(ErrAdmissionParams, err)
+		}
+	}
 
 	source := cfg.Random
 	if source == nil {
@@ -236,6 +258,7 @@ func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssocia
 	}
 	result := AdmissionResult{
 		RecordVersion:    req.RecordVersion,
+		LaneID:           req.LaneID,
 		IncarnationNonce: nonce,
 		TunnelID:         append([]byte(nil), req.TunnelID...),
 		ClientLimit:      req.ClientLimit,
@@ -282,7 +305,10 @@ func marshalAdmissionRequest(req AdmissionRequest) ([]byte, error) {
 	if req.RecordVersion != RecordVersionV1 {
 		return nil, ErrAdmissionVersion
 	}
-	if !validRecordLimit(req.ClientLimit) || len(req.TunnelID) != tunnelIDLen ||
+	if req.LaneID == 0 {
+		req.LaneID = 1
+	}
+	if !validAdmissionLaneID(req.LaneID) || !validRecordLimit(req.ClientLimit) || len(req.TunnelID) != tunnelIDLen ||
 		len(req.Username) == 0 || len(req.Username) > maxAdmissionUserLen ||
 		len(req.Password) == 0 || len(req.Password) > maxAdmissionPassLen {
 		return nil, ErrAdmissionParams
@@ -291,9 +317,10 @@ func marshalAdmissionRequest(req AdmissionRequest) ([]byte, error) {
 	copy(out[:4], admissionMagic)
 	binary.BigEndian.PutUint16(out[4:6], req.RecordVersion)
 	binary.BigEndian.PutUint16(out[6:8], req.ClientLimit)
-	binary.BigEndian.PutUint16(out[8:10], uint16(len(req.TunnelID)))
-	binary.BigEndian.PutUint16(out[10:12], uint16(len(req.Username)))
-	binary.BigEndian.PutUint16(out[12:14], uint16(len(req.Password)))
+	out[8] = req.LaneID
+	binary.BigEndian.PutUint16(out[9:11], uint16(len(req.TunnelID)))
+	binary.BigEndian.PutUint16(out[11:13], uint16(len(req.Username)))
+	binary.BigEndian.PutUint16(out[13:15], uint16(len(req.Password)))
 	off := admissionRequestLen
 	copy(out[off:], req.TunnelID)
 	off += len(req.TunnelID)
@@ -317,10 +344,11 @@ func readAdmissionRequest(r io.Reader) (AdmissionRequest, error) {
 		return out, ErrAdmissionVersion
 	}
 	out.ClientLimit = binary.BigEndian.Uint16(hdr[6:8])
-	tunnelLen := int(binary.BigEndian.Uint16(hdr[8:10]))
-	userLen := int(binary.BigEndian.Uint16(hdr[10:12]))
-	passLen := int(binary.BigEndian.Uint16(hdr[12:14]))
-	if !validRecordLimit(out.ClientLimit) || tunnelLen != tunnelIDLen ||
+	out.LaneID = hdr[8]
+	tunnelLen := int(binary.BigEndian.Uint16(hdr[9:11]))
+	userLen := int(binary.BigEndian.Uint16(hdr[11:13]))
+	passLen := int(binary.BigEndian.Uint16(hdr[13:15]))
+	if !validAdmissionLaneID(out.LaneID) || !validRecordLimit(out.ClientLimit) || tunnelLen != tunnelIDLen ||
 		userLen <= 0 || userLen > maxAdmissionUserLen ||
 		passLen <= 0 || passLen > maxAdmissionPassLen {
 		return out, ErrAdmissionParams
@@ -339,8 +367,12 @@ func readAdmissionRequest(r io.Reader) (AdmissionRequest, error) {
 }
 
 func marshalAdmissionReply(result AdmissionResult) ([]byte, error) {
-	if result.RecordVersion != RecordVersionV1 || !validRecordLimit(result.ClientLimit) ||
-		!validRecordLimit(result.ServerLimit) || len(result.TunnelID) != tunnelIDLen {
+	if result.LaneID == 0 {
+		result.LaneID = 1
+	}
+	if result.RecordVersion != RecordVersionV1 || !validAdmissionLaneID(result.LaneID) ||
+		!validRecordLimit(result.ClientLimit) || !validRecordLimit(result.ServerLimit) ||
+		len(result.TunnelID) != tunnelIDLen {
 		return nil, ErrAdmissionParams
 	}
 	out := make([]byte, admissionReplyLen+len(result.TunnelID))
@@ -349,13 +381,17 @@ func marshalAdmissionReply(result AdmissionResult) ([]byte, error) {
 	copy(out[3:19], result.IncarnationNonce[:])
 	binary.BigEndian.PutUint16(out[19:21], result.ClientLimit)
 	binary.BigEndian.PutUint16(out[21:23], result.ServerLimit)
-	binary.BigEndian.PutUint16(out[23:25], uint16(len(result.TunnelID)))
-	copy(out[25:], result.TunnelID)
+	out[23] = result.LaneID
+	binary.BigEndian.PutUint16(out[24:26], uint16(len(result.TunnelID)))
+	copy(out[26:], result.TunnelID)
 	return out, nil
 }
 
 func readAdmissionReply(r io.Reader, req AdmissionRequest) (AdmissionResult, error) {
 	var out AdmissionResult
+	if req.LaneID == 0 {
+		req.LaneID = 1
+	}
 	var status [1]byte
 	if _, err := io.ReadFull(r, status[:]); err != nil {
 		return out, err
@@ -378,8 +414,10 @@ func readAdmissionReply(r io.Reader, req AdmissionRequest) (AdmissionResult, err
 	copy(out.IncarnationNonce[:], rest[2:18])
 	out.ClientLimit = binary.BigEndian.Uint16(rest[18:20])
 	out.ServerLimit = binary.BigEndian.Uint16(rest[20:22])
-	tunnelLen := int(binary.BigEndian.Uint16(rest[22:24]))
+	out.LaneID = rest[22]
+	tunnelLen := int(binary.BigEndian.Uint16(rest[23:25]))
 	if out.RecordVersion != RecordVersionV1 || out.RecordVersion != req.RecordVersion ||
+		out.LaneID != req.LaneID || !validAdmissionLaneID(out.LaneID) ||
 		out.ClientLimit != req.ClientLimit || !validRecordLimit(out.ServerLimit) ||
 		tunnelLen != tunnelIDLen {
 		return AdmissionResult{}, ErrAdmissionParams
@@ -419,6 +457,10 @@ func credentialsMatch(gotUser, gotPass, wantUser, wantPass string) bool {
 	}
 	return subtle.ConstantTimeCompare([]byte(gotUser), []byte(wantUser)) == 1 &&
 		subtle.ConstantTimeCompare([]byte(gotPass), []byte(wantPass)) == 1
+}
+
+func validAdmissionLaneID(id uint8) bool {
+	return id >= 1 && id <= 4
 }
 
 func validRecordLimit(limit uint16) bool {

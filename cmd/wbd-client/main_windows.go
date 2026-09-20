@@ -25,8 +25,6 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/windowsclient"
 )
 
-const npcapGeneration uint64 = 1
-
 func main() {
 	var (
 		serverIPText = flag.String("server-ip", "", "server public IPv4")
@@ -47,6 +45,10 @@ func main() {
 		directText = flag.String("direct4", "", "comma-separated direct IPv4 prefixes")
 		statePath = flag.String("state-path", "wbd-windows-client-state.json", "owned Windows network state file")
 		scriptPath = flag.String("network-script", "scripts/windows_client_network.ps1", "Windows network Apply/Cleanup script")
+		lanes = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
+		idleDormant = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
+		rotateMin = flag.Duration("rotate-min", 0, "minimum lane rotation interval; 0 disables rotation")
+		rotateMax = flag.Duration("rotate-max", 0, "maximum lane rotation interval; must pair with rotate-min")
 	)
 	flag.Parse()
 	if *serverIPText == "" || *tunnelText == "" || *leaseText == "" || *account == "" ||
@@ -58,6 +60,16 @@ func main() {
 	if *serverPort == 0 || *serverPort > 65535 || *sourcePort == 0 || *sourcePort > 65535 ||
 		*clientLimit > 65535 {
 		log.Fatal("invalid port or record limit")
+	}
+	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
+		log.Fatal(err)
+	}
+	if *idleDormant < 0 || *rotateMin < 0 || *rotateMax < 0 ||
+		(*rotateMin == 0) != (*rotateMax == 0) || (*rotateMin > 0 && *rotateMax < *rotateMin) {
+		log.Fatal("invalid lifecycle durations")
+	}
+	if _, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), 1); err != nil {
+		log.Fatal("source-port must leave a 1024-port bounded rotation window")
 	}
 
 	serverIP, err := netip.ParseAddr(*serverIPText)
@@ -105,34 +117,40 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	npcapCfg, err := underlay.NpcapConfig(uint16(*sourcePort), uint16(*serverPort), npcapGeneration, faketcp.PacketPersonaWindows11)
-	if err != nil {
-		log.Fatal(err)
-	}
-	npcap, err := faketcp.OpenNpcapEndpoint(npcapCfg)
-	if err != nil {
-		log.Fatal(err)
-	}
-	io := runtimeentry.SegmentIO{
-		Read: func() (faketcp.Segment, error) {
-			seg, _, err := npcap.ReadSegment(npcapGeneration)
-			return seg, err
-		},
-		Emit: func(seg faketcp.Segment) error {
-			_, err := npcap.WriteSegment(npcapGeneration, seg)
-			return err
-		},
-		Close: npcap.Close,
-	}
-
 	var router *windowsclient.Router
-	client, err := runtimeentry.DialClient(context.Background(), runtimeentry.ClientConfig{
-		IO: io,
-		Flow: faketcp.ClientFlow{
-			LocalIP: underlay.Source4.As4(), PeerIP: serverIP.As4(),
-			LocalPort: uint16(*sourcePort), PeerPort: uint16(*serverPort),
+	client, err := runtimeentry.DialTunnelClient(context.Background(), runtimeentry.TunnelClientConfig{
+		OpenLane: func(_ uint8, incarnation uint64) (runtimeentry.SegmentIO, faketcp.ClientFlow, error) {
+			port, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), incarnation)
+			if err != nil {
+				return runtimeentry.SegmentIO{}, faketcp.ClientFlow{}, err
+			}
+			npcapCfg, err := underlay.NpcapConfig(port, uint16(*serverPort), incarnation, faketcp.PacketPersonaWindows11)
+			if err != nil {
+				return runtimeentry.SegmentIO{}, faketcp.ClientFlow{}, err
+			}
+			npcap, err := faketcp.OpenNpcapEndpoint(npcapCfg)
+			if err != nil {
+				return runtimeentry.SegmentIO{}, faketcp.ClientFlow{}, err
+			}
+			flow := faketcp.ClientFlow{
+				LocalIP: underlay.Source4.As4(), PeerIP: serverIP.As4(),
+				LocalPort: port, PeerPort: uint16(*serverPort),
+			}
+			ioCfg := runtimeentry.SegmentIO{
+				Read: func() (faketcp.Segment, error) {
+					seg, _, err := npcap.ReadSegment(incarnation)
+					return seg, err
+				},
+				Emit: func(seg faketcp.Segment) error {
+					_, err := npcap.WriteSegment(incarnation, seg)
+					return err
+				},
+				Close: npcap.Close,
+			}
+			return ioCfg, flow, nil
 		},
 		Lease: lease,
+		DesiredLanes: *lanes,
 		Admission: realityfront.ClientAdmissionConfig{
 			TLS: realityfront.ClientConfig{
 				ServerName: *serverName, RouteKey: routeKey, Timeout: 15 * time.Second,
@@ -151,6 +169,9 @@ func main() {
 			}
 			return router.DeliverFromOwner(packets)
 		},
+		DormantAfter: *idleDormant,
+		RotateMin: *rotateMin,
+		RotateMax: *rotateMax,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -203,6 +224,13 @@ func main() {
 				errCh <- err
 				return
 			}
+			wakeCtx, wakeCancel := context.WithTimeout(ctx, 15*time.Second)
+			err = client.PrepareBusiness(wakeCtx)
+			wakeCancel()
+			if err != nil {
+				errCh <- err
+				return
+			}
 			out, err := router.RouteFromTUN(append([]byte(nil), buf[:n]...), time.Now())
 			if err != nil {
 				errCh <- err
@@ -235,7 +263,7 @@ func main() {
 		}
 		cancel()
 	}
-	fmt.Println("WBD_WINDOWS_CLIENT_STOPPED cleanup=state-owned-only physical=NOT_RUN")
+	fmt.Printf("WBD_WINDOWS_CLIENT_STOPPED cleanup=state-owned-only lanes=%d physical=NOT_RUN\n", *lanes)
 }
 
 func runNetworkAction(plan windowsclient.NetworkPlan, action, script string) error {

@@ -159,7 +159,7 @@ func DialClient(ctx context.Context, cfg ClientConfig) (*Client, error) {
 		return nil, err
 	}
 	gotTunnel, err := logicaltunnel.TunnelIDFromBytes(session.Negotiated.TunnelID)
-	if err != nil || gotTunnel != cfg.Lease.Config.TunnelID {
+	if err != nil || gotTunnel != cfg.Lease.Config.TunnelID || session.Negotiated.LaneID != 1 {
 		c.Close()
 		return nil, ErrLeaseMismatch
 	}
@@ -578,7 +578,7 @@ func (s *Server) admit(ctx context.Context, assoc *faketcp.ServerAssociation) {
 		return
 	}
 	tunnelID, err := logicaltunnel.TunnelIDFromBytes(result.Admission.Negotiated.TunnelID)
-	if err != nil {
+	if err != nil || result.Admission.Negotiated.LaneID != 1 {
 		s.table.Remove(flow)
 		return
 	}

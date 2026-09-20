@@ -47,6 +47,8 @@ func main() {
 		mtu = flag.Int("mtu", 1500, "connection/shared-TUN MTU")
 		firewall = flag.String("firewall", "auto", "shared-TUN firewall backend: auto|nft|iptables")
 		nftForward = flag.String("nft-forward", "", "optional family:table:chain for nft forward policy")
+		lanes = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
+		idleDormant = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
 	)
 	flag.Parse()
 
@@ -58,6 +60,12 @@ func main() {
 	}
 	if *listenPort == 0 || *listenPort > 65535 || *serverLimit > 65535 {
 		log.Fatal("invalid port or record limit")
+	}
+	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
+		log.Fatal(err)
+	}
+	if *idleDormant < 0 {
+		log.Fatal("idle-dormant must be non-negative")
 	}
 
 	listenIP, err := netip.ParseAddr(*listenIPText)
@@ -130,7 +138,8 @@ func main() {
 		},
 		Close: raw.Close,
 	}
-	server, err := runtimeentry.NewServer(runtimeentry.ServerConfig{
+	server, err := runtimeentry.NewLifecycleServer(runtimeentry.LifecycleServerConfig{
+		ServerConfig: runtimeentry.ServerConfig{
 		IO: io,
 		ListenPort: uint16(*listenPort),
 		Admission: realityfront.ServerAdmissionConfig{
@@ -162,6 +171,9 @@ func main() {
 		},
 		Router: router,
 		Service: platformflow.DefaultServerConfig(),
+		},
+		DesiredLanes: *lanes,
+		DormantAfter: *idleDormant,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -199,5 +211,5 @@ func main() {
 		cancel()
 	}
 	_ = server.Close()
-	fmt.Println("WBD_SERVER_STOPPED cleanup=owned-only")
+	fmt.Printf("WBD_SERVER_STOPPED cleanup=owned-only lanes=%d\n", *lanes)
 }
