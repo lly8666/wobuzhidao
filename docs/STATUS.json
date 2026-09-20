@@ -44,9 +44,9 @@
     "P5第一原子任务关闭：受控真实HTTPS fullstack hosted measurement base 在 SOURCE_SHA 043da6298a2be091b55fb470b63c69e605bb61d8 / Actions 35516700104 取得 8/8 PASS。两个独立真实TLS+HTTP flow复用同一正式 outer FakeTCP+TLS/protected-admission Normal lane；保存 raw DLT_RAW IPv4 PCAP、outer packet/TLS-like record/HTTPS flow JSONL、manifest/summary/test.log，并由 exact-SHA 独立validator确认 flows=2、outer_connections=1、FEC=off、padding=off。P5 artifact 10606459773，sha256:8eda8c0f3ec2df0bf08afd1d771c251a2800a6fcd881df0c14a73a67c84fb66f。",
     "P5第二原子任务关闭：platformflow TCP close-tail/concurrent-retire 生命周期在 SOURCE_SHA a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f / Actions 35520092389 取得 8/8 PASS。5s/4096 bounded retired FlowID tombstone + handler已持有flow指针后的closed幂等 + 单业务flow本地socket关闭错误隔离，使第一条真实HTTPS完整Connection: close/TLS close且client/server TCPFlows归零后，第二条独立HTTPS仍在同一outer lane成功；validator确认两个distinct business FlowID、sequential_close=pass、outer SYN仍为1。"
   ],
-  "in_progress": "P5 第三原子任务候选待 exact-SHA Actions：只扩展受控真实 HTTPS measurement harness 的 inner TLS full vs resumed handshake 证据。候选将现有两条 sequential HTTPS flow 固定为 TLS1.3，共享容量8的 ClientSessionCache；flow1 必须 DidResume=false 且真实写入session ticket，flow2 必须 DidResume=true 且发生cache hit。events.jsonl 新增 tls_version/cipher/handshake_mode/tls_resumed/cache get-hit-put delta，manifest 新增shared-LRU cache provenance与最终计数。继续要求第一条完整close后第二条、同一outer lane、outer SYN=1、FEC off、padding=0/off、无弱网注入；不做性能结论，不引入不同证书链。",
-  "next_task": "只资格当前 P5 full-vs-resumed handshake atom：对候选 SOURCE_SHA 跑完整 next-foundation，要求 p5-https-measurement-base marker/validator 同 SHA 输出 `handshakes=full,resumed`，flow1 full、flow2 resumed、session cache真实put+hit，并且全部既有8 jobs同SHA PASS。失败时保留SHA/run，仅修当前handshake measurement atom；通过前 last_tested_source_sha 保持 a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f。",
-  "latest_log": "docs/devlog/20260921-002000-p5-full-resumed-handshake-candidate.md",
+  "in_progress": "P5 第三原子任务第二候选仅做资格重试，产品/harness 实现相对 82b391408cb61703e69dc4ed1db3eae9d8671004 不变。首候选 Actions 35522085204 为 7/8 PASS：strengthened P5 full→resumed gate、repository-contract、Windows、Ubuntu unit/race/fuzz/reference、OpenWrt、Linux shared-TUN iptables/nft 均 PASS；只有未修改的 P2 kernel fallback 在 `TestKernelTLSFallbackVerifiedHTTPAndNormalClose` 约10秒后 `unexpected EOF`。P2 artifact 10608672257 已保留。因本 atom 与 P2 代码/workflow 无交集，本候选不修改 P2，只记录失败证据并以新 SOURCE_SHA 重跑完整资格。",
+  "next_task": "对第二候选 SOURCE_SHA 重跑完整 next-foundation。必须同 SHA 看到8/8 PASS，并继续要求 P5 marker/validator `handshakes=full,resumed`、真实session cache put/hit、sequential_close=pass。若 P2 再次失败，再基于两次独立 raw evidence 判断是否存在可复现 P2 缺口；在此之前不为一次 unrelated privileged runtime EOF 扩大当前 atom。",
+  "latest_log": "docs/devlog/20260921-002500-p5-full-resumed-qualification-retry.md",
   "last_tested_source_sha": "a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f",
   "actions": [
     {
@@ -559,6 +559,13 @@
       "scope": "P5-close-tail-docs-closure",
       "status": "PASS",
       "note": "Docs-only closure run completed/success，8/8 jobs PASS。该 SHA 只更新 STATUS/devlog；产品资格继续由 SOURCE_SHA a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f / Actions 35520092389 authority，docs-only closure 不覆盖 last_tested_source_sha。"
+    },
+    {
+      "source_sha": "82b391408cb61703e69dc4ed1db3eae9d8671004",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35522085204",
+      "scope": "P5-full-resumed-handshake-first-candidate",
+      "status": "FAIL",
+      "note": "Run attempt 1 completed/failure，8 jobs 中 7 PASS。P5 strengthened gate PASS：validator marker `flows=2 outer_connections=1 sequential_close=pass handshakes=full,resumed fec=off padding=off`；P5 artifact 10609066398，21065 bytes，sha256:441630efa8e5c0b9c1a86032de21c2acc34f7c6597631f9b121f2b7c90847623。repository-contract、Windows active-go-tests、Ubuntu active-go-tests+race+directed fuzz/reference、OpenWrt privileged、Linux shared-TUN iptables/nft全部PASS。唯一失败为未修改 P2 kernel fallback：`TestKernelTLSFallbackVerifiedHTTPAndNormalClose` 运行约10s后 kernel_fallback_linux_test.go:318 `unexpected EOF`；P2 artifact 10608672257，5072 bytes，sha256:16bfe37f4bd696e51d83cfee9c929548948ea9f24f562def7a981869e8e891da。当前候选变更文件仅 P5 measurement test、P5 validator、STATUS/devlog，不含 P2 产品代码/workflow，因此本 atom 不修改 P2，生成新SHA做完整资格重试。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -589,6 +596,6 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "IN_PROGRESS: measurement base 已资格（043da629… / 35516700104）；顺序 close-tail 已资格（a9b92c26… / 35520092389）。第三原子候选只扩展 inner TLS1.3 full vs resumed handshake measurement，要求shared session-cache真实ticket put/hit；证书链、弱网/负载/长测、FEC固定挡位后续分别推进。"
+    "P5": "IN_PROGRESS: measurement base 与 close-tail 已资格；full-vs-resumed 首候选 82b39140… 的 P5 gate 已 PASS，但整轮因 unrelated P2 privileged runtime EOF 为7/8。第二候选不改实现，仅记录失败证据并重跑 exact-SHA 全门。证书链、弱网/负载/长测、FEC固定挡位后续分别推进。"
   }
 }
