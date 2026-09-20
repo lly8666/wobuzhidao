@@ -546,7 +546,7 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 		_ = listener.Close()
 		t.Fatal(err)
 	}
-	defer appConn.Close()
+	t.Cleanup(func() { _ = appConn.Close() })
 	peer := <-accepted
 	_ = listener.Close()
 	if peer.err != nil {
@@ -570,7 +570,6 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 
 	reqURL := &url.URL{Scheme: "https", Host: target.String(), Path: fmt.Sprintf("/flow/%d", ordinal)}
 	req := &http.Request{Method: http.MethodGet, URL: reqURL, Host: "target.test", Header: make(http.Header)}
-	req.Header.Set("Connection", "close")
 	if err := req.Write(tlsConn); err != nil {
 		t.Fatal(err)
 	}
@@ -584,7 +583,9 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 		t.Fatal(err)
 	}
 	_ = resp.Body.Close()
-	_ = tlsConn.Close()
+	// Keep each independent HTTPS connection alive until the measurement has
+	// captured the subsequent flow. Cleanup closes the application socket only
+	// after the runtimeentry/server measurement path has been cancelled.
 	wantBody := fmt.Sprintf("wbd-p5 path=/flow/%d", ordinal)
 	if string(body) != wantBody {
 		t.Fatalf("inner HTTPS body mismatch got=%q want=%q", body, wantBody)

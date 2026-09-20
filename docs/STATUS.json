@@ -42,9 +42,9 @@
     "P4子任务：可执行入口 multi-lane/lifecycle hosted闭包通过Actions；protected admission显式 lane_id=1..4，单进程 runtimeentry 绑定每lane独立FakeTCP association，Game 2-lane hosted闭环覆盖PacketID racing、失败候选保留旧generation、same-ID A->A+B->B replacement/retire、DORMANT/wake与稳定leased TunnelOwner；Linux/OpenWrt raw shared SegmentMux、Windows Npcap per-incarnation endpoint及cmd --lanes/idle/rotation配置均跨平台编译。SOURCE_SHA fa9b60315ca01ec140c34a65799dc62916f2275d / Actions 35505737597 7/7 PASS；Windows/Npcap physical仍NOT_RUN。",
     "P4关闭：closure audit SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639 7/7 PASS。入口级runtimeentry显式覆盖Game desiredLanes=3/4的真实FakeTCP+TLS/protected-admission全lane steady qualification/双向PacketID竞速去重；自动rotation timer触发same-ID generation前进并收敛回desired physical lanes；持续ACK/runtime tick不刷新payload idle，client/server自动DORMANT，下一笔真实业务自动wake且leased TunnelOwner/TunnelID/IPv4/Installation保持不变。P4平台入口、lifecycle、padding预算与回归门槛全部满足hosted关闭条件；Windows/Npcap物理资格仍留P7。"
   ],
-  "in_progress": "P5 第一原子任务第二候选待 exact-SHA GitHub Actions：首候选 bd96f618b001139dbd971e46d7bacc6ba6dbae2d / Actions 35516224912 已保留 FAIL 证据。P5 dedicated gate 的真实 HTTPS 第一条 flow 成功，第二条在 harness 使用 net.Pipe 全关闭后报 io: read/write on closed pipe；修复仅将内层应用 fixture 改为 loopback TCP 以获得真实半关闭/CloseWrite语义，并让 server cancel/wait 先于 client/service cleanup。该 atom 仍固定 FEC off、padding=0/off、无弱网注入，不做性能结论/分类器/参数调优/P7 Windows physical。",
-  "next_task": "对新的 P5 measurement-base fixture-fix SOURCE_SHA 运行完整 next-foundation，要求新增 p5-https-measurement-base 与既有全部 jobs 同 SHA PASS。首候选 Actions 35516224912 的另一次 Ubuntu race 失败发生在未修改的既有 P4 TestLifecycleEntryGameThreeAndFourLaneMatrix/lanes-3；本 atom 不重开/修改 P4，下一完整 run 用于确认该既有门槛。",
-  "latest_log": "docs/devlog/20260920-235500-p5-https-measurement-base-fixture-fix.md",
+  "in_progress": "P5 第一原子任务第三候选待 exact-SHA GitHub Actions。第二候选 74f1b602bc664446f34d5a8c42e5a4d21391439e / Actions 35516466731 为 7/8 PASS，仅 p5-https-measurement-base FAIL；既有 Ubuntu race/P4 门槛已恢复 PASS。第二候选证明首条 HTTPS 正常完成后的主动 Connection: close/teardown 会触发现有 platformflow closed-flow 尾帧错误并终止 server runtime；为保持第一 measurement atom 原子边界，本候选不修改 TCP reliability，而让两个独立真实 HTTPS 连接在首个/后续 flow 均完成测量前保持存活，明确不把 close-before-next lifecycle 计入本 atom 资格。同时修正 Actions artifact 目录为 github.workspace 绝对路径。",
+  "next_task": "对第三候选 SOURCE_SHA 运行完整 next-foundation。P5 base 只在两个独立真实 HTTPS 连接均通过同一已建立 outer lane、raw PCAP/events/manifest/summary 被 exact-SHA validator 成功保存，且全部既有 jobs 同 SHA PASS 后收口。另行保留 close-before-next 的 platformflow late-frame 证据，不在本 measurement-base atom 内顺手重做 TCP reliability。",
+  "latest_log": "docs/devlog/20260920-235600-p5-https-measurement-base-scope-fix.md",
   "last_tested_source_sha": "76a20c865bf86edf2098f0ef40c44a31298679dd",
   "actions": [
     {
@@ -515,6 +515,13 @@
       "scope": "P5-https-measurement-base-first-candidate",
       "status": "FAIL",
       "note": "Run attempt 1 completed/failure，8 jobs 中 P5 dedicated gate FAIL，Ubuntu active-go-tests race 亦 FAIL；repository-contract、Windows active-go-tests、P2 kernel fallback、Linux shared-TUN iptables/nft、OpenWrt privileged均PASS。P5 TestP5ControlledHTTPSMeasurementHarness 的第一条真实HTTPS flow已通过，第二条在调用点报 io: read/write on closed pipe；根因定位为测试使用 net.Pipe 无 half-close/CloseWrite，第一条 TLS/HTTP Connection: close 后全关闭 fixture，非传输算法结论。P5 artifact 10606209841，zip sha256:2f46503ae2d3d03e20a4db59eb339a741f90f427a5ef1c315e3db98fb00f9a76。Ubuntu race 单独失败于既有未修改 P4 TestLifecycleEntryGameThreeAndFourLaneMatrix/lanes-3（server GameDelivered=1/GameDuplicates=1）；普通 unit/build PASS、P4此前 exact-SHA已资格，本P5 atom不修改P4，下一新SHA完整重跑确认。"
+    },
+    {
+      "source_sha": "74f1b602bc664446f34d5a8c42e5a4d21391439e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35516466731",
+      "scope": "P5-https-measurement-base-second-candidate",
+      "status": "FAIL",
+      "note": "Run attempt 1 completed/failure，8 jobs 中 7 PASS，仅 p5-https-measurement-base FAIL；repository-contract、Windows/Linux active-go-tests（含 Linux race）、P2 kernel fallback、Linux shared-TUN iptables/nft、OpenWrt privileged全部PASS。P5 使用真实 loopback TCP half-close fixture 后，首条 HTTPS 成功，但其 Connection: close teardown 的尾部控制帧触发 server `platformflow: malformed frame: unknown TCP server flow`，继而第二条 HTTPS 读到 connection reset；这把问题从 net.Pipe fixture 缩小到现有 platformflow close-tail lifecycle。该 measurement-base atom 不修改 TCP reliability，第三候选在测量完成前保持两个独立 HTTPS 连接存活，并明确不资格 close-before-next。另发现 Actions 中 Go test 相对 artifact 路径落在 package 工作目录，需改为 github.workspace 绝对路径。失败 artifact 10606893150，zip sha256:24b65c77841ad14b12873bca98d644f72bc9dd09d48a6c75fe11b41807be4b34。"
     }
   ],
   "physical_status": "NOT_RUN",
