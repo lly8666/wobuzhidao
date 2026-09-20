@@ -42,9 +42,9 @@
     "P4子任务：可执行入口 multi-lane/lifecycle hosted闭包通过Actions；protected admission显式 lane_id=1..4，单进程 runtimeentry 绑定每lane独立FakeTCP association，Game 2-lane hosted闭环覆盖PacketID racing、失败候选保留旧generation、same-ID A->A+B->B replacement/retire、DORMANT/wake与稳定leased TunnelOwner；Linux/OpenWrt raw shared SegmentMux、Windows Npcap per-incarnation endpoint及cmd --lanes/idle/rotation配置均跨平台编译。SOURCE_SHA fa9b60315ca01ec140c34a65799dc62916f2275d / Actions 35505737597 7/7 PASS；Windows/Npcap physical仍NOT_RUN。",
     "P4关闭：closure audit SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639 7/7 PASS。入口级runtimeentry显式覆盖Game desiredLanes=3/4的真实FakeTCP+TLS/protected-admission全lane steady qualification/双向PacketID竞速去重；自动rotation timer触发same-ID generation前进并收敛回desired physical lanes；持续ACK/runtime tick不刷新payload idle，client/server自动DORMANT，下一笔真实业务自动wake且leased TunnelOwner/TunnelID/IPv4/Installation保持不变。P4平台入口、lifecycle、padding预算与回归门槛全部满足hosted关闭条件；Windows/Npcap物理资格仍留P7。"
   ],
-  "in_progress": "P5 第一原子任务候选已实现，等待 exact-SHA GitHub Actions 资格：受控真实 HTTPS hosted measurement harness 复用正式 runtimeentry/Tunnel/Normal lane 与 platformflow TCP service；在同一外层 FakeTCP+TLS lane 上依次承载首个 HTTPS flow 与已建 lane 后的后续 HTTPS flow，并保存 hosted SegmentIO 边界的 raw-IPv4 PCAP、outer packet/TLS-like record/HTTPS flow JSONL、manifest。该 atom 固定 FEC off、生产 padding=0/off、无弱网注入，不做性能结论/分类器/参数调优/P7 Windows physical。",
-  "next_task": "只资格当前 P5 measurement-base atom：对本候选 SOURCE_SHA 运行完整 next-foundation，并要求新增 p5-https-measurement-base gate 与既有全部 jobs 同 SHA PASS；失败时保留失败 run，仅修当前 atom 并生成新 SOURCE_SHA。该 atom closure 后再设计下一 P5 弱网/负载/长测原子任务，不在本 atom 扩展矩阵。",
-  "latest_log": "docs/devlog/20260920-234500-p5-https-measurement-base-candidate.md",
+  "in_progress": "P5 第一原子任务第二候选待 exact-SHA GitHub Actions：首候选 bd96f618b001139dbd971e46d7bacc6ba6dbae2d / Actions 35516224912 已保留 FAIL 证据。P5 dedicated gate 的真实 HTTPS 第一条 flow 成功，第二条在 harness 使用 net.Pipe 全关闭后报 io: read/write on closed pipe；修复仅将内层应用 fixture 改为 loopback TCP 以获得真实半关闭/CloseWrite语义，并让 server cancel/wait 先于 client/service cleanup。该 atom 仍固定 FEC off、padding=0/off、无弱网注入，不做性能结论/分类器/参数调优/P7 Windows physical。",
+  "next_task": "对新的 P5 measurement-base fixture-fix SOURCE_SHA 运行完整 next-foundation，要求新增 p5-https-measurement-base 与既有全部 jobs 同 SHA PASS。首候选 Actions 35516224912 的另一次 Ubuntu race 失败发生在未修改的既有 P4 TestLifecycleEntryGameThreeAndFourLaneMatrix/lanes-3；本 atom 不重开/修改 P4，下一完整 run 用于确认该既有门槛。",
+  "latest_log": "docs/devlog/20260920-235500-p5-https-measurement-base-fixture-fix.md",
   "last_tested_source_sha": "76a20c865bf86edf2098f0ef40c44a31298679dd",
   "actions": [
     {
@@ -508,6 +508,13 @@
       "scope": "P4-closure-audit-final",
       "status": "PASS",
       "note": "Run attempt 1 completed/success，7 jobs全部PASS。新增仅为runtimeentry closure tests，产品实现相对fa9b6031不变。Windows 2022 unit/build中 internal/runtimeentry PASS 0.789s、realityfront PASS 0.663s，Wintun Render marker PASS，Npcap hosted marker `WBD_WINDOWS_NPCAP_HOSTED_CORE_PASS physical=NOT_RUN`。Ubuntu unit/build internal/runtimeentry PASS 0.764s、realityfront PASS 0.610s；`go test -race ./... -count=1`中 runtimeentry PASS 1.970s、realityfront PASS 1.676s；tlsrecord directed fuzz 15s累计97085 execs后PASS。P2 kernel fallback PASS 1.24s，28 captured / 56 received by filter / 0 dropped，analyzer PASS。Linux shared-TUN iptables PASS 0.07s、nft PASS 0.14s，均 active_tunnels=2 cleanup=owned-only dns=host-dns-unchanged。OpenWrt TPROXY PASS 0.23s；SocketTunnelAdapter PASS 0.13s，tcp=1 udp=1 eim=1 eif=1 tunnelowner=1 lanes=1 service_tun_leak=0 ipv6=NOT_IMPLEMENTED。Artifacts: foundation 10605340549 sha256:355873d7ff9a010fa6644966ab9f6a8e6c689e4a8732c5e5cad7c618e268a66b；tlsrecord-reference 10605040508 sha256:1033ae8057246b62b050aea0bfc7662a66370088dd9ef2b3a11cf5e90f5ac33e；P2 10605460078 sha256:fa14968dd626a015d6df412abfa65c628749171a97a38fca3647c3a4cbbc1e12；shared-TUN iptables 10605135932 sha256:71838b08e014cd9efbb1b475851e091c446ac3912f727e13787decd52b4ac899；nft 10605715296 sha256:c6759f48d6e473b3693d350e4c775d6dad324250362ec58f48803716052c3a14；OpenWrt 10605140417 sha256:58523878c7227c8e94f3b2a07a77e7a3748420dd321b33f4e0e8f545bcb2c721。"
+    },
+    {
+      "source_sha": "bd96f618b001139dbd971e46d7bacc6ba6dbae2d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35516224912",
+      "scope": "P5-https-measurement-base-first-candidate",
+      "status": "FAIL",
+      "note": "Run attempt 1 completed/failure，8 jobs 中 P5 dedicated gate FAIL，Ubuntu active-go-tests race 亦 FAIL；repository-contract、Windows active-go-tests、P2 kernel fallback、Linux shared-TUN iptables/nft、OpenWrt privileged均PASS。P5 TestP5ControlledHTTPSMeasurementHarness 的第一条真实HTTPS flow已通过，第二条在调用点报 io: read/write on closed pipe；根因定位为测试使用 net.Pipe 无 half-close/CloseWrite，第一条 TLS/HTTP Connection: close 后全关闭 fixture，非传输算法结论。P5 artifact 10606209841，zip sha256:2f46503ae2d3d03e20a4db59eb339a741f90f427a5ef1c315e3db98fb00f9a76。Ubuntu race 单独失败于既有未修改 P4 TestLifecycleEntryGameThreeAndFourLaneMatrix/lanes-3（server GameDelivered=1/GameDuplicates=1）；普通 unit/build PASS、P4此前 exact-SHA已资格，本P5 atom不修改P4，下一新SHA完整重跑确认。"
     }
   ],
   "physical_status": "NOT_RUN",

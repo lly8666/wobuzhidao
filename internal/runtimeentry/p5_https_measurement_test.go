@@ -353,12 +353,7 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 	serverCtx, serverCancel := context.WithCancel(context.Background())
 	serverDone := make(chan error, 1)
 	go func() { serverDone <- server.Run(serverCtx) }()
-	defer func() {
-		serverCancel()
-		if err := <-serverDone; err != nil && !errors.Is(err, context.Canceled) {
-			t.Errorf("server shutdown: %v", err)
-		}
-	}()
+	defer serverCancel()
 
 	var serviceMu sync.RWMutex
 	var clientService *platformflow.Client
@@ -410,6 +405,12 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 	clientService = svc
 	serviceMu.Unlock()
 	defer svc.Close()
+	defer func() {
+		serverCancel()
+		if err := <-serverDone; err != nil && !errors.Is(err, context.Canceled) {
+			t.Errorf("server shutdown: %v", err)
+		}
+	}()
 
 	tickCtx, tickCancel := context.WithCancel(context.Background())
 	defer tickCancel()
@@ -527,8 +528,32 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 
 func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platformflow.Client, tlsCfg *tls.Config, target netip.AddrPort, ordinal int, scenario string) {
 	t.Helper()
-	appConn, tunnelConn := net.Pipe()
+	listener, err := net.Listen("tcp4", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	type acceptResult struct {
+		conn net.Conn
+		err  error
+	}
+	accepted := make(chan acceptResult, 1)
+	go func() {
+		conn, err := listener.Accept()
+		accepted <- acceptResult{conn: conn, err: err}
+	}()
+	appConn, err := net.DialTimeout("tcp4", listener.Addr().String(), 2*time.Second)
+	if err != nil {
+		_ = listener.Close()
+		t.Fatal(err)
+	}
 	defer appConn.Close()
+	peer := <-accepted
+	_ = listener.Close()
+	if peer.err != nil {
+		t.Fatal(peer.err)
+	}
+	tunnelConn := peer.conn
+
 	beforeC2S, beforeS2C := recorder.wireSnapshot()
 	started := time.Now()
 	if _, err := svc.AddTCP(tunnelConn, target, started); err != nil {
