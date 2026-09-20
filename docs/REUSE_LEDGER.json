@@ -482,5 +482,5 @@
       "tests": "TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease checks failed replacement, successful same-ID rotation, generation advance, DORMANT/wake and Game PacketID continuity."
     }
   ],
-  "note": "P4 runnable single-process entry remains qualified at 79c6e9ddcbc3e7f74b85dcc6d162d5c1a3c4e3f9 / Actions 35500769979. Multi-lane/lifecycle candidate SHA 173f9de06153bed38454adf27ac39a9601754c6a failed only repository-contract in Actions 35505359301 because two REUSE_LEDGER entries encoded multiple paths in one source/destination field; downstream product jobs were skipped. This commit fixes ledger shape only; runtime code is unchanged."
+  "note": "P4 runnable single-process entry + multi-lane/lifecycle is exact-SHA hosted qualified at fa9b60315ca01ec140c34a65799dc62916f2275d / Actions 35505737597 (7/7 PASS). Reuse remains narrow: payload-idle ownership, serialized same-LaneID replacement/qualification and convergence only. Active product uses protected LaneID, TunnelOwner/runtimeowner generation fencing and current raw/Npcap endpoints; archived UDP Game processes/control sockets, CLIENT_LEAVE topology, localhost carrier, old Controller, DTLS and subprocess orchestration remain out. P4 closure audit still needs explicit runtimeentry 3/4-lane plus automatic rotation/idle-DORMANT hosted matrix; physical Windows/Npcap remains P7 NOT_RUN."
 }
