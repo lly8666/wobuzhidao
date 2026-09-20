@@ -446,5 +446,5 @@
       "tests": "runtimeowner loopback tests exchange real faketcp.Segment values between client/server Runtime instances for Normal and Game, exercise same-ID replacement/generation fencing, and never open a localhost UDP service channel."
     }
   ],
-  "note": "P4 unified runtime transport candidate remains the same product implementation. Run 35497343943 reached all jobs; only Windows/Linux active-go-tests failed before runtimeowner tests ran because a test helper added uint8 lane IDs to large untyped port constants. The follow-up is fixture-only: explicitly widen both operands to uint16. Product runtime/handoff/OpenWrt semantics and the archive extraction mapping are unchanged."
+  "note": "P4 unified runtime transport owner is now exact-SHA hosted qualified at ef269081e45bc516ae41943e56a01a8032e4cf8a / Actions 35498412990. The extraction remains narrow: same-association steady TLS-like record payload ownership, finite cumulative-ACK repair horizon, lifecycle/generation binding, and direct platform callbacks only. Archived localhost UDP carrier/service bridges, DTLS, subprocess topology, old Controller, and full SACK/RACK/adaptive-pressure policy remain out. The preceding 12dfe1c run failed only in a uint8 test-port fixture compile expression; the follow-up changed no product semantics."
 }

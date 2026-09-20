@@ -36,12 +36,13 @@
     "P4子任务：Windows Wintun client platform core 通过Actions；单Wintun L3 adapter、IPv4-only TUN边界、stable lease /32排他、underlay /32锁物理path、full IPv4 capture/direct routes、NRPT DNS、device-wide IPv6 fail-closed与state-owned cleanup完成hosted Windows资格",
     "P4子任务：Windows Npcap/physical underlay hosted core 通过Actions；Windows IP Helper物理NIC/next-hop发现、server /32与Npcap同源path、exact four-tuple BPF+用户态过滤、source-port/peer/MAC绑定、owned ingress、generation fencing与有界shutdown均完成hosted Windows compile/mock资格，真实Npcap/NIC物理资格仍NOT_RUN",
     "P4子任务：OpenWrt IPv4 TCP/UDP TPROXY kernel ownership 通过Actions；真实root netns中dedicated nft TPROXY、fwmark policy route、local route、TCP/UDP IP_TRANSPARENT capture、server underlay双协议bypass、state-conflict fail-closed、foreign-state preservation与owned-only cleanup全部PASS，IPv6明确NOT_IMPLEMENTED",
-    "P4子任务：OpenWrt透明TCP/UDP socket ingress直接接leased TunnelOwner通过Actions；新lease-bound platform service IPv4 envelope保留source anti-spoof，Normal/Game复用现有lane，TCP bounded reliability、UDP EIM/EIF、shared-TUN前service consume、IP_TRANSPARENT socket与root-netns真实TCP/UDP业务闭环均PASS，旧localhost UDP/DTLS/platform-proxy进程拓扑未恢复"
+    "P4子任务：OpenWrt透明TCP/UDP socket ingress直接接leased TunnelOwner通过Actions；新lease-bound platform service IPv4 envelope保留source anti-spoof，Normal/Game复用现有lane，TCP bounded reliability、UDP EIM/EIF、shared-TUN前service consume、IP_TRANSPARENT socket与root-netns真实TCP/UDP业务闭环均PASS，旧localhost UDP/DTLS/platform-proxy进程拓扑未恢复",
+    "P4子任务：统一client/server runtime transport owner hosted闭包通过Actions；post-admission TLS-like WireRecord回到同FakeTCP四元组/序列空间，Normal/Game direct dispatch、首次到达无业务HOL、有界4096-record repair metadata、1s默认RTO/3s绝对repair horizon、client admission handoff、same-ID replacement/generation fence/DORMANT以及OpenWrt公开reverse delivery接口均在exact-SHA Windows/Linux unit + Linux race通过；未恢复localhost UDP/DTLS/旧Controller。"
   ],
-  "in_progress": "P4 unified runtime transport candidate 首次 exact-SHA run 35497343943 未取得产品资格：repository-contract、P2 kernel fallback、Linux shared-TUN iptables/nft、OpenWrt privileged 均PASS；Windows/Linux active-go-tests仅在 internal/runtimeowner/runtime_test.go 编译失败，原因是测试辅助函数中 `40000 + lane(uint8)` / `440 + lane(uint8)` 在外层uint16转换前发生常量溢出。失败发生在runtimeowner测试编译阶段，不是产品runtime行为 verdict。当前修复只把端口算术显式提升到uint16，产品Go实现不变；等待新 exact-SHA Actions。last_tested_source_sha仍保持a8438872f948849ab378238a69dc1a1e28c86ac6。",
-  "next_task": "当前原子任务不切换：运行测试夹具端口类型修复后的 exact-SHA next-foundation；若仍失败只修 unified runtime atom，若7 jobs全部PASS则写证据closure并更新 last_tested_source_sha。",
-  "latest_log": "docs/devlog/20260920-194000-p4-runtime-test-port-type-fix.md",
-  "last_tested_source_sha": "a8438872f948849ab378238a69dc1a1e28c86ac6",
+  "in_progress": "P4 unified runtime transport owner 已在 SOURCE_SHA ef269081e45bc516ae41943e56a01a8032e4cf8a / Actions 35498412990 取得exact-SHA hosted资格，7 jobs全部PASS。Windows 2022整仓unit/build含runtimeowner PASS；Ubuntu 24.04 unit/build含runtimeowner PASS并race PASS，tlsrecord directed fuzz/reference PASS；P2 kernel fallback连续pcap PASS；Linux shared-TUN privileged iptables/nft PASS；OpenWrt privileged TPROXY + SocketTunnelAdapter PASS。runtimeowner当前仍以caller-supplied faketcp.SegmentEmitter作为真实raw/Npcap endpoint seam，本atom不包含最终client/server可执行入口或物理Windows/Npcap driver闭环；physical仍NOT_RUN。",
+  "next_task": "P4 下一原子任务：可运行单进程 client/server entry + endpoint loop最小闭包。把已资格 runtimeowner 的 SegmentEmitter/receive dispatch 绑定到现有Linux raw FakeTCP与Windows Npcap endpoint接口，串入bootstrap/admission accept/attach与平台侧Linux shared-TUN、Windows Wintun、OpenWrt SocketAdapter；只做最小client/server runtime/config入口和hosted loopback/mock资格，不恢复localhost UDP、DTLS shim、platform-proxy子进程或旧Controller topology，不进入P5，真实Windows/Npcap物理资格仍留P7。",
+  "latest_log": "docs/devlog/20260920-201500-p4-runtime-transport-actions-pass.md",
+  "last_tested_source_sha": "ef269081e45bc516ae41943e56a01a8032e4cf8a",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -448,6 +449,20 @@
       "scope": "P4-openwrt-socket-tunnel-final",
       "status": "PASS",
       "note": "Run attempt 1 completed/success，7 jobs全部PASS。OpenWrt privileged root-netns同一job执行并PASS既有TPROXY ownership与新SocketTunnelAdapter：marker WBD_P4_OPENWRT_TPROXY_PASS tcp=1 udp=1 underlay_bypass=1 cleanup=owned-only ipv6=NOT_IMPLEMENTED；marker WBD_P4_OPENWRT_SOCKET_TUNNEL_PASS tcp=1 udp=1 eim=1 eif=1 tunnelowner=1 lanes=1 service_tun_leak=0 ipv6=NOT_IMPLEMENTED。Windows 2022整仓unit/build、Wintun Render、Npcap hosted contract PASS；Ubuntu unit/build/race/fuzz/reference PASS；P2 kernel fallback PASS（1.04s，28 packets captured / 56 received by filter / 0 dropped，analyzer PASS）；Linux shared-TUN iptables+nft PASS。Artifacts: foundation 10601140638 sha256:e5120e3c16c094f168f3ad4499d1b7fdad2b351562f5a92bf963229538ecf3e4；tlsrecord-reference 10600661014 sha256:ed0d3fc654d666fc625c3c321b9487b64159f8d4c7cacddd8ec074ecdc3020a0；P2 10601495214 sha256:f584fefa363885e6989c12fa0de8f9685c31444d5c330acf1375911921f40e75；shared-TUN iptables 10601410284 sha256:fe6fb1c0044e412afa71f8ad5b4c36f833206eb95bf2243023ba272f5bb5f6fb；nft 10600735686 sha256:2fcb762451b4320055b45fdbf3de6f1b2a3176dff08a1ba835c8c38873500a41；OpenWrt 10601295373 sha256:3fcd71df9a88da59c704b5e75f56c81057b0d9f3bb993462841441addc743b7b。OpenWrt lane carrier为同进程WireSink，physical=NOT_RUN。"
+    },
+    {
+      "source_sha": "12dfe1c15fca20210f47fd3cd557eb8eff6779d3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35497343943",
+      "scope": "P4-unified-runtime-transport-pre-test-port-type-fix",
+      "status": "FAIL",
+      "note": "repository-contract、P2 kernel fallback、OpenWrt privileged、Linux shared-TUN iptables/nft均PASS；Windows/Linux active-go-tests在编译internal/runtimeowner/runtime_test.go时同时FAIL，错误为测试helper中40000/440 untyped constant与lane(uint8)相加导致外层uint16转换前溢出。runtimeowner产品实现未得到行为FAIL verdict；修复仅把端口算术两侧显式提升为uint16。"
+    },
+    {
+      "source_sha": "ef269081e45bc516ae41943e56a01a8032e4cf8a",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35498412990",
+      "scope": "P4-unified-runtime-transport-hosted-final",
+      "status": "PASS",
+      "note": "Run attempt 1 completed/success，7 jobs全部PASS。Ubuntu unit/build中internal/runtimeowner PASS 0.010s，go test -race ./...中runtimeowner PASS 1.038s；Windows 2022整仓unit/build中runtimeowner PASS 0.024s，既有Wintun Render contract与Npcap hosted marker `WBD_WINDOWS_NPCAP_HOSTED_CORE_PASS physical=NOT_RUN`继续PASS。tlsrecord directed fuzz 15s累计63415 execs后PASS。P2 kernel fallback `TestKernelTLSFallbackVerifiedHTTPAndNormalClose` PASS 1.24s，29 packets captured / 58 received by filter / 0 dropped，analyzer PASS。Linux shared-TUN markers分别 `backend=iptables` 与 `backend=nft`、active_tunnels=2、cleanup=owned-only、dns=host-dns-unchanged。OpenWrt同一root-netns job继续输出TPROXY ownership marker与SocketTunnelAdapter tcp=1 udp=1 eim=1 eif=1 tunnelowner=1 lanes=1 service_tun_leak=0。Artifacts: foundation 10601182487 sha256:fab9863f94e74e7e3fff2b6c4eb3af8244750885803fe62ebef066493d5e5f9e；tlsrecord-reference 10601483400 sha256:7a1b53dc650c1ffd6cc83b7b8d70d2a9759b2908ab316d89497c9b01e5815361；P2 10600969017 sha256:2e954b3d9e5a05c3fbe78db17cf4a462267bdfd10920ceb667bb2948ced3602e；shared-TUN iptables 10601428401 sha256:b5331d5a42dba77d2191f032a56143527c84682095472892694048105f6ba96d；nft 10601203685 sha256:be20467f72911f02c7042276621c3e827091948f49fcd6374b89303d2eb8943b；OpenWrt 10600588872 sha256:83450087a523f9611b8e7f5dd64aac1b73347f241988d2be20a4da6e6e95f991。该资格是hosted runtime transport seam，不是Windows/Npcap physical PASS。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -462,7 +477,7 @@
     "内层TLS长度/方向/突发/时序指纹不属P2关闭条件；P3显式record padding能力已通过Actions但生产默认0/off，不能据此声称降低或防止TLS-in-TLS/流量分析识别；P4/P5继续真实业务复用与流量外观/成本验收。",
     "OpenWrt IPv6 TPROXY/capture 当前 NOT_IMPLEMENTED；本 P4 atom 只资格 IPv4 TCP/UDP kernel TPROXY ownership，不能据此声称 IPv6 业务已代理或 fail-closed。",
     "OpenWrt socket/TunnelOwner 已在 SOURCE_SHA a8438872f948849ab378238a69dc1a1e28c86ac6 取得真实root-netns socket + active TunnelOwner/Lane hosted资格；client/server Lane之间的carrier仍是同进程WireSink，不是最终统一runtime的真实FakeTCP raw/Npcap transport I/O，因此不能当作物理端到端或P7资格。",
-    "runtimeowner当前候选只做hosted in-process/loopback SegmentEmitter资格：它把TLS-like WireRecord放回同FakeTCP四元组/序列空间并提供有界累计ACK/repair horizon，但尚未绑定最终client/server可执行入口与真实raw/Npcap endpoint循环；完整旧SACK/RACK/adaptive-pressure steady recovery也未在本atom迁入。不得据此声称physical E2E或P7资格。"
+    "runtimeowner已在 SOURCE_SHA ef269081e45bc516ae41943e56a01a8032e4cf8a 取得hosted Windows/Linux unit + Linux race资格：TLS-like WireRecord通过同FakeTCP四元组/序列空间的SegmentEmitter seam传输，使用累计ACK、4096条metadata上限、1s默认RTO/3s绝对repair horizon并保持record首次到达无业务HOL。最终client/server可执行入口与真实Linux raw/Windows Npcap endpoint循环尚未绑定；完整旧SACK/RACK/adaptive-pressure steady recovery未迁入，physical E2E/P7仍NOT_RUN。"
   ],
   "required_read_set": [
     "AGENTS.md",
@@ -476,7 +491,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding、Linux shared-TUN privileged runtime、Windows Wintun、Windows Npcap hosted underlay、OpenWrt IPv4 TPROXY ownership、OpenWrt transparent socket->leased TunnelOwner均exact-SHA PASS；统一client/server runtime transport owner候选已落码，等待exact-SHA Actions。",
+    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding、Linux shared-TUN privileged、Windows Wintun、Windows Npcap hosted underlay、OpenWrt TPROXY ownership、OpenWrt socket->TunnelOwner、统一runtime transport owner均exact-SHA Actions PASS；下一步仅剩可运行单进程client/server entry与raw/Npcap endpoint loop最小接线，再评估P4关闭。",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
