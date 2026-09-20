@@ -3,13 +3,19 @@ package runtimeentry
 import (
 	"bufio"
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -71,9 +77,16 @@ type p5MeasurementEvent struct {
 	TLSCipherSuite    uint16 `json:"tls_cipher_suite,omitempty"`
 	HandshakeMode     string `json:"handshake_mode,omitempty"`
 	TLSResumed        *bool  `json:"tls_resumed,omitempty"`
-	SessionCacheGets  uint64 `json:"session_cache_gets,omitempty"`
-	SessionCacheHits  uint64 `json:"session_cache_hits,omitempty"`
-	SessionCachePuts  uint64 `json:"session_cache_puts,omitempty"`
+	SessionCacheGets       uint64 `json:"session_cache_gets,omitempty"`
+	SessionCacheHits       uint64 `json:"session_cache_hits,omitempty"`
+	SessionCachePuts       uint64 `json:"session_cache_puts,omitempty"`
+	CertificateScenario    string `json:"certificate_scenario,omitempty"`
+	CertificateChainID     string `json:"certificate_chain_id,omitempty"`
+	CertificateVerified    bool   `json:"certificate_verified,omitempty"`
+	VerifiedChainLength    int    `json:"verified_chain_length,omitempty"`
+	VerifiedRootSHA256     string `json:"verified_root_sha256,omitempty"`
+	VerifiedIntermediateSHA256 string `json:"verified_intermediate_sha256,omitempty"`
+	VerifiedLeafSHA256     string `json:"verified_leaf_sha256,omitempty"`
 }
 
 type p5SessionCacheSnapshot struct {
@@ -118,6 +131,159 @@ func (c *p5RecordingSessionCache) snapshot() p5SessionCacheSnapshot {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return p5SessionCacheSnapshot{gets: c.gets, hits: c.hits, puts: c.puts}
+}
+
+
+type p5CertificateScenario struct {
+	name               string
+	chainID            string
+	server             *httptest.Server
+	targetAddr         netip.AddrPort
+	tlsConfig          *tls.Config
+	sessionCache       *p5RecordingSessionCache
+	rootSHA256         string
+	intermediateSHA256 string
+	leafSHA256         string
+}
+
+func newP5CertificateScenario(t *testing.T, name, chainID string, serialBase int64) *p5CertificateScenario {
+	t.Helper()
+	now := time.Now()
+
+	rootKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootTemplate := &x509.Certificate{
+		SerialNumber: big.NewInt(serialBase),
+		Subject: pkix.Name{CommonName: name + " Root CA"},
+		NotBefore: now.Add(-time.Hour), NotAfter: now.Add(time.Hour),
+		IsCA: true, BasicConstraintsValid: true, MaxPathLen: 1,
+		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDigitalSignature,
+	}
+	rootDER, err := x509.CreateCertificate(rand.Reader, rootTemplate, rootTemplate, &rootKey.PublicKey, rootKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootCert, err := x509.ParseCertificate(rootDER)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	intermediateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	intermediateTemplate := &x509.Certificate{
+		SerialNumber: big.NewInt(serialBase + 1),
+		Subject: pkix.Name{CommonName: name + " Intermediate CA"},
+		NotBefore: now.Add(-time.Hour), NotAfter: now.Add(time.Hour),
+		IsCA: true, BasicConstraintsValid: true, MaxPathLen: 0, MaxPathLenZero: true,
+		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDigitalSignature,
+	}
+	intermediateDER, err := x509.CreateCertificate(rand.Reader, intermediateTemplate, rootCert, &intermediateKey.PublicKey, rootKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	intermediateCert, err := x509.ParseCertificate(intermediateDER)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	leafKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	leafTemplate := &x509.Certificate{
+		SerialNumber: big.NewInt(serialBase + 2),
+		Subject: pkix.Name{CommonName: "target.test"},
+		DNSNames: []string{"target.test"},
+		NotBefore: now.Add(-time.Hour), NotAfter: now.Add(time.Hour),
+		KeyUsage: x509.KeyUsageDigitalSignature,
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+	leafDER, err := x509.CreateCertificate(rand.Reader, leafTemplate, intermediateCert, &leafKey.PublicKey, intermediateKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	leafCert, err := x509.ParseCertificate(leafDER)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	serverCert := tls.Certificate{
+		Certificate: [][]byte{leafDER, intermediateDER},
+		PrivateKey: leafKey,
+		Leaf: leafCert,
+	}
+	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		_, _ = fmt.Fprintf(w, "wbd-p5 path=%s", req.URL.Path)
+	})
+	server := httptest.NewUnstartedServer(handler)
+	server.EnableHTTP2 = false
+	server.TLS = &tls.Config{
+		Certificates: []tls.Certificate{serverCert},
+		MinVersion: tls.VersionTLS13,
+		MaxVersion: tls.VersionTLS13,
+	}
+	server.StartTLS()
+
+	targetURL, err := url.Parse(server.URL)
+	if err != nil {
+		server.Close()
+		t.Fatal(err)
+	}
+	targetAddr, err := netip.ParseAddrPort(targetURL.Host)
+	if err != nil {
+		server.Close()
+		t.Fatal(err)
+	}
+
+	roots := x509.NewCertPool()
+	roots.AddCert(rootCert)
+	cache := newP5RecordingSessionCache(8)
+	clientTLS := &tls.Config{
+		RootCAs: roots,
+		ServerName: "target.test",
+		MinVersion: tls.VersionTLS13,
+		MaxVersion: tls.VersionTLS13,
+		ClientSessionCache: cache,
+	}
+	return &p5CertificateScenario{
+		name: name, chainID: chainID, server: server, targetAddr: targetAddr,
+		tlsConfig: clientTLS, sessionCache: cache,
+		rootSHA256: p5CertSHA256(rootDER),
+		intermediateSHA256: p5CertSHA256(intermediateDER),
+		leafSHA256: p5CertSHA256(leafDER),
+	}
+}
+
+func p5CertSHA256(der []byte) string {
+	sum := sha256.Sum256(der)
+	return fmt.Sprintf("%x", sum[:])
+}
+
+func (s *p5CertificateScenario) verifyState(t *testing.T, state tls.ConnectionState) {
+	t.Helper()
+	if len(state.VerifiedChains) != 1 || len(state.VerifiedChains[0]) != 3 {
+		t.Fatalf("%s verified chain shape=%d/%d want=1/3", s.chainID, len(state.VerifiedChains), func() int {
+			if len(state.VerifiedChains) == 0 {
+				return 0
+			}
+			return len(state.VerifiedChains[0])
+		}())
+	}
+	chain := state.VerifiedChains[0]
+	if got := p5CertSHA256(chain[0].Raw); got != s.leafSHA256 {
+		t.Fatalf("%s verified leaf sha=%s want=%s", s.chainID, got, s.leafSHA256)
+	}
+	if got := p5CertSHA256(chain[1].Raw); got != s.intermediateSHA256 {
+		t.Fatalf("%s verified intermediate sha=%s want=%s", s.chainID, got, s.intermediateSHA256)
+	}
+	if got := p5CertSHA256(chain[2].Raw); got != s.rootSHA256 {
+		t.Fatalf("%s verified root sha=%s want=%s", s.chainID, got, s.rootSHA256)
+	}
 }
 
 type p5BurstState struct {
@@ -346,26 +512,14 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 	}
 	defer recorder.close()
 
-	target := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		_, _ = fmt.Fprintf(w, "wbd-p5 path=%s", req.URL.Path)
-	}))
-	defer target.Close()
-	targetURL, err := url.Parse(target.URL)
-	if err != nil {
-		t.Fatal(err)
-	}
-	targetAddr, err := netip.ParseAddrPort(targetURL.Host)
-	if err != nil {
-		t.Fatal(err)
-	}
-	roots := x509.NewCertPool()
-	roots.AddCert(target.Certificate())
-	sessionCache := newP5RecordingSessionCache(8)
-	innerTLS := &tls.Config{
-		RootCAs: roots, ServerName: targetURL.Hostname(),
-		MinVersion: tls.VersionTLS13, MaxVersion: tls.VersionTLS13,
-		ClientSessionCache: sessionCache,
+	chainA := newP5CertificateScenario(t, "controlled-chain-a", "chain-a", 1000)
+	defer chainA.server.Close()
+	chainB := newP5CertificateScenario(t, "controlled-chain-b", "chain-b", 2000)
+	defer chainB.server.Close()
+	if chainA.rootSHA256 == chainB.rootSHA256 ||
+		chainA.intermediateSHA256 == chainB.intermediateSHA256 ||
+		chainA.leafSHA256 == chainB.leafSHA256 {
+		t.Fatal("independent certificate scenarios unexpectedly share certificate identity")
 	}
 
 	outerCert := runtimeCertificate(t)
@@ -493,15 +647,20 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 		t.Fatalf("unexpected initial lane ref: %+v", initialRef)
 	}
 
-	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, innerTLS, sessionCache, targetAddr, 1, "first_https_flow_on_initial_outer_connection", false)
+	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, chainA, 1, "first_https_flow_on_initial_outer_connection", false)
 	assertNoP5ClientRuntimeError(t, client, "after first HTTPS close")
 	if got := client.Ref(); got != initialRef {
 		t.Fatalf("first HTTPS flow replaced outer lane: got=%+v want=%+v", got, initialRef)
 	}
-	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, innerTLS, sessionCache, targetAddr, 2, "subsequent_https_flow_after_first_close_existing_lane", true)
+	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, chainA, 2, "subsequent_https_flow_after_first_close_existing_lane", true)
 	assertNoP5ClientRuntimeError(t, client, "after second HTTPS close")
 	if got := client.Ref(); got != initialRef {
 		t.Fatalf("second HTTPS flow replaced outer lane: got=%+v want=%+v", got, initialRef)
+	}
+	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, chainB, 3, "different_certificate_chain_full_handshake_existing_lane", false)
+	assertNoP5ClientRuntimeError(t, client, "after different-chain HTTPS close")
+	if got := client.Ref(); got != initialRef {
+		t.Fatalf("different-chain HTTPS flow replaced outer lane: got=%+v want=%+v", got, initialRef)
 	}
 
 	outerPackets, recordEvents, clientSYNs := recorder.counters()
@@ -520,9 +679,13 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 	if !ok {
 		t.Fatal("server transport stats unavailable")
 	}
-	cacheFinal := sessionCache.snapshot()
-	if cacheFinal.puts == 0 || cacheFinal.hits == 0 {
-		t.Fatalf("TLS session cache provenance incomplete: gets=%d hits=%d puts=%d", cacheFinal.gets, cacheFinal.hits, cacheFinal.puts)
+	cacheAFinal := chainA.sessionCache.snapshot()
+	cacheBFinal := chainB.sessionCache.snapshot()
+	if cacheAFinal.puts == 0 || cacheAFinal.hits == 0 {
+		t.Fatalf("chain-a TLS session cache provenance incomplete: gets=%d hits=%d puts=%d", cacheAFinal.gets, cacheAFinal.hits, cacheAFinal.puts)
+	}
+	if cacheBFinal.puts == 0 || cacheBFinal.hits != 0 {
+		t.Fatalf("chain-b full-handshake cache provenance invalid: gets=%d hits=%d puts=%d", cacheBFinal.gets, cacheBFinal.hits, cacheBFinal.puts)
 	}
 
 	manifest := map[string]any{
@@ -534,7 +697,7 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 			"name":                   "controlled-real-https-first-and-subsequent-flow",
 			"seed":                   20260920,
 			"cryptographic_rng":      "system",
-			"https_flows":                  2,
+			"https_flows":                  3,
 			"outer_connection_count":       1,
 			"sequential_close_before_next": true,
 			"connection_mtu":               1500,
@@ -544,9 +707,11 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 			"network_injection":      "none",
 			"burst_gap_ns":           p5BurstGap.Nanoseconds(),
 			"tls_version":            "TLS1.3",
-			"handshake_modes":        []string{"full", "resumed"},
+			"handshake_modes":        []string{"full", "resumed", "full"},
 			"session_cache":          "shared-lru",
 			"session_cache_capacity": 8,
+			"certificate_chains":     []string{"chain-a", "chain-b"},
+			"certificate_comparison_flows": []int{1, 3},
 		},
 		"capture": map[string]any{
 			"type":                  "hosted-segmentio-serialized-pcap",
@@ -560,9 +725,27 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 			"client_initial_syns":   clientSYNs,
 		},
 		"tls_session": map[string]any{
-			"cache_gets": cacheFinal.gets,
-			"cache_hits": cacheFinal.hits,
-			"cache_puts": cacheFinal.puts,
+			"cache_gets": cacheAFinal.gets + cacheBFinal.gets,
+			"cache_hits": cacheAFinal.hits + cacheBFinal.hits,
+			"cache_puts": cacheAFinal.puts + cacheBFinal.puts,
+			"chains": map[string]any{
+				"chain-a": map[string]any{"cache_gets": cacheAFinal.gets, "cache_hits": cacheAFinal.hits, "cache_puts": cacheAFinal.puts},
+				"chain-b": map[string]any{"cache_gets": cacheBFinal.gets, "cache_hits": cacheBFinal.hits, "cache_puts": cacheBFinal.puts},
+			},
+		},
+		"certificate_scenarios": []map[string]any{
+			{
+				"name": chainA.name, "chain_id": chainA.chainID, "server_name": "target.test",
+				"verified_chain_length": 3,
+				"root_sha256": chainA.rootSHA256, "intermediate_sha256": chainA.intermediateSHA256, "leaf_sha256": chainA.leafSHA256,
+				"flow_ordinals": []int{1, 2},
+			},
+			{
+				"name": chainB.name, "chain_id": chainB.chainID, "server_name": "target.test",
+				"verified_chain_length": 3,
+				"root_sha256": chainB.rootSHA256, "intermediate_sha256": chainB.intermediateSHA256, "leaf_sha256": chainB.leafSHA256,
+				"flow_ordinals": []int{3},
+			},
 		},
 		"transport": map[string]any{
 			"client":             clientTransport,
@@ -593,10 +776,10 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("WBD_P5_HTTPS_MEASUREMENT_BASE_CAPTURED source_sha=%s flows=2 outer_connections=1 sequential_close=pass handshakes=full,resumed fec=off padding=off records=%d\n", sourceSHA, recordEvents)
+	fmt.Printf("WBD_P5_HTTPS_MEASUREMENT_BASE_CAPTURED source_sha=%s flows=3 outer_connections=1 sequential_close=pass handshakes=full,resumed,full certificate_chains=2 fec=off padding=off records=%d\n", sourceSHA, recordEvents)
 }
 
-func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platformflow.Client, serverSvc *platformflow.Server, tlsCfg *tls.Config, sessionCache *p5RecordingSessionCache, target netip.AddrPort, ordinal int, scenario string, wantResume bool) {
+func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platformflow.Client, serverSvc *platformflow.Server, certificate *p5CertificateScenario, ordinal int, scenario string, wantResume bool) {
 	t.Helper()
 	listener, err := net.Listen("tcp4", "127.0.0.1:0")
 	if err != nil {
@@ -625,15 +808,15 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 	tunnelConn := peer.conn
 
 	beforeC2S, beforeS2C := recorder.wireSnapshot()
-	cacheBefore := sessionCache.snapshot()
+	cacheBefore := certificate.sessionCache.snapshot()
 	started := time.Now()
-	flowID, err := svc.AddTCP(tunnelConn, target, started)
+	flowID, err := svc.AddTCP(tunnelConn, certificate.targetAddr, started)
 	if err != nil {
 		_ = tunnelConn.Close()
 		t.Fatal(err)
 	}
 
-	tlsConn := tls.Client(appConn, tlsCfg.Clone())
+	tlsConn := tls.Client(appConn, certificate.tlsConfig.Clone())
 	hsStarted := time.Now()
 	if err := tlsConn.Handshake(); err != nil {
 		t.Fatal(err)
@@ -646,8 +829,9 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 	if tlsState.DidResume != wantResume {
 		t.Fatalf("inner TLS resumed=%v want=%v flow=%d", tlsState.DidResume, wantResume, ordinal)
 	}
+	certificate.verifyState(t, tlsState)
 
-	reqURL := &url.URL{Scheme: "https", Host: target.String(), Path: fmt.Sprintf("/flow/%d", ordinal)}
+	reqURL := &url.URL{Scheme: "https", Host: certificate.targetAddr.String(), Path: fmt.Sprintf("/flow/%d", ordinal)}
 	req := &http.Request{Method: http.MethodGet, URL: reqURL, Host: "target.test", Header: make(http.Header)}
 	req.Header.Set("Connection", "close")
 	if err := req.Write(tlsConn); err != nil {
@@ -664,13 +848,13 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 	}
 	_ = resp.Body.Close()
 	_ = tlsConn.Close()
-	cacheAfter := sessionCache.snapshot()
+	cacheAfter := certificate.sessionCache.snapshot()
 	cacheDelta := p5SessionCacheSnapshot{
 		gets: cacheAfter.gets - cacheBefore.gets,
 		hits: cacheAfter.hits - cacheBefore.hits,
 		puts: cacheAfter.puts - cacheBefore.puts,
 	}
-	if ordinal == 1 && cacheDelta.puts == 0 {
+	if !wantResume && cacheDelta.puts == 0 {
 		t.Fatalf("full handshake produced no session ticket cache put: %+v", cacheDelta)
 	}
 	if wantResume && cacheDelta.hits == 0 {
@@ -700,6 +884,11 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 		TLSVersion: tlsState.Version, TLSCipherSuite: tlsState.CipherSuite,
 		HandshakeMode: handshakeMode, TLSResumed: &didResume,
 		SessionCacheGets: cacheDelta.gets, SessionCacheHits: cacheDelta.hits, SessionCachePuts: cacheDelta.puts,
+		CertificateScenario: certificate.name, CertificateChainID: certificate.chainID,
+		CertificateVerified: true, VerifiedChainLength: 3,
+		VerifiedRootSHA256: certificate.rootSHA256,
+		VerifiedIntermediateSHA256: certificate.intermediateSHA256,
+		VerifiedLeafSHA256: certificate.leafSHA256,
 	}); err != nil {
 		t.Fatal(err)
 	}

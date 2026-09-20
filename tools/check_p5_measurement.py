@@ -32,9 +32,10 @@ def main() -> None:
     scenario = manifest.get("scenario", {})
     capture = manifest.get("capture", {})
     tls_session = manifest.get("tls_session", {})
+    certificate_scenarios = manifest.get("certificate_scenarios", [])
     transport = manifest.get("transport", {})
-    if scenario.get("https_flows") != 2:
-        fail("expected exactly two controlled HTTPS flows")
+    if scenario.get("https_flows") != 3:
+        fail("expected exactly three controlled HTTPS flows")
     if scenario.get("outer_connection_count") != 1:
         fail("expected one reused outer connection")
     if scenario.get("sequential_close_before_next") is not True:
@@ -47,12 +48,39 @@ def main() -> None:
         fail("handshake atom must not run weak-network injection")
     if scenario.get("tls_version") != "TLS1.3":
         fail("handshake atom must pin TLS1.3")
-    if scenario.get("handshake_modes") != ["full", "resumed"]:
-        fail("expected full and resumed handshake modes")
+    if scenario.get("handshake_modes") != ["full", "resumed", "full"]:
+        fail("expected preserved full/resumed plus different-chain full handshake modes")
     if scenario.get("session_cache") != "shared-lru" or scenario.get("session_cache_capacity") != 8:
         fail("session cache provenance")
+    if scenario.get("certificate_chains") != ["chain-a", "chain-b"]:
+        fail("certificate chain scenario list")
+    if scenario.get("certificate_comparison_flows") != [1, 3]:
+        fail("certificate comparison flow provenance")
     if tls_session.get("cache_puts", 0) <= 0 or tls_session.get("cache_hits", 0) <= 0:
         fail("manifest session cache did not prove ticket storage and reuse")
+    chain_cache = tls_session.get("chains", {})
+    if chain_cache.get("chain-a", {}).get("cache_puts", 0) <= 0 or chain_cache.get("chain-a", {}).get("cache_hits", 0) <= 0:
+        fail("chain-a cache must prove full ticket storage and resumed reuse")
+    if chain_cache.get("chain-b", {}).get("cache_puts", 0) <= 0 or chain_cache.get("chain-b", {}).get("cache_hits", 0) != 0:
+        fail("chain-b must be an independent full handshake without a resume hit")
+    if len(certificate_scenarios) != 2:
+        fail("expected exactly two controlled certificate scenarios")
+    cert_by_id = {entry.get("chain_id"): entry for entry in certificate_scenarios}
+    if set(cert_by_id) != {"chain-a", "chain-b"}:
+        fail("certificate scenario identities")
+    for chain_id, expected_flows in (("chain-a", [1, 2]), ("chain-b", [3])):
+        entry = cert_by_id[chain_id]
+        if entry.get("server_name") != "target.test" or entry.get("verified_chain_length") != 3:
+            fail(f"{chain_id} certificate verification provenance")
+        if entry.get("flow_ordinals") != expected_flows:
+            fail(f"{chain_id} flow provenance")
+        for field in ("root_sha256", "intermediate_sha256", "leaf_sha256"):
+            value = entry.get(field, "")
+            if not isinstance(value, str) or len(value) != 64:
+                fail(f"{chain_id} {field}")
+    for field in ("root_sha256", "intermediate_sha256", "leaf_sha256"):
+        if cert_by_id["chain-a"][field] == cert_by_id["chain-b"][field]:
+            fail(f"independent certificate chains share {field}")
     if capture.get("capture_loss_packets") != 0:
         fail("capture loss must be explicit and zero for in-process capture")
     if capture.get("network_drop_injected") != 0:
@@ -81,18 +109,20 @@ def main() -> None:
         fail("outer packet events must cover both directions")
     if not records or {e.get("direction") for e in records} != {"c2s", "s2c"}:
         fail("steady TLS-like record events must cover both directions")
-    if len(flows) != 2:
-        fail("expected exactly two HTTPS flow events")
+    if len(flows) != 3:
+        fail("expected exactly three HTTPS flow events")
     flows.sort(key=lambda e: e.get("flow_ordinal", 0))
     expected = [
         "first_https_flow_on_initial_outer_connection",
         "subsequent_https_flow_after_first_close_existing_lane",
+        "different_certificate_chain_full_handshake_existing_lane",
     ]
     if [e.get("scenario") for e in flows] != expected:
         fail("HTTPS flow scenario labels")
     flow_ids = set()
-    expected_modes = ["full", "resumed"]
-    expected_resumed = [False, True]
+    expected_modes = ["full", "resumed", "full"]
+    expected_resumed = [False, True, False]
+    expected_chain_ids = ["chain-a", "chain-a", "chain-b"]
     for i, e in enumerate(flows, 1):
         if e.get("flow_ordinal") != i or e.get("outer_connection_id") != 1:
             fail("flow ordinal/outer connection identity")
@@ -106,10 +136,26 @@ def main() -> None:
             fail("HTTPS flow resume state")
         if e.get("session_cache_gets", 0) <= 0:
             fail("HTTPS flow session cache lookup provenance")
-        if i == 1 and e.get("session_cache_puts", 0) <= 0:
+        if i in (1, 3) and e.get("session_cache_puts", 0) <= 0:
             fail("full handshake did not store a TLS session ticket")
         if i == 2 and e.get("session_cache_hits", 0) <= 0:
             fail("resumed handshake did not use cached session state")
+        if i == 3 and e.get("session_cache_hits", 0) != 0:
+            fail("different-chain full handshake unexpectedly resumed")
+        chain_id = e.get("certificate_chain_id")
+        if chain_id != expected_chain_ids[i - 1]:
+            fail("HTTPS flow certificate chain identity")
+        if e.get("certificate_verified") is not True or e.get("verified_chain_length") != 3:
+            fail("HTTPS flow certificate verification evidence")
+        cert_entry = cert_by_id[chain_id]
+        if e.get("certificate_scenario") != cert_entry.get("name"):
+            fail("HTTPS flow certificate scenario identity")
+        if e.get("verified_root_sha256") != cert_entry.get("root_sha256"):
+            fail("HTTPS flow verified root identity")
+        if e.get("verified_intermediate_sha256") != cert_entry.get("intermediate_sha256"):
+            fail("HTTPS flow verified intermediate identity")
+        if e.get("verified_leaf_sha256") != cert_entry.get("leaf_sha256"):
+            fail("HTTPS flow verified leaf identity")
         flow_id = e.get("business_flow_id", 0)
         if not isinstance(flow_id, int) or flow_id <= 0:
             fail("business flow id evidence")
@@ -120,8 +166,8 @@ def main() -> None:
             fail("business/handshake timing evidence")
         if e.get("wire_bytes_c2s", 0) <= 0 or e.get("wire_bytes_s2c", 0) <= 0:
             fail("per-flow wire byte evidence")
-    if len(flow_ids) != 2:
-        fail("expected two distinct inner TCP flow ids")
+    if len(flow_ids) != 3:
+        fail("expected three distinct inner TCP flow ids")
 
     with open(args.pcap, "rb") as f:
         header = f.read(24)
@@ -141,7 +187,8 @@ def main() -> None:
         "https_flows": len(flows),
         "outer_connections": 1,
         "sequential_close_before_next": True,
-        "handshake_modes": ["full", "resumed"],
+        "handshake_modes": ["full", "resumed", "full"],
+        "certificate_chains": ["chain-a", "chain-b"],
         "tls_version": "TLS1.3",
         "session_cache_gets": tls_session["cache_gets"],
         "session_cache_hits": tls_session["cache_hits"],
@@ -157,7 +204,8 @@ def main() -> None:
         f.write("\n")
     print(
         f"WBD_P5_HTTPS_MEASUREMENT_BASE_PASS source_sha={args.source_sha} "
-        "flows=2 outer_connections=1 sequential_close=pass handshakes=full,resumed fec=off padding=off"
+        "flows=3 outer_connections=1 sequential_close=pass handshakes=full,resumed,full "
+        "certificate_chains=2 fec=off padding=off"
     )
 
 
