@@ -1497,6 +1497,12 @@ func (s *LifecycleServer) RoutePacket(packet []byte, now time.Time) error {
 		return linuxserver.ErrNoLeaseRoute
 	}
 	if !ready {
+		s.refreshQualifiedFromTransport(group)
+		s.mu.Lock()
+		ready = s.groupReadyLocked(group)
+		s.mu.Unlock()
+	}
+	if !ready {
 		return ErrTunnelNotQualified
 	}
 	out, err := s.cfg.Router.RouteFromTUN(packet, now)
@@ -1514,6 +1520,31 @@ func (s *LifecycleServer) RoutePacket(packet []byte, now time.Time) error {
 		s.mu.Unlock()
 	}
 	return err
+}
+
+func (s *LifecycleServer) refreshQualifiedFromTransport(group *serverLifecycleTunnel) {
+	if group == nil {
+		return
+	}
+	s.mu.Lock()
+	lanes := make([]*serverLifecycleLane, 0, len(group.lanes))
+	for _, lane := range group.lanes {
+		if !lane.qualified {
+			lanes = append(lanes, lane)
+		}
+	}
+	s.mu.Unlock()
+	for _, lane := range lanes {
+		stats, ok := group.rt.TransportStats(lane.ref)
+		if !ok || stats.Received == 0 {
+			continue
+		}
+		s.mu.Lock()
+		if current := group.lanes[lane.ref.ID]; current == lane {
+			lane.qualified = true
+		}
+		s.mu.Unlock()
+	}
 }
 
 func (s *LifecycleServer) groupReadyLocked(group *serverLifecycleTunnel) bool {

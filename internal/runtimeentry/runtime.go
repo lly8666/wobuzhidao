@@ -693,6 +693,16 @@ func (s *Server) RoutePacket(packet []byte, now time.Time) error {
 		return linuxserver.ErrNoLeaseRoute
 	}
 	if !qualified {
+		if stats, ok := tunnel.rt.TransportStats(tunnel.ref); ok && stats.Received != 0 {
+			s.mu.Lock()
+			if current := s.byFlow[tunnel.flow]; current == tunnel {
+				current.qualified = true
+				qualified = true
+			}
+			s.mu.Unlock()
+		}
+	}
+	if !qualified {
 		return ErrTunnelNotQualified
 	}
 

@@ -40,9 +40,9 @@
     "P4子任务：统一client/server runtime transport owner hosted闭包通过Actions；post-admission TLS-like WireRecord回到同FakeTCP四元组/序列空间，Normal/Game direct dispatch、首次到达无业务HOL、有界4096-record repair metadata、1s默认RTO/3s绝对repair horizon、client admission handoff、same-ID replacement/generation fence/DORMANT以及OpenWrt公开reverse delivery接口均在exact-SHA Windows/Linux unit + Linux race通过；未恢复localhost UDP/DTLS/旧Controller。",
     "P4子任务：可运行单进程client/server entry + endpoint loop最小闭包通过Actions；新增client FakeTCP association与同association TLS/admission->runtimeowner handoff，Linux server shared-TUN+raw、OpenWrt TPROXY SocketAdapter+raw、Windows Wintun+Npcap命令入口均跨平台编译，内存segment endpoint真实TLS/admission双向IPv4闭环unit/race PASS；server首条合法steady record前禁止业务egress，未恢复localhost UDP/DTLS/旧Controller。"
   ],
-  "in_progress": "P4 多lane/lifecycle产品候选 runtime code 已落在 173f9de06153bed38454adf27ac39a9601754c6a；Actions 35505359301 仅 repository-contract FAIL，原因是 REUSE_LEDGER 两条记录错误地在单 source/destination 字段写入多个路径，所有产品 jobs 因依赖 SKIPPED，尚无 runtime 失败结论。当前修复只拆分 ledger 路径记录，代码不变；下一 exact-SHA 继续跑完整矩阵。",
-  "next_task": "提交 REUSE_LEDGER 契约修复并对新精确 SOURCE_SHA 跑 next-foundation；若进入产品 jobs 后失败，只修本多lane/lifecycle atom。全部PASS后写 evidence closure、更新 last_tested_source_sha，并判断P4关闭条件；不进入P5。",
-  "latest_log": "docs/devlog/20260920-220000-p4-entry-lifecycle-ledger-fix.md",
+  "in_progress": "P4 多lane/lifecycle候选第二轮 Actions a1bf70146ad4cdba0b47ad04a6f257901bc8fa4e：repository-contract、Windows active-go-tests、P2 kernel fallback、Linux shared-TUN iptables/nft、OpenWrt privileged 均PASS；仅 Ubuntu active-go-tests 在 -race 下暴露旧单lane reverse-egress资格标志与首个steady-record sink交付之间的短时窗口，普通 unit/build已PASS。当前最小修复让 server gate 在 qualified 标志未落锁时读取同 transport 的 Received>0 统计刷新资格，多lane server同样应用；不加sleep、不降低到仅TLS/admission资格。",
+  "next_task": "提交 server egress qualification race 修复并以新 exact SOURCE_SHA 重跑完整 next-foundation；若全PASS，写本atom evidence closure、更新 last_tested_source_sha，并按P4 acceptance判断关闭，不进入P5。",
+  "latest_log": "docs/devlog/20260920-221500-p4-entry-lifecycle-qualification-race-fix.md",
   "last_tested_source_sha": "79c6e9ddcbc3e7f74b85dcc6d162d5c1a3c4e3f9",
   "actions": [
     {
@@ -478,6 +478,13 @@
       "scope": "P4-entry-multilane-lifecycle-candidate",
       "status": "FAIL",
       "note": "repository-contract FAIL: REUSE_LEDGER contained combined multi-path source/destination fields (Missing reuse source / Invalid reuse destination); all downstream product jobs SKIPPED. No runtime behavior verdict."
+    },
+    {
+      "source_sha": "a1bf70146ad4cdba0b47ad04a6f257901bc8fa4e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35505438219",
+      "scope": "P4-entry-multilane-lifecycle-second-candidate",
+      "status": "FAIL",
+      "note": "6/7 jobs PASS. Ubuntu full unit/build PASS including realityfront/runtimeentry; -race only failed TestSingleProcessClientServerEntryCarriesBidirectionalIPv4 because server reverse egress observed qualified=false after first steady record had already reached TUN but before caller set the flag. Windows active-go-tests and all network regression jobs PASS."
     }
   ],
   "physical_status": "NOT_RUN",
