@@ -28,9 +28,9 @@
     "P3关闭：LINK fragmentation/reassembly、FEC off+20:4/8/10/12/16/20、统一MTU、lane-owned session/datapath、显式有界record padding全部取得精确SOURCE_SHA Actions资格",
     "P4子任务：logicaltunnel最小lifecycle/policy + 有界TunnelOwner/BusinessFlow registry，多业务复用既有Normal lane、generation fencing、DORMANT/wake与6过渡/10物理上限通过Actions"
   ],
-  "in_progress": "P4 logical-flow lane-reuse 原子任务已在 SOURCE_SHA 7994d1a2656079e4a27f6a5ddc4c7ad9b619488f / Actions 35479653320 完整通过：repository-contract、Windows unit/build、Linux unit/build/race、tlsrecord directed fuzz、独立reference vectors、P2 kernel fallback 均成功。多个业务 flow 可复用同一已有 Normal lane；flow close 不关闭 lane；same-ID replacement generation fencing、candidate failure、DORMANT/wake、6个退休/过渡余量和10个物理incarnation上限均有专项测试。P4 仍未关闭；尚未提取/接入 stable installation/lease identity、Game owner API/platform入口或生产 padding budget。",
-  "next_task": "P4 下一原子任务：按 MODULE_MAP 定向读取 old/internal/logicaltunnel 的 lease/installation/identity isolation 及直接 tests/imports，并对照当前 realityfront admission TunnelID 与新 TunnelOwner，提取稳定 Logical Tunnel identity/lease 的最小 active 闭包。保持一个 Installation 对应稳定 TunnelID/lease、多个业务 flow 继续复用既有 lane；不迁移旧 CLI/完整 runtime，不改 Game 竞速，不提前接 P5/P7。",
-  "latest_log": "docs/devlog/20260920-084900-p4-logical-flow-registry-actions-pass.md",
+  "in_progress": "P4 stable Logical Tunnel identity/lease 原子任务已实现：active logicaltunnel 提取 InstallationID/TunnelID、IPv4 lease Manager 与 account+installation identity isolation；同一 active identity 重取同一 TunnelID+/32 lease，同账户不同 installation 及不同账户同 installation 均隔离，release 后地址可复用但新 TunnelID；TunnelID 以固定16-byte active类型对接 protected admission raw TunnelID。datapath 新增 leased TunnelOwner 与 leased admission handoff：owner 在任何 lane membership 前锁定 lease TunnelID，跨 installation admission/lane fail-closed；rotation/DORMANT/wake 不改变 lease，多个 BusinessFlow 继续复用现有 lane。本实现尚未取得自己的精确 SOURCE_SHA Actions 资格，当前不得标 PASS；last_tested_source_sha 保持上一真实通过的 P4 logical-flow SHA。",
+  "next_task": "等待本次 P4 stable identity/lease 产品提交的精确 SOURCE_SHA GitHub Actions。若失败，读取具体 job logs，仅修本 atomic task 并保留 FAIL 证据；若顶层 completed/success 且相关 jobs 全部成功，则记录精确 SHA/run/jobs/artifacts 完成本原子任务证据 closure，再按最新 STATUS 继续 P4（优先 source anti-spoof/lease packet binding，再接 Game/platform，不提前进入P5/P7）。",
+  "latest_log": "docs/devlog/20260920-094400-p4-logical-identity-lease.md",
   "last_tested_source_sha": "7994d1a2656079e4a27f6a5ddc4c7ad9b619488f",
   "actions": [
     {
@@ -330,7 +330,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: logical-flow lane reuse/lifecycle owner 已在 SOURCE_SHA 7994d1a2656079e4a27f6a5ddc4c7ad9b619488f / Actions 35479653320 PASS；下一步提取 stable installation/lease Logical Tunnel identity 并接 existing owner；padding生产默认off",
+    "P4": "IN_PROGRESS: stable Installation/TunnelID/IPv4 lease manager + leased owner/admission binding 已实现，等待精确 SOURCE_SHA Actions；上一 logical-flow lane reuse 已 PASS，padding生产默认off",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }

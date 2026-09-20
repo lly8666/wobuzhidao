@@ -180,7 +180,25 @@
       "destination": "internal/datapath/tunnel_owner.go",
       "behavior_changes": "Adapt the archived logical membership/generation model into a bounded coordinator over already-created internal/datapath Lane incarnations. Business flows are bounded logical registrations and never create or close a lane; Normal flows resolve the existing lane 1 at send time. Same-ID candidate promotion moves the prior Lane into bounded retirement, stale completions are fenced, candidate failure preserves the old lane, and DORMANT closes transport incarnations while preserving flow registrations for wake. Game PacketID/racing, lane creation, padding policy and FEC internals are not reimplemented.",
       "tests": "internal/datapath/tunnel_owner_test.go covers multiple sibling flows sharing one Normal lane, flow-close isolation, bounded registry/no lane growth, same-ID replacement and late-old generation discard, candidate failure, DORMANT/wake, immutable per-incarnation FEC profiles, 1..4 logical lanes, six transition headroom, ten physical-incarnation bound, default padding off, and concurrent shared-lane PN serialization under the Actions race job."
+    },
+    {
+      "source": "old/internal/logicaltunnel/logicaltunnel.go",
+      "destination": "internal/logicaltunnel/identity.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Extract stable Account+Installation -> Logical Tunnel identity and deterministic IPv4 /32 lease allocation, while adapting active TunnelID representation from archived hex-string storage to an exact 16-byte value that round-trips to hex and directly matches the protected-admission wire. Preserve same-active-identity reacquire, distinct installation/account isolation, route cloning/canonicalization, bounded pool exhaustion and release semantics. Do not migrate old dataplane source validator, raw-IP gateway, CLI, TUN, netns or platform runtime in this atom.",
+      "tests": "internal/logicaltunnel/identity_test.go covers raw 16-byte TunnelID/admission round-trip, same installation stable TunnelID/lease, same-account different-installation and different-account same-installation isolation, concurrent reacquire without fork, release/address reuse with fresh TunnelID, owned route copies and fail-closed pool/identity validation."
+    },
+    {
+      "source": "old/internal/logicaltunnel/logicaltunnel.go",
+      "destination": "internal/datapath/tunnel_identity.go",
+      "behavior_changes": "Bind the already-extracted TunnelOwner to one stable logicaltunnel.Lease before any Lane incarnation is admitted. The owner retains an owned lease copy across same-ID replacement, retirement, DORMANT and wake; BusinessFlow lifecycle remains independent and still reuses existing lanes. Unleased owner construction is retained only for lower-level tests/adapters.",
+      "tests": "internal/datapath/tunnel_identity_test.go proves replacement and DORMANT/wake preserve TunnelID/lease, existing flows resume on the wake incarnation, and another installation's lane is rejected before membership mutation."
+    },
+    {
+      "source": "old/internal/logicaltunnel/logicaltunnel.go",
+      "destination": "internal/datapath/lease_handoff.go",
+      "behavior_changes": "Add the minimal protected-admission bridge: require the admission's exact 16-byte TunnelID to equal the Manager-issued lease TunnelID before constructing the server LaneConfig. This does not change the P2 admission wire, credentials, exporter context, FakeTCP transition or lane crypto ownership.",
+      "tests": "internal/datapath/tunnel_identity_test.go constructs admission handoff for two isolated installations, requires cross-installation TunnelID rejection, then proves the matching Manager lease creates a Lane accepted by the leased TunnelOwner."
     }
   ],
-  "note": "P2 CLOSED remains qualified at SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 / Actions 35458896477. P3 LINK is qualified at 310cdf95a2da601f6a6b4398ce9b8b178aa6a48a, all live FEC v1 fixed profiles at e8e38d09b98b1898b41ad30335546989bed4f0a5, unified MTU at dbd305950984652361d6bab34f05c66558461311, and lane-owned session/datapath handoff at SOURCE_SHA 05a544818ff04f49332b09779c9ab3a4cf9b09fd by Actions run 35460675364. Explicit record padding remains the next separate P3 atom; production default remains zero/off."
+  "note": "P2 and P3 qualifications remain unchanged. P4 logical-flow lane reuse is qualified at SOURCE_SHA 7994d1a2656079e4a27f6a5ddc4c7ad9b619488f / Actions 35479653320. Stable Installation/TunnelID/IPv4 lease identity plus leased owner/admission binding is implemented in the current candidate and awaits its own exact SOURCE_SHA Actions; source anti-spoof/platform/Game/padding policy remain later P4 atoms."
 }

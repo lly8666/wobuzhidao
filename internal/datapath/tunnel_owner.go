@@ -68,6 +68,9 @@ type TunnelOwner struct {
 	candidates map[uint8]replacementCandidate
 	retiring   map[logicaltunnel.LaneRef]*Lane
 
+	lease    logicaltunnel.Lease
+	hasLease bool
+
 	role       Role
 	tunnelID   []byte
 	identified bool
@@ -395,6 +398,9 @@ func (o *TunnelOwner) physicalLocked() int {
 
 func (o *TunnelOwner) checkLaneIdentityLocked(lane *Lane) error {
 	cfg := lane.Config()
+	if o.hasLease && !bytes.Equal(cfg.TunnelID, o.lease.Config.TunnelID.Bytes()) {
+		return ErrTunnelMismatch
+	}
 	if !o.identified {
 		o.role = cfg.Role
 		o.tunnelID = append([]byte(nil), cfg.TunnelID...)
