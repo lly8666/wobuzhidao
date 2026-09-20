@@ -27,12 +27,13 @@
     "P3子任务：显式有界record padding（默认0/off、统一MTU headroom、独立静态向量、全FEC/MTU/no-HOL/不可变重传）通过Actions",
     "P3关闭：LINK fragmentation/reassembly、FEC off+20:4/8/10/12/16/20、统一MTU、lane-owned session/datapath、显式有界record padding全部取得精确SOURCE_SHA Actions资格",
     "P4子任务：logicaltunnel最小lifecycle/policy + 有界TunnelOwner/BusinessFlow registry，多业务复用既有Normal lane、generation fencing、DORMANT/wake与6过渡/10物理上限通过Actions",
-    "P4子任务：stable Account+Installation -> TunnelID/IPv4 lease identity、leased TunnelOwner 与 protected-admission TunnelID binding 通过Actions；同identity稳定lease、跨installation隔离、rotation/DORMANT/wake不换lease"
+    "P4子任务：stable Account+Installation -> TunnelID/IPv4 lease identity、leased TunnelOwner 与 protected-admission TunnelID binding 通过Actions；同identity稳定lease、跨installation隔离、rotation/DORMANT/wake不换lease",
+    "P4子任务：IPv4 lease source anti-spoof 接 leased TunnelOwner client-outbound/server-inbound owner boundary，通过Actions；错误source/IPv6/malformed fail-closed且不消耗客户端PN，server解封后再次校验"
   ],
-  "in_progress": "P4 lease IPv4 source anti-spoof 产品实现已进入 SOURCE_SHA d7ca5ce1d393499429048cbd9cb41aed6b46bd9c / Actions 35483439066，但该SHA整体 FAIL。repository-contract PASS，P2 kernel fallback/pcap PASS；Windows/Linux unit 都在既有 TestLeasedOwnerPreservesIdentityAcrossReplacementDormantAndWake 失败，因为上一轮 leased-client 测试仍向 BusinessFlow.Outbound 发送任意字符串（flow-a/flow-b/awake），新 source fence 正确将其拒绝为 logicaltunnel: invalid IPv4 packet。internal/logicaltunnel 新validator专项包本身PASS；失败是旧测试夹具未更新到新的产品输入契约，不应放宽实现。已准备只把该既有测试改为使用当前lease source的合法IPv4 packet，产品Go源码不变；等待新精确SHA Actions。",
-  "next_task": "等待测试夹具修复提交自己的精确 SOURCE_SHA GitHub Actions。必须重新取得 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference 与 P2 kernel fallback 全部成功；若仍失败读取新日志，不盲重跑。通过后记录 source anti-spoof 原子任务精确SHA/run/artifacts并做证据closure。",
-  "latest_log": "docs/devlog/20260920-101500-p4-source-fence-test-fixture-fix.md",
-  "last_tested_source_sha": "9f35f885b56194612f240c14bb802b6650dd7d6c",
+  "in_progress": "P4 IPv4 source anti-spoof / lease packet binding 原子任务已在 SOURCE_SHA 8d922df623305d169eee581ef02cea8dd6446a26 / Actions 35483525187 attempt 2 完整通过。repository-contract、Windows unit/build、Ubuntu unit/build/race、tlsrecord directed fuzz/reference、P2 kernel fallback/continuous pcap 均成功。产品语义：logicaltunnel.ValidateIPv4Source 要求well-formed IPv4、<=9000、合法IHL/total length且source==/32 lease；leased RoleClient BusinessFlow.Outbound 在Lane前验证，因此拒绝包不消耗PN/LINK/FEC/record状态；TunnelOwner.InboundPayload 对当前generation解封后在leased RoleServer再次验证source，错误datagram不交付并计入SourceDiscards；RoleClient receive方向不误拦互联网source。SOURCE_SHA d7ca5ce... 的首轮Windows/Linux unit FAIL（旧测试夹具仍传字符串）已保留；8d922df run attempt 1 唯一失败是hosted RawIPv4Endpoint Recvfrom一次EINTR，诊断后仅对同SHA失败P2 job targeted retry，attempt 2 PASS，产品代码未因该事件改变。P4仍未关闭；Game PacketID racing/dedupe owner API、platform入口和生产padding budget仍待后续。",
+  "next_task": "P4 下一原子任务：按 MODULE_MAP 定向读取 old/internal/gamelane、old/internal/gamepath 及直接 tests/imports，并对照当前 TunnelOwner/Lane owner API，提取最小 Game PacketID racing/dedupe active 闭包。保持 Game=2/3/4 authoritative logical lanes、同一业务PacketID可在多个现有lane竞速、首次有效到达交付其余去重、FEC仍lane-local、业务flow增长不创建lane；不得改成跨包条带化，不迁移旧独立game子进程/CLI，不提前接完整platform runtime或P5/P7。",
+  "latest_log": "docs/devlog/20260920-102000-p4-lease-source-fence-actions-pass.md",
+  "last_tested_source_sha": "8d922df623305d169eee581ef02cea8dd6446a26",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -327,6 +328,13 @@
       "scope": "P4-lease-source-fence-pre-fixture-fix",
       "status": "FAIL",
       "note": "repository-contract PASS；P2 kernel fallback/continuous pcap PASS（artifact 10597300736）；Windows/Linux active unit 均 FAIL 于既有 TestLeasedOwnerPreservesIdentityAcrossReplacementDormantAndWake：tunnel_identity_test.go:76 logicaltunnel: invalid IPv4 packet: length=6。根因是上一轮 leased-client 测试仍用任意字符串作为 BusinessFlow.Outbound 业务包，新产品source fence正确收紧为IPv4。internal/logicaltunnel source validator专项包PASS；race/fuzz/reference因unit失败未运行。foundation artifact 10596971243。"
+    },
+    {
+      "source_sha": "8d922df623305d169eee581ef02cea8dd6446a26",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35483525187",
+      "scope": "P4-lease-source-fence-final",
+      "status": "PASS",
+      "note": "最终资格使用同一 exact SHA 的 workflow run attempt 2。repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；tlsrecord directed fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS。attempt 1 中所有产品unit/race/fuzz/reference均已PASS，唯一P2失败是hosted RawIPv4Endpoint Recvfrom返回一次 EINTR；读取日志确认与P4 source-fence路径无关后，只对同SHA失败P2 job targeted retry一次，attempt 2 kernel test PASS 1.24s，pcap 29 captured / 58 received by filter / 0 kernel drop，既有analyzer PASS。Artifacts(final attempt where applicable): foundation 10596676318；tlsrecord-reference 10597051311；p2-kernel-fallback 10597121327。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -352,7 +360,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: lease source anti-spoof产品实现已落地；d7ca5ce... 因旧leased-client测试夹具仍发送字符串而Windows/Linux unit FAIL，产品实现未放宽；已准备fixture-only修复等待新Actions",
+    "P4": "IN_PROGRESS: stable identity/lease与lease IPv4 source anti-spoof均已精确SHA Actions PASS；下一步按MODULE_MAP提取 Game PacketID racing/dedupe 并接新 owner API；platform/padding production policy仍未接",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }
