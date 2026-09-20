@@ -33,9 +33,9 @@
     "P4子任务：tunnel-owner production padding budget（默认off、per-record cap、tunnel-wide ratio/total cap、Normal/Game共享预算）通过Actions；Game/FEC放大不重复赚useful credit，replacement/DORMANT/wake不重置预算",
     "P4子任务：Linux server shared-TUN hosted platform core 通过Actions；shared registry直接绑定leased TunnelOwner，按lease /32 demux Normal/Game，exact rebind stale-token fencing，Linux TUN primitive与WBD-owned route/FORWARD/NAT/sysctl/DNS-unchanged plan均通过跨平台unit/race"
   ],
-  "in_progress": "P4 Linux server shared-TUN platform core 已在 SOURCE_SHA 3d1c3831fb7726971ee8d52a076800a07af36d5f / Actions 35487091018 完整通过 hosted core/adapter 资格。repository-contract PASS；Windows 2022 unit/build PASS；Ubuntu 24.04 unit/build/race PASS；directed fuzz/reference PASS；P2 kernel fallback/continuous pcap PASS。该PASS证明 shared-TUN router/lease demux、Normal/Game owner dispatch、exact TunnelID+/32 rebind token fencing、source defense-in-depth、Linux/!Linux TUN编译边界和纯NetworkPlan语义；它没有以root实际打开 /dev/net/tun，也没有执行 nft/iptables/sysctl，因此不得标记为物理Linux平台PASS。P4下一步进入 Linux privileged runtime executor：真实创建shared TUN、apply/cleanup WBD-owned route/sysctls/netfilter并在Actions可用的privileged runner上做最小root gate；Windows/Wintun/Npcap与OpenWrt随后。",
-  "next_task": "P4 下一原子任务：把 internal/linuxserver.NetworkPlan 与 TUN primitive 接成 Linux privileged runtime executor，严格只创建/清理 WBD-owned shared TUN、lease route、保存/恢复 ip_forward 与 tun rp_filter、WBD marker 的 FORWARD/NAT 规则；优先复用/改造 next-foundation Linux privileged job 做 root smoke（若runner具备 /dev/net/tun、CAP_NET_ADMIN 与 nft/iptables），至少证明 apply -> one shared TUN -> two lease registry packets -> cleanup 后 route/rules/sysctl恢复。若 hosted runner缺设施，保留可验证的 executor dry-run/command adapter 并明确阻塞点，不伪造PASS。仍不得恢复per-user netns/veth/double NAT，不接Windows/OpenWrt，不提前做P5/P7。",
-  "latest_log": "docs/devlog/20260920-114500-p4-linux-shared-tun-core-actions-pass.md",
+  "in_progress": "P4 Linux privileged shared-TUN runtime executor 原子任务已实现，等待 exact SOURCE_SHA Actions。新增 internal/linuxserver Runtime：OpenRuntime 重新规范化 NetworkPlan、真实打开 /dev/net/tun、选择 iptables/nft backend、保存 ip_forward 与 tun rp_filter、apply TUN link/MTU/lease route、只安装 WBD marker 的 FORWARD/NAT rules；Close 按反向顺序只清理 WBD-owned firewall/route，恢复已保存 sysctl，关闭非persistent TUN，任何 apply 中途失败调用同一 rollback。iptables 只精确 -C/-D 自己三条comment规则，不改既有policy；nft 显式 forward chain 时只按handle删 WBD marker，并把 NAT 放在独立 inet wbd_shared_tun table，未指定chain且检测到未知 forward hook 时 fail-closed。next-foundation 新增 ubuntu privileged matrix [iptables,nft]：独立 netns、modprobe tun、真实 /dev/net/tun、existing forward policy=DROP、两个lease registry packet smoke、Close后验证 TUN/route/markers消失且既有policy保留。Windows 保持 !linux unsupported compile。",
+  "next_task": "等待本次 P4 Linux privileged shared-TUN runtime executor 产品提交的 exact SOURCE_SHA GitHub Actions；要求 repository-contract、Windows/Linux unit/build、Linux race/fuzz/reference、P2 kernel fallback，以及新增 p4-linux-shared-tun-privileged 的 iptables 与 nft 两个 matrix job 全部成功。若某 backend 失败读取该 job logs，只修本 atomic scope并保留FAIL。全部通过后 evidence closure，并将 Linux server hosted privileged gate 标为PASS；随后进入 Windows Wintun/Npcap 最小 platform atom，OpenWrt后置。",
+  "latest_log": "docs/devlog/20260920-121500-p4-linux-privileged-runtime.md",
   "last_tested_source_sha": "3d1c3831fb7726971ee8d52a076800a07af36d5f",
   "actions": [
     {
@@ -384,7 +384,7 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding与Linux shared-TUN hosted core均精确SHA Actions PASS；下一步Linux privileged runtime executor/root smoke，Windows/Wintun/Npcap与OpenWrt随后",
+    "P4": "IN_PROGRESS: core Tunnel/Game/source/padding与Linux shared-TUN hosted core均PASS；Linux privileged runtime executor + iptables/nft root smoke已实现等待Actions；Windows/Wintun/Npcap、OpenWrt仍未接",
     "P5": "PLANNED:真实HTTPS业务指纹与开销验收，无抗识别承诺"
   }
 }

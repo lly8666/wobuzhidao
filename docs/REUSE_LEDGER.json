@@ -252,7 +252,19 @@
       "destination": "internal/linuxserver/tun_linux.go",
       "behavior_changes": "Extract the minimal Linux shared-TUN device primitive only: /dev/net/tun, IFF_TUN|IFF_NO_PI, bounded interface name, ReadPacket/WritePacket/Close. No archived UDP/framed bridge or platform subprocess orchestration is migrated. A !linux stub reports unsupported so Windows repository builds remain explicit.",
       "tests": "Linux/Windows Actions compile the platform-specific files through package enumeration; shared-TUN packet semantics are tested against the PacketWriter adapter without requiring root/CAP_NET_ADMIN. Real privileged TUN execution remains a later platform qualification gate."
+    },
+    {
+      "source": "old/scripts/linux_shared_tun_firewall.sh",
+      "destination": "internal/linuxserver/runtime_linux.go",
+      "behavior_changes": "Archive source SHA b5c848f4e9afdffd15d1bc451560edf4e9390a35. Materialize the previously extracted shared-TUN ownership semantics as an in-process privileged executor: snapshot/restore ip_forward and TUN rp_filter, apply/cleanup only the lease route and three WBD-marked forwarding/NAT rules, and leave existing firewall policy/rules intact. iptables cleanup deletes exact comment-tagged rules; nft uses a dedicated WBD NAT table and deletes only WBD marker handles from an explicitly selected existing forward chain. If nft sees an unknown forward hook without an explicit chain, it fails closed rather than guessing. No per-user netns/veth/double NAT is restored.",
+      "tests": "internal/linuxserver/runtime_privileged_linux_test.go plus next-foundation p4-linux-shared-tun-privileged matrix exercise real /dev/net/tun, route/sysctl/firewall apply and cleanup under isolated root network namespaces for both iptables and nft, preserving a pre-existing DROP forward policy."
+    },
+    {
+      "source": "old/.github/workflows/shared-tun-two-client.yml",
+      "destination": ".github/workflows/next-foundation.yml",
+      "behavior_changes": "Reuse only the archived evidence that ubuntu-24.04 GitHub-hosted runners can modprobe tun and run root network namespaces. The active gate is much smaller and targets the new in-process linuxserver runtime: two parallel backend jobs (iptables,nft), one isolated namespace each, no archived DTLS/faketcp subprocess stack, and no per-client namespaces. The gate distinguishes real privileged TUN/netfilter execution from ordinary hosted unit tests.",
+      "tests": "Each matrix job builds the internal/linuxserver test binary, verifies /dev/net/tun, applies the runtime inside a temporary netns, registers two logical tunnel leases, exercises owner/shared-TUN packet boundaries, closes the runtime, then asserts no WBD TUN/firewall marker remains and the pre-existing forward DROP policy is preserved."
     }
   ],
-  "note": "P4 core through tunnel-owner padding is qualified. Current candidate introduces Linux shared-TUN platform core by adapting the archived final shared-TUN architecture, while explicitly rejecting the older per-session netns/veth/double-NAT and rawip UDP bridge. It awaits exact SOURCE_SHA Actions; hosted unit/race evidence will be labeled core/adapter only until a privileged Linux runtime gate exercises real TUN/netfilter."
+  "note": "P4 Linux shared-TUN core is already hosted-qualified at 3d1c3831fb7726971ee8d52a076800a07af36d5f. Current candidate adds the actual privileged runtime executor and dual-backend root smoke to next-foundation. It still does not restore per-user netns/veth/double NAT or the archived multi-process stack."
 }

@@ -163,3 +163,85 @@ jobs:
             artifacts/p2-kernel-test.log
             artifacts/p2-pcap-summary.json
           if-no-files-found: warn
+
+
+  p4-linux-shared-tun-privileged:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [iptables, nft]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - name: Install privileged shared-TUN tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v ip >/dev/null 2>&1 || ! command -v iptables >/dev/null 2>&1 || ! command -v nft >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 iptables nftables
+          fi
+          sudo modprobe tun
+          test -c /dev/net/tun
+      - name: Build Linux shared-TUN privileged test
+        shell: bash
+        run: go test -c ./internal/linuxserver -o /tmp/p4-linux-shared-tun.test
+      - name: Qualify real shared TUN apply and cleanup
+        shell: bash
+        env:
+          BACKEND: ${{ matrix.backend }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          NS="wbdp4-${BACKEND}-$$"
+          cleanup() {
+            set +e
+            sudo ip netns del "$NS" 2>/dev/null || true
+            sudo chmod -R a+r artifacts 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          sudo ip netns add "$NS"
+
+          NFT_FORWARD=''
+          if test "$BACKEND" = nft; then
+            sudo ip netns exec "$NS" nft add table inet filter
+            sudo ip netns exec "$NS" nft -f - <<'EOF'
+add chain inet filter forward { type filter hook forward priority 0; policy drop; }
+EOF
+            NFT_FORWARD='inet:filter:forward'
+          else
+            sudo ip netns exec "$NS" iptables -P FORWARD DROP
+          fi
+
+          sudo ip netns exec "$NS" env             WBD_P4_LINUX_TUN_NET=1             WBD_P4_FIREWALL_BACKEND="$BACKEND"             WBD_P4_NFT_FORWARD="$NFT_FORWARD"             GITHUB_SHA="$GITHUB_SHA"             /tmp/p4-linux-shared-tun.test               -test.v -test.run '^TestPrivilegedSharedTUNRuntime$'             | tee "artifacts/p4-linux-shared-tun-${BACKEND}.log"
+
+          if test "$BACKEND" = nft; then
+            sudo ip netns exec "$NS" nft list chain inet filter forward | grep -q 'policy drop'
+            if sudo ip netns exec "$NS" nft -a list ruleset | grep -q 'wbd-shared-tun-'; then
+              echo 'WBD shared-TUN nft marker survived cleanup' >&2
+              exit 1
+            fi
+          else
+            test "$(sudo ip netns exec "$NS" iptables -S FORWARD | head -n 1)" = '-P FORWARD DROP'
+            if sudo ip netns exec "$NS" sh -c "iptables -S; iptables -t nat -S" | grep -q 'wbd-shared-tun-'; then
+              echo 'WBD shared-TUN iptables marker survived cleanup' >&2
+              exit 1
+            fi
+          fi
+          if sudo ip netns exec "$NS" ip link show dev wbdg0 >/dev/null 2>&1; then
+            echo 'WBD shared TUN survived cleanup' >&2
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p4-linux-shared-tun-${{ matrix.backend }}-${{ github.sha }}
+          path: artifacts/p4-linux-shared-tun-${{ matrix.backend }}.log
+          if-no-files-found: warn
