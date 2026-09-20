@@ -67,6 +67,57 @@ type p5MeasurementEvent struct {
 	ResponseBytes     int    `json:"response_bytes,omitempty"`
 	WireBytesC2S      uint64 `json:"wire_bytes_c2s,omitempty"`
 	WireBytesS2C      uint64 `json:"wire_bytes_s2c,omitempty"`
+	TLSVersion        uint16 `json:"tls_version,omitempty"`
+	TLSCipherSuite    uint16 `json:"tls_cipher_suite,omitempty"`
+	HandshakeMode     string `json:"handshake_mode,omitempty"`
+	TLSResumed        *bool  `json:"tls_resumed,omitempty"`
+	SessionCacheGets  uint64 `json:"session_cache_gets,omitempty"`
+	SessionCacheHits  uint64 `json:"session_cache_hits,omitempty"`
+	SessionCachePuts  uint64 `json:"session_cache_puts,omitempty"`
+}
+
+type p5SessionCacheSnapshot struct {
+	gets uint64
+	hits uint64
+	puts uint64
+}
+
+type p5RecordingSessionCache struct {
+	mu sync.Mutex
+	base tls.ClientSessionCache
+	gets uint64
+	hits uint64
+	puts uint64
+}
+
+func newP5RecordingSessionCache(capacity int) *p5RecordingSessionCache {
+	return &p5RecordingSessionCache{base: tls.NewLRUClientSessionCache(capacity)}
+}
+
+func (c *p5RecordingSessionCache) Get(key string) (*tls.ClientSessionState, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.gets++
+	state, ok := c.base.Get(key)
+	if ok && state != nil {
+		c.hits++
+	}
+	return state, ok
+}
+
+func (c *p5RecordingSessionCache) Put(key string, state *tls.ClientSessionState) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if state != nil {
+		c.puts++
+	}
+	c.base.Put(key, state)
+}
+
+func (c *p5RecordingSessionCache) snapshot() p5SessionCacheSnapshot {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return p5SessionCacheSnapshot{gets: c.gets, hits: c.hits, puts: c.puts}
 }
 
 type p5BurstState struct {
@@ -310,7 +361,12 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 	}
 	roots := x509.NewCertPool()
 	roots.AddCert(target.Certificate())
-	innerTLS := &tls.Config{RootCAs: roots, ServerName: targetURL.Hostname(), MinVersion: tls.VersionTLS12}
+	sessionCache := newP5RecordingSessionCache(8)
+	innerTLS := &tls.Config{
+		RootCAs: roots, ServerName: targetURL.Hostname(),
+		MinVersion: tls.VersionTLS13, MaxVersion: tls.VersionTLS13,
+		ClientSessionCache: sessionCache,
+	}
 
 	outerCert := runtimeCertificate(t)
 	routeKey := []byte("0123456789abcdef0123456789abcdef")
@@ -442,12 +498,12 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 		t.Fatalf("unexpected initial lane ref: %+v", initialRef)
 	}
 
-	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, innerTLS, targetAddr, 1, "first_https_flow_on_initial_outer_connection")
+	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, innerTLS, sessionCache, targetAddr, 1, "first_https_flow_on_initial_outer_connection", false)
 	assertNoP5ClientRuntimeError(t, client, "after first HTTPS close")
 	if got := client.Ref(); got != initialRef {
 		t.Fatalf("first HTTPS flow replaced outer lane: got=%+v want=%+v", got, initialRef)
 	}
-	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, innerTLS, targetAddr, 2, "subsequent_https_flow_after_first_close_existing_lane")
+	runP5HTTPSFlow(t, recorder, svc, serverTunnel.service, innerTLS, sessionCache, targetAddr, 2, "subsequent_https_flow_after_first_close_existing_lane", true)
 	assertNoP5ClientRuntimeError(t, client, "after second HTTPS close")
 	if got := client.Ref(); got != initialRef {
 		t.Fatalf("second HTTPS flow replaced outer lane: got=%+v want=%+v", got, initialRef)
@@ -469,6 +525,10 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 	if !ok {
 		t.Fatal("server transport stats unavailable")
 	}
+	cacheFinal := sessionCache.snapshot()
+	if cacheFinal.puts == 0 || cacheFinal.hits == 0 {
+		t.Fatalf("TLS session cache provenance incomplete: gets=%d hits=%d puts=%d", cacheFinal.gets, cacheFinal.hits, cacheFinal.puts)
+	}
 
 	manifest := map[string]any{
 		"schema":      p5MeasurementSchema,
@@ -488,6 +548,10 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 			"padding":                "off",
 			"network_injection":      "none",
 			"burst_gap_ns":           p5BurstGap.Nanoseconds(),
+			"tls_version":            "TLS1.3",
+			"handshake_modes":        []string{"full", "resumed"},
+			"session_cache":          "shared-lru",
+			"session_cache_capacity": 8,
 		},
 		"capture": map[string]any{
 			"type":                  "hosted-segmentio-serialized-pcap",
@@ -499,6 +563,11 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 			"outer_packets":         outerPackets,
 			"tlslike_record_events": recordEvents,
 			"client_initial_syns":   clientSYNs,
+		},
+		"tls_session": map[string]any{
+			"cache_gets": cacheFinal.gets,
+			"cache_hits": cacheFinal.hits,
+			"cache_puts": cacheFinal.puts,
 		},
 		"transport": map[string]any{
 			"client":             clientTransport,
@@ -529,10 +598,10 @@ func TestP5ControlledHTTPSMeasurementHarness(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("WBD_P5_HTTPS_MEASUREMENT_BASE_CAPTURED source_sha=%s flows=2 outer_connections=1 sequential_close=pass fec=off padding=off records=%d\n", sourceSHA, recordEvents)
+	fmt.Printf("WBD_P5_HTTPS_MEASUREMENT_BASE_CAPTURED source_sha=%s flows=2 outer_connections=1 sequential_close=pass handshakes=full,resumed fec=off padding=off records=%d\n", sourceSHA, recordEvents)
 }
 
-func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platformflow.Client, serverSvc *platformflow.Server, tlsCfg *tls.Config, target netip.AddrPort, ordinal int, scenario string) {
+func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platformflow.Client, serverSvc *platformflow.Server, tlsCfg *tls.Config, sessionCache *p5RecordingSessionCache, target netip.AddrPort, ordinal int, scenario string, wantResume bool) {
 	t.Helper()
 	listener, err := net.Listen("tcp4", "127.0.0.1:0")
 	if err != nil {
@@ -561,6 +630,7 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 	tunnelConn := peer.conn
 
 	beforeC2S, beforeS2C := recorder.wireSnapshot()
+	cacheBefore := sessionCache.snapshot()
 	started := time.Now()
 	flowID, err := svc.AddTCP(tunnelConn, target, started)
 	if err != nil {
@@ -574,6 +644,13 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 		t.Fatal(err)
 	}
 	handshakeNS := time.Since(hsStarted).Nanoseconds()
+	tlsState := tlsConn.ConnectionState()
+	if tlsState.Version != tls.VersionTLS13 {
+		t.Fatalf("inner TLS version=0x%x want TLS1.3", tlsState.Version)
+	}
+	if tlsState.DidResume != wantResume {
+		t.Fatalf("inner TLS resumed=%v want=%v flow=%d", tlsState.DidResume, wantResume, ordinal)
+	}
 
 	reqURL := &url.URL{Scheme: "https", Host: target.String(), Path: fmt.Sprintf("/flow/%d", ordinal)}
 	req := &http.Request{Method: http.MethodGet, URL: reqURL, Host: "target.test", Header: make(http.Header)}
@@ -592,6 +669,18 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 	}
 	_ = resp.Body.Close()
 	_ = tlsConn.Close()
+	cacheAfter := sessionCache.snapshot()
+	cacheDelta := p5SessionCacheSnapshot{
+		gets: cacheAfter.gets - cacheBefore.gets,
+		hits: cacheAfter.hits - cacheBefore.hits,
+		puts: cacheAfter.puts - cacheBefore.puts,
+	}
+	if ordinal == 1 && cacheDelta.puts == 0 {
+		t.Fatalf("full handshake produced no session ticket cache put: %+v", cacheDelta)
+	}
+	if wantResume && cacheDelta.hits == 0 {
+		t.Fatalf("resumed handshake had no session cache hit: %+v", cacheDelta)
+	}
 	waitP5TCPFlowCount(t, "client", svc.TCPFlows, 0, 2*time.Second)
 	waitP5TCPFlowCount(t, "server", serverSvc.TCPFlows, 0, 2*time.Second)
 	wantBody := fmt.Sprintf("wbd-p5 path=/flow/%d", ordinal)
@@ -602,12 +691,20 @@ func runP5HTTPSFlow(t *testing.T, recorder *p5MeasurementRecorder, svc *platform
 		t.Fatalf("inner HTTPS status=%d", resp.StatusCode)
 	}
 	afterC2S, afterS2C := recorder.wireSnapshot()
+	didResume := tlsState.DidResume
+	handshakeMode := "full"
+	if didResume {
+		handshakeMode = "resumed"
+	}
 	if err := recorder.recordHTTPSFlow(p5MeasurementEvent{
 		FlowOrdinal: ordinal, Scenario: scenario, OuterConnection: 1,
 		BusinessFlowID: flowID, FlowClosed: true,
 		HandshakeNS: handshakeNS, BusinessLatencyNS: time.Since(started).Nanoseconds(),
 		HTTPStatus: resp.StatusCode, ResponseBytes: len(body),
 		WireBytesC2S: afterC2S - beforeC2S, WireBytesS2C: afterS2C - beforeS2C,
+		TLSVersion: tlsState.Version, TLSCipherSuite: tlsState.CipherSuite,
+		HandshakeMode: handshakeMode, TLSResumed: &didResume,
+		SessionCacheGets: cacheDelta.gets, SessionCacheHits: cacheDelta.hits, SessionCachePuts: cacheDelta.puts,
 	}); err != nil {
 		t.Fatal(err)
 	}

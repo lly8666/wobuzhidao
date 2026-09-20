@@ -31,6 +31,7 @@ def main() -> None:
 
     scenario = manifest.get("scenario", {})
     capture = manifest.get("capture", {})
+    tls_session = manifest.get("tls_session", {})
     transport = manifest.get("transport", {})
     if scenario.get("https_flows") != 2:
         fail("expected exactly two controlled HTTPS flows")
@@ -43,7 +44,15 @@ def main() -> None:
     if scenario.get("padding") != "off":
         fail("first atom must keep padding off")
     if scenario.get("network_injection") != "none":
-        fail("first atom must not run weak-network injection")
+        fail("handshake atom must not run weak-network injection")
+    if scenario.get("tls_version") != "TLS1.3":
+        fail("handshake atom must pin TLS1.3")
+    if scenario.get("handshake_modes") != ["full", "resumed"]:
+        fail("expected full and resumed handshake modes")
+    if scenario.get("session_cache") != "shared-lru" or scenario.get("session_cache_capacity") != 8:
+        fail("session cache provenance")
+    if tls_session.get("cache_puts", 0) <= 0 or tls_session.get("cache_hits", 0) <= 0:
+        fail("manifest session cache did not prove ticket storage and reuse")
     if capture.get("capture_loss_packets") != 0:
         fail("capture loss must be explicit and zero for in-process capture")
     if capture.get("network_drop_injected") != 0:
@@ -82,11 +91,25 @@ def main() -> None:
     if [e.get("scenario") for e in flows] != expected:
         fail("HTTPS flow scenario labels")
     flow_ids = set()
+    expected_modes = ["full", "resumed"]
+    expected_resumed = [False, True]
     for i, e in enumerate(flows, 1):
         if e.get("flow_ordinal") != i or e.get("outer_connection_id") != 1:
             fail("flow ordinal/outer connection identity")
         if e.get("flow_closed") is not True:
             fail("HTTPS flow was not fully closed before measurement completion")
+        if e.get("tls_version") != 0x0304:
+            fail("HTTPS flow TLS version is not TLS1.3")
+        if e.get("handshake_mode") != expected_modes[i - 1]:
+            fail("HTTPS flow handshake mode")
+        if e.get("tls_resumed") is not expected_resumed[i - 1]:
+            fail("HTTPS flow resume state")
+        if e.get("session_cache_gets", 0) <= 0:
+            fail("HTTPS flow session cache lookup provenance")
+        if i == 1 and e.get("session_cache_puts", 0) <= 0:
+            fail("full handshake did not store a TLS session ticket")
+        if i == 2 and e.get("session_cache_hits", 0) <= 0:
+            fail("resumed handshake did not use cached session state")
         flow_id = e.get("business_flow_id", 0)
         if not isinstance(flow_id, int) or flow_id <= 0:
             fail("business flow id evidence")
@@ -118,6 +141,11 @@ def main() -> None:
         "https_flows": len(flows),
         "outer_connections": 1,
         "sequential_close_before_next": True,
+        "handshake_modes": ["full", "resumed"],
+        "tls_version": "TLS1.3",
+        "session_cache_gets": tls_session["cache_gets"],
+        "session_cache_hits": tls_session["cache_hits"],
+        "session_cache_puts": tls_session["cache_puts"],
         "capture_loss_packets": capture["capture_loss_packets"],
         "network_drop_injected": capture["network_drop_injected"],
         "fec_recovery": transport["fec_recovery"],
@@ -129,7 +157,7 @@ def main() -> None:
         f.write("\n")
     print(
         f"WBD_P5_HTTPS_MEASUREMENT_BASE_PASS source_sha={args.source_sha} "
-        "flows=2 outer_connections=1 sequential_close=pass fec=off padding=off"
+        "flows=2 outer_connections=1 sequential_close=pass handshakes=full,resumed fec=off padding=off"
     )
 
 
