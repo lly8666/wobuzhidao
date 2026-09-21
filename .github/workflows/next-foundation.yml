@@ -667,7 +667,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$WBD_P5_SOAK_ARTIFACT_DIR"
-          go test ./internal/runtimeentry -count=1 -timeout=40m -run='^TestP5ThirtyMinuteSoakMeasurementHarness
+          go test ./internal/runtimeentry -count=1 -timeout=40m -run='^TestP5ThirtyMinuteSoakMeasurementHarness \
+            | tee "$WBD_P5_SOAK_ARTIFACT_DIR/test.log"
           python3 tools/check_p5_soak_measurement.py \
             --manifest "$WBD_P5_SOAK_ARTIFACT_DIR/manifest.json" \
             --events "$WBD_P5_SOAK_ARTIFACT_DIR/events.jsonl" \
