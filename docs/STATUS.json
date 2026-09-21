@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21T06:40:00Z",
+  "updated_at": "2026-09-21T06:46:00Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -47,12 +47,13 @@
     "P5第四原子任务关闭：不同受控证书链 measurement 在 SOURCE_SHA e2c1d6685f678df8fa4157f97a29de54ef84b803 / Actions 35524123958 取得 8/8 PASS。三条顺序真实inner HTTPS flow为 chain-a full、chain-a resumed、chain-b full；chain-a/chain-b 分别为独立 Root CA -> Intermediate CA -> leaf(target.test)，客户端只信任对应root，Go TLS VerifiedChains真实验证3级链且root/intermediate/leaf SHA-256与manifest/event一致。三条flow复用同一outer lane，outer SYN=1；validator确认 flows=3、handshakes=full,resumed,full、certificate_chains=2。P5 artifact 10609303454，sha256:029ce15d396bf5400be547e669b7efb1c6416f2e51a256d8a107f4ebef379fc6。",
     "P5第五原子任务关闭：稀疏单连接真实HTTPS workload 在 SOURCE_SHA d9627cc9faf4ea66119f82a1c544ac0bb73bbe5e / Actions 35524525129 取得 8/8 PASS。独立 sparse 场景保持1个inner BusinessFlow + 1个TLS1.3/HTTP keep-alive连接，按显式application arrival deadline完成3个顺序请求，计划idle为0/150/300ms；每次响应后client/server TCPFlows均保持1直到最终close，outer SYN=1。validator确认 requests=3、business_flows=1、outer_connections=1、scheduled_idle_ms=0,150,300，application loss/duplicate=0；FEC off、padding=0/off、无弱网注入。P5 combined artifact 10609244483，sha256:493548237ae84353bd01f2258206a5d74ba9d6bb86286b1dd33a774d16921b19。",
     "P5第六原子任务关闭：自然并发真实HTTPS workload 在 SOURCE_SHA 24e6ff71d76b53d63719f83c5df8d2147a383977 / Actions 35529970723 取得 8/8 PASS。3个独立inner TLS1.3 full HTTPS BusinessFlow在同一已建立outer Normal lane上完成真实受控证书验证后由应用barrier同步起跑；client/server实际同时存在3条BusinessFlow，raw request intervals重算得到max overlap=3，distinct FlowID=3、outer SYN=1、application loss/duplicate=0。per-flow wire bytes明确为inner TLS ciphertext，aggregate outer cost继续由PCAP/record events独立记录；FEC off、padding=0/off、无弱网注入。combined P5 artifact 10610588812，sha256:f4f99ee48fb3eed2aad15f97fdc547f7cd7138921f1bf8de6f39d5d0c8d6dc9f。",
-    "P5第七原子任务关闭：显式 fixed-FEC 20:10 无损真实HTTPS能力/成本测量在 SOURCE_SHA b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3 / Actions 35555303253 取得 8/8 PASS。正式client/server入口新增 `--fec-parity`，默认0/off且只接受0,4,8,10,12,16,20；非零时固定沿用8ms partial flush/8-block bound，不新增调参旋钮。runtime tick补齐authoritative lane partial-FEC FlushDue并保持generation fence；read-only FEC stats记录source/parity/full/partial/pending及真实RS reconstruction/recovered。受控20:10 TLS1.3 HTTPS在无网络drop/padding off下记录client source/parity=42/22、server=246/126、fec_recovery=0、repair=0、wire_amp=1.930542；combined P5 artifact 10620018135，sha256:74e3575ef202b8f7267de86148bff765e39834dba2873a17800b6e327bd59d8f。20:10只为单一显式能力/成本场景，不是生产默认/推荐/选优。"
+    "P5第七原子任务关闭：显式 fixed-FEC 20:10 无损真实HTTPS能力/成本测量在 SOURCE_SHA b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3 / Actions 35555303253 取得 8/8 PASS。正式client/server入口新增 `--fec-parity`，默认0/off且只接受0,4,8,10,12,16,20；非零时固定沿用8ms partial flush/8-block bound，不新增调参旋钮。runtime tick补齐authoritative lane partial-FEC FlushDue并保持generation fence；read-only FEC stats记录source/parity/full/partial/pending及真实RS reconstruction/recovered。受控20:10 TLS1.3 HTTPS在无网络drop/padding off下记录client source/parity=42/22、server=246/126、fec_recovery=0、repair=0、wire_amp=1.930542；combined P5 artifact 10620018135，sha256:74e3575ef202b8f7267de86148bff765e39834dba2873a17800b6e327bd59d8f。20:10只为单一显式能力/成本场景，不是生产默认/推荐/选优。",
+    "P5第八原子任务关闭：300ms单向、120s、30/60/30、5%->20%->5% 真实HTTPS弱网资格在 SOURCE_SHA d445e1634d6b48509bf2f44c0488a379fb75baf2 / Actions 35569185348 取得 10/10 PASS。两个独立Actions VM/seed各跑单一120s场景：run1 seed=20260921 scheduled=40 success=38 loss=2 duplicate=0 RTT p95=2.824613907s post5第三个连续成功恢复=18.167817650s repair=3423 wire_amp=8.483751；run2 seed=20260922 success=38 loss=2 duplicate=0 RTT p95=2.620082381s post5恢复=17.627507484s repair=3301 wire_amp=8.275241。两次均FEC off、padding off，validator从raw重算phase/drop/300ms residency/capture/RTT/loss/duplicate/post5/FEC/repair/cost/resource；CPU/PPS/memory仅为runner观测，不设跨VM绝对性能门槛。"
   ],
-  "in_progress": "P5 第八原子任务弱网 `300ms单向 / 120s / 30-60-30s / 5%->20%->5%` 第四个 exact-SHA 候选 97f60ec0d1144261f3c6d3813685c6aebd629398 / Actions 35568056556 已完成失败：既有8个 required jobs 全部PASS；两个 dedicated weaknet 120s harness本体也PASS，仅独立validator在后段 `manifest capture inventory` 失败。run1 scheduled=40 success=39 loss=1 repair=3815 wire_amp=8.657677；run2 success=38 loss=2 repair=3365 wire_amp=8.389240。raw artifact核对：run1 manifest snapshot outer/record=13815/7415，最终raw=13860/7426，额外45/11条最早t_ns=121.451s；run2 snapshot=12625/6769，最终raw=12637/6770，额外12/1条最早t_ns=120.608s/120.762s。最终PCAP packet数与最终outer event数逐包计数一致，说明不是capture loss，而是manifest counters在deferred shutdown前的live snapshot，随后repair/ACK尾包继续被同步捕获。Windows lanes-4本轮恢复PASS，确认上一轮为未修改P4偶发签名，本atom不重开P4。当前只修validator的manifest snapshot语义。",
-  "next_task": "对 manifest live-snapshot validator 修复生成新的 exact SOURCE_SHA，并跑完整 next-foundation。要求既有8 jobs + 两个独立 `p5-weaknet-5-20-5` 120s matrix jobs 共10 jobs全部PASS。最终capture硬门继续由raw `PCAP packet count == outer event count` 保证；manifest counters只允许作为shutdown前prefix snapshot，且snapshot之后新增raw事件必须全部在120s测量窗之外。两个弱网job继续一VM一场景/一seed/一artifact；CPU/PPS/memory仅作runner观测，不设跨VM绝对性能门槛。不得混入5%->30%->5%、load、soak或FEC tuning。",
-  "latest_log": "docs/devlog/20260921-064000-p5-weaknet-manifest-snapshot-validator-fix.md",
-  "last_tested_source_sha": "b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3",
+  "in_progress": "P5 第八原子任务 5%->20%->5% 弱网已关闭并取得 exact-SHA 10/10 Actions 资格。下一 prescribed atom 为独立的 5%->30%->5% 弱网场景，尚未启动；不得把本轮结果外推为30%丢包、load、>=30min soak或FEC选优结论。",
+  "next_task": "下一原子任务单独实现并资格 `300ms单向 / 120s / 30-60-30s / 5%->30%->5%`，继续保持一Actions VM一场景/一seed/一artifact，性能资源只观测不设跨VM绝对门槛。开始前重新核对远端HEAD/STATUS并以当前closure为authority；不得混入load、>=30min soak、FEC tuning或padding enablement。",
+  "latest_log": "docs/devlog/20260921-064600-p5-weaknet-5-20-5-closed.md",
+  "last_tested_source_sha": "d445e1634d6b48509bf2f44c0488a379fb75baf2",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -683,6 +684,13 @@
       "scope": "P5-weaknet-5-20-5-fourth-candidate",
       "status": "FAIL",
       "note": "Run attempt 1 completed/failure，10 jobs中既有8个required jobs全部PASS（包括上一轮偶发失败的Windows lanes-4）；两个weaknet matrix job均完成完整120s harness且Go测试PASS，只在独立validator后段 `manifest capture inventory` 失败。run1 marker：`WBD_P5_WEAKNET_5205_CAPTURED source_sha=97f60ec0d1144261f3c6d3813685c6aebd629398 run=1 seed=20260921 duration=120s delay=300ms drop=5-20-5 fec=off padding=off scheduled=40 success=39 loss=1 repair=3815 wire_amp=8.657677`，artifact 10624786896，sha256:0d927725803fc752f0962d4acc42e6c74cb9f5faf54b1cbfea44c94a8ebbbd10。run2：`... run=2 seed=20260922 ... scheduled=40 success=38 loss=2 repair=3365 wire_amp=8.389240`，artifact 10625285703，sha256:39c47850626a9ca5d4a2e5c2d0047d8abbdca75064d405cc04e1a6918c198286。下载raw核对：run1 manifest capture snapshot outer/record=13815/7415，最终events=13860/7426，最终pcap=13860，snapshot后额外45 outer/11 record最早在121.451s；run2 snapshot=12625/6769，最终events=12637/6770，最终pcap=12637，额外12 outer最早120.608s、1 record在120.762s。根因是manifest在deferred client/server shutdown前读atomic counters，随后正常repair/ACK尾包仍继续同步写PCAP/events；最终PCAP与outer-events严格相等，不是capture loss。"
+    },
+    {
+      "source_sha": "d445e1634d6b48509bf2f44c0488a379fb75baf2",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35569185348",
+      "scope": "P5-weaknet-5-20-5-final",
+      "status": "PASS",
+      "note": "Run attempt 1 completed/success，10/10 jobs全部PASS：repository-contract、Windows/Linux active-go-tests、P2 kernel fallback、OpenWrt privileged、Linux shared-TUN iptables/nft、P5 measurement-base，以及两个独立120s weaknet matrix jobs。run1 marker PASS：seed=20260921 attempts=12785 drops=1713 app_success=38 app_loss=2 duplicate=0 rtt_p95_ns=2824613907 post5_recovery_ns=18167817650 fec=off repair=3423 padding=off wire_amp=8.483751；artifact 10624514604，sha256:9fe7ac7343d079a5134fd0d3200602020a1af8ad0910bd089f0897c37c79feef。run2：seed=20260922 attempts=12398 drops=1630 app_success=38 app_loss=2 duplicate=0 rtt_p95_ns=2620082381 post5_recovery_ns=17627507484 fec=off repair=3301 padding=off wire_amp=8.275241；artifact 10625333193，sha256:30ab2ec46b668c905458ffccd58c8d1e136aae0e6fe0a96af9f09301f6ebac07。资源仅观测：host busy约0.66%/0.63%，heap alloc峰值约15.8MB，queue p95约301ms；不作为跨VM性能门槛。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -699,7 +707,8 @@
     "OpenWrt socket/TunnelOwner 已在 SOURCE_SHA a8438872f948849ab378238a69dc1a1e28c86ac6 取得真实root-netns socket + active TunnelOwner/Lane hosted资格；client/server Lane之间的carrier仍是同进程WireSink，不是最终统一runtime的真实FakeTCP raw/Npcap transport I/O，因此不能当作物理端到端或P7资格。",
     "runtimeowner已在 SOURCE_SHA ef269081e45bc516ae41943e56a01a8032e4cf8a 首次取得hosted owner资格，并在 SOURCE_SHA fa9b60315ca01ec140c34a65799dc62916f2275d 的单进程multi-lane/lifecycle入口继续通过Linux/Windows hosted资格；steady recovery仍为累计ACK、4096条metadata上限、1s默认RTO/3s绝对repair horizon，完整旧SACK/RACK/adaptive-pressure未迁入，physical E2E/P7仍NOT_RUN。",
     "P5 measurement-base 的旧 close-before-next 缺口已在 SOURCE_SHA a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f / Actions 35520092389 资格化修复：第一条真实HTTPS完整关闭、client/server TCPFlows归零后第二条仍在同一outer lane成功。该修复只覆盖 close-tail/concurrent-retire 幂等，不等于弱网/负载/长测或恢复握手已验收。",
-    "P5 fixed-FEC 20:10 已在 SOURCE_SHA b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3 / Actions 35555303253 资格化为显式无损能力/成本场景；正式CLI默认仍 `--fec-parity=0`，规范未选择任何非零生产默认。不得把20:10资格解读为推荐/最优策略或弱网恢复已验收。"
+    "P5 fixed-FEC 20:10 已在 SOURCE_SHA b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3 / Actions 35555303253 资格化为显式无损能力/成本场景；正式CLI默认仍 `--fec-parity=0`，规范未选择任何非零生产默认。不得把20:10资格解读为推荐/最优策略或弱网恢复已验收。",
+    "P5 5%->20%->5% 弱网已在 SOURCE_SHA d445e1634d6b48509bf2f44c0488a379fb75baf2 / Actions 35569185348 取得两次独立120s exact-SHA资格；该结果固定FEC off/padding off，只覆盖300ms单向、30/60/30、5%->20%->5%，不能外推为5%->30%->5%、负载、长测或任何FEC最优策略。"
   ],
   "required_read_set": [
     "AGENTS.md",
@@ -714,6 +723,6 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "IN_PROGRESS: measurement base（043da629…）、close-tail（a9b92c26…）、TLS full/resumed（1fb65c90…）、不同证书链（e2c1d668…）、稀疏（d9627cc9…）、自然并发（24e6ff71…）和fixed-FEC 20:10（b7c0b3d3… / 35555303253 / 8/8 PASS）已资格。生产FEC默认仍off；20:10仅显式能力/成本场景。当前第八atom为300ms单向、120s、30/60/30、5%->20%->5%真实HTTPS弱网候选，固定FEC off/padding off，Actions两次独立seed run待资格；5%->30%->5%、负载、长测后续分别推进。"
+    "P5": "IN_PROGRESS: measurement base、close-tail、TLS full/resumed、不同证书链、稀疏、自然并发、fixed-FEC 20:10，以及第八atom 300ms/120s/5%->20%->5%弱网均已取得exact-SHA Actions资格。最新弱网产品资格 SOURCE_SHA d445e1634d6b48509bf2f44c0488a379fb75baf2 / Actions 35569185348 / 10/10 PASS；生产FEC默认仍off，padding仍off。下一atom为独立5%->30%->5%；load与>=30min soak后续分别推进。"
   }
 }
