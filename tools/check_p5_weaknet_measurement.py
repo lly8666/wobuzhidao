@@ -249,11 +249,21 @@ def main():
     for e in outer_events:
         if not isinstance(e.get("outer_packet_len"), int) or e.get("outer_packet_len") <= 0:
             fail("outer packet length raw evidence")
-        if "inter_arrival_ns" not in e or "burst_id" not in e or "burst_wire_bytes" not in e:
-            fail("outer interval/burst raw evidence")
+        if "burst_id" not in e or "burst_wire_bytes" not in e:
+            fail("outer burst raw evidence")
+        # p5MeasurementEvent uses omitempty for InterArrivalNS. A missing field
+        # therefore means an exact zero interval (first sample for a direction,
+        # or another event captured at the same timestamp), not missing raw
+        # provenance. Normalize that schema representation to zero here.
+        gap = e.get("inter_arrival_ns", 0)
+        if not isinstance(gap, int) or gap < 0:
+            fail("outer interval raw evidence")
     for e in record_events:
-        if not isinstance(e.get("record_len"), int) or e.get("record_len") <= 0 or "inter_arrival_ns" not in e:
+        if not isinstance(e.get("record_len"), int) or e.get("record_len") <= 0:
             fail("TLS-like record raw evidence")
+        record_gap = e.get("inter_arrival_ns", 0)
+        if not isinstance(record_gap, int) or record_gap < 0:
+            fail("TLS-like record interval raw evidence")
 
     request_samples = [x for x in requests_raw if x.get("event") == "https_request"]
     inventories = [x for x in requests_raw if x.get("event") == "application_inventory"]
