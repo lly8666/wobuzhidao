@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21T07:50:00Z",
+  "updated_at": "2026-09-21T08:00:00Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -53,9 +53,9 @@
     "P5第十原子任务关闭：5/10/15/20Mbps aggregate-inner（C2S+S2C application payload）持续真实TLS1.3/HTTPS负载在 SOURCE_SHA d9e09053810f07db5e19c81a59970c831fa6e12a / Actions 35573152055 取得 20/20 PASS。每档两次独立Actions VM/seed、每job仅一档15s负载；全部 offered=accepted=successful、achievement=1.000000、application loss/duplicate/send failure/skipped=0、repair=0、FEC off、padding off。实际aggregate-inner：5Mbps两次5.015689；10Mbps两次10.031377；15Mbps两次15.002283；20Mbps两次20.017971。20Mbps RTT p95=4.523077/4.172127ms，send-lag p95=1.019941/1.028453ms，PPS=5442.867/5429.533，wire_amp=1.157729/1.157243；20Mbps runner host busy约6.40%/5.04%、heap峰值约12.0/12.2MB，仅作单VM观测、不设跨VM绝对资源门槛。8个raw artifact均保存PCAP/events/load/resources/summary。",
     "P5第十一原子任务关闭：40Mbps aggregate-inner（C2S+S2C application payload）目标在 SOURCE_SHA e0917ef15f0d51476a48feb48fedf849844e5563 / Actions 35574268057 取得22/22 PASS。两个独立Actions VM/seed均actual=40.000990Mbps、achievement=1.000000、2681/2681 successful、loss/duplicate/send_failure/skipped=0、repair=0、FEC off、padding off。run1 RTT p95=3.005388ms、send-lag p95=1.007983ms、PPS=10831.267、wire_amp=1.156855、artifact 10627003797 sha256:25caed4e1054bc743776b246757c26fc940debb8ba73623d91b2a505962dcc85；run2 RTT p95=4.205089ms、send-lag p95=1.036990ms、PPS=10888.600、wire_amp=1.157991、artifact 10626768765 sha256:f81a2b3e9f0e52e6b6ebe23baaf26f0fa2c9cc547607136ccf8f350d180abad7。此前首轮唯一未修改5305 close-tail失败在本exact-SHA完整重跑恢复。"
   ],
-  "in_progress": "P5 40Mbps aggregate-inner目标已关闭并取得exact-SHA 22/22资格。用户新要求单独推进 fixed-FEC 20:20 弱网性能测验：每个场景/seed一个独立Actions job，但一次运行同时输出多项性能/正确性指标；尚未启动。",
-  "next_task": "单独实现 fixed-FEC 20:20 弱网资格，不与soak/50-100Mbps/FEC参数选型混跑。覆盖既定300ms单向、120s、30/60/30的5%->20%->5%与5%->30%->5%，每档至少两次独立seed、每个job只跑一个场景/seed/artifact。单次validator同时检查app loss/duplicate/integrity、RTT p50/p95/p99、post5恢复、PPS、CPU/内存/GC、队列/驻留、FEC source/parity/reconstruction/recovered、repair、wire amplification、capture完整性；资源只作同VM观测。",
-  "latest_log": "docs/devlog/20260921-075000-p5-load-40-closed.md",
+  "in_progress": "P5 用户指定 fixed-FEC 20:20 弱网性能atom已启动：300ms单向、120s、30/60/30，覆盖5%->20%->5%与5%->30%->5%，各用与FEC-off基线相同的两个seed（20260921/22和20260923/24），共4个独立Actions job。每个job仅跑一个场景/seed/artifact，但单次validator同时检查raw capture/drop provenance、app loss/duplicate/integrity、RTT p50/p95/p99、post5恢复、PPS、queue residency/peak、CPU/内存/GC、FEC source/parity/full/partial/reconstruction/recovered/expired missing、repair、wire amplification。20:20只作为显式capability/cost场景，生产默认FEC仍off，padding off。",
+  "next_task": "等待fixed-FEC 20:20 weaknet的4个独立jobs与完整workflow。重点观察相对既有FEC-off弱网的app loss、RTT p95、post5 recovery、repair retransmits和wire amplification；CPU/PPS/memory只作各自VM观测，不设跨VM绝对门槛。不得把20:20结果直接变成生产策略，不混入FEC参数sweep、soak或padding enablement。",
+  "latest_log": "docs/devlog/20260921-080000-p5-fec2020-weaknet-candidate.md",
   "last_tested_source_sha": "e0917ef15f0d51476a48feb48fedf849844e5563",
   "actions": [
     {
@@ -743,6 +743,13 @@
       "scope": "P5-load-40-final",
       "status": "PASS",
       "note": "Docs-only retry exact SHA also served as final product qualification: 22/22 jobs PASS. Two 40Mbps jobs independently passed at 40.000990Mbps actual aggregate-inner with achievement=1.0 and zero app loss/duplicate/send failure/skipped/repair; all existing weaknet/load/P2/P4/P5/Windows/Linux gates also passed."
+    },
+    {
+      "source_sha": "849222ed232ed71b034c787f76abb3d17e49e073",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35576437098",
+      "scope": "P5-load-40-docs-closure",
+      "status": "PASS",
+      "note": "Docs-only 40Mbps closure exact SHA completed/success，22/22 jobs PASS；40Mbps两次、5/10/15/20Mbps、两档既有weaknet、Windows/Linux active、P2/P4/P5 base全部通过。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -777,6 +784,6 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "IN_PROGRESS: measurement base、close-tail、TLS full/resumed、不同证书链、稀疏、自然并发、fixed-FEC 20:10无损capability/cost、两档300ms弱网、5/10/15/20/40Mbps aggregate-inner load均已取得exact-SHA Actions资格。下一独立atom按用户要求验证fixed-FEC 20:20在既定5->20->5和5->30->5弱网下的性能/恢复/cost，不视为生产FEC策略选型；padding仍off。"
+    "P5": "IN_PROGRESS: 既有P5 measurement/weaknet/load资格保持；新增用户指定fixed-FEC 20:20弱网性能atom candidate，两个既定弱网档位各两次独立Actions VM/job，资格结果待跑。该atom仅量化20:20恢复/延迟/repair/wire/resource成本，不做FEC档位推荐；生产FEC默认仍off，padding仍off。"
   }
 }
