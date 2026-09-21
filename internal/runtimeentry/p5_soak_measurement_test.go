@@ -237,6 +237,22 @@ func TestP5ThirtyMinuteSoakMeasurementHarness(t *testing.T) {
 	}()
 	defer func() { tickCancel(); <-tickDone }()
 
+	// Protected admission creates the initial lifecycle lanes, but the server
+	// intentionally does not mark the tunnel qualified until the first real
+	// steady business packet arrives. Qualify those initial lanes before the
+	// sustained-loss injector is armed so the 31 minute window measures
+	// replacement/rotation behavior rather than initial bootstrap availability.
+	bootstrap := ipv4Packet([4]byte{10, 66, 0, 19}, [4]byte{8, 8, 8, 8}, 17)
+	bootstrapCtx, bootstrapCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	if err := client.SendPacket(bootstrapCtx, bootstrap, time.Now()); err != nil {
+		bootstrapCancel()
+		t.Fatalf("soak initial business qualification: %v", err)
+	}
+	bootstrapCancel()
+	if got := serverTUN.waitPacket(t, 5*time.Second); string(got) != string(bootstrap) {
+		t.Fatalf("soak initial business packet mismatch got=%x want=%x", got, bootstrap)
+	}
+
 	waitLifecycle(t, 10*time.Second, func() bool {
 		clientStats := client.Owner().Stats()
 		serverStats, ok := server.TunnelStats(tunnelID)
