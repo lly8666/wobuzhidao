@@ -8,7 +8,7 @@ import struct
 import sys
 from collections import defaultdict
 
-SCHEMA = "wbd-p5-measurement-v1"
+SCHEMA = "wbd-p5-https-measurement/v1"
 DURATION_S = 31 * 60
 DURATION_NS = DURATION_S * 1_000_000_000
 ONE_WAY_DELAY_NS = 300_000_000
