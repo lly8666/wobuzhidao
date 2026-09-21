@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21T09:42:00Z",
+  "updated_at": "2026-09-21T10:16:00Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -54,9 +54,9 @@
     "P5第十一原子任务关闭：40Mbps aggregate-inner（C2S+S2C application payload）目标在 SOURCE_SHA e0917ef15f0d51476a48feb48fedf849844e5563 / Actions 35574268057 取得22/22 PASS。两个独立Actions VM/seed均actual=40.000990Mbps、achievement=1.000000、2681/2681 successful、loss/duplicate/send_failure/skipped=0、repair=0、FEC off、padding off。run1 RTT p95=3.005388ms、send-lag p95=1.007983ms、PPS=10831.267、wire_amp=1.156855、artifact 10627003797 sha256:25caed4e1054bc743776b246757c26fc940debb8ba73623d91b2a505962dcc85；run2 RTT p95=4.205089ms、send-lag p95=1.036990ms、PPS=10888.600、wire_amp=1.157991、artifact 10626768765 sha256:f81a2b3e9f0e52e6b6ebe23baaf26f0fa2c9cc547607136ccf8f350d180abad7。此前首轮唯一未修改5305 close-tail失败在本exact-SHA完整重跑恢复。",
     "P5用户指定fixed-FEC 20:20弱网性能atom关闭：SOURCE_SHA a738cf8782688580cefe260f6781a8a3e9b23e3a / Actions 35577023449 取得26/26 PASS。新增4个独立Actions VM/job分别跑300ms单向、120s、30/60/30的5%->20%->5%与5%->30%->5%（各两seed），每job仅一个场景/seed/artifact但单次validator同时检查raw capture/drop provenance、app/RTT/post5/PPS/queue/resource/FEC recovery/repair/wire cost。四次均40/40成功、0 app loss/duplicate，RTT p95=0.633/0.629/0.638/0.628s，post5第三连续成功恢复约7.828/7.828/7.836/7.823s；recovered sources=315/345/463/470，reconstruction events=221/241/279/276。wire amplification=13.962/14.263/14.547/14.347，repair=5980/6209/6648/6453。与同seed FEC-off基线相比RTT p95约降76-80%、post5约缩短56-68%，但wire amplification约增60-72%、高丢包阶段PPS约增70-93%；绝对repair数约增70-93%，按network attempt归一后约高2.5-8%。资源CPU/PPS/memory仅作单VM观测，不设跨VM绝对门槛。该结果不改变生产默认FEC off。"
   ],
-  "in_progress": "P5 >=30min soak首候选 35c240e8af27145cfb378e9366b9da3e8b71ee49 / Actions 35584372982 提前暴露harness前置资格死锁：两个soak jobs均在约10s于首次测量前等待 server.TunnelQualified 超时，因为Lifecycle server按设计需第一笔真实steady业务后才qualification。该失败不是31min soak性能结果。修复仅在loss injector arm前通过正式TunnelClient.SendPacket发送一笔bootstrap业务并校验server TUN收到，使初始2 lanes资格化；持续loss/rotation/退役/内存门槛不放宽。",
-  "next_task": "在修复后的exact SHA重新跑两个独立31min soak。要求bootstrap业务发生于measurement window前；measurement window内仍固定300ms单向、双向持续5% loss、Game=2、60s rotation、10s真实TLS1.3/HTTPS close flow、逐流retirement与memory plateau。首候选同轮Ubuntu race的既有P4 lanes-4 GameDuplicates=2偶发不在本P5 atom修改，观察新SHA是否恢复。",
-  "latest_log": "docs/devlog/20260921-094200-p5-soak-bootstrap-fix.md",
+  "in_progress": "P5 >=30min soak第二候选 aeb02e2e385de2a5c08be96f11d34c0f642421ac / Actions 35584644754：bootstrap qualification修复有效，两个soak均跨过此前10s前置失败并持续运行；最终两job都在精确600s被Go test默认10m timeout强制panic，非业务/rotation/memory/validator失败。同轮其余26/26 jobs PASS。下一候选仅将soak专用go test timeout显式设为40m，workflow job timeout仍45m，31m场景与所有验收门槛不变。",
+  "next_task": "重跑31m soak两个独立job，确认可穿过10m并完整到31m validator。若出现新的运行时/validator失败，按真实证据修复；不得因持续loss下有限业务loss而硬改100%成功门槛，也不得放宽rotation、retirement、memory plateau、capture/drop provenance等硬门。",
+  "latest_log": "docs/devlog/20260921-101600-p5-soak-go-test-timeout-fix.md",
   "last_tested_source_sha": "a738cf8782688580cefe260f6781a8a3e9b23e3a",
   "actions": [
     {
@@ -765,6 +765,13 @@
       "scope": "P5-soak-first-candidate",
       "status": "FAIL",
       "note": "两个31m soak jobs均在约10s、正式31m measurement尚未arm前失败：p5_soak_measurement_test.go:240等待server.TunnelQualified超时。根因是Lifecycle server需第一笔steady业务后才qualification，而harness先等待qualification。另有未修改P4 lanes-4 race偶发GameDuplicates=2。soak修复只增加measurement前正式bootstrap业务，不改变持续loss/rotation/retirement/memory验收门槛。"
+    },
+    {
+      "source_sha": "aeb02e2e385de2a5c08be96f11d34c0f642421ac",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35584644754",
+      "scope": "P5-soak-second-candidate",
+      "status": "FAIL",
+      "note": "28 jobs中26 PASS，仅两个p5-soak失败。两者均在约600.0s被go test默认10m timeout panic；bootstrap qualification已成功跨过首候选10s前置失败。该轮未到31m scenario end/validator，故不是soak性能/生命周期/内存结论。"
     }
   ],
   "physical_status": "NOT_RUN",
