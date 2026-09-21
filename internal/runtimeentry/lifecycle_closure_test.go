@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/netip"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -30,6 +31,8 @@ type lifecycleAuditHarness struct {
 	mux          *SegmentMux
 	serverCancel context.CancelFunc
 	serverDone   chan error
+	clientFIN    *atomic.Uint64
+	serverFIN    *atomic.Uint64
 }
 
 func newLifecycleAuditHarness(t *testing.T, lanes int, dormantAfter, rotateEvery time.Duration) *lifecycleAuditHarness {
@@ -56,7 +59,25 @@ func newLifecycleAuditHarness(t *testing.T, lanes int, dormantAfter, rotateEvery
 	}
 
 	clientBase, serverEP := memorySegmentPair()
-	mux, err := NewSegmentMux(clientBase.io())
+	clientFIN := &atomic.Uint64{}
+	serverFIN := &atomic.Uint64{}
+	clientIO := clientBase.io()
+	clientEmit := clientIO.Emit
+	clientIO.Emit = func(seg faketcp.Segment) error {
+		if seg.Flags&faketcp.FlagFIN != 0 {
+			clientFIN.Add(1)
+		}
+		return clientEmit(seg)
+	}
+	serverIO := serverEP.io()
+	serverEmit := serverIO.Emit
+	serverIO.Emit = func(seg faketcp.Segment) error {
+		if seg.Flags&faketcp.FlagFIN != 0 {
+			serverFIN.Add(1)
+		}
+		return serverEmit(seg)
+	}
+	mux, err := NewSegmentMux(clientIO)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +90,7 @@ func newLifecycleAuditHarness(t *testing.T, lanes int, dormantAfter, rotateEvery
 	}
 	server, err := NewLifecycleServer(LifecycleServerConfig{
 		ServerConfig: ServerConfig{
-			IO:              serverEP.io(),
+			IO:              serverIO,
 			ListenPort:      443,
 			MaxAssociations: 64,
 			InitialRTO:      time.Second,
@@ -171,6 +192,7 @@ func newLifecycleAuditHarness(t *testing.T, lanes int, dormantAfter, rotateEvery
 		serverTUN: serverTUN, clientDeliver: clientDeliver,
 		tunnelID: tunnelID, lease: lease,
 		mux: mux, serverCancel: serverCancel, serverDone: serverDone,
+		clientFIN: clientFIN, serverFIN: serverFIN,
 	}
 	t.Cleanup(func() {
 		_ = h.client.Close()
@@ -271,6 +293,9 @@ func TestLifecycleEntryAutomaticRotationTimerConverges(t *testing.T) {
 			serverStats.ActiveLogicalLanes == 2 && serverStats.PhysicalLanes == 2 && serverStats.Retiring == 0
 	})
 
+	if h.clientFIN.Load() == 0 || h.serverFIN.Load() == 0 {
+		t.Fatalf("rotation did not use steady FIN client=%d server=%d", h.clientFIN.Load(), h.serverFIN.Load())
+	}
 	if h.client.Owner() != ownerPtr {
 		t.Fatal("automatic rotation replaced TunnelOwner")
 	}
@@ -300,6 +325,9 @@ func TestLifecycleEntryPayloadIdleAutoDormantAndBusinessWake(t *testing.T) {
 			h.client.Owner().Stats().ActiveLogicalLanes == 0 &&
 			serverStats.ActiveLogicalLanes == 0
 	})
+	if h.clientFIN.Load() < 2 || h.serverFIN.Load() < 2 {
+		t.Fatalf("DORMANT did not emit steady FIN per lane client=%d server=%d", h.clientFIN.Load(), h.serverFIN.Load())
+	}
 
 	// A real business packet must wake the same leased owner automatically;
 	// callers should not need to invoke Wake directly.
@@ -326,5 +354,18 @@ func TestLifecycleEntryPayloadIdleAutoDormantAndBusinessWake(t *testing.T) {
 		afterLease.Config.Address4 != beforeLease.Config.Address4 ||
 		afterLease.InstallationID != beforeLease.InstallationID {
 		t.Fatalf("lease changed across automatic idle wake before=%+v after=%+v ok=%v", beforeLease, afterLease, ok)
+	}
+}
+
+
+func TestLifecycleEntryExplicitCloseEmitsSteadyFINBeforeNetworkDetach(t *testing.T) {
+	h := newLifecycleAuditHarness(t, 2, 0, 0)
+	h.sendForward(t, [4]byte{7, 7, 7, 7})
+	before := h.clientFIN.Load()
+	if err := h.client.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if got := h.clientFIN.Load() - before; got < 2 {
+		t.Fatalf("explicit close FINs=%d want at least one per active lane", got)
 	}
 }

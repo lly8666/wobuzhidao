@@ -601,3 +601,145 @@ func TestLaneTransportTickCountsFailedRepairWithoutPretendingItWasSent(t *testin
 		t.Fatalf("successful retry wire=%+v", wire)
 	}
 }
+
+
+func TestRuntimeSteadyFINTailHalfCloseAndReset(t *testing.T) {
+	lease := runtimeLease(t)
+	leaseAddr, _ := lease.Config.LeaseIPv4()
+	clientOwner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	serverOwner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var clientWire, serverWire []faketcp.Segment
+	clientRuntime, err := New(clientOwner, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clientRuntime.Close()
+	var delivered [][]byte
+	serverRuntime, err := New(serverOwner, func(packets [][]byte, _ time.Time) error {
+		for _, packet := range packets {
+			delivered = append(delivered, append([]byte(nil), packet...))
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer serverRuntime.Close()
+
+	clientCfg, serverCfg := transportPair(
+		func(seg faketcp.Segment) error { clientWire = append(clientWire, seg); return nil },
+		func(seg faketcp.Segment) error { serverWire = append(serverWire, seg); return nil },
+		1, 31000,
+	)
+	clientSnap, err := clientRuntime.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 71), clientCfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	serverSnap, err := serverRuntime.AttachInitial(1, runtimeLane(t, datapath.RoleServer, lease, 0, 71), serverCfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t0 := time.Unix(8000, 0)
+	tail := runtimeIPv4(leaseAddr, netip.MustParseAddr("203.0.113.77"), []byte("tail-before-fin"))
+	records, err := clientOwner.NormalOutbound(tail, t0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := clientRuntime.SendNormal(records, t0); err != nil {
+		t.Fatal(err)
+	}
+	if err := clientRuntime.CloseWrite(clientSnap.Ref, t0.Add(time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if len(clientWire) != 2 || clientWire[1].Flags&(faketcp.FlagACK|faketcp.FlagFIN) != faketcp.FlagACK|faketcp.FlagFIN {
+		t.Fatalf("client wire=%+v", clientWire)
+	}
+	if clientWire[1].Seq != clientWire[0].Seq+uint32(len(clientWire[0].Payload)) {
+		t.Fatalf("FIN seq=%d tail end=%d", clientWire[1].Seq, clientWire[0].Seq+uint32(len(clientWire[0].Payload)))
+	}
+	if err := clientRuntime.SendNormal(records, t0.Add(2*time.Millisecond)); !errors.Is(err, ErrTransportWriteClosed) {
+		t.Fatalf("send after FIN err=%v", err)
+	}
+
+	if err := serverRuntime.HandleSegment(serverSnap.Ref, clientWire[1], t0.Add(3*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if st, _ := serverRuntime.TransportStats(serverSnap.Ref); st.PeerFIN {
+		t.Fatalf("out-of-order FIN closed receive side early: %+v", st)
+	}
+	if err := serverRuntime.HandleSegment(serverSnap.Ref, clientWire[0], t0.Add(4*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if len(delivered) != 1 || !bytes.Equal(delivered[0], tail) {
+		t.Fatalf("tail delivery=%d got=%x", len(delivered), firstPacket(delivered))
+	}
+	stServer, _ := serverRuntime.TransportStats(serverSnap.Ref)
+	if !stServer.PeerFIN {
+		t.Fatalf("server did not consume sequenced FIN: %+v", stServer)
+	}
+	if len(serverWire) < 2 {
+		t.Fatalf("server ACKs=%d want >=2", len(serverWire))
+	}
+	if err := clientRuntime.HandleSegment(clientSnap.Ref, serverWire[len(serverWire)-1], t0.Add(5*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	stClient, _ := clientRuntime.TransportStats(clientSnap.Ref)
+	if !stClient.WriteClosed || !stClient.LocalFINAcked || stClient.FINAcked != 1 {
+		t.Fatalf("client FIN state=%+v", stClient)
+	}
+
+	serverTransport := serverRuntime.lanes[serverSnap.Ref]
+	before := len(serverWire)
+	if err := serverTransport.send([]datapath.WireRecord{{Wire: []byte("server-after-peer-fin")}}, t0.Add(6*time.Millisecond)); err != nil {
+		t.Fatalf("half-close blocked server write: %v", err)
+	}
+	if len(serverWire) != before+1 {
+		t.Fatalf("server half-close write count=%d want=%d", len(serverWire), before+1)
+	}
+	if err := serverRuntime.CloseWrite(serverSnap.Ref, t0.Add(7*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	serverTail := serverWire[before]
+	serverFIN := serverWire[len(serverWire)-1]
+	if serverFIN.Flags&faketcp.FlagFIN == 0 ||
+		serverFIN.Seq != serverTail.Seq+uint32(len(serverTail.Payload)) {
+		t.Fatalf("server FIN=%+v tail=%+v", serverFIN, serverTail)
+	}
+
+	resetOwner, err := datapath.NewLeasedTunnelOwner(lease, 1, 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var resetWire []faketcp.Segment
+	resetRuntime, err := New(resetOwner, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resetCfg, _ := transportPair(func(seg faketcp.Segment) error {
+		resetWire = append(resetWire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 91000)
+	resetSnap, err := resetRuntime.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 72), resetCfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := resetRuntime.Reset(resetSnap.Ref, t0); err != nil {
+		t.Fatal(err)
+	}
+	if len(resetWire) != 1 || resetWire[0].Flags != faketcp.FlagACK|faketcp.FlagRST ||
+		resetWire[0].Seq != resetCfg.SendNext || resetWire[0].Ack != resetCfg.ReceiveNext {
+		t.Fatalf("steady RST=%+v", firstSegment(resetWire))
+	}
+	if st, _ := resetRuntime.TransportStats(resetSnap.Ref); !st.Closed || st.RSTSent != 1 {
+		t.Fatalf("reset stats=%+v", st)
+	}
+	resetRuntime.Close()
+}

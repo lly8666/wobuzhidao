@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P4",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21",
+  "updated_at": "2026-09-22",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -55,12 +55,13 @@
     "P5用户指定fixed-FEC 20:20弱网性能atom关闭：SOURCE_SHA a738cf8782688580cefe260f6781a8a3e9b23e3a / Actions 35577023449 取得26/26 PASS。新增4个独立Actions VM/job分别跑300ms单向、120s、30/60/30的5%->20%->5%与5%->30%->5%（各两seed），每job仅一个场景/seed/artifact但单次validator同时检查raw capture/drop provenance、app/RTT/post5/PPS/queue/resource/FEC recovery/repair/wire cost。四次均40/40成功、0 app loss/duplicate，RTT p95=0.633/0.629/0.638/0.628s，post5第三连续成功恢复约7.828/7.828/7.836/7.823s；recovered sources=315/345/463/470，reconstruction events=221/241/279/276。wire amplification=13.962/14.263/14.547/14.347，repair=5980/6209/6648/6453。与同seed FEC-off基线相比RTT p95约降76-80%、post5约缩短56-68%，但wire amplification约增60-72%、高丢包阶段PPS约增70-93%；绝对repair数约增70-93%，按network attempt归一后约高2.5-8%。资源CPU/PPS/memory仅作单VM观测，不设跨VM绝对门槛。该结果不改变生产默认FEC off。",
     "P5第十二原子任务关闭：>=30min新版本soak在 SOURCE_SHA 93b72dba4072be37a53efdf0d09df4f3b2725af7 / Actions 35593806912 取得两个独立31分钟validator PASS。固定300ms单向、双向持续5% deterministic loss、Game=2、60s自动same-ID rotation、每10s一个真实TLS1.3/HTTPS Connection: close flow、FEC/padding off。run1 seed=20260935：186/186成功、0 loss/duplicate、RTT p95/p99=1.110782/1.112741s、rotation client/server=58、lifecycle_error=0、HeapInuse minute-floor中段/末段median=16.90/17.05MB、host busy=0.536%、wire_amp=9.495673、artifact 10636558159 sha256:e16655c8e4d7e665827eb015f83a2b415accb5b5f64cf491dc737d23ee559934。run2 seed=20260936：186/186、RTT p95/p99=1.110762/1.112318s、rotation=58、lifecycle_error=0、HeapInuse中段/末段=16.61/17.72MB、host busy=0.389%、wire_amp=9.250055、artifact 10636189740 sha256:c959c194c6309786236851b8c057e66bfa1b652a69491e729ac68b0789c0484c。两次最终client/server TCPFlows和BusinessFlows均0、2 active/2 physical/0 retiring、capture loss=0、memory plateau validator PASS。",
     "P5阶段关闭：ROADMAP/ACCEPTANCE要求的真实HTTPS measurement/复用/稀疏/并发/证书链/full+resumed、fixed-FEC能力成本、300ms 5->20->5与5->30->5弱网、5/10/15/20Mbps、40Mbps aggregate-inner、以及>=30min持续loss+rotation+停流退役+memory plateau均已有exact-SHA hosted证据。50/100Mbps按规范仅为容量探索，不是协议/P5退出硬门；生产FEC仍off、padding仍off，未做参数选优或抗识别承诺。",
-    "P6关闭：SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 / Actions 35603635498 的三个独立release-candidate job全部PASS。linux/amd64 artifact 10640321325 sha256:e08bedeacb64be27677bdc2ec7232691b1a450b809e39b878f5f9141b57de8e5，manifest sha256=e971ad779beff597c8d39a69f5645f3894021e023e10c6a4a7ffc82d0f1fafa8；linux/arm64 artifact 10641055941 sha256:3637dfaa7f89a2358fe258d7f5afddb9dc8cba20d2c188552ad30010d307c88e，manifest sha256=83ab1202ae4adb12db4fb820c357a3659ea7eaf8220ac20039c1872f9235aaf0；windows/amd64 artifact 10641181252 sha256:c5b3c83af29929f474a0467c1cc2eb1d9f63756f115468c423bbf2a4c161e06f，manifest sha256=5d12951916c0663e3d9028626e2dea4a18b458979ed8ff4c3a5d8b8da5077d64。三者source_sha相同、file SHA256与binary target/source/version独立复核PASS；Windows server=UNSUPPORTED，PHYSICAL/RELEASE_QUALIFIED=NOT_RUN。"
+    "P6关闭：SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 / Actions 35603635498 的三个独立release-candidate job全部PASS。linux/amd64 artifact 10640321325 sha256:e08bedeacb64be27677bdc2ec7232691b1a450b809e39b878f5f9141b57de8e5，manifest sha256=e971ad779beff597c8d39a69f5645f3894021e023e10c6a4a7ffc82d0f1fafa8；linux/arm64 artifact 10641055941 sha256:3637dfaa7f89a2358fe258d7f5afddb9dc8cba20d2c188552ad30010d307c88e，manifest sha256=83ab1202ae4adb12db4fb820c357a3659ea7eaf8220ac20039c1872f9235aaf0；windows/amd64 artifact 10641181252 sha256:c5b3c83af29929f474a0467c1cc2eb1d9f63756f115468c423bbf2a4c161e06f，manifest sha256=5d12951916c0663e3d9028626e2dea4a18b458979ed8ff4c3a5d8b8da5077d64。三者source_sha相同、file SHA256与binary target/source/version独立复核PASS；Windows server=UNSUPPORTED，PHYSICAL/RELEASE_QUALIFIED=NOT_RUN。",
+    "P4增强第1原子修复：runtimeowner repair/gap-ACK仲裁在SOURCE_SHA e3253322ac863c11636f1c127e14b77bdc6bf800的定向Actions已通过repository-contract、Windows/Linux active-go（Linux含race）、OpenWrt privileged与Linux shared-TUN iptables/nft；repair选择/尝试/成功/失败分离且gap forgiveness不再覆盖已选repair。"
   ],
-  "in_progress": "P4增强修复第1原子任务已实现：runtimeowner timer repair与gap-forgiveness ACK不再互相覆盖；repair选择/尝试/成功/失败独立计数，发送失败不推进RTO/重试状态。SOURCE code commit da7a9c492af3351fa9b3ac6dc15b9916762cad7a；首个Actions 35612515457仅因缺STATUS/devlog被repository-contract提前拦截，产品测试NOT_EVALUATED，现补交接后重跑同产品代码。",
-  "next_task": "先取得runtimeowner repair/gap-ACK原子修复的exact-SHA Actions实际产品回归；通过后进入第2原子任务：稳态FIN/RST/半关闭接runtimeentry/lifecycle真实入口，覆盖rotation、DORMANT、退出和尾部数据，detach与网络关闭分开。随后按WEAKNET_QUALIFICATION继续SACK/fresh优先/RTT-RTO、增量ACK索引、persona/MTU连续性。",
-  "latest_log": "docs/devlog/20260921-235600-runtimeowner-repair-gap-ack.md",
-  "last_tested_source_sha": "e8220aca7c70511d0011086f563430e3b8585ef7",
+  "in_progress": "P4增强第2原子任务已提交：FIN/RST/半关闭由detach后的runtimeowner稳态Seq/ACK拥有；rotation有界FIN收尾，DORMANT/显式退出先发steady FIN再本地detach/网络关闭，尾部数据和RST有定向测试。等待exact-SHA Actions验证。",
+  "next_task": "先验证FIN/RST/半关闭原子提交的repository-contract、Windows/Linux active-go、Linux race、P4 privileged入口与Game lanes回归；若通过，再按专项限定读取old/internal/faketcp/arq.go、repair_horizon.go、adaptive_pressure.go及直接依赖/测试，记录旧参数值/单位/触发条件/适用性后做有界SACK+fresh优先repair credit+必要RTT/RTO最小闭包。",
+  "latest_log": "docs/devlog/20260922-001500-steady-fin-rst-halfclose.md",
+  "last_tested_source_sha": "e3253322ac863c11636f1c127e14b77bdc6bf800",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -817,6 +818,13 @@
       "scope": "P4-steady-repair-gap-ack-pre-devlog-contract",
       "status": "FAIL",
       "note": "repository-contract在产品job前FAIL，错误仅为Each change needs STATUS update / new development log；active-go-tests及网络job全部SKIPPED，产品修复NOT_EVALUATED。代码修复本身保持不变，下一提交仅补唯一STATUS和devlog后由新exact-SHA回归。"
+    },
+    {
+      "source_sha": "e3253322ac863c11636f1c127e14b77bdc6bf800",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35616392974",
+      "scope": "P4-steady-repair-gap-ack-targeted",
+      "status": "PASS_TARGETED",
+      "note": "repository-contract、active-go-tests Windows/Ubuntu（Ubuntu含go test -race ./...）、OpenWrt privileged、Linux shared-TUN iptables/nft均已完成PASS，关闭第1原子修复的定向回归；同workflow长时P5 jobs不提前写成整轮PASS。"
     }
   ],
   "physical_status": "NOT_RUN",

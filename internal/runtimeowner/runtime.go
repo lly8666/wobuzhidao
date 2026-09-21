@@ -26,8 +26,10 @@ var (
 	ErrTransportMissing  = errors.New("runtimeowner: lane transport is missing")
 	ErrTransportFlow     = errors.New("runtimeowner: segment does not match lane flow")
 	ErrACKRange          = errors.New("runtimeowner: ACK exceeds steady send sequence")
-	ErrPayloadConflict   = errors.New("runtimeowner: same sequence has conflicting payload")
-	ErrOutstandingBounds = errors.New("runtimeowner: outstanding record bound reached")
+	ErrPayloadConflict      = errors.New("runtimeowner: same sequence has conflicting payload")
+	ErrOutstandingBounds    = errors.New("runtimeowner: outstanding record bound reached")
+	ErrTransportWriteClosed = errors.New("runtimeowner: steady write side is closed")
+	ErrTransportPeerReset   = errors.New("runtimeowner: peer reset steady transport")
 )
 
 type PacketSink func(packets [][]byte, now time.Time) error
@@ -66,6 +68,7 @@ func (c *TransportConfig) normalize() error {
 type pendingRecord struct {
 	seq       uint32
 	end       uint32
+	flags     uint8
 	payload   []byte
 	firstSent time.Time
 	lastSent  time.Time
@@ -75,6 +78,7 @@ type pendingRecord struct {
 type receiveSpan struct {
 	end   uint32
 	first time.Time
+	fin   bool
 }
 
 type deliveredMark struct {
@@ -97,9 +101,18 @@ type TransportStats struct {
 	ForgivenGaps      uint64
 	RecordErrors      uint64
 	PathErrors        uint64
+	FINAttempts       uint64
+	FINTransmits      uint64
+	FINAcked          uint64
+	RSTAttempts       uint64
+	RSTSent           uint64
 	PeakOutstanding   int
 	Outstanding       int
 	OutOfOrder        int
+	WriteClosed       bool
+	LocalFINAcked     bool
+	PeerFIN           bool
+	PeerRST           bool
 	Closed            bool
 }
 
@@ -111,8 +124,15 @@ type laneTransport struct {
 	deliver PacketSink
 	cfg     TransportConfig
 
-	sendNext uint32
-	recvNext uint32
+	sendNext  uint32
+	recvStart uint32
+	recvNext  uint32
+
+	localFINQueued bool
+	localFINAcked  bool
+	peerFIN        bool
+	peerFINEnd     uint32
+	peerRST        bool
 
 	pending      map[uint32]*pendingRecord
 	pendingOrder []uint32
@@ -135,7 +155,7 @@ func newLaneTransport(owner *datapath.TunnelOwner, ref logicaltunnel.LaneRef, de
 	}
 	return &laneTransport{
 		owner: owner, ref: ref, deliver: deliver, cfg: cfg,
-		sendNext: cfg.SendNext, recvNext: cfg.ReceiveNext,
+		sendNext: cfg.SendNext, recvStart: cfg.ReceiveNext, recvNext: cfg.ReceiveNext,
 		pending: make(map[uint32]*pendingRecord, MaxOutstandingRecords),
 		received: make(map[uint32]receiveSpan, MaxOutstandingRecords),
 		delivered: make(map[uint32]deliveredMark, MaxOutstandingRecords),
@@ -152,6 +172,10 @@ func (t *laneTransport) outboundSegment(seq, ack uint32, payload []byte) faketcp
 	if len(payload) != 0 {
 		flags |= faketcp.FlagPSH
 	}
+	return t.outboundSegmentFlags(seq, ack, flags, payload)
+}
+
+func (t *laneTransport) outboundSegmentFlags(seq, ack uint32, flags uint8, payload []byte) faketcp.Segment {
 	return faketcp.Segment{
 		SrcIP: t.cfg.LocalIP, DstIP: t.cfg.PeerIP,
 		SrcPort: t.cfg.LocalPort, DstPort: t.cfg.PeerPort,
@@ -167,8 +191,16 @@ func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error
 		}
 		t.mu.Lock()
 		if t.closed {
+			peerRST := t.peerRST
 			t.mu.Unlock()
+			if peerRST {
+				return ErrTransportPeerReset
+			}
 			return ErrRuntimeClosed
+		}
+		if t.localFINQueued {
+			t.mu.Unlock()
+			return ErrTransportWriteClosed
 		}
 		if len(t.pending) >= MaxOutstandingRecords {
 			t.abandonOldestLocked()
@@ -180,7 +212,8 @@ func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error
 		seq := t.sendNext
 		end := seq + uint32(len(record.Wire))
 		p := &pendingRecord{
-			seq: seq, end: end, payload: append([]byte(nil), record.Wire...),
+			seq: seq, end: end, flags: faketcp.FlagACK | faketcp.FlagPSH,
+			payload: append([]byte(nil), record.Wire...),
 			firstSent: now, lastSent: now,
 		}
 		t.pending[seq] = p
@@ -214,7 +247,11 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 
 	t.mu.Lock()
 	if t.closed {
+		peerRST := t.peerRST
 		t.mu.Unlock()
+		if peerRST {
+			return ErrTransportPeerReset
+		}
 		return ErrRuntimeClosed
 	}
 	if seg.Flags&faketcp.FlagACK != 0 {
@@ -224,18 +261,57 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		}
 		t.retireACKLocked(seg.Ack)
 	}
-	if len(seg.Payload) == 0 {
+
+	// Payload/control wholly before the detached steady boundary still belongs
+	// to bootstrap. Do not reinterpret retransmitted bootstrap bytes as steady
+	// records; acknowledge at the current steady receive point instead.
+	if (len(seg.Payload) != 0 || seg.Flags&(faketcp.FlagFIN|faketcp.FlagRST) != 0) &&
+		seqLT(seg.Seq, t.recvStart) {
+		ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
+		t.mu.Unlock()
+		return t.cfg.Emit(ackSeg)
+	}
+
+	if seg.Flags&faketcp.FlagRST != 0 {
+		if seg.Seq != t.recvNext {
+			ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
+			t.mu.Unlock()
+			return t.cfg.Emit(ackSeg)
+		}
+		t.peerRST = true
+		t.closed = true
+		clear(t.pending)
+		clear(t.received)
+		t.pendingOrder = nil
 		t.mu.Unlock()
 		return nil
 	}
 
-	deliver, err := t.acceptPayloadLocked(seg.Seq, seg.Payload, now)
-	ack := t.recvNext
-	ackSeg := t.outboundSegment(t.sendNext, ack, nil)
-	t.mu.Unlock()
-	if err != nil {
-		return err
+	hasPayload := len(seg.Payload) != 0
+	hasFIN := seg.Flags&faketcp.FlagFIN != 0
+	if !hasPayload && !hasFIN {
+		t.mu.Unlock()
+		return nil
 	}
+
+	deliver := false
+	var err error
+	if hasPayload {
+		deliver, err = t.acceptPayloadLocked(seg.Seq, seg.Payload, now)
+		if err != nil {
+			t.mu.Unlock()
+			return err
+		}
+	}
+	if hasFIN {
+		finSeq := seg.Seq + uint32(len(seg.Payload))
+		if err := t.acceptFINLocked(finSeq, now); err != nil {
+			t.mu.Unlock()
+			return err
+		}
+	}
+	ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
+	t.mu.Unlock()
 
 	if deliver {
 		var result datapath.InboundResult
@@ -294,6 +370,43 @@ func (t *laneTransport) acceptPayloadLocked(seq uint32, payload []byte, now time
 	return true, nil
 }
 
+func (t *laneTransport) acceptFINLocked(seq uint32, now time.Time) error {
+	end := seq + 1
+	if t.peerFIN {
+		if end == t.peerFINEnd || seqLT(end, t.peerFINEnd) {
+			return nil
+		}
+		return ErrPayloadConflict
+	}
+	if seqLT(seq, t.recvNext) {
+		return nil
+	}
+	if seq == t.recvNext {
+		t.recvNext = end
+		t.markPeerFINLocked(end)
+		return nil
+	}
+	if span, ok := t.received[seq]; ok {
+		if span.end != end || !span.fin {
+			return ErrPayloadConflict
+		}
+		return nil
+	}
+	t.received[seq] = receiveSpan{end: end, first: now, fin: true}
+	if len(t.received) > MaxOutstandingRecords {
+		t.forgiveGapLocked(now, true)
+	}
+	return nil
+}
+
+func (t *laneTransport) markPeerFINLocked(end uint32) {
+	if t.peerFIN {
+		return
+	}
+	t.peerFIN = true
+	t.peerFINEnd = end
+}
+
 func (t *laneTransport) rememberDeliveredLocked(seq uint32, mark deliveredMark) {
 	t.delivered[seq] = mark
 	t.deliveredOrder = append(t.deliveredOrder, seq)
@@ -316,6 +429,10 @@ func (t *laneTransport) advanceReceiveLocked() {
 		}
 		delete(t.received, t.recvNext)
 		t.recvNext = span.end
+		if span.fin {
+			t.markPeerFINLocked(span.end)
+			return
+		}
 	}
 }
 
@@ -343,7 +460,11 @@ func (t *laneTransport) forgiveGapLocked(now time.Time, force bool) bool {
 	}
 	delete(t.received, bestSeq)
 	t.recvNext = best.end
-	t.advanceReceiveLocked()
+	if best.fin {
+		t.markPeerFINLocked(best.end)
+	} else {
+		t.advanceReceiveLocked()
+	}
 	t.stats.ForgivenGaps++
 	return true
 }
@@ -359,6 +480,10 @@ func (t *laneTransport) retireACKLocked(ack uint32) {
 		}
 		delete(t.pending, seq)
 		t.stats.Acked++
+		if p.flags&faketcp.FlagFIN != 0 && !t.localFINAcked {
+			t.localFINAcked = true
+			t.stats.FINAcked++
+		}
 	}
 	t.compactPendingOrderLocked()
 }
@@ -411,7 +536,7 @@ func (t *laneTransport) tick(now time.Time) error {
 			t.stats.Abandoned++
 			continue
 		}
-		if now.Sub(p.lastSent) >= t.cfg.InitialRTO {
+		if p.lastSent.IsZero() || now.Sub(p.lastSent) >= t.cfg.InitialRTO {
 			repairSeq = seq
 			repairRecord = p
 			t.stats.RepairSelected++
@@ -425,7 +550,7 @@ func (t *laneTransport) tick(now time.Time) error {
 	// instead of replacing the selected payload with an ACK-only segment.
 	forgiven := t.forgiveGapLocked(now, false)
 	if repairRecord != nil {
-		seg := t.outboundSegment(repairRecord.seq, t.recvNext, repairRecord.payload)
+		seg := t.outboundSegmentFlags(repairRecord.seq, t.recvNext, repairRecord.flags, repairRecord.payload)
 		repair = &seg
 	} else if forgiven {
 		seg := t.outboundSegment(t.sendNext, t.recvNext, nil)
@@ -446,6 +571,9 @@ func (t *laneTransport) tick(now time.Time) error {
 		} else {
 			t.stats.RepairSucceeded++
 			t.stats.Retransmitted++
+			if repairRecord.flags&faketcp.FlagFIN != 0 {
+				t.stats.FINTransmits++
+			}
 			if current := t.pending[repairSeq]; current == repairRecord {
 				current.lastSent = now
 				current.retries++
@@ -460,12 +588,87 @@ func (t *laneTransport) tick(now time.Time) error {
 	return nil
 }
 
+func (t *laneTransport) closeWrite(now time.Time) error {
+	t.mu.Lock()
+	if t.closed {
+		peerRST := t.peerRST
+		t.mu.Unlock()
+		if peerRST {
+			return ErrTransportPeerReset
+		}
+		return ErrRuntimeClosed
+	}
+	if t.localFINQueued {
+		t.mu.Unlock()
+		return nil
+	}
+	if len(t.pending) >= MaxOutstandingRecords {
+		t.mu.Unlock()
+		return ErrOutstandingBounds
+	}
+	seq := t.sendNext
+	p := &pendingRecord{
+		seq: seq, end: seq + 1, flags: faketcp.FlagACK | faketcp.FlagFIN,
+		firstSent: now,
+	}
+	t.pending[seq] = p
+	t.pendingOrder = append(t.pendingOrder, seq)
+	t.sendNext = p.end
+	t.localFINQueued = true
+	t.stats.FINAttempts++
+	if n := len(t.pending); n > t.stats.PeakOutstanding {
+		t.stats.PeakOutstanding = n
+	}
+	seg := t.outboundSegmentFlags(seq, t.recvNext, p.flags, nil)
+	t.mu.Unlock()
+
+	err := t.cfg.Emit(seg)
+	t.mu.Lock()
+	if err == nil {
+		t.stats.FINTransmits++
+		if current := t.pending[seq]; current == p {
+			current.lastSent = now
+		}
+	}
+	t.mu.Unlock()
+	return err
+}
+
+func (t *laneTransport) reset(now time.Time) error {
+	t.mu.Lock()
+	if t.closed {
+		t.mu.Unlock()
+		return nil
+	}
+	t.stats.RSTAttempts++
+	seg := t.outboundSegmentFlags(t.sendNext, t.recvNext, faketcp.FlagACK|faketcp.FlagRST, nil)
+	t.mu.Unlock()
+
+	err := t.cfg.Emit(seg)
+	t.mu.Lock()
+	if err == nil {
+		t.stats.RSTSent++
+	}
+	t.closed = true
+	clear(t.pending)
+	clear(t.received)
+	clear(t.delivered)
+	t.pendingOrder = nil
+	t.deliveredOrder = nil
+	t.mu.Unlock()
+	return err
+}
+
 func (t *laneTransport) statsSnapshot() TransportStats {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	out := t.stats
 	out.Outstanding = len(t.pending)
 	out.OutOfOrder = len(t.received)
+	out.WriteClosed = t.localFINQueued
+	out.LocalFINAcked = t.localFINAcked
+	out.PeerFIN = t.peerFIN
+	out.PeerRST = t.peerRST
 	out.Closed = t.closed
 	return out
 }
@@ -651,19 +854,68 @@ func (r *Runtime) RetireIncarnation(ref logicaltunnel.LaneRef) error {
 	return nil
 }
 
+func (r *Runtime) CloseWrite(ref logicaltunnel.LaneRef, now time.Time) error {
+	if r == nil {
+		return ErrRuntimeClosed
+	}
+	r.mu.Lock()
+	transport := r.lanes[ref]
+	r.mu.Unlock()
+	if transport == nil {
+		return ErrTransportMissing
+	}
+	return transport.closeWrite(now)
+}
+
+func (r *Runtime) Reset(ref logicaltunnel.LaneRef, now time.Time) error {
+	if r == nil {
+		return ErrRuntimeClosed
+	}
+	r.mu.Lock()
+	transport := r.lanes[ref]
+	r.mu.Unlock()
+	if transport == nil {
+		return ErrTransportMissing
+	}
+	return transport.reset(now)
+}
+
+func (r *Runtime) steadyOwnsSegment(ref logicaltunnel.LaneRef, seg faketcp.Segment) bool {
+	r.mu.Lock()
+	transport := r.lanes[ref]
+	r.mu.Unlock()
+	if transport == nil {
+		return false
+	}
+	if len(seg.Payload) == 0 && seg.Flags&(faketcp.FlagFIN|faketcp.FlagRST) == 0 {
+		return true
+	}
+	transport.mu.Lock()
+	start := transport.recvStart
+	transport.mu.Unlock()
+	return !seqLT(seg.Seq, start)
+}
+
 func (r *Runtime) Dormant() ([]logicaltunnel.LaneRef, error) {
 	if r == nil {
 		return nil, ErrRuntimeClosed
-	}
-	refs, err := r.owner.Dormant()
-	if err != nil {
-		return nil, err
 	}
 	r.mu.Lock()
 	lanes := make([]*laneTransport, 0, len(r.lanes))
 	for _, transport := range r.lanes {
 		lanes = append(lanes, transport)
 	}
+	r.mu.Unlock()
+	now := time.Now()
+	for _, transport := range lanes {
+		_ = transport.closeWrite(now)
+	}
+
+	refs, err := r.owner.Dormant()
+	if err != nil {
+		return nil, err
+	}
+	r.mu.Lock()
 	clear(r.lanes)
 	clear(r.active)
 	clear(r.candidates)
@@ -820,6 +1072,16 @@ func (r *Runtime) HandleServerSegmentQualified(ref logicaltunnel.LaneRef, assoc 
 	if assoc == nil {
 		return false, ErrTransportConfig
 	}
+	if state, ok := assoc.TransitionState(); ok && state == faketcp.TransitionDetached &&
+		r.steadyOwnsSegment(ref, seg) {
+		before, _ := r.TransportStats(ref)
+		if err := r.HandleSegment(ref, seg, now); err != nil {
+			return false, err
+		}
+		after, _ := r.TransportStats(ref)
+		return after.Received > before.Received, nil
+	}
+
 	result, err := assoc.HandleSegment(seg, now)
 	if err != nil {
 		return false, err
@@ -948,7 +1210,9 @@ func (r *Runtime) Close() {
 	clear(r.active)
 	clear(r.candidates)
 	r.mu.Unlock()
+	now := time.Now()
 	for _, transport := range lanes {
+		_ = transport.closeWrite(now)
 		transport.close()
 	}
 	r.owner.Close()

@@ -240,10 +240,11 @@ func (l *clientLifecycleLane) close() {
 }
 
 type clientRetiring struct {
-	oldRef     logicaltunnel.LaneRef
-	freshRef   logicaltunnel.LaneRef
-	old        *clientLifecycleLane
-	promotedAt time.Time
+	oldRef       logicaltunnel.LaneRef
+	freshRef     logicaltunnel.LaneRef
+	old          *clientLifecycleLane
+	promotedAt   time.Time
+	closeStarted time.Time
 }
 
 type TunnelClient struct {
@@ -786,7 +787,31 @@ func (c *TunnelClient) retireQualified(now time.Time) {
 		}
 		qualified := stats.Acked != 0 || stats.Received != 0
 		graceExpired := !now.Before(item.promotedAt) && now.Sub(item.promotedAt) >= c.cfg.ReplacementGrace
-		if !qualified && !graceExpired {
+
+		c.mu.Lock()
+		closeStarted := item.closeStarted
+		c.mu.Unlock()
+		if closeStarted.IsZero() {
+			if !qualified && !graceExpired {
+				continue
+			}
+			if err := c.rt.CloseWrite(item.oldRef, now); err != nil &&
+				!errors.Is(err, runtimeowner.ErrRuntimeClosed) &&
+				!errors.Is(err, runtimeowner.ErrTransportPeerReset) {
+				c.report(err)
+			}
+			c.mu.Lock()
+			if current := c.retiring[item.freshRef]; current == item && item.closeStarted.IsZero() {
+				item.closeStarted = now
+			}
+			c.mu.Unlock()
+			continue
+		}
+
+		oldStats, oldOK := c.rt.TransportStats(item.oldRef)
+		closeComplete := oldOK && oldStats.LocalFINAcked && oldStats.PeerFIN
+		closeExpired := !now.Before(closeStarted) && now.Sub(closeStarted) >= c.cfg.ReplacementGrace
+		if !closeComplete && !closeExpired {
 			continue
 		}
 		if err := c.rt.RetireIncarnation(item.oldRef); err != nil &&
@@ -901,10 +926,10 @@ func (c *TunnelClient) Close() error {
 		if c.cancel != nil {
 			c.cancel()
 		}
+		c.rt.Close()
 		for _, lane := range lanes {
 			lane.close()
 		}
-		c.rt.Close()
 	})
 	return out
 }
@@ -932,14 +957,15 @@ type LifecycleServerConfig struct {
 }
 
 type serverLifecycleLane struct {
-	flow       faketcp.ServerFlow
-	assoc      *faketcp.ServerAssociation
-	ref        logicaltunnel.LaneRef
-	qualified  bool
-	retiring   bool
-	replaces   *serverLifecycleLane
-	promotedAt time.Time
-	group      *serverLifecycleTunnel
+	flow         faketcp.ServerFlow
+	assoc        *faketcp.ServerAssociation
+	ref          logicaltunnel.LaneRef
+	qualified    bool
+	retiring     bool
+	replaces     *serverLifecycleLane
+	promotedAt   time.Time
+	closeStarted time.Time
+	group        *serverLifecycleTunnel
 }
 
 type serverLifecycleTunnel struct {
@@ -1464,8 +1490,33 @@ func (s *LifecycleServer) retireServerReplacement(lane *serverLifecycleLane) {
 	}
 	s.mu.Lock()
 	replacing := lane.replaces
+	var closeStarted time.Time
+	if replacing != nil {
+		closeStarted = replacing.closeStarted
+	}
 	s.mu.Unlock()
 	if replacing == nil {
+		return
+	}
+	now := time.Now()
+	if closeStarted.IsZero() {
+		if err := lane.group.rt.CloseWrite(replacing.ref, now); err != nil &&
+			!errors.Is(err, runtimeowner.ErrRuntimeClosed) &&
+			!errors.Is(err, runtimeowner.ErrTransportPeerReset) {
+			return
+		}
+		s.mu.Lock()
+		if lane.replaces == replacing && replacing.closeStarted.IsZero() {
+			replacing.closeStarted = now
+		}
+		s.mu.Unlock()
+		return
+	}
+
+	stats, ok := lane.group.rt.TransportStats(replacing.ref)
+	closeComplete := ok && stats.LocalFINAcked && stats.PeerFIN
+	closeExpired := !now.Before(closeStarted) && now.Sub(closeStarted) >= s.cfg.ReplacementGrace
+	if !closeComplete && !closeExpired {
 		return
 	}
 	if err := lane.group.rt.RetireIncarnation(replacing.ref); err != nil &&
