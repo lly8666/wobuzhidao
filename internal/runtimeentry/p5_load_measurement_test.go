@@ -36,7 +36,7 @@ const (
 	p5LoadBaseSeed = uint64(20260925)
 )
 
-var p5LoadRatesMbps = []int{5, 10, 15, 20}
+var p5LoadRatesMbps = []int{5, 10, 15, 20, 40}
 var p5LoadSizes = []int{1024, 8 * 1024, 32 * 1024}
 
 type p5LoadSlot struct {

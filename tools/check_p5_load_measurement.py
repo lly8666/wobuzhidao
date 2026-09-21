@@ -7,7 +7,7 @@ from collections import defaultdict
 
 SCHEMA = "wbd-p5-https-measurement/v1"
 DURATION_NS = 15_000_000_000
-RATES = [5, 10, 15, 20]
+RATES = [5, 10, 15, 20, 40]
 SIZES = [1024, 8 * 1024, 32 * 1024]
 BASE_SEED = 20260925
 MIN_ACHIEVEMENT_RATIO = 0.95
