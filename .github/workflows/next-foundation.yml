@@ -368,3 +368,48 @@ jobs:
             artifacts/p5-natural-concurrency
             artifacts/p5-fixed-fec
           if-no-files-found: error
+
+  p5-weaknet-5-20-5:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run prescribed 300ms weak-network HTTPS qualification
+        shell: bash
+        env:
+          WBD_P5_WEAKNET_MEASURE: '1'
+          WBD_P5_WEAKNET_RUN: ${{ matrix.run }}
+          WBD_P5_WEAKNET_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-weaknet-5-20-5-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_WEAKNET_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5WeakNetwork5205MeasurementHarness$' -v \
+            | tee "$WBD_P5_WEAKNET_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_weaknet_measurement.py \
+            --manifest "$WBD_P5_WEAKNET_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_WEAKNET_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_WEAKNET_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_WEAKNET_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_WEAKNET_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_WEAKNET_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_WEAKNET_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-weaknet-5-20-5-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-weaknet-5-20-5-run${{ matrix.run }}
+          if-no-files-found: error
