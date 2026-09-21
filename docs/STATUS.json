@@ -57,9 +57,9 @@
     "P5阶段关闭：ROADMAP/ACCEPTANCE要求的真实HTTPS measurement/复用/稀疏/并发/证书链/full+resumed、fixed-FEC能力成本、300ms 5->20->5与5->30->5弱网、5/10/15/20Mbps、40Mbps aggregate-inner、以及>=30min持续loss+rotation+停流退役+memory plateau均已有exact-SHA hosted证据。50/100Mbps按规范仅为容量探索，不是协议/P5退出硬门；生产FEC仍off、padding仍off，未做参数选优或抗识别承诺。",
     "P6关闭：SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 / Actions 35603635498 的三个独立release-candidate job全部PASS。linux/amd64 artifact 10640321325 sha256:e08bedeacb64be27677bdc2ec7232691b1a450b809e39b878f5f9141b57de8e5，manifest sha256=e971ad779beff597c8d39a69f5645f3894021e023e10c6a4a7ffc82d0f1fafa8；linux/arm64 artifact 10641055941 sha256:3637dfaa7f89a2358fe258d7f5afddb9dc8cba20d2c188552ad30010d307c88e，manifest sha256=83ab1202ae4adb12db4fb820c357a3659ea7eaf8220ac20039c1872f9235aaf0；windows/amd64 artifact 10641181252 sha256:c5b3c83af29929f474a0467c1cc2eb1d9f63756f115468c423bbf2a4c161e06f，manifest sha256=5d12951916c0663e3d9028626e2dea4a18b458979ed8ff4c3a5d8b8da5077d64。三者source_sha相同、file SHA256与binary target/source/version独立复核PASS；Windows server=UNSUPPORTED，PHYSICAL/RELEASE_QUALIFIED=NOT_RUN。"
   ],
-  "in_progress": "用户新增增强验收：P4稳态低开销恢复/FIN-RST/参数连续性重新收口，P5真实独立进程弱网主测Normal10Mbps每方向、Game4 3Mbps每方向、FEC20:20。旧阶段证据保留，不覆盖新增门槛。",
-  "next_task": "先按docs/WEAKNET_QUALIFICATION.md核实runtimeowner tick repair/ACK覆盖及稳态关闭，做最小修复和Actions回归；搭建正式client/server经raw与TUN/TPROXY、netns/veth/netem的真实路径，再18份主测/目标负载soak/平台配置矩阵。定位Game4间歇红灯，最终同SHA回归和重新P6打包；不本机测试，不启动物理验收。",
-  "latest_log": "docs/devlog/20260921-steady-weaknet-plan.md",
+  "in_progress": "P4增强修复第1原子任务已实现：runtimeowner timer repair与gap-forgiveness ACK不再互相覆盖；repair选择/尝试/成功/失败独立计数，发送失败不推进RTO/重试状态。SOURCE code commit da7a9c492af3351fa9b3ac6dc15b9916762cad7a；首个Actions 35612515457仅因缺STATUS/devlog被repository-contract提前拦截，产品测试NOT_EVALUATED，现补交接后重跑同产品代码。",
+  "next_task": "先取得runtimeowner repair/gap-ACK原子修复的exact-SHA Actions实际产品回归；通过后进入第2原子任务：稳态FIN/RST/半关闭接runtimeentry/lifecycle真实入口，覆盖rotation、DORMANT、退出和尾部数据，detach与网络关闭分开。随后按WEAKNET_QUALIFICATION继续SACK/fresh优先/RTT-RTO、增量ACK索引、persona/MTU连续性。",
+  "latest_log": "docs/devlog/20260921-235600-runtimeowner-repair-gap-ack.md",
   "last_tested_source_sha": "e8220aca7c70511d0011086f563430e3b8585ef7",
   "actions": [
     {
@@ -810,6 +810,13 @@
       "scope": "product",
       "status": "PASS",
       "note": "P6 target qualification PASS despite unrelated whole-workflow P4 intermittent: p6-release-candidate linux/amd64 job 106345442390 PASS (artifact 10640321325, digest sha256:e08bedeacb64be27677bdc2ec7232691b1a450b809e39b878f5f9141b57de8e5, manifest sha256:e971ad779beff597c8d39a69f5645f3894021e023e10c6a4a7ffc82d0f1fafa8); linux/arm64 job 106345442454 PASS (artifact 10641055941, digest sha256:3637dfaa7f89a2358fe258d7f5afddb9dc8cba20d2c188552ad30010d307c88e, manifest sha256:83ab1202ae4adb12db4fb820c357a3659ea7eaf8220ac20039c1872f9235aaf0); windows/amd64 job 106345442266 PASS (artifact 10641181252, digest sha256:c5b3c83af29929f474a0467c1cc2eb1d9f63756f115468c423bbf2a4c161e06f, manifest sha256=5d12951916c0663e3d9028626e2dea4a18b458979ed8ff4c3a5d8b8da5077d64). Windows active-go-tests PASS. Ubuntu active red is known unrelated P4 lanes-4 GameDuplicates=2 intermittent; buildinfo ordinary/race tests themselves PASS."
+    },
+    {
+      "source_sha": "da7a9c492af3351fa9b3ac6dc15b9916762cad7a",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35612515457",
+      "scope": "P4-steady-repair-gap-ack-pre-devlog-contract",
+      "status": "FAIL",
+      "note": "repository-contract在产品job前FAIL，错误仅为Each change needs STATUS update / new development log；active-go-tests及网络job全部SKIPPED，产品修复NOT_EVALUATED。代码修复本身保持不变，下一提交仅补唯一STATUS和devlog后由新exact-SHA回归。"
     }
   ],
   "physical_status": "NOT_RUN",
