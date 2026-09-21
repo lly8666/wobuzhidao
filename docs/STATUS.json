@@ -2,9 +2,9 @@
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
-  "milestone": "P5",
+  "milestone": "P6",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21T11:21:00Z",
+  "updated_at": "2026-09-21T11:59:00Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -52,12 +52,14 @@
     "P5第九原子任务关闭：300ms单向、120s、30/60/30、5%->30%->5% 真实HTTPS弱网资格在 SOURCE_SHA 4e8e17e44646cf9732ed44d68ad15ed19faf5d9b / Actions 35570306162 取得 12/12 PASS。两个独立Actions VM/seed各跑单一120s场景：run1 seed=20260923 scheduled=40 success=36 loss=4 duplicate=0 RTT p95=3.214118710s post5第三个连续成功恢复=23.498220577s repair=3909 wire_amp=9.068234；run2 seed=20260924 success=35 loss=5 duplicate=0 RTT p95=2.909270709s post5恢复=24.518068495s repair=3350 wire_amp=8.521681。两次均FEC off、padding off；validator从raw重算phase/drop/300ms residency/capture/RTT/loss/duplicate/post5/FEC/repair/cost/resource。run1 artifact 10625706787 sha256:2a6e97d89a1780ce9fca2cd2af943c59104c8b01d6d8c18aecfb68237bbdfffa；run2 artifact 10625951165 sha256:7146505c7bcbfc844d3e751101d827ee06553c7b5379d26be98013777a87581e。CPU/PPS/memory仍仅为runner观测，不设跨VM绝对性能门槛。",
     "P5第十原子任务关闭：5/10/15/20Mbps aggregate-inner（C2S+S2C application payload）持续真实TLS1.3/HTTPS负载在 SOURCE_SHA d9e09053810f07db5e19c81a59970c831fa6e12a / Actions 35573152055 取得 20/20 PASS。每档两次独立Actions VM/seed、每job仅一档15s负载；全部 offered=accepted=successful、achievement=1.000000、application loss/duplicate/send failure/skipped=0、repair=0、FEC off、padding off。实际aggregate-inner：5Mbps两次5.015689；10Mbps两次10.031377；15Mbps两次15.002283；20Mbps两次20.017971。20Mbps RTT p95=4.523077/4.172127ms，send-lag p95=1.019941/1.028453ms，PPS=5442.867/5429.533，wire_amp=1.157729/1.157243；20Mbps runner host busy约6.40%/5.04%、heap峰值约12.0/12.2MB，仅作单VM观测、不设跨VM绝对资源门槛。8个raw artifact均保存PCAP/events/load/resources/summary。",
     "P5第十一原子任务关闭：40Mbps aggregate-inner（C2S+S2C application payload）目标在 SOURCE_SHA e0917ef15f0d51476a48feb48fedf849844e5563 / Actions 35574268057 取得22/22 PASS。两个独立Actions VM/seed均actual=40.000990Mbps、achievement=1.000000、2681/2681 successful、loss/duplicate/send_failure/skipped=0、repair=0、FEC off、padding off。run1 RTT p95=3.005388ms、send-lag p95=1.007983ms、PPS=10831.267、wire_amp=1.156855、artifact 10627003797 sha256:25caed4e1054bc743776b246757c26fc940debb8ba73623d91b2a505962dcc85；run2 RTT p95=4.205089ms、send-lag p95=1.036990ms、PPS=10888.600、wire_amp=1.157991、artifact 10626768765 sha256:f81a2b3e9f0e52e6b6ebe23baaf26f0fa2c9cc547607136ccf8f350d180abad7。此前首轮唯一未修改5305 close-tail失败在本exact-SHA完整重跑恢复。",
-    "P5用户指定fixed-FEC 20:20弱网性能atom关闭：SOURCE_SHA a738cf8782688580cefe260f6781a8a3e9b23e3a / Actions 35577023449 取得26/26 PASS。新增4个独立Actions VM/job分别跑300ms单向、120s、30/60/30的5%->20%->5%与5%->30%->5%（各两seed），每job仅一个场景/seed/artifact但单次validator同时检查raw capture/drop provenance、app/RTT/post5/PPS/queue/resource/FEC recovery/repair/wire cost。四次均40/40成功、0 app loss/duplicate，RTT p95=0.633/0.629/0.638/0.628s，post5第三连续成功恢复约7.828/7.828/7.836/7.823s；recovered sources=315/345/463/470，reconstruction events=221/241/279/276。wire amplification=13.962/14.263/14.547/14.347，repair=5980/6209/6648/6453。与同seed FEC-off基线相比RTT p95约降76-80%、post5约缩短56-68%，但wire amplification约增60-72%、高丢包阶段PPS约增70-93%；绝对repair数约增70-93%，按network attempt归一后约高2.5-8%。资源CPU/PPS/memory仅作单VM观测，不设跨VM绝对门槛。该结果不改变生产默认FEC off。"
+    "P5用户指定fixed-FEC 20:20弱网性能atom关闭：SOURCE_SHA a738cf8782688580cefe260f6781a8a3e9b23e3a / Actions 35577023449 取得26/26 PASS。新增4个独立Actions VM/job分别跑300ms单向、120s、30/60/30的5%->20%->5%与5%->30%->5%（各两seed），每job仅一个场景/seed/artifact但单次validator同时检查raw capture/drop provenance、app/RTT/post5/PPS/queue/resource/FEC recovery/repair/wire cost。四次均40/40成功、0 app loss/duplicate，RTT p95=0.633/0.629/0.638/0.628s，post5第三连续成功恢复约7.828/7.828/7.836/7.823s；recovered sources=315/345/463/470，reconstruction events=221/241/279/276。wire amplification=13.962/14.263/14.547/14.347，repair=5980/6209/6648/6453。与同seed FEC-off基线相比RTT p95约降76-80%、post5约缩短56-68%，但wire amplification约增60-72%、高丢包阶段PPS约增70-93%；绝对repair数约增70-93%，按network attempt归一后约高2.5-8%。资源CPU/PPS/memory仅作单VM观测，不设跨VM绝对门槛。该结果不改变生产默认FEC off。",
+    "P5第十二原子任务关闭：>=30min新版本soak在 SOURCE_SHA 93b72dba4072be37a53efdf0d09df4f3b2725af7 / Actions 35593806912 取得两个独立31分钟validator PASS。固定300ms单向、双向持续5% deterministic loss、Game=2、60s自动same-ID rotation、每10s一个真实TLS1.3/HTTPS Connection: close flow、FEC/padding off。run1 seed=20260935：186/186成功、0 loss/duplicate、RTT p95/p99=1.110782/1.112741s、rotation client/server=58、lifecycle_error=0、HeapInuse minute-floor中段/末段median=16.90/17.05MB、host busy=0.536%、wire_amp=9.495673、artifact 10636558159 sha256:e16655c8e4d7e665827eb015f83a2b415accb5b5f64cf491dc737d23ee559934。run2 seed=20260936：186/186、RTT p95/p99=1.110762/1.112318s、rotation=58、lifecycle_error=0、HeapInuse中段/末段=16.61/17.72MB、host busy=0.389%、wire_amp=9.250055、artifact 10636189740 sha256:c959c194c6309786236851b8c057e66bfa1b652a69491e729ac68b0789c0484c。两次最终client/server TCPFlows和BusinessFlows均0、2 active/2 physical/0 retiring、capture loss=0、memory plateau validator PASS。",
+    "P5阶段关闭：ROADMAP/ACCEPTANCE要求的真实HTTPS measurement/复用/稀疏/并发/证书链/full+resumed、fixed-FEC能力成本、300ms 5->20->5与5->30->5弱网、5/10/15/20Mbps、40Mbps aggregate-inner、以及>=30min持续loss+rotation+停流退役+memory plateau均已有exact-SHA hosted证据。50/100Mbps按规范仅为容量探索，不是协议/P5退出硬门；生产FEC仍off、padding仍off，未做参数选优或抗识别承诺。"
   ],
-  "in_progress": "P5 >=30min soak在 SOURCE_SHA bb9c7ed10ce4a5e1af3db24ba18c6aa92f47f368 / Actions 35588122605 两个独立31m job均完整跑完产品场景并生成完整证据；run1/run2均186/186 HTTPS成功、0 loss、0 duplicate、client/server rotation advances=58、lifecycle_errors=0、最终TCP/BusinessFlow归零且2 active/2 physical/0 retiring。两job最终红灯仅来自soak validator schema常量写错：validator期待 wbd-p5-measurement-v1，而项目统一manifest schema实际为 wbd-p5-https-measurement/v1；source_sha/harness_sha均正确。另同轮既有lossless fixed-FEC20:10首次出现server reconstruction=1红灯，但在同SHA单job rerun 106313094093恢复PASS，因此记录为hosted timing intermittent，原无损reconstruction=0硬断言不变。",
-  "next_task": "提交soak validator schema-only closure candidate并重跑exact SHA两个独立31m soak。要求再次通过完整validator：deterministic drop provenance、300ms residency、186业务样本、RTT/loss/duplicate/send lag、rotation>=15、逐流retirement、最终lane收敛、memory plateau、CPU/GC/PPS/queue/capture/wire amplification。fixed-FEC20:10无损断言保持不变。",
-  "latest_log": "docs/devlog/20260921-112100-p5-soak-complete-validator-schema-fix.md",
-  "last_tested_source_sha": "a738cf8782688580cefe260f6781a8a3e9b23e3a",
+  "in_progress": "P6发布候选打包与hosted收口开始。P5已按SOURCE_SHA 93b72dba4072be37a53efdf0d09df4f3b2725af7 / Actions 35593806912关闭：两个独立31分钟soak均validator PASS，run1/run2均186/186成功、0 loss/duplicate、rotation client/server=58、lifecycle_errors=0、最终TCP/BusinessFlow=0且2 active/2 physical/0 retiring，内存平台期PASS。整轮27/28首跑通过；唯一非P5硬门红灯为既有5->20->5 weaknet run2在120s capture完成后测试注入器cleanup发生send-on-closed-channel panic，属于_test.go helper关闭竞态，不改变已取得的weaknet产品资格或本次soak结论，已做最小helper串行化修复。50/100Mbps按ACCEPTANCE明确仅为容量探索，未作为P5关闭条件。 同SHA弱网失败job已单独rerun为106324920129并PASS，进一步确认其为间歇性测试helper cleanup竞态。",
+  "next_task": "P6第一原子：审计现有client/server构建与版本元数据，生成同一source SHA的Linux amd64/arm64与Windows amd64 hosted release-candidate artifacts，包含源码SHA、文件SHA256、构建toolchain/config/已知限制manifest；不宣称P7物理Windows/Npcap资格，不提前调用物理机。",
+  "latest_log": "docs/devlog/20260921-115900-p5-closed-p6-start.md",
+  "last_tested_source_sha": "93b72dba4072be37a53efdf0d09df4f3b2725af7",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -793,6 +795,13 @@
       "scope": "P5-soak-complete-validator-schema-bug",
       "status": "FAIL",
       "note": "两个31m soak产品场景均完整跑完：run1/run2均186/186成功、0 loss/duplicate、rotation client/server 58、lifecycle error 0、最终flow/lane状态收敛；validator仅因schema常量错误拒绝manifest。run1 artifact 10634387015 digest sha256:5749a86d7cddbc45da901a81b04c053e0cb40bc56f38c2eb0ca8dbae3c718901；run2 artifact 10634426658 digest sha256:3f983ad7961a753b79e63d9c913f757a5819538288fa85966caf0969f7de09d4。同轮fixed-FEC20:10初跑server reconstruction=1，但同SHA单job rerun 106313094093 PASS，硬断言未放宽。"
+    },
+    {
+      "source_sha": "93b72dba4072be37a53efdf0d09df4f3b2725af7",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35593806912",
+      "scope": "P5-soak-final-and-stage-closure",
+      "status": "PASS_WITH_UNRELATED_TEST_HELPER_RED",
+      "note": "P5 target判PASS：两个p5-soak独立31m jobs均harness+validator PASS。run1 artifact 10636558159 sha256:e16655c8e4d7e665827eb015f83a2b415accb5b5f64cf491dc737d23ee559934；run2 artifact 10636189740 sha256:c959c194c6309786236851b8c057e66bfa1b652a69491e729ac68b0789c0484c。整轮首跑27/28；唯一红灯p5-weaknet-5-20-5 run2已完成120s capture后在_test.go p5WeakLink cleanup触发send on closed channel，不是产品dataplane/soak硬失败，按用户授权不阻断P5结论。 同SHA单job rerun 106324920129 随后PASS；原weaknet资格保持。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -828,6 +837,7 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "IN_PROGRESS: 既有P5 measurement/weaknet/load/fixed-FEC资格保持；新增>=30min新版本soak candidate，31分钟持续5%双向loss+300ms、2-lane自动rotation、逐业务停流退役、内存平台期，两个seed分别独立Actions VM/job。FEC/padding保持off，不与50/100Mbps容量探索或FEC策略选型混跑。"
+    "P5": "CLOSED: SOURCE_SHA 93b72dba4072be37a53efdf0d09df4f3b2725af7 / Actions 35593806912。两个独立31m soak validator PASS；结合既有真实HTTPS外观、两档弱网、5/10/15/20/40Mbps load、fixed-FEC capability/cost，P5 hosted硬门完成。50/100仅容量探索未作为关闭条件；生产FEC/padding仍off。该轮唯一首跑红灯为旧weaknet测试helper cleanup send-on-closed-channel，发生在120s capture完成后且属_test.go竞态，已单独最小修复，不推翻P5资格。 同SHA弱网单job rerun 106324920129 PASS，确认首跑红灯为间歇性helper cleanup。",
+    "P6": "IN_PROGRESS: 开始同源码release-candidate打包、SHA256/manifest/known-limit hosted收口；physical Windows/Npcap仍留P7。"
   }
 }

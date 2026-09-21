@@ -172,6 +172,7 @@ type p5WeakLink struct {
 	network   *p5WeakNetwork
 
 	mu                sync.Mutex
+	sendMu            sync.Mutex
 	closed            bool
 	globalOrdinal     uint64
 	phaseOrdinal      map[string]uint64
@@ -338,12 +339,17 @@ func (l *p5WeakLink) emit(seg faketcp.Segment) error {
 		enter:        now,
 		deliverAt:    now.Add(l.network.oneWayDelay),
 	}
-	select {
-	case l.queue <- item:
-		return nil
-	case <-l.done:
+	l.sendMu.Lock()
+	defer l.sendMu.Unlock()
+
+	l.mu.Lock()
+	closed := l.closed
+	l.mu.Unlock()
+	if closed {
 		return net.ErrClosed
 	}
+	l.queue <- item
+	return nil
 }
 
 func (l *p5WeakLink) run() {
@@ -384,10 +390,12 @@ func (l *p5WeakLink) run() {
 func (l *p5WeakLink) close() error {
 	var err error
 	l.once.Do(func() {
+		l.sendMu.Lock()
 		l.mu.Lock()
 		l.closed = true
 		l.mu.Unlock()
 		close(l.queue)
+		l.sendMu.Unlock()
 		<-l.done
 		l.mu.Lock()
 		err = l.firstErr
