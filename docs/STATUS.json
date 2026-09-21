@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21T03:37:00Z",
+  "updated_at": "2026-09-21T05:12:00Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -49,9 +49,9 @@
     "P5第六原子任务关闭：自然并发真实HTTPS workload 在 SOURCE_SHA 24e6ff71d76b53d63719f83c5df8d2147a383977 / Actions 35529970723 取得 8/8 PASS。3个独立inner TLS1.3 full HTTPS BusinessFlow在同一已建立outer Normal lane上完成真实受控证书验证后由应用barrier同步起跑；client/server实际同时存在3条BusinessFlow，raw request intervals重算得到max overlap=3，distinct FlowID=3、outer SYN=1、application loss/duplicate=0。per-flow wire bytes明确为inner TLS ciphertext，aggregate outer cost继续由PCAP/record events独立记录；FEC off、padding=0/off、无弱网注入。combined P5 artifact 10610588812，sha256:f4f99ee48fb3eed2aad15f97fdc547f7cd7138921f1bf8de6f39d5d0c8d6dc9f。",
     "P5第七原子任务关闭：显式 fixed-FEC 20:10 无损真实HTTPS能力/成本测量在 SOURCE_SHA b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3 / Actions 35555303253 取得 8/8 PASS。正式client/server入口新增 `--fec-parity`，默认0/off且只接受0,4,8,10,12,16,20；非零时固定沿用8ms partial flush/8-block bound，不新增调参旋钮。runtime tick补齐authoritative lane partial-FEC FlushDue并保持generation fence；read-only FEC stats记录source/parity/full/partial/pending及真实RS reconstruction/recovered。受控20:10 TLS1.3 HTTPS在无网络drop/padding off下记录client source/parity=42/22、server=246/126、fec_recovery=0、repair=0、wire_amp=1.930542；combined P5 artifact 10620018135，sha256:74e3575ef202b8f7267de86148bff765e39834dba2873a17800b6e327bd59d8f。20:10只为单一显式能力/成本场景，不是生产默认/推荐/选优。"
   ],
-  "in_progress": "P5 第八原子任务弱网 `300ms单向 / 120s / 30-60-30s / 5%->20%->5%` 候选已实现，待 exact-SHA GitHub Actions。固定策略为 FEC off、padding 0/off；不继承20:10为弱网生产策略。正式 runtimeentry/Tunnel/lane outer SegmentIO 路径新增确定性双向delay/drop注入，保存phase/seed/drop decision/queue enter-leave/residency/actual packet length；真实TLS1.3 HTTPS按3s绝对clock schedule采集request/RTT/app loss-duplicate/inner TLS bytes。复用active-tree transport/TunnelOwner/lane stats，并新增低频Go MemStats + Linux /proc/stat资源样本。按ACCEPTANCE同场景至少两次独立运行，Actions新job使用run1 seed=20260921与run2 seed=20260922；两次均需独立validator从raw重算后才能资格。",
-  "next_task": "只资格当前 P5 5%->20%->5% 弱网 atom：candidate SOURCE_SHA 跑完整 next-foundation；除既有8个required jobs外，新增 `p5-weaknet-5-20-5` matrix两次独立120s run，最终同一 exact SHA 所有jobs均PASS。每个run validator必须从outer.pcap/events.jsonl/requests.jsonl/network.jsonl/resources.jsonl重算30/60/30 phase、deterministic实际drop、300ms queue residency、capture loss、RTT p50/p95/p99、app loss/duplicate、post5第三个连续成功恢复、FEC-off inventory/recovery=0、repair、padding=0、wire amplification、CPU/PPS/memory/GC/queue摘要。不得混入5%->30%->5%、load、>=30min soak或FEC tuning。通过前 last_tested_source_sha 必须继续保持 b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3。",
-  "latest_log": "docs/devlog/20260921-033700-p5-weaknet-5-20-5-candidate.md",
+  "in_progress": "P5 第八原子任务弱网 `300ms单向 / 120s / 30-60-30s / 5%->20%->5%` 首个 exact-SHA 候选 3aaf10c8dc37c9d55cb63d1fe38ae8d88406b376 / Actions 35559257580 已完整跑完两次120s harness，但两个新增 weaknet job 均在独立 validator 失败；既有8个 required jobs 全部PASS。run1 marker: scheduled=40 success=40 loss=0 repair=3608 wire_amp=8.656139；run2: scheduled=40 success=38 loss=2 repair=3808 wire_amp=9.468501。两次均失败于 `phase ordinal sequence low5-initial/c2s`。根因是 validator 把并发 JSONL 写入顺序误当成同方向 `phase_ordinal` 顺序；每条 raw event 已有单调 ordinal、phase、timestamp、seed 和 deterministic drop score，产品/harness未因此失败。当前只修 validator 为按 ordinal 集合/排序验证；不修改网络注入、传输、workload、FEC、padding 或旧阶段代码。生产FEC仍off，padding仍0/off。",
+  "next_task": "对 weaknet validator 顺序修复生成新的 exact SOURCE_SHA，并跑完整 next-foundation。要求既有8个 jobs + `p5-weaknet-5-20-5` 两个独立 matrix job 共10 jobs 全部PASS；每个 weaknet job 仍只跑一条120s场景、独立seed/独立artifact，不与load/performance任务混跑。CPU/PPS/memory只作为该runner原始观测与可重算摘要，不设置跨Actions VM的绝对性能阈值。若 validator 暴露下一处当前atom缺口，只修该缺口并保留 3aaf… / 35559257580 失败证据；不得混入5%->30%->5%、load、>=30min soak或FEC tuning。",
+  "latest_log": "docs/devlog/20260921-051200-p5-weaknet-validator-order-fix.md",
   "last_tested_source_sha": "b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3",
   "actions": [
     {
@@ -655,6 +655,13 @@
       "scope": "P5-fixed-FEC-20x10-final",
       "status": "PASS",
       "note": "Retry completed/success，8/8 jobs全部PASS。首候选7aae4993…唯一失败的未修改P4 lanes-4矩阵本轮unit/race恢复PASS；repository-contract、Windows、P2 kernel fallback、OpenWrt、Linux shared-TUN iptables/nft、Ubuntu unit/build/race/fuzz/reference、P5 dedicated gate均PASS。fixed-FEC marker：`WBD_P5_FIXED_FEC_CAPTURED source_sha=b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3 profile=20:10 flows=1 outer_connections=1 client_source=42 client_parity=22 server_source=246 server_parity=126 fec_recovery=0 repair=0 padding=off wire_amp=1.930542 records=436`；独立validator同SHA PASS。既有certificate/full-resumed、sparse、natural-concurrency validators同SHA继续PASS。combined P5 artifact 10620018135，1057166 bytes，sha256:74e3575ef202b8f7267de86148bff765e39834dba2873a17800b6e327bd59d8f。其余 artifacts：foundation 10619009718 sha256:c1e765627fd737d183e87b798817a1835cb76facbf43e8c2f5bdd3e635dc8aa2；tlsrecord-reference 10619129759 sha256:f6de75ee9ddededed1be4c707ddee9ceeae5165148886e362f6cdb26d1205eea；P2 10619569572 sha256:8be213f3076ca864459172e692b79578e634c4db2c289c78f02f7619e5ed3bec；OpenWrt 10619459969 sha256:a5d26153d423ebc27ff486d2348f942f014aff577136c0aabea1d773636ac9db；iptables 10619734296 sha256:fe939c612feee5402b129ed5f538dec97e2df40e06984533de74c35d69ec176e；nft 10619429928 sha256:1249f6883b94b4c6fd75620b76e139fcf7d67cd2c849d2d8ddf772c20d70e2bb。Windows/Npcap physical仍P7 NOT_RUN。"
+    },
+    {
+      "source_sha": "3aaf10c8dc37c9d55cb63d1fe38ae8d88406b376",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35559257580",
+      "scope": "P5-weaknet-5-20-5-first-candidate",
+      "status": "FAIL",
+      "note": "Run attempt 1 completed/failure，10 jobs中既有8个 required jobs 全部PASS；两个新增 `p5-weaknet-5-20-5` matrix job均完成完整120s harness后在独立validator失败。run1 marker：`WBD_P5_WEAKNET_5205_CAPTURED source_sha=3aaf10c8dc37c9d55cb63d1fe38ae8d88406b376 run=1 seed=20260921 duration=120s delay=300ms drop=5-20-5 fec=off padding=off scheduled=40 success=40 loss=0 repair=3608 wire_amp=8.656139`，artifact 10621273952，sha256:a42160d15f792fd1965fa30031f34ea1f815ae76945dcfbc331364d1cac9c031。run2 marker：`... run=2 seed=20260922 ... scheduled=40 success=38 loss=2 repair=3808 wire_amp=9.468501`，artifact 10621626494，sha256:34f71b1046a59cc9783ca15f47bf577e0400a6de656b4e3e41b0544e647521c2。两次validator首个失败均为 `phase ordinal sequence low5-initial/c2s`。分类为 fixture/validator contract：同方向 emit 在分配单调 phase_ordinal 后并发写共享JSONL，文件行顺序不保证ordinal顺序；raw identity/drop provenance仍完整。当前atom只把validator改为验证sorted ordinal集合连续，不改产品代码/注入/workload。"
     }
   ],
   "physical_status": "NOT_RUN",

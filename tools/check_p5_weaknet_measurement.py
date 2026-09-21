@@ -227,7 +227,11 @@ def main():
     for name, _, _, _ in PHASES:
         for direction in ("c2s", "s2c"):
             ords = phase_ordinals[(name, direction)]
-            if not ords or ords != list(range(1, len(ords) + 1)):
+            # network_decision records may be written out of JSONL order because
+            # multiple runtime emitters can race after each link has assigned its
+            # monotonic phase_ordinal. File order is not packet identity; require
+            # the ordinal set to be exactly contiguous instead.
+            if not ords or sorted(ords) != list(range(1, len(ords) + 1)):
                 fail(f"phase ordinal sequence {name}/{direction}")
             if drops[(name, direction)] <= 0:
                 fail(f"no actual injected drops {name}/{direction}")
