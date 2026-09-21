@@ -19,6 +19,8 @@
 | `internal/tlsrecord/` | 全新 | 固定 WIRE_SPEC：exporter keys、PN、seal/open、解析、近期去重；P3 增加显式有界 padding 能力，默认0，不改 FEC/分片 |
 | `internal/datapath/` | 全新 | 单进程 owner、队列、包所有权、work budget、计数与任务结果 fencing |
 | `cmd/wbd-client/`、`cmd/wbd-server/` | 全新 | 单一 TLS-like 模式，统一配置/退出；不承诺旧 CLI 兼容 |
+| `internal/buildinfo/` | P6全新 | 只承载构建版本和exact SOURCE_SHA，默认dev/unknown；release job通过Go ldflags写入，client/server `--version` 可读，不参与协议wire或运行策略 |
+| `tools/p6_build_release.py`、`tools/check_p6_release.py` | P6全新 | 不复用old发布脚本；按目标平台构建client/server、生成文件SHA256/manifest，并独立复核二进制target/source SHA/version后写ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED保持NOT_RUN |
 | 新 GUI/打包编排 | 新壳，复用平台能力 | GUI 不负责独立协议；一个运行时，保留必要用户设置 |
 | `native/dtls`、`dtlsworker`、旧 shim/cert build | 不迁移 | 仅归档，无运行依赖 |
 | 旧 README/ADR/.wbd/handoff/策略文字/工作流 | 不迁移 | 新根章程和设计是唯一入口；旧测试只抽取断言意图，不继承测试结果 |

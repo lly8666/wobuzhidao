@@ -52,6 +52,9 @@ func main() {
 		idleDormant = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
 	)
 	flag.Parse()
+	if handleVersion() {
+		return
+	}
 
 	if *rawIface == "" || *listenIPText == "" || *leaseText == "" || *tunnelText == "" ||
 		*account == "" || *installationText == "" || *serverName == "" || *routeKeyHex == "" ||

@@ -52,6 +52,9 @@ func main() {
 		rotateMax = flag.Duration("rotate-max", 0, "maximum lane rotation interval; must pair with rotate-min")
 	)
 	flag.Parse()
+	if handleVersion() {
+		return
+	}
 	if *serverIPText == "" || *tunnelText == "" || *leaseText == "" || *account == "" ||
 		*installationText == "" || *serverName == "" || *routeKeyHex == "" ||
 		*username == "" || *password == "" {

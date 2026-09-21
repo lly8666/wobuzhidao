@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P6",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21T11:59:00Z",
+  "updated_at": "2026-09-21T12:05:00Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -56,9 +56,9 @@
     "P5第十二原子任务关闭：>=30min新版本soak在 SOURCE_SHA 93b72dba4072be37a53efdf0d09df4f3b2725af7 / Actions 35593806912 取得两个独立31分钟validator PASS。固定300ms单向、双向持续5% deterministic loss、Game=2、60s自动same-ID rotation、每10s一个真实TLS1.3/HTTPS Connection: close flow、FEC/padding off。run1 seed=20260935：186/186成功、0 loss/duplicate、RTT p95/p99=1.110782/1.112741s、rotation client/server=58、lifecycle_error=0、HeapInuse minute-floor中段/末段median=16.90/17.05MB、host busy=0.536%、wire_amp=9.495673、artifact 10636558159 sha256:e16655c8e4d7e665827eb015f83a2b415accb5b5f64cf491dc737d23ee559934。run2 seed=20260936：186/186、RTT p95/p99=1.110762/1.112318s、rotation=58、lifecycle_error=0、HeapInuse中段/末段=16.61/17.72MB、host busy=0.389%、wire_amp=9.250055、artifact 10636189740 sha256:c959c194c6309786236851b8c057e66bfa1b652a69491e729ac68b0789c0484c。两次最终client/server TCPFlows和BusinessFlows均0、2 active/2 physical/0 retiring、capture loss=0、memory plateau validator PASS。",
     "P5阶段关闭：ROADMAP/ACCEPTANCE要求的真实HTTPS measurement/复用/稀疏/并发/证书链/full+resumed、fixed-FEC能力成本、300ms 5->20->5与5->30->5弱网、5/10/15/20Mbps、40Mbps aggregate-inner、以及>=30min持续loss+rotation+停流退役+memory plateau均已有exact-SHA hosted证据。50/100Mbps按规范仅为容量探索，不是协议/P5退出硬门；生产FEC仍off、padding仍off，未做参数选优或抗识别承诺。"
   ],
-  "in_progress": "P6发布候选打包与hosted收口开始。P5已按SOURCE_SHA 93b72dba4072be37a53efdf0d09df4f3b2725af7 / Actions 35593806912关闭：两个独立31分钟soak均validator PASS，run1/run2均186/186成功、0 loss/duplicate、rotation client/server=58、lifecycle_errors=0、最终TCP/BusinessFlow=0且2 active/2 physical/0 retiring，内存平台期PASS。整轮27/28首跑通过；唯一非P5硬门红灯为既有5->20->5 weaknet run2在120s capture完成后测试注入器cleanup发生send-on-closed-channel panic，属于_test.go helper关闭竞态，不改变已取得的weaknet产品资格或本次soak结论，已做最小helper串行化修复。50/100Mbps按ACCEPTANCE明确仅为容量探索，未作为P5关闭条件。 同SHA弱网失败job已单独rerun为106324920129并PASS，进一步确认其为间歇性测试helper cleanup竞态。",
-  "next_task": "P6第一原子：审计现有client/server构建与版本元数据，生成同一source SHA的Linux amd64/arm64与Windows amd64 hosted release-candidate artifacts，包含源码SHA、文件SHA256、构建toolchain/config/已知限制manifest；不宣称P7物理Windows/Npcap资格，不提前调用物理机。",
-  "latest_log": "docs/devlog/20260921-115900-p5-closed-p6-start.md",
+  "in_progress": "P6第一原子candidate已实现待Actions：新增active internal/buildinfo（默认dev/unknown），client/server支持--version；release job用-ldflags嵌入exact SOURCE_SHA与p6-rc版本。新增全新P6 builder/validator，不复用old发布脚本；三个独立Actions VM/job分别构建linux/amd64、linux/arm64、windows/amd64。Linux bundle含client+server；Windows bundle仅client+windows_client_network.ps1并明确server=UNSUPPORTED。每bundle manifest记录target/runner/toolchain/build flags/每文件SHA256/known limits，validator复算hash、用go version -m验证GOOS/GOARCH、检查二进制确实包含exact SHA/version；native linux-amd64/windows-amd64还执行--version。校验通过后才写actions-receipt.json中的ACTIONS_PASS；physical/release_qualified均保持NOT_RUN。",
+  "next_task": "运行P6三个独立release-candidate jobs并核对artifact：source SHA必须与candidate exact SHA一致；linux amd64/arm64 client+server、windows amd64 client+network script均有文件SHA256和manifest/actions receipt。若三个P6目标jobs通过，即关闭P6 hosted packaging；任何P5长测/旧回归无关偶发按用户授权单独记录，不覆盖P6目标结论，但active-go-tests中由本P6代码引入的编译/unit失败必须修复。",
+  "latest_log": "docs/devlog/20260921-120500-p6-release-candidate-packaging.md",
   "last_tested_source_sha": "93b72dba4072be37a53efdf0d09df4f3b2725af7",
   "actions": [
     {
@@ -810,7 +810,7 @@
     "Linux hosted raw-loopback普通内核TCP/TLS fallback、证书验证、HTTP、正常关闭和连续pcap已在P2精确SOURCE_SHA通过；这不替代P7物理Windows/Npcap网卡资格。",
     "P4 Windows Npcap physical-underlay adapter 已在 SOURCE_SHA 1ec7d667564a8e0f26a3afb811cb89eb484ea5dd 取得 hosted Windows compile/mock资格；真实 Npcap driver、管理员物理NIC capture/injection 仍未运行，不能替代 P7 物理资格。",
     "TLS 1.3 ticket策略已在P2收口；stable Account+Installation lease、protected TunnelID/LaneID admission、单进程client/server CLI与multi-lane lifecycle均已进入P4 hosted实现。P7前仍不把hosted入口视为物理发布资格。",
-    "P3 LINK/FEC全固定挡位/统一MTU/session-owner/显式record padding与P4 tunnel-wide每包/累计padding预算均已由精确SOURCE_SHA hosted Actions通过；padding生产默认0/off，P5真实HTTPS外观/成本验收尚未进行。",
+    "P3 LINK/FEC全固定挡位/统一MTU/session-owner/显式record padding与P4 tunnel-wide每包/累计padding预算均已由精确SOURCE_SHA hosted Actions通过；padding生产默认0/off。P5真实HTTPS外观/成本、弱网、负载与31分钟soak均已完成hosted资格，但这不等于抗识别或P7物理资格。",
     "可运行client/server入口与multi-lane/lifecycle closure已在 SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd 取得hosted exact-SHA Actions资格；Game入口直接覆盖2/3/4 lanes、自动rotation与payload-idle DORMANT/wake。真实Windows/Npcap物理NIC仍留P7。",
     "物理机验收留到P7",
     "内层TLS长度/方向/突发/时序指纹不属P2关闭条件；P3显式record padding能力已通过Actions但生产默认0/off，不能据此声称降低或防止TLS-in-TLS/流量分析识别；P4/P5继续真实业务复用与流量外观/成本验收。",
@@ -838,6 +838,6 @@
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
     "P5": "CLOSED: SOURCE_SHA 93b72dba4072be37a53efdf0d09df4f3b2725af7 / Actions 35593806912。两个独立31m soak validator PASS；结合既有真实HTTPS外观、两档弱网、5/10/15/20/40Mbps load、fixed-FEC capability/cost，P5 hosted硬门完成。50/100仅容量探索未作为关闭条件；生产FEC/padding仍off。该轮唯一首跑红灯为旧weaknet测试helper cleanup send-on-closed-channel，发生在120s capture完成后且属_test.go竞态，已单独最小修复，不推翻P5资格。 同SHA弱网单job rerun 106324920129 PASS，确认首跑红灯为间歇性helper cleanup。",
-    "P6": "IN_PROGRESS: 开始同源码release-candidate打包、SHA256/manifest/known-limit hosted收口；physical Windows/Npcap仍留P7。"
+    "P6": "IN_PROGRESS: 第一原子candidate加入exact-SHA buildinfo与三平台独立Actions打包：linux/amd64、linux/arm64、windows/amd64。manifest+SHA256+known limits与独立validator/actions receipt已实现；Windows server明确UNSUPPORTED，physical/release_qualified保持NOT_RUN，等待exact-SHA Actions资格。"
   }
 }
