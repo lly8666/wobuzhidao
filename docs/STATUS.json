@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21T08:22:00Z",
+  "updated_at": "2026-09-21T08:40:00Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -54,9 +54,9 @@
     "P5第十一原子任务关闭：40Mbps aggregate-inner（C2S+S2C application payload）目标在 SOURCE_SHA e0917ef15f0d51476a48feb48fedf849844e5563 / Actions 35574268057 取得22/22 PASS。两个独立Actions VM/seed均actual=40.000990Mbps、achievement=1.000000、2681/2681 successful、loss/duplicate/send_failure/skipped=0、repair=0、FEC off、padding off。run1 RTT p95=3.005388ms、send-lag p95=1.007983ms、PPS=10831.267、wire_amp=1.156855、artifact 10627003797 sha256:25caed4e1054bc743776b246757c26fc940debb8ba73623d91b2a505962dcc85；run2 RTT p95=4.205089ms、send-lag p95=1.036990ms、PPS=10888.600、wire_amp=1.157991、artifact 10626768765 sha256:f81a2b3e9f0e52e6b6ebe23baaf26f0fa2c9cc547607136ccf8f350d180abad7。此前首轮唯一未修改5305 close-tail失败在本exact-SHA完整重跑恢复。",
     "P5用户指定fixed-FEC 20:20弱网性能atom关闭：SOURCE_SHA a738cf8782688580cefe260f6781a8a3e9b23e3a / Actions 35577023449 取得26/26 PASS。新增4个独立Actions VM/job分别跑300ms单向、120s、30/60/30的5%->20%->5%与5%->30%->5%（各两seed），每job仅一个场景/seed/artifact但单次validator同时检查raw capture/drop provenance、app/RTT/post5/PPS/queue/resource/FEC recovery/repair/wire cost。四次均40/40成功、0 app loss/duplicate，RTT p95=0.633/0.629/0.638/0.628s，post5第三连续成功恢复约7.828/7.828/7.836/7.823s；recovered sources=315/345/463/470，reconstruction events=221/241/279/276。wire amplification=13.962/14.263/14.547/14.347，repair=5980/6209/6648/6453。与同seed FEC-off基线相比RTT p95约降76-80%、post5约缩短56-68%，但wire amplification约增60-72%、高丢包阶段PPS约增70-93%；绝对repair数约增70-93%，按network attempt归一后约高2.5-8%。资源CPU/PPS/memory仅作单VM观测，不设跨VM绝对门槛。该结果不改变生产默认FEC off。"
   ],
-  "in_progress": "P5 fixed-FEC 20:20弱网性能atom已关闭并取得exact-SHA 26/26资格。20:20显示显著降低RTT与恢复时间、并在四次120s场景中做到40/40成功，但线速/包率/wire amplification成本明显上升，且transport repair绝对计数未下降。该结果仅是显式capability/cost点，不构成生产FEC策略推荐；padding仍off。",
-  "next_task": "恢复主P5验收线：单独推进>=30min soak（持续丢包、rotation、停流退役、内存平台期）并保持每个测试项目单独Actions job/VM；不要把50/100Mbps容量探索、FEC参数sweep、padding enablement混入soak。若后续需要比较FEC档位，应另开独立atom并保持同seed/同场景口径。",
-  "latest_log": "docs/devlog/20260921-082200-p5-fec2020-weaknet-closed.md",
+  "in_progress": "P5 >=30min新版本soak candidate已实现待资格：两个独立Actions VM/seed，每job只跑一个31分钟场景。场景固定300ms单向、双向持续5% deterministic loss、2条Game lane、每60s自动same-ID rotation、每10s一个真实TLS1.3/HTTPS Connection: close业务flow；每个业务结束硬检查client/server TCPFlows和TunnelOwner BusinessFlows归零。FEC off、padding off，不混50/100Mbps、FEC sweep或padding策略。",
+  "next_task": "运行31分钟soak两个独立job并由validator核验：持续丢包注入/300ms residency、业务完整性与loss/duplicate/RTT p50/p95/p99、最大连续失败、至少15次client/server generation推进、每流停流退役、最终无retiring/BusinessFlow/TCPFlow、分钟级HeapInuse平台期、CPU分核/host busy、内存/GC、PPS/queue、inner TLS/outer wire/wire amplification。若host资源上限触发则报告CAPACITY_LIMITED；一般CPU/PPS/memory仍不做跨VM绝对门槛。",
+  "latest_log": "docs/devlog/20260921-084000-p5-soak-candidate.md",
   "last_tested_source_sha": "a738cf8782688580cefe260f6781a8a3e9b23e3a",
   "actions": [
     {
@@ -793,6 +793,6 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "IN_PROGRESS: measurement base、close-tail、TLS full/resumed、不同证书链、稀疏、自然并发、fixed-FEC 20:10无损capability/cost、两档FEC-off弱网、5/10/15/20/40Mbps aggregate-inner load，以及用户指定fixed-FEC 20:20两档弱网性能/cost均已取得exact-SHA Actions资格。20:20仅为显式测试点，生产FEC默认仍off，padding仍off。下一主线atom为>=30min soak。"
+    "P5": "IN_PROGRESS: 既有P5 measurement/weaknet/load/fixed-FEC资格保持；新增>=30min新版本soak candidate，31分钟持续5%双向loss+300ms、2-lane自动rotation、逐业务停流退役、内存平台期，两个seed分别独立Actions VM/job。FEC/padding保持off，不与50/100Mbps容量探索或FEC策略选型混跑。"
   }
 }

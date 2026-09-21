@@ -81,7 +81,7 @@ func (a *p5WeakArtifacts) close() error {
 	return errors.Join(a.network.Close(), a.requests.Close(), a.resources.Close())
 }
 
-func (a *p5WeakArtifacts) begin(start time.Time, seed uint64, phases []p5WeakPhase) error {
+func (a *p5WeakArtifacts) begin(start time.Time, seed uint64, phases []p5WeakPhase, oneWayDelay, scenarioTime time.Duration) error {
 	a.mu.Lock()
 	a.start = start
 	a.mu.Unlock()
@@ -93,7 +93,7 @@ func (a *p5WeakArtifacts) begin(start time.Time, seed uint64, phases []p5WeakPha
 			"t_ns":                phase.Start.Nanoseconds(),
 			"phase_start_unix_ns": start.Add(phase.Start).UnixNano(),
 			"drop_percent":        phase.DropPercent,
-			"one_way_delay_ns":    p5WeakOneWayDelay.Nanoseconds(),
+			"one_way_delay_ns":    oneWayDelay.Nanoseconds(),
 			"seed":                seed,
 		}); err != nil {
 			return err
@@ -103,10 +103,10 @@ func (a *p5WeakArtifacts) begin(start time.Time, seed uint64, phases []p5WeakPha
 		"schema":              p5MeasurementSchema,
 		"event":               "phase_transition",
 		"phase":               "end",
-		"t_ns":                p5WeakScenarioTime.Nanoseconds(),
-		"phase_start_unix_ns": start.Add(p5WeakScenarioTime).UnixNano(),
+		"t_ns":                scenarioTime.Nanoseconds(),
+		"phase_start_unix_ns": start.Add(scenarioTime).UnixNano(),
 		"drop_percent":        0,
-		"one_way_delay_ns":    p5WeakOneWayDelay.Nanoseconds(),
+		"one_way_delay_ns":    oneWayDelay.Nanoseconds(),
 		"seed":                seed,
 	})
 }
@@ -150,9 +150,11 @@ type p5WeakNetwork struct {
 	start     time.Time
 	armed     bool
 	artifacts *p5WeakArtifacts
-	seed      uint64
-	phases    []p5WeakPhase
-	links     map[string]*p5WeakLink
+	seed         uint64
+	phases       []p5WeakPhase
+	oneWayDelay  time.Duration
+	scenarioTime time.Duration
+	links        map[string]*p5WeakLink
 }
 
 type p5WeakQueuedSegment struct {
@@ -188,7 +190,15 @@ func newP5WeakNetwork(artifacts *p5WeakArtifacts, seed uint64) *p5WeakNetwork {
 }
 
 func newP5WeakNetworkWithPhases(artifacts *p5WeakArtifacts, seed uint64, phases []p5WeakPhase) *p5WeakNetwork {
-	return &p5WeakNetwork{artifacts: artifacts, seed: seed, phases: phases, links: make(map[string]*p5WeakLink)}
+	return newP5WeakNetworkWithConfig(artifacts, seed, phases, p5WeakOneWayDelay, p5WeakScenarioTime)
+}
+
+func newP5WeakNetworkWithConfig(artifacts *p5WeakArtifacts, seed uint64, phases []p5WeakPhase, oneWayDelay, scenarioTime time.Duration) *p5WeakNetwork {
+	return &p5WeakNetwork{
+		artifacts: artifacts, seed: seed, phases: phases,
+		oneWayDelay: oneWayDelay, scenarioTime: scenarioTime,
+		links: make(map[string]*p5WeakLink),
+	}
 }
 
 func (n *p5WeakNetwork) wrap(direction string, base SegmentIO) SegmentIO {
@@ -212,7 +222,7 @@ func (n *p5WeakNetwork) arm(start time.Time) error {
 	n.start = start
 	n.armed = true
 	n.mu.Unlock()
-	return n.artifacts.begin(start, n.seed, n.phases)
+	return n.artifacts.begin(start, n.seed, n.phases, n.oneWayDelay, n.scenarioTime)
 }
 
 func (n *p5WeakNetwork) phase(now time.Time) (p5WeakPhase, bool, time.Time) {
@@ -228,8 +238,8 @@ func (n *p5WeakNetwork) phase(now time.Time) (p5WeakPhase, bool, time.Time) {
 			return phase, true, start
 		}
 	}
-	if elapsed >= p5WeakScenarioTime {
-		return p5WeakPhase{Name: "post", Start: p5WeakScenarioTime, End: 1<<63 - 1, DropPercent: 0}, true, start
+	if elapsed >= n.scenarioTime {
+		return p5WeakPhase{Name: "post", Start: n.scenarioTime, End: 1<<63 - 1, DropPercent: 0}, true, start
 	}
 	return p5WeakPhase{}, false, start
 }
@@ -309,7 +319,7 @@ func (l *p5WeakLink) emit(seg faketcp.Segment) error {
 		"seed":               l.network.seed,
 		"dropped":            dropped,
 		"queue_enter_ns":     enterNS,
-		"planned_delay_ns":   p5WeakOneWayDelay.Nanoseconds(),
+		"planned_delay_ns":   l.network.oneWayDelay.Nanoseconds(),
 		"queue_depth_before": depthBefore,
 		"queue_depth_after":  depthAfter,
 		"outer_payload_len":  len(seg.Payload),
@@ -326,7 +336,7 @@ func (l *p5WeakLink) emit(seg faketcp.Segment) error {
 		phase:        phase.Name,
 		phaseOrdinal: phaseOrdinal,
 		enter:        now,
-		deliverAt:    now.Add(p5WeakOneWayDelay),
+		deliverAt:    now.Add(l.network.oneWayDelay),
 	}
 	select {
 	case l.queue <- item:

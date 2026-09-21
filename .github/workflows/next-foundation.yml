@@ -639,3 +639,48 @@ jobs:
           name: p5-fec2020-weaknet-5-30-5-run${{ matrix.run }}-${{ github.sha }}
           path: ${{ github.workspace }}/artifacts/p5-fec2020-weaknet-5-30-5-run${{ matrix.run }}
           if-no-files-found: error
+
+  p5-soak:
+    needs: repository-contract
+    if: needs.repository-contract.outputs.has_go == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run P5 31 minute soak qualification
+        shell: bash
+        env:
+          WBD_P5_SOAK_MEASURE: '1'
+          WBD_P5_SOAK_RUN: ${{ matrix.run }}
+          WBD_P5_SOAK_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-soak-run${{ matrix.run }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WBD_P5_SOAK_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^TestP5ThirtyMinuteSoakMeasurementHarness$' -v \
+            | tee "$WBD_P5_SOAK_ARTIFACT_DIR/test.log"
+          python3 tools/check_p5_soak_measurement.py \
+            --manifest "$WBD_P5_SOAK_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_SOAK_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_SOAK_ARTIFACT_DIR/outer.pcap" \
+            --requests "$WBD_P5_SOAK_ARTIFACT_DIR/requests.jsonl" \
+            --network "$WBD_P5_SOAK_ARTIFACT_DIR/network.jsonl" \
+            --resources "$WBD_P5_SOAK_ARTIFACT_DIR/resources.jsonl" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_SOAK_ARTIFACT_DIR/summary.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p5-soak-run${{ matrix.run }}-${{ github.sha }}
+          path: ${{ github.workspace }}/artifacts/p5-soak-run${{ matrix.run }}
+          if-no-files-found: error
