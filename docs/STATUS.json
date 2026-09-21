@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21T07:38:00Z",
+  "updated_at": "2026-09-21T07:43:00Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -52,9 +52,9 @@
     "P5第九原子任务关闭：300ms单向、120s、30/60/30、5%->30%->5% 真实HTTPS弱网资格在 SOURCE_SHA 4e8e17e44646cf9732ed44d68ad15ed19faf5d9b / Actions 35570306162 取得 12/12 PASS。两个独立Actions VM/seed各跑单一120s场景：run1 seed=20260923 scheduled=40 success=36 loss=4 duplicate=0 RTT p95=3.214118710s post5第三个连续成功恢复=23.498220577s repair=3909 wire_amp=9.068234；run2 seed=20260924 success=35 loss=5 duplicate=0 RTT p95=2.909270709s post5恢复=24.518068495s repair=3350 wire_amp=8.521681。两次均FEC off、padding off；validator从raw重算phase/drop/300ms residency/capture/RTT/loss/duplicate/post5/FEC/repair/cost/resource。run1 artifact 10625706787 sha256:2a6e97d89a1780ce9fca2cd2af943c59104c8b01d6d8c18aecfb68237bbdfffa；run2 artifact 10625951165 sha256:7146505c7bcbfc844d3e751101d827ee06553c7b5379d26be98013777a87581e。CPU/PPS/memory仍仅为runner观测，不设跨VM绝对性能门槛。",
     "P5第十原子任务关闭：5/10/15/20Mbps aggregate-inner（C2S+S2C application payload）持续真实TLS1.3/HTTPS负载在 SOURCE_SHA d9e09053810f07db5e19c81a59970c831fa6e12a / Actions 35573152055 取得 20/20 PASS。每档两次独立Actions VM/seed、每job仅一档15s负载；全部 offered=accepted=successful、achievement=1.000000、application loss/duplicate/send failure/skipped=0、repair=0、FEC off、padding off。实际aggregate-inner：5Mbps两次5.015689；10Mbps两次10.031377；15Mbps两次15.002283；20Mbps两次20.017971。20Mbps RTT p95=4.523077/4.172127ms，send-lag p95=1.019941/1.028453ms，PPS=5442.867/5429.533，wire_amp=1.157729/1.157243；20Mbps runner host busy约6.40%/5.04%、heap峰值约12.0/12.2MB，仅作单VM观测、不设跨VM绝对资源门槛。8个raw artifact均保存PCAP/events/load/resources/summary。"
   ],
-  "in_progress": "P5 第十一原子任务 40Mbps aggregate-inner capacity target 已启动：沿用已资格15s真实TLS1.3/HTTPS persistent POST-echo load harness，只新增40Mbps允许值与两个独立Actions VM/seed（20260933/20260934）。FEC off、padding off、无弱网注入；95% offered-byte输入有效性门槛保持不变。当前仅candidate，若未达标将明确CAPACITY_LIMITED/INJECTION_UNDERRUN，不混入50/100Mbps、soak或调参。",
-  "next_task": "等待40Mbps candidate的两个独立job与完整workflow结果。两次均需raw capture完整、app corruption/loss/duplicate/send failure=0，并达到至少95% offered aggregate application bytes才可关闭本atom；CPU/PPS/memory只作同VM观测。若40Mbps达标，下一工作仍须按STATUS/ACCEPTANCE单独决定50/100Mbps容量探索与>=30min soak顺序，不得在本candidate内顺手加入。",
-  "latest_log": "docs/devlog/20260921-073800-p5-load-40-candidate.md",
+  "in_progress": "P5 第十一原子任务40Mbps aggregate-inner首候选 0c4a6516f1827b3b60ff6622db246c023792df7b / Actions 35573901027 已完成：两个40Mbps独立jobs本体+validator均PASS（actual=40.000990Mbps、achievement=1.0、loss/duplicate/send_failure/skipped=0），整轮22 jobs中21 PASS、1 FAIL。唯一失败为未修改的既有 `p5-weaknet-5-30-5 (1)`：120s workload后server TCP flow在6s cleanup窗口未收敛（got=1 want=0），日志同时出现受控HTTPS TLS handshake EOF；同SHA的5305 run2、两个5205、所有5-20 load、P2/P4/P5/Windows/Linux均PASS。当前分类为已有高丢包close-tail hosted偶发，不修改弱网产品逻辑；生成新的docs-only exact-SHA完整重跑。",
+  "next_task": "对40Mbps首候选的未修改5305 close-tail偶发生成docs-only新exact SHA并完整重跑。40Mbps两次仍必须重新PASS，同时既有5205/5305四个weaknet jobs及全部required gates需全绿后才关闭40Mbps atom。不得借此改弱网cleanup窗口、FEC/padding或启动50/100Mbps/soak。",
+  "latest_log": "docs/devlog/20260921-074300-p5-load-40-retry.md",
   "last_tested_source_sha": "d9e09053810f07db5e19c81a59970c831fa6e12a",
   "actions": [
     {
@@ -728,6 +728,13 @@
       "scope": "P5-load-5-20-docs-closure",
       "status": "PASS",
       "note": "Docs-only closure completed/success，20/20 jobs PASS。8个5/10/15/20Mbps load jobs、4个既有weaknet jobs及repository-contract、Windows/Linux active-go-tests、P2/P4/P5 measurement-base全部PASS。该closure不覆盖产品资格，last_tested_source_sha继续保持d9e09053810f07db5e19c81a59970c831fa6e12a。"
+    },
+    {
+      "source_sha": "0c4a6516f1827b3b60ff6622db246c023792df7b",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35573901027",
+      "scope": "P5-load-40-first-candidate",
+      "status": "FAIL",
+      "note": "22 jobs中21 PASS、1 FAIL。两个40Mbps jobs均独立PASS：run1 seed=20260933 actual=40.000990Mbps achievement=1.0 RTT p95=4.374051ms send-lag p95=1.042614ms PPS=10902.333 wire_amp=1.158239 artifact 10627511727 sha256:a00e1d485596510552797abaf497573c8301ccffb5e74a2726a284c11073c737；run2 seed=20260934 actual=40.000990Mbps achievement=1.0 RTT p95=4.410465ms send-lag p95=1.041302ms PPS=10888.333 wire_amp=1.157979 artifact 10626593608 sha256:8e058d95545bab7f97e91d9d0f3d6147d8c75f4d2f2b6cb6952dd13d3b1526a2。唯一失败为未修改p5-weaknet-5-30-5 run1：TestP5WeakNetwork5305MeasurementHarness约126.9s时server TCP flow cleanup got=1 want=0，validator未运行；同SHA其余21 jobs均PASS。"
     }
   ],
   "physical_status": "NOT_RUN",
