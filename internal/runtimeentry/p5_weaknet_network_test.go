@@ -14,6 +14,7 @@ import (
 
 const (
 	p5WeakBaseSeed      = uint64(20260921)
+	p5Weak5305BaseSeed  = uint64(20260923)
 	p5WeakOneWayDelay   = 300 * time.Millisecond
 	p5WeakScenarioTime  = 120 * time.Second
 	p5WeakRequestPeriod = 3 * time.Second
@@ -32,6 +33,12 @@ type p5WeakPhase struct {
 var p5WeakPhases = []p5WeakPhase{
 	{Name: "low5-initial", Start: 0, End: 30 * time.Second, DropPercent: 5},
 	{Name: "high20", Start: 30 * time.Second, End: 90 * time.Second, DropPercent: 20},
+	{Name: "low5-recovery", Start: 90 * time.Second, End: 120 * time.Second, DropPercent: 5},
+}
+
+var p5Weak5305Phases = []p5WeakPhase{
+	{Name: "low5-initial", Start: 0, End: 30 * time.Second, DropPercent: 5},
+	{Name: "high30", Start: 30 * time.Second, End: 90 * time.Second, DropPercent: 30},
 	{Name: "low5-recovery", Start: 90 * time.Second, End: 120 * time.Second, DropPercent: 5},
 }
 
@@ -74,11 +81,11 @@ func (a *p5WeakArtifacts) close() error {
 	return errors.Join(a.network.Close(), a.requests.Close(), a.resources.Close())
 }
 
-func (a *p5WeakArtifacts) begin(start time.Time, seed uint64) error {
+func (a *p5WeakArtifacts) begin(start time.Time, seed uint64, phases []p5WeakPhase) error {
 	a.mu.Lock()
 	a.start = start
 	a.mu.Unlock()
-	for _, phase := range p5WeakPhases {
+	for _, phase := range phases {
 		if err := a.writeNetwork(map[string]any{
 			"schema":              p5MeasurementSchema,
 			"event":               "phase_transition",
@@ -144,6 +151,7 @@ type p5WeakNetwork struct {
 	armed     bool
 	artifacts *p5WeakArtifacts
 	seed      uint64
+	phases    []p5WeakPhase
 	links     map[string]*p5WeakLink
 }
 
@@ -176,7 +184,11 @@ type p5WeakLink struct {
 }
 
 func newP5WeakNetwork(artifacts *p5WeakArtifacts, seed uint64) *p5WeakNetwork {
-	return &p5WeakNetwork{artifacts: artifacts, seed: seed, links: make(map[string]*p5WeakLink)}
+	return newP5WeakNetworkWithPhases(artifacts, seed, p5WeakPhases)
+}
+
+func newP5WeakNetworkWithPhases(artifacts *p5WeakArtifacts, seed uint64, phases []p5WeakPhase) *p5WeakNetwork {
+	return &p5WeakNetwork{artifacts: artifacts, seed: seed, phases: phases, links: make(map[string]*p5WeakLink)}
 }
 
 func (n *p5WeakNetwork) wrap(direction string, base SegmentIO) SegmentIO {
@@ -200,7 +212,7 @@ func (n *p5WeakNetwork) arm(start time.Time) error {
 	n.start = start
 	n.armed = true
 	n.mu.Unlock()
-	return n.artifacts.begin(start, n.seed)
+	return n.artifacts.begin(start, n.seed, n.phases)
 }
 
 func (n *p5WeakNetwork) phase(now time.Time) (p5WeakPhase, bool, time.Time) {
@@ -211,7 +223,7 @@ func (n *p5WeakNetwork) phase(now time.Time) (p5WeakPhase, bool, time.Time) {
 		return p5WeakPhase{}, false, start
 	}
 	elapsed := now.Sub(start)
-	for _, phase := range p5WeakPhases {
+	for _, phase := range n.phases {
 		if elapsed >= phase.Start && elapsed < phase.End {
 			return phase, true, start
 		}
@@ -231,6 +243,8 @@ func p5WeakDropScore(seed uint64, direction, phase string, ordinal uint64) uint6
 	switch phase {
 	case "high20":
 		phaseSalt = 31
+	case "high30":
+		phaseSalt = 43
 	case "low5-recovery":
 		phaseSalt = 61
 	case "post":

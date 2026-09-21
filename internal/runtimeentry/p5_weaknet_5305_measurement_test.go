@@ -25,17 +25,17 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 )
 
-func p5WeakRunConfig(t *testing.T) (int, uint64) {
+func p5Weak5305RunConfig(t *testing.T) (int, uint64) {
 	t.Helper()
 	runText := os.Getenv("WBD_P5_WEAKNET_RUN")
 	run, err := strconv.Atoi(runText)
 	if err != nil || (run != 1 && run != 2) {
 		t.Fatalf("WBD_P5_WEAKNET_RUN must be 1 or 2, got %q", runText)
 	}
-	return run, p5WeakBaseSeed + uint64(run-1)
+	return run, p5Weak5305BaseSeed + uint64(run-1)
 }
 
-func TestP5WeakNetwork5205MeasurementHarness(t *testing.T) {
+func TestP5WeakNetwork5305MeasurementHarness(t *testing.T) {
 	if os.Getenv("WBD_P5_WEAKNET_MEASURE") != "1" {
 		t.Skip("P5 weak-network harness runs only in its dedicated Actions gate")
 	}
@@ -58,8 +58,8 @@ func TestP5WeakNetwork5205MeasurementHarness(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer weakArtifacts.close()
-	runOrdinal, seed := p5WeakRunConfig(t)
-	network := newP5WeakNetwork(weakArtifacts, seed)
+	runOrdinal, seed := p5Weak5305RunConfig(t)
+	network := newP5WeakNetworkWithPhases(weakArtifacts, seed, p5Weak5305Phases)
 
 	var serverCountsMu sync.Mutex
 	serverCounts := make(map[int]int)
@@ -82,7 +82,7 @@ func TestP5WeakNetwork5205MeasurementHarness(t *testing.T) {
 	outerCert := runtimeCertificate(t)
 	routeKey := []byte("0123456789abcdef0123456789abcdef")
 	var tunnelID logicaltunnel.TunnelID
-	copy(tunnelID[:], []byte("p5-weaknet-5205"))
+	copy(tunnelID[:], []byte("p5-weaknet-5305"))
 	var installation logicaltunnel.InstallationID
 	installation[0] = 9
 	lease := logicaltunnel.Lease{Account: "p5-weaknet", InstallationID: installation, Config: logicaltunnel.TunnelConfig{TunnelID: tunnelID, Address4: "10.66.0.9/32", Routes4: []string{"0.0.0.0/0"}}}
@@ -208,7 +208,7 @@ func TestP5WeakNetwork5205MeasurementHarness(t *testing.T) {
 	resourceDone := make(chan struct{})
 	go func() {
 		defer close(resourceDone)
-		runP5WeakResourceSampler(resourceCtx, weakArtifacts, recorder, p5WeakPhases, network, client, serverTunnel, initialRef)
+		runP5WeakResourceSampler(resourceCtx, weakArtifacts, recorder, p5Weak5305Phases, network, client, serverTunnel, initialRef)
 	}()
 
 	totalScheduled := int(p5WeakScenarioTime / p5WeakRequestPeriod)
@@ -219,14 +219,14 @@ func TestP5WeakNetwork5205MeasurementHarness(t *testing.T) {
 		waitP5SparseApplicationDeadline(scenarioStart.Add(scheduled))
 		ordinal := i + 1
 		if time.Since(scenarioStart) >= p5WeakScenarioTime {
-			sample := p5WeakRequestSample{Schema: p5MeasurementSchema, Event: "https_request", Ordinal: ordinal, ScheduledStartNS: scheduled.Nanoseconds(), ScheduledPhase: p5WeakPhaseForOffset(p5WeakPhases, scheduled), ExpectedResponseBytes: p5WeakResponseSizes[i%len(p5WeakResponseSizes)], ErrorStage: "scenario_end_before_start", Error: "measurement window ended before request start"}
+			sample := p5WeakRequestSample{Schema: p5MeasurementSchema, Event: "https_request", Ordinal: ordinal, ScheduledStartNS: scheduled.Nanoseconds(), ScheduledPhase: p5WeakPhaseForOffset(p5Weak5305Phases, scheduled), ExpectedResponseBytes: p5WeakResponseSizes[i%len(p5WeakResponseSizes)], ErrorStage: "scenario_end_before_start", Error: "measurement window ended before request start"}
 			requestSamples = append(requestSamples, sample)
 			if err := weakArtifacts.writeRequest(sample); err != nil {
 				t.Fatal(err)
 			}
 			continue
 		}
-		sample := executeP5WeakHTTPSRequest(t, svc, certificate, p5WeakPhases, scenarioStart, ordinal, p5WeakResponseSizes[i%len(p5WeakResponseSizes)], scheduled)
+		sample := executeP5WeakHTTPSRequest(t, svc, certificate, p5Weak5305Phases, scenarioStart, ordinal, p5WeakResponseSizes[i%len(p5WeakResponseSizes)], scheduled)
 		requestSamples = append(requestSamples, sample)
 		innerC2S += sample.InnerTLSWireBytesC2S
 		innerS2C += sample.InnerTLSWireBytesS2C
@@ -345,8 +345,8 @@ func TestP5WeakNetwork5205MeasurementHarness(t *testing.T) {
 	manifest := map[string]any{
 		"schema": p5MeasurementSchema, "source_sha": sourceSHA, "harness_sha": sourceSHA, "branch": "next/tlslike-dataplane",
 		"scenario": map[string]any{
-			"name": "controlled-real-https-weaknet-5-20-5", "run_ordinal": runOrdinal, "seed": seed, "cryptographic_rng": "system",
-			"one_way_delay_ms": 300, "duration_seconds": 120, "phase_seconds": []int{30, 60, 30}, "drop_percent": []int{5, 20, 5},
+			"name": "controlled-real-https-weaknet-5-30-5", "run_ordinal": runOrdinal, "seed": seed, "cryptographic_rng": "system",
+			"one_way_delay_ms": 300, "duration_seconds": 120, "phase_seconds": []int{30, 60, 30}, "drop_percent": []int{5, 30, 5},
 			"drop_directions": []string{"c2s", "s2c"}, "drop_decision": "deterministic-per-direction-per-phase-permutation-mod-100",
 			"injection_location":        "after runtimeentry SegmentIO emit capture and before peer memorySegmentEndpoint delivery",
 			"application_arrival_model": "absolute-clock schedule every 3s; actual send lag recorded; no transport batching wait",
@@ -370,5 +370,5 @@ func TestP5WeakNetwork5205MeasurementHarness(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(artifactDir, "manifest.json"), manifestBytes, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("WBD_P5_WEAKNET_5205_CAPTURED source_sha=%s run=%d seed=%d duration=120s delay=300ms drop=5-20-5 fec=off padding=off scheduled=%d success=%d loss=%d repair=%d wire_amp=%.6f\n", sourceSHA, runOrdinal, seed, totalScheduled, successes, totalScheduled-successes, repairRetransmits, wireAmplification)
+	fmt.Printf("WBD_P5_WEAKNET_5305_CAPTURED source_sha=%s run=%d seed=%d duration=120s delay=300ms drop=5-30-5 fec=off padding=off scheduled=%d success=%d loss=%d repair=%d wire_amp=%.6f\n", sourceSHA, runOrdinal, seed, totalScheduled, successes, totalScheduled-successes, repairRetransmits, wireAmplification)
 }

@@ -51,8 +51,8 @@ func p5WeakBody(ordinal, size int) []byte {
 	return b
 }
 
-func p5WeakPhaseForOffset(offset time.Duration) string {
-	for _, phase := range p5WeakPhases {
+func p5WeakPhaseForOffset(phases []p5WeakPhase, offset time.Duration) string {
+	for _, phase := range phases {
 		if offset >= phase.Start && offset < phase.End {
 			return phase.Name
 		}
@@ -60,14 +60,14 @@ func p5WeakPhaseForOffset(offset time.Duration) string {
 	return "post"
 }
 
-func executeP5WeakHTTPSRequest(t *testing.T, svc *platformflow.Client, certificate *p5CertificateScenario, scenarioStart time.Time, ordinal, responseSize int, scheduled time.Duration) p5WeakRequestSample {
+func executeP5WeakHTTPSRequest(t *testing.T, svc *platformflow.Client, certificate *p5CertificateScenario, phases []p5WeakPhase, scenarioStart time.Time, ordinal, responseSize int, scheduled time.Duration) p5WeakRequestSample {
 	t.Helper()
 	sample := p5WeakRequestSample{
 		Schema:                p5MeasurementSchema,
 		Event:                 "https_request",
 		Ordinal:               ordinal,
 		ScheduledStartNS:      scheduled.Nanoseconds(),
-		ScheduledPhase:        p5WeakPhaseForOffset(scheduled),
+		ScheduledPhase:        p5WeakPhaseForOffset(phases, scheduled),
 		ExpectedResponseBytes: responseSize,
 	}
 	actualStart := time.Now()
@@ -78,7 +78,7 @@ func executeP5WeakHTTPSRequest(t *testing.T, svc *platformflow.Client, certifica
 	}
 	sample.ActualStartNS = actualStart.Sub(scenarioStart).Nanoseconds()
 	sample.SendLagNS = actualStart.Sub(scenarioStart.Add(scheduled)).Nanoseconds()
-	sample.ActualPhase = p5WeakPhaseForOffset(actualStart.Sub(scenarioStart))
+	sample.ActualPhase = p5WeakPhaseForOffset(phases, actualStart.Sub(scenarioStart))
 
 	deadline := actualStart.Add(p5WeakRequestLimit)
 	if scenarioEnd := scenarioStart.Add(p5WeakScenarioTime); deadline.After(scenarioEnd) {

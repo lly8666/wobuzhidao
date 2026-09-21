@@ -73,7 +73,7 @@ func readP5WeakHostCPU() map[string][]uint64 {
 	return out
 }
 
-func runP5WeakResourceSampler(ctx context.Context, artifacts *p5WeakArtifacts, recorder *p5MeasurementRecorder, network *p5WeakNetwork, client *Client, serverTunnel *serverTunnel, clientRef logicaltunnel.LaneRef) {
+func runP5WeakResourceSampler(ctx context.Context, artifacts *p5WeakArtifacts, recorder *p5MeasurementRecorder, phases []p5WeakPhase, network *p5WeakNetwork, client *Client, serverTunnel *serverTunnel, clientRef logicaltunnel.LaneRef) {
 	sample := func(now time.Time) {
 		outer, _, _ := recorder.counters()
 		wireC2S, wireS2C := network.wireSnapshot("c2s"), network.wireSnapshot("s2c")
@@ -87,7 +87,7 @@ func runP5WeakResourceSampler(ctx context.Context, artifacts *p5WeakArtifacts, r
 			Schema:                 p5MeasurementSchema,
 			Event:                  "resource_sample",
 			TNS:                    artifacts.rel(now),
-			Phase:                  p5WeakPhaseForOffset(now.Sub(artifacts.start)),
+			Phase:                  p5WeakPhaseForOffset(phases, now.Sub(artifacts.start)),
 			OuterPackets:           outer,
 			OuterWireBytesC2S:      wireC2S,
 			OuterWireBytesS2C:      wireS2C,
