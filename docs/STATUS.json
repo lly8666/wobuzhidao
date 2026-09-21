@@ -48,9 +48,9 @@
     "P5第五原子任务关闭：稀疏单连接真实HTTPS workload 在 SOURCE_SHA d9627cc9faf4ea66119f82a1c544ac0bb73bbe5e / Actions 35524525129 取得 8/8 PASS。独立 sparse 场景保持1个inner BusinessFlow + 1个TLS1.3/HTTP keep-alive连接，按显式application arrival deadline完成3个顺序请求，计划idle为0/150/300ms；每次响应后client/server TCPFlows均保持1直到最终close，outer SYN=1。validator确认 requests=3、business_flows=1、outer_connections=1、scheduled_idle_ms=0,150,300，application loss/duplicate=0；FEC off、padding=0/off、无弱网注入。P5 combined artifact 10609244483，sha256:493548237ae84353bd01f2258206a5d74ba9d6bb86286b1dd33a774d16921b19。",
     "P5第六原子任务关闭：自然并发真实HTTPS workload 在 SOURCE_SHA 24e6ff71d76b53d63719f83c5df8d2147a383977 / Actions 35529970723 取得 8/8 PASS。3个独立inner TLS1.3 full HTTPS BusinessFlow在同一已建立outer Normal lane上完成真实受控证书验证后由应用barrier同步起跑；client/server实际同时存在3条BusinessFlow，raw request intervals重算得到max overlap=3，distinct FlowID=3、outer SYN=1、application loss/duplicate=0。per-flow wire bytes明确为inner TLS ciphertext，aggregate outer cost继续由PCAP/record events独立记录；FEC off、padding=0/off、无弱网注入。combined P5 artifact 10610588812，sha256:f4f99ee48fb3eed2aad15f97fdc547f7cd7138921f1bf8de6f39d5d0c8d6dc9f。"
   ],
-  "in_progress": "P5 第七原子任务 fixed-FEC 真实HTTPS measurement 候选待 exact-SHA Actions。active tree 审计确认正式 wbd-client/wbd-server 入口此前没有FEC配置项，ClientLaneParams/ServerLaneParams ParityShards零值使生产实际保持FEC off；规范也未指定单一生产20:R挡位。因此候选只新增显式 `--fec-parity`（默认0/off，仅允许0,4,8,10,12,16,20），启用时沿用active tree既有8ms flush/8-block bound，不暴露新调参旋钮。P5受控场景显式使用20:10（现有 WeakParityShards=10 命名）作为能力/成本证据，不称为默认/推荐/选优。候选同时把正式 runtime Tick 接到 authoritative lane 的 partial-FEC FlushDue，并新增只读source/parity/reconstruction/recovered统计；无损20:10真实TLS1.3 HTTPS记录FEC inventory、repair、padding、steady outer/inner TLS wire amplification。padding仍0/off，无弱网注入，不做性能结论。",
-  "next_task": "只资格当前 P5 fixed-FEC atom：候选 SOURCE_SHA 跑完整 next-foundation。strengthened p5-https-measurement-base 必须在同SHA继续通过既有certificate/full-resumed、sparse、natural-concurrency validators，并新增 fixed-FEC validator：profile=20:10、1个真实TLS1.3 full HTTPS flow、outer SYN=1、client/server source_shards>0与parity_shards>0、server full_blocks>0、pending_sources=0、decoder reconstruction/recovered=0、network_drop=0、capture_loss=0、runtime repair=0、padding=0/off；wire amplification由steady outer IPv4/TCP bytes / inner TLS ciphertext bytes原始计数重算一致。通过前 last_tested_source_sha 保持 24e6ff71d76b53d63719f83c5df8d2147a383977。",
-  "latest_log": "docs/devlog/20260921-024500-p5-fixed-fec-20x10-candidate.md",
+  "in_progress": "P5 第七原子任务 fixed-FEC 候选重试待 exact-SHA Actions。首候选 7aae4993e6bd78f3e75c732d98290586e7f55089 / Actions 35553888249 的 dedicated P5 gate 已完整PASS：20:10真实TLS1.3 HTTPS source/parity inventory为client 41/21、server 245/125，fec_recovery=0、repair=0、padding=off、wire_amp=1.912429；既有certificate/full-resumed、sparse、natural-concurrency validators同SHA也PASS。全workflow唯一失败是未修改P4 `TestLifecycleEntryGameThreeAndFourLaneMatrix/lanes-4`，server GameDuplicates=2，普通Go测试在该断言失败后停止；Windows/P2/OpenWrt/Linux privileged/repository-contract/P5均PASS。当前重试只记录失败证据并生成新候选SHA，不修改P4或FEC产品代码。",
+  "next_task": "对 fixed-FEC retry SOURCE_SHA 重新跑完整 next-foundation；要求全部8 jobs同SHA PASS。P5 gate必须再次证明 profile=20:10、client/server source/parity>0、pending_sources=0、FEC reconstruction/recovered=0、network/capture drop=0、repair=0、padding=0/off、wire amplification原始计数一致，并继续通过既有三个P5 validators。若P4 lanes矩阵再次稳定复现失败，再单独审计是否为真实P4 hard gap；否则不要重开P4。通过前 last_tested_source_sha 继续保持24e6ff71d76b53d63719f83c5df8d2147a383977。",
+  "latest_log": "docs/devlog/20260921-025500-p5-fixed-fec-retry.md",
   "last_tested_source_sha": "24e6ff71d76b53d63719f83c5df8d2147a383977",
   "actions": [
     {
@@ -640,6 +640,13 @@
       "scope": "P5-natural-concurrency-docs-closure",
       "status": "PASS",
       "note": "Docs-only natural-concurrency closure completed/success，8/8 jobs PASS。该SHA只更新STATUS/devlog；产品资格继续由 SOURCE_SHA 24e6ff71d76b53d63719f83c5df8d2147a383977 / Actions 35529970723 authority，docs-only closure 不覆盖 last_tested_source_sha。"
+    },
+    {
+      "source_sha": "7aae4993e6bd78f3e75c732d98290586e7f55089",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35553888249",
+      "scope": "P5-fixed-FEC-20x10-first-candidate",
+      "status": "FAIL",
+      "note": "Run attempt 1 completed/failure，8 jobs中7 PASS。repository-contract、Windows active-go-tests、P2 kernel fallback、OpenWrt privileged、Linux shared-TUN iptables/nft、P5 dedicated measurement全部PASS；唯一失败是未修改P4 runtimeentry unit `TestLifecycleEntryGameThreeAndFourLaneMatrix/lanes-4`，约0.02s时server stats GameDelivered=1/GameDuplicates=2，不满足既有测试期望。P5 gate已完整资格其自身证据：`WBD_P5_FIXED_FEC_CAPTURED source_sha=7aae4993e6bd78f3e75c732d98290586e7f55089 profile=20:10 flows=1 outer_connections=1 client_source=41 client_parity=21 server_source=245 server_parity=125 fec_recovery=0 repair=0 padding=off wire_amp=1.912429 records=432`，独立validator输出同参数PASS；certificate/full-resumed、sparse、natural-concurrency validators也同SHA PASS。combined P5 artifact 10619382571，1052735 bytes，sha256:52e51294c1df59284227befb33e374fee0d0dae836f890394f542aee917bace9。该失败不修改/否定P4已资格SOURCE_SHA 76a20c…；当前atom不重开P4，只生成新候选SHA完整重跑。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -670,6 +677,6 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "IN_PROGRESS: measurement base（043da629…）、顺序 close-tail（a9b92c26…）、TLS1.3 full-vs-resumed（1fb65c90…）、不同独立证书链（e2c1d668…）、稀疏单连接（d9627cc9…）和自然并发（24e6ff71…）已资格；自然并发docs closure 9a812953… / 35549726954 8/8 PASS。第七原子候选新增默认off的显式fixed-FEC配置、正式partial-block timer flush接线及20:10无损真实HTTPS能力/成本测量；弱网、负载、长测后续分别推进。"
+    "P5": "IN_PROGRESS: measurement base、close-tail、TLS full/resumed、不同证书链、稀疏、自然并发已资格。fixed-FEC 20:10首候选 7aae4993… 的P5 dedicated gate及全部raw validators已PASS，但全workflow因未修改P4 lanes-4时序断言单点FAIL；当前只做候选retry，不修改FEC/P4产品代码。弱网、负载、长测仍未开始。"
   }
 }
