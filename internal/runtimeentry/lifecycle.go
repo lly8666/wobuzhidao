@@ -1119,8 +1119,21 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 
 	s.mu.Lock()
 	lane := s.byFlow[flow]
+	admitting := s.started[flow]
+	s.mu.Unlock()
 	if lane == nil {
+		if assoc.State() == faketcp.ServerAssociationClosed {
+			return nil
+		}
 		if state, exists := assoc.TransitionState(); exists && state == faketcp.TransitionDetached {
+			if !admitting {
+				return nil
+			}
+			s.mu.Lock()
+			if !s.started[flow] || s.byFlow[flow] != nil {
+				s.mu.Unlock()
+				return nil
+			}
 			queue := s.pending[flow]
 			if len(queue) >= faketcp.MaxBootstrapPendingChunks {
 				s.mu.Unlock()
@@ -1133,13 +1146,23 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 			return nil
 		}
 	}
-	s.mu.Unlock()
 
 	if lane != nil {
 		qualified, err := lane.group.rt.HandleServerSegmentQualified(lane.ref, assoc, seg, now)
 		if err != nil {
 			if lane.retiring && errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) {
 				return nil
+			}
+			if errors.Is(err, runtimeowner.ErrTransportMissing) ||
+				errors.Is(err, runtimeowner.ErrRuntimeClosed) ||
+				errors.Is(err, runtimeowner.ErrTransportPeerReset) {
+				s.mu.Lock()
+				current := s.byFlow[flow]
+				dormant := lane.group.dormant
+				s.mu.Unlock()
+				if current != lane || dormant {
+					return nil
+				}
 			}
 			return err
 		}
@@ -1638,8 +1661,13 @@ func (s *LifecycleServer) tick(now time.Time) error {
 		s.mu.Lock()
 		replacements := make([]*serverLifecycleLane, 0, len(group.retiring))
 		for _, lane := range group.lanes {
-			if lane.replaces != nil && !now.Before(lane.promotedAt) &&
-				now.Sub(lane.promotedAt) >= s.cfg.ReplacementGrace {
+			if lane.replaces == nil {
+				continue
+			}
+			closeStarted := lane.replaces.closeStarted
+			graceExpired := !now.Before(lane.promotedAt) &&
+				now.Sub(lane.promotedAt) >= s.cfg.ReplacementGrace
+			if !closeStarted.IsZero() || graceExpired {
 				replacements = append(replacements, lane)
 			}
 		}
@@ -1683,6 +1711,7 @@ func (s *LifecycleServer) dormantGroup(group *serverLifecycleTunnel) error {
 		s.mu.Unlock()
 		return nil
 	}
+	group.dormant = true
 	lanes := make([]*serverLifecycleLane, 0, len(group.lanes)+len(group.retiring))
 	seen := make(map[*serverLifecycleLane]struct{})
 	for _, lane := range group.lanes {
@@ -1700,6 +1729,9 @@ func (s *LifecycleServer) dormantGroup(group *serverLifecycleTunnel) error {
 	s.mu.Unlock()
 
 	if _, err := group.rt.Dormant(); err != nil {
+		s.mu.Lock()
+		group.dormant = false
+		s.mu.Unlock()
 		return err
 	}
 
@@ -1709,7 +1741,6 @@ func (s *LifecycleServer) dormantGroup(group *serverLifecycleTunnel) error {
 	}
 	clear(group.lanes)
 	clear(group.retiring)
-	group.dormant = true
 	group.lastPayload = time.Time{}
 	s.mu.Unlock()
 	for _, lane := range lanes {

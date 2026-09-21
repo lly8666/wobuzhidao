@@ -230,6 +230,11 @@ func TestLifecycleEntryGameThreeAndFourLaneMatrix(t *testing.T) {
 		t.Run(fmt.Sprintf("lanes-%d", lanes), func(t *testing.T) {
 			h := newLifecycleAuditHarness(t, lanes, 0, 0)
 			h.sendForward(t, [4]byte{8, 8, 8, byte(lanes)})
+			waitLifecycle(t, 3*time.Second, func() bool {
+				serverStats, ok := h.server.TunnelStats(h.tunnelID)
+				return ok && serverStats.GameDelivered == 1 &&
+					serverStats.GameDuplicates >= uint64(lanes-1)
+			})
 
 			clientStats := h.client.Owner().Stats()
 			serverStats, ok := h.server.TunnelStats(h.tunnelID)
