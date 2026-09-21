@@ -476,3 +476,128 @@ func TestRuntimeTickFlushesPartialFixedFECOnAuthoritativeLane(t *testing.T) {
 		t.Fatalf("transport stats=%+v ok=%v", stats, ok)
 	}
 }
+
+
+func TestLaneTransportTickKeepsDueRepairWhenGapForgivenessAlsoDue(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wire []faketcp.Segment
+	emit := func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}
+	rt, err := New(owner, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rt.Close()
+
+	cfg, _ := transportPair(emit, func(faketcp.Segment) error { return nil }, 1, 12000)
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 61), cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	transport := rt.lanes[snap.Ref]
+	t0 := time.Unix(6000, 0)
+	payload := []byte("steady-repair")
+	if err := transport.send([]datapath.WireRecord{{Wire: payload}}, t0); err != nil {
+		t.Fatal(err)
+	}
+
+	transport.mu.Lock()
+	futureSeq := cfg.ReceiveNext + 100
+	futurePayload := []byte("future")
+	if _, err := transport.acceptPayloadLocked(futureSeq, futurePayload, t0.Add(-2*time.Second)); err != nil {
+		transport.mu.Unlock()
+		t.Fatal(err)
+	}
+	transport.mu.Unlock()
+
+	if err := transport.tick(t0.Add(time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	if len(wire) != 2 {
+		t.Fatalf("wire=%d want fresh+repair", len(wire))
+	}
+	if wire[1].Seq != wire[0].Seq || !bytes.Equal(wire[1].Payload, wire[0].Payload) {
+		t.Fatalf("tick emitted=%+v want repair of=%+v", wire[1], wire[0])
+	}
+	wantACK := futureSeq + uint32(len(futurePayload))
+	if wire[1].Ack != wantACK {
+		t.Fatalf("repair ACK=%d want forgiven ACK=%d", wire[1].Ack, wantACK)
+	}
+	stats := transport.statsSnapshot()
+	if stats.RepairSelected != 1 || stats.RepairAttempts != 1 ||
+		stats.RepairSucceeded != 1 || stats.RepairFailures != 0 ||
+		stats.Retransmitted != 1 || stats.ForgivenGaps != 1 {
+		t.Fatalf("transport stats=%+v", stats)
+	}
+}
+
+func TestLaneTransportTickCountsFailedRepairWithoutPretendingItWasSent(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wire []faketcp.Segment
+	failRepair := false
+	boom := errors.New("repair emit failed")
+	emit := func(seg faketcp.Segment) error {
+		if failRepair && len(seg.Payload) != 0 {
+			return boom
+		}
+		wire = append(wire, seg)
+		return nil
+	}
+	rt, err := New(owner, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rt.Close()
+
+	cfg, _ := transportPair(emit, func(faketcp.Segment) error { return nil }, 1, 22000)
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 62), cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	transport := rt.lanes[snap.Ref]
+	t0 := time.Unix(7000, 0)
+	if err := transport.send([]datapath.WireRecord{{Wire: []byte("repair-me")}}, t0); err != nil {
+		t.Fatal(err)
+	}
+	failRepair = true
+	if err := transport.tick(t0.Add(time.Second)); !errors.Is(err, boom) {
+		t.Fatalf("tick err=%v want=%v", err, boom)
+	}
+	stats := transport.statsSnapshot()
+	if stats.RepairSelected != 1 || stats.RepairAttempts != 1 ||
+		stats.RepairSucceeded != 0 || stats.RepairFailures != 1 ||
+		stats.Retransmitted != 0 {
+		t.Fatalf("failed repair stats=%+v", stats)
+	}
+	transport.mu.Lock()
+	p := transport.pending[wire[0].Seq]
+	if p == nil || !p.lastSent.Equal(t0) || p.retries != 0 {
+		transport.mu.Unlock()
+		t.Fatalf("failed repair mutated pending=%+v", p)
+	}
+	transport.mu.Unlock()
+
+	failRepair = false
+	if err := transport.tick(t0.Add(time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	stats = transport.statsSnapshot()
+	if stats.RepairSelected != 2 || stats.RepairAttempts != 2 ||
+		stats.RepairSucceeded != 1 || stats.RepairFailures != 1 ||
+		stats.Retransmitted != 1 {
+		t.Fatalf("retry stats=%+v", stats)
+	}
+	if len(wire) != 2 || wire[1].Seq != wire[0].Seq || !bytes.Equal(wire[1].Payload, wire[0].Payload) {
+		t.Fatalf("successful retry wire=%+v", wire)
+	}
+}

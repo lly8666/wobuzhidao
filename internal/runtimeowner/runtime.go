@@ -84,6 +84,10 @@ type deliveredMark struct {
 
 type TransportStats struct {
 	FreshSent         uint64
+	RepairSelected    uint64
+	RepairAttempts    uint64
+	RepairSucceeded   uint64
+	RepairFailures    uint64
 	Retransmitted     uint64
 	Acked             uint64
 	Abandoned         uint64
@@ -384,7 +388,13 @@ func (t *laneTransport) compactPendingOrderLocked() {
 }
 
 func (t *laneTransport) tick(now time.Time) error {
-	var emit *faketcp.Segment
+	var (
+		repair       *faketcp.Segment
+		repairSeq    uint32
+		repairRecord *pendingRecord
+		ackOnly      *faketcp.Segment
+	)
+
 	t.mu.Lock()
 	if t.closed {
 		t.mu.Unlock()
@@ -402,24 +412,50 @@ func (t *laneTransport) tick(now time.Time) error {
 			continue
 		}
 		if now.Sub(p.lastSent) >= t.cfg.InitialRTO {
-			p.lastSent = now
-			p.retries++
-			t.stats.Retransmitted++
-			seg := t.outboundSegment(p.seq, t.recvNext, p.payload)
-			emit = &seg
+			repairSeq = seq
+			repairRecord = p
+			t.stats.RepairSelected++
 			break
 		}
 	}
 	t.compactPendingOrderLocked()
-	for t.forgiveGapLocked(now, false) {
+
+	// Gap forgiveness advances the cumulative ACK state before the packet is
+	// formed. If a repair is also due, carry that newer ACK on the repair
+	// instead of replacing the selected payload with an ACK-only segment.
+	forgiven := t.forgiveGapLocked(now, false)
+	if repairRecord != nil {
+		seg := t.outboundSegment(repairRecord.seq, t.recvNext, repairRecord.payload)
+		repair = &seg
+	} else if forgiven {
 		seg := t.outboundSegment(t.sendNext, t.recvNext, nil)
-		emit = &seg
-		break
+		ackOnly = &seg
 	}
 	t.mu.Unlock()
 
-	if emit != nil {
-		return t.cfg.Emit(*emit)
+	if repair != nil {
+		t.mu.Lock()
+		t.stats.RepairAttempts++
+		t.mu.Unlock()
+
+		err := t.cfg.Emit(*repair)
+
+		t.mu.Lock()
+		if err != nil {
+			t.stats.RepairFailures++
+		} else {
+			t.stats.RepairSucceeded++
+			t.stats.Retransmitted++
+			if current := t.pending[repairSeq]; current == repairRecord {
+				current.lastSent = now
+				current.retries++
+			}
+		}
+		t.mu.Unlock()
+		return err
+	}
+	if ackOnly != nil {
+		return t.cfg.Emit(*ackOnly)
 	}
 	return nil
 }
