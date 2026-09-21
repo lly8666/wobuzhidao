@@ -408,8 +408,29 @@ def main():
     if manifest_app.get("inner_tls_wire_bytes_c2s") != inner_c2s or manifest_app.get("inner_tls_wire_bytes_s2c") != inner_s2c:
         fail("manifest inner TLS wire inventory")
     capture = manifest.get("capture", {})
-    if capture.get("capture_loss_packets") != 0 or capture.get("outer_packets") != len(outer_events) or capture.get("tlslike_record_events") != len(record_events):
-        fail("manifest capture inventory")
+    if capture.get("capture_loss_packets") != 0:
+        fail("manifest capture loss inventory")
+    # The manifest is written while the runtime/tick goroutines are still alive
+    # and before deferred shutdown closes the client/server. Its packet/record
+    # counters are therefore an atomic live snapshot, not the final file size.
+    # Final capture completeness is independently proved above by exact
+    # PCAP-packet == outer-event equality. Require the manifest snapshot to be
+    # a valid prefix count and require every later captured tail event to be
+    # outside the prescribed 120s measurement window.
+    manifest_outer = capture.get("outer_packets")
+    manifest_records = capture.get("tlslike_record_events")
+    if not isinstance(manifest_outer, int) or manifest_outer <= 0 or manifest_outer > len(outer_events):
+        fail("manifest outer capture snapshot")
+    if not isinstance(manifest_records, int) or manifest_records <= 0 or manifest_records > len(record_events):
+        fail("manifest record capture snapshot")
+    if capture.get("client_initial_syns") != 1:
+        fail("manifest initial SYN inventory")
+    for e in outer_events[manifest_outer:]:
+        if not isinstance(e.get("t_ns"), int) or e.get("t_ns") < SCENARIO_NS:
+            fail("outer capture tail entered measurement window")
+    for e in record_events[manifest_records:]:
+        if not isinstance(e.get("t_ns"), int) or e.get("t_ns") < SCENARIO_NS:
+            fail("record capture tail entered measurement window")
     cost = manifest.get("cost", {})
     if cost.get("wire_amplification_numerator_bytes") != numerator or cost.get("wire_amplification_denominator_bytes") != denominator or not math.isclose(cost.get("wire_amplification", -1), wire_amp, rel_tol=1e-9, abs_tol=1e-12):
         fail("manifest wire cost")
