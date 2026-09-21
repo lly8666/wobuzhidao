@@ -810,7 +810,11 @@ func (c *TunnelClient) retireQualified(now time.Time) {
 
 		oldStats, oldOK := c.rt.TransportStats(item.oldRef)
 		closeComplete := oldOK && oldStats.LocalFINAcked && oldStats.PeerFIN
-		closeExpired := !now.Before(closeStarted) && now.Sub(closeStarted) >= c.cfg.ReplacementGrace
+		closeBudget := c.cfg.ReplacementGrace
+		if rtoBudget := 2 * c.cfg.InitialRTO; rtoBudget > 0 && rtoBudget < closeBudget {
+			closeBudget = rtoBudget
+		}
+		closeExpired := !now.Before(closeStarted) && now.Sub(closeStarted) >= closeBudget
 		if !closeComplete && !closeExpired {
 			continue
 		}
@@ -1515,7 +1519,11 @@ func (s *LifecycleServer) retireServerReplacement(lane *serverLifecycleLane) {
 
 	stats, ok := lane.group.rt.TransportStats(replacing.ref)
 	closeComplete := ok && stats.LocalFINAcked && stats.PeerFIN
-	closeExpired := !now.Before(closeStarted) && now.Sub(closeStarted) >= s.cfg.ReplacementGrace
+	closeBudget := s.cfg.ReplacementGrace
+	if rtoBudget := 2 * s.cfg.InitialRTO; rtoBudget > 0 && rtoBudget < closeBudget {
+		closeBudget = rtoBudget
+	}
+	closeExpired := !now.Before(closeStarted) && now.Sub(closeStarted) >= closeBudget
 	if !closeComplete && !closeExpired {
 		return
 	}

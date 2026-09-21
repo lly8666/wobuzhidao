@@ -58,9 +58,9 @@
     "P6关闭：SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 / Actions 35603635498 的三个独立release-candidate job全部PASS。linux/amd64 artifact 10640321325 sha256:e08bedeacb64be27677bdc2ec7232691b1a450b809e39b878f5f9141b57de8e5，manifest sha256=e971ad779beff597c8d39a69f5645f3894021e023e10c6a4a7ffc82d0f1fafa8；linux/arm64 artifact 10641055941 sha256:3637dfaa7f89a2358fe258d7f5afddb9dc8cba20d2c188552ad30010d307c88e，manifest sha256=83ab1202ae4adb12db4fb820c357a3659ea7eaf8220ac20039c1872f9235aaf0；windows/amd64 artifact 10641181252 sha256:c5b3c83af29929f474a0467c1cc2eb1d9f63756f115468c423bbf2a4c161e06f，manifest sha256=5d12951916c0663e3d9028626e2dea4a18b458979ed8ff4c3a5d8b8da5077d64。三者source_sha相同、file SHA256与binary target/source/version独立复核PASS；Windows server=UNSUPPORTED，PHYSICAL/RELEASE_QUALIFIED=NOT_RUN。",
     "P4增强第1原子修复：runtimeowner repair/gap-ACK仲裁在SOURCE_SHA e3253322ac863c11636f1c127e14b77bdc6bf800的定向Actions已通过repository-contract、Windows/Linux active-go（Linux含race）、OpenWrt privileged与Linux shared-TUN iptables/nft；repair选择/尝试/成功/失败分离且gap forgiveness不再覆盖已选repair。"
   ],
-  "in_progress": "P4增强第2原子任务已提交：FIN/RST/半关闭由detach后的runtimeowner稳态Seq/ACK拥有；rotation有界FIN收尾，DORMANT/显式退出先发steady FIN再本地detach/网络关闭，尾部数据和RST有定向测试。等待exact-SHA Actions验证。",
-  "next_task": "先验证FIN/RST/半关闭原子提交的repository-contract、Windows/Linux active-go、Linux race、P4 privileged入口与Game lanes回归；若通过，再按专项限定读取old/internal/faketcp/arq.go、repair_horizon.go、adaptive_pressure.go及直接依赖/测试，记录旧参数值/单位/触发条件/适用性后做有界SACK+fresh优先repair credit+必要RTT/RTO最小闭包。",
-  "latest_log": "docs/devlog/20260922-001500-steady-fin-rst-halfclose.md",
+  "in_progress": "P4增强第2原子任务修正中：SOURCE_SHA 11d37b3a 的steady FIN/RST核心单测、Windows、HTTPS base、OpenWrt与shared-TUN均PASS；Ubuntu active-go仅现有replacement收敛等待在默认3s边界超时。修正rotation关闭预算为min(ReplacementGrace,2*InitialRTO)，仍先FIN并允许RTO repair/读半关闭，再有界强制退役。",
+  "next_task": "先验证本rotation FIN-drain修正的exact-SHA Actions，尤其Lifecycle replacement、Game4和Linux race；通过后才进入有界SACK/fresh优先repair credit/RTT-RTO原子任务。",
+  "latest_log": "docs/devlog/20260922-003000-rotation-fin-drain-bound.md",
   "last_tested_source_sha": "e3253322ac863c11636f1c127e14b77bdc6bf800",
   "actions": [
     {
@@ -825,6 +825,13 @@
       "scope": "P4-steady-repair-gap-ack-targeted",
       "status": "PASS_TARGETED",
       "note": "repository-contract、active-go-tests Windows/Ubuntu（Ubuntu含go test -race ./...）、OpenWrt privileged、Linux shared-TUN iptables/nft均已完成PASS，关闭第1原子修复的定向回归；同workflow长时P5 jobs不提前写成整轮PASS。"
+    },
+    {
+      "source_sha": "11d37b3aa20876f5870c02bc04e1daedb7396524",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35624751476",
+      "scope": "P4-steady-fin-rst-first-candidate",
+      "status": "FAIL",
+      "note": "repository-contract、Windows active-go、runtimeowner新FIN/RST测试、P5 HTTPS base、OpenWrt privileged、Linux shared-TUN iptables/nft均PASS；Ubuntu active-go唯一FAIL为TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease在既有3s wait超时。原因是新rotation强制退役沿用完整默认ReplacementGrace=3s，恰与测试等待相同；不是忽略项，改为最多2*InitialRTO关闭预算，保留FIN repair与half-close后再有界退役。"
     }
   ],
   "physical_status": "NOT_RUN",
