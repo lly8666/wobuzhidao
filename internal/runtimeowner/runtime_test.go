@@ -407,3 +407,72 @@ func firstSegment(segments []faketcp.Segment) faketcp.Segment {
 	}
 	return segments[0]
 }
+
+
+func TestRuntimeTickFlushesPartialFixedFECOnAuthoritativeLane(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wire []faketcp.Segment
+	emit := func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}
+	rt, err := New(owner, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rt.Close()
+
+	lane := runtimeLane(t, datapath.RoleClient, lease, 10, 44)
+	cfg, _ := transportPair(emit, func(faketcp.Segment) error { return nil }, 1, 7000)
+	snap, err := rt.AttachInitial(1, lane, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	leaseAddr, _ := lease.Config.LeaseIPv4()
+	packet := runtimeIPv4(leaseAddr, netip.MustParseAddr("203.0.113.8"), []byte("fec-partial"))
+	t0 := time.Unix(5000, 0)
+	records, err := owner.NormalOutbound(packet, t0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(records) != 1 {
+		t.Fatalf("source records=%d want=1", len(records))
+	}
+	if err := rt.SendNormal(records, t0); err != nil {
+		t.Fatal(err)
+	}
+	if len(wire) != 1 {
+		t.Fatalf("wire after source=%d want=1", len(wire))
+	}
+	if err := rt.Tick(t0.Add(7 * time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if len(wire) != 1 {
+		t.Fatalf("early tick emitted parity: wire=%d", len(wire))
+	}
+	if err := rt.Tick(t0.Add(8 * time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if len(wire) != 2 {
+		t.Fatalf("due tick wire=%d want=2 (source+partial parity)", len(wire))
+	}
+	laneStats, ok := owner.LaneStats(snap.Ref)
+	if !ok {
+		t.Fatal("lane stats unavailable")
+	}
+	enc := laneStats.TxPath.Encoder
+	if !laneStats.TxPath.FECEnabled || laneStats.TxPath.ParityShards != 10 ||
+		enc.SourceShards != 1 || enc.ParityShards != 1 || enc.PartialBlocks != 1 || enc.PendingSources != 0 {
+		t.Fatalf("FEC lane stats=%+v", laneStats.TxPath)
+	}
+	if laneStats.ExpireCalls != 2 {
+		t.Fatalf("expire calls=%d want=2", laneStats.ExpireCalls)
+	}
+	if stats, ok := rt.TransportStats(snap.Ref); !ok || stats.FreshSent != 2 || stats.Retransmitted != 0 {
+		t.Fatalf("transport stats=%+v ok=%v", stats, ok)
+	}
+}

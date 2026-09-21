@@ -836,20 +836,45 @@ func (r *Runtime) Tick(now time.Time) error {
 	if r == nil {
 		return nil
 	}
+	type tickLane struct {
+		ref       logicaltunnel.LaneRef
+		transport *laneTransport
+		active    bool
+	}
 	r.mu.Lock()
 	if r.closed {
 		r.mu.Unlock()
 		return nil
 	}
-	lanes := make([]*laneTransport, 0, len(r.lanes))
-	for _, transport := range r.lanes {
-		lanes = append(lanes, transport)
+	active := make(map[logicaltunnel.LaneRef]struct{}, len(r.active))
+	for _, ref := range r.active {
+		active[ref] = struct{}{}
+	}
+	lanes := make([]tickLane, 0, len(r.lanes))
+	for ref, transport := range r.lanes {
+		_, isActive := active[ref]
+		lanes = append(lanes, tickLane{ref: ref, transport: transport, active: isActive})
 	}
 	r.mu.Unlock()
 
 	var errs []error
-	for _, transport := range lanes {
-		if err := transport.tick(now); err != nil {
+	for _, lane := range lanes {
+		// Only the authoritative incarnation may form new timer-driven FEC
+		// parity. Retiring transports keep their bounded repair tick but cannot
+		// create fresh steady records after generation replacement.
+		if lane.active {
+			records, err := r.owner.TickLane(lane.ref, now)
+			if err != nil {
+				if !errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) && !errors.Is(err, datapath.ErrLaneUnavailable) {
+					errs = append(errs, err)
+				}
+			} else if len(records) != 0 {
+				if err := lane.transport.send(records, now); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+		if err := lane.transport.tick(now); err != nil {
 			errs = append(errs, err)
 		}
 	}

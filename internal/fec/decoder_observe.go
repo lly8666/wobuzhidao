@@ -4,9 +4,11 @@ package fec
 // It is safe to sample on the per-datagram hot path because it only reads map
 // lengths and immutable configuration; it never walks heavy or retired blocks.
 type DecoderPressureCounts struct {
-	InFlight  int `json:"in_flight"`
-	MaxBlocks int `json:"max_blocks"`
-	Retired   int `json:"retired"`
+	InFlight             int    `json:"in_flight"`
+	MaxBlocks            int    `json:"max_blocks"`
+	Retired              int    `json:"retired"`
+	ReconstructionEvents uint64 `json:"reconstruction_events"`
+	RecoveredSources     uint64 `json:"recovered_sources"`
 }
 
 // PressureCounts returns the constant-time decoder pressure counters used for
@@ -15,9 +17,11 @@ type DecoderPressureCounts struct {
 // of once per received FEC datagram.
 func (d *BlockDecoder) PressureCounts() DecoderPressureCounts {
 	return DecoderPressureCounts{
-		InFlight:  len(d.blocks),
-		MaxBlocks: d.maxBlocks,
-		Retired:   len(d.retired),
+		InFlight:             len(d.blocks),
+		MaxBlocks:            d.maxBlocks,
+		Retired:              len(d.retired),
+		ReconstructionEvents: d.reconstructionEvents,
+		RecoveredSources:     d.recoveredSources,
 	}
 }
 
@@ -33,13 +37,17 @@ type DecoderPressureStats struct {
 	ActiveFinal           int `json:"active_final"`
 	ActiveProvisional     int `json:"active_provisional"`
 	ActiveMissingSources  int `json:"active_missing_sources"`
+	ReconstructionEvents  uint64 `json:"reconstruction_events"`
+	RecoveredSources      uint64 `json:"recovered_sources"`
 }
 
 func (d *BlockDecoder) PressureStats() DecoderPressureStats {
 	s := DecoderPressureStats{
-		InFlight:  len(d.blocks),
-		MaxBlocks: d.maxBlocks,
-		Retired:   len(d.retired),
+		InFlight:             len(d.blocks),
+		MaxBlocks:            d.maxBlocks,
+		Retired:              len(d.retired),
+		ReconstructionEvents: d.reconstructionEvents,
+		RecoveredSources:     d.recoveredSources,
 	}
 	for _, b := range d.blocks {
 		if b == nil {

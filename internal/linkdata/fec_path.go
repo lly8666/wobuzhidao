@@ -34,6 +34,7 @@ type FECRecoveryStats struct {
 type FECPathState struct {
 	FECEnabled   bool
 	ParityShards int
+	Encoder      fec.FastBlockEncoderStats
 	Decoder      fec.DecoderPressureCounts
 	Recovery     FECRecoveryStats
 	Reassembly   ReassemblyState
@@ -232,6 +233,9 @@ func (p *FECPath) State() FECPathState {
 		FECEnabled:   p.FECEnabled(),
 		ParityShards: p.config.ParityShards,
 		Reassembly:   p.reassembler.State(),
+	}
+	if p.encoder != nil {
+		state.Encoder = p.encoder.Stats()
 	}
 	if p.decoder != nil {
 		state.Decoder = p.decoder.PressureCounts()

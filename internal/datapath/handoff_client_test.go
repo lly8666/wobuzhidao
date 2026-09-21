@@ -3,6 +3,7 @@ package datapath
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
@@ -49,5 +50,23 @@ func TestClientLaneConfigFromAdmissionRejectsInvalidVersion(t *testing.T) {
 	}, ClientLaneParams{})
 	if !errors.Is(err, ErrAdmissionHandoff) {
 		t.Fatalf("err=%v want admission handoff rejection", err)
+	}
+}
+
+
+func TestFixedFECRuntimeDefaultsKeepOffAndAdmitOnlyLiveProfiles(t *testing.T) {
+	if flush, blocks, err := FixedFECRuntimeDefaults(0); err != nil || flush != 0 || blocks != 0 {
+		t.Fatalf("off defaults flush=%s blocks=%d err=%v", flush, blocks, err)
+	}
+	for _, parity := range []int{4, 8, 10, 12, 16, 20} {
+		flush, blocks, err := FixedFECRuntimeDefaults(parity)
+		if err != nil || flush != 8*time.Millisecond || blocks != 8 {
+			t.Fatalf("20:%d defaults flush=%s blocks=%d err=%v", parity, flush, blocks, err)
+		}
+	}
+	for _, parity := range []int{-1, 1, 9, 11, 21} {
+		if _, _, err := FixedFECRuntimeDefaults(parity); err == nil {
+			t.Fatalf("unsupported parity=%d accepted", parity)
+		}
 	}
 }

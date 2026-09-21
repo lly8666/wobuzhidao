@@ -187,6 +187,9 @@ type BlockDecoder struct {
 	retiredHead  int
 
 	completed completedBlockSet
+
+	reconstructionEvents uint64
+	recoveredSources      uint64
 }
 
 func NewBlockDecoder(codec Codec, maxPacketSize, maxBlocks int) (*BlockDecoder, error) {
@@ -474,6 +477,10 @@ func (d *BlockDecoder) maybeComplete(blockID uint32, b *decodeBlock) ([][]byte, 
 		}
 		packets = append(packets, append([]byte(nil), b.shards[i][:n]...))
 		b.delivered[i] = true
+	}
+	if len(packets) != 0 {
+		d.reconstructionEvents++
+		d.recoveredSources += uint64(len(packets))
 	}
 	delete(d.blocks, blockID)
 	d.markCompleted(blockID)

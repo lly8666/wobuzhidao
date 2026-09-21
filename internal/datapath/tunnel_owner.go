@@ -516,6 +516,76 @@ func (o *TunnelOwner) Close() {
 	closeLaneSet(lanes)
 }
 
+// TickLane advances timer-owned lane state for one authoritative incarnation.
+// It flushes due partial FEC parity without adding useful-payload padding credit,
+// then expires receive-side FEC/LINK state. Returned records remain generation-
+// fenced so a concurrent replacement cannot emit newly formed parity on a stale
+// incarnation.
+func (o *TunnelOwner) TickLane(ref logicaltunnel.LaneRef, now time.Time) ([]WireRecord, error) {
+	if o == nil {
+		return nil, ErrTunnelOwnerClosed
+	}
+	o.mu.Lock()
+	if o.closed {
+		o.mu.Unlock()
+		return nil, ErrTunnelOwnerClosed
+	}
+	binding, ok := o.active[ref.ID]
+	if !ok {
+		o.mu.Unlock()
+		return nil, ErrLaneUnavailable
+	}
+	if binding.ref != ref {
+		current := binding.ref
+		o.mu.Unlock()
+		return nil, staleGeneration(ref, current)
+	}
+	paddingEnabled := o.padding.policy.Enabled
+	o.mu.Unlock()
+
+	var (
+		records []WireRecord
+		flushErr error
+	)
+	if paddingEnabled {
+		records, flushErr = binding.lane.flushDue(now, o.allocateRecordPadding)
+	} else {
+		records, flushErr = binding.lane.FlushDue(now)
+	}
+	expireErr := binding.lane.Expire(now)
+	if flushErr != nil {
+		return nil, errors.Join(flushErr, expireErr)
+	}
+	records, fenceErr := o.FenceOutbound(ref, records)
+	return records, errors.Join(expireErr, fenceErr)
+}
+
+// LaneStats returns the current authoritative lane snapshot for exact
+// measurement/diagnostic use. It does not expose the Lane pointer or mutate
+// owner/lifecycle state.
+func (o *TunnelOwner) LaneStats(ref logicaltunnel.LaneRef) (LaneStats, bool) {
+	if o == nil {
+		return LaneStats{}, false
+	}
+	o.mu.Lock()
+	if o.closed {
+		o.mu.Unlock()
+		return LaneStats{}, false
+	}
+	binding, ok := o.active[ref.ID]
+	if !ok || binding.ref != ref {
+		o.mu.Unlock()
+		return LaneStats{}, false
+	}
+	lane := binding.lane
+	o.mu.Unlock()
+	stats := lane.Stats()
+	if err := o.ValidateGeneration(ref); err != nil {
+		return LaneStats{}, false
+	}
+	return stats, true
+}
+
 func (o *TunnelOwner) ActiveLanes() []TunnelLaneSnapshot {
 	o.mu.Lock()
 	defer o.mu.Unlock()

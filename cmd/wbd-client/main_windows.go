@@ -40,6 +40,7 @@ func main() {
 		password = flag.String("password", "", "protected admission password")
 		clientLimit = flag.Uint("client-record-limit", 1300, "server-to-client TLS-like record wire limit")
 		mtu = flag.Int("mtu", 1500, "connection MTU")
+		fecParity = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
 		adapterAlias = flag.String("adapter", "WBD", "Wintun adapter alias")
 		dnsText = flag.String("dns4", "", "comma-separated IPv4 DNS servers")
 		directText = flag.String("direct4", "", "comma-separated direct IPv4 prefixes")
@@ -62,6 +63,10 @@ func main() {
 		log.Fatal("invalid port or record limit")
 	}
 	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
+		log.Fatal(err)
+	}
+	fecFlushAfter, fecMaxBlocks, err := datapath.FixedFECRuntimeDefaults(*fecParity)
+	if err != nil {
 		log.Fatal(err)
 	}
 	if *idleDormant < 0 || *rotateMin < 0 || *rotateMax < 0 ||
@@ -162,6 +167,7 @@ func main() {
 			ConnectionMTU: *mtu,
 			TxIPv4HeaderLen: 20, TxTCPHeaderLen: 20,
 			RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
+			ParityShards: *fecParity, FlushAfter: fecFlushAfter, MaxBlocks: fecMaxBlocks,
 		},
 		Deliver: func(packets [][]byte, _ time.Time) error {
 			if router == nil {

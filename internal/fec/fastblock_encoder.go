@@ -20,6 +20,14 @@ import (
 //
 // Returned wire slices remain valid until the corresponding backing slot is
 // reused. The UDP proxy sends returned slices synchronously before the next Add.
+type FastBlockEncoderStats struct {
+	SourceShards  uint64 `json:"source_shards"`
+	ParityShards  uint64 `json:"parity_shards"`
+	FullBlocks    uint64 `json:"full_blocks"`
+	PartialBlocks uint64 `json:"partial_blocks"`
+	PendingSources int   `json:"pending_sources"`
+}
+
 type FastBlockEncoder struct {
 	codec         Codec
 	parityShards  int
@@ -34,6 +42,7 @@ type FastBlockEncoder struct {
 	shardView     [TotalShards][]byte
 	wireBuf       [TotalShards][]byte
 	out           [ParityShards + 1][]byte
+	stats         FastBlockEncoderStats
 }
 
 func NewFastBlockEncoder(codec Codec, maxPacketSize int, flushAfter time.Duration, firstBlockID uint32) (*FastBlockEncoder, error) {
@@ -81,8 +90,14 @@ func (e *FastBlockEncoder) Add(packet []byte, now time.Time) ([][]byte, error) {
 	e.out[0] = wire
 
 	if e.dataCount == DataShards {
-		return e.flushParity(1)
+		out, err := e.flushParity(1)
+		if err != nil {
+			return nil, err
+		}
+		e.stats.SourceShards++
+		return out, nil
 	}
+	e.stats.SourceShards++
 	return e.out[:1], nil
 }
 
@@ -101,6 +116,15 @@ func (e *FastBlockEncoder) Flush() ([][]byte, error) {
 }
 
 func (e *FastBlockEncoder) Pending() int { return e.dataCount }
+
+func (e *FastBlockEncoder) Stats() FastBlockEncoderStats {
+	if e == nil {
+		return FastBlockEncoderStats{}
+	}
+	out := e.stats
+	out.PendingSources = e.dataCount
+	return out
+}
 
 func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 	dataCount := e.dataCount
@@ -131,6 +155,12 @@ func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 		e.out[offset+p] = b
 	}
 
+	e.stats.ParityShards += uint64(parityCount)
+	if dataCount == DataShards {
+		e.stats.FullBlocks++
+	} else {
+		e.stats.PartialBlocks++
+	}
 	e.nextBlockID++
 	e.dataCount = 0
 	e.shardSize = 0

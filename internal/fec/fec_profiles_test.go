@@ -372,3 +372,86 @@ func itoaSmall(n int) string {
 	}
 	return string([]byte{byte('0' + n/10), byte('0' + n%10)})
 }
+
+
+func TestFastBlockEncoderStatsInventory(t *testing.T) {
+	enc, err := NewFastBlockEncoderWithParity(NewFastReedSolomon20x20(), 1400, 8*time.Millisecond, 1, WeakParityShards)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t0 := time.Unix(100, 0)
+	for i := 0; i < DataShards; i++ {
+		out, err := enc.Add([]byte{byte(i + 1)}, t0.Add(time.Duration(i)*time.Microsecond))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if i == DataShards-1 {
+			if len(out) != 1+WeakParityShards {
+				t.Fatalf("full flush records=%d want=%d", len(out), 1+WeakParityShards)
+			}
+		} else if len(out) != 1 {
+			t.Fatalf("source %d records=%d want=1", i, len(out))
+		}
+	}
+	stats := enc.Stats()
+	if stats.SourceShards != DataShards || stats.ParityShards != WeakParityShards ||
+		stats.FullBlocks != 1 || stats.PartialBlocks != 0 || stats.PendingSources != 0 {
+		t.Fatalf("full stats=%+v", stats)
+	}
+
+	for i := 0; i < 3; i++ {
+		if out, err := enc.Add([]byte{byte(100 + i)}, t0.Add(time.Second+time.Duration(i)*time.Millisecond)); err != nil || len(out) != 1 {
+			t.Fatalf("partial source %d records=%d err=%v", i, len(out), err)
+		}
+	}
+	if out, err := enc.FlushDue(t0.Add(time.Second + 7*time.Millisecond)); err != nil || len(out) != 0 {
+		t.Fatalf("early partial flush records=%d err=%v", len(out), err)
+	}
+	out, err := enc.FlushDue(t0.Add(time.Second + 8*time.Millisecond))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(out) != 3 {
+		t.Fatalf("partial parity records=%d want=3", len(out))
+	}
+	stats = enc.Stats()
+	if stats.SourceShards != DataShards+3 || stats.ParityShards != WeakParityShards+3 ||
+		stats.FullBlocks != 1 || stats.PartialBlocks != 1 || stats.PendingSources != 0 {
+		t.Fatalf("final stats=%+v", stats)
+	}
+}
+
+func TestDecoderRecoveryStatsCountOnlyReconstructedSources(t *testing.T) {
+	want, sources, repairs := profileWire(t, WeakParityShards, 900)
+	_ = want
+	dec, err := NewBlockDecoderWithParity(NewFastReedSolomon20x20(), 1400, 8, WeakParityShards)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := WeakParityShards; i < DataShards; i++ {
+		if _, _, err := dec.Add(sources[i]); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, repair := range repairs {
+		if _, _, err := dec.Add(repair); err != nil {
+			t.Fatal(err)
+		}
+	}
+	stats := dec.PressureCounts()
+	if stats.ReconstructionEvents != 1 || stats.RecoveredSources != WeakParityShards {
+		t.Fatalf("recovery stats=%+v want events=1 recovered=%d", stats, WeakParityShards)
+	}
+
+	full, fullSources, _ := profileWire(t, WeakParityShards, 901)
+	_ = full
+	dec2, _ := NewBlockDecoderWithParity(NewFastReedSolomon20x20(), 1400, 8, WeakParityShards)
+	for _, source := range fullSources {
+		if _, _, err := dec2.Add(source); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := dec2.PressureCounts(); got.ReconstructionEvents != 0 || got.RecoveredSources != 0 {
+		t.Fatalf("systematic-only recovery stats=%+v", got)
+	}
+}

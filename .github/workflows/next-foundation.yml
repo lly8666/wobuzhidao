@@ -327,11 +327,13 @@ jobs:
           WBD_P5_SPARSE_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-sparse-single
           WBD_P5_CONCURRENT_MEASURE: '1'
           WBD_P5_CONCURRENT_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-natural-concurrency
+          WBD_P5_FEC_MEASURE: '1'
+          WBD_P5_FEC_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/p5-fixed-fec
         run: |
           set -euo pipefail
-          mkdir -p "$WBD_P5_ARTIFACT_DIR" "$WBD_P5_SPARSE_ARTIFACT_DIR" "$WBD_P5_CONCURRENT_ARTIFACT_DIR"
-          go test ./internal/runtimeentry -count=1 -run='^(TestP5ControlledHTTPSMeasurementHarness|TestP5SparseSingleConnectionMeasurementHarness|TestP5NaturalConcurrencyMeasurementHarness)$' -v \
-            | tee "$WBD_P5_ARTIFACT_DIR/test.log" "$WBD_P5_SPARSE_ARTIFACT_DIR/test.log" "$WBD_P5_CONCURRENT_ARTIFACT_DIR/test.log"
+          mkdir -p "$WBD_P5_ARTIFACT_DIR" "$WBD_P5_SPARSE_ARTIFACT_DIR" "$WBD_P5_CONCURRENT_ARTIFACT_DIR" "$WBD_P5_FEC_ARTIFACT_DIR"
+          go test ./internal/runtimeentry -count=1 -run='^(TestP5ControlledHTTPSMeasurementHarness|TestP5SparseSingleConnectionMeasurementHarness|TestP5NaturalConcurrencyMeasurementHarness|TestP5FixedFECMeasurementHarness)$' -v \
+            | tee "$WBD_P5_ARTIFACT_DIR/test.log" "$WBD_P5_SPARSE_ARTIFACT_DIR/test.log" "$WBD_P5_CONCURRENT_ARTIFACT_DIR/test.log" "$WBD_P5_FEC_ARTIFACT_DIR/test.log"
           python3 tools/check_p5_measurement.py \
             --manifest "$WBD_P5_ARTIFACT_DIR/manifest.json" \
             --events "$WBD_P5_ARTIFACT_DIR/events.jsonl" \
@@ -350,6 +352,12 @@ jobs:
             --pcap "$WBD_P5_CONCURRENT_ARTIFACT_DIR/outer.pcap" \
             --source-sha "$GITHUB_SHA" \
             --output "$WBD_P5_CONCURRENT_ARTIFACT_DIR/summary.json"
+          python3 tools/check_p5_fec_measurement.py \
+            --manifest "$WBD_P5_FEC_ARTIFACT_DIR/manifest.json" \
+            --events "$WBD_P5_FEC_ARTIFACT_DIR/events.jsonl" \
+            --pcap "$WBD_P5_FEC_ARTIFACT_DIR/outer.pcap" \
+            --source-sha "$GITHUB_SHA" \
+            --output "$WBD_P5_FEC_ARTIFACT_DIR/summary.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -358,4 +366,5 @@ jobs:
             artifacts/p5-https-base
             artifacts/p5-sparse-single
             artifacts/p5-natural-concurrency
+            artifacts/p5-fixed-fec
           if-no-files-found: error

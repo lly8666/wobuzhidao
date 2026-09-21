@@ -6,11 +6,30 @@ import (
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
+	"github.com/lly8666/wobuzhidao/internal/fec"
 	"github.com/lly8666/wobuzhidao/internal/pathmtu"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 )
 
 var ErrAdmissionHandoff = errors.New("datapath: invalid admission handoff")
+
+const (
+	DefaultFECFlushAfter = 8 * time.Millisecond
+	DefaultFECMaxBlocks  = 8
+)
+
+// FixedFECRuntimeDefaults returns the single active runtime timing/bound set
+// used when an operator explicitly enables one of the already-qualified fixed
+// 20:R profiles. Parity 0 remains production-default FEC off.
+func FixedFECRuntimeDefaults(parity int) (time.Duration, int, error) {
+	if parity == 0 {
+		return 0, 0, nil
+	}
+	if !fec.IsSupportedParityShards(parity) {
+		return 0, 0, fmt.Errorf("%w: unsupported fixed FEC 20:%d", ErrAdmissionHandoff, parity)
+	}
+	return DefaultFECFlushAfter, DefaultFECMaxBlocks, nil
+}
 
 type ClientLaneParams struct {
 	ConnectionMTU  int

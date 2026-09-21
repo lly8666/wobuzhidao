@@ -45,6 +45,7 @@ func main() {
 		decoy = flag.String("decoy", "", "ordinary TLS fallback target host:port")
 		serverLimit = flag.Uint("server-record-limit", 1250, "client-to-server TLS-like record wire limit")
 		mtu = flag.Int("mtu", 1500, "connection/shared-TUN MTU")
+		fecParity = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
 		firewall = flag.String("firewall", "auto", "shared-TUN firewall backend: auto|nft|iptables")
 		nftForward = flag.String("nft-forward", "", "optional family:table:chain for nft forward policy")
 		lanes = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
@@ -62,6 +63,10 @@ func main() {
 		log.Fatal("invalid port or record limit")
 	}
 	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
+		log.Fatal(err)
+	}
+	fecFlushAfter, fecMaxBlocks, err := datapath.FixedFECRuntimeDefaults(*fecParity)
+	if err != nil {
 		log.Fatal(err)
 	}
 	if *idleDormant < 0 {
@@ -168,6 +173,7 @@ func main() {
 			ConnectionMTU: *mtu,
 			TxIPv4HeaderLen: 20, TxTCPHeaderLen: 20,
 			RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
+			ParityShards: *fecParity, FlushAfter: fecFlushAfter, MaxBlocks: fecMaxBlocks,
 		},
 		Router: router,
 		Service: platformflow.DefaultServerConfig(),
