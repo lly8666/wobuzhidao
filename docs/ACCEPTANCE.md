@@ -71,3 +71,7 @@ P5 流量外观专项：受控真实 HTTPS 覆盖新外层首连接、已建lane
 逐个区分 IMPLEMENTED、ACTIONS_PASS、PHYSICAL_PASS、RELEASE_QUALIFIED。build包含源SHA与文件哈希，客户端/服务端同源码。Windows hosted若不具备真实Npcap驱动/TUN能力则明确UNSUPPORTED，提供可测适配路径但不替代物理证明。
 
 P7只在主流程已稳定后由用户安排，最终核对真实链路外观、业务DNS/UDP/TCP、Game/rotation/DORMANT和退出网络恢复。不提前调用物理机、不因为未测物理停止P1..P6。
+
+## 2026-09-21 增强验收（当前发布前必需）
+
+[WEAKNET_QUALIFICATION.md](WEAKNET_QUALIFICATION.md) 是本契约组成部分，其第3至8节定义持续负载、18份独立样本、真实网络、严格逐方向/逐阶段目标、runner诊断、模块矩阵与关闭证据。新增门槛优先于旧P5的低频HTTPS和无损15秒load资格；不追溯删除旧证据，也不沿用旧CLOSED代表新增通过。相关核心回归有红灯须定位修复，不以仅打包job绿替代同SHA完整回归。

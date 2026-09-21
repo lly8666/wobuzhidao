@@ -2,9 +2,9 @@
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
-  "milestone": "P7",
-  "product_state": "ACTIONS_PASS",
-  "updated_at": "2026-09-21T13:15:00Z",
+  "milestone": "P4",
+  "product_state": "IN_PROGRESS",
+  "updated_at": "2026-09-21",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -57,9 +57,9 @@
     "P5阶段关闭：ROADMAP/ACCEPTANCE要求的真实HTTPS measurement/复用/稀疏/并发/证书链/full+resumed、fixed-FEC能力成本、300ms 5->20->5与5->30->5弱网、5/10/15/20Mbps、40Mbps aggregate-inner、以及>=30min持续loss+rotation+停流退役+memory plateau均已有exact-SHA hosted证据。50/100Mbps按规范仅为容量探索，不是协议/P5退出硬门；生产FEC仍off、padding仍off，未做参数选优或抗识别承诺。",
     "P6关闭：SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 / Actions 35603635498 的三个独立release-candidate job全部PASS。linux/amd64 artifact 10640321325 sha256:e08bedeacb64be27677bdc2ec7232691b1a450b809e39b878f5f9141b57de8e5，manifest sha256=e971ad779beff597c8d39a69f5645f3894021e023e10c6a4a7ffc82d0f1fafa8；linux/arm64 artifact 10641055941 sha256:3637dfaa7f89a2358fe258d7f5afddb9dc8cba20d2c188552ad30010d307c88e，manifest sha256=83ab1202ae4adb12db4fb820c357a3659ea7eaf8220ac20039c1872f9235aaf0；windows/amd64 artifact 10641181252 sha256:c5b3c83af29929f474a0467c1cc2eb1d9f63756f115468c423bbf2a4c161e06f，manifest sha256=5d12951916c0663e3d9028626e2dea4a18b458979ed8ff4c3a5d8b8da5077d64。三者source_sha相同、file SHA256与binary target/source/version独立复核PASS；Windows server=UNSUPPORTED，PHYSICAL/RELEASE_QUALIFIED=NOT_RUN。"
   ],
-  "in_progress": "P7 PHYSICAL NOT_RUN。P6已按 SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 / Actions 35603635498 关闭：三个独立P6 release-candidate目标job全部PASS。linux/amd64与linux/arm64均含同SHA client+server；windows/amd64含同SHA client+windows_client_network.ps1且server明确UNSUPPORTED。每份artifact均含manifest.json与actions-receipt.json，文件SHA256、target GOOS/GOARCH、toolchain/build flags、known limits完整；validator验证二进制嵌入exact SHA/version，native linux-amd64/windows-amd64执行--version，arm64用go version -m验证target。physical/release_qualified均保持NOT_RUN。整轮Ubuntu active-go-tests另有既有P4 lanes-4 GameDuplicates=2偶发红灯，与P6代码无关；Windows active-go-tests PASS，internal/buildinfo普通/race在Ubuntu均PASS，按用户授权不阻断P6目标结论。",
-  "next_task": "P7仅在用户安排物理环境后执行：先真实Windows管理员环境加载Wintun/Npcap并用P6 exact-SHA候选核验物理NIC capture/injection、DNS/UDP/TCP业务、Game/rotation/DORMANT与退出网络恢复；随后Linux ARM64/amd64真实链路复核。未提供物理环境前保持PHYSICAL NOT_RUN、RELEASE_QUALIFIED NOT_RUN，不用hosted结果替代。",
-  "latest_log": "docs/devlog/20260921-131500-p6-closed-p7-not-run.md",
+  "in_progress": "用户新增增强验收：P4稳态低开销恢复/FIN-RST/参数连续性重新收口，P5真实独立进程弱网主测Normal10Mbps每方向、Game4 3Mbps每方向、FEC20:20。旧阶段证据保留，不覆盖新增门槛。",
+  "next_task": "先按docs/WEAKNET_QUALIFICATION.md核实runtimeowner tick repair/ACK覆盖及稳态关闭，做最小修复和Actions回归；搭建正式client/server经raw与TUN/TPROXY、netns/veth/netem的真实路径，再18份主测/目标负载soak/平台配置矩阵。定位Game4间歇红灯，最终同SHA回归和重新P6打包；不本机测试，不启动物理验收。",
+  "latest_log": "docs/devlog/20260921-steady-weaknet-plan.md",
   "last_tested_source_sha": "e8220aca7c70511d0011086f563430e3b8585ef7",
   "actions": [
     {
@@ -831,7 +831,8 @@
     "P5 5%->30%->5% 弱网已在 SOURCE_SHA 4e8e17e44646cf9732ed44d68ad15ed19faf5d9b / Actions 35570306162 取得两次独立120s exact-SHA资格；该结果固定FEC off/padding off，只覆盖300ms单向、30/60/30、5%->30%->5%，不能外推为5/10/15/20Mbps负载、40Mbps aggregate-inner容量、>=30min soak或任何FEC最优策略。",
     "P5 5/10/15/20Mbps load已在 SOURCE_SHA d9e09053810f07db5e19c81a59970c831fa6e12a / Actions 35573152055 取得每档两次独立15s hosted资格；目标口径为aggregate-inner application payload（C2S+S2C），真实TLS1.3/HTTPS单persistent BusinessFlow、1KiB/8KiB/32KiB双向混合、无弱网注入、FEC/padding off。该结果不能外推为40/50/100Mbps容量、弱网下同速率能力、>=30min soak或物理Windows/Npcap性能。",
     "P5 fixed-FEC 20:20弱网已在 SOURCE_SHA a738cf8782688580cefe260f6781a8a3e9b23e3a / Actions 35577023449 取得四次独立120s hosted资格；该测试使用300ms单向、5->20->5或5->30->5、真实TLS1.3/HTTPS、单Normal lane、padding off。四次40/40成功且RTT/恢复显著优于同seed FEC-off，但wire amplification约14x、PPS与绝对repair显著增加，因此不能据此单独推导生产最优FEC策略，也不能外推物理Windows/Npcap、>=30min soak或更高负载能力。",
-    "P6 hosted release-candidate packaging已在 SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 取得Linux amd64/arm64与Windows amd64三个独立ACTIONS_PASS artifact；Windows bundle不含server且明确UNSUPPORTED。真实Windows Wintun/Npcap驱动/管理员物理NIC与Linux物理链路仍为P7 NOT_RUN，因此当前产品状态仅ACTIONS_PASS，不是PHYSICAL_PASS或RELEASE_QUALIFIED。"
+    "P6 hosted release-candidate packaging已在 SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 取得Linux amd64/arm64与Windows amd64三个独立ACTIONS_PASS artifact；Windows bundle不含server且明确UNSUPPORTED。真实Windows Wintun/Npcap驱动/管理员物理NIC与Linux物理链路仍为P7 NOT_RUN，因此当前产品状态仅ACTIONS_PASS，不是PHYSICAL_PASS或RELEASE_QUALIFIED。",
+    "2026-09-21新增真实路径高负载弱网目标尚未运行；Normal10Mbps/方向、Game4 3Mbps/方向均FEC20:20，runner容量不足不等于通过。"
   ],
   "required_read_set": [
     "AGENTS.md",
@@ -840,14 +841,15 @@
     "docs/DEVELOPMENT_PLAN.md",
     "docs/WIRE_SPEC.md",
     "docs/MODULE_MAP.md",
-    "docs/ACCEPTANCE.md"
+    "docs/ACCEPTANCE.md",
+    "docs/WEAKNET_QUALIFICATION.md"
   ],
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "CLOSED: SOURCE_SHA 93b72dba4072be37a53efdf0d09df4f3b2725af7 / Actions 35593806912。两个独立31m soak validator PASS；结合既有真实HTTPS外观、两档弱网、5/10/15/20/40Mbps load、fixed-FEC capability/cost，P5 hosted硬门完成。50/100仅容量探索未作为关闭条件；生产FEC/padding仍off。该轮唯一首跑红灯为旧weaknet测试helper cleanup send-on-closed-channel，发生在120s capture完成后且属_test.go竞态，已单独最小修复，不推翻P5资格。 同SHA弱网单job rerun 106324920129 PASS，确认首跑红灯为间歇性helper cleanup。",
-    "P6": "CLOSED: SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 / Actions 35603635498。三个独立P6 target jobs均ACTIONS_PASS；同源码Linux amd64/arm64 client+server与Windows amd64 client bundle均带exact SHA、per-file SHA256、manifest、actions receipt、known limits。Windows server明确UNSUPPORTED；physical/release_qualified保持NOT_RUN。",
+    "P4": "REOPENED:稳态repair/ACK发送记账、FIN/RST、有界SACK/预算/索引与参数一致性；旧资格保留，新资格NOT_RUN",
+    "P5": "REOPENED:专项真实路径持续弱网18主测+目标负载长测/模块矩阵，NOT_RUN；旧适配器/低负载资格不替代",
+    "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。"
   }
 }

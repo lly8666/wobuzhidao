@@ -56,3 +56,5 @@ DORMANT 关闭传输但保留 Tunnel、lease、TUN、路由/DNS，真实业务�
 所有开发测试在 Actions。先完成 hosted 正确性、弱网、长测与打包；最终再安排物理 Windows/Npcap -> Linux 验收。NOT_RUN、UNSUPPORTED、PASS、FAIL 必须分开。源码精确 SHA 是证据归属，不继承旧分支成绩。
 
 每个 agent 每轮留下详细日志、当前状态、下一任务和证据链接。新接手者能仅靠本分支根入口继续，不需要完整聊天史，不受 `old/` 指令影响。
+
+2026-09-21 用户新增：性能资格必须覆盖真实独立client/server网络路径下Normal单lane每方向10Mbps、Game四lane每方向3Mbps、FEC20:20的持续弱网负载；四lane复制不计有效业务。修复保持无HOL/低开销；runner容量不足必须突出报告且不算PASS。具体门槛见docs/WEAKNET_QUALIFICATION.md。

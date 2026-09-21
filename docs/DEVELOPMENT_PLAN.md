@@ -150,3 +150,9 @@ P4：多个真实业务会话复用现有 Tunnel/lane，不将每个 HTTPS flow 
 P5：增加受控真实 HTTPS 客户端/服务器，覆盖首个与复用 lane 上的后续连接、稀疏单连接/自然并发、不同证书链、完整/恢复握手、FEC off/实际启用挡位、无损/既定弱网。采集 outer packet 与 TLS-like record 长度、方向、时间间隔、突发字节数；分开 capture loss、网络丢包、FEC、repair、padding。记录业务延迟/CPU/PPS/线上字节与 padding 成本。生产默认零填充；可选能力只验证正确性和成本，启用为生产策略需单独证据与决策。正常 HTTPS 仅作外观参考，不是 DTLS 旧项目 A/B。样本按站点/会话分组，不用同一会话切片同时作训练和评估；如果报告分类结果必须报告样本来源、误报/漏报及范围，禁止从少量样本推导不可识别。
 
 阶段协调：P2 是当前未关闭的前置验收门；用户授权 P3 的独立工作继续。P2 owner 修改 faketcp/realityfront，P3 owner 修改 tlsrecord/pathmtu/datapath 接口，各自只合并本任务提交；修改共享 wire/STATUS 前先同步远端。唯一 STATUS 同时记录两条工作流，不回滚 P3 成果。P2 未关闭不宣称后续整体验收完成。
+
+## 14. 稳态低开销收口与真实路径弱网性能（2026-09-21）
+
+按 [专项执行规范](WEAKNET_QUALIFICATION.md) 重新打开P4稳态传输与P5增强验收。先修复repair/ACK发送记账、稳态FIN/RST和参数连续性，再补有界SACK/修复预算及增量索引。只定向借鉴旧arq/repair_horizon/adaptive_pressure的已验证行为，不恢复旧拓扑或严格等待。
+
+主测Normal单lane每方向10Mbps、Game四lane每方向3Mbps，FEC20:20/padding off；300ms单向，120秒，无损/5->20->5/5->30->5各3次，共18样本。真实二进制独立进程+内核raw/TUN或TPROXY+netem路径；memorySegmentPair资格不能替代。遵循专项注入、损失、时延、恢复、资源和平台覆盖门槛，CAPACITY_LIMITED不算PASS。最终同SHA全套相关回归及重打P6包，物理资格仍P7。
