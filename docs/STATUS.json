@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21",
+  "updated_at": "2026-09-21T03:37:00Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -49,9 +49,9 @@
     "P5第六原子任务关闭：自然并发真实HTTPS workload 在 SOURCE_SHA 24e6ff71d76b53d63719f83c5df8d2147a383977 / Actions 35529970723 取得 8/8 PASS。3个独立inner TLS1.3 full HTTPS BusinessFlow在同一已建立outer Normal lane上完成真实受控证书验证后由应用barrier同步起跑；client/server实际同时存在3条BusinessFlow，raw request intervals重算得到max overlap=3，distinct FlowID=3、outer SYN=1、application loss/duplicate=0。per-flow wire bytes明确为inner TLS ciphertext，aggregate outer cost继续由PCAP/record events独立记录；FEC off、padding=0/off、无弱网注入。combined P5 artifact 10610588812，sha256:f4f99ee48fb3eed2aad15f97fdc547f7cd7138921f1bf8de6f39d5d0c8d6dc9f。",
     "P5第七原子任务关闭：显式 fixed-FEC 20:10 无损真实HTTPS能力/成本测量在 SOURCE_SHA b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3 / Actions 35555303253 取得 8/8 PASS。正式client/server入口新增 `--fec-parity`，默认0/off且只接受0,4,8,10,12,16,20；非零时固定沿用8ms partial flush/8-block bound，不新增调参旋钮。runtime tick补齐authoritative lane partial-FEC FlushDue并保持generation fence；read-only FEC stats记录source/parity/full/partial/pending及真实RS reconstruction/recovered。受控20:10 TLS1.3 HTTPS在无网络drop/padding off下记录client source/parity=42/22、server=246/126、fec_recovery=0、repair=0、wire_amp=1.930542；combined P5 artifact 10620018135，sha256:74e3575ef202b8f7267de86148bff765e39834dba2873a17800b6e327bd59d8f。20:10只为单一显式能力/成本场景，不是生产默认/推荐/选优。"
   ],
-  "in_progress": "P5 measurement base、close-tail、TLS full/resumed、不同证书链、稀疏、自然并发、显式fixed-FEC 20:10七个原子任务均已取得exact-SHA hosted资格。生产FEC默认仍off，padding仍0/off。下一阶段进入规范既定弱网条件；负载和30分钟以上soak尚未开始。",
-  "next_task": "P5 第八原子任务：建立规范既定弱网真实HTTPS measurement harness，只覆盖第一组 `300ms单向 / 120s / 30-60-30s / 5%->20%->5%` 条件。必须在正式 runtimeentry/Tunnel/lane 路径上进行，保存每阶段network drop注入位置与数量、capture loss、FEC recovery、repair、padding、goodput、app loss/duplicate、RTT p50/p95/p99、post5 recovery、wire amplification、queue/内存/CPU/PPS原始数据。先保持单一明确FEC策略（不要同时调参或扫挡位）和padding=0/off；不得把5->30->5、负载矩阵或30分钟soak混进同一atom。所有注入必须condition/time-driven，不用固定sleep凑包、不等待其他业务。",
-  "latest_log": "docs/devlog/20260921-031500-p5-fixed-fec-20x10-closed.md",
+  "in_progress": "P5 第八原子任务弱网 `300ms单向 / 120s / 30-60-30s / 5%->20%->5%` 候选已实现，待 exact-SHA GitHub Actions。固定策略为 FEC off、padding 0/off；不继承20:10为弱网生产策略。正式 runtimeentry/Tunnel/lane outer SegmentIO 路径新增确定性双向delay/drop注入，保存phase/seed/drop decision/queue enter-leave/residency/actual packet length；真实TLS1.3 HTTPS按3s绝对clock schedule采集request/RTT/app loss-duplicate/inner TLS bytes。复用active-tree transport/TunnelOwner/lane stats，并新增低频Go MemStats + Linux /proc/stat资源样本。按ACCEPTANCE同场景至少两次独立运行，Actions新job使用run1 seed=20260921与run2 seed=20260922；两次均需独立validator从raw重算后才能资格。",
+  "next_task": "只资格当前 P5 5%->20%->5% 弱网 atom：candidate SOURCE_SHA 跑完整 next-foundation；除既有8个required jobs外，新增 `p5-weaknet-5-20-5` matrix两次独立120s run，最终同一 exact SHA 所有jobs均PASS。每个run validator必须从outer.pcap/events.jsonl/requests.jsonl/network.jsonl/resources.jsonl重算30/60/30 phase、deterministic实际drop、300ms queue residency、capture loss、RTT p50/p95/p99、app loss/duplicate、post5第三个连续成功恢复、FEC-off inventory/recovery=0、repair、padding=0、wire amplification、CPU/PPS/memory/GC/queue摘要。不得混入5%->30%->5%、load、>=30min soak或FEC tuning。通过前 last_tested_source_sha 必须继续保持 b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3。",
+  "latest_log": "docs/devlog/20260921-033700-p5-weaknet-5-20-5-candidate.md",
   "last_tested_source_sha": "b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3",
   "actions": [
     {
@@ -686,6 +686,6 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "CLOSED: SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639。Tunnel/Game/source/padding、stable lease、source anti-spoof、Linux shared-TUN、Windows Wintun/Npcap hosted、OpenWrt TPROXY/socket、统一runtimeowner、单进程client/server entry、Game 2/3/4、same-ID replacement、自动rotation、payload-idle DORMANT/wake均取得exact-SHA hosted资格；physical Windows/Npcap留P7。",
-    "P5": "IN_PROGRESS: measurement base（043da629…）、close-tail（a9b92c26…）、TLS full/resumed（1fb65c90…）、不同证书链（e2c1d668…）、稀疏（d9627cc9…）、自然并发（24e6ff71…）和fixed-FEC 20:10（b7c0b3d3… / 35555303253 / 8/8 PASS）已资格。生产FEC默认仍off；20:10仅显式能力/成本场景。下一原子只覆盖弱网5%->20%->5%；5%->30%->5%、负载、长测后续分别推进。"
+    "P5": "IN_PROGRESS: measurement base（043da629…）、close-tail（a9b92c26…）、TLS full/resumed（1fb65c90…）、不同证书链（e2c1d668…）、稀疏（d9627cc9…）、自然并发（24e6ff71…）和fixed-FEC 20:10（b7c0b3d3… / 35555303253 / 8/8 PASS）已资格。生产FEC默认仍off；20:10仅显式能力/成本场景。当前第八atom为300ms单向、120s、30/60/30、5%->20%->5%真实HTTPS弱网候选，固定FEC off/padding off，Actions两次独立seed run待资格；5%->30%->5%、负载、长测后续分别推进。"
   }
 }
