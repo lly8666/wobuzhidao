@@ -246,24 +246,62 @@ def main():
             fail(f"outer packet direction {direction}")
         if not any(x.get("direction") == direction for x in record_events):
             fail(f"TLS-like record direction {direction}")
-    for e in outer_events:
+    # The recorder samples t_ns before taking its shared writer mutex. Concurrent
+    # Emit calls in the same direction can therefore be serialized in JSONL a
+    # few microseconds out of sampled-time order, which makes the convenience
+    # inter_arrival_ns field negative even though the raw timestamps are valid.
+    # Treat t_ns as the timing authority and independently reconstruct
+    # chronological intervals per direction. The serialized interval remains
+    # schema/type evidence only; omitempty still represents exact zero.
+    outer_times = defaultdict(list)
+    record_times = defaultdict(list)
+    for file_index, e in enumerate(outer_events):
         if not isinstance(e.get("outer_packet_len"), int) or e.get("outer_packet_len") <= 0:
             fail("outer packet length raw evidence")
         if "burst_id" not in e or "burst_wire_bytes" not in e:
             fail("outer burst raw evidence")
-        # p5MeasurementEvent uses omitempty for InterArrivalNS. A missing field
-        # therefore means an exact zero interval (first sample for a direction,
-        # or another event captured at the same timestamp), not missing raw
-        # provenance. Normalize that schema representation to zero here.
-        gap = e.get("inter_arrival_ns", 0)
-        if not isinstance(gap, int) or gap < 0:
-            fail("outer interval raw evidence")
-    for e in record_events:
+        direction = e.get("direction")
+        if direction not in ("c2s", "s2c"):
+            fail("outer packet direction raw evidence")
+        t_ns = e.get("t_ns")
+        if not isinstance(t_ns, int) or t_ns < 0:
+            fail("outer timestamp raw evidence")
+        serialized_gap = e.get("inter_arrival_ns", 0)
+        if not isinstance(serialized_gap, int):
+            fail("outer interval schema evidence")
+        outer_times[direction].append((t_ns, file_index))
+
+    for file_index, e in enumerate(record_events):
         if not isinstance(e.get("record_len"), int) or e.get("record_len") <= 0:
             fail("TLS-like record raw evidence")
-        record_gap = e.get("inter_arrival_ns", 0)
-        if not isinstance(record_gap, int) or record_gap < 0:
-            fail("TLS-like record interval raw evidence")
+        direction = e.get("direction")
+        if direction not in ("c2s", "s2c"):
+            fail("TLS-like record direction raw evidence")
+        t_ns = e.get("t_ns")
+        if not isinstance(t_ns, int) or t_ns < 0:
+            fail("TLS-like record timestamp raw evidence")
+        serialized_gap = e.get("inter_arrival_ns", 0)
+        if not isinstance(serialized_gap, int):
+            fail("TLS-like record interval schema evidence")
+        record_times[direction].append((t_ns, file_index))
+
+    for kind, by_direction in (("outer", outer_times), ("record", record_times)):
+        for direction in ("c2s", "s2c"):
+            samples = sorted(by_direction[direction])
+            if not samples:
+                fail(f"{kind} chronological interval samples {direction}")
+            previous = None
+            positive_gap = False
+            for t_ns, _ in samples:
+                if previous is not None:
+                    gap = t_ns - previous
+                    if gap < 0:
+                        fail(f"{kind} chronological interval {direction}")
+                    if gap > 0:
+                        positive_gap = True
+                previous = t_ns
+            if len(samples) > 1 and not positive_gap:
+                fail(f"{kind} chronological timing collapsed {direction}")
 
     request_samples = [x for x in requests_raw if x.get("event") == "https_request"]
     inventories = [x for x in requests_raw if x.get("event") == "application_inventory"]

@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21T05:22:00Z",
+  "updated_at": "2026-09-21T06:20:00Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -49,9 +49,9 @@
     "P5第六原子任务关闭：自然并发真实HTTPS workload 在 SOURCE_SHA 24e6ff71d76b53d63719f83c5df8d2147a383977 / Actions 35529970723 取得 8/8 PASS。3个独立inner TLS1.3 full HTTPS BusinessFlow在同一已建立outer Normal lane上完成真实受控证书验证后由应用barrier同步起跑；client/server实际同时存在3条BusinessFlow，raw request intervals重算得到max overlap=3，distinct FlowID=3、outer SYN=1、application loss/duplicate=0。per-flow wire bytes明确为inner TLS ciphertext，aggregate outer cost继续由PCAP/record events独立记录；FEC off、padding=0/off、无弱网注入。combined P5 artifact 10610588812，sha256:f4f99ee48fb3eed2aad15f97fdc547f7cd7138921f1bf8de6f39d5d0c8d6dc9f。",
     "P5第七原子任务关闭：显式 fixed-FEC 20:10 无损真实HTTPS能力/成本测量在 SOURCE_SHA b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3 / Actions 35555303253 取得 8/8 PASS。正式client/server入口新增 `--fec-parity`，默认0/off且只接受0,4,8,10,12,16,20；非零时固定沿用8ms partial flush/8-block bound，不新增调参旋钮。runtime tick补齐authoritative lane partial-FEC FlushDue并保持generation fence；read-only FEC stats记录source/parity/full/partial/pending及真实RS reconstruction/recovered。受控20:10 TLS1.3 HTTPS在无网络drop/padding off下记录client source/parity=42/22、server=246/126、fec_recovery=0、repair=0、wire_amp=1.930542；combined P5 artifact 10620018135，sha256:74e3575ef202b8f7267de86148bff765e39834dba2873a17800b6e327bd59d8f。20:10只为单一显式能力/成本场景，不是生产默认/推荐/选优。"
   ],
-  "in_progress": "P5 第八原子任务弱网 `300ms单向 / 120s / 30-60-30s / 5%->20%->5%` 第二个 exact-SHA 候选 02e2d47ec2f50db05b67d33654aa007c77559f7c / Actions 35564104849 已完成：既有8个 required jobs 全部PASS；两个弱网120s harness也均完整结束，但独立validator继续在下一层 `outer interval/burst raw evidence` 失败。run1 marker：scheduled=40 success=36 loss=4 repair=3469 wire_amp=8.581570；run2：scheduled=40 success=38 loss=2 repair=3673 wire_amp=8.953445。前一版 `phase_ordinal` 文件顺序问题已被修复，否则validator不会推进到此处。当前失败根因是共享 P5 event schema 对 `InterArrivalNS` 使用 `omitempty`：方向首包/首record以及同timestamp record的合法0ns interval会省略JSON字段；validator错误地把字段省略判为原始数据缺失。当前只修validator按schema将缺省interval规范化为0ns，同时仍校验burst字段及非负interval；不修改recorder、网络注入、传输、workload、FEC或padding。",
-  "next_task": "对 zero-interval validator 修复生成新的 exact SOURCE_SHA，并跑完整 next-foundation。要求既有8 jobs + 两个独立 `p5-weaknet-5-20-5` 120s matrix jobs 共10 jobs全部PASS。两个弱网job继续一VM一场景/一seed/一artifact；CPU/PPS/memory只记录该runner观测，不设跨VM绝对性能门槛。若validator再暴露当前atom下一处contract缺口，保留 3aaf…/35559257580 与 02e2…/35564104849 两次失败证据，只修当前atom，不混入5%->30%->5%、load、soak或FEC tuning。",
-  "latest_log": "docs/devlog/20260921-052200-p5-weaknet-zero-interval-validator-fix.md",
+  "in_progress": "P5 第八原子任务弱网 `300ms单向 / 120s / 30-60-30s / 5%->20%->5%` 第三个 exact-SHA 候选 906b8c2a4c7a717760a48648e15e4b38ba855ab5 / Actions 35564363961 已完成失败：10 jobs 中7 PASS、3 FAIL。两个弱网120s harness均完整PASS后独立validator停在 `outer interval raw evidence`；run1 scheduled=40 success=38 loss=2 repair=3463 wire_amp=8.577119，run2 success=37 loss=3 repair=3615 wire_amp=9.082183。原始artifact审计确认 recorder 在共享写锁前采样 t_ns，同方向并发Emit可能按相反锁获取顺序写JSONL，从而产生少量微秒级负 inter_arrival_ns；raw t_ns 本身完整。Windows 同时复现未修改P4 lanes-4时序断言 GameDelivered=1/GameDuplicates=2，该签名此前曾单次失败后恢复，本atom不重开P4。当前只修 weaknet validator：以 raw t_ns 为authority，按方向排序独立重算 chronological interval；serialized inter_arrival_ns仅做schema/type校验。",
+  "next_task": "对 chronological-interval validator 修复生成新的 exact SOURCE_SHA，并跑完整 next-foundation。要求既有8 jobs + 两个独立 `p5-weaknet-5-20-5` 120s matrix jobs 共10 jobs全部PASS；两个弱网job继续一VM一场景/一seed/一artifact，CPU/PPS/memory仅记录该runner观测，不设跨VM绝对性能门槛。若未修改P4 lanes-4再次稳定复现，再单独审计P4 hard gap；否则不在当前P5 atom修改P4。不得混入5%->30%->5%、load、soak或FEC tuning。",
+  "latest_log": "docs/devlog/20260921-062000-p5-weaknet-chronological-interval-validator-fix.md",
   "last_tested_source_sha": "b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3",
   "actions": [
     {
@@ -669,6 +669,13 @@
       "scope": "P5-weaknet-5-20-5-second-candidate",
       "status": "FAIL",
       "note": "Run attempt 1 completed/failure，10 jobs中既有8个 required jobs全部PASS；两个weaknet matrix job均完成完整120s harness后在独立validator失败。run1：`WBD_P5_WEAKNET_5205_CAPTURED source_sha=02e2d47ec2f50db05b67d33654aa007c77559f7c run=1 seed=20260921 duration=120s delay=300ms drop=5-20-5 fec=off padding=off scheduled=40 success=36 loss=4 repair=3469 wire_amp=8.581570`，artifact 10623074371，sha256:493346210c4555dc28170804fcdf0cc4d5e728a416a32f605fe58a24f0f31c51。run2：`... run=2 seed=20260922 ... scheduled=40 success=38 loss=2 repair=3673 wire_amp=8.953445`，artifact 10623188618，sha256:f8131306a65585f3507bfebf91e737498c984b9945a64ee31805d6d44f2d725b。两次validator首个失败均为 `outer interval/burst raw evidence`。分类为fixture/validator contract：p5MeasurementEvent 的 `InterArrivalNS` 使用 omitempty，合法0ns（方向首样本或同timestamp record）不会序列化字段；validator错误要求每行显式字段。前一candidate的phase ordinal顺序修复已生效。当前只将缺省interval按schema解释为0并继续验证非负值/burst，不改产品或harness。"
+    },
+    {
+      "source_sha": "906b8c2a4c7a717760a48648e15e4b38ba855ab5",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35564363961",
+      "scope": "P5-weaknet-5-20-5-third-candidate",
+      "status": "FAIL",
+      "note": "Run attempt 1 completed/failure，10 jobs中7 PASS、3 FAIL。两个 dedicated weaknet matrix job均完整跑完120s harness并由测试本体PASS，随后独立validator均在 `outer interval raw evidence` 失败。run1 marker：`WBD_P5_WEAKNET_5205_CAPTURED source_sha=906b8c2a4c7a717760a48648e15e4b38ba855ab5 run=1 seed=20260921 duration=120s delay=300ms drop=5-20-5 fec=off padding=off scheduled=40 success=38 loss=2 repair=3463 wire_amp=8.577119`，artifact 10623955497，sha256:fe6a42d870234a7648e2be4a83e750c213503da426cfae96f107582202981f44。run2：`... run=2 seed=20260922 ... scheduled=40 success=37 loss=3 repair=3615 wire_amp=9.082183`，artifact 10623311429，sha256:cefd5b86be83c76cd1a60291cc3ff671e55ab2faf326563027baef5535b0c883。下载raw审计：run1 outer=12663，omitempty interval缺省2，负interval14条/min=-155365ns；TLS-like record负interval3条/min=-149614ns。run2 outer=13169，缺省2，负interval10条/min=-41190ns；record无负interval。根因是 recorder 在共享writer mutex前采样time.Now，同方向并发Emit可后采样者先写文件，raw t_ns仍完整；validator应按t_ns重算 chronological interval。另一个失败为Windows active-go-tests中的未修改P4 `TestLifecycleEntryGameThreeAndFourLaneMatrix/lanes-4`，server GameDelivered=1/GameDuplicates=2；该签名曾在7aae4993…单点失败后下一候选恢复，3aaf…与02e2…也通过，因此当前P5 atom不修改P4。"
     }
   ],
   "physical_status": "NOT_RUN",
