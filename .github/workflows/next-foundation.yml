@@ -667,25 +667,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$WBD_P5_SOAK_ARTIFACT_DIR"
-          go test ./internal/runtimeentry -count=1 -timeout=40m -run='^TestP5ThirtyMinuteSoakMeasurementHarness \
-            | tee "$WBD_P5_SOAK_ARTIFACT_DIR/test.log"
-          python3 tools/check_p5_soak_measurement.py \
-            --manifest "$WBD_P5_SOAK_ARTIFACT_DIR/manifest.json" \
-            --events "$WBD_P5_SOAK_ARTIFACT_DIR/events.jsonl" \
-            --pcap "$WBD_P5_SOAK_ARTIFACT_DIR/outer.pcap" \
-            --requests "$WBD_P5_SOAK_ARTIFACT_DIR/requests.jsonl" \
-            --network "$WBD_P5_SOAK_ARTIFACT_DIR/network.jsonl" \
-            --resources "$WBD_P5_SOAK_ARTIFACT_DIR/resources.jsonl" \
-            --source-sha "$GITHUB_SHA" \
-            --output "$WBD_P5_SOAK_ARTIFACT_DIR/summary.json"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: p5-soak-run${{ matrix.run }}-${{ github.sha }}
-          path: ${{ github.workspace }}/artifacts/p5-soak-run${{ matrix.run }}
-          if-no-files-found: error
- -v \
-            | tee "$WBD_P5_SOAK_ARTIFACT_DIR/test.log"
+          go test ./internal/runtimeentry -count=1 -timeout=40m -run=TestP5ThirtyMinuteSoakMeasurementHarness -v | tee "$WBD_P5_SOAK_ARTIFACT_DIR/test.log"
           python3 tools/check_p5_soak_measurement.py \
             --manifest "$WBD_P5_SOAK_ARTIFACT_DIR/manifest.json" \
             --events "$WBD_P5_SOAK_ARTIFACT_DIR/events.jsonl" \

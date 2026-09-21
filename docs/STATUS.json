@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-21T10:20:00Z",
+  "updated_at": "2026-09-21T10:24:00Z",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -54,9 +54,9 @@
     "P5第十一原子任务关闭：40Mbps aggregate-inner（C2S+S2C application payload）目标在 SOURCE_SHA e0917ef15f0d51476a48feb48fedf849844e5563 / Actions 35574268057 取得22/22 PASS。两个独立Actions VM/seed均actual=40.000990Mbps、achievement=1.000000、2681/2681 successful、loss/duplicate/send_failure/skipped=0、repair=0、FEC off、padding off。run1 RTT p95=3.005388ms、send-lag p95=1.007983ms、PPS=10831.267、wire_amp=1.156855、artifact 10627003797 sha256:25caed4e1054bc743776b246757c26fc940debb8ba73623d91b2a505962dcc85；run2 RTT p95=4.205089ms、send-lag p95=1.036990ms、PPS=10888.600、wire_amp=1.157991、artifact 10626768765 sha256:f81a2b3e9f0e52e6b6ebe23baaf26f0fa2c9cc547607136ccf8f350d180abad7。此前首轮唯一未修改5305 close-tail失败在本exact-SHA完整重跑恢复。",
     "P5用户指定fixed-FEC 20:20弱网性能atom关闭：SOURCE_SHA a738cf8782688580cefe260f6781a8a3e9b23e3a / Actions 35577023449 取得26/26 PASS。新增4个独立Actions VM/job分别跑300ms单向、120s、30/60/30的5%->20%->5%与5%->30%->5%（各两seed），每job仅一个场景/seed/artifact但单次validator同时检查raw capture/drop provenance、app/RTT/post5/PPS/queue/resource/FEC recovery/repair/wire cost。四次均40/40成功、0 app loss/duplicate，RTT p95=0.633/0.629/0.638/0.628s，post5第三连续成功恢复约7.828/7.828/7.836/7.823s；recovered sources=315/345/463/470，reconstruction events=221/241/279/276。wire amplification=13.962/14.263/14.547/14.347，repair=5980/6209/6648/6453。与同seed FEC-off基线相比RTT p95约降76-80%、post5约缩短56-68%，但wire amplification约增60-72%、高丢包阶段PPS约增70-93%；绝对repair数约增70-93%，按network attempt归一后约高2.5-8%。资源CPU/PPS/memory仅作单VM观测，不设跨VM绝对门槛。该结果不改变生产默认FEC off。"
   ],
-  "in_progress": "P5 soak timeout修复首提交 b4695ab5ab4161238ddb1d85d6fa8e50208256a1 / Actions 35587800818 因workflow文本编辑错误立即失败、0 jobs：multiline替换截断了soak go test shell block并重复尾段。已从上一版有效workflow重新构造，仅对唯一soak go test命令插入 -timeout=40m，并以独立blob回读/sha区分坏blob f2588595...与修复blob 7af2cad5...。产品代码与soak门槛未改。",
-  "next_task": "在workflow结构修复后的exact SHA重新跑28-job完整workflow。重点确认两个31m soak均跨过10m、完成31m并通过validator；若出现真实runtime/validator红灯再按证据处理。",
-  "latest_log": "docs/devlog/20260921-102000-p5-soak-workflow-repair.md",
+  "in_progress": "P5 soak workflow修复提交 e92337d6125288445b136f6697b1be8c394fad41 / Actions 35587991602 仍为workflow-level immediate FAIL、0 jobs。实际raw回读显示 `$' -v \\\\` 组合在blob写入链路被破坏，导致soak shell block再次截断/重复。现改为无正则锚点、无续行的单行命令：`go test ./internal/runtimeentry -count=1 -timeout=40m -run=TestP5ThirtyMinuteSoakMeasurementHarness -v | tee ...`。唯一测试名不改变测试范围。",
+  "next_task": "提交并回读新的workflow blob，确认实际commit中soak命令完整，再运行28-job workflow。随后继续观察两个31m soak是否完整到validator。",
+  "latest_log": "docs/devlog/20260921-102400-p5-soak-workflow-quoting-fix.md",
   "last_tested_source_sha": "a738cf8782688580cefe260f6781a8a3e9b23e3a",
   "actions": [
     {
@@ -779,6 +779,13 @@
       "scope": "P5-soak-timeout-workflow-edit-error",
       "status": "FAIL",
       "note": "Workflow-level immediate failure，0 jobs。原因是编辑soak go test timeout时破坏了YAML shell block；不是产品/soak结果。修复从aeb02e2e有效workflow整文件重建，仅插入 -timeout=40m。"
+    },
+    {
+      "source_sha": "e92337d6125288445b136f6697b1be8c394fad41",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35587991602",
+      "scope": "P5-soak-workflow-quoting-error",
+      "status": "FAIL",
+      "note": "Workflow-level immediate failure、0 jobs。实际commit raw workflow显示soak go test命令在 `$'` 附近被截断并重复尾段。不是产品结果。改为不含该组合的单行go test命令。"
     }
   ],
   "physical_status": "NOT_RUN",
