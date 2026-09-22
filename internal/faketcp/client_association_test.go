@@ -47,8 +47,9 @@ func TestClientAssociationBootstrapAndDetachHandoff(t *testing.T) {
 		t.Fatal(err)
 	}
 	ack := <-emitted
-	if ack.Seq != 1001 || ack.Ack != 9001 || ack.Flags != FlagACK {
-		t.Fatalf("handshake ACK=%#v", ack)
+	wantWindow := uint16(MaxBootstrapBufferedBytes >> DefaultWindowScale)
+	if ack.Seq != 1001 || ack.Ack != 9001 || ack.Flags != FlagACK || ack.Window != wantWindow {
+		t.Fatalf("handshake ACK=%#v want_window=%d", ack, wantWindow)
 	}
 	peer := assoc.PeerTCPProfile()
 	if !peer.AdvertisedMSS || peer.MSS != 1280 || !peer.WindowScaleSet || peer.WindowScale != 4 {
@@ -105,7 +106,9 @@ func TestClientAssociationBootstrapAndDetachHandoff(t *testing.T) {
 	}
 	if handoff.SendNext != data.Seq+uint32(len(data.Payload)) ||
 		handoff.ReceiveNext != 9001+uint32(len(serverPayload)) ||
-		handoff.Peer.MSS != 1280 {
-		t.Fatalf("handoff=%#v", handoff)
+		handoff.Peer.MSS != 1280 ||
+		handoff.AdvertisedWindow != wantWindow ||
+		!handoff.WindowScaleSet || handoff.WindowScale != DefaultWindowScale {
+		t.Fatalf("handoff=%#v want_window=%d", handoff, wantWindow)
 	}
 }

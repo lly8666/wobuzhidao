@@ -1267,3 +1267,50 @@ func TestSteadyDeliveredHistoryEvictionIsAmortizedAndBounded(t *testing.T) {
 		t.Fatalf("delivered order not amortized/bounded order=%d head=%d", order, head)
 	}
 }
+
+
+func TestSteadyTransportPreservesHandoffWindowScale(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wire []faketcp.Segment
+	rt, err := New(owner, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rt.Close()
+	cfg, _ := transportPair(func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 65300)
+	cfg.AdvertisedWindow = uint16(faketcp.MaxBootstrapBufferedBytes >> faketcp.DefaultWindowScale)
+	cfg.AdvertisedWindowSet = true
+	cfg.WindowScale = faketcp.DefaultWindowScale
+	cfg.WindowScaleSet = true
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 89), cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9700, 0)
+	if err := tr.send([]datapath.WireRecord{{Wire: []byte("persona-window")}}, t0); err != nil {
+		t.Fatal(err)
+	}
+	if len(wire) != 1 || wire[0].Window != cfg.AdvertisedWindow {
+		t.Fatalf("steady data window=%+v want=%d", firstSegment(wire), cfg.AdvertisedWindow)
+	}
+
+	tr.mu.Lock()
+	ack := tr.outboundSegment(tr.sendNext, tr.recvNext, nil)
+	tr.mu.Unlock()
+	if ack.Window != cfg.AdvertisedWindow {
+		t.Fatalf("steady ACK window=%d want=%d", ack.Window, cfg.AdvertisedWindow)
+	}
+	stats, ok := rt.TransportStats(snap.Ref)
+	if !ok || stats.AdvertisedWindow != cfg.AdvertisedWindow ||
+		!stats.WindowScaleSet || stats.WindowScale != faketcp.DefaultWindowScale {
+		t.Fatalf("steady presentation stats=%+v ok=%v", stats, ok)
+	}
+}

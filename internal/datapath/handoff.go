@@ -61,12 +61,30 @@ func ClientLaneConfigFromAdmission(session *realityfront.ClientAdmissionSession,
 	if !params.PeerMSSSet {
 		peerMSS = faketcp.DefaultIPv4PeerMSS
 	}
+	ipHeaderLen := faketcp.SteadyIPv4HeaderLen()
+	tcpHeaderLen := faketcp.SteadyDataTCPHeaderLen()
+	for name, configured := range map[string]int{
+		"tx_ipv4": params.TxIPv4HeaderLen,
+		"rx_ipv4": params.RxIPv4HeaderLen,
+	} {
+		if configured != 0 && configured != ipHeaderLen {
+			return LaneConfig{}, fmt.Errorf("%w: %s header=%d actual=%d", ErrAdmissionHandoff, name, configured, ipHeaderLen)
+		}
+	}
+	for name, configured := range map[string]int{
+		"tx_tcp": params.TxTCPHeaderLen,
+		"rx_tcp": params.RxTCPHeaderLen,
+	} {
+		if configured != 0 && configured != tcpHeaderLen {
+			return LaneConfig{}, fmt.Errorf("%w: %s header=%d actual=%d", ErrAdmissionHandoff, name, configured, tcpHeaderLen)
+		}
+	}
 
 	tx := pathmtu.Config{
 		ConnectionMTU:   params.ConnectionMTU,
 		LocalPacketMTU:  params.LocalPacketMTU,
-		IPv4HeaderLen:   params.TxIPv4HeaderLen,
-		TCPHeaderLen:    params.TxTCPHeaderLen,
+		IPv4HeaderLen:   ipHeaderLen,
+		TCPHeaderLen:    tcpHeaderLen,
 		PeerMSS:         peerMSS,
 		PeerMSSSet:      params.PeerMSSSet,
 		RecordWireLimit: int(n.ServerLimit),
@@ -75,8 +93,8 @@ func ClientLaneConfigFromAdmission(session *realityfront.ClientAdmissionSession,
 	rx := pathmtu.Config{
 		ConnectionMTU:   params.ConnectionMTU,
 		LocalPacketMTU:  params.LocalPacketMTU,
-		IPv4HeaderLen:   params.RxIPv4HeaderLen,
-		TCPHeaderLen:    params.RxTCPHeaderLen,
+		IPv4HeaderLen:   ipHeaderLen,
+		TCPHeaderLen:    tcpHeaderLen,
 		PeerMSS:         faketcp.DefaultMSS,
 		PeerMSSSet:      true,
 		RecordWireLimit: int(n.ClientLimit),
@@ -127,12 +145,30 @@ func ServerLaneConfigFromAdmission(session *realityfront.ServerAdmissionSession,
 	}
 	n := session.Negotiated
 	peer := assoc.PeerTCPProfile()
+	ipHeaderLen := faketcp.SteadyIPv4HeaderLen()
+	tcpHeaderLen := faketcp.SteadyDataTCPHeaderLen()
+	for name, configured := range map[string]int{
+		"tx_ipv4": params.TxIPv4HeaderLen,
+		"rx_ipv4": params.RxIPv4HeaderLen,
+	} {
+		if configured != 0 && configured != ipHeaderLen {
+			return LaneConfig{}, fmt.Errorf("%w: %s header=%d actual=%d", ErrAdmissionHandoff, name, configured, ipHeaderLen)
+		}
+	}
+	for name, configured := range map[string]int{
+		"tx_tcp": params.TxTCPHeaderLen,
+		"rx_tcp": params.RxTCPHeaderLen,
+	} {
+		if configured != 0 && configured != tcpHeaderLen {
+			return LaneConfig{}, fmt.Errorf("%w: %s header=%d actual=%d", ErrAdmissionHandoff, name, configured, tcpHeaderLen)
+		}
+	}
 
 	tx := pathmtu.Config{
 		ConnectionMTU:   params.ConnectionMTU,
 		LocalPacketMTU:  params.LocalPacketMTU,
-		IPv4HeaderLen:   params.TxIPv4HeaderLen,
-		TCPHeaderLen:    params.TxTCPHeaderLen,
+		IPv4HeaderLen:   ipHeaderLen,
+		TCPHeaderLen:    tcpHeaderLen,
 		PeerMSS:         peer.MSS,
 		PeerMSSSet:      peer.AdvertisedMSS,
 		RecordWireLimit: int(n.ClientLimit),
@@ -143,8 +179,8 @@ func ServerLaneConfigFromAdmission(session *realityfront.ServerAdmissionSession,
 	rx := pathmtu.Config{
 		ConnectionMTU:   params.ConnectionMTU,
 		LocalPacketMTU:  params.LocalPacketMTU,
-		IPv4HeaderLen:   params.RxIPv4HeaderLen,
-		TCPHeaderLen:    params.RxTCPHeaderLen,
+		IPv4HeaderLen:   ipHeaderLen,
+		TCPHeaderLen:    tcpHeaderLen,
 		PeerMSS:         faketcp.DefaultMSS,
 		PeerMSSSet:      true,
 		RecordWireLimit: int(n.ServerLimit),

@@ -205,6 +205,12 @@ func TestServerAdmissionHandoffBindsDirectionLimitsPeerMSSAndProfile(t *testing.
 	if cfg.TxMTU.RecordWireLimit != 1100 || cfg.RxMTU.RecordWireLimit != 1000 {
 		t.Fatalf("direction limits tx/rx=%d/%d", cfg.TxMTU.RecordWireLimit, cfg.RxMTU.RecordWireLimit)
 	}
+	if cfg.TxMTU.IPv4HeaderLen != faketcp.SteadyIPv4HeaderLen() ||
+		cfg.TxMTU.TCPHeaderLen != faketcp.SteadyDataTCPHeaderLen() ||
+		cfg.RxMTU.IPv4HeaderLen != faketcp.SteadyIPv4HeaderLen() ||
+		cfg.RxMTU.TCPHeaderLen != faketcp.SteadyDataTCPHeaderLen() {
+		t.Fatalf("server actual steady headers tx=%+v rx=%+v", cfg.TxMTU, cfg.RxMTU)
+	}
 	if !cfg.TxMTU.PeerMSSSet || cfg.TxMTU.PeerMSS != 1200 {
 		t.Fatalf("server tx peer MSS=%d set=%v", cfg.TxMTU.PeerMSS, cfg.TxMTU.PeerMSSSet)
 	}
@@ -218,6 +224,14 @@ func TestServerAdmissionHandoffBindsDirectionLimitsPeerMSSAndProfile(t *testing.
 	defer lane.Close()
 	if lane.TxBudget().RecordWireMTU != 1100 || lane.RxBudget().RecordWireMTU != 1000 {
 		t.Fatalf("derived direction budgets tx/rx=%d/%d", lane.TxBudget().RecordWireMTU, lane.RxBudget().RecordWireMTU)
+	}
+
+	if _, err := ServerLaneConfigFromAdmission(session, assoc, ServerLaneParams{
+		ConnectionMTU: 1500,
+		TxIPv4HeaderLen: 20, TxTCPHeaderLen: 32,
+		RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
+	}); !errors.Is(err, ErrAdmissionHandoff) {
+		t.Fatalf("mismatched server TCP header err=%v want ErrAdmissionHandoff", err)
 	}
 }
 

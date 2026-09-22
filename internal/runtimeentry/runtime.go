@@ -176,6 +176,8 @@ func DialClient(ctx context.Context, cfg ClientConfig) (*Client, error) {
 		LocalIP: cfg.Flow.LocalIP, PeerIP: cfg.Flow.PeerIP,
 		LocalPort: cfg.Flow.LocalPort, PeerPort: cfg.Flow.PeerPort,
 		SendNext: handoff.SendNext, ReceiveNext: handoff.ReceiveNext,
+		AdvertisedWindow: handoff.AdvertisedWindow, AdvertisedWindowSet: true,
+		WindowScale: handoff.WindowScale, WindowScaleSet: handoff.WindowScaleSet,
 		InitialRTO: runtimeowner.DefaultRepairRTO,
 		RepairHorizon: runtimeowner.DefaultRepairHorizon,
 		SACKPermitted: handoff.Peer.SACKPermitted,

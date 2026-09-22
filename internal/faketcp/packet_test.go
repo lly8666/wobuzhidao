@@ -140,3 +140,43 @@ func TestMarshalSegmentSACKRoundTrip(t *testing.T) {
 		t.Fatal("SACK packet checksum invalid")
 	}
 }
+
+
+func TestSteadyHeaderLengthsAndPersonaStayConsistent(t *testing.T) {
+	src, _ := IPv4(net.ParseIP("192.0.2.40"))
+	dst, _ := IPv4(net.ParseIP("198.51.100.40"))
+	data := Segment{
+		SrcIP: src, DstIP: dst, SrcPort: 43000, DstPort: 443,
+		Seq: 100, Ack: 200, Flags: FlagACK | FlagPSH, Window: 1024,
+		Payload: []byte("record"),
+	}
+	if SteadyIPv4HeaderLen() != 20 || SteadyDataTCPHeaderLen() != 20 ||
+		SegmentTCPHeaderLen(data, PacketPersonaWindows11) != 20 {
+		t.Fatalf("steady data headers ip=%d tcp=%d exact=%d",
+			SteadyIPv4HeaderLen(), SteadyDataTCPHeaderLen(),
+			SegmentTCPHeaderLen(data, PacketPersonaWindows11))
+	}
+	winData := MarshalSegment(data, 21, PacketPersonaWindows11)
+	legacyData := MarshalSegment(data, 21, PacketPersonaLegacy)
+	if winData[8] != 128 || legacyData[8] != 64 {
+		t.Fatalf("persona continuity ttl windows=%d legacy=%d", winData[8], legacyData[8])
+	}
+	if got := int(winData[20+12]>>4) * 4; got != SteadyDataTCPHeaderLen() {
+		t.Fatalf("serialized data tcp header=%d want=%d", got, SteadyDataTCPHeaderLen())
+	}
+
+	ack := data
+	ack.Flags = FlagACK
+	ack.Payload = nil
+	ack.SACKN = MaxSACKBlocks
+	for i := 0; i < MaxSACKBlocks; i++ {
+		ack.SACK[i] = SACKBlock{Start: uint32(1000 + i*200), End: uint32(1100 + i*200)}
+	}
+	if got := SegmentTCPHeaderLen(ack, PacketPersonaWindows11); got != 56 {
+		t.Fatalf("four-block SACK tcp header=%d want=56", got)
+	}
+	winACK := MarshalSegment(ack, 22, PacketPersonaWindows11)
+	if winACK[8] != 128 || int(winACK[20+12]>>4)*4 != 56 {
+		t.Fatalf("steady control persona/header ttl=%d tcp=%d", winACK[8], int(winACK[32]>>4)*4)
+	}
+}

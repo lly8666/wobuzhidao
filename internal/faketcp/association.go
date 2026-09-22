@@ -161,6 +161,15 @@ func (a *ServerAssociation) PeerTCPProfile() PeerTCPProfile {
 	return a.peer
 }
 
+// SteadyWindowProfile snapshots the server's exact post-handshake window
+// presentation at the ownership handoff. Window scaling is SYN-only metadata;
+// steady packets keep the negotiated encoded Window value without re-sending WS.
+func (a *ServerAssociation) SteadyWindowProfile() (window uint16, scale uint8, scaleSet bool) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.advertisedWindowLocked(true), DefaultWindowScale, a.peer.WindowScaleSet
+}
+
 func (a *ServerAssociation) BootstrapConn() net.Conn { return a.bootstrap }
 func (a *ServerAssociation) BootstrapNext() uint32   { return a.bootstrap.NextSeq() }
 func (a *ServerAssociation) SenderNext() uint32      { return a.sender.NextSeq() }

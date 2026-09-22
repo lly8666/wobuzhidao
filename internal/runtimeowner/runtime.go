@@ -43,6 +43,11 @@ type TransportConfig struct {
 	SendNext    uint32
 	ReceiveNext uint32
 
+	AdvertisedWindow    uint16
+	AdvertisedWindowSet bool
+	WindowScale         uint8
+	WindowScaleSet      bool
+
 	InitialRTO    time.Duration
 	RepairHorizon time.Duration
 	SACKPermitted bool
@@ -62,6 +67,16 @@ func (c *TransportConfig) normalize() error {
 	}
 	if c.RepairHorizon < c.InitialRTO {
 		return ErrTransportConfig
+	}
+	if !c.AdvertisedWindowSet {
+		c.AdvertisedWindow = 65535
+	}
+	if c.WindowScaleSet {
+		if c.WindowScale > faketcp.MaxWindowScale {
+			return ErrTransportConfig
+		}
+	} else {
+		c.WindowScale = 0
 	}
 	return nil
 }
@@ -134,6 +149,9 @@ type TransportStats struct {
 	PeerRST           bool
 	SRTT              time.Duration
 	RTO               time.Duration
+	AdvertisedWindow  uint16
+	WindowScale       uint8
+	WindowScaleSet    bool
 	Closed            bool
 }
 
@@ -227,7 +245,7 @@ func (t *laneTransport) outboundSegmentFlags(seq, ack uint32, flags uint8, paylo
 	seg := faketcp.Segment{
 		SrcIP: t.cfg.LocalIP, DstIP: t.cfg.PeerIP,
 		SrcPort: t.cfg.LocalPort, DstPort: t.cfg.PeerPort,
-		Seq: seq, Ack: ack, Flags: flags, Window: 65535,
+		Seq: seq, Ack: ack, Flags: flags, Window: t.cfg.AdvertisedWindow,
 		Payload: append([]byte(nil), payload...),
 	}
 	// Keep SACK on ACK-only/control packets. Data records are already sized to
@@ -647,6 +665,9 @@ func (t *laneTransport) statsSnapshot() TransportStats {
 	out.RepairCreditBytes = t.repairCredit
 	out.SRTT = t.srtt
 	out.RTO = t.rto
+	out.AdvertisedWindow = t.cfg.AdvertisedWindow
+	out.WindowScale = t.cfg.WindowScale
+	out.WindowScaleSet = t.cfg.WindowScaleSet
 	out.WriteClosed = t.localFINQueued
 	out.LocalFINAcked = t.localFINAcked
 	out.PeerFIN = t.peerFIN
@@ -928,10 +949,13 @@ func (r *Runtime) AttachServerAdmission(laneID uint8, session *realityfront.Serv
 	}
 	flow := assoc.Flow()
 	peer := assoc.PeerTCPProfile()
+	window, scale, scaleSet := assoc.SteadyWindowProfile()
 	cfg := TransportConfig{
 		LocalIP: flow.ServerIP, PeerIP: flow.ClientIP,
 		LocalPort: flow.ServerPort, PeerPort: flow.ClientPort,
 		SendNext: assoc.SenderNext(), ReceiveNext: session.Boundary,
+		AdvertisedWindow: window, AdvertisedWindowSet: true,
+		WindowScale: scale, WindowScaleSet: scaleSet,
 		InitialRTO: DefaultRepairRTO, RepairHorizon: DefaultRepairHorizon,
 		SACKPermitted: peer.SACKPermitted,
 		Emit: emit,

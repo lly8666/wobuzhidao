@@ -933,3 +933,18 @@ func TestAdvertisedBootstrapWindowMatchesBoundedCapacity(t *testing.T) {
 		t.Fatalf("advertised window=%d want=%d (capacity=%d scale=%d)", seg.Window, want, MaxBootstrapBufferedBytes, DefaultWindowScale)
 	}
 }
+
+
+func TestServerSteadyWindowProfileMatchesPostHandshakeACK(t *testing.T) {
+	a, _ := establishP2(t, func(Segment) error { return nil })
+	defer a.Close()
+
+	ack := a.ACKSegment(a.BootstrapNext())
+	window, scale, scaleSet := a.SteadyWindowProfile()
+	want := uint16(MaxBootstrapBufferedBytes >> DefaultWindowScale)
+	if ack.Window != want || window != ack.Window ||
+		!scaleSet || scale != DefaultWindowScale {
+		t.Fatalf("steady window ack=%d profile=%d scale=%d set=%v want=%d/%d",
+			ack.Window, window, scale, scaleSet, want, DefaultWindowScale)
+	}
+}

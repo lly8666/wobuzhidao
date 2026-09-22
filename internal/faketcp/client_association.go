@@ -50,6 +50,10 @@ type ClientHandoff struct {
 	SendNext    uint32
 	ReceiveNext uint32
 	Peer         PeerTCPProfile
+
+	AdvertisedWindow uint16
+	WindowScale      uint8
+	WindowScaleSet   bool
 }
 
 type ClientAssociation struct {
@@ -316,8 +320,17 @@ func (a *ClientAssociation) advertisedWindowLocked() uint16 {
 	if n <= 0 {
 		return 0
 	}
+	// The client SYN always offers DefaultWindowScale. A SYN-ACK WS option
+	// means scaling was negotiated, so every post-handshake advertised window
+	// must be encoded in that local scale just like the server side.
+	if a.peer.WindowScaleSet {
+		n >>= DefaultWindowScale
+		if n == 0 {
+			n = 1
+		}
+	}
 	if n > 65535 {
-		return 65535
+		n = 65535
 	}
 	return uint16(n)
 }
@@ -332,6 +345,9 @@ func (a *ClientAssociation) Detach() (ClientHandoff, error) {
 		SendNext: a.sender.NextSeq(),
 		ReceiveNext: a.bootstrap.NextSeq(),
 		Peer: a.peer,
+		AdvertisedWindow: a.advertisedWindowLocked(),
+		WindowScale: DefaultWindowScale,
+		WindowScaleSet: a.peer.WindowScaleSet,
 	}
 	stream := a.bootstrap
 	a.state = ClientAssociationDetached

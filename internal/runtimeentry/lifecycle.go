@@ -637,6 +637,8 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		LocalIP: flow.LocalIP, PeerIP: flow.PeerIP,
 		LocalPort: flow.LocalPort, PeerPort: flow.PeerPort,
 		SendNext: handoff.SendNext, ReceiveNext: handoff.ReceiveNext,
+		AdvertisedWindow: handoff.AdvertisedWindow, AdvertisedWindowSet: true,
+		WindowScale: handoff.WindowScale, WindowScaleSet: handoff.WindowScaleSet,
 		InitialRTO: runtimeowner.DefaultRepairRTO,
 		RepairHorizon: runtimeowner.DefaultRepairHorizon,
 		SACKPermitted: handoff.Peer.SACKPermitted,
@@ -1519,10 +1521,13 @@ func (s *LifecycleServer) serverCandidateLane(session *realityfront.ServerAdmiss
 func (s *LifecycleServer) serverTransportConfig(session *realityfront.ServerAdmissionSession, assoc *faketcp.ServerAssociation) runtimeowner.TransportConfig {
 	flow := assoc.Flow()
 	peer := assoc.PeerTCPProfile()
+	window, scale, scaleSet := assoc.SteadyWindowProfile()
 	return runtimeowner.TransportConfig{
 		LocalIP: flow.ServerIP, PeerIP: flow.ClientIP,
 		LocalPort: flow.ServerPort, PeerPort: flow.ClientPort,
 		SendNext: assoc.SenderNext(), ReceiveNext: session.Boundary,
+		AdvertisedWindow: window, AdvertisedWindowSet: true,
+		WindowScale: scale, WindowScaleSet: scaleSet,
 		InitialRTO: runtimeowner.DefaultRepairRTO,
 		RepairHorizon: runtimeowner.DefaultRepairHorizon,
 		SACKPermitted: peer.SACKPermitted,

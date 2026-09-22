@@ -104,6 +104,20 @@ func PacketLen(flags uint8, payloadLen int) int {
 	return 40 + packetOptionLen(flags) + payloadLen
 }
 
+// SteadyIPv4HeaderLen is the actual IPv4 header emitted by MarshalSegment.
+// The steady carrier does not add IPv4 options.
+func SteadyIPv4HeaderLen() int { return 20 }
+
+// SteadyDataTCPHeaderLen is the actual TCP header on payload-bearing steady
+// records. SACK is deliberately ACK/control-only, so data records stay option-free.
+func SteadyDataTCPHeaderLen() int { return 20 }
+
+// SegmentTCPHeaderLen returns the exact TCP header MarshalSegment will emit for
+// this segment/persona, including negotiated control options such as SACK.
+func SegmentTCPHeaderLen(seg Segment, persona PacketPersona) int {
+	return 20 + len(segmentOptions(seg, persona))
+}
+
 // MarshalSegment serializes the options carried by Segment itself. This is
 // needed for server SYN-ACK negotiation: SACK/window-scale are only offered
 // when the peer offered them. The legacy MarshalIPv4TCP helpers below keep the

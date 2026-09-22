@@ -58,12 +58,13 @@
     "P6关闭：SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 / Actions 35603635498 的三个独立release-candidate job全部PASS。linux/amd64 artifact 10640321325 sha256:e08bedeacb64be27677bdc2ec7232691b1a450b809e39b878f5f9141b57de8e5，manifest sha256=e971ad779beff597c8d39a69f5645f3894021e023e10c6a4a7ffc82d0f1fafa8；linux/arm64 artifact 10641055941 sha256:3637dfaa7f89a2358fe258d7f5afddb9dc8cba20d2c188552ad30010d307c88e，manifest sha256=83ab1202ae4adb12db4fb820c357a3659ea7eaf8220ac20039c1872f9235aaf0；windows/amd64 artifact 10641181252 sha256:c5b3c83af29929f474a0467c1cc2eb1d9f63756f115468c423bbf2a4c161e06f，manifest sha256=5d12951916c0663e3d9028626e2dea4a18b458979ed8ff4c3a5d8b8da5077d64。三者source_sha相同、file SHA256与binary target/source/version独立复核PASS；Windows server=UNSUPPORTED，PHYSICAL/RELEASE_QUALIFIED=NOT_RUN。",
     "P4增强第1原子修复：runtimeowner repair/gap-ACK仲裁在SOURCE_SHA e3253322ac863c11636f1c127e14b77bdc6bf800的定向Actions已通过repository-contract、Windows/Linux active-go（Linux含race）、OpenWrt privileged与Linux shared-TUN iptables/nft；repair选择/尝试/成功/失败分离且gap forgiveness不再覆盖已选repair。",
     "P4增强第2原子FIN/RST/半关闭：SOURCE_SHA 1cfe913199f7df67f05158e044cbec02771f29a8 / Actions 35669709080 定向资格已通过repository-contract、Windows active-go、Ubuntu active-go+race、P5 HTTPS base、OpenWrt privileged及Linux shared-TUN iptables/nft；Game4固定duplicates>=lanes-1并等待异步lane drain，replacement/DORMANT late-control race已收口。整轮长时P5 jobs当时仍运行，不提前写成整轮PASS。",
-    "P4增强第3原子：有界SACK/payload退役、fresh优先repair credit、Karn-safe RTT/RTO与effective-RTO/3s horizon修正，在SOURCE_SHA d019858265353f55a25e9e55b9dcef3808407198的targeted 35676831976 6/6 PASS及foundation 35676831973整轮PASS；30%旧回归两个seed恢复且DORMANT race闭环。"
+    "P4增强第3原子：有界SACK/payload退役、fresh优先repair credit、Karn-safe RTT/RTO与effective-RTO/3s horizon修正，在SOURCE_SHA d019858265353f55a25e9e55b9dcef3808407198的targeted 35676831976 6/6 PASS及foundation 35676831973整轮PASS；30%旧回归两个seed恢复且DORMANT race闭环。",
+    "P4增强第4原子：runtimeowner累计ACK改为单调head增量退役、pending仅>=1024前缀摊销压缩；sender SACK只处理新覆盖区间，receiver线上仅维护4块增量SACK；repair链单tick最多256候选旋转扫描。SOURCE_SHA ce950d4877ecb51001b6ab2517f6b43a6edadac3 / targeted Actions 35681889099 6/6 PASS / foundation 35681889120整轮PASS。"
   ],
-  "in_progress": "P4第4原子已实现待Actions：runtimeowner累计ACK改为单调head增量退役，pending压缩仅每>=1024已退役项摊销一次；sender SACK用8段常量历史只处理新覆盖字节，receiver ACK只维护4个增量SACK range；repair候选改为独立链表+每tick最多256项旋转扫描。补深洞、稀疏ACK、32-bit Seq回绕、历史淘汰和stop清理测试。",
-  "next_task": "先跑本exact-SHA next-p4-steady-targeted，要求contract、Linux/Windows steady-core、Linux race、lifecycle和iptables/nft全部PASS；再看foundation旧30%回归不倒退。通过后进入第5原子：window/scale、MSS、实际TCP options/persona continuity与统一MTU实际头长。",
-  "latest_log": "docs/devlog/20260922-110500-incremental-ack-sack-indexes.md",
-  "last_tested_source_sha": "d019858265353f55a25e9e55b9dcef3808407198",
+  "in_progress": "P4第5原子已实现待Actions：FakeTCP客户端修正WS协商后的post-handshake Window编码，并把detach时本端AdvertisedWindow/WS精确交给steady TransportConfig；server同样快照当前窗口。runtimeowner所有steady data/ACK/FIN/RST使用该窗口，不再固定65535。datapath handoff只接受serializer真实steady carrier头20B IPv4+20B TCP，MSS继续来自握手；四块SACK ACK/control实际56B TCP头由serializer测试验证且不伪装成data header。persona继续由同一Raw/Npcap endpoint贯穿建连与稳态，timestamps未实现且未伪造。",
+  "next_task": "先跑本第5原子exact-SHA next-p4-steady-targeted，要求contract、Linux/Windows steady-core、Linux race、lifecycle、iptables/nft全部PASS；再要求next-foundation旧20/30%弱网、active-go、privileged、load/soak不倒退。通过后开始专项第5节真实Linux netns/veth/netem正式进程无损闭环与校准，不能直接跳到18份主测。",
+  "latest_log": "docs/devlog/20260922-124500-steady-persona-mtu-continuity.md",
+  "last_tested_source_sha": "ce950d4877ecb51001b6ab2517f6b43a6edadac3",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -904,6 +905,20 @@
       "scope": "P4-item3-dormant-fence-foundation",
       "status": "PASS",
       "note": "next-foundation整轮PASS：Windows/Linux active-go、race、P4 privileged、非FEC/FEC20:20 20%/30%旧弱网回归、load/soak及历史P6 jobs均成功。旧HTTPS弱网只作回归证据，不替代新增持续UDP主测。"
+    },
+    {
+      "source_sha": "ce950d4877ecb51001b6ab2517f6b43a6edadac3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35681889099",
+      "scope": "P4-item4-incremental-index-targeted",
+      "status": "PASS_TARGETED",
+      "note": "next-p4-steady-targeted 6/6 PASS：contract、Linux/Windows steady-core、Linux race、lifecycle-focus、iptables/nft privileged全部成功；验证增量ACK/SACK/repair索引、深洞/回绕/稀疏ACK/清理未破坏核心闭包。"
+    },
+    {
+      "source_sha": "ce950d4877ecb51001b6ab2517f6b43a6edadac3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35681889120",
+      "scope": "P4-item4-incremental-index-foundation",
+      "status": "PASS",
+      "note": "next-foundation整轮PASS：repository-contract、Windows/Linux active-go、p4-openwrt、Linux shared-TUN、非FEC 5→20→5/5→30→5各2 seed、FEC20:20对应20/30%各2 seed、load/soak/HTTPS base及历史P6 jobs均成功；这些旧HTTPS/内存损伤门只作回归，不替代新增真实路径UDP资格。"
     }
   ],
   "physical_status": "NOT_RUN",

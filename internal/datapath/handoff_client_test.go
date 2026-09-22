@@ -70,3 +70,45 @@ func TestFixedFECRuntimeDefaultsKeepOffAndAdmitOnlyLiveProfiles(t *testing.T) {
 		}
 	}
 }
+
+
+func TestClientLaneHandoffUsesActualSteadyCarrierHeaders(t *testing.T) {
+	session := &realityfront.ClientAdmissionSession{
+		Negotiated: realityfront.AdmissionResult{
+			RecordVersion: realityfront.RecordVersionV1,
+			TunnelID: []byte("0123456789abcdef"),
+			ClientLimit: 2000,
+			ServerLimit: 2000,
+			Keys: testKeys(),
+		},
+	}
+	session.Negotiated.IncarnationNonce[0] = 10
+	params := ClientLaneParams{
+		ConnectionMTU: 1400,
+		PeerMSS: faketcp.DefaultMSS,
+		PeerMSSSet: true,
+	}
+	cfg, err := ClientLaneConfigFromAdmission(session, params)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.TxMTU.IPv4HeaderLen != faketcp.SteadyIPv4HeaderLen() ||
+		cfg.TxMTU.TCPHeaderLen != faketcp.SteadyDataTCPHeaderLen() ||
+		cfg.RxMTU.IPv4HeaderLen != faketcp.SteadyIPv4HeaderLen() ||
+		cfg.RxMTU.TCPHeaderLen != faketcp.SteadyDataTCPHeaderLen() {
+		t.Fatalf("actual steady headers tx=%+v rx=%+v", cfg.TxMTU, cfg.RxMTU)
+	}
+	lane, err := NewLane(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer lane.Close()
+	if got := lane.TxBudget().OuterPacketLenForRecord(lane.TxBudget().RecordWireMTU); got != 1400 {
+		t.Fatalf("tx outer packet=%d want=1400 budget=%+v", got, lane.TxBudget())
+	}
+
+	params.TxTCPHeaderLen = 32
+	if _, err := ClientLaneConfigFromAdmission(session, params); !errors.Is(err, ErrAdmissionHandoff) {
+		t.Fatalf("mismatched caller TCP header err=%v want ErrAdmissionHandoff", err)
+	}
+}
