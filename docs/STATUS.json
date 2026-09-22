@@ -65,7 +65,7 @@
   ],
   "in_progress": "用户暂停原主线任务；TLS启动填充代码/入口/专项Actions/测试已实现，等待全新agent exact-SHA Actions验收与修复。尚未标完成。",
   "next_task": "依docs/TLS_STARTUP_PADDING.md验收清单测试/修复TLS_STARTUP_PADDING，证据齐全后直接更新completed和该workstream为COMPLETE；原P4弱网任务保持用户暂停。",
-  "latest_log": "docs/devlog/20260922-190000-tls-startup-padding.md",
+  "latest_log": "docs/devlog/20260922-191000-startup-close-observability.md",
   "last_tested_source_sha": "b197dacf9bc35a78a2d633e703dd8f3d15df750e",
   "actions": [
     {
@@ -1044,7 +1044,7 @@
       "status": "IMPLEMENTED_PENDING_ACTIONS",
       "baseline_sha": "896ae94bea1aa1e532b2a14ed9d3e707a72f5286",
       "spec": "docs/TLS_STARTUP_PADDING.md",
-      "latest_log": "docs/devlog/20260922-190000-tls-startup-padding.md",
+      "latest_log": "docs/devlog/20260922-191000-startup-close-observability.md",
       "tests": "NOT_RUN at implementation; inspect exact-SHA Actions, then complete fullstack checklist",
       "next_task": "新agent测试/定向修复TLS启动填充；通过后直接标小功能COMPLETE，更新completed/ACCEPTANCE/devlog，不关闭整个P4/P5",
       "main_task_hold": {
@@ -1053,7 +1053,9 @@
         "saved_in_progress": "P4第5原子回归修正3c待Actions：b197dacf的产品逻辑未失败，Ubuntu active-go仅因两条既有platformflow测试仍按旧“retire绝对timeout”断言到期。当前提交只把到期基准改为最后一次合法retired tail + timeout；sliding quiet-period产品代码保持不变。",
         "saved_next_task": "跑本exact-SHA targeted和foundation；若core/race与两个5->30->5 seed全部PASS，则关闭第5原子代码回归并转入真实Linux netns/veth/netem正式进程无损闭环。",
         "saved_latest_log": "docs/devlog/20260922-161000-platformflow-quiet-period-test-contract.md"
-      }
+      },
+      "implementation_sha": "d5996203ff0617aca53fcc1dc9e2713cba97bd62",
+      "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA."
     }
   }
 }

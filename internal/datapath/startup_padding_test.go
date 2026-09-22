@@ -308,4 +308,8 @@ func TestStartupConcurrentReservationsBounded(t *testing.T) {
 	if st := o.Stats().Padding; st.PaddedRecords != StartupMaxRecords || st.PaddingBytes != StartupMaxRecords {
 		t.Fatalf("concurrent overrun: %+v", st)
 	}
+	o.Close()
+	if st := o.Stats().Padding; st.StartupTracked != 0 || st.StartupDetected != 1 || st.PaddedRecords != StartupMaxRecords {
+		t.Fatalf("close must free state but retain evidence: %+v", st)
+	}
 }

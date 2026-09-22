@@ -407,6 +407,7 @@ func (o *TunnelOwner) InboundPayload(ref logicaltunnel.LaneRef, payload []byte, 
 	role := o.role
 	lease := o.lease.Clone()
 	hasLease := o.hasLease
+	startupEnabled := o.padding.policy.TLSStartupOnly
 	o.mu.Unlock()
 
 	result, err := binding.lane.InboundPayload(payload, now)
@@ -417,7 +418,9 @@ func (o *TunnelOwner) InboundPayload(ref logicaltunnel.LaneRef, payload []byte, 
 		return InboundResult{}, err
 	}
 	if role != RoleServer || !hasLease {
-		o.observeStartupInbound(result.Datagrams, now)
+		if startupEnabled {
+			o.observeStartupInbound(result.Datagrams, now)
+		}
 		return result, nil
 	}
 	leased, err := lease.Config.LeaseIPv4()
@@ -434,7 +437,9 @@ func (o *TunnelOwner) InboundPayload(ref logicaltunnel.LaneRef, payload []byte, 
 		kept = append(kept, packet)
 	}
 	result.Datagrams = kept
-	o.observeStartupInbound(result.Datagrams, now)
+	if startupEnabled {
+		o.observeStartupInbound(result.Datagrams, now)
+	}
 	return result, nil
 }
 
@@ -513,7 +518,10 @@ func (o *TunnelOwner) Close() {
 	clear(o.retiring)
 	clear(o.flows)
 	o.game = nil
-	o.padding.startup = startupTracker{}
+	// Release observation state while retaining lifetime diagnostic counters.
+	o.padding.startup.flows = nil
+	o.padding.startup.active.Init()
+	o.padding.startup.retained.Init()
 	o.closed = true
 	o.mu.Unlock()
 	closeLaneSet(lanes)

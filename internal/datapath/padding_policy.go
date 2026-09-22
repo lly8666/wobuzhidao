@@ -16,7 +16,7 @@ var (
 // TunnelPaddingPolicy is the optional production policy layered over the P3
 // record-padding mechanism. The zero value is intentionally disabled.
 //
-// When enabled, every eligible already-formed record requests exactly
+// In the legacy all-record policy, every eligible formed record requests exactly
 // BytesPerRecord encrypted padding bytes. BytesPerRecord is therefore also the
 // hard per-record cap. The request is accepted only when both cumulative
 // tunnel limits still permit the full amount; otherwise that record gets zero
