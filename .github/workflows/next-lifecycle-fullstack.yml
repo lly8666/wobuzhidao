@@ -10,6 +10,7 @@ on:
       - 'scripts/lifecycle_acceptance_sample.sh'
       - 'tools/check_lifecycle_acceptance.py'
       - 'tools/aggregate_lifecycle_acceptance.py'
+      - 'tools/lifecycle_wake_driver.py'
       - 'tools/realpath_udp_duplex.py'
       - '.github/workflows/next-lifecycle-fullstack.yml'
   workflow_dispatch:

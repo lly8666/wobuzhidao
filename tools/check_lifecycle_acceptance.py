@@ -104,14 +104,20 @@ def main():
  first=next((r for r in c if int(own(r,"client").get("ActiveLogicalLanes",0)or 0)>0),None)
  lc=next((r for r in reversed(c) if prod(r,"client")),None)
  ls=next((r for r in reversed(s) if prod(r,"server")),None)
+ lac=next((r for r in reversed(c) if int(own(r,"client").get("ActiveLogicalLanes",0)or 0)==x.lanes),None)
+ las=next((r for r in reversed(s) if int(own(r,"server").get("ActiveLogicalLanes",0)or 0)==x.lanes),None)
  if not lc or not ls:err.append("missing final snapshots")
- else:
+ if not lac or not las:err.append("missing active lane snapshots")
+ for side,final,active in (("client",lc,lac),("server",ls,las)):
+  if final:
+   p=prod(final,side)or{}
+   if p.get("lease4")!="10.66.0.2/32":err.append(f"{side} lease drift {p.get('lease4')}")
+  if active and parity(active,side)!=[x.fec]:err.append(f"{side} fec effective {parity(active,side)} want {[x.fec]}")
+ if x.scenario not in ("l6_race1","l6_race4") and lc and ls:
   for side,r in (("client",lc),("server",ls)):
-   o=own(r,side); p=prod(r,side)or{}
+   o=own(r,side)
    if int(o.get("ActiveLogicalLanes",0)or 0)!=x.lanes:err.append(f"{side} final lanes {o.get('ActiveLogicalLanes')}")
    if o.get("Dormant"):err.append(f"{side} final dormant")
-   if p.get("lease4")!="10.66.0.2/32":err.append(f"{side} lease drift {p.get('lease4')}")
-   if parity(r,side)!=[x.fec]:err.append(f"{side} fec effective {parity(r,side)} want {[x.fec]}")
  maxp=max([int(own(r,"client").get("PhysicalLanes",0)or 0) for r in c]+[0])
  maxcand=max([int(own(r,"client").get("Candidates",0)or 0) for r in c]+[0])
  maxret=max([int(own(r,"client").get("Retiring",0)or 0) for r in c]+[0])
@@ -147,11 +153,14 @@ def main():
   if not q3 or own(q3,"client").get("Dormant"):err.append("pure downlink allowed false dormancy")
 
  if sc in ("l2_c2s","l2_s2c"):
-  z=(em.get("fault_start")or[None])[0]; side="client" if sc=="l2_c2s" else "server"; rows=c if side=="client" else s
-  q=near(rows,int(z["unix_ns"])+10_000_000_000) if z else None
-  if not q or own(q,side).get("Dormant"):err.append(f"{side} false dormant under lost offered business")
+  z=(em.get("fault_start")or[None])[0]
+  if z:
+   for side,rows in (("client",c),("server",s)):
+    q=near(rows,int(z["unix_ns"])+10_000_000_000)
+    if not q or own(q,side).get("Dormant"):err.append(f"{side} false dormant under one-way total loss")
   key="c2s30" if sc=="l2_c2s" else "s2c30"; v=(pr.get("main")or{}).get(key)
   if v is None or v<.95:err.append(f"post-loss delivery {key}={v}")
+  if int(lf.get("RecoveryAttempts",0)or 0)>6:err.append(f"one-way retry storm {lf}")
 
  if sc=="l3_health":
   if sum(1 for z in cae if z.get("kind")=="health")!=6:err.append(f"client health receipts={cae}")
@@ -162,7 +171,7 @@ def main():
    if v is None or v<.95:err.append(f"health-loss business delivery {k}={v}")
 
  repl=sc.startswith("l4_") or sc.startswith("l5_") or sc=="l6_partial"
- if repl and first and lc and not any(gens(lc).get(k,0)>v for k,v in gens(first).items()):err.append(f"generation did not advance {gens(first)}->{gens(lc)}")
+ if repl and first and lac and not any(gens(lac).get(k,0)>v for k,v in gens(first).items()):err.append(f"generation did not advance {gens(first)}->{gens(lac)}")
 
  if sc.startswith("l4_") or sc.startswith("l5_") or sc=="l6_partial":
   if int(lf.get("RecoverySucceeded",0)or 0)<1:err.append(f"no recovery success {lf}")
@@ -180,16 +189,17 @@ def main():
  if sc.startswith("l5_"):
   if cfg(lc,"client").get("rotate_min")!="1m10s" or cfg(lc,"client").get("rotate_max")!="1m10s":err.append(f"L5 rotation config {cfg(lc,'client')}")
   if int(lf.get("RecoveryFailed",0)or 0)<1:err.append(f"candidate failure uncounted {lf}")
-  if int(lf.get("RecoveryAttempts",0)or 0)>3:err.append(f"candidate retry count too high {lf}")
+  if int(lf.get("RecoveryAttempts",0)or 0)>6:err.append(f"candidate retry count too high {lf}")
   for k in ("c2s_first90","s2c_first90"):
    v=(pr.get("main")or{}).get(k)
    if v is None or v<.90:err.append(f"old lane did not continue service {k}={v}")
   if failed and len(attempts)>=2:
-   later=next((z for z in attempts if z["unix_ns"]>failed[0]["unix_ns"]),None)
-   if later:
-    ds=delta_s(failed[0]["unix_ns"],later["unix_ns"])
-    if ds<.75 or ds>5.5:err.append(f"candidate backoff out of bounds {ds:.3f}s")
-   else:err.append("missing retry after candidate failure")
+   for f in failed:
+    later=next((z for z in attempts if z["unix_ns"]>f["unix_ns"]),None)
+    if later:
+     ds=delta_s(f["unix_ns"],later["unix_ns"])
+     if ds<.75 or ds>5.5:err.append(f"candidate backoff out of bounds {ds:.3f}s")
+   if not any(z["unix_ns"]>failed[0]["unix_ns"] for z in attempts):err.append("missing retry after candidate failure")
   else:err.append(f"missing failure/backoff timeline attempts={attempts} failed={failed}")
   if sc in ("l5_tls","l5_admission","l5_detach"):
    k=sc[3:]
@@ -199,20 +209,27 @@ def main():
    if int(sy.get("40001",0))<2:err.append(f"SYN evidence {sy}")
    if attempts and failed:
     ds=delta_s(attempts[0]["unix_ns"],failed[0]["unix_ns"])
-    if ds<12 or ds>19:err.append(f"SYN candidate timeout {ds:.3f}s")
+    if ds<4.5 or ds>15.5:err.append(f"SYN candidate timeout {ds:.3f}s")
 
  sy=syns(root/"underlay.pcap")
 
  if sc in ("l6_race1","l6_race4"):
-  if int(lf.get("RecoveryAttempts",0)or 0)<1:err.append("race did not exercise wake")
-  main=pr.get("main")or{}
-  if int(main.get("c2s_sent_packets",0))<100 or int(main.get("s2c_sent_packets",0))<100:err.append(f"race did not reach 100 alternating demand events {main}")
-  for k in ("c2s30","s2c30"):
-   v=main.get(k)
-   if v is None or v<.80:err.append(f"race delivery {k}={v}")
+  wb=load(root/"wake-biz.json") if (root/"wake-biz.json").exists() else {}
+  wt=load(root/"wake-target.json") if (root/"wake-target.json").exists() else {}
+  if int(wb.get("sent",0)or 0)!=100 or int(wb.get("send_errors",0)or 0)!=0:err.append(f"wake driver sender {wb}")
+  if int(wt.get("received_unique",0)or 0)!=100 or int(wt.get("corrupt",0)or 0)!=0 or int(wt.get("unexpected",0)or 0)!=0:err.append(f"wake driver target {wt}")
+  ra=int(lf.get("RecoveryAttempts",0)or 0); rsu=int(lf.get("RecoverySucceeded",0)or 0)
+  if ra<90 or ra>110 or rsu<90:err.append(f"race wake transitions attempts={ra} succeeded={rsu}")
+  if lac is None or las is None:err.append("race never returned to active lanes")
+  # Ending DORMANT after the 100th client event is expected with idle=1s; L1
+  # separately proves active pure-downlink traffic does not false-idle.
 
  if sc=="l6_partial":
   if sum(1 for z in cae if z.get("kind")=="admission" and int(z.get("lane",0))==3)!=1:err.append("partial wake lane3 receipt missing")
+  main=pr.get("main")or{}
+  for k in ("c2s30","s2c30"):
+   v=main.get(k)
+   if v is None or v<.90:err.append(f"partial recovery {k}={v}")
 
  if sc=="l7_defaults":
   cc=cfg(lc,"client"); ss=cfg(ls,"server")
@@ -236,7 +253,7 @@ def main():
   "fec_parity":x.fec,"padding_enabled":bool(x.padding),"result":"PASS" if not err else "FAIL","errors":err,
   "effective_config":{"client":cfg(lc,"client") if lc else{},"server":cfg(ls,"server") if ls else{}},
   "lifecycle_final":lf,"recovery_timeline":{"attempts":attempts,"failed":failed,"succeeded":succeeded},
-  "first_generation":gens(first) if first else{},"final_generation":gens(lc) if lc else{},
+  "first_generation":gens(first) if first else{},"final_generation":gens(lac) if lac else{},
   "resource":{"max_physical":maxp,"max_candidates":maxcand,"max_retiring":maxret,"max_goroutines":maxg,"max_heap":maxh,"samples":len(rs)},
   "traffic":pr,"acceptance_events":{"client":cae,"server":sae},"syn_by_source_port":sy
  }

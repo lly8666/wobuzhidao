@@ -1382,7 +1382,7 @@
       "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA."
     },
     "WEAKNET_LIFECYCLE": {
-      "status": "ACCEPTANCE_FIX_PENDING_ACTIONS",
+      "status": "ACCEPTANCE_HARNESS_CORRECTION_2_PENDING_ACTIONS",
       "main_task_hold": {
         "requested_by": "user",
         "resume_only_on_user_request": true,
@@ -1395,10 +1395,10 @@
       "protocol": "admission V2; paired upgrade required",
       "acceptance": "docs/LIFECYCLE_ACCEPTANCE.md",
       "parameters": "docs/PARAMETERS.md",
-      "latest_devlog": "docs/devlog/20260923-071500-lifecycle-matrix-correction.md",
-      "acceptance_harness": "L0-L7 real-process matrix corrected to 36 isolated jobs: two seeds per lifecycle scenario, L0 FEC off/20 x padding off/on, L5 rotation candidate failure while old lane stays usable, exact effective-config/timing receipts; Actions pending",
-      "core_status": "RERUN_PENDING",
-      "fullstack_status": "HARNESS_FAIL_0882_RERUN_PENDING",
+      "latest_devlog": "docs/devlog/20260923-074500-lifecycle-race-harness-correction.md",
+      "acceptance_harness": "Second correction pending Actions: L5 bounded retry/SYN timeout uses actual FakeTCP candidate bound; L6 uses exactly 100 client-originated wake events and separates blackhole wake failure from post-clear bidirectional registration.",
+      "core_status": "PASS_1C83",
+      "fullstack_status": "26_PASS_10_HARNESS_CONTRACT_FAIL_1C83",
       "implementation_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
       "core_runs": [
         {
@@ -1454,6 +1454,46 @@
         "run": "https://github.com/lly8666/wobuzhidao/actions/runs/35791010503",
         "status": "HARNESS_FAIL",
         "evidence": "All 15 jobs passed a literal ${server_args[@]}/${client_args[@]} as one CLI argument; processes printed Usage and exited before manifest. No lifecycle product FAIL conclusion is inherited from this run."
+      },
+      "latest_core_runs": [
+        {
+          "workflow": "next-lifecycle",
+          "run": 35797317484,
+          "status": "PASS",
+          "source_sha": "1c83b2cdf27f79a341c5650e78aaf5794b093fef"
+        },
+        {
+          "workflow": "next-foundation",
+          "run": 35797317486,
+          "status": "PASS",
+          "source_sha": "1c83b2cdf27f79a341c5650e78aaf5794b093fef"
+        },
+        {
+          "workflow": "next-p4-steady-targeted",
+          "run": 35797317474,
+          "status": "PASS",
+          "source_sha": "1c83b2cdf27f79a341c5650e78aaf5794b093fef"
+        },
+        {
+          "workflow": "next-tls-startup-padding",
+          "run": 35797317460,
+          "status": "PASS",
+          "source_sha": "1c83b2cdf27f79a341c5650e78aaf5794b093fef"
+        },
+        {
+          "workflow": "next-realpath-calibration",
+          "run": 35797317467,
+          "status": "PASS",
+          "source_sha": "1c83b2cdf27f79a341c5650e78aaf5794b093fef"
+        }
+      ],
+      "fullstack_attempt_1c83": {
+        "source_sha": "1c83b2cdf27f79a341c5650e78aaf5794b093fef",
+        "run": "https://github.com/lly8666/wobuzhidao/actions/runs/35797317547",
+        "result": "26_SAMPLE_PASS_10_HARNESS_CONTRACT_FAIL",
+        "pass_groups": "L0 8/8; L1 2/2; L2 C2S/S2C 4/4; L3 2/2; L4 4/4; L5 TLS/admission 4/4; L7 defaults 2/2",
+        "failures": "L5 SYN 2: validator assumed 12-19s although FakeTCP bounded SYN candidate failed at ~6.5s and old lane traffic remained ~100%; L5 detach 2: validator capped attempts at 3 although bounded 1/2/4s retries converged with old-lane continuity; L6 race 4: duplex generator incorrectly required server reverse wake after full dormancy; L6 partial 2: REGISTER was intentionally blackholed so target never learned reverse peer and final idle was misclassified.",
+        "product_conclusion": "No product lifecycle defect established by these 10 failures; raw artifacts retained and harness corrected before any PASS claim."
       }
     }
   }

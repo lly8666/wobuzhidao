@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ART="$WBD_LIFECYCLE_ARTIFACT_DIR"; SCENARIO="$WBD_LIFECYCLE_SCENARIO"; LANES="$WBD_LIFECYCLE_LANES"; SEED="$WBD_LIFECYCLE_SEED"; FEC="$WBD_LIFECYCLE_FEC"; PADDING="$WBD_LIFECYCLE_PADDING"
-CLIENT_BIN="$ART/wbd-client"; SERVER_BIN="$ART/wbd-server"; GEN="$GITHUB_WORKSPACE/tools/realpath_udp_duplex.py"; SAMPLER="$GITHUB_WORKSPACE/tools/strict_resource_sampler.py"
+CLIENT_BIN="$ART/wbd-client"; SERVER_BIN="$ART/wbd-server"; GEN="$GITHUB_WORKSPACE/tools/realpath_udp_duplex.py"; WAKE="$GITHUB_WORKSPACE/tools/lifecycle_wake_driver.py"; SAMPLER="$GITHUB_WORKSPACE/tools/strict_resource_sampler.py"
 mkdir -p "$ART"
 SFX="$$"; BIZ="lbiz-$SFX"; CLI="lcli-$SFX"; RTR="lrtr-$SFX"; SRV="lsrv-$SFX"; TGT="ltgt-$SFX"
 CLIENT_PID=""; SERVER_PID=""; SAMPLER_PID=""; CAP_PID=""; BIZ_PID=""; TGT_PID=""; KEY=""
@@ -44,7 +44,7 @@ ip netns exec "$RTR" tcpdump -n -U -i rcli -s 256 -B 16384 -w "$ART/underlay.pca
 CERT="$ART/server-cert.pem"; KEY="/tmp/wbd-lifecycle-key-$SFX.pem"; openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj '/CN=qual.test' -keyout "$KEY" -out "$CERT" >"$ART/openssl.log" 2>&1
 TUNNEL_ID="00112233445566778899aabbccddeeff"; INSTALLATION_ID="11223344556677889900aabbccddeeff"; ROUTE_KEY_HEX="00112233445566778899aabbccddeeffffeeddccbbaa00998877665544332211"
 KEEP=1s; DEAD=6s; IDLE=0; RMAX=4s
-case "$SCENARIO" in l0_config) DEAD=12s;; l1_idle_downlink) KEEP=5s; DEAD=45s; IDLE=30s;; l2_c2s|l2_s2c) IDLE=4s;; l3_health) DEAD=8s; IDLE=4s;; l4_*|l5_*) DEAD=4s;; l6_race*) IDLE=1s;; l6_partial) IDLE=3s;; l7_defaults);; *) exit 2;; esac
+case "$SCENARIO" in l0_config) DEAD=12s;; l1_idle_downlink) KEEP=5s; DEAD=45s; IDLE=30s;; l2_c2s|l2_s2c) IDLE=4s;; l3_health) DEAD=8s; IDLE=4s;; l4_*|l5_*) DEAD=4s;; l6_race*) IDLE=1s;; l6_partial) IDLE=10s;; l7_defaults);; *) exit 2;; esac
 PAD_BOOL=false; PAD_CONFIG=true
 if [[ "$PADDING" == "1" ]]; then PAD_BOOL=true; PAD_CONFIG=false; fi
 if [[ "$SCENARIO" == l0_config ]]; then
@@ -91,8 +91,28 @@ case "$SCENARIO" in
  l4_all_tuple) start_traffic main 72 .05 .05; sleep 7; fault_all; event fault_start all; sleep 24; fault_clear; event fault_end all; wait_traffic;;
  l5_syn) start_traffic main 125 .05 .05; sleep 5; fault_syn; event candidate_fault_arm syn; wait_traffic;;
  l5_tls|l5_admission|l5_detach) kind="$(echo "$SCENARIO"|cut -c4-)"; start_traffic main 125 .05 .05; sleep 5; control "$CLIENT_CONTROL" 2 "$kind" 1 1; event candidate_fault_arm "$kind"; wait_traffic;;
- l6_race1|l6_race4) start_traffic main 115 .00405 .00405; wait_traffic;;
- l6_partial) sleep 7; event idle_observed dormant; control "$CLIENT_CONTROL" 2 admission 3 1; fault_all; event fault_start wake_blackhole; start_traffic main 68 .05 .05; sleep 23; fault_clear; event fault_end wake_blackhole; wait_traffic;;
+ l6_race1|l6_race4)
+   sleep 3; event race_precondition dormant
+   st="$(python3 - <<'PY'
+import time
+print(time.monotonic_ns()+2_000_000_000)
+PY
+)"
+   echo "$st" >"$ART/wake-start-monotonic-ns.txt"
+   ip netns exec "$TGT" python3 "$WAKE" --role target --bind 10.50.0.2:18081 --start-ns "$st" --count 100 --interval 1.25 --seed "$((SEED*100+12))" --output "$ART/wake-target.json" >"$ART/wake-target.log" 2>&1 & TGT_PID="$!"
+   ip netns exec "$BIZ" python3 "$WAKE" --role biz --bind 10.40.0.2:28081 --peer 10.50.0.2:18081 --start-ns "$st" --count 100 --interval 1.25 --seed "$((SEED*100+12))" --output "$ART/wake-biz.json" >"$ART/wake-biz.log" 2>&1 & BIZ_PID="$!"
+   event wake_driver_spawn client_originated_100
+   wait_traffic;;
+ l6_partial)
+   sleep 12; event idle_observed dormant
+   control "$CLIENT_CONTROL" 2 admission 3 1
+   fault_all; event fault_start wake_blackhole
+   start_traffic blocked 30 .05 0
+   sleep 23; fault_clear; event fault_end wake_blackhole
+   wait_traffic
+   event recovery_phase bidirectional
+   start_traffic main 45 .05 .05
+   wait_traffic;;
  l7_defaults) start_traffic main 280 .05 .05; sleep 33; event stable_30s defaults; fault_all; event fault_start default_blackhole; sleep 120; fault_clear; event fault_end default_blackhole; wait_traffic;;
 esac
 kill -0 "$CLIENT_PID"; kill -0 "$SERVER_PID"; event scenario_complete "$SCENARIO"

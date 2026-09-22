@@ -10,6 +10,7 @@ on:
       - 'scripts/lifecycle_acceptance_sample.sh'
       - 'tools/check_lifecycle_acceptance.py'
       - 'tools/aggregate_lifecycle_acceptance.py'
+      - 'tools/lifecycle_wake_driver.py'
       - '.github/workflows/next-lifecycle-fullstack.yml'
       - '.github/workflows/next-lifecycle.yml'
   workflow_dispatch:
