@@ -374,3 +374,15 @@ func TestLifecycleEntryExplicitCloseEmitsSteadyFINBeforeNetworkDetach(t *testing
 		t.Fatalf("explicit close FINs=%d want at least one per active lane", got)
 	}
 }
+
+
+func TestLifecycleServerDormantDeliveryFenceDropsLateBusiness(t *testing.T) {
+	server := &LifecycleServer{}
+	group := &serverLifecycleTunnel{dormant: true}
+	if err := server.deliverTunnelPackets(group, [][]byte{{0xff}}, time.Unix(9400, 0)); err != nil {
+		t.Fatalf("dormant late delivery err=%v", err)
+	}
+	if !group.lastPayload.IsZero() {
+		t.Fatalf("dormant late delivery refreshed business activity: %v", group.lastPayload)
+	}
+}

@@ -1401,6 +1401,38 @@ func (s *LifecycleServer) validateAdmissionRequest(req realityfront.AdmissionReq
 	return nil
 }
 
+func (s *LifecycleServer) deliverTunnelPackets(group *serverLifecycleTunnel, packets [][]byte, now time.Time) error {
+	if group == nil {
+		return logicaltunnel.ErrUnknownTunnel
+	}
+	s.mu.Lock()
+	if group.dormant {
+		s.mu.Unlock()
+		return nil
+	}
+	group.lastPayload = now
+	token := group.token
+	s.mu.Unlock()
+
+	err := s.cfg.Router.DeliverFromOwnerAt(token, packets, now)
+	if err == nil {
+		return nil
+	}
+
+	// DORMANT marks the group before runtime transports are detached. A packet
+	// already in the owner->service delivery path can therefore race with flow
+	// retirement and observe a platformflow "unknown flow" error. Once the
+	// group is intentionally dormant that late old-generation business error
+	// is local to the retiring lane and must not terminate LifecycleServer.Run.
+	s.mu.Lock()
+	dormant := group.dormant
+	s.mu.Unlock()
+	if dormant {
+		return nil
+	}
+	return err
+}
+
 func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicaltunnel.Lease, leaseAddr netip.Addr) (*serverLifecycleTunnel, error) {
 	s.mu.Lock()
 	if existing := s.byTunnel[id]; existing != nil {
@@ -1424,10 +1456,7 @@ func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicalt
 		lastPayload: time.Now(),
 	}
 	rt, err := runtimeowner.New(owner, func(packets [][]byte, now time.Time) error {
-		s.mu.Lock()
-		group.lastPayload = now
-		s.mu.Unlock()
-		return s.cfg.Router.DeliverFromOwnerAt(group.token, packets, now)
+		return s.deliverTunnelPackets(group, packets, now)
 	})
 	if err != nil {
 		owner.Close()
