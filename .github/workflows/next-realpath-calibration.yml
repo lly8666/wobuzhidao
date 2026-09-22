@@ -1,0 +1,116 @@
+name: next-realpath-calibration
+
+on:
+  push:
+    branches:
+      - next/tlslike-dataplane
+    paths:
+      - ".github/workflows/next-realpath-calibration.yml"
+      - "scripts/realpath_calibration.sh"
+      - "tools/realpath_udp_duplex.py"
+      - "tools/check_realpath_calibration.py"
+      - "cmd/**"
+      - "internal/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  realpath-lossless-calibration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Repository continuity contract
+        env:
+          CHANGE_BASE: ${{ github.event.before }}
+        run: python3 tools/check_repository.py
+
+      - name: Install network tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables nftables tcpdump openssl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+
+      - name: Build formal client and server
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/realpath-calibration
+          go build -trimpath -o artifacts/realpath-calibration/wbd-client ./cmd/wbd-client
+          go build -trimpath -o artifacts/realpath-calibration/wbd-server ./cmd/wbd-server
+          ./artifacts/realpath-calibration/wbd-client --version > artifacts/realpath-calibration/client-version.txt
+          ./artifacts/realpath-calibration/wbd-server --version > artifacts/realpath-calibration/server-version.txt
+
+      - name: Run real raw/TPROXY/TUN lossless calibration
+        id: calibration
+        continue-on-error: true
+        env:
+          WBD_REALPATH_ARTIFACT_DIR: ${{ github.workspace }}/artifacts/realpath-calibration
+        run: |
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_REALPATH_ARTIFACT_DIR \
+            bash scripts/realpath_calibration.sh
+
+      - name: Validate raw evidence
+        id: validate
+        if: always()
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          test -f artifacts/realpath-calibration/biz.json
+          test -f artifacts/realpath-calibration/target.json
+          test -f artifacts/realpath-calibration/c2s-pre.pcap
+          python3 tools/check_realpath_calibration.py \
+            --artifact-dir artifacts/realpath-calibration \
+            --source-sha "$GITHUB_SHA" \
+            --output artifacts/realpath-calibration/summary.json
+
+      - name: Raw diagnostic tail
+        if: always()
+        run: |
+          set +e
+          echo "=== client ==="
+          tail -n 120 artifacts/realpath-calibration/client.log
+          echo "=== server ==="
+          tail -n 120 artifacts/realpath-calibration/server.log
+          echo "=== biz ==="
+          tail -n 80 artifacts/realpath-calibration/biz.log
+          echo "=== target ==="
+          tail -n 80 artifacts/realpath-calibration/target.log
+          echo "=== summary ==="
+          cat artifacts/realpath-calibration/summary.json
+
+      - name: Upload calibration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: realpath-calibration-${{ github.sha }}
+          path: artifacts/realpath-calibration
+          if-no-files-found: warn
+          compression-level: 6
+          retention-days: 30
+
+      - name: Enforce calibration result
+        if: always()
+        env:
+          HARNESS_OUTCOME: ${{ steps.calibration.outcome }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+        run: |
+          echo "harness=$HARNESS_OUTCOME validator=$VALIDATE_OUTCOME"
+          test "$HARNESS_OUTCOME" = success
+          test "$VALIDATE_OUTCOME" = success
