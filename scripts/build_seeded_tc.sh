@@ -19,6 +19,14 @@ rm -rf "iproute2-${VERSION}"
 tar -xJf "$ARCHIVE"
 cd "iproute2-${VERSION}"
 ./configure > "$ROOT/configure.log"
-make -j2 tc/tc > "$ROOT/make-tc.log"
+
+# Release tarballs are not Git worktrees, while the upstream top-level
+# "version" target derives include/version.h via git describe. Pin the
+# release identity explicitly, then use the normal subdirectory Makefiles
+# so generated config and libnetlink/libutil dependencies are honored.
+printf '%s\n' 'static const char version[] = "iproute2-7.2.0";' > include/version.h
+make -j2 -C lib > "$ROOT/make-lib.log"
+make -j2 -C tc > "$ROOT/make-tc.log"
+
 install -m 0755 tc/tc "$DEST"
 "$DEST" -V
