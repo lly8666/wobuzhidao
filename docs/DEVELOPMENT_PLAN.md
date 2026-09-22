@@ -83,6 +83,8 @@ TLS-like 基础开销固定 31 字节，默认 padding=0。P3 增加显式非零
 
 提取当前 default legacy 恢复行为：4096 有效记录、现有 metadata bound、fresh 优先与有限 repair credit、自适应 gap forgiveness、late first-arrival。SACK/RACK 既有算法可随核心代码存在，但新产品不增加模式选择 UI，也不再进行模式竞赛。
 
+弱网恢复的验收优先级按网络压力分层，但**不是**新增固定丢包率模式开关。低丢包/无损时尽量维持 TCP-like：避免无证据 fast repair、重复修复和不必要 gap forgiveness，减少多余 duplicate ACK/repair 成本。高丢包或持续修复压力下则以有效业务 goodput、交付时延、连接连续性和状态/资源有界为先；允许既有有限 gap forgiveness、旧修复状态退役与 fresh 优先发挥作用，不为抓包更像严格 TCP 等待永久缺口、阻塞 fresh 或制造 repair storm。是否需要策略修改必须由持续丢包、repair 压力、queue age、FEC recovery 和本机 drop 的时间线证据驱动，并防止状态反复切换；不得先造一个按固定丢包率切换的新模式。
+
 seal 后的 bytes 不可变。只有准备提交的记录才分配 TCP Seq；已分配序列空间的首次发送失败必须由明确恢复/失败路径处理，不能静默跳号。
 
 短时乱序仍可 SACK/repair，长期不可恢复债务有界退出。不能为了严格 smoke 全收齐而关闭退役。测试确认 B 到达时不等待 A，并覆盖超过 4096/8192 条记录的永久洞。
@@ -96,6 +98,8 @@ seal 后的 bytes 不可变。只有准备提交的记录才分配 TCP Seq；已
 FEC 不能跨 lane 或阻止其他 block 的 source。每个固定挡位都必须独立测试 systematic 快路、其 parity budget 内恢复、超过 budget 不伪恢复、重复 shard、header/profile mismatch 与跨 block no-HOL。过期扫描只处理到期项，空闲时定时器也能退役，任何进展/重复包都不能刷新绝对 3 秒期限。
 
 Game 1..4 逻辑 lane、物理退休余量、PacketID、replacement、DORMANT、idle/age 等按章程完整复用。统一进程不能删成“临时单 lane UDP 转发器”然后宣称产品完成。
+
+高丢包下 lane replacement 采用 make-before-break 的业务连续性口径：单次候选建连失败不是产品失败；只要旧 lane 仍可用，就必须清理失败候选、保留旧 lane 业务并按既有有界退避/生命周期重试。永久黑洞期间不要求候选成功，网络恢复后必须在已有 deadline/backoff/physical-incarnation 上限内恢复业务并最终完成可行替换。专项证据分别记录 candidate attempts/successes/failures、首次到最终成功耗时、旧 lane 是否持续可用、业务中断窗口、并发 candidate/retiring/physical 峰值；不得因候选失败先切断健康旧 lane。
 
 ## 8. 执行模型和公平性
 
@@ -156,6 +160,8 @@ P5：增加受控真实 HTTPS 客户端/服务器，覆盖首个与复用 lane �
 按 [专项执行规范](WEAKNET_QUALIFICATION.md) 重新打开P4稳态传输与P5增强验收。先修复repair/ACK发送记账、稳态FIN/RST和参数连续性，再补有界SACK/修复预算及增量索引。只定向借鉴旧arq/repair_horizon/adaptive_pressure的已验证行为，不恢复旧拓扑或严格等待。
 
 主测Normal单lane每方向10Mbps、Game四lane每方向3Mbps，FEC20:20/padding off；300ms单向，120秒，无损/5->20->5/5->30->5各3次，共18样本。真实二进制独立进程+内核raw/TUN或TPROXY+netem路径；memorySegmentPair资格不能替代。遵循专项注入、损失、时延、恢复、资源和平台覆盖门槛，CAPACITY_LIMITED不算PASS。最终同SHA全套相关回归及重打P6包，物理资格仍P7。
+
+该资格的分析顺序固定为：先业务唯一交付/goodput/latency/continuity，再看 queue/resource/local drop，再拆 FEC/repair 成本，最后解释 TCP-like 外观。FEC20:20承担主冗余但不是“必然全救回”的数学替代品；FEC recovered、transport repair、最终业务恢复是交叉维度，分别报告而不相加成虚假收益。TCP抓包中的乱序、重复 ACK、同密文有限重传和有限 gap forgiveness 单独列为 transport-hygiene 观察；只要没有同 Seq 不同密文、nonce 重用、错误用户/lane交付、MTU/checksum错误、应用重复/损坏或 HOL，它们本身不直接改写业务正确性结论。
 
 ## 15. TLS启动选择性填充（2026-09-22 用户授权）
 

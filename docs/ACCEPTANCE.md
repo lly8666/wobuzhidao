@@ -42,7 +42,7 @@ P3 新增 padding 能力专项门槛：保留 Seal 默认零填充向量；显�
 
 Normal=1，Game=2/3/4；第5权威logical lane拒绝；物理incarnation最多10，第11拒绝；退休占用不阻塞合法替换。多installation地址不同，lane更换lease不随意变化，source anti-spoof保留。
 
-A->A+B->B，候选失败保留A，逐lane轮换，generation fencing，DORMANT/wake，keepalive不刷新payload idle，手动断开/退出确定清理。
+A->A+B->B，候选失败保留A，逐lane轮换，generation fencing，DORMANT/wake，keepalive不刷新payload idle，手动断开/退出确定清理。高丢包下单次candidate失败不是硬失败：旧lane可用时必须保持业务、清理candidate并按既有有界退避重试；黑洞内不要求换lane成功，网络恢复后要求有界恢复并记录attempt/success/failure、最终替换耗时、业务中断与candidate/retiring/physical峰值。
 
 Linux共享TUN/单host NAT/DNS/UDP/TCP、Windows路由/分流/lease/IPv6清理、OpenWrt策略路由。真实数据端到端输出，不只看READY。
 
@@ -60,7 +60,7 @@ Linux共享TUN/单host NAT/DNS/UDP/TCP、Windows路由/分流/lease/IPv6清理�
 
 30分钟以上新版本soak覆盖持续丢包、轮换、停流退役和内存平台期。若host达到资源上限，报告 CAPACITY_LIMITED 并继续定位，不把样本抹掉或一概归为runner差。
 
-硬失败：任何内容损坏、错误隧道交付、nonce重用（不同新记录）、lane-wide等待缺失前包、状态无界、超时不释放、意外业务中断/资源清理破坏。一般性能和有损场景loss先报告，结合FEC能力与输入校验归因，不硬要求有限恢复随机丢包下100%收到。
+硬失败：任何内容损坏、错误隧道交付、nonce重用（不同新记录）、同Seq重传密文变化、MTU/checksum错误、lane-wide等待缺失前包、状态/队列无界、超时不释放、存在健康旧lane却因candidate失败主动中断业务、资源清理破坏。一般性能和有损场景loss仍按增强门槛报告，结合FEC能力与输入校验归因。TCP抓包乱序、duplicate ACK、同密文有限repair、有限gap forgiveness和单次lane candidate失败只作transport/lifecycle解释，不因外观本身直接判业务失败；但若引起loss/goodput/latency/continuity/resource超门，仍如实FAIL/CAPACITY_LIMITED。
 
 ### P5 流量外观专项
 
@@ -74,7 +74,7 @@ P7只在主流程已稳定后由用户安排，最终核对真实链路外观、
 
 ## 2026-09-21 增强验收（当前发布前必需）
 
-[WEAKNET_QUALIFICATION.md](WEAKNET_QUALIFICATION.md) 是本契约组成部分，其第3至8节定义持续负载、18份独立样本、真实网络、严格逐方向/逐阶段目标、runner诊断、模块矩阵与关闭证据。新增门槛优先于旧P5的低频HTTPS和无损15秒load资格；不追溯删除旧证据，也不沿用旧CLOSED代表新增通过。相关核心回归有红灯须定位修复，不以仅打包job绿替代同SHA完整回归。
+[WEAKNET_QUALIFICATION.md](WEAKNET_QUALIFICATION.md) 是本契约组成部分，其第3至8节定义持续负载、18份独立样本、真实网络、严格逐方向/逐阶段目标、runner诊断、模块矩阵与关闭证据；第1.1节定义高/低丢包的解释优先级。新增门槛优先于旧P5的低频HTTPS和无损15秒load资格；不追溯删除旧证据，也不沿用旧CLOSED代表新增通过。第1.1节只降低“严格TCP外观/单次rotation成功”的门控地位，不降低业务loss/goodput/latency/continuity/resource和基本正确性门槛。相关核心回归有红灯须定位修复，不以仅打包job绿替代同SHA完整回归。
 
 ## TLS启动填充小功能（待 exact-SHA Actions）
 

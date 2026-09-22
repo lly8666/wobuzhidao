@@ -162,17 +162,25 @@ def generator_stage(sender, receiver, name, target_mbps):
     }
 
 
+def tcp_seq_before(a, b):
+    delta = (int(a) - int(b)) & 0xffffffff
+    return delta != 0 and (delta & 0x80000000) != 0
+
+
 def outer_stage_ledger(rows, bounds):
     seen = set()
     stages = {name: {
         "packets": 0, "outer_ip_bytes": 0, "fresh_payload_bytes": 0,
         "repair_payload_bytes": 0, "fresh_packet_ip_bytes": 0,
         "repair_packet_ip_bytes": 0, "ack_control_ip_bytes": 0,
+        "duplicate_ack_packets": 0, "fresh_seq_regressions": 0,
         "protocol_header_bytes": 0, "flows": defaultdict(lambda: {"packets": 0, "ip_bytes": 0}),
     } for name in STAGES}
     diff_cipher = 0
     seq_prefix = {}
     fragments = 0
+    last_ack = {}
+    highest_fresh_seq = {}
     for row in rows:
         if row["fragmented"]:
             fragments += 1
@@ -201,12 +209,22 @@ def outer_stage_ledger(rows, bounds):
         flow = f"{row['src']}:{row['sport']}->{row['dst']}:{row['dport']}"
         s["flows"][flow]["packets"] += 1
         s["flows"][flow]["ip_bytes"] += row["ip_bytes"]
+        flow_key = (row["src"], row["dst"], row["sport"], row["dport"])
         if row["payload_bytes"] == 0:
             s["ack_control_ip_bytes"] += row["ip_bytes"]
+            if (row["flags"] & 0x10) and last_ack.get(flow_key) == row["ack"]:
+                s["duplicate_ack_packets"] += 1
+            if row["flags"] & 0x10:
+                last_ack[flow_key] = row["ack"]
         elif is_repair:
             s["repair_payload_bytes"] += row["payload_bytes"]
             s["repair_packet_ip_bytes"] += row["ip_bytes"]
         else:
+            prev = highest_fresh_seq.get(flow_key)
+            if prev is not None and tcp_seq_before(row["seq"], prev):
+                s["fresh_seq_regressions"] += 1
+            elif prev is None or tcp_seq_before(prev, row["seq"]):
+                highest_fresh_seq[flow_key] = row["seq"]
             s["fresh_payload_bytes"] += row["payload_bytes"]
             s["fresh_packet_ip_bytes"] += row["ip_bytes"]
     for name, s in stages.items():
@@ -272,6 +290,14 @@ def counters(diag):
             "fast_repairs": tr.get("FastRepairs", 0),
             "rto_repairs": tr.get("RTORepairs", 0),
             "repair_succeeded": tr.get("RepairSucceeded", 0),
+            "repair_selected": tr.get("RepairSelected", 0),
+            "repair_attempts": tr.get("RepairAttempts", 0),
+            "repair_failures": tr.get("RepairFailures", 0),
+            "repair_deferred": tr.get("RepairDeferred", 0),
+            "abandoned": tr.get("Abandoned", 0),
+            "forgiven_gaps": tr.get("ForgivenGaps", 0),
+            "transport_duplicates": tr.get("Duplicates", 0),
+            "late_first_arrival": tr.get("LateFirstArrival", 0),
             "decoder_failed": (ls.get("Decoder") or {}).get("Failed", 0),
             "decoder_duplicates": (ls.get("Decoder") or {}).get("Duplicates", 0),
         }
@@ -353,13 +379,18 @@ def resource_summary(samples, start_unix, end_unix):
         if count:
             errors.append(f"{label} missing in {count} resource samples")
     socket_drop_max = 0
+    socket_drop_by_endpoint = {}
     for s in during:
-        for data in (s.get("namespaces") or {}).values():
+        for label, data in (s.get("namespaces") or {}).items():
             for key in ("ss_udp", "ss_raw"):
                 item = data.get(key) or {}
-                socket_drop_max = max(socket_drop_max, parse_skmem_drop(item.get("stdout", "")))
+                value = parse_skmem_drop(item.get("stdout", ""))
+                endpoint = f"{label}/{key}"
+                socket_drop_by_endpoint[endpoint] = max(socket_drop_by_endpoint.get(endpoint, 0), value)
+                socket_drop_max = max(socket_drop_max, value)
     if socket_drop_max:
-        errors.append(f"socket skmem drop max={socket_drop_max}")
+        offenders = {k: v for k, v in socket_drop_by_endpoint.items() if v}
+        errors.append(f"socket skmem drop max={socket_drop_max} endpoints={offenders}")
 
     link_delta = {}
     if during:
@@ -393,7 +424,8 @@ def resource_summary(samples, start_unix, end_unix):
                 }
     return {
         "samples": len(during), "max_gap_s": max_gap, "missing_process_samples": missing,
-        "socket_drop_max": socket_drop_max, "link_drop_delta": link_delta,
+        "socket_drop_max": socket_drop_max, "socket_drop_by_endpoint": socket_drop_by_endpoint,
+        "link_drop_delta": link_delta,
         "process_cpu_seconds": cpu_seconds, "thread_cpu_seconds": thread_cpu_seconds,
         "errors": errors,
     }
@@ -414,6 +446,42 @@ def main():
     biz = json.loads((root / "biz.json").read_text())
     target = json.loads((root / "target.json").read_text())
     events = read_jsonl(root / "stage-events.jsonl")
+    required_events = ("pre_start", "pre_end", "stress_start", "stress_end", "post_start", "post_end", "drain_start")
+    event_names = {x.get("event") for x in events}
+    missing_events = [name for name in required_events if name not in event_names]
+    harness_errors = [x for x in events if x.get("event") == "harness_error"]
+    if missing_events or harness_errors:
+        errors = []
+        if missing_events:
+            errors.append(f"missing stage events={missing_events}")
+        errors.extend(f"stage harness error={x.get('error')}" for x in harness_errors)
+        result = {
+            "schema": 1, "source_sha": args.source_sha, "mode": args.mode,
+            "scenario": args.scenario, "seed": args.seed, "lanes": args.lanes,
+            "target_mbps_each_direction": args.target_mbps,
+            "harness_validity": "FAIL",
+            "classifications": {
+                "CORRECTNESS": "NOT_EVALUATED",
+                "INPUT_VALIDITY": "FAIL",
+                "CAPTURE": "NOT_EVALUATED",
+                "ENVIRONMENT": "FAIL",
+                "PERFORMANCE": "NOT_EVALUATED",
+            },
+            "errors": {
+                "correctness": [], "input": errors, "capture": [],
+                "environment": errors, "performance": [],
+            },
+            "stage_events": events,
+            "transport_hygiene": {
+                "gating": False, "status": "NOT_EVALUATED", "observations": [],
+            },
+            "result": "HARNESS_INVALID",
+        }
+        Path(args.output).write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print("WBD_STRICT_WEAKNET_HARNESS_INVALID " + json.dumps({
+            "mode": args.mode, "scenario": args.scenario, "seed": args.seed, "errors": errors,
+        }, sort_keys=True))
+        raise SystemExit(1)
     bounds = stage_bounds(events)
     c2s_pre, c2s_post = parse_pcap(root / "c2s-pre.pcap"), parse_pcap(root / "c2s-post.pcap")
     s2c_pre, s2c_post = parse_pcap(root / "s2c-pre.pcap"), parse_pcap(root / "s2c-post.pcap")
@@ -451,6 +519,7 @@ def main():
 
     final_client = counters(product(client_diag[-1], "client")) if client_diag else {"owner": {}, "lanes": {}}
     final_server = counters(product(server_diag[-1], "server")) if server_diag and product(server_diag[-1], "server") else {"owner": {}, "lanes": {}}
+    transport_observations = []
     for side, final in (("client", final_client), ("server", final_server)):
         own = final["owner"]
         if own.get("game_lane_mismatches", 0) or own.get("source_discards", 0):
@@ -458,8 +527,12 @@ def main():
         for ref, lane in final["lanes"].items():
             if lane.get("decoder_failed", 0):
                 correctness_errors.append(f"{side} lane={ref} tlsrecord decoder_failed={lane['decoder_failed']}")
-            if lane.get("decoder_duplicates", 0):
-                correctness_errors.append(f"{side} lane={ref} tlsrecord duplicates={lane['decoder_duplicates']}")
+            for key in ("decoder_duplicates", "transport_duplicates", "forgiven_gaps",
+                        "abandoned", "repair_segments", "repair_deferred", "late_first_arrival"):
+                if lane.get(key, 0):
+                    transport_observations.append(
+                        {"side": side, "lane": ref, "kind": key, "count": lane.get(key, 0)}
+                    )
 
     input_errors = []
     for direction in ("c2s", "s2c"):
@@ -568,6 +641,53 @@ def main():
         "s2c": diag_stage_deltas(server_diag, "server", bounds),
     }
 
+    def recovery_stage(row):
+        out = {
+            "fec_reconstruction_events": 0, "fec_recovered_sources": 0,
+            "repair_segments": 0, "repair_selected": 0, "repair_attempts": 0,
+            "repair_failures": 0, "repair_deferred": 0,
+            "fast_repairs": 0, "rto_repairs": 0,
+            "forgiven_gaps": 0, "abandoned": 0,
+            "transport_duplicates": 0, "decoder_duplicates": 0,
+            "late_first_arrival": 0,
+        }
+        if not row:
+            return out
+        for lane in (row.get("lanes") or {}).values():
+            for key in out:
+                out[key] += int(lane.get(key, 0) or 0)
+        return out
+
+    recovery_accounting = {
+        direction: {name: recovery_stage(product_stage[direction].get(name))
+                    for name in STAGES}
+        for direction in ("c2s", "s2c")
+    }
+    for direction, rows in (("c2s", c2s_outer), ("s2c", s2c_outer)):
+        for name, row in rows.items():
+            if row.get("duplicate_ack_packets", 0):
+                transport_observations.append({
+                    "side": direction, "stage": name, "kind": "pcap_duplicate_ack",
+                    "count": row["duplicate_ack_packets"],
+                })
+            if row.get("fresh_seq_regressions", 0):
+                transport_observations.append({
+                    "side": direction, "stage": name, "kind": "pcap_fresh_seq_regression",
+                    "count": row["fresh_seq_regressions"],
+                })
+
+    transport_hygiene = {
+        "gating": False,
+        "status": "REVIEW" if transport_observations else "PASS",
+        "observations": transport_observations,
+        "policy": (
+            "Transport appearance is explanatory. Low-loss runs should minimize unnecessary "
+            "repair/gap forgiveness; stressed runs prioritize unique business goodput, latency, "
+            "continuity and bounded resources. Same-seq different ciphertext remains a hard "
+            "correctness error and is not waived here."
+        ),
+    }
+
     outer_total = {
         "c2s": sum(v["outer_ip_bytes"] for v in c2s_outer.values()),
         "s2c": sum(v["outer_ip_bytes"] for v in s2c_outer.values()),
@@ -639,6 +759,13 @@ def main():
         },
         "post5": post5_window,
         "capture": capture, "resource": resource, "cost": cost,
+        "qualification_priority": {
+            "high_loss": "business_goodput_latency_continuity_resource_first",
+            "low_loss": "tcp_like_hygiene_review_without_reintroducing_hol",
+            "fixed_loss_rate_product_switch": False,
+        },
+        "transport_hygiene": transport_hygiene,
+        "recovery_accounting": recovery_accounting,
         "fec_recovery_final": {
             "client": final_client["lanes"], "server": final_server["lanes"],
             "note": "reconstruction/recovered-source counters overlap final app recovery and are not additive benefit bytes",
@@ -651,6 +778,7 @@ def main():
     print("WBD_STRICT_WEAKNET_SAMPLE " + json.dumps({
         "mode": args.mode, "scenario": args.scenario, "seed": args.seed,
         "classifications": classifications, "post5": post5_window is not None,
+        "transport_hygiene": transport_hygiene["status"],
         "cost": {d: {
             "outer_ip_per_app_raw_input": cost[d]["outer_ip_per_app_raw_input"],
             "outer_ip_per_unique_delivered": cost[d]["outer_ip_per_unique_delivered"],

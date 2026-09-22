@@ -14,6 +14,20 @@
 
 性能保护：修改前后只比较新版本的具体修复，同输入/同配置/相同资源，必要时同runner顺序AB/BA，每次仅一条负载。无损有效业务吞吐不得下降超过5%，单位有效MiB的进程CPU时间不得增加超过10%；超出需归因并修正，不靠跨VM平均掩盖。此为本轮工程目标，不是历史已达性能。不进行旧DTLS整体A/B。
 
+### 1.1 高/低丢包恢复优先级
+
+这些原则修正的是**外观与轮换验收口径**，不放宽第4节的业务损失、goodput、时延、post5或资源目标。
+
+- 低丢包/无损：尽量保持 TCP-like，重点排查无证据 repair、重复 repair、过早 gap forgiveness、异常 duplicate ACK 与不必要的线上放大；但外观观察与业务正确性分栏，不能为了“看起来更TCP”回到累计ACK等洞。
+- 高丢包/持续恢复压力：有效业务 goodput、唯一交付时延、连接连续性和资源有界优先。允许既有有限 gap forgiveness、repair metadata退役和 fresh 优先发挥作用；不得为了补齐抓包缺口阻塞 fresh、恢复 HOL、让 repair 持续挤压 fresh，或停流后制造修复风暴。
+- FEC20:20是主冗余层但不是万能保证。每阶段分别报告 source/parity、reconstruction/recovered source、有限 repair、最终业务loss/goodput和queue age；FEC恢复次数、repair次数与最终业务收益存在交叉，禁止相加成“总救回字节”。
+- 成本过高先查重复repair、FEC恢复后仍持续repair、parity过晚、fresh/repair公平性、产品queue与本机socket/interface drop；不得先扩大4096/FEC/socket buffer，也不得先提高重传强度。
+- lane replacement 在高丢包下按连续性验收：单次candidate失败本身不判产品失败。旧lane仍可用时，失败candidate必须释放，旧lane继续承载业务，并按现有有界退避/生命周期重试；记录尝试次数、成功率、最终替换耗时、业务中断和candidate/retiring/physical峰值。
+- 永久黑洞期间不要求成功换lane；网络恢复后必须在测试声明的既有deadline/backoff范围内恢复业务，且重试、并发candidate与资源占用有界。存在可用旧lane时，candidate失败不得主动切断旧业务。
+- 不新增未经验证的“loss>=X%切换策略”产品开关。若确需改恢复策略，只能依据持续丢包、repair压力、queue age、FEC recovery、本机drop等实际信号，并证明有滞回/有界性，不发生来回抖动。
+
+外观让步不取消硬正确性：同 Seq 修复密文一致、MTU/checksum正确、nonce不重用、用户/lease隔离、应用无重复/损坏、无跨记录/跨lane HOL、状态与队列有界仍是硬门。TCP抓包乱序、duplicate ACK、同密文repair以及有限缺口放弃单独解释，不直接等同业务失败。
+
 ## 2. 可借鉴老项目的明确范围
 
 只读冻结来源 b5c848f 的 old/internal/faketcp/arq.go、repair_horizon.go、adaptive_pressure.go 及直接依赖/测试；FEC来源只看 MODULE_MAP 指定 fec/linkdata。禁止读取旧提示词恢复架构。
@@ -43,10 +57,10 @@ Mbps为十进制；业务速率按加密/协议头/FEC/Game复制之前的应用
 
 - 注入：每阶段actual send payload在目标99%..101%；发送失败0；skipped slots <=0.01%；p99调度迟到<=10ms；后段不持续积压。达不到标INVALID_INPUT，原结果保留并定位发生器/背压/环境，不能叫协议PASS。无效项仍继续检查数据损坏等硬错误。
 - UDP有效唯一payload：无损损失0、goodput>=目标99%；20%阶段损失<=0.1%、goodput>=目标99%；30%阶段损失<=1%、goodput>=目标98%。损失按发送时间阶段分组，10秒drain后仍未收到才计最终丢失，同时报告每阶段墙钟实际交付速率及迟到量，避免迟到掩盖堵塞。
-- 正确性：坏payload/错误用户或lane交付/应用重复/nonce重用/同Seq不同密文/意外IP分片均0。丢A交B与跨lane无HOL单独定向证明，不以低平均RTT代替。
+- 正确性：坏payload/错误用户或lane交付/应用重复/nonce重用/同Seq不同密文/意外IP分片均0；MTU/checksum与generation/source fencing保持正确。丢A交B与跨lane无HOL单独定向证明，不以低平均RTT代替。TCP乱序、duplicate ACK、同Seq同密文有限repair、decoder已见重复和有限gap forgiveness进入非门控transport-hygiene账本；它们若造成业务损失/时延/资源超门仍由对应硬门失败，但不因“外观不够严格TCP”单独把CORRECTNESS判FAIL。
 - 时延：同场景无损300ms控制作为基线；损伤场景低速探针的p95 RTT增量<=200ms，p99增量<=500ms，探针超时独立计数（超时不得从分位数报告中隐去），探针损失<=1%。报告UDP单程p50/p95/p99，跨时钟测量说明同步方式，不能假设物理双机时钟相同。
 - post5：降回5%后10秒内进入连续3个1秒窗口goodput>=目标98%、该窗口发送包最终损失<=0.1%；同时队列年龄回到初始5%稳定段p95+200ms以内。固定时间定义，不能沿用稀疏请求“第三次成功”口径。
-- 资源：所有队列有条数/字节/年龄界，重建/修复/退役在停流后仍执行；drain后按各状态既定deadline回收，不要求有TTL的去重元数据立即归零。严重持续host/socket/非预期qdisc drop时目标未通过，不默认为协议正确或仅runner问题。
+- 资源：所有队列有条数/字节/年龄界，重建/修复/退役在停流后仍执行；drain后按各状态既定deadline回收，不要求有TTL的去重元数据立即归零。严重持续host/socket/非预期qdisc drop时目标未通过，不默认为协议正确或仅runner问题。高丢包下额外给出fresh/repair/FEC时间线，检查FEC已恢复后冗余repair、parity迟到、repair挤压fresh、停流repair风暴与恢复阶段queue不退；没有时间线和字节证据不改策略。
 - 验收标识分开：CORRECTNESS、INPUT_VALIDITY、PERFORMANCE、ENVIRONMENT、CAPTURE。PERFORMANCE可为PASS/FAIL/CAPACITY_LIMITED；CAPACITY_LIMITED不是PASS，不能关闭性能门。3次均满足才关闭该场景；异质样本保留并补诊断，不择优重跑。
 
 ## 5. 接近真实部署的Actions路径
@@ -71,7 +85,7 @@ memorySegmentPair与内存故障注入保留为core回归，不替代以上端�
 
 主测只固定20:20。另用低成本独立功能job覆盖：FEC off/4/8/10/12/16/20全部挡位；Normal1/Game2/3/4；实际MTU576/1280/1400/1500及1600/9000可用veth路径、不同peer MSS/record limit；padding off/on与预算耗尽；DNS/UDP/TCP/HTTPS；IPv4 lease隔离/伪源拒绝；多用户；候选失败、A->A+B->B、旧generation包；DORMANT/wake；FIN/RST/半关闭；无业务退役；进程异常退出/重启和WBD-owned网络清理。选成对交叉加高风险组合，保存覆盖表，不以默认配置PASS代表全部。
 
-损伤专项：仅上行/仅下行loss、ACK loss、乱序/重复、对所有四lane共同100ms/500ms短黑洞、单lane故障；描述精确seed/时间，不套用主测独立随机loss数值门槛，只验正确性/有界性并报告恢复时间。HTTPS证书验证、完整/恢复握手/稀疏/并发继续保留。四lane下loss相关性、竞速去重成本单独报告。
+损伤专项：仅上行/仅下行loss、ACK loss、乱序/重复、对所有四lane共同100ms/500ms短黑洞、单lane故障、rotation；描述精确seed/时间，不套用主测独立随机loss数值门槛，业务正确性/连续性/有界性仍为硬门并报告恢复时间。rotation不得把“每次candidate必须一次成功”设为门：分别统计attempt/success/failure、失败清理、旧lane持续可用、最终替换耗时、业务中断和并发资源峰值；黑洞内允许持续失败，恢复后必须有界恢复。HTTPS证书验证、完整/恢复握手/稀疏/并发继续保留。四lane下loss相关性、竞速去重成本单独报告。
 
 平台：Linux真实root网络/raw/TUN与OpenWrt风格TPROXY在Actions尽量实跑；iptables/nft支持的后端分别资格。Windows Actions执行真实可用模块，无Wintun/Npcap驱动/管理员能力时明确UNSUPPORTED，mock/compile不能写physical PASS。ARM64交叉编译不能写运行通过；可用原生runner则原生验证，仿真标明。OpenWrt IPv6未实现时明确失败/不支持和旁路风险，不以IPv4通过承诺IPv6已代理。硬件相关能力仍留P7。
 

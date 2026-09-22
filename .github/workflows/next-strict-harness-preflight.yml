@@ -1,0 +1,66 @@
+name: next-strict-harness-preflight
+
+on:
+  push:
+    branches:
+      - next/tlslike-dataplane
+    paths:
+      - ".github/workflows/next-strict-harness-preflight.yml"
+      - "scripts/build_seeded_tc.sh"
+      - "tools/strict_netem_seed_preflight.py"
+      - "tools/strict_weaknet_stage.py"
+      - "tools/check_strict_weaknet.py"
+      - "tools/aggregate_strict_weaknet.py"
+      - "docs/DEVELOPMENT_PLAN.md"
+      - "docs/WEAKNET_QUALIFICATION.md"
+      - "docs/ACCEPTANCE.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  seeded-netem-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Repository continuity contract
+        env:
+          CHANGE_BASE: ${{ github.event.before }}
+        run: python3 tools/check_repository.py
+
+      - name: Install build and network tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 build-essential bison flex pkg-config \
+            libbpf-dev libelf-dev libmnl-dev libcap-dev xz-utils curl
+          sudo modprobe sch_netem || true
+
+      - name: Build pinned iproute2 tc
+        run: |
+          set -euo pipefail
+          bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
+          "$RUNNER_TEMP/wbd-tc" -V | tee seeded-tc-version.txt
+
+      - name: Prove seeded netem syntax on runner kernel
+        run: |
+          set -euo pipefail
+          sudo python3 tools/strict_netem_seed_preflight.py \
+            --tc-bin "$RUNNER_TEMP/wbd-tc" \
+            --output seeded-netem-preflight.json
+          cat seeded-netem-preflight.json
+
+      - name: Upload preflight receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict-seeded-netem-preflight-${{ github.sha }}
+          path: |
+            seeded-tc-version.txt
+            seeded-netem-preflight.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -9,6 +9,7 @@ set -euo pipefail
 : "${WBD_STRICT_SEED:?missing WBD_STRICT_SEED}"
 : "${WBD_STRICT_RATE_MBPS:?missing WBD_STRICT_RATE_MBPS}"
 : "${WBD_STRICT_LANES:?missing WBD_STRICT_LANES}"
+: "${WBD_STRICT_TC:?missing WBD_STRICT_TC}"
 
 ART="$WBD_STRICT_ARTIFACT_DIR"
 MODE="$WBD_STRICT_MODE"
@@ -21,6 +22,7 @@ SERVER_BIN="$ART/wbd-server"
 GEN="$GITHUB_WORKSPACE/tools/realpath_udp_duplex.py"
 STAGER="$GITHUB_WORKSPACE/tools/strict_weaknet_stage.py"
 SAMPLER="$GITHUB_WORKSPACE/tools/strict_resource_sampler.py"
+TC_BIN="$WBD_STRICT_TC"
 mkdir -p "$ART"
 
 case "$MODE:$LANES:$RATE" in
@@ -177,7 +179,8 @@ PY
 )"
 printf '%s\n' "$START_NS" > "$ART/start-monotonic-ns.txt"
 
-python3 "$STAGER"   --namespace "$RTR" --c2s-dev rsrv --s2c-dev rcli --start-ns "$START_NS"   --pre-loss "$PRE_LOSS" --stress-loss "$STRESS_LOSS" --post-loss "$POST_LOSS"   --seed "$SEED" --output "$ART/stage-events.jsonl" > "$ART/stage.log" 2>&1 &
+"$TC_BIN" -V > "$ART/netem-tc-version.txt" 2>&1
+python3 "$STAGER"   --namespace "$RTR" --tc-bin "$TC_BIN" --c2s-dev rsrv --s2c-dev rcli --start-ns "$START_NS"   --pre-loss "$PRE_LOSS" --stress-loss "$STRESS_LOSS" --post-loss "$POST_LOSS"   --seed "$SEED" --output "$ART/stage-events.jsonl" > "$ART/stage.log" 2>&1 &
 STAGE_PID="$!"
 
 sampler_args=(
@@ -248,6 +251,7 @@ harness = [
     "scripts/strict_weaknet_sample.sh",
     "tools/realpath_udp_duplex.py",
     "tools/strict_weaknet_stage.py",
+    "scripts/build_seeded_tc.sh",
     "tools/strict_resource_sampler.py",
     "tools/check_strict_weaknet.py",
     "tools/aggregate_strict_weaknet.py",

@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "9192be4c 的固定120秒发生器已完成 fast 验证：realpath 35729424399、targeted 35729424568、foundation 35729424630 均PASS；realpath两方向 skipped_slots=0、send_failures=0、p99调度迟到约2.5us、outer repair=0。现恢复strict push触发并bump generation=2，启动新的18个独立120s样本；旧35728934986继续固定HARNESS_INVALID。",
-  "next_task": "跟踪generation=2 exact-SHA next-strict-weaknet 18个job。先确认样本在固定120s+10s范围结束、artifact完整；逐样本审计CORRECTNESS/INPUT_VALIDITY/PERFORMANCE/ENVIRONMENT/CAPTURE和分阶段成本。任何FAIL/INVALID/CAPACITY_LIMITED保留证据并定位，不择优重跑。",
-  "latest_log": "docs/devlog/20260922-203000-strict-generation2-launch.md",
-  "last_tested_source_sha": "9192be4c28582092f6e6fe01536635d5e1b0d078",
+  "in_progress": "增强P4/P5继续执行。c300898 strict generation2已分流：6个lossless是有效目标速率FAIL/CAPACITY_LIMITED证据，12个5205/5305因seeded-netem注入器兼容性缺口固定HARNESS_INVALID。用户2026-09-22进一步明确弱网优先级：高丢包以有效业务goodput/时延/连续性/资源有界为先，TCP-like外观与单次lane candidate成功为解释项；基本正确性及既定业务性能门不放宽。本候选同步DEVELOPMENT_PLAN/WEAKNET_QUALIFICATION/ACCEPTANCE和strict analyzers，并只增加seeded-netem preflight，不改产品数据面。",
+  "next_task": "等待本候选exact-SHA next-strict-harness-preflight、next-p4-steady-targeted、next-foundation。preflight必须证明固定版本tc+runner kernel可接受seeded netem；基础回归不得新增红灯。三者闭合后才恢复strict push并启动generation3。generation2 lossless目标FAIL保留，随后做同拓扑旁路+半速诊断定位具体socket endpoint/最早背压层；降速不替代10/3Mbps资格。",
+  "latest_log": "docs/devlog/20260922-214000-weaknet-priority-seeded-netem.md",
+  "last_tested_source_sha": "c300898182f08895d282418a278fcb172375f2a1",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1148,6 +1148,13 @@
       "scope": "fast-foundation-after-fixed-window-generator",
       "status": "PASS",
       "note": "repository/P2/Linux+Windows/OpenWrt TPROXY/shared-TUN全PASS；旧P5/P6/31m soak继续skipped。"
+    },
+    {
+      "source_sha": "c300898182f08895d282418a278fcb172375f2a1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35729779643",
+      "scope": "strict-generation2-evidence-reclassification",
+      "status": "FAIL_SPLIT",
+      "note": "6个lossless完整且目标速率未达；12个有损样本stage事件不完整，固定HARNESS_INVALID。新用户口径不把TCP-like外观/单次rotation失败升级为业务硬门，也不改现有loss/goodput/RTT/post5/resource门。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1186,8 +1193,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED: realpath与诊断层fast回归已绿；18严格主测即将启动，补丁性能A/B仍未执行。",
-    "P5": "REOPENED: 固定窗口发生器已fast验证PASS；generation=2严格18主测现启动。旧generation=1 run 35728934986永久HARNESS_INVALID，不纳入资格。",
+    "P4": "REOPENED: 高丢包业务连续性优先、单次candidate失败非硬门的验收口径待本候选Actions确认；c300898基础/targeted此前PASS，strict lossless仍暴露真实目标速率容量问题，补丁A/B未执行。",
+    "P5": "REOPENED: generation2 6个lossless有效FAIL/CAPACITY_LIMITED保留；12个有损HARNESS_INVALID。待seeded-netem preflight后generation3；业务loss/goodput/latency/resource门未降低。",
     "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {

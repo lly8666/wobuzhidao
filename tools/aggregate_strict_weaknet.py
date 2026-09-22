@@ -35,10 +35,16 @@ def main():
             base = index.get((mode, "lossless", seed))
             if not base:
                 continue
+            if not all(v == "PASS" for v in base.get("classifications", {}).values()):
+                errors.append(f"RTT baseline not valid: {mode}/lossless/seed{seed}")
+                continue
             b = base["latency"]["probe_stage"]["stress"]
             for scenario in ("5205", "5305"):
                 row = index.get((mode, scenario, seed))
                 if not row:
+                    continue
+                if not all(v == "PASS" for v in row.get("classifications", {}).values()):
+                    errors.append(f"RTT comparison not evaluated: {mode}/{scenario}/seed{seed}")
                     continue
                 x = row["latency"]["probe_stage"]["stress"]
                 p95_delta = None if b["p95_ns"] is None or x["p95_ns"] is None else x["p95_ns"] - b["p95_ns"]
@@ -81,15 +87,27 @@ def main():
             if not closures[mode][scenario]["pass"]:
                 errors.append(f"scenario not closed: {mode}/{scenario} {closures[mode][scenario]}")
 
+    hygiene_reviews = [
+        {
+            "mode": r["mode"], "scenario": r["scenario"], "seed": int(r["seed"]),
+            "status": (r.get("transport_hygiene") or {}).get("status"),
+            "observations": (r.get("transport_hygiene") or {}).get("observations", []),
+        }
+        for r in rows
+        if (r.get("transport_hygiene") or {}).get("status") == "REVIEW"
+    ]
+
     result = {
         "schema": 1,
         "sample_count": len(index),
         "missing": missing,
+        "transport_hygiene_reviews": hygiene_reviews,
+        "transport_hygiene_gating": False,
         "rtt_comparisons": rtt,
         "scenario_closure": closures,
         "result": "PASS" if not errors else "FAIL",
         "errors": errors,
-        "note": "PASS here closes only the 18 strict main-sample gate; target-rate 30min soak, specialty damage, patch A/B, module matrix and physical qualification remain separate.",
+        "note": "PASS here closes only the 18 strict main-sample business/correctness/resource gate. Transport-hygiene REVIEW is explanatory and non-gating; target-rate 30min soak, specialty damage/rotation, patch A/B, module matrix and physical qualification remain separate.",
     }
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     Path(args.output).write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
