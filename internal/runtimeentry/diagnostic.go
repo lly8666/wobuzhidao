@@ -9,17 +9,30 @@ import (
 )
 
 type LaneDiagnostic struct {
-	Ref       logicaltunnel.LaneRef       `json:"ref"`
-	Lane      datapath.LaneStats          `json:"lane"`
-	Transport runtimeowner.TransportStats `json:"transport"`
+	Ref          logicaltunnel.LaneRef       `json:"ref"`
+	ParityShards int                         `json:"parity_shards"`
+	Lane         datapath.LaneStats          `json:"lane"`
+	Transport    runtimeowner.TransportStats `json:"transport"`
+}
+
+type LifecycleConfigDiagnostic struct {
+	KeepaliveInterval string `json:"keepalive_interval,omitempty"`
+	DeadAfter         string `json:"dead_after,omitempty"`
+	ReconnectMin      string `json:"reconnect_min,omitempty"`
+	ReconnectMax      string `json:"reconnect_max,omitempty"`
+	DormantAfter      string `json:"dormant_after,omitempty"`
+	RotateMin         string `json:"rotate_min,omitempty"`
+	RotateMax         string `json:"rotate_max,omitempty"`
+	ReplacementGrace  string `json:"replacement_grace,omitempty"`
 }
 
 type TunnelDiagnostic struct {
-	Lifecycle *LifecycleStats           `json:"lifecycle,omitempty"`
-	Lease4    string                    `json:"lease4,omitempty"`
-	TunnelID  logicaltunnel.TunnelID    `json:"tunnel_id"`
-	Owner     datapath.TunnelOwnerStats `json:"owner"`
-	Lanes     []LaneDiagnostic          `json:"lanes"`
+	Lifecycle *LifecycleStats            `json:"lifecycle,omitempty"`
+	Config    *LifecycleConfigDiagnostic `json:"config,omitempty"`
+	Lease4    string                     `json:"lease4,omitempty"`
+	TunnelID  logicaltunnel.TunnelID     `json:"tunnel_id"`
+	Owner     datapath.TunnelOwnerStats  `json:"owner"`
+	Lanes     []LaneDiagnostic           `json:"lanes"`
 }
 
 func diagnosticSnapshot(owner *datapath.TunnelOwner, rt *runtimeowner.Runtime, now time.Time) TunnelDiagnostic {
@@ -38,7 +51,7 @@ func diagnosticSnapshot(owner *datapath.TunnelOwner, rt *runtimeowner.Runtime, n
 			continue
 		}
 		out.Lanes = append(out.Lanes, LaneDiagnostic{
-			Ref: lane.Ref, Lane: laneStats, Transport: transportStats,
+			Ref: lane.Ref, ParityShards: lane.ParityShards, Lane: laneStats, Transport: transportStats,
 		})
 	}
 	return out
@@ -51,6 +64,16 @@ func (c *TunnelClient) DiagnosticSnapshot(now time.Time) TunnelDiagnostic {
 	out := diagnosticSnapshot(c.owner, c.rt, now)
 	stats := c.LifecycleStats()
 	out.Lifecycle = &stats
+	out.Config = &LifecycleConfigDiagnostic{
+		KeepaliveInterval: c.cfg.KeepaliveInterval.String(),
+		DeadAfter: c.cfg.DeadAfter.String(),
+		ReconnectMin: c.cfg.ReconnectMin.String(),
+		ReconnectMax: c.cfg.ReconnectMax.String(),
+		DormantAfter: c.cfg.DormantAfter.String(),
+		RotateMin: c.cfg.RotateMin.String(),
+		RotateMax: c.cfg.RotateMax.String(),
+		ReplacementGrace: c.cfg.ReplacementGrace.String(),
+	}
 	return out
 }
 
@@ -64,5 +87,11 @@ func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, no
 	if group == nil {
 		return TunnelDiagnostic{}, false
 	}
-	return diagnosticSnapshot(group.owner, group.rt, now), true
+	out := diagnosticSnapshot(group.owner, group.rt, now)
+	out.Config = &LifecycleConfigDiagnostic{
+		KeepaliveInterval: s.cfg.KeepaliveInterval.String(),
+		DormantAfter: s.cfg.DormantAfter.String(),
+		ReplacementGrace: s.cfg.ReplacementGrace.String(),
+	}
+	return out, true
 }

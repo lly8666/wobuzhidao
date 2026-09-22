@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-ART="$WBD_LIFECYCLE_ARTIFACT_DIR"; SCENARIO="$WBD_LIFECYCLE_SCENARIO"; LANES="$WBD_LIFECYCLE_LANES"; SEED="$WBD_LIFECYCLE_SEED"
+ART="$WBD_LIFECYCLE_ARTIFACT_DIR"; SCENARIO="$WBD_LIFECYCLE_SCENARIO"; LANES="$WBD_LIFECYCLE_LANES"; SEED="$WBD_LIFECYCLE_SEED"; FEC="$WBD_LIFECYCLE_FEC"; PADDING="$WBD_LIFECYCLE_PADDING"
 CLIENT_BIN="$ART/wbd-client"; SERVER_BIN="$ART/wbd-server"; GEN="$GITHUB_WORKSPACE/tools/realpath_udp_duplex.py"; SAMPLER="$GITHUB_WORKSPACE/tools/strict_resource_sampler.py"
 mkdir -p "$ART"
 SFX="$$"; BIZ="lbiz-$SFX"; CLI="lcli-$SFX"; RTR="lrtr-$SFX"; SRV="lsrv-$SFX"; TGT="ltgt-$SFX"
@@ -45,17 +45,34 @@ CERT="$ART/server-cert.pem"; KEY="/tmp/wbd-lifecycle-key-$SFX.pem"; openssl req 
 TUNNEL_ID="00112233445566778899aabbccddeeff"; INSTALLATION_ID="11223344556677889900aabbccddeeff"; ROUTE_KEY_HEX="00112233445566778899aabbccddeeffffeeddccbbaa00998877665544332211"
 KEEP=1s; DEAD=6s; IDLE=0; RMAX=4s
 case "$SCENARIO" in l0_config) DEAD=12s;; l1_idle_downlink) KEEP=5s; DEAD=45s; IDLE=30s;; l2_c2s|l2_s2c) IDLE=4s;; l3_health) DEAD=8s; IDLE=4s;; l4_*|l5_*) DEAD=4s;; l6_race*) IDLE=1s;; l6_partial) IDLE=3s;; l7_defaults);; *) exit 2;; esac
+PAD_BOOL=false; PAD_CONFIG=true
+if [[ "$PADDING" == "1" ]]; then PAD_BOOL=true; PAD_CONFIG=false; fi
 if [[ "$SCENARIO" == l0_config ]]; then
-  echo '{"tls-startup-padding":true,"fec-parity":20,"lanes":1,"keepalive-interval":"4s","dead-after":"12s","reconnect-min":"1s","reconnect-max":"4s","idle-dormant":"0s"}' >"$ART/client-config.json"
-  echo '{"tls-startup-padding":true,"fec-parity":20,"lanes":1,"keepalive-interval":"4s","idle-dormant":"0s"}' >"$ART/server-config.json"
+  FEC_CONFIG=20
+  if [[ "$FEC" == "20" ]]; then FEC_CONFIG=0; fi
+  printf '{"tls-startup-padding":%s,"fec-parity":%s,"lanes":1,"keepalive-interval":"4s","dead-after":"12s","reconnect-min":"2s","reconnect-max":"8s","idle-dormant":"30s"}\n' "$PAD_CONFIG" "$FEC_CONFIG" >"$ART/client-config.json"
+  printf '{"tls-startup-padding":%s,"fec-parity":%s,"lanes":1,"keepalive-interval":"4s","idle-dormant":"30s"}\n' "$PAD_CONFIG" "$FEC_CONFIG" >"$ART/server-config.json"
 fi
 control "$CLIENT_CONTROL" 1 "" 0 0; control "$SERVER_CONTROL" 1 "" 0 0
 server_args=(--raw-interface swan --listen-ip 198.18.0.6 --listen-port 443 --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32 --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID" --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX" --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass --decoy 10.50.0.2:4433 --server-record-limit 1250 --mtu 1400 --firewall iptables --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 250ms)
 client_args=(--raw-interface cwan --local-ip 198.18.0.2 --source-port 40000 --server-ip 198.18.0.6 --server-port 443 --tunnel-id "$TUNNEL_ID" --lease4 10.66.0.2/32 --account qual --installation-id "$INSTALLATION_ID" --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX" --username qual --password qualpass --client-record-limit 1300 --mtu 1400 --tproxy-port 12345 --mark 66 --route-table 1066 --rule-priority 1066 --diagnostic-jsonl "$ART/client-diag.jsonl" --diagnostic-interval 250ms)
-if [[ "$SCENARIO" == l0_config ]]; then server_args+=(--config "$ART/server-config.json" --keepalive-interval=1s --tls-startup-padding=false); client_args+=(--config "$ART/client-config.json" --keepalive-interval=1s --tls-startup-padding=false); else server_args+=(--fec-parity 20 --lanes "$LANES"); client_args+=(--fec-parity 20 --lanes "$LANES"); if [[ "$SCENARIO" != l7_defaults ]]; then server_args+=(--keepalive-interval "$KEEP" --idle-dormant "$IDLE"); client_args+=(--keepalive-interval "$KEEP" --dead-after "$DEAD" --reconnect-min 1s --reconnect-max "$RMAX" --idle-dormant "$IDLE"); fi; fi
-ip netns exec "$SRV" env WBD_LIFECYCLE_ACCEPTANCE_CONTROL="$SERVER_CONTROL" WBD_LIFECYCLE_ACCEPTANCE_EVENTS="$SERVER_EVENTS" "$SERVER_BIN" "\${server_args[@]}" >"$ART/server.log" 2>&1 & SERVER_PID="$!"
+if [[ "$SCENARIO" == l0_config ]]; then
+  server_args+=(--config "$ART/server-config.json" --fec-parity "$FEC" --keepalive-interval=1s --idle-dormant=0s --tls-startup-padding="$PAD_BOOL")
+  client_args+=(--config "$ART/client-config.json" --fec-parity "$FEC" --keepalive-interval=1s --dead-after=6s --reconnect-min=1s --reconnect-max=4s --idle-dormant=0s --tls-startup-padding="$PAD_BOOL")
+else
+  server_args+=(--fec-parity "$FEC" --lanes "$LANES")
+  client_args+=(--fec-parity "$FEC" --lanes "$LANES")
+  if [[ "$SCENARIO" != l7_defaults ]]; then
+    server_args+=(--keepalive-interval "$KEEP" --idle-dormant "$IDLE")
+    client_args+=(--keepalive-interval "$KEEP" --dead-after "$DEAD" --reconnect-min 1s --reconnect-max "$RMAX" --idle-dormant "$IDLE")
+  fi
+  if [[ "$SCENARIO" == l5_* ]]; then
+    client_args+=(--rotate-min 70s --rotate-max 70s)
+  fi
+fi
+ip netns exec "$SRV" env WBD_LIFECYCLE_ACCEPTANCE_CONTROL="$SERVER_CONTROL" WBD_LIFECYCLE_ACCEPTANCE_EVENTS="$SERVER_EVENTS" "$SERVER_BIN" "${server_args[@]}" >"$ART/server.log" 2>&1 & SERVER_PID="$!"
 sleep 1
-ip netns exec "$CLI" env WBD_LIFECYCLE_ACCEPTANCE_CONTROL="$CLIENT_CONTROL" WBD_LIFECYCLE_ACCEPTANCE_EVENTS="$CLIENT_EVENTS" "$CLIENT_BIN" "\${client_args[@]}" >"$ART/client.log" 2>&1 & CLIENT_PID="$!"
+ip netns exec "$CLI" env WBD_LIFECYCLE_ACCEPTANCE_CONTROL="$CLIENT_CONTROL" WBD_LIFECYCLE_ACCEPTANCE_EVENTS="$CLIENT_EVENTS" "$CLIENT_BIN" "${client_args[@]}" >"$ART/client.log" 2>&1 & CLIENT_PID="$!"
 sleep 4; kill -0 "$CLIENT_PID"; kill -0 "$SERVER_PID"; event process_ready "$SCENARIO"
 python3 "$SAMPLER" --output "$ART/resources.jsonl" --interval 1 --process "client=$CLIENT_PID" --process "server=$SERVER_PID" --namespace "client=$CLI" --namespace "router=$RTR" --namespace "server=$SRV" --capture-pid "$CAP_PID" >"$ART/resource-sampler.log" 2>&1 & SAMPLER_PID="$!"
 start_traffic(){ local label="$1" dur="$2" cr="$3" sr="$4"; local st; st="$(python3 - <<'PY'
@@ -66,14 +83,14 @@ PY
 wait_traffic(){ wait "$BIZ_PID"; BIZ_PID=""; wait "$TGT_PID"; TGT_PID=""; }
 case "$SCENARIO" in
  l0_config) start_traffic main 8 .03 .03; wait_traffic;;
- l1_idle_downlink) sleep 36; event idle_observed dormant; start_traffic wake 40 .05 .05; wait_traffic; event wake_complete active; start_traffic downlink 40 0 .05; wait_traffic;;
+ l1_idle_downlink) sleep 36; event idle_observed dormant; start_traffic wake 8 .03 .03; wait_traffic; event wake_complete active; sleep 36; event sparse_idle_observed dormant; start_traffic sparse 40 .001 .001; wait_traffic; event sparse_complete active; start_traffic downlink 40 0 .05; wait_traffic;;
  l2_c2s) start_traffic main 60 .05 0; sleep 7; fault_dir c2s; event fault_start c2s; sleep 20; fault_clear; event fault_end c2s; wait_traffic;;
  l2_s2c) start_traffic main 60 0 .05; sleep 7; fault_dir s2c; event fault_start s2c; sleep 20; fault_clear; event fault_end s2c; wait_traffic;;
- l3_health) start_traffic main 22 .05 .05; sleep 6; control "$CLIENT_CONTROL" 2 health 0 1; event health_drop_arm one; sleep 3; control "$CLIENT_CONTROL" 3 health 0 2; event health_drop_arm two; sleep 4; control "$CLIENT_CONTROL" 4 health 0 3; event health_drop_arm three; wait_traffic;;
+ l3_health) start_traffic main 40 .05 .05; sleep 5; control "$CLIENT_CONTROL" 2 health 0 1; event health_drop_arm client1; sleep 2; control "$CLIENT_CONTROL" 3 health 0 2; event health_drop_arm client2; sleep 3; control "$CLIENT_CONTROL" 4 health 0 3; event health_drop_arm client3; sleep 4; control "$SERVER_CONTROL" 2 health 0 1; event health_drop_arm server1; sleep 2; control "$SERVER_CONTROL" 3 health 0 2; event health_drop_arm server2; sleep 3; control "$SERVER_CONTROL" 4 health 0 3; event health_drop_arm server3; wait_traffic;;
  l4_old_tuple) start_traffic main 60 .05 .05; sleep 7; fault_old; event fault_start old; wait_traffic;;
  l4_all_tuple) start_traffic main 72 .05 .05; sleep 7; fault_all; event fault_start all; sleep 24; fault_clear; event fault_end all; wait_traffic;;
- l5_syn) start_traffic main 70 .05 .05; sleep 7; fault_old; fault_syn; event fault_start syn; wait_traffic;;
- l5_tls|l5_admission|l5_detach) kind="$(echo "$SCENARIO"|cut -c4-)"; start_traffic main 60 .05 .05; sleep 7; control "$CLIENT_CONTROL" 2 "$kind" 1 1; event candidate_fault_arm "$kind"; fault_old; event fault_start old; wait_traffic;;
+ l5_syn) start_traffic main 125 .05 .05; sleep 5; fault_syn; event candidate_fault_arm syn; wait_traffic;;
+ l5_tls|l5_admission|l5_detach) kind="$(echo "$SCENARIO"|cut -c4-)"; start_traffic main 125 .05 .05; sleep 5; control "$CLIENT_CONTROL" 2 "$kind" 1 1; event candidate_fault_arm "$kind"; wait_traffic;;
  l6_race1|l6_race4) start_traffic main 115 .00405 .00405; wait_traffic;;
  l6_partial) sleep 7; event idle_observed dormant; control "$CLIENT_CONTROL" 2 admission 3 1; fault_all; event fault_start wake_blackhole; start_traffic main 68 .05 .05; sleep 23; fault_clear; event fault_end wake_blackhole; wait_traffic;;
  l7_defaults) start_traffic main 280 .05 .05; sleep 33; event stable_30s defaults; fault_all; event fault_start default_blackhole; sleep 120; fault_clear; event fault_end default_blackhole; wait_traffic;;
@@ -81,10 +98,10 @@ esac
 kill -0 "$CLIENT_PID"; kill -0 "$SERVER_PID"; event scenario_complete "$SCENARIO"
 ip netns exec "$RTR" iptables-save >"$ART/router-iptables-final.txt"; ip netns exec "$RTR" tc -s -j qdisc show >"$ART/router-qdisc-final.json"; ip netns exec "$CLI" ss -0 -a -m -n >"$ART/client-packet-sockets-final.txt" 2>&1 || true; ip netns exec "$SRV" ss -0 -a -m -n >"$ART/server-packet-sockets-final.txt" 2>&1 || true
 kill -TERM "$SAMPLER_PID" 2>/dev/null || true; wait "$SAMPLER_PID" 2>/dev/null || true; SAMPLER_PID=""; kill -INT "$CAP_PID" 2>/dev/null || true; wait "$CAP_PID" 2>/dev/null || true; CAP_PID=""
-python3 - "$ART" "$GITHUB_SHA" "$SCENARIO" "$LANES" "$SEED" <<'PY'
+python3 - "$ART" "$GITHUB_SHA" "$SCENARIO" "$LANES" "$SEED" "$FEC" "$PADDING" <<'PY'
 import json,sys
 from pathlib import Path
-p=Path(sys.argv[1]); o={"schema":1,"source_sha":sys.argv[2],"scenario":sys.argv[3],"lanes":int(sys.argv[4]),"seed":int(sys.argv[5]),"lease4":"10.66.0.2/32","tunnel_id":"00112233445566778899aabbccddeeff","fec":"20:20","mtu":1400,"one_way_delay_ms":50,"acceptance_build_tag":"lifecycleacceptance"}
+p=Path(sys.argv[1]); fec=int(sys.argv[6]); pad=int(sys.argv[7]); o={"schema":1,"source_sha":sys.argv[2],"scenario":sys.argv[3],"lanes":int(sys.argv[4]),"seed":int(sys.argv[5]),"lease4":"10.66.0.2/32","tunnel_id":"00112233445566778899aabbccddeeff","fec_parity":fec,"fec":"off" if fec==0 else f"20:{fec}","padding_enabled":bool(pad),"mtu":1400,"one_way_delay_ms":50,"acceptance_build_tag":"lifecycleacceptance"}
 (p/"manifest.json").write_text(json.dumps(o,indent=2,sort_keys=True)+"\n")
 PY
 chmod -R a+rX "$ART"

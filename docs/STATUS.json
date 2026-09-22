@@ -1382,7 +1382,7 @@
       "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA."
     },
     "WEAKNET_LIFECYCLE": {
-      "status": "ACCEPTANCE_HARNESS_PENDING_ACTIONS",
+      "status": "ACCEPTANCE_FIX_PENDING_ACTIONS",
       "main_task_hold": {
         "requested_by": "user",
         "resume_only_on_user_request": true,
@@ -1395,10 +1395,10 @@
       "protocol": "admission V2; paired upgrade required",
       "acceptance": "docs/LIFECYCLE_ACCEPTANCE.md",
       "parameters": "docs/PARAMETERS.md",
-      "latest_devlog": "docs/devlog/20260923-064000-actions-orchestration-fix.md",
-      "acceptance_harness": "real-process L0-L7 matrix wired to isolated Actions jobs with exact-SHA diagnostics/pcap/resources; acceptance-only pre-seal health and TLS/admission/detach faults; Actions pending",
-      "core_status": "PASS",
-      "fullstack_status": "NOT_RUN",
+      "latest_devlog": "docs/devlog/20260923-071500-lifecycle-matrix-correction.md",
+      "acceptance_harness": "L0-L7 real-process matrix corrected to 36 isolated jobs: two seeds per lifecycle scenario, L0 FEC off/20 x padding off/on, L5 rotation candidate failure while old lane stays usable, exact effective-config/timing receipts; Actions pending",
+      "core_status": "RERUN_PENDING",
+      "fullstack_status": "HARNESS_FAIL_0882_RERUN_PENDING",
       "implementation_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
       "core_runs": [
         {
@@ -1437,7 +1437,24 @@
           "status": "PASS",
           "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc"
         }
-      ]
+      ],
+      "performance_status": "CAPACITY_LIMITED",
+      "performance_evidence": {
+        "source_sha": "0882adb70ddb85d8d5dbd5e6be8618f3d7132fcd",
+        "workflow": "next-strict-weaknet",
+        "run": "https://github.com/lly8666/wobuzhidao/actions/runs/35791010526",
+        "aggregate_job": 106961188033,
+        "result": "FAIL_CAPACITY_LIMITED",
+        "samples": "18/18 present; CORRECTNESS and CAPTURE PASS in all 18; ENVIRONMENT FAIL and PERFORMANCE CAPACITY_LIMITED in all 18; INPUT_VALIDITY PASS in 17/18, normal/5305/seed202 FAIL",
+        "earliest_boundary": "target-rate lossless samples already show server AF_PACKET ss_packet drops (e.g. Normal seed101 1,356,170; Game seed101 1,454,505) with severe C2S collapse, before injected high-loss stages; some samples also have UDP socket drops",
+        "hold": "Evidence is recorded only. AF_PACKET/uplink-capacity mainline remains HOLD and is not repaired by this lifecycle workstream."
+      },
+      "fullstack_failed_run": {
+        "source_sha": "0882adb70ddb85d8d5dbd5e6be8618f3d7132fcd",
+        "run": "https://github.com/lly8666/wobuzhidao/actions/runs/35791010503",
+        "status": "HARNESS_FAIL",
+        "evidence": "All 15 jobs passed a literal ${server_args[@]}/${client_args[@]} as one CLI argument; processes printed Usage and exited before manifest. No lifecycle product FAIL conclusion is inherited from this run."
+      }
     }
   }
 }
