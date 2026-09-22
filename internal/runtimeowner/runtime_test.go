@@ -986,3 +986,72 @@ func TestSteadyACKAdvertisesNegotiatedSACKWithoutGrowingDataRecord(t *testing.T)
 		t.Fatalf("data record unexpectedly grew SACK options: %+v", dataSeg)
 	}
 }
+
+
+func TestSteadyEffectiveRepairRTOKeepsBoundedRetryInsideHorizon(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wire []faketcp.Segment
+	rt, err := New(owner, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rt.Close()
+	cfg, _ := transportPair(func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 64000)
+	cfg.InitialRTO = time.Second
+	cfg.RepairHorizon = 3 * time.Second
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 85), cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9300, 0)
+	if err := tr.send([]datapath.WireRecord{{Wire: []byte("bounded-rto-repair")}}, t0); err != nil {
+		t.Fatal(err)
+	}
+	if err := rt.Tick(t0.Add(time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	stats, _ := rt.TransportStats(snap.Ref)
+	if len(wire) != 2 || stats.RTORepairs != 1 || stats.RTO != 2*time.Second {
+		t.Fatalf("first timeout wire=%d stats=%+v", len(wire), stats)
+	}
+
+	// The connection timeout episode is backed off to 2s, but this exact
+	// record has already been repaired. Its effective timer returns to the
+	// clean 1s base so the 3s absolute horizon still permits one final bounded
+	// repair instead of silently making a second attempt impossible.
+	if err := rt.Tick(t0.Add(1999 * time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if len(wire) != 2 {
+		t.Fatalf("second repair fired early wire=%d", len(wire))
+	}
+	if err := rt.Tick(t0.Add(2 * time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	stats, _ = rt.TransportStats(snap.Ref)
+	if len(wire) != 3 || stats.RTORepairs != 2 || stats.Retransmitted != 2 {
+		t.Fatalf("bounded second repair wire=%d stats=%+v", len(wire), stats)
+	}
+
+	if err := rt.Tick(t0.Add(2999 * time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if len(wire) != 3 {
+		t.Fatalf("third repair fired inside horizon wire=%d", len(wire))
+	}
+	if err := rt.Tick(t0.Add(3001 * time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	stats, _ = rt.TransportStats(snap.Ref)
+	if len(wire) != 3 || stats.Abandoned != 1 || stats.Outstanding != 0 {
+		t.Fatalf("horizon did not retire bounded debt wire=%d stats=%+v", len(wire), stats)
+	}
+}

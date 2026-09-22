@@ -193,7 +193,7 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 		if !p.repairNotBefore.IsZero() && now.Before(p.repairNotBefore) {
 			continue
 		}
-		if p.lastSent.IsZero() || now.Sub(p.lastSent) >= t.rto {
+		if p.lastSent.IsZero() || now.Sub(p.lastSent) >= t.effectiveRepairRTOLocked(p) {
 			sel = t.reserveRepairLocked(p, now, false)
 			break
 		}
@@ -366,6 +366,27 @@ func (t *laneTransport) noteDeliveredLocked(p *pendingRecord) {
 	if t.rackLatestTx.IsZero() || t.rackLatestTx.Before(p.lastSent) {
 		t.rackLatestTx = p.lastSent
 	}
+}
+
+func (t *laneTransport) effectiveRepairRTOLocked(p *pendingRecord) time.Duration {
+	rto := t.rto
+	if p == nil {
+		return t.clampRTOLocked(rto)
+	}
+	// The connection-level timeout episode still backs off when there is no
+	// evidence that the path is making progress. With the active absolute 3s
+	// repair horizon, however, carrying that global backoff onto a record that
+	// has already been retried can eliminate its final bounded repair entirely.
+	// Likewise, newer delivered/SACKed transmission evidence means an older
+	// record should use the clean base estimator rather than inherit a stale
+	// cumulative-hole penalty. Progressive repair credit remains the bandwidth
+	// backoff for repeated shadow repairs.
+	if p.wasRetried ||
+		(!t.rackLatestTx.IsZero() && !p.lastSent.IsZero() &&
+			p.lastSent.Before(t.rackLatestTx) && t.baseRTO < rto) {
+		rto = t.baseRTO
+	}
+	return t.clampRTOLocked(rto)
 }
 
 func (t *laneTransport) rackReorderingWindowLocked() time.Duration {

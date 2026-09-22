@@ -59,10 +59,10 @@
     "P4增强第1原子修复：runtimeowner repair/gap-ACK仲裁在SOURCE_SHA e3253322ac863c11636f1c127e14b77bdc6bf800的定向Actions已通过repository-contract、Windows/Linux active-go（Linux含race）、OpenWrt privileged与Linux shared-TUN iptables/nft；repair选择/尝试/成功/失败分离且gap forgiveness不再覆盖已选repair。",
     "P4增强第2原子FIN/RST/半关闭：SOURCE_SHA 1cfe913199f7df67f05158e044cbec02771f29a8 / Actions 35669709080 定向资格已通过repository-contract、Windows active-go、Ubuntu active-go+race、P5 HTTPS base、OpenWrt privileged及Linux shared-TUN iptables/nft；Game4固定duplicates>=lanes-1并等待异步lane drain，replacement/DORMANT late-control race已收口。整轮长时P5 jobs当时仍运行，不提前写成整轮PASS。"
   ],
-  "in_progress": "P4第3原子产品代码仍未变。新targeted workflow首跑35671272520在repository contract阶段因REUSE_LEDGER一个destination含分号多路径而FAIL，产品job全SKIPPED。当前只拆成单一真实destination条目并重跑；不把contract错误算产品失败/通过。",
-  "next_task": "在相同第3原子产品Go源码的最新SHA上重跑next-p4-steady-targeted；contract与Linux/Windows core/race/lifecycle/privileged全部PASS后进入第4原子。",
-  "latest_log": "docs/devlog/20260922-084000-reuse-ledger-contract-fix.md",
-  "last_tested_source_sha": "1cfe913199f7df67f05158e044cbec02771f29a8",
+  "in_progress": "P4第3原子回归修正：31de1393的targeted gate 6/6 PASS，但branch-wide 5→30→5非FEC两次均红。产物对比确认全局timeout backoff与3s绝对repair horizon冲突：新server 2372个payload有2199个只发一次，30%阶段全传输均丢记录268（旧1cfe同seed样本35），导致HTTPS EOF/排队和一次late flow错误。当前仅修effective repair RTO：已有fresh delivery evidence或已重传记录用base RTO，连接级退避仍保留，重复repair继续受1x/2x/4x/8x credit成本约束。",
+  "next_task": "先跑本effective-RTO修正的next-p4-steady-targeted；通过后检查branch-wide 5→30→5两seed是否恢复且不重新出现repair storm。若产品回归稳定，再进入第4原子有界增量ACK/SACK索引；不得以旧低频HTTPS通过替代后续真实UDP主测。",
+  "latest_log": "docs/devlog/20260922-090500-effective-repair-rto-horizon.md",
+  "last_tested_source_sha": "31de1393fdc6db448c1bec5e0c1558079064fadf",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -861,6 +861,20 @@
       "scope": "P4-item3-targeted-contract",
       "status": "FAIL_PRODUCT_NOT_EVALUATED",
       "note": "next-p4-steady-targeted workflow解析并启动，但repository contract仅报Invalid reuse destination；原因是REUSE_LEDGER把三个destination写进同一字符串。steady-core/lifecycle/privileged全部SKIPPED。当前提交只修ledger路径结构，不改产品Go源码。"
+    },
+    {
+      "source_sha": "31de1393fdc6db448c1bec5e0c1558079064fadf",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35671375360",
+      "scope": "P4-item3-targeted",
+      "status": "PASS_TARGETED",
+      "note": "next-p4-steady-targeted 6/6 PASS：contract、Linux/Windows steady-core、Linux race、lifecycle-focus、iptables/nft privileged均PASS。证明SACK/credit/RTT核心正确性，但不覆盖branch-wide旧P5负载。"
+    },
+    {
+      "source_sha": "31de1393fdc6db448c1bec5e0c1558079064fadf",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35671375382",
+      "scope": "P4-item3-branch-wide-regression",
+      "status": "FAIL",
+      "note": "仅p5-weaknet-5-30-5 run1/run2失败；其余active-go、race、P4 privileged、20%弱网、FEC20:20、load、soak、P6 jobs均PASS。run1 artifact 10671876144 zip sha256:b8673a7209f835f363b7ab9284c7ca85e0442b864875d24127e35d81cf54bfc6，29/40 success、repair=297、wire_amp=6.055；run2 artifact 10671182721 zip sha256:7f9a407b462cc91b9c7a130032318a6effafb3fca20c8b854bd4e68965de4996，约92s后server flow/transport丢失。与1cfe同seed成功产物对比定位为global RTO backoff+3s horizon导致repair机会过少。"
     }
   ],
   "physical_status": "NOT_RUN",
