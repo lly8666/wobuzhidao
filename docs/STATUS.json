@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "增强P4/P5继续执行。CI已在317cf14c改为校准阶段fast push；当前产品候选仅修Linux raw FakeTCP对EINTR的错误处理：Recvfrom/Sendto遇到可重试系统调用中断时原地重试，其他错误仍fatal。63563a0f realpath证据显示正式client在注入期间以 `interrupted system call` 退出，是0/987交付之前的最早明确断点。",
-  "next_task": "检查本EINTR候选 exact-SHA realpath、next-p4-steady-targeted与fast next-foundation基础/平台回归。若client保持存活但业务仍失败，再按新artifact从TPROXY/service/shared-TUN/NAT最早断点继续；只有无损校准PASS后才启动18个120s严格弱网样本。",
-  "latest_log": "docs/devlog/20260922-185500-realpath-raw-eintr.md",
-  "last_tested_source_sha": "63563a0f0aa7e0ce8d99881079be3263bc653779",
+  "in_progress": "增强P4/P5继续执行。751bf4cf 已把正式realpath业务完全打通：双向各987/987、500080B/500080B唯一交付，probe RTT约600ms，capture/qdisc无丢；但严格validator因0% loss下仍有C2S 7500B、S2C 2137B outer repair判FAIL。pcap时间线证明fast repair把约20us级瞬时重排误判为丢包；根因是RACK比较使用 wall-clock `now-lastSent`，而不是较新已交付包与洞包的发送时间差。本候选做最小语义修正，不放宽validator。",
+  "next_task": "检查本RACK候选 exact-SHA realpath、targeted和fast foundation。若无损validator PASS，冻结校准topology/harness并开始实现/启动18个120s严格主测；若仍有repair，继续从pcap逐次区分fast/RTO并保留失败证据。",
+  "latest_log": "docs/devlog/20260922-190500-realpath-rack-reorder-evidence.md",
+  "last_tested_source_sha": "751bf4cf1eb3eb356b3531958e5d3bc3ff44c697",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1048,6 +1048,13 @@
       "scope": "realpath-lossless-calibration-v2",
       "status": "FAIL_CLIENT_EARLY_EXIT",
       "note": "artifact 10690252048 zip sha256=240ee7547c5253c50526ace7fc3a06f2eb104ac3de3809dc048556e62f27d73b；server早退已消失，qdisc两向约300ms且capture drop=0，但正式client在业务结束前退出，脚本line164 kill -0失败，client.log唯一错误 `interrupted system call`。REGISTER此前已到target，随后duplex正式注入两向均0/987唯一交付。下一步先修raw I/O EINTR，不降校准标准。"
+    },
+    {
+      "source_sha": "751bf4cf1eb3eb356b3531958e5d3bc3ff44c697",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35721326780",
+      "scope": "realpath-lossless-calibration-v3",
+      "status": "FAIL_SPURIOUS_FAST_REPAIR",
+      "note": "harness本身SUCCESS且正式client/server存活；双向987/987、各500080B完整唯一交付，probe RTT p50=600.388ms，qdisc p50约300.011ms/向，capture drop=0。validator仅因0% loss仍出现outer repair而FAIL：C2S 7500B、S2C 2137B。artifact 10692130019 zip sha256=c76dd2cfa90522ddca6d24cd6142def7a8eb4e8d5e6d7ed7380bfadbaf02e223。首个C2S例：seq 2315460976首发，约600.285ms后ACK携SACK [2315462226,2315465976)，其中最新SACK包仅比洞包晚24us发送；repair在该SACK后约38us发出，而累计ACK约21us后已补洞。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1086,8 +1093,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED: 第1-5原子代码回归保留；realpath首个产品级平台缺陷为shared-TUN IPv6上线早退，已修。当前第二个明确缺陷为Linux raw endpoint把EINTR当fatal，最小重试候选待exact-SHA Actions；真实持续弱网资格未关闭。",
-    "P5": "REOPENED: realpath无损校准仍FAIL（63563a0f client EINTR早退）；普通push仅跑校准/基础/受影响回归。旧P5 weaknet/load/FEC及旧31m低负载soak保留历史/显式回归，不替代18严格主测或最终目标速率30min长测。",
+    "P4": "REOPENED: realpath正式路径正确性已打通，但发现steady SACK/RACK使用wall-clock年龄导致高RTT下微重排误fast-repair；最小发送时间证据修复待exact-SHA Actions。",
+    "P5": "REOPENED: 无损realpath业务交付已100%，但线上成本门仍因0% loss的spurious repair未过；18严格样本尚未启动，遵守先校准后主测。",
     "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {

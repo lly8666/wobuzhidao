@@ -772,7 +772,10 @@ func TestSteadySelectiveACKRetiresPayloadAndFastRepairsHole(t *testing.T) {
 	for i := range records {
 		records[i].Wire = bytes.Repeat([]byte{byte(i + 1)}, 32)
 	}
-	if err := tr.send(records, t0); err != nil {
+	if err := tr.send(records[:1], t0); err != nil {
+		t.Fatal(err)
+	}
+	if err := tr.send(records[1:], t0.Add(16*time.Millisecond)); err != nil {
 		t.Fatal(err)
 	}
 	if len(wire) != 5 {
@@ -1085,7 +1088,10 @@ func TestSteadyIncrementalIndexesDeepHoleSparseACKAndCleanup(t *testing.T) {
 	for i := range records {
 		records[i].Wire = bytes.Repeat([]byte{byte(i)}, 8)
 	}
-	if err := tr.send(records, t0); err != nil {
+	if err := tr.send(records[:1], t0); err != nil {
+		t.Fatal(err)
+	}
+	if err := tr.send(records[1:], t0.Add(20*time.Millisecond)); err != nil {
 		t.Fatal(err)
 	}
 	if tr.repairCount != 1024 || len(tr.pendingOrder) != 1024 {
@@ -1316,7 +1322,7 @@ func TestSteadyTransportPreservesHandoffWindowScale(t *testing.T) {
 }
 
 
-func TestSteadyFreshFastRepairWaitsForReorderingWindow(t *testing.T) {
+func TestSteadyFreshFastRepairUsesTransmissionTimeReorderingEvidence(t *testing.T) {
 	lease := runtimeLease(t)
 	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 16)
 	if err != nil {
@@ -1339,11 +1345,14 @@ func TestSteadyFreshFastRepairWaitsForReorderingWindow(t *testing.T) {
 	}
 	tr := rt.lanes[snap.Ref]
 	t0 := time.Unix(9800, 0)
-	records := make([]datapath.WireRecord, 5)
+	records := make([]datapath.WireRecord, 6)
 	for i := range records {
 		records[i].Wire = bytes.Repeat([]byte{byte(0xa0 + i)}, 64)
 	}
-	if err := tr.send(records, t0); err != nil {
+	if err := tr.send(records[:1], t0); err != nil {
+		t.Fatal(err)
+	}
+	if err := tr.send(records[1:5], t0.Add(3*time.Millisecond)); err != nil {
 		t.Fatal(err)
 	}
 	if len(wire) != 5 {
@@ -1360,25 +1369,33 @@ func TestSteadyFreshFastRepairWaitsForReorderingWindow(t *testing.T) {
 		End: wire[4].Seq + uint32(len(wire[4].Payload)),
 	}
 
-	// A lossless concurrent path can expose three later records within a few
-	// milliseconds while the first is merely reordered. SACK must still retire
-	// later payload, but fresh fast repair waits for the existing RACK
-	// reordering window (minimum 10ms).
-	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(3*time.Millisecond)); err != nil {
+	// The SACK can arrive after a 600ms RTT, but the later transmissions were
+	// only 3ms newer than the hole. Wall-clock age must not manufacture RACK
+	// loss evidence from this small lossless reorder.
+	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond)); err != nil {
 		t.Fatal(err)
 	}
 	stats, _ := rt.TransportStats(snap.Ref)
 	if len(wire) != 5 || stats.SACKed != 4 || stats.FastRepairs != 0 {
-		t.Fatalf("premature fast repair wire=%d stats=%+v", len(wire), stats)
+		t.Fatalf("wall-clock-aged reorder triggered fast repair wire=%d stats=%+v", len(wire), stats)
 	}
 
-	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(12*time.Millisecond)); err != nil {
+	// Once a genuinely newer transmission is SACKed beyond the 10ms minimum
+	// reordering window, the same hole becomes eligible for one fast repair.
+	if err := tr.send(records[5:], t0.Add(12*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if len(wire) != 6 {
+		t.Fatalf("fresh wire after evidence=%d want=6", len(wire))
+	}
+	sack.SACK[0].End = wire[5].Seq + uint32(len(wire[5].Payload))
+	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(601*time.Millisecond)); err != nil {
 		t.Fatal(err)
 	}
 	stats, _ = rt.TransportStats(snap.Ref)
-	if len(wire) != 6 || wire[5].Seq != wire[0].Seq ||
-		!bytes.Equal(wire[5].Payload, wire[0].Payload) ||
+	if len(wire) != 7 || wire[6].Seq != wire[0].Seq ||
+		!bytes.Equal(wire[6].Payload, wire[0].Payload) ||
 		stats.FastRepairs != 1 || stats.Retransmitted != 1 {
-		t.Fatalf("aged fast repair wire=%+v stats=%+v", wire, stats)
+		t.Fatalf("transmission-time evidence did not fast repair wire=%+v stats=%+v", wire, stats)
 	}
 }

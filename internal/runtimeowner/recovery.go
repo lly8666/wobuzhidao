@@ -318,20 +318,29 @@ func (t *laneTransport) selectFastRepairLocked(now time.Time) *selectedRepair {
 		candidate.flags&faketcp.FlagFIN != 0 || candidate.seq != t.lastAck {
 		return nil
 	}
+	// RACK's reordering evidence is transmission-time separation between the
+	// newest delivered/SACKed record and the hole candidate. Using wall-clock
+	// age here makes every tiny reorder on a high-RTT path look old enough for
+	// fast repair as soon as its SACK returns.
+	evidenceAge, ok := t.rackEvidenceAgeLocked(candidate)
+	if !ok || evidenceAge < t.rackReorderingWindowLocked() {
+		return nil
+	}
 	if candidate.wasRetried {
-		if t.rackLatestTx.IsZero() || candidate.lastSent.IsZero() ||
-			!candidate.lastSent.Before(t.rackLatestTx) ||
-			now.Sub(candidate.lastSent) < t.rackReorderingWindowLocked() {
-			return nil
-		}
 		return t.prepareFastRepairLocked(candidate, now)
 	}
-	if t.sackedOutstanding < 3 || candidate.lastSent.IsZero() ||
-		now.Before(candidate.lastSent) ||
-		now.Sub(candidate.lastSent) < t.rackReorderingWindowLocked() {
+	if t.sackedOutstanding < 3 {
 		return nil
 	}
 	return t.prepareFastRepairLocked(candidate, now)
+}
+
+func (t *laneTransport) rackEvidenceAgeLocked(p *pendingRecord) (time.Duration, bool) {
+	if p == nil || p.lastSent.IsZero() || t.rackLatestTx.IsZero() ||
+		!p.lastSent.Before(t.rackLatestTx) {
+		return 0, false
+	}
+	return t.rackLatestTx.Sub(p.lastSent), true
 }
 
 func (t *laneTransport) prepareFastRepairLocked(p *pendingRecord, now time.Time) *selectedRepair {
