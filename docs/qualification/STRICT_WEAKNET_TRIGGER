@@ -1,3 +1,5 @@
-generation: 1
-purpose: initial strict 18-sample run after lossless realpath calibration and fast regressions passed
-note: future product fixes should pass fast realpath/targeted/foundation first, then bump this file to explicitly launch the next strict 18-sample exact-SHA run
+generation: 2
+purpose: rerun strict 18-sample qualification after fixed-window generator fast validation
+parent_source_sha: 9192be4c28582092f6e6fe01536635d5e1b0d078
+invalidated_run: https://github.com/lly8666/wobuzhidao/actions/runs/35728934986
+note: this generation must use >10ms skipped-slot accounting and may not use catch-up traffic to extend the 120s injection window

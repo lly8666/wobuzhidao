@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "首个18样本run 35728934986作废为HARNESS_INVALID：发生器原逻辑在runner迟到时不丢slot而补发所有积压，导致固定120s窗口可能被延长；当前18个job长时间停在负载步骤即暴露此风险。该run无论最终业务数字如何都不得计入严格资格。候选修复为slot超过10ms即skipped且推进，不追赶；peer未就绪同样推进。strict自动push临时关闭，避免修harness时重复烧18。",
-  "next_task": "验证固定窗口发生器候选的realpath与基础/受影响fast回归；确认8s校准无skipped且路径仍PASS后，恢复strict push触发并bump STRICT_WEAKNET_TRIGGER启动新的18样本。旧35728934986保留原始artifact/日志但标HARNESS_INVALID，不择优采用。",
-  "latest_log": "docs/devlog/20260922-202000-strict-fixed-window-generator.md",
-  "last_tested_source_sha": "780c43ac4551511649f724e55d47a3d5bb6cf441",
+  "in_progress": "9192be4c 的固定120秒发生器已完成 fast 验证：realpath 35729424399、targeted 35729424568、foundation 35729424630 均PASS；realpath两方向 skipped_slots=0、send_failures=0、p99调度迟到约2.5us、outer repair=0。现恢复strict push触发并bump generation=2，启动新的18个独立120s样本；旧35728934986继续固定HARNESS_INVALID。",
+  "next_task": "跟踪generation=2 exact-SHA next-strict-weaknet 18个job。先确认样本在固定120s+10s范围结束、artifact完整；逐样本审计CORRECTNESS/INPUT_VALIDITY/PERFORMANCE/ENVIRONMENT/CAPTURE和分阶段成本。任何FAIL/INVALID/CAPACITY_LIMITED保留证据并定位，不择优重跑。",
+  "latest_log": "docs/devlog/20260922-203000-strict-generation2-launch.md",
+  "last_tested_source_sha": "9192be4c28582092f6e6fe01536635d5e1b0d078",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1127,6 +1127,27 @@
       "scope": "strict-18-first-harness-attempt",
       "status": "HARNESS_INVALID",
       "note": "发生器在target slot迟到时继续补发积压，peer未就绪时甚至不推进cumulative/seq，因此固定120s有效注入口径不成立；观察到18 job持续停留在负载步骤远超120s+10s预算。该轮结果不得用于资格，即使后续job自行结束。"
+    },
+    {
+      "source_sha": "9192be4c28582092f6e6fe01536635d5e1b0d078",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35729424399",
+      "scope": "realpath-after-fixed-window-generator",
+      "status": "PASS",
+      "note": "artifact 10694817621 zip sha256=12a4b7a267e6d5eb9377c4f56ee58af9e7d7be20f275927ae27178d8a9e50d62；双向500080/500080B、987/987；skipped_slots=0、skipped_bytes=0、send_failures=0；send_lag_p99_ns=2472/2630；outer repair=0；harness+validator success。"
+    },
+    {
+      "source_sha": "9192be4c28582092f6e6fe01536635d5e1b0d078",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35729424568",
+      "scope": "targeted-after-fixed-window-generator",
+      "status": "PASS",
+      "note": "contract、Linux/Windows steady-core、lifecycle-focus、iptables/nft privileged全PASS。"
+    },
+    {
+      "source_sha": "9192be4c28582092f6e6fe01536635d5e1b0d078",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35729424630",
+      "scope": "fast-foundation-after-fixed-window-generator",
+      "status": "PASS",
+      "note": "repository/P2/Linux+Windows/OpenWrt TPROXY/shared-TUN全PASS；旧P5/P6/31m soak继续skipped。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1166,7 +1187,7 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "REOPENED: realpath与诊断层fast回归已绿；18严格主测即将启动，补丁性能A/B仍未执行。",
-    "P5": "REOPENED: 首个18-run因发生器补发积压违反固定120s口径而HARNESS_INVALID；正在修为>10ms slot显式skipped、不追赶，fast验证后重新启动18。",
+    "P5": "REOPENED: 固定窗口发生器已fast验证PASS；generation=2严格18主测现启动。旧generation=1 run 35728934986永久HARNESS_INVALID，不纳入资格。",
     "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
