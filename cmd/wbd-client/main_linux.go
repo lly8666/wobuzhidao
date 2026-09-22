@@ -41,6 +41,7 @@ func main() {
 		password = flag.String("password", "", "protected admission password")
 		clientLimit = flag.Uint("client-record-limit", 1300, "server-to-client TLS-like record wire limit")
 		mtu = flag.Int("mtu", 1500, "connection MTU")
+		tlsStartupPadding = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
 		fecParity = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
 		tproxyPort = flag.Uint("tproxy-port", 12345, "transparent TCP/UDP capture port")
 		mark = flag.Uint("mark", 0x42, "TPROXY fwmark")
@@ -163,6 +164,7 @@ func main() {
 			return laneIO, flow, err
 		},
 		Lease: lease,
+		TLSStartupPadding: *tlsStartupPadding,
 		DesiredLanes: *lanes,
 		Admission: realityfront.ClientAdmissionConfig{
 			TLS: realityfront.ClientConfig{

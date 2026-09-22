@@ -1,0 +1,49 @@
+name: next-tls-startup-padding
+on:
+  push:
+    branches: ['next/tlslike-dataplane']
+    paths:
+      - 'internal/datapath/**'
+      - 'internal/platformflow/**'
+      - 'internal/runtimeentry/**'
+      - 'cmd/**'
+      - '.github/workflows/next-tls-startup-padding.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  startup-core:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - name: Core regression and binary build (not fullstack qualification)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          git rev-parse HEAD > artifacts/source-sha.txt
+          go version > artifacts/toolchain.txt
+          go test ./internal/datapath ./internal/platformflow ./internal/runtimeentry -count=1 -v | tee artifacts/core.log
+          go build ./cmd/wbd-client
+          go build ./cmd/wbd-server
+      - name: Race and bounded parser fuzz
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race ./internal/datapath ./internal/platformflow -count=1 | tee artifacts/race.log
+          go test ./internal/datapath -run='^$' -fuzz='^FuzzStartupPacket$' -fuzztime=30s -parallel=2 | tee artifacts/fuzz.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tls-startup-core-${{ runner.os }}-${{ github.sha }}
+          path: artifacts

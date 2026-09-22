@@ -196,6 +196,7 @@ func clientFlowMatchesOutbound(flow faketcp.ClientFlow, seg faketcp.Segment) boo
 type ClientLaneOpener func(laneID uint8, incarnation uint64) (SegmentIO, faketcp.ClientFlow, error)
 
 type TunnelClientConfig struct {
+	TLSStartupPadding bool
 	OpenLane ClientLaneOpener
 
 	Lease        logicaltunnel.Lease
@@ -308,6 +309,10 @@ func DialTunnelClient(ctx context.Context, cfg TunnelClientConfig) (*TunnelClien
 
 	owner, err := datapath.NewLeasedTunnelOwner(cfg.Lease, cfg.DesiredLanes, cfg.MaxFlows)
 	if err != nil {
+		return nil, err
+	}
+	if err := owner.ConfigurePadding(datapath.TLSStartupPaddingPolicy(cfg.TLSStartupPadding)); err != nil {
+		owner.Close()
 		return nil, err
 	}
 	rt, err := runtimeowner.New(owner, cfg.Deliver)
@@ -1451,6 +1456,10 @@ func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicalt
 	if err != nil {
 		return nil, err
 	}
+	if err := owner.ConfigurePadding(datapath.TLSStartupPaddingPolicy(s.cfg.TLSStartupPadding)); err != nil {
+		owner.Close()
+		return nil, err
+	}
 	group := &serverLifecycleTunnel{
 		id: id, leaseAddr: leaseAddr, owner: owner,
 		lanes: make(map[uint8]*serverLifecycleLane, s.cfg.DesiredLanes),
@@ -1854,4 +1863,3 @@ func (s *LifecycleServer) Close() error {
 	})
 	return out
 }
-

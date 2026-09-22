@@ -143,7 +143,7 @@ Linux 用共享 TUN/单 host NAT、多客户端 lease 和源地址校验。Windo
 
 风险来自长度、方向、突发字节数和往返节奏的组合，不是某个固定 ClientHello 大小。外层加密算法、FEC 或票据不能证明风险消失。只做低成本能力与证据收口，不开展反检测算法赛。
 
-P3：保留零填充默认及既有向量，增加显式、受长度校验的加密内 padding 接口，接入单一 MTU。位置为 FEC 输出之后、seal 之前；open 去 padding 后原样交 FEC。padding 不参与 FEC，不影响 original_lengths，不生成额外 record；满尺寸 source/parity 可零填充直接发。策略层只能即时决定填多少，额度不足立即零填充，不能等令牌或其他包。协议容量之外还必须有每包和累计额外字节上限；生产策略尚未启用，不能仅有 API 就宣称降低了识别率。记录请求/实际 padding bytes 和预算不足跳过次数；不读取内层 TLS，不逐包输出日志。FakeTCP 缓存最终密文，重传不重新 padding/seal。
+P3：保留零填充默认及既有向量，增加显式、受长度校验的加密内 padding 接口，接入单一 MTU。位置为 FEC 输出之后、seal 之前；open 去 padding 后原样交 FEC。padding 不参与 FEC，不影响 original_lengths，不生成额外 record；满尺寸 source/parity 可零填充直接发。策略层只能即时决定填多少，额度不足立即零填充，不能等令牌或其他包。协议容量之外还必须有每包和累计额外字节上限；生产策略尚未启用，不能仅有 API 就宣称降低了识别率。记录请求/实际 padding bytes 和预算不足跳过次数；默认不读取内层 TLS；用户授权的有界结构识别例外见第15节，不逐包输出日志。FakeTCP 缓存最终密文，重传不重新 padding/seal。
 
 P4：多个真实业务会话复用现有 Tunnel/lane，不将每个 HTTPS flow 绑定新外层连接。保留 Normal=1、Game=2..4、现有竞速/去重、轮换与 DORMANT，不能把多 lane 竞速改成跨包条带化来“混流”。业务稀疏不等待别的流，不为了外观保活延迟休眠。若暴露可选填充配置，默认 off；策略 owner 同时执行每包上限与累计 padding/有效负载比例预算，无额度立即跳过。不得在各 lane 独立额度之外绕过 tunnel/server 总预算；不把多 lane/FEC/repair 放大算作有效业务来获取填充额度。
 
@@ -156,3 +156,7 @@ P5：增加受控真实 HTTPS 客户端/服务器，覆盖首个与复用 lane �
 按 [专项执行规范](WEAKNET_QUALIFICATION.md) 重新打开P4稳态传输与P5增强验收。先修复repair/ACK发送记账、稳态FIN/RST和参数连续性，再补有界SACK/修复预算及增量索引。只定向借鉴旧arq/repair_horizon/adaptive_pressure的已验证行为，不恢复旧拓扑或严格等待。
 
 主测Normal单lane每方向10Mbps、Game四lane每方向3Mbps，FEC20:20/padding off；300ms单向，120秒，无损/5->20->5/5->30->5各3次，共18样本。真实二进制独立进程+内核raw/TUN或TPROXY+netem路径；memorySegmentPair资格不能替代。遵循专项注入、损失、时延、恢复、资源和平台覆盖门槛，CAPACITY_LIMITED不算PASS。最终同SHA全套相关回归及重打P6包，物理资格仍P7。
+
+## 15. TLS启动选择性填充（2026-09-22 用户授权）
+
+按 [实现与验收契约](TLS_STARTUP_PADDING.md) 增加默认关闭的 --tls-startup-padding。只在业务owner旁观有界ClientHello前缀，绝对启动窗口内即时申请既有record padding，不等待、不改MTU/FEC/repair、不新建连接；Game共享flow/tunnel预算，parity不填充。这是第13节“不读取内层TLS”的限定例外，只做结构识别，不解密或输出内层内容。原主线任务暂停；新agent完成功能专项后直接更新唯一STATUS，不关闭整个P4/P5。

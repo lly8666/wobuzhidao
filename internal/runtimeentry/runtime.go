@@ -50,6 +50,7 @@ func (io SegmentIO) close() error {
 }
 
 type ClientConfig struct {
+	TLSStartupPadding bool
 	IO         SegmentIO
 	Flow       faketcp.ClientFlow
 	ClientISN  uint32
@@ -119,6 +120,10 @@ func DialClient(ctx context.Context, cfg ClientConfig) (*Client, error) {
 
 	owner, err := datapath.NewLeasedTunnelOwner(cfg.Lease, 1, cfg.MaxFlows)
 	if err != nil {
+		return nil, err
+	}
+	if err := owner.ConfigurePadding(datapath.TLSStartupPaddingPolicy(cfg.TLSStartupPadding)); err != nil {
+		owner.Close()
 		return nil, err
 	}
 	rt, err := runtimeowner.New(owner, cfg.Deliver)
@@ -358,6 +363,7 @@ func (c *Client) Close() error {
 type LeaseLookup func(logicaltunnel.TunnelID) (logicaltunnel.Lease, error)
 
 type ServerConfig struct {
+	TLSStartupPadding bool
 	IO             SegmentIO
 	ListenPort     uint16
 	MaxAssociations int
@@ -599,6 +605,11 @@ func (s *Server) admit(ctx context.Context, assoc *faketcp.ServerAssociation) {
 
 	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, s.cfg.MaxFlows)
 	if err != nil {
+		s.table.Remove(flow)
+		return
+	}
+	if err := owner.ConfigurePadding(datapath.TLSStartupPaddingPolicy(s.cfg.TLSStartupPadding)); err != nil {
+		owner.Close()
 		s.table.Remove(flow)
 		return
 	}

@@ -45,6 +45,7 @@ func main() {
 		decoy = flag.String("decoy", "", "ordinary TLS fallback target host:port")
 		serverLimit = flag.Uint("server-record-limit", 1250, "client-to-server TLS-like record wire limit")
 		mtu = flag.Int("mtu", 1500, "connection/shared-TUN MTU")
+		tlsStartupPadding = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
 		fecParity = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
 		firewall = flag.String("firewall", "auto", "shared-TUN firewall backend: auto|nft|iptables")
 		nftForward = flag.String("nft-forward", "", "optional family:table:chain for nft forward policy")
@@ -148,6 +149,7 @@ func main() {
 	}
 	server, err := runtimeentry.NewLifecycleServer(runtimeentry.LifecycleServerConfig{
 		ServerConfig: runtimeentry.ServerConfig{
+			TLSStartupPadding: *tlsStartupPadding,
 		IO: io,
 		ListenPort: uint16(*listenPort),
 		Admission: realityfront.ServerAdmissionConfig{

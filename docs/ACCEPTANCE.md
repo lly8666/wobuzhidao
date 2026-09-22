@@ -75,3 +75,7 @@ P7只在主流程已稳定后由用户安排，最终核对真实链路外观、
 ## 2026-09-21 增强验收（当前发布前必需）
 
 [WEAKNET_QUALIFICATION.md](WEAKNET_QUALIFICATION.md) 是本契约组成部分，其第3至8节定义持续负载、18份独立样本、真实网络、严格逐方向/逐阶段目标、runner诊断、模块矩阵与关闭证据。新增门槛优先于旧P5的低频HTTPS和无损15秒load资格；不追溯删除旧证据，也不沿用旧CLOSED代表新增通过。相关核心回归有红灯须定位修复，不以仅打包job绿替代同SHA完整回归。
+
+## TLS启动填充小功能（待 exact-SHA Actions）
+
+实现及完整关闭门槛见 [TLS_STARTUP_PADDING](TLS_STARTUP_PADDING.md)。默认off、无等待/no-HOL、全FEC source/parity区分、Game共享预算、生命周期/失败rollback/资源上限必须覆盖；真实二进制TUN与平台转发专项必须证明启用和实际padding，不得用core/serializer替代。当前仅已编写测试与workflow，验收NOT_RUN，不能宣称消除了TLS-in-TLS。通过后只关闭此小功能，原主线暂停不变。

@@ -112,7 +112,7 @@ func (o *TunnelOwner) GameOutbound(packet []byte, now time.Time) (GameOutboundRe
 	for i, id := range ids {
 		bindings[i] = o.active[id]
 	}
-	selector := o.paddingSelectorForPayloadLocked(len(packet))
+	selector := o.paddingSelectorForPayloadLocked(packet, now)
 	state.logicalOutbound++
 	state.laneCopies += uint64(len(copies))
 	o.mu.Unlock()
@@ -272,6 +272,9 @@ func (o *TunnelOwner) GameInboundPayload(ref logicaltunnel.LaneRef, payload []by
 		}
 		if decoded.Deliver {
 			state.delivered++
+			if o.padding.policy.TLSStartupOnly {
+				o.padding.startup.observe(decoded.Payload, false, now)
+			}
 			out.Datagrams = append(out.Datagrams, decoded.Payload)
 		}
 	}

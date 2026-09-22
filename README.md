@@ -17,3 +17,7 @@ TCP-like 外层、TLS-like 独立加密记录、稳态无跨包 HOL 的弱网隧
 DTLS 基线保存在独立分支 [`release/dtls-preview-20260919`](https://github.com/lly8666/wobuzhidao/tree/release/dtls-preview-20260919)，源码锚点 `b5c848f4e9afdffd15d1bc451560edf4e9390a35`。旧架构不与新产品并存，不做旧产品性能 A/B。
 
 开发和测试环境：只使用 GitHub Actions。最后一轮才安排真实物理机。根目录 `next-foundation` 工作流执行新根 module 的 Linux/Windows 基础构建与测试，并在 Linux 跑 race/fuzz；阶段 PASS 仍不代表后续握手、端到端或物理网络资格。
+
+### 可选TLS启动填充（待专项验收）
+
+client/server可分别设置 `--tls-startup-padding`，默认关闭。识别内部新TLS流后短时间利用现有记录余量做有界填充，超时/预算不足直接不填；不等待、不新增分片、不修改重传密文。它不能消除TLS-in-TLS方向/时序指纹。参数界限、平台支持、未验证项及验收入口见 [功能规范](docs/TLS_STARTUP_PADDING.md) 与 [唯一进度](docs/STATUS.json)。

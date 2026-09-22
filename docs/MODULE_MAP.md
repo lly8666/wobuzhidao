@@ -28,3 +28,5 @@
 迁移证据要求：源 SHA + 文件、目的路径、保留行为、删除的旧架构耦合、对应新测试。引用旧源码不是旧产品性能对照，不跑 DTLS A/B。
 
 2026-09-21 稳态修复定向来源与参数迁移边界见 [专项第2节](WEAKNET_QUALIFICATION.md#2-可借鉴老项目的明确范围)：仅old/internal/faketcp/arq.go、repair_horizon.go、adaptive_pressure.go及直接依赖/测试，最小闭包登记REUSE_LEDGER；runtimeowner/runtimeentry实际稳态接线不得以bootstrap测试代替。
+
+TLS启动填充：internal/datapath/startup_padding.go新写旁观识别；padding_policy.go复用/扩展即时预算；Normal/Game owner观察业务；Lane只提供source/parity标记。runtimeentry与各平台CLI接默认关闭开关。platformflow serializer不改，新增跨模块真实ClientHello测试锁定v1 envelope兼容。无old提取，细则见TLS_STARTUP_PADDING.md。

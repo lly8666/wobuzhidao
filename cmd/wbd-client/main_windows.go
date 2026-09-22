@@ -40,6 +40,7 @@ func main() {
 		password = flag.String("password", "", "protected admission password")
 		clientLimit = flag.Uint("client-record-limit", 1300, "server-to-client TLS-like record wire limit")
 		mtu = flag.Int("mtu", 1500, "connection MTU")
+		tlsStartupPadding = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
 		fecParity = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
 		adapterAlias = flag.String("adapter", "WBD", "Wintun adapter alias")
 		dnsText = flag.String("dns4", "", "comma-separated IPv4 DNS servers")
@@ -158,6 +159,7 @@ func main() {
 			return ioCfg, flow, nil
 		},
 		Lease: lease,
+		TLSStartupPadding: *tlsStartupPadding,
 		DesiredLanes: *lanes,
 		Admission: realityfront.ClientAdmissionConfig{
 			TLS: realityfront.ClientConfig{

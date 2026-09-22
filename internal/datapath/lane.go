@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/lly8666/wobuzhidao/internal/fec"
 	"github.com/lly8666/wobuzhidao/internal/linkdata"
 	"github.com/lly8666/wobuzhidao/internal/pathmtu"
 	"github.com/lly8666/wobuzhidao/internal/tlsrecord"
@@ -63,7 +64,7 @@ type paddingSelection struct {
 	finish    func(success bool)
 }
 
-type paddingSelector func(headroom int) (paddingSelection, error)
+type paddingSelector func(headroom int, source bool) (paddingSelection, error)
 
 type WireRecord struct {
 	PN           uint64
@@ -321,7 +322,7 @@ func (l *Lane) flush(selector paddingSelector) ([]WireRecord, error) {
 }
 
 func fixedPaddingSelector(request PaddingRequest) paddingSelector {
-	return func(headroom int) (paddingSelection, error) {
+	return func(headroom int, _ bool) (paddingSelection, error) {
 		if request.Bytes > headroom {
 			return paddingSelection{requested: request.Bytes, skipped: true}, nil
 		}
@@ -359,7 +360,13 @@ func (l *Lane) sealLocked(datagrams [][]byte, selector paddingSelector) ([]WireR
 			cancelPending(0)
 			return nil, err
 		}
-		selection, err := selector(headroom)
+		source := true
+		if l.cfg.ParityShards != 0 {
+			// This is owned encoder output; the v1 source/parity index is
+			// fixed and does not require reparsing the whole FEC header.
+			source = len(datagram) >= fec.HeaderSize && datagram[8] < fec.DataShards
+		}
+		selection, err := selector(headroom, source)
 		if err != nil {
 			cancelPending(0)
 			return nil, err

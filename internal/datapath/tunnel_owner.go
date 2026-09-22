@@ -179,7 +179,7 @@ func (f *BusinessFlow) Outbound(packet []byte, now time.Time) ([]WireRecord, err
 			return nil, err
 		}
 	}
-	selector := f.owner.paddingSelectorForPayload(len(packet))
+	selector := f.owner.paddingSelectorForPayload(packet, now)
 	var records []WireRecord
 	if selector == nil {
 		records, err = binding.lane.Outbound(packet, now)
@@ -226,7 +226,7 @@ func (o *TunnelOwner) NormalOutbound(packet []byte, now time.Time) ([]WireRecord
 			return nil, err
 		}
 	}
-	selector := o.paddingSelectorForPayload(len(packet))
+	selector := o.paddingSelectorForPayload(packet, now)
 	var (
 		records []WireRecord
 		err     error
@@ -417,6 +417,7 @@ func (o *TunnelOwner) InboundPayload(ref logicaltunnel.LaneRef, payload []byte, 
 		return InboundResult{}, err
 	}
 	if role != RoleServer || !hasLease {
+		o.observeStartupInbound(result.Datagrams, now)
 		return result, nil
 	}
 	leased, err := lease.Config.LeaseIPv4()
@@ -433,6 +434,7 @@ func (o *TunnelOwner) InboundPayload(ref logicaltunnel.LaneRef, payload []byte, 
 		kept = append(kept, packet)
 	}
 	result.Datagrams = kept
+	o.observeStartupInbound(result.Datagrams, now)
 	return result, nil
 }
 
@@ -511,6 +513,7 @@ func (o *TunnelOwner) Close() {
 	clear(o.retiring)
 	clear(o.flows)
 	o.game = nil
+	o.padding.startup = startupTracker{}
 	o.closed = true
 	o.mu.Unlock()
 	closeLaneSet(lanes)
@@ -540,7 +543,10 @@ func (o *TunnelOwner) TickLane(ref logicaltunnel.LaneRef, now time.Time) ([]Wire
 		o.mu.Unlock()
 		return nil, staleGeneration(ref, current)
 	}
-	paddingEnabled := o.padding.policy.Enabled
+	if o.padding.policy.TLSStartupOnly {
+		o.padding.startup.expire(now)
+	}
+	paddingEnabled := o.padding.policy.Enabled && !o.padding.policy.TLSStartupOnly
 	o.mu.Unlock()
 
 	var (

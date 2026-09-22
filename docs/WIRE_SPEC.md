@@ -159,3 +159,5 @@ FEC encoder 返回的内部 wire backing slot 可以复用，因此进入统一�
 提交实现时同时提交 exporter/HKDF 方向派生、PN=0/1/跨32位/接近64位上限、空或最小 payload、多条 record、位翻转、深度乱序与重传一致性向量。expected bytes 应有独立计算/审阅来源，不能用待测函数动态生成期望再声称验证。
 
 参考：[RFC 8439](https://www.rfc-editor.org/rfc/rfc8439.html)、[RFC 8446 §5/§7.5](https://www.rfc-editor.org/rfc/rfc8446.html)、[RFC 9001 §5.4](https://www.rfc-editor.org/rfc/rfc9001.html#section-5.4)。本 wire 是自定义独立数据报协议，格式外观参考 TLS，不是标准 TLS record protection。
+
+TLS启动填充可选策略（2026-09-22）：只改变既有加密内padding长度，不新增record kind/协议字段/协商。默认off；业务检测在FEC前，实际padding在source record seal前，不进入FEC或original_lengths，不增加record/分片；parity与重传不得重新随机。固定预算与旁路条件见TLS_STARTUP_PADDING.md。
