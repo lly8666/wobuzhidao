@@ -1,0 +1,14 @@
+kind: packet-socket-boundary-diagnostic
+generation: 1
+parent_source_sha: 1f3f705d63f05cf2536352f1cd928e56b7a8ba49
+capacity_run: https://github.com/lly8666/wobuzhidao/actions/runs/35744227484
+bypass_reanalysis_run: https://github.com/lly8666/wobuzhidao/actions/runs/35744777864
+bypass_raw_artifact_id: 10702266004
+bypass_raw_sha256: d683b0e36183009b7c4fab10e43b3005340838f3cb2027bc60d1d6054cd1e672
+bypass_reanalysis_artifact_id: 10701112954
+bypass_reanalysis_sha256: e2a44e13c12de96e55adba3af57f5ecc9afc9a5a509359aca0197dae63752db4
+normal_half_artifact_id: 10701337699
+normal_half_sha256: e156e61353f25c8f517f7a04530b8acc54192a5e6beda7c31e3b6b4d0c3ad97e
+game_half_artifact_id: 10702671220
+game_half_sha256: a332ffd42094839c5242fa8e35618b09ced381e04b1ac183d6787eb74fddfaf7
+note: repeat only Normal5 and Game1.5 with per-second AF_PACKET ss -0 skmem evidence; no product policy/buffer change; no bypass rerun

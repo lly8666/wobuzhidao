@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "容量诊断 run 35744227484 正在执行。旁路50Mbps/方向负载已完成，原始generator证据显示双向约50Mbps、最终唯一包/字节完全对齐、corrupt/duplicate/send_failure=0、probe 60/60、p99 pacing lag<0.52ms；但原analyzer因sudo创建的artifact目录root-owned，写summary.json时报PermissionError，属于harness权限错误而非容量结果。raw artifact 10702266004 zip sha256=d683b0e36183009b7c4fab10e43b3005340838f3cb2027bc60d1d6054cd1e672。本提交仅新增immutable artifact离线复算workflow，不重发旁路流量；Normal5/Game1.5半速正式产品job继续运行。",
-  "next_task": "等待Normal5/Game1.5两个半速正式产品诊断；同时运行next-strict-capacity-bypass-reanalysis，从raw artifact 10702266004复算qdisc/interface/socket/capture及最终交付。若离线旁路PASS而产品半速仍FAIL，进入产品入口/worker/队列最早背压层定位；若旁路复算发现drop则先定位Actions测量路径。不得把半速或旁路PASS当10/3Mbps资格。",
-  "latest_log": "docs/devlog/20260922-240500-capacity-bypass-offline-reanalysis.md",
+  "in_progress": "容量定位继续。c9a9691f正式半速结果证明socket skmem overflow并非最早根因：Normal5与Game1.5的CORRECTNESS/INPUT/CAPTURE/ENVIRONMENT均PASS、socket_drop_max=0，但PERFORMANCE仍FAIL且几乎仅C2S崩；S2C分别完整5Mbps与1.5Mbps。旁路raw artifact 10702266004已由validator 1f3f705d离线复算PASS：50Mbps/方向、qdisc约54.15Mbps/方向、12.34kpps、qdisc/interface/socket/capture drop全0。当前缺口是正式FakeTCP使用AF_PACKET接收，而旧resource sampler只看UDP/raw-IP socket。本提交只增加每秒ss -0 packet-socket r/rb/d观测并重跑Normal5/Game1.5定位，不改产品实现/缓存/恢复策略。",
+  "next_task": "检查next-strict-packet-socket-diagnostic两个exact-SHA样本。若server/ss_packet出现rmem逼近rb及d增长，证明raw AF_PACKET接收队列先丢，再依据reader/Server.Run消费时间线决定最小修复；若AF_PACKET也零drop，则继续在Go内Server.Run channel=1、同步HandleSegment/FEC/TUN交付之间加低开销队列/handler时延计数。半速成功或失败均不替代10/3Mbps资格。",
+  "latest_log": "docs/devlog/20260922-242000-packet-socket-boundary-diagnostic.md",
   "last_tested_source_sha": "7110fd1e22cb2ab3809456657e3fcdf139508a65",
   "actions": [
     {

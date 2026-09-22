@@ -438,9 +438,23 @@ def queue_age_at(samples_by_side, unix_ns):
     return max(ages) if ages else None
 
 
+def parse_skmem_stats(text):
+    out = {"rmem_alloc": 0, "rcv_buf": 0, "drops": 0}
+    for body in re.findall(r"skmem:\(([^\n)]*)\)", text or ""):
+        fields = {}
+        for token in body.split(","):
+            token = token.strip()
+            match = re.fullmatch(r"(rb|tb|bl|r|t|f|w|o|d)(-?\d+)", token)
+            if match:
+                fields[match.group(1)] = int(match.group(2))
+        out["rmem_alloc"] = max(out["rmem_alloc"], fields.get("r", 0))
+        out["rcv_buf"] = max(out["rcv_buf"], fields.get("rb", 0))
+        out["drops"] = max(out["drops"], fields.get("d", 0))
+    return out
+
+
 def parse_skmem_drop(text):
-    vals = [int(x) for x in re.findall(r"skmem:\([^\n)]*?d(\d+)", text or "")]
-    return max(vals) if vals else 0
+    return parse_skmem_stats(text)["drops"]
 
 
 def link_drop_totals(sample):
@@ -476,17 +490,52 @@ def resource_summary(samples, start_unix, end_unix):
             errors.append(f"{label} missing in {count} resource samples")
     socket_drop_max = 0
     socket_drop_by_endpoint = {}
+    packet_socket_by_endpoint = {}
+    packet_socket_command_errors = {}
     for s in during:
         for label, data in (s.get("namespaces") or {}).items():
-            for key in ("ss_udp", "ss_raw"):
+            for key in ("ss_udp", "ss_raw", "ss_packet"):
                 item = data.get(key) or {}
-                value = parse_skmem_drop(item.get("stdout", ""))
+                stats = parse_skmem_stats(item.get("stdout", ""))
+                value = stats["drops"]
                 endpoint = f"{label}/{key}"
                 socket_drop_by_endpoint[endpoint] = max(socket_drop_by_endpoint.get(endpoint, 0), value)
-                socket_drop_max = max(socket_drop_max, value)
+                # UDP/raw-IP sockets keep their historical gate in every
+                # namespace. AF_PACKET is the WBD raw receive socket only in
+                # client/server namespaces; router AF_PACKET belongs to
+                # tcpdump and is gated separately by capture_drop().
+                if key != "ss_packet" or label in ("client", "server"):
+                    socket_drop_max = max(socket_drop_max, value)
+                if key == "ss_packet":
+                    row = packet_socket_by_endpoint.setdefault(endpoint, {
+                        "max_rmem_alloc": 0,
+                        "max_rcv_buf": 0,
+                        "max_drops": 0,
+                        "max_rmem_ratio": 0.0,
+                    })
+                    row["max_rmem_alloc"] = max(row["max_rmem_alloc"], stats["rmem_alloc"])
+                    row["max_rcv_buf"] = max(row["max_rcv_buf"], stats["rcv_buf"])
+                    row["max_drops"] = max(row["max_drops"], stats["drops"])
+                    if stats["rcv_buf"] > 0:
+                        row["max_rmem_ratio"] = max(
+                            row["max_rmem_ratio"],
+                            stats["rmem_alloc"] / stats["rcv_buf"],
+                        )
+                    if label in ("client", "server") and (
+                        item.get("error") or item.get("returncode", 0) != 0
+                    ):
+                        packet_socket_command_errors[endpoint] = (
+                            item.get("error") or item.get("stderr") or
+                            f"returncode={item.get('returncode')}"
+                        )
     if socket_drop_max:
-        offenders = {k: v for k, v in socket_drop_by_endpoint.items() if v}
+        offenders = {
+            k: v for k, v in socket_drop_by_endpoint.items()
+            if v and (not k.endswith("/ss_packet") or k.startswith(("client/", "server/")))
+        }
         errors.append(f"socket skmem drop max={socket_drop_max} endpoints={offenders}")
+    if packet_socket_command_errors:
+        errors.append(f"packet socket sampler errors={packet_socket_command_errors}")
 
     link_delta = {}
     if during:
@@ -521,6 +570,8 @@ def resource_summary(samples, start_unix, end_unix):
     return {
         "samples": len(during), "max_gap_s": max_gap, "missing_process_samples": missing,
         "socket_drop_max": socket_drop_max, "socket_drop_by_endpoint": socket_drop_by_endpoint,
+        "packet_socket_by_endpoint": packet_socket_by_endpoint,
+        "packet_socket_command_errors": packet_socket_command_errors,
         "link_drop_delta": link_delta,
         "process_cpu_seconds": cpu_seconds, "thread_cpu_seconds": thread_cpu_seconds,
         "errors": errors,

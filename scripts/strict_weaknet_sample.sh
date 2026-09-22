@@ -267,7 +267,10 @@ harness = [
     "tools/aggregate_strict_weaknet.py",
 ]
 if diagnostic_rate_only:
-    harness.append(".github/workflows/next-strict-capacity-diagnostics.yml")
+    harness.extend([
+        ".github/workflows/next-strict-capacity-diagnostics.yml",
+        ".github/workflows/next-strict-packet-socket-diagnostic.yml",
+    ])
 files = {}
 for rel in harness:
     data = (root / rel).read_bytes()

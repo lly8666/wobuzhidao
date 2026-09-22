@@ -135,6 +135,10 @@ def namespace_sample(ns):
         "qdisc": run_json(prefix + ["tc", "-s", "-j", "qdisc", "show"]),
         "ss_udp": run_text(prefix + ["ss", "-u", "-a", "-m", "-n"]),
         "ss_raw": run_text(prefix + ["ss", "-w", "-a", "-m", "-n"]),
+        # Linux FakeTCP receives through AF_PACKET/SOCK_RAW. ss -0 exposes
+        # packet sockets and their skmem(r/rb/d) counters, which are distinct
+        # from raw-IP (-w) and UDP (-u) sockets.
+        "ss_packet": run_text(prefix + ["ss", "-0", "-a", "-m", "-n"]),
         "snmp": run_text(prefix + ["cat", "/proc/net/snmp"]),
     }
 
