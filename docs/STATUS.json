@@ -59,9 +59,9 @@
     "P4增强第1原子修复：runtimeowner repair/gap-ACK仲裁在SOURCE_SHA e3253322ac863c11636f1c127e14b77bdc6bf800的定向Actions已通过repository-contract、Windows/Linux active-go（Linux含race）、OpenWrt privileged与Linux shared-TUN iptables/nft；repair选择/尝试/成功/失败分离且gap forgiveness不再覆盖已选repair。",
     "P4增强第2原子FIN/RST/半关闭：SOURCE_SHA 1cfe913199f7df67f05158e044cbec02771f29a8 / Actions 35669709080 定向资格已通过repository-contract、Windows active-go、Ubuntu active-go+race、P5 HTTPS base、OpenWrt privileged及Linux shared-TUN iptables/nft；Game4固定duplicates>=lanes-1并等待异步lane drain，replacement/DORMANT late-control race已收口。整轮长时P5 jobs当时仍运行，不提前写成整轮PASS。"
   ],
-  "in_progress": "P4增强第3原子任务已提交：协商后标准SACK选项、SACK已收payload立即释放、fresh-first有界repair credit、fresh-delivery证据fast repair及Karn-safe RTT/RTO。总pending元数据仍4096；本项暂保留扫描/排序实现，下一原子专门改成有界增量索引。等待exact-SHA Actions。",
-  "next_task": "先验证第3原子exact-SHA的packet/SACK、runtimeowner、Windows/Linux active-go+race、Game4/lifecycle、P4 privileged及P5旧回归；通过后第4原子消除每ACK全量pending扫描和SACK map排序/压缩，采用head/cursor/增量range索引。之后第5原子核对窗口/缩放/MSS/persona与实际TCP头长进入统一MTU。",
-  "latest_log": "docs/devlog/20260922-082500-steady-sack-repair-rto.md",
+  "in_progress": "P4第3原子产品代码位于9c330454；branch-wide next-foundation因上一SHA两个31m soak仍运行导致新run 35670825915处于pending。新增独立next-p4-steady-targeted workflow，仅作为每原子SHA的contract/Linux+Windows core/race/Game-lifecycle/privileged快速门，不替代最终P5主测/soak。",
+  "next_task": "在本workflow基础设施SHA上取得第3原子定向PASS；产品代码与9c330454完全相同。通过后再提交第4原子增量ACK/SACK索引。branch-wide next-foundation和最终P5真实路径仍独立保留。",
+  "latest_log": "docs/devlog/20260922-083500-p4-targeted-actions-lane.md",
   "last_tested_source_sha": "1cfe913199f7df67f05158e044cbec02771f29a8",
   "actions": [
     {
@@ -847,6 +847,13 @@
       "scope": "P4-steady-fin-rst-halfclose-targeted",
       "status": "PASS_TARGETED",
       "note": "repository-contract、Windows active-go、Ubuntu active-go+race、P5 HTTPS measurement-base、OpenWrt privileged、Linux shared-TUN iptables/nft均PASS；覆盖Game3/4、replacement+DORMANT、steady FIN/RST/half-close。长时P5 jobs未用作提前结论。"
+    },
+    {
+      "source_sha": "9c330454e64034f0d775b78a5d6fd7a2c6a92912",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35670825915",
+      "scope": "P4-item3-branch-wide-queue",
+      "status": "PENDING_NOT_EVALUATED",
+      "note": "next-foundation按branch concurrency串行，上一SHA的两个31m soak仍占用run，故9c330454当前尚未生成job。不是PASS/FAIL；新增独立per-SHA targeted workflow解决原子回归排队，最终P5不由该轻量workflow替代。"
     }
   ],
   "physical_status": "NOT_RUN",
