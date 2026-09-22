@@ -1,0 +1,7 @@
+kind: immutable-artifact-reanalysis
+raw_run: https://github.com/lly8666/wobuzhidao/actions/runs/35744227484
+raw_source_sha: c9a9691f242e716c569ba68f2a475161eead8cc4
+raw_artifact_id: 10702266004
+raw_artifact_sha256: d683b0e36183009b7c4fab10e43b3005340838f3cb2027bc60d1d6054cd1e672
+reason: original analyzer could read raw evidence but could not create summary.json in root-owned artifact directory
+note: no traffic rerun; validator must verify manifest source identity before analysis

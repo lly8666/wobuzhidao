@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "增强P4/P5 strict generation4已完成且FAIL：SOURCE_SHA 7110fd1e22cb2ab3809456657e3fcdf139508a65 / Actions 35742321744，18/18 raw样本齐全、CORRECTNESS与CAPTURE均保持通过模式，但6个场景组均未关闭；aggregate artifact 10701220460 zip sha256=7ccc1ccae9a9b68d27bcebb01e93c4511a8bfbdc3acea8cf3591e0553b223bef。修正后注入率准确，目标速率下持续出现client/server UDP skmem drop、秒级至数十秒queue age和严重goodput不足；Game repair外层占比约0.5%，主要线上成本为4副本+FEC source/parity/partial/header。当前进入容量定位，不运行30min soak或专项弱网。",
-  "next_task": "运行next-strict-capacity-diagnostics：正式Normal半速5Mbps/方向、Game半速1.5Mbps/方向，以及相同5-netns/veth/MTU1400/300ms router qdisc/四点抓包但绕过产品的50Mbps/方向校准。三项每个负载独占runner。若旁路50通过而产品半速仍socket drop，定位产品入口/队列消费；若旁路失败则先定位Actions发生器/veth/netem/capture容量。半速成功不替代10/3Mbps资格，不盲目扩大socket/FEC/4096缓存。",
-  "latest_log": "docs/devlog/20260922-235500-strict-generation4-capacity-diagnostics.md",
+  "in_progress": "容量诊断 run 35744227484 正在执行。旁路50Mbps/方向负载已完成，原始generator证据显示双向约50Mbps、最终唯一包/字节完全对齐、corrupt/duplicate/send_failure=0、probe 60/60、p99 pacing lag<0.52ms；但原analyzer因sudo创建的artifact目录root-owned，写summary.json时报PermissionError，属于harness权限错误而非容量结果。raw artifact 10702266004 zip sha256=d683b0e36183009b7c4fab10e43b3005340838f3cb2027bc60d1d6054cd1e672。本提交仅新增immutable artifact离线复算workflow，不重发旁路流量；Normal5/Game1.5半速正式产品job继续运行。",
+  "next_task": "等待Normal5/Game1.5两个半速正式产品诊断；同时运行next-strict-capacity-bypass-reanalysis，从raw artifact 10702266004复算qdisc/interface/socket/capture及最终交付。若离线旁路PASS而产品半速仍FAIL，进入产品入口/worker/队列最早背压层定位；若旁路复算发现drop则先定位Actions测量路径。不得把半速或旁路PASS当10/3Mbps资格。",
+  "latest_log": "docs/devlog/20260922-240500-capacity-bypass-offline-reanalysis.md",
   "last_tested_source_sha": "7110fd1e22cb2ab3809456657e3fcdf139508a65",
   "actions": [
     {

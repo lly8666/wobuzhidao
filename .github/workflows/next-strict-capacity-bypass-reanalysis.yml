@@ -1,0 +1,89 @@
+name: next-strict-capacity-bypass-reanalysis
+
+on:
+  push:
+    branches:
+      - next/tlslike-dataplane
+    paths:
+      - ".github/workflows/next-strict-capacity-bypass-reanalysis.yml"
+      - "tools/check_strict_capacity_bypass.py"
+      - "docs/qualification/STRICT_CAPACITY_BYPASS_REANALYSIS_TRIGGER"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  reanalyze-bypass-50:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      RAW_RUN_ID: "35744227484"
+      RAW_SOURCE_SHA: "c9a9691f242e716c569ba68f2a475161eead8cc4"
+      RAW_ARTIFACT_ID: "10702266004"
+      RAW_ARTIFACT_DIGEST: "sha256:d683b0e36183009b7c4fab10e43b3005340838f3cb2027bc60d1d6054cd1e672"
+      RAW_ARTIFACT_NAME: "strict-capacity-bypass-50-c9a9691f242e716c569ba68f2a475161eead8cc4"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download exact raw bypass artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.RAW_ARTIFACT_NAME }}
+          path: artifacts/raw
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.RAW_RUN_ID }}
+      - name: Verify raw identity
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          m=json.loads(Path("artifacts/raw/manifest.json").read_text())
+          assert m["source_sha"] == os.environ["RAW_SOURCE_SHA"], m
+          assert m["kind"] == "same-topology-product-bypass", m
+          assert float(m["config"]["application_mbps_each_direction"]) == 50.0, m
+          print("WBD_CAPACITY_RAW_IDENTITY_PASS", json.dumps(m, sort_keys=True))
+          PY
+      - name: Reanalyze immutable raw evidence
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/reanalysis
+          python3 tools/check_strict_capacity_bypass.py \
+            --artifact-dir artifacts/raw \
+            --source-sha "$RAW_SOURCE_SHA" \
+            --target-mbps 50 \
+            --output artifacts/reanalysis/summary.json
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          p=Path("tools/check_strict_capacity_bypass.py")
+          receipt={
+            "schema":1,
+            "raw_run_id":os.environ["RAW_RUN_ID"],
+            "raw_source_sha":os.environ["RAW_SOURCE_SHA"],
+            "raw_artifact_id":os.environ["RAW_ARTIFACT_ID"],
+            "raw_artifact_digest":os.environ["RAW_ARTIFACT_DIGEST"],
+            "validator_source_sha":os.environ["GITHUB_SHA"],
+            "analyzer_sha256":hashlib.sha256(p.read_bytes()).hexdigest(),
+          }
+          Path("artifacts/reanalysis/validator-receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
+          print("WBD_CAPACITY_REANALYSIS_RECEIPT",json.dumps(receipt,sort_keys=True))
+          PY
+      - name: Show result
+        if: always()
+        run: |
+          cat artifacts/reanalysis/summary.json || true
+          cat artifacts/reanalysis/validator-receipt.json || true
+      - name: Upload reanalysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict-capacity-bypass-50-reanalysis-${{ github.sha }}
+          path: artifacts/reanalysis
+          if-no-files-found: error
+          retention-days: 30
