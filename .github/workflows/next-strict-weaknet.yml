@@ -1,0 +1,175 @@
+name: next-strict-weaknet
+
+on:
+  push:
+    branches:
+      - next/tlslike-dataplane
+    paths:
+      - ".github/workflows/next-strict-weaknet.yml"
+      - "scripts/strict_weaknet_sample.sh"
+      - "tools/realpath_udp_duplex.py"
+      - "tools/strict_weaknet_stage.py"
+      - "tools/strict_resource_sampler.py"
+      - "tools/check_strict_weaknet.py"
+      - "tools/aggregate_strict_weaknet.py"
+      - "docs/qualification/STRICT_WEAKNET_TRIGGER"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  strict-sample:
+    name: strict-${{ matrix.mode }}-${{ matrix.scenario }}-seed${{ matrix.seed }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 18
+      matrix:
+        mode: [normal, game]
+        scenario: [lossless, "5205", "5305"]
+        seed: [101, 202, 303]
+
+    env:
+      ART: ${{ github.workspace }}/artifacts/strict-${{ matrix.mode }}-${{ matrix.scenario }}-seed${{ matrix.seed }}
+      WBD_STRICT_MODE: ${{ matrix.mode }}
+      WBD_STRICT_SCENARIO: ${{ matrix.scenario }}
+      WBD_STRICT_SEED: ${{ matrix.seed }}
+      WBD_STRICT_RATE_MBPS: ${{ matrix.mode == 'normal' && '10' || '3' }}
+      WBD_STRICT_LANES: ${{ matrix.mode == 'normal' && '1' || '4' }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Repository continuity contract
+        env:
+          CHANGE_BASE: ${{ github.event.before }}
+        run: python3 tools/check_repository.py
+
+      - name: Install network tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables nftables tcpdump openssl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+
+      - name: Build formal client and server
+        run: |
+          set -euo pipefail
+          mkdir -p "$ART"
+          go build -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
+          go build -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
+          "$ART/wbd-client" --version > "$ART/client-version.txt"
+          "$ART/wbd-server" --version > "$ART/server-version.txt"
+
+      - name: Run one isolated strict 120s sample
+        id: sample
+        continue-on-error: true
+        env:
+          WBD_STRICT_ARTIFACT_DIR: ${{ env.ART }}
+        run: |
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_STRICT_ARTIFACT_DIR,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES             bash scripts/strict_weaknet_sample.sh
+
+      - name: Validate strict raw evidence
+        id: validate
+        if: always()
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          test -f "$ART/biz.json"
+          test -f "$ART/target.json"
+          test -f "$ART/stage-events.jsonl"
+          test -f "$ART/resources.jsonl"
+          test -f "$ART/client-diag.jsonl"
+          test -f "$ART/server-diag.jsonl"
+          test -f "$ART/c2s-pre.pcap"
+          test -f "$ART/s2c-pre.pcap"
+          python3 tools/check_strict_weaknet.py             --artifact-dir "$ART"             --source-sha "$GITHUB_SHA"             --mode "$WBD_STRICT_MODE"             --scenario "$WBD_STRICT_SCENARIO"             --seed "$WBD_STRICT_SEED"             --target-mbps "$WBD_STRICT_RATE_MBPS"             --lanes "$WBD_STRICT_LANES"             --output "$ART/summary.json"
+
+      - name: Diagnostic tail
+        if: always()
+        run: |
+          set +e
+          echo "=== sample identity ==="
+          printf 'sha=%s mode=%s scenario=%s seed=%s rate=%s lanes=%s\n'             "$GITHUB_SHA" "$WBD_STRICT_MODE" "$WBD_STRICT_SCENARIO" "$WBD_STRICT_SEED" "$WBD_STRICT_RATE_MBPS" "$WBD_STRICT_LANES"
+          echo "=== client ==="; tail -n 80 "$ART/client.log" || true
+          echo "=== server ==="; tail -n 80 "$ART/server.log" || true
+          echo "=== stage ==="; cat "$ART/stage-events.jsonl" || true
+          echo "=== summary ==="; cat "$ART/summary.json" || true
+
+      - name: Upload strict sample evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict-weaknet-${{ matrix.mode }}-${{ matrix.scenario }}-seed${{ matrix.seed }}-${{ github.sha }}
+          path: ${{ env.ART }}
+          if-no-files-found: warn
+          compression-level: 1
+          retention-days: 30
+
+      - name: Enforce sample gates
+        if: always()
+        env:
+          SAMPLE_OUTCOME: ${{ steps.sample.outcome }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+        run: |
+          echo "sample=$SAMPLE_OUTCOME validator=$VALIDATE_OUTCOME"
+          test "$SAMPLE_OUTCOME" = success
+          test "$VALIDATE_OUTCOME" = success
+
+  strict-aggregate:
+    name: strict-aggregate-18
+    needs: strict-sample
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download all exact-SHA strict artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: strict-weaknet-*-${{ github.sha }}
+          path: artifacts/strict-all
+
+      - name: Aggregate three-repeat and RTT gates
+        id: aggregate
+        continue-on-error: true
+        run: |
+          mkdir -p artifacts/strict-aggregate
+          python3 tools/aggregate_strict_weaknet.py             --root artifacts/strict-all             --output artifacts/strict-aggregate/summary.json
+
+      - name: Upload aggregate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict-weaknet-aggregate-${{ github.sha }}
+          path: artifacts/strict-aggregate
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce aggregate gate
+        if: always()
+        env:
+          AGGREGATE_OUTCOME: ${{ steps.aggregate.outcome }}
+        run: |
+          cat artifacts/strict-aggregate/summary.json || true
+          test "$AGGREGATE_OUTCOME" = success

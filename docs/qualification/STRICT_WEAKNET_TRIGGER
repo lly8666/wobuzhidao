@@ -1,0 +1,3 @@
+generation: 1
+purpose: initial strict 18-sample run after lossless realpath calibration and fast regressions passed
+note: future product fixes should pass fast realpath/targeted/foundation first, then bump this file to explicitly launch the next strict 18-sample exact-SHA run

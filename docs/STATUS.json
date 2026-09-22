@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "增强P4/P5进入18个严格120s主测准备阶段。e02d44b同SHA realpath无损、targeted、fast foundation均PASS；旧P5/P6/31m低负载soak按新调度skipped。为满足弱网成本一等验收，本候选仅增加默认关闭的qualification diagnostic JSONL和只读计数：FEC source/parity字节、Game logical/copy字节、每lane transport/FEC/padding/队列bytes+age、Go heap/GC。默认产品路径/配置不变。",
-  "next_task": "检查本诊断候选 exact-SHA realpath、targeted、fast foundation；若同SHA通过，提交严格weaknet 18-job matrix harness：Normal1 10Mbps/向、Game4 3Mbps/向，FEC20:20、MTU1400、300ms/向、0/5-20-5/5-30-5、3 seed、120s 30/60/30 +10s drain，并保存分阶段pcap/qdisc/资源/成本账本。",
-  "latest_log": "docs/devlog/20260922-193000-strict-qualification-diagnostics.md",
-  "last_tested_source_sha": "e02d44b267962969efeee0bb35d2e70df74e777d",
+  "in_progress": "严格真实路径18个120s主测harness已准备提交：Normal1=10Mbps/向、Game4=3Mbps/向（正式--lanes 4会对同业务PacketID四lane竞速，不是四等分），FEC20:20、padding off、MTU1400、300ms/向；lossless/5-20-5/5-30-5 × 3 seed，120s=30/60/30 + 固定10s drain。每个matrix项独占一个GitHub Actions job/runner。57351075诊断候选realpath/targeted/fast foundation均PASS。",
+  "next_task": "提交strict weaknet workflow/harness并让新增workflow的push自动启动18个独立样本；逐项保留FAIL/INVALID/CAPACITY_LIMITED，不择优重跑。aggregate只在18 artifact上比较同mode+seed无损RTT基线并关闭三重复场景门；即使18主测通过，补丁A/B、专项损伤、目标速率30min长测、模块矩阵/打包/物理资格仍单独未关闭。",
+  "latest_log": "docs/devlog/20260922-200000-strict-weaknet-18-main-harness.md",
+  "last_tested_source_sha": "5735107569f41768a70a1d00752aed72330aa7f6",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1099,6 +1099,27 @@
       "scope": "fast-foundation-after-rack-test-contract",
       "status": "PASS",
       "note": "repository/P2/Linux+Windows active-go/OpenWrt TPROXY/shared-TUN iptables+nft全PASS；旧P5扩展/P6/31m soak按校准阶段CI策略skipped。"
+    },
+    {
+      "source_sha": "5735107569f41768a70a1d00752aed72330aa7f6",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35727678903",
+      "scope": "realpath-after-qualification-diagnostics",
+      "status": "PASS",
+      "note": "正式raw+TPROXY+TUN无损校准 exact-SHA success；默认关闭诊断未破坏路径。"
+    },
+    {
+      "source_sha": "5735107569f41768a70a1d00752aed72330aa7f6",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35727678717",
+      "scope": "targeted-after-qualification-diagnostics",
+      "status": "PASS",
+      "note": "Linux/Windows steady-core、lifecycle、iptables/nft privileged全PASS。"
+    },
+    {
+      "source_sha": "5735107569f41768a70a1d00752aed72330aa7f6",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35727678666",
+      "scope": "fast-foundation-after-qualification-diagnostics",
+      "status": "PASS",
+      "note": "repository/P2/Linux+Windows/OpenWrt TPROXY/shared-TUN全PASS；旧P5/P6/31m soak继续skipped。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1137,8 +1158,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED: e02d44b realpath+基础+受影响回归已同SHA全绿；进入严格weaknet主测与补丁性能A/B前的只读诊断/账本建设。",
-    "P5": "REOPENED: 无损真实路径校准已闭合；正在补18主测所需一等成本/资源诊断，尚未启动18个120s样本。",
+    "P4": "REOPENED: realpath与诊断层fast回归已绿；18严格主测即将启动，补丁性能A/B仍未执行。",
+    "P5": "REOPENED: 无损真实路径校准已通过；18个120s严格主测harness已固定并即将由Actions启动，目标速率30min长测必须在主测后另跑。",
     "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {

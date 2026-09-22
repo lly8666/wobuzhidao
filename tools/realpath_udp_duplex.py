@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import math
 import socket
 import struct
 import threading
@@ -61,15 +62,19 @@ def decode_packet(data):
 
 
 class Stats:
-    def __init__(self, start_ns, duration_s):
+    def __init__(self, start_ns, duration_s, drain_s):
         self.start_ns = start_ns
         self.duration_s = duration_s
+        self.drain_s = drain_s
         self.seconds = int(duration_s)
+        self.wall_seconds = int(math.ceil(duration_s + drain_s)) + 1
         self.lock = threading.Lock()
         self.sent_packets = [0] * self.seconds
         self.sent_bytes = [0] * self.seconds
         self.recv_packets = [0] * self.seconds
         self.recv_bytes = [0] * self.seconds
+        self.recv_wall_packets = [0] * self.wall_seconds
+        self.recv_wall_bytes = [0] * self.wall_seconds
         self.recv_seen = set()
         self.recv_duplicates = 0
         self.corrupt = 0
@@ -80,6 +85,7 @@ class Stats:
         self.probe_sent = 0
         self.probe_recv = 0
         self.probe_rtt_ns = []
+        self.probe_rtt_ns_by_second = [None] * self.seconds
         self.peer_ready_ns = None
 
     def second_for(self, send_ns):
@@ -95,6 +101,12 @@ class Stats:
                 self.sent_packets[sec] += 1
                 self.sent_bytes[sec] += size
             self.send_lag_ns.append(max(0, lag_ns))
+
+    def wall_second_for(self, now_ns):
+        sec = int((now_ns - self.start_ns) // 1_000_000_000)
+        if 0 <= sec < self.wall_seconds:
+            return sec
+        return None
 
     def note_recv(self, packet, now_ns, expected_kind):
         if packet["kind"] != expected_kind:
@@ -112,6 +124,10 @@ class Stats:
             self.recv_seen.add(key)
             self.recv_packets[sec] += 1
             self.recv_bytes[sec] += packet["size"]
+            wall_sec = self.wall_second_for(now_ns)
+            if wall_sec is not None:
+                self.recv_wall_packets[wall_sec] += 1
+                self.recv_wall_bytes[wall_sec] += packet["size"]
             self.oneway_ns.append(max(0, now_ns - packet["send_ns"]))
 
     def snapshot(self):
@@ -121,6 +137,8 @@ class Stats:
                 "sent_bytes_by_second": list(self.sent_bytes),
                 "recv_packets_by_second": list(self.recv_packets),
                 "recv_bytes_by_second": list(self.recv_bytes),
+                "recv_wall_packets_by_second": list(self.recv_wall_packets),
+                "recv_wall_bytes_by_second": list(self.recv_wall_bytes),
                 "sent_packets": sum(self.sent_packets),
                 "sent_bytes": sum(self.sent_bytes),
                 "recv_unique_packets": len(self.recv_seen),
@@ -129,6 +147,7 @@ class Stats:
                 "corrupt": self.corrupt,
                 "unexpected": self.unexpected,
                 "send_failures": self.send_failures,
+                "skipped_slots": 0,
                 "send_lag_p99_ns": percentile(self.send_lag_ns, 0.99),
                 "oneway_p50_ns": percentile(self.oneway_ns, 0.50),
                 "oneway_p95_ns": percentile(self.oneway_ns, 0.95),
@@ -138,6 +157,8 @@ class Stats:
                 "probe_rtt_p50_ns": percentile(self.probe_rtt_ns, 0.50),
                 "probe_rtt_p95_ns": percentile(self.probe_rtt_ns, 0.95),
                 "probe_rtt_p99_ns": percentile(self.probe_rtt_ns, 0.99),
+                "probe_rtt_ns_by_second": list(self.probe_rtt_ns_by_second),
+                "probe_timeouts": max(0, self.probe_sent - self.probe_recv),
                 "peer_ready_ns": self.peer_ready_ns,
             }
 
@@ -214,8 +235,12 @@ def receiver_loop(role, sock, expected_kind, stats, peer_holder, stop_ns, stop_e
             continue
         if role == "biz" and kind == KIND_PROBE_REPLY:
             with stats.lock:
+                rtt = max(0, now_ns - packet["send_ns"])
                 stats.probe_recv += 1
-                stats.probe_rtt_ns.append(max(0, now_ns - packet["send_ns"]))
+                stats.probe_rtt_ns.append(rtt)
+                sec = stats.second_for(packet["send_ns"])
+                if sec is not None and stats.probe_rtt_ns_by_second[sec] is None:
+                    stats.probe_rtt_ns_by_second[sec] = rtt
             continue
         stats.note_recv(packet, now_ns, expected_kind)
 
@@ -274,7 +299,7 @@ def main():
     rcvbuf = sock.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
     sndbuf = sock.getsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF)
 
-    stats = Stats(args.start_ns, args.duration)
+    stats = Stats(args.start_ns, args.duration, args.drain)
     peer_holder = {"peer": peer if args.role == "biz" else None, "lock": threading.Lock()}
     stop_event = threading.Event()
     stop_ns = args.start_ns + int((args.duration + args.drain) * 1e9)
