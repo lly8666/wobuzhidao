@@ -11,7 +11,7 @@ import (
 
 func TestProtectedAdmissionCarriesAndEchoesLaneID(t *testing.T) {
 	req := AdmissionRequest{
-		RecordVersion: RecordVersionV1,
+		RecordVersion: RecordVersionV2,
 		LaneID:        3,
 		TunnelID:      []byte("0123456789abcdef"),
 		ClientLimit:   1300,
@@ -31,7 +31,7 @@ func TestProtectedAdmissionCarriesAndEchoesLaneID(t *testing.T) {
 	}
 
 	result := AdmissionResult{
-		RecordVersion: RecordVersionV1,
+		RecordVersion: RecordVersionV2,
 		LaneID:        3,
 		TunnelID:      append([]byte(nil), req.TunnelID...),
 		ClientLimit:   req.ClientLimit,
@@ -58,7 +58,7 @@ func TestProtectedAdmissionCarriesAndEchoesLaneID(t *testing.T) {
 
 func TestProtectedAdmissionRejectsOutOfRangeLaneID(t *testing.T) {
 	req := AdmissionRequest{
-		RecordVersion: RecordVersionV1,
+		RecordVersion: RecordVersionV2,
 		LaneID:        5,
 		TunnelID:      []byte("0123456789abcdef"),
 		ClientLimit:   1300,
@@ -69,7 +69,7 @@ func TestProtectedAdmissionRejectsOutOfRangeLaneID(t *testing.T) {
 		t.Fatalf("request lane err=%v want admission params", err)
 	}
 	result := AdmissionResult{
-		RecordVersion: RecordVersionV1,
+		RecordVersion: RecordVersionV2,
 		LaneID:        5,
 		TunnelID:      append([]byte(nil), req.TunnelID...),
 		ClientLimit:   1300,
@@ -92,13 +92,13 @@ func TestProtectedAdmissionValidatorRejectsBeforeSuccessReply(t *testing.T) {
 		_, err := EstablishServer(context.Background(), assoc, ServerAdmissionConfig{
 			TLS: ServerConfig{
 				ServerName: "target.test",
-				RouteKey: routeKey,
-				TLSConfig: &tls.Config{Certificates: []tls.Certificate{cert}},
-				Timeout: 3 * time.Second,
+				RouteKey:   routeKey,
+				TLSConfig:  &tls.Config{Certificates: []tls.Certificate{cert}},
+				Timeout:    3 * time.Second,
 			},
 			ExpectedUsername: "solo",
 			ExpectedPassword: "correct-password",
-			ServerLimit: 1250,
+			ServerLimit:      1250,
 			ValidateRequest: func(req AdmissionRequest) error {
 				if req.LaneID != 2 {
 					t.Fatalf("validator lane=%d want=2", req.LaneID)

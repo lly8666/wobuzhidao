@@ -15,14 +15,14 @@ import (
 )
 
 const (
-	RecordVersionV1 uint16 = 1
+	RecordVersionV2 uint16 = 2
 
 	admissionMagic      = "WBAD"
 	admissionRequestLen = 15
 	admissionReplyLen   = 26
 	maxAdmissionUserLen = 255
 	maxAdmissionPassLen = 1024
-	tunnelIDLen          = 16
+	tunnelIDLen         = 16
 
 	admissionOK          byte = 0
 	admissionAuthFail    byte = 1
@@ -73,7 +73,7 @@ type ClientAdmissionConfig struct {
 	ClientLimit uint16
 	// LaneID is the protected Logical Tunnel lane identity. Zero keeps legacy
 	// single-lane callers source-compatible and is normalized to lane 1.
-	LaneID      uint8
+	LaneID uint8
 }
 
 type AdmissionRequestValidator func(AdmissionRequest) error
@@ -87,7 +87,7 @@ type ServerAdmissionConfig struct {
 	// ValidateRequest runs after TLS protection + credential verification but
 	// before the success reply is emitted. It lets the runtime fail closed when
 	// a TunnelID/LaneID cannot be bound to current lifecycle state.
-	ValidateRequest  AdmissionRequestValidator
+	ValidateRequest AdmissionRequestValidator
 }
 
 type ClientAdmissionSession struct {
@@ -111,7 +111,7 @@ func EstablishClient(ctx context.Context, conn net.Conn, cfg ClientAdmissionConf
 		laneID = 1
 	}
 	req := AdmissionRequest{
-		RecordVersion: RecordVersionV1,
+		RecordVersion: RecordVersionV2,
 		LaneID:        laneID,
 		TunnelID:      append([]byte(nil), cfg.TunnelID...),
 		ClientLimit:   cfg.ClientLimit,
@@ -302,7 +302,7 @@ func establishServerRecognized(ctx context.Context, assoc *faketcp.ServerAssocia
 }
 
 func marshalAdmissionRequest(req AdmissionRequest) ([]byte, error) {
-	if req.RecordVersion != RecordVersionV1 {
+	if req.RecordVersion != RecordVersionV2 {
 		return nil, ErrAdmissionVersion
 	}
 	if req.LaneID == 0 {
@@ -340,7 +340,7 @@ func readAdmissionRequest(r io.Reader) (AdmissionRequest, error) {
 		return out, ErrAdmissionParams
 	}
 	out.RecordVersion = binary.BigEndian.Uint16(hdr[4:6])
-	if out.RecordVersion != RecordVersionV1 {
+	if out.RecordVersion != RecordVersionV2 {
 		return out, ErrAdmissionVersion
 	}
 	out.ClientLimit = binary.BigEndian.Uint16(hdr[6:8])
@@ -370,7 +370,7 @@ func marshalAdmissionReply(result AdmissionResult) ([]byte, error) {
 	if result.LaneID == 0 {
 		result.LaneID = 1
 	}
-	if result.RecordVersion != RecordVersionV1 || !validAdmissionLaneID(result.LaneID) ||
+	if result.RecordVersion != RecordVersionV2 || !validAdmissionLaneID(result.LaneID) ||
 		!validRecordLimit(result.ClientLimit) || !validRecordLimit(result.ServerLimit) ||
 		len(result.TunnelID) != tunnelIDLen {
 		return nil, ErrAdmissionParams
@@ -416,7 +416,7 @@ func readAdmissionReply(r io.Reader, req AdmissionRequest) (AdmissionResult, err
 	out.ServerLimit = binary.BigEndian.Uint16(rest[20:22])
 	out.LaneID = rest[22]
 	tunnelLen := int(binary.BigEndian.Uint16(rest[23:25]))
-	if out.RecordVersion != RecordVersionV1 || out.RecordVersion != req.RecordVersion ||
+	if out.RecordVersion != RecordVersionV2 || out.RecordVersion != req.RecordVersion ||
 		out.LaneID != req.LaneID || !validAdmissionLaneID(out.LaneID) ||
 		out.ClientLimit != req.ClientLimit || !validRecordLimit(out.ServerLimit) ||
 		tunnelLen != tunnelIDLen {

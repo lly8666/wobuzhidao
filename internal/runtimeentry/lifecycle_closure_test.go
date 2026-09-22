@@ -19,14 +19,16 @@ import (
 )
 
 type lifecycleAuditHarness struct {
-	ctx          context.Context
-	cancel       context.CancelFunc
-	client       *TunnelClient
-	server       *LifecycleServer
-	serverTUN    *memoryPacketWriter
-	clientDeliver chan []byte
-	tunnelID     logicaltunnel.TunnelID
-	lease        logicaltunnel.Lease
+	dropPortsThrough *atomic.Uint32
+	failOpen         *atomic.Bool
+	ctx              context.Context
+	cancel           context.CancelFunc
+	client           *TunnelClient
+	server           *LifecycleServer
+	serverTUN        *memoryPacketWriter
+	clientDeliver    chan []byte
+	tunnelID         logicaltunnel.TunnelID
+	lease            logicaltunnel.Lease
 
 	mux          *SegmentMux
 	serverCancel context.CancelFunc
@@ -59,11 +61,16 @@ func newLifecycleAuditHarness(t *testing.T, lanes int, dormantAfter, rotateEvery
 	}
 
 	clientBase, serverEP := memorySegmentPair()
+	dropPortsThrough := &atomic.Uint32{}
+	failOpen := &atomic.Bool{}
 	clientFIN := &atomic.Uint64{}
 	serverFIN := &atomic.Uint64{}
 	clientIO := clientBase.io()
 	clientEmit := clientIO.Emit
 	clientIO.Emit = func(seg faketcp.Segment) error {
+		if uint32(seg.SrcPort) <= dropPortsThrough.Load() {
+			return nil
+		}
 		if seg.Flags&faketcp.FlagFIN != 0 {
 			clientFIN.Add(1)
 		}
@@ -72,6 +79,9 @@ func newLifecycleAuditHarness(t *testing.T, lanes int, dormantAfter, rotateEvery
 	serverIO := serverEP.io()
 	serverEmit := serverIO.Emit
 	serverIO.Emit = func(seg faketcp.Segment) error {
+		if uint32(seg.DstPort) <= dropPortsThrough.Load() {
+			return nil
+		}
 		if seg.Flags&faketcp.FlagFIN != 0 {
 			serverFIN.Add(1)
 		}
@@ -114,16 +124,17 @@ func newLifecycleAuditHarness(t *testing.T, lanes int, dormantAfter, rotateEvery
 				return lease.Clone(), nil
 			},
 			Lane: datapath.ServerLaneParams{
-				ConnectionMTU: 1500,
+				ConnectionMTU:   1500,
 				TxIPv4HeaderLen: 20, TxTCPHeaderLen: 20,
 				RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
 			},
 			Router:  router,
 			Service: platformflow.DefaultServerConfig(),
 		},
-		DesiredLanes:     lanes,
-		DormantAfter:     dormantAfter,
-		ReplacementGrace: 50 * time.Millisecond,
+		DesiredLanes:      lanes,
+		DormantAfter:      dormantAfter,
+		KeepaliveInterval: time.Second,
+		ReplacementGrace:  50 * time.Millisecond,
 	})
 	if err != nil {
 		_ = mux.Close()
@@ -134,10 +145,13 @@ func newLifecycleAuditHarness(t *testing.T, lanes int, dormantAfter, rotateEvery
 	serverDone := make(chan error, 1)
 	go func() { serverDone <- server.Run(serverCtx) }()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	clientDeliver := make(chan []byte, 16)
 	client, err := DialTunnelClient(ctx, TunnelClientConfig{
 		OpenLane: func(_ uint8, incarnation uint64) (SegmentIO, faketcp.ClientFlow, error) {
+			if failOpen.Load() {
+				return SegmentIO{}, faketcp.ClientFlow{}, errors.New("injected candidate open failure")
+			}
 			flow := faketcp.ClientFlow{
 				LocalIP:   [4]byte{192, 0, 2, 51},
 				PeerIP:    [4]byte{192, 0, 2, 61},
@@ -162,7 +176,7 @@ func newLifecycleAuditHarness(t *testing.T, lanes int, dormantAfter, rotateEvery
 			ClientLimit: 1300,
 		},
 		Lane: datapath.ClientLaneParams{
-			ConnectionMTU: 1500,
+			ConnectionMTU:   1500,
 			TxIPv4HeaderLen: 20, TxTCPHeaderLen: 20,
 			RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
 		},
@@ -172,8 +186,9 @@ func newLifecycleAuditHarness(t *testing.T, lanes int, dormantAfter, rotateEvery
 			}
 			return nil
 		},
-		TickInterval:     10 * time.Millisecond,
-		DormantAfter:     dormantAfter,
+		TickInterval:      10 * time.Millisecond,
+		DormantAfter:      dormantAfter,
+		KeepaliveInterval: time.Second, DeadAfter: 3 * time.Second,
 		RotateMin:        rotateEvery,
 		RotateMax:        rotateEvery,
 		ReplacementGrace: 50 * time.Millisecond,
@@ -187,6 +202,7 @@ func newLifecycleAuditHarness(t *testing.T, lanes int, dormantAfter, rotateEvery
 	}
 
 	h := &lifecycleAuditHarness{
+		dropPortsThrough: dropPortsThrough, failOpen: failOpen,
 		ctx: ctx, cancel: cancel,
 		client: client, server: server,
 		serverTUN: serverTUN, clientDeliver: clientDeliver,
@@ -362,7 +378,6 @@ func TestLifecycleEntryPayloadIdleAutoDormantAndBusinessWake(t *testing.T) {
 	}
 }
 
-
 func TestLifecycleEntryExplicitCloseEmitsSteadyFINBeforeNetworkDetach(t *testing.T) {
 	h := newLifecycleAuditHarness(t, 2, 0, 0)
 	h.sendForward(t, [4]byte{7, 7, 7, 7})
@@ -374,7 +389,6 @@ func TestLifecycleEntryExplicitCloseEmitsSteadyFINBeforeNetworkDetach(t *testing
 		t.Fatalf("explicit close FINs=%d want at least one per active lane", got)
 	}
 }
-
 
 func TestLifecycleServerDormantDeliveryFenceDropsLateBusiness(t *testing.T) {
 	server := &LifecycleServer{}

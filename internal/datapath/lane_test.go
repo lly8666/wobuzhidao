@@ -30,11 +30,11 @@ func testKeys() tlsrecord.KeyPair {
 
 func mtuConfig(limit, parity int) pathmtu.Config {
 	return pathmtu.Config{
-		ConnectionMTU:  1500,
-		IPv4HeaderLen:  20,
-		TCPHeaderLen:   20,
-		PeerMSS:        faketcp.DefaultMSS,
-		PeerMSSSet:     true,
+		ConnectionMTU:   1500,
+		IPv4HeaderLen:   20,
+		TCPHeaderLen:    20,
+		PeerMSS:         faketcp.DefaultMSS,
+		PeerMSSSet:      true,
 		RecordWireLimit: limit,
 		ParityShards:    parity,
 	}
@@ -179,7 +179,7 @@ func TestServerAdmissionHandoffBindsDirectionLimitsPeerMSSAndProfile(t *testing.
 
 	session := &realityfront.ServerAdmissionSession{
 		Negotiated: realityfront.AdmissionResult{
-			RecordVersion: realityfront.RecordVersionV1,
+			RecordVersion: realityfront.RecordVersionV2,
 			TunnelID:      []byte("0123456789abcdef"),
 			ClientLimit:   1100,
 			ServerLimit:   1000,
@@ -227,7 +227,7 @@ func TestServerAdmissionHandoffBindsDirectionLimitsPeerMSSAndProfile(t *testing.
 	}
 
 	if _, err := ServerLaneConfigFromAdmission(session, assoc, ServerLaneParams{
-		ConnectionMTU: 1500,
+		ConnectionMTU:   1500,
 		TxIPv4HeaderLen: 20, TxTCPHeaderLen: 32,
 		RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
 	}); !errors.Is(err, ErrAdmissionHandoff) {

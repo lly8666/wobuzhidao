@@ -13,31 +13,32 @@ const (
 	OuterType         byte   = 0x17
 	OuterVersion      uint16 = 0x0303
 	KindLINK          byte   = 0x00
+	KindHealth        byte   = 0x01
 	InnerType         byte   = 0x17
 	OuterHeaderLen           = 5
-	ProtectedPNLen            = 8
-	AEADTagLen                = 16
-	PlainFixedLen             = 2
-	MinBodyLen                = ProtectedPNLen + AEADTagLen + PlainFixedLen
-	FixedWireOverhead         = OuterHeaderLen + MinBodyLen
-	MaxBodyLen                = (1 << 14) + 256
-	MaxWireLen                = OuterHeaderLen + MaxBodyLen
+	ProtectedPNLen           = 8
+	AEADTagLen               = 16
+	PlainFixedLen            = 2
+	MinBodyLen               = ProtectedPNLen + AEADTagLen + PlainFixedLen
+	FixedWireOverhead        = OuterHeaderLen + MinBodyLen
+	MaxBodyLen               = (1 << 14) + 256
+	MaxWireLen               = OuterHeaderLen + MaxBodyLen
 )
 
 var (
-	ErrInvalidWireLimit        = errors.New("tlsrecord: wire limit is too small")
-	ErrPayloadTooLarge         = errors.New("tlsrecord: payload exceeds negotiated record limit")
-	ErrInvalidPadding          = errors.New("tlsrecord: invalid padding length")
-	ErrPaddingTooLarge         = errors.New("tlsrecord: padding exceeds record headroom")
-	ErrPNExhausted             = errors.New("tlsrecord: packet number exhausted")
-	ErrInvalidLength           = errors.New("tlsrecord: invalid record length")
-	ErrUnexpectedOuterType     = errors.New("tlsrecord: unexpected outer type")
-	ErrUnexpectedOuterVersion  = errors.New("tlsrecord: unexpected outer version")
-	ErrAuthentication          = errors.New("tlsrecord: authentication failed")
-	ErrMalformedPlaintext      = errors.New("tlsrecord: malformed plaintext")
-	ErrUnknownKind             = errors.New("tlsrecord: unknown record kind")
-	ErrUnexpectedInnerType     = errors.New("tlsrecord: unexpected inner type")
-	ErrDuplicate               = errors.New("tlsrecord: duplicate recent packet number")
+	ErrInvalidWireLimit       = errors.New("tlsrecord: wire limit is too small")
+	ErrPayloadTooLarge        = errors.New("tlsrecord: payload exceeds negotiated record limit")
+	ErrInvalidPadding         = errors.New("tlsrecord: invalid padding length")
+	ErrPaddingTooLarge        = errors.New("tlsrecord: padding exceeds record headroom")
+	ErrPNExhausted            = errors.New("tlsrecord: packet number exhausted")
+	ErrInvalidLength          = errors.New("tlsrecord: invalid record length")
+	ErrUnexpectedOuterType    = errors.New("tlsrecord: unexpected outer type")
+	ErrUnexpectedOuterVersion = errors.New("tlsrecord: unexpected outer version")
+	ErrAuthentication         = errors.New("tlsrecord: authentication failed")
+	ErrMalformedPlaintext     = errors.New("tlsrecord: malformed plaintext")
+	ErrUnknownKind            = errors.New("tlsrecord: unknown record kind")
+	ErrUnexpectedInnerType    = errors.New("tlsrecord: unexpected inner type")
+	ErrDuplicate              = errors.New("tlsrecord: duplicate recent packet number")
 )
 
 type Sealer struct {
@@ -65,6 +66,7 @@ type Opener struct {
 }
 
 type Record struct {
+	Kind    byte
 	PN      uint64
 	Payload []byte
 }
@@ -101,7 +103,7 @@ func NewOpener(keys Keys, maxWire int) (*Opener, error) {
 // default padding=0 behavior byte-for-byte. If encoding fails, that PN is
 // intentionally skipped and is never reused.
 func (s *Sealer) Seal(payload []byte) ([]byte, uint64, error) {
-	return s.seal(payload, 0, false)
+	return s.seal(payload, 0, false, KindLINK)
 }
 
 // SealWithPadding is the explicit non-default padding API. Padding bytes are
@@ -109,10 +111,14 @@ func (s *Sealer) Seal(payload []byte) ([]byte, uint64, error) {
 // or payload bytes. Negative padding and requests beyond this sealer's wire
 // headroom are rejected explicitly.
 func (s *Sealer) SealWithPadding(payload []byte, padding int) ([]byte, uint64, error) {
-	return s.seal(payload, padding, true)
+	return s.seal(payload, padding, true, KindLINK)
 }
 
-func (s *Sealer) seal(payload []byte, padding int, explicitPadding bool) ([]byte, uint64, error) {
+func (s *Sealer) SealHealth(payload []byte) ([]byte, uint64, error) {
+	return s.seal(payload, 0, false, KindHealth)
+}
+
+func (s *Sealer) seal(payload []byte, padding int, explicitPadding bool, kind byte) ([]byte, uint64, error) {
 	if s.exhausted {
 		return nil, 0, ErrPNExhausted
 	}
@@ -128,7 +134,7 @@ func (s *Sealer) seal(payload []byte, padding int, explicitPadding bool) ([]byte
 			s.stats.RequestedPaddingBytes += uint64(padding)
 		}
 	}
-	wire, err := sealRecord(s.keys, s.aead, s.maxBody, pn, KindLINK, payload, padding)
+	wire, err := sealRecord(s.keys, s.aead, s.maxBody, pn, kind, payload, padding)
 	if err != nil {
 		s.stats.Failed++
 		return nil, pn, err
@@ -191,11 +197,11 @@ func (o *Opener) OpenRecord(wire []byte) (Record, error) {
 	if end < 1 || plain[end] != InnerType {
 		return Record{}, ErrUnexpectedInnerType
 	}
-	if plain[0] != KindLINK {
+	if plain[0] != KindLINK && plain[0] != KindHealth {
 		return Record{}, ErrUnknownKind
 	}
 	payload := append([]byte(nil), plain[1:end]...)
-	return Record{PN: pn, Payload: payload}, nil
+	return Record{Kind: plain[0], PN: pn, Payload: payload}, nil
 }
 
 func effectiveBodyLimit(maxWire int) (int, error) {

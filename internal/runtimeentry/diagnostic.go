@@ -15,8 +15,9 @@ type LaneDiagnostic struct {
 }
 
 type TunnelDiagnostic struct {
-	Owner datapath.TunnelOwnerStats `json:"owner"`
-	Lanes []LaneDiagnostic          `json:"lanes"`
+	Lifecycle *LifecycleStats           `json:"lifecycle,omitempty"`
+	Owner     datapath.TunnelOwnerStats `json:"owner"`
+	Lanes     []LaneDiagnostic          `json:"lanes"`
 }
 
 func diagnosticSnapshot(owner *datapath.TunnelOwner, rt *runtimeowner.Runtime, now time.Time) TunnelDiagnostic {
@@ -41,7 +42,10 @@ func (c *TunnelClient) DiagnosticSnapshot(now time.Time) TunnelDiagnostic {
 	if c == nil {
 		return TunnelDiagnostic{}
 	}
-	return diagnosticSnapshot(c.owner, c.rt, now)
+	out := diagnosticSnapshot(c.owner, c.rt, now)
+	stats := c.LifecycleStats()
+	out.Lifecycle = &stats
+	return out
 }
 
 func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, now time.Time) (TunnelDiagnostic, bool) {

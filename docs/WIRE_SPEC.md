@@ -23,13 +23,13 @@ outer:
   ciphertext      variable (包含 16 字节 tag)
 
 plaintext:
-  kind=0x00       1 byte (LINK datagram)
+  kind           1 byte (0x00=LINK datagram; 0x01=health in admission V2)
   payload         N bytes
   inner_type=0x17 1 byte
   padding         0..P 个 0x00
 ```
 
-V1 发送端默认 padding=0，既有 Seal 与固定向量保持不变；P3 新增显式非零 padding 编码能力，接收端支持合法尾部零填充。此为计划中的 API 能力，不表示当前实现或生产默认已启用。padding 加在 inner_type 之后并纳入 AEAD，不另加明文长度字段、不改变 version/kind/PN/AAD。没有 FRAGMENT/ACK/NACK/RETIRE record kind。控制流量通过已有 LINK 控制数据报承载。未知 kind 只丢本记录并计数。
+V1 发送端默认 padding=0，既有 Seal 与固定向量保持不变；P3 新增显式非零 padding 编码能力，接收端支持合法尾部零填充。此为计划中的 API 能力，不表示当前实现或生产默认已启用。padding 加在 inner_type 之后并纳入 AEAD，不另加明文长度字段、不改变 version/kind/PN/AAD。没有 FRAGMENT/ACK/NACK/RETIRE record kind。admission V2 新增独立 health kind=0x01，业务控制仍走既有 LINK。未知 kind 只丢本记录并计数。
 
 每个方向独立完整 uint64 PN，从 0 开始；仅新建记录消耗 PN，失败编码可跳号但绝不重用。PN 不从 TCP Seq、Game PacketID 或 FEC BlockID 推导。使用完最大编号后必须拒绝新建记录并触发现有 lane replacement，不回绕。
 
@@ -161,3 +161,14 @@ FEC encoder 返回的内部 wire backing slot 可以复用，因此进入统一�
 参考：[RFC 8439](https://www.rfc-editor.org/rfc/rfc8439.html)、[RFC 8446 §5/§7.5](https://www.rfc-editor.org/rfc/rfc8446.html)、[RFC 9001 §5.4](https://www.rfc-editor.org/rfc/rfc9001.html#section-5.4)。本 wire 是自定义独立数据报协议，格式外观参考 TLS，不是标准 TLS record protection。
 
 TLS启动填充可选策略（2026-09-22）：只改变既有加密内padding长度，不新增record kind/协议字段/协商。默认off；业务检测在FEC前，实际padding在source record seal前，不进入FEC或original_lengths，不增加record/分片；parity与重传不得重新随机。固定预算与旁路条件见TLS_STARTUP_PADDING.md。
+
+
+## Lifecycle V2（2026-09-23，待 Actions 验收）
+
+真实 TLS 握手/移交流程复用现有实现；TLS 内 admission RecordVersion 从 1 升为 2，V1 显式 version failure，两端须成对升级。V2 exporter context 中 Version=2；record 外层格式、PN/AEAD/HP/MTU和LINK/FEC格式不变，既有纯 record 固定向量保留。
+
+kind=0x01 的加密 payload 固定 9 字节：第 0 字节 health schema=1；随后 uint64 big-endian 为本端距最近业务活动的毫秒数（0～7天，发送端封顶）。记录总 wire 40B。PN 仍使用同 lane 的唯一单调分配器，receive first-arrival 不依赖 PN 连续。必须认证成功且结构合法，过大 idle 值拒绝。peer idle hint 仅接受比上次 hint 更新的 PN；不要求按顺序交付业务。近期重复不刷新 liveness；不是密码学无限历史反重放保证。
+
+health 不经过 LINK/FEC、padding、不建立业务 flow、不补充或消耗专门 repair 队列；正常 pending ACK 元数据有既定界限和到期回收。客户端进入稳态后开始发送；服务端必须先收到对端首条有效加密记录，防止新数据面记录进入对端未完成的 TLS bootstrap。每端主动定时发送，不用 ping/pong 响应放大。自动休眠前允许每lane一次最终 idle hint。
+
+missing health = UNKNOWN，不能推出业务空闲。只有本端业务空闲且所有 active lane 最近 <=2个本端发送间隔收到 peer idle>=idle-dormant 的有效提示才自动休眠；活动快照二次校验防竞态。超时失活与 DORMANT 为不同状态。默认15s/90s参数、有限重连、诊断与验收详见 PARAMETERS 和 LIFECYCLE_ACCEPTANCE。

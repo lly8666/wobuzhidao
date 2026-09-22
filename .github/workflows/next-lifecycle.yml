@@ -1,0 +1,37 @@
+name: next-lifecycle
+on:
+  push:
+    branches: ['next/**']
+    paths:
+      - 'internal/**'
+      - 'cmd/**'
+      - 'tools/parameter_catalog.py'
+      - 'docs/PARAMETERS*'
+      - '.github/workflows/next-lifecycle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+      - name: Parameter authority gate
+        run: python3 tools/parameter_catalog.py
+      - name: Compile official entries
+        run: |
+          go build ./cmd/wbd-client ./cmd/wbd-server
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build ./cmd/wbd-client
+      - name: Lifecycle and wire correctness
+        run: go test ./internal/configfile ./internal/tlsrecord ./internal/realityfront ./internal/datapath ./internal/runtimeowner ./internal/runtimeentry -count=1
+      - name: Focused lifecycle race repetitions
+        run: go test -race ./internal/configfile ./internal/runtimeowner ./internal/runtimeentry -run='Health|Configuration|AdaptivePressure|LifecycleEntryPayloadIdle|IdleSnapshot' -count=3
+      - name: Record exact scope
+        if: always()
+        run: |
+          echo "SOURCE_SHA=$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Core only. Detailed real-process netem/blackhole/idle/overhead acceptance remains NOT_RUN until the handoff matrix is executed.' >> "$GITHUB_STEP_SUMMARY"

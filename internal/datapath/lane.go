@@ -67,15 +67,18 @@ type paddingSelection struct {
 type paddingSelector func(headroom int, source bool) (paddingSelection, error)
 
 type WireRecord struct {
+	Control      bool
 	PN           uint64
 	PaddingBytes int
 	Wire         []byte
 }
 
 type InboundResult struct {
-	Datagrams    [][]byte
-	RecordErrors []error
-	PathErrors   []error
+	Authenticated uint64
+	Health        []HealthMessage
+	Datagrams     [][]byte
+	RecordErrors  []error
+	PathErrors    []error
 }
 
 type LaneStats struct {
@@ -468,6 +471,18 @@ func (l *Lane) inboundLocked(payload []byte, now time.Time) InboundResult {
 			continue
 		}
 		l.stats.InboundRecords++
+		if decoded.Kind == tlsrecord.KindHealth {
+			health, err := parseHealth(decoded.PN, decoded.Payload)
+			if err != nil {
+				out.RecordErrors = append(out.RecordErrors, err)
+				l.stats.RecordErrors++
+				continue
+			}
+			out.Authenticated++
+			out.Health = append(out.Health, health)
+			continue
+		}
+		out.Authenticated++
 		packets, err := l.rxPath.Decode(decoded.Payload, now)
 		for _, packet := range packets {
 			out.Datagrams = append(out.Datagrams, append([]byte(nil), packet...))

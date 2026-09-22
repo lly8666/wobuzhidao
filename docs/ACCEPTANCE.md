@@ -79,3 +79,7 @@ P7只在主流程已稳定后由用户安排，最终核对真实链路外观、
 ## TLS启动填充小功能（待 exact-SHA Actions）
 
 实现及完整关闭门槛见 [TLS_STARTUP_PADDING](TLS_STARTUP_PADDING.md)。默认off、无等待/no-HOL、全FEC source/parity区分、Game共享预算、生命周期/失败rollback/资源上限必须覆盖；真实二进制TUN与平台转发专项必须证明启用和实际padding，不得用core/serializer替代。当前仅已编写测试与workflow，验收NOT_RUN，不能宣称消除了TLS-in-TLS。通过后只关闭此小功能，原主线暂停不变。
+
+
+### 生命周期专项（V2，2026-09-23）
+当前 NOT_RUN：完整矩阵见 LIFECYCLE_ACCEPTANCE.md。必须有参数目录一致性、V1拒绝、V2成对启动、keepalive丢失不误idle、持续本地需求全丢、纯下行、双边黑洞、新tuple恢复、候选阶段失败退避、idle/wake竞态、正常及Game、全FEC档控制不放大、padding/MTU/no-HOL/同Seq密文不变的Actions证据。next-lifecycle只是核心入口，不能替代真实netem和10/3Mbps业务目标；吞吐原缺口独立保留。

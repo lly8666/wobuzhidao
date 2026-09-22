@@ -16,16 +16,16 @@ import (
 
 const (
 	MaxOutstandingRecords = 4096
-	DefaultRepairRTO       = time.Second
-	DefaultRepairHorizon   = 3 * time.Second
+	DefaultRepairRTO      = time.Second
+	DefaultRepairHorizon  = 3 * time.Second
 )
 
 var (
-	ErrRuntimeClosed     = errors.New("runtimeowner: runtime is closed")
-	ErrTransportConfig   = errors.New("runtimeowner: invalid transport config")
-	ErrTransportMissing  = errors.New("runtimeowner: lane transport is missing")
-	ErrTransportFlow     = errors.New("runtimeowner: segment does not match lane flow")
-	ErrACKRange          = errors.New("runtimeowner: ACK exceeds steady send sequence")
+	ErrRuntimeClosed        = errors.New("runtimeowner: runtime is closed")
+	ErrTransportConfig      = errors.New("runtimeowner: invalid transport config")
+	ErrTransportMissing     = errors.New("runtimeowner: lane transport is missing")
+	ErrTransportFlow        = errors.New("runtimeowner: segment does not match lane flow")
+	ErrACKRange             = errors.New("runtimeowner: ACK exceeds steady send sequence")
 	ErrPayloadConflict      = errors.New("runtimeowner: same sequence has conflicting payload")
 	ErrOutstandingBounds    = errors.New("runtimeowner: outstanding record bound reached")
 	ErrTransportWriteClosed = errors.New("runtimeowner: steady write side is closed")
@@ -35,8 +35,8 @@ var (
 type PacketSink func(packets [][]byte, now time.Time) error
 
 type TransportConfig struct {
-	LocalIP  [4]byte
-	PeerIP   [4]byte
+	LocalIP   [4]byte
+	PeerIP    [4]byte
 	LocalPort uint16
 	PeerPort  uint16
 
@@ -82,22 +82,23 @@ func (c *TransportConfig) normalize() error {
 }
 
 type pendingRecord struct {
-	seq       uint32
-	end       uint32
-	flags     uint8
-	payload   []byte
-	firstSent time.Time
-	lastSent  time.Time
-	retries          uint32
-	wasRetried       bool
-	rttSampled       bool
-	sacked           bool
-	retired          bool
-	repairInFlight   bool
-	repairNotBefore  time.Time
-	repairPrev       *pendingRecord
-	repairNext       *pendingRecord
-	repairLinked     bool
+	control         bool
+	seq             uint32
+	end             uint32
+	flags           uint8
+	payload         []byte
+	firstSent       time.Time
+	lastSent        time.Time
+	retries         uint32
+	wasRetried      bool
+	rttSampled      bool
+	sacked          bool
+	retired         bool
+	repairInFlight  bool
+	repairNotBefore time.Time
+	repairPrev      *pendingRecord
+	repairNext      *pendingRecord
+	repairLinked    bool
 }
 
 type receiveSpan struct {
@@ -112,34 +113,39 @@ type deliveredMark struct {
 }
 
 type TransportStats struct {
-	FreshSent         uint64
-	RepairSelected    uint64
-	RepairAttempts    uint64
-	RepairSucceeded   uint64
-	RepairFailures    uint64
-	Retransmitted     uint64
-	Acked             uint64
-	SACKed            uint64
-	SACKRetired       uint64
-	Abandoned         uint64
-	RepairEvicted     uint64
+	AuthenticatedRecords  uint64
+	HealthSent            uint64
+	HealthReceived        uint64
+	LastAuthenticated     time.Time
+	PressureForgiven      uint64
+	FreshSent             uint64
+	RepairSelected        uint64
+	RepairAttempts        uint64
+	RepairSucceeded       uint64
+	RepairFailures        uint64
+	Retransmitted         uint64
+	Acked                 uint64
+	SACKed                uint64
+	SACKRetired           uint64
+	Abandoned             uint64
+	RepairEvicted         uint64
 	RepairMetadataEvicted uint64
-	FastRepairs       uint64
-	RTORepairs        uint64
-	RepairDeferred    uint64
-	RepairBudgetSpent uint64
-	RepairCreditBytes uint64
-	Received          uint64
-	Duplicates        uint64
-	LateFirstArrival  uint64
-	ForgivenGaps      uint64
-	RecordErrors      uint64
-	PathErrors        uint64
-	FINAttempts       uint64
-	FINTransmits      uint64
-	FINAcked          uint64
-	RSTAttempts       uint64
-	RSTSent           uint64
+	FastRepairs           uint64
+	RTORepairs            uint64
+	RepairDeferred        uint64
+	RepairBudgetSpent     uint64
+	RepairCreditBytes     uint64
+	Received              uint64
+	Duplicates            uint64
+	LateFirstArrival      uint64
+	ForgivenGaps          uint64
+	RecordErrors          uint64
+	PathErrors            uint64
+	FINAttempts           uint64
+	FINTransmits          uint64
+	FINAcked              uint64
+	RSTAttempts           uint64
+	RSTSent               uint64
 	PeakOutstanding       int
 	Outstanding           int
 	OutstandingBytes      uint64
@@ -149,20 +155,22 @@ type TransportStats struct {
 	OutOfOrder            int
 	OutOfOrderBytes       uint64
 	OldestOutOfOrderAge   time.Duration
-	WriteClosed       bool
-	LocalFINAcked     bool
-	PeerFIN           bool
-	PeerRST           bool
-	SRTT              time.Duration
-	RTO               time.Duration
-	AdvertisedWindow  uint16
-	WindowScale       uint8
-	WindowScaleSet    bool
-	Closed            bool
+	WriteClosed           bool
+	LocalFINAcked         bool
+	PeerFIN               bool
+	PeerRST               bool
+	SRTT                  time.Duration
+	RTO                   time.Duration
+	AdvertisedWindow      uint16
+	WindowScale           uint8
+	WindowScaleSet        bool
+	Closed                bool
 }
 
 type laneTransport struct {
-	mu sync.Mutex
+	health   healthState
+	pressure receivePressure
+	mu       sync.Mutex
 
 	owner   *datapath.TunnelOwner
 	ref     logicaltunnel.LaneRef
@@ -174,10 +182,10 @@ type laneTransport struct {
 	recvStart uint32
 	recvNext  uint32
 
-	srtt       time.Duration
-	rttvar     time.Duration
-	baseRTO    time.Duration
-	rto        time.Duration
+	srtt              time.Duration
+	rttvar            time.Duration
+	baseRTO           time.Duration
+	rto               time.Duration
 	timeoutEpisode    bool
 	timeoutEpisodeEnd uint32
 	rackLatestTx      time.Time
@@ -228,9 +236,9 @@ func newLaneTransport(owner *datapath.TunnelOwner, ref logicaltunnel.LaneRef, de
 		recvStart: cfg.ReceiveNext, recvNext: cfg.ReceiveNext,
 		baseRTO: cfg.InitialRTO, rto: cfg.InitialRTO,
 		repairCredit: steadyRepairBurstBytes,
-		pending: make(map[uint32]*pendingRecord, MaxOutstandingRecords),
-		received: make(map[uint32]receiveSpan, MaxOutstandingRecords),
-		delivered: make(map[uint32]deliveredMark, MaxOutstandingRecords),
+		pending:      make(map[uint32]*pendingRecord, MaxOutstandingRecords),
+		received:     make(map[uint32]receiveSpan, MaxOutstandingRecords),
+		delivered:    make(map[uint32]deliveredMark, MaxOutstandingRecords),
 	}, nil
 }
 
@@ -292,13 +300,15 @@ func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error
 		seq := t.sendNext
 		end := seq + uint32(len(record.Wire))
 		p := &pendingRecord{
-			seq: seq, end: end, flags: faketcp.FlagACK | faketcp.FlagPSH,
-			payload: append([]byte(nil), record.Wire...),
+			control: record.Control, seq: seq, end: end, flags: faketcp.FlagACK | faketcp.FlagPSH,
+			payload:   append([]byte(nil), record.Wire...),
 			firstSent: now, lastSent: now,
 		}
 		t.pending[seq] = p
 		t.pendingOrder = append(t.pendingOrder, seq)
-		t.linkRepairLocked(p)
+		if !record.Control {
+			t.linkRepairLocked(p)
+		}
 		t.sendNext = end
 		if n := len(t.pending); n > t.stats.PeakOutstanding {
 			t.stats.PeakOutstanding = n
@@ -318,7 +328,9 @@ func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error
 			return err
 		}
 		t.mu.Lock()
-		t.refillRepairCreditLocked(uint64(len(p.payload)))
+		if !record.Control {
+			t.refillRepairCreditLocked(uint64(len(p.payload)))
+		}
 		t.mu.Unlock()
 	}
 	return nil
@@ -422,6 +434,7 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 			return err
 		}
 		t.mu.Lock()
+		t.observeHealthLocked(result, now)
 		t.stats.RecordErrors += uint64(len(result.RecordErrors))
 		t.stats.PathErrors += uint64(len(result.PathErrors))
 		t.mu.Unlock()
@@ -466,6 +479,7 @@ func (t *laneTransport) acceptPayloadLocked(seq uint32, payload []byte, now time
 			t.forgiveGapLocked(now, true)
 		}
 	}
+	t.observeReceivePressureLocked(now)
 	t.rememberDeliveredLocked(seq, deliveredMark{end: end, hash: hash})
 	t.stats.Received++
 	return true, nil
@@ -541,9 +555,9 @@ func (t *laneTransport) advanceReceiveLocked() {
 
 func (t *laneTransport) forgiveGapLocked(now time.Time, force bool) bool {
 	var (
-		bestSeq uint32
-		best receiveSpan
-		found bool
+		bestSeq   uint32
+		best      receiveSpan
+		found     bool
 		bestDelta uint32
 	)
 	for seq, span := range t.received {
@@ -754,8 +768,8 @@ func New(owner *datapath.TunnelOwner, deliver PacketSink) (*Runtime, error) {
 	}
 	return &Runtime{
 		owner: owner, deliver: deliver,
-		lanes: make(map[logicaltunnel.LaneRef]*laneTransport),
-		active: make(map[uint8]logicaltunnel.LaneRef),
+		lanes:      make(map[logicaltunnel.LaneRef]*laneTransport),
+		active:     make(map[uint8]logicaltunnel.LaneRef),
 		candidates: make(map[uint8]candidateTransport),
 	}, nil
 }
@@ -997,7 +1011,7 @@ func (r *Runtime) AttachServerAdmission(laneID uint8, session *realityfront.Serv
 		WindowScale: scale, WindowScaleSet: scaleSet,
 		InitialRTO: DefaultRepairRTO, RepairHorizon: DefaultRepairHorizon,
 		SACKPermitted: peer.SACKPermitted,
-		Emit: emit,
+		Emit:          emit,
 	}
 	snapshot, err := r.AttachInitial(laneID, lane, cfg)
 	if err != nil {
@@ -1128,7 +1142,7 @@ func (r *Runtime) HandleServerSegmentQualified(ref logicaltunnel.LaneRef, assoc 
 			return false, err
 		}
 		after, _ := r.TransportStats(ref)
-		return after.Received > before.Received, nil
+		return after.AuthenticatedRecords > before.AuthenticatedRecords, nil
 	}
 
 	result, err := assoc.HandleSegment(seg, now)
@@ -1136,10 +1150,12 @@ func (r *Runtime) HandleServerSegmentQualified(ref logicaltunnel.LaneRef, assoc 
 		return false, err
 	}
 	if result.Disposition == faketcp.RouteRecord && result.Record != nil {
+		before, _ := r.TransportStats(ref)
 		if err := r.HandleSegment(ref, seg, now); err != nil {
 			return false, err
 		}
-		return true, nil
+		after, _ := r.TransportStats(ref)
+		return after.AuthenticatedRecords > before.AuthenticatedRecords, nil
 	}
 	if result.AckNeeded {
 		return false, r.emitForRef(ref, assoc.ACKSegment(result.Ack))
@@ -1220,6 +1236,9 @@ func (r *Runtime) Tick(now time.Time) error {
 		// parity. Retiring transports keep their bounded repair tick but cannot
 		// create fresh steady records after generation replacement.
 		if lane.active {
+			if err := lane.transport.tickHealth(now); err != nil {
+				errs = append(errs, err)
+			}
 			records, err := r.owner.TickLane(lane.ref, now)
 			if err != nil {
 				if !errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) && !errors.Is(err, datapath.ErrLaneUnavailable) {

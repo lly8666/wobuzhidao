@@ -16,46 +16,52 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lly8666/wobuzhidao/internal/configfile"
 	"github.com/lly8666/wobuzhidao/internal/datapath"
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 	"github.com/lly8666/wobuzhidao/internal/linuxserver"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/platformflow"
-"github.com/lly8666/wobuzhidao/internal/qualificationdiag"
+	"github.com/lly8666/wobuzhidao/internal/qualificationdiag"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/runtimeentry"
 )
 
 func main() {
 	var (
-		rawIface = flag.String("raw-interface", "", "Linux interface used for FakeTCP raw IPv4 I/O")
-		listenIPText = flag.String("listen-ip", "", "public IPv4 address bound by the raw endpoint")
-		listenPort = flag.Uint("listen-port", 443, "public FakeTCP/TLS port")
-		tunName = flag.String("tun-name", "wbdg0", "shared server TUN name")
-		leasePoolText = flag.String("lease-pool", "10.66.0.0/16", "server IPv4 lease pool")
-		leaseText = flag.String("lease4", "", "static client lease /32 for this minimal entry")
-		tunnelText = flag.String("tunnel-id", "", "32-hex Logical Tunnel ID")
-		account = flag.String("account", "", "account identity bound to the static lease")
-		installationText = flag.String("installation-id", "", "32-hex installation ID")
-		serverName = flag.String("server-name", "", "recognized TLS server name")
-		routeKeyHex = flag.String("route-key-hex", "", "hex route key used by Reality-like recognition")
-		certPath = flag.String("tls-cert", "", "server certificate PEM")
-		keyPath = flag.String("tls-key", "", "server private key PEM")
-		username = flag.String("username", "", "protected admission username")
-		password = flag.String("password", "", "protected admission password")
-		decoy = flag.String("decoy", "", "ordinary TLS fallback target host:port")
-		serverLimit = flag.Uint("server-record-limit", 1250, "client-to-server TLS-like record wire limit")
-		mtu = flag.Int("mtu", 1500, "connection/shared-TUN MTU")
-		tlsStartupPadding = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
-		fecParity = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
-		firewall = flag.String("firewall", "auto", "shared-TUN firewall backend: auto|nft|iptables")
-		nftForward = flag.String("nft-forward", "", "optional family:table:chain for nft forward policy")
-		lanes = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
-		idleDormant = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
-		diagnosticJSONL = flag.String("diagnostic-jsonl", "", "optional qualification diagnostics JSONL path; disabled by default")
+		configPath         = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
+		keepalive          = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
+		rawIface           = flag.String("raw-interface", "", "Linux interface used for FakeTCP raw IPv4 I/O")
+		listenIPText       = flag.String("listen-ip", "", "public IPv4 address bound by the raw endpoint")
+		listenPort         = flag.Uint("listen-port", 443, "public FakeTCP/TLS port")
+		tunName            = flag.String("tun-name", "wbdg0", "shared server TUN name")
+		leasePoolText      = flag.String("lease-pool", "10.66.0.0/16", "server IPv4 lease pool")
+		leaseText          = flag.String("lease4", "", "static client lease /32 for this minimal entry")
+		tunnelText         = flag.String("tunnel-id", "", "32-hex Logical Tunnel ID")
+		account            = flag.String("account", "", "account identity bound to the static lease")
+		installationText   = flag.String("installation-id", "", "32-hex installation ID")
+		serverName         = flag.String("server-name", "", "recognized TLS server name")
+		routeKeyHex        = flag.String("route-key-hex", "", "hex route key used by Reality-like recognition")
+		certPath           = flag.String("tls-cert", "", "server certificate PEM")
+		keyPath            = flag.String("tls-key", "", "server private key PEM")
+		username           = flag.String("username", "", "protected admission username")
+		password           = flag.String("password", "", "protected admission password")
+		decoy              = flag.String("decoy", "", "ordinary TLS fallback target host:port")
+		serverLimit        = flag.Uint("server-record-limit", 1250, "client-to-server TLS-like record wire limit")
+		mtu                = flag.Int("mtu", 1500, "connection/shared-TUN MTU")
+		tlsStartupPadding  = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
+		fecParity          = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
+		firewall           = flag.String("firewall", "auto", "shared-TUN firewall backend: auto|nft|iptables")
+		nftForward         = flag.String("nft-forward", "", "optional family:table:chain for nft forward policy")
+		lanes              = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
+		idleDormant        = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
+		diagnosticJSONL    = flag.String("diagnostic-jsonl", "", "optional qualification diagnostics JSONL path; disabled by default")
 		diagnosticInterval = flag.Duration("diagnostic-interval", time.Second, "qualification diagnostics sample interval")
 	)
 	flag.Parse()
+	if err := configfile.ApplyFile(flag.CommandLine, *configPath); err != nil {
+		log.Fatal(err)
+	}
 	if handleVersion() {
 		return
 	}
@@ -112,12 +118,12 @@ func main() {
 		log.Fatal(err)
 	}
 	lease := logicaltunnel.Lease{
-		Account: *account,
+		Account:        *account,
 		InstallationID: installation,
 		Config: logicaltunnel.TunnelConfig{
 			TunnelID: tunnelID,
 			Address4: leasePrefix.String(),
-			Routes4: []string{"0.0.0.0/0"},
+			Routes4:  []string{"0.0.0.0/0"},
 		},
 	}
 	if err := lease.Validate(); err != nil {
@@ -156,41 +162,42 @@ func main() {
 	server, err := runtimeentry.NewLifecycleServer(runtimeentry.LifecycleServerConfig{
 		ServerConfig: runtimeentry.ServerConfig{
 			TLSStartupPadding: *tlsStartupPadding,
-		IO: io,
-		ListenPort: uint16(*listenPort),
-		Admission: realityfront.ServerAdmissionConfig{
-			TLS: realityfront.ServerConfig{
-				ServerName: *serverName,
-				RouteKey: routeKey,
-				TLSConfig: &tls.Config{Certificates: []tls.Certificate{cert}},
-				Timeout: 15 * time.Second,
+			IO:                io,
+			ListenPort:        uint16(*listenPort),
+			Admission: realityfront.ServerAdmissionConfig{
+				TLS: realityfront.ServerConfig{
+					ServerName: *serverName,
+					RouteKey:   routeKey,
+					TLSConfig:  &tls.Config{Certificates: []tls.Certificate{cert}},
+					Timeout:    15 * time.Second,
+				},
+				ExpectedUsername: *username,
+				ExpectedPassword: *password,
+				ServerLimit:      uint16(*serverLimit),
 			},
-			ExpectedUsername: *username,
-			ExpectedPassword: *password,
-			ServerLimit: uint16(*serverLimit),
+			Fallback: realityfront.FallbackConfig{
+				Target: *decoy, ServerName: *serverName,
+				DialTimeout: 5 * time.Second, SessionTimeout: 2 * time.Minute,
+				MaxBytes: 64 << 20,
+			},
+			LookupLease: func(id logicaltunnel.TunnelID) (logicaltunnel.Lease, error) {
+				if id != tunnelID {
+					return logicaltunnel.Lease{}, logicaltunnel.ErrUnknownTunnel
+				}
+				return lease.Clone(), nil
+			},
+			Lane: datapath.ServerLaneParams{
+				ConnectionMTU:   *mtu,
+				TxIPv4HeaderLen: 20, TxTCPHeaderLen: 20,
+				RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
+				ParityShards: *fecParity, FlushAfter: fecFlushAfter, MaxBlocks: fecMaxBlocks,
+			},
+			Router:  router,
+			Service: platformflow.DefaultServerConfig(),
 		},
-		Fallback: realityfront.FallbackConfig{
-			Target: *decoy, ServerName: *serverName,
-			DialTimeout: 5 * time.Second, SessionTimeout: 2 * time.Minute,
-			MaxBytes: 64 << 20,
-		},
-		LookupLease: func(id logicaltunnel.TunnelID) (logicaltunnel.Lease, error) {
-			if id != tunnelID {
-				return logicaltunnel.Lease{}, logicaltunnel.ErrUnknownTunnel
-			}
-			return lease.Clone(), nil
-		},
-		Lane: datapath.ServerLaneParams{
-			ConnectionMTU: *mtu,
-			TxIPv4HeaderLen: 20, TxTCPHeaderLen: 20,
-			RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
-			ParityShards: *fecParity, FlushAfter: fecFlushAfter, MaxBlocks: fecMaxBlocks,
-		},
-		Router: router,
-		Service: platformflow.DefaultServerConfig(),
-		},
-		DesiredLanes: *lanes,
-		DormantAfter: *idleDormant,
+		DesiredLanes:      *lanes,
+		DormantAfter:      *idleDormant,
+		KeepaliveInterval: *keepalive,
 	})
 	if err != nil {
 		log.Fatal(err)

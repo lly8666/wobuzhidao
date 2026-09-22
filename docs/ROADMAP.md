@@ -22,3 +22,7 @@
 2026-09-21 最新任务覆盖上述历史收口：P4重新打开稳态恢复/关闭/外观一致性，P5重新打开真实路径持续弱网性能，执行 [专项规范](WEAKNET_QUALIFICATION.md)。保留P2/P3与旧P4/P5/P6证据，不重做无关模块。Normal 10Mbps/方向、Game4 3Mbps/方向，FEC20:20，18份主测与目标负载长测/平台覆盖完成后，修复版重新P6打包，再进入P7。
 
 2026-09-22 用户插入任务：P4/P5有界TLS启动填充，实施/关闭清单见TLS_STARTUP_PADDING.md。原主线任务暂时hold；本功能交新agent测试修复，完成后直接更新STATUS的小功能进度，不关闭P4/P5整阶段资格。
+
+
+### 2026-09-23 插入的用户优先任务
+WEAKNET_LIFECYCLE：旧弱网生命周期迁移 + 参数目录/JSON入口，IMPLEMENTED_PENDING_ACTIONS。按 LIFECYCLE_ACCEPTANCE 完成分层验收后关闭专项；P4/P5 整体及原容量缺口不随之自动完成。原主线任务继续用户 HOLD。

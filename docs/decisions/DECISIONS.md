@@ -24,3 +24,7 @@
 2026-09-21 / D008（用户要求）：重开P4稳态低开销修复与P5真实路径高负载弱网资格。固定主测Normal每方向10Mbps、Game4每方向3Mbps、FEC20:20，保存原业务与复制/FEC/repair分层计数。严格目标及Actions真实网络/模块矩阵见WEAKNET_QUALIFICATION。允许证据驱动定向借鉴旧恢复参数，不允许旧项目全架构A/B、扩大缓存或恢复HOL。runner容量不足单独报告且不算PASS；最终修复SHA重新回归和P6打包，P7不提前。
 
 2026-09-22 / D009（用户要求）：允许默认关闭的内层TLS启动选择性填充，作为“不读取内层TLS”的窄范围例外。旁观有界结构前缀、不等待原包，复用现有record padding和tunnel预算；不加假业务/延时/额外分片，不动建连/FEC/recovery。实现及Actions关闭门槛见TLS_STARTUP_PADDING.md。旧主线由用户暂停；全新agent测试修复通过后直接标小功能完成。
+
+
+## 2026-09-23：lifecycle health 与 admission V2
+用户明确要求移植旧弱网/keepalive/黑洞恢复/idle保护。决策：保留稳定逻辑owner与真实TLS建连；有限认证health独立于FEC/LINK，业务与健康双时钟。为拒绝不支持health的旧端，升级TLS内admission版本2，不静默猜测peer能力。保活缺失只触发有限候选重试，不作为idle证据；不因候选失败退出程序。receiver pressure退役复用旧rate/RTT原理；sender credit/RTO/horizon及4096不改。生产默认idle仍off。配置只有CLI同名JSON一套，清单随代码校验。依据和未验证项见本轮开发日志及LIFECYCLE_ACCEPTANCE；没有性能通过声明。

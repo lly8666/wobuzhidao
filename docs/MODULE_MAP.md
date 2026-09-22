@@ -30,3 +30,11 @@
 2026-09-21 稳态修复定向来源与参数迁移边界见 [专项第2节](WEAKNET_QUALIFICATION.md#2-可借鉴老项目的明确范围)：仅old/internal/faketcp/arq.go、repair_horizon.go、adaptive_pressure.go及直接依赖/测试，最小闭包登记REUSE_LEDGER；runtimeowner/runtimeentry实际稳态接线不得以bootstrap测试代替。
 
 TLS启动填充：internal/datapath/startup_padding.go新写旁观识别；padding_policy.go复用/扩展即时预算；Normal/Game owner观察业务；Lane只提供source/parity标记。runtimeentry与各平台CLI接默认关闭开关。platformflow serializer不改，新增跨模块真实ClientHello测试锁定v1 envelope兼容。无old提取，细则见TLS_STARTUP_PADDING.md。
+
+
+### 生命周期移植新增模块（V2）
+- internal/datapath/health.go：独立认证health record、no FEC/no padding；复用已有lane sealer与generation。
+- internal/runtimeowner/health.go：有界health timer、peer idle证据、链路超时；adaptive_pressure.go：只复用 old/internal/faketcp/adaptive_pressure.go。
+- internal/runtimeentry/lifecycle_health.go：keepalive/dead/backoff参数、一次一个候选、非终止错误诊断；lifecycle.go保留已有真实TLS建连及owner切换。
+- internal/configfile：启动时严格JSON映射现有CLI；tools/parameter_catalog.py与docs/PARAMETERS.json负责入口一致性。
+- old/internal/windowsruntime/controller_idle.go 只作为activity二次检查语义参考，不引入旧RPC/controller或旧提示词。

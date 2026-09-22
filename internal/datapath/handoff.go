@@ -53,7 +53,7 @@ type ClientLaneParams struct {
 // SYN-ACK peer MSS observation; receive MTU is bounded by the MSS that this WBD
 // client advertised on its SYN.
 func ClientLaneConfigFromAdmission(session *realityfront.ClientAdmissionSession, params ClientLaneParams) (LaneConfig, error) {
-	if session == nil || session.Negotiated.RecordVersion != realityfront.RecordVersionV1 {
+	if session == nil || session.Negotiated.RecordVersion != realityfront.RecordVersionV2 {
 		return LaneConfig{}, ErrAdmissionHandoff
 	}
 	n := session.Negotiated
@@ -140,7 +140,7 @@ type ServerLaneParams struct {
 // the existing FakeTCP association without modifying P2 ownership. The server
 // sends under ClientLimit/S2C and receives under ServerLimit/C2S.
 func ServerLaneConfigFromAdmission(session *realityfront.ServerAdmissionSession, assoc *faketcp.ServerAssociation, params ServerLaneParams) (LaneConfig, error) {
-	if session == nil || assoc == nil || session.Negotiated.RecordVersion != realityfront.RecordVersionV1 {
+	if session == nil || assoc == nil || session.Negotiated.RecordVersion != realityfront.RecordVersionV2 {
 		return LaneConfig{}, ErrAdmissionHandoff
 	}
 	n := session.Negotiated

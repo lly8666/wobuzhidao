@@ -1,0 +1,662 @@
+{
+  "schema_version": 1,
+  "precedence": "CLI > JSON file > default",
+  "lifecycle_defaults": {
+    "DefaultKeepaliveInterval": "15 * time.Second",
+    "DefaultDeadAfter": "90 * time.Second",
+    "DefaultReconnectMin": "time.Second",
+    "DefaultReconnectMax": "30 * time.Second"
+  },
+  "targets": {
+    "client-linux": {
+      "account": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "account identity",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "client-record-limit": {
+        "type": "Uint",
+        "default_expression": "1300",
+        "help": "server-to-client TLS-like record wire limit",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "config": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "JSON configuration file; CLI flags override matching keys",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": false
+      },
+      "dead-after": {
+        "type": "Duration",
+        "default_expression": "runtimeentry.DefaultDeadAfter",
+        "help": "reconnect after no authenticated lane records; at least 3 keepalive intervals",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "diagnostic-interval": {
+        "type": "Duration",
+        "default_expression": "time.Second",
+        "help": "qualification diagnostics sample interval",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "diagnostic-jsonl": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "optional qualification diagnostics JSONL path; disabled by default",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "fec-parity": {
+        "type": "Int",
+        "default_expression": "0",
+        "help": "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "idle-dormant": {
+        "type": "Duration",
+        "default_expression": "0",
+        "help": "enter DORMANT after payload idle duration; 0 disables",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "installation-id": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "32-hex installation ID",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "keepalive-interval": {
+        "type": "Duration",
+        "default_expression": "runtimeentry.DefaultKeepaliveInterval",
+        "help": "authenticated lane heartbeat interval; minimum 1s",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "lanes": {
+        "type": "Int",
+        "default_expression": "1",
+        "help": "authoritative transport lanes: 1=Normal, 2..4=Game racing",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "lease4": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "leased IPv4 /32",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "local-ip": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "underlay source IPv4",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "mark": {
+        "type": "Uint",
+        "default_expression": "0x42",
+        "help": "TPROXY fwmark",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "mtu": {
+        "type": "Int",
+        "default_expression": "1500",
+        "help": "connection MTU",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "password": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "protected admission password",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "raw-interface": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "Linux/OpenWrt underlay interface",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "reconnect-max": {
+        "type": "Duration",
+        "default_expression": "runtimeentry.DefaultReconnectMax",
+        "help": "maximum retry delay after failed lane admission",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "reconnect-min": {
+        "type": "Duration",
+        "default_expression": "runtimeentry.DefaultReconnectMin",
+        "help": "minimum retry delay after failed lane admission",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "rotate-max": {
+        "type": "Duration",
+        "default_expression": "0",
+        "help": "maximum lane rotation interval; must pair with rotate-min",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "rotate-min": {
+        "type": "Duration",
+        "default_expression": "0",
+        "help": "minimum lane rotation interval; 0 disables rotation",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "route-key-hex": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "hex route key",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "route-table": {
+        "type": "Uint",
+        "default_expression": "1066",
+        "help": "TPROXY policy route table",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "rule-priority": {
+        "type": "Uint",
+        "default_expression": "1066",
+        "help": "TPROXY policy rule priority",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "server-ip": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "server public IPv4",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "server-name": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "recognized TLS server name",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "server-port": {
+        "type": "Uint",
+        "default_expression": "443",
+        "help": "server FakeTCP port",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "source-port": {
+        "type": "Uint",
+        "default_expression": "40000",
+        "help": "FakeTCP source port",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "tls-startup-padding": {
+        "type": "Bool",
+        "default_expression": "false",
+        "help": "bounded passive inner TLS startup padding; no waiting; default off",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "tproxy-port": {
+        "type": "Uint",
+        "default_expression": "12345",
+        "help": "transparent TCP/UDP capture port",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "tunnel-id": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "32-hex Logical Tunnel ID",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "username": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "protected admission username",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "version": {
+        "type": "Bool",
+        "default_expression": "false",
+        "help": "print build version and source SHA",
+        "source": "cmd/wbd-client/version.go",
+        "json": false
+      }
+    },
+    "client-windows": {
+      "account": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "account identity",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "adapter": {
+        "type": "String",
+        "default_expression": "\"WBD\"",
+        "help": "Wintun adapter alias",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "client-record-limit": {
+        "type": "Uint",
+        "default_expression": "1300",
+        "help": "server-to-client TLS-like record wire limit",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "config": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "JSON configuration file; CLI flags override matching keys",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": false
+      },
+      "dead-after": {
+        "type": "Duration",
+        "default_expression": "runtimeentry.DefaultDeadAfter",
+        "help": "reconnect after no authenticated lane records; at least 3 keepalive intervals",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "direct4": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "comma-separated direct IPv4 prefixes",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "dns4": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "comma-separated IPv4 DNS servers",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "fec-parity": {
+        "type": "Int",
+        "default_expression": "0",
+        "help": "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "idle-dormant": {
+        "type": "Duration",
+        "default_expression": "0",
+        "help": "enter DORMANT after payload idle duration; 0 disables",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "installation-id": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "32-hex installation ID",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "keepalive-interval": {
+        "type": "Duration",
+        "default_expression": "runtimeentry.DefaultKeepaliveInterval",
+        "help": "authenticated lane heartbeat interval; minimum 1s",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "lanes": {
+        "type": "Int",
+        "default_expression": "1",
+        "help": "authoritative transport lanes: 1=Normal, 2..4=Game racing",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "lease4": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "leased IPv4 /32",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "mtu": {
+        "type": "Int",
+        "default_expression": "1500",
+        "help": "connection MTU",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "network-script": {
+        "type": "String",
+        "default_expression": "\"scripts/windows_client_network.ps1\"",
+        "help": "Windows network Apply/Cleanup script",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "password": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "protected admission password",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "reconnect-max": {
+        "type": "Duration",
+        "default_expression": "runtimeentry.DefaultReconnectMax",
+        "help": "maximum retry delay after failed lane admission",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "reconnect-min": {
+        "type": "Duration",
+        "default_expression": "runtimeentry.DefaultReconnectMin",
+        "help": "minimum retry delay after failed lane admission",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "rotate-max": {
+        "type": "Duration",
+        "default_expression": "0",
+        "help": "maximum lane rotation interval; must pair with rotate-min",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "rotate-min": {
+        "type": "Duration",
+        "default_expression": "0",
+        "help": "minimum lane rotation interval; 0 disables rotation",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "route-key-hex": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "hex route key",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "server-ip": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "server public IPv4",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "server-name": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "recognized TLS server name",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "server-port": {
+        "type": "Uint",
+        "default_expression": "443",
+        "help": "server FakeTCP port",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "source-port": {
+        "type": "Uint",
+        "default_expression": "40000",
+        "help": "FakeTCP source port",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "state-path": {
+        "type": "String",
+        "default_expression": "\"wbd-windows-client-state.json\"",
+        "help": "owned Windows network state file",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "tls-startup-padding": {
+        "type": "Bool",
+        "default_expression": "false",
+        "help": "bounded passive inner TLS startup padding; no waiting; default off",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "tunnel-id": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "32-hex Logical Tunnel ID",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "username": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "protected admission username",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "version": {
+        "type": "Bool",
+        "default_expression": "false",
+        "help": "print build version and source SHA",
+        "source": "cmd/wbd-client/version.go",
+        "json": false
+      }
+    },
+    "server-linux": {
+      "account": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "account identity bound to the static lease",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "config": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "JSON configuration file; CLI flags override matching keys",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": false
+      },
+      "decoy": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "ordinary TLS fallback target host:port",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "diagnostic-interval": {
+        "type": "Duration",
+        "default_expression": "time.Second",
+        "help": "qualification diagnostics sample interval",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "diagnostic-jsonl": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "optional qualification diagnostics JSONL path; disabled by default",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "fec-parity": {
+        "type": "Int",
+        "default_expression": "0",
+        "help": "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "firewall": {
+        "type": "String",
+        "default_expression": "\"auto\"",
+        "help": "shared-TUN firewall backend: auto|nft|iptables",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "idle-dormant": {
+        "type": "Duration",
+        "default_expression": "0",
+        "help": "enter DORMANT after payload idle duration; 0 disables",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "installation-id": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "32-hex installation ID",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "keepalive-interval": {
+        "type": "Duration",
+        "default_expression": "runtimeentry.DefaultKeepaliveInterval",
+        "help": "authenticated lane heartbeat interval; minimum 1s",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "lanes": {
+        "type": "Int",
+        "default_expression": "1",
+        "help": "authoritative transport lanes: 1=Normal, 2..4=Game racing",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "lease-pool": {
+        "type": "String",
+        "default_expression": "\"10.66.0.0/16\"",
+        "help": "server IPv4 lease pool",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "lease4": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "static client lease /32 for this minimal entry",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "listen-ip": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "public IPv4 address bound by the raw endpoint",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "listen-port": {
+        "type": "Uint",
+        "default_expression": "443",
+        "help": "public FakeTCP/TLS port",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "mtu": {
+        "type": "Int",
+        "default_expression": "1500",
+        "help": "connection/shared-TUN MTU",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "nft-forward": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "optional family:table:chain for nft forward policy",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "password": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "protected admission password",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "raw-interface": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "Linux interface used for FakeTCP raw IPv4 I/O",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "route-key-hex": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "hex route key used by Reality-like recognition",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "server-name": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "recognized TLS server name",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "server-record-limit": {
+        "type": "Uint",
+        "default_expression": "1250",
+        "help": "client-to-server TLS-like record wire limit",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "tls-cert": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "server certificate PEM",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "tls-key": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "server private key PEM",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "tls-startup-padding": {
+        "type": "Bool",
+        "default_expression": "false",
+        "help": "bounded passive inner TLS startup padding; no waiting; default off",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "tun-name": {
+        "type": "String",
+        "default_expression": "\"wbdg0\"",
+        "help": "shared server TUN name",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "tunnel-id": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "32-hex Logical Tunnel ID",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "username": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "protected admission username",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "version": {
+        "type": "Bool",
+        "default_expression": "false",
+        "help": "print build version and source SHA",
+        "source": "cmd/wbd-server/version.go",
+        "json": false
+      }
+    }
+  }
+}

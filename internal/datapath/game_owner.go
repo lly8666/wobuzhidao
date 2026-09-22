@@ -40,9 +40,9 @@ type gameTunnelState struct {
 	laneCopies           uint64
 	laneCopyBytes        uint64
 	delivered            uint64
-	duplicates      uint64
-	stale           uint64
-	laneMismatches  uint64
+	duplicates           uint64
+	stale                uint64
+	laneMismatches       uint64
 }
 
 // GameOutbound assigns one tunnel-wide PacketID, then races a lane-distinct
@@ -207,6 +207,7 @@ func (o *TunnelOwner) GameInboundPayload(ref logicaltunnel.LaneRef, payload []by
 	}
 
 	out := InboundResult{
+		Authenticated: laneResult.Authenticated, Health: laneResult.Health,
 		RecordErrors: append([]error(nil), laneResult.RecordErrors...),
 		PathErrors:   append([]error(nil), laneResult.PathErrors...),
 	}

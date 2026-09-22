@@ -12,16 +12,16 @@ import (
 func TestClientLaneConfigFromAdmissionUsesNegotiatedDirections(t *testing.T) {
 	session := &realityfront.ClientAdmissionSession{
 		Negotiated: realityfront.AdmissionResult{
-			RecordVersion: realityfront.RecordVersionV1,
-			TunnelID: []byte("0123456789abcdef"),
-			ClientLimit: 1300,
-			ServerLimit: 1250,
-			Keys: testKeys(),
+			RecordVersion: realityfront.RecordVersionV2,
+			TunnelID:      []byte("0123456789abcdef"),
+			ClientLimit:   1300,
+			ServerLimit:   1250,
+			Keys:          testKeys(),
 		},
 	}
 	session.Negotiated.IncarnationNonce[0] = 9
 	cfg, err := ClientLaneConfigFromAdmission(session, ClientLaneParams{
-		ConnectionMTU: 1500,
+		ConnectionMTU:   1500,
 		TxIPv4HeaderLen: 20, TxTCPHeaderLen: 20,
 		RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
 		PeerMSS: 1200, PeerMSSSet: true,
@@ -46,13 +46,12 @@ func TestClientLaneConfigFromAdmissionUsesNegotiatedDirections(t *testing.T) {
 
 func TestClientLaneConfigFromAdmissionRejectsInvalidVersion(t *testing.T) {
 	_, err := ClientLaneConfigFromAdmission(&realityfront.ClientAdmissionSession{
-		Negotiated: realityfront.AdmissionResult{RecordVersion: realityfront.RecordVersionV1 + 1},
+		Negotiated: realityfront.AdmissionResult{RecordVersion: realityfront.RecordVersionV2 + 1},
 	}, ClientLaneParams{})
 	if !errors.Is(err, ErrAdmissionHandoff) {
 		t.Fatalf("err=%v want admission handoff rejection", err)
 	}
 }
-
 
 func TestFixedFECRuntimeDefaultsKeepOffAndAdmitOnlyLiveProfiles(t *testing.T) {
 	if flush, blocks, err := FixedFECRuntimeDefaults(0); err != nil || flush != 0 || blocks != 0 {
@@ -71,22 +70,21 @@ func TestFixedFECRuntimeDefaultsKeepOffAndAdmitOnlyLiveProfiles(t *testing.T) {
 	}
 }
 
-
 func TestClientLaneHandoffUsesActualSteadyCarrierHeaders(t *testing.T) {
 	session := &realityfront.ClientAdmissionSession{
 		Negotiated: realityfront.AdmissionResult{
-			RecordVersion: realityfront.RecordVersionV1,
-			TunnelID: []byte("0123456789abcdef"),
-			ClientLimit: 2000,
-			ServerLimit: 2000,
-			Keys: testKeys(),
+			RecordVersion: realityfront.RecordVersionV2,
+			TunnelID:      []byte("0123456789abcdef"),
+			ClientLimit:   2000,
+			ServerLimit:   2000,
+			Keys:          testKeys(),
 		},
 	}
 	session.Negotiated.IncarnationNonce[0] = 10
 	params := ClientLaneParams{
 		ConnectionMTU: 1400,
-		PeerMSS: faketcp.DefaultMSS,
-		PeerMSSSet: true,
+		PeerMSS:       faketcp.DefaultMSS,
+		PeerMSSSet:    true,
 	}
 	cfg, err := ClientLaneConfigFromAdmission(session, params)
 	if err != nil {

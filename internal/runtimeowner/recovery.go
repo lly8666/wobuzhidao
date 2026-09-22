@@ -55,7 +55,8 @@ func (t *laneTransport) repairCostLocked(p *pendingRecord) uint64 {
 }
 
 func (t *laneTransport) reserveRepairLocked(p *pendingRecord, now time.Time, fast bool) *selectedRepair {
-	if p == nil || p.sacked || p.retired || p.repairInFlight {
+
+	if p == nil || p.control || p.sacked || p.retired || p.repairInFlight {
 		return nil
 	}
 	if len(p.payload) == 0 && p.flags&faketcp.FlagFIN == 0 {

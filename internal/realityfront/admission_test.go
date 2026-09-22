@@ -70,8 +70,8 @@ func TestProtectedAdmissionNegotiatesExporterContextBeforeFinalReply(t *testing.
 	if !sawPreparedReply {
 		t.Fatal("final protected admission reply arrived before transition prepare")
 	}
-	if clientSession.Negotiated.RecordVersion != RecordVersionV1 ||
-		server.session.Negotiated.RecordVersion != RecordVersionV1 {
+	if clientSession.Negotiated.RecordVersion != RecordVersionV2 ||
+		server.session.Negotiated.RecordVersion != RecordVersionV2 {
 		t.Fatal("record version was not fixed to v1")
 	}
 	if clientSession.Negotiated.IncarnationNonce != nonce ||
@@ -131,7 +131,7 @@ func TestProtectedAdmissionAuthenticationFailureDoesNotPrepareTransition(t *test
 	}()
 
 	_, clientErr := EstablishClient(context.Background(), peer, ClientAdmissionConfig{
-		TLS: ClientConfig{ServerName: "target.test", RouteKey: routeKey, Timeout: 3 * time.Second},
+		TLS:      ClientConfig{ServerName: "target.test", RouteKey: routeKey, Timeout: 3 * time.Second},
 		Username: "solo", Password: "wrong-password",
 		TunnelID: []byte("0123456789abcdef"), ClientLimit: 1500,
 	})
@@ -149,7 +149,7 @@ func TestProtectedAdmissionAuthenticationFailureDoesNotPrepareTransition(t *test
 func TestAdmissionUnknownRecordVersionIsExplicitlyRejected(t *testing.T) {
 	wire := make([]byte, admissionRequestLen)
 	copy(wire[:4], admissionMagic)
-	binary.BigEndian.PutUint16(wire[4:6], RecordVersionV1+1)
+	binary.BigEndian.PutUint16(wire[4:6], RecordVersionV2+1)
 	binary.BigEndian.PutUint16(wire[6:8], 1500)
 	binary.BigEndian.PutUint16(wire[8:10], 1)
 	binary.BigEndian.PutUint16(wire[10:12], 1)
@@ -163,16 +163,25 @@ func TestAdmissionUnknownRecordVersionIsExplicitlyRejected(t *testing.T) {
 	}
 }
 
+func TestAdmissionRejectsLegacyV1BeforeLifecycleNegotiation(t *testing.T) {
+	wire := make([]byte, admissionRequestLen)
+	copy(wire[:4], admissionMagic)
+	binary.BigEndian.PutUint16(wire[4:6], 1)
+	if _, err := readAdmissionRequest(bytes.NewReader(wire)); !errors.Is(err, ErrAdmissionVersion) {
+		t.Fatalf("legacy peer accepted: %v", err)
+	}
+}
+
 func TestAdmissionReplyRejectsContextEchoMismatch(t *testing.T) {
 	req := AdmissionRequest{
-		RecordVersion: RecordVersionV1,
+		RecordVersion: RecordVersionV2,
 		TunnelID:      []byte("AAAAAAAAAAAAAAAA"),
 		ClientLimit:   1500,
 		Username:      "u",
 		Password:      "p",
 	}
 	result := AdmissionResult{
-		RecordVersion: RecordVersionV1,
+		RecordVersion: RecordVersionV2,
 		TunnelID:      []byte("BBBBBBBBBBBBBBBB"),
 		ClientLimit:   1500,
 		ServerLimit:   1450,

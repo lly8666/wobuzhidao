@@ -498,6 +498,18 @@
       "destination": "internal/runtimeowner/recovery.go",
       "behavior_changes": "Reuse the fresh-first principle that a full optional repair horizon must not block newly generated payload. Unlike the archive's separate 8192 tracked-record tombstone ceiling, active code does not expand beyond 4096 total pending metadata: it evicts SACK-retired tombstones first, then oldest optional repair state, while preserving FIN/control state.",
       "tests": "runtimeowner selective-ACK tests assert payload-free tombstones and fresh send continuity when repair is deferred; existing MaxOutstandingRecords=4096 remains unchanged."
+    },
+    {
+      "source": "old/internal/faketcp/adaptive_pressure.go",
+      "destination": "internal/runtimeowner/adaptive_pressure.go",
+      "behavior_changes": "Port receiver rate/RTT EWMA, soft/emergency pressure and one RTT reorder grace to laneTransport. Retire TCP presentation gaps only; no HOL, 3s horizon and sender budget remain.",
+      "tests": "internal/runtimeowner/health_test.go pressure grace/cold-start; existing no-HOL/late-first-arrival; Actions pending."
+    },
+    {
+      "source": "old/internal/windowsruntime/controller_idle.go",
+      "destination": "internal/runtimeentry/lifecycle_health.go",
+      "behavior_changes": "Reuse business activity vs health distinction and stale idle snapshot recheck; local in-process clocks replace activity RPC. Missing authenticated peer hint blocks auto-idle, ongoing local demand counts before send/wake.",
+      "tests": "internal/runtimeentry/lifecycle_health_test.go blackhole candidate failure/recovery and idle race; lifecycle closure regression; Actions pending."
     }
   ],
   "note": "P4 is CLOSED at closure-audit SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639 (7/7 PASS). The closure commit added hosted runtimeentry tests only; product behavior is the already-qualified active architecture. Archive reuse remains narrow and fully recorded: payload-idle ownership, serialized same-LaneID replacement/qualification and convergence. Archived UDP Game processes/control sockets, CLIENT_LEAVE topology, localhost carrier, old Controller, DTLS and subprocess orchestration remain out. Next stage is P5 real-HTTPS/fullstack measurement; no new archive reuse has been authorized merely by entering P5."

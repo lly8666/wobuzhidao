@@ -181,7 +181,7 @@ func TestLeasedAdmissionHandoffRequiresExactManagerTunnelID(t *testing.T) {
 
 	session := &realityfront.ServerAdmissionSession{
 		Negotiated: realityfront.AdmissionResult{
-			RecordVersion: realityfront.RecordVersionV1,
+			RecordVersion: realityfront.RecordVersionV2,
 			TunnelID:      other.Config.TunnelID.Bytes(),
 			ClientLimit:   1100,
 			ServerLimit:   1000,

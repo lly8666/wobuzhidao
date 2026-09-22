@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P4",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-22",
+  "updated_at": "2026-09-23",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "用户明确暂停主线容量/AF_PACKET诊断开发。正在移植弱网生命周期与恢复行为，其他agent勿并发修改这些模块。已提交诊断与失败证据保留。",
-  "next_task": "仅推进WEAKNET_LIFECYCLE移植及参数登记；交新agent专项Actions测试修复后关闭功能，旧容量任务待用户恢复。",
-  "latest_log": "docs/devlog/20260923-010000-user-hold-lifecycle-migration.md",
+  "in_progress": "用户主线HOLD保留。弱网生命周期移植已编码，V2 health/pressure/reconnect/idle/JSON参数目录等待exact-SHA Actions。原正式路径C2S吞吐缺口未关闭。",
+  "next_task": "新agent按docs/LIFECYCLE_ACCEPTANCE.md完成核心、真实进程生命周期、10/3Mbps弱网开销矩阵；修复本专项失败、保存exact-SHA证据，全部达标后回写计划并关闭WEAKNET_LIFECYCLE。不得自动恢复原AF_PACKET主线任务。",
+  "latest_log": "docs/devlog/20260923-020000-weaknet-lifecycle-v2.md",
   "last_tested_source_sha": "7110fd1e22cb2ab3809456657e3fcdf139508a65",
   "actions": [
     {
@@ -1316,7 +1316,10 @@
     "docs/MODULE_MAP.md",
     "docs/ACCEPTANCE.md",
     "docs/WEAKNET_QUALIFICATION.md",
-    "docs/TLS_STARTUP_PADDING.md"
+    "docs/TLS_STARTUP_PADDING.md",
+    "docs/PARAMETERS.md",
+    "docs/PARAMETERS.json",
+    "docs/LIFECYCLE_ACCEPTANCE.md"
   ],
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
@@ -1343,15 +1346,21 @@
       "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA."
     },
     "WEAKNET_LIFECYCLE": {
-      "status": "IMPLEMENTING",
+      "status": "IMPLEMENTED_PENDING_ACTIONS",
       "main_task_hold": {
         "requested_by": "user",
         "resume_only_on_user_request": true,
         "saved_in_progress": "容量定位继续。c9a9691f正式半速结果证明socket skmem overflow并非最早根因：Normal5与Game1.5的CORRECTNESS/INPUT/CAPTURE/ENVIRONMENT均PASS、socket_drop_max=0，但PERFORMANCE仍FAIL且几乎仅C2S崩；S2C分别完整5Mbps与1.5Mbps。旁路raw artifact 10702266004已由validator 1f3f705d离线复算PASS：50Mbps/方向、qdisc约54.15Mbps/方向、12.34kpps、qdisc/interface/socket/capture drop全0。当前缺口是正式FakeTCP使用AF_PACKET接收，而旧resource sampler只看UDP/raw-IP socket。本提交只增加每秒ss -0 packet-socket r/rb/d观测并重跑Normal5/Game1.5定位，不改产品实现/缓存/恢复策略。",
         "saved_next_task": "检查next-strict-packet-socket-diagnostic两个exact-SHA样本。若server/ss_packet出现rmem逼近rb及d增长，证明raw AF_PACKET接收队列先丢，再依据reader/Server.Run消费时间线决定最小修复；若AF_PACKET也零drop，则继续在Go内Server.Run channel=1、同步HandleSegment/FEC/TUN交付之间加低开销队列/handler时延计数。半速成功或失败均不替代10/3Mbps资格。",
-        "saved_latest_log": "docs/devlog/20260922-242000-packet-socket-boundary-diagnostic.md"
+        "saved_latest_log": "docs/devlog/20260922-242000-packet-socket-boundary-diagnostic.md",
+        "external_agent_pause": "User confirmed the other development agent is paused; latest shared branch work a045a28 is observer/harness only, retained."
       },
-      "scope": "移植有限自适应放弃、keepalive容错、黑洞恢复、idle/wake保护；统一参数清单；待新agent Actions验收"
+      "scope": "移植有限自适应放弃、keepalive容错、黑洞恢复、idle/wake保护；统一参数清单；待新agent Actions验收",
+      "protocol": "admission V2; paired upgrade required",
+      "acceptance": "docs/LIFECYCLE_ACCEPTANCE.md",
+      "parameters": "docs/PARAMETERS.md",
+      "core_status": "NOT_RUN",
+      "fullstack_status": "NOT_RUN"
     }
   }
 }

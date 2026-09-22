@@ -21,16 +21,17 @@ import (
 )
 
 var (
-	ErrLifecycleBusy      = errors.New("runtimeentry: lifecycle transition already pending")
-	ErrLifecycleDormant   = errors.New("runtimeentry: logical tunnel is dormant")
-	ErrLifecycleLaneState = errors.New("runtimeentry: invalid lifecycle lane state")
-	ErrSegmentMuxClosed   = errors.New("runtimeentry: segment mux closed")
-	ErrSegmentMuxFlow     = errors.New("runtimeentry: segment mux flow already registered")
+	ErrLifecycleRetryBackoff = errors.New("runtimeentry: wake retry backoff; retry on later business demand")
+	ErrLifecycleBusy         = errors.New("runtimeentry: lifecycle transition already pending")
+	ErrLifecycleDormant      = errors.New("runtimeentry: logical tunnel is dormant")
+	ErrLifecycleLaneState    = errors.New("runtimeentry: invalid lifecycle lane state")
+	ErrSegmentMuxClosed      = errors.New("runtimeentry: segment mux closed")
+	ErrSegmentMuxFlow        = errors.New("runtimeentry: segment mux flow already registered")
 )
 
 const (
-	rotatingSourcePortSpan uint64 = 1024
-	defaultReplacementGrace = 3 * time.Second
+	rotatingSourcePortSpan  uint64 = 1024
+	defaultReplacementGrace        = 3 * time.Second
 )
 
 // RotatingSourcePort allocates a bounded reusable client port window for lane
@@ -67,9 +68,9 @@ func NewSegmentMux(base SegmentIO) (*SegmentMux, error) {
 		return nil, err
 	}
 	m := &SegmentMux{
-		base: base,
+		base:   base,
 		routes: make(map[faketcp.ClientFlow]*segmentMuxRoute),
-		errCh: make(chan error, 1),
+		errCh:  make(chan error, 1),
 	}
 	go m.readLoop()
 	return m, nil
@@ -90,7 +91,7 @@ func (m *SegmentMux) Open(flow faketcp.ClientFlow) (SegmentIO, error) {
 		return SegmentIO{}, err
 	}
 	route := &segmentMuxRoute{
-		in: make(chan faketcp.Segment, 256),
+		in:   make(chan faketcp.Segment, 256),
 		done: make(chan struct{}),
 	}
 	m.mu.Lock()
@@ -196,8 +197,12 @@ func clientFlowMatchesOutbound(flow faketcp.ClientFlow, seg faketcp.Segment) boo
 type ClientLaneOpener func(laneID uint8, incarnation uint64) (SegmentIO, faketcp.ClientFlow, error)
 
 type TunnelClientConfig struct {
+	KeepaliveInterval time.Duration
+	DeadAfter         time.Duration
+	ReconnectMin      time.Duration
+	ReconnectMax      time.Duration
 	TLSStartupPadding bool
-	OpenLane ClientLaneOpener
+	OpenLane          ClientLaneOpener
 
 	Lease        logicaltunnel.Lease
 	DesiredLanes int
@@ -206,15 +211,16 @@ type TunnelClientConfig struct {
 	Lane         datapath.ClientLaneParams
 	Deliver      runtimeowner.PacketSink
 
-	InitialRTO   time.Duration
-	TickInterval time.Duration
-	DormantAfter time.Duration
+	InitialRTO       time.Duration
+	TickInterval     time.Duration
+	DormantAfter     time.Duration
 	RotateMin        time.Duration
 	RotateMax        time.Duration
 	ReplacementGrace time.Duration
 }
 
 type clientLifecycleLane struct {
+	failed   bool
 	id       uint8
 	ref      logicaltunnel.LaneRef
 	io       SegmentIO
@@ -257,14 +263,17 @@ type TunnelClient struct {
 	opMu sync.Mutex
 	mu   sync.Mutex
 
-	lanes     map[uint8]*clientLifecycleLane
-	retiring  map[logicaltunnel.LaneRef]*clientRetiring
-	nextInc   uint64
-	dormant   bool
-	closed    bool
-	lastPayload  time.Time
-	nextRotation time.Time
-	actionPending bool
+	lanes          map[uint8]*clientLifecycleLane
+	retiring       map[logicaltunnel.LaneRef]*clientRetiring
+	nextInc        uint64
+	dormant        bool
+	closed         bool
+	lastPayload    time.Time
+	nextRotation   time.Time
+	actionPending  bool
+	retryAt        time.Time
+	retryDelay     time.Duration
+	lifecycleStats LifecycleStats
 
 	runCtx context.Context
 	cancel context.CancelFunc
@@ -280,6 +289,9 @@ func DialTunnelClient(ctx context.Context, cfg TunnelClientConfig) (*TunnelClien
 		return nil, err
 	}
 	if err := logicaltunnel.ValidateProductTransportLaneCount(cfg.DesiredLanes); err != nil {
+		return nil, err
+	}
+	if err := normalizeClientHealth(&cfg); err != nil {
 		return nil, err
 	}
 	if cfg.MaxFlows <= 0 {
@@ -315,17 +327,26 @@ func DialTunnelClient(ctx context.Context, cfg TunnelClientConfig) (*TunnelClien
 		owner.Close()
 		return nil, err
 	}
-	rt, err := runtimeowner.New(owner, cfg.Deliver)
+	var c *TunnelClient
+	rt, err := runtimeowner.New(owner, func(packets [][]byte, now time.Time) error {
+		if len(packets) > 0 {
+			c.noteBusiness(now)
+		}
+		if cfg.Deliver != nil {
+			return cfg.Deliver(packets, now)
+		}
+		return nil
+	})
 	if err != nil {
 		owner.Close()
 		return nil, err
 	}
 	runCtx, cancel := context.WithCancel(context.Background())
-	c := &TunnelClient{
+	c = &TunnelClient{
 		cfg: cfg, owner: owner, rt: rt,
-		lanes: make(map[uint8]*clientLifecycleLane, cfg.DesiredLanes),
+		lanes:    make(map[uint8]*clientLifecycleLane, cfg.DesiredLanes),
 		retiring: make(map[logicaltunnel.LaneRef]*clientRetiring),
-		runCtx: runCtx, cancel: cancel, errCh: make(chan error, 16),
+		runCtx:   runCtx, cancel: cancel, errCh: make(chan error, 16),
 		lastPayload: time.Now(),
 	}
 	c.opMu.Lock()
@@ -372,22 +393,11 @@ func (c *TunnelClient) PrepareBusiness(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	c.mu.Lock()
-	dormant := c.dormant
-	closed := c.closed
-	c.mu.Unlock()
-	if closed {
-		return ErrClientRuntimeStopped
-	}
-	if dormant {
-		if err := c.Wake(ctx); err != nil {
-			return err
-		}
-	}
-	c.mu.Lock()
-	c.lastPayload = time.Now()
-	c.mu.Unlock()
-	return nil
+	// Demand counts even if waking/sending fails under total loss.
+	c.noteBusiness(time.Now())
+	// Always take the lifecycle operation fence; a concurrent idle close may
+	// have started after the caller observed ACTIVE.
+	return c.Wake(ctx)
 }
 
 func (c *TunnelClient) SendPacket(ctx context.Context, packet []byte, now time.Time) error {
@@ -486,7 +496,9 @@ func (c *TunnelClient) RotateOldest(ctx context.Context) error {
 	return nil
 }
 
-func (c *TunnelClient) Dormant() error {
+func (c *TunnelClient) Dormant() error { return c.dormantIfIdle(time.Time{}) }
+
+func (c *TunnelClient) dormantIfIdle(expected time.Time) error {
 	if c == nil {
 		return ErrClientRuntimeStopped
 	}
@@ -502,9 +514,20 @@ func (c *TunnelClient) Dormant() error {
 		c.mu.Unlock()
 		return nil
 	}
+	if !expected.IsZero() && !c.lastPayload.Equal(expected) {
+		c.mu.Unlock()
+		return nil
+	}
+	c.dormant = true
 	c.mu.Unlock()
 
+	if !expected.IsZero() {
+		c.rt.AdvertiseIdle(time.Now())
+	}
 	if _, err := c.rt.Dormant(); err != nil {
+		c.mu.Lock()
+		c.dormant = false
+		c.mu.Unlock()
 		return err
 	}
 
@@ -553,6 +576,11 @@ func (c *TunnelClient) Wake(ctx context.Context) error {
 		c.mu.Unlock()
 		return nil
 	}
+	if time.Now().Before(c.retryAt) {
+		c.mu.Unlock()
+		return ErrLifecycleRetryBackoff
+	}
+	c.lifecycleStats.RecoveryAttempts++
 	c.mu.Unlock()
 
 	attached := make([]uint8, 0, c.cfg.DesiredLanes)
@@ -565,6 +593,8 @@ func (c *TunnelClient) Wake(ctx context.Context) error {
 				lanes = append(lanes, lane)
 			}
 			clear(c.lanes)
+			c.lifecycleStats.RecoveryFailed++
+			c.scheduleRetryLocked(time.Now())
 			c.mu.Unlock()
 			for _, lane := range lanes {
 				lane.close()
@@ -575,6 +605,9 @@ func (c *TunnelClient) Wake(ctx context.Context) error {
 	}
 	c.mu.Lock()
 	c.dormant = false
+	c.lifecycleStats.RecoverySucceeded++
+	c.retryAt = time.Time{}
+	c.retryDelay = 0
 	c.lastPayload = time.Now()
 	c.scheduleNextRotationLocked(time.Now())
 	c.mu.Unlock()
@@ -644,10 +677,10 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		SendNext: handoff.SendNext, ReceiveNext: handoff.ReceiveNext,
 		AdvertisedWindow: handoff.AdvertisedWindow, AdvertisedWindowSet: true,
 		WindowScale: handoff.WindowScale, WindowScaleSet: handoff.WindowScaleSet,
-		InitialRTO: runtimeowner.DefaultRepairRTO,
+		InitialRTO:    runtimeowner.DefaultRepairRTO,
 		RepairHorizon: runtimeowner.DefaultRepairHorizon,
 		SACKPermitted: handoff.Peer.SACKPermitted,
-		Emit: ioCfg.Emit,
+		Emit:          ioCfg.Emit,
 	}
 
 	var snapshot datapath.TunnelLaneSnapshot
@@ -678,6 +711,10 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		return logicaltunnel.LaneRef{}, err
 	}
 
+	if err := c.rt.ConfigureHealth(snapshot.Ref, c.cfg.KeepaliveInterval, c.businessIdle); err != nil {
+		laneState.close()
+		return logicaltunnel.LaneRef{}, err
+	}
 	c.mu.Lock()
 	laneState.ref = snapshot.Ref
 	laneState.attached = true
@@ -714,7 +751,7 @@ func (c *TunnelClient) clientLaneReadLoop(ctx context.Context, lane *clientLifec
 				return
 			default:
 			}
-			c.report(err)
+			c.laneFailure(lane, err)
 			return
 		}
 		c.mu.Lock()
@@ -737,8 +774,7 @@ func (c *TunnelClient) clientLaneReadLoop(ctx context.Context, lane *clientLifec
 		if retiring && errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) {
 			continue
 		}
-		c.report(err)
-		return
+		c.noteLifecycleError(err)
 	}
 }
 
@@ -758,7 +794,7 @@ func (c *TunnelClient) clientLaneBootstrapTick(ctx context.Context, lane *client
 				return
 			}
 			if _, err := lane.assoc.EmitRetransmitDue(now); err != nil {
-				c.report(err)
+				c.laneFailure(lane, err)
 			}
 		}
 	}
@@ -773,7 +809,7 @@ func (c *TunnelClient) lifecycleLoop() {
 			return
 		case now := <-ticker.C:
 			if err := c.rt.Tick(now); err != nil {
-				c.report(err)
+				c.noteLifecycleError(err)
 			}
 			c.retireQualified(now)
 			c.maybeScheduleLifecycle(now)
@@ -793,7 +829,7 @@ func (c *TunnelClient) retireQualified(now time.Time) {
 		if !ok {
 			continue
 		}
-		qualified := stats.Acked != 0 || stats.Received != 0
+		qualified := stats.AuthenticatedRecords != 0
 		graceExpired := !now.Before(item.promotedAt) && now.Sub(item.promotedAt) >= c.cfg.ReplacementGrace
 
 		c.mu.Lock()
@@ -806,7 +842,7 @@ func (c *TunnelClient) retireQualified(now time.Time) {
 			if err := c.rt.CloseWrite(item.oldRef, now); err != nil &&
 				!errors.Is(err, runtimeowner.ErrRuntimeClosed) &&
 				!errors.Is(err, runtimeowner.ErrTransportPeerReset) {
-				c.report(err)
+				c.noteLifecycleError(err)
 			}
 			c.mu.Lock()
 			if current := c.retiring[item.freshRef]; current == item && item.closeStarted.IsZero() {
@@ -828,7 +864,7 @@ func (c *TunnelClient) retireQualified(now time.Time) {
 		}
 		if err := c.rt.RetireIncarnation(item.oldRef); err != nil &&
 			!errors.Is(err, datapath.ErrLaneUnavailable) {
-			c.report(err)
+			c.noteLifecycleError(err)
 			continue
 		}
 		c.mu.Lock()
@@ -838,54 +874,6 @@ func (c *TunnelClient) retireQualified(now time.Time) {
 		c.mu.Unlock()
 		item.old.close()
 	}
-}
-
-func (c *TunnelClient) maybeScheduleLifecycle(now time.Time) {
-	c.mu.Lock()
-	if c.closed || c.actionPending {
-		c.mu.Unlock()
-		return
-	}
-	if c.cfg.DormantAfter > 0 && !c.dormant && !now.Before(c.lastPayload) &&
-		now.Sub(c.lastPayload) >= c.cfg.DormantAfter {
-		c.actionPending = true
-		c.mu.Unlock()
-		go func() {
-			err := c.Dormant()
-			c.mu.Lock()
-			c.actionPending = false
-			c.mu.Unlock()
-			if err != nil {
-				c.report(err)
-			}
-		}()
-		return
-	}
-	if c.cfg.RotateMin > 0 && !c.dormant && !c.nextRotation.IsZero() &&
-		!now.Before(c.nextRotation) && len(c.retiring) == 0 {
-		c.actionPending = true
-		c.mu.Unlock()
-		go func() {
-			timeout := c.cfg.Admission.TLS.Timeout
-			if timeout <= 0 {
-				timeout = 15 * time.Second
-			}
-			ctx, cancel := context.WithTimeout(c.runCtx, timeout)
-			err := c.RotateOldest(ctx)
-			cancel()
-			c.mu.Lock()
-			c.actionPending = false
-			if err != nil {
-				c.nextRotation = time.Now().Add(c.cfg.TickInterval)
-			}
-			c.mu.Unlock()
-			if err != nil && !errors.Is(err, context.Canceled) {
-				c.report(err)
-			}
-		}()
-		return
-	}
-	c.mu.Unlock()
 }
 
 func (c *TunnelClient) scheduleNextRotationLocked(now time.Time) {
@@ -962,6 +950,7 @@ func randomDuration(minimum, maximum time.Duration) (time.Duration, error) {
 }
 
 type LifecycleServerConfig struct {
+	KeepaliveInterval time.Duration
 	ServerConfig
 	DesiredLanes     int
 	DormantAfter     time.Duration
@@ -981,15 +970,15 @@ type serverLifecycleLane struct {
 }
 
 type serverLifecycleTunnel struct {
-	id        logicaltunnel.TunnelID
-	leaseAddr netip.Addr
-	owner     *datapath.TunnelOwner
-	rt        *runtimeowner.Runtime
-	token     linuxserver.BindingToken
-	service   *platformflow.Server
-	lanes     map[uint8]*serverLifecycleLane
-	retiring  map[logicaltunnel.LaneRef]*serverLifecycleLane
-	dormant   bool
+	id          logicaltunnel.TunnelID
+	leaseAddr   netip.Addr
+	owner       *datapath.TunnelOwner
+	rt          *runtimeowner.Runtime
+	token       linuxserver.BindingToken
+	service     *platformflow.Server
+	lanes       map[uint8]*serverLifecycleLane
+	retiring    map[logicaltunnel.LaneRef]*serverLifecycleLane
+	dormant     bool
 	lastPayload time.Time
 }
 
@@ -998,13 +987,13 @@ type LifecycleServer struct {
 
 	table *faketcp.ServerAssociationTable
 
-	admitMu sync.Mutex
-	mu sync.Mutex
-	started map[faketcp.ServerFlow]bool
-	pending map[faketcp.ServerFlow][]faketcp.Segment
-	byFlow map[faketcp.ServerFlow]*serverLifecycleLane
+	admitMu  sync.Mutex
+	mu       sync.Mutex
+	started  map[faketcp.ServerFlow]bool
+	pending  map[faketcp.ServerFlow][]faketcp.Segment
+	byFlow   map[faketcp.ServerFlow]*serverLifecycleLane
 	byTunnel map[logicaltunnel.TunnelID]*serverLifecycleTunnel
-	byLease map[netip.Addr]*serverLifecycleTunnel
+	byLease  map[netip.Addr]*serverLifecycleTunnel
 
 	once sync.Once
 }
@@ -1018,6 +1007,12 @@ func NewLifecycleServer(cfg LifecycleServerConfig) (*LifecycleServer, error) {
 	}
 	if err := logicaltunnel.ValidateProductTransportLaneCount(cfg.DesiredLanes); err != nil {
 		return nil, err
+	}
+	if cfg.KeepaliveInterval == 0 {
+		cfg.KeepaliveInterval = DefaultKeepaliveInterval
+	}
+	if cfg.KeepaliveInterval < time.Second || cfg.KeepaliveInterval > time.Hour {
+		return nil, ErrLifecycleLaneState
 	}
 	if cfg.DormantAfter < 0 || cfg.ReplacementGrace < 0 {
 		return nil, ErrLifecycleLaneState
@@ -1046,11 +1041,11 @@ func NewLifecycleServer(cfg LifecycleServerConfig) (*LifecycleServer, error) {
 	}
 	return &LifecycleServer{
 		cfg: cfg, table: table,
-		started: make(map[faketcp.ServerFlow]bool),
-		pending: make(map[faketcp.ServerFlow][]faketcp.Segment),
-		byFlow: make(map[faketcp.ServerFlow]*serverLifecycleLane),
+		started:  make(map[faketcp.ServerFlow]bool),
+		pending:  make(map[faketcp.ServerFlow][]faketcp.Segment),
+		byFlow:   make(map[faketcp.ServerFlow]*serverLifecycleLane),
 		byTunnel: make(map[logicaltunnel.TunnelID]*serverLifecycleTunnel),
-		byLease: make(map[netip.Addr]*serverLifecycleTunnel),
+		byLease:  make(map[netip.Addr]*serverLifecycleTunnel),
 	}, nil
 }
 
@@ -1252,19 +1247,6 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 		s.dropAdmission(flow)
 		return
 	}
-	if s.cfg.DormantAfter > 0 {
-		now := time.Now()
-		s.mu.Lock()
-		idle := !group.dormant && !group.lastPayload.IsZero() &&
-			!now.Before(group.lastPayload) && now.Sub(group.lastPayload) >= s.cfg.DormantAfter
-		s.mu.Unlock()
-		if idle {
-			if err := s.dormantGroup(group); err != nil {
-				s.dropAdmission(flow)
-				return
-			}
-		}
-	}
 
 	laneID := result.Admission.Negotiated.LaneID
 	if !logicaltunnel.ValidProductLaneID(laneID) || int(laneID) > s.cfg.DesiredLanes {
@@ -1273,13 +1255,7 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 	}
 	s.mu.Lock()
 	replacing := group.lanes[laneID]
-	if replacing != nil {
-		if len(group.lanes) != s.cfg.DesiredLanes || len(group.retiring) != 0 || !s.groupReadyLocked(group) {
-			s.mu.Unlock()
-			s.dropAdmission(flow)
-			return
-		}
-	} else if len(group.retiring) != 0 {
+	if hasRetiringLane(group, laneID) {
 		s.mu.Unlock()
 		s.dropAdmission(flow)
 		return
@@ -1313,11 +1289,20 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 		return
 	}
 
+	if err := group.rt.ConfigureHealth(snapshot.Ref, s.cfg.KeepaliveInterval, func(now time.Time) time.Duration {
+		s.mu.Lock()
+		last := group.lastPayload
+		s.mu.Unlock()
+		return idleDuration(now, last)
+	}, true); err != nil {
+		s.dropAdmission(flow)
+		return
+	}
 	steadyQualified := len(result.Admission.EarlyRecords) != 0
 	fresh := &serverLifecycleLane{
 		flow: flow, assoc: assoc, ref: snapshot.Ref,
 		qualified: replacing != nil || steadyQualified,
-		group: group, replaces: replacing, promotedAt: now,
+		group:     group, replaces: replacing, promotedAt: now,
 	}
 	if replacing != nil {
 		replacing.retiring = true
@@ -1395,14 +1380,7 @@ func (s *LifecycleServer) validateAdmissionRequest(req realityfront.AdmissionReq
 	if group.leaseAddr != leaseAddr {
 		return ErrLeaseMismatch
 	}
-	current := group.lanes[req.LaneID]
-	if current == nil {
-		if len(group.retiring) != 0 {
-			return ErrLifecycleBusy
-		}
-		return nil
-	}
-	if len(group.lanes) != s.cfg.DesiredLanes || len(group.retiring) != 0 || !s.groupReadyLocked(group) {
+	if hasRetiringLane(group, req.LaneID) {
 		return ErrLifecycleBusy
 	}
 	return nil
@@ -1462,8 +1440,8 @@ func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicalt
 	}
 	group := &serverLifecycleTunnel{
 		id: id, leaseAddr: leaseAddr, owner: owner,
-		lanes: make(map[uint8]*serverLifecycleLane, s.cfg.DesiredLanes),
-		retiring: make(map[logicaltunnel.LaneRef]*serverLifecycleLane),
+		lanes:       make(map[uint8]*serverLifecycleLane, s.cfg.DesiredLanes),
+		retiring:    make(map[logicaltunnel.LaneRef]*serverLifecycleLane),
 		lastPayload: time.Now(),
 	}
 	rt, err := runtimeowner.New(owner, func(packets [][]byte, now time.Time) error {
@@ -1537,10 +1515,10 @@ func (s *LifecycleServer) serverTransportConfig(session *realityfront.ServerAdmi
 		SendNext: assoc.SenderNext(), ReceiveNext: session.Boundary,
 		AdvertisedWindow: window, AdvertisedWindowSet: true,
 		WindowScale: scale, WindowScaleSet: scaleSet,
-		InitialRTO: runtimeowner.DefaultRepairRTO,
+		InitialRTO:    runtimeowner.DefaultRepairRTO,
 		RepairHorizon: runtimeowner.DefaultRepairHorizon,
 		SACKPermitted: peer.SACKPermitted,
-		Emit: s.cfg.IO.Emit,
+		Emit:          s.cfg.IO.Emit,
 	}
 }
 
@@ -1552,7 +1530,6 @@ func (s *LifecycleServer) markLaneQualified(lane *serverLifecycleLane, now time.
 		return
 	}
 	lane.qualified = true
-	lane.group.lastPayload = now
 	s.mu.Unlock()
 	s.retireServerReplacement(lane)
 }
@@ -1664,7 +1641,7 @@ func (s *LifecycleServer) refreshQualifiedFromTransport(group *serverLifecycleTu
 	s.mu.Unlock()
 	for _, lane := range lanes {
 		stats, ok := group.rt.TransportStats(lane.ref)
-		if !ok || stats.Received == 0 {
+		if !ok || stats.AuthenticatedRecords == 0 {
 			continue
 		}
 		s.mu.Lock()
@@ -1726,8 +1703,8 @@ func (s *LifecycleServer) tick(now time.Time) error {
 			active := !group.dormant && len(group.lanes) != 0
 			last := group.lastPayload
 			s.mu.Unlock()
-			if active && !last.IsZero() && !now.Before(last) && now.Sub(last) >= s.cfg.DormantAfter {
-				if err := s.DormantTunnel(group.id); err != nil {
+			if active && !last.IsZero() && !now.Before(last) && now.Sub(last) >= s.cfg.DormantAfter && group.rt.PeerIdle(now, s.cfg.DormantAfter) {
+				if err := s.dormantGroupIfIdle(group, last); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -1748,12 +1725,20 @@ func (s *LifecycleServer) DormantTunnel(id logicaltunnel.TunnelID) error {
 	return s.dormantGroup(group)
 }
 
+func (s *LifecycleServer) dormantGroupIfIdle(group *serverLifecycleTunnel, expected time.Time) error {
+	s.admitMu.Lock()
+	defer s.admitMu.Unlock()
+	return s.dormantGroupExpected(group, expected)
+}
 func (s *LifecycleServer) dormantGroup(group *serverLifecycleTunnel) error {
+	return s.dormantGroupExpected(group, time.Time{})
+}
+func (s *LifecycleServer) dormantGroupExpected(group *serverLifecycleTunnel, expected time.Time) error {
 	if group == nil {
 		return logicaltunnel.ErrUnknownTunnel
 	}
 	s.mu.Lock()
-	if group.dormant {
+	if group.dormant || (!expected.IsZero() && !group.lastPayload.Equal(expected)) {
 		s.mu.Unlock()
 		return nil
 	}
@@ -1774,6 +1759,9 @@ func (s *LifecycleServer) dormantGroup(group *serverLifecycleTunnel) error {
 	}
 	s.mu.Unlock()
 
+	if !expected.IsZero() {
+		group.rt.AdvertiseIdle(time.Now())
+	}
 	if _, err := group.rt.Dormant(); err != nil {
 		s.mu.Lock()
 		group.dormant = false
@@ -1862,4 +1850,16 @@ func (s *LifecycleServer) Close() error {
 		out = s.cfg.IO.close()
 	})
 	return out
+}
+
+// admitMu serializes candidates; per-ID retiring exclusion and the existing
+// owner physical limit permit partial multi-lane wake to make forward progress.
+// An unrelated retiring lane must not reject restoration of a missing lane.
+func hasRetiringLane(group *serverLifecycleTunnel, id uint8) bool {
+	for ref := range group.retiring {
+		if ref.ID == id {
+			return true
+		}
+	}
+	return false
 }

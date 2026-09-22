@@ -21,3 +21,6 @@ DTLS 基线保存在独立分支 [`release/dtls-preview-20260919`](https://githu
 ### 可选TLS启动填充（待专项验收）
 
 client/server可分别设置 `--tls-startup-padding`，默认关闭。识别内部新TLS流后短时间利用现有记录余量做有界填充，超时/预算不足直接不填；不等待、不新增分片、不修改重传密文。它不能消除TLS-in-TLS方向/时序指纹。参数界限、平台支持、未验证项及验收入口见 [功能规范](docs/TLS_STARTUP_PADDING.md) 与 [唯一进度](docs/STATUS.json)。
+
+
+参数与JSON配置的唯一入口见 [PARAMETERS](docs/PARAMETERS.md)，完整平台参数目录见 [PARAMETERS.json](docs/PARAMETERS.json)。包括 `--tls-startup-padding`、FEC多档、keepalive、重连退避和idle；CLI优先于配置文件。当前生命周期V2需双端成对升级，验收状态见STATUS，不能混用旧V1端点。

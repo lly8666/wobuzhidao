@@ -13,6 +13,7 @@ type DecoderStats struct {
 }
 
 type DecodeResult struct {
+	Kind    byte
 	PN      uint64
 	Payload []byte
 	Err     error
@@ -81,7 +82,7 @@ func (d *Decoder) OpenPayload(payload []byte) []DecodeResult {
 			d.stats.Late++
 		}
 		d.stats.Delivered++
-		out = append(out, DecodeResult{PN: record.PN, Payload: record.Payload})
+		out = append(out, DecodeResult{Kind: record.Kind, PN: record.PN, Payload: record.Payload})
 	}
 	return out
 }

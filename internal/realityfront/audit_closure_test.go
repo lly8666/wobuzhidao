@@ -284,7 +284,7 @@ func TestServerCandidateDeadlineRejectsPartialAdmissionAndClosesCandidate(t *tes
 		t.Fatal(err)
 	}
 	wire, err := marshalAdmissionRequest(AdmissionRequest{
-		RecordVersion: RecordVersionV1,
+		RecordVersion: RecordVersionV2,
 		TunnelID:      []byte("0123456789abcdef"),
 		ClientLimit:   1450,
 		Username:      "solo",
@@ -345,7 +345,7 @@ func TestServerFinalAdmissionReplyWithoutACKAbortsCandidate(t *testing.T) {
 		t.Fatal(err)
 	}
 	wire, err := marshalAdmissionRequest(AdmissionRequest{
-		RecordVersion: RecordVersionV1,
+		RecordVersion: RecordVersionV2,
 		TunnelID:      []byte("0123456789abcdef"),
 		ClientLimit:   1450,
 		Username:      "solo",

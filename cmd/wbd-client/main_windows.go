@@ -17,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lly8666/wobuzhidao/internal/configfile"
 	"github.com/lly8666/wobuzhidao/internal/datapath"
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
@@ -27,32 +28,40 @@ import (
 
 func main() {
 	var (
-		serverIPText = flag.String("server-ip", "", "server public IPv4")
-		serverPort = flag.Uint("server-port", 443, "server FakeTCP port")
-		sourcePort = flag.Uint("source-port", 40000, "FakeTCP source port")
-		tunnelText = flag.String("tunnel-id", "", "32-hex Logical Tunnel ID")
-		leaseText = flag.String("lease4", "", "leased IPv4 /32")
-		account = flag.String("account", "", "account identity")
-		installationText = flag.String("installation-id", "", "32-hex installation ID")
-		serverName = flag.String("server-name", "", "recognized TLS server name")
-		routeKeyHex = flag.String("route-key-hex", "", "hex route key")
-		username = flag.String("username", "", "protected admission username")
-		password = flag.String("password", "", "protected admission password")
-		clientLimit = flag.Uint("client-record-limit", 1300, "server-to-client TLS-like record wire limit")
-		mtu = flag.Int("mtu", 1500, "connection MTU")
+		deadAfter         = flag.Duration("dead-after", runtimeentry.DefaultDeadAfter, "reconnect after no authenticated lane records; at least 3 keepalive intervals")
+		reconnectMin      = flag.Duration("reconnect-min", runtimeentry.DefaultReconnectMin, "minimum retry delay after failed lane admission")
+		reconnectMax      = flag.Duration("reconnect-max", runtimeentry.DefaultReconnectMax, "maximum retry delay after failed lane admission")
+		configPath        = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
+		keepalive         = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
+		serverIPText      = flag.String("server-ip", "", "server public IPv4")
+		serverPort        = flag.Uint("server-port", 443, "server FakeTCP port")
+		sourcePort        = flag.Uint("source-port", 40000, "FakeTCP source port")
+		tunnelText        = flag.String("tunnel-id", "", "32-hex Logical Tunnel ID")
+		leaseText         = flag.String("lease4", "", "leased IPv4 /32")
+		account           = flag.String("account", "", "account identity")
+		installationText  = flag.String("installation-id", "", "32-hex installation ID")
+		serverName        = flag.String("server-name", "", "recognized TLS server name")
+		routeKeyHex       = flag.String("route-key-hex", "", "hex route key")
+		username          = flag.String("username", "", "protected admission username")
+		password          = flag.String("password", "", "protected admission password")
+		clientLimit       = flag.Uint("client-record-limit", 1300, "server-to-client TLS-like record wire limit")
+		mtu               = flag.Int("mtu", 1500, "connection MTU")
 		tlsStartupPadding = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
-		fecParity = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
-		adapterAlias = flag.String("adapter", "WBD", "Wintun adapter alias")
-		dnsText = flag.String("dns4", "", "comma-separated IPv4 DNS servers")
-		directText = flag.String("direct4", "", "comma-separated direct IPv4 prefixes")
-		statePath = flag.String("state-path", "wbd-windows-client-state.json", "owned Windows network state file")
-		scriptPath = flag.String("network-script", "scripts/windows_client_network.ps1", "Windows network Apply/Cleanup script")
-		lanes = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
-		idleDormant = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
-		rotateMin = flag.Duration("rotate-min", 0, "minimum lane rotation interval; 0 disables rotation")
-		rotateMax = flag.Duration("rotate-max", 0, "maximum lane rotation interval; must pair with rotate-min")
+		fecParity         = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
+		adapterAlias      = flag.String("adapter", "WBD", "Wintun adapter alias")
+		dnsText           = flag.String("dns4", "", "comma-separated IPv4 DNS servers")
+		directText        = flag.String("direct4", "", "comma-separated direct IPv4 prefixes")
+		statePath         = flag.String("state-path", "wbd-windows-client-state.json", "owned Windows network state file")
+		scriptPath        = flag.String("network-script", "scripts/windows_client_network.ps1", "Windows network Apply/Cleanup script")
+		lanes             = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
+		idleDormant       = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
+		rotateMin         = flag.Duration("rotate-min", 0, "minimum lane rotation interval; 0 disables rotation")
+		rotateMax         = flag.Duration("rotate-max", 0, "maximum lane rotation interval; must pair with rotate-min")
 	)
 	flag.Parse()
+	if err := configfile.ApplyFile(flag.CommandLine, *configPath); err != nil {
+		log.Fatal(err)
+	}
 	if handleVersion() {
 		return
 	}
@@ -110,12 +119,12 @@ func main() {
 		log.Fatal(err)
 	}
 	lease := logicaltunnel.Lease{
-		Account: *account,
+		Account:        *account,
 		InstallationID: installation,
 		Config: logicaltunnel.TunnelConfig{
 			TunnelID: tunnelID,
 			Address4: leasePrefix.String(),
-			Routes4: []string{"0.0.0.0/0"},
+			Routes4:  []string{"0.0.0.0/0"},
 		},
 	}
 	if err := lease.Validate(); err != nil {
@@ -158,9 +167,9 @@ func main() {
 			}
 			return ioCfg, flow, nil
 		},
-		Lease: lease,
+		Lease:             lease,
 		TLSStartupPadding: *tlsStartupPadding,
-		DesiredLanes: *lanes,
+		DesiredLanes:      *lanes,
 		Admission: realityfront.ClientAdmissionConfig{
 			TLS: realityfront.ClientConfig{
 				ServerName: *serverName, RouteKey: routeKey, Timeout: 15 * time.Second,
@@ -169,7 +178,7 @@ func main() {
 			TunnelID: tunnelID.Bytes(), ClientLimit: uint16(*clientLimit),
 		},
 		Lane: datapath.ClientLaneParams{
-			ConnectionMTU: *mtu,
+			ConnectionMTU:   *mtu,
 			TxIPv4HeaderLen: 20, TxTCPHeaderLen: 20,
 			RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
 			ParityShards: *fecParity, FlushAfter: fecFlushAfter, MaxBlocks: fecMaxBlocks,
@@ -180,7 +189,8 @@ func main() {
 			}
 			return router.DeliverFromOwner(packets)
 		},
-		DormantAfter: *idleDormant,
+		DormantAfter:      *idleDormant,
+		KeepaliveInterval: *keepalive, DeadAfter: *deadAfter, ReconnectMin: *reconnectMin, ReconnectMax: *reconnectMax,
 		RotateMin: *rotateMin,
 		RotateMax: *rotateMax,
 	})
@@ -205,12 +215,12 @@ func main() {
 	}
 	networkPlan, err := windowsclient.BuildNetworkPlan(windowsclient.Config{
 		AdapterAlias: *adapterAlias,
-		Lease4: leasePrefix,
-		Server4: serverIP,
-		Physical: physical,
-		DNSServers4: dns,
-		Direct4: direct,
-		StatePath: *statePath,
+		Lease4:       leasePrefix,
+		Server4:      serverIP,
+		Physical:     physical,
+		DNSServers4:  dns,
+		Direct4:      direct,
+		StatePath:    *statePath,
 	})
 	if err != nil {
 		log.Fatal(err)

@@ -10,6 +10,7 @@
 4. `docs/DEVELOPMENT_PLAN.md`：已决定的架构和执行细则。
 5. `docs/WIRE_SPEC.md`、`docs/MODULE_MAP.md`：本任务涉及的协议/模块。
 6. `docs/ACCEPTANCE.md` 和 STATUS 指向的最近开发日志。
+7. `docs/PARAMETERS.md`、`docs/PARAMETERS.json`：所有实际参数、平台差异、配置优先级。涉及生命周期时还读 `docs/LIFECYCLE_ACCEPTANCE.md`。
 
 系统/开发者指令和用户当前明确指令优先于仓库文件。仓库内部顺序为章程 > 正式设计与协议 > 当前状态/路线图 > 日志。发现矛盾时先修正状态与文档，不从旧日志找一个自己喜欢的答案。
 
@@ -24,6 +25,8 @@
 - 用一句话写清本轮目标、对应阶段、预计改哪些模块。默认一次完成一个可验收任务。
 - 按 STATUS.next_task 前进；除非用户改变方向，不自行新增协议、切换 crypto、调整 FEC/recovery 参数或先做 UI 大改。
 - 没有阻塞就继续，不反复请用户决定常规实现细节。必要问题写清约束与推荐处理。
+
+参数修改必须同步机器清单与语义文档，运行生成器 `python tools/parameter_catalog.py --write`；一致性检查在 Actions 执行。不能因为旧提示词未提到一个开关就删掉它。特别保留 `tls-startup-padding`、全 FEC 档位、idle/keepalive/reconnect/rotation 的配置入口和测试。
 
 ## 不偏题规则
 
