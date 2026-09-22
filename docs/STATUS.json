@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "本agent已按用户明确交接继续增强P4/P5资格；原主线agent保持暂停且未唤醒。P4第5原子代码回归已按896ae94/1fc6b1c exact-SHA Actions复核闭环；当前原子仅建立正式client/server独立进程的真实raw socket + OpenWrt TPROXY + Linux shared-TUN无损闭环、300ms单向链路与抓包校准，尚未取得新Actions结果。",
-  "next_task": "运行next-realpath-calibration的exact-SHA Actions。若失败，保留raw日志/pcap/qdisc/namespace状态，定位最早断点后做最小harness或产品修复；若通过，固定该真实拓扑后再扩成WEAKNET_QUALIFICATION的18个严格主测及成本/资源账本。",
-  "latest_log": "docs/devlog/20260922-172000-realpath-calibration-harness.md",
-  "last_tested_source_sha": "1fc6b1c7c1917860b4b65ce6449b6361d421fce7",
+  "in_progress": "增强P4/P5继续执行。首个正式二进制真实路径校准 SOURCE_SHA 7a15f11f 在 Actions 35710291033 失败：server 在客户端业务启动前因 shared-TUN 读到非IPv4流量报 `linuxserver: invalid IPv4 packet` 并退出；该TUN为IPv4-only产品路径，本轮候选仅将 disable_ipv6 在TUN仍down时应用后再link-up，继续保留畸形IPv4校验。另修harness临时私钥不进入artifact及失败证据可读性，待exact-SHA Actions。",
+  "next_task": "检查本候选 exact-SHA next-realpath-calibration。若server仍出现非IPv4/路径失败，保留可上传artifact并从TUN/pcap/qdisc定位最早断点；若无损校准PASS，再扩成WEAKNET_QUALIFICATION 18个120s严格主测与成本/资源账本。旧5305随机HTTPS红灯保留为体验证据，不择优重跑替代新资格。",
+  "latest_log": "docs/devlog/20260922-183500-realpath-tun-ipv4-only.md",
+  "last_tested_source_sha": "7a15f11fdeb96710154fb4894b29e3856791d758",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1020,6 +1020,27 @@
       "scope": "P5-old-fecoff-5305-experience-recheck",
       "status": "PASS_ANALYZER_ONLY_NOT_NEW_QUALIFICATION",
       "note": "原始job日志复核：p5-weaknet-5-30-5 run1 job 106668822384为scheduled=40 success=36 loss=4 repair=687 wire_amp=5.329970，旧validator打印PASS，artifact 10683248864；run2 job 106668822286为40/31/loss9/repair592/wire_amp=5.352490，旧validator同样PASS，artifact 10683916726。保留“分析器绿但请求体验明显丢失”的事实，不计入WEAKNET_QUALIFICATION持续UDP主测。"
+    },
+    {
+      "source_sha": "7a15f11fdeb96710154fb4894b29e3856791d758",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35710291033",
+      "scope": "realpath-lossless-calibration-v1",
+      "status": "FAIL",
+      "note": "正式wbd-server在client/业务发生器启动前退出，server.log仅报 `linuxserver: invalid IPv4 packet`；harness因此在kill -0存活检查失败。Actions uploader另因ART内root-only server-key.pem EACCES未能生成artifact，原始pcap未上传。该失败不能标环境PASS；下一候选显式在shared-TUN仍down时disable IPv6，并把临时私钥移出artifact。"
+    },
+    {
+      "source_sha": "7a15f11fdeb96710154fb4894b29e3856791d758",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35710290924",
+      "scope": "branch-wide-regression-with-realpath-harness-v1",
+      "status": "FAIL_OLD_5305_EXPERIENCE",
+      "note": "foundation 30 jobs中仅 p5-weaknet-5-30-5 run2 job 106689033052失败；产品120s harness自身PASS但仅30/40 HTTPS请求成功、repair=509、wire_amp=5.088080，旧validator因post5无法复算而FAIL；artifact 10686810529 zip sha256=1e75ff691eaf33a4e12da0d5c13e67e2a26fbb590390343e3e2ea1527a7d96ee。7a15f11仅新增harness/docs，无产品数据面改动，因此保留该随机旧门红灯作为体验事实，不将其归因于realpath代码也不择优覆盖。"
+    },
+    {
+      "source_sha": "7a15f11fdeb96710154fb4894b29e3856791d758",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35710290998",
+      "scope": "P4-targeted-after-realpath-harness-v1",
+      "status": "PASS_TARGETED",
+      "note": "next-p4-steady-targeted整轮success；realpath首轮失败与现有core/lifecycle/privileged回归分离。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1058,8 +1079,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED: 第1-5原子代码回归已复核到1fc6b1c exact-SHA全绿；真实正式二进制raw/TPROXY/shared-TUN持续弱网与性能资格仍NOT_RUN，不能关闭增强P4。",
-    "P5": "REOPENED: 正在建立正式client/server独立进程真实路径无损/300ms链路/抓包校准；18份严格持续UDP主测、成本总账、容量专项与目标负载长测仍NOT_RUN。旧15s SegmentIO load、低频HTTPS weaknet和31min低负载soak仅保留历史证据。",
+    "P4": "REOPENED: 第1-5原子代码回归已复核；7a15f11 targeted仍PASS，但正式shared-TUN realpath首轮暴露IPv4-only TUN上线时非IPv4流量致server退出，最小平台修复待exact-SHA Actions。真实持续弱网资格未关闭。",
+    "P5": "REOPENED: 正式client/server独立进程realpath校准首轮FAIL，尚未进入18份持续UDP主测。旧15s SegmentIO、低频HTTPS weaknet与低负载soak继续只作历史证据；5305 7a15f11 run2为30/40且validator FAIL。",
     "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {

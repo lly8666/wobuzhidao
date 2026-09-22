@@ -110,6 +110,10 @@ func BuildNetworkPlan(tunName string, leasePrefix netip.Prefix, mtu int, backend
 		Sysctls: []SysctlChange{
 			{Key: "net.ipv4.ip_forward", Value: "1", RestoreSaved: true},
 			{Key: "net.ipv4.conf." + tunName + ".rp_filter", Value: "0", RestoreSaved: true},
+			// The active shared-TUN dataplane is IPv4-only. Disable IPv6 on the
+			// freshly created interface before it is brought up so kernel
+			// link-local control traffic cannot enter the IPv4 packet reader.
+			{Key: "net.ipv6.conf." + tunName + ".disable_ipv6", Value: "1", RestoreSaved: true},
 		},
 		Firewall: FirewallPlan{
 			Backend:    backend,

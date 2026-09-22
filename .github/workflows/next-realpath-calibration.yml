@@ -85,15 +85,15 @@ jobs:
         run: |
           set +e
           echo "=== client ==="
-          tail -n 120 artifacts/realpath-calibration/client.log
+          tail -n 120 artifacts/realpath-calibration/client.log || true
           echo "=== server ==="
-          tail -n 120 artifacts/realpath-calibration/server.log
+          tail -n 120 artifacts/realpath-calibration/server.log || true
           echo "=== biz ==="
-          tail -n 80 artifacts/realpath-calibration/biz.log
+          tail -n 80 artifacts/realpath-calibration/biz.log || true
           echo "=== target ==="
-          tail -n 80 artifacts/realpath-calibration/target.log
+          tail -n 80 artifacts/realpath-calibration/target.log || true
           echo "=== summary ==="
-          cat artifacts/realpath-calibration/summary.json
+          cat artifacts/realpath-calibration/summary.json || true
 
       - name: Upload calibration evidence
         if: always()

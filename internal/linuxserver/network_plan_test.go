@@ -30,11 +30,12 @@ func TestNetworkPlanOwnsOnlySharedTUNRouteForwardNATAndSysctls(t *testing.T) {
 	if len(plan.Teardown) != 1 || !reflect.DeepEqual(plan.Teardown[0], Command{Name: "ip", Args: []string{"route", "del", "10.66.0.0/16", "dev", "wbdg0"}}) {
 		t.Fatalf("teardown=%+v", plan.Teardown)
 	}
-	if len(plan.Sysctls) != 2 || !plan.Sysctls[0].RestoreSaved || !plan.Sysctls[1].RestoreSaved {
+	if len(plan.Sysctls) != 3 || !plan.Sysctls[0].RestoreSaved || !plan.Sysctls[1].RestoreSaved || !plan.Sysctls[2].RestoreSaved {
 		t.Fatalf("sysctls=%+v", plan.Sysctls)
 	}
 	if plan.Sysctls[0].Key != "net.ipv4.ip_forward" || plan.Sysctls[0].Value != "1" ||
-		plan.Sysctls[1].Key != "net.ipv4.conf.wbdg0.rp_filter" || plan.Sysctls[1].Value != "0" {
+		plan.Sysctls[1].Key != "net.ipv4.conf.wbdg0.rp_filter" || plan.Sysctls[1].Value != "0" ||
+		plan.Sysctls[2].Key != "net.ipv6.conf.wbdg0.disable_ipv6" || plan.Sysctls[2].Value != "1" {
 		t.Fatalf("sysctls=%+v", plan.Sysctls)
 	}
 	if len(plan.Firewall.Rules) != 3 {

@@ -22,6 +22,7 @@ CLIENT_PID=""
 SERVER_PID=""
 BIZ_PID=""
 TGT_PID=""
+KEY=""
 CAP_PIDS=()
 
 cleanup() {
@@ -34,6 +35,10 @@ cleanup() {
   done
   sleep 0.2
   for ns in "${NAMESPACES[@]}"; do ip netns del "$ns" 2>/dev/null || true; done
+  if [[ -n "$KEY" ]]; then rm -f "$KEY" 2>/dev/null || true; fi
+  # The Actions uploader runs as the runner user even though this harness
+  # executes as root. Preserve readable raw evidence on both PASS and FAIL.
+  chmod -R a+rX "$ART" 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -118,7 +123,8 @@ CAP_PIDS+=("$!")
 sleep 1
 
 CERT="$ART/server-cert.pem"
-KEY="$ART/server-key.pem"
+# Keep the ephemeral private key outside the uploaded evidence directory.
+KEY="/tmp/wbd-realpath-server-key-$SFX.pem"
 openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj '/CN=qual.test'   -keyout "$KEY" -out "$CERT" > "$ART/openssl.log" 2>&1
 
 TUNNEL_ID="00112233445566778899aabbccddeeff"
@@ -176,6 +182,8 @@ wait "$CLIENT_PID" || true
 wait "$SERVER_PID" || true
 CLIENT_PID=""
 SERVER_PID=""
+rm -f "$KEY"
+KEY=""
 sleep 1
 
 # Prove WBD-owned client state is gone after graceful shutdown.

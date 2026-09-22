@@ -106,13 +106,17 @@ func (r *Runtime) apply() error {
 		}
 		r.savedSysctls[change.Key] = value
 	}
-	for _, command := range r.plan.Setup {
-		if err := runCommand(command.Name, command.Args...); err != nil {
+	// OpenTUN has created the interface but it is still down. Apply the
+	// per-interface policy first, especially disable_ipv6, before link-up can
+	// cause kernel-generated IPv6 link-local traffic to reach the IPv4-only
+	// shared-TUN reader. Cleanup restores all saved values on failure.
+	for _, change := range r.plan.Sysctls {
+		if err := writeSysctl(change.Key, change.Value); err != nil {
 			return err
 		}
 	}
-	for _, change := range r.plan.Sysctls {
-		if err := writeSysctl(change.Key, change.Value); err != nil {
+	for _, command := range r.plan.Setup {
+		if err := runCommand(command.Name, command.Args...); err != nil {
 			return err
 		}
 	}

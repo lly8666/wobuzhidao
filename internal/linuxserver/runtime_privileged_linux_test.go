@@ -70,6 +70,12 @@ func TestPrivilegedSharedTUNRuntime(t *testing.T) {
 	if got, err := readSysctl("net.ipv4.conf.wbdg0.rp_filter"); err != nil || got != "0" {
 		t.Fatalf("rp_filter=%q err=%v", got, err)
 	}
+	if got, err := readSysctl("net.ipv6.conf.wbdg0.disable_ipv6"); err != nil || got != "1" {
+		t.Fatalf("disable_ipv6=%q err=%v", got, err)
+	}
+	if out := mustCommand(t, "ip", "-6", "addr", "show", "dev", "wbdg0"); strings.Contains(out, "inet6") {
+		t.Fatalf("IPv4-only shared TUN unexpectedly has IPv6 address: %q", out)
+	}
 	assertFirewallMarkers(t, backend, nftForward, true)
 
 	router, err := NewSharedTUNRouter(plan.LeasePrefix, 4, rt.TUN())
