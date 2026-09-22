@@ -132,12 +132,22 @@ def qdisc_counter(event, direction, key):
 def qdisc_stage(events, name, direction):
     by = {x["event"]: x for x in events}
     a, b = by[name + "_start"], by[name + "_end"]
-    packets = qdisc_counter(b, direction, "packets") - qdisc_counter(a, direction, "packets")
+    # tc -s qdisc reports successfully dequeued/sent packets separately from
+    # packets dropped by the qdisc. The offered packet denominator is therefore
+    # passed + dropped, not passed alone. Using drops/passed makes a true 20%
+    # loss look like 25% and a true 30% loss look like ~42.86%.
+    passed = qdisc_counter(b, direction, "packets") - qdisc_counter(a, direction, "packets")
     drops = qdisc_counter(b, direction, "drops") - qdisc_counter(a, direction, "drops")
     overlimits = qdisc_counter(b, direction, "overlimits") - qdisc_counter(a, direction, "overlimits")
+    attempted = passed + drops
     return {
-        "packets": packets, "drops": drops, "overlimits": overlimits,
-        "loss_percent": (100.0 * drops / packets) if packets > 0 else None,
+        "packets": passed,
+        "passed_packets": passed,
+        "attempted_packets": attempted,
+        "drops": drops,
+        "overlimits": overlimits,
+        "loss_denominator": "passed_plus_drops",
+        "loss_percent": (100.0 * drops / attempted) if attempted > 0 else None,
     }
 
 

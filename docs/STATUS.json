@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "增强P4/P5进入strict generation3。前置SOURCE_SHA 6a4be3a3f25268b4cb9f38bd7823b1794e11be4c已三线闭合：seeded-netem preflight 35738280773 PASS（tc iproute2-7.2.0；Azure kernel 6.17.0-1022；seed 123456/654321均在qdisc JSON中回显），targeted 35738280671 PASS，foundation 35738280774 PASS，旧P5/P6/31m soak均skipped。本提交恢复next-strict-weaknet push并bump generation3，自动启动18个120s严格样本；产品数据面相对6a4be3a未改。",
-  "next_task": "跟踪generation3的18个strict sample与aggregate。先按样本分为CORRECTNESS/INPUT_VALIDITY/CAPTURE/ENVIRONMENT/PERFORMANCE五类，不以transport_hygiene REVIEW单独判业务失败。若有样本FAIL，先区分harness/input、环境容量、本机socket/queue、FEC/repair压力与真实业务损失；保留目标10/3Mbps结果，不用半速替代资格。18主测闭合后再做旁路/半速容量诊断、专项loss/blackhole/rotation、补丁A/B和最终目标速率30min长测。",
-  "latest_log": "docs/devlog/20260922-223000-strict-generation3-launch.md",
-  "last_tested_source_sha": "6a4be3a3f25268b4cb9f38bd7823b1794e11be4c",
+  "in_progress": "strict generation3 SOURCE_SHA 681c89b 已启动18样本并保留继续运行，但首个完成样本 normal/5305/seed303 暴露active analyzer的qdisc loss分母错误：tc qdisc `packets`为通过/发送计数，`drops`另计，旧公式drops/packets把真实29.94%/29.85%误报42.73%/42.56%，造成INPUT_VALIDITY假红。该样本的业务/容量失败仍真实：发生器约10Mbps/向、capture=0，但stress goodput C2S 0.185Mbps/S2C 3.521Mbps，client/server UDP skmem drop 131577/178471，queue-pre p95约11.96s。当前候选仅修analyzer分母并暂停strict自动push，先跑小preflight+基础/受影响回归；generation3原始18样本继续保留作为诊断证据。",
+  "next_task": "等待本候选next-strict-harness-preflight验证synthetic qdisc delta 700 passed + 300 drops => 30%，并确认seeded-netem仍PASS；targeted/foundation保持绿。generation3剩余样本继续收集原始业务/资源/FEC/repair证据，但其有损INPUT_VALIDITY结论不得用于资格。preflight闭合后原子launch generation4全18同SHA，不择优只补有损。",
+  "latest_log": "docs/devlog/20260922-224500-qdisc-loss-denominator-fix.md",
+  "last_tested_source_sha": "681c89b026dfa6a4d47455838d9f67c9c3d44fc2",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1206,6 +1206,15 @@
       "scope": "foundation-before-strict-generation3",
       "status": "PASS",
       "note": "repository/P2/Linux+Windows active-go/OpenWrt TPROXY/shared-TUN iptables/nft全部成功；历史P5扩展、P6与31m低负载soak按显式-only策略skipped。"
+    },
+    {
+      "source_sha": "681c89b026dfa6a4d47455838d9f67c9c3d44fc2",
+      "harness_blob_sha": "5b88fc29d0eafbb949f1e3591e1615e8b0d2838d",
+      "analyzer_blob_sha": "57f5512b0482205ee7e36d9118335a25b2a497a8",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35738675444",
+      "scope": "strict-generation3-partial",
+      "status": "RUNNING_ANALYZER_INVALID_FOR_LOSS_PERCENT",
+      "note": "首个完成normal/5305/seed303 artifact 10698581799 sha256=9ea340af6622d4b7200274d4bbfa35591c28b6fa59215a5fbaa7906df2e562a7。旧analyzer报C2S/S2C stress 42.733%/42.562%，但原始qdisc delta分别passed=226453,drops=96771与passed=125251,drops=53309；正确drops/(passed+drops)=29.939%/29.855%。业务仍严重CAPACITY_LIMITED：C2S stress 0.185Mbps、S2C 3.521Mbps，socket drops client=131577/server=178471，CORRECTNESS/CAPTURE PASS。"
     }
   ],
   "physical_status": "NOT_RUN",

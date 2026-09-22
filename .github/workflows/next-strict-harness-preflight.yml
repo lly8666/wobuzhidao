@@ -54,6 +54,31 @@ jobs:
             --output seeded-netem-preflight.json
           cat seeded-netem-preflight.json
 
+      - name: Prove qdisc loss accounting denominator
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import runpy
+          m = runpy.run_path("tools/check_strict_weaknet.py")
+          qdisc_stage = m["qdisc_stage"]
+          def ev(name, passed, drops):
+              return {
+                  "event": name,
+                  "qdisc": {
+                      "c2s": [{"packets": passed, "drops": drops, "overlimits": 0}],
+                      "s2c": [{"packets": passed, "drops": drops, "overlimits": 0}],
+                  },
+              }
+          events = [ev("stress_start", 1000, 200), ev("stress_end", 1700, 500)]
+          got = qdisc_stage(events, "stress", "c2s")
+          assert got["passed_packets"] == 700, got
+          assert got["drops"] == 300, got
+          assert got["attempted_packets"] == 1000, got
+          assert abs(got["loss_percent"] - 30.0) < 1e-12, got
+          assert got["loss_denominator"] == "passed_plus_drops", got
+          print("WBD_STRICT_QDISC_ACCOUNTING_PASS", got)
+          PY
+
       - name: Upload preflight receipt
         if: always()
         uses: actions/upload-artifact@v4
