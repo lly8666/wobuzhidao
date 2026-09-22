@@ -849,7 +849,10 @@ func TestSteadyRepairBudgetDefersRepairButNeverFresh(t *testing.T) {
 	for i := 0; i < 4; i++ {
 		records = append(records, datapath.WireRecord{Wire: bytes.Repeat([]byte{byte(0x60 + i)}, 10)})
 	}
-	if err := tr.send(records, t0); err != nil {
+	if err := tr.send(records[:1], t0); err != nil {
+		t.Fatal(err)
+	}
+	if err := tr.send(records[1:], t0.Add(12*time.Millisecond)); err != nil {
 		t.Fatal(err)
 	}
 	sack := faketcp.Segment{
@@ -1190,7 +1193,10 @@ func TestSteadyIncrementalSACKHandlesSequenceWrapAndFourBlockCache(t *testing.T)
 	for i := range records {
 		records[i].Wire = bytes.Repeat([]byte{byte(0x90 + i)}, 24)
 	}
-	if err := tr.send(records, t0); err != nil {
+	if err := tr.send(records[:1], t0); err != nil {
+		t.Fatal(err)
+	}
+	if err := tr.send(records[1:], t0.Add(20*time.Millisecond)); err != nil {
 		t.Fatal(err)
 	}
 	ack := faketcp.Segment{
@@ -1380,16 +1386,18 @@ func TestSteadyFreshFastRepairUsesTransmissionTimeReorderingEvidence(t *testing.
 		t.Fatalf("wall-clock-aged reorder triggered fast repair wire=%d stats=%+v", len(wire), stats)
 	}
 
-	// Once a genuinely newer transmission is SACKed beyond the 10ms minimum
-	// reordering window, the same hole becomes eligible for one fast repair.
-	if err := tr.send(records[5:], t0.Add(12*time.Millisecond)); err != nil {
+	// The first delayed SACK also establishes an RTT near 600ms, so the
+	// existing reordering window becomes roughly SRTT/4 (~149ms), not merely
+	// the 10ms floor. A later fresh transmission after that window supplies
+	// genuine transmit-time loss evidence without changing the RACK constants.
+	if err := tr.send(records[5:], t0.Add(700*time.Millisecond)); err != nil {
 		t.Fatal(err)
 	}
 	if len(wire) != 6 {
 		t.Fatalf("fresh wire after evidence=%d want=6", len(wire))
 	}
 	sack.SACK[0].End = wire[5].Seq + uint32(len(wire[5].Payload))
-	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(601*time.Millisecond)); err != nil {
+	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(1300*time.Millisecond)); err != nil {
 		t.Fatal(err)
 	}
 	stats, _ = rt.TransportStats(snap.Ref)

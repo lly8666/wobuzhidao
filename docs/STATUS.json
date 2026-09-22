@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "增强P4/P5继续执行。751bf4cf 已把正式realpath业务完全打通：双向各987/987、500080B/500080B唯一交付，probe RTT约600ms，capture/qdisc无丢；但严格validator因0% loss下仍有C2S 7500B、S2C 2137B outer repair判FAIL。pcap时间线证明fast repair把约20us级瞬时重排误判为丢包；根因是RACK比较使用 wall-clock `now-lastSent`，而不是较新已交付包与洞包的发送时间差。本候选做最小语义修正，不放宽validator。",
-  "next_task": "检查本RACK候选 exact-SHA realpath、targeted和fast foundation。若无损validator PASS，冻结校准topology/harness并开始实现/启动18个120s严格主测；若仍有repair，继续从pcap逐次区分fast/RTO并保留失败证据。",
-  "latest_log": "docs/devlog/20260922-190500-realpath-rack-reorder-evidence.md",
-  "last_tested_source_sha": "751bf4cf1eb3eb356b3531958e5d3bc3ff44c697",
+  "in_progress": "增强P4/P5继续执行。466145a realpath无损校准已严格PASS：正式独立client/server、raw socket、OpenWrt TPROXY、路由/防火墙/shared-TUN双向987/987完整交付，300ms/向注入与8/8 probe有效，0 corruption/duplicate/capture drop，outer repair双向均0。该SHA的Linux/Windows core回归仅因3个旧fast-repair测试仍以ACK墙钟年龄构造证据而FAIL；产品实现/privileged/lifecycle均未见新失败。本候选只修测试时间契约，不动刚通过realpath的实现。",
+  "next_task": "检查测试契约修复候选的exact-SHA realpath、targeted、fast foundation。三者同SHA通过后，固定harness blob 4863a6a6715d40b3dc90c17507635b7978bea011 和 analyzer blob 4989ec1e6c392799ac8599352196a49b782182e8，开始实现/启动18个120s严格主测；旧31m soak保持显式-only。",
+  "latest_log": "docs/devlog/20260922-191500-rack-test-contract-after-realpath-pass.md",
+  "last_tested_source_sha": "466145a059967aac4649146b669e27e5c1309f53",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1055,6 +1055,29 @@
       "scope": "realpath-lossless-calibration-v3",
       "status": "FAIL_SPURIOUS_FAST_REPAIR",
       "note": "harness本身SUCCESS且正式client/server存活；双向987/987、各500080B完整唯一交付，probe RTT p50=600.388ms，qdisc p50约300.011ms/向，capture drop=0。validator仅因0% loss仍出现outer repair而FAIL：C2S 7500B、S2C 2137B。artifact 10692130019 zip sha256=c76dd2cfa90522ddca6d24cd6142def7a8eb4e8d5e6d7ed7380bfadbaf02e223。首个C2S例：seq 2315460976首发，约600.285ms后ACK携SACK [2315462226,2315465976)，其中最新SACK包仅比洞包晚24us发送；repair在该SACK后约38us发出，而累计ACK约21us后已补洞。"
+    },
+    {
+      "source_sha": "466145a059967aac4649146b669e27e5c1309f53",
+      "harness_blob_sha": "4863a6a6715d40b3dc90c17507635b7978bea011",
+      "analyzer_blob_sha": "4989ec1e6c392799ac8599352196a49b782182e8",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35723954047",
+      "scope": "realpath-lossless-calibration-v4",
+      "status": "PASS",
+      "note": "artifact 10692079954 zip sha256=bbe47475e84925ad4ccb479eb863c301ab41175cac80554cf602e3a4e361ef67；C2S/S2C均987/987、500080/500080B unique delivered；send_failures/corrupt/duplicate=0；probe 8/8 RTT p50=600.630ms；qdisc p50=300.029ms/向；capture drop=0；outer repair C2S=0/S2C=0；outer IP/app input=5.22246。harness=success validator=success。"
+    },
+    {
+      "source_sha": "466145a059967aac4649146b669e27e5c1309f53",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35723953925",
+      "scope": "targeted-after-rack-evidence",
+      "status": "FAIL_TEST_CONTRACT",
+      "note": "privileged iptables/nft与lifecycle-focus PASS；steady-core Linux/Windows均仅失败3个runtimeowner fast-repair测试。失败原因是测试仍把ACK/SACK到达墙钟延迟当RACK证据，或新600ms RTT测试未跨动态SRTT/4窗口；本轮只修测试时间构造，不回退实现。"
+    },
+    {
+      "source_sha": "466145a059967aac4649146b669e27e5c1309f53",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35723954064",
+      "scope": "fast-foundation-after-rack-evidence",
+      "status": "FAIL_TEST_CONTRACT",
+      "note": "repository contract、P2、OpenWrt TPROXY、shared-TUN iptables/nft PASS；Linux/Windows active-go仅同3个runtimeowner测试失败；旧P5/P6/31m soak按新CI调度全部skipped。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1093,8 +1116,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED: realpath正式路径正确性已打通，但发现steady SACK/RACK使用wall-clock年龄导致高RTT下微重排误fast-repair；最小发送时间证据修复待exact-SHA Actions。",
-    "P5": "REOPENED: 无损realpath业务交付已100%，但线上成本门仍因0% loss的spurious repair未过；18严格样本尚未启动，遵守先校准后主测。",
+    "P4": "REOPENED: 正式realpath无损闭环已PASS且0 repair；当前仅需修复与新RACK语义不一致的3个测试时间契约并同SHA复核基础/targeted。",
+    "P5": "REOPENED: realpath无损校准已达到进入18主测的路径条件，但必须先让同SHA基础/受影响回归恢复全绿；18个120s严格样本尚未启动。",
     "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
