@@ -1,0 +1,5 @@
+# 用户暂停主线、开始弱网生命周期移植
+
+用户要求先暂停原主线agent任务，保留a045a28的AF_PACKET容量诊断现场，转为移植旧版弱网放弃、探活/黑洞恢复、防误休眠和业务唤醒，并建立统一参数登记。本次仅更新交接；产品源码未修改，未运行测试。
+
+原in_progress/next_task/latest_log保存在STATUS.workstreams.WEAKNET_LIFECYCLE.main_task_hold。不可自动恢复原容量开发，不将新功能标完成。当前应用任务列表未发现可唯一识别的另一个活跃主线任务，已向用户索取任务名/链接；此仓库暂停标记不冒充已中断外部agent。后续功能测试仅在Actions，由新agent按精确SHA收口。
