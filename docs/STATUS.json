@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "用户主线HOLD保留。弱网生命周期移植已编码，V2 health/pressure/reconnect/idle/JSON参数目录等待exact-SHA Actions。原正式路径C2S吞吐缺口未关闭。",
+  "in_progress": "主线用户HOLD保留。弱网生命周期V2代码84c466f已通过6项Actions，包括新增core、foundation全量unit/race/fuzz、padding及真实路径calibration；生命周期完整真实进程故障矩阵和10/3Mbps严格弱网开销仍NOT_RUN。原C2S容量缺口未关闭。",
   "next_task": "新agent按docs/LIFECYCLE_ACCEPTANCE.md完成核心、真实进程生命周期、10/3Mbps弱网开销矩阵；修复本专项失败、保存exact-SHA证据，全部达标后回写计划并关闭WEAKNET_LIFECYCLE。不得自动恢复原AF_PACKET主线任务。",
-  "latest_log": "docs/devlog/20260923-020000-weaknet-lifecycle-v2.md",
+  "latest_log": "docs/devlog/20260923-054724-lifecycle-core-evidence.md",
   "last_tested_source_sha": "7110fd1e22cb2ab3809456657e3fcdf139508a65",
   "actions": [
     {
@@ -1283,6 +1283,42 @@
       "scope": "targeted-alongside-generation4",
       "status": "PASS",
       "note": "contract、Linux/Windows steady-core、lifecycle-focus、iptables/nft privileged均PASS。"
+    },
+    {
+      "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463576",
+      "scope": "weaknet-lifecycle-core/next-lifecycle",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463670",
+      "scope": "weaknet-lifecycle-core/next-foundation",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463537",
+      "scope": "weaknet-lifecycle-core/next-p4-steady-targeted",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463529",
+      "scope": "weaknet-lifecycle-core/next-tls-startup-padding",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463613",
+      "scope": "weaknet-lifecycle-core/next-strict-harness-preflight",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463825",
+      "scope": "weaknet-lifecycle-core/next-realpath-calibration",
+      "status": "PASS"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1359,8 +1395,47 @@
       "protocol": "admission V2; paired upgrade required",
       "acceptance": "docs/LIFECYCLE_ACCEPTANCE.md",
       "parameters": "docs/PARAMETERS.md",
-      "core_status": "NOT_RUN",
-      "fullstack_status": "NOT_RUN"
+      "core_status": "PASS",
+      "fullstack_status": "NOT_RUN",
+      "implementation_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
+      "core_runs": [
+        {
+          "workflow": "next-lifecycle",
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463576",
+          "status": "PASS",
+          "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc"
+        },
+        {
+          "workflow": "next-foundation",
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463670",
+          "status": "PASS",
+          "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc"
+        },
+        {
+          "workflow": "next-p4-steady-targeted",
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463537",
+          "status": "PASS",
+          "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc"
+        },
+        {
+          "workflow": "next-tls-startup-padding",
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463529",
+          "status": "PASS",
+          "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc"
+        },
+        {
+          "workflow": "next-strict-harness-preflight",
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463613",
+          "status": "PASS",
+          "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc"
+        },
+        {
+          "workflow": "next-realpath-calibration",
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463825",
+          "status": "PASS",
+          "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc"
+        }
+      ]
     }
   }
 }

@@ -171,3 +171,6 @@ P5：增加受控真实 HTTPS 客户端/服务器，覆盖首个与复用 lane �
 ## 用户追加：弱网生命周期移植与参数统一（2026-09-23）
 状态：实现待 Actions，不关闭既有容量缺口。复用旧 adaptive_pressure 的 rate/RTT 退役策略与旧 idle activity 二次检查原则；在新单进程所有权内实现独立认证 health、missing≠idle、客户端有界重连、失败不终止以及业务唤醒退避。现有真实 TLS 建连、LINK/FEC/Game、稳定 lease、generation fence、3s repair、4096、TLS startup padding 继续复用，不导回 DTLS/旧 controller。
 协议与算法边界见 WIRE_SPEC；所有参数及 JSON 同名配置见 PARAMETERS.md/json；完整执行矩阵和完成门槛见 LIFECYCLE_ACCEPTANCE。新agent依次执行 core → lifecycle真实进程 → 目标弱网成本矩阵，精确SHA取证后回写本计划与STATUS.workstreams.WEAKNET_LIFECYCLE，不得先标完成。原AF_PACKET主线HOLD不自动恢复。
+
+
+2026-09-23 核心证据：SOURCE_SHA `84c466f81860c3e87aac3b571a9bce419018aabc`；[next-lifecycle](https://github.com/lly8666/wobuzhidao/actions/runs/35788463576) 和 [foundation](https://github.com/lly8666/wobuzhidao/actions/runs/35788463670) PASS（编译、unit、race，定向race重复3次；foundation parser fuzz）；另 padding、steady-targeted、harness-preflight、realpath-calibration PASS。**完整生命周期真实故障矩阵/严格10M与3M目标弱网仍 NOT_RUN**，不得据此关闭专项或原容量缺口。详见最新开发日志及STATUS。

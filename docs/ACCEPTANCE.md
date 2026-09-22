@@ -82,4 +82,7 @@ P7只在主流程已稳定后由用户安排，最终核对真实链路外观、
 
 
 ### 生命周期专项（V2，2026-09-23）
-当前 NOT_RUN：完整矩阵见 LIFECYCLE_ACCEPTANCE.md。必须有参数目录一致性、V1拒绝、V2成对启动、keepalive丢失不误idle、持续本地需求全丢、纯下行、双边黑洞、新tuple恢复、候选阶段失败退避、idle/wake竞态、正常及Game、全FEC档控制不放大、padding/MTU/no-HOL/同Seq密文不变的Actions证据。next-lifecycle只是核心入口，不能替代真实netem和10/3Mbps业务目标；吞吐原缺口独立保留。
+核心已 PASS，完整矩阵 NOT_RUN：见 LIFECYCLE_ACCEPTANCE.md。必须有参数目录一致性、V1拒绝、V2成对启动、keepalive丢失不误idle、持续本地需求全丢、纯下行、双边黑洞、新tuple恢复、候选阶段失败退避、idle/wake竞态、正常及Game、全FEC档控制不放大、padding/MTU/no-HOL/同Seq密文不变的Actions证据。next-lifecycle只是核心入口，不能替代真实netem和10/3Mbps业务目标；吞吐原缺口独立保留。
+
+
+2026-09-23 核心证据：SOURCE_SHA `84c466f81860c3e87aac3b571a9bce419018aabc`；[next-lifecycle](https://github.com/lly8666/wobuzhidao/actions/runs/35788463576) 和 [foundation](https://github.com/lly8666/wobuzhidao/actions/runs/35788463670) PASS（编译、unit、race，定向race重复3次；foundation parser fuzz）；另 padding、steady-targeted、harness-preflight、realpath-calibration PASS。**完整生命周期真实故障矩阵/严格10M与3M目标弱网仍 NOT_RUN**，不得据此关闭专项或原容量缺口。详见最新开发日志及STATUS。

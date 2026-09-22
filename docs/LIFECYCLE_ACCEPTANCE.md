@@ -47,3 +47,6 @@
 新 agent 可直接修复本次功能发现的问题，不需反复请示。每轮更新正式日志、参数目录/规范、STATUS，固定源码 SHA 重跑相关失败场景及受影响回归。完成时列 exact SHA、run/job/artifact、真实 PASS/FAIL/NOT_RUN、限制与资源证据。
 
 仅当上述核心及生命周期必测项通过，才将 WEAKNET_LIFECYCLE 从 IMPLEMENTED_PENDING_ACTIONS 改 COMPLETE，并在 DEVELOPMENT_PLAN/ACCEPTANCE 回填证据；仍有未测项就保持未完成并精确列缺口。吞吐门槛未达时独立标 PERFORMANCE_FAIL，不把 correctness 通过包装成整体弱网资格。原主线 HOLD 保留，恢复开发需用户另行安排。
+
+
+2026-09-23 核心证据：SOURCE_SHA `84c466f81860c3e87aac3b571a9bce419018aabc`；[next-lifecycle](https://github.com/lly8666/wobuzhidao/actions/runs/35788463576) 和 [foundation](https://github.com/lly8666/wobuzhidao/actions/runs/35788463670) PASS（编译、unit、race，定向race重复3次；foundation parser fuzz）；另 padding、steady-targeted、harness-preflight、realpath-calibration PASS。**完整生命周期真实故障矩阵/严格10M与3M目标弱网仍 NOT_RUN**，不得据此关闭专项或原容量缺口。详见最新开发日志及STATUS。

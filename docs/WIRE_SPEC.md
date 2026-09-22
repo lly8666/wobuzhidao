@@ -1,14 +1,14 @@
-# TLS-like Record V1 — 已决定的实现规范
+# TLS-like Record — admission V2 / 既有 record 封装规范
 
 此规范是新产品唯一稳态 wire。开发 agent 不再比较不同加密选项。使用成熟 Go ChaCha20-Poly1305 和 ChaCha20 primitive；这不意味着采用标准 TLS 的按序接收器。
 
 ## 1. 会话建立与 keys
 
-继续现有真实 TLS/Reality-like 建连及账户 admission。在受保护的应用请求/应答中使用新协议版本，携带 record_version=1、双方 record 上限、服务端生成的 16 字节 incarnation nonce，以及 `lane_id(u8)`。lane_id 固定为 1..4，由客户端在 TLS 内请求、服务端原值回显；0/越界或回显不一致明确拒绝。它只用于把每条同 TunnelID 的独立 FakeTCP association 绑定到权威 logical lane / same-ID replacement，不增加公开 SYN/TLS 标记，不恢复额外控制信道。未知版本明确拒绝，无 DTLS fallback，无 both 模式。
+继续现有真实 TLS/Reality-like 建连及账户 admission。在受保护的应用请求/应答中使用新协议版本，携带 record_version=2、双方 record 上限、服务端生成的 16 字节 incarnation nonce，以及 `lane_id(u8)`。lane_id 固定为 1..4，由客户端在 TLS 内请求、服务端原值回显；0/越界或回显不一致明确拒绝。它只用于把每条同 TunnelID 的独立 FakeTCP association 绑定到权威 logical lane / same-ID replacement，不增加公开 SYN/TLS 标记，不恢复额外控制信道。未知版本明确拒绝，无 DTLS fallback，无 both 模式。
 
 受保护的参数采用明确字节长度与网络字节序。每方向最大记录大小分别计算。TLS-like exporter 上下文保持既有固定编码，不把 lane_id 加入静态向量：`version(u16) || incarnation_nonce(16) || TunnelID长度(u16) || TunnelID字节 || client_limit(u16) || server_limit(u16)`。TunnelID 使用既有规范编码，不依赖 JSON 字段顺序。
 
-双方在原 TLS/uTLS 对象上调用 exporter，label `EXPORTER-WBD-TLSLIKE-V1`，context 为上述编码的 SHA-256，输出 32 字节 master。禁止从手工复制的不完整 tls.ConnectionState 派生。
+双方在原 TLS/uTLS 对象上调用 exporter，label 保留 `EXPORTER-WBD-TLSLIKE-V1`（封装/KDF 标签不变；context version=2 区分本次能力），context 为上述编码的 SHA-256，输出 32 字节 master。禁止从手工复制的不完整 tls.ConnectionState 派生。
 
 HKDF-SHA256，以 master 为 IKM、incarnation nonce 为 salt，info 分别为固定 ASCII `WBD-TLSLIKE-V1/c2s`、`WBD-TLSLIKE-V1/s2c`，每方向输出 76 字节：前 32 为 K_aead，中间 12 为 IV，后 32 为 K_hp。所有 keys 仅保存在进程内，不写日志/临时配置文件。
 
@@ -29,7 +29,7 @@ plaintext:
   padding         0..P 个 0x00
 ```
 
-V1 发送端默认 padding=0，既有 Seal 与固定向量保持不变；P3 新增显式非零 padding 编码能力，接收端支持合法尾部零填充。此为计划中的 API 能力，不表示当前实现或生产默认已启用。padding 加在 inner_type 之后并纳入 AEAD，不另加明文长度字段、不改变 version/kind/PN/AAD。没有 FRAGMENT/ACK/NACK/RETIRE record kind。admission V2 新增独立 health kind=0x01，业务控制仍走既有 LINK。未知 kind 只丢本记录并计数。
+发送端默认 padding=0，既有 Seal 与固定向量保持不变；P3 新增显式非零 padding 编码能力，接收端支持合法尾部零填充。编码能力已实现，生产默认仍关闭；可用 tls-startup-padding 显式启用有限策略。padding 加在 inner_type 之后并纳入 AEAD，不另加明文长度字段、不改变 version/kind/PN/AAD。没有 FRAGMENT/ACK/NACK/RETIRE record kind。admission V2 新增独立 health kind=0x01，业务控制仍走既有 LINK。未知 kind 只丢本记录并计数。
 
 每个方向独立完整 uint64 PN，从 0 开始；仅新建记录消耗 PN，失败编码可跳号但绝不重用。PN 不从 TCP Seq、Game PacketID 或 FEC BlockID 推导。使用完最大编号后必须拒绝新建记录并触发现有 lane replacement，不回绕。
 
@@ -60,7 +60,7 @@ FakeTCP repair 缓存最终不可变 wire bytes；同一 TCP 序列区间重发�
 
 长度检查 -> PN unprotect -> open -> inner type/padding 检查 -> 近期精确去重 -> LINK。认证/结构失败不推进有效 PN 状态、不修改 FEC、不影响下一 payload。
 
-V1 采用每方向最多 65536 项的精确近期 PN 集合，按插入顺序淘汰，无每包全量扫描；这是抑制近期重复的缓存，不是接收窗口。不因 PN 小于历史最高值或缓存范围而丢未知合法包。记录 cache eviction/duplicate/late 指标；先按此固定值实现，不做参数选型。
+当前采用每方向最多 65536 项的精确近期 PN 集合，按插入顺序淘汰，无每包全量扫描；这是抑制近期重复的缓存，不是接收窗口。不因 PN 小于历史最高值或缓存范围而丢未知合法包。记录 cache eviction/duplicate/late 指标；先按此固定值实现，不做参数选型。
 
 历史缓存外的重复可能到达上层。LINK 控制幂等、FEC 重复 shard 和 Game/业务去重必须各自测试，不能承诺无限期 exactly-once。后续必要修复不能通过拒绝旧 PN 重新制造迟到首次到达丢失。
 
@@ -96,7 +96,7 @@ link_fragment_payload_mtu    = link_frame_mtu - 20
 
 可选 padding 不改变上述无填充业务容量：`padding_headroom = record_wire_mtu - 31 - len(actual_record_payload)`。显式编码 API 对负值或超过 headroom 的 padding 请求明确报错；策略层在调用前按 headroom、每包上限和累计预算选择合法值，无预算用 0，不等候。基础 payload 本身超限仍按原规则拒绝，不能靠 padding 降级掩盖。`actual_record_wire_len = 31 + len(payload) + padding_len`，必须满足全部限幅。padding 不强迫 LINK 多切一片，不改变 FEC shard 长度；同 Seq 重传原密文和原 padding。
 
-`negotiated_record_wire_limit` 必须落在 TLS-like V1 可表示范围内；若任一限幅后不足以容纳 TLS-like 固定开销，或扣除启用 wrapper 后 `link_frame_mtu <= 20`，配置阶段明确拒绝。不得生成零/负 fragment payload。
+`negotiated_record_wire_limit` 必须落在 TLS-like record 可表示范围内；若任一限幅后不足以容纳 TLS-like 固定开销，或扣除启用 wrapper 后 `link_frame_mtu <= 20`，配置阶段明确拒绝。不得生成零/负 fragment payload。
 
 LINK 业务分片只发生一次，在 FEC 之前完成。FEC 开启时每个 LINK fragment frame 是一个 systematic source shard；FEC wire 必须完整放进一条 TLS-like record payload，record wire 又必须完整放进一个 FakeTCP payload。记录层不分片，TLS-like 路径不调用旧 CarrierFragmenter，不发送 WBDFRAG1。oversize 必须提前分片或明确拒绝，后续合法业务继续。
 
@@ -163,7 +163,7 @@ FEC encoder 返回的内部 wire backing slot 可以复用，因此进入统一�
 TLS启动填充可选策略（2026-09-22）：只改变既有加密内padding长度，不新增record kind/协议字段/协商。默认off；业务检测在FEC前，实际padding在source record seal前，不进入FEC或original_lengths，不增加record/分片；parity与重传不得重新随机。固定预算与旁路条件见TLS_STARTUP_PADDING.md。
 
 
-## Lifecycle V2（2026-09-23，待 Actions 验收）
+## Lifecycle V2（2026-09-23，核心 Actions PASS，完整弱网验收待执行）
 
 真实 TLS 握手/移交流程复用现有实现；TLS 内 admission RecordVersion 从 1 升为 2，V1 显式 version failure，两端须成对升级。V2 exporter context 中 Version=2；record 外层格式、PN/AEAD/HP/MTU和LINK/FEC格式不变，既有纯 record 固定向量保留。
 
