@@ -59,9 +59,9 @@
     "P4增强第1原子修复：runtimeowner repair/gap-ACK仲裁在SOURCE_SHA e3253322ac863c11636f1c127e14b77bdc6bf800的定向Actions已通过repository-contract、Windows/Linux active-go（Linux含race）、OpenWrt privileged与Linux shared-TUN iptables/nft；repair选择/尝试/成功/失败分离且gap forgiveness不再覆盖已选repair。",
     "P4增强第2原子FIN/RST/半关闭：SOURCE_SHA 1cfe913199f7df67f05158e044cbec02771f29a8 / Actions 35669709080 定向资格已通过repository-contract、Windows active-go、Ubuntu active-go+race、P5 HTTPS base、OpenWrt privileged及Linux shared-TUN iptables/nft；Game4固定duplicates>=lanes-1并等待异步lane drain，replacement/DORMANT late-control race已收口。整轮长时P5 jobs当时仍运行，不提前写成整轮PASS。"
   ],
-  "in_progress": "P4第3原子产品代码位于9c330454；branch-wide next-foundation因上一SHA两个31m soak仍运行导致新run 35670825915处于pending。新增独立next-p4-steady-targeted workflow，仅作为每原子SHA的contract/Linux+Windows core/race/Game-lifecycle/privileged快速门，不替代最终P5主测/soak。",
-  "next_task": "在本workflow基础设施SHA上取得第3原子定向PASS；产品代码与9c330454完全相同。通过后再提交第4原子增量ACK/SACK索引。branch-wide next-foundation和最终P5真实路径仍独立保留。",
-  "latest_log": "docs/devlog/20260922-083500-p4-targeted-actions-lane.md",
+  "in_progress": "P4第3原子产品代码仍未变。新targeted workflow首跑35671272520在repository contract阶段因REUSE_LEDGER一个destination含分号多路径而FAIL，产品job全SKIPPED。当前只拆成单一真实destination条目并重跑；不把contract错误算产品失败/通过。",
+  "next_task": "在相同第3原子产品Go源码的最新SHA上重跑next-p4-steady-targeted；contract与Linux/Windows core/race/lifecycle/privileged全部PASS后进入第4原子。",
+  "latest_log": "docs/devlog/20260922-084000-reuse-ledger-contract-fix.md",
   "last_tested_source_sha": "1cfe913199f7df67f05158e044cbec02771f29a8",
   "actions": [
     {
@@ -854,6 +854,13 @@
       "scope": "P4-item3-branch-wide-queue",
       "status": "PENDING_NOT_EVALUATED",
       "note": "next-foundation按branch concurrency串行，上一SHA的两个31m soak仍占用run，故9c330454当前尚未生成job。不是PASS/FAIL；新增独立per-SHA targeted workflow解决原子回归排队，最终P5不由该轻量workflow替代。"
+    },
+    {
+      "source_sha": "309d1f8c95aeb3593f1090dcaa613d407134f5a8",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35671272520",
+      "scope": "P4-item3-targeted-contract",
+      "status": "FAIL_PRODUCT_NOT_EVALUATED",
+      "note": "next-p4-steady-targeted workflow解析并启动，但repository contract仅报Invalid reuse destination；原因是REUSE_LEDGER把三个destination写进同一字符串。steady-core/lifecycle/privileged全部SKIPPED。当前提交只修ledger路径结构，不改产品Go源码。"
     }
   ],
   "physical_status": "NOT_RUN",
