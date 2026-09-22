@@ -1395,7 +1395,7 @@
       "protocol": "admission V2; paired upgrade required",
       "acceptance": "docs/LIFECYCLE_ACCEPTANCE.md",
       "parameters": "docs/PARAMETERS.md",
-      "latest_devlog": "docs/devlog/20260923-063200-strict-weaknet-cost-ledger.md",
+      "latest_devlog": "docs/devlog/20260923-064000-actions-orchestration-fix.md",
       "acceptance_harness": "real-process L0-L7 matrix wired to isolated Actions jobs with exact-SHA diagnostics/pcap/resources; acceptance-only pre-seal health and TLS/admission/detach faults; Actions pending",
       "core_status": "PASS",
       "fullstack_status": "NOT_RUN",

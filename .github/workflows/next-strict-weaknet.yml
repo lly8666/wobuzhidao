@@ -113,11 +113,7 @@ jobs:
           echo "=== stage ==="; cat "$ART/stage-events.jsonl" || true
           echo "=== summary ==="; cat "$ART/summary.json" || true
           echo "=== separated cost components ==="
-          python3 - "$ART/summary.json" <<'PY'
-import json,sys
-d=json.load(open(sys.argv[1]))
-print(json.dumps({k:v.get("components") for k,v in d.get("cost",{}).items()},indent=2,sort_keys=True))
-PY
+          python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(json.dumps({k:v.get("components") for k,v in d.get("cost",{}).items()},indent=2,sort_keys=True))' "$ART/summary.json"
 
       - name: Upload strict sample evidence
         if: always()

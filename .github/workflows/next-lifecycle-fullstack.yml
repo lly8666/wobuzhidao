@@ -38,10 +38,10 @@ jobs:
           - {scenario: l6_partial, lanes: 4, seed: 303}
           - {scenario: l7_defaults, lanes: 1, seed: 101}
     env:
-      ART: \${{ github.workspace }}/artifacts/lifecycle-\${{ matrix.scenario }}-seed\${{ matrix.seed }}
-      WBD_LIFECYCLE_SCENARIO: \${{ matrix.scenario }}
-      WBD_LIFECYCLE_LANES: \${{ matrix.lanes }}
-      WBD_LIFECYCLE_SEED: \${{ matrix.seed }}
+      ART: ${{ github.workspace }}/artifacts/lifecycle-${{ matrix.scenario }}-seed${{ matrix.seed }}
+      WBD_LIFECYCLE_SCENARIO: ${{ matrix.scenario }}
+      WBD_LIFECYCLE_LANES: ${{ matrix.lanes }}
+      WBD_LIFECYCLE_SEED: ${{ matrix.seed }}
     steps:
       - uses: actions/checkout@v4
         with: {fetch-depth: 0}
@@ -74,7 +74,7 @@ jobs:
         id: sample
         continue-on-error: true
         env:
-          WBD_LIFECYCLE_ARTIFACT_DIR: \${{ env.ART }}
+          WBD_LIFECYCLE_ARTIFACT_DIR: ${{ env.ART }}
         run: |
           sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_LIFECYCLE_ARTIFACT_DIR,WBD_LIFECYCLE_SCENARIO,WBD_LIFECYCLE_LANES,WBD_LIFECYCLE_SEED bash scripts/lifecycle_acceptance_sample.sh
       - name: Validate lifecycle sample
@@ -96,16 +96,16 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lifecycle-\${{ matrix.scenario }}-seed\${{ matrix.seed }}-\${{ github.sha }}
-          path: \${{ env.ART }}
+          name: lifecycle-${{ matrix.scenario }}-seed${{ matrix.seed }}-${{ github.sha }}
+          path: ${{ env.ART }}
           if-no-files-found: warn
           compression-level: 1
           retention-days: 30
       - name: Enforce lifecycle gate
         if: always()
         env:
-          SAMPLE_OUTCOME: \${{ steps.sample.outcome }}
-          VALIDATE_OUTCOME: \${{ steps.validate.outcome }}
+          SAMPLE_OUTCOME: ${{ steps.sample.outcome }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
         run: |
           echo "sample=$SAMPLE_OUTCOME validator=$VALIDATE_OUTCOME SOURCE_SHA=$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
           test "$SAMPLE_OUTCOME" = success
