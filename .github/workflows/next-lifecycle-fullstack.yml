@@ -1,0 +1,112 @@
+name: next-lifecycle-fullstack
+on:
+  push:
+    branches: ['next/tlslike-dataplane']
+    paths:
+      - 'internal/acceptancefault/**'
+      - 'internal/runtimeowner/health.go'
+      - 'internal/realityfront/admission.go'
+      - 'internal/runtimeentry/lifecycle*.go'
+      - 'scripts/lifecycle_acceptance_sample.sh'
+      - 'tools/check_lifecycle_acceptance.py'
+      - 'tools/realpath_udp_duplex.py'
+      - '.github/workflows/next-lifecycle-fullstack.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  lifecycle-sample:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    strategy:
+      fail-fast: false
+      max-parallel: 15
+      matrix:
+        include:
+          - {scenario: l0_config, lanes: 1, seed: 101}
+          - {scenario: l1_idle_downlink, lanes: 1, seed: 101}
+          - {scenario: l2_c2s, lanes: 1, seed: 101}
+          - {scenario: l2_s2c, lanes: 1, seed: 202}
+          - {scenario: l3_health, lanes: 1, seed: 101}
+          - {scenario: l4_old_tuple, lanes: 1, seed: 101}
+          - {scenario: l4_all_tuple, lanes: 1, seed: 202}
+          - {scenario: l5_syn, lanes: 1, seed: 101}
+          - {scenario: l5_tls, lanes: 1, seed: 202}
+          - {scenario: l5_admission, lanes: 1, seed: 303}
+          - {scenario: l5_detach, lanes: 1, seed: 404}
+          - {scenario: l6_race1, lanes: 1, seed: 101}
+          - {scenario: l6_race4, lanes: 4, seed: 202}
+          - {scenario: l6_partial, lanes: 4, seed: 303}
+          - {scenario: l7_defaults, lanes: 1, seed: 101}
+    env:
+      ART: \${{ github.workspace }}/artifacts/lifecycle-\${{ matrix.scenario }}-seed\${{ matrix.seed }}
+      WBD_LIFECYCLE_SCENARIO: \${{ matrix.scenario }}
+      WBD_LIFECYCLE_LANES: \${{ matrix.lanes }}
+      WBD_LIFECYCLE_SEED: \${{ matrix.seed }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.12', cache: true}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Repository and parameter authority
+        run: |
+          python3 tools/check_repository.py
+          python3 tools/parameter_catalog.py
+      - name: Install network tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables nftables tcpdump openssl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+      - name: Build exact acceptance-tag formal entries
+        run: |
+          mkdir -p "$ART"
+          go build -tags lifecycleacceptance -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
+          go build -tags lifecycleacceptance -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
+          "$ART/wbd-client" --version > "$ART/client-version.txt"
+          "$ART/wbd-server" --version > "$ART/server-version.txt"
+          printf '{"unknown-lifecycle-key":true}\n' > "$ART/invalid-client.json"
+          if "$ART/wbd-client" --config "$ART/invalid-client.json" --version >"$ART/invalid-client.out" 2>&1; then exit 1; fi
+          printf '{"dead-after":"90s"}\n' > "$ART/invalid-server.json"
+          if "$ART/wbd-server" --config "$ART/invalid-server.json" --version >"$ART/invalid-server.out" 2>&1; then exit 1; fi
+      - name: Run isolated real-process lifecycle sample
+        id: sample
+        continue-on-error: true
+        env:
+          WBD_LIFECYCLE_ARTIFACT_DIR: \${{ env.ART }}
+        run: |
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_LIFECYCLE_ARTIFACT_DIR,WBD_LIFECYCLE_SCENARIO,WBD_LIFECYCLE_LANES,WBD_LIFECYCLE_SEED bash scripts/lifecycle_acceptance_sample.sh
+      - name: Validate lifecycle sample
+        id: validate
+        if: always()
+        continue-on-error: true
+        run: |
+          python3 tools/check_lifecycle_acceptance.py --artifact-dir "$ART" --source-sha "$GITHUB_SHA" --scenario "$WBD_LIFECYCLE_SCENARIO" --lanes "$WBD_LIFECYCLE_LANES" --output "$ART/summary.json"
+      - name: Raw evidence tail
+        if: always()
+        run: |
+          echo "SOURCE_SHA=$GITHUB_SHA scenario=$WBD_LIFECYCLE_SCENARIO"
+          cat "$ART/events.jsonl" || true
+          cat "$ART/client-acceptance-events.jsonl" || true
+          cat "$ART/summary.json" || true
+          tail -n 80 "$ART/client.log" || true
+          tail -n 80 "$ART/server.log" || true
+      - name: Upload exact-SHA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lifecycle-\${{ matrix.scenario }}-seed\${{ matrix.seed }}-\${{ github.sha }}
+          path: \${{ env.ART }}
+          if-no-files-found: warn
+          compression-level: 1
+          retention-days: 30
+      - name: Enforce lifecycle gate
+        if: always()
+        env:
+          SAMPLE_OUTCOME: \${{ steps.sample.outcome }}
+          VALIDATE_OUTCOME: \${{ steps.validate.outcome }}
+        run: |
+          echo "sample=$SAMPLE_OUTCOME validator=$VALIDATE_OUTCOME SOURCE_SHA=$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          test "$SAMPLE_OUTCOME" = success
+          test "$VALIDATE_OUTCOME" = success

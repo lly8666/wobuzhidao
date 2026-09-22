@@ -190,12 +190,15 @@ def wait_until(target_ns):
 
 
 def run_sender(sock, peer_getter, kind, rate_mbps, seed, stats, stop_event):
-    bytes_per_second = rate_mbps * 1_000_000.0 / 8.0
     seq = 0
     cumulative = 0
     end_ns = stats.start_ns + int(stats.duration_s * 1e9)
     max_slot_lag_ns = 10_000_000
     wait_until(stats.start_ns)
+    if rate_mbps <= 0:
+        wait_until(end_ns)
+        return
+    bytes_per_second = rate_mbps * 1_000_000.0 / 8.0
     while not stop_event.is_set():
         size = SIZES[seq % len(SIZES)]
         target_ns = stats.start_ns + int((cumulative / bytes_per_second) * 1e9)
@@ -290,10 +293,13 @@ def register_loop(sock, peer, start_ns, seed, stop_event):
         time.sleep(0.2)
 
 
-def probe_loop(sock, peer, start_ns, duration_s, seed, stats, stop_event):
+def probe_loop(sock, peer, start_ns, duration_s, seed, stats, stop_event, interval_s=1.0):
+    if interval_s <= 0:
+        return
     seq = 0
     end_ns = start_ns + int(duration_s * 1e9)
-    target = start_ns + 500_000_000
+    step_ns = int(interval_s * 1e9)
+    target = start_ns + min(500_000_000, step_ns)
     while target < end_ns and not stop_event.is_set():
         wait_until(target)
         send_ns = time.monotonic_ns()
@@ -305,7 +311,7 @@ def probe_loop(sock, peer, start_ns, duration_s, seed, stats, stop_event):
             with stats.lock:
                 stats.send_failures += 1
         seq += 1
-        target += 1_000_000_000
+        target += step_ns
 
 
 def main():
@@ -317,6 +323,8 @@ def main():
     ap.add_argument("--duration", type=float, required=True)
     ap.add_argument("--drain", type=float, default=10.0)
     ap.add_argument("--rate-mbps", type=float, required=True)
+    ap.add_argument("--probe-interval", type=float, default=1.0,
+                    help="biz RTT probe interval in seconds; 0 disables probes")
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--output", required=True)
     args = ap.parse_args()
@@ -351,9 +359,10 @@ def main():
         t = threading.Thread(target=register_loop, args=(sock, peer, args.start_ns, args.seed, stop_event), daemon=True)
         t.start()
         extra_threads.append(t)
-        p = threading.Thread(target=probe_loop, args=(sock, peer, args.start_ns, args.duration, args.seed, stats, stop_event), daemon=True)
-        p.start()
-        extra_threads.append(p)
+        if args.probe_interval > 0:
+            p = threading.Thread(target=probe_loop, args=(sock, peer, args.start_ns, args.duration, args.seed, stats, stop_event, args.probe_interval), daemon=True)
+            p.start()
+            extra_threads.append(p)
         sender_kind = KIND_C2S
         peer_getter = lambda: peer
     else:
@@ -380,6 +389,7 @@ def main():
         "duration_s": args.duration,
         "drain_s": args.drain,
         "rate_mbps": args.rate_mbps,
+        "probe_interval_s": args.probe_interval,
         "seed": args.seed,
         "socket_rcvbuf": rcvbuf,
         "socket_sndbuf": sndbuf,
