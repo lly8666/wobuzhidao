@@ -10,6 +10,7 @@ import (
 	"io"
 	"net"
 
+	"github.com/lly8666/wobuzhidao/internal/acceptancefault"
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 	"github.com/lly8666/wobuzhidao/internal/tlsrecord"
 )
@@ -137,12 +138,20 @@ func EstablishClient(ctx context.Context, conn net.Conn, cfg ClientAdmissionConf
 
 	tlsCfg := cfg.TLS
 	tlsCfg.Timeout = guard.Remaining()
+	if acceptancefault.Consume("tls", laneID) {
+		_ = conn.Close()
+		return nil, candidateError(ctx, errors.New("realityfront: injected lifecycle TLS candidate failure"))
+	}
 	uconn, err := handshakeClientConn(ctx, conn, tlsCfg)
 	if err != nil {
 		return nil, candidateError(ctx, err)
 	}
 	if err := guard.Rearm(); err != nil {
 		return nil, err
+	}
+	if acceptancefault.Consume("admission", laneID) {
+		_ = uconn.Close()
+		return nil, candidateError(ctx, errors.New("realityfront: injected lifecycle admission candidate failure"))
 	}
 	if err := writeFull(uconn, wire); err != nil {
 		return nil, candidateError(ctx, err)

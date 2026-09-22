@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/lly8666/wobuzhidao/internal/acceptancefault"
 	"github.com/lly8666/wobuzhidao/internal/datapath"
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 	"github.com/lly8666/wobuzhidao/internal/linuxserver"
@@ -662,6 +663,10 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 	if err != nil || gotTunnel != c.cfg.Lease.Config.TunnelID {
 		laneState.close()
 		return logicaltunnel.LaneRef{}, ErrLeaseMismatch
+	}
+	if acceptancefault.Consume("detach", laneID) {
+		laneState.close()
+		return logicaltunnel.LaneRef{}, errors.New("runtimeentry: injected lifecycle detach candidate failure")
 	}
 	handoff, err := assoc.Detach()
 	if err != nil {

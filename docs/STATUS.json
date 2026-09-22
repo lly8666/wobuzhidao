@@ -1382,7 +1382,7 @@
       "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA."
     },
     "WEAKNET_LIFECYCLE": {
-      "status": "IMPLEMENTED_PENDING_ACTIONS",
+      "status": "ACCEPTANCE_HARNESS_PENDING_ACTIONS",
       "main_task_hold": {
         "requested_by": "user",
         "resume_only_on_user_request": true,
@@ -1395,6 +1395,8 @@
       "protocol": "admission V2; paired upgrade required",
       "acceptance": "docs/LIFECYCLE_ACCEPTANCE.md",
       "parameters": "docs/PARAMETERS.md",
+      "latest_devlog": "docs/devlog/20260923-061500-lifecycle-acceptance-fault-boundary.md",
+      "acceptance_harness": "acceptance-only build-tag fault injection added for pre-seal health and TLS/admission/detach candidate stages; normal builds are no-op; exact-SHA Actions pending",
       "core_status": "PASS",
       "fullstack_status": "NOT_RUN",
       "implementation_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",

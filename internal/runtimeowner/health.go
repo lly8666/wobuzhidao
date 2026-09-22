@@ -2,6 +2,7 @@ package runtimeowner
 
 import (
 	"errors"
+	"github.com/lly8666/wobuzhidao/internal/acceptancefault"
 	"github.com/lly8666/wobuzhidao/internal/datapath"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"time"
@@ -65,6 +66,11 @@ func (t *laneTransport) sendHealth(now time.Time, force bool) (err error) {
 	idle := time.Duration(0)
 	if source != nil {
 		idle = source(now)
+	}
+	// The acceptance-only build tag can consume a scheduled health send before
+	// sealing/FEC. Production builds compile this to a constant false no-op.
+	if acceptancefault.Consume("health", t.ref.ID) {
+		return nil
 	}
 	record, err := t.owner.HealthRecord(t.ref, idle)
 	if err != nil {
