@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "增强P4/P5继续执行。1d192a已同步高丢包业务优先/低丢包TCP-like hygiene、rotation连续性口径与strict analyzer；产品数据面未改。该SHA targeted 35736933075 与 foundation 35736933073 均PASS，旧P5/P6/31m soak按计划skipped。seeded-netem preflight 35736933177 在用户态tc构建阶段FAIL：固定iproute2 7.2.0 tarball校验通过，但错误的`make tc/tc`绕过顶层生成include/version.h，尚未测试runner内核seed支持。本候选只修测试工具构建顺序，不启动18主测。",
-  "next_task": "检查本候选exact-SHA next-strict-harness-preflight：固定7.2.0 release tarball显式写确定version.h后按lib->tc子目录构建，随后必须证明runner kernel接受两个不同seed的netem 20%注入。foundation/targeted若因push再次运行也必须保持绿。preflight PASS前strict workflow保持dispatch-only；不运行旧31m soak或18主测。",
-  "latest_log": "docs/devlog/20260922-220000-seeded-tc-build-fix.md",
-  "last_tested_source_sha": "1d192a041f3f37bcbcb28b1dd60faf9318a8da33",
+  "in_progress": "增强P4/P5继续执行。c209de的seeded-netem preflight再次FAIL，但仍停留在测试工具构建：version.h问题已修复；新的`make -C lib`绕过顶层Makefile导出的CFLAGS/include路径，导致libgenl.h/libnetlink.h找不到。尚未进入runner kernel seed属性测试。1d192a的targeted/foundation已PASS；c209de对应基础链正在跑。本候选继续只修harness构建，strict 18主测保持停用。",
+  "next_task": "检查下一exact-SHA preflight：使用iproute2顶层Makefile并限制SUBDIRS=`lib tc`，必须先成功构建固定7.2.0 tc，再验证runner kernel接受seed 123456/654321。preflight PASS前不恢复18样本触发。foundation/targeted只作受影响回归，不运行旧31m soak。",
+  "latest_log": "docs/devlog/20260922-221500-seeded-tc-top-level-make.md",
+  "last_tested_source_sha": "c209de937b13ef195026edb05b78f8e0a2345900",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1176,6 +1176,13 @@
       "scope": "strict-seeded-netem-preflight-v1",
       "status": "FAIL_HARNESS_BUILD",
       "note": "kernel.org iproute2-7.2.0.tar.xz SHA256校验成功；`make tc/tc`直接编译tc/tc.c时报include/version.h缺失，说明失败尚未进入netem seed/kernel兼容性测试。修复仅改变测试工具构建。"
+    },
+    {
+      "source_sha": "c209de937b13ef195026edb05b78f8e0a2345900",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35738117280",
+      "scope": "strict-seeded-netem-preflight-v2",
+      "status": "FAIL_HARNESS_BUILD",
+      "note": "固定iproute2 7.2.0 archive SHA256 PASS，version.h已显式生成；`make -C lib`未继承顶层CFLAGS/-I../include，libgenl.c与libnetlink.c报对应header缺失。仍未执行seeded netem kernel测试。"
     }
   ],
   "physical_status": "NOT_RUN",

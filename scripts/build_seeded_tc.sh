@@ -25,8 +25,10 @@ cd "iproute2-${VERSION}"
 # release identity explicitly, then use the normal subdirectory Makefiles
 # so generated config and libnetlink/libutil dependencies are honored.
 printf '%s\n' 'static const char version[] = "iproute2-7.2.0";' > include/version.h
-make -j2 -C lib > "$ROOT/make-lib.log"
-make -j2 -C tc > "$ROOT/make-tc.log"
+# Invoke the top-level Makefile so it exports the project CFLAGS/DEFINES
+# and libnetlink/libutil dependencies to the sub-makes. Restrict SUBDIRS
+# to the two pieces required by tc so this remains a small harness build.
+make -j2 SUBDIRS="lib tc" > "$ROOT/make-tc.log"
 
 install -m 0755 tc/tc "$DEST"
 "$DEST" -V
