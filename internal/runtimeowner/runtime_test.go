@@ -1055,3 +1055,215 @@ func TestSteadyEffectiveRepairRTOKeepsBoundedRetryInsideHorizon(t *testing.T) {
 		t.Fatalf("horizon did not retire bounded debt wire=%d stats=%+v", len(wire), stats)
 	}
 }
+
+
+func TestSteadyIncrementalIndexesDeepHoleSparseACKAndCleanup(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 16)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wire []faketcp.Segment
+	rt, err := New(owner, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rt.Close()
+	cfg, _ := transportPair(func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 65000)
+	cfg.SACKPermitted = true
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 86), cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9400, 0)
+
+	records := make([]datapath.WireRecord, 1024)
+	for i := range records {
+		records[i].Wire = bytes.Repeat([]byte{byte(i)}, 8)
+	}
+	if err := tr.send(records, t0); err != nil {
+		t.Fatal(err)
+	}
+	if tr.repairCount != 1024 || len(tr.pendingOrder) != 1024 {
+		t.Fatalf("initial indexes repair=%d order=%d", tr.repairCount, len(tr.pendingOrder))
+	}
+
+	ack := faketcp.Segment{
+		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
+		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
+		Seq: cfg.ReceiveNext, Ack: wire[0].Seq,
+		Flags: faketcp.FlagACK, Window: 65535, SACKN: 1,
+	}
+	ack.SACK[0] = faketcp.SACKBlock{
+		Start: wire[1].Seq,
+		End: wire[1023].Seq + uint32(len(wire[1023].Payload)),
+	}
+	if err := rt.HandleSegment(snap.Ref, ack, t0.Add(40*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	stats, _ := rt.TransportStats(snap.Ref)
+	if stats.SACKed != 1023 || stats.FastRepairs != 1 ||
+		tr.sackedOutstanding != 1023 || tr.repairCount != 1 || tr.sackSeenN != 1 {
+		t.Fatalf("deep-hole indexes stats=%+v sacked=%d repair=%d seen=%d",
+			stats, tr.sackedOutstanding, tr.repairCount, tr.sackSeenN)
+	}
+
+	for i := 0; i < 32; i++ {
+		if err := rt.HandleSegment(snap.Ref, ack, t0.Add(40*time.Millisecond)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	stats, _ = rt.TransportStats(snap.Ref)
+	if stats.SACKed != 1023 || tr.sackSeenN != 1 || tr.repairCount != 1 {
+		t.Fatalf("repeated SACK changed indexes stats=%+v seen=%d repair=%d",
+			stats, tr.sackSeenN, tr.repairCount)
+	}
+
+	ack.SACKN = 0
+	ack.Ack = wire[900].Seq + uint32(len(wire[900].Payload))
+	if err := rt.HandleSegment(snap.Ref, ack, t0.Add(100*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if tr.pendingHead != 901 || len(tr.pendingOrder) != 1024 {
+		t.Fatalf("sparse ACK head=%d order=%d", tr.pendingHead, len(tr.pendingOrder))
+	}
+	ack.Ack = tr.sendNext
+	if err := rt.HandleSegment(snap.Ref, ack, t0.Add(120*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if len(tr.pending) != 0 || len(tr.pendingOrder) != 0 || tr.pendingHead != 0 ||
+		tr.repairCount != 0 || tr.sackedOutstanding != 0 || tr.sackSeenN != 0 {
+		t.Fatalf("drain indexes pending=%d order=%d head=%d repair=%d sacked=%d seen=%d",
+			len(tr.pending), len(tr.pendingOrder), tr.pendingHead, tr.repairCount,
+			tr.sackedOutstanding, tr.sackSeenN)
+	}
+
+	tr.mu.Lock()
+	tr.recvSACK[0] = faketcp.SACKBlock{Start: tr.recvNext + 10, End: tr.recvNext + 20}
+	tr.recvSACKN = 1
+	tr.sackSeen[0] = faketcp.SACKBlock{Start: tr.lastAck + 1, End: tr.lastAck + 2}
+	tr.sackSeenN = 1
+	tr.mu.Unlock()
+	tr.close()
+	if tr.pendingHead != 0 || tr.repairCount != 0 || tr.recvSACKN != 0 ||
+		tr.sackSeenN != 0 || tr.sackedOutstanding != 0 {
+		t.Fatalf("close left indexes head=%d repair=%d recv=%d seen=%d sacked=%d",
+			tr.pendingHead, tr.repairCount, tr.recvSACKN, tr.sackSeenN, tr.sackedOutstanding)
+	}
+}
+
+func TestSteadyIncrementalSACKHandlesSequenceWrapAndFourBlockCache(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 16)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wire []faketcp.Segment
+	rt, err := New(owner, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rt.Close()
+	cfg, _ := transportPair(func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 65100)
+	cfg.SACKPermitted = true
+	cfg.SendNext = ^uint32(0) - 47
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 87), cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9500, 0)
+	records := make([]datapath.WireRecord, 5)
+	for i := range records {
+		records[i].Wire = bytes.Repeat([]byte{byte(0x90 + i)}, 24)
+	}
+	if err := tr.send(records, t0); err != nil {
+		t.Fatal(err)
+	}
+	ack := faketcp.Segment{
+		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
+		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
+		Seq: cfg.ReceiveNext, Ack: wire[0].Seq,
+		Flags: faketcp.FlagACK, Window: 65535, SACKN: 1,
+	}
+	ack.SACK[0] = faketcp.SACKBlock{
+		Start: wire[1].Seq,
+		End: wire[4].Seq + uint32(len(wire[4].Payload)),
+	}
+	if ack.SACK[0].End >= ack.SACK[0].Start {
+		t.Fatalf("test did not cross numeric sequence wrap: %+v", ack.SACK[0])
+	}
+	if err := rt.HandleSegment(snap.Ref, ack, t0.Add(50*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	stats, _ := rt.TransportStats(snap.Ref)
+	if stats.SACKed != 4 || stats.FastRepairs != 1 || tr.repairCount != 1 {
+		t.Fatalf("wrap SACK stats=%+v repair=%d", stats, tr.repairCount)
+	}
+
+	tr.mu.Lock()
+	tr.recvNext = ^uint32(0) - 100
+	tr.recvSACKN = 0
+	clear(tr.received)
+	base := tr.recvNext
+	for i := 0; i < 6; i++ {
+		start := base + uint32(10+i*20)
+		tr.received[start] = receiveSpan{end: start + 5, first: t0}
+		tr.noteRecvSACKLocked(start, start+5)
+	}
+	blocks, n := tr.sackBlocksLocked()
+	tr.mu.Unlock()
+	if n != faketcp.MaxSACKBlocks {
+		t.Fatalf("receiver SACK blocks=%d want=%d", n, faketcp.MaxSACKBlocks)
+	}
+	wantNewest := base + uint32(10+5*20)
+	if blocks[0].Start != wantNewest || blocks[0].End != wantNewest+5 {
+		t.Fatalf("primary SACK=%+v want=%d..%d", blocks[0], wantNewest, wantNewest+5)
+	}
+}
+
+func TestSteadyDeliveredHistoryEvictionIsAmortizedAndBounded(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rt, err := New(owner, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rt.Close()
+	cfg, _ := transportPair(func(faketcp.Segment) error { return nil }, func(faketcp.Segment) error { return nil }, 1, 65200)
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 88), cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr := rt.lanes[snap.Ref]
+	tr.mu.Lock()
+	seq := tr.recvNext
+	now := time.Unix(9600, 0)
+	for i := 0; i < 7000; i++ {
+		if _, err := tr.acceptPayloadLocked(seq, []byte{byte(i)}, now); err != nil {
+			tr.mu.Unlock()
+			t.Fatal(err)
+		}
+		seq++
+	}
+	delivered := len(tr.delivered)
+	order := len(tr.deliveredOrder)
+	head := tr.deliveredHead
+	tr.mu.Unlock()
+	if delivered != MaxOutstandingRecords {
+		t.Fatalf("delivered history=%d want=%d", delivered, MaxOutstandingRecords)
+	}
+	if order > MaxOutstandingRecords+steadyIndexCompactThreshold || head >= steadyIndexCompactThreshold {
+		t.Fatalf("delivered order not amortized/bounded order=%d head=%d", order, head)
+	}
+}

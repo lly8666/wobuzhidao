@@ -57,12 +57,13 @@
     "P5阶段关闭：ROADMAP/ACCEPTANCE要求的真实HTTPS measurement/复用/稀疏/并发/证书链/full+resumed、fixed-FEC能力成本、300ms 5->20->5与5->30->5弱网、5/10/15/20Mbps、40Mbps aggregate-inner、以及>=30min持续loss+rotation+停流退役+memory plateau均已有exact-SHA hosted证据。50/100Mbps按规范仅为容量探索，不是协议/P5退出硬门；生产FEC仍off、padding仍off，未做参数选优或抗识别承诺。",
     "P6关闭：SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 / Actions 35603635498 的三个独立release-candidate job全部PASS。linux/amd64 artifact 10640321325 sha256:e08bedeacb64be27677bdc2ec7232691b1a450b809e39b878f5f9141b57de8e5，manifest sha256=e971ad779beff597c8d39a69f5645f3894021e023e10c6a4a7ffc82d0f1fafa8；linux/arm64 artifact 10641055941 sha256:3637dfaa7f89a2358fe258d7f5afddb9dc8cba20d2c188552ad30010d307c88e，manifest sha256=83ab1202ae4adb12db4fb820c357a3659ea7eaf8220ac20039c1872f9235aaf0；windows/amd64 artifact 10641181252 sha256:c5b3c83af29929f474a0467c1cc2eb1d9f63756f115468c423bbf2a4c161e06f，manifest sha256=5d12951916c0663e3d9028626e2dea4a18b458979ed8ff4c3a5d8b8da5077d64。三者source_sha相同、file SHA256与binary target/source/version独立复核PASS；Windows server=UNSUPPORTED，PHYSICAL/RELEASE_QUALIFIED=NOT_RUN。",
     "P4增强第1原子修复：runtimeowner repair/gap-ACK仲裁在SOURCE_SHA e3253322ac863c11636f1c127e14b77bdc6bf800的定向Actions已通过repository-contract、Windows/Linux active-go（Linux含race）、OpenWrt privileged与Linux shared-TUN iptables/nft；repair选择/尝试/成功/失败分离且gap forgiveness不再覆盖已选repair。",
-    "P4增强第2原子FIN/RST/半关闭：SOURCE_SHA 1cfe913199f7df67f05158e044cbec02771f29a8 / Actions 35669709080 定向资格已通过repository-contract、Windows active-go、Ubuntu active-go+race、P5 HTTPS base、OpenWrt privileged及Linux shared-TUN iptables/nft；Game4固定duplicates>=lanes-1并等待异步lane drain，replacement/DORMANT late-control race已收口。整轮长时P5 jobs当时仍运行，不提前写成整轮PASS。"
+    "P4增强第2原子FIN/RST/半关闭：SOURCE_SHA 1cfe913199f7df67f05158e044cbec02771f29a8 / Actions 35669709080 定向资格已通过repository-contract、Windows active-go、Ubuntu active-go+race、P5 HTTPS base、OpenWrt privileged及Linux shared-TUN iptables/nft；Game4固定duplicates>=lanes-1并等待异步lane drain，replacement/DORMANT late-control race已收口。整轮长时P5 jobs当时仍运行，不提前写成整轮PASS。",
+    "P4增强第3原子：有界SACK/payload退役、fresh优先repair credit、Karn-safe RTT/RTO与effective-RTO/3s horizon修正，在SOURCE_SHA d019858265353f55a25e9e55b9dcef3808407198的targeted 35676831976 6/6 PASS及foundation 35676831973整轮PASS；30%旧回归两个seed恢复且DORMANT race闭环。"
   ],
-  "in_progress": "P4第3原子回归修正继续：c16fb3f1 effective-RTO已使branch-wide 5→30→5两个非FEC seed重新PASS，active-go也PASS；但独立targeted Linux race调度复现DORMANT late-business错误终止server。当前提交只增加dormant delivery fence：group进入DORMANT后旧generation业务不再刷新activity/向上冒泡platformflow错误，active tunnel错误仍原样传播。",
-  "next_task": "先要求本DORMANT fence exact-SHA targeted Linux race/lifecycle/Game4全部PASS，并确认branch-wide 30%回归不倒退；之后关闭第3原子回归，进入第4原子有界增量ACK/SACK索引。",
-  "latest_log": "docs/devlog/20260922-094500-dormant-late-delivery-fence.md",
-  "last_tested_source_sha": "c16fb3f18ee7ce77706fef3716ef941eecfff06a",
+  "in_progress": "P4第4原子已实现待Actions：runtimeowner累计ACK改为单调head增量退役，pending压缩仅每>=1024已退役项摊销一次；sender SACK用8段常量历史只处理新覆盖字节，receiver ACK只维护4个增量SACK range；repair候选改为独立链表+每tick最多256项旋转扫描。补深洞、稀疏ACK、32-bit Seq回绕、历史淘汰和stop清理测试。",
+  "next_task": "先跑本exact-SHA next-p4-steady-targeted，要求contract、Linux/Windows steady-core、Linux race、lifecycle和iptables/nft全部PASS；再看foundation旧30%回归不倒退。通过后进入第5原子：window/scale、MSS、实际TCP options/persona continuity与统一MTU实际头长。",
+  "latest_log": "docs/devlog/20260922-110500-incremental-ack-sack-indexes.md",
+  "last_tested_source_sha": "d019858265353f55a25e9e55b9dcef3808407198",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -889,6 +890,20 @@
       "scope": "P4-item3-effective-rto-targeted",
       "status": "FAIL",
       "note": "contract、Windows steady-core、普通Linux steady-core、lifecycle-focus、iptables/nft均PASS；Linux race step唯一FAIL为TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease在server DormantTunnel后TunnelStats ok=false，复现已知DORMANT late-business错误传播窗口。runtimeowner新增effective-RTO单测在race下PASS。"
+    },
+    {
+      "source_sha": "d019858265353f55a25e9e55b9dcef3808407198",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35676831976",
+      "scope": "P4-item3-dormant-fence-targeted",
+      "status": "PASS_TARGETED",
+      "note": "next-p4-steady-targeted 6/6 PASS：contract、Linux/Windows steady-core、Linux race、lifecycle-focus、iptables/nft privileged全部PASS。第3原子SACK/credit/effective-RTO与DORMANT late-delivery fence定向闭环。"
+    },
+    {
+      "source_sha": "d019858265353f55a25e9e55b9dcef3808407198",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35676831973",
+      "scope": "P4-item3-dormant-fence-foundation",
+      "status": "PASS",
+      "note": "next-foundation整轮PASS：Windows/Linux active-go、race、P4 privileged、非FEC/FEC20:20 20%/30%旧弱网回归、load/soak及历史P6 jobs均成功。旧HTTPS弱网只作回归证据，不替代新增持续UDP主测。"
     }
   ],
   "physical_status": "NOT_RUN",

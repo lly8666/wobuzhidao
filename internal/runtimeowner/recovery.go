@@ -1,7 +1,6 @@
 package runtimeowner
 
 import (
-	"sort"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
@@ -171,34 +170,38 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 		t.mu.Unlock()
 		return nil
 	}
-	for _, seq := range t.pendingOrder {
-		p := t.pending[seq]
-		if p == nil {
-			continue
+
+	t.expirePendingHeadLocked(now)
+
+	limit := t.repairCount
+	if limit > steadyRepairScanBudget {
+		limit = steadyRepairScanBudget
+	}
+	p := t.repairScan
+	if p == nil || !p.repairLinked {
+		p = t.repairHead
+	}
+	for i := 0; p != nil && i < limit; i++ {
+		next := p.repairNext
+		if next == nil {
+			next = t.repairHead
 		}
-		if now.Sub(p.firstSent) >= t.cfg.RepairHorizon {
-			delete(t.pending, seq)
-			if p.retired || p.sacked {
-				t.stats.RepairMetadataEvicted++
-			} else {
-				t.stats.Abandoned++
-				t.stats.RepairEvicted++
-			}
-			continue
-		}
+		t.repairScan = next
 		if p.sacked || p.retired || p.repairInFlight ||
 			(len(p.payload) == 0 && p.flags&faketcp.FlagFIN == 0) {
+			p = next
 			continue
 		}
 		if !p.repairNotBefore.IsZero() && now.Before(p.repairNotBefore) {
+			p = next
 			continue
 		}
 		if p.lastSent.IsZero() || now.Sub(p.lastSent) >= t.effectiveRepairRTOLocked(p) {
 			sel = t.reserveRepairLocked(p, now, false)
 			break
 		}
+		p = next
 	}
-	t.compactPendingOrderLocked()
 
 	forgiven := t.forgiveGapLocked(now, false)
 	if sel == nil && forgiven {
@@ -217,24 +220,25 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 }
 
 func (t *laneTransport) evictRepairForFreshLocked() bool {
-	for _, seq := range t.pendingOrder {
-		p := t.pending[seq]
+	t.advancePendingHeadLocked()
+	for i := t.pendingHead; i < len(t.pendingOrder); i++ {
+		p := t.pending[t.pendingOrder[i]]
 		if p == nil || p.flags&faketcp.FlagFIN != 0 || p.repairInFlight {
 			continue
 		}
 		if p.retired || p.sacked {
-			delete(t.pending, seq)
+			t.removePendingLocked(p)
 			t.stats.RepairMetadataEvicted++
 			t.compactPendingOrderLocked()
 			return true
 		}
 	}
-	for _, seq := range t.pendingOrder {
-		p := t.pending[seq]
+	for i := t.pendingHead; i < len(t.pendingOrder); i++ {
+		p := t.pending[t.pendingOrder[i]]
 		if p == nil || p.flags&faketcp.FlagFIN != 0 || p.repairInFlight {
 			continue
 		}
-		delete(t.pending, seq)
+		t.removePendingLocked(p)
 		t.stats.Abandoned++
 		t.stats.RepairEvicted++
 		t.compactPendingOrderLocked()
@@ -245,28 +249,37 @@ func (t *laneTransport) evictRepairForFreshLocked() bool {
 
 func (t *laneTransport) retireSelectiveACKLocked(ack uint32, now time.Time) {
 	oldAck := t.lastAck
-	advanced := seqLT(oldAck, ack)
+	if !seqLT(oldAck, ack) {
+		return
+	}
+
 	var sample *pendingRecord
-	for _, seq := range t.pendingOrder {
-		p := t.pending[seq]
-		if p == nil || !seqLE(p.end, ack) {
+	for {
+		t.advancePendingHeadLocked()
+		if t.pendingHead >= len(t.pendingOrder) {
+			break
+		}
+		p := t.pending[t.pendingOrder[t.pendingHead]]
+		if p == nil {
 			continue
+		}
+		if !seqLE(p.end, ack) {
+			break
 		}
 		if p.end == ack && !p.wasRetried && !p.rttSampled {
 			p.rttSampled = true
 			sample = p
 		}
 		t.noteDeliveredLocked(p)
-		delete(t.pending, seq)
+		t.removePendingLocked(p)
 		t.stats.Acked++
 		if p.flags&faketcp.FlagFIN != 0 && !t.localFINAcked {
 			t.localFINAcked = true
 			t.stats.FINAcked++
 		}
 	}
-	if advanced {
-		t.lastAck = ack
-	}
+	t.lastAck = ack
+	t.pruneSenderSACKLocked()
 	if sample != nil {
 		t.observeRTTLocked(now.Sub(sample.firstSent))
 	}
@@ -278,28 +291,13 @@ func (t *laneTransport) retireSelectiveACKLocked(ack uint32, now time.Time) {
 	t.compactPendingOrderLocked()
 }
 
-func (t *laneTransport) applySACKLocked(blocks []faketcp.SACKBlock, now time.Time) {
-	for _, block := range blocks {
-		if block.Start == block.End || seqLT(block.End, block.Start) ||
-			seqLT(block.Start, t.lastAck) || seqLT(t.sendNext, block.End) {
-			continue
-		}
-		for _, seq := range t.pendingOrder {
-			p := t.pending[seq]
-			if p == nil || p.flags&faketcp.FlagFIN != 0 ||
-				seqLT(p.seq, block.Start) || seqLT(block.End, p.end) {
-				continue
-			}
-			t.markSACKedLocked(p, now)
-		}
-	}
-}
-
 func (t *laneTransport) markSACKedLocked(p *pendingRecord, now time.Time) {
 	if p == nil || p.sacked {
 		return
 	}
 	p.sacked = true
+	t.sackedOutstanding++
+	t.unlinkRepairLocked(p)
 	t.stats.SACKed++
 	t.noteDeliveredLocked(p)
 	if !p.wasRetried && !p.rttSampled {
@@ -315,21 +313,9 @@ func (t *laneTransport) markSACKedLocked(p *pendingRecord, now time.Time) {
 }
 
 func (t *laneTransport) selectFastRepairLocked(now time.Time) *selectedRepair {
-	var candidate *pendingRecord
-	candidateIndex := -1
-	for i, seq := range t.pendingOrder {
-		p := t.pending[seq]
-		if p == nil || p.sacked || p.retired || p.flags&faketcp.FlagFIN != 0 {
-			continue
-		}
-		if p.seq != t.lastAck {
-			return nil
-		}
-		candidate = p
-		candidateIndex = i
-		break
-	}
-	if candidate == nil {
+	candidate := t.pendingAtHeadLocked()
+	if candidate == nil || candidate.sacked || candidate.retired ||
+		candidate.flags&faketcp.FlagFIN != 0 || candidate.seq != t.lastAck {
 		return nil
 	}
 	if candidate.wasRetried {
@@ -340,19 +326,10 @@ func (t *laneTransport) selectFastRepairLocked(now time.Time) *selectedRepair {
 		}
 		return t.prepareFastRepairLocked(candidate, now)
 	}
-
-	sackedAbove := 0
-	for i := candidateIndex + 1; i < len(t.pendingOrder); i++ {
-		p := t.pending[t.pendingOrder[i]]
-		if p == nil || !p.sacked {
-			continue
-		}
-		sackedAbove++
-		if sackedAbove >= 3 {
-			return t.prepareFastRepairLocked(candidate, now)
-		}
+	if t.sackedOutstanding < 3 {
+		return nil
 	}
-	return nil
+	return t.prepareFastRepairLocked(candidate, now)
 }
 
 func (t *laneTransport) prepareFastRepairLocked(p *pendingRecord, now time.Time) *selectedRepair {
@@ -429,51 +406,4 @@ func (t *laneTransport) clampRTOLocked(v time.Duration) time.Duration {
 		v = t.cfg.RepairHorizon
 	}
 	return v
-}
-
-func (t *laneTransport) sackBlocksLocked() []faketcp.SACKBlock {
-	if !t.cfg.SACKPermitted || len(t.received) == 0 {
-		return nil
-	}
-	ranges := make([]faketcp.SACKBlock, 0, len(t.received))
-	for start, span := range t.received {
-		if span.fin || seqLT(start, t.recvNext) {
-			continue
-		}
-		ranges = append(ranges, faketcp.SACKBlock{Start: start, End: span.end})
-	}
-	if len(ranges) == 0 {
-		return nil
-	}
-	sort.Slice(ranges, func(i, j int) bool {
-		return uint32(ranges[i].Start-t.recvNext) < uint32(ranges[j].Start-t.recvNext)
-	})
-	merged := ranges[:0]
-	for _, block := range ranges {
-		n := len(merged)
-		if n != 0 && merged[n-1].End == block.Start {
-			merged[n-1].End = block.End
-			continue
-		}
-		merged = append(merged, block)
-	}
-
-	out := make([]faketcp.SACKBlock, 0, faketcp.MaxSACKBlocks)
-	primary := -1
-	if t.lastOutOfOrderSet {
-		for i, block := range merged {
-			if !seqLT(t.lastOutOfOrder, block.Start) && seqLT(t.lastOutOfOrder, block.End) {
-				primary = i
-				out = append(out, block)
-				break
-			}
-		}
-	}
-	for i := len(merged) - 1; i >= 0 && len(out) < faketcp.MaxSACKBlocks; i-- {
-		if i == primary {
-			continue
-		}
-		out = append(out, merged[i])
-	}
-	return out
 }

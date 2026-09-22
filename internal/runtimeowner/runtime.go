@@ -80,6 +80,9 @@ type pendingRecord struct {
 	retired          bool
 	repairInFlight   bool
 	repairNotBefore  time.Time
+	repairPrev       *pendingRecord
+	repairNext       *pendingRecord
+	repairLinked     bool
 }
 
 type receiveSpan struct {
@@ -156,8 +159,6 @@ type laneTransport struct {
 	rackLatestTx      time.Time
 	repairCredit      uint64
 	repairRemainder   uint64
-	lastOutOfOrder    uint32
-	lastOutOfOrderSet bool
 
 	localFINQueued bool
 	localFINAcked  bool
@@ -167,7 +168,20 @@ type laneTransport struct {
 
 	pending      map[uint32]*pendingRecord
 	pendingOrder []uint32
-	received     map[uint32]receiveSpan
+	pendingHead  int
+
+	repairHead  *pendingRecord
+	repairTail  *pendingRecord
+	repairScan  *pendingRecord
+	repairCount int
+
+	sackedOutstanding int
+	sackSeen          [steadySenderSACKHistory]faketcp.SACKBlock
+	sackSeenN         int
+
+	received  map[uint32]receiveSpan
+	recvSACK  [faketcp.MaxSACKBlocks]faketcp.SACKBlock
+	recvSACKN int
 
 	delivered      map[uint32]deliveredMark
 	deliveredOrder []uint32
@@ -219,12 +233,9 @@ func (t *laneTransport) outboundSegmentFlags(seq, ack uint32, flags uint8, paylo
 	// Keep SACK on ACK-only/control packets. Data records are already sized to
 	// the negotiated MTU and must not silently grow when recovery options appear.
 	if t.cfg.SACKPermitted && flags&faketcp.FlagACK != 0 && len(payload) == 0 {
-		blocks := t.sackBlocksLocked()
-		if len(blocks) > faketcp.MaxSACKBlocks {
-			blocks = blocks[:faketcp.MaxSACKBlocks]
-		}
-		seg.SACKN = len(blocks)
-		copy(seg.SACK[:], blocks)
+		blocks, n := t.sackBlocksLocked()
+		seg.SACKN = n
+		copy(seg.SACK[:], blocks[:n])
 	}
 	return seg
 }
@@ -263,6 +274,7 @@ func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error
 		}
 		t.pending[seq] = p
 		t.pendingOrder = append(t.pendingOrder, seq)
+		t.linkRepairLocked(p)
 		t.sendNext = end
 		if n := len(t.pending); n > t.stats.PeakOutstanding {
 			t.stats.PeakOutstanding = n
@@ -275,7 +287,7 @@ func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error
 		if err := t.cfg.Emit(seg); err != nil {
 			t.mu.Lock()
 			if current := t.pending[seq]; current == p {
-				delete(t.pending, seq)
+				t.removePendingLocked(p)
 				t.stats.Abandoned++
 			}
 			t.mu.Unlock()
@@ -343,6 +355,7 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		clear(t.pending)
 		clear(t.received)
 		t.pendingOrder = nil
+		t.clearSteadyIndexesLocked()
 		t.mu.Unlock()
 		return nil
 	}
@@ -423,8 +436,7 @@ func (t *laneTransport) acceptPayloadLocked(seq uint32, payload []byte, now time
 			}
 		} else {
 			t.received[seq] = receiveSpan{end: end, first: now}
-			t.lastOutOfOrder = seq
-			t.lastOutOfOrderSet = true
+			t.noteRecvSACKLocked(seq, end)
 		}
 		if len(t.received) > MaxOutstandingRecords {
 			t.forgiveGapLocked(now, true)
@@ -480,13 +492,15 @@ func (t *laneTransport) rememberDeliveredLocked(seq uint32, mark deliveredMark) 
 		t.deliveredHead++
 		delete(t.delivered, old)
 	}
-	if t.deliveredHead >= MaxOutstandingRecords && t.deliveredHead*2 >= len(t.deliveredOrder) {
-		t.deliveredOrder = append([]uint32(nil), t.deliveredOrder[t.deliveredHead:]...)
+	if t.deliveredHead >= steadyIndexCompactThreshold {
+		copy(t.deliveredOrder, t.deliveredOrder[t.deliveredHead:])
+		t.deliveredOrder = t.deliveredOrder[:len(t.deliveredOrder)-t.deliveredHead]
 		t.deliveredHead = 0
 	}
 }
 
 func (t *laneTransport) advanceReceiveLocked() {
+	defer t.pruneRecvSACKLocked()
 	for {
 		span, ok := t.received[t.recvNext]
 		if !ok {
@@ -527,6 +541,7 @@ func (t *laneTransport) forgiveGapLocked(now time.Time, force bool) bool {
 	t.recvNext = best.end
 	if best.fin {
 		t.markPeerFINLocked(best.end)
+		t.pruneRecvSACKLocked()
 	} else {
 		t.advanceReceiveLocked()
 	}
@@ -540,17 +555,6 @@ func (t *laneTransport) retireACKLocked(ack uint32, now time.Time) {
 
 func (t *laneTransport) abandonOldestLocked() bool {
 	return t.evictRepairForFreshLocked()
-}
-
-func (t *laneTransport) compactPendingOrderLocked() {
-	n := 0
-	for _, seq := range t.pendingOrder {
-		if _, ok := t.pending[seq]; ok {
-			t.pendingOrder[n] = seq
-			n++
-		}
-	}
-	t.pendingOrder = t.pendingOrder[:n]
 }
 
 func (t *laneTransport) tick(now time.Time) error {
@@ -585,6 +589,7 @@ func (t *laneTransport) closeWrite(now time.Time) error {
 	}
 	t.pending[seq] = p
 	t.pendingOrder = append(t.pendingOrder, seq)
+	t.linkRepairLocked(p)
 	t.sendNext = p.end
 	t.localFINQueued = true
 	t.stats.FINAttempts++
@@ -627,6 +632,8 @@ func (t *laneTransport) reset(now time.Time) error {
 	clear(t.delivered)
 	t.pendingOrder = nil
 	t.deliveredOrder = nil
+	t.deliveredHead = 0
+	t.clearSteadyIndexesLocked()
 	t.mu.Unlock()
 	return err
 }
@@ -660,6 +667,8 @@ func (t *laneTransport) close() {
 	clear(t.delivered)
 	t.pendingOrder = nil
 	t.deliveredOrder = nil
+	t.deliveredHead = 0
+	t.clearSteadyIndexesLocked()
 	t.mu.Unlock()
 }
 
