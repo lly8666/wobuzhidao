@@ -61,10 +61,10 @@
     "P4增强第3原子：有界SACK/payload退役、fresh优先repair credit、Karn-safe RTT/RTO与effective-RTO/3s horizon修正，在SOURCE_SHA d019858265353f55a25e9e55b9dcef3808407198的targeted 35676831976 6/6 PASS及foundation 35676831973整轮PASS；30%旧回归两个seed恢复且DORMANT race闭环。",
     "P4增强第4原子：runtimeowner累计ACK改为单调head增量退役、pending仅>=1024前缀摊销压缩；sender SACK只处理新覆盖区间，receiver线上仅维护4块增量SACK；repair链单tick最多256候选旋转扫描。SOURCE_SHA ce950d4877ecb51001b6ab2517f6b43a6edadac3 / targeted Actions 35681889099 6/6 PASS / foundation 35681889120整轮PASS。"
   ],
-  "in_progress": "P4第5原子回归修正1待Actions：aa7ec95d targeted 6/6 PASS，但foundation暴露lossless fixed-FEC一次3.29ms伪fast-repair，以及两个旧30% HTTPS红灯。本提交只修第一个根因：fresh fast-repair除>=3个SACK证据外，也必须经过已有RACK reordering window（最低10ms）；不改repair credit/RTO/horizon/FEC。",
-  "next_task": "先跑本exact-SHA targeted，并重点看p5-https-measurement-base fixed-FEC是否恢复0 repair；若通过，再独立修platformflow已退役FlowID的5s tombstone不足以覆盖inner retransmit+outer repair的迟到帧问题。之后再修server steady Window从bootstrap瞬时0快照的问题。",
-  "latest_log": "docs/devlog/20260922-131500-fast-repair-reordering-gate.md",
-  "last_tested_source_sha": "aa7ec95dca504e819f1c09d6a5cd7a4b3519c68f",
+  "in_progress": "P4第5原子回归修正1b待Actions：59fa2e2e的fresh fast-repair时间门方向正确，但额外要求candidate.lastSent严格早于rackLatestTx；批量fresh send共享同一t0，导致40/50ms既有fast-repair和12ms新测试都被错误禁用。当前修正只保留>=3 SACK + candidate年龄>=RACK reordering window；3.29ms lossless伪repair仍被挡。",
+  "next_task": "先跑本exact-SHA targeted和foundation；重点确认runtimeowner fast-repair单测恢复且p5-fixed-fec lossless repair=0。通过后再独立处理platformflow 5s FlowID tombstone不足和server steady Window冻结bootstrap瞬时0的问题。",
+  "latest_log": "docs/devlog/20260922-135500-fast-repair-batch-timestamp.md",
+  "last_tested_source_sha": "59fa2e2eb2553751cf2d357063e3fee73404f2ab",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -933,6 +933,13 @@
       "scope": "P4-item5-presentation-foundation",
       "status": "FAIL",
       "note": "foundation有3个红灯：p5-fixed-fec lossless出现1次repair；p5-weaknet-5-30-5 run1 server transport消失并报unknown TCP server flow；run2产品测试完成29/40但旧post5分析器无法复算。其余active-go、20%弱网、FEC20:20、privileged、load/soak、P6均PASS。保留失败样本，不关闭第5项。"
+    },
+    {
+      "source_sha": "59fa2e2eb2553751cf2d357063e3fee73404f2ab",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35688167216",
+      "scope": "P4-item5-fast-repair-reorder-gate-targeted",
+      "status": "FAIL",
+      "note": "contract/lifecycle/iptables/nft PASS；Linux/Windows steady-core同时FAIL。根因不是平台：批量send给fresh records相同lastSent，新增严格candidate.lastSent<rackLatestTx条件使40/50ms既有fast-repair及12ms新测试均无法触发。"
     }
   ],
   "physical_status": "NOT_RUN",
