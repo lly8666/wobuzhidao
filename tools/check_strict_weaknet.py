@@ -306,6 +306,7 @@ def counters(diag):
             "repair_deferred": tr.get("RepairDeferred", 0),
             "abandoned": tr.get("Abandoned", 0),
             "forgiven_gaps": tr.get("ForgivenGaps", 0),
+            "received_segments": tr.get("Received", 0),
             "transport_duplicates": tr.get("Duplicates", 0),
             "late_first_arrival": tr.get("LateFirstArrival", 0),
             "decoder_failed": (ls.get("Decoder") or {}).get("Failed", 0),
@@ -336,6 +337,91 @@ def diag_stage_deltas(samples, side, bounds):
         sa, sb = nearest_diag(samples, side, a), nearest_diag(samples, side, b)
         out[name] = subtract(counters(product(sb, side)), counters(product(sa, side))) if sa and sb else None
     return out
+
+
+def directional_recovery(sender_row, receiver_row):
+    """Build one business-direction cross-layer ledger.
+
+    sender_row supplies outbound Game/FEC/transport counters for the direction.
+    receiver_row supplies receive-side FEC reconstruction/duplicate/gap counters.
+    A Lane diagnostic contains both TxPath and RxPath, so using one endpoint for
+    both silently attributes reverse-direction recovery to the wrong direction.
+    """
+    sender_row = sender_row or {"owner": {}, "lanes": {}}
+    receiver_row = receiver_row or {"owner": {}, "lanes": {}}
+    sender_lanes = sender_row.get("lanes") or {}
+    receiver_lanes = receiver_row.get("lanes") or {}
+    zero = {
+        "tx_fec_source_shards": 0,
+        "tx_fec_source_bytes": 0,
+        "tx_fec_parity_shards": 0,
+        "tx_fec_parity_bytes": 0,
+        "tx_padding_bytes": 0,
+        "tx_fresh_segments": 0,
+        "tx_repair_segments": 0,
+        "tx_repair_selected": 0,
+        "tx_repair_attempts": 0,
+        "tx_repair_succeeded": 0,
+        "tx_repair_failures": 0,
+        "tx_repair_deferred": 0,
+        "tx_fast_repairs": 0,
+        "tx_rto_repairs": 0,
+        "tx_abandoned": 0,
+        "rx_fec_reconstruction_events": 0,
+        "rx_fec_recovered_sources": 0,
+        "rx_received_segments": 0,
+        "rx_transport_duplicates": 0,
+        "rx_decoder_duplicates": 0,
+        "rx_decoder_failed": 0,
+        "rx_late_first_arrival": 0,
+        "rx_forgiven_gaps": 0,
+    }
+    lanes = {}
+    for ref in sorted(set(sender_lanes) | set(receiver_lanes)):
+        tx = sender_lanes.get(ref) or {}
+        rx = receiver_lanes.get(ref) or {}
+        row = dict(zero)
+        row.update({
+            "tx_fec_source_shards": int(tx.get("fec_source_shards", 0) or 0),
+            "tx_fec_source_bytes": int(tx.get("fec_source_bytes", 0) or 0),
+            "tx_fec_parity_shards": int(tx.get("fec_parity_shards", 0) or 0),
+            "tx_fec_parity_bytes": int(tx.get("fec_parity_bytes", 0) or 0),
+            "tx_padding_bytes": int(tx.get("padding_bytes", 0) or 0),
+            "tx_fresh_segments": int(tx.get("fresh_segments", 0) or 0),
+            "tx_repair_segments": int(tx.get("repair_segments", 0) or 0),
+            "tx_repair_selected": int(tx.get("repair_selected", 0) or 0),
+            "tx_repair_attempts": int(tx.get("repair_attempts", 0) or 0),
+            "tx_repair_succeeded": int(tx.get("repair_succeeded", 0) or 0),
+            "tx_repair_failures": int(tx.get("repair_failures", 0) or 0),
+            "tx_repair_deferred": int(tx.get("repair_deferred", 0) or 0),
+            "tx_fast_repairs": int(tx.get("fast_repairs", 0) or 0),
+            "tx_rto_repairs": int(tx.get("rto_repairs", 0) or 0),
+            "tx_abandoned": int(tx.get("abandoned", 0) or 0),
+            "rx_fec_reconstruction_events": int(rx.get("fec_reconstruction_events", 0) or 0),
+            "rx_fec_recovered_sources": int(rx.get("fec_recovered_sources", 0) or 0),
+            "rx_received_segments": int(rx.get("received_segments", 0) or 0),
+            "rx_transport_duplicates": int(rx.get("transport_duplicates", 0) or 0),
+            "rx_decoder_duplicates": int(rx.get("decoder_duplicates", 0) or 0),
+            "rx_decoder_failed": int(rx.get("decoder_failed", 0) or 0),
+            "rx_late_first_arrival": int(rx.get("late_first_arrival", 0) or 0),
+            "rx_forgiven_gaps": int(rx.get("forgiven_gaps", 0) or 0),
+        })
+        lanes[ref] = row
+
+    total = dict(zero)
+    for row in lanes.values():
+        for key in total:
+            total[key] += row[key]
+
+    owner = sender_row.get("owner") or {}
+    tx_owner = {
+        "game_logical_packets": int(owner.get("game_logical_packets", 0) or 0),
+        "game_logical_bytes": int(owner.get("game_logical_bytes", 0) or 0),
+        "game_lane_copies": int(owner.get("game_lane_copies", 0) or 0),
+        "game_lane_copy_bytes": int(owner.get("game_lane_copy_bytes", 0) or 0),
+        "padding_bytes": int(owner.get("padding_bytes", 0) or 0),
+    }
+    return {"total": total, "lanes": lanes, "tx_owner": tx_owner}
 
 
 def queue_age_at(samples_by_side, unix_ns):
@@ -530,19 +616,27 @@ def main():
     final_client = counters(product(client_diag[-1], "client")) if client_diag else {"owner": {}, "lanes": {}}
     final_server = counters(product(server_diag[-1], "server")) if server_diag and product(server_diag[-1], "server") else {"owner": {}, "lanes": {}}
     transport_observations = []
-    for side, final in (("client", final_client), ("server", final_server)):
+    for endpoint, final in (("client", final_client), ("server", final_server)):
         own = final["owner"]
         if own.get("game_lane_mismatches", 0) or own.get("source_discards", 0):
-            correctness_errors.append(f"{side} lane/source mismatch stats={own}")
+            correctness_errors.append(f"{endpoint} lane/source mismatch stats={own}")
+        outbound_direction = "c2s" if endpoint == "client" else "s2c"
+        inbound_direction = "s2c" if endpoint == "client" else "c2s"
         for ref, lane in final["lanes"].items():
             if lane.get("decoder_failed", 0):
-                correctness_errors.append(f"{side} lane={ref} tlsrecord decoder_failed={lane['decoder_failed']}")
-            for key in ("decoder_duplicates", "transport_duplicates", "forgiven_gaps",
-                        "abandoned", "repair_segments", "repair_deferred", "late_first_arrival"):
+                correctness_errors.append(f"{endpoint} lane={ref} tlsrecord decoder_failed={lane['decoder_failed']}")
+            for key in ("abandoned", "repair_segments", "repair_deferred"):
                 if lane.get(key, 0):
-                    transport_observations.append(
-                        {"side": side, "lane": ref, "kind": key, "count": lane.get(key, 0)}
-                    )
+                    transport_observations.append({
+                        "endpoint": endpoint, "business_direction": outbound_direction,
+                        "lane": ref, "kind": key, "count": lane.get(key, 0),
+                    })
+            for key in ("decoder_duplicates", "transport_duplicates", "forgiven_gaps", "late_first_arrival"):
+                if lane.get(key, 0):
+                    transport_observations.append({
+                        "endpoint": endpoint, "business_direction": inbound_direction,
+                        "lane": ref, "kind": key, "count": lane.get(key, 0),
+                    })
 
     input_errors = []
     for direction in ("c2s", "s2c"):
@@ -646,43 +740,35 @@ def main():
     elif args.scenario != "lossless":
         performance_errors.append("post5 queue baseline unavailable")
 
-    product_stage = {
+    product_stage_sender = {
         "c2s": diag_stage_deltas(client_diag, "client", bounds),
         "s2c": diag_stage_deltas(server_diag, "server", bounds),
     }
-
-    def recovery_stage(row):
-        out = {
-            "fec_reconstruction_events": 0, "fec_recovered_sources": 0,
-            "repair_segments": 0, "repair_selected": 0, "repair_attempts": 0,
-            "repair_failures": 0, "repair_deferred": 0,
-            "fast_repairs": 0, "rto_repairs": 0,
-            "forgiven_gaps": 0, "abandoned": 0,
-            "transport_duplicates": 0, "decoder_duplicates": 0,
-            "late_first_arrival": 0,
-        }
-        if not row:
-            return out
-        for lane in (row.get("lanes") or {}).values():
-            for key in out:
-                out[key] += int(lane.get(key, 0) or 0)
-        return out
+    product_stage_receiver = {
+        "c2s": diag_stage_deltas(server_diag, "server", bounds),
+        "s2c": diag_stage_deltas(client_diag, "client", bounds),
+    }
 
     recovery_accounting = {
-        direction: {name: recovery_stage(product_stage[direction].get(name))
-                    for name in STAGES}
+        direction: {
+            name: directional_recovery(
+                product_stage_sender[direction].get(name),
+                product_stage_receiver[direction].get(name),
+            )
+            for name in STAGES
+        }
         for direction in ("c2s", "s2c")
     }
     for direction, rows in (("c2s", c2s_outer), ("s2c", s2c_outer)):
         for name, row in rows.items():
             if row.get("duplicate_ack_packets", 0):
                 transport_observations.append({
-                    "side": direction, "stage": name, "kind": "pcap_duplicate_ack",
+                    "wire_direction": direction, "stage": name, "kind": "pcap_duplicate_ack",
                     "count": row["duplicate_ack_packets"],
                 })
             if row.get("fresh_seq_regressions", 0):
                 transport_observations.append({
-                    "side": direction, "stage": name, "kind": "pcap_fresh_seq_regression",
+                    "wire_direction": direction, "stage": name, "kind": "pcap_fresh_seq_regression",
                     "count": row["fresh_seq_regressions"],
                 })
 
@@ -721,7 +807,13 @@ def main():
             "inner_tcp_retransmission_bytes": 0,
             "inner_tcp_retransmission_note": "strict main load is UDP; HTTPS/TCP retransmission is a separate specialty",
             "stages": c2s_outer if d == "c2s" else s2c_outer,
-            "product_stage_cross_layer": product_stage[d],
+            "product_stage_sender_endpoint": product_stage_sender[d],
+            "product_stage_receiver_endpoint": product_stage_receiver[d],
+            "product_stage_direction_note": (
+                "sender endpoint supplies TX Game/FEC/repair; receiver endpoint supplies "
+                "RX FEC reconstruction/duplicates/gap forgiveness. Do not sum overlapping "
+                "FEC recovery, repair and final application delivery as independent benefit."
+            ),
         }
 
     classifications = {

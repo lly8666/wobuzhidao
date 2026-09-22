@@ -79,6 +79,64 @@ jobs:
           print("WBD_STRICT_QDISC_ACCOUNTING_PASS", got)
           PY
 
+      - name: Prove directional recovery accounting
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import runpy
+          m = runpy.run_path("tools/check_strict_weaknet.py")
+          f = m["directional_recovery"]
+          sender = {
+              "owner": {
+                  "game_logical_bytes": 100,
+                  "game_lane_copy_bytes": 400,
+              },
+              "lanes": {
+                  "1:1": {
+                      "fec_source_bytes": 1000,
+                      "fec_parity_bytes": 2000,
+                      "repair_segments": 7,
+                      "repair_attempts": 8,
+                      "repair_succeeded": 7,
+                      "abandoned": 3,
+                      # These reverse-RX values must NOT be attributed to this direction.
+                      "fec_recovered_sources": 999,
+                      "forgiven_gaps": 998,
+                  }
+              },
+          }
+          receiver = {
+              "owner": {},
+              "lanes": {
+                  "1:1": {
+                      # These reverse-TX values must NOT be attributed to this direction.
+                      "repair_segments": 888,
+                      "abandoned": 887,
+                      "fec_reconstruction_events": 5,
+                      "fec_recovered_sources": 11,
+                      "received_segments": 70,
+                      "transport_duplicates": 2,
+                      "decoder_duplicates": 1,
+                      "late_first_arrival": 4,
+                      "forgiven_gaps": 6,
+                  }
+              },
+          }
+          got = f(sender, receiver)
+          t = got["total"]
+          assert t["tx_fec_source_bytes"] == 1000, got
+          assert t["tx_fec_parity_bytes"] == 2000, got
+          assert t["tx_repair_segments"] == 7, got
+          assert t["tx_abandoned"] == 3, got
+          assert t["rx_fec_reconstruction_events"] == 5, got
+          assert t["rx_fec_recovered_sources"] == 11, got
+          assert t["rx_forgiven_gaps"] == 6, got
+          assert t["rx_transport_duplicates"] == 2, got
+          assert got["tx_owner"]["game_logical_bytes"] == 100, got
+          assert got["tx_owner"]["game_lane_copy_bytes"] == 400, got
+          print("WBD_STRICT_DIRECTIONAL_ACCOUNTING_PASS", got)
+          PY
+
       - name: Upload preflight receipt
         if: always()
         uses: actions/upload-artifact@v4
