@@ -8,7 +8,8 @@ on:
 permissions:
   contents: read
 
-# Per-SHA targeting must not queue behind the branch-wide 31-minute P5 soak.
+# Per-SHA targeting is the fast regression lane during realpath calibration.
+# Historical low-load soak is explicit-only; strict target-rate soak runs at stage closure.
 concurrency:
   group: next-p4-steady-targeted-${{ github.sha }}
   cancel-in-progress: false

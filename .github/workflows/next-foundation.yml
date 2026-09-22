@@ -6,6 +6,17 @@ on:
   pull_request:
     branches: ['next/**']
   workflow_dispatch:
+    inputs:
+      run_extended:
+        description: "Run legacy extended P5 measurements and P6 packaging (not strict realpath qualification)"
+        required: false
+        default: false
+        type: boolean
+      run_legacy_soak:
+        description: "Run historical low-load 31 minute soak regression explicitly; does not satisfy strict target-rate soak"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -306,7 +317,7 @@ jobs:
 
   p5-https-measurement-base:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true'
+    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -371,7 +382,7 @@ jobs:
 
   p5-weaknet-5-20-5:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true'
+    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -416,7 +427,7 @@ jobs:
 
   p5-weaknet-5-30-5:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true'
+    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -461,7 +472,7 @@ jobs:
 
   p5-load:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true'
+    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -507,7 +518,7 @@ jobs:
 
   p5-load-40:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true'
+    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -552,7 +563,7 @@ jobs:
 
   p5-fec2020-weaknet-5-20-5:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true'
+    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -597,7 +608,7 @@ jobs:
 
   p5-fec2020-weaknet-5-30-5:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true'
+    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -642,7 +653,7 @@ jobs:
 
   p5-soak:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true'
+    if: needs.repository-contract.outputs.has_go == 'true' && github.event_name == 'workflow_dispatch' && inputs.run_legacy_soak
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
@@ -658,7 +669,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Run P5 31 minute soak qualification
+      - name: Run historical low-load 31 minute soak regression (explicit only; not strict target-rate qualification)
         shell: bash
         env:
           WBD_P5_SOAK_MEASURE: '1'
@@ -686,7 +697,7 @@ jobs:
 
   p6-release-candidate:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true'
+    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
     strategy:
       fail-fast: false
       matrix:
