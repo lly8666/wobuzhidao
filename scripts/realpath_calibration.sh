@@ -161,8 +161,29 @@ wait "$TGT_PID"
 TGT_PID=""
 
 # The formal processes must still be alive after the complete business drain.
-kill -0 "$CLIENT_PID"
-kill -0 "$SERVER_PID"
+# Preserve an explicit process-state receipt before failing so a transport I/O
+# exit is distinguishable from application delivery or validator failure.
+{
+  printf 'checked_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  if kill -0 "$CLIENT_PID" 2>/dev/null; then
+    printf 'client_alive=1 pid=%s\n' "$CLIENT_PID"
+  else
+    printf 'client_alive=0 pid=%s\n' "$CLIENT_PID"
+  fi
+  if kill -0 "$SERVER_PID" 2>/dev/null; then
+    printf 'server_alive=1 pid=%s\n' "$SERVER_PID"
+  else
+    printf 'server_alive=0 pid=%s\n' "$SERVER_PID"
+  fi
+} > "$ART/process-state-after-drain.txt"
+if ! kill -0 "$CLIENT_PID" 2>/dev/null; then
+  echo "WBD_REALPATH_CLIENT_EARLY_EXIT pid=$CLIENT_PID" >&2
+  exit 1
+fi
+if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+  echo "WBD_REALPATH_SERVER_EARLY_EXIT pid=$SERVER_PID" >&2
+  exit 1
+fi
 
 ip netns exec "$RTR" tc -s -j qdisc show dev rsrv > "$ART/qdisc-rsrv-after.json"
 ip netns exec "$RTR" tc -s -j qdisc show dev rcli > "$ART/qdisc-rcli-after.json"

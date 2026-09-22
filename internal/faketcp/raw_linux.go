@@ -95,6 +95,12 @@ func (e *RawIPv4Endpoint) ReadSegment() (Segment, []byte, error) {
 	for {
 		n, from, err := syscall.Recvfrom(e.recvFD, buf, 0)
 		if err != nil {
+			// recvfrom(2) may be interrupted by a signal before any packet is
+			// consumed. EINTR is not an endpoint failure; retry the same blocking
+			// receive and preserve all other error handling unchanged.
+			if rawIOInterrupted(err) {
+				continue
+			}
 			if errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK) {
 				e.mu.Lock()
 				closed := e.closed
@@ -135,10 +141,17 @@ func (e *RawIPv4Endpoint) WriteSegment(seg Segment) ([]byte, error) {
 	id := e.ipID
 	e.ipID++
 	pkt := MarshalSegment(seg, id, e.persona)
-	err := syscall.Sendto(e.sendFD, pkt, 0, &syscall.SockaddrInet4{
-		Port: int(seg.DstPort),
-		Addr: seg.DstIP,
-	})
+	var err error
+	for {
+		err = syscall.Sendto(e.sendFD, pkt, 0, &syscall.SockaddrInet4{
+			Port: int(seg.DstPort),
+			Addr: seg.DstIP,
+		})
+		if rawIOInterrupted(err) {
+			continue
+		}
+		break
+	}
 	e.mu.Unlock()
 	if err != nil {
 		return nil, err
@@ -163,6 +176,10 @@ func (e *RawIPv4Endpoint) Close() error {
 		}
 	})
 	return first
+}
+
+func rawIOInterrupted(err error) bool {
+	return errors.Is(err, syscall.EINTR)
 }
 
 func rawHTONS(v uint16) uint16 {
