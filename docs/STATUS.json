@@ -63,10 +63,10 @@
     "P4第5原子回归修正1（fresh fast-repair重排门）：SOURCE_SHA fbc8555a3c62a11ee91a65dbe578f811da414d87 targeted 35688342802 PASS；foundation 35688342844 的fixed-FEC lossless恢复0 repair，证明10ms已有RACK重排门阻止3.29ms无损短重排误修，同时40/50ms既有fast-repair恢复。foundation整体仍因独立post5护栏FAIL，未关闭第5原子。",
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。"
   ],
-  "in_progress": "P4第5原子回归修正3b已实现待Actions：platformflow retired FlowID仍保持8s/4096，但过期语义从“retire后绝对8s”改为“最后一次观察到该retired FlowID尾部后连续静默8s”。合法duplicate Open/Data/Ack每次命中tombstone刷新last-seen；真正从未见过或静默满8s后的FlowID继续fail-closed。修复d51b55a8 run2在outer tunnel仍存活时被unknown TCP server flow终止的问题，不再继续扩大timeout。",
-  "next_task": "先跑本exact-SHA targeted和foundation；重点验证platformflow sliding-retired测试、Linux/Windows core+race、fixed-FEC lossless和两个5->30->5 seed。若foundation整轮PASS，则第5原子代码回归可关闭，随后立即进入专项第5节Linux root netns/veth/netem正式client/server独立进程无损闭环与校准；旧HTTPS门不替代新增持续UDP主测。",
-  "latest_log": "docs/devlog/20260922-160000-platformflow-retired-quiet-period.md",
-  "last_tested_source_sha": "d51b55a85f29e90ab15b1aaf52bb6073a6a50b14",
+  "in_progress": "P4第5原子回归修正3c待Actions：b197dacf的产品逻辑未失败，Ubuntu active-go仅因两条既有platformflow测试仍按旧“retire绝对timeout”断言到期。当前提交只把到期基准改为最后一次合法retired tail + timeout；sliding quiet-period产品代码保持不变。",
+  "next_task": "跑本exact-SHA targeted和foundation；若core/race与两个5->30->5 seed全部PASS，则关闭第5原子代码回归并转入真实Linux netns/veth/netem正式进程无损闭环。",
+  "latest_log": "docs/devlog/20260922-161000-platformflow-quiet-period-test-contract.md",
+  "last_tested_source_sha": "b197dacf9bc35a78a2d633e703dd8f3d15df750e",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -991,6 +991,13 @@
       "scope": "P4-item5-retired-timeout-foundation",
       "status": "FAIL",
       "note": "foundation仅p5-weaknet-5-30-5 run2失败；其余全部PASS。run2在约121s报platformflow: malformed frame: unknown TCP server flow并导致server transport stats不可用。artifact 10680465078 zip sha256=bad5eb09baa53fb08a898e804dcc3e1be35ab33282c84aa1b4ef130c33fc8f92。outer events到120.8s仍持续steady c2s并最终FIN，证明是内层FlowID生命周期而非tunnel先死。绝对retire+8s仍不足，继续修quiet-period语义。"
+    },
+    {
+      "source_sha": "b197dacf9bc35a78a2d633e703dd8f3d15df750e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35698531723",
+      "scope": "P4-item5-retired-quiet-period-foundation-early",
+      "status": "FAIL_EARLY",
+      "note": "Ubuntu active-go在platformflow两条旧测试失败：测试仍按retire+timeout期待ErrMalformed，而新语义会在start+1ms或start+7s的合法tail命中时刷新quiet deadline。产品代码/privileged/base HTTPS已通过到该时点；当前提交只修测试合同。"
     }
   ],
   "physical_status": "NOT_RUN",

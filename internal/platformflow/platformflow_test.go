@@ -328,7 +328,7 @@ func TestTCPRetiredFlowTailIsBoundedAndUnknownStillFailsClosed(t *testing.T) {
 		t.Fatalf("unknown server flow err=%v want ErrMalformed", err)
 	}
 
-	expired := start.Add(retiredTimeout)
+	expired := start.Add(time.Millisecond).Add(retiredTimeout)
 	if err := client.Handle(Frame{Kind: KindTCPAck, FlowID: 7}, expired); !errors.Is(err, ErrMalformed) {
 		t.Fatalf("expired client tombstone err=%v want ErrMalformed", err)
 	}
@@ -412,7 +412,7 @@ func TestDefaultTCPRetiredTimeoutCoversLateReliableTail(t *testing.T) {
 		t.Fatalf("unknown server flow err=%v want ErrMalformed", err)
 	}
 
-	expired := start.Add(cfg.RetiredTimeout)
+	expired := late.Add(cfg.RetiredTimeout)
 	if err := client.Handle(Frame{Kind: KindTCPAck, FlowID: 77}, expired); !errors.Is(err, ErrMalformed) {
 		t.Fatalf("expired client tombstone err=%v want ErrMalformed", err)
 	}
