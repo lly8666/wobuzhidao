@@ -23,13 +23,22 @@ GEN="$GITHUB_WORKSPACE/tools/realpath_udp_duplex.py"
 STAGER="$GITHUB_WORKSPACE/tools/strict_weaknet_stage.py"
 SAMPLER="$GITHUB_WORKSPACE/tools/strict_resource_sampler.py"
 TC_BIN="$WBD_STRICT_TC"
+DIAGNOSTIC_RATE_ONLY="${WBD_STRICT_DIAGNOSTIC_RATE_ONLY:-0}"
 mkdir -p "$ART"
 
-case "$MODE:$LANES:$RATE" in
-  normal:1:10) ;;
-  game:4:3) ;;
-  *) echo "invalid strict mode tuple $MODE lanes=$LANES rate=$RATE" >&2; exit 2 ;;
-esac
+if [[ "$DIAGNOSTIC_RATE_ONLY" == "1" ]]; then
+  case "$MODE:$LANES:$RATE:$SCENARIO" in
+    normal:1:5:lossless) ;;
+    game:4:1.5:lossless) ;;
+    *) echo "invalid strict diagnostic tuple $MODE lanes=$LANES rate=$RATE scenario=$SCENARIO" >&2; exit 2 ;;
+  esac
+else
+  case "$MODE:$LANES:$RATE" in
+    normal:1:10) ;;
+    game:4:3) ;;
+    *) echo "invalid strict mode tuple $MODE lanes=$LANES rate=$RATE" >&2; exit 2 ;;
+  esac
+fi
 case "$SCENARIO" in
   lossless) PRE_LOSS=0; STRESS_LOSS=0; POST_LOSS=0 ;;
   5205) PRE_LOSS=5; STRESS_LOSS=20; POST_LOSS=5 ;;
@@ -240,12 +249,13 @@ for pid in "${CAP_PIDS[@]}"; do kill -INT "$pid" 2>/dev/null || true; done
 for pid in "${CAP_PIDS[@]}"; do wait "$pid" 2>/dev/null || true; done
 CAP_PIDS=()
 
-python3 - "$ART" "$GITHUB_SHA" "$GITHUB_WORKSPACE" "$MODE" "$SCENARIO" "$SEED" "$RATE" "$LANES" <<'PY'
+python3 - "$ART" "$GITHUB_SHA" "$GITHUB_WORKSPACE" "$MODE" "$SCENARIO" "$SEED" "$RATE" "$LANES" "$DIAGNOSTIC_RATE_ONLY" <<'PY'
 import hashlib, json, sys
 from pathlib import Path
 art = Path(sys.argv[1])
 source, root = sys.argv[2], Path(sys.argv[3])
 mode, scenario, seed, rate, lanes = sys.argv[4], sys.argv[5], int(sys.argv[6]), float(sys.argv[7]), int(sys.argv[8])
+diagnostic_rate_only = sys.argv[9] == "1"
 harness = [
     ".github/workflows/next-strict-weaknet.yml",
     "scripts/strict_weaknet_sample.sh",
@@ -256,6 +266,8 @@ harness = [
     "tools/check_strict_weaknet.py",
     "tools/aggregate_strict_weaknet.py",
 ]
+if diagnostic_rate_only:
+    harness.append(".github/workflows/next-strict-capacity-diagnostics.yml")
 files = {}
 for rel in harness:
     data = (root / rel).read_bytes()
@@ -271,6 +283,7 @@ manifest = {
         "drain_s": 10, "qdisc_limit_packets": 200000,
         "hidden_bandwidth_limit": False,
         "packet_sizes_equal_count_cycle": [64, 256, 1200],
+        "diagnostic_rate_only": diagnostic_rate_only,
     },
     "topology": "biz netns -> OpenWrt TPROXY formal client -> raw/veth -> shared router netem -> raw formal server -> shared TUN -> target netns",
 }

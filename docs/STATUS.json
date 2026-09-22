@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "增强P4/P5进入strict generation4。validated parent 804b26d9bef00bc7c6606fa58c35577aad1c75c6已闭合：preflight 35740519890 PASS（seeded-netem、qdisc 30% denominator synthetic、directional recovery synthetic全部PASS），targeted 35740518495 PASS，foundation 35740518558 PASS。generation3原始18样本/aggregate全部保留，但旧summary受两个analyzer问题影响：lossy注入率分母错误和FEC恢复方向错标；其18/18 CORRECTNESS/CAPTURE PASS、18/18 socket skmem drop与明显业务吞吐不足结论仍有效。generation4整轮18样本重新同SHA执行，不拼接旧样本。",
-  "next_task": "跟踪generation4 18个120s strict samples与aggregate。先确认INPUT_VALIDITY使用drops/(passed+drops)并且directional_recovery按sender TX / receiver RX输出。若仍ENVIRONMENT/PERFORMANCE失败，优先用socket drop、queue age、线程CPU、outer Mbps/PPS、FEC source/parity/repair账本定位最早背压层；保留10/3Mbps目标结果，不以半速替代资格。完成主测后再做旁路/减半诊断、专项弱网、补丁A/B与最终目标速率>=30min长测。",
-  "latest_log": "docs/devlog/20260922-234500-strict-generation4-launch.md",
-  "last_tested_source_sha": "804b26d9bef00bc7c6606fa58c35577aad1c75c6",
+  "in_progress": "增强P4/P5 strict generation4已完成且FAIL：SOURCE_SHA 7110fd1e22cb2ab3809456657e3fcdf139508a65 / Actions 35742321744，18/18 raw样本齐全、CORRECTNESS与CAPTURE均保持通过模式，但6个场景组均未关闭；aggregate artifact 10701220460 zip sha256=7ccc1ccae9a9b68d27bcebb01e93c4511a8bfbdc3acea8cf3591e0553b223bef。修正后注入率准确，目标速率下持续出现client/server UDP skmem drop、秒级至数十秒queue age和严重goodput不足；Game repair外层占比约0.5%，主要线上成本为4副本+FEC source/parity/partial/header。当前进入容量定位，不运行30min soak或专项弱网。",
+  "next_task": "运行next-strict-capacity-diagnostics：正式Normal半速5Mbps/方向、Game半速1.5Mbps/方向，以及相同5-netns/veth/MTU1400/300ms router qdisc/四点抓包但绕过产品的50Mbps/方向校准。三项每个负载独占runner。若旁路50通过而产品半速仍socket drop，定位产品入口/队列消费；若旁路失败则先定位Actions发生器/veth/netem/capture容量。半速成功不替代10/3Mbps资格，不盲目扩大socket/FEC/4096缓存。",
+  "latest_log": "docs/devlog/20260922-235500-strict-generation4-capacity-diagnostics.md",
+  "last_tested_source_sha": "7110fd1e22cb2ab3809456657e3fcdf139508a65",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1260,6 +1260,29 @@
       "scope": "foundation-before-strict-generation4",
       "status": "PASS",
       "note": "repository/P2/Linux+Windows active-go/OpenWrt TPROXY/shared-TUN均PASS；旧P5/P6/31m soak保持skipped。"
+    },
+    {
+      "source_sha": "7110fd1e22cb2ab3809456657e3fcdf139508a65",
+      "harness_blob_sha": "af0f5c183df2797e931d30afc243f935fcb1d5ae",
+      "analyzer_blob_sha": "db827e12dd4a12b4d1c129c2812b8f6a4552536d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35742321744",
+      "scope": "strict-generation4-complete",
+      "status": "FAIL_CAPACITY_LIMITED",
+      "note": "18/18 samples present; aggregate artifact 10701220460 sha256=7ccc1ccae9a9b68d27bcebb01e93c4511a8bfbdc3acea8cf3591e0553b223bef。所有6个mode/scenario组未关闭；lossless基线本身因socket/queue容量失败而不可作为RTT基线。纠正后的5/20/30%注入准确；代表Normal lossless C2S仅0.27-0.41/10Mbps、S2C约5.1-5.5/10，Game lossy C2S约0.18-0.31/3、S2C约2.23-2.41/3。"
+    },
+    {
+      "source_sha": "7110fd1e22cb2ab3809456657e3fcdf139508a65",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35742321758",
+      "scope": "foundation-alongside-generation4",
+      "status": "PASS",
+      "note": "repository、Linux/Windows active-go、P2 fallback、OpenWrt TPROXY、shared-TUN iptables/nft均PASS；历史P5/P6/31m soak skipped。"
+    },
+    {
+      "source_sha": "7110fd1e22cb2ab3809456657e3fcdf139508a65",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35742321944",
+      "scope": "targeted-alongside-generation4",
+      "status": "PASS",
+      "note": "contract、Linux/Windows steady-core、lifecycle-focus、iptables/nft privileged均PASS。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1298,8 +1321,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED: 高丢包业务连续性优先/低丢包TCP-like hygiene口径已同步；804b26d9 preflight+targeted+foundation PASS。generation3显示目标速率下18/18均有本机socket/queue容量异常；generation4用修正账本复核，补丁A/B未执行。",
-    "P5": "REOPENED: generation4完整18样本启动；qdisc注入率与FEC恢复方向分析器已synthetic PASS。generation3的业务失败证据保留但不作为最终18样本资格；业务loss/goodput/latency/post5/resource门未降低。",
+    "P4": "REOPENED: generation4 corrected analyzer下18/18目标速率主样本未资格，基础/targeted同SHA PASS。强证据指向正式路径UDP socket/队列消费容量；进入旁路+半速诊断。补丁A/B仍未执行。",
+    "P5": "REOPENED: generation4 aggregate FAIL，6个主场景组全部未关闭；30min目标长测与专项弱网不得启动。当前先做同拓扑50Mbps/向旁路与Normal5/Game1.5半速诊断；降速结果仅用于定位。",
     "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {

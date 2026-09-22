@@ -1,0 +1,11 @@
+kind: capacity-diagnostic
+generation: 1
+parent_source_sha: 7110fd1e22cb2ab3809456657e3fcdf139508a65
+strict_generation4_run: https://github.com/lly8666/wobuzhidao/actions/runs/35742321744
+strict_generation4_aggregate_artifact_id: 10701220460
+strict_generation4_aggregate_sha256: 7ccc1ccae9a9b68d27bcebb01e93c4511a8bfbdc3acea8cf3591e0553b223bef
+diagnostics:
+  - formal product normal 1 lane lossless 5Mbps each direction
+  - formal product game 4 lanes lossless 1.5Mbps each direction
+  - same five-netns/veth/router-300ms/capture topology with product bypassed at 50Mbps each direction
+note: diagnostics do not replace Normal10/Game3 qualification; no old soak; no bandwidth cap

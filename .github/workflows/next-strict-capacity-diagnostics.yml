@@ -1,0 +1,190 @@
+name: next-strict-capacity-diagnostics
+
+on:
+  push:
+    branches:
+      - next/tlslike-dataplane
+    paths:
+      - ".github/workflows/next-strict-capacity-diagnostics.yml"
+      - "scripts/strict_capacity_bypass.sh"
+      - "tools/check_strict_capacity_bypass.py"
+      - "scripts/strict_weaknet_sample.sh"
+      - "tools/check_strict_weaknet.py"
+      - "tools/realpath_udp_duplex.py"
+      - "tools/strict_resource_sampler.py"
+      - "docs/qualification/STRICT_CAPACITY_DIAGNOSTIC_TRIGGER"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  product-half-rate:
+    name: product-half-${{ matrix.mode }}-${{ matrix.rate }}mbps
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - mode: normal
+            lanes: 1
+            rate: "5"
+            seed: 501
+          - mode: game
+            lanes: 4
+            rate: "1.5"
+            seed: 502
+    env:
+      ART: ${{ github.workspace }}/artifacts/capacity-half-${{ matrix.mode }}
+      WBD_STRICT_MODE: ${{ matrix.mode }}
+      WBD_STRICT_SCENARIO: lossless
+      WBD_STRICT_SEED: ${{ matrix.seed }}
+      WBD_STRICT_RATE_MBPS: ${{ matrix.rate }}
+      WBD_STRICT_LANES: ${{ matrix.lanes }}
+      WBD_STRICT_DIAGNOSTIC_RATE_ONLY: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Repository continuity contract
+        env:
+          CHANGE_BASE: ${{ github.event.before }}
+        run: python3 tools/check_repository.py
+      - name: Install network tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables nftables tcpdump openssl \
+            build-essential bison flex pkg-config libbpf-dev libelf-dev libmnl-dev libcap-dev xz-utils curl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+      - name: Build pinned tc and formal binaries
+        run: |
+          set -euo pipefail
+          bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
+          echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
+          mkdir -p "$ART"
+          go build -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
+          go build -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
+      - name: Run isolated product half-rate diagnostic
+        id: sample
+        continue-on-error: true
+        env:
+          WBD_STRICT_ARTIFACT_DIR: ${{ env.ART }}
+        run: |
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_STRICT_ARTIFACT_DIR,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_DIAGNOSTIC_RATE_ONLY \
+            bash scripts/strict_weaknet_sample.sh
+      - name: Analyze product half-rate
+        id: validate
+        if: always()
+        continue-on-error: true
+        run: |
+          python3 tools/check_strict_weaknet.py \
+            --artifact-dir "$ART" --source-sha "$GITHUB_SHA" \
+            --mode "$WBD_STRICT_MODE" --scenario lossless --seed "$WBD_STRICT_SEED" \
+            --target-mbps "$WBD_STRICT_RATE_MBPS" --lanes "$WBD_STRICT_LANES" \
+            --output "$ART/summary.json"
+      - name: Diagnostic tail
+        if: always()
+        run: |
+          cat "$ART/summary.json" || true
+          tail -n 80 "$ART/client.log" || true
+          tail -n 80 "$ART/server.log" || true
+      - name: Upload half-rate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict-capacity-half-${{ matrix.mode }}-${{ github.sha }}
+          path: ${{ env.ART }}
+          if-no-files-found: warn
+          compression-level: 1
+          retention-days: 30
+      - name: Enforce diagnostic target
+        if: always()
+        env:
+          SAMPLE_OUTCOME: ${{ steps.sample.outcome }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+        run: |
+          echo "sample=$SAMPLE_OUTCOME validator=$VALIDATE_OUTCOME"
+          test "$SAMPLE_OUTCOME" = success
+          test "$VALIDATE_OUTCOME" = success
+
+  same-topology-bypass-50:
+    name: same-topology-bypass-50mbps-each
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      ART: ${{ github.workspace }}/artifacts/capacity-bypass-50
+      WBD_CAPACITY_RATE_MBPS: "50"
+      WBD_CAPACITY_SEED: "503"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Repository continuity contract
+        env:
+          CHANGE_BASE: ${{ github.event.before }}
+        run: python3 tools/check_repository.py
+      - name: Install network tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 tcpdump \
+            build-essential bison flex pkg-config libbpf-dev libelf-dev libmnl-dev libcap-dev xz-utils curl
+          sudo modprobe sch_netem || true
+      - name: Build pinned tc
+        run: |
+          bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
+          echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
+      - name: Run same-topology product bypass
+        id: bypass
+        continue-on-error: true
+        env:
+          WBD_CAPACITY_ARTIFACT_DIR: ${{ env.ART }}
+        run: |
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_CAPACITY_ARTIFACT_DIR,WBD_CAPACITY_RATE_MBPS,WBD_CAPACITY_SEED,WBD_STRICT_TC \
+            bash scripts/strict_capacity_bypass.sh
+      - name: Analyze bypass capacity
+        id: validate
+        if: always()
+        continue-on-error: true
+        run: |
+          python3 tools/check_strict_capacity_bypass.py \
+            --artifact-dir "$ART" --source-sha "$GITHUB_SHA" --target-mbps 50 \
+            --output "$ART/summary.json"
+      - name: Diagnostic tail
+        if: always()
+        run: |
+          cat "$ART/summary.json" || true
+          cat "$ART/biz.log" || true
+          cat "$ART/target.log" || true
+      - name: Upload bypass evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict-capacity-bypass-50-${{ github.sha }}
+          path: ${{ env.ART }}
+          if-no-files-found: warn
+          compression-level: 1
+          retention-days: 30
+      - name: Enforce bypass capacity
+        if: always()
+        env:
+          BYPASS_OUTCOME: ${{ steps.bypass.outcome }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+        run: |
+          echo "bypass=$BYPASS_OUTCOME validator=$VALIDATE_OUTCOME"
+          test "$BYPASS_OUTCOME" = success
+          test "$VALIDATE_OUTCOME" = success
