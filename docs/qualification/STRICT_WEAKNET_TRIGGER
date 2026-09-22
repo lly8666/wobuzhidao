@@ -1,5 +1,9 @@
-generation: 2
-purpose: rerun strict 18-sample qualification after fixed-window generator fast validation
-parent_source_sha: 9192be4c28582092f6e6fe01536635d5e1b0d078
-invalidated_run: https://github.com/lly8666/wobuzhidao/actions/runs/35728934986
-note: this generation must use >10ms skipped-slot accounting and may not use catch-up traffic to extend the 120s injection window
+generation: 3
+purpose: strict 18-sample qualification after seeded-netem preflight and weaknet-priority analyzer sync
+validated_parent_source_sha: 6a4be3a3f25268b4cb9f38bd7823b1794e11be4c
+preflight_run: https://github.com/lly8666/wobuzhidao/actions/runs/35738280773
+preflight_artifact_id: 10699025162
+preflight_artifact_sha256: e96252e35f4d348500f581bfb67d503036cb676c1ceac0a5957fb793dca3fcfc
+targeted_run: https://github.com/lly8666/wobuzhidao/actions/runs/35738280671
+foundation_run: https://github.com/lly8666/wobuzhidao/actions/runs/35738280774
+note: run all 18 exact-launch-SHA samples; one isolated job/runner per mode/scenario/seed; 120s fixed window plus 10s drain; no old 31m soak

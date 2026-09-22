@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "增强P4/P5继续执行。c209de的seeded-netem preflight再次FAIL，但仍停留在测试工具构建：version.h问题已修复；新的`make -C lib`绕过顶层Makefile导出的CFLAGS/include路径，导致libgenl.h/libnetlink.h找不到。尚未进入runner kernel seed属性测试。1d192a的targeted/foundation已PASS；c209de对应基础链正在跑。本候选继续只修harness构建，strict 18主测保持停用。",
-  "next_task": "检查下一exact-SHA preflight：使用iproute2顶层Makefile并限制SUBDIRS=`lib tc`，必须先成功构建固定7.2.0 tc，再验证runner kernel接受seed 123456/654321。preflight PASS前不恢复18样本触发。foundation/targeted只作受影响回归，不运行旧31m soak。",
-  "latest_log": "docs/devlog/20260922-221500-seeded-tc-top-level-make.md",
-  "last_tested_source_sha": "c209de937b13ef195026edb05b78f8e0a2345900",
+  "in_progress": "增强P4/P5进入strict generation3。前置SOURCE_SHA 6a4be3a3f25268b4cb9f38bd7823b1794e11be4c已三线闭合：seeded-netem preflight 35738280773 PASS（tc iproute2-7.2.0；Azure kernel 6.17.0-1022；seed 123456/654321均在qdisc JSON中回显），targeted 35738280671 PASS，foundation 35738280774 PASS，旧P5/P6/31m soak均skipped。本提交恢复next-strict-weaknet push并bump generation3，自动启动18个120s严格样本；产品数据面相对6a4be3a未改。",
+  "next_task": "跟踪generation3的18个strict sample与aggregate。先按样本分为CORRECTNESS/INPUT_VALIDITY/CAPTURE/ENVIRONMENT/PERFORMANCE五类，不以transport_hygiene REVIEW单独判业务失败。若有样本FAIL，先区分harness/input、环境容量、本机socket/queue、FEC/repair压力与真实业务损失；保留目标10/3Mbps结果，不用半速替代资格。18主测闭合后再做旁路/半速容量诊断、专项loss/blackhole/rotation、补丁A/B和最终目标速率30min长测。",
+  "latest_log": "docs/devlog/20260922-223000-strict-generation3-launch.md",
+  "last_tested_source_sha": "6a4be3a3f25268b4cb9f38bd7823b1794e11be4c",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1183,6 +1183,29 @@
       "scope": "strict-seeded-netem-preflight-v2",
       "status": "FAIL_HARNESS_BUILD",
       "note": "固定iproute2 7.2.0 archive SHA256 PASS，version.h已显式生成；`make -C lib`未继承顶层CFLAGS/-I../include，libgenl.c与libnetlink.c报对应header缺失。仍未执行seeded netem kernel测试。"
+    },
+    {
+      "source_sha": "6a4be3a3f25268b4cb9f38bd7823b1794e11be4c",
+      "harness_blob_sha": "2ceacd55b65eb1a8725d9a83073c057a2a3a86a0",
+      "analyzer_blob_sha": "57f5512b0482205ee7e36d9118335a25b2a497a8",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35738280773",
+      "scope": "strict-seeded-netem-preflight-v3",
+      "status": "PASS",
+      "note": "artifact 10699025162 zip sha256=e96252e35f4d348500f581bfb67d503036cb676c1ceac0a5957fb793dca3fcfc；tc utility iproute2-iproute2-7.2.0 libbpf1.3.0；kernel Linux 6.17.0-1022-azure；20% random loss seed 123456与654321均由qdisc JSON回显对应seed。"
+    },
+    {
+      "source_sha": "6a4be3a3f25268b4cb9f38bd7823b1794e11be4c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35738280671",
+      "scope": "targeted-before-strict-generation3",
+      "status": "PASS",
+      "note": "contract、Linux/Windows steady-core、Linux race、lifecycle-focus、iptables/nft privileged均成功。"
+    },
+    {
+      "source_sha": "6a4be3a3f25268b4cb9f38bd7823b1794e11be4c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35738280774",
+      "scope": "foundation-before-strict-generation3",
+      "status": "PASS",
+      "note": "repository/P2/Linux+Windows active-go/OpenWrt TPROXY/shared-TUN iptables/nft全部成功；历史P5扩展、P6与31m低负载soak按显式-only策略skipped。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1221,8 +1244,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED: 高丢包业务连续性优先、单次candidate失败非硬门的验收口径待本候选Actions确认；c300898基础/targeted此前PASS，strict lossless仍暴露真实目标速率容量问题，补丁A/B未执行。",
-    "P5": "REOPENED: generation2 6个lossless有效FAIL/CAPACITY_LIMITED保留；12个有损HARNESS_INVALID。待seeded-netem preflight后generation3；业务loss/goodput/latency/resource门未降低。",
+    "P4": "REOPENED: 高丢包业务连续性优先/低丢包TCP-like hygiene口径已写入权威文档与active strict analyzer；6a4be3a targeted/foundation PASS。strict generation3启动中；目标速率lossless历史失败仍保留，补丁A/B未执行。",
+    "P5": "REOPENED: seeded-netem preflight已PASS，generation3正式18样本启动；既定业务loss/goodput/latency/post5/resource门未降低，transport_hygiene仅解释。generation2原6个lossless FAIL/CAPACITY_LIMITED与12个HARNESS_INVALID继续保留。",
     "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
