@@ -1,9 +1,12 @@
-generation: 3
-purpose: strict 18-sample qualification after seeded-netem preflight and weaknet-priority analyzer sync
-validated_parent_source_sha: 6a4be3a3f25268b4cb9f38bd7823b1794e11be4c
-preflight_run: https://github.com/lly8666/wobuzhidao/actions/runs/35738280773
-preflight_artifact_id: 10699025162
-preflight_artifact_sha256: e96252e35f4d348500f581bfb67d503036cb676c1ceac0a5957fb793dca3fcfc
-targeted_run: https://github.com/lly8666/wobuzhidao/actions/runs/35738280671
-foundation_run: https://github.com/lly8666/wobuzhidao/actions/runs/35738280774
-note: run all 18 exact-launch-SHA samples; one isolated job/runner per mode/scenario/seed; 120s fixed window plus 10s drain; no old 31m soak
+generation: 4
+purpose: strict 18-sample qualification after qdisc-denominator and directional-recovery analyzer fixes
+validated_parent_source_sha: 804b26d9bef00bc7c6606fa58c35577aad1c75c6
+preflight_run: https://github.com/lly8666/wobuzhidao/actions/runs/35740519890
+preflight_artifact_id: 10699582556
+preflight_artifact_sha256: c6bffddb59903f32d01792ab971e8ba1b9a52aaab98b6d20bd3ea5a6fa263c3e
+targeted_run: https://github.com/lly8666/wobuzhidao/actions/runs/35740518495
+foundation_run: https://github.com/lly8666/wobuzhidao/actions/runs/35740518558
+generation3_run: https://github.com/lly8666/wobuzhidao/actions/runs/35738675444
+generation3_aggregate_artifact_id: 10698876465
+generation3_aggregate_artifact_sha256: 9ca68dc6287ae1428cd4b2c185dcb8b7c7aa4a220fca4bfe51b7af69ed8b6a8d
+note: run all 18 exact-launch-SHA samples; do not splice generation3; one isolated runner per mode/scenario/seed; 120s fixed window plus 10s drain
