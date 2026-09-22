@@ -420,3 +420,41 @@ func TestDefaultTCPRetiredTimeoutCoversLateReliableTail(t *testing.T) {
 		t.Fatalf("expired server tombstone err=%v want ErrMalformed", err)
 	}
 }
+
+
+func TestTCPRetiredFlowQuietPeriodRefreshesOnLateTail(t *testing.T) {
+	start := time.Unix(900, 0)
+	timeout := 8 * time.Second
+	server := &TCPServer{
+		flows:   make(map[uint64]*tcpServerFlow),
+		retired: newTCPRetiredSet(timeout, DefaultMaxTCPRetired),
+		dial: func(context.Context, string, string) (net.Conn, error) {
+			t.Fatal("retired flow tail must not redial")
+			return nil, ErrMalformed
+		},
+	}
+	server.mu.Lock()
+	server.retired.add(77, start)
+	server.mu.Unlock()
+
+	for _, d := range []time.Duration{4 * time.Second, 8 * time.Second, 12 * time.Second, 16 * time.Second, 20 * time.Second} {
+		if err := server.Handle(Frame{Kind: KindTCPAck, FlowID: 77, Offset: uint64(d)}, start.Add(d)); err != nil {
+			t.Fatalf("late tail at %s err=%v", d, err)
+		}
+	}
+	if got := server.retired.len(start.Add(20 * time.Second)); got != 1 {
+		t.Fatalf("retired size=%d want=1 after active tail", got)
+	}
+
+	if err := server.Handle(Frame{Kind: KindTCPAck, FlowID: 78}, start.Add(20*time.Second)); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("unknown flow err=%v want ErrMalformed", err)
+	}
+
+	lastSeen := start.Add(20 * time.Second)
+	if got := server.retired.len(lastSeen.Add(timeout - time.Nanosecond)); got != 1 {
+		t.Fatalf("retired flow expired before quiet timeout: size=%d", got)
+	}
+	if err := server.Handle(Frame{Kind: KindTCPAck, FlowID: 77}, lastSeen.Add(timeout)); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("quiet-period expiry err=%v want ErrMalformed", err)
+	}
+}

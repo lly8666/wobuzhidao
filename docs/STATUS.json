@@ -63,10 +63,10 @@
     "P4第5原子回归修正1（fresh fast-repair重排门）：SOURCE_SHA fbc8555a3c62a11ee91a65dbe578f811da414d87 targeted 35688342802 PASS；foundation 35688342844 的fixed-FEC lossless恢复0 repair，证明10ms已有RACK重排门阻止3.29ms无损短重排误修，同时40/50ms既有fast-repair恢复。foundation整体仍因独立post5护栏FAIL，未关闭第5原子。",
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。"
   ],
-  "in_progress": "P4第5原子回归修正3已实现待Actions：platformflow retired FlowID tombstone默认从5s延长到8s，容量仍4096。依据当前默认链路：内层TCP reliability 500ms RTO、8次重传额度使最后合法内层重传约在4s；最后frame进入steady outer后仍可在3s repair horizon内留下迟到副本，另留1s delivery/tick余量。迟到ACK/Data在7s仍忽略，8s到期后真正陌生/过期FlowID继续fail-closed。",
-  "next_task": "先跑本exact-SHA targeted和foundation；重点验证platformflow/runtimeentry新tombstone测试、Windows/Linux core+race、旧5->30->5不再出现unknown TCP server flow。08e6637e的window边界targeted已6/6 PASS，foundation提交本原子时28/30 PASS且两个30%非FEC seed均PASS，仅两个soak仍运行；不得提前写整轮PASS。",
-  "latest_log": "docs/devlog/20260922-150500-platformflow-retired-tail.md",
-  "last_tested_source_sha": "08e6637e2899f876794eb787e4399c1eb45d30ee",
+  "in_progress": "P4第5原子回归修正3b已实现待Actions：platformflow retired FlowID仍保持8s/4096，但过期语义从“retire后绝对8s”改为“最后一次观察到该retired FlowID尾部后连续静默8s”。合法duplicate Open/Data/Ack每次命中tombstone刷新last-seen；真正从未见过或静默满8s后的FlowID继续fail-closed。修复d51b55a8 run2在outer tunnel仍存活时被unknown TCP server flow终止的问题，不再继续扩大timeout。",
+  "next_task": "先跑本exact-SHA targeted和foundation；重点验证platformflow sliding-retired测试、Linux/Windows core+race、fixed-FEC lossless和两个5->30->5 seed。若foundation整轮PASS，则第5原子代码回归可关闭，随后立即进入专项第5节Linux root netns/veth/netem正式client/server独立进程无损闭环与校准；旧HTTPS门不替代新增持续UDP主测。",
+  "latest_log": "docs/devlog/20260922-160000-platformflow-retired-quiet-period.md",
+  "last_tested_source_sha": "d51b55a85f29e90ab15b1aaf52bb6073a6a50b14",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -970,6 +970,27 @@
       "scope": "P4-item5-steady-window-detach-foundation-in-progress",
       "status": "IN_PROGRESS",
       "note": "提交下一原子时foundation 28/30 jobs PASS、0 FAIL，仅两个soak仍运行；p5-weaknet-5-30-5 run1/run2均已PASS，run1上一SHA的post5红灯已恢复。不能在soak完成前标整轮PASS。"
+    },
+    {
+      "source_sha": "08e6637e2899f876794eb787e4399c1eb45d30ee",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35692661039",
+      "scope": "P4-item5-steady-window-detach-foundation",
+      "status": "PASS",
+      "note": "next-foundation最终整轮PASS；此前记录的28/30仅因两个soak尚未结束。非FEC/FEC20:20 20/30%旧弱网、active-go、privileged、load/soak/P6均成功。window owner边界修正因此取得同SHA完整回归。"
+    },
+    {
+      "source_sha": "d51b55a85f29e90ab15b1aaf52bb6073a6a50b14",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35693066377",
+      "scope": "P4-item5-retired-timeout-targeted",
+      "status": "PASS_TARGETED",
+      "note": "next-p4-steady-targeted全部PASS：contract、Linux/Windows steady-core、Linux race、lifecycle-focus、iptables/nft privileged均成功。"
+    },
+    {
+      "source_sha": "d51b55a85f29e90ab15b1aaf52bb6073a6a50b14",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35693066394",
+      "scope": "P4-item5-retired-timeout-foundation",
+      "status": "FAIL",
+      "note": "foundation仅p5-weaknet-5-30-5 run2失败；其余全部PASS。run2在约121s报platformflow: malformed frame: unknown TCP server flow并导致server transport stats不可用。artifact 10680465078 zip sha256=bad5eb09baa53fb08a898e804dcc3e1be35ab33282c84aa1b4ef130c33fc8f92。outer events到120.8s仍持续steady c2s并最终FIN，证明是内层FlowID生命周期而非tunnel先死。绝对retire+8s仍不足，继续修quiet-period语义。"
     }
   ],
   "physical_status": "NOT_RUN",

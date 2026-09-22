@@ -109,20 +109,26 @@ func (s *tcpRetiredSet) add(id uint64, now time.Time) {
 }
 
 func (s *tcpRetiredSet) contains(id uint64, now time.Time) bool {
-	retiredAt, ok := s.ids[id]
+	lastSeen, ok := s.ids[id]
 	if !ok {
 		return false
 	}
-	if !now.Before(retiredAt.Add(s.timeout)) {
+	if !now.Before(lastSeen.Add(s.timeout)) {
 		delete(s.ids, id)
 		return false
+	}
+	// A retired FlowID represents an in-flight reliable tail, not a fixed
+	// wall-clock lease. Seeing another duplicate Open/Data/Ack proves that tail
+	// is still active, so retire it only after one full quiet interval.
+	if now.After(lastSeen) {
+		s.ids[id] = now
 	}
 	return true
 }
 
 func (s *tcpRetiredSet) prune(now time.Time) {
-	for id, retiredAt := range s.ids {
-		if !now.Before(retiredAt.Add(s.timeout)) {
+	for id, lastSeen := range s.ids {
+		if !now.Before(lastSeen.Add(s.timeout)) {
 			delete(s.ids, id)
 		}
 	}
