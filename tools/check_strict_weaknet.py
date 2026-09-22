@@ -296,6 +296,8 @@ def counters(diag):
             "fec_recovered_sources": dec.get("recovered_sources", 0),
             "padding_bytes": ls.get("PaddingBytes", 0),
             "fresh_segments": tr.get("FreshSent", 0),
+            "health_sent": tr.get("HealthSent", 0),
+            "health_received": tr.get("HealthReceived", 0),
             "repair_segments": tr.get("Retransmitted", 0),
             "fast_repairs": tr.get("FastRepairs", 0),
             "rto_repairs": tr.get("RTORepairs", 0),
@@ -358,6 +360,7 @@ def directional_recovery(sender_row, receiver_row):
         "tx_fec_parity_bytes": 0,
         "tx_padding_bytes": 0,
         "tx_fresh_segments": 0,
+        "tx_health_records": 0,
         "tx_repair_segments": 0,
         "tx_repair_selected": 0,
         "tx_repair_attempts": 0,
@@ -388,6 +391,7 @@ def directional_recovery(sender_row, receiver_row):
             "tx_fec_parity_bytes": int(tx.get("fec_parity_bytes", 0) or 0),
             "tx_padding_bytes": int(tx.get("padding_bytes", 0) or 0),
             "tx_fresh_segments": int(tx.get("fresh_segments", 0) or 0),
+            "tx_health_records": int(tx.get("health_sent", 0) or 0),
             "tx_repair_segments": int(tx.get("repair_segments", 0) or 0),
             "tx_repair_selected": int(tx.get("repair_selected", 0) or 0),
             "tx_repair_attempts": int(tx.get("repair_attempts", 0) or 0),
@@ -575,6 +579,46 @@ def resource_summary(samples, start_unix, end_unix):
         "link_drop_delta": link_delta,
         "process_cpu_seconds": cpu_seconds, "thread_cpu_seconds": thread_cpu_seconds,
         "errors": errors,
+    }
+
+
+
+def connection_cost(rows, start_unix_ns, lanes):
+    """Separate startup handshake bytes and reconnect-flow wire evidence.
+
+    New-flow total bytes are reported as an upper carrier total, not claimed as
+    pure handshake bytes. ACK/SYN/control bytes on new ports are the conservative
+    reconnect-control lower bound.
+    """
+    ordered = sorted(rows, key=lambda r: r["ts_ns"])
+    port_first = {}
+    def client_port(row):
+        if row["src"] == "198.18.0.2":
+            return row["sport"]
+        if row["dst"] == "198.18.0.2":
+            return row["dport"]
+        return None
+    for row in ordered:
+        p = client_port(row)
+        if p is not None and p not in port_first:
+            port_first[p] = row["ts_ns"]
+    ports = [p for p, _ in sorted(port_first.items(), key=lambda kv: kv[1])]
+    initial = set(ports[:lanes])
+    reconnect = set(ports[lanes:])
+    startup = [r for r in ordered if r["ts_ns"] < start_unix_ns]
+    reconnect_rows = [r for r in ordered if client_port(r) in reconnect]
+    return {
+        "initial_client_ports": sorted(initial),
+        "reconnect_client_ports": sorted(reconnect),
+        "reconnect_flow_count": len(reconnect),
+        "startup_outer_ip_bytes": sum(r["ip_bytes"] for r in startup),
+        "startup_tcp_payload_bytes": sum(r["payload_bytes"] for r in startup),
+        "startup_tcp_control_ip_bytes": sum(r["ip_bytes"] for r in startup if r["payload_bytes"] == 0),
+        "reconnect_flow_outer_ip_bytes_upper_carrier_total": sum(r["ip_bytes"] for r in reconnect_rows),
+        "reconnect_tcp_control_ip_bytes_lower_bound": sum(
+            r["ip_bytes"] for r in reconnect_rows if r["payload_bytes"] == 0
+        ),
+        "note": "reconnect flow total can include steady encrypted business after promotion; control bytes are a lower-bound reconnect cost",
     }
 
 
@@ -848,7 +892,19 @@ def main():
         "s2c": sum(biz["stats"]["recv_bytes_by_second"][:120]),
     }
     cost = {}
+    connection = {
+        "c2s": connection_cost(c2s_pre, start_unix, args.lanes),
+        "s2c": connection_cost(s2c_pre, start_unix, args.lanes),
+    }
     for d in ("c2s", "s2c"):
+        rec = recovery_accounting[d]
+        fec_parity_bytes = sum(int((rec[name].get("total") or {}).get("tx_fec_parity_bytes", 0) or 0) for name in STAGES)
+        padding_bytes = sum(int((rec[name].get("total") or {}).get("tx_padding_bytes", 0) or 0) for name in STAGES)
+        health_records = sum(int((rec[name].get("total") or {}).get("tx_health_records", 0) or 0) for name in STAGES)
+        repair_payload_bytes = sum(int((c2s_outer if d == "c2s" else s2c_outer)[name].get("repair_payload_bytes", 0) or 0) for name in STAGES)
+        repair_outer_ip_bytes = sum(int((c2s_outer if d == "c2s" else s2c_outer)[name].get("repair_packet_ip_bytes", 0) or 0) for name in STAGES)
+        game_lane_copy_bytes = sum(int((rec[name].get("tx_owner") or {}).get("game_lane_copy_bytes", 0) or 0) for name in STAGES)
+        game_logical_bytes = sum(int((rec[name].get("tx_owner") or {}).get("game_logical_bytes", 0) or 0) for name in STAGES)
         cost[d] = {
             "outer_ip_bytes": outer_total[d],
             "app_raw_input_bytes": app_input[d],
@@ -857,6 +913,19 @@ def main():
             "outer_ip_per_unique_delivered": outer_total[d] / unique[d] if unique[d] else None,
             "inner_tcp_retransmission_bytes": 0,
             "inner_tcp_retransmission_note": "strict main load is UDP; HTTPS/TCP retransmission is a separate specialty",
+            "components": {
+                "fec_parity_bytes": fec_parity_bytes,
+                "game_logical_bytes": game_logical_bytes,
+                "game_lane_copy_bytes": game_lane_copy_bytes,
+                "game_replication_extra_bytes": max(0, game_lane_copy_bytes - game_logical_bytes),
+                "repair_tcp_payload_bytes": repair_payload_bytes,
+                "repair_outer_ip_bytes": repair_outer_ip_bytes,
+                "health_records": health_records,
+                "health_tlslike_wire_bytes": health_records * 40,
+                "health_wire_note": "HEALTH plaintext is 9 bytes; fixed TLS-like overhead is 31 bytes; health bypasses FEC/padding/repair",
+                "padding_bytes": padding_bytes,
+                "handshake_reconnect": connection[d],
+            },
             "stages": c2s_outer if d == "c2s" else s2c_outer,
             "product_stage_sender_endpoint": product_stage_sender[d],
             "product_stage_receiver_endpoint": product_stage_receiver[d],

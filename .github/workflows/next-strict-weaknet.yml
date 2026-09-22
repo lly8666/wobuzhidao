@@ -1,6 +1,13 @@
 name: next-strict-weaknet
 
 on:
+  push:
+    branches: ['next/tlslike-dataplane']
+    paths:
+      - '.github/workflows/next-strict-weaknet.yml'
+      - 'scripts/strict_weaknet_sample.sh'
+      - 'tools/check_strict_weaknet.py'
+      - 'tools/aggregate_strict_weaknet.py'
   workflow_dispatch:
 
 permissions:
@@ -105,6 +112,12 @@ jobs:
           echo "=== server ==="; tail -n 80 "$ART/server.log" || true
           echo "=== stage ==="; cat "$ART/stage-events.jsonl" || true
           echo "=== summary ==="; cat "$ART/summary.json" || true
+          echo "=== separated cost components ==="
+          python3 - "$ART/summary.json" <<'PY'
+import json,sys
+d=json.load(open(sys.argv[1]))
+print(json.dumps({k:v.get("components") for k,v in d.get("cost",{}).items()},indent=2,sort_keys=True))
+PY
 
       - name: Upload strict sample evidence
         if: always()
