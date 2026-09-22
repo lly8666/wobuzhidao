@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "严格真实路径18个120s主测harness已准备提交：Normal1=10Mbps/向、Game4=3Mbps/向（正式--lanes 4会对同业务PacketID四lane竞速，不是四等分），FEC20:20、padding off、MTU1400、300ms/向；lossless/5-20-5/5-30-5 × 3 seed，120s=30/60/30 + 固定10s drain。每个matrix项独占一个GitHub Actions job/runner。57351075诊断候选realpath/targeted/fast foundation均PASS。",
-  "next_task": "提交strict weaknet workflow/harness并让新增workflow的push自动启动18个独立样本；逐项保留FAIL/INVALID/CAPACITY_LIMITED，不择优重跑。aggregate只在18 artifact上比较同mode+seed无损RTT基线并关闭三重复场景门；即使18主测通过，补丁A/B、专项损伤、目标速率30min长测、模块矩阵/打包/物理资格仍单独未关闭。",
-  "latest_log": "docs/devlog/20260922-200000-strict-weaknet-18-main-harness.md",
-  "last_tested_source_sha": "5735107569f41768a70a1d00752aed72330aa7f6",
+  "in_progress": "首个18样本run 35728934986作废为HARNESS_INVALID：发生器原逻辑在runner迟到时不丢slot而补发所有积压，导致固定120s窗口可能被延长；当前18个job长时间停在负载步骤即暴露此风险。该run无论最终业务数字如何都不得计入严格资格。候选修复为slot超过10ms即skipped且推进，不追赶；peer未就绪同样推进。strict自动push临时关闭，避免修harness时重复烧18。",
+  "next_task": "验证固定窗口发生器候选的realpath与基础/受影响fast回归；确认8s校准无skipped且路径仍PASS后，恢复strict push触发并bump STRICT_WEAKNET_TRIGGER启动新的18样本。旧35728934986保留原始artifact/日志但标HARNESS_INVALID，不择优采用。",
+  "latest_log": "docs/devlog/20260922-202000-strict-fixed-window-generator.md",
+  "last_tested_source_sha": "780c43ac4551511649f724e55d47a3d5bb6cf441",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1120,6 +1120,13 @@
       "scope": "fast-foundation-after-qualification-diagnostics",
       "status": "PASS",
       "note": "repository/P2/Linux+Windows/OpenWrt TPROXY/shared-TUN全PASS；旧P5/P6/31m soak继续skipped。"
+    },
+    {
+      "source_sha": "780c43ac4551511649f724e55d47a3d5bb6cf441",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35728934986",
+      "scope": "strict-18-first-harness-attempt",
+      "status": "HARNESS_INVALID",
+      "note": "发生器在target slot迟到时继续补发积压，peer未就绪时甚至不推进cumulative/seq，因此固定120s有效注入口径不成立；观察到18 job持续停留在负载步骤远超120s+10s预算。该轮结果不得用于资格，即使后续job自行结束。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1159,7 +1166,7 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "REOPENED: realpath与诊断层fast回归已绿；18严格主测即将启动，补丁性能A/B仍未执行。",
-    "P5": "REOPENED: 无损真实路径校准已通过；18个120s严格主测harness已固定并即将由Actions启动，目标速率30min长测必须在主测后另跑。",
+    "P5": "REOPENED: 首个18-run因发生器补发积压违反固定120s口径而HARNESS_INVALID；正在修为>10ms slot显式skipped、不追赶，fast验证后重新启动18。",
     "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {

@@ -80,6 +80,10 @@ class Stats:
         self.corrupt = 0
         self.unexpected = 0
         self.send_failures = 0
+        self.skipped_slots = 0
+        self.skipped_bytes = 0
+        self.skipped_slots_by_second = [0] * self.seconds
+        self.skipped_bytes_by_second = [0] * self.seconds
         self.send_lag_ns = []
         self.oneway_ns = []
         self.probe_sent = 0
@@ -107,6 +111,15 @@ class Stats:
         if 0 <= sec < self.wall_seconds:
             return sec
         return None
+
+    def note_skip(self, target_ns, size):
+        sec = self.second_for(target_ns)
+        with self.lock:
+            self.skipped_slots += 1
+            self.skipped_bytes += size
+            if sec is not None:
+                self.skipped_slots_by_second[sec] += 1
+                self.skipped_bytes_by_second[sec] += size
 
     def note_recv(self, packet, now_ns, expected_kind):
         if packet["kind"] != expected_kind:
@@ -147,7 +160,10 @@ class Stats:
                 "corrupt": self.corrupt,
                 "unexpected": self.unexpected,
                 "send_failures": self.send_failures,
-                "skipped_slots": 0,
+                "skipped_slots": self.skipped_slots,
+                "skipped_bytes": self.skipped_bytes,
+                "skipped_slots_by_second": list(self.skipped_slots_by_second),
+                "skipped_bytes_by_second": list(self.skipped_bytes_by_second),
                 "send_lag_p99_ns": percentile(self.send_lag_ns, 0.99),
                 "oneway_p50_ns": percentile(self.oneway_ns, 0.50),
                 "oneway_p95_ns": percentile(self.oneway_ns, 0.95),
@@ -178,20 +194,38 @@ def run_sender(sock, peer_getter, kind, rate_mbps, seed, stats, stop_event):
     seq = 0
     cumulative = 0
     end_ns = stats.start_ns + int(stats.duration_s * 1e9)
+    max_slot_lag_ns = 10_000_000
     wait_until(stats.start_ns)
     while not stop_event.is_set():
         size = SIZES[seq % len(SIZES)]
         target_ns = stats.start_ns + int((cumulative / bytes_per_second) * 1e9)
         if target_ns >= end_ns:
             break
-        now = wait_until(target_ns)
+
+        now_ns = time.monotonic_ns()
+        if now_ns - target_ns > max_slot_lag_ns:
+            stats.note_skip(target_ns, size)
+            cumulative += size
+            seq += 1
+            continue
+
+        wait_until(target_ns)
+        actual_send_ns = time.monotonic_ns()
+        if actual_send_ns - target_ns > max_slot_lag_ns:
+            stats.note_skip(target_ns, size)
+            cumulative += size
+            seq += 1
+            continue
+
         peer = peer_getter()
         if peer is None:
             with stats.lock:
                 stats.send_failures += 1
-            time.sleep(0.001)
+            stats.note_skip(target_ns, size)
+            cumulative += size
+            seq += 1
             continue
-        actual_send_ns = time.monotonic_ns()
+
         packet = make_packet(kind, seq, size, seed, actual_send_ns)
         try:
             sock.sendto(packet, peer)
