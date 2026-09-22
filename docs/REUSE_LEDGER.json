@@ -480,6 +480,18 @@
       "destination": "internal/runtimeentry/lifecycle_test.go",
       "behavior_changes": "Reuse the assertion intent that per-lane reconnect/replacement is serialized and converges without changing logical LaneID. The active test runs current FakeTCP/TLS/runtimeowner in-process rather than archived UDP lane peers.",
       "tests": "TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease checks failed replacement, successful same-ID rotation, generation advance, DORMANT/wake and Game PacketID continuity."
+    },
+    {
+      "source": "old/internal/faketcp/arq.go",
+      "destination": "internal/runtimeowner/recovery.go; internal/runtimeowner/runtime.go; internal/faketcp/packet.go",
+      "behavior_changes": "Reuse only bounded RFC2018 SACK accounting/payload retirement, fresh-evidence fast repair, bounded shadow-repair credit, and Karn-safe RTT/RTO estimator concepts. Active runtime keeps the current detached runtimeowner/TunnelOwner architecture, current 4096 total metadata bound, current FakeTCP Segment I/O, and does not restore old DTLS/Controller/topology. Old maxRTO=60s is rejected because the active repair horizon is 3s; active RTO is floored by the existing InitialRTO and capped by RepairHorizon. Old 128KiB/1:5/100ms repair-credit values are carried only as provisional bounded compatibility starting values pending the new P5 qualification, not as recommended production tuning.",
+      "tests": "internal/faketcp/packet_test.go round-trips standard SACK options; internal/runtimeowner/runtime_test.go verifies SACK-retired payload release, three-above fast repair, fresh traffic under exhausted repair credit, and Karn-safe 600ms RTT/RTO/backoff behavior."
+    },
+    {
+      "source": "old/internal/faketcp/repair_horizon.go",
+      "destination": "internal/runtimeowner/recovery.go",
+      "behavior_changes": "Reuse the fresh-first principle that a full optional repair horizon must not block newly generated payload. Unlike the archive's separate 8192 tracked-record tombstone ceiling, active code does not expand beyond 4096 total pending metadata: it evicts SACK-retired tombstones first, then oldest optional repair state, while preserving FIN/control state.",
+      "tests": "runtimeowner selective-ACK tests assert payload-free tombstones and fresh send continuity when repair is deferred; existing MaxOutstandingRecords=4096 remains unchanged."
     }
   ],
   "note": "P4 is CLOSED at closure-audit SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd / Actions 35510241639 (7/7 PASS). The closure commit added hosted runtimeentry tests only; product behavior is the already-qualified active architecture. Archive reuse remains narrow and fully recorded: payload-idle ownership, serialized same-LaneID replacement/qualification and convergence. Archived UDP Game processes/control sockets, CLIENT_LEAVE topology, localhost carrier, old Controller, DTLS and subprocess orchestration remain out. Next stage is P5 real-HTTPS/fullstack measurement; no new archive reuse has been authorized merely by entering P5."

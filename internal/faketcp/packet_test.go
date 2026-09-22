@@ -110,3 +110,33 @@ func TestLegacyPersonaIsByteIdenticalToBase(t *testing.T) {
 		t.Fatal("legacy persona changed mature packet bytes")
 	}
 }
+
+
+func TestMarshalSegmentSACKRoundTrip(t *testing.T) {
+	src, _ := IPv4(net.ParseIP("192.0.2.20"))
+	dst, _ := IPv4(net.ParseIP("198.51.100.30"))
+	seg := Segment{
+		SrcIP: src, DstIP: dst,
+		SrcPort: 42000, DstPort: 443,
+		Seq: 7000, Ack: 9000, Flags: FlagACK, Window: 65535,
+		SACKN: 2,
+		SACK: [MaxSACKBlocks]SACKBlock{
+			{Start: 9100, End: 9300},
+			{Start: 9500, End: 9700},
+		},
+	}
+	pkt := MarshalSegment(seg, 11, PacketPersonaLegacy)
+	got, err := ParseIPv4TCP(pkt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.SACKN != 2 || got.SACK[0] != seg.SACK[0] || got.SACK[1] != seg.SACK[1] {
+		t.Fatalf("SACK round-trip got=%+v want=%+v", got.SACK[:got.SACKN], seg.SACK[:seg.SACKN])
+	}
+	if tcpHeaderLen := int(pkt[20+12]>>4) * 4; tcpHeaderLen != 40 {
+		t.Fatalf("TCP header len=%d want 40 with two SACK blocks", tcpHeaderLen)
+	}
+	if checksum(pkt[:20]) != 0 || tcpChecksum(src, dst, pkt[20:]) != 0 {
+		t.Fatal("SACK packet checksum invalid")
+	}
+}

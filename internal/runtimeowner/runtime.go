@@ -45,6 +45,7 @@ type TransportConfig struct {
 
 	InitialRTO    time.Duration
 	RepairHorizon time.Duration
+	SACKPermitted bool
 	Emit          faketcp.SegmentEmitter
 }
 
@@ -72,7 +73,13 @@ type pendingRecord struct {
 	payload   []byte
 	firstSent time.Time
 	lastSent  time.Time
-	retries   uint32
+	retries          uint32
+	wasRetried       bool
+	rttSampled       bool
+	sacked           bool
+	retired          bool
+	repairInFlight   bool
+	repairNotBefore  time.Time
 }
 
 type receiveSpan struct {
@@ -94,7 +101,16 @@ type TransportStats struct {
 	RepairFailures    uint64
 	Retransmitted     uint64
 	Acked             uint64
+	SACKed            uint64
+	SACKRetired       uint64
 	Abandoned         uint64
+	RepairEvicted     uint64
+	RepairMetadataEvicted uint64
+	FastRepairs       uint64
+	RTORepairs        uint64
+	RepairDeferred    uint64
+	RepairBudgetSpent uint64
+	RepairCreditBytes uint64
 	Received          uint64
 	Duplicates        uint64
 	LateFirstArrival  uint64
@@ -113,6 +129,8 @@ type TransportStats struct {
 	LocalFINAcked     bool
 	PeerFIN           bool
 	PeerRST           bool
+	SRTT              time.Duration
+	RTO               time.Duration
 	Closed            bool
 }
 
@@ -125,8 +143,21 @@ type laneTransport struct {
 	cfg     TransportConfig
 
 	sendNext  uint32
+	lastAck   uint32
 	recvStart uint32
 	recvNext  uint32
+
+	srtt       time.Duration
+	rttvar     time.Duration
+	baseRTO    time.Duration
+	rto        time.Duration
+	timeoutEpisode    bool
+	timeoutEpisodeEnd uint32
+	rackLatestTx      time.Time
+	repairCredit      uint64
+	repairRemainder   uint64
+	lastOutOfOrder    uint32
+	lastOutOfOrderSet bool
 
 	localFINQueued bool
 	localFINAcked  bool
@@ -155,7 +186,10 @@ func newLaneTransport(owner *datapath.TunnelOwner, ref logicaltunnel.LaneRef, de
 	}
 	return &laneTransport{
 		owner: owner, ref: ref, deliver: deliver, cfg: cfg,
-		sendNext: cfg.SendNext, recvStart: cfg.ReceiveNext, recvNext: cfg.ReceiveNext,
+		sendNext: cfg.SendNext, lastAck: cfg.SendNext,
+		recvStart: cfg.ReceiveNext, recvNext: cfg.ReceiveNext,
+		baseRTO: cfg.InitialRTO, rto: cfg.InitialRTO,
+		repairCredit: steadyRepairBurstBytes,
 		pending: make(map[uint32]*pendingRecord, MaxOutstandingRecords),
 		received: make(map[uint32]receiveSpan, MaxOutstandingRecords),
 		delivered: make(map[uint32]deliveredMark, MaxOutstandingRecords),
@@ -176,12 +210,23 @@ func (t *laneTransport) outboundSegment(seq, ack uint32, payload []byte) faketcp
 }
 
 func (t *laneTransport) outboundSegmentFlags(seq, ack uint32, flags uint8, payload []byte) faketcp.Segment {
-	return faketcp.Segment{
+	seg := faketcp.Segment{
 		SrcIP: t.cfg.LocalIP, DstIP: t.cfg.PeerIP,
 		SrcPort: t.cfg.LocalPort, DstPort: t.cfg.PeerPort,
 		Seq: seq, Ack: ack, Flags: flags, Window: 65535,
 		Payload: append([]byte(nil), payload...),
 	}
+	// Keep SACK on ACK-only/control packets. Data records are already sized to
+	// the negotiated MTU and must not silently grow when recovery options appear.
+	if t.cfg.SACKPermitted && flags&faketcp.FlagACK != 0 && len(payload) == 0 {
+		blocks := t.sackBlocksLocked()
+		if len(blocks) > faketcp.MaxSACKBlocks {
+			blocks = blocks[:faketcp.MaxSACKBlocks]
+		}
+		seg.SACKN = len(blocks)
+		copy(seg.SACK[:], blocks)
+	}
+	return seg
 }
 
 func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error {
@@ -236,6 +281,9 @@ func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error
 			t.mu.Unlock()
 			return err
 		}
+		t.mu.Lock()
+		t.refillRepairCreditLocked(uint64(len(p.payload)))
+		t.mu.Unlock()
 	}
 	return nil
 }
@@ -245,6 +293,7 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		return ErrTransportFlow
 	}
 
+	var repair *selectedRepair
 	t.mu.Lock()
 	if t.closed {
 		peerRST := t.peerRST
@@ -259,24 +308,35 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 			t.mu.Unlock()
 			return ErrACKRange
 		}
-		t.retireACKLocked(seg.Ack)
+		t.retireACKLocked(seg.Ack, now)
+		if t.cfg.SACKPermitted && seg.SACKN > 0 {
+			n := seg.SACKN
+			if n > faketcp.MaxSACKBlocks {
+				n = faketcp.MaxSACKBlocks
+			}
+			t.applySACKLocked(seg.SACK[:n], now)
+		}
+		repair = t.selectFastRepairLocked(now)
 	}
 
-	// Payload/control wholly before the detached steady boundary still belongs
-	// to bootstrap. Do not reinterpret retransmitted bootstrap bytes as steady
-	// records; acknowledge at the current steady receive point instead.
 	if (len(seg.Payload) != 0 || seg.Flags&(faketcp.FlagFIN|faketcp.FlagRST) != 0) &&
 		seqLT(seg.Seq, t.recvStart) {
 		ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
 		t.mu.Unlock()
-		return t.cfg.Emit(ackSeg)
+		if err := t.cfg.Emit(ackSeg); err != nil {
+			return err
+		}
+		return t.emitSelectedRepair(repair, now)
 	}
 
 	if seg.Flags&faketcp.FlagRST != 0 {
 		if seg.Seq != t.recvNext {
 			ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
 			t.mu.Unlock()
-			return t.cfg.Emit(ackSeg)
+			if err := t.cfg.Emit(ackSeg); err != nil {
+				return err
+			}
+			return t.emitSelectedRepair(repair, now)
 		}
 		t.peerRST = true
 		t.closed = true
@@ -291,7 +351,7 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 	hasFIN := seg.Flags&faketcp.FlagFIN != 0
 	if !hasPayload && !hasFIN {
 		t.mu.Unlock()
-		return nil
+		return t.emitSelectedRepair(repair, now)
 	}
 
 	deliver := false
@@ -334,7 +394,10 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 			}
 		}
 	}
-	return t.cfg.Emit(ackSeg)
+	if err := t.cfg.Emit(ackSeg); err != nil {
+		return err
+	}
+	return t.emitSelectedRepair(repair, now)
 }
 
 func (t *laneTransport) acceptPayloadLocked(seq uint32, payload []byte, now time.Time) (bool, error) {
@@ -360,6 +423,8 @@ func (t *laneTransport) acceptPayloadLocked(seq uint32, payload []byte, now time
 			}
 		} else {
 			t.received[seq] = receiveSpan{end: end, first: now}
+			t.lastOutOfOrder = seq
+			t.lastOutOfOrderSet = true
 		}
 		if len(t.received) > MaxOutstandingRecords {
 			t.forgiveGapLocked(now, true)
@@ -469,36 +534,12 @@ func (t *laneTransport) forgiveGapLocked(now time.Time, force bool) bool {
 	return true
 }
 
-func (t *laneTransport) retireACKLocked(ack uint32) {
-	for _, seq := range t.pendingOrder {
-		p := t.pending[seq]
-		if p == nil {
-			continue
-		}
-		if !seqLE(p.end, ack) {
-			continue
-		}
-		delete(t.pending, seq)
-		t.stats.Acked++
-		if p.flags&faketcp.FlagFIN != 0 && !t.localFINAcked {
-			t.localFINAcked = true
-			t.stats.FINAcked++
-		}
-	}
-	t.compactPendingOrderLocked()
+func (t *laneTransport) retireACKLocked(ack uint32, now time.Time) {
+	t.retireSelectiveACKLocked(ack, now)
 }
 
 func (t *laneTransport) abandonOldestLocked() bool {
-	for _, seq := range t.pendingOrder {
-		if _, ok := t.pending[seq]; !ok {
-			continue
-		}
-		delete(t.pending, seq)
-		t.stats.Abandoned++
-		t.compactPendingOrderLocked()
-		return true
-	}
-	return false
+	return t.evictRepairForFreshLocked()
 }
 
 func (t *laneTransport) compactPendingOrderLocked() {
@@ -513,79 +554,7 @@ func (t *laneTransport) compactPendingOrderLocked() {
 }
 
 func (t *laneTransport) tick(now time.Time) error {
-	var (
-		repair       *faketcp.Segment
-		repairSeq    uint32
-		repairRecord *pendingRecord
-		ackOnly      *faketcp.Segment
-	)
-
-	t.mu.Lock()
-	if t.closed {
-		t.mu.Unlock()
-		return nil
-	}
-
-	for _, seq := range t.pendingOrder {
-		p := t.pending[seq]
-		if p == nil {
-			continue
-		}
-		if now.Sub(p.firstSent) >= t.cfg.RepairHorizon {
-			delete(t.pending, seq)
-			t.stats.Abandoned++
-			continue
-		}
-		if p.lastSent.IsZero() || now.Sub(p.lastSent) >= t.cfg.InitialRTO {
-			repairSeq = seq
-			repairRecord = p
-			t.stats.RepairSelected++
-			break
-		}
-	}
-	t.compactPendingOrderLocked()
-
-	// Gap forgiveness advances the cumulative ACK state before the packet is
-	// formed. If a repair is also due, carry that newer ACK on the repair
-	// instead of replacing the selected payload with an ACK-only segment.
-	forgiven := t.forgiveGapLocked(now, false)
-	if repairRecord != nil {
-		seg := t.outboundSegmentFlags(repairRecord.seq, t.recvNext, repairRecord.flags, repairRecord.payload)
-		repair = &seg
-	} else if forgiven {
-		seg := t.outboundSegment(t.sendNext, t.recvNext, nil)
-		ackOnly = &seg
-	}
-	t.mu.Unlock()
-
-	if repair != nil {
-		t.mu.Lock()
-		t.stats.RepairAttempts++
-		t.mu.Unlock()
-
-		err := t.cfg.Emit(*repair)
-
-		t.mu.Lock()
-		if err != nil {
-			t.stats.RepairFailures++
-		} else {
-			t.stats.RepairSucceeded++
-			t.stats.Retransmitted++
-			if repairRecord.flags&faketcp.FlagFIN != 0 {
-				t.stats.FINTransmits++
-			}
-			if current := t.pending[repairSeq]; current == repairRecord {
-				current.lastSent = now
-				current.retries++
-			}
-		}
-		t.mu.Unlock()
-		return err
-	}
-	if ackOnly != nil {
-		return t.cfg.Emit(*ackOnly)
-	}
-	return nil
+	return t.tickRecovery(now)
 }
 
 func (t *laneTransport) closeWrite(now time.Time) error {
@@ -601,6 +570,9 @@ func (t *laneTransport) closeWrite(now time.Time) error {
 	if t.localFINQueued {
 		t.mu.Unlock()
 		return nil
+	}
+	if len(t.pending) >= MaxOutstandingRecords {
+		t.evictRepairForFreshLocked()
 	}
 	if len(t.pending) >= MaxOutstandingRecords {
 		t.mu.Unlock()
@@ -665,6 +637,9 @@ func (t *laneTransport) statsSnapshot() TransportStats {
 	out := t.stats
 	out.Outstanding = len(t.pending)
 	out.OutOfOrder = len(t.received)
+	out.RepairCreditBytes = t.repairCredit
+	out.SRTT = t.srtt
+	out.RTO = t.rto
 	out.WriteClosed = t.localFINQueued
 	out.LocalFINAcked = t.localFINAcked
 	out.PeerFIN = t.peerFIN
@@ -943,11 +918,13 @@ func (r *Runtime) AttachServerAdmission(laneID uint8, session *realityfront.Serv
 		return datapath.TunnelLaneSnapshot{}, err
 	}
 	flow := assoc.Flow()
+	peer := assoc.PeerTCPProfile()
 	cfg := TransportConfig{
 		LocalIP: flow.ServerIP, PeerIP: flow.ClientIP,
 		LocalPort: flow.ServerPort, PeerPort: flow.ClientPort,
 		SendNext: assoc.SenderNext(), ReceiveNext: session.Boundary,
 		InitialRTO: DefaultRepairRTO, RepairHorizon: DefaultRepairHorizon,
+		SACKPermitted: peer.SACKPermitted,
 		Emit: emit,
 	}
 	snapshot, err := r.AttachInitial(laneID, lane, cfg)
@@ -1096,12 +1073,12 @@ func (r *Runtime) HandleServerSegmentQualified(ref logicaltunnel.LaneRef, assoc 
 		return false, r.emitForRef(ref, assoc.ACKSegment(result.Ack))
 	}
 	if seg.Flags&faketcp.FlagACK != 0 {
-		return false, r.handleACKOnly(ref, seg)
+		return false, r.handleACKOnly(ref, seg, now)
 	}
 	return false, nil
 }
 
-func (r *Runtime) handleACKOnly(ref logicaltunnel.LaneRef, seg faketcp.Segment) error {
+func (r *Runtime) handleACKOnly(ref logicaltunnel.LaneRef, seg faketcp.Segment, now time.Time) error {
 	r.mu.Lock()
 	transport := r.lanes[ref]
 	r.mu.Unlock()
@@ -1109,15 +1086,25 @@ func (r *Runtime) handleACKOnly(ref logicaltunnel.LaneRef, seg faketcp.Segment) 
 		return ErrTransportMissing
 	}
 	transport.mu.Lock()
-	defer transport.mu.Unlock()
 	if !transport.matches(seg) {
+		transport.mu.Unlock()
 		return ErrTransportFlow
 	}
 	if seqLT(transport.sendNext, seg.Ack) {
+		transport.mu.Unlock()
 		return ErrACKRange
 	}
-	transport.retireACKLocked(seg.Ack)
-	return nil
+	transport.retireACKLocked(seg.Ack, now)
+	if transport.cfg.SACKPermitted && seg.SACKN > 0 {
+		n := seg.SACKN
+		if n > faketcp.MaxSACKBlocks {
+			n = faketcp.MaxSACKBlocks
+		}
+		transport.applySACKLocked(seg.SACK[:n], now)
+	}
+	repair := transport.selectFastRepairLocked(now)
+	transport.mu.Unlock()
+	return transport.emitSelectedRepair(repair, now)
 }
 
 func (r *Runtime) emitForRef(ref logicaltunnel.LaneRef, seg faketcp.Segment) error {

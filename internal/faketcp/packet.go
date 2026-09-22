@@ -19,6 +19,7 @@ const (
 	MaxWindowScale     = 14
 
 	synOptionLen = 12
+	MaxSACKBlocks = 4
 )
 
 var (
@@ -27,8 +28,14 @@ var (
 	ErrBadTCPHeader = errors.New("faketcp: invalid tcp header")
 )
 
-// Segment is the P2 handshake/bootstrap packet view. SACK blocks and
-// steady-state recovery metadata are intentionally not part of this extraction.
+type SACKBlock struct {
+	Start uint32
+	End   uint32
+}
+
+// Segment is the shared TCP-compatible packet view. SYN negotiation fields are
+// retained across bootstrap; negotiated RFC 2018 SACK blocks are used only by
+// the detached steady recovery owner.
 type Segment struct {
 	SrcIP          [4]byte
 	DstIP          [4]byte
@@ -43,6 +50,8 @@ type Segment struct {
 	SACKPermitted  bool
 	WindowScale    uint8
 	WindowScaleSet bool
+	SACK           [MaxSACKBlocks]SACKBlock
+	SACKN          int
 	Payload        []byte
 }
 
@@ -100,7 +109,7 @@ func PacketLen(flags uint8, payloadLen int) int {
 // when the peer offered them. The legacy MarshalIPv4TCP helpers below keep the
 // fixed WBD client SYN presentation.
 func MarshalSegment(seg Segment, ipID uint16, persona PacketPersona) []byte {
-	opts := segmentSYNOptions(seg, persona)
+	opts := segmentOptions(seg, persona)
 	buf := make([]byte, 40+len(opts)+len(seg.Payload))
 	return marshalIPv4TCPSegmentInto(buf, seg, opts, ipID, persona)
 }
@@ -220,6 +229,29 @@ func marshalIPv4TCPSegmentInto(buf []byte, seg Segment, opts []byte, ipID uint16
 	return buf
 }
 
+func segmentOptions(seg Segment, persona PacketPersona) []byte {
+	if seg.Flags&FlagSYN != 0 {
+		return segmentSYNOptions(seg, persona)
+	}
+	if seg.Flags&FlagACK == 0 || seg.SACKN <= 0 {
+		return nil
+	}
+	n := seg.SACKN
+	if n > MaxSACKBlocks {
+		n = MaxSACKBlocks
+	}
+	optionLen := 2 + 8*n
+	paddedLen := (optionLen + 3) &^ 3
+	opts := make([]byte, paddedLen)
+	opts[0], opts[1] = 5, byte(optionLen)
+	for i := 0; i < n; i++ {
+		off := 2 + 8*i
+		binary.BigEndian.PutUint32(opts[off:off+4], seg.SACK[i].Start)
+		binary.BigEndian.PutUint32(opts[off+4:off+8], seg.SACK[i].End)
+	}
+	return opts
+}
+
 func segmentSYNOptions(seg Segment, persona PacketPersona) []byte {
 	if seg.Flags&FlagSYN == 0 {
 		return nil
@@ -332,6 +364,19 @@ func parseTCPOptions(opts []byte, s *Segment) {
 			s.WindowScaleSet = true
 		case kind == 4 && l == 2:
 			s.SACKPermitted = true
+		case kind == 5 && l >= 10 && (l-2)%8 == 0:
+			n := (l - 2) / 8
+			if n > MaxSACKBlocks {
+				n = MaxSACKBlocks
+			}
+			for j := 0; j < n; j++ {
+				off := i + 2 + j*8
+				s.SACK[j] = SACKBlock{
+					Start: binary.BigEndian.Uint32(opts[off : off+4]),
+					End:   binary.BigEndian.Uint32(opts[off+4 : off+8]),
+				}
+			}
+			s.SACKN = n
 		}
 		i += l
 	}

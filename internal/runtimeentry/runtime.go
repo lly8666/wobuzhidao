@@ -178,6 +178,7 @@ func DialClient(ctx context.Context, cfg ClientConfig) (*Client, error) {
 		SendNext: handoff.SendNext, ReceiveNext: handoff.ReceiveNext,
 		InitialRTO: runtimeowner.DefaultRepairRTO,
 		RepairHorizon: runtimeowner.DefaultRepairHorizon,
+		SACKPermitted: handoff.Peer.SACKPermitted,
 		Emit: cfg.IO.Emit,
 	})
 	if err != nil {

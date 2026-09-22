@@ -56,12 +56,13 @@
     "P5第十二原子任务关闭：>=30min新版本soak在 SOURCE_SHA 93b72dba4072be37a53efdf0d09df4f3b2725af7 / Actions 35593806912 取得两个独立31分钟validator PASS。固定300ms单向、双向持续5% deterministic loss、Game=2、60s自动same-ID rotation、每10s一个真实TLS1.3/HTTPS Connection: close flow、FEC/padding off。run1 seed=20260935：186/186成功、0 loss/duplicate、RTT p95/p99=1.110782/1.112741s、rotation client/server=58、lifecycle_error=0、HeapInuse minute-floor中段/末段median=16.90/17.05MB、host busy=0.536%、wire_amp=9.495673、artifact 10636558159 sha256:e16655c8e4d7e665827eb015f83a2b415accb5b5f64cf491dc737d23ee559934。run2 seed=20260936：186/186、RTT p95/p99=1.110762/1.112318s、rotation=58、lifecycle_error=0、HeapInuse中段/末段=16.61/17.72MB、host busy=0.389%、wire_amp=9.250055、artifact 10636189740 sha256:c959c194c6309786236851b8c057e66bfa1b652a69491e729ac68b0789c0484c。两次最终client/server TCPFlows和BusinessFlows均0、2 active/2 physical/0 retiring、capture loss=0、memory plateau validator PASS。",
     "P5阶段关闭：ROADMAP/ACCEPTANCE要求的真实HTTPS measurement/复用/稀疏/并发/证书链/full+resumed、fixed-FEC能力成本、300ms 5->20->5与5->30->5弱网、5/10/15/20Mbps、40Mbps aggregate-inner、以及>=30min持续loss+rotation+停流退役+memory plateau均已有exact-SHA hosted证据。50/100Mbps按规范仅为容量探索，不是协议/P5退出硬门；生产FEC仍off、padding仍off，未做参数选优或抗识别承诺。",
     "P6关闭：SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 / Actions 35603635498 的三个独立release-candidate job全部PASS。linux/amd64 artifact 10640321325 sha256:e08bedeacb64be27677bdc2ec7232691b1a450b809e39b878f5f9141b57de8e5，manifest sha256=e971ad779beff597c8d39a69f5645f3894021e023e10c6a4a7ffc82d0f1fafa8；linux/arm64 artifact 10641055941 sha256:3637dfaa7f89a2358fe258d7f5afddb9dc8cba20d2c188552ad30010d307c88e，manifest sha256=83ab1202ae4adb12db4fb820c357a3659ea7eaf8220ac20039c1872f9235aaf0；windows/amd64 artifact 10641181252 sha256:c5b3c83af29929f474a0467c1cc2eb1d9f63756f115468c423bbf2a4c161e06f，manifest sha256=5d12951916c0663e3d9028626e2dea4a18b458979ed8ff4c3a5d8b8da5077d64。三者source_sha相同、file SHA256与binary target/source/version独立复核PASS；Windows server=UNSUPPORTED，PHYSICAL/RELEASE_QUALIFIED=NOT_RUN。",
-    "P4增强第1原子修复：runtimeowner repair/gap-ACK仲裁在SOURCE_SHA e3253322ac863c11636f1c127e14b77bdc6bf800的定向Actions已通过repository-contract、Windows/Linux active-go（Linux含race）、OpenWrt privileged与Linux shared-TUN iptables/nft；repair选择/尝试/成功/失败分离且gap forgiveness不再覆盖已选repair。"
+    "P4增强第1原子修复：runtimeowner repair/gap-ACK仲裁在SOURCE_SHA e3253322ac863c11636f1c127e14b77bdc6bf800的定向Actions已通过repository-contract、Windows/Linux active-go（Linux含race）、OpenWrt privileged与Linux shared-TUN iptables/nft；repair选择/尝试/成功/失败分离且gap forgiveness不再覆盖已选repair。",
+    "P4增强第2原子FIN/RST/半关闭：SOURCE_SHA 1cfe913199f7df67f05158e044cbec02771f29a8 / Actions 35669709080 定向资格已通过repository-contract、Windows active-go、Ubuntu active-go+race、P5 HTTPS base、OpenWrt privileged及Linux shared-TUN iptables/nft；Game4固定duplicates>=lanes-1并等待异步lane drain，replacement/DORMANT late-control race已收口。整轮长时P5 jobs当时仍运行，不提前写成整轮PASS。"
   ],
-  "in_progress": "P4增强第2原子继续修正：0655f55b证明2*InitialRTO数值本身不够，server tick没有持续评估已启动FIN关闭；DORMANT还有transport清理/flow映射竞态；Game4旧红灯是四个独立lane读取统计早于副本drain。当前提交修复调用条件、late-control清理竞态并保留GameDuplicates>=lanes-1门槛做有界等待。",
-  "next_task": "本exact-SHA重新跑Linux/Windows active-go、race、replacement+DORMANT、Game4、P4 privileged和P5回归；全部通过后关闭FIN/RST原子，再进入限定old来源的SACK/fresh优先repair credit/RTT-RTO最小迁移。",
-  "latest_log": "docs/devlog/20260922-075500-lifecycle-fin-drain-races.md",
-  "last_tested_source_sha": "e3253322ac863c11636f1c127e14b77bdc6bf800",
+  "in_progress": "P4增强第3原子任务已提交：协商后标准SACK选项、SACK已收payload立即释放、fresh-first有界repair credit、fresh-delivery证据fast repair及Karn-safe RTT/RTO。总pending元数据仍4096；本项暂保留扫描/排序实现，下一原子专门改成有界增量索引。等待exact-SHA Actions。",
+  "next_task": "先验证第3原子exact-SHA的packet/SACK、runtimeowner、Windows/Linux active-go+race、Game4/lifecycle、P4 privileged及P5旧回归；通过后第4原子消除每ACK全量pending扫描和SACK map排序/压缩，采用head/cursor/增量range索引。之后第5原子核对窗口/缩放/MSS/persona与实际TCP头长进入统一MTU。",
+  "latest_log": "docs/devlog/20260922-082500-steady-sack-repair-rto.md",
+  "last_tested_source_sha": "1cfe913199f7df67f05158e044cbec02771f29a8",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -839,6 +840,13 @@
       "scope": "P4-steady-fin-rst-drain-candidate",
       "status": "FAIL",
       "note": "同SHA两个push run仍有当前任务相关失败：replacement关闭timer未持续检查closeStarted、DORMANT late-control可令server退出；Windows还复现Game4只即时观察2 duplicates。均继续修复，不豁免。"
+    },
+    {
+      "source_sha": "1cfe913199f7df67f05158e044cbec02771f29a8",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35669709080",
+      "scope": "P4-steady-fin-rst-halfclose-targeted",
+      "status": "PASS_TARGETED",
+      "note": "repository-contract、Windows active-go、Ubuntu active-go+race、P5 HTTPS measurement-base、OpenWrt privileged、Linux shared-TUN iptables/nft均PASS；覆盖Game3/4、replacement+DORMANT、steady FIN/RST/half-close。长时P5 jobs未用作提前结论。"
     }
   ],
   "physical_status": "NOT_RUN",
