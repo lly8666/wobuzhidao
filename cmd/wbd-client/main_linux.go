@@ -20,6 +20,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/openwrtclient"
 	"github.com/lly8666/wobuzhidao/internal/platformflow"
+"github.com/lly8666/wobuzhidao/internal/qualificationdiag"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/runtimeentry"
 )
@@ -51,6 +52,8 @@ func main() {
 		idleDormant = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
 		rotateMin = flag.Duration("rotate-min", 0, "minimum lane rotation interval; 0 disables rotation")
 		rotateMax = flag.Duration("rotate-max", 0, "maximum lane rotation interval; must pair with rotate-min")
+		diagnosticJSONL = flag.String("diagnostic-jsonl", "", "optional qualification diagnostics JSONL path; disabled by default")
+		diagnosticInterval = flag.Duration("diagnostic-interval", time.Second, "qualification diagnostics sample interval")
 	)
 	flag.Parse()
 	if handleVersion() {
@@ -76,6 +79,9 @@ func main() {
 	if *idleDormant < 0 || *rotateMin < 0 || *rotateMax < 0 ||
 		(*rotateMin == 0) != (*rotateMax == 0) || (*rotateMin > 0 && *rotateMax < *rotateMin) {
 		log.Fatal("invalid lifecycle durations")
+	}
+	if *diagnosticJSONL != "" && *diagnosticInterval <= 0 {
+		log.Fatal("diagnostic-interval must be positive")
 	}
 	if _, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), 1); err != nil {
 		log.Fatal("source-port must leave a 1024-port bounded rotation window")
@@ -215,7 +221,14 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	errCh := make(chan error, 3)
+	errCh := make(chan error, 4)
+	if *diagnosticJSONL != "" {
+		go func() {
+			errCh <- qualificationdiag.Run(ctx, *diagnosticJSONL, *diagnosticInterval, func(now time.Time) any {
+				return client.DiagnosticSnapshot(now)
+			})
+		}()
+	}
 	go func() { errCh <- adapter.Run(ctx) }()
 	go func() {
 		select {

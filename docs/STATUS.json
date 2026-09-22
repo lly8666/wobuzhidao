@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "增强P4/P5继续执行。466145a realpath无损校准已严格PASS：正式独立client/server、raw socket、OpenWrt TPROXY、路由/防火墙/shared-TUN双向987/987完整交付，300ms/向注入与8/8 probe有效，0 corruption/duplicate/capture drop，outer repair双向均0。该SHA的Linux/Windows core回归仅因3个旧fast-repair测试仍以ACK墙钟年龄构造证据而FAIL；产品实现/privileged/lifecycle均未见新失败。本候选只修测试时间契约，不动刚通过realpath的实现。",
-  "next_task": "检查测试契约修复候选的exact-SHA realpath、targeted、fast foundation。三者同SHA通过后，固定harness blob 4863a6a6715d40b3dc90c17507635b7978bea011 和 analyzer blob 4989ec1e6c392799ac8599352196a49b782182e8，开始实现/启动18个120s严格主测；旧31m soak保持显式-only。",
-  "latest_log": "docs/devlog/20260922-191500-rack-test-contract-after-realpath-pass.md",
-  "last_tested_source_sha": "466145a059967aac4649146b669e27e5c1309f53",
+  "in_progress": "增强P4/P5进入18个严格120s主测准备阶段。e02d44b同SHA realpath无损、targeted、fast foundation均PASS；旧P5/P6/31m低负载soak按新调度skipped。为满足弱网成本一等验收，本候选仅增加默认关闭的qualification diagnostic JSONL和只读计数：FEC source/parity字节、Game logical/copy字节、每lane transport/FEC/padding/队列bytes+age、Go heap/GC。默认产品路径/配置不变。",
+  "next_task": "检查本诊断候选 exact-SHA realpath、targeted、fast foundation；若同SHA通过，提交严格weaknet 18-job matrix harness：Normal1 10Mbps/向、Game4 3Mbps/向，FEC20:20、MTU1400、300ms/向、0/5-20-5/5-30-5、3 seed、120s 30/60/30 +10s drain，并保存分阶段pcap/qdisc/资源/成本账本。",
+  "latest_log": "docs/devlog/20260922-193000-strict-qualification-diagnostics.md",
+  "last_tested_source_sha": "e02d44b267962969efeee0bb35d2e70df74e777d",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1078,6 +1078,27 @@
       "scope": "fast-foundation-after-rack-evidence",
       "status": "FAIL_TEST_CONTRACT",
       "note": "repository contract、P2、OpenWrt TPROXY、shared-TUN iptables/nft PASS；Linux/Windows active-go仅同3个runtimeowner测试失败；旧P5/P6/31m soak按新CI调度全部skipped。"
+    },
+    {
+      "source_sha": "e02d44b267962969efeee0bb35d2e70df74e777d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35725349541",
+      "scope": "realpath-lossless-after-rack-test-contract",
+      "status": "PASS",
+      "note": "e02d44b realpath exact-SHA success；同产品实现沿用466145a已严格通过的正式client/server raw+TPROXY+TUN无损路径。"
+    },
+    {
+      "source_sha": "e02d44b267962969efeee0bb35d2e70df74e777d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35725349593",
+      "scope": "targeted-after-rack-test-contract",
+      "status": "PASS",
+      "note": "Linux/Windows steady-core、lifecycle-focus、Linux privileged iptables/nft全PASS。"
+    },
+    {
+      "source_sha": "e02d44b267962969efeee0bb35d2e70df74e777d",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35725349624",
+      "scope": "fast-foundation-after-rack-test-contract",
+      "status": "PASS",
+      "note": "repository/P2/Linux+Windows active-go/OpenWrt TPROXY/shared-TUN iptables+nft全PASS；旧P5扩展/P6/31m soak按校准阶段CI策略skipped。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1116,8 +1137,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED: 正式realpath无损闭环已PASS且0 repair；当前仅需修复与新RACK语义不一致的3个测试时间契约并同SHA复核基础/targeted。",
-    "P5": "REOPENED: realpath无损校准已达到进入18主测的路径条件，但必须先让同SHA基础/受影响回归恢复全绿；18个120s严格样本尚未启动。",
+    "P4": "REOPENED: e02d44b realpath+基础+受影响回归已同SHA全绿；进入严格weaknet主测与补丁性能A/B前的只读诊断/账本建设。",
+    "P5": "REOPENED: 无损真实路径校准已闭合；正在补18主测所需一等成本/资源诊断，尚未启动18个120s样本。",
     "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {

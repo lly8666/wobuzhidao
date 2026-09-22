@@ -35,9 +35,11 @@ type gameTunnelState struct {
 	encoder *gamelane.Encoder
 	decoder *gamelane.Decoder
 
-	logicalOutbound uint64
-	laneCopies      uint64
-	delivered       uint64
+	logicalOutbound      uint64
+	logicalOutboundBytes uint64
+	laneCopies           uint64
+	laneCopyBytes        uint64
+	delivered            uint64
 	duplicates      uint64
 	stale           uint64
 	laneMismatches  uint64
@@ -114,7 +116,11 @@ func (o *TunnelOwner) GameOutbound(packet []byte, now time.Time) (GameOutboundRe
 	}
 	selector := o.paddingSelectorForPayloadLocked(packet, now)
 	state.logicalOutbound++
+	state.logicalOutboundBytes += uint64(len(packet))
 	state.laneCopies += uint64(len(copies))
+	for _, copy := range copies {
+		state.laneCopyBytes += uint64(len(copy.Wire))
+	}
 	o.mu.Unlock()
 
 	out := GameOutboundResult{

@@ -21,6 +21,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/linuxserver"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/platformflow"
+"github.com/lly8666/wobuzhidao/internal/qualificationdiag"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/runtimeentry"
 )
@@ -51,6 +52,8 @@ func main() {
 		nftForward = flag.String("nft-forward", "", "optional family:table:chain for nft forward policy")
 		lanes = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
 		idleDormant = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
+		diagnosticJSONL = flag.String("diagnostic-jsonl", "", "optional qualification diagnostics JSONL path; disabled by default")
+		diagnosticInterval = flag.Duration("diagnostic-interval", time.Second, "qualification diagnostics sample interval")
 	)
 	flag.Parse()
 	if handleVersion() {
@@ -75,6 +78,9 @@ func main() {
 	}
 	if *idleDormant < 0 {
 		log.Fatal("idle-dormant must be non-negative")
+	}
+	if *diagnosticJSONL != "" && *diagnosticInterval <= 0 {
+		log.Fatal("diagnostic-interval must be positive")
 	}
 
 	listenIP, err := netip.ParseAddr(*listenIPText)
@@ -192,7 +198,18 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	errCh := make(chan error, 2)
+	errCh := make(chan error, 3)
+	if *diagnosticJSONL != "" {
+		go func() {
+			errCh <- qualificationdiag.Run(ctx, *diagnosticJSONL, *diagnosticInterval, func(now time.Time) any {
+				snapshot, ok := server.TunnelDiagnosticSnapshot(tunnelID, now)
+				return struct {
+					Present bool                          `json:"present"`
+					Tunnel  runtimeentry.TunnelDiagnostic `json:"tunnel"`
+				}{Present: ok, Tunnel: snapshot}
+			})
+		}()
+	}
 	go func() { errCh <- server.Run(ctx) }()
 	go func() {
 		buf := make([]byte, 65535)

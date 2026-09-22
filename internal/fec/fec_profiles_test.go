@@ -419,6 +419,12 @@ func TestFastBlockEncoderStatsInventory(t *testing.T) {
 		stats.FullBlocks != 1 || stats.PartialBlocks != 1 || stats.PendingSources != 0 {
 		t.Fatalf("final stats=%+v", stats)
 	}
+	wantSourceBytes := uint64(DataShards+3) * uint64(HeaderSize+1)
+	wantParityBytes := uint64(WeakParityShards+3) * uint64(HeaderSize+1)
+	if stats.SourceBytes != wantSourceBytes || stats.ParityBytes != wantParityBytes {
+		t.Fatalf("wire byte inventory source=%d/%d parity=%d/%d stats=%+v",
+			stats.SourceBytes, wantSourceBytes, stats.ParityBytes, wantParityBytes, stats)
+	}
 }
 
 func TestDecoderRecoveryStatsCountOnlyReconstructedSources(t *testing.T) {

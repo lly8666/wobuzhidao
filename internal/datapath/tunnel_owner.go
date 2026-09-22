@@ -42,9 +42,11 @@ type TunnelOwnerStats struct {
 	PhysicalLanes      int
 	GenerationDiscards uint64
 	SourceDiscards     uint64
-	GameLogicalOutbound uint64
-	GameLaneCopies      uint64
-	GameDelivered       uint64
+	GameLogicalOutbound      uint64
+	GameLogicalOutboundBytes uint64
+	GameLaneCopies           uint64
+	GameLaneCopyBytes        uint64
+	GameDelivered            uint64
 	GameDuplicates      uint64
 	GameStale           uint64
 	GameLaneMismatches  uint64
@@ -628,7 +630,9 @@ func (o *TunnelOwner) Stats() TunnelOwnerStats {
 	}
 	if o.game != nil {
 		out.GameLogicalOutbound = o.game.logicalOutbound
+		out.GameLogicalOutboundBytes = o.game.logicalOutboundBytes
 		out.GameLaneCopies = o.game.laneCopies
+		out.GameLaneCopyBytes = o.game.laneCopyBytes
 		out.GameDelivered = o.game.delivered
 		out.GameDuplicates = o.game.duplicates
 		out.GameStale = o.game.stale

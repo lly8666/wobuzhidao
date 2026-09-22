@@ -21,11 +21,13 @@ import (
 // Returned wire slices remain valid until the corresponding backing slot is
 // reused. The UDP proxy sends returned slices synchronously before the next Add.
 type FastBlockEncoderStats struct {
-	SourceShards  uint64 `json:"source_shards"`
-	ParityShards  uint64 `json:"parity_shards"`
-	FullBlocks    uint64 `json:"full_blocks"`
-	PartialBlocks uint64 `json:"partial_blocks"`
-	PendingSources int   `json:"pending_sources"`
+	SourceShards   uint64 `json:"source_shards"`
+	SourceBytes    uint64 `json:"source_bytes"`
+	ParityShards   uint64 `json:"parity_shards"`
+	ParityBytes    uint64 `json:"parity_bytes"`
+	FullBlocks     uint64 `json:"full_blocks"`
+	PartialBlocks  uint64 `json:"partial_blocks"`
+	PendingSources int    `json:"pending_sources"`
 }
 
 type FastBlockEncoder struct {
@@ -95,9 +97,11 @@ func (e *FastBlockEncoder) Add(packet []byte, now time.Time) ([][]byte, error) {
 			return nil, err
 		}
 		e.stats.SourceShards++
+		e.stats.SourceBytes += uint64(len(wire))
 		return out, nil
 	}
 	e.stats.SourceShards++
+	e.stats.SourceBytes += uint64(len(wire))
 	return e.out[:1], nil
 }
 
@@ -153,6 +157,7 @@ func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 		marshalFastHeader(b[:HeaderSize], e.nextBlockID, index, dataCount, shardSize, e.parityShards, e.lengths)
 		copy(b[HeaderSize:], e.shardBuf[index][:shardSize])
 		e.out[offset+p] = b
+		e.stats.ParityBytes += uint64(len(b))
 	}
 
 	e.stats.ParityShards += uint64(parityCount)

@@ -140,9 +140,15 @@ type TransportStats struct {
 	FINAcked          uint64
 	RSTAttempts       uint64
 	RSTSent           uint64
-	PeakOutstanding   int
-	Outstanding       int
-	OutOfOrder        int
+	PeakOutstanding       int
+	Outstanding           int
+	OutstandingBytes      uint64
+	OldestOutstandingAge  time.Duration
+	RepairQueue           int
+	SACKedOutstanding     int
+	OutOfOrder            int
+	OutOfOrderBytes       uint64
+	OldestOutOfOrderAge   time.Duration
 	WriteClosed       bool
 	LocalFINAcked     bool
 	PeerFIN           bool
@@ -657,11 +663,44 @@ func (t *laneTransport) reset(now time.Time) error {
 }
 
 func (t *laneTransport) statsSnapshot() TransportStats {
+	return t.statsSnapshotAt(time.Now())
+}
+
+func (t *laneTransport) statsSnapshotAt(now time.Time) TransportStats {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	out := t.stats
 	out.Outstanding = len(t.pending)
+	out.RepairQueue = t.repairCount
+	out.SACKedOutstanding = t.sackedOutstanding
+	var oldestPending time.Time
+	for _, p := range t.pending {
+		if p == nil {
+			continue
+		}
+		if p.payload != nil {
+			out.OutstandingBytes += uint64(len(p.payload))
+		}
+		if !p.firstSent.IsZero() && (oldestPending.IsZero() || p.firstSent.Before(oldestPending)) {
+			oldestPending = p.firstSent
+		}
+	}
+	if !oldestPending.IsZero() && !now.Before(oldestPending) {
+		out.OldestOutstandingAge = now.Sub(oldestPending)
+	}
 	out.OutOfOrder = len(t.received)
+	var oldestOOO time.Time
+	for start, span := range t.received {
+		if seqLT(start, span.end) {
+			out.OutOfOrderBytes += uint64(span.end - start)
+		}
+		if !span.first.IsZero() && (oldestOOO.IsZero() || span.first.Before(oldestOOO)) {
+			oldestOOO = span.first
+		}
+	}
+	if !oldestOOO.IsZero() && !now.Before(oldestOOO) {
+		out.OldestOutOfOrderAge = now.Sub(oldestOOO)
+	}
 	out.RepairCreditBytes = t.repairCredit
 	out.SRTT = t.srtt
 	out.RTO = t.rto
@@ -1200,6 +1239,10 @@ func (r *Runtime) Tick(now time.Time) error {
 }
 
 func (r *Runtime) TransportStats(ref logicaltunnel.LaneRef) (TransportStats, bool) {
+	return r.TransportStatsAt(ref, time.Now())
+}
+
+func (r *Runtime) TransportStatsAt(ref logicaltunnel.LaneRef, now time.Time) (TransportStats, bool) {
 	if r == nil {
 		return TransportStats{}, false
 	}
@@ -1209,7 +1252,7 @@ func (r *Runtime) TransportStats(ref logicaltunnel.LaneRef) (TransportStats, boo
 	if transport == nil {
 		return TransportStats{}, false
 	}
-	return transport.statsSnapshot(), true
+	return transport.statsSnapshotAt(now), true
 }
 
 func (r *Runtime) Close() {

@@ -132,8 +132,10 @@ func TestGameOwnerRacesSamePacketIDAndFirstArrivalWins(t *testing.T) {
 		t.Fatalf("server game stats=%+v", stats)
 	}
 	clientStats := pair.client.Stats()
-	if clientStats.GameLogicalOutbound != 1 || clientStats.GameLaneCopies != 3 {
-		t.Fatalf("client game stats=%+v", clientStats)
+	wantCopyBytes := uint64(3 * (gamelane.HeaderSize + len(packet)))
+	if clientStats.GameLogicalOutbound != 1 || clientStats.GameLogicalOutboundBytes != uint64(len(packet)) ||
+		clientStats.GameLaneCopies != 3 || clientStats.GameLaneCopyBytes != wantCopyBytes {
+		t.Fatalf("client game stats=%+v want_copy_bytes=%d", clientStats, wantCopyBytes)
 	}
 
 	// Unique PacketIDs remain independently deliverable out of order.
