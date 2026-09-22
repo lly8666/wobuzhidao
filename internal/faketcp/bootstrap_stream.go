@@ -121,6 +121,24 @@ func (c *BootstrapStream) AvailableReceiveWindow() int {
 	return n
 }
 
+// steadyAdvertisedWindow is the nominal empty-receiver window used after
+// bootstrap ownership is detached. It deliberately does not inherit transient
+// BootstrapStream occupancy: steady delivery has a different bounded owner and
+// must not freeze an incidental zero-window snapshot for the rest of the lane.
+func steadyAdvertisedWindow(scaleSet bool) uint16 {
+	n := MaxBootstrapBufferedBytes
+	if scaleSet {
+		n >>= DefaultWindowScale
+		if n == 0 {
+			n = 1
+		}
+	}
+	if n > 65535 {
+		n = 65535
+	}
+	return uint16(n)
+}
+
 // Feed retains only bounded bootstrap reordering. A retransmission overlapping
 // already-consumed bytes is trimmed rather than duplicating data.
 func (c *BootstrapStream) Feed(seq uint32, payload []byte) {

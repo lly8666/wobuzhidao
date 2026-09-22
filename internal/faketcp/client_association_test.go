@@ -112,3 +112,64 @@ func TestClientAssociationBootstrapAndDetachHandoff(t *testing.T) {
 		t.Fatalf("handoff=%#v want_window=%d", handoff, wantWindow)
 	}
 }
+
+
+func TestClientDetachSteadyWindowIgnoresBootstrapOccupancy(t *testing.T) {
+	flow := ClientFlow{
+		LocalIP: [4]byte{192, 0, 2, 30}, PeerIP: [4]byte{192, 0, 2, 40},
+		LocalPort: 42000, PeerPort: 443,
+	}
+	emitted := make(chan Segment, 8)
+	assoc, err := NewClientAssociation(flow, 2000, time.Second, func(seg Segment) error {
+		emitted <- seg
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer assoc.Close()
+
+	now := time.Unix(200, 0)
+	if err := assoc.Start(now); err != nil {
+		t.Fatal(err)
+	}
+	<-emitted // SYN
+	synack := Segment{
+		SrcIP: flow.PeerIP, DstIP: flow.LocalIP,
+		SrcPort: flow.PeerPort, DstPort: flow.LocalPort,
+		Seq: 10000, Ack: 2001, Flags: FlagSYN | FlagACK, Window: 32000,
+		MSS: 1280, MSSSet: true, SACKPermitted: true,
+		WindowScale: 4, WindowScaleSet: true,
+	}
+	if err := assoc.HandleSegment(synack, now.Add(time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if err := assoc.WaitEstablished(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	<-emitted // final handshake ACK
+
+	assoc.bootstrap.Feed(10001, bytes.Repeat([]byte{0x7a}, MaxBootstrapBufferedBytes))
+	assoc.mu.Lock()
+	bootstrapWindow := assoc.advertisedWindowLocked()
+	assoc.mu.Unlock()
+	if bootstrapWindow != 0 {
+		t.Fatalf("bootstrap window=%d want=0 at full buffer", bootstrapWindow)
+	}
+
+	handoff, err := assoc.Detach()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := steadyAdvertisedWindow(true)
+	if want != uint16(MaxBootstrapBufferedBytes>>DefaultWindowScale) {
+		t.Fatalf("steady helper=%d unexpected", want)
+	}
+	if handoff.AdvertisedWindow != want || !handoff.WindowScaleSet ||
+		handoff.WindowScale != DefaultWindowScale {
+		t.Fatalf("handoff=%+v want steady window=%d scale=%d", handoff, want, DefaultWindowScale)
+	}
+	if got := steadyAdvertisedWindow(false); got != 65535 {
+		t.Fatalf("unscaled steady window=%d want=65535", got)
+	}
+}

@@ -59,12 +59,13 @@
     "P4增强第1原子修复：runtimeowner repair/gap-ACK仲裁在SOURCE_SHA e3253322ac863c11636f1c127e14b77bdc6bf800的定向Actions已通过repository-contract、Windows/Linux active-go（Linux含race）、OpenWrt privileged与Linux shared-TUN iptables/nft；repair选择/尝试/成功/失败分离且gap forgiveness不再覆盖已选repair。",
     "P4增强第2原子FIN/RST/半关闭：SOURCE_SHA 1cfe913199f7df67f05158e044cbec02771f29a8 / Actions 35669709080 定向资格已通过repository-contract、Windows active-go、Ubuntu active-go+race、P5 HTTPS base、OpenWrt privileged及Linux shared-TUN iptables/nft；Game4固定duplicates>=lanes-1并等待异步lane drain，replacement/DORMANT late-control race已收口。整轮长时P5 jobs当时仍运行，不提前写成整轮PASS。",
     "P4增强第3原子：有界SACK/payload退役、fresh优先repair credit、Karn-safe RTT/RTO与effective-RTO/3s horizon修正，在SOURCE_SHA d019858265353f55a25e9e55b9dcef3808407198的targeted 35676831976 6/6 PASS及foundation 35676831973整轮PASS；30%旧回归两个seed恢复且DORMANT race闭环。",
-    "P4增强第4原子：runtimeowner累计ACK改为单调head增量退役、pending仅>=1024前缀摊销压缩；sender SACK只处理新覆盖区间，receiver线上仅维护4块增量SACK；repair链单tick最多256候选旋转扫描。SOURCE_SHA ce950d4877ecb51001b6ab2517f6b43a6edadac3 / targeted Actions 35681889099 6/6 PASS / foundation 35681889120整轮PASS。"
+    "P4增强第4原子：runtimeowner累计ACK改为单调head增量退役、pending仅>=1024前缀摊销压缩；sender SACK只处理新覆盖区间，receiver线上仅维护4块增量SACK；repair链单tick最多256候选旋转扫描。SOURCE_SHA ce950d4877ecb51001b6ab2517f6b43a6edadac3 / targeted Actions 35681889099 6/6 PASS / foundation 35681889120整轮PASS。",
+    "P4第5原子回归修正1（fresh fast-repair重排门）：SOURCE_SHA fbc8555a3c62a11ee91a65dbe578f811da414d87 targeted 35688342802 PASS；foundation 35688342844 的fixed-FEC lossless恢复0 repair，证明10ms已有RACK重排门阻止3.29ms无损短重排误修，同时40/50ms既有fast-repair恢复。foundation整体仍因独立post5护栏FAIL，未关闭第5原子。"
   ],
-  "in_progress": "P4第5原子回归修正1b待Actions：59fa2e2e的fresh fast-repair时间门方向正确，但额外要求candidate.lastSent严格早于rackLatestTx；批量fresh send共享同一t0，导致40/50ms既有fast-repair和12ms新测试都被错误禁用。当前修正只保留>=3 SACK + candidate年龄>=RACK reordering window；3.29ms lossless伪repair仍被挡。",
-  "next_task": "先跑本exact-SHA targeted和foundation；重点确认runtimeowner fast-repair单测恢复且p5-fixed-fec lossless repair=0。通过后再独立处理platformflow 5s FlowID tombstone不足和server steady Window冻结bootstrap瞬时0的问题。",
-  "latest_log": "docs/devlog/20260922-135500-fast-repair-batch-timestamp.md",
-  "last_tested_source_sha": "59fa2e2eb2553751cf2d357063e3fee73404f2ab",
+  "in_progress": "P4第5原子回归修正2已实现待Actions：bootstrap阶段继续按真实缓冲占用动态广告Window；detach后client/server steady presentation不再冻结bootstrap瞬时occupancy（可为0），而使用统一稳态名义窗口。协商WS=8时raw Window=1024，未协商WS时65535。只改handoff窗口来源，不改bootstrap sender流控、RTO/FEC/repair预算。",
+  "next_task": "先跑本exact-SHA targeted和foundation；要求bootstrap=0/steady=1024测试、Linux/Windows core、race、lifecycle、iptables/nft全PASS，并观察旧5->30->5 run1 post5护栏是否恢复。若仍红，保留结果后单独处理platformflow FlowID tombstone 5s不足，不把两个根因混在同一提交。",
+  "latest_log": "docs/devlog/20260922-143500-steady-window-detach-boundary.md",
+  "last_tested_source_sha": "fbc8555a3c62a11ee91a65dbe578f811da414d87",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -940,6 +941,20 @@
       "scope": "P4-item5-fast-repair-reorder-gate-targeted",
       "status": "FAIL",
       "note": "contract/lifecycle/iptables/nft PASS；Linux/Windows steady-core同时FAIL。根因不是平台：批量send给fresh records相同lastSent，新增严格candidate.lastSent<rackLatestTx条件使40/50ms既有fast-repair及12ms新测试均无法触发。"
+    },
+    {
+      "source_sha": "fbc8555a3c62a11ee91a65dbe578f811da414d87",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35688342802",
+      "scope": "P4-item5-fast-repair-batch-timestamp-targeted",
+      "status": "PASS_TARGETED",
+      "note": "next-p4-steady-targeted全部PASS；59fa严格lastSent<rackLatestTx错误已在fbc8555a修正，Linux/Windows steady-core、race、lifecycle、iptables/nft恢复。"
+    },
+    {
+      "source_sha": "fbc8555a3c62a11ee91a65dbe578f811da414d87",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35688342844",
+      "scope": "P4-item5-fast-repair-batch-timestamp-foundation",
+      "status": "FAIL",
+      "note": "foundation仅剩p5-weaknet-5-30-5 run1红灯；fixed-FEC lossless已恢复PASS，说明3.29ms伪fast-repair根因闭环。run1产品120s测试本身PASS（32/40, repair=613），但离线严格post5门FAIL：final-5%计划请求仅#31/#32连续成功，#33响应体在120s结束前超时，无法形成第三次连续成功。artifact 10678248663 zip sha256=720df6e99895478459dad0b9f0f36946ebf6db158c9c0ccf7bc7b0ba39eb08ba。失败保留，不降低分析器门槛。"
     }
   ],
   "physical_status": "NOT_RUN",

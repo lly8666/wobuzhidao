@@ -345,7 +345,7 @@ func (a *ClientAssociation) Detach() (ClientHandoff, error) {
 		SendNext: a.sender.NextSeq(),
 		ReceiveNext: a.bootstrap.NextSeq(),
 		Peer: a.peer,
-		AdvertisedWindow: a.advertisedWindowLocked(),
+		AdvertisedWindow: steadyAdvertisedWindow(a.peer.WindowScaleSet),
 		WindowScale: DefaultWindowScale,
 		WindowScaleSet: a.peer.WindowScaleSet,
 	}

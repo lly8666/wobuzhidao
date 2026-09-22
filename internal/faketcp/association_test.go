@@ -948,3 +948,23 @@ func TestServerSteadyWindowProfileMatchesPostHandshakeACK(t *testing.T) {
 			ack.Window, window, scale, scaleSet, want, DefaultWindowScale)
 	}
 }
+
+
+func TestServerSteadyWindowIgnoresBootstrapOccupancy(t *testing.T) {
+	a, _ := establishP2(t, func(Segment) error { return nil })
+	defer a.Close()
+
+	next := a.BootstrapNext()
+	a.bootstrap.Feed(next, bytes.Repeat([]byte{0x5a}, MaxBootstrapBufferedBytes))
+	bootstrapACK := a.ACKSegment(a.BootstrapNext())
+	if bootstrapACK.Window != 0 {
+		t.Fatalf("bootstrap ACK window=%d want=0 at full buffer", bootstrapACK.Window)
+	}
+
+	window, scale, scaleSet := a.SteadyWindowProfile()
+	want := steadyAdvertisedWindow(true)
+	if window != want || !scaleSet || scale != DefaultWindowScale {
+		t.Fatalf("steady profile window=%d scale=%d set=%v want=%d/%d",
+			window, scale, scaleSet, want, DefaultWindowScale)
+	}
+}

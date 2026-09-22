@@ -161,13 +161,14 @@ func (a *ServerAssociation) PeerTCPProfile() PeerTCPProfile {
 	return a.peer
 }
 
-// SteadyWindowProfile snapshots the server's exact post-handshake window
-// presentation at the ownership handoff. Window scaling is SYN-only metadata;
-// steady packets keep the negotiated encoded Window value without re-sending WS.
+// SteadyWindowProfile returns the server's post-bootstrap steady presentation.
+// Bootstrap ACKs still advertise their real instantaneous receive-window
+// occupancy, including zero. The detached steady owner must not inherit that
+// transient occupancy snapshot because it has a different bounded receive path.
 func (a *ServerAssociation) SteadyWindowProfile() (window uint16, scale uint8, scaleSet bool) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	return a.advertisedWindowLocked(true), DefaultWindowScale, a.peer.WindowScaleSet
+	return steadyAdvertisedWindow(a.peer.WindowScaleSet), DefaultWindowScale, a.peer.WindowScaleSet
 }
 
 func (a *ServerAssociation) BootstrapConn() net.Conn { return a.bootstrap }
