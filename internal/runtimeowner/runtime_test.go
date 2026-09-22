@@ -1314,3 +1314,71 @@ func TestSteadyTransportPreservesHandoffWindowScale(t *testing.T) {
 		t.Fatalf("steady presentation stats=%+v ok=%v", stats, ok)
 	}
 }
+
+
+func TestSteadyFreshFastRepairWaitsForReorderingWindow(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 16)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wire []faketcp.Segment
+	rt, err := New(owner, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rt.Close()
+	cfg, _ := transportPair(func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 65400)
+	cfg.SACKPermitted = true
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 90), cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9800, 0)
+	records := make([]datapath.WireRecord, 5)
+	for i := range records {
+		records[i].Wire = bytes.Repeat([]byte{byte(0xa0 + i)}, 64)
+	}
+	if err := tr.send(records, t0); err != nil {
+		t.Fatal(err)
+	}
+	if len(wire) != 5 {
+		t.Fatalf("fresh wire=%d want=5", len(wire))
+	}
+	sack := faketcp.Segment{
+		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
+		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
+		Seq: cfg.ReceiveNext, Ack: wire[0].Seq,
+		Flags: faketcp.FlagACK, Window: 65535, SACKN: 1,
+	}
+	sack.SACK[0] = faketcp.SACKBlock{
+		Start: wire[1].Seq,
+		End: wire[4].Seq + uint32(len(wire[4].Payload)),
+	}
+
+	// A lossless concurrent path can expose three later records within a few
+	// milliseconds while the first is merely reordered. SACK must still retire
+	// later payload, but fresh fast repair waits for the existing RACK
+	// reordering window (minimum 10ms).
+	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(3*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	stats, _ := rt.TransportStats(snap.Ref)
+	if len(wire) != 5 || stats.SACKed != 4 || stats.FastRepairs != 0 {
+		t.Fatalf("premature fast repair wire=%d stats=%+v", len(wire), stats)
+	}
+
+	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(12*time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	stats, _ = rt.TransportStats(snap.Ref)
+	if len(wire) != 6 || wire[5].Seq != wire[0].Seq ||
+		!bytes.Equal(wire[5].Payload, wire[0].Payload) ||
+		stats.FastRepairs != 1 || stats.Retransmitted != 1 {
+		t.Fatalf("aged fast repair wire=%+v stats=%+v", wire, stats)
+	}
+}

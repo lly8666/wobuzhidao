@@ -326,7 +326,10 @@ func (t *laneTransport) selectFastRepairLocked(now time.Time) *selectedRepair {
 		}
 		return t.prepareFastRepairLocked(candidate, now)
 	}
-	if t.sackedOutstanding < 3 {
+	if t.sackedOutstanding < 3 || t.rackLatestTx.IsZero() || candidate.lastSent.IsZero() ||
+		!candidate.lastSent.Before(t.rackLatestTx) ||
+		now.Before(candidate.lastSent) ||
+		now.Sub(candidate.lastSent) < t.rackReorderingWindowLocked() {
 		return nil
 	}
 	return t.prepareFastRepairLocked(candidate, now)

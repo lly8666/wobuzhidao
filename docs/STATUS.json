@@ -61,10 +61,10 @@
     "P4增强第3原子：有界SACK/payload退役、fresh优先repair credit、Karn-safe RTT/RTO与effective-RTO/3s horizon修正，在SOURCE_SHA d019858265353f55a25e9e55b9dcef3808407198的targeted 35676831976 6/6 PASS及foundation 35676831973整轮PASS；30%旧回归两个seed恢复且DORMANT race闭环。",
     "P4增强第4原子：runtimeowner累计ACK改为单调head增量退役、pending仅>=1024前缀摊销压缩；sender SACK只处理新覆盖区间，receiver线上仅维护4块增量SACK；repair链单tick最多256候选旋转扫描。SOURCE_SHA ce950d4877ecb51001b6ab2517f6b43a6edadac3 / targeted Actions 35681889099 6/6 PASS / foundation 35681889120整轮PASS。"
   ],
-  "in_progress": "P4第5原子已实现待Actions：FakeTCP客户端修正WS协商后的post-handshake Window编码，并把detach时本端AdvertisedWindow/WS精确交给steady TransportConfig；server同样快照当前窗口。runtimeowner所有steady data/ACK/FIN/RST使用该窗口，不再固定65535。datapath handoff只接受serializer真实steady carrier头20B IPv4+20B TCP，MSS继续来自握手；四块SACK ACK/control实际56B TCP头由serializer测试验证且不伪装成data header。persona继续由同一Raw/Npcap endpoint贯穿建连与稳态，timestamps未实现且未伪造。",
-  "next_task": "先跑本第5原子exact-SHA next-p4-steady-targeted，要求contract、Linux/Windows steady-core、Linux race、lifecycle、iptables/nft全部PASS；再要求next-foundation旧20/30%弱网、active-go、privileged、load/soak不倒退。通过后开始专项第5节真实Linux netns/veth/netem正式进程无损闭环与校准，不能直接跳到18份主测。",
-  "latest_log": "docs/devlog/20260922-124500-steady-persona-mtu-continuity.md",
-  "last_tested_source_sha": "ce950d4877ecb51001b6ab2517f6b43a6edadac3",
+  "in_progress": "P4第5原子回归修正1待Actions：aa7ec95d targeted 6/6 PASS，但foundation暴露lossless fixed-FEC一次3.29ms伪fast-repair，以及两个旧30% HTTPS红灯。本提交只修第一个根因：fresh fast-repair除>=3个SACK证据外，也必须经过已有RACK reordering window（最低10ms）；不改repair credit/RTO/horizon/FEC。",
+  "next_task": "先跑本exact-SHA targeted，并重点看p5-https-measurement-base fixed-FEC是否恢复0 repair；若通过，再独立修platformflow已退役FlowID的5s tombstone不足以覆盖inner retransmit+outer repair的迟到帧问题。之后再修server steady Window从bootstrap瞬时0快照的问题。",
+  "latest_log": "docs/devlog/20260922-131500-fast-repair-reordering-gate.md",
+  "last_tested_source_sha": "aa7ec95dca504e819f1c09d6a5cd7a4b3519c68f",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -919,6 +919,20 @@
       "scope": "P4-item4-incremental-index-foundation",
       "status": "PASS",
       "note": "next-foundation整轮PASS：repository-contract、Windows/Linux active-go、p4-openwrt、Linux shared-TUN、非FEC 5→20→5/5→30→5各2 seed、FEC20:20对应20/30%各2 seed、load/soak/HTTPS base及历史P6 jobs均成功；这些旧HTTPS/内存损伤门只作回归，不替代新增真实路径UDP资格。"
+    },
+    {
+      "source_sha": "aa7ec95dca504e819f1c09d6a5cd7a4b3519c68f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35684241526",
+      "scope": "P4-item5-presentation-targeted",
+      "status": "PASS_TARGETED",
+      "note": "next-p4-steady-targeted 6/6 PASS：contract、Linux/Windows steady-core（Linux含race）、lifecycle-focus、iptables/nft privileged全部成功。"
+    },
+    {
+      "source_sha": "aa7ec95dca504e819f1c09d6a5cd7a4b3519c68f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35684241516",
+      "scope": "P4-item5-presentation-foundation",
+      "status": "FAIL",
+      "note": "foundation有3个红灯：p5-fixed-fec lossless出现1次repair；p5-weaknet-5-30-5 run1 server transport消失并报unknown TCP server flow；run2产品测试完成29/40但旧post5分析器无法复算。其余active-go、20%弱网、FEC20:20、privileged、load/soak、P6均PASS。保留失败样本，不关闭第5项。"
     }
   ],
   "physical_status": "NOT_RUN",
