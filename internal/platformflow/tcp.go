@@ -12,10 +12,16 @@ import (
 )
 
 const (
-	DefaultTCPIdleTimeout    = 90 * time.Second
-	DefaultTCPDialTimeout    = 10 * time.Second
-	DefaultMaxTCPFlows       = 4096
-	DefaultTCPRetiredTimeout = 5 * time.Second
+	DefaultTCPIdleTimeout = 90 * time.Second
+	DefaultTCPDialTimeout = 10 * time.Second
+	DefaultMaxTCPFlows    = 4096
+
+	// A peer may continue its inner reliable retransmissions for 4s with the
+	// default 500ms RTO / 8-retransmit budget after this side has retired a
+	// flow. The final inner frame can then remain live in the steady outer
+	// repair horizon for another 3s. Keep one extra second for delivery/tick
+	// skew without increasing the bounded retired-ID capacity.
+	DefaultTCPRetiredTimeout = 8 * time.Second
 	DefaultMaxTCPRetired     = 4096
 )
 

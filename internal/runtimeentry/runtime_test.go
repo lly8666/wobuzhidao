@@ -24,6 +24,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/platformflow"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
+	"github.com/lly8666/wobuzhidao/internal/runtimeowner"
 )
 
 type memorySegmentEndpoint struct {
@@ -276,4 +277,20 @@ func runtimeCertificate(t *testing.T) tls.Certificate {
 		t.Fatal(err)
 	}
 	return cert
+}
+
+
+func TestPlatformFlowRetiredTimeoutCoversSteadyRepairTail(t *testing.T) {
+	cfg := platformflow.DefaultTCPConfig()
+	innerTail := time.Duration(cfg.Reliability.MaxRetransmits) * cfg.Reliability.RTO
+	// One second is bounded delivery/tick slack beyond the qualification's
+	// 300ms one-way path. Capacity stays independently capped at 4096 IDs.
+	minimum := innerTail + runtimeowner.DefaultRepairHorizon + time.Second
+	if cfg.RetiredTimeout < minimum {
+		t.Fatalf("retired timeout=%v want >= inner=%v + outer=%v + slack=1s",
+			cfg.RetiredTimeout, innerTail, runtimeowner.DefaultRepairHorizon)
+	}
+	if cfg.MaxRetiredFlows != platformflow.DefaultMaxTCPRetired {
+		t.Fatalf("retired capacity=%d want=%d", cfg.MaxRetiredFlows, platformflow.DefaultMaxTCPRetired)
+	}
 }

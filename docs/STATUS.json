@@ -60,12 +60,13 @@
     "P4增强第2原子FIN/RST/半关闭：SOURCE_SHA 1cfe913199f7df67f05158e044cbec02771f29a8 / Actions 35669709080 定向资格已通过repository-contract、Windows active-go、Ubuntu active-go+race、P5 HTTPS base、OpenWrt privileged及Linux shared-TUN iptables/nft；Game4固定duplicates>=lanes-1并等待异步lane drain，replacement/DORMANT late-control race已收口。整轮长时P5 jobs当时仍运行，不提前写成整轮PASS。",
     "P4增强第3原子：有界SACK/payload退役、fresh优先repair credit、Karn-safe RTT/RTO与effective-RTO/3s horizon修正，在SOURCE_SHA d019858265353f55a25e9e55b9dcef3808407198的targeted 35676831976 6/6 PASS及foundation 35676831973整轮PASS；30%旧回归两个seed恢复且DORMANT race闭环。",
     "P4增强第4原子：runtimeowner累计ACK改为单调head增量退役、pending仅>=1024前缀摊销压缩；sender SACK只处理新覆盖区间，receiver线上仅维护4块增量SACK；repair链单tick最多256候选旋转扫描。SOURCE_SHA ce950d4877ecb51001b6ab2517f6b43a6edadac3 / targeted Actions 35681889099 6/6 PASS / foundation 35681889120整轮PASS。",
-    "P4第5原子回归修正1（fresh fast-repair重排门）：SOURCE_SHA fbc8555a3c62a11ee91a65dbe578f811da414d87 targeted 35688342802 PASS；foundation 35688342844 的fixed-FEC lossless恢复0 repair，证明10ms已有RACK重排门阻止3.29ms无损短重排误修，同时40/50ms既有fast-repair恢复。foundation整体仍因独立post5护栏FAIL，未关闭第5原子。"
+    "P4第5原子回归修正1（fresh fast-repair重排门）：SOURCE_SHA fbc8555a3c62a11ee91a65dbe578f811da414d87 targeted 35688342802 PASS；foundation 35688342844 的fixed-FEC lossless恢复0 repair，证明10ms已有RACK重排门阻止3.29ms无损短重排误修，同时40/50ms既有fast-repair恢复。foundation整体仍因独立post5护栏FAIL，未关闭第5原子。",
+    "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。"
   ],
-  "in_progress": "P4第5原子回归修正2已实现待Actions：bootstrap阶段继续按真实缓冲占用动态广告Window；detach后client/server steady presentation不再冻结bootstrap瞬时occupancy（可为0），而使用统一稳态名义窗口。协商WS=8时raw Window=1024，未协商WS时65535。只改handoff窗口来源，不改bootstrap sender流控、RTO/FEC/repair预算。",
-  "next_task": "先跑本exact-SHA targeted和foundation；要求bootstrap=0/steady=1024测试、Linux/Windows core、race、lifecycle、iptables/nft全PASS，并观察旧5->30->5 run1 post5护栏是否恢复。若仍红，保留结果后单独处理platformflow FlowID tombstone 5s不足，不把两个根因混在同一提交。",
-  "latest_log": "docs/devlog/20260922-143500-steady-window-detach-boundary.md",
-  "last_tested_source_sha": "fbc8555a3c62a11ee91a65dbe578f811da414d87",
+  "in_progress": "P4第5原子回归修正3已实现待Actions：platformflow retired FlowID tombstone默认从5s延长到8s，容量仍4096。依据当前默认链路：内层TCP reliability 500ms RTO、8次重传额度使最后合法内层重传约在4s；最后frame进入steady outer后仍可在3s repair horizon内留下迟到副本，另留1s delivery/tick余量。迟到ACK/Data在7s仍忽略，8s到期后真正陌生/过期FlowID继续fail-closed。",
+  "next_task": "先跑本exact-SHA targeted和foundation；重点验证platformflow/runtimeentry新tombstone测试、Windows/Linux core+race、旧5->30->5不再出现unknown TCP server flow。08e6637e的window边界targeted已6/6 PASS，foundation提交本原子时28/30 PASS且两个30%非FEC seed均PASS，仅两个soak仍运行；不得提前写整轮PASS。",
+  "latest_log": "docs/devlog/20260922-150500-platformflow-retired-tail.md",
+  "last_tested_source_sha": "08e6637e2899f876794eb787e4399c1eb45d30ee",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -955,6 +956,20 @@
       "scope": "P4-item5-fast-repair-batch-timestamp-foundation",
       "status": "FAIL",
       "note": "foundation仅剩p5-weaknet-5-30-5 run1红灯；fixed-FEC lossless已恢复PASS，说明3.29ms伪fast-repair根因闭环。run1产品120s测试本身PASS（32/40, repair=613），但离线严格post5门FAIL：final-5%计划请求仅#31/#32连续成功，#33响应体在120s结束前超时，无法形成第三次连续成功。artifact 10678248663 zip sha256=720df6e99895478459dad0b9f0f36946ebf6db158c9c0ccf7bc7b0ba39eb08ba。失败保留，不降低分析器门槛。"
+    },
+    {
+      "source_sha": "08e6637e2899f876794eb787e4399c1eb45d30ee",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35692660972",
+      "scope": "P4-item5-steady-window-detach-targeted",
+      "status": "PASS_TARGETED",
+      "note": "next-p4-steady-targeted 6/6 PASS：contract、Linux/Windows steady-core、Linux race、lifecycle-focus、iptables/nft privileged全部成功；bootstrap动态Window与steady名义Window分离未破坏核心闭包。"
+    },
+    {
+      "source_sha": "08e6637e2899f876794eb787e4399c1eb45d30ee",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35692661039",
+      "scope": "P4-item5-steady-window-detach-foundation-in-progress",
+      "status": "IN_PROGRESS",
+      "note": "提交下一原子时foundation 28/30 jobs PASS、0 FAIL，仅两个soak仍运行；p5-weaknet-5-30-5 run1/run2均已PASS，run1上一SHA的post5红灯已恢复。不能在soak完成前标整轮PASS。"
     }
   ],
   "physical_status": "NOT_RUN",

@@ -365,3 +365,58 @@ func TestTCPRetiredFlowTailIsBoundedAndUnknownStillFailsClosed(t *testing.T) {
 		t.Fatalf("concurrent closed server data err=%v", err)
 	}
 }
+
+
+func TestDefaultTCPRetiredTimeoutCoversLateReliableTail(t *testing.T) {
+	cfg := DefaultTCPConfig()
+	if cfg.RetiredTimeout != 8*time.Second || cfg.MaxRetiredFlows != DefaultMaxTCPRetired {
+		t.Fatalf("default retired config timeout=%v max=%d", cfg.RetiredTimeout, cfg.MaxRetiredFlows)
+	}
+
+	start := time.Unix(900, 0)
+	client := &TCPClient{
+		flows:   make(map[uint64]*tcpClientFlow),
+		retired: newTCPRetiredSet(cfg.RetiredTimeout, cfg.MaxRetiredFlows),
+	}
+	server := &TCPServer{
+		flows:   make(map[uint64]*tcpServerFlow),
+		retired: newTCPRetiredSet(cfg.RetiredTimeout, cfg.MaxRetiredFlows),
+		dial: func(context.Context, string, string) (net.Conn, error) {
+			t.Fatal("late retired frame must not recreate an upstream")
+			return nil, ErrMalformed
+		},
+	}
+	client.retired.add(77, start)
+	server.retired.add(77, start)
+
+	// Five seconds used to expire the tombstone. A legitimate frame that is
+	// still within the derived inner+outer tail must remain harmless.
+	late := start.Add(7 * time.Second)
+	for _, frame := range []Frame{
+		{Kind: KindTCPAck, FlowID: 77, Offset: 4096},
+		{Kind: KindTCPData, FlowID: 77, Offset: 4096, Payload: []byte("late-tail")},
+	} {
+		if err := client.Handle(frame, late); err != nil {
+			t.Fatalf("client late retired frame kind=%d err=%v", frame.Kind, err)
+		}
+		if err := server.Handle(frame, late); err != nil {
+			t.Fatalf("server late retired frame kind=%d err=%v", frame.Kind, err)
+		}
+	}
+
+	unknown := Frame{Kind: KindTCPAck, FlowID: 78}
+	if err := client.Handle(unknown, late); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("unknown client flow err=%v want ErrMalformed", err)
+	}
+	if err := server.Handle(unknown, late); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("unknown server flow err=%v want ErrMalformed", err)
+	}
+
+	expired := start.Add(cfg.RetiredTimeout)
+	if err := client.Handle(Frame{Kind: KindTCPAck, FlowID: 77}, expired); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("expired client tombstone err=%v want ErrMalformed", err)
+	}
+	if err := server.Handle(Frame{Kind: KindTCPAck, FlowID: 77}, expired); !errors.Is(err, ErrMalformed) {
+		t.Fatalf("expired server tombstone err=%v want ErrMalformed", err)
+	}
+}
