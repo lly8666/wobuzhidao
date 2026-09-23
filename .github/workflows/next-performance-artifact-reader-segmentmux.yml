@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - .github/perf-artifact-clientdrop-request.json
       - .github/workflows/next-performance-artifact-reader-segmentmux.yml
 
 permissions:
