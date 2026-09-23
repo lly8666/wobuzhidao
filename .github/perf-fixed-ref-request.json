@@ -1,11 +1,11 @@
 {
   "ref": "next/tlslike-dataplane",
-  "expected_sha": "8a4536bf1a56a9d7145b3e9067f76aa43ffab848",
+  "expected_sha": "18a8b044879c65c0e13ff0c3b04c4295483348dc",
   "workflow": "next-strict-weaknet.yml",
-  "mode": "game",
-  "scenario": "5305",
-  "seed": "303",
-  "rate_mbps": "3",
-  "lanes": "4",
-  "reason": "second exact-SHA canary after bounded client SegmentMux burst fix"
+  "mode": "normal",
+  "scenario": "lossless",
+  "seed": "101",
+  "rate_mbps": "10",
+  "lanes": "1",
+  "reason": "bounded head-repair follow-up comparison sample 1/3; exact-SHA Normal lossless"
 }
