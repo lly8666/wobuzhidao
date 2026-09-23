@@ -113,7 +113,11 @@ def main():
    p=prod(final,side)or{}
    if p.get("lease4")!="10.66.0.2/32":err.append(f"{side} lease drift {p.get('lease4')}")
   if active and parity(active,side)!=[x.fec]:err.append(f"{side} fec effective {parity(active,side)} want {[x.fec]}")
- if x.scenario not in ("l6_race1","l6_race4") and lc and ls:
+ # Final ACTIVE is only a hard invariant when auto-idle is disabled. Scenarios
+ # with a positive idle threshold may legitimately settle to DORMANT after the
+ # final traffic generator drain; their scenario-specific gates verify the
+ # relevant active/fault/recovery windows instead.
+ if x.scenario in ("l0_config","l4_old_tuple","l4_all_tuple","l5_syn","l5_tls","l5_admission","l5_detach","l7_defaults") and lc and ls:
   for side,r in (("client",lc),("server",ls)):
    o=own(r,side)
    if int(o.get("ActiveLogicalLanes",0)or 0)!=x.lanes:err.append(f"{side} final lanes {o.get('ActiveLogicalLanes')}")
@@ -220,7 +224,7 @@ def main():
   wb=load(root/"wake-biz.json") if (root/"wake-biz.json").exists() else {}
   wt=load(root/"wake-target.json") if (root/"wake-target.json").exists() else {}
   if int(blocked.get("sent",0)or 0)!=16 or int(blocked.get("send_errors",0)or 0)!=0:err.append(f"blackhole wake sender {blocked}")
-  if int(rb.get("sent",0)or 0)!=8 or int(rb.get("send_errors",0)or 0)!=0 or int(rt.get("received_unique",0)or 0)<1:err.append(f"post-clear recovery probe biz={rb} target={rt}")
+  if int(rb.get("sent",0)or 0)!=8 or int(rb.get("send_errors",0)or 0)!=0 or int(rt.get("received_unique",0)or 0)<1 or int(rt.get("corrupt",0)or 0)!=0 or int(rt.get("unexpected",0)or 0)>16:err.append(f"post-clear recovery probe biz={rb} target={rt}")
   if int(wb.get("sent",0)or 0)!=100 or int(wb.get("send_errors",0)or 0)!=0:err.append(f"wake driver sender {wb}")
   if int(wt.get("received_unique",0)or 0)!=100 or int(wt.get("corrupt",0)or 0)!=0 or int(wt.get("unexpected",0)or 0)!=0:err.append(f"wake driver target {wt}")
 

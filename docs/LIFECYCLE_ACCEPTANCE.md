@@ -34,6 +34,8 @@
 
 恢复成功按“恢复后持续 30s 可交付且 bounded state 收敛”，不要求高丢包下首次换 lane 成功。给出首次怀疑/每次 admission/成功/业务恢复时间；恢复预算与 dead-after、候选绝对 timeout、backoff 相符，超预算必须 FAIL，不能只无限等到成功。
 
+L6 的黑洞阶段只验证“业务活动证据不会被当成 idle、失败后仍可再次唤醒、重试有界”，不要求 UDP payload 在故障期间可交付。清障后旧端口可能出现故障期间已进入本地队列的迟到 UDP；这些必须单独计数且不得超过该阶段实际发送数，不能混入严格竞态结论。严格的 100 次 cutoff race 使用独立端口/seed，要求 clear-path 100/100 unique、corrupt=0、unexpected=0。
+
 ## 第三关：弱网质量与额外开销
 
 沿用正式目标：Normal 单 lane FEC20:20，10Mbps **每方向**；Game 四 lane FEC20:20，3Mbps **逻辑业务每方向**。均使用当前大中小混包，不用大包替换。300ms 单向、30/60/30s 的 5%→20%/30%→5%，各两个固定 seed。另补 FEC off 稀疏 TLS 链路 + padding off/on、FEC20:4/10 小矩阵验证配置连通与无 HOL；不能拿低档实验替代目标负载。

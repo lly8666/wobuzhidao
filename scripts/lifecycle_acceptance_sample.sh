@@ -109,7 +109,7 @@ import time
 print(time.monotonic_ns()+2_000_000_000)
 PY
 )"
-   ip netns exec "$TGT" python3 "$WAKE" --role target --bind 10.50.0.2:18081 --start-ns "$st" --count 8 --interval 1.25 --min-received 1 --seed "$((SEED*100+11))" --output "$ART/recovery-target.json" >"$ART/recovery-target.log" 2>&1 & TGT_PID="$!"
+   ip netns exec "$TGT" python3 "$WAKE" --role target --bind 10.50.0.2:18081 --start-ns "$st" --count 8 --interval 1.25 --min-received 1 --max-unexpected 16 --seed "$((SEED*100+11))" --output "$ART/recovery-target.json" >"$ART/recovery-target.log" 2>&1 & TGT_PID="$!"
    ip netns exec "$BIZ" python3 "$WAKE" --role biz --bind 10.40.0.2:28081 --peer 10.50.0.2:18081 --start-ns "$st" --count 8 --interval 1.25 --seed "$((SEED*100+11))" --output "$ART/recovery-biz.json" >"$ART/recovery-biz.log" 2>&1 & BIZ_PID="$!"
    event wake_recovery_driver_spawn client_originated_8
    wait_traffic

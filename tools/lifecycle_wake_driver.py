@@ -55,11 +55,13 @@ def main():
     ap.add_argument("--interval",type=float,default=1.25)
     ap.add_argument("--seed",type=int,required=True)
     ap.add_argument("--min-received",type=int)
+    ap.add_argument("--max-unexpected",type=int,default=0)
     ap.add_argument("--output",required=True)
     x=ap.parse_args()
     if x.count<=0 or x.interval<=0: raise SystemExit("invalid count/interval")
     minimum=x.count if x.min_received is None else x.min_received
     if minimum<0 or minimum>x.count: raise SystemExit("invalid min-received")
+    if x.max_unexpected<0: raise SystemExit("invalid max-unexpected")
     if x.role=="biz" and not x.peer: raise SystemExit("--peer required for biz")
     sock=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,1<<20)
@@ -67,7 +69,8 @@ def main():
     sock.bind(addr(x.bind))
     out={"schema":1,"role":x.role,"count":x.count,"interval_s":x.interval,"seed":x.seed,
          "start_ns":x.start_ns,"sent":0,"send_errors":0,"received_unique":0,
-         "duplicates":0,"corrupt":0,"unexpected":0,"min_received":minimum}
+         "duplicates":0,"corrupt":0,"unexpected":0,"min_received":minimum,
+         "max_unexpected":x.max_unexpected}
     if x.role=="biz":
         peer=addr(x.peer)
         for i in range(x.count):
@@ -106,6 +109,6 @@ def main():
     Path(x.output).write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
     print("WBD_LIFECYCLE_WAKE_DRIVER "+json.dumps(out,sort_keys=True))
     ok=(out["send_errors"]==0 and out["sent"]==x.count) if x.role=="biz" else (
-        out["received_unique"]>=minimum and out["corrupt"]==0 and out["unexpected"]==0)
+        out["received_unique"]>=minimum and out["corrupt"]==0 and out["unexpected"]<=x.max_unexpected)
     raise SystemExit(0 if ok else 1)
 if __name__=="__main__":main()

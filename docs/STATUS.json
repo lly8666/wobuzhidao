@@ -1382,7 +1382,7 @@
       "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA."
     },
     "WEAKNET_LIFECYCLE": {
-      "status": "PRODUCT_IDLE_RACE_FIX_PENDING_ACTIONS",
+      "status": "PRODUCT_IDLE_RACE_FIX_RERUN_PENDING",
       "main_task_hold": {
         "requested_by": "user",
         "resume_only_on_user_request": true,
@@ -1395,10 +1395,10 @@
       "protocol": "admission V2; paired upgrade required",
       "acceptance": "docs/LIFECYCLE_ACCEPTANCE.md",
       "parameters": "docs/PARAMETERS.md",
-      "latest_devlog": "docs/devlog/20260923-081500-server-follow-client-dormant-fix.md",
-      "acceptance_harness": "L6 now matches the written contract: both-dormant precondition, total-underlay blackhole failed client wakes with bounded retries, post-clear recovery probe, then 100 clear-path near-cutoff client business events requiring 100/100 delivery for 1- and 4-lane modes.",
-      "core_status": "PASS_FFCA_PRE_FIX",
-      "fullstack_status": "32_PASS_4_REAL_IDLE_RACE_FAIL_FFCA",
+      "latest_devlog": "docs/devlog/20260923-083000-lifecycle-phase-isolation-correction.md",
+      "acceptance_harness": "Third correction pending Actions: L6 recovery probe records and bounds delayed blackhole-phase UDP on the old port (<=16) while the separate strict port still requires 100/100 unique, corrupt=0, unexpected=0; final ACTIVE is enforced only where auto-idle is disabled.",
+      "core_status": "PASS_65FF",
+      "fullstack_status": "31_PASS_5_HARNESS_ONLY_65FF",
       "implementation_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
       "core_runs": [
         {
@@ -1509,7 +1509,49 @@
         "wire_change": false,
         "parameter_change": false,
         "capacity_path_change": false,
-        "actions": "PENDING"
+        "actions": "CORE_FOUNDATION_L1_L7_PASS_STRICT_L6_RERUN_PENDING"
+      },
+      "latest_core_runs_65ff": [
+        {
+          "workflow": "next-lifecycle",
+          "run": 35801110983,
+          "status": "PASS",
+          "source_sha": "65ff2ef27dd763cba2f7293e6ef6274bca6632c3"
+        },
+        {
+          "workflow": "next-foundation",
+          "run": 35801110955,
+          "status": "PASS",
+          "source_sha": "65ff2ef27dd763cba2f7293e6ef6274bca6632c3"
+        },
+        {
+          "workflow": "next-p4-steady-targeted",
+          "run": 35801110953,
+          "status": "PASS",
+          "source_sha": "65ff2ef27dd763cba2f7293e6ef6274bca6632c3"
+        },
+        {
+          "workflow": "next-tls-startup-padding",
+          "run": 35801111038,
+          "status": "PASS",
+          "source_sha": "65ff2ef27dd763cba2f7293e6ef6274bca6632c3"
+        },
+        {
+          "workflow": "next-realpath-calibration",
+          "run": 35801110919,
+          "status": "PASS",
+          "source_sha": "65ff2ef27dd763cba2f7293e6ef6274bca6632c3"
+        }
+      ],
+      "fullstack_attempt_65ff": {
+        "source_sha": "65ff2ef27dd763cba2f7293e6ef6274bca6632c3",
+        "run": "https://github.com/lly8666/wobuzhidao/actions/runs/35801111026",
+        "aggregate_job": 106993322768,
+        "result": "31_SAMPLE_PASS_5_HARNESS_ONLY_FAIL",
+        "pass_groups": "L0 8/8; L1 2/2; L2 C2S 2/2 and S2C seed202; L3 2/2; L4 4/4; L5 8/8; L6 partial 2/2; L7 defaults 2/2",
+        "failures": "L2 S2C seed101 satisfied the one-way-loss and post-clear delivery gates but became legitimately DORMANT after traffic ended, while the generic validator still required final ACTIVE. All four L6 race jobs proved bounded failed wakes and successful post-clear recovery, then aborted before the strict 100-event phase because the recovery target treated 3-4 delayed blackhole-phase UDP datagrams as fatal unexpected packets.",
+        "product_evidence": "The PeerFIN product correction passed next-lifecycle/foundation/targeted, both L1 real-process idle/wake/downlink seeds, both L7 production-default 15s/90s seeds, and all non-race lifecycle groups. Strict L6 100/100 remains pending because the harness exited before that phase.",
+        "capacity_hold": "No AF_PACKET/uplink-capacity implementation changed; 0882 target-rate CAPACITY_LIMITED evidence and user HOLD remain authoritative."
       }
     }
   }
