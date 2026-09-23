@@ -74,7 +74,7 @@ jobs:
           python3 - <<'PY'
           import json, os, zipfile
           zpath=os.path.join(os.environ['RUNNER_TEMP'],'evidence.zip')
-          wanted_suffixes=('summary-loss-tolerant-v1.json','client-diag.jsonl','server-diag.jsonl')
+          wanted_suffixes=('summary-loss-tolerant-v1.json','client-diag.jsonl','server-diag.jsonl','resources.jsonl','stage-events.jsonl')
           keys=[
               'Outstanding','PeakOutstanding','Pending','Abandoned','ForgivenGaps',
               'RepairEvictionCalls','RepairEvictionScanSteps','RepairEvictionMaxScan',
@@ -86,6 +86,111 @@ jobs:
               'FastRepairs','RTORepairs','RepairSelected','RepairAttempts','RepairSucceeded',
               'RepairFailures','RepairDeferred','Received','Duplicates','LateFirstArrival'
           ]
+          def read_jsonl_zip(z,name):
+              out=[]
+              with z.open(name) as fh:
+                  for raw in fh:
+                      try:
+                          out.append(json.loads(raw))
+                      except Exception:
+                          pass
+              return out
+          def parse_skmem(text):
+              import re
+              out={'rmem_alloc':0,'rcv_buf':0,'drops':0}
+              for body in re.findall(r"skmem:\\(([^\\n)]*)\\)", text or ''):
+                  fields={}
+                  for token in body.split(','):
+                      token=token.strip()
+                      m=re.fullmatch(r"(rb|tb|bl|r|t|f|w|o|d)(-?\\d+)",token)
+                      if m:
+                          fields[m.group(1)]=int(m.group(2))
+                  out['rmem_alloc']=max(out['rmem_alloc'],fields.get('r',0))
+                  out['rcv_buf']=max(out['rcv_buf'],fields.get('rb',0))
+                  out['drops']=max(out['drops'],fields.get('d',0))
+              out['rmem_ratio']=(out['rmem_alloc']/out['rcv_buf']) if out['rcv_buf'] else 0.0
+              return out
+          def process_ticks(row,label):
+              p=((row.get('processes') or {}).get(label) or {})
+              st=p.get('stat') or {}
+              u=st.get('utime_ticks')
+              s=st.get('stime_ticks')
+              return (u+s) if isinstance(u,int) and isinstance(s,int) else None
+          def stage_bounds(events):
+              by={x.get('event'):x for x in events}
+              return {
+                  'pre':(by['pre_start']['unix_ns'],by['pre_end']['unix_ns']),
+                  'stress':(by['stress_start']['unix_ns'],by['stress_end']['unix_ns']),
+                  'post':(by['post_start']['unix_ns'],by['post_end']['unix_ns']),
+              }
+          def stage_for(ts,bounds):
+              for name,(a,b) in bounds.items():
+                  if a <= ts < b:
+                      return name
+              return 'outside'
+          def nearest_transport(rows,side,ts):
+              good=[]
+              for row in rows:
+                  p=product(row,side)
+                  if p:
+                      good.append((abs(int(row.get('unix_ns',0))-ts),row,p))
+              if not good:
+                  return None
+              _,row,p=min(good,key=lambda x:x[0])
+              lanes={}
+              for lane in p.get('lanes') or []:
+                  tr=lane.get('transport') or {}
+                  lanes[lane_id(lane)]={k:tr[k] for k in keys if k in tr}
+              return {'unix_ns':row.get('unix_ns'),'lanes':lanes}
+          def resource_drop_timeline(resources,events,client_rows,server_rows):
+              bounds=stage_bounds(events)
+              origin=bounds['pre'][0]
+              hz=os.sysconf('SC_CLK_TCK')
+              transitions=[]
+              stage_drop_delta={k:0 for k in ('pre','stress','post','outside')}
+              prev=None
+              prev_drops=0
+              for row in resources:
+                  ns=row.get('namespaces') or {}
+                  server_ss=(((ns.get('server') or {}).get('ss_packet') or {}).get('stdout') or '')
+                  client_ss=(((ns.get('client') or {}).get('ss_packet') or {}).get('stdout') or '')
+                  server=parse_skmem(server_ss)
+                  client=parse_skmem(client_ss)
+                  drops=server['drops']
+                  delta=drops-prev_drops
+                  if delta>0:
+                      stage=stage_for(int(row.get('unix_ns',0)),bounds)
+                      stage_drop_delta[stage]=stage_drop_delta.get(stage,0)+delta
+                      cdelta=sdelta=None
+                      if prev is not None:
+                          a,b=process_ticks(prev,'client'),process_ticks(row,'client')
+                          if a is not None and b is not None:
+                              cdelta=(b-a)/hz
+                          a,b=process_ticks(prev,'server'),process_ticks(row,'server')
+                          if a is not None and b is not None:
+                              sdelta=(b-a)/hz
+                      transitions.append({
+                          'unix_ns':row.get('unix_ns'),
+                          'elapsed_s':(int(row.get('unix_ns',0))-origin)/1e9,
+                          'stage':stage,
+                          'delta_drops':delta,
+                          'server_packet':server,
+                          'client_packet':client,
+                          'client_cpu_delta_s':cdelta,
+                          'server_cpu_delta_s':sdelta,
+                          'procs_running':(row.get('proc_stat') or {}).get('procs_running'),
+                          'procs_blocked':(row.get('proc_stat') or {}).get('procs_blocked'),
+                          'loadavg':row.get('loadavg'),
+                          'client_transport_nearest':nearest_transport(client_rows,'client',int(row.get('unix_ns',0))),
+                          'server_transport_nearest':nearest_transport(server_rows,'server',int(row.get('unix_ns',0))),
+                      })
+                  prev=row
+                  prev_drops=drops
+              return {
+                  'stage_drop_delta':stage_drop_delta,
+                  'transitions':transitions,
+                  'final_server_packet_drops':prev_drops,
+              }
           def find_name(z,suffix):
               ms=[n for n in z.namelist() if n.endswith(suffix)]
               if len(ms)!=1:
@@ -133,6 +238,10 @@ jobs:
           with zipfile.ZipFile(zpath) as z:
               names={s:find_name(z,s) for s in wanted_suffixes}
               summary=json.loads(z.read(names['summary-loss-tolerant-v1.json']))
+              client_rows=read_jsonl_zip(z,names['client-diag.jsonl'])
+              server_rows=read_jsonl_zip(z,names['server-diag.jsonl'])
+              resources=read_jsonl_zip(z,names['resources.jsonl'])
+              events=read_jsonl_zip(z,names['stage-events.jsonl'])
               out={
                   'artifact_id':int(os.environ['ARTIFACT_ID']),
                   'source_run':int(os.environ['SOURCE_RUN']),
@@ -144,6 +253,7 @@ jobs:
                       'client':diag_summary(z,names['client-diag.jsonl'],'client'),
                       'server':diag_summary(z,names['server-diag.jsonl'],'server'),
                   },
+                  'resource_drop_timeline':resource_drop_timeline(resources,events,client_rows,server_rows),
               }
           path='artifact-reader/artifact-summary.json'
           with open(path,'w',encoding='utf-8') as f:
@@ -161,6 +271,7 @@ jobs:
               'transport_hygiene':summary.get('transport_hygiene'),
               'cost':summary.get('cost'),
               'diag_selected':out['diag_selected'],
+              'resource_drop_timeline':out['resource_drop_timeline'],
           }
           print('WBD_ARTIFACT_READER '+json.dumps(compact,sort_keys=True))
           PY

@@ -1,8 +1,9 @@
 {
-  "artifact_id": 10742800172,
-  "source_run": 35843250922,
-  "source_job": 107123147835,
-  "source_sha": "febfcb9e4d02b21e25a172a7c6582c86f0649ccb",
-  "artifact_name": "strict-single-normal-lossless-seed601-febfcb9e4d02b21e25a172a7c6582c86f0649ccb",
-  "purpose": "extract-loss-tolerant-v1-summary-and-runtimeowner-diagnostics-without-new-sample"
+  "artifact_id": 10744205038,
+  "source_run": 35846947558,
+  "source_job": 107135275382,
+  "source_sha": "ef7a30bcfe53dcad767e5bffd09c2be8980f2cab",
+  "artifact_name": "strict-single-normal-5205-seed601-ef7a30bcfe53dcad767e5bffd09c2be8980f2cab",
+  "purpose": "locate-server-af-packet-drops-and-align-runtimeowner-counters-without-new-sample",
+  "request_revision": 2
 }
