@@ -26,6 +26,9 @@ type RawIPv4Endpoint struct {
 	localIP [4]byte
 	persona PacketPersona
 
+	recvMu  sync.Mutex
+	recvBuf []byte
+
 	mu     sync.Mutex
 	ipID   uint16
 	closed bool
@@ -80,7 +83,8 @@ func OpenRawIPv4Endpoint(interfaceName string, localIP [4]byte, persona PacketPe
 	return &RawIPv4Endpoint{
 		recvFD: recvFD, sendFD: sendFD,
 		localIP: localIP, persona: persona,
-		ipID: 1,
+		recvBuf: make([]byte, 65536+64),
+		ipID:    1,
 	}, nil
 }
 
@@ -91,9 +95,10 @@ func (e *RawIPv4Endpoint) ReadSegment() (Segment, []byte, error) {
 	if e == nil {
 		return Segment{}, nil, errors.New("faketcp: nil raw IPv4 endpoint")
 	}
-	buf := make([]byte, 65536+64)
+	e.recvMu.Lock()
+	defer e.recvMu.Unlock()
 	for {
-		n, from, err := syscall.Recvfrom(e.recvFD, buf, 0)
+		n, from, err := syscall.Recvfrom(e.recvFD, e.recvBuf, 0)
 		if err != nil {
 			// recvfrom(2) may be interrupted by a signal before any packet is
 			// consumed. EINTR is not an endpoint failure; retry the same blocking
@@ -115,7 +120,7 @@ func (e *RawIPv4Endpoint) ReadSegment() (Segment, []byte, error) {
 		if ll, ok := from.(*syscall.SockaddrLinklayer); ok && ll.Pkttype == rawPacketOutgoing {
 			continue
 		}
-		ip := rawExtractIPv4(buf[:n])
+		ip := rawExtractIPv4(e.recvBuf[:n])
 		if len(ip) == 0 {
 			continue
 		}
@@ -126,7 +131,12 @@ func (e *RawIPv4Endpoint) ReadSegment() (Segment, []byte, error) {
 		if seg.DstIP != e.localIP {
 			continue
 		}
-		return seg, append([]byte(nil), ip...), nil
+		owned := append([]byte(nil), ip...)
+		seg, err = ParseIPv4TCP(owned)
+		if err != nil {
+			return Segment{}, nil, err
+		}
+		return seg, owned, nil
 	}
 }
 
