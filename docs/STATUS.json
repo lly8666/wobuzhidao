@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "PERFORMANCE_RECOVERY: Normal10 lossless diagnosis identified full TransportStats scans in the synchronous server qualification path as a concrete O(4096) hot-path waste; applying an O(1) authenticated-record counter and validating it. Functional lifecycle remains COMPLETE." ,
-  "next_task": "读取 O(1) qualification counter 修复 SHA 的 next-performance-recovery 结果，与 7ac4f223 Normal10 baseline 同口径比较 handler/readCh/AF_PACKET drops/goodput/CPU；若 Normal10 明显改善再跑 Game4 逻辑3Mbps及逐方向字节账本，若仍崩则继续缩小到 raw read allocation/GC 等下一明确热点，不跑18份长矩阵。",
-  "latest_log": "docs/devlog/20260923-111000-performance-qualified-counter.md",
-  "last_tested_source_sha": "7ac4f2236c1fa0efbdb8032e7613bbef1a510cf5",
+  "in_progress": "PERFORMANCE_RECOVERY: O(1) server qualification counter materially improved Normal10 but target remains CAPACITY_LIMITED; current atomic fix removes the per-read 64KiB AF_PACKET scratch allocation while preserving exact owned Segment.Payload backing. Functional lifecycle remains COMPLETE.",
+  "next_task": "验证 raw receive scratch 复用最终 SHA 的 core/race 与独占 Normal10 lossless；对比 7550844a 的 handler/readCh、AF_PACKET drops、goodput、server CPU/TotalAlloc/GC。若 Normal10 仍明显低于10Mbps，不跑18份矩阵，继续按新时间线定位；只有无损容量继续实质改善后才进入 Game4逻辑3Mbps和逐方向线上字节账本。",
+  "latest_log": "docs/devlog/20260923-125500-performance-raw-recv-buffer.md",
+  "last_tested_source_sha": "7550844af73ca07481a932d17d6793ccb23ae05a",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1632,8 +1632,8 @@
         "审计混合包长/FEC/分片/Game线上字节账本",
         "无损目标通过后再完成严格弱网矩阵及长测"
       ],
-      "latest_log": "docs/devlog/20260923-111000-performance-qualified-counter.md",
-      "note": "7ac4f223 / next-performance-recovery run 35812290504: core-race job 107026270927 PASS；Normal10 job 107026857488采集成功，artifact 10730701490，仍 PERFORMANCE=CAPACITY_LIMITED。server handler 116.13s/61162包、readCh handoff block 118.62s，AF_PACKET drops 677365；已定位每个稳态包资格判断前后两次完整 TransportStats 扫描为明确 O(4096) 热路径浪费。中间 SHA 09f5c187 在 next-lifecycle run 35815671759 / job 107036551810 暴露纯编译遗漏（uint64 仍按结构体字段比较），未进入运行期且不作为性能证据；已修正比较表达式，O(1) 方案待新 SHA Actions 验证。"
+      "latest_log": "docs/devlog/20260923-125500-performance-raw-recv-buffer.md",
+      "note": "O(1) qualification 修复最终验证 SHA 7550844af73ca07481a932d17d6793ccb23ae05a / next-performance-recovery run 35815797772 SUCCESS；core/race job 107036930642 PASS，Normal10 job 107037161702 / artifact 10731592515 采集成功但仍 PERFORMANCE=CAPACITY_LIMITED。相对7ac4同seed：server reads 61162→269830、handler均值1.899ms→0.359ms、C2S pre goodput0.335→1.794Mbps、S2C4.146→6.000Mbps、AF_PACKET drops677365→631423。新瓶颈下server TotalAlloc约25.7GB/2721GC；Linux raw ReadSegment 每次仍新建约64KiB scratch且官方client/server丢弃第二raw返回值。当前最小修复复用endpoint scratch，并仅为匹配包保留精确大小owned backing；不改队列/速率/FEC/Game/lifecycle，待最终SHA Actions验证。"
     }
   }
 }

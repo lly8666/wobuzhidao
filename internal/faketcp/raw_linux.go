@@ -131,13 +131,20 @@ func (e *RawIPv4Endpoint) ReadSegment() (Segment, []byte, error) {
 		if seg.DstIP != e.localIP {
 			continue
 		}
-		owned := append([]byte(nil), ip...)
-		seg, err = ParseIPv4TCP(owned)
-		if err != nil {
-			return Segment{}, nil, err
-		}
-		return seg, owned, nil
+		return rawOwnedIPv4TCP(ip)
 	}
+}
+
+// rawOwnedIPv4TCP transfers a borrowed packet view into exact-sized owned
+// storage. The returned Segment.Payload aliases owned, never the reusable
+// AF_PACKET receive scratch.
+func rawOwnedIPv4TCP(ip []byte) (Segment, []byte, error) {
+	owned := append([]byte(nil), ip...)
+	seg, err := ParseIPv4TCP(owned)
+	if err != nil {
+		return Segment{}, nil, err
+	}
+	return seg, owned, nil
 }
 
 // WriteSegment serializes a Segment through the production checksum/options

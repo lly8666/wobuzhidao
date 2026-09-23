@@ -187,3 +187,5 @@ P5：增加受控真实 HTTPS 客户端/服务器，覆盖首个与复用 lane �
 
 2026-09-23性能恢复实施进度：观测 SHA `7ac4f2236c1fa0efbdb8032e7613bbef1a510cf5` 的 `next-performance-recovery` run 35812290504 已完成 core/race 与独占 Normal10 lossless。样本仍为 CAPACITY_LIMITED，但时间线显示 server handler 与容量1 readCh 反压几乎等时，且 handler 内已细分的 transport lock/owner/FEC-LINK/downstream 只能解释少部分耗时；当前最小修复把 `HandleServerSegmentQualified` 每包前后两次完整 `TransportStats`（会扫描 pending/received）改为 O(1) authenticated-record 计数读取。该修改不调整队列、buffer、FEC、Game、注入、生命周期或 wire；必须等同 runner 修复后样本/A-B 证据，不能提前标性能通过。
 
+O(1) qualification 修复在最终验证 SHA `7550844af73ca07481a932d17d6793ccb23ae05a` / run 35815797772 使同seed Normal10的 server reads 从61162增至269830、handler均值从1.899ms降至0.359ms、C2S pre goodput从0.335Mbps升至1.794Mbps、S2C从4.146Mbps升至6.000Mbps；AF_PACKET drops仍有631423，故资格继续 CAPACITY_LIMITED。随着更多包真正进入进程，server TotalAlloc约25.7GB、NumGC=2721。当前第二个最小修复针对 `RawIPv4Endpoint.ReadSegment` 每调用新建约64KiB receive scratch 的确定分配：scratch改为endpoint级复用，匹配包仍复制到精确大小owned backing并从该owned backing解析，保证 `Segment.Payload` 不引用可复用scratch。官方Linux client/server均丢弃ReadSegment第二raw返回值，因此不额外复制；该修改不改变socket buffer、readCh容量、FEC/Game、wire、生命周期或注入负载。
+
