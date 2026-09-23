@@ -960,6 +960,10 @@ type LifecycleServerConfig struct {
 	DesiredLanes     int
 	DormantAfter     time.Duration
 	ReplacementGrace time.Duration
+
+	// ObserveTiming enables bounded aggregate receive-pipeline timing. It is
+	// qualification-only and does not change queue capacity or transport semantics.
+	ObserveTiming bool
 }
 
 type serverLifecycleLane struct {
@@ -1000,7 +1004,8 @@ type LifecycleServer struct {
 	byTunnel map[logicaltunnel.TunnelID]*serverLifecycleTunnel
 	byLease  map[netip.Addr]*serverLifecycleTunnel
 
-	once sync.Once
+	pipeline serverPipelineTiming
+	once     sync.Once
 }
 
 func NewLifecycleServer(cfg LifecycleServerConfig) (*LifecycleServer, error) {
@@ -1061,11 +1066,25 @@ func (s *LifecycleServer) Run(ctx context.Context) error {
 	defer s.Close()
 	readCh := make(chan segmentRead, 1)
 	go func() {
+		var previousRead time.Time
 		for {
 			seg, err := s.cfg.IO.Read()
+			readyAt := time.Now()
+			if s.cfg.ObserveTiming && err == nil {
+				s.pipeline.observeRead(readyAt, previousRead)
+				previousRead = readyAt
+				s.pipeline.ready(len(seg.Payload))
+			}
+			handoffStarted := readyAt
 			select {
-			case readCh <- segmentRead{seg: seg, err: err}:
+			case readCh <- segmentRead{seg: seg, err: err, readyAt: readyAt}:
+				if s.cfg.ObserveTiming && err == nil {
+					s.pipeline.handoffBlock.observe(time.Since(handoffStarted))
+				}
 			case <-ctx.Done():
+				if s.cfg.ObserveTiming && err == nil {
+					s.pipeline.readyCancel(len(seg.Payload))
+				}
 				return
 			}
 			if err != nil {
@@ -1080,13 +1099,21 @@ func (s *LifecycleServer) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case read := <-readCh:
+			handleStarted := time.Now()
+			if s.cfg.ObserveTiming && read.err == nil {
+				s.pipeline.readyDone(len(read.seg.Payload), handleStarted.Sub(read.readyAt))
+			}
 			if read.err != nil {
 				if errors.Is(read.err, io.EOF) {
 					return nil
 				}
 				return read.err
 			}
-			if err := s.handleSegment(ctx, read.seg, time.Now()); err != nil {
+			err := s.handleSegment(ctx, read.seg, handleStarted)
+			if s.cfg.ObserveTiming {
+				s.pipeline.handler.observe(time.Since(handleStarted))
+			}
+			if err != nil {
 				return err
 			}
 		case now := <-ticker.C:
@@ -1294,6 +1321,10 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 		return
 	}
 
+	if err := group.rt.SetTimingDiagnostics(snapshot.Ref, s.cfg.ObserveTiming); err != nil {
+		s.dropAdmission(flow)
+		return
+	}
 	if err := group.rt.ConfigureHealth(snapshot.Ref, s.cfg.KeepaliveInterval, func(now time.Time) time.Duration {
 		s.mu.Lock()
 		last := group.lastPayload
@@ -1404,7 +1435,13 @@ func (s *LifecycleServer) deliverTunnelPackets(group *serverLifecycleTunnel, pac
 	token := group.token
 	s.mu.Unlock()
 
+	started := time.Now()
 	err := s.cfg.Router.DeliverFromOwnerAt(token, packets, now)
+	if s.cfg.ObserveTiming {
+		s.pipeline.downstream.observe(time.Since(started))
+		s.pipeline.downstreamBatches.Add(1)
+		s.pipeline.downstreamPackets.Add(uint64(len(packets)))
+	}
 	if err == nil {
 		return nil
 	}

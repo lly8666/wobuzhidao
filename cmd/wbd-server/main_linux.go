@@ -198,6 +198,7 @@ func main() {
 		DesiredLanes:      *lanes,
 		DormantAfter:      *idleDormant,
 		KeepaliveInterval: *keepalive,
+		ObserveTiming:     *diagnosticJSONL != "",
 	})
 	if err != nil {
 		log.Fatal(err)

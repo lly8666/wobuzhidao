@@ -386,6 +386,33 @@ func (o *TunnelOwner) FenceOutbound(ref logicaltunnel.LaneRef, records []WireRec
 	return records, nil
 }
 
+// SetLaneTimingDiagnostics applies observation only to the currently
+// authoritative generation. Late generations cannot enable work on a new lane.
+func (o *TunnelOwner) SetLaneTimingDiagnostics(ref logicaltunnel.LaneRef, enabled bool) error {
+	if o == nil {
+		return ErrTunnelOwnerClosed
+	}
+	o.mu.Lock()
+	if o.closed {
+		o.mu.Unlock()
+		return ErrTunnelOwnerClosed
+	}
+	binding, ok := o.active[ref.ID]
+	if !ok {
+		o.mu.Unlock()
+		return ErrLaneUnavailable
+	}
+	if binding.ref != ref {
+		current := binding.ref
+		o.mu.Unlock()
+		return staleGeneration(ref, current)
+	}
+	lane := binding.lane
+	o.mu.Unlock()
+	lane.SetTimingDiagnostics(enabled)
+	return nil
+}
+
 // InboundPayload is the owner boundary for one authoritative Lane incarnation.
 // It generation-fences late transport work before exposing decoded business
 // packets. On the server side, a leased owner additionally drops every inner

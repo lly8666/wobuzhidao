@@ -165,6 +165,17 @@ type TransportStats struct {
 	WindowScale           uint8
 	WindowScaleSet        bool
 	Closed                bool
+
+	TimingEnabled bool   `json:"timing_enabled,omitempty"`
+	TimingSamples uint64 `json:"timing_samples,omitempty"`
+	LockWaitNS    uint64 `json:"lock_wait_ns,omitempty"`
+	LockWaitMaxNS uint64 `json:"lock_wait_max_ns,omitempty"`
+	LockHeldNS    uint64 `json:"lock_held_ns,omitempty"`
+	LockHeldMaxNS uint64 `json:"lock_held_max_ns,omitempty"`
+	OwnerNS       uint64 `json:"owner_ns,omitempty"`
+	OwnerMaxNS    uint64 `json:"owner_max_ns,omitempty"`
+	DeliverNS     uint64 `json:"deliver_ns,omitempty"`
+	DeliverMaxNS  uint64 `json:"deliver_max_ns,omitempty"`
 }
 
 type laneTransport struct {
@@ -220,6 +231,7 @@ type laneTransport struct {
 	deliveredHead  int
 
 	stats  TransportStats
+	timing transportTiming
 	closed bool
 }
 
@@ -341,8 +353,19 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		return ErrTransportFlow
 	}
 
+	observeTiming := t.timing.enabled.Load()
+	var lockWaitStarted time.Time
+	if observeTiming {
+		lockWaitStarted = time.Now()
+	}
 	var repair *selectedRepair
 	t.mu.Lock()
+	var lockHeldStarted time.Time
+	if observeTiming {
+		t.timing.samples.Add(1)
+		t.timing.lockWait.observe(time.Since(lockWaitStarted))
+		lockHeldStarted = time.Now()
+	}
 	if t.closed {
 		peerRST := t.peerRST
 		t.mu.Unlock()
@@ -420,15 +443,25 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		}
 	}
 	ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
+	if observeTiming {
+		t.timing.lockHeld.observe(time.Since(lockHeldStarted))
+	}
 	t.mu.Unlock()
 
 	if deliver {
 		var result datapath.InboundResult
 		stats := t.owner.Stats()
+		ownerStarted := time.Time{}
+		if observeTiming {
+			ownerStarted = time.Now()
+		}
 		if stats.DesiredLanes == 1 {
 			result, err = t.owner.InboundPayload(t.ref, seg.Payload, now)
 		} else {
 			result, err = t.owner.GameInboundPayload(t.ref, seg.Payload, now)
+		}
+		if observeTiming {
+			t.timing.owner.observe(time.Since(ownerStarted))
 		}
 		if err != nil {
 			return err
@@ -439,7 +472,15 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		t.stats.PathErrors += uint64(len(result.PathErrors))
 		t.mu.Unlock()
 		if len(result.Datagrams) != 0 && t.deliver != nil {
-			if err := t.deliver(result.Datagrams, now); err != nil {
+			deliverStarted := time.Time{}
+			if observeTiming {
+				deliverStarted = time.Now()
+			}
+			err := t.deliver(result.Datagrams, now)
+			if observeTiming {
+				t.timing.deliver.observe(time.Since(deliverStarted))
+			}
+			if err != nil {
 				return err
 			}
 		}
@@ -726,6 +767,7 @@ func (t *laneTransport) statsSnapshotAt(now time.Time) TransportStats {
 	out.PeerFIN = t.peerFIN
 	out.PeerRST = t.peerRST
 	out.Closed = t.closed
+	t.timing.apply(&out)
 	return out
 }
 
@@ -1103,6 +1145,26 @@ func (r *Runtime) PlatformWireSink(out platformflow.Outbound) error {
 		return r.SendGame(out.Game, now)
 	}
 	return r.SendNormal(out.Normal, now)
+}
+
+// SetTimingDiagnostics toggles bounded aggregate timing for one active lane and
+// its record/FEC/LINK decode path. It changes observation only, never queueing.
+func (r *Runtime) SetTimingDiagnostics(ref logicaltunnel.LaneRef, enabled bool) error {
+	if r == nil {
+		return ErrRuntimeClosed
+	}
+	r.mu.Lock()
+	transport := r.lanes[ref]
+	closed := r.closed
+	r.mu.Unlock()
+	if closed {
+		return ErrRuntimeClosed
+	}
+	if transport == nil {
+		return ErrTransportMissing
+	}
+	transport.timing.enabled.Store(enabled)
+	return r.owner.SetLaneTimingDiagnostics(ref, enabled)
 }
 
 func (r *Runtime) HandleSegment(ref logicaltunnel.LaneRef, seg faketcp.Segment, now time.Time) error {

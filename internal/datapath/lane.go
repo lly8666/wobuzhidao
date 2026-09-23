@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/fec"
@@ -91,6 +92,15 @@ type LaneStats struct {
 	PathErrors         uint64
 	ExpireCalls        uint64
 
+	TimingEnabled        bool
+	InboundTimingSamples uint64
+	InboundLockWaitNS    uint64
+	InboundLockWaitMaxNS uint64
+	InboundDecodeNS      uint64
+	InboundDecodeMaxNS   uint64
+	ExpireNS             uint64
+	ExpireMaxNS          uint64
+
 	PaddingRequests       uint64
 	RequestedPaddingBytes uint64
 	PaddedRecords         uint64
@@ -116,8 +126,9 @@ type Lane struct {
 	txPath  *linkdata.FECPath
 	rxPath  *linkdata.FECPath
 
-	stats  LaneStats
-	closed bool
+	stats         LaneStats
+	timingEnabled atomic.Bool
+	closed        bool
 }
 
 func NewLane(cfg LaneConfig) (*Lane, error) {
@@ -453,13 +464,38 @@ func (l *Lane) sealLocked(datagrams [][]byte, selector paddingSelector) ([]WireR
 // an independently bounded bad record or bad FEC/LINK datagram, so one damaged
 // item cannot become a lane-wide receive barrier.
 func (l *Lane) InboundPayload(payload []byte, now time.Time) (InboundResult, error) {
+	observeTiming := l.timingEnabled.Load()
+	var waitStarted time.Time
+	if observeTiming {
+		waitStarted = time.Now()
+	}
 	l.mu.Lock()
-	defer l.mu.Unlock()
 	if l.closed {
+		l.mu.Unlock()
 		return InboundResult{}, ErrLaneClosed
 	}
+	var decodeStarted time.Time
+	if observeTiming {
+		wait := time.Since(waitStarted)
+		l.stats.TimingEnabled = true
+		l.stats.InboundTimingSamples++
+		l.stats.InboundLockWaitNS += uint64(wait)
+		if uint64(wait) > l.stats.InboundLockWaitMaxNS {
+			l.stats.InboundLockWaitMaxNS = uint64(wait)
+		}
+		decodeStarted = time.Now()
+	}
 	l.stats.InboundPayloads++
-	return l.inboundLocked(payload, now), nil
+	out := l.inboundLocked(payload, now)
+	if observeTiming {
+		elapsed := time.Since(decodeStarted)
+		l.stats.InboundDecodeNS += uint64(elapsed)
+		if uint64(elapsed) > l.stats.InboundDecodeMaxNS {
+			l.stats.InboundDecodeMaxNS = uint64(elapsed)
+		}
+	}
+	l.mu.Unlock()
+	return out, nil
 }
 
 func (l *Lane) inboundLocked(payload []byte, now time.Time) InboundResult {
@@ -499,14 +535,37 @@ func (l *Lane) inboundLocked(payload []byte, now time.Time) InboundResult {
 // Expire is the owner timer hook. It is explicit so FEC/LINK retirement still
 // runs after traffic stops; it does not generate traffic or wait for work.
 func (l *Lane) Expire(now time.Time) error {
+	observeTiming := l.timingEnabled.Load()
 	l.mu.Lock()
-	defer l.mu.Unlock()
 	if l.closed {
+		l.mu.Unlock()
 		return ErrLaneClosed
+	}
+	var started time.Time
+	if observeTiming {
+		started = time.Now()
 	}
 	l.rxPath.Expire(now)
 	l.stats.ExpireCalls++
+	if observeTiming {
+		elapsed := time.Since(started)
+		l.stats.TimingEnabled = true
+		l.stats.ExpireNS += uint64(elapsed)
+		if uint64(elapsed) > l.stats.ExpireMaxNS {
+			l.stats.ExpireMaxNS = uint64(elapsed)
+		}
+	}
+	l.mu.Unlock()
 	return nil
+}
+
+// SetTimingDiagnostics enables bounded timing counters only; it does not alter
+// packet ownership, FEC scheduling, or delivery order.
+func (l *Lane) SetTimingDiagnostics(enabled bool) {
+	if l == nil {
+		return
+	}
+	l.timingEnabled.Store(enabled)
 }
 
 func (l *Lane) Stats() LaneStats {

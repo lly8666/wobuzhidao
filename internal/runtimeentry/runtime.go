@@ -445,8 +445,9 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 }
 
 type segmentRead struct {
-	seg faketcp.Segment
-	err error
+	seg     faketcp.Segment
+	err     error
+	readyAt time.Time
 }
 
 func (s *Server) Run(ctx context.Context) error {

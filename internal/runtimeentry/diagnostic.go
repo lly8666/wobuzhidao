@@ -27,12 +27,13 @@ type LifecycleConfigDiagnostic struct {
 }
 
 type TunnelDiagnostic struct {
-	Lifecycle *LifecycleStats            `json:"lifecycle,omitempty"`
-	Config    *LifecycleConfigDiagnostic `json:"config,omitempty"`
-	Lease4    string                     `json:"lease4,omitempty"`
-	TunnelID  logicaltunnel.TunnelID     `json:"tunnel_id"`
-	Owner     datapath.TunnelOwnerStats  `json:"owner"`
-	Lanes     []LaneDiagnostic           `json:"lanes"`
+	Lifecycle      *LifecycleStats            `json:"lifecycle,omitempty"`
+	Config         *LifecycleConfigDiagnostic `json:"config,omitempty"`
+	ServerPipeline *ServerPipelineDiagnostic  `json:"server_pipeline,omitempty"`
+	Lease4         string                     `json:"lease4,omitempty"`
+	TunnelID       logicaltunnel.TunnelID     `json:"tunnel_id"`
+	Owner          datapath.TunnelOwnerStats  `json:"owner"`
+	Lanes          []LaneDiagnostic           `json:"lanes"`
 }
 
 func diagnosticSnapshot(owner *datapath.TunnelOwner, rt *runtimeowner.Runtime, now time.Time) TunnelDiagnostic {
@@ -88,6 +89,10 @@ func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, no
 		return TunnelDiagnostic{}, false
 	}
 	out := diagnosticSnapshot(group.owner, group.rt, now)
+	if s.cfg.ObserveTiming {
+		pipeline := s.pipeline.snapshot(true)
+		out.ServerPipeline = &pipeline
+	}
 	out.Config = &LifecycleConfigDiagnostic{
 		KeepaliveInterval: s.cfg.KeepaliveInterval.String(),
 		DormantAfter: s.cfg.DormantAfter.String(),
