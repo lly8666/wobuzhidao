@@ -1,0 +1,30 @@
+name: next-shared-blackhole
+
+on:
+  workflow_dispatch:
+    inputs:
+      blackout_ms:
+        description: "shared all-lane blackout duration"
+        required: true
+        default: "100"
+        type: choice
+        options: ["100", "500"]
+      seed:
+        description: "single sample seed"
+        required: true
+        default: "601"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  registration-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Default-branch registration stub
+        run: |
+          echo "This file only registers workflow_dispatch on the default branch."
+          echo "Run it against next/tlslike-dataplane; that ref owns the executable workflow body."
+          exit 1
