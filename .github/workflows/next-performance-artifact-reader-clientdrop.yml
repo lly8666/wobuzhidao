@@ -1,0 +1,182 @@
+name: next-performance-artifact-reader-clientdrop
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/perf-artifact-clientdrop-request.json
+      - .github/workflows/next-performance-artifact-reader-clientdrop.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect-existing-artifact:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          d=json.load(open('.github/perf-artifact-clientdrop-request.json', encoding='utf-8'))
+          for k in ('artifact_id','source_run','source_job','source_sha','artifact_name'):
+              if k not in d:
+                  raise SystemExit(f'missing {k}')
+          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f:
+              for env,key in [('ARTIFACT_ID','artifact_id'),('SOURCE_RUN','source_run'),('SOURCE_JOB','source_job'),('SOURCE_SHA','source_sha'),('EXPECTED_NAME','artifact_name')]:
+                  f.write(f"{env}={d[key]}\n")
+          PY
+
+      - name: Verify immutable artifact metadata
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          meta="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID")"
+          echo "$meta" | jq '{id,name,size_in_bytes,digest,expired,workflow_run}'
+          test "$(echo "$meta" | jq -r .name)" = "$EXPECTED_NAME"
+          test "$(echo "$meta" | jq -r .workflow_run.id)" = "$SOURCE_RUN"
+          test "$(echo "$meta" | jq -r .workflow_run.head_sha)" = "$SOURCE_SHA"
+          test "$(echo "$meta" | jq -r .expired)" = false
+
+      - name: Download existing artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" \
+            -o "$RUNNER_TEMP/evidence.zip"
+          ls -lh "$RUNNER_TEMP/evidence.zip"
+
+      - name: Extract client and server packet-socket drop timeline
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifact-reader
+          python3 - <<'PY'
+          import json, os, zipfile
+          zpath=os.path.join(os.environ['RUNNER_TEMP'],'evidence.zip')
+          def find_name(z,suffix):
+              ms=[n for n in z.namelist() if n.endswith(suffix)]
+              if len(ms)!=1:
+                  raise SystemExit(f'{suffix}: matches={ms}')
+              return ms[0]
+          def jsonl(z,name):
+              out=[]
+              with z.open(name) as fh:
+                  for raw in fh:
+                      try: out.append(json.loads(raw))
+                      except Exception: pass
+              return out
+          def parse_skmem(text):
+              out={'rmem_alloc':0,'rcv_buf':0,'drops':0}
+              for line in (text or '').splitlines():
+                  pos=line.find('skmem:(')
+                  if pos < 0: continue
+                  body=line[pos+7:].split(')',1)[0]
+                  fields={}
+                  for token in body.split(','):
+                      token=token.strip()
+                      for key in ('rb','tb','bl','r','t','f','w','o','d'):
+                          if token.startswith(key):
+                              value=token[len(key):]
+                              if value and value.lstrip('-').isdigit(): fields[key]=int(value)
+                              break
+                  out['rmem_alloc']=max(out['rmem_alloc'],fields.get('r',0))
+                  out['rcv_buf']=max(out['rcv_buf'],fields.get('rb',0))
+                  out['drops']=max(out['drops'],fields.get('d',0))
+              out['rmem_ratio']=(out['rmem_alloc']/out['rcv_buf']) if out['rcv_buf'] else 0.0
+              return out
+          def proc_ticks(row,label):
+              st=(((row.get('processes') or {}).get(label) or {}).get('stat') or {})
+              u,s=st.get('utime_ticks'),st.get('stime_ticks')
+              return (u+s) if isinstance(u,int) and isinstance(s,int) else None
+          def stage_bounds(events):
+              by={x.get('event'):x for x in events}
+              return {k:(int(by[k+'_start']['unix_ns']),int(by[k+'_end']['unix_ns'])) for k in ('pre','stress','post')}
+          def stage_for(ts,bounds):
+              for k,(a,b) in bounds.items():
+                  if a <= ts < b: return k
+              return 'outside'
+          with zipfile.ZipFile(zpath) as z:
+              names={s:find_name(z,s) for s in ('resources.jsonl','stage-events.jsonl','summary-loss-tolerant-v1.json')}
+              resources=jsonl(z,names['resources.jsonl'])
+              events=jsonl(z,names['stage-events.jsonl'])
+              summary=json.loads(z.read(names['summary-loss-tolerant-v1.json']))
+          bounds=stage_bounds(events)
+          origin=bounds['pre'][0]
+          hz=os.sysconf('SC_CLK_TCK')
+          endpoints=('client','server')
+          prev_d={x:0 for x in endpoints}
+          prev_row=None
+          transitions=[]
+          stage_delta={x:{k:0 for k in ('pre','stress','post','outside')} for x in endpoints}
+          maxima={x:{'drops':0,'rmem_alloc':0,'rcv_buf':0,'rmem_ratio':0.0} for x in endpoints}
+          for idx,row in enumerate(resources):
+              ts=int(row.get('unix_ns',0))
+              states={}
+              for ep in endpoints:
+                  ss=((((row.get('namespaces') or {}).get(ep) or {}).get('ss_packet') or {}).get('stdout') or '')
+                  states[ep]=parse_skmem(ss)
+                  for k in ('drops','rmem_alloc','rcv_buf','rmem_ratio'):
+                      maxima[ep][k]=max(maxima[ep][k],states[ep][k])
+              deltas={ep:max(0,states[ep]['drops']-prev_d[ep]) for ep in endpoints}
+              if any(deltas.values()):
+                  stage=stage_for(ts,bounds)
+                  for ep,d in deltas.items(): stage_delta[ep][stage]+=d
+                  cpu={}
+                  if prev_row is not None:
+                      for ep in endpoints:
+                          a,b=proc_ticks(prev_row,ep),proc_ticks(row,ep)
+                          cpu[ep]=((b-a)/hz) if a is not None and b is not None else None
+                  transitions.append({
+                      'sample_index':idx,
+                      'unix_ns':ts,
+                      'elapsed_s':(ts-origin)/1e9,
+                      'stage':stage,
+                      'drop_delta':deltas,
+                      'packet_socket':states,
+                      'cpu_delta_s':cpu,
+                      'procs_running':(row.get('proc_stat') or {}).get('procs_running'),
+                      'procs_blocked':(row.get('proc_stat') or {}).get('procs_blocked'),
+                      'loadavg':row.get('loadavg'),
+                  })
+              prev_row=row
+              for ep in endpoints: prev_d[ep]=states[ep]['drops']
+          out={
+              'artifact_id':int(os.environ['ARTIFACT_ID']),
+              'source_run':int(os.environ['SOURCE_RUN']),
+              'source_job':int(os.environ['SOURCE_JOB']),
+              'source_sha':os.environ['SOURCE_SHA'],
+              'classifications':summary.get('classifications'),
+              'errors':summary.get('errors'),
+              'stage_bounds':bounds,
+              'samples':len(resources),
+              'stage_drop_delta':stage_delta,
+              'maxima':maxima,
+              'transitions':transitions,
+          }
+          with open('artifact-reader/clientdrop-timeline.json','w',encoding='utf-8') as f:
+              json.dump(out,f,indent=2,sort_keys=True); f.write('\n')
+          print('WBD_CLIENTDROP_TIMELINE '+json.dumps(out,sort_keys=True))
+          PY
+
+      - name: Upload extracted timeline
+        uses: actions/upload-artifact@v4
+        with:
+          name: clientdrop-timeline-${{ env.ARTIFACT_ID }}-${{ env.SOURCE_SHA }}
+          path: artifact-reader/clientdrop-timeline.json
+          if-no-files-found: error
+          retention-days: 30
