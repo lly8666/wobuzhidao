@@ -1,0 +1,11 @@
+{
+  "ref": "next/tlslike-dataplane",
+  "expected_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
+  "workflow": "next-strict-weaknet.yml",
+  "mode": "normal",
+  "scenario": "5205",
+  "seed": "101",
+  "rate_mbps": "10",
+  "lanes": "1",
+  "reason": "verify bounded server receive burst queue after b0f5386c AF_PACKET overflow"
+}
