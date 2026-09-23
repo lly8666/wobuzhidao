@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "PERFORMANCE_RECOVERY remains OPEN. Lifecycle qualification publication race fix is under full validation; next-lifecycle core is PASS and 36-sample fullstack is running. Ordered performance evidence is runner-split. Applying the next single hot-path waste fix: steady pending payload is already an owned immutable repair buffer, so Segment construction will borrow that immutable slice instead of cloning the full TLS-like record before synchronous raw serialization.",
-  "next_task": "验收 pending-payload Segment clone 修复 SHA 的 core/race、seed601 Normal10和seed631 capacity compact；同时收齐父SHA 5f711af1 的36份 lifecycle验收。若两个Normal定向样本改善/通过，再把ordered A/B+B/A基线改为race-fix-only parent对payload-clone fix；若慢runner仍CAPACITY_LIMITED，读取compact per-core/PSI/handler证据继续单原因优化。strict 18仍不触发。",
-  "latest_log": "docs/devlog/20260923-160000-performance-pending-payload-clone.md",
+  "in_progress": "PERFORMANCE_RECOVERY remains OPEN. Head 1eeb9e25 removes the duplicate steady Segment payload clone. Validation is mixed by runner: seed601 lossless is all-5 PASS with ~10Mbps both ways, zero socket/AF_PACKET drops, CPU ~49.9/49.6s and PeakOutstanding 4017; seed631 capacity on a saturated 4-vCPU runner is CAPACITY_LIMITED with all CPUs ~99.1% busy, CPU PSI some avg10 52.8, server/client CPU ~115.35/119.03s, PeakOutstanding 4096, first >=4000 at ~1-2s, first Abandoned at ~4s, then AF_PACKET/UDP drops. Parent 5f711af1 lifecycle race fix is fully validated: next-lifecycle, foundation/P4 and lifecycle-fullstack 36/36 + aggregate all PASS. Strict 18-sample matrix remains explicit-only.",
+  "next_task": "Run ordered same-runner A/B+B/A with BASE=5f711af1 (race fix only) and FIX=1eeb9e25 (remove steady Segment payload clone), plus Game4 logical3. Interpret 4096 as ACK-retirement in-flight record BDP, not a loss-only buffer: healthy Normal10 at ~6526 records/s and ~0.600s RTT naturally needs ~3920 outstanding records, leaving only ~176 records (~27ms) headroom. If same-runner A/B shows only minor CPU gain and slow runner still collapses, next target is to reduce records-per-business-byte / per-record steady processing cost rather than enlarge 4096.",
+  "latest_log": "docs/devlog/20260923-163000-performance-bdp-and-payload-ab.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1361,6 +1361,27 @@
       "scope": "foundation-linux-race/lifecycle-qualified-publication",
       "status": "FAIL_DATA_RACE",
       "note": "active-go-tests unit tests pass, Linux race reports admit lifecycle.go:1383 writing fresh.qualified concurrently with groupReadyLocked lifecycle.go:1702 read. Must fix under lifecycle state mutex and rerun 36 lifecycle acceptance."
+    },
+    {
+      "source_sha": "5f711af1171a3b6ceb01ea891d5e04f9cc866325",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35826779865",
+      "scope": "lifecycle-fullstack/qualification-publication-race-fix",
+      "status": "PASS",
+      "note": "36/36 lifecycle samples plus aggregate PASS; parent race fix fully validated."
+    },
+    {
+      "source_sha": "1eeb9e254696724cf4c16787fe006a3eec43beb9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35827109727",
+      "scope": "performance-recovery/normal10-seed601-pending-payload-clone",
+      "status": "PASS",
+      "note": "all five classifications PASS, ~10Mbps both directions, zero socket/AF_PACKET drops, CPU ~49.85/49.57s, PeakOutstanding 4017."
+    },
+    {
+      "source_sha": "1eeb9e254696724cf4c16787fe006a3eec43beb9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35827109667",
+      "scope": "performance-capacity/normal10-seed631-pending-payload-clone",
+      "status": "CAPACITY_LIMITED",
+      "note": "4 CPUs ~99.1% busy, PSI some avg10 52.8, CPU ~119.03/115.35s, PeakOutstanding=4096, first pressure ~1-2s, Abandoned ~4s, then local AF_PACKET/UDP drops."
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1663,7 +1684,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "PENDING_PAYLOAD_CLONE_VALIDATION",
+      "status": "ORDERED_AB_PAYLOAD_CLONE",
       "spec": "docs/WEAKNET_QUALIFICATION.md#9",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1674,8 +1695,8 @@
         "审计混合包长/FEC/分片/Game线上字节账本",
         "无损目标通过后再完成严格弱网矩阵及长测"
       ],
-      "latest_log": "docs/devlog/20260923-160000-performance-pending-payload-clone.md",
-      "note": "Ordered AB/BA proves post-Sendto clone cleanup is not sufficient on slow runners. Next deterministic hot-path waste is runtimeowner outboundSegmentFlags cloning an already-owned immutable pendingRecord.payload before MarshalSegment copies it into the raw packet. Removing only this Segment-layer clone; pending repair ownership, same-Seq ciphertext, raw packet ownership, 4096/FEC/Game/rates/lifecycle remain unchanged. Parent lifecycle race fix 5f711af1 has next-lifecycle core PASS; 36 fullstack still running."
+      "latest_log": "docs/devlog/20260923-163000-performance-bdp-and-payload-ab.md",
+      "note": "1eeb9e25 seed601 PASS: ~10Mbps bidirectional, 0 drops, CPU client/server ~49.85/49.57s, PeakOutstanding 4017. Same SHA seed631 on slow saturated runner CAPACITY_LIMITED: 4 CPUs ~99.1% busy, PSI some avg10 52.8, CPU ~119.03/115.35s, PeakOutstanding 4096 and large local drops. Parent 5f711af1 seed631 PASS on faster runner: record rate ~6526/s, SRTT ~0.6007s, record-BDP ~3920, PeakOutstanding 4027-4029. Thus near-4096 occupancy is expected even lossless under 600ms RTT; failure occurs when processing delay/RTT pushes beyond narrow headroom. Same-runner A/B is required to isolate clone benefit."
     }
   }
 }
