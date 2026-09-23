@@ -24,6 +24,7 @@ type ServerPipelineDiagnostic struct {
 	QueueAge          DurationDiagnostic `json:"queue_age"`
 	Handler           DurationDiagnostic `json:"handler"`
 	Downstream        DurationDiagnostic `json:"downstream"`
+	ReadyCapacity     int                `json:"ready_capacity"`
 	ReadyCurrent      int64              `json:"ready_current"`
 	ReadyPeak         uint64             `json:"ready_peak"`
 	ReadyBytes        int64              `json:"ready_bytes"`
@@ -76,7 +77,7 @@ func (p *serverPipelineTiming) ready(bytes int) {
 func (p *serverPipelineTiming) readyDone(bytes int, age time.Duration){p.readyCurrent.Add(-1);p.readyBytes.Add(-int64(bytes));p.queueAge.observe(age)}
 func (p *serverPipelineTiming) readyCancel(bytes int){p.readyCurrent.Add(-1);p.readyBytes.Add(-int64(bytes))}
 func (p *serverPipelineTiming) snapshot(enabled bool) ServerPipelineDiagnostic {
-	return ServerPipelineDiagnostic{Enabled:enabled,Reads:p.reads.Load(),ReadGap:p.readGap.snapshot(),HandoffBlock:p.handoffBlock.snapshot(),QueueAge:p.queueAge.snapshot(),Handler:p.handler.snapshot(),Downstream:p.downstream.snapshot(),ReadyCurrent:p.readyCurrent.Load(),ReadyPeak:p.readyPeak.Load(),ReadyBytes:p.readyBytes.Load(),ReadyBytesPeak:p.readyBytesPeak.Load(),DownstreamBatches:p.downstreamBatches.Load(),DownstreamPackets:p.downstreamPackets.Load()}
+	return ServerPipelineDiagnostic{Enabled:enabled,Reads:p.reads.Load(),ReadGap:p.readGap.snapshot(),HandoffBlock:p.handoffBlock.snapshot(),QueueAge:p.queueAge.snapshot(),Handler:p.handler.snapshot(),Downstream:p.downstream.snapshot(),ReadyCapacity:serverReadQueueDepth,ReadyCurrent:p.readyCurrent.Load(),ReadyPeak:p.readyPeak.Load(),ReadyBytes:p.readyBytes.Load(),ReadyBytesPeak:p.readyBytesPeak.Load(),DownstreamBatches:p.downstreamBatches.Load(),DownstreamPackets:p.downstreamPackets.Load()}
 }
 
 

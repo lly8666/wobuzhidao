@@ -11,6 +11,9 @@ import (
 )
 
 func TestServerReadQueueIsBoundedBurstBuffer(t *testing.T) {
+	if got, want := serverReadQueueDepth, 4096; got != want {
+		t.Fatalf("serverReadQueueDepth=%d want=%d", got, want)
+	}
 	q := newServerReadQueue()
 	if got, want := cap(q), serverReadQueueDepth; got != want {
 		t.Fatalf("capacity=%d want=%d", got, want)

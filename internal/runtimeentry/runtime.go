@@ -444,7 +444,12 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 	}, nil
 }
 
-const serverReadQueueDepth = 256
+// serverReadQueueDepth is a bounded userspace burst cushion between the raw
+// packet reader and the synchronous server handler. Final18 evidence at
+// 148b2b0 observed up to 12.33k reads/s and 294.7ms queue age while the
+// 256-slot queue saturated; 4096 covers that observed envelope without
+// changing the kernel socket buffer or introducing an unbounded queue.
+const serverReadQueueDepth = 4096
 
 func newServerReadQueue() chan segmentRead {
 	return make(chan segmentRead, serverReadQueueDepth)

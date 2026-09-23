@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "FINAL18_PAUSED_RECEIVE_PIPELINE_FIX：固定HEAD b0f5386c 的前5份样本中，Game5205/101、Normal lossless/101、Game lossless/101全PASS；Game5305/101因client AF_PACKET单秒1070 drops、Normal5205/101因server AF_PACKET单秒58 drops被保留为CAPACITY_LIMITED。只读artifact诊断证明两者均非link/qdisc/capture drop，且FreshBlocked/FreshEmitFailures=0、RepairEvictionMaxScan=1。Normal5205 server drop前socket rmem已到725184/1048576，drop对应server pipeline新出现约11.6ms handler/handoff/queue-age停顿；容量1 read handoff会在该短停顿期间停止drain。现暂停最终18份，修复server有界短突发接收解耦，并给client SegmentMux补只读队列占用/年龄/满队列等待诊断。",
-  "next_task": "以本次状态文档+final18 relay提交形成的新固定HEAD为唯一最终资格SOURCE_SHA，从头执行2模式×3场景×3 seeds共18个独立workflow_dispatch样本；每run只含一条测量。b0f5386c的5份旧final18样本永久保留历史、不计入新矩阵。18份全部完成前不推进工作分支；P4/P5性能资格关闭后再考虑P6重打包，P7仍NOT_RUN。",
-  "latest_log": "docs/devlog/20260923-234500-receive-burst-canary-pass-final18-arm.md",
-  "last_tested_source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
+  "in_progress": "FINAL18_STOPPED_SERVER_BURST_QUEUE_SATURATION：固定HEAD 148b2b0cca472d69b1da6b8e6075f229a31b3e11 的18份独立strict样本已全部完成；16份五分类PASS，Normal/5305/seed202与Game4/5305/seed303因server本机AF_PACKET drop被判ENVIRONMENT FAIL + PERFORMANCE CAPACITY_LIMITED。两份CORRECTNESS/INPUT_VALIDITY/CAPTURE均PASS、performance errors为空、link/qdisc为0，不能关闭资格。只读artifact诊断显示server 256槽read handoff在两份失败样本均达到边界（ready_peak=258）；Normal失败同时出现281.241ms handler、248.438ms handoff_block、294.723ms queue_age并将packet socket推至1037376/1048576后drop 1346；Game失败前rmem达640064/1048576，queue峰值同样触边，随后drop 204。旧repair路径仍FreshBlocked=0、FreshEmitFailures=0、RepairEvictionMaxScan=1。现实施第二个最小有界server burst解耦：read handoff 256->4096；不改kernel SO_RCVBUF、wire/FEC/repair/loss门槛。",
+  "next_task": "等待本次server read handoff 4096有界修复的repository/targeted/foundation/lifecycle/fullstack/race Actions。全部通过后，在该精确产品SHA上只跑两条独立canary：Normal/5305/seed202与Game4/5305/seed303；每个workflow_dispatch仅一条测量。若五分类均PASS且server/client AF_PACKET、link/qdisc drop=0，再用一次状态文档+final18 relay提交形成新的固定final HEAD，并从头重跑18份；148b2b0的18份（含2个CAPACITY_LIMITED）永久保留历史。",
+  "latest_log": "docs/devlog/20260923-235500-final18-server-burst-queue-saturation.md",
+  "last_tested_source_sha": "148b2b0cca472d69b1da6b8e6075f229a31b3e11",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1440,6 +1440,20 @@
       "scope": "receive-burst-canary/game-5305-seed101",
       "status": "PASS",
       "note": "loss-tolerant-v1五分类全PASS；client/server AF_PACKET与link/qdisc drop=0；SegmentMux四route capacity=256，peak=75/56/69/64，full_waits均0。summary artifact 10757213214；full artifact 10756477612。"
+    },
+    {
+      "source_sha": "148b2b0cca472d69b1da6b8e6075f229a31b3e11",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35877070378",
+      "scope": "final18-normal-5305-seed202",
+      "status": "CAPACITY_LIMITED",
+      "note": "CORRECTNESS/INPUT_VALIDITY/CAPTURE PASS；ENVIRONMENT FAIL；PERFORMANCE CAPACITY_LIMITED。server ss_packet drops=1346、ss_udp drops=25；link/qdisc=0；packet socket峰值1037376/1048576。只读pipeline显示ready_peak=258、handler max=281.241374ms、handoff_block max=248.437983ms、queue_age max=294.722948ms；FreshBlocked/FreshEmitFailures=0、RepairEvictionMaxScan=1。"
+    },
+    {
+      "source_sha": "148b2b0cca472d69b1da6b8e6075f229a31b3e11",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35877100569",
+      "scope": "final18-game-5305-seed303",
+      "status": "CAPACITY_LIMITED",
+      "note": "CORRECTNESS/INPUT_VALIDITY/CAPTURE PASS；ENVIRONMENT FAIL；PERFORMANCE CAPACITY_LIMITED。server ss_packet drops=204；client/link/qdisc=0；drop前server rmem 640064/1048576。只读pipeline显示ready_peak=258、handoff_block max=10.164816ms、queue_age max=48.433018ms；四lane FreshBlocked/FreshEmitFailures=0、RepairEvictionMaxScan=1。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1742,7 +1756,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "RECEIVE_BURST_CANARY_PASS_FINAL18_ARMING",
+      "status": "FINAL18_STOPPED_SERVER_BURST_QUEUE_FIX_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1753,9 +1767,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-234500-receive-burst-canary-pass-final18-arm.md",
+      "latest_log": "docs/devlog/20260923-235500-final18-server-burst-queue-saturation.md",
       "note": "9cdd4f4 的server 256槽有界receive burst修复已由Normal5205与Game5305两条真实目标速率canary验证：两条loss-tolerant-v1五分类均PASS；Game5305 client/server AF_PACKET与link/qdisc drop均为0，四条SegmentMux route容量256、峰值75/56/69/64、full_waits全0，因此不实施第二个client receive产品修改。",
-      "next_task": "以本次状态文档+final18 relay提交形成的新固定HEAD为唯一最终资格SOURCE_SHA，从头执行2模式×3场景×3 seeds共18个独立workflow_dispatch样本；每run只含一条测量。b0f5386c的5份旧final18样本永久保留历史、不计入新矩阵。18份全部完成前不推进工作分支；P4/P5性能资格关闭后再考虑P6重打包，P7仍NOT_RUN。",
+      "next_task": "等待本次server read handoff 4096有界修复的repository/targeted/foundation/lifecycle/fullstack/race Actions。全部通过后，在该精确产品SHA上只跑两条独立canary：Normal/5305/seed202与Game4/5305/seed303；每个workflow_dispatch仅一条测量。若五分类均PASS且server/client AF_PACKET、link/qdisc drop=0，再用一次状态文档+final18 relay提交形成新的固定final HEAD，并从头重跑18份；148b2b0的18份（含2个CAPACITY_LIMITED）永久保留历史。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -2704,7 +2718,7 @@
         "workflow_git_blob": "4a5bc83b32c8a804dc7ffe912b4a22d35efd8e69"
       },
       "final_main_qualification": {
-        "status": "ARMING_NEW_FIXED_HEAD",
+        "status": "STOPPED_16_PASS_2_CAPACITY_LIMITED",
         "policy": "2 modes x 3 scenarios x 3 seeds = 18 independent workflow_dispatch runs; one measurement per target run",
         "seeds": [
           "101",
@@ -2740,7 +2754,8 @@
             "seed": "101",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35876571942
           },
           {
             "slot": 2,
@@ -2749,7 +2764,8 @@
             "seed": "101",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877035615
           },
           {
             "slot": 3,
@@ -2758,7 +2774,8 @@
             "seed": "101",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877039380
           },
           {
             "slot": 4,
@@ -2767,7 +2784,8 @@
             "seed": "101",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877043410
           },
           {
             "slot": 5,
@@ -2776,7 +2794,8 @@
             "seed": "101",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877047738
           },
           {
             "slot": 6,
@@ -2785,7 +2804,8 @@
             "seed": "101",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877051286
           },
           {
             "slot": 7,
@@ -2794,7 +2814,8 @@
             "seed": "202",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877055593
           },
           {
             "slot": 8,
@@ -2803,7 +2824,8 @@
             "seed": "202",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877058707
           },
           {
             "slot": 9,
@@ -2812,7 +2834,8 @@
             "seed": "202",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877062435
           },
           {
             "slot": 10,
@@ -2821,7 +2844,8 @@
             "seed": "202",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877066721
           },
           {
             "slot": 11,
@@ -2830,7 +2854,8 @@
             "seed": "202",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "CAPACITY_LIMITED",
+            "run": 35877070378
           },
           {
             "slot": 12,
@@ -2839,7 +2864,8 @@
             "seed": "202",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877074969
           },
           {
             "slot": 13,
@@ -2848,7 +2874,8 @@
             "seed": "303",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877079131
           },
           {
             "slot": 14,
@@ -2857,7 +2884,8 @@
             "seed": "303",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877082740
           },
           {
             "slot": 15,
@@ -2866,7 +2894,8 @@
             "seed": "303",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877086775
           },
           {
             "slot": 16,
@@ -2875,7 +2904,8 @@
             "seed": "303",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877091298
           },
           {
             "slot": 17,
@@ -2884,7 +2914,8 @@
             "seed": "303",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35877096915
           },
           {
             "slot": 18,
@@ -2893,12 +2924,22 @@
             "seed": "303",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "CAPACITY_LIMITED",
+            "run": 35877100569
           }
         ],
         "product_parent_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
         "previous_final_head": "b0f5386cd468903507c68fb4b7986fff318d70de",
-        "previous_final_status": "STOPPED_HISTORICAL_5_SAMPLES_PRESERVED_NOT_REUSED"
+        "previous_final_status": "STOPPED_HISTORICAL_5_SAMPLES_PRESERVED_NOT_REUSED",
+        "source_sha": "148b2b0cca472d69b1da6b8e6075f229a31b3e11",
+        "result_summary": {
+          "total": 18,
+          "pass": 16,
+          "capacity_limited": 2,
+          "fail": 0,
+          "invalid": 0
+        },
+        "stopped_reason": "Two independent 5305 samples had local server packet-socket drops; CAPACITY_LIMITED is not PASS."
       },
       "receive_burst_fix_canary": {
         "product_source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
@@ -3060,6 +3101,38 @@
             }
           ]
         }
+      },
+      "server_receive_burst_v2": {
+        "state": "CODE_PENDING_ACTIONS",
+        "parent_source_sha": "148b2b0cca472d69b1da6b8e6075f229a31b3e11",
+        "prior_depth": 256,
+        "new_depth": 4096,
+        "rationale": {
+          "normal_5305_seed202": {
+            "max_reads_per_s": 12330.999,
+            "max_queue_age_ms": 294.722948,
+            "derived_slots_at_observed_max_rate": 3634.23,
+            "ready_peak": 258
+          },
+          "game_5305_seed303": {
+            "max_reads_per_s": 15269.005,
+            "max_queue_age_ms": 48.433018,
+            "derived_slots_at_observed_max_rate": 739.52,
+            "ready_peak": 258
+          }
+        },
+        "invariants": [
+          "bounded queue",
+          "full queue still backpressures reader",
+          "SO_RCVBUF unchanged",
+          "wire/protocol/FEC/repair/loss thresholds unchanged",
+          "no userspace silent drop"
+        ],
+        "validation": [
+          "repository/targeted/foundation/lifecycle/fullstack/race Actions",
+          "Normal 5305 seed202 exact-SHA canary",
+          "Game4 5305 seed303 exact-SHA canary"
+        ]
       }
     }
   }
