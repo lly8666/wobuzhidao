@@ -1,4 +1,5 @@
 name: next-strict-weaknet
+run-name: strict-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-rate${{ inputs.rate_mbps }}-lanes${{ inputs.lanes }}
 
 on:
   workflow_dispatch:

@@ -1,0 +1,116 @@
+name: next-performance-final-qualification-relay
+
+on:
+  push:
+    branches:
+      - next/tlslike-dataplane
+    paths:
+      - .github/workflows/next-performance-final-qualification-relay.yml
+      - .github/workflows/next-strict-weaknet.yml
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  relay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require exact branch head
+        shell: bash
+        env:
+          PERF_REF: next/tlslike-dataplane
+        run: |
+          set -euo pipefail
+          remote_sha="$(git ls-remote origin "refs/heads/$PERF_REF" | awk '{print $1}')"
+          echo "qualification_relay_sha=$GITHUB_SHA remote_sha=$remote_sha attempt=$GITHUB_RUN_ATTEMPT"
+          test -n "$remote_sha"
+          test "$remote_sha" = "$GITHUB_SHA"
+
+      - name: Validate fixed 18-sample plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/final-qualification-plan.txt" <<'EOF'
+          game 5205 101 3 4
+          game 5305 101 3 4
+          normal lossless 101 10 1
+          game lossless 101 3 4
+          normal 5205 101 10 1
+          normal 5305 101 10 1
+          normal lossless 202 10 1
+          game lossless 202 3 4
+          normal 5205 202 10 1
+          game 5205 202 3 4
+          normal 5305 202 10 1
+          game 5305 202 3 4
+          normal lossless 303 10 1
+          game lossless 303 3 4
+          normal 5205 303 10 1
+          game 5205 303 3 4
+          normal 5305 303 10 1
+          game 5305 303 3 4
+          EOF
+          PLAN="$RUNNER_TEMP/final-qualification-plan.txt" python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          rows = [tuple(line.split()) for line in Path(os.environ['PLAN']).read_text(encoding='utf-8').splitlines() if line.strip()]
+          if len(rows) != 18 or len(set(rows)) != 18:
+              raise SystemExit('final qualification plan must contain 18 unique samples')
+
+          seeds = {'101', '202', '303'}
+          expected = set()
+          for mode in ('normal', 'game'):
+              rate, lanes = ('10', '1') if mode == 'normal' else ('3', '4')
+              for scenario in ('lossless', '5205', '5305'):
+                  for seed in seeds:
+                      expected.add((mode, scenario, seed, rate, lanes))
+          actual = set(rows)
+          if actual != expected:
+              raise SystemExit(f'plan mismatch missing={sorted(expected-actual)} extra={sorted(actual-expected)}')
+          print('WBD_FINAL_QUALIFICATION_PLAN_PASS count=18 seeds=101,202,303 modes=normal,game scenarios=lossless,5205,5305')
+          PY
+
+      - name: Arm first attempt or dispatch first missing sample
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PERF_REF: next/tlslike-dataplane
+          PERF_WORKFLOW: next-strict-weaknet.yml
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_RUN_ATTEMPT" = "1" ]; then
+            echo "WBD_FINAL_QUALIFICATION_ARMED_ONLY head=$GITHUB_SHA"
+            exit 0
+          fi
+
+          runs="$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/$PERF_WORKFLOW/runs" \
+            -f event=workflow_dispatch -f branch="$PERF_REF" -f per_page=100)"
+
+          while read -r mode scenario seed rate lanes; do
+            title="strict-${mode}-${scenario}-seed${seed}-rate${rate}-lanes${lanes}"
+            existing="$(jq -r --arg sha "$GITHUB_SHA" --arg title "$title" \
+              '.workflow_runs[] | select(.head_sha == $sha and .display_title == $title) | .id' \
+              <<<"$runs" | head -n1)"
+            if [ -n "$existing" ]; then
+              echo "PRESENT title=$title run=$existing"
+              continue
+            fi
+
+            gh workflow run "$PERF_WORKFLOW" --ref "$PERF_REF" \
+              -f mode="$mode" \
+              -f scenario="$scenario" \
+              -f seed="$seed" \
+              -f rate_mbps="$rate" \
+              -f lanes="$lanes"
+            echo "WBD_FINAL_QUALIFICATION_DISPATCHED title=$title head=$GITHUB_SHA"
+            exit 0
+          done < "$RUNNER_TEMP/final-qualification-plan.txt"
+
+          echo "WBD_FINAL_QUALIFICATION_COMPLETE head=$GITHUB_SHA count=18"
