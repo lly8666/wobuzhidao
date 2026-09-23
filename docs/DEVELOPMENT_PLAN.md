@@ -185,3 +185,5 @@ P5：增加受控真实 HTTPS 客户端/服务器，覆盖首个与复用 lane �
 
 参数没有新增或改默认值，`docs/PARAMETERS.md/json` 不需要修改；最终 core 的 parameter catalog gate PASS。完整证据与中间修复链见 STATUS 和最新 devlog。原诊断成果保留；用户现已明确恢复性能开发。当前执行顺序、证据、修复边界与最终验收见 WEAKNET_QUALIFICATION 第9节，STATUS.PERFORMANCE_RECOVERY 为进度入口。
 
+2026-09-23性能恢复实施进度：观测 SHA `7ac4f2236c1fa0efbdb8032e7613bbef1a510cf5` 的 `next-performance-recovery` run 35812290504 已完成 core/race 与独占 Normal10 lossless。样本仍为 CAPACITY_LIMITED，但时间线显示 server handler 与容量1 readCh 反压几乎等时，且 handler 内已细分的 transport lock/owner/FEC-LINK/downstream 只能解释少部分耗时；当前最小修复把 `HandleServerSegmentQualified` 每包前后两次完整 `TransportStats`（会扫描 pending/received）改为 O(1) authenticated-record 计数读取。该修改不调整队列、buffer、FEC、Game、注入、生命周期或 wire；必须等同 runner 修复后样本/A-B 证据，不能提前标性能通过。
+

@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "PERFORMANCE_RECOVERY: bounded receive-pipeline observability + exclusive Normal10 lossless evidence run; functional lifecycle remains COMPLETE.",
-  "next_task": "读取 next-performance-recovery 的 Normal10 lossless artifact，对齐 AF_PACKET drops、reader/readCh/handler/owner/FEC-LINK/downstream timing、per-core CPU/softirq/steal 与 GC，定位最早阻塞点并只做一个证据支持的最小修复；随后 Game4 逻辑3Mbps验证和逐方向字节账本审计。",
-  "latest_log": "docs/devlog/20260923-104100-performance-receive-observability.md",
-  "last_tested_source_sha": "7110fd1e22cb2ab3809456657e3fcdf139508a65",
+  "in_progress": "PERFORMANCE_RECOVERY: Normal10 lossless diagnosis identified full TransportStats scans in the synchronous server qualification path as a concrete O(4096) hot-path waste; applying an O(1) authenticated-record counter and validating it. Functional lifecycle remains COMPLETE." ,
+  "next_task": "读取 O(1) qualification counter 修复 SHA 的 next-performance-recovery 结果，与 7ac4f223 Normal10 baseline 同口径比较 handler/readCh/AF_PACKET drops/goodput/CPU；若 Normal10 明显改善再跑 Game4 逻辑3Mbps及逐方向字节账本，若仍崩则继续缩小到 raw read allocation/GC 等下一明确热点，不跑18份长矩阵。",
+  "latest_log": "docs/devlog/20260923-111000-performance-qualified-counter.md",
+  "last_tested_source_sha": "7ac4f2236c1fa0efbdb8032e7613bbef1a510cf5",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1621,7 +1621,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "DIAGNOSTIC_IN_PROGRESS",
+      "status": "FIX_VALIDATION_IN_PROGRESS",
       "spec": "docs/WEAKNET_QUALIFICATION.md#9",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1632,8 +1632,8 @@
         "审计混合包长/FEC/分片/Game线上字节账本",
         "无损目标通过后再完成严格弱网矩阵及长测"
       ],
-      "latest_log": "docs/devlog/20260923-104100-performance-receive-observability.md",
-      "note": "已加入仅 diagnostic-jsonl 开启的有界 receive pipeline/owner/FEC-LINK timing，并新增先 core/race 后独占 Normal10 lossless 的 Actions 入口；尚未把任何性能结果标 PASS。"
+      "latest_log": "docs/devlog/20260923-111000-performance-qualified-counter.md",
+      "note": "7ac4f223 / next-performance-recovery run 35812290504: core-race job 107026270927 PASS；Normal10 job 107026857488采集成功，artifact 10730701490，仍 PERFORMANCE=CAPACITY_LIMITED。server handler 116.13s/61162包、readCh handoff block 118.62s，AF_PACKET drops 677365；已定位每个稳态包资格判断前后两次完整 TransportStats 扫描为明确 O(4096) 热路径浪费，当前最小修复改为 O(1) AuthenticatedRecords 读取，待新 SHA Actions 验证。"
     }
   }
 }

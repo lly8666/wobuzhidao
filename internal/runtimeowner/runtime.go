@@ -1184,6 +1184,19 @@ func (r *Runtime) HandleSegment(ref logicaltunnel.LaneRef, seg faketcp.Segment, 
 	return transport.handleSegment(seg, now)
 }
 
+func (r *Runtime) authenticatedRecordCount(ref logicaltunnel.LaneRef) (uint64, bool) {
+	r.mu.Lock()
+	transport := r.lanes[ref]
+	r.mu.Unlock()
+	if transport == nil {
+		return 0, false
+	}
+	transport.mu.Lock()
+	count := transport.stats.AuthenticatedRecords
+	transport.mu.Unlock()
+	return count, true
+}
+
 func (r *Runtime) HandleServerSegment(ref logicaltunnel.LaneRef, assoc *faketcp.ServerAssociation, seg faketcp.Segment, now time.Time) error {
 	_, err := r.HandleServerSegmentQualified(ref, assoc, seg, now)
 	return err
@@ -1199,11 +1212,11 @@ func (r *Runtime) HandleServerSegmentQualified(ref logicaltunnel.LaneRef, assoc 
 	}
 	if state, ok := assoc.TransitionState(); ok && state == faketcp.TransitionDetached &&
 		r.steadyOwnsSegment(ref, seg) {
-		before, _ := r.TransportStats(ref)
+		before, _ := r.authenticatedRecordCount(ref)
 		if err := r.HandleSegment(ref, seg, now); err != nil {
 			return false, err
 		}
-		after, _ := r.TransportStats(ref)
+		after, _ := r.authenticatedRecordCount(ref)
 		return after.AuthenticatedRecords > before.AuthenticatedRecords, nil
 	}
 
@@ -1212,11 +1225,11 @@ func (r *Runtime) HandleServerSegmentQualified(ref logicaltunnel.LaneRef, assoc 
 		return false, err
 	}
 	if result.Disposition == faketcp.RouteRecord && result.Record != nil {
-		before, _ := r.TransportStats(ref)
+		before, _ := r.authenticatedRecordCount(ref)
 		if err := r.HandleSegment(ref, seg, now); err != nil {
 			return false, err
 		}
-		after, _ := r.TransportStats(ref)
+		after, _ := r.authenticatedRecordCount(ref)
 		return after.AuthenticatedRecords > before.AuthenticatedRecords, nil
 	}
 	if result.AckNeeded {
