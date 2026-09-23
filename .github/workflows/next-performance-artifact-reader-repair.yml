@@ -1,0 +1,148 @@
+name: next-performance-artifact-reader-repair
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/perf-artifact-clientdrop-request.json
+      - .github/workflows/next-performance-artifact-reader-repair.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect-repair:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          d=json.load(open('.github/perf-artifact-clientdrop-request.json'))
+          for k in ('artifact_id','source_run','source_job','source_sha','artifact_name'):
+              if k not in d: raise SystemExit(f'missing {k}')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              for e,k in [('ARTIFACT_ID','artifact_id'),('SOURCE_RUN','source_run'),('SOURCE_JOB','source_job'),('SOURCE_SHA','source_sha'),('EXPECTED_NAME','artifact_name')]:
+                  f.write(f"{e}={d[k]}\n")
+          PY
+      - name: Verify and download immutable artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          meta="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID")"
+          test "$(echo "$meta" | jq -r .name)" = "$EXPECTED_NAME"
+          test "$(echo "$meta" | jq -r .workflow_run.id)" = "$SOURCE_RUN"
+          test "$(echo "$meta" | jq -r .workflow_run.head_sha)" = "$SOURCE_SHA"
+          test "$(echo "$meta" | jq -r .expired)" = false
+          curl --fail --location --retry 3 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" \
+            -o "$RUNNER_TEMP/evidence.zip"
+      - name: Extract repair lifecycle counters
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifact-reader
+          python3 - <<'PY'
+          import json, os, zipfile
+          zpath=os.path.join(os.environ['RUNNER_TEMP'],'evidence.zip')
+          keys=[
+            'FastRepairArmed','FastRepairArmFired','FastRepairArmCanceled',
+            'FastRepairs','RTORepairs','RepairSelected','RepairAttempts','RepairSucceeded',
+            'RepairFailures','RepairDeferred','RepairExpiredSkipped',
+            'RepairEvicted','RepairMetadataEvicted','Abandoned',
+            'FreshSent','FreshBlocked','FreshWindowBypass','FreshEmitFailures',
+            'ForgivenGaps','SACKed','SACKRetired','SACKedOutstanding',
+            'RepairQueue','Outstanding','RepairCreditBytes','RecoveryTicks'
+          ]
+          counters=set([
+            'FastRepairArmed','FastRepairArmFired','FastRepairArmCanceled',
+            'FastRepairs','RTORepairs','RepairSelected','RepairAttempts','RepairSucceeded',
+            'RepairFailures','RepairDeferred','RepairExpiredSkipped',
+            'RepairEvicted','RepairMetadataEvicted','Abandoned',
+            'FreshSent','FreshBlocked','FreshWindowBypass','FreshEmitFailures',
+            'ForgivenGaps','SACKed','SACKRetired','RecoveryTicks'
+          ])
+          def find(z,suffix):
+              m=[n for n in z.namelist() if n.endswith(suffix)]
+              if len(m)!=1: raise SystemExit(f'{suffix}: {m}')
+              return m[0]
+          def rows(z,name):
+              out=[]
+              with z.open(name) as f:
+                  for raw in f:
+                      try: out.append(json.loads(raw))
+                      except Exception: pass
+              return out
+          def product(row,side):
+              p=row.get('product') or {}
+              if side=='server': return p.get('tunnel') if p.get('present') else None
+              return p
+          def lane_id(l):
+              r=l.get('ref') or {}
+              return f"{r.get('ID',0)}:{r.get('Generation',0)}"
+          def snaps(rows,side):
+              out=[]
+              for row in rows:
+                  p=product(row,side)
+                  if not p: continue
+                  ls={}
+                  for lane in p.get('lanes') or []:
+                      tr=lane.get('transport') or {}
+                      ls[lane_id(lane)]={k:tr.get(k,0) for k in keys}
+                  if ls: out.append((int(row.get('unix_ns',0)),ls))
+              return out
+          def at_or_before(ss,ts):
+              cand=[x for x in ss if x[0] <= ts]
+              if cand: return cand[-1]
+              return ss[0] if ss else None
+          def lane_delta(a,b):
+              out={}
+              ids=set((a or {}).keys())|set((b or {}).keys())
+              for lid in ids:
+                  x=(a or {}).get(lid,{})
+                  y=(b or {}).get(lid,{})
+                  d={}
+                  for k in keys:
+                      xv=x.get(k,0); yv=y.get(k,0)
+                      d[k]=(yv-xv) if k in counters else yv
+                  out[lid]=d
+              return out
+          with zipfile.ZipFile(zpath) as z:
+              ev=rows(z,find(z,'stage-events.jsonl'))
+              cr=rows(z,find(z,'client-diag.jsonl'))
+              sr=rows(z,find(z,'server-diag.jsonl'))
+          by={x.get('event'):x for x in ev}
+          bounds={k:(int(by[k+'_start']['unix_ns']),int(by[k+'_end']['unix_ns'])) for k in ('pre','stress','post')}
+          out={'artifact_id':int(os.environ['ARTIFACT_ID']),'source_run':int(os.environ['SOURCE_RUN']),'source_sha':os.environ['SOURCE_SHA'],'bounds':bounds,'endpoints':{}}
+          for side,rows0 in [('client',cr),('server',sr)]:
+              ss=snaps(rows0,side)
+              sideout={'samples':len(ss),'stages':{},'final':ss[-1][1] if ss else {}}
+              for st,(a,b) in bounds.items():
+                  sa=at_or_before(ss,a); sb=at_or_before(ss,b)
+                  sideout['stages'][st]={
+                    'start_unix_ns':sa[0] if sa else None,
+                    'end_unix_ns':sb[0] if sb else None,
+                    'lanes':lane_delta(sa[1] if sa else {},sb[1] if sb else {})
+                  }
+              out['endpoints'][side]=sideout
+          with open('artifact-reader/repair.json','w') as f:
+              json.dump(out,f,indent=2,sort_keys=True); f.write('\n')
+          print('WBD_REPAIR_DIAG '+json.dumps(out,sort_keys=True))
+          PY
+      - name: Upload repair diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: repair-diag-${{ env.ARTIFACT_ID }}-${{ env.SOURCE_SHA }}
+          path: artifact-reader/repair.json
+          if-no-files-found: error
+          retention-days: 30

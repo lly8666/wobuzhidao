@@ -1,7 +1,7 @@
 {
-  "artifact_id": 10765214407,
-  "source_run": 35892767333,
-  "source_job": 107289070921,
-  "source_sha": "8a4536bf1a56a9d7145b3e9067f76aa43ffab848",
-  "artifact_name": "strict-single-game-5305-seed303-8a4536bf1a56a9d7145b3e9067f76aa43ffab848"
+  "artifact_id": 10781516462,
+  "source_run": 35931570578,
+  "source_job": 107419109889,
+  "source_sha": "ab29a618fc32aba7aa6cd1a4d714bfb6649d15c1",
+  "artifact_name": "strict-single-normal-5205-seed101-ab29a618fc32aba7aa6cd1a4d714bfb6649d15c1"
 }
