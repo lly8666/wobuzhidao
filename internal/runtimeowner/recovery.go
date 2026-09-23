@@ -325,6 +325,7 @@ func (t *laneTransport) retireSelectiveACKLocked(ack uint32, now time.Time) {
 		}
 	}
 	t.lastAck = ack
+	t.protectCurrentHeadRepairLocked()
 	t.pruneSenderSACKLocked()
 	if sample != nil {
 		t.observeRTTLocked(now.Sub(sample.firstSent))

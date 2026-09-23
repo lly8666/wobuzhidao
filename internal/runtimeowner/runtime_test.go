@@ -1411,6 +1411,74 @@ func TestSteadyFreshFastRepairUsesTransmissionTimeReorderingEvidence(t *testing.
 }
 
 
+func TestSteadyCurrentHeadShadowSurvivesPreSACKFullWindowPressure(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil { t.Fatal(err) }
+	var wire []faketcp.Segment
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 65405)
+	cfg.SACKPermitted = true
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 99), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9805, 0)
+
+	records := make([]datapath.WireRecord, MaxOutstandingRecords)
+	for i := range records {
+		records[i].Wire = []byte{byte(i), byte(i >> 8)}
+	}
+	if err := tr.send(records, t0); err != nil { t.Fatal(err) }
+	headSeq := wire[0].Seq
+
+	extra := make([]datapath.WireRecord, 1024)
+	for i := range extra {
+		extra[i].Wire = []byte{0xd0, byte(i), byte(i >> 8)}
+	}
+	if err := tr.send(extra, t0.Add(100*time.Millisecond)); err != nil {
+		t.Fatalf("pre-SACK pressure blocked fresh: %v", err)
+	}
+	tr.mu.Lock()
+	head := tr.pending[headSeq]
+	headProtected := head != nil && !head.evictLinked
+	tr.mu.Unlock()
+	stats, _ := rt.TransportStats(snap.Ref)
+	if !headProtected || stats.Outstanding != MaxOutstandingRecords ||
+		stats.FreshBlocked != 0 || stats.FreshWindowBypass != 0 ||
+		stats.RepairEvictionMaxScan > 1 {
+		t.Fatalf("current head was not retained with O(1) fresh eviction protected=%t stats=%+v", headProtected, stats)
+	}
+
+	// SACK only recent records that are certainly still backed. Their send time
+	// is newer than the head but intentionally below the learned reordering
+	// window, so the scoreboard path must arm rather than use immediate RACK.
+	first := wire[len(wire)-4]
+	last := wire[len(wire)-1]
+	sack := faketcp.Segment{
+		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
+		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
+		Seq: cfg.ReceiveNext, Ack: headSeq,
+		Flags: faketcp.FlagACK, Window: 65535, SACKN: 1,
+	}
+	sack.SACK[0] = faketcp.SACKBlock{Start: first.Seq, End: last.Seq + uint32(len(last.Payload))}
+	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond)); err != nil { t.Fatal(err) }
+	stats, _ = rt.TransportStats(snap.Ref)
+	if stats.FastRepairArmed != 1 || stats.FastRepairs != 0 {
+		t.Fatalf("retained head did not arm from later SACK stats=%+v", stats)
+	}
+	if err := rt.Tick(t0.Add(650*time.Millisecond)); err != nil { t.Fatal(err) }
+	if err := rt.Tick(t0.Add(750*time.Millisecond)); err != nil { t.Fatal(err) }
+	stats, _ = rt.TransportStats(snap.Ref)
+	if stats.FastRepairArmFired != 1 || stats.FastRepairs != 1 || stats.Retransmitted != 1 {
+		t.Fatalf("retained head did not produce bounded repair stats=%+v", stats)
+	}
+}
+
 func TestSteadySACKHeadPersistsAcrossRecoveryCycleBeforeFastRepair(t *testing.T) {
 	lease := runtimeLease(t)
 	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 16)
@@ -1610,7 +1678,12 @@ func TestSteadyFullRepairWindowEvictionConstantWorkWithoutACK(t *testing.T) {
 	}
 	tr.mu.Lock()
 	orderLen := len(tr.pendingOrder)
+	head := tr.pending[cfg.SendNext]
+	headProtected := head != nil && !head.evictLinked
 	tr.mu.Unlock()
+	if !headProtected {
+		t.Fatalf("current cumulative head was evicted before feedback: %+v", head)
+	}
 	if orderLen > MaxOutstandingRecords+steadyIndexCompactThreshold {
 		t.Fatalf("pending order grew without bound: %d", orderLen)
 	}

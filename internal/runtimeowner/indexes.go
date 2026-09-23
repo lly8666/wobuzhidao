@@ -71,7 +71,8 @@ func (t *laneTransport) unlinkRepairLocked(p *pendingRecord) {
 
 func (t *laneTransport) linkEvictLocked(p *pendingRecord) {
 	if p == nil || p.evictLinked || p.control || p.flags&faketcp.FlagFIN != 0 ||
-		p.sacked || p.retired || p.repairInFlight || p.fastRepairArmed {
+		p.sacked || p.retired || p.repairInFlight || p.fastRepairArmed ||
+		p.seq == t.lastAck {
 		return
 	}
 	p.evictLinked = true
@@ -86,7 +87,8 @@ func (t *laneTransport) linkEvictLocked(p *pendingRecord) {
 
 func (t *laneTransport) linkEvictFrontLocked(p *pendingRecord) {
 	if p == nil || p.evictLinked || p.control || p.flags&faketcp.FlagFIN != 0 ||
-		p.sacked || p.retired || p.repairInFlight || p.fastRepairArmed {
+		p.sacked || p.retired || p.repairInFlight || p.fastRepairArmed ||
+		p.seq == t.lastAck {
 		return
 	}
 	p.evictLinked = true
@@ -157,6 +159,18 @@ func (t *laneTransport) restorePendingEvictionLocked(p *pendingRecord) {
 		return
 	}
 	t.linkEvictFrontLocked(p)
+}
+
+func (t *laneTransport) protectCurrentHeadRepairLocked() {
+	p := t.pendingAtHeadLocked()
+	if p == nil || p.seq != t.lastAck {
+		return
+	}
+	// Keep exactly the current cumulative head out of the optional fresh-eviction
+	// chain before SACK feedback arrives. All later business shadows remain
+	// evictable, so this consumes one bounded slot without turning 4096 into a
+	// fresh admission window.
+	t.unlinkEvictLocked(p)
 }
 
 func (t *laneTransport) linkExpiryLocked(p *pendingRecord) {
