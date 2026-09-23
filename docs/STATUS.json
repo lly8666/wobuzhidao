@@ -1382,7 +1382,7 @@
       "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA."
     },
     "WEAKNET_LIFECYCLE": {
-      "status": "FINAL_LIFECYCLE_CONTRACT_RERUN_PENDING",
+      "status": "COMPLETE",
       "main_task_hold": {
         "requested_by": "user",
         "resume_only_on_user_request": true,
@@ -1395,11 +1395,11 @@
       "protocol": "admission V2; paired upgrade required",
       "acceptance": "docs/LIFECYCLE_ACCEPTANCE.md",
       "parameters": "docs/PARAMETERS.md",
-      "latest_devlog": "docs/devlog/20260923-090000-final-lifecycle-contract-rerun.md",
-      "acceptance_harness": "Final contract correction pending exact-SHA Actions: permanent old-tuple blackhole still requires generation replacement; temporary all-tuple blackhole accepts bounded recovery on the still-authoritative old lane after clear; L6 strict phase requires 100/100 clear-path delivery from a both-DORMANT precondition but no arbitrary minimum wake-cycle count.",
-      "core_status": "PASS_9567",
-      "fullstack_status": "33_PASS_3_CONTRACT_FALSE_NEGATIVE_9567",
-      "implementation_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
+      "latest_devlog": "docs/devlog/20260923-094500-weaknet-lifecycle-final-acceptance.md",
+      "acceptance_harness": "COMPLETE: 36/36 isolated L0-L7 samples + aggregate PASS at exact qualification SHA; two seeds per scenario, L0 FEC off/20 x padding off/on, L3 pre-seal health loss, L5 SYN/TLS/admission/detach, L6 blackhole failed wake + post-clear wake + 100/100 cutoff race, L7 true 15s/90s.",
+      "core_status": "PASS_0B206",
+      "fullstack_status": "PASS_36_OF_36_0B206",
+      "implementation_sha": "65ff2ef27dd763cba2f7293e6ef6274bca6632c3",
       "core_runs": [
         {
           "workflow": "next-lifecycle",
@@ -1438,16 +1438,19 @@
           "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc"
         }
       ],
-      "performance_status": "EXACT_SHA_RERUN_PENDING",
+      "performance_status": "FAIL_CAPACITY_LIMITED",
       "performance_evidence": {
-        "source_sha": "0882adb70ddb85d8d5dbd5e6be8618f3d7132fcd",
+        "source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
         "workflow": "next-strict-weaknet",
-        "run": "https://github.com/lly8666/wobuzhidao/actions/runs/35791010526",
-        "aggregate_job": 106961188033,
+        "run": 35803458166,
+        "aggregate_job": 107000004406,
+        "aggregate_artifact": 10727035867,
         "result": "FAIL_CAPACITY_LIMITED",
-        "samples": "18/18 present; CORRECTNESS and CAPTURE PASS in all 18; ENVIRONMENT FAIL and PERFORMANCE CAPACITY_LIMITED in all 18; INPUT_VALIDITY PASS in 17/18, normal/5305/seed202 FAIL",
-        "earliest_boundary": "target-rate lossless samples already show server AF_PACKET ss_packet drops (e.g. Normal seed101 1,356,170; Game seed101 1,454,505) with severe C2S collapse, before injected high-loss stages; some samples also have UDP socket drops",
-        "hold": "Evidence is recorded only. AF_PACKET/uplink-capacity mainline remains HOLD and is not repaired by this lifecycle workstream."
+        "samples": "18/18 present; CORRECTNESS PASS 18/18; CAPTURE PASS 18/18; INPUT_VALIDITY PASS 17/18 (normal/5205/seed101 S2C skipped_slots=37); ENVIRONMENT FAIL 18/18; PERFORMANCE CAPACITY_LIMITED 18/18",
+        "earliest_boundary": "lossless server AF_PACKET ss_packet drops before injected high-loss: Normal seed101/202/303=1388390/700414/835210; Game seed101/202/303=1451308/1451704/1454157. Representative server packet rmem ratio reaches ~1.002 of configured buffer.",
+        "lossless_goodput": "Normal C2S pre 0.338-0.814 Mbps vs 10 target; Normal S2C pre 4.197-9.588 Mbps. Game C2S pre 0.467-0.500 Mbps vs 3 target; Game S2C pre ~3.000 Mbps.",
+        "cost_ledger": "Normal: health 8 records=320B per direction, padding=0, Game copy=0, reconnect=0; FEC parity C2S 260-481MB/S2C 195-472MB, repair outer C2S 0-12.4KB/S2C 0-243KB. Game: health 32=1280B per direction, padding=0, reconnect=0; FEC parity C2S 414-446MB/S2C 462-601MB; Game replication extra C2S 117-126MB/S2C 125-163MB; repair outer C2S 3.28-4.32MB/S2C 0.002-4.58MB. Initial handshake separately accounted.",
+        "hold": "Evidence only. Do not resume or alter AF_PACKET/uplink-capacity mainline without user request."
       },
       "fullstack_failed_run": {
         "source_sha": "0882adb70ddb85d8d5dbd5e6be8618f3d7132fcd",
@@ -1561,7 +1564,57 @@
         "failures": "L4 all-tuple seed101 recovered final 30s C2S/S2C=1.0 with bounded three failed candidate attempts but no promotion; validator incorrectly required generation advance/RecoverySucceeded. L6 race4 both seeds achieved strict clear-path 100/100 with no wake failure but validator incorrectly required >=10 wake cycles (actual 1 and 2).",
         "conclusion": "No new product defect established. The 65ff PeerFIN product fix is exercised successfully by race1 and by race4 100/100 delivery; remaining failures contradict the written recovery definition rather than observed delivery/state correctness."
       },
-      "performance_rerun": "next-strict-weaknet path coverage expanded to lifecycle product files; this harness-only commit forces a fresh 18-sample target-rate run so 0882 evidence is not inherited across the 65ff product fix."
+      "performance_rerun": "next-strict-weaknet path coverage expanded to lifecycle product files; this harness-only commit forces a fresh 18-sample target-rate run so 0882 evidence is not inherited across the 65ff product fix.",
+      "functional_status": "PASS",
+      "overall_target_rate_weaknet_qualified": false,
+      "baseline_implementation_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
+      "qualification_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
+      "core_evidence": {
+        "source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
+        "next_lifecycle": {
+          "run": 35803458197,
+          "job": 106998829058,
+          "status": "PASS"
+        },
+        "foundation": {
+          "run": 35803458187,
+          "status": "PASS",
+          "passed_jobs": [
+            106998829165,
+            106998861078,
+            106998861080,
+            106998861091,
+            106998861114,
+            106998861233,
+            106998861768
+          ]
+        },
+        "steady_targeted": {
+          "run": 35803458203,
+          "status": "PASS",
+          "passed_jobs": [
+            106998829452,
+            106998864752,
+            106998864784,
+            106998864808,
+            106998864843,
+            106998864856
+          ]
+        }
+      },
+      "fullstack_evidence": {
+        "source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
+        "run": 35803458184,
+        "aggregate_job": 107001464744,
+        "aggregate_artifact": 10727500614,
+        "result": "PASS",
+        "samples": "36/36",
+        "groups": "L0 8/8; L1 2/2; L2 C2S 2/2; L2 S2C 2/2; L3 2/2; L4 old 2/2 + all 2/2; L5 SYN/TLS/admission/detach 8/8; L6 race1/race4/partial 6/6; L7 defaults 2/2",
+        "product_fix_sha": "65ff2ef27dd763cba2f7293e6ef6274bca6632c3",
+        "invariants": "stable lease/TunnelID, generation isolation on replacement, bounded candidates/retiring/physical/runtime resources, sustained recovery delivery"
+      },
+      "completion_scope": "Lifecycle migration functional specialty only. Does not close P4/P5 overall throughput, P6/P7, or release qualification.",
+      "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     }
   }
 }

@@ -51,4 +51,15 @@ L6 的黑洞阶段只验证“业务活动证据不会被当成 idle、失败后
 仅当上述核心及生命周期必测项通过，才将 WEAKNET_LIFECYCLE 从 IMPLEMENTED_PENDING_ACTIONS 改 COMPLETE，并在 DEVELOPMENT_PLAN/ACCEPTANCE 回填证据；仍有未测项就保持未完成并精确列缺口。吞吐门槛未达时独立标 PERFORMANCE_FAIL，不把 correctness 通过包装成整体弱网资格。原主线 HOLD 保留，恢复开发需用户另行安排。
 
 
-2026-09-23 核心证据：SOURCE_SHA `84c466f81860c3e87aac3b571a9bce419018aabc`；[next-lifecycle](https://github.com/lly8666/wobuzhidao/actions/runs/35788463576) 和 [foundation](https://github.com/lly8666/wobuzhidao/actions/runs/35788463670) PASS（编译、unit、race，定向race重复3次；foundation parser fuzz）；另 padding、steady-targeted、harness-preflight、realpath-calibration PASS。**完整生命周期真实故障矩阵/严格10M与3M目标弱网仍 NOT_RUN**，不得据此关闭专项或原容量缺口。详见最新开发日志及STATUS。
+## 最终验收结果（2026-09-23）
+
+生命周期功能资格已完成，SOURCE_SHA `0b206a07f91513133a80a147656b637c286ce3e2`。核心 run 35803458197、foundation 35803458187、targeted 35803458203 全 PASS；真实进程 `next-lifecycle-fullstack` run 35803458184 的36个独占样本与 aggregate job 107001464744 全 PASS，aggregate artifact 10727500614。L0–L7 每场景两个 seed；L0 为 FEC off/20 × padding off/on 八样本；L7 两样本均使用真实默认15s/90s。
+
+本专项中 Actions 发现并修复了 server 仅凭旧 idle hint 抢先 DORMANT 的真实竞态。产品修复 SHA `65ff2ef27dd763cba2f7293e6ef6274bca6632c3` 使 server 等当前 authoritative lane 的 client PeerFIN 后再跟随休眠；最终 SHA 在1/4 lane cutoff race均达到 clear-path 100/100，黑洞失败 wake、清障再唤醒、partial multi-lane、候选各阶段失败与有界退避全部通过。
+
+同 SHA 正式 target-rate weaknet run 35803458166 跑完18/18样本但 aggregate 107000004406 FAIL；artifact 10727035867。CORRECTNESS/CAPTURE 18/18 PASS，INPUT_VALIDITY 17/18 PASS，ENVIRONMENT 18/18 FAIL，PERFORMANCE 18/18 CAPACITY_LIMITED。lossless 已首先出现 server AF_PACKET `ss_packet` overflow/drop，并在 C2S 方向显著塌陷，因此整体吞吐资格保持 FAIL；这不回滚生命周期 correctness PASS。
+
+成本账本保持分层：Normal health 8 records/方向=320B、Game health 32 records/方向=1280B；padding=0；本批 reconnect flow=0；FEC parity、Game replication extra、repair outer、startup handshake 均在每个 strict artifact 的 summary 中独立记录。不得把这些交叉项相加成“恢复收益”。
+
+因此 STATUS 的 `WEAKNET_LIFECYCLE` 可标 COMPLETE，但必须同时保留 `performance_status=FAIL_CAPACITY_LIMITED` 和原 AF_PACKET/uplink-capacity HOLD。专项完成不关闭整个 P4/P5，也不恢复旧容量开发。
+

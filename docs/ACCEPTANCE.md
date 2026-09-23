@@ -81,8 +81,20 @@ P7只在主流程已稳定后由用户安排，最终核对真实链路外观、
 实现及完整关闭门槛见 [TLS_STARTUP_PADDING](TLS_STARTUP_PADDING.md)。默认off、无等待/no-HOL、全FEC source/parity区分、Game共享预算、生命周期/失败rollback/资源上限必须覆盖；真实二进制TUN与平台转发专项必须证明启用和实际padding，不得用core/serializer替代。当前仅已编写测试与workflow，验收NOT_RUN，不能宣称消除了TLS-in-TLS。通过后只关闭此小功能，原主线暂停不变。
 
 
-### 生命周期专项（V2，2026-09-23）
-核心已 PASS，完整矩阵 NOT_RUN：见 LIFECYCLE_ACCEPTANCE.md。必须有参数目录一致性、V1拒绝、V2成对启动、keepalive丢失不误idle、持续本地需求全丢、纯下行、双边黑洞、新tuple恢复、候选阶段失败退避、idle/wake竞态、正常及Game、全FEC档控制不放大、padding/MTU/no-HOL/同Seq密文不变的Actions证据。next-lifecycle只是核心入口，不能替代真实netem和10/3Mbps业务目标；吞吐原缺口独立保留。
+### 生命周期专项（V2，2026-09-23）— COMPLETE / 性能资格独立失败
 
+生命周期移植的**功能正确性专项已完成**，最终资格 SOURCE_SHA `0b206a07f91513133a80a147656b637c286ce3e2`。这不等于整体弱网吞吐合格，也不关闭整个 P4/P5。
 
-2026-09-23 核心证据：SOURCE_SHA `84c466f81860c3e87aac3b571a9bce419018aabc`；[next-lifecycle](https://github.com/lly8666/wobuzhidao/actions/runs/35788463576) 和 [foundation](https://github.com/lly8666/wobuzhidao/actions/runs/35788463670) PASS（编译、unit、race，定向race重复3次；foundation parser fuzz）；另 padding、steady-targeted、harness-preflight、realpath-calibration PASS。**完整生命周期真实故障矩阵/严格10M与3M目标弱网仍 NOT_RUN**，不得据此关闭专项或原容量缺口。详见最新开发日志及STATUS。
+- core：`next-lifecycle` run 35803458197 / job 106998829058 PASS；参数目录、Linux/Windows 编译、普通与 acceptance-tag unit、focused race PASS。
+- 回归：`next-foundation` run 35803458187 PASS；`next-p4-steady-targeted` run 35803458203 全 PASS。
+- 真实进程矩阵：`next-lifecycle-fullstack` run 35803458184，36/36 sample 和 aggregate job 107001464744 PASS；aggregate artifact 10727500614。L0–L7 全部两个独立 seed，L0 额外覆盖 FEC off/20 × padding off/on。
+- L3 只丢 health 使用 pre-seal acceptance hook，不按包长猜；L5 分别验证 SYN/TLS/admission/detach；L6 从双端 DORMANT 前置状态在全黑洞下触发失败 wake，清障后再唤醒，并在独立 clear-path cutoff 阶段要求100/100 unique，无 corruption/unexpected；L7 使用未缩放的15s keepalive/90s dead-after。
+- 真实 Actions 暴露并修复过 unilateral-server-idle 竞态：server 现在等待当前 authoritative lane 的 client PeerFIN 承诺再自动休眠。产品修复提交为 `65ff2ef27dd763cba2f7293e6ef6274bca6632c3`，最终验收 SHA `0b206a07f91513133a80a147656b637c286ce3e2` 包含后续 harness 契约修正但不再修改产品 Go 逻辑。
+- 高丢包/黑洞下不要求第一次换 lane 成功。永久旧四元组黑洞必须由新 TLS/generation 恢复；所有四元组临时黑洞允许清障后旧 authoritative lane 自然恢复。共同硬门是有界 retry/candidate/retiring/resource、稳定 TunnelID/lease、发生 replacement 时 generation fencing，以及恢复后持续30s业务交付。
+
+目标速率弱网**没有通过整体吞吐资格**。同 SHA 的 `next-strict-weaknet` run 35803458166 / aggregate job 107000004406 / artifact 10727035867 跑完18/18独立样本：CORRECTNESS 与 CAPTURE 18/18 PASS，INPUT_VALIDITY 17/18 PASS，ENVIRONMENT 18/18 FAIL，PERFORMANCE 18/18 为 CAPACITY_LIMITED。Normal/5205 seed101 的额外输入失败是 S2C skipped_slots=37。最早异常在 lossless：server AF_PACKET packet-socket 已大量 drop，Normal三seed约0.70M–1.39M，Game三seed约1.45M；代表样本 server packet rmem 达约1.002×buffer上限，同时 C2S goodput 已严重塌陷。该证据早于20%/30%丢包阶段，因此性能 FAIL 必须保留为容量边界，不得用“高丢包第一次换lane失败”解释，也不得恢复严格 ACK/HOL 或扩大4096/全局缓存来掩盖。
+
+strict 样本继续分别统计 FEC、Game复制、repair、health、padding、初始握手/重连；本轮 padding=0，所有样本 reconnect_flow_count=0。Game 四lane每方向 health=32条=1280B TLS-like wire，Normal单lane为8条=320B；Game replication extra与FEC/repair均保留原始 artifact，不与最终业务恢复重复相加。
+
+结论：`WEAKNET_LIFECYCLE` 功能专项 COMPLETE；整体 target-rate weaknet qualification = **FAIL_CAPACITY_LIMITED**。原 AF_PACKET/uplink-capacity 主线继续 HOLD；不因此关闭 P4/P5、P6/P7 或解除用户 HOLD。
+

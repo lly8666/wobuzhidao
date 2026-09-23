@@ -169,8 +169,19 @@ P5：增加受控真实 HTTPS 客户端/服务器，覆盖首个与复用 lane �
 
 
 ## 用户追加：弱网生命周期移植与参数统一（2026-09-23）
-状态：实现待 Actions，不关闭既有容量缺口。复用旧 adaptive_pressure 的 rate/RTT 退役策略与旧 idle activity 二次检查原则；在新单进程所有权内实现独立认证 health、missing≠idle、客户端有界重连、失败不终止以及业务唤醒退避。现有真实 TLS 建连、LINK/FEC/Game、稳定 lease、generation fence、3s repair、4096、TLS startup padding 继续复用，不导回 DTLS/旧 controller。
-协议与算法边界见 WIRE_SPEC；所有参数及 JSON 同名配置见 PARAMETERS.md/json；完整执行矩阵和完成门槛见 LIFECYCLE_ACCEPTANCE。新agent依次执行 core → lifecycle真实进程 → 目标弱网成本矩阵，精确SHA取证后回写本计划与STATUS.workstreams.WEAKNET_LIFECYCLE，不得先标完成。原AF_PACKET主线HOLD不自动恢复。
+状态：**生命周期移植功能专项 COMPLETE；目标速率整体吞吐资格 FAIL_CAPACITY_LIMITED。** 原 AF_PACKET/上行容量主线继续 HOLD，不关闭整个 P4/P5，也不恢复旧严格 ACK/HOL、4096 以上缓存或全局 buffer 扩容。
 
+实现沿用旧 adaptive_pressure 的 rate/RTT 有界退役原则与 idle activity 二次检查，在新单进程所有权内提供独立认证 health、missing≠idle、客户端有界重连、失败不终止、业务唤醒退避，并修复真实 Actions 暴露的 unilateral-server-idle 竞态：server 不再仅凭周期 idle health 抢先休眠，而是等待当前 authoritative lane 收到 client 有序 FIN 承诺后跟随 DORMANT。wire/profile、FEC、repair horizon、4096、lease/generation fence 与 TLS startup padding 语义均未扩大。
 
-2026-09-23 核心证据：SOURCE_SHA `84c466f81860c3e87aac3b571a9bce419018aabc`；[next-lifecycle](https://github.com/lly8666/wobuzhidao/actions/runs/35788463576) 和 [foundation](https://github.com/lly8666/wobuzhidao/actions/runs/35788463670) PASS（编译、unit、race，定向race重复3次；foundation parser fuzz）；另 padding、steady-targeted、harness-preflight、realpath-calibration PASS。**完整生命周期真实故障矩阵/严格10M与3M目标弱网仍 NOT_RUN**，不得据此关闭专项或原容量缺口。详见最新开发日志及STATUS。
+最终功能资格 SOURCE_SHA `0b206a07f91513133a80a147656b637c286ce3e2`：
+- `next-lifecycle` run 35803458197 / job 106998829058 PASS；
+- `next-foundation` run 35803458187 PASS，repository、Linux/Windows active Go、P2 fallback、Linux shared-TUN iptables/nft、OpenWrt privileged jobs 全绿；
+- `next-p4-steady-targeted` run 35803458203 六个 job 全 PASS；
+- `next-lifecycle-fullstack` run 35803458184：36/36 独占 runner sample + aggregate job 107001464744 全 PASS，aggregate artifact 10727500614，覆盖 L0 配置实际生效、L1 idle/稀疏/纯下行、L2 单向业务全丢、L3 pre-seal health 1/2/3 连丢、L4 永久旧四元组与临时全四元组黑洞、L5 SYN/TLS/admission/detach 候选失败与退避、L6 1/4 lane cutoff race/黑洞失败后再唤醒/部分多lane、L7 真实默认 15s keepalive/90s dead-after。两 seed 均 PASS，稳定 lease、generation 隔离、candidate/retiring/physical/resource bound 与恢复后持续业务均在 validator 门内。
+
+正式弱网目标也在同一 SOURCE_SHA 重跑：`next-strict-weaknet` run 35803458166 / aggregate job 107000004406 / aggregate artifact 10727035867，18/18 样本均有原始 artifact。CORRECTNESS=PASS 18/18、CAPTURE=PASS 18/18、INPUT_VALIDITY=PASS 17/18（Normal/5205 seed101 因 S2C skipped_slots=37 单独 FAIL），ENVIRONMENT=FAIL 18/18、PERFORMANCE=CAPACITY_LIMITED 18/18。最早异常已经出现在 lossless 控制段：server AF_PACKET `ss_packet` drop Normal 三 seed 约 1,388,390 / 700,414 / 835,210，Game 三 seed约 1,451,308 / 1,451,704 / 1,454,157，并伴随部分 UDP drop；server packet receive buffer 在代表样本达到约 1.002×配置上限。Normal lossless C2S pre goodput 仅约 0.338–0.814 Mbps/10 Mbps，Game lossless C2S约 0.467–0.500 Mbps/3 Mbps，而 Game S2C仍约3 Mbps。异常早于20%/30%注入，不能笼统归因“高丢包”或只写“VM慢”。
+
+同一 strict 账本分开记录成本：Normal 每方向 health=8 records=320B TLS-like wire、padding=0、Game复制=0、reconnect flow=0；Game 每方向 health=32 records=1280B、padding=0、reconnect flow=0。18样本中 Normal FEC parity约 C2S 260–481MB / S2C 195–472MB，repair outer约 C2S 0–12.4KB / S2C 0–243KB；Game FEC parity约 C2S 414–446MB / S2C 462–601MB，Game replication extra约 C2S 117–126MB / S2C 125–163MB，repair outer约 C2S 3.28–4.32MB / S2C 0.002–4.58MB。初始握手 outer 也单独入账；本批没有 reconnect。上述成本受容量塌陷影响，仅作该失败环境的实际账本，不包装成合格性能比。
+
+参数没有新增或改默认值，`docs/PARAMETERS.md/json` 不需要修改；最终 core 的 parameter catalog gate PASS。完整证据与中间修复链见 STATUS 和最新 devlog。原 AF_PACKET/uplink-capacity 诊断成果与 HOLD 原样保留，需用户另行安排才恢复。
+
