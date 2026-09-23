@@ -1217,7 +1217,7 @@ func (r *Runtime) HandleServerSegmentQualified(ref logicaltunnel.LaneRef, assoc 
 			return false, err
 		}
 		after, _ := r.authenticatedRecordCount(ref)
-		return after.AuthenticatedRecords > before.AuthenticatedRecords, nil
+		return after > before, nil
 	}
 
 	result, err := assoc.HandleSegment(seg, now)
@@ -1230,7 +1230,7 @@ func (r *Runtime) HandleServerSegmentQualified(ref logicaltunnel.LaneRef, assoc 
 			return false, err
 		}
 		after, _ := r.authenticatedRecordCount(ref)
-		return after.AuthenticatedRecords > before.AuthenticatedRecords, nil
+		return after > before, nil
 	}
 	if result.AckNeeded {
 		return false, r.emitForRef(ref, assoc.ACKSegment(result.Ack))

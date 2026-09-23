@@ -39,3 +39,8 @@ runner 同时确实繁忙：120s窗口4核总 busy约 **99.08%**、softirq约 **
 本提交 push 后先由 `next-performance-recovery` 跑相关 core/race，再跑同一独占 Normal10 lossless。比较 7ac4 baseline 的 handler/readCh/queue age、AF_PACKET drops、goodput、server CPU与单位有效MiB CPU；性能仍崩则不跑18份长矩阵，继续缩小到 raw-read allocation/GC 或下一明确热点。只有 Normal10 明显改善后才进入 Game4逻辑3Mbps和线上字节账本。
 
 生命周期/队列所有权本轮未改变，因此不触发36份功能验收；已有36/36 COMPLETE语义保持，尤其客户端主导休眠、server等待所有当前权威lane PeerFIN、黑洞恢复和稳定lease均不改。
+## 中间编译失败与修正
+
+- 中间 SHA `09f5c187c6c282215e1f4dd0700205d22d6b1256` 在 `next-lifecycle` run **35815671759** / core job **107036551810** 的 official entries compile 阶段失败；`next-realpath-calibration` run **35815671716** 同样在 build formal client/server 阶段失败。
+- 错误为两处机械比较遗漏：`authenticatedRecordCount` 已返回 `uint64`，调用点仍写成 `after.AuthenticatedRecords > before.AuthenticatedRecords`。该 SHA 未进入运行期，不是性能样本，也不改变根因判断。
+- 修正仅把两处比较改为 `after > before`；O(1) 计数 accessor、锁边界和 qualification 语义不变。修正 SHA 由后续 Actions 作为新的 SOURCE_SHA 验证。

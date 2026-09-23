@@ -1633,7 +1633,7 @@
         "无损目标通过后再完成严格弱网矩阵及长测"
       ],
       "latest_log": "docs/devlog/20260923-111000-performance-qualified-counter.md",
-      "note": "7ac4f223 / next-performance-recovery run 35812290504: core-race job 107026270927 PASS；Normal10 job 107026857488采集成功，artifact 10730701490，仍 PERFORMANCE=CAPACITY_LIMITED。server handler 116.13s/61162包、readCh handoff block 118.62s，AF_PACKET drops 677365；已定位每个稳态包资格判断前后两次完整 TransportStats 扫描为明确 O(4096) 热路径浪费，当前最小修复改为 O(1) AuthenticatedRecords 读取，待新 SHA Actions 验证。"
+      "note": "7ac4f223 / next-performance-recovery run 35812290504: core-race job 107026270927 PASS；Normal10 job 107026857488采集成功，artifact 10730701490，仍 PERFORMANCE=CAPACITY_LIMITED。server handler 116.13s/61162包、readCh handoff block 118.62s，AF_PACKET drops 677365；已定位每个稳态包资格判断前后两次完整 TransportStats 扫描为明确 O(4096) 热路径浪费。中间 SHA 09f5c187 在 next-lifecycle run 35815671759 / job 107036551810 暴露纯编译遗漏（uint64 仍按结构体字段比较），未进入运行期且不作为性能证据；已修正比较表达式，O(1) 方案待新 SHA Actions 验证。"
     }
   }
 }
