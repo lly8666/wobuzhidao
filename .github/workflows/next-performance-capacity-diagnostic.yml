@@ -6,6 +6,9 @@ on:
       - next/tlslike-dataplane
     paths:
       - ".github/workflows/next-performance-capacity-diagnostic.yml"
+      - "internal/faketcp/**"
+      - "internal/runtimeowner/**"
+      - "internal/runtimeentry/**"
       - "docs/qualification/PERFORMANCE_CAPACITY_DIAGNOSTIC_TRIGGER"
   workflow_dispatch:
 
@@ -17,7 +20,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FIX_SHA: a924b7c9853e1d280cb7a7062dc46ccd30039b99
+  FIX_SHA: ${{ github.sha }}
   ART: ${{ github.workspace }}/artifacts/capacity-deep-normal10
 
 jobs:
