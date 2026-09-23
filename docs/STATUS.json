@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "PERFORMANCE_RECOVERY remains OPEN. Ordered Normal10 is runner-split and Game4 logical3 is PASS. Before the next hot-path performance change, fixing a real LifecycleServer qualification publication data race found by foundation: queued authenticated records must not write lane.qualified outside s.mu. The fix publishes qualification only through markLaneQualified under the server lifecycle mutex; no lifecycle policy or wire semantics change.",
-  "next_task": "验收 qualification publication race 修复 SHA 的 foundation/Linux race、next-lifecycle core以及36份 next-lifecycle-fullstack；同时观察自动定向Normal10（不是18矩阵）。36/36和race通过后，再做下一性能原子：去掉runtimeowner Segment对已owned immutable pending payload的重复clone，core/race后用Normal10 compact及同runner A/B+B/A验证。",
-  "latest_log": "docs/devlog/20260923-155000-lifecycle-qualified-race.md",
+  "in_progress": "PERFORMANCE_RECOVERY remains OPEN. Lifecycle qualification publication race fix is under full validation; next-lifecycle core is PASS and 36-sample fullstack is running. Ordered performance evidence is runner-split. Applying the next single hot-path waste fix: steady pending payload is already an owned immutable repair buffer, so Segment construction will borrow that immutable slice instead of cloning the full TLS-like record before synchronous raw serialization.",
+  "next_task": "验收 pending-payload Segment clone 修复 SHA 的 core/race、seed601 Normal10和seed631 capacity compact；同时收齐父SHA 5f711af1 的36份 lifecycle验收。若两个Normal定向样本改善/通过，再把ordered A/B+B/A基线改为race-fix-only parent对payload-clone fix；若慢runner仍CAPACITY_LIMITED，读取compact per-core/PSI/handler证据继续单原因优化。strict 18仍不触发。",
+  "latest_log": "docs/devlog/20260923-160000-performance-pending-payload-clone.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1663,7 +1663,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "LIFECYCLE_RACE_FIX_VALIDATION",
+      "status": "PENDING_PAYLOAD_CLONE_VALIDATION",
       "spec": "docs/WEAKNET_QUALIFICATION.md#9",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1674,8 +1674,8 @@
         "审计混合包长/FEC/分片/Game线上字节账本",
         "无损目标通过后再完成严格弱网矩阵及长测"
       ],
-      "latest_log": "docs/devlog/20260923-155000-lifecycle-qualified-race.md",
-      "note": "Performance target remains unstable across runners; strict 18 matrix is now explicit-only. Foundation run35825736077 found real race between admit queued-record qualification write and TunnelQualified/groupReadyLocked read. Fix publishes qualification only through markLaneQualified under s.mu. Because lifecycle shared state changes, full 36 lifecycle acceptance is required before continuing performance implementation."
+      "latest_log": "docs/devlog/20260923-160000-performance-pending-payload-clone.md",
+      "note": "Ordered AB/BA proves post-Sendto clone cleanup is not sufficient on slow runners. Next deterministic hot-path waste is runtimeowner outboundSegmentFlags cloning an already-owned immutable pendingRecord.payload before MarshalSegment copies it into the raw packet. Removing only this Segment-layer clone; pending repair ownership, same-Seq ciphertext, raw packet ownership, 4096/FEC/Game/rates/lifecycle remain unchanged. Parent lifecycle race fix 5f711af1 has next-lifecycle core PASS; 36 fullstack still running."
     }
   }
 }

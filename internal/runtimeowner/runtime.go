@@ -268,11 +268,15 @@ func (t *laneTransport) outboundSegment(seq, ack uint32, payload []byte) faketcp
 }
 
 func (t *laneTransport) outboundSegmentFlags(seq, ack uint32, flags uint8, payload []byte) faketcp.Segment {
+	// Steady payload comes from the transport-owned immutable pending buffer.
+	// Emit is synchronous and the raw serializer copies it into the final packet;
+	// ACK/SACK retirement only drops the owner's slice reference and never
+	// mutates the backing bytes. Avoid cloning the complete record again here.
 	seg := faketcp.Segment{
 		SrcIP: t.cfg.LocalIP, DstIP: t.cfg.PeerIP,
 		SrcPort: t.cfg.LocalPort, DstPort: t.cfg.PeerPort,
 		Seq: seq, Ack: ack, Flags: flags, Window: t.cfg.AdvertisedWindow,
-		Payload: append([]byte(nil), payload...),
+		Payload: payload,
 	}
 	// Keep SACK on ACK-only/control packets. Data records are already sized to
 	// the negotiated MTU and must not silently grow when recovery options appear.
