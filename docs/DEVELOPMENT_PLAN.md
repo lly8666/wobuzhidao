@@ -199,3 +199,5 @@ Game4逻辑3Mbps lossless 已在 run 35818718764 / job 107045770392 全门PASS�
 成功的a924 standalone Normal10有 FreshSent=789726、SRTT=601.3ms：约6581 records/s × 0.601s = 3957条平均record-BDP，距4096硬边界仅139条；实测PeakOutstanding=4075，仅余21条，且成功样本Abandoned=0。代码在pending满4096时会优先清理retired/SACK metadata，否则淘汰一个仍未ACK的repair-owned record并计Abandoned/RepairEvicted。该边界与runner差异是当前待证假设，绝不通过扩大4096解决。
 
 下一原子仅增加qualification evidence workflow：固定a924/Normal10/seed631，采集AF_PACKET首次drop、Outstanding/PeakOutstanding/Abandoned/RepairEvicted时序、每核busy/softirq/steal、cgroup throttle、CPU PSI、线程CPU、GC/alloc和server handler/readCh区间长尾，并上传可直接读取的compact artifact。先判定pressure与drop的因果顺序，再做单原因最小修复；不扫描参数、不降FEC/速率、不扩大buffer/4096。
+
+2026-09-23 capacity diagnostic基础设施修正：首次新增workflow的push（SOURCE_SHA `9a509e96587c68424fe7d172f9b799f26c5ad487`，run 35820349990）在Actions调度前直接FAIL，Jobs API返回0 job、0 artifact；静态审计发现compact timeline的Python heredoc未保持在YAML `run: |` block缩进内。该失败不属于产品运行期，也不改变a924 standalone PASS、seed631同runner CAPACITY_LIMITED或Game4 PASS的事实。当前只修workflow缩进并重新触发同一evidence-only Normal10/seed631诊断；产品代码、4096/FEC/Game/速率/buffer/lifecycle均不动。

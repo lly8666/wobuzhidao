@@ -94,200 +94,200 @@ jobs:
         shell: bash
         run: |
           python3 - "$ART" <<'PY'
-import json, math, re, sys
-from pathlib import Path
-
-art=Path(sys.argv[1])
-def read_json(path):
-    p=art/path
-    return json.loads(p.read_text()) if p.exists() else {}
-def read_rows(path):
-    p=art/path
-    if not p.exists(): return []
-    out=[]
-    for line in p.read_text().splitlines():
-        if line.strip():
-            try: out.append(json.loads(line))
-            except json.JSONDecodeError: pass
-    return out
-def tunnel(row):
-    p=(row or {}).get("product") or {}
-    if isinstance(p.get("tunnel"), dict): return p["tunnel"]
-    if isinstance(p, dict) and isinstance(p.get("lanes"), list): return p
-    return {}
-def lane_transport(row):
-    lanes=tunnel(row).get("lanes") or []
-    if not lanes: return {}
-    return lanes[0].get("transport") or {}
-def stage(sec):
-    if sec is None: return None
-    if sec < 30: return "pre"
-    if sec < 90: return "stress"
-    if sec <= 120: return "post"
-    return "drain"
-def parse_kv(text):
-    out={}
-    for line in (text or "").splitlines():
-        p=line.split()
-        if len(p)==2:
-            try: out[p[0]]=int(p[1])
-            except ValueError: pass
-    return out
-def parse_pressure(text):
-    out={}
-    for line in (text or "").splitlines():
-        p=line.split()
-        if not p: continue
-        vals={}
-        for item in p[1:]:
-            if "=" not in item: continue
-            k,v=item.split("=",1)
-            try: vals[k]=float(v)
-            except ValueError: pass
-        out[p[0]]=vals
-    return out
-def parse_skmem(text):
-    best={"r":0,"rb":0,"d":0}
-    for body in re.findall(r"skmem:\(([^\n)]*)\)", text or ""):
-        vals={}
-        for token in body.split(","):
-            m=re.fullmatch(r"(rb|tb|bl|r|t|f|w|o|d)(-?\d+)", token.strip())
-            if m: vals[m.group(1)]=int(m.group(2))
-        for k in best: best[k]=max(best[k], vals.get(k,0))
-    return best
-def cpu_delta(a,b):
-    n=min(len(a),len(b),8)
-    d=[b[i]-a[i] for i in range(n)]
-    total=sum(d)
-    idle=(d[3] if n>3 else 0)+(d[4] if n>4 else 0)
-    return {
-        "total_ticks":total,
-        "busy_fraction":((total-idle)/total if total>0 else None),
-        "softirq_fraction":((d[6]/total) if total>6 and total>0 else None),
-        "steal_fraction":((d[7]/total) if total>7 and total>0 else None),
-    }
-
-summary=read_json("summary.json")
-biz=read_json("biz.json")
-resources=read_rows("resources.jsonl")
-client_rows=read_rows("client-diag.jsonl")
-server_rows=read_rows("server-diag.jsonl")
-start_mono=int(biz.get("start_ns") or 0)
-duration=float(biz.get("duration_s") or 120)
-if resources and start_mono:
-    anchor=min(resources, key=lambda r: abs(int(r.get("monotonic_ns") or 0)-start_mono))
-    start_unix=int(anchor.get("unix_ns") or 0)+(start_mono-int(anchor.get("monotonic_ns") or 0))
-else:
-    start_unix=0
-end_unix=start_unix+int(duration*1e9)
-during=[r for r in resources if start_mono <= int(r.get("monotonic_ns") or 0) <= start_mono+int(duration*1e9)] if start_mono else resources
-
-def endpoint_diag(rows):
-    win=[r for r in rows if not start_unix or start_unix <= int(r.get("unix_ns") or 0) <= end_unix]
-    if not win: win=rows
-    if not win: return {}
-    base=lane_transport(win[0]); last=lane_transport(win[-1])
-    keys=["PeakOutstanding","Outstanding","OutstandingBytes","OldestOutstandingAge","Abandoned","RepairEvicted","RepairMetadataEvicted","FreshSent","Acked","SACKed","Retransmitted","RepairAttempts","RepairSucceeded","RepairFailures","Received","Duplicates","LateFirstArrival","SRTT","RTO"]
-    maxima={k:max((int(lane_transport(r).get(k,0) or 0) for r in win), default=0) for k in keys}
-    first_abandon=None; first_4000=None
-    for r in win:
-        tr=lane_transport(r)
-        sec=(int(r.get("unix_ns") or 0)-start_unix)/1e9 if start_unix else None
-        if first_abandon is None and int(tr.get("Abandoned",0) or 0)>int(base.get("Abandoned",0) or 0): first_abandon=sec
-        if first_4000 is None and int(tr.get("PeakOutstanding",0) or 0)>=4000: first_4000=sec
-    fresh_delta=max(0,int(last.get("FreshSent",0) or 0)-int(base.get("FreshSent",0) or 0))
-    ack_delta=max(0,int(last.get("Acked",0) or 0)-int(base.get("Acked",0) or 0))
-    srtt_ns=int(last.get("SRTT",0) or 0)
-    rate=fresh_delta/duration if duration>0 else None
-    bdp=rate*(srtt_ns/1e9) if rate is not None else None
-    rt=(win[-1].get("runtime") or {})
-    return {
-        "samples":len(win), "base":{k:base.get(k) for k in keys}, "final":{k:last.get(k) for k in keys},
-        "max":maxima,
-        "first_abandoned_s":first_abandon,"first_abandoned_stage":stage(first_abandon),
-        "first_peak_ge_4000_s":first_4000,"first_peak_ge_4000_stage":stage(first_4000),
-        "fresh_delta":fresh_delta,"acked_delta":ack_delta,"record_rate_per_s":rate,
-        "record_bdp_at_final_srtt":bdp,"record_bdp_headroom_to_4096":(4096-bdp if bdp is not None else None),
-        "runtime":{"num_cpu":rt.get("num_cpu"),"gomaxprocs":rt.get("gomaxprocs"),"goroutines":rt.get("goroutines"),
-                   "heap_alloc":rt.get("heap_alloc"),"heap_objects":rt.get("heap_objects"),"total_alloc":rt.get("total_alloc"),
-                   "mallocs":rt.get("mallocs"),"frees":rt.get("frees"),"num_gc":rt.get("num_gc"),
-                   "pause_total_ns":rt.get("pause_total_ns"),"gc_cpu_fraction":rt.get("gc_cpu_fraction")},
-    }
-
-packet={}
-for label in ("client","server"):
-    first_drop=None; max_drop=0; max_ratio=0.0
-    for r in during:
-        item=((((r.get("namespaces") or {}).get(label) or {}).get("ss_packet") or {}))
-        sk=parse_skmem(item.get("stdout",""))
-        max_drop=max(max_drop,sk["d"])
-        if sk["rb"]>0: max_ratio=max(max_ratio,sk["r"]/sk["rb"])
-        sec=(int(r.get("monotonic_ns") or 0)-start_mono)/1e9 if start_mono else None
-        if first_drop is None and sk["d"]>0: first_drop=sec
-    packet[label]={"max_drops":max_drop,"max_rmem_ratio":max_ratio,"first_drop_s":first_drop,"first_drop_stage":stage(first_drop)}
-
-cpu={}
-if during:
-    a=(during[0].get("proc_stat") or {}); b=(during[-1].get("proc_stat") or {})
-    for k in sorted(set(a)&set(b)):
-        if re.fullmatch(r"cpu\d+",k): cpu[k]=cpu_delta(a[k],b[k])
-
-cgroup={}
-for label in ("client","server"):
-    vals=[]
-    for r in during:
-        p=((r.get("processes") or {}).get(label) or {})
-        cg=p.get("cgroup") or {}
-        stat=parse_kv(cg.get("cpu.stat"))
-        if stat: vals.append(stat)
-    if vals:
-        keys=set(vals[0])|set(vals[-1])
-        cgroup[label]={k:vals[-1].get(k,0)-vals[0].get(k,0) for k in sorted(keys)}
-
-pressure={"cpu":{"max_some_avg10":None,"max_full_avg10":None,"some_total_delta":None,"full_total_delta":None}}
-if during:
-    parsed=[parse_pressure(((r.get("pressure") or {}).get("cpu"))) for r in during]
-    for cls in ("some","full"):
-        av=[x.get(cls,{}).get("avg10") for x in parsed if x.get(cls,{}).get("avg10") is not None]
-        pressure["cpu"][f"max_{cls}_avg10"]=max(av) if av else None
-        first=parsed[0].get(cls,{}).get("total"); last=parsed[-1].get(cls,{}).get("total")
-        pressure["cpu"][f"{cls}_total_delta"]=(last-first) if first is not None and last is not None else None
-
-server_pipe={}
-if server_rows:
-    win=[r for r in server_rows if not start_unix or start_unix <= int(r.get("unix_ns") or 0) <= end_unix] or server_rows
-    prev=None; max_handler=(0,None); max_handoff=(0,None); max_qage=(0,None)
-    for r in win:
-        p=tunnel(r).get("server_pipeline") or {}
-        if prev:
-            sec=(int(r.get("unix_ns") or 0)-start_unix)/1e9 if start_unix else None
-            for name,curmax in (("handler",max_handler),("handoff_block",max_handoff),("queue_age",max_qage)):
-                now=p.get(name) or {}; old=prev.get(name) or {}
-                ds=int(now.get("samples",0) or 0)-int(old.get("samples",0) or 0)
-                dt=int(now.get("total_ns",0) or 0)-int(old.get("total_ns",0) or 0)
-                avg=dt/ds if ds>0 else 0
-                if name=="handler" and avg>max_handler[0]: max_handler=(avg,sec)
-                if name=="handoff_block" and avg>max_handoff[0]: max_handoff=(avg,sec)
-                if name=="queue_age" and avg>max_qage[0]: max_qage=(avg,sec)
-        prev=p
-    last=tunnel(win[-1]).get("server_pipeline") or {}
-    server_pipe={"final":last,"max_interval_handler_avg_ns":{"value":max_handler[0],"at_s":max_handler[1]},
-                 "max_interval_handoff_avg_ns":{"value":max_handoff[0],"at_s":max_handoff[1]},
-                 "max_interval_queue_age_avg_ns":{"value":max_qage[0],"at_s":max_qage[1]}}
-
-out={
-  "source_sha":summary.get("source_sha"),"classifications":summary.get("classifications"),
-  "generator":summary.get("generator"),
-  "cost":{d:{"outer_ip_per_app_raw_input":(summary.get("cost") or {}).get(d,{}).get("outer_ip_per_app_raw_input")} for d in ("c2s","s2c")},
-  "summary_resource":summary.get("resource"),
-  "thread_cpu_seconds":((summary.get("resource") or {}).get("thread_cpu_seconds")),
-  "client_diag":endpoint_diag(client_rows),"server_diag":endpoint_diag(server_rows),
-  "packet_socket_timeline":packet,"per_cpu":cpu,"cgroup_cpu_stat_delta":cgroup,"pressure":pressure,
-  "server_pipeline_intervals":server_pipe,
-}
-(art/"capacity-diagnostic.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
-print("WBD_CAPACITY_DEEP_DIAGNOSTIC "+json.dumps(out,sort_keys=True))
-PY
+          import json, math, re, sys
+          from pathlib import Path
+          
+          art=Path(sys.argv[1])
+          def read_json(path):
+              p=art/path
+              return json.loads(p.read_text()) if p.exists() else {}
+          def read_rows(path):
+              p=art/path
+              if not p.exists(): return []
+              out=[]
+              for line in p.read_text().splitlines():
+                  if line.strip():
+                      try: out.append(json.loads(line))
+                      except json.JSONDecodeError: pass
+              return out
+          def tunnel(row):
+              p=(row or {}).get("product") or {}
+              if isinstance(p.get("tunnel"), dict): return p["tunnel"]
+              if isinstance(p, dict) and isinstance(p.get("lanes"), list): return p
+              return {}
+          def lane_transport(row):
+              lanes=tunnel(row).get("lanes") or []
+              if not lanes: return {}
+              return lanes[0].get("transport") or {}
+          def stage(sec):
+              if sec is None: return None
+              if sec < 30: return "pre"
+              if sec < 90: return "stress"
+              if sec <= 120: return "post"
+              return "drain"
+          def parse_kv(text):
+              out={}
+              for line in (text or "").splitlines():
+                  p=line.split()
+                  if len(p)==2:
+                      try: out[p[0]]=int(p[1])
+                      except ValueError: pass
+              return out
+          def parse_pressure(text):
+              out={}
+              for line in (text or "").splitlines():
+                  p=line.split()
+                  if not p: continue
+                  vals={}
+                  for item in p[1:]:
+                      if "=" not in item: continue
+                      k,v=item.split("=",1)
+                      try: vals[k]=float(v)
+                      except ValueError: pass
+                  out[p[0]]=vals
+              return out
+          def parse_skmem(text):
+              best={"r":0,"rb":0,"d":0}
+              for body in re.findall(r"skmem:\(([^\n)]*)\)", text or ""):
+                  vals={}
+                  for token in body.split(","):
+                      m=re.fullmatch(r"(rb|tb|bl|r|t|f|w|o|d)(-?\d+)", token.strip())
+                      if m: vals[m.group(1)]=int(m.group(2))
+                  for k in best: best[k]=max(best[k], vals.get(k,0))
+              return best
+          def cpu_delta(a,b):
+              n=min(len(a),len(b),8)
+              d=[b[i]-a[i] for i in range(n)]
+              total=sum(d)
+              idle=(d[3] if n>3 else 0)+(d[4] if n>4 else 0)
+              return {
+                  "total_ticks":total,
+                  "busy_fraction":((total-idle)/total if total>0 else None),
+                  "softirq_fraction":((d[6]/total) if total>6 and total>0 else None),
+                  "steal_fraction":((d[7]/total) if total>7 and total>0 else None),
+              }
+          
+          summary=read_json("summary.json")
+          biz=read_json("biz.json")
+          resources=read_rows("resources.jsonl")
+          client_rows=read_rows("client-diag.jsonl")
+          server_rows=read_rows("server-diag.jsonl")
+          start_mono=int(biz.get("start_ns") or 0)
+          duration=float(biz.get("duration_s") or 120)
+          if resources and start_mono:
+              anchor=min(resources, key=lambda r: abs(int(r.get("monotonic_ns") or 0)-start_mono))
+              start_unix=int(anchor.get("unix_ns") or 0)+(start_mono-int(anchor.get("monotonic_ns") or 0))
+          else:
+              start_unix=0
+          end_unix=start_unix+int(duration*1e9)
+          during=[r for r in resources if start_mono <= int(r.get("monotonic_ns") or 0) <= start_mono+int(duration*1e9)] if start_mono else resources
+          
+          def endpoint_diag(rows):
+              win=[r for r in rows if not start_unix or start_unix <= int(r.get("unix_ns") or 0) <= end_unix]
+              if not win: win=rows
+              if not win: return {}
+              base=lane_transport(win[0]); last=lane_transport(win[-1])
+              keys=["PeakOutstanding","Outstanding","OutstandingBytes","OldestOutstandingAge","Abandoned","RepairEvicted","RepairMetadataEvicted","FreshSent","Acked","SACKed","Retransmitted","RepairAttempts","RepairSucceeded","RepairFailures","Received","Duplicates","LateFirstArrival","SRTT","RTO"]
+              maxima={k:max((int(lane_transport(r).get(k,0) or 0) for r in win), default=0) for k in keys}
+              first_abandon=None; first_4000=None
+              for r in win:
+                  tr=lane_transport(r)
+                  sec=(int(r.get("unix_ns") or 0)-start_unix)/1e9 if start_unix else None
+                  if first_abandon is None and int(tr.get("Abandoned",0) or 0)>int(base.get("Abandoned",0) or 0): first_abandon=sec
+                  if first_4000 is None and int(tr.get("PeakOutstanding",0) or 0)>=4000: first_4000=sec
+              fresh_delta=max(0,int(last.get("FreshSent",0) or 0)-int(base.get("FreshSent",0) or 0))
+              ack_delta=max(0,int(last.get("Acked",0) or 0)-int(base.get("Acked",0) or 0))
+              srtt_ns=int(last.get("SRTT",0) or 0)
+              rate=fresh_delta/duration if duration>0 else None
+              bdp=rate*(srtt_ns/1e9) if rate is not None else None
+              rt=(win[-1].get("runtime") or {})
+              return {
+                  "samples":len(win), "base":{k:base.get(k) for k in keys}, "final":{k:last.get(k) for k in keys},
+                  "max":maxima,
+                  "first_abandoned_s":first_abandon,"first_abandoned_stage":stage(first_abandon),
+                  "first_peak_ge_4000_s":first_4000,"first_peak_ge_4000_stage":stage(first_4000),
+                  "fresh_delta":fresh_delta,"acked_delta":ack_delta,"record_rate_per_s":rate,
+                  "record_bdp_at_final_srtt":bdp,"record_bdp_headroom_to_4096":(4096-bdp if bdp is not None else None),
+                  "runtime":{"num_cpu":rt.get("num_cpu"),"gomaxprocs":rt.get("gomaxprocs"),"goroutines":rt.get("goroutines"),
+                             "heap_alloc":rt.get("heap_alloc"),"heap_objects":rt.get("heap_objects"),"total_alloc":rt.get("total_alloc"),
+                             "mallocs":rt.get("mallocs"),"frees":rt.get("frees"),"num_gc":rt.get("num_gc"),
+                             "pause_total_ns":rt.get("pause_total_ns"),"gc_cpu_fraction":rt.get("gc_cpu_fraction")},
+              }
+          
+          packet={}
+          for label in ("client","server"):
+              first_drop=None; max_drop=0; max_ratio=0.0
+              for r in during:
+                  item=((((r.get("namespaces") or {}).get(label) or {}).get("ss_packet") or {}))
+                  sk=parse_skmem(item.get("stdout",""))
+                  max_drop=max(max_drop,sk["d"])
+                  if sk["rb"]>0: max_ratio=max(max_ratio,sk["r"]/sk["rb"])
+                  sec=(int(r.get("monotonic_ns") or 0)-start_mono)/1e9 if start_mono else None
+                  if first_drop is None and sk["d"]>0: first_drop=sec
+              packet[label]={"max_drops":max_drop,"max_rmem_ratio":max_ratio,"first_drop_s":first_drop,"first_drop_stage":stage(first_drop)}
+          
+          cpu={}
+          if during:
+              a=(during[0].get("proc_stat") or {}); b=(during[-1].get("proc_stat") or {})
+              for k in sorted(set(a)&set(b)):
+                  if re.fullmatch(r"cpu\d+",k): cpu[k]=cpu_delta(a[k],b[k])
+          
+          cgroup={}
+          for label in ("client","server"):
+              vals=[]
+              for r in during:
+                  p=((r.get("processes") or {}).get(label) or {})
+                  cg=p.get("cgroup") or {}
+                  stat=parse_kv(cg.get("cpu.stat"))
+                  if stat: vals.append(stat)
+              if vals:
+                  keys=set(vals[0])|set(vals[-1])
+                  cgroup[label]={k:vals[-1].get(k,0)-vals[0].get(k,0) for k in sorted(keys)}
+          
+          pressure={"cpu":{"max_some_avg10":None,"max_full_avg10":None,"some_total_delta":None,"full_total_delta":None}}
+          if during:
+              parsed=[parse_pressure(((r.get("pressure") or {}).get("cpu"))) for r in during]
+              for cls in ("some","full"):
+                  av=[x.get(cls,{}).get("avg10") for x in parsed if x.get(cls,{}).get("avg10") is not None]
+                  pressure["cpu"][f"max_{cls}_avg10"]=max(av) if av else None
+                  first=parsed[0].get(cls,{}).get("total"); last=parsed[-1].get(cls,{}).get("total")
+                  pressure["cpu"][f"{cls}_total_delta"]=(last-first) if first is not None and last is not None else None
+          
+          server_pipe={}
+          if server_rows:
+              win=[r for r in server_rows if not start_unix or start_unix <= int(r.get("unix_ns") or 0) <= end_unix] or server_rows
+              prev=None; max_handler=(0,None); max_handoff=(0,None); max_qage=(0,None)
+              for r in win:
+                  p=tunnel(r).get("server_pipeline") or {}
+                  if prev:
+                      sec=(int(r.get("unix_ns") or 0)-start_unix)/1e9 if start_unix else None
+                      for name,curmax in (("handler",max_handler),("handoff_block",max_handoff),("queue_age",max_qage)):
+                          now=p.get(name) or {}; old=prev.get(name) or {}
+                          ds=int(now.get("samples",0) or 0)-int(old.get("samples",0) or 0)
+                          dt=int(now.get("total_ns",0) or 0)-int(old.get("total_ns",0) or 0)
+                          avg=dt/ds if ds>0 else 0
+                          if name=="handler" and avg>max_handler[0]: max_handler=(avg,sec)
+                          if name=="handoff_block" and avg>max_handoff[0]: max_handoff=(avg,sec)
+                          if name=="queue_age" and avg>max_qage[0]: max_qage=(avg,sec)
+                  prev=p
+              last=tunnel(win[-1]).get("server_pipeline") or {}
+              server_pipe={"final":last,"max_interval_handler_avg_ns":{"value":max_handler[0],"at_s":max_handler[1]},
+                           "max_interval_handoff_avg_ns":{"value":max_handoff[0],"at_s":max_handoff[1]},
+                           "max_interval_queue_age_avg_ns":{"value":max_qage[0],"at_s":max_qage[1]}}
+          
+          out={
+            "source_sha":summary.get("source_sha"),"classifications":summary.get("classifications"),
+            "generator":summary.get("generator"),
+            "cost":{d:{"outer_ip_per_app_raw_input":(summary.get("cost") or {}).get(d,{}).get("outer_ip_per_app_raw_input")} for d in ("c2s","s2c")},
+            "summary_resource":summary.get("resource"),
+            "thread_cpu_seconds":((summary.get("resource") or {}).get("thread_cpu_seconds")),
+            "client_diag":endpoint_diag(client_rows),"server_diag":endpoint_diag(server_rows),
+            "packet_socket_timeline":packet,"per_cpu":cpu,"cgroup_cpu_stat_delta":cgroup,"pressure":pressure,
+            "server_pipeline_intervals":server_pipe,
+          }
+          (art/"capacity-diagnostic.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
+          print("WBD_CAPACITY_DEEP_DIAGNOSTIC "+json.dumps(out,sort_keys=True))
+          PY
       - name: Upload compact capacity evidence
         if: always()
         uses: actions/upload-artifact@v4

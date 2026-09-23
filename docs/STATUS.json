@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "PERFORMANCE_RECOVERY: Game4 logical3 lossless is fully PASS, but Normal10 fixed candidate is not stable across runners: same-runner A/B and B/A both show large improvement over 7550844a yet remain CAPACITY_LIMITED, and an isolated AB rerun reproduces the collapse. Current task is evidence-only 4096/ACK-lag and runner capacity timeline diagnosis; overall performance remains OPEN. Functional lifecycle remains COMPLETE.",
-  "next_task": "读取 next-performance-capacity-diagnostic 的 compact artifact/time line，比较 AF_PACKET 首次drop 与 PeakOutstanding>=4000/Abandoned/RepairEvicted 的先后，核对每核busy/softirq/steal、cgroup throttle、CPU PSI、线程CPU、GC/alloc和handler/readCh区间长尾。若4096 pressure先于drop，优化ACK/处理成本而不扩大4096；若runner/调度先恶化，提供具体核/线程/steal/throttle/PPS证据并保持目标未通过。不要重复18份主矩阵。",
-  "latest_log": "docs/devlog/20260923-140500-performance-capacity-stability.md",
+  "in_progress": "PERFORMANCE_RECOVERY: Game4 logical3 lossless is fully PASS; Normal10 a924 standalone is PASS but same-runner seed631 remains CAPACITY_LIMITED. The first capacity-diagnostic push failed before scheduling any job because the embedded Python heredoc escaped the YAML run block; this is validation-infrastructure only. Current task is the corrected evidence-only 4096/ACK-lag and runner capacity timeline diagnosis; overall performance remains OPEN. Functional lifecycle remains COMPLETE.",
+  "next_task": "等待并读取修正后的 next-performance-capacity-diagnostic compact artifact/time line，比较 AF_PACKET 首次drop 与 PeakOutstanding>=4000/Abandoned/RepairEvicted 的先后，核对每核busy/softirq/steal、cgroup throttle、CPU PSI、线程CPU、GC/alloc和handler/readCh区间长尾。若4096 pressure先于drop，优化ACK/处理成本而不扩大4096；若runner/调度先恶化，提供具体核/线程/steal/throttle/PPS证据并保持目标未通过。不要重复18份主矩阵。",
+  "latest_log": "docs/devlog/20260923-142500-performance-capacity-workflow-fix.md",
   "last_tested_source_sha": "a924b7c9853e1d280cb7a7062dc46ccd30039b99",
   "actions": [
     {
@@ -1632,8 +1632,8 @@
         "审计混合包长/FEC/分片/Game线上字节账本",
         "无损目标通过后再完成严格弱网矩阵及长测"
       ],
-      "latest_log": "docs/devlog/20260923-140500-performance-capacity-stability.md",
-      "note": "583ec713 / next-performance-ab-game run 35818718764: Game4 logical3 job 107045770392 SUCCESS/artifact 10732687406，五类classification全PASS、每方向45,001,120B全唯一交付、AF_PACKET drops=0；C2S/S2C outer/app=20.633x/21.160x，repair=0、padding=0，四lane复制与FEC source/parity账本已解释。Normal同runner AB job107045770465与BA job107045770199均显示a924相对755显著改善但仍CAPACITY_LIMITED；为排除本workflow并发混杂，attempt2单独重跑AB job107048157380仍复现：fixed pre C2S/S2C=9.55/9.86Mbps，stress/post跌至约2.85/6.31和2.88/6.22Mbps，server/client AF_PACKET drops=439529/65734，handler均值136us，CPU server/client=110.47/113.17s。成功standalone a924样本FreshSent=789726、SRTT=601.3ms，估算record-BDP=3957；4096平均余量仅139，PeakOutstanding=4075仅余21但Abandoned=0。当前新增compact timeline诊断，严禁用扩大4096/降FEC或速率冒充修复，18份矩阵继续不跑。"
+      "latest_log": "docs/devlog/20260923-142500-performance-capacity-workflow-fix.md",
+      "note": "583ec713 / next-performance-ab-game run 35818718764: Game4 logical3 PASS、Normal同runner seed631仍CAPACITY_LIMITED；attempt2 AB job107048157380再次复现 fixed stress/post C2S约2.85/2.88Mbps和server AF_PACKET drops439529。9a509e96 新增 capacity diagnostic 后 run 35820349990 在调度前即FAIL且0 jobs/0 artifact；审计确认 Python heredoc 行未缩进进 YAML run block，属于验证基础设施错误而非产品性能证据。当前仅修 workflow YAML 缩进并重新触发 compact timeline；4096/FEC/速率/Game/buffer/lifecycle 均不改。"
     }
   }
 }
