@@ -1,0 +1,246 @@
+name: next-performance-ab-game
+
+on:
+  push:
+    branches:
+      - next/tlslike-dataplane
+    paths:
+      - ".github/workflows/next-performance-ab-game.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: next-performance-ab-game-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  BASE_SHA: 7550844af73ca07481a932d17d6793ccb23ae05a
+  FIX_SHA: a924b7c9853e1d280cb7a7062dc46ccd30039b99
+
+jobs:
+  normal10-order-controlled-ab:
+    name: normal10-${{ matrix.order }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        order: [ab, ba]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install network tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables nftables tcpdump openssl \
+            build-essential bison flex pkg-config libbpf-dev libelf-dev libmnl-dev libcap-dev xz-utils curl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+          ss -0 -a -m -n >/dev/null
+      - name: Build pinned tc once
+        run: |
+          set -euo pipefail
+          bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
+          echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
+      - name: Run same-runner A/B or B/A
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_case() {
+            label="$1"
+            sha="$2"
+            git checkout --detach "$sha"
+            art="$GITHUB_WORKSPACE/artifacts/${{ matrix.order }}-$label"
+            rm -rf "$art"
+            mkdir -p "$art"
+            go build -trimpath -o "$art/wbd-client" ./cmd/wbd-client
+            go build -trimpath -o "$art/wbd-server" ./cmd/wbd-server
+            sudo env \
+              GITHUB_WORKSPACE="$GITHUB_WORKSPACE" GITHUB_SHA="$sha" \
+              WBD_STRICT_ARTIFACT_DIR="$art" \
+              WBD_STRICT_MODE=normal WBD_STRICT_SCENARIO=lossless \
+              WBD_STRICT_SEED=631 WBD_STRICT_RATE_MBPS=10 WBD_STRICT_LANES=1 \
+              WBD_STRICT_TC="$WBD_STRICT_TC" \
+              bash scripts/strict_weaknet_sample.sh
+            set +e
+            python3 tools/check_strict_weaknet.py \
+              --artifact-dir "$art" --source-sha "$sha" \
+              --mode normal --scenario lossless --seed 631 \
+              --target-mbps 10 --lanes 1 \
+              --output "$art/summary.json"
+            rc=$?
+            set -e
+            printf '%s\n' "$rc" > "$art/validator-exit.txt"
+            rm -f "$art/wbd-client" "$art/wbd-server"
+          }
+
+          if [[ "${{ matrix.order }}" == "ab" ]]; then
+            run_case before "$BASE_SHA"
+            run_case after "$FIX_SHA"
+          else
+            run_case after "$FIX_SHA"
+            run_case before "$BASE_SHA"
+          fi
+
+          python3 - "$GITHUB_WORKSPACE/artifacts" "${{ matrix.order }}" <<'PY'
+          import json, sys
+          from pathlib import Path
+          root=Path(sys.argv[1]); order=sys.argv[2]
+          def load(label):
+              art=root/f"{order}-{label}"
+              x=json.loads((art/"summary.json").read_text())
+              rows=[json.loads(line) for line in (art/"server-diag.jsonl").read_text().splitlines() if line.strip()]
+              last=rows[-1] if rows else {}
+              prod=(last.get("product") or {})
+              tunnel=(prod.get("tunnel") or {})
+              pipe=(tunnel.get("server_pipeline") or {})
+              runtime=(last.get("runtime") or {})
+              gen=x.get("generator") or {}
+              resource=x.get("resource") or {}
+              def stages(direction):
+                  return {k:{
+                      "actual_send_mbps":v.get("actual_send_mbps"),
+                      "goodput_mbps":v.get("eventual_goodput_mbps"),
+                      "loss_percent":v.get("byte_loss_percent"),
+                  } for k,v in ((gen.get(direction) or {}).items())}
+              h=pipe.get("handler") or {}
+              hand=pipe.get("handoff_block") or {}
+              return {
+                  "source_sha":x.get("source_sha"),
+                  "classifications":x.get("classifications"),
+                  "c2s":stages("c2s"), "s2c":stages("s2c"),
+                  "cost_ratio":{d:(x.get("cost") or {}).get(d,{}).get("outer_ip_per_app_raw_input") for d in ("c2s","s2c")},
+                  "packet_socket":resource.get("packet_socket_by_endpoint"),
+                  "process_cpu_seconds":resource.get("process_cpu_seconds"),
+                  "server_runtime":{
+                      "total_alloc":runtime.get("TotalAlloc"),
+                      "num_gc":runtime.get("NumGC"),
+                      "pause_total_ns":runtime.get("PauseTotalNs"),
+                  },
+                  "server_pipeline":{
+                      "reads":pipe.get("reads"),
+                      "handler_avg_ns":h.get("total_ns",0)/h.get("samples",1) if h.get("samples") else None,
+                      "handler_max_ns":h.get("max_ns"),
+                      "handoff_avg_ns":hand.get("total_ns",0)/hand.get("samples",1) if hand.get("samples") else None,
+                  },
+              }
+          before, after=load("before"), load("after")
+          out={"order":order,"before":before,"after":after}
+          (root/f"ab-comparison-{order}.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
+          print("WBD_PERF_AB_COMPARISON "+json.dumps(out,sort_keys=True))
+          cls=after.get("classifications") or {}
+          if not cls or any(v!="PASS" for v in cls.values()):
+              raise SystemExit("fixed candidate did not retain all PASS classifications")
+          PY
+      - name: Upload order-controlled evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-normal10-${{ matrix.order }}-${{ github.sha }}
+          path: |
+            artifacts/${{ matrix.order }}-before
+            artifacts/${{ matrix.order }}-after
+            artifacts/ab-comparison-${{ matrix.order }}.json
+          if-no-files-found: error
+          compression-level: 1
+          retention-days: 30
+
+  game4-logical3-lossless:
+    name: game4-logical3-lossless
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.12"
+          cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install network tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables nftables tcpdump openssl \
+            build-essential bison flex pkg-config libbpf-dev libelf-dev libmnl-dev libcap-dev xz-utils curl
+          sudo modprobe tun || true
+          sudo modprobe sch_netem || true
+          sudo modprobe nf_tproxy_ipv4 || true
+          sudo modprobe nft_tproxy || true
+          ss -0 -a -m -n >/dev/null
+      - name: Check out exact fixed product and build pinned tools
+        run: |
+          set -euo pipefail
+          git checkout --detach "$FIX_SHA"
+          bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
+          echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
+          mkdir -p "$GITHUB_WORKSPACE/artifacts/game4-logical3"
+          go build -trimpath -o "$GITHUB_WORKSPACE/artifacts/game4-logical3/wbd-client" ./cmd/wbd-client
+          go build -trimpath -o "$GITHUB_WORKSPACE/artifacts/game4-logical3/wbd-server" ./cmd/wbd-server
+      - name: Run Game4 with 3Mbps logical business per direction
+        id: sample
+        shell: bash
+        run: |
+          set -euo pipefail
+          art="$GITHUB_WORKSPACE/artifacts/game4-logical3"
+          sudo env \
+            GITHUB_WORKSPACE="$GITHUB_WORKSPACE" GITHUB_SHA="$FIX_SHA" \
+            WBD_STRICT_ARTIFACT_DIR="$art" \
+            WBD_STRICT_MODE=game WBD_STRICT_SCENARIO=lossless \
+            WBD_STRICT_SEED=641 WBD_STRICT_RATE_MBPS=3 WBD_STRICT_LANES=4 \
+            WBD_STRICT_TC="$WBD_STRICT_TC" \
+            bash scripts/strict_weaknet_sample.sh
+      - name: Validate Game4 and print directional wire ledger
+        id: validate
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          art="$GITHUB_WORKSPACE/artifacts/game4-logical3"
+          python3 tools/check_strict_weaknet.py \
+            --artifact-dir "$art" --source-sha "$FIX_SHA" \
+            --mode game --scenario lossless --seed 641 \
+            --target-mbps 3 --lanes 4 \
+            --output "$art/summary.json"
+          python3 - "$art/summary.json" <<'PY'
+          import json, sys
+          from pathlib import Path
+          x=json.loads(Path(sys.argv[1]).read_text())
+          out={
+              "source_sha":x.get("source_sha"),
+              "mode":x.get("mode"),
+              "classifications":x.get("classifications"),
+              "generator":x.get("generator"),
+              "resource":x.get("resource"),
+              "cost":x.get("cost"),
+              "recovery_accounting":x.get("recovery_accounting"),
+              "fec_recovery_final":x.get("fec_recovery_final"),
+              "transport_hygiene":x.get("transport_hygiene"),
+          }
+          print("WBD_GAME4_LOGICAL3_LEDGER "+json.dumps(out,sort_keys=True))
+          PY
+          rm -f "$art/wbd-client" "$art/wbd-server"
+      - name: Upload Game4 target evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-game4-logical3-${{ github.sha }}
+          path: artifacts/game4-logical3
+          if-no-files-found: error
+          compression-level: 1
+          retention-days: 30

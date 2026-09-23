@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "PERFORMANCE_RECOVERY: O(1) server qualification counter materially improved Normal10 but target remains CAPACITY_LIMITED; current atomic fix removes the per-read 64KiB AF_PACKET scratch allocation while preserving exact owned Segment.Payload backing. Functional lifecycle remains COMPLETE.",
-  "next_task": "验证 raw receive scratch 复用最终 SHA 的 core/race 与独占 Normal10 lossless；对比 7550844a 的 handler/readCh、AF_PACKET drops、goodput、server CPU/TotalAlloc/GC。若 Normal10 仍明显低于10Mbps，不跑18份矩阵，继续按新时间线定位；只有无损容量继续实质改善后才进入 Game4逻辑3Mbps和逐方向线上字节账本。",
-  "latest_log": "docs/devlog/20260923-125500-performance-raw-recv-buffer.md",
-  "last_tested_source_sha": "7550844af73ca07481a932d17d6793ccb23ae05a",
+  "in_progress": "PERFORMANCE_RECOVERY: raw receive scratch/ownership fix at a924b7c9 made the exclusive Normal10 lossless target fully PASS with zero product socket drops; overall performance is NOT complete. Current validation is same-runner A/B+B/A against 7550844a plus Game4 at 3Mbps logical business per direction and full directional wire-cost ledger. Functional lifecycle remains COMPLETE.",
+  "next_task": "读取 next-performance-ab-game 的同runner A/B、B/A 与 Game4逻辑3Mbps lossless结果，确认修复收益不依赖运行顺序，并核对source/parity、混合包长分片/FEC补齐、Game副本、repair、ACK/control、padding账本。仅在这些目标继续通过后再运行原18份严格弱网矩阵和目标负载长测；性能完成状态保持未关闭。",
+  "latest_log": "docs/devlog/20260923-132500-performance-normal-pass-ab-game.md",
+  "last_tested_source_sha": "a924b7c9853e1d280cb7a7062dc46ccd30039b99",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1621,7 +1621,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "FIX_VALIDATION_IN_PROGRESS",
+      "status": "TARGET_VALIDATION_IN_PROGRESS",
       "spec": "docs/WEAKNET_QUALIFICATION.md#9",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1632,8 +1632,8 @@
         "审计混合包长/FEC/分片/Game线上字节账本",
         "无损目标通过后再完成严格弱网矩阵及长测"
       ],
-      "latest_log": "docs/devlog/20260923-125500-performance-raw-recv-buffer.md",
-      "note": "O(1) qualification 修复最终验证 SHA 7550844af73ca07481a932d17d6793ccb23ae05a / next-performance-recovery run 35815797772 SUCCESS；core/race job 107036930642 PASS，Normal10 job 107037161702 / artifact 10731592515 采集成功但仍 PERFORMANCE=CAPACITY_LIMITED。相对7ac4同seed：server reads 61162→269830、handler均值1.899ms→0.359ms、C2S pre goodput0.335→1.794Mbps、S2C4.146→6.000Mbps、AF_PACKET drops677365→631423。新瓶颈下server TotalAlloc约25.7GB/2721GC；Linux raw ReadSegment 每次仍新建约64KiB scratch且官方client/server丢弃第二raw返回值。当前最小修复复用endpoint scratch，并仅为匹配包保留精确大小owned backing；不改队列/速率/FEC/Game/lifecycle，待最终SHA Actions验证。"
+      "latest_log": "docs/devlog/20260923-132500-performance-normal-pass-ab-game.md",
+      "note": "raw receive最终候选 a924b7c9853e1d280cb7a7062dc46ccd30039b99 / next-performance-recovery run 35816817908 attempt2: core-race job 107042968647 PASS；Normal10 job 107043226145 / artifact 10732381400 (sha256:8451f705dd9be990d391b221f4c077b671215a956e21f512f567b3ed7c9fc6e2) 全分类PASS。双向实际/最终goodput约10Mbps、业务loss 0%、client/server AF_PACKET drops均0；server reads 1579582、handler均值约30.3us、CPU 76.56s/120s。首次attempt1仅full-race的LifecycleEntryGameReplacementDormantWakeKeepsStableLease出现3.05s等待超时且无race报告；同SHA attempt2完整core/race PASS，未修改生命周期语义。Normal线上比C2S=5.0913x、S2C=5.2231x；S2C实测FEC source=195022224B/parity=501074802B，transport retransmitted=0、padding=0，证明主要放大来自FEC20:20混合shard最大宽度补齐及固定headers而非重传。当前进入同runner A/B+B/A与Game4逻辑3Mbps定向验证，尚未运行18份矩阵/长测，性能未关闭。"
     }
   }
 }
