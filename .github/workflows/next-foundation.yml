@@ -42,6 +42,8 @@ jobs:
         env:
           CHANGE_BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: python tools/check_repository.py
+      - name: Enforce performance workflow one-sample policy
+        run: python3 tools/check_performance_workflow_policy.py
       - id: layout
         name: Detect active module
         shell: bash
@@ -317,8 +319,7 @@ jobs:
 
   p5-https-measurement-base:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
-    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -382,8 +383,7 @@ jobs:
 
   p5-weaknet-5-20-5:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
-    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -427,8 +427,7 @@ jobs:
 
   p5-weaknet-5-30-5:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
-    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -472,8 +471,7 @@ jobs:
 
   p5-load:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
-    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -518,8 +516,7 @@ jobs:
 
   p5-load-40:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
-    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -563,8 +560,7 @@ jobs:
 
   p5-fec2020-weaknet-5-20-5:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
-    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -608,8 +604,7 @@ jobs:
 
   p5-fec2020-weaknet-5-30-5:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_extended))
-    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -653,8 +648,7 @@ jobs:
 
   p5-soak:
     needs: repository-contract
-    if: needs.repository-contract.outputs.has_go == 'true' && github.event_name == 'workflow_dispatch' && inputs.run_legacy_soak
-    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
       fail-fast: false

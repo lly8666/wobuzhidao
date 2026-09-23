@@ -1,15 +1,6 @@
 name: next-performance-capacity-diagnostic
 
 on:
-  push:
-    branches:
-      - next/tlslike-dataplane
-    paths:
-      - ".github/workflows/next-performance-capacity-diagnostic.yml"
-      - "internal/faketcp/**"
-      - "internal/runtimeowner/**"
-      - "internal/runtimeentry/**"
-      - "docs/qualification/PERFORMANCE_CAPACITY_DIAGNOSTIC_TRIGGER"
   workflow_dispatch:
 
 permissions:
@@ -38,6 +29,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Claim exactly one sample
+        run: |
+          set -euo pipefail
+          mkdir -p "$ART"
+          python3 tools/perf_sample_guard.py claim             --identity "capacity-deep:normal:lossless:seed631:rate10:lanes1:sha$GITHUB_SHA"             --receipt "$ART/sample-claim.json"
+
       - name: Install network tooling
         run: |
           sudo apt-get update
@@ -87,11 +84,11 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          python3 tools/check_strict_weaknet.py \
+          python3 tools/check_strict_weaknet_loss_tolerant_v1.py \
             --artifact-dir "$ART" --source-sha "$FIX_SHA" \
             --mode normal --scenario lossless --seed 631 \
             --target-mbps 10 --lanes 1 \
-            --output "$ART/summary.json"
+            --output "$ART/summary-loss-tolerant-v1.json"
       - name: Build compact pressure and runner timeline
         if: always()
         shell: bash
@@ -170,7 +167,7 @@ jobs:
                   "steal_fraction":((d[7]/total) if total>7 and total>0 else None),
               }
           
-          summary=read_json("summary.json")
+          summary=read_json("summary-loss-tolerant-v1.json")
           biz=read_json("biz.json")
           resources=read_rows("resources.jsonl")
           client_rows=read_rows("client-diag.jsonl")
@@ -297,7 +294,7 @@ jobs:
         with:
           name: performance-capacity-deep-${{ github.sha }}
           path: |
-            artifacts/capacity-deep-normal10/summary.json
+            artifacts/capacity-deep-normal10/summary-loss-tolerant-v1.json
             artifacts/capacity-deep-normal10/capacity-diagnostic.json
             artifacts/capacity-deep-normal10/resources.jsonl
             artifacts/capacity-deep-normal10/client-diag.jsonl

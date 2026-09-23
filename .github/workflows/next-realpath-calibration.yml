@@ -1,16 +1,6 @@
 name: next-realpath-calibration
 
 on:
-  push:
-    branches:
-      - next/tlslike-dataplane
-    paths:
-      - ".github/workflows/next-realpath-calibration.yml"
-      - "scripts/realpath_calibration.sh"
-      - "tools/realpath_udp_duplex.py"
-      - "tools/check_realpath_calibration.py"
-      - "cmd/**"
-      - "internal/**"
   workflow_dispatch:
 
 permissions:
@@ -38,6 +28,12 @@ jobs:
         env:
           CHANGE_BASE: ${{ github.event.before }}
         run: python3 tools/check_repository.py
+
+      - name: Claim exactly one sample
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/realpath-calibration
+          python3 tools/perf_sample_guard.py claim             --identity "realpath-calibration:lossless:sha$GITHUB_SHA"             --receipt artifacts/realpath-calibration/sample-claim.json
 
       - name: Install network tooling
         run: |
