@@ -2,10 +2,10 @@
   "ref": "next/tlslike-dataplane",
   "expected_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
   "workflow": "next-strict-weaknet.yml",
-  "mode": "normal",
-  "scenario": "5205",
+  "mode": "game",
+  "scenario": "5305",
   "seed": "101",
-  "rate_mbps": "10",
-  "lanes": "1",
-  "reason": "verify bounded server receive burst queue after b0f5386c AF_PACKET overflow"
+  "rate_mbps": "3",
+  "lanes": "4",
+  "reason": "exact-SHA canary for client AF_PACKET and SegmentMux diagnostics after bounded receive burst fix"
 }
