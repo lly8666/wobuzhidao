@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "PERFORMANCE_RECOVERY: Game4 logical3 lossless is fully PASS; Normal10 a924 standalone is PASS but same-runner seed631 remains CAPACITY_LIMITED. The first capacity-diagnostic push failed before scheduling any job because the embedded Python heredoc escaped the YAML run block; this is validation-infrastructure only. Current task is the corrected evidence-only 4096/ACK-lag and runner capacity timeline diagnosis; overall performance remains OPEN. Functional lifecycle remains COMPLETE.",
-  "next_task": "等待并读取修正后的 next-performance-capacity-diagnostic compact artifact/time line，比较 AF_PACKET 首次drop 与 PeakOutstanding>=4000/Abandoned/RepairEvicted 的先后，核对每核busy/softirq/steal、cgroup throttle、CPU PSI、线程CPU、GC/alloc和handler/readCh区间长尾。若4096 pressure先于drop，优化ACK/处理成本而不扩大4096；若runner/调度先恶化，提供具体核/线程/steal/throttle/PPS证据并保持目标未通过。不要重复18份主矩阵。",
-  "latest_log": "docs/devlog/20260923-142500-performance-capacity-workflow-fix.md",
-  "last_tested_source_sha": "a924b7c9853e1d280cb7a7062dc46ccd30039b99",
+  "in_progress": "PERFORMANCE_RECOVERY: outbound raw-send clone removal is the current product candidate. Seed631 Normal10 lossless on 6c061d30 (product change 75b5cc9a) is fully PASS with 10Mbps both directions, zero AF_PACKET/socket drops and zero Abandoned/RepairEvicted; CPU falls to ~57s/process over 120s. Seed601 first run on 75b5cc9a remains CAPACITY_LIMITED, so overall performance is still OPEN and a repeat is running before same-runner A/B+B/A.",
+  "next_task": "验收 75b5cc9a 的 seed601 Normal10 rerun；若通过，立即把同runner顺序A/B与B/A更新为 a924b7c9(修复前) 对 75b5cc9a(去发送后clone)，再确认 Game4 逻辑3Mbps未回归。若seed601仍CAPACITY_LIMITED，则读取其artifact补齐 PeakOutstanding/AF_PACKET/CPU/GC 时间线并继续下一份确定的发送热路径复制/分配；不扩大4096、不降FEC/速率/Game、不跑18份矩阵。",
+  "latest_log": "docs/devlog/20260923-145000-performance-outbound-packet-clone.md",
+  "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1319,6 +1319,34 @@
       "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35788463825",
       "scope": "weaknet-lifecycle-core/next-realpath-calibration",
       "status": "PASS"
+    },
+    {
+      "source_sha": "65735cb28be9eada7250133fe29d65ed2b613563",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35821083282",
+      "scope": "performance-capacity-diagnostic/normal10-seed631-before-outbound-clone-fix",
+      "status": "CAPACITY_LIMITED",
+      "note": "job107052861476 artifact10732998342; PeakOutstanding>=4000 before AF_PACKET drop, CPU saturated without steal/throttle."
+    },
+    {
+      "source_sha": "75b5cc9a82458a7a46d382373339193276d6c51e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35823219345",
+      "scope": "performance-recovery/normal10-seed601-outbound-clone-fix",
+      "status": "CAPACITY_LIMITED_ATTEMPT1",
+      "note": "core/race PASS; attempt1 Normal10 collection complete but PERFORMANCE=CAPACITY_LIMITED; attempt2 rerun pending."
+    },
+    {
+      "source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35823231138",
+      "scope": "performance-capacity-diagnostic/normal10-seed631-outbound-clone-fix",
+      "status": "PASS",
+      "note": "job107059368064 artifact10733329818 digest sha256:118750e4311911b65b485c2f7207d48434e938b23a564cc710883eae2aa09c89; all five classifications PASS, 10Mbps bidirectional, zero packet/socket drops and zero Abandoned/RepairEvicted."
+    },
+    {
+      "source_sha": "75b5cc9a82458a7a46d382373339193276d6c51e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35823219362",
+      "scope": "lifecycle-regression/outbound-clone-fix",
+      "status": "PASS",
+      "note": "next-lifecycle PASS; raw send return ownership optimization did not change lifecycle semantics."
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1621,7 +1649,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "CAPACITY_STABILITY_DIAGNOSTIC",
+      "status": "TARGETED_NORMAL_MIXED_PENDING_STABILITY",
       "spec": "docs/WEAKNET_QUALIFICATION.md#9",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1632,8 +1660,8 @@
         "审计混合包长/FEC/分片/Game线上字节账本",
         "无损目标通过后再完成严格弱网矩阵及长测"
       ],
-      "latest_log": "docs/devlog/20260923-142500-performance-capacity-workflow-fix.md",
-      "note": "583ec713 / next-performance-ab-game run 35818718764: Game4 logical3 PASS、Normal同runner seed631仍CAPACITY_LIMITED；attempt2 AB job107048157380再次复现 fixed stress/post C2S约2.85/2.88Mbps和server AF_PACKET drops439529。9a509e96 新增 capacity diagnostic 后 run 35820349990 在调度前即FAIL且0 jobs/0 artifact；审计确认 Python heredoc 行未缩进进 YAML run block，属于验证基础设施错误而非产品性能证据。当前仅修 workflow YAML 缩进并重新触发 compact timeline；4096/FEC/速率/Game/buffer/lifecycle 均不改。"
+      "latest_log": "docs/devlog/20260923-145000-performance-outbound-packet-clone.md",
+      "note": "65735cb2 capacity baseline seed631 was CAPACITY_LIMITED: server/client PeakOutstanding>=4000 at ~2.00/2.03s, first Abandoned ~13.00/20.03s, AF_PACKET first drops ~19.05/20.05s; CPU ~112-115s/process, runner busy ~97.7-97.8%, PSI some avg10 51.75%, no steal/throttle. Product commit 75b5cc9a removes the redundant full packet clone after synchronous raw Sendto. On 6c061d30 capacity run 35823231138 job107059368064 artifact10733329818, all five classifications PASS: both directions pre/stress/post ~10Mbps, AF_PACKET/socket drops 0, Abandoned/RepairEvicted 0, PeakOutstanding 4035/4036, process CPU ~56.87/57.09s, runner busy ~76-78%, PSI some avg10 36.02%. Separate seed601 run 35823219345 attempt1 remains CAPACITY_LIMITED, so no final performance completion; attempt2 is running."
     }
   }
 }
