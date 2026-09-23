@@ -173,7 +173,10 @@ func (e *RawIPv4Endpoint) WriteSegment(seg Segment) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return append([]byte(nil), pkt...), nil
+	// MarshalSegment already returns a fresh owned packet. Sendto has completed
+	// before this point, so returning that packet preserves the ownership contract
+	// without cloning every emitted data/ACK segment a second time.
+	return pkt, nil
 }
 
 func (e *RawIPv4Endpoint) Close() error {
