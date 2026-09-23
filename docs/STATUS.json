@@ -65,9 +65,9 @@
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
   "in_progress": "FINAL18_PAUSED_RECEIVE_PIPELINE_FIX：固定HEAD b0f5386c 的前5份样本中，Game5205/101、Normal lossless/101、Game lossless/101全PASS；Game5305/101因client AF_PACKET单秒1070 drops、Normal5205/101因server AF_PACKET单秒58 drops被保留为CAPACITY_LIMITED。只读artifact诊断证明两者均非link/qdisc/capture drop，且FreshBlocked/FreshEmitFailures=0、RepairEvictionMaxScan=1。Normal5205 server drop前socket rmem已到725184/1048576，drop对应server pipeline新出现约11.6ms handler/handoff/queue-age停顿；容量1 read handoff会在该短停顿期间停止drain。现暂停最终18份，修复server有界短突发接收解耦，并给client SegmentMux补只读队列占用/年龄/满队列等待诊断。",
-  "next_task": "提交server receive handoff 256槽有界burst queue（仍满即背压、不静默丢包）+ SegmentMux qualification-only diagnostics；先跑repository/targeted/foundation含Linux race。通过后只跑一条Normal5205目标样本验证server AF_PACKET drops=0；再跑一条Game5305目标/诊断样本，依据SegmentMux peak/full_waits/queue_age决定client是否需要第二个最小修复。新产品SHA需重新开始18份最终资格，b0f5386c部分矩阵永久保留为历史证据。",
-  "latest_log": "docs/devlog/20260923-224500-final18-receive-burst-diagnosis.md",
-  "last_tested_source_sha": "b0f5386cd468903507c68fb4b7986fff318d70de",
+  "next_task": "以本次状态文档+final18 relay提交形成的新固定HEAD为唯一最终资格SOURCE_SHA，从头执行2模式×3场景×3 seeds共18个独立workflow_dispatch样本；每run只含一条测量。b0f5386c的5份旧final18样本永久保留历史、不计入新矩阵。18份全部完成前不推进工作分支；P4/P5性能资格关闭后再考虑P6重打包，P7仍NOT_RUN。",
+  "latest_log": "docs/devlog/20260923-234500-receive-burst-canary-pass-final18-arm.md",
+  "last_tested_source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1396,6 +1396,50 @@
       "scope": "final18-normal-5205-seed101",
       "status": "CAPACITY_LIMITED",
       "note": "CORRECTNESS/INPUT_VALIDITY/CAPTURE PASS；ENVIRONMENT FAIL，仅server AF_PACKET在post单个1s采样间隔累计58 drops。drop前server rmem 725184/1048576；pipeline同点出现约11.6ms handler/handoff/queue-age最大值。performance errors为空。"
+    },
+    {
+      "source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35870064807",
+      "scope": "receive-burst-regression/next-p4-steady-targeted",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35870064841",
+      "scope": "receive-burst-regression/next-foundation",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35870064833",
+      "scope": "receive-burst-regression/next-tls-startup-padding",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35870064874",
+      "scope": "receive-burst-regression/next-lifecycle",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35870064842",
+      "scope": "receive-burst-regression/next-lifecycle-fullstack",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35870696193",
+      "scope": "receive-burst-canary/normal-5205-seed101",
+      "status": "PASS",
+      "note": "loss-tolerant-v1五分类全PASS；server AF_PACKET overflow未复现；post5 PASS。summary artifact 10755266906；full artifact 10755705486。"
+    },
+    {
+      "source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35874797729",
+      "scope": "receive-burst-canary/game-5305-seed101",
+      "status": "PASS",
+      "note": "loss-tolerant-v1五分类全PASS；client/server AF_PACKET与link/qdisc drop=0；SegmentMux四route capacity=256，peak=75/56/69/64，full_waits均0。summary artifact 10757213214；full artifact 10756477612。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1698,7 +1742,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "SHARED_BLACKHOLE_BOTH_PASS_FINAL18_RELAY_ARMING",
+      "status": "RECEIVE_BURST_CANARY_PASS_FINAL18_ARMING",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1709,9 +1753,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-220000-blackhole-500ms-pass-final18-relay.md",
-      "note": "shared-blackhole 500ms PASS：SOURCE_SHA e5e12558fe6b2b32c1dbb07060450be811a099eb，run 35856226845，job 107165229100，顶层shared-blackhole-v1五类全PASS，errors空。actual_event=500.005742ms；expected-resume后first-data delay c2s/s2c均8.232573ms；1s qualifying goodput c2s=3.00608Mbps、s2c=3.04Mbps；longest zero gap均510ms；socket/link drop=0，drain late bytes=0。100ms与500ms专项均PASS。下一阶段按规范最终同一SHA完成2模式×3场景×3seed=18份主测，固定seed沿用历史同拓扑101/202/303。",
-      "next_task": "新final qualification relay不执行measurement；push attempt1仅ARM，connector每次rerun只dispatch第一条缺失strict workflow run。利用strict run-name按mode/scenario/seed去重；所有18条target run保持同一head_sha。先Game5205/101与Game5305/101 canary，PASS后补齐剩余16。",
+      "latest_log": "docs/devlog/20260923-234500-receive-burst-canary-pass-final18-arm.md",
+      "note": "9cdd4f4 的server 256槽有界receive burst修复已由Normal5205与Game5305两条真实目标速率canary验证：两条loss-tolerant-v1五分类均PASS；Game5305 client/server AF_PACKET与link/qdisc drop均为0，四条SegmentMux route容量256、峰值75/56/69/64、full_waits全0，因此不实施第二个client receive产品修改。",
+      "next_task": "以本次状态文档+final18 relay提交形成的新固定HEAD为唯一最终资格SOURCE_SHA，从头执行2模式×3场景×3 seeds共18个独立workflow_dispatch样本；每run只含一条测量。b0f5386c的5份旧final18样本永久保留历史、不计入新矩阵。18份全部完成前不推进工作分支；P4/P5性能资格关闭后再考虑P6重打包，P7仍NOT_RUN。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -2660,7 +2704,7 @@
         "workflow_git_blob": "4a5bc83b32c8a804dc7ffe912b4a22d35efd8e69"
       },
       "final_main_qualification": {
-        "status": "ARMING_FIXED_HEAD",
+        "status": "ARMING_NEW_FIXED_HEAD",
         "policy": "2 modes x 3 scenarios x 3 seeds = 18 independent workflow_dispatch runs; one measurement per target run",
         "seeds": [
           "101",
@@ -2686,8 +2730,8 @@
         },
         "relay_workflow": ".github/workflows/next-performance-final-qualification-relay.yml",
         "measurement_workflow": ".github/workflows/next-strict-weaknet.yml",
-        "dispatch_semantics": "push attempt1 arms only; each connector job rerun dispatches exactly the first missing plan sample; strict run-name + head_sha prevents duplicates",
-        "head_policy": "Do not advance next/tlslike-dataplane until all 18 target runs for this coordinator commit are complete",
+        "dispatch_semantics": "push attempt1 arms only; each connector job rerun dispatches exactly the first missing plan sample; strict run-name + exact GITHUB_SHA prevents duplicates",
+        "head_policy": "This docs+relay commit becomes the new fixed final HEAD; do not advance next/tlslike-dataplane until all 18 target runs on that exact GITHUB_SHA are complete.",
         "ordered_plan": [
           {
             "slot": 1,
@@ -2851,7 +2895,171 @@
             "lanes": "4",
             "status": "NOT_DISPATCHED"
           }
-        ]
+        ],
+        "product_parent_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
+        "previous_final_head": "b0f5386cd468903507c68fb4b7986fff318d70de",
+        "previous_final_status": "STOPPED_HISTORICAL_5_SAMPLES_PRESERVED_NOT_REUSED"
+      },
+      "receive_burst_fix_canary": {
+        "product_source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
+        "product_commit": "runtimeentry: buffer bounded receive bursts",
+        "decision": "CANARY_STABLE_NO_CLIENT_PRODUCT_CHANGE",
+        "regression_actions": [
+          {
+            "workflow": "next-p4-steady-targeted",
+            "run": 35870064807,
+            "status": "PASS"
+          },
+          {
+            "workflow": "next-foundation",
+            "run": 35870064841,
+            "status": "PASS"
+          },
+          {
+            "workflow": "next-tls-startup-padding",
+            "run": 35870064833,
+            "status": "PASS"
+          },
+          {
+            "workflow": "next-lifecycle",
+            "run": 35870064874,
+            "status": "PASS"
+          },
+          {
+            "workflow": "next-lifecycle-fullstack",
+            "run": 35870064842,
+            "status": "PASS"
+          }
+        ],
+        "normal_5205_seed101": {
+          "workflow": "next-strict-weaknet",
+          "run": 35870696193,
+          "job": 107213694793,
+          "mode": "normal",
+          "scenario": "5205",
+          "seed": "101",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "fec": "20:20",
+          "one_way_delay_ms": 300,
+          "analyzer": "loss-tolerant-v1",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "post5": true,
+          "transport_hygiene": "REVIEW_NON_GATING",
+          "outer_ip_per_app_raw_input": {
+            "c2s": 5.231233713333333,
+            "s2c": 5.362717746666666
+          },
+          "summary_artifact": {
+            "id": 10755266906,
+            "digest": "sha256:bc0af399bbc4f1bc7ffee36e9b4db520ca7ab5c29eca5775444867f83bc3f1e5"
+          },
+          "full_artifact": {
+            "id": 10755705486,
+            "digest": "sha256:6ce41c39b515980af198991efd3394f6032b2d2bbed51ee4dac107eae89239b1"
+          }
+        },
+        "game_5305_seed101": {
+          "workflow": "next-strict-weaknet",
+          "run": 35874797729,
+          "job": 107227823430,
+          "mode": "game",
+          "scenario": "5305",
+          "seed": "101",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "fec": "20:20",
+          "one_way_delay_ms": 300,
+          "analyzer": "loss-tolerant-v1",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "errors": {
+            "capture": [],
+            "correctness": [],
+            "environment": [],
+            "input": [],
+            "performance": []
+          },
+          "post5_offset_s": 2,
+          "transport_hygiene": "REVIEW_NON_GATING",
+          "resource": {
+            "client_af_packet_drops": 0,
+            "server_af_packet_drops": 0,
+            "link_qdisc_drops": 0,
+            "client_packet_socket_max_rmem_alloc": 61824,
+            "client_packet_socket_rcv_buf": 1048576,
+            "server_packet_socket_max_rmem_alloc": 370688,
+            "server_packet_socket_rcv_buf": 1048576
+          },
+          "segment_mux": {
+            "route_capacity": 256,
+            "route_max_peak": [
+              75,
+              56,
+              69,
+              64
+            ],
+            "route_max_full_waits": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "route_handoff_block_max_ns": [
+              2392699,
+              4095544,
+              1718014,
+              1863286
+            ],
+            "route_queue_age_max_ns": [
+              16911001,
+              13355412,
+              16467062,
+              14943580
+            ],
+            "conclusion": "NO_ROUTE_FULL_BACKPRESSURE"
+          },
+          "summary_artifact": {
+            "id": 10757213214,
+            "digest": "sha256:b060b4e480fdb31dcf5105ab85f2d35e5e29bc8d91f87ce733b9d76dbf45aeed"
+          },
+          "full_artifact": {
+            "id": 10756477612,
+            "digest": "sha256:6484dd7a193ad198e1c523a0a6560d61eefb17b57a437e18cbf658db9de6c85f"
+          },
+          "read_only_diagnostics": [
+            {
+              "workflow": "next-performance-artifact-reader-clientdrop",
+              "run": 35875595992,
+              "artifact": 10756283013
+            },
+            {
+              "workflow": "next-performance-artifact-reader-pipeline",
+              "run": 35875596154,
+              "artifact": 10758020037
+            },
+            {
+              "workflow": "next-performance-artifact-reader-context",
+              "run": 35875596110
+            },
+            {
+              "workflow": "next-performance-artifact-reader-segmentmux",
+              "run": 35875840776,
+              "artifact": 10757780728
+            }
+          ]
+        }
       }
     }
   }

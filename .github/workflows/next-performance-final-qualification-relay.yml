@@ -16,6 +16,8 @@ jobs:
   relay:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    env:
+      WBD_FINAL_QUALIFICATION_GENERATION: receive-burst-canary-pass-v1
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,7 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           remote_sha="$(git ls-remote origin "refs/heads/$PERF_REF" | awk '{print $1}')"
-          echo "qualification_relay_sha=$GITHUB_SHA remote_sha=$remote_sha attempt=$GITHUB_RUN_ATTEMPT"
+          echo "generation=$WBD_FINAL_QUALIFICATION_GENERATION qualification_relay_sha=$GITHUB_SHA remote_sha=$remote_sha attempt=$GITHUB_RUN_ATTEMPT"
           test -n "$remote_sha"
           test "$remote_sha" = "$GITHUB_SHA"
 
