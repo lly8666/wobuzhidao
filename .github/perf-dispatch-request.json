@@ -1,10 +1,11 @@
 {
   "workflow": "next-shared-blackhole.yml",
   "ref": "next/tlslike-dataplane",
-  "blackout_ms": "100",
+  "blackout_ms": "500",
   "seed": "601",
   "acceptance": "shared-blackhole-v1",
   "expected_product_sha": "610d5092886a160685f8a9d0ecc8fad139fa5bae",
-  "request_revision": 8,
-  "request_reason": "shared-blackhole-100ms-specialty-after-normal-core-pass"
+  "request_revision": 9,
+  "request_reason": "shared-blackhole-100ms-pass-proceed-500ms",
+  "previous_qualification_run": 35852343843
 }

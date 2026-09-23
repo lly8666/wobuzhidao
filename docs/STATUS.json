@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "Normal恢复主场景lossless/5205/5305均已有有效PASS；新增Game4共享短黑洞专项入口。100ms与500ms分别独立workflow_dispatch；背景loss=0、黑洞约t=60s，四lane共享同一underlay双向100% loss。恢复门沿用3s repair horizon + lossless 99% wall-goodput：解除后加300ms传播，3s内须出现完整1s >=99%目标wall窗口。",
-  "next_task": "等待blackhole analysis unit与repository/targeted/foundation通过；在main注册next-shared-blackhole后，先由relay发起100ms/seed601单样本。100ms完成后再独立500ms。",
-  "latest_log": "docs/devlog/20260923-211500-shared-blackhole-entry.md",
+  "in_progress": "Game4共享100ms双向黑洞专项已在SOURCE_SHA eb407d1e / run 35852343843 / job 107152732634通过shared-blackhole-v1：CORRECTNESS/INPUT_VALIDITY/CAPTURE/ENVIRONMENT/PERFORMANCE全PASS。实际黑洞100.005531ms；解除并加300ms传播后的预期resume点起，两方向约2.034ms即重新有数据并立即进入完整1s >=99%目标wall-goodput窗口；近黑洞最长零交付c2s=100ms/s2c=110ms。socket/link drop=0，10s drain late bytes=0。现在武装独立500ms共享黑洞样本。",
+  "next_task": "等待本提交next-performance-dispatch-relay attempt1成功后，由connector重跑relay触发next-shared-blackhole blackout_ms=500 seed601。500ms完成后读取shared-blackhole-v1 compact summary；若PASS，再进入剩余专项/最终多seed与长测，不提前关闭性能主线。",
+  "latest_log": "docs/devlog/20260923-214500-shared-blackhole-100ms-pass-arm-500ms.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1684,7 +1684,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "SHARED_BLACKHOLE_ENTRY_CORRECTNESS_PENDING",
+      "status": "SHARED_BLACKHOLE_100MS_PASS_500MS_PENDING",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1695,9 +1695,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-211500-shared-blackhole-entry.md",
-      "note": "新增next-shared-blackhole，不改产品/wire/FEC。规范明确Game四lane共同100ms/500ms短黑洞但未固定事件时刻/背景loss；本harness显式定义t≈60s、背景loss=0并写manifest。黑洞内loss允许；恢复硬界为现有3s repair horizon内重新出现完整1s >=99%目标wall-goodput窗口，按300ms单向传播对齐。",
-      "next_task": "Actions unit/static contract PASS后先跑100ms共享黑洞单样本，再跑500ms独立样本。",
+      "latest_log": "docs/devlog/20260923-214500-shared-blackhole-100ms-pass-arm-500ms.md",
+      "note": "Game4 shared blackhole 100ms PASS：SOURCE_SHA eb407d1e0f37fc8dc86bb2cebcb1a32dacd837f7，run 35852343843，job 107152732634。顶层shared-blackhole-v1五类classification全PASS，errors全空；actual blackhole=100.005531ms。expected resume wall≈60.417966s后c2s/s2c first-data delay均≈2.034ms；1s qualifying wall-goodput c2s=3.0496Mbps、s2c=3.039488Mbps，3s recovery bound内立即满足。near-blackhole longest zero gap c2s=100ms/s2c=110ms。socket/link drops=0，drain late bytes=0，client/server CPU≈82.24/79.51s。base lossless analyzer的PERFORMANCE=FAIL仅因它把预期黑洞视为lossless缺口，非本专项门控；门控以shared-blackhole-v1顶层分类为准。",
+      "next_task": "发起独立500ms共享黑洞（Game4/3Mbps/seed601/FEC20:20）。若顶层五类PASS且恢复窗口<=3s，记录专项通过；若FAIL，先分析恢复/repair/gap/resource，不机械继续。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -1895,11 +1895,11 @@
         "relay_workflow": ".github/workflows/next-performance-dispatch-relay.yml",
         "request_file": ".github/perf-dispatch-request.json",
         "semantics": "push attempt1 arms only; rerun attempt>=2 dispatches; exact-head guard; one dispatch per request HEAD via head_sha de-duplication",
-        "status": "BLACKHOLE_SUPPORT_PENDING",
+        "status": "ARMING_SHARED_BLACKHOLE_500MS",
         "request": {
           "workflow": "next-shared-blackhole.yml",
           "ref": "next/tlslike-dataplane",
-          "blackout_ms": "100",
+          "blackout_ms": "500",
           "seed": "601"
         },
         "first_dispatch": {
@@ -2540,7 +2540,13 @@
           "rate_mbps": "3",
           "lanes": "4",
           "fec": "20:20",
-          "status": "ENTRY_NOT_IMPLEMENTED"
+          "status": "PASS",
+          "source_sha": "eb407d1e0f37fc8dc86bb2cebcb1a32dacd837f7",
+          "run": 35852343843,
+          "job": 107152732634,
+          "summary_artifact_id": 10746152982,
+          "artifact_id": 10746192003,
+          "analysis_version": "shared-blackhole-v1"
         },
         {
           "workflow": "next-shared-blackhole",
@@ -2550,7 +2556,7 @@
           "rate_mbps": "3",
           "lanes": "4",
           "fec": "20:20",
-          "status": "ENTRY_NOT_IMPLEMENTED"
+          "status": "ARMING"
         }
       ],
       "shared_blackhole": {
@@ -2565,19 +2571,47 @@
         "recovery_bound_ms": 3000,
         "recovery_window_ms": 1000,
         "recovery_wall_goodput_ratio": 0.99,
-        "status": "ENTRY_CORRECTNESS_PENDING",
+        "status": "100MS_PASS_500MS_ARMING",
         "samples": [
           {
             "blackout_ms": 100,
             "seed": "601",
-            "status": "ARMING_AFTER_CORRECTNESS"
+            "status": "PASS",
+            "source_sha": "eb407d1e0f37fc8dc86bb2cebcb1a32dacd837f7",
+            "run": 35852343843,
+            "job": 107152732634,
+            "actual_event_ms": 100.005531,
+            "recovery": {
+              "c2s": {
+                "first_data_delay_ms": 2.0341350000016973,
+                "qualifying_goodput_mbps": 3.0496,
+                "longest_zero_gap_ms": 100
+              },
+              "s2c": {
+                "first_data_delay_ms": 2.0341350000016973,
+                "qualifying_goodput_mbps": 3.039488,
+                "longest_zero_gap_ms": 110
+              }
+            },
+            "summary_artifact": {
+              "id": 10746152982,
+              "size_bytes": 8461,
+              "digest": "sha256:8d8dcba9fcab9a12d64df0a0e58367c66193a14c5d172d4db20800b1890a0355"
+            },
+            "full_artifact": {
+              "id": 10746192003,
+              "size_bytes": 930323538,
+              "digest": "sha256:a072281fefd911743aba5cdb6b4cda6e18b9ff34359252b7fcec09af5a0a4b0c"
+            }
           },
           {
             "blackout_ms": 500,
             "seed": "601",
-            "status": "NOT_RUN"
+            "status": "ARMING"
           }
-        ]
+        ],
+        "analyzer_git_blob": "ef0842c45a21a995c66b20bba53693c55fdfb76d",
+        "workflow_git_blob": "4a5bc83b32c8a804dc7ffe912b4a22d35efd8e69"
       }
     }
   }
