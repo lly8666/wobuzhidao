@@ -319,7 +319,9 @@ jobs:
 
   p5-https-measurement-base:
     needs: repository-contract
-    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -383,7 +385,9 @@ jobs:
 
   p5-weaknet-5-20-5:
     needs: repository-contract
-    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -427,7 +431,9 @@ jobs:
 
   p5-weaknet-5-30-5:
     needs: repository-contract
-    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -471,7 +477,9 @@ jobs:
 
   p5-load:
     needs: repository-contract
-    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -516,7 +524,9 @@ jobs:
 
   p5-load-40:
     needs: repository-contract
-    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -560,7 +570,9 @@ jobs:
 
   p5-fec2020-weaknet-5-20-5:
     needs: repository-contract
-    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -604,7 +616,9 @@ jobs:
 
   p5-fec2020-weaknet-5-30-5:
     needs: repository-contract
-    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -648,7 +662,9 @@ jobs:
 
   p5-soak:
     needs: repository-contract
-    # Historical measurement remains readable but cannot execute in this multi-job workflow.\n    if: ${{ false }}\n    runs-on: ubuntu-24.04
+    # Historical measurement remains readable but cannot execute in this multi-job workflow.
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
       fail-fast: false
