@@ -21,6 +21,7 @@ CLIENT_BIN="$ART/wbd-client"
 SERVER_BIN="$ART/wbd-server"
 GEN="$GITHUB_WORKSPACE/tools/realpath_udp_duplex.py"
 STAGER="$GITHUB_WORKSPACE/tools/strict_weaknet_stage.py"
+BLACKHOLE_MS=0
 SAMPLER="$GITHUB_WORKSPACE/tools/strict_resource_sampler.py"
 TC_BIN="$WBD_STRICT_TC"
 DIAGNOSTIC_RATE_ONLY="${WBD_STRICT_DIAGNOSTIC_RATE_ONLY:-0}"
@@ -43,10 +44,16 @@ case "$SCENARIO" in
   lossless) PRE_LOSS=0; STRESS_LOSS=0; POST_LOSS=0 ;;
   5205) PRE_LOSS=5; STRESS_LOSS=20; POST_LOSS=5 ;;
   5305) PRE_LOSS=5; STRESS_LOSS=30; POST_LOSS=5 ;;
+  blackhole100) PRE_LOSS=0; STRESS_LOSS=0; POST_LOSS=0; BLACKHOLE_MS=100; STAGER="$GITHUB_WORKSPACE/tools/strict_blackhole_stage.py" ;;
+  blackhole500) PRE_LOSS=0; STRESS_LOSS=0; POST_LOSS=0; BLACKHOLE_MS=500; STAGER="$GITHUB_WORKSPACE/tools/strict_blackhole_stage.py" ;;
   *) echo "invalid scenario $SCENARIO" >&2; exit 2 ;;
 esac
+if [[ "$BLACKHOLE_MS" != "0" && "$MODE:$LANES:$RATE" != "game:4:3" ]]; then
+  echo "blackhole specialty requires game lanes=4 rate=3" >&2
+  exit 2
+fi
 
-SFX="$$"
+SFX="$"
 BIZ="wbiz-$SFX"
 CLI="wcli-$SFX"
 RTR="wrtr-$SFX"
@@ -189,7 +196,11 @@ PY
 printf '%s\n' "$START_NS" > "$ART/start-monotonic-ns.txt"
 
 "$TC_BIN" -V > "$ART/netem-tc-version.txt" 2>&1
-python3 "$STAGER"   --namespace "$RTR" --tc-bin "$TC_BIN" --c2s-dev rsrv --s2c-dev rcli --start-ns "$START_NS"   --pre-loss "$PRE_LOSS" --stress-loss "$STRESS_LOSS" --post-loss "$POST_LOSS"   --seed "$SEED" --output "$ART/stage-events.jsonl" > "$ART/stage.log" 2>&1 &
+if [[ "$BLACKHOLE_MS" == "0" ]]; then
+  python3 "$STAGER" --namespace "$RTR" --tc-bin "$TC_BIN" --c2s-dev rsrv --s2c-dev rcli --start-ns "$START_NS"     --pre-loss "$PRE_LOSS" --stress-loss "$STRESS_LOSS" --post-loss "$POST_LOSS"     --seed "$SEED" --output "$ART/stage-events.jsonl" > "$ART/stage.log" 2>&1 &
+else
+  python3 "$STAGER" --namespace "$RTR" --tc-bin "$TC_BIN" --c2s-dev rsrv --s2c-dev rcli --start-ns "$START_NS"     --blackhole-ms "$BLACKHOLE_MS" --seed "$SEED" --output "$ART/stage-events.jsonl" > "$ART/stage.log" 2>&1 &
+fi
 STAGE_PID="$!"
 
 sampler_args=(
@@ -249,15 +260,17 @@ for pid in "${CAP_PIDS[@]}"; do kill -INT "$pid" 2>/dev/null || true; done
 for pid in "${CAP_PIDS[@]}"; do wait "$pid" 2>/dev/null || true; done
 CAP_PIDS=()
 
-python3 - "$ART" "$GITHUB_SHA" "$GITHUB_WORKSPACE" "$MODE" "$SCENARIO" "$SEED" "$RATE" "$LANES" "$DIAGNOSTIC_RATE_ONLY" <<'PY'
+python3 - "$ART" "$GITHUB_SHA" "$GITHUB_WORKSPACE" "$MODE" "$SCENARIO" "$SEED" "$RATE" "$LANES" "$DIAGNOSTIC_RATE_ONLY" "$BLACKHOLE_MS" <<'PY'
 import hashlib, json, sys
 from pathlib import Path
 art = Path(sys.argv[1])
 source, root = sys.argv[2], Path(sys.argv[3])
 mode, scenario, seed, rate, lanes = sys.argv[4], sys.argv[5], int(sys.argv[6]), float(sys.argv[7]), int(sys.argv[8])
 diagnostic_rate_only = sys.argv[9] == "1"
+blackhole_ms = int(sys.argv[10])
+workflow_rel = ".github/workflows/next-shared-blackhole.yml" if blackhole_ms else ".github/workflows/next-strict-weaknet.yml"
 harness = [
-    ".github/workflows/next-strict-weaknet.yml",
+    workflow_rel,
     "scripts/strict_weaknet_sample.sh",
     "tools/realpath_udp_duplex.py",
     "tools/check_strict_weaknet_loss_tolerant_v1.py",
@@ -267,6 +280,11 @@ harness = [
     "tools/check_strict_weaknet.py",
     "tools/aggregate_strict_weaknet.py",
 ]
+if blackhole_ms:
+    harness.extend([
+        "tools/strict_blackhole_stage.py",
+        "tools/check_strict_blackhole.py",
+    ])
 if diagnostic_rate_only:
     harness.extend([
         ".github/workflows/next-strict-capacity-diagnostics.yml",
@@ -288,6 +306,8 @@ manifest = {
         "hidden_bandwidth_limit": False,
         "packet_sizes_equal_count_cycle": [64, 256, 1200],
         "diagnostic_rate_only": diagnostic_rate_only,
+        "blackhole_ms": blackhole_ms,
+        "blackhole_nominal_offset_s": 60 if blackhole_ms else None,
     },
     "topology": "biz netns -> OpenWrt TPROXY formal client -> raw/veth -> shared router netem -> raw formal server -> shared TUN -> target netns",
 }

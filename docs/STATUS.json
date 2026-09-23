@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "Normal 5305独立样本在SOURCE_SHA bcf6cb8c / run 35850699034 / job 107147426180通过：五类classification全PASS。30% stress实际注入c2s=30.0813%、s2c=29.9524%；业务stress最终packet loss仅0.1081%/0.1723%、byte loss=0.1317%/0.2008%，delay-aligned wall=9.9862/9.9793Mbps；post5 offset=2s；probe timeout=0；socket/link drop=0；10s drain无late bytes。Normal主恢复验证的lossless/5205/5305现均有独立PASS证据。下一原子任务是补Game4所有lane共享100ms/500ms短黑洞的one-run-one-sample专项入口。",
-  "next_task": "实现并先用Actions correctness/static policy验证共享黑洞专项harness：Game4、3Mbps/方向、FEC20:20、300ms单向、四lane共享同一underlay黑洞；100ms与500ms分别独立run，不与主weaknet样本混跑。固定事件时刻/背景条件作为新harness定义在devlog/manifest中明确记录。",
-  "latest_log": "docs/devlog/20260923-205500-normal-5305-pass-next-blackhole.md",
+  "in_progress": "Normal恢复主场景lossless/5205/5305均已有有效PASS；新增Game4共享短黑洞专项入口。100ms与500ms分别独立workflow_dispatch；背景loss=0、黑洞约t=60s，四lane共享同一underlay双向100% loss。恢复门沿用3s repair horizon + lossless 99% wall-goodput：解除后加300ms传播，3s内须出现完整1s >=99%目标wall窗口。",
+  "next_task": "等待blackhole analysis unit与repository/targeted/foundation通过；在main注册next-shared-blackhole后，先由relay发起100ms/seed601单样本。100ms完成后再独立500ms。",
+  "latest_log": "docs/devlog/20260923-211500-shared-blackhole-entry.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1684,7 +1684,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "NORMAL_CORE_SCENARIOS_PASS_BLACKHOLE_ENTRY_NEXT",
+      "status": "SHARED_BLACKHOLE_ENTRY_CORRECTNESS_PENDING",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1695,9 +1695,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-205500-normal-5305-pass-next-blackhole.md",
-      "note": "Normal 5305 PASS：SOURCE_SHA bcf6cb8c799392c12eed4330d2ac48ea7d668b77，run 35850699034，job 107147426180；CORRECTNESS/INPUT_VALIDITY/CAPTURE/ENVIRONMENT/PERFORMANCE全部PASS，errors为空。实际stress qdisc loss c2s=30.0813%、s2c=29.9524%；业务stress最终packet loss c2s=0.1081%、s2c=0.1723%，byte loss=0.1317%/0.2008%，delay-aligned wall=9.98617/9.97928Mbps。post5 offset=2s，socket/link drops=0，probe timeouts=0，drain late=0。",
-      "next_task": "按§7/§10.2新增Game4共享短黑洞专项入口；100ms和500ms分别单样本run。该专项不套随机loss数值门槛，硬门为正确性、输入有效、环境/抓包、本机drop、业务连续性与黑洞后有界恢复。完成后再进入最终18个主测和每配置>=30min长测。",
+      "latest_log": "docs/devlog/20260923-211500-shared-blackhole-entry.md",
+      "note": "新增next-shared-blackhole，不改产品/wire/FEC。规范明确Game四lane共同100ms/500ms短黑洞但未固定事件时刻/背景loss；本harness显式定义t≈60s、背景loss=0并写manifest。黑洞内loss允许；恢复硬界为现有3s repair horizon内重新出现完整1s >=99%目标wall-goodput窗口，按300ms单向传播对齐。",
+      "next_task": "Actions unit/static contract PASS后先跑100ms共享黑洞单样本，再跑500ms独立样本。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -1895,15 +1895,12 @@
         "relay_workflow": ".github/workflows/next-performance-dispatch-relay.yml",
         "request_file": ".github/perf-dispatch-request.json",
         "semantics": "push attempt1 arms only; rerun attempt>=2 dispatches; exact-head guard; one dispatch per request HEAD via head_sha de-duplication",
-        "status": "ARMING_NORMAL_5305",
+        "status": "BLACKHOLE_SUPPORT_PENDING",
         "request": {
-          "workflow": "next-strict-weaknet.yml",
+          "workflow": "next-shared-blackhole.yml",
           "ref": "next/tlslike-dataplane",
-          "mode": "normal",
-          "scenario": "5305",
-          "seed": "601",
-          "rate_mbps": "10",
-          "lanes": "1"
+          "blackout_ms": "100",
+          "seed": "601"
         },
         "first_dispatch": {
           "run": 35842774407,
@@ -2555,7 +2552,33 @@
           "fec": "20:20",
           "status": "ENTRY_NOT_IMPLEMENTED"
         }
-      ]
+      ],
+      "shared_blackhole": {
+        "workflow": "next-shared-blackhole",
+        "mode": "game",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "fec": "20:20",
+        "one_way_delay_ms": 300,
+        "background_loss_percent": 0,
+        "nominal_offset_s": 60,
+        "recovery_bound_ms": 3000,
+        "recovery_window_ms": 1000,
+        "recovery_wall_goodput_ratio": 0.99,
+        "status": "ENTRY_CORRECTNESS_PENDING",
+        "samples": [
+          {
+            "blackout_ms": 100,
+            "seed": "601",
+            "status": "ARMING_AFTER_CORRECTNESS"
+          },
+          {
+            "blackout_ms": 500,
+            "seed": "601",
+            "status": "NOT_RUN"
+          }
+        ]
+      }
     }
   }
 }

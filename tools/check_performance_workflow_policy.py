@@ -15,6 +15,7 @@ MEASUREMENT_MARKERS = (
 )
 ACTIVE = (
     ".github/workflows/next-strict-weaknet.yml",
+    ".github/workflows/next-shared-blackhole.yml",
     ".github/workflows/next-performance-capacity-diagnostic.yml",
     ".github/workflows/next-realpath-calibration.yml",
     ".github/workflows/next-strict-capacity-diagnostics.yml",

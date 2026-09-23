@@ -1,0 +1,25 @@
+name: next-blackhole-analysis-unit
+on:
+  push:
+    branches: [next/tlslike-dataplane]
+    paths:
+      - tools/check_strict_blackhole.py
+      - tools/test_blackhole_analysis.py
+      - tools/strict_blackhole_stage.py
+      - scripts/strict_weaknet_sample.sh
+      - .github/workflows/next-shared-blackhole.yml
+      - .github/workflows/next-blackhole-analysis-unit.yml
+permissions:
+  contents: read
+jobs:
+  blackhole-analysis-unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: Compile blackhole harness
+        run: python3 -m py_compile tools/strict_blackhole_stage.py tools/check_strict_blackhole.py tools/test_blackhole_analysis.py
+      - name: Run blackhole recovery unit
+        run: python3 tools/test_blackhole_analysis.py

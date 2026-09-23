@@ -30,30 +30,46 @@ jobs:
           p = '.github/perf-dispatch-request.json'
           with open(p, 'r', encoding='utf-8') as f:
               d = json.load(f)
-          required = ['workflow','ref','mode','scenario','seed','rate_mbps','lanes']
-          missing = [k for k in required if k not in d]
+          common = ['workflow','ref','seed']
+          missing = [k for k in common if k not in d]
           if missing:
               raise SystemExit(f'missing keys: {missing}')
-          if d['workflow'] != 'next-strict-weaknet.yml':
-              raise SystemExit('only next-strict-weaknet.yml may be dispatched')
           if d['ref'] != 'next/tlslike-dataplane':
               raise SystemExit('unexpected ref')
-          if d['scenario'] not in {'lossless','5205','5305'}:
-              raise SystemExit('unexpected scenario')
           if not re.fullmatch(r'[0-9]+', str(d['seed'])):
               raise SystemExit('seed must be decimal')
-          if d['mode'] == 'normal':
-              if str(d['rate_mbps']) != '10' or str(d['lanes']) != '1':
-                  raise SystemExit('Normal qualification must be 10Mbps/1lane')
-          elif d['mode'] == 'game':
-              if str(d['rate_mbps']) != '3' or str(d['lanes']) != '4':
-                  raise SystemExit('Game qualification must be 3Mbps/4lanes')
+          if d['workflow'] == 'next-strict-weaknet.yml':
+              required = ['mode','scenario','rate_mbps','lanes']
+              missing = [k for k in required if k not in d]
+              if missing:
+                  raise SystemExit(f'missing strict keys: {missing}')
+              if d['scenario'] not in {'lossless','5205','5305'}:
+                  raise SystemExit('unexpected scenario')
+              if d['mode'] == 'normal':
+                  if str(d['rate_mbps']) != '10' or str(d['lanes']) != '1':
+                      raise SystemExit('Normal qualification must be 10Mbps/1lane')
+              elif d['mode'] == 'game':
+                  if str(d['rate_mbps']) != '3' or str(d['lanes']) != '4':
+                      raise SystemExit('Game qualification must be 3Mbps/4lanes')
+              else:
+                  raise SystemExit('unexpected mode')
+              kind = 'strict'
+          elif d['workflow'] == 'next-shared-blackhole.yml':
+              if str(d.get('blackout_ms')) not in {'100','500'}:
+                  raise SystemExit('blackout_ms must be 100 or 500')
+              kind = 'blackhole'
           else:
-              raise SystemExit('unexpected mode')
+              raise SystemExit('unsupported performance workflow')
           env = os.environ['GITHUB_ENV']
           with open(env, 'a', encoding='utf-8') as out:
-              for key, name in [('workflow','PERF_WORKFLOW'),('ref','PERF_REF'),('mode','PERF_MODE'),('scenario','PERF_SCENARIO'),('seed','PERF_SEED'),('rate_mbps','PERF_RATE'),('lanes','PERF_LANES')]:
+              out.write(f"PERF_KIND={kind}\n")
+              for key, name in [('workflow','PERF_WORKFLOW'),('ref','PERF_REF'),('seed','PERF_SEED')]:
                   out.write(f'{name}={d[key]}\n')
+              if kind == 'strict':
+                  for key, name in [('mode','PERF_MODE'),('scenario','PERF_SCENARIO'),('rate_mbps','PERF_RATE'),('lanes','PERF_LANES')]:
+                      out.write(f'{name}={d[key]}\n')
+              else:
+                  out.write(f"PERF_BLACKOUT_MS={d['blackout_ms']}\n")
           PY
 
       - name: Require exact branch head
@@ -84,10 +100,11 @@ jobs:
             exit 0
           fi
 
-          gh workflow run "$PERF_WORKFLOW" --ref "$PERF_REF" \
-            -f mode="$PERF_MODE" \
-            -f scenario="$PERF_SCENARIO" \
-            -f seed="$PERF_SEED" \
-            -f rate_mbps="$PERF_RATE" \
-            -f lanes="$PERF_LANES"
-          echo "DISPATCHED: $PERF_WORKFLOW $PERF_MODE/$PERF_SCENARIO seed=$PERF_SEED rate=$PERF_RATE lanes=$PERF_LANES head=$GITHUB_SHA"
+          if [ "$PERF_KIND" = strict ]; then
+            gh workflow run "$PERF_WORKFLOW" --ref "$PERF_REF" \
+              -f mode="$PERF_MODE" -f scenario="$PERF_SCENARIO" -f seed="$PERF_SEED" -f rate_mbps="$PERF_RATE" -f lanes="$PERF_LANES"
+            echo "DISPATCHED: $PERF_WORKFLOW $PERF_MODE/$PERF_SCENARIO seed=$PERF_SEED rate=$PERF_RATE lanes=$PERF_LANES head=$GITHUB_SHA"
+          else
+            gh workflow run "$PERF_WORKFLOW" --ref "$PERF_REF" -f blackout_ms="$PERF_BLACKOUT_MS" -f seed="$PERF_SEED"
+            echo "DISPATCHED: $PERF_WORKFLOW blackout=$PERF_BLACKOUT_MS ms seed=$PERF_SEED head=$GITHUB_SHA"
+          fi

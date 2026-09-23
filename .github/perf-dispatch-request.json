@@ -1,15 +1,10 @@
 {
-  "workflow": "next-strict-weaknet.yml",
+  "workflow": "next-shared-blackhole.yml",
   "ref": "next/tlslike-dataplane",
-  "mode": "normal",
-  "scenario": "5305",
+  "blackout_ms": "100",
   "seed": "601",
-  "rate_mbps": "10",
-  "lanes": "1",
-  "acceptance": "loss-tolerant-v1",
+  "acceptance": "shared-blackhole-v1",
   "expected_product_sha": "610d5092886a160685f8a9d0ecc8fad139fa5bae",
-  "request_revision": 7,
-  "request_reason": "normal-5205-independent-retest-pass-proceed-normal-5305",
-  "previous_qualification_run": 35848478219,
-  "expected_analysis_revision": "path-delay-aligned-wall-v2"
+  "request_revision": 8,
+  "request_reason": "shared-blackhole-100ms-specialty-after-normal-core-pass"
 }
