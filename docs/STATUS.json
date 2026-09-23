@@ -2,7 +2,7 @@
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
-  "milestone": "P4",
+  "milestone": "P7",
   "product_state": "IN_PROGRESS",
   "updated_at": "2026-09-24",
   "completed": [
@@ -62,12 +62,14 @@
     "P4增强第4原子：runtimeowner累计ACK改为单调head增量退役、pending仅>=1024前缀摊销压缩；sender SACK只处理新覆盖区间，receiver线上仅维护4块增量SACK；repair链单tick最多256候选旋转扫描。SOURCE_SHA ce950d4877ecb51001b6ab2517f6b43a6edadac3 / targeted Actions 35681889099 6/6 PASS / foundation 35681889120整轮PASS。",
     "P4第5原子回归修正1（fresh fast-repair重排门）：SOURCE_SHA fbc8555a3c62a11ee91a65dbe578f811da414d87 targeted 35688342802 PASS；foundation 35688342844 的fixed-FEC lossless恢复0 repair，证明10ms已有RACK重排门阻止3.29ms无损短重排误修，同时40/50ms既有fast-repair恢复。foundation整体仍因独立post5护栏FAIL，未关闭第5原子。",
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
-    "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
+    "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。",
+    "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
+    "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "FINAL18_ARMING_COMBINED_BOUNDED_RECEIVE_FIX：产品SHA 8a4536bf1a56a9d7145b3e9067f76aa43ffab848 已完成server read handoff 4096 + client SegmentMux per-route 4096两个有界burst cushion。全部代码回归通过；Normal/5305/seed202 run 35889653866 与 Game4/5305/seed303 run 35892767333 两条独立exact-SHA canary均由loss-tolerant-v1五分类全PASS，client/server/socket/link/qdisc drop均0。Normal SegmentMux capacity=4096、peak=280、full_waits=0；Game四route peak=64/63/71/74、full_waits全0。旧repair路径未重新设计，fresh优先/no-HOL/RepairEvictionMaxScan=1约束保持。当前只用本次状态文档+final18 relay generation提交形成新的固定final HEAD，不改产品数据面。",
-  "next_task": "以包含本STATUS/devlog与final18 relay arming的本提交GITHUB_SHA为唯一final18 SOURCE_SHA，从头执行2模式×3场景×3 seeds=18个独立workflow_dispatch strict样本；每run严格一条测量。工作分支在18份完成前保持冻结，不把b0f5386c、148b2b0或8a4536b canary历史样本混入新矩阵。CAPACITY_LIMITED仍不是PASS；任何本机AF_PACKET/socket/qdisc非预期drop仍按环境失败处理。",
-  "latest_log": "docs/devlog/20260924-011000-client-burst-canaries-pass-final18-arm.md",
-  "last_tested_source_sha": "8a4536bf1a56a9d7145b3e9067f76aa43ffab848",
+  "in_progress": "HOSTED_QUALIFIED_P7_NOT_RUN：loss-tolerant-v1最终18份资格已在固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 完成，2模式×3场景×3 seeds共18/18五分类PASS；18份socket_drop_max均0、link drop均0，无CAPACITY_LIMITED/FAIL/INVALID。随后同一SOURCE_SHA通过next-foundation workflow_dispatch(run_extended=true)重新生成并校验linux/amd64、linux/arm64、windows/amd64三个P6 release candidate，三个receipt均ACTIONS_PASS。P4/P5 hosted性能恢复与P6重新打包因此关闭；P7真实Windows/Npcap及后续Linux物理资格仍NOT_RUN，RELEASE_QUALIFIED仍NOT_RUN。",
+  "next_task": "停止新增hosted性能/参数优化与重复final18。仅在用户安排真实Windows/Npcap及后续Linux ARM64/amd64物理环境后进入P7；按既有P7规范执行真实NIC/driver/TUN物理资格。P7完成前不得把hosted P6表述为PHYSICAL_PASS或RELEASE_QUALIFIED。",
+  "latest_log": "docs/devlog/20260924-020000-final18-p6-pass.md",
+  "last_tested_source_sha": "689dea19e2e1dfdccbab9c8f42210d62c4a12223",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1550,9 +1552,9 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED: generation4 corrected analyzer下18/18目标速率主样本未资格，基础/targeted同SHA PASS。强证据指向正式路径UDP socket/队列消费容量；进入旁路+半速诊断。补丁A/B仍未执行。",
-    "P5": "REOPENED: generation4 aggregate FAIL，6个主场景组全部未关闭；30min目标长测与专项弱网不得启动。当前先做同拓扑50Mbps/向旁路与Normal5/Game1.5半速诊断；降速结果仅用于定位。",
-    "P6": "历史候选包证据保留；增强P4/P5最终源码通过后须重新exact-SHA打包，未重新资格",
+    "P4": "CLOSED_HOSTED_QUALIFIED: final loss-tolerant-v1 qualification on SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 completed 18/18 PASS across Normal/Game x lossless/5205/5305 x seeds101/202/303; all local socket/link drops zero. Prior FAIL/CAPACITY_LIMITED evidence preserved.",
+    "P5": "CLOSED_HOSTED_QUALIFIED: target-rate weaknet final18 on SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 completed 18/18 PASS under one-workflow-run-one-sample policy. No further hosted performance reruns required.",
+    "P6": "CLOSED_EXACT_SHA_REPACKAGED: SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120. linux/amd64, linux/arm64, windows/amd64 release-candidate jobs all PASS with ACTIONS_PASS receipts. PHYSICAL_PASS and RELEASE_QUALIFIED remain NOT_RUN pending P7.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
       "status": "IMPLEMENTED_PENDING_ACTIONS",
@@ -1811,7 +1813,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "FINAL18_ARMING_COMBINED_BOUNDED_RECEIVE_FIX",
+      "status": "PASS_FINAL18_18_OF_18",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1822,9 +1824,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-011000-client-burst-canaries-pass-final18-arm.md",
-      "note": "server read handoff 4096与client SegmentMux per-route 4096均由实测burst/stall包络证据定界；不改SO_RCVBUF、wire/FEC/repair/loss阈值，不引入无界队列或每包goroutine。8a4536b上的Normal5305/202与Game5305/303两条独立canary五分类全PASS，所有本机socket/link/qdisc drop为0，SegmentMux full_waits均0。",
-      "next_task": "以包含本STATUS/devlog与final18 relay arming的本提交GITHUB_SHA为唯一final18 SOURCE_SHA，从头执行2模式×3场景×3 seeds=18个独立workflow_dispatch strict样本；每run严格一条测量。工作分支在18份完成前保持冻结，不把b0f5386c、148b2b0或8a4536b canary历史样本混入新矩阵。CAPACITY_LIMITED仍不是PASS；任何本机AF_PACKET/socket/qdisc非预期drop仍按环境失败处理。",
+      "latest_log": "docs/devlog/20260924-020000-final18-p6-pass.md",
+      "note": "loss-tolerant-v1 fixed-head final18 completed on SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223: 18/18 independent workflow_dispatch runs PASS all five classifications; every compact summary reports socket_drop_max=0 and zero link drops. Historical FAIL/CAPACITY_LIMITED samples remain preserved. P6 exact-SHA repackage also PASS on the same source.",
+      "next_task": "停止新增hosted性能/参数优化与重复final18。仅在用户安排真实Windows/Npcap及后续Linux ARM64/amd64物理环境后进入P7；按既有P7规范执行真实NIC/driver/TUN物理资格。P7完成前不得把hosted P6表述为PHYSICAL_PASS或RELEASE_QUALIFIED。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -2773,7 +2775,8 @@
         "workflow_git_blob": "4a5bc83b32c8a804dc7ffe912b4a22d35efd8e69"
       },
       "final_main_qualification": {
-        "status": "ARMING_NEW_FIXED_HEAD",
+        "status": "PASS_18_OF_18",
+        "analyzer": "loss-tolerant-v1",
         "policy": "2 modes x 3 scenarios x 3 seeds = 18 independent workflow_dispatch runs; one measurement per target run",
         "seeds": [
           "101",
@@ -2797,10 +2800,12 @@
             "fec": "20:20"
           }
         },
-        "relay_workflow": ".github/workflows/next-performance-final-qualification-relay.yml",
+        "source_sha": "689dea19e2e1dfdccbab9c8f42210d62c4a12223",
+        "product_parent_sha": "8a4536bf1a56a9d7145b3e9067f76aa43ffab848",
         "measurement_workflow": ".github/workflows/next-strict-weaknet.yml",
-        "dispatch_semantics": "push attempt1 arms only; each connector job rerun dispatches exactly the first missing plan sample; strict run-name + exact GITHUB_SHA prevents duplicates",
-        "head_policy": "The commit containing this STATUS/devlog/relay generation is the fixed final HEAD. Do not advance next/tlslike-dataplane until all 18 target runs on that exact GITHUB_SHA are complete.",
+        "relay_workflow": ".github/workflows/next-performance-final-qualification-relay.yml",
+        "dispatch_run": 35893825335,
+        "dispatch_attempts": 19,
         "ordered_plan": [
           {
             "slot": 1,
@@ -2809,7 +2814,25 @@
             "seed": "101",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35894368761,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10766925446,
+              "digest": "sha256:e6c8470d0be2ec390f5024b09fc8b14e8c335899f6edff76a6ea8f89570014c2"
+            },
+            "full_artifact": {
+              "id": 10767155296,
+              "digest": "sha256:a2874113c1b29a1cf1ab472a25cba8d9dcb8e7a84b89c56d82113dd8747739f7"
+            }
           },
           {
             "slot": 2,
@@ -2818,7 +2841,25 @@
             "seed": "101",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35894427620,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10767255144,
+              "digest": "sha256:9ceee27fea090f9854d75dcce275a8032d78daa6a4a1ed20c9da04e95ba2cf35"
+            },
+            "full_artifact": {
+              "id": 10767325018,
+              "digest": "sha256:35fc51b5e8b89da5f49ebbf273ef60519c8a984708400072ae1282ecf62f122b"
+            }
           },
           {
             "slot": 3,
@@ -2827,7 +2868,25 @@
             "seed": "101",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35894480243,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10766955445,
+              "digest": "sha256:c129ab6d3ba6551cd160df51888cae4489a4acd18a779cac30d372bab58ec4e3"
+            },
+            "full_artifact": {
+              "id": 10766526567,
+              "digest": "sha256:ddc1e14cbf3f05fa1a4886c24aa405a47b9bf9dc5ee0d17944e5828733d91e2a"
+            }
           },
           {
             "slot": 4,
@@ -2836,7 +2895,25 @@
             "seed": "101",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35894537165,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10767225403,
+              "digest": "sha256:a721e35efd7119a38d6040fde8fd94c0fe6c85a52441bd26553ca978b1d42192"
+            },
+            "full_artifact": {
+              "id": 10766980525,
+              "digest": "sha256:a256632b04a59663f7c46c3f7452b99c67ff43fa643e0e5bbf42b29179751be1"
+            }
           },
           {
             "slot": 5,
@@ -2845,7 +2922,25 @@
             "seed": "101",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35894596679,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10767020520,
+              "digest": "sha256:861ea8e9b9a0cd21a8f5ecc3c5dd948de27c2636338242b992df6761c0d712ef"
+            },
+            "full_artifact": {
+              "id": 10765774796,
+              "digest": "sha256:a263e368215ecf44f32f95fd02902140bac2bd240f87539ebe421e2609d7e336"
+            }
           },
           {
             "slot": 6,
@@ -2854,7 +2949,25 @@
             "seed": "101",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35894656885,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10766517152,
+              "digest": "sha256:ca300d99aae7565f63506712649a266b59e04b4af312244c3fb81ebc00373daa"
+            },
+            "full_artifact": {
+              "id": 10766019385,
+              "digest": "sha256:6ad4472684c3d3012543aa2066e964b7ab3fc6a58d52dd38fcb98f334d9d535a"
+            }
           },
           {
             "slot": 7,
@@ -2863,7 +2976,25 @@
             "seed": "202",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35894699084,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10766970864,
+              "digest": "sha256:1b52ebc7d8e4f13bdc681bcb3babe4a6992b5fe363055433e21ac349b46caee7"
+            },
+            "full_artifact": {
+              "id": 10766796191,
+              "digest": "sha256:75e799c3d7ed6f280d8c60beac94a2b81b860f74df043664b1dc77979f7a0dae"
+            }
           },
           {
             "slot": 8,
@@ -2872,7 +3003,25 @@
             "seed": "202",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35894743450,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10766486710,
+              "digest": "sha256:eee7afdc7229ab15977c6a55f95387337ade7c785a845cd690c02859bf222186"
+            },
+            "full_artifact": {
+              "id": 10766142304,
+              "digest": "sha256:b018315ca4e64b242623493992e85ffbbebfd35cadbcb5725500aec70bb0b895"
+            }
           },
           {
             "slot": 9,
@@ -2881,7 +3030,25 @@
             "seed": "202",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35894789319,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10766412536,
+              "digest": "sha256:3905e85c2ffa6f74b74b2dae5aa2b47031f736b415ddd03925ad3ecd0c9b43c0"
+            },
+            "full_artifact": {
+              "id": 10767270762,
+              "digest": "sha256:55f19ce51f356e970409724195dde395e4db5abf3ff9b51aa9e041997fdc313d"
+            }
           },
           {
             "slot": 10,
@@ -2890,7 +3057,25 @@
             "seed": "202",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35894845585,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10766312692,
+              "digest": "sha256:30e18d6ec90283fec1a3365ff445877028de476ae12eabb7df9c66ffc48ad21b"
+            },
+            "full_artifact": {
+              "id": 10766816491,
+              "digest": "sha256:4079fea7ff861636a89b852bc94211cc520a46889f3e63dadeabe102f8ecdb01"
+            }
           },
           {
             "slot": 11,
@@ -2899,7 +3084,25 @@
             "seed": "202",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35894980793,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10767116266,
+              "digest": "sha256:6a4385ade4ae70e3cfc7fe0509e8aab64027ead44f6b74e55a219813a3de24cc"
+            },
+            "full_artifact": {
+              "id": 10767226153,
+              "digest": "sha256:8c2ac085a517a49789fdd95c028e2f75e9a14938e280657efd64256d058f7b5d"
+            }
           },
           {
             "slot": 12,
@@ -2908,7 +3111,25 @@
             "seed": "202",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35895036705,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10766716738,
+              "digest": "sha256:7b6478747fc6f265d137d1c2ceaeb6442858dae07b03877313ad3c39d76328af"
+            },
+            "full_artifact": {
+              "id": 10766956110,
+              "digest": "sha256:c57203b1747adcfa18a42bc8040602fcfe216618137b6a46cf3f0e886829aae6"
+            }
           },
           {
             "slot": 13,
@@ -2917,7 +3138,25 @@
             "seed": "303",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35895075936,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10766273072,
+              "digest": "sha256:b93e065fa6129a5916f66ae9517345a0323719da3f006faaf5a8279c0e6e7af0"
+            },
+            "full_artifact": {
+              "id": 10767306166,
+              "digest": "sha256:0fcbce9d7527b3a1b83c6ad70319a6effa4db9590e72ae3793ba5a21f01da949"
+            }
           },
           {
             "slot": 14,
@@ -2926,7 +3165,25 @@
             "seed": "303",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35895188804,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10767166002,
+              "digest": "sha256:9313ab1c1b634c55b754db892dfbb3ef3c488399f14d4893048c3021a41ac48f"
+            },
+            "full_artifact": {
+              "id": 10767036577,
+              "digest": "sha256:2acd1aff8fba595b6cdc384d2395bba20947ead04678acc2b35f2d2d86fc7b72"
+            }
           },
           {
             "slot": 15,
@@ -2935,7 +3192,25 @@
             "seed": "303",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35895238099,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10766492429,
+              "digest": "sha256:7b6c6ed459d2bdd7c9def0653562bcf3cc79891ab5a98f3ee5ec530b039ab042"
+            },
+            "full_artifact": {
+              "id": 10766757016,
+              "digest": "sha256:62baffeb708ce420bbbbd2837924fdf430ef9cf9b20420c8b1242dff36d2dfb2"
+            }
           },
           {
             "slot": 16,
@@ -2944,7 +3219,25 @@
             "seed": "303",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35895276262,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10767081177,
+              "digest": "sha256:871c1674d2285d3211539ace6195aa830c3a225e12f6f4800e4d31ab59553d7b"
+            },
+            "full_artifact": {
+              "id": 10767126947,
+              "digest": "sha256:d1e0fb76e4263769844771205434f750f6544620781e6c3c13219ff894dd48b0"
+            }
           },
           {
             "slot": 17,
@@ -2953,7 +3246,25 @@
             "seed": "303",
             "rate_mbps": "10",
             "lanes": "1",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35895339286,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10766054996,
+              "digest": "sha256:b9d7f9219b466b775c7127496dee9446549d1d9b24e07272ce10e0cc2b68eb61"
+            },
+            "full_artifact": {
+              "id": 10766777219,
+              "digest": "sha256:bbfeaf85654f49e6d3c0d2494c2d6b6c4234fe2f32b8c66844318be7d054f88c"
+            }
           },
           {
             "slot": 18,
@@ -2962,13 +3273,40 @@
             "seed": "303",
             "rate_mbps": "3",
             "lanes": "4",
-            "status": "NOT_DISPATCHED"
+            "status": "PASS",
+            "run": 35895398424,
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "summary_artifact": {
+              "id": 10767101299,
+              "digest": "sha256:4b5a23cfd57c3619e4df6816a5b5dde245934301a82890596ae5ebf5134440cc"
+            },
+            "full_artifact": {
+              "id": 10767177037,
+              "digest": "sha256:2f465d016f0d9c8e2c65c488085f4f1a8d9f93e31729a8c944ff6578c76359da"
+            }
           }
         ],
-        "product_parent_sha": "8a4536bf1a56a9d7145b3e9067f76aa43ffab848",
-        "previous_final_head": "148b2b0cca472d69b1da6b8e6075f229a31b3e11",
-        "previous_final_status": "STOPPED_16_PASS_2_CAPACITY_LIMITED_PRESERVED",
-        "source_sha_policy": "EXACT_GITHUB_SHA_OF_THIS_ARMING_COMMIT"
+        "result_summary": {
+          "total": 18,
+          "pass": 18,
+          "capacity_limited": 0,
+          "fail": 0,
+          "invalid": 0
+        },
+        "resource_summary": {
+          "socket_drop_all_zero": true,
+          "link_drop_all_zero": true
+        },
+        "historical_evidence_preserved": true,
+        "note": "Post-qualification STATUS/devlog commit may advance the branch, but the qualified and repackaged product/release source remains this exact SOURCE_SHA."
       },
       "receive_burst_fix_canary": {
         "product_source_sha": "9cdd4f4182fa86dee7c82a1f108bd610c5aaa462",
@@ -3601,7 +3939,64 @@
           },
           "stopped_reason": "Two independent 5305 samples had local server packet-socket drops; CAPACITY_LIMITED is not PASS."
         }
-      ]
+      ],
+      "p6_repackage": {
+        "status": "PASS",
+        "source_sha": "689dea19e2e1dfdccbab9c8f42210d62c4a12223",
+        "workflow": "next-foundation",
+        "run": 35899062120,
+        "event": "workflow_dispatch",
+        "input": {
+          "run_extended": true,
+          "run_legacy_soak": false
+        },
+        "candidates": [
+          {
+            "target": "linux/amd64",
+            "job": 107310327227,
+            "artifact": {
+              "id": 10767907005,
+              "digest": "sha256:640ef569438f00a90cabfe095889c5c1badf882d63d384391e61688949e26cca"
+            },
+            "manifest_sha256": "58e25e2c270eaf85ee0fee99d2f7a19519456869b12b65ffc250c1fe72f3c192",
+            "files": {
+              "client": "6c1a4eb9348a19c71de72be05821394227ace4d210959052569cf72991d9cd0b",
+              "server": "63de98c3876de74a70e8868b24da12f3c317884370731465389ebf0f10c02bd7"
+            }
+          },
+          {
+            "target": "linux/arm64",
+            "job": 107310327223,
+            "artifact": {
+              "id": 10768457575,
+              "digest": "sha256:071d97a80a490d4e2b5ce954c7113365adce1bf1f1e2be778f0be2cef74bd859"
+            },
+            "manifest_sha256": "7bae5d9f4c1cb57b9cf808d54a15352f4670d29ae97c90d0e9ae08353d37b425",
+            "files": {
+              "client": "10314c6b6f067ee54dd9e86e5e1628f8ec51b95f27eb54ca426ce7514ff5eed2",
+              "server": "436f8cfa987b1eb964e33de0c7441a71d7acd4ace6035bd45dd43c10e96be5c9"
+            },
+            "note": "hosted cross-build; native physical ARM64 remains P7"
+          },
+          {
+            "target": "windows/amd64",
+            "job": 107310327266,
+            "artifact": {
+              "id": 10769020001,
+              "digest": "sha256:38dc87ff4a0000d13a7c64fbc7f854c83788fb8b4032068938f96df47f459ba7"
+            },
+            "manifest_sha256": "d54057fac5c393a443944f1607b0854734ce9ca18e9eaa413c0f3fe3426ba268",
+            "files": {
+              "client_exe": "10d74e440964b1effac5914a9209d9bc9e7486546352bd1a88cc7f65ce477a8c",
+              "network_script": "61e81f362192bc628dfad0bdc586584fa6fcf2dbd8c6e29eafa2121b2009b1d9"
+            },
+            "note": "Windows server UNSUPPORTED; physical Wintun/Npcap remains P7"
+          }
+        ],
+        "receipt_status": "ACTIONS_PASS",
+        "physical": "NOT_RUN",
+        "release_qualified": "NOT_RUN"
+      }
     }
   }
 }
