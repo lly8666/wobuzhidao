@@ -9,6 +9,8 @@ import (
 const (
 	steadyIndexCompactThreshold = 1024
 	steadyRepairScanBudget       = 256
+	steadyRepairExpiryBudget     = 64
+	steadyGapForgiveBudget       = 64
 	steadySenderSACKHistory      = 8
 )
 
@@ -67,12 +69,136 @@ func (t *laneTransport) unlinkRepairLocked(p *pendingRecord) {
 	}
 }
 
+func (t *laneTransport) linkEvictLocked(p *pendingRecord) {
+	if p == nil || p.evictLinked || p.control || p.flags&faketcp.FlagFIN != 0 ||
+		p.sacked || p.retired || p.repairInFlight {
+		return
+	}
+	p.evictLinked = true
+	p.evictPrev = t.evictTail
+	if t.evictTail != nil {
+		t.evictTail.evictNext = p
+	} else {
+		t.evictHead = p
+	}
+	t.evictTail = p
+}
+
+func (t *laneTransport) linkEvictFrontLocked(p *pendingRecord) {
+	if p == nil || p.evictLinked || p.control || p.flags&faketcp.FlagFIN != 0 ||
+		p.sacked || p.retired || p.repairInFlight {
+		return
+	}
+	p.evictLinked = true
+	p.evictNext = t.evictHead
+	if t.evictHead != nil {
+		t.evictHead.evictPrev = p
+	} else {
+		t.evictTail = p
+	}
+	t.evictHead = p
+}
+
+func (t *laneTransport) unlinkEvictLocked(p *pendingRecord) {
+	if p == nil || !p.evictLinked {
+		return
+	}
+	if p.evictPrev != nil {
+		p.evictPrev.evictNext = p.evictNext
+	} else {
+		t.evictHead = p.evictNext
+	}
+	if p.evictNext != nil {
+		p.evictNext.evictPrev = p.evictPrev
+	} else {
+		t.evictTail = p.evictPrev
+	}
+	p.evictPrev, p.evictNext, p.evictLinked = nil, nil, false
+}
+
+func (t *laneTransport) linkRetiredLocked(p *pendingRecord) {
+	if p == nil || p.retiredLinked || p.repairInFlight || !(p.sacked || p.retired) ||
+		p.flags&faketcp.FlagFIN != 0 {
+		return
+	}
+	p.retiredLinked = true
+	p.retiredPrev = t.retiredTail
+	if t.retiredTail != nil {
+		t.retiredTail.retiredNext = p
+	} else {
+		t.retiredHead = p
+	}
+	t.retiredTail = p
+}
+
+func (t *laneTransport) unlinkRetiredLocked(p *pendingRecord) {
+	if p == nil || !p.retiredLinked {
+		return
+	}
+	if p.retiredPrev != nil {
+		p.retiredPrev.retiredNext = p.retiredNext
+	} else {
+		t.retiredHead = p.retiredNext
+	}
+	if p.retiredNext != nil {
+		p.retiredNext.retiredPrev = p.retiredPrev
+	} else {
+		t.retiredTail = p.retiredPrev
+	}
+	p.retiredPrev, p.retiredNext, p.retiredLinked = nil, nil, false
+}
+
+func (t *laneTransport) restorePendingEvictionLocked(p *pendingRecord) {
+	if p == nil || t.pending[p.seq] != p || p.repairInFlight {
+		return
+	}
+	if p.sacked || p.retired {
+		t.linkRetiredLocked(p)
+		return
+	}
+	t.linkEvictFrontLocked(p)
+}
+
+func (t *laneTransport) linkExpiryLocked(p *pendingRecord) {
+	if p == nil || p.expiryLinked || p.control || p.flags&faketcp.FlagFIN != 0 {
+		return
+	}
+	p.expiryLinked = true
+	p.expiryPrev = t.expiryTail
+	if t.expiryTail != nil {
+		t.expiryTail.expiryNext = p
+	} else {
+		t.expiryHead = p
+	}
+	t.expiryTail = p
+}
+
+func (t *laneTransport) unlinkExpiryLocked(p *pendingRecord) {
+	if p == nil || !p.expiryLinked {
+		return
+	}
+	if p.expiryPrev != nil {
+		p.expiryPrev.expiryNext = p.expiryNext
+	} else {
+		t.expiryHead = p.expiryNext
+	}
+	if p.expiryNext != nil {
+		p.expiryNext.expiryPrev = p.expiryPrev
+	} else {
+		t.expiryTail = p.expiryPrev
+	}
+	p.expiryPrev, p.expiryNext, p.expiryLinked = nil, nil, false
+}
+
 func (t *laneTransport) removePendingLocked(p *pendingRecord) bool {
 	if p == nil || t.pending[p.seq] != p {
 		return false
 	}
 	delete(t.pending, p.seq)
 	t.unlinkRepairLocked(p)
+	t.unlinkEvictLocked(p)
+	t.unlinkRetiredLocked(p)
+	t.unlinkExpiryLocked(p)
 	if p.sacked && t.sackedOutstanding > 0 {
 		t.sackedOutstanding--
 	}
@@ -98,29 +224,39 @@ func (t *laneTransport) pendingAtHeadLocked() *pendingRecord {
 
 func (t *laneTransport) compactPendingOrderLocked() {
 	t.advancePendingHeadLocked()
-	if t.pendingHead >= len(t.pendingOrder) {
+	if len(t.pending) == 0 || t.pendingHead >= len(t.pendingOrder) {
 		t.pendingOrder = nil
 		t.pendingHead = 0
 		return
 	}
-	if t.pendingHead < steadyIndexCompactThreshold {
+	tombstones := len(t.pendingOrder) - len(t.pending)
+	if t.pendingHead < steadyIndexCompactThreshold && tombstones < steadyIndexCompactThreshold {
 		return
 	}
-	copy(t.pendingOrder, t.pendingOrder[t.pendingHead:])
-	t.pendingOrder = t.pendingOrder[:len(t.pendingOrder)-t.pendingHead]
+	out := t.pendingOrder[:0]
+	for i := t.pendingHead; i < len(t.pendingOrder); i++ {
+		seq := t.pendingOrder[i]
+		if t.pending[seq] != nil {
+			out = append(out, seq)
+		}
+	}
+	t.pendingOrder = out
 	t.pendingHead = 0
 }
 
 func (t *laneTransport) expirePendingHeadLocked(now time.Time) {
-	for {
-		p := t.pendingAtHeadLocked()
+	for i := 0; i < steadyRepairExpiryBudget; i++ {
+		p := t.expiryHead
 		if p == nil {
-			t.compactPendingOrderLocked()
-			return
+			break
+		}
+		if p.repairInFlight {
+			// Oldest business metadata is temporarily borrowed by Emit. Do
+			// not free it or scan around it; the next tick resumes in order.
+			break
 		}
 		if now.Before(p.firstSent) || now.Sub(p.firstSent) < t.cfg.RepairHorizon {
-			t.compactPendingOrderLocked()
-			return
+			break
 		}
 		retired := p.retired || p.sacked
 		t.removePendingLocked(p)
@@ -131,6 +267,7 @@ func (t *laneTransport) expirePendingHeadLocked(now time.Time) {
 			t.stats.RepairEvicted++
 		}
 	}
+	t.compactPendingOrderLocked()
 }
 
 func (t *laneTransport) pendingLowerBoundLocked(seq uint32) int {
@@ -158,6 +295,13 @@ func (t *laneTransport) clearSteadyIndexesLocked() {
 	t.repairTail = nil
 	t.repairScan = nil
 	t.repairCount = 0
+	t.evictHead = nil
+	t.evictTail = nil
+	t.retiredHead = nil
+	t.retiredTail = nil
+	t.expiryHead = nil
+	t.expiryTail = nil
+	t.recvHeap = nil
 	t.sackedOutstanding = 0
 	t.sackSeenN = 0
 	t.recvSACKN = 0

@@ -62,6 +62,11 @@ func (t *laneTransport) reserveRepairLocked(p *pendingRecord, now time.Time, fas
 	if len(p.payload) == 0 && p.flags&faketcp.FlagFIN == 0 {
 		return nil
 	}
+	if !p.firstSent.IsZero() && !now.Before(p.firstSent) &&
+		now.Sub(p.firstSent) >= t.cfg.RepairHorizon {
+		t.stats.RepairExpiredSkipped++
+		return nil
+	}
 	if !p.repairNotBefore.IsZero() && now.Before(p.repairNotBefore) {
 		return nil
 	}
@@ -73,6 +78,8 @@ func (t *laneTransport) reserveRepairLocked(p *pendingRecord, now time.Time, fas
 	}
 	p.repairNotBefore = time.Time{}
 	p.repairInFlight = true
+	t.unlinkEvictLocked(p)
+	t.unlinkRetiredLocked(p)
 	t.repairCredit -= cost
 	t.stats.RepairSelected++
 	return &selectedRepair{
@@ -93,6 +100,7 @@ func (t *laneTransport) emitSelectedRepair(sel *selectedRepair, now time.Time) e
 	if current != sel.record || current.sacked || current.retired {
 		if current == sel.record {
 			current.repairInFlight = false
+			t.restorePendingEvictionLocked(current)
 		}
 		if sel.cost != 0 {
 			if sel.cost >= steadyRepairBurstBytes-t.repairCredit {
@@ -129,6 +137,9 @@ func (t *laneTransport) emitSelectedRepair(sel *selectedRepair, now time.Time) e
 			}
 		}
 		t.stats.RepairFailures++
+		if current == sel.record {
+			t.restorePendingEvictionLocked(current)
+		}
 		t.mu.Unlock()
 		return err
 	}
@@ -148,6 +159,9 @@ func (t *laneTransport) emitSelectedRepair(sel *selectedRepair, now time.Time) e
 		current.lastSent = now
 		current.retries++
 		current.wasRetried = true
+	}
+	if current == sel.record {
+		t.restorePendingEvictionLocked(current)
 	}
 	if !sel.fast {
 		if !t.timeoutEpisode {
@@ -172,6 +186,7 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 		return nil
 	}
 
+	t.stats.RecoveryTicks++
 	t.expirePendingHeadLocked(now)
 
 	limit := t.repairCount
@@ -193,6 +208,12 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 			p = next
 			continue
 		}
+		if !p.firstSent.IsZero() && !now.Before(p.firstSent) &&
+			now.Sub(p.firstSent) >= t.cfg.RepairHorizon {
+			t.stats.RepairExpiredSkipped++
+			p = next
+			continue
+		}
 		if !p.repairNotBefore.IsZero() && now.Before(p.repairNotBefore) {
 			p = next
 			continue
@@ -204,7 +225,13 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 		p = next
 	}
 
-	forgiven := t.forgiveGapLocked(now, false)
+	forgiven := false
+	for i := 0; i < steadyGapForgiveBudget; i++ {
+		if !t.forgiveGapLocked(now, false) {
+			break
+		}
+		forgiven = true
+	}
 	if sel == nil && forgiven {
 		seg := t.outboundSegment(t.sendNext, t.recvNext, nil)
 		ackOnly = &seg
@@ -221,30 +248,37 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 }
 
 func (t *laneTransport) evictRepairForFreshLocked() bool {
-	t.advancePendingHeadLocked()
-	for i := t.pendingHead; i < len(t.pendingOrder); i++ {
-		p := t.pending[t.pendingOrder[i]]
-		if p == nil || p.flags&faketcp.FlagFIN != 0 || p.repairInFlight {
-			continue
-		}
-		if p.retired || p.sacked {
-			t.removePendingLocked(p)
-			t.stats.RepairMetadataEvicted++
-			t.compactPendingOrderLocked()
-			return true
-		}
+	t.stats.RepairEvictionCalls++
+	steps := uint64(0)
+	if t.timing.enabled.Load() {
+		started := time.Now()
+		defer func() { t.timing.repairEviction.observe(time.Since(started)) }()
 	}
-	for i := t.pendingHead; i < len(t.pendingOrder); i++ {
-		p := t.pending[t.pendingOrder[i]]
-		if p == nil || p.flags&faketcp.FlagFIN != 0 || p.repairInFlight {
-			continue
-		}
+
+	if p := t.retiredHead; p != nil {
+		steps++
 		t.removePendingLocked(p)
-		t.stats.Abandoned++
-		t.stats.RepairEvicted++
+		t.stats.RepairMetadataEvicted++
+		t.stats.RepairEvictionScanSteps += steps
+		if steps > t.stats.RepairEvictionMaxScan {
+			t.stats.RepairEvictionMaxScan = steps
+		}
 		t.compactPendingOrderLocked()
 		return true
 	}
+	if p := t.evictHead; p != nil {
+		steps++
+		t.removePendingLocked(p)
+		t.stats.Abandoned++
+		t.stats.RepairEvicted++
+		t.stats.RepairEvictionScanSteps += steps
+		if steps > t.stats.RepairEvictionMaxScan {
+			t.stats.RepairEvictionMaxScan = steps
+		}
+		t.compactPendingOrderLocked()
+		return true
+	}
+	t.stats.RepairEvictionScanSteps += steps
 	return false
 }
 
@@ -299,6 +333,7 @@ func (t *laneTransport) markSACKedLocked(p *pendingRecord, now time.Time) {
 	p.sacked = true
 	t.sackedOutstanding++
 	t.unlinkRepairLocked(p)
+	t.unlinkEvictLocked(p)
 	t.stats.SACKed++
 	t.noteDeliveredLocked(p)
 	if !p.wasRetried && !p.rttSampled {
@@ -310,6 +345,9 @@ func (t *laneTransport) markSACKedLocked(p *pendingRecord, now time.Time) {
 		p.retired = true
 		p.repairNotBefore = time.Time{}
 		t.stats.SACKRetired++
+	}
+	if !p.repairInFlight {
+		t.linkRetiredLocked(p)
 	}
 }
 

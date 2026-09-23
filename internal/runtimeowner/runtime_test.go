@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"net/netip"
+	"sync"
 	"testing"
 	"time"
 
@@ -1224,10 +1225,11 @@ func TestSteadyIncrementalSACKHandlesSequenceWrapAndFourBlockCache(t *testing.T)
 	tr.recvNext = ^uint32(0) - 100
 	tr.recvSACKN = 0
 	clear(tr.received)
+	tr.recvHeap = nil
 	base := tr.recvNext
 	for i := 0; i < 6; i++ {
 		start := base + uint32(10+i*20)
-		tr.received[start] = receiveSpan{end: start + 5, first: t0}
+		tr.addReceiveSpanLocked(start, start+5, t0, false)
 		tr.noteRecvSACKLocked(start, start+5)
 	}
 	blocks, n := tr.sackBlocksLocked()
@@ -1435,5 +1437,232 @@ func TestRuntimePeerWriteClosedRequiresAllAuthoritativeLanes(t *testing.T) {
 	delete(rt.lanes, ref2)
 	if rt.PeerWriteClosed() {
 		t.Fatal("missing authoritative transport reported peer-closed")
+	}
+}
+
+
+func TestSteadyFullRepairWindowEvictionConstantWorkWithoutACK(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil { t.Fatal(err) }
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(faketcp.Segment) error { return nil }, func(faketcp.Segment) error { return nil }, 1, 65500)
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 91), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9900, 0)
+	records := make([]datapath.WireRecord, MaxOutstandingRecords+2048)
+	for i := range records {
+		records[i].Wire = []byte{byte(i)}
+	}
+	if err := tr.send(records, t0); err != nil {
+		t.Fatalf("fresh send blocked at full repair window: %v", err)
+	}
+	stats := tr.statsSnapshotAt(t0)
+	if stats.Outstanding != MaxOutstandingRecords || stats.FreshBlocked != 0 {
+		t.Fatalf("full-window fresh stats=%+v", stats)
+	}
+	if stats.RepairEvictionCalls != 2048 || stats.RepairEvicted != 2048 || stats.Abandoned != 2048 {
+		t.Fatalf("eviction accounting=%+v", stats)
+	}
+	if stats.RepairEvictionMaxScan > 1 || stats.RepairEvictionScanSteps > stats.RepairEvictionCalls {
+		t.Fatalf("eviction work not constant: calls=%d steps=%d max=%d",
+			stats.RepairEvictionCalls, stats.RepairEvictionScanSteps, stats.RepairEvictionMaxScan)
+	}
+	tr.mu.Lock()
+	orderLen := len(tr.pendingOrder)
+	tr.mu.Unlock()
+	if orderLen > MaxOutstandingRecords+steadyIndexCompactThreshold {
+		t.Fatalf("pending order grew without bound: %d", orderLen)
+	}
+}
+
+func TestSteadyGapIndexBudgetExpiryWrapAndFINProtection(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil { t.Fatal(err) }
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(faketcp.Segment) error { return nil }, func(faketcp.Segment) error { return nil }, 1, 65510)
+	cfg.ReceiveNext = ^uint32(0) - 60
+	cfg.RepairHorizon = 3 * time.Second
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 92), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(10000, 0)
+
+	tr.mu.Lock()
+	base := tr.recvNext
+	for i := 1; i <= 160; i++ {
+		start := base + uint32(i*2)
+		first := t0.Add(2 * time.Second)
+		if i == 1 {
+			first = t0
+		}
+		tr.addReceiveSpanLocked(start, start+1, first, false)
+	}
+	first := tr.earliestReceiveSpanLocked()
+	tr.mu.Unlock()
+	if first == nil || first.seq != base+2 {
+		t.Fatalf("wrap-aware heap first=%+v want=%d", first, base+2)
+	}
+
+	if err := rt.Tick(t0.Add(3 * time.Second)); err != nil { t.Fatal(err) }
+	stats, _ := rt.TransportStats(snap.Ref)
+	if stats.ForgivenGaps != steadyGapForgiveBudget {
+		t.Fatalf("first tick forgiveness=%d want=%d stats=%+v", stats.ForgivenGaps, steadyGapForgiveBudget, stats)
+	}
+	if stats.GapIndexSteps > 2*stats.GapForgiveChecks {
+		t.Fatalf("gap index steps=%d checks=%d", stats.GapIndexSteps, stats.GapForgiveChecks)
+	}
+	for i := 0; i < 3; i++ {
+		if err := rt.Tick(t0.Add(3*time.Second + time.Duration(i+1)*time.Millisecond)); err != nil { t.Fatal(err) }
+	}
+	stats, _ = rt.TransportStats(snap.Ref)
+	if stats.OutOfOrder != 0 || stats.ForgivenGaps != 160 {
+		t.Fatalf("budgeted drain stats=%+v", stats)
+	}
+
+	tr.mu.Lock()
+	finSeq := tr.recvNext + 10
+	tr.addReceiveSpanLocked(finSeq, finSeq+1, t0, true)
+	forgiven := tr.forgiveGapLocked(t0.Add(10*time.Second), false)
+	peerFIN := tr.peerFIN
+	tr.mu.Unlock()
+	if forgiven || peerFIN {
+		t.Fatalf("gap forgiveness published FIN: forgiven=%v peerFIN=%v", forgiven, peerFIN)
+	}
+	tr.mu.Lock()
+	tr.recvNext = finSeq
+	tr.advanceReceiveLocked()
+	peerFIN = tr.peerFIN
+	tr.mu.Unlock()
+	if !peerFIN {
+		t.Fatal("contiguous FIN was not published")
+	}
+}
+
+func TestSteadyRepairEmitIdentitySurvivesConcurrentFreshEviction(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil { t.Fatal(err) }
+	started := make(chan struct{})
+	release := make(chan struct{})
+	var mu sync.Mutex
+	var wire []faketcp.Segment
+	emit := func(seg faketcp.Segment) error {
+		mu.Lock()
+		wire = append(wire, seg)
+		n := len(wire)
+		mu.Unlock()
+		if n == MaxOutstandingRecords+1 {
+			close(started)
+			<-release
+		}
+		return nil
+	}
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(emit, func(faketcp.Segment) error { return nil }, 1, 65520)
+	cfg.InitialRTO = time.Second
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 93), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(10100, 0)
+	records := make([]datapath.WireRecord, MaxOutstandingRecords)
+	for i := range records { records[i].Wire = []byte{byte(i), byte(i >> 8)} }
+	if err := tr.send(records, t0); err != nil { t.Fatal(err) }
+
+	done := make(chan error, 1)
+	go func() { done <- rt.Tick(t0.Add(time.Second)) }()
+	<-started
+	if err := tr.send([]datapath.WireRecord{{Wire: []byte("fresh-while-repair-emits")}}, t0.Add(time.Second)); err != nil {
+		t.Fatalf("fresh blocked by in-flight repair: %v", err)
+	}
+	ack := faketcp.Segment{
+		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
+		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
+		Seq: cfg.ReceiveNext, Ack: cfg.SendNext + 2,
+		Flags: faketcp.FlagACK, Window: 65535,
+	}
+	if err := rt.HandleSegment(snap.Ref, ack, t0.Add(time.Second+time.Millisecond)); err != nil {
+		t.Fatalf("ACK during repair emit: %v", err)
+	}
+	if err := rt.CloseWrite(snap.Ref, t0.Add(time.Second+2*time.Millisecond)); err != nil {
+		t.Fatalf("CloseWrite during repair emit: %v", err)
+	}
+	close(release)
+	if err := <-done; err != nil { t.Fatal(err) }
+	stats, _ := rt.TransportStats(snap.Ref)
+	if stats.FreshBlocked != 0 || stats.Outstanding != MaxOutstandingRecords || !stats.WriteClosed {
+		t.Fatalf("concurrent eviction/ACK/close stats=%+v", stats)
+	}
+	mu.Lock()
+	repairPayload := append([]byte(nil), wire[MaxOutstandingRecords].Payload...)
+	mu.Unlock()
+	if !bytes.Equal(repairPayload, records[0].Wire) {
+		t.Fatalf("in-flight repair payload changed: got=%x want=%x", repairPayload, records[0].Wire)
+	}
+}
+
+func TestSteadyFreshBypassesAllProtectedRepairSlots(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil { t.Fatal(err) }
+	var emitted int
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(faketcp.Segment) error { emitted++; return nil }, func(faketcp.Segment) error { return nil }, 1, 65530)
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 94), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(10200, 0)
+	protected := make([]datapath.WireRecord, MaxOutstandingRecords)
+	for i := range protected {
+		protected[i] = datapath.WireRecord{Control: true, Wire: []byte{byte(i)}}
+	}
+	if err := tr.send(protected, t0); err != nil { t.Fatal(err) }
+	if err := tr.send([]datapath.WireRecord{{Wire: []byte("unbacked-fresh")}}, t0.Add(time.Millisecond)); err != nil {
+		t.Fatalf("fresh blocked by all-protected repair metadata: %v", err)
+	}
+	stats, _ := rt.TransportStats(snap.Ref)
+	if emitted != MaxOutstandingRecords+1 || stats.Outstanding != MaxOutstandingRecords ||
+		stats.FreshWindowBypass != 1 || stats.FreshBlocked != 0 {
+		t.Fatalf("protected-window bypass emitted=%d stats=%+v", emitted, stats)
+	}
+}
+
+func TestSteadyStopFlowExpiryCleanupIsBudgeted(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil { t.Fatal(err) }
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(faketcp.Segment) error { return nil }, func(faketcp.Segment) error { return nil }, 1, 65531)
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 95), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(10300, 0)
+	records := make([]datapath.WireRecord, steadyRepairExpiryBudget*3)
+	for i := range records { records[i].Wire = []byte{byte(i)} }
+	if err := tr.send(records, t0); err != nil { t.Fatal(err) }
+	if err := rt.Tick(t0.Add(3*time.Second + time.Millisecond)); err != nil { t.Fatal(err) }
+	stats, _ := rt.TransportStats(snap.Ref)
+	if stats.Outstanding != len(records)-steadyRepairExpiryBudget {
+		t.Fatalf("first expiry budget stats=%+v", stats)
+	}
+	for i := 0; i < 2; i++ {
+		if err := rt.Tick(t0.Add(3*time.Second + time.Duration(i+2)*time.Millisecond)); err != nil { t.Fatal(err) }
+	}
+	stats, _ = rt.TransportStats(snap.Ref)
+	if stats.Outstanding != 0 || stats.Abandoned != uint64(len(records)) ||
+		stats.Retransmitted != 0 || stats.RepairExpiredSkipped == 0 {
+		t.Fatalf("stop-flow cleanup stats=%+v", stats)
 	}
 }

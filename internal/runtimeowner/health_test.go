@@ -89,11 +89,11 @@ func TestHealthAuthenticatedIndependentOfFECAndBusiness(t *testing.T) {
 
 func TestAdaptivePressureKeepsReorderingGrace(t *testing.T) {
 	now := time.Unix(1000, 0)
-	tr := &laneTransport{received: make(map[uint32]receiveSpan), recvNext: 100}
+	tr := &laneTransport{received: make(map[uint32]*receiveSpan), recvNext: 100}
 	tr.pressure = receivePressure{rate: 1000, rtt: 100 * time.Millisecond}
 	for i := 0; i < 240; i++ {
 		seq := uint32(200 + i*10)
-		tr.received[seq] = receiveSpan{end: seq + 10, first: now}
+		tr.addReceiveSpanLocked(seq, seq+10, now, false)
 	}
 	tr.updatePressureHole(now)
 	if tr.pressureAllowsForgiveness(now.Add(99 * time.Millisecond)) {

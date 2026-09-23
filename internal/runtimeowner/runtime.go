@@ -99,12 +99,23 @@ type pendingRecord struct {
 	repairPrev      *pendingRecord
 	repairNext      *pendingRecord
 	repairLinked    bool
+	evictPrev       *pendingRecord
+	evictNext       *pendingRecord
+	evictLinked     bool
+	retiredPrev     *pendingRecord
+	retiredNext     *pendingRecord
+	retiredLinked   bool
+	expiryPrev      *pendingRecord
+	expiryNext      *pendingRecord
+	expiryLinked    bool
 }
 
 type receiveSpan struct {
-	end   uint32
-	first time.Time
-	fin   bool
+	seq       uint32
+	end       uint32
+	first     time.Time
+	fin       bool
+	heapIndex int
 }
 
 type deliveredMark struct {
@@ -130,9 +141,21 @@ type TransportStats struct {
 	Abandoned             uint64
 	RepairEvicted         uint64
 	RepairMetadataEvicted uint64
+	RepairEvictionCalls   uint64
+	RepairEvictionScanSteps uint64
+	RepairEvictionMaxScan uint64
+	FreshBlocked          uint64
+	FreshWindowBypass     uint64
+	FreshEmitFailures     uint64
+	RecoveryTicks         uint64
+	GapForgiveChecks      uint64
+	GapIndexSteps         uint64
+	GapMetadataDropped    uint64
+	GapExpiredForgiven    uint64
 	FastRepairs           uint64
 	RTORepairs            uint64
 	RepairDeferred        uint64
+	RepairExpiredSkipped  uint64
 	RepairBudgetSpent     uint64
 	RepairCreditBytes     uint64
 	Received              uint64
@@ -174,8 +197,14 @@ type TransportStats struct {
 	LockHeldMaxNS uint64 `json:"lock_held_max_ns,omitempty"`
 	OwnerNS       uint64 `json:"owner_ns,omitempty"`
 	OwnerMaxNS    uint64 `json:"owner_max_ns,omitempty"`
-	DeliverNS     uint64 `json:"deliver_ns,omitempty"`
-	DeliverMaxNS  uint64 `json:"deliver_max_ns,omitempty"`
+	DeliverNS          uint64 `json:"deliver_ns,omitempty"`
+	DeliverMaxNS       uint64 `json:"deliver_max_ns,omitempty"`
+	RepairEvictionNS    uint64 `json:"repair_eviction_ns,omitempty"`
+	RepairEvictionMaxNS uint64 `json:"repair_eviction_max_ns,omitempty"`
+	FreshLockWaitNS     uint64 `json:"fresh_lock_wait_ns,omitempty"`
+	FreshLockWaitMaxNS  uint64 `json:"fresh_lock_wait_max_ns,omitempty"`
+	FreshCriticalNS     uint64 `json:"fresh_critical_ns,omitempty"`
+	FreshCriticalMaxNS  uint64 `json:"fresh_critical_max_ns,omitempty"`
 }
 
 type laneTransport struct {
@@ -218,11 +247,19 @@ type laneTransport struct {
 	repairScan  *pendingRecord
 	repairCount int
 
+	evictHead   *pendingRecord
+	evictTail   *pendingRecord
+	retiredHead *pendingRecord
+	retiredTail *pendingRecord
+	expiryHead  *pendingRecord
+	expiryTail  *pendingRecord
+
 	sackedOutstanding int
 	sackSeen          [steadySenderSACKHistory]faketcp.SACKBlock
 	sackSeenN         int
 
-	received  map[uint32]receiveSpan
+	received  map[uint32]*receiveSpan
+	recvHeap  receiveSpanHeap
 	recvSACK  [faketcp.MaxSACKBlocks]faketcp.SACKBlock
 	recvSACKN int
 
@@ -249,7 +286,7 @@ func newLaneTransport(owner *datapath.TunnelOwner, ref logicaltunnel.LaneRef, de
 		baseRTO: cfg.InitialRTO, rto: cfg.InitialRTO,
 		repairCredit: steadyRepairBurstBytes,
 		pending:      make(map[uint32]*pendingRecord, MaxOutstandingRecords),
-		received:     make(map[uint32]receiveSpan, MaxOutstandingRecords),
+		received:     make(map[uint32]*receiveSpan, MaxOutstandingRecords),
 		delivered:    make(map[uint32]deliveredMark, MaxOutstandingRecords),
 	}, nil
 }
@@ -293,9 +330,22 @@ func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error
 		if len(record.Wire) == 0 {
 			continue
 		}
+		observeTiming := t.timing.enabled.Load()
+		var freshWaitStarted time.Time
+		if observeTiming {
+			freshWaitStarted = time.Now()
+		}
 		t.mu.Lock()
+		var freshCriticalStarted time.Time
+		if observeTiming {
+			t.timing.freshLockWait.observe(time.Since(freshWaitStarted))
+			freshCriticalStarted = time.Now()
+		}
 		if t.closed {
 			peerRST := t.peerRST
+			if observeTiming {
+				t.timing.freshCritical.observe(time.Since(freshCriticalStarted))
+			}
 			t.mu.Unlock()
 			if peerRST {
 				return ErrTransportPeerReset
@@ -303,49 +353,69 @@ func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error
 			return ErrRuntimeClosed
 		}
 		if t.localFINQueued {
+			if observeTiming {
+				t.timing.freshCritical.observe(time.Since(freshCriticalStarted))
+			}
 			t.mu.Unlock()
 			return ErrTransportWriteClosed
 		}
+
+		// The 4096 records are shadow-repair capacity, not a fresh-send
+		// admission window. Reclaim one bounded candidate if possible; if every
+		// retained record is protected, send this record without a repair
+		// backup rather than waiting for ACK or forcing reconnect.
+		backed := true
 		if len(t.pending) >= MaxOutstandingRecords {
-			t.abandonOldestLocked()
+			if !t.abandonOldestLocked() {
+				backed = false
+				t.stats.FreshWindowBypass++
+			}
 		}
-		if len(t.pending) >= MaxOutstandingRecords {
-			t.mu.Unlock()
-			return ErrOutstandingBounds
-		}
+
 		seq := t.sendNext
 		end := seq + uint32(len(record.Wire))
-		p := &pendingRecord{
-			control: record.Control, seq: seq, end: end, flags: faketcp.FlagACK | faketcp.FlagPSH,
-			payload:   append([]byte(nil), record.Wire...),
-			firstSent: now, lastSent: now,
-		}
-		t.pending[seq] = p
-		t.pendingOrder = append(t.pendingOrder, seq)
-		if !record.Control {
-			t.linkRepairLocked(p)
+		wire := append([]byte(nil), record.Wire...)
+		var p *pendingRecord
+		if backed {
+			p = &pendingRecord{
+				control: record.Control, seq: seq, end: end, flags: faketcp.FlagACK | faketcp.FlagPSH,
+				payload: wire, firstSent: now, lastSent: now,
+			}
+			t.pending[seq] = p
+			t.pendingOrder = append(t.pendingOrder, seq)
+			if !record.Control {
+				t.linkRepairLocked(p)
+				t.linkEvictLocked(p)
+				t.linkExpiryLocked(p)
+			}
+			if n := len(t.pending); n > t.stats.PeakOutstanding {
+				t.stats.PeakOutstanding = n
+			}
 		}
 		t.sendNext = end
-		if n := len(t.pending); n > t.stats.PeakOutstanding {
-			t.stats.PeakOutstanding = n
-		}
 		t.stats.FreshSent++
 		ack := t.recvNext
-		seg := t.outboundSegment(seq, ack, p.payload)
+		seg := t.outboundSegment(seq, ack, wire)
+		if observeTiming {
+			t.timing.freshCritical.observe(time.Since(freshCriticalStarted))
+		}
 		t.mu.Unlock()
 
 		if err := t.cfg.Emit(seg); err != nil {
 			t.mu.Lock()
-			if current := t.pending[seq]; current == p {
-				t.removePendingLocked(p)
-				t.stats.Abandoned++
+			t.stats.FreshEmitFailures++
+			if p != nil {
+				if current := t.pending[seq]; current == p {
+					t.removePendingLocked(p)
+					t.stats.Abandoned++
+				}
 			}
 			t.mu.Unlock()
 			return err
 		}
 		t.mu.Lock()
 		if !record.Control {
-			t.refillRepairCreditLocked(uint64(len(p.payload)))
+			t.refillRepairCreditLocked(uint64(len(wire)))
 		}
 		t.mu.Unlock()
 	}
@@ -503,6 +573,27 @@ func (t *laneTransport) acceptPayloadLocked(seq uint32, payload []byte, now time
 			return false, ErrPayloadConflict
 		}
 		t.stats.Duplicates++
+		// Coverage metadata may have been intentionally omitted only when the
+		// bounded receive index was full behind a protected FIN. A later exact
+		// duplicate may restore ACK/SACK coverage without re-delivering payload.
+		if seq == t.recvNext {
+			t.recvNext = end
+			t.advanceReceiveLocked()
+		} else if seqLT(t.recvNext, seq) {
+			if _, tracked := t.received[seq]; !tracked {
+				if len(t.received) >= MaxOutstandingRecords {
+					if !t.forgiveGapLocked(now, true) {
+						t.stats.GapMetadataDropped++
+						return false, nil
+					}
+					if !seqLT(t.recvNext, seq) {
+						return false, nil
+					}
+				}
+				t.addReceiveSpanLocked(seq, end, now, false)
+				t.noteRecvSACKLocked(seq, end)
+			}
+		}
 		return false, nil
 	}
 
@@ -517,11 +608,21 @@ func (t *laneTransport) acceptPayloadLocked(seq uint32, payload []byte, now time
 				return false, ErrPayloadConflict
 			}
 		} else {
-			t.received[seq] = receiveSpan{end: end, first: now}
-			t.noteRecvSACKLocked(seq, end)
-		}
-		if len(t.received) > MaxOutstandingRecords {
-			t.forgiveGapLocked(now, true)
+			if len(t.received) >= MaxOutstandingRecords {
+				if !t.forgiveGapLocked(now, true) {
+					// Do not cross a protected FIN merely to reclaim metadata. The
+					// business payload is still delivered below; only its TCP-like
+					// coverage bookkeeping is omitted until an exact duplicate can
+					// restore it.
+					t.stats.GapMetadataDropped++
+				} else if seqLT(t.recvNext, seq) {
+					t.addReceiveSpanLocked(seq, end, now, false)
+					t.noteRecvSACKLocked(seq, end)
+				}
+			} else {
+				t.addReceiveSpanLocked(seq, end, now, false)
+				t.noteRecvSACKLocked(seq, end)
+			}
 		}
 	}
 	t.observeReceivePressureLocked(now)
@@ -552,10 +653,14 @@ func (t *laneTransport) acceptFINLocked(seq uint32, now time.Time) error {
 		}
 		return nil
 	}
-	t.received[seq] = receiveSpan{end: end, first: now, fin: true}
-	if len(t.received) > MaxOutstandingRecords {
-		t.forgiveGapLocked(now, true)
+	if len(t.received) >= MaxOutstandingRecords {
+		// FIN is control state, never a generic gap-forgive target. Do not
+		// advance recvNext past an untracked FIN just to reclaim metadata.
+		// Forget this observation and rely on bounded FIN repair.
+		t.stats.GapMetadataDropped++
+		return nil
 	}
+	t.addReceiveSpanLocked(seq, end, now, true)
 	return nil
 }
 
@@ -589,7 +694,7 @@ func (t *laneTransport) advanceReceiveLocked() {
 		if !ok {
 			return
 		}
-		delete(t.received, t.recvNext)
+		t.removeReceiveSpanLocked(span)
 		t.recvNext = span.end
 		if span.fin {
 			t.markPeerFINLocked(span.end)
@@ -599,36 +704,33 @@ func (t *laneTransport) advanceReceiveLocked() {
 }
 
 func (t *laneTransport) forgiveGapLocked(now time.Time, force bool) bool {
-	var (
-		bestSeq   uint32
-		best      receiveSpan
-		found     bool
-		bestDelta uint32
-	)
-	for seq, span := range t.received {
-		delta := seq - t.recvNext
-		if delta == 0 || delta >= 1<<31 {
-			continue
-		}
-		if !force && now.Sub(span.first) < t.cfg.RepairHorizon {
-			continue
-		}
-		if !found || delta < bestDelta {
-			bestSeq, best, bestDelta, found = seq, span, delta, true
-		}
-	}
-	if !found {
+	t.stats.GapForgiveChecks++
+	best := t.earliestReceiveSpanLocked()
+	if best == nil {
 		return false
 	}
-	delete(t.received, bestSeq)
-	t.recvNext = best.end
+	// FIN publication remains ordered control state. Never jump a missing
+	// business range directly to an observed FIN.
 	if best.fin {
-		t.markPeerFINLocked(best.end)
-		t.pruneRecvSACKLocked()
-	} else {
-		t.advanceReceiveLocked()
+		return false
+	}
+	if !force && (now.Before(best.first) || now.Sub(best.first) < t.cfg.RepairHorizon) {
+		return false
+	}
+	evidenceFirst := best.first
+	t.removeReceiveSpanLocked(best)
+	t.recvNext = best.end
+	t.advanceReceiveLocked()
+	// A chain of already-observed successors belongs to one blocking gap
+	// episode. Do not reset the absolute 3s deadline after every hole.
+	if next := t.earliestReceiveSpanLocked(); next != nil && !next.fin &&
+		!evidenceFirst.IsZero() && (next.first.IsZero() || evidenceFirst.Before(next.first)) {
+		next.first = evidenceFirst
 	}
 	t.stats.ForgivenGaps++
+	if !force {
+		t.stats.GapExpiredForgiven++
+	}
 	return true
 }
 

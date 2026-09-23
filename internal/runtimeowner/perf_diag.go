@@ -21,6 +21,9 @@ type transportTiming struct {
 	lockHeld atomicDuration
 	owner atomicDuration
 	deliver atomicDuration
+	repairEviction atomicDuration
+	freshLockWait atomicDuration
+	freshCritical atomicDuration
 }
 func (t *transportTiming) apply(out *TransportStats) {
 	if out==nil{return}
@@ -30,4 +33,7 @@ func (t *transportTiming) apply(out *TransportStats) {
 	out.LockHeldNS=t.lockHeld.total.Load(); out.LockHeldMaxNS=t.lockHeld.max.Load()
 	out.OwnerNS=t.owner.total.Load(); out.OwnerMaxNS=t.owner.max.Load()
 	out.DeliverNS=t.deliver.total.Load(); out.DeliverMaxNS=t.deliver.max.Load()
+	out.RepairEvictionNS=t.repairEviction.total.Load(); out.RepairEvictionMaxNS=t.repairEviction.max.Load()
+	out.FreshLockWaitNS=t.freshLockWait.total.Load(); out.FreshLockWaitMaxNS=t.freshLockWait.max.Load()
+	out.FreshCriticalNS=t.freshCritical.total.Load(); out.FreshCriticalMaxNS=t.freshCritical.max.Load()
 }
