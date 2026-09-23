@@ -41,7 +41,7 @@ Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对�
 | `dead-after` | 90s | 客户端；至少本端 keepalive 的 3 倍，最多 24h；0 使用默认。还应大于对端发送间隔及预期弱网迟到窗口。无有效加密接收才怀疑失活，TCP ACK 不算健康证明。 |
 | `reconnect-min` | 1s | 客户端，至少 1s；候选失败后的最短间隔。0 使用默认。 |
 | `reconnect-max` | 30s | 客户端，至少 min、最多 10m；指数增长、有限随机抖动。0 使用默认。 |
-| `idle-dormant` | 0 | 0 禁用自动休眠；正值按业务活动判断。必须同时有新鲜、经过认证的对端空闲证据；保活缺失不构成空闲证据。保活、外层 ACK、FEC timer、repair 不刷新业务时钟。 |
+| `idle-dormant` | 0 | 0 禁用自动休眠；正值按业务活动判断。客户端必须同时有新鲜、经过认证的对端空闲证据；服务端等待全部当前权威 lane 的 client PeerFIN 后跟随，不能仅凭周期 idle health 先休眠。保活缺失不构成空闲证据。保活、外层 ACK、FEC timer、repair 不刷新业务时钟。 |
 | `rotate-min` / `rotate-max` | 0/0 | 客户端定时轮换，配对启用；和黑洞恢复共用一次一个候选的串行调度，不按高丢包下首次成功验收。 |
 | `fec-parity` | 0 | 固定档位：0(off)、4、8、10、12、16、20；数据分片 20，单 incarnation 不热切档。 |
 | `lanes` | 1 | 1=Normal，2～4=Game。逻辑 lease 不因轮换/休眠/重连改变。 |

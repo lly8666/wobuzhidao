@@ -163,7 +163,7 @@ FEC encoder 返回的内部 wire backing slot 可以复用，因此进入统一�
 TLS启动填充可选策略（2026-09-22）：只改变既有加密内padding长度，不新增record kind/协议字段/协商。默认off；业务检测在FEC前，实际padding在source record seal前，不进入FEC或original_lengths，不增加record/分片；parity与重传不得重新随机。固定预算与旁路条件见TLS_STARTUP_PADDING.md。
 
 
-## Lifecycle V2（2026-09-23，核心 Actions PASS，完整弱网验收待执行）
+## Lifecycle V2（2026-09-23，生命周期功能 PASS，目标速率性能 FAIL_CAPACITY_LIMITED）
 
 真实 TLS 握手/移交流程复用现有实现；TLS 内 admission RecordVersion 从 1 升为 2，V1 显式 version failure，两端须成对升级。V2 exporter context 中 Version=2；record 外层格式、PN/AEAD/HP/MTU和LINK/FEC格式不变，既有纯 record 固定向量保留。
 
@@ -171,4 +171,4 @@ kind=0x01 的加密 payload 固定 9 字节：第 0 字节 health schema=1；随
 
 health 不经过 LINK/FEC、padding、不建立业务 flow、不补充或消耗专门 repair 队列；正常 pending ACK 元数据有既定界限和到期回收。客户端进入稳态后开始发送；服务端必须先收到对端首条有效加密记录，防止新数据面记录进入对端未完成的 TLS bootstrap。每端主动定时发送，不用 ping/pong 响应放大。自动休眠前允许每lane一次最终 idle hint。
 
-missing health = UNKNOWN，不能推出业务空闲。只有本端业务空闲且所有 active lane 最近 <=2个本端发送间隔收到 peer idle>=idle-dormant 的有效提示才自动休眠；活动快照二次校验防竞态。超时失活与 DORMANT 为不同状态。默认15s/90s参数、有限重连、诊断与验收详见 PARAMETERS 和 LIFECYCLE_ACCEPTANCE。
+missing health = UNKNOWN，不能推出业务空闲。客户端仅在本端业务空闲且所有 active lane 最近 <=2个本端发送间隔收到 peer idle>=idle-dormant 的有效提示时发起自动休眠；活动快照二次校验防竞态。服务端不能仅凭周期 idle health 抢先休眠，必须等待全部当前 authoritative lane 的 client PeerFIN（PeerWriteClosed）后跟随；保留65ff2ef的截止点竞态修复。超时失活与 DORMANT 为不同状态。默认15s/90s参数、有限重连、诊断与验收详见 PARAMETERS 和 LIFECYCLE_ACCEPTANCE。

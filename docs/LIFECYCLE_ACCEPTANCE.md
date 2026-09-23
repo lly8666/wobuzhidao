@@ -1,8 +1,8 @@
 # 弱网生命周期移植验收
 
-本文件是 DEVELOPMENT_PLAN/ACCEPTANCE 的专项测试细则，不是第二套状态入口。唯一进度在 STATUS.workstreams.WEAKNET_LIFECYCLE。原主线 AF_PACKET 容量诊断按用户要求 HOLD；生命周期验收完成也不自动解除 HOLD。
+本文件是 DEVELOPMENT_PLAN/ACCEPTANCE 的专项测试细则，不是第二套状态入口。唯一进度在 STATUS.workstreams.WEAKNET_LIFECYCLE。生命周期功能已完成；2026-09-23 用户另行明确恢复性能主线，执行 WEAKNET_QUALIFICATION 第9节。功能通过本身不代表性能通过。
 
-## 已实现的边界，待 Actions 证明
+## 已实现的边界（Actions 证据见文末）
 
 - 复用旧 receive-rate/RTT 自适应 pressure forgiveness：100ms 速率采样、EWMA 1/8，软阈值 ceil(rate×RTT + max(128,10% rate×RTT))，3584 emergency；软阈值还需 gap 至少 1 RTT，冷启动无 RTT 不臆造小窗口。只释放 TCP 外观元数据，业务 first-arrival 仍即时交付。3s 恢复 horizon 与已有发送重传预算继续有效。
 - 单 lane 40B TLS-like health record（含 31B record 固定开销），每端默认 15s 一条；不进 LINK/FEC、不填充、不补充 repair credit、不入 repair 队列；它占用正常 TCP seq，丢失不会阻塞后续独立 record。
@@ -48,7 +48,7 @@ L6 的黑洞阶段只验证“业务活动证据不会被当成 idle、失败后
 
 新 agent 可直接修复本次功能发现的问题，不需反复请示。每轮更新正式日志、参数目录/规范、STATUS，固定源码 SHA 重跑相关失败场景及受影响回归。完成时列 exact SHA、run/job/artifact、真实 PASS/FAIL/NOT_RUN、限制与资源证据。
 
-仅当上述核心及生命周期必测项通过，才将 WEAKNET_LIFECYCLE 从 IMPLEMENTED_PENDING_ACTIONS 改 COMPLETE，并在 DEVELOPMENT_PLAN/ACCEPTANCE 回填证据；仍有未测项就保持未完成并精确列缺口。吞吐门槛未达时独立标 PERFORMANCE_FAIL，不把 correctness 通过包装成整体弱网资格。原主线 HOLD 保留，恢复开发需用户另行安排。
+仅当上述核心及生命周期必测项通过，才将 WEAKNET_LIFECYCLE 从 IMPLEMENTED_PENDING_ACTIONS 改 COMPLETE，并在 DEVELOPMENT_PLAN/ACCEPTANCE 回填证据；仍有未测项就保持未完成并精确列缺口。吞吐门槛未达时独立标 PERFORMANCE_FAIL，不把 correctness 通过包装成整体弱网资格。用户已于2026-09-23另行恢复性能开发，按 WEAKNET_QUALIFICATION 第9节执行。
 
 
 ## 最终验收结果（2026-09-23）
@@ -61,5 +61,5 @@ L6 的黑洞阶段只验证“业务活动证据不会被当成 idle、失败后
 
 成本账本保持分层：Normal health 8 records/方向=320B、Game health 32 records/方向=1280B；padding=0；本批 reconnect flow=0；FEC parity、Game replication extra、repair outer、startup handshake 均在每个 strict artifact 的 summary 中独立记录。不得把这些交叉项相加成“恢复收益”。
 
-因此 STATUS 的 `WEAKNET_LIFECYCLE` 可标 COMPLETE，但必须同时保留 `performance_status=FAIL_CAPACITY_LIMITED` 和原 AF_PACKET/uplink-capacity HOLD。专项完成不关闭整个 P4/P5，也不恢复旧容量开发。
+因此 STATUS 的 `WEAKNET_LIFECYCLE` 可标 COMPLETE，但必须同时保留 `performance_status=FAIL_CAPACITY_LIMITED`。专项完成不关闭整个 P4/P5；用户后续明确授权恢复容量开发，见 WEAKNET_QUALIFICATION 第9节。
 

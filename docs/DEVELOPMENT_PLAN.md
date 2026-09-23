@@ -169,7 +169,7 @@ P5：增加受控真实 HTTPS 客户端/服务器，覆盖首个与复用 lane �
 
 
 ## 用户追加：弱网生命周期移植与参数统一（2026-09-23）
-状态：**生命周期移植功能专项 COMPLETE；目标速率整体吞吐资格 FAIL_CAPACITY_LIMITED。** 原 AF_PACKET/上行容量主线继续 HOLD，不关闭整个 P4/P5，也不恢复旧严格 ACK/HOL、4096 以上缓存或全局 buffer 扩容。
+状态：**生命周期移植功能专项 COMPLETE；目标速率整体吞吐资格 FAIL_CAPACITY_LIMITED。** 2026-09-23 用户已恢复 AF_PACKET/上行容量主线，按 WEAKNET_QUALIFICATION 第9节实施；不关闭整个 P4/P5，也不恢复旧严格 ACK/HOL、4096 以上缓存或全局 buffer 扩容。
 
 实现沿用旧 adaptive_pressure 的 rate/RTT 有界退役原则与 idle activity 二次检查，在新单进程所有权内提供独立认证 health、missing≠idle、客户端有界重连、失败不终止、业务唤醒退避，并修复真实 Actions 暴露的 unilateral-server-idle 竞态：server 不再仅凭周期 idle health 抢先休眠，而是等待当前 authoritative lane 收到 client 有序 FIN 承诺后跟随 DORMANT。wire/profile、FEC、repair horizon、4096、lease/generation fence 与 TLS startup padding 语义均未扩大。
 
@@ -183,5 +183,5 @@ P5：增加受控真实 HTTPS 客户端/服务器，覆盖首个与复用 lane �
 
 同一 strict 账本分开记录成本：Normal 每方向 health=8 records=320B TLS-like wire、padding=0、Game复制=0、reconnect flow=0；Game 每方向 health=32 records=1280B、padding=0、reconnect flow=0。18样本中 Normal FEC parity约 C2S 260–481MB / S2C 195–472MB，repair outer约 C2S 0–12.4KB / S2C 0–243KB；Game FEC parity约 C2S 414–446MB / S2C 462–601MB，Game replication extra约 C2S 117–126MB / S2C 125–163MB，repair outer约 C2S 3.28–4.32MB / S2C 0.002–4.58MB。初始握手 outer 也单独入账；本批没有 reconnect。上述成本受容量塌陷影响，仅作该失败环境的实际账本，不包装成合格性能比。
 
-参数没有新增或改默认值，`docs/PARAMETERS.md/json` 不需要修改；最终 core 的 parameter catalog gate PASS。完整证据与中间修复链见 STATUS 和最新 devlog。原 AF_PACKET/uplink-capacity 诊断成果与 HOLD 原样保留，需用户另行安排才恢复。
+参数没有新增或改默认值，`docs/PARAMETERS.md/json` 不需要修改；最终 core 的 parameter catalog gate PASS。完整证据与中间修复链见 STATUS 和最新 devlog。原诊断成果保留；用户现已明确恢复性能开发。当前执行顺序、证据、修复边界与最终验收见 WEAKNET_QUALIFICATION 第9节，STATUS.PERFORMANCE_RECOVERY 为进度入口。
 

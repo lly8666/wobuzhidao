@@ -1,5 +1,7 @@
 # 稳态修复与真实路径弱网资格（2026-09-21）
 
+**当前执行入口：第9节。2026-09-23用户已解除性能主线HOLD，授权全新主线agent继续修复。历史HOLD不再阻塞此项工作。**
+
 本文是 DEVELOPMENT_PLAN / ACCEPTANCE 引用的专项执行规范，不是第二套状态或交接。用户新增要求使 P4 稳态传输与 P5 性能资格重新打开；历史通过证据保留，但不能覆盖新增门槛。生产代码修复后 P6 必须按最终同 SHA 重新打包，P7 仍 NOT_RUN。
 
 ## 1. 低开销修复顺序
@@ -94,3 +96,42 @@ memorySegmentPair与内存故障注入保留为core回归，不替代以上端�
 每轮详细devlog、唯一STATUS、实际源码/构建/harness/分析器SHA、完整配置/seed/runner、原始日志/pcap/计数/分析脚本与产物hash。同一最终SHA必须通过受影响核心Windows/Linux回归与Linux race、Game4间歇问题闭环、真实路径主测和新增模块矩阵，再标增强P4/P5 CLOSED；旧P6包历史有效但不覆盖修复版，重新打包后才交P7。
 
 文档本身不能把新增目标标PASS。对失败先给根因证据、最小修复和回归，不无限试参数；主旨约束不因性能不够而降低。
+
+## 9. 当前主线：接收容量与流量放大修复（2026-09-23）
+
+生命周期功能保持COMPLETE；性能仍FAIL_CAPACITY_LIMITED。本节是原性能任务的继续，不是重做项目或恢复旧DTLS。开始前核对最新远端，禁止回退到84c466f覆盖后续修复。
+
+### 9.1 基线事实与证据
+
+资格源码为 `0b206a07f91513133a80a147656b637c286ce3e2`，休眠竞态产品修复为 `65ff2ef27dd763cba2f7293e6ef6274bca6632c3`，本次文档起点c3a10a2。
+
+- [功能run 35803458184](https://github.com/lly8666/wobuzhidao/actions/runs/35803458184)：36/36样本及aggregate PASS，artifact10727500614。保留客户端主导休眠、服务端等待全部当前权威lane的PeerFIN、黑洞恢复、候选失败退避、100/100截止点交付、稳定lease等已验证语义。
+- [性能run 35803458166](https://github.com/lly8666/wobuzhidao/actions/runs/35803458166)：18份样本，aggregate job107000004406/artifact10727035867。CORRECTNESS/CAPTURE各18/18通过，输入17/18通过（Normal/5205/seed101 S2C skipped_slots=37）；ENVIRONMENT全部失败，PERFORMANCE全部CAPACITY_LIMITED。不能将输入无效样本当有效性能证据，也不能将环境失败解释成产品已达标。
+- 无人工丢包样本起始阶段：Normal目标10Mbps，C2S仅0.338～0.814Mbps、S2C4.197～9.588Mbps；Game4目标逻辑3Mbps，C2S0.467～0.500Mbps、S2C约3Mbps。异常不依赖20%/30%损伤才出现。
+- 无损样本server AF_PACKET socket累计drops：Normal三seed为1,388,390/700,414/835,210；Game为1,451,308/1,451,704/1,454,157。代表样本内存水位约1.002倍接收缓冲上限。已定位丢包边界，尚未区分读包停顿、同步处理、锁/CPU/调度、放大流量和runner竞争的贡献。
+- Normal/lossless/seed101原始job106998829314、artifact10726539321：C2S outer IP bytes/app raw input约5.07892倍，FEC parity481,014,962B、repair outer0B、health320B/120s。它是代表样本，不是全组均值或理论常量。Game health每方向1280B/120s；health数字未含IP/TCP头与ACK。不能据此断言全部补丁CPU开销为零。
+- 历史同拓扑旁路约50Mbps业务/方向通过只能证明旁路能力，不能代替正式产品路径，也不排除当前runner差异。复用原始证据，不反复全量重跑同一旁路当作进展。
+
+### 9.2 第一原子任务：定位并修复服务端接收停顿
+
+实际路径：`internal/faketcp/raw_linux.go:ReadSegment` → `internal/runtimeentry/lifecycle.go:Run` 的容量1 readCh → HandleServerSegmentQualified → record/FEC/LINK/Game处理 → SharedTUNRouter/平台service/TUN交付。同步链值得检查，但不得预先断定channel=1就是根因。
+
+补低开销证据：reader相邻成功读取间隔、readCh交接阻塞时间、handler耗时、owner锁等待/持锁、decode/reconstruction/retire耗时、下游写入阻塞、队列条数/字节/最老年龄。用有界直方图或抽样、低频快照；需要时只对短样本启用CPU/block/mutex profile，测量开销单列。和每核CPU/softirq/steal/GC、AF_PACKET r/rb/d、pps、外层流量按同一时间轴对齐，禁止逐包日志。
+
+先做一个Normal10M无人工丢包独占runner定向样本。证据支持后一次修改一个原因，再用Game4逻辑3M验证方向/多lane影响。可以针对性拆开接收和下游处理、改进有界调度、减少热路径工作，但必须说明包所有权、每association状态串行化、generation、关闭/drain、队列条数/字节/年龄及溢出策略。禁止每包起goroutine、无限队列、静默丢包，或靠扩容暂时拖延overflow。bootstrap保持必要有序，稳态不能重新等TCP缺口。
+
+### 9.3 第二原子任务：审计线上放大账本
+
+逐方向/阶段核对app payload → platform envelope → LINK片数 → FEC source/parity → TLS-like record → TCP/IP/ACK。记录原始包长分布、MTU派生值、fragment数量、每块有效source字节/最长shard/尾部补齐、full/partial block比例、实际flush时刻、source/parity长度分布、Game额外副本、repair、health、padding和握手。
+
+区分线上抓包与encoder计数、尝试与实际发出、输入与成功交付；禁止嵌套计数重复相加。FEC20:20是分片数量比例，不保证混合包长下总外层字节恰好两倍，5.08倍也不自动证明bug。先验证窗口/分母，解释每项差额，再查重复编码、错误长度、意外分片、flush/调度偏差或可避免复制。只修有证据的实现浪费，不通过降低FEC档、减少Game副本、全改大包、降低业务注入或攒包等待冒充优化。涉及既定wire/算法边界时明确证据和影响，不顺手重构。
+
+### 9.4 验证顺序与关闭条件
+
+1. 最小修改先跑相关core/race和定向真实路径样本；无损目标仍崩时，不重复整个18份大矩阵。
+2. 改善后在同runner顺序AB/BA比较当前新架构修复前后，输入/配置一致、每次一份负载、段间清场排空，覆盖Normal/Game。沿用第1节吞吐/CPU保护门槛，另报总CPU与每有效MiB CPU，防止丢包更多让CPU看似下降；不做旧DTLS A/B。
+3. 两模式无损目标过关后，最终源码SHA跑第3～4节原18份主测，各场景3seed、逐方向/阶段门槛不变。输入失败样本修好发生器/环境后重跑，原FAIL保留，不降低validator门槛。
+4. 保留Linux/Windows核心、race、no-HOL/MTU/同Seq密文、padding/配置及受影响L1/L4/L5/L6/L7回归；改生命周期/队列所有权时重跑完整36样本。参数变更同步PARAMETERS.md/json。
+5. 稳定后做原规范要求的两模式各>=30分钟目标负载长测。未跑写NOT_RUN，不提前关闭P5或发布。功能COMPLETE与性能状态独立，满足最终资格才关闭性能主线；物理P7不在本轮冒充通过。
+
+若runner仍限制，指出具体核/线程/队列、pps、CPU/steal竞争、容量拐点与所需资源，保留目标FAIL/CAPACITY_LIMITED；可以降速诊断，不得降速验收。每轮devlog记录事实/假设、改动、前后成本、精确源码/分析器SHA、run/job/artifact及下一步；两轮没有新证据就缩小诊断，不无限扫描参数。

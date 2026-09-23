@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "主线用户HOLD保留。弱网生命周期V2代码84c466f已通过6项Actions，包括新增core、foundation全量unit/race/fuzz、padding及真实路径calibration；生命周期完整真实进程故障矩阵和10/3Mbps严格弱网开销仍NOT_RUN。原C2S容量缺口未关闭。",
-  "next_task": "新agent按docs/LIFECYCLE_ACCEPTANCE.md完成核心、真实进程生命周期、10/3Mbps弱网开销矩阵；修复本专项失败、保存exact-SHA证据，全部达标后回写计划并关闭WEAKNET_LIFECYCLE。不得自动恢复原AF_PACKET主线任务。",
-  "latest_log": "docs/devlog/20260923-054724-lifecycle-core-evidence.md",
+  "in_progress": "生命周期功能专项 COMPLETE（36/36）；目标速率性能仍 FAIL_CAPACITY_LIMITED。2026-09-23 用户明确恢复性能主线，当前任务为服务端接收停顿与线上流量放大的证据驱动修复。",
+  "next_task": "按 docs/WEAKNET_QUALIFICATION.md 第9节开始 PERFORMANCE_RECOVERY：先检查 AF_PACKET→readCh→同步处理→下游交付，在 Actions 跑 Normal10Mbps 无人工丢包定向样本，定位最早停顿并最小修复；随后 Game4逻辑3Mbps验证及放大账本审计。无损目标过关后再跑18份主测，不退回旧代码或降低验收门槛。",
+  "latest_log": "docs/devlog/20260923-093700-resume-performance-mainline.md",
   "last_tested_source_sha": "7110fd1e22cb2ab3809456657e3fcdf139508a65",
   "actions": [
     {
@@ -1373,10 +1373,12 @@
       "next_task": "新agent测试/定向修复TLS启动填充；通过后直接标小功能COMPLETE，更新completed/ACCEPTANCE/devlog，不关闭整个P4/P5",
       "main_task_hold": {
         "requested_by": "user",
-        "resume_only_on_user_request": true,
+        "resume_only_on_user_request": false,
         "saved_in_progress": "P4第5原子回归修正3c待Actions：b197dacf的产品逻辑未失败，Ubuntu active-go仅因两条既有platformflow测试仍按旧“retire绝对timeout”断言到期。当前提交只把到期基准改为最后一次合法retired tail + timeout；sliding quiet-period产品代码保持不变。",
         "saved_next_task": "跑本exact-SHA targeted和foundation；若core/race与两个5->30->5 seed全部PASS，则关闭第5原子代码回归并转入真实Linux netns/veth/netem正式进程无损闭环。",
-        "saved_latest_log": "docs/devlog/20260922-161000-platformflow-quiet-period-test-contract.md"
+        "saved_latest_log": "docs/devlog/20260922-161000-platformflow-quiet-period-test-contract.md",
+        "active": false,
+        "resumed_by": "2026-09-23 用户明确要求新主线 agent 开始修性能；历史 saved_* 仅供追溯。"
       },
       "implementation_sha": "d5996203ff0617aca53fcc1dc9e2713cba97bd62",
       "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA."
@@ -1385,13 +1387,15 @@
       "status": "COMPLETE",
       "main_task_hold": {
         "requested_by": "user",
-        "resume_only_on_user_request": true,
+        "resume_only_on_user_request": false,
         "saved_in_progress": "容量定位继续。c9a9691f正式半速结果证明socket skmem overflow并非最早根因：Normal5与Game1.5的CORRECTNESS/INPUT/CAPTURE/ENVIRONMENT均PASS、socket_drop_max=0，但PERFORMANCE仍FAIL且几乎仅C2S崩；S2C分别完整5Mbps与1.5Mbps。旁路raw artifact 10702266004已由validator 1f3f705d离线复算PASS：50Mbps/方向、qdisc约54.15Mbps/方向、12.34kpps、qdisc/interface/socket/capture drop全0。当前缺口是正式FakeTCP使用AF_PACKET接收，而旧resource sampler只看UDP/raw-IP socket。本提交只增加每秒ss -0 packet-socket r/rb/d观测并重跑Normal5/Game1.5定位，不改产品实现/缓存/恢复策略。",
         "saved_next_task": "检查next-strict-packet-socket-diagnostic两个exact-SHA样本。若server/ss_packet出现rmem逼近rb及d增长，证明raw AF_PACKET接收队列先丢，再依据reader/Server.Run消费时间线决定最小修复；若AF_PACKET也零drop，则继续在Go内Server.Run channel=1、同步HandleSegment/FEC/TUN交付之间加低开销队列/handler时延计数。半速成功或失败均不替代10/3Mbps资格。",
         "saved_latest_log": "docs/devlog/20260922-242000-packet-socket-boundary-diagnostic.md",
-        "external_agent_pause": "User confirmed the other development agent is paused; latest shared branch work a045a28 is observer/harness only, retained."
+        "external_agent_pause": "User confirmed the other development agent is paused; latest shared branch work a045a28 is observer/harness only, retained.",
+        "active": false,
+        "resumed_by": "2026-09-23 用户明确要求新主线 agent 开始修性能；历史 saved_* 仅供追溯。"
       },
-      "scope": "移植有限自适应放弃、keepalive容错、黑洞恢复、idle/wake保护；统一参数清单；待新agent Actions验收",
+      "scope": "有限自适应放弃、keepalive容错、黑洞恢复、idle/wake保护与参数清单；功能Actions验收COMPLETE，性能另由PERFORMANCE_RECOVERY继续。",
       "protocol": "admission V2; paired upgrade required",
       "acceptance": "docs/LIFECYCLE_ACCEPTANCE.md",
       "parameters": "docs/PARAMETERS.md",
@@ -1450,7 +1454,7 @@
         "earliest_boundary": "lossless server AF_PACKET ss_packet drops before injected high-loss: Normal seed101/202/303=1388390/700414/835210; Game seed101/202/303=1451308/1451704/1454157. Representative server packet rmem ratio reaches ~1.002 of configured buffer.",
         "lossless_goodput": "Normal C2S pre 0.338-0.814 Mbps vs 10 target; Normal S2C pre 4.197-9.588 Mbps. Game C2S pre 0.467-0.500 Mbps vs 3 target; Game S2C pre ~3.000 Mbps.",
         "cost_ledger": "Normal: health 8 records=320B per direction, padding=0, Game copy=0, reconnect=0; FEC parity C2S 260-481MB/S2C 195-472MB, repair outer C2S 0-12.4KB/S2C 0-243KB. Game: health 32=1280B per direction, padding=0, reconnect=0; FEC parity C2S 414-446MB/S2C 462-601MB; Game replication extra C2S 117-126MB/S2C 125-163MB; repair outer C2S 3.28-4.32MB/S2C 0.002-4.58MB. Initial handshake separately accounted.",
-        "hold": "Evidence only. Do not resume or alter AF_PACKET/uplink-capacity mainline without user request."
+        "hold": "2026-09-23 用户已解除性能 HOLD；功能 COMPLETE 保留，性能基线仍 FAIL_CAPACITY_LIMITED。"
       },
       "fullstack_failed_run": {
         "source_sha": "0882adb70ddb85d8d5dbd5e6be8618f3d7132fcd",
@@ -1615,6 +1619,21 @@
       },
       "completion_scope": "Lifecycle migration functional specialty only. Does not close P4/P5 overall throughput, P6/P7, or release qualification.",
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
+    },
+    "PERFORMANCE_RECOVERY": {
+      "status": "READY_FOR_IMPLEMENTATION",
+      "spec": "docs/WEAKNET_QUALIFICATION.md#9",
+      "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
+      "baseline_performance": "FAIL_CAPACITY_LIMITED",
+      "baseline_run": 35803458166,
+      "functional_run": 35803458184,
+      "priority": [
+        "定位并最小修复服务端接收停顿",
+        "审计混合包长/FEC/分片/Game线上字节账本",
+        "无损目标通过后再完成严格弱网矩阵及长测"
+      ],
+      "latest_log": "docs/devlog/20260923-093700-resume-performance-mainline.md",
+      "note": "本次只更新开发计划和授权状态，未修改产品代码，未新增性能测试结果。"
     }
   }
 }

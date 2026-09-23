@@ -96,5 +96,5 @@ P7只在主流程已稳定后由用户安排，最终核对真实链路外观、
 
 strict 样本继续分别统计 FEC、Game复制、repair、health、padding、初始握手/重连；本轮 padding=0，所有样本 reconnect_flow_count=0。Game 四lane每方向 health=32条=1280B TLS-like wire，Normal单lane为8条=320B；Game replication extra与FEC/repair均保留原始 artifact，不与最终业务恢复重复相加。
 
-结论：`WEAKNET_LIFECYCLE` 功能专项 COMPLETE；整体 target-rate weaknet qualification = **FAIL_CAPACITY_LIMITED**。原 AF_PACKET/uplink-capacity 主线继续 HOLD；不因此关闭 P4/P5、P6/P7 或解除用户 HOLD。
+结论：`WEAKNET_LIFECYCLE` 功能专项 COMPLETE；整体 target-rate weaknet qualification = **FAIL_CAPACITY_LIMITED**。2026-09-23 用户已明确恢复性能主线，按 WEAKNET_QUALIFICATION 第9节修复与验收；功能通过不因此关闭 P4/P5、P6/P7。
 
