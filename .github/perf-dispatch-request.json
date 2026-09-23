@@ -1,15 +1,15 @@
 {
   "workflow": "next-strict-weaknet.yml",
   "ref": "next/tlslike-dataplane",
-  "mode": "game",
-  "scenario": "lossless",
+  "mode": "normal",
+  "scenario": "5205",
   "seed": "601",
-  "rate_mbps": "3",
-  "lanes": "4",
+  "rate_mbps": "10",
+  "lanes": "1",
   "acceptance": "loss-tolerant-v1",
   "expected_product_sha": "610d5092886a160685f8a9d0ecc8fad139fa5bae",
-  "request_revision": 4,
-  "request_reason": "normal-lossless-qualified-proceed-game-lossless",
-  "previous_qualification_run": 35845134507,
+  "request_revision": 5,
+  "request_reason": "normal-and-game-lossless-qualified-proceed-normal-5205",
+  "previous_qualification_run": 35845883866,
   "expected_analysis_revision": "path-delay-aligned-wall-v2"
 }

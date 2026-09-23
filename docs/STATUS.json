@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "Normal 10Mbps lossless资格在独立run 35845134507 / job 107129357706于SOURCE_SHA f7768581通过：CORRECTNESS/INPUT_VALIDITY/CAPTURE/ENVIRONMENT/PERFORMANCE全PASS。path-delay-aligned wall统计保持10Mbps、300ms、99%门槛不变；raw pre仍约9.899Mbps，对齐后c2s=9.997632、s2c=9.999979Mbps。现在按规范进入独立Game4逻辑3Mbps lossless样本，仍是one-run-one-sample。",
-  "next_task": "等待本提交的next-performance-dispatch-relay attempt1成功后，由connector重跑relay job发起game/lossless/seed601/rate3/lanes4；读取compact summary和immutable artifact。Game lossless未PASS前不进入5205/5305。",
-  "latest_log": "docs/devlog/20260923-191500-normal-lossless-pass-game-arm.md",
+  "in_progress": "Normal10Mbps与Game4逻辑3Mbps两条lossless资格均已在独立one-run-one-sample Actions通过。最新Game样本：SOURCE_SHA 50eb31f2 / run 35845883866 / job 107131808395，五类classification全PASS，3Mbps/方向零packet/byte loss、probe timeout=0、socket/link drop=0；delay-aligned pre wall c2s=2.999483733、s2c=2.999957333Mbps。现在按§10.2进入独立Normal 5→20→5 weaknet样本。",
+  "next_task": "等待本提交next-performance-dispatch-relay attempt1成功后，由connector重跑relay触发normal/5205/seed601/rate10/lanes1；读取compact summary与full artifact。5205未形成有效结果前不启动5305。",
+  "latest_log": "docs/devlog/20260923-193000-game-lossless-pass-normal-5205-arm.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1684,7 +1684,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "NORMAL_LOSSLESS_PASS_GAME_PENDING",
+      "status": "LOSSLESS_BOTH_PASS_NORMAL_5205_PENDING",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1695,9 +1695,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-191500-normal-lossless-pass-game-arm.md",
-      "note": "Normal lossless新资格样本已PASS：SOURCE_SHA f7768581f8b5be5c5241fe28aaa3406438d5d63d，run 35845134507，job 107129357706，identity strict:normal:lossless:seed601:rate10:lanes1。五类classification全PASS，performance_errors=[]。analysis_version=loss-tolerant-v1，analysis_revision=path-delay-aligned-wall-v2，analyzer Git blob ee768e95c986203f9380a1bd95aa7d83baea803c，analyzer_sha256=3e38a75530e7dcd51c27fb4fdfcefaa340bad1e9900162e2e5e22077ad4697d2。raw pre wall c2s/s2c=9.899136/9.898730667Mbps；300ms delay-aligned=9.997632/9.999978667Mbps，阈值仍9.9。packet/byte loss=0、probe timeout=0、socket/link drop=0。旧有效FAIL run 35843250922及artifact 10742800172保持不变，不追溯改绿。",
-      "next_task": "按§10.2发起独立Game4 logical3Mbps lossless seed601；只有Game也过关后才进入独立5205/5305。",
+      "latest_log": "docs/devlog/20260923-193000-game-lossless-pass-normal-5205-arm.md",
+      "note": "Game lossless资格已PASS：SOURCE_SHA 50eb31f208b22a49aed172dbea4d797f6196e3bb，run 35845883866，job 107131808395，identity strict:game:lossless:seed601:rate3:lanes4。CORRECTNESS/INPUT_VALIDITY/CAPTURE/ENVIRONMENT/PERFORMANCE全PASS，performance_errors=[]。analysis_revision=path-delay-aligned-wall-v2，analyzer sha256=3e38a75530e7dcd51c27fb4fdfcefaa340bad1e9900162e2e5e22077ad4697d2。delay-aligned pre wall c2s=2.9994837333、s2c=2.9999573333Mbps；packet/byte loss=0，probe timeout=0，socket/link drop=0。transport_hygiene=REVIEW但非门控；repair outer=0。完整artifact 10744095265，summary artifact 10743975832。Normal+Game lossless均PASS，允许进入Normal 5205。",
+      "next_task": "按§10.2发起独立Normal 10Mbps 5→20→5 seed601；保持FEC20:20、300ms、one-run-one-sample。若有效PASS，再发Normal 5305；若FAIL则先分析性能/恢复计数，不机械扩散。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -1846,7 +1846,13 @@
           "rate_mbps": "3",
           "lanes": "4",
           "fec": "20:20",
-          "status": "ARMING"
+          "status": "PASS",
+          "source_sha": "50eb31f208b22a49aed172dbea4d797f6196e3bb",
+          "run": 35845883866,
+          "job": 107131808395,
+          "artifact_id": 10744095265,
+          "summary_artifact_id": 10743975832,
+          "analysis_revision": "path-delay-aligned-wall-v2"
         },
         {
           "workflow": "next-strict-weaknet",
@@ -1856,7 +1862,7 @@
           "rate_mbps": "10",
           "lanes": "1",
           "fec": "20:20",
-          "status": "NOT_RUN"
+          "status": "ARMING"
         },
         {
           "workflow": "next-strict-weaknet",
@@ -1875,15 +1881,15 @@
         "relay_workflow": ".github/workflows/next-performance-dispatch-relay.yml",
         "request_file": ".github/perf-dispatch-request.json",
         "semantics": "push attempt1 arms only; rerun attempt>=2 dispatches; exact-head guard; one dispatch per request HEAD via head_sha de-duplication",
-        "status": "ARMING_GAME_LOSSLESS",
+        "status": "ARMING_NORMAL_5205",
         "request": {
           "workflow": "next-strict-weaknet.yml",
           "ref": "next/tlslike-dataplane",
-          "mode": "game",
-          "scenario": "lossless",
+          "mode": "normal",
+          "scenario": "5205",
           "seed": "601",
-          "rate_mbps": "3",
-          "lanes": "4"
+          "rate_mbps": "10",
+          "lanes": "1"
         },
         "first_dispatch": {
           "run": 35842774407,
@@ -2026,6 +2032,80 @@
           "run": 35843250922,
           "job": 107123147835,
           "artifact_id": 10742800172
+        }
+      },
+      "game_lossless_sample": {
+        "source_sha": "50eb31f208b22a49aed172dbea4d797f6196e3bb",
+        "workflow": "next-strict-weaknet",
+        "run": 35845883866,
+        "job": 107131808395,
+        "input": {
+          "mode": "game",
+          "scenario": "lossless",
+          "seed": "601",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "fec": "20:20",
+          "one_way_delay_ms": 300
+        },
+        "sample_collection": "PASS",
+        "analysis_version": "loss-tolerant-v1",
+        "analysis_revision": "path-delay-aligned-wall-v2",
+        "analyzer_git_blob": "ee768e95c986203f9380a1bd95aa7d83baea803c",
+        "analyzer_sha256": "3e38a75530e7dcd51c27fb4fdfcefaa340bad1e9900162e2e5e22077ad4697d2",
+        "classifications": {
+          "CORRECTNESS": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "CAPTURE": "PASS",
+          "ENVIRONMENT": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "performance_errors": [],
+        "wall_goodput_mbps": {
+          "c2s": {
+            "pre_raw": 2.9699626666666665,
+            "pre_delay_aligned": 2.9994837333333333,
+            "stress_delay_aligned": 3.0001088,
+            "post_delay_aligned": 3.000192
+          },
+          "s2c": {
+            "pre_raw": 2.9698944,
+            "pre_delay_aligned": 2.9999573333333336,
+            "stress_delay_aligned": 3.000032,
+            "post_delay_aligned": 2.999889066666667
+          },
+          "gate_mbps": 2.97,
+          "bucket_ms": 10,
+          "path_delay_ms": 300
+        },
+        "latency": {
+          "probe_loss_percent": 0,
+          "pre_p95_ns": 604527749,
+          "pre_p99_ns": 605071198
+        },
+        "resource": {
+          "socket_drop_max": 0,
+          "link_drop_all_zero": true,
+          "process_cpu_seconds": {
+            "client": 107.91,
+            "server": 107.94
+          },
+          "server_packet_socket_max_rmem_ratio": 0.85870361328125
+        },
+        "cost_outer_ip_per_app_raw_input": {
+          "c2s": 20.630421020632376,
+          "s2c": 21.159724002424827
+        },
+        "transport_hygiene": "REVIEW_NON_GATING",
+        "summary_artifact": {
+          "id": 10743975832,
+          "size_bytes": 8374,
+          "digest": "sha256:c47530c20af7f864b6f4cc0395f0fc1eb34ea2189625be96d02baf5eb475a75e"
+        },
+        "full_artifact": {
+          "id": 10744095265,
+          "size_bytes": 931356836,
+          "digest": "sha256:2dd6100025986057da140ee2fd2234696db10623602a8806dd3d55eaba091d42"
         }
       }
     }
