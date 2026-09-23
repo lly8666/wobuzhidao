@@ -65,8 +65,8 @@
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
   "in_progress": "用户更新目标：允许有损网络保留相当业务丢失，优先低成本shadow repair/no-HOL/低延迟/突发稳定性。现有性能缺口未关闭；第10节方案及单run单样本测试入口待新agent实现。",
-  "next_task": "先将所有性能入口改为一个Action run一条样本，禁止matrix/顺序A/B；随后按WEAKNET_QUALIFICATION第10节修复4096满窗淘汰扫描，保留fresh优先及生命周期。使用loss-tolerant-v1新口径独立验证，旧FAIL不追溯改绿。",
-  "latest_log": "docs/devlog/20260923-151743-loss-tolerant-repair-plan.md",
+  "next_task": "先将所有性能入口改为一个Action run一条样本，禁止matrix/顺序A/B；随后按WEAKNET_QUALIFICATION第10节修复4096满窗淘汰扫描，保留fresh优先及生命周期。使用loss-tolerant-v1新口径独立验证，旧FAIL不追溯改绿。 同时执行第10.4节接收缺口索引/绝对期限与双端退役联测，禁止仅优化sender或新增逐包放弃通知。",
+  "latest_log": "docs/devlog/20260923-152255-receiver-gap-retirement-plan.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1692,12 +1692,12 @@
       "functional_run": 35803458184,
       "priority": [
         "性能测试入口单run单样本化",
-        "修复满窗淘汰成本并验证fresh不受阻",
+        "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-151743-loss-tolerant-repair-plan.md",
+      "latest_log": "docs/devlog/20260923-152255-receiver-gap-retirement-plan.md",
       "note": "本轮仅更新方案。既有产品优化与证据保留；新淘汰实现、新验收分析器和单样本入口尚未验证。",
-      "next_task": "先将所有性能入口改为一个Action run一条样本，禁止matrix/顺序A/B；随后按WEAKNET_QUALIFICATION第10节修复4096满窗淘汰扫描，保留fresh优先及生命周期。使用loss-tolerant-v1新口径独立验证，旧FAIL不追溯改绿。",
+      "next_task": "先将所有性能入口改为一个Action run一条样本，禁止matrix/顺序A/B；随后按WEAKNET_QUALIFICATION第10节修复4096满窗淘汰扫描，保留fresh优先及生命周期。使用loss-tolerant-v1新口径独立验证，旧FAIL不追溯改绿。 同时执行第10.4节接收缺口索引/绝对期限与双端退役联测，禁止仅优化sender或新增逐包放弃通知。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d"

@@ -100,3 +100,6 @@ strict 样本继续分别统计 FEC、Game复制、repair、health、padding、�
 
 结论：`WEAKNET_LIFECYCLE` 功能专项 COMPLETE；整体 target-rate weaknet qualification = **FAIL_CAPACITY_LIMITED**。2026-09-23 用户已明确恢复性能主线，按 WEAKNET_QUALIFICATION 第9节修复与验收；功能通过不因此关闭 P4/P5、P6/P7。
 
+
+
+2026-09-23双端退役补充：按WEAKNET_QUALIFICATION第10.4节联合验收发送备份放弃和接收缺口退休。后续业务不等待；缺口具有不因后续流量/逐洞推进重置的绝对期限和有界索引。无需逐包通知；不能伪造尾部进度/FIN，保留迟到首次交付和PeerFIN生命周期。方案待实现，不能标PASS。
