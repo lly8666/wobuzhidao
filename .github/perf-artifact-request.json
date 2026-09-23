@@ -1,0 +1,8 @@
+{
+  "artifact_id": 10742800172,
+  "source_run": 35843250922,
+  "source_job": 107123147835,
+  "source_sha": "febfcb9e4d02b21e25a172a7c6582c86f0649ccb",
+  "artifact_name": "strict-single-normal-lossless-seed601-febfcb9e4d02b21e25a172a7c6582c86f0649ccb",
+  "purpose": "extract-loss-tolerant-v1-summary-and-runtimeowner-diagnostics-without-new-sample"
+}

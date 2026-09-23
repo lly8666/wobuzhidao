@@ -1,0 +1,174 @@
+name: next-performance-artifact-reader
+
+on:
+  push:
+    branches:
+      - next/tlslike-dataplane
+    paths:
+      - .github/perf-artifact-request.json
+      - .github/workflows/next-performance-artifact-reader.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  read-existing-artifact:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load and validate request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          d=json.load(open('.github/perf-artifact-request.json', encoding='utf-8'))
+          for k in ('artifact_id','source_run','source_job','source_sha','artifact_name'):
+              if k not in d:
+                  raise SystemExit(f'missing {k}')
+          if not str(d['artifact_id']).isdigit():
+              raise SystemExit('artifact_id must be numeric')
+          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f:
+              f.write(f"ARTIFACT_ID={d['artifact_id']}\n")
+              f.write(f"SOURCE_RUN={d['source_run']}\n")
+              f.write(f"SOURCE_JOB={d['source_job']}\n")
+              f.write(f"SOURCE_SHA={d['source_sha']}\n")
+              f.write(f"EXPECTED_NAME={d['artifact_name']}\n")
+          PY
+
+      - name: Verify immutable artifact metadata
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          meta="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID")"
+          echo "$meta" | jq '{id,name,size_in_bytes,digest,expired,workflow_run}'
+          test "$(echo "$meta" | jq -r .name)" = "$EXPECTED_NAME"
+          test "$(echo "$meta" | jq -r .workflow_run.id)" = "$SOURCE_RUN"
+          test "$(echo "$meta" | jq -r .workflow_run.head_sha)" = "$SOURCE_SHA"
+          test "$(echo "$meta" | jq -r .expired)" = false
+
+      - name: Download existing artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" \
+            -o "$RUNNER_TEMP/evidence.zip"
+          ls -lh "$RUNNER_TEMP/evidence.zip"
+
+      - name: Extract summary and selected dataplane counters
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifact-reader
+          python3 - <<'PY'
+          import json, os, zipfile
+          zpath=os.path.join(os.environ['RUNNER_TEMP'],'evidence.zip')
+          wanted_suffixes=('summary-loss-tolerant-v1.json','client-diag.jsonl','server-diag.jsonl')
+          keys=[
+              'Outstanding','PeakOutstanding','Pending','Abandoned','ForgivenGaps',
+              'RepairEvictionCalls','RepairEvictionScanSteps','RepairEvictionMaxScan',
+              'FreshBlocked','FreshWindowBypass','FreshEmitFailures','RepairExpiredSkipped',
+              'RecoveryTicks','GapForgiveChecks','GapIndexSteps','GapMetadataDropped',
+              'GapExpiredForgiven','RepairEvictionNS','RepairEvictionMaxNS',
+              'FreshLockWaitNS','FreshLockWaitMaxNS','FreshCriticalNS','FreshCriticalMaxNS',
+              'OldestOutstandingAge','OldestOutOfOrderAge','FreshSent','Retransmitted',
+              'FastRepairs','RTORepairs','RepairSelected','RepairAttempts','RepairSucceeded',
+              'RepairFailures','RepairDeferred','Received','Duplicates','LateFirstArrival'
+          ]
+          def find_name(z,suffix):
+              ms=[n for n in z.namelist() if n.endswith(suffix)]
+              if len(ms)!=1:
+                  raise SystemExit(f'{suffix}: matches={ms}')
+              return ms[0]
+          def product(row, side):
+              p=row.get('product') or {}
+              if side=='server':
+                  return p.get('tunnel') if p.get('present') else None
+              return p
+          def lane_id(lane):
+              ref=lane.get('ref') or {}
+              return f"{ref.get('ID',0)}:{ref.get('Generation',0)}"
+          def diag_summary(z,name,side):
+              states={}
+              line_count=0
+              with z.open(name) as fh:
+                  for raw in fh:
+                      try:
+                          row=json.loads(raw)
+                      except Exception:
+                          continue
+                      line_count+=1
+                      p=product(row,side)
+                      if not p:
+                          continue
+                      for lane in p.get('lanes') or []:
+                          tr=lane.get('transport') or {}
+                          lid=lane_id(lane)
+                          vals={k:tr[k] for k in keys if k in tr}
+                          st=states.setdefault(lid,{'first':vals,'last':vals,'max':dict(vals)})
+                          st['last']=vals
+                          for k,v in vals.items():
+                              if isinstance(v,(int,float)):
+                                  old=st['max'].get(k)
+                                  st['max'][k]=v if not isinstance(old,(int,float)) else max(old,v)
+              for lid,st in states.items():
+                  delta={}
+                  for k,v in st['last'].items():
+                      a=st['first'].get(k)
+                      if isinstance(v,(int,float)) and isinstance(a,(int,float)):
+                          delta[k]=v-a
+                  st['delta']=delta
+              return {'lines':line_count,'lanes':states}
+          with zipfile.ZipFile(zpath) as z:
+              names={s:find_name(z,s) for s in wanted_suffixes}
+              summary=json.loads(z.read(names['summary-loss-tolerant-v1.json']))
+              out={
+                  'artifact_id':int(os.environ['ARTIFACT_ID']),
+                  'source_run':int(os.environ['SOURCE_RUN']),
+                  'source_job':int(os.environ['SOURCE_JOB']),
+                  'source_sha':os.environ['SOURCE_SHA'],
+                  'zip_entries_selected':names,
+                  'summary':summary,
+                  'diag_selected':{
+                      'client':diag_summary(z,names['client-diag.jsonl'],'client'),
+                      'server':diag_summary(z,names['server-diag.jsonl'],'server'),
+                  },
+              }
+          path='artifact-reader/artifact-summary.json'
+          with open(path,'w',encoding='utf-8') as f:
+              json.dump(out,f,indent=2,sort_keys=True)
+              f.write('\n')
+          compact={
+              'artifact_id':out['artifact_id'],
+              'source_sha':out['source_sha'],
+              'classifications':summary.get('classifications'),
+              'errors':summary.get('errors'),
+              'generator':summary.get('generator'),
+              'latency':summary.get('latency'),
+              'drain':summary.get('drain'),
+              'resource':summary.get('resource'),
+              'transport_hygiene':summary.get('transport_hygiene'),
+              'cost':summary.get('cost'),
+              'diag_selected':out['diag_selected'],
+          }
+          print('WBD_ARTIFACT_READER '+json.dumps(compact,sort_keys=True))
+          PY
+
+      - name: Upload compact extracted evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict-summary-reader-${{ env.ARTIFACT_ID }}-${{ env.SOURCE_SHA }}
+          path: artifact-reader/artifact-summary.json
+          if-no-files-found: error
+          retention-days: 30
