@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V4_PENDING_ACTIONS：V3 SOURCE_SHA a229489568827432781db0344b907d0ba2db8833 correctness/race全绿；Normal lossless run 35932693118五分类PASS、repair=0、drop=0；Normal5205 run 35933149687五分类PASS、drop=0，但20% stress FastRepairs仍=0。V3 repair diag 10781643937显示stress FastRepairArmed/Fired=0、SACKed约31.6–31.7万，但SACKedOutstanding阶段末仅0–3：current head已保留，失败点变成first-repair证据仍错误依赖“同时留在4096 pending里的3条SACKed record”。V4改为同一cumulative ACK上的3次新SACK进展事件；重复相同SACK不计，ACK前进清零；后继payload shadow无需仍存在。",
-  "next_task": "先跑V4 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle。全绿后重新独立跑Normal lossless和5205；要求lossless仍0假repair，5205 stress出现有限非零FastRepairEvidence/Armed/Fired/FastRepairs，同时FreshBlocked=0、RepairEvictionMaxScan<=1、socket/link drop=0且五分类PASS。若成立再跑Normal5305，并对比repair/abandon/forgive/ACK-control/CPU与历史689dea19。",
-  "latest_log": "docs/devlog/20260924-060000-first-repair-sack-progress-evidence.md",
+  "in_progress": "REPAIR_FOLLOWUP_V5_PENDING_ACTIONS：V4 SOURCE_SHA 60c5f0ab7ee5ebe77371985be87be2e0c893eea9 未进入性能测试；next-runtimeowner-recovery run 35936037992 在unit阶段FAIL。失败证明V4把三次SACK-progress fallback门错误放在strong-RACK immediate之前，导致原有单ACK多SACK+足够发送时间差的可靠fast-repair也被抑制。V5只恢复原strong-RACK优先级：若当前仍有>=3条SACKed shadow且transmit-time RACK达到门槛，仍立即repair；否则才要求同一cumulative ACK三次novel SACK progress后arm并跨完整recovery周期。窗口/credit/RTO/FEC/wire均不变。",
+  "next_task": "先跑V5 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；V4失败永久保留且不得发V4性能样本。V5全绿后重新独立跑Normal lossless和5205；lossless必须0假repair，5205 stress必须有限非零repair且FreshBlocked=0、drop=0、五分类PASS。",
+  "latest_log": "docs/devlog/20260924-070000-restore-strong-rack-before-sack-progress-fallback.md",
   "last_tested_source_sha": "a229489568827432781db0344b907d0ba2db8833",
   "actions": [
     {
@@ -1552,8 +1552,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED_REPAIR_FOLLOWUP_V4: V3 retained the current head but stress still had zero repair because the first-repair threshold counted only simultaneously retained SACKed shadows. V4 counts three distinct SACK-progress ACKs for one cumulative head instead.",
-    "P5": "REOPENED_REPAIR_FOLLOWUP_V4: historical qualifications remain immutable; V3 lossless/5205 are diagnostic PASS but repair-restoration objective remains unmet.",
+    "P4": "REOPENED_REPAIR_FOLLOWUP_V5: V4 runtimeowner unit failed before performance because its new SACK-progress fallback accidentally gated the pre-existing strong-RACK immediate path. V5 restores strong-RACK precedence and keeps SACK-progress only as fallback.",
+    "P5": "REOPENED_REPAIR_FOLLOWUP_V5: no V4 performance sample is valid/needed; historical samples remain preserved.",
     "P6": "STALE_FOR_CURRENT_HEAD: exact-SHA repackage PASS at 689dea19e2e1dfdccbab9c8f42210d62c4a12223 remains historical; accepted repair must requalify/repackage at its own final SOURCE_SHA.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
@@ -1813,7 +1813,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REOPENED_REPAIR_FOLLOWUP_V4_PENDING_ACTIONS",
+      "status": "REOPENED_REPAIR_FOLLOWUP_V5_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1824,9 +1824,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-060000-first-repair-sack-progress-evidence.md",
-      "note": "V3 proved pre-SACK current-head retention is necessary but insufficient. Under 20% stress, hundreds of thousands of SACKed records were observed cumulatively while no first repair armed because the >=3 gate used only currently retained SACKed shadows. V4 derives bounded first-repair evidence from three novel SACK-progress ACKs for the same cumulative head; duplicate SACKs do not count.",
-      "next_task": "先跑V4 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle。全绿后重新独立跑Normal lossless和5205；要求lossless仍0假repair，5205 stress出现有限非零FastRepairEvidence/Armed/Fired/FastRepairs，同时FreshBlocked=0、RepairEvictionMaxScan<=1、socket/link drop=0且五分类PASS。若成立再跑Normal5305，并对比repair/abandon/forgive/ACK-control/CPU与历史689dea19。",
+      "latest_log": "docs/devlog/20260924-070000-restore-strong-rack-before-sack-progress-fallback.md",
+      "note": "V4 correctness failure was caught before performance: existing strong-RACK tests expected immediate repair from one ACK carrying >=3 backed SACKed records plus sufficient transmit-time separation. V5 preserves that path and uses 3 novel SACK-progress ACKs only when strong RACK is unavailable.",
+      "next_task": "先跑V5 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；V4失败永久保留且不得发V4性能样本。V5全绿后重新独立跑Normal lossless和5205；lossless必须0假repair，5205 stress必须有限非零repair且FreshBlocked=0、drop=0、五分类PASS。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -3999,13 +3999,8 @@
       },
       "repair_followup_candidate": {
         "status": "NOT_RUN",
-        "parent_source_sha": "a229489568827432781db0344b907d0ba2db8833",
-        "design_delta": "for an un-retried cumulative head, count one evidence unit for each ACK that extends sender SACK history with genuinely novel range progress; arm at 3 evidence units; repeated identical SACK does not count; cumulative ACK resets evidence; current-head protection and all repair/fresh bounds unchanged",
-        "bounds": {
-          "evidence_max": 3,
-          "protected_head_per_lane": 1,
-          "max_outstanding": 4096
-        },
+        "parent_source_sha": "60c5f0ab7ee5ebe77371985be87be2e0c893eea9",
+        "design_delta": "strong first-repair RACK path remains immediate when >=3 currently SACKed shadows plus transmit-time reordering evidence are present; only otherwise use 3 novel SACK-progress ACKs as bounded fallback before armed persistence",
         "performance_status": "NOT_RUN"
       },
       "repair_followup_candidate_v1": {
@@ -4130,6 +4125,16 @@
           }
         ],
         "conclusion": "SAFE_BUT_RETAINED_SACK_SHADOW_COUNT_IS_WRONG_FIRST_REPAIR_EVIDENCE"
+      },
+      "repair_followup_candidate_v4": {
+        "source_sha": "60c5f0ab7ee5ebe77371985be87be2e0c893eea9",
+        "correctness": {
+          "runtimeowner_recovery": 35936037992,
+          "status": "FAIL"
+        },
+        "performance_status": "NOT_RUN",
+        "failure": "SACK-progress evidence gate incorrectly suppressed existing strong-RACK immediate first repair",
+        "preserved": true
       }
     }
   }

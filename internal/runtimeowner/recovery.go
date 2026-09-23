@@ -381,17 +381,19 @@ func (t *laneTransport) selectFastRepairLocked(now time.Time) *selectedRepair {
 		}
 		return t.prepareFastRepairLocked(candidate, now)
 	}
+	// Preserve the existing strong-RACK fast path: one ACK may SACK several
+	// still-backed later records, and sufficiently separated transmit-time
+	// evidence is already enough to identify loss without waiting for repeated
+	// scoreboard progress events.
+	if t.sackedOutstanding >= 3 && ok && evidenceAge >= t.rackReorderingWindowLocked() {
+		return t.prepareFastRepairLocked(candidate, now)
+	}
 	if t.firstRepairEvidenceAck != t.lastAck || t.firstRepairEvidence < 3 {
 		return nil
 	}
-	// Three distinct SACK-progress ACKs for the same cumulative head are
-	// sufficient scoreboard evidence for a first repair. This survives a
-	// bounded shadow window where later records may already have been evicted;
-	// repeated identical SACKs do not advance the evidence counter. Strong
-	// transmit-time RACK evidence is only the faster path.
-	if ok && evidenceAge >= t.rackReorderingWindowLocked() {
-		return t.prepareFastRepairLocked(candidate, now)
-	}
+	// Otherwise three distinct SACK-progress ACKs for the same cumulative head
+	// are the bounded fallback when later payload shadows have already been
+	// evicted. Repeated identical SACKs do not advance the evidence counter.
 	t.armFastRepairLocked(candidate)
 	return nil
 }

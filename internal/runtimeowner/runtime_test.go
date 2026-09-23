@@ -1440,7 +1440,7 @@ func TestSteadyCurrentHeadShadowSurvivesPreSACKFullWindowPressure(t *testing.T) 
 	for i := range extra {
 		extra[i].Wire = []byte{0xd0, byte(i), byte(i >> 8)}
 	}
-	if err := tr.send(extra, t0.Add(100*time.Millisecond)); err != nil {
+	if err := tr.send(extra, t0); err != nil {
 		t.Fatalf("pre-SACK pressure blocked fresh: %v", err)
 	}
 	tr.mu.Lock()
@@ -1600,7 +1600,11 @@ func TestSteadyArmedHeadRepairSurvivesFullWindowFreshEviction(t *testing.T) {
 	tr.mu.Lock()
 	head := tr.pendingAtHeadLocked()
 	start := tr.pendingOrder[1]
-	endRecord := tr.pending[tr.pendingOrder[4]]
+	ends := []uint32{
+		tr.pending[tr.pendingOrder[1]].end,
+		tr.pending[tr.pendingOrder[2]].end,
+		tr.pending[tr.pendingOrder[4]].end,
+	}
 	tr.mu.Unlock()
 	sack := faketcp.Segment{
 		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
@@ -1608,8 +1612,10 @@ func TestSteadyArmedHeadRepairSurvivesFullWindowFreshEviction(t *testing.T) {
 		Seq: cfg.ReceiveNext, Ack: head.seq,
 		Flags: faketcp.FlagACK, Window: 65535, SACKN: 1,
 	}
-	sack.SACK[0] = faketcp.SACKBlock{Start: start, End: endRecord.end}
-	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond)); err != nil { t.Fatal(err) }
+	for i, end := range ends {
+		sack.SACK[0] = faketcp.SACKBlock{Start: start, End: end}
+		if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond+time.Duration(i)*time.Millisecond)); err != nil { t.Fatal(err) }
+	}
 	fresh := make([]datapath.WireRecord, 8)
 	for i := range fresh { fresh[i].Wire = []byte{0xee, byte(i)} }
 	if err := tr.send(fresh, t0.Add(601*time.Millisecond)); err != nil {
