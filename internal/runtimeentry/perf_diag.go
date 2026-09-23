@@ -3,6 +3,8 @@ package runtimeentry
 import (
 	"sync/atomic"
 	"time"
+
+	"github.com/lly8666/wobuzhidao/internal/faketcp"
 )
 
 type DurationDiagnostic struct {
@@ -75,4 +77,70 @@ func (p *serverPipelineTiming) readyDone(bytes int, age time.Duration){p.readyCu
 func (p *serverPipelineTiming) readyCancel(bytes int){p.readyCurrent.Add(-1);p.readyBytes.Add(-int64(bytes))}
 func (p *serverPipelineTiming) snapshot(enabled bool) ServerPipelineDiagnostic {
 	return ServerPipelineDiagnostic{Enabled:enabled,Reads:p.reads.Load(),ReadGap:p.readGap.snapshot(),HandoffBlock:p.handoffBlock.snapshot(),QueueAge:p.queueAge.snapshot(),Handler:p.handler.snapshot(),Downstream:p.downstream.snapshot(),ReadyCurrent:p.readyCurrent.Load(),ReadyPeak:p.readyPeak.Load(),ReadyBytes:p.readyBytes.Load(),ReadyBytesPeak:p.readyBytesPeak.Load(),DownstreamBatches:p.downstreamBatches.Load(),DownstreamPackets:p.downstreamPackets.Load()}
+}
+
+
+type SegmentMuxRouteDiagnostic struct {
+	LocalPort    uint16             `json:"local_port"`
+	PeerPort     uint16             `json:"peer_port"`
+	Capacity     int                `json:"capacity"`
+	Current      int64              `json:"current"`
+	Peak         uint64             `json:"peak"`
+	Bytes        int64              `json:"bytes"`
+	BytesPeak    uint64             `json:"bytes_peak"`
+	FullWaits    uint64             `json:"full_waits"`
+	HandoffBlock DurationDiagnostic `json:"handoff_block"`
+	QueueAge     DurationDiagnostic `json:"queue_age"`
+}
+
+type SegmentMuxDiagnostic struct {
+	Enabled bool                        `json:"enabled"`
+	Routes  []SegmentMuxRouteDiagnostic `json:"routes"`
+}
+
+type segmentMuxQueueTiming struct {
+	current      atomic.Int64
+	peak         atomic.Uint64
+	bytes        atomic.Int64
+	bytesPeak    atomic.Uint64
+	fullWaits    atomic.Uint64
+	handoffBlock durationAccumulator
+	queueAge     durationAccumulator
+}
+
+func (q *segmentMuxQueueTiming) ready(bytes int) {
+	current := q.current.Add(1)
+	if current > 0 {
+		atomicMax(&q.peak, uint64(current))
+	}
+	currentBytes := q.bytes.Add(int64(bytes))
+	if currentBytes > 0 {
+		atomicMax(&q.bytesPeak, uint64(currentBytes))
+	}
+}
+
+func (q *segmentMuxQueueTiming) dequeue(bytes int, age time.Duration) {
+	q.current.Add(-1)
+	q.bytes.Add(-int64(bytes))
+	q.queueAge.observe(age)
+}
+
+func (q *segmentMuxQueueTiming) cancel(bytes int) {
+	q.current.Add(-1)
+	q.bytes.Add(-int64(bytes))
+}
+
+func (q *segmentMuxQueueTiming) snapshot(flow faketcp.ClientFlow, capacity int) SegmentMuxRouteDiagnostic {
+	return SegmentMuxRouteDiagnostic{
+		LocalPort: flow.LocalPort,
+		PeerPort: flow.PeerPort,
+		Capacity: capacity,
+		Current: q.current.Load(),
+		Peak: q.peak.Load(),
+		Bytes: q.bytes.Load(),
+		BytesPeak: q.bytesPeak.Load(),
+		FullWaits: q.fullWaits.Load(),
+		HandoffBlock: q.handoffBlock.snapshot(),
+		QueueAge: q.queueAge.snapshot(),
+	}
 }

@@ -162,6 +162,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	mux.SetTimingDiagnostics(*diagnosticJSONL != "")
 	defer mux.Close()
 
 	var adapter *openwrtclient.SocketAdapter
@@ -235,7 +236,13 @@ func main() {
 	if *diagnosticJSONL != "" {
 		go func() {
 			errCh <- qualificationdiag.Run(ctx, *diagnosticJSONL, *diagnosticInterval, func(now time.Time) any {
-				return client.DiagnosticSnapshot(now)
+				return struct {
+					runtimeentry.TunnelDiagnostic
+					SegmentMux runtimeentry.SegmentMuxDiagnostic `json:"segment_mux"`
+				}{
+					TunnelDiagnostic: client.DiagnosticSnapshot(now),
+					SegmentMux:       mux.DiagnosticSnapshot(),
+				}
 			})
 		}()
 	}

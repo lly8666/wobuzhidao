@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/netip"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/acceptancefault"
@@ -33,6 +34,7 @@ var (
 const (
 	rotatingSourcePortSpan  uint64 = 1024
 	defaultReplacementGrace        = 3 * time.Second
+	segmentMuxRouteDepth            = 256
 )
 
 // RotatingSourcePort allocates a bounded reusable client port window for lane
@@ -51,17 +53,25 @@ func RotatingSourcePort(base uint16, incarnation uint64) (uint16, error) {
 type SegmentMux struct {
 	base SegmentIO
 
-	mu     sync.Mutex
-	routes map[faketcp.ClientFlow]*segmentMuxRoute
-	closed bool
-	errCh  chan error
-	once   sync.Once
+	mu          sync.Mutex
+	routes      map[faketcp.ClientFlow]*segmentMuxRoute
+	closed      bool
+	errCh       chan error
+	once        sync.Once
+	diagnostics atomic.Bool
+}
+
+type segmentMuxQueued struct {
+	seg     faketcp.Segment
+	readyAt time.Time
+	bytes   int
 }
 
 type segmentMuxRoute struct {
-	in   chan faketcp.Segment
-	done chan struct{}
-	once sync.Once
+	in     chan segmentMuxQueued
+	done   chan struct{}
+	once   sync.Once
+	timing segmentMuxQueueTiming
 }
 
 func NewSegmentMux(base SegmentIO) (*SegmentMux, error) {
@@ -84,6 +94,14 @@ func (m *SegmentMux) Errors() <-chan error {
 	return m.errCh
 }
 
+// SetTimingDiagnostics enables qualification-only queue timing and occupancy
+// accounting. It never changes queue capacity, routing, or packet semantics.
+func (m *SegmentMux) SetTimingDiagnostics(enabled bool) {
+	if m != nil {
+		m.diagnostics.Store(enabled)
+	}
+}
+
 func (m *SegmentMux) Open(flow faketcp.ClientFlow) (SegmentIO, error) {
 	if m == nil {
 		return SegmentIO{}, ErrSegmentMuxClosed
@@ -92,7 +110,7 @@ func (m *SegmentMux) Open(flow faketcp.ClientFlow) (SegmentIO, error) {
 		return SegmentIO{}, err
 	}
 	route := &segmentMuxRoute{
-		in:   make(chan faketcp.Segment, 256),
+		in:   make(chan segmentMuxQueued, segmentMuxRouteDepth),
 		done: make(chan struct{}),
 	}
 	m.mu.Lock()
@@ -112,8 +130,11 @@ func (m *SegmentMux) Open(flow faketcp.ClientFlow) (SegmentIO, error) {
 			select {
 			case <-route.done:
 				return faketcp.Segment{}, io.EOF
-			case seg := <-route.in:
-				return seg, nil
+			case queued := <-route.in:
+				if m.diagnostics.Load() {
+				route.timing.dequeue(queued.bytes, time.Since(queued.readyAt))
+				}
+				return queued.seg, nil
 			}
 		},
 		Emit: func(seg faketcp.Segment) error {
@@ -161,9 +182,27 @@ func (m *SegmentMux) readLoop() {
 		}
 		copySeg := seg
 		copySeg.Payload = append([]byte(nil), seg.Payload...)
+		queued := segmentMuxQueued{seg: copySeg}
+		diagnostics := m.diagnostics.Load()
+		var handoffStarted time.Time
+		if diagnostics {
+			queued.readyAt = time.Now()
+			queued.bytes = len(copySeg.Payload)
+			route.timing.ready(queued.bytes)
+			if len(route.in) == cap(route.in) {
+				route.timing.fullWaits.Add(1)
+			}
+			handoffStarted = queued.readyAt
+		}
 		select {
 		case <-route.done:
-		case route.in <- copySeg:
+			if diagnostics {
+				route.timing.cancel(queued.bytes)
+			}
+		case route.in <- queued:
+			if diagnostics {
+				route.timing.handoffBlock.observe(time.Since(handoffStarted))
+			}
 		}
 	}
 }
@@ -1064,7 +1103,7 @@ func (s *LifecycleServer) Run(ctx context.Context) error {
 		return ErrEndpointConfig
 	}
 	defer s.Close()
-	readCh := make(chan segmentRead, 1)
+	readCh := newServerReadQueue()
 	go func() {
 		var previousRead time.Time
 		for {

@@ -1,6 +1,7 @@
 package runtimeentry
 
 import (
+	"sort"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/datapath"
@@ -99,4 +100,24 @@ func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, no
 		ReplacementGrace: s.cfg.ReplacementGrace.String(),
 	}
 	return out, true
+}
+
+
+func (m *SegmentMux) DiagnosticSnapshot() SegmentMuxDiagnostic {
+	if m == nil {
+		return SegmentMuxDiagnostic{}
+	}
+	out := SegmentMuxDiagnostic{Enabled: m.diagnostics.Load()}
+	m.mu.Lock()
+	for flow, route := range m.routes {
+		out.Routes = append(out.Routes, route.timing.snapshot(flow, cap(route.in)))
+	}
+	m.mu.Unlock()
+	sort.Slice(out.Routes, func(i, j int) bool {
+		if out.Routes[i].LocalPort != out.Routes[j].LocalPort {
+			return out.Routes[i].LocalPort < out.Routes[j].LocalPort
+		}
+		return out.Routes[i].PeerPort < out.Routes[j].PeerPort
+	})
+	return out
 }

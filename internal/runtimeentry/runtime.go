@@ -444,6 +444,12 @@ func NewServer(cfg ServerConfig) (*Server, error) {
 	}, nil
 }
 
+const serverReadQueueDepth = 256
+
+func newServerReadQueue() chan segmentRead {
+	return make(chan segmentRead, serverReadQueueDepth)
+}
+
 type segmentRead struct {
 	seg     faketcp.Segment
 	err     error
@@ -455,7 +461,7 @@ func (s *Server) Run(ctx context.Context) error {
 		return ErrEndpointConfig
 	}
 	defer s.Close()
-	readCh := make(chan segmentRead, 1)
+	readCh := newServerReadQueue()
 	go func() {
 		for {
 			seg, err := s.cfg.IO.Read()

@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "Game4共享500ms双向黑洞专项也已通过：SOURCE_SHA e5e12558 / run 35856226845 / job 107165229100，shared-blackhole-v1五类全PASS。实际黑洞500.005742ms；解除并加300ms传播后的expected-resume点起，两方向约8.233ms即重新有数据并立即出现完整1s >=99%目标wall-goodput窗口；最长零交付约510ms；socket/link drop=0、drain late bytes=0。100ms/500ms共享短黑洞专项均PASS。正在建立同一最终SOURCE_SHA的18份主测资格中继，固定seed=101/202/303。",
-  "next_task": "等待final-qualification relay attempt1、repository contract、targeted/foundation通过。随后connector反复重跑同一个relay job；每次只dispatch当前最终SHA下第一条缺失strict样本。先跑Game5205/seed101和Game5305/seed101两个未覆盖canary；通过后补齐同一SHA的18份主测。18份全部完成前不推进branch HEAD。",
-  "latest_log": "docs/devlog/20260923-220000-blackhole-500ms-pass-final18-relay.md",
-  "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
+  "in_progress": "FINAL18_PAUSED_RECEIVE_PIPELINE_FIX：固定HEAD b0f5386c 的前5份样本中，Game5205/101、Normal lossless/101、Game lossless/101全PASS；Game5305/101因client AF_PACKET单秒1070 drops、Normal5205/101因server AF_PACKET单秒58 drops被保留为CAPACITY_LIMITED。只读artifact诊断证明两者均非link/qdisc/capture drop，且FreshBlocked/FreshEmitFailures=0、RepairEvictionMaxScan=1。Normal5205 server drop前socket rmem已到725184/1048576，drop对应server pipeline新出现约11.6ms handler/handoff/queue-age停顿；容量1 read handoff会在该短停顿期间停止drain。现暂停最终18份，修复server有界短突发接收解耦，并给client SegmentMux补只读队列占用/年龄/满队列等待诊断。",
+  "next_task": "提交server receive handoff 256槽有界burst queue（仍满即背压、不静默丢包）+ SegmentMux qualification-only diagnostics；先跑repository/targeted/foundation含Linux race。通过后只跑一条Normal5205目标样本验证server AF_PACKET drops=0；再跑一条Game5305目标/诊断样本，依据SegmentMux peak/full_waits/queue_age决定client是否需要第二个最小修复。新产品SHA需重新开始18份最终资格，b0f5386c部分矩阵永久保留为历史证据。",
+  "latest_log": "docs/devlog/20260923-224500-final18-receive-burst-diagnosis.md",
+  "last_tested_source_sha": "b0f5386cd468903507c68fb4b7986fff318d70de",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1382,6 +1382,20 @@
       "scope": "performance-capacity/normal10-seed631-pending-payload-clone",
       "status": "CAPACITY_LIMITED",
       "note": "4 CPUs ~99.1% busy, PSI some avg10 52.8, CPU ~119.03/115.35s, PeakOutstanding=4096, first pressure ~1-2s, Abandoned ~4s, then local AF_PACKET/UDP drops."
+    },
+    {
+      "source_sha": "b0f5386cd468903507c68fb4b7986fff318d70de",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35859842587",
+      "scope": "final18-game-5305-seed101",
+      "status": "CAPACITY_LIMITED",
+      "note": "CORRECTNESS/INPUT_VALIDITY/CAPTURE PASS；ENVIRONMENT FAIL，仅client AF_PACKET在stress单个1s采样间隔累计1070 drops。link/qdisc=0；performance errors为空；transport FreshBlocked/FreshEmitFailures=0、RepairEvictionMaxScan=1。"
+    },
+    {
+      "source_sha": "b0f5386cd468903507c68fb4b7986fff318d70de",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35864958803",
+      "scope": "final18-normal-5205-seed101",
+      "status": "CAPACITY_LIMITED",
+      "note": "CORRECTNESS/INPUT_VALIDITY/CAPTURE PASS；ENVIRONMENT FAIL，仅server AF_PACKET在post单个1s采样间隔累计58 drops。drop前server rmem 725184/1048576；pipeline同点出现约11.6ms handler/handoff/queue-age最大值。performance errors为空。"
     }
   ],
   "physical_status": "NOT_RUN",
