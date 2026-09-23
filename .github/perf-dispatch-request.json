@@ -1,0 +1,11 @@
+{
+  "workflow": "next-strict-weaknet.yml",
+  "ref": "next/tlslike-dataplane",
+  "mode": "normal",
+  "scenario": "lossless",
+  "seed": "601",
+  "rate_mbps": "10",
+  "lanes": "1",
+  "acceptance": "loss-tolerant-v1",
+  "expected_product_sha": "610d5092886a160685f8a9d0ecc8fad139fa5bae"
+}

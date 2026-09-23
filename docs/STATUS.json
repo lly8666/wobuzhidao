@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "sender/receiver有界recovery实现已在6c4169f7取得runtimeowner unit/race、foundation、lifecycle、p4 steady targeted全绿；未改变wire或参数。下一阶段进入单run单样本性能资格，首样本为Normal/ lossless/seed601/10Mbps/1lane/FEC20:20。性能整体仍未达标。",
-  "next_task": "手动workflow_dispatch next-strict-weaknet，第一条输入mode=normal, scenario=lossless, seed=601, rate_mbps=10, lanes=1；完成后记录run/job/artifact和loss-tolerant-v1结果，再独立dispatch game/lossless/601/3/4。不要同一run做A/B。若样本FAIL，保留原始artifact并按新计数定位，不改门槛追溯变绿。",
-  "latest_log": "docs/devlog/20260923-152255-receiver-gap-retirement-plan.md",
+  "in_progress": "性能恢复正确性仍全绿；Actions手动入口问题已定位为workflow_dispatch文件未存在默认分支。main已用850be978注册next-strict-weaknet；active branch正在加入受控dispatch relay：push首跑只武装，只有connector重跑该job后才发workflow_dispatch，并按head SHA去重。首个Normal无损性能样本仍NOT_RUN。",
+  "next_task": "等待next-performance-dispatch-relay首跑成功后，由connector重跑该relay job触发且仅触发一次normal/lossless/seed601/10Mbps/1lane；随后读取strict run/job/artifact与loss-tolerant-v1结果。",
+  "latest_log": "docs/devlog/20260923-183000-actions-dispatch-relay.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1695,9 +1695,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-181500-bounded-recovery-correctness-pass.md",
-      "note": "610d5092产品实现 + 6c4169f7测试计数修正已取得 hosted 正确性全绿：next-runtimeowner-recovery run 35840386207 PASS（unit+race）；next-lifecycle run 35840386203 PASS；next-p4-steady-targeted run 35840386132 PASS（Linux/Windows steady、Linux race、lifecycle-focus、iptables/nft）；next-foundation run 35840386237 PASS（repository contract + one-sample policy、Linux/Windows active-go、Linux race/fuzz/vector、P2/privileged）。610d5092首轮失败保留为测试累计计数口径错误证据。尚无新性能样本，因此不宣称吞吐/CPU/弱网改善。",
-      "next_task": "手动workflow_dispatch next-strict-weaknet，第一条输入mode=normal, scenario=lossless, seed=601, rate_mbps=10, lanes=1；完成后记录run/job/artifact和loss-tolerant-v1结果，再独立dispatch game/lossless/601/3/4。不要同一run做A/B。若样本FAIL，保留原始artifact并按新计数定位，不改门槛追溯变绿。",
+      "latest_log": "docs/devlog/20260923-183000-actions-dispatch-relay.md",
+      "note": "610d5092产品实现 + 6c4169f7测试计数修正的hosted正确性证据保持有效。新增Actions控制面修复：默认分支main原先没有next-strict-weaknet.yml，因此GitHub不会接收workflow_dispatch；850be978仅注册同名默认分支占位工作流。active branch新增受控relay，push attempt1只校验并武装，connector重跑attempt>=2才调用workflow_dispatch；每个请求独立提交SHA并先查同SHA既有dispatch run去重。该机制不改变产品、wire、参数或one-run-one-sample性能政策。性能仍NOT_RUN。",
+      "next_task": "由connector重跑本次next-performance-dispatch-relay job；relay确认branch HEAD仍等于其GITHUB_SHA后，dispatch next-strict-weaknet normal/lossless/601/10/1。完成后保留原始artifact并按loss-tolerant-v1落账，再决定是否进入独立Game无损样本。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -1857,7 +1857,24 @@
           "fec": "20:20",
           "status": "NOT_RUN"
         }
-      ]
+      ],
+      "actions_dispatch_relay": {
+        "default_branch_registration_sha": "850be97845e737affa13e9e7a5b3d216e6fd47ae",
+        "default_branch": "main",
+        "relay_workflow": ".github/workflows/next-performance-dispatch-relay.yml",
+        "request_file": ".github/perf-dispatch-request.json",
+        "semantics": "push attempt1 arms only; rerun attempt>=2 dispatches; exact-head guard; one dispatch per request HEAD via head_sha de-duplication",
+        "status": "ARMING_FIRST_REQUEST",
+        "request": {
+          "workflow": "next-strict-weaknet.yml",
+          "ref": "next/tlslike-dataplane",
+          "mode": "normal",
+          "scenario": "lossless",
+          "seed": "601",
+          "rate_mbps": "10",
+          "lanes": "1"
+        }
+      }
     }
   }
 }

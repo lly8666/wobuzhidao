@@ -1,0 +1,93 @@
+name: next-performance-dispatch-relay
+
+on:
+  push:
+    branches:
+      - next/tlslike-dataplane
+    paths:
+      - .github/perf-dispatch-request.json
+      - .github/workflows/next-performance-dispatch-relay.yml
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  relay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate and load request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, re
+          p = '.github/perf-dispatch-request.json'
+          with open(p, 'r', encoding='utf-8') as f:
+              d = json.load(f)
+          required = ['workflow','ref','mode','scenario','seed','rate_mbps','lanes']
+          missing = [k for k in required if k not in d]
+          if missing:
+              raise SystemExit(f'missing keys: {missing}')
+          if d['workflow'] != 'next-strict-weaknet.yml':
+              raise SystemExit('only next-strict-weaknet.yml may be dispatched')
+          if d['ref'] != 'next/tlslike-dataplane':
+              raise SystemExit('unexpected ref')
+          if d['scenario'] not in {'lossless','5205','5305'}:
+              raise SystemExit('unexpected scenario')
+          if not re.fullmatch(r'[0-9]+', str(d['seed'])):
+              raise SystemExit('seed must be decimal')
+          if d['mode'] == 'normal':
+              if str(d['rate_mbps']) != '10' or str(d['lanes']) != '1':
+                  raise SystemExit('Normal qualification must be 10Mbps/1lane')
+          elif d['mode'] == 'game':
+              if str(d['rate_mbps']) != '3' or str(d['lanes']) != '4':
+                  raise SystemExit('Game qualification must be 3Mbps/4lanes')
+          else:
+              raise SystemExit('unexpected mode')
+          env = os.environ['GITHUB_ENV']
+          with open(env, 'a', encoding='utf-8') as out:
+              for key, name in [('workflow','PERF_WORKFLOW'),('ref','PERF_REF'),('mode','PERF_MODE'),('scenario','PERF_SCENARIO'),('seed','PERF_SEED'),('rate_mbps','PERF_RATE'),('lanes','PERF_LANES')]:
+                  out.write(f'{name}={d[key]}\n')
+          PY
+
+      - name: Require exact branch head
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote_sha="$(git ls-remote origin "refs/heads/$PERF_REF" | awk '{print $1}')"
+          echo "relay_sha=$GITHUB_SHA remote_sha=$remote_sha attempt=$GITHUB_RUN_ATTEMPT"
+          test -n "$remote_sha"
+          test "$remote_sha" = "$GITHUB_SHA"
+
+      - name: Arm first attempt or dispatch on rerun
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_RUN_ATTEMPT" = "1" ]; then
+            echo "ARMED_ONLY: first attempt never dispatches a performance sample"
+            exit 0
+          fi
+
+          existing="$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/$PERF_WORKFLOW/runs" \
+            -f event=workflow_dispatch -f branch="$PERF_REF" -f per_page=100 \
+            --jq '.workflow_runs[].head_sha' | grep -Fx "$GITHUB_SHA" | head -n1 || true)"
+          if [ -n "$existing" ]; then
+            echo "ALREADY_DISPATCHED_FOR_HEAD=$GITHUB_SHA"
+            exit 0
+          fi
+
+          gh workflow run "$PERF_WORKFLOW" --ref "$PERF_REF" \
+            -f mode="$PERF_MODE" \
+            -f scenario="$PERF_SCENARIO" \
+            -f seed="$PERF_SEED" \
+            -f rate_mbps="$PERF_RATE" \
+            -f lanes="$PERF_LANES"
+          echo "DISPATCHED: $PERF_WORKFLOW $PERF_MODE/$PERF_SCENARIO seed=$PERF_SEED rate=$PERF_RATE lanes=$PERF_LANES head=$GITHUB_SHA"
