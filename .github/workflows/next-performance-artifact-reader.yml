@@ -98,7 +98,7 @@ jobs:
           def parse_skmem(text):
               import re
               out={'rmem_alloc':0,'rcv_buf':0,'drops':0}
-              for body in re.findall(r"skmem:\\(([^\\n)]*)\\)", text or ''):
+              for body in re.findall(r"skmem:\(([^\n)]*)\)", text or ''):
                   fields={}
                   for token in body.split(','):
                       token=token.strip()

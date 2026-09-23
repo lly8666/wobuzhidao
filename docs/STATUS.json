@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "Normal 5205有效样本已完成：SOURCE_SHA ef7a30bc / run 35846947558 / job 107135275382。CORRECTNESS/INPUT_VALIDITY/CAPTURE均PASS，performance_errors为空，20% stress两方向最终业务loss=0且约10Mbps，post5 offset=1s；但ENVIRONMENT=FAIL，因为server AF_PACKET socket本机累计drops=164，所以PERFORMANCE=CAPACITY_LIMITED。暂停5305，正在用零采样artifact-reader定位这164个drop的阶段/时刻并对齐rmem、CPU与runtimeowner计数。",
-  "next_task": "读取full artifact 10744205038的resources.jsonl/client-diag/server-diag：定位server ss_packet drop=164发生阶段与burst形态。若是产品可复现接收停顿则定向修复；若仅runner瞬时环境异常则保留本run CAPACITY_LIMITED并用同配置独立新run复核，不降低环境门槛。",
-  "latest_log": "docs/devlog/20260923-194500-normal-5205-capacity-limited-drop-trace.md",
+  "in_progress": "Normal 5205仍为有效CAPACITY_LIMITED_ENVIRONMENT：原analyzer记录server AF_PACKET drops=164。首版零采样drop-trace reader run 35847693601因新加parse_skmem正则被双重转义，错误输出timeline=0；该reader错误不影响原summary/classification。正在只修诊断reader正则并对同一immutable artifact 10744205038重跑。",
+  "next_task": "重跑artifact-reader解析同一5205 full artifact，得到server AF_PACKET drop=164的真实stage/time/rmem/CPU/nearest transport timeline；5305继续暂停。",
+  "latest_log": "docs/devlog/20260923-195500-drop-trace-regex-fix.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1695,9 +1695,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-194500-normal-5205-capacity-limited-drop-trace.md",
-      "note": "Normal 5205 run 35846947558 / job 107135275382为有效样本。CORRECTNESS=PASS INPUT_VALIDITY=PASS CAPTURE=PASS ENVIRONMENT=FAIL PERFORMANCE=CAPACITY_LIMITED；唯一environment error为server/ss_packet skmem drop max=164。performance_errors=[]：20% stress阶段c2s/s2c final packet+byte loss均0，eventual/wall goodput约10Mbps；post5 offset=1s；probe timeout=0；late_after_10s=0。FEC/forgiveness/abandon按loss-tolerant策略工作，repair量很小（c2s outer 51188B, s2c 41243B）。本机drop门槛不放宽，暂停5305并抽取drop timeline。",
-      "next_task": "零采样artifact-reader定位164个server AF_PACKET drops的stage/time/rmem/CPU及nearest transport counters。证据支持产品停顿则修路径；若是单次runner异常则同配置新run复核，原CAPACITY_LIMITED保持。",
+      "latest_log": "docs/devlog/20260923-195500-drop-trace-regex-fix.md",
+      "note": "Normal 5205 run 35846947558 / job 107135275382为有效样本。CORRECTNESS=PASS INPUT_VALIDITY=PASS CAPTURE=PASS ENVIRONMENT=FAIL PERFORMANCE=CAPACITY_LIMITED；唯一environment error为server/ss_packet skmem drop max=164。performance_errors=[]：20% stress阶段c2s/s2c final packet+byte loss均0，eventual/wall goodput约10Mbps；post5 offset=1s；probe timeout=0；late_after_10s=0。FEC/forgiveness/abandon按loss-tolerant策略工作，repair量很小（c2s outer 51188B, s2c 41243B）。本机drop门槛不放宽，暂停5305并抽取drop timeline。 首版drop-trace reader run 35847693601 / job 107137720595的timeline=0是reader新增正则过度转义造成的诊断解析错误，不改变原analyzer对server/ss_packet drops=164的ENVIRONMENT FAIL。修复reader后对同一immutable artifact重读。",
+      "next_task": "修复后的零采样reader重新解析artifact 10744205038；只有drop timeline可信后再决定产品修复或同配置环境复核。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -2230,7 +2230,14 @@
           "size_bytes": 723324771,
           "digest": "sha256:ab9027b595b2d22f6a6f152315c63cf47aa91e1e217195274948872af57647ea"
         },
-        "detail_status": "DROP_TIMELINE_READER_PENDING"
+        "detail_status": "DROP_TIMELINE_READER_REGEX_FIX_PENDING",
+        "artifact_reader_first_attempt": {
+          "run": 35847693601,
+          "job": 107137720595,
+          "artifact_id": 10743963701,
+          "result": "DIAGNOSTIC_READER_PARSE_BUG",
+          "bug": "parse_skmem regex overescaped; timeline incorrectly reported zero while canonical analyzer reported 164"
+        }
       }
     }
   }
