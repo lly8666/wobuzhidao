@@ -2,14 +2,14 @@
   "workflow": "next-strict-weaknet.yml",
   "ref": "next/tlslike-dataplane",
   "mode": "normal",
-  "scenario": "5205",
+  "scenario": "5305",
   "seed": "601",
   "rate_mbps": "10",
   "lanes": "1",
   "acceptance": "loss-tolerant-v1",
   "expected_product_sha": "610d5092886a160685f8a9d0ecc8fad139fa5bae",
-  "request_revision": 6,
-  "request_reason": "repeat-normal-5205-after-single-post-stage-local-drop-burst",
-  "previous_qualification_run": 35846947558,
+  "request_revision": 7,
+  "request_reason": "normal-5205-independent-retest-pass-proceed-normal-5305",
+  "previous_qualification_run": 35848478219,
   "expected_analysis_revision": "path-delay-aligned-wall-v2"
 }

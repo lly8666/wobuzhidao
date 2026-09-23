@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "Normal 5205首个有效样本仍为CAPACITY_LIMITED_ENVIRONMENT，但零采样reader已定位server AF_PACKET 164 drops为单次burst：全部发生在post阶段t≈115.045s，stress阶段drop=0。drop样本server rmem=344896/1048576、client rmem=46592/1048576，CPU delta约client0.80s/server0.83s，procs_running=12，loadavg≈6；runtimeowner同时FreshBlocked=0、FreshEmitFailures=0、RepairEvictionMaxScan=1。证据不支持旧全窗扫描/HOL回归，但1s采样不足以排除亚秒级本机队列峰值。现在武装同配置独立5205复核。",
-  "next_task": "由connector重跑本提交的dispatch relay，发起第二条独立normal/5205/seed601/10Mbps/1lane样本。若新run ENVIRONMENT PASS且其它门PASS，则保留首run CAPACITY_LIMITED并进入5305；若再次出现server AF_PACKET local drop，则停止扩展场景并定向修接收路径。",
-  "latest_log": "docs/devlog/20260923-201500-normal-5205-drop-burst-retest-arm.md",
+  "in_progress": "Normal 5205第二条独立复核样本在SOURCE_SHA 3184b5b9 / run 35848478219 / job 107140260911通过：CORRECTNESS/INPUT_VALIDITY/CAPTURE/ENVIRONMENT/PERFORMANCE全PASS。首条run 35846947558因post阶段单次server AF_PACKET 164-drop burst保持CAPACITY_LIMITED_ENVIRONMENT原样保留。复核run socket/link drop=0；20% stress实际注入c2s=19.9707%、s2c=20.0531%，两方向最终packet/byte loss=0、delay-aligned wall约10Mbps；post5 offset=1s；10s drain无late bytes。现在按§10.2进入独立Normal 5→30→5样本。",
+  "next_task": "等待本提交next-performance-dispatch-relay attempt1成功后，由connector重跑relay触发normal/5305/seed601/rate10/lanes1；读取compact summary与full artifact。若5305 PASS，再按资格规范继续后续短突发/共享黑洞与最终多seed主测，不提前关闭性能主线。",
+  "latest_log": "docs/devlog/20260923-204500-normal-5205-retest-pass-arm-5305.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1684,7 +1684,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "NORMAL_5205_CAPACITY_LIMITED_RETEST_PENDING",
+      "status": "NORMAL_5205_PASS_NORMAL_5305_PENDING",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1695,9 +1695,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-201500-normal-5205-drop-burst-retest-arm.md",
-      "note": "drop-trace第三版reader run 35848209565 / job 107139379607 / artifact 10744351636成功定位：server AF_PACKET 164 drops全部为单次post-stage burst，elapsed=115.045s；pre=0 stress=0 post=164。该样本server packet rmem=344896/1048576(0.329)，client=46592/1048576(0.044)，client/server CPU delta=0.80/0.83s，procs_running=12，loadavg=6.00。nearest runtimeowner双方Outstanding=4096但FreshBlocked=0、FreshEmitFailures=0、FreshWindowBypass=0、RepairEvictionMaxScan=1；未见旧O(N)扫描或fresh admission阻塞证据。1s采样不能排除瞬时rmem峰值，因此不宣称纯runner异常，先同配置独立复核。",
-      "next_task": "独立重跑Normal 5205同输入同产品。若local socket drop归零且五类全PASS，首个CAPACITY_LIMITED作为环境异常保留并继续5305；若本机drop复现则做接收路径性能修复。",
+      "latest_log": "docs/devlog/20260923-204500-normal-5205-retest-pass-arm-5305.md",
+      "note": "Normal 5205独立复核PASS：SOURCE_SHA 3184b5b97473e23b01f7e11a2a39afa2528a3e60，run 35848478219，job 107140260911。五类classification全PASS，errors全空。qdisc实际loss c2s pre/stress/post=4.9901/19.9707/5.0039%，s2c=5.0548/20.0531/5.0121%；业务每阶段packet/byte loss均0，stress delay-aligned wall c2s=10.000384、s2c=9.9997845Mbps；post5 offset=1s，drain late bytes=0。socket/link drops全0，server AF_PACKET max rmem ratio=0.1255。首条5205 run 35846947558的164 local drops保持CAPACITY_LIMITED_ENVIRONMENT原证据，不追溯改绿。",
+      "next_task": "发起独立Normal 5305同seed/速率/FEC。若有效PASS，再继续短突发/共享黑洞和最终规范要求；若FAIL，先按summary/recovery/resource证据定向分析。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -1862,13 +1862,15 @@
           "rate_mbps": "10",
           "lanes": "1",
           "fec": "20:20",
-          "status": "CAPACITY_LIMITED_ENVIRONMENT",
-          "source_sha": "ef7a30bcfe53dcad767e5bffd09c2be8980f2cab",
-          "run": 35846947558,
-          "job": 107135275382,
-          "artifact_id": 10744205038,
-          "summary_artifact_id": 10743164327,
-          "analysis_revision": "path-delay-aligned-wall-v2"
+          "status": "PASS_AFTER_ENVIRONMENT_RETEST",
+          "source_sha": "3184b5b97473e23b01f7e11a2a39afa2528a3e60",
+          "run": 35848478219,
+          "job": 107140260911,
+          "artifact_id": 10744995519,
+          "summary_artifact_id": 10745085717,
+          "analysis_revision": "path-delay-aligned-wall-v2",
+          "prior_capacity_limited_run": 35846947558,
+          "prior_capacity_limited_artifact_id": 10744205038
         },
         {
           "workflow": "next-strict-weaknet",
@@ -1878,7 +1880,7 @@
           "rate_mbps": "10",
           "lanes": "1",
           "fec": "20:20",
-          "status": "NOT_RUN_BLOCKED_BY_5205_ENVIRONMENT"
+          "status": "ARMING"
         }
       ],
       "actions_dispatch_relay": {
@@ -1887,12 +1889,12 @@
         "relay_workflow": ".github/workflows/next-performance-dispatch-relay.yml",
         "request_file": ".github/perf-dispatch-request.json",
         "semantics": "push attempt1 arms only; rerun attempt>=2 dispatches; exact-head guard; one dispatch per request HEAD via head_sha de-duplication",
-        "status": "ARMING_NORMAL_5205_RETEST",
+        "status": "ARMING_NORMAL_5305",
         "request": {
           "workflow": "next-strict-weaknet.yml",
           "ref": "next/tlslike-dataplane",
           "mode": "normal",
-          "scenario": "5205",
+          "scenario": "5305",
           "seed": "601",
           "rate_mbps": "10",
           "lanes": "1"
@@ -2294,6 +2296,120 @@
               "RepairEvictionMaxScan": 1
             }
           }
+        }
+      },
+      "normal_5205_retest": {
+        "source_sha": "3184b5b97473e23b01f7e11a2a39afa2528a3e60",
+        "workflow": "next-strict-weaknet",
+        "run": 35848478219,
+        "job": 107140260911,
+        "input": {
+          "mode": "normal",
+          "scenario": "5205",
+          "seed": "601",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "fec": "20:20",
+          "one_way_delay_ms": 300
+        },
+        "sample_collection": "PASS",
+        "analysis_version": "loss-tolerant-v1",
+        "analysis_revision": "path-delay-aligned-wall-v2",
+        "analyzer_git_blob": "ee768e95c986203f9380a1bd95aa7d83baea803c",
+        "analyzer_sha256": "3e38a75530e7dcd51c27fb4fdfcefaa340bad1e9900162e2e5e22077ad4697d2",
+        "classifications": {
+          "CORRECTNESS": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "CAPTURE": "PASS",
+          "ENVIRONMENT": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "correctness": [],
+          "input": [],
+          "capture": [],
+          "environment": [],
+          "performance": []
+        },
+        "injection_loss_percent": {
+          "c2s": {
+            "pre": 4.9900530940806025,
+            "stress": 19.970720344162405,
+            "post": 5.003883019477643
+          },
+          "s2c": {
+            "pre": 5.054821789686552,
+            "stress": 20.053052259282392,
+            "post": 5.01207493493603
+          }
+        },
+        "stress": {
+          "c2s": {
+            "actual_send_mbps": 9.999978666666665,
+            "eventual_goodput_mbps": 9.999978666666665,
+            "packet_loss_percent": 0,
+            "delay_aligned_wall_mbps": 10.000384
+          },
+          "s2c": {
+            "actual_send_mbps": 10.0000128,
+            "eventual_goodput_mbps": 10.0000128,
+            "packet_loss_percent": 0,
+            "delay_aligned_wall_mbps": 9.999784533333333
+          }
+        },
+        "post5": {
+          "offset_s": 1
+        },
+        "drain": {
+          "late_after_10s_bytes": 0
+        },
+        "resource": {
+          "socket_drop_max": 0,
+          "link_drop_all_zero": true,
+          "server_packet_socket_max_rmem_ratio": 0.12548828125,
+          "process_cpu_seconds": {
+            "client": 79.21,
+            "server": 81.4
+          }
+        },
+        "recovery": {
+          "c2s_stress": {
+            "abandoned": 78082,
+            "forgiven_gaps": 62237,
+            "repair_segments": 0,
+            "fec_recovered_sources": 39083
+          },
+          "s2c_stress": {
+            "abandoned": 78828,
+            "forgiven_gaps": 62695,
+            "repair_segments": 0,
+            "fec_recovered_sources": 39328
+          }
+        },
+        "cost_outer_ip_per_app_raw_input": {
+          "c2s": 5.229700666666667,
+          "s2c": 5.362079706666667
+        },
+        "repair_outer_ip_bytes": {
+          "c2s": 65246,
+          "s2c": 69652
+        },
+        "transport_hygiene": "REVIEW_NON_GATING",
+        "summary_artifact": {
+          "id": 10745085717,
+          "size_bytes": 6602,
+          "digest": "sha256:4da09a66ae48ef8b623e9e2c02393e37c3023305a1112d79ee4d88d827a46ec3"
+        },
+        "full_artifact": {
+          "id": 10744995519,
+          "size_bytes": 723459269,
+          "digest": "sha256:7d3aad76b2fee83549824047e0220e24c64f6a4b0c3f40f1e4827f1c4a28d7a8"
+        },
+        "prior_environment_limited_preserved": {
+          "run": 35846947558,
+          "job": 107135275382,
+          "artifact_id": 10744205038,
+          "server_packet_socket_drops": 164
         }
       }
     }
