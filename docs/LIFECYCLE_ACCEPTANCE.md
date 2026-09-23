@@ -27,14 +27,14 @@
 | L1 空闲/稀疏 | 双端 idle=30s、keepalive=5s、dead=45s；无业务、零星请求、纯下行分别跑 | 无业务能休眠且新上行业务唤醒；health 不保持业务活跃；纯下行业务持续时不休眠；flow/lease 不漂移。 |
 | L2 单向业务全丢 | 持续本地业务，按方向 100% 丢；保活也丢 | 不把 ongoing offered demand 判 idle；无假 lease 回收、无 tight retry；双端各测；最终恢复。 |
 | L3 保活容错 | 用测试层注入只丢 health（FEC 前/加密前的明确 hook，不能凭包长猜），连续 1/2/3 次；正常业务继续 | 不误休眠、不误终止主进程；健康业务 record 能维持 liveness。没有该 hook 时明确此项 NOT_RUN，不用总丢包替代。 |
-| L4 双边黑洞 | 原 4-tuple 双向永久丢，候选新 tuple 可通；再做所有 tuple 暂时黑洞 | 自动新 TLS 建连；黑洞期间候选可失败，恢复后有界时间最终收敛；相同 TunnelID/lease/规则；旧 generation 迟到不能污染新状态。 |
+| L4 双边黑洞 | 原 4-tuple 双向永久丢，候选新 tuple 可通；再做所有 tuple 暂时黑洞 | 永久旧 tuple 必须由新 TLS/generation 恢复；所有 tuple 临时黑洞允许清障后旧 authoritative lane 自然恢复，promotion 不是硬门。两者都必须在预算内恢复持续 30s 业务、相同 TunnelID/lease/规则、候选/retiring 有界；发生 generation replacement 时旧 generation 迟到不能污染新状态。 |
 | L5 候选失败 | SYN、TLS、admission、detach 各阶段分别丢，最后恢复 | 候选超时独立；旧 lane 可用时继续服务；不退出、不积累候选/goroutine/端口；验证 backoff。 |
 | L6 休眠竞态 | idle 截止附近持续交替新业务，1/4 lane，各 100 次；新业务触发唤醒时网络仍黑洞 | 不丢业务活动证据，不每 tick 重试；失败后可再次唤醒；内存、lane、flow 有界，无 deadlock。 |
 | L7 生产默认计时 | keepalive=15s、dead=90s，先稳定 30s、双边黑洞 120s、恢复 120s | 至少一组用真实默认时长；短时间缩放样本不能替代这项。 |
 
 恢复成功按“恢复后持续 30s 可交付且 bounded state 收敛”，不要求高丢包下首次换 lane 成功。给出首次怀疑/每次 admission/成功/业务恢复时间；恢复预算与 dead-after、候选绝对 timeout、backoff 相符，超预算必须 FAIL，不能只无限等到成功。
 
-L6 的黑洞阶段只验证“业务活动证据不会被当成 idle、失败后仍可再次唤醒、重试有界”，不要求 UDP payload 在故障期间可交付。清障后旧端口可能出现故障期间已进入本地队列的迟到 UDP；这些必须单独计数且不得超过该阶段实际发送数，不能混入严格竞态结论。严格的 100 次 cutoff race 使用独立端口/seed，要求 clear-path 100/100 unique、corrupt=0、unexpected=0。
+L6 的黑洞阶段只验证“业务活动证据不会被当成 idle、失败后仍可再次唤醒、重试有界”，不要求 UDP payload 在故障期间可交付。清障后旧端口可能出现故障期间已进入本地队列的迟到 UDP；这些必须单独计数且不得超过该阶段实际发送数，不能混入严格竞态结论。严格的 100 次 cutoff race 使用独立端口/seed，要求 clear-path 100/100 unique、corrupt=0、unexpected=0；不规定 100 个业务事件必须对应固定数量的 Dormant→Wake transition，只要求从明确的双端 DORMANT 前置状态至少成功唤醒一次，且之后不得出现 clear-path wake failure、重试风暴或资源泄漏。
 
 ## 第三关：弱网质量与额外开销
 

@@ -5,6 +5,14 @@ on:
     branches: ['next/tlslike-dataplane']
     paths:
       - '.github/workflows/next-strict-weaknet.yml'
+      - 'internal/runtimeowner/**'
+      - 'internal/runtimeentry/lifecycle*.go'
+      - 'internal/realityfront/admission.go'
+      - 'internal/acceptancefault/**'
+      - 'cmd/wbd-client/**'
+      - 'cmd/wbd-server/**'
+      - 'docs/PARAMETERS.md'
+      - 'docs/PARAMETERS.json'
       - 'scripts/strict_weaknet_sample.sh'
       - 'tools/check_strict_weaknet.py'
       - 'tools/aggregate_strict_weaknet.py'

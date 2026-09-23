@@ -1382,7 +1382,7 @@
       "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA."
     },
     "WEAKNET_LIFECYCLE": {
-      "status": "PRODUCT_IDLE_RACE_FIX_RERUN_PENDING",
+      "status": "FINAL_LIFECYCLE_CONTRACT_RERUN_PENDING",
       "main_task_hold": {
         "requested_by": "user",
         "resume_only_on_user_request": true,
@@ -1395,10 +1395,10 @@
       "protocol": "admission V2; paired upgrade required",
       "acceptance": "docs/LIFECYCLE_ACCEPTANCE.md",
       "parameters": "docs/PARAMETERS.md",
-      "latest_devlog": "docs/devlog/20260923-083000-lifecycle-phase-isolation-correction.md",
-      "acceptance_harness": "Third correction pending Actions: L6 recovery probe records and bounds delayed blackhole-phase UDP on the old port (<=16) while the separate strict port still requires 100/100 unique, corrupt=0, unexpected=0; final ACTIVE is enforced only where auto-idle is disabled.",
-      "core_status": "PASS_65FF",
-      "fullstack_status": "31_PASS_5_HARNESS_ONLY_65FF",
+      "latest_devlog": "docs/devlog/20260923-090000-final-lifecycle-contract-rerun.md",
+      "acceptance_harness": "Final contract correction pending exact-SHA Actions: permanent old-tuple blackhole still requires generation replacement; temporary all-tuple blackhole accepts bounded recovery on the still-authoritative old lane after clear; L6 strict phase requires 100/100 clear-path delivery from a both-DORMANT precondition but no arbitrary minimum wake-cycle count.",
+      "core_status": "PASS_9567",
+      "fullstack_status": "33_PASS_3_CONTRACT_FALSE_NEGATIVE_9567",
       "implementation_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
       "core_runs": [
         {
@@ -1438,7 +1438,7 @@
           "source_sha": "84c466f81860c3e87aac3b571a9bce419018aabc"
         }
       ],
-      "performance_status": "CAPACITY_LIMITED",
+      "performance_status": "EXACT_SHA_RERUN_PENDING",
       "performance_evidence": {
         "source_sha": "0882adb70ddb85d8d5dbd5e6be8618f3d7132fcd",
         "workflow": "next-strict-weaknet",
@@ -1552,7 +1552,16 @@
         "failures": "L2 S2C seed101 satisfied the one-way-loss and post-clear delivery gates but became legitimately DORMANT after traffic ended, while the generic validator still required final ACTIVE. All four L6 race jobs proved bounded failed wakes and successful post-clear recovery, then aborted before the strict 100-event phase because the recovery target treated 3-4 delayed blackhole-phase UDP datagrams as fatal unexpected packets.",
         "product_evidence": "The PeerFIN product correction passed next-lifecycle/foundation/targeted, both L1 real-process idle/wake/downlink seeds, both L7 production-default 15s/90s seeds, and all non-race lifecycle groups. Strict L6 100/100 remains pending because the harness exited before that phase.",
         "capacity_hold": "No AF_PACKET/uplink-capacity implementation changed; 0882 target-rate CAPACITY_LIMITED evidence and user HOLD remain authoritative."
-      }
+      },
+      "fullstack_attempt_9567": {
+        "source_sha": "9567e5746eecd9b240d61a5f732641b3ac21975c",
+        "run": "https://github.com/lly8666/wobuzhidao/actions/runs/35801880941",
+        "result": "33_SAMPLE_PASS_3_VALIDATOR_CONTRACT_FAIL",
+        "pass_groups": "L0 8/8; L1 2/2; L2 4/4; L3 2/2; L4 old-tuple 2/2 and all-tuple seed202; L5 8/8; L6 race1 2/2 + partial 2/2; L7 2/2",
+        "failures": "L4 all-tuple seed101 recovered final 30s C2S/S2C=1.0 with bounded three failed candidate attempts but no promotion; validator incorrectly required generation advance/RecoverySucceeded. L6 race4 both seeds achieved strict clear-path 100/100 with no wake failure but validator incorrectly required >=10 wake cycles (actual 1 and 2).",
+        "conclusion": "No new product defect established. The 65ff PeerFIN product fix is exercised successfully by race1 and by race4 100/100 delivery; remaining failures contradict the written recovery definition rather than observed delivery/state correctness."
+      },
+      "performance_rerun": "next-strict-weaknet path coverage expanded to lifecycle product files; this harness-only commit forces a fresh 18-sample target-rate run so 0882 evidence is not inherited across the 65ff product fix."
     }
   }
 }

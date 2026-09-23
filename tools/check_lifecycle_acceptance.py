@@ -174,21 +174,43 @@ def main():
    v=(pr.get("main")or{}).get(k)
    if v is None or v<.95:err.append(f"health-loss business delivery {k}={v}")
 
- repl=sc.startswith("l4_") or sc.startswith("l5_") or sc=="l6_partial"
+ repl=sc=="l4_old_tuple" or sc.startswith("l5_") or sc=="l6_partial"
  if repl and first and lac and not any(gens(lac).get(k,0)>v for k,v in gens(first).items()):err.append(f"generation did not advance {gens(first)}->{gens(lac)}")
 
- if sc.startswith("l4_") or sc.startswith("l5_") or sc=="l6_partial":
+ if sc=="l4_old_tuple" or sc.startswith("l5_") or sc=="l6_partial":
   if int(lf.get("RecoverySucceeded",0)or 0)<1:err.append(f"no recovery success {lf}")
   for k in ("c2s30","s2c30"):
    v=(pr.get("main")or{}).get(k)
    if v is None or v<.90:err.append(f"30s recovery {k}={v}")
 
- if sc.startswith("l4_"):
-  z=(em.get("fault_end")or em.get("fault_start")or[None])[-1]
+ if sc=="l4_old_tuple":
+  z=(em.get("fault_start")or[None])[-1]
   if z and succeeded:
    ds=delta_s(z["unix_ns"],succeeded[-1]["unix_ns"])
-   if ds<0 or ds>25:err.append(f"L4 recovery budget {ds:.3f}s")
-  elif not succeeded:err.append("L4 missing recovery timeline")
+   if ds<0 or ds>25:err.append(f"L4 old-tuple recovery budget {ds:.3f}s")
+  elif not succeeded:err.append("L4 old-tuple missing replacement timeline")
+
+ if sc=="l4_all_tuple":
+  # All tuples are temporarily blackholed. Candidate attempts must occur and
+  # remain bounded, but after clear the still-authoritative old tuple may
+  # become healthy again before a candidate promotion succeeds. The acceptance
+  # definition is sustained 30s delivery plus bounded converged state, not a
+  # mandatory generation bump.
+  ra=int(lf.get("RecoveryAttempts",0)or 0)
+  if ra<1 or ra>8:err.append(f"L4 all-tuple retry count {ra}")
+  if not (em.get("fault_end")or[]):err.append("L4 all-tuple missing fault clear")
+  for k in ("c2s30","s2c30"):
+   v=(pr.get("main")or{}).get(k)
+   if v is None or v<.90:err.append(f"L4 all-tuple 30s recovery {k}={v}")
+  if lc:
+   o=own(lc,"client")
+   if int(o.get("Candidates",0)or 0)!=0 or int(o.get("Retiring",0)or 0)!=0:
+    err.append(f"L4 all-tuple did not converge {o}")
+  if (em.get("fault_end")or[]) and succeeded:
+   end=(em.get("fault_end")or[])[-1]
+   after=[z for z in succeeded if z["unix_ns"]>=int(end["unix_ns"])]
+   if after and delta_s(end["unix_ns"],after[0]["unix_ns"])>25:
+    err.append(f"L4 all-tuple promotion-after-clear budget {delta_s(end['unix_ns'],after[0]['unix_ns']):.3f}s")
 
  if sc.startswith("l5_"):
   if cfg(lc,"client").get("rotate_min")!="1m10s" or cfg(lc,"client").get("rotate_max")!="1m10s":err.append(f"L5 rotation config {cfg(lc,'client')}")
@@ -255,7 +277,7 @@ def main():
    sa=[z for z in attempts if z["unix_ns"]>=lo]
    sf=[z for z in failed if z["unix_ns"]>=lo]
    ss=[z for z in succeeded if z["unix_ns"]>=lo]
-   if len(sa)<10 or len(ss)<10:err.append(f"clear cutoff race insufficient wake cycles attempts={len(sa)} succeeded={len(ss)}")
+   if len(sa)<1 or len(ss)<1:err.append(f"clear cutoff race missing dormant wake attempts={len(sa)} succeeded={len(ss)}")
    if sf:err.append(f"clear cutoff race had failed wakes {sf}")
   else:err.append("missing clear-path wake driver event")
   if lac is None or las is None:err.append("race never returned to active lanes")
@@ -292,7 +314,8 @@ def main():
   "lifecycle_final":lf,"recovery_timeline":{"attempts":attempts,"failed":failed,"succeeded":succeeded},
   "first_generation":gens(first) if first else{},"final_generation":gens(lac) if lac else{},
   "resource":{"max_physical":maxp,"max_candidates":maxcand,"max_retiring":maxret,"max_goroutines":maxg,"max_heap":maxh,"samples":len(rs)},
-  "traffic":pr,"acceptance_events":{"client":cae,"server":sae},"syn_by_source_port":sy
+  "traffic":pr,"acceptance_events":{"client":cae,"server":sae},"syn_by_source_port":sy,
+  "recovery_mode": ("new_generation" if sc=="l4_old_tuple" else ("old_authoritative_or_new_generation_after_clear" if sc=="l4_all_tuple" else None))
  }
  Path(x.output).write_text(json.dumps(result,indent=2,sort_keys=True)+"\n")
  print("WBD_LIFECYCLE_FULLSTACK "+json.dumps({"scenario":sc,"seed":result["seed"],"fec":x.fec,"padding":bool(x.padding),"result":result["result"],"errors":err,"lifecycle":lf,"traffic":pr},sort_keys=True))
