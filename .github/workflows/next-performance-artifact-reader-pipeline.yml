@@ -1,0 +1,109 @@
+name: next-performance-artifact-reader-pipeline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/perf-artifact-clientdrop-request.json
+      - .github/workflows/next-performance-artifact-reader-pipeline.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect-existing-pipeline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          d=json.load(open('.github/perf-artifact-clientdrop-request.json'))
+          for k in ('artifact_id','source_run','source_sha','artifact_name'):
+              if k not in d: raise SystemExit(f'missing {k}')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              for env,key in [('ARTIFACT_ID','artifact_id'),('SOURCE_RUN','source_run'),('SOURCE_SHA','source_sha'),('EXPECTED_NAME','artifact_name')]:
+                  f.write(f"{env}={d[key]}\n")
+          PY
+      - name: Verify and download immutable artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          meta="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID")"
+          test "$(echo "$meta" | jq -r .name)" = "$EXPECTED_NAME"
+          test "$(echo "$meta" | jq -r .workflow_run.id)" = "$SOURCE_RUN"
+          test "$(echo "$meta" | jq -r .workflow_run.head_sha)" = "$SOURCE_SHA"
+          curl --fail --location --retry 3 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" \
+            -o "$RUNNER_TEMP/evidence.zip"
+      - name: Extract pipeline timing diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifact-reader
+          python3 - <<'PY'
+          import json, os, zipfile
+          zpath=os.path.join(os.environ['RUNNER_TEMP'],'evidence.zip')
+          def find(z,suffix):
+              m=[n for n in z.namelist() if n.endswith(suffix)]
+              if len(m)!=1: raise SystemExit(f'{suffix}: {m}')
+              return m[0]
+          def rows(z,name):
+              out=[]
+              with z.open(name) as f:
+                  for raw in f:
+                      try: out.append(json.loads(raw))
+                      except Exception: pass
+              return out
+          def find_pipeline(obj,path=''):
+              hits=[]
+              if isinstance(obj,dict):
+                  for k,v in obj.items():
+                      p=f'{path}.{k}' if path else k
+                      if k.lower() in ('pipeline','server_pipeline','pipeline_timing') or any(x in k.lower() for x in ('read_gap','handoff_block','queue_age','handler','downstream')):
+                          hits.append((p,v))
+                      hits.extend(find_pipeline(v,p))
+              elif isinstance(obj,list):
+                  for i,v in enumerate(obj):
+                      hits.extend(find_pipeline(v,f'{path}[{i}]'))
+              return hits
+          with zipfile.ZipFile(zpath) as z:
+              sn=find(z,'server-diag.jsonl')
+              cn=find(z,'client-diag.jsonl')
+              sr=rows(z,sn); cr=rows(z,cn)
+          def summarize(rs):
+              out=[]
+              for row in rs:
+                  hits=find_pipeline(row)
+                  if hits:
+                      out.append({'unix_ns':row.get('unix_ns'),'hits':dict(hits)})
+              return out
+          out={
+            'artifact_id':int(os.environ['ARTIFACT_ID']),
+            'source_sha':os.environ['SOURCE_SHA'],
+            'server_rows_with_pipeline':summarize(sr),
+            'client_rows_with_pipeline':summarize(cr),
+            'server_first_keys':list(sr[0].keys()) if sr else [],
+            'client_first_keys':list(cr[0].keys()) if cr else [],
+          }
+          with open('artifact-reader/pipeline.json','w') as f:
+              json.dump(out,f,indent=2,sort_keys=True); f.write('\n')
+          print('WBD_PIPELINE_DIAG '+json.dumps(out,sort_keys=True))
+          PY
+      - name: Upload pipeline diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-diag-${{ env.ARTIFACT_ID }}-${{ env.SOURCE_SHA }}
+          path: artifact-reader/pipeline.json
+          if-no-files-found: error
+          retention-days: 30
