@@ -967,7 +967,9 @@ def main():
     }
 
     result = {
-        "schema": 1, "source_sha": args.source_sha, "mode": args.mode,
+        "schema": 1, "analysis_version": ANALYSIS_VERSION,
+        "analyzer_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "source_sha": args.source_sha, "mode": args.mode,
         "scenario": args.scenario, "seed": args.seed, "lanes": args.lanes,
         "target_mbps_each_direction": args.target_mbps,
         "classifications": classifications,

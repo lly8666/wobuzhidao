@@ -64,8 +64,8 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "用户更新目标：允许有损网络保留相当业务丢失，优先低成本shadow repair/no-HOL/低延迟/突发稳定性。现有性能缺口未关闭；第10节方案及单run单样本测试入口待新agent实现。",
-  "next_task": "先将所有性能入口改为一个Action run一条样本，禁止matrix/顺序A/B；随后按WEAKNET_QUALIFICATION第10节修复4096满窗淘汰扫描，保留fresh优先及生命周期。使用loss-tolerant-v1新口径独立验证，旧FAIL不追溯改绿。 同时执行第10.4节接收缺口索引/绝对期限与双端退役联测，禁止仅优化sender或新增逐包放弃通知。",
+  "in_progress": "单run单样本性能入口已落分支，正在用Actions验证静态policy；随后直接实施sender满4096固定成本淘汰与receiver缺口索引/绝对期限。性能整体仍未达标。",
+  "next_task": "验证单样本入口policy后，按WEAKNET_QUALIFICATION第10/10.4节实施sender/receiver有界修复：fresh不等ACK，FIN/控制独立保护，增加scan/evict/gap/fresh时延计数与定向竞态测试；所有编译测试只跑Actions。",
   "latest_log": "docs/devlog/20260923-152255-receiver-gap-retirement-plan.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
@@ -1684,7 +1684,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "READY_FOR_IMPLEMENTATION",
+      "status": "ENTRY_IMPLEMENTED_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1695,12 +1695,28 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-152255-receiver-gap-retirement-plan.md",
-      "note": "本轮仅更新方案。既有产品优化与证据保留；新淘汰实现、新验收分析器和单样本入口尚未验证。",
-      "next_task": "先将所有性能入口改为一个Action run一条样本，禁止matrix/顺序A/B；随后按WEAKNET_QUALIFICATION第10节修复4096满窗淘汰扫描，保留fresh优先及生命周期。使用loss-tolerant-v1新口径独立验证，旧FAIL不追溯改绿。 同时执行第10.4节接收缺口索引/绝对期限与双端退役联测，禁止仅优化sender或新增逐包放弃通知。",
+      "latest_log": "docs/devlog/20260923-165000-performance-single-sample-entry.md",
+      "note": "11fa656/5949570已把性能测量入口改为显式单样本workflow_dispatch，退役同run A/B/混合入口，foundation历史P5测量job强制disabled；新增sample claim guard、loss-tolerant-v1分析器与artifact-only aggregate。5949570的自动Actions在policy执行前被repository contract拒绝，原因仅为该变更缺STATUS/devlog；本提交补齐并修复analyzer结果遗漏analysis_version。产品性能尚未重新测量。",
+      "next_task": "Actions确认repository contract与one-sample policy后，实施sender满窗O(1)候选淘汰、receiver O(logN)有界缺口索引/期限与联合测试；再按独立run顺序做Normal/FEC20:20、Game4/FEC20:20及弱网/突发。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
-      "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d"
+      "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
+      "entry_commits": [
+        "11fa65668da09602d1de3eba29b3ee706f9e3868",
+        "5949570aeaea0dba5f4427b90536f84a89ba5ab2"
+      ],
+      "entry_actions": {
+        "next_foundation": {
+          "run": 35833620384,
+          "status": "FAIL_REPOSITORY_CONTRACT_DOCS_MISSING",
+          "job": 107091768927
+        },
+        "next_p4_steady_targeted": {
+          "run": 35833620361,
+          "status": "FAIL_REPOSITORY_CONTRACT_DOCS_MISSING",
+          "job": 107091768756
+        }
+      }
     }
   }
 }
