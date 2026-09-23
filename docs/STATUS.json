@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "Normal 5205第二条独立复核样本在SOURCE_SHA 3184b5b9 / run 35848478219 / job 107140260911通过：CORRECTNESS/INPUT_VALIDITY/CAPTURE/ENVIRONMENT/PERFORMANCE全PASS。首条run 35846947558因post阶段单次server AF_PACKET 164-drop burst保持CAPACITY_LIMITED_ENVIRONMENT原样保留。复核run socket/link drop=0；20% stress实际注入c2s=19.9707%、s2c=20.0531%，两方向最终packet/byte loss=0、delay-aligned wall约10Mbps；post5 offset=1s；10s drain无late bytes。现在按§10.2进入独立Normal 5→30→5样本。",
-  "next_task": "等待本提交next-performance-dispatch-relay attempt1成功后，由connector重跑relay触发normal/5305/seed601/rate10/lanes1；读取compact summary与full artifact。若5305 PASS，再按资格规范继续后续短突发/共享黑洞与最终多seed主测，不提前关闭性能主线。",
-  "latest_log": "docs/devlog/20260923-204500-normal-5205-retest-pass-arm-5305.md",
+  "in_progress": "Normal 5305独立样本在SOURCE_SHA bcf6cb8c / run 35850699034 / job 107147426180通过：五类classification全PASS。30% stress实际注入c2s=30.0813%、s2c=29.9524%；业务stress最终packet loss仅0.1081%/0.1723%、byte loss=0.1317%/0.2008%，delay-aligned wall=9.9862/9.9793Mbps；post5 offset=2s；probe timeout=0；socket/link drop=0；10s drain无late bytes。Normal主恢复验证的lossless/5205/5305现均有独立PASS证据。下一原子任务是补Game4所有lane共享100ms/500ms短黑洞的one-run-one-sample专项入口。",
+  "next_task": "实现并先用Actions correctness/static policy验证共享黑洞专项harness：Game4、3Mbps/方向、FEC20:20、300ms单向、四lane共享同一underlay黑洞；100ms与500ms分别独立run，不与主weaknet样本混跑。固定事件时刻/背景条件作为新harness定义在devlog/manifest中明确记录。",
+  "latest_log": "docs/devlog/20260923-205500-normal-5305-pass-next-blackhole.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1684,7 +1684,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "NORMAL_5205_PASS_NORMAL_5305_PENDING",
+      "status": "NORMAL_CORE_SCENARIOS_PASS_BLACKHOLE_ENTRY_NEXT",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1695,9 +1695,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-204500-normal-5205-retest-pass-arm-5305.md",
-      "note": "Normal 5205独立复核PASS：SOURCE_SHA 3184b5b97473e23b01f7e11a2a39afa2528a3e60，run 35848478219，job 107140260911。五类classification全PASS，errors全空。qdisc实际loss c2s pre/stress/post=4.9901/19.9707/5.0039%，s2c=5.0548/20.0531/5.0121%；业务每阶段packet/byte loss均0，stress delay-aligned wall c2s=10.000384、s2c=9.9997845Mbps；post5 offset=1s，drain late bytes=0。socket/link drops全0，server AF_PACKET max rmem ratio=0.1255。首条5205 run 35846947558的164 local drops保持CAPACITY_LIMITED_ENVIRONMENT原证据，不追溯改绿。",
-      "next_task": "发起独立Normal 5305同seed/速率/FEC。若有效PASS，再继续短突发/共享黑洞和最终规范要求；若FAIL，先按summary/recovery/resource证据定向分析。",
+      "latest_log": "docs/devlog/20260923-205500-normal-5305-pass-next-blackhole.md",
+      "note": "Normal 5305 PASS：SOURCE_SHA bcf6cb8c799392c12eed4330d2ac48ea7d668b77，run 35850699034，job 107147426180；CORRECTNESS/INPUT_VALIDITY/CAPTURE/ENVIRONMENT/PERFORMANCE全部PASS，errors为空。实际stress qdisc loss c2s=30.0813%、s2c=29.9524%；业务stress最终packet loss c2s=0.1081%、s2c=0.1723%，byte loss=0.1317%/0.2008%，delay-aligned wall=9.98617/9.97928Mbps。post5 offset=2s，socket/link drops=0，probe timeouts=0，drain late=0。",
+      "next_task": "按§7/§10.2新增Game4共享短黑洞专项入口；100ms和500ms分别单样本run。该专项不套随机loss数值门槛，硬门为正确性、输入有效、环境/抓包、本机drop、业务连续性与黑洞后有界恢复。完成后再进入最终18个主测和每配置>=30min长测。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -1880,7 +1880,13 @@
           "rate_mbps": "10",
           "lanes": "1",
           "fec": "20:20",
-          "status": "ARMING"
+          "status": "PASS",
+          "source_sha": "bcf6cb8c799392c12eed4330d2ac48ea7d668b77",
+          "run": 35850699034,
+          "job": 107147426180,
+          "artifact_id": 10745183084,
+          "summary_artifact_id": 10745103190,
+          "analysis_revision": "path-delay-aligned-wall-v2"
         }
       ],
       "actions_dispatch_relay": {
@@ -2411,7 +2417,145 @@
           "artifact_id": 10744205038,
           "server_packet_socket_drops": 164
         }
-      }
+      },
+      "normal_5305_sample": {
+        "source_sha": "bcf6cb8c799392c12eed4330d2ac48ea7d668b77",
+        "workflow": "next-strict-weaknet",
+        "run": 35850699034,
+        "job": 107147426180,
+        "input": {
+          "mode": "normal",
+          "scenario": "5305",
+          "seed": "601",
+          "rate_mbps": "10",
+          "lanes": "1",
+          "fec": "20:20",
+          "one_way_delay_ms": 300
+        },
+        "sample_collection": "PASS",
+        "analysis_version": "loss-tolerant-v1",
+        "analysis_revision": "path-delay-aligned-wall-v2",
+        "analyzer_git_blob": "ee768e95c986203f9380a1bd95aa7d83baea803c",
+        "analyzer_sha256": "3e38a75530e7dcd51c27fb4fdfcefaa340bad1e9900162e2e5e22077ad4697d2",
+        "classifications": {
+          "CORRECTNESS": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "CAPTURE": "PASS",
+          "ENVIRONMENT": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "correctness": [],
+          "input": [],
+          "capture": [],
+          "environment": [],
+          "performance": []
+        },
+        "injection_loss_percent": {
+          "c2s": {
+            "pre": 4.9903191391278,
+            "stress": 30.081321338089452,
+            "post": 5.009876755831461
+          },
+          "s2c": {
+            "pre": 5.055481860484703,
+            "stress": 29.95236157681993,
+            "post": 5.020392081140391
+          }
+        },
+        "stress": {
+          "c2s": {
+            "actual_send_mbps": 9.999978666666665,
+            "eventual_goodput_mbps": 9.986807466666667,
+            "packet_loss_percent": 0.10808911947901044,
+            "byte_loss_percent": 0.13171228098619944,
+            "delay_aligned_wall_mbps": 9.986173866666666
+          },
+          "s2c": {
+            "actual_send_mbps": 9.999978666666665,
+            "eventual_goodput_mbps": 9.979901866666667,
+            "packet_loss_percent": 0.1722670341696729,
+            "byte_loss_percent": 0.20076842830598038,
+            "delay_aligned_wall_mbps": 9.979276800000001
+          }
+        },
+        "post5": {
+          "offset_s": 2
+        },
+        "latency": {
+          "probe_loss_percent": 0,
+          "stress_p95_ns": 612140761,
+          "stress_p99_ns": 615560892
+        },
+        "drain": {
+          "late_after_10s_bytes": 0
+        },
+        "resource": {
+          "socket_drop_max": 0,
+          "link_drop_all_zero": true,
+          "client_packet_socket_max_rmem_ratio": 0.04486083984375,
+          "server_packet_socket_max_rmem_ratio": 0.0538330078125,
+          "process_cpu_seconds": {
+            "client": 52,
+            "server": 51.43
+          }
+        },
+        "recovery": {
+          "c2s_stress": {
+            "abandoned": 117615,
+            "forgiven_gaps": 81798,
+            "repair_segments": 0,
+            "fec_recovered_sources": 58809
+          },
+          "s2c_stress": {
+            "abandoned": 117483,
+            "forgiven_gaps": 81385,
+            "repair_segments": 0,
+            "fec_recovered_sources": 58316
+          }
+        },
+        "cost_outer_ip_per_app_raw_input": {
+          "c2s": 5.210210773333333,
+          "s2c": 5.342098373333333
+        },
+        "repair_outer_ip_bytes": {
+          "c2s": 70663,
+          "s2c": 73078
+        },
+        "transport_hygiene": "REVIEW_NON_GATING",
+        "summary_artifact": {
+          "id": 10745103190,
+          "size_bytes": 6631,
+          "digest": "sha256:4a6e49ffb09647d7d6eb5af5f2c7d6931df6fece645750d7ea3a802561926c3e"
+        },
+        "full_artifact": {
+          "id": 10745183084,
+          "size_bytes": 703356499,
+          "digest": "sha256:036a2092f87adf7daf10b9436b1ad3b2cd7bd6651dd4fcc2814ff62198b2578a"
+        }
+      },
+      "specialty_sequence": [
+        {
+          "workflow": "next-shared-blackhole",
+          "mode": "game",
+          "blackhole_ms": 100,
+          "seed": "601",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "fec": "20:20",
+          "status": "ENTRY_NOT_IMPLEMENTED"
+        },
+        {
+          "workflow": "next-shared-blackhole",
+          "mode": "game",
+          "blackhole_ms": 500,
+          "seed": "601",
+          "rate_mbps": "3",
+          "lanes": "4",
+          "fec": "20:20",
+          "status": "ENTRY_NOT_IMPLEMENTED"
+        }
+      ]
     }
   }
 }
