@@ -10,6 +10,7 @@ from collections import defaultdict, deque
 from pathlib import Path
 
 ANALYSIS_VERSION = "loss-tolerant-v1"
+ANALYSIS_REVISION = "path-delay-aligned-wall-v2"
 STAGES = {"pre": (0, 30), "stress": (30, 90), "post": (90, 120)}
 
 
@@ -153,7 +154,7 @@ def qdisc_stage(events, name, direction):
     }
 
 
-def generator_stage(sender, receiver, name, target_mbps):
+def generator_stage(sender, receiver, name, target_mbps, path_delay_ms):
     lo, hi = STAGES[name]
     ss, rs = sender["stats"], receiver["stats"]
     sent_b = sum(ss["sent_bytes_by_second"][lo:hi])
@@ -162,6 +163,17 @@ def generator_stage(sender, receiver, name, target_mbps):
     recv_p = sum(rs["recv_packets_by_second"][lo:hi])
     duration = hi - lo
     expected_b = target_mbps * 1_000_000 / 8 * duration
+    raw_wall = sum(rs.get("recv_wall_bytes_by_second", [])[lo:hi]) * 8 / duration / 1e6
+
+    bucket_ms = int(rs.get("recv_wall_bucket_ms", 0) or 0)
+    buckets = rs.get("recv_wall_bytes_by_bucket") or []
+    aligned_wall = None
+    if bucket_ms > 0 and 1000 % bucket_ms == 0 and path_delay_ms % bucket_ms == 0:
+        start = (lo * 1000 + path_delay_ms) // bucket_ms
+        end = (hi * 1000 + path_delay_ms) // bucket_ms
+        if 0 <= start < end <= len(buckets):
+            aligned_wall = sum(buckets[start:end]) * 8 / duration / 1e6
+
     return {
         "sent_bytes": sent_b, "sent_packets": sent_p,
         "unique_delivered_bytes": recv_b, "unique_delivered_packets": recv_p,
@@ -170,7 +182,10 @@ def generator_stage(sender, receiver, name, target_mbps):
         "send_target_ratio": sent_b / expected_b if expected_b else None,
         "packet_loss_percent": 100.0 * (sent_p - recv_p) / sent_p if sent_p else None,
         "byte_loss_percent": 100.0 * (sent_b - recv_b) / sent_b if sent_b else None,
-        "wall_delivered_mbps": sum(rs.get("recv_wall_bytes_by_second", [])[lo:hi]) * 8 / duration / 1e6,
+        "wall_delivered_mbps": raw_wall,
+        "wall_delivered_mbps_path_delay_aligned": aligned_wall,
+        "wall_delivery_path_delay_ms": path_delay_ms,
+        "wall_delivery_bucket_ms": bucket_ms or None,
     }
 
 
@@ -636,6 +651,8 @@ def main():
     ap.add_argument("--output", required=True)
     args = ap.parse_args()
     root = Path(args.artifact_dir)
+    manifest = json.loads((root / "manifest.json").read_text())
+    path_delay_ms = int((manifest.get("config") or {}).get("one_way_delay_ms", 0) or 0)
     biz = json.loads((root / "biz.json").read_text())
     target = json.loads((root / "target.json").read_text())
     events = read_jsonl(root / "stage-events.jsonl")
@@ -650,6 +667,7 @@ def main():
         errors.extend(f"stage harness error={x.get('error')}" for x in harness_errors)
         result = {
             "schema": 1, "analysis_version": ANALYSIS_VERSION,
+        "analysis_revision": ANALYSIS_REVISION,
         "analyzer_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "source_sha": args.source_sha, "mode": args.mode,
             "scenario": args.scenario, "seed": args.seed, "lanes": args.lanes,
@@ -690,8 +708,8 @@ def main():
     end_unix = bounds["post"][1]
 
     gen = {
-        "c2s": {name: generator_stage(biz, target, name, args.target_mbps) for name in STAGES},
-        "s2c": {name: generator_stage(target, biz, name, args.target_mbps) for name in STAGES},
+        "c2s": {name: generator_stage(biz, target, name, args.target_mbps, path_delay_ms) for name in STAGES},
+        "s2c": {name: generator_stage(target, biz, name, args.target_mbps, path_delay_ms) for name in STAGES},
     }
     desired = {
         "lossless": {"pre": 0.0, "stress": 0.0, "post": 0.0},
@@ -776,10 +794,16 @@ def main():
             performance_errors.append(
                 f"{direction}/{stage} packet_loss={row['packet_loss_percent']} > {max_loss}"
             )
-        if row["wall_delivered_mbps"] < args.target_mbps * min_gp:
+        aligned_wall = row["wall_delivered_mbps_path_delay_aligned"]
+        if aligned_wall is None:
             performance_errors.append(
-                f"{direction}/{stage} wall_goodput={row['wall_delivered_mbps']} "
-                f"target={args.target_mbps} ratio={min_gp}"
+                f"{direction}/{stage} delay-aligned wall goodput unavailable "
+                f"bucket_ms={row['wall_delivery_bucket_ms']} path_delay_ms={path_delay_ms}"
+            )
+        elif aligned_wall < args.target_mbps * min_gp:
+            performance_errors.append(
+                f"{direction}/{stage} delay_aligned_wall_goodput={aligned_wall} "
+                f"target={args.target_mbps} ratio={min_gp} path_delay_ms={path_delay_ms}"
             )
 
     for direction in ("c2s", "s2c"):
@@ -968,6 +992,7 @@ def main():
 
     result = {
         "schema": 1, "analysis_version": ANALYSIS_VERSION,
+        "analysis_revision": ANALYSIS_REVISION,
         "analyzer_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "source_sha": args.source_sha, "mode": args.mode,
         "scenario": args.scenario, "seed": args.seed, "lanes": args.lanes,
@@ -979,6 +1004,17 @@ def main():
             "performance": performance_errors,
         },
         "generator": gen, "injection": injection,
+        "wall_goodput_accounting": {
+            "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+            "raw_metric": "wall_delivered_mbps",
+            "path_delay_ms": path_delay_ms,
+            "threshold_unchanged": True,
+            "note": (
+                "Arrival wall windows are shifted by the manifest fixed one-way path delay. "
+                "This removes deterministic propagation fill/drain from stage boundaries; "
+                "the configured 99% goodput threshold is unchanged."
+            ),
+        },
         "latency": {
             "probe_loss_percent": probe_loss, "probe_stage": probe_stage,
             "c2s_qdisc_delay_p50_ns": pct(c2s_delay, 0.50),

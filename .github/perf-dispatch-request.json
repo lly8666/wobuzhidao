@@ -8,7 +8,8 @@
   "lanes": "1",
   "acceptance": "loss-tolerant-v1",
   "expected_product_sha": "610d5092886a160685f8a9d0ecc8fad139fa5bae",
-  "request_revision": 2,
-  "retry_reason": "workflow-expression-backslash-control-plane-fix",
-  "control_plane_retry_of_run": 35842774407
+  "request_revision": 3,
+  "retry_reason": "path-delay-aligned-wall-accounting-retest",
+  "control_plane_retry_of_run": 35843250922,
+  "expected_analysis_revision": "path-delay-aligned-wall-v2"
 }

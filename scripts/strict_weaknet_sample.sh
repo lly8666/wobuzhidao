@@ -260,6 +260,7 @@ harness = [
     ".github/workflows/next-strict-weaknet.yml",
     "scripts/strict_weaknet_sample.sh",
     "tools/realpath_udp_duplex.py",
+    "tools/check_strict_weaknet_loss_tolerant_v1.py",
     "tools/strict_weaknet_stage.py",
     "scripts/build_seeded_tc.sh",
     "tools/strict_resource_sampler.py",

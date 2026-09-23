@@ -1,0 +1,28 @@
+name: next-performance-analysis-unit
+
+on:
+  push:
+    branches:
+      - next/tlslike-dataplane
+    paths:
+      - tools/realpath_udp_duplex.py
+      - tools/check_strict_weaknet_loss_tolerant_v1.py
+      - tools/test_loss_tolerant_wall_accounting.py
+      - .github/workflows/next-performance-analysis-unit.yml
+
+permissions:
+  contents: read
+
+jobs:
+  analysis-unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile analyzer and generator
+        run: python3 -m py_compile tools/realpath_udp_duplex.py tools/check_strict_weaknet_loss_tolerant_v1.py
+      - name: Delay-aligned wall accounting unit
+        run: python3 tools/test_loss_tolerant_wall_accounting.py

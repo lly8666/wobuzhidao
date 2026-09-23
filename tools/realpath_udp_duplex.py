@@ -68,6 +68,9 @@ class Stats:
         self.drain_s = drain_s
         self.seconds = int(duration_s)
         self.wall_seconds = int(math.ceil(duration_s + drain_s)) + 1
+        self.wall_bucket_ms = 10
+        self.wall_bucket_ns = self.wall_bucket_ms * 1_000_000
+        self.wall_buckets = int(math.ceil((duration_s + drain_s) * 1000 / self.wall_bucket_ms)) + 1
         self.lock = threading.Lock()
         self.sent_packets = [0] * self.seconds
         self.sent_bytes = [0] * self.seconds
@@ -75,6 +78,7 @@ class Stats:
         self.recv_bytes = [0] * self.seconds
         self.recv_wall_packets = [0] * self.wall_seconds
         self.recv_wall_bytes = [0] * self.wall_seconds
+        self.recv_wall_bytes_by_bucket = [0] * self.wall_buckets
         self.recv_seen = set()
         self.recv_duplicates = 0
         self.corrupt = 0
@@ -141,6 +145,9 @@ class Stats:
             if wall_sec is not None:
                 self.recv_wall_packets[wall_sec] += 1
                 self.recv_wall_bytes[wall_sec] += packet["size"]
+            wall_bucket = int((now_ns - self.start_ns) // self.wall_bucket_ns)
+            if 0 <= wall_bucket < self.wall_buckets:
+                self.recv_wall_bytes_by_bucket[wall_bucket] += packet["size"]
             self.oneway_ns.append(max(0, now_ns - packet["send_ns"]))
 
     def snapshot(self):
@@ -152,6 +159,8 @@ class Stats:
                 "recv_bytes_by_second": list(self.recv_bytes),
                 "recv_wall_packets_by_second": list(self.recv_wall_packets),
                 "recv_wall_bytes_by_second": list(self.recv_wall_bytes),
+                "recv_wall_bucket_ms": self.wall_bucket_ms,
+                "recv_wall_bytes_by_bucket": list(self.recv_wall_bytes_by_bucket),
                 "sent_packets": sum(self.sent_packets),
                 "sent_bytes": sum(self.sent_bytes),
                 "recv_unique_packets": len(self.recv_seen),

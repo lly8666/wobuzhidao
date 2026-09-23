@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "首个有效Normal无损性能样本已完成：SOURCE_SHA febfcb9e / next-strict-weaknet run 35843250922 / job 107123147835，sample collection PASS，loss-tolerant-v1分类CORRECTNESS/INPUT_VALIDITY/CAPTURE/ENVIRONMENT均PASS、PERFORMANCE=FAIL；immutable artifact 10742800172已保存。由于artifact 769870926B超过connector 512MiB下载上限，正在用零采样artifact-reader Actions从既有artifact抽取summary与runtimeowner诊断。",
-  "next_task": "读取artifact 10742800172中的summary-loss-tolerant-v1.json和client/server diag精选计数；先定位Normal lossless性能FAIL，不启动Game样本。",
-  "latest_log": "docs/devlog/20260923-185000-normal-lossless-valid-fail-artifact-reader.md",
+  "in_progress": "Normal lossless有效样本35843250922的唯一PERFORMANCE错误已定位为30s pre wall窗口未补偿固定300ms单向传播：c2s=9.8990677、s2c=9.899456Mbps，分别只比9.9门槛少3496B/2030B量级；eventual约10Mbps、0业务丢失、0 probe timeout、0 late drain、0 repair/abandon/forgive、本机drop=0。正在修正loss-tolerant-v1 wall统计定义：新增10ms wall buckets，按manifest 300ms平移接收窗口，99%门槛保持不变，并用Actions unit验证后重跑同一Normal资格样本。",
+  "next_task": "等待next-performance-analysis-unit与repository contract PASS；随后由已arm的relay rerun发起normal/lossless/601/10/1新样本，读取compact summary artifact。",
+  "latest_log": "docs/devlog/20260923-190000-wall-goodput-delay-alignment.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1684,7 +1684,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "RECOVERY_CORRECTNESS_PASS_NORMAL_LOSSLESS_PERFORMANCE_FAIL_ANALYZING",
+      "status": "NORMAL_LOSSLESS_FAIL_ACCOUNTING_FIX_PENDING_RETEST",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1695,9 +1695,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-185000-normal-lossless-valid-fail-artifact-reader.md",
-      "note": "Actions控制面已修通并取得首个有效性能样本。run 35843250922 / job 107123147835 在febfcb9e执行normal/lossless/601/10/1：one-sample claim准确、sample collection SUCCESS、analyzer执行完成，分类CORRECTNESS=PASS INPUT_VALIDITY=PASS CAPTURE=PASS ENVIRONMENT=PASS PERFORMANCE=FAIL；transport_hygiene=REVIEW；outer_ip_per_app_raw_input c2s=5.0919918533 s2c=5.2232884333。artifact 10742800172，size 769870926B，digest sha256:2726556e23f35e330b6fb00cc7fb4fdf525b3779b1959e710f710ebcab6f98da。connector下载因512MiB上限失败，因此新增零采样artifact-reader Actions只读既有artifact，抽取summary/errors与新增recovery诊断，不改变原artifact。",
-      "next_task": "完成artifact summary/diag提取后，依据具体performance_errors和repair/gap/fresh计数做定向产品修复；Normal lossless未恢复前不进入Game。",
+      "latest_log": "docs/devlog/20260923-190000-wall-goodput-delay-alignment.md",
+      "note": "artifact-reader run 35844026766证明旧有效FAIL只有两项：c2s/pre wall_goodput 9.8990677333 < 9.9、s2c/pre 9.899456 < 9.9；差额约3496B和2040B/30s。所有阶段actual send/eventual goodput约10Mbps，packet/byte loss=0，probe timeouts=0，late_after_10s=0，socket/link drops=0；runtimeowner新计数显示repair/abandon/FreshBlocked/FreshWindowBypass/FreshEmitFailures/GapExpiredForgiven均0，PeakOutstanding约4062-4063，GapIndexSteps仅1-2。旧规范同时固定300ms单向延迟与30s pre wall窗口，未平移窗口使理想路径先天消耗整整1%窗口，留下零处理余量。修复只校正metric窗口：10ms wall bucket + manifest one_way_delay_ms=300平移；目标10Mbps和99%门槛不变。旧FAIL保留。",
+      "next_task": "Actions先验证新wall accounting unit/contract；PASS后重跑单条Normal lossless。若delay-aligned 99%通过再进入独立Game lossless；不以旧artifact重标绿代替新样本。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -1921,7 +1921,29 @@
         },
         "analysis_version": "loss-tolerant-v1",
         "analyzer_git_blob": "9bb6d6ec70c88231a07f71f40c108949b3661d69",
-        "detail_status": "ARTIFACT_READER_PENDING"
+        "detail_status": "FAIL_EXPLAINED_BY_UNSHIFTED_WALL_WINDOW_RETEST_REQUIRED",
+        "performance_errors": [
+          "c2s/pre wall_goodput=9.899067733333332 target=10.0 ratio=0.99",
+          "s2c/pre wall_goodput=9.899456 target=10.0 ratio=0.99"
+        ],
+        "artifact_reader": {
+          "run": 35844026766,
+          "job": 107125699186,
+          "artifact_id": 10742238061,
+          "result": "PASS",
+          "source_artifact_id": 10742800172
+        }
+      },
+      "wall_goodput_accounting_fix": {
+        "policy_threshold": "UNCHANGED_99_PERCENT",
+        "configured_one_way_delay_ms": 300,
+        "bucket_ms": 10,
+        "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+        "raw_metric_preserved": "wall_delivered_mbps",
+        "analysis_version": "loss-tolerant-v1",
+        "analysis_revision": "path-delay-aligned-wall-v2",
+        "analyzer_git_blob": "ee768e95c986203f9380a1bd95aa7d83baea803c",
+        "status": "ACTIONS_UNIT_PENDING"
       }
     }
   }
