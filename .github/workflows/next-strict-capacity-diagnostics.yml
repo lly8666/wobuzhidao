@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
-      ART: \${{ github.workspace }}/artifacts/capacity-single
+      ART: ${{ github.workspace }}/artifacts/capacity-single
 
     steps:
       - uses: actions/checkout@v4
@@ -56,7 +56,7 @@ jobs:
           set -euo pipefail
           mkdir -p "$ART"
           python3 tools/perf_sample_guard.py claim \
-            --identity "capacity:\${{ inputs.kind }}:\${{ inputs.mode }}:seed\${{ inputs.seed }}:rate\${{ inputs.rate_mbps }}:lanes\${{ inputs.lanes }}:sha$GITHUB_SHA" \
+            --identity "capacity:${{ inputs.kind }}:${{ inputs.mode }}:seed${{ inputs.seed }}:rate${{ inputs.rate_mbps }}:lanes${{ inputs.lanes }}:sha$GITHUB_SHA" \
             --receipt "$ART/sample-claim.json"
 
       - name: Install network tooling
@@ -70,7 +70,7 @@ jobs:
           sudo modprobe nft_tproxy || true
           bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
           echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
-          if [[ "\${{ inputs.kind }}" == product ]]; then
+          if [[ "${{ inputs.kind }}" == product ]]; then
             go build -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
             go build -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
           fi
@@ -79,17 +79,17 @@ jobs:
         id: sample
         continue-on-error: true
         env:
-          WBD_STRICT_MODE: \${{ inputs.mode }}
+          WBD_STRICT_MODE: ${{ inputs.mode }}
           WBD_STRICT_SCENARIO: lossless
-          WBD_STRICT_SEED: \${{ inputs.seed }}
-          WBD_STRICT_RATE_MBPS: \${{ inputs.rate_mbps }}
-          WBD_STRICT_LANES: \${{ inputs.lanes }}
+          WBD_STRICT_SEED: ${{ inputs.seed }}
+          WBD_STRICT_RATE_MBPS: ${{ inputs.rate_mbps }}
+          WBD_STRICT_LANES: ${{ inputs.lanes }}
           WBD_STRICT_DIAGNOSTIC_RATE_ONLY: "1"
-          WBD_CAPACITY_RATE_MBPS: \${{ inputs.rate_mbps }}
-          WBD_CAPACITY_SEED: \${{ inputs.seed }}
+          WBD_CAPACITY_RATE_MBPS: ${{ inputs.rate_mbps }}
+          WBD_CAPACITY_SEED: ${{ inputs.seed }}
         run: |
           set -euo pipefail
-          if [[ "\${{ inputs.kind }}" == product ]]; then
+          if [[ "${{ inputs.kind }}" == product ]]; then
             sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_DIAGNOSTIC_RATE_ONLY \
               env WBD_STRICT_ARTIFACT_DIR="$ART" bash scripts/strict_weaknet_sample.sh
           else
@@ -101,28 +101,28 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          if [[ "\${{ inputs.kind }}" == product ]]; then
+          if [[ "${{ inputs.kind }}" == product ]]; then
             python3 tools/check_strict_weaknet_loss_tolerant_v1.py \
               --artifact-dir "$ART" --source-sha "$GITHUB_SHA" \
-              --mode "\${{ inputs.mode }}" --scenario lossless \
-              --seed "\${{ inputs.seed }}" --target-mbps "\${{ inputs.rate_mbps }}" \
-              --lanes "\${{ inputs.lanes }}" --output "$ART/summary-loss-tolerant-v1.json"
+              --mode "${{ inputs.mode }}" --scenario lossless \
+              --seed "${{ inputs.seed }}" --target-mbps "${{ inputs.rate_mbps }}" \
+              --lanes "${{ inputs.lanes }}" --output "$ART/summary-loss-tolerant-v1.json"
           else
             python3 tools/check_strict_capacity_bypass.py \
               --artifact-dir "$ART" --source-sha "$GITHUB_SHA" \
-              --target-mbps "\${{ inputs.rate_mbps }}" --output "$ART/summary.json"
+              --target-mbps "${{ inputs.rate_mbps }}" --output "$ART/summary.json"
           fi
 
       - name: Upload sample evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: capacity-single-\${{ inputs.kind }}-\${{ inputs.mode }}-seed\${{ inputs.seed }}-\${{ github.sha }}
-          path: \${{ env.ART }}
+          name: capacity-single-${{ inputs.kind }}-${{ inputs.mode }}-seed${{ inputs.seed }}-${{ github.sha }}
+          path: ${{ env.ART }}
           if-no-files-found: error
           compression-level: 1
           retention-days: 30
 
       - name: Preserve collection failure
         if: always()
-        run: test "\${{ steps.sample.outcome }}" = success
+        run: test "${{ steps.sample.outcome }}" = success

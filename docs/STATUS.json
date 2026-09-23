@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "性能恢复正确性仍全绿；Actions手动入口问题已定位为workflow_dispatch文件未存在默认分支。main已用850be978注册next-strict-weaknet；active branch正在加入受控dispatch relay：push首跑只武装，只有connector重跑该job后才发workflow_dispatch，并按head SHA去重。首个Normal无损性能样本仍NOT_RUN。",
-  "next_task": "等待next-performance-dispatch-relay首跑成功后，由connector重跑该relay job触发且仅触发一次normal/lossless/seed601/10Mbps/1lane；随后读取strict run/job/artifact与loss-tolerant-v1结果。",
-  "latest_log": "docs/devlog/20260923-183000-actions-dispatch-relay.md",
+  "in_progress": "Actions dispatch通路已打通，但首个strict run 35842774407在采样前因workflow内GitHub表达式被字面反斜杠污染而NO_SAMPLE_CONTROL_PLANE_FAIL：mode实际为\\\\normal，sample/analyzer立即拒绝，artifact名也含反斜杠而无法上传。正在机械修复三个受影响性能workflow并新增静态回归门，随后重新武装Normal无损请求。",
+  "next_task": "由next-performance-dispatch-relay对修正SHA先arm再由connector rerun触发normal/lossless/601/10/1；只有sample脚本真实完成且artifact/analyzer可读取后才判性能结果。",
+  "latest_log": "docs/devlog/20260923-184000-strict-workflow-expression-fix.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1695,9 +1695,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-183000-actions-dispatch-relay.md",
-      "note": "610d5092产品实现 + 6c4169f7测试计数修正的hosted正确性证据保持有效。新增Actions控制面修复：默认分支main原先没有next-strict-weaknet.yml，因此GitHub不会接收workflow_dispatch；850be978仅注册同名默认分支占位工作流。active branch新增受控relay，push attempt1只校验并武装，connector重跑attempt>=2才调用workflow_dispatch；每个请求独立提交SHA并先查同SHA既有dispatch run去重。该机制不改变产品、wire、参数或one-run-one-sample性能政策。性能仍NOT_RUN。",
-      "next_task": "由connector重跑本次next-performance-dispatch-relay job；relay确认branch HEAD仍等于其GITHUB_SHA后，dispatch next-strict-weaknet normal/lossless/601/10/1。完成后保留原始artifact并按loss-tolerant-v1落账，再决定是否进入独立Game无损样本。",
+      "latest_log": "docs/devlog/20260923-184000-strict-workflow-expression-fix.md",
+      "note": "Actions新建workflow_dispatch能力已通过受控relay验证。首个formal strict run 35842774407 / job 107121575982不是性能FAIL：workflow env中的GitHub表达式前有字面反斜杠，WBD_STRICT_MODE成为\\\\normal，strict sample在参数校验阶段exit 2，loss-tolerant-v1也因invalid mode exit 2，artifact upload因名称含\\\\失败，run无artifact。该run保留为NO_SAMPLE_CONTROL_PLANE_FAIL。e80feae的foundation与p4-targeted产品/contract回归均PASS。下一提交只机械去掉性能workflow的escaped expression并加静态门，不改产品/wire/参数。",
+      "next_task": "重新发起normal/lossless/seed601/rate10/lanes1；要求真实sample完成、loss-tolerant-v1 summary和immutable artifact存在，再记录性能结论。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -1825,7 +1825,8 @@
           "rate_mbps": "10",
           "lanes": "1",
           "fec": "20:20",
-          "status": "NOT_RUN"
+          "status": "RETRY_PENDING_AFTER_NO_SAMPLE_CONTROL_PLANE_FAIL",
+          "non_sample_run": 35842774407
         },
         {
           "workflow": "next-strict-weaknet",
@@ -1864,7 +1865,7 @@
         "relay_workflow": ".github/workflows/next-performance-dispatch-relay.yml",
         "request_file": ".github/perf-dispatch-request.json",
         "semantics": "push attempt1 arms only; rerun attempt>=2 dispatches; exact-head guard; one dispatch per request HEAD via head_sha de-duplication",
-        "status": "ARMING_FIRST_REQUEST",
+        "status": "REARMING_AFTER_ESCAPED_EXPRESSION_FIX",
         "request": {
           "workflow": "next-strict-weaknet.yml",
           "ref": "next/tlslike-dataplane",
@@ -1873,6 +1874,13 @@
           "seed": "601",
           "rate_mbps": "10",
           "lanes": "1"
+        },
+        "first_dispatch": {
+          "run": 35842774407,
+          "job": 107121575982,
+          "source_sha": "e80feae62536c975ce92d6ad4a165451d1c7cc2d",
+          "result": "NO_SAMPLE_CONTROL_PLANE_FAIL",
+          "evidence": "WBD_STRICT_MODE=\\\\normal; sample exit 2 before measurement; analyzer invalid mode; artifact name backslash rejected; artifacts=[]"
         }
       }
     }

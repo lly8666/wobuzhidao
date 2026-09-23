@@ -39,12 +39,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
-      ART: \${{ github.workspace }}/artifacts/strict-single
-      WBD_STRICT_MODE: \${{ inputs.mode }}
-      WBD_STRICT_SCENARIO: \${{ inputs.scenario }}
-      WBD_STRICT_SEED: \${{ inputs.seed }}
-      WBD_STRICT_RATE_MBPS: \${{ inputs.rate_mbps }}
-      WBD_STRICT_LANES: \${{ inputs.lanes }}
+      ART: ${{ github.workspace }}/artifacts/strict-single
+      WBD_STRICT_MODE: ${{ inputs.mode }}
+      WBD_STRICT_SCENARIO: ${{ inputs.scenario }}
+      WBD_STRICT_SEED: ${{ inputs.seed }}
+      WBD_STRICT_RATE_MBPS: ${{ inputs.rate_mbps }}
+      WBD_STRICT_LANES: ${{ inputs.lanes }}
 
     steps:
       - uses: actions/checkout@v4
@@ -113,8 +113,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: strict-single-\${{ inputs.mode }}-\${{ inputs.scenario }}-seed\${{ inputs.seed }}-\${{ github.sha }}
-          path: \${{ env.ART }}
+          name: strict-single-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-${{ github.sha }}
+          path: ${{ env.ART }}
           if-no-files-found: error
           compression-level: 1
           retention-days: 30
@@ -122,7 +122,7 @@ jobs:
       - name: Preserve collection failure
         if: always()
         env:
-          SAMPLE_OUTCOME: \${{ steps.sample.outcome }}
+          SAMPLE_OUTCOME: ${{ steps.sample.outcome }}
         run: |
-          echo "sample=$SAMPLE_OUTCOME analyzer=\${{ steps.validate.outcome }}"
+          echo "sample=$SAMPLE_OUTCOME analyzer=${{ steps.validate.outcome }}"
           test "$SAMPLE_OUTCOME" = success

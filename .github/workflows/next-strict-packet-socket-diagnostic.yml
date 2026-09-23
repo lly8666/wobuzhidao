@@ -29,12 +29,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
-      ART: \${{ github.workspace }}/artifacts/packet-socket-single
-      WBD_STRICT_MODE: \${{ inputs.mode }}
+      ART: ${{ github.workspace }}/artifacts/packet-socket-single
+      WBD_STRICT_MODE: ${{ inputs.mode }}
       WBD_STRICT_SCENARIO: lossless
-      WBD_STRICT_SEED: \${{ inputs.seed }}
-      WBD_STRICT_RATE_MBPS: \${{ inputs.rate_mbps }}
-      WBD_STRICT_LANES: \${{ inputs.lanes }}
+      WBD_STRICT_SEED: ${{ inputs.seed }}
+      WBD_STRICT_RATE_MBPS: ${{ inputs.rate_mbps }}
+      WBD_STRICT_LANES: ${{ inputs.lanes }}
       WBD_STRICT_DIAGNOSTIC_RATE_ONLY: "1"
 
     steps:
@@ -90,12 +90,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: packet-socket-single-\${{ inputs.mode }}-seed\${{ inputs.seed }}-\${{ github.sha }}
-          path: \${{ env.ART }}
+          name: packet-socket-single-${{ inputs.mode }}-seed${{ inputs.seed }}-${{ github.sha }}
+          path: ${{ env.ART }}
           if-no-files-found: error
           compression-level: 1
           retention-days: 30
 
       - name: Preserve collection failure
         if: always()
-        run: test "\${{ steps.sample.outcome }}" = success
+        run: test "${{ steps.sample.outcome }}" = success

@@ -40,6 +40,8 @@ for name in ACTIVE:
     text = Path(name).read_text(encoding="utf-8")
     if "workflow_dispatch:" not in text:
         errors.append(f"{name}: workflow_dispatch required")
+    if r"\${{" in text:
+        errors.append(f"{name}: escaped GitHub expression forbidden")
     if re.search(r"(?m)^\s+push:", text):
         errors.append(f"{name}: automatic push measurement forbidden")
     if re.search(r"(?m)^\s+matrix:", text):
