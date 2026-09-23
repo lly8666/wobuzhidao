@@ -191,3 +191,11 @@ O(1) qualification 修复在最终验证 SHA `7550844af73ca07481a932d17d6793ccb2
 
 raw receive最终候选 `a924b7c9853e1d280cb7a7062dc46ccd30039b99` 在 `next-performance-recovery` run 35816817908 attempt2 完成完整core/race与独占Normal10 lossless：所有classification PASS，双向10Mbps业务0%丢失，client/server AF_PACKET drops均0；server handler均值约30.3us，进程CPU约76.56s/120s。Normal线上/原始业务约C2S 5.0913x、S2C 5.2231x，但transport retransmitted=0、padding=0；S2C FEC source/parity实测195022224/501074802B。按第9节，当前不直接启动18样本主矩阵，而是先在独立runner做修复前7550844a与a924b7c9同runner顺序A/B及B/A，再跑Game4四lane、每方向合计3Mbps逻辑业务量的lossless定向样本，并输出完整方向账本。只有这些继续通过后才进入原严格矩阵与目标负载长测；不提前关闭性能专项。
 
+
+### 2026-09-23 容量稳定性诊断：Normal单lane 4096-BDP边缘
+
+Game4逻辑3Mbps lossless 已在 run 35818718764 / job 107045770392 全门PASS，方向账本确认无repair/padding/reconnect放大；但Normal10在同runner A/B与B/A中，fixed a924虽稳定显著优于755，仍在后60秒阶段出现AF_PACKET drop与goodput塌陷。进一步单独rerun AB（attempt2 job 107048157380）排除本workflow三个性能job并发：fixed pre C2S/S2C约9.55/9.86Mbps，stress/post仍降到约2.85/6.31与2.88/6.22Mbps，server/client AF_PACKET drops约439529/65734。因此暂不进入18份主矩阵。
+
+成功的a924 standalone Normal10有 FreshSent=789726、SRTT=601.3ms：约6581 records/s × 0.601s = 3957条平均record-BDP，距4096硬边界仅139条；实测PeakOutstanding=4075，仅余21条，且成功样本Abandoned=0。代码在pending满4096时会优先清理retired/SACK metadata，否则淘汰一个仍未ACK的repair-owned record并计Abandoned/RepairEvicted。该边界与runner差异是当前待证假设，绝不通过扩大4096解决。
+
+下一原子仅增加qualification evidence workflow：固定a924/Normal10/seed631，采集AF_PACKET首次drop、Outstanding/PeakOutstanding/Abandoned/RepairEvicted时序、每核busy/softirq/steal、cgroup throttle、CPU PSI、线程CPU、GC/alloc和server handler/readCh区间长尾，并上传可直接读取的compact artifact。先判定pressure与drop的因果顺序，再做单原因最小修复；不扫描参数、不降FEC/速率、不扩大buffer/4096。
