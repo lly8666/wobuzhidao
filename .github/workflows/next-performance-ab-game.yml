@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  BASE_SHA: 7550844af73ca07481a932d17d6793ccb23ae05a
-  FIX_SHA: a924b7c9853e1d280cb7a7062dc46ccd30039b99
+  BASE_SHA: a924b7c9853e1d280cb7a7062dc46ccd30039b99
+  FIX_SHA: 75b5cc9a82458a7a46d382373339193276d6c51e
 
 jobs:
   normal10-order-controlled-ab:

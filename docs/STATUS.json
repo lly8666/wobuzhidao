@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "PERFORMANCE_RECOVERY: outbound raw-send clone removal is the current product candidate. Seed631 Normal10 lossless on 6c061d30 (product change 75b5cc9a) is fully PASS with 10Mbps both directions, zero AF_PACKET/socket drops and zero Abandoned/RepairEvicted; CPU falls to ~57s/process over 120s. Seed601 first run on 75b5cc9a remains CAPACITY_LIMITED, so overall performance is still OPEN and a repeat is running before same-runner A/B+B/A.",
-  "next_task": "验收 75b5cc9a 的 seed601 Normal10 rerun；若通过，立即把同runner顺序A/B与B/A更新为 a924b7c9(修复前) 对 75b5cc9a(去发送后clone)，再确认 Game4 逻辑3Mbps未回归。若seed601仍CAPACITY_LIMITED，则读取其artifact补齐 PeakOutstanding/AF_PACKET/CPU/GC 时间线并继续下一份确定的发送热路径复制/分配；不扩大4096、不降FEC/速率/Game、不跑18份矩阵。",
-  "latest_log": "docs/devlog/20260923-145000-performance-outbound-packet-clone.md",
+  "in_progress": "PERFORMANCE_RECOVERY: raw-send post-Sendto clone removal (product 75b5cc9a) has one fully-PASS Normal10 seed631 run with ~10Mbps both directions, zero packet/socket drops, zero Abandoned/RepairEvicted and ~57 CPU-s/process. Seed601 attempt1 was CAPACITY_LIMITED and attempt2 has completed collection but validation is still finishing. Ordered same-runner A/B+B/A is now switched to a924b7c9(before) vs 75b5cc9a(after), with Game4 logical3 lossless in the same workflow. Overall performance remains OPEN.",
+  "next_task": "验收 next-performance-ab-game：a924b7c9→75b5cc9a 的同runner A/B与B/A必须都让after保持五类PASS，并验收Game4四lane每方向合计3Mbps五类PASS及方向账本；同时记录seed601 attempt2最终分类。若这些稳定通过，再启动原严格18样本矩阵和目标负载长测；任一Normal仍CAPACITY_LIMITED则先继续定向性能修复，不跑长矩阵。",
+  "latest_log": "docs/devlog/20260923-151000-performance-outbound-clone-ab.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1649,7 +1649,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "TARGETED_NORMAL_MIXED_PENDING_STABILITY",
+      "status": "ORDERED_AB_VALIDATION",
       "spec": "docs/WEAKNET_QUALIFICATION.md#9",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1660,8 +1660,8 @@
         "审计混合包长/FEC/分片/Game线上字节账本",
         "无损目标通过后再完成严格弱网矩阵及长测"
       ],
-      "latest_log": "docs/devlog/20260923-145000-performance-outbound-packet-clone.md",
-      "note": "65735cb2 capacity baseline seed631 was CAPACITY_LIMITED: server/client PeakOutstanding>=4000 at ~2.00/2.03s, first Abandoned ~13.00/20.03s, AF_PACKET first drops ~19.05/20.05s; CPU ~112-115s/process, runner busy ~97.7-97.8%, PSI some avg10 51.75%, no steal/throttle. Product commit 75b5cc9a removes the redundant full packet clone after synchronous raw Sendto. On 6c061d30 capacity run 35823231138 job107059368064 artifact10733329818, all five classifications PASS: both directions pre/stress/post ~10Mbps, AF_PACKET/socket drops 0, Abandoned/RepairEvicted 0, PeakOutstanding 4035/4036, process CPU ~56.87/57.09s, runner busy ~76-78%, PSI some avg10 36.02%. Separate seed601 run 35823219345 attempt1 remains CAPACITY_LIMITED, so no final performance completion; attempt2 is running."
+      "latest_log": "docs/devlog/20260923-151000-performance-outbound-clone-ab.md",
+      "note": "raw-send clone fix 75b5cc9a: seed631 capacity diagnostic on 6c061d30 is fully PASS (run35823231138/job107059368064/artifact10733329818); seed601 attempt1 remains CAPACITY_LIMITED and attempt2 is finishing validation. next-performance-ab-game is now pinned to BASE=a924b7c9 and FIX=75b5cc9a for same-runner A/B+B/A plus Game4 logical3 regression. No 18-sample matrix until ordered stability is proven."
     }
   }
 }
