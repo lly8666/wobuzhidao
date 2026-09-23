@@ -71,7 +71,7 @@ func (t *laneTransport) unlinkRepairLocked(p *pendingRecord) {
 
 func (t *laneTransport) linkEvictLocked(p *pendingRecord) {
 	if p == nil || p.evictLinked || p.control || p.flags&faketcp.FlagFIN != 0 ||
-		p.sacked || p.retired || p.repairInFlight {
+		p.sacked || p.retired || p.repairInFlight || p.fastRepairArmed {
 		return
 	}
 	p.evictLinked = true
@@ -86,7 +86,7 @@ func (t *laneTransport) linkEvictLocked(p *pendingRecord) {
 
 func (t *laneTransport) linkEvictFrontLocked(p *pendingRecord) {
 	if p == nil || p.evictLinked || p.control || p.flags&faketcp.FlagFIN != 0 ||
-		p.sacked || p.retired || p.repairInFlight {
+		p.sacked || p.retired || p.repairInFlight || p.fastRepairArmed {
 		return
 	}
 	p.evictLinked = true
@@ -149,7 +149,7 @@ func (t *laneTransport) unlinkRetiredLocked(p *pendingRecord) {
 }
 
 func (t *laneTransport) restorePendingEvictionLocked(p *pendingRecord) {
-	if p == nil || t.pending[p.seq] != p || p.repairInFlight {
+	if p == nil || t.pending[p.seq] != p || p.repairInFlight || p.fastRepairArmed {
 		return
 	}
 	if p.sacked || p.retired {
@@ -193,6 +193,11 @@ func (t *laneTransport) unlinkExpiryLocked(p *pendingRecord) {
 func (t *laneTransport) removePendingLocked(p *pendingRecord) bool {
 	if p == nil || t.pending[p.seq] != p {
 		return false
+	}
+	if p.fastRepairArmed {
+		p.fastRepairArmed = false
+		p.fastRepairReadyTick = 0
+		t.stats.FastRepairArmCanceled++
 	}
 	delete(t.pending, p.seq)
 	t.unlinkRepairLocked(p)

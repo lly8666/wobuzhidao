@@ -189,6 +189,17 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 	t.stats.RecoveryTicks++
 	t.expirePendingHeadLocked(now)
 
+	// A first-loss SACK scoreboard can identify the cumulative head before
+	// transmit-time RACK evidence spans a full reordering window. Keep exactly
+	// that one head repair opportunity alive across normal shadow eviction, but
+	// require the hole to persist across a complete recovery scheduling cycle.
+	// This suppresses short lossless reordering without making repair wait for
+	// the 1s RTO or allowing optional repair debt to block fresh traffic.
+	if candidate := t.pendingAtHeadLocked(); candidate != nil &&
+		candidate.fastRepairArmed && t.stats.RecoveryTicks > candidate.fastRepairReadyTick {
+		sel = t.prepareFastRepairLocked(candidate, now)
+	}
+
 	limit := t.repairCount
 	if limit > steadyRepairScanBudget {
 		limit = steadyRepairScanBudget
@@ -197,7 +208,7 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 	if p == nil || !p.repairLinked {
 		p = t.repairHead
 	}
-	for i := 0; p != nil && i < limit; i++ {
+	for i := 0; sel == nil && p != nil && i < limit; i++ {
 		next := p.repairNext
 		if next == nil {
 			next = t.repairHead
@@ -357,21 +368,39 @@ func (t *laneTransport) selectFastRepairLocked(now time.Time) *selectedRepair {
 		candidate.flags&faketcp.FlagFIN != 0 || candidate.seq != t.lastAck {
 		return nil
 	}
-	// RACK's reordering evidence is transmission-time separation between the
-	// newest delivered/SACKed record and the hole candidate. Using wall-clock
-	// age here makes every tiny reorder on a high-RTT path look old enough for
-	// fast repair as soon as its SACK returns.
+	// Strong RACK evidence remains transmission-time separation between the
+	// newest delivered/SACKed record and the cumulative head. Repeated repairs
+	// keep this conservative gate unchanged.
 	evidenceAge, ok := t.rackEvidenceAgeLocked(candidate)
-	if !ok || evidenceAge < t.rackReorderingWindowLocked() {
-		return nil
-	}
 	if candidate.wasRetried {
+		if !ok || evidenceAge < t.rackReorderingWindowLocked() {
+			return nil
+		}
 		return t.prepareFastRepairLocked(candidate, now)
 	}
-	if t.sackedOutstanding < 3 {
+	if t.sackedOutstanding < 3 || !ok {
 		return nil
 	}
-	return t.prepareFastRepairLocked(candidate, now)
+	if evidenceAge >= t.rackReorderingWindowLocked() {
+		return t.prepareFastRepairLocked(candidate, now)
+	}
+	t.armFastRepairLocked(candidate)
+	return nil
+}
+
+func (t *laneTransport) armFastRepairLocked(p *pendingRecord) {
+	if p == nil || p.fastRepairArmed || p.wasRetried || p.sacked || p.retired ||
+		p.control || p.flags&faketcp.FlagFIN != 0 || p.repairInFlight ||
+		t.pending[p.seq] != p {
+		return
+	}
+	p.fastRepairArmed = true
+	// The next recovery tick only proves that the arm was observed by the
+	// scheduler. Firing requires the following tick, so the hole survived one
+	// complete recovery cycle rather than an arbitrarily phased near-zero wait.
+	p.fastRepairReadyTick = t.stats.RecoveryTicks + 1
+	t.unlinkEvictLocked(p)
+	t.stats.FastRepairArmed++
 }
 
 func (t *laneTransport) rackEvidenceAgeLocked(p *pendingRecord) (time.Duration, bool) {
@@ -383,7 +412,13 @@ func (t *laneTransport) rackEvidenceAgeLocked(p *pendingRecord) (time.Duration, 
 }
 
 func (t *laneTransport) prepareFastRepairLocked(p *pendingRecord, now time.Time) *selectedRepair {
-	return t.reserveRepairLocked(p, now, true)
+	sel := t.reserveRepairLocked(p, now, true)
+	if sel != nil && p.fastRepairArmed {
+		p.fastRepairArmed = false
+		p.fastRepairReadyTick = 0
+		t.stats.FastRepairArmFired++
+	}
+	return sel
 }
 
 func (t *laneTransport) noteDeliveredLocked(p *pendingRecord) {

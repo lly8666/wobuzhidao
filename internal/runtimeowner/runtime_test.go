@@ -1411,6 +1411,140 @@ func TestSteadyFreshFastRepairUsesTransmissionTimeReorderingEvidence(t *testing.
 }
 
 
+func TestSteadySACKHeadPersistsAcrossRecoveryCycleBeforeFastRepair(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 16)
+	if err != nil { t.Fatal(err) }
+	var wire []faketcp.Segment
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 65410)
+	cfg.SACKPermitted = true
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 96), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9810, 0)
+	records := make([]datapath.WireRecord, 5)
+	for i := range records { records[i].Wire = bytes.Repeat([]byte{byte(0xb0 + i)}, 64) }
+	if err := tr.send(records[:1], t0); err != nil { t.Fatal(err) }
+	if err := tr.send(records[1:], t0.Add(3*time.Millisecond)); err != nil { t.Fatal(err) }
+	sack := faketcp.Segment{
+		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
+		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
+		Seq: cfg.ReceiveNext, Ack: wire[0].Seq,
+		Flags: faketcp.FlagACK, Window: 65535, SACKN: 1,
+	}
+	sack.SACK[0] = faketcp.SACKBlock{Start: wire[1].Seq, End: wire[4].Seq + uint32(len(wire[4].Payload))}
+	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond)); err != nil { t.Fatal(err) }
+	stats, _ := rt.TransportStats(snap.Ref)
+	if len(wire) != 5 || stats.FastRepairArmed != 1 || stats.FastRepairs != 0 {
+		t.Fatalf("SACK head was not armed without premature repair wire=%d stats=%+v", len(wire), stats)
+	}
+	if err := rt.Tick(t0.Add(650 * time.Millisecond)); err != nil { t.Fatal(err) }
+	stats, _ = rt.TransportStats(snap.Ref)
+	if len(wire) != 5 || stats.FastRepairs != 0 {
+		t.Fatalf("armed repair fired before a complete recovery cycle wire=%d stats=%+v", len(wire), stats)
+	}
+	if err := rt.Tick(t0.Add(750 * time.Millisecond)); err != nil { t.Fatal(err) }
+	stats, _ = rt.TransportStats(snap.Ref)
+	if len(wire) != 6 || wire[5].Seq != wire[0].Seq ||
+		!bytes.Equal(wire[5].Payload, wire[0].Payload) ||
+		stats.FastRepairArmFired != 1 || stats.FastRepairs != 1 || stats.Retransmitted != 1 {
+		t.Fatalf("persistent SACK head was not repaired wire=%+v stats=%+v", wire, stats)
+	}
+}
+
+func TestSteadySACKHeadArmCancelsWhenCumulativeACKHealsReorder(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 16)
+	if err != nil { t.Fatal(err) }
+	var wire []faketcp.Segment
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 65420)
+	cfg.SACKPermitted = true
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 97), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9820, 0)
+	records := make([]datapath.WireRecord, 5)
+	for i := range records { records[i].Wire = bytes.Repeat([]byte{byte(0xc0 + i)}, 64) }
+	if err := tr.send(records[:1], t0); err != nil { t.Fatal(err) }
+	if err := tr.send(records[1:], t0.Add(3*time.Millisecond)); err != nil { t.Fatal(err) }
+	sack := faketcp.Segment{
+		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
+		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
+		Seq: cfg.ReceiveNext, Ack: wire[0].Seq,
+		Flags: faketcp.FlagACK, Window: 65535, SACKN: 1,
+	}
+	sack.SACK[0] = faketcp.SACKBlock{Start: wire[1].Seq, End: wire[4].Seq + uint32(len(wire[4].Payload))}
+	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond)); err != nil { t.Fatal(err) }
+	heal := sack
+	heal.SACKN = 0
+	heal.Ack = wire[0].Seq + uint32(len(wire[0].Payload))
+	if err := rt.HandleSegment(snap.Ref, heal, t0.Add(601*time.Millisecond)); err != nil { t.Fatal(err) }
+	if err := rt.Tick(t0.Add(700 * time.Millisecond)); err != nil { t.Fatal(err) }
+	if err := rt.Tick(t0.Add(800 * time.Millisecond)); err != nil { t.Fatal(err) }
+	stats, _ := rt.TransportStats(snap.Ref)
+	if len(wire) != 5 || stats.FastRepairArmCanceled != 1 || stats.FastRepairs != 0 {
+		t.Fatalf("healed reorder retained armed repair wire=%d stats=%+v", len(wire), stats)
+	}
+}
+
+func TestSteadyArmedHeadRepairSurvivesFullWindowFreshEviction(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil { t.Fatal(err) }
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(faketcp.Segment) error { return nil }, func(faketcp.Segment) error { return nil }, 1, 65430)
+	cfg.SACKPermitted = true
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 98), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9830, 0)
+	records := make([]datapath.WireRecord, MaxOutstandingRecords)
+	for i := range records { records[i].Wire = []byte{byte(i), byte(i >> 8)} }
+	if err := tr.send(records[:1], t0); err != nil { t.Fatal(err) }
+	if err := tr.send(records[1:], t0.Add(3*time.Millisecond)); err != nil { t.Fatal(err) }
+	tr.mu.Lock()
+	head := tr.pendingAtHeadLocked()
+	start := tr.pendingOrder[1]
+	endRecord := tr.pending[tr.pendingOrder[4]]
+	tr.mu.Unlock()
+	sack := faketcp.Segment{
+		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
+		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
+		Seq: cfg.ReceiveNext, Ack: head.seq,
+		Flags: faketcp.FlagACK, Window: 65535, SACKN: 1,
+	}
+	sack.SACK[0] = faketcp.SACKBlock{Start: start, End: endRecord.end}
+	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond)); err != nil { t.Fatal(err) }
+	fresh := make([]datapath.WireRecord, 8)
+	for i := range fresh { fresh[i].Wire = []byte{0xee, byte(i)} }
+	if err := tr.send(fresh, t0.Add(601*time.Millisecond)); err != nil {
+		t.Fatalf("armed head blocked fresh at full window: %v", err)
+	}
+	tr.mu.Lock()
+	current := tr.pending[head.seq]
+	armed := current == head && head.fastRepairArmed
+	tr.mu.Unlock()
+	stats, _ := rt.TransportStats(snap.Ref)
+	if !armed || stats.FreshBlocked != 0 || stats.FreshWindowBypass != 0 ||
+		stats.Outstanding != MaxOutstandingRecords || stats.RepairEvictionMaxScan > 1 {
+		t.Fatalf("armed head protection/fresh eviction stats=%+v armed=%t", stats, armed)
+	}
+}
+
 func TestRuntimePeerWriteClosedRequiresAllAuthoritativeLanes(t *testing.T) {
 	ref1 := logicaltunnel.LaneRef{ID: 1, Generation: 1}
 	ref2 := logicaltunnel.LaneRef{ID: 2, Generation: 1}

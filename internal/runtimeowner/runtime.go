@@ -94,9 +94,11 @@ type pendingRecord struct {
 	rttSampled      bool
 	sacked          bool
 	retired         bool
-	repairInFlight  bool
-	repairNotBefore time.Time
-	repairPrev      *pendingRecord
+	repairInFlight      bool
+	repairNotBefore     time.Time
+	fastRepairArmed     bool
+	fastRepairReadyTick uint64
+	repairPrev          *pendingRecord
 	repairNext      *pendingRecord
 	repairLinked    bool
 	evictPrev       *pendingRecord
@@ -153,6 +155,9 @@ type TransportStats struct {
 	GapMetadataDropped    uint64
 	GapExpiredForgiven    uint64
 	FastRepairs           uint64
+	FastRepairArmed       uint64
+	FastRepairArmFired    uint64
+	FastRepairArmCanceled uint64
 	RTORepairs            uint64
 	RepairDeferred        uint64
 	RepairExpiredSkipped  uint64
