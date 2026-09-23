@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "PERFORMANCE_RECOVERY: ordered Normal10 evidence is runner-split, so target stability is NOT proven. Run 35825736119: AB runner had both a924(before) and 75b5(after) all-5 PASS at ~10Mbps with ~59 CPU-s/process; BA runner had both before and after CAPACITY_LIMITED at ~115-119 CPU-s/process, server handler ~200us/read and ~0.5M AF_PACKET drops. Game4 logical3 remains all-5 PASS. Foundation also found a real LifecycleServer qualification data race. Current work: stage strict 18-sample matrix as explicit-only per §9.4, then fix the lifecycle race and continue one-at-a-time hot-path copy removal.",
-  "next_task": "先提交 strict-weaknet 显式触发门，避免目标未稳时每次 runtime/lifecycle 修复都自动跑18份矩阵。随后修 LifecycleServer.admit 对 fresh.qualified 的无锁发布（由 markLaneQualified 在 s.mu 下统一发布）并因生命周期改动重跑36份功能验收；性能侧再删除 runtimeowner steady Segment 对已owned pending payload 的重复clone，用Normal10同runner A/B+B/A验证。",
-  "latest_log": "docs/devlog/20260923-154000-performance-ab-runner-split.md",
+  "in_progress": "PERFORMANCE_RECOVERY remains OPEN. Ordered Normal10 is runner-split and Game4 logical3 is PASS. Before the next hot-path performance change, fixing a real LifecycleServer qualification publication data race found by foundation: queued authenticated records must not write lane.qualified outside s.mu. The fix publishes qualification only through markLaneQualified under the server lifecycle mutex; no lifecycle policy or wire semantics change.",
+  "next_task": "验收 qualification publication race 修复 SHA 的 foundation/Linux race、next-lifecycle core以及36份 next-lifecycle-fullstack；同时观察自动定向Normal10（不是18矩阵）。36/36和race通过后，再做下一性能原子：去掉runtimeowner Segment对已owned immutable pending payload的重复clone，core/race后用Normal10 compact及同runner A/B+B/A验证。",
+  "latest_log": "docs/devlog/20260923-155000-lifecycle-qualified-race.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1663,7 +1663,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "TARGET_STABILITY_FAIL_RUNNER_SPLIT",
+      "status": "LIFECYCLE_RACE_FIX_VALIDATION",
       "spec": "docs/WEAKNET_QUALIFICATION.md#9",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1674,8 +1674,8 @@
         "审计混合包长/FEC/分片/Game线上字节账本",
         "无损目标通过后再完成严格弱网矩阵及长测"
       ],
-      "latest_log": "docs/devlog/20260923-154000-performance-ab-runner-split.md",
-      "note": "run35825736119: Game4 job107066929276 PASS artifact10735335571; AB job107066929237 SUCCESS with both a924 and 75b5 all-5 PASS (~10Mbps, 0 drops, ~59 CPU-s/process, handler ~19us/read); BA job107066929161 FAIL because both before and after are CAPACITY_LIMITED (~3-7Mbps, server/client AF_PACKET drops ~543k/78k after, ~115-119 CPU-s/process, handler ~205us/read). Therefore the post-Sendto clone removal is a valid redundant-copy cleanup but its apparent 2x CPU win was confounded by runner variation. Foundation run35825736077 additionally reports a real race: admit writes fresh.qualified outside s.mu while groupReadyLocked reads it under s.mu. Overall performance remains OPEN; no strict 18 matrix yet."
+      "latest_log": "docs/devlog/20260923-155000-lifecycle-qualified-race.md",
+      "note": "Performance target remains unstable across runners; strict 18 matrix is now explicit-only. Foundation run35825736077 found real race between admit queued-record qualification write and TunnelQualified/groupReadyLocked read. Fix publishes qualification only through markLaneQualified under s.mu. Because lifecycle shared state changes, full 36 lifecycle acceptance is required before continuing performance implementation."
     }
   }
 }

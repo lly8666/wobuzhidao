@@ -1380,7 +1380,9 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 			return
 		}
 		if qualified {
-			fresh.qualified = true
+			// Qualification is published under s.mu by markLaneQualified after
+			// all queued post-admission segments have been processed. Publishing
+			// it here races with TunnelQualified/groupReadyLocked.
 			steadyQualified = true
 		}
 	}
