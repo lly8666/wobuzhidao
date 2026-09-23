@@ -66,10 +66,10 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_PENDING_ACTIONS：历史qualified/repackaged SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的18/18 PASS继续保留。当前候选修复高损下shadow retransmission几乎消失：保持4096 bound、3s horizon、1s RTO、1:5 repair credit、FEC/wire/门槛不变；首次累计head已有>=3 SACK但强RACK发送时间证据不足时只武装一个head repair，保护它免受普通fresh eviction，并要求缺口持续跨过一个完整recovery调度周期后才允许一次fast repair；累计ACK补洞即取消。fresh永不等待，极端保护态仍走no-shadow bypass。候选尚未Actions/性能验证，旧final18不能覆盖新HEAD。",
-  "next_task": "先用GitHub Actions验证runtimeowner unit/race、targeted/foundation及新增armed-head/full-window/cancel回归；全绿后按ONE_WORKFLOW_RUN_ONE_SAMPLE独立跑Normal lossless、Normal 5205、Normal 5305对比，重点看FastRepairArmed/Fired/Canceled、FastRepairs/RTORepairs、Abandoned/ForgivenGaps、ACK/control outer bytes、fresh延迟/throughput、CPU和本机drop。有效后再做Game canary并重新固定HEAD资格；旧689dea19 final18/P6只作历史证据。",
-  "latest_log": "docs/devlog/20260924-030000-bounded-head-repair-followup.md",
-  "last_tested_source_sha": "689dea19e2e1dfdccbab9c8f42210d62c4a12223",
+  "in_progress": "REPAIR_FOLLOWUP_V2_PENDING_ACTIONS：18a8b044 first candidate的runtimeowner/targeted/foundation/lifecycle均PASS；独立strict Normal lossless run 35906251206五分类PASS且repair=0/drop=0；Normal5205 run 35906907537五分类PASS/drop=0，但20% stress FastRepairs仍为0，只在5% pre/post由约27–33提升到37–39。根因定位为首次arm仍错误依赖rackEvidenceAge有效：高吞吐同一send batch记录共享lastSent，head与后继SACK可无发送时间差，导致scoreboard虽有>=3 SACK却无法arm。V2只移除此首次arm前置条件：>=3 SACK即可arm；有效且足够强的transmit-time RACK仍可立即repair；重复repair的RACK门不变。",
+  "next_task": "先跑V2 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle。全绿后必须重新以新SHA独立跑Normal lossless和5205；目标是lossless仍无假repair，5205 stress出现有限非零FastRepairs且FreshBlocked=0、drop=0、五分类PASS。若成立再跑Normal5305；不得复用18a8b044样本作为新SHA资格。",
+  "latest_log": "docs/devlog/20260924-040000-scoreboard-arm-without-tx-gap.md",
+  "last_tested_source_sha": "18a8b044879c65c0e13ff0c3b04c4295483348dc",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1552,8 +1552,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED_REPAIR_FOLLOWUP: historical 689dea19 final18 remains preserved; current candidate changes bounded shadow fast-repair opportunity and requires affected correctness/race plus hosted weaknet evidence.",
-    "P5": "REOPENED_REPAIR_FOLLOWUP: historical 689dea19 18/18 loss-tolerant-v1 PASS remains evidence only; new HEAD requires independent one-run-one-sample comparison/qualification.",
+    "P4": "REOPENED_REPAIR_FOLLOWUP_V2: 18a8b044 correctness/race PASS and Normal lossless/5205 strict samples PASS, but 20% stress still emitted zero repairs due same-batch transmit timestamps blocking first-arm eligibility. V2 candidate removes only that first-arm prerequisite.",
+    "P5": "REOPENED_REPAIR_FOLLOWUP_V2: historical 689dea19 final18 remains immutable; 18a8b044 comparison samples are preserved diagnostics, not qualification for V2.",
     "P6": "STALE_FOR_CURRENT_HEAD: exact-SHA repackage PASS at 689dea19e2e1dfdccbab9c8f42210d62c4a12223 remains historical; accepted repair must requalify/repackage at its own final SOURCE_SHA.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
@@ -1813,7 +1813,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REOPENED_REPAIR_FOLLOWUP_PENDING_ACTIONS",
+      "status": "REOPENED_REPAIR_FOLLOWUP_V2_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1824,9 +1824,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-030000-bounded-head-repair-followup.md",
-      "note": "Historical final_main_qualification at 689dea19 remains immutable/preserved. Current candidate restores one bounded first-repair opportunity under high-rate/high-RTT SACK pressure without enlarging the window or blocking fresh; candidate NOT_RUN at commit creation.",
-      "next_task": "先用GitHub Actions验证runtimeowner unit/race、targeted/foundation及新增armed-head/full-window/cancel回归；全绿后按ONE_WORKFLOW_RUN_ONE_SAMPLE独立跑Normal lossless、Normal 5205、Normal 5305对比，重点看FastRepairArmed/Fired/Canceled、FastRepairs/RTORepairs、Abandoned/ForgivenGaps、ACK/control outer bytes、fresh延迟/throughput、CPU和本机drop。有效后再做Game canary并重新固定HEAD资格；旧689dea19 final18/P6只作历史证据。",
+      "latest_log": "docs/devlog/20260924-040000-scoreboard-arm-without-tx-gap.md",
+      "note": "18a8b044 candidate preserved fresh/no-HOL and passed lossless/5205, but failed the repair-restoration objective in 20% stress because first-arm still required distinct transmit-time evidence. V2 lets >=3-SACK scoreboard arm a first repair even when later records share the head timestamp; strong RACK remains immediate and repeated repair semantics are unchanged.",
+      "next_task": "先跑V2 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle。全绿后必须重新以新SHA独立跑Normal lossless和5205；目标是lossless仍无假repair，5205 stress出现有限非零FastRepairs且FreshBlocked=0、drop=0、五分类PASS。若成立再跑Normal5305；不得复用18a8b044样本作为新SHA资格。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -3999,20 +3999,41 @@
       },
       "repair_followup_candidate": {
         "status": "NOT_RUN",
-        "historical_qualified_source_sha": "689dea19e2e1dfdccbab9c8f42210d62c4a12223",
-        "reason": "high-loss final18 retained strong fresh/no-HOL behavior but actual shadow retransmission was nearly absent while optional repair state was heavily abandoned before RTO/strong-RACK eligibility",
-        "design": "one armed cumulative-head first-repair candidate; >=3 SACK required; strong transmit-time RACK still immediate; otherwise persist across one full recovery scheduling cycle; armed head excluded from normal optional eviction; fresh admission and repeat repair policy unchanged",
-        "bounds": {
-          "max_armed_per_lane": 1,
-          "max_outstanding": 4096,
-          "repair_horizon": "3s",
-          "initial_rto": "1s",
-          "repair_credit": "fresh/5 with 128KiB burst and progressive repeat cost"
-        },
-        "wire_change": false,
-        "fec_change": false,
-        "threshold_change": false,
+        "parent_source_sha": "18a8b044879c65c0e13ff0c3b04c4295483348dc",
+        "design_delta": "first repair arm requires current cumulative head + >=3 SACK only; same-batch equal transmit timestamps no longer suppress arming; strong transmit-time RACK can still emit immediately; armed persistence cycle, one-candidate bound, fresh-first eviction, repeat RACK/RTO/credit unchanged",
         "performance_status": "NOT_RUN"
+      },
+      "repair_followup_candidate_v1": {
+        "source_sha": "18a8b044879c65c0e13ff0c3b04c4295483348dc",
+        "correctness": {
+          "runtimeowner_recovery": 35905872242,
+          "targeted": 35905872229,
+          "foundation": 35905872230,
+          "lifecycle": 35905872300,
+          "status": "PASS"
+        },
+        "performance": [
+          {
+            "scenario": "lossless",
+            "seed": "101",
+            "run": 35906251206,
+            "summary_artifact": 10771346640,
+            "status": "PASS",
+            "fast_repairs": "0",
+            "socket_drop_max": 0
+          },
+          {
+            "scenario": "5205",
+            "seed": "101",
+            "run": 35906907537,
+            "summary_artifact": 10771542248,
+            "status": "PASS",
+            "stress_fast_repairs": "0",
+            "note": "pre/post repair increased but stress objective not met",
+            "socket_drop_max": 0
+          }
+        ],
+        "conclusion": "SAFE_BUT_INSUFFICIENT_REPAIR_RESTORATION"
       }
     }
   }

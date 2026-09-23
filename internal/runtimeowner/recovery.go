@@ -378,10 +378,14 @@ func (t *laneTransport) selectFastRepairLocked(now time.Time) *selectedRepair {
 		}
 		return t.prepareFastRepairLocked(candidate, now)
 	}
-	if t.sackedOutstanding < 3 || !ok {
+	if t.sackedOutstanding < 3 {
 		return nil
 	}
-	if evidenceAge >= t.rackReorderingWindowLocked() {
+	// Three later SACKed records are sufficient scoreboard evidence to arm a
+	// first repair even when a high-throughput send batch gave them the same
+	// timestamp as the head. Transmit-time RACK evidence is only the stronger
+	// path that can skip the persistence cycle and repair immediately.
+	if ok && evidenceAge >= t.rackReorderingWindowLocked() {
 		return t.prepareFastRepairLocked(candidate, now)
 	}
 	t.armFastRepairLocked(candidate)

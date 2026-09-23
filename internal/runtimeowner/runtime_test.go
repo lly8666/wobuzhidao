@@ -1430,8 +1430,11 @@ func TestSteadySACKHeadPersistsAcrossRecoveryCycleBeforeFastRepair(t *testing.T)
 	t0 := time.Unix(9810, 0)
 	records := make([]datapath.WireRecord, 5)
 	for i := range records { records[i].Wire = bytes.Repeat([]byte{byte(0xb0 + i)}, 64) }
-	if err := tr.send(records[:1], t0); err != nil { t.Fatal(err) }
-	if err := tr.send(records[1:], t0.Add(3*time.Millisecond)); err != nil { t.Fatal(err) }
+	// One high-throughput send batch intentionally gives the head and all later
+	// records the same transmit timestamp. Scoreboard evidence must still be
+	// able to arm the first repair; transmit-time RACK is an optional stronger
+	// immediate path, not a prerequisite for the bounded persistence path.
+	if err := tr.send(records, t0); err != nil { t.Fatal(err) }
 	sack := faketcp.Segment{
 		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
 		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
