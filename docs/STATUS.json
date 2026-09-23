@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P4",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-23",
+  "updated_at": "2026-09-24",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -64,10 +64,10 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "FINAL18_STOPPED_SERVER_BURST_QUEUE_SATURATION：固定HEAD 148b2b0cca472d69b1da6b8e6075f229a31b3e11 的18份独立strict样本已全部完成；16份五分类PASS，Normal/5305/seed202与Game4/5305/seed303因server本机AF_PACKET drop被判ENVIRONMENT FAIL + PERFORMANCE CAPACITY_LIMITED。两份CORRECTNESS/INPUT_VALIDITY/CAPTURE均PASS、performance errors为空、link/qdisc为0，不能关闭资格。只读artifact诊断显示server 256槽read handoff在两份失败样本均达到边界（ready_peak=258）；Normal失败同时出现281.241ms handler、248.438ms handoff_block、294.723ms queue_age并将packet socket推至1037376/1048576后drop 1346；Game失败前rmem达640064/1048576，queue峰值同样触边，随后drop 204。旧repair路径仍FreshBlocked=0、FreshEmitFailures=0、RepairEvictionMaxScan=1。现实施第二个最小有界server burst解耦：read handoff 256->4096；不改kernel SO_RCVBUF、wire/FEC/repair/loss门槛。",
-  "next_task": "等待本次server read handoff 4096有界修复的repository/targeted/foundation/lifecycle/fullstack/race Actions。全部通过后，在该精确产品SHA上只跑两条独立canary：Normal/5305/seed202与Game4/5305/seed303；每个workflow_dispatch仅一条测量。若五分类均PASS且server/client AF_PACKET、link/qdisc drop=0，再用一次状态文档+final18 relay提交形成新的固定final HEAD，并从头重跑18份；148b2b0的18份（含2个CAPACITY_LIMITED）永久保留历史。",
-  "latest_log": "docs/devlog/20260923-235500-final18-server-burst-queue-saturation.md",
-  "last_tested_source_sha": "148b2b0cca472d69b1da6b8e6075f229a31b3e11",
+  "in_progress": "CLIENT_SEGMENTMUX_BURST_QUEUE_SATURATION：server read handoff 4096修复在精确SHA 0321bb136405c6407ff8bd9fde6d0aed4c8be84b 的Normal/5305/seed202 canary中已把server AF_PACKET drop降为0，但该独立样本出现client ss_packet一次1258 drops（另ss_udp 16），因此ENVIRONMENT FAIL + PERFORMANCE CAPACITY_LIMITED，不能关闭资格。只读artifact诊断显示client SegmentMux唯一route capacity=256、peak=258、full_waits=263，drop同一时间点handoff_block max=251.361ms、queue_age max=288.269ms；全程最高相邻route handoff速率约12.31k/s，对应观测停顿包络约3549槽。transport仍FreshBlocked=0、FreshEmitFailures=0、RepairEvictionMaxScan=1；server pipeline未触4096边界且server AF_PACKET=0。现只做第二个最小有界client receive解耦：SegmentMux per-route 256->4096；不改kernel SO_RCVBUF、wire/FEC/repair/loss门槛，不加每包goroutine或无界队列。",
+  "next_task": "等待本次SegmentMux per-route 4096有界修复的repository/targeted/foundation/lifecycle/fullstack/race Actions。全部通过后，在该精确新SOURCE_SHA上先跑一条Normal/5305/seed202 strict canary；若五分类全PASS、client/server AF_PACKET与link/qdisc drop均0且SegmentMux peak明显低于4096/full_waits=0，再跑一条Game4/5305/seed303独立canary。两条稳定后再一次性更新状态文档+final18 relay形成新的固定final HEAD，并从头执行18份；148b2b0与0321bb的CAPACITY_LIMITED样本永久保留。",
+  "latest_log": "docs/devlog/20260924-002500-client-segmentmux-burst-saturation.md",
+  "last_tested_source_sha": "0321bb136405c6407ff8bd9fde6d0aed4c8be84b",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1454,6 +1454,13 @@
       "scope": "final18-game-5305-seed303",
       "status": "CAPACITY_LIMITED",
       "note": "CORRECTNESS/INPUT_VALIDITY/CAPTURE PASS；ENVIRONMENT FAIL；PERFORMANCE CAPACITY_LIMITED。server ss_packet drops=204；client/link/qdisc=0；drop前server rmem 640064/1048576。只读pipeline显示ready_peak=258、handoff_block max=10.164816ms、queue_age max=48.433018ms；四lane FreshBlocked/FreshEmitFailures=0、RepairEvictionMaxScan=1。"
+    },
+    {
+      "source_sha": "0321bb136405c6407ff8bd9fde6d0aed4c8be84b",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35883542599",
+      "scope": "server-burst-v2-canary/normal-5305-seed202",
+      "status": "CAPACITY_LIMITED",
+      "note": "CORRECTNESS/INPUT_VALIDITY/CAPTURE PASS；ENVIRONMENT FAIL；PERFORMANCE CAPACITY_LIMITED。server ss_packet drops=0，client ss_packet drops=1258、ss_udp drops=16，link/qdisc=0。SegmentMux route capacity=256、peak=258、full_waits=263、handoff_block max=251.360936ms、queue_age max=288.268543ms；route最高相邻handoff约12.31k/s。server pipeline handoff max约8.087ms、queue_age max约50.472ms；FreshBlocked/FreshEmitFailures=0、RepairEvictionMaxScan=1。"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1756,7 +1763,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "FINAL18_STOPPED_SERVER_BURST_QUEUE_FIX_PENDING_ACTIONS",
+      "status": "CLIENT_SEGMENTMUX_BURST_QUEUE_FIX_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1767,9 +1774,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-235500-final18-server-burst-queue-saturation.md",
-      "note": "9cdd4f4 的server 256槽有界receive burst修复已由Normal5205与Game5305两条真实目标速率canary验证：两条loss-tolerant-v1五分类均PASS；Game5305 client/server AF_PACKET与link/qdisc drop均为0，四条SegmentMux route容量256、峰值75/56/69/64、full_waits全0，因此不实施第二个client receive产品修改。",
-      "next_task": "等待本次server read handoff 4096有界修复的repository/targeted/foundation/lifecycle/fullstack/race Actions。全部通过后，在该精确产品SHA上只跑两条独立canary：Normal/5305/seed202与Game4/5305/seed303；每个workflow_dispatch仅一条测量。若五分类均PASS且server/client AF_PACKET、link/qdisc drop=0，再用一次状态文档+final18 relay提交形成新的固定final HEAD，并从头重跑18份；148b2b0的18份（含2个CAPACITY_LIMITED）永久保留历史。",
+      "latest_log": "docs/devlog/20260924-002500-client-segmentmux-burst-saturation.md",
+      "note": "0321bb 的server 4096槽修复在Normal5305/202 canary中使server AF_PACKET drop=0，但同一独立样本暴露client SegmentMux 256槽route饱和：peak=258、full_waits=263，并与251.361ms handoff block / 288.269ms queue age及client AF_PACKET单秒1258 drops对齐。按既定分流规则实施client per-route 4096有界burst cushion；不改kernel buffer或协议恢复策略。",
+      "next_task": "等待本次SegmentMux per-route 4096有界修复的repository/targeted/foundation/lifecycle/fullstack/race Actions。全部通过后，在该精确新SOURCE_SHA上先跑一条Normal/5305/seed202 strict canary；若五分类全PASS、client/server AF_PACKET与link/qdisc drop均0且SegmentMux peak明显低于4096/full_waits=0，再跑一条Game4/5305/seed303独立canary。两条稳定后再一次性更新状态文档+final18 relay形成新的固定final HEAD，并从头执行18份；148b2b0与0321bb的CAPACITY_LIMITED样本永久保留。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -3103,7 +3110,7 @@
         }
       },
       "server_receive_burst_v2": {
-        "state": "CODE_PENDING_ACTIONS",
+        "state": "NORMAL_CANARY_SERVER_SIDE_PASS_CLIENT_CAPACITY_LIMITED",
         "parent_source_sha": "148b2b0cca472d69b1da6b8e6075f229a31b3e11",
         "prior_depth": 256,
         "new_depth": 4096,
@@ -3132,6 +3139,86 @@
           "repository/targeted/foundation/lifecycle/fullstack/race Actions",
           "Normal 5305 seed202 exact-SHA canary",
           "Game4 5305 seed303 exact-SHA canary"
+        ],
+        "normal_5305_seed202_canary": {
+          "source_sha": "0321bb136405c6407ff8bd9fde6d0aed4c8be84b",
+          "run": 35883542599,
+          "job": 107257784965,
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "FAIL",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "CAPACITY_LIMITED"
+          },
+          "server_af_packet_drops": 0,
+          "client_af_packet_drops": 1258,
+          "link_qdisc_drops": 0,
+          "summary_artifact": {
+            "id": 10761537439,
+            "digest": "sha256:bf562eebfa47715d7d22276080dccea1d0e5d5b520a94aaf0f91c0606cabe188"
+          },
+          "full_artifact": {
+            "id": 10761587316,
+            "digest": "sha256:deb6c0897a7f0a8ef7e840939f75bbaade597dbb34c2dc590a00380a9c7f789e"
+          }
+        }
+      },
+      "client_receive_burst_v2": {
+        "state": "CODE_PENDING_ACTIONS",
+        "parent_source_sha": "0321bb136405c6407ff8bd9fde6d0aed4c8be84b",
+        "prior_depth": 256,
+        "new_depth": 4096,
+        "rationale": {
+          "normal_5305_seed202": {
+            "run": 35883542599,
+            "client_af_packet_drops": 1258,
+            "route_capacity": 256,
+            "route_peak": 258,
+            "route_full_waits": 263,
+            "handoff_block_max_ms": 251.360936,
+            "queue_age_max_ms": 288.268543,
+            "max_route_handoffs_per_s": 12310.001,
+            "derived_slots_at_observed_max_rate": 3548.586
+          }
+        },
+        "invariants": [
+          "bounded per-route queue",
+          "full route still backpressures shared raw reader",
+          "SO_RCVBUF unchanged",
+          "wire/protocol/FEC/repair/loss thresholds unchanged",
+          "no per-packet goroutine",
+          "no userspace silent drop"
+        ],
+        "validation": [
+          "repository/targeted/foundation/lifecycle/fullstack/race Actions",
+          "Normal 5305 seed202 exact-SHA canary",
+          "Game4 5305 seed303 exact-SHA canary"
+        ],
+        "read_only_diagnostics": [
+          {
+            "workflow": "next-performance-artifact-reader-clientdrop",
+            "run": 35888307888
+          },
+          {
+            "workflow": "next-performance-artifact-reader-context",
+            "run": 35888308017,
+            "artifact": 10763029382
+          },
+          {
+            "workflow": "next-performance-artifact-reader-pipeline",
+            "run": 35888307950,
+            "artifact": 10763352791
+          },
+          {
+            "workflow": "next-performance-artifact-reader-ssraw",
+            "run": 35888308072
+          },
+          {
+            "workflow": "next-performance-artifact-reader-segmentmux",
+            "run": 35888450338,
+            "artifact": 10763477707
+          }
         ]
       }
     }

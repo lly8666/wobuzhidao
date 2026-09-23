@@ -34,7 +34,12 @@ var (
 const (
 	rotatingSourcePortSpan  uint64 = 1024
 	defaultReplacementGrace        = 3 * time.Second
-	segmentMuxRouteDepth            = 256
+	// segmentMuxRouteDepth is a bounded per-flow burst cushion between the
+	// shared RawIPv4Endpoint reader and each lane consumer. The 0321bb
+	// Normal/5305/seed202 canary observed 12.31k route handoffs/s and
+	// 288.269ms queue age while the 256-slot route saturated; 4096 covers
+	// that observed envelope without changing kernel socket buffers.
+	segmentMuxRouteDepth            = 4096
 )
 
 // RotatingSourcePort allocates a bounded reusable client port window for lane

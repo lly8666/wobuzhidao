@@ -42,6 +42,9 @@ func TestServerReadQueueIsBoundedBurstBuffer(t *testing.T) {
 }
 
 func TestSegmentMuxDiagnosticReportsBoundedRouteBackpressure(t *testing.T) {
+	if got, want := segmentMuxRouteDepth, 4096; got != want {
+		t.Fatalf("segmentMuxRouteDepth=%d want=%d", got, want)
+	}
 	flow := faketcp.ClientFlow{
 		LocalIP: [4]byte{192, 0, 2, 10}, PeerIP: [4]byte{192, 0, 2, 20},
 		LocalPort: 40000, PeerPort: 443,
