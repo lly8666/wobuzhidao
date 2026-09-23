@@ -1,0 +1,46 @@
+name: next-strict-weaknet
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "normal or game"
+        required: true
+        default: normal
+        type: choice
+        options: [normal, game]
+      scenario:
+        description: "lossless, 5205, or 5305"
+        required: true
+        default: lossless
+        type: choice
+        options: [lossless, "5205", "5305"]
+      seed:
+        description: "single sample seed"
+        required: true
+        default: "601"
+        type: string
+      rate_mbps:
+        description: "logical application Mbps per direction"
+        required: true
+        default: "10"
+        type: string
+      lanes:
+        description: "1 for Normal; 2..4 for Game"
+        required: true
+        default: "1"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  registration-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Default-branch registration stub
+        run: |
+          echo "This file only registers workflow_dispatch on the default branch."
+          echo "Run it against next/tlslike-dataplane; that ref owns the executable workflow body."
+          exit 1
