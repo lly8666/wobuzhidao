@@ -1509,14 +1509,17 @@ func TestSteadyGapIndexBudgetExpiryWrapAndFINProtection(t *testing.T) {
 	if first == nil || first.seq != base+2 {
 		t.Fatalf("wrap-aware heap first=%+v want=%d", first, base+2)
 	}
+	before, _ := rt.TransportStats(snap.Ref)
 
 	if err := rt.Tick(t0.Add(3 * time.Second)); err != nil { t.Fatal(err) }
 	stats, _ := rt.TransportStats(snap.Ref)
 	if stats.ForgivenGaps != steadyGapForgiveBudget {
 		t.Fatalf("first tick forgiveness=%d want=%d stats=%+v", stats.ForgivenGaps, steadyGapForgiveBudget, stats)
 	}
-	if stats.GapIndexSteps > 2*stats.GapForgiveChecks {
-		t.Fatalf("gap index steps=%d checks=%d", stats.GapIndexSteps, stats.GapForgiveChecks)
+	stepDelta := stats.GapIndexSteps - before.GapIndexSteps
+	checkDelta := stats.GapForgiveChecks - before.GapForgiveChecks
+	if stepDelta > 2*checkDelta {
+		t.Fatalf("gap index step delta=%d check delta=%d", stepDelta, checkDelta)
 	}
 	for i := 0; i < 3; i++ {
 		if err := rt.Tick(t0.Add(3*time.Second + time.Duration(i+1)*time.Millisecond)); err != nil { t.Fatal(err) }

@@ -64,8 +64,8 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "单run单样本入口已由Actions验证；已实现sender满4096固定成本shadow淘汰与receiver有界gap索引/绝对期限候选，等待runtimeowner定向unit/race Actions。性能样本尚未启动，整体仍未达标。",
-  "next_task": "先检查本轮runtimeowner定向unit/race及foundation/targeted；有代码失败就定向修复。正确性通过后，按独立workflow_dispatch run顺序执行Normal单lane FEC20:20 10Mbps无损、Game4 FEC20:20逻辑3Mbps无损，再分别执行5→20→5、5→30→5及可用的突发/黑洞单样本；每个结果记录源码SHA、analyzer blob/SHA、run/job/artifact。",
+  "in_progress": "sender/receiver有界recovery候选已落610d5092；首次Actions失败仅来自新增receiver gap索引测试把预检查的一次heap peek计入总量，未发现第二个产品失败。正在提交测试计数增量修正并重跑runtimeowner unit/race、foundation/lifecycle/targeted；性能样本仍未启动。",
+  "next_task": "先取得修正SHA的runtimeowner unit/race与foundation/lifecycle/targeted正确性结果。若产品代码继续失败，按原始失败定向修；全部正确性通过后才按单run单样本顺序启动Normal FEC20:20 10Mbps无损、Game4 FEC20:20 3Mbps无损及后续弱网/突发。",
   "latest_log": "docs/devlog/20260923-152255-receiver-gap-retirement-plan.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
@@ -1684,7 +1684,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "RECOVERY_IMPLEMENTED_PENDING_ACTIONS",
+      "status": "RECOVERY_IMPLEMENTED_TEST_ASSERTION_FIX_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1695,9 +1695,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-174000-bounded-repair-gap-index.md",
-      "note": "单样本入口在 bbed265d / next-foundation run 35836702591 全部PASS，repository-contract job 107101776268执行one-sample静态policy成功，历史foundation性能jobs均skipped。bbed265d 的 next-p4-steady-targeted run 35836702694仅Linux race失败：runtimeowner unit与race均PASS，失败定位到既存 runtimeentry/lifecycle.go admission/read race；其余contract/Windows/privileged/lifecycle-focus PASS。当前代码候选实现sender O(1)满窗淘汰、all-protected fresh无备份旁路、按发送顺序预算到期清理、receiver heap gap索引与不重置3s期限、FIN保护及操作/耗时计数；尚未Actions验证，不宣称根因或性能改善。",
-      "next_task": "先检查本轮runtimeowner定向unit/race及foundation/targeted；有代码失败就定向修复。正确性通过后，按独立workflow_dispatch run顺序执行Normal单lane FEC20:20 10Mbps无损、Game4 FEC20:20逻辑3Mbps无损，再分别执行5→20→5、5→30→5及可用的突发/黑洞单样本；每个结果记录源码SHA、analyzer blob/SHA、run/job/artifact。",
+      "latest_log": "docs/devlog/20260923-175500-gap-index-test-counter-fix.md",
+      "note": "610d5092首次Actions：repository contract/one-sample policy PASS；新增sender/receiver实现的多数定向测试PASS。所有产品测试失败可归一到同一新增测试断言：TestSteadyGapIndexBudgetExpiryWrapAndFINProtection 在测试自己预先调用 earliestReceiveSpanLocked 后仍用累计 GapIndexSteps<=2*GapForgiveChecks 比较，得到129/64；实现一次forgive包含当前peek+期限传递peek，64次本应产生128步，额外1步来自测试前置wrap顺序检查。此次只把断言改为比较tick前后的计数增量，不放宽产品门槛、不改产品代码。",
+      "next_task": "先取得修正SHA的runtimeowner unit/race与foundation/lifecycle/targeted正确性结果。若产品代码继续失败，按原始失败定向修；全部正确性通过后才按单run单样本顺序启动Normal FEC20:20 10Mbps无损、Game4 FEC20:20 3Mbps无损及后续弱网/突发。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -1744,11 +1744,40 @@
       },
       "recovery_candidate": {
         "base_source_sha": "bbed265de92b613b7c4ce29cf395af77c0336fa9",
-        "status": "NOT_RUN",
+        "status": "ACTIONS_FAILED_TEST_ACCOUNTING_ONLY",
         "sender": "bounded evict/retired heads + send-order expiry; full shadow window does not gate fresh",
         "receiver": "bounded min-heap coverage index; gap horizon inherited across a blocking episode; FIN never gap-forgiven",
         "wire_change": false,
-        "parameter_change": false
+        "parameter_change": false,
+        "implementation_source_sha": "610d5092886a160685f8a9d0ecc8fad139fa5bae",
+        "first_actions": {
+          "runtimeowner_recovery": {
+            "run": 35838952098,
+            "job": 107109125454,
+            "status": "FAIL_TEST_ASSERTION_ONLY"
+          },
+          "foundation": {
+            "run": 35838952037,
+            "status": "FAIL_SAME_TEST_ASSERTION",
+            "repository_contract_job": 107109125597,
+            "repository_contract": "PASS",
+            "linux_job": 107109167644,
+            "windows_job": 107109167567
+          },
+          "lifecycle": {
+            "run": 35838952048,
+            "job": 107109125496,
+            "status": "FAIL_SAME_TEST_ASSERTION"
+          },
+          "steady_targeted": {
+            "run": 35838952067,
+            "status": "FAIL_SAME_TEST_ASSERTION",
+            "linux_job": 107109171211,
+            "windows_job": 107109171094,
+            "lifecycle_focus_job": 107109171105
+          }
+        },
+        "assertion_fix": "GapIndexSteps/GapForgiveChecks compare tick delta after wrap-order precheck"
       }
     }
   }
