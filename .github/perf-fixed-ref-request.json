@@ -1,11 +1,11 @@
 {
   "ref": "next/tlslike-dataplane",
-  "expected_sha": "0321bb136405c6407ff8bd9fde6d0aed4c8be84b",
+  "expected_sha": "8a4536bf1a56a9d7145b3e9067f76aa43ffab848",
   "workflow": "next-strict-weaknet.yml",
   "mode": "normal",
   "scenario": "5305",
   "seed": "202",
   "rate_mbps": "10",
   "lanes": "1",
-  "reason": "exact-SHA canary for evidence-sized bounded server receive burst queue"
+  "reason": "exact-SHA canary for evidence-sized bounded client SegmentMux receive burst queue"
 }
