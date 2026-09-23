@@ -1454,22 +1454,28 @@ func TestSteadyCurrentHeadShadowSurvivesPreSACKFullWindowPressure(t *testing.T) 
 		t.Fatalf("current head was not retained with O(1) fresh eviction protected=%t stats=%+v", headProtected, stats)
 	}
 
-	// SACK only recent records that are certainly still backed. Their send time
-	// is newer than the head but intentionally below the learned reordering
-	// window, so the scoreboard path must arm rather than use immediate RACK.
+	// The later records can be evicted before feedback; first-repair evidence
+	// therefore follows novel SACK progress for this cumulative head rather
+	// than requiring three simultaneously retained SACKed payload shadows.
+	// Keep all sends on the same timestamp so strong transmit-time RACK cannot
+	// shortcut this scoreboard-only test.
 	first := wire[len(wire)-4]
-	last := wire[len(wire)-1]
 	sack := faketcp.Segment{
 		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
 		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
 		Seq: cfg.ReceiveNext, Ack: headSeq,
 		Flags: faketcp.FlagACK, Window: 65535, SACKN: 1,
 	}
-	sack.SACK[0] = faketcp.SACKBlock{Start: first.Seq, End: last.Seq + uint32(len(last.Payload))}
-	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond)); err != nil { t.Fatal(err) }
+	for i := 0; i < 3; i++ {
+		end := wire[len(wire)-4+i].Seq + uint32(len(wire[len(wire)-4+i].Payload))
+		sack.SACK[0] = faketcp.SACKBlock{Start: first.Seq, End: end}
+		if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond+time.Duration(i)*time.Millisecond)); err != nil { t.Fatal(err) }
+	}
+	// Repeating the same SACK carries no new progress and must not add evidence.
+	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(604*time.Millisecond)); err != nil { t.Fatal(err) }
 	stats, _ = rt.TransportStats(snap.Ref)
-	if stats.FastRepairArmed != 1 || stats.FastRepairs != 0 {
-		t.Fatalf("retained head did not arm from later SACK stats=%+v", stats)
+	if stats.FastRepairEvidence != 3 || stats.FastRepairArmed != 1 || stats.FastRepairs != 0 {
+		t.Fatalf("retained head did not arm from three novel SACK progresses stats=%+v", stats)
 	}
 	if err := rt.Tick(t0.Add(650*time.Millisecond)); err != nil { t.Fatal(err) }
 	if err := rt.Tick(t0.Add(750*time.Millisecond)); err != nil { t.Fatal(err) }
@@ -1509,10 +1515,12 @@ func TestSteadySACKHeadPersistsAcrossRecoveryCycleBeforeFastRepair(t *testing.T)
 		Seq: cfg.ReceiveNext, Ack: wire[0].Seq,
 		Flags: faketcp.FlagACK, Window: 65535, SACKN: 1,
 	}
-	sack.SACK[0] = faketcp.SACKBlock{Start: wire[1].Seq, End: wire[4].Seq + uint32(len(wire[4].Payload))}
-	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond)); err != nil { t.Fatal(err) }
+	for i := 1; i <= 3; i++ {
+		sack.SACK[0] = faketcp.SACKBlock{Start: wire[1].Seq, End: wire[i].Seq + uint32(len(wire[i].Payload))}
+		if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond+time.Duration(i)*time.Millisecond)); err != nil { t.Fatal(err) }
+	}
 	stats, _ := rt.TransportStats(snap.Ref)
-	if len(wire) != 5 || stats.FastRepairArmed != 1 || stats.FastRepairs != 0 {
+	if len(wire) != 5 || stats.FastRepairEvidence != 3 || stats.FastRepairArmed != 1 || stats.FastRepairs != 0 {
 		t.Fatalf("SACK head was not armed without premature repair wire=%d stats=%+v", len(wire), stats)
 	}
 	if err := rt.Tick(t0.Add(650 * time.Millisecond)); err != nil { t.Fatal(err) }
@@ -1556,8 +1564,10 @@ func TestSteadySACKHeadArmCancelsWhenCumulativeACKHealsReorder(t *testing.T) {
 		Seq: cfg.ReceiveNext, Ack: wire[0].Seq,
 		Flags: faketcp.FlagACK, Window: 65535, SACKN: 1,
 	}
-	sack.SACK[0] = faketcp.SACKBlock{Start: wire[1].Seq, End: wire[4].Seq + uint32(len(wire[4].Payload))}
-	if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond)); err != nil { t.Fatal(err) }
+	for i := 1; i <= 3; i++ {
+		sack.SACK[0] = faketcp.SACKBlock{Start: wire[1].Seq, End: wire[i].Seq + uint32(len(wire[i].Payload))}
+		if err := rt.HandleSegment(snap.Ref, sack, t0.Add(600*time.Millisecond+time.Duration(i)*time.Millisecond)); err != nil { t.Fatal(err) }
+	}
 	heal := sack
 	heal.SACKN = 0
 	heal.Ack = wire[0].Seq + uint32(len(wire[0].Payload))

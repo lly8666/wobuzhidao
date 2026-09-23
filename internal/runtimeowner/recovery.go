@@ -325,6 +325,8 @@ func (t *laneTransport) retireSelectiveACKLocked(ack uint32, now time.Time) {
 		}
 	}
 	t.lastAck = ack
+	t.firstRepairEvidenceAck = ack
+	t.firstRepairEvidence = 0
 	t.protectCurrentHeadRepairLocked()
 	t.pruneSenderSACKLocked()
 	if sample != nil {
@@ -379,13 +381,14 @@ func (t *laneTransport) selectFastRepairLocked(now time.Time) *selectedRepair {
 		}
 		return t.prepareFastRepairLocked(candidate, now)
 	}
-	if t.sackedOutstanding < 3 {
+	if t.firstRepairEvidenceAck != t.lastAck || t.firstRepairEvidence < 3 {
 		return nil
 	}
-	// Three later SACKed records are sufficient scoreboard evidence to arm a
-	// first repair even when a high-throughput send batch gave them the same
-	// timestamp as the head. Transmit-time RACK evidence is only the stronger
-	// path that can skip the persistence cycle and repair immediately.
+	// Three distinct SACK-progress ACKs for the same cumulative head are
+	// sufficient scoreboard evidence for a first repair. This survives a
+	// bounded shadow window where later records may already have been evicted;
+	// repeated identical SACKs do not advance the evidence counter. Strong
+	// transmit-time RACK evidence is only the faster path.
 	if ok && evidenceAge >= t.rackReorderingWindowLocked() {
 		return t.prepareFastRepairLocked(candidate, now)
 	}
@@ -418,6 +421,9 @@ func (t *laneTransport) rackEvidenceAgeLocked(p *pendingRecord) (time.Duration, 
 
 func (t *laneTransport) prepareFastRepairLocked(p *pendingRecord, now time.Time) *selectedRepair {
 	sel := t.reserveRepairLocked(p, now, true)
+	if sel != nil && !p.wasRetried {
+		t.firstRepairEvidence = 0
+	}
 	if sel != nil && p.fastRepairArmed {
 		p.fastRepairArmed = false
 		p.fastRepairReadyTick = 0

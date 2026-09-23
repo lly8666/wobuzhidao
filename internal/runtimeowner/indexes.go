@@ -323,6 +323,8 @@ func (t *laneTransport) clearSteadyIndexesLocked() {
 	t.recvHeap = nil
 	t.sackedOutstanding = 0
 	t.sackSeenN = 0
+	t.firstRepairEvidenceAck = 0
+	t.firstRepairEvidence = 0
 	t.recvSACKN = 0
 }
 
@@ -401,16 +403,39 @@ func mergeSACKRanges(base uint32, a, b faketcp.SACKBlock) faketcp.SACKBlock {
 
 func (t *laneTransport) applySACKLocked(blocks []faketcp.SACKBlock, now time.Time) {
 	t.pruneSenderSACKLocked()
+	progressed := false
 	for _, block := range blocks {
 		if block.Start == block.End || seqLT(block.End, block.Start) ||
 			seqLT(block.Start, t.lastAck) || seqLT(t.sendNext, block.End) {
 			continue
 		}
 		novel, n := t.unseenSenderSACKLocked(block)
+		if n != 0 {
+			progressed = true
+		}
 		for i := 0; i < n; i++ {
 			t.markSACKRangeLocked(novel[i], now)
 		}
 		t.rememberSenderSACKLocked(block)
+	}
+	if progressed {
+		t.noteFirstRepairSACKEvidenceLocked()
+	}
+}
+
+func (t *laneTransport) noteFirstRepairSACKEvidenceLocked() {
+	p := t.pendingAtHeadLocked()
+	if p == nil || p.seq != t.lastAck || p.wasRetried || p.sacked || p.retired ||
+		p.control || p.flags&faketcp.FlagFIN != 0 || p.repairInFlight {
+		return
+	}
+	if t.firstRepairEvidenceAck != t.lastAck {
+		t.firstRepairEvidenceAck = t.lastAck
+		t.firstRepairEvidence = 0
+	}
+	if t.firstRepairEvidence < 3 {
+		t.firstRepairEvidence++
+		t.stats.FastRepairEvidence++
 	}
 }
 

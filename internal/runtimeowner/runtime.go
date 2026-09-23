@@ -155,6 +155,7 @@ type TransportStats struct {
 	GapMetadataDropped    uint64
 	GapExpiredForgiven    uint64
 	FastRepairs           uint64
+	FastRepairEvidence    uint64
 	FastRepairArmed       uint64
 	FastRepairArmFired    uint64
 	FastRepairArmCanceled uint64
@@ -259,9 +260,11 @@ type laneTransport struct {
 	expiryHead  *pendingRecord
 	expiryTail  *pendingRecord
 
-	sackedOutstanding int
-	sackSeen          [steadySenderSACKHistory]faketcp.SACKBlock
-	sackSeenN         int
+	sackedOutstanding      int
+	sackSeen               [steadySenderSACKHistory]faketcp.SACKBlock
+	sackSeenN              int
+	firstRepairEvidenceAck uint32
+	firstRepairEvidence    uint8
 
 	received  map[uint32]*receiveSpan
 	recvHeap  receiveSpanHeap
