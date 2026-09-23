@@ -1,0 +1,92 @@
+name: next-performance-artifact-reader-ssraw
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/perf-artifact-clientdrop-request.json
+      - .github/workflows/next-performance-artifact-reader-ssraw.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect-raw-packet-sockets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os
+          d=json.load(open('.github/perf-artifact-clientdrop-request.json'))
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              for e,k in [('ARTIFACT_ID','artifact_id'),('SOURCE_RUN','source_run'),('SOURCE_SHA','source_sha'),('EXPECTED_NAME','artifact_name')]:
+                  f.write(f"{e}={d[k]}\n")
+          PY
+      - name: Verify and download
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          meta="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID")"
+          test "$(echo "$meta" | jq -r .name)" = "$EXPECTED_NAME"
+          test "$(echo "$meta" | jq -r .workflow_run.id)" = "$SOURCE_RUN"
+          test "$(echo "$meta" | jq -r .workflow_run.head_sha)" = "$SOURCE_SHA"
+          curl --fail --location --retry 3 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" \
+            -o "$RUNNER_TEMP/evidence.zip"
+      - name: Print raw packet sockets around drop transitions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os,zipfile
+          def find(z,suffix):
+              m=[n for n in z.namelist() if n.endswith(suffix)]
+              if len(m)!=1: raise SystemExit(f'{suffix}: {m}')
+              return m[0]
+          def rows(z,name):
+              out=[]
+              with z.open(name) as f:
+                  for raw in f:
+                      try: out.append(json.loads(raw))
+                      except Exception: pass
+              return out
+          def drop(text):
+              best=0
+              for line in (text or '').splitlines():
+                  p=line.find('skmem:(')
+                  if p<0: continue
+                  body=line[p+7:].split(')',1)[0]
+                  for tok in body.split(','):
+                      tok=tok.strip()
+                      if tok.startswith('d') and tok[1:].isdigit():
+                          best=max(best,int(tok[1:]))
+              return best
+          with zipfile.ZipFile(os.path.join(os.environ['RUNNER_TEMP'],'evidence.zip')) as z:
+              r=rows(z,find(z,'resources.jsonl'))
+          prev={'client':0,'server':0}
+          out=[]
+          for i,row in enumerate(r):
+              for ep in ('client','server'):
+                  raw=((((row.get('namespaces') or {}).get(ep) or {}).get('ss_packet') or {}).get('stdout') or '')
+                  cur=drop(raw)
+                  if cur>prev[ep]:
+                      ctx=[]
+                      for j in range(max(0,i-1),min(len(r),i+2)):
+                          rr=r[j]
+                          rrraw=((((rr.get('namespaces') or {}).get(ep) or {}).get('ss_packet') or {}).get('stdout') or '')
+                          ctx.append({'sample_index':j,'unix_ns':rr.get('unix_ns'),'stdout':rrraw})
+                      out.append({'endpoint':ep,'sample_index':i,'delta':cur-prev[ep],'cumulative':cur,'context':ctx})
+                  prev[ep]=cur
+          print('WBD_SSRAW '+json.dumps({'artifact_id':int(os.environ['ARTIFACT_ID']),'transitions':out},sort_keys=True))
+          PY
