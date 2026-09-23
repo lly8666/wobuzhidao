@@ -28,3 +28,10 @@
 
 ## 2026-09-23：lifecycle health 与 admission V2
 用户明确要求移植旧弱网/keepalive/黑洞恢复/idle保护。决策：保留稳定逻辑owner与真实TLS建连；有限认证health独立于FEC/LINK，业务与健康双时钟。为拒绝不支持health的旧端，升级TLS内admission版本2，不静默猜测peer能力。保活缺失只触发有限候选重试，不作为idle证据；不因候选失败退出程序。receiver pressure退役复用旧rate/RTT原理；sender credit/RTO/horizon及4096不改。生产默认idle仍off。配置只有CLI同名JSON一套，清单随代码校验。依据和未验证项见本轮开发日志及LIFECYCLE_ACCEPTANCE；没有性能通过声明。
+
+
+## 2026-09-23：有损容忍与低成本shadow repair
+
+2026-09-23用户最新决策：允许链路30%丢包时仍有至多30%业务包损失，优先处理性能、低延迟、无HOL与突发稳定性；不得主动丢业务凑指标。4096为可放弃的shadow-repair备份，不是fresh发送门。当前执行WEAKNET_QUALIFICATION第10节；历史近零损失门槛不再约束有损场景，无损满速、完整性、隔离和资源有界仍是硬门。
+
+选择保留4096与3秒期限，优先消除满窗淘汰全量扫描，以有界索引和增量清理实现便宜的备份失效；不扩大socket/缓存掩盖开销，不退回旧DTLS。业务修复查无备份可跳过，握手/FIN/生命周期继续专门保护。实施细则和loss-tolerant-v1验收见WEAKNET_QUALIFICATION第10节。用户明确要求所有性能测试每Action run一条，因此历史同run A/B控制取消，使用独立run重复并报告runner差异。当前仅方案更新，产品和新版测试入口均待实现验证。

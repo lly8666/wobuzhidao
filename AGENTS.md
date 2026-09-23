@@ -20,7 +20,7 @@
 
 ## 当前性能主线（2026-09-23）
 
-用户已明确解除性能 HOLD。新主线 agent 必须读 `docs/WEAKNET_QUALIFICATION.md` 第9节，并按 `STATUS.workstreams.PERFORMANCE_RECOVERY` 开始修复。历史日志和 saved_* 中的 HOLD 仅是历史记录。保留已通过36样本的生命周期语义，尤其 server 必须等当前权威 lanes 的 client PeerFIN；不得回退成仅凭 idle health 自动休眠。功能完成与性能达标分别记录。
+用户已明确解除性能 HOLD。新主线 agent 必须读 `docs/WEAKNET_QUALIFICATION.md` 第10节（最新用户决策），并按 `STATUS.workstreams.PERFORMANCE_RECOVERY` 开始修复。历史日志和 saved_* 中的 HOLD 仅是历史记录。保留已通过36样本的生命周期语义，尤其 server 必须等当前权威 lanes 的 client PeerFIN；不得回退成仅凭 idle health 自动休眠。功能完成与性能达标分别记录。
 
 ## 开工动作
 
@@ -42,9 +42,15 @@
 - 未解问题至少记录证据、假设、下一步验证；同一失败两次无新证据时停止盲改，缩小到一个诊断问题。Actions 失败不自动等于 runner 性能差。
 - 不新增第二套“当前交接”、CURRENT_FINAL_v2 文档或平行章程。只更新本套入口。
 
+## 最新弱网开发目标
+
+2026-09-23用户最新决策：允许链路30%丢包时仍有至多30%业务包损失，优先处理性能、低延迟、无HOL与突发稳定性；不得主动丢业务凑指标。4096为可放弃的shadow-repair备份，不是fresh发送门。当前执行WEAKNET_QUALIFICATION第10节；历史近零损失门槛不再约束有损场景，无损满速、完整性、隔离和资源有界仍是硬门。
+
 ## 测试环境
 
 所有测试、编译、race、fuzz、netem、性能/soak 均在 GitHub Actions 执行。开发机只编辑、阅读、Git 操作，不拿本机或物理服务器跑验收。最终物理机验收待 hosted 主流程稳定后再安排，不把尚未安排物理机测试视为开发阻塞。
+
+**每次性能测试一个Action run只跑一条样本。** 吞吐/弱网/容量/校准/微基准/soak均适用，一个源码版本、配置、seed、场景。禁止同run matrix、顺序多条、A/B或B/A；不同版本及重复分别启动独立run。场景内既定损伤阶段算一条；构建/准备/清理可同run，汇总只读产物。先改造现有多样本入口，普通unit/race与性能测量分开。
 
 不得把 archive 的测试直接作为新协议资格，不得把“CI 绿”解释成应用端到端通过。源码、构建、测试、包必须记录精确 SHA。能力缺失记 `UNSUPPORTED`，未跑记 `NOT_RUN`，不能伪装 PASS。不合并失败样本、不悄悄降低门槛。
 

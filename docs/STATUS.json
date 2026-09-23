@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "PERFORMANCE_RECOVERY remains OPEN. Head 1eeb9e25 removes the duplicate steady Segment payload clone. Validation is mixed by runner: seed601 lossless is all-5 PASS with ~10Mbps both ways, zero socket/AF_PACKET drops, CPU ~49.9/49.6s and PeakOutstanding 4017; seed631 capacity on a saturated 4-vCPU runner is CAPACITY_LIMITED with all CPUs ~99.1% busy, CPU PSI some avg10 52.8, server/client CPU ~115.35/119.03s, PeakOutstanding 4096, first >=4000 at ~1-2s, first Abandoned at ~4s, then AF_PACKET/UDP drops. Parent 5f711af1 lifecycle race fix is fully validated: next-lifecycle, foundation/P4 and lifecycle-fullstack 36/36 + aggregate all PASS. Strict 18-sample matrix remains explicit-only.",
-  "next_task": "Run ordered same-runner A/B+B/A with BASE=5f711af1 (race fix only) and FIX=1eeb9e25 (remove steady Segment payload clone), plus Game4 logical3. Interpret 4096 as ACK-retirement in-flight record BDP, not a loss-only buffer: healthy Normal10 at ~6526 records/s and ~0.600s RTT naturally needs ~3920 outstanding records, leaving only ~176 records (~27ms) headroom. If same-runner A/B shows only minor CPU gain and slow runner still collapses, next target is to reduce records-per-business-byte / per-record steady processing cost rather than enlarge 4096.",
-  "latest_log": "docs/devlog/20260923-163000-performance-bdp-and-payload-ab.md",
+  "in_progress": "用户更新目标：允许有损网络保留相当业务丢失，优先低成本shadow repair/no-HOL/低延迟/突发稳定性。现有性能缺口未关闭；第10节方案及单run单样本测试入口待新agent实现。",
+  "next_task": "先将所有性能入口改为一个Action run一条样本，禁止matrix/顺序A/B；随后按WEAKNET_QUALIFICATION第10节修复4096满窗淘汰扫描，保留fresh优先及生命周期。使用loss-tolerant-v1新口径独立验证，旧FAIL不追溯改绿。",
+  "latest_log": "docs/devlog/20260923-151743-loss-tolerant-repair-plan.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1684,19 +1684,23 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "ORDERED_AB_PAYLOAD_CLONE",
-      "spec": "docs/WEAKNET_QUALIFICATION.md#9",
+      "status": "READY_FOR_IMPLEMENTATION",
+      "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
       "baseline_run": 35803458166,
       "functional_run": 35803458184,
       "priority": [
-        "定位并最小修复服务端接收停顿",
-        "审计混合包长/FEC/分片/Game线上字节账本",
-        "无损目标通过后再完成严格弱网矩阵及长测"
+        "性能测试入口单run单样本化",
+        "修复满窗淘汰成本并验证fresh不受阻",
+        "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-163000-performance-bdp-and-payload-ab.md",
-      "note": "1eeb9e25 seed601 PASS: ~10Mbps bidirectional, 0 drops, CPU client/server ~49.85/49.57s, PeakOutstanding 4017. Same SHA seed631 on slow saturated runner CAPACITY_LIMITED: 4 CPUs ~99.1% busy, PSI some avg10 52.8, CPU ~119.03/115.35s, PeakOutstanding 4096 and large local drops. Parent 5f711af1 seed631 PASS on faster runner: record rate ~6526/s, SRTT ~0.6007s, record-BDP ~3920, PeakOutstanding 4027-4029. Thus near-4096 occupancy is expected even lossless under 600ms RTT; failure occurs when processing delay/RTT pushes beyond narrow headroom. Same-runner A/B is required to isolate clone benefit."
+      "latest_log": "docs/devlog/20260923-151743-loss-tolerant-repair-plan.md",
+      "note": "本轮仅更新方案。既有产品优化与证据保留；新淘汰实现、新验收分析器和单样本入口尚未验证。",
+      "next_task": "先将所有性能入口改为一个Action run一条样本，禁止matrix/顺序A/B；随后按WEAKNET_QUALIFICATION第10节修复4096满窗淘汰扫描，保留fresh优先及生命周期。使用loss-tolerant-v1新口径独立验证，旧FAIL不追溯改绿。",
+      "acceptance_revision": "loss-tolerant-v1",
+      "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
+      "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d"
     }
   }
 }
