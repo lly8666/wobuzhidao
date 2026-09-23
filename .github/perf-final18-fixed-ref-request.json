@@ -1,0 +1,6 @@
+{
+  "ref": "next/tlslike-dataplane",
+  "expected_sha": "148b2b0cca472d69b1da6b8e6075f229a31b3e11",
+  "workflow": "next-strict-weaknet.yml",
+  "generation": "post-receive-burst-final18-v1"
+}
