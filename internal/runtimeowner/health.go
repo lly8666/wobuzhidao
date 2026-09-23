@@ -114,6 +114,38 @@ func (r *Runtime) PeerIdle(now time.Time, idle time.Duration) bool {
 	return true
 }
 
+// PeerWriteClosed is a tunnel-level dormant commitment, not an idle guess.
+// It becomes true only when every current authoritative lane has consumed an
+// in-order FIN from the peer. Retiring generations are intentionally ignored.
+func (r *Runtime) PeerWriteClosed() bool {
+	if r == nil {
+		return false
+	}
+	r.mu.Lock()
+	lanes := make([]*laneTransport, 0, len(r.active))
+	for _, ref := range r.active {
+		t := r.lanes[ref]
+		if t == nil {
+			r.mu.Unlock()
+			return false
+		}
+		lanes = append(lanes, t)
+	}
+	r.mu.Unlock()
+	if len(lanes) == 0 {
+		return false
+	}
+	for _, t := range lanes {
+		t.mu.Lock()
+		closed := t.peerFIN
+		t.mu.Unlock()
+		if !closed {
+			return false
+		}
+	}
+	return true
+}
+
 // Unhealthy is diagnostic suspicion, not a terminal error and not DORMANT.
 // Pure TCP ACKs cannot keep an encrypted lane alive.
 func (r *Runtime) Unhealthy(ref logicaltunnel.LaneRef, now time.Time, timeout time.Duration) bool {

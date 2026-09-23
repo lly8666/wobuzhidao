@@ -7,7 +7,7 @@
 - 复用旧 receive-rate/RTT 自适应 pressure forgiveness：100ms 速率采样、EWMA 1/8，软阈值 ceil(rate×RTT + max(128,10% rate×RTT))，3584 emergency；软阈值还需 gap 至少 1 RTT，冷启动无 RTT 不臆造小窗口。只释放 TCP 外观元数据，业务 first-arrival 仍即时交付。3s 恢复 horizon 与已有发送重传预算继续有效。
 - 单 lane 40B TLS-like health record（含 31B record 固定开销），每端默认 15s 一条；不进 LINK/FEC、不填充、不补充 repair credit、不入 repair 队列；它占用正常 TCP seq，丢失不会阻塞后续独立 record。
 - 新 PN 且认证成功的数据/health 才刷新链路健康；重复 TCP payload、旧 health hint、单纯 ACK 均不能将旧空闲信息当新证据。
-- business activity 与 health 分离。client 本地提交需求在发送/唤醒前计入；有效下行也计入。auto-idle 使用二次活动快照校验，丢失保活时保持“未知”，转恢复而非误休眠。休眠前有一次有限最终 idle hint，使正常链路两端能收敛；这是尽力发送而非可靠关闭事务。
+- business activity 与 health 分离。client 本地提交需求在发送/唤醒前计入；有效下行也计入。auto-idle 使用二次活动快照校验，丢失保活时保持“未知”，转恢复而非误休眠。client 是主动唤醒/休眠发起侧；server 的 auto-idle 不能仅凭周期 idle health 先关闭，必须等当前 authoritative lanes 收到 client 的有序 FIN 承诺后再跟随休眠。休眠前仍有一次有限最终 idle hint；idle hint/FIN 都是尽力收敛而非可靠关闭事务。
 - 超过 dead-after 选择异常 lane，最多一个候选同时建连。候选沿用真实 TLS/admission、新 incarnation 和 generation fence；失败保留旧 authoritative lane，1～30s 有界退避，不退出 CLI。已成功 admission/promote 后仍沿用旧的 bounded retiring grace；不能将其描述为“任意 promotion 后故障可回滚旧 generation”。新 lane 再失活由下一轮恢复处理。
 - 只增加可观测字段，不删除既有 weaknet 成本、AF_PACKET、输入有效性指标。吞吐瓶颈尚未修复，不能将本工作标成容量问题完成。
 

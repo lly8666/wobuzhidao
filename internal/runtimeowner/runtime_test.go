@@ -1407,3 +1407,33 @@ func TestSteadyFreshFastRepairUsesTransmissionTimeReorderingEvidence(t *testing.
 		t.Fatalf("transmission-time evidence did not fast repair wire=%+v stats=%+v", wire, stats)
 	}
 }
+
+
+func TestRuntimePeerWriteClosedRequiresAllAuthoritativeLanes(t *testing.T) {
+	ref1 := logicaltunnel.LaneRef{ID: 1, Generation: 1}
+	ref2 := logicaltunnel.LaneRef{ID: 2, Generation: 1}
+	retired := logicaltunnel.LaneRef{ID: 1, Generation: 0}
+	rt := &Runtime{
+		active: map[uint8]logicaltunnel.LaneRef{1: ref1, 2: ref2},
+		lanes: map[logicaltunnel.LaneRef]*laneTransport{
+			ref1:    {},
+			ref2:    {},
+			retired: {peerFIN: true},
+		},
+	}
+	if rt.PeerWriteClosed() {
+		t.Fatal("open authoritative lanes reported peer-closed")
+	}
+	rt.lanes[ref1].peerFIN = true
+	if rt.PeerWriteClosed() {
+		t.Fatal("one of two authoritative FINs closed the tunnel")
+	}
+	rt.lanes[ref2].peerFIN = true
+	if !rt.PeerWriteClosed() {
+		t.Fatal("all authoritative peer FINs were not recognized")
+	}
+	delete(rt.lanes, ref2)
+	if rt.PeerWriteClosed() {
+		t.Fatal("missing authoritative transport reported peer-closed")
+	}
+}

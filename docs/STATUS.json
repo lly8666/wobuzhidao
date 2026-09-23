@@ -1382,7 +1382,7 @@
       "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA."
     },
     "WEAKNET_LIFECYCLE": {
-      "status": "ACCEPTANCE_HARNESS_CORRECTION_2_PENDING_ACTIONS",
+      "status": "PRODUCT_IDLE_RACE_FIX_PENDING_ACTIONS",
       "main_task_hold": {
         "requested_by": "user",
         "resume_only_on_user_request": true,
@@ -1395,10 +1395,10 @@
       "protocol": "admission V2; paired upgrade required",
       "acceptance": "docs/LIFECYCLE_ACCEPTANCE.md",
       "parameters": "docs/PARAMETERS.md",
-      "latest_devlog": "docs/devlog/20260923-074500-lifecycle-race-harness-correction.md",
-      "acceptance_harness": "Second correction pending Actions: L5 bounded retry/SYN timeout uses actual FakeTCP candidate bound; L6 uses exactly 100 client-originated wake events and separates blackhole wake failure from post-clear bidirectional registration.",
-      "core_status": "PASS_1C83",
-      "fullstack_status": "26_PASS_10_HARNESS_CONTRACT_FAIL_1C83",
+      "latest_devlog": "docs/devlog/20260923-081500-server-follow-client-dormant-fix.md",
+      "acceptance_harness": "L6 now matches the written contract: both-dormant precondition, total-underlay blackhole failed client wakes with bounded retries, post-clear recovery probe, then 100 clear-path near-cutoff client business events requiring 100/100 delivery for 1- and 4-lane modes.",
+      "core_status": "PASS_FFCA_PRE_FIX",
+      "fullstack_status": "32_PASS_4_REAL_IDLE_RACE_FAIL_FFCA",
       "implementation_sha": "84c466f81860c3e87aac3b571a9bce419018aabc",
       "core_runs": [
         {
@@ -1494,6 +1494,22 @@
         "pass_groups": "L0 8/8; L1 2/2; L2 C2S/S2C 4/4; L3 2/2; L4 4/4; L5 TLS/admission 4/4; L7 defaults 2/2",
         "failures": "L5 SYN 2: validator assumed 12-19s although FakeTCP bounded SYN candidate failed at ~6.5s and old lane traffic remained ~100%; L5 detach 2: validator capped attempts at 3 although bounded 1/2/4s retries converged with old-lane continuity; L6 race 4: duplex generator incorrectly required server reverse wake after full dormancy; L6 partial 2: REGISTER was intentionally blackholed so target never learned reverse peer and final idle was misclassified.",
         "product_conclusion": "No product lifecycle defect established by these 10 failures; raw artifacts retained and harness corrected before any PASS claim."
+      },
+      "fullstack_attempt_ffca": {
+        "source_sha": "ffca1140e4c2a11cd6d8041bcd9d95558624e490",
+        "run": "https://github.com/lly8666/wobuzhidao/actions/runs/35798425167",
+        "result": "32_SAMPLE_PASS_4_L6_RACE_FAIL",
+        "pass_groups": "L0 8/8; L1 2/2; L2 4/4; L3 2/2; L4 4/4; L5 8/8; L6 partial 2/2; L7 defaults 2/2",
+        "failures": "L6 race1/race4 both seeds. Three samples aborted before manifest because the strict target saw <100 packets (e.g. race1/seed101 96/100, missing 7/46/72/79); race4/seed202 completed but validator's 90-110 wake-count assumption was invalid.",
+        "product_conclusion": "Artifact timeline establishes a real unilateral-server-idle race: for missing seq46/72/79 in race1/seed101 the server entered DORMANT about 25ms before the client business send while client remained ACTIVE; periodic PeerIdle was therefore an observation, not a dormant commitment. This round changes server auto-idle ownership rather than waiving packet loss."
+      },
+      "product_fix_candidate": {
+        "base_sha": "ffca1140e4c2a11cd6d8041bcd9d95558624e490",
+        "change": "server auto-idle follows all authoritative client PeerFINs; periodic PeerIdle remains client-side evidence but cannot independently close the server",
+        "wire_change": false,
+        "parameter_change": false,
+        "capacity_path_change": false,
+        "actions": "PENDING"
       }
     }
   }

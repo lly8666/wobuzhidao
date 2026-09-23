@@ -1708,7 +1708,12 @@ func (s *LifecycleServer) tick(now time.Time) error {
 			active := !group.dormant && len(group.lanes) != 0
 			last := group.lastPayload
 			s.mu.Unlock()
-			if active && !last.IsZero() && !now.Before(last) && now.Sub(last) >= s.cfg.DormantAfter && group.rt.PeerIdle(now, s.cfg.DormantAfter) {
+			// The client is the only endpoint with an active wake path. Periodic
+			// idle health is evidence, not a promise that no new business will
+			// appear after the hint. Follow the client's steady FIN commitment so
+			// the server cannot race ahead into DORMANT and swallow a near-cutoff
+			// client packet.
+			if active && !last.IsZero() && !now.Before(last) && now.Sub(last) >= s.cfg.DormantAfter && group.rt.PeerWriteClosed() {
 				if err := s.dormantGroupIfIdle(group, last); err != nil {
 					errs = append(errs, err)
 				}

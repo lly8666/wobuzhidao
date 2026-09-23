@@ -214,15 +214,48 @@ def main():
  sy=syns(root/"underlay.pcap")
 
  if sc in ("l6_race1","l6_race4"):
+  blocked=load(root/"blocked-biz.json") if (root/"blocked-biz.json").exists() else {}
+  rb=load(root/"recovery-biz.json") if (root/"recovery-biz.json").exists() else {}
+  rt=load(root/"recovery-target.json") if (root/"recovery-target.json").exists() else {}
   wb=load(root/"wake-biz.json") if (root/"wake-biz.json").exists() else {}
   wt=load(root/"wake-target.json") if (root/"wake-target.json").exists() else {}
+  if int(blocked.get("sent",0)or 0)!=16 or int(blocked.get("send_errors",0)or 0)!=0:err.append(f"blackhole wake sender {blocked}")
+  if int(rb.get("sent",0)or 0)!=8 or int(rb.get("send_errors",0)or 0)!=0 or int(rt.get("received_unique",0)or 0)<1:err.append(f"post-clear recovery probe biz={rb} target={rt}")
   if int(wb.get("sent",0)or 0)!=100 or int(wb.get("send_errors",0)or 0)!=0:err.append(f"wake driver sender {wb}")
   if int(wt.get("received_unique",0)or 0)!=100 or int(wt.get("corrupt",0)or 0)!=0 or int(wt.get("unexpected",0)or 0)!=0:err.append(f"wake driver target {wt}")
-  ra=int(lf.get("RecoveryAttempts",0)or 0); rsu=int(lf.get("RecoverySucceeded",0)or 0)
-  if ra<90 or ra>110 or rsu<90:err.append(f"race wake transitions attempts={ra} succeeded={rsu}")
+
+  pre=(em.get("race_precondition")or[None])[0]
+  strict_pre=(em.get("race_strict_precondition")or[None])[0]
+  for label,z in (("initial",pre),("strict",strict_pre)):
+   if not z:err.append(f"missing {label} dormant precondition")
+   else:
+    qc=near(c,int(z["unix_ns"])); qs=near(s,int(z["unix_ns"]))
+    if not qc or not own(qc,"client").get("Dormant") or not qs or not own(qs,"server").get("Dormant"):
+     err.append(f"{label} precondition not both dormant client={own(qc,'client') if qc else None} server={own(qs,'server') if qs else None}")
+
+  bs=(em.get("fault_start")or[None])[0]; be=(em.get("fault_end")or[None])[0]
+  if not bs or not be:err.append("missing race blackhole bounds")
+  else:
+   lo=int(bs["unix_ns"]); hi=int(be["unix_ns"])
+   ba=[z for z in attempts if lo<=z["unix_ns"]<=hi]
+   bf=[z for z in failed if lo<=z["unix_ns"]<=hi]
+   if not ba or not bf:err.append(f"blackhole did not exercise failed wake attempts={ba} failed={bf}")
+   if len(ba)>8:err.append(f"blackhole retry storm attempts={len(ba)}")
+   after=[z for z in succeeded if z["unix_ns"]>=hi]
+   if not after:err.append("no successful wake after blackhole clear")
+   elif delta_s(hi,after[0]["unix_ns"])>20:err.append(f"post-clear wake budget {delta_s(hi,after[0]['unix_ns']):.3f}s")
+
+  strict=(em.get("wake_driver_spawn")or[None])[-1]
+  if strict:
+   lo=int(strict["unix_ns"])
+   sa=[z for z in attempts if z["unix_ns"]>=lo]
+   sf=[z for z in failed if z["unix_ns"]>=lo]
+   ss=[z for z in succeeded if z["unix_ns"]>=lo]
+   if len(sa)<10 or len(ss)<10:err.append(f"clear cutoff race insufficient wake cycles attempts={len(sa)} succeeded={len(ss)}")
+   if sf:err.append(f"clear cutoff race had failed wakes {sf}")
+  else:err.append("missing clear-path wake driver event")
   if lac is None or las is None:err.append("race never returned to active lanes")
-  # Ending DORMANT after the 100th client event is expected with idle=1s; L1
-  # separately proves active pure-downlink traffic does not false-idle.
+  # Ending DORMANT after the final clear-path event is expected with idle=1s.
 
  if sc=="l6_partial":
   if sum(1 for z in cae if z.get("kind")=="admission" and int(z.get("lane",0))==3)!=1:err.append("partial wake lane3 receipt missing")

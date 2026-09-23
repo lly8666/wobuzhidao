@@ -93,15 +93,37 @@ case "$SCENARIO" in
  l5_tls|l5_admission|l5_detach) kind="$(echo "$SCENARIO"|cut -c4-)"; start_traffic main 125 .05 .05; sleep 5; control "$CLIENT_CONTROL" 2 "$kind" 1 1; event candidate_fault_arm "$kind"; wait_traffic;;
  l6_race1|l6_race4)
    sleep 3; event race_precondition dormant
+   fault_all; event fault_start wake_blackhole
+   st="$(python3 - <<'PY'
+import time
+print(time.monotonic_ns()+2_000_000_000)
+PY
+)"
+   ip netns exec "$BIZ" python3 "$WAKE" --role biz --bind 10.40.0.2:28081 --peer 10.50.0.2:18081 --start-ns "$st" --count 16 --interval 1.25 --seed "$((SEED*100+10))" --output "$ART/blocked-biz.json" >"$ART/blocked-biz.log" 2>&1 & BIZ_PID="$!"
+   event wake_blackhole_driver_spawn client_originated_16
+   wait "$BIZ_PID"; BIZ_PID=""
+   fault_clear; event fault_end wake_blackhole
+
+   st="$(python3 - <<'PY'
+import time
+print(time.monotonic_ns()+2_000_000_000)
+PY
+)"
+   ip netns exec "$TGT" python3 "$WAKE" --role target --bind 10.50.0.2:18081 --start-ns "$st" --count 8 --interval 1.25 --min-received 1 --seed "$((SEED*100+11))" --output "$ART/recovery-target.json" >"$ART/recovery-target.log" 2>&1 & TGT_PID="$!"
+   ip netns exec "$BIZ" python3 "$WAKE" --role biz --bind 10.40.0.2:28081 --peer 10.50.0.2:18081 --start-ns "$st" --count 8 --interval 1.25 --seed "$((SEED*100+11))" --output "$ART/recovery-biz.json" >"$ART/recovery-biz.log" 2>&1 & BIZ_PID="$!"
+   event wake_recovery_driver_spawn client_originated_8
+   wait_traffic
+
+   sleep 3; event race_strict_precondition dormant
    st="$(python3 - <<'PY'
 import time
 print(time.monotonic_ns()+2_000_000_000)
 PY
 )"
    echo "$st" >"$ART/wake-start-monotonic-ns.txt"
-   ip netns exec "$TGT" python3 "$WAKE" --role target --bind 10.50.0.2:18081 --start-ns "$st" --count 100 --interval 1.25 --seed "$((SEED*100+12))" --output "$ART/wake-target.json" >"$ART/wake-target.log" 2>&1 & TGT_PID="$!"
-   ip netns exec "$BIZ" python3 "$WAKE" --role biz --bind 10.40.0.2:28081 --peer 10.50.0.2:18081 --start-ns "$st" --count 100 --interval 1.25 --seed "$((SEED*100+12))" --output "$ART/wake-biz.json" >"$ART/wake-biz.log" 2>&1 & BIZ_PID="$!"
-   event wake_driver_spawn client_originated_100
+   ip netns exec "$TGT" python3 "$WAKE" --role target --bind 10.50.0.2:18082 --start-ns "$st" --count 100 --interval 1.25 --seed "$((SEED*100+12))" --output "$ART/wake-target.json" >"$ART/wake-target.log" 2>&1 & TGT_PID="$!"
+   ip netns exec "$BIZ" python3 "$WAKE" --role biz --bind 10.40.0.2:28082 --peer 10.50.0.2:18082 --start-ns "$st" --count 100 --interval 1.25 --seed "$((SEED*100+12))" --output "$ART/wake-biz.json" >"$ART/wake-biz.log" 2>&1 & BIZ_PID="$!"
+   event wake_driver_spawn client_originated_100_clear_path
    wait_traffic;;
  l6_partial)
    sleep 12; event idle_observed dormant
