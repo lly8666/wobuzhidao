@@ -1,11 +1,11 @@
 {
   "ref": "next/tlslike-dataplane",
-  "expected_sha": "18a8b044879c65c0e13ff0c3b04c4295483348dc",
+  "expected_sha": "ab29a618fc32aba7aa6cd1a4d714bfb6649d15c1",
   "workflow": "next-strict-weaknet.yml",
   "mode": "normal",
-  "scenario": "5205",
+  "scenario": "lossless",
   "seed": "101",
   "rate_mbps": "10",
   "lanes": "1",
-  "reason": "bounded head-repair follow-up comparison sample 2/3; exact-SHA Normal 5205"
+  "reason": "bounded head-repair V2 comparison sample 1; exact-SHA Normal lossless"
 }
