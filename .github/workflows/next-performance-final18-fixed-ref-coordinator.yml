@@ -38,6 +38,11 @@ jobs:
               f.write(f"PERF_WORKFLOW={d['workflow']}\n")
               f.write(f"GENERATION={d.get('generation','')}\n")
           PY
+          PERF_REF="$(jq -r .ref .github/perf-final18-fixed-ref-request.json)"
+          EXPECTED_SHA="$(jq -r .expected_sha .github/perf-final18-fixed-ref-request.json)"
+          PERF_WORKFLOW="$(jq -r .workflow .github/perf-final18-fixed-ref-request.json)"
+          GENERATION="$(jq -r '.generation // ""' .github/perf-final18-fixed-ref-request.json)"
+          export PERF_REF EXPECTED_SHA PERF_WORKFLOW GENERATION
           remote_sha="$(git ls-remote origin "refs/heads/$PERF_REF" | awk '{print $1}')"
           echo "generation=$GENERATION expected=$EXPECTED_SHA remote=$remote_sha"
           test "$remote_sha" = "$EXPECTED_SHA"
