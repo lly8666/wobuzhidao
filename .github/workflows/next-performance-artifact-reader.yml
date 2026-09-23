@@ -96,15 +96,21 @@ jobs:
                           pass
               return out
           def parse_skmem(text):
-              import re
               out={'rmem_alloc':0,'rcv_buf':0,'drops':0}
-              for body in re.findall(r"skmem:\(([^\n)]*)\)", text or ''):
+              for line in (text or '').splitlines():
+                  pos=line.find('skmem:(')
+                  if pos < 0:
+                      continue
+                  body=line[pos+7:].split(')',1)[0]
                   fields={}
                   for token in body.split(','):
                       token=token.strip()
-                      m=re.fullmatch(r"(rb|tb|bl|r|t|f|w|o|d)(-?\\d+)",token)
-                      if m:
-                          fields[m.group(1)]=int(m.group(2))
+                      for key in ('rb','tb','bl','r','t','f','w','o','d'):
+                          if token.startswith(key):
+                              value=token[len(key):]
+                              if value and value.lstrip('-').isdigit():
+                                  fields[key]=int(value)
+                              break
                   out['rmem_alloc']=max(out['rmem_alloc'],fields.get('r',0))
                   out['rcv_buf']=max(out['rcv_buf'],fields.get('rb',0))
                   out['drops']=max(out['drops'],fields.get('d',0))
