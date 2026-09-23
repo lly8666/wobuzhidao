@@ -64,9 +64,9 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。"
   ],
-  "in_progress": "5205 canonical analyzer的server AF_PACKET drops=164保持有效。drop-trace reader第二次run 35847893659仍未复现该值；为彻底排除多层正则转义问题，诊断reader改为纯字符串token parser：定位skmem:(...)->逗号拆分->读取r/rb/d，不再使用regex。仍只读同一immutable artifact 10744205038。",
-  "next_task": "第三次零采样reader读取5205 artifact，输出真实drop transition；若仍不一致则直接输出raw ss_packet样本并停止推测。5305继续暂停。",
-  "latest_log": "docs/devlog/20260923-200000-drop-trace-token-parser.md",
+  "in_progress": "Normal 5205首个有效样本仍为CAPACITY_LIMITED_ENVIRONMENT，但零采样reader已定位server AF_PACKET 164 drops为单次burst：全部发生在post阶段t≈115.045s，stress阶段drop=0。drop样本server rmem=344896/1048576、client rmem=46592/1048576，CPU delta约client0.80s/server0.83s，procs_running=12，loadavg≈6；runtimeowner同时FreshBlocked=0、FreshEmitFailures=0、RepairEvictionMaxScan=1。证据不支持旧全窗扫描/HOL回归，但1s采样不足以排除亚秒级本机队列峰值。现在武装同配置独立5205复核。",
+  "next_task": "由connector重跑本提交的dispatch relay，发起第二条独立normal/5205/seed601/10Mbps/1lane样本。若新run ENVIRONMENT PASS且其它门PASS，则保留首run CAPACITY_LIMITED并进入5305；若再次出现server AF_PACKET local drop，则停止扩展场景并定向修接收路径。",
+  "latest_log": "docs/devlog/20260923-201500-normal-5205-drop-burst-retest-arm.md",
   "last_tested_source_sha": "6c061d3034aae85d05323d64376b1807101ed109",
   "actions": [
     {
@@ -1684,7 +1684,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "NORMAL_5205_CAPACITY_LIMITED_ENVIRONMENT_DIAG",
+      "status": "NORMAL_5205_CAPACITY_LIMITED_RETEST_PENDING",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1695,9 +1695,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260923-200000-drop-trace-token-parser.md",
-      "note": "Normal 5205 run 35846947558 / job 107135275382为有效样本。CORRECTNESS=PASS INPUT_VALIDITY=PASS CAPTURE=PASS ENVIRONMENT=FAIL PERFORMANCE=CAPACITY_LIMITED；唯一environment error为server/ss_packet skmem drop max=164。performance_errors=[]：20% stress阶段c2s/s2c final packet+byte loss均0，eventual/wall goodput约10Mbps；post5 offset=1s；probe timeout=0；late_after_10s=0。FEC/forgiveness/abandon按loss-tolerant策略工作，repair量很小（c2s outer 51188B, s2c 41243B）。本机drop门槛不放宽，暂停5305并抽取drop timeline。 首版drop-trace reader run 35847693601 / job 107137720595的timeline=0是reader新增正则过度转义造成的诊断解析错误，不改变原analyzer对server/ss_packet drops=164的ENVIRONMENT FAIL。修复reader后对同一immutable artifact重读。 第二次drop-trace reader run 35847893659仍错误得到0；为消除三层转义不确定性，第三版改用无regex的skmem字符串token parser。canonical analyzer 164与CAPACITY_LIMITED结论不变。",
-      "next_task": "修复后的零采样reader重新解析artifact 10744205038；只有drop timeline可信后再决定产品修复或同配置环境复核。",
+      "latest_log": "docs/devlog/20260923-201500-normal-5205-drop-burst-retest-arm.md",
+      "note": "drop-trace第三版reader run 35848209565 / job 107139379607 / artifact 10744351636成功定位：server AF_PACKET 164 drops全部为单次post-stage burst，elapsed=115.045s；pre=0 stress=0 post=164。该样本server packet rmem=344896/1048576(0.329)，client=46592/1048576(0.044)，client/server CPU delta=0.80/0.83s，procs_running=12，loadavg=6.00。nearest runtimeowner双方Outstanding=4096但FreshBlocked=0、FreshEmitFailures=0、FreshWindowBypass=0、RepairEvictionMaxScan=1；未见旧O(N)扫描或fresh admission阻塞证据。1s采样不能排除瞬时rmem峰值，因此不宣称纯runner异常，先同配置独立复核。",
+      "next_task": "独立重跑Normal 5205同输入同产品。若local socket drop归零且五类全PASS，首个CAPACITY_LIMITED作为环境异常保留并继续5305；若本机drop复现则做接收路径性能修复。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -1887,7 +1887,7 @@
         "relay_workflow": ".github/workflows/next-performance-dispatch-relay.yml",
         "request_file": ".github/perf-dispatch-request.json",
         "semantics": "push attempt1 arms only; rerun attempt>=2 dispatches; exact-head guard; one dispatch per request HEAD via head_sha de-duplication",
-        "status": "PAUSED_AFTER_5205_CAPACITY_LIMITED",
+        "status": "ARMING_NORMAL_5205_RETEST",
         "request": {
           "workflow": "next-strict-weaknet.yml",
           "ref": "next/tlslike-dataplane",
@@ -2230,7 +2230,7 @@
           "size_bytes": 723324771,
           "digest": "sha256:ab9027b595b2d22f6a6f152315c63cf47aa91e1e217195274948872af57647ea"
         },
-        "detail_status": "DROP_TIMELINE_TOKEN_READER_PENDING",
+        "detail_status": "CAPACITY_LIMITED_SINGLE_POST_DROP_BURST_RETEST_PENDING",
         "artifact_reader_first_attempt": {
           "run": 35847693601,
           "job": 107137720595,
@@ -2244,6 +2244,56 @@
           "artifact_id": 10743803335,
           "result": "DIAGNOSTIC_READER_STILL_ZERO",
           "action": "replace regex with direct skmem token parser"
+        },
+        "artifact_reader_final": {
+          "run": 35848209565,
+          "job": 107139379607,
+          "artifact_id": 10744351636,
+          "result": "PASS",
+          "source_artifact_id": 10744205038,
+          "drop_timeline": {
+            "pre": 0,
+            "stress": 0,
+            "post": 164,
+            "transitions": 1,
+            "elapsed_s": 115.04520467,
+            "server_packet": {
+              "drops": 164,
+              "rmem_alloc": 344896,
+              "rcv_buf": 1048576,
+              "rmem_ratio": 0.32891845703125
+            },
+            "client_packet": {
+              "drops": 0,
+              "rmem_alloc": 46592,
+              "rcv_buf": 1048576,
+              "rmem_ratio": 0.04443359375
+            },
+            "cpu_delta_s": {
+              "client": 0.8,
+              "server": 0.83
+            },
+            "procs_running": 12,
+            "loadavg": "6.00 2.28 0.84"
+          },
+          "nearest_transport": {
+            "client": {
+              "Outstanding": 4096,
+              "PeakOutstanding": 4096,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0,
+              "FreshWindowBypass": 0,
+              "RepairEvictionMaxScan": 1
+            },
+            "server": {
+              "Outstanding": 4096,
+              "PeakOutstanding": 4096,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0,
+              "FreshWindowBypass": 0,
+              "RepairEvictionMaxScan": 1
+            }
+          }
         }
       }
     }

@@ -8,8 +8,8 @@
   "lanes": "1",
   "acceptance": "loss-tolerant-v1",
   "expected_product_sha": "610d5092886a160685f8a9d0ecc8fad139fa5bae",
-  "request_revision": 5,
-  "request_reason": "normal-and-game-lossless-qualified-proceed-normal-5205",
-  "previous_qualification_run": 35845883866,
+  "request_revision": 6,
+  "request_reason": "repeat-normal-5205-after-single-post-stage-local-drop-burst",
+  "previous_qualification_run": 35846947558,
   "expected_analysis_revision": "path-delay-aligned-wall-v2"
 }
