@@ -1,0 +1,120 @@
+name: next-performance-artifact-reader-segmentmux
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/next-performance-artifact-reader-segmentmux.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect-segmentmux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          d=json.load(open('.github/perf-artifact-clientdrop-request.json', encoding='utf-8'))
+          for k in ('artifact_id','source_run','source_job','source_sha','artifact_name'):
+              if k not in d:
+                  raise SystemExit(f'missing {k}')
+          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f:
+              for env,key in [('ARTIFACT_ID','artifact_id'),('SOURCE_RUN','source_run'),('SOURCE_JOB','source_job'),('SOURCE_SHA','source_sha'),('EXPECTED_NAME','artifact_name')]:
+                  f.write(f"{env}={d[key]}\n")
+          PY
+
+      - name: Verify and download immutable artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          meta="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID")"
+          test "$(echo "$meta" | jq -r .name)" = "$EXPECTED_NAME"
+          test "$(echo "$meta" | jq -r .workflow_run.id)" = "$SOURCE_RUN"
+          test "$(echo "$meta" | jq -r .workflow_run.head_sha)" = "$SOURCE_SHA"
+          test "$(echo "$meta" | jq -r .expired)" = false
+          curl --fail --location --retry 3             -H "Accept: application/vnd.github+json"             -H "Authorization: Bearer $GH_TOKEN"             -H "X-GitHub-Api-Version: 2022-11-28"             "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip"             -o "$RUNNER_TEMP/evidence.zip"
+
+      - name: Extract SegmentMux bounded queue diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifact-reader
+          python3 - <<'PY'
+          import json, os, zipfile
+          zpath=os.path.join(os.environ['RUNNER_TEMP'],'evidence.zip')
+          with zipfile.ZipFile(zpath) as z:
+              matches=[n for n in z.namelist() if n.endswith('client-diag.jsonl')]
+              if len(matches)!=1:
+                  raise SystemExit(f'client-diag.jsonl matches={matches}')
+              rows=[]
+              with z.open(matches[0]) as f:
+                  for raw in f:
+                      try: rows.append(json.loads(raw))
+                      except Exception: pass
+
+          route_summary={}
+          rows_with_mux=0
+          for row in rows:
+              mux=((row.get('product') or {}).get('segment_mux') or {})
+              routes=mux.get('routes') or []
+              if routes:
+                  rows_with_mux += 1
+              for idx,r in enumerate(routes):
+                  ref=r.get('ref') or {}
+                  key=str(r.get('route') or r.get('key') or f"{ref.get('ID',idx+1)}:{ref.get('Generation',0)}:{idx}")
+                  s=route_summary.setdefault(key,{
+                      'capacity':None,'max_current':0,'max_peak':0,'max_bytes':0,'max_bytes_peak':0,
+                      'max_full_waits':0,'final_full_waits':0,'handoff_block_max_ns':0,'queue_age_max_ns':0,
+                      'last':None,
+                  })
+                  cap=r.get('capacity')
+                  if isinstance(cap,int): s['capacity']=cap
+                  for src,dst in [('current','max_current'),('peak','max_peak'),('bytes','max_bytes'),('bytes_peak','max_bytes_peak'),('full_waits','max_full_waits')]:
+                      v=r.get(src)
+                      if isinstance(v,int): s[dst]=max(s[dst],v)
+                  fw=r.get('full_waits')
+                  if isinstance(fw,int): s['final_full_waits']=fw
+                  hb=r.get('handoff_block') or {}
+                  qa=r.get('queue_age') or {}
+                  if isinstance(hb.get('max_ns'),int): s['handoff_block_max_ns']=max(s['handoff_block_max_ns'],hb['max_ns'])
+                  if isinstance(qa.get('max_ns'),int): s['queue_age_max_ns']=max(s['queue_age_max_ns'],qa['max_ns'])
+                  s['last']={
+                      'unix_ns':row.get('unix_ns'),'capacity':r.get('capacity'),'current':r.get('current'),
+                      'peak':r.get('peak'),'bytes':r.get('bytes'),'bytes_peak':r.get('bytes_peak'),
+                      'full_waits':r.get('full_waits'),'handoff_block':hb,'queue_age':qa,
+                  }
+
+          if not route_summary:
+              raise SystemExit('no segment_mux routes found')
+          out={
+              'artifact_id':int(os.environ['ARTIFACT_ID']),
+              'source_run':int(os.environ['SOURCE_RUN']),
+              'source_job':int(os.environ['SOURCE_JOB']),
+              'source_sha':os.environ['SOURCE_SHA'],
+              'client_diag_rows':len(rows),
+              'rows_with_segment_mux':rows_with_mux,
+              'routes':route_summary,
+          }
+          with open('artifact-reader/segmentmux.json','w',encoding='utf-8') as f:
+              json.dump(out,f,indent=2,sort_keys=True); f.write('\n')
+          print('WBD_SEGMENTMUX '+json.dumps(out,sort_keys=True))
+          PY
+
+      - name: Upload SegmentMux diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: segmentmux-diag-${{ env.ARTIFACT_ID }}-${{ env.SOURCE_SHA }}
+          path: artifact-reader/segmentmux.json
+          if-no-files-found: error
+          retention-days: 30
