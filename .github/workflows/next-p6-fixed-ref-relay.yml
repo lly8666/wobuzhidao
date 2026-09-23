@@ -1,0 +1,46 @@
+name: next-p6-fixed-ref-relay
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/next-p6-fixed-ref-relay.yml
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  relay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      PERF_REF: next/tlslike-dataplane
+      EXPECTED_SHA: 689dea19e2e1dfdccbab9c8f42210d62c4a12223
+      TARGET_WORKFLOW: next-foundation.yml
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require exact qualified branch head
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote_sha="$(git ls-remote origin "refs/heads/$PERF_REF" | awk '{print $1}')"
+          echo "expected=$EXPECTED_SHA remote=$remote_sha attempt=$GITHUB_RUN_ATTEMPT"
+          test "$remote_sha" = "$EXPECTED_SHA"
+      - name: Arm or dispatch exact-SHA P6 packaging
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_RUN_ATTEMPT" = "1" ]; then
+            echo "WBD_P6_RELAY_ARMED_ONLY sha=$EXPECTED_SHA"
+            exit 0
+          fi
+          existing="$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/$TARGET_WORKFLOW/runs"             -f event=workflow_dispatch -f branch="$PERF_REF" -f per_page=100             | jq -r --arg sha "$EXPECTED_SHA" '.workflow_runs[] | select(.head_sha == $sha) | .id' | head -n1)"
+          if [ -n "$existing" ]; then
+            echo "WBD_P6_ALREADY_PRESENT run=$existing sha=$EXPECTED_SHA"
+            exit 0
+          fi
+          gh workflow run "$TARGET_WORKFLOW" --ref "$PERF_REF"             -f run_extended=true             -f run_legacy_soak=false
+          echo "WBD_P6_DISPATCHED sha=$EXPECTED_SHA"
