@@ -3,10 +3,10 @@
   "dispatch_ref": "perf-fixed/af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
   "expected_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
   "workflow": "next-strict-weaknet.yml",
-  "mode": "game",
-  "scenario": "5305",
-  "seed": "303",
-  "rate_mbps": "3",
-  "lanes": "4",
-  "reason": "V9 bounded receive overflow shedding Game4/5305/seed303 diagnostic canary after Normal canary PASS"
+  "mode": "normal",
+  "scenario": "5205",
+  "seed": "101",
+  "rate_mbps": "10",
+  "lanes": "1",
+  "reason": "V9 bounded receive overflow shedding Normal/5205/seed101 diagnostic canary"
 }
