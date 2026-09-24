@@ -63,6 +63,7 @@ jobs:
             'RepairEvicted','RepairMetadataEvicted','Abandoned',
             'FreshSent','FreshBlocked','FreshWindowBypass','FreshEmitFailures',
             'ForgivenGaps','LateFirstArrival','SACKed','SACKRetired','SACKedOutstanding','RepairEvictionMaxScan',
+            'TimingSamples','LockWaitNS','LockWaitMaxNS','LockHeldNS','LockHeldMaxNS','FreshLockWaitNS','FreshLockWaitMaxNS','FreshCriticalNS','FreshCriticalMaxNS','RepairEvictionNS','RepairEvictionMaxNS',
             'RepairQueue','Outstanding','RepairCreditBytes','RecoveryTicks'
           ]
           counters=set([
@@ -72,7 +73,8 @@ jobs:
             'RepairFailures','RepairDeferred','RepairExpiredSkipped',
             'RepairEvicted','RepairMetadataEvicted','Abandoned',
             'FreshSent','FreshBlocked','FreshWindowBypass','FreshEmitFailures',
-            'ForgivenGaps','LateFirstArrival','SACKed','SACKRetired','RecoveryTicks'
+            'ForgivenGaps','LateFirstArrival','SACKed','SACKRetired','RecoveryTicks',
+            'TimingSamples','LockWaitNS','LockHeldNS','FreshLockWaitNS','FreshCriticalNS','RepairEvictionNS'
           ])
           def find(z,suffix):
               m=[n for n in z.namelist() if n.endswith(suffix)]
