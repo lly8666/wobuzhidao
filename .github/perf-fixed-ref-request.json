@@ -3,9 +3,9 @@
   "expected_sha": "7081d9518fff791d0a69c7811e07bf773e3bfa28",
   "workflow": "next-strict-weaknet.yml",
   "mode": "normal",
-  "scenario": "5205",
+  "scenario": "5305",
   "seed": "101",
   "rate_mbps": "10",
   "lanes": "1",
-  "reason": "bounded one-shot repair reserve V6.1 comparison sample 2; exact-SHA Normal 5205"
+  "reason": "bounded one-shot repair reserve V6.1 high-loss canary; exact-SHA Normal 5305"
 }
