@@ -62,7 +62,7 @@ jobs:
             'RepairFailures','RepairDeferred','RepairExpiredSkipped',
             'RepairEvicted','RepairMetadataEvicted','Abandoned',
             'FreshSent','FreshBlocked','FreshWindowBypass','FreshEmitFailures',
-            'ForgivenGaps','SACKed','SACKRetired','SACKedOutstanding',
+            'ForgivenGaps','LateFirstArrival','SACKed','SACKRetired','SACKedOutstanding','RepairEvictionMaxScan',
             'RepairQueue','Outstanding','RepairCreditBytes','RecoveryTicks'
           ]
           counters=set([
@@ -72,7 +72,7 @@ jobs:
             'RepairFailures','RepairDeferred','RepairExpiredSkipped',
             'RepairEvicted','RepairMetadataEvicted','Abandoned',
             'FreshSent','FreshBlocked','FreshWindowBypass','FreshEmitFailures',
-            'ForgivenGaps','SACKed','SACKRetired','RecoveryTicks'
+            'ForgivenGaps','LateFirstArrival','SACKed','SACKRetired','RecoveryTicks'
           ])
           def find(z,suffix):
               m=[n for n in z.namelist() if n.endswith(suffix)]
