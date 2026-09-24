@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V8_PENDING_ACTIONS：V7产品SOURCE_SHA d90ef09c9e84bfe2719d04784b58f662c05d9fc3 的两条独立Normal/5205/seed101 strict样本（35947585606、35950406032）五分类均PASS且socket/link drop=0、repair约23.8k/向、outer/app与V6.1基本持平，但只读reserve timeline两次都至少一向触到1024并出现capacity eviction/abandon；V6.1同场景timeline两向最大约785/829且evict/drop/abandon为0，因此V7按交接标准不算稳定，Normal/5305未继续。V8产品SOURCE_SHA 27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089 删除健康容量下duplicate-ACK主动reserve prune，仅保留累计ACK每次最多64条清理与reserve真正满时O(1)回收一个已被lastAck覆盖FIFO head；active4096/reserve1024/FEC/wire/RTO/credit/测试门槛均未改。首次Actions中runtimeowner-recovery与lifecycle PASS，targeted/foundation仅因缺STATUS/devlog的repository contract FAIL；本docs-only提交补齐该约束。",
-  "next_task": "先等待/检查本docs-only提交触发的next-runtimeowner-recovery、next-p4-steady-targeted、next-foundation、next-lifecycle；四者必须全PASS，历史27e4首次docs-contract FAIL永久保留。产品SOURCE_SHA仍固定为本docs-only提交父级27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089。correctness/race全绿后，先用新workflow_dispatch跑V8 Normal/lossless/seed101（必须0假repair、drop=0、五分类PASS），再跑独立Normal/5205/seed101；只有5205 reserve/fresh/outer稳定后才跑5305。不得复用或rerun旧strict性能run。",
-  "latest_log": "docs/devlog/20260924-113500-v7-5205-repeat-v8-pressure-only-retirement.md",
+  "in_progress": "REPAIR_FOLLOWUP_V8_CANARY_PASS_FINAL18_PENDING：产品SOURCE_SHA 27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089。V8 correctness/race PASS；Normal lossless/5205/5305 seed101与Game4/5305 canary均为新workflow_dispatch、五分类PASS、socket/link drop=0。lossless repair=0；5205约23.8k/24.1k FastRepairs且reserve stress peak 936/821、Evicted 1/0；5305约308/312 FastRepairs且reserve因未ACK future-shadow真实压力达到1024并大量Evicted，但fresh三项0、MaxScan=1；Game canary fresh三项0、MaxScan=1且stress reserve未启用。下一步为同SHA专用全新final18，不复用上述诊断样本。",
+  "next_task": "用新的exact-SHA fixed ref派发V8 final18：2 modes x 3 scenarios x 3 seeds=18条全新的workflow_dispatch run，每run仅一条性能样本；不得复用现有V8诊断/canary，不rerun strict run。任何FAIL/CAPACITY_LIMITED都永久保留并阻止资格结论。只有18/18 PASS后才考虑同产品SHA P6 repackage。",
+  "latest_log": "docs/devlog/20260924-121500-v8-normal-stable-game-canary.md",
   "last_tested_source_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
   "actions": [
     {
@@ -1583,9 +1583,9 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED_REPAIR_FOLLOWUP_V8_PENDING_ACTIONS: two independent V7 5205 samples kept finite repair/fresh throughput but reproducibly reached reserve capacity unlike V6.1. V8 removes eager duplicate-ACK reserve pruning while retaining bounded cumulative-ACK cleanup and O(1) ACK-covered head reclaim only under full-reserve pressure.",
-    "P5": "REOPENED_REPAIR_FOLLOWUP_V8_PENDING_ACTIONS: historical 689dea19 final18 remains immutable; V7 lossless is PASS, but two V7 5205 samples exposed reserve-capacity regression, so V7 5305/final18/P6 were not continued. V8 must requalify at its own exact product SHA.",
-    "P6": "STALE_FOR_CURRENT_HEAD: exact-SHA repackage PASS at 689dea19e2e1dfdccbab9c8f42210d62c4a12223 remains historical; V8 must complete new weaknet qualification before any repackage.",
+    "P4": "REOPENED_REPAIR_FOLLOWUP_V8_CANARY_PASS: exact-SHA Normal lossless/5205/5305 and Game4/5305 canary stable under fresh-first bounded repair; dedicated new final18 pending.",
+    "P5": "REOPENED_REPAIR_FOLLOWUP_V8_FINAL18_PENDING: diagnostics/canary PASS are preserved but not counted as final18 qualification samples.",
+    "P6": "STALE_FOR_CURRENT_HEAD: historical 689dea19 repackage remains immutable; V8 must complete new final18 then repackage exact 27e4bb34.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
       "status": "IMPLEMENTED_PENDING_ACTIONS",
@@ -1844,7 +1844,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REPAIR_FOLLOWUP_V8_PENDING_ACTIONS",
+      "status": "REPAIR_FOLLOWUP_V8_CANARY_PASS_FINAL18_PENDING",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1855,9 +1855,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-113500-v7-5205-repeat-v8-pressure-only-retirement.md",
-      "note": "Two independent V7 Normal/5205/seed101 strict workflow_dispatch samples both passed loss-tolerant-v1 and had zero local drops with ~23.8k fast repairs per direction, but immutable full-artifact timelines showed reserve capacity hits/abandon not present in V6.1. V8 removes duplicate-ACK eager reserve pruning and keeps only cumulative-ACK budgeted pruning plus O(1) ACK-covered FIFO-head reclaim when the reserve is actually full. No capacities, FEC/wire/RTO/credit, or thresholds changed.",
-      "next_task": "先等待/检查本docs-only提交触发的next-runtimeowner-recovery、next-p4-steady-targeted、next-foundation、next-lifecycle；四者必须全PASS，历史27e4首次docs-contract FAIL永久保留。产品SOURCE_SHA仍固定为本docs-only提交父级27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089。correctness/race全绿后，先用新workflow_dispatch跑V8 Normal/lossless/seed101（必须0假repair、drop=0、五分类PASS），再跑独立Normal/5205/seed101；只有5205 reserve/fresh/outer稳定后才跑5305。不得复用或rerun旧strict性能run。",
+      "latest_log": "docs/devlog/20260924-121500-v8-normal-stable-game-canary.md",
+      "note": "V8 keeps duplicate ACK reserve cleanup off in healthy capacity, cumulative-ACK prune budget 64, and O(1) ACK-covered FIFO-head retirement only under full reserve pressure. At 5305 remaining RepairReserveEvicted records are unacknowledged optional future shadows by construction because end<=lastAck heads are retired before the eviction branch; do not interpret the large capacity count as stale-ACK misclassification.",
+      "next_task": "用新的exact-SHA fixed ref派发V8 final18：2 modes x 3 scenarios x 3 seeds=18条全新的workflow_dispatch run，每run仅一条性能样本；不得复用现有V8诊断/canary，不rerun strict run。任何FAIL/CAPACITY_LIMITED都永久保留并阻止资格结论。只有18/18 PASS后才考虑同产品SHA P6 repackage。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -4560,8 +4560,157 @@
             "status": "FAIL_REPOSITORY_CONTRACT_DOCS_MISSING"
           }
         },
-        "performance_status": "NOT_RUN",
-        "next": "docs-only closure commit, then require full correctness/race PASS before new lossless/5205/5305 samples"
+        "performance_status": "NORMAL_AND_GAME_CANARY_PASS_FINAL18_PENDING",
+        "next": "docs-only closure commit, then require full correctness/race PASS before new lossless/5205/5305 samples",
+        "correctness": {
+          "runtimeowner_recovery": {
+            "run": 35950950698,
+            "status": "PASS"
+          },
+          "lifecycle": {
+            "run": 35950950724,
+            "status": "PASS"
+          },
+          "targeted": {
+            "run": 35952651717,
+            "status": "PASS"
+          },
+          "foundation": {
+            "run": 35952651650,
+            "status": "PASS"
+          },
+          "status": "PASS"
+        },
+        "evidence": {
+          "normal_lossless": {
+            "run": 35952860530,
+            "status": "PASS",
+            "fast_repairs": 0,
+            "socket_drop_max": 0,
+            "summary": {
+              "id": 10789885052,
+              "digest": "sha256:e5d5cce66134ed516dbf58864eb4482ad971ee1809c9334ca8abe00dcb8f6c8a"
+            },
+            "full": {
+              "id": 10789835257,
+              "digest": "sha256:3aa84b4d1f9dd9f0d4b26a983d04923b3f127e1bc30d3e1e5ad7dfdd3551342f"
+            }
+          },
+          "normal_5205": {
+            "run": 35953313300,
+            "status": "PASS",
+            "fast_repairs": {
+              "c2s": 23784,
+              "s2c": 24075
+            },
+            "abandoned": {
+              "c2s": 1,
+              "s2c": 0
+            },
+            "outer_app": {
+              "c2s": 5.473266952605664,
+              "s2c": 5.611021186666667
+            },
+            "socket_drop_max": 0,
+            "repair_diag": {
+              "run": 35953682445,
+              "artifact": 10789129046,
+              "reserve_peak": {
+                "client": 936,
+                "server": 821
+              },
+              "reserve_evicted": {
+                "client": 1,
+                "server": 0
+              },
+              "fresh_all_zero": true,
+              "repair_eviction_max_scan": 1
+            },
+            "summary": {
+              "id": 10790140280,
+              "digest": "sha256:df0bd46e2dcba4fb4eb5181cb41e4dacf78670a82dc4cadfc6466599e32961e3"
+            },
+            "full": {
+              "id": 10789198555,
+              "digest": "sha256:ee559bacd80d6a2f3f081264bbcee47f5e7947455bcc468734ab256fb683e50d"
+            }
+          },
+          "normal_5305": {
+            "run": 35953849422,
+            "status": "PASS",
+            "fast_repairs": {
+              "c2s": 308,
+              "s2c": 312
+            },
+            "abandoned": {
+              "c2s": 116935,
+              "s2c": 116990
+            },
+            "outer_app": {
+              "c2s": 5.2990595266666665,
+              "s2c": 5.431660273333334
+            },
+            "socket_drop_max": 0,
+            "repair_diag": {
+              "run": 35954219408,
+              "artifact": 10790245541,
+              "reserve_peak": {
+                "client": 1024,
+                "server": 1024
+              },
+              "reserve_evicted": {
+                "client": 114942,
+                "server": 116990
+              },
+              "fresh_all_zero": true,
+              "repair_eviction_max_scan": 1,
+              "interpretation": "remaining evictions are unacknowledged optional future shadows; ACK-covered FIFO heads are retired first"
+            },
+            "summary": {
+              "id": 10790175534,
+              "digest": "sha256:88e54a92778915ad84acf048c6e09c4cd4d3b777a9bf902aafee95aefddb33f9"
+            },
+            "full": {
+              "id": 10789283989,
+              "digest": "sha256:907eeb326e48eb2bfda0d66618cf6bb0987de0189b480153fa6c3384b5c1958a"
+            }
+          },
+          "game4_5305_canary": {
+            "run": 35954517872,
+            "status": "PASS",
+            "rate_mbps": "3",
+            "lanes": "4",
+            "socket_drop_max": 0,
+            "goodput_stress_mbps": {
+              "c2s": 2.999872,
+              "s2c": 2.999872
+            },
+            "probe_stress_p95_ms": 604.783009,
+            "outer_app": {
+              "c2s": 21.357690164155915,
+              "s2c": 21.88844430983051
+            },
+            "repair_diag": {
+              "run": 35954893925,
+              "artifact": 10789883331,
+              "fresh_all_zero": true,
+              "repair_eviction_max_scan": 1,
+              "reserve_stress_unused": true
+            },
+            "summary": {
+              "id": 10790485115,
+              "digest": "sha256:7684827c7ffa95cc3a1395c6e5e44d1f20b7a21973fc19a8978497f25351d23e"
+            },
+            "full": {
+              "id": 10790167368,
+              "digest": "sha256:e1859a3712a2083c0c919b6c682956f12c4f2676f63a0d039615275c19640e87"
+            }
+          }
+        },
+        "final18": {
+          "status": "NOT_RUN",
+          "policy": "18 dedicated new workflow_dispatch runs; diagnostics/canary are not reused"
+        }
       }
     }
   }
