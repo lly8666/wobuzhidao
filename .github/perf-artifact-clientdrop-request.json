@@ -1,7 +1,7 @@
 {
-  "artifact_id": 10781887899,
-  "source_run": 35933149687,
-  "source_job": 107425920406,
-  "source_sha": "a229489568827432781db0344b907d0ba2db8833",
-  "artifact_name": "strict-single-normal-5205-seed101-a229489568827432781db0344b907d0ba2db8833"
+  "artifact_id": 10783193967,
+  "source_run": 35937061116,
+  "source_job": 107438041790,
+  "source_sha": "d8c79cd5cd97ed3867970aae15590acd966ef90e",
+  "artifact_name": "strict-single-normal-5205-seed101-d8c79cd5cd97ed3867970aae15590acd966ef90e"
 }
