@@ -3,10 +3,10 @@
   "dispatch_ref": "perf-fixed/2f6a1e470e7b3d2967460971987a9dace5aa972d",
   "expected_sha": "2f6a1e470e7b3d2967460971987a9dace5aa972d",
   "workflow": "next-strict-weaknet.yml",
-  "mode": "game",
-  "scenario": "5305",
+  "mode": "normal",
+  "scenario": "5205",
   "seed": "101",
-  "rate_mbps": "3",
-  "lanes": "4",
-  "reason": "V10 global UDP upstream drain Game4 5305 diagnostic canary after Normal 5305 PASS"
+  "rate_mbps": "10",
+  "lanes": "1",
+  "reason": "V10 global UDP upstream drain dense-repair Normal 5205 diagnostic canary after two 5305 canaries PASS"
 }
