@@ -130,7 +130,11 @@ jobs:
           out={'artifact_id':int(os.environ['ARTIFACT_ID']),'source_run':int(os.environ['SOURCE_RUN']),'source_sha':os.environ['SOURCE_SHA'],'bounds':bounds,'endpoints':{}}
           for side,rows0 in [('client',cr),('server',sr)]:
               ss=snaps(rows0,side)
-              sideout={'samples':len(ss),'stages':{},'final':ss[-1][1] if ss else {}}
+              timeline_keys=('RepairReserveOutstanding','RepairReservePeak','RepairReserveStored','RepairReserveRetired','RepairReserveEvicted','RepairReserveDropped','RepairReserveExpired','RepairReserveRepairs','Abandoned','FastRepairs','FreshBlocked','FreshWindowBypass','FreshEmitFailures')
+              timeline=[]
+              for ts, lanes0 in ss:
+                  timeline.append({'unix_ns':ts,'lanes':{lid:{k:vals.get(k,0) for k in timeline_keys} for lid,vals in lanes0.items()}})
+              sideout={'samples':len(ss),'stages':{},'final':ss[-1][1] if ss else {},'timeline':timeline}
               for st,(a,b) in bounds.items():
                   sa=at_or_before(ss,a); sb=at_or_before(ss,b)
                   sideout['stages'][st]={
