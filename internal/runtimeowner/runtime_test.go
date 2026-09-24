@@ -1517,6 +1517,106 @@ func TestSteadyRepairReserveBoundedWithoutFreshHOL(t *testing.T) {
 	}
 }
 
+func TestSteadyDuplicateACKContinuesBoundedReserveRetirement(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil { t.Fatal(err) }
+	var wire []faketcp.Segment
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 65397)
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 102), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9797, 0)
+
+	records := make([]datapath.WireRecord, MaxOutstandingRecords+128)
+	for i := range records { records[i].Wire = []byte{byte(i), byte(i >> 8)} }
+	if err := tr.send(records, t0); err != nil { t.Fatal(err) }
+
+	// seq1..seq128 are in the reserve. One cumulative ACK covers all of them,
+	// but the first bounded prune intentionally retires only 64.
+	ack := faketcp.Segment{
+		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
+		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
+		Seq: cfg.ReceiveNext, Ack: wire[129].Seq,
+		Flags: faketcp.FlagACK, Window: 65535,
+	}
+	if err := rt.HandleSegment(snap.Ref, ack, t0.Add(600*time.Millisecond)); err != nil { t.Fatal(err) }
+	stats, _ := rt.TransportStats(snap.Ref)
+	if stats.RepairReserveRetired != steadyRepairReservePruneBudget ||
+		stats.RepairReserveOutstanding != 128-steadyRepairReservePruneBudget ||
+		stats.RepairReserveEvicted != 0 || stats.Abandoned != 0 {
+		t.Fatalf("first bounded reserve prune stats=%+v", stats)
+	}
+
+	// A duplicate ACK must continue the already-confirmed cleanup rather than
+	// leaving stale reserve records to consume one-shot capacity.
+	if err := rt.HandleSegment(snap.Ref, ack, t0.Add(601*time.Millisecond)); err != nil { t.Fatal(err) }
+	stats, _ = rt.TransportStats(snap.Ref)
+	if stats.RepairReserveRetired != 128 || stats.RepairReserveOutstanding != 0 ||
+		stats.RepairReserveEvicted != 0 || stats.Abandoned != 0 ||
+		stats.FreshBlocked != 0 || stats.RepairEvictionMaxScan > 1 {
+		t.Fatalf("duplicate ACK did not drain confirmed reserve stats=%+v", stats)
+	}
+}
+
+func TestSteadyFullReserveReclaimsAckedHeadBeforeEviction(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil { t.Fatal(err) }
+	var wire []faketcp.Segment
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 65398)
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 103), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9798, 0)
+
+	records := make([]datapath.WireRecord, MaxOutstandingRecords+steadyRepairReserveRecords)
+	for i := range records { records[i].Wire = []byte{byte(i), byte(i >> 8)} }
+	if err := tr.send(records, t0); err != nil { t.Fatal(err) }
+
+	ack := faketcp.Segment{
+		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
+		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
+		Seq: cfg.ReceiveNext, Ack: wire[129].Seq,
+		Flags: faketcp.FlagACK, Window: 65535,
+	}
+	if err := rt.HandleSegment(snap.Ref, ack, t0.Add(600*time.Millisecond)); err != nil { t.Fatal(err) }
+	stats, _ := rt.TransportStats(snap.Ref)
+	if stats.RepairReserveRetired != steadyRepairReservePruneBudget ||
+		stats.RepairReserveOutstanding != steadyRepairReserveRecords-steadyRepairReservePruneBudget {
+		t.Fatalf("setup bounded prune stats=%+v", stats)
+	}
+
+	// Refill the reserve before another ACK arrives. Once full, the next fresh
+	// eviction sees an ACK-covered reserve head and must retire it in O(1)
+	// instead of counting a false abandonment.
+	fresh := make([]datapath.WireRecord, 66)
+	for i := range fresh { fresh[i].Wire = []byte{0xec, byte(i)} }
+	if err := tr.send(fresh, t0.Add(601*time.Millisecond)); err != nil {
+		t.Fatalf("fresh blocked while reclaiming ACKed reserve head: %v", err)
+	}
+	stats, _ = rt.TransportStats(snap.Ref)
+	if stats.RepairReserveOutstanding != steadyRepairReserveRecords ||
+		stats.RepairReserveRetired != steadyRepairReservePruneBudget+1 ||
+		stats.RepairReserveEvicted != 0 || stats.Abandoned != 0 ||
+		stats.FreshBlocked != 0 || stats.FreshWindowBypass != 0 ||
+		stats.RepairEvictionMaxScan > 1 {
+		t.Fatalf("full reserve did not reclaim ACKed head stats=%+v", stats)
+	}
+}
+
 func TestSteadyCurrentHeadShadowSurvivesPreSACKFullWindowPressure(t *testing.T) {
 	lease := runtimeLease(t)
 	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)

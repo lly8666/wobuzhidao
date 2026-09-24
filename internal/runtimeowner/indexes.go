@@ -206,6 +206,22 @@ func (t *laneTransport) unlinkRepairReserveNodeLocked(n *repairReserveRecord) *p
 	return p
 }
 
+func (t *laneTransport) retireRepairReserveRecordLocked(n *repairReserveRecord) *pendingRecord {
+	p := t.unlinkRepairReserveNodeLocked(n)
+	if p == nil {
+		return nil
+	}
+	if p.fastRepairArmed {
+		p.fastRepairArmed = false
+		p.fastRepairReadyTick = 0
+		t.stats.FastRepairArmCanceled++
+	}
+	t.noteDeliveredLocked(p)
+	t.stats.Acked++
+	t.stats.RepairReserveRetired++
+	return p
+}
+
 func (t *laneTransport) dropRepairReserveRecordLocked(n *repairReserveRecord, expired bool) {
 	p := t.unlinkRepairReserveNodeLocked(n)
 	if p == nil {
@@ -236,18 +252,31 @@ func (t *laneTransport) stashRepairReserveLocked(p *pendingRecord) bool {
 	}
 	if t.repairReserveCount >= steadyRepairReserveRecords {
 		head := t.repairReserveHead
-		// A reserve record that is the current cumulative head (or already
-		// armed/in flight) is the single repair opportunity this reserve exists
-		// to protect. Fresh still wins: drop the incoming optional shadow rather
-		// than scan around or block.
-		if head != nil && head.record != nil &&
-			(head.record.seq == t.lastAck || head.record.fastRepairArmed || head.record.repairInFlight) {
-			t.stats.Abandoned++
-			t.stats.RepairEvicted++
-			t.stats.RepairReserveDropped++
-			return false
+		// A large cumulative-ACK jump can cover more than the bounded ACK-prune
+		// budget. Do not let already-confirmed reserve records consume the
+		// one-shot capacity and then be misclassified as abandoned. Reclaim one
+		// such head in O(1) on the fresh path before considering a true eviction.
+		if head != nil && head.record != nil && seqLE(head.record.end, t.lastAck) {
+			if t.retireRepairReserveRecordLocked(head) == nil {
+				t.stats.Abandoned++
+				t.stats.RepairEvicted++
+				t.stats.RepairReserveDropped++
+				return false
+			}
+		} else {
+			// A reserve record that is the current cumulative head (or already
+			// armed/in flight) is the single repair opportunity this reserve exists
+			// to protect. Fresh still wins: drop the incoming optional shadow rather
+			// than scan around or block.
+			if head != nil && head.record != nil &&
+				(head.record.seq == t.lastAck || head.record.fastRepairArmed || head.record.repairInFlight) {
+				t.stats.Abandoned++
+				t.stats.RepairEvicted++
+				t.stats.RepairReserveDropped++
+				return false
+			}
+			t.dropRepairReserveRecordLocked(head, false)
 		}
-		t.dropRepairReserveRecordLocked(head, false)
 	}
 	n := &repairReserveRecord{record: p, prev: t.repairReserveTail}
 	if t.repairReserveTail != nil {
@@ -273,22 +302,14 @@ func (t *laneTransport) pruneRepairReserveACKLocked(ack uint32) *pendingRecord {
 		if n == nil || n.record == nil || !seqLE(n.record.end, ack) {
 			break
 		}
-		p := t.unlinkRepairReserveNodeLocked(n)
+		p := t.retireRepairReserveRecordLocked(n)
 		if p == nil {
 			break
-		}
-		if p.fastRepairArmed {
-			p.fastRepairArmed = false
-			p.fastRepairReadyTick = 0
-			t.stats.FastRepairArmCanceled++
 		}
 		if p.end == ack && !p.wasRetried && !p.rttSampled {
 			p.rttSampled = true
 			sample = p
 		}
-		t.noteDeliveredLocked(p)
-		t.stats.Acked++
-		t.stats.RepairReserveRetired++
 	}
 	return sample
 }

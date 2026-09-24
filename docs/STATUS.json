@@ -66,10 +66,10 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V6_1_PENDING_ACTIONS：V6 SOURCE_SHA 81ae365a9d9818c1040fe76334f1fbd62495ee68 未进入性能；next-runtimeowner-recovery run 35940027275 在unit compile阶段FAIL，仅因新增reserve测试局部变量 firstHead 声明未使用。V6.1只删除该未使用变量，不改4096 active + 1024 one-shot reserve算法、wire/FEC/RTO/credit或任何测试门槛。",
-  "next_task": "重新跑V6.1 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；全部通过后才独立跑Normal lossless与5205。V6失败永久保留，不rerun同一性能样本（V6尚无性能样本）。",
-  "latest_log": "docs/devlog/20260924-081500-v6-unused-test-variable-fix.md",
-  "last_tested_source_sha": "d8c79cd5cd97ed3867970aae15590acd966ef90e",
+  "in_progress": "REPAIR_FOLLOWUP_V7_PENDING_ACTIONS：V6.1 SOURCE_SHA 7081d9518fff791d0a69c7811e07bf773e3bfa28 correctness/race全绿；Normal lossless 35940368181 五分类PASS、repair=0、drop=0；Normal5205 35940798659 五分类PASS、drop=0，20% stress FastRepairs约23.8k/23.6k，Abandoned从历史约7.8万/向降到0，active 4096与reserve 1024均有界且FreshBlocked=0，但outer/app相对689dea19约增加4.7%。Normal5305 35943316442五分类PASS、drop=0，但30% stress仅285/向repair；reserve diag 10786260610显示reserve peak=1024、stress存入约115k/向并容量淘汰约114k/向。代码复核发现累计ACK大跨度前进时reserve一次只prune64；后续duplicate ACK因early return不继续清理，ACK已覆盖的stale reserve继续占槽并在fresh压力下被误记为abandoned/evicted。V7不扩1024：duplicate ACK继续固定64预算prune；reserve满时若head已被lastAck覆盖则O(1) retire该head再插入新shadow。",
+  "next_task": "先跑V7 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；全绿后重新独立跑Normal lossless、5205、5305。重点验证lossless仍0假repair；5205 repair保持有限且reserve无退化；5305 RepairReserveEvicted/Abandoned显著下降并恢复有限非零stress repair，同时FreshBlocked=0、FreshWindowBypass无异常、RepairEvictionMaxScan<=1、socket/link drop=0且五分类PASS。若Normal稳定，再补Game5305多lane canary后更新状态。",
+  "latest_log": "docs/devlog/20260924-090000-retire-acked-repair-reserve.md",
+  "last_tested_source_sha": "7081d9518fff791d0a69c7811e07bf773e3bfa28",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1552,9 +1552,9 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED_REPAIR_FOLLOWUP_V6: V5 is safe but still lacks stress repair because future cumulative heads are evicted before they become lastAck. V6 adds a bounded 1024-record one-shot recently-evicted ciphertext reserve while active repair state remains 4096.",
-    "P5": "REOPENED_REPAIR_FOLLOWUP_V6: historical qualifications remain immutable; V5 lossless/5205 are diagnostic PASS but repair-restoration objective remains unmet.",
-    "P6": "STALE_FOR_CURRENT_HEAD: exact-SHA repackage PASS at 689dea19e2e1dfdccbab9c8f42210d62c4a12223 remains historical; accepted repair must requalify/repackage at its own final SOURCE_SHA.",
+    "P4": "REOPENED_REPAIR_FOLLOWUP_V7: V6.1 restored bounded repair at 5205, but 5305 exposed stale ACK-covered reserve occupancy caused by the 64-entry cumulative-ACK prune budget plus duplicate-ACK early return. V7 reclaims only ACK-confirmed reserve records without enlarging any bound.",
+    "P5": "REOPENED_REPAIR_FOLLOWUP_V7: historical 689dea19 final18 remains immutable; V6.1 lossless/5205/5305 are diagnostic PASS samples, but 5305 reserve utilization needs bounded ACK-retirement correction before new qualification.",
+    "P6": "STALE_FOR_CURRENT_HEAD: exact-SHA repackage PASS at 689dea19e2e1dfdccbab9c8f42210d62c4a12223 remains historical; accepted repair follow-up must requalify/repackage at its own final SOURCE_SHA.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
       "status": "IMPLEMENTED_PENDING_ACTIONS",
@@ -1813,7 +1813,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REOPENED_REPAIR_FOLLOWUP_V6_1_PENDING_ACTIONS",
+      "status": "REOPENED_REPAIR_FOLLOWUP_V7_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1824,9 +1824,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-081500-v6-unused-test-variable-fix.md",
-      "note": "V6 algorithm not yet exercised because runtimeowner test package failed to compile: runtime_test.go declared firstHead and did not use it. V6.1 is test-only compile cleanup plus status/devlog; product reserve implementation is unchanged.",
-      "next_task": "重新跑V6.1 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；全部通过后才独立跑Normal lossless与5205。V6失败永久保留，不rerun同一性能样本（V6尚无性能样本）。",
+      "latest_log": "docs/devlog/20260924-090000-retire-acked-repair-reserve.md",
+      "note": "V6.1 proved the one-shot reserve restores finite TCP-like repair at 5205 without fresh HOL, but 5305 fills the 1024 reserve and falsely evicts many entries already covered by a large cumulative ACK because reserve cleanup stops after 64 and duplicate ACKs do not continue it. V7 fixes reserve utilization rather than increasing capacity.",
+      "next_task": "先跑V7 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；全绿后重新独立跑Normal lossless、5205、5305。重点验证lossless仍0假repair；5205 repair保持有限且reserve无退化；5305 RepairReserveEvicted/Abandoned显著下降并恢复有限非零stress repair，同时FreshBlocked=0、FreshWindowBypass无异常、RepairEvictionMaxScan<=1、socket/link drop=0且五分类PASS。若Normal稳定，再补Game5305多lane canary后更新状态。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -3999,22 +3999,13 @@
       },
       "repair_followup_candidate": {
         "status": "NOT_RUN",
-        "parent_source_sha": "d8c79cd5cd97ed3867970aae15590acd966ef90e",
-        "design_delta": "keep active shadow capacity exactly 4096; on ordinary fresh eviction move business ciphertext into a separate 1024-record insertion-ordered one-shot reserve; exact lastAck lookup can use reserve for first fast repair; reserve never enters RTO scan or fresh admission and is capacity/horizon bounded",
-        "sizing_evidence": {
-          "stress_fresh_records_per_s": 6580.87,
-          "active_4096_coverage_ms": 622.41,
-          "probe_p99_rtt_ms": 623.89,
-          "recovery_cycle_ms": 100,
-          "reserve_records": 1024,
-          "reserve_coverage_ms": 155.6,
-          "total_coverage_ms": 778
-        },
+        "parent_source_sha": "7081d9518fff791d0a69c7811e07bf773e3bfa28",
+        "design_delta": "keep reserve cap 1024; duplicate cumulative ACKs continue bounded reserve ACK retirement; full reserve reclaims one head already covered by lastAck in O(1) before any true optional eviction",
         "bounds": {
           "active_records": 4096,
           "reserve_records": 1024,
-          "reserve_first_repair_only": true,
-          "repair_eviction_max_scan_target": 1
+          "duplicate_ack_prune_budget": 64,
+          "fresh_eviction_max_scan_target": 1
         },
         "performance_status": "NOT_RUN"
       },
@@ -4212,6 +4203,117 @@
         "phase": "compile unit tests",
         "error": "internal/runtimeowner/runtime_test.go:1441:2: declared and not used: firstHead",
         "performance": "NOT_RUN"
+      },
+      "repair_followup_candidate_v6_1": {
+        "source_sha": "7081d9518fff791d0a69c7811e07bf773e3bfa28",
+        "correctness": {
+          "runtimeowner_recovery": 35940147998,
+          "targeted": 35940148006,
+          "foundation": 35940147996,
+          "lifecycle": 35940148024,
+          "status": "PASS"
+        },
+        "performance": [
+          {
+            "scenario": "lossless",
+            "seed": "101",
+            "run": 35940368181,
+            "summary_artifact": {
+              "id": 10784513653,
+              "digest": "sha256:b6ada787fb1370b07a32ad2790b2621c9fc84d8b074b079daf81995089125b83"
+            },
+            "full_artifact": {
+              "id": 10784598368,
+              "digest": "sha256:d2bdac522a82a220f8b320e2d00d5686cf9870435e5225492e0d3933ab5f28ae"
+            },
+            "status": "PASS",
+            "fast_repairs": 0,
+            "socket_drop_max": 0
+          },
+          {
+            "scenario": "5205",
+            "seed": "101",
+            "run": 35940798659,
+            "summary_artifact": {
+              "id": 10784134703,
+              "digest": "sha256:215246596d5d2b0849b0a326e3381d7a65bc2dbaa800284686d7292ec6e6eb3d"
+            },
+            "full_artifact": {
+              "id": 10783949906,
+              "digest": "sha256:8d362a84c6210007690b914cae1865752db0aae9f10905e8a98f38902ad33fe2"
+            },
+            "status": "PASS",
+            "socket_drop_max": 0,
+            "stress": {
+              "c2s_fast_repairs": 23821,
+              "s2c_fast_repairs": 23609,
+              "c2s_abandoned": 0,
+              "s2c_abandoned": 0
+            },
+            "outer_app": {
+              "c2s": 5.478339306666666,
+              "s2c": 5.614940786666667
+            },
+            "baseline_outer_increase_percent": {
+              "c2s": 4.745086033842472,
+              "s2c": 4.71744579091482
+            },
+            "repair_diag": {
+              "run": 35943158821,
+              "artifact": 10785822437,
+              "reserve_peak": {
+                "client": 864,
+                "server": 871
+              }
+            }
+          },
+          {
+            "scenario": "5305",
+            "seed": "101",
+            "run": 35943316442,
+            "summary_artifact": {
+              "id": 10785881458,
+              "digest": "sha256:e389e51a6608203f880d4cb7f64227cd74b6b27556e0b7774723045c3dae6a12"
+            },
+            "full_artifact": {
+              "id": 10785602830,
+              "digest": "sha256:07e2dbbd06287a3e44607858fee5ff6e853c05f0f6fceb0c27b8058fbe91cef3"
+            },
+            "status": "PASS",
+            "socket_drop_max": 0,
+            "stress": {
+              "c2s_fast_repairs": 285,
+              "s2c_fast_repairs": 285,
+              "c2s_abandoned": 116046,
+              "s2c_abandoned": 116449
+            },
+            "outer_app": {
+              "c2s": 5.301725888278849,
+              "s2c": 5.433782573333334
+            },
+            "baseline_outer_increase_percent": {
+              "c2s": 1.7599537364593631,
+              "s2c": 1.72120983534223
+            },
+            "repair_diag": {
+              "run": 35943686505,
+              "artifact": 10786260610,
+              "client": {
+                "reserve_stored": 115601,
+                "reserve_evicted": 114006,
+                "reserve_outstanding": 995,
+                "reserve_repairs": 552
+              },
+              "server": {
+                "reserve_stored": 115753,
+                "reserve_evicted": 114505,
+                "reserve_outstanding": 942,
+                "reserve_repairs": 285
+              }
+            }
+          }
+        ],
+        "conclusion": "5205_REPAIR_RESTORED;_5305_RESERVE_STALE_ACK_RETIREMENT_BOUNDARY"
       }
     }
   }
