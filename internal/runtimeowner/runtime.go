@@ -112,6 +112,12 @@ type pendingRecord struct {
 	expiryLinked    bool
 }
 
+type repairReserveRecord struct {
+	record *pendingRecord
+	prev   *repairReserveRecord
+	next   *repairReserveRecord
+}
+
 type receiveSpan struct {
 	seq       uint32
 	end       uint32
@@ -143,6 +149,12 @@ type TransportStats struct {
 	Abandoned             uint64
 	RepairEvicted         uint64
 	RepairMetadataEvicted uint64
+	RepairReserveStored   uint64
+	RepairReserveRetired  uint64
+	RepairReserveEvicted  uint64
+	RepairReserveDropped  uint64
+	RepairReserveExpired  uint64
+	RepairReserveRepairs  uint64
 	RepairEvictionCalls   uint64
 	RepairEvictionScanSteps uint64
 	RepairEvictionMaxScan uint64
@@ -178,6 +190,9 @@ type TransportStats struct {
 	PeakOutstanding       int
 	Outstanding           int
 	OutstandingBytes      uint64
+	RepairReservePeak     int
+	RepairReserveOutstanding int
+	RepairReserveBytes    uint64
 	OldestOutstandingAge  time.Duration
 	RepairQueue           int
 	SACKedOutstanding     int
@@ -255,6 +270,13 @@ type laneTransport struct {
 
 	evictHead   *pendingRecord
 	evictTail   *pendingRecord
+
+	repairReserve      map[uint32]*repairReserveRecord
+	repairReserveHead  *repairReserveRecord
+	repairReserveTail  *repairReserveRecord
+	repairReserveCount int
+	repairReserveBytes uint64
+
 	retiredHead *pendingRecord
 	retiredTail *pendingRecord
 	expiryHead  *pendingRecord
@@ -294,6 +316,7 @@ func newLaneTransport(owner *datapath.TunnelOwner, ref logicaltunnel.LaneRef, de
 		baseRTO: cfg.InitialRTO, rto: cfg.InitialRTO,
 		repairCredit: steadyRepairBurstBytes,
 		pending:      make(map[uint32]*pendingRecord, MaxOutstandingRecords),
+		repairReserve: make(map[uint32]*repairReserveRecord, steadyRepairReserveRecords),
 		received:     make(map[uint32]*receiveSpan, MaxOutstandingRecords),
 		delivered:    make(map[uint32]deliveredMark, MaxOutstandingRecords),
 	}, nil
@@ -842,6 +865,8 @@ func (t *laneTransport) statsSnapshotAt(now time.Time) TransportStats {
 	out.Outstanding = len(t.pending)
 	out.RepairQueue = t.repairCount
 	out.SACKedOutstanding = t.sackedOutstanding
+	out.RepairReserveOutstanding = t.repairReserveCount
+	out.RepairReserveBytes = t.repairReserveBytes
 	var oldestPending time.Time
 	for _, p := range t.pending {
 		if p == nil {

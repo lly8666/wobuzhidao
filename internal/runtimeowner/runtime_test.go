@@ -1411,6 +1411,113 @@ func TestSteadyFreshFastRepairUsesTransmissionTimeReorderingEvidence(t *testing.
 }
 
 
+func TestSteadyRecentlyEvictedReserveRepairsNewCumulativeHead(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil { t.Fatal(err) }
+	var wire []faketcp.Segment
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(seg faketcp.Segment) error {
+		wire = append(wire, seg)
+		return nil
+	}, func(faketcp.Segment) error { return nil }, 1, 65395)
+	cfg.SACKPermitted = true
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 100), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9795, 0)
+
+	records := make([]datapath.WireRecord, MaxOutstandingRecords+1)
+	for i := range records {
+		records[i].Wire = []byte{byte(i), byte(i >> 8), 0x5a}
+	}
+	if err := tr.send(records, t0); err != nil { t.Fatal(err) }
+	if len(wire) != len(records) { t.Fatalf("wire=%d want=%d", len(wire), len(records)) }
+
+	// seq0 remains the protected current head; seq1 is the oldest evictable
+	// business shadow and must have moved into the one-shot reserve.
+	firstHead := wire[0]
+	reserveHead := wire[1]
+	tr.mu.Lock()
+	_, active := tr.pending[reserveHead.Seq]
+	n := tr.repairReserve[reserveHead.Seq]
+	inReserve := n != nil && n.record != nil
+	tr.mu.Unlock()
+	if active || !inReserve {
+		t.Fatalf("expected seq=%d in reserve active=%t reserve=%t", reserveHead.Seq, active, inReserve)
+	}
+
+	// ACK seq0 so the recently evicted seq1 becomes the new cumulative head.
+	ack := faketcp.Segment{
+		SrcIP: cfg.PeerIP, DstIP: cfg.LocalIP,
+		SrcPort: cfg.PeerPort, DstPort: cfg.LocalPort,
+		Seq: cfg.ReceiveNext, Ack: reserveHead.Seq,
+		Flags: faketcp.FlagACK, Window: 65535, SACKN: 0,
+	}
+	if err := rt.HandleSegment(snap.Ref, ack, t0.Add(600*time.Millisecond)); err != nil { t.Fatal(err) }
+
+	// Three genuinely expanding SACK observations bind to the reserve head.
+	// Same send timestamp prevents strong-RACK from bypassing the persistence
+	// gate in this deterministic test.
+	sack := ack
+	sack.SACKN = 1
+	for i := 2; i <= 4; i++ {
+		sack.SACK[0] = faketcp.SACKBlock{
+			Start: wire[2].Seq,
+			End: wire[i].Seq + uint32(len(wire[i].Payload)),
+		}
+		if err := rt.HandleSegment(snap.Ref, sack, t0.Add(601*time.Millisecond+time.Duration(i)*time.Millisecond)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	stats, _ := rt.TransportStats(snap.Ref)
+	if stats.FastRepairEvidence != 3 || stats.FastRepairArmed != 1 ||
+		stats.FastRepairs != 0 || stats.RepairReserveOutstanding == 0 {
+		t.Fatalf("reserve head did not arm stats=%+v", stats)
+	}
+	if err := rt.Tick(t0.Add(700*time.Millisecond)); err != nil { t.Fatal(err) }
+	if err := rt.Tick(t0.Add(800*time.Millisecond)); err != nil { t.Fatal(err) }
+	stats, _ = rt.TransportStats(snap.Ref)
+	if stats.FastRepairArmFired != 1 || stats.FastRepairs != 1 ||
+		stats.RepairReserveRepairs != 1 || stats.FreshBlocked != 0 {
+		t.Fatalf("reserve head did not repair once stats=%+v", stats)
+	}
+	got := wire[len(wire)-1]
+	if got.Seq != reserveHead.Seq || !bytes.Equal(got.Payload, reserveHead.Payload) {
+		t.Fatalf("reserve repair mismatch got=%+v want=%+v", got, reserveHead)
+	}
+}
+
+func TestSteadyRepairReserveBoundedWithoutFreshHOL(t *testing.T) {
+	lease := runtimeLease(t)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
+	if err != nil { t.Fatal(err) }
+	rt, err := New(owner, nil)
+	if err != nil { t.Fatal(err) }
+	defer rt.Close()
+	cfg, _ := transportPair(func(faketcp.Segment) error { return nil }, func(faketcp.Segment) error { return nil }, 1, 65396)
+	snap, err := rt.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 101), cfg)
+	if err != nil { t.Fatal(err) }
+	tr := rt.lanes[snap.Ref]
+	t0 := time.Unix(9796, 0)
+	total := MaxOutstandingRecords + steadyRepairReserveRecords + 2048
+	records := make([]datapath.WireRecord, total)
+	for i := range records { records[i].Wire = []byte{byte(i), byte(i >> 8)} }
+	if err := tr.send(records, t0); err != nil {
+		t.Fatalf("bounded reserve blocked fresh: %v", err)
+	}
+	stats, _ := rt.TransportStats(snap.Ref)
+	if stats.Outstanding != MaxOutstandingRecords ||
+		stats.RepairReserveOutstanding != steadyRepairReserveRecords ||
+		stats.RepairReservePeak != steadyRepairReserveRecords ||
+		stats.FreshBlocked != 0 || stats.FreshWindowBypass != 0 ||
+		stats.RepairEvictionMaxScan > 1 {
+		t.Fatalf("reserve bounds/fresh stats=%+v", stats)
+	}
+}
+
 func TestSteadyCurrentHeadShadowSurvivesPreSACKFullWindowPressure(t *testing.T) {
 	lease := runtimeLease(t)
 	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
@@ -1685,8 +1792,11 @@ func TestSteadyFullRepairWindowEvictionConstantWorkWithoutACK(t *testing.T) {
 	if stats.Outstanding != MaxOutstandingRecords || stats.FreshBlocked != 0 {
 		t.Fatalf("full-window fresh stats=%+v", stats)
 	}
-	if stats.RepairEvictionCalls != 2048 || stats.RepairEvicted != 2048 || stats.Abandoned != 2048 {
-		t.Fatalf("eviction accounting=%+v", stats)
+	if stats.RepairEvictionCalls != 2048 || stats.RepairReserveStored != 2048 ||
+		stats.RepairReserveOutstanding != steadyRepairReserveRecords ||
+		stats.RepairReserveEvicted != 1024 || stats.RepairEvicted != 1024 ||
+		stats.Abandoned != 1024 {
+		t.Fatalf("eviction/reserve accounting=%+v", stats)
 	}
 	if stats.RepairEvictionMaxScan > 1 || stats.RepairEvictionScanSteps > stats.RepairEvictionCalls {
 		t.Fatalf("eviction work not constant: calls=%d steps=%d max=%d",

@@ -16,11 +16,12 @@ const (
 )
 
 type selectedRepair struct {
-	record *pendingRecord
-	seq    uint32
-	cost   uint64
-	fast   bool
-	seg    faketcp.Segment
+	record      *pendingRecord
+	seq         uint32
+	cost        uint64
+	fast        bool
+	fromReserve bool
+	seg         faketcp.Segment
 }
 
 func (t *laneTransport) refillRepairCreditLocked(fresh uint64) {
@@ -90,9 +91,101 @@ func (t *laneTransport) reserveRepairLocked(p *pendingRecord, now time.Time, fas
 	}
 }
 
+func (t *laneTransport) reserveRepairFromReserveLocked(p *pendingRecord, now time.Time) *selectedRepair {
+	if p == nil || p.control || p.sacked || p.retired || p.repairInFlight ||
+		len(p.payload) == 0 || p.flags&faketcp.FlagFIN != 0 {
+		return nil
+	}
+	n := t.repairReserve[p.seq]
+	if n == nil || n.record != p || p.seq != t.lastAck {
+		return nil
+	}
+	if !p.firstSent.IsZero() && !now.Before(p.firstSent) &&
+		now.Sub(p.firstSent) >= t.cfg.RepairHorizon {
+		t.dropRepairReserveRecordLocked(n, true)
+		return nil
+	}
+	if !p.repairNotBefore.IsZero() && now.Before(p.repairNotBefore) {
+		return nil
+	}
+	cost := t.repairCostLocked(p)
+	if cost > t.repairCredit {
+		p.repairNotBefore = now.Add(steadyRepairDefer)
+		t.stats.RepairDeferred++
+		return nil
+	}
+	p.repairNotBefore = time.Time{}
+	p.repairInFlight = true
+	t.repairCredit -= cost
+	t.stats.RepairSelected++
+	return &selectedRepair{
+		record: p, seq: p.seq, cost: cost, fast: true, fromReserve: true,
+	}
+}
+
+func (t *laneTransport) refundRepairCreditLocked(cost uint64) {
+	if cost == 0 {
+		return
+	}
+	if cost >= steadyRepairBurstBytes-t.repairCredit {
+		t.repairCredit = steadyRepairBurstBytes
+	} else {
+		t.repairCredit += cost
+	}
+}
+
+func (t *laneTransport) emitSelectedReserveRepair(sel *selectedRepair, now time.Time) error {
+	t.mu.Lock()
+	n := t.repairReserve[sel.seq]
+	if n == nil || n.record != sel.record || n.record.sacked || n.record.retired ||
+		n.record.seq != t.lastAck {
+		if n != nil && n.record == sel.record {
+			n.record.repairInFlight = false
+		}
+		t.refundRepairCreditLocked(sel.cost)
+		t.mu.Unlock()
+		return nil
+	}
+	current := n.record
+	sel.seg = t.outboundSegmentFlags(current.seq, t.recvNext, current.flags, current.payload)
+	t.stats.RepairAttempts++
+	t.mu.Unlock()
+
+	err := t.cfg.Emit(sel.seg)
+
+	t.mu.Lock()
+	n = t.repairReserve[sel.seq]
+	if n != nil && n.record == sel.record {
+		n.record.repairInFlight = false
+	}
+	if err != nil {
+		t.refundRepairCreditLocked(sel.cost)
+		t.stats.RepairFailures++
+		t.mu.Unlock()
+		return err
+	}
+	t.stats.RepairSucceeded++
+	t.stats.Retransmitted++
+	t.stats.RepairBudgetSpent += sel.cost
+	t.stats.FastRepairs++
+	t.stats.RepairReserveRepairs++
+	if n != nil && n.record == sel.record {
+		if n.record.fastRepairArmed {
+			n.record.fastRepairArmed = false
+			n.record.fastRepairReadyTick = 0
+		}
+		t.unlinkRepairReserveNodeLocked(n)
+	}
+	t.mu.Unlock()
+	return nil
+}
+
 func (t *laneTransport) emitSelectedRepair(sel *selectedRepair, now time.Time) error {
 	if sel == nil {
 		return nil
+	}
+	if sel.fromReserve {
+		return t.emitSelectedReserveRepair(sel, now)
 	}
 
 	t.mu.Lock()
@@ -102,13 +195,7 @@ func (t *laneTransport) emitSelectedRepair(sel *selectedRepair, now time.Time) e
 			current.repairInFlight = false
 			t.restorePendingEvictionLocked(current)
 		}
-		if sel.cost != 0 {
-			if sel.cost >= steadyRepairBurstBytes-t.repairCredit {
-				t.repairCredit = steadyRepairBurstBytes
-			} else {
-				t.repairCredit += sel.cost
-			}
-		}
+		t.refundRepairCreditLocked(sel.cost)
 		t.mu.Unlock()
 		return nil
 	}
@@ -129,13 +216,7 @@ func (t *laneTransport) emitSelectedRepair(sel *selectedRepair, now time.Time) e
 		current.repairInFlight = false
 	}
 	if err != nil {
-		if sel.cost != 0 {
-			if sel.cost >= steadyRepairBurstBytes-t.repairCredit {
-				t.repairCredit = steadyRepairBurstBytes
-			} else {
-				t.repairCredit += sel.cost
-			}
-		}
+		t.refundRepairCreditLocked(sel.cost)
 		t.stats.RepairFailures++
 		if current == sel.record {
 			t.restorePendingEvictionLocked(current)
@@ -188,6 +269,7 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 
 	t.stats.RecoveryTicks++
 	t.expirePendingHeadLocked(now)
+	t.expireRepairReserveLocked(now)
 
 	// A first-loss SACK scoreboard can identify the cumulative head before
 	// transmit-time RACK evidence spans a full reordering window. Keep exactly
@@ -195,7 +277,7 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 	// require the hole to persist across a complete recovery scheduling cycle.
 	// This suppresses short lossless reordering without making repair wait for
 	// the 1s RTO or allowing optional repair debt to block fresh traffic.
-	if candidate := t.pendingAtHeadLocked(); candidate != nil &&
+	if candidate, _ := t.currentHeadRepairCandidateLocked(); candidate != nil &&
 		candidate.fastRepairArmed && t.stats.RecoveryTicks > candidate.fastRepairReadyTick {
 		sel = t.prepareFastRepairLocked(candidate, now)
 	}
@@ -280,8 +362,7 @@ func (t *laneTransport) evictRepairForFreshLocked() bool {
 	if p := t.evictHead; p != nil {
 		steps++
 		t.removePendingLocked(p)
-		t.stats.Abandoned++
-		t.stats.RepairEvicted++
+		t.stashRepairReserveLocked(p)
 		t.stats.RepairEvictionScanSteps += steps
 		if steps > t.stats.RepairEvictionMaxScan {
 			t.stats.RepairEvictionMaxScan = steps
@@ -300,6 +381,9 @@ func (t *laneTransport) retireSelectiveACKLocked(ack uint32, now time.Time) {
 	}
 
 	var sample *pendingRecord
+	if reserveSample := t.pruneRepairReserveACKLocked(ack); reserveSample != nil {
+		sample = reserveSample
+	}
 	for {
 		t.advancePendingHeadLocked()
 		if t.pendingHead >= len(t.pendingOrder) {
@@ -366,7 +450,7 @@ func (t *laneTransport) markSACKedLocked(p *pendingRecord, now time.Time) {
 }
 
 func (t *laneTransport) selectFastRepairLocked(now time.Time) *selectedRepair {
-	candidate := t.pendingAtHeadLocked()
+	candidate, _ := t.currentHeadRepairCandidateLocked()
 	if candidate == nil || candidate.sacked || candidate.retired ||
 		candidate.flags&faketcp.FlagFIN != 0 || candidate.seq != t.lastAck {
 		return nil
@@ -400,9 +484,14 @@ func (t *laneTransport) selectFastRepairLocked(now time.Time) *selectedRepair {
 
 func (t *laneTransport) armFastRepairLocked(p *pendingRecord) {
 	if p == nil || p.fastRepairArmed || p.wasRetried || p.sacked || p.retired ||
-		p.control || p.flags&faketcp.FlagFIN != 0 || p.repairInFlight ||
-		t.pending[p.seq] != p {
+		p.control || p.flags&faketcp.FlagFIN != 0 || p.repairInFlight {
 		return
+	}
+	if t.pending[p.seq] != p {
+		n := t.repairReserve[p.seq]
+		if n == nil || n.record != p {
+			return
+		}
 	}
 	p.fastRepairArmed = true
 	// The next recovery tick only proves that the arm was observed by the
@@ -422,7 +511,12 @@ func (t *laneTransport) rackEvidenceAgeLocked(p *pendingRecord) (time.Duration, 
 }
 
 func (t *laneTransport) prepareFastRepairLocked(p *pendingRecord, now time.Time) *selectedRepair {
-	sel := t.reserveRepairLocked(p, now, true)
+	var sel *selectedRepair
+	if t.pending[p.seq] == p {
+		sel = t.reserveRepairLocked(p, now, true)
+	} else {
+		sel = t.reserveRepairFromReserveLocked(p, now)
+	}
 	if sel != nil && !p.wasRetried {
 		t.firstRepairEvidence = 0
 	}

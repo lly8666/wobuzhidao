@@ -12,6 +12,11 @@ const (
 	steadyRepairExpiryBudget     = 64
 	steadyGapForgiveBudget       = 64
 	steadySenderSACKHistory      = 8
+	// V5 Normal/5205 observed ~6581 fresh records/s with ~624ms probe p99.
+	// The active 4096 shadow covers only ~622ms. 1024 one-shot reserve records
+	// add ~156ms without enlarging active RTO/SACK scan state or gating fresh.
+	steadyRepairReserveRecords   = 1024
+	steadyRepairReservePruneBudget = 64
 )
 
 func (t *laneTransport) linkRepairLocked(p *pendingRecord) {
@@ -173,6 +178,149 @@ func (t *laneTransport) protectCurrentHeadRepairLocked() {
 	t.unlinkEvictLocked(p)
 }
 
+func (t *laneTransport) unlinkRepairReserveNodeLocked(n *repairReserveRecord) *pendingRecord {
+	if n == nil || n.record == nil || t.repairReserve[n.record.seq] != n {
+		return nil
+	}
+	p := n.record
+	delete(t.repairReserve, p.seq)
+	if n.prev != nil {
+		n.prev.next = n.next
+	} else {
+		t.repairReserveHead = n.next
+	}
+	if n.next != nil {
+		n.next.prev = n.prev
+	} else {
+		t.repairReserveTail = n.prev
+	}
+	if t.repairReserveCount > 0 {
+		t.repairReserveCount--
+	}
+	if size := uint64(len(p.payload)); size <= t.repairReserveBytes {
+		t.repairReserveBytes -= size
+	} else {
+		t.repairReserveBytes = 0
+	}
+	n.prev, n.next, n.record = nil, nil, nil
+	return p
+}
+
+func (t *laneTransport) dropRepairReserveRecordLocked(n *repairReserveRecord, expired bool) {
+	p := t.unlinkRepairReserveNodeLocked(n)
+	if p == nil {
+		return
+	}
+	if p.fastRepairArmed {
+		p.fastRepairArmed = false
+		p.fastRepairReadyTick = 0
+		t.stats.FastRepairArmCanceled++
+	}
+	t.stats.Abandoned++
+	t.stats.RepairEvicted++
+	if expired {
+		t.stats.RepairReserveExpired++
+		t.stats.RepairExpiredSkipped++
+	} else {
+		t.stats.RepairReserveEvicted++
+	}
+}
+
+func (t *laneTransport) stashRepairReserveLocked(p *pendingRecord) bool {
+	if p == nil || p.control || p.flags&faketcp.FlagFIN != 0 || p.sacked || p.retired ||
+		p.repairInFlight || len(p.payload) == 0 {
+		return false
+	}
+	if old := t.repairReserve[p.seq]; old != nil {
+		t.dropRepairReserveRecordLocked(old, false)
+	}
+	if t.repairReserveCount >= steadyRepairReserveRecords {
+		head := t.repairReserveHead
+		// A reserve record that is the current cumulative head (or already
+		// armed/in flight) is the single repair opportunity this reserve exists
+		// to protect. Fresh still wins: drop the incoming optional shadow rather
+		// than scan around or block.
+		if head != nil && head.record != nil &&
+			(head.record.seq == t.lastAck || head.record.fastRepairArmed || head.record.repairInFlight) {
+			t.stats.Abandoned++
+			t.stats.RepairEvicted++
+			t.stats.RepairReserveDropped++
+			return false
+		}
+		t.dropRepairReserveRecordLocked(head, false)
+	}
+	n := &repairReserveRecord{record: p, prev: t.repairReserveTail}
+	if t.repairReserveTail != nil {
+		t.repairReserveTail.next = n
+	} else {
+		t.repairReserveHead = n
+	}
+	t.repairReserveTail = n
+	t.repairReserve[p.seq] = n
+	t.repairReserveCount++
+	t.repairReserveBytes += uint64(len(p.payload))
+	t.stats.RepairReserveStored++
+	if t.repairReserveCount > t.stats.RepairReservePeak {
+		t.stats.RepairReservePeak = t.repairReserveCount
+	}
+	return true
+}
+
+func (t *laneTransport) pruneRepairReserveACKLocked(ack uint32) *pendingRecord {
+	var sample *pendingRecord
+	for i := 0; i < steadyRepairReservePruneBudget; i++ {
+		n := t.repairReserveHead
+		if n == nil || n.record == nil || !seqLE(n.record.end, ack) {
+			break
+		}
+		p := t.unlinkRepairReserveNodeLocked(n)
+		if p == nil {
+			break
+		}
+		if p.fastRepairArmed {
+			p.fastRepairArmed = false
+			p.fastRepairReadyTick = 0
+			t.stats.FastRepairArmCanceled++
+		}
+		if p.end == ack && !p.wasRetried && !p.rttSampled {
+			p.rttSampled = true
+			sample = p
+		}
+		t.noteDeliveredLocked(p)
+		t.stats.Acked++
+		t.stats.RepairReserveRetired++
+	}
+	return sample
+}
+
+func (t *laneTransport) expireRepairReserveLocked(now time.Time) {
+	for i := 0; i < steadyRepairReservePruneBudget; i++ {
+		n := t.repairReserveHead
+		if n == nil || n.record == nil {
+			break
+		}
+		p := n.record
+		if p.repairInFlight {
+			break
+		}
+		if p.firstSent.IsZero() || now.Before(p.firstSent) ||
+			now.Sub(p.firstSent) < t.cfg.RepairHorizon {
+			break
+		}
+		t.dropRepairReserveRecordLocked(n, true)
+	}
+}
+
+func (t *laneTransport) currentHeadRepairCandidateLocked() (*pendingRecord, bool) {
+	if p := t.pendingAtHeadLocked(); p != nil && p.seq == t.lastAck {
+		return p, false
+	}
+	if n := t.repairReserve[t.lastAck]; n != nil && n.record != nil {
+		return n.record, true
+	}
+	return nil, false
+}
+
 func (t *laneTransport) linkExpiryLocked(p *pendingRecord) {
 	if p == nil || p.expiryLinked || p.control || p.flags&faketcp.FlagFIN != 0 {
 		return
@@ -320,6 +468,11 @@ func (t *laneTransport) clearSteadyIndexesLocked() {
 	t.retiredTail = nil
 	t.expiryHead = nil
 	t.expiryTail = nil
+	t.repairReserveHead = nil
+	t.repairReserveTail = nil
+	t.repairReserveCount = 0
+	t.repairReserveBytes = 0
+	clear(t.repairReserve)
 	t.recvHeap = nil
 	t.sackedOutstanding = 0
 	t.sackSeenN = 0
@@ -424,7 +577,7 @@ func (t *laneTransport) applySACKLocked(blocks []faketcp.SACKBlock, now time.Tim
 }
 
 func (t *laneTransport) noteFirstRepairSACKEvidenceLocked() {
-	p := t.pendingAtHeadLocked()
+	p, _ := t.currentHeadRepairCandidateLocked()
 	if p == nil || p.seq != t.lastAck || p.wasRetried || p.sacked || p.retired ||
 		p.control || p.flags&faketcp.FlagFIN != 0 || p.repairInFlight {
 		return

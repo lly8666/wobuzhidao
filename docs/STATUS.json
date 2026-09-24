@@ -66,10 +66,10 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V5_PENDING_ACTIONS：V4 SOURCE_SHA 60c5f0ab7ee5ebe77371985be87be2e0c893eea9 未进入性能测试；next-runtimeowner-recovery run 35936037992 在unit阶段FAIL。失败证明V4把三次SACK-progress fallback门错误放在strong-RACK immediate之前，导致原有单ACK多SACK+足够发送时间差的可靠fast-repair也被抑制。V5只恢复原strong-RACK优先级：若当前仍有>=3条SACKed shadow且transmit-time RACK达到门槛，仍立即repair；否则才要求同一cumulative ACK三次novel SACK progress后arm并跨完整recovery周期。窗口/credit/RTO/FEC/wire均不变。",
-  "next_task": "先跑V5 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；V4失败永久保留且不得发V4性能样本。V5全绿后重新独立跑Normal lossless和5205；lossless必须0假repair，5205 stress必须有限非零repair且FreshBlocked=0、drop=0、五分类PASS。",
-  "latest_log": "docs/devlog/20260924-070000-restore-strong-rack-before-sack-progress-fallback.md",
-  "last_tested_source_sha": "a229489568827432781db0344b907d0ba2db8833",
+  "in_progress": "REPAIR_FOLLOWUP_V6_PENDING_ACTIONS：V5 SOURCE_SHA d8c79cd5cd97ed3867970aae15590acd966ef90e correctness/race全绿；Normal lossless 35936587721与Normal5205 35937061116均五分类PASS、drop=0，但5205 20% stress仍FastRepairs=0。repair reader 35939424449/10784138669显示stress FastRepairEvidence/Armed/Fired=0、SACKed约31万/向、credit满、RecoveryTicks正常。根因是current head保护只对“当前时刻”的active record有效；高损receiver累计ACK跳到下一gap时，该未来head早在成为lastAck之前已被active 4096 fresh eviction。V6保持active 4096不变，新增1024条one-shot recently-evicted ciphertext reserve，按实测6581 records/s、active覆盖622ms、probe p99 RTT约624ms+100ms recovery周期定界；reserve约增加156ms保留余量。",
+  "next_task": "先跑V6 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle。全绿后重新独立跑Normal lossless与5205。lossless必须0假repair；5205 stress必须出现有限非零RepairReserveRepairs/FastRepairs，FreshBlocked=0、FreshWindowBypass无异常、RepairEvictionMaxScan<=1、socket/link drop=0且五分类PASS。再对比Abandoned/ForgivenGaps/ACK-control/CPU/outer overhead；满足后才跑5305。",
+  "latest_log": "docs/devlog/20260924-080000-recently-evicted-one-shot-repair-reserve.md",
+  "last_tested_source_sha": "d8c79cd5cd97ed3867970aae15590acd966ef90e",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1552,8 +1552,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED_REPAIR_FOLLOWUP_V5: V4 runtimeowner unit failed before performance because its new SACK-progress fallback accidentally gated the pre-existing strong-RACK immediate path. V5 restores strong-RACK precedence and keeps SACK-progress only as fallback.",
-    "P5": "REOPENED_REPAIR_FOLLOWUP_V5: no V4 performance sample is valid/needed; historical samples remain preserved.",
+    "P4": "REOPENED_REPAIR_FOLLOWUP_V6: V5 is safe but still lacks stress repair because future cumulative heads are evicted before they become lastAck. V6 adds a bounded 1024-record one-shot recently-evicted ciphertext reserve while active repair state remains 4096.",
+    "P5": "REOPENED_REPAIR_FOLLOWUP_V6: historical qualifications remain immutable; V5 lossless/5205 are diagnostic PASS but repair-restoration objective remains unmet.",
     "P6": "STALE_FOR_CURRENT_HEAD: exact-SHA repackage PASS at 689dea19e2e1dfdccbab9c8f42210d62c4a12223 remains historical; accepted repair must requalify/repackage at its own final SOURCE_SHA.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
@@ -1813,7 +1813,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REOPENED_REPAIR_FOLLOWUP_V5_PENDING_ACTIONS",
+      "status": "REOPENED_REPAIR_FOLLOWUP_V6_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1824,9 +1824,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-070000-restore-strong-rack-before-sack-progress-fallback.md",
-      "note": "V4 correctness failure was caught before performance: existing strong-RACK tests expected immediate repair from one ACK carrying >=3 backed SACKed records plus sufficient transmit-time separation. V5 preserves that path and uses 3 novel SACK-progress ACKs only when strong RACK is unavailable.",
-      "next_task": "先跑V5 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；V4失败永久保留且不得发V4性能样本。V5全绿后重新独立跑Normal lossless和5205；lossless必须0假repair，5205 stress必须有限非零repair且FreshBlocked=0、drop=0、五分类PASS。",
+      "latest_log": "docs/devlog/20260924-080000-recently-evicted-one-shot-repair-reserve.md",
+      "note": "V5 proved SACK-progress logic is not the remaining bottleneck: stress evidence stays zero because the record that becomes a future cumulative head was evicted before ACK feedback. V6 retains only the most recently evicted 1024 business ciphertexts in a one-shot reserve; active 4096, RTO scan, fresh admission, FEC/wire and repair credit are unchanged.",
+      "next_task": "先跑V6 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle。全绿后重新独立跑Normal lossless与5205。lossless必须0假repair；5205 stress必须出现有限非零RepairReserveRepairs/FastRepairs，FreshBlocked=0、FreshWindowBypass无异常、RepairEvictionMaxScan<=1、socket/link drop=0且五分类PASS。再对比Abandoned/ForgivenGaps/ACK-control/CPU/outer overhead；满足后才跑5305。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -3999,8 +3999,23 @@
       },
       "repair_followup_candidate": {
         "status": "NOT_RUN",
-        "parent_source_sha": "60c5f0ab7ee5ebe77371985be87be2e0c893eea9",
-        "design_delta": "strong first-repair RACK path remains immediate when >=3 currently SACKed shadows plus transmit-time reordering evidence are present; only otherwise use 3 novel SACK-progress ACKs as bounded fallback before armed persistence",
+        "parent_source_sha": "d8c79cd5cd97ed3867970aae15590acd966ef90e",
+        "design_delta": "keep active shadow capacity exactly 4096; on ordinary fresh eviction move business ciphertext into a separate 1024-record insertion-ordered one-shot reserve; exact lastAck lookup can use reserve for first fast repair; reserve never enters RTO scan or fresh admission and is capacity/horizon bounded",
+        "sizing_evidence": {
+          "stress_fresh_records_per_s": 6580.87,
+          "active_4096_coverage_ms": 622.41,
+          "probe_p99_rtt_ms": 623.89,
+          "recovery_cycle_ms": 100,
+          "reserve_records": 1024,
+          "reserve_coverage_ms": 155.6,
+          "total_coverage_ms": 778
+        },
+        "bounds": {
+          "active_records": 4096,
+          "reserve_records": 1024,
+          "reserve_first_repair_only": true,
+          "repair_eviction_max_scan_target": 1
+        },
         "performance_status": "NOT_RUN"
       },
       "repair_followup_candidate_v1": {
@@ -4135,6 +4150,59 @@
         "performance_status": "NOT_RUN",
         "failure": "SACK-progress evidence gate incorrectly suppressed existing strong-RACK immediate first repair",
         "preserved": true
+      },
+      "repair_followup_candidate_v5": {
+        "source_sha": "d8c79cd5cd97ed3867970aae15590acd966ef90e",
+        "correctness": {
+          "runtimeowner_recovery": 35936257311,
+          "targeted": 35936257318,
+          "foundation": 35936257462,
+          "lifecycle": 35936257420,
+          "status": "PASS"
+        },
+        "performance": [
+          {
+            "scenario": "lossless",
+            "seed": "101",
+            "run": 35936587721,
+            "summary_artifact": 10783685098,
+            "full_artifact": 10783208033,
+            "status": "PASS",
+            "fast_repairs": "0",
+            "socket_drop_max": 0
+          },
+          {
+            "scenario": "5205",
+            "seed": "101",
+            "run": 35937061116,
+            "summary_artifact": 10783711143,
+            "full_artifact": 10783193967,
+            "status": "PASS",
+            "stress_fast_repairs": "0",
+            "socket_drop_max": 0,
+            "repair_diag": {
+              "run": 35939424449,
+              "artifact": 10784138669,
+              "stress": {
+                "client": {
+                  "evidence": 0,
+                  "armed": 0,
+                  "fired": 0,
+                  "repair_evicted": 77188,
+                  "sacked": 311087
+                },
+                "server": {
+                  "evidence": 0,
+                  "armed": 0,
+                  "fired": 0,
+                  "repair_evicted": 78145,
+                  "sacked": 316718
+                }
+              }
+            }
+          }
+        ],
+        "conclusion": "SAFE_BUT_FUTURE_HEAD_CIPHERTEXT_EVICTED_BEFORE_CUMULATIVE_ACK_REACHES_IT"
       }
     }
   }
