@@ -66,10 +66,10 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V7_PENDING_ACTIONS：V6.1 SOURCE_SHA 7081d9518fff791d0a69c7811e07bf773e3bfa28 correctness/race全绿；Normal lossless 35940368181 五分类PASS、repair=0、drop=0；Normal5205 35940798659 五分类PASS、drop=0，20% stress FastRepairs约23.8k/23.6k，Abandoned从历史约7.8万/向降到0，active 4096与reserve 1024均有界且FreshBlocked=0，但outer/app相对689dea19约增加4.7%。Normal5305 35943316442五分类PASS、drop=0，但30% stress仅285/向repair；reserve diag 10786260610显示reserve peak=1024、stress存入约115k/向并容量淘汰约114k/向。代码复核发现累计ACK大跨度前进时reserve一次只prune64；后续duplicate ACK因early return不继续清理，ACK已覆盖的stale reserve继续占槽并在fresh压力下被误记为abandoned/evicted。V7不扩1024：duplicate ACK继续固定64预算prune；reserve满时若head已被lastAck覆盖则O(1) retire该head再插入新shadow。",
-  "next_task": "先跑V7 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；全绿后重新独立跑Normal lossless、5205、5305。重点验证lossless仍0假repair；5205 repair保持有限且reserve无退化；5305 RepairReserveEvicted/Abandoned显著下降并恢复有限非零stress repair，同时FreshBlocked=0、FreshWindowBypass无异常、RepairEvictionMaxScan<=1、socket/link drop=0且五分类PASS。若Normal稳定，再补Game5305多lane canary后更新状态。",
-  "latest_log": "docs/devlog/20260924-090000-retire-acked-repair-reserve.md",
-  "last_tested_source_sha": "7081d9518fff791d0a69c7811e07bf773e3bfa28",
+  "in_progress": "HANDOFF_PAUSED_AFTER_V7_LOSSLESS：当前产品候选SOURCE_SHA d90ef09c9e84bfe2719d04784b58f662c05d9fc3（runtimeowner: retire acked repair reserve under pressure）。V7 correctness/race/targeted/foundation/lifecycle全绿；Normal/lossless/seed101 run 35944451931 五分类全PASS、socket/link drop=0、FastRepairs=0，说明V7未在无损路径制造假重传。按用户要求本轮做简单收尾并停止继续dispatch性能样本；V7 Normal/5205与Normal/5305仍NOT_RUN。上一产品候选V6.1 7081d951... 已证明5205可恢复有限重传但带来约4.7% outer成本；5305仅少量repair且暴露stale reserve清理问题，V7正是对此做有界清理修正。",
+  "next_task": "全新agent接手后第一件事必须重新读取远端HEAD、STATUS、最新devlog与近期Actions。若HEAD仍仅为本次docs-only交接提交，则把产品SOURCE_SHA固定回其父级d90ef09c9e84bfe2719d04784b58f662c05d9fc3理解。下一原子任务：只在该产品SHA上跑一条Normal/5205/seed101独立strict样本，确认V7是否保留V6.1的有限非零repair同时降低stale reserve误evict/abandon；通过后再跑Normal/5305/seed101。不得复用V6.1样本，不得为了结果重跑同一性能workflow run。",
+  "latest_log": "docs/devlog/20260924-101500-repair-followup-handoff.md",
+  "last_tested_source_sha": "d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1511,6 +1511,37 @@
       "scope": "client-burst-canary/game-5305-seed303",
       "status": "PASS",
       "note": "loss-tolerant-v1五分类全PASS；client/server/socket/link/qdisc drop=0；SegmentMux四route capacity=4096 peak=64/63/71/74 full_waits全0。summary 10765952106；full 10765214407。"
+    },
+    {
+      "source_sha": "d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35944228817",
+      "scope": "repair-v7/next-runtimeowner-recovery",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35944228854",
+      "scope": "repair-v7/next-p4-steady-targeted",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35944228822",
+      "scope": "repair-v7/next-foundation",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35944228872",
+      "scope": "repair-v7/next-lifecycle",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35944451931",
+      "scope": "repair-v7/normal-lossless-seed101",
+      "status": "PASS",
+      "note": "loss-tolerant-v1 five classifications PASS; socket/link drops zero; FastRepairs=0"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1552,8 +1583,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED_REPAIR_FOLLOWUP_V7: V6.1 restored bounded repair at 5205, but 5305 exposed stale ACK-covered reserve occupancy caused by the 64-entry cumulative-ACK prune budget plus duplicate-ACK early return. V7 reclaims only ACK-confirmed reserve records without enlarging any bound.",
-    "P5": "REOPENED_REPAIR_FOLLOWUP_V7: historical 689dea19 final18 remains immutable; V6.1 lossless/5205/5305 are diagnostic PASS samples, but 5305 reserve utilization needs bounded ACK-retirement correction before new qualification.",
+    "P4": "REOPENED_REPAIR_FOLLOWUP_V7_HANDOFF_PAUSED: V7 correctness and lossless are PASS; weaknet 5205/5305 on V7 are NOT_RUN at handoff.",
+    "P5": "REOPENED_REPAIR_FOLLOWUP_V7_HANDOFF_PAUSED: historical 689dea19 final18 remains immutable evidence; current V7 requires new 5205/5305 samples before any qualification conclusion.",
     "P6": "STALE_FOR_CURRENT_HEAD: exact-SHA repackage PASS at 689dea19e2e1dfdccbab9c8f42210d62c4a12223 remains historical; accepted repair follow-up must requalify/repackage at its own final SOURCE_SHA.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
@@ -1813,7 +1844,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REOPENED_REPAIR_FOLLOWUP_V7_PENDING_ACTIONS",
+      "status": "REPAIR_FOLLOWUP_V7_HANDOFF_PAUSED",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1824,9 +1855,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-090000-retire-acked-repair-reserve.md",
-      "note": "V6.1 proved the one-shot reserve restores finite TCP-like repair at 5205 without fresh HOL, but 5305 fills the 1024 reserve and falsely evicts many entries already covered by a large cumulative ACK because reserve cleanup stops after 64 and duplicate ACKs do not continue it. V7 fixes reserve utilization rather than increasing capacity.",
-      "next_task": "先跑V7 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；全绿后重新独立跑Normal lossless、5205、5305。重点验证lossless仍0假repair；5205 repair保持有限且reserve无退化；5305 RepairReserveEvicted/Abandoned显著下降并恢复有限非零stress repair，同时FreshBlocked=0、FreshWindowBypass无异常、RepairEvictionMaxScan<=1、socket/link drop=0且五分类PASS。若Normal稳定，再补Game5305多lane canary后更新状态。",
+      "latest_log": "docs/devlog/20260924-101500-repair-followup-handoff.md",
+      "note": "User requested simple closeout. Product candidate d90ef09c passed all current correctness/race/foundation/lifecycle and one independent lossless sample with zero repair/drop. V7 5205/5305 are deliberately left NOT_RUN for the next agent. V6.1 showed repair restoration but ~4.7% outer overhead increase on 5205 and stale reserve pressure on 5305; V7 addresses only stale acknowledged reserve retirement without enlarging bounds.",
+      "next_task": "全新agent接手后第一件事必须重新读取远端HEAD、STATUS、最新devlog与近期Actions。若HEAD仍仅为本次docs-only交接提交，则把产品SOURCE_SHA固定回其父级d90ef09c9e84bfe2719d04784b58f662c05d9fc3理解。下一原子任务：只在该产品SHA上跑一条Normal/5205/seed101独立strict样本，确认V7是否保留V6.1的有限非零repair同时降低stale reserve误evict/abandon；通过后再跑Normal/5305/seed101。不得复用V6.1样本，不得为了结果重跑同一性能workflow run。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -4314,6 +4345,54 @@
           }
         ],
         "conclusion": "5205_REPAIR_RESTORED;_5305_RESERVE_STALE_ACK_RETIREMENT_BOUNDARY"
+      },
+      "repair_followup_handoff": {
+        "status": "PAUSED",
+        "product_source_sha": "d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
+        "docs_only_handoff_commit_policy": "This handoff commit advances the branch but does not change product code. Treat parent product_source_sha as the candidate under test.",
+        "v7_correctness": {
+          "runtimeowner_recovery": 35944228817,
+          "targeted": 35944228854,
+          "foundation": 35944228822,
+          "lifecycle": 35944228872,
+          "status": "PASS"
+        },
+        "v7_lossless": {
+          "run": 35944451931,
+          "summary_artifact": {
+            "id": 10786715370,
+            "digest": "sha256:18199075b4c82ba158751b47c14a658970d8e2d8d88f98fb16877bdb2b7d84ab"
+          },
+          "full_artifact": {
+            "id": 10785369767,
+            "digest": "sha256:413211f6de276dfd72f4b95e28b68f2fd541f8ef31d9718ab9a8d548413b8ef3"
+          },
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "link_drop_all_zero": true,
+          "fast_repairs": 0
+        },
+        "v7_remaining": [
+          "Normal/5205/seed101 NOT_RUN",
+          "Normal/5305/seed101 NOT_RUN",
+          "Game canary NOT_RUN",
+          "new final18 NOT_RUN",
+          "P6 repackage for current repair series NOT_RUN"
+        ],
+        "do_not_forget": [
+          "one workflow run = one performance sample",
+          "CAPACITY_LIMITED is not PASS",
+          "preserve all historical FAIL/CAPACITY_LIMITED/artifacts",
+          "fresh/no-HOL/resource bounds remain higher priority than forcing repair reliability",
+          "do not expand active4096 or reserve1024 without new evidence",
+          "do not change FEC/wire/RTO/repair-credit/test thresholds just to pass"
+        ]
       }
     }
   }
