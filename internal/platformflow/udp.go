@@ -11,9 +11,228 @@ import (
 const (
 	DefaultUDPIdleTimeout = 60 * time.Second
 	DefaultMaxUDPFlows    = 4096
+
+	// UDP upstream mappings may have up to DefaultMaxUDPFlows sockets, so a
+	// large queue per mapping is not a valid bound. Keep one shared budget for
+	// all mapping replies owned by a UDPServer. The byte ceiling is derived
+	// from the record ceiling and MaxPayload, so one O(1) oldest eviction is
+	// always enough to admit one newest valid datagram.
+	udpServerSendBudgetRecords = 1024
+	udpServerSendBudgetBytes   = udpServerSendBudgetRecords * MaxPayload
+	udpServerSendWorkers       = 4
 )
 
 type UDPReply func(peer, client netip.AddrPort, payload []byte) error
+
+type UDPServerDiagnostic struct {
+	QueueCapacityRecords int           `json:"queue_capacity_records"`
+	QueueCapacityBytes   int           `json:"queue_capacity_bytes"`
+	QueueCurrent         int           `json:"queue_current"`
+	QueueBytes           int           `json:"queue_bytes"`
+	InFlightCurrent      int           `json:"inflight_current"`
+	InFlightBytes        int           `json:"inflight_bytes"`
+	TotalPeak            int           `json:"total_peak"`
+	TotalBytesPeak       int           `json:"total_bytes_peak"`
+	Enqueued             uint64        `json:"enqueued"`
+	Dequeued             uint64        `json:"dequeued"`
+	OverflowDrops        uint64        `json:"overflow_drops"`
+	OverflowBytes        uint64        `json:"overflow_bytes"`
+	OverflowAgeMax       time.Duration `json:"overflow_age_max"`
+	StaleDrops           uint64        `json:"stale_drops"`
+	SendErrors           uint64        `json:"send_errors"`
+	CloseDrops           uint64        `json:"close_drops"`
+	Workers              int           `json:"workers"`
+}
+
+type udpServerQueuedDatagram struct {
+	state    *udpServerState
+	peer     netip.AddrPort
+	payload  []byte
+	queuedAt time.Time
+}
+
+type udpServerSendQueue struct {
+	mu      sync.Mutex
+	cond    *sync.Cond
+	entries []udpServerQueuedDatagram
+	head    int
+	size    int
+	bytes   int
+
+	inFlight      int
+	inFlightBytes int
+	closed        bool
+
+	totalPeak      int
+	totalBytesPeak int
+	enqueued       uint64
+	dequeued       uint64
+	overflowDrops  uint64
+	overflowBytes  uint64
+	overflowAgeMax time.Duration
+	staleDrops     uint64
+	sendErrors     uint64
+	closeDrops     uint64
+}
+
+func newUDPServerSendQueue(records int) *udpServerSendQueue {
+	if records <= 0 {
+		records = udpServerSendBudgetRecords
+	}
+	q := &udpServerSendQueue{entries: make([]udpServerQueuedDatagram, records)}
+	q.cond = sync.NewCond(&q.mu)
+	return q
+}
+
+func (q *udpServerSendQueue) capacityBytes() int {
+	return len(q.entries) * MaxPayload
+}
+
+func (q *udpServerSendQueue) enqueue(item udpServerQueuedDatagram, now time.Time) bool {
+	if q == nil || item.state == nil || len(item.payload) > MaxPayload {
+		return false
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if q.closed {
+		return false
+	}
+
+	// Budget counts both queued and currently sending records. If full, evict
+	// exactly one oldest queued datagram. With records*MaxPayload as the byte
+	// ceiling, one such eviction is sufficient for any valid newest datagram.
+	if q.size+q.inFlight >= len(q.entries) {
+		if q.size == 0 {
+			q.overflowDrops++
+			q.overflowBytes += uint64(len(item.payload))
+			return true
+		}
+		dropped := q.entries[q.head]
+		q.entries[q.head] = udpServerQueuedDatagram{}
+		q.head = (q.head + 1) % len(q.entries)
+		q.size--
+		q.bytes -= len(dropped.payload)
+		q.overflowDrops++
+		q.overflowBytes += uint64(len(dropped.payload))
+		if age := now.Sub(dropped.queuedAt); age > q.overflowAgeMax {
+			q.overflowAgeMax = age
+		}
+	}
+
+	if q.bytes+q.inFlightBytes+len(item.payload) > q.capacityBytes() {
+		// This should be unreachable while every record is <= MaxPayload and the
+		// record budget above is respected. Fail bounded by shedding the newest.
+		q.overflowDrops++
+		q.overflowBytes += uint64(len(item.payload))
+		return true
+	}
+	tail := (q.head + q.size) % len(q.entries)
+	q.entries[tail] = item
+	q.size++
+	q.bytes += len(item.payload)
+	q.enqueued++
+	total := q.size + q.inFlight
+	if total > q.totalPeak {
+		q.totalPeak = total
+	}
+	totalBytes := q.bytes + q.inFlightBytes
+	if totalBytes > q.totalBytesPeak {
+		q.totalBytesPeak = totalBytes
+	}
+	q.cond.Signal()
+	return true
+}
+
+func (q *udpServerSendQueue) pop() (udpServerQueuedDatagram, bool) {
+	if q == nil {
+		return udpServerQueuedDatagram{}, false
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	for q.size == 0 && !q.closed {
+		q.cond.Wait()
+	}
+	if q.closed || q.size == 0 {
+		return udpServerQueuedDatagram{}, false
+	}
+	item := q.entries[q.head]
+	q.entries[q.head] = udpServerQueuedDatagram{}
+	q.head = (q.head + 1) % len(q.entries)
+	q.size--
+	q.bytes -= len(item.payload)
+	q.inFlight++
+	q.inFlightBytes += len(item.payload)
+	q.dequeued++
+	return item, true
+}
+
+func (q *udpServerSendQueue) finish(item udpServerQueuedDatagram, stale, sendErr bool) {
+	if q == nil {
+		return
+	}
+	q.mu.Lock()
+	if q.inFlight > 0 {
+		q.inFlight--
+	}
+	if n := len(item.payload); n <= q.inFlightBytes {
+		q.inFlightBytes -= n
+	} else {
+		q.inFlightBytes = 0
+	}
+	if stale {
+		q.staleDrops++
+	}
+	if sendErr {
+		q.sendErrors++
+	}
+	q.mu.Unlock()
+}
+
+func (q *udpServerSendQueue) close() {
+	if q == nil {
+		return
+	}
+	q.mu.Lock()
+	if !q.closed {
+		q.closed = true
+		q.closeDrops += uint64(q.size)
+		for q.size > 0 {
+			q.entries[q.head] = udpServerQueuedDatagram{}
+			q.head = (q.head + 1) % len(q.entries)
+			q.size--
+		}
+		q.bytes = 0
+		q.cond.Broadcast()
+	}
+	q.mu.Unlock()
+}
+
+func (q *udpServerSendQueue) snapshot() UDPServerDiagnostic {
+	if q == nil {
+		return UDPServerDiagnostic{}
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return UDPServerDiagnostic{
+		QueueCapacityRecords: len(q.entries),
+		QueueCapacityBytes: q.capacityBytes(),
+		QueueCurrent: q.size,
+		QueueBytes: q.bytes,
+		InFlightCurrent: q.inFlight,
+		InFlightBytes: q.inFlightBytes,
+		TotalPeak: q.totalPeak,
+		TotalBytesPeak: q.totalBytesPeak,
+		Enqueued: q.enqueued,
+		Dequeued: q.dequeued,
+		OverflowDrops: q.overflowDrops,
+		OverflowBytes: q.overflowBytes,
+		OverflowAgeMax: q.overflowAgeMax,
+		StaleDrops: q.staleDrops,
+		SendErrors: q.sendErrors,
+		CloseDrops: q.closeDrops,
+		Workers: udpServerSendWorkers,
+	}
+}
 
 type udpClientState struct {
 	id       uint64
@@ -183,6 +402,7 @@ type udpServerState struct {
 	lastSeen time.Time
 	upstream *net.UDPConn
 	tunnel   *TunnelFlow
+	sendMu   sync.Mutex
 	closeOnce sync.Once
 }
 
@@ -201,6 +421,10 @@ type UDPServer struct {
 	mu    sync.Mutex
 	flows map[uint64]*udpServerState
 	listen func(bool) (*net.UDPConn, error)
+
+	sendQueue *udpServerSendQueue
+	sendWG    sync.WaitGroup
+	closeOnce sync.Once
 }
 
 func NewUDPServer(channel *TunnelChannel, idle time.Duration, maxFlows int) (*UDPServer, error) {
@@ -213,11 +437,17 @@ func NewUDPServer(channel *TunnelChannel, idle time.Duration, maxFlows int) (*UD
 	if maxFlows <= 0 {
 		maxFlows = DefaultMaxUDPFlows
 	}
-	return &UDPServer{
+	s := &UDPServer{
 		channel: channel, idleTimeout: idle, maxFlows: maxFlows,
 		flows: make(map[uint64]*udpServerState),
 		listen: listenUDPMapping,
-	}, nil
+		sendQueue: newUDPServerSendQueue(udpServerSendBudgetRecords),
+	}
+	s.sendWG.Add(udpServerSendWorkers)
+	for i := 0; i < udpServerSendWorkers; i++ {
+		go s.sendWorker()
+	}
+	return s, nil
 }
 
 func (s *UDPServer) Handle(frame Frame, now time.Time) error {
@@ -279,14 +509,51 @@ func (s *UDPServer) readUpstream(state *udpServerState) {
 		}
 		state.lastSeen = now
 		s.mu.Unlock()
-		if err := state.tunnel.Send(Frame{
-			Kind: KindUDPDatagram, FlowID: state.id, Peer: peer,
-			Payload: append([]byte(nil), buf[:n]...),
-		}, now); err != nil {
-			s.remove(state)
+		item := udpServerQueuedDatagram{
+			state: state, peer: peer,
+			payload: append([]byte(nil), buf[:n]...),
+			queuedAt: now,
+		}
+		if !s.sendQueue.enqueue(item, now) {
 			return
 		}
 	}
+}
+
+func (s *UDPServer) sendWorker() {
+	defer s.sendWG.Done()
+	for {
+		item, ok := s.sendQueue.pop()
+		if !ok {
+			return
+		}
+		state := item.state
+		state.sendMu.Lock()
+		s.mu.Lock()
+		active := s.flows[state.id] == state
+		s.mu.Unlock()
+		if !active {
+			state.sendMu.Unlock()
+			s.sendQueue.finish(item, true, false)
+			continue
+		}
+		err := state.tunnel.Send(Frame{
+			Kind: KindUDPDatagram, FlowID: state.id, Peer: item.peer,
+			Payload: item.payload,
+		}, time.Now())
+		state.sendMu.Unlock()
+		s.sendQueue.finish(item, false, err != nil)
+		if err != nil {
+			s.remove(state)
+		}
+	}
+}
+
+func (s *UDPServer) Diagnostic() UDPServerDiagnostic {
+	if s == nil {
+		return UDPServerDiagnostic{}
+	}
+	return s.sendQueue.snapshot()
 }
 
 func (s *UDPServer) Tick(now time.Time) {
@@ -306,16 +573,23 @@ func (s *UDPServer) Tick(now time.Time) {
 }
 
 func (s *UDPServer) Close() {
-	s.mu.Lock()
-	states := make([]*udpServerState, 0, len(s.flows))
-	for id, state := range s.flows {
-		delete(s.flows, id)
-		states = append(states, state)
+	if s == nil {
+		return
 	}
-	s.mu.Unlock()
-	for _, state := range states {
-		state.close()
-	}
+	s.closeOnce.Do(func() {
+		s.sendQueue.close()
+		s.mu.Lock()
+		states := make([]*udpServerState, 0, len(s.flows))
+		for id, state := range s.flows {
+			delete(s.flows, id)
+			states = append(states, state)
+		}
+		s.mu.Unlock()
+		for _, state := range states {
+			state.close()
+		}
+		s.sendWG.Wait()
+	})
 }
 
 func (s *UDPServer) Len() int {

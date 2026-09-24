@@ -109,6 +109,72 @@ func TestServicePacketRoundTripAndReservedMalformedFailClosed(t *testing.T) {
 	}
 }
 
+func TestUDPServerSendQueueGlobalBudgetDropsOldestKeepsNewest(t *testing.T) {
+	q := newUDPServerSendQueue(3)
+	defer q.close()
+	states := []*udpServerState{{id: 1}, {id: 2}, {id: 3}, {id: 4}}
+	start := time.Unix(150, 0)
+	for i, state := range states {
+		if ok := q.enqueue(udpServerQueuedDatagram{
+			state: state,
+			peer: netip.MustParseAddrPort("198.51.100.53:53"),
+			payload: []byte{byte(i)},
+			queuedAt: start.Add(time.Duration(i) * time.Millisecond),
+		}, start.Add(time.Duration(i)*time.Millisecond)); !ok {
+			t.Fatalf("enqueue %d rejected", i)
+		}
+	}
+	d := q.snapshot()
+	if d.QueueCapacityRecords != 3 || d.QueueCapacityBytes != 3*MaxPayload {
+		t.Fatalf("capacity diagnostic=%+v", d)
+	}
+	if d.QueueCurrent != 3 || d.TotalPeak != 3 || d.OverflowDrops != 1 || d.OverflowBytes != 1 {
+		t.Fatalf("bounded queue diagnostic=%+v", d)
+	}
+	first, ok := q.pop()
+	if !ok {
+		t.Fatal("pop failed")
+	}
+	if first.state.id != 2 || len(first.payload) != 1 || first.payload[0] != 1 {
+		t.Fatalf("oldest retained item=%+v want flow2/payload1", first)
+	}
+	q.finish(first, false, false)
+	d = q.snapshot()
+	if d.QueueCurrent != 2 || d.InFlightCurrent != 0 || d.Dequeued != 1 {
+		t.Fatalf("post-pop diagnostic=%+v", d)
+	}
+}
+
+func TestUDPServerSendQueueCountsInflightInsideGlobalBudget(t *testing.T) {
+	q := newUDPServerSendQueue(2)
+	defer q.close()
+	state := &udpServerState{id: 1}
+	now := time.Unix(160, 0)
+	for i := 0; i < 2; i++ {
+		if !q.enqueue(udpServerQueuedDatagram{state: state, payload: []byte{byte(i)}, queuedAt: now}, now) {
+			t.Fatal("initial enqueue rejected")
+		}
+	}
+	item, ok := q.pop()
+	if !ok {
+		t.Fatal("pop failed")
+	}
+	if !q.enqueue(udpServerQueuedDatagram{state: state, payload: []byte{9}, queuedAt: now}, now) {
+		t.Fatal("replacement enqueue rejected")
+	}
+	d := q.snapshot()
+	if got := d.QueueCurrent + d.InFlightCurrent; got != 2 {
+		t.Fatalf("global pending records=%d want=2 diagnostic=%+v", got, d)
+	}
+	if d.OverflowDrops != 1 {
+		t.Fatalf("overflow drops=%d want=1", d.OverflowDrops)
+	}
+	if d.QueueBytes+d.InFlightBytes > d.QueueCapacityBytes {
+		t.Fatalf("byte budget exceeded: %+v", d)
+	}
+	q.finish(item, false, false)
+}
+
 func TestTunnelChannelNormalUDPMappingEIMEIFAndExpiry(t *testing.T) {
 	lease := testLease(t)
 	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/datapath"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
+	"github.com/lly8666/wobuzhidao/internal/platformflow"
 	"github.com/lly8666/wobuzhidao/internal/runtimeowner"
 )
 
@@ -31,6 +32,7 @@ type TunnelDiagnostic struct {
 	Lifecycle      *LifecycleStats            `json:"lifecycle,omitempty"`
 	Config         *LifecycleConfigDiagnostic `json:"config,omitempty"`
 	ServerPipeline *ServerPipelineDiagnostic  `json:"server_pipeline,omitempty"`
+	ServerUDP      *platformflow.UDPServerDiagnostic `json:"server_udp,omitempty"`
 	Lease4         string                     `json:"lease4,omitempty"`
 	TunnelID       logicaltunnel.TunnelID     `json:"tunnel_id"`
 	Owner          datapath.TunnelOwnerStats  `json:"owner"`
@@ -93,6 +95,10 @@ func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, no
 	if s.cfg.ObserveTiming {
 		pipeline := s.pipeline.snapshot(true)
 		out.ServerPipeline = &pipeline
+	}
+	if group.service != nil {
+		udp := group.service.UDPDiagnostic()
+		out.ServerUDP = &udp
 	}
 	out.Config = &LifecycleConfigDiagnostic{
 		KeepaliveInterval: s.cfg.KeepaliveInterval.String(),

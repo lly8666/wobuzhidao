@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V9_FINAL18_CAPACITY_LIMITED：产品SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf 的全新专用final18已完成，17/18五分类PASS，1条CAPACITY_LIMITED。唯一失败为Normal/5305/seed101 run 35978250504：CAPTURE/CORRECTNESS/INPUT_VALIDITY PASS，ENVIRONMENT FAIL，PERFORMANCE CAPACITY_LIMITED；link/qdisc与AF_PACKET raw drop均0，但server产品UDP mapping socket在stress累计2556 kernel UDP drops。V9 receive shedding在同次事件显式丢3890条最旧server ready backlog并保持raw reader不阻塞，说明AF_PACKET层修复有效，但容量压力向platformflow UDP upstream mapping暴露。该final18永久保留，不能补跑/重跑失败样本，P6不运行。",
-  "next_task": "只读定位V9 Normal/5305/seed101的platformflow UDP mapping阻塞链，并设计严格全局有界的UDP ingress drain/send解耦；禁止per-flow 4096大队列、禁止盲目扩大kernel UDP buffer、禁止per-packet goroutine。若有产品修改则进入V10，必须同步STATUS+新devlog并先跑Actions correctness/race；全绿前不跑任何性能。",
-  "latest_log": "docs/devlog/20260924-172000-v9-final18-stopped-server-udp-capacity.md",
+  "in_progress": "REPAIR_FOLLOWUP_V10_PENDING_ACTIONS：V9 final18永久停在17 PASS / 1 CAPACITY_LIMITED；失败Normal/5305/seed101确认AF_PACKET/raw/link drop=0，但platformflow UDPServer upstream mapping同步read→tunnel.Send导致1MiB kernel UDP Recv-Q满并drop 2556。V10不扩大kernel buffer、不建per-flow大队列：新增UDPServer级严格全局1024-record预算（byte上限=1024*MaxPayload）、固定4 sender workers；readUpstream只快速drain并O(1)全局淘汰最旧queued datagram保最新，queued+inflight共同计入预算并导出诊断。correctness/race/performance尚未运行。",
+  "next_task": "只通过GitHub Actions跑V10 platformflow/runtimeentry unit+races、targeted、foundation、lifecycle；任何失败先分析且不跑性能。全部通过后只跑一条新的Normal/5305/seed101 exact-SHA诊断canary，重点要求server UDP kernel drop=0、global UDP queue严格<=1024且bytes不越界、overflow显式可观测、fresh三项0、RepairEvictionMaxScan<=1、五分类全PASS。",
+  "latest_log": "docs/devlog/20260924-190500-v10-global-udp-upstream-drain.md",
   "last_tested_source_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
   "actions": [
     {
@@ -1583,8 +1583,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED_REPAIR_FOLLOWUP_V9: V8 repair behavior is stable, but final18 exposed bounded receive handoff blocking that can propagate seconds-long consumer stalls into AF_PACKET drops. V9 keeps capacities fixed and sheds one oldest queued segment in O(1) to preserve newest/fresh traffic.",
-    "P5": "REOPENED_REPAIR_FOLLOWUP_V9: V8 final18 16 PASS / 2 CAPACITY_LIMITED remains immutable; V9 must re-enter through correctness/race and diagnostic canaries, not by replacing failed samples.",
+    "P4": "REOPENED_REPAIR_FOLLOWUP_V10: V9 fixed AF_PACKET receive HOL but exposed synchronous platformflow UDP mapping read->tunnel.Send coupling. V10 adds one strict global UDPServer send backlog budget, not per-flow capacity.",
+    "P5": "REOPENED_REPAIR_FOLLOWUP_V10: V9 final18 remains immutable at 17 PASS / 1 CAPACITY_LIMITED. V10 must restart at correctness/race and a new diagnostic canary.",
     "P6": "STALE_FOR_CURRENT_REPAIR_SERIES: historical exact-SHA repackage PASS at 689dea19 remains evidence only; V8 P6 repackage is NOT_RUN because V8 final18 is not 18/18 PASS.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
@@ -1844,7 +1844,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REPAIR_FOLLOWUP_V9_FINAL18_CAPACITY_LIMITED",
+      "status": "REPAIR_FOLLOWUP_V10_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1855,9 +1855,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-172000-v9-final18-stopped-server-udp-capacity.md",
-      "note": "V9 final18 is permanently 17 PASS / 1 CAPACITY_LIMITED. The failure is not AF_PACKET: server platformflow UDP mapping 0.0.0.0:50934 filled its 1MiB receive buffer and dropped 2556 packets during a ~1.3s downstream stall. V9 bounded receive shedding prevented raw-reader blockage but did not eliminate downstream UDP capacity pressure.",
-      "next_task": "只读定位V9 Normal/5305/seed101的platformflow UDP mapping阻塞链，并设计严格全局有界的UDP ingress drain/send解耦；禁止per-flow 4096大队列、禁止盲目扩大kernel UDP buffer、禁止per-packet goroutine。若有产品修改则进入V10，必须同步STATUS+新devlog并先跑Actions correctness/race；全绿前不跑任何性能。",
+      "latest_log": "docs/devlog/20260924-190500-v10-global-udp-upstream-drain.md",
+      "note": "V10 drains mapping UDP sockets independently from tunnel.Send using one server-global bounded queue. Budget includes queued+inflight records; no per-flow backlog, kernel buffer increase, per-packet goroutine, or unbounded sender queue.",
+      "next_task": "只通过GitHub Actions跑V10 platformflow/runtimeentry unit+races、targeted、foundation、lifecycle；任何失败先分析且不跑性能。全部通过后只跑一条新的Normal/5305/seed101 exact-SHA诊断canary，重点要求server UDP kernel drop=0、global UDP queue严格<=1024且bytes不越界、overflow显式可观测、fresh三项0、RepairEvictionMaxScan<=1、五分类全PASS。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -5306,6 +5306,24 @@
             }
           }
         }
+      },
+      "repair_followup_candidate_v10": {
+        "status": "CORRECTNESS_RACE_NOT_RUN",
+        "parent_docs_head": "5a5c5b26809fcf09264c4066b2b565ddd1fe9009",
+        "parent_product_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
+        "commit": "platformflow: bound UDP upstream send backlog",
+        "design_delta": "UDPServer-global newest-preserving backlog between mapping socket reads and tunnel.Send; fixed workers; O(1) oldest queued eviction at global record budget",
+        "bounds": {
+          "global_udp_send_records": 1024,
+          "global_udp_send_bytes": "1024*MaxPayload",
+          "sender_workers": 4,
+          "per_flow_send_queue_records": 0,
+          "active_repair_records": 4096,
+          "repair_reserve_records": 1024
+        },
+        "kernel_socket_buffer_changed": false,
+        "performance_parameters_changed": false,
+        "performance_status": "NOT_RUN"
       }
     }
   }

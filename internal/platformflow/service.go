@@ -167,6 +167,13 @@ func (s *Server) UDPFlows() int {
 	return s.udp.Len()
 }
 
+func (s *Server) UDPDiagnostic() UDPServerDiagnostic {
+	if s == nil || s.udp == nil {
+		return UDPServerDiagnostic{}
+	}
+	return s.udp.Diagnostic()
+}
+
 func (s *Server) TCPFlows() int {
 	if s == nil { return 0 }
 	return s.tcp.Len()
