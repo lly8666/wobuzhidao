@@ -4,9 +4,9 @@
   "expected_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
   "workflow": "next-strict-weaknet.yml",
   "mode": "normal",
-  "scenario": "lossless",
+  "scenario": "5205",
   "seed": "101",
   "rate_mbps": "10",
   "lanes": "1",
-  "reason": "V8 pressure-only reserve retirement; exact product SHA Normal/lossless/seed101 independent sample"
+  "reason": "V8 pressure-only reserve retirement; exact product SHA Normal/5205/seed101 independent sample after lossless PASS"
 }
