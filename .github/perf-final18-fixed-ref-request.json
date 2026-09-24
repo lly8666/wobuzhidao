@@ -1,7 +1,7 @@
 {
   "ref": "next/tlslike-dataplane",
-  "dispatch_ref": "perf-fixed/27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089-r2",
-  "expected_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
+  "dispatch_ref": "perf-fixed/af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf-r2",
+  "expected_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
   "workflow": "next-strict-weaknet.yml",
-  "generation": "v8-bounded-repair-final18-new-samples"
+  "generation": "v9-bounded-receive-final18-new-samples"
 }
