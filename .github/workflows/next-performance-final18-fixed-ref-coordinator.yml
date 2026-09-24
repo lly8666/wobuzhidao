@@ -26,25 +26,26 @@ jobs:
           import json, os, re
           d=json.load(open('.github/perf-final18-fixed-ref-request.json', encoding='utf-8'))
           if d.get('ref') != 'next/tlslike-dataplane':
-              raise SystemExit('unexpected ref')
+              raise SystemExit('unexpected canonical ref')
           if d.get('workflow') != 'next-strict-weaknet.yml':
               raise SystemExit('unexpected workflow')
           sha=d.get('expected_sha','')
           if not re.fullmatch(r'[0-9a-f]{40}', sha):
               raise SystemExit('expected_sha must be full sha')
+          dispatch_ref=d.get('dispatch_ref',d['ref'])
+          if dispatch_ref != d['ref']:
+              m=re.fullmatch(r'perf-fixed/([0-9a-f]{40})(?:-r[0-9]+)?', dispatch_ref)
+              if not m or m.group(1) != sha:
+                  raise SystemExit('dispatch_ref must be fixed to expected_sha')
           with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f:
               f.write(f"PERF_REF={d['ref']}\n")
+              f.write(f"DISPATCH_REF={dispatch_ref}\n")
               f.write(f"EXPECTED_SHA={sha}\n")
               f.write(f"PERF_WORKFLOW={d['workflow']}\n")
               f.write(f"GENERATION={d.get('generation','')}\n")
           PY
-          PERF_REF="$(jq -r .ref .github/perf-final18-fixed-ref-request.json)"
-          EXPECTED_SHA="$(jq -r .expected_sha .github/perf-final18-fixed-ref-request.json)"
-          PERF_WORKFLOW="$(jq -r .workflow .github/perf-final18-fixed-ref-request.json)"
-          GENERATION="$(jq -r '.generation // ""' .github/perf-final18-fixed-ref-request.json)"
-          export PERF_REF EXPECTED_SHA PERF_WORKFLOW GENERATION
-          remote_sha="$(git ls-remote origin "refs/heads/$PERF_REF" | awk '{print $1}')"
-          echo "generation=$GENERATION expected=$EXPECTED_SHA remote=$remote_sha"
+          remote_sha="$(git ls-remote origin "refs/heads/$DISPATCH_REF" | awk '{print $1}')"
+          echo "generation=$GENERATION canonical_ref=$PERF_REF dispatch_ref=$DISPATCH_REF expected=$EXPECTED_SHA remote=$remote_sha"
           test "$remote_sha" = "$EXPECTED_SHA"
 
       - name: Validate and dispatch each missing identity
@@ -91,20 +92,25 @@ jobs:
           print('WBD_FINAL18_COORDINATOR_PLAN_PASS count=18')
           PY
 
-          runs="$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/$PERF_WORKFLOW/runs"             -f event=workflow_dispatch -f branch="$PERF_REF" -f per_page=100)"
+          runs="$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/$PERF_WORKFLOW/runs" \
+            -f event=workflow_dispatch -f branch="$DISPATCH_REF" -f per_page=100)"
 
           dispatched=0
           present=0
           while read -r mode scenario seed rate lanes; do
             title="strict-${mode}-${scenario}-seed${seed}-rate${rate}-lanes${lanes}"
-            existing="$(jq -r --arg sha "$EXPECTED_SHA" --arg title "$title"               '.workflow_runs[] | select(.head_sha == $sha and .display_title == $title) | .id'               <<<"$runs" | head -n1)"
+            existing="$(jq -r --arg sha "$EXPECTED_SHA" --arg title "$title" \
+              '.workflow_runs[] | select(.head_sha == $sha and .display_title == $title) | .id' \
+              <<<"$runs" | head -n1)"
             if [ -n "$existing" ]; then
               echo "PRESENT title=$title run=$existing"
               present=$((present+1))
               continue
             fi
-            gh workflow run "$PERF_WORKFLOW" --ref "$PERF_REF"               -f mode="$mode" -f scenario="$scenario" -f seed="$seed"               -f rate_mbps="$rate" -f lanes="$lanes"
-            echo "DISPATCHED title=$title expected_sha=$EXPECTED_SHA"
+            gh workflow run "$PERF_WORKFLOW" --ref "$DISPATCH_REF" \
+              -f mode="$mode" -f scenario="$scenario" -f seed="$seed" \
+              -f rate_mbps="$rate" -f lanes="$lanes"
+            echo "DISPATCHED title=$title expected_sha=$EXPECTED_SHA dispatch_ref=$DISPATCH_REF"
             dispatched=$((dispatched+1))
           done < "$RUNNER_TEMP/final18.txt"
-          echo "WBD_FINAL18_COORDINATOR_DONE present=$present dispatched=$dispatched expected_sha=$EXPECTED_SHA"
+          echo "WBD_FINAL18_COORDINATOR_DONE present=$present dispatched=$dispatched expected_sha=$EXPECTED_SHA dispatch_ref=$DISPATCH_REF"
