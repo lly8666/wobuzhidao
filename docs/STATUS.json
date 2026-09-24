@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V6_PENDING_ACTIONS：V5 SOURCE_SHA d8c79cd5cd97ed3867970aae15590acd966ef90e correctness/race全绿；Normal lossless 35936587721与Normal5205 35937061116均五分类PASS、drop=0，但5205 20% stress仍FastRepairs=0。repair reader 35939424449/10784138669显示stress FastRepairEvidence/Armed/Fired=0、SACKed约31万/向、credit满、RecoveryTicks正常。根因是current head保护只对“当前时刻”的active record有效；高损receiver累计ACK跳到下一gap时，该未来head早在成为lastAck之前已被active 4096 fresh eviction。V6保持active 4096不变，新增1024条one-shot recently-evicted ciphertext reserve，按实测6581 records/s、active覆盖622ms、probe p99 RTT约624ms+100ms recovery周期定界；reserve约增加156ms保留余量。",
-  "next_task": "先跑V6 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle。全绿后重新独立跑Normal lossless与5205。lossless必须0假repair；5205 stress必须出现有限非零RepairReserveRepairs/FastRepairs，FreshBlocked=0、FreshWindowBypass无异常、RepairEvictionMaxScan<=1、socket/link drop=0且五分类PASS。再对比Abandoned/ForgivenGaps/ACK-control/CPU/outer overhead；满足后才跑5305。",
-  "latest_log": "docs/devlog/20260924-080000-recently-evicted-one-shot-repair-reserve.md",
+  "in_progress": "REPAIR_FOLLOWUP_V6_1_PENDING_ACTIONS：V6 SOURCE_SHA 81ae365a9d9818c1040fe76334f1fbd62495ee68 未进入性能；next-runtimeowner-recovery run 35940027275 在unit compile阶段FAIL，仅因新增reserve测试局部变量 firstHead 声明未使用。V6.1只删除该未使用变量，不改4096 active + 1024 one-shot reserve算法、wire/FEC/RTO/credit或任何测试门槛。",
+  "next_task": "重新跑V6.1 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；全部通过后才独立跑Normal lossless与5205。V6失败永久保留，不rerun同一性能样本（V6尚无性能样本）。",
+  "latest_log": "docs/devlog/20260924-081500-v6-unused-test-variable-fix.md",
   "last_tested_source_sha": "d8c79cd5cd97ed3867970aae15590acd966ef90e",
   "actions": [
     {
@@ -1813,7 +1813,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REOPENED_REPAIR_FOLLOWUP_V6_PENDING_ACTIONS",
+      "status": "REOPENED_REPAIR_FOLLOWUP_V6_1_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1824,9 +1824,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-080000-recently-evicted-one-shot-repair-reserve.md",
-      "note": "V5 proved SACK-progress logic is not the remaining bottleneck: stress evidence stays zero because the record that becomes a future cumulative head was evicted before ACK feedback. V6 retains only the most recently evicted 1024 business ciphertexts in a one-shot reserve; active 4096, RTO scan, fresh admission, FEC/wire and repair credit are unchanged.",
-      "next_task": "先跑V6 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle。全绿后重新独立跑Normal lossless与5205。lossless必须0假repair；5205 stress必须出现有限非零RepairReserveRepairs/FastRepairs，FreshBlocked=0、FreshWindowBypass无异常、RepairEvictionMaxScan<=1、socket/link drop=0且五分类PASS。再对比Abandoned/ForgivenGaps/ACK-control/CPU/outer overhead；满足后才跑5305。",
+      "latest_log": "docs/devlog/20260924-081500-v6-unused-test-variable-fix.md",
+      "note": "V6 algorithm not yet exercised because runtimeowner test package failed to compile: runtime_test.go declared firstHead and did not use it. V6.1 is test-only compile cleanup plus status/devlog; product reserve implementation is unchanged.",
+      "next_task": "重新跑V6.1 exact-SHA runtimeowner unit/race、targeted/foundation/lifecycle；全部通过后才独立跑Normal lossless与5205。V6失败永久保留，不rerun同一性能样本（V6尚无性能样本）。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -4203,6 +4203,15 @@
           }
         ],
         "conclusion": "SAFE_BUT_FUTURE_HEAD_CIPHERTEXT_EVICTED_BEFORE_CUMULATIVE_ACK_REACHES_IT"
+      },
+      "repair_followup_candidate_v6_compile_failure": {
+        "source_sha": "81ae365a9d9818c1040fe76334f1fbd62495ee68",
+        "run": 35940027275,
+        "job": 107445662890,
+        "status": "FAIL",
+        "phase": "compile unit tests",
+        "error": "internal/runtimeowner/runtime_test.go:1441:2: declared and not used: firstHead",
+        "performance": "NOT_RUN"
       }
     }
   }

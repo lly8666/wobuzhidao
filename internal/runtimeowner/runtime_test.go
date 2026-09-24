@@ -1438,7 +1438,6 @@ func TestSteadyRecentlyEvictedReserveRepairsNewCumulativeHead(t *testing.T) {
 
 	// seq0 remains the protected current head; seq1 is the oldest evictable
 	// business shadow and must have moved into the one-shot reserve.
-	firstHead := wire[0]
 	reserveHead := wire[1]
 	tr.mu.Lock()
 	_, active := tr.pending[reserveHead.Seq]
