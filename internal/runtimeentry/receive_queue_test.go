@@ -10,6 +10,24 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 )
 
+func TestOfferLatestBoundedDropsOldestAndKeepsNewest(t *testing.T) {
+	q := make(chan int, 3)
+	q <- 1
+	q <- 2
+	q <- 3
+	dropped, droppedOld, accepted := offerLatestBounded(q, 4)
+	if !droppedOld || dropped != 1 || !accepted {
+		t.Fatalf("drop=%d droppedOld=%v accepted=%v", dropped, droppedOld, accepted)
+	}
+	got := []int{<-q, <-q, <-q}
+	want := []int{2, 3, 4}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("queue=%v want=%v", got, want)
+		}
+	}
+}
+
 func TestServerReadQueueIsBoundedBurstBuffer(t *testing.T) {
 	if got, want := serverReadQueueDepth, 4096; got != want {
 		t.Fatalf("serverReadQueueDepth=%d want=%d", got, want)
@@ -93,6 +111,9 @@ func TestSegmentMuxDiagnosticReportsBoundedRouteBackpressure(t *testing.T) {
 		snap := mux.DiagnosticSnapshot()
 		if len(snap.Routes) == 1 && snap.Routes[0].FullWaits > 0 {
 			route := snap.Routes[0]
+			if route.OverflowDrops == 0 {
+				t.Fatalf("full route did not shed oldest entry: %+v", route)
+			}
 			if !snap.Enabled {
 				t.Fatal("diagnostics unexpectedly disabled")
 			}
@@ -105,7 +126,7 @@ func TestSegmentMuxDiagnosticReportsBoundedRouteBackpressure(t *testing.T) {
 			break
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("route did not report bounded backpressure: %+v", snap)
+			t.Fatalf("route did not report bounded overflow shedding: %+v", snap)
 		}
 		time.Sleep(time.Millisecond)
 	}

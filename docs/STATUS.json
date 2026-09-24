@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V8_FINAL18_STOPPED_16_PASS_2_CAPACITY_LIMITED：产品SOURCE_SHA 27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089 的专用新final18已完成18条独立workflow_dispatch（attempt1，exact SHA），其中16条五分类PASS；Normal/5305/seed202 run 35955301841 因client AF_PACKET drop=3121、Game4/5305/seed303 run 35955313644 因server AF_PACKET drop=10460，均为ENVIRONMENT FAIL + PERFORMANCE CAPACITY_LIMITED。两条均link/qdisc drop=0，read-only diagnostics显示fresh三项0、RepairEvictionMaxScan=1，失败分别对应client SegmentMux 4096 route触满与server 4096 ready queue在秒级handler/handoff停顿中触满；不能解释为netem loss，也不能择优覆盖。P6 NOT_RUN。",
-  "next_task": "停止当前V8资格推进：不得用新的同参数final18抽样覆盖这两个CAPACITY_LIMITED，也不得rerun strict run。先保留并分析bounded receive burst证据与docs-only foundation race超时；无新产品证据不要扩大kernel socket buffer或盲目扩大4096 userspace receive queues。若后续有真正产品修正，必须先更新STATUS/devlog并经Actions correctness/race，再从独立诊断样本开始，不能直接重开final18。",
-  "latest_log": "docs/devlog/20260924-124500-v8-final18-stopped-capacity-limited.md",
+  "in_progress": "REPAIR_FOLLOWUP_V9_PENDING_ACTIONS：V8 final18永久停在16 PASS / 2 CAPACITY_LIMITED。两条失败均由固定4096 receive queue满后继续阻塞raw reader，把秒级consumer停顿放大成AF_PACKET drop；runtimeowner fresh三项仍0、RepairEvictionMaxScan=1。V9不扩容量：LifecycleServer与SegmentMux满队列时O(1)淘汰单个最旧queued segment并保留最新segment，显式记录overflow drops/bytes/age。correctness/race/performance尚未运行。",
+  "next_task": "先只通过GitHub Actions验证V9 runtimeentry/runtimeowner unit+races、targeted、foundation、lifecycle；任何失败先分析，不跑性能。全部通过后才各跑一条新的Normal/5305/seed202与Game4/5305/seed303诊断canary，要求socket/link drop=0、overflow显式有界、fresh三项0、RepairEvictionMaxScan<=1且五分类PASS；canary不计入final18。",
+  "latest_log": "docs/devlog/20260924-131500-v9-bounded-receive-overflow-shedding.md",
   "last_tested_source_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
   "actions": [
     {
@@ -1583,8 +1583,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED_REPAIR_FOLLOWUP_V8_FINAL18_STOPPED: V8 bounded repair behavior itself remains fresh/no-HOL in diagnostics, but current dedicated final18 stopped at 16 PASS / 2 CAPACITY_LIMITED because bounded receive paths hit local AF_PACKET capacity under two 5305 samples.",
-    "P5": "REOPENED_REPAIR_FOLLOWUP_V8_FINAL18_STOPPED: historical 689dea19 qualification remains immutable; V8 dedicated final18 is not a qualification because two 5305 samples are CAPACITY_LIMITED and are permanently preserved.",
+    "P4": "REOPENED_REPAIR_FOLLOWUP_V9: V8 repair behavior is stable, but final18 exposed bounded receive handoff blocking that can propagate seconds-long consumer stalls into AF_PACKET drops. V9 keeps capacities fixed and sheds one oldest queued segment in O(1) to preserve newest/fresh traffic.",
+    "P5": "REOPENED_REPAIR_FOLLOWUP_V9: V8 final18 16 PASS / 2 CAPACITY_LIMITED remains immutable; V9 must re-enter through correctness/race and diagnostic canaries, not by replacing failed samples.",
     "P6": "STALE_FOR_CURRENT_REPAIR_SERIES: historical exact-SHA repackage PASS at 689dea19 remains evidence only; V8 P6 repackage is NOT_RUN because V8 final18 is not 18/18 PASS.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
@@ -1844,7 +1844,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REPAIR_FOLLOWUP_V8_FINAL18_STOPPED_16_PASS_2_CAPACITY_LIMITED",
+      "status": "REPAIR_FOLLOWUP_V9_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1855,9 +1855,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-124500-v8-final18-stopped-capacity-limited.md",
-      "note": "V8 diagnostic Normal lossless/5205/5305 and Game4/5305 canary remain valid PASS evidence for bounded repair. The dedicated r2 final18 is permanently stopped at 16 PASS / 2 CAPACITY_LIMITED: local AF_PACKET receive overflow occurred in Normal/5305/seed202 and Game4/5305/seed303. Read-only artifact analysis ties those overflows to bounded receive queue backpressure during exceptional consumption stalls, while FreshBlocked/FreshWindowBypass/FreshEmitFailures remain zero and RepairEvictionMaxScan=1. This is not netem loss and not a PASS. Do not enlarge buffers/queues merely to cross the gate.",
-      "next_task": "停止当前V8资格推进：不得用新的同参数final18抽样覆盖这两个CAPACITY_LIMITED，也不得rerun strict run。先保留并分析bounded receive burst证据与docs-only foundation race超时；无新产品证据不要扩大kernel socket buffer或盲目扩大4096 userspace receive queues。若后续有真正产品修正，必须先更新STATUS/devlog并经Actions correctness/race，再从独立诊断样本开始，不能直接重开final18。",
+      "latest_log": "docs/devlog/20260924-131500-v9-bounded-receive-overflow-shedding.md",
+      "note": "V8 final18 stopped at 16 PASS / 2 CAPACITY_LIMITED. Both failures show fixed 4096 userspace receive handoffs becoming full and blocking raw packet readers long enough for AF_PACKET drops while transport fresh/no-HOL counters remain clean. V9 changes overflow behavior, not capacity: drop one oldest queued segment and retain the newest, with explicit bounded diagnostics.",
+      "next_task": "先只通过GitHub Actions验证V9 runtimeentry/runtimeowner unit+races、targeted、foundation、lifecycle；任何失败先分析，不跑性能。全部通过后才各跑一条新的Normal/5305/seed202与Game4/5305/seed303诊断canary，要求socket/link drop=0、overflow显式有界、fresh三项0、RepairEvictionMaxScan<=1且五分类PASS；canary不计入final18。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -5039,6 +5039,23 @@
             "note": "docs-only commit; ordinary unit tests and runtimeowner race passed, but the runtimeentry lifecycle race timeout is unresolved and preserved"
           }
         }
+      },
+      "repair_followup_candidate_v9": {
+        "status": "CORRECTNESS_RACE_NOT_RUN",
+        "parent_docs_head": "4407476e274e6ff3fa0a81558838412554ba8509",
+        "parent_product_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
+        "commit": "runtimeentry: shed oldest bounded receive backlog",
+        "design_delta": "keep SegmentMux route depth=4096 and LifecycleServer ready depth=4096; on full valid-packet handoff, O(1) remove at most one oldest queued segment and offer the newest without waiting; record overflow drops/bytes/age",
+        "bounds": {
+          "segmentmux_route_records": 4096,
+          "server_ready_records": 4096,
+          "overflow_eviction_max_items": 1,
+          "active_repair_records": 4096,
+          "repair_reserve_records": 1024
+        },
+        "parameters_changed": false,
+        "kernel_socket_buffer_changed": false,
+        "performance_status": "NOT_RUN"
       }
     }
   }

@@ -29,6 +29,9 @@ type ServerPipelineDiagnostic struct {
 	ReadyPeak         uint64             `json:"ready_peak"`
 	ReadyBytes        int64              `json:"ready_bytes"`
 	ReadyBytesPeak    uint64             `json:"ready_bytes_peak"`
+	OverflowDrops     uint64             `json:"overflow_drops"`
+	OverflowBytes     uint64             `json:"overflow_bytes"`
+	OverflowAge       DurationDiagnostic `json:"overflow_age"`
 	DownstreamBatches uint64             `json:"downstream_batches"`
 	DownstreamPackets uint64             `json:"downstream_packets"`
 }
@@ -66,6 +69,9 @@ type serverPipelineTiming struct {
 	readyPeak atomic.Uint64
 	readyBytes atomic.Int64
 	readyBytesPeak atomic.Uint64
+	overflowDrops atomic.Uint64
+	overflowBytes atomic.Uint64
+	overflowAge durationAccumulator
 	downstreamBatches atomic.Uint64
 	downstreamPackets atomic.Uint64
 }
@@ -76,8 +82,10 @@ func (p *serverPipelineTiming) ready(bytes int) {
 }
 func (p *serverPipelineTiming) readyDone(bytes int, age time.Duration){p.readyCurrent.Add(-1);p.readyBytes.Add(-int64(bytes));p.queueAge.observe(age)}
 func (p *serverPipelineTiming) readyCancel(bytes int){p.readyCurrent.Add(-1);p.readyBytes.Add(-int64(bytes))}
+func (p *serverPipelineTiming) overflowDrop(bytes int, age time.Duration){p.readyCurrent.Add(-1);p.readyBytes.Add(-int64(bytes));p.overflowDrops.Add(1);if bytes>0{p.overflowBytes.Add(uint64(bytes))};p.overflowAge.observe(age)}
+func (p *serverPipelineTiming) overflowReject(bytes int){p.readyCurrent.Add(-1);p.readyBytes.Add(-int64(bytes));p.overflowDrops.Add(1);if bytes>0{p.overflowBytes.Add(uint64(bytes))}}
 func (p *serverPipelineTiming) snapshot(enabled bool) ServerPipelineDiagnostic {
-	return ServerPipelineDiagnostic{Enabled:enabled,Reads:p.reads.Load(),ReadGap:p.readGap.snapshot(),HandoffBlock:p.handoffBlock.snapshot(),QueueAge:p.queueAge.snapshot(),Handler:p.handler.snapshot(),Downstream:p.downstream.snapshot(),ReadyCapacity:serverReadQueueDepth,ReadyCurrent:p.readyCurrent.Load(),ReadyPeak:p.readyPeak.Load(),ReadyBytes:p.readyBytes.Load(),ReadyBytesPeak:p.readyBytesPeak.Load(),DownstreamBatches:p.downstreamBatches.Load(),DownstreamPackets:p.downstreamPackets.Load()}
+	return ServerPipelineDiagnostic{Enabled:enabled,Reads:p.reads.Load(),ReadGap:p.readGap.snapshot(),HandoffBlock:p.handoffBlock.snapshot(),QueueAge:p.queueAge.snapshot(),Handler:p.handler.snapshot(),Downstream:p.downstream.snapshot(),ReadyCapacity:serverReadQueueDepth,ReadyCurrent:p.readyCurrent.Load(),ReadyPeak:p.readyPeak.Load(),ReadyBytes:p.readyBytes.Load(),ReadyBytesPeak:p.readyBytesPeak.Load(),OverflowDrops:p.overflowDrops.Load(),OverflowBytes:p.overflowBytes.Load(),OverflowAge:p.overflowAge.snapshot(),DownstreamBatches:p.downstreamBatches.Load(),DownstreamPackets:p.downstreamPackets.Load()}
 }
 
 
@@ -89,9 +97,12 @@ type SegmentMuxRouteDiagnostic struct {
 	Peak         uint64             `json:"peak"`
 	Bytes        int64              `json:"bytes"`
 	BytesPeak    uint64             `json:"bytes_peak"`
-	FullWaits    uint64             `json:"full_waits"`
-	HandoffBlock DurationDiagnostic `json:"handoff_block"`
-	QueueAge     DurationDiagnostic `json:"queue_age"`
+	FullWaits     uint64             `json:"full_waits"`
+	OverflowDrops uint64             `json:"overflow_drops"`
+	OverflowBytes uint64             `json:"overflow_bytes"`
+	OverflowAge   DurationDiagnostic `json:"overflow_age"`
+	HandoffBlock  DurationDiagnostic `json:"handoff_block"`
+	QueueAge      DurationDiagnostic `json:"queue_age"`
 }
 
 type SegmentMuxDiagnostic struct {
@@ -105,6 +116,9 @@ type segmentMuxQueueTiming struct {
 	bytes        atomic.Int64
 	bytesPeak    atomic.Uint64
 	fullWaits    atomic.Uint64
+	overflowDrops atomic.Uint64
+	overflowBytes atomic.Uint64
+	overflowAge durationAccumulator
 	handoffBlock durationAccumulator
 	queueAge     durationAccumulator
 }
@@ -131,6 +145,21 @@ func (q *segmentMuxQueueTiming) cancel(bytes int) {
 	q.bytes.Add(-int64(bytes))
 }
 
+func (q *segmentMuxQueueTiming) overflowDrop(bytes int, age time.Duration) {
+	q.current.Add(-1)
+	q.bytes.Add(-int64(bytes))
+	q.overflowDrops.Add(1)
+	if bytes > 0 { q.overflowBytes.Add(uint64(bytes)) }
+	q.overflowAge.observe(age)
+}
+
+func (q *segmentMuxQueueTiming) overflowReject(bytes int) {
+	q.current.Add(-1)
+	q.bytes.Add(-int64(bytes))
+	q.overflowDrops.Add(1)
+	if bytes > 0 { q.overflowBytes.Add(uint64(bytes)) }
+}
+
 func (q *segmentMuxQueueTiming) snapshot(flow faketcp.ClientFlow, capacity int) SegmentMuxRouteDiagnostic {
 	return SegmentMuxRouteDiagnostic{
 		LocalPort: flow.LocalPort,
@@ -141,6 +170,9 @@ func (q *segmentMuxQueueTiming) snapshot(flow faketcp.ClientFlow, capacity int) 
 		Bytes: q.bytes.Load(),
 		BytesPeak: q.bytesPeak.Load(),
 		FullWaits: q.fullWaits.Load(),
+		OverflowDrops: q.overflowDrops.Load(),
+		OverflowBytes: q.overflowBytes.Load(),
+		OverflowAge: q.overflowAge.snapshot(),
 		HandoffBlock: q.handoffBlock.snapshot(),
 		QueueAge: q.queueAge.snapshot(),
 	}

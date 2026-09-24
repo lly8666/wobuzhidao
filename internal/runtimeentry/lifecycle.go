@@ -42,6 +42,29 @@ const (
 	segmentMuxRouteDepth            = 4096
 )
 
+// offerLatestBounded never waits for capacity. When a bounded queue is full,
+// it discards at most the single oldest queued item and gives the newest item
+// the vacated slot. The receive queues that use this helper have one producer,
+// so the operation is O(1), bounded, and cannot grow backlog depth.
+func offerLatestBounded[T any](q chan T, item T) (dropped T, droppedOld bool, accepted bool) {
+	select {
+	case q <- item:
+		return dropped, false, true
+	default:
+	}
+	select {
+	case dropped = <-q:
+		droppedOld = true
+	default:
+	}
+	select {
+	case q <- item:
+		return dropped, droppedOld, true
+	default:
+		return dropped, droppedOld, false
+	}
+}
+
 // RotatingSourcePort allocates a bounded reusable client port window for lane
 // incarnations. At most one transition is orchestrated at a time, so cycling a
 // 1024-port window cannot collide with the currently active/retiring set.
@@ -204,9 +227,17 @@ func (m *SegmentMux) readLoop() {
 			if diagnostics {
 				route.timing.cancel(queued.bytes)
 			}
-		case route.in <- queued:
-			if diagnostics {
-				route.timing.handoffBlock.observe(time.Since(handoffStarted))
+		default:
+			dropped, droppedOld, accepted := offerLatestBounded(route.in, queued)
+			if droppedOld && diagnostics {
+				route.timing.overflowDrop(dropped.bytes, time.Since(dropped.readyAt))
+			}
+			if accepted {
+				if diagnostics {
+					route.timing.handoffBlock.observe(time.Since(handoffStarted))
+				}
+			} else if diagnostics {
+				route.timing.overflowReject(queued.bytes)
 			}
 		}
 	}
@@ -1114,25 +1145,40 @@ func (s *LifecycleServer) Run(ctx context.Context) error {
 		for {
 			seg, err := s.cfg.IO.Read()
 			readyAt := time.Now()
-			if s.cfg.ObserveTiming && err == nil {
+			if err != nil {
+				// Terminal read errors are control state; preserve them rather than
+				// shedding them as overload data.
+				select {
+				case readCh <- segmentRead{seg: seg, err: err, readyAt: readyAt}:
+				case <-ctx.Done():
+				}
+				return
+			}
+			if s.cfg.ObserveTiming {
 				s.pipeline.observeRead(readyAt, previousRead)
 				previousRead = readyAt
 				s.pipeline.ready(len(seg.Payload))
 			}
 			handoffStarted := readyAt
+			read := segmentRead{seg: seg, readyAt: readyAt}
 			select {
-			case readCh <- segmentRead{seg: seg, err: err, readyAt: readyAt}:
-				if s.cfg.ObserveTiming && err == nil {
-					s.pipeline.handoffBlock.observe(time.Since(handoffStarted))
-				}
 			case <-ctx.Done():
-				if s.cfg.ObserveTiming && err == nil {
+				if s.cfg.ObserveTiming {
 					s.pipeline.readyCancel(len(seg.Payload))
 				}
 				return
+			default:
 			}
-			if err != nil {
-				return
+			dropped, droppedOld, accepted := offerLatestBounded(readCh, read)
+			if droppedOld && s.cfg.ObserveTiming {
+				s.pipeline.overflowDrop(len(dropped.seg.Payload), time.Since(dropped.readyAt))
+			}
+			if accepted {
+				if s.cfg.ObserveTiming {
+					s.pipeline.handoffBlock.observe(time.Since(handoffStarted))
+				}
+			} else if s.cfg.ObserveTiming {
+				s.pipeline.overflowReject(len(seg.Payload))
 			}
 		}
 	}()
