@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V8_CANARY_PASS_FINAL18_PENDING：产品SOURCE_SHA 27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089。V8 correctness/race PASS；Normal lossless/5205/5305 seed101与Game4/5305 canary均为新workflow_dispatch、五分类PASS、socket/link drop=0。lossless repair=0；5205约23.8k/24.1k FastRepairs且reserve stress peak 936/821、Evicted 1/0；5305约308/312 FastRepairs且reserve因未ACK future-shadow真实压力达到1024并大量Evicted，但fresh三项0、MaxScan=1；Game canary fresh三项0、MaxScan=1且stress reserve未启用。下一步为同SHA专用全新final18，不复用上述诊断样本。",
-  "next_task": "用新的exact-SHA fixed ref派发V8 final18：2 modes x 3 scenarios x 3 seeds=18条全新的workflow_dispatch run，每run仅一条性能样本；不得复用现有V8诊断/canary，不rerun strict run。任何FAIL/CAPACITY_LIMITED都永久保留并阻止资格结论。只有18/18 PASS后才考虑同产品SHA P6 repackage。",
-  "latest_log": "docs/devlog/20260924-121500-v8-normal-stable-game-canary.md",
+  "in_progress": "REPAIR_FOLLOWUP_V8_FINAL18_STOPPED_16_PASS_2_CAPACITY_LIMITED：产品SOURCE_SHA 27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089 的专用新final18已完成18条独立workflow_dispatch（attempt1，exact SHA），其中16条五分类PASS；Normal/5305/seed202 run 35955301841 因client AF_PACKET drop=3121、Game4/5305/seed303 run 35955313644 因server AF_PACKET drop=10460，均为ENVIRONMENT FAIL + PERFORMANCE CAPACITY_LIMITED。两条均link/qdisc drop=0，read-only diagnostics显示fresh三项0、RepairEvictionMaxScan=1，失败分别对应client SegmentMux 4096 route触满与server 4096 ready queue在秒级handler/handoff停顿中触满；不能解释为netem loss，也不能择优覆盖。P6 NOT_RUN。",
+  "next_task": "停止当前V8资格推进：不得用新的同参数final18抽样覆盖这两个CAPACITY_LIMITED，也不得rerun strict run。先保留并分析bounded receive burst证据与docs-only foundation race超时；无新产品证据不要扩大kernel socket buffer或盲目扩大4096 userspace receive queues。若后续有真正产品修正，必须先更新STATUS/devlog并经Actions correctness/race，再从独立诊断样本开始，不能直接重开final18。",
+  "latest_log": "docs/devlog/20260924-124500-v8-final18-stopped-capacity-limited.md",
   "last_tested_source_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
   "actions": [
     {
@@ -1583,9 +1583,9 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED_REPAIR_FOLLOWUP_V8_CANARY_PASS: exact-SHA Normal lossless/5205/5305 and Game4/5305 canary stable under fresh-first bounded repair; dedicated new final18 pending.",
-    "P5": "REOPENED_REPAIR_FOLLOWUP_V8_FINAL18_PENDING: diagnostics/canary PASS are preserved but not counted as final18 qualification samples.",
-    "P6": "STALE_FOR_CURRENT_HEAD: historical 689dea19 repackage remains immutable; V8 must complete new final18 then repackage exact 27e4bb34.",
+    "P4": "REOPENED_REPAIR_FOLLOWUP_V8_FINAL18_STOPPED: V8 bounded repair behavior itself remains fresh/no-HOL in diagnostics, but current dedicated final18 stopped at 16 PASS / 2 CAPACITY_LIMITED because bounded receive paths hit local AF_PACKET capacity under two 5305 samples.",
+    "P5": "REOPENED_REPAIR_FOLLOWUP_V8_FINAL18_STOPPED: historical 689dea19 qualification remains immutable; V8 dedicated final18 is not a qualification because two 5305 samples are CAPACITY_LIMITED and are permanently preserved.",
+    "P6": "STALE_FOR_CURRENT_REPAIR_SERIES: historical exact-SHA repackage PASS at 689dea19 remains evidence only; V8 P6 repackage is NOT_RUN because V8 final18 is not 18/18 PASS.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
       "status": "IMPLEMENTED_PENDING_ACTIONS",
@@ -1844,7 +1844,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REPAIR_FOLLOWUP_V8_CANARY_PASS_FINAL18_PENDING",
+      "status": "REPAIR_FOLLOWUP_V8_FINAL18_STOPPED_16_PASS_2_CAPACITY_LIMITED",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1855,9 +1855,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-121500-v8-normal-stable-game-canary.md",
-      "note": "V8 keeps duplicate ACK reserve cleanup off in healthy capacity, cumulative-ACK prune budget 64, and O(1) ACK-covered FIFO-head retirement only under full reserve pressure. At 5305 remaining RepairReserveEvicted records are unacknowledged optional future shadows by construction because end<=lastAck heads are retired before the eviction branch; do not interpret the large capacity count as stale-ACK misclassification.",
-      "next_task": "用新的exact-SHA fixed ref派发V8 final18：2 modes x 3 scenarios x 3 seeds=18条全新的workflow_dispatch run，每run仅一条性能样本；不得复用现有V8诊断/canary，不rerun strict run。任何FAIL/CAPACITY_LIMITED都永久保留并阻止资格结论。只有18/18 PASS后才考虑同产品SHA P6 repackage。",
+      "latest_log": "docs/devlog/20260924-124500-v8-final18-stopped-capacity-limited.md",
+      "note": "V8 diagnostic Normal lossless/5205/5305 and Game4/5305 canary remain valid PASS evidence for bounded repair. The dedicated r2 final18 is permanently stopped at 16 PASS / 2 CAPACITY_LIMITED: local AF_PACKET receive overflow occurred in Normal/5305/seed202 and Game4/5305/seed303. Read-only artifact analysis ties those overflows to bounded receive queue backpressure during exceptional consumption stalls, while FreshBlocked/FreshWindowBypass/FreshEmitFailures remain zero and RepairEvictionMaxScan=1. This is not netem loss and not a PASS. Do not enlarge buffers/queues merely to cross the gate.",
+      "next_task": "停止当前V8资格推进：不得用新的同参数final18抽样覆盖这两个CAPACITY_LIMITED，也不得rerun strict run。先保留并分析bounded receive burst证据与docs-only foundation race超时；无新产品证据不要扩大kernel socket buffer或盲目扩大4096 userspace receive queues。若后续有真正产品修正，必须先更新STATUS/devlog并经Actions correctness/race，再从独立诊断样本开始，不能直接重开final18。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -4560,8 +4560,8 @@
             "status": "FAIL_REPOSITORY_CONTRACT_DOCS_MISSING"
           }
         },
-        "performance_status": "NORMAL_AND_GAME_CANARY_PASS_FINAL18_PENDING",
-        "next": "docs-only closure commit, then require full correctness/race PASS before new lossless/5205/5305 samples",
+        "performance_status": "FINAL18_STOPPED_16_PASS_2_CAPACITY_LIMITED",
+        "next": "停止当前V8资格推进：不得用新的同参数final18抽样覆盖这两个CAPACITY_LIMITED，也不得rerun strict run。先保留并分析bounded receive burst证据与docs-only foundation race超时；无新产品证据不要扩大kernel socket buffer或盲目扩大4096 userspace receive queues。若后续有真正产品修正，必须先更新STATUS/devlog并经Actions correctness/race，再从独立诊断样本开始，不能直接重开final18。",
         "correctness": {
           "runtimeowner_recovery": {
             "run": 35950950698,
@@ -4708,8 +4708,336 @@
           }
         },
         "final18": {
-          "status": "NOT_RUN",
-          "policy": "18 dedicated new workflow_dispatch runs; diagnostics/canary are not reused"
+          "status": "STOPPED_16_PASS_2_CAPACITY_LIMITED",
+          "source_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
+          "dispatch_ref": "perf-fixed/27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089-r2",
+          "coordinator_run": 35955278581,
+          "policy": "18 dedicated new workflow_dispatch runs; one run=one sample; diagnostics/canary not reused; strict runs not rerun",
+          "result_summary": {
+            "total": 18,
+            "pass": 16,
+            "capacity_limited": 2,
+            "fail": 0,
+            "invalid": 0
+          },
+          "ordered_plan": [
+            {
+              "slot": 1,
+              "mode": "game",
+              "scenario": "5205",
+              "seed": "101",
+              "run": 35955285249,
+              "status": "PASS"
+            },
+            {
+              "slot": 2,
+              "mode": "game",
+              "scenario": "5305",
+              "seed": "101",
+              "run": 35955286814,
+              "status": "PASS"
+            },
+            {
+              "slot": 3,
+              "mode": "normal",
+              "scenario": "lossless",
+              "seed": "101",
+              "run": 35955288536,
+              "status": "PASS"
+            },
+            {
+              "slot": 4,
+              "mode": "game",
+              "scenario": "lossless",
+              "seed": "101",
+              "run": 35955290092,
+              "status": "PASS"
+            },
+            {
+              "slot": 5,
+              "mode": "normal",
+              "scenario": "5205",
+              "seed": "101",
+              "run": 35955292016,
+              "status": "PASS"
+            },
+            {
+              "slot": 6,
+              "mode": "normal",
+              "scenario": "5305",
+              "seed": "101",
+              "run": 35955293464,
+              "status": "PASS"
+            },
+            {
+              "slot": 7,
+              "mode": "normal",
+              "scenario": "lossless",
+              "seed": "202",
+              "run": 35955295004,
+              "status": "PASS"
+            },
+            {
+              "slot": 8,
+              "mode": "game",
+              "scenario": "lossless",
+              "seed": "202",
+              "run": 35955296559,
+              "status": "PASS"
+            },
+            {
+              "slot": 9,
+              "mode": "normal",
+              "scenario": "5205",
+              "seed": "202",
+              "run": 35955298546,
+              "status": "PASS"
+            },
+            {
+              "slot": 10,
+              "mode": "game",
+              "scenario": "5205",
+              "seed": "202",
+              "run": 35955300188,
+              "status": "PASS"
+            },
+            {
+              "slot": 11,
+              "mode": "normal",
+              "scenario": "5305",
+              "seed": "202",
+              "run": 35955301841,
+              "status": "CAPACITY_LIMITED"
+            },
+            {
+              "slot": 12,
+              "mode": "game",
+              "scenario": "5305",
+              "seed": "202",
+              "run": 35955303519,
+              "status": "PASS"
+            },
+            {
+              "slot": 13,
+              "mode": "normal",
+              "scenario": "lossless",
+              "seed": "303",
+              "run": 35955305249,
+              "status": "PASS"
+            },
+            {
+              "slot": 14,
+              "mode": "game",
+              "scenario": "lossless",
+              "seed": "303",
+              "run": 35955306699,
+              "status": "PASS"
+            },
+            {
+              "slot": 15,
+              "mode": "normal",
+              "scenario": "5205",
+              "seed": "303",
+              "run": 35955308239,
+              "status": "PASS"
+            },
+            {
+              "slot": 16,
+              "mode": "game",
+              "scenario": "5205",
+              "seed": "303",
+              "run": 35955310285,
+              "status": "PASS"
+            },
+            {
+              "slot": 17,
+              "mode": "normal",
+              "scenario": "5305",
+              "seed": "303",
+              "run": 35955311832,
+              "status": "PASS"
+            },
+            {
+              "slot": 18,
+              "mode": "game",
+              "scenario": "5305",
+              "seed": "303",
+              "run": 35955313644,
+              "status": "CAPACITY_LIMITED"
+            }
+          ],
+          "failed_samples": [
+            {
+              "mode": "normal",
+              "scenario": "5305",
+              "seed": "202",
+              "run": 35955301841,
+              "job": 107492255131,
+              "classifications": {
+                "CAPTURE": "PASS",
+                "CORRECTNESS": "PASS",
+                "ENVIRONMENT": "FAIL",
+                "INPUT_VALIDITY": "PASS",
+                "PERFORMANCE": "CAPACITY_LIMITED"
+              },
+              "socket_drop_max": 3121,
+              "link_drop_all_zero": true,
+              "summary_artifact": {
+                "id": 10790317139,
+                "digest": "sha256:7233e2b2273234aeb06ff035a816855d7de35a1e142b226637810ced8d887204"
+              },
+              "full_artifact": {
+                "id": 10790177289,
+                "digest": "sha256:88ec2b2ca64554e04d123558762efca7e982012e2d3eae9fbac7ab8163fa057f"
+              },
+              "drop": "client/ss_packet=3121; client/ss_udp=2531",
+              "diagnostics": {
+                "clientdrop": {
+                  "run": 35956134466,
+                  "artifact": 10790527228
+                },
+                "context": {
+                  "run": 35956134499,
+                  "artifact": 10790332983
+                },
+                "pipeline": {
+                  "run": 35956134478,
+                  "artifact": 10790960021
+                },
+                "segmentmux": {
+                  "run": 35956134574,
+                  "artifact": 10789994801
+                },
+                "repair": {
+                  "run": 35956134588,
+                  "artifact": 10790666475
+                },
+                "ssraw": {
+                  "run": 35956134495,
+                  "job": 107494742919
+                }
+              },
+              "interpretation": "client SegmentMux route capacity 4096 reached peak 4097/full_waits 231; max handoff block ~784ms and queue age ~1.319s; AF_PACKET filled then dropped. Fresh counters remain zero and RepairEvictionMaxScan=1."
+            },
+            {
+              "mode": "game",
+              "scenario": "5305",
+              "seed": "303",
+              "run": 35955313644,
+              "job": 107492302493,
+              "classifications": {
+                "CAPTURE": "PASS",
+                "CORRECTNESS": "PASS",
+                "ENVIRONMENT": "FAIL",
+                "INPUT_VALIDITY": "PASS",
+                "PERFORMANCE": "CAPACITY_LIMITED"
+              },
+              "socket_drop_max": 10460,
+              "link_drop_all_zero": true,
+              "summary_artifact": {
+                "id": 10790312175,
+                "digest": "sha256:fd665eb1bd0825aae5c86a3ddd84634c1838caf78ce4c25d0cfb971a5bbaef11"
+              },
+              "full_artifact": {
+                "id": 10790675643,
+                "digest": "sha256:781795bd66d39d4005a3e426dc8c6dd4acfabc335815703379749fc5592dbe7b"
+              },
+              "drop": "server/ss_packet=10460; server/ss_udp=1042",
+              "diagnostics": {
+                "clientdrop": {
+                  "run": 35956251147,
+                  "artifact": 10790696644
+                },
+                "context": {
+                  "run": 35956251183,
+                  "artifact": 10790163136
+                },
+                "pipeline": {
+                  "run": 35956251190,
+                  "artifact": 10790930352
+                },
+                "segmentmux": {
+                  "run": 35956251199,
+                  "artifact": 10790631920
+                },
+                "repair": {
+                  "run": 35956251231,
+                  "artifact": 10790427737
+                },
+                "ssraw": {
+                  "run": 35956251165,
+                  "job": 107495094712
+                }
+              },
+              "interpretation": "server ready queue capacity 4096 reached 4097 during ~1.895s handoff / ~2.333s handler timing spike; queue age max ~2.338s, then AF_PACKET overflowed. Game SegmentMux routes stayed far below 4096 with no full waits; fresh counters remain zero and RepairEvictionMaxScan=1."
+            }
+          ],
+          "passing_comparison": {
+            "normal_5305_seed101": {
+              "run": 35955293464,
+              "client_segmentmux": {
+                "capacity": 4096,
+                "peak": 465,
+                "full_waits": 0,
+                "handoff_block_max_ms": 6.509818,
+                "queue_age_max_ms": 39.635648
+              },
+              "server_pipeline": {
+                "capacity": 4096,
+                "peak": 784,
+                "handler_max_ms": 12.142991,
+                "handoff_block_max_ms": 6.977211,
+                "queue_age_max_ms": 61.095474,
+                "read_gap_max_ms": 1250.88595
+              }
+            },
+            "game_5305_seed101": {
+              "run": 35955286814,
+              "client_segmentmux": {
+                "capacity": 4096,
+                "max_route_peak": 68,
+                "all_full_waits_zero": true,
+                "max_handoff_block_ms": 3.33407,
+                "max_queue_age_ms": 14.691252
+              },
+              "server_pipeline": {
+                "capacity": 4096,
+                "peak": 407,
+                "handler_max_ms": 7.018644,
+                "handoff_block_max_ms": 2.682071,
+                "queue_age_max_ms": 24.911403,
+                "read_gap_max_ms": 6431.956673
+              }
+            }
+          },
+          "decision": "NOT_QUALIFIED; P6_NOT_RUN; preserve all 18 runs and investigate bounded receive-path capacity/stall without threshold or buffer gaming"
+        },
+        "docs_only_head_validation": {
+          "head_sha": "4cfac18e1d812796533149d10c1c784d9f52e808",
+          "commit": "docs: record V8 normal and game canary",
+          "targeted": {
+            "run": 35955148262,
+            "status": "PASS"
+          },
+          "foundation": {
+            "run": 35955148248,
+            "status": "FAIL_RACE_TIMEOUT_REPRODUCED_ON_RERUN",
+            "attempts": [
+              {
+                "attempt": 1,
+                "status": "FAIL",
+                "test": "TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease",
+                "detail": "lifecycle_test.go:177 timed out waiting for lifecycle state after ~3.04s"
+              },
+              {
+                "attempt": 2,
+                "status": "FAIL",
+                "test": "TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease",
+                "detail": "same lifecycle_test.go:177 timeout after ~3.04s"
+              }
+            ],
+            "note": "docs-only commit; ordinary unit tests and runtimeowner race passed, but the runtimeentry lifecycle race timeout is unresolved and preserved"
+          }
         }
       }
     }
