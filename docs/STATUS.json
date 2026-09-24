@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V9_RECEIVE_CANARIES_PASS：产品SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf。Actions correctness/race已通过；Normal/5305/seed202 run 35958955273 与 Game4/5305/seed303 run 35959672408 均为全新workflow_dispatch attempt1、五分类全PASS、socket/link/qdisc drop=0。两条样本的SegmentMux/LifecycleServer 4096队列均远未触边且显式overflow=0；fresh三项全0，RepairEvictionMaxScan=1。V8 final18的16 PASS / 2 CAPACITY_LIMITED仍永久保留，未被覆盖。",
-  "next_task": "在同一精确V9 SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf 上只跑一条新的Normal/5205/seed101诊断canary（10Mbps/向、lanes=1、FEC20:20、300ms one-way）。要求五分类全PASS、socket/link/qdisc drop=0、FreshBlocked/FreshWindowBypass/FreshEmitFailures=0、RepairEvictionMaxScan<=1、receive overflow有界且不能出现无意义outer增长。若稳定，再决定是否从头建立V9完整final18；不得复用V8样本。",
-  "latest_log": "docs/devlog/20260924-144800-v9-receive-canaries-pass.md",
+  "in_progress": "REPAIR_FOLLOWUP_V9_FINAL18_READY：产品SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf。V9 correctness/race与三条诊断canary均PASS：Normal/5305/seed202 run 35958955273、Game4/5305/seed303 run 35959672408、Normal/5205/seed101 run 35966885451。三条均为新的workflow_dispatch attempt1、五分类全PASS、socket/link/qdisc drop=0、userspace receive overflow=0、fresh三项全0、RepairEvictionMaxScan=1。V8 final18 16 PASS / 2 CAPACITY_LIMITED永久保留，不并入V9资格。",
+  "next_task": "从头启动V9专用final18，固定SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf，不得复用任何V8或V9诊断canary。18条必须各自是新的workflow_dispatch run、attempt1；任一FAIL或CAPACITY_LIMITED即停止资格链并永久保留。全部18/18五分类PASS且socket/link/qdisc drop=0后，才考虑同SHA P6 repackage。",
+  "latest_log": "docs/devlog/20260924-165500-v9-5205-canary-pass-final18-ready.md",
   "last_tested_source_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
   "actions": [
     {
@@ -1844,7 +1844,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REPAIR_FOLLOWUP_V9_RECEIVE_CANARIES_PASS",
+      "status": "REPAIR_FOLLOWUP_V9_FINAL18_READY",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1855,9 +1855,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-144800-v9-receive-canaries-pass.md",
-      "note": "V9 exact-SHA correctness/race is green and both prior V8 capacity-limit repro parameter canaries now pass with zero kernel/link drops and zero userspace overflow. This is evidence of stable receive behavior, not a claim of performance acceleration. V8 failed samples remain immutable.",
-      "next_task": "在同一精确V9 SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf 上只跑一条新的Normal/5205/seed101诊断canary（10Mbps/向、lanes=1、FEC20:20、300ms one-way）。要求五分类全PASS、socket/link/qdisc drop=0、FreshBlocked/FreshWindowBypass/FreshEmitFailures=0、RepairEvictionMaxScan<=1、receive overflow有界且不能出现无意义outer增长。若稳定，再决定是否从头建立V9完整final18；不得复用V8样本。",
+      "latest_log": "docs/devlog/20260924-165500-v9-5205-canary-pass-final18-ready.md",
+      "note": "V9 receive policy is now covered by two prior-capacity-limit repro canaries plus the denser-repair Normal/5205 canary. All three pass without kernel/link drops, userspace overflow, fresh HOL, reserve capacity eviction, or O(N) repair eviction.",
+      "next_task": "从头启动V9专用final18，固定SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf，不得复用任何V8或V9诊断canary。18条必须各自是新的workflow_dispatch run、attempt1；任一FAIL或CAPACITY_LIMITED即停止资格链并永久保留。全部18/18五分类PASS且socket/link/qdisc drop=0后，才考虑同SHA P6 repackage。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -5041,7 +5041,7 @@
         }
       },
       "repair_followup_candidate_v9": {
-        "status": "CORRECTNESS_RACE_PASS_RECEIVE_CANARIES_PASS",
+        "status": "CORRECTNESS_RACE_AND_THREE_DIAGNOSTIC_CANARIES_PASS",
         "parent_docs_head": "4407476e274e6ff3fa0a81558838412554ba8509",
         "parent_product_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
         "commit": "runtimeentry: shed oldest bounded receive backlog",
@@ -5055,7 +5055,7 @@
         },
         "parameters_changed": false,
         "kernel_socket_buffer_changed": false,
-        "performance_status": "TWO_5305_DIAGNOSTIC_CANARIES_PASS",
+        "performance_status": "FINAL18_READY",
         "source_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
         "correctness_runs": {
           "lifecycle": 35958681116,
@@ -5151,6 +5151,91 @@
             "server_overflow_drops": 0
           },
           "transport": {
+            "fresh_blocked": 0,
+            "fresh_window_bypass": 0,
+            "fresh_emit_failures": 0,
+            "repair_eviction_max_scan": 1
+          }
+        },
+        "normal_5205_seed101": {
+          "run": 35966885451,
+          "job": 107527376362,
+          "summary_artifact": 10794751842,
+          "summary_digest": "sha256:cbacb69d26c0758afc9f8916c3b2c771421304955de78f0efb5e9553325467ee",
+          "full_artifact": 10795010196,
+          "full_digest": "sha256:251f2bf5dba2fa6752816717718247ad23a35e901328d9f3158ff0d6c8b8a2a3",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "link_drop_max": 0,
+          "stress_goodput_mbps": {
+            "c2s": 9.99552,
+            "s2c": 9.99552
+          },
+          "probe_stress_p95_ms": 624.677082,
+          "outer_ip_per_app": {
+            "c2s": 5.474561653333334,
+            "s2c": 5.60975214
+          },
+          "process_cpu_seconds": {
+            "client": 54.83,
+            "server": 54.87
+          },
+          "packet_socket_max_rmem_ratio": {
+            "client": 0.051025390625,
+            "server": 0.05413818359375
+          },
+          "receive": {
+            "segmentmux_peak": 145,
+            "segmentmux_capacity": 4096,
+            "segmentmux_full_waits": 0,
+            "segmentmux_overflow_drops": 0,
+            "server_ready_peak": 128,
+            "server_ready_capacity": 4096,
+            "server_overflow_drops": 0
+          },
+          "transport": {
+            "stress_fast_repairs": {
+              "c2s": 23240,
+              "s2c": 23234
+            },
+            "repair_reserve_repairs": {
+              "client": 23240,
+              "server": 23234
+            },
+            "repair_reserve_stored": {
+              "client": 78030,
+              "server": 77977
+            },
+            "repair_reserve_retired": {
+              "client": 53977,
+              "server": 54058
+            },
+            "repair_reserve_evicted": {
+              "client": 0,
+              "server": 0
+            },
+            "repair_reserve_dropped": {
+              "client": 0,
+              "server": 0
+            },
+            "repair_reserve_expired": {
+              "client": 0,
+              "server": 0
+            },
+            "repair_reserve_peak": {
+              "client": 744,
+              "server": 775
+            },
+            "abandoned": {
+              "client": 0,
+              "server": 0
+            },
             "fresh_blocked": 0,
             "fresh_window_bypass": 0,
             "fresh_emit_failures": 0,
