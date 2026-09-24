@@ -4,9 +4,9 @@
   "expected_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
   "workflow": "next-strict-weaknet.yml",
   "mode": "normal",
-  "scenario": "5305",
-  "seed": "303",
+  "scenario": "5205",
+  "seed": "101",
   "rate_mbps": "10",
   "lanes": "1",
-  "reason": "V10.2 client TPROXY UDP ingress bounded-drain diagnostic canary after correctness/race PASS"
+  "reason": "V10.2 comparable dense-repair diagnostic after exact-source correctness and Normal/5305/seed303 PASS"
 }
