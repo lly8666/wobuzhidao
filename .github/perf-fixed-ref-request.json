@@ -1,6 +1,6 @@
 {
   "ref": "next/tlslike-dataplane",
-  "dispatch_ref": "perf-fixed/d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
+  "dispatch_ref": "perf-fixed/d90ef09c9e84bfe2719d04784b58f662c05d9fc3-r2",
   "expected_sha": "d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
   "workflow": "next-strict-weaknet.yml",
   "mode": "normal",
@@ -8,5 +8,5 @@
   "seed": "101",
   "rate_mbps": "10",
   "lanes": "1",
-  "reason": "V7 bounded repair follow-up; exact product SHA Normal/5205/seed101 independent sample"
+  "reason": "V7 bounded repair follow-up independent repeat 2; preserve run 35947585606"
 }
