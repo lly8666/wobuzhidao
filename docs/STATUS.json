@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-24",
+  "updated_at": "2026-09-25",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -66,10 +66,10 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V10P2_PENDING_ACTIONS：产品SOURCE_SHA 56eb5413c3cf2e559b82026e8a5783508764e2f4。V10.1 SOURCE_SHA e67b51968d9e5f707dfc9ef7d459ba5192008901 的独立final18永久停在17 PASS / 1 CAPACITY_LIMITED；唯一失败Normal/5305/seed303 run 36006942033为client/ss_udp产品TPROXY 0.0.0.0:12345 drop=2552，AF_PACKET/raw/server UDP/link/qdisc均0。代码确认client udpLoop仍同步ReadMsgUDP→BeforeBusiness→ForwardUDP→tunnel.Send。V10.2仅在client TPROXY UDP ingress新增严格全局1024-record/1024*MaxPayload字节预算、4个固定shard workers，同client endpoint固定单worker，全局满时最多扫描4个shard head并淘汰最旧queued datagram；不改repair/FEC/wire/kernel socket buffer。correctness/race/performance尚未完成。",
-  "next_task": "只通过GitHub Actions验证V10.2 56eb5413c3cf2e559b82026e8a5783508764e2f4 的openwrtclient/platformflow/runtimeentry unit+races、targeted、foundation、lifecycle及privileged TPROXY。任何失败先分析，不跑性能。全部通过后只跑一条新的Normal/5305/seed303 exact-SHA诊断canary，要求client/ss_udp drop=0、client ingress queued+inflight<=1024且bytes<=1024*MaxPayload、EvictionMaxScan<=4、server UDP仍有界、FreshBlocked/FreshWindowBypass/FreshEmitFailures=0、RepairEvictionMaxScan<=1且五分类全PASS。",
-  "latest_log": "docs/devlog/20260925-005500-v10p1-final18-stop-v10p2-client-udp-ingress.md",
-  "last_tested_source_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
+  "in_progress": "REPAIR_FOLLOWUP_V10P2_SEED303_CANARY_PASS_PENDING_COMPARABLE_CANARIES：产品SOURCE_SHA 56eb5413c3cf2e559b82026e8a5783508764e2f4。exact-source correctness/race/Windows/privileged OpenWrt TPROXY 已由 Actions run 36039856693 全部PASS；该workflow在main触发但每个job显式checkout并硬校验产品SHA。此前已存在的独立 workflow_dispatch Normal/5305/seed303 run 36031678003（attempt 1、exact product SHA）五分类全PASS，本机socket/AF_PACKET/raw/link drop全0，V10.2 client UDP ingress严格有界且无overflow/error。V10.1 final18 的17 PASS / 1 CAPACITY_LIMITED及run 36006942033永久保留，不被V10.2 canary覆盖。V10.2尚未qualified，也未启动新final18或P6。",
+  "next_task": "先补一条新的独立 exact-SHA Normal/5205/seed101 可比诊断canary，用V10.1 clean baseline核对dense-repair FastRepairs约23k/向、CPU约50.64/52.52s、outer/latency及client UDP bounded queue是否无回归。该样本PASS后再决定是否需要Game4/5305/seed101与lossless/seed101；任何FAIL/CAPACITY_LIMITED立即停止。只有补充证据稳定后才考虑V10.2从零的新final18；P6继续NOT_RUN。",
+  "latest_log": "docs/devlog/20260925-031500-v10p2-exact-source-and-seed303-canary-pass.md",
+  "last_tested_source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1542,6 +1542,20 @@
       "scope": "repair-v7/normal-lossless-seed101",
       "status": "PASS",
       "note": "loss-tolerant-v1 five classifications PASS; socket/link drops zero; FastRepairs=0"
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/36039856693",
+      "scope": "v10p2-exact-source-correctness-race-privileged",
+      "status": "PASS",
+      "note": "main one-shot verification workflow explicitly checkout/verified exact product SHA; Linux openwrtclient queue unit + full unit/build/race + targeted/lifecycle, Windows foundation/targeted, privileged OpenWrt TCP/UDP TPROXY/socket tunnel all PASS."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/36031678003",
+      "scope": "v10p2-normal-5305-seed303-diagnostic-canary",
+      "status": "PASS",
+      "note": "independent workflow_dispatch attempt1 on fixed ref; five classifications PASS; all local socket/packet/raw/link drops zero; client UDP total peak 40/1024 and 20960/9150464 bytes, overflow/error zero, eviction scan0; stress goodput 9.9817/9.9762Mbps, p95 612.893ms, FastRepairs 277/319, fresh counters zero, RepairEvictionMaxScan=1. Not final18 qualification."
     }
   ],
   "physical_status": "NOT_RUN",
@@ -5685,7 +5699,7 @@
         }
       },
       "repair_followup_candidate_v10p2": {
-        "status": "CORRECTNESS_RACE_NOT_RUN",
+        "status": "EXACT_SOURCE_CORRECTNESS_RACE_PRIVILEGED_AND_SEED303_CANARY_PASS",
         "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
         "parent_product_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
         "commit_chain": [
@@ -5707,7 +5721,145 @@
         "kernel_socket_buffer_changed": false,
         "performance_parameters_changed": false,
         "repair_parameters_changed": false,
-        "performance_status": "NOT_RUN"
+        "performance_status": "NORMAL_5305_SEED303_DIAGNOSTIC_CANARY_PASS_NOT_QUALIFIED",
+        "exact_source_correctness": {
+          "run": 36039856693,
+          "workflow": "next-v10p2-exact-source-correctness",
+          "workflow_head_sha": "1aeace341928805baa297357045ed54dc3533b05",
+          "tested_source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+          "jobs": {
+            "linux_correctness_race": 107769035755,
+            "windows_foundation": 107769035789,
+            "privileged_openwrt_tproxy": 107769035359
+          },
+          "result": "PASS",
+          "note": "One-shot main workflow explicitly checked out SOURCE_SHA in every job and required git HEAD == SOURCE_SHA before tests; Linux queue/unit/build/full-race/targeted/lifecycle, Windows foundation/targeted, and privileged TCP/UDP TPROXY + socket tunnel all passed."
+        },
+        "normal_5305_seed303": {
+          "run": 36031678003,
+          "job": 107741700303,
+          "event": "workflow_dispatch",
+          "run_attempt": 1,
+          "dispatch_ref": "perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4",
+          "summary_artifact": 10823360900,
+          "full_artifact": 10823620900,
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "local_drops": {
+            "socket_max": 0,
+            "client_ss_udp": 0,
+            "server_ss_udp": 0,
+            "client_ss_packet": 0,
+            "server_ss_packet": 0,
+            "client_ss_raw": 0,
+            "server_ss_raw": 0,
+            "link_max": 0
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.981681066666667,
+            "s2c": 9.976206933333334
+          },
+          "probe_stress_p95_ms": 612.893291,
+          "outer_ip_per_app": {
+            "c2s": 5.299305526666667,
+            "s2c": 5.434161853809682
+          },
+          "process_cpu_seconds": {
+            "client": 93.77,
+            "server": 92.06
+          },
+          "stress_fast_repairs": {
+            "c2s": 277,
+            "s2c": 319
+          },
+          "stress_ack_control_ip_bytes": {
+            "c2s": 21118348,
+            "s2c": 21107612
+          },
+          "client_udp": {
+            "queue_capacity_records": 1024,
+            "queue_capacity_bytes": 9150464,
+            "workers": 4,
+            "total_peak": 40,
+            "total_bytes_peak": 20960,
+            "max_queue_current": 30,
+            "max_queue_bytes": 15200,
+            "max_inflight_current": 1,
+            "max_inflight_bytes": 1200,
+            "overflow_drops": 0,
+            "overflow_bytes": 0,
+            "gate_errors": 0,
+            "forward_errors": 0,
+            "close_drops": 0,
+            "eviction_max_scan": 0
+          },
+          "server_udp": {
+            "queue_capacity_records": 1024,
+            "queue_capacity_bytes": 9150464,
+            "workers": 4,
+            "total_peak": 37,
+            "total_bytes_peak": 19440,
+            "max_queue_current": 17,
+            "max_queue_bytes": 9056,
+            "max_inflight_current": 1,
+            "max_inflight_bytes": 1200,
+            "overflow_drops": 0,
+            "overflow_bytes": 0,
+            "stale_drops": 0,
+            "send_errors": 0,
+            "close_drops": 0,
+            "eviction_max_scan": 0
+          },
+          "receive": {
+            "segmentmux_capacity": 4096,
+            "segmentmux_peak": 350,
+            "segmentmux_bytes_peak": 168185,
+            "segmentmux_full_waits": 0
+          },
+          "transport": {
+            "fresh_blocked": 0,
+            "fresh_window_bypass": 0,
+            "fresh_emit_failures": 0,
+            "repair_eviction_max_scan": 1
+          },
+          "repair_reader_endpoint_stress": {
+            "client": {
+              "fast_repairs": 556,
+              "repair_reserve_peak": 724,
+              "repair_reserve_evicted": 114249,
+              "repair_reserve_dropped": 0,
+              "repair_reserve_expired": 0,
+              "repair_reserve_repairs": 556,
+              "repair_reserve_stored": 116135,
+              "repair_reserve_retired": 401,
+              "repair_reserve_outstanding": 929,
+              "abandoned": 114249,
+              "forgiven_gaps": 80440,
+              "late_first_arrival": 432
+            },
+            "server": {
+              "fast_repairs": 319,
+              "repair_reserve_peak": 619,
+              "repair_reserve_evicted": 115858,
+              "repair_reserve_dropped": 0,
+              "repair_reserve_expired": 0,
+              "repair_reserve_repairs": 319,
+              "repair_reserve_stored": 117130,
+              "repair_reserve_retired": 333,
+              "repair_reserve_outstanding": 620,
+              "abandoned": 115858,
+              "forgiven_gaps": 81768,
+              "late_first_arrival": 300
+            },
+            "note": "Artifact-reader stage sampling is endpoint/timeline based; strict analyzer directional FastRepairs are c2s=277/s2c=319 and are authoritative for directional stage reporting."
+          },
+          "qualification_note": "Diagnostic canary only. It repairs the V10.1 client TPROXY socket-drop boundary in this sample but does not replace the immutable V10.1 final18 failure and is not a V10.2 final18 qualification."
+        }
       }
     }
   }
