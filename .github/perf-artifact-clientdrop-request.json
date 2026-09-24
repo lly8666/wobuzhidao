@@ -1,7 +1,7 @@
 {
-  "artifact_id": 10810442829,
-  "source_run": 36005760953,
-  "source_job": 107653381301,
+  "artifact_id": 10811660306,
+  "source_run": 36006942033,
+  "source_job": null,
   "source_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
-  "artifact_name": "strict-single-game-5305-seed101-e67b51968d9e5f707dfc9ef7d459ba5192008901"
+  "artifact_name": "strict-single-normal-5305-seed303-e67b51968d9e5f707dfc9ef7d459ba5192008901"
 }
