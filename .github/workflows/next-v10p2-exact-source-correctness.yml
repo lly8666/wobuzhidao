@@ -1,0 +1,147 @@
+name: next-v10p2-exact-source-correctness
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/next-v10p2-exact-source-correctness.yml
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_SHA: 56eb5413c3cf2e559b82026e8a5783508764e2f4
+
+jobs:
+  linux-correctness-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          fetch-depth: 0
+      - name: Require exact product source
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "SOURCE_SHA=$SOURCE_SHA checked_out=$actual"
+          test "$actual" = "$SOURCE_SHA"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: V10.2 OpenWrt client queue unit coverage
+        shell: bash
+        run: go test ./internal/openwrtclient -count=1 -v
+      - name: Foundation compile and unit
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./... -count=1
+          go build ./...
+          python3 tools/parameter_catalog.py
+      - name: Foundation full race
+        shell: bash
+        run: go test -race ./... -count=1
+      - name: Targeted steady core and race
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./internal/faketcp ./internal/runtimeowner ./internal/runtimeentry -count=1 -v
+          go test -race ./internal/faketcp ./internal/runtimeowner ./internal/runtimeentry -count=1
+          go build ./cmd/wbd-client ./cmd/wbd-server
+      - name: Lifecycle core and focused race
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./internal/configfile ./internal/tlsrecord ./internal/realityfront ./internal/datapath ./internal/runtimeowner ./internal/runtimeentry -count=1
+          go test -tags lifecycleacceptance ./internal/acceptancefault ./internal/realityfront ./internal/runtimeowner ./internal/runtimeentry -count=1
+          go build -tags lifecycleacceptance ./cmd/wbd-client ./cmd/wbd-server
+          go test -race ./internal/configfile ./internal/runtimeowner ./internal/runtimeentry -run='Health|Configuration|AdaptivePressure|LifecycleEntryPayloadIdle|IdleSnapshot' -count=3
+      - name: Record exact source
+        if: always()
+        shell: bash
+        run: |
+          echo "workflow_head_sha=$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "tested_source_sha=$SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "checked_out_head=$(git rev-parse HEAD 2>/dev/null || true)" >> "$GITHUB_STEP_SUMMARY"
+
+  windows-foundation:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          fetch-depth: 0
+      - name: Require exact product source
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "SOURCE_SHA=$SOURCE_SHA checked_out=$actual"
+          test "$actual" = "$SOURCE_SHA"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - name: Windows foundation and targeted packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./... -count=1
+          go build ./...
+          go test ./internal/faketcp ./internal/runtimeowner ./internal/runtimeentry -count=1
+          go build ./cmd/wbd-client ./cmd/wbd-server
+
+  privileged-openwrt-tproxy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          fetch-depth: 0
+      - name: Require exact product source
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "SOURCE_SHA=$SOURCE_SHA checked_out=$actual"
+          test "$actual" = "$SOURCE_SHA"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.12'
+          cache: false
+      - name: Install OpenWrt TPROXY qualification tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v ip >/dev/null 2>&1 || ! command -v nft >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iproute2 nftables python3
+          fi
+          sudo modprobe nf_tproxy_ipv4 2>/dev/null || true
+          sudo modprobe nft_tproxy 2>/dev/null || true
+      - name: Build OpenWrt TPROXY privileged test
+        shell: bash
+        run: go test -c ./internal/openwrtclient -o /tmp/p4-openwrt-tproxy.test
+      - name: Qualify real TCP UDP TPROXY and socket tunnel
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          sudo scripts/openwrt_tproxy_netns.sh /tmp/p4-openwrt-tproxy.test | tee artifacts/p4-openwrt-tproxy.log
+          grep -q 'WBD_P4_OPENWRT_TPROXY_PASS tcp=1 udp=1 underlay_bypass=1 cleanup=owned-only ipv6=NOT_IMPLEMENTED' artifacts/p4-openwrt-tproxy.log
+          grep -q 'WBD_P4_OPENWRT_SOCKET_TUNNEL_PASS tcp=1 udp=1 eim=1 eif=1 tunnelowner=1 lanes=1 service_tun_leak=0 ipv6=NOT_IMPLEMENTED' artifacts/p4-openwrt-tproxy.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v10p2-openwrt-tproxy-${{ env.SOURCE_SHA }}
+          path: artifacts/p4-openwrt-tproxy.log
+          if-no-files-found: warn
