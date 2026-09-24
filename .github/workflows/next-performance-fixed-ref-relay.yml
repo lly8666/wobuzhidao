@@ -35,7 +35,7 @@ jobs:
               raise SystemExit('expected_sha must be full sha')
           dispatch_ref=d.get('dispatch_ref', d['ref'])
           if dispatch_ref != d['ref']:
-              m=re.fullmatch(r'perf-fixed/([0-9a-f]{40})', dispatch_ref)
+              m=re.fullmatch(r'perf-fixed/([0-9a-f]{40})(?:-r[0-9]+)?', dispatch_ref)
               if not m or m.group(1) != d['expected_sha']:
                   raise SystemExit('dispatch_ref must be perf-fixed/<expected_sha>')
           if d['scenario'] not in {'lossless','5205','5305'}:
