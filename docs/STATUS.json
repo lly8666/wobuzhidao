@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V10P1_PENDING_ACTIONS：V10 Normal/5205/seed101 run 35999756079 五分类PASS且所有socket/link drop=0、global UDP peak=42/1024/overflow0，但同参数相对V9 CPU从54.83/54.87s升至96.08/100.85s，且reserve Abandoned恢复到约1.8k/2.5k；包量/outer几乎不变，因此不接受为final18门票。V10.1保持全局1024 record与byte预算、4 workers不变，但每个flow固定哈希到单一worker shard，去掉同flow sendMu争用；全局满时只检查固定4个shard head并淘汰全局最旧queued datagram，EvictionMaxScan<=4。correctness/race/performance尚未运行。",
+  "in_progress": "REPAIR_FOLLOWUP_V10P1_PENDING_ACTIONS：产品SOURCE_SHA e67b51968d9e5f707dfc9ef7d459ba5192008901。V10 5205虽然五分类PASS但CPU相对V9近乎翻倍，因此未接受为final18门票。V10.1保持global UDP 1024-record/1024*MaxPayload预算与4 fixed workers，每flow固定映射到单一worker shard，去掉同flow sendMu争用；全局满时只比较固定4个shard head，UDP EvictionMaxScan<=4。correctness/race/performance尚未运行。",
   "next_task": "只通过GitHub Actions跑V10.1 platformflow/runtimeentry unit+races、targeted、foundation、lifecycle；任何失败先分析。全部通过后只跑新的Normal/5205/seed101 exact-SHA canary，重点比较V10/V9：CPU应回落，FastRepairs保持约23k/向、fresh三项0、RepairEvictionMaxScan<=1、UDP backlog<=1024且UDP EvictionMaxScan<=4、socket/link drop=0、五分类全PASS；未满足则不进final18。",
-  "latest_log": "docs/devlog/20260924-215500-v10p1-sharded-udp-senders.md",
+  "latest_log": "docs/devlog/20260924-215700-v10p1-source-pin.md",
   "last_tested_source_sha": "2f6a1e470e7b3d2967460971987a9dace5aa972d",
   "actions": [
     {
@@ -1855,7 +1855,7 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-215500-v10p1-sharded-udp-senders.md",
+      "latest_log": "docs/devlog/20260924-215700-v10p1-source-pin.md",
       "note": "V10 fixed the V9 UDP socket loss, but the dense-repair 5205 canary exposed a large process-CPU regression with almost unchanged wire volume. Four workers were serializing on one hot flow mutex. V10.1 assigns each flow to exactly one fixed worker shard while retaining the same strict global queue/byte budget.",
       "next_task": "只通过GitHub Actions跑V10.1 platformflow/runtimeentry unit+races、targeted、foundation、lifecycle；任何失败先分析。全部通过后只跑新的Normal/5205/seed101 exact-SHA canary，重点比较V10/V9：CPU应回落，FastRepairs保持约23k/向、fresh三项0、RepairEvictionMaxScan<=1、UDP backlog<=1024且UDP EvictionMaxScan<=4、socket/link drop=0、五分类全PASS；未满足则不进final18。",
       "acceptance_revision": "loss-tolerant-v1",
@@ -5521,7 +5521,8 @@
         },
         "kernel_socket_buffer_changed": false,
         "performance_parameters_changed": false,
-        "performance_status": "NOT_RUN"
+        "performance_status": "NOT_RUN",
+        "source_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901"
       }
     }
   }
