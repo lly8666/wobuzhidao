@@ -22,6 +22,290 @@ type replySocket struct {
 	lastSeen time.Time
 }
 
+const (
+	udpIngressBudgetRecords = 1024
+	udpIngressWorkers       = 4
+)
+
+type UDPIngressDiagnostic struct {
+	QueueCapacityRecords int           `json:"queue_capacity_records"`
+	QueueCapacityBytes   int           `json:"queue_capacity_bytes"`
+	QueueCurrent         int           `json:"queue_current"`
+	QueueBytes           int           `json:"queue_bytes"`
+	InFlightCurrent      int           `json:"inflight_current"`
+	InFlightBytes        int           `json:"inflight_bytes"`
+	TotalPeak            int           `json:"total_peak"`
+	TotalBytesPeak       int           `json:"total_bytes_peak"`
+	Enqueued             uint64        `json:"enqueued"`
+	Dequeued             uint64        `json:"dequeued"`
+	OverflowDrops        uint64        `json:"overflow_drops"`
+	OverflowBytes        uint64        `json:"overflow_bytes"`
+	OverflowAgeMax       time.Duration `json:"overflow_age_max"`
+	GateErrors           uint64        `json:"gate_errors"`
+	ForwardErrors        uint64        `json:"forward_errors"`
+	CloseDrops           uint64        `json:"close_drops"`
+	Workers              int           `json:"workers"`
+	EvictionMaxScan      int           `json:"eviction_max_scan"`
+}
+
+type udpIngressItem struct {
+	client   netip.AddrPort
+	target   netip.AddrPort
+	payload  []byte
+	queuedAt time.Time
+}
+
+type udpIngressShard struct {
+	entries []udpIngressItem
+	head    int
+	size    int
+	bytes   int
+	cond    *sync.Cond
+}
+
+type udpIngressQueue struct {
+	mu              sync.Mutex
+	shards          []udpIngressShard
+	capacityRecords int
+	queueSize       int
+	queueBytes      int
+	inFlight        int
+	inFlightBytes   int
+	closed          bool
+
+	totalPeak       int
+	totalBytesPeak  int
+	enqueued        uint64
+	dequeued        uint64
+	overflowDrops   uint64
+	overflowBytes   uint64
+	overflowAgeMax  time.Duration
+	gateErrors      uint64
+	forwardErrors   uint64
+	closeDrops      uint64
+	evictionMaxScan int
+}
+
+func newUDPIngressQueue(records int) *udpIngressQueue {
+	if records <= 0 {
+		records = udpIngressBudgetRecords
+	}
+	q := &udpIngressQueue{
+		capacityRecords: records,
+		shards:          make([]udpIngressShard, udpIngressWorkers),
+	}
+	for i := range q.shards {
+		q.shards[i].entries = make([]udpIngressItem, records)
+		q.shards[i].cond = sync.NewCond(&q.mu)
+	}
+	return q
+}
+
+func (q *udpIngressQueue) capacityBytes() int {
+	if q == nil {
+		return 0
+	}
+	return q.capacityRecords * platformflow.MaxPayload
+}
+
+func (q *udpIngressQueue) shardFor(client netip.AddrPort) int {
+	if q == nil || len(q.shards) == 0 {
+		return 0
+	}
+	addr := client.Addr().Unmap()
+	v := uint64(client.Port())
+	if addr.Is4() {
+		b := addr.As4()
+		v ^= uint64(b[0])<<24 | uint64(b[1])<<16 | uint64(b[2])<<8 | uint64(b[3])
+	}
+	return int(v % uint64(len(q.shards)))
+}
+
+func (q *udpIngressQueue) dropOldestQueuedLocked(now time.Time) bool {
+	oldestShard := -1
+	var oldest time.Time
+	scanned := 0
+	for i := range q.shards {
+		scanned++
+		sh := &q.shards[i]
+		if sh.size == 0 {
+			continue
+		}
+		item := sh.entries[sh.head]
+		if oldestShard < 0 || item.queuedAt.Before(oldest) {
+			oldestShard = i
+			oldest = item.queuedAt
+		}
+	}
+	if scanned > q.evictionMaxScan {
+		q.evictionMaxScan = scanned
+	}
+	if oldestShard < 0 {
+		return false
+	}
+	sh := &q.shards[oldestShard]
+	dropped := sh.entries[sh.head]
+	sh.entries[sh.head] = udpIngressItem{}
+	sh.head = (sh.head + 1) % len(sh.entries)
+	sh.size--
+	sh.bytes -= len(dropped.payload)
+	q.queueSize--
+	q.queueBytes -= len(dropped.payload)
+	q.overflowDrops++
+	q.overflowBytes += uint64(len(dropped.payload))
+	if age := now.Sub(dropped.queuedAt); age > q.overflowAgeMax {
+		q.overflowAgeMax = age
+	}
+	return true
+}
+
+func (q *udpIngressQueue) enqueue(item udpIngressItem, now time.Time) bool {
+	if q == nil || !item.client.IsValid() || !item.target.IsValid() || len(item.payload) > platformflow.MaxPayload {
+		return false
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if q.closed {
+		return false
+	}
+	if q.queueSize+q.inFlight >= q.capacityRecords {
+		if !q.dropOldestQueuedLocked(now) {
+			q.overflowDrops++
+			q.overflowBytes += uint64(len(item.payload))
+			return true
+		}
+	}
+	if q.queueBytes+q.inFlightBytes+len(item.payload) > q.capacityBytes() {
+		q.overflowDrops++
+		q.overflowBytes += uint64(len(item.payload))
+		return true
+	}
+	idx := q.shardFor(item.client)
+	sh := &q.shards[idx]
+	if sh.size >= len(sh.entries) {
+		q.overflowDrops++
+		q.overflowBytes += uint64(len(item.payload))
+		return true
+	}
+	tail := (sh.head + sh.size) % len(sh.entries)
+	sh.entries[tail] = item
+	sh.size++
+	sh.bytes += len(item.payload)
+	q.queueSize++
+	q.queueBytes += len(item.payload)
+	q.enqueued++
+	total := q.queueSize + q.inFlight
+	if total > q.totalPeak {
+		q.totalPeak = total
+	}
+	totalBytes := q.queueBytes + q.inFlightBytes
+	if totalBytes > q.totalBytesPeak {
+		q.totalBytesPeak = totalBytes
+	}
+	sh.cond.Signal()
+	return true
+}
+
+func (q *udpIngressQueue) popShard(idx int) (udpIngressItem, bool) {
+	if q == nil || idx < 0 || idx >= len(q.shards) {
+		return udpIngressItem{}, false
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	sh := &q.shards[idx]
+	for sh.size == 0 && !q.closed {
+		sh.cond.Wait()
+	}
+	if q.closed || sh.size == 0 {
+		return udpIngressItem{}, false
+	}
+	item := sh.entries[sh.head]
+	sh.entries[sh.head] = udpIngressItem{}
+	sh.head = (sh.head + 1) % len(sh.entries)
+	sh.size--
+	sh.bytes -= len(item.payload)
+	q.queueSize--
+	q.queueBytes -= len(item.payload)
+	q.inFlight++
+	q.inFlightBytes += len(item.payload)
+	q.dequeued++
+	return item, true
+}
+
+func (q *udpIngressQueue) finish(item udpIngressItem, gateErr, forwardErr bool) {
+	if q == nil {
+		return
+	}
+	q.mu.Lock()
+	if q.inFlight > 0 {
+		q.inFlight--
+	}
+	if n := len(item.payload); n <= q.inFlightBytes {
+		q.inFlightBytes -= n
+	} else {
+		q.inFlightBytes = 0
+	}
+	if gateErr {
+		q.gateErrors++
+	}
+	if forwardErr {
+		q.forwardErrors++
+	}
+	q.mu.Unlock()
+}
+
+func (q *udpIngressQueue) close() {
+	if q == nil {
+		return
+	}
+	q.mu.Lock()
+	if !q.closed {
+		q.closed = true
+		q.closeDrops += uint64(q.queueSize)
+		for i := range q.shards {
+			sh := &q.shards[i]
+			for sh.size > 0 {
+				sh.entries[sh.head] = udpIngressItem{}
+				sh.head = (sh.head + 1) % len(sh.entries)
+				sh.size--
+			}
+			sh.bytes = 0
+			sh.cond.Broadcast()
+		}
+		q.queueSize = 0
+		q.queueBytes = 0
+	}
+	q.mu.Unlock()
+}
+
+func (q *udpIngressQueue) snapshot() UDPIngressDiagnostic {
+	if q == nil {
+		return UDPIngressDiagnostic{}
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return UDPIngressDiagnostic{
+		QueueCapacityRecords: q.capacityRecords,
+		QueueCapacityBytes:   q.capacityBytes(),
+		QueueCurrent:         q.queueSize,
+		QueueBytes:           q.queueBytes,
+		InFlightCurrent:      q.inFlight,
+		InFlightBytes:        q.inFlightBytes,
+		TotalPeak:            q.totalPeak,
+		TotalBytesPeak:       q.totalBytesPeak,
+		Enqueued:             q.enqueued,
+		Dequeued:             q.dequeued,
+		OverflowDrops:        q.overflowDrops,
+		OverflowBytes:        q.overflowBytes,
+		OverflowAgeMax:       q.overflowAgeMax,
+		GateErrors:           q.gateErrors,
+		ForwardErrors:        q.forwardErrors,
+		CloseDrops:           q.closeDrops,
+		Workers:              len(q.shards),
+		EvictionMaxScan:      q.evictionMaxScan,
+	}
+}
+
 type SocketAdapter struct {
 	cfg    SocketConfig
 	udp    *net.UDPConn
@@ -30,6 +314,9 @@ type SocketAdapter struct {
 
 	replyMu sync.Mutex
 	replies map[netip.AddrPort]*replySocket
+
+	udpIngress   *udpIngressQueue
+	udpIngressWG sync.WaitGroup
 
 	runMu   sync.Mutex
 	running bool
@@ -62,6 +349,11 @@ func OpenSocketAdapter(cfg SocketConfig) (*SocketAdapter, error) {
 		return nil, err
 	}
 	a.client = client
+	a.udpIngress = newUDPIngressQueue(udpIngressBudgetRecords)
+	a.udpIngressWG.Add(udpIngressWorkers)
+	for i := 0; i < udpIngressWorkers; i++ {
+		go a.udpIngressWorker(i)
+	}
 	return a, nil
 }
 
@@ -125,6 +417,10 @@ func (a *SocketAdapter) Close() error {
 				errs = append(errs, err)
 			}
 		}
+		if a.udpIngress != nil {
+			a.udpIngress.close()
+			a.udpIngressWG.Wait()
+		}
 		if a.client != nil {
 			a.client.Close()
 		}
@@ -183,15 +479,46 @@ func (a *SocketAdapter) udpLoop() error {
 		if !client.Addr().Unmap().Is4() {
 			continue
 		}
-		if a.cfg.BeforeBusiness != nil {
-			if err := a.cfg.BeforeBusiness(); err != nil {
-				continue
-			}
+		now := time.Now()
+		item := udpIngressItem{
+			client: client, target: target,
+			payload: append([]byte(nil), payload[:n]...),
+			queuedAt: now,
 		}
-		if err := a.client.ForwardUDP(client, target, append([]byte(nil), payload[:n]...), time.Now()); err != nil {
-			continue
+		if !a.udpIngress.enqueue(item, now) {
+			return ErrSocketClosed
 		}
 	}
+}
+
+func (a *SocketAdapter) udpIngressWorker(shard int) {
+	defer a.udpIngressWG.Done()
+	for {
+		item, ok := a.udpIngress.popShard(shard)
+		if !ok {
+			return
+		}
+		gateErr := false
+		forwardErr := false
+		if a.cfg.BeforeBusiness != nil {
+			if err := a.cfg.BeforeBusiness(); err != nil {
+				gateErr = true
+			}
+		}
+		if !gateErr {
+			if err := a.client.ForwardUDP(item.client, item.target, item.payload, time.Now()); err != nil {
+				forwardErr = true
+			}
+		}
+		a.udpIngress.finish(item, gateErr, forwardErr)
+	}
+}
+
+func (a *SocketAdapter) UDPIngressDiagnostic() UDPIngressDiagnostic {
+	if a == nil || a.udpIngress == nil {
+		return UDPIngressDiagnostic{}
+	}
+	return a.udpIngress.snapshot()
 }
 
 func (a *SocketAdapter) tcpLoop() error {
