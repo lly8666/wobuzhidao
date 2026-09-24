@@ -66,7 +66,7 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V9_PENDING_ACTIONS：V8 final18永久停在16 PASS / 2 CAPACITY_LIMITED。两条失败均由固定4096 receive queue满后继续阻塞raw reader，把秒级consumer停顿放大成AF_PACKET drop；runtimeowner fresh三项仍0、RepairEvictionMaxScan=1。V9不扩容量：LifecycleServer与SegmentMux满队列时O(1)淘汰单个最旧queued segment并保留最新segment，显式记录overflow drops/bytes/age。correctness/race/performance尚未运行。",
+  "in_progress": "REPAIR_FOLLOWUP_V9_PENDING_ACTIONS：产品SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf。V8 final18永久停在16 PASS / 2 CAPACITY_LIMITED；V9保持SegmentMux/LifecycleServer各4096固定容量，满队列时O(1)淘汰单个最旧queued segment并保留最新segment，显式记录overflow drops/bytes/age；kernel buffer、repair4096/reserve1024、FEC/wire/RTO/credit/阈值均不变。correctness/race/performance尚未运行。",
   "next_task": "先只通过GitHub Actions验证V9 runtimeentry/runtimeowner unit+races、targeted、foundation、lifecycle；任何失败先分析，不跑性能。全部通过后才各跑一条新的Normal/5305/seed202与Game4/5305/seed303诊断canary，要求socket/link drop=0、overflow显式有界、fresh三项0、RepairEvictionMaxScan<=1且五分类PASS；canary不计入final18。",
   "latest_log": "docs/devlog/20260924-131500-v9-bounded-receive-overflow-shedding.md",
   "last_tested_source_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
@@ -5055,7 +5055,8 @@
         },
         "parameters_changed": false,
         "kernel_socket_buffer_changed": false,
-        "performance_status": "NOT_RUN"
+        "performance_status": "NOT_RUN",
+        "source_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf"
       }
     }
   }

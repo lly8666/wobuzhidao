@@ -1,5 +1,7 @@
 # 20260924-131500 V9 bounded receive overflow shedding
 
+Exact product SOURCE_SHA: `af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf`
+
 ## Trigger
 
 V8 product remains `27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089`. Its dedicated final18 is permanently recorded as 16 PASS / 2 CAPACITY_LIMITED; the two failed strict runs are not replaced or rerun.
