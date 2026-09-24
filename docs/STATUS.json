@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V10_PENDING_ACTIONS：V9 final18永久停在17 PASS / 1 CAPACITY_LIMITED；失败Normal/5305/seed101确认AF_PACKET/raw/link drop=0，但platformflow UDPServer upstream mapping同步read→tunnel.Send导致1MiB kernel UDP Recv-Q满并drop 2556。V10不扩大kernel buffer、不建per-flow大队列：新增UDPServer级严格全局1024-record预算（byte上限=1024*MaxPayload）、固定4 sender workers；readUpstream只快速drain并O(1)全局淘汰最旧queued datagram保最新，queued+inflight共同计入预算并导出诊断。correctness/race/performance尚未运行。",
+  "in_progress": "REPAIR_FOLLOWUP_V10_PENDING_ACTIONS：产品SOURCE_SHA 2f6a1e470e7b3d2967460971987a9dace5aa972d。V9 final18永久17 PASS / 1 CAPACITY_LIMITED；V10新增UDPServer级严格全局1024-record / 1024*MaxPayload byte预算，queued+inflight共同计入，4个固定sender workers，readUpstream持续drain mapping socket并在满预算时O(1)淘汰最旧queued datagram。无kernel buffer扩容、无per-flow大队列、无per-packet goroutine。correctness/race/performance尚未运行。",
   "next_task": "只通过GitHub Actions跑V10 platformflow/runtimeentry unit+races、targeted、foundation、lifecycle；任何失败先分析且不跑性能。全部通过后只跑一条新的Normal/5305/seed101 exact-SHA诊断canary，重点要求server UDP kernel drop=0、global UDP queue严格<=1024且bytes不越界、overflow显式可观测、fresh三项0、RepairEvictionMaxScan<=1、五分类全PASS。",
-  "latest_log": "docs/devlog/20260924-190500-v10-global-udp-upstream-drain.md",
+  "latest_log": "docs/devlog/20260924-190700-v10-source-pin.md",
   "last_tested_source_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
   "actions": [
     {
@@ -1855,7 +1855,7 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-190500-v10-global-udp-upstream-drain.md",
+      "latest_log": "docs/devlog/20260924-190700-v10-source-pin.md",
       "note": "V10 drains mapping UDP sockets independently from tunnel.Send using one server-global bounded queue. Budget includes queued+inflight records; no per-flow backlog, kernel buffer increase, per-packet goroutine, or unbounded sender queue.",
       "next_task": "只通过GitHub Actions跑V10 platformflow/runtimeentry unit+races、targeted、foundation、lifecycle；任何失败先分析且不跑性能。全部通过后只跑一条新的Normal/5305/seed101 exact-SHA诊断canary，重点要求server UDP kernel drop=0、global UDP queue严格<=1024且bytes不越界、overflow显式可观测、fresh三项0、RepairEvictionMaxScan<=1、五分类全PASS。",
       "acceptance_revision": "loss-tolerant-v1",
@@ -5323,7 +5323,8 @@
         },
         "kernel_socket_buffer_changed": false,
         "performance_parameters_changed": false,
-        "performance_status": "NOT_RUN"
+        "performance_status": "NOT_RUN",
+        "source_sha": "2f6a1e470e7b3d2967460971987a9dace5aa972d"
       }
     }
   }
