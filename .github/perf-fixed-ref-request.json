@@ -1,12 +1,12 @@
 {
   "ref": "next/tlslike-dataplane",
-  "dispatch_ref": "perf-fixed/2f6a1e470e7b3d2967460971987a9dace5aa972d",
-  "expected_sha": "2f6a1e470e7b3d2967460971987a9dace5aa972d",
+  "dispatch_ref": "perf-fixed/e67b51968d9e5f707dfc9ef7d459ba5192008901",
+  "expected_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
   "workflow": "next-strict-weaknet.yml",
   "mode": "normal",
   "scenario": "5205",
   "seed": "101",
   "rate_mbps": "10",
   "lanes": "1",
-  "reason": "V10 global UDP upstream drain dense-repair Normal 5205 diagnostic canary after two 5305 canaries PASS"
+  "reason": "V10.1 sharded UDP sender dense-repair CPU regression canary after correctness/race PASS"
 }
