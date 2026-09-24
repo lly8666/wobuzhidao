@@ -238,10 +238,12 @@ func main() {
 			errCh <- qualificationdiag.Run(ctx, *diagnosticJSONL, *diagnosticInterval, func(now time.Time) any {
 				return struct {
 					runtimeentry.TunnelDiagnostic
-					SegmentMux runtimeentry.SegmentMuxDiagnostic `json:"segment_mux"`
+					SegmentMux runtimeentry.SegmentMuxDiagnostic  `json:"segment_mux"`
+					ClientUDP  openwrtclient.UDPIngressDiagnostic `json:"client_udp"`
 				}{
 					TunnelDiagnostic: client.DiagnosticSnapshot(now),
 					SegmentMux:       mux.DiagnosticSnapshot(),
+					ClientUDP:        adapter.UDPIngressDiagnostic(),
 				}
 			})
 		}()
