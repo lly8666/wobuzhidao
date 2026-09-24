@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V10_NORMAL5305_CANARY_PASS：产品SOURCE_SHA 2f6a1e470e7b3d2967460971987a9dace5aa972d。V10 correctness/race全绿；新的Normal/5305/seed101 run 35991254504 为workflow_dispatch attempt1、五分类全PASS，所有AF_PACKET/raw/UDP/link/qdisc drop=0。UDPServer全局backlog capacity=1024 records / 9150464 bytes，sample total_peak=18、total_bytes_peak=9120、overflow/stale/send-error=0；LifecycleServer ready peak=112/4096、overflow=0；fresh三项0、RepairEvictionMaxScan=1。V9 final18 17 PASS / 1 CAPACITY_LIMITED永久保留。",
-  "next_task": "同一精确V10 SOURCE_SHA 2f6a1e470e7b3d2967460971987a9dace5aa972d 上只跑一条新的Game4/5305/seed101诊断canary（3Mbps/向、lanes=4、FEC20:20、300ms one-way），检查固定4 sender workers在多lane路径下不制造HOL/成本异常。要求五分类全PASS、所有socket/link/qdisc drop=0、global UDP total<=1024且bytes<=9150464、fresh三项0、RepairEvictionMaxScan<=1。若稳定，再跑Normal/5205/seed101 dense-repair canary后决定是否从头建立V10 final18。",
-  "latest_log": "docs/devlog/20260924-202000-v10-normal5305-canary-pass.md",
+  "in_progress": "REPAIR_FOLLOWUP_V10_TWO_5305_CANARIES_PASS：产品SOURCE_SHA 2f6a1e470e7b3d2967460971987a9dace5aa972d。V10 correctness/race全绿；Normal/5305/seed101 run 35991254504 与 Game4/5305/seed101 run 35998823992 均为新的workflow_dispatch attempt1、五分类全PASS、所有socket/link/qdisc drop=0。Normal global UDP total_peak=18/1024、bytes_peak=9120/9150464；Game total_peak=19/1024、bytes_peak=10320/9150464；两条overflow/stale/send-error均0，fresh三项0，RepairEvictionMaxScan=1。",
+  "next_task": "同一精确V10 SOURCE_SHA 2f6a1e470e7b3d2967460971987a9dace5aa972d 上只跑一条新的Normal/5205/seed101 dense-repair诊断canary（10Mbps/向、lanes=1、FEC20:20、300ms one-way）。要求五分类全PASS、socket/link/qdisc drop=0、global UDP total<=1024且bytes<=9150464、overflow有界、FreshBlocked/FreshWindowBypass/FreshEmitFailures=0、RepairEvictionMaxScan<=1，并确认真实FastRepairs仍为有限非零且outer成本未异常增长。若稳定，则V10可进入全新final18准备。",
+  "latest_log": "docs/devlog/20260924-213500-v10-game5305-canary-pass.md",
   "last_tested_source_sha": "2f6a1e470e7b3d2967460971987a9dace5aa972d",
   "actions": [
     {
@@ -1844,7 +1844,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REPAIR_FOLLOWUP_V10_NORMAL5305_CANARY_PASS",
+      "status": "REPAIR_FOLLOWUP_V10_TWO_5305_CANARIES_PASS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1855,9 +1855,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-202000-v10-normal5305-canary-pass.md",
+      "latest_log": "docs/devlog/20260924-213500-v10-game5305-canary-pass.md",
       "note": "V10 exact-SHA repro canary for the sole V9 final18 failure now passes with zero kernel UDP/AF_PACKET/link drops and zero global userspace backlog overflow. The new global queue remained far below its fixed record/byte budget; this is evidence of bounded drain behavior, not a performance-acceleration claim.",
-      "next_task": "同一精确V10 SOURCE_SHA 2f6a1e470e7b3d2967460971987a9dace5aa972d 上只跑一条新的Game4/5305/seed101诊断canary（3Mbps/向、lanes=4、FEC20:20、300ms one-way），检查固定4 sender workers在多lane路径下不制造HOL/成本异常。要求五分类全PASS、所有socket/link/qdisc drop=0、global UDP total<=1024且bytes<=9150464、fresh三项0、RepairEvictionMaxScan<=1。若稳定，再跑Normal/5205/seed101 dense-repair canary后决定是否从头建立V10 final18。",
+      "next_task": "同一精确V10 SOURCE_SHA 2f6a1e470e7b3d2967460971987a9dace5aa972d 上只跑一条新的Normal/5205/seed101 dense-repair诊断canary（10Mbps/向、lanes=1、FEC20:20、300ms one-way）。要求五分类全PASS、socket/link/qdisc drop=0、global UDP total<=1024且bytes<=9150464、overflow有界、FreshBlocked/FreshWindowBypass/FreshEmitFailures=0、RepairEvictionMaxScan<=1，并确认真实FastRepairs仍为有限非零且outer成本未异常增长。若稳定，则V10可进入全新final18准备。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -5308,7 +5308,7 @@
         }
       },
       "repair_followup_candidate_v10": {
-        "status": "CORRECTNESS_RACE_AND_NORMAL5305_CANARY_PASS",
+        "status": "CORRECTNESS_RACE_AND_TWO_5305_CANARIES_PASS",
         "parent_docs_head": "5a5c5b26809fcf09264c4066b2b565ddd1fe9009",
         "parent_product_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
         "commit": "platformflow: bound UDP upstream send backlog",
@@ -5323,7 +5323,7 @@
         },
         "kernel_socket_buffer_changed": false,
         "performance_parameters_changed": false,
-        "performance_status": "NORMAL5305_DIAGNOSTIC_CANARY_PASS",
+        "performance_status": "NORMAL_AND_GAME5305_DIAGNOSTIC_CANARIES_PASS",
         "source_sha": "2f6a1e470e7b3d2967460971987a9dace5aa972d",
         "correctness_runs": {
           "lifecycle": 35990965244,
@@ -5381,6 +5381,68 @@
             "ready_capacity": 4096,
             "ready_peak": 112,
             "ready_bytes_peak": 61578,
+            "overflow_drops": 0,
+            "overflow_bytes": 0
+          },
+          "transport": {
+            "fresh_blocked": 0,
+            "fresh_window_bypass": 0,
+            "fresh_emit_failures": 0,
+            "repair_eviction_max_scan": 1
+          }
+        },
+        "game4_5305_seed101": {
+          "run": 35998823992,
+          "job": 107630150313,
+          "summary_artifact": 10807243102,
+          "summary_digest": "sha256:7a5a263a89d47774349baeb7ab1b9df2141878e270c719fb1d9066bfdb2c21d9",
+          "full_artifact": 10807124126,
+          "full_digest": "sha256:a1676d1039d9e38c2cc4f0fa7963a50a71c573fa2223c94c3a10c542f8607f92",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "link_drop_max": 0,
+          "stress_goodput_mbps": {
+            "c2s": 3.0002773333333335,
+            "s2c": 2.999703466666667
+          },
+          "probe_stress_p95_ms": 605.939204,
+          "outer_ip_per_app": {
+            "c2s": 21.352085014772964,
+            "s2c": 21.883731827118968
+          },
+          "process_cpu_seconds": {
+            "client": 113.21,
+            "server": 109.53
+          },
+          "packet_socket_max_rmem_ratio": {
+            "client": 0.0946044921875,
+            "server": 0.07781982421875
+          },
+          "server_udp": {
+            "queue_capacity_records": 1024,
+            "queue_capacity_bytes": 9150464,
+            "max_queue_current": 2,
+            "max_queue_bytes": 1456,
+            "max_inflight_current": 4,
+            "max_inflight_bytes": 2720,
+            "total_peak": 19,
+            "total_bytes_peak": 10320,
+            "overflow_drops": 0,
+            "overflow_bytes": 0,
+            "stale_drops": 0,
+            "send_errors": 0,
+            "workers": 4
+          },
+          "server_pipeline": {
+            "ready_capacity": 4096,
+            "ready_peak": 471,
+            "ready_bytes_peak": 224565,
             "overflow_drops": 0,
             "overflow_bytes": 0
           },
