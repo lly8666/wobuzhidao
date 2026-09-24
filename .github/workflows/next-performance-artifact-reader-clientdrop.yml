@@ -60,7 +60,7 @@ jobs:
             -o "$RUNNER_TEMP/evidence.zip"
           ls -lh "$RUNNER_TEMP/evidence.zip"
 
-      - name: Extract client and server packet-socket drop timeline
+      - name: Extract client and server socket drop timeline
         shell: bash
         run: |
           set -euo pipefail
@@ -119,23 +119,26 @@ jobs:
           origin=bounds['pre'][0]
           hz=os.sysconf('SC_CLK_TCK')
           endpoints=('client','server')
-          prev_d={x:0 for x in endpoints}
+          kinds=('ss_packet','ss_udp','ss_raw')
+          prev_d={(ep,kind):0 for ep in endpoints for kind in kinds}
           prev_row=None
           transitions=[]
-          stage_delta={x:{k:0 for k in ('pre','stress','post','outside')} for x in endpoints}
-          maxima={x:{'drops':0,'rmem_alloc':0,'rcv_buf':0,'rmem_ratio':0.0} for x in endpoints}
+          stage_delta={ep:{kind:{k:0 for k in ('pre','stress','post','outside')} for kind in kinds} for ep in endpoints}
+          maxima={ep:{kind:{'drops':0,'rmem_alloc':0,'rcv_buf':0,'rmem_ratio':0.0} for kind in kinds} for ep in endpoints}
           for idx,row in enumerate(resources):
               ts=int(row.get('unix_ns',0))
-              states={}
+              states={ep:{} for ep in endpoints}
               for ep in endpoints:
-                  ss=((((row.get('namespaces') or {}).get(ep) or {}).get('ss_packet') or {}).get('stdout') or '')
-                  states[ep]=parse_skmem(ss)
-                  for k in ('drops','rmem_alloc','rcv_buf','rmem_ratio'):
-                      maxima[ep][k]=max(maxima[ep][k],states[ep][k])
-              deltas={ep:max(0,states[ep]['drops']-prev_d[ep]) for ep in endpoints}
+                  for kind in kinds:
+                      ss=((((row.get('namespaces') or {}).get(ep) or {}).get(kind) or {}).get('stdout') or '')
+                      states[ep][kind]=parse_skmem(ss)
+                      for k in ('drops','rmem_alloc','rcv_buf','rmem_ratio'):
+                          maxima[ep][kind][k]=max(maxima[ep][kind][k],states[ep][kind][k])
+              deltas={(ep,kind):max(0,states[ep][kind]['drops']-prev_d[(ep,kind)]) for ep in endpoints for kind in kinds}
               if any(deltas.values()):
                   stage=stage_for(ts,bounds)
-                  for ep,d in deltas.items(): stage_delta[ep][stage]+=d
+                  nested_delta={ep:{kind:deltas[(ep,kind)] for kind in kinds} for ep in endpoints}
+                  for (ep,kind),d in deltas.items(): stage_delta[ep][kind][stage]+=d
                   cpu={}
                   if prev_row is not None:
                       for ep in endpoints:
@@ -146,15 +149,17 @@ jobs:
                       'unix_ns':ts,
                       'elapsed_s':(ts-origin)/1e9,
                       'stage':stage,
-                      'drop_delta':deltas,
-                      'packet_socket':states,
+                      'drop_delta':nested_delta,
+                      'sockets':states,
                       'cpu_delta_s':cpu,
                       'procs_running':(row.get('proc_stat') or {}).get('procs_running'),
                       'procs_blocked':(row.get('proc_stat') or {}).get('procs_blocked'),
                       'loadavg':row.get('loadavg'),
                   })
               prev_row=row
-              for ep in endpoints: prev_d[ep]=states[ep]['drops']
+              for ep in endpoints:
+                  for kind in kinds:
+                      prev_d[(ep,kind)]=states[ep][kind]['drops']
           out={
               'artifact_id':int(os.environ['ARTIFACT_ID']),
               'source_run':int(os.environ['SOURCE_RUN']),
@@ -170,7 +175,7 @@ jobs:
           }
           with open('artifact-reader/clientdrop-timeline.json','w',encoding='utf-8') as f:
               json.dump(out,f,indent=2,sort_keys=True); f.write('\n')
-          print('WBD_CLIENTDROP_TIMELINE '+json.dumps(out,sort_keys=True))
+          print('WBD_SOCKETDROP_TIMELINE '+json.dumps(out,sort_keys=True))
           PY
 
       - name: Upload extracted timeline
