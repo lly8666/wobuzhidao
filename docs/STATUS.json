@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V9_FINAL18_READY：产品SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf。V9 correctness/race与三条诊断canary均PASS：Normal/5305/seed202 run 35958955273、Game4/5305/seed303 run 35959672408、Normal/5205/seed101 run 35966885451。三条均为新的workflow_dispatch attempt1、五分类全PASS、socket/link/qdisc drop=0、userspace receive overflow=0、fresh三项全0、RepairEvictionMaxScan=1。V8 final18 16 PASS / 2 CAPACITY_LIMITED永久保留，不并入V9资格。",
-  "next_task": "从头启动V9专用final18，固定SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf，不得复用任何V8或V9诊断canary。18条必须各自是新的workflow_dispatch run、attempt1；任一FAIL或CAPACITY_LIMITED即停止资格链并永久保留。全部18/18五分类PASS且socket/link/qdisc drop=0后，才考虑同SHA P6 repackage。",
-  "latest_log": "docs/devlog/20260924-165500-v9-5205-canary-pass-final18-ready.md",
+  "in_progress": "REPAIR_FOLLOWUP_V9_FINAL18_CAPACITY_LIMITED：产品SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf 的全新专用final18已完成，17/18五分类PASS，1条CAPACITY_LIMITED。唯一失败为Normal/5305/seed101 run 35978250504：CAPTURE/CORRECTNESS/INPUT_VALIDITY PASS，ENVIRONMENT FAIL，PERFORMANCE CAPACITY_LIMITED；link/qdisc与AF_PACKET raw drop均0，但server产品UDP mapping socket在stress累计2556 kernel UDP drops。V9 receive shedding在同次事件显式丢3890条最旧server ready backlog并保持raw reader不阻塞，说明AF_PACKET层修复有效，但容量压力向platformflow UDP upstream mapping暴露。该final18永久保留，不能补跑/重跑失败样本，P6不运行。",
+  "next_task": "只读定位V9 Normal/5305/seed101的platformflow UDP mapping阻塞链，并设计严格全局有界的UDP ingress drain/send解耦；禁止per-flow 4096大队列、禁止盲目扩大kernel UDP buffer、禁止per-packet goroutine。若有产品修改则进入V10，必须同步STATUS+新devlog并先跑Actions correctness/race；全绿前不跑任何性能。",
+  "latest_log": "docs/devlog/20260924-172000-v9-final18-stopped-server-udp-capacity.md",
   "last_tested_source_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
   "actions": [
     {
@@ -1844,7 +1844,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REPAIR_FOLLOWUP_V9_FINAL18_READY",
+      "status": "REPAIR_FOLLOWUP_V9_FINAL18_CAPACITY_LIMITED",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1855,9 +1855,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-165500-v9-5205-canary-pass-final18-ready.md",
-      "note": "V9 receive policy is now covered by two prior-capacity-limit repro canaries plus the denser-repair Normal/5205 canary. All three pass without kernel/link drops, userspace overflow, fresh HOL, reserve capacity eviction, or O(N) repair eviction.",
-      "next_task": "从头启动V9专用final18，固定SOURCE_SHA af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf，不得复用任何V8或V9诊断canary。18条必须各自是新的workflow_dispatch run、attempt1；任一FAIL或CAPACITY_LIMITED即停止资格链并永久保留。全部18/18五分类PASS且socket/link/qdisc drop=0后，才考虑同SHA P6 repackage。",
+      "latest_log": "docs/devlog/20260924-172000-v9-final18-stopped-server-udp-capacity.md",
+      "note": "V9 final18 is permanently 17 PASS / 1 CAPACITY_LIMITED. The failure is not AF_PACKET: server platformflow UDP mapping 0.0.0.0:50934 filled its 1MiB receive buffer and dropped 2556 packets during a ~1.3s downstream stall. V9 bounded receive shedding prevented raw-reader blockage but did not eliminate downstream UDP capacity pressure.",
+      "next_task": "只读定位V9 Normal/5305/seed101的platformflow UDP mapping阻塞链，并设计严格全局有界的UDP ingress drain/send解耦；禁止per-flow 4096大队列、禁止盲目扩大kernel UDP buffer、禁止per-packet goroutine。若有产品修改则进入V10，必须同步STATUS+新devlog并先跑Actions correctness/race；全绿前不跑任何性能。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -5041,7 +5041,7 @@
         }
       },
       "repair_followup_candidate_v9": {
-        "status": "CORRECTNESS_RACE_AND_THREE_DIAGNOSTIC_CANARIES_PASS",
+        "status": "FINAL18_STOPPED_CAPACITY_LIMITED",
         "parent_docs_head": "4407476e274e6ff3fa0a81558838412554ba8509",
         "parent_product_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
         "commit": "runtimeentry: shed oldest bounded receive backlog",
@@ -5055,7 +5055,7 @@
         },
         "parameters_changed": false,
         "kernel_socket_buffer_changed": false,
-        "performance_status": "FINAL18_READY",
+        "performance_status": "FINAL18_17_PASS_1_CAPACITY_LIMITED",
         "source_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
         "correctness_runs": {
           "lifecycle": 35958681116,
@@ -5240,6 +5240,70 @@
             "fresh_window_bypass": 0,
             "fresh_emit_failures": 0,
             "repair_eviction_max_scan": 1
+          }
+        },
+        "final18": {
+          "generation": "v9-bounded-receive-final18-new-samples",
+          "dispatch_ref": "perf-fixed/af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf-r2",
+          "source_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
+          "total": 18,
+          "pass": 17,
+          "capacity_limited": 1,
+          "strict_reruns": 0,
+          "p6_status": "NOT_RUN",
+          "failure": {
+            "mode": "normal",
+            "scenario": "5305",
+            "seed": 101,
+            "run": 35978250504,
+            "job": 107563733006,
+            "summary_artifact": 10798968472,
+            "summary_digest": "sha256:046476c18a905a0c426c8d38fe2ac32f2446f4edd471d9ce349ed9ecf94597af",
+            "full_artifact": 10799441721,
+            "full_digest": "sha256:5c041b6488271e5bb8acbfad14cda8e1bad7effa7deb28ed3a425fe8ee3126d2",
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "FAIL",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "CAPACITY_LIMITED"
+            },
+            "socket_drops": {
+              "client_packet": 0,
+              "server_packet": 0,
+              "server_udp": 2556
+            },
+            "link_drop_max": 0,
+            "udp_socket": "server 0.0.0.0:50934 platformflow UDPServer upstream mapping",
+            "udp_drop_window": "stress elapsed ~36-37s; +1492 then +1064",
+            "udp_peak_recvq_bytes": 1050816,
+            "udp_rcvbuf_bytes": 1048576,
+            "server_pipeline": {
+              "ready_capacity": 4096,
+              "ready_peak": 4097,
+              "overflow_drops": 3890,
+              "overflow_age_max_ms": 823,
+              "handler_max_ms": 1313
+            },
+            "transport": {
+              "fresh_blocked": 0,
+              "fresh_window_bypass": 0,
+              "fresh_emit_failures": 0,
+              "repair_eviction_max_scan": 1
+            },
+            "stress_goodput_mbps": {
+              "c2s": 9.90018,
+              "s2c": 9.81058
+            },
+            "probe_p95_ms": 620.025,
+            "outer_ip_per_app": {
+              "c2s": 5.297872,
+              "s2c": 5.390444
+            },
+            "process_cpu_seconds": {
+              "client": 84.61,
+              "server": 87.38
+            }
           }
         }
       }
