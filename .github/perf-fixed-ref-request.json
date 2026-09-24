@@ -1,12 +1,12 @@
 {
   "ref": "next/tlslike-dataplane",
-  "dispatch_ref": "perf-fixed/af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
-  "expected_sha": "af6d1f21cc589c4ebfffc07efc38df3ce4ff97bf",
+  "dispatch_ref": "perf-fixed/2f6a1e470e7b3d2967460971987a9dace5aa972d",
+  "expected_sha": "2f6a1e470e7b3d2967460971987a9dace5aa972d",
   "workflow": "next-strict-weaknet.yml",
   "mode": "normal",
-  "scenario": "5205",
+  "scenario": "5305",
   "seed": "101",
   "rate_mbps": "10",
   "lanes": "1",
-  "reason": "V9 bounded receive overflow shedding Normal/5205/seed101 diagnostic canary"
+  "reason": "V10 global UDP upstream drain diagnostic canary after correctness/race PASS"
 }
