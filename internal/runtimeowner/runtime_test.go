@@ -1517,7 +1517,7 @@ func TestSteadyRepairReserveBoundedWithoutFreshHOL(t *testing.T) {
 	}
 }
 
-func TestSteadyDuplicateACKContinuesBoundedReserveRetirement(t *testing.T) {
+func TestSteadyDuplicateACKDoesNotEagerlyDrainReserve(t *testing.T) {
 	lease := runtimeLease(t)
 	owner, err := datapath.NewLeasedTunnelOwner(lease, 1, 8)
 	if err != nil { t.Fatal(err) }
@@ -1554,14 +1554,18 @@ func TestSteadyDuplicateACKContinuesBoundedReserveRetirement(t *testing.T) {
 		t.Fatalf("first bounded reserve prune stats=%+v", stats)
 	}
 
-	// A duplicate ACK must continue the already-confirmed cleanup rather than
-	// leaving stale reserve records to consume one-shot capacity.
+	// Duplicate ACKs below reserve pressure are intentionally no-op for reserve
+	// cleanup. This keeps the common 5205 feedback path at V6.1 behavior; if
+	// capacity later becomes full, stashRepairReserveLocked reclaims exactly one
+	// ACK-covered FIFO head in O(1) before any true optional eviction.
 	if err := rt.HandleSegment(snap.Ref, ack, t0.Add(601*time.Millisecond)); err != nil { t.Fatal(err) }
 	stats, _ = rt.TransportStats(snap.Ref)
-	if stats.RepairReserveRetired != 128 || stats.RepairReserveOutstanding != 0 ||
-		stats.RepairReserveEvicted != 0 || stats.Abandoned != 0 ||
-		stats.FreshBlocked != 0 || stats.RepairEvictionMaxScan > 1 {
-		t.Fatalf("duplicate ACK did not drain confirmed reserve stats=%+v", stats)
+	if stats.RepairReserveRetired != steadyRepairReservePruneBudget ||
+		stats.RepairReserveOutstanding != 128-steadyRepairReservePruneBudget ||
+		stats.RepairReserveEvicted != 0 || stats.RepairReserveDropped != 0 ||
+		stats.Abandoned != 0 || stats.FreshBlocked != 0 ||
+		stats.FreshWindowBypass != 0 || stats.RepairEvictionMaxScan > 1 {
+		t.Fatalf("duplicate ACK eagerly changed reserve state stats=%+v", stats)
 	}
 }
 

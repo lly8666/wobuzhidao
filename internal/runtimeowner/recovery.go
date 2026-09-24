@@ -377,13 +377,10 @@ func (t *laneTransport) evictRepairForFreshLocked() bool {
 func (t *laneTransport) retireSelectiveACKLocked(ack uint32, now time.Time) {
 	oldAck := t.lastAck
 	if !seqLT(oldAck, ack) {
-		if ack == oldAck {
-			// The cumulative ACK may have jumped across more reserve records
-			// than one bounded prune pass can retire. Duplicate ACKs are useful
-			// cleanup opportunities: each pass remains capped and stops at the
-			// first record not covered by the current ACK.
-			t.pruneRepairReserveACKLocked(ack)
-		}
+		// Duplicate/stale ACKs are hot-path feedback and must not eagerly walk
+		// reserve cleanup while capacity is healthy. ACK-covered reserve records
+		// are still retired by the bounded cumulative-ACK pass, and a truly full
+		// reserve reclaims one ACK-covered FIFO head in O(1) on fresh pressure.
 		return
 	}
 
