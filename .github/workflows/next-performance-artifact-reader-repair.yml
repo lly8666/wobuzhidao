@@ -57,6 +57,7 @@ jobs:
           zpath=os.path.join(os.environ['RUNNER_TEMP'],'evidence.zip')
           keys=[
             'FastRepairEvidence','FastRepairArmed','FastRepairArmFired','FastRepairArmCanceled',
+            'RepairReserveStored','RepairReserveRetired','RepairReserveEvicted','RepairReserveDropped','RepairReserveExpired','RepairReserveRepairs','RepairReservePeak','RepairReserveOutstanding','RepairReserveBytes',
             'FastRepairs','RTORepairs','RepairSelected','RepairAttempts','RepairSucceeded',
             'RepairFailures','RepairDeferred','RepairExpiredSkipped',
             'RepairEvicted','RepairMetadataEvicted','Abandoned',
@@ -66,6 +67,7 @@ jobs:
           ]
           counters=set([
             'FastRepairEvidence','FastRepairArmed','FastRepairArmFired','FastRepairArmCanceled',
+            'RepairReserveStored','RepairReserveRetired','RepairReserveEvicted','RepairReserveDropped','RepairReserveExpired','RepairReserveRepairs','RepairReservePeak','RepairReserveOutstanding','RepairReserveBytes',
             'FastRepairs','RTORepairs','RepairSelected','RepairAttempts','RepairSucceeded',
             'RepairFailures','RepairDeferred','RepairExpiredSkipped',
             'RepairEvicted','RepairMetadataEvicted','Abandoned',
