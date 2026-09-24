@@ -151,6 +151,10 @@ jobs:
                       'stage':stage,
                       'drop_delta':nested_delta,
                       'sockets':states,
+                      'raw_ss_udp':{
+                          ep:((((row.get('namespaces') or {}).get(ep) or {}).get('ss_udp') or {}).get('stdout') or '')
+                          for ep in endpoints
+                      },
                       'cpu_delta_s':cpu,
                       'procs_running':(row.get('proc_stat') or {}).get('procs_running'),
                       'procs_blocked':(row.get('proc_stat') or {}).get('procs_blocked'),
