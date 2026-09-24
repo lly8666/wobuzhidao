@@ -56,7 +56,7 @@ jobs:
           import json, os, zipfile
           zpath=os.path.join(os.environ['RUNNER_TEMP'],'evidence.zip')
           keys=[
-            'FastRepairArmed','FastRepairArmFired','FastRepairArmCanceled',
+            'FastRepairEvidence','FastRepairArmed','FastRepairArmFired','FastRepairArmCanceled',
             'FastRepairs','RTORepairs','RepairSelected','RepairAttempts','RepairSucceeded',
             'RepairFailures','RepairDeferred','RepairExpiredSkipped',
             'RepairEvicted','RepairMetadataEvicted','Abandoned',
@@ -65,7 +65,7 @@ jobs:
             'RepairQueue','Outstanding','RepairCreditBytes','RecoveryTicks'
           ]
           counters=set([
-            'FastRepairArmed','FastRepairArmFired','FastRepairArmCanceled',
+            'FastRepairEvidence','FastRepairArmed','FastRepairArmFired','FastRepairArmCanceled',
             'FastRepairs','RTORepairs','RepairSelected','RepairAttempts','RepairSucceeded',
             'RepairFailures','RepairDeferred','RepairExpiredSkipped',
             'RepairEvicted','RepairMetadataEvicted','Abandoned',
