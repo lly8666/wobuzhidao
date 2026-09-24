@@ -1,12 +1,12 @@
 {
   "ref": "next/tlslike-dataplane",
-  "dispatch_ref": "perf-fixed/e67b51968d9e5f707dfc9ef7d459ba5192008901",
-  "expected_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
+  "dispatch_ref": "perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4",
+  "expected_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
   "workflow": "next-strict-weaknet.yml",
-  "mode": "game",
+  "mode": "normal",
   "scenario": "5305",
-  "seed": "101",
-  "rate_mbps": "3",
-  "lanes": "4",
-  "reason": "V10.1 sharded UDP sender Game4 multi-flow canary after 5205 CPU recovery PASS"
+  "seed": "303",
+  "rate_mbps": "10",
+  "lanes": "1",
+  "reason": "V10.2 client TPROXY UDP ingress bounded-drain diagnostic canary after correctness/race PASS"
 }
