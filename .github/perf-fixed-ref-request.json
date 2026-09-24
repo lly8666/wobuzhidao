@@ -1,12 +1,12 @@
 {
   "ref": "next/tlslike-dataplane",
-  "dispatch_ref": "perf-fixed/d90ef09c9e84bfe2719d04784b58f662c05d9fc3-r2",
-  "expected_sha": "d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
+  "dispatch_ref": "perf-fixed/27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
+  "expected_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
   "workflow": "next-strict-weaknet.yml",
   "mode": "normal",
-  "scenario": "5205",
+  "scenario": "lossless",
   "seed": "101",
   "rate_mbps": "10",
   "lanes": "1",
-  "reason": "V7 bounded repair follow-up independent repeat 2; preserve run 35947585606"
+  "reason": "V8 pressure-only reserve retirement; exact product SHA Normal/lossless/seed101 independent sample"
 }
