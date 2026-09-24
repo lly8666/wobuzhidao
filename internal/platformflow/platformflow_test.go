@@ -131,7 +131,10 @@ func TestUDPServerSendQueueGlobalBudgetDropsOldestKeepsNewest(t *testing.T) {
 	if d.QueueCurrent != 3 || d.TotalPeak != 3 || d.OverflowDrops != 1 || d.OverflowBytes != 1 {
 		t.Fatalf("bounded queue diagnostic=%+v", d)
 	}
-	first, ok := q.pop()
+	if d.Workers != udpServerSendWorkers || d.EvictionMaxScan > udpServerSendWorkers {
+		t.Fatalf("worker/eviction bound diagnostic=%+v", d)
+	}
+	first, ok := q.popShard(q.shardFor(states[1].id))
 	if !ok {
 		t.Fatal("pop failed")
 	}
@@ -145,6 +148,33 @@ func TestUDPServerSendQueueGlobalBudgetDropsOldestKeepsNewest(t *testing.T) {
 	}
 }
 
+func TestUDPServerSendQueueFlowStaysOnOneShard(t *testing.T) {
+	q := newUDPServerSendQueue(8)
+	defer q.close()
+	state := &udpServerState{id: 9}
+	want := q.shardFor(state.id)
+	for i := 0; i < 4; i++ {
+		if !q.enqueue(udpServerQueuedDatagram{
+			state: state,
+			payload: []byte{byte(i)},
+			queuedAt: time.Unix(155, int64(i)),
+		}, time.Unix(155, int64(i))) {
+			t.Fatal("enqueue rejected")
+		}
+	}
+	for i := 0; i < 4; i++ {
+		item, ok := q.popShard(want)
+		if !ok || item.state != state || item.payload[0] != byte(i) {
+			t.Fatalf("shard pop %d item=%+v ok=%v", i, item, ok)
+		}
+		q.finish(item, false, false)
+	}
+	d := q.snapshot()
+	if d.QueueCurrent != 0 || d.InFlightCurrent != 0 {
+		t.Fatalf("queue not drained: %+v", d)
+	}
+}
+
 func TestUDPServerSendQueueCountsInflightInsideGlobalBudget(t *testing.T) {
 	q := newUDPServerSendQueue(2)
 	defer q.close()
@@ -155,7 +185,7 @@ func TestUDPServerSendQueueCountsInflightInsideGlobalBudget(t *testing.T) {
 			t.Fatal("initial enqueue rejected")
 		}
 	}
-	item, ok := q.pop()
+	item, ok := q.popShard(q.shardFor(state.id))
 	if !ok {
 		t.Fatal("pop failed")
 	}

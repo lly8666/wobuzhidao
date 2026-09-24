@@ -42,6 +42,7 @@ type UDPServerDiagnostic struct {
 	SendErrors           uint64        `json:"send_errors"`
 	CloseDrops           uint64        `json:"close_drops"`
 	Workers              int           `json:"workers"`
+	EvictionMaxScan      int           `json:"eviction_max_scan"`
 }
 
 type udpServerQueuedDatagram struct {
@@ -51,41 +52,104 @@ type udpServerQueuedDatagram struct {
 	queuedAt time.Time
 }
 
-type udpServerSendQueue struct {
-	mu      sync.Mutex
-	cond    *sync.Cond
+type udpServerSendShard struct {
 	entries []udpServerQueuedDatagram
 	head    int
 	size    int
 	bytes   int
+	cond    *sync.Cond
+}
 
-	inFlight      int
-	inFlightBytes int
-	closed        bool
+type udpServerSendQueue struct {
+	mu              sync.Mutex
+	shards          []udpServerSendShard
+	capacityRecords int
+	queueSize       int
+	queueBytes      int
+	inFlight        int
+	inFlightBytes   int
+	closed          bool
 
-	totalPeak      int
-	totalBytesPeak int
-	enqueued       uint64
-	dequeued       uint64
-	overflowDrops  uint64
-	overflowBytes  uint64
-	overflowAgeMax time.Duration
-	staleDrops     uint64
-	sendErrors     uint64
-	closeDrops     uint64
+	totalPeak       int
+	totalBytesPeak  int
+	enqueued        uint64
+	dequeued        uint64
+	overflowDrops   uint64
+	overflowBytes   uint64
+	overflowAgeMax  time.Duration
+	staleDrops      uint64
+	sendErrors      uint64
+	closeDrops      uint64
+	evictionMaxScan int
 }
 
 func newUDPServerSendQueue(records int) *udpServerSendQueue {
 	if records <= 0 {
 		records = udpServerSendBudgetRecords
 	}
-	q := &udpServerSendQueue{entries: make([]udpServerQueuedDatagram, records)}
-	q.cond = sync.NewCond(&q.mu)
+	q := &udpServerSendQueue{
+		capacityRecords: records,
+		shards: make([]udpServerSendShard, udpServerSendWorkers),
+	}
+	for i := range q.shards {
+		// Each ring can represent the entire global record budget, but actual
+		// payload ownership is still constrained by capacityRecords globally.
+		q.shards[i].entries = make([]udpServerQueuedDatagram, records)
+		q.shards[i].cond = sync.NewCond(&q.mu)
+	}
 	return q
 }
 
 func (q *udpServerSendQueue) capacityBytes() int {
-	return len(q.entries) * MaxPayload
+	if q == nil {
+		return 0
+	}
+	return q.capacityRecords * MaxPayload
+}
+
+func (q *udpServerSendQueue) shardFor(flowID uint64) int {
+	if q == nil || len(q.shards) == 0 {
+		return 0
+	}
+	return int(flowID % uint64(len(q.shards)))
+}
+
+func (q *udpServerSendQueue) dropOldestQueuedLocked(now time.Time) bool {
+	oldestShard := -1
+	var oldest time.Time
+	scanned := 0
+	for i := range q.shards {
+		scanned++
+		sh := &q.shards[i]
+		if sh.size == 0 {
+			continue
+		}
+		item := sh.entries[sh.head]
+		if oldestShard < 0 || item.queuedAt.Before(oldest) {
+			oldestShard = i
+			oldest = item.queuedAt
+		}
+	}
+	if scanned > q.evictionMaxScan {
+		q.evictionMaxScan = scanned
+	}
+	if oldestShard < 0 {
+		return false
+	}
+	sh := &q.shards[oldestShard]
+	dropped := sh.entries[sh.head]
+	sh.entries[sh.head] = udpServerQueuedDatagram{}
+	sh.head = (sh.head + 1) % len(sh.entries)
+	sh.size--
+	sh.bytes -= len(dropped.payload)
+	q.queueSize--
+	q.queueBytes -= len(dropped.payload)
+	q.overflowDrops++
+	q.overflowBytes += uint64(len(dropped.payload))
+	if age := now.Sub(dropped.queuedAt); age > q.overflowAgeMax {
+		q.overflowAgeMax = age
+	}
+	return true
 }
 
 func (q *udpServerSendQueue) enqueue(item udpServerQueuedDatagram, now time.Time) bool {
@@ -98,68 +162,70 @@ func (q *udpServerSendQueue) enqueue(item udpServerQueuedDatagram, now time.Time
 		return false
 	}
 
-	// Budget counts both queued and currently sending records. If full, evict
-	// exactly one oldest queued datagram. With records*MaxPayload as the byte
-	// ceiling, one such eviction is sufficient for any valid newest datagram.
-	if q.size+q.inFlight >= len(q.entries) {
-		if q.size == 0 {
+	// Global budget includes queued plus currently sending records. At record
+	// capacity, inspect exactly the four fixed shard heads and evict one oldest
+	// queued datagram. This remains O(1) independent of flow count/backlog.
+	if q.queueSize+q.inFlight >= q.capacityRecords {
+		if !q.dropOldestQueuedLocked(now) {
 			q.overflowDrops++
 			q.overflowBytes += uint64(len(item.payload))
 			return true
 		}
-		dropped := q.entries[q.head]
-		q.entries[q.head] = udpServerQueuedDatagram{}
-		q.head = (q.head + 1) % len(q.entries)
-		q.size--
-		q.bytes -= len(dropped.payload)
-		q.overflowDrops++
-		q.overflowBytes += uint64(len(dropped.payload))
-		if age := now.Sub(dropped.queuedAt); age > q.overflowAgeMax {
-			q.overflowAgeMax = age
-		}
 	}
-
-	if q.bytes+q.inFlightBytes+len(item.payload) > q.capacityBytes() {
-		// This should be unreachable while every record is <= MaxPayload and the
-		// record budget above is respected. Fail bounded by shedding the newest.
+	if q.queueBytes+q.inFlightBytes+len(item.payload) > q.capacityBytes() {
 		q.overflowDrops++
 		q.overflowBytes += uint64(len(item.payload))
 		return true
 	}
-	tail := (q.head + q.size) % len(q.entries)
-	q.entries[tail] = item
-	q.size++
-	q.bytes += len(item.payload)
+
+	idx := q.shardFor(item.state.id)
+	sh := &q.shards[idx]
+	if sh.size >= len(sh.entries) {
+		// Global capacity guarantees this should only be reachable for malformed
+		// internal accounting; fail bounded rather than allocate.
+		q.overflowDrops++
+		q.overflowBytes += uint64(len(item.payload))
+		return true
+	}
+	tail := (sh.head + sh.size) % len(sh.entries)
+	sh.entries[tail] = item
+	sh.size++
+	sh.bytes += len(item.payload)
+	q.queueSize++
+	q.queueBytes += len(item.payload)
 	q.enqueued++
-	total := q.size + q.inFlight
+	total := q.queueSize + q.inFlight
 	if total > q.totalPeak {
 		q.totalPeak = total
 	}
-	totalBytes := q.bytes + q.inFlightBytes
+	totalBytes := q.queueBytes + q.inFlightBytes
 	if totalBytes > q.totalBytesPeak {
 		q.totalBytesPeak = totalBytes
 	}
-	q.cond.Signal()
+	sh.cond.Signal()
 	return true
 }
 
-func (q *udpServerSendQueue) pop() (udpServerQueuedDatagram, bool) {
-	if q == nil {
+func (q *udpServerSendQueue) popShard(idx int) (udpServerQueuedDatagram, bool) {
+	if q == nil || idx < 0 || idx >= len(q.shards) {
 		return udpServerQueuedDatagram{}, false
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	for q.size == 0 && !q.closed {
-		q.cond.Wait()
+	sh := &q.shards[idx]
+	for sh.size == 0 && !q.closed {
+		sh.cond.Wait()
 	}
-	if q.closed || q.size == 0 {
+	if q.closed || sh.size == 0 {
 		return udpServerQueuedDatagram{}, false
 	}
-	item := q.entries[q.head]
-	q.entries[q.head] = udpServerQueuedDatagram{}
-	q.head = (q.head + 1) % len(q.entries)
-	q.size--
-	q.bytes -= len(item.payload)
+	item := sh.entries[sh.head]
+	sh.entries[sh.head] = udpServerQueuedDatagram{}
+	sh.head = (sh.head + 1) % len(sh.entries)
+	sh.size--
+	sh.bytes -= len(item.payload)
+	q.queueSize--
+	q.queueBytes -= len(item.payload)
 	q.inFlight++
 	q.inFlightBytes += len(item.payload)
 	q.dequeued++
@@ -195,14 +261,19 @@ func (q *udpServerSendQueue) close() {
 	q.mu.Lock()
 	if !q.closed {
 		q.closed = true
-		q.closeDrops += uint64(q.size)
-		for q.size > 0 {
-			q.entries[q.head] = udpServerQueuedDatagram{}
-			q.head = (q.head + 1) % len(q.entries)
-			q.size--
+		q.closeDrops += uint64(q.queueSize)
+		for i := range q.shards {
+			sh := &q.shards[i]
+			for sh.size > 0 {
+				sh.entries[sh.head] = udpServerQueuedDatagram{}
+				sh.head = (sh.head + 1) % len(sh.entries)
+				sh.size--
+			}
+			sh.bytes = 0
+			sh.cond.Broadcast()
 		}
-		q.bytes = 0
-		q.cond.Broadcast()
+		q.queueSize = 0
+		q.queueBytes = 0
 	}
 	q.mu.Unlock()
 }
@@ -214,10 +285,10 @@ func (q *udpServerSendQueue) snapshot() UDPServerDiagnostic {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	return UDPServerDiagnostic{
-		QueueCapacityRecords: len(q.entries),
+		QueueCapacityRecords: q.capacityRecords,
 		QueueCapacityBytes: q.capacityBytes(),
-		QueueCurrent: q.size,
-		QueueBytes: q.bytes,
+		QueueCurrent: q.queueSize,
+		QueueBytes: q.queueBytes,
 		InFlightCurrent: q.inFlight,
 		InFlightBytes: q.inFlightBytes,
 		TotalPeak: q.totalPeak,
@@ -230,7 +301,8 @@ func (q *udpServerSendQueue) snapshot() UDPServerDiagnostic {
 		StaleDrops: q.staleDrops,
 		SendErrors: q.sendErrors,
 		CloseDrops: q.closeDrops,
-		Workers: udpServerSendWorkers,
+		Workers: len(q.shards),
+		EvictionMaxScan: q.evictionMaxScan,
 	}
 }
 
@@ -402,7 +474,6 @@ type udpServerState struct {
 	lastSeen time.Time
 	upstream *net.UDPConn
 	tunnel   *TunnelFlow
-	sendMu   sync.Mutex
 	closeOnce sync.Once
 }
 
@@ -445,7 +516,7 @@ func NewUDPServer(channel *TunnelChannel, idle time.Duration, maxFlows int) (*UD
 	}
 	s.sendWG.Add(udpServerSendWorkers)
 	for i := 0; i < udpServerSendWorkers; i++ {
-		go s.sendWorker()
+		go s.sendWorker(i)
 	}
 	return s, nil
 }
@@ -520,20 +591,18 @@ func (s *UDPServer) readUpstream(state *udpServerState) {
 	}
 }
 
-func (s *UDPServer) sendWorker() {
+func (s *UDPServer) sendWorker(shard int) {
 	defer s.sendWG.Done()
 	for {
-		item, ok := s.sendQueue.pop()
+		item, ok := s.sendQueue.popShard(shard)
 		if !ok {
 			return
 		}
 		state := item.state
-		state.sendMu.Lock()
 		s.mu.Lock()
 		active := s.flows[state.id] == state
 		s.mu.Unlock()
 		if !active {
-			state.sendMu.Unlock()
 			s.sendQueue.finish(item, true, false)
 			continue
 		}
@@ -541,7 +610,6 @@ func (s *UDPServer) sendWorker() {
 			Kind: KindUDPDatagram, FlowID: state.id, Peer: item.peer,
 			Payload: item.payload,
 		}, time.Now())
-		state.sendMu.Unlock()
 		s.sendQueue.finish(item, false, err != nil)
 		if err != nil {
 			s.remove(state)
