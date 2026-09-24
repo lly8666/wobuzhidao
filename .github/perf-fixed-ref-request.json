@@ -3,10 +3,10 @@
   "dispatch_ref": "perf-fixed/e67b51968d9e5f707dfc9ef7d459ba5192008901",
   "expected_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
   "workflow": "next-strict-weaknet.yml",
-  "mode": "normal",
-  "scenario": "5205",
+  "mode": "game",
+  "scenario": "5305",
   "seed": "101",
-  "rate_mbps": "10",
-  "lanes": "1",
-  "reason": "V10.1 sharded UDP sender dense-repair CPU regression canary after correctness/race PASS"
+  "rate_mbps": "3",
+  "lanes": "4",
+  "reason": "V10.1 sharded UDP sender Game4 multi-flow canary after 5205 CPU recovery PASS"
 }
