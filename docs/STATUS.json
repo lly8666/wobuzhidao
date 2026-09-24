@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V10P1_FINAL18_READY：产品SOURCE_SHA e67b51968d9e5f707dfc9ef7d459ba5192008901。V10.1 correctness/race全绿；Normal/5205/seed101 run 36004672858 与 Game4/5305/seed101 run 36005760953 均为新的workflow_dispatch attempt1、五分类全PASS、所有socket/link/qdisc drop=0。5205 CPU 50.64/52.52s、FastRepairs 23600/23601、reserve Evicted/Dropped/Expired/Abandoned全0；Game4 CPU 85.8/81.07s、stress FastRepairs 1622/1668聚合、fresh三项0。global UDP与SegmentMux均远低于固定上限，无overflow。",
-  "next_task": "从头启动V10.1专用final18，固定SOURCE_SHA e67b51968d9e5f707dfc9ef7d459ba5192008901，必须使用独立frozen ref，不能复用任何V8/V9/V10/V10.1诊断canary。18条每条必须新的workflow_dispatch attempt1；任一FAIL或CAPACITY_LIMITED即停止资格链并永久保留。18/18五分类PASS且所有socket/link/qdisc drop=0后，才考虑同SHA P6 repackage。",
-  "latest_log": "docs/devlog/20260924-224500-v10p1-final18-ready.md",
+  "in_progress": "REPAIR_FOLLOWUP_V10P2_PENDING_ACTIONS：产品SOURCE_SHA 56eb5413c3cf2e559b82026e8a5783508764e2f4。V10.1 SOURCE_SHA e67b51968d9e5f707dfc9ef7d459ba5192008901 的独立final18永久停在17 PASS / 1 CAPACITY_LIMITED；唯一失败Normal/5305/seed303 run 36006942033为client/ss_udp产品TPROXY 0.0.0.0:12345 drop=2552，AF_PACKET/raw/server UDP/link/qdisc均0。代码确认client udpLoop仍同步ReadMsgUDP→BeforeBusiness→ForwardUDP→tunnel.Send。V10.2仅在client TPROXY UDP ingress新增严格全局1024-record/1024*MaxPayload字节预算、4个固定shard workers，同client endpoint固定单worker，全局满时最多扫描4个shard head并淘汰最旧queued datagram；不改repair/FEC/wire/kernel socket buffer。correctness/race/performance尚未完成。",
+  "next_task": "只通过GitHub Actions验证V10.2 56eb5413c3cf2e559b82026e8a5783508764e2f4 的openwrtclient/platformflow/runtimeentry unit+races、targeted、foundation、lifecycle及privileged TPROXY。任何失败先分析，不跑性能。全部通过后只跑一条新的Normal/5305/seed303 exact-SHA诊断canary，要求client/ss_udp drop=0、client ingress queued+inflight<=1024且bytes<=1024*MaxPayload、EvictionMaxScan<=4、server UDP仍有界、FreshBlocked/FreshWindowBypass/FreshEmitFailures=0、RepairEvictionMaxScan<=1且五分类全PASS。",
+  "latest_log": "docs/devlog/20260925-005500-v10p1-final18-stop-v10p2-client-udp-ingress.md",
   "last_tested_source_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
   "actions": [
     {
@@ -1844,7 +1844,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REPAIR_FOLLOWUP_V10P1_FINAL18_READY",
+      "status": "REPAIR_FOLLOWUP_V10P2_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1855,9 +1855,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-224500-v10p1-final18-ready.md",
-      "note": "V10.1 exact-SHA canaries cover dense single-flow repair and multi-flow Game4 after sharding. CPU regression is removed, real repair is preserved, local kernel/user backlog remains bounded with zero overflow, and fresh/no-HOL invariants remain clean.",
-      "next_task": "从头启动V10.1专用final18，固定SOURCE_SHA e67b51968d9e5f707dfc9ef7d459ba5192008901，必须使用独立frozen ref，不能复用任何V8/V9/V10/V10.1诊断canary。18条每条必须新的workflow_dispatch attempt1；任一FAIL或CAPACITY_LIMITED即停止资格链并永久保留。18/18五分类PASS且所有socket/link/qdisc drop=0后，才考虑同SHA P6 repackage。",
+      "latest_log": "docs/devlog/20260925-005500-v10p1-final18-stop-v10p2-client-udp-ingress.md",
+      "note": "V10.1 final18 is permanently 17 PASS / 1 CAPACITY_LIMITED. The remaining drop is the product-owned client TPROXY UDP ingress socket; V10.2 mirrors the server-side bounded drain/send decoupling on the client ingress without changing repair/FEC/wire or kernel socket buffers.",
+      "next_task": "只通过GitHub Actions验证V10.2 56eb5413c3cf2e559b82026e8a5783508764e2f4 的openwrtclient/platformflow/runtimeentry unit+races、targeted、foundation、lifecycle及privileged TPROXY。任何失败先分析，不跑性能。全部通过后只跑一条新的Normal/5305/seed303 exact-SHA诊断canary，要求client/ss_udp drop=0、client ingress queued+inflight<=1024且bytes<=1024*MaxPayload、EvictionMaxScan<=4、server UDP仍有界、FreshBlocked/FreshWindowBypass/FreshEmitFailures=0、RepairEvictionMaxScan<=1且五分类全PASS。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -5663,7 +5663,51 @@
             "fresh_emit_failures": 0,
             "repair_eviction_max_scan": 1
           }
+        },
+        "final18": {
+          "status": "STOPPED_17_PASS_1_CAPACITY_LIMITED",
+          "source_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
+          "frozen_ref": "perf-fixed/e67b51968d9e5f707dfc9ef7d459ba5192008901-r2",
+          "failed_run": 36006942033,
+          "failed_case": "Normal/5305/seed303",
+          "failed_socket": "client/ss_udp 0.0.0.0:12345",
+          "drops": 2552,
+          "recv_q_peak_bytes": 1049472,
+          "rcvbuf_bytes": 1048576,
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "FAIL",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "CAPACITY_LIMITED"
+          },
+          "p6": "NOT_RUN"
         }
+      },
+      "repair_followup_candidate_v10p2": {
+        "status": "CORRECTNESS_RACE_NOT_RUN",
+        "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+        "parent_product_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
+        "commit_chain": [
+          "b2744079363e09b15840e23d1e01a36a9f77518e openwrtclient: bound TPROXY UDP ingress backlog",
+          "426b2caa6147a03226a260513d6505fd21f89243 client: expose bounded UDP ingress diagnostics",
+          "56eb5413c3cf2e559b82026e8a5783508764e2f4 openwrtclient: test bounded UDP ingress queue"
+        ],
+        "design_delta": "client TPROXY udpLoop drains kernel socket into one server-independent global bounded four-shard queue; same client endpoint hashes to one worker; full global budget evicts oldest among four fixed shard heads",
+        "bounds": {
+          "client_udp_ingress_records": 1024,
+          "client_udp_ingress_bytes": "1024*MaxPayload",
+          "client_udp_ingress_workers": 4,
+          "client_udp_eviction_max_scan": 4,
+          "per_flow_ingress_queue_records": 0,
+          "server_udp_send_records": 1024,
+          "active_repair_records": 4096,
+          "repair_reserve_records": 1024
+        },
+        "kernel_socket_buffer_changed": false,
+        "performance_parameters_changed": false,
+        "repair_parameters_changed": false,
+        "performance_status": "NOT_RUN"
       }
     }
   }
