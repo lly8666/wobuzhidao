@@ -3,10 +3,10 @@
   "dispatch_ref": "perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4",
   "expected_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
   "workflow": "next-strict-weaknet.yml",
-  "mode": "normal",
-  "scenario": "5205",
+  "mode": "game",
+  "scenario": "5305",
   "seed": "101",
-  "rate_mbps": "10",
-  "lanes": "1",
-  "reason": "V10.2 comparable dense-repair diagnostic after exact-source correctness and Normal/5305/seed303 PASS"
+  "rate_mbps": "3",
+  "lanes": "4",
+  "reason": "V10.2 four-lane sharded client-ingress diagnostic after exact-source, Normal/5305 seed303, and Normal/5205 seed101 PASS"
 }
