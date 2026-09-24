@@ -66,10 +66,10 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "HANDOFF_PAUSED_AFTER_V7_LOSSLESS：当前产品候选SOURCE_SHA d90ef09c9e84bfe2719d04784b58f662c05d9fc3（runtimeowner: retire acked repair reserve under pressure）。V7 correctness/race/targeted/foundation/lifecycle全绿；Normal/lossless/seed101 run 35944451931 五分类全PASS、socket/link drop=0、FastRepairs=0，说明V7未在无损路径制造假重传。按用户要求本轮做简单收尾并停止继续dispatch性能样本；V7 Normal/5205与Normal/5305仍NOT_RUN。上一产品候选V6.1 7081d951... 已证明5205可恢复有限重传但带来约4.7% outer成本；5305仅少量repair且暴露stale reserve清理问题，V7正是对此做有界清理修正。",
-  "next_task": "全新agent接手后第一件事必须重新读取远端HEAD、STATUS、最新devlog与近期Actions。若HEAD仍仅为本次docs-only交接提交，则把产品SOURCE_SHA固定回其父级d90ef09c9e84bfe2719d04784b58f662c05d9fc3理解。下一原子任务：只在该产品SHA上跑一条Normal/5205/seed101独立strict样本，确认V7是否保留V6.1的有限非零repair同时降低stale reserve误evict/abandon；通过后再跑Normal/5305/seed101。不得复用V6.1样本，不得为了结果重跑同一性能workflow run。",
-  "latest_log": "docs/devlog/20260924-101500-repair-followup-handoff.md",
-  "last_tested_source_sha": "d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
+  "in_progress": "REPAIR_FOLLOWUP_V8_PENDING_ACTIONS：V7产品SOURCE_SHA d90ef09c9e84bfe2719d04784b58f662c05d9fc3 的两条独立Normal/5205/seed101 strict样本（35947585606、35950406032）五分类均PASS且socket/link drop=0、repair约23.8k/向、outer/app与V6.1基本持平，但只读reserve timeline两次都至少一向触到1024并出现capacity eviction/abandon；V6.1同场景timeline两向最大约785/829且evict/drop/abandon为0，因此V7按交接标准不算稳定，Normal/5305未继续。V8产品SOURCE_SHA 27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089 删除健康容量下duplicate-ACK主动reserve prune，仅保留累计ACK每次最多64条清理与reserve真正满时O(1)回收一个已被lastAck覆盖FIFO head；active4096/reserve1024/FEC/wire/RTO/credit/测试门槛均未改。首次Actions中runtimeowner-recovery与lifecycle PASS，targeted/foundation仅因缺STATUS/devlog的repository contract FAIL；本docs-only提交补齐该约束。",
+  "next_task": "先等待/检查本docs-only提交触发的next-runtimeowner-recovery、next-p4-steady-targeted、next-foundation、next-lifecycle；四者必须全PASS，历史27e4首次docs-contract FAIL永久保留。产品SOURCE_SHA仍固定为本docs-only提交父级27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089。correctness/race全绿后，先用新workflow_dispatch跑V8 Normal/lossless/seed101（必须0假repair、drop=0、五分类PASS），再跑独立Normal/5205/seed101；只有5205 reserve/fresh/outer稳定后才跑5305。不得复用或rerun旧strict性能run。",
+  "latest_log": "docs/devlog/20260924-113500-v7-5205-repeat-v8-pressure-only-retirement.md",
+  "last_tested_source_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1583,9 +1583,9 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED_REPAIR_FOLLOWUP_V7_HANDOFF_PAUSED: V7 correctness and lossless are PASS; weaknet 5205/5305 on V7 are NOT_RUN at handoff.",
-    "P5": "REOPENED_REPAIR_FOLLOWUP_V7_HANDOFF_PAUSED: historical 689dea19 final18 remains immutable evidence; current V7 requires new 5205/5305 samples before any qualification conclusion.",
-    "P6": "STALE_FOR_CURRENT_HEAD: exact-SHA repackage PASS at 689dea19e2e1dfdccbab9c8f42210d62c4a12223 remains historical; accepted repair follow-up must requalify/repackage at its own final SOURCE_SHA.",
+    "P4": "REOPENED_REPAIR_FOLLOWUP_V8_PENDING_ACTIONS: two independent V7 5205 samples kept finite repair/fresh throughput but reproducibly reached reserve capacity unlike V6.1. V8 removes eager duplicate-ACK reserve pruning while retaining bounded cumulative-ACK cleanup and O(1) ACK-covered head reclaim only under full-reserve pressure.",
+    "P5": "REOPENED_REPAIR_FOLLOWUP_V8_PENDING_ACTIONS: historical 689dea19 final18 remains immutable; V7 lossless is PASS, but two V7 5205 samples exposed reserve-capacity regression, so V7 5305/final18/P6 were not continued. V8 must requalify at its own exact product SHA.",
+    "P6": "STALE_FOR_CURRENT_HEAD: exact-SHA repackage PASS at 689dea19e2e1dfdccbab9c8f42210d62c4a12223 remains historical; V8 must complete new weaknet qualification before any repackage.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
       "status": "IMPLEMENTED_PENDING_ACTIONS",
@@ -1844,7 +1844,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REPAIR_FOLLOWUP_V7_HANDOFF_PAUSED",
+      "status": "REPAIR_FOLLOWUP_V8_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1855,9 +1855,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260924-101500-repair-followup-handoff.md",
-      "note": "User requested simple closeout. Product candidate d90ef09c passed all current correctness/race/foundation/lifecycle and one independent lossless sample with zero repair/drop. V7 5205/5305 are deliberately left NOT_RUN for the next agent. V6.1 showed repair restoration but ~4.7% outer overhead increase on 5205 and stale reserve pressure on 5305; V7 addresses only stale acknowledged reserve retirement without enlarging bounds.",
-      "next_task": "全新agent接手后第一件事必须重新读取远端HEAD、STATUS、最新devlog与近期Actions。若HEAD仍仅为本次docs-only交接提交，则把产品SOURCE_SHA固定回其父级d90ef09c9e84bfe2719d04784b58f662c05d9fc3理解。下一原子任务：只在该产品SHA上跑一条Normal/5205/seed101独立strict样本，确认V7是否保留V6.1的有限非零repair同时降低stale reserve误evict/abandon；通过后再跑Normal/5305/seed101。不得复用V6.1样本，不得为了结果重跑同一性能workflow run。",
+      "latest_log": "docs/devlog/20260924-113500-v7-5205-repeat-v8-pressure-only-retirement.md",
+      "note": "Two independent V7 Normal/5205/seed101 strict workflow_dispatch samples both passed loss-tolerant-v1 and had zero local drops with ~23.8k fast repairs per direction, but immutable full-artifact timelines showed reserve capacity hits/abandon not present in V6.1. V8 removes duplicate-ACK eager reserve pruning and keeps only cumulative-ACK budgeted pruning plus O(1) ACK-covered FIFO-head reclaim when the reserve is actually full. No capacities, FEC/wire/RTO/credit, or thresholds changed.",
+      "next_task": "先等待/检查本docs-only提交触发的next-runtimeowner-recovery、next-p4-steady-targeted、next-foundation、next-lifecycle；四者必须全PASS，历史27e4首次docs-contract FAIL永久保留。产品SOURCE_SHA仍固定为本docs-only提交父级27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089。correctness/race全绿后，先用新workflow_dispatch跑V8 Normal/lossless/seed101（必须0假repair、drop=0、五分类PASS），再跑独立Normal/5205/seed101；只有5205 reserve/fresh/outer稳定后才跑5305。不得复用或rerun旧strict性能run。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -4393,6 +4393,175 @@
           "do not expand active4096 or reserve1024 without new evidence",
           "do not change FEC/wire/RTO/repair-credit/test thresholds just to pass"
         ]
+      },
+      "repair_followup_candidate_v7_5205_followup": {
+        "source_sha": "d90ef09c9e84bfe2719d04784b58f662c05d9fc3",
+        "conclusion": "CLASSIFICATIONS_PASS_BUT_RESERVE_CAPACITY_REGRESSION_REPRODUCED;_5305_NOT_RUN",
+        "baseline_v6_1": {
+          "source_sha": "7081d9518fff791d0a69c7811e07bf773e3bfa28",
+          "run": 35940798659,
+          "timeline_reader_run": 35950212197,
+          "timeline_artifact": 10787987541,
+          "stress_reserve_max": {
+            "client": 785,
+            "server": 829
+          },
+          "stress_capacity_evicted": {
+            "client": 0,
+            "server": 0
+          },
+          "stress_capacity_dropped": {
+            "client": 0,
+            "server": 0
+          },
+          "stress_abandoned": {
+            "client": 0,
+            "server": 0
+          }
+        },
+        "samples": [
+          {
+            "run": 35947585606,
+            "event": "workflow_dispatch",
+            "run_attempt": 1,
+            "summary_artifact": {
+              "id": 10786689188,
+              "digest": "sha256:9a1914b0fdaa9d4233a0572c215f0b6f47c5d75eb7252738ea7d8a4471ddfadf"
+            },
+            "full_artifact": {
+              "id": 10786948525,
+              "digest": "sha256:945245e83d68f548b1280fbef637bd38ae93805db74341f33de5193c836bb6a7"
+            },
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "link_drop_all_zero": true,
+            "stress_fast_repairs": {
+              "c2s": 23846,
+              "s2c": 23846
+            },
+            "outer_app": {
+              "c2s": 5.475882535609694,
+              "s2c": 5.6116987785476224
+            },
+            "timeline_reader": {
+              "run": 35950139487,
+              "artifact": 10788546068
+            },
+            "timeline_stress": {
+              "reserve_max": {
+                "client": 1024,
+                "server": 1024
+              },
+              "reserve_evicted_delta": {
+                "client": 780,
+                "server": 1114
+              },
+              "reserve_dropped_delta": {
+                "client": 531,
+                "server": 38
+              },
+              "abandoned_delta": {
+                "client": 1311,
+                "server": 1152
+              }
+            }
+          },
+          {
+            "run": 35950406032,
+            "event": "workflow_dispatch",
+            "run_attempt": 1,
+            "summary_artifact": {
+              "id": 10788064183,
+              "digest": "sha256:155393cffdd507aa48e0dcec9e9d07b1c1d1b64aeea672330264b28f87549db7"
+            },
+            "full_artifact": {
+              "id": 10788438269,
+              "digest": "sha256:40f7f0573bdabde31125960b354c764a50e1a6a1e13f71c31c9768478d465543"
+            },
+            "classifications": {
+              "CAPTURE": "PASS",
+              "CORRECTNESS": "PASS",
+              "ENVIRONMENT": "PASS",
+              "INPUT_VALIDITY": "PASS",
+              "PERFORMANCE": "PASS"
+            },
+            "socket_drop_max": 0,
+            "stress_fast_repairs": {
+              "c2s": 23956,
+              "s2c": 23980
+            },
+            "analyzer_stress_abandoned": {
+              "c2s": 2257,
+              "s2c": 1650
+            },
+            "outer_app": {
+              "c2s": 5.4765415,
+              "s2c": 5.614011348648333
+            },
+            "timeline_reader": {
+              "run": 35950789007,
+              "artifact": 10788442061
+            },
+            "timeline_stress": {
+              "reserve_max": {
+                "client": 1024,
+                "server": 921
+              },
+              "reserve_evicted_delta": {
+                "client": 299,
+                "server": 0
+              },
+              "reserve_dropped_delta": {
+                "client": 0,
+                "server": 0
+              },
+              "abandoned_delta": {
+                "client": 299,
+                "server": 0
+              }
+            }
+          }
+        ],
+        "note": "Timeline and analyzer stage-boundary accounting are intentionally preserved separately; do not overwrite either with a preferred count."
+      },
+      "repair_followup_candidate_v8": {
+        "source_sha": "27e4bb34ae35e4c48fc4ebaa04ba3e3d161b4089",
+        "parent_sha": "31b5926f1026862a35bbde3bdbaa0c5ca0943107",
+        "commit": "runtimeowner: retire reserve only under pressure",
+        "design_delta": "remove duplicate-ACK eager repair-reserve pruning; retain cumulative-ACK prune budget 64 and full-reserve O(1) retirement of one FIFO head already covered by lastAck",
+        "bounds": {
+          "active_records": 4096,
+          "reserve_records": 1024,
+          "cumulative_ack_prune_budget": 64,
+          "fresh_eviction_max_scan_target": 1
+        },
+        "parameters_changed": false,
+        "initial_actions": {
+          "runtimeowner_recovery": {
+            "run": 35950950698,
+            "status": "PASS"
+          },
+          "lifecycle": {
+            "run": 35950950724,
+            "status": "PASS"
+          },
+          "targeted": {
+            "run": 35950950703,
+            "status": "FAIL_REPOSITORY_CONTRACT_DOCS_MISSING"
+          },
+          "foundation": {
+            "run": 35950950700,
+            "status": "FAIL_REPOSITORY_CONTRACT_DOCS_MISSING"
+          }
+        },
+        "performance_status": "NOT_RUN",
+        "next": "docs-only closure commit, then require full correctness/race PASS before new lossless/5205/5305 samples"
       }
     }
   }
