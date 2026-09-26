@@ -1,0 +1,120 @@
+name: linux-server-release
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - '.github/workflows/linux-server-release.yml'
+      - 'scripts/build_linux_server_bundle.sh'
+      - 'scripts/linux_server_manager.sh'
+      - 'scripts/linux_server_settings_test.sh'
+      - 'scripts/linux_server_firewall.sh'
+      - 'scripts/linux_server_guard.sh'
+      - 'cmd/wbd-server-cert/**'
+      - 'cmd/wbd-reality-front/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-platform-proxy-server/**'
+      - 'internal/**'
+      - 'native/dtls/**'
+      - 'deps/security-lock.json'
+  push:
+    branches:
+      - dev/wbd-raw-fec-v2
+    paths:
+      - '.github/workflows/linux-server-release.yml'
+      - 'scripts/build_linux_server_bundle.sh'
+      - 'scripts/linux_server_manager.sh'
+      - 'scripts/linux_server_settings_test.sh'
+      - 'scripts/linux_server_firewall.sh'
+      - 'scripts/linux_server_guard.sh'
+      - 'cmd/wbd-server-cert/**'
+      - 'cmd/wbd-reality-front/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'cmd/wbd-platform-proxy-server/**'
+      - 'internal/**'
+      - 'native/dtls/**'
+      - 'deps/security-lock.json'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  settings:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Qualify server configuration surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh -n scripts/build_linux_server_bundle.sh scripts/linux_server_manager.sh scripts/linux_server_settings_test.sh
+          chmod +x scripts/linux_server_settings_test.sh
+          sudo env WBD_SERVER_MANAGER="$PWD/scripts/linux_server_manager.sh" scripts/linux_server_settings_test.sh
+
+  amd64:
+    needs: settings
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native build prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends autoconf automake libtool make gcc libc6-dev curl unzip file
+      - name: Build amd64 server bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/build_linux_server_bundle.sh
+          scripts/build_linux_server_bundle.sh amd64 "$RUNNER_TEMP"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wbd-linux-server-amd64-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/wbd-linux-server-amd64.tar.gz
+            ${{ runner.temp }}/wbd-linux-server-amd64.tar.gz.sha256
+          retention-days: 30
+          if-no-files-found: error
+
+  arm64:
+    needs: settings
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install native build prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends autoconf automake libtool make gcc libc6-dev curl unzip file
+      - name: Build arm64 server bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/build_linux_server_bundle.sh
+          scripts/build_linux_server_bundle.sh arm64 "$RUNNER_TEMP"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wbd-linux-server-arm64-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/wbd-linux-server-arm64.tar.gz
+            ${{ runner.temp }}/wbd-linux-server-arm64.tar.gz.sha256
+          retention-days: 30
+          if-no-files-found: error

@@ -1,0 +1,88 @@
+{
+  "schema_version": "wbd-session-handoff/v1",
+  "continuity_sequence": 92,
+  "repository": "lly8666/wobuzhidao",
+  "active_branch": "feat/single-flow-reality-faketcp",
+  "active_issue": 1,
+  "active_pr": 9,
+  "checkpoint_based_on_head_sha": "0d65698d1601951169a807d94c0eaa8c09c6531f",
+  "live_refresh_required": true,
+  "do_not_ask_user_to_repeat": true,
+  "strategic_horizon": {
+    "terminal_goal": "ADR-0012 WBD: one stable Logical Tunnel may own 1..4 independent Transport Lanes. Each lane owns one public TCP-shaped 4-tuple/SYN lineage: bounded Reality-like TLS 1.3 bootstrap on that same association, explicit barrier, then pinned wolfSSL DTLS 1.3 -> LINK -> lane-local FEC/no-HOL payload without ordinary kernel-TCP transport.",
+    "current_milestone": "V2-M10 exact-source qualification. Live PR #9 source has completed same-LaneID bounded make-before-break replacement and V2-M9D automatic payload-idle DORMANT/Wake. Exact-head 0d65698d is software-automation green and has Windows portable plus Linux amd64/arm64 artifacts; fresh same-source physical Windows 11 + Npcap -> Ubuntu ARM64 qualification remains the release gate.",
+    "local_optimization_stop_rule": "Keep mature FakeTCP ACK/SACK/RTO/recovery, DTLS and FEC wire frozen absent deterministic lower-layer evidence. Do not trade the per-lane same-flow invariant for an ordinary preliminary TCP connection. Do not authorize release without same-source physical Windows 11 + Npcap -> Ubuntu ARM64 DNS/UDP/TCP and deterministic cleanup evidence."
+  },
+  "architecture_override": {
+    "authority": "ADR-0012 governs Logical Tunnel multipath/lifecycle; ADR-0011 governs each lane's same-association Reality-like bootstrap/no-HOL transition. ADR-0013/0014/0015 are withdrawn where they globalize single-flow.",
+    "critical_guard": "single-flow is PER TRANSPORT LANE, not per Logical Tunnel lifetime. A Logical Tunnel may own 1..4 independent complete WBD Transport Lanes. Each lane has exactly one public TCP-looking flow from initial FakeTCP SYN through Reality-like bootstrap and later DTLS/FEC payload; no FIN/RST/reconnect/new payload SYN inside that lane. Planned replacement is make-before-break A -> A+B -> B.",
+    "multipath": "Normal desired=1; Game/weak-network desired=2..4. Lanes have independent transport state but share Logical Tunnel identity/lease and logical SessionID/PacketID race domain. First valid arrival wins; duplicates are suppressed; no cross-lane HOL; FEC remains lane-local.",
+    "replacement": "Same logical LaneID may have one bounded replacement candidate using private transport slot 5; candidate failure preserves healthy old lane; slot 5 is not a fifth logical lane. Live source executes bounded old+candidate Game target overlap, candidate-only promotion, authority update and old transport retirement.",
+    "tcp_like_core": "Existing FakeTCP TCP-like ACK/SACK/RTO/recovery and release FEC semantics remain frozen. Payload-idle detection is intentionally above transport at Game application ingress."
+  },
+  "continuation_cursor": {
+    "last_completed_action": "Live-refreshed PR #9 beyond stale sequence 91. Confirmed 8a437906 already implements automatic non-zero payload-idle DORMANT/Wake using the fa44a2ac real Game payload-activity signal while idle_timeout=0 remains disabled. Diagnosed windows-portable-bundle failure as workflow/source drift: stale -action stage/--extract-only invocations no longer exist in the current launcher. Commit 71101fe3777de4d8ee30076475abdf32b38014a6 restored the current //go:embed payload.zip + wbd_bundle pipeline, included GUI/Wintun license, real EnsureRuntime extraction qualification and outer PE CRT checking. Commit 0d65698d1601951169a807d94c0eaa8c09c6531f aligned the release-contract test with WBD_SOURCE_SHA -> payload_sha256 evidence -> exact-SHA artifact identity. Exact-head automation then converged with failure=0, in_progress=0, queued=0.",
+    "current_task": "V2-M10 physical exact-source qualification for 0d65698d1601951169a807d94c0eaa8c09c6531f.",
+    "why_now": "V2-M9D automatic payload-idle dormant/wake and the previously-stale M9E bounded replacement lifecycle are implemented. Exact-head Go/handoff tests, Windows portable build/extraction/PE checks, and Linux server settings/amd64/arm64 automation are green. The remaining release gate is hardware/network-path evidence from the exact same source SHA.",
+    "done_when": "A clean physical Windows 11 + Npcap client using artifact built from exact source 0d65698d1601951169a807d94c0eaa8c09c6531f reaches the Ubuntu ARM64 server built from that same source; DNS/UDP/TCP succeed through the product path; required per-lane same-flow/multipath/replacement evidence is captured; Disconnect/Exit cleanup is deterministic; no history from another SHA is combined into the candidate.",
+    "next_atomic_action": "Run the physical Windows 11 + Npcap -> Ubuntu ARM64 qualification using exact-head artifacts from 0d65698d1601951169a807d94c0eaa8c09c6531f. If it fails, isolate the first deterministic failing layer before changing mature FakeTCP/DTLS/FEC wire. Do not reopen V2-M9D or M9E based on stale ROADMAP text.",
+    "next_action_is_cursor": true
+  },
+  "resume_read_set": [
+    ".wbd/handoff/current.json",
+    ".wbd/handoff/README.md",
+    "PROJECT_CONSTITUTION.md",
+    "ARCHITECTURE.md",
+    "internal/windowsruntime/controller.go",
+    "internal/windowsruntime/plan.go",
+    "internal/windowsruntime/executor.go",
+    "ROADMAP.md"
+  ],
+  "required_data_plane_assets": [
+    "GitHub Actions artifact wbd-windows-portable-0d65698d1601951169a807d94c0eaa8c09c6531f (artifact id 9852176079, digest sha256:cfdb0e43c130d9bb5a266fb949890ce642f67937d445c92aba87315b11921fb8)",
+    "Linux amd64/arm64 server artifacts from exact-head linux-server-release run for 0d65698d1601951169a807d94c0eaa8c09c6531f"
+  ],
+  "local_test_snapshot": {
+    "authority": "no_local_checkout",
+    "tested_commit": "0d65698d1601951169a807d94c0eaa8c09c6531f",
+    "result": "not_run_locally",
+    "scope": "No local checkout/test run in this session. Qualification authority is exact-head GitHub Actions. go test ./... and handoff tests passed at 0d65698d; no local-success claim is made."
+  },
+  "active_single_flow_branch": {
+    "pr": 9,
+    "branch": "feat/single-flow-reality-faketcp",
+    "head": "0d65698d1601951169a807d94c0eaa8c09c6531f",
+    "classification": "V2-M9D/M9E implemented; exact-head software automation green; V2-M10 physical exact-source qualification pending.",
+    "transport_core_policy": "Freeze mature per-lane TCP-like/DTLS/FEC wire. Continue only from deterministic exact-source qualification evidence."
+  },
+  "physical_acceptance_snapshot": {
+    "authority": "user_provided_historical_snapshot_not_commit_attributed",
+    "result": "fail",
+    "interpretation": "Historical physical logs proved at least one same-flow server path reached bootstrap -> DTLS ACCEPT -> LINK READY, but they do not qualify current head. There is no fresh physical evidence attributable to exact source 0d65698d; release remains unauthorized."
+  },
+  "qualification_snapshot": {
+    "authority": "live_exact_head_github_actions",
+    "source_head": "0d65698d1601951169a807d94c0eaa8c09c6531f",
+    "result": "automated_green_physical_pending",
+    "known_incomplete": "At convergence, GitHub Actions queries for this exact SHA report failure=0, in_progress=0, queued=0. ci go test ./... + handoff tests passed. linux-server-release settings/amd64/arm64 passed with artifacts. windows-portable-bundle run 33644168970 passed all build, pinned wolfSSL static-CRT, Wintun, PE allowlist, payload embed, launcher, EnsureRuntime extraction, outer PE CRT and upload steps. Fresh same-source physical Windows 11 + Npcap -> Ubuntu ARM64 qualification is not present.",
+    "release_authorized": false
+  },
+  "validated_findings": {
+    "lane_policy": "Dynamic product admission supports logical LaneID 1..4 and bounded same-LaneID make-before-break candidate semantics. ROADMAP still labels M9D triggers and M9E bounded race pending, but those lines are stale versus live PR #9 source and must not drive implementation.",
+    "replacement_lifecycle": "Windows replacement publishes old+candidate Game targets for bounded overlap, promotes candidate-only, updates authority and retires old last; candidate failure preserves healthy old lane.",
+    "payload_idle_lifecycle": "fa44a2ac exposes Game PayloadActivity only for accepted non-empty application/TUN ingress, before dormant no-lane drop. 8a437906 adds the controller monitor: zero idle timeout disables automatic sleep; non-zero CONNECTED inactivity enters existing Dormant(); a payload activity sequence advance while DORMANT calls existing Wake(); transport PING/PONG/control does not refresh payload idle.",
+    "portable_pipeline": "The reproducible portable blocker evolved beyond wolfSSL after static-CRT/header/library corrections. The final root cause was stale workflow CLI usage (-action stage and --extract-only) incompatible with current embedded runtime architecture. 71101fe restores payload.zip + wbd_bundle and exact extraction qualification; 0d65698 aligns the release contract. Exact-head portable run 33644168970 is green and uploaded artifact id 9852176079.",
+    "automated_qualification": "Exact-head 0d65698d has no failed, running or queued GitHub workflow at the convergence read. Software automation is green for this checkpoint.",
+    "release_state": "IMPLEMENTED=V2-M9D/M9E; AUTOMATED-GREEN=yes at 0d65698d; PHYSICAL-GREEN=no current exact-head evidence; RELEASE-QUALIFIED=no."
+  },
+  "operational_continuity": {
+    "previous_sequence": 91,
+    "sequence_91_commit": "4d8089641e79271eaacb8c319c769331c3ff919d",
+    "feature_checkpoint_before_live_refresh": "fa44a2ac417efc86486651733a188e52ff4250a4",
+    "idle_monitor_commit_sha": "8a437906212d00f8393bbab6769f36c01d0a7056",
+    "portable_pipeline_commit_sha": "71101fe3777de4d8ee30076475abdf32b38014a6",
+    "substantive_commit_sha": "0d65698d1601951169a807d94c0eaa8c09c6531f",
+    "drive_log_revision_after_write": "AIroW34eNPoUwKPYBrMsVqzynN28oUGi911JPQXNx7u2ishvCjuDVV_sTu3AR_N60J-tUsXE9OsdDU-dSAyzVo6Q8v48cGKXCqsLJ_Qx-m0",
+    "rule": "Live-refresh exact feature head before every repair; one atomic product slice at a time; do not let stale ROADMAP/handoff override current source; detailed conclusions in GitHub development docs + Drive; final repository write of a turn should be handoff-only whenever practical."
+  }
+}

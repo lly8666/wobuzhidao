@@ -1,0 +1,185 @@
+name: faketcp-mux-two-client
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  two_client_mux:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.title, '[mux2]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables
+      - name: Build pinned wolfSSL shim and mux binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/mux2
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/mux2/wbd_dtls_shim
+          go test ./internal/faketcp ./internal/dtlsworker -count=1
+          go build -trimpath -o /tmp/mux2/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/mux2/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=mux-two-client.invalid' \
+            -keyout /tmp/mux2/dtls.key -out /tmp/mux2/dtls.pem >/dev/null 2>&1
+      - name: Two clients share one public FakeTCP listener and get independent DTLS workers
+        run: |
+          set -euo pipefail
+          S=wbdm2s$$
+          A=wbdm2a$$
+          B=wbdm2b$$
+          PIDS=''
+          cleanup() {
+            set +e
+            for p in ${PIDS:-}; do sudo kill -TERM "$p" 2>/dev/null; kill -TERM "$p" 2>/dev/null; done
+            sleep .2
+            sudo ip netns del "$A" 2>/dev/null
+            sudo ip netns del "$B" 2>/dev/null
+            sudo ip netns del "$S" 2>/dev/null
+          }
+          trap cleanup EXIT
+
+          sudo ip netns add "$S"
+          sudo ip netns add "$A"
+          sudo ip netns add "$B"
+          sudo ip link add va type veth peer name sa
+          sudo ip link add vb type veth peer name sb
+          sudo ip link set va netns "$A"
+          sudo ip link set vb netns "$B"
+          sudo ip link set sa netns "$S"
+          sudo ip link set sb netns "$S"
+          sudo ip netns exec "$S" ip link add br0 type bridge
+          sudo ip netns exec "$S" ip link set sa master br0
+          sudo ip netns exec "$S" ip link set sb master br0
+          sudo ip -n "$S" addr add 10.77.0.1/24 dev br0
+          sudo ip -n "$A" addr add 10.77.0.2/24 dev va
+          sudo ip -n "$B" addr add 10.77.0.3/24 dev vb
+          sudo ip -n "$S" link set lo up
+          sudo ip -n "$A" link set lo up
+          sudo ip -n "$B" link set lo up
+          sudo ip -n "$S" link set br0 up
+          sudo ip -n "$S" link set sa up
+          sudo ip -n "$S" link set sb up
+          sudo ip -n "$A" link set va up
+          sudo ip -n "$B" link set vb up
+          for ns in "$S" "$A" "$B"; do
+            sudo ip netns exec "$ns" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          done
+
+          cat >/tmp/mux2/echo.py <<'PY'
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',47000))
+          while True:
+              b,a=s.recvfrom(65535)
+              s.sendto(b,a)
+          PY
+          sudo ip netns exec "$S" python3 /tmp/mux2/echo.py >/tmp/mux2/echo.log 2>&1 & ECHO=$!
+          PIDS="$ECHO"
+
+          sudo ip netns exec "$S" /tmp/mux2/wbd-faketcp-mux server \
+            --listen 10.77.0.1:40000 \
+            --dtls-shim /tmp/mux2/wbd_dtls_shim \
+            --link-target 127.0.0.1:47000 \
+            --cert /tmp/mux2/dtls.pem --key /tmp/mux2/dtls.key \
+            --max-sessions 8 \
+            >/tmp/mux2/mux.log 2>&1 & MUX=$!
+          PIDS="$PIDS $MUX"
+          for i in $(seq 1 200); do
+            grep -q 'READY role=server-mux' /tmp/mux2/mux.log && break
+            sleep .05
+          done
+          grep -q 'READY role=server-mux.*recovery=legacy' /tmp/mux2/mux.log
+
+          sudo ip netns exec "$A" /tmp/mux2/wbd-faketcp client \
+            --local-udp 127.0.0.1:45101 --source 10.77.0.2:41001 --remote 10.77.0.1:40000 \
+            >/tmp/mux2/faketcp-a.log 2>&1 & FCA=$!
+          sudo ip netns exec "$B" /tmp/mux2/wbd-faketcp client \
+            --local-udp 127.0.0.1:45102 --source 10.77.0.3:41002 --remote 10.77.0.1:40000 \
+            >/tmp/mux2/faketcp-b.log 2>&1 & FCB=$!
+          PIDS="$PIDS $FCA $FCB"
+          for i in $(seq 1 400); do
+            grep -q 'READY role=client.*recovery=legacy' /tmp/mux2/faketcp-a.log && \
+            grep -q 'READY role=client.*recovery=legacy' /tmp/mux2/faketcp-b.log && break
+            sleep .05
+          done
+          grep -q 'READY role=client.*recovery=legacy' /tmp/mux2/faketcp-a.log
+          grep -q 'READY role=client.*recovery=legacy' /tmp/mux2/faketcp-b.log
+
+          sudo ip netns exec "$A" /tmp/mux2/wbd_dtls_shim client 46101 127.0.0.1 45101 none none \
+            >/tmp/mux2/dtls-a.log 2>&1 & DA=$!
+          sudo ip netns exec "$B" /tmp/mux2/wbd_dtls_shim client 46102 127.0.0.1 45102 none none \
+            >/tmp/mux2/dtls-b.log 2>&1 & DB=$!
+          PIDS="$PIDS $DA $DB"
+          for i in $(seq 1 800); do
+            if grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/mux2/dtls-a.log && \
+               grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/mux2/dtls-b.log && \
+               test "$(grep -c 'BOUND role=server.*inherited=yes' /tmp/mux2/mux.log || true)" -ge 2 && \
+               test "$(grep -c 'READY role=server version=DTLSv1.3' /tmp/mux2/mux.log || true)" -ge 2; then
+              break
+            fi
+            sleep .05
+          done
+          grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/mux2/dtls-a.log
+          grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/mux2/dtls-b.log
+          test "$(grep -c 'BOUND role=server.*inherited=yes' /tmp/mux2/mux.log)" -eq 2
+          test "$(grep -c 'READY role=server version=DTLSv1.3' /tmp/mux2/mux.log)" -eq 2
+
+          cat >/tmp/mux2/probe.py <<'PY'
+          import socket,sys,time
+          port=int(sys.argv[1]); marker=sys.argv[2].encode()
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',0)); s.settimeout(.2)
+          end=time.time()+5
+          count=0
+          while time.time()<end and count<20:
+              s.sendto(marker+count.to_bytes(2,'big'),('127.0.0.1',port))
+              try:
+                  b,_=s.recvfrom(65535)
+              except socket.timeout:
+                  continue
+              if b != marker+count.to_bytes(2,'big'):
+                  raise SystemExit('CROSS_SESSION_OR_CORRUPT expected=%r got=%r'%(marker+count.to_bytes(2,'big'),b))
+              count+=1
+          if count != 20:
+              raise SystemExit('echo timeout count=%d'%count)
+          print('MUX2_ECHO_OK marker=%s count=%d'%(marker.decode(),count))
+          PY
+          sudo ip netns exec "$A" python3 /tmp/mux2/probe.py 46101 DEVICE_A_UNIQUE_MARKER >/tmp/mux2/probe-a.log 2>&1 & PA=$!
+          sudo ip netns exec "$B" python3 /tmp/mux2/probe.py 46102 DEVICE_B_UNIQUE_MARKER >/tmp/mux2/probe-b.log 2>&1 & PB=$!
+          wait "$PA"
+          wait "$PB"
+          grep -q 'MUX2_ECHO_OK marker=DEVICE_A_UNIQUE_MARKER count=20' /tmp/mux2/probe-a.log
+          grep -q 'MUX2_ECHO_OK marker=DEVICE_B_UNIQUE_MARKER count=20' /tmp/mux2/probe-b.log
+          kill -0 "$MUX"
+          echo 'MUX_TWO_CLIENT_PASS'
+          echo '--- mux ---'; cat /tmp/mux2/mux.log
+          echo '--- client A ---'; cat /tmp/mux2/faketcp-a.log; cat /tmp/mux2/dtls-a.log; cat /tmp/mux2/probe-a.log
+          echo '--- client B ---'; cat /tmp/mux2/faketcp-b.log; cat /tmp/mux2/dtls-b.log; cat /tmp/mux2/probe-b.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: faketcp-mux-two-client-evidence
+          path: /tmp/mux2/*.log

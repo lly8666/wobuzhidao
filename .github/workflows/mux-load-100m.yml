@@ -1,0 +1,171 @@
+name: mux-load-100m
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/mux-load-100m.yml'
+      - 'scripts/bench_mux_two_session_100m.py'
+      - 'scripts/bench_mux_two_session_100m_runner.py'
+      - 'scripts/udp_multistream_oneway_probe.c'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-faketcp-mux/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-link-server-mux/**'
+      - 'internal/faketcp/**'
+      - 'internal/linkdata/**'
+      - 'internal/session/**'
+      - 'internal/control/**'
+      - 'internal/realityfront/**'
+      - 'native/dtls/**'
+  workflow_dispatch:
+
+concurrency:
+  group: mux-load-100m-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        rtt: [20, 100]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl iproute2 iptables
+      - name: Build pinned DTLS and two-session stack once for this RTT
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/muxload/assets
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/muxload/assets/wbd_dtls_shim
+          gcc -O2 -Wall -Wextra -Werror scripts/udp_multistream_oneway_probe.c -lm -o /tmp/muxload/assets/udp_multistream_oneway_probe
+          python3 -m py_compile scripts/bench_mux_two_session_100m.py scripts/bench_mux_two_session_100m_runner.py
+          go test ./internal/control ./internal/linkdata ./internal/session ./internal/faketcp ./internal/realityfront ./cmd/wbd-link-proxy ./cmd/wbd-link-server-mux -count=1
+          go build -trimpath -o /tmp/muxload/assets/wbd-reality-front ./cmd/wbd-reality-front
+          go build -trimpath -o /tmp/muxload/assets/wbd-faketcp ./cmd/wbd-faketcp
+          go build -trimpath -o /tmp/muxload/assets/wbd-faketcp-mux ./cmd/wbd-faketcp-mux
+          go build -trimpath -o /tmp/muxload/assets/wbd-link-proxy ./cmd/wbd-link-proxy
+          go build -trimpath -o /tmp/muxload/assets/wbd-link-server-mux ./cmd/wbd-link-server-mux
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-front.invalid' \
+            -keyout /tmp/muxload/assets/front.key -out /tmp/muxload/assets/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-dtls.invalid' \
+            -keyout /tmp/muxload/assets/dtls.key -out /tmp/muxload/assets/dtls.pem >/dev/null 2>&1
+      - name: Run 40/60/80 Mbit aggregate inner sweep
+        run: |
+          set -euo pipefail
+          for per_stream in 20 30 40; do
+            total=$((per_stream * 2))
+            for fec in off 20:20; do
+              safe_fec="${fec/:/x}"
+              label="rtt${{ matrix.rtt }}-load${total}-${safe_fec}"
+              echo "=== ${label} ==="
+              sudo -E python3 scripts/bench_mux_two_session_100m_runner.py run \
+                --rtt '${{ matrix.rtt }}' --loss 20 --fec "${fec}" \
+                --offered-mbps-per-stream "${per_stream}" --duration 2 \
+                --assets /tmp/muxload/assets --out-dir "/tmp/muxload/results/${label}"
+            done
+          done
+      - name: Show compact RTT results
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import glob,json,os
+          for p in sorted(glob.glob('/tmp/muxload/results/*/result.json')):
+              r=json.load(open(p)); a=r['probe']['aggregate']
+              print(os.path.basename(os.path.dirname(p)), 'delivery', round(a['delivery_ratio'],6), 'goodput', a['delivered_mbps_active'], 'p99_ms', a['oneway_p99_ms'], 'expansion', r['fec_plaintext_expansion'])
+          PY
+      - name: Make result artifacts readable
+        if: always()
+        run: sudo chmod -R a+rX /tmp/muxload/results 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mux-load-rtt${{ matrix.rtt }}-sweep
+          path: /tmp/muxload/results/
+          if-no-files-found: error
+
+  aggregate:
+    if: always()
+    needs: bench
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mux-load-rtt*-sweep
+          path: /tmp/mux-load-summary
+      - name: Aggregate 40/60/80 Mbit paired characterization points
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import glob,json,pathlib
+          files=sorted(glob.glob('/tmp/mux-load-summary/**/result.json',recursive=True))
+          if len(files)!=12:
+              raise SystemExit(f'expected 12 valid result.json files, got {len(files)}: {files}')
+          rows=[json.load(open(p)) for p in files]
+          for r in rows:
+              if r.get('setup_loss_pct') != 0.0 or r.get('measurement_loss_pct') != 20.0:
+                  raise SystemExit(f'loss activation boundary missing: RTT={r.get("rtt_ms")} load={r.get("offered_mbps_total")} fec={r.get("fec")}')
+          by={(int(r['rtt_ms']),int(round(r['offered_mbps_total'])),r['fec']):r for r in rows}
+          pairs=[]
+          for rtt in (20,100):
+              for load in (40,60,80):
+                  off=by[(rtt,load,'off')]; fixed=by[(rtt,load,'20:20')]
+                  oa=off['probe']['aggregate']; fa=fixed['probe']['aggregate']
+                  streams=fixed['probe']['streams']
+                  gap=(max(s['delivery_ratio'] for s in streams)-min(s['delivery_ratio'] for s in streams))*100.0
+                  pairs.append({
+                      'rtt_ms':rtt,'loss_pct':20,'offered_inner_mbps':load,
+                      'off_delivery':oa['delivery_ratio'],'fixed_delivery':fa['delivery_ratio'],
+                      'delivery_delta_pp':(fa['delivery_ratio']-oa['delivery_ratio'])*100.0,
+                      'off_goodput_mbps':oa['delivered_mbps_active'],'fixed_goodput_mbps':fa['delivered_mbps_active'],
+                      'goodput_delta_mbps':fa['delivered_mbps_active']-oa['delivered_mbps_active'],
+                      'off_p50_ms':oa['oneway_p50_ms'],'fixed_p50_ms':fa['oneway_p50_ms'],
+                      'p50_delta_ms':fa['oneway_p50_ms']-oa['oneway_p50_ms'],
+                      'off_p99_ms':oa['oneway_p99_ms'],'fixed_p99_ms':fa['oneway_p99_ms'],
+                      'p99_delta_ms':fa['oneway_p99_ms']-oa['oneway_p99_ms'],
+                      'off_cpu_s':off['resources']['cpu_seconds'],'fixed_cpu_s':fixed['resources']['cpu_seconds'],
+                      'off_peak_rss_kib':off['resources']['peak_rss_kib'],'fixed_peak_rss_kib':fixed['resources']['peak_rss_kib'],
+                      'off_retransmit_bytes':off['faketcp_client_retransmit_bytes'],'fixed_retransmit_bytes':fixed['faketcp_client_retransmit_bytes'],
+                      'fixed_plaintext_expansion':fixed['fec_plaintext_expansion'],
+                      'fixed_forward_qdisc_dropped':fixed['forward_qdisc']['dropped'],
+                      'fixed_stream_delivery_gap_pp':gap,
+                  })
+          pathlib.Path('/tmp/mux-load-summary/summary.json').write_text(json.dumps({'rows':rows,'pairs':pairs},sort_keys=True,indent=2)+'\n')
+          print('MUX_LOAD_100M_SWEEP',json.dumps(pairs,sort_keys=True))
+          with open('/tmp/mux-load-summary/summary.md','w') as f:
+              f.write('| RTT | offered inner | delivery off→20:20 | goodput off→20:20 | p99 off→20:20 | fixed expansion | fixed stream gap |\n')
+              f.write('|---:|---:|---:|---:|---:|---:|---:|\n')
+              for x in pairs:
+                  f.write(f"| {x['rtt_ms']} ms | {x['offered_inner_mbps']} Mbit/s | {x['off_delivery']:.3f} → {x['fixed_delivery']:.3f} | {x['off_goodput_mbps']:.2f} → {x['fixed_goodput_mbps']:.2f} Mbit/s | {x['off_p99_ms']:.2f} → {x['fixed_p99_ms']:.2f} ms | {x['fixed_plaintext_expansion']:.3f}x | {x['fixed_stream_delivery_gap_pp']:.2f} pp |\n")
+          PY
+          cat /tmp/mux-load-summary/summary.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-load-100m-sweep-summary
+          path: |
+            /tmp/mux-load-summary/summary.json
+            /tmp/mux-load-summary/summary.md

@@ -1,0 +1,94 @@
+{
+  "schema_version": "wbd-security-lock/v1",
+  "dtls": {
+    "implementation": "wolfSSL/wolfssl",
+    "tag": "v5.9.2-stable",
+    "commit": "ac01707f552c611fbd135cc723b2682b3e7f80f2",
+    "protocol": "DTLS 1.3",
+    "rfc": "RFC 9147",
+    "status": "V2_M2_LOCALLY_QUALIFIED_RAW_FEC_COMPOSITION",
+    "required_capabilities": [
+      "DTLS 1.3 client",
+      "DTLS 1.3 server",
+      "native X.509 peer verification",
+      "hostname verification or an explicitly reviewed equivalent binding",
+      "AEAD application records",
+      "anti-replay",
+      "portable UDP/custom-I/O integration"
+    ],
+    "initial_policy": {
+      "minimum_version": "DTLS 1.3 only",
+      "zero_rtt": "disabled",
+      "certificate_verification": "required",
+      "certificate_identity": "operator-controlled hostname",
+      "manual_openssl_compat_x509_verify_cert": "forbidden_for_product_peer_auth",
+      "session_resumption": "deferred_until_full_handshake_qualification",
+      "key_update": "deferred_until_full_handshake_qualification"
+    },
+    "source_qualification": {
+      "relay_workflow_run_id": 32752897445,
+      "relay_artifact_id": 9529710833,
+      "relay_artifact_digest": "sha256:303eb10638dbe79fa96aa167446cee47c5813c789a976a18640b9eac1a6e3259",
+      "git_archive_sha256": "4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b",
+      "tag_commit_relation": "relay explicitly verified v5.9.2-stable resolves to ac01707f552c611fbd135cc723b2682b3e7f80f2"
+    },
+    "m2a_local_qualification": {
+      "authority": "local sandbox execution",
+      "build_flags": [
+        "--enable-dtls13",
+        "--disable-shared",
+        "--enable-static"
+      ],
+      "toolchain": {
+        "gcc": "14.2.0 Debian-19",
+        "autoconf": "2.72",
+        "automake": "1.17",
+        "libtool": "2.5.4 Debian-2.5.4-4"
+      },
+      "libwolfssl_a_sha256": "22b132f66b74067507df8a891a2137e78d54309ec424c8bcc7ed9a3ac897c96a",
+      "probe_sha256": "7bc0f2ab52710be65e0c69e71d0afe4d79e5c7a364d339d0965879388002dc5c",
+      "receipt_sha256": "2a532a71ada9bedfa232c54faeac80910f23eea6e40a0b18b5d62c7211480471",
+      "valid_case": "DTLSv1.3 / TLS_AES_256_GCM_SHA384 and application datagram round trip passed for wbd.test",
+      "hostname_mismatch": "rejected by native handshake verification with peer subject name mismatch",
+      "untrusted_ca": "rejected by native handshake verification with ASN no signer",
+      "early_data": "not built/enabled",
+      "openssl_extra": "not built/enabled",
+      "result": "pass"
+    },
+    "m2b_local_qualification": {
+      "authority": "local sandbox execution",
+      "shim_source_sha256": "b5b8a1031c045af973b27c18178205f2057330f28e2bc5350ba82a5556d272a1",
+      "shim_binary_sha256": "63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a",
+      "driver_sha256": "1a05f552e70a5da806b21e9d951f7d380dbe0073e748b463ae6ecf4f067b1cee",
+      "receipt_sha256": "9a20bd236ddb9dbc9e595dbb2eb904bf115dfe40870511afeee2ec96602895cc",
+      "direct": "5/5 bidirectional UDP datagrams; one wolfSSL_write/read per plaintext datagram/record",
+      "drop_gate": "quiet-default shim requalified: after handshake and idle, deterministic proxy dropped next client-to-server encrypted application datagram; msg-01 absent while msg-02/msg-03 were authenticated, decrypted and echoed",
+      "observed_drop": {
+        "proxy_event_index": 13,
+        "encrypted_udp_bytes": 28,
+        "events_before_arm": 12
+      },
+      "trace_policy": "per-record WRITE/READ tracing is disabled by default; WBD_DTLS_TRACE=1 enables it for diagnostics",
+      "result": "pass"
+    },
+    "m2c_local_qualification": {
+      "authority": "local sandbox execution",
+      "topology": "UDPspeeder mode0 FEC -> WBD DTLS 1.3 -> udp2raw FakeTCP, one lane",
+      "harness_sha256": "4604c5ed4808738c964d79dd75380aa709ff53d6ac259e58fdb354b4d6306e86",
+      "receipt_sha256": "aacc9257dce5ffb637d3f1a2be3438f3723bbb971f2ae82f21c172ab30934abc",
+      "primary_results_sha256": "f4ad41c9112e65c022a073be0ce4d744adf2c365f492be51c78e5d4d83d89472",
+      "primary_median_sha256": "d309c64f3a4a0a00964c431d407bb55648bc35f8bcf54653f131239df32af2aa",
+      "secondary_results_sha256": "3bd10f53319fee8ac60290e7b95ed5b5de0650596a7951c128af5fd22feeba48",
+      "secondary_median_sha256": "dd425ab64d2e09051a72ab9862dea5d07927a1338867cd573c04893cac62d3de",
+      "primary_profile": "20:20; 50 ms RTT; 200 x 256 B; window32; warmup64; encrypted-record loss 0/1/5/10/15%; seeds 260824/260825/260826",
+      "primary_result": "15/15 cases delivered 200/200; median p99 70.5/71.9/76.2/69.8/82.1 ms for 0/1/5/10/15%; median DTLS byte overhead vs M1 FEC approximately 5.2-5.4%",
+      "secondary_profile": "20:10 regression at 0/1/15%, three seeds",
+      "secondary_result": "9/9 cases delivered 200/200; median p99 72.3/71.9/79.0 ms",
+      "outlier_policy": "formal raw results preserve individual host-scheduling outliers; deterministic repeat diagnostics are reported separately and do not replace formal cases",
+      "result": "pass"
+    },
+    "full_m2_status": "qualified",
+    "license_note": "wolfSSL 5.9.x is available under GPLv3 and commercial licensing. Review redistribution/linking obligations before product packaging.",
+    "qualification_rule": "M2 is locally qualified for one DTLS association on the one-lane pinned UDPspeeder/udp2raw carrier. Proceed to native WBD session/control inside DTLS. Two lanes, kernel-anchor, TUN and Auto remain gated by later milestones."
+  }
+}

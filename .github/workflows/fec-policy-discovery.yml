@@ -1,0 +1,91 @@
+name: fec-policy-discovery
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/fec-policy-discovery.yml'
+      - 'cmd/wbd-fec-policy-sweep/**'
+      - 'internal/fec/**'
+  push:
+    branches:
+      - dev/wbd-raw-fec-v2
+    paths:
+      - '.github/workflows/fec-policy-discovery.yml'
+      - 'cmd/wbd-fec-policy-sweep/**'
+      - 'internal/fec/**'
+
+permissions:
+  contents: read
+
+jobs:
+  discovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Test policy sweep logic
+        run: go test ./internal/fec ./cmd/wbd-fec-policy-sweep -count=1
+      - name: Sweep 5-150 Mbit physical links and FEC candidates
+        run: |
+          set -euo pipefail
+          go run ./cmd/wbd-fec-policy-sweep \
+            -capacities '5,10,20,30,50,75,100,125,150' \
+            -loss '0,1,3,5,10,15,20,30' \
+            -rtt-ms '20,100' \
+            -burst-lengths '1,4' \
+            -profiles 'off,20:4,20:8,20:12,20:16,20:20,10:5,10:10' \
+            -offered-fractions '0.20,0.30,0.40,0.50,0.60,0.70' \
+            -seeds '260826,260827,260828' \
+            -samples 500 \
+            -target-delivery 0.995 \
+            -max-physical-util 0.92 \
+            -out /tmp/fec-policy.json
+      - name: Validate coverage and write compact report
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib
+          p=pathlib.Path('/tmp/fec-policy.json')
+          d=json.loads(p.read_text())
+          rows=d['rows']; recs=d['provisional_recommendations']; cmp=d['block_comparison_20x20_vs_10x10']
+          caps={float(x['capacity_mbps']) for x in rows}
+          if 5.0 not in caps or 150.0 not in caps:
+              raise SystemExit(f'capacity coverage incomplete: {sorted(caps)}')
+          profiles={x['profile'] for x in rows}
+          required={'off','20:4','20:8','20:12','20:16','20:20','10:5','10:10'}
+          if not required.issubset(profiles):
+              raise SystemExit(f'profile coverage incomplete: {sorted(profiles)}')
+          if not recs:
+              raise SystemExit('no provisional recommendations generated')
+          if not cmp:
+              raise SystemExit('20:20 vs 10:10 comparison missing')
+          lines=[
+              '# WBD FEC policy discovery',
+              '',
+              '> Simulator discovery only. Targeted real FakeTCP/DTLS/LINK tc/netem validation is required before values become built-in defaults.',
+              '',
+              f"Rows: {len(rows)}; provisional recommendations: {len(recs)}; 20:20↔10:10 paired points: {len(cmp)}.",
+              '',
+              '| Link | Loss | RTT | Burst | Candidate FEC | Inner Mbit/s | Min delivery | Worst p99 ms | Max wire util |',
+              '|---:|---:|---:|---:|---:|---:|---:|---:|---:|',
+          ]
+          # Keep the artifact readable: show iid RTT20 recommendations for each link/loss.
+          for x in recs:
+              if float(x['rtt_ms']) != 20.0 or int(x['burst_length']) != 1:
+                  continue
+              lines.append(f"| {x['capacity_mbps']:.0f} | {x['loss_pct']:.0f}% | {x['rtt_ms']:.0f} | {x['burst_length']} | {x['profile']} | {x['inner_mbps']:.2f} | {x['delivery_min']:.4f} | {x['p99_max_ms']:.2f} | {x['physical_util_max']:.3f} |")
+          pathlib.Path('/tmp/fec-policy.md').write_text('\n'.join(lines)+'\n')
+          print('WBD_FEC_POLICY_MATRIX_PASS', 'rows=', len(rows), 'recommendations=', len(recs), 'comparisons=', len(cmp))
+          print('\n'.join(lines[:35]))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fec-policy-discovery-5m-150m
+          path: |
+            /tmp/fec-policy.json
+            /tmp/fec-policy.md
+          if-no-files-found: error

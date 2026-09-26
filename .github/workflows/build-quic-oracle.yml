@@ -1,0 +1,58 @@
+name: build-quic-oracle
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev/wbd-multilane-v1]
+    paths:
+      - 'tools/quic-oracle/**'
+      - '.github/workflows/build-quic-oracle.yml'
+      - 'deps/oracle-lock.json'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/quic-oracle/**'
+      - '.github/workflows/build-quic-oracle.yml'
+      - 'deps/oracle-lock.json'
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux-amd64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.25.0'
+          cache: false
+      - name: Resolve pinned oracle module
+        working-directory: tools/quic-oracle
+        run: |
+          go mod tidy
+          go mod verify
+      - name: Build oracle relay asset
+        working-directory: tools/quic-oracle
+        run: |
+          mkdir -p dist
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o dist/wbd-quic-oracle .
+          sha256sum dist/wbd-quic-oracle > dist/SHA256SUMS
+          go version > dist/GO_VERSION
+          go version -m dist/wbd-quic-oracle > dist/BUILD_INFO
+          go list -m -json github.com/quic-go/quic-go > dist/QUIC_MODULE.json
+          cp go.sum dist/go.sum
+          git rev-parse HEAD > dist/SOURCE_COMMIT
+      - name: Package source snapshot for local sandbox relay
+        run: |
+          mkdir -p relay
+          git archive --format=tar.gz --output=relay/wobuzhidao-source.tar.gz HEAD
+          sha256sum relay/wobuzhidao-source.tar.gz > relay/SOURCE_SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wbd-quic-oracle-linux-amd64
+          path: |
+            tools/quic-oracle/dist/
+            relay/
+          retention-days: 1
+          if-no-files-found: error

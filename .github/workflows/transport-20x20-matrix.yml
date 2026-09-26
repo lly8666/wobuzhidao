@@ -1,0 +1,235 @@
+name: transport-20x20-matrix
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/bench_v2_transport_20x20.py'
+      - '.github/workflows/transport-20x20-matrix.yml'
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc iproute2 iptables curl unzip openssl
+      - name: Restore exact pinned carrier binaries
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/assets /tmp/raw /tmp/speeder
+          curl -fL 'https://github.com/wangyu-/udp2raw/releases/download/20230206.0/udp2raw_binaries.tar.gz' -o /tmp/udp2raw.tar.gz
+          curl -fL 'https://github.com/wangyu-/UDPspeeder/releases/download/20230206.0/speederv2_binaries.tar.gz' -o /tmp/speeder.tar.gz
+          echo '503cf5781aa97e50b4954c6bc4622c3ea6be02f6a35def4bb3b3eaf95bd2c7e8  /tmp/udp2raw.tar.gz' | sha256sum -c -
+          echo 'b64dd376a948995cb5da17d8eb171338ccd0553b9380e5164f8cb5ac4131bcaa  /tmp/speeder.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/udp2raw.tar.gz -C /tmp/raw
+          tar -xzf /tmp/speeder.tar.gz -C /tmp/speeder
+          RAW=$(find /tmp/raw -type f -name udp2raw_amd64 -print -quit)
+          SPD=$(find /tmp/speeder -type f -name speederv2_amd64 -print -quit)
+          test -n "$RAW" && test -n "$SPD"
+          cp "$RAW" /tmp/assets/udp2raw_amd64
+          cp "$SPD" /tmp/assets/speederv2_amd64
+          chmod +x /tmp/assets/udp2raw_amd64 /tmp/assets/speederv2_amd64
+          echo 'c81c7699194188172f37f747cdeba9fb54214bc4b3ba2d85cfdfccd5f7f70c3c  /tmp/assets/udp2raw_amd64' | sha256sum -c -
+          echo 'f2ac1feedc10003255c1072346b1f3ee4935fc7bf2053af69ad52b7369d4b25a  /tmp/assets/speederv2_amd64' | sha256sum -c -
+      - name: Restore pinned wolfSSL source artifact and build benchmark DTLS shim
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl -fL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" \
+            -o /tmp/wolfssl-source.zip
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          echo 'b5b8a1031c045af973b27c18178205f2057330f28e2bc5350ba82a5556d272a1  native/dtls/wbd_dtls_shim.c' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror \
+            -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm \
+            -o /tmp/assets/wbd_dtls_shim
+          chmod +x /tmp/assets/wbd_dtls_shim
+      - name: Generate benchmark certificate and manifest
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/assets/certs
+          cat >/tmp/assets/certs/server.ext <<'EOF'
+          basicConstraints=critical,CA:FALSE
+          keyUsage=critical,digitalSignature,keyEncipherment
+          extendedKeyUsage=serverAuth
+          subjectAltName=DNS:wbd.test
+          EOF
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 7 -subj '/CN=WBD Transport Matrix Root CA' \
+            -keyout /tmp/assets/certs/ca.key -out /tmp/assets/certs/ca.pem >/dev/null 2>&1
+          openssl req -newkey rsa:2048 -nodes -sha256 -subj '/CN=wbd.test' \
+            -keyout /tmp/assets/certs/server.key -out /tmp/assets/certs/server.csr >/dev/null 2>&1
+          openssl x509 -req -in /tmp/assets/certs/server.csr -CA /tmp/assets/certs/ca.pem \
+            -CAkey /tmp/assets/certs/ca.key -CAcreateserial -days 7 -sha256 \
+            -extfile /tmp/assets/certs/server.ext -out /tmp/assets/certs/server.pem >/dev/null 2>&1
+          openssl verify -CAfile /tmp/assets/certs/ca.pem /tmp/assets/certs/server.pem
+          python3 - <<'PY'
+          import hashlib,json,platform,subprocess
+          from pathlib import Path
+          def h(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+          manifest={
+            'udp2raw_tag':'20230206.0',
+            'udp2raw_sha256':h('/tmp/assets/udp2raw_amd64'),
+            'speeder_tag':'20230206.0',
+            'speeder_sha256':h('/tmp/assets/speederv2_amd64'),
+            'wolfssl_tag':'v5.9.2-stable',
+            'wolfssl_commit':'ac01707f552c611fbd135cc723b2682b3e7f80f2',
+            'wolfssl_source_sha256':'4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b',
+            'dtls_shim_source_sha256':'b5b8a1031c045af973b27c18178205f2057330f28e2bc5350ba82a5556d272a1',
+            'benchmark_dtls_shim_sha256':h('/tmp/assets/wbd_dtls_shim'),
+            'historical_qualified_dtls_shim_sha256':'63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a',
+            'runner':platform.platform(),
+            'gcc':subprocess.check_output(['gcc','--version'],text=True).splitlines()[0],
+          }
+          Path('/tmp/assets/manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          print(json.dumps(manifest,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: transport-bench-assets
+          path: /tmp/assets
+          retention-days: 7
+
+  bench:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [260825, 260826, 260827]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install runtime network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables
+      - uses: actions/download-artifact@v4
+        with:
+          name: transport-bench-assets
+          path: /tmp/assets
+      - name: Preflight namespace/raw networking
+        run: |
+          set -euo pipefail
+          sudo ip netns add wbd-preflight
+          sudo ip netns exec wbd-preflight ip link set lo up
+          sudo ip netns exec wbd-preflight iptables --version
+          sudo ip netns del wbd-preflight
+      - name: Run fixed 20:20 RTT/loss matrix seed ${{ matrix.seed }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/wbd-matrix-${{ matrix.seed }}"
+          sudo python3 scripts/bench_v2_transport_20x20.py \
+            --udp2raw /tmp/assets/udp2raw_amd64 \
+            --speeder /tmp/assets/speederv2_amd64 \
+            --shim /tmp/assets/wbd_dtls_shim \
+            --cert-dir /tmp/assets/certs \
+            --manifest /tmp/assets/manifest.json \
+            --out "$RUNNER_TEMP/wbd-matrix-${{ matrix.seed }}" \
+            --seed ${{ matrix.seed }} \
+            --rtts 20,50,100,200,400,600 \
+            --losses 0,1,5,10,20,30,40 \
+            --count 512 --size 1200 --window 256
+          sudo chown -R "$USER:$USER" "$RUNNER_TEMP/wbd-matrix-${{ matrix.seed }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: transport-20x20-seed-${{ matrix.seed }}
+          path: ${{ runner.temp }}/wbd-matrix-${{ matrix.seed }}
+          retention-days: 14
+
+  aggregate:
+    needs: bench
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: transport-20x20-seed-*
+          path: /tmp/all-seeds
+      - uses: actions/download-artifact@v4
+        with:
+          name: transport-bench-assets
+          path: /tmp/assets
+      - name: Aggregate matrix
+        run: |
+          python3 scripts/bench_v2_transport_20x20.py _aggregate \
+            --input /tmp/all-seeds \
+            --out /tmp/final \
+            --manifest /tmp/assets/manifest.json
+          cat /tmp/final/report.md
+          cat /tmp/final/receipt.json
+      - name: Verify frozen 126-case matrix completeness
+        run: |
+          python3 - <<'PY'
+          import csv,json,sys
+          from pathlib import Path
+          out=Path('/tmp/final')
+          receipt=json.loads((out/'receipt.json').read_text())
+          want_rtt=[20,50,100,200,400,600]
+          want_loss=[0.0,1.0,5.0,10.0,20.0,30.0,40.0]
+          want_seeds=[260825,260826,260827]
+          problems=[]
+          if receipt.get('cases') != 126: problems.append(f"cases={receipt.get('cases')} want=126")
+          if receipt.get('rtt_ms') != want_rtt: problems.append(f"rtt={receipt.get('rtt_ms')}")
+          if receipt.get('loss_pct_per_direction') != want_loss: problems.append(f"loss={receipt.get('loss_pct_per_direction')}")
+          if receipt.get('seeds') != want_seeds: problems.append(f"seeds={receipt.get('seeds')}")
+          rows=list(csv.DictReader((out/'median.csv').open()))
+          if len(rows) != 42: problems.append(f"median_points={len(rows)} want=42")
+          bad=[r for r in rows if int(r['cases']) != 3]
+          if bad: problems.append(f"points_without_3_seeds={[(r['rtt_ms'],r['loss_pct_per_direction'],r['cases']) for r in bad]}")
+          if problems:
+              print('MATRIX_INCOMPLETE: '+'; '.join(problems), file=sys.stderr)
+              raise SystemExit(2)
+          print('MATRIX_COMPLETE cases=126 points=42 seeds=3')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: transport-20x20-matrix-final
+          path: /tmp/final
+          retention-days: 30
+
+  notify:
+    needs: [prepare, bench, aggregate]
+    if: always()
+    runs-on: ubuntu-24.04
+    env:
+      PREPARE_RESULT: ${{ needs.prepare.result }}
+      BENCH_RESULT: ${{ needs.bench.result }}
+      AGGREGATE_RESULT: ${{ needs.aggregate.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      HEAD_SHA: ${{ github.sha }}
+      RUN_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- wbd-transport-20x20-status -->';
+            const body = `${marker}\n**WBD transport 20:20 matrix**\n\n- run: ${process.env.RUN_ID}\n- head: \`${process.env.HEAD_SHA}\`\n- prepare: **${process.env.PREPARE_RESULT}**\n- bench (3 seeds): **${process.env.BENCH_RESULT}**\n- aggregate/completeness: **${process.env.AGGREGATE_RESULT}**\n- final artifact: \`transport-20x20-matrix-final\` when aggregate produced output\n- run URL: ${process.env.RUN_URL}`;
+            const {data: comments} = await github.rest.issues.listComments({owner: context.repo.owner, repo: context.repo.repo, issue_number: 3, per_page: 100});
+            const old = comments.find(c => c.body && c.body.includes(marker));
+            if (old) {
+              await github.rest.issues.updateComment({owner: context.repo.owner, repo: context.repo.repo, comment_id: old.id, body});
+            } else {
+              await github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: 3, body});
+            }

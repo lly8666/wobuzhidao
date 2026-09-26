@@ -1,0 +1,24 @@
+{
+  "name": "replicate-loss-ceiling-v1",
+  "networks": [
+    {"name":"50ms-loss-0pct","seed":260824,"samples":200,"payload_bytes":256,"rtt_min_ms":50,"rtt_max_ms":50,"impair_basis_points":0,"extra_hold_ms":0,"soft_deadline_ms":100,"source_spacing_ms":0,"burst_length":1},
+    {"name":"50ms-loss-1pct","seed":260824,"samples":200,"payload_bytes":256,"rtt_min_ms":50,"rtt_max_ms":50,"impair_basis_points":100,"extra_hold_ms":200,"soft_deadline_ms":100,"source_spacing_ms":0,"burst_length":1},
+    {"name":"50ms-loss-2pct","seed":260824,"samples":200,"payload_bytes":256,"rtt_min_ms":50,"rtt_max_ms":50,"impair_basis_points":200,"extra_hold_ms":200,"soft_deadline_ms":100,"source_spacing_ms":0,"burst_length":1},
+    {"name":"50ms-loss-3pct","seed":260824,"samples":200,"payload_bytes":256,"rtt_min_ms":50,"rtt_max_ms":50,"impair_basis_points":300,"extra_hold_ms":200,"soft_deadline_ms":100,"source_spacing_ms":0,"burst_length":1},
+    {"name":"50ms-loss-5pct","seed":260824,"samples":200,"payload_bytes":256,"rtt_min_ms":50,"rtt_max_ms":50,"impair_basis_points":500,"extra_hold_ms":200,"soft_deadline_ms":100,"source_spacing_ms":0,"burst_length":1},
+    {"name":"50ms-loss-8pct","seed":260824,"samples":200,"payload_bytes":256,"rtt_min_ms":50,"rtt_max_ms":50,"impair_basis_points":800,"extra_hold_ms":200,"soft_deadline_ms":100,"source_spacing_ms":0,"burst_length":1},
+    {"name":"50ms-loss-10pct","seed":260824,"samples":200,"payload_bytes":256,"rtt_min_ms":50,"rtt_max_ms":50,"impair_basis_points":1000,"extra_hold_ms":200,"soft_deadline_ms":100,"source_spacing_ms":0,"burst_length":1},
+    {"name":"50ms-loss-12pct","seed":260824,"samples":200,"payload_bytes":256,"rtt_min_ms":50,"rtt_max_ms":50,"impair_basis_points":1200,"extra_hold_ms":200,"soft_deadline_ms":100,"source_spacing_ms":0,"burst_length":1},
+    {"name":"50ms-loss-15pct","seed":260824,"samples":200,"payload_bytes":256,"rtt_min_ms":50,"rtt_max_ms":50,"impair_basis_points":1500,"extra_hold_ms":200,"soft_deadline_ms":100,"source_spacing_ms":0,"burst_length":1}
+  ],
+  "lane_counts": [2],
+  "wbd_modes": ["normal"],
+  "replication_copies": [2,3],
+  "windows": [32],
+  "fec_profiles": [
+    {"name":"off","enabled":false,"data_shards":0,"parity_shards":0,"mode":0,"timeout_ms":0},
+    {"name":"fec-20-20-1to1","enabled":true,"data_shards":20,"parity_shards":20,"mode":0,"timeout_ms":8}
+  ],
+  "include_native": false,
+  "include_udp2raw_udpspeeder": true
+}

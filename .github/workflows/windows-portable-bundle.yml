@@ -1,0 +1,167 @@
+name: windows-portable-bundle
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/windows-portable-bundle.yml'
+      - 'cmd/wbd-windows-portable/**'
+      - 'cmd/wbd-windows-gui/**'
+      - 'cmd/wbd-reality-front/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-tun/**'
+      - 'internal/windowsbundle/**'
+      - 'internal/windowsdiag/**'
+      - 'internal/windowsruntime/**'
+      - 'internal/windowsgui/**'
+      - 'internal/ipset/**'
+      - 'native/dtls/**'
+      - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_ipv6_killswitch.ps1'
+      - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_npcap_prepare.ps1'
+      - 'deps/platform-lock.json'
+      - 'deps/upstream-lock.json'
+  push:
+    branches: [dev/wbd-raw-fec-v2]
+    paths:
+      - '.github/workflows/windows-portable-bundle.yml'
+      - 'cmd/wbd-windows-portable/**'
+      - 'cmd/wbd-windows-gui/**'
+      - 'cmd/wbd-reality-front/**'
+      - 'cmd/wbd-faketcp/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'cmd/wbd-tun/**'
+      - 'internal/windowsbundle/**'
+      - 'internal/windowsdiag/**'
+      - 'internal/windowsruntime/**'
+      - 'internal/windowsgui/**'
+      - 'internal/ipset/**'
+      - 'native/dtls/**'
+      - 'scripts/windows_tun_route.ps1'
+      - 'scripts/windows_ipv6_killswitch.ps1'
+      - 'scripts/windows_faketcp_underlay.ps1'
+      - 'scripts/windows_npcap_prepare.ps1'
+      - 'deps/platform-lock.json'
+      - 'deps/upstream-lock.json'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bundle:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Build WBD Windows child runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $payload = "$env:RUNNER_TEMP\wbd-payload"
+          New-Item -ItemType Directory -Force -Path $payload | Out-Null
+          go test ./internal/ipset ./internal/windowsbundle ./internal/windowsruntime ./internal/windowsgui ./cmd/wbd-windows-gui ./cmd/wbd-windows-portable -count=1
+          go build -trimpath -o "$payload\wbd-reality-front.exe" ./cmd/wbd-reality-front
+          go build -trimpath -o "$payload\wbd-faketcp.exe" ./cmd/wbd-faketcp
+          go build -trimpath -o "$payload\wbd-link-proxy.exe" ./cmd/wbd-link-proxy
+          go build -trimpath -o "$payload\wbd-tun.exe" ./cmd/wbd-tun
+          go build -trimpath -ldflags="-H=windowsgui" -o "$payload\wbd-windows-gui.exe" ./cmd/wbd-windows-gui
+          Copy-Item scripts/windows_tun_route.ps1 "$payload\windows_tun_route.ps1"
+          Copy-Item scripts/windows_ipv6_killswitch.ps1 "$payload\windows_ipv6_killswitch.ps1"
+          Copy-Item scripts/windows_faketcp_underlay.ps1 "$payload\windows_faketcp_underlay.ps1"
+          Copy-Item scripts/windows_npcap_prepare.ps1 "$payload\windows_npcap_prepare.ps1"
+          Write-Output 'WBD_WINDOWS_PORTABLE_GO_RUNTIME_PASS ipv6_killswitch=1 gui_npcap_setup=1 portable_sidecar_assets=1'
+
+      - name: Build static-CRT pinned wolfSSL DTLS shim
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = "$env:RUNNER_TEMP\wolfssl-source.zip"
+          $artifactDir = "$env:RUNNER_TEMP\wolf-art"
+          $src = "$env:RUNNER_TEMP\wolf-src"
+          New-Item -ItemType Directory -Force -Path $artifactDir,$src | Out-Null
+          $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/vnd.github+json' }
+          Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts/9529710833/zip" -OutFile $zip
+          Expand-Archive -LiteralPath $zip -DestinationPath $artifactDir
+          $tar = Join-Path $artifactDir 'wolfssl-ac01707f-source.tar.gz'
+          $got = (Get-FileHash -Algorithm SHA256 $tar).Hash.ToLowerInvariant()
+          $want = '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b'
+          if ($got -ne $want) { throw "wolfSSL source hash mismatch got=$got want=$want" }
+          tar.exe -xzf $tar -C $src --strip-components=1
+          if ($LASTEXITCODE -ne 0) { throw "tar extraction failed: $LASTEXITCODE" }
+          $build = "$env:RUNNER_TEMP\wbd-dtls-win-build"
+          cmake -S native/dtls -B $build -A x64 "-DWOLFSSL_SOURCE_DIR=$src"
+          if ($LASTEXITCODE -ne 0) { throw "DTLS configure failed: $LASTEXITCODE" }
+          cmake --build $build --config Release --target wbd_dtls_shim --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw "DTLS build failed: $LASTEXITCODE" }
+          $exe = Get-ChildItem $build -Recurse -Filter wbd_dtls_shim.exe | Select-Object -First 1
+          if (-not $exe) { throw 'DTLS shim not produced' }
+          Copy-Item $exe.FullName "$env:RUNNER_TEMP\wbd-payload\wbd_dtls_shim.exe"
+          Write-Output 'WBD_WINDOWS_PORTABLE_DTLS_PASS wolfssl=pinned-static crt=static'
+
+      - name: Add locked official Wintun prebuilt
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = "$env:RUNNER_TEMP\wintun-0.14.1.zip"
+          Invoke-WebRequest -UseBasicParsing 'https://www.wintun.net/builds/wintun-0.14.1.zip' -OutFile $zip
+          $got = (Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant()
+          $want = '07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51'
+          if ($got -ne $want) { throw "Wintun ZIP SHA256 mismatch: got=$got want=$want" }
+          $dir = "$env:RUNNER_TEMP\wintun"
+          Expand-Archive -LiteralPath $zip -DestinationPath $dir
+          $dll = Get-ChildItem $dir -Recurse -Filter wintun.dll | Where-Object { $_.FullName -match '[\\/]amd64[\\/]' } | Select-Object -First 1
+          if (-not $dll) { throw 'amd64 wintun.dll not found' }
+          $license = Get-ChildItem $dir -Recurse -File | Where-Object { $_.Name -match '^LICENSE(\.txt)?$' } | Select-Object -First 1
+          if (-not $license) { throw 'Wintun binary license file not found in official archive' }
+          Copy-Item $dll.FullName "$env:RUNNER_TEMP\wbd-payload\wintun.dll"
+          Copy-Item $license.FullName "$env:RUNNER_TEMP\wbd-payload\WINTUN-LICENSE.txt"
+          Write-Output "WBD_WINDOWS_PORTABLE_WINTUN_PASS version=0.14.1 zip_sha256=$got official_prebuilt=1 compatibility_release=1"
+
+      - name: Manifest hash and embed portable payload
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $payload = "$env:RUNNER_TEMP\wbd-payload"
+          foreach ($required in @('windows_ipv6_killswitch.ps1','windows_npcap_prepare.ps1','windows_tun_route.ps1','wintun.dll')) {
+            if (-not (Test-Path (Join-Path $payload $required))) { throw "portable runtime missing $required" }
+          }
+          $files = [ordered]@{}
+          Get-ChildItem $payload -File | Sort-Object Name | ForEach-Object {
+            if ($_.Name -ne 'manifest.json') { $files[$_.Name] = (Get-FileHash -Algorithm SHA256 $_.FullName).Hash.ToLowerInvariant() }
+          }
+          $manifest = [ordered]@{ schema='wbd-windows-runtime/v1'; files=$files; wintun_version='0.14.1'; wintun_zip_sha256='07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51' }
+          $manifest | ConvertTo-Json -Depth 6 | Set-Content "$payload\manifest.json" -Encoding UTF8
+          $embedded = 'internal/windowsbundle/payload.zip'
+          if (Test-Path $embedded) { Remove-Item $embedded -Force }
+          Compress-Archive -Path "$payload\*" -DestinationPath $embedded -CompressionLevel Optimal
+          $payloadSHA = (Get-FileHash -Algorithm SHA256 $embedded).Hash.ToLowerInvariant()
+          go build -tags wbd_bundle -trimpath -ldflags="-H=windowsgui" -o "$env:RUNNER_TEMP\wbd.exe" ./cmd/wbd-windows-portable
+          if (-not (Test-Path "$env:RUNNER_TEMP\wbd.exe")) { throw 'portable wbd.exe not produced' }
+          Write-Output "WBD_WINDOWS_PORTABLE_SINGLE_EXE_PASS payload_sha256=$payloadSHA npcap_embedded=0 wintun_embedded=1 sidecar_config=wbd.json sidecar_ipset=cn4.txt,cn6.txt,cn-manifest.json"
+
+      - name: Verify portable EXE PE dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $dumpbin = & $vswhere -latest -products * -find 'VC\Tools\MSVC\**\bin\Hostx64\x64\dumpbin.exe' | Select-Object -First 1
+          if (-not $dumpbin) { throw 'dumpbin.exe not found' }
+          $deps = & $dumpbin /dependents "$env:RUNNER_TEMP\wbd.exe" | Out-String
+          if ($deps -match '(?im)^\s*(VCRUNTIME|MSVCP|ucrtbase)[^\s]*\.dll\s*$') { throw "portable outer EXE imports dynamic CRT:`n$deps" }
+          Write-Output 'WBD_WINDOWS_PORTABLE_OUTER_DEPS_PASS dynamic_crt=0'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wbd-windows-portable-${{ github.sha }}
+          path: ${{ runner.temp }}\wbd.exe
+          if-no-files-found: error
+          retention-days: 14

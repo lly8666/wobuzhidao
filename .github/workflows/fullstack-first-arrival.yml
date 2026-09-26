@@ -1,0 +1,167 @@
+name: fullstack-first-arrival
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        rtt: [20, 100]
+        loss: [0, 10, 20]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc iproute2 iptables curl unzip openssl
+      - name: Build pinned DTLS and WBD data plane
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/assets /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/assets/wbd_dtls_shim
+          go test ./internal/fec ./internal/faketcp -count=1
+          go build -trimpath -o /tmp/assets/wbd-fec-proxy ./cmd/wbd-fec-proxy
+          go build -trimpath -o /tmp/assets/wbd-faketcp ./cmd/wbd-faketcp
+          python3 -m py_compile scripts/faketcp_first_arrival_probe.py
+      - name: Create certificates
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/assets/certs
+          cat >/tmp/assets/certs/server.ext <<'EOF'
+          basicConstraints=critical,CA:FALSE
+          keyUsage=critical,digitalSignature,keyEncipherment
+          extendedKeyUsage=serverAuth
+          subjectAltName=DNS:wbd.test
+          EOF
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 7 -subj '/CN=WBD Full Stack Root CA' \
+            -keyout /tmp/assets/certs/ca.key -out /tmp/assets/certs/ca.pem >/dev/null 2>&1
+          openssl req -newkey rsa:2048 -nodes -sha256 -subj '/CN=wbd.test' \
+            -keyout /tmp/assets/certs/server.key -out /tmp/assets/certs/server.csr >/dev/null 2>&1
+          openssl x509 -req -in /tmp/assets/certs/server.csr -CA /tmp/assets/certs/ca.pem -CAkey /tmp/assets/certs/ca.key \
+            -CAcreateserial -days 7 -sha256 -extfile /tmp/assets/certs/server.ext -out /tmp/assets/certs/server.pem >/dev/null 2>&1
+      - name: Measure earliest complete inner datagram on 100 Mbit link
+        env:
+          RTT: ${{ matrix.rtt }}
+          LOSS: ${{ matrix.loss }}
+        run: |
+          set -euo pipefail
+          C=wbdffc$$
+          R=wbdffr$$
+          S=wbdffs$$
+          cleanup() {
+            set +e
+            for P in ${PIDS:-}; do sudo kill -TERM "$P" 2>/dev/null; done
+            sleep .2
+            sudo ip netns del "$C" 2>/dev/null
+            sudo ip netns del "$R" 2>/dev/null
+            sudo ip netns del "$S" 2>/dev/null
+          }
+          trap cleanup EXIT
+
+          sudo ip netns add "$C"; sudo ip netns add "$R"; sudo ip netns add "$S"
+          sudo ip link add c0 type veth peer name r0
+          sudo ip link add r1 type veth peer name s0
+          sudo ip link set c0 netns "$C"; sudo ip link set r0 netns "$R"
+          sudo ip link set r1 netns "$R"; sudo ip link set s0 netns "$S"
+          sudo ip -n "$C" addr add 10.85.0.1/24 dev c0
+          sudo ip -n "$R" addr add 10.85.0.254/24 dev r0
+          sudo ip -n "$R" addr add 10.85.1.254/24 dev r1
+          sudo ip -n "$S" addr add 10.85.1.2/24 dev s0
+          for N in "$C" "$R" "$S"; do sudo ip -n "$N" link set lo up; done
+          sudo ip -n "$C" link set c0 up; sudo ip -n "$R" link set r0 up
+          sudo ip -n "$R" link set r1 up; sudo ip -n "$S" link set s0 up
+          sudo ip -n "$C" route add 10.85.1.0/24 via 10.85.0.254
+          sudo ip -n "$S" route add 10.85.0.0/24 via 10.85.1.254
+          sudo ip netns exec "$R" sysctl -qw net.ipv4.ip_forward=1
+          sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+          HALF=$(python3 - <<PY
+          print(float('$RTT')/2.0)
+          PY
+          )
+          sudo ip netns exec "$R" tc qdisc add dev r1 root netem limit 50000 delay "${HALF}ms" rate 100mbit
+          sudo ip netns exec "$R" tc qdisc add dev r0 root netem limit 50000 delay "${HALF}ms" rate 100mbit
+
+          BASE=55000
+          sudo ip netns exec "$S" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
+            server --bind 127.0.0.1:${BASE} --expect 800 --window 8.0 --out /tmp/full-first.json \
+            >/tmp/full-probe-server.log 2>&1 & P1=$!
+          sudo ip netns exec "$S" /tmp/assets/wbd-fec-proxy server $((BASE+1)) $((BASE+2)) ${BASE} \
+            >/tmp/full-fec-server.log 2>&1 & P2=$!
+          sudo ip netns exec "$S" /tmp/assets/wbd_dtls_shim server $((BASE+2)) 127.0.0.1 $((BASE+1)) \
+            /tmp/assets/certs/server.pem /tmp/assets/certs/server.key >/tmp/full-dtls-server.log 2>&1 & P3=$!
+          sudo ip netns exec "$S" /tmp/assets/wbd-faketcp server --listen 10.85.1.2:$((BASE+3)) \
+            --target-udp 127.0.0.1:$((BASE+2)) >/tmp/full-raw-server.log 2>&1 & P4=$!
+          sleep .15
+          sudo ip netns exec "$C" /tmp/assets/wbd-faketcp client --local-udp 127.0.0.1:$((BASE+4)) \
+            --source 10.85.0.1:$((BASE+10)) --remote 10.85.1.2:$((BASE+3)) >/tmp/full-raw-client.log 2>&1 & P5=$!
+          sleep .10
+          sudo ip netns exec "$C" /tmp/assets/wbd_dtls_shim client $((BASE+5)) 127.0.0.1 $((BASE+4)) \
+            /tmp/assets/certs/ca.pem wbd.test >/tmp/full-dtls-client.log 2>&1 & P6=$!
+          PIDS="$P1 $P2 $P3 $P4 $P5 $P6"
+          for i in $(seq 1 400); do
+            grep -q 'READY role=client' /tmp/full-dtls-client.log && grep -q 'READY role=server' /tmp/full-dtls-server.log && break
+            sleep .05
+          done
+          grep -q 'READY role=client' /tmp/full-dtls-client.log
+          grep -q 'READY role=server' /tmp/full-dtls-server.log
+          sudo ip netns exec "$C" /tmp/assets/wbd-fec-proxy client $((BASE+7)) $((BASE+5)) >/tmp/full-fec-client.log 2>&1 & P7=$!
+          PIDS="$PIDS $P7"
+          for i in $(seq 1 100); do
+            grep -q 'READY role=client' /tmp/full-fec-client.log && grep -q 'READY role=server' /tmp/full-fec-server.log && break
+            sleep .05
+          done
+          grep -q 'READY role=client' /tmp/full-fec-client.log
+          grep -q 'READY role=server' /tmp/full-fec-server.log
+
+          if [[ "$LOSS" != "0" ]]; then
+            sudo ip netns exec "$R" tc qdisc replace dev r1 root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 100mbit
+            sudo ip netns exec "$R" tc qdisc replace dev r0 root netem limit 50000 delay "${HALF}ms" loss random "${LOSS}%" rate 100mbit
+          fi
+          sudo ip netns exec "$C" python3 "$GITHUB_WORKSPACE/scripts/faketcp_first_arrival_probe.py" \
+            client --dest 127.0.0.1:$((BASE+7)) --count 800 --size 1200 --interval-ms 1
+          wait "$P1" || true
+          PIDS="${PIDS//$P1/}"
+          for P in $P2 $P3 $P4 $P5 $P6 $P7; do sudo kill -TERM "$P" 2>/dev/null || true; done
+          for P in $P2 $P3 $P4 $P5 $P6 $P7; do wait "$P" || true; done
+          PIDS=""
+          cat /tmp/full-probe-server.log
+          cat /tmp/full-fec-client.log
+          cat /tmp/full-fec-server.log
+          cat /tmp/full-dtls-client.log
+          cat /tmp/full-dtls-server.log
+          cat /tmp/full-raw-client.log
+          cat /tmp/full-raw-server.log
+          python3 - <<'PY'
+          import json,os
+          row=json.load(open('/tmp/full-first.json'))
+          rtt=float(os.environ['RTT']); loss=float(os.environ['LOSS'])
+          print('FULLSTACK_FIRST',json.dumps({'link_mbps':100,'rtt_ms':rtt,'loss_pct':loss,**row},sort_keys=True))
+          assert row['p50_ms'] <= rtt/2.0 + 25.0, row
+          assert row['p75_ms'] <= rtt/2.0 + 30.0, row
+          if loss == 0:
+              assert row['received_first'] == row['expected'], row
+          PY

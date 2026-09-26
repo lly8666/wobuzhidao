@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "continuity_sequence", "repository", "active_branch", "checkpoint_based_on_head_sha", "live_refresh_required", "continuation_cursor", "resume_read_set", "required_data_plane_assets", "local_test_snapshot"],
+  "properties": {
+    "schema_version": {"const": "wbd-session-handoff/v1"},
+    "continuity_sequence": {"type": "integer", "minimum": 1},
+    "repository": {"const": "lly8666/wobuzhidao"},
+    "active_branch": {"type": "string", "minLength": 1},
+    "checkpoint_based_on_head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "live_refresh_required": {"const": true},
+    "continuation_cursor": {
+      "type": "object",
+      "required": ["last_completed_action", "current_task", "why_now", "done_when", "next_atomic_action"],
+      "properties": {
+        "last_completed_action": {"type": "string", "minLength": 1},
+        "current_task": {"type": "string", "minLength": 1},
+        "why_now": {"type": "string", "minLength": 1},
+        "done_when": {"type": "string", "minLength": 1},
+        "next_atomic_action": {"type": "string", "minLength": 1}
+      }
+    },
+    "resume_read_set": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "required_data_plane_assets": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "local_test_snapshot": {
+      "type": "object",
+      "required": ["authority", "tested_commit", "result"],
+      "properties": {
+        "authority": {"const": "snapshot_not_live"},
+        "tested_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "result": {"enum": ["pass", "fail", "not_run"]}
+      }
+    }
+  }
+}
