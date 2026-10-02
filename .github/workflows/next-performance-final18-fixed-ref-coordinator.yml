@@ -120,3 +120,42 @@ jobs:
             dispatched=$((dispatched+1))
           done < "$RUNNER_TEMP/final18.txt"
           echo "WBD_FINAL18_COORDINATOR_DONE present=$present dispatched=$dispatched expected_sha=$EXPECTED_SHA dispatch_ref=$DISPATCH_REF"
+
+  artifact-only-qualification:
+    needs: dispatch-missing
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read separately pinned analyzer source
+        id: analyzer
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          d=json.load(open('.github/perf-final18-fixed-ref-request.json'))
+          sha=d.get('aggregate_sha','')
+          if not re.fullmatch(r'[0-9a-f]{40}',sha):
+              raise SystemExit('aggregate_sha must be a pinned full SHA')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write(f'sha={sha}\n')
+          PY
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.analyzer.outputs.sha }}
+          path: analyzer
+      - name: Collect immutable single-run summaries, no workload
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/collect-final18-summaries.py
+      - name: Enforce complete campaign and paired RTT gates
+        run: |
+          python3 analyzer/tools/aggregate_strict_weaknet_loss_tolerant_v1.py \
+            --root final18 --output final18/aggregate.json \
+            --source-sha "$(jq -r .expected_sha .github/perf-final18-fixed-ref-request.json)" \
+            --seeds 101,202,303 --required-repeats 3 --require-run-receipts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: final18-artifact-only-${{ github.run_id }}
+          path: final18
+          if-no-files-found: error
+          retention-days: 30

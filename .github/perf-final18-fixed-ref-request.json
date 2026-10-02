@@ -1,7 +1,8 @@
 {
   "ref": "next/tlslike-dataplane",
-  "dispatch_ref": "perf-fixed/e67b51968d9e5f707dfc9ef7d459ba5192008901-r2",
-  "expected_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
+  "dispatch_ref": "perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4-r2",
+  "expected_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+  "aggregate_sha": "6dafa657af9f577f8cc21256276bfb44d8ee3fd1",
   "workflow": "next-strict-weaknet.yml",
-  "generation": "v10p1-sharded-udp-final18-new-samples"
+  "generation": "v10p2-client-udp-ingress-final18-new-samples"
 }
