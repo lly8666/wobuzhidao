@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "updated_at": "2026-09-25",
+  "updated_at": "2026-10-03",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "REPAIR_FOLLOWUP_V10P2_SEED303_CANARY_PASS_PENDING_COMPARABLE_CANARIES：产品SOURCE_SHA 56eb5413c3cf2e559b82026e8a5783508764e2f4。exact-source correctness/race/Windows/privileged OpenWrt TPROXY 已由 Actions run 36039856693 全部PASS；该workflow在main触发但每个job显式checkout并硬校验产品SHA。此前已存在的独立 workflow_dispatch Normal/5305/seed303 run 36031678003（attempt 1、exact product SHA）五分类全PASS，本机socket/AF_PACKET/raw/link drop全0，V10.2 client UDP ingress严格有界且无overflow/error。V10.1 final18 的17 PASS / 1 CAPACITY_LIMITED及run 36006942033永久保留，不被V10.2 canary覆盖。V10.2尚未qualified，也未启动新final18或P6。",
-  "next_task": "先补一条新的独立 exact-SHA Normal/5205/seed101 可比诊断canary，用V10.1 clean baseline核对dense-repair FastRepairs约23k/向、CPU约50.64/52.52s、outer/latency及client UDP bounded queue是否无回归。该样本PASS后再决定是否需要Game4/5305/seed101与lossless/seed101；任何FAIL/CAPACITY_LIMITED立即停止。只有补充证据稳定后才考虑V10.2从零的新final18；P6继续NOT_RUN。",
-  "latest_log": "docs/devlog/20260925-031500-v10p2-exact-source-and-seed303-canary-pass.md",
+  "in_progress": "V10P2_DIAGNOSTIC_CANARIES_PASS_AGGREGATE_FIX_PENDING_ACTIONS：产品56eb5413c3cf2e559b82026e8a5783508764e2f4的correctness/race/Windows/privileged及四条诊断canary均PASS。新无损37064194890满速、0本机drop、0repair/abandoned。产品不改；汇总完整性回归待Actions。V10.1的17PASS/1CAPACITY_LIMITED保留，V10.2尚未qualified。",
+  "next_task": "确认next-performance-analysis-unit新汇总11项回归PASS，再从新冻结ref perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4-r2启动正式18独立样本。诊断不混入；逐模式seed配对lossless并验证原RTT门、全6组×3seeds和run receipt。任何失败保留停止资格推进，P6待资格通过。",
+  "latest_log": "docs/devlog/20261003-051800-v10p2-status-receipt-followup.md",
   "last_tested_source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
   "actions": [
     {
@@ -1556,6 +1556,27 @@
       "scope": "v10p2-normal-5305-seed303-diagnostic-canary",
       "status": "PASS",
       "note": "independent workflow_dispatch attempt1 on fixed ref; five classifications PASS; all local socket/packet/raw/link drops zero; client UDP total peak 40/1024 and 20960/9150464 bytes, overflow/error zero, eviction scan0; stress goodput 9.9817/9.9762Mbps, p95 612.893ms, FastRepairs 277/319, fresh counters zero, RepairEvictionMaxScan=1. Not final18 qualification."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/36040934871",
+      "scope": "v10p2-diagnostic-normal_5205_seed101",
+      "status": "PASS",
+      "note": "Exact frozen source, attempt1, five classifications PASS, socket drops0; not formal final18."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/36042176928",
+      "scope": "v10p2-diagnostic-game_5305_seed101",
+      "status": "PASS",
+      "note": "Exact frozen source, attempt1, five classifications PASS, socket drops0; not formal final18."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37064194890",
+      "scope": "v10p2-diagnostic-normal_lossless_seed101",
+      "status": "PASS",
+      "note": "Exact frozen source, attempt1, five classifications PASS, socket drops0; not formal final18."
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1598,8 +1619,8 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "REOPENED_REPAIR_FOLLOWUP_V10: V9 fixed AF_PACKET receive HOL but exposed synchronous platformflow UDP mapping read->tunnel.Send coupling. V10 adds one strict global UDPServer send backlog budget, not per-flow capacity.",
-    "P5": "REOPENED_REPAIR_FOLLOWUP_V10: V9 final18 remains immutable at 17 PASS / 1 CAPACITY_LIMITED. V10 must restart at correctness/race and a new diagnostic canary.",
-    "P6": "STALE_FOR_CURRENT_REPAIR_SERIES: historical exact-SHA repackage PASS at 689dea19 remains evidence only; V8 P6 repackage is NOT_RUN because V8 final18 is not 18/18 PASS.",
+    "P5": "REOPENED_V10P2_DIAGNOSTIC_PASS_FINAL18_NOT_RUN: four canaries and exact-source correctness PASS; fresh formal matrix required.",
+    "P6": "NOT_RUN_FOR_V10P2: historical release receipts preserved; wait for formal qualification.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
       "status": "IMPLEMENTED_PENDING_ACTIONS",
@@ -1858,7 +1879,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "REPAIR_FOLLOWUP_V10P2_PENDING_ACTIONS",
+      "status": "V10P2_DIAGNOSTIC_CANARIES_PASS_AGGREGATE_FIX_PENDING_ACTIONS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1869,9 +1890,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20260925-005500-v10p1-final18-stop-v10p2-client-udp-ingress.md",
+      "latest_log": "docs/devlog/20261003-051800-v10p2-status-receipt-followup.md",
       "note": "V10.1 final18 is permanently 17 PASS / 1 CAPACITY_LIMITED. The remaining drop is the product-owned client TPROXY UDP ingress socket; V10.2 mirrors the server-side bounded drain/send decoupling on the client ingress without changing repair/FEC/wire or kernel socket buffers.",
-      "next_task": "只通过GitHub Actions验证V10.2 56eb5413c3cf2e559b82026e8a5783508764e2f4 的openwrtclient/platformflow/runtimeentry unit+races、targeted、foundation、lifecycle及privileged TPROXY。任何失败先分析，不跑性能。全部通过后只跑一条新的Normal/5305/seed303 exact-SHA诊断canary，要求client/ss_udp drop=0、client ingress queued+inflight<=1024且bytes<=1024*MaxPayload、EvictionMaxScan<=4、server UDP仍有界、FreshBlocked/FreshWindowBypass/FreshEmitFailures=0、RepairEvictionMaxScan<=1且五分类全PASS。",
+      "next_task": "确认next-performance-analysis-unit新汇总11项回归PASS，再从新冻结ref perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4-r2启动正式18独立样本。诊断不混入；逐模式seed配对lossless并验证原RTT门、全6组×3seeds和run receipt。任何失败保留停止资格推进，P6待资格通过。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -5699,7 +5720,7 @@
         }
       },
       "repair_followup_candidate_v10p2": {
-        "status": "EXACT_SOURCE_CORRECTNESS_RACE_PRIVILEGED_AND_SEED303_CANARY_PASS",
+        "status": "CORRECTNESS_AND_FOUR_DIAGNOSTIC_CANARIES_PASS",
         "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
         "parent_product_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
         "commit_chain": [
@@ -5721,7 +5742,7 @@
         "kernel_socket_buffer_changed": false,
         "performance_parameters_changed": false,
         "repair_parameters_changed": false,
-        "performance_status": "NORMAL_5305_SEED303_DIAGNOSTIC_CANARY_PASS_NOT_QUALIFIED",
+        "performance_status": "DIAGNOSTIC_PASS_NOT_FINAL18_QUALIFIED",
         "exact_source_correctness": {
           "run": 36039856693,
           "workflow": "next-v10p2-exact-source-correctness",
@@ -5859,7 +5880,161 @@
             "note": "Artifact-reader stage sampling is endpoint/timeline based; strict analyzer directional FastRepairs are c2s=277/s2c=319 and are authoritative for directional stage reporting."
           },
           "qualification_note": "Diagnostic canary only. It repairs the V10.1 client TPROXY socket-drop boundary in this sample but does not replace the immutable V10.1 final18 failure and is not a V10.2 final18 qualification."
+        },
+        "normal_5205_seed101": {
+          "run": 36040934871,
+          "event": "workflow_dispatch",
+          "run_attempt": 1,
+          "dispatch_ref": "perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4",
+          "summary_artifact": 10825874497,
+          "full_artifact": 10826499176,
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "process_cpu_seconds": {
+            "client": 72.51,
+            "server": 73.08
+          },
+          "stress_goodput_mbps": {
+            "c2s": 10.000172800000001,
+            "s2c": 10.000300800000002
+          },
+          "probe_stage": {
+            "post": {
+              "p95_ns": 609871461,
+              "p99_ns": 611660374,
+              "received": 30,
+              "sent": 30
+            },
+            "pre": {
+              "p95_ns": 611714347,
+              "p99_ns": 617669101,
+              "received": 30,
+              "sent": 30
+            },
+            "stress": {
+              "p95_ns": 610755962,
+              "p99_ns": 611745134,
+              "received": 60,
+              "sent": 60
+            }
+          },
+          "outer_ip_per_app": {
+            "c2s": 5.481321573333333,
+            "s2c": 5.615262806666666
+          },
+          "qualification_note": "Diagnostic only; excluded from final18; heterogeneous runner CPU is not direct regression evidence."
+        },
+        "game_5305_seed101": {
+          "run": 36042176928,
+          "event": "workflow_dispatch",
+          "run_attempt": 1,
+          "dispatch_ref": "perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4",
+          "summary_artifact": 10827615584,
+          "full_artifact": 10826957772,
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "process_cpu_seconds": {
+            "client": 108.7,
+            "server": 101.48
+          },
+          "stress_goodput_mbps": {
+            "c2s": 2.9999146666666667,
+            "s2c": 3.0000746666666664
+          },
+          "probe_stage": {
+            "post": {
+              "p95_ns": 606413144,
+              "p99_ns": 606943852,
+              "received": 30,
+              "sent": 30
+            },
+            "pre": {
+              "p95_ns": 606926406,
+              "p99_ns": 606975159,
+              "received": 30,
+              "sent": 30
+            },
+            "stress": {
+              "p95_ns": 604784976,
+              "p99_ns": 605138381,
+              "received": 60,
+              "sent": 60
+            }
+          },
+          "outer_ip_per_app": {
+            "c2s": 21.35344944748042,
+            "s2c": 21.890540079891345
+          },
+          "qualification_note": "Diagnostic only; excluded from final18; heterogeneous runner CPU is not direct regression evidence."
+        },
+        "normal_lossless_seed101": {
+          "run": 37064194890,
+          "event": "workflow_dispatch",
+          "run_attempt": 1,
+          "dispatch_ref": "perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4",
+          "summary_artifact": 11251787086,
+          "full_artifact": 11252026915,
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "process_cpu_seconds": {
+            "client": 89.03,
+            "server": 87.99
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.9993792,
+            "s2c": 9.999741866666668
+          },
+          "probe_stage": {
+            "post": {
+              "p95_ns": 616643357,
+              "p99_ns": 617241970,
+              "received": 30,
+              "sent": 30
+            },
+            "pre": {
+              "p95_ns": 615042549,
+              "p99_ns": 615925340,
+              "received": 30,
+              "sent": 30
+            },
+            "stress": {
+              "p95_ns": 616501433,
+              "p99_ns": 618333277,
+              "received": 60,
+              "sent": 60
+            }
+          },
+          "outer_ip_per_app": {
+            "c2s": 5.090410293333333,
+            "s2c": 5.22229938
+          },
+          "qualification_note": "Diagnostic only; excluded from final18; heterogeneous runner CPU is not direct regression evidence.",
+          "stage_repair_abandoned_zero": true
         }
+      },
+      "qualification_aggregate_revision_2": {
+        "status": "PENDING_ACTIONS",
+        "product_source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+        "fixture_tests": 11,
+        "latest_log": "docs/devlog/20261003-051500-v10p2-canaries-and-qualification-gates.md"
       }
     }
   }
