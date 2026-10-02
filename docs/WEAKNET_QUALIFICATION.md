@@ -163,6 +163,8 @@ Actions先单条Normal10M无损，再单条Game4逻辑3M无损；随后按独立
 
 新agent先改测试入口为显式单样本workflow_dispatch，并加输入/执行记录校验及意外第二样本拒绝；现有next-performance-ab-game等多样本入口停用或改造，不能直接沿用。普通unit/race的多用例不受此限制，但应独立于性能测量运行。改前后只能作独立runner重复比较，报告异质性，不能为了同runner控制重新塞两条进一个run。
 
+正式 final18 的 artifact-only 汇总必须同时验证两种模式 × 三场景 × seeds 101/202/303，全18条、同一产品SOURCE_SHA、Normal每向10Mbps/1 lane、Game每向3Mbps/4 lanes。每条（包括lossless基线）五分类均PASS，缺组、缺重复、重复身份、混源码、错误配置均不得通过。逐seed逐模式配对独立lossless基线，pre/stress/post全部满足原p95增量200ms/p99增量500ms；缺失、非有限或没有成功探针的分位数不能作为有效基线。正式汇总使用 `--source-sha SHA --seeds 101,202,303 --require-run-receipts`，每个summary旁保存GitHub API原始 `run-receipt.json`，验证唯一run ID、workflow_dispatch、attempt=1、completed/success。诊断canary与正式新矩阵用不同冻结ref，历史失败不得被重试或新样本覆盖。控制器只分发和读取产物，不运行性能负载。
+
 ### 10.4 发送端放弃与接收端缺口退役必须一起完成
 
 当前已有first-arrival no-HOL和forgiveGapLocked：接收端不会为外层缺包扣住后续完整业务，但仍保留ACK/SACK缺口元数据；压力阈值或repair horizon可放弃缺口。当前forgiveGapLocked每次遍历received map选候选，包括tick未到期时的无效扫描；发送端淘汰优化不能遗漏这一侧。两侧扫描对实测CPU的贡献均待验证。
