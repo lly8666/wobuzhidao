@@ -1,0 +1,748 @@
+{
+  "schema": 1,
+  "kind": "v10p2-final18-qualification-evidence",
+  "product_source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+  "dispatch_ref": "perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4-r2",
+  "analyzer_source_sha": "6dafa657af9f577f8cc21256276bfb44d8ee3fd1",
+  "coordinator_source_sha": "da82a86860842c659fea2b0ce7b145c7d9eaec9c",
+  "coordinator_run": 37065816473,
+  "aggregate_job": 111033401800,
+  "aggregate_artifact": 11252477679,
+  "github_artifact_digest": "sha256:01f4c0e467fb7e28f92ead0d15019c603be1e2429d30eeed35ce539ee59c816b",
+  "result": "PASS",
+  "aggregate_revision": 2,
+  "repeat_status": {
+    "game/5205": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    },
+    "game/5305": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    },
+    "game/lossless": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    },
+    "normal/5205": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    },
+    "normal/5305": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    },
+    "normal/lossless": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    }
+  },
+  "errors": [],
+  "max_rtt_p95_delta_ms": 18.093871,
+  "max_rtt_p99_delta_ms": 36.069584,
+  "samples": [
+    {
+      "run": 37065832537,
+      "identity": [
+        "normal",
+        "lossless",
+        101,
+        10,
+        1
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 62.73,
+        "server": 63.7
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.999944533333332,
+        "s2c": 9.999944533333332
+      },
+      "stress_probe": {
+        "p95_ns": 607734270,
+        "p99_ns": 609208028,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 5.092191146666667,
+        "s2c": 5.223585393333333
+      }
+    },
+    {
+      "run": 37065843215,
+      "identity": [
+        "normal",
+        "lossless",
+        202,
+        10,
+        1
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 96.35,
+        "server": 95.1
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.999776,
+        "s2c": 9.999530666666667
+      },
+      "stress_probe": {
+        "p95_ns": 612766576,
+        "p99_ns": 613941956,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 5.09155942,
+        "s2c": 5.222953753333333
+      }
+    },
+    {
+      "run": 37065858002,
+      "identity": [
+        "normal",
+        "lossless",
+        303,
+        10,
+        1
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 49.97,
+        "server": 50.59
+      },
+      "stress_goodput_mbps": {
+        "c2s": 10.000392533333333,
+        "s2c": 9.999978666666665
+      },
+      "stress_probe": {
+        "p95_ns": 609265044,
+        "p99_ns": 611306357,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 5.092287253333334,
+        "s2c": 5.223903973333333
+      }
+    },
+    {
+      "run": 37065837959,
+      "identity": [
+        "normal",
+        "5205",
+        101,
+        10,
+        1
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 98.7,
+        "server": 97.54
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.999556266666668,
+        "s2c": 10.000189866666668
+      },
+      "stress_probe": {
+        "p95_ns": 614943192,
+        "p99_ns": 616027610,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 5.4739336,
+        "s2c": 5.613512986666667
+      }
+    },
+    {
+      "run": 37065847859,
+      "identity": [
+        "normal",
+        "5205",
+        202,
+        10,
+        1
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 98.61,
+        "server": 97.13
+      },
+      "stress_goodput_mbps": {
+        "c2s": 10.000072533333332,
+        "s2c": 10.000055466666668
+      },
+      "stress_probe": {
+        "p95_ns": 615492672,
+        "p99_ns": 618734538,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 5.47491844,
+        "s2c": 5.613474583539069
+      }
+    },
+    {
+      "run": 37065862765,
+      "identity": [
+        "normal",
+        "5205",
+        303,
+        10,
+        1
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 100.06,
+        "server": 98.95
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.999445333333334,
+        "s2c": 9.9996672
+      },
+      "stress_probe": {
+        "p95_ns": 616528493,
+        "p99_ns": 618382957,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 5.4764657266666665,
+        "s2c": 5.61479306258016
+      }
+    },
+    {
+      "run": 37065840563,
+      "identity": [
+        "normal",
+        "5305",
+        101,
+        10,
+        1
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 98.57,
+        "server": 96.31
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.988529066666667,
+        "s2c": 9.977602133333333
+      },
+      "stress_probe": {
+        "p95_ns": 616830057,
+        "p99_ns": 618244385,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 5.30250826,
+        "s2c": 5.4334425133333335
+      }
+    },
+    {
+      "run": 37065853042,
+      "identity": [
+        "normal",
+        "5305",
+        202,
+        10,
+        1
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 97.55,
+        "server": 96.15
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.986555733333333,
+        "s2c": 9.983793066666667
+      },
+      "stress_probe": {
+        "p95_ns": 617726195,
+        "p99_ns": 620253056,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 5.300198293333334,
+        "s2c": 5.433960427292463
+      }
+    },
+    {
+      "run": 37065867258,
+      "identity": [
+        "normal",
+        "5305",
+        303,
+        10,
+        1
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 67.99,
+        "server": 68.69
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.9807936,
+        "s2c": 9.9783104
+      },
+      "stress_probe": {
+        "p95_ns": 612840948,
+        "p99_ns": 613864845,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 5.302443046666666,
+        "s2c": 5.43696238
+      }
+    },
+    {
+      "run": 37065834972,
+      "identity": [
+        "game",
+        "lossless",
+        101,
+        3,
+        4
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 109.4,
+        "server": 102.04
+      },
+      "stress_goodput_mbps": {
+        "c2s": 3.0000746666666664,
+        "s2c": 3.000066133333333
+      },
+      "stress_probe": {
+        "p95_ns": 609942433,
+        "p99_ns": 612026329,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 20.626813865966003,
+        "s2c": 21.157884625982643
+      }
+    },
+    {
+      "run": 37065845613,
+      "identity": [
+        "game",
+        "lossless",
+        202,
+        3,
+        4
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 81.33,
+        "server": 75.92
+      },
+      "stress_goodput_mbps": {
+        "c2s": 3.000032,
+        "s2c": 3.0000746666666664
+      },
+      "stress_probe": {
+        "p95_ns": 602931362,
+        "p99_ns": 603284295,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 20.63017733780848,
+        "s2c": 21.163456198423507
+      }
+    },
+    {
+      "run": 37065860313,
+      "identity": [
+        "game",
+        "lossless",
+        303,
+        3,
+        4
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 112.41,
+        "server": 104.81
+      },
+      "stress_goodput_mbps": {
+        "c2s": 3.000032,
+        "s2c": 3.0000746666666664
+      },
+      "stress_probe": {
+        "p95_ns": 609119518,
+        "p99_ns": 610213397,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 20.630689058405657,
+        "s2c": 21.15750896866567
+      }
+    },
+    {
+      "run": 37065827912,
+      "identity": [
+        "game",
+        "5205",
+        101,
+        3,
+        4
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 112.84,
+        "server": 105.02
+      },
+      "stress_goodput_mbps": {
+        "c2s": 2.9999146666666667,
+        "s2c": 2.999872
+      },
+      "stress_probe": {
+        "p95_ns": 610847157,
+        "p99_ns": 612082243,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 21.6760405425826,
+        "s2c": 22.210022461663176
+      }
+    },
+    {
+      "run": 37065850395,
+      "identity": [
+        "game",
+        "5205",
+        202,
+        3,
+        4
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 70.75,
+        "server": 66.96
+      },
+      "stress_goodput_mbps": {
+        "c2s": 3.000066133333333,
+        "s2c": 3.0000746666666664
+      },
+      "stress_probe": {
+        "p95_ns": 603527607,
+        "p99_ns": 605648603,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 21.676710024106068,
+        "s2c": 22.226928196453777
+      }
+    },
+    {
+      "run": 37065865089,
+      "identity": [
+        "game",
+        "5205",
+        303,
+        3,
+        4
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 75.96,
+        "server": 71.93
+      },
+      "stress_goodput_mbps": {
+        "c2s": 3.000032,
+        "s2c": 2.9856426666666667
+      },
+      "stress_probe": {
+        "p95_ns": 602283987,
+        "p99_ns": 602994265,
+        "received": 59,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 21.67701219436316,
+        "s2c": 22.201090595078522
+      }
+    },
+    {
+      "run": 37065830059,
+      "identity": [
+        "game",
+        "5305",
+        101,
+        3,
+        4
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 84.75,
+        "server": 80.31
+      },
+      "stress_goodput_mbps": {
+        "c2s": 3.0000746666666664,
+        "s2c": 3.0000746666666664
+      },
+      "stress_probe": {
+        "p95_ns": 606725577,
+        "p99_ns": 609427949,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 21.359651737556753,
+        "s2c": 21.881935538493263
+      }
+    },
+    {
+      "run": 37065855672,
+      "identity": [
+        "game",
+        "5305",
+        202,
+        3,
+        4
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 62.07,
+        "server": 59.67
+      },
+      "stress_goodput_mbps": {
+        "c2s": 3.0000746666666664,
+        "s2c": 2.9997461333333333
+      },
+      "stress_probe": {
+        "p95_ns": 604665938,
+        "p99_ns": 605277505,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 21.356994514803187,
+        "s2c": 21.889065072158203
+      }
+    },
+    {
+      "run": 37065869715,
+      "identity": [
+        "game",
+        "5305",
+        303,
+        3,
+        4
+      ],
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 112.29,
+        "server": 105.11
+      },
+      "stress_goodput_mbps": {
+        "c2s": 2.9856768,
+        "s2c": 3.0000746666666664
+      },
+      "stress_probe": {
+        "p95_ns": 606900453,
+        "p99_ns": 608748718,
+        "received": 60,
+        "sent": 60
+      },
+      "outer_ip_per_app": {
+        "c2s": 21.35217132373594,
+        "s2c": 21.883721760702844
+      }
+    }
+  ],
+  "scope_limits": [
+    "120s qualification only; >=30min target-rate soak NOT_RUN",
+    "P6 repackage NOT_RUN; P7 physical NOT_RUN",
+    "Original canaries excluded; historical failures preserved",
+    "Hosted CPU heterogeneity; no claimed percentage CPU improvement"
+  ],
+  "game_seed303_queue_audit": "docs/evidence/v10p2-game-loss-audit.json"
+}

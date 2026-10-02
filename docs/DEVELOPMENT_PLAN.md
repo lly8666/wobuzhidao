@@ -220,3 +220,19 @@ Game4逻辑3Mbps lossless 已在 run 35818718764 / job 107045770392 全门PASS�
 
 
 2026-09-23双端退役补充：按WEAKNET_QUALIFICATION第10.4节联合验收发送备份放弃和接收缺口退休。后续业务不等待；缺口具有不因后续流量/逐洞推进重置的绝对期限和有界索引。无需逐包通知；不能伪造尾部进度/FIN，保留迟到首次交付和PeerFIN生命周期。方案待实现，不能标PASS。
+
+## 2026-10-03 当前原子任务：V10.2正式矩阵通过，准备有界目标负载长测
+
+120秒final18已按ACCEPTANCE最新V10.2条目通过，当前状态以STATUS为准。产品继续固定56eb5413c3cf2e559b82026e8a5783508764e2f4；不再因为看到4096压力或Abandoned就修改FEC/repair/缓冲。新agent先读 `docs/evidence/v10p2-final18.json` 与最新devlog，核对原Actions，不把旧的待canary/17-1状态当当前任务。
+
+下一原子是测试框架的持续目标负载资格，不是新产品架构或参数竞赛：每个run只有一条至少1800秒样本；Normal1每向10Mbps、Game4每向逻辑3Mbps、FEC20:20、padding off、300ms单向、64/256/1200B混合；持续5%并预先定义周期20%阶段，至少一次自动same-ID rotation，记录真实业务连续性、candidate失败后旧lane继续工作、generation隔离与稳定lease。两模式分别独立Action，不共用runner顺序跑。输入有效性、正确性、本机drop与资源硬门保持，P6等待完成。
+
+不得直接把strict_weaknet_sample.sh的120改为1800：现有stage/manifest/validator固定30/60/30；realpath_udp_duplex.Stats的recv_seen集合、send_lag_ns和oneway_ns逐包增长，四点pcap也会膨胀约15倍。先建立只用于长测的有界收集/分析模式，保留现有120秒路径及其身份，不用“统计工具内存增长”冒充产品内存泄漏。具体边界：
+
+1. 业务完整性仍由实际发生器payload/CRC/序号验证；按预先确定的发送slot总数预分配bitset作完整run精确去重，禁止移动窗口丢掉历史后声称全程无重复。bitset容量/字节进manifest；seq越界或输入超过声明容量直接INVALID，不悄悄扩容。10Mbps约444万slot/方向/30min，bitset约0.56MB而非数百万Python set项。
+2. 逐秒bytes/packets/probe统计按预声明duration有界分配；send lag/单向延迟使用声明精度的有界histogram或落盘分块离线排序，报告分位精度、溢出和最大值，不保留全程逐包Python对象，不用采样删除超时。
+3. 连续socket/interface/qdisc计数、产品队列条数/bytes/age、CPU/PSI/RSS/heap/GC按1Hz；分别报告发生器、抓包和产品成本。抓包按时间切块落盘，离线流式分析，每块写计数/digest并压缩；无损probe和完整性时间线仍保留。抓包drop、覆盖缺口、磁盘不足判INVALID/CAPACITY_LIMITED，不静默覆盖旧pcap段。不能仅选最好几段代替全程性能证据。
+4. 用独立Actions完成收集器边界unit与一个缩短版单条框架验证，明确DIAGNOSTIC_ONLY，不计入1800秒资格；通过后分别两条正式长测。模板、分段、捕获边界和源码身份由manifest硬校验。持续负载结束后按既有deadline drain，检查数据/repair/FEC回收与memory plateau，不要求有TTL的metadata立即归零。
+5. 线上放大已量化Normal约5倍、Game4约21–22倍，长测继续分FEC parity、Game复制、ACK、repair、health/padding记账。没有新证据不把20:20改档或取消Game竞速；最终成本优化另做有证据的单项任务。
+
+本段是后续设计，尚未实现/测试；具体进度只写STATUS，不能据此标长测完成。

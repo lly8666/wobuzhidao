@@ -1,0 +1,219 @@
+{
+  "schema": 1,
+  "kind": "read-only-original-artifact-audit",
+  "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+  "audit_run": 37067109489,
+  "audit_job": 111037605427,
+  "audit_source_sha": "2bfd748f8fddd15e7e190b059704d81f3d6100fa",
+  "audit_artifact": 11252728321,
+  "github_artifact_digest": "sha256:4cc1b60d95f01b26f8f765797e3ff3aa6eb65fa1dae2df118ccbcc62f7057607",
+  "result": "NO_CLIENT_OR_SERVER_UDP_QUEUE_OVERFLOW_OR_FORWARD_ERROR",
+  "observations": [
+    {
+      "artifact_id": 11251769673,
+      "loss_seconds": {
+        "c2s": [],
+        "s2c": [
+          {
+            "lost": 213,
+            "received": 528,
+            "second": 84,
+            "sent": 741
+          }
+        ]
+      },
+      "queues": {
+        "client": {
+          "final": {
+            "close_drops": 0,
+            "dequeued": 88971,
+            "enqueued": 88971,
+            "eviction_max_scan": 0,
+            "forward_errors": 0,
+            "gate_errors": 0,
+            "inflight_bytes": 0,
+            "inflight_current": 0,
+            "overflow_age_max": 0,
+            "overflow_bytes": 0,
+            "overflow_drops": 0,
+            "queue": "client_udp",
+            "queue_bytes": 0,
+            "queue_capacity_bytes": 9150464,
+            "queue_capacity_records": 1024,
+            "queue_current": 0,
+            "total_bytes_peak": 4240,
+            "total_peak": 7,
+            "unix_ns": 1790976016150717700,
+            "workers": 4
+          },
+          "max": {
+            "close_drops": 0,
+            "eviction_max_scan": 0,
+            "forward_errors": 0,
+            "gate_errors": 0,
+            "inflight_bytes": 1200,
+            "inflight_current": 1,
+            "overflow_bytes": 0,
+            "overflow_drops": 0,
+            "queue_bytes": 1520,
+            "queue_current": 3,
+            "send_errors": 0,
+            "stale_drops": 0,
+            "total_bytes_peak": 4240,
+            "total_peak": 7
+          },
+          "samples": 138
+        },
+        "server": {
+          "final": {
+            "close_drops": 0,
+            "dequeued": 88938,
+            "enqueued": 88938,
+            "eviction_max_scan": 0,
+            "inflight_bytes": 0,
+            "inflight_current": 0,
+            "overflow_age_max": 0,
+            "overflow_bytes": 0,
+            "overflow_drops": 0,
+            "queue": "server_udp",
+            "queue_bytes": 0,
+            "queue_capacity_bytes": 9150464,
+            "queue_capacity_records": 1024,
+            "queue_current": 0,
+            "send_errors": 0,
+            "stale_drops": 0,
+            "total_bytes_peak": 4560,
+            "total_peak": 9,
+            "unix_ns": 1790976016885176800,
+            "workers": 4
+          },
+          "max": {
+            "close_drops": 0,
+            "eviction_max_scan": 0,
+            "forward_errors": 0,
+            "gate_errors": 0,
+            "inflight_bytes": 1200,
+            "inflight_current": 1,
+            "overflow_bytes": 0,
+            "overflow_drops": 0,
+            "queue_bytes": 3040,
+            "queue_current": 6,
+            "send_errors": 0,
+            "stale_drops": 0,
+            "total_bytes_peak": 4560,
+            "total_peak": 9
+          },
+          "samples": 145
+        }
+      },
+      "run": 37065865089,
+      "scenario": "5205",
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4"
+    },
+    {
+      "artifact_id": 11252294446,
+      "loss_seconds": {
+        "c2s": [
+          {
+            "lost": 215,
+            "received": 525,
+            "second": 78,
+            "sent": 740
+          }
+        ],
+        "s2c": []
+      },
+      "queues": {
+        "client": {
+          "final": {
+            "close_drops": 0,
+            "dequeued": 88972,
+            "enqueued": 88972,
+            "eviction_max_scan": 0,
+            "forward_errors": 0,
+            "gate_errors": 0,
+            "inflight_bytes": 0,
+            "inflight_current": 0,
+            "overflow_age_max": 0,
+            "overflow_bytes": 0,
+            "overflow_drops": 0,
+            "queue": "client_udp",
+            "queue_bytes": 0,
+            "queue_capacity_bytes": 9150464,
+            "queue_capacity_records": 1024,
+            "queue_current": 0,
+            "total_bytes_peak": 10640,
+            "total_peak": 21,
+            "unix_ns": 1790976021185361700,
+            "workers": 4
+          },
+          "max": {
+            "close_drops": 0,
+            "eviction_max_scan": 0,
+            "forward_errors": 0,
+            "gate_errors": 0,
+            "inflight_bytes": 1200,
+            "inflight_current": 1,
+            "overflow_bytes": 0,
+            "overflow_drops": 0,
+            "queue_bytes": 3040,
+            "queue_current": 6,
+            "send_errors": 0,
+            "stale_drops": 0,
+            "total_bytes_peak": 10640,
+            "total_peak": 21
+          },
+          "samples": 138
+        },
+        "server": {
+          "final": {
+            "close_drops": 0,
+            "dequeued": 88938,
+            "enqueued": 88938,
+            "eviction_max_scan": 0,
+            "inflight_bytes": 0,
+            "inflight_current": 0,
+            "overflow_age_max": 0,
+            "overflow_bytes": 0,
+            "overflow_drops": 0,
+            "queue": "server_udp",
+            "queue_bytes": 0,
+            "queue_capacity_bytes": 9150464,
+            "queue_capacity_records": 1024,
+            "queue_current": 0,
+            "send_errors": 0,
+            "stale_drops": 0,
+            "total_bytes_peak": 5824,
+            "total_peak": 11,
+            "unix_ns": 1790976021916523000,
+            "workers": 4
+          },
+          "max": {
+            "close_drops": 0,
+            "eviction_max_scan": 0,
+            "forward_errors": 0,
+            "gate_errors": 0,
+            "inflight_bytes": 1200,
+            "inflight_current": 1,
+            "overflow_bytes": 0,
+            "overflow_drops": 0,
+            "queue_bytes": 2976,
+            "queue_current": 5,
+            "send_errors": 0,
+            "stale_drops": 0,
+            "total_bytes_peak": 5824,
+            "total_peak": 11
+          },
+          "samples": 145
+        }
+      },
+      "run": 37065869715,
+      "scenario": "5305",
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4"
+    }
+  ],
+  "limitations": [
+    "Loss origin before UDP platform queues not proven; FEC/LINK/Game input still needs timeline if future losses become significant",
+    "Original 120s final18 PASS is preserved; this audit is not another performance measurement"
+  ]
+}

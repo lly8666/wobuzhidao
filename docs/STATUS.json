@@ -64,11 +64,12 @@
     "P4第5原子回归修正2（bootstrap/steady Window owner边界）：SOURCE_SHA 08e6637e2899f876794eb787e4399c1eb45d30ee targeted 35692660972 6/6 PASS；foundation 35692661039在进入下一原子时28/30 PASS且两个非FEC 30% seed均恢复PASS，仅soak仍运行。bootstrap满缓冲可继续广告0，但detach后的steady Window固定为1024@WS8，不再永久冻结瞬时occupancy。",
     "P4增强第5原子代码回归关闭（仅代码回归，不关闭增强P4/P5）：896ae94bea1aa1e532b2a14ed9d3e707a72f5286 / next-foundation 35698760856 overall SUCCESS；1fc6b1c7c1917860b4b65ce6449b6361d421fce7 / next-foundation 35703632978 overall SUCCESS，同时targeted 35703632735与startup-padding 35703632926成功。GitHub Jobs API对35703632978返回30/30 job SUCCESS（用户/UI口径31/31 checks）；数量口径差异不改变整轮成功事实。该闭环只回填第5原子既有代码回归，不替代真实二进制持续弱网资格。",
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
-    "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
+    "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。",
+    "V10.2产品56eb5413c3cf2e559b82026e8a5783508764e2f4：新冻结ref正式120s final18（每run一条）18/18五分类及revision2 artifact-only完整矩阵/配对RTT PASS，aggregate37065816473/artifact11252477679；全部socket drop0，无损repair/abandoned0。仅120s资格，不关闭目标负载>=30min/P6/P7。"
   ],
-  "in_progress": "V10P2_FINAL18_RUNNING：四条诊断canary及exact-source correctness PASS；aggregate revision2的11项回归Actions37065380317 PASS。产品56eb5413c3cf2e559b82026e8a5783508764e2f4在新冻结ref -r2的18独立正式样本已从零启动，控制器37065816473只读汇总原产物并验证原RTT门。旧诊断和V10.1失败不混入。strict/blackhole分析器失败传播入口修复待本轮CI；P6/长测/P7未关闭。",
-  "next_task": "检查正式18样本原始summary五分类及只读aggregate37065816473。任何FAIL/CAPACITY_LIMITED保留停止晋级，不重跑覆盖；若全矩阵及配对RTT通过，再做同SOURCE_SHA Normal/Game目标速率>=30min长测的有界抓包/统计框架，不能用旧稀疏soak替代。",
-  "latest_log": "docs/devlog/20261003-052600-v10p2-final18-dispatched-and-ci-failure-gate.md",
+  "in_progress": "V10P2_FINAL18_PASS_TARGET_RATE_LONG_SOAK_PENDING：产品56eb5413c3cf2e559b82026e8a5783508764e2f4在新冻结-r2 ref完成18/18独立120s样本，五分类与revision2 artifact-only配对RTT均PASS，全部socket drop0；无损repair/abandoned0。只读审计Game seed303两份约0.48%损失时两端UDP queue均无overflow/error且远未满，具体上游损失链未证明。当前120s资格完成，不关闭>=30min长测/P6/P7。",
+  "next_task": "只实现有界目标负载长测工具，按DEVELOPMENT_PLAN最新设计：保持产品56eb541/FEC20:20/repair/内核buffer不变；收集器预分配精确去重bitset、有界时延统计、分块连续抓包/离线流式处理及manifest身份硬校验。全部unit与缩短版单条DIAGNOSTIC_ONLY先在Actions通过，再Normal1每向10M与Game4每向逻辑3M分别独立1800s正式资格（300ms、持续5%+周期20%、至少一次rotation）。跟踪Game损失聚集时间链，不无证据改算法。",
+  "latest_log": "docs/devlog/20261003-053200-v10p2-final18-pass-and-original-loss-audit.md",
   "last_tested_source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
   "actions": [
     {
@@ -1589,8 +1590,155 @@
       "source_sha": "da82a86860842c659fea2b0ce7b145c7d9eaec9c",
       "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065816473",
       "scope": "v10p2-final18-artifact-only-coordinator",
-      "status": "RUNNING",
-      "note": "Product56eb541 independently pinned; analyzer6dafa65 independently pinned; each of18 measurements separate run."
+      "status": "PASS",
+      "note": "18 fresh frozen-ref runs five-class PASS; revision2 full-matrix/run-receipt/all-stage paired RTT PASS. Product56eb541, analyzer6dafa65; target-rate long soak/P6 not included."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065832537",
+      "scope": "v10p2-final18-normal-lossless-seed101",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065843215",
+      "scope": "v10p2-final18-normal-lossless-seed202",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065858002",
+      "scope": "v10p2-final18-normal-lossless-seed303",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065837959",
+      "scope": "v10p2-final18-normal-5205-seed101",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065847859",
+      "scope": "v10p2-final18-normal-5205-seed202",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065862765",
+      "scope": "v10p2-final18-normal-5205-seed303",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065840563",
+      "scope": "v10p2-final18-normal-5305-seed101",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065853042",
+      "scope": "v10p2-final18-normal-5305-seed202",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065867258",
+      "scope": "v10p2-final18-normal-5305-seed303",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065834972",
+      "scope": "v10p2-final18-game-lossless-seed101",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065845613",
+      "scope": "v10p2-final18-game-lossless-seed202",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065860313",
+      "scope": "v10p2-final18-game-lossless-seed303",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065827912",
+      "scope": "v10p2-final18-game-5205-seed101",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065850395",
+      "scope": "v10p2-final18-game-5205-seed202",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065865089",
+      "scope": "v10p2-final18-game-5205-seed303",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065830059",
+      "scope": "v10p2-final18-game-5305-seed101",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065855672",
+      "scope": "v10p2-final18-game-5305-seed202",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065869715",
+      "scope": "v10p2-final18-game-5305-seed303",
+      "status": "PASS",
+      "note": "Independent attempt1 on new frozen -r2 ref; five-class PASS, socket drops0; original summary/run receipts retained in aggregate artifact."
+    },
+    {
+      "source_sha": "2e7b67f477d68d0ece8cfe3ea7fd84a407222047",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37066175304",
+      "scope": "ci-analyzer-failure-propagation-foundation",
+      "status": "PASS",
+      "note": "Contract/Linux-Windows unit/build/Linux race-fuzz/privileged TPROXY-shared TUN/fallback PASS; unrelated measurements skipped."
+    },
+    {
+      "source_sha": "2e7b67f477d68d0ece8cfe3ea7fd84a407222047",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37066175340",
+      "scope": "ci-analyzer-failure-propagation-targeted",
+      "status": "PASS",
+      "note": "Targeted core/race/lifecycle/privileged PASS; no performance measurement."
+    },
+    {
+      "source_sha": "2bfd748f8fddd15e7e190b059704d81f3d6100fa",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37067109489",
+      "scope": "read-only-v10p2-game-seed303-original-queue-loss-audit",
+      "status": "PASS",
+      "note": "Reads two original 56eb541 full archives only, no workload: client/server UDP overflow and errors0; peak7/9 and21/11 of1024; losses concentrated at84s/78s; upstream loss origin not proven."
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1632,9 +1780,9 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "V10P2_CODE_CORRECTNESS_PASS: client/server bounded UDP queues implemented; existing lifecycle semantics retained. Whole performance qualification pending.",
-    "P5": "V10P2_FINAL18_RUNNING: fresh frozen -r2 campaign; target-rate long soak NOT_RUN; historical evidence preserved.",
-    "P6": "NOT_RUN_FOR_V10P2: historical release receipts preserved; wait for formal qualification.",
+    "P4": "V10P2_CODE_CORRECTNESS_PASS: bounded client/server UDP queues, no-HOL and existing lifecycle retained; exact-source core/race/privileged PASS.",
+    "P5": "V10P2_120S_FINAL18_PASS_LONG_SOAK_PENDING: 18/18 plus independent-baseline RTT PASS; >=30min target-rate Normal/Game soak NOT_RUN. Historical failures preserved.",
+    "P6": "NOT_RUN_FOR_V10P2: repackage only after remaining target-rate long soak gates; historical releases preserved.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
       "status": "IMPLEMENTED_PENDING_ACTIONS",
@@ -1893,7 +2041,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "V10P2_FINAL18_RUNNING",
+      "status": "V10P2_FINAL18_PASS_LONG_SOAK_PENDING",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1904,9 +2052,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20261003-052600-v10p2-final18-dispatched-and-ci-failure-gate.md",
+      "latest_log": "docs/devlog/20261003-053200-v10p2-final18-pass-and-original-loss-audit.md",
       "note": "V10.1 final18 is permanently 17 PASS / 1 CAPACITY_LIMITED. The remaining drop is the product-owned client TPROXY UDP ingress socket; V10.2 mirrors the server-side bounded drain/send decoupling on the client ingress without changing repair/FEC/wire or kernel socket buffers.",
-      "next_task": "检查正式18样本原始summary五分类及只读aggregate37065816473。任何FAIL/CAPACITY_LIMITED保留停止晋级，不重跑覆盖；若全矩阵及配对RTT通过，再做同SOURCE_SHA Normal/Game目标速率>=30min长测的有界抓包/统计框架，不能用旧稀疏soak替代。",
+      "next_task": "只实现有界目标负载长测工具，按DEVELOPMENT_PLAN最新设计：保持产品56eb541/FEC20:20/repair/内核buffer不变；收集器预分配精确去重bitset、有界时延统计、分块连续抓包/离线流式处理及manifest身份硬校验。全部unit与缩短版单条DIAGNOSTIC_ONLY先在Actions通过，再Normal1每向10M与Game4每向逻辑3M分别独立1800s正式资格（300ms、持续5%+周期20%、至少一次rotation）。跟踪Game损失聚集时间链，不无证据改算法。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -5734,7 +5882,7 @@
         }
       },
       "repair_followup_candidate_v10p2": {
-        "status": "CORRECTNESS_AND_FOUR_DIAGNOSTIC_CANARIES_PASS",
+        "status": "FINAL18_PASS_TARGET_RATE_LONG_SOAK_PENDING",
         "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
         "parent_product_sha": "e67b51968d9e5f707dfc9ef7d459ba5192008901",
         "commit_chain": [
@@ -5756,7 +5904,7 @@
         "kernel_socket_buffer_changed": false,
         "performance_parameters_changed": false,
         "repair_parameters_changed": false,
-        "performance_status": "DIAGNOSTIC_PASS_NOT_FINAL18_QUALIFIED",
+        "performance_status": "120S_FINAL18_AND_PAIRED_RTT_PASS_LONG_SOAK_NOT_RUN",
         "exact_source_correctness": {
           "run": 36039856693,
           "workflow": "next-v10p2-exact-source-correctness",
@@ -6044,7 +6192,7 @@
           "stage_repair_abandoned_zero": true
         },
         "final18": {
-          "status": "RUNNING",
+          "status": "PASS_120S_ONLY",
           "generation": "v10p2-client-udp-ingress-final18-new-samples",
           "dispatch_ref": "perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4-r2",
           "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
@@ -6074,7 +6222,83 @@
           ],
           "diagnostic_samples_included": false,
           "p6": "NOT_RUN",
-          "target_rate_soak": "NOT_RUN"
+          "target_rate_soak": "NOT_RUN",
+          "result": "PASS",
+          "sample_count": 18,
+          "passing_sample_count": 18,
+          "aggregate_artifact": 11252477679,
+          "artifact_digest": "sha256:01f4c0e467fb7e28f92ead0d15019c603be1e2429d30eeed35ce539ee59c816b",
+          "aggregate_revision": 2,
+          "repeat_status": {
+            "game/5205": {
+              "count": 3,
+              "pass": true,
+              "seeds": [
+                "101",
+                "202",
+                "303"
+              ]
+            },
+            "game/5305": {
+              "count": 3,
+              "pass": true,
+              "seeds": [
+                "101",
+                "202",
+                "303"
+              ]
+            },
+            "game/lossless": {
+              "count": 3,
+              "pass": true,
+              "seeds": [
+                "101",
+                "202",
+                "303"
+              ]
+            },
+            "normal/5205": {
+              "count": 3,
+              "pass": true,
+              "seeds": [
+                "101",
+                "202",
+                "303"
+              ]
+            },
+            "normal/5305": {
+              "count": 3,
+              "pass": true,
+              "seeds": [
+                "101",
+                "202",
+                "303"
+              ]
+            },
+            "normal/lossless": {
+              "count": 3,
+              "pass": true,
+              "seeds": [
+                "101",
+                "202",
+                "303"
+              ]
+            }
+          },
+          "max_rtt_p95_delta_ms": 18.093871,
+          "max_rtt_p99_delta_ms": 36.069584,
+          "socket_drops_all_zero": true,
+          "lossless_repair_abandoned_all_zero": true,
+          "evidence": "docs/evidence/v10p2-final18.json"
+        },
+        "game_seed303_original_loss_audit": {
+          "status": "ACTIONS_PASS_NO_UDP_QUEUE_OVERFLOW",
+          "run": 37067109489,
+          "job": 111037605427,
+          "artifact": 11252728321,
+          "evidence": "docs/evidence/v10p2-game-loss-audit.json",
+          "upstream_loss_origin": "NOT_PROVEN",
+          "no_new_performance_measurement": true
         }
       },
       "qualification_aggregate_revision_2": {

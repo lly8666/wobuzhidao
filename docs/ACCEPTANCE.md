@@ -103,3 +103,14 @@ strict 样本继续分别统计 FEC、Game复制、repair、health、padding、�
 
 
 2026-09-23双端退役补充：按WEAKNET_QUALIFICATION第10.4节联合验收发送备份放弃和接收缺口退休。后续业务不等待；缺口具有不因后续流量/逐洞推进重置的绝对期限和有界索引。无需逐包通知；不能伪造尾部进度/FIN，保留迟到首次交付和PeerFIN生命周期。方案待实现，不能标PASS。
+
+## 2026-10-03 V10.2 目标速率120秒资格 — PASS / 长测仍待完成
+
+产品SOURCE_SHA `56eb5413c3cf2e559b82026e8a5783508764e2f4`，新冻结ref `perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4-r2`，正式18条独立Action run（两模式×三场景×seeds101/202/303）全部五分类PASS。控制器与artifact-only汇总 [37065816473](https://github.com/lly8666/wobuzhidao/actions/runs/37065816473) PASS；分析器独立固定6dafa657af9f577f8cc21256276bfb44d8ee3fd1，revision2校验全矩阵、每条基线分类、独立run receipt及逐阶段配对RTT，errors=[]。artifact11252477679，GitHub digest `sha256:01f4c0e467fb7e28f92ead0d15019c603be1e2429d30eeed35ce539ee59c816b`，详见 `docs/evidence/v10p2-final18.json`。
+
+- 固定真实raw/TPROXY/TUN路径、每向300ms、120s、FEC20:20、padding off、64/256/1200B混合业务，Normal每向10Mbps/1lane，Game每向逻辑3Mbps/4lane。
+- stress最差有效吞吐：Normal 20%约9.99945Mbps、30%约9.97760Mbps；Game 20%约2.98564Mbps、30%约2.98568Mbps。最大业务byte loss分别0/0.22048%及0.47966/0.48109%；不得改写成所有有损样本业务丢失0。
+- 18/18 socket drop为0；全部无损阶段repair/abandoned为0。RTT stress p95约602.28–617.73ms；跨独立基线、全部阶段p95增量最大18.094ms/p99增量最大36.070ms，原200/500ms门未放宽。有损post5恢复窗口起点offset1–2s，再验证连续3秒，不能把窗口起点误说成完整恢复确认耗时。
+- 线上IP/原业务输入：Normal约5.09–5.61倍、Game4约20.63–22.23倍。CPU跨VM异质；Normal无损client约49.97–96.35CPU-s/120s，不宣称新版固定省CPU百分比。
+
+这是正式120秒目标速率资格完成，不是P5整阶段关闭：同版本目标负载>=30min Normal/Game长测仍NOT_RUN；P6重新打包NOT_RUN，P7物理NOT_RUN。旧689dea19资格、V10.1 17PASS/1CAPACITY_LIMITED及其他历史失败永久保留，本轮诊断canary未混入final18。
