@@ -1,0 +1,27 @@
+name: next-v10p2-game-loss-audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/next-v10p2-game-loss-audit.yml
+      - .github/scripts/audit-v10p2-game-loss.py
+permissions:
+  contents: read
+  actions: read
+jobs:
+  read-original-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect two original Game seed303 archives, no workload
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/audit-v10p2-game-loss.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v10p2-game-loss-audit-${{ github.run_id }}
+          path: game-loss-audit
+          if-no-files-found: error
+          retention-days: 30
