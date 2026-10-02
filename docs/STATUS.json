@@ -66,9 +66,9 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。"
   ],
-  "in_progress": "V10P2_DIAGNOSTIC_CANARIES_PASS_AGGREGATE_FIX_PENDING_ACTIONS：产品56eb5413c3cf2e559b82026e8a5783508764e2f4的correctness/race/Windows/privileged及四条诊断canary均PASS。新无损37064194890满速、0本机drop、0repair/abandoned。产品不改；汇总完整性回归待Actions。V10.1的17PASS/1CAPACITY_LIMITED保留，V10.2尚未qualified。",
-  "next_task": "确认next-performance-analysis-unit新汇总11项回归PASS，再从新冻结ref perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4-r2启动正式18独立样本。诊断不混入；逐模式seed配对lossless并验证原RTT门、全6组×3seeds和run receipt。任何失败保留停止资格推进，P6待资格通过。",
-  "latest_log": "docs/devlog/20261003-051800-v10p2-status-receipt-followup.md",
+  "in_progress": "V10P2_FINAL18_RUNNING：四条诊断canary及exact-source correctness PASS；aggregate revision2的11项回归Actions37065380317 PASS。产品56eb5413c3cf2e559b82026e8a5783508764e2f4在新冻结ref -r2的18独立正式样本已从零启动，控制器37065816473只读汇总原产物并验证原RTT门。旧诊断和V10.1失败不混入。strict/blackhole分析器失败传播入口修复待本轮CI；P6/长测/P7未关闭。",
+  "next_task": "检查正式18样本原始summary五分类及只读aggregate37065816473。任何FAIL/CAPACITY_LIMITED保留停止晋级，不重跑覆盖；若全矩阵及配对RTT通过，再做同SOURCE_SHA Normal/Game目标速率>=30min长测的有界抓包/统计框架，不能用旧稀疏soak替代。",
+  "latest_log": "docs/devlog/20261003-052600-v10p2-final18-dispatched-and-ci-failure-gate.md",
   "last_tested_source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
   "actions": [
     {
@@ -1577,6 +1577,20 @@
       "scope": "v10p2-diagnostic-normal_lossless_seed101",
       "status": "PASS",
       "note": "Exact frozen source, attempt1, five classifications PASS, socket drops0; not formal final18."
+    },
+    {
+      "source_sha": "6dafa657af9f577f8cc21256276bfb44d8ee3fd1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065380317",
+      "scope": "weaknet-aggregate-revision2-fixtures",
+      "status": "PASS",
+      "note": "11 campaign regressions + existing2 wall accounting tests. No product load."
+    },
+    {
+      "source_sha": "da82a86860842c659fea2b0ce7b145c7d9eaec9c",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37065816473",
+      "scope": "v10p2-final18-artifact-only-coordinator",
+      "status": "RUNNING",
+      "note": "Product56eb541 independently pinned; analyzer6dafa65 independently pinned; each of18 measurements separate run."
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1618,8 +1632,8 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "REOPENED_REPAIR_FOLLOWUP_V10: V9 fixed AF_PACKET receive HOL but exposed synchronous platformflow UDP mapping read->tunnel.Send coupling. V10 adds one strict global UDPServer send backlog budget, not per-flow capacity.",
-    "P5": "REOPENED_V10P2_DIAGNOSTIC_PASS_FINAL18_NOT_RUN: four canaries and exact-source correctness PASS; fresh formal matrix required.",
+    "P4": "V10P2_CODE_CORRECTNESS_PASS: client/server bounded UDP queues implemented; existing lifecycle semantics retained. Whole performance qualification pending.",
+    "P5": "V10P2_FINAL18_RUNNING: fresh frozen -r2 campaign; target-rate long soak NOT_RUN; historical evidence preserved.",
     "P6": "NOT_RUN_FOR_V10P2: historical release receipts preserved; wait for formal qualification.",
     "P7": "NOT_RUN: 仅在用户安排真实Windows/Npcap与后续Linux ARM64/amd64物理环境后执行；hosted P6不得替代PHYSICAL_PASS或RELEASE_QUALIFIED。",
     "TLS_STARTUP_PADDING": {
@@ -1879,7 +1893,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "V10P2_DIAGNOSTIC_CANARIES_PASS_AGGREGATE_FIX_PENDING_ACTIONS",
+      "status": "V10P2_FINAL18_RUNNING",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -1890,9 +1904,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20261003-051800-v10p2-status-receipt-followup.md",
+      "latest_log": "docs/devlog/20261003-052600-v10p2-final18-dispatched-and-ci-failure-gate.md",
       "note": "V10.1 final18 is permanently 17 PASS / 1 CAPACITY_LIMITED. The remaining drop is the product-owned client TPROXY UDP ingress socket; V10.2 mirrors the server-side bounded drain/send decoupling on the client ingress without changing repair/FEC/wire or kernel socket buffers.",
-      "next_task": "确认next-performance-analysis-unit新汇总11项回归PASS，再从新冻结ref perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4-r2启动正式18独立样本。诊断不混入；逐模式seed配对lossless并验证原RTT门、全6组×3seeds和run receipt。任何失败保留停止资格推进，P6待资格通过。",
+      "next_task": "检查正式18样本原始summary五分类及只读aggregate37065816473。任何FAIL/CAPACITY_LIMITED保留停止晋级，不重跑覆盖；若全矩阵及配对RTT通过，再做同SOURCE_SHA Normal/Game目标速率>=30min长测的有界抓包/统计框架，不能用旧稀疏soak替代。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -6028,13 +6042,49 @@
           },
           "qualification_note": "Diagnostic only; excluded from final18; heterogeneous runner CPU is not direct regression evidence.",
           "stage_repair_abandoned_zero": true
+        },
+        "final18": {
+          "status": "RUNNING",
+          "generation": "v10p2-client-udp-ingress-final18-new-samples",
+          "dispatch_ref": "perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4-r2",
+          "source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+          "aggregate_source_sha": "6dafa657af9f577f8cc21256276bfb44d8ee3fd1",
+          "coordinator_sha": "da82a86860842c659fea2b0ce7b145c7d9eaec9c",
+          "coordinator_run": 37065816473,
+          "aggregate_job": 111033401800,
+          "run_ids": [
+            37065827912,
+            37065830059,
+            37065832537,
+            37065834972,
+            37065837959,
+            37065840563,
+            37065843215,
+            37065845613,
+            37065847859,
+            37065850395,
+            37065853042,
+            37065855672,
+            37065858002,
+            37065860313,
+            37065862765,
+            37065865089,
+            37065867258,
+            37065869715
+          ],
+          "diagnostic_samples_included": false,
+          "p6": "NOT_RUN",
+          "target_rate_soak": "NOT_RUN"
         }
       },
       "qualification_aggregate_revision_2": {
-        "status": "PENDING_ACTIONS",
+        "status": "ACTIONS_PASS",
         "product_source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
         "fixture_tests": 11,
-        "latest_log": "docs/devlog/20261003-051500-v10p2-canaries-and-qualification-gates.md"
+        "latest_log": "docs/devlog/20261003-051500-v10p2-canaries-and-qualification-gates.md",
+        "tested_sha": "6dafa657af9f577f8cc21256276bfb44d8ee3fd1",
+        "run": 37065380317,
+        "job": 111031801759
       }
     }
   }

@@ -97,10 +97,12 @@ jobs:
           if-no-files-found: error
           compression-level: 1
           retention-days: 30
-      - name: Preserve collection failure
+      - name: Preserve collection and qualification failures
         if: always()
         env:
           SAMPLE_OUTCOME: ${{ steps.sample.outcome }}
+          ANALYZER_OUTCOME: ${{ steps.validate.outcome }}
         run: |
           echo "sample=$SAMPLE_OUTCOME analyzer=${{ steps.validate.outcome }}"
           test "$SAMPLE_OUTCOME" = success
+          test "$ANALYZER_OUTCOME" = success

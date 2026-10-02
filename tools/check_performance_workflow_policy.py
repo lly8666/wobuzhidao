@@ -67,6 +67,17 @@ for name in RETIRED:
     if any(marker in text for marker in MEASUREMENT_MARKERS):
         errors.append(f"{name}: retired workflow still contains a measurement entry")
 
+# continue-on-error exists only to preserve artifacts, never to waive a failed
+# qualification analyzer. The final always step must propagate both outcomes.
+for name in (".github/workflows/next-strict-weaknet.yml", ".github/workflows/next-shared-blackhole.yml"):
+    text = Path(name).read_text(encoding="utf-8")
+    final = text.rsplit("      - name: Preserve collection", 1)[-1]
+    if ('ANALYZER_OUTCOME: ${{ steps.validate.outcome }}' not in final
+            or 'test "$ANALYZER_OUTCOME" = success' not in final
+            or 'test "$SAMPLE_OUTCOME" = success' not in final
+            or 'if: always()' not in final):
+        errors.append(f"{name}: collection and analyzer outcomes must gate final success")
+
 foundation = Path(".github/workflows/next-foundation.yml").read_text(encoding="utf-8")
 for job in FOUNDATION_DISABLED:
     m = re.search(
