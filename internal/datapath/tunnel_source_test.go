@@ -210,6 +210,11 @@ func TestOwnerInboundRejectsRetiredGenerationBeforeBusinessDelivery(t *testing.T
 	if _, err := owner.PromoteSameIDReplacement(oldSnap.Ref); err != nil {
 		t.Fatal(err)
 	}
+	// Promotion keeps a bounded receive-only drain; this test's forbidden
+	// historical generation must be explicitly retired before ingress.
+	if err := owner.RetireIncarnation(oldSnap.Ref); err != nil {
+		t.Fatal(err)
+	}
 
 	leaseAddr, _ := lease.Config.LeaseIPv4()
 	packet := businessIPv4Packet(leaseAddr, netip.MustParseAddr("1.1.1.1"), []byte("late"))

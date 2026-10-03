@@ -72,7 +72,7 @@
   ],
   "in_progress": "原b1所有声明hosted门PASS，但逐秒审计Normal换代最多61.264%短窗loss；P5重新打开。实现有限retiring接收在途与新增1s loss门，未继承旧资格。",
   "next_task": "Actions验证有限retiring接收的core/race/fixture，然后冻结新SHA并分别Normal/Game180s；新增1s loss门与原门全部通过后重新完整70配置/36生命周期/18严格弱网/1800s/黑洞/P6。",
-  "latest_log": "docs/devlog/20261004-001200-retiring-receive-handoff.md",
+  "latest_log": "docs/devlog/20261004-002200-explicit-retire-regression.md",
   "last_tested_source_sha": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
   "actions": [
     {
@@ -1815,6 +1815,18 @@
       "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37127948222",
       "scope": "target Game1800",
       "status": "PASS"
+    },
+    {
+      "source_sha": "dc136e00bcf7ca737e0a86569462478fd3f2f407",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37136357727",
+      "scope": "foundation",
+      "status": "FAIL"
+    },
+    {
+      "source_sha": "dc136e00bcf7ca737e0a86569462478fd3f2f407",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37136357731",
+      "scope": "tools and targeted race30",
+      "status": "PASS"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -2129,7 +2141,7 @@
         "Bounded target-rate long soak framework and >=1800s independent Normal/Game",
         "P6 repackage then user-arranged P7 physical"
       ],
-      "latest_log": "docs/devlog/20261004-001200-retiring-receive-handoff.md",
+      "latest_log": "docs/devlog/20261004-002200-explicit-retire-regression.md",
       "note": "b1 original78+18 gates passed, but original-send-second audit found concentrated rotation loss up to61.264%, hidden by60s averages. New receive-only retiring authorization + unchanged close budgets pending exact-source qualification; b1 cannot qualify new1s gate.",
       "next_task": "Actions验证有限retiring接收的core/race/fixture，然后冻结新SHA并分别Normal/Game180s；新增1s loss门与原门全部通过后重新完整70配置/36生命周期/18严格弱网/1800s/黑洞/P6。",
       "acceptance_revision": "loss-tolerant-v1",
@@ -6515,7 +6527,7 @@
         "packaging": "3targets ACTIONS_PASS",
         "physical": "NOT_RUN",
         "evidence": "docs/evidence/predelivery-b1fe7e2.json",
-        "latest_log": "docs/devlog/20261004-001200-retiring-receive-handoff.md",
+        "latest_log": "docs/devlog/20261004-002200-explicit-retire-regression.md",
         "handoff_short_window": {
           "baseline_source": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
           "baseline_run": 37127945540,
