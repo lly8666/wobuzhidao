@@ -15,6 +15,6 @@ class ConfigFixtures(unittest.TestCase):
                     self.assertIn(b'test0',args)
                     if p['mode']=='json':self.assertNotIn(b'--fec-parity',args)
                     if p['mode']=='priority':
-                        conf=json.loads((Path(d)/(side+'-config.json')).read_text());self.assertNotEqual(conf['tls-startup-padding'],p['padding']);self.assertIn(b'--tls-startup-padding',args)
+                        conf=json.loads((Path(d)/(side+'-config.json')).read_text());self.assertNotEqual(conf['tls-startup-padding'],p['padding']);self.assertIn(('--tls-startup-padding='+str(p['padding']).lower()).encode(),args)
 
 if __name__=='__main__':unittest.main()

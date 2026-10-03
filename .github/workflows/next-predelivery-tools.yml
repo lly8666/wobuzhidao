@@ -23,6 +23,7 @@ jobs:
           bash -n artifacts/soak-template/generated-soak.sh
           python3 tools/check_performance_workflow_policy.py
           python3 -m py_compile tools/config_effective_args.py tools/config_business.py tools/prepare_config_harness.py tools/check_config_effective.py
+          python3 -m py_compile tools/collect_p6_receipts.py
           python3 tools/prepare_config_harness.py --case f20-l4-p1 --artifact-dir artifacts/config-template
           bash -n artifacts/config-template/generated-config.sh
       - uses: actions/upload-artifact@v4

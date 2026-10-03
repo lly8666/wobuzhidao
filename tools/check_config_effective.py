@@ -20,7 +20,7 @@ def check(root,sha,case):
             st=lane.get('lane')or{};tx=st.get('TxPath')or{};rx=st.get('RxPath')or{}
             if lane.get('parity_shards')!=want['fec'] or bool(tx.get('FECEnabled'))!=bool(want['fec']) or bool(rx.get('FECEnabled'))!=bool(want['fec']):errors.append(side+' FEC runtime profile mismatch')
             if st.get('RecordErrors',0) or st.get('PathErrors',0):errors.append(side+' record/path integrity error')
-            if want['fec'] and (not (tx.get('Encoder')or{}).get('SourceShards') or not (tx.get('Encoder')or{}).get('ParityShards')):errors.append(side+' requested FEC never emitted source/parity')
+            if want['fec'] and (not (tx.get('Encoder')or{}).get('source_shards') or not (tx.get('Encoder')or{}).get('parity_shards')):errors.append(side+' requested FEC never emitted source/parity')
         pad=o.get('Padding')or{}
         if bool(pad.get('Enabled'))!=want['padding'] or bool(pad.get('TLSStartupOnly'))!=want['padding']:errors.append(side+' padding effective mismatch')
         before=[r for r in rows if start<=int(r.get('unix_ns',0))<=udp_end]

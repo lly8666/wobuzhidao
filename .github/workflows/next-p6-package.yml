@@ -1,0 +1,52 @@
+name: next-p6-package
+run-name: package-prephysical
+on:
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {runner: ubuntu-24.04, goos: linux, goarch: amd64, native: 'true'}
+          - {runner: ubuntu-24.04, goos: linux, goarch: arm64, native: 'false'}
+          - {runner: windows-2022, goos: windows, goarch: amd64, native: 'true'}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.12', cache: true}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Build and verify exact-source candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="artifacts/p6-${{ matrix.goos }}-${{ matrix.goarch }}"
+          python tools/p6_build_release.py --source-sha "$GITHUB_SHA" --version "next-rc-${GITHUB_SHA:0:12}" --target-os '${{ matrix.goos }}' --target-arch '${{ matrix.goarch }}' --output-dir "$out"
+          native_arg=""
+          if test '${{ matrix.native }}' = true; then native_arg=--run-native; fi
+          python tools/check_p6_release.py --bundle-dir "$out" --source-sha "$GITHUB_SHA" --target-os '${{ matrix.goos }}' --target-arch '${{ matrix.goarch }}' $native_arg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: candidate-${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.sha }}
+          path: artifacts/p6-${{ matrix.goos }}-${{ matrix.goarch }}
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-receipt-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: artifacts/p6-${{ matrix.goos }}-${{ matrix.goarch }}/actions-receipt.json
+          if-no-files-found: error
+  aggregate:
+    needs: package
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {pattern: 'package-receipt-*', path: receipts}
+      - name: Verify separated target receipts
+        run: python3 tools/collect_p6_receipts.py --root receipts --source-sha "$GITHUB_SHA" --output summary-package.json
+      - uses: actions/upload-artifact@v4
+        with: {name: 'package-summary-${{ github.sha }}', path: summary-package.json, if-no-files-found: error}

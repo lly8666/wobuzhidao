@@ -36,7 +36,8 @@ def prepare(root,case,side,args):
     if p['mode'] in ('priority','defaults'):
         for k,v in values.items():
             if p['mode']=='defaults' and k in ('fec-parity','lanes','tls-startup-padding'):continue
-            clean.extend(['--'+k,str(v).lower() if isinstance(v,bool) else str(v)])
+            if isinstance(v,bool):clean.append('--'+k+'='+str(v).lower())
+            else:clean.extend(['--'+k,str(v)])
     (root/f'{side}-args.bin').write_bytes(b'\0'.join(x.encode() for x in clean)+b'\0')
     (root/'configuration.json').write_text(json.dumps(dict(case=case,**p),indent=2)+'\n')
 
