@@ -268,3 +268,5 @@ Game4逻辑3Mbps lossless 已在 run 35818718764 / job 107045770392 全门PASS�
 真实高负载轮换发现：ACTIVE业务不得获取覆盖候选TLS建连的生命周期opMu。业务需求与idle提交在c.mu中原子发布/判定；已提交DORMANT才走Wake操作栅栏，不能取消idle cutoff或多调用唤醒合并。UDP上游映射属于业务流，单次外层发送失败不能关闭映射/换源端口；保持原maxFlows、60s映射idle、真实socket错误和显式退出清理。修复必须通过36功能生命周期和目标速率轮换长测；原180s失败保留，不归因为runner。
 
 Normal输出从owner封装到runtime发包必须携带原LaneRef的本地metadata，不能在promote后把旧密文重新贴到当前association。metadata不进wire；过期输出拒绝且不等待重封装，后续新业务独立发出。Game保持原显式ref。该边界用确定性测试及正式源码目标速率轮换共同验证。
+
+owner持锁的快照/身份检查仅能读Lane构造后不可变配置，禁止获取lane.mu；Lane封装padding回调需要owner.mu，反向嵌套会使真实HTTPS和诊断共同卡住。LaneStats在owner锁外读取并随后generation校验。新增配置热修改必须重审该锁边界，不得就地修改cfg。

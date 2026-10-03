@@ -677,7 +677,9 @@ func (o *TunnelOwner) physicalLocked() int {
 }
 
 func (o *TunnelOwner) checkLaneIdentityLocked(lane *Lane) error {
-	cfg := lane.Config()
+	// Lane configuration is immutable after NewLane. Owner-held paths must
+	// never acquire lane.mu: padding callbacks acquire owner.mu under lane.mu.
+	cfg := &lane.cfg
 	if o.hasLease && !bytes.Equal(cfg.TunnelID, o.lease.Config.TunnelID.Bytes()) {
 		return ErrTunnelMismatch
 	}
@@ -714,8 +716,9 @@ func closeLaneSet(lanes map[*Lane]struct{}) {
 }
 
 func snapshotFor(ref logicaltunnel.LaneRef, lane *Lane) TunnelLaneSnapshot {
-	cfg := lane.Config()
-	return TunnelLaneSnapshot{Ref: ref, Role: cfg.Role, ParityShards: cfg.ParityShards}
+	// Read immutable metadata only. In particular ActiveLanes holds owner.mu,
+	// while packet sealing may hold lane.mu and need the owner's padding budget.
+	return TunnelLaneSnapshot{Ref: ref, Role: lane.cfg.Role, ParityShards: lane.cfg.ParityShards}
 }
 
 func staleGeneration(got, current logicaltunnel.LaneRef) error {

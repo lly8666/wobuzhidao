@@ -69,9 +69,9 @@
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。",
     "2026-10-03资源优化顺序完成：有效FEC计算、owned加密/传递复制、有限ACK合并、已就绪Linux批量接收/发送各自Actions unit/build/race+Normal/Game5205 PASS；额外修复pre-attach overflow导致共享server退出，再以ca8175d通过同门和36/36 lifecycle+aggregate。仅targeted，不继承最新全18/长测/P6/P7。"
   ],
-  "in_progress": "P5/P6交付前：70bd配置/长测/弱网原样保留；审计封装到发送间Normal generation归属缺口并修复，本轮新源码全部资格NOT_RUN，不能继承70bd。",
-  "next_task": "新源码基础/重复race通过后重新冻结70配置、36生命周期、18弱网、1800s Normal/Game和P6；物理NOT_RUN。",
-  "latest_log": "docs/devlog/20261003-203800-normal-record-generation-fence.md",
+  "in_progress": "P5/P6：1a正式18弱网及P6包通过，但f12-l3-p1真实HTTPS超时阻止收口；修复填充与快照owner/lane锁倒置，新源码全部资格NOT_RUN。",
+  "next_task": "冻结锁顺序修复版，基础/重复race通过后按同源码完整验收70配置、36生命周期、18弱网、1800s Normal/Game、共享黑洞与P6包；P7 NOT_RUN。",
+  "latest_log": "docs/devlog/20261003-210000-padding-snapshot-lock-order.md",
   "last_tested_source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
   "actions": [
     {
