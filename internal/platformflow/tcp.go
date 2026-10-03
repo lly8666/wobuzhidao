@@ -157,6 +157,8 @@ type tcpClientFlow struct {
 	rx     *TCPReceive
 
 	mu          sync.Mutex
+	rxMu        sync.Mutex // serialize local stream delivery, not other flows/lanes
+	rxFINCommitted bool
 	cond        *sync.Cond
 	opened      bool
 	openSent    time.Time
@@ -166,7 +168,7 @@ type tcpClientFlow struct {
 }
 
 func (f *tcpClientFlow) finishedLocked() bool {
-	return f.tx.FINAcked() && f.rx.FINDelivered()
+	return f.tx.FINAcked() && f.rxFINCommitted
 }
 
 func (f *tcpClientFlow) close() {
@@ -316,6 +318,8 @@ func (c *TCPClient) handleAck(flow *tcpClientFlow, frame Frame, now time.Time) e
 }
 
 func (c *TCPClient) handleData(flow *tcpClientFlow, frame Frame, now time.Time) error {
+	flow.rxMu.Lock()
+	defer flow.rxMu.Unlock()
 	flow.mu.Lock()
 	if flow.closed {
 		flow.mu.Unlock()
@@ -325,7 +329,6 @@ func (c *TCPClient) handleData(flow *tcpClientFlow, frame Frame, now time.Time) 
 	if err == nil {
 		flow.lastSeen = now
 	}
-	finished := err == nil && flow.finishedLocked()
 	flow.mu.Unlock()
 	if err != nil {
 		return err
@@ -344,6 +347,12 @@ func (c *TCPClient) handleData(flow *tcpClientFlow, frame Frame, now time.Time) 
 			}
 		}
 	}
+	flow.mu.Lock()
+	if result.FIN {
+		flow.rxFINCommitted = true
+	}
+	finished := flow.finishedLocked()
+	flow.mu.Unlock()
 	if err := flow.tunnel.Send(result.Ack, now); err != nil {
 		if c.retiredOrClosed(flow, now) {
 			return nil
@@ -551,12 +560,14 @@ type tcpServerFlow struct {
 	lastSeen time.Time
 
 	mu     sync.Mutex
+	rxMu   sync.Mutex
+	rxFINCommitted bool
 	cond   *sync.Cond
 	closed bool
 }
 
 func (f *tcpServerFlow) finishedLocked() bool {
-	return f.tx.FINAcked() && f.rx.FINDelivered()
+	return f.tx.FINAcked() && f.rxFINCommitted
 }
 
 func (f *tcpServerFlow) close() {
@@ -711,6 +722,8 @@ func (s *TCPServer) handleOpen(frame Frame, now time.Time) error {
 }
 
 func (s *TCPServer) handleData(flow *tcpServerFlow, frame Frame, now time.Time) error {
+	flow.rxMu.Lock()
+	defer flow.rxMu.Unlock()
 	flow.mu.Lock()
 	if flow.closed {
 		flow.mu.Unlock()
@@ -720,7 +733,6 @@ func (s *TCPServer) handleData(flow *tcpServerFlow, frame Frame, now time.Time) 
 	if err == nil {
 		flow.lastSeen = now
 	}
-	finished := err == nil && flow.finishedLocked()
 	flow.mu.Unlock()
 	if err != nil {
 		return err
@@ -739,6 +751,12 @@ func (s *TCPServer) handleData(flow *tcpServerFlow, frame Frame, now time.Time) 
 			}
 		}
 	}
+	flow.mu.Lock()
+	if result.FIN {
+		flow.rxFINCommitted = true
+	}
+	finished := flow.finishedLocked()
+	flow.mu.Unlock()
 	if err := flow.tunnel.Send(result.Ack, now); err != nil {
 		if s.retiredOrClosed(flow, now) {
 			return nil
