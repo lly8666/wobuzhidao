@@ -1,8 +1,8 @@
 {
   "ref": "next/tlslike-dataplane",
-  "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
-  "expected_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+  "dispatch_ref": "perf-fixed/ca8175d18acd7f7e3e1db5379a58d9f85417dd97-r2",
+  "expected_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
   "aggregate_sha": "6dafa657af9f577f8cc21256276bfb44d8ee3fd1",
   "workflow": "next-strict-weaknet.yml",
-  "generation": "fec20-size-class-bandwidth-final18-new-samples"
+  "generation": "pre-delivery-resource-final18-independent-new-samples"
 }
