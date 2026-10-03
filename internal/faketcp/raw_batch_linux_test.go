@@ -72,3 +72,37 @@ func TestRawReceiveBatchRejectsTruncationAndLegacyFallbackWorks(t *testing.T) {
 		if err != nil || string(seg.Payload) != "valid" { t.Fatalf("fallback=%v seg=%+v err=%v", fallback, seg, err) }
 	}
 }
+
+func TestRawSendBatchNativeWireAndLegacyFallback(t *testing.T) {
+	for _, fallback := range []bool{false, true} {
+		receiver, err := unix.Socket(unix.AF_INET, unix.SOCK_DGRAM, 0)
+		if err != nil { t.Fatal(err) }
+		t.Cleanup(func() { unix.Close(receiver) })
+		if err := unix.Bind(receiver, &unix.SockaddrInet4{Addr: [4]byte{127, 0, 0, 1}}); err != nil { t.Fatal(err) }
+		addr, err := unix.Getsockname(receiver)
+		if err != nil { t.Fatal(err) }
+		port := uint16(addr.(*unix.SockaddrInet4).Port)
+		sender, err := unix.Socket(unix.AF_INET, unix.SOCK_DGRAM, 0)
+		if err != nil { t.Fatal(err) }
+		t.Cleanup(func() { unix.Close(sender) })
+		e := &RawIPv4Endpoint{sendFD: sender, ipID: 1, persona: PacketPersonaLegacy, sendBatchDisabled: fallback}
+		e.SetIODiagnostics(true)
+		segments := make([]Segment, 10)
+		for i := range segments {
+			segments[i] = Segment{SrcIP: [4]byte{127, 0, 0, 2}, DstIP: [4]byte{127, 0, 0, 1},
+				SrcPort: 40000, DstPort: port, Seq: uint32(i*100), Flags: FlagACK | FlagPSH, Payload: []byte{byte(i)}}
+		}
+		n, err := e.WriteSegments(segments)
+		if err != nil || n != len(segments) { t.Fatalf("sent=%d err=%v", n, err) }
+		buf := make([]byte, 2048)
+		for i, seg := range segments {
+			n, _, err := unix.Recvfrom(receiver, buf, 0)
+			want := MarshalSegment(seg, uint16(i+1), PacketPersonaLegacy)
+			if err != nil || !bytes.Equal(buf[:n], want) { t.Fatalf("fallback=%v index=%d wire mismatch err=%v", fallback, i, err) }
+		}
+		stats := e.IODiagnostic()
+		if stats.SendMessages != 10 || (!fallback && (stats.SendCalls != 2 || stats.SendMulti != 2)) {
+			t.Fatalf("native send path not exercised: %+v", stats)
+		}
+	}
+}

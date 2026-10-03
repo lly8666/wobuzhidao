@@ -56,6 +56,7 @@ type TransportConfig struct {
 	// opts into DefaultACKDelay; this never gates business delivery.
 	ACKDelay      time.Duration
 	Emit          faketcp.SegmentEmitter
+	EmitBatch     faketcp.SegmentBatchEmitter
 }
 
 func (c *TransportConfig) normalize() error {
@@ -173,6 +174,8 @@ type TransportStats struct {
 	FreshBlocked          uint64
 	FreshWindowBypass     uint64
 	FreshEmitFailures     uint64
+	FreshBatchCalls       uint64
+	FreshBatchSent        uint64
 	RecoveryTicks         uint64
 	GapForgiveChecks      uint64
 	GapIndexSteps         uint64
@@ -374,100 +377,122 @@ func (t *laneTransport) outboundSegmentFlags(seq, ack uint32, flags uint8, paylo
 	return seg
 }
 
-func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error {
-	for _, record := range records {
-		if len(record.Wire) == 0 {
-			continue
-		}
-		observeTiming := t.timing.enabled.Load()
-		var freshWaitStarted time.Time
-		if observeTiming {
-			freshWaitStarted = time.Now()
-		}
-		t.mu.Lock()
-		var freshCriticalStarted time.Time
-		if observeTiming {
-			t.timing.freshLockWait.observe(time.Since(freshWaitStarted))
-			freshCriticalStarted = time.Now()
-		}
-		if t.closed {
-			peerRST := t.peerRST
-			if observeTiming {
-				t.timing.freshCritical.observe(time.Since(freshCriticalStarted))
-			}
-			t.mu.Unlock()
-			if peerRST {
-				return ErrTransportPeerReset
-			}
-			return ErrRuntimeClosed
-		}
-		if t.localFINQueued {
-			if observeTiming {
-				t.timing.freshCritical.observe(time.Since(freshCriticalStarted))
-			}
-			t.mu.Unlock()
-			return ErrTransportWriteClosed
-		}
+type preparedFresh struct {
+	seg faketcp.Segment
+	pending *pendingRecord
+	control bool
+}
 
-		// The 4096 records are shadow-repair capacity, not a fresh-send
-		// admission window. Reclaim one bounded candidate if possible; if every
-		// retained record is protected, send this record without a repair
-		// backup rather than waiting for ACK or forcing reconnect.
-		backed := true
-		if len(t.pending) >= MaxOutstandingRecords {
-			if !t.abandonOldestLocked() {
-				backed = false
-				t.stats.FreshWindowBypass++
-			}
-		}
-
-		seq := t.sendNext
-		end := seq + uint32(len(record.Wire))
-		wire := append([]byte(nil), record.Wire...)
-		var p *pendingRecord
-		if backed {
-			p = &pendingRecord{
-				control: record.Control, seq: seq, end: end, flags: faketcp.FlagACK | faketcp.FlagPSH,
-				payload: wire, firstSent: now, lastSent: now,
-			}
-			t.pending[seq] = p
-			t.pendingOrder = append(t.pendingOrder, seq)
-			if !record.Control {
-				t.linkRepairLocked(p)
-				t.linkEvictLocked(p)
-				t.linkExpiryLocked(p)
-			}
-			if n := len(t.pending); n > t.stats.PeakOutstanding {
-				t.stats.PeakOutstanding = n
-			}
-		}
-		t.sendNext = end
-		t.stats.FreshSent++
-		ack := t.recvNext
-		seg := t.outboundSegment(seq, ack, wire)
+// prepareFresh preserves the existing shadow-backup and sequence policy.
+// Caller-owned record ciphertext is still cloned exactly once for retention.
+func (t *laneTransport) prepareFresh(record datapath.WireRecord, now time.Time) (preparedFresh, error) {
+	observeTiming := t.timing.enabled.Load()
+	var freshWaitStarted time.Time
+	if observeTiming {
+		freshWaitStarted = time.Now()
+	}
+	t.mu.Lock()
+	var freshCriticalStarted time.Time
+	if observeTiming {
+		t.timing.freshLockWait.observe(time.Since(freshWaitStarted))
+		freshCriticalStarted = time.Now()
+	}
+	if t.closed {
+		peerRST := t.peerRST
 		if observeTiming {
 			t.timing.freshCritical.observe(time.Since(freshCriticalStarted))
 		}
 		t.mu.Unlock()
-
-		if err := t.cfg.Emit(seg); err != nil {
-			t.mu.Lock()
-			t.stats.FreshEmitFailures++
-			if p != nil {
-				if current := t.pending[seq]; current == p {
-					t.removePendingLocked(p)
-					t.stats.Abandoned++
-				}
-			}
-			t.mu.Unlock()
-			return err
+		if peerRST {
+			return preparedFresh{}, ErrTransportPeerReset
 		}
-		t.mu.Lock()
-		t.noteACKPiggybackLocked(seg)
-		if !record.Control {
-			t.refillRepairCreditLocked(uint64(len(wire)))
+		return preparedFresh{}, ErrRuntimeClosed
+	}
+	if t.localFINQueued {
+		if observeTiming {
+			t.timing.freshCritical.observe(time.Since(freshCriticalStarted))
 		}
 		t.mu.Unlock()
+		return preparedFresh{}, ErrTransportWriteClosed
+	}
+
+	// The 4096 records are shadow-repair capacity, not a fresh-send
+	// admission window. Reclaim one bounded candidate if possible; if every
+	// retained record is protected, send this record without a repair
+	// backup rather than waiting for ACK or forcing reconnect.
+	backed := true
+	if len(t.pending) >= MaxOutstandingRecords {
+		if !t.abandonOldestLocked() {
+			backed = false
+			t.stats.FreshWindowBypass++
+		}
+	}
+
+	seq := t.sendNext
+	end := seq + uint32(len(record.Wire))
+	wire := append([]byte(nil), record.Wire...)
+	var p *pendingRecord
+	if backed {
+		p = &pendingRecord{
+			control: record.Control, seq: seq, end: end, flags: faketcp.FlagACK | faketcp.FlagPSH,
+			payload: wire, firstSent: now, lastSent: now,
+		}
+		t.pending[seq] = p
+		t.pendingOrder = append(t.pendingOrder, seq)
+		if !record.Control {
+			t.linkRepairLocked(p)
+			t.linkEvictLocked(p)
+			t.linkExpiryLocked(p)
+		}
+		if n := len(t.pending); n > t.stats.PeakOutstanding {
+			t.stats.PeakOutstanding = n
+		}
+	}
+	t.sendNext = end
+	t.stats.FreshSent++
+	ack := t.recvNext
+	seg := t.outboundSegment(seq, ack, wire)
+	if observeTiming {
+		t.timing.freshCritical.observe(time.Since(freshCriticalStarted))
+	}
+	t.mu.Unlock()
+	return preparedFresh{seg: seg, pending: p, control: record.Control}, nil
+}
+
+func (t *laneTransport) completeFresh(f preparedFresh, err error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if err != nil {
+		t.stats.FreshEmitFailures++
+		if f.pending != nil && t.pending[f.seg.Seq] == f.pending {
+			t.removePendingLocked(f.pending)
+			t.stats.Abandoned++
+		}
+		return
+	}
+	t.noteACKPiggybackLocked(f.seg)
+	if !f.control {
+		t.refillRepairCreditLocked(uint64(len(f.seg.Payload)))
+	}
+}
+
+func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error {
+	if t.cfg.EmitBatch != nil && len(records) > 1 {
+		return t.sendReadyBatch(records, now)
+	}
+	for _, record := range records {
+		if len(record.Wire) == 0 {
+			continue
+		}
+		f, err := t.prepareFresh(record, now)
+		if err != nil {
+			return err
+		}
+		err = t.cfg.Emit(f.seg)
+		t.completeFresh(f, err)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1189,7 +1214,10 @@ func (r *Runtime) Dormant() ([]logicaltunnel.LaneRef, error) {
 	return refs, nil
 }
 
-func (r *Runtime) AttachServerAdmission(laneID uint8, session *realityfront.ServerAdmissionSession, assoc *faketcp.ServerAssociation, params datapath.ServerLaneParams, emit faketcp.SegmentEmitter, now time.Time) (datapath.TunnelLaneSnapshot, error) {
+func (r *Runtime) AttachServerAdmission(laneID uint8, session *realityfront.ServerAdmissionSession, assoc *faketcp.ServerAssociation, params datapath.ServerLaneParams, emit faketcp.SegmentEmitter, now time.Time, batch ...faketcp.SegmentBatchEmitter) (datapath.TunnelLaneSnapshot, error) {
+	if len(batch) > 1 {
+		return datapath.TunnelLaneSnapshot{}, ErrTransportConfig
+	}
 	if r == nil || session == nil || assoc == nil || emit == nil {
 		return datapath.TunnelLaneSnapshot{}, ErrTransportConfig
 	}
@@ -1218,6 +1246,9 @@ func (r *Runtime) AttachServerAdmission(laneID uint8, session *realityfront.Serv
 		SACKPermitted: peer.SACKPermitted,
 		ACKDelay:      DefaultACKDelay,
 		Emit:          emit,
+	}
+	if len(batch) != 0 {
+		cfg.EmitBatch = batch[0]
 	}
 	snapshot, err := r.AttachInitial(laneID, lane, cfg)
 	if err != nil {

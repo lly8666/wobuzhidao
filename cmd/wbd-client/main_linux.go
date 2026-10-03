@@ -157,6 +157,7 @@ func main() {
 			return err
 		},
 		Close: raw.Close,
+		EmitBatch: raw.WriteSegments,
 	}
 	raw.SetIODiagnostics(*diagnosticJSONL != "")
 	mux, err := runtimeentry.NewSegmentMux(baseIO)

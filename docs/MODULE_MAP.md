@@ -44,3 +44,5 @@ TLS启动填充：internal/datapath/startup_padding.go新写旁观识别；paddi
 2026-10-03资源优化阶段3：生产steady ACK内部采用每2个正常连续record或2ms截止，首包/缺口开关/SACK/重复/FIN即时；成功携最新ACK的data可取消gap-free待发ACK。每lane一个可复用timer，关闭取消、异步失败计数并由tick报告。业务立即交付，不等ACK；internal/runtimeowner/ack.go，无新增CLI/configfile入口。阶段状态与exact-SHA验收看STATUS。
 
 2026-10-03阶段4拆成4a接收和4b发送，各自unit/race及独立5205。4a Linux raw接收固定8槽recvmmsg(MSG_WAITFORONE)，只取已就绪包，单包即返、owned输出保留，旧kernel回退recvfrom，既有diagnosticJSONL新增raw_io计数；SO_RCVBUF/repair/FEC边界不扩大。WindowsNpcap仍原路径。4b只合并已经生成的record，不等待后续业务；具体状态以STATUS为准。
+
+2026-10-03阶段4b：Linux sendmmsg只批量当前已生成记录，每批<=8、无队列和凑批等待；control/ACK/FIN/bootstrap单独发送。SegmentBatchEmitter返回精确已发前缀，unsent不保留假重传备份，已发保留同Seq同密文；新鲜发送不因失败后的Seq缺口等洞。Npcap及未提供Batch的adapter原Emit不变；复用当前serializer和全部repair边界。strict同一条样本后读取raw_io counters验证native RX/TX实际触发，不替代原质量/性能门。状态看STATUS。

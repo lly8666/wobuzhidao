@@ -152,6 +152,17 @@ func (m *SegmentMux) Open(flow faketcp.ClientFlow) (SegmentIO, error) {
 	}
 	m.routes[flow] = route
 	m.mu.Unlock()
+	var emitBatch faketcp.SegmentBatchEmitter
+	if m.base.EmitBatch != nil {
+		emitBatch = func(segments []faketcp.Segment) (int, error) {
+			for _, seg := range segments {
+				if !clientFlowMatchesOutbound(flow, seg) {
+					return 0, ErrEndpointConfig
+				}
+			}
+			return m.base.EmitBatch(segments)
+		}
+	}
 
 	return SegmentIO{
 		Read: func() (faketcp.Segment, error) {
@@ -171,6 +182,7 @@ func (m *SegmentMux) Open(flow faketcp.ClientFlow) (SegmentIO, error) {
 			}
 			return m.base.Emit(seg)
 		},
+		EmitBatch: emitBatch,
 		Close: func() error {
 			m.mu.Lock()
 			if m.routes[flow] == route {
@@ -762,6 +774,7 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		SACKPermitted: handoff.Peer.SACKPermitted,
 		ACKDelay:      runtimeowner.DefaultACKDelay,
 		Emit:          ioCfg.Emit,
+		EmitBatch:     ioCfg.EmitBatch,
 	}
 
 	var snapshot datapath.TunnelLaneSnapshot
@@ -1660,6 +1673,7 @@ func (s *LifecycleServer) serverTransportConfig(session *realityfront.ServerAdmi
 		SACKPermitted: peer.SACKPermitted,
 		ACKDelay:      runtimeowner.DefaultACKDelay,
 		Emit:          s.cfg.IO.Emit,
+		EmitBatch:     s.cfg.IO.EmitBatch,
 	}
 }
 

@@ -37,6 +37,7 @@ type RawIPv4Endpoint struct {
 	mu     sync.Mutex
 	ipID   uint16
 	closed bool
+	sendBatchDisabled bool
 	once   sync.Once
 }
 
@@ -172,6 +173,7 @@ func (e *RawIPv4Endpoint) WriteSegment(seg Segment) ([]byte, error) {
 			Port: int(seg.DstPort),
 			Addr: seg.DstIP,
 		})
+		if e.ioStats.enabled.Load() { e.ioStats.txCalls.Add(1) }
 		if rawIOInterrupted(err) {
 			continue
 		}
@@ -181,6 +183,7 @@ func (e *RawIPv4Endpoint) WriteSegment(seg Segment) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if e.ioStats.enabled.Load() { e.ioStats.txMessages.Add(1) }
 	// MarshalSegment already returns a fresh owned packet. Sendto has completed
 	// before this point, so returning that packet preserves the ownership contract
 	// without cloning every emitted data/ACK segment a second time.

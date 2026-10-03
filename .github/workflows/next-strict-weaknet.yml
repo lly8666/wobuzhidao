@@ -110,12 +110,18 @@ jobs:
             --lanes "$WBD_STRICT_LANES" \
             --output "$ART/summary-loss-tolerant-v1.json"
 
+      - name: Verify native ready-only raw batch paths
+        if: steps.sample.outcome == 'success'
+        run: python3 tools/collect_raw_io_receipt.py --artifact-dir "$ART"
+
       - name: Upload compact analyzer summary
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: strict-summary-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-${{ github.sha }}
-          path: ${{ env.ART }}/summary-loss-tolerant-v1.json
+          path: |
+            ${{ env.ART }}/summary-loss-tolerant-v1.json
+            ${{ env.ART }}/raw-io-receipt.json
           if-no-files-found: error
           retention-days: 30
 

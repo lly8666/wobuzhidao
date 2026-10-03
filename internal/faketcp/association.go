@@ -50,6 +50,10 @@ const (
 
 type SegmentEmitter func(Segment) error
 
+// SegmentBatchEmitter synchronously consumes already-ready segments. Return
+// the exact sent prefix and an error on failure; never retain or mutate input.
+type SegmentBatchEmitter func([]Segment) (int, error)
+
 type ServerSegmentResult struct {
 	Disposition TransitionDisposition
 	AckNeeded   bool

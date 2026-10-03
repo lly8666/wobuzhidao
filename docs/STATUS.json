@@ -68,10 +68,10 @@
     "V10.2产品56eb5413c3cf2e559b82026e8a5783508764e2f4：新冻结ref正式120s final18（每run一条）18/18五分类及revision2 artifact-only完整矩阵/配对RTT PASS，aggregate37065816473/artifact11252477679；全部socket drop0，无损repair/abandoned0。仅120s资格，不关闭目标负载>=30min/P6/P7。",
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。"
   ],
-  "in_progress": "RESOURCE_OPTIMIZATION_STAGE4A_NOT_RUN: stage3 unit/race + Normal/Game5205 PASS; ready-only receive batch candidate",
-  "next_task": "Stage4a Linux/Windows unit/build/race +arm64 crosscompile -> independent Normal/Game5205; only PASS permits stage4b already-generated send batch. Do not bundle receive/send evidence.",
-  "latest_log": "docs/devlog/20261003-135000-stage4a-ready-receive-batch.md",
-  "last_tested_source_sha": "2f0086cc304dbc145c4aec3d6713ebebfd1fb623",
+  "in_progress": "RESOURCE_OPTIMIZATION_STAGE4B_NOT_RUN: ready receive batch unit/race+Normal/Game5205 PASS; synchronous ready send batch candidate",
+  "next_task": "Exact-source foundation Linux/Windows unit/race andarm64 build; then independent Normal/Game5205 with native raw IO receipt. Only PASS closes resource optimization targeted sequence; fullmatrix/soak/physical not inherited.",
+  "latest_log": "docs/devlog/20261003-140500-stage4b-ready-send-batch.md",
+  "last_tested_source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -6373,7 +6373,7 @@
       "resource_optimization_sequence": {
         "user_policy": "each atomic optimization -> Actions unit/race -> independent5205 -> next",
         "initial_baseline_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
-        "current_stage": "4a",
+        "current_stage": "4b",
         "stages": [
           {
             "stage": 1,
@@ -6409,13 +6409,18 @@
           {
             "stage": "4a",
             "name": "ready-packet receive batch",
-            "status": "NOT_RUN",
-            "latest_log": "docs/devlog/20261003-135000-stage4a-ready-receive-batch.md"
+            "status": "ACTIONS_PASS",
+            "latest_log": "docs/devlog/20261003-135000-stage4a-ready-receive-batch.md",
+            "source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
+            "foundation_run": 37100946893,
+            "coordinator_run": 37101011207,
+            "evidence": "docs/evidence/resource-stage4a-5205.json"
           },
           {
             "stage": "4b",
             "name": "already-generated send batch",
-            "status": "NOT_RUN"
+            "status": "NOT_RUN",
+            "latest_log": "docs/devlog/20261003-140500-stage4b-ready-send-batch.md"
           }
         ],
         "fec_flush_tuning": "DEFERRED: changes quality; do not mix with equivalent optimizations"

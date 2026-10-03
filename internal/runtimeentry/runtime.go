@@ -32,6 +32,7 @@ var (
 type SegmentIO struct {
 	Read  func() (faketcp.Segment, error)
 	Emit  faketcp.SegmentEmitter
+	EmitBatch faketcp.SegmentBatchEmitter
 	Close func() error
 }
 
@@ -188,6 +189,7 @@ func DialClient(ctx context.Context, cfg ClientConfig) (*Client, error) {
 		SACKPermitted: handoff.Peer.SACKPermitted,
 		ACKDelay: runtimeowner.DefaultACKDelay,
 		Emit: cfg.IO.Emit,
+		EmitBatch: cfg.IO.EmitBatch,
 	})
 	if err != nil {
 		c.Close()
@@ -662,7 +664,7 @@ func (s *Server) admit(ctx context.Context, assoc *faketcp.ServerAssociation) {
 		s.table.Remove(flow)
 		return
 	}
-	snapshot, err := rt.AttachServerAdmission(1, result.Admission, assoc, s.cfg.Lane, s.cfg.IO.Emit, time.Now())
+	snapshot, err := rt.AttachServerAdmission(1, result.Admission, assoc, s.cfg.Lane, s.cfg.IO.Emit, time.Now(), s.cfg.IO.EmitBatch)
 	if err != nil {
 		service.Close()
 		s.cfg.Router.Unregister(token)

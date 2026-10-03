@@ -158,6 +158,7 @@ func main() {
 			return err
 		},
 		Close: raw.Close,
+		EmitBatch: raw.WriteSegments,
 	}
 	raw.SetIODiagnostics(*diagnosticJSONL != "")
 	server, err := runtimeentry.NewLifecycleServer(runtimeentry.LifecycleServerConfig{

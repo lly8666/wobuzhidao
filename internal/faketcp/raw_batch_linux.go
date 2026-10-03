@@ -4,6 +4,7 @@ package faketcp
 
 import (
 	"errors"
+	"io"
 	"runtime"
 	"sync/atomic"
 	"syscall"
@@ -35,6 +36,10 @@ type RawIODiagnostic struct {
 	ReceiveMessages uint64 `json:"receive_messages"`
 	ReceiveMulti uint64 `json:"receive_multi"`
 	ReceiveFallbacks uint64 `json:"receive_fallbacks"`
+	SendCalls uint64 `json:"send_calls"`
+	SendMessages uint64 `json:"send_messages"`
+	SendMulti uint64 `json:"send_multi"`
+	SendFallbacks uint64 `json:"send_fallbacks"`
 }
 
 type rawIOCounters struct {
@@ -43,6 +48,10 @@ type rawIOCounters struct {
 	rxMessages atomic.Uint64
 	rxMulti atomic.Uint64
 	rxFallbacks atomic.Uint64
+	txCalls atomic.Uint64
+	txMessages atomic.Uint64
+	txMulti atomic.Uint64
+	txFallbacks atomic.Uint64
 }
 
 func (e *RawIPv4Endpoint) SetIODiagnostics(enabled bool) { e.ioStats.enabled.Store(enabled) }
@@ -50,7 +59,78 @@ func (e *RawIPv4Endpoint) SetIODiagnostics(enabled bool) { e.ioStats.enabled.Sto
 func (e *RawIPv4Endpoint) IODiagnostic() RawIODiagnostic {
 	return RawIODiagnostic{Enabled: e.ioStats.enabled.Load(), ReceiveCalls: e.ioStats.rxCalls.Load(),
 		ReceiveMessages: e.ioStats.rxMessages.Load(), ReceiveMulti: e.ioStats.rxMulti.Load(),
-		ReceiveFallbacks: e.ioStats.rxFallbacks.Load()}
+		ReceiveFallbacks: e.ioStats.rxFallbacks.Load(), SendCalls: e.ioStats.txCalls.Load(),
+		SendMessages: e.ioStats.txMessages.Load(), SendMulti: e.ioStats.txMulti.Load(), SendFallbacks: e.ioStats.txFallbacks.Load()}
+}
+
+// WriteSegments injects already-generated packets synchronously in <=8-packet
+// chunks. sendmmsg partial success is an exact prefix: retry only the remainder.
+// ENOSYS switches to Sendto; an actually-sent packet is never sent twice here.
+func (e *RawIPv4Endpoint) WriteSegments(segments []Segment) (int, error) {
+	if e == nil { return 0, errors.New("faketcp: nil raw IPv4 endpoint") }
+	total := 0
+	for total < len(segments) {
+		end := total + rawBatchSize
+		if end > len(segments) { end = len(segments) }
+		n, err := e.writeReadySegments(segments[total:end])
+		total += n
+		if err != nil { return total, err }
+	}
+	return total, nil
+}
+
+func (e *RawIPv4Endpoint) writeReadySegments(segments []Segment) (int, error) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	var packets [rawBatchSize][]byte
+	var iov [rawBatchSize]unix.Iovec
+	var from [rawBatchSize]unix.RawSockaddrInet4
+	var msg [rawBatchSize]rawMessage
+	for i, seg := range segments {
+		packets[i] = MarshalSegment(seg, e.ipID, e.persona)
+		e.ipID++
+		iov[i].Base = &packets[i][0]
+		iov[i].SetLen(len(packets[i]))
+		from[i] = unix.RawSockaddrInet4{Family: unix.AF_INET, Port: rawHTONS(seg.DstPort), Addr: seg.DstIP}
+		msg[i] = rawMessage{Header: unix.Msghdr{Name: (*byte)(unsafe.Pointer(&from[i])),
+			Namelen: unix.SizeofSockaddrInet4, Iov: &iov[i], Iovlen: 1}}
+	}
+	sent := 0
+	for sent < len(segments) {
+		if e.sendBatchDisabled {
+			err := syscall.Sendto(e.sendFD, packets[sent], 0, &syscall.SockaddrInet4{
+				Port: int(segments[sent].DstPort), Addr: segments[sent].DstIP})
+			if e.ioStats.enabled.Load() { e.ioStats.txCalls.Add(1) }
+			if rawIOInterrupted(err) { continue }
+			if err != nil { return sent, err }
+			sent++
+			if e.ioStats.enabled.Load() { e.ioStats.txMessages.Add(1) }
+			continue
+		}
+		n, _, errno := unix.Syscall6(unix.SYS_SENDMMSG, uintptr(e.sendFD),
+			uintptr(unsafe.Pointer(&msg[sent])), uintptr(len(segments)-sent), 0, 0, 0)
+		runtime.KeepAlive(packets)
+		runtime.KeepAlive(iov)
+		runtime.KeepAlive(from)
+		runtime.KeepAlive(msg)
+		if e.ioStats.enabled.Load() { e.ioStats.txCalls.Add(1) }
+		if rawIOInterrupted(errno) { continue }
+		if errno != 0 {
+			if errors.Is(errno, unix.ENOSYS) {
+				e.sendBatchDisabled = true
+				if e.ioStats.enabled.Load() { e.ioStats.txFallbacks.Add(1) }
+				continue
+			}
+			return sent, errno
+		}
+		if n == 0 { return sent, io.ErrShortWrite }
+		sent += int(n)
+		if e.ioStats.enabled.Load() {
+			e.ioStats.txMessages.Add(uint64(n))
+			if n > 1 { e.ioStats.txMulti.Add(1) }
+		}
+	}
+	return sent, nil
 }
 
 // readRawFrame is called only under recvMu. WAITFORONE blocks for the first
