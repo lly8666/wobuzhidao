@@ -44,7 +44,7 @@ def main():
     seconds=x.duration+61; result={};total=0
     for point in ['c2s-pre','c2s-post','s2c-pre','s2c-post']:
         chunks=sorted((root/'capture').glob(point+'-*.pcap'))
-        if not chunks or len(chunks)>((x.duration+120)//60+2): raise ValueError('missing/excess capture chunks')
+        if not chunks or len(chunks)>((x.duration+120)//15+2): raise ValueError('missing/excess capture chunks')
         rows=[];counts=[0]*seconds;wire=[0]*seconds
         for p in chunks:
             if p.stat().st_size>100*1024*1024: raise ValueError('capture chunk exceeded declared100MiB bound')
@@ -62,7 +62,7 @@ def main():
             r.update(archive=gz.name,archive_sha256=h.hexdigest(),archive_bytes=gz.stat().st_size)
             p.unlink();rows.append(r)
         result[point]=dict(chunks=rows,packets_by_second=counts,ip_bytes_by_second=wire)
-    (root/'capture-receipt.json').write_text(json.dumps(dict(snaplen=128,chunk_seconds=60,raw_bytes=total,points=result),indent=2)+'\n')
+    (root/'capture-receipt.json').write_text(json.dumps(dict(snaplen=128,chunk_seconds=15,raw_bytes=total,points=result),indent=2)+'\n')
 
 
 if __name__=='__main__':main()

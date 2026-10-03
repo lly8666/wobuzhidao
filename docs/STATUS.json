@@ -69,9 +69,9 @@
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。",
     "2026-10-03资源优化顺序完成：有效FEC计算、owned加密/传递复制、有限ACK合并、已就绪Linux批量接收/发送各自Actions unit/build/race+Normal/Game5205 PASS；额外修复pre-attach overflow导致共享server退出，再以ca8175d通过同门和36/36 lifecycle+aggregate。仅targeted，不继承最新全18/长测/P6/P7。"
   ],
-  "in_progress": "Repeat-race root cause proven: owner publishes new generation before retiring metadata, stale old packet fatally stopped shared server. Exact stale-generation error now local discard. Active business and UDP mapping fixes await joint core/race/lifecycle and180s qualification. Prior transient-state hypothesis refuted and failures retained.",
-  "next_task": "Exact-current-source foundation/tools/repeat30 and lifecycle36 qualification after3rotation fixes; independent180sNormal/Game and5live-config canaries, then70cases/formal1800s/final18/P6. PhysicalNOT_RUN.",
-  "latest_log": "docs/devlog/20261003-200600-predelivery-regression-trigger.md",
+  "in_progress": "P5/P6交付前验收：eb03五个真实配置和Normal180通过，Game180抓包后处理100MiB界失败；修正15s非覆盖分段后重新冻结精确源码，尚未完成长测/全配置资格。",
+  "next_task": "基础门通过后重跑Game180，展开70配置、18独立弱网、1800s Normal/Game、36生命周期及三目标P6包；P7 NOT_RUN。",
+  "latest_log": "docs/devlog/20261003-202000-soak-capture-segmentation.md",
   "last_tested_source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
   "actions": [
     {
