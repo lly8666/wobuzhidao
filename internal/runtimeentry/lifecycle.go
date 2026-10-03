@@ -1310,12 +1310,11 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 		qualified, err := lane.group.rt.HandleServerSegmentQualified(lane.ref, assoc, seg, now)
 		if err != nil {
 			if errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) {
-				s.mu.Lock()
-				retiring := lane.retiring
-				s.mu.Unlock()
-				if retiring {
-					return nil
-				}
+				// Owner promotion publishes the new generation before admission
+				// publishes byFlow/retiring metadata. Old traffic may arrive in
+				// that interval. The owner's generation check already discarded
+				// this packet; it must never terminate the shared server.
+				return nil
 			}
 			if errors.Is(err, runtimeowner.ErrTransportMissing) ||
 				errors.Is(err, runtimeowner.ErrRuntimeClosed) ||
