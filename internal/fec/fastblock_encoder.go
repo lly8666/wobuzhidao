@@ -28,6 +28,8 @@ type FastBlockEncoderStats struct {
 	FullBlocks     uint64 `json:"full_blocks"`
 	PartialBlocks  uint64 `json:"partial_blocks"`
 	PendingSources int    `json:"pending_sources"`
+	SizeClasses    int    `json:"size_classes,omitempty"`
+	PendingBlocks  int    `json:"pending_blocks,omitempty"`
 }
 
 type FastBlockEncoder struct {

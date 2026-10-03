@@ -236,3 +236,9 @@ Game4逻辑3Mbps lossless 已在 run 35818718764 / job 107045770392 全门PASS�
 5. 线上放大已量化Normal约5倍、Game4约21–22倍，长测继续分FEC parity、Game复制、ACK、repair、health/padding记账。没有新证据不把20:20改档或取消Game竞速；最终成本优化另做有证据的单项任务。
 
 本段是后续设计，尚未实现/测试；具体进度只写STATUS，不能据此标长测完成。
+
+## 2026-10-03 当前优先任务：FEC20:20校验长度膨胀
+
+用户当前要求先解决带宽开销，暂缓前述长测工具任务。旧正式无损Normal线上约5.09倍且repair=0，主要浪费为大中小LINK源混同一组，parity一律按组内最大长度生成。20:20采用固定最多3个lane-local长度组，payload ceilings256/512/SourceMTU（小MTU去重）。每组复用原FastBlockEncoder，systematic立即发、首源绝对8ms独立刷新、部分N源仍N校验；全lane在block开始共享连续uint32 BlockID，不用按class步长或独立ID空间。不得改变数据交付顺序依赖、MTU、owned复制、Game复制、shadow repair、socket buffer。20:4/8/10/12/16保留single-group逐字节输出，off原样，以免改变低档位partial min(N,R)行为。
+
+固定新增两个小组约65KB/lane，不按流无限增长；最多57 pending sources/3 pending blocks，原decoder边界不扩大。统计source/parity bytes/count、size_classes、pending_blocks保持可核验。unit验证wire/恢复/期限/回绕/ownership后用原严格真实路径120s、混合64/256/1200B、300ms单向、Normal10M/Game4逻辑3M、padding off和FEC20:20验收。每性能Action run一条，首次canary独立，再正式重复。主目标为降低outer IP/app比例；无损满速/0loss、完整性、RTT、容量和弱网恢复原门不得放宽。具体已测状态只看STATUS；旧final18不能继承给新产品。

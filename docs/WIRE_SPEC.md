@@ -172,3 +172,7 @@ kind=0x01 的加密 payload 固定 9 字节：第 0 字节 health schema=1；随
 health 不经过 LINK/FEC、padding、不建立业务 flow、不补充或消耗专门 repair 队列；正常 pending ACK 元数据有既定界限和到期回收。客户端进入稳态后开始发送；服务端必须先收到对端首条有效加密记录，防止新数据面记录进入对端未完成的 TLS bootstrap。每端主动定时发送，不用 ping/pong 响应放大。自动休眠前允许每lane一次最终 idle hint。
 
 missing health = UNKNOWN，不能推出业务空闲。客户端仅在本端业务空闲且所有 active lane 最近 <=2个本端发送间隔收到 peer idle>=idle-dormant 的有效提示时发起自动休眠；活动快照二次校验防竞态。服务端不能仅凭周期 idle health 抢先休眠，必须等待全部当前 authoritative lane 的 client PeerFIN（PeerWriteClosed）后跟随；保留65ff2ef的截止点竞态修复。超时失活与 DORMANT 为不同状态。默认15s/90s参数、有限重连、诊断与验收详见 PARAMETERS 和 LIFECYCLE_ACCEPTANCE。
+
+### 2026-10-03：20:20有界长度分组（v1 wire不变）
+
+20:20 encoder按LINK源实际长度选择最多3个固定payload ceilings256/512/SourceMTU组（去掉不低于MTU的额外组）。各组独立沿用20源/N部分源、N校验、首源8ms期限及即时systematic。BlockID由lane共享，在新block首源时分配，uint32自然回绕，不能因不同class复用ID；wire没有class字段，现v1 decoder直接接受交错block。source metadata仍provisional、parity携带该block最终长度表；组只优化校验长度，不改变接收端first-arrival/no-HOL/retirement。20:4/8/10/12/16输出维持原单组，off不受影响。

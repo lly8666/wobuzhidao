@@ -67,9 +67,9 @@
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。",
     "V10.2产品56eb5413c3cf2e559b82026e8a5783508764e2f4：新冻结ref正式120s final18（每run一条）18/18五分类及revision2 artifact-only完整矩阵/配对RTT PASS，aggregate37065816473/artifact11252477679；全部socket drop0，无损repair/abandoned0。仅120s资格，不关闭目标负载>=30min/P6/P7。"
   ],
-  "in_progress": "V10P2_FINAL18_PASS_TARGET_RATE_LONG_SOAK_PENDING：产品56eb5413c3cf2e559b82026e8a5783508764e2f4在新冻结-r2 ref完成18/18独立120s样本，五分类与revision2 artifact-only配对RTT均PASS，全部socket drop0；无损repair/abandoned0。只读审计Game seed303两份约0.48%损失时两端UDP queue均无overflow/error且远未满，具体上游损失链未证明。当前120s资格完成，不关闭>=30min长测/P6/P7。",
-  "next_task": "只实现有界目标负载长测工具，按DEVELOPMENT_PLAN最新设计：保持产品56eb541/FEC20:20/repair/内核buffer不变；收集器预分配精确去重bitset、有界时延统计、分块连续抓包/离线流式处理及manifest身份硬校验。全部unit与缩短版单条DIAGNOSTIC_ONLY先在Actions通过，再Normal1每向10M与Game4每向逻辑3M分别独立1800s正式资格（300ms、持续5%+周期20%、至少一次rotation）。跟踪Game损失聚集时间链，不无证据改算法。",
-  "latest_log": "docs/devlog/20261003-053200-v10p2-final18-pass-and-original-loss-audit.md",
+  "in_progress": "BANDWIDTH_SIZE_CLASS_CANDIDATE_NOT_RUN：用户要求优先解决带宽；原无损5.09倍主要由混合长度FEC parity膨胀。20:20固定最多3长度组已实现，源立即发送/独立8ms/原v1/低档位原输出保留；新产品资格待Actions，不继承V10.2 formal18。",
+  "next_task": "先验收新候选next-foundation Linux/Windows unit/build及Linux race，再冻结候选完整SHA；每Action run一条Normal1/lossless每向10M canary核对线上source/parity字节、goodput、RTT、CPU与0原始drop/repair。通过后独立Normal5205/5305、Game4逻辑3M/lossless/5205/5305及正式重复。保留8ms、20:20、Game复制、4096、buffer与流量构成。长测/P6/P7待带宽修复收口。",
+  "latest_log": "docs/devlog/20261003-110000-fec20-size-classes-bandwidth.md",
   "last_tested_source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
   "actions": [
     {
@@ -2041,7 +2041,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "V10P2_FINAL18_PASS_LONG_SOAK_PENDING",
+      "status": "BANDWIDTH_SIZE_CLASS_CANDIDATE_NOT_RUN",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -2052,9 +2052,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20261003-053200-v10p2-final18-pass-and-original-loss-audit.md",
+      "latest_log": "docs/devlog/20261003-110000-fec20-size-classes-bandwidth.md",
       "note": "V10.1 final18 is permanently 17 PASS / 1 CAPACITY_LIMITED. The remaining drop is the product-owned client TPROXY UDP ingress socket; V10.2 mirrors the server-side bounded drain/send decoupling on the client ingress without changing repair/FEC/wire or kernel socket buffers.",
-      "next_task": "只实现有界目标负载长测工具，按DEVELOPMENT_PLAN最新设计：保持产品56eb541/FEC20:20/repair/内核buffer不变；收集器预分配精确去重bitset、有界时延统计、分块连续抓包/离线流式处理及manifest身份硬校验。全部unit与缩短版单条DIAGNOSTIC_ONLY先在Actions通过，再Normal1每向10M与Game4每向逻辑3M分别独立1800s正式资格（300ms、持续5%+周期20%、至少一次rotation）。跟踪Game损失聚集时间链，不无证据改算法。",
+      "next_task": "先验收新候选next-foundation Linux/Windows unit/build及Linux race，再冻结候选完整SHA；每Action run一条Normal1/lossless每向10M canary核对线上source/parity字节、goodput、RTT、CPU与0原始drop/repair。通过后独立Normal5205/5305、Game4逻辑3M/lossless/5205/5305及正式重复。保留8ms、20:20、Game复制、4096、buffer与流量构成。长测/P6/P7待带宽修复收口。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -6309,6 +6309,19 @@
         "tested_sha": "6dafa657af9f577f8cc21256276bfb44d8ee3fd1",
         "run": 37065380317,
         "job": 111031801759
+      },
+      "bandwidth_size_class_candidate": {
+        "status": "NOT_RUN",
+        "baseline_product_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+        "baseline_lossless_run": 37065832537,
+        "baseline_c2s_ip_bytes": 763828672,
+        "baseline_app_input_bytes": 150000000,
+        "baseline_c2s_parity_bytes": 481234382,
+        "scope": "20:20最多3个固定长度组，256/512/MTU；低档位保留single group",
+        "source_sha": "commit containing this entry; freeze exact SHA before dispatch",
+        "unit_race": "NOT_RUN",
+        "fullstack": "NOT_RUN",
+        "latest_log": "docs/devlog/20261003-110000-fec20-size-classes-bandwidth.md"
       }
     }
   }

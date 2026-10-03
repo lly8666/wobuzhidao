@@ -114,3 +114,7 @@ strict 样本继续分别统计 FEC、Game复制、repair、health、padding、�
 - 线上IP/原业务输入：Normal约5.09–5.61倍、Game4约20.63–22.23倍。CPU跨VM异质；Normal无损client约49.97–96.35CPU-s/120s，不宣称新版固定省CPU百分比。
 
 这是正式120秒目标速率资格完成，不是P5整阶段关闭：同版本目标负载>=30min Normal/Game长测仍NOT_RUN；P6重新打包NOT_RUN，P7物理NOT_RUN。旧689dea19资格、V10.1 17PASS/1CAPACITY_LIMITED及其他历史失败永久保留，本轮诊断canary未混入final18。
+
+### 2026-10-03：带宽修复候选独立资格
+
+20:20固定长度组产品不能继承V10.2 final18。候选须Actions Linux/Windows unit/build、race验证（包括低档位逐字节兼容、跨组无HOL、8ms期限、ID回绕和ownership），再按同业务输入/MTU/FEC/Game/raw路径的独立性能run验收outer IP/input、source/parity字节与数量。禁止拿减少发生器输入/关闭冗余算改善。无损业务loss0/满速、原始drops0/repair0、完整性、配对RTT及原分类硬门仍适用；有损资源/恢复必须通过。当前NOT_RUN，状态与证据见STATUS。

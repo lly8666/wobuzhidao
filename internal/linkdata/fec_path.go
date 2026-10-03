@@ -44,7 +44,7 @@ type FECPath struct {
 	config      FECPathConfig
 	fragmenter  *Fragmenter
 	reassembler *Reassembler
-	encoder     *fec.FastBlockEncoder
+	encoder     *fec.SizeClassEncoder
 	decoder     *fec.BlockDecoder
 	recovery    *fecRecoveryTracker
 }
@@ -75,7 +75,7 @@ func NewFECPath(config FECPathConfig) (*FECPath, error) {
 		return nil, fmt.Errorf("linkdata: invalid FEC runtime flush=%s max_blocks=%d", config.FlushAfter, config.MaxBlocks)
 	}
 	codec := fec.NewFastReedSolomon20x20()
-	encoder, err := fec.NewFastBlockEncoderWithParity(codec, config.SourceMTU, config.FlushAfter, 1, config.ParityShards)
+	encoder, err := fec.NewSizeClassEncoder(codec, config.SourceMTU, config.FlushAfter, 1, config.ParityShards)
 	if err != nil {
 		return nil, err
 	}

@@ -38,3 +38,5 @@ TLS启动填充：internal/datapath/startup_padding.go新写旁观识别；paddi
 - internal/runtimeentry/lifecycle_health.go：keepalive/dead/backoff参数、一次一个候选、非终止错误诊断；lifecycle.go保留已有真实TLS建连及owner切换。
 - internal/configfile：启动时严格JSON映射现有CLI；tools/parameter_catalog.py与docs/PARAMETERS.json负责入口一致性。
 - old/internal/windowsruntime/controller_idle.go 只作为activity二次检查语义参考，不引入旧RPC/controller或旧提示词。
+
+2026-10-03带宽修复：internal/fec/size_class_encoder.go是20:20有界长度分类外壳，复用fastblock_encoder.go及codec，internal/linkdata/fec_path.go接入。无old迁移；wire/MTU/owned复制/decoder/repair/Game不改。低FEC档位在相同外壳中仅一个原组，参数清单无新增CLI。
