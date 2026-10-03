@@ -1,5 +1,5 @@
 {
-  "campaign": "final-generation-fenced-prephysical-all-gates-classification-receipt",
+  "campaign": "serialized-first-original-prephysical-qualification",
   "source_sha": "1a5a4f5af8ba175e6c6766385edb6ea641939efb",
   "ref": "perf-fixed/1a5a4f5af8ba175e6c6766385edb6ea641939efb",
   "required_runs": [
@@ -719,5 +719,6 @@
       "artifact": "config-summary-mtu1500-reverse1-1a5a4f5af8ba175e6c6766385edb6ea641939efb",
       "summary": "summary-config.json"
     }
-  ]
+  ],
+  "retirement_run": 37123404870
 }
