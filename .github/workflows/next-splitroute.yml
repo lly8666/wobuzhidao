@@ -9,6 +9,7 @@ on:
       - 'cmd/wbd-client/**'
       - 'scripts/windows_client_network.ps1'
       - 'tools/*splitroute*'
+      - 'tools/config_business.py'
       - '.github/workflows/next-splitroute.yml'
   workflow_dispatch:
 permissions: {contents: read}

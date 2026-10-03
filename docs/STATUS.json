@@ -1899,6 +1899,7 @@
   "workstreams": {
     "IP_SPLIT_ROUTING": {
       "status": "IMPLEMENTED_PENDING_ACTIONS",
+      "probe_trigger": "next-splitroute includes shared config_business.py; current candidate repeats all functional gates after TIME_WAIT fixture fix",
       "spec": "docs/SPLIT_ROUTING.md",
       "baseline_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
       "latest_log": "docs/devlog/20261004-045500-ip-splitroute-implementation.md",

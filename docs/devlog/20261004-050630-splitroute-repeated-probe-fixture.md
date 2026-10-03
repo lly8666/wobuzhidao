@@ -6,6 +6,8 @@ SOURCE d11a3c3c575d18e803497bbaf2742eb255d5b967已证明三目标真实路由，
 
 ## 修改与原因
 
+跟进提交把config_business.py加入next-splitroute路径触发，保证公共探针修复不会漏跑真实分流资格。新的SOURCE重新跑核心及分流，不继承旧HEAD。
+
 config_business普通TCP listener设置SO_REUSEADDR，与既有HTTPS listener一致，使同目标重复探针不受前次TCP关闭后的TIME_WAIT端口占用干扰。仍校验全部内容、目标真实peer与休眠/唤醒；不加重试、不忽略失败。
 
 ## 复用来源
