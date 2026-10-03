@@ -1089,6 +1089,7 @@ type LifecycleServer struct {
 	mu       sync.Mutex
 	started  map[faketcp.ServerFlow]bool
 	pending  map[faketcp.ServerFlow][]faketcp.Segment
+	preAttachDrops uint64 // protected by mu; bounded admission overflow only
 	byFlow   map[faketcp.ServerFlow]*serverLifecycleLane
 	byTunnel map[logicaltunnel.TunnelID]*serverLifecycleTunnel
 	byLease  map[netip.Addr]*serverLifecycleTunnel
@@ -1275,8 +1276,12 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 			}
 			queue := s.pending[flow]
 			if len(queue) >= faketcp.MaxBootstrapPendingChunks {
+				// A detached candidate can receive steady records before admission
+				// publishes its transport. Shed overflow on this flow only: a
+				// temporary handoff backlog must not stop the shared server.
+				s.preAttachDrops++
 				s.mu.Unlock()
-				return ErrSteadyQueueFull
+				return nil
 			}
 			copySeg := seg
 			copySeg.Payload = append([]byte(nil), seg.Payload...)

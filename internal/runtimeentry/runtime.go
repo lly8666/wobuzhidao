@@ -403,6 +403,7 @@ type Server struct {
 
 	started map[faketcp.ServerFlow]bool
 	pending map[faketcp.ServerFlow][]faketcp.Segment
+	preAttachDrops uint64 // protected by mu; bounded admission overflow only
 	byFlow  map[faketcp.ServerFlow]*serverTunnel
 	byTunnel map[logicaltunnel.TunnelID]*serverTunnel
 	byLease map[netip.Addr]*serverTunnel
@@ -543,8 +544,11 @@ func (s *Server) handleSegment(ctx context.Context, seg faketcp.Segment, now tim
 		if state, exists := assoc.TransitionState(); exists && state == faketcp.TransitionDetached {
 			queue := s.pending[flow]
 			if len(queue) >= faketcp.MaxBootstrapPendingChunks {
+				// Keep the original bound and queued ownership; overflow is
+				// local packet loss, not an endpoint-wide fatal error.
+				s.preAttachDrops++
 				s.mu.Unlock()
-				return ErrSteadyQueueFull
+				return nil
 			}
 			copySeg := seg
 			copySeg.Payload = append([]byte(nil), seg.Payload...)

@@ -1,0 +1,180 @@
+{
+  "result": "PASS",
+  "source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
+  "stage": "4b",
+  "baseline_source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
+  "errors": [],
+  "records": [
+    {
+      "stage": "4b",
+      "mode": "normal",
+      "source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
+      "run": 37102789315,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37102789315",
+      "artifact": 11266569102,
+      "artifact_digest": "sha256:13b3bc7b580275f7346bbbe90aa58cf8d91ace6d99eec9508223c7b62d505a5e",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.999515733333332,
+        "s2c": 9.999810133333332
+      },
+      "stress_byte_loss_percent": {
+        "c2s": 0.0,
+        "s2c": 0.0
+      },
+      "outer_ip_per_app": {
+        "c2s": 3.48598166,
+        "s2c": 3.50534718
+      },
+      "cpu_seconds": {
+        "client": 49.06,
+        "server": 49.55
+      },
+      "baseline_cpu_seconds": {
+        "client": 87.79,
+        "server": 89.76
+      },
+      "socket_drop_max": 0,
+      "stress_probe": {
+        "p95_ns": 617946763,
+        "p99_ns": 619206773,
+        "received": 60,
+        "sent": 60
+      },
+      "rtt_delta_ns": {
+        "pre": {
+          "p95": -5666991,
+          "p99": -4407383
+        },
+        "stress": {
+          "p95": 3036602,
+          "p99": 3154426
+        },
+        "post": {
+          "p95": -552674,
+          "p99": -1247313
+        }
+      }
+    },
+    {
+      "stage": "4b",
+      "mode": "game",
+      "source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
+      "run": 37102791456,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37102791456",
+      "artifact": 11266494060,
+      "artifact_digest": "sha256:0d8c655ca3a1eb575e566b74d2c53bb4ce91ef9547321c473b76e67584a1a320",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "stress_goodput_mbps": {
+        "c2s": 3.0002773333333335,
+        "s2c": 3.0000405333333333
+      },
+      "stress_byte_loss_percent": {
+        "c2s": 0.0,
+        "s2c": 0.0
+      },
+      "outer_ip_per_app": {
+        "c2s": 14.157648142979552,
+        "s2c": 14.216790163182512
+      },
+      "cpu_seconds": {
+        "client": 105.69,
+        "server": 99.0
+      },
+      "baseline_cpu_seconds": {
+        "client": 106.0,
+        "server": 100.4
+      },
+      "socket_drop_max": 0,
+      "stress_probe": {
+        "p95_ns": 610734883,
+        "p99_ns": 611909729,
+        "received": 60,
+        "sent": 60
+      },
+      "rtt_delta_ns": {
+        "pre": {
+          "p95": 4407704,
+          "p99": 6447669
+        },
+        "stress": {
+          "p95": 4862675,
+          "p99": 5619106
+        },
+        "post": {
+          "p95": 6115382,
+          "p99": 5948188
+        }
+      }
+    }
+  ],
+  "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance",
+  "native_raw_io": {
+    "normal": {
+      "scope": "feature-path counters, not resource attribution",
+      "endpoints": {
+        "client": {
+          "enabled": true,
+          "receive_calls": 654930,
+          "receive_messages": 1361382,
+          "receive_multi": 241519,
+          "receive_fallbacks": 0,
+          "send_calls": 1099033,
+          "send_messages": 1550920,
+          "send_multi": 148596,
+          "send_fallbacks": 0
+        },
+        "server": {
+          "enabled": true,
+          "receive_calls": 640036,
+          "receive_messages": 1360452,
+          "receive_multi": 246107,
+          "receive_fallbacks": 0,
+          "send_calls": 1099107,
+          "send_messages": 1551504,
+          "send_multi": 148104,
+          "send_fallbacks": 0
+        }
+      }
+    },
+    "game": {
+      "scope": "feature-path counters, not resource attribution",
+      "endpoints": {
+        "client": {
+          "enabled": true,
+          "receive_calls": 570013,
+          "receive_messages": 1597544,
+          "receive_multi": 334877,
+          "receive_fallbacks": 0,
+          "send_calls": 1281437,
+          "send_messages": 1819934,
+          "send_multi": 180712,
+          "send_fallbacks": 0
+        },
+        "server": {
+          "enabled": true,
+          "receive_calls": 575021,
+          "receive_messages": 1597626,
+          "receive_multi": 334148,
+          "receive_fallbacks": 0,
+          "send_calls": 1281755,
+          "send_messages": 1819726,
+          "send_multi": 180681,
+          "send_fallbacks": 0
+        }
+      }
+    }
+  }
+}

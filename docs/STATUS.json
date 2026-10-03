@@ -68,10 +68,10 @@
     "V10.2产品56eb5413c3cf2e559b82026e8a5783508764e2f4：新冻结ref正式120s final18（每run一条）18/18五分类及revision2 artifact-only完整矩阵/配对RTT PASS，aggregate37065816473/artifact11252477679；全部socket drop0，无损repair/abandoned0。仅120s资格，不关闭目标负载>=30min/P6/P7。",
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。"
   ],
-  "in_progress": "RESOURCE_OPTIMIZATION_STAGE4B_FIX_NOT_RUN: failed native server TX activation caught by guard; initial-admission EmitBatch wiring corrected, exact-source gates pending",
-  "next_task": "Exact-source foundation Linux/Windows unit/race andarm64 build; then independent Normal/Game5205 with native raw IO receipt. Only PASS closes resource optimization targeted sequence; fullmatrix/soak/physical not inherited.",
-  "latest_log": "docs/devlog/20261003-142000-stage4b-initial-server-batch-fix.md",
-  "last_tested_source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
+  "in_progress": "RESOURCE_OPTIMIZATION_4C_NOT_RUN: 5 atomic resource steps 5205 PASS; lifecycle all-tuple blackout exposed fatal pre-attach overflow, bounded flow-local fix pending Actions",
+  "next_task": "Fix pre-attach queue overflow endpoint isolation; exact-source foundation, full lifecycle and independent Normal/Game5205. Do not inherit 7de performance to new code.",
+  "latest_log": "docs/devlog/20261003-143500-pre-attach-overflow-isolation.md",
+  "last_tested_source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -2079,7 +2079,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "RESOURCE_OPTIMIZATION_STAGE1_NOT_RUN",
+      "status": "RESOURCE_OPTIMIZATION_4C_NOT_RUN",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -2090,9 +2090,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20261003-120000-stage1-active-fec-5205.md",
+      "latest_log": "docs/devlog/20261003-143500-pre-attach-overflow-isolation.md",
       "note": "V10.1 final18 is permanently 17 PASS / 1 CAPACITY_LIMITED. The remaining drop is the product-owned client TPROXY UDP ingress socket; V10.2 mirrors the server-side bounded drain/send decoupling on the client ingress without changing repair/FEC/wire or kernel socket buffers.",
-      "next_task": "验收阶段1全量unit/build/race，然后冻结完整SHA，Normal10M/1lane和Game逻辑3M/4lane分别独立5205单条Action，核对原五分类/RTT/CPU/drop/cost；过关后进入阶段2ownership与加解密复制。不得混改8ms/FEC/Game/缓存，不继承全矩阵/长测资格。",
+      "next_task": "Fix pre-attach queue overflow endpoint isolation; exact-source foundation, full lifecycle and independent Normal/Game5205. Do not inherit 7de performance to new code.",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -6373,7 +6373,7 @@
       "resource_optimization_sequence": {
         "user_policy": "each atomic optimization -> Actions unit/race -> independent5205 -> next",
         "initial_baseline_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
-        "current_stage": "4b",
+        "current_stage": "4c-correctness-followup",
         "stages": [
           {
             "stage": 1,
@@ -6419,7 +6419,7 @@
           {
             "stage": "4b",
             "name": "already-generated send batch",
-            "status": "NOT_RUN",
+            "status": "ACTIONS_PASS",
             "latest_log": "docs/devlog/20261003-142000-stage4b-initial-server-batch-fix.md",
             "historical_failed_candidate": {
               "coordinator_run": 37102054999,
@@ -6427,10 +6427,29 @@
               "source_sha": "6351a82b044d3de34695dec3bcea8f7fe27f8322",
               "reason": "original five categories PASS but server send_multi=0; initial lifecycle admission omitted EmitBatch; real wiring failure retained",
               "normal_run": 37102098167
-            }
+            },
+            "source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
+            "foundation_run": 37102574824,
+            "coordinator_run": 37102696862,
+            "evidence": "docs/evidence/resource-stage4b-5205.json"
+          },
+          {
+            "stage": "4c",
+            "name": "pre-attach overflow flow isolation",
+            "status": "NOT_RUN",
+            "latest_log": "docs/devlog/20261003-143500-pre-attach-overflow-isolation.md"
           }
         ],
-        "fec_flush_tuning": "DEFERRED: changes quality; do not mix with equivalent optimizations"
+        "fec_flush_tuning": "DEFERRED: changes quality; do not mix with equivalent optimizations",
+        "lifecycle_failure": {
+          "source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
+          "run": 37102574831,
+          "job": 111144856100,
+          "artifact": 11266553535,
+          "scenario": "l4_all_tuple seed202",
+          "result": "FAIL",
+          "reason": "server exited with pre-attach steady queue full; 35/36 sample jobs passed, aggregate failed; not VM attribution"
+        }
       }
     }
   }

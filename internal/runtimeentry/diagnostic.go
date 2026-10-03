@@ -29,6 +29,7 @@ type LifecycleConfigDiagnostic struct {
 }
 
 type TunnelDiagnostic struct {
+	PreAttachDrops uint64 `json:"pre_attach_drops,omitempty"` // shared server admission drops
 	Lifecycle      *LifecycleStats            `json:"lifecycle,omitempty"`
 	Config         *LifecycleConfigDiagnostic `json:"config,omitempty"`
 	ServerPipeline *ServerPipelineDiagnostic  `json:"server_pipeline,omitempty"`
@@ -87,11 +88,13 @@ func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, no
 	}
 	s.mu.Lock()
 	group := s.byTunnel[id]
+	preAttachDrops := s.preAttachDrops
 	s.mu.Unlock()
 	if group == nil {
 		return TunnelDiagnostic{}, false
 	}
 	out := diagnosticSnapshot(group.owner, group.rt, now)
+	out.PreAttachDrops = preAttachDrops
 	if s.cfg.ObserveTiming {
 		pipeline := s.pipeline.snapshot(true)
 		out.ServerPipeline = &pipeline
