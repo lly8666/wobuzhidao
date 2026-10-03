@@ -16,6 +16,13 @@
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
+      "china-ip-file": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "optional China IPv4 CIDR snapshot; empty uses embedded list; restart to apply",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
       "client-record-limit": {
         "type": "Uint",
         "default_expression": "1300",
@@ -163,6 +170,13 @@
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
+      "route-mode": {
+        "type": "String",
+        "default_expression": "\"bypass-lan-cn\"",
+        "help": "IPv4 capture policy: all, bypass-lan, bypass-lan-cn",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
       "route-table": {
         "type": "Uint",
         "default_expression": "1066",
@@ -226,6 +240,13 @@
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
+      "update-china-ip": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "download and validate China IPv4 list into this file, then exit; no tunnel required",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
       "username": {
         "type": "String",
         "default_expression": "\"\"",
@@ -253,6 +274,13 @@
         "type": "String",
         "default_expression": "\"WBD\"",
         "help": "Wintun adapter alias",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "china-ip-file": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "optional China IPv4 CIDR snapshot; empty uses embedded list; restart to apply",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },
@@ -389,6 +417,13 @@
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },
+      "route-mode": {
+        "type": "String",
+        "default_expression": "\"bypass-lan-cn\"",
+        "help": "IPv4 capture policy: all, bypass-lan, bypass-lan-cn",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
       "server-ip": {
         "type": "String",
         "default_expression": "\"\"",
@@ -435,6 +470,13 @@
         "type": "String",
         "default_expression": "\"\"",
         "help": "32-hex Logical Tunnel ID",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "update-china-ip": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "download and validate China IPv4 list into this file, then exit; no tunnel required",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },

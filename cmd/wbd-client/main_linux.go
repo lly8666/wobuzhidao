@@ -24,6 +24,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/qualificationdiag"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/runtimeentry"
+	"github.com/lly8666/wobuzhidao/internal/splitroute"
 )
 
 func main() {
@@ -32,6 +33,9 @@ func main() {
 		reconnectMin       = flag.Duration("reconnect-min", runtimeentry.DefaultReconnectMin, "minimum retry delay after failed lane admission")
 		reconnectMax       = flag.Duration("reconnect-max", runtimeentry.DefaultReconnectMax, "maximum retry delay after failed lane admission")
 		configPath         = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
+		routeMode = flag.String("route-mode", "bypass-lan-cn", "IPv4 capture policy: all, bypass-lan, bypass-lan-cn")
+		chinaIPFile = flag.String("china-ip-file", "", "optional China IPv4 CIDR snapshot; empty uses embedded list; restart to apply")
+		updateChinaIP = flag.String("update-china-ip", "", "download and validate China IPv4 list into this file, then exit; no tunnel required")
 		keepalive          = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
 		rawIface           = flag.String("raw-interface", "", "Linux/OpenWrt underlay interface")
 		localIPText        = flag.String("local-ip", "", "underlay source IPv4")
@@ -68,6 +72,9 @@ func main() {
 	if handleVersion() {
 		return
 	}
+	if *updateChinaIP != "" { if err := splitroute.Update(*updateChinaIP); err != nil { log.Fatal(err) }; return }
+	direct, err := splitroute.Direct(*routeMode,*chinaIPFile)
+	if err != nil { log.Fatal(err) }
 	if *rawIface == "" || *localIPText == "" || *serverIPText == "" || *tunnelText == "" ||
 		*leaseText == "" || *account == "" || *installationText == "" || *serverName == "" ||
 		*routeKeyHex == "" || *username == "" || *password == "" {
@@ -137,6 +144,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	plan.Direct4 = direct
+	log.Printf("WBD_ROUTE_POLICY mode=%s direct_prefixes=%d source=%s", *routeMode,len(direct),chinaListSource(*chinaIPFile))
 	netRuntime, err := openwrtclient.OpenRuntime(plan)
 	if err != nil {
 		log.Fatal(err)

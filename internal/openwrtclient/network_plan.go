@@ -6,6 +6,7 @@ import (
 	"net/netip"
 	"strconv"
 	"strings"
+	"github.com/lly8666/wobuzhidao/internal/splitroute"
 )
 
 const OwnedNFTTable = "wbd_tproxy"
@@ -34,6 +35,7 @@ type NetworkPlan struct {
 	NFTFamily string
 	NFTTable  string
 	Rules     []CaptureRule
+	Direct4 []netip.Prefix
 
 	PolicyRule Command
 	LocalRoute Command
@@ -92,9 +94,17 @@ func (p NetworkPlan) NFTScript() (string, error) {
 	}
 	var b strings.Builder
 	fmt.Fprintf(&b, "table %s %s {\n", canonical.NFTFamily, canonical.NFTTable)
+	direct, err := splitroute.Normalize(p.Direct4)
+	if err != nil { return "", err }
+	if len(direct)>0 {
+		b.WriteString("  set direct4 { type ipv4_addr; flags interval; elements = { ")
+		for i,prefix := range direct { if i>0 { b.WriteString(", ") }; b.WriteString(prefix.String()) }
+		b.WriteString(" }; }\n")
+	}
 	b.WriteString("  chain prerouting {\n")
 	b.WriteString("    type filter hook prerouting priority mangle; policy accept;\n")
 	for _, rule := range canonical.Rules {
+		if rule.Purpose=="tcp-tproxy-capture" && len(direct)>0 { b.WriteString("    ip daddr @direct4 counter return comment \"wbd-direct4\"\n") }
 		fmt.Fprintf(&b, "    %s %s comment %q\n", rule.Match, rule.Action, rule.Marker)
 	}
 	b.WriteString("  }\n")

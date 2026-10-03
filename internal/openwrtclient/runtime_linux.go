@@ -32,6 +32,9 @@ func OpenRuntime(plan NetworkPlan) (*Runtime, error) {
 	if err != nil {
 		return nil, err
 	}
+	canonical.Direct4 = append(canonical.Direct4, plan.Direct4...)
+	// Validate the full snapshot before installing any route/rule.
+	if _, err := canonical.NFTScript(); err != nil { return nil, err }
 	for _, tool := range []string{"ip", "nft"} {
 		if _, err := exec.LookPath(tool); err != nil {
 			return nil, fmt.Errorf("%w: missing %s", ErrRuntimeUnsupported, tool)

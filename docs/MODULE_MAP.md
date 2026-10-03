@@ -1,5 +1,7 @@
 # 复用与重写地图
 
+2026-10-04 IPv4分流：`internal/splitroute`全新启动期地址集编译器与内置MIT地址数据、手动更新；仅参考`old/internal/windowsruntime/routing_policy.go`的LAN/CN/Other语义和不在热路径查表原则。Linux/OpenWrt在WBD-owned nft interval set捕获前return，Windows捕获前缀取直连集合精确补集，保留原物理/局域网路由；大型快照通过临时文件交给网络脚本，保留owned清理及IPv6边界。不复用旧DTLS/TUN进程编排。规范见SPLIT_ROUTING.md，参数进PARAMETERS目录。
+
 来源均为 old 中 b5c848f 的快照。复用 means 提取算法/行为到新根目录并测试，不是调用归档路径或复制整套旧入口。每次迁移登记 REUSE_LEDGER.json 的 source、destination、改动及验收；未列依赖先查看 imports，最小化提取，不擅自把整个 old/internal 搬回来。
 
 | 模块 | 决定 | 具体边界 |

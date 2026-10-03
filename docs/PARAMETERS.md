@@ -36,6 +36,9 @@ Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对�
 
 | 参数 | 默认 | 范围/语义 |
 | --- | --- | --- |
+| `route-mode` | bypass-lan-cn | 客户端IPv4分流：all=全部走隧道（仍保留server/local安全绕行）；bypass-lan=局域网/本机/链路本地/CGNAT/组播保留地址直连；bypass-lan-cn=再将中国地址直连。不按域名分流，不更改IPv6边界。Windows显式dns4仍经隧道；Linux/OpenWrt TPROXY按DNS目标IP适用同规则。 |
+| `china-ip-file` | 空 | 客户端可选本地IPv4 CIDR表，空则使用内置固定版本。仅bypass-lan-cn读取；最多1MiB/65536条，严格校验，无效文件启动失败，不静默回退。重启客户端应用新快照。 |
+| `update-china-ip` | 空 | 客户端手动更新命令：值为输出文件路径，下载固定官方来源，校验后原子替换并退出，无需隧道凭据。正常启动不联网更新；失败保留旧文件。配合china-ip-file使用，不修改程序内置表。 |
 | `tls-startup-padding` | false | 有限内层 TLS 启动填充；FEC off 也生效。细节见 TLS_STARTUP_PADDING.md；不等待凑包，不填充 parity/保活，不重新随机重传。 |
 | `keepalive-interval` | 15s | 两端各自配置；1s～1h。每条 active lane 一个独立加密 health record，不走 FEC，不创建业务 flow。0 在内部 API 表示默认值；CLI 0 同样使用默认，不是关闭。部署建议两端一致。 |
 | `dead-after` | 90s | 客户端；至少本端 keepalive 的 3 倍，最多 24h；0 使用默认。还应大于对端发送间隔及预期弱网迟到窗口。无有效加密接收才怀疑失活，TCP ACK 不算健康证明。 |

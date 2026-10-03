@@ -1,0 +1,9 @@
+{
+  "source": "https://github.com/gaoyifan/china-operator-ip",
+  "commit": "c5f638aa2f229909aafcbbd8f220bb48b00c4eaa",
+  "url": "https://raw.githubusercontent.com/gaoyifan/china-operator-ip/c5f638aa2f229909aafcbbd8f220bb48b00c4eaa/china.txt",
+  "upstream_updated_at": "2026-10-03T08:40:43Z",
+  "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+  "license": "MIT; DATA_LICENSE",
+  "scope": "IPv4 address classification only, not domains, not a guarantee of physical location"
+}

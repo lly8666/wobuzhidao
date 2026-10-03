@@ -135,7 +135,7 @@ ip netns exec "$SRV" "$SERVER_BIN"   --raw-interface swan   --listen-ip 198.18.0
 SERVER_PID="$!"
 
 sleep 1
-ip netns exec "$CLI" "$CLIENT_BIN"   --raw-interface cwan --local-ip 198.18.0.2 --source-port 40000   --server-ip 198.18.0.6 --server-port 443   --tunnel-id "$TUNNEL_ID" --lease4 10.66.0.2/32   --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --username qual --password qualpass   --client-record-limit 1300 --mtu 1400 --fec-parity 20 --lanes 1   --tproxy-port 12345 --mark 66 --route-table 1066 --rule-priority 1066   > "$ART/client.log" 2>&1 &
+ip netns exec "$CLI" "$CLIENT_BIN"   --route-mode all --raw-interface cwan --local-ip 198.18.0.2 --source-port 40000   --server-ip 198.18.0.6 --server-port 443   --tunnel-id "$TUNNEL_ID" --lease4 10.66.0.2/32   --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --username qual --password qualpass   --client-record-limit 1300 --mtu 1400 --fec-parity 20 --lanes 1   --tproxy-port 12345 --mark 66 --route-table 1066 --rule-priority 1066   > "$ART/client.log" 2>&1 &
 CLIENT_PID="$!"
 
 sleep 3

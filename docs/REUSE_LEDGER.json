@@ -2,6 +2,12 @@
   "source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "entries": [
     {
+      "source": "old/internal/windowsruntime/routing_policy.go",
+      "destination": "internal/splitroute/policy.go",
+      "behavior_changes": "Semantic reference only: LAN/China/Other route groups and keep classification outside encryption/FEC hot path. New startup interval compiler and kernel nft/FIB split; no archived TUN/DTLS worker or proxy process dependency.",
+      "tests": "splitroute policy/partition/invalid-list/atomic-file tests, Windows large snapshot and real-process Linux TCP/UDP-DNS/HTTPS route-source/idle/wake/cleanup Actions; exact current results in STATUS, no inherited old PASS."
+    },
+    {
       "source": "old/internal/faketcp/bootstrap_stream.go",
       "destination": "internal/faketcp/bootstrap_stream.go",
       "behavior_changes": "Preserve bounded ordered bootstrap buffering, ACK-gated chunked writes, deadlines, close semantics, and synchronous bootstrap payload tagging. Add a locked NextSeq accessor so the association can freeze the exact receive ownership boundary for prepare/detach; no payload-byte mode guessing is introduced.",

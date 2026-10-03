@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"github.com/lly8666/wobuzhidao/internal/splitroute"
 )
 
 const (
@@ -32,6 +33,7 @@ type Config struct {
 	Physical     PhysicalPath
 	DNSServers4  []netip.Addr
 	Direct4      []netip.Prefix
+	Bypass4      []netip.Prefix
 	StatePath    string
 }
 
@@ -55,6 +57,7 @@ type NetworkPlan struct {
 	UnderlayRoute OwnedRoute
 	DirectRoutes  []OwnedRoute
 	CaptureRoutes []OwnedRoute
+	CapturePrefixFile4 string
 	DNSServers4   []netip.Addr
 
 	NRPTNamespace string
@@ -116,7 +119,14 @@ func BuildNetworkPlan(cfg Config) (NetworkPlan, error) {
 		netip.MustParsePrefix("0.0.0.0/1"),
 		netip.MustParsePrefix("128.0.0.0/1"),
 	}
+	if len(cfg.Bypass4)>0 {
+		bypass := append([]netip.Prefix(nil),cfg.Bypass4...)
+		bypass = append(bypass,netip.PrefixFrom(server,32))
+		capturePrefixes,err = splitroute.Capture(bypass)
+		if err != nil { return NetworkPlan{},err }
+	}
 	for _, addr := range dns {
+		if addr==server { return NetworkPlan{},fmt.Errorf("%w: DNS cannot be underlay server",ErrNetworkPlan) }
 		capturePrefixes = append(capturePrefixes, netip.PrefixFrom(addr, 32))
 	}
 	capturePrefixes, _ = normalizePrefixes(capturePrefixes)
@@ -182,6 +192,12 @@ func (p NetworkPlan) PowerShellArgs(action, scriptPath string) ([]string, error)
 			values = append(values, route.Prefix.String())
 		}
 		args = append(args, "-DirectPrefix4", strings.Join(values, ","))
+	}
+	if p.CapturePrefixFile4!="" { args=append(args,"-CapturePrefixFile4",p.CapturePrefixFile4) } else {
+		if len(p.CaptureRoutes)>8 { return nil,fmt.Errorf("%w: large capture set requires snapshot file",ErrNetworkPlan) }
+		values:=make([]string,0,len(p.CaptureRoutes)); for _,r:=range p.CaptureRoutes { values=append(values,r.Prefix.String()) }
+		args=append(args,"-CapturePrefix4",strings.Join(values,","))
+		if len(values)==0 { args=append(args,"-CapturePrefix4Specified") }
 	}
 	return args, nil
 }

@@ -119,8 +119,8 @@ ip -n "$CLI" addr add 198.18.0.2/30 dev cwan
 ip -n "$RTR" addr add 198.18.0.1/30 dev rcli
 ip -n "$RTR" addr add 198.18.0.5/30 dev rsrv
 ip -n "$SRV" addr add 198.18.0.6/30 dev swan
-ip -n "$SRV" addr add 10.50.0.1/24 dev slan
-ip -n "$TGT" addr add 10.50.0.2/24 dev tgt0
+ip -n "$SRV" addr add 8.8.8.1/24 dev slan
+ip -n "$TGT" addr add 8.8.8.8/24 dev tgt0
 
 for pair in "$BIZ biz0" "$CLI cbiz" "$CLI cwan" "$RTR rcli" "$RTR rsrv" "$SRV swan" "$SRV slan" "$TGT tgt0"; do
   read -r ns dev <<<"$pair"
@@ -130,7 +130,7 @@ done
 ip -n "$BIZ" route add default via 10.40.0.1
 ip -n "$CLI" route add default via 198.18.0.1
 ip -n "$SRV" route add default via 198.18.0.5
-ip -n "$TGT" route add default via 10.50.0.1
+ip -n "$TGT" route add default via 8.8.8.1
 for ns in "$CLI" "$RTR" "$SRV"; do
   ip netns exec "$ns" sysctl -qw net.ipv4.conf.all.rp_filter=0
   ip netns exec "$ns" sysctl -qw net.ipv4.conf.default.rp_filter=0
@@ -167,7 +167,7 @@ TUNNEL_ID="00112233445566778899aabbccddeeff"
 INSTALLATION_ID="11223344556677889900aabbccddeeff"
 ROUTE_KEY_HEX="00112233445566778899aabbccddeeffffeeddccbbaa00998877665544332211"
 
-ip netns exec "$SRV" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 10.50.0.2:4433 --server-record-limit 1250 --mtu 1400   --fec-parity 20 --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
+ip netns exec "$SRV" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 8.8.8.8:4433 --server-record-limit 1250 --mtu 1400   --fec-parity 20 --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
 SERVER_PID="$!"
 
 sleep 1
@@ -213,10 +213,10 @@ for pid in "${CAP_PIDS[@]}"; do sampler_args+=(--capture-pid "$pid"); done
 "${sampler_args[@]}" > "$ART/resource-sampler.log" 2>&1 &
 SAMPLER_PID="$!"
 
-ip netns exec "$TGT" python3 "$GEN"   --role target --bind 10.50.0.2:18080   --start-ns "$START_NS" --duration 120 --drain 10 --rate-mbps "$RATE"   --seed "$((SEED*100+2))" --output "$ART/target.json" > "$ART/target.log" 2>&1 &
+ip netns exec "$TGT" python3 "$GEN"   --role target --bind 8.8.8.8:18080   --start-ns "$START_NS" --duration 120 --drain 10 --rate-mbps "$RATE"   --seed "$((SEED*100+2))" --output "$ART/target.json" > "$ART/target.log" 2>&1 &
 TGT_PID="$!"
 
-ip netns exec "$BIZ" python3 "$GEN"   --role biz --bind 10.40.0.2:28080 --peer 10.50.0.2:18080   --start-ns "$START_NS" --duration 120 --drain 10 --rate-mbps "$RATE"   --seed "$((SEED*100+1))" --output "$ART/biz.json" > "$ART/biz.log" 2>&1 &
+ip netns exec "$BIZ" python3 "$GEN"   --role biz --bind 10.40.0.2:28080 --peer 8.8.8.8:18080   --start-ns "$START_NS" --duration 120 --drain 10 --rate-mbps "$RATE"   --seed "$((SEED*100+1))" --output "$ART/biz.json" > "$ART/biz.log" 2>&1 &
 BIZ_PID="$!"
 
 wait "$BIZ_PID"; BIZ_PID=""

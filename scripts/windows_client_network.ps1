@@ -8,6 +8,9 @@ param(
     [string]$PhysicalNextHop4 = '',
     [string]$DNSServer = '',
     [string]$DirectPrefix4 = '',
+    [string]$CapturePrefix4 = '',
+    [string]$CapturePrefixFile4 = '',
+    [switch]$CapturePrefix4Specified,
     [string]$StatePath = "$PSScriptRoot\windows-client-state.json"
 )
 
@@ -128,6 +131,13 @@ $directPrefixes = Parse-CSV $DirectPrefix4
 foreach ($prefix in $directPrefixes) { [void](Parse-IPv4CIDR $prefix 'DirectPrefix4') }
 
 $capturePrefixes = @('0.0.0.0/1','128.0.0.0/1') + @($dnsServers | ForEach-Object { "$_/32" })
+if ($CapturePrefixFile4) {
+    $captureInfo = Get-Item -LiteralPath $CapturePrefixFile4
+    if ($captureInfo.Length -gt 4MB) { throw 'capture snapshot too large' }
+    $capturePrefixes = @(Get-Content -LiteralPath $CapturePrefixFile4 | Where-Object { $_.Trim() } | ForEach-Object { $_.Trim() })
+} elseif ($CapturePrefix4 -or $CapturePrefix4Specified) { $capturePrefixes = @(Parse-CSV $CapturePrefix4) }
+if ($capturePrefixes.Count -gt 65536) { throw 'too many capture prefixes' }
+foreach ($prefix in $capturePrefixes) { [void](Parse-IPv4CIDR $prefix 'CapturePrefix4') }
 $capturePrefixes = @($capturePrefixes | Select-Object -Unique)
 
 if ($Action -eq 'Render') {
@@ -241,19 +251,16 @@ try {
             -AddressFamily IPv4 -SkipAsSource $false | Out-Null
     }
 
-    foreach ($prefix in $capturePrefixes) {
-        $existing = Get-NetRoute -DestinationPrefix $prefix -InterfaceIndex $ifIndex `
-            -NextHop '0.0.0.0' -PolicyStore ActiveStore -ErrorAction SilentlyContinue
-        if (-not $existing) {
-            $state.CaptureRoutes += [ordered]@{
-                DestinationPrefix=$prefix
-                InterfaceIndex=$ifIndex
-                NextHop='0.0.0.0'
-            }
-            Save-State $state
-            New-NetRoute -DestinationPrefix $prefix -InterfaceIndex $ifIndex -NextHop '0.0.0.0' `
-                -RouteMetric 5 -PolicyStore ActiveStore | Out-Null
-        }
+    # Snapshot existing routes once. Journal new intents once before mutation;
+    # this avoids thousands of CIM lookups and O(n^2) state-file rewrites.
+    $existingCapture = @{}
+    @(Get-NetRoute -InterfaceIndex $ifIndex -PolicyStore ActiveStore -ErrorAction SilentlyContinue | Where-Object { $_.NextHop -eq '0.0.0.0' }) | ForEach-Object { $existingCapture[[string]$_.DestinationPrefix] = $true }
+    $newCapture = @($capturePrefixes | Where-Object { -not $existingCapture.ContainsKey($_) })
+    $state.CaptureRoutes = @($newCapture | ForEach-Object { [ordered]@{ DestinationPrefix=$_; InterfaceIndex=$ifIndex; NextHop='0.0.0.0' } })
+    Save-State $state
+    foreach ($prefix in $newCapture) {
+        New-NetRoute -DestinationPrefix $prefix -InterfaceIndex $ifIndex -NextHop '0.0.0.0' `
+            -RouteMetric 5 -PolicyStore ActiveStore | Out-Null
     }
 
     if ($dnsServers.Count -gt 0) {

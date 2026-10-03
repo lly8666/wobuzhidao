@@ -8,14 +8,16 @@ ANSWER=QUERY[:2]+bytes.fromhex('81800001000100000000')+QUERY[12:]+bytes.fromhex(
 
 def server(bind,cert,key):
     ctx=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);ctx.load_cert_chain(cert,key)
+    peers={}
     def dns():
         with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as s:
             s.bind((bind,15353));s.settimeout(40);q,peer=s.recvfrom(4096)
+            peers['dns']=peer[0]
             if q!=QUERY:raise ValueError('DNS query differs')
             s.sendto(ANSWER,peer)
     def plain():
         with socket.socket() as s:
-            s.bind((bind,18444));s.listen();s.settimeout(40);c,_=s.accept()
+            s.bind((bind,18444));s.listen();s.settimeout(40);c,peer=s.accept();peers['tcp']=peer[0]
             with c:
                 c.settimeout(15);data=c.recv(1024)
                 if data!=b'wbd-plain-tcp-probe':raise ValueError('TCP payload differs')
@@ -27,7 +29,7 @@ def server(bind,cert,key):
     ts=[threading.Thread(target=guarded,args=(fn,)) for fn in (dns,plain)]
     for t in ts:t.start()
     with socket.socket() as s:
-        s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1);s.bind((bind,18443));s.listen();s.settimeout(40);c,_=s.accept()
+        s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1);s.bind((bind,18443));s.listen();s.settimeout(40);c,peer=s.accept();peers['https']=peer[0]
         with ctx.wrap_socket(c,server_side=True) as c:
             c.settimeout(20);request=b''
             while b'\r\n\r\n' not in request:
@@ -37,7 +39,7 @@ def server(bind,cert,key):
             c.sendall(b'HTTP/1.1 200 OK\r\nContent-Length: '+str(len(BODY)).encode()+b'\r\nConnection: close\r\n\r\n'+BODY)
     for t in ts:t.join()
     if errors:raise ValueError(errors)
-    return dict(result='PASS',role='target',body_sha256=hashlib.sha256(BODY).hexdigest())
+    return dict(result='PASS',role='target',body_sha256=hashlib.sha256(BODY).hexdigest(),peers=peers)
 
 def client(peer,cert):
     with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as s:
