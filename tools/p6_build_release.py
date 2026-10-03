@@ -81,6 +81,14 @@ def main():
     run(common + ["-o", str(root / client_name), "./cmd/wbd-client"], env=env)
 
     files = [file_entry(root, "client", client_name, True)]
+    for role, source, name in [
+        ("china_ipv4_snapshot", "internal/splitroute/china_ipv4.txt", "china-ipv4.txt"),
+        ("china_ipv4_provenance", "internal/splitroute/DATA_SOURCE.json", "china-ipv4-source.json"),
+        ("china_ipv4_license", "internal/splitroute/DATA_LICENSE", "china-ipv4-LICENSE.txt"),
+        ("split_routing_guide", "docs/SPLIT_ROUTING.md", "SPLIT_ROUTING.md"),
+    ]:
+        shutil.copyfile(source, root / name)
+        files.append(file_entry(root, role, name, False))
     capabilities = {
         "client": "IMPLEMENTED",
         "server": "UNSUPPORTED" if args.target_os == "windows" else "IMPLEMENTED",
@@ -99,6 +107,7 @@ def main():
         "PHYSICAL_PASS is NOT_RUN; physical qualification is reserved for P7.",
         "RELEASE_QUALIFIED is NOT_RUN until P7 physical qualification succeeds.",
         "Production FEC default remains off; padding default remains off.",
+        "Client IPv4 route-mode defaults to bypass-lan-cn; embedded country snapshot works offline. Manual update requires restart and china-ip-file; no IPv6/domain split qualification.",
         "Recognized WBD uses the local Go TLS 1.3 server and does not claim full target-site server fingerprint equivalence.",
     ]
     if args.target_os == "windows":

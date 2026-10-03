@@ -93,15 +93,19 @@ def main():
         validated.append({"role": role, "path": rel, "sha256": digest, "size_bytes": size})
 
     caps = manifest.get("capabilities", {})
+    routing_roles = {"china_ipv4_snapshot", "china_ipv4_provenance", "china_ipv4_license", "split_routing_guide"}
+    provenance = json.loads((root / "china-ipv4-source.json").read_text(encoding="utf-8"))
+    if sha256_file(root / "china-ipv4.txt") != provenance.get("sha256"):
+        fail("packaged China snapshot does not match provenance")
     if args.target_os == "linux":
         if caps != {"client": "IMPLEMENTED", "server": "IMPLEMENTED"}:
             fail(f"linux capabilities={caps!r}")
-        if seen_roles != {"client", "server"}:
+        if seen_roles != {"client", "server"} | routing_roles:
             fail(f"linux file roles={sorted(seen_roles)}")
     else:
         if caps != {"client": "IMPLEMENTED", "server": "UNSUPPORTED"}:
             fail(f"windows capabilities={caps!r}")
-        if seen_roles != {"client", "windows_network_script"}:
+        if seen_roles != {"client", "windows_network_script"} | routing_roles:
             fail(f"windows file roles={sorted(seen_roles)}")
 
     if args.run_native:
