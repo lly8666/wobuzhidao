@@ -1,10 +1,10 @@
 {
-  "campaign": "handoff-retiring-ACK-tick-internal-queue-diagnostic",
-  "source_sha": "48f585296cd7a1f72cf721e3328df976fa4ffb29",
-  "ref": "perf-fixed/48f585296cd7a1f72cf721e3328df976fa4ffb29",
+  "campaign": "constant-retirement-close-and-bounded-receive",
+  "source_sha": "a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d",
+  "ref": "perf-fixed/a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d",
   "required_runs": [
-    37138549179,
-    37138549123
+    37139585967,
+    37139585951
   ],
   "samples": [
     {
@@ -15,7 +15,18 @@
         "duration": "180",
         "seed": "404"
       },
-      "artifact": "soak-summary-normal-180-404-48f585296cd7a1f72cf721e3328df976fa4ffb29",
+      "artifact": "soak-summary-normal-180-404-a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d",
+      "summary": "summary-soak.json"
+    },
+    {
+      "workflow": "next-target-soak.yml",
+      "title": "soak-game-180s-seed404",
+      "inputs": {
+        "mode": "game",
+        "duration": "180",
+        "seed": "404"
+      },
+      "artifact": "soak-summary-game-180-404-a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d",
       "summary": "summary-soak.json"
     }
   ]
