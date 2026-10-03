@@ -1,10 +1,12 @@
 {
-  "campaign": "focused-live-fec-pressure-and-local-tcp-fin",
-  "source_sha": "3d9ce2cd840b00f459e470b4cdd94ef81ff4e386",
-  "ref": "perf-fixed/3d9ce2cd840b00f459e470b4cdd94ef81ff4e386",
-  "required_runs": [37126861628,37126861629],
+  "campaign": "bounded-retiring-receive-and-one-second-handoff-loss",
+  "source_sha": "50efe874b3c700b7b8bed0aff07e1a80e887abeb",
+  "ref": "perf-fixed/50efe874b3c700b7b8bed0aff07e1a80e887abeb",
+  "required_runs": [37136525883,37136525831],
   "samples": [
-    {"workflow":"next-target-soak.yml","title":"soak-normal-180s-seed404","inputs":{"mode":"normal","duration":"180","seed":"404"},"artifact":"soak-summary-normal-180-404-3d9ce2cd840b00f459e470b4cdd94ef81ff4e386","summary":"summary-soak.json"},
-    {"workflow":"next-config-effective.yml","title":"config-f10-l3-p0","inputs":{"case_id":"f10-l3-p0"},"artifact":"config-summary-f10-l3-p0-3d9ce2cd840b00f459e470b4cdd94ef81ff4e386","summary":"summary-config.json"}
+    {"workflow":"next-target-soak.yml","title":"soak-normal-180s-seed404","inputs":{"mode":"normal","duration":"180","seed":"404"},"artifact":"soak-summary-normal-180-404-50efe874b3c700b7b8bed0aff07e1a80e887abeb","summary":"summary-soak.json"},
+    {"workflow":"next-target-soak.yml","title":"soak-game-180s-seed404","inputs":{"mode":"game","duration":"180","seed":"404"},"artifact":"soak-summary-game-180-404-50efe874b3c700b7b8bed0aff07e1a80e887abeb","summary":"summary-soak.json"},
+    {"workflow":"next-config-effective.yml","title":"config-f20-l1-p1","inputs":{"case_id":"f20-l1-p1"},"artifact":"config-summary-f20-l1-p1-50efe874b3c700b7b8bed0aff07e1a80e887abeb","summary":"summary-config.json"},
+    {"workflow":"next-config-effective.yml","title":"config-f20-l4-p1","inputs":{"case_id":"f20-l4-p1"},"artifact":"config-summary-f20-l4-p1-50efe874b3c700b7b8bed0aff07e1a80e887abeb","summary":"summary-config.json"}
   ]
 }
