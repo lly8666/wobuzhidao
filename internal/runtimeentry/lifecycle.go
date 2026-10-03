@@ -760,6 +760,7 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		InitialRTO:    runtimeowner.DefaultRepairRTO,
 		RepairHorizon: runtimeowner.DefaultRepairHorizon,
 		SACKPermitted: handoff.Peer.SACKPermitted,
+		ACKDelay:      runtimeowner.DefaultACKDelay,
 		Emit:          ioCfg.Emit,
 	}
 
@@ -1657,6 +1658,7 @@ func (s *LifecycleServer) serverTransportConfig(session *realityfront.ServerAdmi
 		InitialRTO:    runtimeowner.DefaultRepairRTO,
 		RepairHorizon: runtimeowner.DefaultRepairHorizon,
 		SACKPermitted: peer.SACKPermitted,
+		ACKDelay:      runtimeowner.DefaultACKDelay,
 		Emit:          s.cfg.IO.Emit,
 	}
 }

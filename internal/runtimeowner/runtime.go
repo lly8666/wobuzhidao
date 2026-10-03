@@ -18,6 +18,7 @@ const (
 	MaxOutstandingRecords = 4096
 	DefaultRepairRTO      = time.Second
 	DefaultRepairHorizon  = 3 * time.Second
+	DefaultACKDelay       = 2 * time.Millisecond
 )
 
 var (
@@ -51,10 +52,16 @@ type TransportConfig struct {
 	InitialRTO    time.Duration
 	RepairHorizon time.Duration
 	SACKPermitted bool
+	// Zero preserves immediate ACK for direct embedders. Production admission
+	// opts into DefaultACKDelay; this never gates business delivery.
+	ACKDelay      time.Duration
 	Emit          faketcp.SegmentEmitter
 }
 
 func (c *TransportConfig) normalize() error {
+	if c.ACKDelay < 0 || c.ACKDelay > DefaultACKDelay {
+		return ErrTransportConfig
+	}
 	if c.LocalIP == ([4]byte{}) || c.PeerIP == ([4]byte{}) ||
 		c.LocalPort == 0 || c.PeerPort == 0 || c.Emit == nil {
 		return ErrTransportConfig
@@ -132,6 +139,11 @@ type deliveredMark struct {
 }
 
 type TransportStats struct {
+	ACKDeferred           uint64
+	ACKCoalesced          uint64
+	ACKPiggybacked        uint64
+	ACKTimerSent          uint64
+	ACKTimerFailures      uint64
 	AuthenticatedRecords  uint64
 	HealthSent            uint64
 	HealthReceived        uint64
@@ -300,6 +312,12 @@ type laneTransport struct {
 	stats  TransportStats
 	timing transportTiming
 	closed bool
+	ackPending bool
+	ackCount int
+	ackSentOnce bool
+	ackDue time.Time
+	ackTimer *time.Timer
+	ackAsyncError error
 }
 
 func newLaneTransport(owner *datapath.TunnelOwner, ref logicaltunnel.LaneRef, deliver PacketSink, cfg TransportConfig) (*laneTransport, error) {
@@ -445,6 +463,7 @@ func (t *laneTransport) send(records []datapath.WireRecord, now time.Time) error
 			return err
 		}
 		t.mu.Lock()
+		t.noteACKPiggybackLocked(seg)
 		if !record.Control {
 			t.refillRepairCreditLocked(uint64(len(wire)))
 		}
@@ -516,6 +535,7 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		}
 		t.peerRST = true
 		t.closed = true
+		t.cancelACKLocked()
 		clear(t.pending)
 		clear(t.received)
 		t.pendingOrder = nil
@@ -531,6 +551,8 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		return t.emitSelectedRepair(repair, now)
 	}
 
+	previousNext := t.recvNext
+	hadGap := len(t.received) != 0 || t.recvSACKN != 0
 	deliver := false
 	var err error
 	if hasPayload {
@@ -547,7 +569,7 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 			return err
 		}
 	}
-	ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
+	urgentACK := hasFIN || !deliver || hadGap || seg.Seq != previousNext || t.recvSACKN != 0
 	if observeTiming {
 		t.timing.lockHeld.observe(time.Since(lockHeldStarted))
 	}
@@ -590,7 +612,7 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 			}
 		}
 	}
-	if err := t.cfg.Emit(ackSeg); err != nil {
+	if err := t.sendACK(urgentACK); err != nil {
 		return err
 	}
 	return t.emitSelectedRepair(repair, now)
@@ -843,6 +865,7 @@ func (t *laneTransport) reset(now time.Time) error {
 		t.stats.RSTSent++
 	}
 	t.closed = true
+	t.cancelACKLocked()
 	clear(t.pending)
 	clear(t.received)
 	clear(t.delivered)
@@ -917,6 +940,7 @@ func (t *laneTransport) close() {
 		return
 	}
 	t.closed = true
+	t.cancelACKLocked()
 	clear(t.pending)
 	clear(t.received)
 	clear(t.delivered)
@@ -1192,6 +1216,7 @@ func (r *Runtime) AttachServerAdmission(laneID uint8, session *realityfront.Serv
 		WindowScale: scale, WindowScaleSet: scaleSet,
 		InitialRTO: DefaultRepairRTO, RepairHorizon: DefaultRepairHorizon,
 		SACKPermitted: peer.SACKPermitted,
+		ACKDelay:      DefaultACKDelay,
 		Emit:          emit,
 	}
 	snapshot, err := r.AttachInitial(laneID, lane, cfg)

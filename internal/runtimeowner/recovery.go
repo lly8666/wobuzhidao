@@ -262,6 +262,12 @@ func (t *laneTransport) tickRecovery(now time.Time) error {
 	)
 
 	t.mu.Lock()
+	if t.ackAsyncError != nil {
+		err := t.ackAsyncError
+		t.ackAsyncError = nil
+		t.mu.Unlock()
+		return err
+	}
 	if t.closed {
 		t.mu.Unlock()
 		return nil

@@ -40,3 +40,5 @@ TLS启动填充：internal/datapath/startup_padding.go新写旁观识别；paddi
 - old/internal/windowsruntime/controller_idle.go 只作为activity二次检查语义参考，不引入旧RPC/controller或旧提示词。
 
 2026-10-03带宽修复：internal/fec/size_class_encoder.go是20:20有界长度分类外壳，复用fastblock_encoder.go及codec，internal/linkdata/fec_path.go接入。无old迁移；wire/MTU/owned复制/decoder/repair/Game不改。低FEC档位在相同外壳中仅一个原组，参数清单无新增CLI。
+
+2026-10-03资源优化阶段3：生产steady ACK内部采用每2个正常连续record或2ms截止，首包/缺口开关/SACK/重复/FIN即时；成功携最新ACK的data可取消gap-free待发ACK。每lane一个可复用timer，关闭取消、异步失败计数并由tick报告。业务立即交付，不等ACK；internal/runtimeowner/ack.go，无新增CLI/configfile入口。阶段状态与exact-SHA验收看STATUS。

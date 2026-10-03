@@ -247,3 +247,5 @@ Game4逻辑3Mbps lossless 已在 run 35818718764 / job 107045770392 全门PASS�
 
 ## 2026-10-03 用户指定资源优化顺序
 暂停长测框架开发，依次：有效FEC运算、加解密/ownership复制、有限ACK合并、已就绪批量I/O。每项独立提交，Actions unit/build/race通过后冻结精确SHA；Normal1双向10M和Game4逻辑3M分别独立5205（300ms单向、FEC20:20、混合包、120s），原门不放宽，过关才下一项。仅targeted资格，最终产品仍需完整矩阵/长测/P6/P7。FEC deadline16/32ms属于改变质量的另项，不与四项等价优化混测。
+
+2026-10-03资源优化阶段3：生产steady ACK内部采用每2个正常连续record或2ms截止，首包/缺口开关/SACK/重复/FIN即时；成功携最新ACK的data可取消gap-free待发ACK。每lane一个可复用timer，关闭取消、异步失败计数并由tick报告。业务立即交付，不等ACK；internal/runtimeowner/ack.go，无新增CLI/configfile入口。阶段状态与exact-SHA验收看STATUS。
