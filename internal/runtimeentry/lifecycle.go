@@ -1839,6 +1839,10 @@ func (s *LifecycleServer) groupReadyLocked(group *serverLifecycleTunnel) bool {
 }
 
 func (s *LifecycleServer) tick(now time.Time) error {
+	if s.cfg.ObserveTiming {
+		started := time.Now()
+		defer func() { s.pipeline.tick.observe(time.Since(started)) }()
+	}
 	if err := s.table.EmitRetransmitDue(now); err != nil {
 		return err
 	}

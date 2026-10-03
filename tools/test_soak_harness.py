@@ -8,10 +8,17 @@ from unittest.mock import patch
 from prepare_soak_harness import main as prepare
 from soak_capture import read_chunk
 from soak_weaknet_stage import plan
-from check_target_soak import integrity_errors,short_window_loss
+from check_target_soak import integrity_errors,short_window_loss,internal_queue_drops
 
 
 class SoakHarnessTests(unittest.TestCase):
+    def test_kernel_zero_does_not_hide_internal_queue_overflow(self):
+        rows=[{'product':{'present':True,'tunnel':{'server_pipeline':{'overflow_drops':13482}}}}]
+        self.assertTrue(internal_queue_drops(rows,'server')['errors'])
+        rows[0]['product']['tunnel']['server_pipeline']['overflow_drops']=0
+        self.assertFalse(internal_queue_drops(rows,'server')['errors'])
+        self.assertTrue(internal_queue_drops([],'client')['errors'])
+
     def test_short_loss_gate_rejects_a_burst_hidden_by_stage_average(self):
         phases=[dict(name='post5',start_s=0,end_s=60,loss_percent=5)]
         sent={'sent_packets_by_second':[2000]*60}
@@ -40,6 +47,7 @@ class SoakHarnessTests(unittest.TestCase):
         self.assertTrue(integrity_errors([sample(1),sample(0)],'client'))
         self.assertTrue(integrity_errors([{'product':{'lanes':[{}]}}],'client'))
         self.assertTrue(integrity_errors([],'server'))
+        self.assertTrue(integrity_errors([{'product':{'lanes':[], 'retiring_lanes':sample(1)['product']['lanes']}}],'client'))
 
     def test_schedules_cover_the_full_declared_run(self):
         for duration in [180,1800]:

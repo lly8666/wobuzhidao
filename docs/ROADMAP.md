@@ -33,3 +33,5 @@ WEAKNET_LIFECYCLE：功能 COMPLETE（最终源码0b206a0，36/36真实进程样
 ## 2026-10-03 顺序资源优化定向收口
 
 当前产品资格SOURCE_SHA ca8175d18acd7f7e3e1db5379a58d9f85417dd97。5个资源原子步骤+1个接入队列故障隔离修复，逐项Actions unit/build/race后分别独立Normal/Game5205；12条合格样本与逐阶段RTT/loss门PASS，最新36/36生命周期及aggregate PASS。见STATUS、最新日志及evidence/resource-optimization-5205.json，历史native接线失败/队列致退出/瞬态超时保留。优化实际触发且正确性、吞吐、延迟过门，不据跨VM单样本宣称固定CPU下降；SACK主导的5205下ACK收益未证实。当前不再继续微改，下一步固定最新SOURCE_SHA全18复验，随后有界长测框架与>=1800s目标速率Normal/Game独立run；P5/P6/P7未整体关闭。每性能Action一条样本，FEC deadline8ms、4096/3s和socket buffer不调大。
+
+2026-10-04当前覆盖历史下一步：b1完整原门通过后逐秒审计暴露Normal换代约61%loss；P5重开。50有限retiring接收候选基础/race和Game短测通过，Normal短测FAIL并出现内部server ready queue overflow。先补retiring/ACK/tick诊断、按证据窄修；新1s门与内部queue0drop门通过后，最新整份源码完整资格/P6才能重闭。P7未跑，旧包仅复现。实时任务见STATUS，禁止根据以上旧ca资格继续发布。

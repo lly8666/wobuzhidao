@@ -52,6 +52,12 @@ func TestRetiringReceiveRecoversOldFECWithoutHoldingFresh(t *testing.T) {
 	if err := owner.ValidateGeneration(old.Ref); !errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) {
 		t.Fatalf("retiring outbound authority revived: %v", err)
 	}
+	if lanes := owner.RetiringLanes(); len(lanes) != 1 || lanes[0].Ref != old.Ref {
+		t.Fatalf("retiring diagnostics: %+v", lanes)
+	}
+	if _, ok := owner.RetiringLaneStats(old.Ref); !ok {
+		t.Fatal("retiring diagnostics lost a retained incarnation")
+	}
 	freshTx := leasedTestLane(t, RoleClient, 20, 81, lease)
 	defer freshTx.Close()
 	freshPacket := businessIPv4Packet(addr, netip.MustParseAddr("1.1.1.1"), []byte("fresh-before-old-repair"))
@@ -82,6 +88,9 @@ func TestRetiringReceiveRecoversOldFECWithoutHoldingFresh(t *testing.T) {
 	}
 	if err := owner.RetireIncarnation(old.Ref); err != nil {
 		t.Fatal(err)
+	}
+	if _, ok := owner.RetiringLaneStats(old.Ref); ok || len(owner.RetiringLanes()) != 0 {
+		t.Fatal("diagnostic ref survived retirement")
 	}
 	if _, err := owner.InboundPayload(old.Ref, parity[0].Wire, now.Add(time.Second)); !errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) {
 		t.Fatalf("retired generation revived: %v", err)

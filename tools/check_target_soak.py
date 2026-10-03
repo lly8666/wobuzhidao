@@ -19,7 +19,8 @@ def integrity_errors(diag,side):
     """Inspect every sampled incarnation, not only the final active lane."""
     errors=set();seen=0
     for row in diag:
-        for lane in (prod(row,side) or {}).get('lanes',[]):
+        state=prod(row,side) or {}
+        for lane in state.get('lanes',[])+state.get('retiring_lanes',[]):
             seen+=1
             for component in ['lane','transport']:
                 state=lane.get(component) or {}
@@ -57,6 +58,27 @@ def short_window_loss(sender,receiver,phases,duration):
         if failures:errors.append(phase['name']+' one-second business loss exceeds link loss+2pp')
         output.append(dict(phase=phase['name'],limit_percent=limit,worst=worst,violations=len(failures),first_violations=failures[:10]))
     return dict(errors=errors,phases=output)
+
+
+def internal_queue_drops(diag,side):
+    """Kernel drops alone cannot establish that the process kept up."""
+    maxima={};errors=[]
+    for row in diag:
+        state=prod(row,side) or {}
+        queues=[]
+        if side=='server':
+            if state.get('server_pipeline'):
+                queues.append(('server_pipeline',state['server_pipeline']))
+        else:
+            for index,route in enumerate(state.get('segment_mux',{}).get('routes',[])):
+                queues.append(('segment_mux',route))
+        for name,queue in queues:
+            value=queue.get('overflow_drops')
+            if type(value)!=int or value<0:errors.append(side+' invalid internal queue drop counter')
+            else:maxima[name]=max(maxima.get(name,0),value)
+    if not maxima:errors.append(side+' missing internal queue diagnostics')
+    if any(maxima.values()):errors.append(side+' internal receive queue overflow')
+    return dict(maxima=maxima,errors=sorted(set(errors)))
 
 
 def main():
@@ -110,6 +132,7 @@ def main():
     for side in ['client','server']:
         diag=list(rows(root/(side+'-diag.jsonl')));active=[r for r in diag if prod(r,side) and own(r,side).get('ActiveLogicalLanes')==m['config']['lanes']]
         errors+=integrity_errors(diag,side)
+        queues=internal_queue_drops(diag,side);errors+=queues['errors']
         if not active:errors.append(side+' missing active diagnostics');continue
         first,last=gens(active[0],side),gens(active[-1],side)
         if not any(last.get(i,0)>g for i,g in first.items()):errors.append(side+' automatic rotation not observed')
@@ -127,7 +150,7 @@ def main():
                 for key in ['TxPath','RxPath']:
                     state=paths.get(key,{})
                     if state.get('Recovery',{}).get('PendingDeadlines',0) or state.get('Reassembly',{}).get('Assemblies',0):errors.append(side+' drain FEC/LINK state retained')
-        diagnostics[side]=dict(first_generation=first,last_generation=last,heap_peak=max([v for _,v in heaps]+[0]),early_heap_median=statistics.median(early) if early else None,late_heap_median=statistics.median(late) if late else None)
+        diagnostics[side]=dict(first_generation=first,last_generation=last,heap_peak=max([v for _,v in heaps]+[0]),early_heap_median=statistics.median(early) if early else None,late_heap_median=statistics.median(late) if late else None,internal_queue_drops=queues)
     result=dict(schema='wbd-target-soak-result/v1',source_sha=x.source_sha,qualification=m['qualification'],duration_s=duration,mode=m['mode'],result='FAIL' if errors else 'PASS',errors=errors,phases=phases,short_window_loss=short_windows,resource=resource,diagnostics=diagnostics,statistics={k:v['stats']['bounded_stats'] for k,v in [('biz',b),('target',t)]})
     Path(x.output).write_text(json.dumps(result,indent=2)+'\n');print(json.dumps({k:result[k] for k in ['source_sha','qualification','mode','result','errors']}))
     if errors:raise SystemExit(1)

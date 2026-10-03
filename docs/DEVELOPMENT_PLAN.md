@@ -274,3 +274,7 @@ owner持锁的快照/身份检查仅能读Lane构造后不可变配置，禁止�
 
 实时FEC在既有8重恢复槽满额时，允许早于新BlockID的最老未完整恢复状态转compact，给fresh block恢复机会；绝对3s为最长恢复期限，不是必须占槽3s。迟到旧block不挤走新恢复，迟到systematic保持首次交付/去重；reference decoder仍保留ErrDecoderFull契约。压力不是完整性错误，坏header/shard/payload仍必须失败，LastPathError仅提供有界错误类别，不记录业务内容。此质量相关变动必须重新做独立5205和整份源码资格，不能扩大槽数或用资源分类跳过实际损坏。HTTPS exact-body失败必须定位，不能降为“能建立TLS就算通过”。
 
+## 2026-10-04 当前任务：换代短窗和内部接收队列
+
+上述ca8175定向与b1全套原门PASS均为历史资格。b1逐秒Normal换代约61%loss，50有限retiring接收修复后Game短测PASS，Normal仍26.7–43.7%短窗loss/尾延迟FAIL。当前执行STATUS与PREDELIVERY_ACCEPTANCE：只补旧/新lane及ACK/tick耗时定位实际内部队列overflow，随后窄修；不能把socket0drop当无软件丢包，不能归因为VM、扩大4096/queue/grace或恢复HOL。新1s/link+2pp及内部queue0drop门与原门并用，每性能Action一条，诊断不能替代最新源码1800s/全配置/生命周期/18样本/P6。
+

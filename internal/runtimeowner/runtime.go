@@ -231,6 +231,8 @@ type TransportStats struct {
 	LockWaitMaxNS uint64 `json:"lock_wait_max_ns,omitempty"`
 	LockHeldNS    uint64 `json:"lock_held_ns,omitempty"`
 	LockHeldMaxNS uint64 `json:"lock_held_max_ns,omitempty"`
+	ACKProcessNS    uint64 `json:"ack_process_ns,omitempty"`
+	ACKProcessMaxNS uint64 `json:"ack_process_max_ns,omitempty"`
 	OwnerNS       uint64 `json:"owner_ns,omitempty"`
 	OwnerMaxNS    uint64 `json:"owner_max_ns,omitempty"`
 	DeliverNS          uint64 `json:"deliver_ns,omitempty"`
@@ -524,6 +526,10 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		return ErrRuntimeClosed
 	}
 	if seg.Flags&faketcp.FlagACK != 0 {
+		ackStarted := time.Time{}
+		if observeTiming {
+			ackStarted = time.Now()
+		}
 		if seqLT(t.sendNext, seg.Ack) {
 			t.mu.Unlock()
 			return ErrACKRange
@@ -537,6 +543,9 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 			t.applySACKLocked(seg.SACK[:n], now)
 		}
 		repair = t.selectFastRepairLocked(now)
+		if observeTiming {
+			t.timing.ackProcess.observe(time.Since(ackStarted))
+		}
 	}
 
 	if (len(seg.Payload) != 0 || seg.Flags&(faketcp.FlagFIN|faketcp.FlagRST) != 0) &&

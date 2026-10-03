@@ -19,6 +19,7 @@ type transportTiming struct {
 	samples atomic.Uint64
 	lockWait atomicDuration
 	lockHeld atomicDuration
+	ackProcess atomicDuration
 	owner atomicDuration
 	deliver atomicDuration
 	repairEviction atomicDuration
@@ -31,6 +32,7 @@ func (t *transportTiming) apply(out *TransportStats) {
 	out.TimingSamples=t.samples.Load()
 	out.LockWaitNS=t.lockWait.total.Load(); out.LockWaitMaxNS=t.lockWait.max.Load()
 	out.LockHeldNS=t.lockHeld.total.Load(); out.LockHeldMaxNS=t.lockHeld.max.Load()
+	out.ACKProcessNS=t.ackProcess.total.Load(); out.ACKProcessMaxNS=t.ackProcess.max.Load()
 	out.OwnerNS=t.owner.total.Load(); out.OwnerMaxNS=t.owner.max.Load()
 	out.DeliverNS=t.deliver.total.Load(); out.DeliverMaxNS=t.deliver.max.Load()
 	out.RepairEvictionNS=t.repairEviction.total.Load(); out.RepairEvictionMaxNS=t.repairEviction.max.Load()

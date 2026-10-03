@@ -665,6 +665,39 @@ func (o *TunnelOwner) ActiveLanes() []TunnelLaneSnapshot {
 	return out
 }
 
+// RetiringLanes exposes only immutable metadata for bounded diagnostics. It
+// grants no send permission and never includes an unpublished candidate.
+func (o *TunnelOwner) RetiringLanes() []TunnelLaneSnapshot {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	out := make([]TunnelLaneSnapshot, 0, len(o.retiring))
+	for ref, lane := range o.retiring {
+		out = append(out, snapshotFor(ref, lane))
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Ref.ID != out[j].Ref.ID {
+			return out[i].Ref.ID < out[j].Ref.ID
+		}
+		return out[i].Ref.Generation < out[j].Ref.Generation
+	})
+	return out
+}
+
+func (o *TunnelOwner) RetiringLaneStats(ref logicaltunnel.LaneRef) (LaneStats, bool) {
+	o.mu.Lock()
+	lane := o.retiring[ref]
+	closed := o.closed
+	o.mu.Unlock()
+	if closed || lane == nil {
+		return LaneStats{}, false
+	}
+	stats := lane.Stats()
+	o.mu.Lock()
+	valid := !o.closed && o.retiring[ref] == lane
+	o.mu.Unlock()
+	return stats, valid
+}
+
 func (o *TunnelOwner) Stats() TunnelOwnerStats {
 	o.mu.Lock()
 	defer o.mu.Unlock()

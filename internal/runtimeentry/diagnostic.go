@@ -38,6 +38,7 @@ type TunnelDiagnostic struct {
 	TunnelID       logicaltunnel.TunnelID     `json:"tunnel_id"`
 	Owner          datapath.TunnelOwnerStats  `json:"owner"`
 	Lanes          []LaneDiagnostic           `json:"lanes"`
+	RetiringLanes  []LaneDiagnostic           `json:"retiring_lanes,omitempty"`
 }
 
 func diagnosticSnapshot(owner *datapath.TunnelOwner, rt *runtimeowner.Runtime, now time.Time) TunnelDiagnostic {
@@ -58,6 +59,15 @@ func diagnosticSnapshot(owner *datapath.TunnelOwner, rt *runtimeowner.Runtime, n
 		out.Lanes = append(out.Lanes, LaneDiagnostic{
 			Ref: lane.Ref, ParityShards: lane.ParityShards, Lane: laneStats, Transport: transportStats,
 		})
+	}
+	for _, lane := range owner.RetiringLanes() {
+		laneStats, laneOK := owner.RetiringLaneStats(lane.Ref)
+		transportStats, transportOK := rt.TransportStatsAt(lane.Ref, now)
+		if laneOK && transportOK {
+			out.RetiringLanes = append(out.RetiringLanes, LaneDiagnostic{
+				Ref: lane.Ref, ParityShards: lane.ParityShards, Lane: laneStats, Transport: transportStats,
+			})
+		}
 	}
 	return out
 }

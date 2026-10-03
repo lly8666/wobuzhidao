@@ -46,3 +46,5 @@ TLS启动填充：internal/datapath/startup_padding.go新写旁观识别；paddi
 2026-10-03阶段4拆成4a接收和4b发送，各自unit/race及独立5205。4a Linux raw接收固定8槽recvmmsg(MSG_WAITFORONE)，只取已就绪包，单包即返、owned输出保留，旧kernel回退recvfrom，既有diagnosticJSONL新增raw_io计数；SO_RCVBUF/repair/FEC边界不扩大。WindowsNpcap仍原路径。4b只合并已经生成的record，不等待后续业务；具体状态以STATUS为准。
 
 2026-10-03阶段4b：Linux sendmmsg只批量当前已生成记录，每批<=8、无队列和凑批等待；control/ACK/FIN/bootstrap单独发送。SegmentBatchEmitter返回精确已发前缀，unsent不保留假重传备份，已发保留同Seq同密文；新鲜发送不因失败后的Seq缺口等洞。Npcap及未提供Batch的adapter原Emit不变；复用当前serializer和全部repair边界。strict同一条样本后读取raw_io counters验证native RX/TX实际触发，不替代原质量/性能门。状态看STATUS。
+
+2026-10-04换代返工：datapath只允许active与明确retiring的接收在途，发送仍active；runtimeentry/diagnostic.go新增有界retiring_lanes快照，runtimeowner/perf_diag.go独立统计ACK处理，runtimeentry/perf_diag.go统计server tick。只读观察不复活候选/已退役ref、无新CLI/wire/队列/期限；关闭诊断无热路计时。check_target_soak.py同时核验1s最终unique损失、内部接收queue溢出和active/retiring完整性。旧外层kernel/socket0drop并不能覆盖程序内部queue。

@@ -74,6 +74,12 @@ Normal1800原样本逐秒按原发送时间统计最终收到的unique包，损�
 
 ### 候选下载与P7执行顺序
 
+2026-10-04第二轮诊断补充：50efe874b3c700b7b8bed0aff07e1a80e887abeb 的全部五项core/build/race/工具门PASS，两个FEC20填充实际配置PASS。Game180s [37136669761](https://github.com/lly8666/wobuzhidao/actions/runs/37136669761) 原门与新增1s门PASS、业务包loss0。Normal180s [37136667678](https://github.com/lly8666/wobuzhidao/actions/runs/37136667678) FAIL：C2S换代44/99/155秒loss26.672%/32.441%/43.737%，S2C最差1s仅0.203%；cycle2-stress probe p95=987.513ms，超过原850ms门。不能把反向改善写成换代完全修复。
+
+进一步核对发现host kernel/socket/capture drops0不等于处理能力正常：Normal服务端server_pipeline.ready容量4096在换代满额，overflow_drops最终13482；原b1 Normal1800也有该内部队列20012次overflow。50第一换代43.99→44.99秒，单线程handler累计耗时增加0.988s，实际仅处理约4772条，正常每秒约10000条，随后排队约430ms并溢出。这是程序处理队列的证据，尚未定位到哪个旧/新incarnation步骤，不能直接归因为VM或只有generation fence。
+
+下一候选只补诊断：有限retiring_lanes快照（不含candidate，不改变发送权限）、pure ACK处理耗时、server tick耗时，找交接成本来源。soak验收补内部接收队列overflow计数为0的硬门，并将retiring的完整性错误纳入检查；这是发现盲区后的预声明新增门，旧PASS回执保留为旧门。不得扩大4096队列或retiring期限绕过。当前P5/P6最新版本均未关闭，b1候选包仅用于复现。
+
 同源码包在 [P6 Actions artifacts](https://github.com/lly8666/wobuzhidao/actions/runs/37127951215)：`candidate-linux-amd64-b1fe7e...`、`candidate-linux-arm64-b1fe7e...`、`candidate-windows-amd64-b1fe7e...`。下载后核对artifact ZIP digest、manifest文件hash、`actions-receipt.json`；manifest保留构建前PENDING_VALIDATION，真正验收结果在独立receipt，不能手改manifest伪造资格。Actions artifact有保留期限，到期需由冻结SOURCE重新打包并记录新receipt。
 
 1. 用户安排Windows/Npcap/Wintun和Linux amd64/arm64实机，双方用同一候选；当前内层TCP FIN占一序列位置，禁止混用旧端点。记录NIC/驱动/OS/CPU、实际外网路径及有效MTU；ARM先原生version和基本业务，不能将交叉构建当原生PASS。
