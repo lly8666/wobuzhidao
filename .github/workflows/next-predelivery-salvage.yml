@@ -1,0 +1,20 @@
+name: next-predelivery-readonly-salvage
+on:
+  push:
+    branches: [main]
+    paths: [.github/predelivery-salvage-request.json]
+permissions: {contents: read, actions: read}
+jobs:
+  read-existing-artifact:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: {ref: eb03fae1c27a7eb06ca9141b0d6371f5591125bb, path: source}
+      - name: Recover existing diagnostics only (no workload)
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python3 .github/scripts/salvage-soak.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: 'recovered-diagnostic-${{ github.run_id }}', path: recovered, if-no-files-found: error}
