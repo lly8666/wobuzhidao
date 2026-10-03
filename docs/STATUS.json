@@ -70,8 +70,8 @@
     "2026-10-03资源优化顺序完成：有效FEC计算、owned加密/传递复制、有限ACK合并、已就绪Linux批量接收/发送各自Actions unit/build/race+Normal/Game5205 PASS；额外修复pre-attach overflow导致共享server退出，再以ca8175d通过同门和36/36 lifecycle+aggregate。仅targeted，不继承最新全18/长测/P6/P7。"
   ],
   "in_progress": "Repeat-race root cause proven: owner publishes new generation before retiring metadata, stale old packet fatally stopped shared server. Exact stale-generation error now local discard. Active business and UDP mapping fixes await joint core/race/lifecycle and180s qualification. Prior transient-state hypothesis refuted and failures retained.",
-  "next_task": "Require current-source core/race/lifecycle36 and repeated30 diagnostic; fix original server-stop cause from log. Then independent180s Normal/Game and configuration canaries,70 functional cases,1800s formal,final18,same-source P6. P7 NOT_RUN.",
-  "latest_log": "docs/devlog/20261003-200300-promotion-stale-generation-isolation.md",
+  "next_task": "Exact-current-source foundation/tools/repeat30 and lifecycle36 qualification after3rotation fixes; independent180sNormal/Game and5live-config canaries, then70cases/formal1800s/final18/P6. PhysicalNOT_RUN.",
+  "latest_log": "docs/devlog/20261003-200600-predelivery-regression-trigger.md",
   "last_tested_source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
   "actions": [
     {
