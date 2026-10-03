@@ -66,3 +66,27 @@ jobs:
           name: splitroute-${{ matrix.mode }}-${{ github.sha }}
           path: ${{ env.ART }}
           retention-days: 30
+  aggregate:
+    needs: real-routing
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with: {pattern: 'splitroute-*', path: receipts}
+      - name: All four original functional receipts
+        env: {SOURCE_SHA: '${{ github.sha }}'}
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          rows=[json.loads(p.read_text()) for p in Path('receipts').rglob('summary-splitroute.json')]
+          errors=[]
+          if len(rows)!=4 or {r['mode'] for r in rows}!={'embedded','lan','all','manual'}:errors.append('missing or duplicate mode')
+          if any(r['source_sha']!=os.environ['SOURCE_SHA'] or r['result']!='PASS' for r in rows):errors.append('source or functional failure')
+          result={'result':'FAIL' if errors else 'PASS','source_sha':os.environ['SOURCE_SHA'],'errors':errors,'samples':rows,'scope':'FUNCTIONAL_IPV4_ONLY_NOT_PERFORMANCE_OR_PHYSICAL'}
+          Path('summary-splitroute-aggregate.json').write_text(json.dumps(result,indent=2)+'\n')
+          if errors:raise SystemExit(1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: 'splitroute-aggregate-${{ github.sha }}', path: summary-splitroute-aggregate.json, if-no-files-found: error}

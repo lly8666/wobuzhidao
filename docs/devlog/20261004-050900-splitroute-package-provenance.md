@@ -6,6 +6,8 @@
 
 ## 修改与原因
 
+跟进提交增加四模式功能只读aggregate：必须齐备四个精确SOURCE原始PASS，供固定ref控制收口，不执行任何性能负载。
+
 所有P6目标加入四个非二进制文件：china-ipv4.txt、china-ipv4-source.json、china-ipv4-LICENSE.txt、SPLIT_ROUTING.md。manifest逐文件hash/大小仍强校验，validator严格允许这四角色并复核CIDR数据hash与provenance；ARM交叉构建、Windows仅client、物理NOT_RUN保持。
 
 ## 复用来源
