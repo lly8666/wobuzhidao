@@ -1,0 +1,1570 @@
+{
+  "samples": [
+    {
+      "first_dormancy": [
+        {
+          "first_dormant": {
+            "unix_ns": 1791049168094258785,
+            "physical": 0,
+            "active": 0,
+            "dormant": true
+          },
+          "side": "client"
+        },
+        {
+          "first_dormant": {
+            "unix_ns": 1791049168117139021,
+            "physical": 0,
+            "active": 0,
+            "dormant": true
+          },
+          "side": "server"
+        }
+      ],
+      "artifact_id": 11279579730,
+      "summary": {
+        "acceptance_events": {
+          "client": [],
+          "server": []
+        },
+        "effective_config": {
+          "client": {
+            "dead_after": "45s",
+            "dormant_after": "30s",
+            "keepalive_interval": "5s",
+            "reconnect_max": "4s",
+            "reconnect_min": "1s",
+            "replacement_grace": "3s",
+            "rotate_max": "0s",
+            "rotate_min": "0s"
+          },
+          "server": {
+            "dormant_after": "30s",
+            "keepalive_interval": "5s",
+            "replacement_grace": "3s"
+          }
+        },
+        "errors": [],
+        "fec_parity": 20,
+        "final_generation": {
+          "1": 3
+        },
+        "first_generation": {
+          "1": 1
+        },
+        "lanes": 1,
+        "lifecycle_final": {
+          "LastError": "",
+          "NextRetry": "0001-01-01T00:00:00Z",
+          "RecoveryAttempts": 2,
+          "RecoveryFailed": 0,
+          "RecoverySucceeded": 2,
+          "RetryableErrors": 0
+        },
+        "padding_enabled": false,
+        "recovery_mode": null,
+        "recovery_timeline": {
+          "attempts": [
+            {
+              "unix_ns": 1791049176844256602,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049226844257162,
+              "value": 2
+            }
+          ],
+          "failed": [],
+          "succeeded": [
+            {
+              "unix_ns": 1791049177094257022,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049227344256652,
+              "value": 2
+            }
+          ]
+        },
+        "resource": {
+          "max_candidates": 0,
+          "max_goroutines": 19,
+          "max_heap": 10485760,
+          "max_physical": 1,
+          "max_retiring": 0,
+          "samples": 179
+        },
+        "result": "PASS",
+        "scenario": "l1_idle_downlink",
+        "schema": 1,
+        "seed": 101,
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "syn_by_source_port": {
+          "40000": 1,
+          "40001": 1,
+          "40002": 1
+        },
+        "traffic": {
+          "downlink": {
+            "c2s120": null,
+            "c2s30": null,
+            "c2s_first90": null,
+            "c2s_sent_packets": 0,
+            "s2c120": 1.0,
+            "s2c30": 1.0,
+            "s2c_first90": 1.0,
+            "s2c_sent_packets": 495
+          },
+          "sparse": {
+            "c2s120": 1.0,
+            "c2s30": 1.0,
+            "c2s_first90": 1.0,
+            "c2s_sent_packets": 12,
+            "s2c120": 1.0,
+            "s2c30": 1.0,
+            "s2c_first90": 1.0,
+            "s2c_sent_packets": 12
+          },
+          "wake": {
+            "c2s120": 1.0,
+            "c2s30": 1.0,
+            "c2s_first90": 1.0,
+            "c2s_sent_packets": 60,
+            "s2c120": 1.0,
+            "s2c30": 1.0,
+            "s2c_first90": 1.0,
+            "s2c_sent_packets": 60
+          }
+        }
+      },
+      "clear_path_wake": null,
+      "zip_sha256": "4f38b6ad915f6632dd006dec1c99db57c33d9e7cf34e85249a57121afa4ce944"
+    },
+    {
+      "first_dormancy": [
+        {
+          "first_dormant": {
+            "unix_ns": 1791049312473609130,
+            "physical": 0,
+            "active": 0,
+            "dormant": true
+          },
+          "side": "client"
+        },
+        {
+          "first_dormant": {
+            "unix_ns": 1791049312625057433,
+            "physical": 0,
+            "active": 0,
+            "dormant": true
+          },
+          "side": "server"
+        }
+      ],
+      "artifact_id": 11279854650,
+      "summary": {
+        "acceptance_events": {
+          "client": [],
+          "server": []
+        },
+        "effective_config": {
+          "client": {
+            "dead_after": "45s",
+            "dormant_after": "30s",
+            "keepalive_interval": "5s",
+            "reconnect_max": "4s",
+            "reconnect_min": "1s",
+            "replacement_grace": "3s",
+            "rotate_max": "0s",
+            "rotate_min": "0s"
+          },
+          "server": {
+            "dormant_after": "30s",
+            "keepalive_interval": "5s",
+            "replacement_grace": "3s"
+          }
+        },
+        "errors": [],
+        "fec_parity": 20,
+        "final_generation": {
+          "1": 3
+        },
+        "first_generation": {
+          "1": 1
+        },
+        "lanes": 1,
+        "lifecycle_final": {
+          "LastError": "",
+          "NextRetry": "0001-01-01T00:00:00Z",
+          "RecoveryAttempts": 2,
+          "RecoveryFailed": 0,
+          "RecoverySucceeded": 2,
+          "RetryableErrors": 0
+        },
+        "padding_enabled": false,
+        "recovery_mode": null,
+        "recovery_timeline": {
+          "attempts": [
+            {
+              "unix_ns": 1791049321223608478,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049371473609551,
+              "value": 2
+            }
+          ],
+          "failed": [],
+          "succeeded": [
+            {
+              "unix_ns": 1791049321723609471,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049371723608187,
+              "value": 2
+            }
+          ]
+        },
+        "resource": {
+          "max_candidates": 0,
+          "max_goroutines": 19,
+          "max_heap": 10543104,
+          "max_physical": 1,
+          "max_retiring": 0,
+          "samples": 179
+        },
+        "result": "PASS",
+        "scenario": "l1_idle_downlink",
+        "schema": 1,
+        "seed": 202,
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "syn_by_source_port": {
+          "40000": 1,
+          "40001": 1,
+          "40002": 1
+        },
+        "traffic": {
+          "downlink": {
+            "c2s120": null,
+            "c2s30": null,
+            "c2s_first90": null,
+            "c2s_sent_packets": 0,
+            "s2c120": 1.0,
+            "s2c30": 1.0,
+            "s2c_first90": 1.0,
+            "s2c_sent_packets": 495
+          },
+          "sparse": {
+            "c2s120": 1.0,
+            "c2s30": 1.0,
+            "c2s_first90": 1.0,
+            "c2s_sent_packets": 12,
+            "s2c120": 1.0,
+            "s2c30": 1.0,
+            "s2c_first90": 1.0,
+            "s2c_sent_packets": 12
+          },
+          "wake": {
+            "c2s120": 1.0,
+            "c2s30": 1.0,
+            "c2s_first90": 1.0,
+            "c2s_sent_packets": 60,
+            "s2c120": 1.0,
+            "s2c30": 1.0,
+            "s2c_first90": 1.0,
+            "s2c_sent_packets": 60
+          }
+        }
+      },
+      "clear_path_wake": null,
+      "zip_sha256": "a6c11088c6b6fa228939d0cec315832e837a251b06becad1d489810cdc4dbf9e"
+    },
+    {
+      "first_dormancy": [],
+      "artifact_id": 11279569662,
+      "summary": {
+        "acceptance_events": {
+          "client": [
+            {
+              "epoch": 2,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049207587986222
+            },
+            {
+              "epoch": 3,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049209788697073
+            },
+            {
+              "epoch": 3,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049210788158494
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049212988315686
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049213988594657
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049215088221861
+            }
+          ],
+          "server": [
+            {
+              "epoch": 2,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049217420193494
+            },
+            {
+              "epoch": 3,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049219519885015
+            },
+            {
+              "epoch": 3,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049220620413277
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049222820332862
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049223820194624
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049224920185355
+            }
+          ]
+        },
+        "effective_config": {
+          "client": {
+            "dead_after": "8s",
+            "dormant_after": "4s",
+            "keepalive_interval": "1s",
+            "reconnect_max": "4s",
+            "reconnect_min": "1s",
+            "replacement_grace": "3s",
+            "rotate_max": "0s",
+            "rotate_min": "0s"
+          },
+          "server": {
+            "dormant_after": "4s",
+            "keepalive_interval": "1s",
+            "replacement_grace": "3s"
+          }
+        },
+        "errors": [],
+        "fec_parity": 20,
+        "final_generation": {
+          "1": 1
+        },
+        "first_generation": {
+          "1": 1
+        },
+        "lanes": 1,
+        "lifecycle_final": {
+          "LastError": "",
+          "NextRetry": "0001-01-01T00:00:00Z",
+          "RecoveryAttempts": 0,
+          "RecoveryFailed": 0,
+          "RecoverySucceeded": 0,
+          "RetryableErrors": 0
+        },
+        "padding_enabled": false,
+        "recovery_mode": null,
+        "recovery_timeline": {
+          "attempts": [],
+          "failed": [],
+          "succeeded": []
+        },
+        "resource": {
+          "max_candidates": 0,
+          "max_goroutines": 17,
+          "max_heap": 10305536,
+          "max_physical": 1,
+          "max_retiring": 0,
+          "samples": 47
+        },
+        "result": "PASS",
+        "scenario": "l3_health",
+        "schema": 1,
+        "seed": 101,
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "syn_by_source_port": {
+          "40000": 1
+        },
+        "traffic": {
+          "main": {
+            "c2s120": 1.0,
+            "c2s30": 1.0,
+            "c2s_first90": 1.0,
+            "c2s_sent_packets": 495,
+            "s2c120": 1.0,
+            "s2c30": 1.0,
+            "s2c_first90": 1.0,
+            "s2c_sent_packets": 495
+          }
+        }
+      },
+      "clear_path_wake": null,
+      "zip_sha256": "558b0f380b6865132005d1dda1d29effc9e1d9617e76bee7e4ce32d5bc726943"
+    },
+    {
+      "first_dormancy": [],
+      "artifact_id": 11280716967,
+      "summary": {
+        "acceptance_events": {
+          "client": [
+            {
+              "epoch": 2,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049373644974756
+            },
+            {
+              "epoch": 3,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049375844630719
+            },
+            {
+              "epoch": 3,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049376844768610
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049377944784790
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049378945026014
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049380045222424
+            }
+          ],
+          "server": [
+            {
+              "epoch": 2,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049382769532547
+            },
+            {
+              "epoch": 3,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049384768869420
+            },
+            {
+              "epoch": 3,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049385869144498
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049387969684228
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049388969473851
+            },
+            {
+              "epoch": 4,
+              "kind": "health",
+              "lane": 1,
+              "unix_ns": 1791049390069449008
+            }
+          ]
+        },
+        "effective_config": {
+          "client": {
+            "dead_after": "8s",
+            "dormant_after": "4s",
+            "keepalive_interval": "1s",
+            "reconnect_max": "4s",
+            "reconnect_min": "1s",
+            "replacement_grace": "3s",
+            "rotate_max": "0s",
+            "rotate_min": "0s"
+          },
+          "server": {
+            "dormant_after": "4s",
+            "keepalive_interval": "1s",
+            "replacement_grace": "3s"
+          }
+        },
+        "errors": [],
+        "fec_parity": 20,
+        "final_generation": {
+          "1": 1
+        },
+        "first_generation": {
+          "1": 1
+        },
+        "lanes": 1,
+        "lifecycle_final": {
+          "LastError": "",
+          "NextRetry": "0001-01-01T00:00:00Z",
+          "RecoveryAttempts": 0,
+          "RecoveryFailed": 0,
+          "RecoverySucceeded": 0,
+          "RetryableErrors": 0
+        },
+        "padding_enabled": false,
+        "recovery_mode": null,
+        "recovery_timeline": {
+          "attempts": [],
+          "failed": [],
+          "succeeded": []
+        },
+        "resource": {
+          "max_candidates": 0,
+          "max_goroutines": 17,
+          "max_heap": 10125312,
+          "max_physical": 1,
+          "max_retiring": 0,
+          "samples": 47
+        },
+        "result": "PASS",
+        "scenario": "l3_health",
+        "schema": 1,
+        "seed": 202,
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "syn_by_source_port": {
+          "40000": 1
+        },
+        "traffic": {
+          "main": {
+            "c2s120": 1.0,
+            "c2s30": 1.0,
+            "c2s_first90": 1.0,
+            "c2s_sent_packets": 495,
+            "s2c120": 1.0,
+            "s2c30": 1.0,
+            "s2c_first90": 1.0,
+            "s2c_sent_packets": 495
+          }
+        }
+      },
+      "clear_path_wake": null,
+      "zip_sha256": "be56e83303a8777bf8a0dffe7e9fe560e9a2031856ed878ecf086a2bdadca50f"
+    },
+    {
+      "first_dormancy": [],
+      "artifact_id": 11280806954,
+      "summary": {
+        "acceptance_events": {
+          "client": [],
+          "server": []
+        },
+        "effective_config": {
+          "client": {
+            "dead_after": "6s",
+            "dormant_after": "1s",
+            "keepalive_interval": "1s",
+            "reconnect_max": "4s",
+            "reconnect_min": "1s",
+            "replacement_grace": "3s",
+            "rotate_max": "0s",
+            "rotate_min": "0s"
+          },
+          "server": {
+            "dormant_after": "1s",
+            "keepalive_interval": "1s",
+            "replacement_grace": "3s"
+          }
+        },
+        "errors": [],
+        "fec_parity": 20,
+        "final_generation": {
+          "1": 30
+        },
+        "first_generation": {
+          "1": 1
+        },
+        "lanes": 1,
+        "lifecycle_final": {
+          "LastError": "faketcp: bootstrap stream deadline exceeded",
+          "NextRetry": "0001-01-01T00:00:00Z",
+          "RecoveryAttempts": 31,
+          "RecoveryFailed": 2,
+          "RecoverySucceeded": 29,
+          "RetryableErrors": 2
+        },
+        "padding_enabled": false,
+        "recovery_mode": null,
+        "recovery_timeline": {
+          "attempts": [
+            {
+              "unix_ns": 1791049507982434110,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049516732433790,
+              "value": 2
+            },
+            {
+              "unix_ns": 1791049525482433300,
+              "value": 3
+            },
+            {
+              "unix_ns": 1791049533732434301,
+              "value": 4
+            },
+            {
+              "unix_ns": 1791049537482433299,
+              "value": 5
+            },
+            {
+              "unix_ns": 1791049544732434251,
+              "value": 6
+            },
+            {
+              "unix_ns": 1791049548482433059,
+              "value": 7
+            },
+            {
+              "unix_ns": 1791049553482433319,
+              "value": 8
+            },
+            {
+              "unix_ns": 1791049558482433519,
+              "value": 9
+            },
+            {
+              "unix_ns": 1791049562232435924,
+              "value": 10
+            },
+            {
+              "unix_ns": 1791049567232434732,
+              "value": 11
+            },
+            {
+              "unix_ns": 1791049570982433880,
+              "value": 12
+            },
+            {
+              "unix_ns": 1791049574732436625,
+              "value": 13
+            },
+            {
+              "unix_ns": 1791049578482433108,
+              "value": 14
+            },
+            {
+              "unix_ns": 1791049582232435452,
+              "value": 15
+            },
+            {
+              "unix_ns": 1791049593482433500,
+              "value": 16
+            },
+            {
+              "unix_ns": 1791049597232435753,
+              "value": 17
+            },
+            {
+              "unix_ns": 1791049600982433400,
+              "value": 18
+            },
+            {
+              "unix_ns": 1791049612232435844,
+              "value": 19
+            },
+            {
+              "unix_ns": 1791049615982434211,
+              "value": 20
+            },
+            {
+              "unix_ns": 1791049619732436445,
+              "value": 21
+            },
+            {
+              "unix_ns": 1791049624732435804,
+              "value": 22
+            },
+            {
+              "unix_ns": 1791049635982434381,
+              "value": 23
+            },
+            {
+              "unix_ns": 1791049639732435644,
+              "value": 24
+            },
+            {
+              "unix_ns": 1791049643482434942,
+              "value": 25
+            },
+            {
+              "unix_ns": 1791049647232434471,
+              "value": 26
+            },
+            {
+              "unix_ns": 1791049650982434141,
+              "value": 27
+            },
+            {
+              "unix_ns": 1791049654732434391,
+              "value": 28
+            },
+            {
+              "unix_ns": 1791049659732435733,
+              "value": 29
+            },
+            {
+              "unix_ns": 1791049664732434331,
+              "value": 30
+            },
+            {
+              "unix_ns": 1791049668482435073,
+              "value": 31
+            }
+          ],
+          "failed": [
+            {
+              "unix_ns": 1791049514482434050,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049522982433490,
+              "value": 2
+            }
+          ],
+          "succeeded": [
+            {
+              "unix_ns": 1791049528982433809,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049533982433720,
+              "value": 2
+            },
+            {
+              "unix_ns": 1791049537732434451,
+              "value": 3
+            },
+            {
+              "unix_ns": 1791049544982433229,
+              "value": 4
+            },
+            {
+              "unix_ns": 1791049548732436345,
+              "value": 5
+            },
+            {
+              "unix_ns": 1791049553732435974,
+              "value": 6
+            },
+            {
+              "unix_ns": 1791049558732433990,
+              "value": 7
+            },
+            {
+              "unix_ns": 1791049562482433850,
+              "value": 8
+            },
+            {
+              "unix_ns": 1791049567482434832,
+              "value": 9
+            },
+            {
+              "unix_ns": 1791049571232434020,
+              "value": 10
+            },
+            {
+              "unix_ns": 1791049574982433359,
+              "value": 11
+            },
+            {
+              "unix_ns": 1791049578732434421,
+              "value": 12
+            },
+            {
+              "unix_ns": 1791049582482435453,
+              "value": 13
+            },
+            {
+              "unix_ns": 1791049593732435814,
+              "value": 14
+            },
+            {
+              "unix_ns": 1791049597482434431,
+              "value": 15
+            },
+            {
+              "unix_ns": 1791049601232434842,
+              "value": 16
+            },
+            {
+              "unix_ns": 1791049612482433570,
+              "value": 17
+            },
+            {
+              "unix_ns": 1791049616232436395,
+              "value": 18
+            },
+            {
+              "unix_ns": 1791049619982434141,
+              "value": 19
+            },
+            {
+              "unix_ns": 1791049624982434291,
+              "value": 20
+            },
+            {
+              "unix_ns": 1791049636232434812,
+              "value": 21
+            },
+            {
+              "unix_ns": 1791049639982434080,
+              "value": 22
+            },
+            {
+              "unix_ns": 1791049643732436826,
+              "value": 23
+            },
+            {
+              "unix_ns": 1791049647482433419,
+              "value": 24
+            },
+            {
+              "unix_ns": 1791049651232434080,
+              "value": 25
+            },
+            {
+              "unix_ns": 1791049654982435222,
+              "value": 26
+            },
+            {
+              "unix_ns": 1791049659982433720,
+              "value": 27
+            },
+            {
+              "unix_ns": 1791049664982433269,
+              "value": 28
+            },
+            {
+              "unix_ns": 1791049668732440332,
+              "value": 29
+            }
+          ]
+        },
+        "resource": {
+          "max_candidates": 0,
+          "max_goroutines": 19,
+          "max_heap": 8888320,
+          "max_physical": 1,
+          "max_retiring": 0,
+          "samples": 167
+        },
+        "result": "PASS",
+        "scenario": "l6_race1",
+        "schema": 1,
+        "seed": 101,
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "syn_by_source_port": {
+          "40000": 1,
+          "40001": 6,
+          "40002": 6,
+          "40003": 4,
+          "40004": 1,
+          "40005": 1,
+          "40006": 1,
+          "40007": 1,
+          "40008": 1,
+          "40009": 1,
+          "40010": 1,
+          "40011": 1,
+          "40012": 1,
+          "40013": 1,
+          "40014": 1,
+          "40015": 1,
+          "40016": 1,
+          "40017": 1,
+          "40018": 1,
+          "40019": 1,
+          "40020": 1,
+          "40021": 1,
+          "40022": 1,
+          "40023": 1,
+          "40024": 1,
+          "40025": 1,
+          "40026": 1,
+          "40027": 1,
+          "40028": 1,
+          "40029": 1,
+          "40030": 1,
+          "40031": 1
+        },
+        "traffic": {
+          "recovery": {
+            "c2s120": null,
+            "c2s30": null,
+            "c2s_first90": null,
+            "c2s_sent_packets": 0,
+            "s2c120": null,
+            "s2c30": null,
+            "s2c_first90": null,
+            "s2c_sent_packets": 0
+          },
+          "wake": {
+            "c2s120": null,
+            "c2s30": null,
+            "c2s_first90": null,
+            "c2s_sent_packets": 0,
+            "s2c120": null,
+            "s2c30": null,
+            "s2c_first90": null,
+            "s2c_sent_packets": 0
+          }
+        }
+      },
+      "clear_path_wake": {
+        "unique": 100,
+        "corrupt": 0,
+        "unexpected": 0
+      },
+      "zip_sha256": "5ff5b9dc98aae81388026b7e0bf383f4db9f856ca3df6e49101b1b474a2dae84"
+    },
+    {
+      "first_dormancy": [],
+      "artifact_id": 11280009746,
+      "summary": {
+        "acceptance_events": {
+          "client": [],
+          "server": []
+        },
+        "effective_config": {
+          "client": {
+            "dead_after": "6s",
+            "dormant_after": "1s",
+            "keepalive_interval": "1s",
+            "reconnect_max": "4s",
+            "reconnect_min": "1s",
+            "replacement_grace": "3s",
+            "rotate_max": "0s",
+            "rotate_min": "0s"
+          },
+          "server": {
+            "dormant_after": "1s",
+            "keepalive_interval": "1s",
+            "replacement_grace": "3s"
+          }
+        },
+        "errors": [],
+        "fec_parity": 20,
+        "final_generation": {
+          "1": 21
+        },
+        "first_generation": {
+          "1": 1
+        },
+        "lanes": 1,
+        "lifecycle_final": {
+          "LastError": "faketcp: bootstrap stream deadline exceeded",
+          "NextRetry": "0001-01-01T00:00:00Z",
+          "RecoveryAttempts": 22,
+          "RecoveryFailed": 2,
+          "RecoverySucceeded": 20,
+          "RetryableErrors": 2
+        },
+        "padding_enabled": false,
+        "recovery_mode": null,
+        "recovery_timeline": {
+          "attempts": [
+            {
+              "unix_ns": 1791049562790295440,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049570290295610,
+              "value": 2
+            },
+            {
+              "unix_ns": 1791049579040296902,
+              "value": 3
+            },
+            {
+              "unix_ns": 1791049593290295720,
+              "value": 4
+            },
+            {
+              "unix_ns": 1791049599290297503,
+              "value": 5
+            },
+            {
+              "unix_ns": 1791049603040297222,
+              "value": 6
+            },
+            {
+              "unix_ns": 1791049606790298054,
+              "value": 7
+            },
+            {
+              "unix_ns": 1791049611790297473,
+              "value": 8
+            },
+            {
+              "unix_ns": 1791049615540297413,
+              "value": 9
+            },
+            {
+              "unix_ns": 1791049619290297312,
+              "value": 10
+            },
+            {
+              "unix_ns": 1791049638040296711,
+              "value": 11
+            },
+            {
+              "unix_ns": 1791049641790295940,
+              "value": 12
+            },
+            {
+              "unix_ns": 1791049645540295359,
+              "value": 13
+            },
+            {
+              "unix_ns": 1791049661790298264,
+              "value": 14
+            },
+            {
+              "unix_ns": 1791049666790297193,
+              "value": 15
+            },
+            {
+              "unix_ns": 1791049678040295639,
+              "value": 16
+            },
+            {
+              "unix_ns": 1791049681790299176,
+              "value": 17
+            },
+            {
+              "unix_ns": 1791049694290297112,
+              "value": 18
+            },
+            {
+              "unix_ns": 1791049698040296571,
+              "value": 19
+            },
+            {
+              "unix_ns": 1791049701790298885,
+              "value": 20
+            },
+            {
+              "unix_ns": 1791049711790297884,
+              "value": 21
+            },
+            {
+              "unix_ns": 1791049723040295569,
+              "value": 22
+            }
+          ],
+          "failed": [
+            {
+              "unix_ns": 1791049569040295249,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049576540296170,
+              "value": 2
+            }
+          ],
+          "succeeded": [
+            {
+              "unix_ns": 1791049583540296411,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049593540312060,
+              "value": 2
+            },
+            {
+              "unix_ns": 1791049599790297212,
+              "value": 3
+            },
+            {
+              "unix_ns": 1791049603540297282,
+              "value": 4
+            },
+            {
+              "unix_ns": 1791049607290296401,
+              "value": 5
+            },
+            {
+              "unix_ns": 1791049612290296401,
+              "value": 6
+            },
+            {
+              "unix_ns": 1791049616040296661,
+              "value": 7
+            },
+            {
+              "unix_ns": 1791049619790297513,
+              "value": 8
+            },
+            {
+              "unix_ns": 1791049638540297363,
+              "value": 9
+            },
+            {
+              "unix_ns": 1791049642290297643,
+              "value": 10
+            },
+            {
+              "unix_ns": 1791049646040297483,
+              "value": 11
+            },
+            {
+              "unix_ns": 1791049662290295779,
+              "value": 12
+            },
+            {
+              "unix_ns": 1791049667290296541,
+              "value": 13
+            },
+            {
+              "unix_ns": 1791049678540295429,
+              "value": 14
+            },
+            {
+              "unix_ns": 1791049682290296511,
+              "value": 15
+            },
+            {
+              "unix_ns": 1791049694790297623,
+              "value": 16
+            },
+            {
+              "unix_ns": 1791049698540295740,
+              "value": 17
+            },
+            {
+              "unix_ns": 1791049702290297844,
+              "value": 18
+            },
+            {
+              "unix_ns": 1791049712290296291,
+              "value": 19
+            },
+            {
+              "unix_ns": 1791049723540295740,
+              "value": 20
+            }
+          ]
+        },
+        "resource": {
+          "max_candidates": 0,
+          "max_goroutines": 19,
+          "max_heap": 9240576,
+          "max_physical": 1,
+          "max_retiring": 0,
+          "samples": 167
+        },
+        "result": "PASS",
+        "scenario": "l6_race1",
+        "schema": 1,
+        "seed": 202,
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "syn_by_source_port": {
+          "40000": 1,
+          "40001": 6,
+          "40002": 6,
+          "40003": 5,
+          "40004": 1,
+          "40005": 1,
+          "40006": 1,
+          "40007": 1,
+          "40008": 1,
+          "40009": 1,
+          "40010": 1,
+          "40011": 1,
+          "40012": 1,
+          "40013": 1,
+          "40014": 1,
+          "40015": 1,
+          "40016": 1,
+          "40017": 1,
+          "40018": 1,
+          "40019": 1,
+          "40020": 1,
+          "40021": 1,
+          "40022": 1
+        },
+        "traffic": {
+          "recovery": {
+            "c2s120": null,
+            "c2s30": null,
+            "c2s_first90": null,
+            "c2s_sent_packets": 0,
+            "s2c120": null,
+            "s2c30": null,
+            "s2c_first90": null,
+            "s2c_sent_packets": 0
+          },
+          "wake": {
+            "c2s120": null,
+            "c2s30": null,
+            "c2s_first90": null,
+            "c2s_sent_packets": 0,
+            "s2c120": null,
+            "s2c30": null,
+            "s2c_first90": null,
+            "s2c_sent_packets": 0
+          }
+        }
+      },
+      "clear_path_wake": {
+        "unique": 100,
+        "corrupt": 0,
+        "unexpected": 0
+      },
+      "zip_sha256": "ea1a18d40ed4ac8292b0b643e715983705b22e77de3e0cc5698907717ee71839"
+    },
+    {
+      "first_dormancy": [],
+      "artifact_id": 11280188745,
+      "summary": {
+        "acceptance_events": {
+          "client": [],
+          "server": []
+        },
+        "effective_config": {
+          "client": {
+            "dead_after": "6s",
+            "dormant_after": "1s",
+            "keepalive_interval": "1s",
+            "reconnect_max": "4s",
+            "reconnect_min": "1s",
+            "replacement_grace": "3s",
+            "rotate_max": "0s",
+            "rotate_min": "0s"
+          },
+          "server": {
+            "dormant_after": "1s",
+            "keepalive_interval": "1s",
+            "replacement_grace": "3s"
+          }
+        },
+        "errors": [],
+        "fec_parity": 20,
+        "final_generation": {
+          "1": 9,
+          "2": 10,
+          "3": 11,
+          "4": 12
+        },
+        "first_generation": {
+          "1": 1,
+          "2": 2,
+          "3": 3,
+          "4": 4
+        },
+        "lanes": 4,
+        "lifecycle_final": {
+          "LastError": "faketcp: bootstrap stream deadline exceeded",
+          "NextRetry": "0001-01-01T00:00:00Z",
+          "RecoveryAttempts": 4,
+          "RecoveryFailed": 2,
+          "RecoverySucceeded": 2,
+          "RetryableErrors": 2
+        },
+        "padding_enabled": false,
+        "recovery_mode": null,
+        "recovery_timeline": {
+          "attempts": [
+            {
+              "unix_ns": 1791049570051583938,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049577551582736,
+              "value": 2
+            },
+            {
+              "unix_ns": 1791049586301583097,
+              "value": 3
+            },
+            {
+              "unix_ns": 1791049606551583918,
+              "value": 4
+            }
+          ],
+          "failed": [
+            {
+              "unix_ns": 1791049576301583076,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049584051582015,
+              "value": 2
+            }
+          ],
+          "succeeded": [
+            {
+              "unix_ns": 1791049591801583728,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049608051583177,
+              "value": 2
+            }
+          ]
+        },
+        "resource": {
+          "max_candidates": 0,
+          "max_goroutines": 22,
+          "max_heap": 25944064,
+          "max_physical": 4,
+          "max_retiring": 0,
+          "samples": 167
+        },
+        "result": "PASS",
+        "scenario": "l6_race4",
+        "schema": 1,
+        "seed": 101,
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "syn_by_source_port": {
+          "40000": 1,
+          "40001": 1,
+          "40002": 1,
+          "40003": 1,
+          "40004": 6,
+          "40005": 6,
+          "40006": 5,
+          "40007": 1,
+          "40008": 1,
+          "40009": 1,
+          "40010": 1,
+          "40011": 1,
+          "40012": 1,
+          "40013": 1
+        },
+        "traffic": {
+          "recovery": {
+            "c2s120": null,
+            "c2s30": null,
+            "c2s_first90": null,
+            "c2s_sent_packets": 0,
+            "s2c120": null,
+            "s2c30": null,
+            "s2c_first90": null,
+            "s2c_sent_packets": 0
+          },
+          "wake": {
+            "c2s120": null,
+            "c2s30": null,
+            "c2s_first90": null,
+            "c2s_sent_packets": 0,
+            "s2c120": null,
+            "s2c30": null,
+            "s2c_first90": null,
+            "s2c_sent_packets": 0
+          }
+        }
+      },
+      "clear_path_wake": {
+        "unique": 100,
+        "corrupt": 0,
+        "unexpected": 0
+      },
+      "zip_sha256": "a3257c3b372c833b32a4f4da6b16100034fba79ccbf27ee46ad29708bed5d453"
+    },
+    {
+      "first_dormancy": [],
+      "artifact_id": 11280044680,
+      "summary": {
+        "acceptance_events": {
+          "client": [],
+          "server": []
+        },
+        "effective_config": {
+          "client": {
+            "dead_after": "6s",
+            "dormant_after": "1s",
+            "keepalive_interval": "1s",
+            "reconnect_max": "4s",
+            "reconnect_min": "1s",
+            "replacement_grace": "3s",
+            "rotate_max": "0s",
+            "rotate_min": "0s"
+          },
+          "server": {
+            "dormant_after": "1s",
+            "keepalive_interval": "1s",
+            "replacement_grace": "3s"
+          }
+        },
+        "errors": [],
+        "fec_parity": 20,
+        "final_generation": {
+          "1": 9,
+          "2": 10,
+          "3": 11,
+          "4": 12
+        },
+        "first_generation": {
+          "1": 1,
+          "2": 2,
+          "3": 3,
+          "4": 4
+        },
+        "lanes": 4,
+        "lifecycle_final": {
+          "LastError": "faketcp: bootstrap stream deadline exceeded",
+          "NextRetry": "0001-01-01T00:00:00Z",
+          "RecoveryAttempts": 4,
+          "RecoveryFailed": 2,
+          "RecoverySucceeded": 2,
+          "RetryableErrors": 2
+        },
+        "padding_enabled": false,
+        "recovery_mode": null,
+        "recovery_timeline": {
+          "attempts": [
+            {
+              "unix_ns": 1791049572057135727,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049579557135646,
+              "value": 2
+            },
+            {
+              "unix_ns": 1791049588307136639,
+              "value": 3
+            },
+            {
+              "unix_ns": 1791049608807135346,
+              "value": 4
+            }
+          ],
+          "failed": [
+            {
+              "unix_ns": 1791049578307135115,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049585807135596,
+              "value": 2
+            }
+          ],
+          "succeeded": [
+            {
+              "unix_ns": 1791049594057137219,
+              "value": 1
+            },
+            {
+              "unix_ns": 1791049610307135577,
+              "value": 2
+            }
+          ]
+        },
+        "resource": {
+          "max_candidates": 0,
+          "max_goroutines": 22,
+          "max_heap": 27910144,
+          "max_physical": 4,
+          "max_retiring": 0,
+          "samples": 167
+        },
+        "result": "PASS",
+        "scenario": "l6_race4",
+        "schema": 1,
+        "seed": 202,
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "syn_by_source_port": {
+          "40000": 1,
+          "40001": 1,
+          "40002": 1,
+          "40003": 1,
+          "40004": 6,
+          "40005": 6,
+          "40006": 5,
+          "40007": 1,
+          "40008": 1,
+          "40009": 1,
+          "40010": 1,
+          "40011": 1,
+          "40012": 1,
+          "40013": 1
+        },
+        "traffic": {
+          "recovery": {
+            "c2s120": null,
+            "c2s30": null,
+            "c2s_first90": null,
+            "c2s_sent_packets": 0,
+            "s2c120": null,
+            "s2c30": null,
+            "s2c_first90": null,
+            "s2c_sent_packets": 0
+          },
+          "wake": {
+            "c2s120": null,
+            "c2s30": null,
+            "c2s_first90": null,
+            "c2s_sent_packets": 0,
+            "s2c120": null,
+            "s2c30": null,
+            "s2c_first90": null,
+            "s2c_sent_packets": 0
+          }
+        }
+      },
+      "clear_path_wake": {
+        "unique": 100,
+        "corrupt": 0,
+        "unexpected": 0
+      },
+      "zip_sha256": "aaaffb5ca9a8b148032fcf040ab8bdfb29d3fdccfd45b1288043a75e841d9c34"
+    }
+  ],
+  "audit": "read-only artifact parse/hash; no local product execution",
+  "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141234301",
+  "schema": "wbd-idle-keepalive-audit/v1",
+  "run": 37141234301,
+  "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8"
+}

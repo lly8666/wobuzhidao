@@ -75,7 +75,7 @@
     "固定2b2bd9e候选可交用户安排P7物理验收；PHYSICAL_PASS/RELEASE_QUALIFIED NOT_RUN。startup padding core/fuzz/live功能PASS，完整on/稀疏/双入口弱网专项仍PARTIAL_ACTIONS_PASS，不能继承padding off主性能。"
   ],
   "next_task": "用户安排P7物理NIC/WindowsNpcap+Wintun/LinuxARMnative及真实路径MTU/DNS/TCP/HTTPS/UDP/弱网/清理；双方固定2b2bd9e候选，原始结果完整留存。需长期启用startup padding时先补未闭专项。每性能Action一条，不再无证据微改已验候选。",
-  "latest_log": "docs/devlog/20261004-034500-handoff-long-pass-predelivery.md",
+  "latest_log": "docs/devlog/20261004-041100-idle-keepalive-audit.md",
   "last_tested_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
   "actions": [
     {
@@ -1927,6 +1927,14 @@
     },
     "WEAKNET_LIFECYCLE": {
       "status": "COMPLETE",
+      "idle_keepalive_audit": {
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "run": 37141234301,
+        "result": "PASS_READONLY_AUDIT_OF_EIGHT_ORIGINAL_SAMPLES",
+        "evidence": "docs/evidence/idle-keepalive-2b2bd9e.json",
+        "latest_log": "docs/devlog/20261004-041100-idle-keepalive-audit.md",
+        "user_semantics": "Idle threshold allows large closure margin; prioritize automatic client-demand wake and no false dormancy. Missing health is UNKNOWN, not idle. Default idle0 disables dormancy; fully dormant server-initiated wake unsupported. Physical NOT_RUN."
+      },
       "main_task_hold": {
         "requested_by": "user",
         "resume_only_on_user_request": false,

@@ -15,6 +15,8 @@
 
 ## 第一关：源码与核心正确性
 
+2026-10-04空闲/保活专项复核：最新SOURCE2b2的[36用例run](https://github.com/lly8666/wobuzhidao/actions/runs/37141234301)原始PASS。其中L1两seed实际idle30s/keepalive5s/dead45s，36s观察点双端已休眠，第一休眠快照双端physical/active均0；两次客户端新业务均重建，source port40000→40001→40002、generation1→3，唤醒/稀疏/纯下行收发比例均100%。L3两seed双端分别丢1/2/3条health（每端6条），持续业务100%交付、未误休眠。L6的1/4lane各两seed，从明确双端DORMANT起步，黑洞中wake失败后清障成功，clear-path cutoff100/100 unique、corrupt/unexpected0。八份原artifact已下载逐一核验ZIP SHA256，只读摘要与双端资源快照保存在`docs/evidence/idle-keepalive-2b2bd9e.json`；本地未执行产品。用户允许较大关闭余量，后续不得新增“必须恰好超时就关”门；验收自动释放/客户端来数据重建、持续业务与保活丢失不误关即可。断网缺失空闲证据不承诺限时休眠，完全休眠后服务端主动唤醒仍不支持，物理机未验。
+
 确认精确 SOURCE_SHA、V2 两端一致、Linux/Windows 编译、全部 unit、race、repository gate、参数目录 gate。`next-lifecycle.yml` 提供定向入口；foundation 全集也是门槛。固定 wire vectors 仍验证独立 record 格式，另外验证 V1 明确拒绝。
 
 重点补足/重复：health malformed/重复/乱序 PN、假 TCP ACK、重放、FEC 全档 health 无放大、health 不创建 flow、不领 repair credit；gap pressure 前 1 RTT 不退役、无 RTT 冷启动、极端乱序/Seq wrap、3s 到期、late systematic 首次仍交付、same Seq same ciphertext。normal/Game 1～4、并发 idle/new demand、纯下行、所有 lane 同时失活、Close 并发；race 必须实际执行。
