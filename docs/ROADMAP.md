@@ -28,3 +28,8 @@
 
 ### 2026-09-23 插入的用户优先任务
 WEAKNET_LIFECYCLE：功能 COMPLETE（最终源码0b206a0，36/36真实进程样本通过）；目标速率性能仍 FAIL_CAPACITY_LIMITED。2026-09-23 用户解除性能 HOLD，当前主线 PERFORMANCE_RECOVERY 按 WEAKNET_QUALIFICATION 第9节先修接收停顿，再审计线上放大，定向通过后跑严格矩阵与长测。P4/P5整体及容量缺口仍待完成。
+
+
+## 2026-10-03 顺序资源优化定向收口
+
+当前产品资格SOURCE_SHA ca8175d18acd7f7e3e1db5379a58d9f85417dd97。5个资源原子步骤+1个接入队列故障隔离修复，逐项Actions unit/build/race后分别独立Normal/Game5205；12条合格样本与逐阶段RTT/loss门PASS，最新36/36生命周期及aggregate PASS。见STATUS、最新日志及evidence/resource-optimization-5205.json，历史native接线失败/队列致退出/瞬态超时保留。优化实际触发且正确性、吞吐、延迟过门，不据跨VM单样本宣称固定CPU下降；SACK主导的5205下ACK收益未证实。当前不再继续微改，下一步固定最新SOURCE_SHA全18复验，随后有界长测框架与>=1800s目标速率Normal/Game独立run；P5/P6/P7未整体关闭。每性能Action一条样本，FEC deadline8ms、4096/3s和socket buffer不调大。

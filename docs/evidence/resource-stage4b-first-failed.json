@@ -1,0 +1,12 @@
+{
+  "result": "FAIL",
+  "source_sha": "6351a82b044d3de34695dec3bcea8f7fe27f8322",
+  "stage": "4b",
+  "baseline_source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
+  "errors": [
+    "normal: original run failed or rerun; id=37102098167",
+    "game: original run failed or rerun; id=37102099835"
+  ],
+  "records": [],
+  "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance"
+}

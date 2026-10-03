@@ -66,12 +66,13 @@
     "P4/P5性能恢复最终资格关闭：固定SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 的loss-tolerant-v1 final18已完成2模式×3场景×3 seeds共18个独立workflow_dispatch样本，18/18五分类PASS；全部socket_drop_max=0、link drop=0；历史FAIL/CAPACITY_LIMITED/artifact继续保留且未混入新矩阵。",
     "P6重新打包关闭：同一SOURCE_SHA 689dea19e2e1dfdccbab9c8f42210d62c4a12223 / next-foundation workflow_dispatch run 35899062120，linux/amd64、linux/arm64、windows/amd64三个release-candidate job全部PASS并生成ACTIONS_PASS receipt；PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN，P7未执行。",
     "V10.2产品56eb5413c3cf2e559b82026e8a5783508764e2f4：新冻结ref正式120s final18（每run一条）18/18五分类及revision2 artifact-only完整矩阵/配对RTT PASS，aggregate37065816473/artifact11252477679；全部socket drop0，无损repair/abandoned0。仅120s资格，不关闭目标负载>=30min/P6/P7。",
-    "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。"
+    "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。",
+    "2026-10-03资源优化顺序完成：有效FEC计算、owned加密/传递复制、有限ACK合并、已就绪Linux批量接收/发送各自Actions unit/build/race+Normal/Game5205 PASS；额外修复pre-attach overflow导致共享server退出，再以ca8175d通过同门和36/36 lifecycle+aggregate。仅targeted，不继承最新全18/长测/P6/P7。"
   ],
-  "in_progress": "RESOURCE_OPTIMIZATION_4C_NOT_RUN: 5 atomic resource steps 5205 PASS; lifecycle all-tuple blackout exposed fatal pre-attach overflow, bounded flow-local fix pending Actions",
-  "next_task": "Fix pre-attach queue overflow endpoint isolation; exact-source foundation, full lifecycle and independent Normal/Game5205. Do not inherit 7de performance to new code.",
-  "latest_log": "docs/devlog/20261003-143500-pre-attach-overflow-isolation.md",
-  "last_tested_source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
+  "in_progress": "P5_LATEST_SOURCE_FULL_MATRIX_AND_LONG_SOAK_PENDING: sequential resource optimizations and lifecycle isolation followup passed targeted5205, no further code change in this documentation receipt",
+  "next_task": "Freeze ca8175d18acd7f7e3e1db5379a58d9f85417dd97 as next qualification source. Full18 independent runs Normal/Game x lossless/5205/5305 x seeds101/202/303, then implement bounded long-soak framework and independent >=1800s Normal/Game. P6 repackage andP7 physical remain NOT_RUN. No FEC/window/buffer retuning without new scoped authorization.",
+  "latest_log": "docs/devlog/20261003-150000-resource-optimization-sequence-acceptance.md",
+  "last_tested_source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -2079,20 +2080,20 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "RESOURCE_OPTIMIZATION_4C_NOT_RUN",
+      "status": "TARGETED_RESOURCE_OPTIMIZATIONS_ACTIONS_PASS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
       "baseline_run": 35803458166,
       "functional_run": 35803458184,
       "priority": [
-        "性能测试入口单run单样本化",
-        "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
-        "按新版损失容忍/时延/突发恢复标准独立run验收"
+        "Latest-source full18 qualification, one sample per performance Action",
+        "Bounded target-rate long soak framework and >=1800s independent Normal/Game",
+        "P6 repackage then user-arranged P7 physical"
       ],
-      "latest_log": "docs/devlog/20261003-143500-pre-attach-overflow-isolation.md",
-      "note": "V10.1 final18 is permanently 17 PASS / 1 CAPACITY_LIMITED. The remaining drop is the product-owned client TPROXY UDP ingress socket; V10.2 mirrors the server-side bounded drain/send decoupling on the client ingress without changing repair/FEC/wire or kernel socket buffers.",
-      "next_task": "Fix pre-attach queue overflow endpoint isolation; exact-source foundation, full lifecycle and independent Normal/Game5205. Do not inherit 7de performance to new code.",
+      "latest_log": "docs/devlog/20261003-150000-resource-optimization-sequence-acceptance.md",
+      "note": "Sequential unit/build/race -> independent Normal/Game5205 completed through ca8175d. Preserves no-HOL,8ms FEC20:20 and4096 shadow repair. Historical failures retained; latest source has not completed full18/target-rate soak or physical qualification.",
+      "next_task": "Freeze ca8175d18acd7f7e3e1db5379a58d9f85417dd97 as next qualification source. Full18 independent runs Normal/Game x lossless/5205/5305 x seeds101/202/303, then implement bounded long-soak framework and independent >=1800s Normal/Game. P6 repackage andP7 physical remain NOT_RUN. No FEC/window/buffer retuning without new scoped authorization.",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -6373,7 +6374,7 @@
       "resource_optimization_sequence": {
         "user_policy": "each atomic optimization -> Actions unit/race -> independent5205 -> next",
         "initial_baseline_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
-        "current_stage": "4c-correctness-followup",
+        "current_stage": "TARGETED_SEQUENCE_COMPLETE",
         "stages": [
           {
             "stage": 1,
@@ -6436,8 +6437,12 @@
           {
             "stage": "4c",
             "name": "pre-attach overflow flow isolation",
-            "status": "NOT_RUN",
-            "latest_log": "docs/devlog/20261003-143500-pre-attach-overflow-isolation.md"
+            "status": "ACTIONS_PASS",
+            "latest_log": "docs/devlog/20261003-150000-resource-optimization-sequence-acceptance.md",
+            "source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+            "foundation_run": 37103612893,
+            "coordinator_run": 37103651459,
+            "evidence": "docs/evidence/resource-stage4c-5205.json"
           }
         ],
         "fec_flush_tuning": "DEFERRED: changes quality; do not mix with equivalent optimizations",
@@ -6449,7 +6454,13 @@
           "scenario": "l4_all_tuple seed202",
           "result": "FAIL",
           "reason": "server exited with pre-attach steady queue full; 35/36 sample jobs passed, aggregate failed; not VM attribution"
-        }
+        },
+        "status": "ACTIONS_PASS_TARGETED_5205",
+        "latest_log": "docs/devlog/20261003-150000-resource-optimization-sequence-acceptance.md",
+        "scope": "5 resource atomic steps plus1 lifecycle correctness followup; 12 independent qualified5205 samples; full latest-source matrix/soak/physical NOT_RUN",
+        "resource_benefit": "active FEC/copy elimination and native batch activation proven; fixed end-to-end CPU gain NOT_PROVEN across heterogeneous runners; ACK weaknet benefit NOT_PROVEN",
+        "final_lifecycle_run": 37103612881,
+        "final_lifecycle_result": "36/36 samples + aggregate ACTIONS_PASS"
       }
     }
   }

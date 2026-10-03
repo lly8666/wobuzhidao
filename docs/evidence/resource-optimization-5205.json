@@ -1,0 +1,928 @@
+{
+  "result": "PASS_TARGETED_ONLY",
+  "latest_source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+  "stages": [
+    {
+      "result": "PASS",
+      "source_sha": "0f8572e98e45bf813831dd72bb72c395764adab4",
+      "stage": 1,
+      "baseline_source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "errors": [],
+      "records": [
+        {
+          "stage": 1,
+          "mode": "normal",
+          "source_sha": "0f8572e98e45bf813831dd72bb72c395764adab4",
+          "run": 37098974862,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37098974862",
+          "artifact": 11265392458,
+          "artifact_digest": "sha256:48e536b9708bc011c6912d1055b00f8044d91500427fe202fd199f5440a4c78a",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.999150933333334,
+            "s2c": 9.999616
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.0017066703075633229,
+            "s2c": 0.0
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.4871758466666667,
+            "s2c": 3.5046158333333333
+          },
+          "cpu_seconds": {
+            "client": 66.27,
+            "server": 66.93
+          },
+          "baseline_cpu_seconds": {
+            "client": 54.02,
+            "server": 54.6
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 615802242,
+            "p99_ns": 616263203,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": 2051991,
+              "p99": 5789486
+            },
+            "stress": {
+              "p95": 2632411,
+              "p99": -2755577
+            },
+            "post": {
+              "p95": 5739852,
+              "p99": 4591385
+            }
+          }
+        },
+        {
+          "stage": 1,
+          "mode": "game",
+          "source_sha": "0f8572e98e45bf813831dd72bb72c395764adab4",
+          "run": 37098977253,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37098977253",
+          "artifact": 11265093094,
+          "artifact_digest": "sha256:ecea1328d144b69ffa179109e276b26d5fcebbf5775d88b3d4c38df4e1b304d5",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.0000746666666664,
+            "s2c": 3.0000746666666664
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.0,
+            "s2c": 0.0
+          },
+          "outer_ip_per_app": {
+            "c2s": 14.153515979157852,
+            "s2c": 14.214779209939664
+          },
+          "cpu_seconds": {
+            "client": 106.86,
+            "server": 102.03
+          },
+          "baseline_cpu_seconds": {
+            "client": 109.86,
+            "server": 101.13
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 605139576,
+            "p99_ns": 605570692,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": 2482362,
+              "p99": 1868696
+            },
+            "stress": {
+              "p95": 1655379,
+              "p99": 710843
+            },
+            "post": {
+              "p95": -2498521,
+              "p99": -2264791
+            }
+          }
+        }
+      ],
+      "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance"
+    },
+    {
+      "result": "PASS",
+      "source_sha": "1647f0bcb592e36b0a76aea83452b48cff2c17b7",
+      "stage": 2,
+      "baseline_source_sha": "0f8572e98e45bf813831dd72bb72c395764adab4",
+      "errors": [],
+      "records": [
+        {
+          "stage": 2,
+          "mode": "normal",
+          "source_sha": "1647f0bcb592e36b0a76aea83452b48cff2c17b7",
+          "run": 37099753909,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37099753909",
+          "artifact": 11266105210,
+          "artifact_digest": "sha256:67712ee8de6d1638a9e9e2277522219010d3fb57614db6ca4577d23fdd4d8680",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.999776,
+            "s2c": 9.999464533333333
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.0,
+            "s2c": 0.0
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.4877838133333334,
+            "s2c": 3.50516632
+          },
+          "cpu_seconds": {
+            "client": 53.72,
+            "server": 54.02
+          },
+          "baseline_cpu_seconds": {
+            "client": 66.27,
+            "server": 66.93
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 617479882,
+            "p99_ns": 617992353,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": 252989,
+              "p99": 777778
+            },
+            "stress": {
+              "p95": 1677640,
+              "p99": 1729150
+            },
+            "post": {
+              "p95": -2980146,
+              "p99": 3966638
+            }
+          }
+        },
+        {
+          "stage": 2,
+          "mode": "game",
+          "source_sha": "1647f0bcb592e36b0a76aea83452b48cff2c17b7",
+          "run": 37099756425,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37099756425",
+          "artifact": 11266045257,
+          "artifact_digest": "sha256:4d708d1d824cf8fabb390ea228c280a092b0081fd372c95f467833f2d2e97809",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.000032,
+            "s2c": 3.000066133333333
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.0,
+            "s2c": 0.0
+          },
+          "outer_ip_per_app": {
+            "c2s": 14.15529391268484,
+            "s2c": 14.221407489413597
+          },
+          "cpu_seconds": {
+            "client": 74.78,
+            "server": 70.21
+          },
+          "baseline_cpu_seconds": {
+            "client": 106.86,
+            "server": 102.03
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 602001983,
+            "p99_ns": 602749051,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": -3283818,
+              "p99": -3068061
+            },
+            "stress": {
+              "p95": -3137593,
+              "p99": -2821641
+            },
+            "post": {
+              "p95": -816177,
+              "p99": -849274
+            }
+          }
+        }
+      ],
+      "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance"
+    },
+    {
+      "result": "PASS",
+      "source_sha": "2f0086cc304dbc145c4aec3d6713ebebfd1fb623",
+      "stage": 3,
+      "baseline_source_sha": "1647f0bcb592e36b0a76aea83452b48cff2c17b7",
+      "errors": [],
+      "records": [
+        {
+          "stage": 3,
+          "mode": "normal",
+          "source_sha": "2f0086cc304dbc145c4aec3d6713ebebfd1fb623",
+          "run": 37100447253,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37100447253",
+          "artifact": 11266565210,
+          "artifact_digest": "sha256:e6e9d17f418779e02377c9ed54d5504e9869bd07536066d8b97a69a7dfd2e3e2",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.998993066666666,
+            "s2c": 9.999524266666668
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.006741324704437712,
+            "s2c": 0.0
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.4888007733333333,
+            "s2c": 3.5037481733333333
+          },
+          "cpu_seconds": {
+            "client": 89.25,
+            "server": 91.38
+          },
+          "baseline_cpu_seconds": {
+            "client": 53.72,
+            "server": 54.02
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 614047652,
+            "p99_ns": 616851517,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": 6005960,
+              "p99": 2714350
+            },
+            "stress": {
+              "p95": -3432230,
+              "p99": -1140836
+            },
+            "post": {
+              "p95": 3902766,
+              "p99": 3629120
+            }
+          }
+        },
+        {
+          "stage": 3,
+          "mode": "game",
+          "source_sha": "2f0086cc304dbc145c4aec3d6713ebebfd1fb623",
+          "run": 37100449153,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37100449153",
+          "artifact": 11265644611,
+          "artifact_digest": "sha256:e5c7e002b2848f9c620308c9e789dbc27e5e4bb6c6dc34fff811bffb0c98b113",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 2.999872,
+            "s2c": 3.000032
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.0,
+            "s2c": 0.0
+          },
+          "outer_ip_per_app": {
+            "c2s": 14.157302396029255,
+            "s2c": 14.216841914156804
+          },
+          "cpu_seconds": {
+            "client": 75.17,
+            "server": 70.52
+          },
+          "baseline_cpu_seconds": {
+            "client": 74.78,
+            "server": 70.21
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 601893640,
+            "p99_ns": 602320017,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": -465504,
+              "p99": -767513
+            },
+            "stress": {
+              "p95": -108343,
+              "p99": -429034
+            },
+            "post": {
+              "p95": -2024796,
+              "p99": 4251967
+            }
+          }
+        }
+      ],
+      "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance"
+    },
+    {
+      "result": "PASS",
+      "source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
+      "stage": "4a",
+      "baseline_source_sha": "2f0086cc304dbc145c4aec3d6713ebebfd1fb623",
+      "errors": [],
+      "records": [
+        {
+          "stage": "4a",
+          "mode": "normal",
+          "source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
+          "run": 37101084780,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37101084780",
+          "artifact": 11266800804,
+          "artifact_digest": "sha256:5385c4ce366b0f4a3486978b581986fb2f2972b0e8376a50573f779725d0c337",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.997341866666668,
+            "s2c": 9.999050666666665
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.01119998566401835,
+            "s2c": 0.0017066644821361295
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.48732472,
+            "s2c": 3.5036152
+          },
+          "cpu_seconds": {
+            "client": 87.79,
+            "server": 89.76
+          },
+          "baseline_cpu_seconds": {
+            "client": 89.25,
+            "server": 91.38
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 614910161,
+            "p99_ns": 616052347,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": -4862412,
+              "p99": -4863561
+            },
+            "stress": {
+              "p95": 862509,
+              "p99": -799170
+            },
+            "post": {
+              "p95": -648192,
+              "p99": -1134568
+            }
+          }
+        },
+        {
+          "stage": "4a",
+          "mode": "game",
+          "source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
+          "run": 37101086471,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37101086471",
+          "artifact": 11266501306,
+          "artifact_digest": "sha256:1c78d07b2a91ea2ad589315e7dc0f02d6670de031fb3b1bd44618794b9bca764",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 2.9998634666666666,
+            "s2c": 3.0000746666666664
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.0,
+            "s2c": 0.0
+          },
+          "outer_ip_per_app": {
+            "c2s": 14.155112739416264,
+            "s2c": 14.217319168945128
+          },
+          "cpu_seconds": {
+            "client": 106.0,
+            "server": 100.4
+          },
+          "baseline_cpu_seconds": {
+            "client": 75.17,
+            "server": 70.52
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 605872208,
+            "p99_ns": 606290623,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": 6266460,
+              "p99": 8922306
+            },
+            "stress": {
+              "p95": 3978568,
+              "p99": 3970606
+            },
+            "post": {
+              "p95": 5333206,
+              "p99": -1704272
+            }
+          }
+        }
+      ],
+      "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance"
+    },
+    {
+      "result": "PASS",
+      "source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
+      "stage": "4b",
+      "baseline_source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
+      "errors": [],
+      "records": [
+        {
+          "stage": "4b",
+          "mode": "normal",
+          "source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
+          "run": 37102789315,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37102789315",
+          "artifact": 11266569102,
+          "artifact_digest": "sha256:13b3bc7b580275f7346bbbe90aa58cf8d91ace6d99eec9508223c7b62d505a5e",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.999515733333332,
+            "s2c": 9.999810133333332
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.0,
+            "s2c": 0.0
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.48598166,
+            "s2c": 3.50534718
+          },
+          "cpu_seconds": {
+            "client": 49.06,
+            "server": 49.55
+          },
+          "baseline_cpu_seconds": {
+            "client": 87.79,
+            "server": 89.76
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 617946763,
+            "p99_ns": 619206773,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": -5666991,
+              "p99": -4407383
+            },
+            "stress": {
+              "p95": 3036602,
+              "p99": 3154426
+            },
+            "post": {
+              "p95": -552674,
+              "p99": -1247313
+            }
+          }
+        },
+        {
+          "stage": "4b",
+          "mode": "game",
+          "source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
+          "run": 37102791456,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37102791456",
+          "artifact": 11266494060,
+          "artifact_digest": "sha256:0d8c655ca3a1eb575e566b74d2c53bb4ce91ef9547321c473b76e67584a1a320",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.0002773333333335,
+            "s2c": 3.0000405333333333
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.0,
+            "s2c": 0.0
+          },
+          "outer_ip_per_app": {
+            "c2s": 14.157648142979552,
+            "s2c": 14.216790163182512
+          },
+          "cpu_seconds": {
+            "client": 105.69,
+            "server": 99.0
+          },
+          "baseline_cpu_seconds": {
+            "client": 106.0,
+            "server": 100.4
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 610734883,
+            "p99_ns": 611909729,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": 4407704,
+              "p99": 6447669
+            },
+            "stress": {
+              "p95": 4862675,
+              "p99": 5619106
+            },
+            "post": {
+              "p95": 6115382,
+              "p99": 5948188
+            }
+          }
+        }
+      ],
+      "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance",
+      "native_raw_io": {
+        "normal": {
+          "scope": "feature-path counters, not resource attribution",
+          "endpoints": {
+            "client": {
+              "enabled": true,
+              "receive_calls": 654930,
+              "receive_messages": 1361382,
+              "receive_multi": 241519,
+              "receive_fallbacks": 0,
+              "send_calls": 1099033,
+              "send_messages": 1550920,
+              "send_multi": 148596,
+              "send_fallbacks": 0
+            },
+            "server": {
+              "enabled": true,
+              "receive_calls": 640036,
+              "receive_messages": 1360452,
+              "receive_multi": 246107,
+              "receive_fallbacks": 0,
+              "send_calls": 1099107,
+              "send_messages": 1551504,
+              "send_multi": 148104,
+              "send_fallbacks": 0
+            }
+          }
+        },
+        "game": {
+          "scope": "feature-path counters, not resource attribution",
+          "endpoints": {
+            "client": {
+              "enabled": true,
+              "receive_calls": 570013,
+              "receive_messages": 1597544,
+              "receive_multi": 334877,
+              "receive_fallbacks": 0,
+              "send_calls": 1281437,
+              "send_messages": 1819934,
+              "send_multi": 180712,
+              "send_fallbacks": 0
+            },
+            "server": {
+              "enabled": true,
+              "receive_calls": 575021,
+              "receive_messages": 1597626,
+              "receive_multi": 334148,
+              "receive_fallbacks": 0,
+              "send_calls": 1281755,
+              "send_messages": 1819726,
+              "send_multi": 180681,
+              "send_fallbacks": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "result": "PASS",
+      "source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+      "stage": "4c",
+      "baseline_source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
+      "errors": [],
+      "records": [
+        {
+          "stage": "4c",
+          "mode": "normal",
+          "source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+          "run": 37103826107,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37103826107",
+          "artifact": 11267555636,
+          "artifact_digest": "sha256:021985ed90ba532b839be4380739d80acdbaac96d28cd29e0fb20adc0599f71f",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.9995328,
+            "s2c": 9.999776
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.0,
+            "s2c": 0.0
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.4883270533333333,
+            "s2c": 3.50544882
+          },
+          "cpu_seconds": {
+            "client": 87.52,
+            "server": 89.39
+          },
+          "baseline_cpu_seconds": {
+            "client": 49.06,
+            "server": 49.55
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 616907283,
+            "p99_ns": 621319008,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": 3621900,
+              "p99": 1528669
+            },
+            "stress": {
+              "p95": -1039480,
+              "p99": 2112235
+            },
+            "post": {
+              "p95": -4347169,
+              "p99": -8516256
+            }
+          }
+        },
+        {
+          "stage": "4c",
+          "mode": "game",
+          "source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+          "run": 37103828096,
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37103828096",
+          "artifact": 11267565702,
+          "artifact_digest": "sha256:e4bf5fbc0c073289384f5573e93dea117c0fcfe65de0ebea65c41a2f44a8b895",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.000032,
+            "s2c": 3.000032
+          },
+          "stress_byte_loss_percent": {
+            "c2s": 0.0,
+            "s2c": 0.0
+          },
+          "outer_ip_per_app": {
+            "c2s": 14.155917697159538,
+            "s2c": 14.220628931013273
+          },
+          "cpu_seconds": {
+            "client": 80.97,
+            "server": 76.38
+          },
+          "baseline_cpu_seconds": {
+            "client": 105.69,
+            "server": 99.0
+          },
+          "socket_drop_max": 0,
+          "stress_probe": {
+            "p95_ns": 602227998,
+            "p99_ns": 602987458,
+            "received": 60,
+            "sent": 60
+          },
+          "rtt_delta_ns": {
+            "pre": {
+              "p95": -10301337,
+              "p99": -13525304
+            },
+            "stress": {
+              "p95": -8506885,
+              "p99": -8922271
+            },
+            "post": {
+              "p95": -11140257,
+              "p99": -9392686
+            }
+          }
+        }
+      ],
+      "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance",
+      "native_raw_io": {
+        "normal": {
+          "scope": "feature-path counters, not resource attribution",
+          "endpoints": {
+            "client": {
+              "enabled": true,
+              "receive_calls": 513151,
+              "receive_messages": 1361523,
+              "receive_multi": 278728,
+              "receive_fallbacks": 0,
+              "send_calls": 1099206,
+              "send_messages": 1551699,
+              "send_multi": 148178,
+              "send_fallbacks": 0
+            },
+            "server": {
+              "enabled": true,
+              "receive_calls": 507491,
+              "receive_messages": 1361108,
+              "receive_multi": 273621,
+              "receive_fallbacks": 0,
+              "send_calls": 1099094,
+              "send_messages": 1551658,
+              "send_multi": 148781,
+              "send_fallbacks": 0
+            }
+          }
+        },
+        "game": {
+          "scope": "feature-path counters, not resource attribution",
+          "endpoints": {
+            "client": {
+              "enabled": true,
+              "receive_calls": 681335,
+              "receive_messages": 1597528,
+              "receive_multi": 283675,
+              "receive_fallbacks": 0,
+              "send_calls": 1282552,
+              "send_messages": 1819574,
+              "send_multi": 180828,
+              "send_fallbacks": 0
+            },
+            "server": {
+              "enabled": true,
+              "receive_calls": 658388,
+              "receive_messages": 1597253,
+              "receive_multi": 308204,
+              "receive_fallbacks": 0,
+              "send_calls": 1282543,
+              "send_messages": 1819771,
+              "send_multi": 180959,
+              "send_fallbacks": 0
+            }
+          }
+        }
+      },
+      "functional_runs": [
+        {
+          "id": 37103612893,
+          "name": "next-foundation",
+          "head_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37103612893"
+        },
+        {
+          "id": 37103612857,
+          "name": "next-p4-steady-targeted",
+          "head_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37103612857"
+        },
+        {
+          "id": 37103612820,
+          "name": "next-lifecycle",
+          "head_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37103612820"
+        },
+        {
+          "id": 37103612819,
+          "name": "next-tls-startup-padding",
+          "head_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37103612819"
+        },
+        {
+          "id": 37103612881,
+          "name": "next-lifecycle-fullstack",
+          "head_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37103612881"
+        }
+      ]
+    }
+  ],
+  "historical_failures": {
+    "native_tx": {
+      "result": "FAIL",
+      "source_sha": "6351a82b044d3de34695dec3bcea8f7fe27f8322",
+      "stage": "4b",
+      "baseline_source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
+      "errors": [
+        "normal: original run failed or rerun; id=37102098167",
+        "game: original run failed or rerun; id=37102099835"
+      ],
+      "records": [],
+      "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance"
+    },
+    "lifecycle": {
+      "source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
+      "run": 37102574831,
+      "job": 111144856100,
+      "artifact": 11266553535,
+      "scenario": "l4_all_tuple seed202",
+      "result": "FAIL",
+      "reason": "server exited with pre-attach steady queue full; 35/36 sample jobs passed, aggregate failed; not VM attribution"
+    }
+  },
+  "resource_benefit": "active FEC/copy elimination and native batch activation proven; fixed end-to-end CPU gain NOT_PROVEN across heterogeneous runners; ACK weaknet benefit NOT_PROVEN"
+}
