@@ -1,6 +1,6 @@
 {
-  "source_sha": "1a5a4f5af8ba175e6c6766385edb6ea641939efb",
-  "superseded_sha": "70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
-  "controllers": [37122894191,37123168035,37122536465],
-  "reason": "Concurrent controllers duplicated dispatches. Stop the controllers, preserve the first original run for each final-source identity, cancel only extra unfinished dispatches and superseded-source unfinished work. Never cancel a failed/completed sample or relabel it PASS."
+  "source_sha": "7b8f9fc5c5d822336b611768c42522ac7928dfa3",
+  "superseded_sha": "1a5a4f5af8ba175e6c6766385edb6ea641939efb",
+  "controllers": [37123526389],
+  "reason": "Original 1a source failed actual HTTPS config f12-l3-p1. Owner/lane lock inversion is now repaired in new source. Preserve every completed original result including failure; unfinished old-source work is superseded and cannot qualify the repair. Stop its collection controller before serialized final-source dispatch."
 }
