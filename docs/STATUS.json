@@ -75,7 +75,7 @@
     "固定2b2bd9e候选可交用户安排P7物理验收；PHYSICAL_PASS/RELEASE_QUALIFIED NOT_RUN。startup padding core/fuzz/live功能PASS，完整on/稀疏/双入口弱网专项仍PARTIAL_ACTIONS_PASS，不能继承padding off主性能。"
   ],
   "next_task": "用户新增IP分流：验收最新源码LAN/CN/Other真实路由、手动更新、Windows大表/owned清理、生命周期回归；core通过后Normal/Game5205各独立Action，再新P6包。原2b全资格不继承，物理P7 NOT_RUN；本轮不变更数据协议。",
-  "latest_log": "docs/devlog/20261004-045500-ip-splitroute-implementation.md",
+  "latest_log": "docs/devlog/20261004-050700-splitroute-platform-hardening.md",
   "last_tested_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
   "actions": [
     {

@@ -46,6 +46,11 @@ jobs:
           mkdir -p "$ART"
           go build -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
           go build -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
+      - name: Explicit manual update command without credentials
+        if: matrix.mode == 'embedded'
+        run: |
+          "$ART/wbd-client" --update-china-ip "$ART/downloaded-cn.txt" > "$ART/update-receipt.txt"
+          grep -q WBD_CHINA_IP_UPDATED "$ART/update-receipt.txt"
       - name: Prepare functional three-destination fixture
         run: |
           python3 tools/prepare_splitroute_harness.py --mode '${{ matrix.mode }}' --artifact-dir "$ART"

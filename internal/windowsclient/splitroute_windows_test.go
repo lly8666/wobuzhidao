@@ -27,3 +27,10 @@ func TestLargeSplitSnapshotPowerShellRender(t *testing.T) {
 	if !splitroute.Contains(captured,netip.MustParseAddr("8.8.8.8")){t.Fatal("foreign missing")}
 	t.Logf("POWERSHELL_RENDER_PASS prefixes=%d physical=NOT_RUN",len(captured))
 }
+
+func TestWindowsSplitApplyCleanupAndRollbackOwnership(t *testing.T) {
+	out,err:=exec.Command("powershell.exe","-NoProfile","-File",filepath.Join("..","..","tools","test_windows_splitroute.ps1")).CombinedOutput()
+	if err!=nil {t.Fatalf("Apply/Cleanup simulation: %v %s",err,out)}
+	if strings.Count(string(out),"WINDOWS_SPLIT_OWNERSHIP_MOCK_PASS")!=2 {t.Fatalf("missing apply and rollback receipts: %s",out)}
+	t.Log(string(out))
+}

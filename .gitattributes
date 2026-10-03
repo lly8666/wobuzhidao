@@ -5,3 +5,5 @@
 *.py text eol=lf
 *.go text eol=lf
 *.sh text eol=lf
+internal/splitroute/china_ipv4.txt text eol=lf
+internal/splitroute/DATA_LICENSE text eol=lf

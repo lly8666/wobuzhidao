@@ -95,13 +95,16 @@ function Remove-WBDIPv6Rules {
 }
 
 function Remove-OwnedRoutes($Routes) {
+    $ownedKeys = @{}
     foreach ($route in @($Routes)) {
-        if ($null -eq $route) { continue }
-        Remove-NetRoute -DestinationPrefix ([string]$route.DestinationPrefix) `
-            -InterfaceIndex ([uint32]$route.InterfaceIndex) `
-            -NextHop ([string]$route.NextHop) `
-            -PolicyStore ActiveStore -Confirm:$false -ErrorAction SilentlyContinue
+        if ($null -ne $route) { $ownedKeys["$($route.DestinationPrefix)|$($route.InterfaceIndex)|$($route.NextHop)"] = $true }
     }
+    if ($ownedKeys.Count -eq 0) { return }
+    # One kernel enumeration, with exact saved identities; do not sweep an
+    # entire interface or delete pre-existing routes that WBD never owned.
+    @(Get-NetRoute -PolicyStore ActiveStore -ErrorAction SilentlyContinue | Where-Object {
+        $ownedKeys.ContainsKey("$($_.DestinationPrefix)|$($_.InterfaceIndex)|$($_.NextHop)")
+    }) | Remove-NetRoute -Confirm:$false -ErrorAction SilentlyContinue
 }
 
 function Remove-OwnedState($State) {
