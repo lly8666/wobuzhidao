@@ -1,0 +1,13 @@
+name: next-target-soak
+on:
+  workflow_dispatch:
+    inputs:
+      mode: {type: choice, options: [normal, game], default: normal, required: true}
+      duration: {type: choice, options: ['180', '1800'], default: '180', required: true}
+      seed: {type: string, default: '404', required: true}
+permissions: {contents: read}
+jobs:
+  register:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo 'Registration only. Dispatch against frozen product ref.'; exit 1

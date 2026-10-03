@@ -1,0 +1,33 @@
+{
+  "campaign": "bounded-soak-canaries",
+  "source_sha": "b13e2c88d08f9b1bd3d114f63891a8f0fab66353",
+  "ref": "perf-fixed/b13e2c88d08f9b1bd3d114f63891a8f0fab66353",
+  "required_runs": [
+    37118772749,
+    37118772759
+  ],
+  "samples": [
+    {
+      "workflow": "next-target-soak.yml",
+      "title": "soak-normal-180s-seed404",
+      "inputs": {
+        "mode": "normal",
+        "duration": "180",
+        "seed": "404"
+      },
+      "artifact": "soak-summary-normal-180-404-b13e2c88d08f9b1bd3d114f63891a8f0fab66353",
+      "summary": "summary-soak.json"
+    },
+    {
+      "workflow": "next-target-soak.yml",
+      "title": "soak-game-180s-seed404",
+      "inputs": {
+        "mode": "game",
+        "duration": "180",
+        "seed": "404"
+      },
+      "artifact": "soak-summary-game-180-404-b13e2c88d08f9b1bd3d114f63891a8f0fab66353",
+      "summary": "summary-soak.json"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+name: next-predelivery-coordinator
+on:
+  push:
+    branches: [main]
+    paths: [.github/predelivery-request.json]
+permissions: {contents: read, actions: write}
+jobs:
+  dispatch-read-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dispatch independent work and read immutable receipts (no workload)
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python3 .github/scripts/collect-predelivery.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: 'predelivery-${{ github.run_id }}', path: predelivery, if-no-files-found: error}
