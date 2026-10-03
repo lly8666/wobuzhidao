@@ -4,8 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"net/netip"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -102,6 +104,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	// transport barrier, not a longer production grace or a weaker assertion.
 	replacementReady := make(chan struct{})
 	var releaseOnce sync.Once
+	var barrierHits atomic.Uint64
 	releaseReplacement := func() { releaseOnce.Do(func() { close(replacementReady) }) }
 	client, err := DialTunnelClient(ctx, TunnelClientConfig{
 		OpenLane: func(laneID uint8, incarnation uint64) (SegmentIO, faketcp.ClientFlow, error) {
@@ -120,6 +123,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 					if len(seg.Payload) != 0 {
 						if assoc, ok := server.table.GetSegment(seg); ok {
 							if _, prepared := assoc.TransitionState(); prepared {
+								barrierHits.Add(1)
 								select {
 								case <-replacementReady:
 								case <-ctx.Done():
@@ -200,8 +204,14 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	if stats := client.Owner().Stats(); stats.Retiring != 1 || stats.PhysicalLanes != 3 || stats.ActiveLogicalLanes != 2 {
 		t.Fatalf("client A+B overlap stats=%+v", stats)
 	}
+	var previousServerState string
 	waitLifecycle(t, 3*time.Second, func() bool {
 		stats, ok := server.TunnelStats(tunnelID)
+		state := fmt.Sprintf("active=%d retiring=%d physical=%d exists=%t barrier=%d", stats.ActiveLogicalLanes, stats.Retiring, stats.PhysicalLanes, ok, barrierHits.Load())
+		if state != previousServerState {
+			t.Logf("replacement server observation: %s client=%+v", state, client.Owner().Stats())
+			previousServerState = state
+		}
 		return ok && stats.ActiveLogicalLanes == 2 && stats.Retiring == 1 && stats.PhysicalLanes == 3
 	})
 	releaseReplacement()

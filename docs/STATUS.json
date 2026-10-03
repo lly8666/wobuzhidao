@@ -69,9 +69,9 @@
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。",
     "2026-10-03资源优化顺序完成：有效FEC计算、owned加密/传递复制、有限ACK合并、已就绪Linux批量接收/发送各自Actions unit/build/race+Normal/Game5205 PASS；额外修复pre-attach overflow导致共享server退出，再以ca8175d通过同门和36/36 lifecycle+aggregate。仅targeted，不继承最新全18/长测/P6/P7。"
   ],
-  "in_progress": "Pre-delivery foundation b13 failed transient replacement overlap observation; controller37118869828 correctly dispatched no soak. dd71808 test-only transport barrier awaits foundation/repeat30 proof; original failure retained.",
+  "in_progress": "dd71808 first barrier repeated race FAIL twice; narrow diagnostic captures real server/client overlap and barrier hits. Prior split continuity commits rejected, original failures retained. Soak NOT_RUN until gates pass.",
   "next_task": "Require dd71808 foundation and repeated30 race PASS after deterministic replacement observation fix; then independent180s soak canaries. Add live configuration coverage, formal1800s, final18 and same-source P6 packages. Physical P7 NOT_RUN.",
-  "latest_log": "docs/devlog/20261003-192400-deterministic-transition-observation.md",
+  "latest_log": "docs/devlog/20261003-193000-transition-timeout-diagnostics.md",
   "last_tested_source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
   "actions": [
     {
