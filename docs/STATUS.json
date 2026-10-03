@@ -71,7 +71,7 @@
     "2026-10-03同源码b1fe7e2可交物理机前资格：70实际配置、36生命周期、18独立严格弱网、Normal/Game各1800s目标速率持续弱网、100/500ms共享黑洞、三目标候选包全部PASS；78回执控制与18汇总原始attempt1，extras0，物理未跑。"
   ],
   "in_progress": [
-    "2b2bd9e core/race及独立Normal/Game180所有原门/1s/internal queue0门PASS。冻结同SOURCE完整78/严格18进行中，两1800s已启动；短测不是正式长测资格，P5/P6未关闭。"
+    "2b2bd9e core/race、Normal/Game180原门/1s/内部queue0及严格18全部PASS。完整78/两1800s/配置/生命周期/P6仍IN_PROGRESS，尚未hosted关闭；P7 NOT_RUN。"
   ],
   "next_task": "审计同2b2bd9e SOURCE完整78及严格18原始回执、两1800s逐秒/内部队列/RTT/内存/排空和P6哈希；全部通过才hosted关闭/可交物理。失败保留后窄修新SHA重验。每性能Action一条，P7 NOT_RUN。",
   "latest_log": "docs/devlog/20261004-014100-handoff-short-pass-full-qualification.md",
@@ -6623,7 +6623,8 @@
           "strict18_controller": 37127934798,
           "soak": "Normal/Game1800s ACTIONS_PASS; two180s diagnostics PASS",
           "controller": 37127934784
-        }
+        },
+        "strict18_result": "18/18 original samples + artifact-only revision2 paired RTT aggregate PASS"
       }
     }
   }

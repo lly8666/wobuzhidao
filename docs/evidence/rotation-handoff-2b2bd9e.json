@@ -1389,5 +1389,1613 @@
       "result": "FAIL",
       "game180_run": 37139798038
     }
-  ]
+  ],
+  "strict18": {
+    "run_receipts": [
+      {
+        "id": 37140881784,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140881784",
+        "display_title": "strict-game-5205-seed101-rate3-lanes4"
+      },
+      {
+        "id": 37140893625,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140893625",
+        "display_title": "strict-game-5205-seed202-rate3-lanes4"
+      },
+      {
+        "id": 37140902370,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140902370",
+        "display_title": "strict-game-5205-seed303-rate3-lanes4"
+      },
+      {
+        "id": 37140883124,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140883124",
+        "display_title": "strict-game-5305-seed101-rate3-lanes4"
+      },
+      {
+        "id": 37140896538,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140896538",
+        "display_title": "strict-game-5305-seed202-rate3-lanes4"
+      },
+      {
+        "id": 37140905260,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140905260",
+        "display_title": "strict-game-5305-seed303-rate3-lanes4"
+      },
+      {
+        "id": 37140885487,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140885487",
+        "display_title": "strict-game-lossless-seed101-rate3-lanes4"
+      },
+      {
+        "id": 37140890828,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140890828",
+        "display_title": "strict-game-lossless-seed202-rate3-lanes4"
+      },
+      {
+        "id": 37140899399,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140899399",
+        "display_title": "strict-game-lossless-seed303-rate3-lanes4"
+      },
+      {
+        "id": 37140886760,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140886760",
+        "display_title": "strict-normal-5205-seed101-rate10-lanes1"
+      },
+      {
+        "id": 37140892113,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140892113",
+        "display_title": "strict-normal-5205-seed202-rate10-lanes1"
+      },
+      {
+        "id": 37140901050,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140901050",
+        "display_title": "strict-normal-5205-seed303-rate10-lanes1"
+      },
+      {
+        "id": 37140888174,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140888174",
+        "display_title": "strict-normal-5305-seed101-rate10-lanes1"
+      },
+      {
+        "id": 37140895007,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140895007",
+        "display_title": "strict-normal-5305-seed202-rate10-lanes1"
+      },
+      {
+        "id": 37140903754,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140903754",
+        "display_title": "strict-normal-5305-seed303-rate10-lanes1"
+      },
+      {
+        "id": 37140884368,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140884368",
+        "display_title": "strict-normal-lossless-seed101-rate10-lanes1"
+      },
+      {
+        "id": 37140889403,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140889403",
+        "display_title": "strict-normal-lossless-seed202-rate10-lanes1"
+      },
+      {
+        "id": 37140897923,
+        "event": "workflow_dispatch",
+        "head_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "head_branch": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "run_attempt": 1,
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140897923",
+        "display_title": "strict-normal-lossless-seed303-rate10-lanes1"
+      }
+    ],
+    "aggregate": {
+      "aggregate_revision": 2,
+      "analysis_version": "loss-tolerant-v1",
+      "errors": [],
+      "expected_seeds": [
+        "101",
+        "202",
+        "303"
+      ],
+      "kind": "artifact-only-aggregate",
+      "repeat_status": {
+        "game/5205": {
+          "count": 3,
+          "pass": true,
+          "seeds": [
+            "101",
+            "202",
+            "303"
+          ]
+        },
+        "game/5305": {
+          "count": 3,
+          "pass": true,
+          "seeds": [
+            "101",
+            "202",
+            "303"
+          ]
+        },
+        "game/lossless": {
+          "count": 3,
+          "pass": true,
+          "seeds": [
+            "101",
+            "202",
+            "303"
+          ]
+        },
+        "normal/5205": {
+          "count": 3,
+          "pass": true,
+          "seeds": [
+            "101",
+            "202",
+            "303"
+          ]
+        },
+        "normal/5305": {
+          "count": 3,
+          "pass": true,
+          "seeds": [
+            "101",
+            "202",
+            "303"
+          ]
+        },
+        "normal/lossless": {
+          "count": 3,
+          "pass": true,
+          "seeds": [
+            "101",
+            "202",
+            "303"
+          ]
+        }
+      },
+      "require_run_receipts": true,
+      "required_repeats": 3,
+      "result": "PASS",
+      "sample_count": 18,
+      "sample_results": [
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "game",
+            "101",
+            3.0,
+            4
+          ],
+          "lossless_summary": "final18/strict-game-lossless-seed101-rate3-lanes4/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5205",
+          "stages": {
+            "post": {
+              "delta_p95_ns": 3193986,
+              "delta_p99_ns": 3128160,
+              "lossless_p95_ns": 605370634,
+              "lossless_p99_ns": 605692467,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 608564620,
+              "p99_ns": 608820627,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": 2414681,
+              "delta_p99_ns": 2437390,
+              "lossless_p95_ns": 604646838,
+              "lossless_p99_ns": 604660261,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 607061519,
+              "p99_ns": 607097651,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": 3099464,
+              "delta_p99_ns": 3473514,
+              "lossless_p95_ns": 604593435,
+              "lossless_p99_ns": 604996142,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 60,
+              "lossy_sent": 60,
+              "p95_ns": 607692899,
+              "p99_ns": 608469656,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-game-5205-seed101-rate3-lanes4/summary-loss-tolerant-v1.json"
+        },
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "game",
+            "202",
+            3.0,
+            4
+          ],
+          "lossless_summary": "final18/strict-game-lossless-seed202-rate3-lanes4/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5205",
+          "stages": {
+            "post": {
+              "delta_p95_ns": -2027833,
+              "delta_p99_ns": -1919878,
+              "lossless_p95_ns": 605608754,
+              "lossless_p99_ns": 605789720,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 603580921,
+              "p99_ns": 603869842,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": -2653342,
+              "delta_p99_ns": -2768130,
+              "lossless_p95_ns": 605637260,
+              "lossless_p99_ns": 605804584,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 602983918,
+              "p99_ns": 603036454,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": -2370898,
+              "delta_p99_ns": -2087252,
+              "lossless_p95_ns": 605124024,
+              "lossless_p99_ns": 605556368,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 60,
+              "lossy_sent": 60,
+              "p95_ns": 602753126,
+              "p99_ns": 603469116,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-game-5205-seed202-rate3-lanes4/summary-loss-tolerant-v1.json"
+        },
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "game",
+            "303",
+            3.0,
+            4
+          ],
+          "lossless_summary": "final18/strict-game-lossless-seed303-rate3-lanes4/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5205",
+          "stages": {
+            "post": {
+              "delta_p95_ns": 206049,
+              "delta_p99_ns": 1142074,
+              "lossless_p95_ns": 602512407,
+              "lossless_p99_ns": 602609234,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 602718456,
+              "p99_ns": 603751308,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": 55024,
+              "delta_p99_ns": 1445051,
+              "lossless_p95_ns": 602401505,
+              "lossless_p99_ns": 602844991,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 602456529,
+              "p99_ns": 604290042,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": -781620,
+              "delta_p99_ns": -741711,
+              "lossless_p95_ns": 602493633,
+              "lossless_p99_ns": 602752069,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 60,
+              "lossy_sent": 60,
+              "p95_ns": 601712013,
+              "p99_ns": 602010358,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-game-5205-seed303-rate3-lanes4/summary-loss-tolerant-v1.json"
+        },
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "game",
+            "101",
+            3.0,
+            4
+          ],
+          "lossless_summary": "final18/strict-game-lossless-seed101-rate3-lanes4/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5305",
+          "stages": {
+            "post": {
+              "delta_p95_ns": -2984215,
+              "delta_p99_ns": -3194588,
+              "lossless_p95_ns": 605370634,
+              "lossless_p99_ns": 605692467,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 602386419,
+              "p99_ns": 602497879,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": -2593792,
+              "delta_p99_ns": -2358922,
+              "lossless_p95_ns": 604646838,
+              "lossless_p99_ns": 604660261,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 602053046,
+              "p99_ns": 602301339,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": -2642525,
+              "delta_p99_ns": -2944913,
+              "lossless_p95_ns": 604593435,
+              "lossless_p99_ns": 604996142,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 60,
+              "lossy_sent": 60,
+              "p95_ns": 601950910,
+              "p99_ns": 602051229,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-game-5305-seed101-rate3-lanes4/summary-loss-tolerant-v1.json"
+        },
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "game",
+            "202",
+            3.0,
+            4
+          ],
+          "lossless_summary": "final18/strict-game-lossless-seed202-rate3-lanes4/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5305",
+          "stages": {
+            "post": {
+              "delta_p95_ns": 7679767,
+              "delta_p99_ns": 16856729,
+              "lossless_p95_ns": 605608754,
+              "lossless_p99_ns": 605789720,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 613288521,
+              "p99_ns": 622646449,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": 2428318,
+              "delta_p99_ns": 11558544,
+              "lossless_p95_ns": 605637260,
+              "lossless_p99_ns": 605804584,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 608065578,
+              "p99_ns": 617363128,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": 3586725,
+              "delta_p99_ns": 4601475,
+              "lossless_p95_ns": 605124024,
+              "lossless_p99_ns": 605556368,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 60,
+              "lossy_sent": 60,
+              "p95_ns": 608710749,
+              "p99_ns": 610157843,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-game-5305-seed202-rate3-lanes4/summary-loss-tolerant-v1.json"
+        },
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "game",
+            "303",
+            3.0,
+            4
+          ],
+          "lossless_summary": "final18/strict-game-lossless-seed303-rate3-lanes4/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5305",
+          "stages": {
+            "post": {
+              "delta_p95_ns": 3739505,
+              "delta_p99_ns": 4827756,
+              "lossless_p95_ns": 602512407,
+              "lossless_p99_ns": 602609234,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 606251912,
+              "p99_ns": 607436990,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": 3088933,
+              "delta_p99_ns": 9225373,
+              "lossless_p95_ns": 602401505,
+              "lossless_p99_ns": 602844991,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 605490438,
+              "p99_ns": 612070364,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": 1391480,
+              "delta_p99_ns": 14533712,
+              "lossless_p95_ns": 602493633,
+              "lossless_p99_ns": 602752069,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 60,
+              "lossy_sent": 60,
+              "p95_ns": 603885113,
+              "p99_ns": 617285781,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-game-5305-seed303-rate3-lanes4/summary-loss-tolerant-v1.json"
+        },
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "normal",
+            "101",
+            10.0,
+            1
+          ],
+          "lossless_summary": "final18/strict-normal-lossless-seed101-rate10-lanes1/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5205",
+          "stages": {
+            "post": {
+              "delta_p95_ns": 2930133,
+              "delta_p99_ns": 4968372,
+              "lossless_p95_ns": 609064859,
+              "lossless_p99_ns": 609103777,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 611994992,
+              "p99_ns": 614072149,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": 8999606,
+              "delta_p99_ns": 5978825,
+              "lossless_p95_ns": 606598013,
+              "lossless_p99_ns": 610436393,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 615597619,
+              "p99_ns": 616415218,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": 10307516,
+              "delta_p99_ns": 13575866,
+              "lossless_p95_ns": 606698852,
+              "lossless_p99_ns": 607073575,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 60,
+              "lossy_sent": 60,
+              "p95_ns": 617006368,
+              "p99_ns": 620649441,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-normal-5205-seed101-rate10-lanes1/summary-loss-tolerant-v1.json"
+        },
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "normal",
+            "202",
+            10.0,
+            1
+          ],
+          "lossless_summary": "final18/strict-normal-lossless-seed202-rate10-lanes1/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5205",
+          "stages": {
+            "post": {
+              "delta_p95_ns": 4838064,
+              "delta_p99_ns": 11879624,
+              "lossless_p95_ns": 608983952,
+              "lossless_p99_ns": 609293704,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 613822016,
+              "p99_ns": 621173328,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": 8792600,
+              "delta_p99_ns": 10094605,
+              "lossless_p95_ns": 607800641,
+              "lossless_p99_ns": 608729267,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 616593241,
+              "p99_ns": 618823872,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": 11901807,
+              "delta_p99_ns": 10870610,
+              "lossless_p95_ns": 609001778,
+              "lossless_p99_ns": 610450032,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 60,
+              "lossy_sent": 60,
+              "p95_ns": 620903585,
+              "p99_ns": 621320642,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-normal-5205-seed202-rate10-lanes1/summary-loss-tolerant-v1.json"
+        },
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "normal",
+            "303",
+            10.0,
+            1
+          ],
+          "lossless_summary": "final18/strict-normal-lossless-seed303-rate10-lanes1/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5205",
+          "stages": {
+            "post": {
+              "delta_p95_ns": 16846609,
+              "delta_p99_ns": 27691178,
+              "lossless_p95_ns": 606452844,
+              "lossless_p99_ns": 606741624,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 623299453,
+              "p99_ns": 634432802,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": 9485578,
+              "delta_p99_ns": 13180583,
+              "lossless_p95_ns": 607192660,
+              "lossless_p99_ns": 608640917,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 616678238,
+              "p99_ns": 621821500,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": 12738574,
+              "delta_p99_ns": 15160550,
+              "lossless_p95_ns": 606687845,
+              "lossless_p99_ns": 608415467,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 60,
+              "lossy_sent": 60,
+              "p95_ns": 619426419,
+              "p99_ns": 623576017,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-normal-5205-seed303-rate10-lanes1/summary-loss-tolerant-v1.json"
+        },
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "normal",
+            "101",
+            10.0,
+            1
+          ],
+          "lossless_summary": "final18/strict-normal-lossless-seed101-rate10-lanes1/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5305",
+          "stages": {
+            "post": {
+              "delta_p95_ns": 6791320,
+              "delta_p99_ns": 8651107,
+              "lossless_p95_ns": 609064859,
+              "lossless_p99_ns": 609103777,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 615856179,
+              "p99_ns": 617754884,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": 2711768,
+              "delta_p99_ns": 989503,
+              "lossless_p95_ns": 606598013,
+              "lossless_p99_ns": 610436393,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 609309781,
+              "p99_ns": 611425896,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": 9965262,
+              "delta_p99_ns": 15678053,
+              "lossless_p95_ns": 606698852,
+              "lossless_p99_ns": 607073575,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 58,
+              "lossy_sent": 60,
+              "p95_ns": 616664114,
+              "p99_ns": 622751628,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-normal-5305-seed101-rate10-lanes1/summary-loss-tolerant-v1.json"
+        },
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "normal",
+            "202",
+            10.0,
+            1
+          ],
+          "lossless_summary": "final18/strict-normal-lossless-seed202-rate10-lanes1/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5305",
+          "stages": {
+            "post": {
+              "delta_p95_ns": 7295204,
+              "delta_p99_ns": 8784556,
+              "lossless_p95_ns": 608983952,
+              "lossless_p99_ns": 609293704,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 616279156,
+              "p99_ns": 618078260,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": 3609148,
+              "delta_p99_ns": 12347076,
+              "lossless_p95_ns": 607800641,
+              "lossless_p99_ns": 608729267,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 611409789,
+              "p99_ns": 621076343,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": 15743346,
+              "delta_p99_ns": 15714630,
+              "lossless_p95_ns": 609001778,
+              "lossless_p99_ns": 610450032,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 60,
+              "lossy_sent": 60,
+              "p95_ns": 624745124,
+              "p99_ns": 626164662,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-normal-5305-seed202-rate10-lanes1/summary-loss-tolerant-v1.json"
+        },
+        {
+          "identity": [
+            "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "normal",
+            "303",
+            10.0,
+            1
+          ],
+          "lossless_summary": "final18/strict-normal-lossless-seed303-rate10-lanes1/summary-loss-tolerant-v1.json",
+          "pass": true,
+          "scenario": "5305",
+          "stages": {
+            "post": {
+              "delta_p95_ns": 6718180,
+              "delta_p99_ns": 16278480,
+              "lossless_p95_ns": 606452844,
+              "lossless_p99_ns": 606741624,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 613171024,
+              "p99_ns": 623020104,
+              "pass": true
+            },
+            "pre": {
+              "delta_p95_ns": 8641685,
+              "delta_p99_ns": 13617601,
+              "lossless_p95_ns": 607192660,
+              "lossless_p99_ns": 608640917,
+              "lossless_received": 30,
+              "lossless_sent": 30,
+              "lossy_received": 30,
+              "lossy_sent": 30,
+              "p95_ns": 615834345,
+              "p99_ns": 622258518,
+              "pass": true
+            },
+            "stress": {
+              "delta_p95_ns": 14506938,
+              "delta_p99_ns": 14198869,
+              "lossless_p95_ns": 606687845,
+              "lossless_p99_ns": 608415467,
+              "lossless_received": 60,
+              "lossless_sent": 60,
+              "lossy_received": 60,
+              "lossy_sent": 60,
+              "p95_ns": 621194783,
+              "p99_ns": 622614336,
+              "pass": true
+            }
+          },
+          "summary": "final18/strict-normal-5305-seed303-rate10-lanes1/summary-loss-tolerant-v1.json"
+        }
+      ],
+      "schema": 1,
+      "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8"
+    },
+    "controller": 37140877004,
+    "digest": "sha256:4187ff4e26c2b5779e009cdc26d1463d015b31fed5b6a87f756ae1186dc43c7c",
+    "campaign": {
+      "request": {
+        "ref": "next/tlslike-dataplane",
+        "dispatch_ref": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+        "expected_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "aggregate_sha": "6dafa657af9f577f8cc21256276bfb44d8ee3fd1",
+        "workflow": "next-strict-weaknet.yml",
+        "generation": "prephysical-bounded-handoff-constant-retirement-final18"
+      },
+      "samples": [
+        {
+          "run": 37140884368,
+          "identity": [
+            "normal",
+            "lossless",
+            101,
+            10,
+            1
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 41.91,
+            "server": 42.3
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.999978666666665,
+            "s2c": 10.000138666666667
+          },
+          "stress_probe": {
+            "p95_ns": 606698852,
+            "p99_ns": 607073575,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.08275212,
+            "s2c": 3.0984978614363503
+          }
+        },
+        {
+          "run": 37140889403,
+          "identity": [
+            "normal",
+            "lossless",
+            202,
+            10,
+            1
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 77.54,
+            "server": 78.59
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.999776,
+            "s2c": 9.999978666666665
+          },
+          "stress_probe": {
+            "p95_ns": 609001778,
+            "p99_ns": 610450032,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.081432213333333,
+            "s2c": 3.09743186
+          }
+        },
+        {
+          "run": 37140897923,
+          "identity": [
+            "normal",
+            "lossless",
+            303,
+            10,
+            1
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 77.6,
+            "server": 78.62
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.999810133333332,
+            "s2c": 9.999776
+          },
+          "stress_probe": {
+            "p95_ns": 606687845,
+            "p99_ns": 608415467,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.0815517266666665,
+            "s2c": 3.0971491505265374
+          }
+        },
+        {
+          "run": 37140886760,
+          "identity": [
+            "normal",
+            "5205",
+            101,
+            10,
+            1
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 90.71,
+            "server": 92.7
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.999438933333334,
+            "s2c": 10.000315733333332
+          },
+          "stress_probe": {
+            "p95_ns": 617006368,
+            "p99_ns": 620649441,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.48742418,
+            "s2c": 3.5032628
+          }
+        },
+        {
+          "run": 37140892113,
+          "identity": [
+            "normal",
+            "5205",
+            202,
+            10,
+            1
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 79.14,
+            "server": 80.5
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.9985792,
+            "s2c": 9.999961599999999
+          },
+          "stress_probe": {
+            "p95_ns": 620903585,
+            "p99_ns": 621320642,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.487669933333333,
+            "s2c": 3.5061264133333334
+          }
+        },
+        {
+          "run": 37140901050,
+          "identity": [
+            "normal",
+            "5205",
+            303,
+            10,
+            1
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 93.32,
+            "server": 95.25
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.999827199999999,
+            "s2c": 10.000704
+          },
+          "stress_probe": {
+            "p95_ns": 619426419,
+            "p99_ns": 623576017,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.487826363307148,
+            "s2c": 3.5038500133333335
+          }
+        },
+        {
+          "run": 37140888174,
+          "identity": [
+            "normal",
+            "5305",
+            101,
+            10,
+            1
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 86.11,
+            "server": 87.77
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.972701866666668,
+            "s2c": 9.975227733333332
+          },
+          "stress_probe": {
+            "p95_ns": 616664114,
+            "p99_ns": 622751628,
+            "received": 58,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.368832633333333,
+            "s2c": 3.38451376
+          }
+        },
+        {
+          "run": 37140895007,
+          "identity": [
+            "normal",
+            "5305",
+            202,
+            10,
+            1
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 85.84,
+            "server": 87.48
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.972488533333333,
+            "s2c": 9.966984533333333
+          },
+          "stress_probe": {
+            "p95_ns": 624745124,
+            "p99_ns": 626164662,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.3676474533333334,
+            "s2c": 3.3840711333333333
+          }
+        },
+        {
+          "run": 37140903754,
+          "identity": [
+            "normal",
+            "5305",
+            303,
+            10,
+            1
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 84.9,
+            "server": 86.56
+          },
+          "stress_goodput_mbps": {
+            "c2s": 9.97248,
+            "s2c": 9.970112
+          },
+          "stress_probe": {
+            "p95_ns": 621194783,
+            "p99_ns": 622614336,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 3.36774352,
+            "s2c": 3.3834586
+          }
+        },
+        {
+          "run": 37140885487,
+          "identity": [
+            "game",
+            "lossless",
+            101,
+            3,
+            4
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 80.7,
+            "server": 74.73
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.000066133333333,
+            "s2c": 3.000032
+          },
+          "stress_probe": {
+            "p95_ns": 604593435,
+            "p99_ns": 604996142,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 12.844730086717842,
+            "s2c": 12.903249761332908
+          }
+        },
+        {
+          "run": 37140890828,
+          "identity": [
+            "game",
+            "lossless",
+            202,
+            3,
+            4
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 88.88,
+            "server": 83.88
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.0000746666666664,
+            "s2c": 3.000032
+          },
+          "stress_probe": {
+            "p95_ns": 605124024,
+            "p99_ns": 605556368,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 12.848906649434502,
+            "s2c": 12.907983734627049
+          }
+        },
+        {
+          "run": 37140899399,
+          "identity": [
+            "game",
+            "lossless",
+            303,
+            3,
+            4
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 89.41,
+            "server": 84.27
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.000032,
+            "s2c": 3.000032
+          },
+          "stress_probe": {
+            "p95_ns": 602493633,
+            "p99_ns": 602752069,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 12.849964289777677,
+            "s2c": 12.90774962934256
+          }
+        },
+        {
+          "run": 37140881784,
+          "identity": [
+            "game",
+            "5205",
+            101,
+            3,
+            4
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 67.84,
+            "server": 62.89
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.0000746666666664,
+            "s2c": 2.999872
+          },
+          "stress_probe": {
+            "p95_ns": 607692899,
+            "p99_ns": 608469656,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 14.151245257895804,
+            "s2c": 14.219505425642739
+          }
+        },
+        {
+          "run": 37140893625,
+          "identity": [
+            "game",
+            "5205",
+            202,
+            3,
+            4
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 105.97,
+            "server": 99.28
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.0000746666666664,
+            "s2c": 3.000032
+          },
+          "stress_probe": {
+            "p95_ns": 602753126,
+            "p99_ns": 603469116,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 14.149403659286703,
+            "s2c": 14.220680574172377
+          }
+        },
+        {
+          "run": 37140902370,
+          "identity": [
+            "game",
+            "5205",
+            303,
+            3,
+            4
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 57.54,
+            "server": 53.79
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.0000746666666664,
+            "s2c": 3.000066133333333
+          },
+          "stress_probe": {
+            "p95_ns": 601712013,
+            "p99_ns": 602010358,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 14.155470863836278,
+            "s2c": 14.225210994748576
+          }
+        },
+        {
+          "run": 37140883124,
+          "identity": [
+            "game",
+            "5305",
+            101,
+            3,
+            4
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 72.99,
+            "server": 68.4
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.0000576,
+            "s2c": 3.000066133333333
+          },
+          "stress_probe": {
+            "p95_ns": 601950910,
+            "p99_ns": 602051229,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 13.91468105682703,
+            "s2c": 13.976005908297394
+          }
+        },
+        {
+          "run": 37140896538,
+          "identity": [
+            "game",
+            "5305",
+            202,
+            3,
+            4
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 60.28,
+            "server": 57.25
+          },
+          "stress_goodput_mbps": {
+            "c2s": 2.9999146666666667,
+            "s2c": 2.9999146666666667
+          },
+          "stress_probe": {
+            "p95_ns": 608710749,
+            "p99_ns": 610157843,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 13.911623444038726,
+            "s2c": 13.976586249408903
+          }
+        },
+        {
+          "run": 37140905260,
+          "identity": [
+            "game",
+            "5305",
+            303,
+            3,
+            4
+          ],
+          "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+          "classifications": {
+            "CAPTURE": "PASS",
+            "CORRECTNESS": "PASS",
+            "ENVIRONMENT": "PASS",
+            "INPUT_VALIDITY": "PASS",
+            "PERFORMANCE": "PASS"
+          },
+          "socket_drop_max": 0,
+          "cpu_seconds": {
+            "client": 101.39,
+            "server": 95.19
+          },
+          "stress_goodput_mbps": {
+            "c2s": 3.000032,
+            "s2c": 3.000066133333333
+          },
+          "stress_probe": {
+            "p95_ns": 603885113,
+            "p99_ns": 617285781,
+            "received": 60,
+            "sent": 60
+          },
+          "outer_ip_per_app": {
+            "c2s": 13.912064166402969,
+            "s2c": 13.976449875025333
+          }
+        }
+      ],
+      "collection_errors": []
+    },
+    "artifact": 11279519959,
+    "qualification": "18 independent120s lossless/5205/5305; three seeds per Normal1/Game4; aggregate revision2 with paired phase RTT PASS"
+  }
 }

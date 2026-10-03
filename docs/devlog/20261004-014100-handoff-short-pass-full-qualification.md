@@ -29,3 +29,7 @@ P5换代返工验证。真正测试及后续打包SOURCE_SHA固定2b2bd9eb106d7c
 ## 下一项原子任务
 
 读取完整78及严格18原始回执，审计两1800s逐秒损失、内部queue、尾延迟、heap平台期及停流排空；全通过后同SOURCE P6三目标包/manifest/hash/独立receipt核验，才可标hosted完成/可交物理。任一真失败保留原样，窄修后新SOURCE重新资格，不凭本日志提前关闭P5/P6。唯一交接入口STATUS；不要继续微优化或改用户负载。
+
+## 01:44追加：严格18同SOURCE收口
+
+Controller37140877004 SUCCESS。aggregate source2b2全40位、sample_count18、revision2/result PASS、errors空；campaign18回执、collection_errors空。artifact11279519959 ZIPsha2564187ff4e26c2b5779e009cdc26d1463d015b31fed5b6a87f756ae1186dc43c7c已只读核验。18份原始run receipt与按阶段配对RTT汇总进入evidence/rotation-handoff-2b2bd9e.json。此为同源码120s弱网资格，不替代正在进行的1800s换代长测；完整78/配置/P6与P7状态仍未关闭。
