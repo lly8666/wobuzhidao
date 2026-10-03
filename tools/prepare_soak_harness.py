@@ -25,7 +25,7 @@ def main():
             'printf \'%s\\n\' "$START_NS" > "$ART/start-monotonic-ns.txt"\npython3 -c \'import time,sys;print(time.time_ns()+int(sys.argv[1])-time.monotonic_ns())\' "$START_NS" > "$ART/start-unix-ns.txt"')
     # Write the immutable manifest before offline capture processing, including
     # when processing fails. Measurement and capture content stay unchanged.
-    replace('chmod -R a+rX "$ART"',f'python3 tools/soak_capture.py --artifact-dir "$ART" --duration {x.duration}\n\nchmod -R a+rX "$ART"')
+    replace('\nPY\n\nchmod -R a+rX "$ART"',f'\nPY\n\npython3 tools/soak_capture.py --artifact-dir "$ART" --duration {x.duration}\n\nchmod -R a+rX "$ART"')
     replace('"one_way_delay_ms": 300, "duration_s": 120, "stages_s": [30, 60, 30],',f'"one_way_delay_ms": 300, "duration_s": {x.duration}, "stages_s": None,')
     replace('"drain_s": 10,','"drain_s": 60,')
     replace('"schema": 1, "source_sha": source, "harness_sha": source,','"schema": "wbd-target-soak/v1", "source_sha": source, "harness_sha": source,')
