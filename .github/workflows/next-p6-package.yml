@@ -1,0 +1,9 @@
+name: next-p6-package
+on:
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  register:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo 'Registration only. Dispatch against frozen product ref.'; exit 1
