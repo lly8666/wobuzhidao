@@ -1,0 +1,11 @@
+{
+  "stage": 1,
+  "source_sha": "0f8572e98e45bf813831dd72bb72c395764adab4",
+  "dispatch_ref": "perf-fixed/0f8572e98e45bf813831dd72bb72c395764adab4",
+  "foundation_run": 37098792834,
+  "baseline_source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+  "baseline_artifacts": {
+    "normal": 11262514748,
+    "game": 11262850487
+  }
+}
