@@ -19,26 +19,34 @@ for id in req['required_runs']:
         time.sleep(20)
 titles={p['title']:p for p in req['samples']}
 if len(titles)!=len(req['samples']):raise SystemExit('duplicate plan identity')
+for p in titles.values():
+    sample_ref=p.get('ref',ref)
+    if not re.fullmatch(r'perf-fixed/'+sha+r'(?:-r\d+)?',sample_ref):raise SystemExit('sample frozen ref invalid')
+    if subprocess.check_output(['git','ls-remote','origin','refs/heads/'+sample_ref]).decode().split()[0]!=sha:raise SystemExit('sample source mismatch')
 for title,p in titles.items():
-    if p['workflow'] not in ['next-target-soak.yml','next-config-effective.yml','next-p6-package.yml']:raise SystemExit('unsupported workflow')
-    existing=[r for r in api(f'repos/{repo}/actions/runs?event=workflow_dispatch&branch={ref}&per_page=100')['workflow_runs'] if r['head_sha']==sha and r['display_title']==title]
+    if p['workflow'] not in ['next-target-soak.yml','next-config-effective.yml','next-p6-package.yml','next-lifecycle-fullstack.yml','next-shared-blackhole.yml']:raise SystemExit('unsupported workflow')
+    sample_ref=p.get('ref',ref);run_title=p.get('run_title',title)
+    existing=[r for r in api(f'repos/{repo}/actions/runs?event=workflow_dispatch&branch={sample_ref}&per_page=100')['workflow_runs'] if r['head_sha']==sha and r['display_title']==run_title]
     if len(existing)>1:raise SystemExit('duplicate existing run identity')
     if existing:
         if not existing[0]['path'].startswith('.github/workflows/'+p['workflow']):raise SystemExit('existing workflow identity mismatch')
         print('REUSE ORIGINAL '+title,flush=True)
         continue
-    cmd=['gh','workflow','run',p['workflow'],'--ref',ref]
+    cmd=['gh','workflow','run',p['workflow'],'--ref',sample_ref]
     for k,v in p['inputs'].items():cmd+=['-f',f'{k}={v}']
     subprocess.check_call(cmd)
     print('DISPATCH '+title,flush=True)
 deadline=time.monotonic()+80*60
 while True:
-    rs=api(f'repos/{repo}/actions/runs?event=workflow_dispatch&branch={ref}&per_page=100')['workflow_runs']
+    rs=[]
+    for sample_ref in sorted({p.get('ref',ref) for p in titles.values()}):
+        rs+=api(f'repos/{repo}/actions/runs?event=workflow_dispatch&branch={sample_ref}&per_page=100')['workflow_runs']
     matches={}
     for r in rs:
-        if r['head_sha']==sha and r['display_title'] in titles:
-            if r['display_title'] in matches:raise SystemExit('duplicate run identity')
-            matches[r['display_title']]=r
+        for title,p in titles.items():
+            if r['head_sha']==sha and r['head_branch']==p.get('ref',ref) and r['display_title']==p.get('run_title',title):
+                if title in matches:raise SystemExit('duplicate run identity')
+                matches[title]=r
     print(f'PROGRESS {len(matches)}/{len(titles)} completed={sum(r["status"]=="completed" for r in matches.values())}',flush=True)
     if len(matches)==len(titles) and all(r['status']=='completed' for r in matches.values()):break
     if time.monotonic()>deadline:raise SystemExit('campaign incomplete')

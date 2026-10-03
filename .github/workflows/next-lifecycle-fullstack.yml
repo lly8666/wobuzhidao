@@ -1,0 +1,10 @@
+name: next-lifecycle-fullstack
+on: {workflow_dispatch: {}}
+permissions: {contents: read}
+jobs:
+  register:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          echo 'Registration only. Dispatch immutable perf-fixed source branch.'
+          exit 1

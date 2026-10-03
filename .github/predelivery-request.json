@@ -1,12 +1,642 @@
 {
-  "campaign": "rotation-repaired-canaries",
-  "source_sha": "eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
-  "ref": "perf-fixed/eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
+  "campaign": "full-prephysical-configuration-conditions-soak-package",
+  "source_sha": "70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+  "ref": "perf-fixed/70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
   "required_runs": [
-    37121335125,
-    37121335185
+    37122380595,
+    37122380603
   ],
   "samples": [
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f0-l1-p0",
+      "inputs": {
+        "case_id": "f0-l1-p0"
+      },
+      "artifact": "config-summary-f0-l1-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f0-l1-p1",
+      "inputs": {
+        "case_id": "f0-l1-p1"
+      },
+      "artifact": "config-summary-f0-l1-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f0-l2-p0",
+      "inputs": {
+        "case_id": "f0-l2-p0"
+      },
+      "artifact": "config-summary-f0-l2-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f0-l2-p1",
+      "inputs": {
+        "case_id": "f0-l2-p1"
+      },
+      "artifact": "config-summary-f0-l2-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f0-l3-p0",
+      "inputs": {
+        "case_id": "f0-l3-p0"
+      },
+      "artifact": "config-summary-f0-l3-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f0-l3-p1",
+      "inputs": {
+        "case_id": "f0-l3-p1"
+      },
+      "artifact": "config-summary-f0-l3-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f0-l4-p0",
+      "inputs": {
+        "case_id": "f0-l4-p0"
+      },
+      "artifact": "config-summary-f0-l4-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f0-l4-p1",
+      "inputs": {
+        "case_id": "f0-l4-p1"
+      },
+      "artifact": "config-summary-f0-l4-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-json-f0",
+      "inputs": {
+        "case_id": "json-f0"
+      },
+      "artifact": "config-summary-json-f0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f4-l1-p0",
+      "inputs": {
+        "case_id": "f4-l1-p0"
+      },
+      "artifact": "config-summary-f4-l1-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f4-l1-p1",
+      "inputs": {
+        "case_id": "f4-l1-p1"
+      },
+      "artifact": "config-summary-f4-l1-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f4-l2-p0",
+      "inputs": {
+        "case_id": "f4-l2-p0"
+      },
+      "artifact": "config-summary-f4-l2-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f4-l2-p1",
+      "inputs": {
+        "case_id": "f4-l2-p1"
+      },
+      "artifact": "config-summary-f4-l2-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f4-l3-p0",
+      "inputs": {
+        "case_id": "f4-l3-p0"
+      },
+      "artifact": "config-summary-f4-l3-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f4-l3-p1",
+      "inputs": {
+        "case_id": "f4-l3-p1"
+      },
+      "artifact": "config-summary-f4-l3-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f4-l4-p0",
+      "inputs": {
+        "case_id": "f4-l4-p0"
+      },
+      "artifact": "config-summary-f4-l4-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f4-l4-p1",
+      "inputs": {
+        "case_id": "f4-l4-p1"
+      },
+      "artifact": "config-summary-f4-l4-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-json-f4",
+      "inputs": {
+        "case_id": "json-f4"
+      },
+      "artifact": "config-summary-json-f4-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f8-l1-p0",
+      "inputs": {
+        "case_id": "f8-l1-p0"
+      },
+      "artifact": "config-summary-f8-l1-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f8-l1-p1",
+      "inputs": {
+        "case_id": "f8-l1-p1"
+      },
+      "artifact": "config-summary-f8-l1-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f8-l2-p0",
+      "inputs": {
+        "case_id": "f8-l2-p0"
+      },
+      "artifact": "config-summary-f8-l2-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f8-l2-p1",
+      "inputs": {
+        "case_id": "f8-l2-p1"
+      },
+      "artifact": "config-summary-f8-l2-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f8-l3-p0",
+      "inputs": {
+        "case_id": "f8-l3-p0"
+      },
+      "artifact": "config-summary-f8-l3-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f8-l3-p1",
+      "inputs": {
+        "case_id": "f8-l3-p1"
+      },
+      "artifact": "config-summary-f8-l3-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f8-l4-p0",
+      "inputs": {
+        "case_id": "f8-l4-p0"
+      },
+      "artifact": "config-summary-f8-l4-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f8-l4-p1",
+      "inputs": {
+        "case_id": "f8-l4-p1"
+      },
+      "artifact": "config-summary-f8-l4-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-json-f8",
+      "inputs": {
+        "case_id": "json-f8"
+      },
+      "artifact": "config-summary-json-f8-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f10-l1-p0",
+      "inputs": {
+        "case_id": "f10-l1-p0"
+      },
+      "artifact": "config-summary-f10-l1-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f10-l1-p1",
+      "inputs": {
+        "case_id": "f10-l1-p1"
+      },
+      "artifact": "config-summary-f10-l1-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f10-l2-p0",
+      "inputs": {
+        "case_id": "f10-l2-p0"
+      },
+      "artifact": "config-summary-f10-l2-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f10-l2-p1",
+      "inputs": {
+        "case_id": "f10-l2-p1"
+      },
+      "artifact": "config-summary-f10-l2-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f10-l3-p0",
+      "inputs": {
+        "case_id": "f10-l3-p0"
+      },
+      "artifact": "config-summary-f10-l3-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f10-l3-p1",
+      "inputs": {
+        "case_id": "f10-l3-p1"
+      },
+      "artifact": "config-summary-f10-l3-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f10-l4-p0",
+      "inputs": {
+        "case_id": "f10-l4-p0"
+      },
+      "artifact": "config-summary-f10-l4-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f10-l4-p1",
+      "inputs": {
+        "case_id": "f10-l4-p1"
+      },
+      "artifact": "config-summary-f10-l4-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-json-f10",
+      "inputs": {
+        "case_id": "json-f10"
+      },
+      "artifact": "config-summary-json-f10-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f12-l1-p0",
+      "inputs": {
+        "case_id": "f12-l1-p0"
+      },
+      "artifact": "config-summary-f12-l1-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f12-l1-p1",
+      "inputs": {
+        "case_id": "f12-l1-p1"
+      },
+      "artifact": "config-summary-f12-l1-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f12-l2-p0",
+      "inputs": {
+        "case_id": "f12-l2-p0"
+      },
+      "artifact": "config-summary-f12-l2-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f12-l2-p1",
+      "inputs": {
+        "case_id": "f12-l2-p1"
+      },
+      "artifact": "config-summary-f12-l2-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f12-l3-p0",
+      "inputs": {
+        "case_id": "f12-l3-p0"
+      },
+      "artifact": "config-summary-f12-l3-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f12-l3-p1",
+      "inputs": {
+        "case_id": "f12-l3-p1"
+      },
+      "artifact": "config-summary-f12-l3-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f12-l4-p0",
+      "inputs": {
+        "case_id": "f12-l4-p0"
+      },
+      "artifact": "config-summary-f12-l4-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f12-l4-p1",
+      "inputs": {
+        "case_id": "f12-l4-p1"
+      },
+      "artifact": "config-summary-f12-l4-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-json-f12",
+      "inputs": {
+        "case_id": "json-f12"
+      },
+      "artifact": "config-summary-json-f12-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f16-l1-p0",
+      "inputs": {
+        "case_id": "f16-l1-p0"
+      },
+      "artifact": "config-summary-f16-l1-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f16-l1-p1",
+      "inputs": {
+        "case_id": "f16-l1-p1"
+      },
+      "artifact": "config-summary-f16-l1-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f16-l2-p0",
+      "inputs": {
+        "case_id": "f16-l2-p0"
+      },
+      "artifact": "config-summary-f16-l2-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f16-l2-p1",
+      "inputs": {
+        "case_id": "f16-l2-p1"
+      },
+      "artifact": "config-summary-f16-l2-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f16-l3-p0",
+      "inputs": {
+        "case_id": "f16-l3-p0"
+      },
+      "artifact": "config-summary-f16-l3-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f16-l3-p1",
+      "inputs": {
+        "case_id": "f16-l3-p1"
+      },
+      "artifact": "config-summary-f16-l3-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f16-l4-p0",
+      "inputs": {
+        "case_id": "f16-l4-p0"
+      },
+      "artifact": "config-summary-f16-l4-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f16-l4-p1",
+      "inputs": {
+        "case_id": "f16-l4-p1"
+      },
+      "artifact": "config-summary-f16-l4-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-json-f16",
+      "inputs": {
+        "case_id": "json-f16"
+      },
+      "artifact": "config-summary-json-f16-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f20-l1-p0",
+      "inputs": {
+        "case_id": "f20-l1-p0"
+      },
+      "artifact": "config-summary-f20-l1-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f20-l1-p1",
+      "inputs": {
+        "case_id": "f20-l1-p1"
+      },
+      "artifact": "config-summary-f20-l1-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f20-l2-p0",
+      "inputs": {
+        "case_id": "f20-l2-p0"
+      },
+      "artifact": "config-summary-f20-l2-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f20-l2-p1",
+      "inputs": {
+        "case_id": "f20-l2-p1"
+      },
+      "artifact": "config-summary-f20-l2-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f20-l3-p0",
+      "inputs": {
+        "case_id": "f20-l3-p0"
+      },
+      "artifact": "config-summary-f20-l3-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f20-l3-p1",
+      "inputs": {
+        "case_id": "f20-l3-p1"
+      },
+      "artifact": "config-summary-f20-l3-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f20-l4-p0",
+      "inputs": {
+        "case_id": "f20-l4-p0"
+      },
+      "artifact": "config-summary-f20-l4-p0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f20-l4-p1",
+      "inputs": {
+        "case_id": "f20-l4-p1"
+      },
+      "artifact": "config-summary-f20-l4-p1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-json-f20",
+      "inputs": {
+        "case_id": "json-f20"
+      },
+      "artifact": "config-summary-json-f20-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-defaults",
+      "inputs": {
+        "case_id": "defaults"
+      },
+      "artifact": "config-summary-defaults-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-mtu1280-reverse0",
+      "inputs": {
+        "case_id": "mtu1280-reverse0"
+      },
+      "artifact": "config-summary-mtu1280-reverse0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-mtu1280-reverse1",
+      "inputs": {
+        "case_id": "mtu1280-reverse1"
+      },
+      "artifact": "config-summary-mtu1280-reverse1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-mtu1400-reverse0",
+      "inputs": {
+        "case_id": "mtu1400-reverse0"
+      },
+      "artifact": "config-summary-mtu1400-reverse0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-mtu1400-reverse1",
+      "inputs": {
+        "case_id": "mtu1400-reverse1"
+      },
+      "artifact": "config-summary-mtu1400-reverse1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-mtu1500-reverse0",
+      "inputs": {
+        "case_id": "mtu1500-reverse0"
+      },
+      "artifact": "config-summary-mtu1500-reverse0-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-mtu1500-reverse1",
+      "inputs": {
+        "case_id": "mtu1500-reverse1"
+      },
+      "artifact": "config-summary-mtu1500-reverse1-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-config.json"
+    },
     {
       "workflow": "next-target-soak.yml",
       "title": "soak-normal-180s-seed404",
@@ -15,7 +645,18 @@
         "duration": "180",
         "seed": "404"
       },
-      "artifact": "soak-summary-normal-180-404-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
+      "artifact": "soak-summary-normal-180-404-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-soak.json"
+    },
+    {
+      "workflow": "next-target-soak.yml",
+      "title": "soak-normal-1800s-seed404",
+      "inputs": {
+        "mode": "normal",
+        "duration": "1800",
+        "seed": "404"
+      },
+      "artifact": "soak-summary-normal-1800-404-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
       "summary": "summary-soak.json"
     },
     {
@@ -26,53 +667,57 @@
         "duration": "180",
         "seed": "404"
       },
-      "artifact": "soak-summary-game-180-404-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
+      "artifact": "soak-summary-game-180-404-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
       "summary": "summary-soak.json"
     },
     {
-      "workflow": "next-config-effective.yml",
-      "title": "config-f0-l1-p0",
+      "workflow": "next-target-soak.yml",
+      "title": "soak-game-1800s-seed404",
       "inputs": {
-        "case_id": "f0-l1-p0"
+        "mode": "game",
+        "duration": "1800",
+        "seed": "404"
       },
-      "artifact": "config-summary-f0-l1-p0-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
-      "summary": "summary-config.json"
+      "artifact": "soak-summary-game-1800-404-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-soak.json"
     },
     {
-      "workflow": "next-config-effective.yml",
-      "title": "config-f20-l4-p1",
-      "inputs": {
-        "case_id": "f20-l4-p1"
-      },
-      "artifact": "config-summary-f20-l4-p1-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
-      "summary": "summary-config.json"
+      "workflow": "next-lifecycle-fullstack.yml",
+      "title": "next-lifecycle-fullstack",
+      "inputs": {},
+      "artifact": "lifecycle-aggregate-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary.json"
     },
     {
-      "workflow": "next-config-effective.yml",
-      "title": "config-json-f10",
-      "inputs": {
-        "case_id": "json-f10"
-      },
-      "artifact": "config-summary-json-f10-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
-      "summary": "summary-config.json"
+      "workflow": "next-p6-package.yml",
+      "title": "package-prephysical",
+      "inputs": {},
+      "artifact": "package-summary-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-package.json"
     },
     {
-      "workflow": "next-config-effective.yml",
-      "title": "config-mtu1280-reverse1",
+      "workflow": "next-shared-blackhole.yml",
+      "title": "blackhole-100ms",
+      "run_title": "next-shared-blackhole",
+      "ref": "perf-fixed/70bd257ec249f9e2c7219ea2810ff9209ade6d6a-r3",
       "inputs": {
-        "case_id": "mtu1280-reverse1"
+        "blackout_ms": "100",
+        "seed": "601"
       },
-      "artifact": "config-summary-mtu1280-reverse1-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
-      "summary": "summary-config.json"
+      "artifact": "blackhole-summary-100ms-seed601-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-blackhole-v1.json"
     },
     {
-      "workflow": "next-config-effective.yml",
-      "title": "config-defaults",
+      "workflow": "next-shared-blackhole.yml",
+      "title": "blackhole-500ms",
+      "run_title": "next-shared-blackhole",
+      "ref": "perf-fixed/70bd257ec249f9e2c7219ea2810ff9209ade6d6a-r4",
       "inputs": {
-        "case_id": "defaults"
+        "blackout_ms": "500",
+        "seed": "601"
       },
-      "artifact": "config-summary-defaults-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
-      "summary": "summary-config.json"
+      "artifact": "blackhole-summary-500ms-seed601-70bd257ec249f9e2c7219ea2810ff9209ade6d6a",
+      "summary": "summary-blackhole-v1.json"
     }
   ]
 }
