@@ -1,19 +1,41 @@
 {
-  "campaign": "corrected-live-config-canaries",
-  "source_sha": "051fd17797a56ba029ae8eaf91b1de8658be36b5",
-  "ref": "perf-fixed/051fd17797a56ba029ae8eaf91b1de8658be36b5",
+  "campaign": "rotation-repaired-canaries",
+  "source_sha": "eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
+  "ref": "perf-fixed/eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
   "required_runs": [
-    37120538605,
-    37120538607
+    37121335125,
+    37121335185
   ],
   "samples": [
+    {
+      "workflow": "next-target-soak.yml",
+      "title": "soak-normal-180s-seed404",
+      "inputs": {
+        "mode": "normal",
+        "duration": "180",
+        "seed": "404"
+      },
+      "artifact": "soak-summary-normal-180-404-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
+      "summary": "summary-soak.json"
+    },
+    {
+      "workflow": "next-target-soak.yml",
+      "title": "soak-game-180s-seed404",
+      "inputs": {
+        "mode": "game",
+        "duration": "180",
+        "seed": "404"
+      },
+      "artifact": "soak-summary-game-180-404-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
+      "summary": "summary-soak.json"
+    },
     {
       "workflow": "next-config-effective.yml",
       "title": "config-f0-l1-p0",
       "inputs": {
         "case_id": "f0-l1-p0"
       },
-      "artifact": "config-summary-f0-l1-p0-051fd17797a56ba029ae8eaf91b1de8658be36b5",
+      "artifact": "config-summary-f0-l1-p0-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
       "summary": "summary-config.json"
     },
     {
@@ -22,7 +44,7 @@
       "inputs": {
         "case_id": "f20-l4-p1"
       },
-      "artifact": "config-summary-f20-l4-p1-051fd17797a56ba029ae8eaf91b1de8658be36b5",
+      "artifact": "config-summary-f20-l4-p1-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
       "summary": "summary-config.json"
     },
     {
@@ -31,7 +53,7 @@
       "inputs": {
         "case_id": "json-f10"
       },
-      "artifact": "config-summary-json-f10-051fd17797a56ba029ae8eaf91b1de8658be36b5",
+      "artifact": "config-summary-json-f10-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
       "summary": "summary-config.json"
     },
     {
@@ -40,7 +62,7 @@
       "inputs": {
         "case_id": "mtu1280-reverse1"
       },
-      "artifact": "config-summary-mtu1280-reverse1-051fd17797a56ba029ae8eaf91b1de8658be36b5",
+      "artifact": "config-summary-mtu1280-reverse1-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
       "summary": "summary-config.json"
     },
     {
@@ -49,7 +71,7 @@
       "inputs": {
         "case_id": "defaults"
       },
-      "artifact": "config-summary-defaults-051fd17797a56ba029ae8eaf91b1de8658be36b5",
+      "artifact": "config-summary-defaults-eb03fae1c27a7eb06ca9141b0d6371f5591125bb",
       "summary": "summary-config.json"
     }
   ]

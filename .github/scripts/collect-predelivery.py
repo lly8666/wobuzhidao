@@ -21,6 +21,12 @@ titles={p['title']:p for p in req['samples']}
 if len(titles)!=len(req['samples']):raise SystemExit('duplicate plan identity')
 for title,p in titles.items():
     if p['workflow'] not in ['next-target-soak.yml','next-config-effective.yml','next-p6-package.yml']:raise SystemExit('unsupported workflow')
+    existing=[r for r in api(f'repos/{repo}/actions/runs?event=workflow_dispatch&branch={ref}&per_page=100')['workflow_runs'] if r['head_sha']==sha and r['display_title']==title]
+    if len(existing)>1:raise SystemExit('duplicate existing run identity')
+    if existing:
+        if not existing[0]['path'].startswith('.github/workflows/'+p['workflow']):raise SystemExit('existing workflow identity mismatch')
+        print('REUSE ORIGINAL '+title,flush=True)
+        continue
     cmd=['gh','workflow','run',p['workflow'],'--ref',ref]
     for k,v in p['inputs'].items():cmd+=['-f',f'{k}={v}']
     subprocess.check_call(cmd)
