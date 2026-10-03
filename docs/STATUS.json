@@ -68,9 +68,9 @@
     "V10.2产品56eb5413c3cf2e559b82026e8a5783508764e2f4：新冻结ref正式120s final18（每run一条）18/18五分类及revision2 artifact-only完整矩阵/配对RTT PASS，aggregate37065816473/artifact11252477679；全部socket drop0，无损repair/abandoned0。仅120s资格，不关闭目标负载>=30min/P6/P7。",
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。"
   ],
-  "in_progress": "FEC_BANDWIDTH_FINAL18_PASS_LONG_SOAK_PENDING：产品f240d5177c6a8aaa02de570079926b2600c480fd带宽子任务ACTIONS_PASS，Normal倍率3.19–3.51、Game4 13.28–14.22，省35–38%；18/18五分类与配对RTT PASS。Normal30%最差loss1.35%较旧0.22%变差，符合现门但保留风险。P5长测/P6/P7未完成。",
-  "next_task": "只实现有界目标负载长测工具，产品固定f240d5177c6a8aaa02de570079926b2600c480fd；保持FEC20:20固定3长度组/8ms、repair、Game、buffer不变。按DEVELOPMENT_PLAN长测bitset/有界统计/分块捕获/manifest设计，工具unit与缩短单条DIAGNOSTIC_ONLY在Actions通过后，Normal10M与Game4逻辑3M分别独立1800s。追踪Normal5305 seed202最差1.35%损失时间链，报告CPU/RSS/outer成本/drop/恢复，不无证据改算法。",
-  "latest_log": "docs/devlog/20261003-112000-fec-bandwidth-final18-pass.md",
+  "in_progress": "RESOURCE_OPTIMIZATION_STAGE1_NOT_RUN：按用户顺序做有效FEC计算->复制->ACK->批量I/O，每项unit/race及独立Normal/Game5205通过后才继续；当前仅阶段1代码候选。",
+  "next_task": "验收阶段1全量unit/build/race，然后冻结完整SHA，Normal10M/1lane和Game逻辑3M/4lane分别独立5205单条Action，核对原五分类/RTT/CPU/drop/cost；过关后进入阶段2ownership与加解密复制。不得混改8ms/FEC/Game/缓存，不继承全矩阵/长测资格。",
+  "latest_log": "docs/devlog/20261003-120000-stage1-active-fec-5205.md",
   "last_tested_source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
   "actions": [
     {
@@ -2079,7 +2079,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "FEC_BANDWIDTH_FINAL18_PASS_LONG_SOAK_PENDING",
+      "status": "RESOURCE_OPTIMIZATION_STAGE1_NOT_RUN",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -2090,9 +2090,9 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20261003-112000-fec-bandwidth-final18-pass.md",
+      "latest_log": "docs/devlog/20261003-120000-stage1-active-fec-5205.md",
       "note": "V10.1 final18 is permanently 17 PASS / 1 CAPACITY_LIMITED. The remaining drop is the product-owned client TPROXY UDP ingress socket; V10.2 mirrors the server-side bounded drain/send decoupling on the client ingress without changing repair/FEC/wire or kernel socket buffers.",
-      "next_task": "只实现有界目标负载长测工具，产品固定f240d5177c6a8aaa02de570079926b2600c480fd；保持FEC20:20固定3长度组/8ms、repair、Game、buffer不变。按DEVELOPMENT_PLAN长测bitset/有界统计/分块捕获/manifest设计，工具unit与缩短单条DIAGNOSTIC_ONLY在Actions通过后，Normal10M与Game4逻辑3M分别独立1800s。追踪Normal5305 seed202最差1.35%损失时间链，报告CPU/RSS/outer成本/drop/恢复，不无证据改算法。",
+      "next_task": "验收阶段1全量unit/build/race，然后冻结完整SHA，Normal10M/1lane和Game逻辑3M/4lane分别独立5205单条Action，核对原五分类/RTT/CPU/drop/cost；过关后进入阶段2ownership与加解密复制。不得混改8ms/FEC/Game/缓存，不继承全矩阵/长测资格。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -6369,6 +6369,35 @@
         ],
         "quality_tradeoff": "Normal5305 worst loss1.35% vsold0.22%; loss-tolerant gate PASS, not unchanged quality",
         "long_soak": "NOT_RUN"
+      },
+      "resource_optimization_sequence": {
+        "user_policy": "each atomic optimization -> Actions unit/race -> independent5205 -> next",
+        "initial_baseline_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+        "current_stage": 1,
+        "stages": [
+          {
+            "stage": 1,
+            "name": "active FEC computation",
+            "status": "NOT_RUN",
+            "latest_log": "docs/devlog/20261003-120000-stage1-active-fec-5205.md"
+          },
+          {
+            "stage": 2,
+            "name": "crypto/owned transfer copies",
+            "status": "NOT_RUN"
+          },
+          {
+            "stage": 3,
+            "name": "bounded pure ACK coalescing",
+            "status": "NOT_RUN"
+          },
+          {
+            "stage": 4,
+            "name": "ready-packet batch I/O",
+            "status": "NOT_RUN"
+          }
+        ],
+        "fec_flush_tuning": "DEFERRED: changes quality; do not mix with equivalent optimizations"
       }
     }
   }

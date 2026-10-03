@@ -244,3 +244,6 @@ Game4逻辑3Mbps lossless 已在 run 35818718764 / job 107045770392 全门PASS�
 固定新增两个小组约65KB/lane，不按流无限增长；最多57 pending sources/3 pending blocks，原decoder边界不扩大。统计source/parity bytes/count、size_classes、pending_blocks保持可核验。unit验证wire/恢复/期限/回绕/ownership后用原严格真实路径120s、混合64/256/1200B、300ms单向、Normal10M/Game4逻辑3M、padding off和FEC20:20验收。每性能Action run一条，首次canary独立，再正式重复。主目标为降低outer IP/app比例；无损满速/0loss、完整性、RTT、容量和弱网恢复原门不得放宽。具体已测状态只看STATUS；旧final18不能继承给新产品。
 
 2026-10-03带宽资格更新：产品f240d5177c6a8aaa02de570079926b2600c480fd完成正式18独立120s与revision2 aggregate/RTT PASS；Normal IP/input3.19–3.51、Game4 13.28–14.22，省35–38%。不是恢复质量完全不变：Normal5305最差loss1.35%（旧0.22%），符合用户有损目标但继续关注最差时间链。详见STATUS/evidence/fec20-size-class-bandwidth.json。原长测工具计划恢复，后续产品基线固定此SHA，不再用56eb541；P5长测/P6/P7仍NOT_RUN。
+
+## 2026-10-03 用户指定资源优化顺序
+暂停长测框架开发，依次：有效FEC运算、加解密/ownership复制、有限ACK合并、已就绪批量I/O。每项独立提交，Actions unit/build/race通过后冻结精确SHA；Normal1双向10M和Game4逻辑3M分别独立5205（300ms单向、FEC20:20、混合包、120s），原门不放宽，过关才下一项。仅targeted资格，最终产品仍需完整矩阵/长测/P6/P7。FEC deadline16/32ms属于改变质量的另项，不与四项等价优化混测。

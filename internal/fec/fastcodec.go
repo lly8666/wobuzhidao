@@ -47,15 +47,26 @@ func xorMul(out, in []byte, coef byte) {
 }
 
 func (r *FastReedSolomon20x20) Encode(shards [][]byte) error {
+	return r.EncodeActive(shards, DataShards, ParityShards)
+}
+
+// EncodeActive computes the leading parity rows for a shortened systematic
+// block. Sources [dataCount,20) must be authoritative known-zero slots. The
+// block encoder establishes that invariant before calling this method. Rows
+// outside parityCount are neither computed nor used on the wire.
+func (r *FastReedSolomon20x20) EncodeActive(shards [][]byte, dataCount, parityCount int) error {
+	if dataCount < 1 || dataCount > DataShards || parityCount < 1 || parityCount > ParityShards {
+		return ErrInvalidShardSet
+	}
 	_, err := validateShards(shards)
 	if err != nil {
 		return err
 	}
-	for p := 0; p < ParityShards; p++ {
+	for p := 0; p < parityCount; p++ {
 		out := shards[DataShards+p]
 		clear(out)
 		row := r.generator[DataShards+p]
-		for d := 0; d < DataShards; d++ {
+		for d := 0; d < dataCount; d++ {
 			xorMul(out, shards[d], row[d])
 		}
 	}

@@ -34,6 +34,7 @@ type FastBlockEncoderStats struct {
 
 type FastBlockEncoder struct {
 	codec         Codec
+	activeCodec   activeParityEncoder
 	parityShards  int
 	maxPacketSize int
 	flushAfter    time.Duration
@@ -49,6 +50,10 @@ type FastBlockEncoder struct {
 	stats         FastBlockEncoderStats
 }
 
+type activeParityEncoder interface {
+	EncodeActive(shards [][]byte, dataCount, parityCount int) error
+}
+
 func NewFastBlockEncoder(codec Codec, maxPacketSize int, flushAfter time.Duration, firstBlockID uint32) (*FastBlockEncoder, error) {
 	return NewFastBlockEncoderWithParity(codec, maxPacketSize, flushAfter, firstBlockID, ParityShards)
 }
@@ -60,6 +65,7 @@ func NewFastBlockEncoderWithParity(codec Codec, maxPacketSize int, flushAfter ti
 	e := &FastBlockEncoder{
 		codec: codec, parityShards: parityShards, maxPacketSize: maxPacketSize, flushAfter: flushAfter, nextBlockID: firstBlockID,
 	}
+	e.activeCodec, _ = codec.(activeParityEncoder)
 	for i := 0; i < TotalShards; i++ {
 		e.shardBuf[i] = make([]byte, maxPacketSize)
 		e.wireBuf[i] = make([]byte, HeaderSize+maxPacketSize)
@@ -141,7 +147,17 @@ func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 	for i := 0; i < TotalShards; i++ {
 		e.shardView[i] = e.shardBuf[i][:shardSize]
 	}
-	if err := e.codec.Encode(e.shardView[:]); err != nil {
+	parityCount := dataCount
+	if parityCount > e.parityShards {
+		parityCount = e.parityShards
+	}
+	var err error
+	if e.activeCodec != nil {
+		err = e.activeCodec.EncodeActive(e.shardView[:], dataCount, parityCount)
+	} else {
+		err = e.codec.Encode(e.shardView[:])
+	}
+	if err != nil {
 		return nil, err
 	}
 
@@ -149,10 +165,6 @@ func (e *FastBlockEncoder) flushParity(offset int) ([][]byte, error) {
 	// and the decoder marks them present. dataCount parity shards are therefore
 	// sufficient even if every real source datagram is lost: known zeros plus
 	// parity still provide the 20 equations required by the fixed 20x20 codec.
-	parityCount := dataCount
-	if parityCount > e.parityShards {
-		parityCount = e.parityShards
-	}
 	for p := 0; p < parityCount; p++ {
 		index := DataShards + p
 		b := e.wireBuf[index][:HeaderSize+shardSize]
