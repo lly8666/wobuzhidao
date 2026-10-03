@@ -35,3 +35,5 @@ WEAKNET_LIFECYCLE：功能 COMPLETE（最终源码0b206a0，36/36真实进程样
 当前产品资格SOURCE_SHA ca8175d18acd7f7e3e1db5379a58d9f85417dd97。5个资源原子步骤+1个接入队列故障隔离修复，逐项Actions unit/build/race后分别独立Normal/Game5205；12条合格样本与逐阶段RTT/loss门PASS，最新36/36生命周期及aggregate PASS。见STATUS、最新日志及evidence/resource-optimization-5205.json，历史native接线失败/队列致退出/瞬态超时保留。优化实际触发且正确性、吞吐、延迟过门，不据跨VM单样本宣称固定CPU下降；SACK主导的5205下ACK收益未证实。当前不再继续微改，下一步固定最新SOURCE_SHA全18复验，随后有界长测框架与>=1800s目标速率Normal/Game独立run；P5/P6/P7未整体关闭。每性能Action一条样本，FEC deadline8ms、4096/3s和socket buffer不调大。
 
 2026-10-04当前覆盖历史下一步：b1完整原门通过后逐秒审计暴露Normal换代约61%loss；P5重开。50有限retiring接收候选基础/race和Game短测通过，Normal短测FAIL并出现内部server ready queue overflow。先补retiring/ACK/tick诊断、按证据窄修；新1s门与内部queue0drop门通过后，最新整份源码完整资格/P6才能重闭。P7未跑，旧包仅复现。实时任务见STATUS，禁止根据以上旧ca资格继续发布。
+
+2026-10-04最新收口覆盖上一段待办：SOURCE2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8 core/race、严格18与完整78原始回执全部PASS，Normal/Game各1800s原门及逐秒/internal queue0门PASS，三目标P6hash/manifest/独立receipt已核验。固定本候选可交用户P7物理验收；不是RELEASE_QUALIFIED。参数功能与性能分开：70配置证明生效，主高负载资格FEC20:20/padding off；TLS启动填充完整on/稀疏/双入口弱网专项仍PARTIAL_ACTIONS_PASS。不要恢复已修的换代错误、继续微调缓存或按历史HOLD停工；当前SOURCE、证据及下一项以STATUS/PREDELIVERY_ACCEPTANCE为准。

@@ -1,0 +1,39 @@
+# 20261004-034500 换代长测与交付前hosted收口
+
+## 本轮目标和阶段
+
+用户继续推进，并询问换lane是否应先建好新lane再关闭旧lane。开始文档HEAD81f71e20e6b906a8a53e53b0bb16602a899c48bb，测试/包SOURCE_SHA仍固定2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8。本轮不修改产品代码，验收已完成Actions、核验候选包并精确解释当前切换保证。
+
+## 修改与原因
+
+更新STATUS、README、PREDELIVERY_ACCEPTANCE、ROADMAP/DEVELOPMENT_PLAN/ACCEPTANCE、生命周期说明与证据。完成既定hosted交付前门，可交用户P7物理验收，PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN。所有最新数据区分SOURCE与文档HEAD，原失败不擦除。核对发现TLS_STARTUP_PADDING状态仍以“实现待测试”描述旧事实：core/race/fuzz与正式程序功能已通过，但其原专项要求的双入口/独立稀疏HTTPS/开关on弱网配对未全部关闭，记录PARTIAL_ACTIONS_PASS，不以padding off主性能或70功能代替专项完成；同步移除已被用户解除的旧HOLD文字。
+
+## 复用来源
+
+同步AGENTS当前主线入口：按STATUS下一项进入P7，不让历史“开始修性能”提示词驱动已验候选的无证据修改；生命周期旧容量待修说明限定为历史阶段，STATUS性能流latest_log/note同步最新正式资格。本轮只有文档/证据改动。
+
+无新旧代码迁移。读取当前正式runtimeentry/lifecycle.go、runtimeowner/health.go及明确指定的Actions证据。
+
+## Actions证据
+
+foundation37140620422、tools/30race37140620452、lifecycle core37140620391、padding core37140620399、steady-target37140620388 PASS。严格18原始run与revision2配对阶段RTT aggregate37140877004 PASS，原证据保留rotation-handoff-2b2bd9e.json。
+
+完整controller [37140925122](https://github.com/lly8666/wobuzhidao/actions/runs/37140925122) PASS；artifact11281735825 ZIPsha256 f77a2fe5eb3d55ef12c795c8fa615b82d9258dec49a0c3c7445e93ef72a3969e核验。result source2b2全40位、78 receipts、全部原始attempt1/PASS、extra0/errors空：70正式配置、4soak、36生命周期+aggregate37141234301、P6三目标+aggregate37141235696、100ms/500ms共享黑洞37141237290/37141238836。
+
+Normal1800 [37141231250](https://github.com/lly8666/wobuzhidao/actions/runs/37141231250) PASS原门及逐秒/internal queue门：最低阶段9.998756267Mbps、最大阶段packetloss0.002702228%、最差1s0.162140251%；probe阶段p95最高618.8243ms、p99最高622.239749ms。client/server CPU平均0.751111/0.770811核，heap峰29.33594/27.78125MiB。内部queue/kernel/socket/link/capture drops0、payload/record/path完整性0，FEC/LINK停流排空、heap平台期与物理lane上限PASS。summary11281171879 ZIPsha256a3877cd68aa4d6a31b4bce4f077d989a49282fef9064e273b015f5d4210af67e；diagnostics11281106967 ZIPsha2565f6d48c0a847eb3365690a80c08651448e45e95ffb02f63fdb4daf1aaee618d8。
+
+Normal按1Hz观测generation于业务588/1191/1793秒变为2/3/4，首次新ref快照AuthenticatedRecords1405/4552/1389。各事件±2秒原send-bucket最终unique loss最大约0.162075%，多数秒0；并非用平均值掩盖原61%损失。server退役检查总63、ready peak362/4096、queue age max31.45593ms。1Hz快照不能证明准确每包的CloseWrite先后时序，因此不把它升级成更强的双端commit协议证据。
+
+Game1800 [37141232736](https://github.com/lly8666/wobuzhidao/actions/runs/37141232736) PASS：最低阶段2.999872Mbps、全部阶段/每秒packetloss0，probe阶段p95最高602.599545ms、p99最高631.686866ms。CPU平均0.518522/0.481767核、heap峰60.45313/57.85156MiB；内部queue/kernel/socket/link/capture/完整性0，停流排空门PASS。600s逐条轮换在该1800s内换过3条lane，第四条未轮到；短180s各4lane已经轮换，另36功能覆盖部分/并发恢复。summary11280874631 ZIPsha256faa3fc5e8c3d400c94533c0bed124b0268dd7ae9003f793117ef9bbb027e6695；diagnostics11281386481 ZIPsha2562ae96964b64fe458124a59f02bb0ce871fd3bd4c511045e1c99db1c63282e2d3。
+
+P6包：Linuxamd64 artifact11280312433 ZIPsha256409a6deee2cb157170d9d84d30235c5e0cc40394a127320b0476a4a274b4de20；Linuxarm64 artifact11280606788 ZIPsha2565cc80d86b8644267aea7a4ff5b90e01089671ff1d59d4cf0922715aba541d3a7；Windowsamd64 artifact11280063868 ZIPsha256e5b0b7f87857ee6a7e15291783738f998951b6738f6c96588dcefc3ff5c357f5。只读下载验证ZIP、manifest SHA256、全部文件大小/hash、独立actions-receipt source/status，三包均匹配2b2与next-rc-2b2bd9eb106d。Linuxamd64/Windowsamd64的真实--version在Actions执行（jobs111255939138/111255939098、check_p6_release --run-native PASS）；ARM仅交叉构建，不在本地执行任何包。
+
+## 问题、排查与风险
+
+当前先FakeTCP established、真实TLS/protected admission成功、identity/limit校验与detach，才promotion；候选失败保留旧authoritative。Promotion是切发送权而非立即销毁：旧keys/FEC/LINK/合法在途接收仍在bounded retiring，已持有repair可发送，新鲜old-generation记录仍fence。正常有效新record触发旧CloseWrite；成功promotion后约3s grace到期也允许启动关闭，再经双FIN或原关闭预算退役。当前并非promotion前必须双向steady确认、也不承诺promotion后任意故障回滚；不能为解释成“新lane一定永远可用”静默移除所有期限。若用户以后明确要求更强定义，需要候选资格/双端提交单独设计，不能靠无限养retiring或旧ACK等洞实现。
+
+主性能为FEC20:20/padding off/固定300ms单向/混合UDP目标速率。既定门全PASS不等于任意参数、真实网站完整指纹、padding on全部专项、大TCP高RTT、jitter/相关突发/非对称路由、Windows驱动/NIC/ARM原生或自动PMTU都完成。CPU不同runner差异明显，不宣称固定优化收益。MTU受控预算通过，真实路径小于预算需双端下调并重建lane。
+
+## 下一项原子任务
+
+固定已验SOURCE进入用户安排P7：WindowsNpcap/Wintun与Linux NIC/TUN/ARM原生，真实DNS/TCP/HTTPS/UDP、退出清理、同模式/弱网与MTU路径。主线不再无理由微改；任一新缺陷保留原证据，窄修新SOURCE重验。需要长期启用startup padding时另补其未收口专项并更新状态，不能将已通过功能写成完整性能承诺。每性能Action一条，唯一路线与实时状态为STATUS。

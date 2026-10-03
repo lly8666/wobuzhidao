@@ -1,6 +1,6 @@
 # 有界 TLS 启动填充：实现与验收契约
 
-2026-09-22 用户授权的 P4/P5 小功能。唯一进度仍是 STATUS.json；本文是功能规范，不能代替测试证据。主线既有弱网任务由用户暂停，本功能验收不能顺便恢复该任务或关闭整个 P4/P5。
+2026-09-22 用户授权的 P4/P5 小功能。唯一进度仍是 STATUS.json；本文是功能规范，不能代替测试证据。2026-09-23用户已恢复主线，历史暂停指令不再生效。2026-10-04源码2b2bd9e已有core/race/fuzz及正式进程70配置中的填充开关实际生效证据，但下述完整独立稀疏HTTPS/双入口/开关on弱网配对专项尚未全部关闭，不能把功能覆盖当此专项COMPLETE。
 
 ## 行为与开关
 
@@ -41,11 +41,11 @@ TunnelOwner.Stats().Padding 增加 TLSStartupOnly、StartupTracked、StartupDete
 
 ## 新 agent 的验收和关闭条件
 
-1. 从 STATUS 的 TLS_STARTUP_PADDING 工作流接手，精确记录代码 SHA/harness SHA。主线旧任务保持暂停。所有编译、测试、race、fuzz、netem 和负载都在 Actions；本地只阅读/编辑/Git。
+1. 从 STATUS 的 TLS_STARTUP_PADDING 工作流接手，精确记录代码 SHA/harness SHA；按当前用户授权与STATUS工作，不继承历史HOLD。所有编译、测试、race、fuzz、netem 和负载都在 Actions；本地只阅读/编辑/Git。
 2. `.github/workflows/next-tls-startup-padding.yml` 先跑 Windows/Linux core/build、Linux race 与 parser fuzz；foundation 与既有回归也必须检查。本功能已有 parser、真实 Go TLS ClientHello + production platformflow serializer、双向 owner、no-HOL、各 FEC 档位、Game4 预算、并发 reservation rollback 测试。它们是 core 资格，不能冒充正式进程端到端。
 3. 补真实独立 client/server 二进制网络路径专项：单稀疏 HTTPS 首连接/复用 lane 后续连接、非 TLS TCP/UDP 对照，TUN 与 platformflow/TPROXY 都覆盖。每个负载样本一个独立 Action job/runner，不在同 VM 并跑高压样本。开关 off/on 同源配对，FEC off/20:20，Normal=1/Game=4；确认双端实际开关与计数，不能仅改 harness 的 owner。
 4. 对重点组合做 300ms 单向、5%->20%->5% 和 5%->30%->5%、120s（30/60/30）及无损回归；只为此功能验证不退化，不擅自恢复主线完整 18 场弱网资格。至少两独立重复，保存注入负载、pcap、分阶段 RTT/goodput、skipped/send failure、CPU/每线程、softirq/steal、队列、socket drops、FEC/repair/padding 分项。原弱网规范的门槛不降低；runner 饱和单列 CAPACITY_LIMITED，不据此改协议或算 PASS。
 5. 抓包/计数验收：padding off 保持原路径且计数零；非 TLS 无填充；开启后至少真实可识别且有 headroom/预算的 HTTPS 样本观察到 >0 padding（不能用“代码走过”替代）；业务内容不变，record/IP 不超统一 MTU，无新增分片/记录/业务连接；同 Seq repair wire bytes 一致；永久丢一个早包仍交付后到完整业务包。不要要求所有随机请求都成功。
 6. 负向：短包、错长、4KiB/超大 CH、TCP 重排/分段/重复/回绕/重叠冲突、畸形平台帧、同 FlowID 不同 lease、流重用、FIN/RST、prefix/flow 表饱和、停流到期、Game 去重、源地址伪造、轮换/DORMANT/wake、seal失败、并发预算。资源达到固定上限必须旁路且业务不断，停流后 tick 释放观察前缀及过期表项。
 7. 如发现缺陷，定向修实现和测试，保留原失败证据；不为了测试全收齐恢复 HOL，不调整 FEC/4096/recovery、不全局扩大缓存、不把默认改 on。最新修复 SHA 重跑受影响专项与基础回归。
-8. 只有上述所需证据成立，直接把 STATUS.workstreams.TLS_STARTUP_PADDING 标为 COMPLETE、加入 completed 摘要，更新 ACCEPTANCE、本文结论和详细 devlog，记录 exact SHA/run/artifact/未验证限制。主线 P4/P5 总阶段及用户暂停状态保持原样；未跑的项目写 NOT_RUN，不能提前关闭。
+8. 只有上述所需证据成立，直接把 STATUS.workstreams.TLS_STARTUP_PADDING 标为 COMPLETE、加入 completed 摘要，更新 ACCEPTANCE、本文结论和详细 devlog，记录 exact SHA/run/artifact/未验证限制。不能凭本小功能证据替代总体资格；主线是否暂停以当前用户授权和STATUS为准。未跑的项目写 NOT_RUN，不能提前关闭。

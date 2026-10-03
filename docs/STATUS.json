@@ -2,8 +2,8 @@
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
-  "milestone": "P5",
-  "product_state": "IN_PROGRESS",
+  "milestone": "P7",
+  "product_state": "ACTIONS_PASS",
   "updated_at": "2026-10-04",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -68,13 +68,14 @@
     "V10.2产品56eb5413c3cf2e559b82026e8a5783508764e2f4：新冻结ref正式120s final18（每run一条）18/18五分类及revision2 artifact-only完整矩阵/配对RTT PASS，aggregate37065816473/artifact11252477679；全部socket drop0，无损repair/abandoned0。仅120s资格，不关闭目标负载>=30min/P6/P7。",
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。",
     "2026-10-03资源优化顺序完成：有效FEC计算、owned加密/传递复制、有限ACK合并、已就绪Linux批量接收/发送各自Actions unit/build/race+Normal/Game5205 PASS；额外修复pre-attach overflow导致共享server退出，再以ca8175d通过同门和36/36 lifecycle+aggregate。仅targeted，不继承最新全18/长测/P6/P7。",
-    "2026-10-03同源码b1fe7e2可交物理机前资格：70实际配置、36生命周期、18独立严格弱网、Normal/Game各1800s目标速率持续弱网、100/500ms共享黑洞、三目标候选包全部PASS；78回执控制与18汇总原始attempt1，extras0，物理未跑。"
+    "2026-10-03同源码b1fe7e2可交物理机前资格：70实际配置、36生命周期、18独立严格弱网、Normal/Game各1800s目标速率持续弱网、100/500ms共享黑洞、三目标候选包全部PASS；78回执控制与18汇总原始attempt1，extras0，物理未跑。",
+    "2026-10-04最新2b2bd9e换代返工hosted收口：core/race、70实际配置、36生命周期、18独立弱网、Normal/Game各1800s及1s/internal queue0新增门、两共享黑洞、三平台P6文件hash/manifest/receipt PASS；完整78原始attempt1/extras0，物理P7 NOT_RUN。"
   ],
   "in_progress": [
-    "2b2bd9e core/race、Normal/Game180原门/1s/内部queue0及严格18全部PASS。完整78/两1800s/配置/生命周期/P6仍IN_PROGRESS，尚未hosted关闭；P7 NOT_RUN。"
+    "固定2b2bd9e候选可交用户安排P7物理验收；PHYSICAL_PASS/RELEASE_QUALIFIED NOT_RUN。startup padding core/fuzz/live功能PASS，完整on/稀疏/双入口弱网专项仍PARTIAL_ACTIONS_PASS，不能继承padding off主性能。"
   ],
-  "next_task": "审计同2b2bd9e SOURCE完整78及严格18原始回执、两1800s逐秒/内部队列/RTT/内存/排空和P6哈希；全部通过才hosted关闭/可交物理。失败保留后窄修新SHA重验。每性能Action一条，P7 NOT_RUN。",
-  "latest_log": "docs/devlog/20261004-014100-handoff-short-pass-full-qualification.md",
+  "next_task": "用户安排P7物理NIC/WindowsNpcap+Wintun/LinuxARMnative及真实路径MTU/DNS/TCP/HTTPS/UDP/弱网/清理；双方固定2b2bd9e候选，原始结果完整留存。需长期启用startup padding时先补未闭专项。每性能Action一条，不再无证据微改已验候选。",
+  "latest_log": "docs/devlog/20261004-034500-handoff-long-pass-predelivery.md",
   "last_tested_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
   "actions": [
     {
@@ -1868,26 +1869,18 @@
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "已识别WBD仍由本地Go TLS 1.3 server握手；Firefox120是固定客户端persona，不是当前浏览器模板。recognized路径不协商ALPN；真实TLS 1.3 ticket由stdlib生成，但resumption显式拒绝且无0-RTT。P2不证明ServerHello/cipher/curve/扩展/证书链/握手长度与分段等与指定借用网站完整指纹一致。",
-    "Linux hosted raw-loopback普通内核TCP/TLS fallback、证书验证、HTTP、正常关闭和连续pcap已在P2精确SOURCE_SHA通过；这不替代P7物理Windows/Npcap网卡资格。",
-    "P4 Windows Npcap physical-underlay adapter 已在 SOURCE_SHA 1ec7d667564a8e0f26a3afb811cb89eb484ea5dd 取得 hosted Windows compile/mock资格；真实 Npcap driver、管理员物理NIC capture/injection 仍未运行，不能替代 P7 物理资格。",
-    "TLS 1.3 ticket策略已在P2收口；stable Account+Installation lease、protected TunnelID/LaneID admission、单进程client/server CLI与multi-lane lifecycle均已进入P4 hosted实现。P7前仍不把hosted入口视为物理发布资格。",
-    "P3 LINK/FEC全固定挡位/统一MTU/session-owner/显式record padding与P4 tunnel-wide每包/累计padding预算均已由精确SOURCE_SHA hosted Actions通过；padding生产默认0/off。P5真实HTTPS外观/成本、弱网、负载与31分钟soak均已完成hosted资格，但这不等于抗识别或P7物理资格。",
-    "可运行client/server入口与multi-lane/lifecycle closure已在 SOURCE_SHA 76a20c865bf86edf2098f0ef40c44a31298679dd 取得hosted exact-SHA Actions资格；Game入口直接覆盖2/3/4 lanes、自动rotation与payload-idle DORMANT/wake。真实Windows/Npcap物理NIC仍留P7。",
-    "物理机验收留到P7",
-    "内层TLS长度/方向/突发/时序指纹不属P2关闭条件；P3显式record padding能力已通过Actions但生产默认0/off，不能据此声称降低或防止TLS-in-TLS/流量分析识别；P4/P5继续真实业务复用与流量外观/成本验收。",
-    "OpenWrt IPv6 TPROXY/capture 当前 NOT_IMPLEMENTED；本 P4 atom 只资格 IPv4 TCP/UDP kernel TPROXY ownership，不能据此声称 IPv6 业务已代理或 fail-closed。",
-    "OpenWrt socket/TunnelOwner 已在 SOURCE_SHA a8438872f948849ab378238a69dc1a1e28c86ac6 取得真实root-netns socket + active TunnelOwner/Lane hosted资格；client/server Lane之间的carrier仍是同进程WireSink，不是最终统一runtime的真实FakeTCP raw/Npcap transport I/O，因此不能当作物理端到端或P7资格。",
-    "runtimeowner已在 SOURCE_SHA ef269081e45bc516ae41943e56a01a8032e4cf8a 首次取得hosted owner资格，并在 SOURCE_SHA fa9b60315ca01ec140c34a65799dc62916f2275d 的单进程multi-lane/lifecycle入口继续通过Linux/Windows hosted资格；steady recovery仍为累计ACK、4096条metadata上限、1s默认RTO/3s绝对repair horizon，完整旧SACK/RACK/adaptive-pressure未迁入，physical E2E/P7仍NOT_RUN。",
-    "P5 measurement-base 的旧 close-before-next 缺口已在 SOURCE_SHA a9b92c26ac2f13b8ff0da2c321d5f2bb32100f5f / Actions 35520092389 资格化修复：第一条真实HTTPS完整关闭、client/server TCPFlows归零后第二条仍在同一outer lane成功。该修复只覆盖 close-tail/concurrent-retire 幂等，不等于弱网/负载/长测或恢复握手已验收。",
-    "P5 fixed-FEC 20:10 已在 SOURCE_SHA b7c0b3d334ba1c52f9f53479eb8a2f4e4de692e3 / Actions 35555303253 资格化为显式无损能力/成本场景；正式CLI默认仍 `--fec-parity=0`，规范未选择任何非零生产默认。不得把20:10资格解读为推荐/最优策略或弱网恢复已验收。",
-    "P5 5%->20%->5% 弱网已在 SOURCE_SHA d445e1634d6b48509bf2f44c0488a379fb75baf2 / Actions 35569185348 取得两次独立120s exact-SHA资格；该结果固定FEC off/padding off，只覆盖300ms单向、30/60/30、5%->20%->5%，不能外推为5%->30%->5%、负载、长测或任何FEC最优策略。",
-    "P5 5%->30%->5% 弱网已在 SOURCE_SHA 4e8e17e44646cf9732ed44d68ad15ed19faf5d9b / Actions 35570306162 取得两次独立120s exact-SHA资格；该结果固定FEC off/padding off，只覆盖300ms单向、30/60/30、5%->30%->5%，不能外推为5/10/15/20Mbps负载、40Mbps aggregate-inner容量、>=30min soak或任何FEC最优策略。",
-    "P5 5/10/15/20Mbps load已在 SOURCE_SHA d9e09053810f07db5e19c81a59970c831fa6e12a / Actions 35573152055 取得每档两次独立15s hosted资格；目标口径为aggregate-inner application payload（C2S+S2C），真实TLS1.3/HTTPS单persistent BusinessFlow、1KiB/8KiB/32KiB双向混合、无弱网注入、FEC/padding off。该结果不能外推为40/50/100Mbps容量、弱网下同速率能力、>=30min soak或物理Windows/Npcap性能。",
-    "P5 fixed-FEC 20:20弱网已在 SOURCE_SHA a738cf8782688580cefe260f6781a8a3e9b23e3a / Actions 35577023449 取得四次独立120s hosted资格；该测试使用300ms单向、5->20->5或5->30->5、真实TLS1.3/HTTPS、单Normal lane、padding off。四次40/40成功且RTT/恢复显著优于同seed FEC-off，但wire amplification约14x、PPS与绝对repair显著增加，因此不能据此单独推导生产最优FEC策略，也不能外推物理Windows/Npcap、>=30min soak或更高负载能力。",
-    "P6 hosted release-candidate packaging已在 SOURCE_SHA e8220aca7c70511d0011086f563430e3b8585ef7 取得Linux amd64/arm64与Windows amd64三个独立ACTIONS_PASS artifact；Windows bundle不含server且明确UNSUPPORTED。真实Windows Wintun/Npcap驱动/管理员物理NIC与Linux物理链路仍为P7 NOT_RUN，因此当前产品状态仅ACTIONS_PASS，不是PHYSICAL_PASS或RELEASE_QUALIFIED。",
-    "2026-09-21新增真实路径高负载弱网目标尚未运行；Normal10Mbps/方向、Game4 3Mbps/方向均FEC20:20，runner容量不足不等于通过。",
-    "最新资格SOURCE_SHA b1fe7e2658fb48b47010bfa6988fe716e104d6b2，旧已测SHA/旧P6证据仅历史；当前70配置不是无限数值空间。真实路径PMTU自动适配、高RTT大TCP、相关突发/jitter/非对称路径尚未取得完整性能资格。FEC8ms是到期条件，当前约100ms tick检查partial，不是parity实际8ms硬上限。"
+    "真正测试和候选二进制SOURCE_SHA为2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8，版本next-rc-2b2bd9eb106d；文档HEAD不改变来源。既定hosted交付前门PASS，P7/PHYSICAL_PASS/RELEASE_QUALIFIED NOT_RUN。",
+    "真实WindowsNpcap/Wintun驱动与物理NIC、Linux物理TUN/路由、ARM原生未运行；arm64包仅hosted交叉构建。Windowsserver UNSUPPORTED，OpenWrtIPv6 NOT_IMPLEMENTED，Linuxclient为TPROXY入口。",
+    "TLS-like真实建连使用本地GoTLS1.3及固定Firefox120 persona；不承诺借用网站完整服务端指纹、抗识别或TLS-in-TLS消除。",
+    "70正式配置证明全FEC/1..4lane/startup padding/CLI与JSON/MTU/非对称limit功能生效，并通过UDP/DNS/TCP/102400B HTTPS；不穷举数值，也不证明每配置高负载性能。",
+    "主性能资格固定FEC20:20/padding off/混合UDP/300ms单向：Normal每方向10M、Game4逻辑3M，三seed无损/5205/5305及两1800s。其它FEC档位高负载、startup padding on完整稀疏/双入口/弱网配对专项尚未完整关闭。",
+    "受控MTU1280/1400/1500及双向record512/768预算/无外层IP分片通过；自动ICMP/PMTU调小未资格化，路径更小须双端下调MTU并重建lane。",
+    "持续相关突发loss、jitter、非对称路由/NAT超时和大TCP高RTT吞吐尚无完整性能资格；独立随机loss与100/500ms共享黑洞通过不能外推所有工况。",
+    "FEC8ms是首源到期条件，partial由约100ms runtime tick检查，不能声称实际parity8ms硬发送上限；systematic及满组即时。4096为shadow备份，不是fresh发送门。",
+    "先TLS/protected admission成功再promotion；旧lane在bounded retiring保留合法在途接收，正常新认证record或约3s grace触发旧关闭。当前非promotion前强制双向steady确认，不保证promotion后任意故障回滚旧generation。",
+    "默认FEC off、startup padding false、idle-dormant0、rotate-min/max0/0；health缺失不是业务空闲，服务端休眠仍等当前权威lanes的client PeerFIN。server CLI静态身份/lease，无账户管理GUI。",
+    "CPU为当前runner进程CPU-time/时长、heap不是RSS；跨VM不声称固定CPU收益。Game所有副本/FEC开销按原始逻辑业务计，不能稀释放大。",
+    "旧b1阶段平均PASS但逐秒约61%loss/内部queue20012，以及50/48/a86失败原始run与日志保留；最新PASS不擦除历史。"
   ],
   "required_read_set": [
     "AGENTS.md",
@@ -1906,17 +1899,17 @@
   "workstreams": {
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "V10P2_CODE_CORRECTNESS_PASS: bounded client/server UDP queues, no-HOL and existing lifecycle retained; exact-source core/race/privileged PASS.",
-    "P5": "2b2bd9e Normal/Game180 DIAGNOSTIC_ONLY PASS; strict18/full78/1800s IN_PROGRESS",
-    "P6": "b1 packages reproduction only; new2b2 exact-source packages/receipts qualification IN_PROGRESS",
-    "P7": "NOT_RUN: user-arranged physical NIC/WindowsNpcap+Wintun/ARMnative and real path qualification",
+    "P4": "HOSTED_CURRENT_SOURCE_PASS: 2b2bd9e core/race and36 lifecycle; retiring receive/constant FIN checks/candidate isolation preserve no-HOL",
+    "P5": "HOSTED_PREDELIVERY_SCOPE_COMPLETE: 2b2bd9e strict18 + Normal/Game1800 original and1s/internal queue0 gates PASS; padding_on专项 separately PARTIAL_ACTIONS_PASS",
+    "P6": "COMPLETE_HOSTED: source2b2bd9e linuxamd64/linuxarm64/windowsamd64 packages and hash/manifest/receipt PASS; ARMnative/physical NOT_RUN",
+    "P7": "READY_FOR_USER_PHYSICAL_TEST: fixed2b2bd9e packages; all physical/driver/native ARM qualifications NOT_RUN",
     "TLS_STARTUP_PADDING": {
-      "status": "IMPLEMENTED_PENDING_ACTIONS",
+      "status": "PARTIAL_ACTIONS_PASS",
       "baseline_sha": "896ae94bea1aa1e532b2a14ed9d3e707a72f5286",
       "spec": "docs/TLS_STARTUP_PADDING.md",
       "latest_log": "docs/devlog/20260922-191000-startup-close-observability.md",
-      "tests": "NOT_RUN at implementation; inspect exact-SHA Actions, then complete fullstack checklist",
-      "next_task": "新agent测试/定向修复TLS启动填充；通过后直接标小功能COMPLETE，更新completed/ACCEPTANCE/devlog，不关闭整个P4/P5",
+      "tests": "2b2bd9e core/build/race/parser fuzz37140620399 + live70 startup on/off CLI/JSON/headroom/native record/IP/HTTPS body functional PASS; full sparse HTTPS/TUN+TPROXY/weaknet paired on专项 NOT_RUN",
+      "next_task": "按TLS_STARTUP_PADDING原专项补未收口的独立稀疏HTTPS/双入口/开关on弱网配对；不可拿主性能padding off或低负载70功能替代。历史HOLD已解除。",
       "main_task_hold": {
         "requested_by": "user",
         "resume_only_on_user_request": false,
@@ -1927,7 +1920,10 @@
         "resumed_by": "2026-09-23 用户明确要求新主线 agent 开始修性能；历史 saved_* 仅供追溯。"
       },
       "implementation_sha": "d5996203ff0617aca53fcc1dc9e2713cba97bd62",
-      "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA."
+      "note": "Follow-up preserves diagnostic counters on Close and bypasses observer lock when disabled; test newest branch SHA.",
+      "current_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+      "core_run": 37140620399,
+      "live_configuration_controller": 37140925122
     },
     "WEAKNET_LIFECYCLE": {
       "status": "COMPLETE",
@@ -2167,7 +2163,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "IN_PROGRESS_FORMAL_QUALIFICATION_AFTER_SHORT_PASS",
+      "status": "COMPLETE_HOSTED_TARGET_QUALIFICATION",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -2178,9 +2174,9 @@
         "Bounded target-rate long soak framework and >=1800s independent Normal/Game",
         "P6 repackage then user-arranged P7 physical"
       ],
-      "latest_log": "docs/devlog/20261004-011000-constant-retirement-check.md",
-      "note": "b1 original78+18 gates passed, but original-send-second audit found concentrated rotation loss up to61.264%, hidden by60s averages. New receive-only retiring authorization + unchanged close budgets pending exact-source qualification; b1 cannot qualify new1s gate.",
-      "next_task": "审计同2b2bd9e SOURCE完整78及严格18原始回执、两1800s逐秒/内部队列/RTT/内存/排空和P6哈希；全部通过才hosted关闭/可交物理。失败保留后窄修新SHA重验。每性能Action一条，P7 NOT_RUN。",
+      "latest_log": "docs/devlog/20261004-034500-handoff-long-pass-predelivery.md",
+      "note": "b1 original78+18 gates passed, but original-send-second audit found concentrated rotation loss up to61.264%, hidden by60s averages; b1 cannot qualify new1s gate. Current2b2 receive-only retiring authorization/constant FIN checks/candidate isolation passed exact-source78+18 and both1800s including new1s/internal queue0 gates; close budgets unchanged, physical NOT_RUN.",
+      "next_task": "用户安排P7物理NIC/WindowsNpcap+Wintun/LinuxARMnative及真实路径MTU/DNS/TCP/HTTPS/UDP/弱网/清理；双方固定2b2bd9e候选，原始结果完整留存。需长期启用startup padding时先补未闭专项。每性能Action一条，不再无证据微改已验候选。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -6550,7 +6546,7 @@
         "final_lifecycle_result": "36/36 samples + aggregate ACTIONS_PASS"
       },
       "predelivery": {
-        "status": "IN_PROGRESS_FORMAL_QUALIFICATION_AFTER_SHORT_PASS",
+        "status": "READY_FOR_PHYSICAL_DEFINED_HOSTED_SCOPE",
         "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
         "version": "next-rc-2b2bd9eb106d",
         "initial_source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
@@ -6558,13 +6554,13 @@
         "initial_final18_artifact": 11271739090,
         "controller": 37140925122,
         "strict18_controller": 37140877004,
-        "soak": "Normal/Game180 DIAGNOSTIC PASS; Normal/Game1800 IN_PROGRESS",
-        "live_configurations": "70 latest-source cases IN_PROGRESS",
-        "lifecycle": "latest-source36+aggregate IN_PROGRESS",
-        "packaging": "latest-source3targets IN_PROGRESS",
+        "soak": "Normal/Game1800 FORMAL PASS including1s/internal queue0; both180 DIAGNOSTIC PASS",
+        "live_configurations": "70/70 ACTIONS_PASS_FUNCTIONAL_NOT_ALL_CONFIG_PERFORMANCE",
+        "lifecycle": "36/36+aggregate ACTIONS_PASS",
+        "packaging": "3targets ACTIONS_PASS; ZIP/manifest/file hashes verified; ARMcross only",
         "physical": "NOT_RUN",
-        "evidence": "docs/evidence/rotation-handoff-2b2bd9e.json",
-        "latest_log": "docs/devlog/20261004-014100-handoff-short-pass-full-qualification.md",
+        "evidence": "docs/evidence/predelivery-2b2bd9e.json",
+        "latest_log": "docs/devlog/20261004-034500-handoff-long-pass-predelivery.md",
         "handoff_short_window": {
           "baseline_source": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
           "baseline_run": 37127945540,
@@ -6601,7 +6597,7 @@
             "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
             "normal_run": 37140842423,
             "normal_min_phase_mbps": 9.994948266666668,
-            "formal_status": "IN_PROGRESS",
+            "formal_status": "ACTIONS_PASS",
             "short_status": "PASS_DIAGNOSTIC",
             "game1800_run": 37141232736,
             "normal_max_1s_loss_percent": 0.4050222762251924,
@@ -6624,7 +6620,8 @@
           "soak": "Normal/Game1800s ACTIONS_PASS; two180s diagnostics PASS",
           "controller": 37127934784
         },
-        "strict18_result": "18/18 original samples + artifact-only revision2 paired RTT aggregate PASS"
+        "strict18_result": "18/18 original samples + artifact-only revision2 paired RTT aggregate PASS",
+        "qualification_boundary": "TLS/admission before promotion; bounded retiring/new auth OR grace; no arbitrary post-promotion rollback; padding on full专项 separate partial"
       }
     }
   }

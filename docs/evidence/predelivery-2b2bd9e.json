@@ -1,0 +1,3824 @@
+{
+  "schema": "wbd-predelivery-hosted-qualification/v1",
+  "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+  "version": "next-rc-2b2bd9eb106d",
+  "result": "PASS",
+  "scope": "HOSTED_PREDELIVERY_DEFINED_GATES",
+  "physical": "NOT_RUN",
+  "release_qualified": "NOT_RUN",
+  "controller": 37140925122,
+  "artifact": 11281735825,
+  "digest": "sha256:f77a2fe5eb3d55ef12c795c8fa615b82d9258dec49a0c3c7445e93ef72a3969e",
+  "canonical_policy": "first original run ID, never select best result",
+  "receipt_count": 78,
+  "extra_dispatch_count": 0,
+  "errors": [],
+  "strict18_evidence": "rotation-handoff-2b2bd9e.json",
+  "receipts": [
+    {
+      "title": "soak-normal-180s-seed404",
+      "digest": "sha256:33f24cf112443c128b4d0a6424b9521332d3f516a159010cfbc48eb687e8e96d",
+      "run": 37140842423,
+      "run_attempt": 1,
+      "artifact": 11280466930,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140842423"
+    },
+    {
+      "title": "soak-normal-1800s-seed404",
+      "digest": "sha256:a3877cd68aa4d6a31b4bce4f077d989a49282fef9064e273b015f5d4210af67e",
+      "run": 37141231250,
+      "run_attempt": 1,
+      "artifact": 11281171879,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141231250"
+    },
+    {
+      "title": "soak-game-180s-seed404",
+      "digest": "sha256:1ddc984fe7b481db380a8975b5ad92c3f64a2f32f55010a0ac6d5d84b6aeaed1",
+      "run": 37140844185,
+      "run_attempt": 1,
+      "artifact": 11279159761,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37140844185"
+    },
+    {
+      "title": "soak-game-1800s-seed404",
+      "digest": "sha256:faa3fc5e8c3d400c94533c0bed124b0268dd7ae9003f793117ef9bbb027e6695",
+      "run": 37141232736,
+      "run_attempt": 1,
+      "artifact": 11280874631,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141232736"
+    },
+    {
+      "title": "next-lifecycle-fullstack",
+      "digest": "sha256:5ab9acd0894bdfd274b3c5faf2c0ac0465c1836ac77b35b2efe8ee36ffd15488",
+      "run": 37141234301,
+      "run_attempt": 1,
+      "artifact": 11280458336,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141234301"
+    },
+    {
+      "title": "package-prephysical",
+      "digest": "sha256:6d227e26729c920398091d9a89d17c8c9c0b34230e0297e7b9af9cdafd9ca43d",
+      "run": 37141235696,
+      "run_attempt": 1,
+      "artifact": 11280572013,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141235696"
+    },
+    {
+      "title": "blackhole-100ms",
+      "digest": "sha256:f96459e83eb07482e963f0233cea4aa7d01100e6396febe8e2006c36a3a2c91d",
+      "run": 37141237290,
+      "run_attempt": 1,
+      "artifact": 11280009384,
+      "original_conclusion": "success",
+      "summary_result": null,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141237290"
+    },
+    {
+      "title": "blackhole-500ms",
+      "digest": "sha256:08b53be031a6652cd6fcc0f8c9e12d7e54056e846f166cfa6ec22b4f39fc47b3",
+      "run": 37141238836,
+      "run_attempt": 1,
+      "artifact": 11280352626,
+      "original_conclusion": "success",
+      "summary_result": null,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141238836"
+    },
+    {
+      "title": "config-f0-l1-p0",
+      "digest": "sha256:cccd0121cdec2fbfcd14e1df1372b84efa34b09fb98dbf76339abb9fb8e19c2b",
+      "run": 37141240638,
+      "run_attempt": 1,
+      "artifact": 11280796440,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141240638"
+    },
+    {
+      "title": "config-f0-l1-p1",
+      "digest": "sha256:3356aef89320a9c3fc4a7d540f89bddd6d8e763136a5b33bb2ae5245cbcac98c",
+      "run": 37141242105,
+      "run_attempt": 1,
+      "artifact": 11280786370,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141242105"
+    },
+    {
+      "title": "config-f0-l2-p0",
+      "digest": "sha256:e9b043a4883870f3c6516d6b6ae111b0995515c3a458d46ecb33d3751050a076",
+      "run": 37141243785,
+      "run_attempt": 1,
+      "artifact": 11280776462,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141243785"
+    },
+    {
+      "title": "config-f0-l2-p1",
+      "digest": "sha256:e98722294016d982be959836692b60969c5e740bf2fc9fbed03cc2e011a064a5",
+      "run": 37141245404,
+      "run_attempt": 1,
+      "artifact": 11280427410,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141245404"
+    },
+    {
+      "title": "config-f0-l3-p0",
+      "digest": "sha256:fb8ef27044a36336e44aab47e2e5b92eb20249272652aa38646639c29b799c61",
+      "run": 37141246988,
+      "run_attempt": 1,
+      "artifact": 11280816453,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141246988"
+    },
+    {
+      "title": "config-f0-l3-p1",
+      "digest": "sha256:466ef85d5ce0c2ebbfc26144ee99ae8848fc9126aad43946889d238ef86121a4",
+      "run": 37141248583,
+      "run_attempt": 1,
+      "artifact": 11280696791,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141248583"
+    },
+    {
+      "title": "config-f0-l4-p0",
+      "digest": "sha256:4eaffbe17722bf621a3fdb2b39a87a8a867172422736d891cdb1ef2c0b1618cc",
+      "run": 37141250120,
+      "run_attempt": 1,
+      "artifact": 11280846399,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141250120"
+    },
+    {
+      "title": "config-f0-l4-p1",
+      "digest": "sha256:0c65e1488f1ebeecb979e72c885846f0e1a9173c1cfdf1a263f9cc5fdfae2a6c",
+      "run": 37141252003,
+      "run_attempt": 1,
+      "artifact": 11280193072,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141252003"
+    },
+    {
+      "title": "config-json-f0",
+      "digest": "sha256:51d17e76bc5fc6709d93afe612bad4ce5dc6b18da3eb9421f5b59bdab9d3a9bf",
+      "run": 37141253912,
+      "run_attempt": 1,
+      "artifact": 11280317669,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141253912"
+    },
+    {
+      "title": "config-f4-l1-p0",
+      "digest": "sha256:872fd06732ee8f72d1c0a4934b0809918f10ee8bb7f908560f7731eec82b8b82",
+      "run": 37141255444,
+      "run_attempt": 1,
+      "artifact": 11280607229,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141255444"
+    },
+    {
+      "title": "config-f4-l1-p1",
+      "digest": "sha256:1f56892fb652a12591b8bb19712c7a6510a36d4fb5053874dbad82213350dd26",
+      "run": 37141257100,
+      "run_attempt": 1,
+      "artifact": 11280312819,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141257100"
+    },
+    {
+      "title": "config-f4-l2-p0",
+      "digest": "sha256:2b06f3020ef84bb740bc00b7dbeca63b1085a9d9ce0a65d14885a0d32e96f9f9",
+      "run": 37141258813,
+      "run_attempt": 1,
+      "artifact": 11280915182,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141258813"
+    },
+    {
+      "title": "config-f4-l2-p1",
+      "digest": "sha256:80f317a3fb1114950c10817b23b8715030dcf9754b68ebf545da5d22449e279a",
+      "run": 37141260576,
+      "run_attempt": 1,
+      "artifact": 11280662204,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141260576"
+    },
+    {
+      "title": "config-f4-l3-p0",
+      "digest": "sha256:178581ee5a92c868ac110c7cca3cad487f2e29aa4cce5e0a5e5de8b4524e3412",
+      "run": 37141261987,
+      "run_attempt": 1,
+      "artifact": 11280079272,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141261987"
+    },
+    {
+      "title": "config-f4-l3-p1",
+      "digest": "sha256:b1b335e1ae5fe9dfa7e61bb6dab7774d329bdf18d8dee59b3ea6d74ce2fce58d",
+      "run": 37141263546,
+      "run_attempt": 1,
+      "artifact": 11280945061,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141263546"
+    },
+    {
+      "title": "config-f4-l4-p0",
+      "digest": "sha256:3639b6b806aacbb076706bf0e1326fbf188b6069bcaf7e76544f80093680bd31",
+      "run": 37141265089,
+      "run_attempt": 1,
+      "artifact": 11280890568,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141265089"
+    },
+    {
+      "title": "config-f4-l4-p1",
+      "digest": "sha256:638b41454915a6e866d852a8563cdcd6858f63f9b6d3fbd17f059bc6965c721e",
+      "run": 37141266496,
+      "run_attempt": 1,
+      "artifact": 11280786702,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141266496"
+    },
+    {
+      "title": "config-json-f4",
+      "digest": "sha256:6ec9f0c87f06b3751318db639c7afe0743bbeafe2be03ddb4903558b59ccc301",
+      "run": 37141267806,
+      "run_attempt": 1,
+      "artifact": 11280218099,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141267806"
+    },
+    {
+      "title": "config-f8-l1-p0",
+      "digest": "sha256:5f88417a7173bf21abc814b490873d5a2522187a84b0934771fb2bbe465e06f3",
+      "run": 37141269176,
+      "run_attempt": 1,
+      "artifact": 11279589978,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141269176"
+    },
+    {
+      "title": "config-f8-l1-p1",
+      "digest": "sha256:bc983587825b2d1a17d4a21c40f7980b7d010852fffe2ec6b89cf4eefccdf547",
+      "run": 37141270386,
+      "run_attempt": 1,
+      "artifact": 11279854673,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141270386"
+    },
+    {
+      "title": "config-f8-l2-p0",
+      "digest": "sha256:0eb305b06222a152e11a28fc463f459b7e90b4f5fda6bab8441b39d97581e109",
+      "run": 37141272030,
+      "run_attempt": 1,
+      "artifact": 11280094434,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141272030"
+    },
+    {
+      "title": "config-f8-l2-p1",
+      "digest": "sha256:de86e1b55f11f111d11e07cdc0636c5356483ec236c4c14fa3f7d0e1d0216886",
+      "run": 37141273523,
+      "run_attempt": 1,
+      "artifact": 11280791862,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141273523"
+    },
+    {
+      "title": "config-f8-l3-p0",
+      "digest": "sha256:b13b2de5f34575a2b2233efa42ac3c488955349ad47230a60ec702f7c6dfbf9f",
+      "run": 37141274954,
+      "run_attempt": 1,
+      "artifact": 11281015017,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141274954"
+    },
+    {
+      "title": "config-f8-l3-p1",
+      "digest": "sha256:4d7ce218ef14a808ce48538bc9776f8712799c966a53fd734460e44eb9c99fb0",
+      "run": 37141276399,
+      "run_attempt": 1,
+      "artifact": 11280054520,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141276399"
+    },
+    {
+      "title": "config-f8-l4-p0",
+      "digest": "sha256:a8bbeabdf92b9ef87c288672ba7ce6075339dd1a14b9cae0ab643e88f8dd9921",
+      "run": 37141277871,
+      "run_attempt": 1,
+      "artifact": 11280851761,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141277871"
+    },
+    {
+      "title": "config-f8-l4-p1",
+      "digest": "sha256:fbe0a1ead429021ee2df7d88627c228840bc12208a7a62fc5818a61116917ed7",
+      "run": 37141279810,
+      "run_attempt": 1,
+      "artifact": 11280208352,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141279810"
+    },
+    {
+      "title": "config-json-f8",
+      "digest": "sha256:a1bc37e10848a53bc31f00cc537b8697413b38da14a84693d59c4bbb41a00fe0",
+      "run": 37141281358,
+      "run_attempt": 1,
+      "artifact": 11280383039,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141281358"
+    },
+    {
+      "title": "config-f10-l1-p0",
+      "digest": "sha256:d88080241d55232197b093f45af4c76654a3d715d0d92b2dfa7deaf35dcd052c",
+      "run": 37141282909,
+      "run_attempt": 1,
+      "artifact": 11280472881,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141282909"
+    },
+    {
+      "title": "config-f10-l1-p1",
+      "digest": "sha256:527ffb3a9886cd08717c6c5dcc96f355ba538b9de627bdd840515f3df06a0326",
+      "run": 37141284273,
+      "run_attempt": 1,
+      "artifact": 11280557745,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141284273"
+    },
+    {
+      "title": "config-f10-l2-p0",
+      "digest": "sha256:6aea3fafe8f1500c699b6bad352381503cebb5e2a833a436f0dd412d11bc0574",
+      "run": 37141285799,
+      "run_attempt": 1,
+      "artifact": 11280602808,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141285799"
+    },
+    {
+      "title": "config-f10-l2-p1",
+      "digest": "sha256:06e6b8ae13a23752e62ee69fb619226403c1f455785321442a9dacfd119f3c3d",
+      "run": 37141287339,
+      "run_attempt": 1,
+      "artifact": 11280662650,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141287339"
+    },
+    {
+      "title": "config-f10-l3-p0",
+      "digest": "sha256:4bd9d4af00d8462a88c9ef799224026a1792f5ebb5857997d09a9a2bff840680",
+      "run": 37141289140,
+      "run_attempt": 1,
+      "artifact": 11280642702,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141289140"
+    },
+    {
+      "title": "config-f10-l3-p1",
+      "digest": "sha256:97d44ed6a15bf7167ce60b01a9092ed7133c00b2eabef66117b8cdaf04c60958",
+      "run": 37141290720,
+      "run_attempt": 1,
+      "artifact": 11280787098,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141290720"
+    },
+    {
+      "title": "config-f10-l4-p0",
+      "digest": "sha256:86328eddfa71c8f657ea9c6a85a488a47f5299e1f03f21d0a095bc11f6b931cf",
+      "run": 37141292070,
+      "run_attempt": 1,
+      "artifact": 11280802088,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141292070"
+    },
+    {
+      "title": "config-f10-l4-p1",
+      "digest": "sha256:e9ff2e0b187cb3772f365f70b2dad3678a7f4a2ce03f630613554c0e24ad633a",
+      "run": 37141293518,
+      "run_attempt": 1,
+      "artifact": 11280742426,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141293518"
+    },
+    {
+      "title": "config-json-f10",
+      "digest": "sha256:d14177cd2e00483623b2d6a0b7074842cddfa70f73100233f642f9e2027038da",
+      "run": 37141295098,
+      "run_attempt": 1,
+      "artifact": 11280079545,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141295098"
+    },
+    {
+      "title": "config-f12-l1-p0",
+      "digest": "sha256:be4d360eb69ff74cd084f9667fb6c6ee3033178184758dd46eef739c840c7601",
+      "run": 37141296614,
+      "run_attempt": 1,
+      "artifact": 11281030176,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141296614"
+    },
+    {
+      "title": "config-f12-l1-p1",
+      "digest": "sha256:f7f49a74d369bbacf7360a2e840fcc3f0fdc2ae954968b3ba019e41629f92948",
+      "run": 37141298039,
+      "run_attempt": 1,
+      "artifact": 11280732454,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141298039"
+    },
+    {
+      "title": "config-f12-l2-p0",
+      "digest": "sha256:382baac2792b9d21320c9b2ad6b8cba08e7301ed7abf8c8df460ee407f76f348",
+      "run": 37141299746,
+      "run_attempt": 1,
+      "artifact": 11280183796,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141299746"
+    },
+    {
+      "title": "config-f12-l2-p1",
+      "digest": "sha256:5f55b6772fb4bd628b385427eacb7f2c0d112e24eac782f6e91dac5af64e152f",
+      "run": 37141301322,
+      "run_attempt": 1,
+      "artifact": 11280448060,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141301322"
+    },
+    {
+      "title": "config-f12-l3-p0",
+      "digest": "sha256:3a4badc917831a14b87bd01823532e270d040406e3cec3ee1e27e91aea5f08da",
+      "run": 37141302635,
+      "run_attempt": 1,
+      "artifact": 11280442957,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141302635"
+    },
+    {
+      "title": "config-f12-l3-p1",
+      "digest": "sha256:e30ad7f68e06bb1389de0394c9b97892408a073bca0287798091d11b0bc2d636",
+      "run": 37141304121,
+      "run_attempt": 1,
+      "artifact": 11280248667,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141304121"
+    },
+    {
+      "title": "config-f12-l4-p0",
+      "digest": "sha256:af71cf61eaaa955ee6d3891f749eb0a79fc2ba5cf546f9d8531fa329af1da945",
+      "run": 37141305612,
+      "run_attempt": 1,
+      "artifact": 11280612657,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141305612"
+    },
+    {
+      "title": "config-f12-l4-p1",
+      "digest": "sha256:20aa554add27b4efefd181c1c75fffea541cbe1d2fe5328cc8996fc1d3716940",
+      "run": 37141307032,
+      "run_attempt": 1,
+      "artifact": 11279839917,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141307032"
+    },
+    {
+      "title": "config-json-f12",
+      "digest": "sha256:d6d7fc273e0c22c7f171e0159960a0fb29becb0d94ee06134bb3601fda650f8e",
+      "run": 37141308876,
+      "run_attempt": 1,
+      "artifact": 11280562962,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141308876"
+    },
+    {
+      "title": "config-f16-l1-p0",
+      "digest": "sha256:2e3feb86570179f9e9fdeeede4fb2ac0f745b546bdf62ed9689885cc04cb5b65",
+      "run": 37141310125,
+      "run_attempt": 1,
+      "artifact": 11280442977,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141310125"
+    },
+    {
+      "title": "config-f16-l1-p1",
+      "digest": "sha256:8c4ed661eaf317872747d4c62ec416dc0b7a7027aa9d52eaebbbd8315ccb20d7",
+      "run": 37141311319,
+      "run_attempt": 1,
+      "artifact": 11280857322,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141311319"
+    },
+    {
+      "title": "config-f16-l2-p0",
+      "digest": "sha256:9d6f287c885b11e301b9c57d83df30f6beb8da192148eca3b1e89a4d886de54d",
+      "run": 37141312926,
+      "run_attempt": 1,
+      "artifact": 11280572911,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141312926"
+    },
+    {
+      "title": "config-f16-l2-p1",
+      "digest": "sha256:071d3b3142a634e48f983384cc6b24f7006435b88732aa1bef854602ba53e0d0",
+      "run": 37141314472,
+      "run_attempt": 1,
+      "artifact": 11281045331,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141314472"
+    },
+    {
+      "title": "config-f16-l3-p0",
+      "digest": "sha256:576508fb5551d9aa1f372673383ed189317eccb45511bb0ae8a239aa70a10ed0",
+      "run": 37141315951,
+      "run_attempt": 1,
+      "artifact": 11280812424,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141315951"
+    },
+    {
+      "title": "config-f16-l3-p1",
+      "digest": "sha256:5a7f6d9de3677d814adf8bf414d5aa2180a2a3775618a30d60bf61527e7762ba",
+      "run": 37141317414,
+      "run_attempt": 1,
+      "artifact": 11280353317,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141317414"
+    },
+    {
+      "title": "config-f16-l4-p0",
+      "digest": "sha256:3877e94e3f05eec646b7db2b072eff9c1016cd5038f2226870004e62dacb2e2e",
+      "run": 37141318887,
+      "run_attempt": 1,
+      "artifact": 11280328478,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141318887"
+    },
+    {
+      "title": "config-f16-l4-p1",
+      "digest": "sha256:584236d3baaae43c1d1e13cb92e99e7563de7edd4dad36edca93c5e4f0d5ee6a",
+      "run": 37141320553,
+      "run_attempt": 1,
+      "artifact": 11280193768,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141320553"
+    },
+    {
+      "title": "config-json-f16",
+      "digest": "sha256:d2cd48980b9a6c7ea65dadb3b83a36cba572e39b378371e43734588464f51648",
+      "run": 37141322280,
+      "run_attempt": 1,
+      "artifact": 11280298544,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141322280"
+    },
+    {
+      "title": "config-f20-l1-p0",
+      "digest": "sha256:856272ff0d58306c4c58b816926a37ee4aa8391b53022887b479f62eee3f96be",
+      "run": 37141324016,
+      "run_attempt": 1,
+      "artifact": 11280243776,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141324016"
+    },
+    {
+      "title": "config-f20-l1-p1",
+      "digest": "sha256:f54b761f9dc4e1896945eb2ddb2ca577b533c5071ac98b0c954752f90f3c75c9",
+      "run": 37141325385,
+      "run_attempt": 1,
+      "artifact": 11280528102,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141325385"
+    },
+    {
+      "title": "config-f20-l2-p0",
+      "digest": "sha256:e0f02d20c0f28e82eef936a572c6cffd0dc40829e9a950abed1abbd43394e8ec",
+      "run": 37141326985,
+      "run_attempt": 1,
+      "artifact": 11280637868,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141326985"
+    },
+    {
+      "title": "config-f20-l2-p1",
+      "digest": "sha256:0506dee5ba77ced3288a7927da402fb38c93f38618f9d8a42e61f90018e49a72",
+      "run": 37141328328,
+      "run_attempt": 1,
+      "artifact": 11280627686,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141328328"
+    },
+    {
+      "title": "config-f20-l3-p0",
+      "digest": "sha256:7ecd0e4dd07b896d2070c930b6035dc61574a96998714ec0d077502237794fe0",
+      "run": 37141329902,
+      "run_attempt": 1,
+      "artifact": 11280308555,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141329902"
+    },
+    {
+      "title": "config-f20-l3-p1",
+      "digest": "sha256:ab6e1ba11379b937ec81da50d452babef490d0658c6fcae9f0253ff9b1425529",
+      "run": 37141331103,
+      "run_attempt": 1,
+      "artifact": 11280772211,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141331103"
+    },
+    {
+      "title": "config-f20-l4-p0",
+      "digest": "sha256:2eb5d7c9e4bea9642490e67bac8b99d92cb1237e84bb4735a1190b9306dacdad",
+      "run": 37141332295,
+      "run_attempt": 1,
+      "artifact": 11280622718,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141332295"
+    },
+    {
+      "title": "config-f20-l4-p1",
+      "digest": "sha256:00667bc085d67c2106229862a1bea3a315e355166f07bfec557767c48ff7d440",
+      "run": 37141333447,
+      "run_attempt": 1,
+      "artifact": 11280223967,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141333447"
+    },
+    {
+      "title": "config-json-f20",
+      "digest": "sha256:c837479c2ed693d799f9476a3fc6cb82220f09312d39c83f69a08321959fd873",
+      "run": 37141334704,
+      "run_attempt": 1,
+      "artifact": 11281175063,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141334704"
+    },
+    {
+      "title": "config-defaults",
+      "digest": "sha256:d72e978464971bc75e3f9904824de012b0c7225d7ef094fd1767e8db1d038e09",
+      "run": 37141336177,
+      "run_attempt": 1,
+      "artifact": 11280822208,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141336177"
+    },
+    {
+      "title": "config-mtu1280-reverse0",
+      "digest": "sha256:f6d892703d3356b31cbeaf47c4f2c537e14b7f0f18802be5275ac0f69399f064",
+      "run": 37141337922,
+      "run_attempt": 1,
+      "artifact": 11281075357,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141337922"
+    },
+    {
+      "title": "config-mtu1280-reverse1",
+      "digest": "sha256:929cda1ab142f7a5bc3bad417430ba2983b62378e7570de3ef7ac05b994deb99",
+      "run": 37141339465,
+      "run_attempt": 1,
+      "artifact": 11281200094,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141339465"
+    },
+    {
+      "title": "config-mtu1400-reverse0",
+      "digest": "sha256:a5ff281e8be7082943012539d27ac81dc4733d674a7fabcbcd158dd77c773d09",
+      "run": 37141341293,
+      "run_attempt": 1,
+      "artifact": 11280064666,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141341293"
+    },
+    {
+      "title": "config-mtu1400-reverse1",
+      "digest": "sha256:d7f3c3c6899b62159da37031d6fd88906f0ae791e84527a186aa6a23f96e51ec",
+      "run": 37141342875,
+      "run_attempt": 1,
+      "artifact": 11279914980,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141342875"
+    },
+    {
+      "title": "config-mtu1500-reverse0",
+      "digest": "sha256:2e168d6c1db16ecdfe16201a7ab6c9444158b44161a2a0ec9af5462bf527cfe9",
+      "run": 37141344611,
+      "run_attempt": 1,
+      "artifact": 11280747567,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141344611"
+    },
+    {
+      "title": "config-mtu1500-reverse1",
+      "digest": "sha256:8d93ec1b5ff9b4bbccdd0d475aa46121c398e89e7bdb92a89a5cd9849a414ae6",
+      "run": 37141346437,
+      "run_attempt": 1,
+      "artifact": 11280163302,
+      "original_conclusion": "success",
+      "summary_result": "PASS",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37141346437"
+    }
+  ],
+  "long_soaks": [
+    {
+      "schema": "wbd-target-soak-result/v1",
+      "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+      "qualification": "FORMAL",
+      "duration_s": 1800,
+      "mode": "normal",
+      "result": "PASS",
+      "errors": [],
+      "phases": [
+        {
+          "phase": "cycle0-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999736888888888,
+              "offered_mbps": 9.999992888888888,
+              "netem_actual_loss_percent": 5.014202812306678
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999843555555556,
+              "offered_mbps": 9.99998151111111,
+              "netem_actual_loss_percent": 5.011027642738623
+            }
+          },
+          "probe": {
+            "p95_ns": 614987920,
+            "p99_ns": 616635011,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle0-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.000509866666667,
+              "offered_mbps": 10.000138666666667,
+              "netem_actual_loss_percent": 19.982195458707924
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.000055466666668,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 19.94937384182731
+            }
+          },
+          "probe": {
+            "p95_ns": 618824300,
+            "p99_ns": 620252743,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle0-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999936,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 4.986005705366273
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999953066666667,
+              "offered_mbps": 10.0000128,
+              "netem_actual_loss_percent": 4.958775536563839
+            }
+          },
+          "probe": {
+            "p95_ns": 615537204,
+            "p99_ns": 615926149,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle1-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999883377777778,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 5.028449231188045
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999908266666667,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 5.016020688645642
+            }
+          },
+          "probe": {
+            "p95_ns": 612994859,
+            "p99_ns": 615269717,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle1-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.998756266666668,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 19.887521141176986
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999827199999999,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 19.94608553181719
+            }
+          },
+          "probe": {
+            "p95_ns": 615592451,
+            "p99_ns": 617389549,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle1-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0020266572990062623,
+              "wall_goodput_mbps": 10.000610133333334,
+              "offered_mbps": 9.9999872,
+              "netem_actual_loss_percent": 4.994731409546444
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0013510957386440403,
+              "wall_goodput_mbps": 10.000138666666667,
+              "offered_mbps": 10.000021333333335,
+              "netem_actual_loss_percent": 5.05358476349374
+            }
+          },
+          "probe": {
+            "p95_ns": 613979462,
+            "p99_ns": 615210852,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle2-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.000164266666667,
+              "offered_mbps": 10.000043377777777,
+              "netem_actual_loss_percent": 4.98046105739757
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999872,
+              "offered_mbps": 9.999967288888888,
+              "netem_actual_loss_percent": 5.016607598404301
+            }
+          },
+          "probe": {
+            "p95_ns": 615294490,
+            "p99_ns": 617879280,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle2-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.998939733333332,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 19.98719633889105
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.9995392,
+              "offered_mbps": 9.999607466666667,
+              "netem_actual_loss_percent": 19.950779816318448
+            }
+          },
+          "probe": {
+            "p95_ns": 616754550,
+            "p99_ns": 617388695,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle2-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.000654933333333,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 5.001197263244556
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.0003328,
+              "offered_mbps": 10.000138666666667,
+              "netem_actual_loss_percent": 4.977958100885577
+            }
+          },
+          "probe": {
+            "p95_ns": 615089662,
+            "p99_ns": 618720111,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle3-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.000060444444443,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 4.992553634592573
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.000032,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 4.987046743022107
+            }
+          },
+          "probe": {
+            "p95_ns": 614263780,
+            "p99_ns": 616454120,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle3-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.998850133333333,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 19.877250652974883
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0027022279869752613,
+              "wall_goodput_mbps": 9.999447466666666,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 20.043902100300286
+            }
+          },
+          "probe": {
+            "p95_ns": 617104775,
+            "p99_ns": 617915721,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle3-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0020266436079660606,
+              "wall_goodput_mbps": 10.001038933333334,
+              "offered_mbps": 10.000021333333335,
+              "netem_actual_loss_percent": 5.035684736619064
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0027022279869752613,
+              "wall_goodput_mbps": 9.999302400000001,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 4.9965347633882615
+            }
+          },
+          "probe": {
+            "p95_ns": 614857341,
+            "p99_ns": 616556843,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle4-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999843555555556,
+              "offered_mbps": 10.000032,
+              "netem_actual_loss_percent": 4.986555571730735
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.000125155555555,
+              "offered_mbps": 10.000046222222222,
+              "netem_actual_loss_percent": 4.998360168624331
+            }
+          },
+          "probe": {
+            "p95_ns": 614134719,
+            "p99_ns": 614847770,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle4-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.9998784,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 20.04229396573962
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999944533333332,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 19.982923971963544
+            }
+          },
+          "probe": {
+            "p95_ns": 613222813,
+            "p99_ns": 614733099,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle4-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.000290133333333,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 4.974982476297595
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999978666666665,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 4.999239971320688
+            }
+          },
+          "probe": {
+            "p95_ns": 612994225,
+            "p99_ns": 616415547,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle5-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.000209066666667,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 5.005083726296458
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.000043377777777,
+              "offered_mbps": 9.999913955555556,
+              "netem_actual_loss_percent": 5.003218908002582
+            }
+          },
+          "probe": {
+            "p95_ns": 614512774,
+            "p99_ns": 617602346,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle5-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 9.999210666666666,
+              "offered_mbps": 10.000021333333335,
+              "netem_actual_loss_percent": 19.96299345018071
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 10.000029866666667,
+              "offered_mbps": 10.000181333333334,
+              "netem_actual_loss_percent": 19.948453535171673
+            }
+          },
+          "probe": {
+            "p95_ns": 617918711,
+            "p99_ns": 622239749,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle5-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0006755569967438153,
+              "wall_goodput_mbps": 10.000452266666668,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 4.9788305190323525
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0013511139934876306,
+              "wall_goodput_mbps": 10.000130133333332,
+              "offered_mbps": 9.999978666666665,
+              "netem_actual_loss_percent": 4.993084407896153
+            }
+          },
+          "probe": {
+            "p95_ns": 611803617,
+            "p99_ns": 619096497,
+            "received": 60
+          }
+        }
+      ],
+      "short_window_loss": {
+        "c2s": {
+          "errors": [],
+          "phases": [
+            {
+              "phase": "cycle0-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 0,
+                "sent": 2469,
+                "received": 2469,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle0-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 180,
+                "sent": 2467,
+                "received": 2467,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle0-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 240,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 300,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 480,
+                "sent": 2468,
+                "received": 2468,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 588,
+                "sent": 2466,
+                "received": 2463,
+                "packet_loss_percent": 0.12165450121654502
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 600,
+                "sent": 2468,
+                "received": 2468,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 780,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 840,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 900,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1080,
+                "sent": 2469,
+                "received": 2469,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1190,
+                "sent": 2466,
+                "received": 2463,
+                "packet_loss_percent": 0.12165450121654502
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1200,
+                "sent": 2467,
+                "received": 2467,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1380,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1440,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1500,
+                "sent": 2465,
+                "received": 2465,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1680,
+                "sent": 2467,
+                "received": 2467,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1793,
+                "sent": 2466,
+                "received": 2465,
+                "packet_loss_percent": 0.040551500405515
+              },
+              "violations": 0,
+              "first_violations": []
+            }
+          ]
+        },
+        "s2c": {
+          "errors": [],
+          "phases": [
+            {
+              "phase": "cycle0-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 0,
+                "sent": 2469,
+                "received": 2469,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle0-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 180,
+                "sent": 2468,
+                "received": 2468,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle0-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 240,
+                "sent": 2468,
+                "received": 2468,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 300,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 480,
+                "sent": 2468,
+                "received": 2468,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 588,
+                "sent": 2464,
+                "received": 2462,
+                "packet_loss_percent": 0.08116883116883117
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 600,
+                "sent": 2467,
+                "received": 2467,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 780,
+                "sent": 2468,
+                "received": 2468,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 840,
+                "sent": 2467,
+                "received": 2467,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 900,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1124,
+                "sent": 2467,
+                "received": 2463,
+                "packet_loss_percent": 0.16214025131738954
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1191,
+                "sent": 2468,
+                "received": 2464,
+                "packet_loss_percent": 0.1620745542949757
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1200,
+                "sent": 2469,
+                "received": 2469,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1380,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1440,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1500,
+                "sent": 2466,
+                "received": 2466,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1680,
+                "sent": 2471,
+                "received": 2471,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1793,
+                "sent": 2466,
+                "received": 2464,
+                "packet_loss_percent": 0.08110300081103
+              },
+              "violations": 0,
+              "first_violations": []
+            }
+          ]
+        }
+      },
+      "resource": {
+        "samples": 1800,
+        "max_gap_s": 1.004422638,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "socket_drop_max": 0,
+        "socket_drop_by_endpoint": {
+          "biz/ss_udp": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_packet": 0,
+          "client/ss_udp": 0,
+          "client/ss_raw": 0,
+          "client/ss_packet": 0,
+          "router/ss_udp": 0,
+          "router/ss_raw": 0,
+          "router/ss_packet": 0,
+          "server/ss_udp": 0,
+          "server/ss_raw": 0,
+          "server/ss_packet": 0,
+          "target/ss_udp": 0,
+          "target/ss_raw": 0,
+          "target/ss_packet": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_rmem_alloc": 0,
+            "max_rcv_buf": 0,
+            "max_drops": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_rmem_alloc": 71232,
+            "max_rcv_buf": 1048576,
+            "max_drops": 0,
+            "max_rmem_ratio": 0.06793212890625
+          },
+          "router/ss_packet": {
+            "max_rmem_alloc": 0,
+            "max_rcv_buf": 1048576,
+            "max_drops": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_rmem_alloc": 104192,
+            "max_rcv_buf": 1048576,
+            "max_drops": 0,
+            "max_rmem_ratio": 0.099365234375
+          },
+          "target/ss_packet": {
+            "max_rmem_alloc": 0,
+            "max_rcv_buf": 0,
+            "max_drops": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "link_drop_delta": {
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "process_cpu_seconds": {
+          "client": 1352.0,
+          "server": 1387.46
+        },
+        "thread_cpu_seconds": {
+          "client": {
+            "3884": 180.77,
+            "3886": 66.61,
+            "3887": 157.87,
+            "3888": 0.0,
+            "3889": 181.8,
+            "3890": 0.0,
+            "3905": 113.22,
+            "3907": 0.0,
+            "3908": 177.37,
+            "3909": 172.5,
+            "4404": 0.0,
+            "9104": 0.0
+          },
+          "server": {
+            "3865": 0.0,
+            "3867": 64.82,
+            "3868": 0.0,
+            "3869": 179.86,
+            "3870": 0.0,
+            "3871": 0.0,
+            "3882": 140.23,
+            "3883": 171.54,
+            "3898": 191.55,
+            "3906": 169.95,
+            "3910": 169.14,
+            "4484": 0.0,
+            "6329": 0.0
+          }
+        },
+        "errors": []
+      },
+      "diagnostics": {
+        "client": {
+          "first_generation": {
+            "1": 1
+          },
+          "last_generation": {
+            "1": 4
+          },
+          "heap_peak": 30760960,
+          "early_heap_median": 17797120.0,
+          "late_heap_median": 18300928.0,
+          "internal_queue_drops": {
+            "maxima": {
+              "segment_mux": 0
+            },
+            "errors": []
+          }
+        },
+        "server": {
+          "first_generation": {
+            "1": 1
+          },
+          "last_generation": {
+            "1": 4
+          },
+          "heap_peak": 29130752,
+          "early_heap_median": 18653184.0,
+          "late_heap_median": 19394560.0,
+          "internal_queue_drops": {
+            "maxima": {
+              "server_pipeline": 0
+            },
+            "errors": []
+          }
+        }
+      },
+      "statistics": {
+        "biz": {
+          "bitset_bytes": 555099,
+          "capacity_errors": 0,
+          "exact_dedupe": true,
+          "histograms": {
+            "oneway_ns": {
+              "allocated_bytes": 160008,
+              "ceiling_ns": 10000000000,
+              "count": 4440771,
+              "maximum_ns": 408340278,
+              "overflow": 0,
+              "resolution_ns": 500000
+            },
+            "probe_rtt_ns": {
+              "allocated_bytes": 160008,
+              "ceiling_ns": 10000000000,
+              "count": 1800,
+              "maximum_ns": 630291411,
+              "overflow": 0,
+              "resolution_ns": 500000
+            },
+            "send_lag_ns": {
+              "allocated_bytes": 8008,
+              "ceiling_ns": 100000000,
+              "count": 4440791,
+              "maximum_ns": 7249792,
+              "overflow": 0,
+              "resolution_ns": 100000
+            }
+          },
+          "sequence_capacity": 4440791,
+          "version": 1
+        },
+        "target": {
+          "bitset_bytes": 555099,
+          "capacity_errors": 0,
+          "exact_dedupe": true,
+          "histograms": {
+            "oneway_ns": {
+              "allocated_bytes": 160008,
+              "ceiling_ns": 10000000000,
+              "count": 4440784,
+              "maximum_ns": 348769861,
+              "overflow": 0,
+              "resolution_ns": 500000
+            },
+            "probe_rtt_ns": {
+              "allocated_bytes": 160008,
+              "ceiling_ns": 10000000000,
+              "count": 0,
+              "maximum_ns": 0,
+              "overflow": 0,
+              "resolution_ns": 500000
+            },
+            "send_lag_ns": {
+              "allocated_bytes": 8008,
+              "ceiling_ns": 100000000,
+              "count": 4440784,
+              "maximum_ns": 9906155,
+              "overflow": 0,
+              "resolution_ns": 100000
+            }
+          },
+          "sequence_capacity": 4440791,
+          "version": 1
+        }
+      }
+    },
+    {
+      "schema": "wbd-target-soak-result/v1",
+      "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+      "qualification": "FORMAL",
+      "duration_s": 1800,
+      "mode": "game",
+      "result": "PASS",
+      "errors": [],
+      "phases": [
+        {
+          "phase": "cycle0-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000007111111111,
+              "offered_mbps": 3.000007111111111,
+              "netem_actual_loss_percent": 5.013023051489804
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000007111111111,
+              "offered_mbps": 3.000007111111111,
+              "netem_actual_loss_percent": 5.005000686937422
+            }
+          },
+          "probe": {
+            "p95_ns": 602599545,
+            "p99_ns": 602944373,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle0-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 2.9999146666666667,
+              "offered_mbps": 3.0000746666666664,
+              "netem_actual_loss_percent": 20.014734744111895
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.0000746666666664,
+              "netem_actual_loss_percent": 20.021486913957226
+            }
+          },
+          "probe": {
+            "p95_ns": 602133408,
+            "p99_ns": 602414111,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle0-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000032,
+              "offered_mbps": 2.9999146666666667,
+              "netem_actual_loss_percent": 4.96104135452538
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 2.999872,
+              "offered_mbps": 2.9999146666666667,
+              "netem_actual_loss_percent": 4.943686290210673
+            }
+          },
+          "probe": {
+            "p95_ns": 602118392,
+            "p99_ns": 602452018,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle1-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000007111111111,
+              "offered_mbps": 3.000007111111111,
+              "netem_actual_loss_percent": 5.029000499471169
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000007111111111,
+              "offered_mbps": 2.9999957333333334,
+              "netem_actual_loss_percent": 5.010543438313456
+            }
+          },
+          "probe": {
+            "p95_ns": 602398813,
+            "p99_ns": 602998555,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle1-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.000032,
+              "netem_actual_loss_percent": 19.902936896785988
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.000066133333333,
+              "netem_actual_loss_percent": 19.99897648598395
+            }
+          },
+          "probe": {
+            "p95_ns": 602099712,
+            "p99_ns": 602527871,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle1-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 2.9999146666666667,
+              "offered_mbps": 3.0000746666666664,
+              "netem_actual_loss_percent": 4.91708292163175
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.0000746666666664,
+              "netem_actual_loss_percent": 4.9833013774230075
+            }
+          },
+          "probe": {
+            "p95_ns": 602516666,
+            "p99_ns": 603084894,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle2-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 2.9999395555555557,
+              "offered_mbps": 2.999953777777778,
+              "netem_actual_loss_percent": 4.990432639000399
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 2.9999395555555557,
+              "offered_mbps": 2.999953777777778,
+              "netem_actual_loss_percent": 5.0094874596986845
+            }
+          },
+          "probe": {
+            "p95_ns": 602004331,
+            "p99_ns": 602727022,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle2-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0002346666666666,
+              "offered_mbps": 3.000032,
+              "netem_actual_loss_percent": 20.012313394168814
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.000032,
+              "netem_actual_loss_percent": 19.982680497874703
+            }
+          },
+          "probe": {
+            "p95_ns": 602139994,
+            "p99_ns": 602497542,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle2-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.0000746666666664,
+              "netem_actual_loss_percent": 4.991606871553838
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.0000746666666664,
+              "netem_actual_loss_percent": 4.981562628432601
+            }
+          },
+          "probe": {
+            "p95_ns": 602240291,
+            "p99_ns": 602341252,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle3-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000007111111111,
+              "offered_mbps": 3.000007111111111,
+              "netem_actual_loss_percent": 5.005388919048796
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000007111111111,
+              "offered_mbps": 3.000007111111111,
+              "netem_actual_loss_percent": 4.991567881184142
+            }
+          },
+          "probe": {
+            "p95_ns": 602565347,
+            "p99_ns": 603118978,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle3-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 2.999872,
+              "offered_mbps": 2.999872,
+              "netem_actual_loss_percent": 19.939062618160705
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 2.999872,
+              "offered_mbps": 2.999872,
+              "netem_actual_loss_percent": 20.07095960057792
+            }
+          },
+          "probe": {
+            "p95_ns": 602092910,
+            "p99_ns": 602287544,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle3-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.0000746666666664,
+              "netem_actual_loss_percent": 5.025658308976822
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.0000746666666664,
+              "netem_actual_loss_percent": 4.986313042309388
+            }
+          },
+          "probe": {
+            "p95_ns": 602202337,
+            "p99_ns": 603188959,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle4-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000007111111111,
+              "offered_mbps": 3.000007111111111,
+              "netem_actual_loss_percent": 4.991398516085409
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 2.999953777777778,
+              "offered_mbps": 3.000007111111111,
+              "netem_actual_loss_percent": 5.003867671270416
+            }
+          },
+          "probe": {
+            "p95_ns": 602178342,
+            "p99_ns": 602931466,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle4-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 2.999872,
+              "offered_mbps": 2.9999146666666667,
+              "netem_actual_loss_percent": 20.019592247033103
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000032,
+              "offered_mbps": 2.9999146666666667,
+              "netem_actual_loss_percent": 19.97901133631893
+            }
+          },
+          "probe": {
+            "p95_ns": 601896371,
+            "p99_ns": 601967038,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle4-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.000032,
+              "netem_actual_loss_percent": 4.936084804108069
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.000032,
+              "netem_actual_loss_percent": 4.972415960931343
+            }
+          },
+          "probe": {
+            "p95_ns": 602104718,
+            "p99_ns": 602795086,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle5-base",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000007111111111,
+              "offered_mbps": 3.000007111111111,
+              "netem_actual_loss_percent": 5.006994740984324
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000007111111111,
+              "offered_mbps": 3.000007111111111,
+              "netem_actual_loss_percent": 5.005222418490768
+            }
+          },
+          "probe": {
+            "p95_ns": 602375788,
+            "p99_ns": 604016693,
+            "received": 180
+          }
+        },
+        {
+          "phase": "cycle5-stress",
+          "loss_limit_percent": 20,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.0000746666666664,
+              "offered_mbps": 3.0000746666666664,
+              "netem_actual_loss_percent": 20.01170260748723
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 2.9999146666666667,
+              "offered_mbps": 3.0000746666666664,
+              "netem_actual_loss_percent": 19.975215764335093
+            }
+          },
+          "probe": {
+            "p95_ns": 602547161,
+            "p99_ns": 631686866,
+            "received": 60
+          }
+        },
+        {
+          "phase": "cycle5-recovery",
+          "loss_limit_percent": 5,
+          "directions": {
+            "c2s": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 2.999872,
+              "offered_mbps": 2.999872,
+              "netem_actual_loss_percent": 4.975357282387206
+            },
+            "s2c": {
+              "packet_loss_percent": 0.0,
+              "wall_goodput_mbps": 3.000032,
+              "offered_mbps": 2.999872,
+              "netem_actual_loss_percent": 4.986046448078099
+            }
+          },
+          "probe": {
+            "p95_ns": 601948004,
+            "p99_ns": 602163145,
+            "received": 60
+          }
+        }
+      ],
+      "short_window_loss": {
+        "c2s": {
+          "errors": [],
+          "phases": [
+            {
+              "phase": "cycle0-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 0,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle0-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 180,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle0-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 240,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 300,
+                "sent": 739,
+                "received": 739,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 480,
+                "sent": 739,
+                "received": 739,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 540,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 600,
+                "sent": 739,
+                "received": 739,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 780,
+                "sent": 739,
+                "received": 739,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 840,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 900,
+                "sent": 740,
+                "received": 740,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1080,
+                "sent": 740,
+                "received": 740,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1140,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1200,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1380,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1440,
+                "sent": 739,
+                "received": 739,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1500,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1680,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1740,
+                "sent": 739,
+                "received": 739,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            }
+          ]
+        },
+        "s2c": {
+          "errors": [],
+          "phases": [
+            {
+              "phase": "cycle0-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 0,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle0-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 180,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle0-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 240,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 300,
+                "sent": 739,
+                "received": 739,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 480,
+                "sent": 740,
+                "received": 740,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle1-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 540,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 600,
+                "sent": 739,
+                "received": 739,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 780,
+                "sent": 739,
+                "received": 739,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle2-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 840,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 900,
+                "sent": 740,
+                "received": 740,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1080,
+                "sent": 740,
+                "received": 740,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle3-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1140,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1200,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1380,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle4-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1440,
+                "sent": 739,
+                "received": 739,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-base",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1500,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-stress",
+              "limit_percent": 22,
+              "worst": {
+                "second": 1680,
+                "sent": 741,
+                "received": 741,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            },
+            {
+              "phase": "cycle5-recovery",
+              "limit_percent": 7,
+              "worst": {
+                "second": 1740,
+                "sent": 739,
+                "received": 739,
+                "packet_loss_percent": 0.0
+              },
+              "violations": 0,
+              "first_violations": []
+            }
+          ]
+        }
+      },
+      "resource": {
+        "samples": 1800,
+        "max_gap_s": 1.001776105,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "socket_drop_max": 0,
+        "socket_drop_by_endpoint": {
+          "biz/ss_udp": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_packet": 0,
+          "client/ss_udp": 0,
+          "client/ss_raw": 0,
+          "client/ss_packet": 0,
+          "router/ss_udp": 0,
+          "router/ss_raw": 0,
+          "router/ss_packet": 0,
+          "server/ss_udp": 0,
+          "server/ss_raw": 0,
+          "server/ss_packet": 0,
+          "target/ss_udp": 0,
+          "target/ss_raw": 0,
+          "target/ss_packet": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_rmem_alloc": 0,
+            "max_rcv_buf": 0,
+            "max_drops": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_rmem_alloc": 244800,
+            "max_rcv_buf": 1048576,
+            "max_drops": 0,
+            "max_rmem_ratio": 0.23345947265625
+          },
+          "router/ss_packet": {
+            "max_rmem_alloc": 0,
+            "max_rcv_buf": 1048576,
+            "max_drops": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_rmem_alloc": 87936,
+            "max_rcv_buf": 1048576,
+            "max_drops": 0,
+            "max_rmem_ratio": 0.0838623046875
+          },
+          "target/ss_packet": {
+            "max_rmem_alloc": 0,
+            "max_rcv_buf": 0,
+            "max_drops": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "link_drop_delta": {
+          "target": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "process_cpu_seconds": {
+          "client": 933.34,
+          "server": 867.18
+        },
+        "thread_cpu_seconds": {
+          "client": {
+            "3719": 122.15,
+            "3721": 28.49,
+            "3722": 129.96,
+            "3723": 130.69,
+            "3724": 0.0,
+            "3725": 0.0,
+            "3726": 0.0,
+            "3743": 36.02,
+            "3948": 133.95,
+            "3949": 133.04,
+            "4229": 0.0,
+            "19465": 0.0
+          },
+          "server": {
+            "3699": 0.0,
+            "3701": 22.55,
+            "3702": 0.0,
+            "3703": 124.82,
+            "3704": 0.0,
+            "3705": 0.0,
+            "3716": 116.62,
+            "3717": 31.63,
+            "3718": 116.19,
+            "3740": 123.17,
+            "3744": 120.17,
+            "4167": 0.0,
+            "17864": 0.0
+          }
+        },
+        "errors": []
+      },
+      "diagnostics": {
+        "client": {
+          "first_generation": {
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4
+          },
+          "last_generation": {
+            "1": 5,
+            "2": 6,
+            "3": 7,
+            "4": 4
+          },
+          "heap_peak": 63389696,
+          "early_heap_median": 46358528.0,
+          "late_heap_median": 49192960.0,
+          "internal_queue_drops": {
+            "maxima": {
+              "segment_mux": 0
+            },
+            "errors": []
+          }
+        },
+        "server": {
+          "first_generation": {
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4
+          },
+          "last_generation": {
+            "1": 5,
+            "2": 6,
+            "3": 7,
+            "4": 4
+          },
+          "heap_peak": 60661760,
+          "early_heap_median": 45682688.0,
+          "late_heap_median": 48205824.0,
+          "internal_queue_drops": {
+            "maxima": {
+              "server_pipeline": 0
+            },
+            "errors": []
+          }
+        }
+      },
+      "statistics": {
+        "biz": {
+          "bitset_bytes": 166530,
+          "capacity_errors": 0,
+          "exact_dedupe": true,
+          "histograms": {
+            "oneway_ns": {
+              "allocated_bytes": 160008,
+              "ceiling_ns": 10000000000,
+              "count": 1332237,
+              "maximum_ns": 381100343,
+              "overflow": 0,
+              "resolution_ns": 500000
+            },
+            "probe_rtt_ns": {
+              "allocated_bytes": 160008,
+              "ceiling_ns": 10000000000,
+              "count": 1800,
+              "maximum_ns": 632909602,
+              "overflow": 0,
+              "resolution_ns": 500000
+            },
+            "send_lag_ns": {
+              "allocated_bytes": 8008,
+              "ceiling_ns": 100000000,
+              "count": 1332237,
+              "maximum_ns": 4352235,
+              "overflow": 0,
+              "resolution_ns": 100000
+            }
+          },
+          "sequence_capacity": 1332237,
+          "version": 1
+        },
+        "target": {
+          "bitset_bytes": 166530,
+          "capacity_errors": 0,
+          "exact_dedupe": true,
+          "histograms": {
+            "oneway_ns": {
+              "allocated_bytes": 160008,
+              "ceiling_ns": 10000000000,
+              "count": 1332237,
+              "maximum_ns": 381492438,
+              "overflow": 0,
+              "resolution_ns": 500000
+            },
+            "probe_rtt_ns": {
+              "allocated_bytes": 160008,
+              "ceiling_ns": 10000000000,
+              "count": 0,
+              "maximum_ns": 0,
+              "overflow": 0,
+              "resolution_ns": 500000
+            },
+            "send_lag_ns": {
+              "allocated_bytes": 8008,
+              "ceiling_ns": 100000000,
+              "count": 1332237,
+              "maximum_ns": 4934126,
+              "overflow": 0,
+              "resolution_ns": 100000
+            }
+          },
+          "sequence_capacity": 1332237,
+          "version": 1
+        }
+      }
+    }
+  ],
+  "packages": [
+    {
+      "files": [
+        {
+          "binary": true,
+          "path": "wbd-client",
+          "role": "client",
+          "sha256": "323c26695118a767bdb2d104e8e63b4c2f4753082e20f0b285336020e8c6314f",
+          "size_bytes": 7336088
+        },
+        {
+          "binary": true,
+          "path": "wbd-server",
+          "role": "server",
+          "sha256": "1cf12f6a6715c70d0c8a5d591022c0f172cbf30f542339d7fe85069d964747bb",
+          "size_bytes": 6426776
+        }
+      ],
+      "manifest_sha256": "4b4a0af301a10ae45903f479c931ec092da096577365992137aec8be395564e4",
+      "artifact": 11280312433,
+      "version": "next-rc-2b2bd9eb106d",
+      "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+      "local_hash_verification": "PASS_READ_ONLY",
+      "receipt": {
+        "manifest_sha256": "4b4a0af301a10ae45903f479c931ec092da096577365992137aec8be395564e4",
+        "schema": "wbd-p6-actions-receipt/v1",
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "status": {
+          "actions": "ACTIONS_PASS",
+          "implementation": "IMPLEMENTED",
+          "physical": "NOT_RUN",
+          "release_qualified": "NOT_RUN"
+        },
+        "target": {
+          "goarch": "amd64",
+          "goos": "linux"
+        },
+        "validated_files": [
+          {
+            "path": "wbd-client",
+            "role": "client",
+            "sha256": "323c26695118a767bdb2d104e8e63b4c2f4753082e20f0b285336020e8c6314f",
+            "size_bytes": 7336088
+          },
+          {
+            "path": "wbd-server",
+            "role": "server",
+            "sha256": "1cf12f6a6715c70d0c8a5d591022c0f172cbf30f542339d7fe85069d964747bb",
+            "size_bytes": 6426776
+          }
+        ]
+      },
+      "target": {
+        "goarch": "amd64",
+        "goos": "linux"
+      },
+      "native_execution": "ACTIONS_VERSION_PASS",
+      "zip_digest": "sha256:409a6deee2cb157170d9d84d30235c5e0cc40394a127320b0476a4a274b4de20"
+    },
+    {
+      "files": [
+        {
+          "binary": true,
+          "path": "wbd-client",
+          "role": "client",
+          "sha256": "568b595d32fb5d018fd546da6bdd33f1f704b54a30ebefb48c544cd9d7ac8acd",
+          "size_bytes": 6815896
+        },
+        {
+          "binary": true,
+          "path": "wbd-server",
+          "role": "server",
+          "sha256": "2d1287bb2b2d3c239c0f548a618cd1ed2db6d14441a73eca8e0fc586338c3fd5",
+          "size_bytes": 6029464
+        }
+      ],
+      "manifest_sha256": "9f1ad40d397c66673b47d80735d59b0553f6bf4c040f167acd79d62e9bfde742",
+      "artifact": 11280606788,
+      "version": "next-rc-2b2bd9eb106d",
+      "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+      "local_hash_verification": "PASS_READ_ONLY",
+      "receipt": {
+        "manifest_sha256": "9f1ad40d397c66673b47d80735d59b0553f6bf4c040f167acd79d62e9bfde742",
+        "schema": "wbd-p6-actions-receipt/v1",
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "status": {
+          "actions": "ACTIONS_PASS",
+          "implementation": "IMPLEMENTED",
+          "physical": "NOT_RUN",
+          "release_qualified": "NOT_RUN"
+        },
+        "target": {
+          "goarch": "arm64",
+          "goos": "linux"
+        },
+        "validated_files": [
+          {
+            "path": "wbd-client",
+            "role": "client",
+            "sha256": "568b595d32fb5d018fd546da6bdd33f1f704b54a30ebefb48c544cd9d7ac8acd",
+            "size_bytes": 6815896
+          },
+          {
+            "path": "wbd-server",
+            "role": "server",
+            "sha256": "2d1287bb2b2d3c239c0f548a618cd1ed2db6d14441a73eca8e0fc586338c3fd5",
+            "size_bytes": 6029464
+          }
+        ]
+      },
+      "target": {
+        "goarch": "arm64",
+        "goos": "linux"
+      },
+      "native_execution": "NOT_RUN_CROSS_BUILD_ONLY",
+      "zip_digest": "sha256:5cc80d86b8644267aea7a4ff5b90e01089671ff1d59d4cf0922715aba541d3a7"
+    },
+    {
+      "files": [
+        {
+          "binary": true,
+          "path": "wbd-client.exe",
+          "role": "client",
+          "sha256": "2ae1b1954f6a52ddec6057d90d2a4534bdcd697f878638c0e94e7ce120a5a3e1",
+          "size_bytes": 7378432
+        },
+        {
+          "binary": false,
+          "path": "windows_client_network.ps1",
+          "role": "windows_network_script",
+          "sha256": "61e81f362192bc628dfad0bdc586584fa6fcf2dbd8c6e29eafa2121b2009b1d9",
+          "size_bytes": 13184
+        }
+      ],
+      "manifest_sha256": "215e2c1c944e523b95fca490f68d4d1d8d175b1ac67ef3b6335e445af90b0de9",
+      "artifact": 11280063868,
+      "version": "next-rc-2b2bd9eb106d",
+      "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+      "local_hash_verification": "PASS_READ_ONLY",
+      "receipt": {
+        "manifest_sha256": "215e2c1c944e523b95fca490f68d4d1d8d175b1ac67ef3b6335e445af90b0de9",
+        "schema": "wbd-p6-actions-receipt/v1",
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "status": {
+          "actions": "ACTIONS_PASS",
+          "implementation": "IMPLEMENTED",
+          "physical": "NOT_RUN",
+          "release_qualified": "NOT_RUN"
+        },
+        "target": {
+          "goarch": "amd64",
+          "goos": "windows"
+        },
+        "validated_files": [
+          {
+            "path": "wbd-client.exe",
+            "role": "client",
+            "sha256": "2ae1b1954f6a52ddec6057d90d2a4534bdcd697f878638c0e94e7ce120a5a3e1",
+            "size_bytes": 7378432
+          },
+          {
+            "path": "windows_client_network.ps1",
+            "role": "windows_network_script",
+            "sha256": "61e81f362192bc628dfad0bdc586584fa6fcf2dbd8c6e29eafa2121b2009b1d9",
+            "size_bytes": 13184
+          }
+        ]
+      },
+      "target": {
+        "goarch": "amd64",
+        "goos": "windows"
+      },
+      "native_execution": "ACTIONS_VERSION_PASS",
+      "zip_digest": "sha256:e5b0b7f87857ee6a7e15291783738f998951b6738f6c96588dcefc3ff5c357f5"
+    }
+  ],
+  "optional_unqualified": "Startup padding on sparse HTTPS/TUN+TPROXY/weaknet paired complete专项 NOT_RUN in this campaign; functional/core coverage PASS",
+  "lifecycle": {
+    "errors": [],
+    "failed": [],
+    "groups": {
+      "l0_config": {
+        "pass": true,
+        "required": 8,
+        "sample_count": 8
+      },
+      "l1_idle_downlink": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l2_c2s": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l2_s2c": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l3_health": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l4_all_tuple": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l4_old_tuple": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l5_admission": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l5_detach": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l5_syn": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l5_tls": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l6_partial": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l6_race1": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l6_race4": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      },
+      "l7_defaults": {
+        "pass": true,
+        "required": 2,
+        "sample_count": 2
+      }
+    },
+    "missing": [],
+    "required_count": 36,
+    "result": "PASS",
+    "sample_count": 36,
+    "schema": 1,
+    "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8"
+  },
+  "packaging_receipts": {
+    "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+    "result": "PASS",
+    "scope": "HOSTED_PACKAGE_ONLY",
+    "physical": "NOT_RUN",
+    "release_qualified": "NOT_RUN",
+    "receipts": [
+      {
+        "manifest_sha256": "9f1ad40d397c66673b47d80735d59b0553f6bf4c040f167acd79d62e9bfde742",
+        "schema": "wbd-p6-actions-receipt/v1",
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "status": {
+          "actions": "ACTIONS_PASS",
+          "implementation": "IMPLEMENTED",
+          "physical": "NOT_RUN",
+          "release_qualified": "NOT_RUN"
+        },
+        "target": {
+          "goarch": "arm64",
+          "goos": "linux"
+        },
+        "validated_files": [
+          {
+            "path": "wbd-client",
+            "role": "client",
+            "sha256": "568b595d32fb5d018fd546da6bdd33f1f704b54a30ebefb48c544cd9d7ac8acd",
+            "size_bytes": 6815896
+          },
+          {
+            "path": "wbd-server",
+            "role": "server",
+            "sha256": "2d1287bb2b2d3c239c0f548a618cd1ed2db6d14441a73eca8e0fc586338c3fd5",
+            "size_bytes": 6029464
+          }
+        ]
+      },
+      {
+        "manifest_sha256": "4b4a0af301a10ae45903f479c931ec092da096577365992137aec8be395564e4",
+        "schema": "wbd-p6-actions-receipt/v1",
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "status": {
+          "actions": "ACTIONS_PASS",
+          "implementation": "IMPLEMENTED",
+          "physical": "NOT_RUN",
+          "release_qualified": "NOT_RUN"
+        },
+        "target": {
+          "goarch": "amd64",
+          "goos": "linux"
+        },
+        "validated_files": [
+          {
+            "path": "wbd-client",
+            "role": "client",
+            "sha256": "323c26695118a767bdb2d104e8e63b4c2f4753082e20f0b285336020e8c6314f",
+            "size_bytes": 7336088
+          },
+          {
+            "path": "wbd-server",
+            "role": "server",
+            "sha256": "1cf12f6a6715c70d0c8a5d591022c0f172cbf30f542339d7fe85069d964747bb",
+            "size_bytes": 6426776
+          }
+        ]
+      },
+      {
+        "manifest_sha256": "215e2c1c944e523b95fca490f68d4d1d8d175b1ac67ef3b6335e445af90b0de9",
+        "schema": "wbd-p6-actions-receipt/v1",
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "status": {
+          "actions": "ACTIONS_PASS",
+          "implementation": "IMPLEMENTED",
+          "physical": "NOT_RUN",
+          "release_qualified": "NOT_RUN"
+        },
+        "target": {
+          "goarch": "amd64",
+          "goos": "windows"
+        },
+        "validated_files": [
+          {
+            "path": "wbd-client.exe",
+            "role": "client",
+            "sha256": "2ae1b1954f6a52ddec6057d90d2a4534bdcd697f878638c0e94e7ce120a5a3e1",
+            "size_bytes": 7378432
+          },
+          {
+            "path": "windows_client_network.ps1",
+            "role": "windows_network_script",
+            "sha256": "61e81f362192bc628dfad0bdc586584fa6fcf2dbd8c6e29eafa2121b2009b1d9",
+            "size_bytes": 13184
+          }
+        ]
+      }
+    ]
+  },
+  "normal_rotation_windows": {
+    "changes": [
+      {
+        "observed_second": -14,
+        "generation": 1,
+        "new_authenticated": 1,
+        "windows": []
+      },
+      {
+        "observed_second": 588,
+        "generation": 2,
+        "new_authenticated": 1405,
+        "windows": [
+          {
+            "second": 586,
+            "c2s_loss": 0,
+            "s2c_loss": 0
+          },
+          {
+            "second": 587,
+            "c2s_loss": 0,
+            "s2c_loss": 0
+          },
+          {
+            "second": 588,
+            "c2s_loss": 0.12165450121654502,
+            "s2c_loss": 0.08116883116883117
+          },
+          {
+            "second": 589,
+            "c2s_loss": 0,
+            "s2c_loss": 0
+          },
+          {
+            "second": 590,
+            "c2s_loss": 0,
+            "s2c_loss": 0
+          }
+        ]
+      },
+      {
+        "observed_second": 1191,
+        "generation": 3,
+        "new_authenticated": 4552,
+        "windows": [
+          {
+            "second": 1189,
+            "c2s_loss": 0,
+            "s2c_loss": 0
+          },
+          {
+            "second": 1190,
+            "c2s_loss": 0.12165450121654502,
+            "s2c_loss": 0
+          },
+          {
+            "second": 1191,
+            "c2s_loss": 0,
+            "s2c_loss": 0.1620745542949757
+          },
+          {
+            "second": 1192,
+            "c2s_loss": 0,
+            "s2c_loss": 0
+          },
+          {
+            "second": 1193,
+            "c2s_loss": 0,
+            "s2c_loss": 0
+          }
+        ]
+      },
+      {
+        "observed_second": 1793,
+        "generation": 4,
+        "new_authenticated": 1389,
+        "windows": [
+          {
+            "second": 1791,
+            "c2s_loss": 0,
+            "s2c_loss": 0
+          },
+          {
+            "second": 1792,
+            "c2s_loss": 0,
+            "s2c_loss": 0
+          },
+          {
+            "second": 1793,
+            "c2s_loss": 0.040551500405515,
+            "s2c_loss": 0.08110300081103
+          },
+          {
+            "second": 1794,
+            "c2s_loss": 0,
+            "s2c_loss": 0
+          },
+          {
+            "second": 1795,
+            "c2s_loss": 0,
+            "s2c_loss": 0
+          }
+        ]
+      }
+    ],
+    "replacement_checks": 63,
+    "server_queue_peak": 362,
+    "server_queue_age_max_ms": 31.45593
+  },
+  "strict_performance_extract": [
+    {
+      "mode": "game",
+      "scenario": "5205",
+      "seed": 101,
+      "direction": "c2s",
+      "goodput": 3.0000746666666664,
+      "packetloss": 0.0,
+      "p95": 607692899,
+      "p99": 608469656
+    },
+    {
+      "mode": "game",
+      "scenario": "5205",
+      "seed": 101,
+      "direction": "s2c",
+      "goodput": 2.999872,
+      "packetloss": 0.0,
+      "p95": 607692899,
+      "p99": 608469656
+    },
+    {
+      "mode": "game",
+      "scenario": "5205",
+      "seed": 202,
+      "direction": "c2s",
+      "goodput": 3.0000746666666664,
+      "packetloss": 0.0,
+      "p95": 602753126,
+      "p99": 603469116
+    },
+    {
+      "mode": "game",
+      "scenario": "5205",
+      "seed": 202,
+      "direction": "s2c",
+      "goodput": 3.000032,
+      "packetloss": 0.0,
+      "p95": 602753126,
+      "p99": 603469116
+    },
+    {
+      "mode": "game",
+      "scenario": "5205",
+      "seed": 303,
+      "direction": "c2s",
+      "goodput": 3.0000746666666664,
+      "packetloss": 0.0,
+      "p95": 601712013,
+      "p99": 602010358
+    },
+    {
+      "mode": "game",
+      "scenario": "5205",
+      "seed": 303,
+      "direction": "s2c",
+      "goodput": 3.000066133333333,
+      "packetloss": 0.0,
+      "p95": 601712013,
+      "p99": 602010358
+    },
+    {
+      "mode": "game",
+      "scenario": "5305",
+      "seed": 101,
+      "direction": "c2s",
+      "goodput": 3.0000576,
+      "packetloss": 0.0,
+      "p95": 601950910,
+      "p99": 602051229
+    },
+    {
+      "mode": "game",
+      "scenario": "5305",
+      "seed": 101,
+      "direction": "s2c",
+      "goodput": 3.000066133333333,
+      "packetloss": 0.0,
+      "p95": 601950910,
+      "p99": 602051229
+    },
+    {
+      "mode": "game",
+      "scenario": "5305",
+      "seed": 202,
+      "direction": "c2s",
+      "goodput": 2.9999146666666667,
+      "packetloss": 0.0,
+      "p95": 608710749,
+      "p99": 610157843
+    },
+    {
+      "mode": "game",
+      "scenario": "5305",
+      "seed": 202,
+      "direction": "s2c",
+      "goodput": 2.9999146666666667,
+      "packetloss": 0.0,
+      "p95": 608710749,
+      "p99": 610157843
+    },
+    {
+      "mode": "game",
+      "scenario": "5305",
+      "seed": 303,
+      "direction": "c2s",
+      "goodput": 3.000032,
+      "packetloss": 0.0,
+      "p95": 603885113,
+      "p99": 617285781
+    },
+    {
+      "mode": "game",
+      "scenario": "5305",
+      "seed": 303,
+      "direction": "s2c",
+      "goodput": 3.000066133333333,
+      "packetloss": 0.0,
+      "p95": 603885113,
+      "p99": 617285781
+    },
+    {
+      "mode": "game",
+      "scenario": "lossless",
+      "seed": 101,
+      "direction": "c2s",
+      "goodput": 3.000066133333333,
+      "packetloss": 0.0,
+      "p95": 604593435,
+      "p99": 604996142
+    },
+    {
+      "mode": "game",
+      "scenario": "lossless",
+      "seed": 101,
+      "direction": "s2c",
+      "goodput": 3.000032,
+      "packetloss": 0.0,
+      "p95": 604593435,
+      "p99": 604996142
+    },
+    {
+      "mode": "game",
+      "scenario": "lossless",
+      "seed": 202,
+      "direction": "c2s",
+      "goodput": 3.0000746666666664,
+      "packetloss": 0.0,
+      "p95": 605124024,
+      "p99": 605556368
+    },
+    {
+      "mode": "game",
+      "scenario": "lossless",
+      "seed": 202,
+      "direction": "s2c",
+      "goodput": 3.000032,
+      "packetloss": 0.0,
+      "p95": 605124024,
+      "p99": 605556368
+    },
+    {
+      "mode": "game",
+      "scenario": "lossless",
+      "seed": 303,
+      "direction": "c2s",
+      "goodput": 3.000032,
+      "packetloss": 0.0,
+      "p95": 602493633,
+      "p99": 602752069
+    },
+    {
+      "mode": "game",
+      "scenario": "lossless",
+      "seed": 303,
+      "direction": "s2c",
+      "goodput": 3.000032,
+      "packetloss": 0.0,
+      "p95": 602493633,
+      "p99": 602752069
+    },
+    {
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": 101,
+      "direction": "c2s",
+      "goodput": 9.999438933333334,
+      "packetloss": 0.0,
+      "p95": 617006368,
+      "p99": 620649441
+    },
+    {
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": 101,
+      "direction": "s2c",
+      "goodput": 10.000315733333332,
+      "packetloss": 0.0,
+      "p95": 617006368,
+      "p99": 620649441
+    },
+    {
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": 202,
+      "direction": "c2s",
+      "goodput": 9.9985792,
+      "packetloss": 0.006755524330020875,
+      "p95": 620903585,
+      "p99": 621320642
+    },
+    {
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": 202,
+      "direction": "s2c",
+      "goodput": 9.999961599999999,
+      "packetloss": 0.0,
+      "p95": 620903585,
+      "p99": 621320642
+    },
+    {
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": 303,
+      "direction": "c2s",
+      "goodput": 9.999827199999999,
+      "packetloss": 0.0,
+      "p95": 619426419,
+      "p99": 623576017
+    },
+    {
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": 303,
+      "direction": "s2c",
+      "goodput": 10.000704,
+      "packetloss": 0.0,
+      "p95": 619426419,
+      "p99": 623576017
+    },
+    {
+      "mode": "normal",
+      "scenario": "5305",
+      "seed": 101,
+      "direction": "c2s",
+      "goodput": 9.972701866666668,
+      "packetloss": 0.2046923871996325,
+      "p95": 616664114,
+      "p99": 622751628
+    },
+    {
+      "mode": "normal",
+      "scenario": "5305",
+      "seed": 101,
+      "direction": "s2c",
+      "goodput": 9.975227733333332,
+      "packetloss": 0.2094240837696335,
+      "p95": 616664114,
+      "p99": 622751628
+    },
+    {
+      "mode": "normal",
+      "scenario": "5305",
+      "seed": 202,
+      "direction": "c2s",
+      "goodput": 9.972488533333333,
+      "packetloss": 0.21415012126166172,
+      "p95": 624745124,
+      "p99": 626164662
+    },
+    {
+      "mode": "normal",
+      "scenario": "5305",
+      "seed": 202,
+      "direction": "s2c",
+      "goodput": 9.966984533333333,
+      "packetloss": 0.22901227478770764,
+      "p95": 624745124,
+      "p99": 626164662
+    },
+    {
+      "mode": "normal",
+      "scenario": "5305",
+      "seed": 303,
+      "direction": "c2s",
+      "goodput": 9.97248,
+      "packetloss": 0.18712802394157824,
+      "p95": 621194783,
+      "p99": 622614336
+    },
+    {
+      "mode": "normal",
+      "scenario": "5305",
+      "seed": 303,
+      "direction": "s2c",
+      "goodput": 9.970112,
+      "packetloss": 0.22496351942928175,
+      "p95": 621194783,
+      "p99": 622614336
+    },
+    {
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": 101,
+      "direction": "c2s",
+      "goodput": 9.999978666666665,
+      "packetloss": 0.0,
+      "p95": 606698852,
+      "p99": 607073575
+    },
+    {
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": 101,
+      "direction": "s2c",
+      "goodput": 10.000138666666667,
+      "packetloss": 0.0,
+      "p95": 606698852,
+      "p99": 607073575
+    },
+    {
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": 202,
+      "direction": "c2s",
+      "goodput": 9.999776,
+      "packetloss": 0.0,
+      "p95": 609001778,
+      "p99": 610450032
+    },
+    {
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": 202,
+      "direction": "s2c",
+      "goodput": 9.999978666666665,
+      "packetloss": 0.0,
+      "p95": 609001778,
+      "p99": 610450032
+    },
+    {
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": 303,
+      "direction": "c2s",
+      "goodput": 9.999810133333332,
+      "packetloss": 0.0,
+      "p95": 606687845,
+      "p99": 608415467
+    },
+    {
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": 303,
+      "direction": "s2c",
+      "goodput": 9.999776,
+      "packetloss": 0.0,
+      "p95": 606687845,
+      "p99": 608415467
+    }
+  ]
+}

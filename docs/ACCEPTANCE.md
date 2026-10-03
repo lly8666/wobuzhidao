@@ -80,7 +80,7 @@ P7只在主流程已稳定后由用户安排，最终核对真实链路外观、
 
 ## TLS启动填充小功能（待 exact-SHA Actions）
 
-实现及完整关闭门槛见 [TLS_STARTUP_PADDING](TLS_STARTUP_PADDING.md)。默认off、无等待/no-HOL、全FEC source/parity区分、Game共享预算、生命周期/失败rollback/资源上限必须覆盖；真实二进制TUN与平台转发专项必须证明启用和实际padding，不得用core/serializer替代。当前仅已编写测试与workflow，验收NOT_RUN，不能宣称消除了TLS-in-TLS。通过后只关闭此小功能，原主线暂停不变。
+实现及完整关闭门槛见 [TLS_STARTUP_PADDING](TLS_STARTUP_PADDING.md)。默认off、无等待/no-HOL、全FEC source/parity区分、Game共享预算、生命周期/失败rollback/资源上限必须覆盖；真实二进制TUN与平台转发专项必须证明启用和实际padding，不得用core/serializer替代。2b2bd9e core/race/fuzz及70配置中的正式程序开关功能覆盖已PASS；独立双入口稀疏HTTPS/开关on弱网配对专项仍未全部关闭，不能宣称消除了TLS-in-TLS。通过后只关闭此小功能；历史主线HOLD已由用户于2026-09-23解除。
 
 
 ### 生命周期专项（V2，2026-09-23）— COMPLETE / 性能资格独立失败

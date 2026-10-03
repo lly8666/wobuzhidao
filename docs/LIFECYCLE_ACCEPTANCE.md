@@ -9,7 +9,9 @@
 - 新 PN 且认证成功的数据/health 才刷新链路健康；重复 TCP payload、旧 health hint、单纯 ACK 均不能将旧空闲信息当新证据。
 - business activity 与 health 分离。client 本地提交需求在发送/唤醒前计入；有效下行也计入。auto-idle 使用二次活动快照校验，丢失保活时保持“未知”，转恢复而非误休眠。client 是主动唤醒/休眠发起侧；server 的 auto-idle 不能仅凭周期 idle health 先关闭，必须等当前 authoritative lanes 收到 client 的有序 FIN 承诺后再跟随休眠。休眠前仍有一次有限最终 idle hint；idle hint/FIN 都是尽力收敛而非可靠关闭事务。
 - 超过 dead-after 选择异常 lane，最多一个候选同时建连。候选沿用真实 TLS/admission、新 incarnation 和 generation fence；失败保留旧 authoritative lane，1～30s 有界退避，不退出 CLI。已成功 admission/promote 后仍沿用旧的 bounded retiring grace；不能将其描述为“任意 promotion 后故障可回滚旧 generation”。新 lane 再失活由下一轮恢复处理。
-- 只增加可观测字段，不删除既有 weaknet 成本、AF_PACKET、输入有效性指标。吞吐瓶颈尚未修复，不能将本工作标成容量问题完成。
+
+2026-10-04补充切换含义：先FakeTCP/真实TLS/protected admission成功并detach，才promotion切新鲜发送权；旧lane随后在现有bounded retiring保留合法在途接收，不是promotion立即kill。新认证record通常触发旧CloseWrite；当前也保留成功promotion后grace约3s兜底，再双FIN或原关闭预算Retire。这是“先完成建连/认证再关闭”的保证，不是promotion前双向steady确认或promotion后任意回滚。有限retiring接收、常数FIN检查与候选握手拒绝隔离已在SOURCE2b2bd9e的36生命周期/两1800s取得最新资格，详细证据见PREDELIVERY_ACCEPTANCE与STATUS。
+- 不删除既有 weaknet 成本、AF_PACKET、输入有效性指标。早期生命周期移植本身不作为容量修复证据；2026-10-04目标负载容量资格以最新SOURCE2b2bd9e的独立严格18及长测为准，不外推其它配置/物理机。
 
 ## 第一关：源码与核心正确性
 

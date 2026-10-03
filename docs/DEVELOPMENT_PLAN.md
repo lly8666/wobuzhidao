@@ -278,3 +278,5 @@ owner持锁的快照/身份检查仅能读Lane构造后不可变配置，禁止�
 
 上述ca8175定向与b1全套原门PASS均为历史资格。b1逐秒Normal换代约61%loss，50有限retiring接收修复后Game短测PASS，Normal仍26.7–43.7%短窗loss/尾延迟FAIL。当前执行STATUS与PREDELIVERY_ACCEPTANCE：只补旧/新lane及ACK/tick耗时定位实际内部队列overflow，随后窄修；不能把socket0drop当无软件丢包，不能归因为VM、扩大4096/queue/grace或恢复HOL。新1s/link+2pp及内部queue0drop门与原门并用，每性能Action一条，诊断不能替代最新源码1800s/全配置/生命周期/18样本/P6。
 
+2026-10-04最新覆盖以上诊断待办：SOURCE2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8通过foundation/core/race、18独立严格弱网及revision2 RTT汇总、完整78回执（70实际配置、36生命周期、4soak、两共享黑洞、三目标P6）；新增逐秒loss与内部queue0门通过。修复仅有限retiring在途接收、退役FIN检查常数维护、未发布候选握手拒绝局部隔离。Normal1800最差1s0.162141%、最低阶段9.998756Mbps，旧61%尖峰消失；Game1800 loss0。固定候选可进入P7；物理/发布NOT_RUN，代码来源不跟随文档HEAD改变。按PREDELIVERY_ACCEPTANCE报告本轮范围与未跑项，特别不能把padding off性能/70开关生效当startup padding on完整弱网专项。换代确认边界见LIFECYCLE_ACCEPTANCE，不声称promotion后可任意回滚。主線不继续无证据微优化；用户安排物理后再按缺陷窄修及同SOURCE重验。
+
