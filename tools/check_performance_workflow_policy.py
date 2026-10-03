@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 
 MEASUREMENT_MARKERS = (
+    "tools/prepare_soak_harness.py",
     "scripts/strict_weaknet_sample.sh",
     "scripts/strict_capacity_bypass.sh",
     "scripts/realpath_calibration.sh",
@@ -14,6 +15,7 @@ MEASUREMENT_MARKERS = (
     "TestP5ControlledHTTPSMeasurementHarness",
 )
 ACTIVE = (
+    ".github/workflows/next-target-soak.yml",
     ".github/workflows/next-strict-weaknet.yml",
     ".github/workflows/next-shared-blackhole.yml",
     ".github/workflows/next-performance-capacity-diagnostic.yml",

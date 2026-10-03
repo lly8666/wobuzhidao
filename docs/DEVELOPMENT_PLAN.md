@@ -258,3 +258,8 @@ Game4逻辑3Mbps lossless 已在 run 35818718764 / job 107045770392 全门PASS�
 ## 2026-10-03 顺序资源优化定向收口
 
 当前产品资格SOURCE_SHA ca8175d18acd7f7e3e1db5379a58d9f85417dd97。5个资源原子步骤+1个接入队列故障隔离修复，逐项Actions unit/build/race后分别独立Normal/Game5205；12条合格样本与逐阶段RTT/loss门PASS，最新36/36生命周期及aggregate PASS。见STATUS、最新日志及evidence/resource-optimization-5205.json，历史native接线失败/队列致退出/瞬态超时保留。优化实际触发且正确性、吞吐、延迟过门，不据跨VM单样本宣称固定CPU下降；SACK主导的5205下ACK收益未证实。当前不再继续微改，下一步固定最新SOURCE_SHA全18复验，随后有界长测框架与>=1800s目标速率Normal/Game独立run；P5/P6/P7未整体关闭。每性能Action一条样本，FEC deadline8ms、4096/3s和socket buffer不调大。
+
+
+## 2026-10-03 用户授权交付前收口
+
+完成hosted P5与P6，覆盖全FEC档位/1..4lane/启动填充与配置优先级的实际路径、MTU/记录预算、TCP/UDP/HTTPS、生命周期/黑洞/隔离/清理，最终源码18条严格弱网与独立Normal/Game至少1800秒长测；每性能Action一条。180秒有界框架canary只算DIAGNOSTIC_ONLY。旧测试不能自动继承，最新证据以STATUS为索引。P7物理仍由用户安排，目标为READY_FOR_PHYSICAL而非RELEASE_QUALIFIED。

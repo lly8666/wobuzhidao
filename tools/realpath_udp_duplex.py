@@ -26,6 +26,8 @@ def parse_addr(text):
 
 
 def percentile(values, q):
+    if hasattr(values, "percentile"):
+        return values.percentile(q)
     if not values:
         return None
     values = sorted(values)
@@ -336,6 +338,8 @@ def main():
                     help="biz RTT probe interval in seconds; 0 disables probes")
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--output", required=True)
+    ap.add_argument("--bounded-stats", action="store_true",
+                    help="exact preallocated sequence bitset and bounded latency histograms for target-rate soak")
     args = ap.parse_args()
 
     bind = parse_addr(args.bind)
@@ -350,7 +354,11 @@ def main():
     rcvbuf = sock.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
     sndbuf = sock.getsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF)
 
-    stats = Stats(args.start_ns, args.duration, args.drain)
+    if args.bounded_stats:
+        from soak_stats import stats_class
+        stats = stats_class(Stats)(args.start_ns, args.duration, args.drain, args.rate_mbps)
+    else:
+        stats = Stats(args.start_ns, args.duration, args.drain)
     peer_holder = {"peer": peer if args.role == "biz" else None, "lock": threading.Lock()}
     stop_event = threading.Event()
     stop_ns = args.start_ns + int((args.duration + args.drain) * 1e9)
@@ -405,7 +413,9 @@ def main():
         "stats": stats.snapshot(),
     }
     Path(args.output).write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print("WBD_REALPATH_UDP_DONE " + json.dumps(result["stats"], sort_keys=True))
+    console = result["stats"] if not args.bounded_stats else {
+        k: v for k, v in result["stats"].items() if not k.endswith("by_second") and not k.endswith("by_bucket")}
+    print("WBD_REALPATH_UDP_DONE " + json.dumps(console, sort_keys=True))
 
 
 if __name__ == "__main__":

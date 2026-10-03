@@ -1,0 +1,26 @@
+name: next-predelivery-tools
+on:
+  push:
+    branches: ['next/tlslike-dataplane']
+    paths: ['tools/**', 'scripts/**', '.github/workflows/next-target-soak.yml', '.github/workflows/next-predelivery-tools.yml']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  harness-unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Bounded collector and harness fixtures (no workload)
+        run: |
+          python3 -m unittest discover -s tools -p 'test_soak*.py' -v
+          python3 -m py_compile tools/soak_stats.py tools/soak_capture.py tools/prepare_soak_harness.py tools/check_target_soak.py tools/soak_weaknet_stage.py
+          mkdir -p artifacts/soak-template
+          python3 tools/prepare_soak_harness.py --artifact-dir artifacts/soak-template --duration 1800
+          bash -n artifacts/soak-template/generated-soak.sh
+          python3 tools/check_performance_workflow_policy.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: 'soak-harness-fixtures-${{ github.sha }}', path: artifacts/soak-template}
