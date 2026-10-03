@@ -1275,8 +1275,13 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 	if lane != nil {
 		qualified, err := lane.group.rt.HandleServerSegmentQualified(lane.ref, assoc, seg, now)
 		if err != nil {
-			if lane.retiring && errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) {
-				return nil
+			if errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) {
+				s.mu.Lock()
+				retiring := lane.retiring
+				s.mu.Unlock()
+				if retiring {
+					return nil
+				}
 			}
 			if errors.Is(err, runtimeowner.ErrTransportMissing) ||
 				errors.Is(err, runtimeowner.ErrRuntimeClosed) ||
@@ -1430,10 +1435,10 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 		qualified: replacing != nil || steadyQualified,
 		group:     group, replaces: replacing, promotedAt: now,
 	}
+	s.mu.Lock()
 	if replacing != nil {
 		replacing.retiring = true
 	}
-	s.mu.Lock()
 	pending := s.pending[flow]
 	delete(s.pending, flow)
 	group.lanes[laneID] = fresh

@@ -69,7 +69,7 @@
   ],
   "in_progress": "BANDWIDTH_SIZE_CLASS_CANDIDATE_NOT_RUN：用户要求优先解决带宽；原无损5.09倍主要由混合长度FEC parity膨胀。20:20固定最多3长度组已实现，源立即发送/独立8ms/原v1/低档位原输出保留；新产品资格待Actions，不继承V10.2 formal18。",
   "next_task": "先验收新候选next-foundation Linux/Windows unit/build及Linux race，再冻结候选完整SHA；每Action run一条Normal1/lossless每向10M canary核对线上source/parity字节、goodput、RTT、CPU与0原始drop/repair。通过后独立Normal5205/5305、Game4逻辑3M/lossless/5205/5305及正式重复。保留8ms、20:20、Game复制、4096、buffer与流量构成。长测/P6/P7待带宽修复收口。",
-  "latest_log": "docs/devlog/20261003-110000-fec20-size-classes-bandwidth.md",
+  "latest_log": "docs/devlog/20261003-105300-server-retiring-race-bandwidth-gate.md",
   "last_tested_source_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
   "actions": [
     {
@@ -1739,6 +1739,13 @@
       "scope": "read-only-v10p2-game-seed303-original-queue-loss-audit",
       "status": "PASS",
       "note": "Reads two original 56eb541 full archives only, no workload: client/server UDP overflow and errors0; peak7/9 and21/11 of1024; losses concentrated at84s/78s; upstream loss origin not proven."
+    },
+    {
+      "source_sha": "63951852439556e9138a70a1e85eff04d451634f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091096393",
+      "scope": "foundation full unit/build + race",
+      "status": "FAIL",
+      "note": "Linux/Windows unit/build and real fallback/TPROXY/TUN PASS; existing server retiring flag DATA RACE caught and repaired in successor"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -2052,7 +2059,7 @@
         "联合修复sender满窗淘汰与receiver缺口扫描/期限，验证fresh无HOL",
         "按新版损失容忍/时延/突发恢复标准独立run验收"
       ],
-      "latest_log": "docs/devlog/20261003-110000-fec20-size-classes-bandwidth.md",
+      "latest_log": "docs/devlog/20261003-105300-server-retiring-race-bandwidth-gate.md",
       "note": "V10.1 final18 is permanently 17 PASS / 1 CAPACITY_LIMITED. The remaining drop is the product-owned client TPROXY UDP ingress socket; V10.2 mirrors the server-side bounded drain/send decoupling on the client ingress without changing repair/FEC/wire or kernel socket buffers.",
       "next_task": "先验收新候选next-foundation Linux/Windows unit/build及Linux race，再冻结候选完整SHA；每Action run一条Normal1/lossless每向10M canary核对线上source/parity字节、goodput、RTT、CPU与0原始drop/repair。通过后独立Normal5205/5305、Game4逻辑3M/lossless/5205/5305及正式重复。保留8ms、20:20、Game复制、4096、buffer与流量构成。长测/P6/P7待带宽修复收口。",
       "acceptance_revision": "loss-tolerant-v1",
@@ -6319,9 +6326,9 @@
         "baseline_c2s_parity_bytes": 481234382,
         "scope": "20:20最多3个固定长度组，256/512/MTU；低档位保留single group",
         "source_sha": "commit containing this entry; freeze exact SHA before dispatch",
-        "unit_race": "NOT_RUN",
+        "unit_race": "6395185 unit/build PASS; full race FAIL on existing server retiring flag; lock repair candidate NOT_RUN",
         "fullstack": "NOT_RUN",
-        "latest_log": "docs/devlog/20261003-110000-fec20-size-classes-bandwidth.md"
+        "latest_log": "docs/devlog/20261003-105300-server-retiring-race-bandwidth-gate.md"
       }
     }
   }
