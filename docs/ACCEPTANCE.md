@@ -118,3 +118,5 @@ strict 样本继续分别统计 FEC、Game复制、repair、health、padding、�
 ### 2026-10-03：带宽修复候选独立资格
 
 20:20固定长度组产品不能继承V10.2 final18。候选须Actions Linux/Windows unit/build、race验证（包括低档位逐字节兼容、跨组无HOL、8ms期限、ID回绕和ownership），再按同业务输入/MTU/FEC/Game/raw路径的独立性能run验收outer IP/input、source/parity字节与数量。禁止拿减少发生器输入/关闭冗余算改善。无损业务loss0/满速、原始drops0/repair0、完整性、配对RTT及原分类硬门仍适用；有损资源/恢复必须通过。当前NOT_RUN，状态与证据见STATUS。
+
+2026-10-03本子任务ACTIONS_PASS：SOURCE_SHA f240d5177c6a8aaa02de570079926b2600c480fd；foundation37091267143、生命周期37/37jobs37091267131、正式18与aggregate37091747064全部PASS。socketdrop0、无损loss/repair/abandoned0，全部阶段p95/p99最大增量27.49/30.30ms。省带宽35–38%，Normal5305最差loss1.35%较旧0.22%为明确质量取舍，按既有有损门通过，不能隐去或声称与旧完全等质。证据evidence/fec20-size-class-bandwidth.json；长测/P6/P7未通过。

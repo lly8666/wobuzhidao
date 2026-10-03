@@ -1,0 +1,1437 @@
+{
+  "schema": "wbd-fec-size-class-bandwidth-qualification-v1",
+  "product_source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+  "baseline_product_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+  "qualifies": "120s Normal10/Game4 logical3; 300ms one-way; equal-count64/256/1200B business; FEC20:20 paddingoff",
+  "not_qualified": [
+    "1800s soak",
+    "15/20Mbps",
+    "current P6 package",
+    "P7 physical"
+  ],
+  "canary_run": 37091442668,
+  "foundation_run": 37091267143,
+  "targeted_run": 37091267211,
+  "lifecycle_fullstack_run": 37091267131,
+  "lifecycle_fullstack_jobs_pass": 37,
+  "coordinator_run": 37091747064,
+  "coordinator_control_sha": "4d122f93d3cbe110cdc403d2ec09f7e5d379b2a2",
+  "aggregate_analyzer_sha": "6dafa657af9f577f8cc21256276bfb44d8ee3fd1",
+  "aggregate_artifact": {
+    "id": 11263225179,
+    "name": "final18-artifact-only-37091747064",
+    "digest": "sha256:8c7dc1a8448ff0b2cb387bab1a87e6fa8d0ba2313acc82678cf8f187d0dce605"
+  },
+  "aggregate_result": "PASS",
+  "aggregate_errors": [],
+  "max_paired_delta_p95_ms": 27.490269,
+  "max_paired_delta_p99_ms": 30.301353,
+  "groups": [
+    {
+      "mode": "normal",
+      "scenario": "lossless",
+      "n": 3,
+      "new_outer_ip_ratio_range": [
+        3.1919578466666665,
+        3.2083364866666666
+      ],
+      "old_outer_ip_ratio_range": [
+        5.09155942,
+        5.223903973333333
+      ],
+      "mean_fraction_ip_saved": 0.37957345142755317,
+      "min_stress_goodput_mbps": 9.999616,
+      "max_stress_byte_loss_percent": 0.0,
+      "old_max_stress_byte_loss_percent": 0.0
+    },
+    {
+      "mode": "normal",
+      "scenario": "5205",
+      "n": 3,
+      "new_outer_ip_ratio_range": [
+        3.48774556,
+        3.5064305866666667
+      ],
+      "old_outer_ip_ratio_range": [
+        5.4739336,
+        5.61479306258016
+      ],
+      "mean_fraction_ip_saved": 0.36937439844933306,
+      "min_stress_goodput_mbps": 9.998781866666667,
+      "max_stress_byte_loss_percent": 0.0013653362460506583,
+      "old_max_stress_byte_loss_percent": 0.0
+    },
+    {
+      "mode": "normal",
+      "scenario": "5305",
+      "n": 3,
+      "new_outer_ip_ratio_range": [
+        3.3681046466666666,
+        3.38439016
+      ],
+      "old_outer_ip_ratio_range": [
+        5.300198293333334,
+        5.43696238
+      ],
+      "mean_fraction_ip_saved": 0.371058130723371,
+      "min_stress_goodput_mbps": 9.864426666666667,
+      "max_stress_byte_loss_percent": 1.3502276050419988,
+      "old_max_stress_byte_loss_percent": 0.22048047035833676
+    },
+    {
+      "mode": "game",
+      "scenario": "lossless",
+      "n": 3,
+      "new_outer_ip_ratio_range": [
+        13.280331622857387,
+        13.346773346974475
+      ],
+      "old_outer_ip_ratio_range": [
+        20.626813865966003,
+        21.163456198423507
+      ],
+      "mean_fraction_ip_saved": 0.3628346809761993,
+      "min_stress_goodput_mbps": 2.999872,
+      "max_stress_byte_loss_percent": 0.0,
+      "old_max_stress_byte_loss_percent": 0.0
+    },
+    {
+      "mode": "game",
+      "scenario": "5205",
+      "n": 3,
+      "new_outer_ip_ratio_range": [
+        14.143825153685064,
+        14.219364473595324
+      ],
+      "old_outer_ip_ratio_range": [
+        21.6760405425826,
+        22.226928196453777
+      ],
+      "mean_fraction_ip_saved": 0.3537257843808056,
+      "min_stress_goodput_mbps": 2.9860906666666667,
+      "max_stress_byte_loss_percent": 0.4593973787326037,
+      "old_max_stress_byte_loss_percent": 0.4796649101472774
+    },
+    {
+      "mode": "game",
+      "scenario": "5305",
+      "n": 3,
+      "new_outer_ip_ratio_range": [
+        13.911594022548773,
+        13.975814090849294
+      ],
+      "old_outer_ip_ratio_range": [
+        21.35217132373594,
+        21.889065072158203
+      ],
+      "mean_fraction_ip_saved": 0.35506688198316894,
+      "min_stress_goodput_mbps": 2.9995776000000003,
+      "max_stress_byte_loss_percent": 0.0162851392770536,
+      "old_max_stress_byte_loss_percent": 0.4810871930535703
+    }
+  ],
+  "samples": [
+    {
+      "run": 37091753645,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091753645",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "game",
+      "scenario": "5205",
+      "seed": 101,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11262850487,
+        "name": "strict-summary-game-5205-seed101-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:a27807c1babb569541a58cd5efa0adf271707d6b05350875ff3fcbf2c6760d22"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 109.86,
+        "server": 101.13
+      },
+      "stress_probe": {
+        "p95_ns": 603484197,
+        "p99_ns": 604859849,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 2,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 636881888,
+          "outer_ip_per_app": 14.152578602488116,
+          "old_outer_ip_per_app": 21.6760405425826,
+          "fraction_ip_saved": 0.3470644870963059,
+          "fec_source_bytes": 244920416,
+          "fec_source_shards": 473096,
+          "fec_parity_bytes": 246489945,
+          "fec_parity_shards": 473151,
+          "stress_goodput_mbps": 3.0000746666666664,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 22376,
+          "abandoned": 0
+        },
+        "s2c": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 639887327,
+          "outer_ip_per_app": 14.219364473595324,
+          "old_outer_ip_per_app": 22.210022461663176,
+          "fraction_ip_saved": 0.35977712322716304,
+          "fec_source_bytes": 245453992,
+          "fec_source_shards": 474131,
+          "fec_parity_bytes": 249805062,
+          "fec_parity_shards": 474072,
+          "stress_goodput_mbps": 3.000066133333333,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 22436,
+          "abandoned": 0
+        }
+      }
+    },
+    {
+      "run": 37091767376,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091767376",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "game",
+      "scenario": "5205",
+      "seed": 202,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11262589604,
+        "name": "strict-summary-game-5205-seed202-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:5ff00f7e418742c204e84a49352154925b86cfab11fa4bfb877831577175335c"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 58.38,
+        "server": 55.33
+      },
+      "stress_probe": {
+        "p95_ns": 601556729,
+        "p99_ns": 602029077,
+        "received": 59,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 2,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 636487973,
+          "outer_ip_per_app": 14.143825153685064,
+          "old_outer_ip_per_app": 21.676710024106068,
+          "fraction_ip_saved": 0.3475105245235043,
+          "fec_source_bytes": 244996640,
+          "fec_source_shards": 473244,
+          "fec_parity_bytes": 246540240,
+          "fec_parity_shards": 473248,
+          "stress_goodput_mbps": 2.999872,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 22068,
+          "abandoned": 100
+        },
+        "s2c": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 639489384,
+          "outer_ip_per_app": 14.210521515908937,
+          "old_outer_ip_per_app": 22.226928196453777,
+          "fraction_ip_saved": 0.3606619236671592,
+          "fec_source_bytes": 245469920,
+          "fec_source_shards": 474160,
+          "fec_parity_bytes": 249831210,
+          "fec_parity_shards": 474123,
+          "stress_goodput_mbps": 2.9860906666666667,
+          "stress_byte_loss_percent": 0.4593973787326037,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.4593973787326037,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 21870,
+          "abandoned": 494
+        }
+      }
+    },
+    {
+      "run": 37091775774,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091775774",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "game",
+      "scenario": "5205",
+      "seed": 303,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11262735729,
+        "name": "strict-summary-game-5205-seed303-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:0a3e452293b5ceb82927253f6680155595e8114a237e0204e9856dfaa8f74d88"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 109.06,
+        "server": 100.97
+      },
+      "stress_probe": {
+        "p95_ns": 610371819,
+        "p99_ns": 616769239,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 2,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 636956399,
+          "outer_ip_per_app": 14.15423436127812,
+          "old_outer_ip_per_app": 21.67701219436316,
+          "fraction_ip_saved": 0.3470394243281022,
+          "fec_source_bytes": 244889760,
+          "fec_source_shards": 473040,
+          "fec_parity_bytes": 246448500,
+          "fec_parity_shards": 473072,
+          "stress_goodput_mbps": 2.9998634666666666,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 22508,
+          "abandoned": 0
+        },
+        "s2c": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 639600138,
+          "outer_ip_per_app": 14.212982654653928,
+          "old_outer_ip_per_app": 22.201090595078522,
+          "fraction_ip_saved": 0.3598070061565073,
+          "fec_source_bytes": 245470568,
+          "fec_source_shards": 474163,
+          "fec_parity_bytes": 249800349,
+          "fec_parity_shards": 474079,
+          "stress_goodput_mbps": 3.0002687999999997,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.4796649101472774,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 22459,
+          "abandoned": 0
+        }
+      }
+    },
+    {
+      "run": 37091755246,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091755246",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "game",
+      "scenario": "5305",
+      "seed": 101,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11262760651,
+        "name": "strict-summary-game-5305-seed101-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:7fd32a22c996169c073607129e98e76f9cb2329ffe37885ee04b72ee07462d50"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 97.53,
+        "server": 89.9
+      },
+      "stress_probe": {
+        "p95_ns": 607117039,
+        "p99_ns": 632191590,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 2,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 626158067,
+          "outer_ip_per_app": 13.914277400206927,
+          "old_outer_ip_per_app": 21.359651737556753,
+          "fraction_ip_saved": 0.3485718975585448,
+          "fec_source_bytes": 244956064,
+          "fec_source_shards": 473168,
+          "fec_parity_bytes": 246517305,
+          "fec_parity_shards": 473204,
+          "stress_goodput_mbps": 2.9999146666666667,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 11540,
+          "abandoned": 15010
+        },
+        "s2c": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 628865315,
+          "outer_ip_per_app": 13.974436969568757,
+          "old_outer_ip_per_app": 21.881935538493263,
+          "fraction_ip_saved": 0.3613710750136411,
+          "fec_source_bytes": 245470784,
+          "fec_source_shards": 474164,
+          "fec_parity_bytes": 249826115,
+          "fec_parity_shards": 474112,
+          "stress_goodput_mbps": 3.0000746666666664,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 11336,
+          "abandoned": 14367
+        }
+      }
+    },
+    {
+      "run": 37091770189,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091770189",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "game",
+      "scenario": "5305",
+      "seed": 202,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11263170721,
+        "name": "strict-summary-game-5305-seed202-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:dc9d9d99df224ad6258976897628c8caf00f1ae251ce19e4f51bd90e6d4a7898"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 76.82,
+        "server": 70.66
+      },
+      "stress_probe": {
+        "p95_ns": 632791641,
+        "p99_ns": 635703900,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 1,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 626037312,
+          "outer_ip_per_app": 13.911594022548773,
+          "old_outer_ip_per_app": 21.356994514803187,
+          "fraction_ip_saved": 0.348616491290185,
+          "fec_source_bytes": 244864896,
+          "fec_source_shards": 472992,
+          "fec_parity_bytes": 246427408,
+          "fec_parity_shards": 473031,
+          "stress_goodput_mbps": 3.0002773333333335,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 11562,
+          "abandoned": 13012
+        },
+        "s2c": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 628894673,
+          "outer_ip_per_app": 13.97508935333165,
+          "old_outer_ip_per_app": 21.889065072158203,
+          "fraction_ip_saved": 0.3615492800966056,
+          "fec_source_bytes": 245470136,
+          "fec_source_shards": 474161,
+          "fec_parity_bytes": 249840915,
+          "fec_parity_shards": 474140,
+          "stress_goodput_mbps": 2.999872,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 11398,
+          "abandoned": 16843
+        }
+      }
+    },
+    {
+      "run": 37091778817,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091778817",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "game",
+      "scenario": "5305",
+      "seed": 303,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11263085753,
+        "name": "strict-summary-game-5305-seed303-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:27ac3f233973ea7f9bf3e2badcf87c6cecb30dd455723a1f5b3ef598517601f6"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 69.05,
+        "server": 64.19
+      },
+      "stress_probe": {
+        "p95_ns": 603947089,
+        "p99_ns": 619836694,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 2,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 626046368,
+          "outer_ip_per_app": 13.91179526198459,
+          "old_outer_ip_per_app": 21.35217132373594,
+          "fraction_ip_saved": 0.34845992704640427,
+          "fec_source_bytes": 244897184,
+          "fec_source_shards": 473052,
+          "fec_parity_bytes": 246460781,
+          "fec_parity_shards": 473095,
+          "stress_goodput_mbps": 2.999872,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.4810871930535703,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 11334,
+          "abandoned": 16578
+        },
+        "s2c": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 628927287,
+          "outer_ip_per_app": 13.975814090849294,
+          "old_outer_ip_per_app": 21.883721760702844,
+          "fraction_ip_saved": 0.36136027300685125,
+          "fec_source_bytes": 245469920,
+          "fec_source_shards": 474160,
+          "fec_parity_bytes": 249830370,
+          "fec_parity_shards": 474120,
+          "stress_goodput_mbps": 2.9995776000000003,
+          "stress_byte_loss_percent": 0.0162851392770536,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.009007791739854975,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 11326,
+          "abandoned": 12369
+        }
+      }
+    },
+    {
+      "run": 37091758401,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091758401",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "game",
+      "scenario": "lossless",
+      "seed": 101,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11262890457,
+        "name": "strict-summary-game-lossless-seed101-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:aee77626389ed023a927fad607de3df93506a5a3cd8c51a14a7d076954959860"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 58.55,
+        "server": 54.55
+      },
+      "stress_probe": {
+        "p95_ns": 601798914,
+        "p99_ns": 601890237,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": null,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 597650800,
+          "outer_ip_per_app": 13.280798344574535,
+          "old_outer_ip_per_app": 20.626813865966003,
+          "fraction_ip_saved": 0.35613912886043475,
+          "fec_source_bytes": 244898048,
+          "fec_source_shards": 473056,
+          "fec_parity_bytes": 246440160,
+          "fec_parity_shards": 473056,
+          "stress_goodput_mbps": 2.999872,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        },
+        "s2c": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 600528321,
+          "outer_ip_per_app": 13.344741664207469,
+          "old_outer_ip_per_app": 21.157884625982643,
+          "fraction_ip_saved": 0.3692780776477226,
+          "fec_source_bytes": 245462064,
+          "fec_source_shards": 474146,
+          "fec_parity_bytes": 249815823,
+          "fec_parity_shards": 474093,
+          "stress_goodput_mbps": 2.999872,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        }
+      }
+    },
+    {
+      "run": 37091764553,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091764553",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "game",
+      "scenario": "lossless",
+      "seed": 202,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11263415394,
+        "name": "strict-summary-game-lossless-seed202-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:3f47892df4f6ddc4a290ba2d5901e5cd45d7db219efc93aa80b19985143882bf"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 96.56,
+        "server": 88.72
+      },
+      "stress_probe": {
+        "p95_ns": 605301372,
+        "p99_ns": 607224652,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": null,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 597637862,
+          "outer_ip_per_app": 13.280510840619078,
+          "old_outer_ip_per_app": 20.63017733780848,
+          "fraction_ip_saved": 0.3562580377687703,
+          "fec_source_bytes": 244990664,
+          "fec_source_shards": 473234,
+          "fec_parity_bytes": 246563175,
+          "fec_parity_shards": 473292,
+          "stress_goodput_mbps": 3.000032,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        },
+        "s2c": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 600619749,
+          "outer_ip_per_app": 13.346773346974475,
+          "old_outer_ip_per_app": 21.163456198423507,
+          "fraction_ip_saved": 0.36934812434045183,
+          "fec_source_bytes": 245460184,
+          "fec_source_shards": 474142,
+          "fec_parity_bytes": 249818964,
+          "fec_parity_shards": 474100,
+          "stress_goodput_mbps": 3.000032,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        }
+      }
+    },
+    {
+      "run": 37091772996,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091772996",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "game",
+      "scenario": "lossless",
+      "seed": 303,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11262980434,
+        "name": "strict-summary-game-lossless-seed303-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:3d0216738fed284c29a9005c6257eb4847d5eccb2779ef37be0ff09e7ef41138"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 97.52,
+        "server": 89.46
+      },
+      "stress_probe": {
+        "p95_ns": 606504825,
+        "p99_ns": 609901746,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": null,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 597629797,
+          "outer_ip_per_app": 13.280331622857387,
+          "old_outer_ip_per_app": 20.630689058405657,
+          "fraction_ip_saved": 0.3562826920002209,
+          "fec_source_bytes": 244961856,
+          "fec_source_shards": 473176,
+          "fec_parity_bytes": 246533348,
+          "fec_parity_shards": 473234,
+          "stress_goodput_mbps": 3.0002687999999997,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        },
+        "s2c": {
+          "app_input_bytes": 45001120,
+          "outer_ip_bytes": 600587166,
+          "outer_ip_per_app": 13.346049298328575,
+          "old_outer_ip_per_app": 21.15750896866567,
+          "fraction_ip_saved": 0.36920507427910765,
+          "fec_source_bytes": 245469920,
+          "fec_source_shards": 474160,
+          "fec_parity_bytes": 249830370,
+          "fec_parity_shards": 474120,
+          "stress_goodput_mbps": 2.9999146666666667,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        }
+      }
+    },
+    {
+      "run": 37091759922,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091759922",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": 101,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11262514748,
+        "name": "strict-summary-normal-5205-seed101-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:e2c4031918516e80e7d8be842d9e5a07e2cbd52138fd47b138c63467bedd89a4"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 54.02,
+        "server": 54.6
+      },
+      "stress_probe": {
+        "p95_ns": 613169831,
+        "p99_ns": 619018780,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 2,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 523161834,
+          "outer_ip_per_app": 3.48774556,
+          "old_outer_ip_per_app": 5.4739336,
+          "fraction_ip_saved": 0.362844744773667,
+          "fec_source_bytes": 194889832,
+          "fec_source_shards": 394590,
+          "fec_parity_bytes": 196187336,
+          "fec_parity_shards": 394618,
+          "stress_goodput_mbps": 9.999387733333332,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 37424,
+          "abandoned": 0
+        },
+        "s2c": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 525964588,
+          "outer_ip_per_app": 3.5064305866666667,
+          "old_outer_ip_per_app": 5.613512986666667,
+          "fraction_ip_saved": 0.3753589606018167,
+          "fec_source_bytes": 195017712,
+          "fec_source_shards": 394848,
+          "fec_parity_bytes": 198666021,
+          "fec_parity_shards": 394838,
+          "stress_goodput_mbps": 9.9999872,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 37382,
+          "abandoned": 0
+        }
+      }
+    },
+    {
+      "run": 37091765948,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091765948",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": 202,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11262830523,
+        "name": "strict-summary-normal-5205-seed202-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:c31d4997b7f2ca8253c6eed58281b8eb188375dadd0e1c966eec82df4a62e9e8"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 52.18,
+        "server": 52.86
+      },
+      "stress_probe": {
+        "p95_ns": 616291365,
+        "p99_ns": 617763606,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 2,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 523182210,
+          "outer_ip_per_app": 3.4878814,
+          "old_outer_ip_per_app": 5.47491844,
+          "fraction_ip_saved": 0.3629345462907023,
+          "fec_source_bytes": 194970288,
+          "fec_source_shards": 394752,
+          "fec_parity_bytes": 196266909,
+          "fec_parity_shards": 394778,
+          "stress_goodput_mbps": 9.999607466666667,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 37180,
+          "abandoned": 0
+        },
+        "s2c": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 525742714,
+          "outer_ip_per_app": 3.5049514266666666,
+          "old_outer_ip_per_app": 5.613474583539069,
+          "fraction_ip_saved": 0.37561079619725446,
+          "fec_source_bytes": 194995976,
+          "fec_source_shards": 394804,
+          "fec_parity_bytes": 198644606,
+          "fec_parity_shards": 394799,
+          "stress_goodput_mbps": 9.998781866666667,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 37871,
+          "abandoned": 0
+        }
+      }
+    },
+    {
+      "run": 37091774331,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091774331",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "normal",
+      "scenario": "5205",
+      "seed": 303,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11262840479,
+        "name": "strict-summary-normal-5205-seed303-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:cb1b7376cc5cb0d062ba326582a0a37410a01009f6598a4a38c901417aec0189"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 87.37,
+        "server": 87.73
+      },
+      "stress_probe": {
+        "p95_ns": 615407012,
+        "p99_ns": 617767052,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 2,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 523202977,
+          "outer_ip_per_app": 3.4880198466666665,
+          "old_outer_ip_per_app": 5.4764657266666665,
+          "fraction_ip_saved": 0.3630892585189788,
+          "fec_source_bytes": 194943184,
+          "fec_source_shards": 394698,
+          "fec_parity_bytes": 196227129,
+          "fec_parity_shards": 394698,
+          "stress_goodput_mbps": 9.999852800000001,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 37594,
+          "abandoned": 0
+        },
+        "s2c": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 525608268,
+          "outer_ip_per_app": 3.50405512,
+          "old_outer_ip_per_app": 5.61479306258016,
+          "fraction_ip_saved": 0.3759233757665754,
+          "fec_source_bytes": 195017712,
+          "fec_source_shards": 394848,
+          "fec_parity_bytes": 198654333,
+          "fec_parity_shards": 394830,
+          "stress_goodput_mbps": 10.000053333333334,
+          "stress_byte_loss_percent": 0.0013653362460506583,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0027022279869752613,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 37511,
+          "abandoned": 0
+        }
+      }
+    },
+    {
+      "run": 37091761493,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091761493",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "normal",
+      "scenario": "5305",
+      "seed": 101,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11263195608,
+        "name": "strict-summary-normal-5305-seed101-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:7119dce2597e24d2956ea8fa299a94b343902e36286c7e08c7702b780d107572"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 77.85,
+        "server": 77.92
+      },
+      "stress_probe": {
+        "p95_ns": 616554036,
+        "p99_ns": 619008924,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 2,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 505338383,
+          "outer_ip_per_app": 3.3689225533333333,
+          "old_outer_ip_per_app": 5.30250826,
+          "fraction_ip_saved": 0.36465491647657833,
+          "fec_source_bytes": 194881928,
+          "fec_source_shards": 394574,
+          "fec_parity_bytes": 196167459,
+          "fec_parity_shards": 394578,
+          "stress_goodput_mbps": 9.972531199999999,
+          "stress_byte_loss_percent": 0.27025009013314105,
+          "old_stress_byte_loss_percent": 0.1093548999571199,
+          "stress_packet_loss_percent": 0.19861107358067392,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 13891,
+          "abandoned": 117388
+        },
+        "s2c": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 507584334,
+          "outer_ip_per_app": 3.38389556,
+          "old_outer_ip_per_app": 5.4334425133333335,
+          "fraction_ip_saved": 0.37720965084361735,
+          "fec_source_bytes": 195008392,
+          "fec_source_shards": 394830,
+          "fec_parity_bytes": 198673532,
+          "fec_parity_shards": 394858,
+          "stress_goodput_mbps": 9.963699199999999,
+          "stress_byte_loss_percent": 0.34481140226432483,
+          "old_stress_byte_loss_percent": 0.22048047035833676,
+          "stress_packet_loss_percent": 0.23306716387661627,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 13567,
+          "abandoned": 117515
+        }
+      }
+    },
+    {
+      "run": 37091768712,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091768712",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "normal",
+      "scenario": "5305",
+      "seed": 202,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11263295503,
+        "name": "strict-summary-normal-5305-seed202-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:f8fb06bc2df49e5a7138d8730f2e3bd92a84e7f7a18c0221bc2d15c8be3002ae"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 86.78,
+        "server": 87.11
+      },
+      "stress_probe": {
+        "p95_ns": 619037238,
+        "p99_ns": 622893293,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 2,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 505215697,
+          "outer_ip_per_app": 3.3681046466666666,
+          "old_outer_ip_per_app": 5.300198293333334,
+          "fraction_ip_saved": 0.36453233251610273,
+          "fec_source_bytes": 194974800,
+          "fec_source_shards": 394762,
+          "fec_parity_bytes": 196266909,
+          "fec_parity_shards": 394778,
+          "stress_goodput_mbps": 9.973661866666667,
+          "stress_byte_loss_percent": 0.2635943292659252,
+          "old_stress_byte_loss_percent": 0.1343144947441134,
+          "stress_packet_loss_percent": 0.19253244340559492,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 13817,
+          "abandoned": 117515
+        },
+        "s2c": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 507576984,
+          "outer_ip_per_app": 3.38384656,
+          "old_outer_ip_per_app": 5.433960427292463,
+          "fraction_ip_saved": 0.37727696394100696,
+          "fec_source_bytes": 195002088,
+          "fec_source_shards": 394817,
+          "fec_parity_bytes": 198643870,
+          "fec_parity_shards": 394795,
+          "stress_goodput_mbps": 9.864426666666667,
+          "stress_byte_loss_percent": 1.3502276050419988,
+          "old_stress_byte_loss_percent": 0.17172963313217143,
+          "stress_packet_loss_percent": 0.8471427509846177,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 13629,
+          "abandoned": 117846
+        }
+      }
+    },
+    {
+      "run": 37091777400,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091777400",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "normal",
+      "scenario": "5305",
+      "seed": 303,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11263040251,
+        "name": "strict-summary-normal-5305-seed303-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:0890edb15c8b8be4111ac95e199365287d6a5946f016d7ccc886fa95cfc6e23e"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 86.73,
+        "server": 86.6
+      },
+      "stress_probe": {
+        "p95_ns": 618965924,
+        "p99_ns": 619971682,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": 2,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 149999744,
+          "outer_ip_bytes": 505312094,
+          "outer_ip_per_app": 3.3687530426718597,
+          "old_outer_ip_per_app": 5.302443046666666,
+          "fraction_ip_saved": 0.3646801552256056,
+          "fec_source_bytes": 194947136,
+          "fec_source_shards": 394706,
+          "fec_parity_bytes": 196235854,
+          "fec_parity_shards": 394724,
+          "stress_goodput_mbps": 9.981544533333333,
+          "stress_byte_loss_percent": 0.17429370515990433,
+          "old_stress_byte_loss_percent": 0.18417184536647702,
+          "stress_packet_loss_percent": 0.16145812222177186,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 13851,
+          "abandoned": 117247
+        },
+        "s2c": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 507658524,
+          "outer_ip_per_app": 3.38439016,
+          "old_outer_ip_per_app": 5.43696238,
+          "fraction_ip_saved": 0.37752187279250593,
+          "fec_source_bytes": 195013760,
+          "fec_source_shards": 394840,
+          "fec_parity_bytes": 198657604,
+          "fec_parity_shards": 394828,
+          "stress_goodput_mbps": 9.971308800000001,
+          "stress_byte_loss_percent": 0.28484230206852,
+          "old_stress_byte_loss_percent": 0.19509374953333233,
+          "stress_packet_loss_percent": 0.19118133853959074,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 13649,
+          "abandoned": 117293
+        }
+      }
+    },
+    {
+      "run": 37091756975,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091756975",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": 101,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11262945555,
+        "name": "strict-summary-normal-lossless-seed101-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:bc39a4821aca93cd91f4b8fe80e12a42b46510c84e1a453515784a01bdc2090d"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 86.77,
+        "server": 87.2
+      },
+      "stress_probe": {
+        "p95_ns": 607191131,
+        "p99_ns": 607695741,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": null,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 478831723,
+          "outer_ip_per_app": 3.192211486666667,
+          "old_outer_ip_per_app": 5.092191146666667,
+          "fraction_ip_saved": 0.37311632758399516,
+          "fec_source_bytes": 194911568,
+          "fec_source_shards": 394634,
+          "fec_parity_bytes": 196198888,
+          "fec_parity_shards": 394647,
+          "stress_goodput_mbps": 10.000181333333334,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        },
+        "s2c": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 481250473,
+          "outer_ip_per_app": 3.2083364866666666,
+          "old_outer_ip_per_app": 5.223585393333333,
+          "fraction_ip_saved": 0.3857980208840184,
+          "fec_source_bytes": 195017896,
+          "fec_source_shards": 394849,
+          "fec_parity_bytes": 198656511,
+          "fec_parity_shards": 394829,
+          "stress_goodput_mbps": 9.9999872,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        }
+      }
+    },
+    {
+      "run": 37091763027,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091763027",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": 202,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11263530239,
+        "name": "strict-summary-normal-lossless-seed202-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:b47127428b4b4592af9952505cf78869551b4680ca144e005987ffc70918165a"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 87.48,
+        "server": 87.96
+      },
+      "stress_probe": {
+        "p95_ns": 607980348,
+        "p99_ns": 611210078,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": null,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 478793677,
+          "outer_ip_per_app": 3.1919578466666665,
+          "old_outer_ip_per_app": 5.09155942,
+          "fraction_ip_saved": 0.37308836382652555,
+          "fec_source_bytes": 194939048,
+          "fec_source_shards": 394689,
+          "fec_parity_bytes": 196227129,
+          "fec_parity_shards": 394698,
+          "stress_goodput_mbps": 9.999616,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        },
+        "s2c": {
+          "app_input_bytes": 149998224,
+          "outer_ip_bytes": 481160695,
+          "outer_ip_per_app": 3.207775946733876,
+          "old_outer_ip_per_app": 5.222953753333333,
+          "fraction_ip_saved": 0.38583833628251807,
+          "fec_source_bytes": 195011968,
+          "fec_source_shards": 394837,
+          "fec_parity_bytes": 198656327,
+          "fec_parity_shards": 394828,
+          "stress_goodput_mbps": 9.999741866666668,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        }
+      }
+    },
+    {
+      "run": 37091771663,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091771663",
+      "run_attempt": 1,
+      "source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+      "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd-r2",
+      "mode": "normal",
+      "scenario": "lossless",
+      "seed": 303,
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "artifact": {
+        "id": 11263120254,
+        "name": "strict-summary-normal-lossless-seed303-f240d5177c6a8aaa02de570079926b2600c480fd",
+        "digest": "sha256:f1fa2b82a6920f254bd00a81c983ffdaa36fb6b3f1eb75a9276b4f5b6d550b38"
+      },
+      "socket_drop_max": 0,
+      "cpu_seconds": {
+        "client": 64.31,
+        "server": 65.1
+      },
+      "stress_probe": {
+        "p95_ns": 605805273,
+        "p99_ns": 608057840,
+        "received": 60,
+        "sent": 60
+      },
+      "post5_window_start_offset_s": null,
+      "directions": {
+        "c2s": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 478799113,
+          "outer_ip_per_app": 3.1919940866666665,
+          "old_outer_ip_per_app": 5.092287253333334,
+          "fraction_ip_saved": 0.3731708507650985,
+          "fec_source_bytes": 194984496,
+          "fec_source_shards": 394781,
+          "fec_parity_bytes": 196272876,
+          "fec_parity_shards": 394790,
+          "stress_goodput_mbps": 9.999776,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        },
+        "s2c": {
+          "app_input_bytes": 150000000,
+          "outer_ip_bytes": 481161376,
+          "outer_ip_per_app": 3.2077425066666665,
+          "old_outer_ip_per_app": 5.223903973333333,
+          "fraction_ip_saved": 0.3859491822511756,
+          "fec_source_bytes": 194997952,
+          "fec_source_shards": 394808,
+          "fec_parity_bytes": 198639319,
+          "fec_parity_shards": 394789,
+          "stress_goodput_mbps": 10.000341333333333,
+          "stress_byte_loss_percent": 0.0,
+          "old_stress_byte_loss_percent": 0.0,
+          "stress_packet_loss_percent": 0.0,
+          "post_byte_loss_percent": 0.0,
+          "repair_segments": 0,
+          "abandoned": 0
+        }
+      }
+    }
+  ],
+  "interpretation": [
+    "Independent old/new frozen samples; not same-runner CPU A/B.",
+    "Normal5305 worst loss1.35023% exceeds previous0.22048%; accepted under user loss-tolerant policy, not unchanged quality.",
+    "CPU varied by runner; no fixed CPU speedup claim.",
+    "Post5 offset starts a qualifying 3-second window; it is not completion time."
+  ]
+}
