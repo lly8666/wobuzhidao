@@ -64,7 +64,12 @@ for title,p in titles.items():
         names=[n for n in z.namelist() if n.endswith(p['summary'])]
         if len(names)!=1:errors.append(title+': ambiguous summary');continue
         summary=json.loads(z.read(names[0]))
-    if summary.get('source_sha')!=sha or summary.get('result')!='PASS':errors.append(title+': invalid summary/source')
+    if p['workflow']=='next-shared-blackhole.yml':
+        classes=summary.get('classifications',{})
+        passed=all(classes.get(k)=='PASS' for k in ['CORRECTNESS','INPUT_VALIDITY','CAPTURE','ENVIRONMENT','PERFORMANCE'])
+    else:
+        passed=summary.get('result')=='PASS'
+    if summary.get('source_sha')!=sha or not passed:errors.append(title+': invalid summary/source')
     (folder/'summary.json').write_text(json.dumps(summary,indent=2)+'\n')
     receipts.append(dict(title=title,run=r['id'],url=r['html_url'],artifact=a['id'],digest=a['digest'],summary=summary))
 result=dict(campaign=req['campaign'],source_sha=sha,result='FAIL' if errors else 'PASS',errors=errors,receipts=receipts)

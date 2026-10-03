@@ -1,5 +1,5 @@
 {
-  "campaign": "final-generation-fenced-prephysical-all-gates",
+  "campaign": "final-generation-fenced-prephysical-all-gates-classification-receipt",
   "source_sha": "1a5a4f5af8ba175e6c6766385edb6ea641939efb",
   "ref": "perf-fixed/1a5a4f5af8ba175e6c6766385edb6ea641939efb",
   "required_runs": [
