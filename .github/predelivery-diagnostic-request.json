@@ -1,10 +1,10 @@
 {
-  "campaign": "constant-retirement-close-and-bounded-receive",
-  "source_sha": "a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d",
-  "ref": "perf-fixed/a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d",
+  "campaign": "bounded-handoff-retirement-and-candidate-handshake-isolation",
+  "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+  "ref": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
   "required_runs": [
-    37139585967,
-    37139585951
+    37140620422,
+    37140620452
   ],
   "samples": [
     {
@@ -15,7 +15,7 @@
         "duration": "180",
         "seed": "404"
       },
-      "artifact": "soak-summary-normal-180-404-a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d",
+      "artifact": "soak-summary-normal-180-404-2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
       "summary": "summary-soak.json"
     },
     {
@@ -26,7 +26,7 @@
         "duration": "180",
         "seed": "404"
       },
-      "artifact": "soak-summary-game-180-404-a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d",
+      "artifact": "soak-summary-game-180-404-2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
       "summary": "summary-soak.json"
     }
   ]
