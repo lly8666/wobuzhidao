@@ -21,6 +21,7 @@ client_args+=(--fec-parity 20 --lanes 1 --keepalive-interval 1s --dead-after 8s 
 '''+s[stop:]
     setup='''
 ip -n "$RTR" route add 10.50.0.0/24 via 198.18.0.6
+ip -n "$RTR" route add 10.40.0.0/24 via 198.18.0.2
 ip -n "$SRV" route add 10.40.0.0/24 via 198.18.0.5
 for addr in 223.5.5.5 8.8.8.8; do
  ip -n "$TGT" addr add "$addr/32" dev lo

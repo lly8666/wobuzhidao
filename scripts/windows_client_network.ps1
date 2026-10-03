@@ -128,9 +128,9 @@ Assert-IPv4 $Underlay4 'Underlay4'
 Assert-IPv4 $PhysicalNextHop4 'PhysicalNextHop4'
 if ($PhysicalInterfaceIndex -eq 0) { throw 'PhysicalInterfaceIndex must be non-zero' }
 
-$dnsServers = Parse-CSV $DNSServer
+$dnsServers = @(Parse-CSV $DNSServer)
 foreach ($dns in $dnsServers) { Assert-IPv4 $dns 'DNSServer' }
-$directPrefixes = Parse-CSV $DirectPrefix4
+$directPrefixes = @(Parse-CSV $DirectPrefix4)
 foreach ($prefix in $directPrefixes) { [void](Parse-IPv4CIDR $prefix 'DirectPrefix4') }
 
 $capturePrefixes = @('0.0.0.0/1','128.0.0.0/1') + @($dnsServers | ForEach-Object { "$_/32" })
