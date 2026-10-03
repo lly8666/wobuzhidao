@@ -1,8 +1,9 @@
 {
   "ref": "next/tlslike-dataplane",
-  "dispatch_ref": "perf-fixed/b1fe7e2658fb48b47010bfa6988fe716e104d6b2-r2",
-  "expected_sha": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+  "dispatch_ref": "perf-fixed/2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8-r2",
+  "expected_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
   "aggregate_sha": "6dafa657af9f577f8cc21256276bfb44d8ee3fd1",
   "workflow": "next-strict-weaknet.yml",
-  "generation": "pre-delivery-live-fec-pressure-and-tcp-finish-final18"
+  "generation": "prephysical-bounded-handoff-constant-retirement-final18"
 }
+
