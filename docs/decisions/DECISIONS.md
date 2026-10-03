@@ -40,3 +40,5 @@
 2026-09-23补充：shadow repair采用双方独立的有界退役，不增加ABANDON控制消息。接收端已有no-HOL，但缺口元数据需索引化并有不可被连续新包重置的截止点。发送缓存失效不等于接收证据，接收forgiveness不等于真实可靠ACK；保持既有部分可靠展示语义、迟到交付及FIN保护，实施/联测见专项10.4。
 
 2026-10-03（用户要求优先解决带宽）：已有无损成本账本证明FEC混合长度导致parity字节膨胀，采用20:20最多3固定长度组256/512/MTU；共享block-start ID、即时systematic、原独立8ms期限与v1 decoder，不改变FEC档位/repair/Game/缓存。低冗余档位保留单组避免partial比例变动。新候选须独立Actions资格，暂缓长测工具开发；不凭旧final18或理论预算标PASS。
+
+2026-10-04（交付前逐秒审计）：原b1所有声明门PASS，但Normal换代1s窗口实际最多61.264%业务包loss，被60s阶段平均1.7585%掩盖。决定只分离active发送权与现有retiring接收在途权限，不扩大/延长状态、不建立第二控制协议、不引入HOL。旧代仅在现有有限retiring集合内验证/交付，retire后立即fence；Game dedupe/lease/MAC/PN维持。新增soak1s原发送窗口最终unique loss≤阶段link loss+2pp，原阶段门不放宽；原b1按新门FAIL保留。新候选完成精确SHA回归再打包，不宣称旧候选已最终交付。

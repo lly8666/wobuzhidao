@@ -8,10 +8,31 @@ from unittest.mock import patch
 from prepare_soak_harness import main as prepare
 from soak_capture import read_chunk
 from soak_weaknet_stage import plan
-from check_target_soak import integrity_errors
+from check_target_soak import integrity_errors,short_window_loss
 
 
 class SoakHarnessTests(unittest.TestCase):
+    def test_short_loss_gate_rejects_a_burst_hidden_by_stage_average(self):
+        phases=[dict(name='post5',start_s=0,end_s=60,loss_percent=5)]
+        sent={'sent_packets_by_second':[2000]*60}
+        received={'recv_packets_by_second':[2000]*60}
+        received['recv_packets_by_second'][30]=800
+        # Overall stage loss is1%, yet that send-second lost60%.
+        result=short_window_loss(sent,received,phases,60)
+        self.assertTrue(result['errors'])
+        self.assertEqual(result['phases'][0]['worst']['second'],30)
+        self.assertEqual(result['phases'][0]['worst']['packet_loss_percent'],60)
+        self.assertEqual(result['phases'][0]['violations'],1)
+
+    def test_short_loss_uses_eventual_send_buckets_and_checks_counts(self):
+        phases=[dict(name='stress20',start_s=0,end_s=2,loss_percent=20)]
+        sender={'sent_packets_by_second':[2000,2000]}
+        receiver={'recv_packets_by_second':[1600,2000],'recv_wall_packets_by_second':[0,3600]}
+        self.assertFalse(short_window_loss(sender,receiver,phases,2)['errors'])
+        receiver['recv_packets_by_second']=[2001,2000]
+        self.assertTrue(short_window_loss(sender,receiver,phases,2)['errors'])
+        self.assertTrue(short_window_loss({},receiver,phases,2)['errors'])
+
     def test_integrity_gate_keeps_an_error_on_a_retired_incarnation(self):
         def sample(record_errors):
             return {'product':{'lanes':[{'lane':{'RecordErrors':record_errors,'PathErrors':0},'transport':{'RecordErrors':record_errors,'PathErrors':0}}]}}

@@ -2,7 +2,6 @@ package datapath
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"time"
 
@@ -175,17 +174,10 @@ func (o *TunnelOwner) GameInboundPayload(ref logicaltunnel.LaneRef, payload []by
 		o.mu.Unlock()
 		return InboundResult{}, ErrGameLaneMode
 	}
-	binding, ok := o.active[ref.ID]
-	if !ok {
-		o.generationDiscards++
+	binding, err := o.receiveBindingLocked(ref)
+	if err != nil {
 		o.mu.Unlock()
-		return InboundResult{}, fmt.Errorf("%w: lane=%d got=%d current=none", logicaltunnel.ErrStaleLaneGeneration, ref.ID, ref.Generation)
-	}
-	if binding.ref != ref {
-		o.generationDiscards++
-		current := binding.ref
-		o.mu.Unlock()
-		return InboundResult{}, staleGeneration(ref, current)
+		return InboundResult{}, err
 	}
 	state, err := o.ensureGameLocked()
 	if err != nil {
@@ -202,7 +194,7 @@ func (o *TunnelOwner) GameInboundPayload(ref logicaltunnel.LaneRef, payload []by
 	if err != nil {
 		return InboundResult{}, err
 	}
-	if err := o.ValidateGeneration(ref); err != nil {
+	if err := o.validateReceiveGeneration(ref); err != nil {
 		return InboundResult{}, err
 	}
 
@@ -248,14 +240,9 @@ func (o *TunnelOwner) GameInboundPayload(ref logicaltunnel.LaneRef, payload []by
 	}
 
 	o.mu.Lock()
-	current, ok := o.active[ref.ID]
-	if !ok || current.ref != ref {
-		o.generationDiscards++
+	if _, err := o.receiveBindingLocked(ref); err != nil {
 		o.mu.Unlock()
-		if ok {
-			return InboundResult{}, staleGeneration(ref, current.ref)
-		}
-		return InboundResult{}, fmt.Errorf("%w: lane=%d got=%d current=none", logicaltunnel.ErrStaleLaneGeneration, ref.ID, ref.Generation)
+		return InboundResult{}, err
 	}
 	state, err = o.ensureGameLocked()
 	if err != nil {

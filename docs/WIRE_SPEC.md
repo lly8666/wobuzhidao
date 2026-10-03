@@ -180,3 +180,7 @@ missing health = UNKNOWN，不能推出业务空闲。客户端仅在本端业�
 
 platformflow仅用于内层TCP代理，并非外层repair协议。TCPData.Payload按Offset字节定位；FIN在最后数据字节后占一个虚拟序列位置。接收方仅在所有前序字节完整并且FIN首次到达后发送ACK=数据末偏移+1；此前ACK=已收数据末偏移，不能释放未收到的FIN。发送方保留独立FIN到该ACK，部分数据ACK可以把带数据FIN缩成原Offset处空payload FIN重传。虚拟位置不增加wire bytes；FIN在已交付的重复数据上首次到达仍执行一次CloseWrite。此修复需双端同版本更新，不能混用此前零长度FIN与数据共享ACK位置的TCP代理端点。外层记录、FEC、Game去重、UDP和health framing不变。
 
+## 2026-10-04：换代接收在途与发送权限分离
+
+Promotion后新业务只由active generation生成并发送；old Ref的FenceOutbound/SendNormal仍失败，旧密文不得套新密钥/新TCP序列空间。接收允许当前active，或owner现有retiring集合中明确登记、尚未Retire的同身份incarnation。retiring有原CloseWrite/FIN及绝对关闭预算、10物理lane上限，不新增期限或候选接收权。记录由该incarnation自己的keys/PN去重/FEC/LINK处理；server lease源地址隔离和Game session/LaneID/共享PacketID去重不变。处理后再次检查接收授权，Retire/DORMANT/Close移除者拒绝；任意历史generation不可恢复。新数据无需等旧分片/缺口。wire字段、admission及用户配置均不变。
+

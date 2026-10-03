@@ -240,14 +240,23 @@ func TestRuntimeNormalNoHOLRepairReplacementAndGenerationFence(t *testing.T) {
 	}
 
 	// Promote a same-ID replacement on both endpoints. The old runtime transport
-	// remains only until explicit retirement and cannot bypass owner generation
-	// fencing.
+	// remains receive-only until explicit retirement. Outbound fencing must not
+	// discard an authenticated record already emitted on the old transport.
 	// Hold already-sealed Normal output across publication of the replacement.
 	// It must never be sent on the fresh transport with the old crypto context.
 	lateRecords, err := clientOwner.NormalOutbound(first, now.Add(3*time.Second))
 	if err != nil || len(lateRecords) == 0 {
 		t.Fatalf("held Normal records=%d err=%v", len(lateRecords), err)
 	}
+	inFlightPacket := runtimeIPv4(leaseAddr, netip.MustParseAddr("9.9.9.9"), []byte("in-flight"))
+	inFlightRecords, err := clientOwner.NormalOutbound(inFlightPacket, now.Add(3*time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := clientRuntime.SendNormal(inFlightRecords, now.Add(3*time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	inFlight := clientWire[len(clientWire)-1]
 	clientCandidate := runtimeLane(t, datapath.RoleClient, lease, 0, 8)
 	serverCandidate := runtimeLane(t, datapath.RoleServer, lease, 0, 8)
 	clientCfg2, serverCfg2 := transportPair(clientEmit, serverEmit, 1, 900000)
@@ -273,26 +282,26 @@ func TestRuntimeNormalNoHOLRepairReplacementAndGenerationFence(t *testing.T) {
 		t.Fatal("old ciphertext emitted on replacement transport")
 	}
 
-	stalePacket := runtimeIPv4(leaseAddr, netip.MustParseAddr("9.9.9.9"), []byte("stale"))
-	staleWire, err := clientLane.Outbound(stalePacket, now.Add(3*time.Second))
-	if err != nil || len(staleWire) == 0 {
-		t.Fatalf("stale wire records=%d err=%v", len(staleWire), err)
+	if err := serverRuntime.HandleSegment(serverSnap.Ref, inFlight, now.Add(3*time.Second)); err != nil {
+		t.Fatalf("retiring in-flight ingress err=%v", err)
 	}
-	staleSeg := faketcp.Segment{
-		SrcIP: clientCfg.LocalIP, DstIP: clientCfg.PeerIP,
-		SrcPort: clientCfg.LocalPort, DstPort: clientCfg.PeerPort,
-		Seq: clientWire[1].Seq + uint32(len(clientWire[1].Payload)),
-		Ack: serverCfg.SendNext, Flags: faketcp.FlagACK | faketcp.FlagPSH,
-		Window: 65535, Payload: staleWire[0].Wire,
+	if len(delivered) != 3 || !bytes.Equal(delivered[2], inFlightPacket) {
+		t.Fatalf("retiring ingress deliveries=%d last=%x", len(delivered), lastPacket(delivered))
 	}
-	if err := serverRuntime.HandleSegment(serverSnap.Ref, staleSeg, now.Add(3*time.Second)); !errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) {
-		t.Fatalf("old generation ingress err=%v", err)
+	if err := serverRuntime.HandleSegment(serverSnap.Ref, inFlight, now.Add(3*time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	if len(delivered) != 3 {
+		t.Fatal("retiring exact duplicate delivered again")
 	}
 	if err := clientRuntime.RetireIncarnation(clientSnap.Ref); err != nil {
 		t.Fatal(err)
 	}
 	if err := serverRuntime.RetireIncarnation(serverSnap.Ref); err != nil {
 		t.Fatal(err)
+	}
+	if err := serverRuntime.HandleSegment(serverSnap.Ref, inFlight, now.Add(4*time.Second)); !errors.Is(err, ErrTransportMissing) {
+		t.Fatalf("explicitly retired ingress err=%v", err)
 	}
 
 	third := runtimeIPv4(leaseAddr, netip.MustParseAddr("8.8.8.8"), []byte("fresh-generation"))
@@ -310,7 +319,7 @@ func TestRuntimeNormalNoHOLRepairReplacementAndGenerationFence(t *testing.T) {
 	if err := serverRuntime.HandleSegment(freshServer.Ref, clientWire[before], now.Add(4*time.Second)); err != nil {
 		t.Fatal(err)
 	}
-	if len(delivered) != 3 || !bytes.Equal(delivered[2], third) {
+	if len(delivered) != 4 || !bytes.Equal(delivered[3], third) {
 		t.Fatalf("fresh replacement deliveries=%d last=%x", len(delivered), lastPacket(delivered))
 	}
 	if freshClient.Ref.Generation <= clientSnap.Ref.Generation || freshServer.Ref.Generation <= serverSnap.Ref.Generation {

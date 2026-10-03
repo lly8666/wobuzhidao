@@ -51,6 +51,8 @@ Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对�
 
 内部固定边界不是 CLI 参数：4096 shadow metadata有效记录、3s repair horizon、重传新流量补充比例1/5、128KiB启动credit、FEC最多8个heavy恢复槽与8192个compact late-delivery历史、3s绝对恢复期限及满额时旧block早退役、padding预算、最多10物理lane。fresh发送不受4096 ACK退休门阻塞；这些常量不是可配置开关，不用历史“64代”文字代替当前实际解码状态。
 
+FEC首源8ms是encoder到期条件，不是已承诺的实际parity发包上限：正式入口约100ms tick检查部分组，满组立即产生parity，systematic始终立即发。MTU是完整外层IPv4包预算，还受peer MSS及双向record limit约束；现有配置/抓包通过不等于自动PMTU探测已实现。路径更小时需下调两端MTU并重新建lane，物理验证见PREDELIVERY_ACCEPTANCE。
+
 ## 协议兼容
 
 本轮 lifecycle-capable admission record version 为 **2**；真实 TLS/uTLS 建连、外层 0x17/0x0303 记录格式不变，新增的是加密内部 health kind。必须成对升级端点。V1 端点在 admission 被明确拒绝，不允许混用后静默反复重连。历史 V1 的通过证据仍保留历史 SHA，不能视作 V2 已通过。

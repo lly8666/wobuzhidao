@@ -2,7 +2,7 @@
 
 TCP-like 外层、TLS-like 独立加密记录、稳态无跨包 HOL 的弱网隧道。
 
-**当前状态：P5/P6交付前验收进行中，尚未发布。** 单进程客户端/服务端、真实TLS建连、独立记录数据面、Linux共享TUN和OpenWrt型TPROXY入口已实现；Windows客户端保留Npcap/Wintun路径。当前冻结产品源码为 `b1fe7e2658fb48b47010bfa6988fe716e104d6b2`，基础/race已通过，完整配置、生命周期、弱网、30分钟目标负载与打包正在按该精确源码重验。文档HEAD与实测SOURCE_SHA分开记录，不能继承旧候选的通过。物理机、真实Windows驱动和LinuxARM64原生运行留P7，仍为NOT_RUN。
+**当前状态：既定hosted门已通过，换代瞬时损失正在返工，尚未正式收口。** 单进程客户端/服务端、真实TLS建连、独立记录数据面、Linux共享TUN和OpenWrt型TPROXY入口已实现；Windows客户端保留Npcap/Wintun路径。原候选源码 `b1fe7e2658fb48b47010bfa6988fe716e104d6b2` 的70项真实配置、36项生命周期、18条严格弱网、Normal/Game各30分钟持续负载及三平台打包全部通过原门，但逐秒审计发现Normal换代时短暂大幅丢包，不能用阶段平均掩盖。当前修复与新增短窗门需重新取得精确SOURCE_SHA资格；旧包仅供复现。物理机、真实Windows驱动和LinuxARM64原生运行留P7，仍为NOT_RUN。
 
 新 agent 从 [AGENTS.md](AGENTS.md) 开始。唯一进度入口为 [docs/STATUS.json](docs/STATUS.json)。
 
@@ -27,4 +27,4 @@ client/server可分别设置 `--tls-startup-padding=true`，默认关闭，JSON�
 
 交付前各门与覆盖限制见 [PREDELIVERY_ACCEPTANCE](docs/PREDELIVERY_ACCEPTANCE.md)。70个实际配置case用正式程序运行UDP、DNS、普通TCP和102400字节HTTPS，并对照配置、运行诊断与抓包；性能资格单独验证FEC20:20的Normal双向各10Mbps/Game4各3Mbps、600ms RTT、无损/5→20→5/5→30→5和1800s持续负载。其它FEC档位的功能通过不能当作相同弱网性能承诺。每个性能Action只跑一条样本。
 
-当前是命令行候选；服务端CLI使用静态身份/lease配置，不提供账户管理GUI。Windowsserver不支持，OpenWrt IPv6未实现；普通浏览器物理实抓、与借用网站完整服务端指纹一致及高RTT下大TCP下载吞吐尚未取得物理资格。最终同源码包及哈希只在全hosted门完成后作为物理验收候选交付，不称正式发布。
+当前是命令行候选；服务端CLI使用静态身份/lease配置，不提供账户管理GUI。Windowsserver不支持，OpenWrt IPv6未实现；普通浏览器物理实抓、与借用网站完整服务端指纹一致及高RTT下大TCP下载吞吐尚未取得物理资格。MTU预算和受控抓包已通过，自动路径MTU探测没有资格。完整性能、覆盖限制、历史失败及P7顺序见 [交付前验收报告](docs/PREDELIVERY_ACCEPTANCE.md)。同源码候选包和哈希见 [P6下载](https://github.com/lly8666/wobuzhidao/actions/runs/37127951215)，客户端/服务端必须成对使用该版本。

@@ -1,0 +1,723 @@
+{
+  "aggregate_revision": 2,
+  "analysis_version": "loss-tolerant-v1",
+  "errors": [],
+  "expected_seeds": [
+    "101",
+    "202",
+    "303"
+  ],
+  "kind": "artifact-only-aggregate",
+  "repeat_status": {
+    "game/5205": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    },
+    "game/5305": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    },
+    "game/lossless": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    },
+    "normal/5205": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    },
+    "normal/5305": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    },
+    "normal/lossless": {
+      "count": 3,
+      "pass": true,
+      "seeds": [
+        "101",
+        "202",
+        "303"
+      ]
+    }
+  },
+  "require_run_receipts": true,
+  "required_repeats": 3,
+  "result": "PASS",
+  "sample_count": 18,
+  "sample_results": [
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "game",
+        "101",
+        3.0,
+        4
+      ],
+      "lossless_summary": "final18/strict-game-lossless-seed101-rate3-lanes4/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5205",
+      "stages": {
+        "post": {
+          "delta_p95_ns": 4379963,
+          "delta_p99_ns": 4896415,
+          "lossless_p95_ns": 604404255,
+          "lossless_p99_ns": 605243000,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 608784218,
+          "p99_ns": 610139415,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": 5060357,
+          "delta_p99_ns": 4479164,
+          "lossless_p95_ns": 603572821,
+          "lossless_p99_ns": 604559849,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 608633178,
+          "p99_ns": 609039013,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": 4507489,
+          "delta_p99_ns": 4160152,
+          "lossless_p95_ns": 604009137,
+          "lossless_p99_ns": 604737796,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 60,
+          "lossy_sent": 60,
+          "p95_ns": 608516626,
+          "p99_ns": 608897948,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-game-5205-seed101-rate3-lanes4/summary-loss-tolerant-v1.json"
+    },
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "game",
+        "202",
+        3.0,
+        4
+      ],
+      "lossless_summary": "final18/strict-game-lossless-seed202-rate3-lanes4/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5205",
+      "stages": {
+        "post": {
+          "delta_p95_ns": 1662578,
+          "delta_p99_ns": 1853087,
+          "lossless_p95_ns": 603598687,
+          "lossless_p99_ns": 603902962,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 605261265,
+          "p99_ns": 605756049,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": 2892034,
+          "delta_p99_ns": 2724242,
+          "lossless_p95_ns": 603001222,
+          "lossless_p99_ns": 603237551,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 605893256,
+          "p99_ns": 605961793,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": 1455465,
+          "delta_p99_ns": 2112413,
+          "lossless_p95_ns": 603184168,
+          "lossless_p99_ns": 603789963,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 60,
+          "lossy_sent": 60,
+          "p95_ns": 604639633,
+          "p99_ns": 605902376,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-game-5205-seed202-rate3-lanes4/summary-loss-tolerant-v1.json"
+    },
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "game",
+        "303",
+        3.0,
+        4
+      ],
+      "lossless_summary": "final18/strict-game-lossless-seed303-rate3-lanes4/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5205",
+      "stages": {
+        "post": {
+          "delta_p95_ns": 5848984,
+          "delta_p99_ns": 11070139,
+          "lossless_p95_ns": 602128433,
+          "lossless_p99_ns": 602473449,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 607977417,
+          "p99_ns": 613543588,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": 3374031,
+          "delta_p99_ns": 4420899,
+          "lossless_p95_ns": 601753553,
+          "lossless_p99_ns": 602066189,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 605127584,
+          "p99_ns": 606487088,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": 3190343,
+          "delta_p99_ns": 3802188,
+          "lossless_p95_ns": 601747981,
+          "lossless_p99_ns": 601853847,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 60,
+          "lossy_sent": 60,
+          "p95_ns": 604938324,
+          "p99_ns": 605656035,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-game-5205-seed303-rate3-lanes4/summary-loss-tolerant-v1.json"
+    },
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "game",
+        "101",
+        3.0,
+        4
+      ],
+      "lossless_summary": "final18/strict-game-lossless-seed101-rate3-lanes4/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5305",
+      "stages": {
+        "post": {
+          "delta_p95_ns": 1656639,
+          "delta_p99_ns": 2047684,
+          "lossless_p95_ns": 604404255,
+          "lossless_p99_ns": 605243000,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 606060894,
+          "p99_ns": 607290684,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": 258303,
+          "delta_p99_ns": 544920,
+          "lossless_p95_ns": 603572821,
+          "lossless_p99_ns": 604559849,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 603831124,
+          "p99_ns": 605104769,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": -537745,
+          "delta_p99_ns": 13512891,
+          "lossless_p95_ns": 604009137,
+          "lossless_p99_ns": 604737796,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 59,
+          "lossy_sent": 60,
+          "p95_ns": 603471392,
+          "p99_ns": 618250687,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-game-5305-seed101-rate3-lanes4/summary-loss-tolerant-v1.json"
+    },
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "game",
+        "202",
+        3.0,
+        4
+      ],
+      "lossless_summary": "final18/strict-game-lossless-seed202-rate3-lanes4/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5305",
+      "stages": {
+        "post": {
+          "delta_p95_ns": -1283405,
+          "delta_p99_ns": -835278,
+          "lossless_p95_ns": 603598687,
+          "lossless_p99_ns": 603902962,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 602315282,
+          "p99_ns": 603067684,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": -792374,
+          "delta_p99_ns": -965458,
+          "lossless_p95_ns": 603001222,
+          "lossless_p99_ns": 603237551,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 602208848,
+          "p99_ns": 602272093,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": -1223965,
+          "delta_p99_ns": -1653140,
+          "lossless_p95_ns": 603184168,
+          "lossless_p99_ns": 603789963,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 60,
+          "lossy_sent": 60,
+          "p95_ns": 601960203,
+          "p99_ns": 602136823,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-game-5305-seed202-rate3-lanes4/summary-loss-tolerant-v1.json"
+    },
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "game",
+        "303",
+        3.0,
+        4
+      ],
+      "lossless_summary": "final18/strict-game-lossless-seed303-rate3-lanes4/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5305",
+      "stages": {
+        "post": {
+          "delta_p95_ns": 1913903,
+          "delta_p99_ns": 3026380,
+          "lossless_p95_ns": 602128433,
+          "lossless_p99_ns": 602473449,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 604042336,
+          "p99_ns": 605499829,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": 2970576,
+          "delta_p99_ns": 3177932,
+          "lossless_p95_ns": 601753553,
+          "lossless_p99_ns": 602066189,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 604724129,
+          "p99_ns": 605244121,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": 3269506,
+          "delta_p99_ns": 4305621,
+          "lossless_p95_ns": 601747981,
+          "lossless_p99_ns": 601853847,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 60,
+          "lossy_sent": 60,
+          "p95_ns": 605017487,
+          "p99_ns": 606159468,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-game-5305-seed303-rate3-lanes4/summary-loss-tolerant-v1.json"
+    },
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "normal",
+        "101",
+        10.0,
+        1
+      ],
+      "lossless_summary": "final18/strict-normal-lossless-seed101-rate10-lanes1/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5205",
+      "stages": {
+        "post": {
+          "delta_p95_ns": 3326533,
+          "delta_p99_ns": -3160837,
+          "lossless_p95_ns": 610983479,
+          "lossless_p99_ns": 617962505,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 614310012,
+          "p99_ns": 614801668,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": 7687341,
+          "delta_p99_ns": 5031224,
+          "lossless_p95_ns": 608845760,
+          "lossless_p99_ns": 614369010,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 616533101,
+          "p99_ns": 619400234,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": 11186730,
+          "delta_p99_ns": 7343317,
+          "lossless_p95_ns": 607150798,
+          "lossless_p99_ns": 612894888,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 60,
+          "lossy_sent": 60,
+          "p95_ns": 618337528,
+          "p99_ns": 620238205,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-normal-5205-seed101-rate10-lanes1/summary-loss-tolerant-v1.json"
+    },
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "normal",
+        "202",
+        10.0,
+        1
+      ],
+      "lossless_summary": "final18/strict-normal-lossless-seed202-rate10-lanes1/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5205",
+      "stages": {
+        "post": {
+          "delta_p95_ns": 1148048,
+          "delta_p99_ns": 3600292,
+          "lossless_p95_ns": 610539504,
+          "lossless_p99_ns": 610553945,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 611687552,
+          "p99_ns": 614154237,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": 2394674,
+          "delta_p99_ns": 8873036,
+          "lossless_p95_ns": 607908924,
+          "lossless_p99_ns": 611394137,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 610303598,
+          "p99_ns": 620267173,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": 9241121,
+          "delta_p99_ns": 8508132,
+          "lossless_p95_ns": 607225454,
+          "lossless_p99_ns": 608452976,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 60,
+          "lossy_sent": 60,
+          "p95_ns": 616466575,
+          "p99_ns": 616961108,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-normal-5205-seed202-rate10-lanes1/summary-loss-tolerant-v1.json"
+    },
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "normal",
+        "303",
+        10.0,
+        1
+      ],
+      "lossless_summary": "final18/strict-normal-lossless-seed303-rate10-lanes1/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5205",
+      "stages": {
+        "post": {
+          "delta_p95_ns": 3300697,
+          "delta_p99_ns": 7122587,
+          "lossless_p95_ns": 605526358,
+          "lossless_p99_ns": 605607981,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 608827055,
+          "p99_ns": 612730568,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": 4700246,
+          "delta_p99_ns": 6813091,
+          "lossless_p95_ns": 607792752,
+          "lossless_p99_ns": 607936454,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 612492998,
+          "p99_ns": 614749545,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": 10563929,
+          "delta_p99_ns": 10722412,
+          "lossless_p95_ns": 605152542,
+          "lossless_p99_ns": 606747799,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 60,
+          "lossy_sent": 60,
+          "p95_ns": 615716471,
+          "p99_ns": 617470211,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-normal-5205-seed303-rate10-lanes1/summary-loss-tolerant-v1.json"
+    },
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "normal",
+        "101",
+        10.0,
+        1
+      ],
+      "lossless_summary": "final18/strict-normal-lossless-seed101-rate10-lanes1/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5305",
+      "stages": {
+        "post": {
+          "delta_p95_ns": 10585758,
+          "delta_p99_ns": 4170245,
+          "lossless_p95_ns": 610983479,
+          "lossless_p99_ns": 617962505,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 621569237,
+          "p99_ns": 622132750,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": 2218126,
+          "delta_p99_ns": -2826050,
+          "lossless_p95_ns": 608845760,
+          "lossless_p99_ns": 614369010,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 611063886,
+          "p99_ns": 611542960,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": 11514721,
+          "delta_p99_ns": 9654869,
+          "lossless_p95_ns": 607150798,
+          "lossless_p99_ns": 612894888,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 60,
+          "lossy_sent": 60,
+          "p95_ns": 618665519,
+          "p99_ns": 622549757,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-normal-5305-seed101-rate10-lanes1/summary-loss-tolerant-v1.json"
+    },
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "normal",
+        "202",
+        10.0,
+        1
+      ],
+      "lossless_summary": "final18/strict-normal-lossless-seed202-rate10-lanes1/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5305",
+      "stages": {
+        "post": {
+          "delta_p95_ns": 2110590,
+          "delta_p99_ns": 6296283,
+          "lossless_p95_ns": 610539504,
+          "lossless_p99_ns": 610553945,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 612650094,
+          "p99_ns": 616850228,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": 7277111,
+          "delta_p99_ns": 4876305,
+          "lossless_p95_ns": 607908924,
+          "lossless_p99_ns": 611394137,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 615186035,
+          "p99_ns": 616270442,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": 11830771,
+          "delta_p99_ns": 11104645,
+          "lossless_p95_ns": 607225454,
+          "lossless_p99_ns": 608452976,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 60,
+          "lossy_sent": 60,
+          "p95_ns": 619056225,
+          "p99_ns": 619557621,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-normal-5305-seed202-rate10-lanes1/summary-loss-tolerant-v1.json"
+    },
+    {
+      "identity": [
+        "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+        "normal",
+        "303",
+        10.0,
+        1
+      ],
+      "lossless_summary": "final18/strict-normal-lossless-seed303-rate10-lanes1/summary-loss-tolerant-v1.json",
+      "pass": true,
+      "scenario": "5305",
+      "stages": {
+        "post": {
+          "delta_p95_ns": 3301822,
+          "delta_p99_ns": 3705696,
+          "lossless_p95_ns": 605526358,
+          "lossless_p99_ns": 605607981,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 608828180,
+          "p99_ns": 609313677,
+          "pass": true
+        },
+        "pre": {
+          "delta_p95_ns": 8695098,
+          "delta_p99_ns": 25219840,
+          "lossless_p95_ns": 607792752,
+          "lossless_p99_ns": 607936454,
+          "lossless_received": 30,
+          "lossless_sent": 30,
+          "lossy_received": 30,
+          "lossy_sent": 30,
+          "p95_ns": 616487850,
+          "p99_ns": 633156294,
+          "pass": true
+        },
+        "stress": {
+          "delta_p95_ns": 15312555,
+          "delta_p99_ns": 17140312,
+          "lossless_p95_ns": 605152542,
+          "lossless_p99_ns": 606747799,
+          "lossless_received": 60,
+          "lossless_sent": 60,
+          "lossy_received": 60,
+          "lossy_sent": 60,
+          "p95_ns": 620465097,
+          "p99_ns": 623888111,
+          "pass": true
+        }
+      },
+      "summary": "final18/strict-normal-5305-seed303-rate10-lanes1/summary-loss-tolerant-v1.json"
+    }
+  ],
+  "schema": 1,
+  "source_sha": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2"
+}

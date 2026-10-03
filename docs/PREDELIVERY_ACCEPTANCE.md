@@ -17,3 +17,68 @@ PARAMETERS.json是全部CLI/JSON参数清单。基础core负责类型/边界/未
 ## 交付定位
 
 全部hosted门通过后，STATUS标注hosted P5/P6完成、可交物理验收；证据保留真正SOURCE_SHA、文档HEAD、Action原始attempt、artifactdigest、缺失项。失败原样记录，不继承旧源码通过，不以扩大缓存、延长期限或降低速率过关。
+
+## 2026-10-03 b1候选原门结果（10-04换代短窗返工）
+
+原候选源码 **b1fe7e2658fb48b47010bfa6988fe716e104d6b2**，版本 `next-rc-b1fe7e2658fb`。以下记录其已通过的原门，不能继承给新修复。逐秒审计发现阶段平均隐藏Normal换代大幅短时损失，当前P5重新打开；P6旧包仅供复现，新候选需重新打包，P7 **NOT_RUN**。
+
+| 门 | 同源码实测结果 | 原始证据 |
+|---|---|---|
+| Linux/Windows core、Linux race、内核fallback、共享TUN两种firewall、TPROXY | PASS | [foundation](https://github.com/lly8666/wobuzhidao/actions/runs/37127353521) |
+| 框架与换代定向race重复30次 | PASS | [tools/race](https://github.com/lly8666/wobuzhidao/actions/runs/37127353424) |
+| 70实际配置、36生命周期、两条短测、两条长测、两条共享黑洞、打包 | 78个原始独立workflow回执PASS，额外dispatch=0 | [完整收口](https://github.com/lly8666/wobuzhidao/actions/runs/37127934784) |
+| Normal/Game × 无损/5205/5305 × 3seed | 18/18独立run及逐阶段配对RTT PASS | [严格弱网汇总](https://github.com/lly8666/wobuzhidao/actions/runs/37127934798) |
+| Normal 1800s | PASS | [Normal长测](https://github.com/lly8666/wobuzhidao/actions/runs/37127945540) |
+| Game 1800s | PASS | [Game长测](https://github.com/lly8666/wobuzhidao/actions/runs/37127948222) |
+| 三目标候选包 | PASS；amd64原生version、arm64交叉构建 | [打包](https://github.com/lly8666/wobuzhidao/actions/runs/37127951215) |
+
+全部保留原始attempt=1、源码、run、artifact及SHA256。机器证据见 [predelivery-b1fe7e2.json](evidence/predelivery-b1fe7e2.json) 与 [final18汇总](evidence/predelivery-b1fe7e2-final18.json)。旧SOURCE的失败不被这些PASS覆盖：23版本Normal路径错误/HTTPS截断、3d短测换代尾延迟失败均保留原始日志和run。
+
+### 性能与质量边界
+
+业务为64/256/1200字节混合UDP，双向同时发送、FEC20:20、padding off、300ms单向。表内吞吐取三seed压力阶段两个方向的范围，丢包取最差包损失；不是完整120s平均或峰值容量。
+
+| 模式/人工压力loss | 实际业务Mbps/方向 | 最差业务包loss | 最大阶段probe RTT p95 / p99 |
+|---|---|---|---|
+| Normal/0% | 9.9994～10.0000 | 0% | 607.2 / 612.9ms |
+| Normal/20% | 9.9976～9.9997 | 0.0068% | 618.3 / 620.2ms |
+| Normal/30% | 9.9580～9.9827 | 0.2756% | 620.5 / 623.9ms |
+| Game4/0% | 2.9999～3.0001 | 0% | 604.0 / 604.7ms |
+| Game4/20% | 2.9997～3.0001 | 0% | 608.5 / 608.9ms |
+| Game4/30% | 2.9350～3.0000 | 2.1461% | 605.0 / 618.3ms |
+
+18条全部socket/capture drop=0。Normal的outer IP/app原始输入字节约无损3.08～3.10倍、5205为3.49～3.51倍；Game4约无损12.83～12.91倍、5205为14.15～14.22倍，包含4lane副本，不按复制后的业务字节稀释开销。不承诺线上开销只有FEC的2倍。
+
+长测为每模式一条1800s独立run，6轮5%→20%→5%、600s定时轮换、停流后60s排空。Normal各阶段最低9.8075Mbps、最大包loss1.7585%（恢复阶段换代附近）；阶段probe p95最高625.5ms、p99最高749.5ms。Game最低2.9993Mbps、loss=0，p95最高607.3ms、p99最高619.8ms。两条socket/link/capture drop=0、记录/路径完整性错误=0，FEC/LINK最终退役门PASS。Normal客户端/服务端平均约0.76/0.79核，heap峰值28.6/37.4MiB；Game约0.93/0.88核，heap峰值64.1/65.7MiB。CPU为该runner进程CPU-time除1800s，不是固定跨机器性能承诺；heap不是RSS或整个host内存。少量换代损失、长尾及历史短测尾延迟事实保留，不宣称每包/每次换代零损失或零额外时延。
+
+### 配置与网络条件的覆盖范围
+
+| 内容 | 验收层次 | 边界 |
+|---|---|---|
+| FEC off/4/8/10/12/16/20、lane1～4、startup padding开关 | 56正式进程组合：UDP/DNS/TCP/102400B真实HTTPS + 诊断 + 抓包 | 各档功能生效；仅20:20取得上述高负载弱网资格 |
+| 显式CLI覆盖JSON、JSON-only、默认省略、生命周期非默认值 | 70配置及36生命周期；未知/重复/平台不适用配置由core拒绝 | 非无限数值穷举；凭据使用测试值 |
+| MTU1280/1400/1500、双向512/768非对称record limit | 6正式进程case，外层IPv4/记录大小和无IP分片门PASS | 不等于真实路径PMTU探测、PPPoE/移动网络MTU均已实测 |
+| 固定600ms RTT、独立随机5/20/30%loss、恢复阶段、共享100/500ms完全黑洞 | 原生raw正式程序、netns/netem与抓包 | 持续相关突发loss、jitter、非对称路由、NAT超时尚无完整性能资格 |
+| 深度乱序/重复/永久缺包、缓存压力、损坏包、stale generation、no-HOL | core/race及相关真实路径专项 | 单元损伤模型不冒充全部真实网络工况 |
+| Linux路由/NAT/iptables/nft、OpenWrt型TPROXY、lease隔离/清理 | hosted特权实际内核 | 真实OpenWrt固件、物理NIC、Windows驱动、ARM原生留P7 |
+
+FEC首源8ms是encoder的到期条件，当前正式入口在约100ms的runtime tick检查部分组；systematic立即发送，满20源立即形成parity。不能把8ms写成低负载下parity实际发送的硬上限。本候选没有借改tick/延长期限/扩大4096或socket过关；如后续要改善稀疏修复时延，应独立设计FEC到期调度并重新验收，不全局加快4096 repair扫描。
+
+### 2026-10-04：不能被阶段平均掩盖的换代损失
+
+Normal1800原样本逐秒按原发送时间统计最终收到的unique包，损失集中588～590、1190～1192、1793～1794秒，与generation1→2→3→4一致。最差1191秒C2S丢1512/2468=61.264%，588秒S2C丢1490/2466=60.422%；整体30分钟C2S/S2C包loss仅0.10638%/0.10055%，60s阶段最差1.7585%。后两种平均值不能说明换代平滑。计数是最终unique收到，不是把300ms传播等待算作丢包。
+
+已找到源码机制：owner promotion保留旧lane于retiring，但InboundPayload/GameInboundPayload仍只允许active generation，旧密钥/FEC/LINK虽然还活着，合法在途数据却先被generation拒绝。当前窄修复将新业务发送权与接收在途授权分开：发送仍只active，接收仅active或现有明确retiring条目；candidate/任意历史ref/已Retire/DORMANT关闭仍拒绝。使用原退役期限及物理10上限，不延长缓存/期限、不增加队列、不等旧数据、不在新lane重封旧密文；Game共享PacketID dedupe和server lease源地址隔离仍保留。对旧source/parity的合法首次迟到交付单独回归。
+
+从修复候选开始，soak在原阶段/RTT/资源门之外新增：每个原发送1s窗口最终业务包loss不得高于该阶段人工link loss+2个百分点。独立输出每阶段最差second、sent/received和违例，不允许60s平均盖住1s换代中断。2pp为明确预声明的短窗抽样余量，不改变原阶段loss上限。本b1原run在新短窗门下明确FAIL，不擦除原门PASS回执；修复的新SHA必须重新短测、严格弱网/长测/配置/生命周期与打包。
+
+### 候选下载与P7执行顺序
+
+同源码包在 [P6 Actions artifacts](https://github.com/lly8666/wobuzhidao/actions/runs/37127951215)：`candidate-linux-amd64-b1fe7e...`、`candidate-linux-arm64-b1fe7e...`、`candidate-windows-amd64-b1fe7e...`。下载后核对artifact ZIP digest、manifest文件hash、`actions-receipt.json`；manifest保留构建前PENDING_VALIDATION，真正验收结果在独立receipt，不能手改manifest伪造资格。Actions artifact有保留期限，到期需由冻结SOURCE重新打包并记录新receipt。
+
+1. 用户安排Windows/Npcap/Wintun和Linux amd64/arm64实机，双方用同一候选；当前内层TCP FIN占一序列位置，禁止混用旧端点。记录NIC/驱动/OS/CPU、实际外网路径及有效MTU；ARM先原生version和基本业务，不能将交叉构建当原生PASS。
+2. 按PARAMETERS目录填写各平台实际参数及凭据。Linux client是TPROXY入口，不是另一个Linux桌面TUN客户端；server CLI是静态identity/lease最小入口，无账户管理GUI。先验DNS、普通TCP、真实HTTPS和UDP，分别确认1lane及4lane、FEC off/20、padding off/on。
+3. 先验证配置预算：`--mtu`限制完整外层IPv4包；record limit限制含31字节记录开销的TLS-like记录。不要把业务MTU、记录大小、peer MSS当同一个数。实际路径小于预算时两端下调MTU后重新建lane；当前无已资格化的ICMP/PMTU自动调小功能。1280/1400只能作保守起点，不能保证所有路径够用。
+4. 丢包/停流/双向黑洞/复通/轮换/休眠唤醒、坏候选不影响旧lane、stable lease、源地址隔离、控制与其它业务无outer HOL逐项确认。低档FEC或padding性能只在实际需要的配置上另做独立样本，不沿用20:20数字。
+5. 真实负载重复Normal10M/Game4 3M、600ms RTT、无损/5205/5305及长测；采集两端CPU/heap/RSS、socket/NIC/drop、业务包loss、p95/p99、线上字节成本、generation与停流排空。物理跑满才评容量，未跑jitter/非对称/相关突发场景单列。
+6. 退出时核对WBD-owned接口/路由/firewall/NRPT/IPv6状态清理、外部原有配置保留；失败写入原始日志后修复。全部P7门实际通过才提升PHYSICAL_PASS/RELEASE_QUALIFIED，不能只改进度文字。

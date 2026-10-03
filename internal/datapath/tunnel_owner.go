@@ -416,25 +416,20 @@ func (o *TunnelOwner) SetLaneTimingDiagnostics(ref logicaltunnel.LaneRef, enable
 	return nil
 }
 
-// InboundPayload is the owner boundary for one authoritative Lane incarnation.
-// It generation-fences late transport work before exposing decoded business
-// packets. On the server side, a leased owner additionally drops every inner
-// datagram whose IPv4 source is not the Logical Tunnel lease.
+// InboundPayload accepts the active incarnation or an explicitly retained
+// receive-only retiring incarnation. Promotion fences fresh outbound work, not
+// authenticated records already in flight. Explicit retirement ends reception.
+// The leased server source fence applies equally to both incarnations.
 func (o *TunnelOwner) InboundPayload(ref logicaltunnel.LaneRef, payload []byte, now time.Time) (InboundResult, error) {
 	o.mu.Lock()
 	if o.closed {
 		o.mu.Unlock()
 		return InboundResult{}, ErrTunnelOwnerClosed
 	}
-	binding, ok := o.active[ref.ID]
-	if !ok {
+	binding, err := o.receiveBindingLocked(ref)
+	if err != nil {
 		o.mu.Unlock()
-		return InboundResult{}, fmt.Errorf("%w: lane=%d got=%d current=none", logicaltunnel.ErrStaleLaneGeneration, ref.ID, ref.Generation)
-	}
-	if binding.ref != ref {
-		current := binding.ref
-		o.mu.Unlock()
-		return InboundResult{}, staleGeneration(ref, current)
+		return InboundResult{}, err
 	}
 	role := o.role
 	lease := o.lease.Clone()
@@ -446,7 +441,7 @@ func (o *TunnelOwner) InboundPayload(ref logicaltunnel.LaneRef, payload []byte, 
 	if err != nil {
 		return InboundResult{}, err
 	}
-	if err := o.ValidateGeneration(ref); err != nil {
+	if err := o.validateReceiveGeneration(ref); err != nil {
 		return InboundResult{}, err
 	}
 	if role != RoleServer || !hasLease {
@@ -516,6 +511,33 @@ func (o *TunnelOwner) ValidateGeneration(ref logicaltunnel.LaneRef) error {
 		return staleGeneration(ref, current.ref)
 	}
 	return fmt.Errorf("%w: lane=%d got=%d current=none", logicaltunnel.ErrStaleLaneGeneration, ref.ID, ref.Generation)
+}
+
+// receiveBindingLocked never admits candidates or arbitrary historical refs.
+// Retiring entries already obey the existing physical-incarnation cap and
+// lifecycle close deadline; this adds no queue, timer or grace extension.
+func (o *TunnelOwner) receiveBindingLocked(ref logicaltunnel.LaneRef) (tunnelLaneBinding, error) {
+	if binding, ok := o.active[ref.ID]; ok && binding.ref == ref {
+		return binding, nil
+	}
+	if lane := o.retiring[ref]; lane != nil {
+		return tunnelLaneBinding{ref: ref, lane: lane}, nil
+	}
+	o.generationDiscards++
+	if current, ok := o.active[ref.ID]; ok {
+		return tunnelLaneBinding{}, staleGeneration(ref, current.ref)
+	}
+	return tunnelLaneBinding{}, fmt.Errorf("%w: lane=%d got=%d current=none", logicaltunnel.ErrStaleLaneGeneration, ref.ID, ref.Generation)
+}
+
+func (o *TunnelOwner) validateReceiveGeneration(ref logicaltunnel.LaneRef) error {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	if o.closed {
+		return ErrTunnelOwnerClosed
+	}
+	_, err := o.receiveBindingLocked(ref)
+	return err
 }
 
 func (o *TunnelOwner) Dormant() ([]logicaltunnel.LaneRef, error) {

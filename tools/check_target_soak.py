@@ -33,6 +33,32 @@ def integrity_errors(diag,side):
     return sorted(errors)
 
 
+def short_window_loss(sender,receiver,phases,duration):
+    """Do not hide a handoff outage inside a60s stage or1800s average.
+
+    Count eventual unique reception by the packet's original send second, not
+    arrival second, so propagation delay cannot create a false loss window.
+    The additional gate is phase link loss plus2 percentage points per1s.
+    Existing phase throughput/loss/RTT/resource gates remain unchanged.
+    """
+    sent=sender.get('sent_packets_by_second');received=receiver.get('recv_packets_by_second')
+    if not isinstance(sent,list) or not isinstance(received,list) or len(sent)!=duration or len(received)!=duration:
+        return dict(errors=['missing/invalid per-second packet counts'],phases=[])
+    output=[];errors=[]
+    for phase in phases:
+        windows=[];limit=phase['loss_percent']+2
+        for sec in range(phase['start_s'],phase['end_s']):
+            n,r=sent[sec],received[sec]
+            if type(n)!=int or type(r)!=int or n<=0 or r<0 or r>n:
+                errors.append('invalid per-second packet accounting at'+str(sec));continue
+            windows.append(dict(second=sec,sent=n,received=r,packet_loss_percent=100*(n-r)/n))
+        worst=max(windows,key=lambda z:z['packet_loss_percent']) if windows else None
+        failures=[z for z in windows if z['packet_loss_percent']>limit]
+        if failures:errors.append(phase['name']+' one-second business loss exceeds link loss+2pp')
+        output.append(dict(phase=phase['name'],limit_percent=limit,worst=worst,violations=len(failures),first_violations=failures[:10]))
+    return dict(errors=errors,phases=output)
+
+
 def main():
     a=argparse.ArgumentParser();a.add_argument('--artifact-dir',required=True);a.add_argument('--source-sha',required=True);a.add_argument('--output',required=True)
     x=a.parse_args();root=Path(x.artifact_dir);m=json.loads((root/'manifest.json').read_text())
@@ -73,6 +99,10 @@ def main():
         if p['probe']['received']<(hi-lo)*(1-loss/100)*.9:errors.append(phase['name']+' probe coverage')
         if p['probe']['p95_ns'] is None or p['probe']['p95_ns']>850_000_000 or p['probe']['p99_ns']>1_100_000_000:errors.append(phase['name']+' probe tail latency')
         phases.append(p)
+    short_windows={}
+    for direction,sender,receiver in [('c2s',b,t),('s2c',t,b)]:
+        short_windows[direction]=short_window_loss(sender['stats'],receiver['stats'],m['stage_plan'],duration)
+        errors+=[direction+' '+error for error in short_windows[direction]['errors']]
     # Read bounded per-second resource rows only; no per-packet PCAP expansion.
     resource=resource_summary(list(rows(root/'resources.jsonl')),start,end)
     errors+=resource['errors']
@@ -98,7 +128,7 @@ def main():
                     state=paths.get(key,{})
                     if state.get('Recovery',{}).get('PendingDeadlines',0) or state.get('Reassembly',{}).get('Assemblies',0):errors.append(side+' drain FEC/LINK state retained')
         diagnostics[side]=dict(first_generation=first,last_generation=last,heap_peak=max([v for _,v in heaps]+[0]),early_heap_median=statistics.median(early) if early else None,late_heap_median=statistics.median(late) if late else None)
-    result=dict(schema='wbd-target-soak-result/v1',source_sha=x.source_sha,qualification=m['qualification'],duration_s=duration,mode=m['mode'],result='FAIL' if errors else 'PASS',errors=errors,phases=phases,resource=resource,diagnostics=diagnostics,statistics={k:v['stats']['bounded_stats'] for k,v in [('biz',b),('target',t)]})
+    result=dict(schema='wbd-target-soak-result/v1',source_sha=x.source_sha,qualification=m['qualification'],duration_s=duration,mode=m['mode'],result='FAIL' if errors else 'PASS',errors=errors,phases=phases,short_window_loss=short_windows,resource=resource,diagnostics=diagnostics,statistics={k:v['stats']['bounded_stats'] for k,v in [('biz',b),('target',t)]})
     Path(x.output).write_text(json.dumps(result,indent=2)+'\n');print(json.dumps({k:result[k] for k in ['source_sha','qualification','mode','result','errors']}))
     if errors:raise SystemExit(1)
 
