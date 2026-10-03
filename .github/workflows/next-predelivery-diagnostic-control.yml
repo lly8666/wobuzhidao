@@ -1,0 +1,21 @@
+name: next-predelivery-diagnostic-control
+on:
+  push:
+    branches: [main]
+    paths: [.github/predelivery-diagnostic-request.json]
+permissions: {contents: read, actions: write}
+concurrency: {group: predelivery-diagnostic-control, cancel-in-progress: false}
+jobs:
+  dispatch-read-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dispatch focused frozen-source diagnostics only (no workload)
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          cp .github/predelivery-diagnostic-request.json .github/predelivery-request.json
+          python3 .github/scripts/collect-predelivery.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: 'predelivery-diagnostic-${{ github.run_id }}', path: predelivery, if-no-files-found: error}
