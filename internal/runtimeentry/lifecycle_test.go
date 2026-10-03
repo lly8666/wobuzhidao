@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"net/netip"
+	"sync"
 	"testing"
 	"time"
 
@@ -94,6 +95,14 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	failNextOpen := false
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	// Hold only post-bootstrap payload on replacement incarnations until the
+	// test has observed both endpoints' A+B state. The first automatic health
+	// record can otherwise qualify B and complete FIN retirement before this
+	// goroutine's polling loop runs, especially under -race. This is a test
+	// transport barrier, not a longer production grace or a weaker assertion.
+	replacementReady := make(chan struct{})
+	var releaseOnce sync.Once
+	releaseReplacement := func() { releaseOnce.Do(func() { close(replacementReady) }) }
 	client, err := DialTunnelClient(ctx, TunnelClientConfig{
 		OpenLane: func(laneID uint8, incarnation uint64) (SegmentIO, faketcp.ClientFlow, error) {
 			if failNextOpen {
@@ -105,6 +114,23 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 				LocalPort: uint16(41000 + incarnation), PeerPort: 443,
 			}
 			ioCfg, err := mux.Open(flow)
+			if err == nil && incarnation > 2 {
+				emit := ioCfg.Emit
+				ioCfg.Emit = func(seg faketcp.Segment) error {
+					if len(seg.Payload) != 0 {
+						if assoc, ok := server.table.GetSegment(seg); ok {
+							if _, prepared := assoc.TransitionState(); prepared {
+								select {
+								case <-replacementReady:
+								case <-ctx.Done():
+									return ctx.Err()
+									}
+							}
+						}
+					}
+					return emit(seg)
+				}
+			}
 			return ioCfg, flow, err
 		},
 		Lease: lease,
@@ -135,7 +161,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 		<-serverDone
 		t.Fatal(err)
 	}
-	defer client.Close()
+	defer func() { releaseReplacement(); client.Close() }()
 	ownerPtr := client.Owner()
 	beforeLease, ok := ownerPtr.Lease()
 	if !ok {
@@ -178,6 +204,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 		stats, ok := server.TunnelStats(tunnelID)
 		return ok && stats.ActiveLogicalLanes == 2 && stats.Retiring == 1 && stats.PhysicalLanes == 3
 	})
+	releaseReplacement()
 
 	forward2 := ipv4Packet([4]byte{10, 66, 0, 3}, [4]byte{1, 1, 1, 1}, 17)
 	if err := client.SendPacket(ctx, forward2, time.Now()); err != nil {

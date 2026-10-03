@@ -24,3 +24,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with: {name: 'soak-harness-fixtures-${{ github.sha }}', path: artifacts/soak-template}
+  transient-overlap-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.12', cache: true}
+      - name: Deterministic replacement barrier repeated with race detector
+        run: go test -race ./internal/runtimeentry -run '^TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease$' -count=30 -timeout=8m
