@@ -1,10 +1,10 @@
 {
-  "campaign": "bounded-soak-canaries",
-  "source_sha": "b13e2c88d08f9b1bd3d114f63891a8f0fab66353",
-  "ref": "perf-fixed/b13e2c88d08f9b1bd3d114f63891a8f0fab66353",
+  "campaign": "bounded-soak-and-live-config-canaries",
+  "source_sha": "9e3dca5992bf37af9078d02e80a59add78371ef8",
+  "ref": "perf-fixed/9e3dca5992bf37af9078d02e80a59add78371ef8",
   "required_runs": [
-    37118772749,
-    37118772759
+    37120155483,
+    37120155385
   ],
   "samples": [
     {
@@ -15,7 +15,7 @@
         "duration": "180",
         "seed": "404"
       },
-      "artifact": "soak-summary-normal-180-404-b13e2c88d08f9b1bd3d114f63891a8f0fab66353",
+      "artifact": "soak-summary-normal-180-404-9e3dca5992bf37af9078d02e80a59add78371ef8",
       "summary": "summary-soak.json"
     },
     {
@@ -26,8 +26,53 @@
         "duration": "180",
         "seed": "404"
       },
-      "artifact": "soak-summary-game-180-404-b13e2c88d08f9b1bd3d114f63891a8f0fab66353",
+      "artifact": "soak-summary-game-180-404-9e3dca5992bf37af9078d02e80a59add78371ef8",
       "summary": "summary-soak.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f0-l1-p0",
+      "inputs": {
+        "case_id": "f0-l1-p0"
+      },
+      "artifact": "config-summary-f0-l1-p0-9e3dca5992bf37af9078d02e80a59add78371ef8",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-f20-l4-p1",
+      "inputs": {
+        "case_id": "f20-l4-p1"
+      },
+      "artifact": "config-summary-f20-l4-p1-9e3dca5992bf37af9078d02e80a59add78371ef8",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-json-f10",
+      "inputs": {
+        "case_id": "json-f10"
+      },
+      "artifact": "config-summary-json-f10-9e3dca5992bf37af9078d02e80a59add78371ef8",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-mtu1280-reverse1",
+      "inputs": {
+        "case_id": "mtu1280-reverse1"
+      },
+      "artifact": "config-summary-mtu1280-reverse1-9e3dca5992bf37af9078d02e80a59add78371ef8",
+      "summary": "summary-config.json"
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "title": "config-defaults",
+      "inputs": {
+        "case_id": "defaults"
+      },
+      "artifact": "config-summary-defaults-9e3dca5992bf37af9078d02e80a59add78371ef8",
+      "summary": "summary-config.json"
     }
   ]
 }
