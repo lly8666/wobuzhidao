@@ -9,6 +9,7 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/fec"
 	"github.com/lly8666/wobuzhidao/internal/linkdata"
+	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/pathmtu"
 	"github.com/lly8666/wobuzhidao/internal/tlsrecord"
 )
@@ -68,6 +69,9 @@ type paddingSelection struct {
 type paddingSelector func(headroom int, source bool) (paddingSelection, error)
 
 type WireRecord struct {
+	// Ref is local ownership metadata, never serialized or encrypted. Records
+	// sealed before promotion cannot be relabeled onto a new association.
+	Ref          logicaltunnel.LaneRef
 	Control      bool
 	PN           uint64
 	PaddingBytes int

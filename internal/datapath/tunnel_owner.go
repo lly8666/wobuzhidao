@@ -383,6 +383,9 @@ func (o *TunnelOwner) FenceOutbound(ref logicaltunnel.LaneRef, records []WireRec
 	if err := o.ValidateGeneration(ref); err != nil {
 		return nil, err
 	}
+	for i := range records {
+		records[i].Ref = ref
+	}
 	return records, nil
 }
 

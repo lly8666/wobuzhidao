@@ -242,6 +242,12 @@ func TestRuntimeNormalNoHOLRepairReplacementAndGenerationFence(t *testing.T) {
 	// Promote a same-ID replacement on both endpoints. The old runtime transport
 	// remains only until explicit retirement and cannot bypass owner generation
 	// fencing.
+	// Hold already-sealed Normal output across publication of the replacement.
+	// It must never be sent on the fresh transport with the old crypto context.
+	lateRecords, err := clientOwner.NormalOutbound(first, now.Add(3*time.Second))
+	if err != nil || len(lateRecords) == 0 {
+		t.Fatalf("held Normal records=%d err=%v", len(lateRecords), err)
+	}
 	clientCandidate := runtimeLane(t, datapath.RoleClient, lease, 0, 8)
 	serverCandidate := runtimeLane(t, datapath.RoleServer, lease, 0, 8)
 	clientCfg2, serverCfg2 := transportPair(clientEmit, serverEmit, 1, 900000)
@@ -258,6 +264,13 @@ func TestRuntimeNormalNoHOLRepairReplacementAndGenerationFence(t *testing.T) {
 	freshServer, err := serverRuntime.PromoteSameIDReplacement(serverSnap.Ref)
 	if err != nil {
 		t.Fatal(err)
+	}
+	beforeLate := len(clientWire)
+	if err := clientRuntime.SendNormal(lateRecords, now.Add(3*time.Second)); !errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) {
+		t.Fatalf("held old-generation output was not fenced: %v", err)
+	}
+	if len(clientWire) != beforeLate {
+		t.Fatal("old ciphertext emitted on replacement transport")
 	}
 
 	stalePacket := runtimeIPv4(leaseAddr, netip.MustParseAddr("9.9.9.9"), []byte("stale"))

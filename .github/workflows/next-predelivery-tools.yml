@@ -2,7 +2,7 @@ name: next-predelivery-tools
 on:
   push:
     branches: ['next/tlslike-dataplane']
-    paths: ['tools/**', 'scripts/**', 'internal/runtimeentry/**', 'internal/platformflow/**', '.github/workflows/next-config-effective.yml', '.github/workflows/next-target-soak.yml', '.github/workflows/next-predelivery-tools.yml']
+    paths: ['tools/**', 'scripts/**', 'internal/runtimeentry/**', 'internal/runtimeowner/**', 'internal/datapath/**', 'internal/platformflow/**', '.github/workflows/next-config-effective.yml', '.github/workflows/next-target-soak.yml', '.github/workflows/next-predelivery-tools.yml']
   workflow_dispatch:
 permissions: {contents: read}
 jobs:

@@ -1302,6 +1302,11 @@ func (r *Runtime) SendNormal(records []datapath.WireRecord, now time.Time) error
 	if !ok || transport == nil {
 		return ErrTransportMissing
 	}
+	for _, record := range records {
+		if record.Ref.Generation != 0 && record.Ref != ref {
+			return fmt.Errorf("%w: lane=%d got=%d current=%d", logicaltunnel.ErrStaleLaneGeneration, record.Ref.ID, record.Ref.Generation, ref.Generation)
+		}
+	}
 	return transport.send(records, now)
 }
 
