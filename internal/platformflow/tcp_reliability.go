@@ -70,6 +70,9 @@ func (t *TCPTransmit) Queue(data []byte, fin bool, now time.Time) ([]Frame, erro
 	if len(data) == 0 && !fin {
 		return nil, nil
 	}
+	if uint64(len(data)) > math.MaxUint64-t.nextOffset || (fin && uint64(len(data)) == math.MaxUint64-t.nextOffset) {
+		return nil, ErrLimit
+	}
 	chunks := (len(data) + t.cfg.ChunkSize - 1) / t.cfg.ChunkSize
 	if len(data) == 0 && fin {
 		chunks = 1
@@ -97,6 +100,12 @@ func (t *TCPTransmit) Queue(data []byte, fin bool, now time.Time) ([]Frame, erro
 		}
 		t.nextOffset += uint64(n)
 		if f.FIN {
+			// A distinct sequence position prevents an older data ACK from
+			// retiring a FIN that the peer has never received.
+			if t.nextOffset == math.MaxUint64 {
+				return nil, ErrLimit
+			}
+			t.nextOffset++
 			v := t.nextOffset
 			t.finOffset = &v
 		}
@@ -122,6 +131,9 @@ func (t *TCPTransmit) Ack(next uint64) error {
 	for _, seg := range t.pending {
 		start := seg.frame.Offset
 		end := start + uint64(len(seg.frame.Payload))
+		if seg.frame.FIN {
+			end++
+		}
 		if end <= next {
 			continue
 		}
@@ -204,7 +216,7 @@ func NewTCPReceive(flowID uint64, cfg TCPReliabilityConfig) (*TCPReceive, error)
 }
 
 func (r *TCPReceive) Push(f Frame) (TCPReceiveResult, error) {
-	out := TCPReceiveResult{Ack: Frame{Kind: KindTCPAck, FlowID: r.flowID, Offset: r.nextOffset}}
+	out := TCPReceiveResult{Ack: Frame{Kind: KindTCPAck, FlowID: r.flowID, Offset: r.ackOffset()}}
 	if r.closed {
 		return out, ErrClosed
 	}
@@ -218,6 +230,9 @@ func (r *TCPReceive) Push(f Frame) (TCPReceiveResult, error) {
 		return out, ErrLimit
 	}
 	end := f.Offset + uint64(len(f.Payload))
+	if f.FIN && end == math.MaxUint64 {
+		return out, ErrLimit
+	}
 	if r.finOffset != nil && end > *r.finOffset {
 		return out, ErrMalformed
 	}
@@ -232,13 +247,17 @@ func (r *TCPReceive) Push(f Frame) (TCPReceiveResult, error) {
 	if len(f.Payload) == 0 && f.FIN && f.Offset == r.nextOffset && !r.finDelivered {
 		r.finDelivered = true
 		out.FIN = true
-		out.Ack.Offset = r.nextOffset
+		out.Ack.Offset = r.ackOffset()
 		return out, nil
 	}
 	if end <= r.nextOffset {
 		out.Duplicate = true
-		out.FIN = r.finOffset != nil && r.nextOffset >= *r.finOffset
-		out.Ack.Offset = r.nextOffset
+		if r.finOffset != nil && r.nextOffset == *r.finOffset && !r.finDelivered {
+			r.finDelivered = true
+			out.Duplicate = false // first FIN delivery despite duplicate bytes
+		}
+		out.FIN = r.finDelivered
+		out.Ack.Offset = r.ackOffset()
 		return out, nil
 	}
 
@@ -276,9 +295,16 @@ func (r *TCPReceive) Push(f Frame) (TCPReceiveResult, error) {
 	if r.finOffset != nil && r.nextOffset == *r.finOffset {
 		r.finDelivered = true
 	}
-	out.Ack.Offset = r.nextOffset
+	out.Ack.Offset = r.ackOffset()
 	out.FIN = r.finDelivered
 	return out, nil
+}
+
+func (r *TCPReceive) ackOffset() uint64 {
+	if r.finDelivered {
+		return r.nextOffset + 1
+	}
+	return r.nextOffset
 }
 
 func (r *TCPReceive) insert(start uint64, payload []byte, fin bool) error {

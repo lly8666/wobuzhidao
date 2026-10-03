@@ -176,3 +176,7 @@ missing health = UNKNOWN，不能推出业务空闲。客户端仅在本端业�
 ### 2026-10-03：20:20有界长度分组（v1 wire不变）
 
 20:20 encoder按LINK源实际长度选择最多3个固定payload ceilings256/512/SourceMTU组（去掉不低于MTU的额外组）。各组独立沿用20源/N部分源、N校验、首源8ms期限及即时systematic。BlockID由lane共享，在新block首源时分配，uint32自然回绕，不能因不同class复用ID；wire没有class字段，现v1 decoder直接接受交错block。source metadata仍provisional、parity携带该block最终长度表；组只优化校验长度，不改变接收端first-arrival/no-HOL/retirement。20:4/8/10/12/16输出维持原单组，off不受影响。
+# 业务TCP代理的FIN位置（2026-10-03）
+
+platformflow仅用于内层TCP代理，并非外层repair协议。TCPData.Payload按Offset字节定位；FIN在最后数据字节后占一个虚拟序列位置。接收方仅在所有前序字节完整并且FIN首次到达后发送ACK=数据末偏移+1；此前ACK=已收数据末偏移，不能释放未收到的FIN。发送方保留独立FIN到该ACK，部分数据ACK可以把带数据FIN缩成原Offset处空payload FIN重传。虚拟位置不增加wire bytes；FIN在已交付的重复数据上首次到达仍执行一次CloseWrite。此修复需双端同版本更新，不能混用此前零长度FIN与数据共享ACK位置的TCP代理端点。外层记录、FEC、Game去重、UDP和health framing不变。
+

@@ -71,7 +71,7 @@
   ],
   "in_progress": "23源码18弱网PASS，f12-l3-p1锁回归PASS；Normal180出现换代后PathErrors与stress尾延迟，f10-l3-p0 HTTPS内容不同。实时FEC满额退役旧恢复状态并保留迟到源，增加有界LastPathError和HTTPS失败长度/hash诊断；新源码NOT_RUN，尚不可交付。",
   "next_task": "基础/race后独立复现Normal180和f10-l3-p0，确认具体PathError以及HTTPS完整长度；TCP每flow数据到本地写端提交后才能FIN/close，不恢复外层HOL。最终整份源码完整hosted资格，P7 NOT_RUN。",
-  "latest_log": "docs/devlog/20261003-214600-tcp-local-delivery-fin-fence.md",
+  "latest_log": "docs/devlog/20261003-215000-tcp-fin-ack-position.md",
   "last_tested_source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
   "actions": [
     {
