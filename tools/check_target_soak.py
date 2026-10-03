@@ -15,6 +15,24 @@ def rows(path):
             yield json.loads(line)
 
 
+def integrity_errors(diag,side):
+    """Inspect every sampled incarnation, not only the final active lane."""
+    errors=set();seen=0
+    for row in diag:
+        for lane in (prod(row,side) or {}).get('lanes',[]):
+            seen+=1
+            for component in ['lane','transport']:
+                state=lane.get(component) or {}
+                for key in ['RecordErrors','PathErrors']:
+                    value=state.get(key)
+                    if not isinstance(value,int) or value<0:
+                        errors.add(side+' missing/invalid '+component+'/'+key)
+                    elif value:
+                        errors.add(side+' '+component+'/'+key+' integrity error')
+    if not seen:errors.add(side+' no lane integrity diagnostics')
+    return sorted(errors)
+
+
 def main():
     a=argparse.ArgumentParser();a.add_argument('--artifact-dir',required=True);a.add_argument('--source-sha',required=True);a.add_argument('--output',required=True)
     x=a.parse_args();root=Path(x.artifact_dir);m=json.loads((root/'manifest.json').read_text())
@@ -61,6 +79,7 @@ def main():
     diagnostics={}
     for side in ['client','server']:
         diag=list(rows(root/(side+'-diag.jsonl')));active=[r for r in diag if prod(r,side) and own(r,side).get('ActiveLogicalLanes')==m['config']['lanes']]
+        errors+=integrity_errors(diag,side)
         if not active:errors.append(side+' missing active diagnostics');continue
         first,last=gens(active[0],side),gens(active[-1],side)
         if not any(last.get(i,0)>g for i,g in first.items()):errors.append(side+' automatic rotation not observed')

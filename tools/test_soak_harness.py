@@ -8,9 +8,18 @@ from unittest.mock import patch
 from prepare_soak_harness import main as prepare
 from soak_capture import read_chunk
 from soak_weaknet_stage import plan
+from check_target_soak import integrity_errors
 
 
 class SoakHarnessTests(unittest.TestCase):
+    def test_integrity_gate_keeps_an_error_on_a_retired_incarnation(self):
+        def sample(record_errors):
+            return {'product':{'lanes':[{'lane':{'RecordErrors':record_errors,'PathErrors':0},'transport':{'RecordErrors':record_errors,'PathErrors':0}}]}}
+        self.assertEqual(integrity_errors([sample(0)],'client'),[])
+        self.assertTrue(integrity_errors([sample(1),sample(0)],'client'))
+        self.assertTrue(integrity_errors([{'product':{'lanes':[{}]}}],'client'))
+        self.assertTrue(integrity_errors([],'server'))
+
     def test_schedules_cover_the_full_declared_run(self):
         for duration in [180,1800]:
             phases=plan(duration)
