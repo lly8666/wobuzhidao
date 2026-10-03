@@ -10,7 +10,8 @@ root = Path(args.artifact_dir)
 receipt = {'scope': 'feature-path counters, not resource attribution', 'endpoints': {}}
 for endpoint in ('client', 'server'):
     rows = [json.loads(line) for line in (root / f'{endpoint}-diag.jsonl').read_text().splitlines() if line.strip()]
-    counters = [row['raw_io'] for row in rows if row.get('raw_io', {}).get('enabled')]
+    products = [row.get('product', {}) for row in rows]
+    counters = [product['raw_io'] for product in products if product.get('raw_io', {}).get('enabled')]
     if not counters:
         raise SystemExit(f'{endpoint}: missing enabled raw IO diagnostics')
     last = counters[-1]

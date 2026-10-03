@@ -70,7 +70,7 @@
   ],
   "in_progress": "RESOURCE_OPTIMIZATION_STAGE4B_NOT_RUN: ready receive batch unit/race+Normal/Game5205 PASS; synchronous ready send batch candidate",
   "next_task": "Exact-source foundation Linux/Windows unit/race andarm64 build; then independent Normal/Game5205 with native raw IO receipt. Only PASS closes resource optimization targeted sequence; fullmatrix/soak/physical not inherited.",
-  "latest_log": "docs/devlog/20261003-140500-stage4b-ready-send-batch.md",
+  "latest_log": "docs/devlog/20261003-140700-stage4b-diagnostic-envelope.md",
   "last_tested_source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
   "actions": [
     {
@@ -6420,7 +6420,7 @@
             "stage": "4b",
             "name": "already-generated send batch",
             "status": "NOT_RUN",
-            "latest_log": "docs/devlog/20261003-140500-stage4b-ready-send-batch.md"
+            "latest_log": "docs/devlog/20261003-140700-stage4b-diagnostic-envelope.md"
           }
         ],
         "fec_flush_tuning": "DEFERRED: changes quality; do not mix with equivalent optimizations"
