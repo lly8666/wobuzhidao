@@ -1,12 +1,12 @@
 {
   "ref": "next/tlslike-dataplane",
-  "dispatch_ref": "perf-fixed/63951852439556e9138a70a1e85eff04d451634f",
-  "expected_sha": "63951852439556e9138a70a1e85eff04d451634f",
+  "dispatch_ref": "perf-fixed/f240d5177c6a8aaa02de570079926b2600c480fd",
+  "expected_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
   "workflow": "next-strict-weaknet.yml",
   "mode": "normal",
   "scenario": "lossless",
   "seed": "101",
   "rate_mbps": "10",
   "lanes": "1",
-  "reason": "FEC20:20 size groups: exact product one-sample Normal lossless bandwidth canary; preserve mixed business, MTU, redundancy and no-HOL"
+  "reason": "FEC20:20 length-group bandwidth canary after repairing original server retiring data race; one Normal10 lossless sample"
 }
