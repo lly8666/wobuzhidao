@@ -75,7 +75,7 @@
     "固定2b2bd9e候选可交用户安排P7物理验收；PHYSICAL_PASS/RELEASE_QUALIFIED NOT_RUN。startup padding core/fuzz/live功能PASS，完整on/稀疏/双入口弱网专项仍PARTIAL_ACTIONS_PASS，不能继承padding off主性能。"
   ],
   "next_task": "用户新增IP分流：验收最新源码LAN/CN/Other真实路由、手动更新、Windows大表/owned清理、生命周期回归；core通过后Normal/Game5205各独立Action，再新P6包。原2b全资格不继承，物理P7 NOT_RUN；本轮不变更数据协议。",
-  "latest_log": "docs/devlog/20261004-050900-splitroute-package-provenance.md",
+  "latest_log": "docs/devlog/20261004-051600-splitroute-final-qualification.md",
   "last_tested_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
   "actions": [
     {
@@ -1903,7 +1903,7 @@
       "collection": "Four original functional modes plus aggregate; then exact-source 36 lifecycle/P6 and independent Normal/Game5205",
       "spec": "docs/SPLIT_ROUTING.md",
       "baseline_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
-      "latest_log": "docs/devlog/20261004-045500-ip-splitroute-implementation.md",
+      "latest_log": "docs/devlog/20261004-051600-splitroute-final-qualification.md",
       "next_task": "Exact-source core/race/Linux real three-destination routing/Windows script; then one run one Normal/Game5205 sample. New source does not inherit old full qualification."
     },
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
