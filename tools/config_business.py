@@ -17,6 +17,7 @@ def server(bind,cert,key):
             s.sendto(ANSWER,peer)
     def plain():
         with socket.socket() as s:
+            s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
             s.bind((bind,18444));s.listen();s.settimeout(40);c,peer=s.accept();peers['tcp']=peer[0]
             with c:
                 c.settimeout(15);data=c.recv(1024)
