@@ -59,7 +59,7 @@ def inventory():
     return groups
 existing=inventory()
 for title,p in titles.items():
-    if p['workflow'] not in ['next-target-soak.yml','next-config-effective.yml','next-p6-package.yml','next-lifecycle-fullstack.yml','next-shared-blackhole.yml']:raise SystemExit('unsupported workflow')
+    if p['workflow'] not in ['next-target-soak.yml','next-config-effective.yml','next-p6-package.yml','next-lifecycle-fullstack.yml','next-shared-blackhole.yml','next-splitroute.yml']:raise SystemExit('unsupported workflow')
     if title in existing:
         if any(r['path']!='.github/workflows/'+p['workflow'] for r in existing[title]):raise SystemExit('existing workflow identity mismatch')
         print('REUSE FIRST ORIGINAL '+title+' '+str(existing[title][0]['id']),flush=True);continue

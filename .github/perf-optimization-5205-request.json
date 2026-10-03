@@ -1,11 +1,11 @@
 {
-  "foundation_run": 37103612893,
-  "dispatch_ref": "perf-fixed/ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+  "dispatch_ref": "perf-fixed/a67e10fa2875162eeac926b970a0c486a239748d",
+  "baseline_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+  "stage": "ipv4-split-routing",
+  "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+  "foundation_run": 37154526472,
   "baseline_artifacts": {
-    "game": 11266494060,
-    "normal": 11266569102
-  },
-  "baseline_source_sha": "7de328b7d7dc64deb07e03285a2f0bb064f6fc13",
-  "stage": "4c",
-  "source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97"
+    "game": 11280706297,
+    "normal": 11280367072
+  }
 }

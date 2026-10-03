@@ -1,0 +1,92 @@
+name: next-splitroute
+on:
+  push:
+    branches: ['next/tlslike-dataplane']
+    paths:
+      - 'internal/splitroute/**'
+      - 'internal/openwrtclient/**'
+      - 'internal/windowsclient/**'
+      - 'cmd/wbd-client/**'
+      - 'scripts/windows_client_network.ps1'
+      - 'tools/*splitroute*'
+      - 'tools/config_business.py'
+      - '.github/workflows/next-splitroute.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  real-routing:
+    name: splitroute-${{ matrix.mode }}-FUNCTIONAL
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [embedded, lan, all, manual]
+    env:
+      ART: ${{ github.workspace }}/artifacts/splitroute-${{ matrix.mode }}
+      WBD_LIFECYCLE_SCENARIO: l0_config
+      WBD_LIFECYCLE_LANES: '1'
+      WBD_LIFECYCLE_SEED: '101'
+      WBD_LIFECYCLE_FEC: '20'
+      WBD_LIFECYCLE_PADDING: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.12', cache: true}
+      - name: Authority and unit/race
+        run: |
+          python3 tools/check_repository.py
+          python3 tools/parameter_catalog.py
+          go test -race ./internal/splitroute ./internal/openwrtclient ./internal/windowsclient -count=1
+      - name: Network dependencies and formal binaries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables nftables tcpdump openssl
+          sudo modprobe tun || true
+          mkdir -p "$ART"
+          go build -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
+          go build -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
+      - name: Explicit manual update command without credentials
+        if: matrix.mode == 'embedded'
+        run: |
+          "$ART/wbd-client" --update-china-ip "$ART/downloaded-cn.txt" > "$ART/update-receipt.txt"
+          grep -q WBD_CHINA_IP_UPDATED "$ART/update-receipt.txt"
+      - name: Prepare functional three-destination fixture
+        run: |
+          python3 tools/prepare_splitroute_harness.py --mode '${{ matrix.mode }}' --artifact-dir "$ART"
+          bash -n "$ART/generated-splitroute.sh"
+      - name: Actual direct/proxy/dormant/cleanup paths
+        run: |
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_LIFECYCLE_SCENARIO,WBD_LIFECYCLE_LANES,WBD_LIFECYCLE_SEED,WBD_LIFECYCLE_FEC,WBD_LIFECYCLE_PADDING env WBD_LIFECYCLE_ARTIFACT_DIR="$ART" bash "$ART/generated-splitroute.sh"
+          python3 tools/check_splitroute.py --artifact-dir "$ART" --mode '${{ matrix.mode }}' --source-sha "$GITHUB_SHA"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: splitroute-${{ matrix.mode }}-${{ github.sha }}
+          path: ${{ env.ART }}
+          retention-days: 30
+  aggregate:
+    needs: real-routing
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with: {pattern: 'splitroute-*', path: receipts}
+      - name: All four original functional receipts
+        env: {SOURCE_SHA: '${{ github.sha }}'}
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          rows=[json.loads(p.read_text()) for p in Path('receipts').rglob('summary-splitroute.json')]
+          errors=[]
+          if len(rows)!=4 or {r['mode'] for r in rows}!={'embedded','lan','all','manual'}:errors.append('missing or duplicate mode')
+          if any(r['source_sha']!=os.environ['SOURCE_SHA'] or r['result']!='PASS' for r in rows):errors.append('source or functional failure')
+          result={'result':'FAIL' if errors else 'PASS','source_sha':os.environ['SOURCE_SHA'],'errors':errors,'samples':rows,'scope':'FUNCTIONAL_IPV4_ONLY_NOT_PERFORMANCE_OR_PHYSICAL'}
+          Path('summary-splitroute-aggregate.json').write_text(json.dumps(result,indent=2)+'\n')
+          if errors:raise SystemExit(1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: 'splitroute-aggregate-${{ github.sha }}', path: summary-splitroute-aggregate.json, if-no-files-found: error}
