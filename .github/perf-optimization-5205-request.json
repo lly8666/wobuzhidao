@@ -1,11 +1,11 @@
 {
-  "source_sha": "2f0086cc304dbc145c4aec3d6713ebebfd1fb623",
-  "dispatch_ref": "perf-fixed/2f0086cc304dbc145c4aec3d6713ebebfd1fb623",
+  "source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
+  "baseline_source_sha": "2f0086cc304dbc145c4aec3d6713ebebfd1fb623",
+  "foundation_run": 37100946893,
   "baseline_artifacts": {
-    "normal": 11266105210,
-    "game": 11266045257
+    "normal": 11266565210,
+    "game": 11265644611
   },
-  "baseline_source_sha": "1647f0bcb592e36b0a76aea83452b48cff2c17b7",
-  "stage": 3,
-  "foundation_run": 37100253684
+  "dispatch_ref": "perf-fixed/fda4f08ec808855a4451344fef4df7a080b26f2a",
+  "stage": "4a"
 }
