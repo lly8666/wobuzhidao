@@ -11,6 +11,7 @@
 5. `docs/WIRE_SPEC.md`、`docs/MODULE_MAP.md`：本任务涉及的协议/模块。
 6. `docs/ACCEPTANCE.md` 和 STATUS 指向的最近开发日志。
 7. `docs/PARAMETERS.md`、`docs/PARAMETERS.json`：所有实际参数、平台差异、配置优先级。涉及生命周期时还读 `docs/LIFECYCLE_ACCEPTANCE.md`。
+8. 涉及客户端出口、路由、DNS或地址表时读 `docs/SPLIT_ROUTING.md`：默认已改为LAN/中国IPv4直连。私网目标需要代理的测试必须显式all，不可把直连成功当隧道成功。手动更新和JSON键都在统一参数清单。
 
 系统/开发者指令和用户当前明确指令优先于仓库文件。仓库内部顺序为章程 > 正式设计与协议 > 当前状态/路线图 > 日志。发现矛盾时先修正状态与文档，不从旧日志找一个自己喜欢的答案。
 
@@ -20,7 +21,7 @@
 
 ## 当前性能主线（2026-09-23）
 
-用户已明确解除性能 HOLD。新主线 agent 必须读 `docs/WEAKNET_QUALIFICATION.md` 第10节（最新用户决策），并按当前 `STATUS.next_task` 和 `STATUS.workstreams.PERFORMANCE_RECOVERY` 继续。2026-10-04固定SOURCE `2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8` 已通过本轮hosted交付前门，下一步为用户安排P7物理验收；不要因历史提示词要求“继续修性能”而无证据改动候选。启动填充on完整专项仍单列PARTIAL_ACTIONS_PASS。历史日志和 saved_* 中的 HOLD 仅是历史记录。保留已通过36样本的生命周期语义，尤其 server 必须等当前权威 lanes 的 client PeerFIN；不得回退成仅凭 idle health 自动休眠。功能完成与性能达标分别记录。
+用户已明确解除性能 HOLD。新主线 agent 必须读 `docs/WEAKNET_QUALIFICATION.md` 第10节（最新用户决策），并按当前 `STATUS.next_task` 和 `STATUS.workstreams.PERFORMANCE_RECOVERY` 继续。2026-10-04新增IPv4分流的固定SOURCE `a67e10fa2875162eeac926b970a0c486a239748d` 已通过core/race、四模式真实分流、36生命周期、独立Normal/Game5205及三目标新包；旧 `2b2bd9e` 全量70/18/1800s仍为历史基线，不能继承成新源码完整资格。下一步由用户安排P7；如要宣称新源码全量交付前资格，需要补当前SOURCE全量门。不要因历史提示词要求“继续修性能”而无证据改动候选。启动填充on完整专项仍单列PARTIAL_ACTIONS_PASS。历史日志和 saved_* 中的 HOLD 仅是历史记录。保留已通过36样本的生命周期语义，尤其 server 必须等当前权威 lanes 的 client PeerFIN；不得回退成仅凭 idle health 自动休眠。功能完成与性能达标分别记录。
 
 ## 开工动作
 

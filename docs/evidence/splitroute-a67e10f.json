@@ -1,0 +1,728 @@
+{
+  "release_qualified": "NOT_RUN",
+  "schema": "wbd-ipv4-split-routing-hosted-v1",
+  "artifact_read_only_hash_verification": "all three ZIP/manifest/every file size and SHA256 verified locally; binaries never executed locally",
+  "functional_lifecycle_package": {
+    "campaign": "ipv4-split-routing-functional-lifecycle-packages",
+    "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+    "result": "PASS",
+    "errors": [],
+    "canonical_policy": "first original run ID, never select best result",
+    "receipts": [
+      {
+        "title": "next-splitroute",
+        "run": 37154674002,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37154674002",
+        "original_conclusion": "success",
+        "run_attempt": 1,
+        "artifact": 11284809848,
+        "digest": "sha256:db35d2fd3a1c7adce8c5fdebe1b6b0043ead707711a346158de825994ddc663a",
+        "summary": {
+          "result": "PASS",
+          "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+          "errors": [],
+          "samples": [
+            {
+              "result": "PASS",
+              "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+              "mode": "embedded",
+              "errors": [],
+              "routing": {
+                "lan": true,
+                "cn": true,
+                "foreign": false
+              },
+              "scope": "real-process TCP/UDP-DNS/102400B TLS1.3 HTTPS, direct during dormancy, proxy wake; IPv4 only"
+            },
+            {
+              "result": "PASS",
+              "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+              "mode": "manual",
+              "errors": [],
+              "routing": {
+                "lan": true,
+                "cn": false,
+                "foreign": true
+              },
+              "scope": "real-process TCP/UDP-DNS/102400B TLS1.3 HTTPS, direct during dormancy, proxy wake; IPv4 only"
+            },
+            {
+              "result": "PASS",
+              "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+              "mode": "lan",
+              "errors": [],
+              "routing": {
+                "lan": true,
+                "cn": false,
+                "foreign": false
+              },
+              "scope": "real-process TCP/UDP-DNS/102400B TLS1.3 HTTPS, direct during dormancy, proxy wake; IPv4 only"
+            },
+            {
+              "result": "PASS",
+              "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+              "mode": "all",
+              "errors": [],
+              "routing": {
+                "lan": false,
+                "cn": false,
+                "foreign": false
+              },
+              "scope": "real-process TCP/UDP-DNS/102400B TLS1.3 HTTPS, direct during dormancy, proxy wake; IPv4 only"
+            }
+          ],
+          "scope": "FUNCTIONAL_IPV4_ONLY_NOT_PERFORMANCE_OR_PHYSICAL"
+        }
+      },
+      {
+        "title": "next-lifecycle-fullstack",
+        "run": 37154675255,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37154675255",
+        "original_conclusion": "success",
+        "run_attempt": 1,
+        "artifact": 11286000567,
+        "digest": "sha256:3e4ec8350f7eaace6b8cac5b9e5508194eca72e45b23013e231aec40d88827d4",
+        "summary": {
+          "errors": [],
+          "failed": [],
+          "groups": {
+            "l0_config": {
+              "pass": true,
+              "required": 8,
+              "sample_count": 8
+            },
+            "l1_idle_downlink": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l2_c2s": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l2_s2c": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l3_health": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l4_all_tuple": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l4_old_tuple": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l5_admission": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l5_detach": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l5_syn": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l5_tls": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l6_partial": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l6_race1": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l6_race4": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            },
+            "l7_defaults": {
+              "pass": true,
+              "required": 2,
+              "sample_count": 2
+            }
+          },
+          "missing": [],
+          "required_count": 36,
+          "result": "PASS",
+          "sample_count": 36,
+          "schema": 1,
+          "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d"
+        }
+      },
+      {
+        "title": "package-prephysical",
+        "run": 37154676414,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37154676414",
+        "original_conclusion": "success",
+        "run_attempt": 1,
+        "artifact": 11285099256,
+        "digest": "sha256:17384a5c77c50a2f119d6d8b7ce9fba4c2c9cc7f55ea2958e56211eacadac417",
+        "summary": {
+          "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+          "result": "PASS",
+          "scope": "HOSTED_PACKAGE_ONLY",
+          "physical": "NOT_RUN",
+          "release_qualified": "NOT_RUN",
+          "receipts": [
+            {
+              "manifest_sha256": "0e934d7f05415bde4c7862c939ea27f0e55e2bf4e0b63843d86ec043f0110097",
+              "schema": "wbd-p6-actions-receipt/v1",
+              "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+              "status": {
+                "actions": "ACTIONS_PASS",
+                "implementation": "IMPLEMENTED",
+                "physical": "NOT_RUN",
+                "release_qualified": "NOT_RUN"
+              },
+              "target": {
+                "goarch": "arm64",
+                "goos": "linux"
+              },
+              "validated_files": [
+                {
+                  "path": "wbd-client",
+                  "role": "client",
+                  "sha256": "f528a4b3cc478a5b561c4e168c174cad95a8f2514e40e3ff78f84ab0aafdf242",
+                  "size_bytes": 8061080
+                },
+                {
+                  "path": "china-ipv4.txt",
+                  "role": "china_ipv4_snapshot",
+                  "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+                  "size_bytes": 96521
+                },
+                {
+                  "path": "china-ipv4-source.json",
+                  "role": "china_ipv4_provenance",
+                  "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+                  "size_bytes": 505
+                },
+                {
+                  "path": "china-ipv4-LICENSE.txt",
+                  "role": "china_ipv4_license",
+                  "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+                  "size_bytes": 1066
+                },
+                {
+                  "path": "SPLIT_ROUTING.md",
+                  "role": "split_routing_guide",
+                  "sha256": "65618a78d97c0b8b2a9d015e06aace5611dbf0c363c5394ca0c1af24d1df960a",
+                  "size_bytes": 4408
+                },
+                {
+                  "path": "wbd-server",
+                  "role": "server",
+                  "sha256": "eec225798c20b97b6f26788d6f9522ac7460b5ba9bf8b990a590c9b071c878ad",
+                  "size_bytes": 6029464
+                }
+              ]
+            },
+            {
+              "manifest_sha256": "ba763f8b1b1ae30be33504150fa783deeaa6f77c4effc30b3e35c6e7f61c4c73",
+              "schema": "wbd-p6-actions-receipt/v1",
+              "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+              "status": {
+                "actions": "ACTIONS_PASS",
+                "implementation": "IMPLEMENTED",
+                "physical": "NOT_RUN",
+                "release_qualified": "NOT_RUN"
+              },
+              "target": {
+                "goarch": "amd64",
+                "goos": "linux"
+              },
+              "validated_files": [
+                {
+                  "path": "wbd-client",
+                  "role": "client",
+                  "sha256": "53d0d42335045346bd16894e34b7120e320a213f4f213c84dc615143e1c7e532",
+                  "size_bytes": 8712344
+                },
+                {
+                  "path": "china-ipv4.txt",
+                  "role": "china_ipv4_snapshot",
+                  "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+                  "size_bytes": 96521
+                },
+                {
+                  "path": "china-ipv4-source.json",
+                  "role": "china_ipv4_provenance",
+                  "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+                  "size_bytes": 505
+                },
+                {
+                  "path": "china-ipv4-LICENSE.txt",
+                  "role": "china_ipv4_license",
+                  "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+                  "size_bytes": 1066
+                },
+                {
+                  "path": "SPLIT_ROUTING.md",
+                  "role": "split_routing_guide",
+                  "sha256": "65618a78d97c0b8b2a9d015e06aace5611dbf0c363c5394ca0c1af24d1df960a",
+                  "size_bytes": 4408
+                },
+                {
+                  "path": "wbd-server",
+                  "role": "server",
+                  "sha256": "a6ef9d8f35c8ec8a414c5e07f5a3a8eae075f5d76ccc1ac76e7fc86da17a2130",
+                  "size_bytes": 6426776
+                }
+              ]
+            },
+            {
+              "manifest_sha256": "3d892585c3a1637193fc0cffc57429a8fbb675640ce6304c1e748b50087302f7",
+              "schema": "wbd-p6-actions-receipt/v1",
+              "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+              "status": {
+                "actions": "ACTIONS_PASS",
+                "implementation": "IMPLEMENTED",
+                "physical": "NOT_RUN",
+                "release_qualified": "NOT_RUN"
+              },
+              "target": {
+                "goarch": "amd64",
+                "goos": "windows"
+              },
+              "validated_files": [
+                {
+                  "path": "wbd-client.exe",
+                  "role": "client",
+                  "sha256": "50ba330c5daed84ea6d0efe81f900f30052642b5cee6cc8603fd81555cfbf7a1",
+                  "size_bytes": 8793600
+                },
+                {
+                  "path": "china-ipv4.txt",
+                  "role": "china_ipv4_snapshot",
+                  "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+                  "size_bytes": 96521
+                },
+                {
+                  "path": "china-ipv4-source.json",
+                  "role": "china_ipv4_provenance",
+                  "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+                  "size_bytes": 505
+                },
+                {
+                  "path": "china-ipv4-LICENSE.txt",
+                  "role": "china_ipv4_license",
+                  "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+                  "size_bytes": 1066
+                },
+                {
+                  "path": "SPLIT_ROUTING.md",
+                  "role": "split_routing_guide",
+                  "sha256": "65618a78d97c0b8b2a9d015e06aace5611dbf0c363c5394ca0c1af24d1df960a",
+                  "size_bytes": 4408
+                },
+                {
+                  "path": "windows_client_network.ps1",
+                  "role": "windows_network_script",
+                  "sha256": "120742f8c022176cc86205819c87fa2202e952401f6b067fee0d6ee3a6a61374",
+                  "size_bytes": 14385
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "extra_dispatch_receipts": []
+  },
+  "targeted": {
+    "run": 37154526466,
+    "result": "PASS"
+  },
+  "performance": {
+    "result": "PASS",
+    "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+    "stage": "ipv4-split-routing",
+    "baseline_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+    "errors": [],
+    "records": [
+      {
+        "stage": "ipv4-split-routing",
+        "mode": "normal",
+        "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+        "run": 37154675854,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37154675854",
+        "artifact": 11285795419,
+        "artifact_digest": "sha256:52af0e428151586c8f491279e552f00d7dc08d0bd849e1143aaf7a8ff42ef995",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "stress_goodput_mbps": {
+          "c2s": 9.999910400000001,
+          "s2c": 10.000096
+        },
+        "stress_byte_loss_percent": {
+          "c2s": 0.0,
+          "s2c": 0.0
+        },
+        "outer_ip_per_app": {
+          "c2s": 3.4887113207339873,
+          "s2c": 3.503939053333333
+        },
+        "cpu_seconds": {
+          "client": 88.4,
+          "server": 90.92
+        },
+        "baseline_cpu_seconds": {
+          "client": 90.71,
+          "server": 92.7
+        },
+        "socket_drop_max": 0,
+        "stress_probe": {
+          "p95_ns": 616582984,
+          "p99_ns": 621077665,
+          "received": 60,
+          "sent": 60
+        },
+        "rtt_delta_ns": {
+          "pre": {
+            "p95": -3693577,
+            "p99": -2848171
+          },
+          "stress": {
+            "p95": -423384,
+            "p99": 428224
+          },
+          "post": {
+            "p95": 1041287,
+            "p99": 46213
+          }
+        }
+      },
+      {
+        "stage": "ipv4-split-routing",
+        "mode": "game",
+        "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+        "run": 37154677946,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37154677946",
+        "artifact": 11285685453,
+        "artifact_digest": "sha256:8d0a08694905463b200197608ee4282b6b65b48579304559f574c641bb0612aa",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "stress_goodput_mbps": {
+          "c2s": 3.0000746666666664,
+          "s2c": 3.000032
+        },
+        "stress_byte_loss_percent": {
+          "c2s": 0.0,
+          "s2c": 0.0
+        },
+        "outer_ip_per_app": {
+          "c2s": 14.150940732141779,
+          "s2c": 14.220714773321196
+        },
+        "cpu_seconds": {
+          "client": 105.37,
+          "server": 98.92
+        },
+        "baseline_cpu_seconds": {
+          "client": 67.84,
+          "server": 62.89
+        },
+        "socket_drop_max": 0,
+        "stress_probe": {
+          "p95_ns": 614511180,
+          "p99_ns": 617314951,
+          "received": 60,
+          "sent": 60
+        },
+        "rtt_delta_ns": {
+          "pre": {
+            "p95": 11835772,
+            "p99": 14072063
+          },
+          "stress": {
+            "p95": 6818281,
+            "p99": 8845295
+          },
+          "post": {
+            "p95": 11572661,
+            "p99": 12173659
+          }
+        }
+      }
+    ],
+    "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance"
+  },
+  "result": "PASS",
+  "package_files": {
+    "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+    "result": "PASS",
+    "scope": "HOSTED_PACKAGE_ONLY",
+    "physical": "NOT_RUN",
+    "release_qualified": "NOT_RUN",
+    "receipts": [
+      {
+        "manifest_sha256": "0e934d7f05415bde4c7862c939ea27f0e55e2bf4e0b63843d86ec043f0110097",
+        "schema": "wbd-p6-actions-receipt/v1",
+        "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+        "status": {
+          "actions": "ACTIONS_PASS",
+          "implementation": "IMPLEMENTED",
+          "physical": "NOT_RUN",
+          "release_qualified": "NOT_RUN"
+        },
+        "target": {
+          "goarch": "arm64",
+          "goos": "linux"
+        },
+        "validated_files": [
+          {
+            "path": "wbd-client",
+            "role": "client",
+            "sha256": "f528a4b3cc478a5b561c4e168c174cad95a8f2514e40e3ff78f84ab0aafdf242",
+            "size_bytes": 8061080
+          },
+          {
+            "path": "china-ipv4.txt",
+            "role": "china_ipv4_snapshot",
+            "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+            "size_bytes": 96521
+          },
+          {
+            "path": "china-ipv4-source.json",
+            "role": "china_ipv4_provenance",
+            "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+            "size_bytes": 505
+          },
+          {
+            "path": "china-ipv4-LICENSE.txt",
+            "role": "china_ipv4_license",
+            "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+            "size_bytes": 1066
+          },
+          {
+            "path": "SPLIT_ROUTING.md",
+            "role": "split_routing_guide",
+            "sha256": "65618a78d97c0b8b2a9d015e06aace5611dbf0c363c5394ca0c1af24d1df960a",
+            "size_bytes": 4408
+          },
+          {
+            "path": "wbd-server",
+            "role": "server",
+            "sha256": "eec225798c20b97b6f26788d6f9522ac7460b5ba9bf8b990a590c9b071c878ad",
+            "size_bytes": 6029464
+          }
+        ]
+      },
+      {
+        "manifest_sha256": "ba763f8b1b1ae30be33504150fa783deeaa6f77c4effc30b3e35c6e7f61c4c73",
+        "schema": "wbd-p6-actions-receipt/v1",
+        "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+        "status": {
+          "actions": "ACTIONS_PASS",
+          "implementation": "IMPLEMENTED",
+          "physical": "NOT_RUN",
+          "release_qualified": "NOT_RUN"
+        },
+        "target": {
+          "goarch": "amd64",
+          "goos": "linux"
+        },
+        "validated_files": [
+          {
+            "path": "wbd-client",
+            "role": "client",
+            "sha256": "53d0d42335045346bd16894e34b7120e320a213f4f213c84dc615143e1c7e532",
+            "size_bytes": 8712344
+          },
+          {
+            "path": "china-ipv4.txt",
+            "role": "china_ipv4_snapshot",
+            "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+            "size_bytes": 96521
+          },
+          {
+            "path": "china-ipv4-source.json",
+            "role": "china_ipv4_provenance",
+            "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+            "size_bytes": 505
+          },
+          {
+            "path": "china-ipv4-LICENSE.txt",
+            "role": "china_ipv4_license",
+            "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+            "size_bytes": 1066
+          },
+          {
+            "path": "SPLIT_ROUTING.md",
+            "role": "split_routing_guide",
+            "sha256": "65618a78d97c0b8b2a9d015e06aace5611dbf0c363c5394ca0c1af24d1df960a",
+            "size_bytes": 4408
+          },
+          {
+            "path": "wbd-server",
+            "role": "server",
+            "sha256": "a6ef9d8f35c8ec8a414c5e07f5a3a8eae075f5d76ccc1ac76e7fc86da17a2130",
+            "size_bytes": 6426776
+          }
+        ]
+      },
+      {
+        "manifest_sha256": "3d892585c3a1637193fc0cffc57429a8fbb675640ce6304c1e748b50087302f7",
+        "schema": "wbd-p6-actions-receipt/v1",
+        "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+        "status": {
+          "actions": "ACTIONS_PASS",
+          "implementation": "IMPLEMENTED",
+          "physical": "NOT_RUN",
+          "release_qualified": "NOT_RUN"
+        },
+        "target": {
+          "goarch": "amd64",
+          "goos": "windows"
+        },
+        "validated_files": [
+          {
+            "path": "wbd-client.exe",
+            "role": "client",
+            "sha256": "50ba330c5daed84ea6d0efe81f900f30052642b5cee6cc8603fd81555cfbf7a1",
+            "size_bytes": 8793600
+          },
+          {
+            "path": "china-ipv4.txt",
+            "role": "china_ipv4_snapshot",
+            "sha256": "177c666b94dea7cfa7e5497a4b210680c220aee9ca865b22f58fadb0bda89660",
+            "size_bytes": 96521
+          },
+          {
+            "path": "china-ipv4-source.json",
+            "role": "china_ipv4_provenance",
+            "sha256": "6b43345a93687fc41ab4f5796cd7e3a71f70337f0f4d32fad8597e2a7327b207",
+            "size_bytes": 505
+          },
+          {
+            "path": "china-ipv4-LICENSE.txt",
+            "role": "china_ipv4_license",
+            "sha256": "8f4d03a581484143945a9fac471c3b669d5aada68361fd1f25886c3ddbdd786a",
+            "size_bytes": 1066
+          },
+          {
+            "path": "SPLIT_ROUTING.md",
+            "role": "split_routing_guide",
+            "sha256": "65618a78d97c0b8b2a9d015e06aace5611dbf0c363c5394ca0c1af24d1df960a",
+            "size_bytes": 4408
+          },
+          {
+            "path": "windows_client_network.ps1",
+            "role": "windows_network_script",
+            "sha256": "120742f8c022176cc86205819c87fa2202e952401f6b067fee0d6ee3a6a61374",
+            "size_bytes": 14385
+          }
+        ]
+      }
+    ]
+  },
+  "resource_limit": "Game CPU-s higher on this independent VM; cause unproven; no fixed CPU benefit/non-regression claim",
+  "scope": "IPv4 split routing feature + core/race/36 lifecycle/independent targeted5205/P6; old2b strict18/config70/1800s not inherited",
+  "original_failures": [
+    {
+      "runs": [
+        37153386774,
+        37153386786
+      ],
+      "reason": "Windows embedded CRLF and empty DNS strict null; fixture missing direct return route",
+      "source": "b65084ac450ae2be657065604c854207ac2eeebe"
+    },
+    {
+      "reason": "repeated plain TCP listener TIME_WAIT, SO_REUSEADDR fixture fix",
+      "source": "d11a3c3c575d18e803497bbaf2742eb255d5b967",
+      "run": 37153742459
+    },
+    {
+      "runs": [
+        37154014984,
+        37154015030
+      ],
+      "reason": "each commit must add new devlog",
+      "source": "3d4935b57aba1a9f4118fcc2c41313e34615a92e"
+    },
+    {
+      "runs": [
+        37154208522,
+        37154208515
+      ],
+      "reason": "each commit must add new devlog; core not executed, four-mode functional PASS",
+      "source": "275ab94ee354b3ceeabbdbdee73bdc5d8e937aec"
+    },
+    {
+      "source": "aa5992ea63ebf8c51fa1577c058fb38f6b2182fd",
+      "runs": [
+        37153606781,
+        37153606849
+      ],
+      "reason": "remaining empty DNS strict mode and direct fixture return route failures"
+    }
+  ],
+  "foundation": {
+    "run": 37154526472,
+    "result": "PASS"
+  },
+  "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+  "physical": "NOT_RUN",
+  "controller_artifacts": [
+    {
+      "run": 37154570534,
+      "id": 11285084798,
+      "local_zip_verified": true,
+      "digest": "sha256:6fcf4c1efbb438ffbf1c1ce0196d78e24411bc97b38e3b9b1ec1bf8791a81c42"
+    },
+    {
+      "run": 37154570449,
+      "id": 11285317333,
+      "local_zip_verified": true,
+      "digest": "sha256:e03d8c2b52af5750bc460b336fb3312558dd0d570c53ab671513caf3e408cc34"
+    }
+  ],
+  "candidate_package_artifacts": [
+    {
+      "id": 11285093958,
+      "target": "linux-amd64",
+      "digest": "sha256:31a21e08dd03f70887ff6a58b6131e192885db377571e354ad1e9d0e26d8f432"
+    },
+    {
+      "id": 11284774953,
+      "target": "linux-arm64",
+      "digest": "sha256:8c4f1f40e13fe6749b8aaaeee850f78fab70e42f6ea63252747ae901c0f00432"
+    },
+    {
+      "id": 11285610865,
+      "target": "windows-amd64",
+      "digest": "sha256:a0bed2b744b2b09b1271cbe2ffcd5b114f18ccf4e07268d84de091247559eade"
+    }
+  ]
+}

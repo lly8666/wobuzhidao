@@ -280,3 +280,7 @@ owner持锁的快照/身份检查仅能读Lane构造后不可变配置，禁止�
 
 2026-10-04最新覆盖以上诊断待办：SOURCE2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8通过foundation/core/race、18独立严格弱网及revision2 RTT汇总、完整78回执（70实际配置、36生命周期、4soak、两共享黑洞、三目标P6）；新增逐秒loss与内部queue0门通过。修复仅有限retiring在途接收、退役FIN检查常数维护、未发布候选握手拒绝局部隔离。Normal1800最差1s0.162141%、最低阶段9.998756Mbps，旧61%尖峰消失；Game1800 loss0。固定候选可进入P7；物理/发布NOT_RUN，代码来源不跟随文档HEAD改变。按PREDELIVERY_ACCEPTANCE报告本轮范围与未跑项，特别不能把padding off性能/70开关生效当startup padding on完整弱网专项。换代确认边界见LIFECYCLE_ACCEPTANCE，不声称promotion后可任意回滚。主線不继续无证据微优化；用户安排物理后再按缺陷窄修及同SOURCE重验。
 
+
+## 客户端IPv4分流（2026-10-04）
+
+用户新增分流已按SPLIT_ROUTING.md实现，统一参数清单为唯一开关目录。默认LAN/中国IPv4直连、其余隧道。Linux/OpenWrt复用owned nft TPROXY，增加启动时一次编译的interval set；Windows复用Wintun/owned网络脚本，安装直连集合补集的capture routes，保留原系统直连出口。共享splitroute新模块负责固定内置CIDR/严格手动文件/有界显式HTTPS更新，不复用旧worker/路由引擎，不改变TLS-like/no-HOL/FEC/生命周期。更新重启生效、失败保留旧表，不自动联网。域名与IPv6分流不在范围内。Windows大表使用文件传递和批量ownership记录，物理安装成本留P7。全新agent先读SPLIT_ROUTING和当前STATUS，私网代理夹具显式all，不能把直连成功算隧道成功。a67功能/core/36/独立5205/P6专项PASS；旧2b全量资格为历史，不自动继承。

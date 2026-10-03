@@ -3,7 +3,7 @@
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P7",
-  "product_state": "IN_PROGRESS",
+  "product_state": "ACTIONS_PASS",
   "updated_at": "2026-10-04",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -69,14 +69,15 @@
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。",
     "2026-10-03资源优化顺序完成：有效FEC计算、owned加密/传递复制、有限ACK合并、已就绪Linux批量接收/发送各自Actions unit/build/race+Normal/Game5205 PASS；额外修复pre-attach overflow导致共享server退出，再以ca8175d通过同门和36/36 lifecycle+aggregate。仅targeted，不继承最新全18/长测/P6/P7。",
     "2026-10-03同源码b1fe7e2可交物理机前资格：70实际配置、36生命周期、18独立严格弱网、Normal/Game各1800s目标速率持续弱网、100/500ms共享黑洞、三目标候选包全部PASS；78回执控制与18汇总原始attempt1，extras0，物理未跑。",
-    "2026-10-04最新2b2bd9e换代返工hosted收口：core/race、70实际配置、36生命周期、18独立弱网、Normal/Game各1800s及1s/internal queue0新增门、两共享黑洞、三平台P6文件hash/manifest/receipt PASS；完整78原始attempt1/extras0，物理P7 NOT_RUN。"
+    "2026-10-04最新2b2bd9e换代返工hosted收口：core/race、70实际配置、36生命周期、18独立弱网、Normal/Game各1800s及1s/internal queue0新增门、两共享黑洞、三平台P6文件hash/manifest/receipt PASS；完整78原始attempt1/extras0，物理P7 NOT_RUN。",
+    "2026-10-04 IPv4 LAN/CN默认直连+内置MIT地址表+显式手动更新完成：SOURCE a67e10f core/race、4种真实DNS/TCP/HTTPS出口+direct不唤醒/proxy重建、36生命周期、独立Normal/Game5205及三目标新P6 PASS。"
   ],
   "in_progress": [
-    "固定2b2bd9e候选可交用户安排P7物理验收；PHYSICAL_PASS/RELEASE_QUALIFIED NOT_RUN。startup padding core/fuzz/live功能PASS，完整on/稀疏/双入口弱网专项仍PARTIAL_ACTIONS_PASS，不能继承padding off主性能。"
+    "a67 IPv4分流专项hosted PASS；用户安排P7真实Windows驱动/FIB/物理NIC及ARM原生。当前SOURCE全量70/18/1800s尚未重跑，旧2b仅历史。startup padding on完整专项仍PARTIAL_ACTIONS_PASS。"
   ],
-  "next_task": "用户新增IP分流：验收最新源码LAN/CN/Other真实路由、手动更新、Windows大表/owned清理、生命周期回归；core通过后Normal/Game5205各独立Action，再新P6包。原2b全资格不继承，物理P7 NOT_RUN；本轮不变更数据协议。",
-  "latest_log": "docs/devlog/20261004-051600-splitroute-final-qualification.md",
-  "last_tested_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+  "next_task": "IPv4分流已完成hosted专项。用户安排P7物理出口/Windows真实Npcap+Wintun和大FIB装卸/DNS/清理/ARM原生；需要新SOURCE完整交付前资格时先补strict18/config70/1800s。Game单次CPU升高未归因保留，不无证据改协议/FEC/4096。每性能Action只一条。",
+  "latest_log": "docs/devlog/20261004-052700-splitroute-hosted-acceptance.md",
+  "last_tested_source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1865,22 +1866,44 @@
       "scope": "Normal180 retirement diagnostic",
       "status": "FAIL",
       "note": "original attempt;13k internalqueue drops; not kernel/VM attribution"
+    },
+    {
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37154674002",
+      "scope": "product",
+      "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+      "status": "PASS",
+      "details": "IPv4 splitroute four functional modes; no full performance inheritance"
+    },
+    {
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37154570449",
+      "scope": "targeted5205",
+      "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+      "status": "PASS",
+      "details": "two independent original runs, first-source baseline RTT/loss gate, no fixed CPU claim"
+    },
+    {
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37154570534",
+      "scope": "routing-lifecycle-packaging",
+      "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+      "status": "PASS",
+      "details": "all first-original attempts, 4functional+36lifecycle+P6, artifacts digest checked"
     }
   ],
   "physical_status": "NOT_RUN",
   "known_limits": [
-    "真正测试和候选二进制SOURCE_SHA为2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8，版本next-rc-2b2bd9eb106d；文档HEAD不改变来源。既定hosted交付前门PASS，P7/PHYSICAL_PASS/RELEASE_QUALIFIED NOT_RUN。",
+    "当前真实二进制SOURCE a67e10fa2875162eeac926b970a0c486a239748d，版本next-rc-a67e10fa2875；IPv4分流专项/core/36/独立5205/P6 PASS，旧2b严格18/70配置/1800s仅历史基线，不能继承。P7/PHYSICAL_PASS/RELEASE_QUALIFIED NOT_RUN。",
     "真实WindowsNpcap/Wintun驱动与物理NIC、Linux物理TUN/路由、ARM原生未运行；arm64包仅hosted交叉构建。Windowsserver UNSUPPORTED，OpenWrtIPv6 NOT_IMPLEMENTED，Linuxclient为TPROXY入口。",
     "TLS-like真实建连使用本地GoTLS1.3及固定Firefox120 persona；不承诺借用网站完整服务端指纹、抗识别或TLS-in-TLS消除。",
-    "70正式配置证明全FEC/1..4lane/startup padding/CLI与JSON/MTU/非对称limit功能生效，并通过UDP/DNS/TCP/102400B HTTPS；不穷举数值，也不证明每配置高负载性能。",
-    "主性能资格固定FEC20:20/padding off/混合UDP/300ms单向：Normal每方向10M、Game4逻辑3M，三seed无损/5205/5305及两1800s。其它FEC档位高负载、startup padding on完整稀疏/双入口/弱网配对专项尚未完整关闭。",
+    "历史2b70正式配置证明全FEC/1..4lane/startup padding/CLI与JSON/MTU/非对称limit功能生效；a67当前仅补core、4分流模式、36生命周期与targeted5205，没有重新跑完整70，不穷举所有数值/配置高负载。",
+    "历史2b主性能为FEC20:20/padding off/混合UDP/300ms单向、Normal10M/Game4逻辑3M，三seed0/5205/5305及两1800s；a67当前仅Normal/Game5205 seed101资格，其它FEC高负载/startup padding on完整专项未关闭。",
     "受控MTU1280/1400/1500及双向record512/768预算/无外层IP分片通过；自动ICMP/PMTU调小未资格化，路径更小须双端下调MTU并重建lane。",
     "持续相关突发loss、jitter、非对称路由/NAT超时和大TCP高RTT吞吐尚无完整性能资格；独立随机loss与100/500ms共享黑洞通过不能外推所有工况。",
     "FEC8ms是首源到期条件，partial由约100ms runtime tick检查，不能声称实际parity8ms硬发送上限；systematic及满组即时。4096为shadow备份，不是fresh发送门。",
     "先TLS/protected admission成功再promotion；旧lane在bounded retiring保留合法在途接收，正常新认证record或约3s grace触发旧关闭。当前非promotion前强制双向steady确认，不保证promotion后任意故障回滚旧generation。",
     "默认FEC off、startup padding false、idle-dormant0、rotate-min/max0/0；health缺失不是业务空闲，服务端休眠仍等当前权威lanes的client PeerFIN。server CLI静态身份/lease，无账户管理GUI。",
     "CPU为当前runner进程CPU-time/时长、heap不是RSS；跨VM不声称固定CPU收益。Game所有副本/FEC开销按原始逻辑业务计，不能稀释放大。",
-    "旧b1阶段平均PASS但逐秒约61%loss/内部queue20012，以及50/48/a86失败原始run与日志保留；最新PASS不擦除历史。"
+    "旧b1阶段平均PASS但逐秒约61%loss/内部queue20012，以及50/48/a86失败原始run与日志保留；最新PASS不擦除历史。",
+    "IPv4地址分流不含域名/IPv6直连。Windows显式dns4仍隧道优先；大FIB真实安装/退出成本未物理验。Game本次CPU105.37/98.92s高于旧67.84/62.89，独立VM单样本不能归因，不能声称CPU无退化。"
   ],
   "required_read_set": [
     "AGENTS.md",
@@ -1894,24 +1917,28 @@
     "docs/TLS_STARTUP_PADDING.md",
     "docs/PARAMETERS.md",
     "docs/PARAMETERS.json",
-    "docs/LIFECYCLE_ACCEPTANCE.md"
+    "docs/LIFECYCLE_ACCEPTANCE.md",
+    "docs/SPLIT_ROUTING.md"
   ],
   "workstreams": {
     "IP_SPLIT_ROUTING": {
-      "status": "IMPLEMENTED_PENDING_ACTIONS",
+      "status": "ACTIONS_PASS_HOSTED_FEATURE",
       "probe_trigger": "next-splitroute includes shared config_business.py; current candidate repeats all functional gates after TIME_WAIT fixture fix",
       "collection": "Four original functional modes plus aggregate; then exact-source 36 lifecycle/P6 and independent Normal/Game5205",
       "spec": "docs/SPLIT_ROUTING.md",
       "baseline_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
-      "latest_log": "docs/devlog/20261004-051600-splitroute-final-qualification.md",
-      "next_task": "Exact-source core/race/Linux real three-destination routing/Windows script; then one run one Normal/Game5205 sample. New source does not inherit old full qualification."
+      "latest_log": "docs/devlog/20261004-052700-splitroute-hosted-acceptance.md",
+      "next_task": "IPv4分流已完成hosted专项。用户安排P7物理出口/Windows真实Npcap+Wintun和大FIB装卸/DNS/清理/ARM原生；需要新SOURCE完整交付前资格时先补strict18/config70/1800s。Game单次CPU升高未归因保留，不无证据改协议/FEC/4096。每性能Action只一条。",
+      "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+      "evidence": "docs/evidence/splitroute-a67e10f.json",
+      "tests": "core/race37154526472; four-mode37154674002;36 lifecycle37154675255; independentNormal37154675854/Game37154677946; P637154676414; first-original controllers37154570534/37154570449 allPASS"
     },
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
-    "P4": "HOSTED_CURRENT_SOURCE_PASS: 2b2bd9e core/race and36 lifecycle; retiring receive/constant FIN checks/candidate isolation preserve no-HOL",
-    "P5": "HOSTED_PREDELIVERY_SCOPE_COMPLETE: 2b2bd9e strict18 + Normal/Game1800 original and1s/internal queue0 gates PASS; padding_on专项 separately PARTIAL_ACTIONS_PASS",
-    "P6": "COMPLETE_HOSTED: source2b2bd9e linuxamd64/linuxarm64/windowsamd64 packages and hash/manifest/receipt PASS; ARMnative/physical NOT_RUN",
-    "P7": "READY_FOR_USER_PHYSICAL_TEST: fixed2b2bd9e packages; all physical/driver/native ARM qualifications NOT_RUN",
+    "P4": "CURRENT_SOURCE_HOSTED_PASS: a67 core/race/Windows route mocks/real Linux splitrouting/36 lifecycle; physical NOT_RUN",
+    "P5": "TARGETED5205_CURRENT_SOURCE_PASS: a67Normal/Game seed101; strict18/config70/1800s full qualification only historical2b, current NOT_RUN",
+    "P6": "CURRENT_SOURCE_HOSTED_PASS: a67 three packages including CN snapshot/provenance/MIT/guide; ZIP/manifest/files hashes verified, ARM cross only",
+    "P7": "READY_FOR_USER_PHYSICAL_FEATURE_TEST: a67 packages; newsource full70/18/1800s not inherited; all physical/driver/ARMnative NOT_RUN",
     "TLS_STARTUP_PADDING": {
       "status": "PARTIAL_ACTIONS_PASS",
       "baseline_sha": "896ae94bea1aa1e532b2a14ed9d3e707a72f5286",
@@ -2180,7 +2207,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "COMPLETE_HOSTED_TARGET_QUALIFICATION",
+      "status": "CURRENT_SOURCE_TARGETED_5205_PASS_BASELINE_FULL_QUALIFICATION_HISTORICAL",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -2191,9 +2218,9 @@
         "Bounded target-rate long soak framework and >=1800s independent Normal/Game",
         "P6 repackage then user-arranged P7 physical"
       ],
-      "latest_log": "docs/devlog/20261004-034500-handoff-long-pass-predelivery.md",
-      "note": "b1 original78+18 gates passed, but original-send-second audit found concentrated rotation loss up to61.264%, hidden by60s averages; b1 cannot qualify new1s gate. Current2b2 receive-only retiring authorization/constant FIN checks/candidate isolation passed exact-source78+18 and both1800s including new1s/internal queue0 gates; close budgets unchanged, physical NOT_RUN.",
-      "next_task": "用户安排P7物理NIC/WindowsNpcap+Wintun/LinuxARMnative及真实路径MTU/DNS/TCP/HTTPS/UDP/弱网/清理；双方固定2b2bd9e候选，原始结果完整留存。需长期启用startup padding时先补未闭专项。每性能Action一条，不再无证据微改已验候选。",
+      "latest_log": "docs/devlog/20261004-052700-splitroute-hosted-acceptance.md",
+      "note": "历史2b已完成78/18/1800s；用户新增IPv4分流后a67重新通过core/4功能/36生命周期/独立5205/新P6，当前SOURCE完整70/18/1800s未重跑。Game CPU升高单样本未归因；物理NOT_RUN。",
+      "next_task": "IPv4分流已完成hosted专项。用户安排P7物理出口/Windows真实Npcap+Wintun和大FIB装卸/DNS/清理/ARM原生；需要新SOURCE完整交付前资格时先补strict18/config70/1800s。Game单次CPU升高未归因保留，不无证据改协议/FEC/4096。每性能Action只一条。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -6639,7 +6666,8 @@
         },
         "strict18_result": "18/18 original samples + artifact-only revision2 paired RTT aggregate PASS",
         "qualification_boundary": "TLS/admission before promotion; bounded retiring/new auth OR grace; no arbitrary post-promotion rollback; padding on full专项 separate partial"
-      }
+      },
+      "current_source_sha": "a67e10fa2875162eeac926b970a0c486a239748d"
     }
   }
 }

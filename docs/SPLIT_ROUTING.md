@@ -30,3 +30,13 @@ Windows对直连地址及server /32取精确补集作为Wintun capture routes。
 所有在Actions：Linux/Windows单位边界、内置文件hash、原子更新/替换失败保留、IP补集0/末端/重叠/随机分类、不支持模式/坏文件；Windows真实PowerShell大文件Render与owned Apply/Cleanup模拟验收，物理Npcap/Wintun仍NOT_RUN。Linux四个正式进程功能工况（embedded/lan/all/manual），三个可控目标地址：LAN10.50.0.2、CN223.5.5.5、foreign8.8.8.8；真实UDP-DNS/TCP/102400B内层TLS1.3 HTTPS，观察目标收到的源IP证明direct/proxy路径，双端DORMANT时direct业务不唤醒、代理业务重建；验证nft计数与退出清理。
 
 旧生命周期/配置夹具必须显式route-mode all，因为其10.50私网目标原本用于代理模块验收；不可把默认直连误当隧道通过。严格5205目标改为隔离netns中的8.8.8.8，通过新默认策略真实代理；无外网发包，无速率/损伤门放宽。Normal10M/Game4逻辑3M、FEC20:20、600msRTT各独立Action单条，core通过后执行。旧2b候选的全矩阵/长测不能继承给新源码；本专项只关闭明确的新功能与targeted性能，物理与其它未验边界不变。
+
+2026-10-04实际收口SOURCE a67e10fa2875162eeac926b970a0c486a239748d：core/race、4模式真实分流、36生命周期、独立Normal/Game5205及3目标P6全部PASS。内置snapshot为2026-10-03固定版；默认离线使用。精确来源、产物hash、性能范围和Game单次CPU升高未归因观测见PREDELIVERY_ACCEPTANCE当前分流候选和evidence/splitroute-a67e10f.json；不得把此功能通过升级为新源码全量70/18/1800s或物理资格。
+
+客户端JSON例（合并入现有凭据和网络配置）：
+
+```json
+{"route-mode":"bypass-lan-cn","china-ip-file":"china-ipv4.txt"}
+```
+
+如果使用内置表，省略china-ip-file即可。全部代理用route-mode=all，只有LAN直连用bypass-lan。正常启动不会隐式更新表；更新命令无需凭据，更新成功后正常客户端重启应用。

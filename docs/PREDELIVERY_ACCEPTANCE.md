@@ -18,9 +18,28 @@ PARAMETERS.json是全部CLI/JSON参数清单。基础core负责类型/边界/未
 
 全部hosted门通过后，STATUS标注hosted P5/P6完成、可交物理验收；证据保留真正SOURCE_SHA、文档HEAD、Action原始attempt、artifactdigest、缺失项。失败原样记录，不继承旧源码通过，不以扩大缓存、延长期限或降低速率过关。
 
-## 当前候选：2b2bd9e hosted收口（2026-10-04）
+## 当前分流候选：a67e10f（2026-10-04）
 
-真正二进制SOURCE_SHA为 **2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8**，版本 **next-rc-2b2bd9eb106d**。后续文档HEAD不改变此来源。当前定义的交付前hosted门全部通过，可进入P7物理验收；**PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN**。原b1/50/48/a86失败与原门PASS永久保留，以下新资格不改写历史。
+二进制SOURCE `a67e10fa2875162eeac926b970a0c486a239748d`，版本 `next-rc-a67e10fa2875`。本轮仅新增系统路由层IPv4分流及手动地址表更新，数据协议/FEC/4096/超时不变；文档HEAD另记。以下为精确源码专项回归，不能继承下文2b全量18/70/1800s。
+
+| 门 | 结果 | 原始Action |
+|---|---|---|
+| Linux/Windows core/build，Linux race/fuzz，真实fallback/共享TUN/TPROXY | PASS | [foundation](https://github.com/lly8666/wobuzhidao/actions/runs/37154526472) |
+| Windows大表PowerShell Render，1500条owned路由安装/清理及中途失败回滚mock | PASS，真实NIC/驱动NOT_RUN | 同foundation |
+| embedded/lan/all/manual，LAN/CN/Other真实DNS/TCP/HTTPS，直连休眠与代理唤醒、退出清理 | 4/4 PASS | [分流](https://github.com/lly8666/wobuzhidao/actions/runs/37154674002) |
+| 生命周期 | 36/36+aggregate PASS | [生命周期](https://github.com/lly8666/wobuzhidao/actions/runs/37154675255) |
+| Normal/Game5205各单条独立120s，FEC20:20，300ms单向 | 吞吐/损失/延迟及配对门PASS | [Normal](https://github.com/lly8666/wobuzhidao/actions/runs/37154675854)、[Game](https://github.com/lly8666/wobuzhidao/actions/runs/37154677946) |
+| 三平台包，包括内置CIDR/来源/MIT许可/分流说明 | PASS，ZIP/manifest/文件hash只读复核 | [新P6下载](https://github.com/lly8666/wobuzhidao/actions/runs/37154676414) |
+
+20%压力阶段Normal每方向9.99991/10.00010Mbps，Game4逻辑每方向3.00007/3.00003Mbps；byte loss两者0%，socketdrop0。stress probe RTT p95/p99：Normal616.583/621.078ms，Game614.511/617.315ms；与旧2b同seed阶段配对尾延迟门通过。表匹配在Linux nft interval set/Windows内核FIB，不做每包用户态地址表遍历；不引入数据面排队或HOL。
+
+资源不能声称全面无退化：120s进程CPU-s Normal88.40/90.92（旧90.71/92.70），Game105.37/98.92（旧67.84/62.89）。不同hosted VM，单样本不能归因，但Game升高必须保留为未证明原因的观测。Windows真实FIB安装/退出成本和驱动仍P7，不能用mock声称物理性能。IPv4地址规则不包含域名/IPv6直连；Windows显式dns4优先隧道。
+
+证据：[splitroute-a67e10f.json](evidence/splitroute-a67e10f.json)，[功能/生命周期/包只读收口](https://github.com/lly8666/wobuzhidao/actions/runs/37154570534)、[独立性能配对收口](https://github.com/lly8666/wobuzhidao/actions/runs/37154570449)。最初CRLF、空DNS、夹具缺回程/重复TCP监听及两次日志契约失败均保留，未降低门。手动更新与配置详见SPLIT_ROUTING。
+
+## 历史全量基线：2b2bd9e hosted收口（2026-10-04）
+
+真正二进制SOURCE_SHA为 **2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8**，版本 **next-rc-2b2bd9eb106d**。后续文档HEAD不改变此来源。该源码当时定义的交付前hosted门全部通过；新a67分流源码资格单列如下，不能继承全量结果；**PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN**。原b1/50/48/a86失败与原门PASS永久保留，以下新资格不改写历史。
 
 | 门 | 实际结果 | 原始Action |
 |---|---|---|
