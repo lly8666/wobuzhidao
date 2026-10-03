@@ -8,7 +8,7 @@
 
 每次运行保存产品 SOURCE_SHA、harness SHA、依赖/toolchain、runner 架构与 CPU/内存、完整配置、种子、原始 stdout/stderr、分析器结果。收到新结果先核实源 SHA，不能只看 workflow 全绿或其他 agent 摘要。
 
-当前只有 `next-foundation.yml`：仓库契约和条件启用的根 Go 基础测试。其成功只表示已实现检查成功，不表示下列未来网络资格已实现。新阶段必须创建相应可执行工作流，不能将占位输出当测试。
+当前已存在foundation、定向稳态/生命周期/padding、独立strict weaknet、shared blackhole、完整生命周期、实际配置、target soak和P6打包工作流。基础CI绿不代表端到端已通过；交付前的可执行门及精确SOURCE_SHA收口见PREDELIVERY_ACCEPTANCE与STATUS。普通unit/race可并行，性能run一条样本，汇总只读产物。
 
 ## P1 基础
 

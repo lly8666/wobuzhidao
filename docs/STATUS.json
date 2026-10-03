@@ -69,10 +69,10 @@
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。",
     "2026-10-03资源优化顺序完成：有效FEC计算、owned加密/传递复制、有限ACK合并、已就绪Linux批量接收/发送各自Actions unit/build/race+Normal/Game5205 PASS；额外修复pre-attach overflow导致共享server退出，再以ca8175d通过同门和36/36 lifecycle+aggregate。仅targeted，不继承最新全18/长测/P6/P7。"
   ],
-  "in_progress": "23源码18弱网PASS，f12-l3-p1锁回归PASS；Normal180出现换代后PathErrors与stress尾延迟，f10-l3-p0 HTTPS内容不同。实时FEC满额退役旧恢复状态并保留迟到源，增加有界LastPathError和HTTPS失败长度/hash诊断；新源码NOT_RUN，尚不可交付。",
-  "next_task": "基础/race后独立复现Normal180和f10-l3-p0，确认具体PathError以及HTTPS完整长度；TCP每flow数据到本地写端提交后才能FIN/close，不恢复外层HOL。最终整份源码完整hosted资格，P7 NOT_RUN。",
-  "latest_log": "docs/devlog/20261003-215000-tcp-fin-ack-position.md",
-  "last_tested_source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
+  "in_progress": "产品SOURCE_SHA固定b1fe7e2，foundation/race已PASS，78门+18独立弱网完整验收运行；保留23路径/HTTPS失败及3d短测换代尾延迟，P7 NOT_RUN。文档HEAD另计，不继承过去产品资格。",
+  "next_task": "验收37127934784与37127934798所有原始attempt/摘要/产物；任何真实FAIL继续修，同源码所有hosted门后提供候选包与物理验收计划。",
+  "latest_log": "docs/devlog/20261003-220500-predelivery-live-progress.md",
+  "last_tested_source_sha": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1778,6 +1778,24 @@
       "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37091747064",
       "scope": "product bandwidth formal18 artifact-only aggregate",
       "status": "PASS"
+    },
+    {
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37127353521",
+      "source_sha": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+      "scope": "foundation",
+      "status": "PASS"
+    },
+    {
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37127934784",
+      "source_sha": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+      "scope": "predelivery",
+      "status": "IN_PROGRESS"
+    },
+    {
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37127934798",
+      "source_sha": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+      "scope": "strict18",
+      "status": "IN_PROGRESS"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -1820,8 +1838,8 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "V10P2_CODE_CORRECTNESS_PASS: bounded client/server UDP queues, no-HOL and existing lifecycle retained; exact-source core/race/privileged PASS.",
-    "P5": "PREDELIVERY_IN_PROGRESS: ca8175d final18 PASS; latest harness source needs exact-SHA qualification; target-rate1800s/configurations pending",
-    "P6": "NOT_RUN_FOR_CURRENT_SOURCE: same-source bundles after pre-delivery gates",
+    "P5": "IN_PROGRESS: exact b1fe7e2 full configuration70 + lifecycle36 + strict18 + target1800sNormal/Game + blackhole original runs pending",
+    "P6": "IN_PROGRESS: exact b1fe7e2 three target package/native receipts pending; only prephysical",
     "P7": "NOT_RUN: user-arranged physical Windows/Npcap and Linux ARM64/amd64 after hosted qualification",
     "TLS_STARTUP_PADDING": {
       "status": "IMPLEMENTED_PENDING_ACTIONS",
@@ -6470,7 +6488,7 @@
         "soak": "NOT_RUN",
         "live_configurations": "NOT_RUN",
         "packaging": "NOT_RUN",
-        "latest_log": "docs/devlog/20261003-190000-predelivery-bounded-soak.md"
+        "latest_log": "docs/devlog/20261003-220500-predelivery-live-progress.md"
       }
     }
   }

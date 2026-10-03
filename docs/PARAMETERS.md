@@ -49,7 +49,7 @@ Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对�
 
 休眠后由客户端新业务触发唤醒。服务端没有脱离现有 lane 的反向唤醒通道；不能保证两端已经完全休眠后的服务端主动推送。需要这种持续接收能力时保持 idle-dormant=0。默认不自动休眠。
 
-内部固定边界不是 CLI 参数：4096 outstanding、3s repair horizon、重传新流量补充比例 1/5、128KiB 启动 credit、64 代/3s FEC 生命周期、padding 预算、最大物理 lane 等仍以正式设计及源码为准。此次只移植接收速率/RTT 压力退役，不把这些常量伪装成可配置开关。
+内部固定边界不是 CLI 参数：4096 shadow metadata有效记录、3s repair horizon、重传新流量补充比例1/5、128KiB启动credit、FEC最多8个heavy恢复槽与8192个compact late-delivery历史、3s绝对恢复期限及满额时旧block早退役、padding预算、最多10物理lane。fresh发送不受4096 ACK退休门阻塞；这些常量不是可配置开关，不用历史“64代”文字代替当前实际解码状态。
 
 ## 协议兼容
 
