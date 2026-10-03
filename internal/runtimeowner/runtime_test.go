@@ -1893,6 +1893,26 @@ func TestRuntimePeerWriteClosedRequiresAllAuthoritativeLanes(t *testing.T) {
 	}
 }
 
+func TestTransportCloseCompleteRequiresBothFINsOnExactIncarnation(t *testing.T) {
+	ref := logicaltunnel.LaneRef{ID: 1, Generation: 4}
+	transport := &laneTransport{}
+	rt := &Runtime{lanes: map[logicaltunnel.LaneRef]*laneTransport{ref: transport}}
+	if rt.TransportCloseComplete(ref) {
+		t.Fatal("open transport reported completed close")
+	}
+	transport.localFINAcked = true
+	if rt.TransportCloseComplete(ref) {
+		t.Fatal("local FIN ACK alone retired receive state")
+	}
+	transport.peerFIN = true
+	if !rt.TransportCloseComplete(ref) {
+		t.Fatal("both FIN commitments did not complete close")
+	}
+	if rt.TransportCloseComplete(logicaltunnel.LaneRef{ID: 1, Generation: 5}) || (*Runtime)(nil).TransportCloseComplete(ref) {
+		t.Fatal("missing incarnation reported completed close")
+	}
+}
+
 
 func TestSteadyFullRepairWindowEvictionConstantWorkWithoutACK(t *testing.T) {
 	lease := runtimeLease(t)

@@ -1545,6 +1545,24 @@ func (r *Runtime) TransportStats(ref logicaltunnel.LaneRef) (TransportStats, boo
 	return r.TransportStatsAt(ref, time.Now())
 }
 
+// TransportCloseComplete reads only control state. Lifecycle polling must not
+// walk thousands of optional repair/receive records just to check two FIN bits.
+func (r *Runtime) TransportCloseComplete(ref logicaltunnel.LaneRef) bool {
+	if r == nil {
+		return false
+	}
+	r.mu.Lock()
+	transport := r.lanes[ref]
+	r.mu.Unlock()
+	if transport == nil {
+		return false
+	}
+	transport.mu.Lock()
+	complete := transport.localFINAcked && transport.peerFIN
+	transport.mu.Unlock()
+	return complete
+}
+
 func (r *Runtime) TransportStatsAt(ref logicaltunnel.LaneRef, now time.Time) (TransportStats, bool) {
 	if r == nil {
 		return TransportStats{}, false

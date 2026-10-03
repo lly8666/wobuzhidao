@@ -80,6 +80,10 @@ Normal1800原样本逐秒按原发送时间统计最终收到的unique包，损�
 
 下一候选只补诊断：有限retiring_lanes快照（不含candidate，不改变发送权限）、pure ACK处理耗时、server tick耗时，找交接成本来源。soak验收补内部接收队列overflow计数为0的硬门，并将retiring的完整性错误纳入检查；这是发现盲区后的预声明新增门，旧PASS回执保留为旧门。不得扩大4096队列或retiring期限绕过。当前P5/P6最新版本均未关闭，b1候选包仅用于复现。
 
+48f585诊断 [37138792150](https://github.com/lly8666/wobuzhidao/actions/runs/37138792150) FAIL，内部queue13611次overflow、C2S最差1s44.791%。第一换代old ACK耗时仅增加约7.5ms、old owner约1.6ms，server tick全程max6.91ms，排除了猜测的SACK重算主因。真正漏计步骤在LifecycleServer.markLaneQualified：HandleServerSegmentQualified每条authenticated记录都返回true，mark随每包调用retireServerReplacement，后者TransportStats扫描旧pending+received数千条，只为了判断LocalFINAcked/PeerFIN。换代约2秒因此反复全状态扫描；Game低每lanePPS/状态量掩盖该成本。
+
+窄修复：首条认证记录仅启动一次原CloseWrite；已启动后完成/超时检查交现有tick。双端FIN检查新增常数时间TransportCloseComplete，只读取原两位，不扫描repair/OOO。绝对close budget、FIN保护、接收在途授权、隔离、4096/FEC/队列与wire均不变；新增10000次qualification零retirement-check的操作计数回归及双FIN/缺失incarnation单测。候选必须重新验证，不提前标PASS。
+
 同源码包在 [P6 Actions artifacts](https://github.com/lly8666/wobuzhidao/actions/runs/37127951215)：`candidate-linux-amd64-b1fe7e...`、`candidate-linux-arm64-b1fe7e...`、`candidate-windows-amd64-b1fe7e...`。下载后核对artifact ZIP digest、manifest文件hash、`actions-receipt.json`；manifest保留构建前PENDING_VALIDATION，真正验收结果在独立receipt，不能手改manifest伪造资格。Actions artifact有保留期限，到期需由冻结SOURCE重新打包并记录新receipt。
 
 1. 用户安排Windows/Npcap/Wintun和Linux amd64/arm64实机，双方用同一候选；当前内层TCP FIN占一序列位置，禁止混用旧端点。记录NIC/驱动/OS/CPU、实际外网路径及有效MTU；ARM先原生version和基本业务，不能将交叉构建当原生PASS。

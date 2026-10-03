@@ -24,6 +24,7 @@ type ServerPipelineDiagnostic struct {
 	QueueAge          DurationDiagnostic `json:"queue_age"`
 	Handler           DurationDiagnostic `json:"handler"`
 	Tick              DurationDiagnostic `json:"tick"`
+	ReplacementChecks uint64             `json:"replacement_checks"`
 	Downstream        DurationDiagnostic `json:"downstream"`
 	ReadyCapacity     int                `json:"ready_capacity"`
 	ReadyCurrent      int64              `json:"ready_current"`
@@ -66,6 +67,7 @@ type serverPipelineTiming struct {
 	queueAge durationAccumulator
 	handler durationAccumulator
 	tick durationAccumulator
+	replacementChecks atomic.Uint64
 	downstream durationAccumulator
 	readyCurrent atomic.Int64
 	readyPeak atomic.Uint64
@@ -87,7 +89,7 @@ func (p *serverPipelineTiming) readyCancel(bytes int){p.readyCurrent.Add(-1);p.r
 func (p *serverPipelineTiming) overflowDrop(bytes int, age time.Duration){p.readyCurrent.Add(-1);p.readyBytes.Add(-int64(bytes));p.overflowDrops.Add(1);if bytes>0{p.overflowBytes.Add(uint64(bytes))};p.overflowAge.observe(age)}
 func (p *serverPipelineTiming) overflowReject(bytes int){p.readyCurrent.Add(-1);p.readyBytes.Add(-int64(bytes));p.overflowDrops.Add(1);if bytes>0{p.overflowBytes.Add(uint64(bytes))}}
 func (p *serverPipelineTiming) snapshot(enabled bool) ServerPipelineDiagnostic {
-	return ServerPipelineDiagnostic{Enabled:enabled,Reads:p.reads.Load(),ReadGap:p.readGap.snapshot(),HandoffBlock:p.handoffBlock.snapshot(),QueueAge:p.queueAge.snapshot(),Handler:p.handler.snapshot(),Tick:p.tick.snapshot(),Downstream:p.downstream.snapshot(),ReadyCapacity:serverReadQueueDepth,ReadyCurrent:p.readyCurrent.Load(),ReadyPeak:p.readyPeak.Load(),ReadyBytes:p.readyBytes.Load(),ReadyBytesPeak:p.readyBytesPeak.Load(),OverflowDrops:p.overflowDrops.Load(),OverflowBytes:p.overflowBytes.Load(),OverflowAge:p.overflowAge.snapshot(),DownstreamBatches:p.downstreamBatches.Load(),DownstreamPackets:p.downstreamPackets.Load()}
+	return ServerPipelineDiagnostic{Enabled:enabled,Reads:p.reads.Load(),ReadGap:p.readGap.snapshot(),HandoffBlock:p.handoffBlock.snapshot(),QueueAge:p.queueAge.snapshot(),Handler:p.handler.snapshot(),Tick:p.tick.snapshot(),ReplacementChecks:p.replacementChecks.Load(),Downstream:p.downstream.snapshot(),ReadyCapacity:serverReadQueueDepth,ReadyCurrent:p.readyCurrent.Load(),ReadyPeak:p.readyPeak.Load(),ReadyBytes:p.readyBytes.Load(),ReadyBytesPeak:p.readyBytesPeak.Load(),OverflowDrops:p.overflowDrops.Load(),OverflowBytes:p.overflowBytes.Load(),OverflowAge:p.overflowAge.snapshot(),DownstreamBatches:p.downstreamBatches.Load(),DownstreamPackets:p.downstreamPackets.Load()}
 }
 
 

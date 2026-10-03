@@ -961,8 +961,7 @@ func (c *TunnelClient) retireQualified(now time.Time) {
 			continue
 		}
 
-		oldStats, oldOK := c.rt.TransportStats(item.oldRef)
-		closeComplete := oldOK && oldStats.LocalFINAcked && oldStats.PeerFIN
+		closeComplete := c.rt.TransportCloseComplete(item.oldRef)
 		closeBudget := c.cfg.ReplacementGrace
 		if rtoBudget := 2 * c.cfg.InitialRTO; rtoBudget > 0 && rtoBudget < closeBudget {
 			closeBudget = rtoBudget
@@ -1704,8 +1703,14 @@ func (s *LifecycleServer) markLaneQualified(lane *serverLifecycleLane, now time.
 		return
 	}
 	lane.qualified = true
+	// The authenticated-record signal also occurs on every later data record.
+	// Only start the old FIN once here. Completion/expiry belongs to the existing
+	// maintenance tick, not a full old repair/receive stats scan per fresh packet.
+	startClose := lane.replaces != nil && lane.replaces.closeStarted.IsZero()
 	s.mu.Unlock()
-	s.retireServerReplacement(lane)
+	if startClose {
+		s.retireServerReplacement(lane)
+	}
 }
 
 func (s *LifecycleServer) retireServerReplacement(lane *serverLifecycleLane) {
@@ -1737,8 +1742,10 @@ func (s *LifecycleServer) retireServerReplacement(lane *serverLifecycleLane) {
 		return
 	}
 
-	stats, ok := lane.group.rt.TransportStats(replacing.ref)
-	closeComplete := ok && stats.LocalFINAcked && stats.PeerFIN
+	if s.cfg.ObserveTiming {
+		s.pipeline.replacementChecks.Add(1)
+	}
+	closeComplete := lane.group.rt.TransportCloseComplete(replacing.ref)
 	closeBudget := s.cfg.ReplacementGrace
 	if rtoBudget := 2 * s.cfg.InitialRTO; rtoBudget > 0 && rtoBudget < closeBudget {
 		closeBudget = rtoBudget
