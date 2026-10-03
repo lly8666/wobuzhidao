@@ -86,6 +86,8 @@ Normal1800原样本逐秒按原发送时间统计最终收到的unique包，损�
 
 a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d 短Normal [37139795827](https://github.com/lly8666/wobuzhidao/actions/runs/37139795827)原门/1s门/内部queue0门全部PASS：最低阶段9.99624Mbps，最差1s0.40519%，server queue overflow0、max queue age6.11ms，216万reads仅69次replacement checks。短Game [37139798038](https://github.com/lly8666/wobuzhidao/actions/runs/37139798038) FAIL：换代候选未发布时association报ErrHandshakeState，错误逃到共享Run导致整个server退出。manifest未写，不能将缺失摘要当成运行通过。最新窄修只隔离该拒绝包，保留严格ACK/序列验证、重试和原期限，不吞掉underlay错误或改steady权限。新源码需重新双模式短测与完整资格，a86 Normal短PASS不等于最终可交物理机。
 
+当前冻结SOURCE **2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8** 的 [Normal180](https://github.com/lly8666/wobuzhidao/actions/runs/37140842423) / [Game180](https://github.com/lly8666/wobuzhidao/actions/runs/37140844185) 原门与新增门均PASS：Normal最低阶段9.99495Mbps、最大阶段loss0.02703%、最差1s0.40503%，Game最低2.99793Mbps、阶段与逐秒loss0；两端内部queue溢出0、完整性0、自动换代/排空通过。仅DIAGNOSTIC_ONLY，完整78/严格18和两1800s进行中，不提前关闭P5/P6。原始run/artifact digest与当前controller见 [rotation-handoff-2b2bd9e.json](evidence/rotation-handoff-2b2bd9e.json)，日志区分二进制SOURCE与文档HEAD。
+
 同源码包在 [P6 Actions artifacts](https://github.com/lly8666/wobuzhidao/actions/runs/37127951215)：`candidate-linux-amd64-b1fe7e...`、`candidate-linux-arm64-b1fe7e...`、`candidate-windows-amd64-b1fe7e...`。下载后核对artifact ZIP digest、manifest文件hash、`actions-receipt.json`；manifest保留构建前PENDING_VALIDATION，真正验收结果在独立receipt，不能手改manifest伪造资格。Actions artifact有保留期限，到期需由冻结SOURCE重新打包并记录新receipt。
 
 1. 用户安排Windows/Npcap/Wintun和Linux amd64/arm64实机，双方用同一候选；当前内层TCP FIN占一序列位置，禁止混用旧端点。记录NIC/驱动/OS/CPU、实际外网路径及有效MTU；ARM先原生version和基本业务，不能将交叉构建当原生PASS。

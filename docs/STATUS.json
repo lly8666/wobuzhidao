@@ -71,11 +71,11 @@
     "2026-10-03同源码b1fe7e2可交物理机前资格：70实际配置、36生命周期、18独立严格弱网、Normal/Game各1800s目标速率持续弱网、100/500ms共享黑洞、三目标候选包全部PASS；78回执控制与18汇总原始attempt1，extras0，物理未跑。"
   ],
   "in_progress": [
-    "a86 Normal180原门/逐秒/内部queue0 PASS，退役检查69/216万reads；Game180因未发布candidate握手状态错误导致全server退出FAIL。窄修连接级错误隔离，等待新SOURCE core/race及独立双模式短测。"
+    "2b2bd9e core/race及独立Normal/Game180所有原门/1s/internal queue0门PASS。冻结同SOURCE完整78/严格18进行中，两1800s已启动；短测不是正式长测资格，P5/P6未关闭。"
   ],
-  "next_task": "新SOURCE core/race -> 各一条Normal/Game180原門/1s/内部queue0；通过后完整最新源码18弱网/70配置/36生命周期/两1800s/黑洞/P6，P7 NOT_RUN。",
-  "latest_log": "docs/devlog/20261004-012900-candidate-handshake-isolation.md",
-  "last_tested_source_sha": "a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d",
+  "next_task": "审计同2b2bd9e SOURCE完整78及严格18原始回执、两1800s逐秒/内部队列/RTT/内存/排空和P6哈希；全部通过才hosted关闭/可交物理。失败保留后窄修新SHA重验。每性能Action一条，P7 NOT_RUN。",
+  "latest_log": "docs/devlog/20261004-014100-handoff-short-pass-full-qualification.md",
+  "last_tested_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1907,8 +1907,8 @@
     "P2": "CLOSED: SOURCE_SHA 04f57fa880837e3bc16374cd93bcff6aa8bc4202 Actions 35458896477；kernel TLS/HTTP/证书验证/正常关闭/连续pcap硬门PASS",
     "P3": "CLOSED: LINK/FEC全固定挡位/统一MTU/session-owner/显式有界record padding均取得精确Actions资格；padding生产默认0/off且无抗识别结论",
     "P4": "V10P2_CODE_CORRECTNESS_PASS: bounded client/server UDP queues, no-HOL and existing lifecycle retained; exact-source core/race/privileged PASS.",
-    "P5": "IN_PROGRESS: Normal rotation burst-loss audit reopened P5; b1 original declared gates PASS but1s loss max61.264%",
-    "P6": "Original b1 three candidate packages ACTIONS_PASS for reproduction only; repackage new repair SOURCE after complete qualification",
+    "P5": "2b2bd9e Normal/Game180 DIAGNOSTIC_ONLY PASS; strict18/full78/1800s IN_PROGRESS",
+    "P6": "b1 packages reproduction only; new2b2 exact-source packages/receipts qualification IN_PROGRESS",
     "P7": "NOT_RUN: user-arranged physical NIC/WindowsNpcap+Wintun/ARMnative and real path qualification",
     "TLS_STARTUP_PADDING": {
       "status": "IMPLEMENTED_PENDING_ACTIONS",
@@ -2167,7 +2167,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "IN_PROGRESS_HANDOFF_SHORT_WINDOW",
+      "status": "IN_PROGRESS_FORMAL_QUALIFICATION_AFTER_SHORT_PASS",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -2180,7 +2180,7 @@
       ],
       "latest_log": "docs/devlog/20261004-011000-constant-retirement-check.md",
       "note": "b1 original78+18 gates passed, but original-send-second audit found concentrated rotation loss up to61.264%, hidden by60s averages. New receive-only retiring authorization + unchanged close budgets pending exact-source qualification; b1 cannot qualify new1s gate.",
-      "next_task": "新SOURCE core/race -> 各一条Normal/Game180原門/1s/内部queue0；通过后完整最新源码18弱网/70配置/36生命周期/两1800s/黑洞/P6，P7 NOT_RUN。",
+      "next_task": "审计同2b2bd9e SOURCE完整78及严格18原始回执、两1800s逐秒/内部队列/RTT/内存/排空和P6哈希；全部通过才hosted关闭/可交物理。失败保留后窄修新SHA重验。每性能Action一条，P7 NOT_RUN。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -6550,21 +6550,21 @@
         "final_lifecycle_result": "36/36 samples + aggregate ACTIONS_PASS"
       },
       "predelivery": {
-        "status": "IN_PROGRESS_HANDOFF_SHORT_WINDOW",
-        "source_sha": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
-        "version": "next-rc-b1fe7e2658fb",
+        "status": "IN_PROGRESS_FORMAL_QUALIFICATION_AFTER_SHORT_PASS",
+        "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+        "version": "next-rc-2b2bd9eb106d",
         "initial_source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
         "initial_final18_run": 37117755700,
         "initial_final18_artifact": 11271739090,
-        "controller": 37127934784,
-        "strict18_controller": 37127934798,
-        "soak": "Normal/Game1800s ACTIONS_PASS; two180s diagnostics PASS",
-        "live_configurations": "70/70 ACTIONS_PASS",
-        "lifecycle": "36/36+aggregate ACTIONS_PASS",
-        "packaging": "3targets ACTIONS_PASS",
+        "controller": 37140925122,
+        "strict18_controller": 37140877004,
+        "soak": "Normal/Game180 DIAGNOSTIC PASS; Normal/Game1800 IN_PROGRESS",
+        "live_configurations": "70 latest-source cases IN_PROGRESS",
+        "lifecycle": "latest-source36+aggregate IN_PROGRESS",
+        "packaging": "latest-source3targets IN_PROGRESS",
         "physical": "NOT_RUN",
-        "evidence": "docs/evidence/predelivery-b1fe7e2.json",
-        "latest_log": "docs/devlog/20261004-012900-candidate-handshake-isolation.md",
+        "evidence": "docs/evidence/rotation-handoff-2b2bd9e.json",
+        "latest_log": "docs/devlog/20261004-014100-handoff-short-pass-full-qualification.md",
         "handoff_short_window": {
           "baseline_source": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
           "baseline_run": 37127945540,
@@ -6596,7 +6596,33 @@
             "normal_min_phase_mbps": 9.9962368,
             "server_replacement_checks": 69,
             "source_sha": "a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d"
+          },
+          "current_candidate": {
+            "source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
+            "normal_run": 37140842423,
+            "normal_min_phase_mbps": 9.994948266666668,
+            "formal_status": "IN_PROGRESS",
+            "short_status": "PASS_DIAGNOSTIC",
+            "game1800_run": 37141232736,
+            "normal_max_1s_loss_percent": 0.4050222762251924,
+            "normal1800_run": 37141231250,
+            "game_run": 37140844185,
+            "internal_queue_overflow_both_modes": 0,
+            "game_phase_and_1s_loss_percent": 0,
+            "normal_max_phase_loss_percent": 0.0270226449764903
           }
+        },
+        "historical_b1_qualification": {
+          "source_sha": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
+          "live_configurations": "70/70 ACTIONS_PASS",
+          "lifecycle": "36/36+aggregate ACTIONS_PASS",
+          "scope": "Original gates only; new1s/internal queue audit FAIL; packages for reproduction",
+          "packaging": "3targets ACTIONS_PASS",
+          "version": "next-rc-b1fe7e2658fb",
+          "evidence": "docs/evidence/predelivery-b1fe7e2.json",
+          "strict18_controller": 37127934798,
+          "soak": "Normal/Game1800s ACTIONS_PASS; two180s diagnostics PASS",
+          "controller": 37127934784
         }
       }
     }

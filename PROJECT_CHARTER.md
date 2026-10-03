@@ -31,7 +31,7 @@ Account -> Installation -> Logical Tunnel。Tunnel 拥有稳定 TunnelID、服�
 
 健康替换 A -> A+B -> B；候选失败保留 A。多 lane 逐条轮换，回调/任务/超时必须带 generation，旧任务不能复活已退役 lane。年龄、网络变更、失活、人工重连统一走这个生命周期。
 
-payload idle 与 transport activity 分开，PING/PONG 不延长业务活跃时间。默认业务闲置 15 分钟可 DORMANT，0 表示不因闲置睡眠；lane 随机软年龄沿用 30..60 分钟并错开。
+payload idle 与 transport activity 分开，PING/PONG 不延长业务活跃时间。当前正式 CLI 的 idle-dormant 默认0，禁用自动休眠；可显式设置15分钟等业务闲置期限。定时轮换 rotate-min/max 默认0/0关闭，可配对设置30..60分钟等随机软年龄并错开。历史策略值不冒充当前程序默认；真实参数及边界以 PARAMETERS 目录记录并验证。
 
 DORMANT 关闭传输但保留 Tunnel、lease、TUN、路由/DNS，真实业务到来唤醒。显式断开/退出则清理 WBD 自己创建的资源，不能影响其他网络规则。
 
