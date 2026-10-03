@@ -1,0 +1,20 @@
+name: next-predelivery-control-retire
+on:
+  push:
+    branches: [main]
+    paths: [.github/predelivery-retire-request.json]
+permissions: {contents: read, actions: write}
+jobs:
+  cancel-obsolete-control-and-extra-dispatch:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Retire only our obsolete or duplicate dispatches (no workload)
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python .github/scripts/retire-predelivery.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: 'control-retirement-${{ github.run_id }}', path: retirement, if-no-files-found: error}
