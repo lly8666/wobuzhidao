@@ -481,10 +481,25 @@ func (c *TunnelClient) PrepareBusiness(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	// Demand counts even if waking/sending fails under total loss.
-	c.noteBusiness(time.Now())
-	// Always take the lifecycle operation fence; a concurrent idle close may
-	// have started after the caller observed ACTIVE.
+	// Publish demand and observe the idle-close decision under the same lock.
+	// A stale automatic idle snapshot then cannot close this active tunnel.
+	// Healthy traffic must not acquire opMu: replacement holds that mutex
+	// throughout candidate TLS admission, while the old lane remains usable.
+	c.mu.Lock()
+	now := time.Now()
+	if now.After(c.lastPayload) {
+		c.lastPayload = now
+	}
+	closed, dormant := c.closed, c.dormant
+	c.mu.Unlock()
+	if closed {
+		return ErrClientRuntimeStopped
+	}
+	if !dormant {
+		return nil
+	}
+	// A committed idle close publishes dormant before teardown. Wake retains
+	// the operation fence so it waits for teardown and coalesces concurrent wake.
 	return c.Wake(ctx)
 }
 

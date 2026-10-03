@@ -611,9 +611,13 @@ func (s *UDPServer) sendWorker(shard int) {
 			Payload: item.payload,
 		}, time.Now())
 		s.sendQueue.finish(item, false, err != nil)
-		if err != nil {
-			s.remove(state)
-		}
+		// An outbound datagram can lose a transport incarnation during lane
+		// replacement, even after another Game copy has already been emitted.
+		// Losing that datagram must not close its independent upstream mapping:
+		// peers may keep sending to this UDP source port for the whole session.
+		// Keep bounded best-effort delivery; the error counter records the drop.
+		// Actual socket failure, idle expiry and service shutdown still remove
+		// mappings through readUpstream, Tick and Close respectively.
 	}
 }
 

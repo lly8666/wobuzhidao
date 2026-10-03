@@ -206,6 +206,11 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	}
 	var previousServerState string
 	waitLifecycle(t, 3*time.Second, func() bool {
+		select {
+		case err := <-serverDone:
+			t.Fatalf("server stopped before replacement overlap: %v", err)
+		default:
+		}
 		stats, ok := server.TunnelStats(tunnelID)
 		state := fmt.Sprintf("active=%d retiring=%d physical=%d exists=%t barrier=%d", stats.ActiveLogicalLanes, stats.Retiring, stats.PhysicalLanes, ok, barrierHits.Load())
 		if state != previousServerState {

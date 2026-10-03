@@ -263,3 +263,7 @@ Game4逻辑3Mbps lossless 已在 run 35818718764 / job 107045770392 全门PASS�
 ## 2026-10-03 用户授权交付前收口
 
 完成hosted P5与P6，覆盖全FEC档位/1..4lane/启动填充与配置优先级的实际路径、MTU/记录预算、TCP/UDP/HTTPS、生命周期/黑洞/隔离/清理，最终源码18条严格弱网与独立Normal/Game至少1800秒长测；每性能Action一条。180秒有界框架canary只算DIAGNOSTIC_ONLY。旧测试不能自动继承，最新证据以STATUS为索引。P7物理仍由用户安排，目标为READY_FOR_PHYSICAL而非RELEASE_QUALIFIED。
+# 2026-10-03 预交付轮换约束
+
+真实高负载轮换发现：ACTIVE业务不得获取覆盖候选TLS建连的生命周期opMu。业务需求与idle提交在c.mu中原子发布/判定；已提交DORMANT才走Wake操作栅栏，不能取消idle cutoff或多调用唤醒合并。UDP上游映射属于业务流，单次外层发送失败不能关闭映射/换源端口；保持原maxFlows、60s映射idle、真实socket错误和显式退出清理。修复必须通过36功能生命周期和目标速率轮换长测；原180s失败保留，不归因为runner。
+

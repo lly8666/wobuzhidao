@@ -1,0 +1,449 @@
+{
+  "schema": "wbd-target-soak-result/v1",
+  "source_sha": "9e3dca5992bf37af9078d02e80a59add78371ef8",
+  "qualification": "DIAGNOSTIC_ONLY",
+  "duration_s": 180,
+  "mode": "game",
+  "result": "FAIL",
+  "errors": [
+    "cycle0-recovery/c2s loss/goodput",
+    "cycle0-recovery/s2c loss/goodput",
+    "cycle0-recovery probe tail latency",
+    "cycle1-base/s2c loss/goodput",
+    "cycle1-stress/s2c loss/goodput",
+    "cycle1-recovery/s2c loss/goodput",
+    "cycle2-base/s2c loss/goodput",
+    "cycle2-stress/s2c loss/goodput",
+    "cycle2-stress probe tail latency",
+    "cycle2-recovery/s2c loss/goodput"
+  ],
+  "phases": [
+    {
+      "phase": "cycle0-base",
+      "loss_limit_percent": 5,
+      "directions": {
+        "c2s": {
+          "packet_loss_percent": 0.0,
+          "wall_goodput_mbps": 2.9958186666666666,
+          "offered_mbps": 3.0002773333333335,
+          "netem_actual_loss_percent": 4.9794780833781065
+        },
+        "s2c": {
+          "packet_loss_percent": 0.0,
+          "wall_goodput_mbps": 2.999872,
+          "offered_mbps": 3.0002773333333335,
+          "netem_actual_loss_percent": 5.054769399743069
+        }
+      },
+      "probe": {
+        "p95_ns": 603430566,
+        "p99_ns": 611112154,
+        "received": 30
+      }
+    },
+    {
+      "phase": "cycle0-stress",
+      "loss_limit_percent": 20,
+      "directions": {
+        "c2s": {
+          "packet_loss_percent": 11.477477477477477,
+          "wall_goodput_mbps": 2.6638506666666664,
+          "offered_mbps": 2.9994666666666667,
+          "netem_actual_loss_percent": 20.0414638094408
+        },
+        "s2c": {
+          "packet_loss_percent": 0.0,
+          "wall_goodput_mbps": 3.0002773333333335,
+          "offered_mbps": 2.9994666666666667,
+          "netem_actual_loss_percent": 20.187376051425836
+        }
+      },
+      "probe": {
+        "p95_ns": 602627036,
+        "p99_ns": 605318411,
+        "received": 13
+      }
+    },
+    {
+      "phase": "cycle0-recovery",
+      "loss_limit_percent": 5,
+      "directions": {
+        "c2s": {
+          "packet_loss_percent": 12.33000090065748,
+          "wall_goodput_mbps": 2.607505066666667,
+          "offered_mbps": 3.0002773333333335,
+          "netem_actual_loss_percent": 5.147194067706367
+        },
+        "s2c": {
+          "packet_loss_percent": 80.0864631180762,
+          "wall_goodput_mbps": 0.5974613333333334,
+          "offered_mbps": 3.0002773333333335,
+          "netem_actual_loss_percent": 4.848099571734475
+        }
+      },
+      "probe": {
+        "p95_ns": 779059762,
+        "p99_ns": 1117665888,
+        "received": 13
+      }
+    },
+    {
+      "phase": "cycle1-base",
+      "loss_limit_percent": 5,
+      "directions": {
+        "c2s": {
+          "packet_loss_percent": 0.0,
+          "wall_goodput_mbps": 2.999872,
+          "offered_mbps": 2.999872,
+          "netem_actual_loss_percent": 5.0485780404307
+        },
+        "s2c": {
+          "packet_loss_percent": 100.0,
+          "wall_goodput_mbps": 0.0,
+          "offered_mbps": 2.999872,
+          "netem_actual_loss_percent": 4.984007857556602
+        }
+      },
+      "probe": {
+        "p95_ns": 601869207,
+        "p99_ns": 602068352,
+        "received": 30
+      }
+    },
+    {
+      "phase": "cycle1-stress",
+      "loss_limit_percent": 20,
+      "directions": {
+        "c2s": {
+          "packet_loss_percent": 8.457173736827885,
+          "wall_goodput_mbps": 2.736256,
+          "offered_mbps": 3.0002773333333335,
+          "netem_actual_loss_percent": 19.91157546342608
+        },
+        "s2c": {
+          "packet_loss_percent": 100.0,
+          "wall_goodput_mbps": 0.0,
+          "offered_mbps": 3.0002773333333335,
+          "netem_actual_loss_percent": 19.952087068267996
+        }
+      },
+      "probe": {
+        "p95_ns": 601636111,
+        "p99_ns": 753771671,
+        "received": 13
+      }
+    },
+    {
+      "phase": "cycle1-recovery",
+      "loss_limit_percent": 5,
+      "directions": {
+        "c2s": {
+          "packet_loss_percent": 0.0,
+          "wall_goodput_mbps": 2.9996373333333333,
+          "offered_mbps": 3.0002773333333335,
+          "netem_actual_loss_percent": 4.998811423914151
+        },
+        "s2c": {
+          "packet_loss_percent": 100.0,
+          "wall_goodput_mbps": 0.0,
+          "offered_mbps": 3.0002773333333335,
+          "netem_actual_loss_percent": 4.89693792446086
+        }
+      },
+      "probe": {
+        "p95_ns": 602005776,
+        "p99_ns": 602435389,
+        "received": 15
+      }
+    },
+    {
+      "phase": "cycle2-base",
+      "loss_limit_percent": 5,
+      "directions": {
+        "c2s": {
+          "packet_loss_percent": 0.0,
+          "wall_goodput_mbps": 3.000192,
+          "offered_mbps": 2.999872,
+          "netem_actual_loss_percent": 4.982007426416826
+        },
+        "s2c": {
+          "packet_loss_percent": 100.0,
+          "wall_goodput_mbps": 0.0,
+          "offered_mbps": 2.999872,
+          "netem_actual_loss_percent": 4.986365603083084
+        }
+      },
+      "probe": {
+        "p95_ns": 602314776,
+        "p99_ns": 602524621,
+        "received": 30
+      }
+    },
+    {
+      "phase": "cycle2-stress",
+      "loss_limit_percent": 20,
+      "directions": {
+        "c2s": {
+          "packet_loss_percent": 8.718364406016391,
+          "wall_goodput_mbps": 2.725316266666667,
+          "offered_mbps": 3.0002773333333335,
+          "netem_actual_loss_percent": 21.98795810423766
+        },
+        "s2c": {
+          "packet_loss_percent": 100.0,
+          "wall_goodput_mbps": 0.0,
+          "offered_mbps": 3.0002773333333335,
+          "netem_actual_loss_percent": 21.89550124468773
+        }
+      },
+      "probe": {
+        "p95_ns": 1068845222,
+        "p99_ns": 1850674059,
+        "received": 14
+      }
+    },
+    {
+      "phase": "cycle2-recovery",
+      "loss_limit_percent": 5,
+      "directions": {
+        "c2s": {
+          "packet_loss_percent": 0.0,
+          "wall_goodput_mbps": 3.0001066666666665,
+          "offered_mbps": 2.9994666666666667,
+          "netem_actual_loss_percent": 5.070540262732828
+        },
+        "s2c": {
+          "packet_loss_percent": 100.0,
+          "wall_goodput_mbps": 0.0,
+          "offered_mbps": 2.9994666666666667,
+          "netem_actual_loss_percent": 4.637591406045304
+        }
+      },
+      "probe": {
+        "p95_ns": 602177884,
+        "p99_ns": 602629333,
+        "received": 15
+      }
+    }
+  ],
+  "resource": {
+    "samples": 180,
+    "max_gap_s": 1.001997635,
+    "missing_process_samples": {
+      "client": 0,
+      "server": 0
+    },
+    "socket_drop_max": 0,
+    "socket_drop_by_endpoint": {
+      "biz/ss_udp": 0,
+      "biz/ss_raw": 0,
+      "biz/ss_packet": 0,
+      "client/ss_udp": 0,
+      "client/ss_raw": 0,
+      "client/ss_packet": 0,
+      "router/ss_udp": 0,
+      "router/ss_raw": 0,
+      "router/ss_packet": 0,
+      "server/ss_udp": 0,
+      "server/ss_raw": 0,
+      "server/ss_packet": 0,
+      "target/ss_udp": 0,
+      "target/ss_raw": 0,
+      "target/ss_packet": 0
+    },
+    "packet_socket_by_endpoint": {
+      "biz/ss_packet": {
+        "max_rmem_alloc": 0,
+        "max_rcv_buf": 0,
+        "max_drops": 0,
+        "max_rmem_ratio": 0.0
+      },
+      "client/ss_packet": {
+        "max_rmem_alloc": 51264,
+        "max_rcv_buf": 1048576,
+        "max_drops": 0,
+        "max_rmem_ratio": 0.04888916015625
+      },
+      "router/ss_packet": {
+        "max_rmem_alloc": 0,
+        "max_rcv_buf": 1048576,
+        "max_drops": 0,
+        "max_rmem_ratio": 0.0
+      },
+      "server/ss_packet": {
+        "max_rmem_alloc": 59072,
+        "max_rcv_buf": 1048576,
+        "max_drops": 0,
+        "max_rmem_ratio": 0.05633544921875
+      },
+      "target/ss_packet": {
+        "max_rmem_alloc": 0,
+        "max_rcv_buf": 0,
+        "max_drops": 0,
+        "max_rmem_ratio": 0.0
+      }
+    },
+    "packet_socket_command_errors": {},
+    "link_drop_delta": {
+      "router": {
+        "rx": 0,
+        "tx": 0
+      },
+      "target": {
+        "rx": 0,
+        "tx": 0
+      },
+      "biz": {
+        "rx": 0,
+        "tx": 0
+      },
+      "client": {
+        "rx": 0,
+        "tx": 0
+      },
+      "server": {
+        "rx": 0,
+        "tx": 0
+      }
+    },
+    "process_cpu_seconds": {
+      "client": 100.46,
+      "server": 100.32
+    },
+    "thread_cpu_seconds": {
+      "client": {
+        "5882": 15.03,
+        "5884": 6.85,
+        "5885": 11.54,
+        "5886": 14.37,
+        "5887": 0.0,
+        "5888": 0.0,
+        "5889": 0.0,
+        "5907": 12.35,
+        "6173": 10.97,
+        "6174": 14.86,
+        "6389": 0.0,
+        "7418": 0.0
+      },
+      "server": {
+        "5863": 0.0,
+        "5865": 6.22,
+        "5866": 13.48,
+        "5867": 0.0,
+        "5868": 0.0,
+        "5869": 0.0,
+        "5880": 13.15,
+        "5881": 14.34,
+        "5892": 13.16,
+        "5904": 13.99,
+        "5909": 15.17,
+        "6391": 0.0
+      }
+    },
+    "errors": []
+  },
+  "diagnostics": {
+    "client": {
+      "first_generation": {
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4
+      },
+      "last_generation": {
+        "1": 5,
+        "2": 6,
+        "3": 7,
+        "4": 8
+      },
+      "heap_peak": 62193664,
+      "early_heap_median": 40050688.0,
+      "late_heap_median": 42483712.0
+    },
+    "server": {
+      "first_generation": {
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4
+      },
+      "last_generation": {
+        "1": 5,
+        "2": 6,
+        "3": 7,
+        "4": 8
+      },
+      "heap_peak": 52322304,
+      "early_heap_median": 31055872.0,
+      "late_heap_median": 29061120.0
+    }
+  },
+  "statistics": {
+    "biz": {
+      "bitset_bytes": 16653,
+      "capacity_errors": 0,
+      "exact_dedupe": true,
+      "histograms": {
+        "oneway_ns": {
+          "allocated_bytes": 160008,
+          "ceiling_ns": 10000000000,
+          "count": 35517,
+          "maximum_ns": 373181337,
+          "overflow": 0,
+          "resolution_ns": 500000
+        },
+        "probe_rtt_ns": {
+          "allocated_bytes": 160008,
+          "ceiling_ns": 10000000000,
+          "count": 173,
+          "maximum_ns": 1850674059,
+          "overflow": 0,
+          "resolution_ns": 500000
+        },
+        "send_lag_ns": {
+          "allocated_bytes": 8008,
+          "ceiling_ns": 100000000,
+          "count": 133224,
+          "maximum_ns": 4472258,
+          "overflow": 0,
+          "resolution_ns": 100000
+        }
+      },
+      "sequence_capacity": 133224,
+      "version": 1
+    },
+    "target": {
+      "bitset_bytes": 16653,
+      "capacity_errors": 0,
+      "exact_dedupe": true,
+      "histograms": {
+        "oneway_ns": {
+          "allocated_bytes": 160008,
+          "ceiling_ns": 10000000000,
+          "count": 128674,
+          "maximum_ns": 4711242159,
+          "overflow": 0,
+          "resolution_ns": 500000
+        },
+        "probe_rtt_ns": {
+          "allocated_bytes": 160008,
+          "ceiling_ns": 10000000000,
+          "count": 0,
+          "maximum_ns": 0,
+          "overflow": 0,
+          "resolution_ns": 500000
+        },
+        "send_lag_ns": {
+          "allocated_bytes": 8008,
+          "ceiling_ns": 100000000,
+          "count": 133224,
+          "maximum_ns": 4959289,
+          "overflow": 0,
+          "resolution_ns": 100000
+        }
+      },
+      "sequence_capacity": 133224,
+      "version": 1
+    }
+  }
+}

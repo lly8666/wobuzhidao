@@ -69,9 +69,9 @@
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。",
     "2026-10-03资源优化顺序完成：有效FEC计算、owned加密/传递复制、有限ACK合并、已就绪Linux批量接收/发送各自Actions unit/build/race+Normal/Game5205 PASS；额外修复pre-attach overflow导致共享server退出，再以ca8175d通过同门和36/36 lifecycle+aggregate。仅targeted，不继承最新全18/长测/P6/P7。"
   ],
-  "in_progress": "9e3dca5 core/foundation and repeat30 race PASS. Defaults live PASS; four initial live probes FAIL due generator boolean syntax and serialized FEC stats-name mismatch, corrected without product changes. Short-soak canaries running. Same-source P6 packaging prepared, not qualified.",
-  "next_task": "Require current-source foundation and predelivery tools/repeat30 race PASS. Dispatch independent180s soak and representative live-config canaries, fix failures, then70 functional cases,1800s Normal/Game, exact final18 and same-source P6 packages. P7 physical NOT_RUN.",
-  "latest_log": "docs/devlog/20261003-194400-config-probe-corrections-packaging.md",
+  "in_progress": "Pre-delivery short-soak Normal/Game FAIL: active traffic blocked by replacement opMu; one Game transport send error destroyed stable UDP upstream mapping, stranding reverse sender. Two narrow runtime fixes and real-path regressions pending Actions. Repeated overlap test exposed server stop, now capture exact error. Formal/P6 remain blocked.",
+  "next_task": "Require current-source core/race/lifecycle36 and repeated30 diagnostic; fix original server-stop cause from log. Then independent180s Normal/Game and configuration canaries,70 functional cases,1800s formal,final18,same-source P6. P7 NOT_RUN.",
+  "latest_log": "docs/devlog/20261003-200000-rotation-business-isolation.md",
   "last_tested_source_sha": "ca8175d18acd7f7e3e1db5379a58d9f85417dd97",
   "actions": [
     {
