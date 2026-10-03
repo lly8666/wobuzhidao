@@ -1,12 +1,12 @@
 {
   "ref": "next/tlslike-dataplane",
-  "dispatch_ref": "perf-fixed/56eb5413c3cf2e559b82026e8a5783508764e2f4",
-  "expected_sha": "56eb5413c3cf2e559b82026e8a5783508764e2f4",
+  "dispatch_ref": "perf-fixed/63951852439556e9138a70a1e85eff04d451634f",
+  "expected_sha": "63951852439556e9138a70a1e85eff04d451634f",
   "workflow": "next-strict-weaknet.yml",
   "mode": "normal",
   "scenario": "lossless",
   "seed": "101",
   "rate_mbps": "10",
   "lanes": "1",
-  "reason": "V10.2 lossless no-false-repair diagnostic after Normal 5305, Normal 5205, and Game4 5305 exact-SHA PASS"
+  "reason": "FEC20:20 size groups: exact product one-sample Normal lossless bandwidth canary; preserve mixed business, MTU, redundancy and no-HOL"
 }
