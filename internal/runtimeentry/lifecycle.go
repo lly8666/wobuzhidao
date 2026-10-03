@@ -1336,6 +1336,13 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 
 	result, err := assoc.HandleSegment(seg, now)
 	if err != nil {
+		if errors.Is(err, faketcp.ErrHandshakeState) {
+			// An unpublished candidate can receive a later TLS chunk before its
+			// final ACK/first chunk, or race its own admission close. FakeTCP has
+			// rejected the segment without advancing handshake state. Preserve
+			// its existing retry/deadline; this must not stop other live lanes.
+			return nil
+		}
 		return err
 	}
 	if result.AckNeeded {

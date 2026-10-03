@@ -70,10 +70,12 @@
     "2026-10-03资源优化顺序完成：有效FEC计算、owned加密/传递复制、有限ACK合并、已就绪Linux批量接收/发送各自Actions unit/build/race+Normal/Game5205 PASS；额外修复pre-attach overflow导致共享server退出，再以ca8175d通过同门和36/36 lifecycle+aggregate。仅targeted，不继承最新全18/长测/P6/P7。",
     "2026-10-03同源码b1fe7e2可交物理机前资格：70实际配置、36生命周期、18独立严格弱网、Normal/Game各1800s目标速率持续弱网、100/500ms共享黑洞、三目标候选包全部PASS；78回执控制与18汇总原始attempt1，extras0，物理未跑。"
   ],
-  "in_progress": "48诊断排除ACK/SACK/tick主因；定位markLaneQualified每条认证记录调用旧TransportStats全扫描。窄修为首条启动FIN、现有tick维护、常数双FIN getter，尚未验证。",
-  "next_task": "新SHA core/race/fixture后独立Normal/Game180：原门、1s/link+2pp、内部queue0drop全部通过，确认replacement_checks按tick。之后完整最新源码资格/P6。",
-  "latest_log": "docs/devlog/20261004-011000-constant-retirement-check.md",
-  "last_tested_source_sha": "48f585296cd7a1f72cf721e3328df976fa4ffb29",
+  "in_progress": [
+    "a86 Normal180原门/逐秒/内部queue0 PASS，退役检查69/216万reads；Game180因未发布candidate握手状态错误导致全server退出FAIL。窄修连接级错误隔离，等待新SOURCE core/race及独立双模式短测。"
+  ],
+  "next_task": "新SOURCE core/race -> 各一条Normal/Game180原門/1s/内部queue0；通过后完整最新源码18弱网/70配置/36生命周期/两1800s/黑洞/P6，P7 NOT_RUN。",
+  "latest_log": "docs/devlog/20261004-012900-candidate-handshake-isolation.md",
+  "last_tested_source_sha": "a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -2178,7 +2180,7 @@
       ],
       "latest_log": "docs/devlog/20261004-011000-constant-retirement-check.md",
       "note": "b1 original78+18 gates passed, but original-send-second audit found concentrated rotation loss up to61.264%, hidden by60s averages. New receive-only retiring authorization + unchanged close budgets pending exact-source qualification; b1 cannot qualify new1s gate.",
-      "next_task": "Actions验证有限retiring接收的core/race/fixture，然后冻结新SHA并分别Normal/Game180s；新增1s loss门与原门全部通过后重新完整70配置/36生命周期/18严格弱网/1800s/黑洞/P6。",
+      "next_task": "新SOURCE core/race -> 各一条Normal/Game180原門/1s/内部queue0；通过后完整最新源码18弱网/70配置/36生命周期/两1800s/黑洞/P6，P7 NOT_RUN。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -6562,7 +6564,7 @@
         "packaging": "3targets ACTIONS_PASS",
         "physical": "NOT_RUN",
         "evidence": "docs/evidence/predelivery-b1fe7e2.json",
-        "latest_log": "docs/devlog/20261004-011000-constant-retirement-check.md",
+        "latest_log": "docs/devlog/20261004-012900-candidate-handshake-isolation.md",
         "handoff_short_window": {
           "baseline_source": "b1fe7e2658fb48b47010bfa6988fe716e104d6b2",
           "baseline_run": 37127945540,
@@ -6581,6 +6583,19 @@
             "server_internal_queue_drops": 13611,
             "cause": "per-authenticated-record lifecycle retirement calls full old TransportStats; ACK/tick hypothesis rejected",
             "max_c2s_1s_loss_percent": 44.79124442642886
+          },
+          "constant_retirement_a86": {
+            "game_result": "FAIL",
+            "normal_run": 37139795827,
+            "game_reason": "unpublished candidate ErrHandshakeState escapes shared Run; server exits; no complete manifest",
+            "game_run": 37139798038,
+            "controller": 37139635481,
+            "normal_max_1s_loss_percent": 0.4051863857374392,
+            "normal_result": "PASS_DIAGNOSTIC",
+            "server_queue_overflow": 0,
+            "normal_min_phase_mbps": 9.9962368,
+            "server_replacement_checks": 69,
+            "source_sha": "a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d"
           }
         }
       }

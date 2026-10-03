@@ -576,6 +576,12 @@ func (s *Server) handleSegment(ctx context.Context, seg faketcp.Segment, now tim
 
 	result, err := assoc.HandleSegment(seg, now)
 	if err != nil {
+		if errors.Is(err, faketcp.ErrHandshakeState) {
+			// Invalid pre-publication handshake traffic is local to this flow.
+			// The association retains its original validation/retry deadline;
+			// no ACK or admission progress is fabricated for a rejected packet.
+			return nil
+		}
 		return err
 	}
 	if result.AckNeeded {

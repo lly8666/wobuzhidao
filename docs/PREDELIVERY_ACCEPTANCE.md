@@ -84,6 +84,8 @@ Normal1800原样本逐秒按原发送时间统计最终收到的unique包，损�
 
 窄修复：首条认证记录仅启动一次原CloseWrite；已启动后完成/超时检查交现有tick。双端FIN检查新增常数时间TransportCloseComplete，只读取原两位，不扫描repair/OOO。绝对close budget、FIN保护、接收在途授权、隔离、4096/FEC/队列与wire均不变；新增10000次qualification零retirement-check的操作计数回归及双FIN/缺失incarnation单测。候选必须重新验证，不提前标PASS。
 
+a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d 短Normal [37139795827](https://github.com/lly8666/wobuzhidao/actions/runs/37139795827)原门/1s门/内部queue0门全部PASS：最低阶段9.99624Mbps，最差1s0.40519%，server queue overflow0、max queue age6.11ms，216万reads仅69次replacement checks。短Game [37139798038](https://github.com/lly8666/wobuzhidao/actions/runs/37139798038) FAIL：换代候选未发布时association报ErrHandshakeState，错误逃到共享Run导致整个server退出。manifest未写，不能将缺失摘要当成运行通过。最新窄修只隔离该拒绝包，保留严格ACK/序列验证、重试和原期限，不吞掉underlay错误或改steady权限。新源码需重新双模式短测与完整资格，a86 Normal短PASS不等于最终可交物理机。
+
 同源码包在 [P6 Actions artifacts](https://github.com/lly8666/wobuzhidao/actions/runs/37127951215)：`candidate-linux-amd64-b1fe7e...`、`candidate-linux-arm64-b1fe7e...`、`candidate-windows-amd64-b1fe7e...`。下载后核对artifact ZIP digest、manifest文件hash、`actions-receipt.json`；manifest保留构建前PENDING_VALIDATION，真正验收结果在独立receipt，不能手改manifest伪造资格。Actions artifact有保留期限，到期需由冻结SOURCE重新打包并记录新receipt。
 
 1. 用户安排Windows/Npcap/Wintun和Linux amd64/arm64实机，双方用同一候选；当前内层TCP FIN占一序列位置，禁止混用旧端点。记录NIC/驱动/OS/CPU、实际外网路径及有效MTU；ARM先原生version和基本业务，不能将交叉构建当原生PASS。
