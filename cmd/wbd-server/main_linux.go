@@ -159,6 +159,7 @@ func main() {
 		},
 		Close: raw.Close,
 	}
+	raw.SetIODiagnostics(*diagnosticJSONL != "")
 	server, err := runtimeentry.NewLifecycleServer(runtimeentry.LifecycleServerConfig{
 		ServerConfig: runtimeentry.ServerConfig{
 			TLSStartupPadding: *tlsStartupPadding,
@@ -214,7 +215,8 @@ func main() {
 				return struct {
 					Present bool                          `json:"present"`
 					Tunnel  runtimeentry.TunnelDiagnostic `json:"tunnel"`
-				}{Present: ok, Tunnel: snapshot}
+					RawIO faketcp.RawIODiagnostic `json:"raw_io"`
+				}{Present: ok, Tunnel: snapshot, RawIO: raw.IODiagnostic()}
 			})
 		}()
 	}

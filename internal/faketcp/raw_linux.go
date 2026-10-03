@@ -8,6 +8,8 @@ import (
 	"net"
 	"sync"
 	"syscall"
+
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -28,6 +30,9 @@ type RawIPv4Endpoint struct {
 
 	recvMu  sync.Mutex
 	recvBuf []byte
+	recvBatch *rawReceiveBatch
+	recvBatchDisabled bool
+	ioStats rawIOCounters
 
 	mu     sync.Mutex
 	ipID   uint16
@@ -63,6 +68,9 @@ func OpenRawIPv4Endpoint(interfaceName string, localIP [4]byte, persona PacketPe
 	}); err != nil {
 		return nil, err
 	}
+	// Optional Linux4.20+ optimization. Keep the userspace outgoing filter for
+	// older kernels; it has identical ingress semantics when this is unsupported.
+	_ = unix.SetsockoptInt(recvFD, unix.SOL_PACKET, unix.PACKET_IGNORE_OUTGOING, 1)
 
 	sendFD, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_RAW)
 	if err != nil {
@@ -98,7 +106,7 @@ func (e *RawIPv4Endpoint) ReadSegment() (Segment, []byte, error) {
 	e.recvMu.Lock()
 	defer e.recvMu.Unlock()
 	for {
-		n, from, err := syscall.Recvfrom(e.recvFD, e.recvBuf, 0)
+		frame, outgoing, err := e.readRawFrame()
 		if err != nil {
 			// recvfrom(2) may be interrupted by a signal before any packet is
 			// consumed. EINTR is not an endpoint failure; retry the same blocking
@@ -117,10 +125,10 @@ func (e *RawIPv4Endpoint) ReadSegment() (Segment, []byte, error) {
 			}
 			return Segment{}, nil, err
 		}
-		if ll, ok := from.(*syscall.SockaddrLinklayer); ok && ll.Pkttype == rawPacketOutgoing {
+		if outgoing {
 			continue
 		}
-		ip := rawExtractIPv4(e.recvBuf[:n])
+		ip := rawExtractIPv4(frame)
 		if len(ip) == 0 {
 			continue
 		}

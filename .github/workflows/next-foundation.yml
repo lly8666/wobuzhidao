@@ -84,6 +84,9 @@ jobs:
           test -n "$packages"
           go test ./... -count=1
           go build ./...
+      - name: Cross-compile Linux arm64 raw adapter
+        if: runner.os == 'Linux'
+        run: GOOS=linux GOARCH=arm64 go build ./...
       - name: Windows client route DNS IPv6 render contract
         if: runner.os == 'Windows'
         shell: powershell

@@ -158,6 +158,7 @@ func main() {
 		},
 		Close: raw.Close,
 	}
+	raw.SetIODiagnostics(*diagnosticJSONL != "")
 	mux, err := runtimeentry.NewSegmentMux(baseIO)
 	if err != nil {
 		log.Fatal(err)
@@ -240,10 +241,12 @@ func main() {
 					runtimeentry.TunnelDiagnostic
 					SegmentMux runtimeentry.SegmentMuxDiagnostic  `json:"segment_mux"`
 					ClientUDP  openwrtclient.UDPIngressDiagnostic `json:"client_udp"`
+					RawIO faketcp.RawIODiagnostic `json:"raw_io"`
 				}{
 					TunnelDiagnostic: client.DiagnosticSnapshot(now),
 					SegmentMux:       mux.DiagnosticSnapshot(),
 					ClientUDP:        adapter.UDPIngressDiagnostic(),
+					RawIO: raw.IODiagnostic(),
 				}
 			})
 		}()

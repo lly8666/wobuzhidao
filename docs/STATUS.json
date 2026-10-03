@@ -68,10 +68,10 @@
     "V10.2产品56eb5413c3cf2e559b82026e8a5783508764e2f4：新冻结ref正式120s final18（每run一条）18/18五分类及revision2 artifact-only完整矩阵/配对RTT PASS，aggregate37065816473/artifact11252477679；全部socket drop0，无损repair/abandoned0。仅120s资格，不关闭目标负载>=30min/P6/P7。",
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。"
   ],
-  "in_progress": "RESOURCE_OPTIMIZATION_STAGE3_NOT_RUN: stage2 unit/race + Normal/Game5205 PASS; stage3 bounded pure ACK coalescing candidate",
-  "next_task": "Stage3 exact-SHA foundation including sparse timer/async failure/ownership/lifecycle/race -> independent Normal/Game5205; only PASS permits ready-packet batch I/O.",
-  "latest_log": "docs/devlog/20261003-133500-stage3-bounded-ack.md",
-  "last_tested_source_sha": "1647f0bcb592e36b0a76aea83452b48cff2c17b7",
+  "in_progress": "RESOURCE_OPTIMIZATION_STAGE4A_NOT_RUN: stage3 unit/race + Normal/Game5205 PASS; ready-only receive batch candidate",
+  "next_task": "Stage4a Linux/Windows unit/build/race +arm64 crosscompile -> independent Normal/Game5205; only PASS permits stage4b already-generated send batch. Do not bundle receive/send evidence.",
+  "latest_log": "docs/devlog/20261003-135000-stage4a-ready-receive-batch.md",
+  "last_tested_source_sha": "2f0086cc304dbc145c4aec3d6713ebebfd1fb623",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -6373,7 +6373,7 @@
       "resource_optimization_sequence": {
         "user_policy": "each atomic optimization -> Actions unit/race -> independent5205 -> next",
         "initial_baseline_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
-        "current_stage": 3,
+        "current_stage": "4a",
         "stages": [
           {
             "stage": 1,
@@ -6398,12 +6398,23 @@
           {
             "stage": 3,
             "name": "bounded pure ACK coalescing",
-            "status": "NOT_RUN",
-            "latest_log": "docs/devlog/20261003-133500-stage3-bounded-ack.md"
+            "status": "ACTIONS_PASS",
+            "latest_log": "docs/devlog/20261003-133500-stage3-bounded-ack.md",
+            "source_sha": "2f0086cc304dbc145c4aec3d6713ebebfd1fb623",
+            "foundation_run": 37100253684,
+            "coordinator_run": 37100329568,
+            "evidence": "docs/evidence/resource-stage3-5205.json",
+            "resource_benefit": "not proven in5205: SACK feedback dominates; retain low-loss coalescing, no fixedCPU claim"
           },
           {
-            "stage": 4,
-            "name": "ready-packet batch I/O",
+            "stage": "4a",
+            "name": "ready-packet receive batch",
+            "status": "NOT_RUN",
+            "latest_log": "docs/devlog/20261003-135000-stage4a-ready-receive-batch.md"
+          },
+          {
+            "stage": "4b",
+            "name": "already-generated send batch",
             "status": "NOT_RUN"
           }
         ],
