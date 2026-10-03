@@ -1,0 +1,124 @@
+{
+  "result": "PASS",
+  "source_sha": "0f8572e98e45bf813831dd72bb72c395764adab4",
+  "stage": 1,
+  "baseline_source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+  "errors": [],
+  "records": [
+    {
+      "stage": 1,
+      "mode": "normal",
+      "source_sha": "0f8572e98e45bf813831dd72bb72c395764adab4",
+      "run": 37098974862,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37098974862",
+      "artifact": 11265392458,
+      "artifact_digest": "sha256:48e536b9708bc011c6912d1055b00f8044d91500427fe202fd199f5440a4c78a",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "stress_goodput_mbps": {
+        "c2s": 9.999150933333334,
+        "s2c": 9.999616
+      },
+      "stress_byte_loss_percent": {
+        "c2s": 0.0017066703075633229,
+        "s2c": 0.0
+      },
+      "outer_ip_per_app": {
+        "c2s": 3.4871758466666667,
+        "s2c": 3.5046158333333333
+      },
+      "cpu_seconds": {
+        "client": 66.27,
+        "server": 66.93
+      },
+      "baseline_cpu_seconds": {
+        "client": 54.02,
+        "server": 54.6
+      },
+      "socket_drop_max": 0,
+      "stress_probe": {
+        "p95_ns": 615802242,
+        "p99_ns": 616263203,
+        "received": 60,
+        "sent": 60
+      },
+      "rtt_delta_ns": {
+        "pre": {
+          "p95": 2051991,
+          "p99": 5789486
+        },
+        "stress": {
+          "p95": 2632411,
+          "p99": -2755577
+        },
+        "post": {
+          "p95": 5739852,
+          "p99": 4591385
+        }
+      }
+    },
+    {
+      "stage": 1,
+      "mode": "game",
+      "source_sha": "0f8572e98e45bf813831dd72bb72c395764adab4",
+      "run": 37098977253,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37098977253",
+      "artifact": 11265093094,
+      "artifact_digest": "sha256:ecea1328d144b69ffa179109e276b26d5fcebbf5775d88b3d4c38df4e1b304d5",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "stress_goodput_mbps": {
+        "c2s": 3.0000746666666664,
+        "s2c": 3.0000746666666664
+      },
+      "stress_byte_loss_percent": {
+        "c2s": 0.0,
+        "s2c": 0.0
+      },
+      "outer_ip_per_app": {
+        "c2s": 14.153515979157852,
+        "s2c": 14.214779209939664
+      },
+      "cpu_seconds": {
+        "client": 106.86,
+        "server": 102.03
+      },
+      "baseline_cpu_seconds": {
+        "client": 109.86,
+        "server": 101.13
+      },
+      "socket_drop_max": 0,
+      "stress_probe": {
+        "p95_ns": 605139576,
+        "p99_ns": 605570692,
+        "received": 60,
+        "sent": 60
+      },
+      "rtt_delta_ns": {
+        "pre": {
+          "p95": 2482362,
+          "p99": 1868696
+        },
+        "stress": {
+          "p95": 1655379,
+          "p99": 710843
+        },
+        "post": {
+          "p95": -2498521,
+          "p99": -2264791
+        }
+      }
+    }
+  ],
+  "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance"
+}

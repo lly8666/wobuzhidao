@@ -200,7 +200,9 @@ func (o *Opener) OpenRecord(wire []byte) (Record, error) {
 	if plain[0] != KindLINK && plain[0] != KindHealth {
 		return Record{}, ErrUnknownKind
 	}
-	payload := append([]byte(nil), plain[1:end]...)
+	// Open(nil, ...) owns this allocation. Clamp capacity so callers cannot
+	// append into the authenticated trailer/padding; no receive buffer escapes.
+	payload := plain[1:end:end]
 	return Record{Kind: plain[0], PN: pn, Payload: payload}, nil
 }
 
@@ -240,7 +242,11 @@ func sealRecord(keys Keys, aead cipher.AEAD, maxBody int, pn uint64, kind byte, 
 	binary.BigEndian.PutUint16(header[1:3], OuterVersion)
 	binary.BigEndian.PutUint16(header[3:5], uint16(bodyLen))
 
-	plain := make([]byte, plainLen)
+	// Seal permits exact in-place plaintext/ciphertext overlap. Allocate the
+	// final owned record once, leaving its header prefix outside the AEAD body.
+	prefix := OuterHeaderLen + ProtectedPNLen
+	wire := make([]byte, prefix+plainLen+aead.Overhead())
+	plain := wire[prefix : prefix+plainLen]
 	plain[0] = kind
 	copy(plain[1:], payload)
 	plain[1+len(payload)] = InnerType
@@ -249,7 +255,9 @@ func sealRecord(keys Keys, aead cipher.AEAD, maxBody int, pn uint64, kind byte, 
 	copy(aad[:OuterHeaderLen], header[:])
 	binary.BigEndian.PutUint64(aad[OuterHeaderLen:], pn)
 	nonce := recordNonce(keys.IV, pn)
-	ciphertext := aead.Seal(nil, nonce[:], plain, aad[:])
+	copy(wire[:OuterHeaderLen], header[:])
+	wire = aead.Seal(wire[:prefix], nonce[:], plain, aad[:])
+	ciphertext := wire[prefix:]
 
 	mask, err := headerMask(keys.HPKey, ciphertext)
 	if err != nil {
@@ -261,10 +269,7 @@ func sealRecord(keys Keys, aead cipher.AEAD, maxBody int, pn uint64, kind byte, 
 		protectedPN[i] ^= mask[i]
 	}
 
-	wire := make([]byte, OuterHeaderLen+ProtectedPNLen+len(ciphertext))
-	copy(wire[:OuterHeaderLen], header[:])
 	copy(wire[OuterHeaderLen:OuterHeaderLen+ProtectedPNLen], protectedPN[:])
-	copy(wire[OuterHeaderLen+ProtectedPNLen:], ciphertext)
 	return wire, nil
 }
 

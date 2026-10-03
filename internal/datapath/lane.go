@@ -442,7 +442,8 @@ func (l *Lane) sealLocked(datagrams [][]byte, selector paddingSelector) ([]WireR
 		out = append(out, WireRecord{
 			PN:           pn,
 			PaddingBytes: padding,
-			Wire:         append([]byte(nil), wire...),
+			// Sealer returns a fresh owned allocation, including its AEAD body.
+			Wire: wire,
 		})
 		l.stats.OutboundRecords++
 		if padding > 0 {
@@ -521,7 +522,9 @@ func (l *Lane) inboundLocked(payload []byte, now time.Time) InboundResult {
 		out.Authenticated++
 		packets, err := l.rxPath.Decode(decoded.Payload, now)
 		for _, packet := range packets {
-			out.Datagrams = append(out.Datagrams, append([]byte(nil), packet...))
+			// FECPath.Decode already transfers owned LINK output; its borrowed
+			// shard buffers are copied inside that boundary, not here again.
+			out.Datagrams = append(out.Datagrams, packet)
 			l.stats.DeliveredDatagrams++
 		}
 		if err != nil {

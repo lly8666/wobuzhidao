@@ -354,6 +354,39 @@ func TestReturnedRecordWireRemainsOwnedAcrossLaterEncoderReuse(t *testing.T) {
 	}
 }
 
+func TestDeliveredDatagramsRemainOwnedAcrossReceiveReuse(t *testing.T) {
+	for _, parity := range []int{0, 4, 20} {
+		client, server := lanePair(t, parity)
+		t0 := time.Unix(45, 0)
+		want := bytes.Repeat([]byte{0xa5}, 300)
+		records, err := client.Outbound(want, t0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		held := deliverRecords(t, server, records, t0)
+		if len(held) != 1 || !bytes.Equal(held[0], want) {
+			t.Fatalf("parity=%d held=%x", parity, held)
+		}
+		for i := 0; i < 40; i++ {
+			records, err = client.Outbound(bytes.Repeat([]byte{byte(i)}, 300+i), t0.Add(time.Duration(i+1)*time.Millisecond))
+			if err != nil {
+				t.Fatal(err)
+			}
+			deliverRecords(t, server, records, t0.Add(time.Duration(i+1)*time.Millisecond))
+			for _, record := range records {
+				for j := range record.Wire {
+					record.Wire[j] = 0
+				}
+			}
+		}
+		if !bytes.Equal(held[0], want) {
+			t.Fatalf("parity=%d retained datagram mutated", parity)
+		}
+		client.Close()
+		server.Close()
+	}
+}
+
 func TestCloseReleasesOnlyOneLaneAndConcurrentOwnerSerializesPN(t *testing.T) {
 	a, b := lanePair(t, 0)
 	a.Close()

@@ -68,10 +68,10 @@
     "V10.2产品56eb5413c3cf2e559b82026e8a5783508764e2f4：新冻结ref正式120s final18（每run一条）18/18五分类及revision2 artifact-only完整矩阵/配对RTT PASS，aggregate37065816473/artifact11252477679；全部socket drop0，无损repair/abandoned0。仅120s资格，不关闭目标负载>=30min/P6/P7。",
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。"
   ],
-  "in_progress": "RESOURCE_OPTIMIZATION_STAGE1_NOT_RUN：按用户顺序做有效FEC计算->复制->ACK->批量I/O，每项unit/race及独立Normal/Game5205通过后才继续；当前仅阶段1代码候选。",
-  "next_task": "验收阶段1全量unit/build/race，然后冻结完整SHA，Normal10M/1lane和Game逻辑3M/4lane分别独立5205单条Action，核对原五分类/RTT/CPU/drop/cost；过关后进入阶段2ownership与加解密复制。不得混改8ms/FEC/Game/缓存，不继承全矩阵/长测资格。",
-  "latest_log": "docs/devlog/20261003-120000-stage1-active-fec-5205.md",
-  "last_tested_source_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
+  "in_progress": "RESOURCE_OPTIMIZATION_STAGE2_NOT_RUN: stage1 unit/race+Normal/Game5205 PASS; stage2 single-allocation AEAD and owned transfer candidate",
+  "next_task": "Stage2 exact SHA Actions unit/race -> independent Normal10M/Game3M 5205; only advance to ACK after all original gates and paired RTT/loss checks pass.",
+  "latest_log": "docs/devlog/20261003-132000-stage2-owned-record-copy.md",
+  "last_tested_source_sha": "0f8572e98e45bf813831dd72bb72c395764adab4",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -6373,18 +6373,23 @@
       "resource_optimization_sequence": {
         "user_policy": "each atomic optimization -> Actions unit/race -> independent5205 -> next",
         "initial_baseline_sha": "f240d5177c6a8aaa02de570079926b2600c480fd",
-        "current_stage": 1,
+        "current_stage": 2,
         "stages": [
           {
             "stage": 1,
             "name": "active FEC computation",
-            "status": "NOT_RUN",
-            "latest_log": "docs/devlog/20261003-120000-stage1-active-fec-5205.md"
+            "status": "ACTIONS_PASS",
+            "latest_log": "docs/devlog/20261003-120000-stage1-active-fec-5205.md",
+            "source_sha": "0f8572e98e45bf813831dd72bb72c395764adab4",
+            "foundation_run": 37098792834,
+            "coordinator_run": 37098968088,
+            "evidence": "docs/evidence/resource-stage1-5205.json"
           },
           {
             "stage": 2,
             "name": "crypto/owned transfer copies",
-            "status": "NOT_RUN"
+            "status": "NOT_RUN",
+            "latest_log": "docs/devlog/20261003-132000-stage2-owned-record-copy.md"
           },
           {
             "stage": 3,
