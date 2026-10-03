@@ -270,3 +270,7 @@ Game4逻辑3Mbps lossless 已在 run 35818718764 / job 107045770392 全门PASS�
 Normal输出从owner封装到runtime发包必须携带原LaneRef的本地metadata，不能在promote后把旧密文重新贴到当前association。metadata不进wire；过期输出拒绝且不等待重封装，后续新业务独立发出。Game保持原显式ref。该边界用确定性测试及正式源码目标速率轮换共同验证。
 
 owner持锁的快照/身份检查仅能读Lane构造后不可变配置，禁止获取lane.mu；Lane封装padding回调需要owner.mu，反向嵌套会使真实HTTPS和诊断共同卡住。LaneStats在owner锁外读取并随后generation校验。新增配置热修改必须重审该锁边界，不得就地修改cfg。
+# 交付前实时FEC压力边界（2026-10-03）
+
+实时FEC在既有8重恢复槽满额时，允许早于新BlockID的最老未完整恢复状态转compact，给fresh block恢复机会；绝对3s为最长恢复期限，不是必须占槽3s。迟到旧block不挤走新恢复，迟到systematic保持首次交付/去重；reference decoder仍保留ErrDecoderFull契约。压力不是完整性错误，坏header/shard/payload仍必须失败，LastPathError仅提供有界错误类别，不记录业务内容。此质量相关变动必须重新做独立5205和整份源码资格，不能扩大槽数或用资源分类跳过实际损坏。HTTPS exact-body失败必须定位，不能降为“能建立TLS就算通过”。
+

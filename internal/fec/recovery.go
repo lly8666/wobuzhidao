@@ -1,5 +1,35 @@
 package fec
 
+// Compact the oldest incomplete block only when it precedes incoming work.
+// The window is bounded; blockOrder avoids scanning the historical map IDs.
+func (d *BlockDecoder) retireOldestRecoveryBefore(incoming uint32) bool {
+	for i := d.blockHead; i < len(d.blockOrder); i++ {
+		id := d.blockOrder[i]
+		if d.blocks[id] == nil {
+			if i == d.blockHead {
+				d.blockHead++
+			}
+			continue
+		}
+		if id >= incoming {
+			continue
+		}
+		if d.RetireRecoveryExpired(id).Retired {
+			d.pressureRetirements++
+			d.lastPressureRetired = id
+			return true
+		}
+	}
+	d.compactBlockOrder()
+	return false
+}
+
+// LastPressureRetiredBlock returns the single heavy block retired by the most
+// recent AddLive call, so the owner can remove its absolute deadline as well.
+func (d *BlockDecoder) LastPressureRetiredBlock() uint32 {
+	return d.lastPressureRetired
+}
+
 // RecoveryRetireResult describes one heavy decoder block compacted because its
 // external recovery deadline expired. The compact retired state keeps exact
 // first-delivery information but intentionally drops parity/reconstruction

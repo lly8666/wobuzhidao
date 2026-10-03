@@ -190,6 +190,8 @@ type BlockDecoder struct {
 
 	reconstructionEvents uint64
 	recoveredSources      uint64
+	pressureRetirements    uint64
+	lastPressureRetired   uint32
 }
 
 func NewBlockDecoder(codec Codec, maxPacketSize, maxBlocks int) (*BlockDecoder, error) {
@@ -209,6 +211,18 @@ func NewBlockDecoderWithParity(codec Codec, maxPacketSize, maxBlocks, parityShar
 func (d *BlockDecoder) InFlight() int { return len(d.blocks) }
 
 func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
+	return d.add(datagram, false)
+}
+
+// AddLive prioritizes fresh blocks under bounded recovery pressure. The wire,
+// validation and first-delivery rules are identical to Add. Add preserves the
+// reference decoder's capacity error contract.
+func (d *BlockDecoder) AddLive(datagram []byte) ([][]byte, bool, error) {
+	return d.add(datagram, true)
+}
+
+func (d *BlockDecoder) add(datagram []byte, live bool) ([][]byte, bool, error) {
+	d.lastPressureRetired = 0
 	if len(datagram) < HeaderSize {
 		return nil, false, errors.New("fec: shard datagram too short")
 	}
@@ -244,6 +258,16 @@ func (d *BlockDecoder) Add(datagram []byte) ([][]byte, bool, error) {
 		if len(d.blocks) >= d.maxBlocks {
 			if id, victim, ok := d.oldestRetirableBefore(h.BlockID); ok {
 				d.retireBlock(id, victim)
+			} else if live {
+				if !d.retireOldestRecoveryBefore(h.BlockID) {
+					// Late old blocks must not evict newer recovery work. Keep
+					// only delivery metadata, including when parity arrives first.
+					d.addRetiredState(h.BlockID, retiredBlock{})
+					if d.completed.contains(h.BlockID) {
+						return nil, false, nil
+					}
+					return d.addRetired(h, datagram[HeaderSize:], streaming, d.retired[h.BlockID])
+				}
 			} else if streaming {
 				r := retiredBlock{}
 				d.addRetiredState(h.BlockID, r)

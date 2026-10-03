@@ -61,7 +61,9 @@ def client(peer,cert):
                 if len(data)>len(BODY)+8192:raise ValueError('HTTP response too large')
             protocol=s.version()
     head,body=data.split(b'\r\n\r\n',1)
-    if not head.startswith(b'HTTP/1.1 200 OK') or body!=BODY:raise ValueError('HTTPS content differs')
+    if not head.startswith(b'HTTP/1.1 200 OK') or body!=BODY:
+        mismatch=next((i for i,(a,b) in enumerate(zip(body,BODY)) if a!=b),None)
+        raise ValueError(f'HTTPS content differs: received={len(body)} expected={len(BODY)} first_mismatch={mismatch} body_sha256={hashlib.sha256(body).hexdigest()}')
     return dict(result='PASS',role='biz',dns_exact=True,tcp_exact=True,https_exact=True,tls_version=protocol,body_bytes=len(body),body_sha256=hashlib.sha256(body).hexdigest())
 
 if __name__=='__main__':

@@ -9,6 +9,7 @@ type DecoderPressureCounts struct {
 	Retired              int    `json:"retired"`
 	ReconstructionEvents uint64 `json:"reconstruction_events"`
 	RecoveredSources     uint64 `json:"recovered_sources"`
+	PressureRetirements  uint64 `json:"pressure_retirements"`
 }
 
 // PressureCounts returns the constant-time decoder pressure counters used for
@@ -22,6 +23,7 @@ func (d *BlockDecoder) PressureCounts() DecoderPressureCounts {
 		Retired:              len(d.retired),
 		ReconstructionEvents: d.reconstructionEvents,
 		RecoveredSources:     d.recoveredSources,
+		PressureRetirements:   d.pressureRetirements,
 	}
 }
 

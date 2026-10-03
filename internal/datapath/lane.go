@@ -94,6 +94,7 @@ type LaneStats struct {
 	DeliveredDatagrams uint64
 	RecordErrors       uint64
 	PathErrors         uint64
+	LastPathError      string
 	ExpireCalls        uint64
 
 	TimingEnabled        bool
@@ -534,6 +535,10 @@ func (l *Lane) inboundLocked(payload []byte, now time.Time) InboundResult {
 		if err != nil {
 			out.PathErrors = append(out.PathErrors, err)
 			l.stats.PathErrors++
+			l.stats.LastPathError = err.Error()
+			if len(l.stats.LastPathError) > 512 {
+				l.stats.LastPathError = l.stats.LastPathError[:512]
+			}
 		}
 	}
 	return out

@@ -182,7 +182,10 @@ func (p *FECPath) Decode(wire []byte, now time.Time) ([][]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		decoded, _, err := p.decoder.Add(wire)
+		decoded, _, err := p.decoder.AddLive(wire)
+		if retired := p.decoder.LastPressureRetiredBlock(); retired != 0 {
+			p.recovery.forget(retired)
+		}
 		if err != nil {
 			return nil, err
 		}
