@@ -1407,7 +1407,7 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 	var snapshot datapath.TunnelLaneSnapshot
 	if replacing == nil {
 		snapshot, err = group.rt.AttachServerAdmission(
-			laneID, result.Admission, assoc, s.cfg.Lane, s.cfg.IO.Emit, now,
+			laneID, result.Admission, assoc, s.cfg.Lane, s.cfg.IO.Emit, now, s.cfg.IO.EmitBatch,
 		)
 	} else {
 		var lane *datapath.Lane

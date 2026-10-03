@@ -68,9 +68,9 @@
     "V10.2产品56eb5413c3cf2e559b82026e8a5783508764e2f4：新冻结ref正式120s final18（每run一条）18/18五分类及revision2 artifact-only完整矩阵/配对RTT PASS，aggregate37065816473/artifact11252477679；全部socket drop0，无损repair/abandoned0。仅120s资格，不关闭目标负载>=30min/P6/P7。",
     "FEC20:20长度组带宽修复产品f240d5177c6a8aaa02de570079926b2600c480fd：unit/build/race/真实模块PASS，生命周期37/37jobs PASS；正式18独立120s及RTT/aggregate PASS，Normal省37–38%、Game4省35–36%，socketdrop0。Normal5305最差loss1.35%较旧0.22%有取舍，保留。"
   ],
-  "in_progress": "RESOURCE_OPTIMIZATION_STAGE4B_NOT_RUN: ready receive batch unit/race+Normal/Game5205 PASS; synchronous ready send batch candidate",
+  "in_progress": "RESOURCE_OPTIMIZATION_STAGE4B_FIX_NOT_RUN: failed native server TX activation caught by guard; initial-admission EmitBatch wiring corrected, exact-source gates pending",
   "next_task": "Exact-source foundation Linux/Windows unit/race andarm64 build; then independent Normal/Game5205 with native raw IO receipt. Only PASS closes resource optimization targeted sequence; fullmatrix/soak/physical not inherited.",
-  "latest_log": "docs/devlog/20261003-140700-stage4b-diagnostic-envelope.md",
+  "latest_log": "docs/devlog/20261003-142000-stage4b-initial-server-batch-fix.md",
   "last_tested_source_sha": "fda4f08ec808855a4451344fef4df7a080b26f2a",
   "actions": [
     {
@@ -6420,7 +6420,14 @@
             "stage": "4b",
             "name": "already-generated send batch",
             "status": "NOT_RUN",
-            "latest_log": "docs/devlog/20261003-140700-stage4b-diagnostic-envelope.md"
+            "latest_log": "docs/devlog/20261003-142000-stage4b-initial-server-batch-fix.md",
+            "historical_failed_candidate": {
+              "coordinator_run": 37102054999,
+              "game_run": 37102099835,
+              "source_sha": "6351a82b044d3de34695dec3bcea8f7fe27f8322",
+              "reason": "original five categories PASS but server send_multi=0; initial lifecycle admission omitted EmitBatch; real wiring failure retained",
+              "normal_run": 37102098167
+            }
           }
         ],
         "fec_flush_tuning": "DEFERRED: changes quality; do not mix with equivalent optimizations"
