@@ -1,0 +1,18 @@
+name: next-cpu-evidence-read-only
+on:
+  push:
+    branches: [main]
+    paths: [.github/scripts/cpu-evidence.py, .github/workflows/next-cpu-evidence.yml]
+permissions: {contents: read, actions: read}
+jobs:
+  original-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract original CPU evidence without running a workload
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python3 .github/scripts/cpu-evidence.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: 'cpu-original-evidence-${{ github.run_id }}', path: cpu-evidence, if-no-files-found: error}
