@@ -1290,14 +1290,13 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 			s.mu.Unlock()
 			// A stopped client may restart on the same source port. Never let
 			// an unauthenticated SYN replace a live owner; require all current
-			// lanes' already-consumed peer FINs. Cleanup is off the read loop,
+			// lanes' peer FINs or the existing long-stale admission threshold.
+			// Cleanup is off the read loop,
 			// serialized with admission, and bounded to one task by TryLock.
-			if lane != nil && lane.group.rt.PeerWriteClosed() && s.admitMu.TryLock() {
+			if lane != nil && s.tunnelInactiveAt(lane.group, now) && s.admitMu.TryLock() {
 				go func() {
 					defer s.admitMu.Unlock()
-					if lane.group.rt.PeerWriteClosed() {
-						s.forgetInactiveTunnelAt(lane.group.id, now)
-					}
+					s.forgetInactiveTunnelAt(lane.group.id, now)
 				}()
 				// The ordinary SYN retry enters the unchanged handshake after
 				// the old association has been retired; no new handshake wire.
@@ -2144,14 +2143,11 @@ func (s *LifecycleServer) ForgetInactiveTunnel(id logicaltunnel.TunnelID) bool {
 	return s.forgetInactiveTunnelAt(id, time.Now())
 }
 
-func (s *LifecycleServer) forgetInactiveTunnelAt(id logicaltunnel.TunnelID, now time.Time) bool {
+// tunnelInactiveAt is only an admission/SYN/expired-lease predicate. It must
+// never turn missing health into ordinary payload-idle or a steady-path sweep.
+func (s *LifecycleServer) tunnelInactiveAt(group *serverLifecycleTunnel, now time.Time) bool {
 	s.mu.Lock()
-	group := s.byTunnel[id]
-	if group == nil {
-		s.mu.Unlock()
-		return true
-	}
-	if len(group.retiring) != 0 {
+	if group == nil || s.byTunnel[group.id] != group || len(group.retiring) != 0 {
 		s.mu.Unlock()
 		return false
 	}
@@ -2161,21 +2157,33 @@ func (s *LifecycleServer) forgetInactiveTunnelAt(id logicaltunnel.TunnelID, now 
 		lanes = append(lanes, lane)
 	}
 	s.mu.Unlock()
-	if !dormant {
-		if !group.rt.PeerWriteClosed() {
-			deadline := DefaultDeadAfter
-			if budget := 3 * s.cfg.KeepaliveInterval; budget > deadline {
-				deadline = budget
-			}
-			for _, lane := range lanes {
-				if !group.rt.UnhealthySince(lane.ref, now, deadline, lane.promotedAt) {
-					return false
-				}
-			}
-		}
-		if err := s.dormantGroup(group); err != nil {
+	if dormant || group.rt.PeerWriteClosed() {
+		return true
+	}
+	deadline := DefaultDeadAfter
+	if budget := 3 * s.cfg.KeepaliveInterval; budget > deadline {
+		deadline = budget
+	}
+	for _, lane := range lanes {
+		if !group.rt.UnhealthySince(lane.ref, now, deadline, lane.promotedAt) {
 			return false
 		}
+	}
+	return true
+}
+
+func (s *LifecycleServer) forgetInactiveTunnelAt(id logicaltunnel.TunnelID, now time.Time) bool {
+	s.mu.Lock()
+	group := s.byTunnel[id]
+	s.mu.Unlock()
+	if group == nil {
+		return true
+	}
+	if !s.tunnelInactiveAt(group, now) {
+		return false
+	}
+	if err := s.dormantGroup(group); err != nil {
+		return false
 	}
 	s.mu.Lock()
 	if s.byTunnel[id] != group || len(group.lanes) != 0 || len(group.retiring) != 0 {

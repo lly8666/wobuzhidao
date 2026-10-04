@@ -154,6 +154,16 @@ def main():
         if mode["lease4"]!=after[0]["lease4"] or len(mode["lanes"])!=4:raise RuntimeError("clean Normal/Game switch changed lease or lane count")
         time.sleep(1);probes("mode-changed")
         passed("clean client mode switch Normal1 to Game4 retains installation and lease")
+        # No FIN exists after SIGKILL. Reusing source40000 must work after the
+        # existing conservative server stale budget, without resetting leases
+        # or disturbing the other healthy client's owner.
+        clients[0].kill();clients[0].wait(timeout=5)
+        time.sleep(92)
+        clients[0]=client_start(1,"crash-rebuilt")
+        crashed=await_ready(clients[0],"1-crash-rebuilt")
+        if crashed["lease4"]!=mode["lease4"] or len(crashed["lanes"])!=4:raise RuntimeError("crash restart changed lease or lane mode")
+        time.sleep(1);probes("crash-rebuilt")
+        passed("SIGKILL without FIN then same-source-port reconnect retains lease and other client")
         for p in clients:stop(p)
         stop(server)
         if state.exists():raise RuntimeError("final server network state survived stop")

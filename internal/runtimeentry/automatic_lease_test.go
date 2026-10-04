@@ -210,10 +210,21 @@ func TestSharedCredentialsAutomaticNormalAndGameLeases(t *testing.T) {
 		defer server.mu.Unlock()
 		return len(server.byTunnel[b.Config.TunnelID].retiring) == 0
 	})
-	server.admitMu.Lock()
-	reclaimed := server.forgetInactiveTunnelAt(b.Config.TunnelID, time.Now().Add(4*time.Hour))
-	server.admitMu.Unlock()
-	if !reclaimed {
-		t.Fatal("stale disconnected owner cannot be reclaimed for expired lease")
+	server.mu.Lock()
+	stale := server.byTunnel[b.Config.TunnelID].lanes[1]
+	server.mu.Unlock()
+	if err := server.handleSegment(ctx, faketcp.Segment{SrcIP: stale.flow.ClientIP,
+		DstIP: stale.flow.ServerIP, SrcPort: stale.flow.ClientPort,
+		DstPort: stale.flow.ServerPort, Flags: faketcp.FlagSYN, Seq: 54321,
+		Window: 65535}, time.Now().Add(4*time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	waitLifecycle(t, 3*time.Second, func() bool {
+		server.mu.Lock()
+		defer server.mu.Unlock()
+		return server.byTunnel[b.Config.TunnelID] == nil
+	})
+	if lease, err := registry.Lookup(b.Config.TunnelID); err != nil || lease.Config.Address4 != b.Config.Address4 {
+		t.Fatal("stale flow retirement prematurely released its unexpired address")
 	}
 }
