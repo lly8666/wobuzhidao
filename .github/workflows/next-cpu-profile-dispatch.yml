@@ -1,0 +1,30 @@
+name: next-cpu-profile-dispatch
+on:
+  push:
+    branches: [main]
+    paths: [.github/cpu-profile-request.json]
+permissions: {contents: read, actions: write}
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait exact core and dispatch one separate diagnostic sample
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          python3 - <<'PY'
+          import json,os,subprocess,time
+          r=json.load(open('.github/cpu-profile-request.json'));repo=os.environ['GITHUB_REPOSITORY']
+          for _ in range(60):
+              gate=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs/{r["foundation"]}']))
+              if gate['head_sha']!=r['source_sha']:raise SystemExit('source mismatch')
+              if gate['status']=='completed':
+                  if gate['conclusion']!='success':raise SystemExit('core failed; no sample')
+                  break
+              time.sleep(20)
+          else:raise SystemExit('gate timeout')
+          if subprocess.check_output(['git','ls-remote','origin','refs/heads/'+r['ref']]).decode().split()[0]!=r['source_sha']:raise SystemExit('freeze mismatch')
+          subprocess.check_call(['gh','workflow','run','next-strict-weaknet.yml','--ref',r['ref'],'-f','mode=game','-f','scenario=5205','-f','seed=101','-f','rate_mbps=3','-f','lanes=4','-f','cpu_profile=true'])
+          print('DISPATCHED_ONE_GAME5205_PROFILE source='+r['source_sha'])
+          PY
