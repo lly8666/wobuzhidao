@@ -64,7 +64,7 @@ func rstChange(j networkJournal,add bool)error{
 func recoverJournal(path string)error{
 	raw,err:=os.ReadFile(path);if errors.Is(err,os.ErrNotExist){return nil};if err!=nil{return err};if len(raw)>1<<20{return errors.New("network journal too large")}
 	var j networkJournal;if json.Unmarshal(raw,&j)!=nil || j.Version!=1{return errors.New("invalid network journal")}
-	if _,err:=BuildNetworkPlan(j.Plan.TUNName,j.Plan.LeasePrefix,j.Plan.MTU,j.Plan.Firewall.Backend,j.Plan.Firewall.NFTForward);err!=nil{return err}
+	canonical,err:=BuildNetworkPlan(j.Plan.TUNName,j.Plan.LeasePrefix,j.Plan.MTU,j.Plan.Firewall.Backend,j.Plan.Firewall.NFTForward);if err!=nil{return err};j.Plan=canonical
 	if j.Backend!=FirewallNFT && j.Backend!=FirewallIPTables{return ErrNetworkPlan}
 	if runCommandQuiet("ip","link","show","dev",j.Plan.TUNName)==nil{return errors.New("journal TUN still exists; refusing recovery while another owner may hold it")}
 	if j.Port!=0{ip,err:=netip.ParseAddr(j.ListenIP);if err!=nil || !ip.Is4(){return errors.New("invalid journal listener")}}
@@ -102,6 +102,13 @@ func OpenManagedRuntime(plan NetworkPlan,path string,ip netip.Addr,port uint16)(
 
 func (m *ManagedRuntime)Close()error{
 	if m==nil || m.lock==nil{return nil}
+	// Ordinary stop has the same ownership rule as crash recovery: an external
+	// administrator's later sysctl change must not be overwritten by our snapshot.
+	m.Runtime.mu.Lock()
+	for _,change:=range m.plan.Sysctls {
+		if current,err:=readSysctl(change.Key);err==nil && current!=change.Value { delete(m.savedSysctls,change.Key) }
+	}
+	m.Runtime.mu.Unlock()
 	j:=networkJournal{Backend:m.backend,ListenIP:m.ip,Port:m.port}
 	err:=errors.Join(rstChange(j,false),m.Runtime.Close());if err==nil{if removeErr:=os.Remove(m.state);removeErr!=nil && !errors.Is(removeErr,os.ErrNotExist){err=removeErr}}
 	lockErr:=m.lock.Close();m.lock=nil;return errors.Join(err,lockErr)

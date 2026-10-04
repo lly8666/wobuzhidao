@@ -42,7 +42,7 @@ jobs:
             sudo ip netns exec "$ns" ip link set lo up
             sudo ip netns exec "$ns" sysctl -qw net.ipv4.ip_forward=0
             state="$RUNNER_TEMP/wbd-managed-$backend.json"
-            for phase in clean crash recover; do
+            for phase in clean foreign crash recover; do
               sudo ip netns exec "$ns" env WBD_MANAGED_PHASE="$phase" WBD_MANAGED_BACKEND="$backend" WBD_MANAGED_STATE="$state" /tmp/wbd-linux-managed.test -test.run '^TestManagedNetworkProcessPhase$' -test.v
             done
             sudo ip netns exec "$ns" iptables-save > "artifacts/managed-$backend-iptables-final.txt"

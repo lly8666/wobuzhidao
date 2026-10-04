@@ -78,8 +78,8 @@
   "in_progress": [
     "Linux服务端部署完善及共享账号多客户端自动内存7天租约：第一候选待Actions，继续安装/systemd/升级回滚。"
   ],
-  "next_task": "验收next-linux-server正式raw/TPROXY多客户端TCP/UDP和服务端内存重置/客户端重建；修复后准备配套包与专项交付证据。",
-  "latest_log": "docs/devlog/20261004-182400-linux-native-multiclient.md",
+  "next_task": "验收正式多客户端和managed foreign规则/sysctl保护，然后Actions格式化新增Go源码，再固定配套预发布SOURCE。",
+  "latest_log": "docs/devlog/20261004-182800-managed-owner-preservation.md",
   "last_tested_source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
   "actions": [
     {
