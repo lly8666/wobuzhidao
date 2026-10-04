@@ -1,0 +1,29 @@
+name: next-source-format
+on:
+  push:
+    branches: [main]
+    paths: [.github/source-format-request.json]
+permissions: {contents: read}
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - id: request
+        run: |
+          python3 - <<'PY'
+          import json,os,re
+          r=json.load(open('.github/source-format-request.json'))
+          if not re.fullmatch('[0-9a-f]{40}',r['source_sha']):raise SystemExit('invalid source')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('source='+r['source_sha']+'\n')
+          PY
+      - uses: actions/checkout@v4
+        with: {ref: '${{ steps.request.outputs.source }}', fetch-depth: 0}
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.12'}
+      - name: Format changed active Go sources only
+        run: |
+          git diff --name-only 0fe738232305f2f0f4ae238eb40ad6f8d0e51ca4 HEAD -- '*.go' | xargs -r gofmt -w
+          git diff --binary > formatting.patch
+      - uses: actions/upload-artifact@v4
+        with: {name: 'format-${{ steps.request.outputs.source }}', path: formatting.patch, if-no-files-found: error}
