@@ -3,7 +3,7 @@
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
-  "product_state": "ACTIONS_PASS",
+  "product_state": "IN_PROGRESS",
   "updated_at": "2026-10-04",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -75,9 +75,11 @@
     "2026-10-04：采样定位Game逐包扫描历史，增量退役保持原窗口/乱序/no-HOL；独立Normal/Game5205、36生命周期、三关键配置及P6通过，旧新CPU对比host差异单列",
     "Windows中文GUI与便携包完成：29普通字段及全部managed操作、服务器管理/切换/安全停止、Npcap引导、原版Wintun随包。9857bdb同源206GUI检查及core/race/网络专项PASS，已发布固定标签预发布。物理P7仍NOT_RUN。"
   ],
-  "in_progress": [],
-  "next_task": "Windows中文GUI便携任务已交付，固定源码9857bdb和GitHub预发布标签见windows_gui。下一步由用户安排P7真实Npcap/Wintun/NIC/UAC及跨服务器业务验收；如需当前源码完整性能/弱网资格另跑full70/strict18/1800s/36生命周期。历史d9性能证据不继承为985。每性能Action只一条。",
-  "latest_log": "docs/devlog/20261004-153400-windows-gui-delivery.md",
+  "in_progress": [
+    "Linux服务端部署完善及共享账号多客户端自动内存7天租约：第一候选待Actions，继续安装/systemd/升级回滚。"
+  ],
+  "next_task": "检查自动租约第一候选Actions；完善单实例/窄RST/网络恢复、systemd、安装和升级回滚。每性能Action一条，旧资格不继承。",
+  "latest_log": "docs/devlog/20261004-161000-linux-server-auto-lease.md",
   "last_tested_source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
   "actions": [
     {
@@ -2004,7 +2006,8 @@
     "docs/PARAMETERS.json",
     "docs/LIFECYCLE_ACCEPTANCE.md",
     "docs/SPLIT_ROUTING.md",
-    "docs/WINDOWS_GUI.md"
+    "docs/WINDOWS_GUI.md",
+    "docs/LINUX_SERVER.md"
   ],
   "workstreams": {
     "IP_SPLIT_ROUTING": {
@@ -6921,5 +6924,13 @@
       "New throughput/weaknet benchmarks",
       "Full 70 config / strict18 / 1800s / 36 lifecycle on this source"
     ]
+  },
+  "linux_server": {
+    "physical": "NOT_RUN",
+    "state": "IN_PROGRESS",
+    "lease": "memory-only randomized unique IPv4; 7 days, authenticated renewal, active owner pins",
+    "authentication": "shared simple username/password; installation distinguishes clients",
+    "plan": "docs/LINUX_SERVER.md",
+    "evidence": "NOT_RUN"
   }
 }

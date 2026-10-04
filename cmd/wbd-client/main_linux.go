@@ -28,7 +28,9 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/splitroute"
 )
 
-func main() {
+func main() { if err := runLinuxClient(); err != nil { log.Fatal(err) } }
+
+func runLinuxClient() error {
 	var (
 		deadAfter          = flag.Duration("dead-after", runtimeentry.DefaultDeadAfter, "reconnect after no authenticated lane records; at least 3 keepalive intervals")
 		reconnectMin       = flag.Duration("reconnect-min", runtimeentry.DefaultReconnectMin, "minimum retry delay after failed lane admission")
@@ -45,9 +47,9 @@ func main() {
 		sourcePort         = flag.Uint("source-port", 40000, "FakeTCP source port")
 		serverIPText       = flag.String("server-ip", "", "server public IPv4")
 		serverPort         = flag.Uint("server-port", 443, "server FakeTCP port")
-		tunnelText         = flag.String("tunnel-id", "", "32-hex Logical Tunnel ID")
-		leaseText          = flag.String("lease4", "", "leased IPv4 /32")
-		account            = flag.String("account", "", "account identity")
+		tunnelText         = flag.String("tunnel-id", "", "32-hex Logical Tunnel ID; empty derives from account and installation in automatic lease mode")
+		leaseText          = flag.String("lease4", "", "leased IPv4 /32; empty requests automatic server allocation")
+		account            = flag.String("account", "", "account identity; empty uses username")
 		installationText   = flag.String("installation-id", "", "32-hex installation ID")
 		serverName         = flag.String("server-name", "", "recognized TLS server name")
 		routeKeyHex        = flag.String("route-key-hex", "", "hex route key")
@@ -70,73 +72,85 @@ func main() {
 	)
 	flag.Parse()
 	if err := configfile.ApplyFile(flag.CommandLine, *configPath); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if handleVersion() {
-		return
+		return nil
 	}
 	if *updateChinaIP != "" {
 		if err := splitroute.Update(*updateChinaIP); err != nil {
-			log.Fatal(err)
+			return err
 		}
-		return
+		return nil
 	}
 	direct, err := splitroute.Direct(*routeMode, *chinaIPFile)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer startQualificationCPUProfile()()
-	if *rawIface == "" || *localIPText == "" || *serverIPText == "" || *tunnelText == "" ||
-		*leaseText == "" || *account == "" || *installationText == "" || *serverName == "" ||
+	if *rawIface == "" || *localIPText == "" || *serverIPText == "" || *serverName == "" ||
 		*routeKeyHex == "" || *username == "" || *password == "" {
 		flag.Usage()
-		os.Exit(2)
+		return errors.New("required identity and server settings are missing")
 	}
 	if *sourcePort == 0 || *sourcePort > 65535 || *serverPort == 0 || *serverPort > 65535 ||
 		*tproxyPort == 0 || *tproxyPort > 65535 || *clientLimit > 65535 {
-		log.Fatal("invalid port or record limit")
+		return errors.New("invalid port or record limit")
 	}
 	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	fecFlushAfter, fecMaxBlocks, err := datapath.FixedFECRuntimeDefaults(*fecParity)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if *idleDormant < 0 || *rotateMin < 0 || *rotateMax < 0 ||
 		(*rotateMin == 0) != (*rotateMax == 0) || (*rotateMin > 0 && *rotateMax < *rotateMin) {
-		log.Fatal("invalid lifecycle durations")
+		return errors.New("invalid lifecycle durations")
 	}
 	if *diagnosticJSONL != "" && *diagnosticInterval <= 0 {
-		log.Fatal("diagnostic-interval must be positive")
+		return errors.New("diagnostic-interval must be positive")
 	}
 	if _, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), 1); err != nil {
-		log.Fatal("source-port must leave a 1024-port bounded rotation window")
+		return errors.New("source-port must leave a 1024-port bounded rotation window")
 	}
 
 	localIP, err := netip.ParseAddr(*localIPText)
 	if err != nil || !localIP.Is4() {
-		log.Fatal("local-ip must be IPv4")
+		return errors.New("local-ip must be IPv4")
 	}
 	serverIP, err := netip.ParseAddr(*serverIPText)
 	if err != nil || !serverIP.Is4() {
-		log.Fatal("server-ip must be IPv4")
+		return errors.New("server-ip must be IPv4")
 	}
-	leasePrefix, err := netip.ParsePrefix(*leaseText)
+	resolvedInstallation, identityErr := logicaltunnel.ResolveInstallation(*installationText,"/var/lib/wbd-client/installation-id",false)
+	if identityErr != nil { return identityErr }; *installationText = resolvedInstallation.String()
+	if *account == "" { *account = *username }
+	autoLease := *leaseText == ""
+	if autoLease {
+		installation, identityErr := logicaltunnel.ParseInstallationID(*installationText)
+		if identityErr != nil { return identityErr }
+		expected := logicaltunnel.DerivedTunnelID(*account, installation)
+		if *tunnelText == "" { *tunnelText = expected.String() }
+		if *account != *username || *tunnelText != expected.String() { return errors.New("automatic lease requires account=username and installation-derived tunnel-id") }
+	}
+	parseLease := *leaseText
+	if autoLease { parseLease = "0.0.0.0/32" }
+	leasePrefix, err := netip.ParsePrefix(parseLease)
 	if err != nil || !leasePrefix.Addr().Is4() || leasePrefix.Bits() != 32 {
-		log.Fatal("lease4 must be IPv4 /32")
+		return errors.New("lease4 must be IPv4 /32")
 	}
 	tunnelID, err := logicaltunnel.ParseTunnelID(*tunnelText)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	installation, err := logicaltunnel.ParseInstallationID(*installationText)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	routeKey, err := hex.DecodeString(*routeKeyHex)
 	if err != nil || len(routeKey) == 0 {
-		log.Fatal("route-key-hex must decode to non-empty bytes")
+		return errors.New("route-key-hex must decode to non-empty bytes")
 	}
 	lease := logicaltunnel.Lease{
 		Account:        *account,
@@ -148,23 +162,23 @@ func main() {
 		},
 	}
 	if err := lease.Validate(); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	plan, err := openwrtclient.BuildNetworkPlan(uint16(*tproxyPort), uint32(*mark), uint32(*table), uint32(*priority), serverIP)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	dns, err := dnsroute.ParseServers(*dnsText)
 	if err != nil || (*dnsHijack && len(dns) == 0) {
-		log.Fatal("invalid DNS servers")
+		return errors.New("invalid DNS servers")
 	}
 	if !*dnsHijack {
 		dns = nil
 	}
 	for _, resolver := range dns {
 		if resolver == serverIP {
-			log.Fatal("dns4 must not equal the underlay server address")
+			return errors.New("dns4 must not equal the underlay server address")
 		}
 	}
 	plan.DNSHijack = *dnsHijack
@@ -172,13 +186,13 @@ func main() {
 	log.Printf("WBD_ROUTE_POLICY mode=%s direct_prefixes=%d source=%s", *routeMode, len(direct), chinaListSource(*chinaIPFile))
 	netRuntime, err := openwrtclient.OpenRuntime(plan)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer netRuntime.Close()
 
 	raw, err := faketcp.OpenRawIPv4Endpoint(*rawIface, localIP.As4(), faketcp.PacketPersonaLegacy)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	baseIO := runtimeentry.SegmentIO{
 		Read: func() (faketcp.Segment, error) {
@@ -195,7 +209,7 @@ func main() {
 	raw.SetIODiagnostics(*diagnosticJSONL != "")
 	mux, err := runtimeentry.NewSegmentMux(baseIO)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	mux.SetTimingDiagnostics(*diagnosticJSONL != "")
 	defer mux.Close()
@@ -221,7 +235,7 @@ func main() {
 			TLS: realityfront.ClientConfig{
 				ServerName: *serverName, RouteKey: routeKey, Timeout: 15 * time.Second,
 			},
-			Username: *username, Password: *password,
+			AutoLease: autoLease, InstallationID: installation[:], Username: *username, Password: *password,
 			TunnelID: tunnelID.Bytes(), ClientLimit: uint16(*clientLimit),
 		},
 		Lane: datapath.ClientLaneParams{
@@ -242,13 +256,13 @@ func main() {
 		RotateMax: *rotateMax,
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer client.Close()
 
 	channel, err := platformflow.NewTunnelChannel(client.Owner(), client.PlatformWireSink)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	adapter, err = openwrtclient.OpenSocketAdapter(openwrtclient.SocketConfig{
 		ListenPort:      uint16(*tproxyPort),
@@ -263,7 +277,7 @@ func main() {
 		},
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer adapter.Close()
 
@@ -312,4 +326,5 @@ func main() {
 		cancel()
 	}
 	fmt.Printf("WBD_OPENWRT_CLIENT_STOPPED cleanup=owned-only lanes=%d ipv6=BLACKHOLE_DROPPED\n", *lanes)
+	return nil
 }

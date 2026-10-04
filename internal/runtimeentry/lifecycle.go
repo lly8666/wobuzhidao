@@ -379,6 +379,7 @@ func DialTunnelClient(ctx context.Context, cfg TunnelClientConfig) (*TunnelClien
 	if err := logicaltunnel.ValidateProductTransportLaneCount(cfg.DesiredLanes); err != nil {
 		return nil, err
 	}
+	if cfg.Admission.AutoLease { cfg.Admission.DesiredLanes=uint8(cfg.DesiredLanes) }
 	if err := normalizeClientHealth(&cfg); err != nil {
 		return nil, err
 	}
@@ -766,6 +767,16 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		laneState.close()
 		return logicaltunnel.LaneRef{}, ErrLeaseMismatch
 	}
+	if c.cfg.Admission.AutoLease {
+		if c.cfg.Lease.Config.Address4 == "0.0.0.0/32" {
+			assigned := c.cfg.Lease.Clone()
+			assigned.Config.Address4 = session.Negotiated.Lease4
+			if err := c.owner.BindInitialLease(assigned); err != nil { laneState.close(); return logicaltunnel.LaneRef{}, err }
+			c.cfg.Lease = assigned
+		} else if c.cfg.Lease.Config.Address4 != session.Negotiated.Lease4 {
+			laneState.close(); return logicaltunnel.LaneRef{}, ErrLeaseMismatch
+		}
+	}
 	if acceptancefault.Consume("detach", laneID) {
 		laneState.close()
 		return logicaltunnel.LaneRef{}, errors.New("runtimeentry: injected lifecycle detach candidate failure")
@@ -1082,6 +1093,7 @@ type serverLifecycleLane struct {
 }
 
 type serverLifecycleTunnel struct {
+	desired int
 	id          logicaltunnel.TunnelID
 	leaseAddr   netip.Addr
 	owner       *datapath.TunnelOwner
@@ -1366,9 +1378,15 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 	admission := s.cfg.Admission
 	priorValidator := admission.ValidateRequest
 	admissionLocked := false
+	priorAllocator := admission.AllocateLease
+	if priorAllocator != nil {
+		admission.AllocateLease = func(req realityfront.AdmissionRequest) (string,error) {
+			s.admitMu.Lock(); admissionLocked=true
+			return priorAllocator(req)
+		}
+	}
 	admission.ValidateRequest = func(req realityfront.AdmissionRequest) error {
-		s.admitMu.Lock()
-		admissionLocked = true
+		if !admissionLocked { s.admitMu.Lock(); admissionLocked = true }
 		if priorValidator != nil {
 			if err := priorValidator(req); err != nil {
 				s.admitMu.Unlock()
@@ -1408,7 +1426,9 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 	}
 	leaseAddr = leaseAddr.Unmap()
 
-	group, err := s.ensureTunnel(tunnelID, lease, leaseAddr)
+	desired:=s.cfg.DesiredLanes
+	if result.Admission.Negotiated.DesiredLanes!=0 { desired=int(result.Admission.Negotiated.DesiredLanes) }
+	group, err := s.ensureTunnel(tunnelID, lease, leaseAddr, desired)
 	if err != nil {
 		s.dropAdmission(flow)
 		return
@@ -1555,6 +1575,7 @@ func (s *LifecycleServer) validateAdmissionRequest(req realityfront.AdmissionReq
 	if hasRetiringLane(group, req.LaneID) {
 		return ErrLifecycleBusy
 	}
+	if req.AutoLease && int(req.DesiredLanes)!=group.desired { return ErrLifecycleLaneState }
 	return nil
 }
 
@@ -1596,7 +1617,7 @@ func (s *LifecycleServer) deliverTunnelPackets(group *serverLifecycleTunnel, pac
 	return err
 }
 
-func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicaltunnel.Lease, leaseAddr netip.Addr) (*serverLifecycleTunnel, error) {
+func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicaltunnel.Lease, leaseAddr netip.Addr, desired int) (*serverLifecycleTunnel, error) {
 	s.mu.Lock()
 	if existing := s.byTunnel[id]; existing != nil {
 		if existing.leaseAddr != leaseAddr {
@@ -1608,7 +1629,7 @@ func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicalt
 	}
 	s.mu.Unlock()
 
-	owner, err := datapath.NewLeasedTunnelOwner(lease, s.cfg.DesiredLanes, s.cfg.MaxFlows)
+	owner, err := datapath.NewLeasedTunnelOwner(lease, desired, s.cfg.MaxFlows)
 	if err != nil {
 		return nil, err
 	}
@@ -1617,6 +1638,7 @@ func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicalt
 		return nil, err
 	}
 	group := &serverLifecycleTunnel{
+		desired:desired,
 		id: id, leaseAddr: leaseAddr, owner: owner,
 		lanes:       make(map[uint8]*serverLifecycleLane, s.cfg.DesiredLanes),
 		retiring:    make(map[logicaltunnel.LaneRef]*serverLifecycleLane),
@@ -1841,7 +1863,7 @@ func (s *LifecycleServer) refreshQualifiedFromTransport(group *serverLifecycleTu
 }
 
 func (s *LifecycleServer) groupReadyLocked(group *serverLifecycleTunnel) bool {
-	if group == nil || group.dormant || len(group.lanes) != s.cfg.DesiredLanes {
+	if group == nil || group.dormant || len(group.lanes) != group.desired {
 		return false
 	}
 	for _, lane := range group.lanes {
@@ -2047,6 +2069,19 @@ func (s *LifecycleServer) Close() error {
 		out = s.cfg.IO.close()
 	})
 	return out
+}
+
+// ForgetInactiveTunnel is called by the lease allocator while admitMu is held.
+// No address can be reused while active or retiring lanes still own it.
+func (s *LifecycleServer) ForgetInactiveTunnel(id logicaltunnel.TunnelID) bool {
+	s.mu.Lock()
+	group:=s.byTunnel[id]
+	if group==nil { s.mu.Unlock(); return true }
+	if !group.dormant || len(group.lanes)!=0 || len(group.retiring)!=0 { s.mu.Unlock(); return false }
+	delete(s.byTunnel,id); delete(s.byLease,group.leaseAddr)
+	s.mu.Unlock()
+	group.service.Close(); s.cfg.Router.Unregister(group.token); group.rt.Close()
+	return true
 }
 
 // admitMu serializes candidates; per-ID retiring exclusion and the existing

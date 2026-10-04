@@ -13,6 +13,8 @@ import (
 	"net/netip"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"encoding/json"
 	"syscall"
 	"time"
 
@@ -27,8 +29,12 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/runtimeentry"
 )
 
-func main() {
+func main() { if err := runServer(); err != nil { log.Fatal(err) } }
+
+func runServer() error {
 	var (
+		checkConfig        = flag.Bool("check-config", false, "validate server configuration without network changes; credentials redacted")
+		maxClients = flag.Int("max-clients", 256, "maximum persistent automatic client identities; 1..4096")
 		configPath         = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
 		keepalive          = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
 		rawIface           = flag.String("raw-interface", "", "Linux interface used for FakeTCP raw IPv4 I/O")
@@ -60,63 +66,71 @@ func main() {
 	)
 	flag.Parse()
 	if err := configfile.ApplyFile(flag.CommandLine, *configPath); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if handleVersion() {
-		return
+		return nil
 	}
 
 	defer startQualificationCPUProfile()()
-	if *rawIface == "" || *listenIPText == "" || *leaseText == "" || *tunnelText == "" ||
-		*account == "" || *installationText == "" || *serverName == "" || *routeKeyHex == "" ||
+	if *rawIface == "" || *listenIPText == "" || *serverName == "" || *routeKeyHex == "" ||
 		*certPath == "" || *keyPath == "" || *username == "" || *password == "" || *decoy == "" {
 		flag.Usage()
-		os.Exit(2)
+		return errors.New("required server settings are missing")
 	}
 	if *listenPort == 0 || *listenPort > 65535 || *serverLimit > 65535 {
-		log.Fatal("invalid port or record limit")
+		return errors.New("invalid port or record limit")
 	}
 	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	fecFlushAfter, fecMaxBlocks, err := datapath.FixedFECRuntimeDefaults(*fecParity)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if *idleDormant < 0 {
-		log.Fatal("idle-dormant must be non-negative")
+		return errors.New("idle-dormant must be non-negative")
 	}
 	if *diagnosticJSONL != "" && *diagnosticInterval <= 0 {
-		log.Fatal("diagnostic-interval must be positive")
+		return errors.New("diagnostic-interval must be positive")
 	}
 
 	listenIP, err := netip.ParseAddr(*listenIPText)
 	if err != nil || !listenIP.Is4() {
-		log.Fatal("listen-ip must be IPv4")
+		return errors.New("listen-ip must be IPv4")
 	}
+	staticLease := *leaseText != ""
+	if !staticLease { explicitLanes:=false; flag.Visit(func(f *flag.Flag) { if f.Name=="lanes" { explicitLanes=true } }); if !explicitLanes { *lanes=4 }; *leaseText = "0.0.0.0/32"; *account = *username; *installationText = "00000000000000000000000000000000"; *tunnelText = "00000000000000000000000000000000" }
+	if *maxClients < 1 || *maxClients > 4096 { return errors.New("max-clients must be 1..4096") }
 	leasePrefix, err := netip.ParsePrefix(*leaseText)
 	if err != nil || !leasePrefix.Addr().Is4() || leasePrefix.Bits() != 32 {
-		log.Fatal("lease4 must be IPv4 /32")
+		return errors.New("lease4 must be IPv4 /32")
 	}
 	leasePool, err := netip.ParsePrefix(*leasePoolText)
 	if err != nil || !leasePool.Addr().Is4() {
-		log.Fatal("lease-pool must be IPv4")
+		return errors.New("lease-pool must be IPv4")
 	}
 	tunnelID, err := logicaltunnel.ParseTunnelID(*tunnelText)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	installation, err := logicaltunnel.ParseInstallationID(*installationText)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	routeKey, err := hex.DecodeString(*routeKeyHex)
 	if err != nil || len(routeKey) == 0 {
-		log.Fatal("route-key-hex must decode to non-empty bytes")
+		return errors.New("route-key-hex must decode to non-empty bytes")
+	}
+	if *configPath != "" {
+		base, err := filepath.Abs(filepath.Dir(*configPath)); if err != nil { return err }
+		if !filepath.IsAbs(*certPath) { *certPath = filepath.Join(base,*certPath) }
+		if !filepath.IsAbs(*keyPath) { *keyPath = filepath.Join(base,*keyPath) }
+		
 	}
 	cert, err := tls.LoadX509KeyPair(*certPath, *keyPath)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	lease := logicaltunnel.Lease{
 		Account:        *account,
@@ -128,26 +142,41 @@ func main() {
 		},
 	}
 	if err := lease.Validate(); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	plan, err := linuxserver.BuildNetworkPlan(*tunName, leasePool, *mtu, linuxserver.FirewallBackend(*firewall), *nftForward)
 	if err != nil {
-		log.Fatal(err)
+		return err
+	}
+	if *keepalive < time.Second || *keepalive > time.Hour || len(routeKey) < 16 || len(*username) > 255 || len(*password) > 1024 || *serverLimit < 31 { return errors.New("invalid admission or keepalive configuration") }
+	if staticLease && !leasePool.Contains(leasePrefix.Addr()) { return errors.New("static lease is outside lease-pool") }
+	if *checkConfig {
+		out := map[string]string{}
+		flag.VisitAll(func(f *flag.Flag) { if f.Name == "password" || f.Name == "route-key-hex" { out[f.Name] = "configured" } else { out[f.Name] = f.Value.String() } })
+		out["lease-mode"] = "automatic"; if staticLease { out["lease-mode"] = "static" }
+		return json.NewEncoder(os.Stdout).Encode(out)
+	}
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	var leaseStore *logicaltunnel.LeaseRegistry
+	if !staticLease {
+		leaseStore, err = logicaltunnel.NewLeaseRegistry(leasePool,*maxClients)
+		if err != nil { return err }
 	}
 	network, err := linuxserver.OpenRuntime(plan)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	defer network.Close()
+	defer func() { if err := network.Close(); err != nil { log.Printf("network cleanup failed: %v",err) } }()
 
 	router, err := linuxserver.NewSharedTUNRouter(leasePool, 4096, network.TUN())
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	raw, err := faketcp.OpenRawIPv4Endpoint(*rawIface, listenIP.As4(), faketcp.PacketPersonaLegacy)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	io := runtimeentry.SegmentIO{
 		Read: func() (faketcp.Segment, error) {
@@ -162,12 +191,20 @@ func main() {
 		EmitBatch: raw.WriteSegments,
 	}
 	raw.SetIODiagnostics(*diagnosticJSONL != "")
-	server, err := runtimeentry.NewLifecycleServer(runtimeentry.LifecycleServerConfig{
+	defer raw.Close()
+	var server *runtimeentry.LifecycleServer
+	server, err = runtimeentry.NewLifecycleServer(runtimeentry.LifecycleServerConfig{
 		ServerConfig: runtimeentry.ServerConfig{
 			TLSStartupPadding: *tlsStartupPadding,
 			IO:                io,
 			ListenPort:        uint16(*listenPort),
 			Admission: realityfront.ServerAdmissionConfig{
+				AllocateLease: func(req realityfront.AdmissionRequest) (string,error) {
+					if leaseStore == nil || int(req.DesiredLanes)>*lanes { return "", realityfront.ErrAdmissionParams }
+					installation, err := logicaltunnel.ParseInstallationID(hex.EncodeToString(req.InstallationID)); if err != nil { return "",err }
+					id, err := logicaltunnel.TunnelIDFromBytes(req.TunnelID); if err != nil { return "",err }
+					assigned, err := leaseStore.Acquire(req.Username,installation,id); return assigned.Config.Address4,err
+				},
 				TLS: realityfront.ServerConfig{
 					ServerName: *serverName,
 					RouteKey:   routeKey,
@@ -184,6 +221,7 @@ func main() {
 				MaxBytes: 64 << 20,
 			},
 			LookupLease: func(id logicaltunnel.TunnelID) (logicaltunnel.Lease, error) {
+				if leaseStore != nil { return leaseStore.Lookup(id) }
 				if id != tunnelID {
 					return logicaltunnel.Lease{}, logicaltunnel.ErrUnknownTunnel
 				}
@@ -204,11 +242,10 @@ func main() {
 		ObserveTiming:     *diagnosticJSONL != "",
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
+	if leaseStore != nil { leaseStore.BeforeExpire = server.ForgetInactiveTunnel }
 	errCh := make(chan error, 3)
 	if *diagnosticJSONL != "" {
 		go func() {
@@ -242,14 +279,16 @@ func main() {
 		}
 	}()
 
+	var runErr error
 	select {
 	case <-ctx.Done():
 	case err := <-errCh:
 		if err != nil && !errors.Is(err, context.Canceled) {
-			log.Printf("wbd-server stopped: %v", err)
+			runErr = err
 		}
 		cancel()
 	}
-	_ = server.Close()
+	runErr = errors.Join(runErr,server.Close(),network.Close())
 	fmt.Printf("WBD_SERVER_STOPPED cleanup=owned-only lanes=%d\n", *lanes)
+	return runErr
 }

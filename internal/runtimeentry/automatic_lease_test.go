@@ -1,0 +1,49 @@
+package runtimeentry
+
+import (
+	"context"
+	"crypto/tls"
+	"encoding/hex"
+	"net/netip"
+	"sync"
+	"testing"
+	"time"
+
+	"github.com/lly8666/wobuzhidao/internal/datapath"
+	"github.com/lly8666/wobuzhidao/internal/faketcp"
+	"github.com/lly8666/wobuzhidao/internal/linuxserver"
+	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
+	"github.com/lly8666/wobuzhidao/internal/platformflow"
+	"github.com/lly8666/wobuzhidao/internal/realityfront"
+)
+
+func TestSharedCredentialsAutomaticNormalAndGameLeases(t *testing.T) {
+	cert:=runtimeCertificate(t); key:=[]byte("0123456789abcdef0123456789abcdef")
+	base,ep:=memorySegmentPair(); mux,err:=NewSegmentMux(base.io());if err!=nil{t.Fatal(err)};defer mux.Close()
+	tun:=newMemoryPacketWriter();router,err:=linuxserver.NewSharedTUNRouter(netip.MustParsePrefix("10.66.0.0/24"),8,tun);if err!=nil{t.Fatal(err)}
+	registry,_:=logicaltunnel.NewLeaseRegistry(netip.MustParsePrefix("10.66.0.0/24"),8)
+	server,err:=NewLifecycleServer(LifecycleServerConfig{ServerConfig:ServerConfig{IO:ep.io(),ListenPort:443,TickInterval:10*time.Millisecond,
+		Admission:realityfront.ServerAdmissionConfig{TLS:realityfront.ServerConfig{ServerName:"target.test",RouteKey:key,TLSConfig:&tls.Config{Certificates:[]tls.Certificate{cert}},Timeout:3*time.Second},ExpectedUsername:"shared",ExpectedPassword:"same-password",ServerLimit:1250,
+		AllocateLease:func(req realityfront.AdmissionRequest)(string,error){inst,err:=logicaltunnel.ParseInstallationID(hex.EncodeToString(req.InstallationID));if err!=nil{return "",err};id,err:=logicaltunnel.TunnelIDFromBytes(req.TunnelID);if err!=nil{return "",err};lease,err:=registry.Acquire(req.Username,inst,id);return lease.Config.Address4,err}},
+		LookupLease:registry.Lookup,Router:router,Service:platformflow.DefaultServerConfig(),Lane:datapath.ServerLaneParams{ConnectionMTU:1500,TxIPv4HeaderLen:20,TxTCPHeaderLen:20,RxIPv4HeaderLen:20,RxTCPHeaderLen:20}},DesiredLanes:4})
+	if err!=nil{t.Fatal(err)};registry.BeforeExpire=server.ForgetInactiveTunnel
+	ctx,cancel:=context.WithTimeout(context.Background(),15*time.Second);defer cancel()
+	go server.Run(ctx);defer server.Close()
+	var clients [2]*TunnelClient;var wg sync.WaitGroup
+	for index:=range clients { index:=index;wg.Add(1);go func(){defer wg.Done()
+		var inst logicaltunnel.InstallationID;inst[0]=byte(index+1);id:=logicaltunnel.DerivedTunnelID("shared",inst)
+		client,err:=DialTunnelClient(ctx,TunnelClientConfig{Lease:logicaltunnel.Lease{Account:"shared",InstallationID:inst,Config:logicaltunnel.TunnelConfig{TunnelID:id,Address4:"0.0.0.0/32",Routes4:[]string{"0.0.0.0/0"}}},DesiredLanes:1+index*3,
+		OpenLane:func(_ uint8,inc uint64)(SegmentIO,faketcp.ClientFlow,error){port,err:=RotatingSourcePort(uint16(40000+index*2048),inc);if err!=nil{return SegmentIO{},faketcp.ClientFlow{},err};flow:=faketcp.ClientFlow{LocalIP:[4]byte{192,0,2,1},PeerIP:[4]byte{198,51,100,2},LocalPort:port,PeerPort:443};laneIO,err:=mux.Open(flow);return laneIO,flow,err},
+		Admission:realityfront.ClientAdmissionConfig{AutoLease:true,InstallationID:inst[:],TLS:realityfront.ClientConfig{ServerName:"target.test",RouteKey:key,Timeout:3*time.Second},Username:"shared",Password:"same-password",TunnelID:id.Bytes(),ClientLimit:1300},
+		Lane:datapath.ClientLaneParams{ConnectionMTU:1500,TxIPv4HeaderLen:20,TxTCPHeaderLen:20,RxIPv4HeaderLen:20,RxTCPHeaderLen:20},TickInterval:10*time.Millisecond})
+		if err!=nil{t.Error(err);return};clients[index]=client
+	}() };wg.Wait()
+	for _,c:=range clients{if c==nil{t.Fatal("client not connected")};defer c.Close()}
+	a,_:=clients[0].Owner().Lease();b,_:=clients[1].Owner().Lease();if a.Config.Address4==b.Config.Address4{t.Fatal("shared address")}
+	for _,c:=range clients{
+		lease,_:=c.Owner().Lease();addr,_:=lease.Config.LeaseIPv4();packet:=ipv4Packet(addr.As4(),[4]byte{8,8,8,8},17)
+		if err:=c.SendPacket(ctx,packet,time.Now());err!=nil{t.Fatal(err)};if got:=tun.waitPacket(t,3*time.Second);string(got)!=string(packet){t.Fatal("wrong tunnel delivery")}
+		if err:=c.SendPacket(ctx,ipv4Packet([4]byte{10,66,0,254},[4]byte{8,8,8,8},17),time.Now());err==nil{t.Fatal("source spoof accepted")}
+		if err:=c.RotateOldest(ctx);err!=nil{t.Fatal(err)};again,_:=c.Owner().Lease();if again.Config.Address4!=lease.Config.Address4{t.Fatal("rotation changed lease")}
+	}
+}

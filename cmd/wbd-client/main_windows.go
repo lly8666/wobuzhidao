@@ -55,9 +55,9 @@ func runWindows() error {
 		serverIPText      = flag.String("server-ip", "", "server public IPv4")
 		serverPort        = flag.Uint("server-port", 443, "server FakeTCP port")
 		sourcePort        = flag.Uint("source-port", 40000, "FakeTCP source port")
-		tunnelText        = flag.String("tunnel-id", "", "32-hex Logical Tunnel ID")
-		leaseText         = flag.String("lease4", "", "leased IPv4 /32")
-		account           = flag.String("account", "", "account identity")
+		tunnelText        = flag.String("tunnel-id", "", "32-hex Logical Tunnel ID; empty derives from account and installation in automatic lease mode")
+		leaseText         = flag.String("lease4", "", "leased IPv4 /32; empty requests automatic server allocation")
+		account           = flag.String("account", "", "account identity; empty uses username")
 		installationText  = flag.String("installation-id", "", "32-hex installation ID")
 		serverName        = flag.String("server-name", "", "recognized TLS server name")
 		routeKeyHex       = flag.String("route-key-hex", "", "hex route key")
@@ -94,8 +94,8 @@ func runWindows() error {
 	if err != nil {
 		return err
 	}
-	if *serverIPText == "" || *tunnelText == "" || *leaseText == "" || *account == "" ||
-		*installationText == "" || *serverName == "" || *routeKeyHex == "" ||
+	if *serverIPText == "" ||
+		*serverName == "" || *routeKeyHex == "" ||
 		*username == "" || *password == "" {
 		flag.Usage()
 		return errors.New("required identity and server settings are missing")
@@ -123,7 +123,20 @@ func runWindows() error {
 	if err != nil || !serverIP.Is4() {
 		return errors.New("server-ip must be IPv4")
 	}
-	leasePrefix, err := netip.ParsePrefix(*leaseText)
+	resolvedInstallation, identityErr := logicaltunnel.ResolveInstallation(*installationText,filepath.Join(filepath.Dir(*statePath),"installation-id"),*checkConfig)
+	if identityErr != nil { return identityErr }; *installationText = resolvedInstallation.String()
+	if *account == "" { *account = *username }
+	autoLease := *leaseText == ""
+	if autoLease {
+		installation, identityErr := logicaltunnel.ParseInstallationID(*installationText)
+		if identityErr != nil { return identityErr }
+		expected := logicaltunnel.DerivedTunnelID(*account, installation)
+		if *tunnelText == "" { *tunnelText = expected.String() }
+		if *account != *username || *tunnelText != expected.String() { return errors.New("automatic lease requires account=username and installation-derived tunnel-id") }
+	}
+	parseLease := *leaseText
+	if autoLease { parseLease = "0.0.0.0/32" }
+	leasePrefix, err := netip.ParsePrefix(parseLease)
 	if err != nil || !leasePrefix.Addr().Is4() || leasePrefix.Bits() != 32 {
 		return errors.New("lease4 must be IPv4 /32")
 	}
@@ -164,7 +177,7 @@ func runWindows() error {
 	}
 	if err := realityfront.ValidateClientAdmissionConfig(realityfront.ClientAdmissionConfig{
 		TLS: realityfront.ClientConfig{ServerName: *serverName, RouteKey: routeKey},
-		Username: *username, Password: *password, TunnelID: tunnelID.Bytes(), ClientLimit: uint16(*clientLimit),
+		AutoLease: autoLease, DesiredLanes:uint8(*lanes), InstallationID: installation[:], Username: *username, Password: *password, TunnelID: tunnelID.Bytes(), ClientLimit: uint16(*clientLimit),
 	}); err != nil {
 		return err
 	}
@@ -245,7 +258,7 @@ func runWindows() error {
 			TLS: realityfront.ClientConfig{
 				ServerName: *serverName, RouteKey: routeKey, Timeout: 15 * time.Second,
 			},
-			Username: *username, Password: *password,
+			AutoLease: autoLease, DesiredLanes:uint8(*lanes), InstallationID: installation[:], Username: *username, Password: *password,
 			TunnelID: tunnelID.Bytes(), ClientLimit: uint16(*clientLimit),
 		},
 		Lane: datapath.ClientLaneParams{
@@ -270,6 +283,11 @@ func runWindows() error {
 	}
 	defer client.Close()
 
+	assigned, ok := client.Owner().Lease()
+	if !ok { return errors.New("client lease not bound") }
+	leasePrefix, err = netip.ParsePrefix(assigned.Config.Address4)
+	if err != nil { return err }
+	log.Printf("WBD_CLIENT_LEASE address=%s", leasePrefix)
 	tun, err := windowsclient.OpenTUN(*adapterAlias)
 	if err != nil {
 		return err

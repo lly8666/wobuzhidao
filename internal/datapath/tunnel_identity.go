@@ -33,3 +33,18 @@ func (o *TunnelOwner) Lease() (logicaltunnel.Lease, bool) {
 	}
 	return o.lease.Clone(), true
 }
+
+// BindInitialLease replaces only the pre-admission placeholder. Active, retiring,
+// dormant or replacement owners never change their address through this API.
+func (o *TunnelOwner) BindInitialLease(lease logicaltunnel.Lease) error {
+	if err := lease.Validate(); err != nil { return err }
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	if o.closed || !o.hasLease || o.lease.Config.Address4 != "0.0.0.0/32" ||
+		len(o.active) != 0 || len(o.retiring) != 0 || len(o.candidates) != 0 || len(o.flows) != 0 ||
+		o.lease.Config.TunnelID != lease.Config.TunnelID || o.lease.InstallationID != lease.InstallationID || o.lease.Account != lease.Account {
+		return ErrTunnelMismatch
+	}
+	o.lease = lease.Clone()
+	return nil
+}

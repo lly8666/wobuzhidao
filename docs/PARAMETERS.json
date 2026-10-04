@@ -12,7 +12,7 @@
       "account": {
         "type": "String",
         "default_expression": "\"\"",
-        "help": "account identity",
+        "help": "account identity; empty uses username",
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
@@ -110,7 +110,7 @@
       "lease4": {
         "type": "String",
         "default_expression": "\"\"",
-        "help": "leased IPv4 /32",
+        "help": "leased IPv4 /32; empty requests automatic server allocation",
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
@@ -250,7 +250,7 @@
       "tunnel-id": {
         "type": "String",
         "default_expression": "\"\"",
-        "help": "32-hex Logical Tunnel ID",
+        "help": "32-hex Logical Tunnel ID; empty derives from account and installation in automatic lease mode",
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
@@ -280,7 +280,7 @@
       "account": {
         "type": "String",
         "default_expression": "\"\"",
-        "help": "account identity",
+        "help": "account identity; empty uses username",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },
@@ -392,7 +392,7 @@
       "lease4": {
         "type": "String",
         "default_expression": "\"\"",
-        "help": "leased IPv4 /32",
+        "help": "leased IPv4 /32; empty requests automatic server allocation",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },
@@ -504,7 +504,7 @@
       "tunnel-id": {
         "type": "String",
         "default_expression": "\"\"",
-        "help": "32-hex Logical Tunnel ID",
+        "help": "32-hex Logical Tunnel ID; empty derives from account and installation in automatic lease mode",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },
@@ -537,6 +537,13 @@
         "help": "account identity bound to the static lease",
         "source": "cmd/wbd-server/main_linux.go",
         "json": true
+      },
+      "check-config": {
+        "type": "Bool",
+        "default_expression": "false",
+        "help": "validate server configuration without network changes; credentials redacted",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": false
       },
       "config": {
         "type": "String",
@@ -633,6 +640,13 @@
         "type": "Uint",
         "default_expression": "443",
         "help": "public FakeTCP/TLS port",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "max-clients": {
+        "type": "Int",
+        "default_expression": "256",
+        "help": "maximum persistent automatic client identities; 1..4096",
         "source": "cmd/wbd-server/main_linux.go",
         "json": true
       },
