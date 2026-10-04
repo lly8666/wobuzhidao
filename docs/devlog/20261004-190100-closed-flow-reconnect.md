@@ -1,0 +1,27 @@
+# 20261004-190100 已关闭四元组重连
+
+## 本轮目标和阶段
+
+继续Linux服务端、多客户端7天内存租约交付，起点e883d35a611f135191acf314005da72bd1901faf。只修复实际Actions失败，不改FEC、MTU、4096、crypto或稳态协议。
+
+## 修改与原因
+
+native客户端正常退出后再使用source40000，旧server association仍detached，AddSYN拒绝四元组复用，导致模式切换无法进入受保护认证。初始SYN仅在旧owner全部权威lane已经消费peer FIN时触发安全detach；admitMu.TryLock防止主收包循环等候认证，单个后台清理任务受同锁约束，普通SYN重试随后进入原握手。未收到全部FIN的健康owner不因未认证SYN被踢掉，新增回归断言。
+
+自动租约测试等待TunnelQualified不足以代表换代完成：旧generation仍可qualified。改为等待server与client active generation映射相同再发回程数据，保留generation fencing，不忽略stale错误或重试业务掩盖失败。
+
+## 复用来源
+
+复用当前ServerAssociationTable、PeerWriteClosed、forgetInactiveTunnelAt和原握手重试；无old复用、无新公开握手。
+
+## Actions证据
+
+e883基础37196339645、GUI37196339658、steady37196339647、padding37196339665、recovery37196339649、tools37196339644全部PASS；fullstack37196339660为36样本+aggregate全部成功。lifecycle37196339657在automatic_lease_test回程触发stale generation；Linux37196339688新模式切换握手失败，原native双客户端TCP/UDP与重分配重建和12项systemd已通过。失败artifact11300394116 SHA256 b84033d1b986b2e2f4e6cca158a1e1049af8cc3365fad4f1d97703db19902577保存于本地evidence-linux-server/ttl-mode-failure.zip。本候选NOT_RUN，不能继承e883资格。
+
+## 问题、排查与风险
+
+显式FIN尽力一次；FIN丢失不立即强杀活跃owner，尚不承诺崩溃后同固定端口立即恢复。清理不在steady路径、不新增缓存或等待。native仅功能资格；Windows实际驱动、ARM原生、全70/strict18/1800s最新source仍NOT_RUN。
+
+## 下一项原子任务
+
+固定SOURCE core/race10重复/native模式切换/36生命周期，之后两个独立Normal/Game5205与配套预发布。

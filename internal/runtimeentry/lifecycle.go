@@ -1282,6 +1282,26 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 		return nil
 	}
 	if faketcp.IsInitialSYN(seg) {
+		if old, exists := s.table.GetSegment(seg); exists && !old.IsDuplicateSYN(seg) {
+			s.mu.Lock()
+			lane := s.byFlow[old.Flow()]
+			s.mu.Unlock()
+			// A stopped client may restart on the same source port. Never let
+			// an unauthenticated SYN replace a live owner; require all current
+			// lanes' already-consumed peer FINs. Cleanup is off the read loop,
+			// serialized with admission, and bounded to one task by TryLock.
+			if lane != nil && lane.group.rt.PeerWriteClosed() && s.admitMu.TryLock() {
+				go func() {
+					defer s.admitMu.Unlock()
+					if lane.group.rt.PeerWriteClosed() {
+						s.forgetInactiveTunnelAt(lane.group.id, now)
+					}
+				}()
+				// The ordinary SYN retry enters the unchanged handshake after
+				// the old association has been retired; no new handshake wire.
+				return nil
+			}
+		}
 		isn, err := randomISN()
 		if err != nil {
 			return err

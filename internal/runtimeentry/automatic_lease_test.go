@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"net/netip"
+	"reflect"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -127,6 +128,18 @@ func TestSharedCredentialsAutomaticNormalAndGameLeases(t *testing.T) {
 		if err := c.SendPacket(ctx, ipv4Packet(spoof, [4]byte{8, 8, 8, 8}, 17), time.Now()); err == nil {
 			t.Fatal("source spoof accepted")
 		}
+		server.mu.Lock()
+		live := server.byTunnel[lease.Config.TunnelID].lanes[1]
+		server.mu.Unlock()
+		syn := faketcp.Segment{SrcIP: live.flow.ClientIP, DstIP: live.flow.ServerIP,
+			SrcPort: live.flow.ClientPort, DstPort: live.flow.ServerPort,
+			Flags: faketcp.FlagSYN, Seq: 12345, Window: 65535}
+		if err := server.handleSegment(ctx, syn, time.Now()); err != nil {
+			t.Fatal(err)
+		}
+		if assoc, ok := server.table.Get(live.flow); !ok || assoc != live.assoc {
+			t.Fatal("new unauthenticated SYN replaced a healthy client")
+		}
 		if err := c.RotateOldest(ctx); err != nil {
 			t.Fatal(err)
 		}
@@ -134,7 +147,18 @@ func TestSharedCredentialsAutomaticNormalAndGameLeases(t *testing.T) {
 		if again.Config.Address4 != lease.Config.Address4 {
 			t.Fatal("rotation changed lease")
 		}
-		waitLifecycle(t, 3*time.Second, func() bool { return server.TunnelQualified(lease.Config.TunnelID) })
+		// Qualification can still describe the old lane while the replacement
+		// admission is publishing. Reverse traffic needs the same generations.
+		expected := laneGenerations(c.Owner().ActiveLanes())
+		waitLifecycle(t, 3*time.Second, func() bool {
+			if !server.TunnelQualified(lease.Config.TunnelID) {
+				return false
+			}
+			server.mu.Lock()
+			group := server.byTunnel[lease.Config.TunnelID]
+			server.mu.Unlock()
+			return group != nil && reflect.DeepEqual(expected, laneGenerations(group.owner.ActiveLanes()))
+		})
 		reverse := ipv4Packet([4]byte{8, 8, 8, 8}, addr.As4(), 17)
 		if err := server.RoutePacket(reverse, time.Now()); err != nil {
 			t.Fatal(err)
