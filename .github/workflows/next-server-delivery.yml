@@ -1,0 +1,77 @@
+name: next-server-delivery
+on:
+  push:
+    branches: [main]
+    paths: [.github/server-delivery-request.json]
+permissions: {contents: write, actions: read}
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify original exact-source native deployment GUI and core qualification
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          python3 - <<'PY'
+          import json,os,re,subprocess
+          r=json.load(open('.github/server-delivery-request.json'))
+          if not re.fullmatch('[0-9a-f]{40}',r['source_sha']):raise SystemExit('invalid source')
+          if not re.fullmatch('linux-server-rc-[0-9]{8}-[0-9a-f]{7}',r['tag']):raise SystemExit('invalid tag')
+          repo=os.environ['GITHUB_REPOSITORY']
+          for field,name in [('gui_run','next-windows-gui'),('foundation_run','next-foundation'),('server_run','next-linux-server')]:
+              obj=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs/{r[field]}']))
+              if obj['name']!=name or obj['head_sha']!=r['source_sha'] or obj['run_attempt']!=1 or obj['status']!='completed' or obj['conclusion']!='success':raise SystemExit('exact original qualification missing')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              for k,v in {'SOURCE_SHA':r['source_sha'],'GUI_RUN':r['gui_run'],'SERVER_RUN':r['server_run'],'TAG':r['tag']}.items():f.write(f'{k}={v}\n')
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: '${{ github.token }}'
+          run-id: '${{ env.GUI_RUN }}'
+          name: 'WBD-Windows-Portable-${{ env.SOURCE_SHA }}'
+          path: bundle
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: '${{ github.token }}'
+          run-id: '${{ env.SERVER_RUN }}'
+          name: 'linux-server-${{ env.SOURCE_SHA }}'
+          path: linux
+      - name: Independently verify receipts every packaged file and matching source
+        run: |
+          python3 - <<'PY'
+          import os,json,hashlib,zipfile,shutil
+          from pathlib import Path
+          source=os.environ['SOURCE_SHA']
+          for receipt in ('linux/linux-server-delivery-result.json','linux/linux-multiclient/result.json'):
+              r=json.loads(Path(receipt).read_text())
+              if r['source_sha']!=source or r['result']!='PASS':raise SystemExit('native/deployment receipt mismatch')
+          for arch in ('amd64','arm64'):shutil.copyfile('linux/WBD-Linux-'+arch+'.zip','bundle/WBD-Linux-'+arch+'.zip')
+          for osname,arch,name,root,count in [('windows','amd64','WBD-Windows-Portable.zip','windows-portable/',13),('linux','amd64','WBD-Linux-amd64.zip','linux-amd64/',10),('linux','arm64','WBD-Linux-arm64.zip','linux-arm64/',10)]:
+              p=Path('bundle')/name;digest=hashlib.sha256(p.read_bytes()).hexdigest()
+              with zipfile.ZipFile(p) as z:
+                  m=json.loads(z.read(root+'manifest.json'))
+                  if m['source_sha']!=source or m['target']!={'goos':osname,'goarch':arch} or len(m['files'])!=count:raise SystemExit('bundle identity mismatch')
+                  for row in m['files']:
+                      data=z.read(root+row['path'])
+                      if hashlib.sha256(data).hexdigest()!=row['sha256'] or len(data)!=row['size_bytes']:raise SystemExit('packaged file mismatch')
+              sidecar=Path(str(p)+'.sha256')
+              if sidecar.exists() and sidecar.read_text().strip().lower()!=digest:raise SystemExit('ZIP digest mismatch')
+              sidecar.write_text(digest+'\n');print(name+' sha256='+digest)
+          PY
+      - name: Publish paired prerelease without replacing historical assets
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          cat > notes.md <<'EOF'
+          Linux服务端 amd64/arm64 与 Windows中文便携GUI配套预发布。
+
+          一组用户名/密码可供多台客户端共用，按安装身份自动随机分配唯一IPv4。租约仅内存7天、认证重连续期，在线地址不强行回收；服务端重启允许重新分配。旧9857bdb GUI包不含自动租约扩展，请使用本次配套两端。
+
+          Linux包内包含配置模板、systemd unit、wbdctl和LINUX_SERVER.md。手动安装、检查、开机启动、停止、日志、异常退出恢复、升级及失败回滚、保配置卸载已在Ubuntu24.04 amd64真实systemd环境验证。原生Linux raw/TPROXY同账号Normal1/Game4并发TCP/UDP及服务端重启后换地址重建业务通过。Windows208项GUI/配置与重建路径、两平台基础及Linux race通过。
+
+          ARM仅交叉构建；Windows真实Npcap/Wintun/NIC、物理验收、新SOURCE完整弱网/长测性能资格未运行。本包为预发布，不能把旧性能成绩当成本次新结果。
+
+          Windows完整解压后运行WBD.exe，应用配置/日志仍本文件夹；Npcap按界面官方指引安装，Wintun DLL已内置。Linux解压后先用包内wbdctl install --package ZIP，编辑/etc/wbd/server.json，wbdctl check，再wbdctl start。首次安装不会拿模板占位凭据启动服务。
+          EOF
+          printf '\nSource: `%s`\n' "$SOURCE_SHA" >> notes.md
+          gh release create "$TAG" --target "$SOURCE_SHA" --prerelease --title "WBD Linux服务端与Windows配套预发布" --notes-file notes.md bundle/*.zip bundle/*.sha256

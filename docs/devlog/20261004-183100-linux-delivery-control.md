@@ -1,0 +1,7 @@
+# 20261004-183100 Linux预发布控制与Actions格式化
+
+用户已要求继续Linux安装/服务化/升级及多客户端开发。控制分支仅执行Actions格式化和已授权的预发布交付，产品权威仍next/tlslike-dataplane的AGENTS/STATUS，不能从main旧资料恢复产品架构。
+
+格式化请求固定SOURCEed228e1fb0d747dd31c298bb96d0d71631f45d44、BASE78b09ecc6e7a7bae8405ce46aa1302ac4ed22334，只处理有修改的active Go文件并产出patch；不在开发机运行gofmt。server-delivery入口仅添加workflow，尚无request，不会提前发布。正式请求必须固定同一个SOURCE的原始foundation/GUI/server成功run，还核验native多客户端及真实部署回执、全部三个ZIP文件清单/源码/哈希。旧985GUI预发布不替换；新包限定预发布，ARM/Windows物理/新完整性能未运行必须保留。
+
+下一步：读取native测试及format artifact，修复具体失败，提交最终格式化产品后重新取得同SHA资格，再发出配套发布请求。此控制提交不是产品SOURCE。
