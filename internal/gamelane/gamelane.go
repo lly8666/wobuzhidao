@@ -161,8 +161,9 @@ func (d *Decoder) Add(wire []byte) (DecodeResult, error) {
 		return result, nil
 	}
 	if !d.haveHigh || h.PacketID > d.highest {
+		previous := d.highest
 		d.highest, d.haveHigh = h.PacketID, true
-		d.evictOld()
+		d.evictOld(previous)
 	}
 	d.seen[h.PacketID] = struct{}{}
 	result.Deliver = true
@@ -170,15 +171,28 @@ func (d *Decoder) Add(wire []byte) (DecodeResult, error) {
 	return result, nil
 }
 
-func (d *Decoder) evictOld() {
+func (d *Decoder) evictOld(previous uint64) {
 	if !d.haveHigh || d.highest < d.window {
 		return
 	}
 	cutoff := d.highest - d.window + 1
-	for id := range d.seen {
-		if id < cutoff {
-			delete(d.seen, id)
-		}
+	start := uint64(1)
+	if previous >= d.window { start = previous - d.window + 1 }
+	advance := cutoff - start
+	if advance >= d.window {
+		// No old ID can remain in the new window. Large jumps do bounded work
+		// in the existing table, never iterate the numeric gap or wrap IDs.
+		clear(d.seen)
+		return
+	}
+	if advance > uint64(len(d.seen)) {
+		// Sparse windows: iterate only actual retained entries, not a large
+		// empty gap. Normal contiguous arrivals use the constant-work path.
+		for id := range d.seen { if id < cutoff { delete(d.seen, id) } }
+		return
+	}
+	for id := start; id < cutoff; id++ {
+		delete(d.seen, id)
 	}
 }
 

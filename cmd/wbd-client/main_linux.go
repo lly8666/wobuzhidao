@@ -151,6 +151,7 @@ func main() {
 	dns, err := dnsroute.ParseServers(*dnsText)
 	if err != nil || (*dnsHijack && len(dns)==0) { log.Fatal("invalid DNS servers") }
 	if !*dnsHijack { dns=nil }
+	for _,resolver:=range dns { if resolver==serverIP { log.Fatal("dns4 must not equal the underlay server address") } }
 	plan.DNSHijack = *dnsHijack
 	plan.Direct4 = direct
 	log.Printf("WBD_ROUTE_POLICY mode=%s direct_prefixes=%d source=%s", *routeMode,len(direct),chinaListSource(*chinaIPFile))

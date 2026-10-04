@@ -317,6 +317,11 @@ func assertKernelOwnership(t *testing.T, plan NetworkPlan, want bool) {
 	if hasRoute != want {
 		t.Fatalf("local route present=%v want=%v routes=%s", hasRoute, want, routes)
 	}
+	rules6:=mustCommand(t,"ip","-6","rule","show")
+	if strings.Contains(rules6,strconv.FormatUint(uint64(plan.Priority),10)+":")!=want {t.Fatalf("IPv6 policy ownership want=%v rules=%s",want,rules6)}
+	out,e:=exec.Command("ip","-6","route","show","table",strconv.FormatUint(uint64(plan.Table),10)).CombinedOutput()
+	if want&&(e!=nil||!strings.Contains(string(out),"blackhole default")){t.Fatalf("IPv6 blackhole absent: %v %s",e,out)}
+	if !want&&strings.Contains(string(out),"blackhole"){t.Fatalf("IPv6 blackhole leaked: %s",out)}
 }
 
 func mustCommand(t *testing.T, name string, args ...string) string {

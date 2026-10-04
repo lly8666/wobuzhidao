@@ -3,6 +3,9 @@ package gamelane
 import (
 	"bytes"
 	"errors"
+	"encoding/binary"
+	"math"
+	"math/rand"
 	"testing"
 )
 
@@ -12,6 +15,28 @@ func testSession(v byte) SessionID {
 		id[i] = v + byte(i)
 	}
 	return id
+}
+
+// Compare delivery, duplicate/stale classification and retained membership with
+// the original exhaustive-window semantics across gaps, reordering and wrap
+// boundaries. This is a semantic oracle, not a timing-sensitive benchmark.
+func TestReplayWindowIncrementalEvictionMatchesReference(t *testing.T) {
+ for _,window:=range []int{64,65,4096} {
+  enc,_:=NewEncoder(testSession(11),1);_,copies,_:=enc.WrapCopies([]byte("payload"),[]uint8{1});wire:=copies[0].Wire
+  d,_:=NewDecoder(testSession(11),window);seen:=map[uint64]bool{};var high uint64
+  rng:=rand.New(rand.NewSource(5205))
+  ids:=[]uint64{1,2,1000000000000,1000000000001,999999999999,math.MaxUint64-5000}
+  for i:=0;i<6000;i++ { ids=append(ids,math.MaxUint64-4000+uint64(rng.Intn(3999))) }
+  for _,id:=range ids {
+   binary.BigEndian.PutUint64(wire[20:28],id)
+   stale:=high>id&&high-id>=uint64(window);duplicate:=!stale&&seen[id]
+   if !stale&&!duplicate {if id>high{high=id};for old:=range seen{if high>old&&high-old>=uint64(window){delete(seen,old)}};seen[id]=true}
+   got,e:=d.Add(wire)
+   if got.Stale!=stale||got.Duplicate!=duplicate||got.Deliver!=(!stale&&!duplicate)||(e!=nil)!=stale{t.Fatalf("window=%d id=%d result=%+v err=%v",window,id,got,e)}
+   if d.Recent()!=len(seen){t.Fatalf("window=%d retained=%d want=%d",window,d.Recent(),len(seen))}
+   for old:=range seen{if _,ok:=d.seen[old];!ok{t.Fatalf("lost retained ID %d",old)}}
+  }
+ }
 }
 
 func TestWrapCopiesUseOnePacketIDAndDistinctLaneEnvelope(t *testing.T) {
