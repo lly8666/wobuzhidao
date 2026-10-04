@@ -21,6 +21,8 @@
 
 ## 当前性能主线（2026-09-23）
 
+2026-10-04用户最新要求只做简单部署测试：上传固定发布包、解压配置、启动；不开发Go版wbdctl或在线升级/通用安装工具。旧管理工具和Python3.8失败记录保留，当前直接部署不依赖它，不自动恢复这项兼容修复任务。物理机器已由用户提供并授权测试，按STATUS继续；真实机器启动不等于业务/性能/P7通过。
+
 2026-10-04最新任务已交付：Linux服务端安装/systemd/升级回滚、共享账号多客户端自动7天内存IPv4和配套WindowsGUI，固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3，预发布linux-server-rc-20261004-6181db6。接手先读LINUX_SERVER.md、STATUS.linux_server和evidence/linux-server-6181db6.json；native12/systemd12/GUI208/core-race/36+aggregate37jobs与两独立5205全部PASS。增加Linux客户端namespace锁/网络journal，正常和SIGKILL同端口重建、foreign/live保护已验。网络journal不是IP租约，只有InstallationID长期保存。旧985与c956是历史包，不能混用或继承其资格为新代码；最新SOURCE full70/strict18/1800s、物理Windows/ARM原生仍NOT_RUN。后续按STATUS.next_task推进，不因旧日志/HOLD/性能提示词无证据重构FEC/4096。
 
 2026-10-04历史Windows GUI独立交付：SOURCE `9857bdb25115e87521a9d62309d3ec0b67988f16`，固定预发布标签 `windows-gui-rc-20261004-9857bdb`。接手先读 `docs/WINDOWS_GUI.md`、`STATUS.windows_gui` 和 `docs/evidence/windows-gui-9857bdb.json`；206项GUI检查及基础/网络专项PASS，物理P7仍NOT_RUN。用户已接受Wintun系统驱动安装，勿重复询问；应用文件仍限制本目录，Npcap走官方安装引导。所有Windows参数以PARAMETERS.json和fields.json精确全集管理，新增参数必须同步映射；不得因GUI任务恢复旧性能提示词或改协议。文档HEAD不改变固定包来源，历史d9性能不可冒充985性能资格。

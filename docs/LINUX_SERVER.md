@@ -1,8 +1,31 @@
 # Linux 服务端部署与多客户端
 
-2026-10-04用户安排实机后新增预检：6181db6 ARM包10文件hash及原生`--version`已PASS，但Ubuntu20.04/Python3.8运行`wbdctl.stage`因`Path.is_relative_to`缺失而FAIL；需先做部署工具兼容修复并重新打包，不能把原生version当安装/业务通过。服务器旧服务已按用户指令卸载并保留root专属备份，旧进程、自启、owned规则和TUN已清理；新版尚未安装。Windows已SSH连通/Npcap运行，vmxnet3虚拟NIC，真实业务和整体P7仍NOT_RUN。详见[本轮日志](devlog/20261004-213700-physical-preflight-legacy-uninstall.md)。
+## 当前只做简单部署测试（用户最新要求）
 
-当前固定预发布SOURCE `6181db66b67594b07cd989b8b8b5848cedf6ccc3`：[配套Windows/Linux下载](https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6)。amd64真实部署12检查、native多客户端及正常/强杀重建12检查、GUI208、基础/race、36生命周期与两个独立5205全部PASS，详见[evidence/linux-server-6181db6.json](evidence/linux-server-6181db6.json)。下面较早SOURCE记录只是历史过程，不能替代这个固定证据。旧985不含自动租约，c956不含新增客户端强杀网络恢复，推荐本次两端配套。ARM仅交叉构建，物理与最新full70/strict18/1800s仍NOT_RUN。
+不开发通用安装器、Go版wbdctl、在线升级或新的回滚管理。直接用固定发布包：核验包与manifest，解压复制已编译的wbd-server，填写server.json和证书，检查配置后启动。现有wbdctl及其Actions记录保留为历史能力，不作为当前测试部署入口；Python3.8安装工具错误保留记录，但不阻塞直接部署，也不因此重新打包或改变数据面。
+
+测试服务器使用/opt/wbd/wbd-server、/etc/wbd/server.json与证书、/var/lib/wbd/network-state.json和/run/wbd。包内systemd unit仅将/opt/wbd/current/wbd-server改为/opt/wbd/wbd-server，其余就绪通知和owned网络清理保持。先不启用开机自启；手动替换程序前停止服务，不自动联网升级。配置、认证密钥不写仓库。分别操作如下：
+
+```sh
+# 启动前检查
+/opt/wbd/wbd-server --config /etc/wbd/server.json --check-config
+systemctl start wbd-server
+# 查看运行情况
+systemctl status wbd-server --no-pager
+journalctl -u wbd-server -n 50 --no-pager
+# 需要停止时执行
+systemctl stop wbd-server
+```
+
+无需在服务器安装Go，也不调用Python安装工具。首次配置仍需实际接口/本机IPv4、监听端口、SNI/decoy、认证、证书和不冲突的地址池；架构匹配、管理连接与其他服务保留仍需确认。
+
+2026-10-04：6181db6已直接部署到用户ARM服务器，原生配置check和systemd就绪启动通过。当前Normal客户端1lane、FEC20:20、MTU1400测试参数已配好；Windows已SSH连通/Npcap运行，vmxnet3虚拟NIC。端到端业务/性能与整体P7仍NOT_RUN，不能用服务启动替代业务验收。
+
+## 历史预检与已发布工具
+
+此前预检中6181db6 ARM包10文件hash及原生`--version`PASS；Ubuntu20.04/Python3.8的wbdctl.stage因Path.is_relative_to缺失FAIL。旧服务按用户指令卸载并保留root专属备份；旧进程、自启、owned规则和TUN清理。该问题属于可选管理工具，按最新简化部署决策不再是当前待修任务。失败证据保留在[预检日志](devlog/20261004-213700-physical-preflight-legacy-uninstall.md)。
+
+当前固定预发布SOURCE `6181db66b67594b07cd989b8b8b5848cedf6ccc3`：[配套Windows/Linux下载](https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6)。amd64真实部署12检查、native多客户端及正常/强杀重建12检查、GUI208、基础/race、36生命周期与两个独立5205全部PASS，详见[evidence/linux-server-6181db6.json](evidence/linux-server-6181db6.json)。下面较早SOURCE记录只是历史过程，不能替代这个固定证据。旧985不含自动租约，c956不含新增客户端强杀网络恢复，推荐本次两端配套。ARM包在Actions交叉构建，现已新增用户ARM机器的原生配置/服务启动/停止清理验证；端到端业务、整体P7与最新full70/strict18/1800s仍NOT_RUN。
 
 本任务由2026-10-04用户授权继续实施。最新决策：认证保持简单的一组用户名/密码，允许多台设备共用；每设备独立InstallationID，由服务端内存租约池随机选择未占用IPv4地址。租约7天，认证重连续期，活跃/退休lane仍占用的地址不能回收。不持久化IP映射，服务端重启后允许重新分配；只持久化客户端安装身份。
 

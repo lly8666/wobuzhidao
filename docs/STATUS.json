@@ -77,9 +77,9 @@
     "Windows中文GUI与便携包完成：29普通字段及全部managed操作、服务器管理/切换/安全停止、Npcap引导、原版Wintun随包。9857bdb同源206GUI检查及core/race/网络专项PASS，已发布固定标签预发布。物理P7仍NOT_RUN。",
     "2026-10-04 Linux部署/共享账号多客户端自动7天内存IP与配套GUI完成：SOURCE6181db6 native12/systemd12/GUI208/core-race/真实DNS分流/36+aggregate37jobs/两独立5205 PASS，正常与SIGKILL同端口重建、foreign/live保护通过，三平台同源包预发布linux-server-rc-20261004-6181db6。"
   ],
-  "in_progress": [],
-  "next_task": "用户已安排Windows/ARM实机并授权卸载旧服务，旧安装/进程/自启/owned规则/TUN清理完成。6181db6 ARM原生version及10文件hash PASS，但Ubuntu20.04/Python3.8隔离stage真实失败：wbdctl使用is_relative_to。先修部署工具兼容性及拒绝覆盖未知旧unit，Actions回归后重新发配套包，再部署新版和做Windows/Npcap/Wintun到ARM业务/清理资格；最新full70/strict18/1800s仍未补齐，P7未完成。每性能Action只一条，不动FEC/4096或架构。",
-  "latest_log": "docs/devlog/20261004-213700-physical-preflight-legacy-uninstall.md",
+  "in_progress": ["P7已进入简单部署测试：ARM服务启动/停止清理/重启PASS，Windows到ARM端到端业务与性能待测"],
+  "next_task": "按用户最新要求只做简单部署测试，不开发Go版wbdctl、在线升级或通用安装管理。6181db6已直接部署ARM，config check/systemd ready/stop owned cleanup/restart PASS且当前active；不依赖Python安装器，不因此重新发包。下一项上传同源Windows portable、安全填写配置，保留SSH/RDP管理直连，验真实DNS/TCP/HTTPS/UDP、Normal/Game与退出清理，再做独立性能。当前仅部署门，业务/P7与最新full70/strict18/1800s未通过；每性能Action只一条，不动FEC/4096或架构。",
+  "latest_log": "docs/devlog/20261004-235200-simple-arm-deployment.md",
   "last_tested_source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
   "actions": [
     {
@@ -6959,15 +6959,17 @@
     "release_url": "https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6",
     "publish_run": 37200175034,
     "physical": "NOT_RUN",
-    "arm64_native": "VERSION_PASS_6181db6_ONLY; Ubuntu20.04aarch64 package10files and --version verified; native business NOT_RUN",
+    "arm64_native": "DIRECT_DEPLOYMENT_PASS_6181db6_ONLY; package10files/version/config/systemd readiness/normal stop owned cleanup/restart verified; native business NOT_RUN",
     "physical_preflight": {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
       "arm64_archive_sha256": "c81edf4a3f724918c0ae2eef4baa24457d7b7074bd9516330ed2e23cce0f8fe4",
       "server_environment": "Ubuntu20.04.4/Linux5.4/aarch64/2CPU/Python3.8.10",
-      "installation": "FAIL_PYTHON38_IS_RELATIVE_TO; isolated stage only; new service NOT_INSTALLED",
+      "installation": "DIRECT_DEPLOYMENT_PASS; /opt/wbd/wbd-server + /etc/wbd/server.json + existing adapted systemd unit; no wbdctl or online upgrade; active,autostart disabled",
+      "optional_wbdctl_preflight": "Historical FAIL_PYTHON38_IS_RELATIVE_TO retained; user chose simple direct deployment; compatibility repair no longer current task",
+      "simple_deployment": "native check_config rc0;systemd ready active;stop owned rules/TUN/journal absent;SSH preserved;restart active;FEC20:20/MTU1400;no business test yet",
       "legacy_uninstall": "PASS_user_authorized; original uninstaller rc0; unit/autostart/processes/installed paths/owned firewall/TUN absent; management route and V2Ray/frps preserved; root-only backup",
       "windows": "SSH_CONNECTED; Windows11Professional; Npcap running; vmxnet3 virtual NIC; no WBD process; driver business NOT_RUN",
-      "log": "docs/devlog/20261004-213700-physical-preflight-legacy-uninstall.md"
+      "log": "docs/devlog/20261004-235200-simple-arm-deployment.md"
     },
     "latest_full70": "NOT_RUN",
     "latest_strict18": "NOT_RUN",
