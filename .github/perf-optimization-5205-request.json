@@ -1,11 +1,11 @@
 {
-  "source_sha": "c956481143857d6ae4cdce04a31d22e8f6438903",
-  "baseline_source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
-  "dispatch_ref": "perf-fixed/c956481143857d6ae4cdce04a31d22e8f6438903",
+  "foundation_run": 37198479750,
+  "stage": "Linux-stale-source-port-reconnect",
   "baseline_artifacts": {
-    "game": 11295470902,
-    "normal": 11294708736
+    "game": 11301384663,
+    "normal": 11301970252
   },
-  "foundation_run": 37197185706,
-  "stage": "Linux-auto-lease-and-atomic-publication"
+  "baseline_source_sha": "c956481143857d6ae4cdce04a31d22e8f6438903",
+  "dispatch_ref": "perf-fixed/594016a856727b7d46bee640e4e15caea28c1cd3",
+  "source_sha": "594016a856727b7d46bee640e4e15caea28c1cd3"
 }

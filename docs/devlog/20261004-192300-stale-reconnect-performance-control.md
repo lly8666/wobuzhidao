@@ -1,0 +1,5 @@
+# 无FIN同端口失活重连候选性能门
+
+594016a856727b7d46bee640e4e15caea28c1cd3仅补同四元组SYN对全lane长期失活的识别，复用原安全detach；无FEC/4096/稳态参数变更。foundation37198479750成功后才运行两个独立5205，基线为刚通过的c956同配置summary artifacts11301970252/11301384663。CPU跨host不作固定增减结论，RTT/loss仍沿既定门。真实SIGKILL客户端无FIN/92s后同端口恢复在产品next-linux-server功能workflow验证；新source fullstack36与GUI/core另外核验。
+
+前一c956配套预发布与所有原始PASS保留，后续新包不可继承成594的成绩。新SOURCE原始attempt1全门通过才更新发布请求，full70/full18/1800s/Windows物理与ARM原生仍NOT_RUN。
