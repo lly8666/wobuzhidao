@@ -1,0 +1,155 @@
+name: faketcp-recovery-load-ab
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  load_ab:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.title, '[recoveryab]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        rtt: [20, 100]
+        loss: [10, 20]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install network tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iproute2 iptables gcc
+      - name: Build
+        run: |
+          set -euo pipefail
+          go test ./internal/faketcp -count=1
+          go build -trimpath -o /tmp/wbd-faketcp ./cmd/wbd-faketcp
+          gcc -O2 -Wall -Wextra -Werror scripts/udp_oneway_probe.c -lm -o /tmp/udp_oneway_probe
+      - name: Loaded recovery research diagnostic on 100 Mbit link
+        env:
+          RTT: ${{ matrix.rtt }}
+          LOSS: ${{ matrix.loss }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/recovery-load && mkdir -p /tmp/recovery-load
+          run_one() {
+            MODE="$1"; REP="$2"; BASE="$3"
+            C="wbdlc${BASE}$$"; S="wbdls${BASE}$$"
+            cleanup_case() {
+              set +e
+              [[ -n "${CPID:-}" ]] && sudo kill -TERM "$CPID" 2>/dev/null
+              [[ -n "${SPID:-}" ]] && sudo kill -TERM "$SPID" 2>/dev/null
+              [[ -n "${RPID:-}" ]] && sudo kill -TERM "$RPID" 2>/dev/null
+              sleep .08
+              sudo ip netns del "$C" 2>/dev/null
+              sudo ip netns del "$S" 2>/dev/null
+              CPID= SPID= RPID=
+            }
+            trap cleanup_case RETURN
+            sudo ip netns add "$C"; sudo ip netns add "$S"
+            sudo ip link add vc type veth peer name vs
+            sudo ip link set vc netns "$C"; sudo ip link set vs netns "$S"
+            sudo ip -n "$C" addr add 10.94.0.1/24 dev vc
+            sudo ip -n "$S" addr add 10.94.0.2/24 dev vs
+            sudo ip -n "$C" link set lo up; sudo ip -n "$S" link set lo up
+            sudo ip -n "$C" link set vc up; sudo ip -n "$S" link set vs up
+            sudo ip netns exec "$C" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+            sudo ip netns exec "$S" iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP
+            HALF=$(python3 - <<PY
+          print(float("$RTT")/2.0)
+          PY
+            )
+            sudo ip netns exec "$C" tc qdisc add dev vc root netem limit 100000 delay "${HALF}ms" rate 100mbit
+            sudo ip netns exec "$S" tc qdisc add dev vs root netem limit 100000 delay "${HALF}ms" rate 100mbit
+
+            OUT="/tmp/recovery-load/${MODE}-${REP}.json"
+            CLOG="/tmp/recovery-load/${MODE}-${REP}-client.log"
+            SLOG="/tmp/recovery-load/${MODE}-${REP}-server.log"
+            sudo ip netns exec "$S" /tmp/udp_oneway_probe server ${BASE} 2.0 2500 "$OUT" \
+              >"/tmp/recovery-load/${MODE}-${REP}-probe.log" 2>&1 & RPID=$!
+            sudo ip netns exec "$S" /tmp/wbd-faketcp server --shadow-recovery "$MODE" \
+              --listen 10.94.0.2:$((BASE+3)) --target-udp 127.0.0.1:${BASE} >"$SLOG" 2>&1 & SPID=$!
+            sleep .12
+            sudo ip netns exec "$C" /tmp/wbd-faketcp client --shadow-recovery "$MODE" \
+              --local-udp 127.0.0.1:$((BASE+4)) --source 10.94.0.1:$((BASE+10)) --remote 10.94.0.2:$((BASE+3)) >"$CLOG" 2>&1 & CPID=$!
+            for i in $(seq 1 400); do
+              grep -q "READY role=client.*recovery=${MODE}" "$CLOG" && grep -q "READY role=server.*recovery=${MODE}" "$SLOG" && break
+              sleep .05
+            done
+            grep -q "READY role=client.*recovery=${MODE}" "$CLOG"
+            grep -q "READY role=server.*recovery=${MODE}" "$SLOG"
+
+            sudo ip netns exec "$C" tc qdisc replace dev vc root netem limit 100000 delay "${HALF}ms" loss random "${LOSS}%" rate 100mbit
+            sudo ip netns exec "$S" tc qdisc replace dev vs root netem limit 100000 delay "${HALF}ms" loss random "${LOSS}%" rate 100mbit
+            sudo ip netns exec "$C" /tmp/udp_oneway_probe client $((BASE+4)) 65.0 2.0 1200
+            wait "$RPID" || true; RPID=
+            sudo kill -TERM "$CPID" "$SPID" 2>/dev/null || true
+            wait "$CPID" || true; wait "$SPID" || true; CPID= SPID=
+            test -s "$OUT"
+            cleanup_case
+            trap - RETURN
+          }
+
+          run_one legacy    1 58000
+          run_one sack-rack 1 58100
+          run_one sack-rack 2 58200
+          run_one legacy    2 58300
+
+          python3 - <<'PY'
+          import json,os,statistics
+          def load(mode):
+              rows=[]
+              for rep in (1,2):
+                  with open(f'/tmp/recovery-load/{mode}-{rep}.json') as f:
+                      rows.append(json.load(f))
+              return rows
+          def med(rows,key): return statistics.median(float(r[key]) for r in rows)
+          legacy=load('legacy'); advanced=load('sack-rack')
+          out={
+              'link_mbps':100.0,
+              'inner_offered_mbps':65.0,
+              'rtt_ms':float(os.environ['RTT']),
+              'loss_pct':float(os.environ['LOSS']),
+              'qualified_default':'legacy',
+              'sack_rack_status':'experimental',
+              'legacy':{
+                  'delivery_median':med(legacy,'delivery_ratio'),
+                  'goodput_mbps_median':med(legacy,'delivered_mbps_active'),
+                  'p50_ms_median':med(legacy,'oneway_p50_ms'),
+                  'p95_ms_median':med(legacy,'oneway_p95_ms'),
+                  'p99_ms_median':med(legacy,'oneway_p99_ms'),
+              },
+              'sack_rack':{
+                  'delivery_median':med(advanced,'delivery_ratio'),
+                  'goodput_mbps_median':med(advanced,'delivered_mbps_active'),
+                  'p50_ms_median':med(advanced,'oneway_p50_ms'),
+                  'p95_ms_median':med(advanced,'oneway_p95_ms'),
+                  'p99_ms_median':med(advanced,'oneway_p99_ms'),
+              },
+          }
+          out['p50_delta_ms']=out['sack_rack']['p50_ms_median']-out['legacy']['p50_ms_median']
+          out['delivery_delta_pp']=(out['sack_rack']['delivery_median']-out['legacy']['delivery_median'])*100.0
+          out['goodput_delta_mbps']=out['sack_rack']['goodput_mbps_median']-out['legacy']['goodput_mbps_median']
+          print('RECOVERY_LOAD_AB',json.dumps(out,sort_keys=True))
+          # The loaded gate already rejected SACK/RACK as the product default.
+          # Keep both paths executable so future lower-priority repair research
+          # remains comparable, but do not make release CI depend on the
+          # experimental mode beating the qualified latency-first default.
+          for mode in ('legacy','sack_rack'):
+              row=out[mode]
+              assert 0.0 < row['delivery_median'] <= 1.0, out
+              assert row['goodput_mbps_median'] > 0.0, out
+              assert row['p50_ms_median'] >= 0.0, out
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: recovery-load-rtt-${{ matrix.rtt }}-loss-${{ matrix.loss }}
+          path: /tmp/recovery-load

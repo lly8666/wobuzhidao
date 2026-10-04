@@ -1,0 +1,28 @@
+# Durable binaries do not belong in Git.
+*.exe
+*.dll
+*.so
+*.dylib
+*.apk
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.zst
+*.pcap
+*.pcapng
+
+# Build/test output.
+bin/
+build/
+dist/
+.tmp/
+__pycache__/
+.pytest_cache/
+
+# Local secrets/config.
+.env
+*.key
+*.pem
+*.p12
+local-config.*

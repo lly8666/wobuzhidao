@@ -1,0 +1,86 @@
+name: link-policy-formula
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/link-policy-formula.yml'
+      - 'cmd/wbd-link-policy-eval/**'
+      - 'internal/linkpolicy/**'
+      - 'internal/linkestimate/**'
+      - 'internal/fec/**'
+  push:
+    branches:
+      - dev/wbd-raw-fec-v2
+    paths:
+      - '.github/workflows/link-policy-formula.yml'
+      - 'cmd/wbd-link-policy-eval/**'
+      - 'internal/linkpolicy/**'
+      - 'internal/linkestimate/**'
+      - 'internal/fec/**'
+
+permissions:
+  contents: read
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Test formula and high-loss link-rate estimator
+        run: go test ./internal/linkpolicy ./internal/linkestimate ./cmd/wbd-link-policy-eval -count=1
+      - name: Calibrate formula against existing FEC simulator
+        run: |
+          set -euo pipefail
+          go run ./cmd/wbd-link-policy-eval \
+            -capacities '5,10,20,30,50,75,100,125,150' \
+            -loss '0,1,3,5,10,15,20,30' \
+            -rtt-ms '20,100' \
+            -burst-lengths '1,4' \
+            -seeds '260826,260827,260828' \
+            -samples 500 \
+            -out /tmp/link-policy-formula.json | tee /tmp/link-policy-formula.log
+      - name: Summarize calibration without freezing a lookup table
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          d=json.loads(pathlib.Path('/tmp/link-policy-formula.json').read_text())
+          rows=d['rows']
+          def pct(a,b): return 100.0*a/b if b else 100.0
+          b_claim=d['balanced_claims']; b_pass=d['balanced_observed_pass']
+          c_claim=d['conservative_claims']; c_pass=d['conservative_observed_pass']
+          misses=[x for x in rows if x['claimed_target'] and not x['observed_pass']]
+          severe=[x for x in misses if x['burst_length'] > 1]
+          out=[
+            '# WBD link policy formula calibration',
+            '',
+            '> Simulator calibration only. This artifact evaluates a continuous probability formula; it is not a built-in recommendation table or release authority.',
+            '',
+            f"Balanced simulator confirmation: {b_pass}/{b_claim} ({pct(b_pass,b_claim):.2f}%).",
+            f"Conservative (+1 FEC protection step) confirmation: {c_pass}/{c_claim} ({pct(c_pass,c_claim):.2f}%).",
+            f"Claimed-but-missed points: {len(misses)}; burst points among misses: {len(severe)}.",
+            f"Formula reports target unreachable even at 20:20 for {d['target_unmet']} mode-points.",
+            f"Low-loss scenarios eligible to request experimental two-lane game mode: {d['game_lane_eligible']}.",
+            '',
+            'Worst claimed misses by observed delivery:',
+          ]
+          for x in sorted(misses, key=lambda x:x['observed_delivery_min'])[:20]:
+            out.append(f"- {x['mode']} cap={x['capacity_mbps']:.0f}M loss={x['loss_pct']:.0f}% burst={x['burst_length']} rtt={x['rtt_ms']:.0f} fec={x['fec']} inner={x['inner_mbps']:.2f}M predicted={x['predicted_delivery']:.5f} observed={x['observed_delivery_min']:.5f} util={x['wire_util_max']:.3f}")
+          pathlib.Path('/tmp/link-policy-formula.md').write_text('\n'.join(out)+'\n')
+          print('\n'.join(out))
+          if not rows or b_claim == 0 or c_claim == 0:
+            raise SystemExit('formula calibration produced incomplete coverage')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: link-policy-formula-calibration
+          path: |
+            /tmp/link-policy-formula.json
+            /tmp/link-policy-formula.md
+            /tmp/link-policy-formula.log
+          if-no-files-found: error

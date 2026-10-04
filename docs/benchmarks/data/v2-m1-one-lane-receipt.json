@@ -1,0 +1,54 @@
+{
+  "schema": "wbd-v2-m1-local-qualification/v2",
+  "date": "2026-08-25",
+  "authority": "local sandbox execution",
+  "topology": "UDP source -> UDPspeeder client -> 25ms/direction userspace FEC-shard loss/delay proxy -> udp2raw client FakeTCP -> udp2raw server -> UDPspeeder server -> UDP echo; reverse path symmetric",
+  "profile": {
+    "rtt_ms": 50,
+    "samples": 200,
+    "payload_bytes": 256,
+    "window": 32,
+    "warmup_samples": 64,
+    "warmup_window": 1,
+    "seeds": [260824, 260825, 260826],
+    "loss_pct": [0, 1, 5, 10, 15],
+    "loss_direction": "forward FEC shards before udp2raw encapsulation"
+  },
+  "fec": [
+    {"mode": 0, "ratio": "20:10", "timeout_ms": 8},
+    {"mode": 0, "ratio": "20:20", "timeout_ms": 8}
+  ],
+  "udp2raw": {
+    "tag": "20230206.0",
+    "commit": "e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63",
+    "commit_embedded": "e5ecd33ec4",
+    "binary_sha256": "c81c7699194188172f37f747cdeba9fb54214bc4b3ba2d85cfdfccd5f7f70c3c",
+    "archive_sha256": "503cf5781aa97e50b4954c6bc4622c3ea6be02f6a35def4bb3b3eaf95bd2c7e8",
+    "raw_mode": "faketcp",
+    "seq_mode": "default (3)",
+    "auto_rule_server": true,
+    "auto_rule_client": true
+  },
+  "udpspeeder": {
+    "tag": "20230206.0",
+    "commit": "61b24a369700c3d8248dd18fa9a524b778741454",
+    "commit_embedded": "61b24a3697",
+    "binary_sha256": "f2ac1feedc10003255c1072346b1f3ee4935fc7bf2053af69ad52b7369d4b25a",
+    "archive_sha256": "b64dd376a948995cb5da17d8eb171338ccd0553b9380e5164f8cb5ac4131bcaa"
+  },
+  "environment": {
+    "kernel": "6.18.35",
+    "arch": "x86_64",
+    "namespace": "unshare -Urn isolated user+network namespace",
+    "rst_suppression": "upstream udp2raw -a rules on both client and server via iptables-nft inside namespace",
+    "host_cap_net_raw": true,
+    "host_cap_net_admin": false,
+    "iptables_helper": "temporary Actions-relayed Ubuntu iptables userspace; XTABLES_LIBDIR explicitly set; helper is not a product dependency"
+  },
+  "results_sha256": "3eeb7851c1284d838817f6f3406516568e76469f0319056cc3bb63e2897e15e5",
+  "median_sha256": "db22df67515253ee9e1bdc47196bc117e2485751043e92341d9cd61819695027",
+  "cases": 30,
+  "all_warmups_complete": true,
+  "all_delivery_complete": true,
+  "result": "PASS: exact pinned one-lane raw/FEC V2-M1 baseline reproduced locally under classic FakeTCP with upstream RST rules on both endpoints; all 30 cases delivered 100% and retained the historical ~71ms-class p99 with bounded host jitter."
+}

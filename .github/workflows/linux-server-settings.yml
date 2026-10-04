@@ -1,0 +1,32 @@
+name: linux-server-settings
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/linux-server-settings.yml'
+      - 'scripts/linux_server_manager.sh'
+      - 'scripts/linux_server_settings_test.sh'
+  push:
+    branches: [dev/wbd-raw-fec-v2]
+    paths:
+      - '.github/workflows/linux-server-settings.yml'
+      - 'scripts/linux_server_manager.sh'
+      - 'scripts/linux_server_settings_test.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  settings:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate lifecycle manager settings and migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh -n scripts/linux_server_manager.sh scripts/linux_server_settings_test.sh
+          chmod +x scripts/linux_server_settings_test.sh
+          sudo env WBD_SERVER_MANAGER="$PWD/scripts/linux_server_manager.sh" scripts/linux_server_settings_test.sh

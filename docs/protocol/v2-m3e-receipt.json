@@ -1,0 +1,21 @@
+{
+  "schema": "wbd-v2-m3e-config-qualification/v1",
+  "result": "pass",
+  "authority": "local sandbox execution",
+  "shim_sha256": "63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a",
+  "dtls": {
+    "version": "DTLSv1.3",
+    "cipher": "TLS_AES_256_GCM_SHA384",
+    "session_control_started_only_after_both_ready": true
+  },
+  "sequence": [
+    "HELLO/ACCEPT",
+    "AUTH/AUTH_OK",
+    "CONFIG weak-1.5x/CONFIG_OK"
+  ],
+  "selected_mode": "weak-1.5x",
+  "server_output": "SERVER state=2 auth_required=true authenticated=true configured=true protection_mode=weak-1.5x rx=3 tx=3 rx_bytes=50 tx_bytes=27",
+  "client_output": "CLIENT configured=true protection_mode=weak-1.5x",
+  "auto": "reserved and rejected; not admitted",
+  "scope": "M3E one-time fixed-mode negotiation only; no UDPspeeder reconfiguration, TUN, two-lane or Auto"
+}

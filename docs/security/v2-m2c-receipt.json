@@ -1,0 +1,255 @@
+{
+  "schema": "wbd-v2-m2-dtls-raw-fec-qualification/v1",
+  "result": "pass",
+  "authority": "local sandbox execution",
+  "architecture": "UDPspeeder FEC -> WBD DTLS 1.3 -> udp2raw FakeTCP, one lane",
+  "pinned": {
+    "udp2raw_sha256": "c81c7699194188172f37f747cdeba9fb54214bc4b3ba2d85cfdfccd5f7f70c3c",
+    "udpspeeder_sha256": "f2ac1feedc10003255c1072346b1f3ee4935fc7bf2053af69ad52b7369d4b25a",
+    "wolfssl_commit": "ac01707f552c611fbd135cc723b2682b3e7f80f2",
+    "wolfssl_git_archive_sha256": "4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b",
+    "libwolfssl_a_sha256": "22b132f66b74067507df8a891a2137e78d54309ec424c8bcc7ed9a3ac897c96a",
+    "dtls_shim_source_sha256": "b5b8a1031c045af973b27c18178205f2057330f28e2bc5350ba82a5556d272a1",
+    "dtls_shim_binary_sha256": "63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a",
+    "m2b_requalification_receipt_sha256": "9a20bd236ddb9dbc9e595dbb2eb904bf115dfe40870511afeee2ec96602895cc",
+    "m2c_harness_sha256": "4604c5ed4808738c964d79dd75380aa709ff53d6ac259e58fdb354b4d6306e86",
+    "m1_results_sha256": "3eeb7851c1284d838817f6f3406516568e76469f0319056cc3bb63e2897e15e5"
+  },
+  "profile": {
+    "rtt_ms": 50,
+    "payload_count": 200,
+    "payload_bytes": 256,
+    "window": 32,
+    "warmup_packets": 64,
+    "loss_layer": "encrypted DTLS application datagram after UDPspeeder FEC and before udp2raw",
+    "loss_pct": [
+      0,
+      1,
+      5,
+      10,
+      15
+    ],
+    "seeds": [
+      260824,
+      260825,
+      260826
+    ],
+    "fec_primary": "20:20"
+  },
+  "primary_20_20": {
+    "cases": 15,
+    "all_delivery_complete": true,
+    "medians": [
+      {
+        "loss_pct": 0,
+        "delivery_ratio": 1.0,
+        "p50_ms": 69.65913500062015,
+        "p95_ms": 70.3540399990743,
+        "p99_ms": 70.46343200090632,
+        "late_ratio": 0.0,
+        "security_overhead_vs_m1_fec_pct": 5.238070110636202,
+        "p99_delta_vs_m1_ms": -0.19990100008726586,
+        "cpu_ms_product": 40.00000000000001,
+        "cpu_ms_dtls": 20.0,
+        "rss_peak_kb_product": 27016.0,
+        "encrypted_forward_traffic_x": 2.3371484375,
+        "drop_count_median": 0
+      },
+      {
+        "loss_pct": 1,
+        "delivery_ratio": 1.0,
+        "p50_ms": 69.12111199926585,
+        "p95_ms": 71.754343000066,
+        "p99_ms": 71.86151099995186,
+        "late_ratio": 0.0,
+        "security_overhead_vs_m1_fec_pct": 5.2760196905766525,
+        "p99_delta_vs_m1_ms": 1.1686079978971975,
+        "cpu_ms_product": 30.0,
+        "cpu_ms_dtls": 9.999999999999998,
+        "rss_peak_kb_product": 27032.0,
+        "encrypted_forward_traffic_x": 2.3391015625,
+        "drop_count_median": 1
+      },
+      {
+        "loss_pct": 5,
+        "delivery_ratio": 1.0,
+        "p50_ms": 70.23513800049841,
+        "p95_ms": 75.9181779994833,
+        "p99_ms": 76.20718699945428,
+        "late_ratio": 0.0,
+        "security_overhead_vs_m1_fec_pct": 5.411539104351574,
+        "p99_delta_vs_m1_ms": 7.37306599967269,
+        "cpu_ms_product": 40.000000000000036,
+        "cpu_ms_dtls": 9.999999999999998,
+        "rss_peak_kb_product": 27080.0,
+        "encrypted_forward_traffic_x": 2.33826171875,
+        "drop_count_median": 11
+      },
+      {
+        "loss_pct": 10,
+        "delivery_ratio": 1.0,
+        "p50_ms": 69.16823600113275,
+        "p95_ms": 69.71909300045809,
+        "p99_ms": 69.75754000086454,
+        "late_ratio": 0.0,
+        "security_overhead_vs_m1_fec_pct": 5.304909151671856,
+        "p99_delta_vs_m1_ms": -2.055989994623265,
+        "cpu_ms_product": 39.99999999999998,
+        "cpu_ms_dtls": 10.0,
+        "rss_peak_kb_product": 27044.0,
+        "encrypted_forward_traffic_x": 2.342890625,
+        "drop_count_median": 24
+      },
+      {
+        "loss_pct": 15,
+        "delivery_ratio": 1.0,
+        "p50_ms": 69.0631300003588,
+        "p95_ms": 81.44556000115699,
+        "p99_ms": 82.1166860005178,
+        "late_ratio": 0.0,
+        "security_overhead_vs_m1_fec_pct": 5.345773681803792,
+        "p99_delta_vs_m1_ms": 6.240104000426072,
+        "cpu_ms_product": 30.0,
+        "cpu_ms_dtls": 19.999999999999996,
+        "rss_peak_kb_product": 27052.0,
+        "encrypted_forward_traffic_x": 2.34078125,
+        "drop_count_median": 46
+      }
+    ],
+    "results_sha256": "f4ad41c9112e65c022a073be0ce4d744adf2c365f492be51c78e5d4d83d89472",
+    "median_sha256": "d309c64f3a4a0a00964c431d407bb55648bc35f8bcf54653f131239df32af2aa"
+  },
+  "secondary_20_10_regression": {
+    "cases": 9,
+    "loss_pct": [
+      0,
+      1,
+      15
+    ],
+    "all_delivery_complete": true,
+    "medians": [
+      {
+        "loss_pct": 0,
+        "delivery_ratio": 1.0,
+        "p50_ms": 70.94479100123863,
+        "p95_ms": 72.11921300040558,
+        "p99_ms": 72.26607099983084,
+        "late_ratio": 0.0,
+        "security_overhead_vs_m1_fec_pct": 5.445265751495952,
+        "p99_delta_vs_m1_ms": -0.6388880001395592,
+        "cpu_ms_product": 30.0,
+        "cpu_ms_dtls": 10.0,
+        "rss_peak_kb_product": 26996.0,
+        "encrypted_forward_traffic_x": 1.75529296875,
+        "drop_count_median": 0
+      },
+      {
+        "loss_pct": 1,
+        "delivery_ratio": 1.0,
+        "p50_ms": 69.49731399981829,
+        "p95_ms": 71.90290299877233,
+        "p99_ms": 71.91314800002147,
+        "late_ratio": 0.0,
+        "security_overhead_vs_m1_fec_pct": 5.442901632050952,
+        "p99_delta_vs_m1_ms": 0.0431889993706136,
+        "cpu_ms_product": 30.0,
+        "cpu_ms_dtls": 9.9999999999999998,
+        "rss_peak_kb_product": 26992.0,
+        "encrypted_forward_traffic_x": 1.75904296875,
+        "drop_count_median": 3
+      },
+      {
+        "loss_pct": 15,
+        "delivery_ratio": 1.0,
+        "p50_ms": 72.13736000085191,
+        "p95_ms": 79.00082999913138,
+        "p99_ms": 79.01214699995762,
+        "late_ratio": 0.0,
+        "security_overhead_vs_m1_fec_pct": 5.346608966916464,
+        "p99_delta_vs_m1_ms": -0.056597998991492204,
+        "cpu_ms_product": 40.00000000000001,
+        "cpu_ms_dtls": 0.0,
+        "rss_peak_kb_product": 26932.0,
+        "encrypted_forward_traffic_x": 1.75630859375,
+        "drop_count_median": 33
+      }
+    ],
+    "results_sha256": "3bd10f53319fee8ac60290e7b95ed5b5de0650596a7951c128af5fd22feeba48",
+    "median_sha256": "dd425ab64d2e09051a72ab9862dea5d07927a1338867cd573c04893cac62d3de"
+  },
+  "m1_20_20_reference_medians": [
+    {
+      "loss_pct": 0,
+      "cpu_ms_product": 39.99999999999999,
+      "rss_peak_kb_product": 21420.0,
+      "p99_ms": 70.11336899995513
+    },
+    {
+      "loss_pct": 1,
+      "cpu_ms_product": 9.999999999999995,
+      "rss_peak_kb_product": 21412.0,
+      "p99_ms": 70.49730300059309
+    },
+    {
+      "loss_pct": 5,
+      "cpu_ms_product": 20.000000000000004,
+      "rss_peak_kb_product": 21424.0,
+      "p99_ms": 70.62615799986816
+    },
+    {
+      "loss_pct": 10,
+      "cpu_ms_product": 30.000000000000014,
+      "rss_peak_kb_product": 21420.0,
+      "p99_ms": 71.81353000032686
+    },
+    {
+      "loss_pct": 15,
+      "cpu_ms_product": 20.000000000000004,
+      "rss_peak_kb_product": 21428.0,
+      "p99_ms": 71.03757900040364
+    }
+  ],
+  "diagnostic_repeats": [
+    {
+      "fec": "20:10",
+      "loss_pct": 0,
+      "seed": 260824,
+      "repeat_p99_ms": 84.0506100012135,
+      "delivery_ratio": 1.0,
+      "encrypted_packets_dropped": 0
+    },
+    {
+      "fec": "20:20",
+      "loss_pct": 5,
+      "seed": 260824,
+      "repeat_p99_ms": 87.07458999924711,
+      "delivery_ratio": 1.0,
+      "encrypted_packets_dropped": 15
+    },
+    {
+      "fec": "20:20",
+      "loss_pct": 15,
+      "seed": 260825,
+      "repeat_p99_ms": 86.43311299965717,
+      "delivery_ratio": 1.0,
+      "encrypted_packets_dropped": 48
+    }
+  ],
+  "observed_outliers": [
+    {
+      "fec": "20:20",
+      "loss_pct": 5,
+      "seed": 260824,
+      "p99_ms": 97.8568959999393,
+      "late_ratio": 0.0
+    },
+    {
+      "fec": "20:20",
+      "loss_pct": 15,
+      "seed": 260825,
+      "p99_ms": 112.48266300026444,
+      "late_ratio": 0.16
+    }
+  ],
+  "conclusion": "PASS: DTLS 1.3 preserves unordered FEC recovery on the one-lane raw carrier. All primary and secondary cases completed delivery; median p99 remains in the tens-of-milliseconds class rather than the rejected V1 ~250 ms HOL class. DTLS adds about 5-6% bytes relative to UDPspeeder FEC bytes in this profile. Single-run host scheduling outliers are preserved and separately repeated, not replaced."
+}

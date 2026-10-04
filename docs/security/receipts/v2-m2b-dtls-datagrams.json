@@ -1,0 +1,35 @@
+{
+  "schema": "wbd-v2-m2b-dtls-datagram-qualification/v1",
+  "result": "pass",
+  "authority": "local sandbox execution",
+  "wolfssl": {
+    "libwolfssl_a_sha256": "22b132f66b74067507df8a891a2137e78d54309ec424c8bcc7ed9a3ac897c96a",
+    "version": "DTLSv1.3",
+    "cipher": "TLS_AES_256_GCM_SHA384"
+  },
+  "shim": {
+    "source_sha256": "e45680a297645812ac5da2133d4357408e81776607ba641c192e1f874e4768ab",
+    "binary_sha256": "90cc3bf45d1b23cd1848159e730a6b80a2e16221177da5b83078d4db75b22e65",
+    "mapping": "one plaintext UDP recv -> one wolfSSL_write; one successful wolfSSL_read -> one plaintext UDP send"
+  },
+  "direct": {
+    "sent": 5,
+    "delivered": 5,
+    "bidirectional_echo": true
+  },
+  "drop_gate": {
+    "sent": ["msg-01", "msg-02", "msg-03"],
+    "delivered": ["msg-02", "msg-03"],
+    "dropped_application_datagram": {
+      "index": 13,
+      "ns": 8807617383914,
+      "direction": "c2s",
+      "len": 28,
+      "prefix": "2f2f7f0017b02a148f8d0996",
+      "action": "drop",
+      "events_before_arm": 12
+    },
+    "conclusion": "later DTLS application records delivered despite one missing earlier encrypted application datagram"
+  },
+  "scope": "plain UDP only; no UDPspeeder/FEC/FakeTCP in M2B"
+}

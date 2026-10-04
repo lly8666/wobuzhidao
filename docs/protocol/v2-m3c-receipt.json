@@ -1,0 +1,36 @@
+{
+  "schema": "wbd-v2-m3c-liveness-qualification/v1",
+  "result": "pass",
+  "authority": "local sandbox execution",
+  "shim_sha256": "63329b8528196159f430bb89bf40b98e52ed74073f57ed81d068cddb55e50d7a",
+  "dtls": {
+    "version": "DTLSv1.3",
+    "cipher": "TLS_AES_256_GCM_SHA384",
+    "session_control_started_only_after_both_ready": true
+  },
+  "liveness": {
+    "ping_body_bytes": 8,
+    "pong_echoes_nonce": true,
+    "server_stats_include_wire_bytes": true,
+    "idle_policy": "caller-supplied monotonic ticks; no hidden timer/retransmission"
+  },
+  "cases": [
+    {
+      "name": "auth-disabled",
+      "auth_required": false,
+      "nonce": 1229801703532086340,
+      "client_output": "CLIENT reply=ACCEPT protocol=1\nCLIENT state=ESTABLISHED auth=disabled\nCLIENT reply=PONG nonce=1229801703532086340",
+      "server_output": "SERVER received=control.Hello reply=control.Accept state=2\nSERVER received=control.Ping reply=control.Pong state=2\nSERVER stats rx=2 tx=2 rx_bytes=28 tx_bytes=26 pings=1 pongs=1 auth_required=false authenticated=true",
+      "dtls_ready_before_session_control": true
+    },
+    {
+      "name": "auth-token",
+      "auth_required": true,
+      "nonce": 6148933456521300104,
+      "client_output": "CLIENT reply=ACCEPT protocol=1\nCLIENT reply=AUTH_OK state=ESTABLISHED\nCLIENT reply=PONG nonce=6148933456521300104",
+      "server_output": "SERVER received=control.Hello reply=control.Accept state=1\nSERVER received=control.Auth reply=control.AuthOK state=2\nSERVER received=control.Ping reply=control.Pong state=2\nSERVER stats rx=3 tx=3 rx_bytes=57 tx_bytes=34 pings=1 pongs=1 auth_required=true authenticated=true",
+      "dtls_ready_before_session_control": true
+    }
+  ],
+  "scope": "M3C liveness/stats only; no reconnect, TUN, FEC or carrier changes"
+}

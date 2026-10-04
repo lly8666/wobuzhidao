@@ -1,0 +1,201 @@
+name: demo-encryption
+
+on:
+  push:
+    branches: [dev/wbd-raw-fec-v2]
+    paths:
+      - '.github/workflows/demo-encryption.yml'
+      - 'cmd/wbd-reality-front/**'
+      - 'cmd/wbd-link-proxy/**'
+      - 'internal/control/demo.go'
+      - 'internal/control/demo_ticket_test.go'
+      - 'internal/realityfront/**'
+      - 'internal/realitymirror/**'
+      - 'native/dtls/wbd_dtls_shim.c'
+  pull_request:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  encrypted-handoff:
+    if: github.event_name == 'push' || contains(github.event.pull_request.title, '[demoenc]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install build and capture tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool make gcc curl unzip openssl tcpdump
+      - name: Build pinned DTLS and Reality-like demo path
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wolf-art /tmp/wolf/src /tmp/wolf/build /tmp/demo
+          curl -fL -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9529710833/zip" -o /tmp/wolfssl-source.zip
+          unzip -q /tmp/wolfssl-source.zip -d /tmp/wolf-art
+          echo '4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b  /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/wolf-art/wolfssl-ac01707f-source.tar.gz -C /tmp/wolf/src --strip-components=1
+          (cd /tmp/wolf/src && ./autogen.sh)
+          (cd /tmp/wolf/build && /tmp/wolf/src/configure --enable-dtls13 --disable-shared --enable-static)
+          make -C /tmp/wolf/build -j2 src/libwolfssl.la
+          gcc -O2 -Wall -Wextra -Werror -I/tmp/wolf/build -I/tmp/wolf/src \
+            native/dtls/wbd_dtls_shim.c /tmp/wolf/build/src/.libs/libwolfssl.a -lm -o /tmp/demo/wbd_dtls_shim
+          go test ./internal/control ./internal/realityfront ./internal/realitymirror ./cmd/wbd-link-proxy -count=1
+          go build -trimpath -o /tmp/demo/wbd-reality-front ./cmd/wbd-reality-front
+          go build -trimpath -o /tmp/demo/wbd-link-proxy ./cmd/wbd-link-proxy
+      - name: Create deliberately unrelated self-signed identities
+        run: |
+          set -euo pipefail
+          # The client is deliberately configured to verify neither certificate
+          # chain nor hostname in this single-user demo gate.
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-front.invalid' \
+            -keyout /tmp/demo/front.key -out /tmp/demo/front.pem >/dev/null 2>&1
+          openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 2 \
+            -subj '/CN=unrelated-dtls.invalid' \
+            -keyout /tmp/demo/dtls.key -out /tmp/demo/dtls.pem >/dev/null 2>&1
+      - name: Same-entry TLS auth to one-time ticket to DTLS, then scan capture
+        run: |
+          set -euo pipefail
+          BASE=56000
+          FRONT=$((BASE+10))
+          ROUTE_KEY='WBD_REALITY_ROUTE_KEY_0123456789abcdef'
+          USERNAME='WBD_SOLO_USER_DO_NOT_LEAK_31c7'
+          PASSWORD='WBD_SOLO_PASSWORD_DO_NOT_LEAK_87af'
+          PAYLOAD='WBD_DEMO_APPLICATION_PLAINTEXT_DO_NOT_LEAK_b8c2e4'
+          TARGET='target.example'
+          mkdir -m 700 /tmp/demo/tickets
+          cleanup() {
+            set +e
+            for P in ${PIDS:-}; do kill -TERM "$P" 2>/dev/null; sudo kill -TERM "$P" 2>/dev/null; done
+            sleep .2
+          }
+          trap cleanup EXIT
+
+          cat >/tmp/demo/echo.py <<'PY'
+          import socket
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',56000))
+          while True:
+              b,a=s.recvfrom(65535)
+              s.sendto(b,a)
+          PY
+          python3 /tmp/demo/echo.py >/tmp/demo/echo.log 2>&1 & P1=$!
+
+          sudo tcpdump -i lo -U -s 0 -w /tmp/demo/public-front-dtls.pcap \
+            "tcp port ${FRONT} or udp port $((BASE+2))" >/tmp/demo/tcpdump.log 2>&1 & P2=$!
+
+          /tmp/demo/wbd-reality-front server \
+            -listen 127.0.0.1:${FRONT} -target 127.0.0.1:9 -server-name "$TARGET" \
+            -cert /tmp/demo/front.pem -key /tmp/demo/front.key -route-key "$ROUTE_KEY" \
+            -username "$USERNAME" -password "$PASSWORD" -ticket-dir /tmp/demo/tickets \
+            >/tmp/demo/front-server.log 2>&1 & P3=$!
+          PIDS="$P1 $P2 $P3"
+          for i in $(seq 1 200); do
+            grep -q 'WBD_REALITY_FRONT_READY' /tmp/demo/front-server.log && break
+            sleep .05
+          done
+          grep -q 'WBD_REALITY_FRONT_READY' /tmp/demo/front-server.log
+
+          /tmp/demo/wbd-reality-front client \
+            -addr 127.0.0.1:${FRONT} -server-name "$TARGET" -route-key "$ROUTE_KEY" \
+            -username "$USERNAME" -password "$PASSWORD" -verify-server=false \
+            -ticket-out /tmp/demo/ticket.txt >/tmp/demo/front-client.log 2>&1
+          grep -q 'WBD_REALITY_FRONT_OK' /tmp/demo/front-client.log
+          grep -q 'verify_server=false' /tmp/demo/front-client.log
+          TICKET=$(tr -d '\r\n' </tmp/demo/ticket.txt)
+          test ${#TICKET} -eq 64
+
+          /tmp/demo/wbd-link-proxy -mode server -listen 127.0.0.1:$((BASE+1)) -service 127.0.0.1:${BASE} \
+            -demo-reality-ticket-dir /tmp/demo/tickets -demo-reality-ttl 60s \
+            >/tmp/demo/link-server.log 2>&1 & P4=$!
+          /tmp/demo/wbd_dtls_shim server $((BASE+2)) 127.0.0.1 $((BASE+1)) \
+            /tmp/demo/dtls.pem /tmp/demo/dtls.key >/tmp/demo/dtls-server.log 2>&1 & P5=$!
+          sleep .10
+          # Explicit 'none none' proves the WBD client accepts an arbitrary
+          # self-signed certificate and performs no hostname validation.
+          /tmp/demo/wbd_dtls_shim client $((BASE+3)) 127.0.0.1 $((BASE+2)) \
+            none none >/tmp/demo/dtls-client.log 2>&1 & P6=$!
+          PIDS="$P1 $P2 $P3 $P4 $P5 $P6"
+          for i in $(seq 1 400); do
+            grep -q 'READY role=client.*verify=none' /tmp/demo/dtls-client.log && grep -q 'READY role=server' /tmp/demo/dtls-server.log && break
+            sleep .05
+          done
+          grep -q 'READY role=client version=DTLSv1.3.*verify=none' /tmp/demo/dtls-client.log
+          grep -q 'READY role=server version=DTLSv1.3' /tmp/demo/dtls-server.log
+
+          /tmp/demo/wbd-link-proxy -mode client -listen 127.0.0.1:$((BASE+4)) -dtls 127.0.0.1:$((BASE+3)) \
+            -fec off -demo-reality-ticket "$TICKET" >/tmp/demo/link-client.log 2>&1 & P7=$!
+          PIDS="$PIDS $P7"
+          for i in $(seq 1 200); do
+            grep -q 'WBD_LINK_READY role=client' /tmp/demo/link-client.log && grep -q 'WBD_LINK_READY role=server' /tmp/demo/link-server.log && break
+            sleep .05
+          done
+          grep -q 'demo_reality=true demo_kind=ticket' /tmp/demo/link-client.log
+          grep -q 'auth=false' /tmp/demo/link-client.log
+          grep -q 'demo_reality=true demo_kind=ticket' /tmp/demo/link-server.log
+          grep -q 'auth=false' /tmp/demo/link-server.log
+
+          PAYLOAD="$PAYLOAD" python3 - <<'PY'
+          import os,socket,time
+          payload=os.environ['PAYLOAD'].encode()
+          s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+          s.bind(('127.0.0.1',0)); s.settimeout(.25)
+          end=time.time()+3
+          while time.time()<end:
+              s.sendto(payload,('127.0.0.1',56004))
+              try:
+                  b,_=s.recvfrom(65535)
+              except socket.timeout:
+                  continue
+              if b==payload:
+                  print('DEMO_ENCRYPTED_ECHO_OK bytes=%d'%len(b))
+                  break
+          else:
+              raise SystemExit('encrypted demo echo timeout')
+          PY
+
+          sleep .20
+          kill -TERM "$P7" "$P6" "$P5" "$P4" "$P3" 2>/dev/null || true
+          sleep .20
+          sudo kill -TERM "$P2" 2>/dev/null || true
+          wait "$P2" || true
+          PIDS="$P1"
+          test -s /tmp/demo/public-front-dtls.pcap
+          USERNAME="$USERNAME" PASSWORD="$PASSWORD" TICKET="$TICKET" PAYLOAD="$PAYLOAD" python3 - <<'PY'
+          import os
+          data=open('/tmp/demo/public-front-dtls.pcap','rb').read()
+          markers={
+              'WBDC control magic':b'WBDC',
+              'username':os.environ['USERNAME'].encode(),
+              'password':os.environ['PASSWORD'].encode(),
+              'one-time ticket ascii':os.environ['TICKET'].encode(),
+              'one-time ticket raw':bytes.fromhex(os.environ['TICKET']),
+              'application plaintext':os.environ['PAYLOAD'].encode(),
+          }
+          for name,marker in markers.items():
+              if marker in data:
+                  raise SystemExit(f'PLAINTEXT_LEAK {name}')
+          print('DEMO_WIRE_ENCRYPTION_PASS bytes=%d markers_absent=%s'%(len(data),','.join(markers)))
+          PY
+          echo '--- front client ---'; cat /tmp/demo/front-client.log
+          echo '--- front server ---'; cat /tmp/demo/front-server.log
+          echo '--- dtls client ---'; cat /tmp/demo/dtls-client.log
+          echo '--- dtls server ---'; cat /tmp/demo/dtls-server.log
+          echo '--- link client ---'; cat /tmp/demo/link-client.log
+          echo '--- link server ---'; cat /tmp/demo/link-server.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: demo-encryption-evidence
+          path: |
+            /tmp/demo/public-front-dtls.pcap
+            /tmp/demo/*.log

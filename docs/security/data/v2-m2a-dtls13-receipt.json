@@ -1,0 +1,38 @@
+{
+  "schema": "wbd-v2-m2a-dtls13-qualification/v1",
+  "source": {
+    "implementation": "wolfSSL/wolfssl",
+    "tag": "v5.9.2-stable",
+    "commit": "ac01707f552c611fbd135cc723b2682b3e7f80f2",
+    "git_archive_sha256": "4a7ff40a32db0d7a262aaea2d2e674da6708250cba908441c737c981fc84f88b"
+  },
+  "build": {
+    "flags": ["--enable-dtls13", "--disable-shared", "--enable-static"],
+    "libwolfssl_a_sha256": "22b132f66b74067507df8a891a2137e78d54309ec424c8bcc7ed9a3ac897c96a",
+    "probe_sha256": "7bc0f2ab52710be65e0c69e71d0afe4d79e5c7a364d339d0965879388002dc5c",
+    "gcc": "gcc (Debian 14.2.0-19) 14.2.0",
+    "autoconf": "autoconf (GNU Autoconf) 2.72",
+    "automake": "automake (GNU automake) 1.17",
+    "libtool": "libtoolize (GNU libtool) 2.5.4 Debian-2.5.4-4",
+    "dtls13": true,
+    "early_data": false,
+    "openssl_extra": false
+  },
+  "identity": {
+    "valid_hostname": "wbd.test",
+    "native_api": "wolfSSL_check_domain_name",
+    "ca_verify": "wolfSSL_CTX_load_verify_locations + WOLFSSL_VERIFY_PEER"
+  },
+  "cases": {
+    "valid": "pass; DTLSv1.3 + application datagram",
+    "hostname_mismatch": "rejected: peer subject name mismatch",
+    "untrusted_ca": "rejected: ASN no signer"
+  },
+  "zero_rtt": "disabled by build; no early-data macro",
+  "relay": {
+    "workflow_run_id": 32752897445,
+    "artifact_id": 9529710833,
+    "artifact_digest": "sha256:303eb10638dbe79fa96aa167446cee47c5813c789a976a18640b9eac1a6e3259"
+  },
+  "result": "pass"
+}

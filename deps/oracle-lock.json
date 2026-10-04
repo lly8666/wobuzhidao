@@ -1,0 +1,74 @@
+{
+  "schema_version": "wbd-oracle-lock/v2",
+  "quic": {
+    "implementation": "github.com/quic-go/quic-go",
+    "tag": "v0.61.0",
+    "release_commit_short": "579ee19",
+    "minimum_go": "1.25.0",
+    "status": "historical_benchmark_oracle",
+    "qualification": {
+      "workflow_run_id": 32717572887,
+      "artifact_id": 9516504571,
+      "artifact_zip_sha256": "d3353e3f55fc5abad3e4e5e1b1cdf71e7a0ccb181c3368a69cba497208737e49",
+      "binary_sha256": "9482defb23b556faf0af0f7f48b8108c1e589973c861969d1d9ee750f3e224a1",
+      "go_sum_sha256": "ae98d0b5699ee49aac22fae53a0eb50a7184dbc64c84b1ff46e3e015390cc6cb",
+      "toolchain": "go1.25.0 linux/amd64",
+      "local_result": "pass"
+    }
+  },
+  "udp2raw_udpspeeder": {
+    "status": "V2_LOCALLY_QUALIFIED_PRODUCT_BASELINE",
+    "purpose": "V2.1 unordered weak-network product baseline and regression oracle; do not float versions",
+    "topology": "upper UDP payload -> UDPspeeder FEC -> udp2raw FakeTCP -> public network -> udp2raw -> UDPspeeder -> upper payload",
+    "udp2raw": {
+      "repository": "github.com/wangyu-/udp2raw",
+      "tag": "20230206.0",
+      "commit": "e5ecd33ec4c25d499a14213a5d1dbd5d21e0dd63",
+      "license": "MIT",
+      "raw_mode_linux_openwrt": "faketcp",
+      "raw_mode_windows_client_candidate": "easy-faketcp",
+      "notes": "V2-M1 qualification used classic faketcp with upstream -a RST rules on both client and server; Windows candidate remains a future platform gate."
+    },
+    "udpspeeder": {
+      "repository": "github.com/wangyu-/UDPspeeder",
+      "tag": "20230206.0",
+      "commit": "61b24a369700c3d8248dd18fa9a524b778741454",
+      "license": "MIT",
+      "mode": 0,
+      "timeout_ms": 8,
+      "primary_fec": "20:20",
+      "primary_total_multiplier": "2.0x",
+      "secondary_fec": "20:10",
+      "secondary_total_multiplier": "1.5x"
+    },
+    "historical_reference": {
+      "workflow_run_id": 32735353872,
+      "artifact_id": 9523056681,
+      "artifact_digest": "sha256:d08830c1f6f774a2f732f252fc65fb13969cc79f8e3bb68917f88f3b4a8261d1",
+      "profile": "50 ms RTT, 200 x 256 B, window 32, warmed, 3 seeds, forward FEC-shard loss 0/1/2/3/5/8/10/12/15%",
+      "result": "100% delivery and approximately 71 ms p99 across all tested loss levels"
+    },
+    "exact_bytes": {
+      "udp2raw_archive_sha256": "503cf5781aa97e50b4954c6bc4622c3ea6be02f6a35def4bb3b3eaf95bd2c7e8",
+      "udpspeeder_archive_sha256": "b64dd376a948995cb5da17d8eb171338ccd0553b9380e5164f8cb5ac4131bcaa",
+      "udp2raw_amd64_sha256": "c81c7699194188172f37f747cdeba9fb54214bc4b3ba2d85cfdfccd5f7f70c3c",
+      "udpspeeder_amd64_sha256": "f2ac1feedc10003255c1072346b1f3ee4935fc7bf2053af69ad52b7369d4b25a"
+    },
+    "v2_m1_local_qualification": {
+      "date": "2026-08-25",
+      "authority": "local sandbox execution",
+      "environment": "isolated unshare -Urn user+network namespace; loopback; upstream udp2raw -a RST rules on both endpoints via iptables-nft",
+      "profile": "50 ms RTT, 200 x 256 B, window 32, 64-packet serial warmup, 3 seeds, forward FEC-shard loss 0/1/5/10/15%, UDPspeeder mode0 timeout8, 20:10 and 20:20",
+      "cases": 30,
+      "delivery": "30/30 cases at 100%",
+      "p99_median_class": "approximately 70-78 ms across profile points",
+      "max_individual_p99_ms": 92.503,
+      "results_sha256": "3eeb7851c1284d838817f6f3406516568e76469f0319056cc3bb63e2897e15e5",
+      "median_sha256": "db22df67515253ee9e1bdc47196bc117e2485751043e92341d9cd61819695027",
+      "receipt": "docs/benchmarks/data/v2-m1-one-lane-receipt.json",
+      "report": "docs/benchmarks/v2-m1-one-lane-raw-fec.md",
+      "result": "pass"
+    },
+    "qualification_rule": "V2-M1 is satisfied for the exact pinned one-lane classic FakeTCP/FEC baseline. V2-M2 may insert only the ADR-0003 DTLS 1.3 security shim; custom FEC, two lanes, kernel-anchor work, native session/TUN features and Auto remain gated."
+  }
+}
