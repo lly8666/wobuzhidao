@@ -122,6 +122,10 @@ def main():
         if first[0]["lease4"]==first[1]["lease4"]:raise RuntimeError("duplicate native address")
         if [len(x["lanes"]) for x in first]!=[1,4]:raise RuntimeError("per-client lane mode mismatch")
         passed("same credential Normal1/Game4 authenticated with distinct automatic IPv4")
+        duplicate=client_start(2,"duplicate")
+        if duplicate.wait(timeout=8)==0 or "namespace already has a live client" not in (art/"client-2-duplicate.log").read_text():raise RuntimeError("duplicate client was not safely refused")
+        passed("live namespace owner is not displaced by a second process")
+        ns("c1","nft","add","table","inet","wbd_foreign")
         def probes(phase):
             with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
                 results=list(pool.map(lambda i:ns("b"+str(i),sys.executable,script,"--probe",f"client{i}-{phase}"),(1,2)))
@@ -164,6 +168,8 @@ def main():
         if crashed["lease4"]!=mode["lease4"] or len(crashed["lanes"])!=4:raise RuntimeError("crash restart changed lease or lane mode")
         time.sleep(1);probes("crash-rebuilt")
         passed("SIGKILL without FIN then same-source-port reconnect retains lease and other client")
+        if "wbd_foreign" not in ns("c1","nft","list","tables"):raise RuntimeError("crash cleanup removed foreign nft table")
+        passed("client crash recovery preserves foreign network table")
         for p in clients:stop(p)
         stop(server)
         if state.exists():raise RuntimeError("final server network state survived stop")

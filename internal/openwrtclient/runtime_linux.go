@@ -5,6 +5,7 @@ package openwrtclient
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -27,9 +28,15 @@ type Runtime struct {
 	ownedIPv6Rule  bool
 	ownedIPv6Route bool
 	closed         bool
+	managedLock    *os.File
+	managedPath    string
 }
 
 func OpenRuntime(plan NetworkPlan) (*Runtime, error) {
+	return openRuntime(plan, "")
+}
+
+func openRuntime(plan NetworkPlan, marker string) (*Runtime, error) {
 	canonical, err := BuildNetworkPlan(plan.ListenPort, plan.Mark, plan.Table, plan.Priority, plan.Underlay4)
 	if err != nil {
 		return nil, err
@@ -74,6 +81,10 @@ func OpenRuntime(plan NetworkPlan) (*Runtime, error) {
 		_ = r.cleanupUnlocked()
 		return nil, err
 	}
+	if marker != "" {
+		header := fmt.Sprintf("table %s %s {\n", canonical.NFTFamily, canonical.NFTTable)
+		script = strings.Replace(script, header, header+fmt.Sprintf("comment \"wbd-owned:%s\"\n", marker), 1)
+	}
 	if err := runNFTScript(script); err != nil {
 		_ = r.cleanupUnlocked()
 		return nil, err
@@ -88,7 +99,15 @@ func (r *Runtime) Close() error {
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	return r.cleanupUnlocked()
+	err := r.cleanupUnlocked()
+	if r.managedLock != nil {
+		if err == nil {
+			err = os.Remove(r.managedPath)
+		}
+		err = errors.Join(err, r.managedLock.Close())
+		r.managedLock = nil
+	}
+	return err
 }
 
 func (r *Runtime) cleanupUnlocked() error {

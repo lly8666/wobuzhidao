@@ -201,7 +201,7 @@ func runLinuxClient() error {
 	plan.DNSHijack = *dnsHijack
 	plan.Direct4 = direct
 	log.Printf("WBD_ROUTE_POLICY mode=%s direct_prefixes=%d source=%s", *routeMode, len(direct), chinaListSource(*chinaIPFile))
-	netRuntime, err := openwrtclient.OpenRuntime(plan)
+	netRuntime, err := openwrtclient.OpenManagedRuntime(plan)
 	if err != nil {
 		return err
 	}
