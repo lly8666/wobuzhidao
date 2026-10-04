@@ -76,7 +76,7 @@
     "用户优先：CPU原始证据/pprof归因、窄修；IPv6默认owned blackhole+drop；DNS默认1.1.1.1/8.8.8.8互备及默认劫持。实现/测试进行中，不继承旧资格。"
   ],
   "next_task": "先诊断固定基线Game CPU热点，按证据窄修；完成双平台DNS/IPv6默认及真实failover/leak/cleanup测试，然后每Action一条5205。",
-  "latest_log": "docs/devlog/20261004-132300-cpu-attribution-and-network-defaults.md",
+  "latest_log": "docs/devlog/20261004-132500-profile-placement-followup.md",
   "last_tested_source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
   "actions": [
     {

@@ -62,10 +62,7 @@ TGT="wtgt-$SFX"
 NAMESPACES=("$BIZ" "$CLI" "$RTR" "$SRV" "$TGT")
 CLIENT_PID=""
 SERVER_PID=""
-if [[ "${WBD_STRICT_CPU_PROFILE:-0}" == 1 ]]; then
-  go tool pprof -top -nodecount=40 "$CLIENT_BIN" "$ART/client.cpu" > "$ART/client-cpu-top.txt"
-  go tool pprof -top -nodecount=40 "$SERVER_BIN" "$ART/server.cpu" > "$ART/server-cpu-top.txt"
-fi
+
 BIZ_PID=""
 TGT_PID=""
 STAGE_PID=""
