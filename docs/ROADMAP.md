@@ -40,4 +40,4 @@ WEAKNET_LIFECYCLE：功能 COMPLETE（最终源码0b206a0，36/36真实进程样
 
 2026-10-04最新收口覆盖上一段待办：SOURCE2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8 core/race、严格18与完整78原始回执全部PASS，Normal/Game各1800s原门及逐秒/internal queue0门PASS，三目标P6hash/manifest/独立receipt已核验。固定本候选可交用户P7物理验收；不是RELEASE_QUALIFIED。参数功能与性能分开：70配置证明生效，主高负载资格FEC20:20/padding off；TLS启动填充完整on/稀疏/双入口弱网专项仍PARTIAL_ACTIONS_PASS。不要恢复已修的换代错误、继续微调缓存或按历史HOLD停工；当前SOURCE、证据及下一项以STATUS/PREDELIVERY_ACCEPTANCE为准。
 
-2026-10-04最新用户优先任务：WINDOWS_GUI.md 中文原生GUI、服务器切换、完整配置和单目录应用便携包。先精确源WindowsActions与基础回归，再交付；当前STATUS.windows_gui覆盖旧下一步，驱动物理安装/零系统写入不能冒充hosted完成。
+2026-10-04最新用户优先任务已交付：WINDOWS_GUI.md 中文原生GUI、服务器切换、完整配置和单目录应用便携包。SOURCE9857bdb的206项GUI检查与基础/网络专项PASS，固定GitHub预发布标签windows-gui-rc-20261004-9857bdb；STATUS.windows_gui是结果入口。Wintun系统驱动安装已获用户接受；实际Npcap/Wintun/NIC/UAC与跨服务器业务留P7，不能冒充hosted完成。新源码完整性能/弱网矩阵未重跑。

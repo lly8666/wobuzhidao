@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+  "result": "ACTIONS_PASS_DELIVERED",
+  "updated_at": "2026-10-04",
+  "runs": [
+    {
+      "workflow": "next-default-network",
+      "run": 37185477548,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477548",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+      "result": "PASS",
+      "attempt": 1
+    },
+    {
+      "workflow": "next-windows-gui",
+      "run": 37185477501,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477501",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+      "result": "PASS",
+      "attempt": 1
+    },
+    {
+      "workflow": "next-tls-startup-padding",
+      "run": 37185477534,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477534",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+      "result": "PASS",
+      "attempt": 1
+    },
+    {
+      "workflow": "next-lifecycle",
+      "run": 37185477525,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477525",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+      "result": "PASS",
+      "attempt": 1
+    },
+    {
+      "workflow": "next-splitroute",
+      "run": 37185477524,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477524",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+      "result": "PASS",
+      "attempt": 1
+    },
+    {
+      "workflow": "next-p4-steady-targeted",
+      "run": 37185477503,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477503",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+      "result": "PASS",
+      "attempt": 1
+    },
+    {
+      "workflow": "next-foundation",
+      "run": 37185477537,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477537",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+      "result": "PASS",
+      "attempt": 1
+    }
+  ],
+  "gui": {
+    "checks": 206,
+    "editable_fields": 29,
+    "fec_lane_functional_combinations": 28,
+    "visual": "PASS",
+    "route_mock": "1500 owned routes; Apply/Cleanup/rollback; state-only cleanup PASS",
+    "session_switch": "fake session UI lifecycle; not physical NIC"
+  },
+  "foundation": {
+    "active_jobs": "7/7 PASS",
+    "historical_extended_jobs": "9 SKIPPED",
+    "linux": "unit/build/race/fuzz PASS",
+    "windows": "unit/build/render/network mock PASS"
+  },
+  "artifacts": {
+    "portable": {
+      "id": 11297076998,
+      "outer_sha256": "c49a1489d497588076a937b514cb15a08f45b8045c3fd4129ec93041f468eb97"
+    },
+    "gui_tests": {
+      "id": 11296877418,
+      "outer_sha256": "b9675ce03825e31376d5e8db2d3765f98617fdadc7609c637bb44ac4fee2135c"
+    }
+  },
+  "package": {
+    "files_verified": 13,
+    "bytes": 3969589,
+    "sha256": "4bd0884fc4e1e8d8e43fb889f702030542847804b2a2d10bfddeff9d4b2b5891",
+    "tag": "windows-gui-rc-20261004-9857bdb",
+    "release_url": "https://github.com/lly8666/wobuzhidao/releases/tag/windows-gui-rc-20261004-9857bdb",
+    "download_url": "https://github.com/lly8666/wobuzhidao/releases/download/windows-gui-rc-20261004-9857bdb/WBD-Windows-Portable.zip"
+  },
+  "delivery": {
+    "run": 37185800359,
+    "job": 111387312744,
+    "controller_sha": "bead7f6d5b530eafec6ffdb93481b2eab23e7a8d",
+    "result": "PASS"
+  },
+  "driver_exception": "USER_ACCEPTED_NPCAP_AND_WINTUN_2026-10-04",
+  "not_run": [
+    "Physical Npcap/Wintun install and real NIC capture",
+    "Physical UAC and cross-server business switch",
+    "New throughput/weaknet benchmarks",
+    "Full 70 config / strict18 / 1800s / 36 lifecycle on this source"
+  ],
+  "historical_failures": [
+    {
+      "run": 37184506486,
+      "reason": "fixture TunnelID length and PowerShell5 Unicode artifact path"
+    },
+    {
+      "run": 37184758075,
+      "reason": "redaction test substring assertion"
+    }
+  ]
+}

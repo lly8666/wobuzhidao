@@ -27,8 +27,8 @@ client/server可分别设置 `--tls-startup-padding=true`，默认关闭，JSON�
 
 交付前各门与覆盖限制见 [PREDELIVERY_ACCEPTANCE](docs/PREDELIVERY_ACCEPTANCE.md)。70个实际配置case用正式程序运行UDP、DNS、普通TCP和102400字节HTTPS，并对照配置、运行诊断与抓包；性能资格单独验证FEC20:20的Normal双向各10Mbps/Game4各3Mbps、600ms RTT、无损/5→20→5/5→30→5和1800s持续负载。其它FEC档位的功能通过不能当作相同弱网性能承诺。每个性能Action只跑一条样本。
 
-当前是命令行候选；服务端CLI使用静态身份/lease配置，不提供账户管理GUI。Windowsserver和IPv6隧道传输不支持；IPv6默认丢弃已有独立证据，不等于IPv6代理。普通浏览器物理实抓、借用网站完整服务端指纹及高RTT大TCP下载物理资格仍未取得。自动路径MTU探测没有资格。完整范围和历史失败见 [交付前验收报告](docs/PREDELIVERY_ACCEPTANCE.md)。同源码新包和哈希见 [P6下载](https://github.com/lly8666/wobuzhidao/actions/runs/37181242116)，双方成对使用。换代先完成新lane的TLS/admission再切发送权，旧lane保留有界在途接收；不承诺promotion后任意故障可回滚。
+Windows现已提供中文客户端GUI（见下节）；服务端CLI使用静态身份/lease配置，不提供账户管理GUI。Windowsserver和IPv6隧道传输不支持；IPv6默认丢弃已有独立证据，不等于IPv6代理。普通浏览器物理实抓、借用网站完整服务端指纹及高RTT大TCP下载物理资格仍未取得。自动路径MTU探测没有资格。完整范围和历史失败见 [交付前验收报告](docs/PREDELIVERY_ACCEPTANCE.md)。同源码新包和哈希见 [P6下载](https://github.com/lly8666/wobuzhidao/actions/runs/37181242116)，双方成对使用。换代先完成新lane的TLS/admission再切发送权，旧lane保留有界在途接收；不承诺promotion后任意故障可回滚。
 
 ## Windows 中文界面与便携包
 
-当前用户新增任务：[使用说明](docs/WINDOWS_GUI.md)。GUI 管理服务器与完整 Windows 配置，应用文件集中本文件夹。Npcap 和 Wintun 系统驱动注册有明确边界；当前 Actions 验收进行中，不能当作物理资格。实时状态看 STATUS.windows_gui。
+已发布 [Windows GUI 预发布版](https://github.com/lly8666/wobuzhidao/releases/tag/windows-gui-rc-20261004-9857bdb)：[下载约4MB便携包](https://github.com/lly8666/wobuzhidao/releases/download/windows-gui-rc-20261004-9857bdb/WBD-Windows-Portable.zip)，解压后运行 `WBD.exe`。中文服务器管理、切换、全部Windows参数和日志；配置/日志/临时文件集中程序目录。随包原版Wintun DLL；用户已接受它注册系统驱动，Npcap通过官方安装引导处理。精确源码 `9857bdb25115e87521a9d62309d3ec0b67988f16` 的206项GUI检查、基础unit/race及相关网络专项PASS；物理驱动/NIC/UAC和实机换服务器仍NOT_RUN。该版本未新增性能资格，段首d9性能数据保持历史范围。[使用说明](docs/WINDOWS_GUI.md)，实时状态看 STATUS.windows_gui。

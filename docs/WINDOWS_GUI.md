@@ -45,3 +45,13 @@ GUI与client stdin建立父子所有权：stop或GUI消失导致EOF，取消正�
 GUI进程生命周期用显式fake session验证UI顺序；真实stdin stop/EOF单测属于foundation。真实路由/DNS/IPv6脚本既有hosted mock再跑。Npcap下载/安装、实际Wintun创建、真实NIC收发、跨服务器真实业务及UAC操作是P7 `NOT_RUN`，不能因hosted绿色就宣布物理完成。文件逃逸检查只覆盖WBD应用输出，不声称穷举整机OS写入。性能测试仍每Action只跑一条；本工作流是功能/配置检查，没有带宽样本矩阵。
 
 裸 Windows CLI 的 state-path/network-script 默认同样按 EXE 所在文件夹定位；GUI不依赖当前工作目录。异常后连接会在旧进程确认停止时尝试owned状态恢复；恢复按钮查询client同名event，另一个client仍运行/清理时拒绝，避免与迟退旧进程并发修改路由。物理依赖仍待P7。
+
+## 本轮交付回执（2026-10-04）
+
+[预发布与下载](https://github.com/lly8666/wobuzhidao/releases/tag/windows-gui-rc-20261004-9857bdb)，精确SOURCE `9857bdb25115e87521a9d62309d3ec0b67988f16`。ZIP 3,969,589 bytes，SHA256 `4bd0884fc4e1e8d8e43fb889f702030542847804b2a2d10bfddeff9d4b2b5891`；manifest内13个文件哈希逐一核对。解压到可写程序目录，再运行WBD.exe（管理员权限）。
+
+[GUI Action](https://github.com/lly8666/wobuzhidao/actions/runs/37185477501)原始attempt1完成，206项PASS：29个普通配置字段保存后调用正式Go读取有效值、全部managed操作映射、7个FEC×4lane功能组合、错误输入/秘密隐藏、导入/持久化、模拟连接切换与退出、恢复互斥、更新地址表、路径限制和真实WinForms截图。1500条owned路由Apply/Cleanup/rollback在hosted mock PASS。截图经人工读取确认布局、中文与密码遮蔽。
+
+[foundation](https://github.com/lly8666/wobuzhidao/actions/runs/37185477537)7个active jobs PASS（9个历史扩展job SKIPPED），Windows/Linux单测/构建、Linux race/fuzz和平台专项通过；同源默认网络、分流、targeted lifecycle、startup padding及steady targeted亦通过。完整机器证据见[evidence](evidence/windows-gui-9857bdb.json)，历史测试夹具失败保留在STATUS。
+
+用户已接受Wintun系统驱动安装，原版DLL与许可随包；Npcap仍使用官方安装引导。应用便携不意味着Windows驱动注册不写系统。真实安装/UAC/NIC和真实跨服务器业务尚未验收。本轮没有吞吐/弱网性能样本，也未重跑full70/strict18/1800s/36生命周期，不把历史d9结果继承给985。文档HEAD和包来源独立记录。

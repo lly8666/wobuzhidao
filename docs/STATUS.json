@@ -3,7 +3,7 @@
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
-  "product_state": "IN_PROGRESS",
+  "product_state": "ACTIONS_PASS",
   "updated_at": "2026-10-04",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -72,14 +72,13 @@
     "2026-10-04最新2b2bd9e换代返工hosted收口：core/race、70实际配置、36生命周期、18独立弱网、Normal/Game各1800s及1s/internal queue0新增门、两共享黑洞、三平台P6文件hash/manifest/receipt PASS；完整78原始attempt1/extras0，物理P7 NOT_RUN。",
     "2026-10-04 IPv4 LAN/CN默认直连+内置MIT地址表+显式手动更新完成：SOURCE a67e10f core/race、4种真实DNS/TCP/HTTPS出口+direct不唤醒/proxy重建、36生命周期、独立Normal/Game5205及三目标新P6 PASS。",
     "2026-10-04：默认普通DNS1.1.1.1/8.8.8.8互备、IPv6捕获丢弃，exact SOURCE d9d4d90核心/功能/清理通过；Windows实际驱动/NRPT仍P7",
-    "2026-10-04：采样定位Game逐包扫描历史，增量退役保持原窗口/乱序/no-HOL；独立Normal/Game5205、36生命周期、三关键配置及P6通过，旧新CPU对比host差异单列"
+    "2026-10-04：采样定位Game逐包扫描历史，增量退役保持原窗口/乱序/no-HOL；独立Normal/Game5205、36生命周期、三关键配置及P6通过，旧新CPU对比host差异单列",
+    "Windows中文GUI与便携包完成：29普通字段及全部managed操作、服务器管理/切换/安全停止、Npcap引导、原版Wintun随包。9857bdb同源206GUI检查及core/race/网络专项PASS，已发布固定标签预发布。物理P7仍NOT_RUN。"
   ],
-  "in_progress": [
-    "WindowsGUI中文控件/完整参数/服务器切换/应用便携实现完成；当前收口最新源码动作、Windows state-only mock清理和下载包。"
-  ],
-  "next_task": "最后候选验收：裸CLI默认路径也固定EXE目录，GUI恢复与旧client named-event互斥；GUI/核心/Windows网络mock全部同源PASS后下载最终便携ZIP并关闭本任务。",
-  "latest_log": "docs/devlog/20261004-152000-portable-defaults-and-recovery-fence.md",
-  "last_tested_source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
+  "in_progress": [],
+  "next_task": "Windows中文GUI便携任务已交付，固定源码9857bdb和GitHub预发布标签见windows_gui。下一步由用户安排P7真实Npcap/Wintun/NIC/UAC及跨服务器业务验收；如需当前源码完整性能/弱网资格另跑full70/strict18/1800s/36生命周期。历史d9性能证据不继承为985。每性能Action只一条。",
+  "latest_log": "docs/devlog/20261004-153400-windows-gui-delivery.md",
+  "last_tested_source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1917,6 +1916,62 @@
       "scope": "core-Windows-mock",
       "status": "FAIL",
       "details": "New mock duplicate common ErrorAction parameter; corrected4da2808, no product-script regression"
+    },
+    {
+      "scope": "windows-gui-and-platform-scoped",
+      "status": "PASS",
+      "details": "next-default-network original attempt1. No physical/performance/full70/strict18/1800s qualification; exact scope docs/evidence/windows-gui-9857bdb.json.",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477548",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16"
+    },
+    {
+      "scope": "windows-gui-and-platform-scoped",
+      "status": "PASS",
+      "details": "next-windows-gui original attempt1. No physical/performance/full70/strict18/1800s qualification; exact scope docs/evidence/windows-gui-9857bdb.json.",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477501",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16"
+    },
+    {
+      "scope": "windows-gui-and-platform-scoped",
+      "status": "PASS",
+      "details": "next-tls-startup-padding original attempt1. No physical/performance/full70/strict18/1800s qualification; exact scope docs/evidence/windows-gui-9857bdb.json.",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477534",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16"
+    },
+    {
+      "scope": "windows-gui-and-platform-scoped",
+      "status": "PASS",
+      "details": "next-lifecycle original attempt1. No physical/performance/full70/strict18/1800s qualification; exact scope docs/evidence/windows-gui-9857bdb.json.",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477525",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16"
+    },
+    {
+      "scope": "windows-gui-and-platform-scoped",
+      "status": "PASS",
+      "details": "next-splitroute original attempt1. No physical/performance/full70/strict18/1800s qualification; exact scope docs/evidence/windows-gui-9857bdb.json.",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477524",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16"
+    },
+    {
+      "scope": "windows-gui-and-platform-scoped",
+      "status": "PASS",
+      "details": "next-p4-steady-targeted original attempt1. No physical/performance/full70/strict18/1800s qualification; exact scope docs/evidence/windows-gui-9857bdb.json.",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477503",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16"
+    },
+    {
+      "scope": "windows-gui-and-platform-scoped",
+      "status": "PASS",
+      "details": "next-foundation original attempt1. No physical/performance/full70/strict18/1800s qualification; exact scope docs/evidence/windows-gui-9857bdb.json.",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477537",
+      "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16"
+    },
+    {
+      "scope": "artifact-delivery",
+      "status": "PASS",
+      "details": "Controller verifies original9857bdb GUI/core successful attempt1 and exact ZIP/artifact hashes, publishes fixed-source prerelease; not a product test.",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185800359",
+      "source_sha": "bead7f6d5b530eafec6ffdb93481b2eab23e7a8d"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -6732,8 +6787,8 @@
   "windows_gui": {
     "params": "CLI PARAMETERS.json exact-set GUI mapping; all fields or managed actions",
     "portable": "app-folder data/logs/tmp; Wintun/Npcap driver system registration explicitly disclosed",
-    "data_plane": "Unchanged; previous d9 evidence historical",
-    "state": "IN_PROGRESS",
+    "data_plane": "Protocol/FEC/recovery unchanged; Windows startup/cleanup/config validation/path changes qualified on9857bdb. d9 performance remains historical scoped evidence.",
+    "state": "ACTIONS_PASS_DELIVERED",
     "driver_exception": "USER_ACCEPTED_NPCAP_AND_WINTUN_2026-10-04",
     "architecture": "Native WinForms .NET Framework4.8 + existing Go client",
     "physical": "NOT_RUN",
@@ -6768,6 +6823,103 @@
       "source": "0bcfe998652075ab5e6781d719b64fc0072380df",
       "run": 37185218018,
       "scope": "GUI+real manual IP update+owned1500route mock and state-only cleanup; final source pending"
-    }
+    },
+    "final_source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+    "evidence": "docs/evidence/windows-gui-9857bdb.json",
+    "final_run": {
+      "result": "PASS",
+      "scope": "29 editable fields + all managed operations; 28 FEC/lane functional combinations; mock switching/cleanup; screenshot; no physical/performance",
+      "run": 37185477501,
+      "checks": 206,
+      "source": "9857bdb25115e87521a9d62309d3ec0b67988f16"
+    },
+    "runs": [
+      {
+        "workflow": "next-default-network",
+        "run": 37185477548,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477548",
+        "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+        "result": "PASS",
+        "attempt": 1
+      },
+      {
+        "workflow": "next-windows-gui",
+        "run": 37185477501,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477501",
+        "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+        "result": "PASS",
+        "attempt": 1
+      },
+      {
+        "workflow": "next-tls-startup-padding",
+        "run": 37185477534,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477534",
+        "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+        "result": "PASS",
+        "attempt": 1
+      },
+      {
+        "workflow": "next-lifecycle",
+        "run": 37185477525,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477525",
+        "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+        "result": "PASS",
+        "attempt": 1
+      },
+      {
+        "workflow": "next-splitroute",
+        "run": 37185477524,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477524",
+        "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+        "result": "PASS",
+        "attempt": 1
+      },
+      {
+        "workflow": "next-p4-steady-targeted",
+        "run": 37185477503,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477503",
+        "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+        "result": "PASS",
+        "attempt": 1
+      },
+      {
+        "workflow": "next-foundation",
+        "run": 37185477537,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185477537",
+        "source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+        "result": "PASS",
+        "attempt": 1
+      }
+    ],
+    "package": {
+      "files_verified": 13,
+      "bytes": 3969589,
+      "sha256": "4bd0884fc4e1e8d8e43fb889f702030542847804b2a2d10bfddeff9d4b2b5891",
+      "tag": "windows-gui-rc-20261004-9857bdb",
+      "release_url": "https://github.com/lly8666/wobuzhidao/releases/tag/windows-gui-rc-20261004-9857bdb",
+      "download_url": "https://github.com/lly8666/wobuzhidao/releases/download/windows-gui-rc-20261004-9857bdb/WBD-Windows-Portable.zip"
+    },
+    "artifacts": {
+      "portable": {
+        "id": 11297076998,
+        "outer_sha256": "c49a1489d497588076a937b514cb15a08f45b8045c3fd4129ec93041f468eb97"
+      },
+      "gui_tests": {
+        "id": 11296877418,
+        "outer_sha256": "b9675ce03825e31376d5e8db2d3765f98617fdadc7609c637bb44ac4fee2135c"
+      }
+    },
+    "delivery": {
+      "run": 37185800359,
+      "job": 111387312744,
+      "controller_sha": "bead7f6d5b530eafec6ffdb93481b2eab23e7a8d",
+      "result": "PASS"
+    },
+    "not_run": [
+      "Physical Npcap/Wintun install and real NIC capture",
+      "Physical UAC and cross-server business switch",
+      "New throughput/weaknet benchmarks",
+      "Full 70 config / strict18 / 1800s / 36 lifecycle on this source"
+    ]
   }
 }

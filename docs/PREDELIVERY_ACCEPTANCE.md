@@ -180,3 +180,9 @@ a86fec8182ecb3216ae5b2622c5ae8dd7a84c43d 短Normal [37139795827](https://github.
 4. 丢包/停流/双向黑洞/复通/轮换/休眠唤醒、坏候选不影响旧lane、stable lease、源地址隔离、控制与其它业务无outer HOL逐项确认。低档FEC或padding性能只在实际需要的配置上另做独立样本，不沿用20:20数字。
 5. 真实负载重复Normal10M/Game4 3M、600ms RTT、无损/5205/5305及长测；采集两端CPU/heap/RSS、socket/NIC/drop、业务包loss、p95/p99、线上字节成本、generation与停流排空。物理跑满才评容量，未跑jitter/非对称/相关突发场景单列。
 6. 退出时核对WBD-owned接口/路由/firewall/NRPT/IPv6状态清理、外部原有配置保留；失败写入原始日志后修复。全部P7门实际通过才提升PHYSICAL_PASS/RELEASE_QUALIFIED，不能只改进度文字。
+
+## 2026-10-04 Windows GUI 便携专项已交付
+
+固定SOURCE `9857bdb25115e87521a9d62309d3ec0b67988f16`，预发布标签 `windows-gui-rc-20261004-9857bdb`。GUI Action37185477501原始attempt1的206项检查PASS（29普通字段/全部managed操作、28FEC×lane功能组合、模拟切换与清理、1500owned route mock、地址表更新、路径限制、真实WinForms截图）；foundation37185477537的7active jobs PASS、9历史扩展SKIPPED，Windows/Linux unit/build与Linux race/fuzz及平台专项PASS。其它同源网络/lifecycle/padding/steady结果、artifact与包哈希见[evidence/windows-gui-9857bdb.json](evidence/windows-gui-9857bdb.json)和STATUS.windows_gui。
+
+[下载预发布](https://github.com/lly8666/wobuzhidao/releases/tag/windows-gui-rc-20261004-9857bdb)。本Windows GUI包包含原版Wintun DLL及许可，用户已明确接受系统驱动安装；上文d9历史P6包不含驱动的描述仅适用该旧包。Npcap仍不随包，使用官方安装引导。应用配置/日志/临时文件留程序目录；驱动注册写系统为公开例外。真实Npcap/Wintun/NIC/UAC/跨服务器业务是P7 NOT_RUN；本轮没有新增吞吐/弱网性能或full70/strict18/1800s/36生命周期资格，不把d9历史结果继承为985。文档HEAD不改变固定来源。

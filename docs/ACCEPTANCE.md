@@ -129,3 +129,9 @@ strict 样本继续分别统计 FEC、Game复制、repair、health、padding、�
 ## Windows GUI 用户新增验收
 
 执行 WINDOWS_GUI.md：所有Windows flag对应可编辑字段或明确managed操作；每普通字段调用真实Go只读校验并核对最终值，7FEC×4lanes功能组合、非法/未知/重复JSON拒绝。中文GUI真实控件保存/profile恢复/切换先校验后旧cleanup/失败不抢接、stdin stop/EOF、缺Npcap引导、秘密隐藏、不同CWD中文空格目录、应用输出目录界限、官方Wintunhash和可下载ZIP须Actions PASS。模拟Session不能替代物理NIC收发、驱动安装/UAC和跨服务器真实业务，后者P7 NOT_RUN。驱动系统目录写入限制明确告知；不能以便携名义隐藏Wintun系统注册。
+
+## 2026-10-04 Windows GUI 便携专项已交付
+
+固定SOURCE `9857bdb25115e87521a9d62309d3ec0b67988f16`，预发布标签 `windows-gui-rc-20261004-9857bdb`。GUI Action37185477501原始attempt1的206项检查PASS（29普通字段/全部managed操作、28FEC×lane功能组合、模拟切换与清理、1500owned route mock、地址表更新、路径限制、真实WinForms截图）；foundation37185477537的7active jobs PASS、9历史扩展SKIPPED，Windows/Linux unit/build与Linux race/fuzz及平台专项PASS。其它同源网络/lifecycle/padding/steady结果、artifact与包哈希见[evidence/windows-gui-9857bdb.json](evidence/windows-gui-9857bdb.json)和STATUS.windows_gui。
+
+[下载预发布](https://github.com/lly8666/wobuzhidao/releases/tag/windows-gui-rc-20261004-9857bdb)。本Windows GUI包包含原版Wintun DLL及许可，用户已明确接受系统驱动安装；上文d9历史P6包不含驱动的描述仅适用该旧包。Npcap仍不随包，使用官方安装引导。应用配置/日志/临时文件留程序目录；驱动注册写系统为公开例外。真实Npcap/Wintun/NIC/UAC/跨服务器业务是P7 NOT_RUN；本轮没有新增吞吐/弱网性能或full70/strict18/1800s/36生命周期资格，不把d9历史结果继承为985。文档HEAD不改变固定来源。

@@ -289,4 +289,6 @@ owner持锁的快照/身份检查仅能读Lane构造后不可变配置，禁止�
 
 ## 2026-10-04 Windows GUI 用户优先任务
 
+完成状态：精确SOURCE9857bdb的206项GUI检查、Windows/Linux基础构建/单测与Linux race、相关网络专项均PASS，已交付固定预发布包。结果、哈希及缺失资格以STATUS.windows_gui和evidence/windows-gui-9857bdb.json为准；后续文档提交不改变包来源。真实驱动/NIC/UAC及跨服务器业务仍留P7；不继承d9性能为985性能。用户已明确接受Wintun任意安装方式，原版DLL随包，驱动注册为公开系统例外。
+
 执行 WINDOWS_GUI.md：原生 WinForms/.NET Framework4.8 只做现有 Go CLI 配置/生命周期壳；全部参数可编辑或通过明确操作管理，服务器配置持久化、真实只读校验、串行切换/owned清理、Npcap官方引导、单目录便携包。只改变Windows启动/退出与文件路径，不重写已验协议与热数据面。真实驱动写系统的不可避免边界公开，不宣称只有Npcap例外。WindowsActions逐字段/全FEC-lanes/非法输入/切换顺序/失败隔离/路径/截图和基础unit/race后再交付包，P7保留。
