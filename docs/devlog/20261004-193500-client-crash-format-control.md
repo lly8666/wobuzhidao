@@ -1,0 +1,3 @@
+# 客户端网络恢复源码格式化
+
+固定81a2e8720d87ff5f43999da6f6f1a71ec6cbdc21相对c956481143857d6ae4cdce04a31d22e8f6438903，仅Actions对改动Go文件执行gofmt，补丁归属请求SHA。Linux客户端managed TPROXY live owner保护/namespace崩溃恢复是新增真实失败修复，格式化后仍重新以最终固定SOURCE验证基础/native及两独立5205，不继承594通过的性能为新源码。
