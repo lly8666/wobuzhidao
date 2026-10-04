@@ -12,13 +12,34 @@
 
 PARAMETERS.json是全部CLI/JSON参数清单。基础core负责类型/边界/未知或不适用键拒绝/优先级；70livecase负责FEC、lane、padding、MTU、recordlimit和显式生命周期旋钮。生命周期fullstack负责idle/keepalive/dead-after/reconnect/rotation实际行为及黑洞恢复。foundation特权用例负责接口、TUN、lease、TPROXY、路由/NAT/firewall、账户隔离和退出清理；P6负责version/平台包。凭据字段用测试凭据，不能把真实密码写进日志。
 
-数值配置空间无限，70case不是所有数值都测过。物理接口选择、Windows真实驱动/IPv6fail-closed和真实网站指纹留P7。OpenWrtIPv6未实现、Windowsserver不支持。内层TLS流量特征只有限缓解，不能声明不可识别。真实HTTPS的70case不替代受控网站多证书链/恢复握手流量分析专项；报告中分开已有核心证据和未跑的物理/指纹项目。
+数值配置空间无限，70case不是所有数值都测过。物理接口选择、Windows真实驱动/IPv6fail-closed和真实网站指纹留P7。IPv6隧道传输与Windowsserver不支持；新增IPv6默认拦截丢弃资格单列。内层TLS流量特征只有限缓解，不能声明不可识别。真实HTTPS的70case不替代受控网站多证书链/恢复握手流量分析专项；已有核心证据和未跑的物理/指纹项目分开报告。
 
 ## 交付定位
 
 全部hosted门通过后，STATUS标注hosted P5/P6完成、可交物理验收；证据保留真正SOURCE_SHA、文档HEAD、Action原始attempt、artifactdigest、缺失项。失败原样记录，不继承旧源码通过，不以扩大缓存、延长期限或降低速率过关。
 
-## 当前分流候选：a67e10f（2026-10-04）
+## 当前DNS/IPv6与性能候选：d9d4d90（2026-10-04）
+
+二进制SOURCE `d9d4d90fdd4d4aa3456af8e85c87c70dee76a374`；版本 `next-rc-d9d4d90fdd4d`，文档HEAD不改变来源。默认DNS及IPv6策略见SPLIT_ROUTING。Game仅将逐新包遍历去重历史改为增量退役，原窗口/首次交付/乱序/no-HOL不变；FEC、FakeTCP4096和repair策略未改。另修Linux TUN绑定前错误注册poller（CPU采样暴露的not pollable退出），绑定后注册非阻塞设备。
+
+| 门 | 结果 | 原始Action |
+|---|---|---|
+| Linux/Windows core/build、Linux race/fuzz、真实共享TUN/TPROXY/fallback、Windows路由/DNS/IPv6ownership/回滚mock | PASS；物理NOT_RUN | [foundation](https://github.com/lly8666/wobuzhidao/actions/runs/37181128524) |
+| default/custom/off真实DNS、UDP主备/恢复、TCP、CLI本机stub、客户端源53防递归、IPv6本机/转发无出口、owned清理 | 3/3 PASS | [默认网络](https://github.com/lly8666/wobuzhidao/actions/runs/37181243074) |
+| IPv4分流四模式、真实TCP/UDP/HTTPS、休眠直连/代理唤醒 | 4/4 PASS；该IP echo夹具显式DNS劫持off | [分流](https://github.com/lly8666/wobuzhidao/actions/runs/37181244155) |
+| 生命周期 | 36/36 + aggregate PASS | [生命周期](https://github.com/lly8666/wobuzhidao/actions/runs/37181241019) |
+| 默认、JSON-MTU1280、FEC20/Game4/padding on实际配置 | 3/3 PASS；不是全70 | [默认](https://github.com/lly8666/wobuzhidao/actions/runs/37181245232)、[MTU](https://github.com/lly8666/wobuzhidao/actions/runs/37181246418)、[Game](https://github.com/lly8666/wobuzhidao/actions/runs/37181247802) |
+| Normal10M/Game4逻辑3M，120s，FEC20:20，300ms单向，5→20→5 | 两个独立Action吞吐/损失/RTT/原配对门PASS | [Normal](https://github.com/lly8666/wobuzhidao/actions/runs/37181242409)、[Game](https://github.com/lly8666/wobuzhidao/actions/runs/37181244503)、[只读汇总](https://github.com/lly8666/wobuzhidao/actions/runs/37181186426) |
+| CPU采样诊断 | PASS，单独Action；不替代无profile性能资格 | [优化前](https://github.com/lly8666/wobuzhidao/actions/runs/37180476979)、[优化后](https://github.com/lly8666/wobuzhidao/actions/runs/37181242199) |
+| 三目标新包、ZIP/manifest逐文件hash | PASS；ARM交叉构建、真实驱动NOT_RUN | [P6下载](https://github.com/lly8666/wobuzhidao/actions/runs/37181242116) |
+
+20%阶段Normal双向9.999878/9.999895Mbps，Game3.000032/2.999872Mbps，业务byte loss0、socketdrops0。RTT p95/p99 Normal614.394/617.907ms，Game604.832/606.130ms。120s进程CPU-s Normal91.73/92.97（分流原88.40/90.92），Game86.47/81.65（分流原105.37/98.92）。Normal CPU小幅上升同样如实保留；没有固定“全面省CPU”结论。
+
+CPU归因：原2b与a67的steady Game/FEC/crypto/raw代码相同、包量几乎相同、a67 receive calls更少；原runner Intel8573C，a67 AMD7763，不能直接用CPU差值认定代码退化。独立采样找到长期Game全表淘汰热点：优化前evictOld约14.36/14.46%累计CPU；改为通常只删除滑出窗口的一个ID后，该函数退出top40，mapiternext累计16.89/16.75s降为3.65/3.86s。两条profile同型号AMD7763但不同VM，CPU总和203.65→192.26s；普通新Game用AMD9V74，旧a67用AMD7763，所以约18%普通CPU下降只是本次观测，不能当固定收益。剩余主要成本为raw syscalls、FEC和LINK expiry，不继续无证据扩缓存或改恢复。
+
+证据索引：evidence/default-network-performance-d9d4d90.json。原profile37179961433启动失败、e5 foundation37180874036扩展Windows模拟参数错误均保留为FAIL；后者不是产品脚本回归。新源码full70/strict18/1800s、startup padding on完整弱网专项和P7仍NOT_RUN。包中IPv6 TPROXY未实现限制指IPv6传输，不否认已验证的黑洞/drop；普通DNS不含DoH/DoT，Windows仅接管系统解析器，真实NRPT故障切换仍P7。
+
+## 历史分流专项：a67e10f（2026-10-04）
 
 二进制SOURCE `a67e10fa2875162eeac926b970a0c486a239748d`，版本 `next-rc-a67e10fa2875`。本轮仅新增系统路由层IPv4分流及手动地址表更新，数据协议/FEC/4096/超时不变；文档HEAD另记。以下为精确源码专项回归，不能继承下文2b全量18/70/1800s。
 

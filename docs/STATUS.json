@@ -2,8 +2,8 @@
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
-  "milestone": "P4",
-  "product_state": "IN_PROGRESS",
+  "milestone": "P5",
+  "product_state": "ACTIONS_PASS",
   "updated_at": "2026-10-04",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -70,14 +70,16 @@
     "2026-10-03资源优化顺序完成：有效FEC计算、owned加密/传递复制、有限ACK合并、已就绪Linux批量接收/发送各自Actions unit/build/race+Normal/Game5205 PASS；额外修复pre-attach overflow导致共享server退出，再以ca8175d通过同门和36/36 lifecycle+aggregate。仅targeted，不继承最新全18/长测/P6/P7。",
     "2026-10-03同源码b1fe7e2可交物理机前资格：70实际配置、36生命周期、18独立严格弱网、Normal/Game各1800s目标速率持续弱网、100/500ms共享黑洞、三目标候选包全部PASS；78回执控制与18汇总原始attempt1，extras0，物理未跑。",
     "2026-10-04最新2b2bd9e换代返工hosted收口：core/race、70实际配置、36生命周期、18独立弱网、Normal/Game各1800s及1s/internal queue0新增门、两共享黑洞、三平台P6文件hash/manifest/receipt PASS；完整78原始attempt1/extras0，物理P7 NOT_RUN。",
-    "2026-10-04 IPv4 LAN/CN默认直连+内置MIT地址表+显式手动更新完成：SOURCE a67e10f core/race、4种真实DNS/TCP/HTTPS出口+direct不唤醒/proxy重建、36生命周期、独立Normal/Game5205及三目标新P6 PASS。"
+    "2026-10-04 IPv4 LAN/CN默认直连+内置MIT地址表+显式手动更新完成：SOURCE a67e10f core/race、4种真实DNS/TCP/HTTPS出口+direct不唤醒/proxy重建、36生命周期、独立Normal/Game5205及三目标新P6 PASS。",
+    "2026-10-04：默认普通DNS1.1.1.1/8.8.8.8互备、IPv6捕获丢弃，exact SOURCE d9d4d90核心/功能/清理通过；Windows实际驱动/NRPT仍P7",
+    "2026-10-04：采样定位Game逐包扫描历史，增量退役保持原窗口/乱序/no-HOL；独立Normal/Game5205、36生命周期、三关键配置及P6通过，旧新CPU对比host差异单列"
   ],
   "in_progress": [
     "用户优先：CPU原始证据/pprof归因、窄修；IPv6默认owned blackhole+drop；DNS默认1.1.1.1/8.8.8.8互备及默认劫持。实现/测试进行中，不继承旧资格。"
   ],
-  "next_task": "Finish exact-source default DNS/IPv6 functional Actions, CPU profile attribution and independent Normal/Game5205; retain all failures, no old qualification inheritance",
-  "latest_log": "docs/devlog/20261004-151500-config-dns-optout-token.md",
-  "last_tested_source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+  "next_task": "本轮默认DNS互备/IPv6丢弃及Game性能热点任务已闭合；保留已测SOURCE d9d4d90。用户安排P7或要求新SOURCE完整资格时按PREDELIVERY补full70/strict18/1800s，不能继承2b历史。无新缺陷证据不继续改FEC/4096/恢复架构。",
+  "latest_log": "docs/devlog/20261004-140700-dns-ipv6-cpu-acceptance.md",
+  "last_tested_source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
   "actions": [
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
@@ -1887,6 +1889,34 @@
       "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
       "status": "PASS",
       "details": "all first-original attempts, 4functional+36lifecycle+P6, artifacts digest checked"
+    },
+    {
+      "source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37181243074",
+      "scope": "product",
+      "status": "PASS",
+      "details": "Default/custom/off DNS and IPv6 blackhole/no-egress/cleanup; physical NRPT/Npcap/Wintun not inherited"
+    },
+    {
+      "source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37181186426",
+      "scope": "targeted5205",
+      "status": "PASS",
+      "details": "Control SHA25a1efa only collects exact-source independent Normal/Game results; both original attempt1"
+    },
+    {
+      "source_sha": "5e78ccb2c97095464fdf2fe70f72e7955484c2ca",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37179961433",
+      "scope": "cpu-diagnostic",
+      "status": "FAIL",
+      "details": "Startup TUN not pollable, before workload; fixed697a418"
+    },
+    {
+      "source_sha": "e5aa79225082760f13c5f28aa13f7842e6f14d50",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37180874036",
+      "scope": "core-Windows-mock",
+      "status": "FAIL",
+      "details": "New mock duplicate common ErrorAction parameter; corrected4da2808, no product-script regression"
     }
   ],
   "physical_status": "NOT_RUN",
@@ -2207,7 +2237,7 @@
       "parameter_change": "NONE; catalog consistency PASS at qualification SHA"
     },
     "PERFORMANCE_RECOVERY": {
-      "status": "CURRENT_SOURCE_TARGETED_5205_PASS_BASELINE_FULL_QUALIFICATION_HISTORICAL",
+      "status": "CURRENT_SOURCE_SCOPED_ACTIONS_PASS_FULL_QUALIFICATION_HISTORICAL",
       "spec": "docs/WEAKNET_QUALIFICATION.md 第10节",
       "baseline_source_sha": "0b206a07f91513133a80a147656b637c286ce3e2",
       "baseline_performance": "FAIL_CAPACITY_LIMITED",
@@ -2218,9 +2248,9 @@
         "Bounded target-rate long soak framework and >=1800s independent Normal/Game",
         "P6 repackage then user-arranged P7 physical"
       ],
-      "latest_log": "docs/devlog/20261004-052700-splitroute-hosted-acceptance.md",
-      "note": "历史2b已完成78/18/1800s；用户新增IPv4分流后a67重新通过core/4功能/36生命周期/独立5205/新P6，当前SOURCE完整70/18/1800s未重跑。Game CPU升高单样本未归因；物理NOT_RUN。",
-      "next_task": "IPv4分流已完成hosted专项。用户安排P7物理出口/Windows真实Npcap+Wintun和大FIB装卸/DNS/清理/ARM原生；需要新SOURCE完整交付前资格时先补strict18/config70/1800s。Game单次CPU升高未归因保留，不无证据改协议/FEC/4096。每性能Action只一条。",
+      "latest_log": "docs/devlog/20261004-140700-dns-ipv6-cpu-acceptance.md",
+      "note": "d9 default-network/core/36 lifecycle/3 configs/separate5205/P6 pass. Historical2b full70/18/1800s not inherited. OriginalCPU observations host-confounded; proven Game scan hotspot narrowed. NormalCPU small increase retained; physical NOT_RUN.",
+      "next_task": "本轮默认DNS互备/IPv6丢弃及Game性能热点任务已闭合；保留已测SOURCE d9d4d90。用户安排P7或要求新SOURCE完整资格时按PREDELIVERY补full70/strict18/1800s，不能继承2b历史。无新缺陷证据不继续改FEC/4096/恢复架构。",
       "acceptance_revision": "loss-tolerant-v1",
       "performance_run_policy": "ONE_WORKFLOW_RUN_ONE_SAMPLE",
       "current_plan_base": "0fea99cde623d6c87ec52ea726b78a7342408e2d",
@@ -6667,22 +6697,35 @@
         "strict18_result": "18/18 original samples + artifact-only revision2 paired RTT aggregate PASS",
         "qualification_boundary": "TLS/admission before promotion; bounded retiring/new auth OR grace; no arbitrary post-promotion rollback; padding on full专项 separate partial"
       },
-      "current_source_sha": "a67e10fa2875162eeac926b970a0c486a239748d"
+      "current_source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
+      "current_scoped_qualification": {
+        "source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
+        "status": "PASS",
+        "evidence": "docs/evidence/default-network-performance-d9d4d90.json",
+        "full70": "NOT_RUN",
+        "strict18": "NOT_RUN",
+        "soak1800": "NOT_RUN",
+        "physical": "NOT_RUN"
+      }
     }
   },
   "default_network": {
-    "state": "IN_PROGRESS",
+    "state": "ACTIONS_PASS",
     "dns_default": "1.1.1.1,8.8.8.8",
     "ipv6": "CAPTURE_DROP",
     "physical": "NOT_RUN",
-    "tests": "f0b75af: real default/custom/off DNS and IPv6 no-egress cleanup37180655605 PASS; exact follow-up pending"
+    "tests": "d9d4d90: foundation37181128524; real default/custom/off37181243074, split4/4 37181244155, lifecycle36/36 37181241019, keyconfigs3/3, separate5205 and P6 PASS",
+    "source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
+    "evidence": "docs/evidence/default-network-performance-d9d4d90.json"
   },
   "cpu_diagnosis": {
     "diagnostic_source": "697a4189bdd49a5cf11bf53cdb402ad0f730605b",
     "profile_run": 37180476979,
-    "hotspot": "Game evictOld full map scan 14.36/14.46% cumulative; incremental retirement implemented pending gates",
+    "hotspot": "Game full-map eviction fixed; normal separate5205 PASS, profile map iteration 16.89/16.75→3.65/3.86 seconds; no fixed cross-host CPU improvement claim",
     "host_difference": "Historical Intel8573C vs AMD7763; packet volume unchanged; not a measured code regression",
     "failed_profile_run": 37179961433,
-    "pending_core_failure": "e5aa792 foundation37180874036 Windows extended mock duplicated common ErrorAction; correction applied, product script unaffected"
+    "source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
+    "status": "ACTIONS_PASS_TARGETED",
+    "evidence": "docs/evidence/default-network-performance-d9d4d90.json"
   }
 }

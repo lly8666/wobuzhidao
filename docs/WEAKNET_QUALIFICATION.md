@@ -89,7 +89,7 @@ memorySegmentPair与内存故障注入保留为core回归，不替代以上端�
 
 损伤专项：仅上行/仅下行loss、ACK loss、乱序/重复、对所有四lane共同100ms/500ms短黑洞、单lane故障、rotation；描述精确seed/时间，不套用主测独立随机loss数值门槛，业务正确性/连续性/有界性仍为硬门并报告恢复时间。rotation不得把“每次candidate必须一次成功”设为门：分别统计attempt/success/failure、失败清理、旧lane持续可用、最终替换耗时、业务中断和并发资源峰值；黑洞内允许持续失败，恢复后必须有界恢复。HTTPS证书验证、完整/恢复握手/稀疏/并发继续保留。四lane下loss相关性、竞速去重成本单独报告。
 
-平台：Linux真实root网络/raw/TUN与OpenWrt风格TPROXY在Actions尽量实跑；iptables/nft支持的后端分别资格。Windows Actions执行真实可用模块，无Wintun/Npcap驱动/管理员能力时明确UNSUPPORTED，mock/compile不能写physical PASS。ARM64交叉编译不能写运行通过；可用原生runner则原生验证，仿真标明。OpenWrt IPv6未实现时明确失败/不支持和旁路风险，不以IPv4通过承诺IPv6已代理。硬件相关能力仍留P7。
+平台：Linux真实root网络/raw/TUN与OpenWrt风格TPROXY在Actions尽量实跑；iptables/nft支持的后端分别资格。Windows Actions执行真实可用模块，无Wintun/Npcap驱动/管理员能力时明确UNSUPPORTED，mock/compile不能写physical PASS。ARM64交叉编译不能写运行通过。IPv6隧道传输不支持，2026-10-04新增的默认黑洞/drop须独立验证无出口与清理，不能把IPv4通过写成IPv6已代理。硬件相关能力仍留P7。
 
 ## 8. 交付与关闭
 

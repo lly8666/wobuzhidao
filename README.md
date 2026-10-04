@@ -2,7 +2,7 @@
 
 TCP-like 外层、TLS-like 独立加密记录、稳态无跨包 HOL 的弱网隧道。
 
-**当前状态：IPv4分流功能和本专项hosted回归已通过。** 真正二进制SOURCE_SHA为 `a67e10fa2875162eeac926b970a0c486a239748d`，版本 `next-rc-a67e10fa2875`；文档HEAD单独记录。默认局域网/中国IPv4直连，其余走隧道，可选all或仅LAN直连。内置固定地址表，无自动更新；显式手动更新后重启使用。Linux/Windows core、四种真实出口模式、36生命周期、Normal/Game两个独立5205性能样本和三平台新包PASS。旧2b2bd9e的70配置/严格18/1800s全量资格只为历史基线，不能冒充新源码全量完成。真实Windows驱动、物理NIC与ARM原生留P7，PHYSICAL_PASS/RELEASE_QUALIFIED仍NOT_RUN。启动填充on完整专项仍保留未跑边界。使用方法及平台限制见 [IPv4分流](docs/SPLIT_ROUTING.md)。
+**当前状态：默认DNS互备、IPv6丢弃与Game去重性能修复已通过hosted专项。** 二进制SOURCE_SHA为 `d9d4d90fdd4d4aa3456af8e85c87c70dee76a374`，版本 `next-rc-d9d4d90fdd4d`；文档HEAD单独记录。默认LAN/中国IPv4直连、其它业务走隧道；普通DNS默认通过隧道使用1.1.1.1与8.8.8.8互备，IPv6捕获后丢弃。Linux/Windows core、真实默认/自定义/关闭DNS与IPv6无出口/清理、四种分流、36生命周期、三条关键配置、独立Normal/Game5205和三目标新包PASS。旧2b的70配置/严格18/1800s为历史资格，新源码全套未重跑。物理Windows驱动/系统NRPT真实故障切换、物理NIC及ARM原生仍NOT_RUN。参数和普通DNS覆盖边界见 [客户端网络策略](docs/SPLIT_ROUTING.md)。
 
 新 agent 从 [AGENTS.md](AGENTS.md) 开始。唯一进度入口为 [docs/STATUS.json](docs/STATUS.json)。
 
@@ -27,4 +27,4 @@ client/server可分别设置 `--tls-startup-padding=true`，默认关闭，JSON�
 
 交付前各门与覆盖限制见 [PREDELIVERY_ACCEPTANCE](docs/PREDELIVERY_ACCEPTANCE.md)。70个实际配置case用正式程序运行UDP、DNS、普通TCP和102400字节HTTPS，并对照配置、运行诊断与抓包；性能资格单独验证FEC20:20的Normal双向各10Mbps/Game4各3Mbps、600ms RTT、无损/5→20→5/5→30→5和1800s持续负载。其它FEC档位的功能通过不能当作相同弱网性能承诺。每个性能Action只跑一条样本。
 
-当前是命令行候选；服务端CLI使用静态身份/lease配置，不提供账户管理GUI。Windowsserver不支持，OpenWrt IPv6未实现；普通浏览器物理实抓、与借用网站完整服务端指纹一致及高RTT下大TCP下载吞吐尚未取得物理资格。MTU预算和受控抓包已通过，自动路径MTU探测没有资格。完整性能、覆盖限制、历史失败及P7顺序见 [交付前验收报告](docs/PREDELIVERY_ACCEPTANCE.md)。同源码候选包和哈希见 [P6下载](https://github.com/lly8666/wobuzhidao/actions/runs/37154676414)，客户端/服务端必须成对使用该版本。换代先完成新lane的TLS/admission才切发送权，旧lane保留有界在途接收再关闭；当前不是promotion后任意故障可回滚的架构。
+当前是命令行候选；服务端CLI使用静态身份/lease配置，不提供账户管理GUI。Windowsserver和IPv6隧道传输不支持；IPv6默认丢弃已有独立证据，不等于IPv6代理。普通浏览器物理实抓、借用网站完整服务端指纹及高RTT大TCP下载物理资格仍未取得。自动路径MTU探测没有资格。完整范围和历史失败见 [交付前验收报告](docs/PREDELIVERY_ACCEPTANCE.md)。同源码新包和哈希见 [P6下载](https://github.com/lly8666/wobuzhidao/actions/runs/37181242116)，双方成对使用。换代先完成新lane的TLS/admission再切发送权，旧lane保留有界在途接收；不承诺promotion后任意故障可回滚。
