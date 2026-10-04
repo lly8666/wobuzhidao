@@ -48,13 +48,15 @@ func TestSharedCredentialsAutomaticNormalAndGameLeases(t *testing.T) {
 	for index,c:=range clients{
 		lease,_:=c.Owner().Lease();addr,_:=lease.Config.LeaseIPv4();packet:=ipv4Packet(addr.As4(),[4]byte{8,8,8,8},17)
 		if err:=c.SendPacket(ctx,packet,time.Now());err!=nil{t.Fatal(err)};if got:=tun.waitPacket(t,3*time.Second);string(got)!=string(packet){t.Fatal("wrong tunnel delivery")}
-		if err:=c.SendPacket(ctx,ipv4Packet([4]byte{10,66,0,254},[4]byte{8,8,8,8},17),time.Now());err==nil{t.Fatal("source spoof accepted")}
+		spoof:=[4]byte{10,66,0,254};if spoof==addr.As4(){spoof[3]=253}
+		if err:=c.SendPacket(ctx,ipv4Packet(spoof,[4]byte{8,8,8,8},17),time.Now());err==nil{t.Fatal("source spoof accepted")}
 		if err:=c.RotateOldest(ctx);err!=nil{t.Fatal(err)};again,_:=c.Owner().Lease();if again.Config.Address4!=lease.Config.Address4{t.Fatal("rotation changed lease")}
 		waitLifecycle(t,3*time.Second,func()bool{return server.TunnelQualified(lease.Config.TunnelID)})
 		reverse:=ipv4Packet([4]byte{8,8,8,8},addr.As4(),17)
 		if err:=server.RoutePacket(reverse,time.Now());err!=nil{t.Fatal(err)}
 		select{case got:=<-delivered[index]:if string(got)!=string(reverse){t.Fatal("reverse crossed client")};case <-time.After(3*time.Second):t.Fatal("reverse timeout")}
 	}
+	if snapshots:=server.TunnelDiagnosticSnapshots(time.Now());len(snapshots)!=2 || snapshots[0].Lease4==snapshots[1].Lease4{t.Fatal("automatic diagnostics omitted/crossed client leases")}
 	// Fault injection changes only the protected admission reply. A healthy old
 	// lane must survive a bad candidate; a fully dormant owner must request a
 	// platform rebuild rather than quietly applying a different source address.

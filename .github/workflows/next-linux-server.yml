@@ -12,6 +12,7 @@ on:
       - 'tools/p6_build_release.py'
       - 'tools/check_p6_release.py'
       - 'tools/test_linux_server_delivery.py'
+      - 'tools/test_linux_multiclient.py'
       - '.github/workflows/next-linux-server.yml'
   workflow_dispatch:
 permissions: {contents: read}
@@ -50,6 +51,8 @@ jobs:
           done
       - name: Actual systemd install stop kill upgrade rollback and uninstall
         run: sudo env PATH="$PATH" GITHUB_SHA="$GITHUB_SHA" python3 tools/test_linux_server_delivery.py artifacts/linux-amd64
+      - name: Native concurrent automatic Normal and Game TCP UDP and server restart
+        run: sudo env GITHUB_SHA="$GITHUB_SHA" GITHUB_ACTIONS=true python3 tools/test_linux_multiclient.py artifacts/linux-amd64
       - name: Cross-build arm64 package (native run not claimed)
         run: |
           python3 tools/p6_build_release.py --source-sha "$GITHUB_SHA" --version "next-rc-${GITHUB_SHA:0:12}" --target-os linux --target-arch arm64 --output-dir artifacts/linux-arm64

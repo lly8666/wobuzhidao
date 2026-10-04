@@ -121,6 +121,20 @@ func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, no
 	return out, true
 }
 
+// Automatic admissions have no single configured TunnelID. Enumerate only for
+// opt-in diagnostics; steady packet handling never scans all clients.
+func (s *LifecycleServer) TunnelDiagnosticSnapshots(now time.Time) []TunnelDiagnostic {
+	if s == nil { return nil }
+	s.mu.Lock()
+	ids := make([]logicaltunnel.TunnelID, 0, len(s.byTunnel))
+	for id := range s.byTunnel { ids = append(ids, id) }
+	s.mu.Unlock()
+	sort.Slice(ids, func(i, j int) bool { return string(ids[i][:]) < string(ids[j][:]) })
+	out := make([]TunnelDiagnostic, 0, len(ids))
+	for _, id := range ids { if snapshot, ok := s.TunnelDiagnosticSnapshot(id, now); ok { out = append(out, snapshot) } }
+	return out
+}
+
 
 func (m *SegmentMux) DiagnosticSnapshot() SegmentMuxDiagnostic {
 	if m == nil {

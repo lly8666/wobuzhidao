@@ -254,6 +254,12 @@ func runServer() error {
 	if *diagnosticJSONL != "" {
 		go func() {
 			errCh <- qualificationdiag.Run(ctx, *diagnosticJSONL, *diagnosticInterval, func(now time.Time) any {
+				if leaseStore != nil {
+					return struct {
+						Tunnels []runtimeentry.TunnelDiagnostic `json:"tunnels"`
+						RawIO faketcp.RawIODiagnostic `json:"raw_io"`
+					}{Tunnels: server.TunnelDiagnosticSnapshots(now), RawIO: raw.IODiagnostic()}
+				}
 				snapshot, ok := server.TunnelDiagnosticSnapshot(tunnelID, now)
 				return struct {
 					Present bool                          `json:"present"`
