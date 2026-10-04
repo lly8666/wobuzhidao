@@ -68,6 +68,7 @@ class SoakHarnessTests(unittest.TestCase):
             self.assertIn('--rotate-min 600s --rotate-max 600s',s)
             self.assertIn('"qualification": "FORMAL"',s)
             self.assertIn('"duration_s": 1800',s)
+            self.assertIn('"harness_sha": os.environ.get("WBD_HARNESS_SHA", source)',s)
 
     def test_stream_capture_rejects_missing_data_and_counts_wire_length(self):
         with tempfile.TemporaryDirectory() as d:

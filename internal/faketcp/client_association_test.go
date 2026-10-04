@@ -107,9 +107,9 @@ func TestClientAssociationBootstrapAndDetachHandoff(t *testing.T) {
 	if handoff.SendNext != data.Seq+uint32(len(data.Payload)) ||
 		handoff.ReceiveNext != 9001+uint32(len(serverPayload)) ||
 		handoff.Peer.MSS != 1280 ||
-		handoff.AdvertisedWindow != wantWindow ||
+		handoff.AdvertisedWindow != 65535 ||
 		!handoff.WindowScaleSet || handoff.WindowScale != DefaultWindowScale {
-		t.Fatalf("handoff=%#v want_window=%d", handoff, wantWindow)
+		t.Fatalf("handoff=%#v want_steady_window=65535", handoff)
 	}
 }
 

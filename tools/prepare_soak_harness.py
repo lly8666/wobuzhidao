@@ -28,7 +28,7 @@ def main():
     replace('\nPY\n\nchmod -R a+rX "$ART"',f'\nPY\n\npython3 tools/soak_capture.py --artifact-dir "$ART" --duration {x.duration}\n\nchmod -R a+rX "$ART"')
     replace('"one_way_delay_ms": 300, "duration_s": 120, "stages_s": [30, 60, 30],',f'"one_way_delay_ms": 300, "duration_s": {x.duration}, "stages_s": None,')
     replace('"drain_s": 10,','"drain_s": 60,')
-    replace('"schema": 1, "source_sha": source, "harness_sha": source,','"schema": "wbd-target-soak/v1", "source_sha": source, "harness_sha": source,')
+    replace('"schema": 1, "source_sha": source,','"schema": "wbd-target-soak/v1", "source_sha": source,')
     replace('"harness_file_sha256": files,',f'"harness_file_sha256": files, "qualification": "{ "FORMAL" if x.duration==1800 else "DIAGNOSTIC_ONLY" }", "stage_plan": {repr(plan(x.duration))}, "rotate_seconds": {rotate}, "capture_snaplen": 128, "capture_chunk_seconds": 15,')
     replace('    workflow_rel,','    ".github/workflows/next-target-soak.yml",\n    "tools/prepare_soak_harness.py",\n    "tools/soak_stats.py",\n    "tools/soak_capture.py",\n    "tools/soak_weaknet_stage.py",\n    "tools/check_target_soak.py",')
     (root/'generated-soak.sh').write_text(script)

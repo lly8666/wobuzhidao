@@ -84,7 +84,7 @@
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
   "next_task": "Qualify steady advertised-window candidate in Actions core/race and independent Normal/Game5205, plus isolated stateful transit-router old-source and candidate samples in separate runs. Then fix source-to-wire generation promotion race caught on native Windows: stale old generation must not kill CLI;no whole-packet retry after partial emission,no business waiting for TLS candidate. Package exact source and repeat nativeD01,then continue43-case matrix. Every performanceAction one sample.",
-  "latest_log": "docs/devlog/20261005-065000-steady-window-stateful-candidate.md",
+  "latest_log": "docs/devlog/20261005-071000-steady-window-qualification-followup.md",
   "last_tested_source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
   "actions": [
     {
@@ -7527,6 +7527,12 @@
     "new_cli_parameters": false,
     "native_root_cause": "Suspected middlebox window enforcement;not yet proven",
     "additional_bug": "Native Windows exits1 on stale generation got1/current2 during recovery",
-    "log": "docs/devlog/20261005-065000-steady-window-stateful-candidate.md"
+    "log": "docs/devlog/20261005-065000-steady-window-stateful-candidate.md",
+    "qualification_runs": [
+      "37242239754",
+      "37242242521",
+      "37242244758",
+      "37242246886"
+    ]
   }
 }
