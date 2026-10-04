@@ -51,6 +51,7 @@ namespace Wbd.Gui {
             stop = Button("断开连接", async () => await RunAsync(DisconnectAsync));
             save = Button("保存配置", () => { Try(() => { SaveEditor(); ShowState("已保存 · 修改在重连后生效"); }); });
             actions.Controls.Add(connect); actions.Controls.Add(stop); actions.Controls.Add(save); header.Controls.Add(actions, 1, 0); header.SetRowSpan(actions, 3); root.Controls.Add(header, 0, 0);
+            actions.Controls.Add(Button("校验配置", async () => await RunAsync(ValidateSelectedAsync)));
             var body = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1 };
             workspace = body;
             body.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 233)); body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); root.Controls.Add(body, 0, 1);
@@ -114,7 +115,9 @@ namespace Wbd.Gui {
             details.Controls.Add(Note("新系统：安装 Npcap → 重新检测 → 填入服务端信息 → 校验 → 连接。\n无需安装无线监听支持；使用管理员权限运行本程序。\n切换服务器会等待旧客户端完成 owned-only 清理；不会强杀抢接。\n若异常关机留下路由，可断开后点击“恢复残留网络状态”。"));
             details.Controls.Add(Note("WBD " + SourceInfo.Version + "\n源码 " + SourceInfo.SHA + "\n依赖 Windows 10/11 x64 自带的 .NET Framework 4.8。\n实际物理网卡与驱动收口仍需最终物理验收。"));
             activity.Dock = DockStyle.Fill; activity.ReadOnly = true; activity.BackColor = Color.White; activity.BorderStyle = BorderStyle.None; activity.Font = new Font("Microsoft YaHei UI", 8.5F);
-            root.Controls.Add(activity, 0, 2);
+            var logPanel = new TableLayoutPanel { Dock=DockStyle.Fill, ColumnCount=1, RowCount=2, BackColor=Color.White, Padding=new Padding(12,7,12,7) };
+            logPanel.RowStyles.Add(new RowStyle(SizeType.Absolute,24)); logPanel.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+            logPanel.Controls.Add(new Label { Text="运行信息", AutoSize=true, ForeColor=Color.FromArgb(100,116,139) },0,0); logPanel.Controls.Add(activity,0,1); root.Controls.Add(logPanel,0,2);
             tray = new NotifyIcon { Icon = Icon, Text = "WBD 便携客户端", Visible = true };
             tray.DoubleClick += (sender, e) => { Show(); WindowState = FormWindowState.Normal; Activate(); };
             var menu = new ContextMenuStrip(); menu.Items.Add("显示窗口", null, (sender, e) => { Show(); WindowState = FormWindowState.Normal; Activate(); });
@@ -212,7 +215,7 @@ namespace Wbd.Gui {
             connectedId = editing.Id; ShowState("正在建立连接 · " + editing.Name); servers.Invalidate();
             await session.StartAsync(store.InRoot("data/active.json"));
         }
-        public async Task DisconnectAsync() { if (session.Active) ShowState("正在断开并清理网络状态…"); await session.StopAsync(); connectedId = null; ShowState("未连接"); servers.Invalidate(); }
+        public async Task DisconnectAsync() { if (session.Active) ShowState("正在断开并清理网络状态…"); await session.StopAsync(); Drain(); connectedId = null; ShowState("未连接"); servers.Invalidate(); }
         async Task ImportDialogAsync() {
             using (var dialog = new OpenFileDialog { Filter = "客户端配置 (*.json)|*.json", Title = "导入客户端 JSON 配置", RestoreDirectory = true }) if (dialog.ShowDialog(this) == DialogResult.OK) await ImportAsync(dialog.FileName);
         }
@@ -238,7 +241,7 @@ namespace Wbd.Gui {
                 store.WriteAtomic(rel, text); editors["china-ip-file"].Text = rel; SaveEditor(); Enqueue("IP 表已复制进程序目录；请校验并重连应用。");
             }
         }
-        async Task UpdateChinaAsync() {
+        public async Task UpdateChinaAsync() {
             string target = store.InRoot("data/china-ipv4.txt");
             var info = new ProcessStartInfo(store.InRoot("wbd-client.exe"), "--update-china-ip " + ClientSession.Quote(target)) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = store.Root, RedirectStandardOutput = true, RedirectStandardError = true };
             info.EnvironmentVariables["TEMP"] = store.InRoot("data/tmp"); info.EnvironmentVariables["TMP"] = store.InRoot("data/tmp"); info.EnvironmentVariables.Remove("WBD_QUALIFICATION_CPU_PROFILE");
@@ -281,7 +284,7 @@ namespace Wbd.Gui {
         void Drain() {
             for (int i = 0; i < 32; i++) {
                 string line; lock (messages) { if (messages.Count == 0) break; line = messages.Dequeue(); }
-                if (line == "WBD_WINDOWS_CLIENT_READY") { ShowState("已连接 · " + (store.Book.Profiles.FirstOrDefault(p => p.Id == connectedId)?.Name ?? "服务器")); line = "隧道已就绪，网络配置已应用。"; }
+                if (line == "WBD_WINDOWS_CLIENT_READY") { if (connectedId!=null && session.Active) ShowState("已连接 · " + (store.Book.Profiles.FirstOrDefault(p => p.Id == connectedId)?.Name ?? "服务器")); line = "隧道已就绪，网络配置已应用。"; }
                 line = Redact(line); store.AppendLog(line); activity.AppendText(DateTime.Now.ToString("HH:mm:ss ") + line + Environment.NewLine);
                 if (activity.Lines.Length > 400) activity.Lines = activity.Lines.Skip(activity.Lines.Length - 300).ToArray(); activity.SelectionStart = activity.TextLength; activity.ScrollToCaret();
             }

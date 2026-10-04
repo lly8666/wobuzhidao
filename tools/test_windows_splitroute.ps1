@@ -11,7 +11,7 @@ try {
     $body = $body.Replace("`r`n", "`n")
     # Substitute only privileges/process exit and a journal counter. All real
     # route planning, validation, ownership, rollback, and file I/O stay intact.
-    $body = $body.Replace("`nRequire-Admin`n", "`n# MOCK privileges`n").Replace('exit 0','return')
+    $body = $body.Replace("`nRequire-Admin`n", "`n# MOCK privileges`n").Replace('    Require-Admin', '    # MOCK privileges').Replace('exit 0','return')
     $body = $body.Replace('function Save-State($State) {','function Save-State($State) { $script:saveCount++')
     $block = [scriptblock]::Create($body)
     function Get-NetFirewallProfile { [pscustomobject]@{Enabled=$true} }

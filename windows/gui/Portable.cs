@@ -158,7 +158,7 @@ namespace Wbd.Gui {
         readonly SemaphoreSlim gate = new SemaphoreSlim(1, 1);
         Process process;
         public event Action<string> Line;
-        public bool Active { get { return process != null && !process.HasExited; } }
+        public bool Active { get { try { return process != null && !process.HasExited; } catch (InvalidOperationException) { return false; } } }
         public ClientSession(PortableStore s) { store = s; }
         ProcessStartInfo Info(string args) {
             var info = new ProcessStartInfo(store.InRoot("wbd-client.exe"), args) { WorkingDirectory = store.Root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = true };
@@ -196,7 +196,8 @@ namespace Wbd.Gui {
                 process = new Process { StartInfo = Info("--control-stdin --config " + Quote(config)), EnableRaisingEvents = true };
                 process.OutputDataReceived += (s, e) => { if (e.Data != null && Line != null) Line(e.Data); };
                 process.ErrorDataReceived += (s, e) => { if (e.Data != null && Line != null) Line(e.Data); };
-                process.Start(); process.BeginOutputReadLine(); process.BeginErrorReadLine();
+                try { process.Start(); process.BeginOutputReadLine(); process.BeginErrorReadLine(); }
+                catch { process.Dispose(); process = null; throw; }
             } finally { gate.Release(); }
         }
         public async Task StopAsync() {

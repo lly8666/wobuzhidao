@@ -102,6 +102,8 @@ namespace Wbd.Gui {
                     Assert(denied && fake.Active && fake.Events.Count(x => x.StartsWith("start:")) == starts, "unfinished cleanup preserves old client and blocks replacement");
                     fake.FailStop = false; Wait(form.DisconnectAsync()); Assert(!fake.Active, "GUI disconnect completes");
                     Assert(!form.Redact(" not-real-password ").Contains("not-real-password"), "GUI secret redaction");
+                    Wait(form.UpdateChinaAsync());
+                    Assert(File.ReadAllLines(store.InRoot("data/china-ipv4.txt")).Length>100 && Convert.ToString(second.Values["china-ip-file"])=="data/china-ipv4.txt", "GUI manual China list update writes and selects portable validated list");
                     form.Capture(store.InRoot("gui-screenshot.png"));
                 }
                 store.Save(); var reopened = new PortableStore(root); Assert(reopened.Book.Profiles.Count >= 2, "server profiles persist after reopening");

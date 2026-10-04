@@ -1,0 +1,9 @@
+# Native GUI 204 checks and screenshot audit
+
+Exact ccdb126 source Windows GUI run37185003051 PASS. Downloaded GUI artifact11297066116 verifiedSHA3564fce910bd3a4c86c1a608335211bca684389fd7240dd04cc5812cfc981035; raw receipt204checks PASS. Actual screenshot Chinese readable, server sidebar, tabs and secrets masked, no overlap. Bundle13files verified and ZIP artifact11297091015 produced; still previous source pending latest followup.
+
+Code review found process.Start failure could leave unstarted Process causing Active property crash from UI timer; guard/dispose failed start. Drain stopped child messages before server switch and ignore stale READY for inactive child, keeping UI state accurate. Existing transport data path untouched. Add header config validation button accessible without scrolling; running-information label to make bottom panel explicit.
+
+GUI pipeline now actually invokes Windows owned1500route Apply/Cleanup failure mock; previous standalone mock lacked a workflow reference, so do not claim it had already run in new source. Mock calls state-only cleanup and strips the indented admin call, leaving real planning/journaling/rollback and mocked networkAPI; no real network changes. GUI self-test additionally executes actual Go manual country-list download/update into own data and selects it. This addresses previously unexecuted GUI update functionality, not a performance sweep.
+
+All writes for GUI under executable root tested different CWD and Unicode path. User explicitly accepts Wintun driver registration; use nonblocking notice. Previous fixture/assertion failures retained. Local edits/read-only artifact hash/parsing/image only; no local builds/tests. Latest exact source Actions and ZIP receipt pending. Physical driver/UAC/NIC and final fullqualification remain NOT_RUN.

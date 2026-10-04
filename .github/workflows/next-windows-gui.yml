@@ -22,6 +22,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'portable build failed' }
           python tools/check_p6_release.py --bundle-dir artifacts/windows-portable --source-sha $env:GITHUB_SHA --target-os windows --target-arch amd64 --run-native
           if ($LASTEXITCODE -ne 0) { throw 'manifest verification failed' }
+      - name: Mock owned network apply and state-only crash cleanup
+        shell: pwsh
+        run: ./tools/test_windows_splitroute.ps1
       - name: Native GUI widgets / every parameter / server switching / portable writes
         shell: pwsh
         run: |
