@@ -19,11 +19,13 @@ jobs:
           if not re.fullmatch('[0-9a-f]{40}',r['source_sha']):raise SystemExit('invalid source')
           if not re.fullmatch('linux-server-rc-[0-9]{8}-[0-9a-f]{7}',r['tag']):raise SystemExit('invalid tag')
           repo=os.environ['GITHUB_REPOSITORY']
-          for field,name in [('gui_run','next-windows-gui'),('foundation_run','next-foundation'),('server_run','next-linux-server')]:
+          for field,name in [('gui_run','next-windows-gui'),('foundation_run','next-foundation'),('server_run','next-linux-server'),('lifecycle_run','next-lifecycle'),('lifecycle_fullstack_run','next-lifecycle-fullstack'),('steady_run','next-p4-steady-targeted'),('normal_run','strict-normal-5205-seed101-rate10-lanes1'),('game_run','strict-game-5205-seed101-rate3-lanes4')]:
               obj=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs/{r[field]}']))
               if obj['name']!=name or obj['head_sha']!=r['source_sha'] or obj['run_attempt']!=1 or obj['status']!='completed' or obj['conclusion']!='success':raise SystemExit('exact original qualification missing')
           with open(os.environ['GITHUB_ENV'],'a') as f:
-              for k,v in {'SOURCE_SHA':r['source_sha'],'GUI_RUN':r['gui_run'],'SERVER_RUN':r['server_run'],'TAG':r['tag']}.items():f.write(f'{k}={v}\n')
+              for k,v in {'SOURCE_SHA':r['source_sha'],'GUI_RUN':r['gui_run'],'SERVER_RUN':r['server_run'],'PERF_RUN':r['performance_coordinator_run'],'TAG':r['tag']}.items():f.write(f'{k}={v}\n')
+          perf=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs/{r["performance_coordinator_run"]}']))
+          if perf['name']!='next-optimization-5205-coordinator' or perf['run_attempt']!=1 or perf['status']!='completed' or perf['conclusion']!='success':raise SystemExit('performance audit missing')
           PY
       - uses: actions/download-artifact@v4
         with:
@@ -37,12 +39,22 @@ jobs:
           run-id: '${{ env.SERVER_RUN }}'
           name: 'linux-server-${{ env.SOURCE_SHA }}'
           path: linux
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: '${{ github.token }}'
+          run-id: '${{ env.PERF_RUN }}'
+          name: 'optimization-5205-${{ env.PERF_RUN }}'
+          path: performance
       - name: Independently verify receipts every packaged file and matching source
         run: |
           python3 - <<'PY'
           import os,json,hashlib,zipfile,shutil
           from pathlib import Path
           source=os.environ['SOURCE_SHA']
+          perf=json.loads(Path('performance/result.json').read_text())
+          request=json.loads(Path('.github/server-delivery-request.json').read_text())
+          if perf['source_sha']!=source or perf['result']!='PASS' or len(perf['records'])!=2:raise SystemExit('targeted performance receipt mismatch')
+          if {r['run'] for r in perf['records']}!={request['normal_run'],request['game_run']}:raise SystemExit('performance sample identity mismatch')
           for receipt in ('linux/linux-server-delivery-result.json','linux/linux-multiclient/result.json'):
               r=json.loads(Path(receipt).read_text())
               if r['source_sha']!=source or r['result']!='PASS':raise SystemExit('native/deployment receipt mismatch')
@@ -69,7 +81,9 @@ jobs:
 
           Linux包内包含配置模板、systemd unit、wbdctl和LINUX_SERVER.md。手动安装、检查、开机启动、停止、日志、异常退出恢复、升级及失败回滚、保配置卸载已在Ubuntu24.04 amd64真实systemd环境验证。原生Linux raw/TPROXY同账号Normal1/Game4并发TCP/UDP及服务端重启后换地址重建业务通过。Windows208项GUI/配置与重建路径、两平台基础及Linux race通过。
 
-          ARM仅交叉构建；Windows真实Npcap/Wintun/NIC、物理验收、新SOURCE完整弱网/长测性能资格未运行。本包为预发布，不能把旧性能成绩当成本次新结果。
+          本SOURCE独立Normal1每方向10Mbps、Game4每方向3Mbps、FEC20:20、300ms单向延迟和5%→20%→5%的5205定向弱网门通过；每Action只跑一条样本，并核验吞吐、应用损失、延迟与host容量。
+
+          ARM仅交叉构建；Windows真实Npcap/Wintun/NIC、物理验收、新SOURCE完整70配置/严格18/1800s长测资格未运行。本包为预发布，不能把旧性能成绩当成本次新结果。
 
           Windows完整解压后运行WBD.exe，应用配置/日志仍本文件夹；Npcap按界面官方指引安装，Wintun DLL已内置。Linux解压后先用包内wbdctl install --package ZIP，编辑/etc/wbd/server.json，wbdctl check，再wbdctl start。首次安装不会拿模板占位凭据启动服务。
           EOF

@@ -1,0 +1,5 @@
+# Linux配套独立5205与发布门
+
+产品固定c956481143857d6ae4cdce04a31d22e8f6438903，foundation37197185706为前置门（通过才dispatch），Normal1 10Mbps和Game4 3Mbps各单独Action，FEC20:20/5205/seed101。d9已合格artifact只用于原阶段RTT/loss不退化的配对审计，不继承性能资格或声称固定CPU下降。自动lease native e567部署37197034962 PASS，正式固定源码资格仍待完结。
+
+发布控制要求最终固定SOURCE foundation、GUI、native部署、core lifecycle、36生命周期、steady及两条独立性能原始attempt1成功，且只读performance/result.json与两个run匹配。不会只见某个构建绿色就发布。未创建发布请求，不公布未验收包。ARM原生/Windows物理/full70/full18/1800s仍NOT_RUN。
