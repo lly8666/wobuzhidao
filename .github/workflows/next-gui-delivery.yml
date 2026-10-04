@@ -1,0 +1,62 @@
+name: next-gui-delivery
+on:
+  push:
+    branches: [main]
+    paths: [.github/gui-delivery-request.json]
+permissions: {contents: write, actions: read}
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify original exact-source GUI and core qualification
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          python3 - <<'PY'
+          import json,os,re,subprocess
+          r=json.load(open('.github/gui-delivery-request.json'))
+          if not re.fullmatch('[0-9a-f]{40}',r['source_sha']):raise SystemExit('invalid source')
+          if not re.fullmatch('windows-gui-rc-[0-9]{8}-[0-9a-f]{7}',r['tag']):raise SystemExit('invalid tag')
+          repo=os.environ['GITHUB_REPOSITORY']
+          for run in (r['gui_run'],r['foundation_run']):
+              obj=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs/{run}']))
+              if obj['head_sha']!=r['source_sha'] or obj['run_attempt']!=1 or obj['status']!='completed' or obj['conclusion']!='success':raise SystemExit('exact original qualification missing')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              for k,v in {'SOURCE_SHA':r['source_sha'],'GUI_RUN':r['gui_run'],'TAG':r['tag'],'ZIP_SHA':r['zip_sha256']}.items():f.write(f'{k}={v}\n')
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: '${{ github.token }}'
+          run-id: '${{ env.GUI_RUN }}'
+          name: 'WBD-Windows-Portable-${{ env.SOURCE_SHA }}'
+          path: bundle
+      - name: Verify portable ZIP and every packaged file without executing product
+        run: |
+          python3 - <<'PY'
+          import os,json,hashlib,zipfile
+          from pathlib import Path
+          p=Path('bundle/WBD-Windows-Portable.zip');digest=hashlib.sha256(p.read_bytes()).hexdigest()
+          if digest!=os.environ['ZIP_SHA'] or Path(str(p)+'.sha256').read_text().strip().lower()!=digest:raise SystemExit('zip hash mismatch')
+          with zipfile.ZipFile(p) as z:
+              root='windows-portable/';m=json.loads(z.read(root+'manifest.json'))
+              if m['source_sha']!=os.environ['SOURCE_SHA']:raise SystemExit('source mismatch')
+              for row in m['files']:
+                  data=z.read(root+row['path'])
+                  if hashlib.sha256(data).hexdigest()!=row['sha256'] or len(data)!=row['size_bytes']:raise SystemExit('packaged file mismatch')
+              if len(m['files'])!=13:raise SystemExit('missing GUI/driver/catalog files')
+          print('GUI_PORTABLE_DELIVERY_HASH_PASS source='+os.environ['SOURCE_SHA'])
+          PY
+      - name: Publish Windows GUI prerelease
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          cat > notes.md <<'EOF'
+          中文 Windows 10/11 x64 便携客户端：服务器列表/切换、完整配置、全部固定FEC与Game档位、DNS/分流/生命周期设置、官方Npcap安装指引。
+
+          完整解压后运行 WBD.exe。配置、日志与临时文件保存在本文件夹；使用系统.NET Framework4.8，无需额外应用运行环境。Npcap由用户从官网安装；包内包含官方原版Wintun DLL，首次建网卡按官方机制注册系统驱动。
+
+          同源码206项GUI/有效配置检查、Windows网络创建/回滚/owned清理mock及Linux/Windows基础/race通过。此为预发布版，真实Npcap/Wintun/NIC和UAC路径留物理验收；不宣称已完成物理发布资格。旧性能与完整弱网长测不冒充此GUI版本新结果。
+
+          使用说明见压缩包“使用说明.md”，SHA256随包提供。
+          EOF
+          gh release create "$TAG" --target "$SOURCE_SHA" --prerelease --title "WBD Windows 中文便携 GUI 预发布版" --notes-file notes.md bundle/WBD-Windows-Portable.zip bundle/WBD-Windows-Portable.zip.sha256
