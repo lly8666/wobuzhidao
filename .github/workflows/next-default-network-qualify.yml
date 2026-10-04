@@ -1,0 +1,33 @@
+name: next-default-network-qualify
+on:
+  push:
+    branches: [main]
+    paths: [.github/default-network-qualify-request.json]
+permissions: {contents: read, actions: write}
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exact core gate then separate functional/package workflows
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          python3 - <<'PY'
+          import json,os,subprocess,time
+          r=json.load(open('.github/default-network-qualify-request.json'));repo=os.environ['GITHUB_REPOSITORY']
+          for _ in range(60):
+              g=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs/{r["foundation"]}']))
+              if g['head_sha']!=r['source_sha']:raise SystemExit('source mismatch')
+              if g['status']=='completed':
+                  if g['conclusion']!='success':raise SystemExit('core failed')
+                  break
+              time.sleep(20)
+          else:raise SystemExit('gate timeout')
+          if subprocess.check_output(['git','ls-remote','origin','refs/heads/'+r['ref']]).decode().split()[0]!=r['source_sha']:raise SystemExit('freeze mismatch')
+          for wf in ('next-lifecycle-fullstack.yml','next-p6-package.yml','next-default-network.yml','next-splitroute.yml'):
+              subprocess.check_call(['gh','workflow','run',wf,'--ref',r['ref']])
+          for case in ('defaults','mtu1280-reverse0','f20-l4-p1'):
+              subprocess.check_call(['gh','workflow','run','next-config-effective.yml','--ref',r['ref'],'-f','case_id='+case])
+          print('DISPATCHED_FUNCTIONAL_ONLY source='+r['source_sha'])
+          PY

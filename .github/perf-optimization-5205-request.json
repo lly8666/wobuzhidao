@@ -1,11 +1,11 @@
 {
-  "dispatch_ref": "perf-fixed/a67e10fa2875162eeac926b970a0c486a239748d",
-  "baseline_source_sha": "2b2bd9eb106d7c6fa83096cd88a59a0d0bfae8f8",
-  "stage": "ipv4-split-routing",
-  "source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
-  "foundation_run": 37154526472,
+  "stage": "Game-incremental-replay-and-default-network",
+  "foundation_run": 37181128524,
+  "baseline_source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
+  "source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
+  "dispatch_ref": "perf-fixed/d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
   "baseline_artifacts": {
-    "game": 11280706297,
-    "normal": 11280367072
+    "game": 11285685453,
+    "normal": 11285795419
   }
 }
