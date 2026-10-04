@@ -21,6 +21,8 @@
 
 ## 当前性能主线（2026-09-23）
 
+2026-10-05用户授权的原生Windows→ARM WAN测试已执行，先读STATUS.physical_native和devlog/20261005-014639-native-wan-no-pcap.md。固定6181db6二进制不变：Normal1双向10M两份完整120s、Game4双向3M一份120s业务loss0；DNS/TCP/验证证书HTTPS及退出owned清理通过。首轮120s summary timeout/单向约4.16M的部分证据和fresh Normal AF_PACKET drops+125未解释，必须保留；整体P7仅PARTIAL，GUI实际操作/人为弱网/长测未验。Windows是vmxnet3虚拟网卡，不宣称裸机NIC。测试助手不保存pcap/payload，凭据不入库；临时地址/任务/证书已清理，服务端保留active、客户端断开。下一步先定位原生接收pressure和首轮异常，不能直接归因VM或扩大buffer/FEC/4096。每性能Action仍只一条。
+
 2026-10-04用户最新要求只做简单部署测试：上传固定发布包、解压配置、启动；不开发Go版wbdctl或在线升级/通用安装工具。旧管理工具和Python3.8失败记录保留，当前直接部署不依赖它，不自动恢复这项兼容修复任务。物理机器已由用户提供并授权测试，按STATUS继续；真实机器启动不等于业务/性能/P7通过。
 
 2026-10-04最新任务已交付：Linux服务端安装/systemd/升级回滚、共享账号多客户端自动7天内存IPv4和配套WindowsGUI，固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3，预发布linux-server-rc-20261004-6181db6。接手先读LINUX_SERVER.md、STATUS.linux_server和evidence/linux-server-6181db6.json；native12/systemd12/GUI208/core-race/36+aggregate37jobs与两独立5205全部PASS。增加Linux客户端namespace锁/网络journal，正常和SIGKILL同端口重建、foreign/live保护已验。网络journal不是IP租约，只有InstallationID长期保存。旧985与c956是历史包，不能混用或继承其资格为新代码；最新SOURCE full70/strict18/1800s、物理Windows/ARM原生仍NOT_RUN。后续按STATUS.next_task推进，不因旧日志/HOLD/性能提示词无证据重构FEC/4096。

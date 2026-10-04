@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-04用户最新要求将Linux部署限为简单上传包、解压配置和启动测试；不扩建通用安装工具或在线升级。固定6181db6 ARM服务已直接部署，配置/就绪启动/停止owned网络清理/再次启动PASS；Windows端到端业务和性能仍待测，P7未完成。当前入口是LINUX_SERVER.md开头和STATUS.next_task，先前Python安装器兼容修复不再是当前任务。
+2026-10-05用户授权实机测试已推进：固定6181db6真实CLI/Npcap/Wintun→ARM WAN DNS/UDP/TCP/验证证书HTTPS、Normal1双向10M与Game4双向3M及退出清理通过对应门。首轮不完整异常和fresh Normal raw接收drop+125仍待定位；GUI实际操作、人为弱网、长测未验，P7仅PARTIAL，不能声明RELEASE_QUALIFIED。见STATUS.physical_native与最新日志。部署仍只上传包、解压配置和启动，不扩建安装管理/在线升级；下一任务按STATUS，不自动恢复Python安装器或旧性能重构。
 
 > 当前决策（覆盖下文历史下一步）：2026-09-23用户最新决策：允许链路30%丢包时仍有至多30%业务包损失，优先处理性能、低延迟、无HOL与突发稳定性；不得主动丢业务凑指标。4096为可放弃的shadow-repair备份，不是fresh发送门。当前执行WEAKNET_QUALIFICATION第10节；历史近零损失门槛不再约束有损场景，无损满速、完整性、隔离和资源有界仍是硬门。 所有性能测试严格一个Action run一条样本，禁止同run A/B与matrix。
 

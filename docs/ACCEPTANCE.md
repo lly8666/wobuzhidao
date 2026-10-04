@@ -4,6 +4,8 @@
 
 ## 环境与证据
 
+2026-10-05用户已授权并执行远端原生Windows→ARM测试；此为物理阶段授权例外，不改变开发期产品构建/测试在Actions的规则。固定6181db6的Normal1双向10M两份120s和Game4双向3M一份120s业务loss0、DNS/TCP/验证证书HTTPS与owned退出清理通过对应门。首轮summary timeout及约4.16M部分结果、fresh Normal AF_PACKET drops+125保留未解，整体physical_status=PARTIAL，不是PHYSICAL_PASS/RELEASE_QUALIFIED。GUI实际操作、人为弱网、长测仍NOT_RUN。[本轮日志](devlog/20261005-014639-native-wan-no-pcap.md)、[原始计数及hash](evidence/physical-native-6181db6-20261005.json)为唯一最新证据入口。没有pcap，仅8秒C2S头部计数，不宣称双向TLS指纹完整验收。
+
 开发期所有构建和测试只在 GitHub Actions；本地不运行 go test、编译、fuzz、性能或网络试验。最终物理资格在 P7，不能提前成为开发依赖。
 
 每次运行保存产品 SOURCE_SHA、harness SHA、依赖/toolchain、runner 架构与 CPU/内存、完整配置、种子、原始 stdout/stderr、分析器结果。收到新结果先核实源 SHA，不能只看 workflow 全绿或其他 agent 摘要。

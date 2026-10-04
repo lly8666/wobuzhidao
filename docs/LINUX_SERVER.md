@@ -19,13 +19,17 @@ systemctl stop wbd-server
 
 无需在服务器安装Go，也不调用Python安装工具。首次配置仍需实际接口/本机IPv4、监听端口、SNI/decoy、认证、证书和不冲突的地址池；架构匹配、管理连接与其他服务保留仍需确认。
 
-2026-10-04：6181db6已直接部署到用户ARM服务器，原生配置check和systemd就绪启动通过。当前Normal客户端1lane、FEC20:20、MTU1400测试参数已配好；Windows已SSH连通/Npcap运行，vmxnet3虚拟NIC。端到端业务/性能与整体P7仍NOT_RUN，不能用服务启动替代业务验收。
+2026-10-05：固定6181db6的原生Windows CLI/Npcap/Wintun→ARM WAN业务已验。Normal1双向10Mbps两份完整120秒、Game4双向3Mbps一份120秒均跑满、业务loss0，p95约72/69ms；两模式受控DNS/UDP/TCP/验证证书HTTPS及退出清理通过。首轮120秒未取得客户端完整计数、服务端单向约4.16Mbps，另一次fresh Normal AF_PACKET drops+125仍待定位，不能宣称长期稳定或整个P7通过。人为弱网、GUI实际操作、长测未验。见[本轮日志](devlog/20261005-014639-native-wan-no-pcap.md)和[含原始小回执的证据](evidence/physical-native-6181db6-20261005.json)。
+
+连接工具使用本机WSL OpenSSH，测试在两个远端原生系统执行，不在WSL内承载业务。Windows vmxnet3虚拟NIC，ARM Ubuntu20.04/aarch64，不能称裸机NIC成绩。客户端应用文件、日志和临时文件留便携目录；已断开并恢复路由/DNS，移除临时任务和测试地址，ARM服务保留active、autostart disabled。未生成pcap/pcapng/etl，也不保留HTTPS响应正文。
+
+本轮新增tools/physical_*测试助手，使用方式与失败保留规则见本轮日志；它们不是安装器，不打进产品包。正式产品源码和发布二进制SOURCE不变，不因此重新发布。
 
 ## 历史预检与已发布工具
 
 此前预检中6181db6 ARM包10文件hash及原生`--version`PASS；Ubuntu20.04/Python3.8的wbdctl.stage因Path.is_relative_to缺失FAIL。旧服务按用户指令卸载并保留root专属备份；旧进程、自启、owned规则和TUN清理。该问题属于可选管理工具，按最新简化部署决策不再是当前待修任务。失败证据保留在[预检日志](devlog/20261004-213700-physical-preflight-legacy-uninstall.md)。
 
-当前固定预发布SOURCE `6181db66b67594b07cd989b8b8b5848cedf6ccc3`：[配套Windows/Linux下载](https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6)。amd64真实部署12检查、native多客户端及正常/强杀重建12检查、GUI208、基础/race、36生命周期与两个独立5205全部PASS，详见[evidence/linux-server-6181db6.json](evidence/linux-server-6181db6.json)。下面较早SOURCE记录只是历史过程，不能替代这个固定证据。旧985不含自动租约，c956不含新增客户端强杀网络恢复，推荐本次两端配套。ARM包在Actions交叉构建，现已新增用户ARM机器的原生配置/服务启动/停止清理验证；端到端业务、整体P7与最新full70/strict18/1800s仍NOT_RUN。
+当前固定预发布SOURCE `6181db66b67594b07cd989b8b8b5848cedf6ccc3`：[配套Windows/Linux下载](https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6)。amd64真实部署12检查、native多客户端及正常/强杀重建12检查、GUI208、基础/race、36生命周期与两个独立5205全部PASS，详见[evidence/linux-server-6181db6.json](evidence/linux-server-6181db6.json)。下面较早SOURCE记录只是历史过程，不能替代这个固定证据。旧985不含自动租约，c956不含新增客户端强杀网络恢复，推荐本次两端配套。ARM包在Actions交叉构建，已新增用户ARM原生部署与上述Windows CLI端到端业务/短性能结果；整体P7仍PARTIAL，最新full70/strict18/1800s仍NOT_RUN。
 
 本任务由2026-10-04用户授权继续实施。最新决策：认证保持简单的一组用户名/密码，允许多台设备共用；每设备独立InstallationID，由服务端内存租约池随机选择未占用IPv4地址。租约7天，认证重连续期，活跃/退休lane仍占用的地址不能回收。不持久化IP映射，服务端重启后允许重新分配；只持久化客户端安装身份。
 

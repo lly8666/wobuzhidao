@@ -1,0 +1,951 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-05",
+  "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+  "documentation_start_head": "d5c8c125dbe66ea7e68ad58bfa5df85d311e4553",
+  "state": "PARTIAL_NATIVE_WAN",
+  "product_binary_unchanged": true,
+  "release_url": "https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6",
+  "archives": {
+    "arm64_sha256": "c81edf4a3f724918c0ae2eef4baa24457d7b7074bd9516330ed2e23cce0f8fe4",
+    "windows_sha256": "487f853904318216fa0170063f29df0dc7b2e0bea5aa37c3217bf49e5864e38a",
+    "verified_manifest_files": {
+      "arm64": 10,
+      "windows": 13
+    }
+  },
+  "environment": {
+    "client": "Windows11Pro 10.0.28000;8logicalCPU;vmxnet3 virtual NIC;real Npcap/Wintun native CLI",
+    "server": "Ubuntu20.04.4;Linux5.4;aarch64;2CPU Neoverse N1;enp0s3",
+    "connection_tool": "Local WSL Ubuntu22.04 OpenSSH ControlMaster;not business transport",
+    "bare_metal_nic_claim": false
+  },
+  "configuration": {
+    "fec": "20:20",
+    "mtu": 1400,
+    "tls_startup_padding": false,
+    "payload_sizes": [
+      96,
+      256,
+      512,
+      1000,
+      1372
+    ],
+    "artificial_loss_percent": null,
+    "artificial_one_way_delay_ms": null,
+    "send_duration_seconds": 120,
+    "receive_drain_seconds": 3,
+    "controlled_target": "198.18.0.1/32 temporarily on ARM lo",
+    "route_mode": "all for controlled target;managementLAN/serverIP direct bypass",
+    "actual_lease": "10.66.109.1/32",
+    "actual_fixture_receive_buffer_bytes": 425984,
+    "product_receive_buffer_unchanged": true
+  },
+  "functional": {
+    "normal": "PASS",
+    "game4": "PASS",
+    "controlled_dns_udp_exact": true,
+    "tcp_echo_exact": true,
+    "https_certificate_verified": true,
+    "https_body_bytes": 102400,
+    "https_body_sha256": "27783e87963a4efb6829b531c9ba57b44f45797f6770bd637fbf0d807cbdbae0",
+    "system_dns": "www.cloudflare.com resolved via active NRPT",
+    "lease_stable_across_sessions": true
+  },
+  "samples": [
+    {
+      "name": "normal10-repeat",
+      "lanes": 1,
+      "classification": "DIAGNOSTIC_30S_ONLY",
+      "seconds": 30,
+      "requested_mbps_each_direction": 10,
+      "c2s_goodput_mbps": 9.999901866666667,
+      "s2c_goodput_mbps": 9.999901866666667,
+      "c2s_byte_loss_percent": 0,
+      "s2c_byte_loss_percent": 0,
+      "probe_sent": null,
+      "probe_received": 298,
+      "rtt_p95_ms": 75.6446,
+      "rtt_p99_ms": 84.0636,
+      "client_cpu_seconds": 26.265625,
+      "server_cpu_seconds": 16.78,
+      "server_af_packet_drop_delta": null,
+      "receipt": "normal10-repeat.json"
+    },
+    {
+      "name": "normal10-final",
+      "lanes": 1,
+      "classification": "TARGET_RATE_BUSINESS_PASS_120S",
+      "seconds": 120,
+      "requested_mbps_each_direction": 10,
+      "c2s_goodput_mbps": 9.999729066666667,
+      "s2c_goodput_mbps": 9.999944800000002,
+      "c2s_byte_loss_percent": 0,
+      "s2c_byte_loss_percent": 0,
+      "probe_sent": 1189,
+      "probe_received": 1189,
+      "rtt_p95_ms": 72.3236,
+      "rtt_p99_ms": 82.8304,
+      "client_cpu_seconds": 105.546875,
+      "server_cpu_seconds": 67.03000000000002,
+      "server_af_packet_drop_delta": 0,
+      "receipt": "normal10-final.json"
+    },
+    {
+      "name": "game3-final",
+      "lanes": 4,
+      "classification": "TARGET_RATE_BUSINESS_PASS_120S",
+      "seconds": 120,
+      "requested_mbps_each_direction": 3,
+      "c2s_goodput_mbps": 2.9998962666666666,
+      "s2c_goodput_mbps": 2.9998962666666666,
+      "c2s_byte_loss_percent": 0,
+      "s2c_byte_loss_percent": 0,
+      "probe_sent": 1192,
+      "probe_received": 1192,
+      "rtt_p95_ms": 68.923,
+      "rtt_p99_ms": 73.3399,
+      "client_cpu_seconds": 127.921875,
+      "server_cpu_seconds": 71.17000000000002,
+      "server_af_packet_drop_delta": 0,
+      "receipt": "game3-final.json"
+    },
+    {
+      "name": "normal10-fresh",
+      "lanes": 1,
+      "classification": "TARGET_RATE_BUSINESS_PASS_RECEIVE_PRESSURE_UNRESOLVED",
+      "seconds": 120,
+      "requested_mbps_each_direction": 10,
+      "c2s_goodput_mbps": 9.999795733333332,
+      "s2c_goodput_mbps": 9.999944800000002,
+      "c2s_byte_loss_percent": 0,
+      "s2c_byte_loss_percent": 0,
+      "probe_sent": 1189,
+      "probe_received": 1189,
+      "rtt_p95_ms": 72.4308,
+      "rtt_p99_ms": 84.4675,
+      "client_cpu_seconds": 108,
+      "server_cpu_seconds": 68.62,
+      "server_af_packet_drop_delta": 125,
+      "receipt": "normal10-fresh.json"
+    }
+  ],
+  "failed_initial_sample": {
+    "name": "normal10-native",
+    "seed": 1001,
+    "seconds": 120,
+    "requested_mbps": 10,
+    "state": "FAILED_MEASUREMENT_INCOMPLETE",
+    "client_error": "Target summary timeout",
+    "c2s_received_goodput_mbps": 4.1598944,
+    "app_loss_percent": null,
+    "client_offered_rate_unknown": true,
+    "server_receipt": "normal10-native-target.json",
+    "cause": "UNRESOLVED;helper later preserves counters but product not changed;do not attribute throughput recovery to helper"
+  },
+  "ordinary_https_fallback": {
+    "result": "PASS",
+    "http_code": 200,
+    "response_bytes": 216,
+    "curl_exit": 0,
+    "tls_verify_result": 0,
+    "insecure": false,
+    "route": "Direct public listener with SNI www.cloudflare.com /cdn-cgi/trace",
+    "evidence_origin": "native Windows command output;body sent to NUL;no payload file",
+    "fingerprint_equivalence_claim": false
+  },
+  "header_observation": {
+    "receipt": "game4-header-counts.json",
+    "seconds": 8,
+    "observed_directions": [
+      "C2S"
+    ],
+    "ports": [
+      40000,
+      40001,
+      40002,
+      40003
+    ],
+    "max_ipv4_length": 1290,
+    "rst": 0,
+    "fragments": 0,
+    "observer_drops": 0,
+    "full_bidirectional_capture": false,
+    "payload_stored": false
+  },
+  "unresolved": [
+    "Initial120s incomplete client counters and reduced C2S receipt require reproduction",
+    "Fresh120s AF_PACKET socket drop delta125;queue also receives unrelated NIC IPv4;attribution unresolved"
+  ],
+  "not_run": [
+    "Physical GUI interaction/UAC/cross-server switch",
+    "Artificial weaknet/600ms RTT qualification",
+    "Native rotation/DORMANT/blackhole recovery",
+    "External IPv6 leak observation",
+    "Physical startup padding on/other FEC profiles",
+    "Latest source full70/strict18/1800s",
+    "Complete bidirectional packet/TLS fingerprint qualification"
+  ],
+  "cleanup": {
+    "client_disconnected": true,
+    "client_exit_codes_zero": true,
+    "ipv4_route_signature_differences": 0,
+    "owned_nrpt": 0,
+    "owned_ipv6_firewall": 0,
+    "network_state_remaining": false,
+    "client_processes": 0,
+    "scheduled_task_removed": true,
+    "controlled_target_and_private_test_key_removed": true,
+    "windows_tmp_and_payload_removed": true,
+    "wsl_masters_closed_and_credential_copy_removed": true,
+    "final_lanes": 1,
+    "final_route_mode": "bypass-lan-cn",
+    "final_config_reconnect_tested": false,
+    "server": "active;autostart disabled",
+    "management_and_foreign_services_preserved": true,
+    "raw_capture_files_created": 0,
+    "first_functional_stop_reason": "watchdog",
+    "measurement_session_stop_reason": "requested_stop",
+    "final_receipt": "p7-fresh-final-cleanup.json"
+  },
+  "raw_receipt_total_bytes": 23257,
+  "raw_receipts": [
+    {
+      "name": "functional-normal-session.json",
+      "bytes": 234,
+      "sha256": "31bc6965c7943452524b4a2bda084aea6bbb1fae9eb66d8ac7ca546a184488f3",
+      "content": {
+        "State": "STOPPED",
+        "Ready": true,
+        "Reason": "watchdog",
+        "ExitCode": 0,
+        "NetworkStateRemaining": false,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "ElapsedSeconds": 606.9
+      }
+    },
+    {
+      "name": "game-business-result.json",
+      "bytes": 491,
+      "sha256": "69b06be44c38a12a7e44e292c9b74c3c3e70e48c22d6f86e4628244c8992f6e8",
+      "content": {
+        "Result": "PASS",
+        "ControlledUDPAndDNSExact": true,
+        "ControlledTCPExact": true,
+        "HTTPSCertificateVerified": true,
+        "HTTPSBodyBytes": 102400,
+        "HTTPSBodySHA256": "27783e87963a4efb6829b531c9ba57b44f45797f6770bd637fbf0d807cbdbae0",
+        "UDPRoundTripMs": 84.76,
+        "SystemDNSIPv4": [
+          "104.16.123.96",
+          "104.16.124.96"
+        ],
+        "PayloadTempDeleted": true,
+        "NoPcap": true
+      }
+    },
+    {
+      "name": "game-business-target.json",
+      "bytes": 225,
+      "sha256": "5eac243b12f9e0c9373c5e908d33927a1db1f7a0866255e6545a30deb4dc275e",
+      "content": {
+        "result": "PASS",
+        "role": "target",
+        "body_sha256": "27783e87963a4efb6829b531c9ba57b44f45797f6770bd637fbf0d807cbdbae0",
+        "peers": {
+          "dns": "10.66.109.1",
+          "tcp": "10.66.109.1",
+          "https": "10.66.109.1"
+        }
+      }
+    },
+    {
+      "name": "game3-final-packet-after.txt",
+      "bytes": 505,
+      "sha256": "15cd0f7726279648da6a5ce9ce9e2d2ec03889e24c2d2d372ee51b660de386a7",
+      "content": "Netid  State    Recv-Q   Send-Q     Local Address:Port       Peer Address:Port  Process                                                                         \np_raw  UNCONN   0        0                [35020]:enp0s3                 *       users:((\"systemd-network\",pid=361,fd=16)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o544,bl0,d0)\np_raw  UNCONN   0        0                 [2048]:enp0s3                 *       users:((\"wbd-server\",pid=409655,fd=7)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o0,bl0,d6737)\n"
+    },
+    {
+      "name": "game3-final-packet-before.txt",
+      "bytes": 505,
+      "sha256": "67778b23e7067ae0c440ca0264990df33f21056e70bf5c5f2afe7c215341738a",
+      "content": "Netid  State    Recv-Q   Send-Q     Local Address:Port       Peer Address:Port  Process                                                                         \np_raw  UNCONN   0        0                [35020]:enp0s3                 *       users:((\"systemd-network\",pid=361,fd=16)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o544,bl0,d0)\np_raw  UNCONN   0        0                 [2048]:enp0s3                 *       users:((\"wbd-server\",pid=409655,fd=7)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o0,bl0,d6612)\n"
+    },
+    {
+      "name": "game3-final-target.json",
+      "bytes": 510,
+      "sha256": "e565ec2e4bc18da672b863c0b3356d936a227bfe98cf6727996c11ea31680454",
+      "content": {
+        "RxPackets": 69529,
+        "RxBytes": 44998444,
+        "DuplicatePackets": 0,
+        "BadPayload": 0,
+        "ReorderedPackets": 12,
+        "TxPackets": 69529,
+        "TxBytes": 44998444,
+        "MaxSendLagMs": 32.16799277805649,
+        "Result": "MEASURED",
+        "Seed": 1004,
+        "Seconds": 120,
+        "RequestedMbps": 3,
+        "PeerIPv4": "10.66.109.1",
+        "WBDCPUSeconds": 71.17000000000002,
+        "HelperCPUSeconds": 6.72667212,
+        "EffectiveTargetReceiveBuffer": 425984,
+        "PayloadSizes": [
+          96,
+          256,
+          512,
+          1000,
+          1372
+        ],
+        "NoPcap": true
+      }
+    },
+    {
+      "name": "game3-final.json",
+      "bytes": 3487,
+      "sha256": "17d9f0dcce3225c473d641f5cc99f6e820176ce48a49225b4534344dad5deedb",
+      "content": {
+        "Name": "game3-final",
+        "SourceSHA": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+        "Scope": "physical native WAN; no artificial loss/delay; UDP mixed-size bidirectional",
+        "Seconds": 120,
+        "RequestedMbps": 3,
+        "Client": {
+          "TxPackets": 69529,
+          "TxBytes": 44998444,
+          "RxPackets": 69529,
+          "RxBytes": 44998444,
+          "DuplicatePackets": 0,
+          "BadPayload": 0,
+          "ReorderedPackets": 27,
+          "MaxSendLagMs": 8.124233333326458,
+          "ProbeP95Ms": 68.923,
+          "ProbeP99Ms": 73.3399,
+          "WBDCPUSeconds": 127.921875,
+          "HelperCPUSeconds": 3.578125,
+          "ProbeCount": 1192,
+          "ProbeSent": 1192,
+          "Seconds": 120,
+          "RequestedMbps": 3,
+          "ServerJSON": "{\"RxPackets\": 69529, \"RxBytes\": 44998444, \"DuplicatePackets\": 0, \"BadPayload\": 0, \"ReorderedPackets\": 12, \"TxPackets\": 69529, \"TxBytes\": 44998444, \"MaxSendLagMs\": 32.16799277805649, \"Result\": \"MEASURED\", \"Seed\": 1004, \"Seconds\": 120, \"RequestedMbps\": 3, \"PeerIPv4\": \"10.66.109.1\", \"WBDCPUSeconds\": 71.17000000000002, \"HelperCPUSeconds\": 6.72667212, \"EffectiveTargetReceiveBuffer\": 425984, \"PayloadSizes\": [96, 256, 512, 1000, 1372], \"NoPcap\": true}",
+          "SummaryReceived": true,
+          "NoPcap": true
+        },
+        "Server": {
+          "RxPackets": 69529,
+          "RxBytes": 44998444,
+          "DuplicatePackets": 0,
+          "BadPayload": 0,
+          "ReorderedPackets": 12,
+          "TxPackets": 69529,
+          "TxBytes": 44998444,
+          "MaxSendLagMs": 32.16799277805649,
+          "Result": "MEASURED",
+          "Seed": 1004,
+          "Seconds": 120,
+          "RequestedMbps": 3,
+          "PeerIPv4": "10.66.109.1",
+          "WBDCPUSeconds": 71.17000000000002,
+          "HelperCPUSeconds": 6.72667212,
+          "EffectiveTargetReceiveBuffer": 425984,
+          "PayloadSizes": [
+            96,
+            256,
+            512,
+            1000,
+            1372
+          ],
+          "NoPcap": true
+        },
+        "C2SGoodputMbps": 2.9998962666666666,
+        "S2CGoodputMbps": 2.9998962666666666,
+        "C2SByteLossPercent": 0,
+        "S2CByteLossPercent": 0,
+        "ClientOfferedMbps": 2.9998962666666666,
+        "ServerOfferedMbps": 2.9998962666666666,
+        "NICBefore": {
+          "ReceivedBytes": 875019662,
+          "SentBytes": 1005023456,
+          "ReceivedDiscardedPackets": 0,
+          "OutboundDiscardedPackets": 0
+        },
+        "NICAfter": {
+          "ReceivedBytes": 1439803427,
+          "SentBytes": 1559821680,
+          "ReceivedDiscardedPackets": 0,
+          "OutboundDiscardedPackets": 0
+        },
+        "NoPcap": true,
+        "SummaryRetrieval": "PASS"
+      }
+    },
+    {
+      "name": "game3-status.json",
+      "bytes": 240,
+      "sha256": "21bd436987c4a3eb42173357d3a6a33e778589b7139a3105881ab3b7395f30df",
+      "content": {
+        "State": "STOPPED",
+        "Ready": true,
+        "Reason": "requested_stop",
+        "ExitCode": 0,
+        "NetworkStateRemaining": false,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "ElapsedSeconds": 507.1
+      }
+    },
+    {
+      "name": "game4-header-counts.json",
+      "bytes": 1054,
+      "sha256": "c1463ed237522ff4c545fe485a56c7296e82877265020ce24a5eb440e37c9a76",
+      "content": {
+        "Seconds": 8,
+        "Flows": [
+          {
+            "Direction": "C2S",
+            "PeerPort": 40000,
+            "Packets": 17326,
+            "IPv4Bytes": 8995758,
+            "DataPackets": 11289,
+            "SYN": 0,
+            "FIN": 0,
+            "RST": 0,
+            "MaxIPv4Length": 1290
+          },
+          {
+            "Direction": "C2S",
+            "PeerPort": 40001,
+            "Packets": 16383,
+            "IPv4Bytes": 8942002,
+            "DataPackets": 11292,
+            "SYN": 0,
+            "FIN": 0,
+            "RST": 0,
+            "MaxIPv4Length": 1290
+          },
+          {
+            "Direction": "C2S",
+            "PeerPort": 40003,
+            "Packets": 17687,
+            "IPv4Bytes": 9011756,
+            "DataPackets": 11283,
+            "SYN": 0,
+            "FIN": 0,
+            "RST": 0,
+            "MaxIPv4Length": 1290
+          },
+          {
+            "Direction": "C2S",
+            "PeerPort": 40002,
+            "Packets": 17944,
+            "IPv4Bytes": 9028473,
+            "DataPackets": 11277,
+            "SYN": 0,
+            "FIN": 0,
+            "RST": 0,
+            "MaxIPv4Length": 1290
+          }
+        ],
+        "ObserverKernelPackets": 69551,
+        "ObserverSocketDrops": 0,
+        "FragmentedTargetPackets": 0,
+        "NoPcap": true,
+        "NoPayloadStored": true
+      }
+    },
+    {
+      "name": "normal-business-result.json",
+      "bytes": 491,
+      "sha256": "1ba4dfee58c11d6ad248f4851a447d10eb5911bf3b570417926bfd446c744f56",
+      "content": {
+        "Result": "PASS",
+        "ControlledUDPAndDNSExact": true,
+        "ControlledTCPExact": true,
+        "HTTPSCertificateVerified": true,
+        "HTTPSBodyBytes": 102400,
+        "HTTPSBodySHA256": "27783e87963a4efb6829b531c9ba57b44f45797f6770bd637fbf0d807cbdbae0",
+        "UDPRoundTripMs": 92.22,
+        "SystemDNSIPv4": [
+          "104.16.124.96",
+          "104.16.123.96"
+        ],
+        "PayloadTempDeleted": true,
+        "NoPcap": true
+      }
+    },
+    {
+      "name": "normal10-final-packet-after.txt",
+      "bytes": 505,
+      "sha256": "67778b23e7067ae0c440ca0264990df33f21056e70bf5c5f2afe7c215341738a",
+      "content": "Netid  State    Recv-Q   Send-Q     Local Address:Port       Peer Address:Port  Process                                                                         \np_raw  UNCONN   0        0                [35020]:enp0s3                 *       users:((\"systemd-network\",pid=361,fd=16)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o544,bl0,d0)\np_raw  UNCONN   0        0                 [2048]:enp0s3                 *       users:((\"wbd-server\",pid=409655,fd=7)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o0,bl0,d6612)\n"
+    },
+    {
+      "name": "normal10-final-packet-before.txt",
+      "bytes": 505,
+      "sha256": "67778b23e7067ae0c440ca0264990df33f21056e70bf5c5f2afe7c215341738a",
+      "content": "Netid  State    Recv-Q   Send-Q     Local Address:Port       Peer Address:Port  Process                                                                         \np_raw  UNCONN   0        0                [35020]:enp0s3                 *       users:((\"systemd-network\",pid=361,fd=16)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o544,bl0,d0)\np_raw  UNCONN   0        0                 [2048]:enp0s3                 *       users:((\"wbd-server\",pid=409655,fd=7)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o0,bl0,d6612)\n"
+    },
+    {
+      "name": "normal10-final-target.json",
+      "bytes": 527,
+      "sha256": "846a0ce0157d5067bf03aab662323f2931b77cec13f32a754c8cf16505ecd6e8",
+      "content": {
+        "RxPackets": 231763,
+        "RxBytes": 149995936,
+        "DuplicatePackets": 0,
+        "BadPayload": 0,
+        "ReorderedPackets": 20335,
+        "TxPackets": 231768,
+        "TxBytes": 149999172,
+        "MaxSendLagMs": 11.065085002947228,
+        "Result": "MEASURED",
+        "Seed": 1003,
+        "Seconds": 120,
+        "RequestedMbps": 10,
+        "PeerIPv4": "10.66.109.1",
+        "WBDCPUSeconds": 67.03000000000002,
+        "HelperCPUSeconds": 13.380872960000001,
+        "EffectiveTargetReceiveBuffer": 425984,
+        "PayloadSizes": [
+          96,
+          256,
+          512,
+          1000,
+          1372
+        ],
+        "NoPcap": true
+      }
+    },
+    {
+      "name": "normal10-final.json",
+      "bytes": 3521,
+      "sha256": "ee787bd88a08d93a0602e17fb070ce6f1706ccb7f9c678cff483e91fcaa03607",
+      "content": {
+        "Name": "normal10-final",
+        "SourceSHA": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+        "Scope": "physical native WAN; no artificial loss/delay; UDP mixed-size bidirectional",
+        "Seconds": 120,
+        "RequestedMbps": 10,
+        "Client": {
+          "TxPackets": 231763,
+          "TxBytes": 149995936,
+          "RxPackets": 231768,
+          "RxBytes": 149999172,
+          "DuplicatePackets": 0,
+          "BadPayload": 0,
+          "ReorderedPackets": 46,
+          "MaxSendLagMs": 6.279100000000426,
+          "ProbeP95Ms": 72.3236,
+          "ProbeP99Ms": 82.8304,
+          "WBDCPUSeconds": 105.546875,
+          "HelperCPUSeconds": 6,
+          "ProbeCount": 1189,
+          "ProbeSent": 1189,
+          "Seconds": 120,
+          "RequestedMbps": 10,
+          "ServerJSON": "{\"RxPackets\": 231763, \"RxBytes\": 149995936, \"DuplicatePackets\": 0, \"BadPayload\": 0, \"ReorderedPackets\": 20335, \"TxPackets\": 231768, \"TxBytes\": 149999172, \"MaxSendLagMs\": 11.065085002947228, \"Result\": \"MEASURED\", \"Seed\": 1003, \"Seconds\": 120, \"RequestedMbps\": 10, \"PeerIPv4\": \"10.66.109.1\", \"WBDCPUSeconds\": 67.03000000000002, \"HelperCPUSeconds\": 13.380872960000001, \"EffectiveTargetReceiveBuffer\": 425984, \"PayloadSizes\": [96, 256, 512, 1000, 1372], \"NoPcap\": true}",
+          "SummaryReceived": true,
+          "NoPcap": true
+        },
+        "Server": {
+          "RxPackets": 231763,
+          "RxBytes": 149995936,
+          "DuplicatePackets": 0,
+          "BadPayload": 0,
+          "ReorderedPackets": 20335,
+          "TxPackets": 231768,
+          "TxBytes": 149999172,
+          "MaxSendLagMs": 11.065085002947228,
+          "Result": "MEASURED",
+          "Seed": 1003,
+          "Seconds": 120,
+          "RequestedMbps": 10,
+          "PeerIPv4": "10.66.109.1",
+          "WBDCPUSeconds": 67.03000000000002,
+          "HelperCPUSeconds": 13.380872960000001,
+          "EffectiveTargetReceiveBuffer": 425984,
+          "PayloadSizes": [
+            96,
+            256,
+            512,
+            1000,
+            1372
+          ],
+          "NoPcap": true
+        },
+        "C2SGoodputMbps": 9.999729066666667,
+        "S2CGoodputMbps": 9.999944800000002,
+        "C2SByteLossPercent": 0,
+        "S2CByteLossPercent": 0,
+        "ClientOfferedMbps": 9.999729066666667,
+        "ServerOfferedMbps": 9.999944800000002,
+        "NICBefore": {
+          "ReceivedBytes": 413700815,
+          "SentBytes": 554308943,
+          "ReceivedDiscardedPackets": 0,
+          "OutboundDiscardedPackets": 0
+        },
+        "NICAfter": {
+          "ReceivedBytes": 874683262,
+          "SentBytes": 1004950596,
+          "ReceivedDiscardedPackets": 0,
+          "OutboundDiscardedPackets": 0
+        },
+        "NoPcap": true,
+        "SummaryRetrieval": "PASS"
+      }
+    },
+    {
+      "name": "normal10-fresh-packet-after.txt",
+      "bytes": 505,
+      "sha256": "15cd0f7726279648da6a5ce9ce9e2d2ec03889e24c2d2d372ee51b660de386a7",
+      "content": "Netid  State    Recv-Q   Send-Q     Local Address:Port       Peer Address:Port  Process                                                                         \np_raw  UNCONN   0        0                [35020]:enp0s3                 *       users:((\"systemd-network\",pid=361,fd=16)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o544,bl0,d0)\np_raw  UNCONN   0        0                 [2048]:enp0s3                 *       users:((\"wbd-server\",pid=409655,fd=7)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o0,bl0,d6737)\n"
+    },
+    {
+      "name": "normal10-fresh-packet-before.txt",
+      "bytes": 505,
+      "sha256": "15cd0f7726279648da6a5ce9ce9e2d2ec03889e24c2d2d372ee51b660de386a7",
+      "content": "Netid  State    Recv-Q   Send-Q     Local Address:Port       Peer Address:Port  Process                                                                         \np_raw  UNCONN   0        0                [35020]:enp0s3                 *       users:((\"systemd-network\",pid=361,fd=16)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o544,bl0,d0)\np_raw  UNCONN   0        0                 [2048]:enp0s3                 *       users:((\"wbd-server\",pid=409655,fd=7)) skmem:(r0,rb212992,t0,tb212992,f0,w0,o0,bl0,d6737)\n"
+    },
+    {
+      "name": "normal10-fresh-status.json",
+      "bytes": 240,
+      "sha256": "fb03d7972fc5c0349ae14d4e1d004d707795c92df6a92921490ce9f775177158",
+      "content": {
+        "State": "STOPPED",
+        "Ready": true,
+        "Reason": "requested_stop",
+        "ExitCode": 0,
+        "NetworkStateRemaining": false,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "ElapsedSeconds": 352.6
+      }
+    },
+    {
+      "name": "normal10-fresh-target.json",
+      "bytes": 503,
+      "sha256": "4675407c975af81ed51d1f0b6be839ff8bf1e572f860885958c983acefe5bc3b",
+      "content": {
+        "RxPackets": 231764,
+        "RxBytes": 149996936,
+        "DuplicatePackets": 0,
+        "BadPayload": 0,
+        "ReorderedPackets": 0,
+        "TxPackets": 231768,
+        "TxBytes": 149999172,
+        "MaxSendLagMs": 8.283498959677615,
+        "Result": "MEASURED",
+        "Seed": 1005,
+        "Seconds": 120,
+        "RequestedMbps": 10,
+        "PeerIPv4": "10.66.109.1",
+        "WBDCPUSeconds": 68.62,
+        "HelperCPUSeconds": 12.81582024,
+        "EffectiveTargetReceiveBuffer": 425984,
+        "PayloadSizes": [
+          96,
+          256,
+          512,
+          1000,
+          1372
+        ],
+        "NoPcap": true
+      }
+    },
+    {
+      "name": "normal10-fresh.json",
+      "bytes": 3478,
+      "sha256": "1c0dfb4e6dc2d7b058ac55199b1c9c27f841f8d04eda4ef06cd4f04b45ce409b",
+      "content": {
+        "Name": "normal10-fresh",
+        "SourceSHA": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+        "Scope": "physical native WAN; no artificial loss/delay; UDP mixed-size bidirectional",
+        "Seconds": 120,
+        "RequestedMbps": 10,
+        "Client": {
+          "TxPackets": 231764,
+          "TxBytes": 149996936,
+          "RxPackets": 231768,
+          "RxBytes": 149999172,
+          "DuplicatePackets": 0,
+          "BadPayload": 0,
+          "ReorderedPackets": 3253,
+          "MaxSendLagMs": 9.899900000000628,
+          "ProbeP95Ms": 72.4308,
+          "ProbeP99Ms": 84.4675,
+          "WBDCPUSeconds": 108,
+          "HelperCPUSeconds": 6.15625,
+          "ProbeCount": 1189,
+          "ProbeSent": 1189,
+          "Seconds": 120,
+          "RequestedMbps": 10,
+          "ServerJSON": "{\"RxPackets\": 231764, \"RxBytes\": 149996936, \"DuplicatePackets\": 0, \"BadPayload\": 0, \"ReorderedPackets\": 0, \"TxPackets\": 231768, \"TxBytes\": 149999172, \"MaxSendLagMs\": 8.283498959677615, \"Result\": \"MEASURED\", \"Seed\": 1005, \"Seconds\": 120, \"RequestedMbps\": 10, \"PeerIPv4\": \"10.66.109.1\", \"WBDCPUSeconds\": 68.62, \"HelperCPUSeconds\": 12.81582024, \"EffectiveTargetReceiveBuffer\": 425984, \"PayloadSizes\": [96, 256, 512, 1000, 1372], \"NoPcap\": true}",
+          "SummaryReceived": true,
+          "NoPcap": true
+        },
+        "Server": {
+          "RxPackets": 231764,
+          "RxBytes": 149996936,
+          "DuplicatePackets": 0,
+          "BadPayload": 0,
+          "ReorderedPackets": 0,
+          "TxPackets": 231768,
+          "TxBytes": 149999172,
+          "MaxSendLagMs": 8.283498959677615,
+          "Result": "MEASURED",
+          "Seed": 1005,
+          "Seconds": 120,
+          "RequestedMbps": 10,
+          "PeerIPv4": "10.66.109.1",
+          "WBDCPUSeconds": 68.62,
+          "HelperCPUSeconds": 12.81582024,
+          "EffectiveTargetReceiveBuffer": 425984,
+          "PayloadSizes": [
+            96,
+            256,
+            512,
+            1000,
+            1372
+          ],
+          "NoPcap": true
+        },
+        "C2SGoodputMbps": 9.999795733333332,
+        "S2CGoodputMbps": 9.999944800000002,
+        "C2SByteLossPercent": 0,
+        "S2CByteLossPercent": 0,
+        "ClientOfferedMbps": 9.999795733333332,
+        "ServerOfferedMbps": 9.999944800000002,
+        "NICBefore": {
+          "ReceivedBytes": 1441498472,
+          "SentBytes": 1560082795,
+          "ReceivedDiscardedPackets": 0,
+          "OutboundDiscardedPackets": 0
+        },
+        "NICAfter": {
+          "ReceivedBytes": 1898942112,
+          "SentBytes": 2012233901,
+          "ReceivedDiscardedPackets": 0,
+          "OutboundDiscardedPackets": 0
+        },
+        "NoPcap": true,
+        "SummaryRetrieval": "PASS"
+      }
+    },
+    {
+      "name": "normal10-native-target.json",
+      "bytes": 507,
+      "sha256": "2cef6458e985083067f9b6edcae6aac0baf52f4e80b7aeb4c93704e0ae977e5c",
+      "content": {
+        "RxPackets": 96414,
+        "RxBytes": 62398416,
+        "DuplicatePackets": 0,
+        "BadPayload": 0,
+        "ReorderedPackets": 0,
+        "TxPackets": 231768,
+        "TxBytes": 149999172,
+        "MaxSendLagMs": 8.059360918103664,
+        "Result": "MEASURED",
+        "Seed": 1001,
+        "Seconds": 120,
+        "RequestedMbps": 10,
+        "PeerIPv4": "10.66.109.1",
+        "WBDCPUSeconds": 42.35,
+        "HelperCPUSeconds": 7.991033279999999,
+        "EffectiveTargetReceiveBuffer": 425984,
+        "PayloadSizes": [
+          96,
+          256,
+          512,
+          1000,
+          1372
+        ],
+        "NoPcap": true
+      }
+    },
+    {
+      "name": "normal10-repeat.json",
+      "bytes": 3424,
+      "sha256": "afd3e214d1158178696f52c8b39fbe79bcf141c3407fa48893c4fa0e84833359",
+      "content": {
+        "Name": "normal10-repeat",
+        "SourceSHA": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+        "Scope": "physical native WAN; no artificial loss/delay; UDP mixed-size bidirectional",
+        "Seconds": 30,
+        "RequestedMbps": 10,
+        "Client": {
+          "TxPackets": 57943,
+          "TxBytes": 37499632,
+          "RxPackets": 57943,
+          "RxBytes": 37499632,
+          "DuplicatePackets": 0,
+          "BadPayload": 0,
+          "ReorderedPackets": 14,
+          "MaxSendLagMs": 5.791399999999669,
+          "ProbeP95Ms": 75.6446,
+          "ProbeP99Ms": 84.0636,
+          "WBDCPUSeconds": 26.265625,
+          "HelperCPUSeconds": 1.9375,
+          "ProbeCount": 298,
+          "Seconds": 30,
+          "RequestedMbps": 10,
+          "ServerJSON": "{\"RxPackets\": 57943, \"RxBytes\": 37499632, \"DuplicatePackets\": 0, \"BadPayload\": 0, \"ReorderedPackets\": 4994, \"TxPackets\": 57943, \"TxBytes\": 37499632, \"MaxSendLagMs\": 3.932322897988172, \"Result\": \"MEASURED\", \"Seed\": 1002, \"Seconds\": 30, \"RequestedMbps\": 10, \"PeerIPv4\": \"10.66.109.1\", \"WBDCPUSeconds\": 16.78, \"HelperCPUSeconds\": 3.35473944, \"EffectiveTargetReceiveBuffer\": 425984, \"PayloadSizes\": [96, 256, 512, 1000, 1372], \"NoPcap\": true}",
+          "SummaryReceived": true,
+          "NoPcap": true
+        },
+        "Server": {
+          "RxPackets": 57943,
+          "RxBytes": 37499632,
+          "DuplicatePackets": 0,
+          "BadPayload": 0,
+          "ReorderedPackets": 4994,
+          "TxPackets": 57943,
+          "TxBytes": 37499632,
+          "MaxSendLagMs": 3.932322897988172,
+          "Result": "MEASURED",
+          "Seed": 1002,
+          "Seconds": 30,
+          "RequestedMbps": 10,
+          "PeerIPv4": "10.66.109.1",
+          "WBDCPUSeconds": 16.78,
+          "HelperCPUSeconds": 3.35473944,
+          "EffectiveTargetReceiveBuffer": 425984,
+          "PayloadSizes": [
+            96,
+            256,
+            512,
+            1000,
+            1372
+          ],
+          "NoPcap": true
+        },
+        "C2SGoodputMbps": 9.999901866666667,
+        "S2CGoodputMbps": 9.999901866666667,
+        "C2SByteLossPercent": 0,
+        "S2CByteLossPercent": 0,
+        "ClientOfferedMbps": 9.999901866666667,
+        "ServerOfferedMbps": 9.999901866666667,
+        "NICBefore": {
+          "ReceivedBytes": 298316838,
+          "SentBytes": 441679357,
+          "ReceivedDiscardedPackets": 0,
+          "OutboundDiscardedPackets": 0
+        },
+        "NICAfter": {
+          "ReceivedBytes": 413558686,
+          "SentBytes": 554300719,
+          "ReceivedDiscardedPackets": 0,
+          "OutboundDiscardedPackets": 0
+        },
+        "NoPcap": true,
+        "SummaryRetrieval": "PASS"
+      }
+    },
+    {
+      "name": "normal10-status.json",
+      "bytes": 240,
+      "sha256": "1441e5d9df8393b957d752cef7992a9c396e48a5ad509e22c2c521928b7b318c",
+      "content": {
+        "State": "STOPPED",
+        "Ready": true,
+        "Reason": "requested_stop",
+        "ExitCode": 0,
+        "NetworkStateRemaining": false,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "ElapsedSeconds": 897.9
+      }
+    },
+    {
+      "name": "p7-business-target.json",
+      "bytes": 225,
+      "sha256": "5eac243b12f9e0c9373c5e908d33927a1db1f7a0866255e6545a30deb4dc275e",
+      "content": {
+        "result": "PASS",
+        "role": "target",
+        "body_sha256": "27783e87963a4efb6829b531c9ba57b44f45797f6770bd637fbf0d807cbdbae0",
+        "peers": {
+          "dns": "10.66.109.1",
+          "tcp": "10.66.109.1",
+          "https": "10.66.109.1"
+        }
+      }
+    },
+    {
+      "name": "p7-final-cleanup.json",
+      "bytes": 431,
+      "sha256": "362f3083be4c1883f1c678023d071aecb3cf08f870f335d3816c38b320e4e094",
+      "content": {
+        "Result": "PASS",
+        "ClientExited": true,
+        "NormalRouteDifferenceCount": 0,
+        "GameRouteDifferenceCount": 0,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "NetworkStateRemaining": false,
+        "WBDProcessesRemaining": 0,
+        "RawCaptureFiles": 0,
+        "ScheduledTaskRemoved": true,
+        "FinalConfigRouteMode": "bypass-lan-cn",
+        "FinalConfigLanes": 1,
+        "NoPcap": true
+      }
+    },
+    {
+      "name": "p7-fresh-final-cleanup.json",
+      "bytes": 399,
+      "sha256": "82629348b4cf8e683ad206ffb5ca4e1f517d89f959c67dd48ad59b376b55cd7f",
+      "content": {
+        "Result": "PASS",
+        "ClientExited": true,
+        "FreshNormalRouteDifferenceCount": 0,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "NetworkStateRemaining": false,
+        "WBDProcessesRemaining": 0,
+        "RawCaptureFiles": 0,
+        "ScheduledTaskRemoved": true,
+        "FinalConfigRouteMode": "bypass-lan-cn",
+        "FinalConfigLanes": 1,
+        "NoPcap": true
+      }
+    }
+  ],
+  "helper_files": [
+    {
+      "path": "tools/physical_packet_counts.py",
+      "sha256": "1f663f68b8c090b6dec181cfa082a827cf5c83cb06fbac4030c0ac4f9f2fd510",
+      "bytes": 2426
+    },
+    {
+      "path": "tools/physical_udp_client.cs",
+      "sha256": "ccaf111646cd8eed880fa18260e6f843f6d1ec847143a3f790bd6017c8062431",
+      "bytes": 6418
+    },
+    {
+      "path": "tools/physical_udp_server.py",
+      "sha256": "f90015c3a51e6c0d4d3076b55567fba5988f0e7f89340551b94fa8f1999938d2",
+      "bytes": 4671
+    },
+    {
+      "path": "tools/physical_windows_business.ps1",
+      "sha256": "5cb3631268f1adc826891e1b4e07deb64b0a1d8eb6b15978b040fbf7d81176f8",
+      "bytes": 3263
+    },
+    {
+      "path": "tools/physical_windows_session.ps1",
+      "sha256": "f2ccfdf123c8f22d3e01b8b5dc36d536df4f4cf7c4de471b16384d14c3e4b109",
+      "bytes": 4718
+    },
+    {
+      "path": "tools/physical_windows_udp.ps1",
+      "sha256": "fa59bd8d62972ccbd2e1ebee488ba19512c758b003d1b05501ede005fa7d8515",
+      "bytes": 2270
+    }
+  ],
+  "actions_this_round": "NO_NEW_PRODUCT_OR_PERFORMANCE_RUN;prior fixed-source evidence retained",
+  "log": "docs/devlog/20261005-014639-native-wan-no-pcap.md"
+}

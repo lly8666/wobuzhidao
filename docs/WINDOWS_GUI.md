@@ -1,6 +1,6 @@
 # Windows 中文便携客户端
 
-最新配套包固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3，标签linux-server-rc-20261004-6181db6；新增自动地址与服务端重分配后重建使用上次active配置，GUI208检查通过。当前入口STATUS.windows_gui.latest_paired_release、STATUS.linux_server和evidence/linux-server-6181db6.json。早期985 GUI206是历史独立包，不含自动租约，不与最新server混用。Npcap/Wintun实际驱动、物理NIC/UAC和跨服务器业务仍P7 NOT_RUN。
+最新配套包固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3，标签linux-server-rc-20261004-6181db6；新增自动地址与服务端重分配后重建使用上次active配置，GUI208检查通过。当前入口STATUS.windows_gui.latest_paired_release、STATUS.linux_server和evidence/linux-server-6181db6.json。早期985 GUI206是历史独立包，不含自动租约，不与最新server混用。2026-10-05已实测同源CLI的真实Npcap/Wintun及Windows vmxnet3→ARM业务、Normal/Game与owned退出清理，见STATUS.physical_native；这不替代GUI实际点击/UAC/跨服务器切换，后者仍NOT_RUN。整个P7仅PARTIAL，失败与压力计数见最新日志。
 
 当前任务由用户要求插入，属于平台 UI 和便携打包，不重写已验数据面。实时状态和精确测试源码见 STATUS.json 的 windows_gui；旧 d9 默认网络和性能成绩不能代替新 GUI 资格。
 

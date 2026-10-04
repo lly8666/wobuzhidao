@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "ACTIONS_PASS",
-  "qualification_scope": "6181db6 Linux deployment and automatic multi-client/native recovery, paired GUI,36 lifecycle and targeted5205 PASS; latest full70/strict18/1800s and physical NOT_RUN",
-  "updated_at": "2026-10-04",
+  "qualification_scope": "6181db6 targeted Actions PASS;native Windows CLI/Npcap/Wintun to ARM WAN business/short target-rate partial tested;initial incomplete anomaly and AF_PACKET+125 unresolved;full70/strict18/1800s NOT_RUN",
+  "updated_at": "2026-10-05",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -75,11 +75,14 @@
     "2026-10-04：默认普通DNS1.1.1.1/8.8.8.8互备、IPv6捕获丢弃，exact SOURCE d9d4d90核心/功能/清理通过；Windows实际驱动/NRPT仍P7",
     "2026-10-04：采样定位Game逐包扫描历史，增量退役保持原窗口/乱序/no-HOL；独立Normal/Game5205、36生命周期、三关键配置及P6通过，旧新CPU对比host差异单列",
     "Windows中文GUI与便携包完成：29普通字段及全部managed操作、服务器管理/切换/安全停止、Npcap引导、原版Wintun随包。9857bdb同源206GUI检查及core/race/网络专项PASS，已发布固定标签预发布。物理P7仍NOT_RUN。",
-    "2026-10-04 Linux部署/共享账号多客户端自动7天内存IP与配套GUI完成：SOURCE6181db6 native12/systemd12/GUI208/core-race/真实DNS分流/36+aggregate37jobs/两独立5205 PASS，正常与SIGKILL同端口重建、foreign/live保护通过，三平台同源包预发布linux-server-rc-20261004-6181db6。"
+    "2026-10-04 Linux部署/共享账号多客户端自动7天内存IP与配套GUI完成：SOURCE6181db6 native12/systemd12/GUI208/core-race/真实DNS分流/36+aggregate37jobs/两独立5205 PASS，正常与SIGKILL同端口重建、foreign/live保护通过，三平台同源包预发布linux-server-rc-20261004-6181db6。",
+    "6181db6原生Windows CLI/Npcap/Wintun→ARM WAN：Normal1双向10M两份完整120s、Game4双向3M一份120s业务loss0，受控DNS/TCP/验证HTTPS及owned退出清理；失败/压力样本保留，P7仅PARTIAL"
   ],
-  "in_progress": ["P7已进入简单部署测试：ARM服务启动/停止清理/重启PASS，Windows到ARM端到端业务与性能待测"],
-  "next_task": "按用户最新要求只做简单部署测试，不开发Go版wbdctl、在线升级或通用安装管理。6181db6已直接部署ARM，config check/systemd ready/stop owned cleanup/restart PASS且当前active；不依赖Python安装器，不因此重新发包。下一项上传同源Windows portable、安全填写配置，保留SSH/RDP管理直连，验真实DNS/TCP/HTTPS/UDP、Normal/Game与退出清理，再做独立性能。当前仅部署门，业务/P7与最新full70/strict18/1800s未通过；每性能Action只一条，不动FEC/4096或架构。",
-  "latest_log": "docs/devlog/20261004-235200-simple-arm-deployment.md",
+  "in_progress": [
+    "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
+  ],
+  "next_task": "固定6181db6先独立Normal10/120s复现首轮异常和raw接收pressure，双端保留完整offered/unique/loss/RTT/CPU，逐秒Recv-Q/drop与host压力，按WBD端口与同NIC其他IPv4分离，只保存小计数不存payload。若证据指向内核入队背景压力，再最小评估Linux raw ingress IP/TCP端口过滤，保留普通TLS fallback及多客户端/lane，产品变更先Actions正确性与独立5205再发包实测。不直接归因VM、不扩大buffer/FEC/4096。诊断后原生GUI/生命周期/弱网逐项独立样本；当前GUI实际操作、人工弱网、长测/P7全门未通过。仍只简单部署，禁止恢复Go管理器/在线升级。每性能Action一条样本。",
+  "latest_log": "docs/devlog/20261005-014639-native-wan-no-pcap.md",
   "last_tested_source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
   "actions": [
     {
@@ -1983,7 +1986,7 @@
       "source_sha": "bead7f6d5b530eafec6ffdb93481b2eab23e7a8d"
     }
   ],
-  "physical_status": "NOT_RUN",
+  "physical_status": "PARTIAL",
   "known_limits": [
     "当前真实二进制SOURCE a67e10fa2875162eeac926b970a0c486a239748d，版本next-rc-a67e10fa2875；IPv4分流专项/core/36/独立5205/P6 PASS，旧2b严格18/70配置/1800s仅历史基线，不能继承。P7/PHYSICAL_PASS/RELEASE_QUALIFIED NOT_RUN。",
     "真实WindowsNpcap/Wintun驱动与物理NIC、Linux物理TUN/路由、ARM原生未运行；arm64包仅hosted交叉构建。Windowsserver UNSUPPORTED，OpenWrtIPv6 NOT_IMPLEMENTED，Linuxclient为TPROXY入口。",
@@ -6951,29 +6954,179 @@
     "evidence": "docs/evidence/linux-server-6181db6.json",
     "deployment": "Ubuntu24.04amd64 real systemd12 checks, scoped nft/iptables managed stop/crash/recover and foreign protections PASS",
     "native": "12 checks shared account Normal1/Game4 concurrent TCP/UDP,server reset/reassignment,normal mode switch,SIGKILL same port after92s,live duplicate拒绝/foreign保留",
-    "windows_companion": "same6181db6 source GUI208 PASS, automatic lease/rebuild;13file portable bundle;physical drivers NOT_RUN",
+    "windows_companion": "same6181db6 GUI208 hosted PASS;real native CLI/Npcap/Wintun WAN tested;GUI interaction/UAC/cross-server switch NOT_RUN",
     "core": "foundation37199462522, lifecycle/race10repeat37199462533,steady37199462528 PASS",
     "lifecycle": "37199462523 36samples+aggregate 37/37jobs PASS",
     "performance": "independent Normal10M37199684723/Game4x3M37199687824, FEC20:20/600msRTT/5205,all classifications PASS,stress byte loss0/socketdrop0,p95 614/607ms;CPU cross-host no fixed regression/improvement conclusion",
     "release_tag": "linux-server-rc-20261004-6181db6",
     "release_url": "https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6",
     "publish_run": 37200175034,
-    "physical": "NOT_RUN",
-    "arm64_native": "DIRECT_DEPLOYMENT_PASS_6181db6_ONLY; package10files/version/config/systemd readiness/normal stop owned cleanup/restart verified; native business NOT_RUN",
+    "physical": "PARTIAL_NATIVE_WAN;business and short target-rate observed;initial anomaly/AF_PACKET+125 unresolved;not fullP7",
+    "arm64_native": "DIRECT_DEPLOYMENT_AND_WINDOWS_CLI_WAN_BUSINESS_TESTED_6181db6;Normal1/Game4 DNS/TCP/verifiedHTTPS and short target-rate;not fullP7",
     "physical_preflight": {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
       "arm64_archive_sha256": "c81edf4a3f724918c0ae2eef4baa24457d7b7074bd9516330ed2e23cce0f8fe4",
       "server_environment": "Ubuntu20.04.4/Linux5.4/aarch64/2CPU/Python3.8.10",
       "installation": "DIRECT_DEPLOYMENT_PASS; /opt/wbd/wbd-server + /etc/wbd/server.json + existing adapted systemd unit; no wbdctl or online upgrade; active,autostart disabled",
       "optional_wbdctl_preflight": "Historical FAIL_PYTHON38_IS_RELATIVE_TO retained; user chose simple direct deployment; compatibility repair no longer current task",
-      "simple_deployment": "native check_config rc0;systemd ready active;stop owned rules/TUN/journal absent;SSH preserved;restart active;FEC20:20/MTU1400;no business test yet",
+      "simple_deployment": "native check_config/systemd readiness/owned stop cleanup/restart PASS;Windows CLI native WAN business subsequently tested,scope partial",
       "legacy_uninstall": "PASS_user_authorized; original uninstaller rc0; unit/autostart/processes/installed paths/owned firewall/TUN absent; management route and V2Ray/frps preserved; root-only backup",
-      "windows": "SSH_CONNECTED; Windows11Professional; Npcap running; vmxnet3 virtual NIC; no WBD process; driver business NOT_RUN",
-      "log": "docs/devlog/20261004-235200-simple-arm-deployment.md"
+      "windows": "Real CLI/Npcap/Wintun WAN business and owned cleanup observed on Windows11/vmxnet3 virtual NIC;GUI interaction NOT_RUN",
+      "log": "docs/devlog/20261005-014639-native-wan-no-pcap.md"
     },
     "latest_full70": "NOT_RUN",
     "latest_strict18": "NOT_RUN",
     "latest_soak1800": "NOT_RUN",
-    "historical_releases": ["windows-gui-rc-20261004-9857bdb", "linux-server-rc-20261004-c956481"]
+    "historical_releases": [
+      "windows-gui-rc-20261004-9857bdb",
+      "linux-server-rc-20261004-c956481"
+    ],
+    "physical_native_evidence": "docs/evidence/physical-native-6181db6-20261005.json"
+  },
+  "physical_native": {
+    "schema_version": 1,
+    "date": "2026-10-05",
+    "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+    "documentation_start_head": "d5c8c125dbe66ea7e68ad58bfa5df85d311e4553",
+    "state": "PARTIAL_NATIVE_WAN",
+    "product_binary_unchanged": true,
+    "release_url": "https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6",
+    "environment": {
+      "client": "Windows11Pro 10.0.28000;8logicalCPU;vmxnet3 virtual NIC;real Npcap/Wintun native CLI",
+      "server": "Ubuntu20.04.4;Linux5.4;aarch64;2CPU Neoverse N1;enp0s3",
+      "connection_tool": "Local WSL Ubuntu22.04 OpenSSH ControlMaster;not business transport",
+      "bare_metal_nic_claim": false
+    },
+    "samples": [
+      {
+        "name": "normal10-repeat",
+        "lanes": 1,
+        "classification": "DIAGNOSTIC_30S_ONLY",
+        "seconds": 30,
+        "requested_mbps_each_direction": 10,
+        "c2s_goodput_mbps": 9.999901866666667,
+        "s2c_goodput_mbps": 9.999901866666667,
+        "c2s_byte_loss_percent": 0,
+        "s2c_byte_loss_percent": 0,
+        "probe_sent": null,
+        "probe_received": 298,
+        "rtt_p95_ms": 75.6446,
+        "rtt_p99_ms": 84.0636,
+        "client_cpu_seconds": 26.265625,
+        "server_cpu_seconds": 16.78,
+        "server_af_packet_drop_delta": null,
+        "receipt": "normal10-repeat.json"
+      },
+      {
+        "name": "normal10-final",
+        "lanes": 1,
+        "classification": "TARGET_RATE_BUSINESS_PASS_120S",
+        "seconds": 120,
+        "requested_mbps_each_direction": 10,
+        "c2s_goodput_mbps": 9.999729066666667,
+        "s2c_goodput_mbps": 9.999944800000002,
+        "c2s_byte_loss_percent": 0,
+        "s2c_byte_loss_percent": 0,
+        "probe_sent": 1189,
+        "probe_received": 1189,
+        "rtt_p95_ms": 72.3236,
+        "rtt_p99_ms": 82.8304,
+        "client_cpu_seconds": 105.546875,
+        "server_cpu_seconds": 67.03000000000002,
+        "server_af_packet_drop_delta": 0,
+        "receipt": "normal10-final.json"
+      },
+      {
+        "name": "game3-final",
+        "lanes": 4,
+        "classification": "TARGET_RATE_BUSINESS_PASS_120S",
+        "seconds": 120,
+        "requested_mbps_each_direction": 3,
+        "c2s_goodput_mbps": 2.9998962666666666,
+        "s2c_goodput_mbps": 2.9998962666666666,
+        "c2s_byte_loss_percent": 0,
+        "s2c_byte_loss_percent": 0,
+        "probe_sent": 1192,
+        "probe_received": 1192,
+        "rtt_p95_ms": 68.923,
+        "rtt_p99_ms": 73.3399,
+        "client_cpu_seconds": 127.921875,
+        "server_cpu_seconds": 71.17000000000002,
+        "server_af_packet_drop_delta": 0,
+        "receipt": "game3-final.json"
+      },
+      {
+        "name": "normal10-fresh",
+        "lanes": 1,
+        "classification": "TARGET_RATE_BUSINESS_PASS_RECEIVE_PRESSURE_UNRESOLVED",
+        "seconds": 120,
+        "requested_mbps_each_direction": 10,
+        "c2s_goodput_mbps": 9.999795733333332,
+        "s2c_goodput_mbps": 9.999944800000002,
+        "c2s_byte_loss_percent": 0,
+        "s2c_byte_loss_percent": 0,
+        "probe_sent": 1189,
+        "probe_received": 1189,
+        "rtt_p95_ms": 72.4308,
+        "rtt_p99_ms": 84.4675,
+        "client_cpu_seconds": 108,
+        "server_cpu_seconds": 68.62,
+        "server_af_packet_drop_delta": 125,
+        "receipt": "normal10-fresh.json"
+      }
+    ],
+    "failed_initial_sample": {
+      "name": "normal10-native",
+      "seed": 1001,
+      "seconds": 120,
+      "requested_mbps": 10,
+      "state": "FAILED_MEASUREMENT_INCOMPLETE",
+      "client_error": "Target summary timeout",
+      "c2s_received_goodput_mbps": 4.1598944,
+      "app_loss_percent": null,
+      "client_offered_rate_unknown": true,
+      "server_receipt": "normal10-native-target.json",
+      "cause": "UNRESOLVED;helper later preserves counters but product not changed;do not attribute throughput recovery to helper"
+    },
+    "unresolved": [
+      "Initial120s incomplete client counters and reduced C2S receipt require reproduction",
+      "Fresh120s AF_PACKET socket drop delta125;queue also receives unrelated NIC IPv4;attribution unresolved"
+    ],
+    "not_run": [
+      "Physical GUI interaction/UAC/cross-server switch",
+      "Artificial weaknet/600ms RTT qualification",
+      "Native rotation/DORMANT/blackhole recovery",
+      "External IPv6 leak observation",
+      "Physical startup padding on/other FEC profiles",
+      "Latest source full70/strict18/1800s",
+      "Complete bidirectional packet/TLS fingerprint qualification"
+    ],
+    "cleanup": {
+      "client_disconnected": true,
+      "client_exit_codes_zero": true,
+      "ipv4_route_signature_differences": 0,
+      "owned_nrpt": 0,
+      "owned_ipv6_firewall": 0,
+      "network_state_remaining": false,
+      "client_processes": 0,
+      "scheduled_task_removed": true,
+      "controlled_target_and_private_test_key_removed": true,
+      "windows_tmp_and_payload_removed": true,
+      "wsl_masters_closed_and_credential_copy_removed": true,
+      "final_lanes": 1,
+      "final_route_mode": "bypass-lan-cn",
+      "final_config_reconnect_tested": false,
+      "server": "active;autostart disabled",
+      "management_and_foreign_services_preserved": true,
+      "raw_capture_files_created": 0,
+      "first_functional_stop_reason": "watchdog",
+      "measurement_session_stop_reason": "requested_stop",
+      "final_receipt": "p7-fresh-final-cleanup.json"
+    },
+    "raw_receipt_total_bytes": 23257,
+    "actions_this_round": "NO_NEW_PRODUCT_OR_PERFORMANCE_RUN;prior fixed-source evidence retained",
+    "log": "docs/devlog/20261005-014639-native-wan-no-pcap.md",
+    "evidence": "docs/evidence/physical-native-6181db6-20261005.json",
+    "summary": "PARTIAL native WAN;fixed binary;not GUI/weaknet/soak qualification"
   }
 }
