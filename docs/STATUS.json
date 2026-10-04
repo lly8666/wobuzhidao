@@ -78,7 +78,7 @@
     "用户优先：CPU原始证据/pprof归因、窄修；IPv6默认owned blackhole+drop；DNS默认1.1.1.1/8.8.8.8互备及默认劫持。实现/测试进行中，不继承旧资格。"
   ],
   "next_task": "本轮默认DNS互备/IPv6丢弃及Game性能热点任务已闭合；保留已测SOURCE d9d4d90。用户安排P7或要求新SOURCE完整资格时按PREDELIVERY补full70/strict18/1800s，不能继承2b历史。无新缺陷证据不继续改FEC/4096/恢复架构。",
-  "latest_log": "docs/devlog/20261004-140700-dns-ipv6-cpu-acceptance.md",
+  "latest_log": "docs/devlog/20261004-141000-final-agent-entry.md",
   "last_tested_source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
   "actions": [
     {

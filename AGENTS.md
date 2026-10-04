@@ -21,7 +21,7 @@
 
 ## 当前性能主线（2026-09-23）
 
-2026-10-04新指令优先：性能归因/修复与默认DNS互备、IPv6捕获丢弃正在开发，当前next_task以STATUS顶层为准，不被下文旧P7收口文字覆盖。普通DNS与DoH/DoT边界见SPLIT_ROUTING；每性能Action仍只一条，profile诊断不得继承成无profile性能资格。
+2026-10-04最新任务已收口：性能热点修复、默认DNS互备、IPv6捕获丢弃的测试源码d9d4d90已通过core/真实网络/36生命周期/三关键配置/独立Normal与Game5205/三平台包。当前next_task以STATUS顶层为准，下文a67/2b为历史专项和全量基线，不能继承为d9全70/18/1800s。普通DNS与DoH/DoT边界见SPLIT_ROUTING；每性能Action仍只一条，profile不得替代正常性能资格。没有新缺陷证据，不继续改变FEC/4096/恢复架构。
 
 用户已明确解除性能 HOLD。新主线 agent 必须读 `docs/WEAKNET_QUALIFICATION.md` 第10节（最新用户决策），并按当前 `STATUS.next_task` 和 `STATUS.workstreams.PERFORMANCE_RECOVERY` 继续。2026-10-04新增IPv4分流的固定SOURCE `a67e10fa2875162eeac926b970a0c486a239748d` 已通过core/race、四模式真实分流、36生命周期、独立Normal/Game5205及三目标新包；旧 `2b2bd9e` 全量70/18/1800s仍为历史基线，不能继承成新源码完整资格。下一步由用户安排P7；如要宣称新源码全量交付前资格，需要补当前SOURCE全量门。不要因历史提示词要求“继续修性能”而无证据改动候选。启动填充on完整专项仍单列PARTIAL_ACTIONS_PASS。历史日志和 saved_* 中的 HOLD 仅是历史记录。保留已通过36样本的生命周期语义，尤其 server 必须等当前权威 lanes 的 client PeerFIN；不得回退成仅凭 idle health 自动休眠。功能完成与性能达标分别记录。
 
