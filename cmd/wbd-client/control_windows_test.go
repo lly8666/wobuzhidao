@@ -6,6 +6,7 @@ import (
 	"context"
 	"golang.org/x/sys/windows"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -52,4 +53,12 @@ func TestGUIClientSlotFencesUntilCleanupEnds(t *testing.T) {
 		t.Fatal(err)
 	}
 	windows.CloseHandle(h)
+}
+
+func TestWindowsDefaultFilesAnchorToExecutable(t *testing.T) {
+	exe,err:=os.Executable()
+	if err!=nil {t.Fatal(err)}
+	if defaultWindowsStatePath()!=filepath.Join(filepath.Dir(exe),"data","network-state.json") || defaultWindowsNetworkScript()!=filepath.Join(filepath.Dir(exe),"windows_client_network.ps1") {
+		t.Fatal("Windows portable defaults depend on caller working directory")
+	}
 }

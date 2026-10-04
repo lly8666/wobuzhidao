@@ -210,6 +210,7 @@ namespace Wbd.Gui {
                 store.Book.DriverNoticeAccepted = true; store.Save();
             }
             await DisconnectAsync();
+            if (File.Exists(store.InRoot("data/network-state.json"))) await RecoverAsync();
             // The candidate stays separate until old cleanup has really completed.
             store.WriteAtomic("data/active.json", File.ReadAllText(pending, Encoding.UTF8));
             connectedId = editing.Id; ShowState("正在建立连接 · " + editing.Name); servers.Invalidate();
@@ -254,6 +255,7 @@ namespace Wbd.Gui {
         }
         public async Task RecoverAsync() {
             if (session.Active) throw new InvalidOperationException("请先断开连接。");
+            if (detect().ClientBusy) throw new InvalidOperationException("另一客户端仍在运行或清理，请等它退出后再恢复网络状态。");
             string path = store.InRoot("data/network-state.json");
             if (!File.Exists(path)) { Enqueue("没有残留网络状态。"); return; }
             if (!detect().Admin) throw new InvalidOperationException("恢复网络状态需要管理员权限。");

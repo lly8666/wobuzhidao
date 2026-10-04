@@ -43,3 +43,5 @@ GUI与client stdin建立父子所有权：stop或GUI消失导致EOF，取消正�
 `next-windows-gui`在Windows2022真实编译WinForms并生成可下载ZIP。不同CWD、中文空格路径启动；每个普通字段使用不同值，调用真实Go解析和验证，核对有效值；全7个FEC×4lanes组合；非法参数、重复/未知JSON、操作键注入拒绝；秘密不回显；真实控件保存、profile重开、模拟client切换顺序、清理失败不启动新client、缺Npcap阻断、路径越界拒绝、截图。
 
 GUI进程生命周期用显式fake session验证UI顺序；真实stdin stop/EOF单测属于foundation。真实路由/DNS/IPv6脚本既有hosted mock再跑。Npcap下载/安装、实际Wintun创建、真实NIC收发、跨服务器真实业务及UAC操作是P7 `NOT_RUN`，不能因hosted绿色就宣布物理完成。文件逃逸检查只覆盖WBD应用输出，不声称穷举整机OS写入。性能测试仍每Action只跑一条；本工作流是功能/配置检查，没有带宽样本矩阵。
+
+裸 Windows CLI 的 state-path/network-script 默认同样按 EXE 所在文件夹定位；GUI不依赖当前工作目录。异常后连接会在旧进程确认停止时尝试owned状态恢复；恢复按钮查询client同名event，另一个client仍运行/清理时拒绝，避免与迟退旧进程并发修改路由。物理依赖仍待P7。

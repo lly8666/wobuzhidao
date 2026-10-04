@@ -405,8 +405,8 @@
       },
       "network-script": {
         "type": "String",
-        "default_expression": "\"scripts/windows_client_network.ps1\"",
-        "help": "Windows network Apply/Cleanup script",
+        "default_expression": "defaultWindowsNetworkScript()",
+        "help": "Windows network Apply/Cleanup script; default beside executable",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },
@@ -489,8 +489,8 @@
       },
       "state-path": {
         "type": "String",
-        "default_expression": "\"wbd-windows-client-state.json\"",
-        "help": "owned Windows network state file",
+        "default_expression": "defaultWindowsStatePath()",
+        "help": "owned Windows network state file; default beside executable in data",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },

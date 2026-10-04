@@ -116,6 +116,10 @@ namespace Wbd.Gui {
                 using (var missing = new MainForm(reopened, new FakeSession(), () => new DependencyState { Admin = true, Npcap = false, Wintun = true })) {
                     bool denied = false; try { Wait(missing.ConnectSelectedAsync()); } catch (InvalidOperationException) { denied = true; } Assert(denied, "Npcap missing blocks connect with onboarding");
                 }
+                using (var busyOwner = new MainForm(reopened,new FakeSession(),()=>new DependencyState {Admin=true,Npcap=true,Wintun=true,ClientBusy=true})) {
+                    bool denied=false;try {Wait(busyOwner.RecoverAsync());} catch(InvalidOperationException){denied=true;}
+                    Assert(denied,"crash recovery does not race another client's cleanup");
+                }
                 foreach (string file in new[] { "data/field-check.json", "data/invalid.json", "data/pending.json", "data/active.json", "data/profiles.json", "data/china-test.txt", "data/import-test.json" }) if (File.Exists(store.InRoot(file))) File.Delete(store.InRoot(file));
                 File.WriteAllText(evidence, store.Json.Serialize(new { source_sha=SourceInfo.SHA, result="PASS", checks=passed, physical="NOT_RUN", driver_install="NOT_RUN" }), new System.Text.UTF8Encoding(false));
                 return 0;

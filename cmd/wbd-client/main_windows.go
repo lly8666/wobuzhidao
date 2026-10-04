@@ -70,8 +70,8 @@ func runWindows() error {
 		adapterAlias      = flag.String("adapter", "WBD", "Wintun adapter alias")
 		dnsText           = flag.String("dns4", "1.1.1.1,8.8.8.8", "primary,backup IPv4 DNS; Windows resolver performs failover")
 		directText        = flag.String("direct4", "", "comma-separated direct IPv4 prefixes")
-		statePath         = flag.String("state-path", "wbd-windows-client-state.json", "owned Windows network state file")
-		scriptPath        = flag.String("network-script", "scripts/windows_client_network.ps1", "Windows network Apply/Cleanup script")
+		statePath         = flag.String("state-path", defaultWindowsStatePath(), "owned Windows network state file; default beside executable in data")
+		scriptPath        = flag.String("network-script", defaultWindowsNetworkScript(), "Windows network Apply/Cleanup script; default beside executable")
 		lanes             = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
 		idleDormant       = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
 		rotateMin         = flag.Duration("rotate-min", 0, "minimum lane rotation interval; 0 disables rotation")
@@ -430,6 +430,22 @@ func acquireGUIClientSlot() (windows.Handle, error) {
 		return 0, errors.New("another Windows client is running or cleaning up")
 	}
 	return h, nil
+}
+
+func windowsExecutableDir() string {
+	exe, err := os.Executable()
+	if err != nil {
+		panic("cannot resolve portable executable directory")
+	}
+	return filepath.Dir(exe)
+}
+
+func defaultWindowsStatePath() string {
+	return filepath.Join(windowsExecutableDir(), "data", "network-state.json")
+}
+
+func defaultWindowsNetworkScript() string {
+	return filepath.Join(windowsExecutableDir(), "windows_client_network.ps1")
 }
 
 func parseIPv4Addrs(raw string) ([]netip.Addr, error) {

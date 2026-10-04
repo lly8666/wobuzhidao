@@ -53,7 +53,7 @@ namespace Wbd.Gui {
             foreach (var pair in labels) {
                 var meta = (Dictionary<string, object>)cli[pair.Key];
                 string[] label = pair.Value;
-                Fields.Add(new Field { Key = pair.Key, Kind = (string)meta["type"], Section = label[0], Label = label[1], Hint = label[2], Default = ParseDefault((string)meta["default_expression"]) });
+                Fields.Add(new Field { Key = pair.Key, Kind = (string)meta["type"], Section = label[0], Label = label[1], Hint = label[2], Default = label[0]=="操作" || label[0]=="便携" ? null : ParseDefault((string)meta["default_expression"]) });
             }
             string file = InRoot("data/profiles.json");
             Book = File.Exists(file) ? Json.Deserialize<ProfileBook>(ReadBounded(file)) : new ProfileBook();
@@ -215,7 +215,7 @@ namespace Wbd.Gui {
         public void Dispose() { if (process != null) { try { process.StandardInput.Close(); } catch { } process.Dispose(); process = null; } gate.Dispose(); }
     }
     public sealed class DependencyState {
-        public bool Npcap, Wintun, Admin;
+        public bool Npcap, Wintun, Admin, ClientBusy;
         public string NpcapVersion;
         public string Description { get { return "Npcap：" + (Npcap ? NpcapVersion : "未安装或不可加载") + "  ·  Wintun DLL：" + (Wintun ? "已随包提供" : "缺失") + "  ·  权限：" + (Admin ? "管理员" : "普通用户"); } }
     }
@@ -223,10 +223,14 @@ namespace Wbd.Gui {
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] static extern IntPtr LoadLibraryEx(string name, IntPtr file, uint flags);
         [DllImport("kernel32.dll")] static extern bool FreeLibrary(IntPtr handle);
         [DllImport("kernel32.dll", CharSet = CharSet.Ansi)] static extern IntPtr GetProcAddress(IntPtr handle, string name);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] static extern IntPtr OpenEvent(uint access, bool inherit, string name);
+        [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr handle);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate IntPtr PcapVersion();
         public const string Download = "https://npcap.com/#download";
         public static DependencyState Detect(PortableStore store) {
             var d = new DependencyState { Wintun = File.Exists(store.InRoot("wintun.dll")), Admin = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator) };
+            IntPtr owner = OpenEvent(0x100000, false, "Local\\WBD-NEXT-Windows-Client");
+            if (owner!=IntPtr.Zero) {d.ClientBusy=true;CloseHandle(owner);} else if (Marshal.GetLastWin32Error()==5) d.ClientBusy=true;
             string dll = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "Npcap", "wpcap.dll");
             IntPtr lib = File.Exists(dll) ? LoadLibraryEx(dll, IntPtr.Zero, 0x900) : IntPtr.Zero;
             if (lib != IntPtr.Zero) {
