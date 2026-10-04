@@ -28,7 +28,11 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/splitroute"
 )
 
-func main() { if err := runLinuxClient(); err != nil { log.Fatal(err) } }
+func main() {
+	if err := runLinuxClient(); err != nil {
+		log.Fatal(err)
+	}
+}
 
 func runLinuxClient() error {
 	var (
@@ -123,19 +127,32 @@ func runLinuxClient() error {
 	if err != nil || !serverIP.Is4() {
 		return errors.New("server-ip must be IPv4")
 	}
-	resolvedInstallation, identityErr := logicaltunnel.ResolveInstallation(*installationText,"/var/lib/wbd-client/installation-id",false)
-	if identityErr != nil { return identityErr }; *installationText = resolvedInstallation.String()
-	if *account == "" { *account = *username }
+	resolvedInstallation, identityErr := logicaltunnel.ResolveInstallation(*installationText, "/var/lib/wbd-client/installation-id", false)
+	if identityErr != nil {
+		return identityErr
+	}
+	*installationText = resolvedInstallation.String()
+	if *account == "" {
+		*account = *username
+	}
 	autoLease := *leaseText == ""
 	if autoLease {
 		installation, identityErr := logicaltunnel.ParseInstallationID(*installationText)
-		if identityErr != nil { return identityErr }
+		if identityErr != nil {
+			return identityErr
+		}
 		expected := logicaltunnel.DerivedTunnelID(*account, installation)
-		if *tunnelText == "" { *tunnelText = expected.String() }
-		if *account != *username || *tunnelText != expected.String() { return errors.New("automatic lease requires account=username and installation-derived tunnel-id") }
+		if *tunnelText == "" {
+			*tunnelText = expected.String()
+		}
+		if *account != *username || *tunnelText != expected.String() {
+			return errors.New("automatic lease requires account=username and installation-derived tunnel-id")
+		}
 	}
 	parseLease := *leaseText
-	if autoLease { parseLease = "0.0.0.0/32" }
+	if autoLease {
+		parseLease = "0.0.0.0/32"
+	}
 	leasePrefix, err := netip.ParsePrefix(parseLease)
 	if err != nil || !leasePrefix.Addr().Is4() || leasePrefix.Bits() != 32 {
 		return errors.New("lease4 must be IPv4 /32")
@@ -323,7 +340,7 @@ func runLinuxClient() error {
 	case err := <-errCh:
 		if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, openwrtclient.ErrSocketClosed) {
 			log.Printf("wbd-client stopped: %v", err)
-			runErr=err
+			runErr = err
 		}
 		cancel()
 	}

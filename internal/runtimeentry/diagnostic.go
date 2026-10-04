@@ -29,16 +29,16 @@ type LifecycleConfigDiagnostic struct {
 }
 
 type TunnelDiagnostic struct {
-	PreAttachDrops uint64 `json:"pre_attach_drops,omitempty"` // shared server admission drops
-	Lifecycle      *LifecycleStats            `json:"lifecycle,omitempty"`
-	Config         *LifecycleConfigDiagnostic `json:"config,omitempty"`
-	ServerPipeline *ServerPipelineDiagnostic  `json:"server_pipeline,omitempty"`
+	PreAttachDrops uint64                            `json:"pre_attach_drops,omitempty"` // shared server admission drops
+	Lifecycle      *LifecycleStats                   `json:"lifecycle,omitempty"`
+	Config         *LifecycleConfigDiagnostic        `json:"config,omitempty"`
+	ServerPipeline *ServerPipelineDiagnostic         `json:"server_pipeline,omitempty"`
 	ServerUDP      *platformflow.UDPServerDiagnostic `json:"server_udp,omitempty"`
-	Lease4         string                     `json:"lease4,omitempty"`
-	TunnelID       logicaltunnel.TunnelID     `json:"tunnel_id"`
-	Owner          datapath.TunnelOwnerStats  `json:"owner"`
-	Lanes          []LaneDiagnostic           `json:"lanes"`
-	RetiringLanes  []LaneDiagnostic           `json:"retiring_lanes,omitempty"`
+	Lease4         string                            `json:"lease4,omitempty"`
+	TunnelID       logicaltunnel.TunnelID            `json:"tunnel_id"`
+	Owner          datapath.TunnelOwnerStats         `json:"owner"`
+	Lanes          []LaneDiagnostic                  `json:"lanes"`
+	RetiringLanes  []LaneDiagnostic                  `json:"retiring_lanes,omitempty"`
 }
 
 func diagnosticSnapshot(owner *datapath.TunnelOwner, rt *runtimeowner.Runtime, now time.Time) TunnelDiagnostic {
@@ -81,13 +81,13 @@ func (c *TunnelClient) DiagnosticSnapshot(now time.Time) TunnelDiagnostic {
 	out.Lifecycle = &stats
 	out.Config = &LifecycleConfigDiagnostic{
 		KeepaliveInterval: c.cfg.KeepaliveInterval.String(),
-		DeadAfter: c.cfg.DeadAfter.String(),
-		ReconnectMin: c.cfg.ReconnectMin.String(),
-		ReconnectMax: c.cfg.ReconnectMax.String(),
-		DormantAfter: c.cfg.DormantAfter.String(),
-		RotateMin: c.cfg.RotateMin.String(),
-		RotateMax: c.cfg.RotateMax.String(),
-		ReplacementGrace: c.cfg.ReplacementGrace.String(),
+		DeadAfter:         c.cfg.DeadAfter.String(),
+		ReconnectMin:      c.cfg.ReconnectMin.String(),
+		ReconnectMax:      c.cfg.ReconnectMax.String(),
+		DormantAfter:      c.cfg.DormantAfter.String(),
+		RotateMin:         c.cfg.RotateMin.String(),
+		RotateMax:         c.cfg.RotateMax.String(),
+		ReplacementGrace:  c.cfg.ReplacementGrace.String(),
 	}
 	return out
 }
@@ -115,8 +115,8 @@ func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, no
 	}
 	out.Config = &LifecycleConfigDiagnostic{
 		KeepaliveInterval: s.cfg.KeepaliveInterval.String(),
-		DormantAfter: s.cfg.DormantAfter.String(),
-		ReplacementGrace: s.cfg.ReplacementGrace.String(),
+		DormantAfter:      s.cfg.DormantAfter.String(),
+		ReplacementGrace:  s.cfg.ReplacementGrace.String(),
 	}
 	return out, true
 }
@@ -124,17 +124,24 @@ func (s *LifecycleServer) TunnelDiagnosticSnapshot(id logicaltunnel.TunnelID, no
 // Automatic admissions have no single configured TunnelID. Enumerate only for
 // opt-in diagnostics; steady packet handling never scans all clients.
 func (s *LifecycleServer) TunnelDiagnosticSnapshots(now time.Time) []TunnelDiagnostic {
-	if s == nil { return nil }
+	if s == nil {
+		return nil
+	}
 	s.mu.Lock()
 	ids := make([]logicaltunnel.TunnelID, 0, len(s.byTunnel))
-	for id := range s.byTunnel { ids = append(ids, id) }
+	for id := range s.byTunnel {
+		ids = append(ids, id)
+	}
 	s.mu.Unlock()
 	sort.Slice(ids, func(i, j int) bool { return string(ids[i][:]) < string(ids[j][:]) })
 	out := make([]TunnelDiagnostic, 0, len(ids))
-	for _, id := range ids { if snapshot, ok := s.TunnelDiagnosticSnapshot(id, now); ok { out = append(out, snapshot) } }
+	for _, id := range ids {
+		if snapshot, ok := s.TunnelDiagnosticSnapshot(id, now); ok {
+			out = append(out, snapshot)
+		}
+	}
 	return out
 }
-
 
 func (m *SegmentMux) DiagnosticSnapshot() SegmentMuxDiagnostic {
 	if m == nil {

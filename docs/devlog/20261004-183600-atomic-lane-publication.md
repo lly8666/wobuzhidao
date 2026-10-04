@@ -1,0 +1,27 @@
+# 20261004-183600 换代原子发布及真实网络测试修正
+
+## 本轮目标和阶段
+
+继续Linux正式多客户端与部署验收。起始SOURCEed228e1fb0d747dd31c298bb96d0d71631f45d44；本候选加入已通过Actions格式化patch和窄竞态修复，尚需新源码资格。
+
+## 修改与原因
+
+04bf native37195257207及ed native37195408964均因新脚本误读诊断顶层失败；原始artifact证明客户端已经真实获得随机地址，JSON产品字段位于product。解析改为该层，不改负载或业务门槛。
+
+ed lifecycle37195408966原始core报automatic_lease_test.go:56，Game server反向发包lane1/gen5 transport missing，0.02s发生。Runtime此前owner.Promote公布fresh Ref后释放所有runtime锁，再构造/登记transport；GameOutbound可以读到fresh而SendGame查不到它。现在在原runtime mutex内先构造、再promote并登记一次发布；构造失败保留旧owner。没有新增逐包锁或放大队列，保留旧密文generation fence、retiring ingress、候选失败/无HOL。添加64轮并发owner观察/runtime查表不允许缺失的回归，并Actions race重复10次；真实test原失败不降成重试PASS。
+
+## 复用来源
+
+仅当前runtimeowner既有候选/transport/owner。无old变更。新Go文件规范格式来自main控制Actions37195502897，artifact11300392877 SHA256e2ae051d8478fe7064c8370849952b463c0a8ff6d64e951b3d6f442233e9e41b；本机只应用patch，未运行gofmt/test/build。失败native artifact11300536831 digestaa5e0b449c116ff1d13d63bdeada83d9c03891db170ef59dc5be83b557fb3cfc已本地哈希验证，原内容保留。
+
+## Actions证据
+
+ed foundation37195408983、GUI37195408948、P4steady37195408972 success；lifecycle FAIL与native FAIL如上。现候选所有新增门NOT_RUN，不继承e097或ed success。新性能仍一个Action一条，待基础/race/native通过后跑Normal/Game两个独立5205，不能用VM解释真实missing transport。
+
+## 问题、排查与风险
+
+promotion低频临界区包住一次transport准备/登记，逐包mutex与开销不新增；仍需要race与目标速率验证。ARM原生/Windows真实驱动物理、全config70/strict18/1800s保留NOT_RUN。自动IP7天仅内存、认证续期、在线pins语义不变。
+
+## 下一项原子任务
+
+验收本SOURCE基础/core/race10重复、native业务/地址变化及managed所有权；全部通过后两个独立5205，必要时按缺陷窄修，固定新配套预发布SOURCE和专项证据。

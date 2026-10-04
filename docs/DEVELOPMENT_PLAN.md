@@ -292,3 +292,9 @@ owner持锁的快照/身份检查仅能读Lane构造后不可变配置，禁止�
 完成状态：精确SOURCE9857bdb的206项GUI检查、Windows/Linux基础构建/单测与Linux race、相关网络专项均PASS，已交付固定预发布包。结果、哈希及缺失资格以STATUS.windows_gui和evidence/windows-gui-9857bdb.json为准；后续文档提交不改变包来源。真实驱动/NIC/UAC及跨服务器业务仍留P7；不继承d9性能为985性能。用户已明确接受Wintun任意安装方式，原版DLL随包，驱动注册为公开系统例外。
 
 执行 WINDOWS_GUI.md：原生 WinForms/.NET Framework4.8 只做现有 Go CLI 配置/生命周期壳；全部参数可编辑或通过明确操作管理，服务器配置持久化、真实只读校验、串行切换/owned清理、Npcap官方引导、单目录便携包。只改变Windows启动/退出与文件路径，不重写已验协议与热数据面。真实驱动写系统的不可避免边界公开，不宣称只有Npcap例外。WindowsActions逐字段/全FEC-lanes/非法输入/切换顺序/失败隔离/路径/截图和基础unit/race后再交付包，P7保留。
+
+## 2026-10-04 Linux服务端与自动多客户端
+
+按LINUX_SERVER.md完成共享用户名/密码、多设备随机唯一IPv4内存7天租约、认证续期与活跃/退休地址保护；不持久化IP，只保存安装身份及owned网络恢复记录。复用既有保护admission WBAL扩展、Normal/Game owner、共享TUN及正式raw平台，数据面不另起一套。多客户端/自动地址native测试须验证TCP/UDP双向隔离和服务端重启后地址变化重建，配套两端新包不可混旧985GUI。systemd与wbdctl实现只读check、就绪、单实例、崩溃网络恢复、手动版本升级/失败回滚及保配置卸载；仅恢复WBD所有权，外部后改sysctl不得覆写。
+
+新并发验收发现换代fresh Ref在transport登记前公开的窄窗。Runtime promotion与transport注册必须在同一runtime mutex下完成，构造失败在owner promotion之前退出；不能通过重复发业务包、长睡眠、扩大grace/队列掩盖missing transport。只有candidate promotion时增加临界区，不新增逐包同步。新SOURCE基础/race/并发重复、native与独立Normal/Game5205后固定配套预发布；全配置/完整弱网长测及物理资格仍按真实证据区分，不继承历史结果。

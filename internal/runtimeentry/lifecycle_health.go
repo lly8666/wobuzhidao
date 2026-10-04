@@ -82,7 +82,9 @@ func (c *TunnelClient) noteLifecycleError(err error) {
 	if err == nil {
 		return
 	}
-	if errors.Is(err,ErrClientLeaseChanged) { c.report(err) }
+	if errors.Is(err, ErrClientLeaseChanged) {
+		c.report(err)
+	}
 	message := err.Error()
 	if len(message) > 512 {
 		message = message[:512]

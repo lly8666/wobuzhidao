@@ -72,7 +72,7 @@ def main():
         if not path.exists():return []
         out=[]
         for line in path.read_text().splitlines():
-            try:out.append(json.loads(line))
+            try:out.append(json.loads(line).get("product",{}))
             except json.JSONDecodeError:pass
         return out
     def await_ready(client,phase):

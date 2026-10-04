@@ -1115,22 +1115,24 @@ func (r *Runtime) PromoteSameIDReplacement(old logicaltunnel.LaneRef) (datapath.
 		r.mu.Unlock()
 		return datapath.TunnelLaneSnapshot{}, ErrRuntimeClosed
 	}
-	r.mu.Unlock()
-
+	// Publish the owner's fresh ref and its send transport under one runtime
+	// lock. Game can observe the owner ref concurrently; SendGame must see the
+	// completed transport registration before using that ref. Prepare first so
+	// a construction failure cannot leave an already-promoted owner orphaned.
+	defer r.mu.Unlock()
+	transport, err := newLaneTransport(r.owner, old, r.deliver, candidate.cfg)
+	if err != nil {
+		return datapath.TunnelLaneSnapshot{}, err
+	}
 	fresh, err := r.owner.PromoteSameIDReplacement(old)
 	if err != nil {
+		transport.close()
 		return datapath.TunnelLaneSnapshot{}, err
 	}
-	transport, err := newLaneTransport(r.owner, fresh.Ref, r.deliver, candidate.cfg)
-	if err != nil {
-		return datapath.TunnelLaneSnapshot{}, err
-	}
-
-	r.mu.Lock()
+	transport.ref = fresh.Ref
 	delete(r.candidates, old.ID)
 	r.lanes[fresh.Ref] = transport
 	r.active[old.ID] = fresh.Ref
-	r.mu.Unlock()
 	return fresh, nil
 }
 

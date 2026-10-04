@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -14,7 +15,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"encoding/json"
 	"syscall"
 	"time"
 
@@ -29,14 +29,18 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/runtimeentry"
 )
 
-func main() { if err := runServer(); err != nil { log.Fatal(err) } }
+func main() {
+	if err := runServer(); err != nil {
+		log.Fatal(err)
+	}
+}
 
 func runServer() error {
 	var (
 		checkConfig        = flag.Bool("check-config", false, "validate server configuration without network changes; credentials redacted")
-		statePath = flag.String("state-path", "", "absolute owned network journal path; empty keeps legacy unmanaged launch")
-		recoverNetwork = flag.Bool("recover-network", false, "recover owned network journal and exit; requires state-path")
-		maxClients = flag.Int("max-clients", 256, "maximum seven-day in-memory automatic client leases; 1..4096")
+		statePath          = flag.String("state-path", "", "absolute owned network journal path; empty keeps legacy unmanaged launch")
+		recoverNetwork     = flag.Bool("recover-network", false, "recover owned network journal and exit; requires state-path")
+		maxClients         = flag.Int("max-clients", 256, "maximum seven-day in-memory automatic client leases; 1..4096")
 		configPath         = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
 		keepalive          = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
 		rawIface           = flag.String("raw-interface", "", "Linux interface used for FakeTCP raw IPv4 I/O")
@@ -73,7 +77,9 @@ func runServer() error {
 	if handleVersion() {
 		return nil
 	}
-	if *recoverNetwork { return linuxserver.RecoverManagedNetwork(*statePath) }
+	if *recoverNetwork {
+		return linuxserver.RecoverManagedNetwork(*statePath)
+	}
 
 	defer startQualificationCPUProfile()()
 	if *rawIface == "" || *listenIPText == "" || *serverName == "" || *routeKeyHex == "" ||
@@ -103,8 +109,24 @@ func runServer() error {
 		return errors.New("listen-ip must be IPv4")
 	}
 	staticLease := *leaseText != ""
-	if !staticLease { explicitLanes:=false; flag.Visit(func(f *flag.Flag) { if f.Name=="lanes" { explicitLanes=true } }); if !explicitLanes { *lanes=4 }; *leaseText = "0.0.0.0/32"; *account = *username; *installationText = "00000000000000000000000000000000"; *tunnelText = "00000000000000000000000000000000" }
-	if *maxClients < 1 || *maxClients > 4096 { return errors.New("max-clients must be 1..4096") }
+	if !staticLease {
+		explicitLanes := false
+		flag.Visit(func(f *flag.Flag) {
+			if f.Name == "lanes" {
+				explicitLanes = true
+			}
+		})
+		if !explicitLanes {
+			*lanes = 4
+		}
+		*leaseText = "0.0.0.0/32"
+		*account = *username
+		*installationText = "00000000000000000000000000000000"
+		*tunnelText = "00000000000000000000000000000000"
+	}
+	if *maxClients < 1 || *maxClients > 4096 {
+		return errors.New("max-clients must be 1..4096")
+	}
 	leasePrefix, err := netip.ParsePrefix(*leaseText)
 	if err != nil || !leasePrefix.Addr().Is4() || leasePrefix.Bits() != 32 {
 		return errors.New("lease4 must be IPv4 /32")
@@ -126,10 +148,17 @@ func runServer() error {
 		return errors.New("route-key-hex must decode to non-empty bytes")
 	}
 	if *configPath != "" {
-		base, err := filepath.Abs(filepath.Dir(*configPath)); if err != nil { return err }
-		if !filepath.IsAbs(*certPath) { *certPath = filepath.Join(base,*certPath) }
-		if !filepath.IsAbs(*keyPath) { *keyPath = filepath.Join(base,*keyPath) }
-		
+		base, err := filepath.Abs(filepath.Dir(*configPath))
+		if err != nil {
+			return err
+		}
+		if !filepath.IsAbs(*certPath) {
+			*certPath = filepath.Join(base, *certPath)
+		}
+		if !filepath.IsAbs(*keyPath) {
+			*keyPath = filepath.Join(base, *keyPath)
+		}
+
 	}
 	cert, err := tls.LoadX509KeyPair(*certPath, *keyPath)
 	if err != nil {
@@ -152,27 +181,53 @@ func runServer() error {
 	if err != nil {
 		return err
 	}
-	if *keepalive < time.Second || *keepalive > time.Hour || len(routeKey) < 16 || len(*username) > 255 || len(*password) > 1024 || *serverLimit < 31 { return errors.New("invalid admission or keepalive configuration") }
-	if staticLease && !leasePool.Contains(leasePrefix.Addr()) { return errors.New("static lease is outside lease-pool") }
+	if *keepalive < time.Second || *keepalive > time.Hour || len(routeKey) < 16 || len(*username) > 255 || len(*password) > 1024 || *serverLimit < 31 {
+		return errors.New("invalid admission or keepalive configuration")
+	}
+	if staticLease && !leasePool.Contains(leasePrefix.Addr()) {
+		return errors.New("static lease is outside lease-pool")
+	}
 	if *checkConfig {
 		out := map[string]string{}
-		flag.VisitAll(func(f *flag.Flag) { if f.Name == "password" || f.Name == "route-key-hex" { out[f.Name] = "configured" } else { out[f.Name] = f.Value.String() } })
-		out["lease-mode"] = "automatic"; if staticLease { out["lease-mode"] = "static" }
+		flag.VisitAll(func(f *flag.Flag) {
+			if f.Name == "password" || f.Name == "route-key-hex" {
+				out[f.Name] = "configured"
+			} else {
+				out[f.Name] = f.Value.String()
+			}
+		})
+		out["lease-mode"] = "automatic"
+		if staticLease {
+			out["lease-mode"] = "static"
+		}
 		return json.NewEncoder(os.Stdout).Encode(out)
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	var leaseStore *logicaltunnel.LeaseRegistry
 	if !staticLease {
-		leaseStore, err = logicaltunnel.NewLeaseRegistry(leasePool,*maxClients)
-		if err != nil { return err }
+		leaseStore, err = logicaltunnel.NewLeaseRegistry(leasePool, *maxClients)
+		if err != nil {
+			return err
+		}
 	}
-	var network interface { TUN() *linuxserver.TUN; Close() error }
-	if *statePath!="" { network,err=linuxserver.OpenManagedRuntime(plan,*statePath,listenIP,uint16(*listenPort)) } else { network,err=linuxserver.OpenRuntime(plan) }
+	var network interface {
+		TUN() *linuxserver.TUN
+		Close() error
+	}
+	if *statePath != "" {
+		network, err = linuxserver.OpenManagedRuntime(plan, *statePath, listenIP, uint16(*listenPort))
+	} else {
+		network, err = linuxserver.OpenRuntime(plan)
+	}
 	if err != nil {
 		return err
 	}
-	defer func() { if err := network.Close(); err != nil { log.Printf("network cleanup failed: %v",err) } }()
+	defer func() {
+		if err := network.Close(); err != nil {
+			log.Printf("network cleanup failed: %v", err)
+		}
+	}()
 
 	router, err := linuxserver.NewSharedTUNRouter(leasePool, 4096, network.TUN())
 	if err != nil {
@@ -203,11 +258,20 @@ func runServer() error {
 			IO:                io,
 			ListenPort:        uint16(*listenPort),
 			Admission: realityfront.ServerAdmissionConfig{
-				AllocateLease: func(req realityfront.AdmissionRequest) (string,error) {
-					if leaseStore == nil || int(req.DesiredLanes)>*lanes { return "", realityfront.ErrAdmissionParams }
-					installation, err := logicaltunnel.ParseInstallationID(hex.EncodeToString(req.InstallationID)); if err != nil { return "",err }
-					id, err := logicaltunnel.TunnelIDFromBytes(req.TunnelID); if err != nil { return "",err }
-					assigned, err := leaseStore.Acquire(req.Username,installation,id); return assigned.Config.Address4,err
+				AllocateLease: func(req realityfront.AdmissionRequest) (string, error) {
+					if leaseStore == nil || int(req.DesiredLanes) > *lanes {
+						return "", realityfront.ErrAdmissionParams
+					}
+					installation, err := logicaltunnel.ParseInstallationID(hex.EncodeToString(req.InstallationID))
+					if err != nil {
+						return "", err
+					}
+					id, err := logicaltunnel.TunnelIDFromBytes(req.TunnelID)
+					if err != nil {
+						return "", err
+					}
+					assigned, err := leaseStore.Acquire(req.Username, installation, id)
+					return assigned.Config.Address4, err
 				},
 				TLS: realityfront.ServerConfig{
 					ServerName: *serverName,
@@ -225,7 +289,9 @@ func runServer() error {
 				MaxBytes: 64 << 20,
 			},
 			LookupLease: func(id logicaltunnel.TunnelID) (logicaltunnel.Lease, error) {
-				if leaseStore != nil { return leaseStore.Lookup(id) }
+				if leaseStore != nil {
+					return leaseStore.Lookup(id)
+				}
 				if id != tunnelID {
 					return logicaltunnel.Lease{}, logicaltunnel.ErrUnknownTunnel
 				}
@@ -249,7 +315,9 @@ func runServer() error {
 		return err
 	}
 
-	if leaseStore != nil { leaseStore.BeforeExpire = server.ForgetInactiveTunnel }
+	if leaseStore != nil {
+		leaseStore.BeforeExpire = server.ForgetInactiveTunnel
+	}
 	errCh := make(chan error, 3)
 	if *diagnosticJSONL != "" {
 		go func() {
@@ -257,7 +325,7 @@ func runServer() error {
 				if leaseStore != nil {
 					return struct {
 						Tunnels []runtimeentry.TunnelDiagnostic `json:"tunnels"`
-						RawIO faketcp.RawIODiagnostic `json:"raw_io"`
+						RawIO   faketcp.RawIODiagnostic         `json:"raw_io"`
 					}{Tunnels: server.TunnelDiagnosticSnapshots(now), RawIO: raw.IODiagnostic()}
 				}
 				snapshot, ok := server.TunnelDiagnosticSnapshot(tunnelID, now)
@@ -290,7 +358,10 @@ func runServer() error {
 	}()
 
 	var runErr error
-	if err:=linuxserver.NotifyReady();err!=nil{ _=server.Close(); return err }
+	if err := linuxserver.NotifyReady(); err != nil {
+		_ = server.Close()
+		return err
+	}
 	select {
 	case <-ctx.Done():
 	case err := <-errCh:
@@ -299,7 +370,7 @@ func runServer() error {
 		}
 		cancel()
 	}
-	runErr = errors.Join(runErr,server.Close(),network.Close())
+	runErr = errors.Join(runErr, server.Close(), network.Close())
 	fmt.Printf("WBD_SERVER_STOPPED cleanup=owned-only lanes=%d\n", *lanes)
 	return runErr
 }

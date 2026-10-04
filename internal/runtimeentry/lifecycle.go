@@ -39,7 +39,7 @@ const (
 	// Normal/5305/seed202 canary observed 12.31k route handoffs/s and
 	// 288.269ms queue age while the 256-slot route saturated; 4096 covers
 	// that observed envelope without changing kernel socket buffers.
-	segmentMuxRouteDepth            = 4096
+	segmentMuxRouteDepth = 4096
 )
 
 // offerLatestBounded never waits for capacity. When a bounded queue is full,
@@ -171,7 +171,7 @@ func (m *SegmentMux) Open(flow faketcp.ClientFlow) (SegmentIO, error) {
 				return faketcp.Segment{}, io.EOF
 			case queued := <-route.in:
 				if m.diagnostics.Load() {
-				route.timing.dequeue(queued.bytes, time.Since(queued.readyAt))
+					route.timing.dequeue(queued.bytes, time.Since(queued.readyAt))
 				}
 				return queued.seg, nil
 			}
@@ -379,7 +379,9 @@ func DialTunnelClient(ctx context.Context, cfg TunnelClientConfig) (*TunnelClien
 	if err := logicaltunnel.ValidateProductTransportLaneCount(cfg.DesiredLanes); err != nil {
 		return nil, err
 	}
-	if cfg.Admission.AutoLease { cfg.Admission.DesiredLanes=uint8(cfg.DesiredLanes) }
+	if cfg.Admission.AutoLease {
+		cfg.Admission.DesiredLanes = uint8(cfg.DesiredLanes)
+	}
 	if err := normalizeClientHealth(&cfg); err != nil {
 		return nil, err
 	}
@@ -771,15 +773,27 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		if c.cfg.Lease.Config.Address4 == "0.0.0.0/32" {
 			assigned := c.cfg.Lease.Clone()
 			assigned.Config.Address4 = session.Negotiated.Lease4
-			if err := c.owner.BindInitialLease(assigned); err != nil { laneState.close(); return logicaltunnel.LaneRef{}, err }
+			if err := c.owner.BindInitialLease(assigned); err != nil {
+				laneState.close()
+				return logicaltunnel.LaneRef{}, err
+			}
 			c.cfg.Lease = assigned
 		} else if c.cfg.Lease.Config.Address4 != session.Negotiated.Lease4 {
 			laneState.close()
 			// A bad replacement must not kill a healthy old lane. Only a fully
 			// disconnected/expired tunnel requires a fresh platform/owner binding.
-			c.mu.Lock(); refs:=make([]logicaltunnel.LaneRef,0,len(c.lanes)); for _,lane:=range c.lanes { refs=append(refs,lane.ref) }; c.mu.Unlock()
-			for _,ref:=range refs { if !c.rt.Unhealthy(ref,time.Now(),c.cfg.DeadAfter) { return logicaltunnel.LaneRef{},ErrLeaseMismatch } }
-			return logicaltunnel.LaneRef{},ErrClientLeaseChanged
+			c.mu.Lock()
+			refs := make([]logicaltunnel.LaneRef, 0, len(c.lanes))
+			for _, lane := range c.lanes {
+				refs = append(refs, lane.ref)
+			}
+			c.mu.Unlock()
+			for _, ref := range refs {
+				if !c.rt.Unhealthy(ref, time.Now(), c.cfg.DeadAfter) {
+					return logicaltunnel.LaneRef{}, ErrLeaseMismatch
+				}
+			}
+			return logicaltunnel.LaneRef{}, ErrClientLeaseChanged
 		}
 	}
 	if acceptancefault.Consume("detach", laneID) {
@@ -1098,7 +1112,7 @@ type serverLifecycleLane struct {
 }
 
 type serverLifecycleTunnel struct {
-	desired int
+	desired     int
 	id          logicaltunnel.TunnelID
 	leaseAddr   netip.Addr
 	owner       *datapath.TunnelOwner
@@ -1116,14 +1130,14 @@ type LifecycleServer struct {
 
 	table *faketcp.ServerAssociationTable
 
-	admitMu  sync.Mutex
-	mu       sync.Mutex
-	started  map[faketcp.ServerFlow]bool
-	pending  map[faketcp.ServerFlow][]faketcp.Segment
+	admitMu        sync.Mutex
+	mu             sync.Mutex
+	started        map[faketcp.ServerFlow]bool
+	pending        map[faketcp.ServerFlow][]faketcp.Segment
 	preAttachDrops uint64 // protected by mu; bounded admission overflow only
-	byFlow   map[faketcp.ServerFlow]*serverLifecycleLane
-	byTunnel map[logicaltunnel.TunnelID]*serverLifecycleTunnel
-	byLease  map[netip.Addr]*serverLifecycleTunnel
+	byFlow         map[faketcp.ServerFlow]*serverLifecycleLane
+	byTunnel       map[logicaltunnel.TunnelID]*serverLifecycleTunnel
+	byLease        map[netip.Addr]*serverLifecycleTunnel
 
 	pipeline serverPipelineTiming
 	once     sync.Once
@@ -1385,13 +1399,17 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 	admissionLocked := false
 	priorAllocator := admission.AllocateLease
 	if priorAllocator != nil {
-		admission.AllocateLease = func(req realityfront.AdmissionRequest) (string,error) {
-			s.admitMu.Lock(); admissionLocked=true
+		admission.AllocateLease = func(req realityfront.AdmissionRequest) (string, error) {
+			s.admitMu.Lock()
+			admissionLocked = true
 			return priorAllocator(req)
 		}
 	}
 	admission.ValidateRequest = func(req realityfront.AdmissionRequest) error {
-		if !admissionLocked { s.admitMu.Lock(); admissionLocked = true }
+		if !admissionLocked {
+			s.admitMu.Lock()
+			admissionLocked = true
+		}
 		if priorValidator != nil {
 			if err := priorValidator(req); err != nil {
 				s.admitMu.Unlock()
@@ -1431,8 +1449,10 @@ func (s *LifecycleServer) admit(ctx context.Context, assoc *faketcp.ServerAssoci
 	}
 	leaseAddr = leaseAddr.Unmap()
 
-	desired:=s.cfg.DesiredLanes
-	if result.Admission.Negotiated.DesiredLanes!=0 { desired=int(result.Admission.Negotiated.DesiredLanes) }
+	desired := s.cfg.DesiredLanes
+	if result.Admission.Negotiated.DesiredLanes != 0 {
+		desired = int(result.Admission.Negotiated.DesiredLanes)
+	}
 	group, err := s.ensureTunnel(tunnelID, lease, leaseAddr, desired)
 	if err != nil {
 		s.dropAdmission(flow)
@@ -1580,7 +1600,9 @@ func (s *LifecycleServer) validateAdmissionRequest(req realityfront.AdmissionReq
 	if hasRetiringLane(group, req.LaneID) {
 		return ErrLifecycleBusy
 	}
-	if req.AutoLease && int(req.DesiredLanes)!=group.desired { return ErrLifecycleLaneState }
+	if req.AutoLease && int(req.DesiredLanes) != group.desired {
+		return ErrLifecycleLaneState
+	}
 	return nil
 }
 
@@ -1643,8 +1665,8 @@ func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicalt
 		return nil, err
 	}
 	group := &serverLifecycleTunnel{
-		desired:desired,
-		id: id, leaseAddr: leaseAddr, owner: owner,
+		desired: desired,
+		id:      id, leaseAddr: leaseAddr, owner: owner,
 		lanes:       make(map[uint8]*serverLifecycleLane, s.cfg.DesiredLanes),
 		retiring:    make(map[logicaltunnel.LaneRef]*serverLifecycleLane),
 		lastPayload: time.Now(),
@@ -2080,12 +2102,21 @@ func (s *LifecycleServer) Close() error {
 // No address can be reused while active or retiring lanes still own it.
 func (s *LifecycleServer) ForgetInactiveTunnel(id logicaltunnel.TunnelID) bool {
 	s.mu.Lock()
-	group:=s.byTunnel[id]
-	if group==nil { s.mu.Unlock(); return true }
-	if !group.dormant || len(group.lanes)!=0 || len(group.retiring)!=0 { s.mu.Unlock(); return false }
-	delete(s.byTunnel,id); delete(s.byLease,group.leaseAddr)
+	group := s.byTunnel[id]
+	if group == nil {
+		s.mu.Unlock()
+		return true
+	}
+	if !group.dormant || len(group.lanes) != 0 || len(group.retiring) != 0 {
+		s.mu.Unlock()
+		return false
+	}
+	delete(s.byTunnel, id)
+	delete(s.byLease, group.leaseAddr)
 	s.mu.Unlock()
-	group.service.Close(); s.cfg.Router.Unregister(group.token); group.rt.Close()
+	group.service.Close()
+	s.cfg.Router.Unregister(group.token)
+	group.rt.Close()
 	return true
 }
 
