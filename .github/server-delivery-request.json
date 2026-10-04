@@ -1,0 +1,13 @@
+{
+  "source_sha": "c956481143857d6ae4cdce04a31d22e8f6438903",
+  "tag": "linux-server-rc-20261004-c956481",
+  "gui_run": 37197185741,
+  "foundation_run": 37197185706,
+  "server_run": 37197185836,
+  "lifecycle_run": 37197185786,
+  "lifecycle_fullstack_run": 37197185759,
+  "steady_run": 37197185762,
+  "normal_run": 37197508391,
+  "game_run": 37197510919,
+  "performance_coordinator_run": 37197288840
+}
