@@ -23,6 +23,10 @@ def prepare(root,case,side,args):
     clean=[];i=0
     while i<len(args):
         key=args[i].removeprefix('--')
+        if '=' in key:
+            key=key.split('=',1)[0]
+            if key not in values and key not in ('fec-parity','lanes','tls-startup-padding'):clean.append(args[i])
+            i+=1;continue
         if key in values or key in ('fec-parity','lanes','tls-startup-padding'):
             i+=2;continue
         clean.extend(args[i:i+2]);i+=2

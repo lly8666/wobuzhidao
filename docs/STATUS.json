@@ -76,7 +76,7 @@
     "用户优先：CPU原始证据/pprof归因、窄修；IPv6默认owned blackhole+drop；DNS默认1.1.1.1/8.8.8.8互备及默认劫持。实现/测试进行中，不继承旧资格。"
   ],
   "next_task": "Finish exact-source default DNS/IPv6 functional Actions, CPU profile attribution and independent Normal/Game5205; retain all failures, no old qualification inheritance",
-  "latest_log": "docs/devlog/20261004-150500-hosted-format-mock-contract.md",
+  "latest_log": "docs/devlog/20261004-151500-config-dns-optout-token.md",
   "last_tested_source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
   "actions": [
     {

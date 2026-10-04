@@ -4,6 +4,16 @@ from config_effective_args import cases,prepare
 from prepare_config_harness import generate
 
 class ConfigFixtures(unittest.TestCase):
+    def test_boolean_opt_out_preserves_following_json_override(self):
+        with tempfile.TemporaryDirectory() as d:
+            prepare(d,'mtu1280-reverse0','client',['--dns-hijack=false','--route-mode','all','--mtu','1400','--client-record-limit','1300','--raw-interface','test0'])
+            args=(Path(d)/'client-args.bin').read_bytes().split(b'\0')[:-1]
+            self.assertIn(b'--dns-hijack=false',args)
+            self.assertIn(b'all',args)
+            self.assertNotIn(b'--mtu',args)
+            self.assertNotIn(b'--client-record-limit',args)
+            self.assertEqual(json.loads((Path(d)/'client-config.json').read_text())['mtu'],1280)
+
     def test_all_declared_configuration_cases(self):
         inventory=cases();self.assertEqual(len(inventory),70)
         for case,p in inventory.items():
