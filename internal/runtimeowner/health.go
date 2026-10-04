@@ -149,6 +149,12 @@ func (r *Runtime) PeerWriteClosed() bool {
 // Unhealthy is diagnostic suspicion, not a terminal error and not DORMANT.
 // Pure TCP ACKs cannot keep an encrypted lane alive.
 func (r *Runtime) Unhealthy(ref logicaltunnel.LaneRef, now time.Time, timeout time.Duration) bool {
+	return r.UnhealthySince(ref, now, timeout, time.Time{})
+}
+
+// UnhealthySince gives unconfirmed server admissions a finite age when they
+// never received their first authenticated record. It does not infer idle.
+func (r *Runtime) UnhealthySince(ref logicaltunnel.LaneRef, now time.Time, timeout time.Duration, attached time.Time) bool {
 	if timeout <= 0 {
 		return false
 	}
@@ -167,6 +173,7 @@ func (r *Runtime) Unhealthy(ref logicaltunnel.LaneRef, now time.Time, timeout ti
 	if last.IsZero() {
 		last = t.health.started
 	}
+	if last.IsZero() { last = attached }
 	return !last.IsZero() && !now.Before(last) && now.Sub(last) >= timeout
 }
 

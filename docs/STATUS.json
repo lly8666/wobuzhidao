@@ -78,8 +78,8 @@
   "in_progress": [
     "Linux服务端部署完善及共享账号多客户端自动内存7天租约：第一候选待Actions，继续安装/systemd/升级回滚。"
   ],
-  "next_task": "验收原子换代发布新SOURCE基础/race10重复/native多客户端与重新分配；通过后独立Normal/Game5205并准备固定配套预发布。",
-  "latest_log": "docs/devlog/20261004-183600-atomic-lane-publication.md",
+  "next_task": "验收7天过期失联owner安全回收、显式FIN和同IP Normal/Game切换；新SOURCE core/race/native/36门后独立Normal/Game5205与配套预发布。",
+  "latest_log": "docs/devlog/20261004-184400-expired-disconnected-lease.md",
   "last_tested_source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
   "actions": [
     {
@@ -6938,6 +6938,6 @@
       "source": "735aed14ce725c12f87a4f2b17477152cc765655",
       "foundation": 37189102754
     },
-    "next_candidate": "Atomic replacement publication fixes real intermittent missing transport; native diagnostic product-level parser corrected; all new exact-source gates pending"
+    "next_candidate": "Expired disconnected owner detach, best-effort explicit FIN and same-installation/IP safe Normal/Game reconfiguration pending exact-source qualification"
   }
 }

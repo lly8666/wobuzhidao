@@ -147,6 +147,13 @@ def main():
         rows=read_diag(art/"server-restarted.jsonl")
         if not rows or len(rows[-1].get("tunnels",[]))!=2:raise RuntimeError("server automatic diagnostics missing clients")
         passed("server opt-in diagnostics enumerate both automatic clients")
+        stop(clients[0])
+        configs[0]["lanes"]=4
+        clients[0]=client_start(1,"mode-changed")
+        mode=await_ready(clients[0],"1-mode-changed")
+        if mode["lease4"]!=after[0]["lease4"] or len(mode["lanes"])!=4:raise RuntimeError("clean Normal/Game switch changed lease or lane count")
+        time.sleep(1);probes("mode-changed")
+        passed("clean client mode switch Normal1 to Game4 retains installation and lease")
         for p in clients:stop(p)
         stop(server)
         if state.exists():raise RuntimeError("final server network state survived stop")

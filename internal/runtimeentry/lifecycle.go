@@ -1061,6 +1061,9 @@ func (c *TunnelClient) Close() error {
 		clear(c.lanes)
 		clear(c.retiring)
 		c.mu.Unlock()
+		// One best-effort FIN per owned incarnation signals explicit shutdown.
+		// Never wait for ACK or delay platform cleanup on a lossy peer.
+		for _, lane := range lanes { _ = c.rt.CloseWrite(lane.ref, time.Now()) }
 		if c.cancel != nil {
 			c.cancel()
 		}
@@ -1589,19 +1592,26 @@ func (s *LifecycleServer) validateAdmissionRequest(req realityfront.AdmissionReq
 	leaseAddr = leaseAddr.Unmap()
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	group := s.byTunnel[tunnelID]
 	if group == nil {
+		s.mu.Unlock()
 		return nil
 	}
 	if group.leaseAddr != leaseAddr {
+		s.mu.Unlock()
 		return ErrLeaseMismatch
 	}
 	if hasRetiringLane(group, req.LaneID) {
+		s.mu.Unlock()
 		return ErrLifecycleBusy
 	}
-	if req.AutoLease && int(req.DesiredLanes) != group.desired {
-		return ErrLifecycleLaneState
+	changedMode := req.AutoLease && int(req.DesiredLanes) != group.desired
+	s.mu.Unlock()
+	if changedMode {
+		// A newly configured client may change Normal/Game only after the old
+		// incarnation explicitly closes or all its lanes become stale. Admission
+		// holds admitMu; the lease itself remains unchanged.
+		if req.LaneID != 1 || !s.forgetInactiveTunnelAt(tunnelID, time.Now()) { return ErrLifecycleLaneState }
 	}
 	return nil
 }
@@ -1919,7 +1929,8 @@ func (s *LifecycleServer) tick(now time.Time) error {
 	var errs []error
 	for _, group := range groups {
 		if err := group.rt.Tick(now); err != nil {
-			errs = append(errs, err)
+			s.mu.Lock(); current := s.byTunnel[group.id] == group; s.mu.Unlock()
+			if current { errs = append(errs, err) }
 		}
 		group.service.Tick(now)
 		s.mu.Lock()
@@ -2099,18 +2110,37 @@ func (s *LifecycleServer) Close() error {
 }
 
 // ForgetInactiveTunnel is called by the lease allocator while admitMu is held.
-// No address can be reused while active or retiring lanes still own it.
+// The registry invokes this only for an expired lease. Explicitly closed or
+// long-stale owners may be detached; healthy or retiring owners pin addresses.
 func (s *LifecycleServer) ForgetInactiveTunnel(id logicaltunnel.TunnelID) bool {
+	return s.forgetInactiveTunnelAt(id, time.Now())
+}
+
+func (s *LifecycleServer) forgetInactiveTunnelAt(id logicaltunnel.TunnelID, now time.Time) bool {
 	s.mu.Lock()
 	group := s.byTunnel[id]
 	if group == nil {
 		s.mu.Unlock()
 		return true
 	}
-	if !group.dormant || len(group.lanes) != 0 || len(group.retiring) != 0 {
+	if len(group.retiring) != 0 {
 		s.mu.Unlock()
 		return false
 	}
+	dormant := group.dormant
+	lanes := make([]*serverLifecycleLane, 0, len(group.lanes))
+	for _, lane := range group.lanes { lanes = append(lanes, lane) }
+	s.mu.Unlock()
+	if !dormant {
+		if !group.rt.PeerWriteClosed() {
+			deadline := DefaultDeadAfter
+			if budget := 3*s.cfg.KeepaliveInterval; budget > deadline { deadline = budget }
+			for _, lane := range lanes { if !group.rt.UnhealthySince(lane.ref, now, deadline, lane.promotedAt) { return false } }
+		}
+		if err := s.dormantGroup(group); err != nil { return false }
+	}
+	s.mu.Lock()
+	if s.byTunnel[id] != group || len(group.lanes) != 0 || len(group.retiring) != 0 { s.mu.Unlock(); return false }
 	delete(s.byTunnel, id)
 	delete(s.byLease, group.leaseAddr)
 	s.mu.Unlock()

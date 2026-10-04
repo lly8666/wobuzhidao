@@ -188,5 +188,5 @@ Promotion后新业务只由active generation生成并发送；old Ref的FenceOut
 
 自动请求以WBAL替代受TLS保护的原WBAD magic，其余V2请求头/TunnelID/username/password原布局不变，password后追加InstallationID[16]及DesiredLanes:uint8（1..4，LaneID不得超过它）。旧WBAD请求和回复字节不变。自动成功回复在原V2回复头及TunnelID后追加4字节网络顺序IPv4，客户端解释为/32；截断、unspecified或multicast拒绝。用户名密码验证失败不能调用分配器。记录Version=2与原exporter context、record/FEC/LINK/ACK稳态协议不变；不支持WBAL的端点明确拒绝，自动客户端不退回静态。
 
-自动TunnelID取SHA256("wbd-installation-v1"+NUL+account+NUL+InstallationID)前16字节，account等于通过认证的username，设备ID不属于秘密认证。服务端在池内随机唯一分配，内存期限7天，认证重连续期；active/retiring owner仍占用时不可复用。每逻辑Tunnel保持初次DesiredLanes，换代不能临时改变模式；不同Tunnel可以Normal1/Game4并存。成功受保护回复地址先绑定尚未建业务的placeholder owner，再创建平台网络地址。健康旧lane遇到地址不同的新候选只拒绝候选；所有旧lane失活或DORMANT时要求清理并重建平台owner，不热换地址，不等待旧业务缺口。
+自动TunnelID取SHA256("wbd-installation-v1"+NUL+account+NUL+InstallationID)前16字节，account等于通过认证的username，设备ID不属于秘密认证。服务端在池内随机唯一分配，内存期限7天，认证重连续期；健康/retiring owner仍占用时不可复用。每逻辑Tunnel保持初次DesiredLanes，换代不能临时改变模式；不同Tunnel可以Normal1/Game4并存。全旧lane明确FIN或长期没有认证记录后，可在新LaneID1接入时安全关闭旧owner，重新按新DesiredLanes构造，设备/IP租约不变。到期租约回收使用同一安全detach，但只能由7天期限触发，不能把丢keepalive当业务idle。成功受保护回复地址先绑定尚未建业务的placeholder owner，再创建平台网络地址。健康旧lane遇到地址不同的新候选只拒绝候选；所有旧lane失活或DORMANT时要求清理并重建平台owner，不热换地址，不等待旧业务缺口。
 
