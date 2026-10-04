@@ -62,6 +62,8 @@ FEC首源8ms是encoder到期条件，不是已承诺的实际parity发包上限�
 
 2026-10-05原生6181配套包两端配置MTU1400，但Windows Wintun实读NlMtu65535、物理NIC1500、Linux wbdg0 MTU1400。配置预算与虚拟网卡MTU不是同一指标；1400不表示最大内层IPv4数据报只能1400。LINK允许合法大数据报按外层预算拆分、逐数据报重组。DF禁止IP分片，不能禁止LINK封装拆分，因此9000B/DF=true经大MTU虚拟网卡成功不是DF违规。不要未经证据把Wintun强设1400制造OS+LINK双重分片。M01/300s实际覆盖1399..9000B，含1次迟到，无坏payload；额外20秒抓包外层最大C2S1290/S2C1340。受控server loopback结果不替代互联网PMTU/ICMP验证，UDP最大65507/65508边界仍NOT_RUN，见PHYSICAL_5MIN_ACCEPTANCE。未新增配置字段，不改变PARAMETERS.json。
 
+2026-10-05当前窗口候选：仅steady TCP报头window field65535，若协商WS8则有效16776960B；bootstrap仍按256KiB真实缓冲计算，没增大产品buffer或4096/FEC边界。TCP宣告窗口与shadow修复库存不是同一参数。候选状态看STATUS.steady_window，未过Actions/native不能声称已解决外部路径黑洞。无新增CLI/JSON字段。
+
 ## 协议兼容
 
 本轮 lifecycle-capable admission record version 为 **2**；真实 TLS/uTLS 建连、外层 0x17/0x0303 记录格式不变，新增的是加密内部 health kind。必须成对升级端点。V1 端点在 admission 被明确拒绝，不允许混用后静默反复重连。历史 V1 的通过证据仍保留历史 SHA，不能视作 V2 已通过。

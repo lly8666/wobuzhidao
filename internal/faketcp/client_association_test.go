@@ -162,8 +162,8 @@ func TestClientDetachSteadyWindowIgnoresBootstrapOccupancy(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := steadyAdvertisedWindow(true)
-	if want != uint16(MaxBootstrapBufferedBytes>>DefaultWindowScale) {
-		t.Fatalf("steady helper=%d unexpected", want)
+	if want != 65535 {
+		t.Fatalf("steady helper=%d want full TCP window field", want)
 	}
 	if handoff.AdvertisedWindow != want || !handoff.WindowScaleSet ||
 		handoff.WindowScale != DefaultWindowScale {

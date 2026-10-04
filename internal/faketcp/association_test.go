@@ -935,14 +935,14 @@ func TestAdvertisedBootstrapWindowMatchesBoundedCapacity(t *testing.T) {
 }
 
 
-func TestServerSteadyWindowProfileMatchesPostHandshakeACK(t *testing.T) {
+func TestServerSteadyWindowProfileIndependentOfBootstrapACK(t *testing.T) {
 	a, _ := establishP2(t, func(Segment) error { return nil })
 	defer a.Close()
 
 	ack := a.ACKSegment(a.BootstrapNext())
 	window, scale, scaleSet := a.SteadyWindowProfile()
 	want := uint16(MaxBootstrapBufferedBytes >> DefaultWindowScale)
-	if ack.Window != want || window != ack.Window ||
+	if ack.Window != want || window != 65535 || window == ack.Window ||
 		!scaleSet || scale != DefaultWindowScale {
 		t.Fatalf("steady window ack=%d profile=%d scale=%d set=%v want=%d/%d",
 			ack.Window, window, scale, scaleSet, want, DefaultWindowScale)

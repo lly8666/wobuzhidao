@@ -8,7 +8,7 @@ if($StartSignal){$deadline=[DateTime]::UtcNow.AddSeconds(30);while(-not(Test-Pat
 $index=(Get-NetRoute -AddressFamily IPv4 -DestinationPrefix '0.0.0.0/0' | Sort-Object RouteMetric | Select-Object -First 1).InterfaceIndex
 $physical=Get-NetAdapter | Where-Object ifIndex -eq $index | Select-Object -First 1
 $before=Get-NetAdapterStatistics -Name $physical.Name | Select-Object ReceivedBytes,SentBytes,ReceivedDiscardedPackets,OutboundDiscardedPackets
-$r=[WBDPhysicalUDP]::Run('198.18.0.1',18445,$Mbps,$Seconds,$Seed,$state.PID)
+$r=[WBDPhysicalUDP]::Run('198.18.0.1',18445,$Mbps,$Seconds,$Seed,$state.PID,(Join-Path $data ($Name+'-live.json')))
 $server=if($r.SummaryReceived){$r.ServerJSON | ConvertFrom-Json}else{$null}
 $after=Get-NetAdapterStatistics -Name $physical.Name | Select-Object ReceivedBytes,SentBytes,ReceivedDiscardedPackets,OutboundDiscardedPackets
 $result=[pscustomobject]@{Name=$Name;SourceSHA='6181db66b67594b07cd989b8b8b5848cedf6ccc3';Scope='physical native WAN; no artificial loss/delay; UDP mixed-size bidirectional';Seconds=$Seconds;RequestedMbps=$Mbps;Client=$r;Server=$server;C2SGoodputMbps=$(if($null -ne $server){$server.RxBytes*8/$Seconds/1e6}else{$null});S2CGoodputMbps=$r.RxBytes*8/$Seconds/1e6;C2SByteLossPercent=$(if($null -ne $server){100*(1-$server.RxBytes/[double]$r.TxBytes)}else{$null});S2CByteLossPercent=$(if($null -ne $server){100*(1-$r.RxBytes/[double]$server.TxBytes)}else{$null});ClientOfferedMbps=$r.TxBytes*8/$Seconds/1e6;ServerOfferedMbps=$(if($null -ne $server){$server.TxBytes*8/$Seconds/1e6}else{$null});NICBefore=$before;NICAfter=$after;NoPcap=$true;SummaryRetrieval=$(if($r.SummaryReceived){'PASS'}else{'FAILED_IN_BAND; retrieve independent server JSON by SSH'})}

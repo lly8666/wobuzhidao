@@ -3,8 +3,8 @@
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
-  "product_state": "ACTIONS_PASS",
-  "qualification_scope": "6181db6 targeted Actions PASS;native 300s Normal/Game near target with nonzero loss,MTU large datagrams no corruption;D01 DNS+load bidirectional90s outage FAIL;full native/P7/full70/strict18/1800s NOT_RUN",
+  "product_state": "IN_PROGRESS",
+  "qualification_scope": "Current steady-window candidate NOT_QUALIFIED;6181 targeted Actions historical PASS;D01 native outage FAIL;new diagnostic repetitions incomplete with real stale-generation client exit",
   "updated_at": "2026-10-05",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -83,8 +83,8 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "One D01 reproduction with anomaly-triggered bounded capture,continuous header/owner/health/Npcap counters;preserve complete send/receive and both-side liveness. Prioritize earliest outage boundary;do not assert DNS/VM/FEC/buffer cause or blindly tune4096. 产品修改先Actions正确性与独立Normal/Game5205，再固定同源配套包原生验收。每性能Action只一条，禁止matrix/A-B。只简单部署，不扩建管理器。",
-  "latest_log": "docs/devlog/20261005-021317-five-minute-native-capture-matrix.md",
+  "next_task": "Qualify steady advertised-window candidate in Actions core/race and independent Normal/Game5205, plus isolated stateful transit-router old-source and candidate samples in separate runs. Then fix source-to-wire generation promotion race caught on native Windows: stale old generation must not kill CLI;no whole-packet retry after partial emission,no business waiting for TLS candidate. Package exact source and repeat nativeD01,then continue43-case matrix. Every performanceAction one sample.",
+  "latest_log": "docs/devlog/20261005-065000-steady-window-stateful-candidate.md",
   "last_tested_source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
   "actions": [
     {
@@ -7514,5 +7514,19 @@
         "credential_config_copied_this_round": false
       }
     }
+  },
+  "steady_window": {
+    "state": "IMPLEMENTED_NOT_TESTED",
+    "source": "CURRENT_COMMIT",
+    "deployed_source_unchanged": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+    "bootstrap_buffer_unchanged": 262144,
+    "steady_field": 65535,
+    "negotiated_scale": 8,
+    "effective_scaled_bytes": 16776960,
+    "physical_buffer_increase": false,
+    "new_cli_parameters": false,
+    "native_root_cause": "Suspected middlebox window enforcement;not yet proven",
+    "additional_bug": "Native Windows exits1 on stale generation got1/current2 during recovery",
+    "log": "docs/devlog/20261005-065000-steady-window-stateful-candidate.md"
   }
 }

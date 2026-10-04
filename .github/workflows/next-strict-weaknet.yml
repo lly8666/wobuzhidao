@@ -36,6 +36,16 @@ on:
         required: false
         default: false
         type: boolean
+      stateful_middlebox:
+        description: "Isolated transit router drops conntrack INVALID TCP/window segments"
+        required: false
+        default: false
+        type: boolean
+      product_source_sha:
+        description: "Optional exact 40-hex product source; empty uses this workflow SHA"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -52,6 +62,8 @@ jobs:
       WBD_STRICT_RATE_MBPS: ${{ inputs.rate_mbps }}
       WBD_STRICT_LANES: ${{ inputs.lanes }}
       WBD_STRICT_CPU_PROFILE: ${{ inputs.cpu_profile && '1' || '0' }}
+      WBD_STRICT_STATEFUL_GATE: ${{ inputs.stateful_middlebox && '1' || '0' }}
+      WBD_PRODUCT_SOURCE_INPUT: ${{ inputs.product_source_sha }}
 
     steps:
       - uses: actions/checkout@v4
@@ -73,8 +85,15 @@ jobs:
           python3 tools/check_repository.py
           python3 tools/check_performance_workflow_policy.py
           mkdir -p "$ART"
+          if test -n "$WBD_PRODUCT_SOURCE_INPUT"; then
+            [[ "$WBD_PRODUCT_SOURCE_INPUT" =~ ^[0-9a-f]{40}$ ]]
+            source_sha="$(git rev-parse "$WBD_PRODUCT_SOURCE_INPUT^{commit}")"
+          else
+            source_sha="$GITHUB_SHA"
+          fi
+          echo "TESTED_SOURCE_SHA=$source_sha" >> "$GITHUB_ENV"
           python3 tools/perf_sample_guard.py claim \
-            --identity "strict:$WBD_STRICT_MODE:$WBD_STRICT_SCENARIO:seed$WBD_STRICT_SEED:rate$WBD_STRICT_RATE_MBPS:lanes$WBD_STRICT_LANES:sha$GITHUB_SHA" \
+            --identity "strict:$WBD_STRICT_MODE:$WBD_STRICT_SCENARIO:seed$WBD_STRICT_SEED:rate$WBD_STRICT_RATE_MBPS:lanes$WBD_STRICT_LANES:stateful$WBD_STRICT_STATEFUL_GATE:source$source_sha:harness$GITHUB_SHA" \
             --receipt "$ART/sample-claim.json"
 
       - name: Install network tooling
@@ -86,12 +105,15 @@ jobs:
           sudo modprobe sch_netem || true
           sudo modprobe nf_tproxy_ipv4 || true
           sudo modprobe nft_tproxy || true
+          sudo modprobe nf_conntrack || true
 
       - name: Build exact source and pinned tc
         run: |
           set -euo pipefail
           bash scripts/build_seeded_tc.sh "$RUNNER_TEMP/wbd-tc"
           echo "WBD_STRICT_TC=$RUNNER_TEMP/wbd-tc" >> "$GITHUB_ENV"
+          git worktree add --detach "$RUNNER_TEMP/wbd-product-source" "$TESTED_SOURCE_SHA"
+          cd "$RUNNER_TEMP/wbd-product-source"
           go build -trimpath -o "$ART/wbd-client" ./cmd/wbd-client
           go build -trimpath -o "$ART/wbd-server" ./cmd/wbd-server
           "$ART/wbd-client" --version > "$ART/client-version.txt"
@@ -101,8 +123,8 @@ jobs:
         id: sample
         continue-on-error: true
         run: |
-          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_CPU_PROFILE \
-            env WBD_STRICT_ARTIFACT_DIR="$ART" bash scripts/strict_weaknet_sample.sh
+          sudo --preserve-env=GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE \
+            env GITHUB_SHA="$TESTED_SOURCE_SHA" WBD_HARNESS_SHA="$GITHUB_SHA" WBD_STRICT_ARTIFACT_DIR="$ART" bash scripts/strict_weaknet_sample.sh
 
       - name: Analyze loss-tolerant-v1
         id: validate
@@ -110,7 +132,7 @@ jobs:
         continue-on-error: true
         run: |
           python3 tools/check_strict_weaknet_loss_tolerant_v1.py \
-            --artifact-dir "$ART" --source-sha "$GITHUB_SHA" \
+            --artifact-dir "$ART" --source-sha "$TESTED_SOURCE_SHA" \
             --mode "$WBD_STRICT_MODE" --scenario "$WBD_STRICT_SCENARIO" \
             --seed "$WBD_STRICT_SEED" --target-mbps "$WBD_STRICT_RATE_MBPS" \
             --lanes "$WBD_STRICT_LANES" \

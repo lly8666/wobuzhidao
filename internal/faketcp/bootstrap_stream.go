@@ -121,22 +121,16 @@ func (c *BootstrapStream) AvailableReceiveWindow() int {
 	return n
 }
 
-// steadyAdvertisedWindow is the nominal empty-receiver window used after
-// bootstrap ownership is detached. It deliberately does not inherit transient
-// BootstrapStream occupancy: steady delivery has a different bounded owner and
-// must not freeze an incidental zero-window snapshot for the rest of the lane.
-func steadyAdvertisedWindow(scaleSet bool) uint16 {
-	n := MaxBootstrapBufferedBytes
-	if scaleSet {
-		n >>= DefaultWindowScale
-		if n == 0 {
-			n = 1
-		}
-	}
-	if n > 65535 {
-		n = 65535
-	}
-	return uint16(n)
+// steadyAdvertisedWindow is the TCP presentation window after TLS ownership
+// detaches. Steady records are delivered independently; bootstrap's 256KiB
+// stream buffer is neither a steady receive limit nor a fresh-send gate.
+// Dividing that buffer by WS=8 accidentally advertised only 256KiB, although
+// FEC-expanded fresh traffic can have megabytes in flight. Stateful middleboxes
+// can then discard later segments before they reach either record decoder.
+// Use the full window field (about 16MiB with negotiated WS=8; 65535 without WS).
+// This does not allocate a receive buffer or enlarge bounded repair/FEC state.
+func steadyAdvertisedWindow(_ bool) uint16 {
+	return 65535
 }
 
 // Feed retains only bounded bootstrap reordering. A retransmission overlapping

@@ -25,6 +25,8 @@ BLACKHOLE_MS=0
 SAMPLER="$GITHUB_WORKSPACE/tools/strict_resource_sampler.py"
 TC_BIN="$WBD_STRICT_TC"
 DIAGNOSTIC_RATE_ONLY="${WBD_STRICT_DIAGNOSTIC_RATE_ONLY:-0}"
+STATEFUL_GATE="${WBD_STRICT_STATEFUL_GATE:-0}"
+case "$STATEFUL_GATE" in 0|1) ;; *) echo "invalid stateful gate" >&2; exit 2 ;; esac
 mkdir -p "$ART"
 
 if [[ "$DIAGNOSTIC_RATE_ONLY" == "1" ]]; then
@@ -141,6 +143,18 @@ ip netns exec "$CLI" sysctl -qw net.ipv4.ip_forward=1
 
 ip netns exec "$CLI" iptables -w -I OUTPUT 1 -p tcp --tcp-flags RST RST -j DROP
 ip netns exec "$SRV" iptables -w -I OUTPUT 1 -p tcp --tcp-flags RST RST -j DROP
+
+# Optional real TCP-window enforcement in the isolated transit namespace.
+# It changes no product socket capacity and never touches the runner host NIC.
+if [[ "$STATEFUL_GATE" == 1 ]]; then
+  ip netns exec "$RTR" sysctl -qw net.netfilter.nf_conntrack_tcp_be_liberal=0
+  ip netns exec "$RTR" iptables -w -N WBD_WINDOW_TEST
+  ip netns exec "$RTR" iptables -w -A WBD_WINDOW_TEST -m conntrack --ctstate INVALID -j DROP
+  ip netns exec "$RTR" iptables -w -A WBD_WINDOW_TEST -j RETURN
+  ip netns exec "$RTR" iptables -w -A FORWARD -p tcp --dport 443 -j WBD_WINDOW_TEST
+  ip netns exec "$RTR" iptables -w -A FORWARD -p tcp --sport 443 -j WBD_WINDOW_TEST
+  ip netns exec "$RTR" iptables-save -c > "$ART/stateful-window-before.txt"
+fi
 
 # Main qualification has no bandwidth cap. Both Game and Normal share these two
 # single bottleneck qdiscs; four Game lanes are not given independent links.
@@ -266,8 +280,12 @@ for pid in "${CAP_PIDS[@]}"; do kill -INT "$pid" 2>/dev/null || true; done
 for pid in "${CAP_PIDS[@]}"; do wait "$pid" 2>/dev/null || true; done
 CAP_PIDS=()
 
+if [[ "$STATEFUL_GATE" == 1 ]]; then
+  ip netns exec "$RTR" iptables-save -c > "$ART/stateful-window-after.txt"
+fi
+
 python3 - "$ART" "$GITHUB_SHA" "$GITHUB_WORKSPACE" "$MODE" "$SCENARIO" "$SEED" "$RATE" "$LANES" "$DIAGNOSTIC_RATE_ONLY" "$BLACKHOLE_MS" <<'PY'
-import hashlib, json, sys
+import hashlib, json, os, sys
 from pathlib import Path
 art = Path(sys.argv[1])
 source, root = sys.argv[2], Path(sys.argv[3])
@@ -301,7 +319,7 @@ for rel in harness:
     data = (root / rel).read_bytes()
     files[rel] = hashlib.sha256(data).hexdigest()
 manifest = {
-    "schema": 1, "source_sha": source, "harness_sha": source,
+    "schema": 1, "source_sha": source, "harness_sha": os.environ.get("WBD_HARNESS_SHA", source),
     "harness_file_sha256": files, "runner": "ubuntu-24.04",
     "mode": mode, "scenario": scenario, "seed": seed,
     "config": {
@@ -312,6 +330,7 @@ manifest = {
         "hidden_bandwidth_limit": False,
         "packet_sizes_equal_count_cycle": [64, 256, 1200],
         "diagnostic_rate_only": diagnostic_rate_only,
+        "stateful_middlebox": os.environ.get("WBD_STRICT_STATEFUL_GATE", "0") == "1",
         "blackhole_ms": blackhole_ms,
         "blackhole_nominal_offset_s": 60 if blackhole_ms else None,
     },
