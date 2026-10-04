@@ -84,7 +84,7 @@
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
   "next_task": "Qualify Windows opt-in diagnostics core/race/GUI and independent Normal/Game5205; exactSOURCE pairedP6 then nativeD01 with Windows driver/FEC/transport snapshots. Collect current3e S16 real rotation first. Fix only earliest measured loss boundary,continue43case native matrix,each performanceAction one sample.",
-  "latest_log": "docs/devlog/20261005-075000-native-downlink-and-windows-diagnostics.md",
+  "latest_log": "docs/devlog/20261005-080000-windows-diagnostic-tab-fixture.md",
   "last_tested_source_sha": "3e3e09496ce78dbbefca68dc6e410bbc7de62404",
   "actions": [
     {
@@ -7559,15 +7559,18 @@
     "state": "PARTIAL_D01_QUALITY_FAIL",
     "evidence": "docs/evidence/physical-window-promotion-3e3e094-20261005.json",
     "native_completed_300s": [
-      "D01 seed1302"
+      "D01 seed1302",
+      "S16 seed1303"
     ],
-    "running": "S16 seed1303;same SOURCE",
-    "supersedes_old_native_qualification": false
+    "running": "D02 seed1304;same SOURCE",
+    "supersedes_old_native_qualification": false,
+    "rotation": "generation1..6,maxphysical2,exit0;S2C3.06%byte loss/probe71timeout,qualityNOT_PASS"
   },
   "windows_receive_diagnostics": {
-    "state": "IMPLEMENTED_NOT_TESTED",
+    "state": "GUI_WIRING_FIXED_QUALIFICATION_PENDING",
     "source": "CURRENT_COMMIT",
     "default_enabled": false,
-    "scope": "Windows owner/lifecycle/FEC/transport+per-incarnation actual Npcap driver stats,read gap;no buffer/protocol/recovery change"
+    "scope": "Windows owner/lifecycle/FEC/transport+per-incarnation actual Npcap driver stats,read gap;no buffer/protocol/recovery change",
+    "parent_gui_failed_run": 37245396645
   }
 }

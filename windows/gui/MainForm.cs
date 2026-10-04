@@ -75,7 +75,7 @@ namespace Wbd.Gui {
             left.Controls.Add(new Label { Text = "选择服务器后点击“连接 / 切换”。\n修改配置不会打断当前连接。", Dock = DockStyle.Fill, ForeColor = Color.DimGray }, 0, 3); body.Controls.Add(left, 0, 0);
             var tabs = new TabControl { Dock = DockStyle.Fill, Padding = new Point(16, 9), Margin = new Padding(0, 0, 0, 8) };
             body.Controls.Add(tabs, 1, 0);
-            foreach (string section in new[] { "服务器", "传输", "网络", "生命周期" }) {
+            foreach (string section in new[] { "服务器", "传输", "网络", "生命周期", "诊断" }) {
                 var tab = new TabPage(section) { BackColor = Color.White, Padding = new Padding(16) }; tabs.TabPages.Add(tab);
                 var scroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true }; tab.Controls.Add(scroll);
                 var fields = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2, Padding = new Padding(0, 0, 16, 12) };
