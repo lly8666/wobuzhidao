@@ -81,6 +81,8 @@ jobs:
 
           Linux包内包含配置模板、systemd unit、wbdctl和LINUX_SERVER.md。手动安装、检查、开机启动、停止、日志、异常退出恢复、升级及失败回滚、保配置卸载已在Ubuntu24.04 amd64真实systemd环境验证。原生Linux raw/TPROXY同账号Normal1/Game4并发TCP/UDP及服务端重启后换地址重建业务通过。Windows208项GUI/配置与重建路径、两平台基础及Linux race通过。
 
+          正常停止后切换Normal/Game沿用原IP。客户端SIGKILL没有FIN时，同原端口在至少90秒/3keepalive失活阈值后可重新认证；新Linux客户端按namespace独占锁和/run网络journal恢复自己遗留的TPROXY规则，重复活跃进程拒绝、foreign table保留均已实测。该网络journal不是持久IP映射。c956前一预发布没有这一新增强杀恢复，推荐本版本两端配套。
+
           本SOURCE独立Normal1每方向10Mbps、Game4每方向3Mbps、FEC20:20、300ms单向延迟和5%→20%→5%的5205定向弱网门通过；每Action只跑一条样本，并核验吞吐、应用损失、延迟与host容量。
 
           ARM仅交叉构建；Windows真实Npcap/Wintun/NIC、物理验收、新SOURCE完整70配置/严格18/1800s长测资格未运行。本包为预发布，不能把旧性能成绩当成本次新结果。
