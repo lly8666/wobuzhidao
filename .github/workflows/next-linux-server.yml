@@ -4,6 +4,8 @@ on:
     branches: ['next/tlslike-dataplane']
     paths:
       - 'cmd/wbd-server/**'
+      - 'cmd/wbd-client/**'
+      - 'internal/openwrtclient/**'
       - 'internal/linuxserver/**'
       - 'internal/logicaltunnel/**'
       - 'internal/realityfront/**'

@@ -79,7 +79,7 @@
     "Linux服务端部署完善及共享账号多客户端自动内存7天租约：第一候选待Actions，继续安装/systemd/升级回滚。"
   ],
   "next_task": "验收Linux客户端namespace独占锁和TPROXY崩溃恢复；native强杀/原端口/其他客户端与foreign保护全过后固定新SOURCE core/race/36与两独立5205，再发布替代候选。",
-  "latest_log": "docs/devlog/20261004-193500-client-network-crash-recovery.md",
+  "latest_log": "docs/devlog/20261004-194100-linux-crash-final-source.md",
   "last_tested_source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
   "actions": [
     {

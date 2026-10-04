@@ -54,3 +54,7 @@ upgrade先核验包内哈希、平台、源码/版本及现有配置兼容性，
 期限从上次通过认证的自动建连算起7天，换lane/重连会续期；纯业务包不逐包更新租约表。只在新认证分配时检查到期项，DORMANT且无lane可回收；客户端明确全lane FIN，或全lane在至少max(90秒,3个server keepalive间隔)内没有认证记录，也可先安全关闭旧owner再回收。连第一条认证记录都没到的lane用其创建时间计龄；任意近期有认证数据的lane或仍retiring的owner继续保护地址。该清理只由7天过期项分配触发，不把missing keepalive改成普通业务空闲，也不修改原idle-dormant策略。在线地址不会按钟强行断开。同设备仍在表内的重连沿用地址；服务端进程重启立即丢失内存映射，允许重新分配，既有应用会话不承诺跨重启存活。系统网络恢复journal保存路由/防火墙/sysctl所有权，客户端InstallationID保存设备身份，两者都不是IP持久化。租约管理不进入steady record/FEC/ACK热路径。
 
 客户端显式停止时每条owned lane尽力发送一次FIN，不等ACK、不因丢包延迟清理。Normal/Game更换需要先停止旧客户端；服务器只在旧全lane明确关闭或已长期失活时重建模式，沿用同一设备/IP租约。仍在线/换代中的模式变化拒绝，弱网FIN遗失时可能需等到旧lane失活再重试，不强杀仍有认证业务的旧客户端。
+
+客户端异常退出且没有FIN时，原端口复用的SYN也按同一全lane失活条件处理：max(90秒,3个server keepalive间隔)前仍保护旧owner，之后后台安全detach并接受原握手重试；不回收未到期的7天地址。无需改4096、MTU或重传模式，不改变普通业务idle逻辑。
+
+Linux/OpenWrt正式CLI在/run/wbd-client按kernel network namespace持有独占锁，并记录boot/namespace、canonical网络参数和随机NFT所有权标记；这是TPROXY系统网络恢复journal，不是IP租约缓存。SIGKILL释放锁，新进程先核对旧owned IPv4/IPv6 route/rule和NFT marker，再恢复自己的残留网络状态，按新配置启动；健康旧进程仍运行时拒绝重复启动，foreign状态不匹配时不自动删。正常停止删除journal并恢复自己的规则。只有带新journal的本版本残留可自动恢复，旧版本无journal的未知残留仍保持拒绝接管。

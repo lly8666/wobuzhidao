@@ -4,6 +4,8 @@ on:
     branches: ['next/tlslike-dataplane']
     paths:
       - 'internal/acceptancefault/**'
+      - 'cmd/wbd-client/**'
+      - 'internal/openwrtclient/**'
       - 'internal/runtimeowner/health.go'
       - 'internal/realityfront/admission.go'
       - 'internal/runtimeentry/lifecycle*.go'

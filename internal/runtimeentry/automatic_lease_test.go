@@ -183,7 +183,18 @@ func TestSharedCredentialsAutomaticNormalAndGameLeases(t *testing.T) {
 		changed = "10.66.0.251/32"
 	}
 	replyOverride.Store(changed)
-	waitLifecycle(t, 5*time.Second, func() bool { clients[0].mu.Lock(); defer clients[0].mu.Unlock(); return len(clients[0].retiring) == 0 })
+	waitLifecycle(t, 5*time.Second, func() bool {
+		clients[0].mu.Lock()
+		clientReady := len(clients[0].retiring) == 0
+		clients[0].mu.Unlock()
+		server.mu.Lock()
+		group := server.byTunnel[a.Config.TunnelID]
+		serverReady := group != nil && len(group.retiring) == 0
+		server.mu.Unlock()
+		// Retirement is independently published at the two endpoints. A new
+		// bad-reply probe must not race the intentional server busy rejection.
+		return clientReady && serverReady
+	})
 	if err := clients[0].RotateOldest(ctx); !errors.Is(err, ErrLeaseMismatch) {
 		t.Fatalf("healthy mismatch: %v", err)
 	}
