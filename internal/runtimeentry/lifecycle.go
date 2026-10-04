@@ -1063,7 +1063,9 @@ func (c *TunnelClient) Close() error {
 		c.mu.Unlock()
 		// One best-effort FIN per owned incarnation signals explicit shutdown.
 		// Never wait for ACK or delay platform cleanup on a lossy peer.
-		for _, lane := range lanes { _ = c.rt.CloseWrite(lane.ref, time.Now()) }
+		for _, lane := range lanes {
+			_ = c.rt.CloseWrite(lane.ref, time.Now())
+		}
 		if c.cancel != nil {
 			c.cancel()
 		}
@@ -1631,7 +1633,9 @@ func (s *LifecycleServer) validateAdmissionRequest(req realityfront.AdmissionReq
 		// A newly configured client may change Normal/Game only after the old
 		// incarnation explicitly closes or all its lanes become stale. Admission
 		// holds admitMu; the lease itself remains unchanged.
-		if req.LaneID != 1 || !s.forgetInactiveTunnelAt(tunnelID, time.Now()) { return ErrLifecycleLaneState }
+		if req.LaneID != 1 || !s.forgetInactiveTunnelAt(tunnelID, time.Now()) {
+			return ErrLifecycleLaneState
+		}
 	}
 	return nil
 }
@@ -1949,8 +1953,12 @@ func (s *LifecycleServer) tick(now time.Time) error {
 	var errs []error
 	for _, group := range groups {
 		if err := group.rt.Tick(now); err != nil {
-			s.mu.Lock(); current := s.byTunnel[group.id] == group; s.mu.Unlock()
-			if current { errs = append(errs, err) }
+			s.mu.Lock()
+			current := s.byTunnel[group.id] == group
+			s.mu.Unlock()
+			if current {
+				errs = append(errs, err)
+			}
 		}
 		group.service.Tick(now)
 		s.mu.Lock()
@@ -2149,18 +2157,31 @@ func (s *LifecycleServer) forgetInactiveTunnelAt(id logicaltunnel.TunnelID, now 
 	}
 	dormant := group.dormant
 	lanes := make([]*serverLifecycleLane, 0, len(group.lanes))
-	for _, lane := range group.lanes { lanes = append(lanes, lane) }
+	for _, lane := range group.lanes {
+		lanes = append(lanes, lane)
+	}
 	s.mu.Unlock()
 	if !dormant {
 		if !group.rt.PeerWriteClosed() {
 			deadline := DefaultDeadAfter
-			if budget := 3*s.cfg.KeepaliveInterval; budget > deadline { deadline = budget }
-			for _, lane := range lanes { if !group.rt.UnhealthySince(lane.ref, now, deadline, lane.promotedAt) { return false } }
+			if budget := 3 * s.cfg.KeepaliveInterval; budget > deadline {
+				deadline = budget
+			}
+			for _, lane := range lanes {
+				if !group.rt.UnhealthySince(lane.ref, now, deadline, lane.promotedAt) {
+					return false
+				}
+			}
 		}
-		if err := s.dormantGroup(group); err != nil { return false }
+		if err := s.dormantGroup(group); err != nil {
+			return false
+		}
 	}
 	s.mu.Lock()
-	if s.byTunnel[id] != group || len(group.lanes) != 0 || len(group.retiring) != 0 { s.mu.Unlock(); return false }
+	if s.byTunnel[id] != group || len(group.lanes) != 0 || len(group.retiring) != 0 {
+		s.mu.Unlock()
+		return false
+	}
 	delete(s.byTunnel, id)
 	delete(s.byLease, group.leaseAddr)
 	s.mu.Unlock()

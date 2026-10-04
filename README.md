@@ -18,6 +18,10 @@ DTLS 基线保存在独立分支 [`release/dtls-preview-20260919`](https://githu
 
 开发和测试环境：只使用 GitHub Actions。最后一轮才安排真实物理机。根目录 `next-foundation` 工作流执行新根 module 的 Linux/Windows 基础构建与测试，并在 Linux 跑 race/fuzz；阶段 PASS 仍不代表后续握手、端到端或物理网络资格。
 
+### Linux 服务端与多客户端
+
+Linux服务端已新增安装、systemd、配置校验、手动升级/回滚与故障清理，以及同一用户名/密码供多客户端使用的自动IPv4分配。IP映射仅保留内存7天，客户端只保存安装身份；Normal/Game可分别配置。部署方法与当前资格见[Linux服务端](docs/LINUX_SERVER.md)和STATUS.linux_server。自动模式需要本轮同源码两端，旧9857bdb Windows包不支持自动租约。本轮配套包尚待最终Actions资格，不把历史性能成绩当作新源码实测。
+
 ### 配置与业务语义
 
 client/server可分别设置 `--tls-startup-padding=true`，默认关闭，JSON也支持。识别内层新TLS流后利用已有记录余量有界填充，不等待凑包、不新增分片、不改变重传密文。FEC默认off，可选20:4/8/10/12/16/20；1lane为Normal，2～4lane为Game竞速，复制不算额外有效业务。内层TCP代理维护该业务自身字节顺序；外层数据报和UDP无跨包HOL。startup padding只能有限改变长度，不能消除TLS-in-TLS时序/方向特征或承诺不可识别。
@@ -27,7 +31,7 @@ client/server可分别设置 `--tls-startup-padding=true`，默认关闭，JSON�
 
 交付前各门与覆盖限制见 [PREDELIVERY_ACCEPTANCE](docs/PREDELIVERY_ACCEPTANCE.md)。70个实际配置case用正式程序运行UDP、DNS、普通TCP和102400字节HTTPS，并对照配置、运行诊断与抓包；性能资格单独验证FEC20:20的Normal双向各10Mbps/Game4各3Mbps、600ms RTT、无损/5→20→5/5→30→5和1800s持续负载。其它FEC档位的功能通过不能当作相同弱网性能承诺。每个性能Action只跑一条样本。
 
-Windows现已提供中文客户端GUI（见下节）；服务端CLI使用静态身份/lease配置，不提供账户管理GUI。Windowsserver和IPv6隧道传输不支持；IPv6默认丢弃已有独立证据，不等于IPv6代理。普通浏览器物理实抓、借用网站完整服务端指纹及高RTT大TCP下载物理资格仍未取得。自动路径MTU探测没有资格。完整范围和历史失败见 [交付前验收报告](docs/PREDELIVERY_ACCEPTANCE.md)。同源码新包和哈希见 [P6下载](https://github.com/lly8666/wobuzhidao/actions/runs/37181242116)，双方成对使用。换代先完成新lane的TLS/admission再切发送权，旧lane保留有界在途接收；不承诺promotion后任意故障可回滚。
+Windows现已提供中文客户端GUI（见下节）；服务端CLI支持静态配置或自动租约，不提供账户管理GUI。Windowsserver和IPv6隧道传输不支持；IPv6默认丢弃已有独立证据，不等于IPv6代理。普通浏览器物理实抓、借用网站完整服务端指纹及高RTT大TCP下载物理资格仍未取得。自动路径MTU探测没有资格。完整范围和历史失败见 [交付前验收报告](docs/PREDELIVERY_ACCEPTANCE.md)。同源码新包和哈希见 [P6下载](https://github.com/lly8666/wobuzhidao/actions/runs/37181242116)，双方成对使用。换代先完成新lane的TLS/admission再切发送权，旧lane保留有界在途接收；不承诺promotion后任意故障可回滚。
 
 ## Windows 中文界面与便携包
 

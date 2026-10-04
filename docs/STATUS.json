@@ -79,7 +79,7 @@
     "Linux服务端部署完善及共享账号多客户端自动内存7天租约：第一候选待Actions，继续安装/systemd/升级回滚。"
   ],
   "next_task": "验收关闭后同四元组重连与generation一致性回归；固定新SOURCE core/race/native/36门后独立Normal/Game5205与配套预发布。",
-  "latest_log": "docs/devlog/20261004-190100-closed-flow-reconnect.md",
+  "latest_log": "docs/devlog/20261004-190800-linux-fixed-qualification.md",
   "last_tested_source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
   "actions": [
     {

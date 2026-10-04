@@ -202,10 +202,18 @@ func TestSharedCredentialsAutomaticNormalAndGameLeases(t *testing.T) {
 	server.admitMu.Lock()
 	pinned := !server.forgetInactiveTunnelAt(b.Config.TunnelID, time.Now())
 	server.admitMu.Unlock()
-	if !pinned { t.Fatal("healthy Game owner not pinned") }
-	waitLifecycle(t, 5*time.Second, func() bool { server.mu.Lock(); defer server.mu.Unlock(); return len(server.byTunnel[b.Config.TunnelID].retiring) == 0 })
+	if !pinned {
+		t.Fatal("healthy Game owner not pinned")
+	}
+	waitLifecycle(t, 5*time.Second, func() bool {
+		server.mu.Lock()
+		defer server.mu.Unlock()
+		return len(server.byTunnel[b.Config.TunnelID].retiring) == 0
+	})
 	server.admitMu.Lock()
 	reclaimed := server.forgetInactiveTunnelAt(b.Config.TunnelID, time.Now().Add(4*time.Hour))
 	server.admitMu.Unlock()
-	if !reclaimed { t.Fatal("stale disconnected owner cannot be reclaimed for expired lease") }
+	if !reclaimed {
+		t.Fatal("stale disconnected owner cannot be reclaimed for expired lease")
+	}
 }

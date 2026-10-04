@@ -173,7 +173,9 @@ func (r *Runtime) UnhealthySince(ref logicaltunnel.LaneRef, now time.Time, timeo
 	if last.IsZero() {
 		last = t.health.started
 	}
-	if last.IsZero() { last = attached }
+	if last.IsZero() {
+		last = attached
+	}
 	return !last.IsZero() && !now.Before(last) && now.Sub(last) >= timeout
 }
 

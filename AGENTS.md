@@ -21,6 +21,8 @@
 
 ## 当前性能主线（2026-09-23）
 
+2026-10-04当前优先任务：Linux服务端安装/systemd/配置/升级回滚，以及同账号多客户端自动IPv4。先读docs/LINUX_SERVER.md和STATUS.linux_server；旧9857bdb Windows包不含自动租约，需本轮同SOURCE配套两端。地址池只内存7天，只有InstallationID持久化，网络恢复journal不属于IP租约。最新SOURCE待core/race/native/36生命周期和两个独立5205收口；通过后才配套预发布。最近失败/修复见STATUS.latest_log，不恢复旧DTLS或性能提示词。
+
 2026-10-04最新Windows GUI用户任务已交付：SOURCE `9857bdb25115e87521a9d62309d3ec0b67988f16`，固定预发布标签 `windows-gui-rc-20261004-9857bdb`。接手先读 `docs/WINDOWS_GUI.md`、`STATUS.windows_gui` 和 `docs/evidence/windows-gui-9857bdb.json`；206项GUI检查及基础/网络专项PASS，物理P7仍NOT_RUN。用户已接受Wintun系统驱动安装，勿重复询问；应用文件仍限制本目录，Npcap走官方安装引导。所有Windows参数以PARAMETERS.json和fields.json精确全集管理，新增参数必须同步映射；不得因GUI任务恢复旧性能提示词或改协议。文档HEAD不改变固定包来源，历史d9性能不可冒充985性能资格。
 
 2026-10-04最新任务已收口：性能热点修复、默认DNS互备、IPv6捕获丢弃的测试源码d9d4d90已通过core/真实网络/36生命周期/三关键配置/独立Normal与Game5205/三平台包。当前next_task以STATUS顶层为准，下文a67/2b为历史专项和全量基线，不能继承为d9全70/18/1800s。普通DNS与DoH/DoT边界见SPLIT_ROUTING；每性能Action仍只一条，profile不得替代正常性能资格。没有新缺陷证据，不继续改变FEC/4096/恢复架构。
