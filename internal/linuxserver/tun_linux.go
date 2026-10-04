@@ -31,7 +31,12 @@ func OpenTUN(name string) (*TUN, error) {
 	if len(name) >= tunNameSize {
 		return nil, fmt.Errorf("linuxserver: TUN name too long: %q", name)
 	}
-	f, err := os.OpenFile("/dev/net/tun", os.O_RDWR, 0)
+	// Bind the device before os.NewFile registers it with Go's poller. An
+	// unbound TUN cannot be epoll-registered; wrapping it first leaves reads
+	// vulnerable to EINTR (including CPU sampling signals). Keep it nonblocking
+	// so readiness waits and Close are handled by the runtime, not a blocked OS
+	// thread for every server TUN.
+	fd, err := syscall.Open("/dev/net/tun", syscall.O_RDWR|syscall.O_NONBLOCK|syscall.O_CLOEXEC, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -42,15 +47,17 @@ func OpenTUN(name string) (*TUN, error) {
 	ifr[17] = byte(flags >> 8)
 	_, _, errno := syscall.Syscall(
 		syscall.SYS_IOCTL,
-		f.Fd(),
+		uintptr(fd),
 		uintptr(tunSetIFF),
 		uintptr(unsafe.Pointer(&ifr[0])),
 	)
 	if errno != 0 {
-		_ = f.Close()
+		_ = syscall.Close(fd)
 		return nil, errno
 	}
 	actual := string(bytes.TrimRight(ifr[:tunNameSize], "\x00"))
+	f := os.NewFile(uintptr(fd), "/dev/net/tun")
+	if f == nil { _ = syscall.Close(fd); return nil, os.ErrInvalid }
 	return &TUN{file: f, name: actual}, nil
 }
 
