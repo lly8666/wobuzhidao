@@ -1,0 +1,5 @@
+# Linux服务与客户端崩溃恢复最终性能门
+
+固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3。foundation37199462522成功后才各自独立dispatch Normal1 10M/Game4 3M、5205/seed101/FEC20:20。基线仍c956原始summary11301970252/11301384663，不能继承594的两条PASS。用户每性能Action一条要求不变。
+
+81真实新增managedclient native37199127439已通过live duplicate拒绝/SIGKILL无FIN92s原端口同IP TCP/UDP恢复和foreign table保留，594旧失败已在产品日志保留；618 source还要重验core/race重复、GUI、真实native/defaultnetwork/splitroute、36矩阵。最终原始所有门成功才能再发布替代包；物理/ARM原生/完整70/18/1800s仍NOT_RUN。
