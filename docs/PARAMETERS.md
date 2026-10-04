@@ -67,3 +67,7 @@ FEC首源8ms是encoder到期条件，不是已承诺的实际parity发包上限�
 2026-10-03资源优化阶段3：生产steady ACK内部采用每2个正常连续record或2ms截止，首包/缺口开关/SACK/重复/FIN即时；成功携最新ACK的data可取消gap-free待发ACK。每lane一个可复用timer，关闭取消、异步失败计数并由tick报告。业务立即交付，不等ACK；internal/runtimeowner/ack.go，无新增CLI/configfile入口。阶段状态与exact-SHA验收看STATUS。
 
 资格环境变量 WBD_QUALIFICATION_CPU_PROFILE：显式输出CPU采样文件，默认未设置/关闭；没有HTTP端口，退出写完。仅诊断Action使用，有采样开销，不继承为无profile正常性能结果。
+
+## Windows GUI 操作与便携路径
+
+Windows新增 CLI-only --check-config：复用完整正式参数解析/健康与MTU校验，打印有效标量，密码和路由密钥隐藏，不建立网络或安装驱动。--control-stdin：GUI-owned子进程收到stop或stdin EOF就取消建连/运行，执行owned清理；named event防止旧进程仍清理时新GUI再建隧道。两者不能写进业务JSON。全部普通字段见 WINDOWS_GUI.md，config/version/update-china-ip及上述操作有按钮，state-path/network-script固定程序目录内位置。PARAMETERS.json仍是唯一参数全集。

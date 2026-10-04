@@ -286,3 +286,7 @@ owner持锁的快照/身份检查仅能读Lane构造后不可变配置，禁止�
 用户随后新增默认DNS/IPv6策略及性能归因，覆盖该节旧IPv6范围限制。执行SPLIT_ROUTING的默认网络策略：IPv6捕获丢弃、普通DNS通过既有单进程通道互备，不新增DTLS/回环relay，不改变非DNS直连。性能修复必须来源于实际CPU热点；原Intel/新AMD机器差异与代码贡献分别报告。已定位Game每新包号遍历历史表，改为只淘汰滑出原窗口的ID；历史窗口/乱序首次交付/no-HOL保持。每优化按exact SOURCE core/race及独立Normal/Game5205收口；profile单独一个Action，带采样的通过不替代正常性能资格。
 
 用户新增分流已按SPLIT_ROUTING.md实现，统一参数清单为唯一开关目录。默认LAN/中国IPv4直连、其余隧道。Linux/OpenWrt复用owned nft TPROXY，增加启动时一次编译的interval set；Windows复用Wintun/owned网络脚本，安装直连集合补集的capture routes，保留原系统直连出口。共享splitroute新模块负责固定内置CIDR/严格手动文件/有界显式HTTPS更新，不复用旧worker/路由引擎，不改变TLS-like/no-HOL/FEC/生命周期。更新重启生效、失败保留旧表，不自动联网。域名与IPv6分流不在范围内。Windows大表使用文件传递和批量ownership记录，物理安装成本留P7。全新agent先读SPLIT_ROUTING和当前STATUS，私网代理夹具显式all，不能把直连成功算隧道成功。a67功能/core/36/独立5205/P6专项PASS；旧2b全量资格为历史，不自动继承。
+
+## 2026-10-04 Windows GUI 用户优先任务
+
+执行 WINDOWS_GUI.md：原生 WinForms/.NET Framework4.8 只做现有 Go CLI 配置/生命周期壳；全部参数可编辑或通过明确操作管理，服务器配置持久化、真实只读校验、串行切换/owned清理、Npcap官方引导、单目录便携包。只改变Windows启动/退出与文件路径，不重写已验协议与热数据面。真实驱动写系统的不可避免边界公开，不宣称只有Npcap例外。WindowsActions逐字段/全FEC-lanes/非法输入/切换顺序/失败隔离/路径/截图和基础unit/race后再交付包，P7保留。

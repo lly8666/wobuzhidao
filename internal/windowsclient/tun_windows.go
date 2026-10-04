@@ -5,6 +5,8 @@ package windowsclient
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"runtime"
 	"sync"
 	"syscall"
@@ -26,7 +28,7 @@ const (
 )
 
 var (
-	wintunDLL = syscall.NewLazyDLL("wintun.dll")
+	wintunDLL = syscall.NewLazyDLL(wintunLibraryPath())
 
 	wintunCreateAdapter        = wintunDLL.NewProc("WintunCreateAdapter")
 	wintunOpenAdapter          = wintunDLL.NewProc("WintunOpenAdapter")
@@ -45,6 +47,12 @@ var (
 	closeHandle            = kernel32DLL.NewProc("CloseHandle")
 	waitForMultipleObjects = kernel32DLL.NewProc("WaitForMultipleObjects")
 )
+
+func wintunLibraryPath() string {
+	exe,err:=os.Executable()
+	if err!=nil { return "wintun.dll" }
+	return filepath.Join(filepath.Dir(exe),"wintun.dll")
+}
 
 type TUN struct {
 	adapter  uintptr

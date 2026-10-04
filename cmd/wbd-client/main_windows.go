@@ -4,7 +4,9 @@ package main
 
 import (
 	"context"
+	"bufio"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -13,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -22,14 +25,22 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/dnsroute"
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
+	"github.com/lly8666/wobuzhidao/internal/pathmtu"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/runtimeentry"
 	"github.com/lly8666/wobuzhidao/internal/splitroute"
 	"github.com/lly8666/wobuzhidao/internal/windowsclient"
+	"golang.org/x/sys/windows"
 )
 
 func main() {
+	if err := runWindows(); err != nil { log.Fatal(err) }
+}
+
+func runWindows() error {
 	var (
+		checkConfig = flag.Bool("check-config", false, "validate effective configuration without network or driver changes; credentials redacted")
+		controlStdin = flag.Bool("control-stdin", false, "GUI-owned process: stop or stdin EOF cancels startup and cleans owned network state")
 		deadAfter         = flag.Duration("dead-after", runtimeentry.DefaultDeadAfter, "reconnect after no authenticated lane records; at least 3 keepalive intervals")
 		reconnectMin      = flag.Duration("reconnect-min", runtimeentry.DefaultReconnectMin, "minimum retry delay after failed lane admission")
 		reconnectMax      = flag.Duration("reconnect-max", runtimeentry.DefaultReconnectMax, "maximum retry delay after failed lane admission")
@@ -66,77 +77,76 @@ func main() {
 	)
 	flag.Parse()
 	if err := configfile.ApplyFile(flag.CommandLine, *configPath); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if handleVersion() {
-		return
+		return nil
 	}
 	if *updateChinaIP != "" {
 		if err := splitroute.Update(*updateChinaIP); err != nil {
-			log.Fatal(err)
+			return err
 		}
-		return
+		return nil
 	}
 	bypass, err := splitroute.Direct(*routeMode, *chinaIPFile)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	defer startQualificationCPUProfile()()
 	if *serverIPText == "" || *tunnelText == "" || *leaseText == "" || *account == "" ||
 		*installationText == "" || *serverName == "" || *routeKeyHex == "" ||
 		*username == "" || *password == "" {
 		flag.Usage()
-		os.Exit(2)
+		return errors.New("required identity and server settings are missing")
 	}
 	if *serverPort == 0 || *serverPort > 65535 || *sourcePort == 0 || *sourcePort > 65535 ||
 		*clientLimit > 65535 {
-		log.Fatal("invalid port or record limit")
+		return errors.New("invalid port or record limit")
 	}
 	if err := logicaltunnel.ValidateProductTransportLaneCount(*lanes); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	fecFlushAfter, fecMaxBlocks, err := datapath.FixedFECRuntimeDefaults(*fecParity)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if *idleDormant < 0 || *rotateMin < 0 || *rotateMax < 0 ||
 		(*rotateMin == 0) != (*rotateMax == 0) || (*rotateMin > 0 && *rotateMax < *rotateMin) {
-		log.Fatal("invalid lifecycle durations")
+		return errors.New("invalid lifecycle durations")
 	}
 	if _, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), 1); err != nil {
-		log.Fatal("source-port must leave a 1024-port bounded rotation window")
+		return errors.New("source-port must leave a 1024-port bounded rotation window")
 	}
 
 	serverIP, err := netip.ParseAddr(*serverIPText)
 	if err != nil || !serverIP.Is4() {
-		log.Fatal("server-ip must be IPv4")
+		return errors.New("server-ip must be IPv4")
 	}
 	leasePrefix, err := netip.ParsePrefix(*leaseText)
 	if err != nil || !leasePrefix.Addr().Is4() || leasePrefix.Bits() != 32 {
-		log.Fatal("lease4 must be IPv4 /32")
+		return errors.New("lease4 must be IPv4 /32")
 	}
 	tunnelID, err := logicaltunnel.ParseTunnelID(*tunnelText)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	installation, err := logicaltunnel.ParseInstallationID(*installationText)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	routeKey, err := hex.DecodeString(*routeKeyHex)
 	if err != nil || len(routeKey) == 0 {
-		log.Fatal("route-key-hex must decode to non-empty bytes")
+		return errors.New("route-key-hex must decode to non-empty bytes")
 	}
 	dns, err := dnsroute.ParseServers(*dnsText)
 	if err != nil || (*dnsHijack && len(dns) == 0) {
-		log.Fatal("dns4 requires one or two IPv4 resolvers when DNS hijack is enabled")
+		return errors.New("dns4 requires one or two IPv4 resolvers when DNS hijack is enabled")
 	}
 	if !*dnsHijack {
 		dns = nil
 	}
 	direct, err := parseIPv4Prefixes(*directText)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	lease := logicaltunnel.Lease{
 		Account:        *account,
@@ -148,15 +158,32 @@ func main() {
 		},
 	}
 	if err := lease.Validate(); err != nil {
-		log.Fatal(err)
+		return err
+	}
+	if err := runtimeentry.ValidateClientHealth(runtimeentry.TunnelClientConfig{KeepaliveInterval:*keepalive, DeadAfter:*deadAfter, ReconnectMin:*reconnectMin, ReconnectMax:*reconnectMax}); err != nil { return err }
+	if _, err := pathmtu.Derive(pathmtu.Config{ConnectionMTU:*mtu, IPv4HeaderLen:20, TCPHeaderLen:20, RecordWireLimit:int(*clientLimit), ParityShards:*fecParity}); err != nil { return err }
+	if strings.TrimSpace(*adapterAlias)=="" || strings.ContainsAny(*adapterAlias,"\r\n") || strings.TrimSpace(*statePath)=="" || strings.TrimSpace(*scriptPath)=="" { return errors.New("invalid adapter or network paths") }
+	if *checkConfig {
+		out:=map[string]string{}
+		flag.VisitAll(func(f *flag.Flag) { if f.Name=="password" || f.Name=="route-key-hex" { out[f.Name]="configured" } else { out[f.Name]=f.Value.String() } })
+		return json.NewEncoder(os.Stdout).Encode(out)
+	}
+	defer startQualificationCPUProfile()()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	if *controlStdin { go watchGUIControl(os.Stdin,cancel) }
+	if *controlStdin {
+		lock,err:=acquireGUIClientSlot()
+		if err!=nil {return err}
+		defer windows.CloseHandle(lock)
 	}
 
 	underlay, err := windowsclient.DiscoverPhysicalUnderlay(serverIP, 0)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	var router *windowsclient.Router
-	client, err := runtimeentry.DialTunnelClient(context.Background(), runtimeentry.TunnelClientConfig{
+	client, err := runtimeentry.DialTunnelClient(ctx, runtimeentry.TunnelClientConfig{
 		OpenLane: func(_ uint8, incarnation uint64) (runtimeentry.SegmentIO, faketcp.ClientFlow, error) {
 			port, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), incarnation)
 			if err != nil {
@@ -215,23 +242,23 @@ func main() {
 		RotateMax: *rotateMax,
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer client.Close()
 
 	tun, err := windowsclient.OpenTUN(*adapterAlias)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer tun.Close()
 	router, err = windowsclient.NewRouter(client.Owner(), tun)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	physical, err := underlay.PhysicalPath()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	networkPlan, err := windowsclient.BuildNetworkPlan(windowsclient.Config{
 		AdapterAlias: *adapterAlias,
@@ -244,10 +271,10 @@ func main() {
 		StatePath:    *statePath,
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if err := runNetworkAction(networkPlan, "Apply", *scriptPath); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	log.Printf("WBD_ROUTE_POLICY mode=%s direct_prefixes=%d capture_prefixes=%d source=%s", *routeMode, len(bypass), len(networkPlan.CaptureRoutes), chinaListSource(*chinaIPFile))
 	defer func() {
@@ -255,9 +282,8 @@ func main() {
 			log.Printf("Windows cleanup: %v", err)
 		}
 	}()
+	fmt.Println("WBD_WINDOWS_CLIENT_READY")
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
 	errCh := make(chan error, 2)
 	go func() {
 		buf := make([]byte, 65535)
@@ -310,11 +336,13 @@ func main() {
 		cancel()
 	}
 	fmt.Printf("WBD_WINDOWS_CLIENT_STOPPED cleanup=state-owned-only lanes=%d physical=NOT_RUN\n", *lanes)
+	return nil
 }
 
 func runNetworkAction(plan windowsclient.NetworkPlan, action, script string) error {
 	if len(plan.CaptureRoutes) > 8 {
-		f, err := os.CreateTemp("", "wbd-capture-*.txt")
+		if err:=os.MkdirAll(filepath.Dir(plan.StatePath),0700); err!=nil {return err}
+		f, err := os.CreateTemp(filepath.Dir(plan.StatePath), "wbd-capture-*.txt")
 		if err != nil {
 			return err
 		}
@@ -336,11 +364,35 @@ func runNetworkAction(plan windowsclient.NetworkPlan, action, script string) err
 	if err != nil {
 		return err
 	}
-	out, err := exec.Command("powershell.exe", args...).CombinedOutput()
+	out, err := networkCommand(args).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("powershell %s: %w: %s", action, err, strings.TrimSpace(string(out)))
 	}
 	return nil
+}
+
+// EOF means the owning GUI died: the existing deferred cleanup still runs.
+func watchGUIControl(input *os.File, cancel context.CancelFunc) {
+	defer cancel()
+	s:=bufio.NewScanner(input)
+	s.Buffer(make([]byte,64),1024)
+	for s.Scan() { if s.Text()=="stop" { return } }
+}
+
+func networkCommand(args []string) *exec.Cmd {
+	cmd:=exec.Command("powershell.exe",args...)
+	cmd.SysProcAttr=&syscall.SysProcAttr{HideWindow:true}
+	return cmd
+}
+
+// A named event lives exactly as long as its owning client handle. This also
+// fences a replacement GUI while a crashed GUI's child is still cleaning up.
+func acquireGUIClientSlot() (windows.Handle,error) {
+	name,err:=windows.UTF16PtrFromString("Local\\WBD-NEXT-Windows-Client")
+	if err!=nil {return 0,err}
+	h,err:=windows.CreateEvent(nil,1,0,name)
+	if err!=nil {if h!=0 {windows.CloseHandle(h)};return 0,errors.New("another Windows client is running or cleaning up")}
+	return h,nil
 }
 
 func parseIPv4Addrs(raw string) ([]netip.Addr, error) {

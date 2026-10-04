@@ -291,6 +291,13 @@
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },
+      "check-config": {
+        "type": "Bool",
+        "default_expression": "false",
+        "help": "validate effective configuration without network or driver changes; credentials redacted",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": false
+      },
       "china-ip-file": {
         "type": "String",
         "default_expression": "\"\"",
@@ -309,6 +316,13 @@
         "type": "String",
         "default_expression": "\"\"",
         "help": "JSON configuration file; CLI flags override matching keys",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": false
+      },
+      "control-stdin": {
+        "type": "Bool",
+        "default_expression": "false",
+        "help": "GUI-owned process: stop or stdin EOF cancels startup and cleans owned network state",
         "source": "cmd/wbd-client/main_windows.go",
         "json": false
       },

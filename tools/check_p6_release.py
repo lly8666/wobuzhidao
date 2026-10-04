@@ -105,8 +105,15 @@ def main():
     else:
         if caps != {"client": "IMPLEMENTED", "server": "UNSUPPORTED"}:
             fail(f"windows capabilities={caps!r}")
-        if seen_roles != {"client", "windows_network_script"} | routing_roles:
+        gui_roles = {"windows_gui", "windows_gui_runtime_config", "windows_gui_fields", "windows_cli_catalog", "wintun_library", "wintun_license", "windows_portable_guide"}
+        if seen_roles != {"client", "windows_network_script"} | routing_roles | gui_roles:
             fail(f"windows file roles={sorted(seen_roles)}")
+        gui_data = (root / "WBD.exe").read_bytes()
+        for marker in (args.source_sha, manifest["version"]):
+            if marker.encode("utf-16le") not in gui_data:
+                fail("GUI source/version identity missing")
+        if not (root / "wintun.dll").read_bytes().startswith(b"MZ"):
+            fail("Wintun DLL is not a PE binary")
 
     if args.run_native:
         for role, path in binaries:

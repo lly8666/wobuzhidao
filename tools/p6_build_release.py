@@ -7,6 +7,9 @@ import pathlib
 import shutil
 import subprocess
 import sys
+import urllib.request
+import zipfile
+import io
 
 SCHEMA = "wbd-p6-release-candidate/v1"
 BUILDINFO = "github.com/lly8666/wobuzhidao/internal/buildinfo"
@@ -102,6 +105,28 @@ def main():
         support_name = "windows_client_network.ps1"
         shutil.copyfile("scripts/windows_client_network.ps1", root / support_name)
         files.append(file_entry(root, "windows_network_script", support_name, False))
+        if os.name != "nt":
+            fail("Windows portable GUI requires hosted Windows compiler")
+        run(["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", "scripts/build_windows_gui.ps1", "-OutputDirectory", str(root.resolve()), "-SourceSHA", args.source_sha, "-Version", args.version])
+        # Official unmodified prebuilt DLL, used only through the permitted API.
+        # Never redistribute the free Npcap installer/DLLs.
+        url = "https://www.wintun.net/builds/wintun-0.14.1.zip"
+        with urllib.request.urlopen(url, timeout=60) as response:
+            data = response.read(4 * 1024 * 1024 + 1)
+        digest = "07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51"
+        if hashlib.sha256(data).hexdigest() != digest:
+            fail("official Wintun archive digest mismatch")
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            (root / "wintun.dll").write_bytes(archive.read("wintun/bin/amd64/wintun.dll"))
+            (root / "WINTUN-LICENSE.txt").write_bytes(archive.read("wintun/LICENSE.txt"))
+        for role, name in [
+            ("windows_gui", "WBD.exe"), ("windows_gui_runtime_config", "WBD.exe.config"),
+            ("windows_gui_fields", "gui-fields.json"), ("windows_cli_catalog", "PARAMETERS.json"),
+            ("wintun_library", "wintun.dll"), ("wintun_license", "WINTUN-LICENSE.txt"),
+        ]:
+            files.append(file_entry(root, role, name, False))
+        shutil.copyfile("docs/WINDOWS_GUI.md", root / "使用说明.md")
+        files.append(file_entry(root, "windows_portable_guide", "使用说明.md", False))
 
     known_limits = [
         "PHYSICAL_PASS is NOT_RUN; physical qualification is reserved for P7.",
@@ -114,6 +139,8 @@ def main():
         known_limits += [
             "Windows server is UNSUPPORTED in this release candidate; the bundle contains the Windows client only.",
             "Real Wintun/Npcap driver and physical-NIC execution are NOT_RUN in hosted P6.",
+            "Portable application files only; Npcap and Wintun driver registration are Windows system operations. Wintun adapter creation installs its signed driver; not a zero-driver-install product.",
+            "GUI targets Windows 10/11 x64 with built-in .NET Framework 4.8; no application runtime installer, WebView cache or single-file runtime extraction.",
         ]
     else:
         known_limits += [

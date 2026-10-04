@@ -22,6 +22,10 @@ type LifecycleStats struct {
 	NextRetry         time.Time
 }
 
+// ValidateClientHealth uses the exact admission/runtime health constraints for
+// read-only configuration validation; it does not create a lane or timer.
+func ValidateClientHealth(c TunnelClientConfig) error { return normalizeClientHealth(&c) }
+
 func normalizeClientHealth(c *TunnelClientConfig) error {
 	if c.KeepaliveInterval == 0 {
 		c.KeepaliveInterval = DefaultKeepaliveInterval

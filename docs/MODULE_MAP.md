@@ -52,3 +52,5 @@ TLS启动填充：internal/datapath/startup_padding.go新写旁观识别；paddi
 2026-10-03阶段4b：Linux sendmmsg只批量当前已生成记录，每批<=8、无队列和凑批等待；control/ACK/FIN/bootstrap单独发送。SegmentBatchEmitter返回精确已发前缀，unsent不保留假重传备份，已发保留同Seq同密文；新鲜发送不因失败后的Seq缺口等洞。Npcap及未提供Batch的adapter原Emit不变；复用当前serializer和全部repair边界。strict同一条样本后读取raw_io counters验证native RX/TX实际触发，不替代原质量/性能门。状态看STATUS。
 
 2026-10-04换代返工：datapath只允许active与明确retiring的接收在途，发送仍active；runtimeentry/diagnostic.go新增有界retiring_lanes快照，runtimeowner/perf_diag.go独立统计ACK处理，runtimeentry/perf_diag.go统计server tick。只读观察不复活候选/已退役ref、无新CLI/wire/队列/期限；关闭诊断无热路计时。check_target_soak.py同时核验1s最终unique损失、内部接收queue溢出和active/retiring完整性。旧外层kernel/socket0drop并不能覆盖程序内部queue。
+
+Windows GUI新增：windows/gui/Portable.cs为参数清单/便携文件/profile/子进程所有权；MainForm.cs为中文设置/服务器/驱动引导；GuiTests.cs只在Actions做配置/控件/切换测试。scripts/build_windows_gui.ps1编译系统.NET Framework GUI；P6打包固定官方Wintun DLL/许可，不分发免费Npcap。cmd/wbd-client Windows的check-config/STDIN取消与capture同目录临时文件复用正式配置和cleanup，不增加第二套数据协议。

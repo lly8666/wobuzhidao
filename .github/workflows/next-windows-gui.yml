@@ -1,0 +1,57 @@
+name: next-windows-gui
+on:
+  push:
+    branches: ['next/tlslike-dataplane']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  gui-portable:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.12', cache: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Build portable folder and verify manifest
+        shell: powershell
+        run: |
+          $version = 'next-rc-' + $env:GITHUB_SHA.Substring(0,12)
+          python tools/p6_build_release.py --source-sha $env:GITHUB_SHA --version $version --target-os windows --target-arch amd64 --output-dir artifacts/windows-portable
+          if ($LASTEXITCODE -ne 0) { throw 'portable build failed' }
+          python tools/check_p6_release.py --bundle-dir artifacts/windows-portable --source-sha $env:GITHUB_SHA --target-os windows --target-arch amd64 --run-native
+          if ($LASTEXITCODE -ne 0) { throw 'manifest verification failed' }
+      - name: Native GUI widgets / every parameter / server switching / portable writes
+        shell: powershell
+        run: |
+          # Launch with a different CWD and Unicode/space path to catch accidental relative writes.
+          $testRoot = Join-Path $env:GITHUB_WORKSPACE 'artifacts\界面 测试'
+          Copy-Item -LiteralPath artifacts/windows-portable -Destination $testRoot -Recurse
+          $before = @(Get-ChildItem -LiteralPath $env:RUNNER_TEMP -File -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+          $p = Start-Process -FilePath (Join-Path $testRoot 'WBD.exe') -ArgumentList '--self-test' -WorkingDirectory $env:RUNNER_TEMP -WindowStyle Hidden -Wait -PassThru
+          Get-Content -LiteralPath (Join-Path $testRoot 'gui-test-result.json') -Raw | Write-Host
+          if ($p.ExitCode -ne 0) { throw "GUI functional tests failed: $($p.ExitCode)" }
+          $after = @(Get-ChildItem -LiteralPath $env:RUNNER_TEMP -File -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+          $unexpected = @($after | Where-Object { $_ -notin $before -and ([IO.Path]::GetFileName($_) -match '^wbd-|profiles\.json|client\.log|capture-') })
+          if ($unexpected.Count) { throw ('application files escaped portable directory: '+($unexpected -join ',')) }
+      - name: Package clean portable ZIP
+        shell: powershell
+        run: |
+          Compress-Archive -Path artifacts/windows-portable -DestinationPath artifacts/WBD-Windows-Portable.zip
+          (Get-FileHash artifacts/WBD-Windows-Portable.zip -Algorithm SHA256).Hash | Set-Content -Encoding ascii artifacts/WBD-Windows-Portable.zip.sha256
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-gui-tests-${{ github.sha }}
+          path: |
+            artifacts/界面 测试/gui-test-result.json
+            artifacts/界面 测试/gui-screenshot.png
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WBD-Windows-Portable-${{ github.sha }}
+          path: |
+            artifacts/WBD-Windows-Portable.zip
+            artifacts/WBD-Windows-Portable.zip.sha256
+          if-no-files-found: error

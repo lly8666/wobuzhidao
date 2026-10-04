@@ -124,6 +124,20 @@ function Remove-OwnedState($State) {
     Remove-WBDIPv6Rules
 }
 
+if ($Action -eq 'Cleanup') {
+    Require-Admin
+    if (Test-Path -LiteralPath $StatePath) {
+        $state = Get-Content -LiteralPath $StatePath -Raw | ConvertFrom-Json
+        Remove-OwnedState $state
+        Remove-Item -LiteralPath $StatePath -Force -ErrorAction Stop
+    } else {
+        Remove-StaleWBDNRPT
+        Remove-WBDIPv6Rules
+    }
+    Write-Output 'WBD_WINDOWS_CLIENT_CLEANUP_PASS'
+    exit 0
+}
+
 $lease = Parse-IPv4CIDR $TunnelAddress4 'TunnelAddress4' -Require32
 Assert-IPv4 $Underlay4 'Underlay4'
 Assert-IPv4 $PhysicalNextHop4 'PhysicalNextHop4'
@@ -158,19 +172,6 @@ if ($Action -eq 'Render') {
 }
 
 Require-Admin
-
-if ($Action -eq 'Cleanup') {
-    if (Test-Path -LiteralPath $StatePath) {
-        $state = Get-Content -LiteralPath $StatePath -Raw | ConvertFrom-Json
-        Remove-OwnedState $state
-        Remove-Item -LiteralPath $StatePath -Force -ErrorAction SilentlyContinue
-    } else {
-        Remove-StaleWBDNRPT
-        Remove-WBDIPv6Rules
-    }
-    Write-Output 'WBD_WINDOWS_CLIENT_CLEANUP_PASS'
-    exit 0
-}
 
 foreach ($cmd in @(
     'Get-NetAdapter','Get-NetRoute','New-NetRoute','Remove-NetRoute',

@@ -125,3 +125,7 @@ strict 样本继续分别统计 FEC、Game复制、repair、health、padding、�
 ## 2026-10-03 顺序资源优化定向收口
 
 当前产品资格SOURCE_SHA ca8175d18acd7f7e3e1db5379a58d9f85417dd97。5个资源原子步骤+1个接入队列故障隔离修复，逐项Actions unit/build/race后分别独立Normal/Game5205；12条合格样本与逐阶段RTT/loss门PASS，最新36/36生命周期及aggregate PASS。见STATUS、最新日志及evidence/resource-optimization-5205.json，历史native接线失败/队列致退出/瞬态超时保留。优化实际触发且正确性、吞吐、延迟过门，不据跨VM单样本宣称固定CPU下降；SACK主导的5205下ACK收益未证实。当前不再继续微改，下一步固定最新SOURCE_SHA全18复验，随后有界长测框架与>=1800s目标速率Normal/Game独立run；P5/P6/P7未整体关闭。每性能Action一条样本，FEC deadline8ms、4096/3s和socket buffer不调大。
+
+## Windows GUI 用户新增验收
+
+执行 WINDOWS_GUI.md：所有Windows flag对应可编辑字段或明确managed操作；每普通字段调用真实Go只读校验并核对最终值，7FEC×4lanes功能组合、非法/未知/重复JSON拒绝。中文GUI真实控件保存/profile恢复/切换先校验后旧cleanup/失败不抢接、stdin stop/EOF、缺Npcap引导、秘密隐藏、不同CWD中文空格目录、应用输出目录界限、官方Wintunhash和可下载ZIP须Actions PASS。模拟Session不能替代物理NIC收发、驱动安装/UAC和跨服务器真实业务，后者P7 NOT_RUN。驱动系统目录写入限制明确告知；不能以便携名义隐藏Wintun系统注册。

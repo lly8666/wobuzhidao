@@ -3,7 +3,7 @@
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
-  "product_state": "ACTIONS_PASS",
+  "product_state": "IN_PROGRESS",
   "updated_at": "2026-10-04",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -77,8 +77,8 @@
   "in_progress": [
     "用户优先：CPU原始证据/pprof归因、窄修；IPv6默认owned blackhole+drop；DNS默认1.1.1.1/8.8.8.8互备及默认劫持。实现/测试进行中，不继承旧资格。"
   ],
-  "next_task": "本轮默认DNS互备/IPv6丢弃及Game性能热点任务已闭合；保留已测SOURCE d9d4d90。用户安排P7或要求新SOURCE完整资格时按PREDELIVERY补full70/strict18/1800s，不能继承2b历史。无新缺陷证据不继续改FEC/4096/恢复架构。",
-  "latest_log": "docs/devlog/20261004-141000-final-agent-entry.md",
+  "next_task": "完成中文Windows GUI与便携包的精确源码Actions验收，修复所有配置/切换/退出/路径问题；不改数据面。真实Npcap/Wintun/P7仍NOT_RUN；用户待确认Wintun驱动系统注册例外。",
+  "latest_log": "docs/devlog/20261004-150000-windows-portable-gui.md",
   "last_tested_source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
   "actions": [
     {
@@ -1948,7 +1948,8 @@
     "docs/PARAMETERS.md",
     "docs/PARAMETERS.json",
     "docs/LIFECYCLE_ACCEPTANCE.md",
-    "docs/SPLIT_ROUTING.md"
+    "docs/SPLIT_ROUTING.md",
+    "docs/WINDOWS_GUI.md"
   ],
   "workstreams": {
     "IP_SPLIT_ROUTING": {
@@ -6727,5 +6728,15 @@
     "source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
     "status": "ACTIONS_PASS_TARGETED",
     "evidence": "docs/evidence/default-network-performance-d9d4d90.json"
+  },
+  "windows_gui": {
+    "params": "CLI PARAMETERS.json exact-set GUI mapping; all fields or managed actions",
+    "portable": "app-folder data/logs/tmp; Wintun/Npcap driver system registration explicitly disclosed",
+    "data_plane": "Unchanged; previous d9 evidence historical",
+    "state": "IN_PROGRESS",
+    "driver_exception": "USER_CLARIFICATION_PENDING_WINTUN",
+    "architecture": "Native WinForms .NET Framework4.8 + existing Go client",
+    "physical": "NOT_RUN",
+    "test_workflow": "next-windows-gui"
   }
 }
