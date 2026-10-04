@@ -355,23 +355,14 @@ func runWindows() error {
 			if n > 0 && buf[0]>>4 == 6 {
 				continue
 			} // captured IPv6 is a sink, never business/wake
+			packet := append([]byte(nil), buf[:n]...)
+			if err := router.ValidateFromTUN(packet); err != nil {
+				errCh <- err
+				return
+			}
 			wakeCtx, wakeCancel := context.WithTimeout(ctx, 15*time.Second)
-			err = client.PrepareBusiness(wakeCtx)
+			err = client.SendPacket(wakeCtx, packet, time.Now())
 			wakeCancel()
-			if err != nil {
-				errCh <- err
-				return
-			}
-			out, err := router.RouteFromTUN(append([]byte(nil), buf[:n]...), time.Now())
-			if err != nil {
-				errCh <- err
-				return
-			}
-			if out.IsGame {
-				err = client.SendGame(out.Game, time.Now())
-			} else {
-				err = client.SendNormal(out.Normal, time.Now())
-			}
 			if err != nil {
 				errCh <- err
 				return

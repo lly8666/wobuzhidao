@@ -510,23 +510,16 @@ func (c *TunnelClient) SendPacket(ctx context.Context, packet []byte, now time.T
 	if err := c.PrepareBusiness(ctx); err != nil {
 		return err
 	}
-	stats := c.owner.Stats()
-	switch stats.DesiredLanes {
-	case 1:
-		records, err := c.owner.NormalOutbound(packet, now)
-		if err != nil {
-			return err
-		}
-		return c.rt.SendNormal(records, now)
-	case 2, 3, 4:
-		out, err := c.owner.GameOutbound(packet, now)
-		if err != nil {
-			return err
-		}
-		return c.rt.SendGame(out, now)
-	default:
-		return datapath.ErrLaneUnavailable
+	return c.rt.SendPacket(packet, now)
+}
+
+// WithOutbound is for platform channels that own their BusinessFlow encoder.
+// PrepareBusiness/wake remains outside this bounded local emission fence.
+func (c *TunnelClient) WithOutbound(send func() error) error {
+	if c == nil {
+		return ErrClientRuntimeStopped
 	}
+	return c.rt.WithOutbound(send)
 }
 
 func (c *TunnelClient) SendNormal(records []datapath.WireRecord, now time.Time) error {
@@ -1723,7 +1716,7 @@ func (s *LifecycleServer) ensureTunnel(id logicaltunnel.TunnelID, lease logicalt
 		group.lastPayload = time.Now()
 		s.mu.Unlock()
 		return rt.PlatformWireSink(out)
-	})
+	}, rt.WithOutbound)
 	if err != nil {
 		s.cfg.Router.Unregister(token)
 		rt.Close()
@@ -1880,15 +1873,16 @@ func (s *LifecycleServer) RoutePacket(packet []byte, now time.Time) error {
 	if !ready {
 		return ErrTunnelNotQualified
 	}
-	out, err := s.cfg.Router.RouteFromTUN(packet, now)
-	if err != nil {
-		return err
-	}
-	if out.IsGame {
-		err = group.rt.SendGame(out.Game, now)
-	} else {
-		err = group.rt.SendNormal(out.Normal, now)
-	}
+	err = group.rt.WithOutbound(func() error {
+		out, err := s.cfg.Router.RouteFromTUN(packet, now)
+		if err != nil {
+			return err
+		}
+		if out.IsGame {
+			return group.rt.SendGame(out.Game, now)
+		}
+		return group.rt.SendNormal(out.Normal, now)
+	})
 	if err == nil {
 		s.mu.Lock()
 		group.lastPayload = now

@@ -290,7 +290,7 @@ func TestP5NaturalConcurrencyMeasurementHarness(t *testing.T) {
 	}
 	defer client.Close()
 
-	channel, err := platformflow.NewTunnelChannel(client.Owner(), client.PlatformWireSink)
+	channel, err := platformflow.NewTunnelChannel(client.Owner(), client.PlatformWireSink, client.WithOutbound)
 	if err != nil {
 		t.Fatal(err)
 	}

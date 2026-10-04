@@ -229,23 +229,14 @@ func (c *Client) SendPacket(packet []byte, now time.Time) error {
 	if c == nil {
 		return ErrClientRuntimeStopped
 	}
-	stats := c.owner.Stats()
-	switch stats.DesiredLanes {
-	case 1:
-		records, err := c.owner.NormalOutbound(packet, now)
-		if err != nil {
-			return err
-		}
-		return c.rt.SendNormal(records, now)
-	case 2, 3, 4:
-		out, err := c.owner.GameOutbound(packet, now)
-		if err != nil {
-			return err
-		}
-		return c.rt.SendGame(out, now)
-	default:
-		return datapath.ErrLaneUnavailable
+	return c.rt.SendPacket(packet, now)
+}
+
+func (c *Client) WithOutbound(send func() error) error {
+	if c == nil {
+		return ErrClientRuntimeStopped
 	}
+	return c.rt.WithOutbound(send)
 }
 
 func (c *Client) SendNormal(records []datapath.WireRecord, now time.Time) error {
@@ -653,7 +644,7 @@ func (s *Server) admit(ctx context.Context, assoc *faketcp.ServerAssociation) {
 		s.table.Remove(flow)
 		return
 	}
-	channel, err := platformflow.NewTunnelChannel(owner, rt.PlatformWireSink)
+	channel, err := platformflow.NewTunnelChannel(owner, rt.PlatformWireSink, rt.WithOutbound)
 	if err != nil {
 		s.cfg.Router.Unregister(token)
 		rt.Close()
@@ -745,14 +736,16 @@ func (s *Server) RoutePacket(packet []byte, now time.Time) error {
 		return ErrTunnelNotQualified
 	}
 
-	out, err := s.cfg.Router.RouteFromTUN(packet, now)
-	if err != nil {
-		return err
-	}
-	if out.IsGame {
-		return tunnel.rt.SendGame(out.Game, now)
-	}
-	return tunnel.rt.SendNormal(out.Normal, now)
+	return tunnel.rt.WithOutbound(func() error {
+		out, err := s.cfg.Router.RouteFromTUN(packet, now)
+		if err != nil {
+			return err
+		}
+		if out.IsGame {
+			return tunnel.rt.SendGame(out.Game, now)
+		}
+		return tunnel.rt.SendNormal(out.Normal, now)
+	})
 }
 
 func (s *Server) tick(now time.Time) error {

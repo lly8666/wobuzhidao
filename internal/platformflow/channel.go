@@ -16,15 +16,19 @@ type Outbound struct {
 }
 
 type WireSink func(Outbound) error
+type OutboundFence func(func() error) error
 
 type TunnelChannel struct {
 	owner     *datapath.TunnelOwner
 	leaseAddr [4]byte
 	sink      WireSink
+	fence     OutboundFence
 }
 
-func NewTunnelChannel(owner *datapath.TunnelOwner, sink WireSink) (*TunnelChannel, error) {
-	if owner == nil || sink == nil {
+// fence, when supplied, spans source encoding and sink emission. It must not
+// include candidate admission or be acquired again by the sink.
+func NewTunnelChannel(owner *datapath.TunnelOwner, sink WireSink, fence ...OutboundFence) (*TunnelChannel, error) {
+	if owner == nil || sink == nil || len(fence) > 1 || (len(fence) == 1 && fence[0] == nil) {
 		return nil, ErrMalformed
 	}
 	lease, ok := owner.Lease()
@@ -35,7 +39,11 @@ func NewTunnelChannel(owner *datapath.TunnelOwner, sink WireSink) (*TunnelChanne
 	if err != nil {
 		return nil, err
 	}
-	return &TunnelChannel{owner: owner, leaseAddr: addr.Unmap().As4(), sink: sink}, nil
+	channel := &TunnelChannel{owner: owner, leaseAddr: addr.Unmap().As4(), sink: sink}
+	if len(fence) == 1 {
+		channel.fence = fence[0]
+	}
+	return channel, nil
 }
 
 func (c *TunnelChannel) LeaseAddr() netip.Addr {
@@ -87,6 +95,13 @@ func (f *TunnelFlow) Send(frame Frame, now time.Time) error {
 	if err != nil {
 		return err
 	}
+	if channel.fence != nil {
+		return channel.fence(func() error { return f.sendPacket(channel, business, packet, now) })
+	}
+	return f.sendPacket(channel, business, packet, now)
+}
+
+func (f *TunnelFlow) sendPacket(channel *TunnelChannel, business *datapath.BusinessFlow, packet []byte, now time.Time) error {
 	stats := channel.owner.Stats()
 	switch stats.DesiredLanes {
 	case 1:

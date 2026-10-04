@@ -73,10 +73,7 @@ func (r *Router) Lease() logicaltunnel.Lease {
 // The leased client TunnelOwner repeats the same source fence before Lane state,
 // keeping the platform boundary defense-in-depth.
 func (r *Router) RouteFromTUN(packet []byte, now time.Time) (RoutedOutbound, error) {
-	if r == nil {
-		return RoutedOutbound{}, ErrInvalidBinding
-	}
-	if err := logicaltunnel.ValidateIPv4Source(packet, r.addr); err != nil {
+	if err := r.ValidateFromTUN(packet); err != nil {
 		return RoutedOutbound{}, err
 	}
 	stats := r.owner.Stats()
@@ -90,6 +87,15 @@ func (r *Router) RouteFromTUN(packet []byte, now time.Time) (RoutedOutbound, err
 	default:
 		return RoutedOutbound{}, datapath.ErrLaneUnavailable
 	}
+}
+
+// ValidateFromTUN preserves the platform lease fence without pre-sealing data
+// outside the runtime's source-to-wire generation fence.
+func (r *Router) ValidateFromTUN(packet []byte) error {
+	if r == nil {
+		return ErrInvalidBinding
+	}
+	return logicaltunnel.ValidateIPv4Source(packet, r.addr)
 }
 
 // DeliverFromOwner writes server->client packets only when the IPv4 destination

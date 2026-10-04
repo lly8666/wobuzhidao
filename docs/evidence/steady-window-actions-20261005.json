@@ -1,0 +1,606 @@
+{
+  "schema": "wbd-steady-window-actions/v1",
+  "samples": [
+    {
+      "name": "normal5205",
+      "run_id": 37242239754,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37242239754",
+      "source_sha": "bde76a9938e3e8fe1269d8544e20045186128543",
+      "harness_sha": "bde76a9938e3e8fe1269d8544e20045186128543",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "generator": {
+        "c2s": {
+          "post": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999978666666665,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 37499920,
+            "sent_packets": 74013,
+            "unique_delivered_bytes": 37499920,
+            "unique_delivered_packets": 74013,
+            "wall_delivered_mbps": 10.0015488,
+            "wall_delivered_mbps_path_delay_aligned": 10.000503466666666,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 9.999995733333332,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999995733333332,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999995733333333,
+            "sent_bytes": 37499984,
+            "sent_packets": 74014,
+            "unique_delivered_bytes": 37499984,
+            "unique_delivered_packets": 74014,
+            "wall_delivered_mbps": 9.8987648,
+            "wall_delivered_mbps_path_delay_aligned": 9.997546666666667,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 10.0000128,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 10.0000128,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.00000128,
+            "sent_bytes": 75000096,
+            "sent_packets": 148027,
+            "unique_delivered_bytes": 75000096,
+            "unique_delivered_packets": 148027,
+            "wall_delivered_mbps": 9.9995392,
+            "wall_delivered_mbps_path_delay_aligned": 10.0007296,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        },
+        "s2c": {
+          "post": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999978666666665,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 37499920,
+            "sent_packets": 74013,
+            "unique_delivered_bytes": 37499920,
+            "unique_delivered_packets": 74013,
+            "wall_delivered_mbps": 10.000064,
+            "wall_delivered_mbps_path_delay_aligned": 10.000938666666666,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 9.999995733333332,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999995733333332,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999995733333333,
+            "sent_bytes": 37499984,
+            "sent_packets": 74014,
+            "unique_delivered_bytes": 37499984,
+            "unique_delivered_packets": 74014,
+            "wall_delivered_mbps": 9.898713599999999,
+            "wall_delivered_mbps_path_delay_aligned": 9.998391466666666,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 10.0000128,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 10.0000128,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.00000128,
+            "sent_bytes": 75000096,
+            "sent_packets": 148027,
+            "unique_delivered_bytes": 75000096,
+            "unique_delivered_packets": 148027,
+            "wall_delivered_mbps": 10.000349866666667,
+            "wall_delivered_mbps_path_delay_aligned": 10.000258133333332,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        }
+      },
+      "cpu_seconds": {
+        "client": 89.34,
+        "server": 90.72
+      },
+      "socket_drop_max": 0,
+      "probe_stage": {
+        "post": {
+          "p95_ns": 619358235,
+          "p99_ns": 620320645,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 617120665,
+          "p99_ns": 623766171,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 618689639,
+          "p99_ns": 620315812,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "name": "game5205",
+      "run_id": 37242242521,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37242242521",
+      "source_sha": "bde76a9938e3e8fe1269d8544e20045186128543",
+      "harness_sha": "bde76a9938e3e8fe1269d8544e20045186128543",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "generator": {
+        "c2s": {
+          "post": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.999552,
+            "wall_delivered_mbps_path_delay_aligned": 3.0002773333333335,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.9698773333333337,
+            "wall_delivered_mbps_path_delay_aligned": 2.999872,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 2.999872,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 2.999872,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999573333333334,
+            "sent_bytes": 22499040,
+            "sent_packets": 44406,
+            "unique_delivered_bytes": 22499040,
+            "unique_delivered_packets": 44406,
+            "wall_delivered_mbps": 3.0000746666666664,
+            "wall_delivered_mbps_path_delay_aligned": 2.9999146666666667,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        },
+        "s2c": {
+          "post": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.999872,
+            "wall_delivered_mbps_path_delay_aligned": 2.999872,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 3.0002773333333335,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 3.0002773333333335,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.0000924444444443,
+            "sent_bytes": 11251040,
+            "sent_packets": 22206,
+            "unique_delivered_bytes": 11251040,
+            "unique_delivered_packets": 22206,
+            "wall_delivered_mbps": 2.9698773333333337,
+            "wall_delivered_mbps_path_delay_aligned": 2.999889066666667,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 2.999872,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 2.999872,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999573333333334,
+            "sent_bytes": 22499040,
+            "sent_packets": 44406,
+            "unique_delivered_bytes": 22499040,
+            "unique_delivered_packets": 44406,
+            "wall_delivered_mbps": 3.0000746666666664,
+            "wall_delivered_mbps_path_delay_aligned": 3.000066133333333,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        }
+      },
+      "cpu_seconds": {
+        "client": 98.95,
+        "server": 93.98
+      },
+      "socket_drop_max": 0,
+      "probe_stage": {
+        "post": {
+          "p95_ns": 607289371,
+          "p99_ns": 607897452,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 606101211,
+          "p99_ns": 607277882,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 604721734,
+          "p99_ns": 606421638,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "name": "candidate-stateful",
+      "run_id": 37242244758,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37242244758",
+      "source_sha": "bde76a9938e3e8fe1269d8544e20045186128543",
+      "harness_sha": "bde76a9938e3e8fe1269d8544e20045186128543",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "generator": {
+        "c2s": {
+          "post": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999978666666665,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 37499920,
+            "sent_packets": 74013,
+            "unique_delivered_bytes": 37499920,
+            "unique_delivered_packets": 74013,
+            "wall_delivered_mbps": 10.000704,
+            "wall_delivered_mbps_path_delay_aligned": 10.000298666666666,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 9.999995733333332,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999995733333332,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999995733333333,
+            "sent_bytes": 37499984,
+            "sent_packets": 74014,
+            "unique_delivered_bytes": 37499984,
+            "unique_delivered_packets": 74014,
+            "wall_delivered_mbps": 9.899541333333334,
+            "wall_delivered_mbps_path_delay_aligned": 9.999185066666666,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 10.0000128,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 10.0000128,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.00000128,
+            "sent_bytes": 75000096,
+            "sent_packets": 148027,
+            "unique_delivered_bytes": 75000096,
+            "unique_delivered_packets": 148027,
+            "wall_delivered_mbps": 9.999978666666665,
+            "wall_delivered_mbps_path_delay_aligned": 10.000215466666667,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        },
+        "s2c": {
+          "post": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999978666666665,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 37499920,
+            "sent_packets": 74013,
+            "unique_delivered_bytes": 37499920,
+            "unique_delivered_packets": 74013,
+            "wall_delivered_mbps": 10.000064,
+            "wall_delivered_mbps_path_delay_aligned": 10.000384,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 9.999995733333332,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 9.999995733333332,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 0.9999995733333333,
+            "sent_bytes": 37499984,
+            "sent_packets": 74014,
+            "unique_delivered_bytes": 37499984,
+            "unique_delivered_packets": 74014,
+            "wall_delivered_mbps": 9.899541333333334,
+            "wall_delivered_mbps_path_delay_aligned": 9.999658666666667,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 10.0000128,
+            "byte_loss_percent": 0.0,
+            "eventual_goodput_mbps": 10.0000128,
+            "packet_loss_percent": 0.0,
+            "send_target_ratio": 1.00000128,
+            "sent_bytes": 75000096,
+            "sent_packets": 148027,
+            "unique_delivered_bytes": 75000096,
+            "unique_delivered_packets": 148027,
+            "wall_delivered_mbps": 10.000138666666667,
+            "wall_delivered_mbps_path_delay_aligned": 9.999944533333332,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        }
+      },
+      "cpu_seconds": {
+        "client": 81.5,
+        "server": 81.65
+      },
+      "socket_drop_max": 0,
+      "probe_stage": {
+        "post": {
+          "p95_ns": 607647747,
+          "p99_ns": 612440726,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 604483112,
+          "p99_ns": 604609885,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 606656051,
+          "p99_ns": 608933760,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "stateful_invalid_drop": {
+        "packets": 0,
+        "bytes": 0
+      }
+    },
+    {
+      "name": "old-stateful",
+      "run_id": 37242246886,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37242246886",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "harness_sha": "bde76a9938e3e8fe1269d8544e20045186128543",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "FAIL"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": [
+          "c2s/pre packet_loss=99.72843342565696 > 0.0",
+          "c2s/pre delay_aligned_wall_goodput=0.027157333333333332 target=10.0 ratio=0.99 path_delay_ms=300",
+          "c2s/stress packet_loss=100.0 > 0.0",
+          "c2s/stress delay_aligned_wall_goodput=0.0 target=10.0 ratio=0.99 path_delay_ms=300",
+          "c2s/post packet_loss=99.47036331455286 > 0.0",
+          "c2s/post delay_aligned_wall_goodput=0.05277866666666666 target=10.0 ratio=0.99 path_delay_ms=300",
+          "s2c/pre packet_loss=99.47037762615686 > 0.0",
+          "s2c/pre delay_aligned_wall_goodput=0.05277866666666666 target=10.0 ratio=0.99 path_delay_ms=300",
+          "s2c/stress packet_loss=100.0 > 0.0",
+          "s2c/stress delay_aligned_wall_goodput=0.0 target=10.0 ratio=0.99 path_delay_ms=300",
+          "s2c/post packet_loss=99.47713301357832 > 0.0",
+          "s2c/post delay_aligned_wall_goodput=0.052288 target=10.0 ratio=0.99 path_delay_ms=300",
+          "lossless probe timeouts=120/120"
+        ]
+      },
+      "generator": {
+        "c2s": {
+          "post": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 99.47221220738604,
+            "eventual_goodput_mbps": 0.05277866666666666,
+            "packet_loss_percent": 99.47036331455286,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 37499920,
+            "sent_packets": 74013,
+            "unique_delivered_bytes": 197920,
+            "unique_delivered_packets": 392,
+            "wall_delivered_mbps": 0.05277866666666666,
+            "wall_delivered_mbps_path_delay_aligned": 0.05277866666666666,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 10.000064,
+            "byte_loss_percent": 99.72842840472488,
+            "eventual_goodput_mbps": 0.027157333333333332,
+            "packet_loss_percent": 99.72843342565696,
+            "send_target_ratio": 1.0000064,
+            "sent_bytes": 37500240,
+            "sent_packets": 74015,
+            "unique_delivered_bytes": 101840,
+            "unique_delivered_packets": 201,
+            "wall_delivered_mbps": 0.027157333333333332,
+            "wall_delivered_mbps_path_delay_aligned": 0.027157333333333332,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 9.999978666666665,
+            "byte_loss_percent": 100.0,
+            "eventual_goodput_mbps": 0.0,
+            "packet_loss_percent": 100.0,
+            "send_target_ratio": 0.9999978666666667,
+            "sent_bytes": 74999840,
+            "sent_packets": 148026,
+            "unique_delivered_bytes": 0,
+            "unique_delivered_packets": 0,
+            "wall_delivered_mbps": 0.0,
+            "wall_delivered_mbps_path_delay_aligned": 0.0,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        },
+        "s2c": {
+          "post": {
+            "actual_send_mbps": 10.000064,
+            "byte_loss_percent": 99.47712334641058,
+            "eventual_goodput_mbps": 0.052288,
+            "packet_loss_percent": 99.47713301357832,
+            "send_target_ratio": 1.0000064,
+            "sent_bytes": 37500240,
+            "sent_packets": 74015,
+            "unique_delivered_bytes": 196080,
+            "unique_delivered_packets": 387,
+            "wall_delivered_mbps": 0.052288,
+            "wall_delivered_mbps_path_delay_aligned": 0.052288,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "pre": {
+            "actual_send_mbps": 10.000064,
+            "byte_loss_percent": 99.47221671114639,
+            "eventual_goodput_mbps": 0.05277866666666666,
+            "packet_loss_percent": 99.47037762615686,
+            "send_target_ratio": 1.0000064,
+            "sent_bytes": 37500240,
+            "sent_packets": 74015,
+            "unique_delivered_bytes": 197920,
+            "unique_delivered_packets": 392,
+            "wall_delivered_mbps": 0.05277866666666666,
+            "wall_delivered_mbps_path_delay_aligned": 0.05277866666666666,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          },
+          "stress": {
+            "actual_send_mbps": 9.999936,
+            "byte_loss_percent": 100.0,
+            "eventual_goodput_mbps": 0.0,
+            "packet_loss_percent": 100.0,
+            "send_target_ratio": 0.9999936,
+            "sent_bytes": 74999520,
+            "sent_packets": 148024,
+            "unique_delivered_bytes": 0,
+            "unique_delivered_packets": 0,
+            "wall_delivered_mbps": 0.0,
+            "wall_delivered_mbps_path_delay_aligned": 0.0,
+            "wall_delivery_bucket_ms": 10,
+            "wall_delivery_path_delay_ms": 300
+          }
+        }
+      },
+      "cpu_seconds": {
+        "client": 37.94,
+        "server": 36.46
+      },
+      "socket_drop_max": 0,
+      "probe_stage": {
+        "post": {
+          "p95_ns": null,
+          "p99_ns": null,
+          "received": 0,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": null,
+          "p99_ns": null,
+          "received": 0,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": null,
+          "p99_ns": null,
+          "received": 0,
+          "sent": 60
+        }
+      },
+      "stateful_invalid_drop": {
+        "packets": 1576859,
+        "bytes": 895144231
+      }
+    }
+  ],
+  "correctness_followup_source": "4163938a5117e6188807957f3a7ae98477c4690f",
+  "correctness_runs": [
+    37242434270,
+    37242434329,
+    37242434262,
+    37242434236,
+    37242434275
+  ],
+  "native_deployed_source": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+  "native_cause": "NOT_YET_CONFIRMED",
+  "new_promotion_candidate": "NOT_TESTED"
+}

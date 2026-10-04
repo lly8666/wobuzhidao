@@ -277,7 +277,7 @@ func runLinuxClient() error {
 	}
 	defer client.Close()
 
-	channel, err := platformflow.NewTunnelChannel(client.Owner(), client.PlatformWireSink)
+	channel, err := platformflow.NewTunnelChannel(client.Owner(), client.PlatformWireSink, client.WithOutbound)
 	if err != nil {
 		return err
 	}

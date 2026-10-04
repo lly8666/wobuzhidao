@@ -992,6 +992,10 @@ type candidateTransport struct {
 
 type Runtime struct {
 	mu sync.Mutex
+	// Pin one locally produced packet to its generation through synchronous
+	// emission. Candidate TLS/admission never holds this lock; promotion is the
+	// only replacement writer. Readers never wait for ACK or a network receipt.
+	outboundMu sync.RWMutex
 
 	owner      *datapath.TunnelOwner
 	deliver    PacketSink
@@ -1105,6 +1109,8 @@ func (r *Runtime) PromoteSameIDReplacement(old logicaltunnel.LaneRef) (datapath.
 	if r == nil {
 		return datapath.TunnelLaneSnapshot{}, ErrRuntimeClosed
 	}
+	r.outboundMu.Lock()
+	defer r.outboundMu.Unlock()
 	r.mu.Lock()
 	candidate, ok := r.candidates[old.ID]
 	if !ok || candidate.old != old {
@@ -1199,6 +1205,8 @@ func (r *Runtime) Dormant() ([]logicaltunnel.LaneRef, error) {
 	if r == nil {
 		return nil, ErrRuntimeClosed
 	}
+	r.outboundMu.Lock()
+	defer r.outboundMu.Unlock()
 	r.mu.Lock()
 	lanes := make([]*laneTransport, 0, len(r.lanes))
 	for _, transport := range r.lanes {
@@ -1299,6 +1307,41 @@ func (r *Runtime) AttachClientAdmission(laneID uint8, session *realityfront.Clie
 		return datapath.TunnelLaneSnapshot{}, err
 	}
 	return snapshot, nil
+}
+
+// WithOutbound pins source encoding and its synchronous sink to one generation.
+// The callback must not reenter this method or promote/dormant the same runtime.
+// Pre-sealed records retain their strict stale-generation fence in SendNormal.
+func (r *Runtime) WithOutbound(send func() error) error {
+	if r == nil || send == nil {
+		return ErrRuntimeClosed
+	}
+	r.outboundMu.RLock()
+	defer r.outboundMu.RUnlock()
+	return send()
+}
+
+// SendPacket encodes and emits a fresh packet without a promotion between its
+// fragments. It never retries a partially emitted packet under fresh keys.
+func (r *Runtime) SendPacket(packet []byte, now time.Time) error {
+	return r.WithOutbound(func() error {
+		switch r.owner.Stats().DesiredLanes {
+		case 1:
+			records, err := r.owner.NormalOutbound(packet, now)
+			if err != nil {
+				return err
+			}
+			return r.SendNormal(records, now)
+		case 2, 3, 4:
+			out, err := r.owner.GameOutbound(packet, now)
+			if err != nil {
+				return err
+			}
+			return r.SendGame(out, now)
+		default:
+			return datapath.ErrLaneUnavailable
+		}
+	})
 }
 
 func (r *Runtime) SendNormal(records []datapath.WireRecord, now time.Time) error {
@@ -1522,6 +1565,14 @@ func (r *Runtime) Tick(now time.Time) error {
 		// parity. Retiring transports keep their bounded repair tick but cannot
 		// create fresh steady records after generation replacement.
 		if lane.active {
+			r.outboundMu.RLock()
+			r.mu.Lock()
+			stillActive := !r.closed && r.active[lane.ref.ID] == lane.ref
+			r.mu.Unlock()
+			if !stillActive {
+				r.outboundMu.RUnlock()
+				continue
+			}
 			if err := lane.transport.tickHealth(now); err != nil {
 				errs = append(errs, err)
 			}
@@ -1535,6 +1586,7 @@ func (r *Runtime) Tick(now time.Time) error {
 					errs = append(errs, err)
 				}
 			}
+			r.outboundMu.RUnlock()
 		}
 		if err := lane.transport.tick(now); err != nil {
 			errs = append(errs, err)

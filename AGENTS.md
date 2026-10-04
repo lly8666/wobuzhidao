@@ -21,6 +21,8 @@
 
 ## 当前性能主线（2026-09-23）
 
+2026-10-05最新修复主线：旧6181在严格conntrack路由可复现零吞吐/探针全超时，稳态窗口分离候选Normal/Game5205及stateful独立Action均PASS，测试修正后4163938 core/race全部PASS；下一候选新增source到wire promotion边界修复Windows stale-generation fatal。先按STATUS验此候选和真实rotation，再同源打包原生复验D01；未通过不能将旧P7或父SOURCE资格继承。Windows/Linux/server/platform flow/timer发送必须遵守同一generation边界；不得吞stale、部分发出后整包重试或让候选TLS持有业务锁。每性能run一条，详细日志持续留存。
+
 2026-10-05最新原生五分钟进展：固定6181db6未改产品；S01 Normal10与S02 Game4×3达到目标附近但C2S缺74/10包，不能写无损PASS；M01外层MTU1400大包至9000B无坏数据但有1次迟到。D01默认NRPT+10M出现约90秒双向中断、约30.12%业务loss和8/60 DNS失败，明确FAIL；整体P7仍PARTIAL。优先按STATUS.physical_5min复现D01并异常触发抓包定位最早边界，不直接归因DNS/VM或扩大buffer/FEC/4096。完整DNS互备、LAN/CN/IP/IPv6、其他配置/生命周期/弱网未跑。方案PHYSICAL_5MIN_ACCEPTANCE.md、日志devlog/20261005-021317-five-minute-native-capture-matrix.md、evidence/physical-5min-6181db6-20261005.json及压缩原始计数为当前证据入口；每性能Action只一条。原始pcap已删、退出owned清理通过，服务端保留active。 接手先读最新五分钟方案和日志；下文014639的120s结果属于历史局部资格，不覆盖此次D01 FAIL。用户授权原生测试为开发期Actions规则的本次例外；不能凭此把新产品编译/race/性能移到开发机。
 
 2026-10-05用户授权的原生Windows→ARM WAN测试已执行，先读STATUS.physical_native和devlog/20261005-014639-native-wan-no-pcap.md。固定6181db6二进制不变：Normal1双向10M两份完整120s、Game4双向3M一份120s业务loss0；DNS/TCP/验证证书HTTPS及退出owned清理通过。首轮120s summary timeout/单向约4.16M的部分证据和fresh Normal AF_PACKET drops+125未解释，必须保留；整体P7仅PARTIAL，GUI实际操作/人为弱网/长测未验。Windows是vmxnet3虚拟网卡，不宣称裸机NIC。测试助手不保存pcap/payload，凭据不入库；临时地址/任务/证书已清理，服务端保留active、客户端断开。下一步先定位原生接收pressure和首轮异常，不能直接归因VM或扩大buffer/FEC/4096。每性能Action仍只一条。
