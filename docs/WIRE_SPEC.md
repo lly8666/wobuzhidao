@@ -184,3 +184,9 @@ platformflow仅用于内层TCP代理，并非外层repair协议。TCPData.Payloa
 
 Promotion后新业务只由active generation生成并发送；old Ref的FenceOutbound/SendNormal仍失败，旧密文不得套新密钥/新TCP序列空间。接收允许当前active，或owner现有retiring集合中明确登记、尚未Retire的同身份incarnation。retiring有原CloseWrite/FIN及绝对关闭预算、10物理lane上限，不新增期限或候选接收权。记录由该incarnation自己的keys/PN去重/FEC/LINK处理；server lease源地址隔离和Game session/LaneID/共享PacketID去重不变。处理后再次检查接收授权，Retire/DORMANT/Close移除者拒绝；任意历史generation不可恢复。新数据无需等旧分片/缺口。wire字段、admission及用户配置均不变。
 
+## 2026-10-04：受保护的自动IPv4租约扩展
+
+自动请求以WBAL替代受TLS保护的原WBAD magic，其余V2请求头/TunnelID/username/password原布局不变，password后追加InstallationID[16]及DesiredLanes:uint8（1..4，LaneID不得超过它）。旧WBAD请求和回复字节不变。自动成功回复在原V2回复头及TunnelID后追加4字节网络顺序IPv4，客户端解释为/32；截断、unspecified或multicast拒绝。用户名密码验证失败不能调用分配器。记录Version=2与原exporter context、record/FEC/LINK/ACK稳态协议不变；不支持WBAL的端点明确拒绝，自动客户端不退回静态。
+
+自动TunnelID取SHA256("wbd-installation-v1"+NUL+account+NUL+InstallationID)前16字节，account等于通过认证的username，设备ID不属于秘密认证。服务端在池内随机唯一分配，内存期限7天，认证重连续期；active/retiring owner仍占用时不可复用。每逻辑Tunnel保持初次DesiredLanes，换代不能临时改变模式；不同Tunnel可以Normal1/Game4并存。成功受保护回复地址先绑定尚未建业务的placeholder owner，再创建平台网络地址。健康旧lane遇到地址不同的新候选只拒绝候选；所有旧lane失活或DORMANT时要求清理并重建平台owner，不热换地址，不等待旧业务缺口。
+

@@ -217,7 +217,7 @@ namespace Wbd.Gui {
             connectedId = editing.Id; ShowState("正在建立连接 · " + editing.Name); servers.Invalidate();
             await session.StartAsync(store.InRoot("data/active.json"));
         }
-        public async Task DisconnectAsync() { leaseRestart = false; if (session.Active) ShowState("正在断开并清理网络状态…"); await session.StopAsync(); Drain(); connectedId = null; ShowState("未连接"); servers.Invalidate(); }
+        public async Task DisconnectAsync() { leaseRestart = false; if (session.Active) ShowState("正在断开并清理网络状态…"); await session.StopAsync(); Drain(); leaseRestart = false; connectedId = null; ShowState("未连接"); servers.Invalidate(); }
         async Task ImportDialogAsync() {
             using (var dialog = new OpenFileDialog { Filter = "客户端配置 (*.json)|*.json", Title = "导入客户端 JSON 配置", RestoreDirectory = true }) if (dialog.ShowDialog(this) == DialogResult.OK) await ImportAsync(dialog.FileName);
         }

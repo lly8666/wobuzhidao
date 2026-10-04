@@ -22,6 +22,7 @@ namespace Wbd.Gui {
             public bool Active { get; private set; }
             public readonly List<string> Events = new List<string>();
             public bool FailStop;
+			public void ChangeLease() { Active=false; if (Line!=null) Line("WBD_CLIENT_LEASE_CHANGED: test reassignment"); }
             public Task<Dictionary<string, object>> ValidateAsync(string path) { Events.Add("validate"); return Task.FromResult(new Dictionary<string, object>()); }
             public Task StartAsync(string config) { Events.Add("start:" + File.ReadAllText(config)); Active = true; if (Line != null) Line("WBD_WINDOWS_CLIENT_READY"); return Task.FromResult(0); }
             public Task StopAsync() { Events.Add("stop"); if (FailStop) throw new IOException("test cleanup unfinished"); Active = false; return Task.FromResult(0); }
@@ -97,6 +98,12 @@ namespace Wbd.Gui {
                     int before = fake.Events.Count; Wait(form.ConnectSelectedAsync());
                     Assert(fake.Events.Skip(before).Select(x => x.Split(':')[0]).SequenceEqual(new[]{"validate","stop","start"}), "server switch validates then cleanup then starts");
                     Assert(fake.Events.Last().Contains("203.0.113.19"), "switched server config passed to child");
+					int priorStarts=fake.Events.Count(x=>x.StartsWith("start:"));
+					fake.ChangeLease();
+					DateTime leaseDeadline=DateTime.UtcNow.AddSeconds(5);
+					while (fake.Events.Count(x=>x.StartsWith("start:"))==priorStarts && DateTime.UtcNow<leaseDeadline) { Application.DoEvents(); System.Threading.Thread.Sleep(10); }
+					Assert(fake.Active && fake.Events.Count(x=>x.StartsWith("start:"))==priorStarts+1,"server lease change rebuilds stopped client once");
+					Assert(fake.Events.Last().Contains("203.0.113.19"),"lease rebuild uses last active server configuration");
                     fake.FailStop = true; bool denied = false; int starts = fake.Events.Count(x => x.StartsWith("start:"));
                     try { Wait(form.ConnectSelectedAsync()); } catch { denied = true; }
                     Assert(denied && fake.Active && fake.Events.Count(x => x.StartsWith("start:")) == starts, "unfinished cleanup preserves old client and blocks replacement");

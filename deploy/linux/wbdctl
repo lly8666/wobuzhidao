@@ -23,8 +23,10 @@ def fail(message):
     raise RuntimeError(message)
 
 def hashfile(path):
+    digest = hashlib.sha256()
     with open(path, "rb") as f:
-        return hashlib.file_digest(f, "sha256").hexdigest()
+        while data := f.read(1024 * 1024): digest.update(data)
+    return digest.hexdigest()
 
 def atomic_text(path, text, mode=0o600):
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -67,6 +69,9 @@ def stage(package, install_root):
         for entry in manifest["files"]:
             path = (folder / entry["path"]).resolve()
             if not path.is_relative_to(folder.resolve()) or not path.is_file() or hashfile(path) != entry["sha256"]: fail("Package file hash mismatch")
+        required = {"server": "wbd-server", "linux_service": "wbd-server.service", "linux_config_example": "server.example.json", "linux_management": "wbdctl"}
+        for role, name in required.items():
+            if not any(e["role"] == role and e["path"] == name for e in manifest["files"]): fail("Missing verified deployment asset: " + role)
         binary = folder / "wbd-server"
         if not any(e["role"] == "server" and e["path"] == "wbd-server" for e in manifest["files"]): fail("Server missing from manifest")
         binary.chmod(0o755)
@@ -74,7 +79,9 @@ def stage(package, install_root):
         if source not in reported or version not in reported: fail("Binary source/version mismatch")
         release = install_root / "releases" / version
         if release.exists():
-            if hashfile(release / "wbd-server") != hashfile(binary): fail("Existing version has different contents")
+            for entry in manifest["files"]:
+                existing = release / entry["path"]
+                if not existing.is_file() or hashfile(existing) != entry["sha256"]: fail("Existing version has different contents")
             return release
         release.parent.mkdir(parents=True, exist_ok=True)
         os.replace(folder, release)
@@ -119,6 +126,7 @@ def main():
             release = stage(package, app)
         old = current.resolve() if current.is_symlink() else None
         if args.command == "upgrade" and not old: fail("Not installed")
+        if args.command == "install" and old and old != release: fail("Already installed; use upgrade to safely change version")
         if config.exists(): run([str(release / "wbd-server"), "--config", str(config), "--check-config"])
         if args.command == "upgrade":
             ctl("stop")

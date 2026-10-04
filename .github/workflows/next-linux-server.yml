@@ -49,7 +49,7 @@ jobs:
             sudo ip netns del "$ns"
           done
       - name: Actual systemd install stop kill upgrade rollback and uninstall
-        run: sudo env GITHUB_SHA="$GITHUB_SHA" python3 tools/test_linux_server_delivery.py artifacts/linux-amd64
+        run: sudo env PATH="$PATH" GITHUB_SHA="$GITHUB_SHA" python3 tools/test_linux_server_delivery.py artifacts/linux-amd64
       - name: Cross-build arm64 package (native run not claimed)
         run: |
           python3 tools/p6_build_release.py --source-sha "$GITHUB_SHA" --version "next-rc-${GITHUB_SHA:0:12}" --target-os linux --target-arch arm64 --output-dir artifacts/linux-arm64
