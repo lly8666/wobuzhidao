@@ -3,7 +3,8 @@
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
-  "product_state": "IN_PROGRESS",
+  "product_state": "ACTIONS_PASS",
+  "qualification_scope": "6181db6 Linux deployment and automatic multi-client/native recovery, paired GUI,36 lifecycle and targeted5205 PASS; latest full70/strict18/1800s and physical NOT_RUN",
   "updated_at": "2026-10-04",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -73,15 +74,21 @@
     "2026-10-04 IPv4 LAN/CN默认直连+内置MIT地址表+显式手动更新完成：SOURCE a67e10f core/race、4种真实DNS/TCP/HTTPS出口+direct不唤醒/proxy重建、36生命周期、独立Normal/Game5205及三目标新P6 PASS。",
     "2026-10-04：默认普通DNS1.1.1.1/8.8.8.8互备、IPv6捕获丢弃，exact SOURCE d9d4d90核心/功能/清理通过；Windows实际驱动/NRPT仍P7",
     "2026-10-04：采样定位Game逐包扫描历史，增量退役保持原窗口/乱序/no-HOL；独立Normal/Game5205、36生命周期、三关键配置及P6通过，旧新CPU对比host差异单列",
-    "Windows中文GUI与便携包完成：29普通字段及全部managed操作、服务器管理/切换/安全停止、Npcap引导、原版Wintun随包。9857bdb同源206GUI检查及core/race/网络专项PASS，已发布固定标签预发布。物理P7仍NOT_RUN。"
+    "Windows中文GUI与便携包完成：29普通字段及全部managed操作、服务器管理/切换/安全停止、Npcap引导、原版Wintun随包。9857bdb同源206GUI检查及core/race/网络专项PASS，已发布固定标签预发布。物理P7仍NOT_RUN。",
+    "2026-10-04 Linux部署/共享账号多客户端自动7天内存IP与配套GUI完成：SOURCE6181db6 native12/systemd12/GUI208/core-race/真实DNS分流/36+aggregate37jobs/两独立5205 PASS，正常与SIGKILL同端口重建、foreign/live保护通过，三平台同源包预发布linux-server-rc-20261004-6181db6。"
   ],
-  "in_progress": [
-    "Linux服务端部署完善及共享账号多客户端自动内存7天租约：第一候选待Actions，继续安装/systemd/升级回滚。"
-  ],
-  "next_task": "验收Linux客户端namespace独占锁和TPROXY崩溃恢复；native强杀/原端口/其他客户端与foreign保护全过后固定新SOURCE core/race/36与两独立5205，再发布替代候选。",
-  "latest_log": "docs/devlog/20261004-194100-linux-crash-final-source.md",
-  "last_tested_source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
+  "in_progress": [],
+  "next_task": "本轮Linux与配套预发布已完成，固定6181db6。继续完整交付前资格时先补该SOURCE full70/strict18/Normal与Game1800s，每性能Action只一条；再由用户安排P7 Windows驱动/物理部署/ARM原生。无新缺陷不改FEC、4096或架构，不继承旧2b完整成绩。",
+  "latest_log": "docs/devlog/20261004-195600-linux-server-delivery-complete.md",
+  "last_tested_source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
   "actions": [
+    {
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199462544",
+      "scope": "product",
+      "status": "PASS",
+      "note": "Scoped Linux/native12/deployment12, GUI208, core-race,36lifecycle and two independent5205; evidence linux-server-6181db6.json; latest full70/18/1800s/physical NOT_RUN."
+    },
     {
       "source_sha": "3335b13a913cbd4b1adc689d75605b159280afac",
       "url": "https://github.com/lly8666/wobuzhidao/actions/runs/35433878751",
@@ -6788,6 +6795,16 @@
     "evidence": "docs/evidence/default-network-performance-d9d4d90.json"
   },
   "windows_gui": {
+    "latest_paired_release": {
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "tag": "linux-server-rc-20261004-6181db6",
+      "checks": 208,
+      "result": "PASS",
+      "run": 37199462548,
+      "evidence": "docs/evidence/linux-server-6181db6.json",
+      "physical": "NOT_RUN"
+    },
+    "historical_scope": "Following9857bdb final_source/run/package fields remain historical standalone GUI receipt; latest_paired_release is current",
     "params": "CLI PARAMETERS.json exact-set GUI mapping; all fields or managed actions",
     "portable": "app-folder data/logs/tmp; Wintun/Npcap driver system registration explicitly disclosed",
     "data_plane": "Protocol/FEC/recovery unchanged; Windows startup/cleanup/config validation/path changes qualified on9857bdb. d9 performance remains historical scoped evidence.",
@@ -6926,18 +6943,26 @@
     ]
   },
   "linux_server": {
-    "physical": "NOT_RUN",
-    "state": "IN_PROGRESS",
-    "lease": "memory-only randomized unique IPv4; 7 days, authenticated renewal, active owner pins",
-    "authentication": "shared simple username/password; installation distinguishes clients",
+    "state": "ACTIONS_PASS_DELIVERED",
+    "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+    "lease": "memory-only randomized unique IPv4;7days;authenticated renewal;healthy/retiring protection;server restart permits reassignment",
+    "authentication": "shared simple username/password;installation distinguishes clients;no account management panel",
     "plan": "docs/LINUX_SERVER.md",
-    "evidence": "e0973219 exact source: all seven workflows PASS, GUI208 checks, managed deployment12 checks and core/race; native multi-client/reassignment not yet run",
-    "first_candidate": {
-      "scope": "Windows/Linux unit/build Linux race and shared username Normal1+Game4; deployment shell not this source",
-      "result": "PASS",
-      "source": "735aed14ce725c12f87a4f2b17477152cc765655",
-      "foundation": 37189102754
-    },
-    "next_candidate": "e883 foundation/GUI/steady/padding/36 lifecycle PASS; native failed reused source-port association and race test failed before server generation convergence. Both fixed candidate pending exact-source qualification; failure evidence retained."
+    "evidence": "docs/evidence/linux-server-6181db6.json",
+    "deployment": "Ubuntu24.04amd64 real systemd12 checks, scoped nft/iptables managed stop/crash/recover and foreign protections PASS",
+    "native": "12 checks shared account Normal1/Game4 concurrent TCP/UDP,server reset/reassignment,normal mode switch,SIGKILL same port after92s,live duplicate拒绝/foreign保留",
+    "windows_companion": "same6181db6 source GUI208 PASS, automatic lease/rebuild;13file portable bundle;physical drivers NOT_RUN",
+    "core": "foundation37199462522, lifecycle/race10repeat37199462533,steady37199462528 PASS",
+    "lifecycle": "37199462523 36samples+aggregate 37/37jobs PASS",
+    "performance": "independent Normal10M37199684723/Game4x3M37199687824, FEC20:20/600msRTT/5205,all classifications PASS,stress byte loss0/socketdrop0,p95 614/607ms;CPU cross-host no fixed regression/improvement conclusion",
+    "release_tag": "linux-server-rc-20261004-6181db6",
+    "release_url": "https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6",
+    "publish_run": 37200175034,
+    "physical": "NOT_RUN",
+    "arm64_native": "NOT_RUN_CROSS_BUILD_ONLY",
+    "latest_full70": "NOT_RUN",
+    "latest_strict18": "NOT_RUN",
+    "latest_soak1800": "NOT_RUN",
+    "historical_releases": ["windows-gui-rc-20261004-9857bdb", "linux-server-rc-20261004-c956481"]
   }
 }

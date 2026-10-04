@@ -295,6 +295,8 @@ owner持锁的快照/身份检查仅能读Lane构造后不可变配置，禁止�
 
 ## 2026-10-04 Linux服务端与自动多客户端
 
+该用户任务已按固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3收口并发布linux-server-rc-20261004-6181db6。native12/systemd12/GUI208、基础/race/并发10重复、36+aggregate37jobs、真实DNS与分流和两个独立5205 PASS，详见evidence/linux-server-6181db6.json。后续文档HEAD不是另一个二进制资格。最新SOURCE全70/严格18/1800s与物理/ARM原生留下一阶段；无新证据不改数据面/FEC/4096。Linux客户端namespace锁+/run网络journal及无FIN同端口失活重建也在native真实验证，不把网络恢复记录混作IP持久映射。
+
 按LINUX_SERVER.md完成共享用户名/密码、多设备随机唯一IPv4内存7天租约、认证续期与活跃/退休地址保护；不持久化IP，只保存安装身份及owned网络恢复记录。复用既有保护admission WBAL扩展、Normal/Game owner、共享TUN及正式raw平台，数据面不另起一套。多客户端/自动地址native测试须验证TCP/UDP双向隔离和服务端重启后地址变化重建，配套两端新包不可混旧985GUI。systemd与wbdctl实现只读check、就绪、单实例、崩溃网络恢复、手动版本升级/失败回滚及保配置卸载；仅恢复WBD所有权，外部后改sysctl不得覆写。
 
 新并发验收发现换代fresh Ref在transport登记前公开的窄窗。Runtime promotion与transport注册必须在同一runtime mutex下完成，构造失败在owner promotion之前退出；不能通过重复发业务包、长睡眠、扩大grace/队列掩盖missing transport。只有candidate promotion时增加临界区，不新增逐包同步。新SOURCE基础/race/并发重复、native与独立Normal/Game5205后固定配套预发布；全配置/完整弱网长测及物理资格仍按真实证据区分，不继承历史结果。

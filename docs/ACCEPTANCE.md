@@ -135,3 +135,11 @@ strict 样本继续分别统计 FEC、Game复制、repair、health、padding、�
 固定SOURCE `9857bdb25115e87521a9d62309d3ec0b67988f16`，预发布标签 `windows-gui-rc-20261004-9857bdb`。GUI Action37185477501原始attempt1的206项检查PASS（29普通字段/全部managed操作、28FEC×lane功能组合、模拟切换与清理、1500owned route mock、地址表更新、路径限制、真实WinForms截图）；foundation37185477537的7active jobs PASS、9历史扩展SKIPPED，Windows/Linux unit/build与Linux race/fuzz及平台专项PASS。其它同源网络/lifecycle/padding/steady结果、artifact与包哈希见[evidence/windows-gui-9857bdb.json](evidence/windows-gui-9857bdb.json)和STATUS.windows_gui。
 
 [下载预发布](https://github.com/lly8666/wobuzhidao/releases/tag/windows-gui-rc-20261004-9857bdb)。本Windows GUI包包含原版Wintun DLL及许可，用户已明确接受系统驱动安装；上文d9历史P6包不含驱动的描述仅适用该旧包。Npcap仍不随包，使用官方安装引导。应用配置/日志/临时文件留程序目录；驱动注册写系统为公开例外。真实Npcap/Wintun/NIC/UAC/跨服务器业务是P7 NOT_RUN；本轮没有新增吞吐/弱网性能或full70/strict18/1800s/36生命周期资格，不把d9历史结果继承为985。文档HEAD不改变固定来源。
+
+## 2026-10-04 Linux部署/自动多客户端与最新配套包
+
+固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3的foundation/Linux-Windows unit-build/Linux race、并发10次回归、GUI208、真实DNS/IPv6/分流、systemd12与native12检查PASS；36生命周期及aggregate37/37 jobs成功。自动7天内存唯一IPv4、认证续期/在线保护、同账号Normal1/Game4双向TCP/UDP隔离、server重启换IP重建、正常模式切换同IP、客户端SIGKILL无FIN后92s原端口恢复和foreign/live保护均实际测试。系统journal与客户端安装ID不是IP持久映射。
+
+每Action一条的独立Normal1双向10Mbps/Game4双向3Mbps、FEC20:20、300ms单向、5%→20%→5%/120s/seed101，两者五分类全PASS；20%阶段双向字节损失均0、socketdrop0，p95约614.10/607.50ms。CPU原始Normal65.11/65.50、Game96.21/91.42 CPU-s，不能据不同host与基线比较声称固定CPU提升/退化。
+
+固定[预发布linux-server-rc-20261004-6181db6](https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6)，三同源ZIP/manifest每个文件和GitHub资产哈希已核验。完整回执、失败链及边界见[evidence/linux-server-6181db6.json](evidence/linux-server-6181db6.json)。最新full70/strict18/1800s、startup-padding on完整专项、Windows/ARM原生/物理P7仍NOT_RUN，不能继承2b历史全量成绩。仅Linux本版本owned journal可自动恢复，未知历史残留不自动接管；冷进程无FIN同端口恢复使用至少90s/3keepalive保护，不承诺即时强替。

@@ -1,0 +1,404 @@
+{
+  "schema_version": 1,
+  "branch": "next/tlslike-dataplane",
+  "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+  "status": "ACTIONS_PASS_DELIVERED_SCOPED",
+  "scope": "Linux server deployment and automatic multi-client leases, paired Windows GUI, native Linux normal/crash recovery and targeted5205; not complete latest-source full qualification",
+  "lease": {
+    "memory_only": true,
+    "ttl_days": 7,
+    "renewal": "authenticated admission",
+    "active_and_retiring_protection": true,
+    "restart_can_reassign": true,
+    "installation_persistence_only": true
+  },
+  "runs": [
+    {
+      "workflow": "strict-game-5205-seed101-rate3-lanes4",
+      "run": 37199687824,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199687824",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    },
+    {
+      "workflow": "strict-normal-5205-seed101-rate10-lanes1",
+      "run": 37199684723,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199684723",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    },
+    {
+      "workflow": "next-predelivery-tools",
+      "run": 37199462580,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199462580",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    },
+    {
+      "workflow": "next-default-network",
+      "run": 37199462542,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199462542",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    },
+    {
+      "workflow": "next-lifecycle",
+      "run": 37199462533,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199462533",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    },
+    {
+      "workflow": "next-windows-gui",
+      "run": 37199462548,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199462548",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    },
+    {
+      "workflow": "next-p4-steady-targeted",
+      "run": 37199462528,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199462528",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    },
+    {
+      "workflow": "next-linux-server",
+      "run": 37199462544,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199462544",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    },
+    {
+      "workflow": "next-tls-startup-padding",
+      "run": 37199462511,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199462511",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    },
+    {
+      "workflow": "next-splitroute",
+      "run": 37199462494,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199462494",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    },
+    {
+      "workflow": "next-foundation",
+      "run": 37199462522,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199462522",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    },
+    {
+      "workflow": "next-lifecycle-fullstack",
+      "run": 37199462523,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199462523",
+      "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "attempt": 1,
+      "result": "PASS"
+    }
+  ],
+  "gui": {
+    "result": "PASS",
+    "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+    "checks": 208
+  },
+  "native": {
+    "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+    "result": "PASS",
+    "checks": [
+      "same credential Normal1/Game4 authenticated with distinct automatic IPv4",
+      "live namespace owner is not displaced by a second process",
+      "simultaneous TCP/UDP bidirectional isolation initial",
+      "server memory reset triggers explicit nonzero client platform rebuild",
+      "simultaneous TCP/UDP bidirectional isolation rebuilt",
+      "server opt-in diagnostics enumerate both automatic clients",
+      "simultaneous TCP/UDP bidirectional isolation mode-changed",
+      "clean client mode switch Normal1 to Game4 retains installation and lease",
+      "simultaneous TCP/UDP bidirectional isolation crash-rebuilt",
+      "SIGKILL without FIN then same-source-port reconnect retains lease and other client",
+      "client crash recovery preserves foreign network table",
+      "owned cleanup and no persisted IP mapping"
+    ],
+    "first_leases": [
+      "10.66.0.179/32",
+      "10.66.0.228/32"
+    ],
+    "rebuilt_leases": [
+      "10.67.0.233/32",
+      "10.67.0.80/32"
+    ],
+    "scope": "native Linux raw/TPROXY TCP+UDP functional; not Windows physical or performance"
+  },
+  "deployment": {
+    "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+    "result": "PASS",
+    "checks": [
+      "fresh install",
+      "real CLI check with relative cert paths and redacted fields",
+      "idempotent install preserves credentials/config",
+      "Type=notify readiness and autostart enabled",
+      "SIGKILL ownership recovery and automatic restart",
+      "SIGTERM cleanup and scoped RST removal",
+      "invalid config fails without network modifications",
+      "install cannot replace a running version; explicit upgrade required",
+      "successful upgrade and config preservation",
+      "explicit rollback",
+      "failed readiness rolls back binary AND service unit",
+      "uninstall preserves config/certs and removes owned network/service"
+    ],
+    "scope": "actual hosted systemd/iptables; isolated managed nft+iptables in same workflow; not performance/physical"
+  },
+  "lifecycle": {
+    "failed": [],
+    "sample_count": 36,
+    "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+    "result": "PASS"
+  },
+  "performance": {
+    "result": "PASS",
+    "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+    "stage": "Linux-client-and-server-crash-recovery",
+    "baseline_source_sha": "c956481143857d6ae4cdce04a31d22e8f6438903",
+    "errors": [],
+    "records": [
+      {
+        "stage": "Linux-client-and-server-crash-recovery",
+        "mode": "normal",
+        "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+        "run": 37199684723,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199684723",
+        "artifact": 11302347150,
+        "artifact_digest": "sha256:f50b9acf7d6be6d31dead732c20014f235d04581e1515bbd75a2d77973dc05b4",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "stress_goodput_mbps": {
+          "c2s": 10.0003584,
+          "s2c": 9.999524266666668
+        },
+        "stress_byte_loss_percent": {
+          "c2s": 0,
+          "s2c": 0
+        },
+        "outer_ip_per_app": {
+          "c2s": 3.490051253333333,
+          "s2c": 3.5048766133333333
+        },
+        "cpu_seconds": {
+          "client": 65.11,
+          "server": 65.5
+        },
+        "baseline_cpu_seconds": {
+          "client": 48.63,
+          "server": 49.04
+        },
+        "socket_drop_max": 0,
+        "stress_probe": {
+          "p95_ns": 614103302,
+          "p99_ns": 618744592,
+          "received": 60,
+          "sent": 60
+        },
+        "rtt_delta_ns": {
+          "pre": {
+            "p95": 2093164,
+            "p99": 2533602
+          },
+          "stress": {
+            "p95": 20619,
+            "p99": 3380330
+          },
+          "post": {
+            "p95": 2421386,
+            "p99": -1126739
+          }
+        }
+      },
+      {
+        "stage": "Linux-client-and-server-crash-recovery",
+        "mode": "game",
+        "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+        "run": 37199687824,
+        "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37199687824",
+        "artifact": 11301987499,
+        "artifact_digest": "sha256:a233d118326104d5c8bc17f84f282a569eb500b5425fd188c509f1a3a20a13c3",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "stress_goodput_mbps": {
+          "c2s": 3.000066133333333,
+          "s2c": 3.0000746666666664
+        },
+        "stress_byte_loss_percent": {
+          "c2s": 0,
+          "s2c": 0
+        },
+        "outer_ip_per_app": {
+          "c2s": 14.155612104765392,
+          "s2c": 14.21851145038168
+        },
+        "cpu_seconds": {
+          "client": 96.21,
+          "server": 91.42
+        },
+        "baseline_cpu_seconds": {
+          "client": 94.72,
+          "server": 90.26
+        },
+        "socket_drop_max": 0,
+        "stress_probe": {
+          "p95_ns": 607495177,
+          "p99_ns": 607811385,
+          "received": 60,
+          "sent": 60
+        },
+        "rtt_delta_ns": {
+          "pre": {
+            "p95": 5142913,
+            "p99": 11519167
+          },
+          "stress": {
+            "p95": 5141812,
+            "p99": 2769911
+          },
+          "post": {
+            "p95": 1111270,
+            "p99": -1084994
+          }
+        }
+      }
+    ],
+    "scope": "targeted5205 only; independent runners; no full-matrix/soak/physical inheritance",
+    "cpu_comparison": "Independent runners, not a controlled code CPU comparison. Normal c956 AMD EPYC9V45 vs618 AMD EPYC9V74. No fixed CPU improvement/regression claim."
+  },
+  "artifacts": [
+    {
+      "id": 11302795547,
+      "name": "linux-server-6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "digest": "sha256:84e07b7060b25ee40693fd22cfd72415fa7e847f8213040d98809675a08d55ce"
+    },
+    {
+      "id": 11302776530,
+      "name": "WBD-Windows-Portable-6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "digest": "sha256:301341f618da33097f60fdcef763e05e46f42deb694477681efba1544398f0f8"
+    },
+    {
+      "id": 11302472586,
+      "name": "windows-gui-tests-6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "digest": "sha256:4e1c5039773217fa7ca5c49913a30b13c83879a6849f12aa51305909f67be724"
+    },
+    {
+      "id": 11302603059,
+      "name": "optimization-5205-37199613286",
+      "digest": "sha256:6398ef4e491c6ea7053b7be5d1576bee207ca71ff4eb4ad770b486866f78cbc8"
+    },
+    {
+      "id": 11302032609,
+      "name": "lifecycle-aggregate-6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+      "digest": "sha256:f828a986a20d1fbf6c39a70dc1854a8dec8a2b2bb7dc8719969493e01c48f440"
+    }
+  ],
+  "release": {
+    "tag": "linux-server-rc-20261004-6181db6",
+    "url": "https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6",
+    "target_commitish": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+    "prerelease": true,
+    "publish_run": 37200175034,
+    "publish_job": 111430069785,
+    "controller_sha": "fb8ec4e2c57d5170bf384c54fe7ae37c0177e4f5",
+    "assets": [
+      {
+        "name": "WBD-Linux-amd64.zip",
+        "id": 609753433,
+        "bytes": 6434136,
+        "sha256": "045cf019167119ff31b834f2d77a58f658b77d265a627fe88cd20f9a3f4410ae",
+        "url": "https://github.com/lly8666/wobuzhidao/releases/download/linux-server-rc-20261004-6181db6/WBD-Linux-amd64.zip"
+      },
+      {
+        "name": "WBD-Linux-arm64.zip",
+        "id": 609753436,
+        "bytes": 5875448,
+        "sha256": "c81edf4a3f724918c0ae2eef4baa24457d7b7074bd9516330ed2e23cce0f8fe4",
+        "url": "https://github.com/lly8666/wobuzhidao/releases/download/linux-server-rc-20261004-6181db6/WBD-Linux-arm64.zip"
+      },
+      {
+        "name": "WBD-Windows-Portable.zip",
+        "id": 609753432,
+        "bytes": 3978603,
+        "sha256": "487f853904318216fa0170063f29df0dc7b2e0bea5aa37c3217bf49e5864e38a",
+        "url": "https://github.com/lly8666/wobuzhidao/releases/download/linux-server-rc-20261004-6181db6/WBD-Windows-Portable.zip"
+      }
+    ]
+  },
+  "historical_failures": [
+    {
+      "source_sha": "04bf77c36c4985bd0694cdbb9726e0493f5e6a1d",
+      "run": 37195257207,
+      "reason": "native parser used wrong diagnostic nesting; fixture repaired"
+    },
+    {
+      "source_sha": "ed228e1fb0d747dd31c298bb96d0d71631f45d44",
+      "run": 37195408966,
+      "reason": "new active reference published before runtime transport; fixed atomic publication"
+    },
+    {
+      "source_sha": "e883d35a611f135191acf314005da72bd1901faf",
+      "run": 37196339688,
+      "reason": "normal same-port restart blocked by old association; closed-owner SYN cleanup fixed",
+      "artifact": 11300394116,
+      "sha256": "b84033d1b986b2e2f4e6cca158a1e1049af8cc3365fad4f1d97703db19902577"
+    },
+    {
+      "source_sha": "594016a856727b7d46bee640e4e15caea28c1cd3",
+      "run": 37198479759,
+      "reason": "client SIGKILL left owned TPROXY rules; no new handshake reached; managed namespace recovery fixed",
+      "artifact": 11302336177,
+      "sha256": "8ab6c246fc6b04147d16d13b740ba2465739c338f98014bc600e051f0c7eccad"
+    },
+    {
+      "source_sha": "81a2e8720d87ff5f43999da6f6f1a71ec6cbdc21",
+      "run": 37199127341,
+      "reason": "bad-reply probe raced intentional server retiring busy protection; waits both endpoint retirement"
+    }
+  ],
+  "historical_releases": [
+    "windows-gui-rc-20261004-9857bdb",
+    "linux-server-rc-20261004-c956481"
+  ],
+  "not_run": [
+    "Physical Windows Npcap/Wintun/NIC/UAC and cross-server business",
+    "Physical Linux deployment and decoy fingerprint",
+    "Native ARM64 execution",
+    "Latest source complete70 configurations",
+    "Latest source complete strict18 performance matrix",
+    "Latest source1800s target-rate soak",
+    "startup-padding on full specialty"
+  ],
+  "notes": [
+    "Client SIGKILL same source-port rebuild waits existing max(90s,3 keepalive) server inactivity threshold; not immediate takeover.",
+    "Linux client recovery only for a matching new-format owned journal. Unknown historical state fails closed.",
+    "GUI lease reassignment triggers cleanup and restart; direct CLI exits nonzero WBD_CLIENT_LEASE_CHANGED for caller/service to restart.",
+    "Same credentials allowed; copying InstallationID is copying device identity, not independent devices."
+  ]
+}

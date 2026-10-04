@@ -2,7 +2,9 @@
 
 TCP-like 外层、TLS-like 独立加密记录、稳态无跨包 HOL 的弱网隧道。
 
-**当前状态：默认DNS互备、IPv6丢弃与Game去重性能修复已通过hosted专项。** 二进制SOURCE_SHA为 `d9d4d90fdd4d4aa3456af8e85c87c70dee76a374`，版本 `next-rc-d9d4d90fdd4d`；文档HEAD单独记录。默认LAN/中国IPv4直连、其它业务走隧道；普通DNS默认通过隧道使用1.1.1.1与8.8.8.8互备，IPv6捕获后丢弃。Linux/Windows core、真实默认/自定义/关闭DNS与IPv6无出口/清理、四种分流、36生命周期、三条关键配置、独立Normal/Game5205和三目标新包PASS。旧2b的70配置/严格18/1800s为历史资格，新源码全套未重跑。物理Windows驱动/系统NRPT真实故障切换、物理NIC及ARM原生仍NOT_RUN。参数和普通DNS覆盖边界见 [客户端网络策略](docs/SPLIT_ROUTING.md)。
+**最新配套预发布已交付：[linux-server-rc-20261004-6181db6](https://github.com/lly8666/wobuzhidao/releases/tag/linux-server-rc-20261004-6181db6)。** 固定二进制SOURCE `6181db66b67594b07cd989b8b8b5848cedf6ccc3`，包含Windows中文便携GUI与Linux amd64/arm64。Linux安装/systemd/升级回滚、共享用户名密码多客户端、随机唯一IPv4内存7天、正常/强杀重建及foreign/live保护已通过Actions；配套GUI208检查、36生命周期与独立Normal10M/Game4×3M的5205 PASS。安装见[LINUX_SERVER](docs/LINUX_SERVER.md)，证据见[linux-server-6181db6](docs/evidence/linux-server-6181db6.json)。最新full70/strict18/1800s和物理Windows/ARM原生未跑，ARM仅交叉构建；文档HEAD不改变固定包来源。
+
+**历史d9网络与性能专项（最新版本见上方）：** 二进制SOURCE_SHA为 `d9d4d90fdd4d4aa3456af8e85c87c70dee76a374`，版本 `next-rc-d9d4d90fdd4d`；文档HEAD单独记录。默认LAN/中国IPv4直连、其它业务走隧道；普通DNS默认通过隧道使用1.1.1.1与8.8.8.8互备，IPv6捕获后丢弃。Linux/Windows core、真实默认/自定义/关闭DNS与IPv6无出口/清理、四种分流、36生命周期、三条关键配置、独立Normal/Game5205和三目标新包PASS。旧2b的70配置/严格18/1800s为历史资格，新源码全套未重跑。物理Windows驱动/系统NRPT真实故障切换、物理NIC及ARM原生仍NOT_RUN。参数和普通DNS覆盖边界见 [客户端网络策略](docs/SPLIT_ROUTING.md)。
 
 新 agent 从 [AGENTS.md](AGENTS.md) 开始。唯一进度入口为 [docs/STATUS.json](docs/STATUS.json)。
 
@@ -20,7 +22,7 @@ DTLS 基线保存在独立分支 [`release/dtls-preview-20260919`](https://githu
 
 ### Linux 服务端与多客户端
 
-Linux服务端已新增安装、systemd、配置校验、手动升级/回滚与故障清理，以及同一用户名/密码供多客户端使用的自动IPv4分配。IP映射仅保留内存7天，客户端只保存安装身份；Normal/Game可分别配置。部署方法与当前资格见[Linux服务端](docs/LINUX_SERVER.md)和STATUS.linux_server。自动模式需要本轮同源码两端，旧9857bdb Windows包不支持自动租约。本轮配套包尚待最终Actions资格，不把历史性能成绩当作新源码实测。
+Linux服务端已新增安装、systemd、配置校验、手动升级/回滚与故障清理，以及同一用户名/密码供多客户端使用的自动IPv4分配。IP映射仅保留内存7天，客户端只保存安装身份；Normal/Game可分别配置。部署方法与当前资格见[Linux服务端](docs/LINUX_SERVER.md)和STATUS.linux_server。自动模式需要本轮同源码两端，旧9857bdb Windows包不支持自动租约。本轮配套包已通过上述固定SOURCE资格，不把历史性能成绩当作新源码实测。
 
 ### 配置与业务语义
 

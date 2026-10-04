@@ -21,11 +21,11 @@
 
 ## 当前性能主线（2026-09-23）
 
-2026-10-04当前优先任务：Linux服务端安装/systemd/配置/升级回滚，以及同账号多客户端自动IPv4。先读docs/LINUX_SERVER.md和STATUS.linux_server；旧9857bdb Windows包不含自动租约，需本轮同SOURCE配套两端。地址池只内存7天，只有InstallationID持久化，网络恢复journal不属于IP租约。最新SOURCE待core/race/native/36生命周期和两个独立5205收口；通过后才配套预发布。最近失败/修复见STATUS.latest_log，不恢复旧DTLS或性能提示词。
+2026-10-04最新任务已交付：Linux服务端安装/systemd/升级回滚、共享账号多客户端自动7天内存IPv4和配套WindowsGUI，固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3，预发布linux-server-rc-20261004-6181db6。接手先读LINUX_SERVER.md、STATUS.linux_server和evidence/linux-server-6181db6.json；native12/systemd12/GUI208/core-race/36+aggregate37jobs与两独立5205全部PASS。增加Linux客户端namespace锁/网络journal，正常和SIGKILL同端口重建、foreign/live保护已验。网络journal不是IP租约，只有InstallationID长期保存。旧985与c956是历史包，不能混用或继承其资格为新代码；最新SOURCE full70/strict18/1800s、物理Windows/ARM原生仍NOT_RUN。后续按STATUS.next_task推进，不因旧日志/HOLD/性能提示词无证据重构FEC/4096。
 
-2026-10-04最新Windows GUI用户任务已交付：SOURCE `9857bdb25115e87521a9d62309d3ec0b67988f16`，固定预发布标签 `windows-gui-rc-20261004-9857bdb`。接手先读 `docs/WINDOWS_GUI.md`、`STATUS.windows_gui` 和 `docs/evidence/windows-gui-9857bdb.json`；206项GUI检查及基础/网络专项PASS，物理P7仍NOT_RUN。用户已接受Wintun系统驱动安装，勿重复询问；应用文件仍限制本目录，Npcap走官方安装引导。所有Windows参数以PARAMETERS.json和fields.json精确全集管理，新增参数必须同步映射；不得因GUI任务恢复旧性能提示词或改协议。文档HEAD不改变固定包来源，历史d9性能不可冒充985性能资格。
+2026-10-04历史Windows GUI独立交付：SOURCE `9857bdb25115e87521a9d62309d3ec0b67988f16`，固定预发布标签 `windows-gui-rc-20261004-9857bdb`。接手先读 `docs/WINDOWS_GUI.md`、`STATUS.windows_gui` 和 `docs/evidence/windows-gui-9857bdb.json`；206项GUI检查及基础/网络专项PASS，物理P7仍NOT_RUN。用户已接受Wintun系统驱动安装，勿重复询问；应用文件仍限制本目录，Npcap走官方安装引导。所有Windows参数以PARAMETERS.json和fields.json精确全集管理，新增参数必须同步映射；不得因GUI任务恢复旧性能提示词或改协议。文档HEAD不改变固定包来源，历史d9性能不可冒充985性能资格。
 
-2026-10-04最新任务已收口：性能热点修复、默认DNS互备、IPv6捕获丢弃的测试源码d9d4d90已通过core/真实网络/36生命周期/三关键配置/独立Normal与Game5205/三平台包。当前next_task以STATUS顶层为准，下文a67/2b为历史专项和全量基线，不能继承为d9全70/18/1800s。普通DNS与DoH/DoT边界见SPLIT_ROUTING；每性能Action仍只一条，profile不得替代正常性能资格。没有新缺陷证据，不继续改变FEC/4096/恢复架构。
+2026-10-04历史网络专项已收口：性能热点修复、默认DNS互备、IPv6捕获丢弃的测试源码d9d4d90已通过core/真实网络/36生命周期/三关键配置/独立Normal与Game5205/三平台包。当前next_task以STATUS顶层为准，下文a67/2b为历史专项和全量基线，不能继承为d9全70/18/1800s。普通DNS与DoH/DoT边界见SPLIT_ROUTING；每性能Action仍只一条，profile不得替代正常性能资格。没有新缺陷证据，不继续改变FEC/4096/恢复架构。
 
 用户已明确解除性能 HOLD。新主线 agent 必须读 `docs/WEAKNET_QUALIFICATION.md` 第10节（最新用户决策），并按当前 `STATUS.next_task` 和 `STATUS.workstreams.PERFORMANCE_RECOVERY` 继续。2026-10-04新增IPv4分流的固定SOURCE `a67e10fa2875162eeac926b970a0c486a239748d` 已通过core/race、四模式真实分流、36生命周期、独立Normal/Game5205及三目标新包；旧 `2b2bd9e` 全量70/18/1800s仍为历史基线，不能继承成新源码完整资格。下一步由用户安排P7；如要宣称新源码全量交付前资格，需要补当前SOURCE全量门。不要因历史提示词要求“继续修性能”而无证据改动候选。启动填充on完整专项仍单列PARTIAL_ACTIONS_PASS。历史日志和 saved_* 中的 HOLD 仅是历史记录。保留已通过36样本的生命周期语义，尤其 server 必须等当前权威 lanes 的 client PeerFIN；不得回退成仅凭 idle health 自动休眠。功能完成与性能达标分别记录。
 
