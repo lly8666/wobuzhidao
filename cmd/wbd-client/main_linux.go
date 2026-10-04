@@ -317,14 +317,16 @@ func runLinuxClient() error {
 		}
 	}()
 
+	var runErr error
 	select {
 	case <-ctx.Done():
 	case err := <-errCh:
 		if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, openwrtclient.ErrSocketClosed) {
 			log.Printf("wbd-client stopped: %v", err)
+			runErr=err
 		}
 		cancel()
 	}
 	fmt.Printf("WBD_OPENWRT_CLIENT_STOPPED cleanup=owned-only lanes=%d ipv6=BLACKHOLE_DROPPED\n", *lanes)
-	return nil
+	return runErr
 }

@@ -101,6 +101,15 @@ def main():
         server_name = "wbd-server"
         run(common + ["-o", str(root / server_name), "./cmd/wbd-server"], env=env)
         files.append(file_entry(root, "server", server_name, True))
+        # Management is short-lived; no protocol or background service duplication.
+        for role, source, name in [
+            ("linux_service", "deploy/linux/wbd-server.service", "wbd-server.service"),
+            ("linux_config_example", "deploy/linux/server.example.json", "server.example.json"),
+            ("linux_management", "deploy/linux/wbdctl", "wbdctl"),
+            ("linux_server_guide", "docs/LINUX_SERVER.md", "LINUX_SERVER.md"),
+        ]:
+            shutil.copyfile(source, root / name)
+            files.append(file_entry(root, role, name, False))
     else:
         support_name = "windows_client_network.ps1"
         shutil.copyfile("scripts/windows_client_network.ps1", root / support_name)

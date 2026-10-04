@@ -369,16 +369,18 @@ func runWindows() error {
 		}
 	}()
 
+	var runErr error
 	select {
 	case <-ctx.Done():
 	case err := <-errCh:
 		if err != nil && !errors.Is(err, context.Canceled) {
 			log.Printf("wbd-client stopped: %v", err)
+			runErr=err
 		}
 		cancel()
 	}
 	fmt.Printf("WBD_WINDOWS_CLIENT_STOPPED cleanup=state-owned-only lanes=%d physical=NOT_RUN\n", *lanes)
-	return nil
+	return runErr
 }
 
 func runNetworkAction(plan windowsclient.NetworkPlan, action, script string) error {

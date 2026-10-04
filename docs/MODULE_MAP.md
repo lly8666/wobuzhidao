@@ -54,3 +54,5 @@ TLS启动填充：internal/datapath/startup_padding.go新写旁观识别；paddi
 2026-10-04换代返工：datapath只允许active与明确retiring的接收在途，发送仍active；runtimeentry/diagnostic.go新增有界retiring_lanes快照，runtimeowner/perf_diag.go独立统计ACK处理，runtimeentry/perf_diag.go统计server tick。只读观察不复活候选/已退役ref、无新CLI/wire/队列/期限；关闭诊断无热路计时。check_target_soak.py同时核验1s最终unique损失、内部接收queue溢出和active/retiring完整性。旧外层kernel/socket0drop并不能覆盖程序内部queue。
 
 Windows GUI新增：windows/gui/Portable.cs为参数清单/便携文件/profile/子进程所有权；MainForm.cs为中文设置/服务器/驱动引导；GuiTests.cs只在Actions做配置/控件/切换测试。scripts/build_windows_gui.ps1编译系统.NET Framework GUI；P6打包固定官方Wintun DLL/许可，不分发免费Npcap。cmd/wbd-client Windows的check-config/STDIN取消与capture同目录临时文件复用正式配置和cleanup，不增加第二套数据协议。
+
+Linux部署新增：logicaltunnel/lease_registry.go只内存7天随机租约，client_identity.go只持久化安装身份；realityfront/admission.go受保护WBAL扩展，V2稳态不变。runtimeentry首lane绑定自动lease，server每客户端Normal/Game独立owner，到期只能detach inactive owner。linuxserver/managed_linux.go复用现有网络plan/apply/cleanup，加write-ahead网络恢复日志/单实例锁/窄RST，不写租约；notify_linux.go就绪通知。deploy/linux/wbdctl是短时管理工具，systemd仍只运行一个Go server，无新常驻协议壳。next-linux-server是功能安装测试，性能仍每Action一条。详细状态LINUX_SERVER与STATUS。

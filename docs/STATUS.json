@@ -78,8 +78,8 @@
   "in_progress": [
     "Linux服务端部署完善及共享账号多客户端自动内存7天租约：第一候选待Actions，继续安装/systemd/升级回滚。"
   ],
-  "next_task": "检查自动租约第一候选Actions；完善单实例/窄RST/网络恢复、systemd、安装和升级回滚。每性能Action一条，旧资格不继承。",
-  "latest_log": "docs/devlog/20261004-161000-linux-server-auto-lease.md",
+  "next_task": "检查新版next-linux-server真实systemd与隔离网络恢复、GUI及foundation；修复失败并验证自动租约重建，再完成Linux部署专项。",
+  "latest_log": "docs/devlog/20261004-170000-linux-server-managed-delivery.md",
   "last_tested_source_sha": "9857bdb25115e87521a9d62309d3ec0b67988f16",
   "actions": [
     {
@@ -6931,6 +6931,13 @@
     "lease": "memory-only randomized unique IPv4; 7 days, authenticated renewal, active owner pins",
     "authentication": "shared simple username/password; installation distinguishes clients",
     "plan": "docs/LINUX_SERVER.md",
-    "evidence": "NOT_RUN"
+    "evidence": "NOT_RUN",
+    "first_candidate": {
+      "scope": "Windows/Linux unit/build Linux race and shared username Normal1+Game4; deployment shell not this source",
+      "result": "PASS",
+      "source": "735aed14ce725c12f87a4f2b17477152cc765655",
+      "foundation": 37189102754
+    },
+    "next_candidate": "Managed journal/RST, systemd readiness, installer/update rollback, GUI lease change restart pending Actions"
   }
 }

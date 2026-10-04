@@ -100,7 +100,8 @@ def main():
     if args.target_os == "linux":
         if caps != {"client": "IMPLEMENTED", "server": "IMPLEMENTED"}:
             fail(f"linux capabilities={caps!r}")
-        if seen_roles != {"client", "server"} | routing_roles:
+        linux_roles = {"linux_service", "linux_config_example", "linux_management", "linux_server_guide"}
+        if seen_roles != {"client", "server"} | routing_roles | linux_roles:
             fail(f"linux file roles={sorted(seen_roles)}")
     else:
         if caps != {"client": "IMPLEMENTED", "server": "UNSUPPORTED"}:

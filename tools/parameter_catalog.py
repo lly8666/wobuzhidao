@@ -19,7 +19,7 @@ def inventory():
             for kind, name, default, help_text in FLAG.findall(text):
                 if name in flags:
                     raise ValueError(f"duplicate {target} flag {name}")
-                flags[name] = {"type": kind, "default_expression": default.strip(), "help": help_text, "source": path, "json": name not in ("config", "version", "check-config", "control-stdin")}
+                flags[name] = {"type": kind, "default_expression": default.strip(), "help": help_text, "source": path, "json": name not in ("config", "version", "check-config", "control-stdin", "recover-network")}
         entries[target] = dict(sorted(flags.items()))
     constants = dict(re.findall(r'\b(Default(?:KeepaliveInterval|DeadAfter|ReconnectMin|ReconnectMax))\s*=\s*([^\n]+)', (ROOT / "internal/runtimeentry/lifecycle_health.go").read_text(encoding="utf-8")))
     return {"schema_version": 1, "precedence": "CLI > JSON file > default", "lifecycle_defaults": constants, "targets": entries}

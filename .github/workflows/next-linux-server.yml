@@ -1,0 +1,72 @@
+name: next-linux-server
+on:
+  push:
+    branches: ['next/tlslike-dataplane']
+    paths:
+      - 'cmd/wbd-server/**'
+      - 'internal/linuxserver/**'
+      - 'internal/logicaltunnel/**'
+      - 'internal/realityfront/**'
+      - 'internal/runtimeentry/**'
+      - 'deploy/linux/**'
+      - 'tools/p6_build_release.py'
+      - 'tools/check_p6_release.py'
+      - 'tools/test_linux_server_delivery.py'
+      - '.github/workflows/next-linux-server.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  deployment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.23.12', cache: false}
+      - name: Install hosted test prerequisites
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq iproute2 iptables nftables openssl
+      - name: Build amd64 delivery and independently verify manifest
+        run: |
+          python3 tools/p6_build_release.py --source-sha "$GITHUB_SHA" --version "next-rc-${GITHUB_SHA:0:12}" --target-os linux --target-arch amd64 --output-dir artifacts/linux-amd64
+          python3 tools/check_p6_release.py --source-sha "$GITHUB_SHA" --target-os linux --target-arch amd64 --bundle-dir artifacts/linux-amd64 --run-native
+          python3 -m py_compile deploy/linux/wbdctl tools/test_linux_server_delivery.py
+          go test -c -o /tmp/wbd-linux-managed.test ./internal/linuxserver
+      - name: Real isolated crash recovery and narrow RST ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          for backend in iptables nft; do
+            ns="wbd-managed-$backend"
+            sudo ip netns add "$ns"
+            sudo ip netns exec "$ns" ip link set lo up
+            sudo ip netns exec "$ns" sysctl -qw net.ipv4.ip_forward=0
+            state="$RUNNER_TEMP/wbd-managed-$backend.json"
+            for phase in clean crash recover; do
+              sudo ip netns exec "$ns" env WBD_MANAGED_PHASE="$phase" WBD_MANAGED_BACKEND="$backend" WBD_MANAGED_STATE="$state" /tmp/wbd-linux-managed.test -test.run '^TestManagedNetworkProcessPhase$' -test.v
+            done
+            sudo ip netns exec "$ns" iptables-save > "artifacts/managed-$backend-iptables-final.txt"
+            sudo ip netns exec "$ns" nft list ruleset > "artifacts/managed-$backend-nft-final.txt"
+            sudo ip netns del "$ns"
+          done
+      - name: Actual systemd install stop kill upgrade rollback and uninstall
+        run: sudo env GITHUB_SHA="$GITHUB_SHA" python3 tools/test_linux_server_delivery.py artifacts/linux-amd64
+      - name: Cross-build arm64 package (native run not claimed)
+        run: |
+          python3 tools/p6_build_release.py --source-sha "$GITHUB_SHA" --version "next-rc-${GITHUB_SHA:0:12}" --target-os linux --target-arch arm64 --output-dir artifacts/linux-arm64
+          python3 tools/check_p6_release.py --source-sha "$GITHUB_SHA" --target-os linux --target-arch arm64 --bundle-dir artifacts/linux-arm64
+          python3 - <<'PY'
+          import pathlib,zipfile
+          for arch in ('amd64','arm64'):
+              folder=pathlib.Path('artifacts/linux-'+arch)
+              with zipfile.ZipFile('artifacts/WBD-Linux-'+arch+'.zip','w',zipfile.ZIP_DEFLATED) as z:
+                  for p in folder.iterdir():
+                      if p.is_file():z.write(p,'linux-'+arch+'/'+p.name)
+          PY
+      - name: Capture exact-source receipt and service diagnostics
+        if: always()
+        run: |
+          sudo journalctl -u wbd-server.service --no-pager > artifacts/linux-server-journal.txt || true
+          sudo chmod -R a+rX artifacts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: 'linux-server-${{ github.sha }}', path: artifacts/, if-no-files-found: error}

@@ -54,7 +54,7 @@ func Apply(fs *flag.FlagSet, raw []byte) error {
 			return errors.New("config: invalid or duplicate key")
 		}
 		seen[name] = true
-		if name == "config" || name == "version" || name == "check-config" || name == "control-stdin" || fs.Lookup(name) == nil {
+		if name == "config" || name == "version" || name == "check-config" || name == "control-stdin" || name == "recover-network" || fs.Lookup(name) == nil {
 			return fmt.Errorf("config: unsupported key %q", name)
 		}
 		var value any

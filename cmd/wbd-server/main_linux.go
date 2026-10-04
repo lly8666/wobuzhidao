@@ -34,7 +34,9 @@ func main() { if err := runServer(); err != nil { log.Fatal(err) } }
 func runServer() error {
 	var (
 		checkConfig        = flag.Bool("check-config", false, "validate server configuration without network changes; credentials redacted")
-		maxClients = flag.Int("max-clients", 256, "maximum persistent automatic client identities; 1..4096")
+		statePath = flag.String("state-path", "", "absolute owned network journal path; empty keeps legacy unmanaged launch")
+		recoverNetwork = flag.Bool("recover-network", false, "recover owned network journal and exit; requires state-path")
+		maxClients = flag.Int("max-clients", 256, "maximum seven-day in-memory automatic client leases; 1..4096")
 		configPath         = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
 		keepalive          = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
 		rawIface           = flag.String("raw-interface", "", "Linux interface used for FakeTCP raw IPv4 I/O")
@@ -71,6 +73,7 @@ func runServer() error {
 	if handleVersion() {
 		return nil
 	}
+	if *recoverNetwork { return linuxserver.RecoverManagedNetwork(*statePath) }
 
 	defer startQualificationCPUProfile()()
 	if *rawIface == "" || *listenIPText == "" || *serverName == "" || *routeKeyHex == "" ||
@@ -164,7 +167,8 @@ func runServer() error {
 		leaseStore, err = logicaltunnel.NewLeaseRegistry(leasePool,*maxClients)
 		if err != nil { return err }
 	}
-	network, err := linuxserver.OpenRuntime(plan)
+	var network interface { TUN() *linuxserver.TUN; Close() error }
+	if *statePath!="" { network,err=linuxserver.OpenManagedRuntime(plan,*statePath,listenIP,uint16(*listenPort)) } else { network,err=linuxserver.OpenRuntime(plan) }
 	if err != nil {
 		return err
 	}
@@ -280,6 +284,7 @@ func runServer() error {
 	}()
 
 	var runErr error
+	if err:=linuxserver.NotifyReady();err!=nil{ _=server.Close(); return err }
 	select {
 	case <-ctx.Done():
 	case err := <-errCh:

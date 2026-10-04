@@ -646,7 +646,7 @@
       "max-clients": {
         "type": "Int",
         "default_expression": "256",
-        "help": "maximum persistent automatic client identities; 1..4096",
+        "help": "maximum seven-day in-memory automatic client leases; 1..4096",
         "source": "cmd/wbd-server/main_linux.go",
         "json": true
       },
@@ -678,6 +678,13 @@
         "source": "cmd/wbd-server/main_linux.go",
         "json": true
       },
+      "recover-network": {
+        "type": "Bool",
+        "default_expression": "false",
+        "help": "recover owned network journal and exit; requires state-path",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": false
+      },
       "route-key-hex": {
         "type": "String",
         "default_expression": "\"\"",
@@ -696,6 +703,13 @@
         "type": "Uint",
         "default_expression": "1250",
         "help": "client-to-server TLS-like record wire limit",
+        "source": "cmd/wbd-server/main_linux.go",
+        "json": true
+      },
+      "state-path": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "absolute owned network journal path; empty keeps legacy unmanaged launch",
         "source": "cmd/wbd-server/main_linux.go",
         "json": true
       },

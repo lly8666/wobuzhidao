@@ -1,0 +1,33 @@
+[Unit]
+Description=WBD TLS-like tunnel server
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+[Service]
+Type=notify
+NotifyAccess=main
+User=root
+Group=root
+UMask=0077
+WorkingDirectory=/etc/wbd
+ExecStartPre=/opt/wbd/current/wbd-server --config /etc/wbd/server.json --check-config
+ExecStart=/opt/wbd/current/wbd-server --config /etc/wbd/server.json --state-path /var/lib/wbd/network-state.json
+ExecStopPost=/opt/wbd/current/wbd-server --state-path /var/lib/wbd/network-state.json --recover-network
+Restart=on-failure
+RestartSec=3
+TimeoutStartSec=30
+TimeoutStopSec=30
+KillMode=control-group
+NoNewPrivileges=yes
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/wbd /run/wbd
+RestrictAddressFamilies=AF_INET AF_UNIX AF_PACKET AF_NETLINK
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

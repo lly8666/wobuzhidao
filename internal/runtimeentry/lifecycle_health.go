@@ -2,9 +2,12 @@ package runtimeentry
 
 import (
 	"context"
+	"errors"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"time"
 )
+
+var ErrClientLeaseChanged = errors.New("WBD_CLIENT_LEASE_CHANGED: automatic address changed; rebuild platform binding")
 
 const (
 	DefaultKeepaliveInterval = 15 * time.Second
@@ -79,6 +82,7 @@ func (c *TunnelClient) noteLifecycleError(err error) {
 	if err == nil {
 		return
 	}
+	if errors.Is(err,ErrClientLeaseChanged) { c.report(err) }
 	message := err.Error()
 	if len(message) > 512 {
 		message = message[:512]

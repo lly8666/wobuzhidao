@@ -774,7 +774,12 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 			if err := c.owner.BindInitialLease(assigned); err != nil { laneState.close(); return logicaltunnel.LaneRef{}, err }
 			c.cfg.Lease = assigned
 		} else if c.cfg.Lease.Config.Address4 != session.Negotiated.Lease4 {
-			laneState.close(); return logicaltunnel.LaneRef{}, ErrLeaseMismatch
+			laneState.close()
+			// A bad replacement must not kill a healthy old lane. Only a fully
+			// disconnected/expired tunnel requires a fresh platform/owner binding.
+			c.mu.Lock(); refs:=make([]logicaltunnel.LaneRef,0,len(c.lanes)); for _,lane:=range c.lanes { refs=append(refs,lane.ref) }; c.mu.Unlock()
+			for _,ref:=range refs { if !c.rt.Unhealthy(ref,time.Now(),c.cfg.DeadAfter) { return logicaltunnel.LaneRef{},ErrLeaseMismatch } }
+			return logicaltunnel.LaneRef{},ErrClientLeaseChanged
 		}
 	}
 	if acceptancefault.Consume("detach", laneID) {

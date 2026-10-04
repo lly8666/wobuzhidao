@@ -1,0 +1,19 @@
+{
+  "raw-interface": "eth0",
+  "listen-ip": "192.0.2.10",
+  "listen-port": 443,
+  "server-name": "www.example.com",
+  "route-key-hex": "REPLACE_WITH_SERVER_ROUTE_KEY_HEX",
+  "tls-cert": "server.crt",
+  "tls-key": "server.key",
+  "username": "wbd",
+  "password": "REPLACE_WITH_PASSWORD",
+  "decoy": "www.example.com:443",
+  "lease-pool": "10.66.0.0/16",
+  "max-clients": 256,
+  "mtu": 1500,
+  "fec-parity": 0,
+  "tls-startup-padding": false,
+  "keepalive-interval": "15s",
+  "firewall": "auto"
+}

@@ -30,6 +30,7 @@ namespace Wbd.Gui {
         readonly Control workspace;
         Profile editing;
         string connectedId;
+		bool leaseRestart;
         bool busy, updating, exiting;
         public MainForm(PortableStore s, IClientSession client, Func<DependencyState> detector = null) {
             store = s; session = client; detect = detector ?? (() => Dependencies.Detect(store));
@@ -216,7 +217,7 @@ namespace Wbd.Gui {
             connectedId = editing.Id; ShowState("正在建立连接 · " + editing.Name); servers.Invalidate();
             await session.StartAsync(store.InRoot("data/active.json"));
         }
-        public async Task DisconnectAsync() { if (session.Active) ShowState("正在断开并清理网络状态…"); await session.StopAsync(); Drain(); connectedId = null; ShowState("未连接"); servers.Invalidate(); }
+        public async Task DisconnectAsync() { leaseRestart = false; if (session.Active) ShowState("正在断开并清理网络状态…"); await session.StopAsync(); Drain(); connectedId = null; ShowState("未连接"); servers.Invalidate(); }
         async Task ImportDialogAsync() {
             using (var dialog = new OpenFileDialog { Filter = "客户端配置 (*.json)|*.json", Title = "导入客户端 JSON 配置", RestoreDirectory = true }) if (dialog.ShowDialog(this) == DialogResult.OK) await ImportAsync(dialog.FileName);
         }
@@ -286,12 +287,27 @@ namespace Wbd.Gui {
         void Drain() {
             for (int i = 0; i < 32; i++) {
                 string line; lock (messages) { if (messages.Count == 0) break; line = messages.Dequeue(); }
+				if (line.Contains("WBD_CLIENT_LEASE_CHANGED")) leaseRestart = true;
                 if (line == "WBD_WINDOWS_CLIENT_READY") { if (connectedId!=null && session.Active) ShowState("已连接 · " + (store.Book.Profiles.FirstOrDefault(p => p.Id == connectedId)?.Name ?? "服务器")); line = "隧道已就绪，网络配置已应用。"; }
                 line = Redact(line); store.AppendLog(line); activity.AppendText(DateTime.Now.ToString("HH:mm:ss ") + line + Environment.NewLine);
                 if (activity.Lines.Length > 400) activity.Lines = activity.Lines.Skip(activity.Lines.Length - 300).ToArray(); activity.SelectionStart = activity.TextLength; activity.ScrollToCaret();
             }
-            if (!busy && connectedId != null && !session.Active) { connectedId = null; ShowState("连接已结束 · 请查看运行信息"); servers.Invalidate(); }
+            if (!busy && connectedId != null && !session.Active) {
+				if (leaseRestart && !exiting) {
+					leaseRestart=false; BeginInvoke(new Action(async () => await RunAsync(RestartAssignedLeaseAsync)));
+				} else { connectedId = null; ShowState("连接已结束 · 请查看运行信息"); servers.Invalidate(); }
+			}
         }
+		async Task RestartAssignedLeaseAsync() {
+			string id=connectedId; if (id==null || exiting) return;
+			// Use the last active file, not unsaved edits or a newly selected profile.
+			string config=store.InRoot("data/active.json");
+			await session.StopAsync();
+			if (File.Exists(store.InRoot("data/network-state.json"))) await RecoverAsync();
+			await session.ValidateAsync(config);
+			ShowState("服务端地址已更新 · 正在重新连接"); connectedId=id;
+			await session.StartAsync(config);
+		}
         void ShowState(string text) { state.Text = text; }
         public void Capture(string path) { using (var bitmap = new Bitmap(Width, Height)) { DrawToBitmap(bitmap, new Rectangle(0, 0, Width, Height)); bitmap.Save(path); } }
         protected override void Dispose(bool disposing) { if (disposing) { timer.Stop(); timer.Dispose(); session.Line -= Enqueue; session.Dispose(); tray.Visible = false; tray.Dispose(); } base.Dispose(disposing); }

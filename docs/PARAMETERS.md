@@ -70,6 +70,8 @@ FEC首源8ms是encoder到期条件，不是已承诺的实际parity发包上限�
 
 ## Windows GUI 操作与便携路径
 
+2026-10-04 Linux部署及自动租约候选：server省略lease4自动为同一用户名/密码下的不同InstallationID分配唯一随机IPv4；内存7天、认证续期，活跃地址不回收，重启允许换地址。max-clients默认256/上限4096；不是吞吐承诺。客户端lease4/account/tunnel-id可留空；account=username、隧道ID由安装ID派生，只有安装身份写磁盘。auto服务端未显式lanes时允许各客户端1..4；静态模式沿原配置。server新增CLI-only check-config/recover-network，state-path指定绝对owned系统网络恢复记录；安装unit默认启用。详见LINUX_SERVER，测试状态以STATUS为准。
+
 Windows新增 CLI-only --check-config：复用完整正式参数解析/健康与MTU校验，打印有效标量，密码和路由密钥隐藏，不建立网络或安装驱动。--control-stdin：GUI-owned子进程收到stop或stdin EOF就取消建连/运行，执行owned清理；named event防止旧进程仍清理时新GUI再建隧道。两者不能写进业务JSON。全部普通字段见 WINDOWS_GUI.md，config/version/update-china-ip及上述操作有按钮，state-path/network-script固定程序目录内位置。PARAMETERS.json仍是唯一参数全集。
 
 Windows state-path 默认 EXE 同目录 data/network-state.json；network-script 默认 EXE 同目录 windows_client_network.ps1，裸 CLI 不再依赖调用者 CWD，也与便携包脚本位置一致。显式 CLI 路径仍保留运维能力；GUI将这些路径固定为本文件夹且拒绝越界。

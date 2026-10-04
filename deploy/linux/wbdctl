@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+"""Short-lived installation/management tool. Never a second data-plane daemon."""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import urllib.request
+import zipfile
+
+UNIT = "wbd-server.service"
+
+def run(args, check=True):
+    return subprocess.run(args, check=check, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+def fail(message):
+    raise RuntimeError(message)
+
+def hashfile(path):
+    with open(path, "rb") as f:
+        return hashlib.file_digest(f, "sha256").hexdigest()
+
+def atomic_text(path, text, mode=0o600):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp = tempfile.mkstemp(dir=path.parent, prefix=".wbd-")
+    try:
+        os.fchmod(fd, mode)
+        with os.fdopen(fd, "w") as f:
+            f.write(text); f.flush(); os.fsync(f.fileno())
+        os.replace(temp, path)
+    finally:
+        if os.path.exists(temp): os.unlink(temp)
+
+def switch(current, target):
+    temp = current.with_name(".current-next")
+    if temp.is_symlink(): temp.unlink()
+    temp.symlink_to(target, target_is_directory=True)
+    os.replace(temp, current)
+
+def stage(package, install_root):
+    arch = {"x86_64": "amd64", "aarch64": "arm64"}.get(platform.machine())
+    if not arch: fail("Unsupported architecture")
+    with tempfile.TemporaryDirectory(prefix=".wbd-stage-", dir=install_root) as temp:
+        base = Path(temp)
+        with zipfile.ZipFile(package) as z:
+            if sum(i.file_size for i in z.infolist()) > 128 * 1024 * 1024: fail("Package too large")
+            for i in z.infolist():
+                target = (base / i.filename).resolve()
+                if not target.is_relative_to(base) or "\\" in i.filename or (i.external_attr >> 16) & 0o170000 == 0o120000:
+                    fail("Unsafe archive path")
+            z.extractall(base)
+        manifests = list(base.rglob("manifest.json"))
+        if len(manifests) != 1: fail("Expected one release manifest")
+        folder = manifests[0].parent
+        manifest = json.loads(manifests[0].read_text())
+        target = manifest.get("target", {})
+        if target.get("goos") != "linux" or target.get("goarch") != arch: fail("Package architecture mismatch")
+        source = manifest.get("source_sha", "")
+        version = manifest.get("version", "")
+        if not re.fullmatch(r"[a-zA-Z0-9._-]{1,80}", version) or not re.fullmatch(r"[0-9a-f]{40}", source): fail("Invalid release identity")
+        for entry in manifest["files"]:
+            path = (folder / entry["path"]).resolve()
+            if not path.is_relative_to(folder.resolve()) or not path.is_file() or hashfile(path) != entry["sha256"]: fail("Package file hash mismatch")
+        binary = folder / "wbd-server"
+        if not any(e["role"] == "server" and e["path"] == "wbd-server" for e in manifest["files"]): fail("Server missing from manifest")
+        binary.chmod(0o755)
+        reported = run([str(binary), "--version"]).stdout
+        if source not in reported or version not in reported: fail("Binary source/version mismatch")
+        release = install_root / "releases" / version
+        if release.exists():
+            if hashfile(release / "wbd-server") != hashfile(binary): fail("Existing version has different contents")
+            return release
+        release.parent.mkdir(parents=True, exist_ok=True)
+        os.replace(folder, release)
+        return release
+
+def main():
+    ap = argparse.ArgumentParser(description="WBD Linux service management")
+    ap.add_argument("command", choices=["install", "upgrade", "rollback", "check", "start", "stop", "restart", "status", "logs", "recover", "uninstall"])
+    ap.add_argument("--package", type=Path)
+    ap.add_argument("--version", help="Explicit GitHub release tag; no automatic latest update")
+    ap.add_argument("--sha256", help="Optional pinned archive SHA256")
+    ap.add_argument("--root", type=Path, default=Path("/"), help="Installation prefix for isolated packaging tests; service paths follow this prefix")
+    args = ap.parse_args()
+    if os.geteuid() != 0: fail("Run with sudo/root")
+    root = args.root.resolve(); app = root / "opt/wbd"; config = root / "etc/wbd/server.json"; state = root / "var/lib/wbd/network-state.json"
+    current = app / "current"; previous = app / "previous"; unit = root / "etc/systemd/system" / UNIT
+    binary = current / "wbd-server"
+    for directory in (app, state.parent, root / "run/wbd", config.parent): directory.mkdir(parents=True, exist_ok=True)
+    def ctl(action, check=True): return run(["systemctl", action, UNIT], check=check)
+	
+    def apply_unit(release):
+        service = (release / "wbd-server.service").read_text()
+        if root != Path("/"):
+            for prefix in ("/opt/wbd", "/etc/wbd", "/var/lib/wbd", "/run/wbd"):
+                service = service.replace(prefix, str(root / prefix.lstrip("/")))
+        atomic_text(unit, service, 0o644)
+        run(["systemctl", "daemon-reload"])
+    if args.command in ("install", "upgrade"):
+        package = args.package
+        with tempfile.TemporaryDirectory(prefix=".download-", dir=app) as temp:
+            if args.version:
+                if package or not re.fullmatch(r"[a-zA-Z0-9._-]{1,80}", args.version): fail("Use package OR explicit valid tag")
+                arch = {"x86_64":"amd64", "aarch64":"arm64"}.get(platform.machine())
+                url = f"https://github.com/lly8666/wobuzhidao/releases/download/{args.version}/WBD-Linux-{arch}.zip"
+                package = Path(temp) / "release.zip"
+                with urllib.request.urlopen(url, timeout=60) as response, package.open("wb") as out:
+                    while data := response.read(1024*1024):
+                        out.write(data)
+                        if out.tell() > 64*1024*1024: fail("Download too large")
+            if not package: fail("Provide --package or --version")
+            if args.sha256 and hashfile(package) != args.sha256.lower(): fail("Archive hash mismatch")
+            release = stage(package, app)
+        old = current.resolve() if current.is_symlink() else None
+        if args.command == "upgrade" and not old: fail("Not installed")
+        if config.exists(): run([str(release / "wbd-server"), "--config", str(config), "--check-config"])
+        if args.command == "upgrade":
+            ctl("stop")
+            run([str(binary), "--state-path", str(state), "--recover-network"])
+        # Installation assets are verified manifest entries, never downloaded scripts.
+        apply_unit(release)
+        if not config.exists(): shutil.copyfile(release / "server.example.json", config); config.chmod(0o600)
+        ctlpath = root / "usr/local/bin/wbdctl"; ctlpath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(release / "wbdctl", ctlpath); ctlpath.chmod(0o755)
+        switch(current, release); run(["systemctl", "daemon-reload"])
+        if old: switch(previous, old)
+        if args.command == "upgrade":
+            try: ctl("start")
+            except subprocess.CalledProcessError:
+                ctl("stop", False); run([str(binary), "--state-path", str(state), "--recover-network"])
+                switch(current, old); apply_unit(old); ctl("reset-failed", False); ctl("start"); fail("Upgrade failed; previous version restored")
+        print("Installed", release.name, "Configure", config, "then wbdctl check/start; enable with systemctl enable wbd-server")
+    elif args.command == "rollback":
+        if not previous.is_symlink(): fail("No previous version")
+        old=current.resolve(); target=previous.resolve()
+        run([str(target/"wbd-server"),"--config",str(config),"--check-config"])
+        ctl("stop");run([str(binary),"--state-path",str(state),"--recover-network"])
+        switch(current,target);apply_unit(target)
+        try: ctl("start")
+        except subprocess.CalledProcessError:
+            ctl("stop",False);run([str(binary),"--state-path",str(state),"--recover-network"])
+            switch(current,old);apply_unit(old);ctl("reset-failed",False);ctl("start");raise
+        switch(previous,old);print("Rolled back",target.name)
+    elif args.command == "check": print(run([str(binary),"--config",str(config),"--check-config"]).stdout)
+    elif args.command == "recover": print(run([str(binary),"--state-path",str(state),"--recover-network"]).stdout)
+    elif args.command == "logs": subprocess.run(["journalctl","-u",UNIT,"-n","100","--no-pager"],check=True)
+    elif args.command == "uninstall":
+        ctl("stop");run([str(binary),"--state-path",str(state),"--recover-network"])
+        ctl("disable",False);unit.unlink(missing_ok=True);run(["systemctl","daemon-reload"])
+        # Config, device identity, certificates and previous releases remain.
+        current.unlink(missing_ok=True);print("Service removed; configuration and releases retained")
+    elif args.command == "start":
+        run([str(binary),"--config",str(config),"--check-config"]);ctl("enable");print(ctl("start").stdout)
+    else: print(ctl(args.command).stdout)
+
+if __name__ == "__main__":
+    try: main()
+    except (Exception, KeyboardInterrupt) as e:
+        # Do not print config values or raw subprocess output with credentials.
+        print("WBD management failed:", type(e).__name__, str(e)[:256], file=sys.stderr);sys.exit(1)
