@@ -77,8 +77,8 @@
   "in_progress": [
     "用户优先：CPU原始证据/pprof归因、窄修；IPv6默认owned blackhole+drop；DNS默认1.1.1.1/8.8.8.8互备及默认劫持。实现/测试进行中，不继承旧资格。"
   ],
-  "next_task": "继续WindowsGUI逐控件/逐参数/完整便携包Actions验收；Wintun驱动方式用户已接受。保留首轮测试fixture失败，不继承成绩。物理驱动/NIC仍P7 NOT_RUN。",
-  "latest_log": "docs/devlog/20261004-151000-gui-config-fixture-encoding.md",
+  "next_task": "完成第三轮GUI有效配置和截图验收；校验补正式admission边界，不重复要求Wintun许可。基础/路由mock和包须同源重验。",
+  "latest_log": "docs/devlog/20261004-151100-gui-validation-closure.md",
   "last_tested_source_sha": "d9d4d90fdd4d4aa3456af8e85c87c70dee76a374",
   "actions": [
     {
@@ -6745,6 +6745,13 @@
       "foundation": "Windows unit/build/render PASS; remaining jobs in progress",
       "source": "dac5baf3ebbeea86ef6049f2126e039fd7f7a4ac",
       "reason": "test TunnelID34hex instead32; Unicode PowerShell5 script path mojibake caused missing artifact"
+    },
+    "second_run": {
+      "reason": "redaction assertion searched short key substring also present in nonsecretTunnelID; redacted fields themselves correct",
+      "artifact_encoding": "Unicode/pwsh corrected",
+      "source": "7656e6864c6b288e298c4f03ee496c07f725bb15",
+      "result": "FAIL_TEST_ASSERTION",
+      "run": 37184758075
     }
   }
 }

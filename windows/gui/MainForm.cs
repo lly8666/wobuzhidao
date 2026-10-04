@@ -203,7 +203,7 @@ namespace Wbd.Gui {
             if (!d.Npcap) throw new InvalidOperationException("Npcap 未就绪。请到“便携与驱动”页打开官网下载并安装，再点击重新检测。");
             if (!d.Wintun) throw new InvalidOperationException("缺少 wintun.dll，请重新解压完整便携包。");
             if (!store.Book.DriverNoticeAccepted) {
-                if (MessageBox.Show(this, "首次创建 Wintun 网卡会向 Windows 注册驱动。\n应用配置、日志与临时文件仍只在本文件夹。\n\n是否允许此驱动操作？", "首次驱动准备", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) != DialogResult.OK) return;
+                Enqueue("首次创建虚拟网卡时，Wintun 将向 Windows 注册官方驱动；配置、日志与临时文件仍在本文件夹。");
                 store.Book.DriverNoticeAccepted = true; store.Save();
             }
             await DisconnectAsync();

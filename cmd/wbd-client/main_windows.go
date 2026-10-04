@@ -162,6 +162,12 @@ func runWindows() error {
 	if err := lease.Validate(); err != nil {
 		return err
 	}
+	if err := realityfront.ValidateClientAdmissionConfig(realityfront.ClientAdmissionConfig{
+		TLS: realityfront.ClientConfig{ServerName: *serverName, RouteKey: routeKey},
+		Username: *username, Password: *password, TunnelID: tunnelID.Bytes(), ClientLimit: uint16(*clientLimit),
+	}); err != nil {
+		return err
+	}
 	if err := runtimeentry.ValidateClientHealth(runtimeentry.TunnelClientConfig{KeepaliveInterval: *keepalive, DeadAfter: *deadAfter, ReconnectMin: *reconnectMin, ReconnectMax: *reconnectMax}); err != nil {
 		return err
 	}

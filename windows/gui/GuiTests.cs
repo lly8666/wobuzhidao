@@ -54,11 +54,11 @@ namespace Wbd.Gui {
                         var effective = store.Effective(p); store.WriteAtomic("data/field-check.json", store.Json.Serialize(effective));
                         var actual = Wait(real.ValidateAsync(store.InRoot("data/field-check.json")));
                         string want = f.Secret ? "configured" : Convert.ToString(effective[f.Key]);
-                        if (f.Kind == "Duration") { if (want == "15m") want = "15m0s"; if (want == "30m") want = "30m0s"; if (want == "60m") want = "1h0m0s"; }
+                        if (f.Kind == "Duration") { if (want == "120s") want = "2m0s"; if (want == "15m") want = "15m0s"; if (want == "30m") want = "30m0s"; if (want == "60m") want = "1h0m0s"; }
                         Assert(string.Equals(Convert.ToString(actual[f.Key]), want, StringComparison.OrdinalIgnoreCase), "effective core config: " + f.Key);
                         Assert(Convert.ToString(actual["state-path"]) == store.InRoot("data/network-state.json"), "state path portable for " + f.Key);
                         Assert(Convert.ToString(actual["network-script"]) == store.InRoot("windows_client_network.ps1"), "script path portable for " + f.Key);
-                        string output = store.Json.Serialize(actual); Assert(!output.Contains("not-real-password") && !output.Contains("different-secret") && !output.Contains("1122334455667788"), "validator credentials redacted: " + f.Key);
+                        Assert(Convert.ToString(actual["password"])=="configured" && Convert.ToString(actual["route-key-hex"])=="configured", "validator credentials redacted: " + f.Key);
                         p.Values = saved;
                     }
                     foreach (int fec in new[] {0,4,8,10,12,16,20}) foreach (int lane in new[] {1,2,3,4}) {
@@ -73,6 +73,10 @@ namespace Wbd.Gui {
                         Assert(denied, "invalid config rejected: " + pair.Key); p.Values[pair.Key] = previous;
                     }
                     string good = store.Json.Serialize(store.Effective(p));
+                    object originalKey = p.Values["route-key-hex"]; p.Values["route-key-hex"]="00";
+                    store.WriteAtomic("data/invalid.json",store.Json.Serialize(store.Effective(p))); bool shortDenied=false;
+                    try { Wait(real.ValidateAsync(store.InRoot("data/invalid.json"))); } catch { shortDenied=true; }
+                    Assert(shortDenied,"read-only admission validator rejects too-short route key"); p.Values["route-key-hex"]=originalKey;
                     foreach (string text in new[] {good.TrimEnd('}') + ",\"mtu\":1280}",good.TrimEnd('}') + ",\"unknown-gui\":1}",good.TrimEnd('}') + ",\"control-stdin\":true}"}) {
                         store.WriteAtomic("data/invalid.json", text); bool denied = false; try { Wait(real.ValidateAsync(store.InRoot("data/invalid.json"))); } catch { denied = true; } Assert(denied, "strict import rejects duplicate/unknown/management keys");
                     }

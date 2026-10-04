@@ -1,0 +1,9 @@
+# GUI parameter validation scope closure
+
+Parent7656e68: GUI package13files/hash stillPASS. GUI run37184758075 fails test assertion: short route-key substring1122334455667788 is also present in the public test TunnelID. This does not show a secret leak. Assert exact password/route-key output equals configured instead. Duration assertion accepts Go canonical120s->2m0s (same value, no runtime behavior change). Existing failures retained in STATUS.
+
+Source inspection additionally found old Windows validation accepted nonempty route key though real Firefox TLS requires16bytes, and did not check admission credential byte limits before GUI reports success. Add exported read-only realityfront.ValidateClientAdmissionConfig reusing actual marshalAdmissionRequest and TLS SNI/key prerequisites; Windows CLI uses it before check output and driver/network work. This tightens early startup errors to match unchanged handshake requirements, no protocol wire change or hotpath work. GUI invalid short route key test added.
+
+Explicit user permits Wintun any method. First connection now provides a nonblocking driver-registration notice; no redundant Wintun confirmation. Npcap official download/recheck remains user-installed dependency. GUI field values all manipulated through real controls before Go check. Windows network mocked cleanup now called with only state path, matching recovery button behavior.
+
+Next: exact-source GUI/core Actions, view screenshots, test import/list copy and all fields. Current candidate not qualified until green receipts. No local build/test/gofmt; physical drivers remain NOT_RUN. Prior d9 performance not claimed for this GUI source.

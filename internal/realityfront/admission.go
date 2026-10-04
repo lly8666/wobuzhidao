@@ -77,6 +77,20 @@ type ClientAdmissionConfig struct {
 	LaneID uint8
 }
 
+// ValidateClientAdmissionConfig validates the same protected request and TLS
+// identity prerequisites without creating a connection or exposing credentials.
+func ValidateClientAdmissionConfig(cfg ClientAdmissionConfig) error {
+	if normalizeName(cfg.TLS.ServerName) == "" || len(cfg.TLS.RouteKey) < 16 {
+		return ErrAdmissionParams
+	}
+	_, err := marshalAdmissionRequest(AdmissionRequest{
+		RecordVersion: RecordVersionV2, LaneID: cfg.LaneID,
+		TunnelID: cfg.TunnelID, ClientLimit: cfg.ClientLimit,
+		Username: cfg.Username, Password: cfg.Password,
+	})
+	return err
+}
+
 type AdmissionRequestValidator func(AdmissionRequest) error
 
 type ServerAdmissionConfig struct {

@@ -76,7 +76,8 @@ try {
             if (@($saved.CaptureRoutes6).Count -ne 2) { throw 'IPv6 sink journal wrong' }
             if ($saved.NRPTRuleName -ne 'owned-rule' -or @($script:firewall).Count -ne 3) { throw 'DNS/IPv6 policies not applied' }
             if (@($script:routes).Count -ne 1504) { throw 'large Apply count wrong' }
-            & $block @taskArgs -Action Cleanup | Out-Null
+            # GUI crash recovery has only the owned state path, not old profile args.
+            & $block -Action Cleanup -StatePath $state | Out-Null
         }
         if (Test-Path -LiteralPath $state) { throw 'state not cleaned after cleanup/rollback' }
         if (@($script:routes).Count -ne 2 -or -not ($script:routes | Where-Object { $_.NextHop -eq '192.0.2.254' })) { throw 'foreign/pre-existing routes lost or owned leaked' }
