@@ -84,7 +84,7 @@
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
   "next_task": "Qualify outbound source-to-wire promotion fence in Actions core/race plus independent Normal/Game5205 and stateful sample;then exact-source pairedP6 package and nativeD01 300s repeats/rotation. Continue43 native matrix,retain failures,each performanceAction one sample.",
-  "latest_log": "docs/devlog/20261005-073000-source-to-wire-promotion-fence.md",
+  "latest_log": "docs/devlog/20261005-072300-native-helper-and-fragment-fixture.md",
   "last_tested_source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
   "actions": [
     {
@@ -7538,12 +7538,13 @@
     "evidence": "docs/evidence/steady-window-actions-20261005.json"
   },
   "outbound_promotion_fence": {
-    "state": "IMPLEMENTED_NOT_TESTED",
+    "state": "QUALIFICATION_IN_PROGRESS_FIXTURE_CORRECTED",
     "source": "CURRENT_COMMIT",
-    "log": "docs/devlog/20261005-073000-source-to-wire-promotion-fence.md",
+    "log": "docs/devlog/20261005-072300-native-helper-and-fragment-fixture.md",
     "new_cli_parameters": false,
     "product_buffer_increase": false,
     "partial_packet_retry": false,
-    "candidate_tls_wait": false
+    "candidate_tls_wait": false,
+    "fixture_issue": "9020B test packet exceeded existing9000B cap;corrected payload8980 and deferred release guard;product rejection unchanged"
   }
 }

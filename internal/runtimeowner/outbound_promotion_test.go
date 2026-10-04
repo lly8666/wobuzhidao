@@ -32,6 +32,9 @@ func TestSourcePacketPinsGenerationThroughAllFragments(t *testing.T) {
 			defer cr.Close()
 			defer sr.Close()
 			entered, release := make(chan struct{}), make(chan struct{})
+			var releaseOnce sync.Once
+			unblock := func() { releaseOnce.Do(func() { close(release) }) }
+			defer unblock()
 			var once sync.Once
 			type emitted struct { id uint8; segment faketcp.Segment }
 			var wire []emitted
@@ -61,22 +64,22 @@ func TestSourcePacketPinsGenerationThroughAllFragments(t *testing.T) {
 			if err := cr.BeginSameIDReplacement(cold.Ref, runtimeLane(t, datapath.RoleClient, lease, 0, 9), cc2); err != nil { t.Fatal(err) }
 			if err := sr.BeginSameIDReplacement(sold.Ref, runtimeLane(t, datapath.RoleServer, lease, 0, 9), sc2); err != nil { t.Fatal(err) }
 			now := time.Unix(500, 0)
-			packet := runtimeIPv4(addr, netip.MustParseAddr("1.1.1.1"), bytes.Repeat([]byte{0x31}, 9000))
+			packet := runtimeIPv4(addr, netip.MustParseAddr("1.1.1.1"), bytes.Repeat([]byte{0x31}, 8980))
 			sent := make(chan error, 1)
 			go func() { sent <- cr.SendPacket(packet, now) }()
-			select { case <-entered: case <-time.After(3*time.Second): t.Fatal("first fragment not emitted") }
+			select { case <-entered: case err := <-sent: t.Fatalf("send failed before first fragment: %v", err); case <-time.After(3*time.Second): t.Fatal("first fragment not emitted") }
 			// Ensure this is an actual generation fence, not a fortunate scheduler.
 			if cr.outboundMu.TryLock() {
-				cr.outboundMu.Unlock(); close(release)
+				cr.outboundMu.Unlock(); unblock()
 				t.Fatal("source-to-wire emission did not pin generation")
 			}
 			promoted := make(chan error, 1)
 			go func() { _, err := cr.PromoteSameIDReplacement(cold.Ref); promoted <- err }()
 			select {
-			case err := <-promoted: close(release); t.Fatalf("promotion crossed blocked packet: %v", err)
+			case err := <-promoted: unblock(); t.Fatalf("promotion crossed blocked packet: %v", err)
 			case <-time.After(20*time.Millisecond):
 			}
-			close(release)
+			unblock()
 			select { case err := <-sent: if err != nil { t.Fatal(err) }; case <-time.After(3*time.Second): t.Fatal("send deadlocked") }
 			select { case err := <-promoted: if err != nil { t.Fatal(err) }; case <-time.After(3*time.Second): t.Fatal("promotion deadlocked") }
 			if len(wire) < 2 { t.Fatal("packet did not exercise fragmentation") }
@@ -113,7 +116,7 @@ func TestSourcePacketDoesNotRetryAfterPartialEmission(t *testing.T) {
 		return nil
 	}, func(faketcp.Segment) error { return nil }, 1, 1000)
 	if _, err := r.AttachInitial(1, runtimeLane(t, datapath.RoleClient, lease, 0, 1), cfg); err != nil { t.Fatal(err) }
-	packet := runtimeIPv4(addr, netip.MustParseAddr("1.1.1.1"), bytes.Repeat([]byte{0x31}, 9000))
+	packet := runtimeIPv4(addr, netip.MustParseAddr("1.1.1.1"), bytes.Repeat([]byte{0x31}, 8980))
 	if err := r.SendPacket(packet, time.Now()); !errors.Is(err, failed) { t.Fatalf("send error=%v", err) }
 	if count != 2 { t.Fatalf("partial packet retried or continued: emissions=%d", count) }
 	if !r.outboundMu.TryLock() { t.Fatal("failed emission retained promotion fence") }

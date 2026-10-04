@@ -1,6 +1,9 @@
 param([Parameter(Mandatory=$true)][string]$Bundle,[string]$StartSignal='')
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
 $data=Join-Path $Bundle 'data';$samples=@()
+$version=(& (Join-Path $Bundle 'wbd-client.exe') --version) -join ' '
+if($version -notmatch 'source_sha=([0-9a-f]{40})'){throw 'Missing exact deployed source SHA'}
+$sourceSHA=$Matches[1]
 if($StartSignal){$deadline=[DateTime]::UtcNow.AddSeconds(30);while(-not(Test-Path -LiteralPath $StartSignal)){if([DateTime]::UtcNow -gt $deadline){throw 'DNS start barrier timeout'};Start-Sleep -Milliseconds 100}}
 $watch=[Diagnostics.Stopwatch]::StartNew()
 $rules=@(Get-DnsClientNrptRule | Where-Object DisplayName -eq 'WBD Runtime DNS' | Select-Object Namespace,NameServers,DisplayName)
@@ -20,6 +23,6 @@ while($watch.Elapsed.TotalSeconds -lt 300){
     }
     $slot++
 }
-$r=[pscustomobject]@{SourceSHA='6181db66b67594b07cd989b8b8b5848cedf6ccc3';Seconds=300;OwnedNRPT=$rules;Samples=$samples;CacheFlushedBeforeEach=$true;ResolverSpecifiedOnQuery=$false;NoPacketPayloadStored=$true}
+$r=[pscustomobject]@{SourceSHA=$sourceSHA;Seconds=300;ActualSeconds=$watch.Elapsed.TotalSeconds;OwnedNRPT=$rules;Samples=$samples;CacheFlushedBeforeEach=$true;ResolverSpecifiedOnQuery=$false;NoPacketPayloadStored=$true}
 [IO.File]::WriteAllText((Join-Path $data 'd01-dns-default-300s-dns.json'),($r|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
 $r|ConvertTo-Json -Depth 6

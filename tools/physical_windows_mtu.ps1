@@ -37,6 +37,9 @@ try{
     }
     $null=$s.Send([Text.Encoding]::ASCII.GetBytes('P7M-DONE'),8)
 }finally{$s.Dispose()}
-$r=[pscustomobject]@{SourceSHA='6181db66b67594b07cd989b8b8b5848cedf6ccc3';ConnectionMTU=1400;RequestedSeconds=$Seconds;ElapsedSeconds=$watch.Elapsed.TotalSeconds;Interfaces=$interfaces;Cases=@($results.Values|Sort-Object DontFragment,UDPPayload);NoRawPayloadStored=$true}
+$version=(& (Join-Path $Bundle 'wbd-client.exe') --version) -join ' '
+if($version -notmatch 'source_sha=([0-9a-f]{40})'){throw 'Missing exact deployed source SHA'}
+$sourceSHA=$Matches[1]
+$r=[pscustomobject]@{SourceSHA=$sourceSHA;ConnectionMTU=1400;RequestedSeconds=$Seconds;ElapsedSeconds=$watch.Elapsed.TotalSeconds;Interfaces=$interfaces;Cases=@($results.Values|Sort-Object DontFragment,UDPPayload);NoRawPayloadStored=$true}
 [IO.File]::WriteAllText((Join-Path $data ($Name+'.json')),($r|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
 $r|ConvertTo-Json -Depth 6
