@@ -18,7 +18,7 @@
 
 `data/`、`logs/` 设置仅当前用户/管理员/SYSTEM可访问的 ACL；服务器密码/密钥保存在本地 JSON，日志隐藏这两项，导出会明确提示包含凭据。保留明文配置是为了整个文件夹可以迁移，不采用绑定机器的 DPAPI。不要上传整个 data/；迁移给他人前检查凭据。日志上限约 2 MiB × 2，界面最多400行，消息队列256条，定时最多32条，避免 GUI 持续日志导致无界增长。
 
-**应用便携不等于驱动无需安装。** 现有网络入口依赖 Npcap + Wintun。Npcap 安装会修改 Windows 驱动目录。官方 Wintun DLL 首次调用 CreateAdapter 会安装/注册 Wintun 驱动和网卡，Windows 可能写 DriverStore/系统驱动目录；即使 DLL 位于本文件夹，也不能承诺只有 Npcap 写系统。这是保留现有网络架构的真实限制，GUI首次连接有明确驱动说明，不静默隐藏。用户关于允许 Wintun 系统驱动的确认单列 STATUS；没有许可时不能进行物理驱动安装。
+**应用便携不等于驱动无需安装。** 现有网络入口依赖 Npcap + Wintun。Npcap 安装会修改 Windows 驱动目录。官方 Wintun DLL 首次调用 CreateAdapter 会安装/注册 Wintun 驱动和网卡，Windows 可能写 DriverStore/系统驱动目录；即使 DLL 位于本文件夹，也不能承诺只有 Npcap 写系统。这是保留现有网络架构的真实限制，GUI首次连接有明确驱动说明，不静默隐藏。2026-10-04用户明确接受Wintun任意方式，确认允许此系统驱动例外；Npcap+Wintun保留成熟网络入口。
 
 若严格只接受 Npcap 安装、Wintun 完全不能写系统，需要另做 Npcap-only 业务入口架构；本任务不擅自改动已验 TUN/路由语义，也不声称已经实现。Windows/CLR/杀毒软件自身的缓存、系统驱动注册及路由/DNS状态不属于应用解压文件，不用静态文件检查冒充整机零写入。
 

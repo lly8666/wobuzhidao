@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - name: Build portable folder and verify manifest
-        shell: powershell
+        shell: pwsh
         run: |
           $version = 'next-rc-' + $env:GITHUB_SHA.Substring(0,12)
           python tools/p6_build_release.py --source-sha $env:GITHUB_SHA --version $version --target-os windows --target-arch amd64 --output-dir artifacts/windows-portable
@@ -23,7 +23,7 @@ jobs:
           python tools/check_p6_release.py --bundle-dir artifacts/windows-portable --source-sha $env:GITHUB_SHA --target-os windows --target-arch amd64 --run-native
           if ($LASTEXITCODE -ne 0) { throw 'manifest verification failed' }
       - name: Native GUI widgets / every parameter / server switching / portable writes
-        shell: powershell
+        shell: pwsh
         run: |
           # Launch with a different CWD and Unicode/space path to catch accidental relative writes.
           $testRoot = Join-Path $env:GITHUB_WORKSPACE 'artifacts\界面 测试'
@@ -36,7 +36,7 @@ jobs:
           $unexpected = @($after | Where-Object { $_ -notin $before -and ([IO.Path]::GetFileName($_) -match '^wbd-|profiles\.json|client\.log|capture-') })
           if ($unexpected.Count) { throw ('application files escaped portable directory: '+($unexpected -join ',')) }
       - name: Package clean portable ZIP
-        shell: powershell
+        shell: pwsh
         run: |
           Compress-Archive -Path artifacts/windows-portable -DestinationPath artifacts/WBD-Windows-Portable.zip
           (Get-FileHash artifacts/WBD-Windows-Portable.zip -Algorithm SHA256).Hash | Set-Content -Encoding ascii artifacts/WBD-Windows-Portable.zip.sha256

@@ -1,0 +1,9 @@
+# GUI first Actions failure and scoped correction
+
+Parent dac5baf. First Windows GUI run37184506486 built native GUI/Go/Wintun bundle and checked13files with source/version/hash PASS. Functional result FAIL at first real field: logicaltunnel invalid identity. Raw source audit found fixture TunnelID was34hex, product requires32; corrected fixture, no relaxed identity validation. PowerShell5 inline UTF8 script interpreted Chinese path under legacy encoding, so test file existed/readable under mangled path but artifact uploader searched original Unicode path and found none. Workflow uses pwsh to genuinely test Chinese+spaces paths; child stdout/stderr explicitly UTF8. No product PASS claimed.
+
+2026-10-04 user reply authorizes Wintun any method. STATUS/docs record allowed Npcap+Wintun driver exception; no pending clarification or permission flow. Actual driver installation remains P7 NOT_RUN.
+
+Expanded each-field real validator test to manipulate actual UI editor and SaveEditor before testing Go effective config, not only dictionaries. Strict real JSON import and copy-list test added. Npcap dependency loading limits DLL directory+System32. Actions-only gofmt patch from run37184558585/artifact11296049375 SHA256 e2f681c80a0e22ec8b730a567189b698e8b6158f5b7011448684b65416382c58 downloaded/verified/applied; formatting changed Windows previously ungofmt source too, no behavior changes. Local no compilation/tests. Windows foundation source dac already unit/build plus route/DNS/IPv6 render and Npcap mocks PASS; no inheritance to final source.
+
+Next exact source push, all Actions validation/results and visual screenshot audit. No FEC/4096/wire/hotpath adjustments. All final package/source receipts pending.

@@ -162,6 +162,7 @@ namespace Wbd.Gui {
         public ClientSession(PortableStore s) { store = s; }
         ProcessStartInfo Info(string args) {
             var info = new ProcessStartInfo(store.InRoot("wbd-client.exe"), args) { WorkingDirectory = store.Root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = true };
+            info.StandardOutputEncoding = info.StandardErrorEncoding = new UTF8Encoding(false);
             info.EnvironmentVariables["TEMP"] = store.InRoot("data/tmp");
             info.EnvironmentVariables["TMP"] = store.InRoot("data/tmp");
             // Do not accidentally activate a developer profile writer outside this folder.
@@ -226,7 +227,7 @@ namespace Wbd.Gui {
         public static DependencyState Detect(PortableStore store) {
             var d = new DependencyState { Wintun = File.Exists(store.InRoot("wintun.dll")), Admin = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator) };
             string dll = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "Npcap", "wpcap.dll");
-            IntPtr lib = File.Exists(dll) ? LoadLibraryEx(dll, IntPtr.Zero, 0x1100) : IntPtr.Zero;
+            IntPtr lib = File.Exists(dll) ? LoadLibraryEx(dll, IntPtr.Zero, 0x900) : IntPtr.Zero;
             if (lib != IntPtr.Zero) {
                 try {
                     IntPtr function = GetProcAddress(lib, "pcap_lib_version");

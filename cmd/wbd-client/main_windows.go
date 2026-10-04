@@ -3,8 +3,8 @@
 package main
 
 import (
-	"context"
 	"bufio"
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -34,13 +34,15 @@ import (
 )
 
 func main() {
-	if err := runWindows(); err != nil { log.Fatal(err) }
+	if err := runWindows(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func runWindows() error {
 	var (
-		checkConfig = flag.Bool("check-config", false, "validate effective configuration without network or driver changes; credentials redacted")
-		controlStdin = flag.Bool("control-stdin", false, "GUI-owned process: stop or stdin EOF cancels startup and cleans owned network state")
+		checkConfig       = flag.Bool("check-config", false, "validate effective configuration without network or driver changes; credentials redacted")
+		controlStdin      = flag.Bool("control-stdin", false, "GUI-owned process: stop or stdin EOF cancels startup and cleans owned network state")
 		deadAfter         = flag.Duration("dead-after", runtimeentry.DefaultDeadAfter, "reconnect after no authenticated lane records; at least 3 keepalive intervals")
 		reconnectMin      = flag.Duration("reconnect-min", runtimeentry.DefaultReconnectMin, "minimum retry delay after failed lane admission")
 		reconnectMax      = flag.Duration("reconnect-max", runtimeentry.DefaultReconnectMax, "maximum retry delay after failed lane admission")
@@ -160,21 +162,37 @@ func runWindows() error {
 	if err := lease.Validate(); err != nil {
 		return err
 	}
-	if err := runtimeentry.ValidateClientHealth(runtimeentry.TunnelClientConfig{KeepaliveInterval:*keepalive, DeadAfter:*deadAfter, ReconnectMin:*reconnectMin, ReconnectMax:*reconnectMax}); err != nil { return err }
-	if _, err := pathmtu.Derive(pathmtu.Config{ConnectionMTU:*mtu, IPv4HeaderLen:20, TCPHeaderLen:20, RecordWireLimit:int(*clientLimit), ParityShards:*fecParity}); err != nil { return err }
-	if strings.TrimSpace(*adapterAlias)=="" || strings.ContainsAny(*adapterAlias,"\r\n") || strings.TrimSpace(*statePath)=="" || strings.TrimSpace(*scriptPath)=="" { return errors.New("invalid adapter or network paths") }
+	if err := runtimeentry.ValidateClientHealth(runtimeentry.TunnelClientConfig{KeepaliveInterval: *keepalive, DeadAfter: *deadAfter, ReconnectMin: *reconnectMin, ReconnectMax: *reconnectMax}); err != nil {
+		return err
+	}
+	if _, err := pathmtu.Derive(pathmtu.Config{ConnectionMTU: *mtu, IPv4HeaderLen: 20, TCPHeaderLen: 20, RecordWireLimit: int(*clientLimit), ParityShards: *fecParity}); err != nil {
+		return err
+	}
+	if strings.TrimSpace(*adapterAlias) == "" || strings.ContainsAny(*adapterAlias, "\r\n") || strings.TrimSpace(*statePath) == "" || strings.TrimSpace(*scriptPath) == "" {
+		return errors.New("invalid adapter or network paths")
+	}
 	if *checkConfig {
-		out:=map[string]string{}
-		flag.VisitAll(func(f *flag.Flag) { if f.Name=="password" || f.Name=="route-key-hex" { out[f.Name]="configured" } else { out[f.Name]=f.Value.String() } })
+		out := map[string]string{}
+		flag.VisitAll(func(f *flag.Flag) {
+			if f.Name == "password" || f.Name == "route-key-hex" {
+				out[f.Name] = "configured"
+			} else {
+				out[f.Name] = f.Value.String()
+			}
+		})
 		return json.NewEncoder(os.Stdout).Encode(out)
 	}
 	defer startQualificationCPUProfile()()
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	if *controlStdin { go watchGUIControl(os.Stdin,cancel) }
 	if *controlStdin {
-		lock,err:=acquireGUIClientSlot()
-		if err!=nil {return err}
+		go watchGUIControl(os.Stdin, cancel)
+	}
+	if *controlStdin {
+		lock, err := acquireGUIClientSlot()
+		if err != nil {
+			return err
+		}
 		defer windows.CloseHandle(lock)
 	}
 
@@ -341,7 +359,9 @@ func runWindows() error {
 
 func runNetworkAction(plan windowsclient.NetworkPlan, action, script string) error {
 	if len(plan.CaptureRoutes) > 8 {
-		if err:=os.MkdirAll(filepath.Dir(plan.StatePath),0700); err!=nil {return err}
+		if err := os.MkdirAll(filepath.Dir(plan.StatePath), 0700); err != nil {
+			return err
+		}
 		f, err := os.CreateTemp(filepath.Dir(plan.StatePath), "wbd-capture-*.txt")
 		if err != nil {
 			return err
@@ -374,25 +394,36 @@ func runNetworkAction(plan windowsclient.NetworkPlan, action, script string) err
 // EOF means the owning GUI died: the existing deferred cleanup still runs.
 func watchGUIControl(input *os.File, cancel context.CancelFunc) {
 	defer cancel()
-	s:=bufio.NewScanner(input)
-	s.Buffer(make([]byte,64),1024)
-	for s.Scan() { if s.Text()=="stop" { return } }
+	s := bufio.NewScanner(input)
+	s.Buffer(make([]byte, 64), 1024)
+	for s.Scan() {
+		if s.Text() == "stop" {
+			return
+		}
+	}
 }
 
 func networkCommand(args []string) *exec.Cmd {
-	cmd:=exec.Command("powershell.exe",args...)
-	cmd.SysProcAttr=&syscall.SysProcAttr{HideWindow:true}
+	cmd := exec.Command("powershell.exe", args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	return cmd
 }
 
 // A named event lives exactly as long as its owning client handle. This also
 // fences a replacement GUI while a crashed GUI's child is still cleaning up.
-func acquireGUIClientSlot() (windows.Handle,error) {
-	name,err:=windows.UTF16PtrFromString("Local\\WBD-NEXT-Windows-Client")
-	if err!=nil {return 0,err}
-	h,err:=windows.CreateEvent(nil,1,0,name)
-	if err!=nil {if h!=0 {windows.CloseHandle(h)};return 0,errors.New("another Windows client is running or cleaning up")}
-	return h,nil
+func acquireGUIClientSlot() (windows.Handle, error) {
+	name, err := windows.UTF16PtrFromString("Local\\WBD-NEXT-Windows-Client")
+	if err != nil {
+		return 0, err
+	}
+	h, err := windows.CreateEvent(nil, 1, 0, name)
+	if err != nil {
+		if h != 0 {
+			windows.CloseHandle(h)
+		}
+		return 0, errors.New("another Windows client is running or cleaning up")
+	}
+	return h, nil
 }
 
 func parseIPv4Addrs(raw string) ([]netip.Addr, error) {

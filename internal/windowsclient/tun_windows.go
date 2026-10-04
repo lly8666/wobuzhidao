@@ -49,9 +49,11 @@ var (
 )
 
 func wintunLibraryPath() string {
-	exe,err:=os.Executable()
-	if err!=nil { return "wintun.dll" }
-	return filepath.Join(filepath.Dir(exe),"wintun.dll")
+	exe, err := os.Executable()
+	if err != nil {
+		return "wintun.dll"
+	}
+	return filepath.Join(filepath.Dir(exe), "wintun.dll")
 }
 
 type TUN struct {
@@ -112,14 +114,18 @@ func OpenTUN(name string) (*TUN, error) {
 }
 
 func (t *TUN) Name() string {
-	if t == nil { return "" }
+	if t == nil {
+		return ""
+	}
 	return t.name
 }
 
 func (t *TUN) beginCall() bool {
 	t.stateMu.Lock()
 	defer t.stateMu.Unlock()
-	if t.closed { return false }
+	if t.closed {
+		return false
+	}
 	t.active.Add(1)
 	return true
 }
@@ -132,7 +138,9 @@ func (t *TUN) isClosed() bool {
 }
 
 func isIPv4Packet(packet []byte) bool {
-	if len(packet) < 20 || packet[0]>>4 != 4 { return false }
+	if len(packet) < 20 || packet[0]>>4 != 4 {
+		return false
+	}
 	ihl := int(packet[0]&0x0f) * 4
 	return ihl >= 20 && ihl <= len(packet)
 }
@@ -141,12 +149,18 @@ func isIPv4Packet(packet []byte) bool {
 // dataplane. IPv6 remains device-wide blocked until the product implements an
 // explicit IPv6 tunnel path.
 func (t *TUN) ReadPacket(p []byte) (int, error) {
-	if len(p) == 0 { return 0, io.ErrShortBuffer }
-	if !t.beginCall() { return 0, io.EOF }
+	if len(p) == 0 {
+		return 0, io.ErrShortBuffer
+	}
+	if !t.beginCall() {
+		return 0, io.EOF
+	}
 	defer t.endCall()
 
 	for {
-		if t.isClosed() { return 0, io.EOF }
+		if t.isClosed() {
+			return 0, io.EOF
+		}
 		var packetSize uint32
 		packet, _, callErr := wintunReceivePacket.Call(t.session, uintptr(unsafe.Pointer(&packetSize)))
 		if packet != 0 {
@@ -194,10 +208,14 @@ func (t *TUN) WritePacket(p []byte) (int, error) {
 	if len(p) == 0 || len(p) > wintunMaxIPPacket {
 		return 0, fmt.Errorf("windowsclient: invalid Wintun packet size %d", len(p))
 	}
-	if !t.beginCall() { return 0, io.EOF }
+	if !t.beginCall() {
+		return 0, io.EOF
+	}
 	defer t.endCall()
 	for {
-		if t.isClosed() { return 0, io.EOF }
+		if t.isClosed() {
+			return 0, io.EOF
+		}
 		packet, _, callErr := wintunAllocateSendPacket.Call(t.session, uintptr(len(p)))
 		if packet != 0 {
 			copy(unsafe.Slice((*byte)(unsafe.Pointer(packet)), len(p)), p)
@@ -218,27 +236,46 @@ func (t *TUN) WritePacket(p []byte) (int, error) {
 }
 
 func (t *TUN) Close() error {
-	if t == nil { return nil }
+	if t == nil {
+		return nil
+	}
 	t.closeOnce.Do(func() {
 		t.stateMu.Lock()
 		t.closed = true
-		if t.closeEvt != 0 { setEvent.Call(t.closeEvt) }
+		if t.closeEvt != 0 {
+			setEvent.Call(t.closeEvt)
+		}
 		t.stateMu.Unlock()
 		t.active.Wait()
-		if t.session != 0 { wintunEndSession.Call(t.session); t.session = 0 }
-		if t.adapter != 0 { wintunCloseAdapter.Call(t.adapter); t.adapter = 0 }
-		if t.closeEvt != 0 { closeHandle.Call(t.closeEvt); t.closeEvt = 0 }
+		if t.session != 0 {
+			wintunEndSession.Call(t.session)
+			t.session = 0
+		}
+		if t.adapter != 0 {
+			wintunCloseAdapter.Call(t.adapter)
+			t.adapter = 0
+		}
+		if t.closeEvt != 0 {
+			closeHandle.Call(t.closeEvt)
+			t.closeEvt = 0
+		}
 	})
 	return nil
 }
 
 func wintunErrno(err error) syscall.Errno {
-	if errno, ok := err.(syscall.Errno); ok { return errno }
+	if errno, ok := err.(syscall.Errno); ok {
+		return errno
+	}
 	return 0
 }
 
 func wintunCallError(op string, primary, fallback error) error {
-	if errno := wintunErrno(primary); errno != 0 { return fmt.Errorf("%s: %w", op, errno) }
-	if errno := wintunErrno(fallback); errno != 0 { return fmt.Errorf("%s: %w", op, errno) }
+	if errno := wintunErrno(primary); errno != 0 {
+		return fmt.Errorf("%s: %w", op, errno)
+	}
+	if errno := wintunErrno(fallback); errno != 0 {
+		return fmt.Errorf("%s: %w", op, errno)
+	}
 	return fmt.Errorf("%s failed", op)
 }

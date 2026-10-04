@@ -14,7 +14,7 @@ namespace Wbd.Gui {
         static void Populate(Profile p) {
             foreach (var v in new Dictionary<string, object> {
                 {"server-ip", "198.51.100.10"}, {"server-name", "www.example.com"}, {"account", "test-account"}, {"username", "test-user"}, {"password", " not-real-password "},
-                {"route-key-hex", "112233445566778899aabbccddeeff00"}, {"tunnel-id", "00112233445566778899aabbccddeeff00"}, {"installation-id", "11112222333344445555666677778888"}, {"lease4", "10.66.0.7/32"}
+                {"route-key-hex", "112233445566778899aabbccddeeff00"}, {"tunnel-id", "00112233445566778899aabbccddeeff"}, {"installation-id", "11112222333344445555666677778888"}, {"lease4", "10.66.0.7/32"}
             }) p.Values[v.Key] = v.Value;
         }
         sealed class FakeSession : IClientSession {
@@ -44,10 +44,13 @@ namespace Wbd.Gui {
                         {"lanes",4},{"fec-parity",20},{"tls-startup-padding",true},{"keepalive-interval","10s"},{"dead-after","120s"},{"reconnect-min","2s"},{"reconnect-max","45s"},{"idle-dormant","15m"},{"rotate-min","30m"},{"rotate-max","60m"}, {"china-ip-file", "data/china-test.txt"}
                     };
                     store.WriteAtomic("data/china-test.txt", "1.0.1.0/24\n");
+                    using (var configForm = new MainForm(store, new FakeSession(), () => new DependencyState { Admin=true, Npcap=true, Wintun=true, NpcapVersion="config-test" }))
                     foreach (Field f in store.Fields.Where(f => !f.Managed)) {
                         var saved = new Dictionary<string, object>(p.Values); p.Values[f.Key] = mutations[f.Key];
                         if (f.Key == "rotate-min") p.Values["rotate-max"] = "60m";
                         if (f.Key == "rotate-max") p.Values["rotate-min"] = "30m";
+                        configForm.LoadEditor(); configForm.SetEditor(f.Key, mutations[f.Key]); configForm.SaveEditor();
+                        Assert(string.Equals(Convert.ToString(p.Values[f.Key]),Convert.ToString(mutations[f.Key]),StringComparison.OrdinalIgnoreCase), "actual GUI field applied: " + f.Key);
                         var effective = store.Effective(p); store.WriteAtomic("data/field-check.json", store.Json.Serialize(effective));
                         var actual = Wait(real.ValidateAsync(store.InRoot("data/field-check.json")));
                         string want = f.Secret ? "configured" : Convert.ToString(effective[f.Key]);
@@ -98,10 +101,16 @@ namespace Wbd.Gui {
                     form.Capture(store.InRoot("gui-screenshot.png"));
                 }
                 store.Save(); var reopened = new PortableStore(root); Assert(reopened.Book.Profiles.Count >= 2, "server profiles persist after reopening");
+                using (var importForm = new MainForm(reopened, new ClientSession(reopened), () => new DependencyState { Admin=true, Npcap=true, Wintun=true, NpcapVersion="import-test" })) {
+                    var values = reopened.Effective(reopened.Book.Profiles[0]); values["china-ip-file"] = reopened.InRoot("data/china-test.txt");
+                    reopened.WriteAtomic("data/import-test.json",reopened.Json.Serialize(values)); int count = reopened.Book.Profiles.Count;
+                    Wait(importForm.ImportAsync(reopened.InRoot("data/import-test.json")));
+                    Assert(reopened.Book.Profiles.Count == count+1 && Convert.ToString(reopened.Book.Profiles.Last().Values["china-ip-file"]).StartsWith("data/china-"),"strict real JSON import copies external list into profile path");
+                }
                 using (var missing = new MainForm(reopened, new FakeSession(), () => new DependencyState { Admin = true, Npcap = false, Wintun = true })) {
                     bool denied = false; try { Wait(missing.ConnectSelectedAsync()); } catch (InvalidOperationException) { denied = true; } Assert(denied, "Npcap missing blocks connect with onboarding");
                 }
-                foreach (string file in new[] { "data/field-check.json", "data/invalid.json", "data/pending.json", "data/active.json", "data/profiles.json", "data/china-test.txt" }) if (File.Exists(store.InRoot(file))) File.Delete(store.InRoot(file));
+                foreach (string file in new[] { "data/field-check.json", "data/invalid.json", "data/pending.json", "data/active.json", "data/profiles.json", "data/china-test.txt", "data/import-test.json" }) if (File.Exists(store.InRoot(file))) File.Delete(store.InRoot(file));
                 File.WriteAllText(evidence, store.Json.Serialize(new { source_sha=SourceInfo.SHA, result="PASS", checks=passed, physical="NOT_RUN", driver_install="NOT_RUN" }), new System.Text.UTF8Encoding(false));
                 return 0;
             } catch (Exception e) {
