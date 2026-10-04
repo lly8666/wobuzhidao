@@ -1,5 +1,7 @@
 # 唯一开发路线图
 
+2026-10-05最新原生五分钟进展：固定6181db6未改产品；S01 Normal10与S02 Game4×3达到目标附近但C2S缺74/10包，不能写无损PASS；M01外层MTU1400大包至9000B无坏数据但有1次迟到。D01默认NRPT+10M出现约90秒双向中断、约30.12%业务loss和8/60 DNS失败，明确FAIL；整体P7仍PARTIAL。优先按STATUS.physical_5min复现D01并异常触发抓包定位最早边界，不直接归因DNS/VM或扩大buffer/FEC/4096。完整DNS互备、LAN/CN/IP/IPv6、其他配置/生命周期/弱网未跑。方案PHYSICAL_5MIN_ACCEPTANCE.md、日志devlog/20261005-021317-five-minute-native-capture-matrix.md、evidence/physical-5min-6181db6-20261005.json及压缩原始计数为当前证据入口；每性能Action只一条。原始pcap已删、退出owned清理通过，服务端保留active。
+
 2026-10-05用户授权实机测试已推进：固定6181db6真实CLI/Npcap/Wintun→ARM WAN DNS/UDP/TCP/验证证书HTTPS、Normal1双向10M与Game4双向3M及退出清理通过对应门。首轮不完整异常和fresh Normal raw接收drop+125仍待定位；GUI实际操作、人为弱网、长测未验，P7仅PARTIAL，不能声明RELEASE_QUALIFIED。见STATUS.physical_native与最新日志。部署仍只上传包、解压配置和启动，不扩建安装管理/在线升级；下一任务按STATUS，不自动恢复Python安装器或旧性能重构。
 
 > 当前决策（覆盖下文历史下一步）：2026-09-23用户最新决策：允许链路30%丢包时仍有至多30%业务包损失，优先处理性能、低延迟、无HOL与突发稳定性；不得主动丢业务凑指标。4096为可放弃的shadow-repair备份，不是fresh发送门。当前执行WEAKNET_QUALIFICATION第10节；历史近零损失门槛不再约束有损场景，无损满速、完整性、隔离和资源有界仍是硬门。 所有性能测试严格一个Action run一条样本，禁止同run A/B与matrix。

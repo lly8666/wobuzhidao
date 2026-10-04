@@ -4,7 +4,9 @@
 
 ## 环境与证据
 
-2026-10-05用户已授权并执行远端原生Windows→ARM测试；此为物理阶段授权例外，不改变开发期产品构建/测试在Actions的规则。固定6181db6的Normal1双向10M两份120s和Game4双向3M一份120s业务loss0、DNS/TCP/验证证书HTTPS与owned退出清理通过对应门。首轮summary timeout及约4.16M部分结果、fresh Normal AF_PACKET drops+125保留未解，整体physical_status=PARTIAL，不是PHYSICAL_PASS/RELEASE_QUALIFIED。GUI实际操作、人为弱网、长测仍NOT_RUN。[本轮日志](devlog/20261005-014639-native-wan-no-pcap.md)、[原始计数及hash](evidence/physical-native-6181db6-20261005.json)为唯一最新证据入口。没有pcap，仅8秒C2S头部计数，不宣称双向TLS指纹完整验收。
+2026-10-05最新原生五分钟进展：固定6181db6未改产品；S01 Normal10与S02 Game4×3达到目标附近但C2S缺74/10包，不能写无损PASS；M01外层MTU1400大包至9000B无坏数据但有1次迟到。D01默认NRPT+10M出现约90秒双向中断、约30.12%业务loss和8/60 DNS失败，明确FAIL；整体P7仍PARTIAL。优先按STATUS.physical_5min复现D01并异常触发抓包定位最早边界，不直接归因DNS/VM或扩大buffer/FEC/4096。完整DNS互备、LAN/CN/IP/IPv6、其他配置/生命周期/弱网未跑。方案PHYSICAL_5MIN_ACCEPTANCE.md、日志devlog/20261005-021317-five-minute-native-capture-matrix.md、evidence/physical-5min-6181db6-20261005.json及压缩原始计数为当前证据入口；每性能Action只一条。原始pcap已删、退出owned清理通过，服务端保留active。
+
+2026-10-05用户已授权并执行远端原生Windows→ARM测试；此为物理阶段授权例外，不改变开发期产品构建/测试在Actions的规则。固定6181db6的Normal1双向10M两份120s和Game4双向3M一份120s业务loss0、DNS/TCP/验证证书HTTPS与owned退出清理通过对应门。首轮summary timeout及约4.16M部分结果、fresh Normal AF_PACKET drops+125保留未解，整体physical_status=PARTIAL，不是PHYSICAL_PASS/RELEASE_QUALIFIED。GUI实际操作、人为弱网、长测仍NOT_RUN。[本轮日志](devlog/20261005-014639-native-wan-no-pcap.md)、[原始计数及hash](evidence/physical-native-6181db6-20261005.json)为历史120秒证据入口。该轮没有pcap，仅8秒C2S头部计数；最新五分钟短窗口与D01失败见上段，不宣称全时TLS指纹完整验收。
 
 开发期所有构建和测试只在 GitHub Actions；本地不运行 go test、编译、fuzz、性能或网络试验。最终物理资格在 P7，不能提前成为开发依赖。
 

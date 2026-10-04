@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "ACTIONS_PASS",
-  "qualification_scope": "6181db6 targeted Actions PASS;native Windows CLI/Npcap/Wintun to ARM WAN business/short target-rate partial tested;initial incomplete anomaly and AF_PACKET+125 unresolved;full70/strict18/1800s NOT_RUN",
+  "qualification_scope": "6181db6 targeted Actions PASS;native 300s Normal/Game near target with nonzero loss,MTU large datagrams no corruption;D01 DNS+load bidirectional90s outage FAIL;full native/P7/full70/strict18/1800s NOT_RUN",
   "updated_at": "2026-10-05",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -76,13 +76,15 @@
     "2026-10-04：采样定位Game逐包扫描历史，增量退役保持原窗口/乱序/no-HOL；独立Normal/Game5205、36生命周期、三关键配置及P6通过，旧新CPU对比host差异单列",
     "Windows中文GUI与便携包完成：29普通字段及全部managed操作、服务器管理/切换/安全停止、Npcap引导、原版Wintun随包。9857bdb同源206GUI检查及core/race/网络专项PASS，已发布固定标签预发布。物理P7仍NOT_RUN。",
     "2026-10-04 Linux部署/共享账号多客户端自动7天内存IP与配套GUI完成：SOURCE6181db6 native12/systemd12/GUI208/core-race/真实DNS分流/36+aggregate37jobs/两独立5205 PASS，正常与SIGKILL同端口重建、foreign/live保护通过，三平台同源包预发布linux-server-rc-20261004-6181db6。",
-    "6181db6原生Windows CLI/Npcap/Wintun→ARM WAN：Normal1双向10M两份完整120s、Game4双向3M一份120s业务loss0，受控DNS/TCP/验证HTTPS及owned退出清理；失败/压力样本保留，P7仅PARTIAL"
+    "6181db6原生Windows CLI/Npcap/Wintun→ARM WAN：Normal1双向10M两份完整120s、Game4双向3M一份120s业务loss0，受控DNS/TCP/验证HTTPS及owned退出清理；失败/压力样本保留，P7仅PARTIAL",
+    "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
+    "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "固定6181db6先独立Normal10/120s复现首轮异常和raw接收pressure，双端保留完整offered/unique/loss/RTT/CPU，逐秒Recv-Q/drop与host压力，按WBD端口与同NIC其他IPv4分离，只保存小计数不存payload。若证据指向内核入队背景压力，再最小评估Linux raw ingress IP/TCP端口过滤，保留普通TLS fallback及多客户端/lane，产品变更先Actions正确性与独立5205再发包实测。不直接归因VM、不扩大buffer/FEC/4096。诊断后原生GUI/生命周期/弱网逐项独立样本；当前GUI实际操作、人工弱网、长测/P7全门未通过。仍只简单部署，禁止恢复Go管理器/在线升级。每性能Action一条样本。",
-  "latest_log": "docs/devlog/20261005-014639-native-wan-no-pcap.md",
+  "next_task": "One D01 reproduction with anomaly-triggered bounded capture,continuous header/owner/health/Npcap counters;preserve complete send/receive and both-side liveness. Prioritize earliest outage boundary;do not assert DNS/VM/FEC/buffer cause or blindly tune4096. 产品修改先Actions正确性与独立Normal/Game5205，再固定同源配套包原生验收。每性能Action只一条，禁止matrix/A-B。只简单部署，不扩建管理器。",
+  "latest_log": "docs/devlog/20261005-021317-five-minute-native-capture-matrix.md",
   "last_tested_source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
   "actions": [
     {
@@ -2017,7 +2019,8 @@
     "docs/LIFECYCLE_ACCEPTANCE.md",
     "docs/SPLIT_ROUTING.md",
     "docs/WINDOWS_GUI.md",
-    "docs/LINUX_SERVER.md"
+    "docs/LINUX_SERVER.md",
+    "docs/PHYSICAL_5MIN_ACCEPTANCE.md"
   ],
   "workstreams": {
     "IP_SPLIT_ROUTING": {
@@ -7127,6 +7130,389 @@
     "actions_this_round": "NO_NEW_PRODUCT_OR_PERFORMANCE_RUN;prior fixed-source evidence retained",
     "log": "docs/devlog/20261005-014639-native-wan-no-pcap.md",
     "evidence": "docs/evidence/physical-native-6181db6-20261005.json",
-    "summary": "PARTIAL native WAN;fixed binary;not GUI/weaknet/soak qualification"
+    "summary": "Historical120s scope retained;latest300s D01 FAIL see physical_5min,overall PARTIAL",
+    "latest_five_minute_evidence": "docs/evidence/physical-5min-6181db6-20261005.json"
+  },
+  "physical_5min": {
+    "state": "PARTIAL_NATIVE_WAN_WITH_D01_FAIL",
+    "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
+    "plan": "docs/PHYSICAL_5MIN_ACCEPTANCE.md",
+    "log": "docs/devlog/20261005-021317-five-minute-native-capture-matrix.md",
+    "evidence": "docs/evidence/physical-5min-6181db6-20261005.json",
+    "receipts": "docs/evidence/physical-5min-6181db6-20261005-receipts.json.gz",
+    "samples": [
+      {
+        "id": "S01",
+        "name": "s01-normal10-300s",
+        "lanes": 1,
+        "seed": 1101,
+        "seconds": 300,
+        "requested_mbps_each_direction": 10,
+        "classification": "TARGET_RATE_MEASURED_WITH_QUALITY_WARNING",
+        "c2s_goodput_mbps": 9.998386133333334,
+        "s2c_goodput_mbps": 9.999980053333333,
+        "client_offered_mbps": 9.999953386666666,
+        "server_offered_mbps": 9.999980053333333,
+        "c2s_packet_loss": 74,
+        "c2s_packet_loss_percent": 0.01277143616525548,
+        "c2s_byte_loss_percent": 0.015672606388575913,
+        "s2c_byte_loss_percent": 0.0,
+        "bad_payload_client": 0,
+        "bad_payload_target": 0,
+        "probe_sent": 2972,
+        "probe_received": 2972,
+        "probe_unanswered": 0,
+        "successful_probe_p95_ms": 71.9767,
+        "successful_probe_p99_ms": 82.0297,
+        "client_cpu_seconds": 266.4375,
+        "server_cpu_seconds": 166.82999999999998,
+        "host_busy_percent": 29.916186082276052,
+        "server_af_packet_drop_delta": 2,
+        "max_sampled_recv_bytes": 93952,
+        "inband_summary_received": false,
+        "independent_target_receipt": "s01-normal10-300s-target.json",
+        "measurement_not_formal_5205": true,
+        "send_lag_p99": "NOT_MEASURED",
+        "window_intervals_seconds": 5
+      },
+      {
+        "id": "S02",
+        "name": "s02-game3-300s",
+        "lanes": 4,
+        "seed": 1102,
+        "seconds": 300,
+        "requested_mbps_each_direction": 3,
+        "classification": "TARGET_RATE_MEASURED_WITH_QUALITY_WARNING",
+        "c2s_goodput_mbps": 2.999787946666667,
+        "s2c_goodput_mbps": 2.9999902933333336,
+        "client_offered_mbps": 2.9999902933333336,
+        "server_offered_mbps": 2.9999902933333336,
+        "c2s_packet_loss": 10,
+        "c2s_packet_loss_percent": 0.005752879316097707,
+        "c2s_byte_loss_percent": 0.0067449107124222165,
+        "s2c_byte_loss_percent": 0.0,
+        "bad_payload_client": 0,
+        "bad_payload_target": 0,
+        "probe_sent": 2980,
+        "probe_received": 2980,
+        "probe_unanswered": 0,
+        "successful_probe_p95_ms": 71.7868,
+        "successful_probe_p99_ms": 77.3584,
+        "client_cpu_seconds": 320.296875,
+        "server_cpu_seconds": 180.92000000000007,
+        "host_busy_percent": 29.37679061027079,
+        "server_af_packet_drop_delta": 569,
+        "max_sampled_recv_bytes": 59648,
+        "inband_summary_received": false,
+        "independent_target_receipt": "s02-game3-300s-target.json",
+        "measurement_not_formal_5205": true,
+        "send_lag_p99": "NOT_MEASURED",
+        "window_intervals_seconds": 5
+      },
+      {
+        "id": "D01",
+        "name": "d01-dns-default-300s",
+        "lanes": 1,
+        "seed": 1104,
+        "seconds": 300,
+        "requested_mbps_each_direction": 10,
+        "classification": "FAIL_BIDIRECTIONAL_OUTAGE",
+        "c2s_goodput_mbps": 6.987661653333333,
+        "s2c_goodput_mbps": 6.987672853333334,
+        "client_offered_mbps": 9.999980053333333,
+        "server_offered_mbps": 9.999953386666666,
+        "c2s_packet_loss": 174520,
+        "c2s_packet_loss_percent": 30.11982693007996,
+        "c2s_byte_loss_percent": 30.12324408583087,
+        "s2c_byte_loss_percent": 30.12294574642444,
+        "bad_payload_client": 0,
+        "bad_payload_target": 0,
+        "probe_sent": 2974,
+        "probe_received": 2077,
+        "probe_unanswered": 897,
+        "successful_probe_p95_ms": 72.7832,
+        "successful_probe_p99_ms": 82.6848,
+        "client_cpu_seconds": 217.953125,
+        "server_cpu_seconds": 136.05999999999995,
+        "host_busy_percent": 24.644267870487578,
+        "server_af_packet_drop_delta": 166,
+        "max_sampled_recv_bytes": 21248,
+        "inband_summary_received": true,
+        "independent_target_receipt": "d01-dns-default-300s-target.json",
+        "measurement_not_formal_5205": true,
+        "send_lag_p99": "NOT_MEASURED",
+        "window_intervals_seconds": 5
+      }
+    ],
+    "mtu": {
+      "id": "M01",
+      "classification": "LARGE_DATAGRAM_INTEGRITY_OBSERVED_WITH_ONE_LATE_REPLY",
+      "requested_seconds": 300,
+      "actual_seconds": 300.159387,
+      "connection_mtu": 1400,
+      "windows_tun_mtu": 65535,
+      "windows_physical_nic_mtu": 1500,
+      "linux_tun_mtu": 1400,
+      "cases": [
+        {
+          "UDPPayload": 96,
+          "IPv4Total": 124,
+          "DontFragment": false,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 1371,
+          "IPv4Total": 1399,
+          "DontFragment": false,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 1372,
+          "IPv4Total": 1400,
+          "DontFragment": false,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 1373,
+          "IPv4Total": 1401,
+          "DontFragment": false,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 1472,
+          "IPv4Total": 1500,
+          "DontFragment": false,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 1972,
+          "IPv4Total": 2000,
+          "DontFragment": false,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 4068,
+          "IPv4Total": 4096,
+          "DontFragment": false,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 8972,
+          "IPv4Total": 9000,
+          "DontFragment": false,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 1371,
+          "IPv4Total": 1399,
+          "DontFragment": true,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 1372,
+          "IPv4Total": 1400,
+          "DontFragment": true,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 1373,
+          "IPv4Total": 1401,
+          "DontFragment": true,
+          "Sent": 275,
+          "ReceivedExact": 274,
+          "MessageSizeError": 0,
+          "Timeout": 1,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 1472,
+          "IPv4Total": 1500,
+          "DontFragment": true,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 1
+        },
+        {
+          "UDPPayload": 1972,
+          "IPv4Total": 2000,
+          "DontFragment": true,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 4068,
+          "IPv4Total": 4096,
+          "DontFragment": true,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        },
+        {
+          "UDPPayload": 8972,
+          "IPv4Total": 9000,
+          "DontFragment": true,
+          "Sent": 275,
+          "ReceivedExact": 275,
+          "MessageSizeError": 0,
+          "Timeout": 0,
+          "OtherSendError": 0,
+          "BadPayload": 0,
+          "LateResponses": 0
+        }
+      ],
+      "diagnostic_wire_seconds": 20,
+      "diagnostic_wire_max_ipv4_by_direction": {
+        "C2S": 1290,
+        "S2C": 1340
+      },
+      "outer_fragments": 0,
+      "limitation": "Controlled server loopback target;not Internet PMTU/ICMP qualification;DF prohibits IP fragmentation,not LINK encapsulation fragmentation;late packet payload not independently revalidated"
+    },
+    "dns": {
+      "queries": 60,
+      "failed": 8,
+      "cache_flushed_each_query": true,
+      "system_nrpt_used": true,
+      "configured_resolvers": [
+        "1.1.1.1",
+        "8.8.8.8"
+      ],
+      "observed_resolvers": [
+        "1.1.1.1"
+      ],
+      "backup_failover": "NOT_PROVEN",
+      "dns_tcp_mode": "Explicit TCPOnly;TC-triggered fallback NOT_RUN",
+      "background_route_mode": "all for controlled private target;default LAN/China policy NOT_VALIDATED",
+      "outage_approx_seconds": [
+        110,
+        200
+      ],
+      "new_source_port_observed": 40001,
+      "root_cause": "UNRESOLVED;90s dead-after similarity is hypothesis",
+      "target_udp_sampled_drop_counter": 0,
+      "service_journal_lines_in_window": 0
+    },
+    "not_run": [
+      "S03-S27 full config/lifecycle/weaknet/soak",
+      "D02-D06 DNS fault/failover/off/custom",
+      "I01-I06 real LAN/CN/foreign/default/IPv6 split-routing matrix",
+      "M02 Game large datagrams,M03 UDP65507/65508 boundary",
+      "W01 normal HTTPS300s comparison",
+      "GUI interactions",
+      "Latest SOURCE full70/strict18/1800s"
+    ],
+    "cleanup": {
+      "client_processes": 0,
+      "client_normal_exit": true,
+      "owned_nrpt": 0,
+      "owned_firewall": 0,
+      "ipv4_route_signature_differences": 0,
+      "network_state_remaining": false,
+      "test_tasks": 0,
+      "raw_pcaps_remaining": 0,
+      "tcpdump_or_owned_helpers_remaining": 0,
+      "temporary_address_removed": true,
+      "windows_tmp_remaining": 0,
+      "configuration_restored": {
+        "lanes": 1,
+        "route_mode": "bypass-lan-cn",
+        "mtu": 1400
+      },
+      "configuration_reconnect_tested": false,
+      "server": "active;autostart disabled;PID409655",
+      "connector": {
+        "wsl_directory_before": [
+          {
+            "name": "win.sock",
+            "type": "socket"
+          },
+          {
+            "name": "arm.sock",
+            "type": "socket"
+          }
+        ],
+        "master_exit_codes": [
+          0,
+          0
+        ],
+        "directory_removed": true,
+        "credential_config_copied_this_round": false
+      }
+    }
   }
 }

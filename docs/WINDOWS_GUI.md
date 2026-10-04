@@ -1,5 +1,7 @@
 # Windows 中文便携客户端
 
+2026-10-05最新原生五分钟进展：固定6181db6未改产品；S01 Normal10与S02 Game4×3达到目标附近但C2S缺74/10包，不能写无损PASS；M01外层MTU1400大包至9000B无坏数据但有1次迟到。D01默认NRPT+10M出现约90秒双向中断、约30.12%业务loss和8/60 DNS失败，明确FAIL；整体P7仍PARTIAL。优先按STATUS.physical_5min复现D01并异常触发抓包定位最早边界，不直接归因DNS/VM或扩大buffer/FEC/4096。完整DNS互备、LAN/CN/IP/IPv6、其他配置/生命周期/弱网未跑。方案PHYSICAL_5MIN_ACCEPTANCE.md、日志devlog/20261005-021317-five-minute-native-capture-matrix.md、evidence/physical-5min-6181db6-20261005.json及压缩原始计数为当前证据入口；每性能Action只一条。原始pcap已删、退出owned清理通过，服务端保留active。
+
 最新配套包固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3，标签linux-server-rc-20261004-6181db6；新增自动地址与服务端重分配后重建使用上次active配置，GUI208检查通过。当前入口STATUS.windows_gui.latest_paired_release、STATUS.linux_server和evidence/linux-server-6181db6.json。早期985 GUI206是历史独立包，不含自动租约，不与最新server混用。2026-10-05已实测同源CLI的真实Npcap/Wintun及Windows vmxnet3→ARM业务、Normal/Game与owned退出清理，见STATUS.physical_native；这不替代GUI实际点击/UAC/跨服务器切换，后者仍NOT_RUN。整个P7仅PARTIAL，失败与压力计数见最新日志。
 
 当前任务由用户要求插入，属于平台 UI 和便携打包，不重写已验数据面。实时状态和精确测试源码见 STATUS.json 的 windows_gui；旧 d9 默认网络和性能成绩不能代替新 GUI 资格。

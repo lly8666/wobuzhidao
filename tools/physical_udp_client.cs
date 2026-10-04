@@ -16,6 +16,11 @@ public class WBDPhysicalUDPResult {
     public volatile string ServerJSON;
     public bool SummaryReceived;
     public bool NoPcap = true;
+    public List<WBDPhysicalUDPInterval> Intervals = new List<WBDPhysicalUDPInterval>();
+}
+public class WBDPhysicalUDPInterval {
+    public double ElapsedSeconds, WBDCPUSeconds;
+    public long TxBytes, RxBytes;
 }
 public static class WBDPhysicalUDP {
     [DllImport("winmm.dll")] static extern uint timeBeginPeriod(uint period);
@@ -24,7 +29,7 @@ public static class WBDPhysicalUDP {
     static void Put32(byte[] b, int at, uint n) {for(int i=0;i<4;i++) b[at+i]=(byte)(n >> (24-8*i));}
     static uint Get32(byte[] b,int at) {return (uint)(b[at]<<24 | b[at+1]<<16 | b[at+2]<<8 | b[at+3]);}
     public static WBDPhysicalUDPResult Run(string target,int port,double mbps,int seconds,uint seed,int wbdPid) {
-        if(seconds<1 || seconds>180 || mbps<=0 || mbps>40) throw new ArgumentException("Out of bounded test range");
+        if(seconds<1 || seconds>600 || mbps<=0 || mbps>40 || Math.Ceiling(mbps*1000000/8*seconds/647.2)+5>=1000000) throw new ArgumentException("Out of bounded test duration/bitmap range");
         WBDPhysicalUDPResult result=new WBDPhysicalUDPResult(); result.Seconds=seconds;result.RequestedMbps=mbps;
         Process app=Process.GetProcessById(wbdPid); double appBefore=app.TotalProcessorTime.TotalSeconds;
         double helperBefore=Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds;
@@ -65,7 +70,7 @@ public static class WBDPhysicalUDP {
                 sock.Send(Encoding.ASCII.GetBytes("P7G"));
                 Dictionary<int,byte[]> buffers=new Dictionary<int,byte[]>();
                 foreach(int size in sizes) {byte[] b=new byte[size];b[0]=(byte)'P';b[1]=(byte)'7';b[2]=(byte)'D';b[3]=(byte)'1';Put32(b,4,seed);b[12]=(byte)(size>>8);b[13]=(byte)size;for(int i=16;i<size;i++) b[i]=(byte)((i-16)%256);buffers[size]=b;}
-                Stopwatch watch=Stopwatch.StartNew(); double rate=mbps*1000000/8;uint sequence=0;double nextProbe=0;
+                Stopwatch watch=Stopwatch.StartNew(); double rate=mbps*1000000/8;uint sequence=0;double nextProbe=0,nextReport=5;
                 byte[] probe=new byte[12];probe[0]=(byte)'P';probe[1]=(byte)'7';probe[2]=(byte)'P';
                 while(watch.Elapsed.TotalSeconds<seconds) {
                     double elapsed=watch.Elapsed.TotalSeconds, budget=elapsed*rate;int batch=0;
@@ -75,6 +80,9 @@ public static class WBDPhysicalUDP {
                         result.MaxSendLagMs=Math.Max(result.MaxSendLagMs,(elapsed-result.TxBytes/rate)*1000);
                     }
                     if(elapsed>=nextProbe) {Array.Copy(BitConverter.GetBytes(Stopwatch.GetTimestamp()),0,probe,4,8);sock.Send(probe);result.ProbeSent++;nextProbe=elapsed+.1;}
+                    if(elapsed>=nextReport) {
+                        app.Refresh();result.Intervals.Add(new WBDPhysicalUDPInterval {ElapsedSeconds=elapsed,TxBytes=result.TxBytes,RxBytes=Interlocked.Read(ref result.RxBytes),WBDCPUSeconds=app.TotalProcessorTime.TotalSeconds-appBefore});nextReport=elapsed+5;
+                    }
                     Thread.Sleep(1);
                 }
                 Thread.Sleep(3200);

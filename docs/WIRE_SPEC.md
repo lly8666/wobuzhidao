@@ -70,6 +70,8 @@ FakeTCP repair 缓存最终不可变 wire bytes；同一 TCP 序列区间重发�
 
 P3 只有一个预算来源。operator-visible `connection_mtu` 合法范围固定为 576..9000；可再受更小的本地实际 packet ceiling 约束。steady-state 每方向按实际序列化 IPv4/TCP header 长度、peer effective MSS 和受保护 admission 协商出的 record wire limit 推导，不再有隐藏的 1360/1400/1500 cap。
 
+该预算是外层包约束，不要求所有平台TUN的接口MTU等于它。6181原生Windows读到TUN65535，Linux TUN1400；内层合法IPv4数据报可经LINK封装拆分，不改原数据报的DF语义。DF只约束IP分片。2026-10-05 M01在外层1400下覆盖完整内层包1399/1400/1401/1500/2000/4096/9000B与DF开/关；受控loopback往返不证明互联网目的PMTU或ICMP引用正确。外层实际1290/1340B的短窗口证据见physical-5min-6181db6-20261005.json，不改变本协议或65535数据报上限。
+
 IPv4 当前公式固定为：
 
 ```text

@@ -1,5 +1,7 @@
 # Linux 服务端部署与多客户端
 
+2026-10-05最新原生五分钟进展：固定6181db6未改产品；S01 Normal10与S02 Game4×3达到目标附近但C2S缺74/10包，不能写无损PASS；M01外层MTU1400大包至9000B无坏数据但有1次迟到。D01默认NRPT+10M出现约90秒双向中断、约30.12%业务loss和8/60 DNS失败，明确FAIL；整体P7仍PARTIAL。优先按STATUS.physical_5min复现D01并异常触发抓包定位最早边界，不直接归因DNS/VM或扩大buffer/FEC/4096。完整DNS互备、LAN/CN/IP/IPv6、其他配置/生命周期/弱网未跑。方案PHYSICAL_5MIN_ACCEPTANCE.md、日志devlog/20261005-021317-five-minute-native-capture-matrix.md、evidence/physical-5min-6181db6-20261005.json及压缩原始计数为当前证据入口；每性能Action只一条。原始pcap已删、退出owned清理通过，服务端保留active。
+
 ## 当前只做简单部署测试（用户最新要求）
 
 不开发通用安装器、Go版wbdctl、在线升级或新的回滚管理。直接用固定发布包：核验包与manifest，解压复制已编译的wbd-server，填写server.json和证书，检查配置后启动。现有wbdctl及其Actions记录保留为历史能力，不作为当前测试部署入口；Python3.8安装工具错误保留记录，但不阻塞直接部署，也不因此重新打包或改变数据面。

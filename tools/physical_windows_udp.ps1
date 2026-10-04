@@ -1,9 +1,10 @@
-param([Parameter(Mandatory=$true)][string]$Bundle,[double]$Mbps=10,[int]$Seconds=120,[int]$Seed=1001,[string]$Name='normal10-native')
+param([Parameter(Mandatory=$true)][string]$Bundle,[double]$Mbps=10,[int]$Seconds=120,[int]$Seed=1001,[string]$Name='normal10-native',[string]$StartSignal='')
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue';[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $data=Join-Path $Bundle 'data';$env:TEMP=Join-Path $data 'tmp';$env:TMP=$env:TEMP
 $state=Get-Content -LiteralPath (Join-Path $data 'p7-status.json') -Raw | ConvertFrom-Json
 if(-not $state.Ready -or $state.State -ne 'RUNNING'){throw 'Client not ready'}
 Add-Type -Path (Join-Path (Split-Path -Parent $Bundle) 'physical_udp_client.cs')
+if($StartSignal){$deadline=[DateTime]::UtcNow.AddSeconds(30);while(-not(Test-Path -LiteralPath $StartSignal)){if([DateTime]::UtcNow -gt $deadline){throw 'Start barrier timeout'};Start-Sleep -Milliseconds 100}}
 $index=(Get-NetRoute -AddressFamily IPv4 -DestinationPrefix '0.0.0.0/0' | Sort-Object RouteMetric | Select-Object -First 1).InterfaceIndex
 $physical=Get-NetAdapter | Where-Object ifIndex -eq $index | Select-Object -First 1
 $before=Get-NetAdapterStatistics -Name $physical.Name | Select-Object ReceivedBytes,SentBytes,ReceivedDiscardedPackets,OutboundDiscardedPackets

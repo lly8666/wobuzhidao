@@ -1,5 +1,5 @@
 """Controlled physical UDP target: bounded summaries, no packet captures."""
-import argparse, json, os, socket, struct, threading, time
+import argparse, json, math, os, socket, struct, threading, time
 from pathlib import Path
 
 SIZES = (96, 256, 512, 1000, 1372)
@@ -23,7 +23,8 @@ def main():
         if not hello.startswith(b'P7H '): raise ValueError('Expected qualification hello')
         config = json.loads(hello[4:]); duration = int(config['Seconds']); seed = int(config['Seed'])
         rate = float(config['Mbps']) * 1e6 / 8
-        if not 1 <= duration <= 180 or not 0 < rate <= 5e6: raise ValueError('Out of bounded test range')
+        if not 1 <= duration <= 600 or not 0 < rate <= 5e6 or math.ceil(rate*duration/647.2)+5 >= 1000000:
+            raise ValueError('Out of bounded test duration/bitmap range')
         sock.sendto(b'P7A', peer)
         while True:
             data, address = sock.recvfrom(4096)
@@ -34,7 +35,7 @@ def main():
         stats = dict(RxPackets=0, RxBytes=0, DuplicatePackets=0, BadPayload=0, ReorderedPackets=0,
                      TxPackets=0, TxBytes=0, MaxSendLagMs=0.0)
         start = time.monotonic(); cpu_before = cpu(args.wbd_pid); helper_cpu_before = time.process_time()
-        maximum = -1; finished = threading.Event()
+        maximum = -1; finished = threading.Event(); intervals = []; next_report = 5.0
         def send():
             sequence = 0; buffers = {n: bytearray(n) for n in SIZES}
             for n, b in buffers.items(): b[16:] = PATTERN[:n-16]
@@ -50,6 +51,11 @@ def main():
             finished.set()
         sender = threading.Thread(target=send); sender.start(); sock.settimeout(.2)
         while time.monotonic()-start < duration+3:
+            elapsed = time.monotonic()-start
+            if elapsed >= next_report:
+                intervals.append(dict(ElapsedSeconds=elapsed, RxBytes=stats['RxBytes'], TxBytes=stats['TxBytes'],
+                                      WBDCPUSeconds=cpu(args.wbd_pid)-cpu_before))
+                next_report = elapsed+5
             try: data, address = sock.recvfrom(4096)
             except socket.timeout: continue
             if address != peer: continue
@@ -69,9 +75,12 @@ def main():
                      PeerIPv4=peer[0], WBDCPUSeconds=cpu(args.wbd_pid)-cpu_before,
                      HelperCPUSeconds=time.process_time()-helper_cpu_before,
                      EffectiveTargetReceiveBuffer=sock.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF),
-                     PayloadSizes=list(SIZES), NoPcap=True)
+                     PayloadSizes=list(SIZES), Intervals=intervals, NoPcap=True)
         Path(args.output).write_text(json.dumps(stats, indent=2))
-        reply=b'P7R '+json.dumps(stats).encode()
+        # Full interval metadata stays in the independent SSH-readable receipt.
+        # Keep in-band summary below the client's4096B receive datagram limit.
+        reply=b'P7R '+json.dumps({k:v for k,v in stats.items() if k != 'Intervals'}).encode()
+        if len(reply)>2048:raise ValueError('Bounded in-band summary exceeded2048bytes')
         # Reliable retrieval is bounded and kept out of business counters.
         deadline=time.monotonic()+8
         while time.monotonic()<deadline:
