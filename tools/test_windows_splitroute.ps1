@@ -44,16 +44,16 @@ try {
     function New-NetFirewallRule { param($DisplayName,$Group,$Description,$Direction,$Action,$Enabled,$Profile,$Protocol,$RemoteAddress,$LocalAddress)
         $script:firewall += [pscustomobject]@{DisplayName=$DisplayName;Group=$Group;Description=$Description}
     }
-    function Remove-NetFirewallRule { param([Parameter(ValueFromPipeline=$true)]$InputObject,$ErrorAction) process {
+    function Remove-NetFirewallRule { param([Parameter(ValueFromPipeline=$true)]$InputObject) process {
         $script:firewall=@($script:firewall | Where-Object { $_.DisplayName -ne $InputObject.DisplayName -or $_.Description -ne $InputObject.Description })
     } }
     function Get-DnsClientNrptRule { param($ErrorAction) @($script:nrpt) }
-    function Add-DnsClientNrptRule { param($Namespace,$NameServers,$DisplayName,$Comment,$PassThru,$ErrorAction)
+    function Add-DnsClientNrptRule { param($Namespace,$NameServers,$DisplayName,$Comment,[switch]$PassThru,$ErrorAction)
         if (($NameServers -join ',') -ne '1.1.1.1,8.8.8.8') { throw 'primary/backup resolver list lost' }
         $r=[pscustomobject]@{Name='owned-rule';DisplayName=$DisplayName;Comment=$Comment}
         $script:nrpt+= $r; return $r
     }
-    function Remove-DnsClientNrptRule { param($Name,$Force,$Confirm,$ErrorAction) $script:nrpt=@($script:nrpt | Where-Object { $_.Name -ne $Name }) }
+    function Remove-DnsClientNrptRule { param($Name,[switch]$Force,$Confirm,$ErrorAction) $script:nrpt=@($script:nrpt | Where-Object { $_.Name -ne $Name }) }
 
     foreach ($fail in @($false,$true)) {
         $script:failApply=$fail; $script:saveCount=0; $script:enumerations=0

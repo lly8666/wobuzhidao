@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	iffTUN     = 0x0001
-	iffNoPI    = 0x1000
-	tunSetIFF  = 0x400454ca
+	iffTUN    = 0x0001
+	iffNoPI   = 0x1000
+	tunSetIFF = 0x400454ca
 )
 
 var ErrTUNUnsupported = errors.New("linuxserver: shared TUN is unsupported on this platform")
@@ -57,7 +57,10 @@ func OpenTUN(name string) (*TUN, error) {
 	}
 	actual := string(bytes.TrimRight(ifr[:tunNameSize], "\x00"))
 	f := os.NewFile(uintptr(fd), "/dev/net/tun")
-	if f == nil { _ = syscall.Close(fd); return nil, os.ErrInvalid }
+	if f == nil {
+		_ = syscall.Close(fd)
+		return nil, os.ErrInvalid
+	}
 	return &TUN{file: f, name: actual}, nil
 }
 

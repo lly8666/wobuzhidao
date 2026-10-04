@@ -24,8 +24,8 @@ type SocketConfig struct {
 	// BeforeBusiness runs only when a real intercepted TCP/UDP flow is about to
 	// enter the tunnel. It lets the single-process runtime wake a DORMANT tunnel
 	// without treating transport ACK/timer activity as payload activity.
-	BeforeBusiness func() error
-	DNSServers []netip.Addr
+	BeforeBusiness  func() error
+	DNSServers      []netip.Addr
 	ReplyBypassMark uint32
 }
 

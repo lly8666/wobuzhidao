@@ -14,8 +14,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/lly8666/wobuzhidao/internal/platformflow"
 	"github.com/lly8666/wobuzhidao/internal/dnsroute"
+	"github.com/lly8666/wobuzhidao/internal/platformflow"
 )
 
 type replySocket struct {
@@ -312,7 +312,7 @@ type SocketAdapter struct {
 	udp    *net.UDPConn
 	tcp    *net.TCPListener
 	client *platformflow.Client
-	dns *dnsroute.Resolver
+	dns    *dnsroute.Resolver
 
 	replyMu sync.Mutex
 	replies map[netip.AddrPort]*replySocket
@@ -320,8 +320,8 @@ type SocketAdapter struct {
 	udpIngress   *udpIngressQueue
 	udpIngressWG sync.WaitGroup
 
-	runMu   sync.Mutex
-	running bool
+	runMu     sync.Mutex
+	running   bool
 	closeOnce sync.Once
 	closeErr  error
 }
@@ -351,11 +351,22 @@ func OpenSocketAdapter(cfg SocketConfig) (*SocketAdapter, error) {
 		return nil, err
 	}
 	a.client = client
-	if len(cfg.DNSServers)>0 {
-		a.dns,err=dnsroute.New(cfg.DNSServers,func(c,p netip.AddrPort,b []byte,now time.Time)error{return a.client.ForwardUDP(c,p,b,now)},a.replyUDP,func(p netip.AddrPort)(net.Conn,error){
-			local,upstream:=net.Pipe();if _,e:=a.client.AddTCP(upstream,p,time.Now());e!=nil{local.Close();upstream.Close();return nil,e};return local,nil
+	if len(cfg.DNSServers) > 0 {
+		a.dns, err = dnsroute.New(cfg.DNSServers, func(c, p netip.AddrPort, b []byte, now time.Time) error { return a.client.ForwardUDP(c, p, b, now) }, a.replyUDP, func(p netip.AddrPort) (net.Conn, error) {
+			local, upstream := net.Pipe()
+			if _, e := a.client.AddTCP(upstream, p, time.Now()); e != nil {
+				local.Close()
+				upstream.Close()
+				return nil, e
+			}
+			return local, nil
 		})
-		if err!=nil{a.client.Close();udp.Close();tcp.Close();return nil,err}
+		if err != nil {
+			a.client.Close()
+			udp.Close()
+			tcp.Close()
+			return nil, err
+		}
 	}
 	a.udpIngress = newUDPIngressQueue(udpIngressBudgetRecords)
 	a.udpIngressWG.Add(udpIngressWorkers)
@@ -403,7 +414,9 @@ func (a *SocketAdapter) Run(ctx context.Context) error {
 			}
 			return err
 		case now := <-ticker.C:
-			if a.dns!=nil{a.dns.Tick(now)}
+			if a.dns != nil {
+				a.dns.Tick(now)
+			}
 			a.client.Tick(now)
 			a.expireReplies(now)
 		}
@@ -431,7 +444,9 @@ func (a *SocketAdapter) Close() error {
 			a.udpIngressWG.Wait()
 		}
 		if a.client != nil {
-			if a.dns!=nil{a.dns.Close()}
+			if a.dns != nil {
+				a.dns.Close()
+			}
 			a.client.Close()
 		}
 		a.replyMu.Lock()
@@ -492,7 +507,7 @@ func (a *SocketAdapter) udpLoop() error {
 		now := time.Now()
 		item := udpIngressItem{
 			client: client, target: target,
-			payload: append([]byte(nil), payload[:n]...),
+			payload:  append([]byte(nil), payload[:n]...),
 			queuedAt: now,
 		}
 		if !a.udpIngress.enqueue(item, now) {
@@ -517,7 +532,11 @@ func (a *SocketAdapter) udpIngressWorker(shard int) {
 		}
 		if !gateErr {
 			var err error
-			if a.dns!=nil&&item.target.Port()==53{err=a.dns.Query(item.client,item.target,item.payload,time.Now())}else{err=a.client.ForwardUDP(item.client,item.target,item.payload,time.Now())}
+			if a.dns != nil && item.target.Port() == 53 {
+				err = a.dns.Query(item.client, item.target, item.payload, time.Now())
+			} else {
+				err = a.client.ForwardUDP(item.client, item.target, item.payload, time.Now())
+			}
 			if err != nil {
 				forwardErr = true
 			}
@@ -550,16 +569,24 @@ func (a *SocketAdapter) tcpLoop() error {
 				continue
 			}
 		}
-		if a.dns!=nil&&target.Port()==53{a.dns.ServeTCP(conn);continue}
+		if a.dns != nil && target.Port() == 53 {
+			a.dns.ServeTCP(conn)
+			continue
+		}
 		if _, err := a.client.AddTCP(conn, target, time.Now()); err != nil {
 			_ = conn.Close()
 		}
 	}
 }
 
-func (a *SocketAdapter) dispatchUDPReply(peer,client netip.AddrPort,payload []byte)error{
-	if a.dns!=nil {handled,e:=a.dns.Answer(peer,client,payload,time.Now());if handled{return e}}
-	return a.replyUDP(peer,client,payload)
+func (a *SocketAdapter) dispatchUDPReply(peer, client netip.AddrPort, payload []byte) error {
+	if a.dns != nil {
+		handled, e := a.dns.Answer(peer, client, payload, time.Now())
+		if handled {
+			return e
+		}
+	}
+	return a.replyUDP(peer, client, payload)
 }
 
 func (a *SocketAdapter) replyUDP(peer, client netip.AddrPort, payload []byte) error {
@@ -588,9 +615,18 @@ func (a *SocketAdapter) replyUDP(peer, client netip.AddrPort, payload []byte) er
 			a.replyMu.Unlock()
 			return err
 		}
-		if a.cfg.ReplyBypassMark!=0 {
-			raw,e:=conn.SyscallConn();if e==nil{e=raw.Control(func(fd uintptr){err=syscall.SetsockoptInt(int(fd),syscall.SOL_SOCKET,syscall.SO_MARK,int(a.cfg.ReplyBypassMark))})}
-			if e!=nil||err!=nil{conn.Close();a.replyMu.Unlock();return errors.Join(e,err)}
+		if a.cfg.ReplyBypassMark != 0 {
+			raw, e := conn.SyscallConn()
+			if e == nil {
+				e = raw.Control(func(fd uintptr) {
+					err = syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_MARK, int(a.cfg.ReplyBypassMark))
+				})
+			}
+			if e != nil || err != nil {
+				conn.Close()
+				a.replyMu.Unlock()
+				return errors.Join(e, err)
+			}
 		}
 		state = &replySocket{conn: conn, lastSeen: now}
 		a.replies[peer] = state

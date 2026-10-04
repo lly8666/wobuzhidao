@@ -24,8 +24,8 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/runtimeentry"
-	"github.com/lly8666/wobuzhidao/internal/windowsclient"
 	"github.com/lly8666/wobuzhidao/internal/splitroute"
+	"github.com/lly8666/wobuzhidao/internal/windowsclient"
 )
 
 func main() {
@@ -34,10 +34,10 @@ func main() {
 		reconnectMin      = flag.Duration("reconnect-min", runtimeentry.DefaultReconnectMin, "minimum retry delay after failed lane admission")
 		reconnectMax      = flag.Duration("reconnect-max", runtimeentry.DefaultReconnectMax, "maximum retry delay after failed lane admission")
 		configPath        = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
-		dnsHijack = flag.Bool("dns-hijack", true, "redirect system DNS through owned NRPT and dns4; default on")
-		routeMode = flag.String("route-mode", "bypass-lan-cn", "IPv4 capture policy: all, bypass-lan, bypass-lan-cn")
-		chinaIPFile = flag.String("china-ip-file", "", "optional China IPv4 CIDR snapshot; empty uses embedded list; restart to apply")
-		updateChinaIP = flag.String("update-china-ip", "", "download and validate China IPv4 list into this file, then exit; no tunnel required")
+		dnsHijack         = flag.Bool("dns-hijack", true, "redirect system DNS through owned NRPT and dns4; default on")
+		routeMode         = flag.String("route-mode", "bypass-lan-cn", "IPv4 capture policy: all, bypass-lan, bypass-lan-cn")
+		chinaIPFile       = flag.String("china-ip-file", "", "optional China IPv4 CIDR snapshot; empty uses embedded list; restart to apply")
+		updateChinaIP     = flag.String("update-china-ip", "", "download and validate China IPv4 list into this file, then exit; no tunnel required")
 		keepalive         = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
 		serverIPText      = flag.String("server-ip", "", "server public IPv4")
 		serverPort        = flag.Uint("server-port", 443, "server FakeTCP port")
@@ -71,9 +71,16 @@ func main() {
 	if handleVersion() {
 		return
 	}
-	if *updateChinaIP != "" { if err:=splitroute.Update(*updateChinaIP); err!=nil { log.Fatal(err) }; return }
-	bypass, err := splitroute.Direct(*routeMode,*chinaIPFile)
-	if err != nil { log.Fatal(err) }
+	if *updateChinaIP != "" {
+		if err := splitroute.Update(*updateChinaIP); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+	bypass, err := splitroute.Direct(*routeMode, *chinaIPFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer startQualificationCPUProfile()()
 	if *serverIPText == "" || *tunnelText == "" || *leaseText == "" || *account == "" ||
 		*installationText == "" || *serverName == "" || *routeKeyHex == "" ||
@@ -121,10 +128,12 @@ func main() {
 		log.Fatal("route-key-hex must decode to non-empty bytes")
 	}
 	dns, err := dnsroute.ParseServers(*dnsText)
-	if err != nil || (*dnsHijack && len(dns)==0) {
+	if err != nil || (*dnsHijack && len(dns) == 0) {
 		log.Fatal("dns4 requires one or two IPv4 resolvers when DNS hijack is enabled")
 	}
-	if !*dnsHijack { dns=nil }
+	if !*dnsHijack {
+		dns = nil
+	}
 	direct, err := parseIPv4Prefixes(*directText)
 	if err != nil {
 		log.Fatal(err)
@@ -240,7 +249,7 @@ func main() {
 	if err := runNetworkAction(networkPlan, "Apply", *scriptPath); err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("WBD_ROUTE_POLICY mode=%s direct_prefixes=%d capture_prefixes=%d source=%s",*routeMode,len(bypass),len(networkPlan.CaptureRoutes),chinaListSource(*chinaIPFile))
+	log.Printf("WBD_ROUTE_POLICY mode=%s direct_prefixes=%d capture_prefixes=%d source=%s", *routeMode, len(bypass), len(networkPlan.CaptureRoutes), chinaListSource(*chinaIPFile))
 	defer func() {
 		if err := runNetworkAction(networkPlan, "Cleanup", *scriptPath); err != nil {
 			log.Printf("Windows cleanup: %v", err)
@@ -258,7 +267,9 @@ func main() {
 				errCh <- err
 				return
 			}
-			if n>0 && buf[0]>>4==6 { continue } // captured IPv6 is a sink, never business/wake
+			if n > 0 && buf[0]>>4 == 6 {
+				continue
+			} // captured IPv6 is a sink, never business/wake
 			wakeCtx, wakeCancel := context.WithTimeout(ctx, 15*time.Second)
 			err = client.PrepareBusiness(wakeCtx)
 			wakeCancel()
@@ -302,11 +313,24 @@ func main() {
 }
 
 func runNetworkAction(plan windowsclient.NetworkPlan, action, script string) error {
-	if len(plan.CaptureRoutes)>8 {
-		f,err:=os.CreateTemp("","wbd-capture-*.txt"); if err!=nil { return err }; defer os.Remove(f.Name())
-		var b strings.Builder; for _,r:=range plan.CaptureRoutes { fmt.Fprintln(&b,r.Prefix.String()) }
-		if _,err=f.WriteString(b.String()); err!=nil { f.Close(); return err }; if err=f.Close(); err!=nil { return err }
-		plan.CapturePrefixFile4=f.Name()
+	if len(plan.CaptureRoutes) > 8 {
+		f, err := os.CreateTemp("", "wbd-capture-*.txt")
+		if err != nil {
+			return err
+		}
+		defer os.Remove(f.Name())
+		var b strings.Builder
+		for _, r := range plan.CaptureRoutes {
+			fmt.Fprintln(&b, r.Prefix.String())
+		}
+		if _, err = f.WriteString(b.String()); err != nil {
+			f.Close()
+			return err
+		}
+		if err = f.Close(); err != nil {
+			return err
+		}
+		plan.CapturePrefixFile4 = f.Name()
 	}
 	args, err := plan.PowerShellArgs(action, script)
 	if err != nil {

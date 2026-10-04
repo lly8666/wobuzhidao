@@ -177,7 +177,9 @@ func (d *Decoder) evictOld(previous uint64) {
 	}
 	cutoff := d.highest - d.window + 1
 	start := uint64(1)
-	if previous >= d.window { start = previous - d.window + 1 }
+	if previous >= d.window {
+		start = previous - d.window + 1
+	}
 	advance := cutoff - start
 	if advance >= d.window {
 		// No old ID can remain in the new window. Large jumps do bounded work
@@ -188,7 +190,11 @@ func (d *Decoder) evictOld(previous uint64) {
 	if advance > uint64(len(d.seen)) {
 		// Sparse windows: iterate only actual retained entries, not a large
 		// empty gap. Normal contiguous arrivals use the constant-work path.
-		for id := range d.seen { if id < cutoff { delete(d.seen, id) } }
+		for id := range d.seen {
+			if id < cutoff {
+				delete(d.seen, id)
+			}
+		}
 		return
 	}
 	for id := start; id < cutoff; id++ {

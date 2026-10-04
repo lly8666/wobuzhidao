@@ -76,7 +76,7 @@
     "用户优先：CPU原始证据/pprof归因、窄修；IPv6默认owned blackhole+drop；DNS默认1.1.1.1/8.8.8.8互备及默认劫持。实现/测试进行中，不继承旧资格。"
   ],
   "next_task": "Finish exact-source default DNS/IPv6 functional Actions, CPU profile attribution and independent Normal/Game5205; retain all failures, no old qualification inheritance",
-  "latest_log": "docs/devlog/20261004-145500-game-replay-incremental.md",
+  "latest_log": "docs/devlog/20261004-150500-hosted-format-mock-contract.md",
   "last_tested_source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
   "actions": [
     {
@@ -6682,6 +6682,7 @@
     "profile_run": 37180476979,
     "hotspot": "Game evictOld full map scan 14.36/14.46% cumulative; incremental retirement implemented pending gates",
     "host_difference": "Historical Intel8573C vs AMD7763; packet volume unchanged; not a measured code regression",
-    "failed_profile_run": 37179961433
+    "failed_profile_run": 37179961433,
+    "pending_core_failure": "e5aa792 foundation37180874036 Windows extended mock duplicated common ErrorAction; correction applied, product script unaffected"
   }
 }

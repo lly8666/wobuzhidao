@@ -158,7 +158,7 @@ func main() {
 			_, err := raw.WriteSegment(seg)
 			return err
 		},
-		Close: raw.Close,
+		Close:     raw.Close,
 		EmitBatch: raw.WriteSegments,
 	}
 	raw.SetIODiagnostics(*diagnosticJSONL != "")
@@ -217,7 +217,7 @@ func main() {
 				return struct {
 					Present bool                          `json:"present"`
 					Tunnel  runtimeentry.TunnelDiagnostic `json:"tunnel"`
-					RawIO faketcp.RawIODiagnostic `json:"raw_io"`
+					RawIO   faketcp.RawIODiagnostic       `json:"raw_io"`
 				}{Present: ok, Tunnel: snapshot, RawIO: raw.IODiagnostic()}
 			})
 		}()
