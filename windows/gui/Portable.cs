@@ -95,6 +95,7 @@ namespace Wbd.Gui {
                 case "runtimeentry.DefaultDeadAfter": return "90s";
                 case "runtimeentry.DefaultReconnectMin": return "1s";
                 case "runtimeentry.DefaultReconnectMax": return "30s";
+                case "time.Second": return "1s";
             }
             if (expression == "0") return 0;
             try { return Json.DeserializeObject(expression); }
@@ -126,6 +127,8 @@ namespace Wbd.Gui {
             }
             string china = (string)values["china-ip-file"];
             if (china.Length > 0) values["china-ip-file"] = InRoot(china);
+            string diagnostic = Convert.ToString(values["diagnostic-jsonl"]);
+            if (diagnostic.Length > 0) values["diagnostic-jsonl"] = InRoot(diagnostic);
             values["state-path"] = InRoot("data/network-state.json");
             values["network-script"] = InRoot("windows_client_network.ps1");
             return values;

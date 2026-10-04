@@ -42,7 +42,7 @@ namespace Wbd.Gui {
                         {"server-ip","203.0.113.18"},{"server-port",8443},{"source-port",42000},{"account","another-account"},{"server-name","cdn.example.com"},{"username","another-user"},
                         {"password","different-secret"},{"route-key-hex","aabbccddeeff00112233445566778899"},{"tunnel-id","22223333444455556666777788889999"},{"installation-id","aaaabbbbccccddddeeeeffff00001111"},{"lease4","10.66.0.8/32"},
                         {"mtu",1280},{"client-record-limit",1250},{"adapter","WBD Test"},{"dns-hijack",false},{"dns4","9.9.9.9,1.0.0.1"},{"direct4","203.0.113.0/24"},{"route-mode","bypass-lan"},
-                        {"lanes",4},{"fec-parity",20},{"tls-startup-padding",true},{"keepalive-interval","10s"},{"dead-after","120s"},{"reconnect-min","2s"},{"reconnect-max","45s"},{"idle-dormant","15m"},{"rotate-min","30m"},{"rotate-max","60m"}, {"china-ip-file", "data/china-test.txt"}
+                        {"lanes",4},{"fec-parity",20},{"tls-startup-padding",true},{"keepalive-interval","10s"},{"dead-after","120s"},{"reconnect-min","2s"},{"reconnect-max","45s"},{"idle-dormant","15m"},{"rotate-min","30m"},{"rotate-max","60m"}, {"china-ip-file", "data/china-test.txt"}, {"diagnostic-jsonl","logs/diagnostic.jsonl"}, {"diagnostic-interval","2s"}
                     };
                     store.WriteAtomic("data/china-test.txt", "1.0.1.0/24\n");
                     using (var configForm = new MainForm(store, new FakeSession(), () => new DependencyState { Admin=true, Npcap=true, Wintun=true, NpcapVersion="config-test" }))
@@ -85,6 +85,12 @@ namespace Wbd.Gui {
                 }
                 bool traversal = false; try { store.InRoot("../outside.json"); } catch { traversal = true; } Assert(traversal, "outside portable path rejected");
                 bool absolute = false; try { store.InRoot(Path.GetTempPath()); } catch { absolute = true; } Assert(absolute, "absolute writable path rejected");
+                foreach (string path in new[] { "../outside-diag.jsonl", Path.Combine(Path.GetTempPath(),"outside-diag.jsonl") }) {
+                    p.Values["diagnostic-jsonl"]=path;bool denied=false;
+                    try {store.Effective(p);} catch(InvalidDataException) {denied=true;}
+                    Assert(denied,"diagnostic path cannot escape portable folder");
+                }
+                p.Values["diagnostic-jsonl"]="";
                 Assert(ClientSession.Quote("C:\\folder with space\\") == "\"C:\\folder with space\\\\\"", "Windows argument quoting trailing backslash");
                 store.Book.DriverNoticeAccepted = true;
                 var fake = new FakeSession();

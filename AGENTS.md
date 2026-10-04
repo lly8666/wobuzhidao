@@ -21,6 +21,8 @@
 
 ## 当前性能主线（2026-09-23）
 
+2026-10-05最新：SOURCE3e3e094 core/race/GUI/独立Normal与Game5205/stateful/P6均PASS，同源包已部署实机。D01 seed1302完整300s避免旧90s双向中断，但下行9.11M/8.90%字节损失、208探针超时，仍FAIL；S16 seed1303 rotation运行。新Windows默认off诊断补丁尚未验，先按STATUS完成Actions再配套部署；不能凭服务器overflow0判定WAN/Windows根因。证据physical-window-promotion-3e3e094-20261005，最新日志075000。每性能Action一条，不把3e成绩继承给新HEAD。
+
 2026-10-05最新修复主线：旧6181在严格conntrack路由可复现零吞吐/探针全超时，稳态窗口分离候选Normal/Game5205及stateful独立Action均PASS，测试修正后4163938 core/race全部PASS；下一候选新增source到wire promotion边界修复Windows stale-generation fatal。先按STATUS验此候选和真实rotation，再同源打包原生复验D01；未通过不能将旧P7或父SOURCE资格继承。Windows/Linux/server/platform flow/timer发送必须遵守同一generation边界；不得吞stale、部分发出后整包重试或让候选TLS持有业务锁。每性能run一条，详细日志持续留存。
 
 2026-10-05最新原生五分钟进展：固定6181db6未改产品；S01 Normal10与S02 Game4×3达到目标附近但C2S缺74/10包，不能写无损PASS；M01外层MTU1400大包至9000B无坏数据但有1次迟到。D01默认NRPT+10M出现约90秒双向中断、约30.12%业务loss和8/60 DNS失败，明确FAIL；整体P7仍PARTIAL。优先按STATUS.physical_5min复现D01并异常触发抓包定位最早边界，不直接归因DNS/VM或扩大buffer/FEC/4096。完整DNS互备、LAN/CN/IP/IPv6、其他配置/生命周期/弱网未跑。方案PHYSICAL_5MIN_ACCEPTANCE.md、日志devlog/20261005-021317-five-minute-native-capture-matrix.md、evidence/physical-5min-6181db6-20261005.json及压缩原始计数为当前证据入口；每性能Action只一条。原始pcap已删、退出owned清理通过，服务端保留active。 接手先读最新五分钟方案和日志；下文014639的120s结果属于历史局部资格，不覆盖此次D01 FAIL。用户授权原生测试为开发期Actions规则的本次例外；不能凭此把新产品编译/race/性能移到开发机。

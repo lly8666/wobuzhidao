@@ -4,6 +4,9 @@ package faketcp
 
 type NpcapEndpoint struct{}
 
+func (*NpcapEndpoint) SetIODiagnostics(bool)           {}
+func (*NpcapEndpoint) IODiagnostic() NpcapIODiagnostic { return NpcapIODiagnostic{} }
+
 func OpenNpcapEndpoint(NpcapConfig) (*NpcapEndpoint, error) {
 	return nil, ErrNpcapUnsupported
 }

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sync"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -44,9 +45,41 @@ type NpcapEndpoint struct {
 	getErr     *syscall.Proc
 	breakLoop  *syscall.Proc
 
-	gate   *npcapCallGate
-	sendMu sync.Mutex
-	ipID   uint16
+	gate      *npcapCallGate
+	sendMu    sync.Mutex
+	ipID      uint16
+	statsProc *syscall.Proc
+	diag      npcapIODiagnostics
+	// Only ReadSegment's reader touches these clocks and the driver stats call.
+	statsAt, readAt time.Time
+}
+
+// Windows pcap_stat has six 32-bit unsigned fields (not native Go ints).
+type npcapDriverStats struct{ Received, Dropped, InterfaceDropped, Captured, Sent, NetDropped uint32 }
+
+func (e *NpcapEndpoint) SetIODiagnostics(enabled bool) { e.diag.enabled.Store(enabled) }
+func (e *NpcapEndpoint) IODiagnostic() NpcapIODiagnostic {
+	return e.diag.snapshot(e.cfg.Generation, e.statsProc != nil)
+}
+
+func (e *NpcapEndpoint) sampleDriverStats(now time.Time) {
+	if now.Before(e.statsAt) {
+		return
+	}
+	e.statsAt = now.Add(time.Second)
+	if e.statsProc == nil {
+		return
+	}
+	var stats npcapDriverStats
+	ret, _, _ := e.statsProc.Call(e.handle, uintptr(unsafe.Pointer(&stats)))
+	if int32(ret) != 0 {
+		e.diag.statsErrors.Add(1)
+		return
+	}
+	e.diag.driverReceived.Store(uint64(stats.Received))
+	e.diag.driverDropped.Store(uint64(stats.Dropped))
+	e.diag.interfaceDropped.Store(uint64(stats.InterfaceDropped))
+	e.diag.statsSamples.Add(1)
 }
 
 func OpenNpcapEndpoint(cfg NpcapConfig) (*NpcapEndpoint, error) {
@@ -109,6 +142,7 @@ func OpenNpcapEndpoint(cfg NpcapConfig) (*NpcapEndpoint, error) {
 		return nil, err
 	}
 	breakLoop, _ := dll.FindProc("pcap_breakloop")
+	statsProc, _ := dll.FindProc("pcap_stats")
 
 	device, err := syscall.BytePtrFromString(cfg.Device)
 	if err != nil {
@@ -194,6 +228,7 @@ func OpenNpcapEndpoint(cfg NpcapConfig) (*NpcapEndpoint, error) {
 		breakLoop:  breakLoop,
 		gate:       newNpcapCallGate(cfg.Generation),
 		ipID:       1,
+		statsProc:  statsProc,
 	}, nil
 }
 
@@ -209,6 +244,9 @@ func (e *NpcapEndpoint) ReadSegment(generation uint64) (Segment, []byte, error) 
 	for {
 		if e.gate.isClosed() {
 			return Segment{}, nil, ErrNpcapClosed
+		}
+		if e.diag.enabled.Load() {
+			e.sampleDriverStats(time.Now())
 		}
 		var hdr *pcapHeader
 		var data uintptr
@@ -246,6 +284,15 @@ func (e *NpcapEndpoint) ReadSegment(generation uint64) (Segment, []byte, error) 
 			if !ok {
 				continue
 			}
+			if e.diag.enabled.Load() {
+				now := time.Now()
+				var gap uint64
+				if !e.readAt.IsZero() {
+					gap = uint64(now.Sub(e.readAt))
+				}
+				e.readAt = now
+				e.diag.observeRead(uint64(len(packet)), gap)
+			}
 			return seg, packet, nil
 		default:
 			return Segment{}, nil, fmt.Errorf(
@@ -282,6 +329,10 @@ func (e *NpcapEndpoint) WriteSegment(generation uint64, seg Segment) ([]byte, er
 			"pcap_sendpacket: %s",
 			pcapError(e.getErr, e.handle),
 		)
+	}
+	if e.diag.enabled.Load() {
+		e.diag.writePackets.Add(1)
+		e.diag.writeBytes.Add(uint64(len(packet)))
 	}
 	return packet, nil
 }

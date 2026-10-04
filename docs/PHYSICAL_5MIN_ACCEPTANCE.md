@@ -1,6 +1,6 @@
 # 原生与Actions五分钟工况验收
 
-2026-10-05用户授权：每条300秒长测，覆盖各种设置/生命周期/DNS/IP分流，并实际抓包评价TCP-like/TLS-like。产品固定SOURCE6181db66b67594b07cd989b8b8b5848cedf6ccc3和配套预发布，测试代码HEAD另记录。当前完成项与失败看STATUS.physical_5min及证据，不因本方案存在就认定通过。本方案补充ACCEPTANCE、WEAKNET_QUALIFICATION、LIFECYCLE_ACCEPTANCE与SPLIT_ROUTING，不取代其原门。
+2026-10-05用户授权：每条300秒长测，覆盖各种设置/生命周期/DNS/IP分流，并实际抓包评价TCP-like/TLS-like。每条冻结精确SOURCE与同源配套包，测试HEAD另记录；历史首四条SOURCE6181db6不继承给修复后3e3e094。最新看STATUS.physical_current，历史看physical_5min。当前3e D01完整300s无旧90s双向中断，但下行8.90%字节损失/208探针超时，质量仍FAIL，双端诊断下一步；S16 seed1303运行。窗口与promotion修复已通过精确SHA定向Actions/P6，最新Windows诊断候选未验。证据physical-window-promotion-3e3e094-20261005；不因方案存在就认定通过。本方案补充ACCEPTANCE、WEAKNET_QUALIFICATION、LIFECYCLE_ACCEPTANCE与SPLIT_ROUTING，不取代原门。
 
 ## 执行规则
 

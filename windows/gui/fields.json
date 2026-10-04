@@ -29,6 +29,8 @@
   "rotate-min": ["生命周期", "定时轮换最短时间", "0 为关闭；与最长时间一起设置，例如 30m"],
   "rotate-max": ["生命周期", "定时轮换最长时间", "0 为关闭；不能小于最短时间，例如 60m"],
   "state-path": ["便携", "网络状态文件", "由界面管理，固定在本目录 data/network-state.json"],
+  "diagnostic-jsonl": ["诊断", "诊断记录文件", "默认空表示关闭；填写程序目录内相对路径，例如 logs/diagnostic.jsonl；不含正文或密钥"],
+  "diagnostic-interval": ["诊断", "诊断采样间隔", "默认 1s；仅启用诊断文件时生效，诊断用于定位收包与生命周期问题"],
   "network-script": ["便携", "网络配置脚本", "使用本目录的 windows_client_network.ps1，不从其他位置执行"],
   "config": ["操作", "配置文件", "由界面生成本目录 data/active.json；可导入或导出完整配置"],
   "version": ["操作", "版本信息", "关于页面显示客户端和界面版本"],

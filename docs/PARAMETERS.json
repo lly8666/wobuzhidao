@@ -333,6 +333,20 @@
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },
+      "diagnostic-interval": {
+        "type": "Duration",
+        "default_expression": "time.Second",
+        "help": "qualification diagnostics sample interval",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
+      "diagnostic-jsonl": {
+        "type": "String",
+        "default_expression": "\"\"",
+        "help": "optional qualification diagnostics JSONL path; disabled by default",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
       "direct4": {
         "type": "String",
         "default_expression": "\"\"",

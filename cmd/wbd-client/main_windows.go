@@ -17,6 +17,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/pathmtu"
+	"github.com/lly8666/wobuzhidao/internal/qualificationdiag"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/runtimeentry"
 	"github.com/lly8666/wobuzhidao/internal/splitroute"
@@ -41,41 +43,43 @@ func main() {
 
 func runWindows() error {
 	var (
-		checkConfig       = flag.Bool("check-config", false, "validate effective configuration without network or driver changes; credentials redacted")
-		controlStdin      = flag.Bool("control-stdin", false, "GUI-owned process: stop or stdin EOF cancels startup and cleans owned network state")
-		deadAfter         = flag.Duration("dead-after", runtimeentry.DefaultDeadAfter, "reconnect after no authenticated lane records; at least 3 keepalive intervals")
-		reconnectMin      = flag.Duration("reconnect-min", runtimeentry.DefaultReconnectMin, "minimum retry delay after failed lane admission")
-		reconnectMax      = flag.Duration("reconnect-max", runtimeentry.DefaultReconnectMax, "maximum retry delay after failed lane admission")
-		configPath        = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
-		dnsHijack         = flag.Bool("dns-hijack", true, "redirect system DNS through owned NRPT and dns4; default on")
-		routeMode         = flag.String("route-mode", "bypass-lan-cn", "IPv4 capture policy: all, bypass-lan, bypass-lan-cn")
-		chinaIPFile       = flag.String("china-ip-file", "", "optional China IPv4 CIDR snapshot; empty uses embedded list; restart to apply")
-		updateChinaIP     = flag.String("update-china-ip", "", "download and validate China IPv4 list into this file, then exit; no tunnel required")
-		keepalive         = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
-		serverIPText      = flag.String("server-ip", "", "server public IPv4")
-		serverPort        = flag.Uint("server-port", 443, "server FakeTCP port")
-		sourcePort        = flag.Uint("source-port", 40000, "FakeTCP source port")
-		tunnelText        = flag.String("tunnel-id", "", "32-hex Logical Tunnel ID; empty derives from account and installation in automatic lease mode")
-		leaseText         = flag.String("lease4", "", "leased IPv4 /32; empty requests automatic server allocation")
-		account           = flag.String("account", "", "account identity; empty uses username")
-		installationText  = flag.String("installation-id", "", "32-hex installation ID")
-		serverName        = flag.String("server-name", "", "recognized TLS server name")
-		routeKeyHex       = flag.String("route-key-hex", "", "hex route key")
-		username          = flag.String("username", "", "protected admission username")
-		password          = flag.String("password", "", "protected admission password")
-		clientLimit       = flag.Uint("client-record-limit", 1300, "server-to-client TLS-like record wire limit")
-		mtu               = flag.Int("mtu", 1500, "connection MTU")
-		tlsStartupPadding = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
-		fecParity         = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
-		adapterAlias      = flag.String("adapter", "WBD", "Wintun adapter alias")
-		dnsText           = flag.String("dns4", "1.1.1.1,8.8.8.8", "primary,backup IPv4 DNS; Windows resolver performs failover")
-		directText        = flag.String("direct4", "", "comma-separated direct IPv4 prefixes")
-		statePath         = flag.String("state-path", defaultWindowsStatePath(), "owned Windows network state file; default beside executable in data")
-		scriptPath        = flag.String("network-script", defaultWindowsNetworkScript(), "Windows network Apply/Cleanup script; default beside executable")
-		lanes             = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
-		idleDormant       = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
-		rotateMin         = flag.Duration("rotate-min", 0, "minimum lane rotation interval; 0 disables rotation")
-		rotateMax         = flag.Duration("rotate-max", 0, "maximum lane rotation interval; must pair with rotate-min")
+		checkConfig        = flag.Bool("check-config", false, "validate effective configuration without network or driver changes; credentials redacted")
+		controlStdin       = flag.Bool("control-stdin", false, "GUI-owned process: stop or stdin EOF cancels startup and cleans owned network state")
+		deadAfter          = flag.Duration("dead-after", runtimeentry.DefaultDeadAfter, "reconnect after no authenticated lane records; at least 3 keepalive intervals")
+		reconnectMin       = flag.Duration("reconnect-min", runtimeentry.DefaultReconnectMin, "minimum retry delay after failed lane admission")
+		reconnectMax       = flag.Duration("reconnect-max", runtimeentry.DefaultReconnectMax, "maximum retry delay after failed lane admission")
+		configPath         = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
+		diagnosticJSONL    = flag.String("diagnostic-jsonl", "", "optional qualification diagnostics JSONL path; disabled by default")
+		diagnosticInterval = flag.Duration("diagnostic-interval", time.Second, "qualification diagnostics sample interval")
+		dnsHijack          = flag.Bool("dns-hijack", true, "redirect system DNS through owned NRPT and dns4; default on")
+		routeMode          = flag.String("route-mode", "bypass-lan-cn", "IPv4 capture policy: all, bypass-lan, bypass-lan-cn")
+		chinaIPFile        = flag.String("china-ip-file", "", "optional China IPv4 CIDR snapshot; empty uses embedded list; restart to apply")
+		updateChinaIP      = flag.String("update-china-ip", "", "download and validate China IPv4 list into this file, then exit; no tunnel required")
+		keepalive          = flag.Duration("keepalive-interval", runtimeentry.DefaultKeepaliveInterval, "authenticated lane heartbeat interval; minimum 1s")
+		serverIPText       = flag.String("server-ip", "", "server public IPv4")
+		serverPort         = flag.Uint("server-port", 443, "server FakeTCP port")
+		sourcePort         = flag.Uint("source-port", 40000, "FakeTCP source port")
+		tunnelText         = flag.String("tunnel-id", "", "32-hex Logical Tunnel ID; empty derives from account and installation in automatic lease mode")
+		leaseText          = flag.String("lease4", "", "leased IPv4 /32; empty requests automatic server allocation")
+		account            = flag.String("account", "", "account identity; empty uses username")
+		installationText   = flag.String("installation-id", "", "32-hex installation ID")
+		serverName         = flag.String("server-name", "", "recognized TLS server name")
+		routeKeyHex        = flag.String("route-key-hex", "", "hex route key")
+		username           = flag.String("username", "", "protected admission username")
+		password           = flag.String("password", "", "protected admission password")
+		clientLimit        = flag.Uint("client-record-limit", 1300, "server-to-client TLS-like record wire limit")
+		mtu                = flag.Int("mtu", 1500, "connection MTU")
+		tlsStartupPadding  = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
+		fecParity          = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
+		adapterAlias       = flag.String("adapter", "WBD", "Wintun adapter alias")
+		dnsText            = flag.String("dns4", "1.1.1.1,8.8.8.8", "primary,backup IPv4 DNS; Windows resolver performs failover")
+		directText         = flag.String("direct4", "", "comma-separated direct IPv4 prefixes")
+		statePath          = flag.String("state-path", defaultWindowsStatePath(), "owned Windows network state file; default beside executable in data")
+		scriptPath         = flag.String("network-script", defaultWindowsNetworkScript(), "Windows network Apply/Cleanup script; default beside executable")
+		lanes              = flag.Int("lanes", 1, "authoritative transport lanes: 1=Normal, 2..4=Game racing")
+		idleDormant        = flag.Duration("idle-dormant", 0, "enter DORMANT after payload idle duration; 0 disables")
+		rotateMin          = flag.Duration("rotate-min", 0, "minimum lane rotation interval; 0 disables rotation")
+		rotateMax          = flag.Duration("rotate-max", 0, "maximum lane rotation interval; must pair with rotate-min")
 	)
 	flag.Parse()
 	if err := configfile.ApplyFile(flag.CommandLine, *configPath); err != nil {
@@ -83,6 +87,9 @@ func runWindows() error {
 	}
 	if handleVersion() {
 		return nil
+	}
+	if *diagnosticJSONL != "" && *diagnosticInterval <= 0 {
+		return errors.New("diagnostic-interval must be positive")
 	}
 	if *updateChinaIP != "" {
 		if err := splitroute.Update(*updateChinaIP); err != nil {
@@ -233,6 +240,8 @@ func runWindows() error {
 		return err
 	}
 	var router *windowsclient.Router
+	var diagnosticMu sync.Mutex
+	diagnosticEndpoints := make(map[uint64]*faketcp.NpcapEndpoint)
 	client, err := runtimeentry.DialTunnelClient(ctx, runtimeentry.TunnelClientConfig{
 		OpenLane: func(_ uint8, incarnation uint64) (runtimeentry.SegmentIO, faketcp.ClientFlow, error) {
 			port, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), incarnation)
@@ -247,6 +256,12 @@ func runWindows() error {
 			if err != nil {
 				return runtimeentry.SegmentIO{}, faketcp.ClientFlow{}, err
 			}
+			npcap.SetIODiagnostics(*diagnosticJSONL != "")
+			if *diagnosticJSONL != "" {
+				diagnosticMu.Lock()
+				diagnosticEndpoints[incarnation] = npcap
+				diagnosticMu.Unlock()
+			}
 			flow := faketcp.ClientFlow{
 				LocalIP: underlay.Source4.As4(), PeerIP: serverIP.As4(),
 				LocalPort: port, PeerPort: uint16(*serverPort),
@@ -260,7 +275,15 @@ func runWindows() error {
 					_, err := npcap.WriteSegment(incarnation, seg)
 					return err
 				},
-				Close: npcap.Close,
+				Close: func() error {
+					err := npcap.Close()
+					if *diagnosticJSONL != "" {
+						diagnosticMu.Lock()
+						delete(diagnosticEndpoints, incarnation)
+						diagnosticMu.Unlock()
+					}
+					return err
+				},
 			}
 			return ioCfg, flow, nil
 		},
@@ -343,7 +366,23 @@ func runWindows() error {
 	}()
 	fmt.Println("WBD_WINDOWS_CLIENT_READY")
 
-	errCh := make(chan error, 2)
+	errCh := make(chan error, 3)
+	if *diagnosticJSONL != "" {
+		go func() {
+			errCh <- qualificationdiag.Run(ctx, *diagnosticJSONL, *diagnosticInterval, func(now time.Time) any {
+				diagnosticMu.Lock()
+				ioStats := make(map[uint64]faketcp.NpcapIODiagnostic, len(diagnosticEndpoints))
+				for id, endpoint := range diagnosticEndpoints {
+					ioStats[id] = endpoint.IODiagnostic()
+				}
+				diagnosticMu.Unlock()
+				return struct {
+					runtimeentry.TunnelDiagnostic
+					NpcapIO map[uint64]faketcp.NpcapIODiagnostic `json:"npcap_io"`
+				}{TunnelDiagnostic: client.DiagnosticSnapshot(now), NpcapIO: ioStats}
+			})
+		}()
+	}
 	go func() {
 		buf := make([]byte, 65535)
 		for {

@@ -4,6 +4,8 @@
 
 开发流程：修改 CLI/默认常量 → `python tools/parameter_catalog.py --write` → 更新本文的语义、限制、示例 → 补 Actions 覆盖 → 更新 STATUS 和开发日志。新增开关不能只写进提示词。配置加载只有 `internal/configfile` 一套，禁止另写 JSON/YAML 参数模型。
 
+Windows客户端新增与Linux同名的`diagnostic-jsonl`（默认空，关闭）和`diagnostic-interval`（默认1s，启用时必须>0）。按期保存owner/FEC/transport/lifecycle、Go资源和每个活跃Npcap incarnation的收发/driver drop/read-gap计数；不保存正文、密钥或凭据。Npcap driver stats只由同一个接收线程每秒采一次，外部诊断线程仅读原子快照，关闭后不调用已释放handle。无stats导出记supported=false，不能伪造零drop。GUI路径限定程序目录内相对路径；例如logs/diagnostic.jsonl，空值不生成文件。文件沿用Linux诊断输出语义，不自动轮转；资格测试外部设置16MiB上限并停止测试，避免长期开启占磁盘。该诊断不是默认数据面策略，不能将诊断on的资源数据冒充off的基准。
+
 ## 使用方式
 
 Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对象，键名和 CLI 去掉 `--` 后完全一致；时长使用字符串，例如 `"30s"`、`"5m"`。优先级为显式 CLI > JSON > 内置默认。`--tls-startup-padding=false` 可以覆盖配置中的 true。

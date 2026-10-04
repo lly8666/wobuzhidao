@@ -1,0 +1,272 @@
+{
+  "schema": "wbd-physical-window-promotion/v1",
+  "source": "3e3e09496ce78dbbefca68dc6e410bbc7de62404",
+  "actions": [
+    {
+      "name": "normal5205",
+      "run": 37243572929,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37243572929",
+      "source": "3e3e09496ce78dbbefca68dc6e410bbc7de62404",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "cpu_seconds": {
+        "client": 69.44,
+        "server": 69.85
+      },
+      "socket_drop_max": 0,
+      "probe_stage": {
+        "post": {
+          "p95_ns": 610508138,
+          "p99_ns": 611781611,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 617763764,
+          "p99_ns": 618458511,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 615414167,
+          "p99_ns": 621872421,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "name": "game5205",
+      "run": 37243575135,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37243575135",
+      "source": "3e3e09496ce78dbbefca68dc6e410bbc7de62404",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "cpu_seconds": {
+        "client": 96.85,
+        "server": 91.5
+      },
+      "socket_drop_max": 0,
+      "probe_stage": {
+        "post": {
+          "p95_ns": 609995595,
+          "p99_ns": 610969117,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 610986751,
+          "p99_ns": 611649013,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 610452248,
+          "p99_ns": 616907224,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "name": "stateful-lossless",
+      "run": 37243577151,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37243577151",
+      "source": "3e3e09496ce78dbbefca68dc6e410bbc7de62404",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "cpu_seconds": {
+        "client": 57.69,
+        "server": 57.53
+      },
+      "socket_drop_max": 0,
+      "probe_stage": {
+        "post": {
+          "p95_ns": 606382661,
+          "p99_ns": 610414299,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 605875553,
+          "p99_ns": 606935030,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 605621879,
+          "p99_ns": 605775827,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    }
+  ],
+  "correctness_runs": [
+    37243533369,
+    37243533367,
+    37243533255,
+    37243533272,
+    37243533260,
+    37243533316,
+    37243533300
+  ],
+  "package_run": 37243579697,
+  "native": {
+    "Name": "d01-current-300s-seed1302",
+    "SourceSHA": "3e3e09496ce78dbbefca68dc6e410bbc7de62404",
+    "MeasurementStatus": "COMPLETE",
+    "Scope": "physical native WAN; no artificial loss/delay; UDP mixed-size bidirectional",
+    "Seconds": 300,
+    "RequestedMbps": 10,
+    "C2SGoodputMbps": 9.999619626666666,
+    "S2CGoodputMbps": 9.109852373333332,
+    "C2SByteLossPercent": 0.0036042738559949328,
+    "S2CByteLossPercent": 8.901294555115536,
+    "ClientOfferedMbps": 9.999980053333333,
+    "ServerOfferedMbps": 9.999980053333333,
+    "NoPcap": true,
+    "SummaryRetrieval": "PASS",
+    "client": {
+      "TxPackets": 579419,
+      "TxBytes": 374999252,
+      "RxPackets": 534780,
+      "RxBytes": 341619464,
+      "DuplicatePackets": 0,
+      "BadPayload": 0,
+      "ReorderedPackets": 48086,
+      "MaxSendLagMs": 13.37890000000641,
+      "ProbeP95Ms": 479.5509,
+      "ProbeP99Ms": 541.2864,
+      "WBDCPUSeconds": 304.953125,
+      "HelperCPUSeconds": 17.984375,
+      "ProbeCount": 2763,
+      "ProbeSent": 2971,
+      "Seconds": 300,
+      "RequestedMbps": 10,
+      "SummaryReceived": true,
+      "NoPcap": true,
+      "LiveSnapshotWriteErrors": 5,
+      "CompletedSendWindow": true,
+      "ActualSendSeconds": 300.0013987,
+      "SendSocketError": 0,
+      "ReceiveSocketErrors": 0,
+      "SendErrorStage": null
+    },
+    "server": {
+      "RxPackets": 579395,
+      "RxBytes": 374985736,
+      "DuplicatePackets": 0,
+      "BadPayload": 0,
+      "ReorderedPackets": 34,
+      "TxPackets": 579419,
+      "TxBytes": 374999252,
+      "MaxSendLagMs": 39.33489796807521,
+      "Result": "MEASURED",
+      "Seed": 1302,
+      "Seconds": 300,
+      "RequestedMbps": 10,
+      "PeerIPv4": "10.66.170.244",
+      "WBDCPUSeconds": 187.23,
+      "HelperCPUSeconds": 35.74945704,
+      "EffectiveTargetReceiveBuffer": 425984,
+      "PayloadSizes": [
+        96,
+        256,
+        512,
+        1000,
+        1372
+      ],
+      "NoPcap": true
+    },
+    "dns_observer": {
+      "counted_frames": 353,
+      "flows": [
+        {
+          "src": "10.66.170.244",
+          "dst": "1.1.1.1",
+          "transport": "UDP",
+          "packets": 33
+        },
+        {
+          "src": "1.1.1.1",
+          "dst": "10.66.170.244",
+          "transport": "UDP",
+          "packets": 33
+        },
+        {
+          "src": "10.66.170.244",
+          "dst": "1.1.1.1",
+          "transport": "TCP",
+          "packets": 157
+        },
+        {
+          "src": "1.1.1.1",
+          "dst": "10.66.170.244",
+          "transport": "TCP",
+          "packets": 130
+        }
+      ],
+      "observer_drops": 0,
+      "payload_stored": false,
+      "pcap_written": false
+    },
+    "client_session": {
+      "State": "STOPPED",
+      "Ready": true,
+      "Reason": "requested_stop",
+      "ExitCode": 0,
+      "NetworkStateRemaining": false,
+      "OwnedNRPTRemaining": 0,
+      "OwnedFirewallRemaining": 0,
+      "ElapsedSeconds": 344.9
+    },
+    "long_outage": "NOT_REPRODUCED in this one complete300s sample;not full D01 PASS",
+    "quality": "FAIL;S2C loss and probe timeouts remain;unknown WAN/Windows receive boundary",
+    "C2SPacketLossPercent": 0.004142080256256698,
+    "S2CPacketLossPercent": 7.7040966899601155,
+    "ProbeTimeouts": 208
+  },
+  "limitations": [
+    "native WAN loss is not known0%",
+    "one300s repeat is not complete qualification",
+    "no Windows product diagnostics yet",
+    "full70/18/1800s latest source NOT_RUN"
+  ]
+}
