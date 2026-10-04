@@ -63,3 +63,5 @@ FEC首源8ms是encoder到期条件，不是已承诺的实际parity发包上限�
 本轮 lifecycle-capable admission record version 为 **2**；真实 TLS/uTLS 建连、外层 0x17/0x0303 记录格式不变，新增的是加密内部 health kind。必须成对升级端点。V1 端点在 admission 被明确拒绝，不允许混用后静默反复重连。历史 V1 的通过证据仍保留历史 SHA，不能视作 V2 已通过。
 
 2026-10-03资源优化阶段3：生产steady ACK内部采用每2个正常连续record或2ms截止，首包/缺口开关/SACK/重复/FIN即时；成功携最新ACK的data可取消gap-free待发ACK。每lane一个可复用timer，关闭取消、异步失败计数并由tick报告。业务立即交付，不等ACK；internal/runtimeowner/ack.go，无新增CLI/configfile入口。阶段状态与exact-SHA验收看STATUS。
+
+资格环境变量 WBD_QUALIFICATION_CPU_PROFILE：显式输出CPU采样文件，默认未设置/关闭；没有HTTP端口，退出写完。仅诊断Action使用，有采样开销，不继承为无profile正常性能结果。

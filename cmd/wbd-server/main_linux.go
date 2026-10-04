@@ -66,6 +66,7 @@ func main() {
 		return
 	}
 
+	defer startQualificationCPUProfile()()
 	if *rawIface == "" || *listenIPText == "" || *leaseText == "" || *tunnelText == "" ||
 		*account == "" || *installationText == "" || *serverName == "" || *routeKeyHex == "" ||
 		*certPath == "" || *keyPath == "" || *username == "" || *password == "" || *decoy == "" {

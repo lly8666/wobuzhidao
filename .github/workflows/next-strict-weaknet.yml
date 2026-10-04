@@ -1,5 +1,5 @@
 name: next-strict-weaknet
-run-name: strict-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-rate${{ inputs.rate_mbps }}-lanes${{ inputs.lanes }}
+run-name: strict-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-rate${{ inputs.rate_mbps }}-lanes${{ inputs.lanes }}${{ inputs.cpu_profile && '-profile' || '' }}
 
 on:
   workflow_dispatch:
@@ -31,6 +31,11 @@ on:
         required: true
         default: "1"
         type: string
+      cpu_profile:
+        description: "Explicit file-only CPU diagnostic; one unchanged sample, no second workload"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -46,6 +51,7 @@ jobs:
       WBD_STRICT_SEED: ${{ inputs.seed }}
       WBD_STRICT_RATE_MBPS: ${{ inputs.rate_mbps }}
       WBD_STRICT_LANES: ${{ inputs.lanes }}
+      WBD_STRICT_CPU_PROFILE: ${{ inputs.cpu_profile && '1' || '0' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -95,7 +101,7 @@ jobs:
         id: sample
         continue-on-error: true
         run: |
-          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC \
+          sudo --preserve-env=GITHUB_WORKSPACE,GITHUB_SHA,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_CPU_PROFILE \
             env WBD_STRICT_ARTIFACT_DIR="$ART" bash scripts/strict_weaknet_sample.sh
 
       - name: Analyze loss-tolerant-v1
@@ -122,6 +128,10 @@ jobs:
           path: |
             ${{ env.ART }}/summary-loss-tolerant-v1.json
             ${{ env.ART }}/raw-io-receipt.json
+            ${{ env.ART }}/runner-host.txt
+            ${{ env.ART }}/resources.jsonl
+            ${{ env.ART }}/*.cpu
+            ${{ env.ART }}/*-cpu-top.txt
           if-no-files-found: error
           retention-days: 30
 

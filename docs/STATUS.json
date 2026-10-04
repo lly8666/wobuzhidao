@@ -2,8 +2,8 @@
   "schema_version": 1,
   "branch": "next/tlslike-dataplane",
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
-  "milestone": "P7",
-  "product_state": "ACTIONS_PASS",
+  "milestone": "P4",
+  "product_state": "IN_PROGRESS",
   "updated_at": "2026-10-04",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -73,10 +73,10 @@
     "2026-10-04 IPv4 LAN/CN默认直连+内置MIT地址表+显式手动更新完成：SOURCE a67e10f core/race、4种真实DNS/TCP/HTTPS出口+direct不唤醒/proxy重建、36生命周期、独立Normal/Game5205及三目标新P6 PASS。"
   ],
   "in_progress": [
-    "a67 IPv4分流专项hosted PASS；用户安排P7真实Windows驱动/FIB/物理NIC及ARM原生。当前SOURCE全量70/18/1800s尚未重跑，旧2b仅历史。startup padding on完整专项仍PARTIAL_ACTIONS_PASS。"
+    "用户优先：CPU原始证据/pprof归因、窄修；IPv6默认owned blackhole+drop；DNS默认1.1.1.1/8.8.8.8互备及默认劫持。实现/测试进行中，不继承旧资格。"
   ],
-  "next_task": "IPv4分流已完成hosted专项。用户安排P7物理出口/Windows真实Npcap+Wintun和大FIB装卸/DNS/清理/ARM原生；需要新SOURCE完整交付前资格时先补strict18/config70/1800s。Game单次CPU升高未归因保留，不无证据改协议/FEC/4096。每性能Action只一条。",
-  "latest_log": "docs/devlog/20261004-052700-splitroute-hosted-acceptance.md",
+  "next_task": "先诊断固定基线Game CPU热点，按证据窄修；完成双平台DNS/IPv6默认及真实failover/leak/cleanup测试，然后每Action一条5205。",
+  "latest_log": "docs/devlog/20261004-132300-cpu-attribution-and-network-defaults.md",
   "last_tested_source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
   "actions": [
     {

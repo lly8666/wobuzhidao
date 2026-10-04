@@ -62,6 +62,10 @@ TGT="wtgt-$SFX"
 NAMESPACES=("$BIZ" "$CLI" "$RTR" "$SRV" "$TGT")
 CLIENT_PID=""
 SERVER_PID=""
+if [[ "${WBD_STRICT_CPU_PROFILE:-0}" == 1 ]]; then
+  go tool pprof -top -nodecount=40 "$CLIENT_BIN" "$ART/client.cpu" > "$ART/client-cpu-top.txt"
+  go tool pprof -top -nodecount=40 "$SERVER_BIN" "$ART/server.cpu" > "$ART/server-cpu-top.txt"
+fi
 BIZ_PID=""
 TGT_PID=""
 STAGE_PID=""
@@ -167,11 +171,12 @@ TUNNEL_ID="00112233445566778899aabbccddeeff"
 INSTALLATION_ID="11223344556677889900aabbccddeeff"
 ROUTE_KEY_HEX="00112233445566778899aabbccddeeffffeeddccbbaa00998877665544332211"
 
-ip netns exec "$SRV" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 8.8.8.8:4433 --server-record-limit 1250 --mtu 1400   --fec-parity 20 --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
+SERVER_CPU=""; CLIENT_CPU=""; if [[ "${WBD_STRICT_CPU_PROFILE:-0}" == 1 ]]; then SERVER_CPU="$ART/server.cpu"; CLIENT_CPU="$ART/client.cpu"; fi
+ip netns exec "$SRV" env WBD_QUALIFICATION_CPU_PROFILE="$SERVER_CPU" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 8.8.8.8:4433 --server-record-limit 1250 --mtu 1400   --fec-parity 20 --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
 SERVER_PID="$!"
 
 sleep 1
-ip netns exec "$CLI" "$CLIENT_BIN"   --raw-interface cwan --local-ip 198.18.0.2 --source-port 40000   --server-ip 198.18.0.6 --server-port 443   --tunnel-id "$TUNNEL_ID" --lease4 10.66.0.2/32   --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --username qual --password qualpass --client-record-limit 1300 --mtu 1400   --fec-parity 20 --lanes "$LANES" --tproxy-port 12345 --mark 66   --route-table 1066 --rule-priority 1066   --diagnostic-jsonl "$ART/client-diag.jsonl" --diagnostic-interval 1s   > "$ART/client.log" 2>&1 &
+ip netns exec "$CLI" env WBD_QUALIFICATION_CPU_PROFILE="$CLIENT_CPU" "$CLIENT_BIN"   --raw-interface cwan --local-ip 198.18.0.2 --source-port 40000   --server-ip 198.18.0.6 --server-port 443   --tunnel-id "$TUNNEL_ID" --lease4 10.66.0.2/32   --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --username qual --password qualpass --client-record-limit 1300 --mtu 1400   --fec-parity 20 --lanes "$LANES" --tproxy-port 12345 --mark 66   --route-table 1066 --rule-priority 1066   --diagnostic-jsonl "$ART/client-diag.jsonl" --diagnostic-interval 1s   > "$ART/client.log" 2>&1 &
 CLIENT_PID="$!"
 
 sleep 5
@@ -254,6 +259,10 @@ wait "$CLIENT_PID" || true
 wait "$SERVER_PID" || true
 CLIENT_PID=""
 SERVER_PID=""
+if [[ "${WBD_STRICT_CPU_PROFILE:-0}" == 1 ]]; then
+  go tool pprof -top -nodecount=40 "$CLIENT_BIN" "$ART/client.cpu" > "$ART/client-cpu-top.txt"
+  go tool pprof -top -nodecount=40 "$SERVER_BIN" "$ART/server.cpu" > "$ART/server-cpu-top.txt"
+fi
 rm -f "$KEY"; KEY=""
 
 for pid in "${CAP_PIDS[@]}"; do kill -INT "$pid" 2>/dev/null || true; done

@@ -72,6 +72,7 @@ func main() {
 	if *updateChinaIP != "" { if err:=splitroute.Update(*updateChinaIP); err!=nil { log.Fatal(err) }; return }
 	bypass, err := splitroute.Direct(*routeMode,*chinaIPFile)
 	if err != nil { log.Fatal(err) }
+	defer startQualificationCPUProfile()()
 	if *serverIPText == "" || *tunnelText == "" || *leaseText == "" || *account == "" ||
 		*installationText == "" || *serverName == "" || *routeKeyHex == "" ||
 		*username == "" || *password == "" {
