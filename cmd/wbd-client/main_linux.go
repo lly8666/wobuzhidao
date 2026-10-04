@@ -25,6 +25,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
 	"github.com/lly8666/wobuzhidao/internal/runtimeentry"
 	"github.com/lly8666/wobuzhidao/internal/splitroute"
+	"github.com/lly8666/wobuzhidao/internal/dnsroute"
 )
 
 func main() {
@@ -33,6 +34,8 @@ func main() {
 		reconnectMin       = flag.Duration("reconnect-min", runtimeentry.DefaultReconnectMin, "minimum retry delay after failed lane admission")
 		reconnectMax       = flag.Duration("reconnect-max", runtimeentry.DefaultReconnectMax, "maximum retry delay after failed lane admission")
 		configPath         = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
+		dnsHijack = flag.Bool("dns-hijack", true, "capture ordinary TCP/UDP DNS and use dns4 through the tunnel; default on")
+		dnsText = flag.String("dns4", "1.1.1.1,8.8.8.8", "primary,backup IPv4 DNS; transparent queries retain original reply address")
 		routeMode = flag.String("route-mode", "bypass-lan-cn", "IPv4 capture policy: all, bypass-lan, bypass-lan-cn")
 		chinaIPFile = flag.String("china-ip-file", "", "optional China IPv4 CIDR snapshot; empty uses embedded list; restart to apply")
 		updateChinaIP = flag.String("update-china-ip", "", "download and validate China IPv4 list into this file, then exit; no tunnel required")
@@ -145,6 +148,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	dns, err := dnsroute.ParseServers(*dnsText)
+	if err != nil || (*dnsHijack && len(dns)==0) { log.Fatal("invalid DNS servers") }
+	if !*dnsHijack { dns=nil }
+	plan.DNSHijack = *dnsHijack
 	plan.Direct4 = direct
 	log.Printf("WBD_ROUTE_POLICY mode=%s direct_prefixes=%d source=%s", *routeMode,len(direct),chinaListSource(*chinaIPFile))
 	netRuntime, err := openwrtclient.OpenRuntime(plan)
@@ -229,6 +236,8 @@ func main() {
 	}
 	adapter, err = openwrtclient.OpenSocketAdapter(openwrtclient.SocketConfig{
 		ListenPort: uint16(*tproxyPort),
+		DNSServers: dns,
+		ReplyBypassMark: uint32(*mark)|0x80000000,
 		Channel:    channel,
 		Client:     platformflow.DefaultClientConfig(),
 		BeforeBusiness: func() error {
@@ -286,5 +295,5 @@ func main() {
 		}
 		cancel()
 	}
-	fmt.Printf("WBD_OPENWRT_CLIENT_STOPPED cleanup=owned-only lanes=%d ipv6=NOT_IMPLEMENTED\n", *lanes)
+	fmt.Printf("WBD_OPENWRT_CLIENT_STOPPED cleanup=owned-only lanes=%d ipv6=BLACKHOLE_DROPPED\n", *lanes)
 }

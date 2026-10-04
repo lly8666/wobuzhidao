@@ -24,6 +24,8 @@ type Runtime struct {
 	ownedRoute bool
 	ownedRule  bool
 	ownedNFT   bool
+	ownedIPv6Rule bool
+	ownedIPv6Route bool
 	closed     bool
 }
 
@@ -33,6 +35,7 @@ func OpenRuntime(plan NetworkPlan) (*Runtime, error) {
 		return nil, err
 	}
 	canonical.Direct4 = append(canonical.Direct4, plan.Direct4...)
+	canonical.DNSHijack = plan.DNSHijack
 	// Validate the full snapshot before installing any route/rule.
 	if _, err := canonical.NFTScript(); err != nil { return nil, err }
 	for _, tool := range []string{"ip", "nft"} {
@@ -45,7 +48,10 @@ func OpenRuntime(plan NetworkPlan) (*Runtime, error) {
 	}
 
 	r := &Runtime{plan: canonical}
+	if err:=runCommand(canonical.IPv6Blackhole.Name,canonical.IPv6Blackhole.Args...);err!=nil{return nil,err};r.ownedIPv6Route=true
+	if err:=runCommand(canonical.IPv6Rule.Name,canonical.IPv6Rule.Args...);err!=nil{_ = r.cleanupUnlocked();return nil,err};r.ownedIPv6Rule=true
 	if err := runCommand(canonical.LocalRoute.Name, canonical.LocalRoute.Args...); err != nil {
+		_ = r.cleanupUnlocked()
 		return nil, err
 	}
 	r.ownedRoute = true
@@ -101,11 +107,18 @@ func (r *Runtime) cleanupUnlocked() error {
 		}
 		r.ownedRoute = false
 	}
+	if r.ownedIPv6Rule {if err:=runCommandQuiet("ip","-6","rule","del","priority",strconv.FormatUint(uint64(r.plan.Priority),10),"lookup",strconv.FormatUint(uint64(r.plan.Table),10));err!=nil{errs=append(errs,err)};r.ownedIPv6Rule=false}
+	if r.ownedIPv6Route {if err:=runCommandQuiet("ip","-6","route","del","blackhole","::/0","table",strconv.FormatUint(uint64(r.plan.Table),10));err!=nil{errs=append(errs,err)};r.ownedIPv6Route=false}
 	r.closed = true
 	return errors.Join(errs...)
 }
 
 func ensureUnowned(plan NetworkPlan) error {
+	for _,args:=range [][]string{{"-6","rule","show"},{"-6","route","show","table",strconv.FormatUint(uint64(plan.Table),10)}}{
+		out,err:=exec.Command("ip",args...).CombinedOutput();text:=strings.TrimSpace(string(out))
+		if err!=nil&&!strings.Contains(text,"FIB table does not exist"){return fmt.Errorf("%w: IPv6 state unavailable",ErrStateConflict)}
+		if args[1]=="rule" {for _,line:=range strings.Split(text,"\n"){if strings.HasPrefix(strings.TrimSpace(line),strconv.FormatUint(uint64(plan.Priority),10)+":")||strings.Contains(line,"lookup "+strconv.FormatUint(uint64(plan.Table),10)){return ErrStateConflict}}}else if err==nil&&text!=""{return ErrStateConflict}
+	}
 	if err := exec.Command("nft", "list", "table", plan.NFTFamily, plan.NFTTable).Run(); err == nil {
 		return fmt.Errorf("%w: nft table %s %s already exists", ErrStateConflict, plan.NFTFamily, plan.NFTTable)
 	}

@@ -10,7 +10,7 @@ def generate(mode,root):
     start=s.index('if [[ "$SCENARIO" == l0_config ]]; then\n  server_args+=')
     stop=s.index('ip netns exec "$SRV" env',start)
     opts='--route-mode all' if mode=='all' else '--route-mode bypass-lan' if mode=='lan' else ''
-    s=s.replace('client_args=(--route-mode all ',f'client_args=({opts} ')
+    s=s.replace('client_args=(--route-mode all ',f'client_args=(--dns-hijack=false {opts} ')
     # Indices must be recalculated after the shorter prefix replacement.
     start=s.index('if [[ "$SCENARIO" == l0_config ]]; then\n  server_args+=')
     stop=s.index('ip netns exec "$SRV" env',start)

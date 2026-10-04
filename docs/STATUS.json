@@ -75,8 +75,8 @@
   "in_progress": [
     "用户优先：CPU原始证据/pprof归因、窄修；IPv6默认owned blackhole+drop；DNS默认1.1.1.1/8.8.8.8互备及默认劫持。实现/测试进行中，不继承旧资格。"
   ],
-  "next_task": "先诊断固定基线Game CPU热点，按证据窄修；完成双平台DNS/IPv6默认及真实failover/leak/cleanup测试，然后每Action一条5205。",
-  "latest_log": "docs/devlog/20261004-142000-tun-poller.md",
+  "next_task": "Finish exact-source default DNS/IPv6 functional Actions, CPU profile attribution and independent Normal/Game5205; retain all failures, no old qualification inheritance",
+  "latest_log": "docs/devlog/20261004-144000-default-dns-ipv6.md",
   "last_tested_source_sha": "a67e10fa2875162eeac926b970a0c486a239748d",
   "actions": [
     {
@@ -6669,5 +6669,12 @@
       },
       "current_source_sha": "a67e10fa2875162eeac926b970a0c486a239748d"
     }
+  },
+  "default_network": {
+    "state": "IN_PROGRESS",
+    "dns_default": "1.1.1.1,8.8.8.8",
+    "ipv6": "CAPTURE_DROP",
+    "physical": "NOT_RUN",
+    "tests": "PENDING"
   }
 }

@@ -1,6 +1,6 @@
 # IPv4地址分流
 
-默认 `route-mode=bypass-lan-cn`：本机/局域网/链路本地/CGNAT/组播保留IPv4及中国IPv4直连，其余通过TLS-like隧道。另有`bypass-lan`与`all`。all仍保留服务器/本地地址必需绕行。Linux/OpenWrt仅处理当前路由器PREROUTING入口；Windows Wintun按内核路由捕获。IPv6边界保持原状（Windows fail-closed，OpenWrt IPv6未实现），不新增域名/geosite规则、DNS嗅探或IPv6直连。
+默认 `route-mode=bypass-lan-cn`：本机/局域网/链路本地/CGNAT/组播保留IPv4及中国IPv4直连，其余通过TLS-like隧道。另有`bypass-lan`与`all`。all仍保留服务器/本地地址必需绕行。用户2026-10-04新增：IPv6默认捕获并丢弃，普通DNS默认经隧道访问1.1.1.1与8.8.8.8互备。Linux普通业务仍走PREROUTING，新增OUTPUT只处理DNS及IPv6；Windows Wintun按内核路由捕获。
 
 采用v2rayN的private/cn/direct/剩余proxy规则语义参考：[官方路由例](https://github.com/2dust/v2rayN/blob/master/v2rayN/ServiceLib/Sample/custom_routing_white)。本实现没有搬入Xray/v2ray核心，也不复制其全部域名/广告/端口策略。旧项目只定向参考old/internal/windowsruntime/routing_policy.go。
 
@@ -21,7 +21,15 @@ wbd-client --config client.json --china-ip-file china-ipv4.txt
 
 启动时一次解析、区间排序合并/精确CIDR规范化。Linux/OpenWrt在原owned nft table中增加一个interval set，mandatory underlay/mark/local绕行之后、TCP/UDP TPROXY之前匹配直接return；OpenRuntime规范化不能丢Direct4；全快照验证在任何网络资源修改之前。退出整表清除，不碰外部规则。
 
-Windows对直连地址及server /32取精确补集作为Wintun capture routes。直连地址没有WBD capture route，因此沿用原系统路由而不是强制走同一物理默认网关（LAN、VPN、回环等尤其重要）。现有用户direct4和显式DNS配置保持；dns4的/32 capture优先，是明确隧道DNS策略，不能和server IP重合。无需每包用户态查中国表、direct NAT/回环relay、加密或FEC；直连业务不唤醒DORMANT隧道。
+Windows对直连地址及server /32取精确补集作为Wintun capture routes。直连地址沿用原系统路由。dns4的/32 capture优先，不能与server IP重合。无需每包用户态查中国表；非DNS直连业务不唤醒DORMANT。DNS属于真实业务，可唤醒隧道。
+
+## 默认DNS与IPv6（本轮实现，资格看STATUS）
+
+Linux/OpenWrt TCP/UDP目的端口53在direct/local bypass之前捕获；本机OUTPUT DNS设置现有policy mark后回入TPROXY。underlay服务器地址始终绕行，尤其服务器端口53不能被递归劫持。DNS UDP仅512事务/1MiB，按客户端地址、ID、问题名/类型/类及已尝试解析器验证回复，恢复原始DNS目标地址，只首次交付。虚拟TCP pipe直接复用现有platformflow，无新增回环转发链。健康解析器短期优先；失败转另一台，不无限重试。回复socket专用高位mark避免客户端源端口53递归捕获。IPv6owned policy blackhole + nft ingress/output drop；退出只撤自身资源。
+
+Windows默认owned NRPT指定两台解析器，DNS服务器/32走隧道；失败切换由系统DNS客户端完成。device-wide IPv6双向防火墙在安装capture路由前启用；另安装owned ::/1、8000::/1至Wintun，读到IPv6直接丢弃，不唤醒业务。已有更具体IPv6路由也由防火墙拦截。退出/安装失败按journal精确回滚，外部规则和路由保留。hosted模拟不是物理驱动验收。
+
+这是普通DNS策略，不拦截DoH/DoT或应用自行设置的加密解析；Windows绕过系统DNS的硬编码查询也不等于NRPT覆盖。DNS解析可返回AAAA，但IPv6连接会被拦截，未伪造或删除AAAA回答。可设dns-hijack=false或dns4替换解析器。原IP分流port53 echo夹具显式关闭DNS劫持；独立next-default-network使用正式二进制验证真实DNS默认/自定义/关闭、故障切换、IPv6无出口和清理，不将任意UDP echo当DNS成功。
 
 大型Windowscapture快照使用有界临时文本文件而非超长argv；PowerShell一次查询现有capture路由，一次持久化新增ownership intents，再逐条New-NetRoute，避免每条CIM查询与每条全量state重写。仍需有限启动/退出路由安装工作及内核FIB内存；不能声称启动零成本或真实Windows驱动已验证。退出只删自己记录的route/address/NRPT/firewall，已有外部同前缀路由不认领。
 

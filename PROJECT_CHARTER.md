@@ -42,6 +42,7 @@ DORMANT 关闭传输但保留 Tunnel、lease、TUN、路由/DNS，真实业务�
 - Windows 每 Tunnel 一个 Wintun，维护物理接口绑定、路由/DNS 和 IPv6 fail-closed/退出清理，不让 DHCP/APIPA 误占 tunnel lease。
 - OpenWrt 复用 TPROXY/策略路由的业务入口语义；Linux/Windows 的直接连接、分流、DNS 及必要 bypass 不能在统一进程时丢失。
 - 新运行时不启动 DTLS shim，也不以模块分层为由创建回环 UDP 转发链。真实业务 socket 可以存在。
+- 2026-10-04用户新增：客户端默认IPv6捕获后丢弃；普通DNS默认经隧道使用1.1.1.1与8.8.8.8互备。Linux使用有界DNS事务与虚拟TCP，Windows复用系统NRPT，关闭客户端精确清理。普通业务不为DNS增加等待或重排。
 
 ## 5. 外观与性能的诚实边界
 

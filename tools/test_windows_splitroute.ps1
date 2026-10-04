@@ -62,7 +62,8 @@ try {
         if (-not $fail) {
             $saved=Get-Content -LiteralPath $state -Raw | ConvertFrom-Json
             if (@($saved.CaptureRoutes).Count -ne 1499) { throw 'owned capture journal count wrong' }
-            if (@($script:routes).Count -ne 1502) { throw 'large Apply count wrong' }
+            if (@($saved.CaptureRoutes6).Count -ne 2) { throw 'IPv6 sink journal wrong' }
+            if (@($script:routes).Count -ne 1504) { throw 'large Apply count wrong' }
             & $block @taskArgs -Action Cleanup | Out-Null
         }
         if (Test-Path -LiteralPath $state) { throw 'state not cleaned after cleanup/rollback' }

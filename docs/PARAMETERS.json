@@ -58,6 +58,20 @@
         "source": "cmd/wbd-client/main_linux.go",
         "json": true
       },
+      "dns-hijack": {
+        "type": "Bool",
+        "default_expression": "true",
+        "help": "capture ordinary TCP/UDP DNS and use dns4 through the tunnel; default on",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
+      "dns4": {
+        "type": "String",
+        "default_expression": "\"1.1.1.1,8.8.8.8\"",
+        "help": "primary,backup IPv4 DNS; transparent queries retain original reply address",
+        "source": "cmd/wbd-client/main_linux.go",
+        "json": true
+      },
       "fec-parity": {
         "type": "Int",
         "default_expression": "0",
@@ -312,10 +326,17 @@
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },
+      "dns-hijack": {
+        "type": "Bool",
+        "default_expression": "true",
+        "help": "redirect system DNS through owned NRPT and dns4; default on",
+        "source": "cmd/wbd-client/main_windows.go",
+        "json": true
+      },
       "dns4": {
         "type": "String",
-        "default_expression": "\"\"",
-        "help": "comma-separated IPv4 DNS servers",
+        "default_expression": "\"1.1.1.1,8.8.8.8\"",
+        "help": "primary,backup IPv4 DNS; Windows resolver performs failover",
         "source": "cmd/wbd-client/main_windows.go",
         "json": true
       },

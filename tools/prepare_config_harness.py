@@ -9,6 +9,9 @@ def replace_once(s,old,new):
 
 def generate(case):
     p=cases()[case];s=Path('scripts/lifecycle_acceptance_sample.sh').read_text()
+    # This fixture tests raw port-53 IP split/transport and arbitrary echo
+    # bytes. Default resolver interception has a separate real-DNS fixture.
+    s=s.replace('client_args=(--route-mode all ', 'client_args=(--dns-hijack=false --route-mode all ')
     s=replace_once(s,'mtu 1400 up',f'mtu {p["mtu"]} up')
     start=s.index('if [[ "$SCENARIO" == l0_config ]]; then\n  FEC_CONFIG=20')
     stop=s.index('control "$CLIENT_CONTROL"',start)

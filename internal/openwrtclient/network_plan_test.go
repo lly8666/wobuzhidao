@@ -16,6 +16,16 @@ func testPlan(t *testing.T) NetworkPlan {
 	return plan
 }
 
+func TestDefaultNetworkDNSBeforeDirectAndIPv6Blackhole(t *testing.T) {
+ p:=testPlan(t);p.DNSHijack=true;p.Direct4=[]netip.Prefix{netip.MustParsePrefix("10.0.0.0/8")}
+ s,e:=p.NFTScript();if e!=nil{t.Fatal(e)}
+ for _,x:=range []string{"wbd-dns-capture","wbd-dns-output-route","type route hook output","wbd-reply-output-bypass","wbd-ipv6-output-drop","wbd-ipv6-drop"}{if !strings.Contains(s,x){t.Fatalf("missing %s",x)}}
+ if strings.Index(s,"wbd-dns-capture")>strings.Index(s,"wbd-direct4"){t.Fatal("LAN DNS escaped redirect")}
+ if got:=strings.Join(p.IPv6Blackhole.Args," ");got!="-6 route add blackhole ::/0 table 1066"{t.Fatal(got)}
+ if got:=strings.Join(p.IPv6Rule.Args," ");got!="-6 rule add priority 1066 lookup 1066"{t.Fatal(got)}
+ p.DNSHijack=false;s,e=p.NFTScript();if e!=nil||strings.Contains(s,"wbd-dns-capture")||!strings.Contains(s,"wbd-ipv6-drop"){t.Fatal("DNS toggle changed IPv6 policy")}
+}
+
 func TestNetworkPlanOrdersBypassBeforeTCPAndUDP(t *testing.T) {
 	plan := testPlan(t)
 	if len(plan.Rules) != 6 {

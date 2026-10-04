@@ -111,6 +111,7 @@ function Remove-OwnedState($State) {
     if ($State.PSObject.Properties.Name -contains 'NRPTRuleName') {
         Remove-WBDNRPTByName ([string]$State.NRPTRuleName)
     }
+    if ($State.PSObject.Properties.Name -contains 'CaptureRoutes6') { Remove-OwnedRoutes $State.CaptureRoutes6 }
     if ($State.PSObject.Properties.Name -contains 'CaptureRoutes') { Remove-OwnedRoutes $State.CaptureRoutes }
     if ($State.PSObject.Properties.Name -contains 'DirectRoutes') { Remove-OwnedRoutes $State.DirectRoutes }
     if ($State.PSObject.Properties.Name -contains 'UnderlayRoutes') { Remove-OwnedRoutes $State.UnderlayRoutes }
@@ -150,6 +151,7 @@ if ($Action -eq 'Render') {
     Write-Output "03 ADDRESS_EXCLUSIVE $($lease.CIDR) adapter=$AdapterAlias dhcp=disabled"
     foreach ($prefix in $capturePrefixes) { Write-Output "04 CAPTURE $prefix adapter=$AdapterAlias" }
     if ($dnsServers.Count -gt 0) { Write-Output "05 DNS_NRPT namespace=. servers=$($dnsServers -join ',')" }
+    Write-Output '06 IPV6_CAPTURE_SINK ranges=::/1,8000::/1'
     Write-Output '06 IPV6_FAIL_CLOSED directions=inbound,outbound ranges=::/1,8000::/1'
     Write-Output '07 CLEANUP state_owned_only=1'
     exit 0
@@ -204,11 +206,19 @@ $state = [ordered]@{
     UnderlayRoutes = @()
     DirectRoutes = @()
     CaptureRoutes = @()
+    CaptureRoutes6 = @()
     NRPTRuleName = ''
 }
 Save-State $state
 
 try {
+    New-NetFirewallRule -DisplayName $IPv6Outbound -Group $IPv6Group -Description $IPv6Description `
+        -Direction Outbound -Action Block -Enabled True -Profile Any -Protocol Any `
+        -RemoteAddress $IPv6Universe | Out-Null
+    New-NetFirewallRule -DisplayName $IPv6Inbound -Group $IPv6Group -Description $IPv6Description `
+        -Direction Inbound -Action Block -Enabled True -Profile Any -Protocol Any `
+        -LocalAddress $IPv6Universe | Out-Null
+
     $underlayPrefix = "$Underlay4/32"
     $existingUnderlay = Get-NetRoute -DestinationPrefix $underlayPrefix `
         -InterfaceIndex $PhysicalInterfaceIndex -NextHop $PhysicalNextHop4 `
@@ -257,10 +267,19 @@ try {
     # Snapshot existing routes once. Journal new intents once before mutation;
     # this avoids thousands of CIM lookups and O(n^2) state-file rewrites.
     $existingCapture = @{}
-    @(Get-NetRoute -InterfaceIndex $ifIndex -PolicyStore ActiveStore -ErrorAction SilentlyContinue | Where-Object { $_.NextHop -eq '0.0.0.0' }) | ForEach-Object { $existingCapture[[string]$_.DestinationPrefix] = $true }
+    $existingCapture6 = @{}
+    @(Get-NetRoute -InterfaceIndex $ifIndex -PolicyStore ActiveStore -ErrorAction SilentlyContinue) | ForEach-Object {
+        if ($_.NextHop -eq '0.0.0.0') { $existingCapture[[string]$_.DestinationPrefix] = $true }
+        if ($_.NextHop -eq '::') { $existingCapture6[[string]$_.DestinationPrefix] = $true }
+    }
     $newCapture = @($capturePrefixes | Where-Object { -not $existingCapture.ContainsKey($_) })
+    $newCapture6 = @($IPv6Universe | Where-Object { -not $existingCapture6.ContainsKey($_) })
+    $state.CaptureRoutes6 = @($newCapture6 | ForEach-Object { [ordered]@{ DestinationPrefix=$_; InterfaceIndex=$ifIndex; NextHop="::" } })
     $state.CaptureRoutes = @($newCapture | ForEach-Object { [ordered]@{ DestinationPrefix=$_; InterfaceIndex=$ifIndex; NextHop='0.0.0.0' } })
     Save-State $state
+    foreach ($prefix in $newCapture6) {
+        New-NetRoute -DestinationPrefix $prefix -InterfaceIndex $ifIndex -NextHop "::" -RouteMetric 1 -PolicyStore ActiveStore | Out-Null
+    }
     foreach ($prefix in $newCapture) {
         New-NetRoute -DestinationPrefix $prefix -InterfaceIndex $ifIndex -NextHop '0.0.0.0' `
             -RouteMetric 5 -PolicyStore ActiveStore | Out-Null
@@ -276,13 +295,6 @@ try {
         $state.NRPTRuleName = [string]$rule.Name
         Save-State $state
     }
-
-    New-NetFirewallRule -DisplayName $IPv6Outbound -Group $IPv6Group -Description $IPv6Description `
-        -Direction Outbound -Action Block -Enabled True -Profile Any -Protocol Any `
-        -RemoteAddress $IPv6Universe | Out-Null
-    New-NetFirewallRule -DisplayName $IPv6Inbound -Group $IPv6Group -Description $IPv6Description `
-        -Direction Inbound -Action Block -Enabled True -Profile Any -Protocol Any `
-        -LocalAddress $IPv6Universe | Out-Null
 
     Write-Output "WBD_WINDOWS_CLIENT_READY adapter=$AdapterAlias ifindex=$ifIndex lease=$($lease.CIDR) dns=$($dnsServers.Count) direct=$($directPrefixes.Count)"
     Write-Output "WBD_WINDOWS_CLIENT_UNDERLAY_LOCKED server=$Underlay4 ifindex=$PhysicalInterfaceIndex nexthop=$PhysicalNextHop4"

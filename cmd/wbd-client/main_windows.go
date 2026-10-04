@@ -19,6 +19,7 @@ import (
 
 	"github.com/lly8666/wobuzhidao/internal/configfile"
 	"github.com/lly8666/wobuzhidao/internal/datapath"
+	"github.com/lly8666/wobuzhidao/internal/dnsroute"
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
@@ -33,6 +34,7 @@ func main() {
 		reconnectMin      = flag.Duration("reconnect-min", runtimeentry.DefaultReconnectMin, "minimum retry delay after failed lane admission")
 		reconnectMax      = flag.Duration("reconnect-max", runtimeentry.DefaultReconnectMax, "maximum retry delay after failed lane admission")
 		configPath        = flag.String("config", "", "JSON configuration file; CLI flags override matching keys")
+		dnsHijack = flag.Bool("dns-hijack", true, "redirect system DNS through owned NRPT and dns4; default on")
 		routeMode = flag.String("route-mode", "bypass-lan-cn", "IPv4 capture policy: all, bypass-lan, bypass-lan-cn")
 		chinaIPFile = flag.String("china-ip-file", "", "optional China IPv4 CIDR snapshot; empty uses embedded list; restart to apply")
 		updateChinaIP = flag.String("update-china-ip", "", "download and validate China IPv4 list into this file, then exit; no tunnel required")
@@ -53,7 +55,7 @@ func main() {
 		tlsStartupPadding = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
 		fecParity         = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
 		adapterAlias      = flag.String("adapter", "WBD", "Wintun adapter alias")
-		dnsText           = flag.String("dns4", "", "comma-separated IPv4 DNS servers")
+		dnsText           = flag.String("dns4", "1.1.1.1,8.8.8.8", "primary,backup IPv4 DNS; Windows resolver performs failover")
 		directText        = flag.String("direct4", "", "comma-separated direct IPv4 prefixes")
 		statePath         = flag.String("state-path", "wbd-windows-client-state.json", "owned Windows network state file")
 		scriptPath        = flag.String("network-script", "scripts/windows_client_network.ps1", "Windows network Apply/Cleanup script")
@@ -118,10 +120,11 @@ func main() {
 	if err != nil || len(routeKey) == 0 {
 		log.Fatal("route-key-hex must decode to non-empty bytes")
 	}
-	dns, err := parseIPv4Addrs(*dnsText)
-	if err != nil {
-		log.Fatal(err)
+	dns, err := dnsroute.ParseServers(*dnsText)
+	if err != nil || (*dnsHijack && len(dns)==0) {
+		log.Fatal("dns4 requires one or two IPv4 resolvers when DNS hijack is enabled")
 	}
+	if !*dnsHijack { dns=nil }
 	direct, err := parseIPv4Prefixes(*directText)
 	if err != nil {
 		log.Fatal(err)
@@ -255,6 +258,7 @@ func main() {
 				errCh <- err
 				return
 			}
+			if n>0 && buf[0]>>4==6 { continue } // captured IPv6 is a sink, never business/wake
 			wakeCtx, wakeCancel := context.WithTimeout(ctx, 15*time.Second)
 			err = client.PrepareBusiness(wakeCtx)
 			wakeCancel()

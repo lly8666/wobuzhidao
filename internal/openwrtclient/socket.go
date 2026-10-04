@@ -2,6 +2,7 @@ package openwrtclient
 
 import (
 	"errors"
+	"net/netip"
 	"time"
 
 	"github.com/lly8666/wobuzhidao/internal/platformflow"
@@ -24,6 +25,8 @@ type SocketConfig struct {
 	// enter the tunnel. It lets the single-process runtime wake a DORMANT tunnel
 	// without treating transport ACK/timer activity as payload activity.
 	BeforeBusiness func() error
+	DNSServers []netip.Addr
+	ReplyBypassMark uint32
 }
 
 func (c *SocketConfig) normalize() error {
