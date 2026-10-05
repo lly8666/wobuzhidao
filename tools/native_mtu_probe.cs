@@ -8,6 +8,7 @@ public class WBDNativeMTUCase {
     public int UDPPayload, IPv4Total, Attempts, Sent, ReceivedExact, TimelyReceived, LateExact;
     public int MessageSizeError, OtherSendError, Timeout, BadPayload, Duplicates;
     public bool DontFragment;
+    public List<uint> MissingSequences=new List<uint>();
 }
 public class WBDNativeMTUResult {
     public List<WBDNativeMTUCase> Cases=new List<WBDNativeMTUCase>();
@@ -73,6 +74,8 @@ public static class WBDNativeMTU {
             double drainStart=clock.Elapsed.TotalSeconds;
             while(clock.Elapsed.TotalSeconds-drainStart<3)receiveOne(100);
             result.DrainSeconds=clock.Elapsed.TotalSeconds-drainStart;
+            foreach(KeyValuePair<uint,Pending> entry in pending)if(!entry.Value.Received)entry.Value.Case.MissingSequences.Add(entry.Key);
+            foreach(WBDNativeMTUCase c in result.Cases)c.MissingSequences.Sort();
             sock.Send(System.Text.Encoding.ASCII.GetBytes("P7M-DONE"));
         }
         product.Refresh();helper.Refresh();result.ClientAliveAfter=!product.HasExited;

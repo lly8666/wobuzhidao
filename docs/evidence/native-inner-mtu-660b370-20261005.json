@@ -877,6 +877,395 @@
       },
       "interface_after_stop": "ABSENT_OWNED_EPHEMERAL_ADAPTER",
       "not_performance_qualification": true
+    },
+    {
+      "schema": "wbd-native-inner-mtu-boundary/v1",
+      "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "case": "m03-current-300s-seed1366",
+      "maximum_udp": true,
+      "status": "FAIL",
+      "errors": [
+        "Boundary size65507/DFFalse"
+      ],
+      "cases": [
+        {
+          "UDPPayload": 8972,
+          "IPv4Total": 9000,
+          "Attempts": 170,
+          "Sent": 170,
+          "ReceivedExact": 170,
+          "TimelyReceived": 170,
+          "LateExact": 0,
+          "MessageSizeError": 0,
+          "OtherSendError": 0,
+          "Timeout": 0,
+          "BadPayload": 0,
+          "Duplicates": 0,
+          "DontFragment": false,
+          "outcome": "PASS_EXACT"
+        },
+        {
+          "UDPPayload": 96,
+          "IPv4Total": 124,
+          "Attempts": 1352,
+          "Sent": 1352,
+          "ReceivedExact": 1352,
+          "TimelyReceived": 1352,
+          "LateExact": 0,
+          "MessageSizeError": 0,
+          "OtherSendError": 0,
+          "Timeout": 0,
+          "BadPayload": 0,
+          "Duplicates": 0,
+          "DontFragment": false,
+          "outcome": "PASS_EXACT"
+        },
+        {
+          "UDPPayload": 8973,
+          "IPv4Total": 9001,
+          "Attempts": 169,
+          "Sent": 169,
+          "ReceivedExact": 169,
+          "TimelyReceived": 169,
+          "LateExact": 0,
+          "MessageSizeError": 0,
+          "OtherSendError": 0,
+          "Timeout": 0,
+          "BadPayload": 0,
+          "Duplicates": 0,
+          "DontFragment": false,
+          "outcome": "PASS_EXACT"
+        },
+        {
+          "UDPPayload": 65507,
+          "IPv4Total": 65535,
+          "Attempts": 169,
+          "Sent": 169,
+          "ReceivedExact": 168,
+          "TimelyReceived": 167,
+          "LateExact": 1,
+          "MessageSizeError": 0,
+          "OtherSendError": 0,
+          "Timeout": 2,
+          "BadPayload": 0,
+          "Duplicates": 0,
+          "DontFragment": false,
+          "outcome": "FAIL_BOUNDARY"
+        },
+        {
+          "UDPPayload": 65508,
+          "IPv4Total": 65536,
+          "Attempts": 169,
+          "Sent": 0,
+          "ReceivedExact": 0,
+          "TimelyReceived": 0,
+          "LateExact": 0,
+          "MessageSizeError": 169,
+          "OtherSendError": 0,
+          "Timeout": 0,
+          "BadPayload": 0,
+          "Duplicates": 0,
+          "DontFragment": false,
+          "outcome": "PASS_REJECTED"
+        },
+        {
+          "UDPPayload": 8972,
+          "IPv4Total": 9000,
+          "Attempts": 169,
+          "Sent": 169,
+          "ReceivedExact": 169,
+          "TimelyReceived": 169,
+          "LateExact": 0,
+          "MessageSizeError": 0,
+          "OtherSendError": 0,
+          "Timeout": 0,
+          "BadPayload": 0,
+          "Duplicates": 0,
+          "DontFragment": true,
+          "outcome": "PASS_EXACT"
+        },
+        {
+          "UDPPayload": 8973,
+          "IPv4Total": 9001,
+          "Attempts": 169,
+          "Sent": 0,
+          "ReceivedExact": 0,
+          "TimelyReceived": 0,
+          "LateExact": 0,
+          "MessageSizeError": 169,
+          "OtherSendError": 0,
+          "Timeout": 0,
+          "BadPayload": 0,
+          "Duplicates": 0,
+          "DontFragment": true,
+          "outcome": "PASS_REJECTED"
+        },
+        {
+          "UDPPayload": 65507,
+          "IPv4Total": 65535,
+          "Attempts": 169,
+          "Sent": 0,
+          "ReceivedExact": 0,
+          "TimelyReceived": 0,
+          "LateExact": 0,
+          "MessageSizeError": 169,
+          "OtherSendError": 0,
+          "Timeout": 0,
+          "BadPayload": 0,
+          "Duplicates": 0,
+          "DontFragment": true,
+          "outcome": "PASS_REJECTED"
+        },
+        {
+          "UDPPayload": 65508,
+          "IPv4Total": 65536,
+          "Attempts": 169,
+          "Sent": 0,
+          "ReceivedExact": 0,
+          "TimelyReceived": 0,
+          "LateExact": 0,
+          "MessageSizeError": 169,
+          "OtherSendError": 0,
+          "Timeout": 0,
+          "BadPayload": 0,
+          "Duplicates": 0,
+          "DontFragment": true,
+          "outcome": "PASS_REJECTED"
+        }
+      ],
+      "actual_seconds": 300.1072743,
+      "late_exact": 1,
+      "client_alive": true,
+      "actual_inner_mtu": {
+        "InterfaceIndex": 12,
+        "InterfaceAlias": "WBD-P7",
+        "NlMtu": 9000
+      },
+      "stop": {
+        "State": "STOPPED",
+        "Ready": true,
+        "Reason": "requested_stop",
+        "ExitCode": 0,
+        "NetworkStateRemaining": false,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "ElapsedSeconds": 342.8
+      },
+      "target": {
+        "result": "MEASURED",
+        "peer_ipv4": "10.66.95.18",
+        "counts": {
+          "8972": 339,
+          "96": 1352,
+          "8973": 169,
+          "65507": 169
+        },
+        "bad_payload": 0,
+        "echo_send_errors": {},
+        "ip_mtu_discover": 0,
+        "elapsed_seconds": 307.6072663399391,
+        "receive_buffer_requested_bytes": 2097152,
+        "effective_receive_buffer_bytes": 425984
+      },
+      "wire": [
+        {
+          "name": "m03-current-300s-seed1366-start-wire.json",
+          "raw_deleted": true,
+          "capture_kernel_drops": 0,
+          "flow": [
+            {
+              "direction": "C2S",
+              "packets": 9,
+              "max_ipv4_length": 706,
+              "ipv4_checksum_bad": 0,
+              "tcp_checksum_bad": 0,
+              "fragmented": 0,
+              "retransmission_or_overlap_bytes_conflict": 0,
+              "tls_complete_records": 5,
+              "tls_record_types": {
+                "22": 1,
+                "20": 1,
+                "23": 3
+              },
+              "tls_wire_versions": {
+                "0x301": 1,
+                "0x303": 4
+              },
+              "tls_invalid_headers_in_aligned_runs": 0
+            },
+            {
+              "direction": "S2C",
+              "packets": 8,
+              "max_ipv4_length": 939,
+              "ipv4_checksum_bad": 0,
+              "tcp_checksum_bad": 0,
+              "fragmented": 0,
+              "retransmission_or_overlap_bytes_conflict": 0,
+              "tls_complete_records": 9,
+              "tls_record_types": {
+                "22": 1,
+                "20": 1,
+                "23": 7
+              },
+              "tls_wire_versions": {
+                "0x303": 9
+              },
+              "tls_invalid_headers_in_aligned_runs": 0
+            }
+          ],
+          "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+          "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof"
+        },
+        {
+          "name": "m03-current-300s-seed1366-steady-wire.json",
+          "raw_deleted": true,
+          "capture_kernel_drops": 0,
+          "flow": [
+            {
+              "direction": "C2S",
+              "packets": 1211,
+              "max_ipv4_length": 1290,
+              "ipv4_checksum_bad": 0,
+              "tcp_checksum_bad": 0,
+              "fragmented": 0,
+              "retransmission_or_overlap_bytes_conflict": 0,
+              "tls_complete_records": 690,
+              "tls_record_types": {
+                "23": 690
+              },
+              "tls_wire_versions": {
+                "0x303": 690
+              },
+              "tls_invalid_headers_in_aligned_runs": 0
+            },
+            {
+              "direction": "S2C",
+              "packets": 1313,
+              "max_ipv4_length": 1340,
+              "ipv4_checksum_bad": 0,
+              "tcp_checksum_bad": 0,
+              "fragmented": 0,
+              "retransmission_or_overlap_bytes_conflict": 0,
+              "tls_complete_records": 965,
+              "tls_record_types": {
+                "23": 965
+              },
+              "tls_wire_versions": {
+                "0x303": 965
+              },
+              "tls_invalid_headers_in_aligned_runs": 0
+            }
+          ],
+          "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+          "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof"
+        },
+        {
+          "name": "m03-current-300s-seed1366-stop-wire.json",
+          "raw_deleted": true,
+          "capture_kernel_drops": 0,
+          "flow": [
+            {
+              "direction": "C2S",
+              "packets": 1,
+              "max_ipv4_length": 40,
+              "ipv4_checksum_bad": 0,
+              "tcp_checksum_bad": 0,
+              "fragmented": 0,
+              "retransmission_or_overlap_bytes_conflict": 0,
+              "tls_complete_records": 0,
+              "tls_record_types": {},
+              "tls_wire_versions": {},
+              "tls_invalid_headers_in_aligned_runs": 0
+            },
+            {
+              "direction": "S2C",
+              "packets": 1,
+              "max_ipv4_length": 40,
+              "ipv4_checksum_bad": 0,
+              "tcp_checksum_bad": 0,
+              "fragmented": 0,
+              "retransmission_or_overlap_bytes_conflict": 0,
+              "tls_complete_records": 0,
+              "tls_record_types": {},
+              "tls_wire_versions": {},
+              "tls_invalid_headers_in_aligned_runs": 0
+            }
+          ],
+          "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+          "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof"
+        },
+        {
+          "name": "m03-current-300s-seed1366-tail-wire.json",
+          "raw_deleted": true,
+          "capture_kernel_drops": 0,
+          "flow": [
+            {
+              "direction": "C2S",
+              "packets": 1354,
+              "max_ipv4_length": 1290,
+              "ipv4_checksum_bad": 0,
+              "tcp_checksum_bad": 0,
+              "fragmented": 0,
+              "retransmission_or_overlap_bytes_conflict": 0,
+              "tls_complete_records": 691,
+              "tls_record_types": {
+                "23": 691
+              },
+              "tls_wire_versions": {
+                "0x303": 691
+              },
+              "tls_invalid_headers_in_aligned_runs": 0
+            },
+            {
+              "direction": "S2C",
+              "packets": 1359,
+              "max_ipv4_length": 1340,
+              "ipv4_checksum_bad": 0,
+              "tcp_checksum_bad": 0,
+              "fragmented": 0,
+              "retransmission_or_overlap_bytes_conflict": 0,
+              "tls_complete_records": 999,
+              "tls_record_types": {
+                "23": 999
+              },
+              "tls_wire_versions": {
+                "0x303": 999
+              },
+              "tls_invalid_headers_in_aligned_runs": 0
+            }
+          ],
+          "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+          "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof"
+        }
+      ],
+      "scope": "native MTU/API boundary functional scenario,not a throughput test",
+      "cpu": {
+        "product": 10.578125,
+        "helper": 0.890625
+      },
+      "fixture_hashes": {
+        "physical_bounded_capture.py": "aabc25fb2eca637ddc907fdf65ee69e66d09df6f44089939a52ba7bde48c8caf",
+        "physical_dns_observer.py": "88f42ea38bd323f20ebb05a9de059a2e5d2112e3de0a1e10c8d0230efcd35108",
+        "physical_header_watch.py": "977bd060511fc2a3f09c4496b37d5caeaebee4d185ef4fde4dc4667e431f0aea",
+        "physical_mtu_target.py": "8b6283c042bf9a2a2c763ab75a96654e1f89cec85d3a74821207c2959632e0e9",
+        "physical_npcap_watch.cs": "1b6902b9135570e4a7cbcb5046ebc07feaedd7d7e36a9c6ef80d94d7360087c7",
+        "physical_packet_counts.py": "1f663f68b8c090b6dec181cfa082a827cf5c83cb06fbac4030c0ac4f9f2fd510",
+        "physical_resource_watch.py": "16f13312a3d23bc6079f7963ee1c84c3a49f5f118c9523368019e74a4fcf5446",
+        "physical_udp_client.cs": "dbfbc95d0a133c5c22643389266736ba8cf9a5dc4644413bcd459d15256bd428",
+        "physical_udp_server.py": "9f88a896b2f20bab6341d71215cb58fd92a34ee30fe1a80445b792ff4a387547",
+        "physical_windows_business.ps1": "5cb3631268f1adc826891e1b4e07deb64b0a1d8eb6b15978b040fbf7d81176f8",
+        "physical_windows_dns.ps1": "cd976134b3e2e94abbecdfb159db8efc87c22a894db4bae9bcb10798316bbed6",
+        "physical_windows_header_watch.ps1": "e341cbd4ed7c0e8e92f491a4a1215408b3150fbcff18c1515d068b7862e46ea4",
+        "physical_windows_mtu.ps1": "72bd46c001e35d7a6319d6fd552092ca0d98474d3033dd12a0aeeee13d0737e6",
+        "physical_windows_session.ps1": "b3e75fdff75664a6889c564b0a6397a9b7ee03edccc8446c8d2923bc60c19715",
+        "physical_windows_udp.ps1": "fa1da2c70314bc9b021cb4bfb9ac527814dbdf5081a9452720a6a2b4c7b5eb34",
+        "physical_wire_audit.py": "6be5b98d6b62d8f52a95f9f1419d31040dbaa16cf3e3f8ca0174fc801e5c8f83",
+        "native_mtu_probe.cs": "25d147e50c03e2f2c7ddef272068f39793d55de6b92e76df63ede6a2264a09df",
+        "native_windows_mtu_boundary.ps1": "959dd2ff0bbc0e44a2f09b6c6e362b8869044cca334f9b4ba6d84c9a694c3105",
+        "native_mtu_boundary_target.py": "04727b11c5879d886ff730dd59445637bc0e695f5c64174de4f257fe6d13ecea"
+      },
+      "interface_after_stop": "ABSENT_OWNED_EPHEMERAL_ADAPTER",
+      "not_performance_qualification": true
     }
   ],
   "qualification": "PARTIAL_CASES",

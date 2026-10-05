@@ -19,7 +19,7 @@ def echo_socket(bind='198.18.0.1', port=18446):
 
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--output',required=True);args=ap.parse_args()
-    counts={};bad=0;peer=None;started=time.monotonic();stopping=False;send_errors={}
+    counts={};bad=0;peer=None;started=time.monotonic();stopping=False;send_errors={};received_sequences={}
     def stop(signum,frame):
         nonlocal stopping
         stopping=True
@@ -35,9 +35,10 @@ def main():
                 bad+=1;continue
             peer=address;key=str(len(data));counts[key]=counts.get(key,0)+1
             if sum(counts.values())>8192:raise ValueError('Bounded request inventory exceeded')
+            received_sequences.setdefault(key,[]).append(int.from_bytes(data[4:8],'little'))
             try:sock.sendto(data,address)
             except OSError as error:
                 code=str(error.errno);send_errors[code]=send_errors.get(code,0)+1
-    Path(args.output).write_text(json.dumps(dict(result='STOPPED' if stopping else 'MEASURED',peer_ipv4=peer[0] if peer else None,counts=counts,bad_payload=bad,echo_send_errors=send_errors,ip_mtu_discover=0,elapsed_seconds=time.monotonic()-started,receive_buffer_requested_bytes=2*1024*1024,effective_receive_buffer_bytes=effective_buffer),indent=2)+'\n')
+    Path(args.output).write_text(json.dumps(dict(result='STOPPED' if stopping else 'MEASURED',peer_ipv4=peer[0] if peer else None,counts=counts,received_sequences=received_sequences,bad_payload=bad,echo_send_errors=send_errors,ip_mtu_discover=0,elapsed_seconds=time.monotonic()-started,receive_buffer_requested_bytes=2*1024*1024,effective_receive_buffer_bytes=effective_buffer),indent=2)+'\n')
 
 if __name__=='__main__':main()
