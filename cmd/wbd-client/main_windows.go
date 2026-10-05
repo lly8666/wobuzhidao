@@ -241,7 +241,11 @@ func runWindows() error {
 	}
 	var router *windowsclient.Router
 	var diagnosticMu sync.Mutex
-	diagnosticEndpoints := make(map[uint64]*faketcp.NpcapEndpoint)
+	type nativeDiagnostic struct {
+		endpoint *faketcp.NpcapEndpoint
+		mux      *runtimeentry.SegmentMux
+	}
+	diagnosticEndpoints := make(map[uint64]nativeDiagnostic)
 	client, err := runtimeentry.DialTunnelClient(ctx, runtimeentry.TunnelClientConfig{
 		OpenLane: func(_ uint8, incarnation uint64) (runtimeentry.SegmentIO, faketcp.ClientFlow, error) {
 			port, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), incarnation)
@@ -259,7 +263,7 @@ func runWindows() error {
 			npcap.SetIODiagnostics(*diagnosticJSONL != "")
 			if *diagnosticJSONL != "" {
 				diagnosticMu.Lock()
-				diagnosticEndpoints[incarnation] = npcap
+				diagnosticEndpoints[incarnation] = nativeDiagnostic{endpoint: npcap}
 				diagnosticMu.Unlock()
 			}
 			flow := faketcp.ClientFlow{
@@ -285,7 +289,20 @@ func runWindows() error {
 					return err
 				},
 			}
-			return ioCfg, flow, nil
+			buffered, mux, err := runtimeentry.BufferedClientIO(ioCfg, flow, *diagnosticJSONL != "")
+			if err != nil {
+				_ = ioCfg.Close()
+				return runtimeentry.SegmentIO{}, faketcp.ClientFlow{}, err
+			}
+			if *diagnosticJSONL != "" {
+				diagnosticMu.Lock()
+				if entry, ok := diagnosticEndpoints[incarnation]; ok {
+					entry.mux = mux
+					diagnosticEndpoints[incarnation] = entry
+				}
+				diagnosticMu.Unlock()
+			}
+			return buffered, flow, nil
 		},
 		Lease:             lease,
 		TLSStartupPadding: *tlsStartupPadding,
@@ -372,14 +389,19 @@ func runWindows() error {
 			errCh <- qualificationdiag.Run(ctx, *diagnosticJSONL, *diagnosticInterval, func(now time.Time) any {
 				diagnosticMu.Lock()
 				ioStats := make(map[uint64]faketcp.NpcapIODiagnostic, len(diagnosticEndpoints))
-				for id, endpoint := range diagnosticEndpoints {
-					ioStats[id] = endpoint.IODiagnostic()
+				queueStats := make(map[uint64]runtimeentry.SegmentMuxDiagnostic, len(diagnosticEndpoints))
+				for id, entry := range diagnosticEndpoints {
+					ioStats[id] = entry.endpoint.IODiagnostic()
+					if entry.mux != nil {
+						queueStats[id] = entry.mux.DiagnosticSnapshot()
+					}
 				}
 				diagnosticMu.Unlock()
 				return struct {
 					runtimeentry.TunnelDiagnostic
-					NpcapIO map[uint64]faketcp.NpcapIODiagnostic `json:"npcap_io"`
-				}{TunnelDiagnostic: client.DiagnosticSnapshot(now), NpcapIO: ioStats}
+					NpcapIO       map[uint64]faketcp.NpcapIODiagnostic         `json:"npcap_io"`
+					ReceiveQueues map[uint64]runtimeentry.SegmentMuxDiagnostic `json:"receive_queues"`
+				}{TunnelDiagnostic: client.DiagnosticSnapshot(now), NpcapIO: ioStats, ReceiveQueues: queueStats}
 			})
 		}()
 	}

@@ -1,0 +1,685 @@
+{
+  "schema": "wbd-windows-native-receive/v1",
+  "actions": [
+    {
+      "name": "normal5205",
+      "run": 37245626945,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37245626945",
+      "source": "d28c0304d2ae23106b85adf90f4ef30b9ca9eb62",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 80.46,
+        "server": 81.15
+      },
+      "socket_drop_max": 0
+    },
+    {
+      "name": "game5205",
+      "run": 37245629048,
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37245629048",
+      "source": "d28c0304d2ae23106b85adf90f4ef30b9ca9eb62",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 95.63,
+        "server": 90.69
+      },
+      "socket_drop_max": 0
+    }
+  ],
+  "core_gui_package_runs": [
+    37245556107,
+    37245556118,
+    37245556111,
+    37245631118
+  ],
+  "samples": [
+    {
+      "Name": "s16-current-300s-seed1303",
+      "SourceSHA": "3e3e09496ce78dbbefca68dc6e410bbc7de62404",
+      "MeasurementStatus": "COMPLETE",
+      "Scope": "physical native WAN; no artificial loss/delay; UDP mixed-size bidirectional",
+      "Seconds": 300,
+      "RequestedMbps": 10,
+      "C2SGoodputMbps": 9.99972576,
+      "S2CGoodputMbps": 9.69392672,
+      "C2SByteLossPercent": 0.0022762772771578454,
+      "S2CByteLossPercent": 3.0602809316561785,
+      "ClientOfferedMbps": 9.999953386666666,
+      "ServerOfferedMbps": 9.999953386666666,
+      "NoPcap": true,
+      "SummaryRetrieval": "PASS",
+      "client": {
+        "TxPackets": 579418,
+        "TxBytes": 374998252,
+        "RxPackets": 563954,
+        "RxBytes": 363522252,
+        "DuplicatePackets": 0,
+        "BadPayload": 0,
+        "ReorderedPackets": 20363,
+        "MaxSendLagMs": 11.72779999998852,
+        "ProbeP95Ms": 413.7208,
+        "ProbeP99Ms": 483.7526,
+        "WBDCPUSeconds": 297.203125,
+        "HelperCPUSeconds": 19.109375,
+        "ProbeCount": 2900,
+        "ProbeSent": 2971,
+        "Seconds": 300,
+        "RequestedMbps": 10,
+        "SummaryReceived": true,
+        "NoPcap": true,
+        "LiveSnapshotWriteErrors": 1,
+        "CompletedSendWindow": true,
+        "ActualSendSeconds": 300.00082729999997,
+        "SendSocketError": 0,
+        "ReceiveSocketErrors": 0,
+        "SendErrorStage": null
+      },
+      "server": {
+        "RxPackets": 579407,
+        "RxBytes": 374989716,
+        "DuplicatePackets": 0,
+        "BadPayload": 0,
+        "ReorderedPackets": 27465,
+        "TxPackets": 579418,
+        "TxBytes": 374998252,
+        "MaxSendLagMs": 11.549157611518979,
+        "Result": "MEASURED",
+        "Seed": 1303,
+        "Seconds": 300,
+        "RequestedMbps": 10,
+        "PeerIPv4": "10.66.115.76",
+        "WBDCPUSeconds": 174.65,
+        "HelperCPUSeconds": 35.63144488,
+        "EffectiveTargetReceiveBuffer": 425984,
+        "PayloadSizes": [
+          96,
+          256,
+          512,
+          1000,
+          1372
+        ],
+        "NoPcap": true
+      },
+      "dns": {
+        "queries": 60,
+        "failed": 0,
+        "explicit_tcp_success": 30,
+        "backup": {
+          "counted_frames": 347,
+          "flows": [
+            {
+              "src": "10.66.115.76",
+              "dst": "1.1.1.1",
+              "transport": "UDP",
+              "packets": 33
+            },
+            {
+              "src": "1.1.1.1",
+              "dst": "10.66.115.76",
+              "transport": "UDP",
+              "packets": 33
+            },
+            {
+              "src": "10.66.115.76",
+              "dst": "1.1.1.1",
+              "transport": "TCP",
+              "packets": 152
+            },
+            {
+              "src": "1.1.1.1",
+              "dst": "10.66.115.76",
+              "transport": "TCP",
+              "packets": 127
+            },
+            {
+              "src": "10.66.115.76",
+              "dst": "8.8.8.8",
+              "transport": "UDP",
+              "packets": 1
+            },
+            {
+              "src": "8.8.8.8",
+              "dst": "10.66.115.76",
+              "transport": "UDP",
+              "packets": 1
+            }
+          ],
+          "observer_drops": 0,
+          "payload_stored": false,
+          "pcap_written": false
+        }
+      },
+      "cleanup": {
+        "State": "STOPPED",
+        "Ready": true,
+        "Reason": "requested_stop",
+        "ExitCode": 0,
+        "NetworkStateRemaining": false,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "ElapsedSeconds": 345.3
+      },
+      "server_generation": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "max_physical": 2,
+      "quality": "FAIL_RECEIVE_PRESSURE_OR_LOSS;mechanism subchecks separate"
+    },
+    {
+      "Name": "d02-current-300s-seed1304",
+      "SourceSHA": "3e3e09496ce78dbbefca68dc6e410bbc7de62404",
+      "MeasurementStatus": "COMPLETE",
+      "Scope": "physical native WAN; no artificial loss/delay; UDP mixed-size bidirectional",
+      "Seconds": 300,
+      "RequestedMbps": 10,
+      "C2SGoodputMbps": 9.999026133333333,
+      "S2CGoodputMbps": 9.06103008,
+      "C2SByteLossPercent": 0.009539219027565604,
+      "S2CByteLossPercent": 9.389276833215742,
+      "ClientOfferedMbps": 9.999980053333333,
+      "ServerOfferedMbps": 9.999953386666666,
+      "NoPcap": true,
+      "SummaryRetrieval": "PASS",
+      "client": {
+        "TxPackets": 579419,
+        "TxBytes": 374999252,
+        "RxPackets": 532162,
+        "RxBytes": 339788628,
+        "DuplicatePackets": 0,
+        "BadPayload": 0,
+        "ReorderedPackets": 55723,
+        "MaxSendLagMs": 9.618000000003235,
+        "ProbeP95Ms": 473.1096,
+        "ProbeP99Ms": 537.3697,
+        "WBDCPUSeconds": 307.3125,
+        "HelperCPUSeconds": 18.390625,
+        "ProbeCount": 2774,
+        "ProbeSent": 2971,
+        "Seconds": 300,
+        "RequestedMbps": 10,
+        "SummaryReceived": true,
+        "NoPcap": true,
+        "LiveSnapshotWriteErrors": 6,
+        "CompletedSendWindow": true,
+        "ActualSendSeconds": 300.0015084,
+        "SendSocketError": 0,
+        "ReceiveSocketErrors": 0,
+        "SendErrorStage": null
+      },
+      "server": {
+        "RxPackets": 579376,
+        "RxBytes": 374963480,
+        "DuplicatePackets": 0,
+        "BadPayload": 0,
+        "ReorderedPackets": 29,
+        "TxPackets": 579418,
+        "TxBytes": 374998252,
+        "MaxSendLagMs": 37.05518173502753,
+        "Result": "MEASURED",
+        "Seed": 1304,
+        "Seconds": 300,
+        "RequestedMbps": 10,
+        "PeerIPv4": "10.66.231.65",
+        "WBDCPUSeconds": 192.31,
+        "HelperCPUSeconds": 35.553949519999996,
+        "EffectiveTargetReceiveBuffer": 425984,
+        "PayloadSizes": [
+          96,
+          256,
+          512,
+          1000,
+          1372
+        ],
+        "NoPcap": true
+      },
+      "dns": {
+        "queries": 60,
+        "failed": 1,
+        "explicit_tcp_success": 30,
+        "backup": {
+          "counted_frames": 452,
+          "flows": [
+            {
+              "src": "10.66.231.65",
+              "dst": "1.1.1.1",
+              "transport": "UDP",
+              "packets": 32
+            },
+            {
+              "src": "1.1.1.1",
+              "dst": "10.66.231.65",
+              "transport": "UDP",
+              "packets": 16
+            },
+            {
+              "src": "10.66.231.65",
+              "dst": "1.1.1.1",
+              "transport": "TCP",
+              "packets": 146
+            },
+            {
+              "src": "1.1.1.1",
+              "dst": "10.66.231.65",
+              "transport": "TCP",
+              "packets": 70
+            },
+            {
+              "src": "10.66.231.65",
+              "dst": "8.8.8.8",
+              "transport": "UDP",
+              "packets": 16
+            },
+            {
+              "src": "8.8.8.8",
+              "dst": "10.66.231.65",
+              "transport": "UDP",
+              "packets": 16
+            },
+            {
+              "src": "10.66.231.65",
+              "dst": "8.8.8.8",
+              "transport": "TCP",
+              "packets": 83
+            },
+            {
+              "src": "8.8.8.8",
+              "dst": "10.66.231.65",
+              "transport": "TCP",
+              "packets": 73
+            }
+          ],
+          "observer_drops": 0,
+          "payload_stored": false,
+          "pcap_written": false
+        }
+      },
+      "cleanup": {
+        "State": "STOPPED",
+        "Ready": true,
+        "Reason": "requested_stop",
+        "ExitCode": 0,
+        "NetworkStateRemaining": false,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "ElapsedSeconds": 341.8
+      },
+      "server_generation": [
+        1
+      ],
+      "max_physical": 1,
+      "quality": "FAIL_RECEIVE_PRESSURE_OR_LOSS;mechanism subchecks separate"
+    },
+    {
+      "Name": "d01-current-300s-seed1321",
+      "SourceSHA": "d28c0304d2ae23106b85adf90f4ef30b9ca9eb62",
+      "MeasurementStatus": "COMPLETE",
+      "Scope": "physical native WAN; no artificial loss/delay; UDP mixed-size bidirectional",
+      "Seconds": 300,
+      "RequestedMbps": 10,
+      "C2SGoodputMbps": 9.998908266666668,
+      "S2CGoodputMbps": 9.097057813333333,
+      "C2SByteLossPercent": 0.010314728830096431,
+      "S2CByteLossPercent": 9.02899782050184,
+      "ClientOfferedMbps": 9.999939733333333,
+      "ServerOfferedMbps": 9.999953386666666,
+      "NoPcap": true,
+      "SummaryRetrieval": "PASS",
+      "client": {
+        "TxPackets": 579417,
+        "TxBytes": 374997740,
+        "RxPackets": 534109,
+        "RxBytes": 341139668,
+        "DuplicatePackets": 0,
+        "BadPayload": 0,
+        "ReorderedPackets": 54655,
+        "MaxSendLagMs": 19.721199999992223,
+        "ProbeP95Ms": 479.895,
+        "ProbeP99Ms": 584.9261,
+        "WBDCPUSeconds": 309.890625,
+        "HelperCPUSeconds": 20.03125,
+        "ProbeCount": 2738,
+        "ProbeSent": 2970,
+        "Seconds": 300,
+        "RequestedMbps": 10,
+        "SummaryReceived": true,
+        "NoPcap": true,
+        "LiveSnapshotWriteErrors": 3,
+        "CompletedSendWindow": true,
+        "ActualSendSeconds": 300.0002862,
+        "SendSocketError": 0,
+        "ReceiveSocketErrors": 0,
+        "SendErrorStage": null
+      },
+      "server": {
+        "RxPackets": 579369,
+        "RxBytes": 374959060,
+        "DuplicatePackets": 0,
+        "BadPayload": 0,
+        "ReorderedPackets": 39,
+        "TxPackets": 579418,
+        "TxBytes": 374998252,
+        "MaxSendLagMs": 50.641042784093315,
+        "Result": "MEASURED",
+        "Seed": 1321,
+        "Seconds": 300,
+        "RequestedMbps": 10,
+        "PeerIPv4": "10.66.78.130",
+        "WBDCPUSeconds": 188.99,
+        "HelperCPUSeconds": 34.53728256,
+        "EffectiveTargetReceiveBuffer": 425984,
+        "PayloadSizes": [
+          96,
+          256,
+          512,
+          1000,
+          1372
+        ],
+        "NoPcap": true
+      },
+      "dns": {
+        "queries": 60,
+        "failed": 0,
+        "explicit_tcp_success": 30,
+        "backup": {
+          "counted_frames": 345,
+          "flows": [
+            {
+              "src": "10.66.78.130",
+              "dst": "1.1.1.1",
+              "transport": "UDP",
+              "packets": 31
+            },
+            {
+              "src": "1.1.1.1",
+              "dst": "10.66.78.130",
+              "transport": "UDP",
+              "packets": 31
+            },
+            {
+              "src": "10.66.78.130",
+              "dst": "1.1.1.1",
+              "transport": "TCP",
+              "packets": 154
+            },
+            {
+              "src": "1.1.1.1",
+              "dst": "10.66.78.130",
+              "transport": "TCP",
+              "packets": 125
+            },
+            {
+              "src": "10.66.78.130",
+              "dst": "8.8.8.8",
+              "transport": "UDP",
+              "packets": 2
+            },
+            {
+              "src": "8.8.8.8",
+              "dst": "10.66.78.130",
+              "transport": "UDP",
+              "packets": 2
+            }
+          ],
+          "observer_drops": 0,
+          "payload_stored": false,
+          "pcap_written": false
+        }
+      },
+      "cleanup": {
+        "State": "STOPPED",
+        "Ready": true,
+        "Reason": "requested_stop",
+        "ExitCode": 0,
+        "NetworkStateRemaining": false,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "ElapsedSeconds": 347.7
+      },
+      "server_generation": [
+        1
+      ],
+      "max_physical": 1,
+      "client_npcap_final": {
+        "1": {
+          "enabled": true,
+          "supported": true,
+          "generation": 1,
+          "read_packets": 1768625,
+          "read_bytes": 942082601,
+          "write_packets": 2547682,
+          "write_bytes": 1133685859,
+          "read_gap_max_ns": 12243230500,
+          "driver_received": 2105611,
+          "driver_dropped": 336986,
+          "interface_dropped": 0,
+          "stats_samples": 340,
+          "stats_errors": 0
+        }
+      },
+      "client_lanes_final": [
+        {
+          "ref": {
+            "ID": 1,
+            "Generation": 1
+          },
+          "parity_shards": 20,
+          "lane": {
+            "OutboundDatagrams": 582599,
+            "OutboundRecords": 1396964,
+            "InboundPayloads": 1182986,
+            "InboundRecords": 1182986,
+            "DeliveredDatagrams": 537011,
+            "RecordErrors": 0,
+            "PathErrors": 0,
+            "LastPathError": "",
+            "ExpireCalls": 3396,
+            "TimingEnabled": false,
+            "InboundTimingSamples": 0,
+            "InboundLockWaitNS": 0,
+            "InboundLockWaitMaxNS": 0,
+            "InboundDecodeNS": 0,
+            "InboundDecodeMaxNS": 0,
+            "ExpireNS": 0,
+            "ExpireMaxNS": 0,
+            "PaddingRequests": 0,
+            "RequestedPaddingBytes": 0,
+            "PaddedRecords": 0,
+            "PaddingBytes": 0,
+            "PaddingBudgetSkips": 0,
+            "PaddingRejected": 0,
+            "Decoder": {
+              "Delivered": 1182986,
+              "Failed": 0,
+              "Duplicates": 0,
+              "Evictions": 1117450,
+              "Late": 85301
+            },
+            "TxPath": {
+              "FECEnabled": true,
+              "ParityShards": 20,
+              "Encoder": {
+                "source_shards": 698482,
+                "source_bytes": 435102006,
+                "parity_shards": 698482,
+                "parity_bytes": 524020360,
+                "full_blocks": 29467,
+                "partial_blocks": 6556,
+                "pending_sources": 0,
+                "size_classes": 3
+              },
+              "Decoder": {
+                "in_flight": 0,
+                "max_blocks": 8,
+                "retired": 0,
+                "reconstruction_events": 0,
+                "recovered_sources": 0,
+                "pressure_retirements": 0
+              },
+              "Recovery": {
+                "HorizonMillis": 3000,
+                "PendingDeadlines": 0,
+                "ExpireEvents": 0,
+                "ExpiredIncomplete": 0,
+                "ExpiredMissingSources": 0
+              },
+              "Reassembly": {
+                "Assemblies": 0,
+                "BufferedFragments": 0,
+                "BufferedBytes": 0,
+                "RetiredPacketIDs": 0
+              }
+            },
+            "RxPath": {
+              "FECEnabled": true,
+              "ParityShards": 20,
+              "Encoder": {
+                "source_shards": 0,
+                "source_bytes": 0,
+                "parity_shards": 0,
+                "parity_bytes": 0,
+                "full_blocks": 0,
+                "partial_blocks": 0,
+                "pending_sources": 0,
+                "size_classes": 3
+              },
+              "Decoder": {
+                "in_flight": 0,
+                "max_blocks": 8,
+                "retired": 3210,
+                "reconstruction_events": 9480,
+                "recovered_sources": 65065,
+                "pressure_retirements": 3229
+              },
+              "Recovery": {
+                "HorizonMillis": 3000,
+                "PendingDeadlines": 0,
+                "ExpireEvents": 5,
+                "ExpiredIncomplete": 5,
+                "ExpiredMissingSources": 41
+              },
+              "Reassembly": {
+                "Assemblies": 0,
+                "BufferedFragments": 0,
+                "BufferedBytes": 0,
+                "RetiredPacketIDs": 12
+              }
+            },
+            "Closed": false
+          },
+          "transport": {
+            "ACKDeferred": 32469,
+            "ACKCoalesced": 29949,
+            "ACKPiggybacked": 962,
+            "ACKTimerSent": 28,
+            "ACKTimerFailures": 0,
+            "AuthenticatedRecords": 1182986,
+            "HealthSent": 23,
+            "HealthReceived": 20,
+            "LastAuthenticated": "2026-10-05T08:13:35.7185032+08:00",
+            "PressureForgiven": 2462,
+            "FreshSent": 1396987,
+            "RepairSelected": 10,
+            "RepairAttempts": 10,
+            "RepairSucceeded": 10,
+            "RepairFailures": 0,
+            "Retransmitted": 10,
+            "Acked": 1395883,
+            "SACKed": 98819,
+            "SACKRetired": 98819,
+            "Abandoned": 0,
+            "RepairEvicted": 0,
+            "RepairMetadataEvicted": 1104,
+            "RepairReserveStored": 402,
+            "RepairReserveRetired": 402,
+            "RepairReserveEvicted": 0,
+            "RepairReserveDropped": 0,
+            "RepairReserveExpired": 0,
+            "RepairReserveRepairs": 0,
+            "RepairEvictionCalls": 1506,
+            "RepairEvictionScanSteps": 1506,
+            "RepairEvictionMaxScan": 1,
+            "FreshBlocked": 0,
+            "FreshWindowBypass": 0,
+            "FreshEmitFailures": 0,
+            "FreshBatchCalls": 0,
+            "FreshBatchSent": 0,
+            "RecoveryTicks": 3396,
+            "GapForgiveChecks": 6951,
+            "GapIndexSteps": 9854,
+            "GapMetadataDropped": 0,
+            "GapExpiredForgiven": 1093,
+            "FastRepairs": 10,
+            "FastRepairEvidence": 24283,
+            "FastRepairArmed": 7508,
+            "FastRepairArmFired": 8,
+            "FastRepairArmCanceled": 7500,
+            "RTORepairs": 0,
+            "RepairDeferred": 0,
+            "RepairExpiredSkipped": 0,
+            "RepairBudgetSpent": 8810,
+            "RepairCreditBytes": 131072,
+            "Received": 1182986,
+            "Duplicates": 42,
+            "LateFirstArrival": 2462,
+            "ForgivenGaps": 3555,
+            "RecordErrors": 0,
+            "PathErrors": 0,
+            "FINAttempts": 0,
+            "FINTransmits": 0,
+            "FINAcked": 0,
+            "RSTAttempts": 0,
+            "RSTSent": 0,
+            "PeakOutstanding": 4096,
+            "Outstanding": 0,
+            "OutstandingBytes": 0,
+            "RepairReservePeak": 287,
+            "RepairReserveOutstanding": 0,
+            "RepairReserveBytes": 0,
+            "OldestOutstandingAge": 0,
+            "RepairQueue": 0,
+            "SACKedOutstanding": 0,
+            "OutOfOrder": 0,
+            "OutOfOrderBytes": 0,
+            "OldestOutOfOrderAge": 0,
+            "WriteClosed": false,
+            "LocalFINAcked": false,
+            "PeerFIN": false,
+            "PeerRST": false,
+            "SRTT": 99809393,
+            "RTO": 1000000000,
+            "AdvertisedWindow": 65535,
+            "WindowScale": 8,
+            "WindowScaleSet": true,
+            "Closed": false
+          }
+        }
+      ],
+      "earliest_measured_loss_boundary": "Windows product Npcap driver queue;not business helper or WAN-only claim",
+      "quality": "FAIL_RECEIVE_PRESSURE_OR_LOSS;mechanism subchecks separate"
+    }
+  ],
+  "remaining": [
+    "bounded drain candidate NOT_TESTED",
+    "43case matrix incomplete",
+    "WAN loss not known0%",
+    "1s rotation fine gate NOT_EVALUATED",
+    "observer CPU not correctly attributed in old receipt"
+  ]
+}

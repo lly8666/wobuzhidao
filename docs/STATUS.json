@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "3e3e094 targeted core/race/lifecycle/Normal+Game5205/stateful/P6 PASS;nativeD01 complete300s has S2C loss and probe timeouts,stillFAIL;newWindows diagnostics NOT_TESTED",
+  "qualification_scope": "d28 core/race/GUI/Normal+Game5205/P6 PASS;nativeWindows capture overflow measured;newboundeddrain candidate NOT_TESTED",
   "updated_at": "2026-10-05",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -83,9 +83,9 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "Qualify Windows opt-in diagnostics core/race/GUI and independent Normal/Game5205; exactSOURCE pairedP6 then nativeD01 with Windows driver/FEC/transport snapshots. Collect current3e S16 real rotation first. Fix only earliest measured loss boundary,continue43case native matrix,each performanceAction one sample.",
-  "latest_log": "docs/devlog/20261005-080000-windows-diagnostic-tab-fixture.md",
-  "last_tested_source_sha": "3e3e09496ce78dbbefca68dc6e410bbc7de62404",
+  "next_task": "Collect d28 D01 double-end diagnostics;qualify bounded Windows capture drain core/race/GUI and independentNormal/Game5205,P6;exact-source nativeD01 verify drops/queueage/RTT/loss,then rotation and remainingDNS/IP/MTU/config cases. Each performanceAction one sample.",
+  "latest_log": "docs/devlog/20261005-082000-windows-bounded-capture-drain.md",
+  "last_tested_source_sha": "d28c0304d2ae23106b85adf90f4ef30b9ca9eb62",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -7555,22 +7555,63 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "3e3e09496ce78dbbefca68dc6e410bbc7de62404",
-    "state": "PARTIAL_D01_QUALITY_FAIL",
-    "evidence": "docs/evidence/physical-window-promotion-3e3e094-20261005.json",
+    "source": "d28c0304d2ae23106b85adf90f4ef30b9ca9eb62",
+    "state": "FAIL_WINDOWS_CAPTURE_OVERFLOW",
+    "evidence": "docs/evidence/windows-native-receive-20261005.json",
     "native_completed_300s": [
-      "D01 seed1302",
-      "S16 seed1303"
+      "D01 seed1321 diagnostics on"
     ],
-    "running": "D02 seed1304;same SOURCE",
+    "running": null,
     "supersedes_old_native_qualification": false,
-    "rotation": "generation1..6,maxphysical2,exit0;S2C3.06%byte loss/probe71timeout,qualityNOT_PASS"
+    "rotation": "generation1..6,maxphysical2,exit0;S2C3.06%byte loss/probe71timeout,qualityNOT_PASS",
+    "previous_source": "3e3e094",
+    "previous_completed_300s": [
+      "D01 seed1302",
+      "S16 seed1303",
+      "D02 seed1304"
+    ],
+    "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
+    "driver_dropped": 336986,
+    "driver_stats_samples": 340,
+    "driver_stats_errors": 0
   },
   "windows_receive_diagnostics": {
-    "state": "GUI_WIRING_FIXED_QUALIFICATION_PENDING",
-    "source": "CURRENT_COMMIT",
+    "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
+    "source": "d28c0304d2ae23106b85adf90f4ef30b9ca9eb62",
     "default_enabled": false,
     "scope": "Windows owner/lifecycle/FEC/transport+per-incarnation actual Npcap driver stats,read gap;no buffer/protocol/recovery change",
-    "parent_gui_failed_run": 37245396645
+    "parent_gui_failed_run": 37245396645,
+    "qualification_runs": [
+      37245556107,
+      37245556118,
+      37245556111,
+      37245626945,
+      37245629048,
+      37245631118
+    ],
+    "evidence": "docs/evidence/windows-native-receive-20261005.json"
+  },
+  "windows_capture_drain": {
+    "state": "IMPLEMENTED_NOT_TESTED",
+    "source": "CURRENT_COMMIT",
+    "kernel_buffer_increase": false,
+    "queue": "Existing per-incarnation SegmentMux4096",
+    "native_evidence": "D01 d28 seed1321 Windows productdriver drop112285 at approx108s;independent observer nearly complete",
+    "new_cli_parameters": false
+  },
+  "physical_matrix_progress": {
+    "unique_case_ids_executed": [
+      "S01",
+      "S02",
+      "M01",
+      "D01",
+      "S16",
+      "D02"
+    ],
+    "full300s_samples": 8,
+    "case_ids_total": 43,
+    "case_ids_not_run": 37,
+    "complete_qualification": false,
+    "source_mixed_not_inheritable": true
   }
 }

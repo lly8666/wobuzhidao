@@ -21,6 +21,8 @@
 
 ## 当前性能主线（2026-09-23）
 
+当前最新：d28c030 core/race/GUI、独立Normal/Game5205和P6均PASS并部署，原生D01诊断已证实Windows本产品Npcap driver drop大量增长（约108s已112285），下游FEC pressure发生；独立观察器几乎收齐，不能再盲归因WAN或server buffer。当前Windows收包/handler分离候选复用既有SegmentMux4096，每incarnation独立、有界、不等Seq/ACK，仍NOT_TESTED；先Actions再新配套包原生D01看drop/queueage/RTT/业务loss和清理。见STATUS.windows_capture_drain及最新082000日志。禁止仅把kernel drop移到用户态队列就宣称修复；不扩大Npcap/FEC/shadow库存。
+
 2026-10-05最新：SOURCE3e3e094 core/race/GUI/独立Normal与Game5205/stateful/P6均PASS，同源包已部署实机。D01 seed1302完整300s避免旧90s双向中断，但下行9.11M/8.90%字节损失、208探针超时，仍FAIL；S16 seed1303 rotation运行。新Windows默认off诊断补丁尚未验，先按STATUS完成Actions再配套部署；不能凭服务器overflow0判定WAN/Windows根因。证据physical-window-promotion-3e3e094-20261005，最新日志075000。每性能Action一条，不把3e成绩继承给新HEAD。
 
 2026-10-05最新修复主线：旧6181在严格conntrack路由可复现零吞吐/探针全超时，稳态窗口分离候选Normal/Game5205及stateful独立Action均PASS，测试修正后4163938 core/race全部PASS；下一候选新增source到wire promotion边界修复Windows stale-generation fatal。先按STATUS验此候选和真实rotation，再同源打包原生复验D01；未通过不能将旧P7或父SOURCE资格继承。Windows/Linux/server/platform flow/timer发送必须遵守同一generation边界；不得吞stale、部分发出后整包重试或让候选TLS持有业务锁。每性能run一条，详细日志持续留存。

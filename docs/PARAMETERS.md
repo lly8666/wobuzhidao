@@ -8,6 +8,8 @@ Windows客户端新增与Linux同名的`diagnostic-jsonl`（默认空，关闭�
 
 ## 使用方式
 
+Windows收包分离候选沿用已有SegmentMux4096队列，每物理incarnation独立；诊断额外输出receive_queues的容量/峰值/排队年龄/溢出。不是shadow repair4096，不新增用户参数，不扩大Npcap内核接收缓存。是否通过仍看STATUS，不能仅kernel drop下降而忽略用户态overflow或尾延迟。
+
 Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对象，键名和 CLI 去掉 `--` 后完全一致；时长使用字符串，例如 `"30s"`、`"5m"`。优先级为显式 CLI > JSON > 内置默认。`--tls-startup-padding=false` 可以覆盖配置中的 true。
 
 配置片段（需合并本机接口、身份、密钥、地址等必需字段后运行）：
