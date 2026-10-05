@@ -1,6 +1,6 @@
 # 原生与Actions五分钟工况验收
 
-当前进展以 STATUS.physical_current 与最新083800日志为准：8f同源Actions/P6通过，D01 seed1341完整300s仍下行损失约9.89%；driver drop0但用户队列overflow486008，不能认定收包分离修复性能。已有7个唯一case/10份完整样本（跨SOURCE，不能继承），其余36项NOT_RUN；8f CPU profile诊断正在执行。以下3e/6181结果为保留的历史证据。
+当前进展以 STATUS.physical_current 与091800日志为准：SOURCE24ff220同源Actions/P6通过，D01 seed1351完整300s双向9.99881/9.99995M，下行零损失/探针2979全回/DNS60全部成功，driver/user overflow0；上行52包缺失与server raw drop+85保留，不能写全链路无损PASS。seed1352独立重复运行。已有7个唯一case/12份完整样本（跨SOURCE不能继承），其余36项NOT_RUN。8f失败和profile诊断已完成并保留；以下3e/6181也是历史证据。
 
 2026-10-05用户授权：每条300秒长测，覆盖各种设置/生命周期/DNS/IP分流，并实际抓包评价TCP-like/TLS-like。每条冻结精确SOURCE与同源配套包，测试HEAD另记录；历史首四条SOURCE6181db6不继承给修复后3e3e094。最新看STATUS.physical_current，历史看physical_5min。当前3e D01完整300s无旧90s双向中断，但下行8.90%字节损失/208探针超时，质量仍FAIL，双端诊断下一步；S16 seed1303运行。窗口与promotion修复已通过精确SHA定向Actions/P6，最新Windows诊断候选未验。证据physical-window-promotion-3e3e094-20261005；不因方案存在就认定通过。本方案补充ACCEPTANCE、WEAKNET_QUALIFICATION、LIFECYCLE_ACCEPTANCE与SPLIT_ROUTING，不取代原门。
 

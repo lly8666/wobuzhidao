@@ -21,7 +21,7 @@
 
 ## 当前性能主线（2026-09-23）
 
-当前最新：24ff220已就绪Npcap batch候选 core/race/GUI/lifecycle含fullstack/独立Normal+Game5205/P6全部PASS并同源部署。原生D01 seed1351正在跑300s，初段batch实际触发、driver和用户overflow0且接近目标，但未到全300s/drain，不写PASS。8f旧收包分离原生FAIL及Windows profile阻塞计时限制保留；见STATUS.windows_ready_send_batch及090600日志。下一项收齐真实drop/queueage/RTT/loss/CPU/cleanup，改善后独立重复和rotation，再DNS/IP/MTU/idle/config。每性能Action一条，不扩大receive/FEC/shadow，不把hosted较低CPU当Windows优化收益。
+当前最新：24ff220就绪Npcap batch已通过core/race/GUI/lifecycle含fullstack/独立Normal+Game5205/P6并同源部署。原生D01 seed1351完整300s双向9.99881/9.99995M，下行零损失、2979探针全回、DNS60/60、driver/user overflow0、FEC pressure0；上行仍缺52包/0.01145%字节且server raw drop+85，不写整链路无损PASS。独立seed1352正在测。见STATUS.windows_ready_send_batch、windows-ready-batch-native证据及091800日志。下一项重复与rotation，再DNS/IP/MTU/idle/config。8f失败和profile限制保留；每性能Action一条，不扩大receive/FEC/shadow，不把hosted较低CPU当Windows优化收益。
 
 2026-10-05历史：SOURCE3e3e094 core/race/GUI/独立Normal与Game5205/stateful/P6均PASS，同源包已部署实机。D01 seed1302完整300s避免旧90s双向中断，但下行9.11M/8.90%字节损失、208探针超时，仍FAIL；S16 seed1303 rotation运行。新Windows默认off诊断补丁尚未验，先按STATUS完成Actions再配套部署；不能凭服务器overflow0判定WAN/Windows根因。证据physical-window-promotion-3e3e094-20261005，最新日志075000。每性能Action一条，不把3e成绩继承给新HEAD。
 
