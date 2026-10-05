@@ -183,6 +183,7 @@ INSTALLATION_ID="11223344556677889900aabbccddeeff"
 ROUTE_KEY_HEX="00112233445566778899aabbccddeeffffeeddccbbaa00998877665544332211"
 
 SERVER_CPU=""; CLIENT_CPU=""; if [[ "${WBD_STRICT_CPU_PROFILE:-0}" == 1 ]]; then SERVER_CPU="$ART/server.cpu"; CLIENT_CPU="$ART/client.cpu"; fi
+export WBD_QUALIFICATION_CONTENTION_PROFILE="${WBD_STRICT_CPU_PROFILE:-0}"
 ip netns exec "$SRV" env WBD_QUALIFICATION_CPU_PROFILE="$SERVER_CPU" "$SERVER_BIN"   --raw-interface swan --listen-ip 198.18.0.6 --listen-port 443   --tun-name wbdg0 --lease-pool 10.66.0.0/16 --lease4 10.66.0.2/32   --tunnel-id "$TUNNEL_ID" --account qual --installation-id "$INSTALLATION_ID"   --server-name qual.test --route-key-hex "$ROUTE_KEY_HEX"   --tls-cert "$CERT" --tls-key "$KEY" --username qual --password qualpass   --decoy 8.8.8.8:4433 --server-record-limit 1250 --mtu 1400   --fec-parity 20 --lanes "$LANES" --firewall iptables   --diagnostic-jsonl "$ART/server-diag.jsonl" --diagnostic-interval 1s   > "$ART/server.log" 2>&1 &
 SERVER_PID="$!"
 
@@ -273,6 +274,11 @@ SERVER_PID=""
 if [[ "${WBD_STRICT_CPU_PROFILE:-0}" == 1 ]]; then
   go tool pprof -top -nodecount=40 "$CLIENT_BIN" "$ART/client.cpu" > "$ART/client-cpu-top.txt"
   go tool pprof -top -nodecount=40 "$SERVER_BIN" "$ART/server.cpu" > "$ART/server-cpu-top.txt"
+  for side in client server; do
+    for kind in block mutex; do
+      go tool pprof -top -nodecount=40 "$ART/wbd-$side" "$ART/$side.cpu-$kind" > "$ART/$side-$kind-top.txt"
+    done
+  done
 fi
 rm -f "$KEY"; KEY=""
 

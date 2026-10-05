@@ -32,7 +32,7 @@ on:
         default: "1"
         type: string
       cpu_profile:
-        description: "Explicit file-only CPU diagnostic; one unchanged sample, no second workload"
+        description: "Explicit file-only CPU/block/mutex diagnostic; one sample, not an ordinary performance qualification"
         required: false
         default: false
         type: boolean
@@ -153,7 +153,11 @@ jobs:
             ${{ env.ART }}/runner-host.txt
             ${{ env.ART }}/resources.jsonl
             ${{ env.ART }}/*.cpu
+            ${{ env.ART }}/*.cpu-block
+            ${{ env.ART }}/*.cpu-mutex
             ${{ env.ART }}/*-cpu-top.txt
+            ${{ env.ART }}/*-block-top.txt
+            ${{ env.ART }}/*-mutex-top.txt
           if-no-files-found: error
           retention-days: 30
 

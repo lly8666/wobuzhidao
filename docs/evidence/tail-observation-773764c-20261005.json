@@ -1,0 +1,242 @@
+{
+  "source": "773764c453562e86307098f28912477d0b37f99d",
+  "one_sample_per_action": true,
+  "samples": [
+    {
+      "identity": "strict-game-lossless-seed1382-rate3-lanes4",
+      "source": "773764c453562e86307098f28912477d0b37f99d",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu_seconds": {
+        "client": 79.54,
+        "server": 76.58
+      },
+      "min_phase_goodput_mbps": 2.999889066666667,
+      "probe_stages": {
+        "post": {
+          "p95_ns": 602868261,
+          "p99_ns": 603449496,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 603052110,
+          "p99_ns": 603764977,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 603254762,
+          "p99_ns": 604260511,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "probe_timeouts": 0,
+      "target_received_but_no_reply_at_biz": [],
+      "outliers": [],
+      "observer": {
+        "client": {
+          "max_memory_collect_ms": 1.778472,
+          "max_product_collect_ms": 1.996987,
+          "max_collection_lateness_ms": 1.329231,
+          "client_route_queue_age_max_ms": 7.482767
+        },
+        "server": {
+          "max_memory_collect_ms": 1.370928,
+          "max_product_collect_ms": 3.119394,
+          "max_collection_lateness_ms": 2.605171,
+          "client_route_queue_age_max_ms": 0.0
+        }
+      }
+    },
+    {
+      "identity": "strict-game-5305-seed1382-rate3-lanes4",
+      "source": "773764c453562e86307098f28912477d0b37f99d",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu_seconds": {
+        "client": 63.97,
+        "server": 59.82
+      },
+      "min_phase_goodput_mbps": 2.9241664,
+      "probe_stages": {
+        "post": {
+          "p95_ns": 602119776,
+          "p99_ns": 602145569,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 602468834,
+          "p99_ns": 603854221,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 602823989,
+          "p99_ns": 1121840202,
+          "received": 58,
+          "sent": 60
+        }
+      },
+      "probe_timeouts": 2,
+      "target_received_but_no_reply_at_biz": [],
+      "outliers": [
+        {
+          "seq": 43,
+          "elapsed_s": 43.500001189,
+          "rtt_ms": 1871.914271,
+          "c2s_ms": 1571.403806,
+          "echo_call_ms": 0.029984,
+          "s2c_ms": 300.480481
+        },
+        {
+          "seq": 44,
+          "elapsed_s": 44.500000899,
+          "rtt_ms": 1121.840202,
+          "c2s_ms": 821.353931,
+          "echo_call_ms": 0.019511,
+          "s2c_ms": 300.46676
+        }
+      ],
+      "observer": {
+        "client": {
+          "max_memory_collect_ms": 1.285503,
+          "max_product_collect_ms": 3.707937,
+          "max_collection_lateness_ms": 1.243406,
+          "client_route_queue_age_max_ms": 2331.036091
+        },
+        "server": {
+          "max_memory_collect_ms": 1.38513,
+          "max_product_collect_ms": 3.554732,
+          "max_collection_lateness_ms": 1.516394,
+          "client_route_queue_age_max_ms": 0.0
+        }
+      }
+    },
+    {
+      "identity": "strict-normal-5205-seed1393-rate10-lanes1",
+      "source": "773764c453562e86307098f28912477d0b37f99d",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu_seconds": {
+        "client": 48.92,
+        "server": 49.41
+      },
+      "min_phase_goodput_mbps": 9.995925333333334,
+      "probe_stages": {
+        "post": {
+          "p95_ns": 610486502,
+          "p99_ns": 611939525,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 610453958,
+          "p99_ns": 614372344,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 614129681,
+          "p99_ns": 616562884,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "probe_timeouts": 0,
+      "target_received_but_no_reply_at_biz": [],
+      "outliers": [],
+      "observer": {
+        "client": {
+          "max_memory_collect_ms": 2.785032,
+          "max_product_collect_ms": 2.079052,
+          "max_collection_lateness_ms": 1.049934,
+          "client_route_queue_age_max_ms": 7.179329
+        },
+        "server": {
+          "max_memory_collect_ms": 1.928801,
+          "max_product_collect_ms": 1.568901,
+          "max_collection_lateness_ms": 1.170822,
+          "client_route_queue_age_max_ms": 0.0
+        }
+      }
+    },
+    {
+      "identity": "strict-game-5205-seed1394-rate3-lanes4",
+      "source": "773764c453562e86307098f28912477d0b37f99d",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu_seconds": {
+        "client": 96.19,
+        "server": 91.17
+      },
+      "min_phase_goodput_mbps": 2.999889066666667,
+      "probe_stages": {
+        "post": {
+          "p95_ns": 604022050,
+          "p99_ns": 606080352,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 609126384,
+          "p99_ns": 611134981,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 602383039,
+          "p99_ns": 604571279,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "probe_timeouts": 0,
+      "target_received_but_no_reply_at_biz": [],
+      "outliers": [],
+      "observer": {
+        "client": {
+          "max_memory_collect_ms": 2.00104,
+          "max_product_collect_ms": 5.301881,
+          "max_collection_lateness_ms": 1.832215,
+          "client_route_queue_age_max_ms": 12.418468
+        },
+        "server": {
+          "max_memory_collect_ms": 1.859957,
+          "max_product_collect_ms": 5.500673,
+          "max_collection_lateness_ms": 1.853144,
+          "client_route_queue_age_max_ms": 0.0
+        }
+      }
+    }
+  ],
+  "game5305_pair": {
+    "result": "FAIL",
+    "delta_ms": 517.579691,
+    "gate_ms": 500,
+    "original_failed_run_retained": 37255274295
+  },
+  "product_fix": "NONE:diagnostic-only candidate"
+}

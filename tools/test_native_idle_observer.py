@@ -15,6 +15,9 @@ class IdleBoundaryMetadata(unittest.TestCase):
     def test_unparsed_headers_are_not_guessed(self):
         self.assertIsNone(parse_event("1791167152.123 IP 10.66.0.2 > 8.8.8.8: ICMP"))
         self.assertIsNone(parse_event("tcpdump: listening on wbdg0"))
+        self.assertIsNone(parse_event("1791167152.123 IP 999.66.0.2.12 > 8.8.8.8.53: UDP, length 42"))
+        self.assertIsNone(parse_event("1791167152.123 IP 10.66.0.2.65536 > 8.8.8.8.53: UDP, length 42"))
+        self.assertIsNone(parse_event("1791167152.123 IP 10.66.0.2.12 > 8.8.8.8.53: unknown secret-tcp"))
 
 
 if __name__ == "__main__":

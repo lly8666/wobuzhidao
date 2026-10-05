@@ -12,12 +12,20 @@ MAX_FRAMES = 1000
 
 
 def parse_event(line):
-    match = re.match(r"^(\d+\.\d+) IP ([0-9.]+)\.(\d+) > ([0-9.]+)\.(\d+):", line)
+    address = r"(?:\d{1,3}\.){3}\d{1,3}"
+    match = re.match(r"^(\d+\.\d+) IP (" + address + r")\.(\d+) > (" + address + r")\.(\d+): (UDP\b|tcp\b)", line, re.IGNORECASE)
     if not match:
+        return None
+    try:
+        ipaddress.IPv4Address(match[2])
+        ipaddress.IPv4Address(match[4])
+    except ipaddress.AddressValueError:
+        return None
+    if not (0 <= int(match[3]) <= 65535 and 0 <= int(match[5]) <= 65535):
         return None
     return {"unix_s": float(match[1]), "src": match[2], "src_port": int(match[3]),
             "dst": match[4], "dst_port": int(match[5]),
-            "transport": "UDP" if "UDP" in line else "TCP" if "tcp" in line.lower() else "UNKNOWN"}
+            "transport": match[6].upper()}
 
 
 def main():

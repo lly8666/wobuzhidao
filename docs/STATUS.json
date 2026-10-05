@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "SOURCE660b core/race/GUI/helpers/independentNormal+Game5205/P6 PASS;fullstack see actual gate state;real9000MTU/M03 native NOT_RUN;SOURCE24ff native D01 repeats/S16/Game evidence kept separate;full70/18/1800s NOT_RUN",
-  "updated_at": "2026-10-05T13:46:50.131685+08:00",
+  "qualification_scope": "Deployed SOURCE660: core/race/config70/long2 PASS; strict18 individual gates PASS but paired Game5305 p99 FAIL; native M01 PASS, M03 maximum UDP FAIL twice, S19 background attribution PARTIAL. Diagnostic773 reproduces upstream p99 failure; current contention patch unqualified and not deployed.",
+  "updated_at": "2026-10-05T13:57:02.166843+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,11 +80,11 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
-    "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
+    "Localize and fix reproducible client upstream p99 stall; preserve throughput/no-HOL and exact failed samples",
+    "Continue native S20/S19 boundary attribution after observer Actions PASS, then MTU sequence diagnosis and remaining matrix"
   ],
-  "next_task": "Collect candidate773 independent Normal/Game5205 and exact-seed Game5305/lossless probe/observer evidence;retain original660 pair p99 FAIL. Qualify new native numeric boundary observer in Actions then run S20 pure downlink and a diagnostic S19 repeat with explicit background input counts. Maximum UDP sequence diagnostic next;33 native cases remain NOT_RUN. Throughput/p99/no-HOL never relaxed;one performance sample per Action.",
-  "latest_log": "docs/devlog/20261005-134650-native-game-idle-background-boundary.md",
+  "next_task": "Actions core/race/helpers for contention diagnostic and observer parser correction. Retain HEAD2e54 foundation37269309626 automatic-lease dormant-handshake failure; exact targeted repeat to classify, no threshold change. Once prerequisite passes, single Game5305 seed1382 profile Action, inspect block/mutex stacks. Continue S20 and diagnostic S19 on deployed660 only after observer helper PASS; one performance sample per Action.",
+  "latest_log": "docs/devlog/20261005-135702-p99-client-contention-diagnostic.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -7870,13 +7870,13 @@
     "root_cause": "NOT_YET_LOCALIZED;not a demonstrated sustained CPU saturation or FEC HOL"
   },
   "tail_observation": {
-    "state": "CANDIDATE_OBSERVATION_ACTIONS_PENDING",
+    "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
     "original_source": "660b370815603c50d38b92229abdec13ca77e1b1",
     "original_failure_run": 37255274295,
     "earliest_known_boundary": "client four SegmentMux route queues max age ~1298..1303ms;peaks2377..2418 segments;client ingress peak966;source load continuous;upstream target received zero bytes at second82 then catchup",
     "product_fix": "NONE:localize client global stall first",
     "observation": "bounded8192 target/client probe timestamp events,no new wire bytes or traffic;opt-in1Hz diagnostic memory/snapshot collection durations;normal packet paths untouched",
-    "next": "Actions unit/race then exact-seed independent Game5305 and lossless;inspect direction latency and observer duration,not a threshold reduction",
+    "next": "Qualify opt-in block/mutex profiler then one exact-seed Game5305 diagnostic Action; stack evidence before narrow fix. Profile runs excluded from ordinary performance qualification.",
     "actions_prerequisites": "773 core/race/targeted/analysis/predelivery/GUI/lifecycle/fullstack PASS",
     "runs": [
       {
@@ -7900,15 +7900,33 @@
         "conclusion": "success"
       }
     ],
-    "performance": "4 workflow successes;raw summary and paired p99 evaluation collecting,not yet declared PASS"
+    "performance": "Four individual classifications PASS; paired Game5305 stress p99 1121.840202ms vs lossless604.260511ms, delta517.579691ms >500ms gate FAIL. Not overall performance PASS.",
+    "evidence": "docs/evidence/tail-observation-773764c-20261005.json",
+    "upstream_outlier": {
+      "seq": 43,
+      "rtt_ms": 1871.914271,
+      "c2s_ms": 1571.403806,
+      "target_echo_ms": 0.029984,
+      "s2c_ms": 300.480481
+    },
+    "observer_collection": "Client max memory1.285503ms/product3.707937ms; cannot account for >1s stall. Shared raw send lock/syscall remains hypothesis, not proven."
   },
   "native_idle_boundary_observer": {
-    "state": "ACTIONS_PENDING",
+    "state": "PARSER_CORRECTION_ACTIONS_PENDING",
     "bound_frames": 1000,
     "bound_s": 335,
     "pcap_written": false,
     "payload_stored": false,
     "purpose": "Identify background uplink outside owned UDP18445;cap/capture loss/unparsed invalidate absolute silence proof;not generated traffic",
-    "product_change": "NONE"
+    "product_change": "NONE",
+    "failure": "HEAD2e54 predelivery37269309705 FAIL: IPv4-without-port misparsed. Fixed exact four-octet/address/port/protocol validation; not used in native tests yet."
+  },
+  "contention_profile": {
+    "state": "ACTIONS_PENDING",
+    "normal_default": "OFF; explicit CPU file path AND env switch required",
+    "mutex_sample_fraction": 10,
+    "block_sample_ns": 10000000,
+    "performance_qualification": false,
+    "product_deployment": "unchanged SOURCE660"
   }
 }
