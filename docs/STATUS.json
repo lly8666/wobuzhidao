@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "8f hosted gates PASS;native receive queue overflow persists;Windows ready-only native batch candidate NOT_TESTED",
+  "qualification_scope": "24ff core/race/GUI/lifecycle/independentNormal+Game5205/P6 PASS;realWindowsbatch nativeD01 seed1351 running;full70/18/1800s NOT_RUN",
   "updated_at": "2026-10-05",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -83,9 +83,9 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "Qualify current Windows ready-only Npcap send batch: core/race/GUI plus separate Normal5205 seed1271 and Game5205 seed1272,exact-source P6;then deploy paired package and nativeD01 inspect actual batch_calls/write call time/send-lock wait/user queue overflow/probes. Do not treat Windows blocked-stack profile percentages as real CPU. Every performanceAction one sample.",
-  "latest_log": "docs/devlog/20261005-085400-windows-ready-batch-candidate.md",
-  "last_tested_source_sha": "8f53f334c6e87fcbc09d3344f4eeab508fe59179",
+  "next_task": "Finish exact-source24ff nativeD01 seed1351;inspect batch_calls/write time/send wait,driver and user queue overflow,goodput/loss/RTT/cleanup. If capacity fixed repeat D01 and rotation;otherwise narrow actual write/handler hotspot. Then remaining DNS/IP/MTU/idle/config43case scope. Each performanceAction one sample.",
+  "latest_log": "docs/devlog/20261005-090600-windows-batch-hosted-pass-native-running.md",
+  "last_tested_source_sha": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -7555,69 +7555,19 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "8f53f334c6e87fcbc09d3344f4eeab508fe59179",
-    "state": "FAIL_WINDOWS_USER_RECEIVE_QUEUE_OVERFLOW",
+    "source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
+    "state": "D01_NATIVE_CAPACITY_RETEST_RUNNING",
     "evidence": "docs/evidence/windows-capture-drain-20261005.json",
-    "native_completed_300s": [
-      "D01 seed1341 capture drain",
-      "D01 seed1342 CPU profile diagnostic"
-    ],
-    "running": null,
+    "native_completed_300s": [],
+    "running": "D01 seed1351 ready-only Npcap batch diagnostics",
     "supersedes_old_native_qualification": false,
     "rotation": "generation1..6,maxphysical2,exit0;S2C3.06%byte loss/probe71timeout,qualityNOT_PASS",
-    "previous_source": "3e3e094",
+    "previous_source": "8f53f33",
     "previous_completed_300s": [
-      "D01 seed1302",
-      "S16 seed1303",
-      "D02 seed1304"
+      "D01 seed1341 capture drain FAIL",
+      "D01 seed1342 profiler diagnostic FAIL"
     ],
-    "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "driver_dropped": 0,
-    "driver_stats_samples": 337,
-    "driver_stats_errors": 0,
-    "receive_queue": {
-      "1": {
-        "enabled": true,
-        "routes": [
-          {
-            "local_port": 40000,
-            "peer_port": 443,
-            "capacity": 4096,
-            "current": 0,
-            "peak": 4098,
-            "bytes": 0,
-            "bytes_peak": 2250583,
-            "full_waits": 486047,
-            "overflow_drops": 486008,
-            "overflow_bytes": 270345831,
-            "overflow_age": {
-              "samples": 486008,
-              "total_ns": 281219301175900,
-              "max_ns": 766050600,
-              "over_50us": 486008,
-              "over_1ms": 486008,
-              "over_10ms": 486008
-            },
-            "handoff_block": {
-              "samples": 2120551,
-              "total_ns": 1400832100,
-              "max_ns": 1739100,
-              "over_50us": 4018,
-              "over_1ms": 155,
-              "over_10ms": 0
-            },
-            "queue_age": {
-              "samples": 1634543,
-              "total_ns": 811391692715600,
-              "max_ns": 765847500,
-              "over_50us": 1626335,
-              "over_1ms": 1620014,
-              "over_10ms": 1575063
-            }
-          }
-        ]
-      }
-    }
+    "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL"
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -7674,8 +7624,8 @@
     "source_mixed_not_inheritable": true
   },
   "windows_ready_send_batch": {
-    "state": "IMPLEMENTED_NOT_TESTED",
-    "source": "CURRENT_COMMIT",
+    "state": "ACTIONS_PASS_PAIRED_NATIVE_RUNNING",
+    "source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
     "profile_evidence": "docs/evidence/windows-native-profile-8f53f33-20261005.json",
     "scratch_bytes": 16384,
     "max_packets_per_batch": 8,
@@ -7683,6 +7633,19 @@
     "no_new_cli_flags": true,
     "kernel_receive_buffer_increase": false,
     "fec_shadow_inventory_unchanged": true,
-    "real_driver_actions": "UNSUPPORTED;ABI/serializer/prefix/fallback core tests available;native proof required"
+    "real_driver_actions": "UNSUPPORTED;ABI/serializer/prefix/fallback core tests available;native proof required",
+    "qualification_runs": [
+      37249419753,
+      37249419725,
+      37249419694,
+      37249419692,
+      37249454182,
+      37249419695
+    ],
+    "performance_runs": [
+      37249449381,
+      37249451343
+    ],
+    "evidence": "docs/evidence/windows-ready-batch-actions-24ff220-20261005.json"
   }
 }

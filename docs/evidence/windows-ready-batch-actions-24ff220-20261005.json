@@ -1,0 +1,202 @@
+{
+  "schema": "wbd-windows-ready-batch-actions/v1",
+  "source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
+  "gates": [
+    {
+      "run": 37249419753,
+      "name": "next-foundation",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37249419753"
+    },
+    {
+      "run": 37249419725,
+      "name": "next-p4-steady-targeted",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37249419725"
+    },
+    {
+      "run": 37249419694,
+      "name": "next-windows-gui",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37249419694"
+    },
+    {
+      "run": 37249419692,
+      "name": "next-lifecycle",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37249419692"
+    },
+    {
+      "run": 37249454182,
+      "name": "package-prephysical",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37249454182"
+    },
+    {
+      "run": 37249419695,
+      "name": "next-lifecycle-fullstack",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37249419695"
+    }
+  ],
+  "performance": [
+    {
+      "mode": "normal5205",
+      "run": 37249449381,
+      "source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 57.07,
+        "server": 57.11
+      },
+      "socket_drop_max": 0,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "wall_goodput": {
+        "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+        "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+        "path_delay_ms": 300,
+        "raw_metric": "wall_delivered_mbps",
+        "threshold_unchanged": true
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300009000,
+        "c2s_qdisc_delay_p95_ns": 300041000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 608086739,
+            "p99_ns": 611956757,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 611720890,
+            "p99_ns": 614001134,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 616456033,
+            "p99_ns": 621177989,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 3496541490,
+        "s2c_qdisc_delay_p50_ns": 300009000,
+        "s2c_qdisc_delay_p95_ns": 300045000
+      }
+    },
+    {
+      "mode": "game5205",
+      "run": 37249451343,
+      "source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 52.35,
+        "server": 49.26
+      },
+      "socket_drop_max": 0,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "wall_goodput": {
+        "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+        "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+        "path_delay_ms": 300,
+        "raw_metric": "wall_delivered_mbps",
+        "threshold_unchanged": true
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300010000,
+        "c2s_qdisc_delay_p95_ns": 300067000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 603148361,
+            "p99_ns": 604279103,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 605080485,
+            "p99_ns": 606134762,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 602229342,
+            "p99_ns": 604542190,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 3232756941,
+        "s2c_qdisc_delay_p50_ns": 300010000,
+        "s2c_qdisc_delay_p95_ns": 300068000
+      }
+    }
+  ],
+  "native_environment": {
+    "windows": {
+      "LibpcapFileVersion": "1.10.6",
+      "LibpcapProductVersion": "1.10.6",
+      "NpcapDriverVersion": "1.88",
+      "ClientProcesses": 0,
+      "OwnedNRPT": 0,
+      "OwnedFirewall": 0
+    },
+    "arm": {
+      "server_active": "active",
+      "raw_pcaps": [],
+      "backup_remaining": false
+    }
+  },
+  "deployment": {
+    "source_sha": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
+    "qualification_runs": [
+      "37249419753",
+      "37249419725",
+      "37249419694",
+      "37249419692",
+      "37249449381",
+      "37249451343",
+      "37249454182"
+    ],
+    "windows_zip_sha256": "2a47fce3a8714f025be9dbbb889fd23dda18d970378989a2dce58e99258b57ca",
+    "windows_bundle": "WBD-P7-24ff220/windows-portable",
+    "server_stage": "/opt/wbd/p7-candidates/24ff220",
+    "server_config_preserved": true,
+    "npcap_not_reinstalled": true,
+    "rollback_source": "8f53f33"
+  },
+  "scope": "Hosted regression and package only;real Windows batch efficiency requires native300s"
+}
