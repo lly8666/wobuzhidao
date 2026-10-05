@@ -84,7 +84,7 @@
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
   "next_task": "Finish current native case;continue qualified S18/S19/S20 idle and pure downlink,then remaining FEC/DNS/IP/config physical matrix. Collect independent Normal/Game1800s runs37254546236/37254548514;never inherit old full70/18. Each performance run one sample.",
-  "latest_log": "docs/devlog/20261005-102300-native-mtu9000-complete.md",
+  "latest_log": "docs/devlog/20261005-103000-native-maximum-udp-delivery-repeat.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -7570,7 +7570,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "running_case": "M03 seed1365",
+    "running_case": "M03 seed1366 independent repeat",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7647,6 +7647,12 @@
         "status": "PASS",
         "source": "660b370815603c50d38b92229abdec13ca77e1b1",
         "evidence": "docs/evidence/native-inner-mtu-660b370-20261005.json"
+      },
+      {
+        "case": "m03-current-300s-seed1365",
+        "status": "FAIL",
+        "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+        "evidence": "docs/evidence/native-inner-mtu-660b370-20261005.json"
       }
     ]
   },
@@ -7696,11 +7702,12 @@
       "D01",
       "S16",
       "D02",
-      "D03"
+      "D03",
+      "M03"
     ],
-    "full300s_samples": 16,
+    "full300s_samples": 17,
     "case_ids_total": 43,
-    "case_ids_not_run": 36,
+    "case_ids_not_run": 35,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true
   },
@@ -7731,12 +7738,12 @@
     "native_evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json"
   },
   "windows_tun_mtu_boundary": {
-    "state": "ACTIONS_PASS_NATIVE_M01_PASS_M03_IN_PROGRESS",
+    "state": "NATIVE_M01_PASS_M03_DELIVERY_FAIL_RETAINED",
     "source": "660b370815603c50d38b92229abdec13ca77e1b1",
     "inner_ipv4_mtu": 9000,
     "outer_connection_budget_unchanged": true,
     "native_source_still": "660b370815603c50d38b92229abdec13ca77e1b1",
-    "native_m03": "NOT_RUN",
+    "native_m03": "FAIL",
     "evidence": "docs/evidence/windows-tun-mtu-actions-660b370-20261005.json",
     "failed_parent": "977fee7611b65a0d632636a6ae237a82033a178f",
     "failed_parent_runs": [
