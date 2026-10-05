@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "SOURCE660b core/race/GUI/helpers/independentNormal+Game5205/P6 PASS;fullstack see actual gate state;real9000MTU/M03 native NOT_RUN;SOURCE24ff native D01 repeats/S16/Game evidence kept separate;full70/18/1800s NOT_RUN",
-  "updated_at": "2026-10-05T13:20:00+08:00",
+  "updated_at": "2026-10-05T13:40:00+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -83,8 +83,8 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "Prioritize unchanged-source Game5305 seed1382 p99 localization:read target/receiver probe timestamps and bounded product/network telemetry before a narrow fix;retain failed pair and existing gates. Correct helper repository-contract omission via STATUS+new log,then qualify helpers in Actions and run independent native S19/Game4 and S20/pure downlink. Diagnose maximum UDP missing sequences with new helper. Continue remaining native DNS/IP/FEC/config matrix;each performance Action exactly one sample.",
-  "latest_log": "docs/devlog/20261005-132000-current-qualification-p99-and-native-idle.md",
+  "next_task": "Qualify bounded probe/observer timestamp candidate via Actions;then separate one-sample Game5305 seed1382 and paired lossless with identical source/config plus Normal/Game5205. Preserve original tail FAIL. On qualified helper16ecc97 run native S19 and S20 on deployed product660 with frozen helper hashes;keep native p99 NOT_EVALUATED where probes disabled for idle. Continue maximum UDP sequence diagnostic and remaining34 native cases.",
+  "latest_log": "docs/devlog/20261005-134000-bound-p99-probe-and-observer-clocks.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -7861,5 +7861,14 @@
     "evidence": "docs/evidence/qualification-660b370-20261005.json",
     "latency_user_priority": "p99 and throughput must not degrade;no threshold weakening/no replacing failed samples",
     "root_cause": "NOT_YET_LOCALIZED;not a demonstrated sustained CPU saturation or FEC HOL"
+  },
+  "tail_observation": {
+    "state": "CANDIDATE_OBSERVATION_ACTIONS_PENDING",
+    "original_source": "660b370815603c50d38b92229abdec13ca77e1b1",
+    "original_failure_run": 37255274295,
+    "earliest_known_boundary": "client four SegmentMux route queues max age ~1298..1303ms;peaks2377..2418 segments;client ingress peak966;source load continuous;upstream target received zero bytes at second82 then catchup",
+    "product_fix": "NONE:localize client global stall first",
+    "observation": "bounded8192 target/client probe timestamp events,no new wire bytes or traffic;opt-in1Hz diagnostic memory/snapshot collection durations;normal packet paths untouched",
+    "next": "Actions unit/race then exact-seed independent Game5305 and lossless;inspect direction latency and observer duration,not a threshold reduction"
   }
 }

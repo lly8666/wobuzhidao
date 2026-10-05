@@ -33,6 +33,11 @@ type Sample struct {
 	UnixNS  int64        `json:"unix_ns"`
 	Runtime RuntimeStats `json:"runtime"`
 	Product any          `json:"product"`
+	// Opt-in observer timing distinguishes a delayed collection from its
+	// scheduled ticker timestamp. No clocks are added to normal packet paths.
+	ObservedUnixNS   int64 `json:"observed_unix_ns"`
+	MemoryCollectNS  int64 `json:"memory_collect_ns"`
+	ProductCollectNS int64 `json:"product_collect_ns"`
 }
 
 func Run(ctx context.Context, path string, interval time.Duration, snapshot func(time.Time) any) error {
@@ -49,27 +54,34 @@ func Run(ctx context.Context, path string, interval time.Duration, snapshot func
 	enc := json.NewEncoder(w)
 
 	write := func(now time.Time) error {
+		observed := time.Now()
 		var mem runtime.MemStats
 		runtime.ReadMemStats(&mem)
+		memoryCollected := time.Now()
+		product := snapshot(now)
+		productCollected := time.Now()
 		sample := Sample{
 			Schema: 1,
 			UnixNS: now.UnixNano(),
 			Runtime: RuntimeStats{
-				NumCPU: runtime.NumCPU(),
-				GOMAXPROCS: runtime.GOMAXPROCS(0),
-				Goroutines: runtime.NumGoroutine(),
-				HeapAlloc: mem.HeapAlloc,
-				HeapInuse: mem.HeapInuse,
-				HeapObjects: mem.HeapObjects,
-				TotalAlloc: mem.TotalAlloc,
-				Mallocs: mem.Mallocs,
-				Frees: mem.Frees,
-				NextGC: mem.NextGC,
-				NumGC: mem.NumGC,
-				PauseTotalNs: mem.PauseTotalNs,
+				NumCPU:        runtime.NumCPU(),
+				GOMAXPROCS:    runtime.GOMAXPROCS(0),
+				Goroutines:    runtime.NumGoroutine(),
+				HeapAlloc:     mem.HeapAlloc,
+				HeapInuse:     mem.HeapInuse,
+				HeapObjects:   mem.HeapObjects,
+				TotalAlloc:    mem.TotalAlloc,
+				Mallocs:       mem.Mallocs,
+				Frees:         mem.Frees,
+				NextGC:        mem.NextGC,
+				NumGC:         mem.NumGC,
+				PauseTotalNs:  mem.PauseTotalNs,
 				GCCPUFraction: mem.GCCPUFraction,
 			},
-			Product: snapshot(now),
+			Product:          product,
+			ObservedUnixNS:   observed.UnixNano(),
+			MemoryCollectNS:  memoryCollected.Sub(observed).Nanoseconds(),
+			ProductCollectNS: productCollected.Sub(memoryCollected).Nanoseconds(),
 		}
 		if err := enc.Encode(sample); err != nil {
 			return err

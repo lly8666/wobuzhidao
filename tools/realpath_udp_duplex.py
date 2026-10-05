@@ -18,6 +18,7 @@ KIND_PROBE_REPLY = 4
 KIND_REGISTER = 5
 HEADER = struct.Struct("!4sBBHQQII")
 SIZES = (64, 256, 1200)
+MAX_PROBE_EVENTS = 8192
 
 
 def parse_addr(text):
@@ -96,7 +97,22 @@ class Stats:
         self.probe_recv = 0
         self.probe_rtt_ns = []
         self.probe_rtt_ns_by_second = [None] * self.seconds
+        self.probe_events = []
+        self.probe_event_drops = 0
         self.peer_ready_ns = None
+
+    def note_probe_event(self, packet, received_ns, reply_sent_ns=None, reply_error=False):
+        # Probe-only metadata; no payloads, new packets, pacing or business hot
+        # path work. All namespace processes share this host's monotonic clock.
+        with self.lock:
+            if len(self.probe_events) >= MAX_PROBE_EVENTS:
+                self.probe_event_drops += 1
+                return
+            self.probe_events.append({
+                "seq": packet["seq"], "sent_ns": packet["send_ns"],
+                "received_ns": received_ns, "reply_sent_ns": reply_sent_ns,
+                "reply_error": reply_error,
+            })
 
     def second_for(self, send_ns):
         sec = int((send_ns - self.start_ns) // 1_000_000_000)
@@ -186,6 +202,8 @@ class Stats:
                 "probe_rtt_p99_ns": percentile(self.probe_rtt_ns, 0.99),
                 "probe_rtt_ns_by_second": list(self.probe_rtt_ns_by_second),
                 "probe_timeouts": max(0, self.probe_sent - self.probe_recv),
+                "probe_events": list(self.probe_events),
+                "probe_event_drops": self.probe_event_drops,
                 "peer_ready_ns": self.peer_ready_ns,
             }
 
@@ -275,13 +293,16 @@ def receiver_loop(role, sock, expected_kind, stats, peer_holder, stop_ns, stop_e
                     stats.peer_ready_ns = now_ns
             continue
         if role == "target" and kind == KIND_PROBE:
+            reply_error = False
             try:
                 reply = make_packet(KIND_PROBE_REPLY, packet["seq"], packet["size"], packet["seed"], packet["send_ns"])
                 sock.sendto(reply, addr)
             except OSError:
-                pass
+                reply_error = True
+            stats.note_probe_event(packet, now_ns, time.monotonic_ns(), reply_error)
             continue
         if role == "biz" and kind == KIND_PROBE_REPLY:
+            stats.note_probe_event(packet, now_ns)
             with stats.lock:
                 rtt = max(0, now_ns - packet["send_ns"])
                 stats.probe_recv += 1

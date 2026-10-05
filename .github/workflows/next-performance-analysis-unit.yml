@@ -6,6 +6,7 @@ on:
       - next/tlslike-dataplane
     paths:
       - tools/realpath_udp_duplex.py
+      - tools/test_probe_clock_evidence.py
       - tools/check_strict_weaknet_loss_tolerant_v1.py
       - tools/test_loss_tolerant_wall_accounting.py
       - tools/aggregate_strict_weaknet_loss_tolerant_v1.py
@@ -28,5 +29,7 @@ jobs:
         run: python3 -m py_compile tools/realpath_udp_duplex.py tools/check_strict_weaknet_loss_tolerant_v1.py
       - name: Delay-aligned wall accounting unit
         run: python3 tools/test_loss_tolerant_wall_accounting.py
+      - name: Bounded directional probe clock evidence
+        run: python3 tools/test_probe_clock_evidence.py
       - name: Independent campaign qualification regressions
         run: python3 tools/test_loss_tolerant_aggregate.py
