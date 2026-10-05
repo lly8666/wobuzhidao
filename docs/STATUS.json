@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "SOURCE7eeb retiredSYNACK narrow candidate core/race incl30Wake+SYN repetitions/36+aggregate37/P6/Linuxserver/GUI and5 independent strict samples/18 same-source same-helper RTTpairs PASS. Paired7eeb Windows/ARM deployed; native tc1411 failedWake recovery PASS; M02Game4 native PREPARING/RUNNING, not PASS. Full70/18/1800s/P7 not inherited. Parent931 raceFAIL and native1410 localEPERM retained.",
-  "updated_at": "2026-10-05T23:35:38.723600+08:00",
+  "qualification_scope": "SOURCE7eeb retiredSYNACK narrow candidate core/race incl30Wake+SYN repetitions/36+aggregate37/P6/Linuxserver/GUI and5 independent strict samples/18 same-source same-helper RTTpairs PASS. Paired7eeb Windows/ARM deployed; native tc1411 failedWake recovery PASS; M02Game4 2747/2747 exact but1 late>1s: functionalPASS_WITH_LATE_RESPONSES, latency unqualified. Full70/18/1800s/P7 not inherited. Parent931 raceFAIL and native1410 localEPERM retained.",
+  "updated_at": "2026-10-05T23:51:19.367832+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,11 +80,11 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Game4 nativeM02 outer1400/inner9000 large+DF interleaved small packets300s",
-    "Normal native wake residual loss / old raw p99 / maxUDP attribution"
+    "Actions qualify bounded native MTU event timing helpers, then same-source Game4 M02 repeat seed1413",
+    "Native wake residual loss / historical raw p99 and maxUDP attribution"
   ],
-  "next_task": "Finish native7eeb M02 seed1412 Game4 DF false/true IPv4 sizes1399/1400/1401/1500/2000/4096/9000 + small interleave, exact payload, actual lanes4/FEC20 and inner9000/outer1400, bounded capture/ownedcleanup. Then continue maxUDP and remaining caseIDs; native1411 recoveryPASS has residual0.172/0.425% clear-path byte loss, p99NOT_EVALUATED; older rawp99 failures retained. Every performanceAction one sample, noHOL/buffer expansion.",
-  "latest_log": "docs/devlog/20261005-233538-native-wake-recovery-and-game-mtu.md",
+  "next_task": "Qualify helper-only MTU timing patch in Actions next-predelivery-tools (CSharp compile/Python fixtures). Product stays paired7eeb. Then independent native M02 seed1413 with bounded per-sequence monotonic RTT and UTC metadata, unchanged1s/100ms/3s gates, independent target timings. Analyze late event boundary without assuming interhost clock sync; older1412 >1s tail remains open even if healthy repeat. Then M03 maxUDP and remaining31 caseIDs. Every performance Action one sample; noHOL/buffer/FEC/4096 expansion.",
+  "latest_log": "docs/devlog/20261005-235119-native-game-mtu-timing.md",
   "last_tested_source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
   "actions": [
     {
@@ -7721,7 +7721,7 @@
   },
   "physical_current": {
     "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
-    "state": "NATIVE_WAKE_PASS_GAME_MTU_RUNNING",
+    "state": "GAME_MTU_FUNCTIONAL_PASS_LATE_TIMING_HELPER_PENDING_ACTIONS",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
       "M01 seed1364",
@@ -7729,9 +7729,7 @@
       "M03 seed1366 FAIL",
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
-    "running": [
-      "m02-current-300s-seed1412"
-    ],
+    "running": [],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
@@ -7742,7 +7740,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "running_case": "m02-current-300s-seed1412",
+    "running_case": null,
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7873,6 +7871,18 @@
         "status": "LIFECYCLE_PASS_DELIVERY_PARTIAL",
         "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
         "evidence": "docs/evidence/native-s18-current-300s-seed1405-2737415-20261005.json"
+      },
+      {
+        "case": "s18-wake-tc-blackhole-300s-seed1411",
+        "status": "PASS_NATIVE_FAILED_WAKE_RECOVERY",
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "evidence": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
+      },
+      {
+        "case": "m02-current-300s-seed1412",
+        "status": "PASS_WITH_LATE_RESPONSES",
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "evidence": "docs/evidence/native-game-mtu-7eebdcf-20261005.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
@@ -7881,15 +7891,7 @@
     "source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
     "last_failed_case": "s18-wake-blackhole-300s-seed1410",
     "last_failure_evidence": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json",
-    "latest_native_pass": "docs/evidence/native-wake-tc-7eebdcf-20261005.json",
-    "recent_results": [
-      {
-        "case": "s18-wake-tc-blackhole-300s-seed1411",
-        "status": "PASS_NATIVE_FAILED_WAKE_RECOVERY",
-        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
-        "evidence": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
-      }
-    ]
+    "latest_native_pass": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -7941,11 +7943,12 @@
       "M03",
       "S18",
       "S19",
-      "S20"
+      "S20",
+      "M02"
     ],
-    "full300s_samples": 27,
+    "full300s_samples": 28,
     "case_ids_total": 43,
-    "case_ids_not_run": 32,
+    "case_ids_not_run": 31,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true,
     "additional_client_complete_only_failures": [
@@ -8356,5 +8359,16 @@
     "fullstack_run": 37330020565,
     "p6_run": 37330082765,
     "native_evidence": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
+  },
+  "native_mtu_timing": {
+    "state": "CANDIDATE_NOT_QUALIFIED",
+    "product_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "evidence": "docs/evidence/native-game-mtu-7eebdcf-20261005.json",
+    "limit": 8192,
+    "payload_stored": false,
+    "client_monotonic_rtt": true,
+    "interhost_clock_offset": "UNKNOWN;do not claim one-way delay from raw UTC subtraction",
+    "unchanged": "1s timeout/100ms attempt pacing/3s drain/exact payload gates/send error semantics",
+    "actions": "next-predelivery-tools pending;CSharp compile and deterministic Python timing/error plus real UDP boundary fixtures"
   }
 }

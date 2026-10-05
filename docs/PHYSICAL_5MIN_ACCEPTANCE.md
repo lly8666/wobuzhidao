@@ -132,3 +132,6 @@ S03–S27、D02–D06、I01–I06、M02/M03、W01仍NOT_RUN；当前助手不是
 
 
 2026-10-05专项补充：SOURCE7eeb原生Normal1 failed-Wake300s tc黑洞1411通过。出口实际44drop，4failed+1success，双端samePID与lease、两quiet物理lane0、ownedcleanup均确认；清障末60s9.983/9.957M，残余0.172/0.425%loss未关闭。无idleprobe故nativep99NOT_EVALUATED，不能继承Actions或将whole故障期25%loss说成clear-path退化。仅server-to-client单向，双边原生另验。原1410localOUTPUT EPERM失败保留，不吞发送错误；M02Game4新增实机case独立运行。证据native-wake-tc-7eebdcf与STATUS为准。
+
+
+2026-10-05 M02 SOURCE7eeb seed1412：2747/2747完整往返，含1373 small及各DF/1399..9000IPv4。9000IP/DFfalse一次超过原1s，不能算延迟资格PASS；bounded窗口外层<=1340、checksum/冲突/非法TLS头0，不能冒充全程/网站一致证明。新MTU助手最多8192条numeric timing，client monotonic RTT/发送调用时长与UTC，target recv UTC/echo UTC/发送调用monotonic时长；不留payload、不新增流量，不改1s timeout/100ms pacing/3s drain和原完整性/超限门。UTC跨机器没有已知误差界时不可当单程时延。先Actions助手资格再原生复验，吞吐和正式p99另跑独立性能样本。

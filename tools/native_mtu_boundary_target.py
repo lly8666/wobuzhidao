@@ -17,9 +17,19 @@ def echo_socket(bind='198.18.0.1', port=18446):
     except BaseException:
         sock.close();raise
 
+def echo_timing(sock, data, address, received_unix_ns):
+    """One syscall and bounded metadata; no payload kept in the receipt."""
+    started=time.monotonic_ns()
+    sock.sendto(data,address)
+    elapsed=time.monotonic_ns()-started
+    echoed_unix_ns=time.time_ns()
+    return dict(sequence=int.from_bytes(data[4:8],'little'),udp_payload=len(data),
+                received_unix_ns=received_unix_ns,echo_end_unix_ns=echoed_unix_ns,
+                echo_send_call_ns=elapsed)
+
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--output',required=True);args=ap.parse_args()
-    counts={};bad=0;peer=None;started=time.monotonic();stopping=False;send_errors={};received_sequences={}
+    counts={};bad=0;peer=None;started=time.monotonic();stopping=False;send_errors={};received_sequences={};timing=[]
     def stop(signum,frame):
         nonlocal stopping
         stopping=True
@@ -29,6 +39,7 @@ def main():
         while not stopping and time.monotonic()-started<390:
             try:data,address=sock.recvfrom(65535)
             except socket.timeout:continue
+            received_unix_ns=time.time_ns()
             if data==b'P7M-DONE' and address==peer:break
             if peer is not None and address!=peer:continue
             if len(data) not in SIZES or data[:4]!=b'P7M1' or data[8:]!=PATTERN[:len(data)-8]:
@@ -36,9 +47,9 @@ def main():
             peer=address;key=str(len(data));counts[key]=counts.get(key,0)+1
             if sum(counts.values())>8192:raise ValueError('Bounded request inventory exceeded')
             received_sequences.setdefault(key,[]).append(int.from_bytes(data[4:8],'little'))
-            try:sock.sendto(data,address)
+            try:timing.append(echo_timing(sock,data,address,received_unix_ns))
             except OSError as error:
                 code=str(error.errno);send_errors[code]=send_errors.get(code,0)+1
-    Path(args.output).write_text(json.dumps(dict(result='STOPPED' if stopping else 'MEASURED',peer_ipv4=peer[0] if peer else None,counts=counts,received_sequences=received_sequences,bad_payload=bad,echo_send_errors=send_errors,ip_mtu_discover=0,elapsed_seconds=time.monotonic()-started,receive_buffer_requested_bytes=2*1024*1024,effective_receive_buffer_bytes=effective_buffer),indent=2)+'\n')
+    Path(args.output).write_text(json.dumps(dict(result='STOPPED' if stopping else 'MEASURED',peer_ipv4=peer[0] if peer else None,counts=counts,received_sequences=received_sequences,timing=timing,bad_payload=bad,echo_send_errors=send_errors,ip_mtu_discover=0,elapsed_seconds=time.monotonic()-started,receive_buffer_requested_bytes=2*1024*1024,effective_receive_buffer_bytes=effective_buffer),indent=2)+'\n')
 
 if __name__=='__main__':main()
