@@ -1,0 +1,21 @@
+{
+  "source": "98c5af1d9e2c00049c3547f9f990fe3b497ca916",
+  "state": "FAIL_NEW_TEST_ACCOUNTING",
+  "runs": [
+    37316853627,
+    37316853595
+  ],
+  "reason": "Global RetryableErrors also includes asynchronous old-lane teardown diagnostics. Exact1 was not a per-Wake counter. New test uses exact OpenLane calls/RecoveryAttempts and an isolated backoff state for no per-demand errors.",
+  "product_semantics_changed": false,
+  "deployed": false,
+  "logs": [
+    {
+      "run": 37316853627,
+      "sha256": "d327b94f40e687eba4a8440d44b8864c906d14da5ae164cd04c81d385a42eb1e"
+    },
+    {
+      "run": 37316853595,
+      "sha256": "79c9b289426d5b37455ef52a7476c86df0c266cf14e1c872c2edb0205cae952a"
+    }
+  ]
+}

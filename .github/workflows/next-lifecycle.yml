@@ -38,7 +38,7 @@ jobs:
           go test -tags lifecycleacceptance ./internal/acceptancefault ./internal/realityfront ./internal/runtimeowner ./internal/runtimeentry -count=1
           go build -tags lifecycleacceptance ./cmd/wbd-client ./cmd/wbd-server
       - name: Focused lifecycle race repetitions
-        run: go test -race ./internal/configfile ./internal/runtimeowner ./internal/runtimeentry -run='Health|Configuration|AdaptivePressure|LifecycleEntryPayloadIdle|IdleSnapshot' -count=3
+        run: go test -race ./internal/configfile ./internal/runtimeowner ./internal/runtimeentry -run='Health|Configuration|AdaptivePressure|LifecycleEntryPayloadIdle|IdleSnapshot|Business.*Wake|RetryableBusinessWake' -count=3
       - name: Concurrent replacement publication and automatic lease regression
         run: go test -race ./internal/runtimeowner ./internal/runtimeentry -run='ReplacementPublication|SharedCredentialsAutomatic' -count=10
       - name: Record exact scope

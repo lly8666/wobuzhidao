@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "Deployed SOURCE273 scoped core/race/lifecycle-unit/GUI/Linuxserver/P6 and target performance PASS, plus3 independent Game5305 repeats and native S19 repeat/S18. Full18/70/1800s not inherited. Windows failed-business-wake candidate in this commit is NOT_RUN/NOT_DEPLOYED; native uplink wake loss and old raw tail/maxUDP remain open.",
-  "updated_at": "2026-10-05T21:25:57.788943+08:00",
+  "updated_at": "2026-10-05T21:33:48.393435+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -85,7 +85,7 @@
     "Retain intermittent raw send p99 failure and old maxUDP missing-packet evidence until failure-window attribution"
   ],
   "next_task": "Freeze the Windows business-wake candidate in this commit; inspect Actions foundation/targeted/race/lifecycle/GUI and new1/4lane failed-wake/backoff/recovery tests, repair only actual failures. Then independent Normal/Game5205 and matched Game5305/lossless, P6 exact-source packages, native Windows Dormant+temporary blackhole recovery without process exit. Do not inherit273 qualification for the candidate. Native26 full samples/11case IDs/32NOT_RUN; Normal wake uplink loss remains unexplained (fixture UDPdrop0). Old raw tail/maxUDP/lease failures retained. Every performance Action one sample; no HOL/buffer/FEC/4096 growth.",
-  "latest_log": "docs/devlog/20261005-212557-windows-business-wake-retry.md",
+  "latest_log": "docs/devlog/20261005-213348-wake-backoff-test-accounting.md",
   "last_tested_source_sha": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
   "actions": [
     {
@@ -1993,6 +1993,20 @@
       "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37274592672",
       "scope": "core Windows automatic lease dormant wake intermittent failure; targeted sameSHA PASS",
       "status": "FAIL"
+    },
+    {
+      "source_sha": "98c5af1d9e2c00049c3547f9f990fe3b497ca916",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37316853627",
+      "scope": "business-wake-candidate-core",
+      "status": "FAIL",
+      "note": "New test incorrectly assumed global RetryableErrors==1 despite asynchronous old-lane errors; exact OpenLane/backoff evidence replaces this assumption, failure retained. No deployment/performance."
+    },
+    {
+      "source_sha": "98c5af1d9e2c00049c3547f9f990fe3b497ca916",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37316853595",
+      "scope": "business-wake-candidate-core",
+      "status": "FAIL",
+      "note": "New test incorrectly assumed global RetryableErrors==1 despite asynchronous old-lane errors; exact OpenLane/backoff evidence replaces this assumption, failure retained. No deployment/performance."
     }
   ],
   "physical_status": "PARTIAL",
@@ -8068,7 +8082,7 @@
   },
   "business_wake_failure": {
     "state": "IMPLEMENTED_PENDING_ACTIONS",
-    "candidate_source": "commit containing current latest_log; freeze git HEAD",
+    "candidate_source": "commit containing latest_log; product behavior same98, test boundary and race selector corrected",
     "deployed_source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
     "scope": "Only pre-emission failed business wake/backoff keeps Windows TUN reader alive; binding change/shutdown/actual wire failures remain terminal",
     "fresh_packet_replayed": false,
@@ -8077,9 +8091,10 @@
     "backoff_unchanged": true,
     "tests": [
       "classification preserves wire/binding/cancellation errors",
-      "Normal first-lane failure/Game second-lane failure cleanup",
-      "32 demands during backoff cause no retry/error amplification",
-      "subsequent fresh demand recovers same owner/lease"
+      "Normal first-lane/Game second-lane failure; bounded rollback and recovery",
+      "32 backoff demands leave exact OpenLane calls/RecoveryAttempts unchanged",
+      "isolated backoff state accounts no per-demand errors",
+      "Linux dedicated race selector includes new tests count3"
     ],
     "evidence_native": [
       {
@@ -8112,6 +8127,8 @@
       }
     ],
     "performance_repeats": "docs/evidence/current-game5305-repeats-2737415-20261005.json",
-    "normal_uplink_loss_unresolved": true
+    "normal_uplink_loss_unresolved": true,
+    "failed_parent": "98c5af1d9e2c00049c3547f9f990fe3b497ca916",
+    "failed_parent_evidence": "docs/evidence/wake-retry-test-accounting-98c5af1-20261005.json"
   }
 }

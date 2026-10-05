@@ -43,6 +43,7 @@ func TestBusinessDemandAfterFailedDormantWakeRetriesWithoutClosingOwner(t *testi
 			// Game fails its second attachment, exercising cleanup of a
 			// partially successful wake as well as Normal's first-lane failure.
 			var failWake atomic.Bool
+			var openCalls atomic.Uint32
 			failWake.Store(true)
 			failLane := uint8(1)
 			if lanes == 4 {
@@ -50,6 +51,7 @@ func TestBusinessDemandAfterFailedDormantWakeRetriesWithoutClosingOwner(t *testi
 			}
 			open := h.client.cfg.OpenLane
 			h.client.cfg.OpenLane = func(id uint8, incarnation uint64) (SegmentIO, faketcp.ClientFlow, error) {
+				openCalls.Add(1)
 				if id == failLane && failWake.Load() {
 					return SegmentIO{}, faketcp.ClientFlow{}, errors.New("injected business wake failure")
 				}
@@ -61,9 +63,10 @@ func TestBusinessDemandAfterFailedDormantWakeRetriesWithoutClosingOwner(t *testi
 				t.Fatalf("failed pre-emission wake is terminal: %v", err)
 			}
 			stats := h.client.LifecycleStats()
-			if stats.RecoveryFailed != 1 || stats.RetryableErrors != 1 || stats.NextRetry.IsZero() || stats.LastError == "" {
+			if stats.RecoveryFailed != 1 || stats.RecoveryAttempts != 1 || stats.NextRetry.IsZero() {
 				t.Fatalf("missing failed-wake evidence/backoff: %+v", stats)
 			}
+			callsAfterFailure := openCalls.Load()
 			h.client.mu.Lock()
 			h.client.retryAt = time.Now().Add(time.Minute)
 			h.client.mu.Unlock()
@@ -72,8 +75,8 @@ func TestBusinessDemandAfterFailedDormantWakeRetriesWithoutClosingOwner(t *testi
 					t.Fatalf("backoff demand: %v", err)
 				}
 			}
-			if got := h.client.LifecycleStats(); got.RecoveryAttempts != stats.RecoveryAttempts || got.RetryableErrors != stats.RetryableErrors {
-				t.Fatalf("backoff causes attempt/error amplification: %+v", got)
+			if got := h.client.LifecycleStats(); got.RecoveryAttempts != stats.RecoveryAttempts || openCalls.Load() != callsAfterFailure {
+				t.Fatalf("backoff causes new admission attempts: %+v calls=%d", got, openCalls.Load())
 			}
 			if !h.client.IsDormant() || len(owner.ActiveLanes()) != 0 {
 				t.Fatal("failed wake exposed a lane")
@@ -96,6 +99,24 @@ func TestBusinessDemandAfterFailedDormantWakeRetriesWithoutClosingOwner(t *testi
 				t.Fatal("wake retry changed logical binding")
 			}
 		})
+	}
+}
+
+func TestBusinessWakeBackoffDoesNotAccountEachDiscardedDemand(t *testing.T) {
+	// This pre-admission state needs no transport. An isolated client avoids
+	// conflating requested shutdown/read-loop diagnostics with business demand.
+	c := &TunnelClient{dormant: true, retryAt: time.Now().Add(time.Minute)}
+	for i := 0; i < 32; i++ {
+		if err := c.SendPacket(context.Background(), nil, time.Now()); !errors.Is(err, ErrLifecycleRetryBackoff) || !RetryableBusinessWake(err) {
+			t.Fatalf("backoff error lost: %v", err)
+		}
+	}
+	stats := c.LifecycleStats()
+	if stats.RecoveryAttempts != 0 || stats.RecoveryFailed != 0 || stats.RetryableErrors != 0 || stats.LastError != "" {
+		t.Fatalf("discarded demand amplified attempts/error accounting: %+v", stats)
+	}
+	if c.lastPayload.IsZero() {
+		t.Fatal("discarded real demand did not preserve activity")
 	}
 }
 
