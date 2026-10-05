@@ -92,9 +92,9 @@ public static class WBDPhysicalNpcapWatch {
                     Header h=(Header)Marshal.PtrToStructure(header,typeof(Header));int n=(int)Math.Min(h.Caplen,160);
                     if(dnsOnly) {
                         if(++dnsFrames>8192)throw new Exception("DNS observer bounded inventory exceeded");
-                        Marshal.Copy(data,frame,0,n);string key=DNSFlowKey(frame,n);
-                        if(key==null){dnsUnparsed++;continue;}
-                        Flow dnsFlow;if(!flows.TryGetValue(key,out dnsFlow)){if(flows.Count>=128)throw new Exception("DNS observer flow bound exceeded");dnsFlow=new Flow();flows[key]=dnsFlow;}
+                        Marshal.Copy(data,frame,0,n);string dnsKey=DNSFlowKey(frame,n);
+                        if(dnsKey==null){dnsUnparsed++;continue;}
+                        Flow dnsFlow;if(!flows.TryGetValue(dnsKey,out dnsFlow)){if(flows.Count>=128)throw new Exception("DNS observer flow bound exceeded");dnsFlow=new Flow();flows[dnsKey]=dnsFlow;}
                         dnsFlow.Packets++;continue;
                     }
                     if(n<54)continue;Marshal.Copy(data,frame,0,n);
