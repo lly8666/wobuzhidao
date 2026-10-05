@@ -317,3 +317,6 @@ Game desired=2..4是生命周期目标，不是每包回程必须等所有兄弟
 ## 2026-10-05 Windows Dormant业务唤醒失败隔离（候选待验）
 
 当没有可用连接且本次Wake失败，原Wake清理partial attachments并设置backoff。PrepareBusiness仅把这条编码/发包之前的失败标为ErrBusinessWakeRetryable；已有backoff sentinel原样返回，期间不分配wire、不重复计错误、不重新建连。Windows TUN reader继续读新需求，在已有退避结束后由后续业务触发恢复；失败的包不加入待发队列/不重放，不伪装已交付。取消、runtime关闭、ErrClientLeaseChanged继续终止/重建平台；完成Wake之后真正SendPacket发包错误不被本策略吞掉。正常稳态路径不变，无新CLI/wire参数、goroutine或等待。必须Actions验证1/4lane首次/partial失败、bounded backoff、稳定owner/lease和错误分类，再独立性能与同源包；最后Windows原生休眠+双边临时黑洞证明同进程清障恢复。未验不能部署。
+
+
+2026-10-05补充验收边界：Windows失败Wake修复SOURCE2bf core/race/36+aggregate/P6及五独立性能/18RTTpairs PASS，已配套部署。原生1410完整300s但server本机OUTPUT DROP引起EPERM退出并耗尽systemd重启预算，客户端同PID存活；不能认定网络清障恢复通过，也不能将此本机拒绝归因WAN丢包。下一Actions先验tc-egress匹配丢包且raw send成功/owned清理，再同源新seed原生门。双向暂时黑洞仍需另验，无HOL/队列/缓存策略不变。详见native-wake-local-rejection证据和STATUS。

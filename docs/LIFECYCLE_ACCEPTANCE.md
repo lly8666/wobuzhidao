@@ -71,3 +71,6 @@ L6 的黑洞阶段只验证“业务活动证据不会被当成 idle、失败后
 ## 2026-10-05 Windows业务Wake失败平台门（候选）
 
 禁止把Dormant后业务触发的可退避建连失败当成整client致命错误。新门检查PrepareBusiness前置失败分类，已有retryAt限制持续业务尝试；Normal首lane失败、Game第2lane失败后physical/active归零，后续新包可恢复相同owner/lease。真正wire发包错误、地址变化、取消与Close不能被当Wake失败吞掉。错误包不重放，业务未交付不写成功。源码中candidate状态NOT_RUN，完成core/race/Windows build、独立性能和P6后再物理Dormant+temporary blackhole；旧Linux fullstack或273正常Wake不能替代这项Windows失效门。
+
+
+2026-10-05补充验收边界：Windows失败Wake修复SOURCE2bf core/race/36+aggregate/P6及五独立性能/18RTTpairs PASS，已配套部署。原生1410完整300s但server本机OUTPUT DROP引起EPERM退出并耗尽systemd重启预算，客户端同PID存活；不能认定网络清障恢复通过，也不能将此本机拒绝归因WAN丢包。下一Actions先验tc-egress匹配丢包且raw send成功/owned清理，再同源新seed原生门。双向暂时黑洞仍需另验，无HOL/队列/缓存策略不变。详见native-wake-local-rejection证据和STATUS。

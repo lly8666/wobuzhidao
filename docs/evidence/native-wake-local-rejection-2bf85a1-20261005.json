@@ -1,0 +1,53 @@
+{
+  "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+  "case": "s18-wake-blackhole-300s-seed1410",
+  "state": "FAIL_LOCAL_OUTPUT_REJECTION_SERVER_EXIT",
+  "load_seconds": 300,
+  "product_changed": false,
+  "windows_same_pid": 4028,
+  "windows_running_observations": 61,
+  "windows_failed_wakes": 9,
+  "windows_successful_recoveries": 0,
+  "server_initial_pid": 440819,
+  "first_exit_local": "2026-10-05 22:41:26+08:00",
+  "error": "operation not permitted",
+  "restart_limit_local": "2026-10-05 22:41:49+08:00",
+  "fault_mechanism": "iptables OUTPUT DROP",
+  "direction": "server-to-client TCP source443",
+  "fault_drops": 25,
+  "fault_dropped_bytes": 1072,
+  "actual_fault_events": [
+    {
+      "enabled": true,
+      "unix_ns": 1791211273342010749,
+      "direction": "server-to-client",
+      "port": 443
+    },
+    {
+      "enabled": false,
+      "unix_ns": 1791211331739421880,
+      "direction": "server-to-client",
+      "counters": "Chain WBD_WAKE_1410 (1 references)\n    pkts      bytes target     prot opt in     out     source               destination         \n      25     1072 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0           \n"
+    }
+  ],
+  "independent_target_receipt": "MISSING_SERVER_PID_EXIT",
+  "resource_receipt": "MISSING_SERVER_PID_EXIT",
+  "performance": "NOT_QUALIFIED",
+  "p99": "NOT_EVALUATED",
+  "cleanup": {
+    "fault_chain_absent": true,
+    "output_jump_absent": true,
+    "server_active": true
+  },
+  "interpretation": "Local raw send rejection, not qualified simulation of WAN packet loss. Exact fatal call unknown in old bare error; initial SYNACK/association retry path can propagate emitter error to shared Run. Do not infer network-loss recovery or CPU/FEC cause.",
+  "kernel_reference": "https://github.com/torvalds/linux/blob/v5.4/net/netfilter/core.c",
+  "next": "Qualify tc flower egress drop fixture with raw send success, actual drop counters and narrow ownership in Actions, then same product fresh native sample.",
+  "raw_metadata_hashes": {
+    "client-diagnostic.jsonl": "3d9015555acaf0e5dbda12a33c77d06364c6dd08252cc3808b11278e4e747754",
+    "fixture-cleanup.json": "2f99880d49673ca8fdc94860e582ef5f7f4d769e5cf62bbb8f033209c782faec",
+    "missing-receipts.json": "ffa808f1854a38b3e4c2f9f30781e83edb11e5b9e1a01864afd376b73cc47620",
+    "server-systemd-failure-journal.json": "8d466cf651a8c139f560a2e2e2910e4e562cdbd833511c3e362510cc9cf66897",
+    "trigger-timeline.json": "b3f77492179c8b943c802d553fc5d0f6643e05ffea838ed2e4903b919c7fba81",
+    "wake-blackhole-events.json": "d9df1a0aab4a2fe9019852e4b7e1075bcc75ff087a22135ecb3839dc16de5074"
+  }
+}
