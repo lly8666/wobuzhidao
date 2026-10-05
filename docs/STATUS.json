@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "Deployed SOURCE660 core/race/config70/long2 PASS; Game5305 paired p99 FAIL retained; native M01 PASS, M03 maximumUDP FAIL twice, S19 repeat lifecycle PASS but downlink1.6437% loss. New WAN neighbor diagnostic pending Actions; no product changes.",
-  "updated_at": "2026-10-05T15:12:37.622041+08:00",
+  "qualification_scope": "Deployed candidate273: core/race/lifecycle/unit/GUI/Linuxserver/P6 + five independent target performance samples PASS, p95/p99 pairs PASS. Native S19 improves wake loss but remaining cold-start delivery gap retained. Full70/18/long gates NOT inherited from660; raw send tail and old maxUDP failures unresolved.",
+  "updated_at": "2026-10-05T15:30:18.923430+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -83,8 +83,8 @@
     "Localize and fix reproducible client upstream p99 stall; preserve throughput/no-HOL and exact failed samples",
     "Continue native S20/S19 boundary attribution after observer Actions PASS, then MTU sequence diagnosis and remaining matrix"
   ],
-  "next_task": "Qualify qualified-sibling egress candidate via core/race/lifecycle and new subset delivery regression;then independent lossless/5205 Normal+Game and Game5305/lossless seed1382 pairs without profile before deployment. Analyze product660 neighbor dynamic/permanent diagnostics and M03seed1398 missing-sequence sample. Retain old automatic-lease wake failure; new server exit context must identify cause. No buffer/FEC/4096 growth,no fresh drop,no HOL.",
-  "latest_log": "docs/devlog/20261005-151237-egress-core-pass-maxudp-clean-repeat.md",
+  "next_task": "Keep qualified-egress repair; repeat physical S19 with independent seed on SOURCE273 to verify per-wake early-loss improvement, then S18 second seed and remaining DNS/IP/native weaknet matrix. Raw send tail still requires actual failed-window neighbors/kernel send evidence; do not claim ARP root or blind add queue/nonblocking fresh drops. Old maximumUDP missing1x2 not erased by clean1398; retain sequence diagnostic. SOURCE273 full70/18/1800s not inherited. Every performance Action one sample; no buffer/FEC/4096 growth/no HOL.",
+  "latest_log": "docs/devlog/20261005-153018-qualified-egress-native-verification.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -7562,7 +7562,7 @@
   },
   "physical_current": {
     "source": "660b370815603c50d38b92229abdec13ca77e1b1",
-    "state": "S19_PARTIAL_BACKGROUND_INPUT_UNATTRIBUTED",
+    "state": "273_QUALIFIED_EGRESS_NATIVE_REPAIR_SCOPE_NOT_FULL_ACCEPTANCE",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
       "M01 seed1364",
@@ -7694,10 +7694,17 @@
         "status": "PASS_THIS_SAMPLE_OLD_FAILURES_UNRESOLVED",
         "source": "660b370815603c50d38b92229abdec13ca77e1b1",
         "evidence": "docs/evidence/native-maxudp-repeat-660b370-20261005.json"
+      },
+      {
+        "case": "s19-current-300s-seed1403",
+        "status": "LIFECYCLE_PASS_COLD_START_LOSS_RETAINED",
+        "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+        "evidence": "docs/evidence/qualified-egress-native-2737415-20261005.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
-    "fixture_invalid_latest": "seed1397 SSH masters expired before workload;not product sample,not counted. Operational scp now BatchMode/ConnectTimeout."
+    "fixture_invalid_latest": "seed1397 SSH masters expired before workload;not product sample,not counted. Operational scp now BatchMode/ConnectTimeout.",
+    "deployed_source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a"
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -7751,7 +7758,7 @@
       "S19",
       "S20"
     ],
-    "full300s_samples": 23,
+    "full300s_samples": 24,
     "case_ids_total": 43,
     "case_ids_not_run": 32,
     "complete_qualification": false,
@@ -7984,15 +7991,15 @@
     "p99": "NOT_EVALUATED"
   },
   "qualified_sibling_egress": {
-    "state": "CORE_RACE_LIFECYCLE_PASS_PERFORMANCE_RUNNING",
+    "state": "ACTIONS_TARGETED_PASS_NATIVE_WAKE_LOSS_REDUCED",
     "parent": "9408b1261059cc40d8e8c816d339833a15ad4d4e",
-    "deployed_product": "660b370815603c50d38b92229abdec13ca77e1b1",
+    "deployed_product": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
     "scope": "server return path uses qualified lane mask selected under generation fence;missing siblings do not block eligible peer or encode a copy",
     "full_lifecycle_qualification_unchanged": true,
     "added_queue": false,
     "waiting": false,
     "parameters_changed": false,
-    "performance": "NOT_YET_EVALUATED;profileOFF/dynamic neighbors",
+    "performance": "PASS_TARGETED_NOT_FULL18",
     "failed_parent": "022a6be425aae0b76e288f7324a7b49a8f81521d",
     "failure_reason": "linuxserver Owner interface omitted new GameOutboundOnLanes method;no candidate deployment/performance",
     "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
@@ -8009,7 +8016,18 @@
       37276207990,
       37276211573,
       37276215678
-    ]
+    ],
+    "performance_evidence": "docs/evidence/qualified-egress-performance-2737415-20261005.json",
+    "native_evidence": "docs/evidence/qualified-egress-native-2737415-20261005.json",
+    "native_quality": {
+      "old_source": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "old_case": "s19-current-300s-seed1396",
+      "old_downlink_loss_percent": 1.6437187699389288,
+      "new_downlink_loss_percent": 0.5567392508060931,
+      "relative_reduction_percent": 66.12928799086608,
+      "not_p99_measurement": true,
+      "remaining_cause": "Loss during first eligible lane establishment remains; no new return buffering/waiting added. No claim all remaining loss precisely attributed from aggregate alone."
+    }
   },
   "shared_credentials_dormant_failure": {
     "state": "REPRODUCED_CAUSE_PENDING",

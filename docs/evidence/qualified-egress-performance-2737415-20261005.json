@@ -1,0 +1,364 @@
+{
+  "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+  "state": "PASS_TARGETED",
+  "pending": [],
+  "samples": [
+    {
+      "run": 37276200727,
+      "name": "strict-normal-lossless-seed1401-rate10-lanes1",
+      "conclusion": "success",
+      "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 44.98,
+        "server": 44.74
+      },
+      "min_goodput": 9.999573333333334,
+      "latency": {
+        "post": {
+          "p95_ns": 605422349,
+          "p99_ns": 607065298,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 607887222,
+          "p99_ns": 612558405,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 606583244,
+          "p99_ns": 608001831,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37276204380,
+      "name": "strict-normal-5205-seed1401-rate10-lanes1",
+      "conclusion": "success",
+      "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 89.48,
+        "server": 90.53
+      },
+      "min_goodput": 9.996753066666667,
+      "latency": {
+        "post": {
+          "p95_ns": 611399373,
+          "p99_ns": 611762148,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 612720758,
+          "p99_ns": 618741929,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 615464048,
+          "p99_ns": 619676426,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37276207990,
+      "name": "strict-game-lossless-seed1382-rate3-lanes4",
+      "conclusion": "success",
+      "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 79.07,
+        "server": 75.92
+      },
+      "min_goodput": 2.9999573333333336,
+      "latency": {
+        "post": {
+          "p95_ns": 601664780,
+          "p99_ns": 601789549,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 601774079,
+          "p99_ns": 602550346,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 601813212,
+          "p99_ns": 602217084,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37276211573,
+      "name": "strict-game-5205-seed1382-rate3-lanes4",
+      "conclusion": "success",
+      "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 100.27,
+        "server": 94.58
+      },
+      "min_goodput": 2.999872,
+      "latency": {
+        "post": {
+          "p95_ns": 604281492,
+          "p99_ns": 604997181,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 605027384,
+          "p99_ns": 605415597,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 602749188,
+          "p99_ns": 603026988,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37276215678,
+      "name": "strict-game-5305-seed1382-rate3-lanes4",
+      "conclusion": "success",
+      "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 68.22,
+        "server": 63.81
+      },
+      "min_goodput": 2.9990783999999997,
+      "latency": {
+        "post": {
+          "p95_ns": 605917924,
+          "p99_ns": 607904162,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 604256543,
+          "p99_ns": 604335414,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 603980447,
+          "p99_ns": 604107377,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "run": 37276204380,
+      "baseline": 37276200727,
+      "stage": "pre",
+      "percentile": "p95_ns",
+      "delta_ms": 4.833536,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276204380,
+      "baseline": 37276200727,
+      "stage": "pre",
+      "percentile": "p99_ns",
+      "delta_ms": 6.183524,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276204380,
+      "baseline": 37276200727,
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 8.880804,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276204380,
+      "baseline": 37276200727,
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 11.674595,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276204380,
+      "baseline": 37276200727,
+      "stage": "post",
+      "percentile": "p95_ns",
+      "delta_ms": 5.977024,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276204380,
+      "baseline": 37276200727,
+      "stage": "post",
+      "percentile": "p99_ns",
+      "delta_ms": 4.69685,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276211573,
+      "baseline": 37276207990,
+      "stage": "pre",
+      "percentile": "p95_ns",
+      "delta_ms": 3.253305,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276211573,
+      "baseline": 37276207990,
+      "stage": "pre",
+      "percentile": "p99_ns",
+      "delta_ms": 2.865251,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276211573,
+      "baseline": 37276207990,
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 0.935976,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276211573,
+      "baseline": 37276207990,
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 0.809904,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276211573,
+      "baseline": 37276207990,
+      "stage": "post",
+      "percentile": "p95_ns",
+      "delta_ms": 2.616712,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276211573,
+      "baseline": 37276207990,
+      "stage": "post",
+      "percentile": "p99_ns",
+      "delta_ms": 3.207632,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276215678,
+      "baseline": 37276207990,
+      "stage": "pre",
+      "percentile": "p95_ns",
+      "delta_ms": 2.482464,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276215678,
+      "baseline": 37276207990,
+      "stage": "pre",
+      "percentile": "p99_ns",
+      "delta_ms": 1.785068,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276215678,
+      "baseline": 37276207990,
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 2.167235,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276215678,
+      "baseline": 37276207990,
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 1.890293,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276215678,
+      "baseline": 37276207990,
+      "stage": "post",
+      "percentile": "p95_ns",
+      "delta_ms": 4.253144,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37276215678,
+      "baseline": 37276207990,
+      "stage": "post",
+      "percentile": "p99_ns",
+      "delta_ms": 6.114613,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    }
+  ],
+  "full18_qualification": false,
+  "one_sample_per_action": true,
+  "profile": false
+}

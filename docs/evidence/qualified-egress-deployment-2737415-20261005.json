@@ -1,0 +1,22 @@
+{
+  "source_sha": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+  "qualification_runs": [
+    "37275839495",
+    "37275839507",
+    "37275839449",
+    "37275839509",
+    "37275839467",
+    "37276468543",
+    "37276200727",
+    "37276204380",
+    "37276207990",
+    "37276211573",
+    "37276215678"
+  ],
+  "windows_zip_sha256": "16b88a42d403b9c28f20da631a4c1eef106498b773205dd1bc60e53dc7159877",
+  "windows_bundle": "WBD-P7-2737415/windows-portable",
+  "server_stage": "/opt/wbd/p7-candidates/2737415",
+  "server_config_preserved": true,
+  "npcap_not_reinstalled": true,
+  "rollback_source": "660b370"
+}
