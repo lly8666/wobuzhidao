@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-05当前：已部署SOURCE2737415，qualified sibling回程修复core/race/五独立性能与三Game5305复测PASS，native S19改善可重复。当前候选只修Windows Dormant业务唤醒失败被致命退出的问题，源码/性能/P6未验，不能部署或继承273/660资格；实时证据与下一项看STATUS。原生26完整样本/11工况，32工况未跑；剩余Normal唤醒上行损失、旧p99与最大UDP间歇缺包保留，不能猜VM/ARP/FEC根因。每性能Action一条。
+2026-10-05当前：产品实机仍2737415；Windows失败Wake候选SOURCE2bf正确性/race/36生命周期+aggregate37job/P6全部PASS，四条性能PASS，Normal5205两次输入skips30–36使整体未过门，不能部署。当前只修测试发包器忙等为绝对deadline sleep，product继续固定2bf，新helper五条含匹配无损基线待Actions；不改跳槽/吞吐/p99门或产品FEC/4096/buffer。先STATUS/latest_log。原生26样本/11工况/32NOT_RUN与旧损失/尾延迟证据保留。每性能Action一条。
 
 当前入口以STATUS为准：3e3e094配套包已过Actions定向门并实机D01完整300s，长时间双向中断未再现，但下行8.90%字节损失、208探针超时仍FAIL。S16 rotation独立实机运行；先验最新默认off Windows收包诊断补丁，定位最早下行损失边界再窄修，随后继续DNS/分流/MTU矩阵。旧6181四项保留历史，不继承为最新SOURCE。
 

@@ -214,8 +214,12 @@ def wait_until(target_ns):
         remaining = target_ns - now
         if remaining <= 0:
             return now
-        if remaining > 1_000_000:
-            time.sleep((remaining - 500_000) / 1e9)
+        # An absolute deadline prevents pacing drift. Release the GIL while
+        # waiting so the paired receiver can run; spinning the final 0.5-1ms
+        # of every slot otherwise consumes almost a core at the 10Mbps PPS.
+        # Oversleep is still measured by run_sender and uses its unchanged
+        # 10ms skip rule, rather than backdating timestamps or hiding slots.
+        time.sleep(remaining / 1e9)
 
 
 def run_sender(sock, peer_getter, kind, rate_mbps, seed, stats, stop_event):
@@ -347,6 +351,7 @@ def probe_loop(sock, peer, start_ns, duration_s, seed, stats, stop_event, interv
 
 
 def main():
+    process_cpu_start = time.process_time()
     ap = argparse.ArgumentParser()
     ap.add_argument("--role", choices=("biz", "target"), required=True)
     ap.add_argument("--bind", required=True)
@@ -420,6 +425,8 @@ def main():
 
     result = {
         "schema": 1,
+        "pacing_mode": "absolute-deadline-sleep-v1",
+        "generator_process_cpu_seconds": time.process_time() - process_cpu_start,
         "role": args.role,
         "bind": args.bind,
         "peer": args.peer,

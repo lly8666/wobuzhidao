@@ -1,0 +1,346 @@
+{
+  "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+  "state": "CORE_LIFECYCLE_PACKAGE_PASS_PERFORMANCE_INPUT_FAIL",
+  "fullstack_run": 37317799989,
+  "fullstack_jobs": 37,
+  "fullstack_samples": 36,
+  "aggregate_artifact": 11349087624,
+  "correctness_runs": [
+    37317800084,
+    37317799945,
+    37317799990,
+    37317799991,
+    37317800003,
+    37317799972,
+    37317799973
+  ],
+  "p6_run": 37318647769,
+  "samples": [
+    {
+      "run": 37318478665,
+      "name": "strict-normal-lossless-seed1401-rate10-lanes1",
+      "conclusion": "success",
+      "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 47.11,
+        "server": 46.96
+      },
+      "min_goodput": 9.999573333333334,
+      "latency": {
+        "post": {
+          "p95_ns": 608783051,
+          "p99_ns": 609506379,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 608068328,
+          "p99_ns": 612688124,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 606679026,
+          "p99_ns": 609489762,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37318484867,
+      "name": "strict-normal-5205-seed1401-rate10-lanes1",
+      "conclusion": "failure",
+      "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "FAIL",
+        "PERFORMANCE": "CAPACITY_LIMITED"
+      },
+      "cpu": {
+        "client": 89.38,
+        "server": 90.53
+      },
+      "min_goodput": 9.996113066666666,
+      "latency": {
+        "post": {
+          "p95_ns": 614446145,
+          "p99_ns": 616416090,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 614332328,
+          "p99_ns": 616810375,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 618462899,
+          "p99_ns": 621847950,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37318490107,
+      "name": "strict-game-lossless-seed1382-rate3-lanes4",
+      "conclusion": "success",
+      "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 79.01,
+        "server": 76.16
+      },
+      "min_goodput": 2.999872,
+      "latency": {
+        "post": {
+          "p95_ns": 605604975,
+          "p99_ns": 605637491,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 603439343,
+          "p99_ns": 604677725,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 603246191,
+          "p99_ns": 604314253,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37318496341,
+      "name": "strict-game-5205-seed1382-rate3-lanes4",
+      "conclusion": "success",
+      "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 101.27,
+        "server": 96.08
+      },
+      "min_goodput": 2.999552,
+      "latency": {
+        "post": {
+          "p95_ns": 616558383,
+          "p99_ns": 622497542,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 618366866,
+          "p99_ns": 620248636,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 614393906,
+          "p99_ns": 615236428,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37318501893,
+      "name": "strict-game-5305-seed1382-rate3-lanes4",
+      "conclusion": "success",
+      "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 92.91,
+        "server": 88.35
+      },
+      "min_goodput": 2.999552,
+      "latency": {
+        "post": {
+          "p95_ns": 606178220,
+          "p99_ns": 609080058,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 609260795,
+          "p99_ns": 609627165,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 603093848,
+          "p99_ns": 604324727,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37320066022,
+      "name": "strict-normal-5205-seed1401-rate10-lanes1",
+      "conclusion": "failure",
+      "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "FAIL",
+        "PERFORMANCE": "CAPACITY_LIMITED"
+      },
+      "cpu": {
+        "client": 81.11,
+        "server": 81.26
+      },
+      "min_goodput": 9.995285333333333,
+      "latency": {
+        "post": {
+          "p95_ns": 615226265,
+          "p99_ns": 620235504,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 616029889,
+          "p99_ns": 617682188,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 615429055,
+          "p99_ns": 617405772,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    }
+  ],
+  "failures": [
+    {
+      "run": 37318484867,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [
+          "s2c skipped_slots=34"
+        ],
+        "performance": []
+      },
+      "generators": {
+        "c2s": {
+          "sent_packets": 296030,
+          "skipped_slots": 23,
+          "skipped_bytes": 12096,
+          "send_failures": 0,
+          "send_lag_p99_ns": 1155704,
+          "skipped_slots_ppm": 77.68879220950302,
+          "skip_seconds": [
+            {
+              "second": 76,
+              "count": 23
+            }
+          ]
+        },
+        "s2c": {
+          "sent_packets": 296020,
+          "skipped_slots": 34,
+          "skipped_bytes": 16976,
+          "send_failures": 0,
+          "send_lag_p99_ns": 1205712,
+          "skipped_slots_ppm": 114.84391361035486,
+          "skip_seconds": [
+            {
+              "second": 112,
+              "count": 34
+            }
+          ]
+        }
+      },
+      "socket_drop_max": 0,
+      "performance_errors": []
+    },
+    {
+      "run": 37320066022,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [
+          "c2s skipped_slots=30",
+          "s2c skipped_slots=36"
+        ],
+        "performance": []
+      },
+      "generators": {
+        "c2s": {
+          "sent_packets": 296024,
+          "skipped_slots": 30,
+          "skipped_bytes": 15200,
+          "send_failures": 0,
+          "send_lag_p99_ns": 1118405,
+          "skipped_slots_ppm": 101.33286495031311,
+          "skip_seconds": [
+            {
+              "second": 76,
+              "count": 30
+            }
+          ]
+        },
+        "s2c": {
+          "sent_packets": 296018,
+          "skipped_slots": 36,
+          "skipped_bytes": 18240,
+          "send_failures": 0,
+          "send_lag_p99_ns": 1116558,
+          "skipped_slots_ppm": 121.59943794037575,
+          "skip_seconds": [
+            {
+              "second": 112,
+              "count": 36
+            }
+          ]
+        }
+      },
+      "socket_drop_max": 0,
+      "performance_errors": []
+    }
+  ],
+  "all_18_selected_pair_percentiles_pass": true,
+  "pair_p95_limit_ms": 200,
+  "pair_p99_limit_ms": 500,
+  "not_deployed": true,
+  "deployed_source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+  "hypothesis": "Audit: final0.5-1ms busy loop in each pacing slot retains GIL and consumes generator CPU; compatible with input skips but not proof it is the sole host cause.",
+  "next_step": "Change only helper waiting to absolute deadline sleep; retain skip10ms/input100ppm/lag10ms gates and exact2bf product; all5 fresh helper samples with fresh matched baselines."
+}

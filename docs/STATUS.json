@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "Deployed SOURCE273 scoped core/race/lifecycle-unit/GUI/Linuxserver/P6 and target performance PASS, plus3 independent Game5305 repeats and native S19 repeat/S18. Full18/70/1800s not inherited. Windows failed-business-wake candidate in this commit is NOT_RUN/NOT_DEPLOYED; native uplink wake loss and old raw tail/maxUDP remain open.",
-  "updated_at": "2026-10-05T21:33:48.393435+08:00",
+  "qualification_scope": "SOURCE2bf core/race/lifecycle36+aggregate/GUI/Linuxserver/P6 PASS; four target samples PASS, Normal5205 twice INPUT_FAIL (30-36 skipped slots), no product drop/performance error. New helper absolute pacing pending; deployed273 unchanged, full70/18/1800s/native not inherited.",
+  "updated_at": "2026-10-05T22:02:20.215880+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,13 +80,13 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Qualify Windows failed-business-wake nonterminal handling on exact candidate SOURCE, then independent performance and package before native blackhole",
-    "Attribute Normal native uplink wake loss; fixture UDP drop0 disproves receiver-buffer overflow hypothesis",
-    "Retain intermittent raw send p99 failure and old maxUDP missing-packet evidence until failure-window attribution"
+    "Actions qualification of absolute generator pacing, product2bf unchanged and not deployed",
+    "Windows failed-business-Wake native blackhole pending performance gate",
+    "Normal native uplink Wake loss and old raw p99/maxUDP attribution retained"
   ],
-  "next_task": "Freeze the Windows business-wake candidate in this commit; inspect Actions foundation/targeted/race/lifecycle/GUI and new1/4lane failed-wake/backoff/recovery tests, repair only actual failures. Then independent Normal/Game5205 and matched Game5305/lossless, P6 exact-source packages, native Windows Dormant+temporary blackhole recovery without process exit. Do not inherit273 qualification for the candidate. Native26 full samples/11case IDs/32NOT_RUN; Normal wake uplink loss remains unexplained (fixture UDPdrop0). Old raw tail/maxUDP/lease failures retained. Every performance Action one sample; no HOL/buffer/FEC/4096 growth.",
-  "latest_log": "docs/devlog/20261005-213348-wake-backoff-test-accounting.md",
-  "last_tested_source_sha": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+  "next_task": "Validate absolute-deadline-sleep generator helper in Actions, then5 independent performance samples using exact product2bf and same fresh helper matched baselines; preserve both old Normal5205 INPUT_FAIL attempts and all input/p95/p99 thresholds. Only after PASS deploy2bf packages and run300s Windows failed-Wake443 one-way blackhole with same PID/lease/backoff/clear-path recovery/cleanup proof. No blind re-run, no buffer/FEC/4096 or HOL changes;32native cases stillNOT_RUN.",
+  "latest_log": "docs/devlog/20261005-220220-absolute-generator-pacing.md",
+  "last_tested_source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -8081,8 +8081,8 @@
     "old_failure_cause_unresolved": true
   },
   "business_wake_failure": {
-    "state": "IMPLEMENTED_PENDING_ACTIONS",
-    "candidate_source": "commit containing latest_log; product behavior same98, test boundary and race selector corrected",
+    "state": "CORE_PASS_PERFORMANCE_INPUT_FAIL_NATIVE_NOT_RUN",
+    "candidate_source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
     "deployed_source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
     "scope": "Only pre-emission failed business wake/backoff keeps Windows TUN reader alive; binding change/shutdown/actual wire failures remain terminal",
     "fresh_packet_replayed": false,
@@ -8129,6 +8129,20 @@
     "performance_repeats": "docs/evidence/current-game5305-repeats-2737415-20261005.json",
     "normal_uplink_loss_unresolved": true,
     "failed_parent": "98c5af1d9e2c00049c3547f9f990fe3b497ca916",
-    "failed_parent_evidence": "docs/evidence/wake-retry-test-accounting-98c5af1-20261005.json"
+    "failed_parent_evidence": "docs/evidence/wake-retry-test-accounting-98c5af1-20261005.json",
+    "core_evidence": "docs/evidence/wake-retry-2bf85a1-input-pressure-20261005.json",
+    "fullstack_run": 37317799989,
+    "p6_run": 37318647769,
+    "performance_state": "INPUT_FAIL_2_NORMAL5205_ATTEMPTS",
+    "native_state": "NOT_RUN"
+  },
+  "strict_generator_pacing": {
+    "state": "IMPLEMENTED_PENDING_ACTIONS",
+    "helper_sha": "commit containing latest_log",
+    "product_source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+    "scope": "absolute sleep, no injection/skip/validator/packet/target change",
+    "evidence": "docs/evidence/wake-retry-2bf85a1-input-pressure-20261005.json",
+    "sample_count": 5,
+    "one_sample_per_action": true
   }
 }
