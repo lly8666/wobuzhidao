@@ -21,7 +21,7 @@
 
 ## 当前性能主线（2026-09-23）
 
-2026-10-05当前：产品SOURCE660b370配套部署；同源70配置PASS、18独立样本五分类PASS，但严格配对Game5305/seed1382 p99增加712ms超过500ms门，整体仍FAIL。Normal/Game各1800s独立长测PASS，最差阶段吞吐9.99899/2.999872M、阶段p99最高621.13/604.47ms；不能抵消短测尾延迟失败。原生M01完整PASS；M03两份最大UDP各缺1回包；S18双方两次Dormant释放和generation1→2→3/lease稳定通过，非零损失及延迟未验保留。HEAD919 helper基础/targeted因漏改STATUS契约FAIL，Go未跑，本提交补齐；未把它当产品回归。下一按STATUS查p99、验helper再S19/S20及其余DNS/IP/FEC/config。每性能Action一条，吞吐/p99硬门不降。
+2026-10-05当前（下文为历史）：部署SOURCE660b370，同源70配置与两1800s长测PASS，但Game5305/seed1382配对p99仍FAIL；773诊断再次超门，已定位上行1571ms/回包0.03ms/下行300ms。60ec42e core/race/租约race重复10次/helpers PASS，第一profile只有健康sample，raw send锁竞争突出但尚不能宣布根因；第二独立诊断进行中，profile不算普通性能资格。原生S20纯下行300s约3M/损失0、双方generation1且client业务计数270s不增、owned退出清理通过，p99未测；observer有1条unparsed，捕获计数修正待Actions。S19背景上行归属仍PARTIAL，M03两份最大UDP各缺1回包；原生21完整样本/11工况，32工况NOT_RUN，来源混合不能继承。按STATUS.next_task与最新日志继续，不扩大FEC/4096/buffer、不恢复HOL，不降低吞吐/p99门；每性能Action一条。
 
 2026-10-05最新：24ff的D01独立seed1351/1352均完整300s双向近10M、driver/user overflow0、探针全回；上行少量损失及server raw drop保留，不能写全链路无损PASS。S16 seed1353正在同源复验rotation。新候选修复Wintun65535与合法lease包9000不一致、坏本地输入导致整client退出：内层MTU9000与外层预算分开，Apply实效/owned原值恢复，拒绝包在wire前计数、正常包无新计数，runtime/wire错误不吞。候选未过Actions前不部署；先STATUS.windows_tun_mtu_boundary与092400日志，再M01/M03。每性能Action只一条。
 

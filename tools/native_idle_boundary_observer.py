@@ -28,6 +28,24 @@ def parse_event(line):
             "transport": match[6].upper()}
 
 
+def capture_metadata(text, error):
+    raw_lines = text.splitlines()
+    # tcpdump can emit a final blank stdout line on SIGINT. It is not a
+    # captured frame; compare against tcpdump's independent frame count.
+    lines = [line for line in raw_lines if line.strip()]
+    events = [event for line in lines if (event := parse_event(line)) is not None]
+    captured = re.search(r"(\d+) packets captured", error)
+    dropped = re.search(r"(\d+) packets dropped by kernel", error)
+    count = int(captured[1]) if captured else None
+    drops = int(dropped[1]) if dropped else None
+    return dict(events=events, filtered_frames=len(lines), blank_lines=len(raw_lines)-len(lines),
+                captured_frames=count, unparsed_frames=len(lines)-len(events),
+                cap_reached=count is not None and count >= MAX_FRAMES,
+                observer_drops=drops, capture_count_matches=count == len(lines),
+                metadata_complete=count == len(events) and drops == 0 and count < MAX_FRAMES
+                if count is not None else False)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--lease", required=True)
@@ -59,15 +77,12 @@ def main():
             text, error = process.communicate(timeout=5)
         # Never store tcpdump text or payload/question bytes, only exact numeric
         # tuples. Reaching the cap or losing capture invalidates silence proof.
-        lines = text.splitlines()
-        events = [event for line in lines if (event := parse_event(line)) is not None]
-        drops = re.search(r"(\d+) packets dropped by kernel", error)
         result = dict(lease=args.lease, start_unix_s=started, end_unix_s=time.time(),
-                      duration_bound_s=args.seconds, events=events, filtered_frames=len(lines),
-                      unparsed_frames=len(lines)-len(events), cap_reached=len(lines)>=MAX_FRAMES,
-                      observer_drops=int(drops[1]) if drops else None, tcpdump_exit=process.returncode,
+                      duration_bound_s=args.seconds, **capture_metadata(text, error),
+                      tcpdump_exit=process.returncode,
                       ended_by_timeout=timed_out, payload_stored=False, pcap_written=False,
                       excluded_fixture_udp_port=18445)
+        result['metadata_complete'] = result['metadata_complete'] and process.returncode == 0
         Path(args.output).write_text(json.dumps(result, indent=2)+"\n")
     finally:
         if process.poll() is None:
