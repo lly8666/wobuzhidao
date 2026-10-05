@@ -1,0 +1,1155 @@
+{
+  "Name": "d01-current-300s-seed1342",
+  "SourceSHA": "8f53f334c6e87fcbc09d3344f4eeab508fe59179",
+  "MeasurementStatus": "COMPLETE",
+  "Scope": "physical native WAN; no artificial loss/delay; UDP mixed-size bidirectional",
+  "Seconds": 300,
+  "RequestedMbps": 10,
+  "C2SGoodputMbps": 9.999980053333333,
+  "S2CGoodputMbps": 8.566913706666668,
+  "C2SByteLossPercent": 0,
+  "S2CByteLossPercent": 14.330692051620408,
+  "ClientOfferedMbps": 9.999980053333333,
+  "ServerOfferedMbps": 9.999980053333333,
+  "NoPcap": true,
+  "SummaryRetrieval": "PASS",
+  "client": {
+    "TxPackets": 579419,
+    "TxBytes": 374999252,
+    "RxPackets": 507453,
+    "RxBytes": 321259264,
+    "DuplicatePackets": 0,
+    "BadPayload": 0,
+    "ReorderedPackets": 96641,
+    "MaxSendLagMs": 17.825299999984168,
+    "ProbeP95Ms": 666.119,
+    "ProbeP99Ms": 678.1925,
+    "WBDCPUSeconds": 339.140625,
+    "HelperCPUSeconds": 19.59375,
+    "ProbeCount": 2762,
+    "ProbeSent": 2980,
+    "Seconds": 300,
+    "RequestedMbps": 10,
+    "SummaryReceived": true,
+    "NoPcap": true,
+    "LiveSnapshotWriteErrors": 6,
+    "CompletedSendWindow": true,
+    "ActualSendSeconds": 300.0022945,
+    "SendSocketError": 0,
+    "ReceiveSocketErrors": 0,
+    "SendErrorStage": null
+  },
+  "server": {
+    "RxPackets": 579419,
+    "RxBytes": 374999252,
+    "DuplicatePackets": 0,
+    "BadPayload": 0,
+    "ReorderedPackets": 11,
+    "TxPackets": 579419,
+    "TxBytes": 374999252,
+    "MaxSendLagMs": 22.56112407854971,
+    "Result": "MEASURED",
+    "Seed": 1342,
+    "Seconds": 300,
+    "RequestedMbps": 10,
+    "PeerIPv4": "10.66.116.190",
+    "WBDCPUSeconds": 172.59,
+    "HelperCPUSeconds": 34.78974248,
+    "EffectiveTargetReceiveBuffer": 425984,
+    "PayloadSizes": [
+      96,
+      256,
+      512,
+      1000,
+      1372
+    ],
+    "NoPcap": true
+  },
+  "client_final_diagnostic": {
+    "schema": 1,
+    "unix_ns": 1791161035426675400,
+    "runtime": {
+      "num_cpu": 8,
+      "gomaxprocs": 8,
+      "goroutines": 12,
+      "heap_alloc": 25035256,
+      "heap_inuse": 28090368,
+      "heap_objects": 84301,
+      "total_alloc": 14241276864,
+      "mallocs": 50357360,
+      "frees": 50273059,
+      "next_gc": 29449904,
+      "num_gc": 1331,
+      "pause_total_ns": 210309100,
+      "gc_cpu_fraction": 0.0016717767494924423
+    },
+    "product": {
+      "lifecycle": {
+        "RecoveryAttempts": 0,
+        "RecoverySucceeded": 0,
+        "RecoveryFailed": 0,
+        "RetryableErrors": 0,
+        "LastError": "",
+        "NextRetry": "0001-01-01T00:00:00Z"
+      },
+      "config": {
+        "keepalive_interval": "15s",
+        "dead_after": "1m30s",
+        "reconnect_min": "1s",
+        "reconnect_max": "30s",
+        "dormant_after": "0s",
+        "rotate_min": "0s",
+        "rotate_max": "0s",
+        "replacement_grace": "3s"
+      },
+      "lease4": "10.66.116.190/32",
+      "tunnel_id": [
+        150,
+        50,
+        246,
+        127,
+        227,
+        16,
+        248,
+        116,
+        1,
+        213,
+        146,
+        134,
+        8,
+        25,
+        171,
+        31
+      ],
+      "owner": {
+        "DesiredLanes": 1,
+        "BusinessFlows": 0,
+        "ActiveLogicalLanes": 1,
+        "Candidates": 0,
+        "Retiring": 0,
+        "PhysicalLanes": 1,
+        "GenerationDiscards": 0,
+        "SourceDiscards": 0,
+        "GameLogicalOutbound": 0,
+        "GameLogicalOutboundBytes": 0,
+        "GameLaneCopies": 0,
+        "GameLaneCopyBytes": 0,
+        "GameDelivered": 0,
+        "GameDuplicates": 0,
+        "GameStale": 0,
+        "GameLaneMismatches": 0,
+        "Padding": {
+          "Enabled": false,
+          "TLSStartupOnly": false,
+          "StartupTracked": 0,
+          "StartupDetected": 0,
+          "StartupCapacitySkips": 0,
+          "StartupRejected": 0,
+          "StartupBudgetSkips": 0,
+          "BytesPerRecord": 0,
+          "MaxPaddingBytes": 0,
+          "MaxPaddingRatioPPM": 0,
+          "LogicalPayloads": 0,
+          "UsefulPayloadBytes": 0,
+          "RecordRequests": 0,
+          "PaddedRecords": 0,
+          "PaddingBytes": 0,
+          "BudgetSkips": 0,
+          "HeadroomSkips": 0
+        },
+        "Dormant": false,
+        "Closed": false
+      },
+      "lanes": [
+        {
+          "ref": {
+            "ID": 1,
+            "Generation": 1
+          },
+          "parity_shards": 20,
+          "lane": {
+            "OutboundDatagrams": 582750,
+            "OutboundRecords": 1397266,
+            "InboundPayloads": 973907,
+            "InboundRecords": 973907,
+            "DeliveredDatagrams": 510485,
+            "RecordErrors": 0,
+            "PathErrors": 0,
+            "LastPathError": "",
+            "ExpireCalls": 3376,
+            "TimingEnabled": false,
+            "InboundTimingSamples": 0,
+            "InboundLockWaitNS": 0,
+            "InboundLockWaitMaxNS": 0,
+            "InboundDecodeNS": 0,
+            "InboundDecodeMaxNS": 0,
+            "ExpireNS": 0,
+            "ExpireMaxNS": 0,
+            "PaddingRequests": 0,
+            "RequestedPaddingBytes": 0,
+            "PaddedRecords": 0,
+            "PaddingBytes": 0,
+            "PaddingBudgetSkips": 0,
+            "PaddingRejected": 0,
+            "Decoder": {
+              "Delivered": 973907,
+              "Failed": 0,
+              "Duplicates": 0,
+              "Evictions": 908371,
+              "Late": 90023
+            },
+            "TxPath": {
+              "FECEnabled": true,
+              "ParityShards": 20,
+              "Encoder": {
+                "source_shards": 698633,
+                "source_bytes": 435120513,
+                "parity_shards": 698633,
+                "parity_bytes": 524045180,
+                "full_blocks": 29915,
+                "partial_blocks": 6060,
+                "pending_sources": 0,
+                "size_classes": 3
+              },
+              "Decoder": {
+                "in_flight": 0,
+                "max_blocks": 8,
+                "retired": 0,
+                "reconstruction_events": 0,
+                "recovered_sources": 0,
+                "pressure_retirements": 0
+              },
+              "Recovery": {
+                "HorizonMillis": 3000,
+                "PendingDeadlines": 0,
+                "ExpireEvents": 0,
+                "ExpiredIncomplete": 0,
+                "ExpiredMissingSources": 0
+              },
+              "Reassembly": {
+                "Assemblies": 0,
+                "BufferedFragments": 0,
+                "BufferedBytes": 0,
+                "RetiredPacketIDs": 0
+              }
+            },
+            "RxPath": {
+              "FECEnabled": true,
+              "ParityShards": 20,
+              "Encoder": {
+                "source_shards": 0,
+                "source_bytes": 0,
+                "parity_shards": 0,
+                "parity_bytes": 0,
+                "full_blocks": 0,
+                "partial_blocks": 0,
+                "pending_sources": 0,
+                "size_classes": 3
+              },
+              "Decoder": {
+                "in_flight": 0,
+                "max_blocks": 8,
+                "retired": 8124,
+                "reconstruction_events": 22130,
+                "recovered_sources": 116813,
+                "pressure_retirements": 8120
+              },
+              "Recovery": {
+                "HorizonMillis": 3000,
+                "PendingDeadlines": 0,
+                "ExpireEvents": 11,
+                "ExpiredIncomplete": 11,
+                "ExpiredMissingSources": 83
+              },
+              "Reassembly": {
+                "Assemblies": 0,
+                "BufferedFragments": 0,
+                "BufferedBytes": 0,
+                "RetiredPacketIDs": 10
+              }
+            },
+            "Closed": false
+          },
+          "transport": {
+            "ACKDeferred": 31175,
+            "ACKCoalesced": 29082,
+            "ACKPiggybacked": 393,
+            "ACKTimerSent": 19,
+            "ACKTimerFailures": 0,
+            "AuthenticatedRecords": 973907,
+            "HealthSent": 23,
+            "HealthReceived": 22,
+            "LastAuthenticated": "2026-10-05T08:43:48.8013332+08:00",
+            "PressureForgiven": 37000,
+            "FreshSent": 1397289,
+            "RepairSelected": 3,
+            "RepairAttempts": 3,
+            "RepairSucceeded": 3,
+            "RepairFailures": 0,
+            "Retransmitted": 3,
+            "Acked": 1393105,
+            "SACKed": 92074,
+            "SACKRetired": 92074,
+            "Abandoned": 0,
+            "RepairEvicted": 0,
+            "RepairMetadataEvicted": 4184,
+            "RepairReserveStored": 0,
+            "RepairReserveRetired": 0,
+            "RepairReserveEvicted": 0,
+            "RepairReserveDropped": 0,
+            "RepairReserveExpired": 0,
+            "RepairReserveRepairs": 0,
+            "RepairEvictionCalls": 4184,
+            "RepairEvictionScanSteps": 4184,
+            "RepairEvictionMaxScan": 1,
+            "FreshBlocked": 0,
+            "FreshWindowBypass": 0,
+            "FreshEmitFailures": 0,
+            "FreshBatchCalls": 0,
+            "FreshBatchSent": 0,
+            "RecoveryTicks": 3376,
+            "GapForgiveChecks": 97121,
+            "GapIndexSteps": 191110,
+            "GapMetadataDropped": 0,
+            "GapExpiredForgiven": 57599,
+            "FastRepairs": 3,
+            "FastRepairEvidence": 32567,
+            "FastRepairArmed": 9858,
+            "FastRepairArmFired": 3,
+            "FastRepairArmCanceled": 9855,
+            "RTORepairs": 0,
+            "RepairDeferred": 0,
+            "RepairExpiredSkipped": 0,
+            "RepairBudgetSpent": 1832,
+            "RepairCreditBytes": 131072,
+            "Received": 973907,
+            "Duplicates": 176,
+            "LateFirstArrival": 17293,
+            "ForgivenGaps": 94599,
+            "RecordErrors": 0,
+            "PathErrors": 0,
+            "FINAttempts": 0,
+            "FINTransmits": 0,
+            "FINAcked": 0,
+            "RSTAttempts": 0,
+            "RSTSent": 0,
+            "PeakOutstanding": 4096,
+            "Outstanding": 0,
+            "OutstandingBytes": 0,
+            "RepairReservePeak": 0,
+            "RepairReserveOutstanding": 0,
+            "RepairReserveBytes": 0,
+            "OldestOutstandingAge": 0,
+            "RepairQueue": 0,
+            "SACKedOutstanding": 0,
+            "OutOfOrder": 0,
+            "OutOfOrderBytes": 0,
+            "OldestOutOfOrderAge": 0,
+            "WriteClosed": false,
+            "LocalFINAcked": false,
+            "PeerFIN": false,
+            "PeerRST": false,
+            "SRTT": 170975226,
+            "RTO": 1000000000,
+            "AdvertisedWindow": 65535,
+            "WindowScale": 8,
+            "WindowScaleSet": true,
+            "Closed": false
+          }
+        }
+      ],
+      "npcap_io": {
+        "1": {
+          "enabled": true,
+          "supported": true,
+          "generation": 1,
+          "read_packets": 2118508,
+          "read_bytes": 1129006252,
+          "write_packets": 2341143,
+          "write_bytes": 1124674778,
+          "read_gap_max_ns": 12555909200,
+          "driver_received": 2118508,
+          "driver_dropped": 0,
+          "interface_dropped": 0,
+          "stats_samples": 337,
+          "stats_errors": 0
+        }
+      },
+      "receive_queues": {
+        "1": {
+          "enabled": true,
+          "routes": [
+            {
+              "local_port": 40000,
+              "peer_port": 443,
+              "capacity": 4096,
+              "current": 0,
+              "peak": 4098,
+              "bytes": 0,
+              "bytes_peak": 2166150,
+              "full_waits": 611622,
+              "overflow_drops": 611560,
+              "overflow_bytes": 345978421,
+              "overflow_age": {
+                "samples": 611560,
+                "total_ns": 354341954840200,
+                "max_ns": 614170500,
+                "over_50us": 611560,
+                "over_1ms": 611560,
+                "over_10ms": 611560
+              },
+              "handoff_block": {
+                "samples": 2118508,
+                "total_ns": 1319450900,
+                "max_ns": 18174600,
+                "over_50us": 3578,
+                "over_1ms": 135,
+                "over_10ms": 1
+              },
+              "queue_age": {
+                "samples": 1506948,
+                "total_ns": 838606008153300,
+                "max_ns": 613683000,
+                "over_50us": 1504302,
+                "over_1ms": 1501880,
+                "over_10ms": 1488137
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "profile": {
+    "profile": "native-cpu-1342.pprof",
+    "duration_seconds": 344.8559793,
+    "sample_weight_seconds": 1123.51,
+    "interpretation": "Windows Go sampler includes blocked foreign/syscall stacks;not actual process CPU;cross-check OS process CPU separately",
+    "sample_types": [
+      {
+        "type": "samples",
+        "unit": "count"
+      },
+      {
+        "type": "cpu",
+        "unit": "nanoseconds"
+      }
+    ],
+    "flat": [
+      {
+        "function": "runtime.cgocall",
+        "flat_seconds": 986.51,
+        "cumulative_seconds": 989.73,
+        "flat_percent": 87.8060720420824,
+        "cumulative_percent": 88.09267385248017
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.xorMul",
+        "flat_seconds": 20.77,
+        "cumulative_seconds": 20.82,
+        "flat_percent": 1.84867068383904,
+        "cumulative_percent": 1.853121022509813
+      },
+      {
+        "function": "runtime.stdcall1",
+        "flat_seconds": 18.51,
+        "cumulative_seconds": 18.52,
+        "flat_percent": 1.6475153759201075,
+        "cumulative_percent": 1.6484054436542621
+      },
+      {
+        "function": "crypto/sha256.block",
+        "flat_seconds": 5.43,
+        "cumulative_seconds": 5.43,
+        "flat_percent": 0.48330677964593105,
+        "cumulative_percent": 0.48330677964593105
+      },
+      {
+        "function": "runtime.memclrNoHeapPointers",
+        "flat_seconds": 3.82,
+        "cumulative_seconds": 3.82,
+        "flat_percent": 0.34000587444704544,
+        "cumulative_percent": 0.34000587444704544
+      },
+      {
+        "function": "runtime.mapiternext",
+        "flat_seconds": 3.45,
+        "cumulative_seconds": 4.25,
+        "flat_percent": 0.3070733682833264,
+        "cumulative_percent": 0.3782787870156919
+      },
+      {
+        "function": "runtime.nextFreeFast",
+        "flat_seconds": 3.37,
+        "cumulative_seconds": 3.37,
+        "flat_percent": 0.2999528264100898,
+        "cumulative_percent": 0.2999528264100898
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastReedSolomon20x20).EncodeActive",
+        "flat_seconds": 3.02,
+        "cumulative_seconds": 22.0,
+        "flat_percent": 0.26880045571467986,
+        "cumulative_percent": 1.9581490151400522
+      },
+      {
+        "function": "runtime.memmove",
+        "flat_seconds": 2.31,
+        "cumulative_seconds": 2.31,
+        "flat_percent": 0.20560564658970548,
+        "cumulative_percent": 0.20560564658970548
+      },
+      {
+        "function": "golang.org/x/crypto/chacha20poly1305.chacha20Poly1305Seal",
+        "flat_seconds": 2.12,
+        "cumulative_seconds": 2.17,
+        "flat_percent": 0.18869435964076867,
+        "cumulative_percent": 0.19314469831154152
+      },
+      {
+        "function": "runtime.mallocgc",
+        "flat_seconds": 1.88,
+        "cumulative_seconds": 12.85,
+        "flat_percent": 0.167332734021059,
+        "cumulative_percent": 1.1437370383886214
+      },
+      {
+        "function": "golang.org/x/crypto/chacha20poly1305.chacha20Poly1305Open",
+        "flat_seconds": 1.76,
+        "cumulative_seconds": 1.77,
+        "flat_percent": 0.15665192121120416,
+        "cumulative_percent": 0.15754198894535873
+      },
+      {
+        "function": "runtime.stdcall2",
+        "flat_seconds": 1.56,
+        "cumulative_seconds": 1.56,
+        "flat_percent": 0.13885056652811278,
+        "cumulative_percent": 0.13885056652811278
+      },
+      {
+        "function": "runtime.scanobject",
+        "flat_seconds": 1.45,
+        "cumulative_seconds": 4.57,
+        "flat_percent": 0.12905982145241252,
+        "cumulative_percent": 0.4067609545086381
+      },
+      {
+        "function": "runtime.stdcall0",
+        "flat_seconds": 1.17,
+        "cumulative_seconds": 1.2,
+        "flat_percent": 0.10413792489608459,
+        "cumulative_percent": 0.1068081280985483
+      },
+      {
+        "function": "runtime.mapaccess2_fast32",
+        "flat_seconds": 1.09,
+        "cumulative_seconds": 1.14,
+        "flat_percent": 0.09701738302284804,
+        "cumulative_percent": 0.10146772169362088
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/linkdata.(*Reassembler).Expire",
+        "flat_seconds": 1.05,
+        "cumulative_seconds": 5.98,
+        "flat_percent": 0.09345711208622977,
+        "cumulative_percent": 0.5322605050244323
+      },
+      {
+        "function": "runtime.duffcopy",
+        "flat_seconds": 1.01,
+        "cumulative_seconds": 1.01,
+        "flat_percent": 0.08989684114961148,
+        "cumulative_percent": 0.08989684114961148
+      },
+      {
+        "function": "runtime.findObject",
+        "flat_seconds": 0.93,
+        "cumulative_seconds": 1.32,
+        "flat_percent": 0.08277629927637493,
+        "cumulative_percent": 0.11748894090840313
+      },
+      {
+        "function": "runtime.mapaccess1_fast32",
+        "flat_seconds": 0.92,
+        "cumulative_seconds": 1.18,
+        "flat_percent": 0.08188623154222037,
+        "cumulative_percent": 0.10502799263023917
+      },
+      {
+        "function": "runtime.procyield",
+        "flat_seconds": 0.92,
+        "cumulative_seconds": 0.92,
+        "flat_percent": 0.08188623154222037,
+        "cumulative_percent": 0.08188623154222037
+      },
+      {
+        "function": "runtime.stealWork",
+        "flat_seconds": 0.84,
+        "cumulative_seconds": 2.41,
+        "flat_percent": 0.07476568966898381,
+        "cumulative_percent": 0.21450632393125116
+      },
+      {
+        "function": "runtime.newobject",
+        "flat_seconds": 0.76,
+        "cumulative_seconds": 4.51,
+        "flat_percent": 0.06764514779574726,
+        "cumulative_percent": 0.4014205481037107
+      },
+      {
+        "function": "runtime.mapaccess1",
+        "flat_seconds": 0.76,
+        "cumulative_seconds": 1.63,
+        "flat_percent": 0.06764514779574726,
+        "cumulative_percent": 0.14508104066719477
+      },
+      {
+        "function": "runtime.casgstatus",
+        "flat_seconds": 0.73,
+        "cumulative_seconds": 0.96,
+        "flat_percent": 0.06497494459328355,
+        "cumulative_percent": 0.08544650247883864
+      },
+      {
+        "function": "runtime.(*mspan).writeHeapBitsSmall",
+        "flat_seconds": 0.72,
+        "cumulative_seconds": 0.79,
+        "flat_percent": 0.06408487685912898,
+        "cumulative_percent": 0.07031535099821096
+      },
+      {
+        "function": "time.Time.Sub",
+        "flat_seconds": 0.69,
+        "cumulative_seconds": 0.76,
+        "flat_percent": 0.061414673656665274,
+        "cumulative_percent": 0.06764514779574726
+      },
+      {
+        "function": "runtime.growslice",
+        "flat_seconds": 0.62,
+        "cumulative_seconds": 7.32,
+        "flat_percent": 0.055184199517583285,
+        "cumulative_percent": 0.6515295814011446
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).ReadSegment",
+        "flat_seconds": 0.6,
+        "cumulative_seconds": 327.73,
+        "flat_percent": 0.05340406404927415,
+        "cumulative_percent": 29.170189851447695
+      },
+      {
+        "function": "runtime.unlock2",
+        "flat_seconds": 0.57,
+        "cumulative_seconds": 0.97,
+        "flat_percent": 0.05073386084681044,
+        "cumulative_percent": 0.08633657021299321
+      },
+      {
+        "function": "runtime.(*spanSet).push",
+        "flat_seconds": 0.55,
+        "cumulative_seconds": 0.74,
+        "flat_percent": 0.0489537253785013,
+        "cumulative_percent": 0.06586501232743812
+      },
+      {
+        "function": "runtime.mapassign_fast32",
+        "flat_seconds": 0.54,
+        "cumulative_seconds": 0.73,
+        "flat_percent": 0.04806365764434673,
+        "cumulative_percent": 0.06497494459328355
+      },
+      {
+        "function": "runtime.findRunnable",
+        "flat_seconds": 0.53,
+        "cumulative_seconds": 5.84,
+        "flat_percent": 0.04717358991019217,
+        "cumulative_percent": 0.5197995567462684
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).handleSegment",
+        "flat_seconds": 0.53,
+        "cumulative_seconds": 138.24,
+        "flat_percent": 0.04717358991019217,
+        "cumulative_percent": 12.304296356952763
+      },
+      {
+        "function": "runtime.lock2",
+        "flat_seconds": 0.53,
+        "cumulative_seconds": 1.75,
+        "flat_percent": 0.04717358991019217,
+        "cumulative_percent": 0.1557618534770496
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.tcpChecksum",
+        "flat_seconds": 0.52,
+        "cumulative_seconds": 0.8,
+        "flat_percent": 0.046283522176037595,
+        "cumulative_percent": 0.07120541873236554
+      },
+      {
+        "function": "runtime.exitsyscallfast",
+        "flat_seconds": 0.51,
+        "cumulative_seconds": 0.75,
+        "flat_percent": 0.04539345444188303,
+        "cumulative_percent": 0.06675508006159268
+      },
+      {
+        "function": "time.Now",
+        "flat_seconds": 0.51,
+        "cumulative_seconds": 0.88,
+        "flat_percent": 0.04539345444188303,
+        "cumulative_percent": 0.07832596060560208
+      },
+      {
+        "function": "runtime.nanotime1",
+        "flat_seconds": 0.5,
+        "cumulative_seconds": 0.5,
+        "flat_percent": 0.04450338670772846,
+        "cumulative_percent": 0.04450338670772846
+      },
+      {
+        "function": "runtime.add",
+        "flat_seconds": 0.5,
+        "cumulative_seconds": 0.5,
+        "flat_percent": 0.04450338670772846,
+        "cumulative_percent": 0.04450338670772846
+      }
+    ],
+    "cumulative": [
+      {
+        "function": "runtime.syscall_syscalln",
+        "flat_seconds": 0.34,
+        "cumulative_seconds": 990.07,
+        "flat_percent": 0.03026230296125535,
+        "cumulative_percent": 88.12293615544142
+      },
+      {
+        "function": "runtime.cgocall",
+        "flat_seconds": 986.51,
+        "cumulative_seconds": 989.73,
+        "flat_percent": 87.8060720420824,
+        "cumulative_percent": 88.09267385248017
+      },
+      {
+        "function": "syscall.(*Proc).Call",
+        "flat_seconds": 0.49,
+        "cumulative_seconds": 632.33,
+        "flat_percent": 0.043613318973573886,
+        "cumulative_percent": 56.28165303379587
+      },
+      {
+        "function": "syscall.SyscallN",
+        "flat_seconds": 0.33,
+        "cumulative_seconds": 631.69,
+        "flat_percent": 0.029372235227100783,
+        "cumulative_percent": 56.22468869880998
+      },
+      {
+        "function": "syscall.Syscall6",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 343.11,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.539114026577423
+      },
+      {
+        "function": "syscall.ReadFile",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 343.08,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.53644382337496
+      },
+      {
+        "function": "syscall.Read",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 343.08,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.53644382337496
+      },
+      {
+        "function": "syscall.readFile",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 343.08,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.53644382337496
+      },
+      {
+        "function": "os.(*File).Read",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 343.08,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.53644382337496
+      },
+      {
+        "function": "internal/poll.(*FD).Read",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 343.08,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.53644382337496
+      },
+      {
+        "function": "os.(*File).read",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 343.08,
+        "flat_percent": 0.0,
+        "cumulative_percent": 30.53644382337496
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*SegmentMux).readLoop",
+        "flat_seconds": 0.4,
+        "cumulative_seconds": 332.42,
+        "flat_percent": 0.03560270936618277,
+        "cumulative_percent": 29.58763161876619
+      },
+      {
+        "function": "main.runWindows.func2.1",
+        "flat_seconds": 0.09,
+        "cumulative_seconds": 327.87,
+        "flat_percent": 0.008010609607391122,
+        "cumulative_percent": 29.18265079972586
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).ReadSegment",
+        "flat_seconds": 0.6,
+        "cumulative_seconds": 327.73,
+        "flat_percent": 0.05340406404927415,
+        "cumulative_percent": 29.170189851447695
+      },
+      {
+        "function": "bufio.(*Scanner).Scan",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 327.55,
+        "flat_percent": 0.0,
+        "cumulative_percent": 29.154168632232913
+      },
+      {
+        "function": "main.watchGUIControl",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 327.55,
+        "flat_percent": 0.0,
+        "cumulative_percent": 29.154168632232913
+      },
+      {
+        "function": "main.runWindows.func6",
+        "flat_seconds": 0.1,
+        "cumulative_seconds": 243.27,
+        "flat_percent": 0.008900677341545692,
+        "cumulative_percent": 21.652677768778204
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*SegmentMux).Open.func3",
+        "flat_seconds": 0.24,
+        "cumulative_seconds": 232.09,
+        "flat_percent": 0.02136162561970966,
+        "cumulative_percent": 20.657582041993397
+      },
+      {
+        "function": "main.runWindows.func2.2",
+        "flat_seconds": 0.25,
+        "cumulative_seconds": 231.83,
+        "flat_percent": 0.02225169335386423,
+        "cumulative_percent": 20.634440280905377
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/faketcp.(*NpcapEndpoint).WriteSegment",
+        "flat_seconds": 0.38,
+        "cumulative_seconds": 231.56,
+        "flat_percent": 0.03382257389787363,
+        "cumulative_percent": 20.610408452083202
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*TunnelClient).SendPacket",
+        "flat_seconds": 0.04,
+        "cumulative_seconds": 152.6,
+        "flat_percent": 0.003560270936618277,
+        "cumulative_percent": 13.582433623198725
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).SendPacket",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 152.45,
+        "flat_percent": 0.0,
+        "cumulative_percent": 13.569082607186408
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).WithOutbound",
+        "flat_seconds": 0.04,
+        "cumulative_seconds": 152.45,
+        "flat_percent": 0.003560270936618277,
+        "cumulative_percent": 13.569082607186408
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*TunnelClient).SendPacket.(*Runtime).SendPacket.func1",
+        "flat_seconds": 0.05,
+        "cumulative_seconds": 152.36,
+        "flat_percent": 0.004450338670772846,
+        "cumulative_percent": 13.561071997579015
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeentry.(*TunnelClient).clientLaneReadLoop",
+        "flat_seconds": 0.34,
+        "cumulative_seconds": 141.32,
+        "flat_percent": 0.03026230296125535,
+        "cumulative_percent": 12.578437219072372
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).HandleSegment",
+        "flat_seconds": 0.11,
+        "cumulative_seconds": 138.86,
+        "flat_percent": 0.00979074507570026,
+        "cumulative_percent": 12.359480556470347
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).handleSegment",
+        "flat_seconds": 0.53,
+        "cumulative_seconds": 138.24,
+        "flat_percent": 0.04717358991019217,
+        "cumulative_percent": 12.304296356952763
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).send",
+        "flat_seconds": 0.35,
+        "cumulative_seconds": 133.94,
+        "flat_percent": 0.03115237069540992,
+        "cumulative_percent": 11.9215672312663
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*Runtime).SendNormal",
+        "flat_seconds": 0.03,
+        "cumulative_seconds": 125.18,
+        "flat_percent": 0.0026702032024637076,
+        "cumulative_percent": 11.141867896146897
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/runtimeowner.(*laneTransport).sendACK",
+        "flat_seconds": 0.16,
+        "cumulative_seconds": 101.79,
+        "flat_percent": 0.014241083746473107,
+        "cumulative_percent": 9.05999946595936
+      },
+      {
+        "function": "syscall.(*LazyProc).Call",
+        "flat_seconds": 0.04,
+        "cumulative_seconds": 90.73,
+        "flat_percent": 0.003560270936618277,
+        "cumulative_percent": 8.075584551984406
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/windowsclient.(*TUN).ReadPacket",
+        "flat_seconds": 0.09,
+        "cumulative_seconds": 87.57,
+        "flat_percent": 0.008010609607391122,
+        "cumulative_percent": 7.7943231479915625
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*TunnelOwner).NormalOutbound",
+        "flat_seconds": 0.1,
+        "cumulative_seconds": 26.94,
+        "flat_percent": 0.008900677341545692,
+        "cumulative_percent": 2.3978424758124093
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).Outbound",
+        "flat_seconds": 0.02,
+        "cumulative_seconds": 25.3,
+        "flat_percent": 0.0017801354683091384,
+        "cumulative_percent": 2.25187136741106
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).outbound",
+        "flat_seconds": 0.09,
+        "cumulative_seconds": 25.28,
+        "flat_percent": 0.008010609607391122,
+        "cumulative_percent": 2.2500912319427506
+      },
+      {
+        "function": "runtime.systemstack",
+        "flat_seconds": 0.31,
+        "cumulative_seconds": 22.46,
+        "flat_percent": 0.027592099758791643,
+        "cumulative_percent": 1.9990921309111624
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastBlockEncoder).flushParity",
+        "flat_seconds": 0.04,
+        "cumulative_seconds": 22.11,
+        "flat_percent": 0.003560270936618277,
+        "cumulative_percent": 1.9679397602157525
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastReedSolomon20x20).EncodeActive",
+        "flat_seconds": 3.02,
+        "cumulative_seconds": 22.0,
+        "flat_percent": 0.26880045571467986,
+        "cumulative_percent": 1.9581490151400522
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/linkdata.(*FECPath).Encode",
+        "flat_seconds": 0.1,
+        "cumulative_seconds": 20.92,
+        "flat_percent": 0.008900677341545692,
+        "cumulative_percent": 1.8620216998513588
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.xorMul",
+        "flat_seconds": 20.77,
+        "cumulative_seconds": 20.82,
+        "flat_percent": 1.84867068383904,
+        "cumulative_percent": 1.853121022509813
+      },
+      {
+        "function": "runtime.wakep",
+        "flat_seconds": 0.1,
+        "cumulative_seconds": 19.93,
+        "flat_percent": 0.008900677341545692,
+        "cumulative_percent": 1.7739049941700564
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*TunnelOwner).InboundPayload",
+        "flat_seconds": 0.09,
+        "cumulative_seconds": 19.77,
+        "flat_percent": 0.008010609607391122,
+        "cumulative_percent": 1.7596639104235832
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*SizeClassEncoder).Add",
+        "flat_seconds": 0.14,
+        "cumulative_seconds": 19.57,
+        "flat_percent": 0.012460948278163969,
+        "cumulative_percent": 1.7418625557404919
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/fec.(*FastBlockEncoder).Add",
+        "flat_seconds": 0.07,
+        "cumulative_seconds": 19.43,
+        "flat_percent": 0.006230474139081984,
+        "cumulative_percent": 1.729401607462328
+      },
+      {
+        "function": "runtime.startm",
+        "flat_seconds": 0.05,
+        "cumulative_seconds": 18.89,
+        "flat_percent": 0.004450338670772846,
+        "cumulative_percent": 1.6813379498179812
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).InboundPayload",
+        "flat_seconds": 0.1,
+        "cumulative_seconds": 18.67,
+        "flat_percent": 0.008900677341545692,
+        "cumulative_percent": 1.6617564596665806
+      },
+      {
+        "function": "runtime.notewakeup",
+        "flat_seconds": 0.15,
+        "cumulative_seconds": 18.59,
+        "flat_percent": 0.013351016012318537,
+        "cumulative_percent": 1.654635917793344
+      },
+      {
+        "function": "runtime.stdcall1",
+        "flat_seconds": 18.51,
+        "cumulative_seconds": 18.52,
+        "flat_percent": 1.6475153759201075,
+        "cumulative_percent": 1.6484054436542621
+      },
+      {
+        "function": "runtime.semawakeup",
+        "flat_seconds": 0.19,
+        "cumulative_seconds": 18.51,
+        "flat_percent": 0.016911286948936816,
+        "cumulative_percent": 1.6475153759201075
+      },
+      {
+        "function": "github.com/lly8666/wobuzhidao/internal/datapath.(*Lane).inboundLocked",
+        "flat_seconds": 0.12,
+        "cumulative_seconds": 18.18,
+        "flat_percent": 0.01068081280985483,
+        "cumulative_percent": 1.6181431406930067
+      },
+      {
+        "function": "runtime.main",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 15.94,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.4187679682423833
+      },
+      {
+        "function": "main.runWindows",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 15.94,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.4187679682423833
+      },
+      {
+        "function": "main.main",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 15.94,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.4187679682423833
+      },
+      {
+        "function": "main.runNetworkAction",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 15.58,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.3867255298128187
+      },
+      {
+        "function": "os.(*Process).wait",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 15.57,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.3858354620786641
+      },
+      {
+        "function": "syscall.Syscall",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 15.57,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.3858354620786641
+      },
+      {
+        "function": "os/exec.(*Cmd).CombinedOutput",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 15.57,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.3858354620786641
+      },
+      {
+        "function": "os.(*Process).Wait",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 15.57,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.3858354620786641
+      },
+      {
+        "function": "os/exec.(*Cmd).Wait",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 15.57,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.3858354620786641
+      },
+      {
+        "function": "syscall.WaitForSingleObject",
+        "flat_seconds": 0.0,
+        "cumulative_seconds": 15.57,
+        "flat_percent": 0.0,
+        "cumulative_percent": 1.3858354620786641
+      }
+    ]
+  },
+  "profile_hash": "ab7aa1c5045a59fe5a1dec949659137b82dd2a2256d5e75456387e2839cc1f60",
+  "cleanup": {
+    "State": "STOPPED",
+    "Ready": true,
+    "Reason": "requested_stop",
+    "ExitCode": 0,
+    "NetworkStateRemaining": false,
+    "OwnedNRPTRemaining": 0,
+    "OwnedFirewallRemaining": 0,
+    "ElapsedSeconds": 345.4
+  },
+  "quality": "DIAGNOSTIC_FAIL_LOSS;profiler_on_not_no_profile_baseline"
+}

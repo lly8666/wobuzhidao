@@ -279,6 +279,7 @@ func runWindows() error {
 					_, err := npcap.WriteSegment(incarnation, seg)
 					return err
 				},
+				EmitBatch: func(segments []faketcp.Segment) (int, error) { return npcap.WriteSegments(incarnation, segments) },
 				Close: func() error {
 					err := npcap.Close()
 					if *diagnosticJSONL != "" {

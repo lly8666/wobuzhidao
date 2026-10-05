@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "8f exact-source core/race/GUI/Normal+Game5205/P6 PASS;native D01 capture driver drop0 but user queue overflow,quality FAIL;profile diagnostic running",
+  "qualification_scope": "8f hosted gates PASS;native receive queue overflow persists;Windows ready-only native batch candidate NOT_TESTED",
   "updated_at": "2026-10-05",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -83,8 +83,8 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "Collect native8f D01 seed1342 CPU profile using existing opt-in environment;locate actual Windows handler/syscall hotspot before narrow fix. Capture separation alone is NOT performance fix. Each product fix first Actions core/race/GUI and independent Normal/Game5205,P6,then exact paired native. Continue remaining DNS/IP/MTU/config after capacity defect. Every performance Action one sample.",
-  "latest_log": "docs/devlog/20261005-083800-native-drain-capacity-profile.md",
+  "next_task": "Qualify current Windows ready-only Npcap send batch: core/race/GUI plus separate Normal5205 seed1271 and Game5205 seed1272,exact-source P6;then deploy paired package and nativeD01 inspect actual batch_calls/write call time/send-lock wait/user queue overflow/probes. Do not treat Windows blocked-stack profile percentages as real CPU. Every performanceAction one sample.",
+  "latest_log": "docs/devlog/20261005-085400-windows-ready-batch-candidate.md",
   "last_tested_source_sha": "8f53f334c6e87fcbc09d3344f4eeab508fe59179",
   "actions": [
     {
@@ -7559,9 +7559,10 @@
     "state": "FAIL_WINDOWS_USER_RECEIVE_QUEUE_OVERFLOW",
     "evidence": "docs/evidence/windows-capture-drain-20261005.json",
     "native_completed_300s": [
-      "D01 seed1341 capture drain"
+      "D01 seed1341 capture drain",
+      "D01 seed1342 CPU profile diagnostic"
     ],
-    "running": "D01 seed1342 CPU profile diagnostic",
+    "running": null,
     "supersedes_old_native_qualification": false,
     "rotation": "generation1..6,maxphysical2,exit0;S2C3.06%byte loss/probe71timeout,qualityNOT_PASS",
     "previous_source": "3e3e094",
@@ -7666,10 +7667,22 @@
       "D02",
       "D03"
     ],
-    "full300s_samples": 10,
+    "full300s_samples": 11,
     "case_ids_total": 43,
     "case_ids_not_run": 36,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true
+  },
+  "windows_ready_send_batch": {
+    "state": "IMPLEMENTED_NOT_TESTED",
+    "source": "CURRENT_COMMIT",
+    "profile_evidence": "docs/evidence/windows-native-profile-8f53f33-20261005.json",
+    "scratch_bytes": 16384,
+    "max_packets_per_batch": 8,
+    "no_wait_for_future_packets": true,
+    "no_new_cli_flags": true,
+    "kernel_receive_buffer_increase": false,
+    "fec_shadow_inventory_unchanged": true,
+    "real_driver_actions": "UNSUPPORTED;ABI/serializer/prefix/fallback core tests available;native proof required"
   }
 }

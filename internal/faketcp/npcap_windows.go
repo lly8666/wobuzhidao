@@ -3,6 +3,7 @@
 package faketcp
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
@@ -39,11 +40,14 @@ type NpcapEndpoint struct {
 	dll    *syscall.DLL
 	handle uintptr
 
-	nextEx     *syscall.Proc
-	sendPacket *syscall.Proc
-	closeProc  *syscall.Proc
-	getErr     *syscall.Proc
-	breakLoop  *syscall.Proc
+	nextEx                                  *syscall.Proc
+	sendPacket                              *syscall.Proc
+	closeProc                               *syscall.Proc
+	getErr                                  *syscall.Proc
+	breakLoop                               *syscall.Proc
+	queueAlloc, queueTransmit, queueDestroy *syscall.Proc
+	sendQueue                               uintptr // native scratch, sendMu-owned; no deferred packets.
+	batchDisabled                           bool
 
 	gate      *npcapCallGate
 	sendMu    sync.Mutex
@@ -59,7 +63,9 @@ type npcapDriverStats struct{ Received, Dropped, InterfaceDropped, Captured, Sen
 
 func (e *NpcapEndpoint) SetIODiagnostics(enabled bool) { e.diag.enabled.Store(enabled) }
 func (e *NpcapEndpoint) IODiagnostic() NpcapIODiagnostic {
-	return e.diag.snapshot(e.cfg.Generation, e.statsProc != nil)
+	out := e.diag.snapshot(e.cfg.Generation, e.statsProc != nil)
+	out.BatchSupported = e.queueTransmit != nil
+	return out
 }
 
 func (e *NpcapEndpoint) sampleDriverStats(now time.Time) {
@@ -143,6 +149,12 @@ func OpenNpcapEndpoint(cfg NpcapConfig) (*NpcapEndpoint, error) {
 	}
 	breakLoop, _ := dll.FindProc("pcap_breakloop")
 	statsProc, _ := dll.FindProc("pcap_stats")
+	queueAlloc, _ := dll.FindProc("pcap_sendqueue_alloc")
+	queueTransmit, _ := dll.FindProc("pcap_sendqueue_transmit")
+	queueDestroy, _ := dll.FindProc("pcap_sendqueue_destroy")
+	if queueAlloc == nil || queueTransmit == nil || queueDestroy == nil {
+		queueAlloc, queueTransmit, queueDestroy = nil, nil, nil
+	}
 
 	device, err := syscall.BytePtrFromString(cfg.Device)
 	if err != nil {
@@ -229,6 +241,7 @@ func OpenNpcapEndpoint(cfg NpcapConfig) (*NpcapEndpoint, error) {
 		gate:       newNpcapCallGate(cfg.Generation),
 		ipID:       1,
 		statsProc:  statsProc,
+		queueAlloc: queueAlloc, queueTransmit: queueTransmit, queueDestroy: queueDestroy,
 	}, nil
 }
 
@@ -312,29 +325,114 @@ func (e *NpcapEndpoint) WriteSegment(generation uint64, seg Segment) ([]byte, er
 	}
 	defer e.gate.end()
 
-	e.sendMu.Lock()
+	e.lockSend()
 	defer e.sendMu.Unlock()
 	packet, frame, err := encodeNpcapOutbound(seg, e.cfg, e.ipID)
 	if err != nil {
 		return nil, err
 	}
 	e.ipID++
-	ret, _, _ := e.sendPacket.Call(
-		e.handle,
-		uintptr(unsafe.Pointer(&frame[0])),
-		uintptr(len(frame)),
-	)
-	if int32(ret) != 0 {
-		return nil, fmt.Errorf(
-			"pcap_sendpacket: %s",
-			pcapError(e.getErr, e.handle),
-		)
+	if err := e.writeFrameLocked(frame); err != nil {
+		return nil, err
 	}
 	if e.diag.enabled.Load() {
 		e.diag.writePackets.Add(1)
 		e.diag.writeBytes.Add(uint64(len(packet)))
 	}
 	return packet, nil
+}
+
+func (e *NpcapEndpoint) lockSend() {
+	if !e.diag.enabled.Load() {
+		e.sendMu.Lock()
+		return
+	}
+	started := time.Now()
+	e.sendMu.Lock()
+	e.diag.observeSendWait(uint64(time.Since(started)))
+}
+
+func (e *NpcapEndpoint) writeFrameLocked(frame []byte) error {
+	observe := e.diag.enabled.Load()
+	var started time.Time
+	if observe {
+		started = time.Now()
+	}
+	ret, _, _ := e.sendPacket.Call(e.handle, uintptr(unsafe.Pointer(&frame[0])), uintptr(len(frame)))
+	if observe {
+		e.diag.observeWriteCall(uint64(time.Since(started)), 1)
+	}
+	if int32(ret) != 0 {
+		return fmt.Errorf("pcap_sendpacket: %s", pcapError(e.getErr, e.handle))
+	}
+	return nil
+}
+
+// Native Windows pcap_send_queue uses two uint32 lengths followed by a pointer.
+// The DLL allocator owns its memory and frees it only after all gated calls end.
+type npcapSendQueue struct {
+	MaxLen, Len uint32
+	Buffer      uintptr
+}
+
+func (e *NpcapEndpoint) WriteSegments(generation uint64, segments []Segment) (int, error) {
+	if e == nil || e.gate == nil {
+		return 0, ErrNpcapClosed
+	}
+	if err := e.gate.begin(generation); err != nil {
+		return 0, err
+	}
+	defer e.gate.end()
+	e.lockSend()
+	defer e.sendMu.Unlock()
+	var scratch []byte
+	var transmit func([]byte) (uint32, error)
+	if len(segments) > 1 && e.queueTransmit != nil && !e.batchDisabled {
+		if e.sendQueue == 0 {
+			e.sendQueue, _, _ = e.queueAlloc.Call(npcapSendQueueBytes)
+			if e.sendQueue == 0 {
+				e.batchDisabled = true
+			}
+		}
+		if e.sendQueue != 0 {
+			q := (*npcapSendQueue)(unsafe.Pointer(e.sendQueue))
+			if q.MaxLen != npcapSendQueueBytes || q.Buffer == 0 {
+				return 0, errNpcapBatchReceipt
+			}
+			scratch = unsafe.Slice((*byte)(unsafe.Pointer(q.Buffer)), npcapSendQueueBytes)
+			transmit = func(b []byte) (uint32, error) {
+				q.Len = uint32(len(b))
+				observe := e.diag.enabled.Load()
+				var started time.Time
+				if observe {
+					started = time.Now()
+				}
+				ret, _, _ := e.queueTransmit.Call(e.handle, e.sendQueue, 0)
+				if observe {
+					packets := 0
+					for offset := 0; offset < len(b); packets++ {
+						offset += npcapQueueHeaderBytes + int(binary.LittleEndian.Uint32(b[offset+8:offset+12]))
+					}
+					e.diag.observeWriteCall(uint64(time.Since(started)), packets)
+				}
+				q.Len = 0
+				// Never retry a partial queue through pcap_sendpacket: prefix
+				// may already be on wire. Runtime retires only unsent backups.
+				if uint32(ret) != uint32(len(b)) {
+					return uint32(ret), fmt.Errorf("pcap_sendqueue_transmit short %d/%d: %s", uint32(ret), len(b), pcapError(e.getErr, e.handle))
+				}
+				return uint32(ret), nil
+			}
+		}
+	}
+	var written func(int, int)
+	if e.diag.enabled.Load() {
+		written = func(packets, bytes int) {
+			e.diag.writePackets.Add(uint64(packets))
+			e.diag.writeBytes.Add(uint64(bytes))
+		}
+	}
+	return writeNpcapReadySegments(segments, e.cfg, &e.ipID, scratch, e.writeFrameLocked, transmit, written)
 }
 
 func (e *NpcapEndpoint) Close() error {
@@ -348,6 +446,10 @@ func (e *NpcapEndpoint) Close() error {
 		e.breakLoop.Call(e.handle)
 	}
 	e.gate.wait()
+	if e.sendQueue != 0 {
+		e.queueDestroy.Call(e.sendQueue)
+		e.sendQueue = 0
+	}
 
 	if e.handle != 0 {
 		e.closeProc.Call(e.handle)

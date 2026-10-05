@@ -22,6 +22,8 @@ func TestNpcapDiagnosticConcurrentSnapshot(t *testing.T) {
 		defer wg.Done()
 		for i := 0; i < 1000; i++ {
 			d.writePackets.Add(1)
+			d.observeWriteCall(uint64(i+1), 3)
+			d.observeSendWait(uint64(i + 1))
 			_ = d.snapshot(7, true)
 		}
 	}()
@@ -29,5 +31,8 @@ func TestNpcapDiagnosticConcurrentSnapshot(t *testing.T) {
 	s := d.snapshot(7, true)
 	if !s.Enabled || !s.Supported || s.Generation != 7 || s.ReadPackets != 1000 || s.ReadBytes != 100000 || s.WritePackets != 1000 || s.ReadGapMaxNS != 1000 {
 		t.Fatalf("wrong final counters: %+v", s)
+	}
+	if s.WriteCalls != 1000 || s.BatchCalls != 1000 || s.BatchRequested != 3000 || s.WriteCallNS != 500500 || s.WriteCallMaxNS != 1000 || s.SendLockWaitNS != 500500 || s.SendLockWaitMaxNS != 1000 {
+		t.Fatalf("wrong timing/batch counters: %+v", s)
 	}
 }

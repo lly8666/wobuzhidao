@@ -19,6 +19,8 @@ func (*NpcapEndpoint) WriteSegment(uint64, Segment) ([]byte, error) {
 	return nil, ErrNpcapUnsupported
 }
 
+func (*NpcapEndpoint) WriteSegments(uint64, []Segment) (int, error) { return 0, ErrNpcapUnsupported }
+
 func (*NpcapEndpoint) Close() error {
 	return nil
 }

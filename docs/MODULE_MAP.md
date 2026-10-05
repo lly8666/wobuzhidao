@@ -55,6 +55,8 @@ TLS启动填充：internal/datapath/startup_padding.go新写旁观识别；paddi
 
 Windows GUI新增：windows/gui/Portable.cs为参数清单/便携文件/profile/子进程所有权；MainForm.cs为中文设置/服务器/驱动引导；GuiTests.cs只在Actions做配置/控件/切换测试。scripts/build_windows_gui.ps1编译系统.NET Framework GUI；P6打包固定官方Wintun DLL/许可，不分发免费Npcap。cmd/wbd-client Windows的check-config/STDIN取消与capture同目录临时文件复用正式配置和cleanup，不增加第二套数据协议。
 
+2026-10-05 Windows原生容量候选：`faketcp/npcap_send_batch.go`共享ready-only序列化/前缀回执，`npcap_windows.go`可选DLL sendqueue，`main_windows.go`接现有EmitBatch；缺DLL能力或分配失败回退single，单包立即发、control不等批。最多8包/16KiB，gate+sendMu覆盖native调用与scratch复用；Close等活动调用再释放。非异步队列、无额外HOL、不改recv/FEC/shadow。历史“Npcap原Emit不变”仅属阶段4b当时范围，当前资格以STATUS.windows_ready_send_batch为准。
+
 Linux部署新增：logicaltunnel/lease_registry.go只内存7天随机租约，client_identity.go只持久化安装身份；realityfront/admission.go受保护WBAL扩展，V2稳态不变。runtimeentry首lane绑定自动lease，server每客户端Normal/Game独立owner，到期只能detach inactive owner。linuxserver/managed_linux.go复用现有网络plan/apply/cleanup，加write-ahead网络恢复日志/单实例锁/窄RST，不写租约；notify_linux.go就绪通知。deploy/linux/wbdctl是短时管理工具，systemd仍只运行一个Go server，无新常驻协议壳。next-linux-server是功能安装测试，性能仍每Action一条。详细状态LINUX_SERVER与STATUS。
 
 openwrtclient/managed_linux.go仅封装正式Linux客户端启动/退出的namespace flock与/run网络journal，低层OpenRuntime及数据收发不变；新客户端死后恢复已有TPROXY owned状态，未知/foreign拒绝删，未保存tunnel IP。runtimeentry的inactive predicate仅用于SYN复用、接入模式重建和到期lease，不是新的steady健康扫描或业务idle策略。
