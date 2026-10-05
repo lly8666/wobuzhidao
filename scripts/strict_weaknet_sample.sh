@@ -158,6 +158,8 @@ fi
 
 # Main qualification has no bandwidth cap. Both Game and Normal share these two
 # single bottleneck qdiscs; four Game lanes are not given independent links.
+python3 tools/strict_wan_neighbors.py --client "$CLI" --router "$RTR" --server "$SRV" \
+  --mode "${WBD_STRICT_WAN_NEIGHBORS:-dynamic}" --output "$ART/wan-neighbors-before.json"
 ip netns exec "$RTR" tc qdisc add dev rsrv root netem limit 200000 delay 300ms
 ip netns exec "$RTR" tc qdisc add dev rcli root netem limit 200000 delay 300ms
 ip netns exec "$RTR" tc -s -j qdisc show dev rsrv > "$ART/qdisc-rsrv-before.json"
@@ -337,6 +339,7 @@ manifest = {
         "packet_sizes_equal_count_cycle": [64, 256, 1200],
         "diagnostic_rate_only": diagnostic_rate_only,
         "stateful_middlebox": os.environ.get("WBD_STRICT_STATEFUL_GATE", "0") == "1",
+        "wan_neighbors": os.environ.get("WBD_STRICT_WAN_NEIGHBORS", "dynamic"),
         "blackhole_ms": blackhole_ms,
         "blackhole_nominal_offset_s": 60 if blackhole_ms else None,
     },

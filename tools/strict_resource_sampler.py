@@ -133,6 +133,7 @@ def namespace_sample(ns):
     return {
         "links": run_json(prefix + ["ip", "-s", "-j", "link", "show"]),
         "qdisc": run_json(prefix + ["tc", "-s", "-j", "qdisc", "show"]),
+        "neighbors": run_json(prefix + ["ip", "-j", "neigh", "show"]),
         "ss_udp": run_text(prefix + ["ss", "-u", "-a", "-m", "-n"]),
         "ss_raw": run_text(prefix + ["ss", "-w", "-a", "-m", "-n"]),
         # Linux FakeTCP receives through AF_PACKET/SOCK_RAW. ss -0 exposes

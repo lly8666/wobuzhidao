@@ -1,0 +1,2121 @@
+{
+  "product_source": "660b370815603c50d38b92229abdec13ca77e1b1",
+  "samples": [
+    {
+      "sample": "original660",
+      "maxima": {
+        "client_t": 212992,
+        "client_tb": 212992,
+        "client_w": 0,
+        "client_r": 0,
+        "client_rb": 1048576,
+        "client_d": 0,
+        "server_t": 1280,
+        "server_tb": 212992,
+        "server_w": 0,
+        "server_r": 0,
+        "server_rb": 1048576,
+        "server_d": 0
+      },
+      "window": [
+        {
+          "elapsed": 79.054,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "R",
+              "utime_ticks": 505,
+              "stime_ticks": 406,
+              "tid": 5903
+            },
+            {
+              "state": "S",
+              "utime_ticks": 56,
+              "stime_ticks": 302,
+              "tid": 5905
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5906
+            },
+            {
+              "state": "S",
+              "utime_ticks": 468,
+              "stime_ticks": 347,
+              "tid": 5907
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5908
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5909
+            },
+            {
+              "state": "S",
+              "utime_ticks": 402,
+              "stime_ticks": 288,
+              "tid": 5916
+            },
+            {
+              "state": "S",
+              "utime_ticks": 497,
+              "stime_ticks": 375,
+              "tid": 5930
+            },
+            {
+              "state": "S",
+              "utime_ticks": 442,
+              "stime_ticks": 332,
+              "tid": 6136
+            },
+            {
+              "state": "S",
+              "utime_ticks": 504,
+              "stime_ticks": 364,
+              "tid": 6321
+            },
+            {
+              "state": "R",
+              "utime_ticks": 477,
+              "stime_ticks": 346,
+              "tid": 6352
+            }
+          ]
+        },
+        {
+          "elapsed": 79.054,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5885
+            },
+            {
+              "state": "S",
+              "utime_ticks": 43,
+              "stime_ticks": 235,
+              "tid": 5887
+            },
+            {
+              "state": "S",
+              "utime_ticks": 465,
+              "stime_ticks": 334,
+              "tid": 5888
+            },
+            {
+              "state": "S",
+              "utime_ticks": 537,
+              "stime_ticks": 378,
+              "tid": 5889
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5890
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5891
+            },
+            {
+              "state": "S",
+              "utime_ticks": 382,
+              "stime_ticks": 283,
+              "tid": 5892
+            },
+            {
+              "state": "S",
+              "utime_ticks": 476,
+              "stime_ticks": 350,
+              "tid": 5928
+            },
+            {
+              "state": "R",
+              "utime_ticks": 543,
+              "stime_ticks": 388,
+              "tid": 5929
+            },
+            {
+              "state": "S",
+              "utime_ticks": 503,
+              "stime_ticks": 371,
+              "tid": 5931
+            },
+            {
+              "state": "R",
+              "utime_ticks": 282,
+              "stime_ticks": 208,
+              "tid": 6443
+            }
+          ]
+        },
+        {
+          "elapsed": 80.054,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 512,
+              "stime_ticks": 411,
+              "tid": 5903
+            },
+            {
+              "state": "S",
+              "utime_ticks": 56,
+              "stime_ticks": 306,
+              "tid": 5905
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5906
+            },
+            {
+              "state": "S",
+              "utime_ticks": 475,
+              "stime_ticks": 352,
+              "tid": 5907
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5908
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5909
+            },
+            {
+              "state": "S",
+              "utime_ticks": 409,
+              "stime_ticks": 294,
+              "tid": 5916
+            },
+            {
+              "state": "S",
+              "utime_ticks": 504,
+              "stime_ticks": 379,
+              "tid": 5930
+            },
+            {
+              "state": "S",
+              "utime_ticks": 451,
+              "stime_ticks": 337,
+              "tid": 6136
+            },
+            {
+              "state": "S",
+              "utime_ticks": 504,
+              "stime_ticks": 364,
+              "tid": 6321
+            },
+            {
+              "state": "S",
+              "utime_ticks": 484,
+              "stime_ticks": 350,
+              "tid": 6352
+            }
+          ]
+        },
+        {
+          "elapsed": 80.054,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5885
+            },
+            {
+              "state": "S",
+              "utime_ticks": 43,
+              "stime_ticks": 238,
+              "tid": 5887
+            },
+            {
+              "state": "S",
+              "utime_ticks": 471,
+              "stime_ticks": 337,
+              "tid": 5888
+            },
+            {
+              "state": "S",
+              "utime_ticks": 548,
+              "stime_ticks": 384,
+              "tid": 5889
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5890
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5891
+            },
+            {
+              "state": "S",
+              "utime_ticks": 389,
+              "stime_ticks": 286,
+              "tid": 5892
+            },
+            {
+              "state": "S",
+              "utime_ticks": 483,
+              "stime_ticks": 355,
+              "tid": 5928
+            },
+            {
+              "state": "S",
+              "utime_ticks": 549,
+              "stime_ticks": 393,
+              "tid": 5929
+            },
+            {
+              "state": "S",
+              "utime_ticks": 503,
+              "stime_ticks": 371,
+              "tid": 5931
+            },
+            {
+              "state": "S",
+              "utime_ticks": 286,
+              "stime_ticks": 213,
+              "tid": 6443
+            }
+          ]
+        },
+        {
+          "elapsed": 81.054,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 518,
+              "stime_ticks": 415,
+              "tid": 5903
+            },
+            {
+              "state": "S",
+              "utime_ticks": 57,
+              "stime_ticks": 309,
+              "tid": 5905
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5906
+            },
+            {
+              "state": "S",
+              "utime_ticks": 484,
+              "stime_ticks": 357,
+              "tid": 5907
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5908
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5909
+            },
+            {
+              "state": "R",
+              "utime_ticks": 416,
+              "stime_ticks": 298,
+              "tid": 5916
+            },
+            {
+              "state": "S",
+              "utime_ticks": 511,
+              "stime_ticks": 383,
+              "tid": 5930
+            },
+            {
+              "state": "S",
+              "utime_ticks": 458,
+              "stime_ticks": 340,
+              "tid": 6136
+            },
+            {
+              "state": "S",
+              "utime_ticks": 504,
+              "stime_ticks": 364,
+              "tid": 6321
+            },
+            {
+              "state": "S",
+              "utime_ticks": 492,
+              "stime_ticks": 357,
+              "tid": 6352
+            }
+          ]
+        },
+        {
+          "elapsed": 81.054,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5885
+            },
+            {
+              "state": "S",
+              "utime_ticks": 43,
+              "stime_ticks": 242,
+              "tid": 5887
+            },
+            {
+              "state": "S",
+              "utime_ticks": 480,
+              "stime_ticks": 343,
+              "tid": 5888
+            },
+            {
+              "state": "S",
+              "utime_ticks": 555,
+              "stime_ticks": 389,
+              "tid": 5889
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5890
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5891
+            },
+            {
+              "state": "S",
+              "utime_ticks": 398,
+              "stime_ticks": 290,
+              "tid": 5892
+            },
+            {
+              "state": "R",
+              "utime_ticks": 485,
+              "stime_ticks": 357,
+              "tid": 5928
+            },
+            {
+              "state": "R",
+              "utime_ticks": 556,
+              "stime_ticks": 400,
+              "tid": 5929
+            },
+            {
+              "state": "S",
+              "utime_ticks": 503,
+              "stime_ticks": 371,
+              "tid": 5931
+            },
+            {
+              "state": "S",
+              "utime_ticks": 291,
+              "stime_ticks": 217,
+              "tid": 6443
+            }
+          ]
+        },
+        {
+          "elapsed": 82.054,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 212992,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 521,
+              "stime_ticks": 417,
+              "tid": 5903
+            },
+            {
+              "state": "S",
+              "utime_ticks": 57,
+              "stime_ticks": 312,
+              "tid": 5905
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5906
+            },
+            {
+              "state": "S",
+              "utime_ticks": 488,
+              "stime_ticks": 360,
+              "tid": 5907
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5908
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5909
+            },
+            {
+              "state": "S",
+              "utime_ticks": 416,
+              "stime_ticks": 299,
+              "tid": 5916
+            },
+            {
+              "state": "S",
+              "utime_ticks": 513,
+              "stime_ticks": 386,
+              "tid": 5930
+            },
+            {
+              "state": "S",
+              "utime_ticks": 460,
+              "stime_ticks": 342,
+              "tid": 6136
+            },
+            {
+              "state": "S",
+              "utime_ticks": 507,
+              "stime_ticks": 366,
+              "tid": 6321
+            },
+            {
+              "state": "S",
+              "utime_ticks": 495,
+              "stime_ticks": 358,
+              "tid": 6352
+            }
+          ]
+        },
+        {
+          "elapsed": 82.054,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5885
+            },
+            {
+              "state": "S",
+              "utime_ticks": 43,
+              "stime_ticks": 245,
+              "tid": 5887
+            },
+            {
+              "state": "S",
+              "utime_ticks": 484,
+              "stime_ticks": 346,
+              "tid": 5888
+            },
+            {
+              "state": "S",
+              "utime_ticks": 561,
+              "stime_ticks": 392,
+              "tid": 5889
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5890
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5891
+            },
+            {
+              "state": "S",
+              "utime_ticks": 404,
+              "stime_ticks": 294,
+              "tid": 5892
+            },
+            {
+              "state": "S",
+              "utime_ticks": 489,
+              "stime_ticks": 359,
+              "tid": 5928
+            },
+            {
+              "state": "S",
+              "utime_ticks": 564,
+              "stime_ticks": 405,
+              "tid": 5929
+            },
+            {
+              "state": "S",
+              "utime_ticks": 506,
+              "stime_ticks": 373,
+              "tid": 5931
+            },
+            {
+              "state": "S",
+              "utime_ticks": 292,
+              "stime_ticks": 219,
+              "tid": 6443
+            }
+          ]
+        },
+        {
+          "elapsed": 83.054,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 525,
+              "stime_ticks": 418,
+              "tid": 5903
+            },
+            {
+              "state": "R",
+              "utime_ticks": 57,
+              "stime_ticks": 316,
+              "tid": 5905
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5906
+            },
+            {
+              "state": "R",
+              "utime_ticks": 493,
+              "stime_ticks": 363,
+              "tid": 5907
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5908
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5909
+            },
+            {
+              "state": "S",
+              "utime_ticks": 417,
+              "stime_ticks": 300,
+              "tid": 5916
+            },
+            {
+              "state": "R",
+              "utime_ticks": 521,
+              "stime_ticks": 388,
+              "tid": 5930
+            },
+            {
+              "state": "S",
+              "utime_ticks": 465,
+              "stime_ticks": 346,
+              "tid": 6136
+            },
+            {
+              "state": "R",
+              "utime_ticks": 516,
+              "stime_ticks": 369,
+              "tid": 6321
+            },
+            {
+              "state": "S",
+              "utime_ticks": 501,
+              "stime_ticks": 361,
+              "tid": 6352
+            }
+          ]
+        },
+        {
+          "elapsed": 83.054,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5885
+            },
+            {
+              "state": "S",
+              "utime_ticks": 44,
+              "stime_ticks": 247,
+              "tid": 5887
+            },
+            {
+              "state": "S",
+              "utime_ticks": 487,
+              "stime_ticks": 348,
+              "tid": 5888
+            },
+            {
+              "state": "S",
+              "utime_ticks": 562,
+              "stime_ticks": 392,
+              "tid": 5889
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5890
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5891
+            },
+            {
+              "state": "S",
+              "utime_ticks": 407,
+              "stime_ticks": 295,
+              "tid": 5892
+            },
+            {
+              "state": "S",
+              "utime_ticks": 489,
+              "stime_ticks": 359,
+              "tid": 5928
+            },
+            {
+              "state": "R",
+              "utime_ticks": 564,
+              "stime_ticks": 405,
+              "tid": 5929
+            },
+            {
+              "state": "S",
+              "utime_ticks": 509,
+              "stime_ticks": 375,
+              "tid": 5931
+            },
+            {
+              "state": "S",
+              "utime_ticks": 298,
+              "stime_ticks": 224,
+              "tid": 6443
+            }
+          ]
+        },
+        {
+          "elapsed": 84.054,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 536,
+              "stime_ticks": 424,
+              "tid": 5903
+            },
+            {
+              "state": "R",
+              "utime_ticks": 57,
+              "stime_ticks": 321,
+              "tid": 5905
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5906
+            },
+            {
+              "state": "S",
+              "utime_ticks": 504,
+              "stime_ticks": 371,
+              "tid": 5907
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5908
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5909
+            },
+            {
+              "state": "R",
+              "utime_ticks": 424,
+              "stime_ticks": 306,
+              "tid": 5916
+            },
+            {
+              "state": "R",
+              "utime_ticks": 530,
+              "stime_ticks": 395,
+              "tid": 5930
+            },
+            {
+              "state": "S",
+              "utime_ticks": 474,
+              "stime_ticks": 352,
+              "tid": 6136
+            },
+            {
+              "state": "S",
+              "utime_ticks": 525,
+              "stime_ticks": 376,
+              "tid": 6321
+            },
+            {
+              "state": "S",
+              "utime_ticks": 505,
+              "stime_ticks": 363,
+              "tid": 6352
+            }
+          ]
+        },
+        {
+          "elapsed": 84.054,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 960,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5885
+            },
+            {
+              "state": "S",
+              "utime_ticks": 45,
+              "stime_ticks": 250,
+              "tid": 5887
+            },
+            {
+              "state": "S",
+              "utime_ticks": 499,
+              "stime_ticks": 356,
+              "tid": 5888
+            },
+            {
+              "state": "S",
+              "utime_ticks": 572,
+              "stime_ticks": 399,
+              "tid": 5889
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5890
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5891
+            },
+            {
+              "state": "R",
+              "utime_ticks": 419,
+              "stime_ticks": 304,
+              "tid": 5892
+            },
+            {
+              "state": "S",
+              "utime_ticks": 489,
+              "stime_ticks": 359,
+              "tid": 5928
+            },
+            {
+              "state": "S",
+              "utime_ticks": 574,
+              "stime_ticks": 412,
+              "tid": 5929
+            },
+            {
+              "state": "S",
+              "utime_ticks": 519,
+              "stime_ticks": 379,
+              "tid": 5931
+            },
+            {
+              "state": "S",
+              "utime_ticks": 306,
+              "stime_ticks": 230,
+              "tid": 6443
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": "773",
+      "maxima": {
+        "client_t": 212992,
+        "client_tb": 212992,
+        "client_w": 0,
+        "client_r": 0,
+        "client_rb": 1048576,
+        "client_d": 0,
+        "server_t": 212992,
+        "server_tb": 212992,
+        "server_w": 0,
+        "server_r": 0,
+        "server_rb": 1048576,
+        "server_d": 0
+      },
+      "window": [
+        {
+          "elapsed": 41.049,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 213,
+              "stime_ticks": 147,
+              "tid": 5721
+            },
+            {
+              "state": "S",
+              "utime_ticks": 15,
+              "stime_ticks": 71,
+              "tid": 5723
+            },
+            {
+              "state": "S",
+              "utime_ticks": 163,
+              "stime_ticks": 104,
+              "tid": 5724
+            },
+            {
+              "state": "S",
+              "utime_ticks": 220,
+              "stime_ticks": 145,
+              "tid": 5725
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5726
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5727
+            },
+            {
+              "state": "S",
+              "utime_ticks": 218,
+              "stime_ticks": 142,
+              "tid": 5734
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5746
+            },
+            {
+              "state": "S",
+              "utime_ticks": 191,
+              "stime_ticks": 124,
+              "tid": 5952
+            },
+            {
+              "state": "S",
+              "utime_ticks": 144,
+              "stime_ticks": 86,
+              "tid": 5953
+            },
+            {
+              "state": "S",
+              "utime_ticks": 181,
+              "stime_ticks": 121,
+              "tid": 6200
+            }
+          ]
+        },
+        {
+          "elapsed": 41.049,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5701
+            },
+            {
+              "state": "S",
+              "utime_ticks": 16,
+              "stime_ticks": 53,
+              "tid": 5703
+            },
+            {
+              "state": "S",
+              "utime_ticks": 220,
+              "stime_ticks": 137,
+              "tid": 5704
+            },
+            {
+              "state": "S",
+              "utime_ticks": 118,
+              "stime_ticks": 73,
+              "tid": 5705
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5706
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5707
+            },
+            {
+              "state": "S",
+              "utime_ticks": 200,
+              "stime_ticks": 128,
+              "tid": 5708
+            },
+            {
+              "state": "S",
+              "utime_ticks": 194,
+              "stime_ticks": 118,
+              "tid": 5719
+            },
+            {
+              "state": "S",
+              "utime_ticks": 188,
+              "stime_ticks": 129,
+              "tid": 5720
+            },
+            {
+              "state": "S",
+              "utime_ticks": 162,
+              "stime_ticks": 106,
+              "tid": 5747
+            },
+            {
+              "state": "S",
+              "utime_ticks": 177,
+              "stime_ticks": 117,
+              "tid": 6322
+            }
+          ]
+        },
+        {
+          "elapsed": 42.049,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 960,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 220,
+              "stime_ticks": 150,
+              "tid": 5721
+            },
+            {
+              "state": "R",
+              "utime_ticks": 15,
+              "stime_ticks": 72,
+              "tid": 5723
+            },
+            {
+              "state": "S",
+              "utime_ticks": 168,
+              "stime_ticks": 105,
+              "tid": 5724
+            },
+            {
+              "state": "R",
+              "utime_ticks": 223,
+              "stime_ticks": 148,
+              "tid": 5725
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5726
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5727
+            },
+            {
+              "state": "S",
+              "utime_ticks": 218,
+              "stime_ticks": 142,
+              "tid": 5734
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5746
+            },
+            {
+              "state": "S",
+              "utime_ticks": 198,
+              "stime_ticks": 128,
+              "tid": 5952
+            },
+            {
+              "state": "R",
+              "utime_ticks": 150,
+              "stime_ticks": 88,
+              "tid": 5953
+            },
+            {
+              "state": "S",
+              "utime_ticks": 187,
+              "stime_ticks": 124,
+              "tid": 6200
+            }
+          ]
+        },
+        {
+          "elapsed": 42.049,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 960,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5701
+            },
+            {
+              "state": "S",
+              "utime_ticks": 16,
+              "stime_ticks": 54,
+              "tid": 5703
+            },
+            {
+              "state": "S",
+              "utime_ticks": 228,
+              "stime_ticks": 140,
+              "tid": 5704
+            },
+            {
+              "state": "S",
+              "utime_ticks": 122,
+              "stime_ticks": 76,
+              "tid": 5705
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5706
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5707
+            },
+            {
+              "state": "S",
+              "utime_ticks": 200,
+              "stime_ticks": 128,
+              "tid": 5708
+            },
+            {
+              "state": "S",
+              "utime_ticks": 198,
+              "stime_ticks": 120,
+              "tid": 5719
+            },
+            {
+              "state": "S",
+              "utime_ticks": 193,
+              "stime_ticks": 132,
+              "tid": 5720
+            },
+            {
+              "state": "S",
+              "utime_ticks": 164,
+              "stime_ticks": 108,
+              "tid": 5747
+            },
+            {
+              "state": "S",
+              "utime_ticks": 184,
+              "stime_ticks": 121,
+              "tid": 6322
+            }
+          ]
+        },
+        {
+          "elapsed": 43.049,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 212992,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 224,
+              "stime_ticks": 150,
+              "tid": 5721
+            },
+            {
+              "state": "S",
+              "utime_ticks": 16,
+              "stime_ticks": 72,
+              "tid": 5723
+            },
+            {
+              "state": "S",
+              "utime_ticks": 170,
+              "stime_ticks": 107,
+              "tid": 5724
+            },
+            {
+              "state": "S",
+              "utime_ticks": 225,
+              "stime_ticks": 150,
+              "tid": 5725
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5726
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5727
+            },
+            {
+              "state": "S",
+              "utime_ticks": 218,
+              "stime_ticks": 142,
+              "tid": 5734
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5746
+            },
+            {
+              "state": "S",
+              "utime_ticks": 199,
+              "stime_ticks": 130,
+              "tid": 5952
+            },
+            {
+              "state": "S",
+              "utime_ticks": 151,
+              "stime_ticks": 90,
+              "tid": 5953
+            },
+            {
+              "state": "S",
+              "utime_ticks": 190,
+              "stime_ticks": 125,
+              "tid": 6200
+            }
+          ]
+        },
+        {
+          "elapsed": 43.049,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5701
+            },
+            {
+              "state": "S",
+              "utime_ticks": 17,
+              "stime_ticks": 55,
+              "tid": 5703
+            },
+            {
+              "state": "S",
+              "utime_ticks": 233,
+              "stime_ticks": 143,
+              "tid": 5704
+            },
+            {
+              "state": "S",
+              "utime_ticks": 125,
+              "stime_ticks": 78,
+              "tid": 5705
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5706
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5707
+            },
+            {
+              "state": "S",
+              "utime_ticks": 200,
+              "stime_ticks": 128,
+              "tid": 5708
+            },
+            {
+              "state": "S",
+              "utime_ticks": 198,
+              "stime_ticks": 120,
+              "tid": 5719
+            },
+            {
+              "state": "S",
+              "utime_ticks": 199,
+              "stime_ticks": 135,
+              "tid": 5720
+            },
+            {
+              "state": "R",
+              "utime_ticks": 168,
+              "stime_ticks": 111,
+              "tid": 5747
+            },
+            {
+              "state": "S",
+              "utime_ticks": 188,
+              "stime_ticks": 123,
+              "tid": 6322
+            }
+          ]
+        },
+        {
+          "elapsed": 44.049,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 212992,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 224,
+              "stime_ticks": 150,
+              "tid": 5721
+            },
+            {
+              "state": "S",
+              "utime_ticks": 17,
+              "stime_ticks": 73,
+              "tid": 5723
+            },
+            {
+              "state": "S",
+              "utime_ticks": 171,
+              "stime_ticks": 109,
+              "tid": 5724
+            },
+            {
+              "state": "S",
+              "utime_ticks": 225,
+              "stime_ticks": 150,
+              "tid": 5725
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5726
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5727
+            },
+            {
+              "state": "S",
+              "utime_ticks": 218,
+              "stime_ticks": 142,
+              "tid": 5734
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5746
+            },
+            {
+              "state": "S",
+              "utime_ticks": 199,
+              "stime_ticks": 130,
+              "tid": 5952
+            },
+            {
+              "state": "S",
+              "utime_ticks": 151,
+              "stime_ticks": 90,
+              "tid": 5953
+            },
+            {
+              "state": "S",
+              "utime_ticks": 190,
+              "stime_ticks": 125,
+              "tid": 6200
+            }
+          ]
+        },
+        {
+          "elapsed": 44.049,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5701
+            },
+            {
+              "state": "S",
+              "utime_ticks": 17,
+              "stime_ticks": 56,
+              "tid": 5703
+            },
+            {
+              "state": "S",
+              "utime_ticks": 233,
+              "stime_ticks": 143,
+              "tid": 5704
+            },
+            {
+              "state": "S",
+              "utime_ticks": 125,
+              "stime_ticks": 78,
+              "tid": 5705
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5706
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5707
+            },
+            {
+              "state": "S",
+              "utime_ticks": 200,
+              "stime_ticks": 128,
+              "tid": 5708
+            },
+            {
+              "state": "S",
+              "utime_ticks": 200,
+              "stime_ticks": 120,
+              "tid": 5719
+            },
+            {
+              "state": "S",
+              "utime_ticks": 201,
+              "stime_ticks": 136,
+              "tid": 5720
+            },
+            {
+              "state": "S",
+              "utime_ticks": 172,
+              "stime_ticks": 113,
+              "tid": 5747
+            },
+            {
+              "state": "S",
+              "utime_ticks": 190,
+              "stime_ticks": 123,
+              "tid": 6322
+            }
+          ]
+        },
+        {
+          "elapsed": 45.05,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 229,
+              "stime_ticks": 152,
+              "tid": 5721
+            },
+            {
+              "state": "S",
+              "utime_ticks": 17,
+              "stime_ticks": 75,
+              "tid": 5723
+            },
+            {
+              "state": "S",
+              "utime_ticks": 180,
+              "stime_ticks": 110,
+              "tid": 5724
+            },
+            {
+              "state": "S",
+              "utime_ticks": 231,
+              "stime_ticks": 152,
+              "tid": 5725
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5726
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5727
+            },
+            {
+              "state": "R",
+              "utime_ticks": 222,
+              "stime_ticks": 143,
+              "tid": 5734
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5746
+            },
+            {
+              "state": "R",
+              "utime_ticks": 207,
+              "stime_ticks": 133,
+              "tid": 5952
+            },
+            {
+              "state": "R",
+              "utime_ticks": 158,
+              "stime_ticks": 91,
+              "tid": 5953
+            },
+            {
+              "state": "S",
+              "utime_ticks": 198,
+              "stime_ticks": 128,
+              "tid": 6200
+            }
+          ]
+        },
+        {
+          "elapsed": 45.05,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5701
+            },
+            {
+              "state": "R",
+              "utime_ticks": 17,
+              "stime_ticks": 58,
+              "tid": 5703
+            },
+            {
+              "state": "S",
+              "utime_ticks": 239,
+              "stime_ticks": 145,
+              "tid": 5704
+            },
+            {
+              "state": "R",
+              "utime_ticks": 125,
+              "stime_ticks": 78,
+              "tid": 5705
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5706
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5707
+            },
+            {
+              "state": "S",
+              "utime_ticks": 200,
+              "stime_ticks": 128,
+              "tid": 5708
+            },
+            {
+              "state": "S",
+              "utime_ticks": 200,
+              "stime_ticks": 120,
+              "tid": 5719
+            },
+            {
+              "state": "S",
+              "utime_ticks": 203,
+              "stime_ticks": 137,
+              "tid": 5720
+            },
+            {
+              "state": "R",
+              "utime_ticks": 176,
+              "stime_ticks": 115,
+              "tid": 5747
+            },
+            {
+              "state": "S",
+              "utime_ticks": 191,
+              "stime_ticks": 124,
+              "tid": 6322
+            }
+          ]
+        },
+        {
+          "elapsed": 46.049,
+          "side": "client",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 960,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 235,
+              "stime_ticks": 158,
+              "tid": 5721
+            },
+            {
+              "state": "S",
+              "utime_ticks": 18,
+              "stime_ticks": 77,
+              "tid": 5723
+            },
+            {
+              "state": "S",
+              "utime_ticks": 187,
+              "stime_ticks": 114,
+              "tid": 5724
+            },
+            {
+              "state": "S",
+              "utime_ticks": 231,
+              "stime_ticks": 152,
+              "tid": 5725
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5726
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5727
+            },
+            {
+              "state": "S",
+              "utime_ticks": 229,
+              "stime_ticks": 148,
+              "tid": 5734
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5746
+            },
+            {
+              "state": "S",
+              "utime_ticks": 213,
+              "stime_ticks": 136,
+              "tid": 5952
+            },
+            {
+              "state": "S",
+              "utime_ticks": 165,
+              "stime_ticks": 96,
+              "tid": 5953
+            },
+            {
+              "state": "S",
+              "utime_ticks": 204,
+              "stime_ticks": 133,
+              "tid": 6200
+            }
+          ]
+        },
+        {
+          "elapsed": 46.049,
+          "side": "server",
+          "skmem": [
+            {
+              "r": 0,
+              "rb": 1048576,
+              "t": 0,
+              "tb": 212992,
+              "f": 0,
+              "w": 0,
+              "o": 0,
+              "bl": 0,
+              "d": 0
+            }
+          ],
+          "threads": [
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5701
+            },
+            {
+              "state": "S",
+              "utime_ticks": 17,
+              "stime_ticks": 59,
+              "tid": 5703
+            },
+            {
+              "state": "S",
+              "utime_ticks": 246,
+              "stime_ticks": 149,
+              "tid": 5704
+            },
+            {
+              "state": "S",
+              "utime_ticks": 131,
+              "stime_ticks": 84,
+              "tid": 5705
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5706
+            },
+            {
+              "state": "S",
+              "utime_ticks": 0,
+              "stime_ticks": 0,
+              "tid": 5707
+            },
+            {
+              "state": "S",
+              "utime_ticks": 200,
+              "stime_ticks": 128,
+              "tid": 5708
+            },
+            {
+              "state": "R",
+              "utime_ticks": 206,
+              "stime_ticks": 124,
+              "tid": 5719
+            },
+            {
+              "state": "S",
+              "utime_ticks": 210,
+              "stime_ticks": 140,
+              "tid": 5720
+            },
+            {
+              "state": "S",
+              "utime_ticks": 185,
+              "stime_ticks": 120,
+              "tid": 5747
+            },
+            {
+              "state": "S",
+              "utime_ticks": 203,
+              "stime_ticks": 129,
+              "tid": 6322
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": "profile1",
+      "maxima": {
+        "client_t": 960,
+        "client_tb": 212992,
+        "client_w": 0,
+        "client_r": 0,
+        "client_rb": 1048576,
+        "client_d": 0,
+        "server_t": 960,
+        "server_tb": 212992,
+        "server_w": 0,
+        "server_r": 0,
+        "server_rb": 1048576,
+        "server_d": 0
+      },
+      "window": []
+    },
+    {
+      "sample": "profile2",
+      "maxima": {
+        "client_t": 960,
+        "client_tb": 212992,
+        "client_w": 0,
+        "client_r": 0,
+        "client_rb": 1048576,
+        "client_d": 0,
+        "server_t": 960,
+        "server_tb": 212992,
+        "server_w": 0,
+        "server_r": 0,
+        "server_rb": 1048576,
+        "server_d": 0
+      },
+      "window": []
+    }
+  ],
+  "interpretation": "Two failed tail windows hit client raw socket t=tb=212992. Both healthy profiles peak at960. This is send allocation pressure, not AF_PACKET receive drops. Raw send mutex held across blocking syscall is a propagation risk; ARP/next-hop cause remains unproven.",
+  "next_diagnostic": "Same product660/seed1382: independent Action dynamic vs permanent WAN-only neighbors, profile OFF. Normal dynamic qualification unchanged."
+}

@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "Deployed SOURCE660: core/race/config70/long2 PASS; strict18 individual gates PASS but paired Game5305 p99 FAIL; native M01 PASS, M03 maximum UDP FAIL twice, S19 background attribution PARTIAL. Diagnostic773 reproduces upstream p99 failure; current contention patch unqualified and not deployed.",
-  "updated_at": "2026-10-05T14:10:25.527824+08:00",
+  "qualification_scope": "Deployed SOURCE660 core/race/config70/long2 PASS; Game5305 paired p99 FAIL retained; native M01 PASS, M03 maximumUDP FAIL twice, S19 repeat lifecycle PASS but downlink1.6437% loss. New WAN neighbor diagnostic pending Actions; no product changes.",
+  "updated_at": "2026-10-05T14:51:30.631415+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -83,8 +83,8 @@
     "Localize and fix reproducible client upstream p99 stall; preserve throughput/no-HOL and exact failed samples",
     "Continue native S20/S19 boundary attribution after observer Actions PASS, then MTU sequence diagnosis and remaining matrix"
   ],
-  "next_task": "Collect second independent same-source/seed profile diagnostic;raw send locking dominates healthy sample but root cause not proven. Qualify observer blank-line/captured-count correction then S19 with bounded numeric background attribution. S20 product lifecycle/delivery PASS, observer attribution PARTIAL, p99 NOT_EVALUATED. Maximum UDP diagnostic with exact missing sequences next, then remaining32 cases. No HOL/buffer/4096/FEC change;one sample per performance Action.",
-  "latest_log": "docs/devlog/20261005-141025-native-downlink-and-profile-boundaries.md",
+  "next_task": "Qualify confined WAN-neighbor diagnostic helper, then separate single Actions for same SOURCE660/Game5305/seed1382 dynamic and permanent WAN neighbors, profile OFF. Keep dynamic defaults and original p99 failures. Locate scheduled wake downlink1.6437% loss without waiting HOL or dropping fresh traffic; maximumUDP exact missing sequences next. Product default buffering/FEC/4096 unchanged.32 native case IDs NOT_RUN.",
+  "latest_log": "docs/devlog/20261005-145130-raw-send-pressure-neighbor-boundary.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -7676,6 +7676,12 @@
         "status": "PARTIAL_BACKGROUND_INPUT_UNATTRIBUTED",
         "source": "660b370815603c50d38b92229abdec13ca77e1b1",
         "evidence": "docs/evidence/native-game-idle-660b370-20261005.json"
+      },
+      {
+        "case": "s19-current-300s-seed1396",
+        "status": "LIFECYCLE_PASS_DELIVERY_PARTIAL",
+        "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+        "evidence": "docs/evidence/native-game-idle-repeat-660b370-20261005.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression."
@@ -7732,7 +7738,7 @@
       "S19",
       "S20"
     ],
-    "full300s_samples": 21,
+    "full300s_samples": 22,
     "case_ids_total": 43,
     "case_ids_not_run": 32,
     "complete_qualification": false,
@@ -7913,7 +7919,7 @@
     "observer_collection": "Client max memory1.285503ms/product3.707937ms; cannot account for >1s stall. Shared raw send lock/syscall remains hypothesis, not proven."
   },
   "native_idle_boundary_observer": {
-    "state": "CAPTURE_COUNTER_CORRECTION_ACTIONS_PENDING",
+    "state": "4d67381_ACTIONS_PASS_NATIVE_CAPTURE_COUNTER_VALIDATED",
     "bound_frames": 1000,
     "bound_s": 335,
     "pcap_written": false,
@@ -7923,7 +7929,7 @@
     "failure": "S20 stdout one unparsed line;new metadata parser filters empty lines only and verifies independent captured/drop counters. Never reinterpret missing raw evidence as zero captured packets."
   },
   "contention_profile": {
-    "state": "DIAGNOSTIC_COMPLETE_NO_TAIL_REPRODUCTION_REPEAT_PENDING",
+    "state": "TWO_DIAGNOSTICS_COMPLETE_NO_TAIL_REPRODUCTION",
     "normal_default": "OFF; explicit CPU file path AND env switch required",
     "mutex_sample_fraction": 10,
     "block_sample_ns": 10000000,
@@ -7932,7 +7938,8 @@
     "run": 37270295492,
     "evidence": "docs/evidence/contention-diagnostic-60ec42e-20261005.json",
     "gate_scope": "60ec42e foundation37270073043/targeted37270073145/predelivery37270073086/lifecycle37270073078/GUI37270073032 PASS;lease race count10 PASS,old2e failure retained",
-    "root_cause": "NOT_PROVEN:raw send contention dominates healthy profile too"
+    "root_cause": "NOT_PROVEN:raw send contention dominates healthy profile too",
+    "repeat_run": 37270895113
   },
   "native_downlink_current": {
     "source": "660b370815603c50d38b92229abdec13ca77e1b1",
@@ -7944,5 +7951,22 @@
     "background_attribution": "PARTIAL_OBSERVER_UNPARSED",
     "p99": "NOT_EVALUATED",
     "evidence": "docs/evidence/native-downlink-660b370-20261005.json"
+  },
+  "raw_send_pressure": {
+    "state": "OBSERVED_FAILED_WINDOWS_CAUSAL_BOUNDARY_UNPROVEN",
+    "evidence": "docs/evidence/raw-send-pressure-20261005.json",
+    "send_alloc_limit": 212992,
+    "healthy_profile_peak": 960,
+    "global_lock_propagation_risk": true,
+    "neighbor_diagnostic": "ACTIONS_PENDING",
+    "product_changed": false
+  },
+  "native_game_idle_repeat": {
+    "case": "s19-current-300s-seed1396",
+    "state": "LIFECYCLE_PASS_DELIVERY_PARTIAL",
+    "evidence": "docs/evidence/native-game-idle-repeat-660b370-20261005.json",
+    "background_frames": 0,
+    "downlink_loss_percent": 1.6437187699389288,
+    "p99": "NOT_EVALUATED"
   }
 }

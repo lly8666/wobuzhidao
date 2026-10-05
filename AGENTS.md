@@ -21,7 +21,7 @@
 
 ## 当前性能主线（2026-09-23）
 
-2026-10-05当前（下文为历史）：部署SOURCE660b370，同源70配置与两1800s长测PASS，但Game5305/seed1382配对p99仍FAIL；773诊断再次超门，已定位上行1571ms/回包0.03ms/下行300ms。60ec42e core/race/租约race重复10次/helpers PASS，第一profile只有健康sample，raw send锁竞争突出但尚不能宣布根因；第二独立诊断进行中，profile不算普通性能资格。原生S20纯下行300s约3M/损失0、双方generation1且client业务计数270s不增、owned退出清理通过，p99未测；observer有1条unparsed，捕获计数修正待Actions。S19背景上行归属仍PARTIAL，M03两份最大UDP各缺1回包；原生21完整样本/11工况，32工况NOT_RUN，来源混合不能继承。按STATUS.next_task与最新日志继续，不扩大FEC/4096/buffer、不恢复HOL，不降低吞吐/p99门；每性能Action一条。
+2026-10-05当前（下文为历史）：部署SOURCE660b370。core/config70/长测2 PASS，660/773 Game5305配对p99 FAIL保留。两profile健康不证明根因；失败窗口raw发送t=tb=212992、健康peak960，共享发送锁跨阻塞syscall是扩大风险；显式WAN-neighbor诊断待Actions，默认dynamic不改。4d core/race/helpers PASS；S20纯下行0损失，S19 seed1396两次休眠/重建正常、observer captured0完整，但下行1.6437%损失仍PARTIAL。M03最大UDP两次各缺1回包。原生22完整样本/11工况/32 NOT_RUN。先STATUS.latest_log；不扩大buffer/FEC/4096、不恢复HOL、不降p99/吞吐门，每性能Action一条。
 
 2026-10-05最新：24ff的D01独立seed1351/1352均完整300s双向近10M、driver/user overflow0、探针全回；上行少量损失及server raw drop保留，不能写全链路无损PASS。S16 seed1353正在同源复验rotation。新候选修复Wintun65535与合法lease包9000不一致、坏本地输入导致整client退出：内层MTU9000与外层预算分开，Apply实效/owned原值恢复，拒绝包在wire前计数、正常包无新计数，runtime/wire错误不吞。候选未过Actions前不部署；先STATUS.windows_tun_mtu_boundary与092400日志，再M01/M03。每性能Action只一条。
 

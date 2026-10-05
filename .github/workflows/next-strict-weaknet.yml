@@ -1,5 +1,5 @@
 name: next-strict-weaknet
-run-name: strict-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-rate${{ inputs.rate_mbps }}-lanes${{ inputs.lanes }}${{ inputs.cpu_profile && '-profile' || '' }}
+run-name: strict-${{ inputs.mode }}-${{ inputs.scenario }}-seed${{ inputs.seed }}-rate${{ inputs.rate_mbps }}-lanes${{ inputs.lanes }}${{ inputs.cpu_profile && '-profile' || '' }}${{ inputs.wan_neighbors == 'permanent' && '-fixed-neighbors' || '' }}
 
 on:
   workflow_dispatch:
@@ -41,6 +41,12 @@ on:
         required: false
         default: false
         type: boolean
+      wan_neighbors:
+        description: "Explicit WAN ARP diagnostic; dynamic preserves baseline, permanent pins only two owned veth pairs"
+        required: false
+        default: dynamic
+        type: choice
+        options: [dynamic, permanent]
       product_source_sha:
         description: "Optional exact 40-hex product source; empty uses this workflow SHA"
         required: false
@@ -63,6 +69,7 @@ jobs:
       WBD_STRICT_LANES: ${{ inputs.lanes }}
       WBD_STRICT_CPU_PROFILE: ${{ inputs.cpu_profile && '1' || '0' }}
       WBD_STRICT_STATEFUL_GATE: ${{ inputs.stateful_middlebox && '1' || '0' }}
+      WBD_STRICT_WAN_NEIGHBORS: ${{ inputs.wan_neighbors || 'dynamic' }}
       WBD_PRODUCT_SOURCE_INPUT: ${{ inputs.product_source_sha }}
 
     steps:
@@ -93,7 +100,7 @@ jobs:
           fi
           echo "TESTED_SOURCE_SHA=$source_sha" >> "$GITHUB_ENV"
           python3 tools/perf_sample_guard.py claim \
-            --identity "strict:$WBD_STRICT_MODE:$WBD_STRICT_SCENARIO:seed$WBD_STRICT_SEED:rate$WBD_STRICT_RATE_MBPS:lanes$WBD_STRICT_LANES:stateful$WBD_STRICT_STATEFUL_GATE:source$source_sha:harness$GITHUB_SHA" \
+            --identity "strict:$WBD_STRICT_MODE:$WBD_STRICT_SCENARIO:seed$WBD_STRICT_SEED:rate$WBD_STRICT_RATE_MBPS:lanes$WBD_STRICT_LANES:stateful$WBD_STRICT_STATEFUL_GATE:neighbors$WBD_STRICT_WAN_NEIGHBORS:source$source_sha:harness$GITHUB_SHA" \
             --receipt "$ART/sample-claim.json"
 
       - name: Install network tooling
@@ -123,7 +130,7 @@ jobs:
         id: sample
         continue-on-error: true
         run: |
-          sudo --preserve-env=GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE \
+          sudo --preserve-env=GITHUB_WORKSPACE,WBD_STRICT_MODE,WBD_STRICT_SCENARIO,WBD_STRICT_SEED,WBD_STRICT_RATE_MBPS,WBD_STRICT_LANES,WBD_STRICT_TC,WBD_STRICT_CPU_PROFILE,WBD_STRICT_STATEFUL_GATE,WBD_STRICT_WAN_NEIGHBORS \
             env GITHUB_SHA="$TESTED_SOURCE_SHA" WBD_HARNESS_SHA="$GITHUB_SHA" WBD_STRICT_ARTIFACT_DIR="$ART" bash scripts/strict_weaknet_sample.sh
 
       - name: Analyze loss-tolerant-v1
@@ -152,6 +159,7 @@ jobs:
             ${{ env.ART }}/raw-io-receipt.json
             ${{ env.ART }}/runner-host.txt
             ${{ env.ART }}/resources.jsonl
+            ${{ env.ART }}/wan-neighbors-before.json
             ${{ env.ART }}/*.cpu
             ${{ env.ART }}/*.cpu-block
             ${{ env.ART }}/*.cpu-mutex
