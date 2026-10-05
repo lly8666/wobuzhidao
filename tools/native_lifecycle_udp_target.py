@@ -38,6 +38,7 @@ def main():
         seen = bytearray(1000000)
         stats = dict(RxPackets=0, RxBytes=0, DuplicatePackets=0, BadPayload=0, ReorderedPackets=0,
                      TxPackets=0, TxBytes=0, MaxSendLagMs=0.0)
+        start_unix_ns=time.time_ns()
         start = time.monotonic(); cpu_before = cpu(args.wbd_pid); helper_cpu_before = time.process_time()
         maximum = -1; finished = threading.Event(); intervals = []; next_report = 1.0
         def send():
@@ -76,7 +77,7 @@ def main():
             if seq < maximum: stats['ReorderedPackets'] += 1
             maximum = max(maximum, seq); stats['RxPackets'] += 1; stats['RxBytes'] += n
         sender.join()
-        stats.update(Result='MEASURED', Seed=seed, Seconds=duration, RequestedMbps=config['Mbps'],
+        stats.update(Result='MEASURED', Seed=seed, Seconds=duration, RequestedMbps=config['Mbps'],StartUnixNS=start_unix_ns,
                      PeerIPv4=peer[0], WBDCPUSeconds=cpu(args.wbd_pid)-cpu_before,
                      HelperCPUSeconds=time.process_time()-helper_cpu_before, LifecycleProfile=profile, ActiveSendSeconds=300 if profile=="downlink" else 120,
                      EffectiveTargetReceiveBuffer=sock.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF),

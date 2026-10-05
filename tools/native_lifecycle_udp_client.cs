@@ -20,6 +20,7 @@ public class WBDNativeLifecycleUDPResult {
     public int LiveSnapshotWriteErrors;
     public bool CompletedSendWindow;
     public double ActualSendSeconds;
+    public long SendWindowStartUnixMS;
     public int SendSocketError, ReceiveSocketErrors;
     public string SendErrorStage;
     public List<WBDNativeLifecycleUDPInterval> Intervals = new List<WBDNativeLifecycleUDPInterval>();
@@ -77,6 +78,7 @@ public static class WBDNativeLifecycleUDP {
                 }
             });
             rx.IsBackground=true;rx.Start();timeBeginPeriod(1);
+            result.SendWindowStartUnixMS=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Stopwatch watch=Stopwatch.StartNew();string sendStage="start";
             try {
                 sock.Send(Encoding.ASCII.GetBytes("P7G"));
