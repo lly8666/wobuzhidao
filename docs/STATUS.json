@@ -83,8 +83,8 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "Finish SOURCE660b nativeM01 seed1362 then M03;retain incomplete1361 fixture failure,validate exact input sizes/DF/API/actual9000MTU/ownedcleanup. Qualify new lifecycle helpers in Actions then nativeS18/S19/S20;ensure quiet contains no helper probes/DNS and never count background business as idle. Continue remaining matrix,one performance sample per Action.",
-  "latest_log": "docs/devlog/20261005-095800-native-idle-fixture-and-mtu-retry.md",
+  "next_task": "Qualify changed MTU echo helper;run fresh M01 then M03 with exact owned UDP listener readiness,immutable uploaded hashes and partial artifact collection. Then qualified S18/S19/S20 idle/downlink helpers,remaining43-case matrix. Invalid1361/1362/1363 cannot count as product qualification. Each performance Action one sample.",
+  "latest_log": "docs/devlog/20261005-101300-native-mtu-fixture-ownership.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -7556,7 +7556,7 @@
   },
   "physical_current": {
     "source": "660b370815603c50d38b92229abdec13ca77e1b1",
-    "state": "M01_RETRY_AFTER_FIXTURE_JSON_READ_ABORT",
+    "state": "MTU_FIXTURE_REPAIRED_WAIT_HELPER_GATE",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [],
     "running": "M01 seed1362 native300s;seed1361 incompletefixture not counted",
@@ -7569,7 +7569,77 @@
       "S16 seed1353",
       "S02 seed1354"
     ],
-    "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL"
+    "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
+    "running_case": null,
+    "invalid_cases": [
+      {
+        "seed": 1361,
+        "status": "INCOMPLETE_FIXTURE_STATUS_JSON_READ",
+        "full_300s": false,
+        "p7-status.json": {
+          "State": "RUNNING",
+          "Ready": true,
+          "PID": 6924,
+          "ElapsedSeconds": 122.6,
+          "CPUSeconds": 4.765625,
+          "WorkingSetBytes": 21934080
+        },
+        "mtu-during.json": {
+          "InterfaceIndex": 12,
+          "InterfaceAlias": "WBD-P7",
+          "NlMtu": 9000
+        }
+      },
+      {
+        "seed": 1362,
+        "status": "INVALID_FIXTURE_BIND",
+        "full_300s": true,
+        "reason": "prior owned echo target not cleaned;new target bind Errno98;all sizes incl96B timed out;not product MTU failure",
+        "p7-status.json": {
+          "State": "STOPPED",
+          "Ready": true,
+          "Reason": "requested_stop",
+          "ExitCode": 0,
+          "NetworkStateRemaining": false,
+          "OwnedNRPTRemaining": 0,
+          "OwnedFirewallRemaining": 0,
+          "ElapsedSeconds": 344.5
+        },
+        "client-session.json": {
+          "State": "STOPPED",
+          "Ready": true,
+          "Reason": "requested_stop",
+          "ExitCode": 0,
+          "NetworkStateRemaining": false,
+          "OwnedNRPTRemaining": 0,
+          "OwnedFirewallRemaining": 0,
+          "ElapsedSeconds": 344.5
+        },
+        "mtu-during.json": {
+          "InterfaceIndex": 12,
+          "InterfaceAlias": "WBD-P7",
+          "NlMtu": 9000
+        }
+      },
+      {
+        "seed": 1363,
+        "status": "SETUP_ABORT_FIXTURE_PY38_READLINK",
+        "full_300s": false,
+        "p7-status.json": {
+          "State": "RUNNING",
+          "Ready": true,
+          "PID": 10212,
+          "ElapsedSeconds": 24.8,
+          "CPUSeconds": 0.203125,
+          "WorkingSetBytes": 13561856
+        },
+        "mtu-during.json": {
+          "InterfaceIndex": 12,
+          "InterfaceAlias": "WBD-P7",
+          "NlMtu": 9000
+        }
+      }
+    ]
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -7652,7 +7722,7 @@
     "native_evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json"
   },
   "windows_tun_mtu_boundary": {
-    "state": "ACTIONS_PASS_PAIRED_DEPLOYED_NATIVE_M01_RUNNING",
+    "state": "ACTIONS_PASS_PAIRED_DEPLOYED_NATIVE_NOT_YET_VALID",
     "source": "660b370815603c50d38b92229abdec13ca77e1b1",
     "inner_ipv4_mtu": 9000,
     "outer_connection_budget_unchanged": true,
@@ -7681,18 +7751,19 @@
     "partial_native": "M01 seed1361 INCOMPLETE_FIXTURE JSON status read;requested stop exit0 not spontaneousproductfailure"
   },
   "native_mtu_fixture": {
-    "state": "ACTIONS_COMPILE_AND_OWNERSHIP_PASS_NATIVE_NOT_RUN",
+    "state": "ECHO_FRAGMENT_POLICY_GATE_PENDING",
     "helper_head": "c08923e618e0f3918dbc98aa0a4c85b22a9c0580",
     "product_source": "660b370815603c50d38b92229abdec13ca77e1b1",
     "max_attempts_per_second": 10,
     "max_request_inventory": 8192,
     "no_payload_files": true,
     "native_cases": "M01/M03 NOT_RUN for candidate",
-    "helper_run": 37252246288
+    "helper_run": 37252246288,
+    "evidence": "docs/evidence/native-mtu-fixture-invalid-660b370-20261005.json"
   },
   "native_lifecycle_fixture": {
-    "state": "IMPLEMENTED_NOT_TESTED",
-    "helper_head": "CURRENT_COMMIT",
+    "state": "ACTIONS_COMPILE_BOUNDARY_PASS_NATIVE_NOT_RUN",
+    "helper_head": "0af35ea68846b3beaadf1b71f7eb89c1f86b2498",
     "product_source": "660b370815603c50d38b92229abdec13ca77e1b1",
     "case_ids": [
       "S18",
@@ -7703,6 +7774,7 @@
     "background_dns_from_fixture": false,
     "active_send_seconds": 120,
     "pure_downlink_send_seconds": 300,
-    "native": "NOT_RUN"
+    "native": "NOT_RUN",
+    "helper_run": 37253531888
   }
 }

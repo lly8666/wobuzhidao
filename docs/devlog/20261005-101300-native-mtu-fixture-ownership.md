@@ -1,0 +1,9 @@
+# 原生 MTU 夹具占有与最大 UDP 回包
+
+产品仍固定 SOURCE660b370，Windows/ARM配套包未改；上一份完整300秒seed1362不能作为MTU失败或PASS。seed1361的异常finally只匹配physical_，遗漏native_mtu_boundary_target.py，旧echo保持旧peer，seed1362的新target因18446端口占用Errno98退出，所有档位包括96B都超时。这是INVALID_FIXTURE_BIND，保留收到的数据，不混入有效样本。
+
+修外部executor：启动前尝试独占bind；启动后按本轮PID的/proc fd socket inode核对/proc/net/udp，真正持有198.18.0.1:18446才启用业务。seed1363在业务前暴露ARM Python3.8缺PosixPath.readlink，改os.readlink兼容；属于SETUP_ABORT，非产品运行时退出。清理仅owned PID且exact helper argv匹配，不扩展到用户其它程序。缺失某份回执不再阻断其它回执，target日志保留；hash在上传前冻结，不在结束时读可能已改变的仓库助手。原始大pcap仍有界、分析后删除。
+
+最大UDP echo助手仅本socket设置Linux IP_MTU_DISCOVER=DONT，确保合法65507B响应可经server小TUN进行IP分片，不改变产品/全局PMTU策略或socket buffer。SIGINT输出小计，send错误明确计数，禁止把echo失败偷算产品收包失败。Actions新功能fixtures验证65507逐字节往返、65508拒绝及已有listener不复用；不是性能基准。
+
+新idle/downlink助手HEAD0af35ea已通过next-predelivery-tools37253531888、foundation37253531814、targeted37253531892、GUI37253531880；只取得助手编译/phase边界资格，nativeS18/19/20仍NOT_RUN。所有新增产品测试/编译保持Actions，每性能run一条。待此echo helper gate通过，先新seed M01/M03，再payload静默/keepalive/纯下行，持续剩余43项方案。最新SOURCE全70/18/1800s仍NOT_RUN。

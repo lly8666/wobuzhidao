@@ -1,0 +1,108 @@
+{
+  "product_source": "660b370815603c50d38b92229abdec13ca77e1b1",
+  "invalid_cases": [
+    {
+      "seed": 1361,
+      "status": "INCOMPLETE_FIXTURE_STATUS_JSON_READ",
+      "full_300s": false,
+      "p7-status.json": {
+        "State": "RUNNING",
+        "Ready": true,
+        "PID": 6924,
+        "ElapsedSeconds": 122.6,
+        "CPUSeconds": 4.765625,
+        "WorkingSetBytes": 21934080
+      },
+      "mtu-during.json": {
+        "InterfaceIndex": 12,
+        "InterfaceAlias": "WBD-P7",
+        "NlMtu": 9000
+      }
+    },
+    {
+      "seed": 1362,
+      "status": "INVALID_FIXTURE_BIND",
+      "full_300s": true,
+      "reason": "prior owned echo target not cleaned;new target bind Errno98;all sizes incl96B timed out;not product MTU failure",
+      "p7-status.json": {
+        "State": "STOPPED",
+        "Ready": true,
+        "Reason": "requested_stop",
+        "ExitCode": 0,
+        "NetworkStateRemaining": false,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "ElapsedSeconds": 344.5
+      },
+      "client-session.json": {
+        "State": "STOPPED",
+        "Ready": true,
+        "Reason": "requested_stop",
+        "ExitCode": 0,
+        "NetworkStateRemaining": false,
+        "OwnedNRPTRemaining": 0,
+        "OwnedFirewallRemaining": 0,
+        "ElapsedSeconds": 344.5
+      },
+      "mtu-during.json": {
+        "InterfaceIndex": 12,
+        "InterfaceAlias": "WBD-P7",
+        "NlMtu": 9000
+      }
+    },
+    {
+      "seed": 1363,
+      "status": "SETUP_ABORT_FIXTURE_PY38_READLINK",
+      "full_300s": false,
+      "p7-status.json": {
+        "State": "RUNNING",
+        "Ready": true,
+        "PID": 10212,
+        "ElapsedSeconds": 24.8,
+        "CPUSeconds": 0.203125,
+        "WorkingSetBytes": 13561856
+      },
+      "mtu-during.json": {
+        "InterfaceIndex": 12,
+        "InterfaceAlias": "WBD-P7",
+        "NlMtu": 9000
+      }
+    }
+  ],
+  "lifecycle_helper_gates": [
+    {
+      "id": 37253531888,
+      "name": "next-predelivery-tools",
+      "head_sha": "0af35ea68846b3beaadf1b71f7eb89c1f86b2498",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37253531888"
+    },
+    {
+      "id": 37253531892,
+      "name": "next-p4-steady-targeted",
+      "head_sha": "0af35ea68846b3beaadf1b71f7eb89c1f86b2498",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37253531892"
+    },
+    {
+      "id": 37253531814,
+      "name": "next-foundation",
+      "head_sha": "0af35ea68846b3beaadf1b71f7eb89c1f86b2498",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37253531814"
+    },
+    {
+      "id": 37253531880,
+      "name": "next-windows-gui",
+      "head_sha": "0af35ea68846b3beaadf1b71f7eb89c1f86b2498",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37253531880"
+    }
+  ],
+  "product_changes": "NONE;helpers/executor only",
+  "native_mtu_qualification": "NOT_RUN_VALID_SAMPLE"
+}
