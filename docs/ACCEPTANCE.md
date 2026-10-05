@@ -1,5 +1,7 @@
 # Actions 验收契约
 
+2026-10-05当前：配套产品SOURCE660b370已部署Windows/ARM，基础/race/GUI/MTU ownership/lifecycle36+aggregate/两独立5205/P6通过；helpers HEADef20581 Actions通过，M01 seed1364在原生300s测量，已核验本轮echo PID持有端口。1361/1362/1363夹具异常保留，不作产品失败或PASS。Normal/Game各1800s独立Actions37254546236/37254548514正在跑。下一M03、S18/S19/S20，再其余DNS/IP/FEC/config；唯一实时状态为STATUS及101700日志，全70/18仍NOT_RUN。旧24ff良好原生容量证据不能继承为660b全量资格。
+
 > 当前决策（覆盖下文历史下一步）：2026-09-23用户最新决策：允许链路30%丢包时仍有至多30%业务包损失，优先处理性能、低延迟、无HOL与突发稳定性；不得主动丢业务凑指标。4096为可放弃的shadow-repair备份，不是fresh发送门。当前执行WEAKNET_QUALIFICATION第10节；历史近零损失门槛不再约束有损场景，无损满速、完整性、隔离和资源有界仍是硬门。 所有性能测试严格一个Action run一条样本，禁止同run A/B与matrix。
 
 ## 环境与证据

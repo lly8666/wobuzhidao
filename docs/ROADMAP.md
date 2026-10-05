@@ -1,5 +1,7 @@
 # 唯一开发路线图
 
+2026-10-05当前：配套产品SOURCE660b370已部署Windows/ARM，基础/race/GUI/MTU ownership/lifecycle36+aggregate/两独立5205/P6通过；helpers HEADef20581 Actions通过，M01 seed1364在原生300s测量，已核验本轮echo PID持有端口。1361/1362/1363夹具异常保留，不作产品失败或PASS。Normal/Game各1800s独立Actions37254546236/37254548514正在跑。下一M03、S18/S19/S20，再其余DNS/IP/FEC/config；唯一实时状态为STATUS及101700日志，全70/18仍NOT_RUN。旧24ff良好原生容量证据不能继承为660b全量资格。
+
 当前入口以STATUS为准：3e3e094配套包已过Actions定向门并实机D01完整300s，长时间双向中断未再现，但下行8.90%字节损失、208探针超时仍FAIL。S16 rotation独立实机运行；先验最新默认off Windows收包诊断补丁，定位最早下行损失边界再窄修，随后继续DNS/分流/MTU矩阵。旧6181四项保留历史，不继承为最新SOURCE。
 
 2026-10-05最新原生五分钟进展：固定6181db6未改产品；S01 Normal10与S02 Game4×3达到目标附近但C2S缺74/10包，不能写无损PASS；M01外层MTU1400大包至9000B无坏数据但有1次迟到。D01默认NRPT+10M出现约90秒双向中断、约30.12%业务loss和8/60 DNS失败，明确FAIL；整体P7仍PARTIAL。优先按STATUS.physical_5min复现D01并异常触发抓包定位最早边界，不直接归因DNS/VM或扩大buffer/FEC/4096。完整DNS互备、LAN/CN/IP/IPv6、其他配置/生命周期/弱网未跑。方案PHYSICAL_5MIN_ACCEPTANCE.md、日志devlog/20261005-021317-five-minute-native-capture-matrix.md、evidence/physical-5min-6181db6-20261005.json及压缩原始计数为当前证据入口；每性能Action只一条。原始pcap已删、退出owned清理通过，服务端保留active。

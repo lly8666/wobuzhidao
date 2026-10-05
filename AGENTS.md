@@ -21,7 +21,7 @@
 
 ## 当前性能主线（2026-09-23）
 
-2026-10-05当前：产品SOURCE660b370已通过foundation/race/GUI/MTU ownership/lifecycle fullstack36+aggregate/独立Normal与Game5205/P6，准备同源部署；helpers HEADc089编译/解析通过。先STATUS.windows_tun_mtu_boundary/native_mtu_fixture和094500日志，下一M01/M03读实际9000与退出原MTU恢复。SOURCE24ff D01重复/S16/Game各300s目标达成且Windows队列无drop；Game业务loss0但server raw drop940，Normal少量上行loss保留。不得继承给660b完整资格；每性能Action一条，继续剩余DNS/IP/idle/档位矩阵，记录真实参数而不是CI总绿。
+2026-10-05当前：配套产品SOURCE660b370已部署Windows/ARM，基础/race/GUI/MTU ownership/lifecycle36+aggregate/两独立5205/P6通过；helpers HEADef20581 Actions通过，M01 seed1364在原生300s测量，已核验本轮echo PID持有端口。1361/1362/1363夹具异常保留，不作产品失败或PASS。Normal/Game各1800s独立Actions37254546236/37254548514正在跑。下一M03、S18/S19/S20，再其余DNS/IP/FEC/config；唯一实时状态为STATUS及101700日志，全70/18仍NOT_RUN。旧24ff良好原生容量证据不能继承为660b全量资格。
 
 2026-10-05最新：24ff的D01独立seed1351/1352均完整300s双向近10M、driver/user overflow0、探针全回；上行少量损失及server raw drop保留，不能写全链路无损PASS。S16 seed1353正在同源复验rotation。新候选修复Wintun65535与合法lease包9000不一致、坏本地输入导致整client退出：内层MTU9000与外层预算分开，Apply实效/owned原值恢复，拒绝包在wire前计数、正常包无新计数，runtime/wire错误不吞。候选未过Actions前不部署；先STATUS.windows_tun_mtu_boundary与092400日志，再M01/M03。每性能Action只一条。
 

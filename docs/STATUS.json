@@ -83,8 +83,8 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "Qualify changed MTU echo helper;run fresh M01 then M03 with exact owned UDP listener readiness,immutable uploaded hashes and partial artifact collection. Then qualified S18/S19/S20 idle/downlink helpers,remaining43-case matrix. Invalid1361/1362/1363 cannot count as product qualification. Each performance Action one sample.",
-  "latest_log": "docs/devlog/20261005-101300-native-mtu-fixture-ownership.md",
+  "next_task": "Collect M01 seed1364 exact MTU/API/size receipts,then independent M03 seed1365. Run S18/S19/S20 idle/downlink qualified helpers with same paired SOURCE660b,record both DORMANT/lease/generation/keepalive truth. Collect current Normal/Game1800s independentActions and retain failures. Continue DNS/IP/FEC/config physical matrix;latest full70/strict18 NOT_RUN;each performance Action one sample.",
+  "latest_log": "docs/devlog/20261005-101700-current-native-and-long-gates.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -7556,7 +7556,7 @@
   },
   "physical_current": {
     "source": "660b370815603c50d38b92229abdec13ca77e1b1",
-    "state": "MTU_FIXTURE_REPAIRED_WAIT_HELPER_GATE",
+    "state": "M01_300S_MEASURING_OWNED_TARGET_VERIFIED",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [],
     "running": "M01 seed1362 native300s;seed1361 incompletefixture not counted",
@@ -7570,7 +7570,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "running_case": null,
+    "running_case": "M01 seed1364",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7639,7 +7639,8 @@
           "NlMtu": 9000
         }
       }
-    ]
+    ],
+    "helper_head": "ef20581269fe5f951164d9253a378c8767f3afad"
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -7726,7 +7727,7 @@
     "source": "660b370815603c50d38b92229abdec13ca77e1b1",
     "inner_ipv4_mtu": 9000,
     "outer_connection_budget_unchanged": true,
-    "native_source_still": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
+    "native_source_still": "660b370815603c50d38b92229abdec13ca77e1b1",
     "native_m03": "NOT_RUN",
     "evidence": "docs/evidence/windows-tun-mtu-actions-660b370-20261005.json",
     "failed_parent": "977fee7611b65a0d632636a6ae237a82033a178f",
@@ -7751,14 +7752,14 @@
     "partial_native": "M01 seed1361 INCOMPLETE_FIXTURE JSON status read;requested stop exit0 not spontaneousproductfailure"
   },
   "native_mtu_fixture": {
-    "state": "ECHO_FRAGMENT_POLICY_GATE_PENDING",
-    "helper_head": "c08923e618e0f3918dbc98aa0a4c85b22a9c0580",
+    "state": "ACTIONS_PASS_NATIVE_RUNNING",
+    "helper_head": "ef20581269fe5f951164d9253a378c8767f3afad",
     "product_source": "660b370815603c50d38b92229abdec13ca77e1b1",
     "max_attempts_per_second": 10,
     "max_request_inventory": 8192,
     "no_payload_files": true,
-    "native_cases": "M01/M03 NOT_RUN for candidate",
-    "helper_run": 37252246288,
+    "native_cases": "M01 seed1364 IN_PROGRESS;M03 NOT_RUN",
+    "helper_run": 37254317733,
     "evidence": "docs/evidence/native-mtu-fixture-invalid-660b370-20261005.json"
   },
   "native_lifecycle_fixture": {
@@ -7776,5 +7777,29 @@
     "pure_downlink_send_seconds": 300,
     "native": "NOT_RUN",
     "helper_run": 37253531888
+  },
+  "current_soak": {
+    "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+    "state": "IN_PROGRESS",
+    "runs": [
+      {
+        "id": 37254548514,
+        "name": "soak-game-1800s-seed1372",
+        "display_title": "soak-game-1800s-seed1372",
+        "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+        "status": "in_progress",
+        "conclusion": null,
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37254548514"
+      },
+      {
+        "id": 37254546236,
+        "name": "soak-normal-1800s-seed1371",
+        "display_title": "soak-normal-1800s-seed1371",
+        "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+        "status": "in_progress",
+        "conclusion": null,
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37254546236"
+      }
+    ]
   }
 }
