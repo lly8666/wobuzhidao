@@ -1,0 +1,773 @@
+{
+  "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+  "state": "ACTIONS_SCOPED_PASS_NATIVE_PREPARING",
+  "core_runs": [
+    "37330020713",
+    "37330020583",
+    "37330020548",
+    "37330020565",
+    "37330020707",
+    "37330020696",
+    "37330082765"
+  ],
+  "helper_runs": [
+    "37330020560"
+  ],
+  "performance": {
+    "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "state": "PASS_TARGETED",
+    "pending": [],
+    "samples": [
+      {
+        "run": 37330233499,
+        "name": "strict-normal-lossless-seed1401-rate10-lanes1",
+        "conclusion": "success",
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 87.42,
+          "server": 88.56
+        },
+        "min_goodput": 9.999978666666665,
+        "latency": {
+          "post": {
+            "p95_ns": 602615566,
+            "p99_ns": 602684131,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 603411591,
+            "p99_ns": 603422057,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 602860178,
+            "p99_ns": 603002104,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37330240783,
+        "name": "strict-normal-5205-seed1401-rate10-lanes1",
+        "conclusion": "success",
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 69.17,
+          "server": 69.82
+        },
+        "min_goodput": 9.999547733333332,
+        "latency": {
+          "post": {
+            "p95_ns": 607567576,
+            "p99_ns": 612778420,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 611764645,
+            "p99_ns": 613855589,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 612739741,
+            "p99_ns": 613426655,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37331216824,
+        "name": "strict-game-lossless-seed1382-rate3-lanes4",
+        "conclusion": "success",
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 57.57,
+          "server": 54.03
+        },
+        "min_goodput": 2.9999573333333336,
+        "latency": {
+          "post": {
+            "p95_ns": 602822848,
+            "p99_ns": 602831385,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 603092021,
+            "p99_ns": 603479025,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 602711050,
+            "p99_ns": 602901941,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37331222938,
+        "name": "strict-game-5205-seed1382-rate3-lanes4",
+        "conclusion": "success",
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 78.15,
+          "server": 73.36
+        },
+        "min_goodput": 2.999889066666667,
+        "latency": {
+          "post": {
+            "p95_ns": 613902931,
+            "p99_ns": 615130374,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 610904505,
+            "p99_ns": 611289403,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 611478117,
+            "p99_ns": 611704828,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37331229191,
+        "name": "strict-game-5305-seed1382-rate3-lanes4",
+        "conclusion": "success",
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 98.22,
+          "server": 92.89
+        },
+        "min_goodput": 2.999872,
+        "latency": {
+          "post": {
+            "p95_ns": 605433229,
+            "p99_ns": 605467884,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 603407782,
+            "p99_ns": 604305875,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 602874314,
+            "p99_ns": 604945519,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      }
+    ],
+    "pairs": [
+      {
+        "run": 37330240783,
+        "baseline": 37330233499,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 8.353054,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37330240783,
+        "baseline": 37330233499,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 10.433532,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37330240783,
+        "baseline": 37330233499,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": 9.879563,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37330240783,
+        "baseline": 37330233499,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": 10.424551,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37330240783,
+        "baseline": 37330233499,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 4.95201,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37330240783,
+        "baseline": 37330233499,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 10.094289,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331222938,
+        "baseline": 37331216824,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 7.812484,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331222938,
+        "baseline": 37331216824,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 7.810378,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331222938,
+        "baseline": 37331216824,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": 8.767067,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331222938,
+        "baseline": 37331216824,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": 8.802887,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331222938,
+        "baseline": 37331216824,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 11.080083,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331222938,
+        "baseline": 37331216824,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 12.298989,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331229191,
+        "baseline": 37331216824,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 0.315761,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331229191,
+        "baseline": 37331216824,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 0.82685,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331229191,
+        "baseline": 37331216824,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": 0.163264,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331229191,
+        "baseline": 37331216824,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": 2.043578,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331229191,
+        "baseline": 37331216824,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 2.610381,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37331229191,
+        "baseline": 37331216824,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 2.636499,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      }
+    ],
+    "full18_qualification": false,
+    "one_sample_per_action": true,
+    "profile": false,
+    "retained_failed_runs": [
+      37318484867,
+      37320066022,
+      37321752497
+    ],
+    "no_cross_helper_baseline": true
+  },
+  "raw_generator_receipts": {
+    "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "pacing": "absolute-deadline-sleep-v1",
+    "generator_sha256": "f87527f8c9621702ed28951cb4f27a7b000f27ba3c25b20bd13bad9e43ad62b1",
+    "samples": [
+      {
+        "run": 37330233499,
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "manifest_hash": "2708db6c8c54dcf7c2d9414afbafffc0cde2d58abf9d9581cdccc1b46e8dcb03",
+        "downloaded_bytes": 3090,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 28.634138792999998,
+            "send_lag_p99_ms": 0.7,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 28.105489652,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "config": {
+          "application_mbps_each_direction": 10.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 1,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37330233499",
+          "identity": "strict:normal:lossless:seed1401:rate10:lanes1:stateful0:neighborsdynamic:source7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535:harness7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+          "schema": 1,
+          "source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535"
+        }
+      },
+      {
+        "run": 37330240783,
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "manifest_hash": "eb2e6f29e6fe762e3296aca53d014c04fb10993e66a9ab92713cd50b1b10cf19",
+        "downloaded_bytes": 3090,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 18.569436727,
+            "send_lag_p99_ms": 0.7,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 18.023484263,
+            "send_lag_p99_ms": 0.6,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "config": {
+          "application_mbps_each_direction": 10.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 1,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37330240783",
+          "identity": "strict:normal:5205:seed1401:rate10:lanes1:stateful0:neighborsdynamic:source7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535:harness7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+          "schema": 1,
+          "source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535"
+        }
+      },
+      {
+        "run": 37331216824,
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "manifest_hash": "0e2b98eb0776242395ad693a2cf9ff080ad93fbbe6478db7507fe15ceb9898f6",
+        "downloaded_bytes": 33255,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 7.4399883959999995,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 7.247691389,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37331216824",
+          "identity": "strict:game:lossless:seed1382:rate3:lanes4:stateful0:neighborsdynamic:source7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535:harness7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+          "schema": 1,
+          "source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535"
+        }
+      },
+      {
+        "run": 37331222938,
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "manifest_hash": "5d1c977be709b7ab653cdb1e3e88e126a51661a8998f8031328d4845c307564f",
+        "downloaded_bytes": 39946,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 9.017601798000001,
+            "send_lag_p99_ms": 0.9,
+            "skipped_slots": 0,
+            "sent_packets": 88817,
+            "sent_bytes": 44999920,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 8.944912953,
+            "send_lag_p99_ms": 0.9,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37331222938",
+          "identity": "strict:game:5205:seed1382:rate3:lanes4:stateful0:neighborsdynamic:source7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535:harness7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+          "schema": 1,
+          "source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535"
+        }
+      },
+      {
+        "run": 37331229191,
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "manifest_hash": "cce0fe99402ee180aaebf4865a00ee6e6e5ea95a5faf04a78d9f0b698e3677c7",
+        "downloaded_bytes": 47925,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 9.995092305,
+            "send_lag_p99_ms": 1.0,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 9.860176145,
+            "send_lag_p99_ms": 1.0,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37331229191",
+          "identity": "strict:game:5305:seed1382:rate3:lanes4:stateful0:neighborsdynamic:source7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535:harness7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+          "schema": 1,
+          "source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535"
+        }
+      }
+    ],
+    "no_pcaps_downloaded": true,
+    "unchanged_input_threshold": true
+  },
+  "paired_p99_max_delta_ms": 12.298989,
+  "deployment": {
+    "source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "qualification_runs": [
+      "37330020713",
+      "37330020583",
+      "37330020548",
+      "37330020565",
+      "37330020707",
+      "37330020696",
+      "37330082765"
+    ],
+    "harness_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "harness_runs": [
+      "37330020560"
+    ],
+    "retained_failed_performance_runs": [
+      37318484867,
+      37320066022,
+      37321752497
+    ],
+    "windows_zip_sha256": "48c81751cbede20c8d25edb7c2d1ad8df2dbeeda29d6e20d609521c091968480",
+    "windows_bundle": "WBD-P7-7eebdcf/windows-portable",
+    "server_stage": "/opt/wbd/p7-candidates/7eebdcf",
+    "server_config_preserved": true,
+    "npcap_not_reinstalled": true,
+    "rollback_source": "2bf85a1"
+  },
+  "native_case": "s18-wake-tc-blackhole-300s-seed1411",
+  "native_state": "PREPARING",
+  "p99_native": "NOT_EVALUATED:no idle probes",
+  "full70_full18_soak_qualification": "NOT_INHERITED",
+  "prior_failures": [
+    37326843336,
+    "s18-wake-blackhole-300s-seed1410"
+  ]
+}
