@@ -232,10 +232,10 @@ for pid in "${CAP_PIDS[@]}"; do sampler_args+=(--capture-pid "$pid"); done
 "${sampler_args[@]}" > "$ART/resource-sampler.log" 2>&1 &
 SAMPLER_PID="$!"
 
-ip netns exec "$TGT" python3 "$GEN"   --role target --bind 8.8.8.8:18080   --start-ns "$START_NS" --duration 120 --drain 10 --rate-mbps "$RATE"   --seed "$((SEED*100+2))" --output "$ART/target.json" > "$ART/target.log" 2>&1 &
+ip netns exec "$TGT" python3 "$GEN"   --role target --bind 8.8.8.8:18080   --start-ns "$START_NS" --duration 120 --drain 10 --rate-mbps "$RATE" --bounded-stats   --seed "$((SEED*100+2))" --output "$ART/target.json" > "$ART/target.log" 2>&1 &
 TGT_PID="$!"
 
-ip netns exec "$BIZ" python3 "$GEN"   --role biz --bind 10.40.0.2:28080 --peer 8.8.8.8:18080   --start-ns "$START_NS" --duration 120 --drain 10 --rate-mbps "$RATE"   --seed "$((SEED*100+1))" --output "$ART/biz.json" > "$ART/biz.log" 2>&1 &
+ip netns exec "$BIZ" python3 "$GEN"   --role biz --bind 10.40.0.2:28080 --peer 8.8.8.8:18080   --start-ns "$START_NS" --duration 120 --drain 10 --rate-mbps "$RATE" --bounded-stats   --seed "$((SEED*100+1))" --output "$ART/biz.json" > "$ART/biz.log" 2>&1 &
 BIZ_PID="$!"
 
 wait "$BIZ_PID"; BIZ_PID=""
@@ -305,6 +305,7 @@ harness = [
     workflow_rel,
     "scripts/strict_weaknet_sample.sh",
     "tools/realpath_udp_duplex.py",
+    "tools/soak_stats.py",
     "tools/check_strict_weaknet_loss_tolerant_v1.py",
     "tools/strict_weaknet_stage.py",
     "scripts/build_seeded_tc.sh",
@@ -332,6 +333,7 @@ manifest = {
     "mode": mode, "scenario": scenario, "seed": seed,
     "config": {
         "lanes": lanes, "application_mbps_each_direction": rate,
+        "generator_stats": "bounded-v1-exact-dedupe",
         "fec": "20:20", "padding": "off", "mtu": 1400,
         "one_way_delay_ms": 300, "duration_s": 120, "stages_s": [30, 60, 30],
         "drain_s": 10, "qdisc_limit_packets": 200000,

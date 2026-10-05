@@ -4,6 +4,38 @@ from realpath_udp_duplex import Stats
 
 
 class SoakStatsTests(unittest.TestCase):
+    def test_bounded_and_unbounded_keep_exact_probe_and_delivery_accounting(self):
+        # The formal paired RTT gate reads the per-second raw probe times,
+        # rather than the conservative aggregate diagnostic histogram.
+        plain = Stats(1_000_000_000, 3, 1)
+        bounded = stats_class(Stats)(1_000_000_000, 3, 1, .01)
+        storage = (len(bounded.recv_seen.bits),
+                   len(bounded.send_lag_ns.bins), len(bounded.oneway_ns.bins))
+        for stats in (plain, bounded):
+            for seq, sec in [(2, 0), (0, 0), (3, 1), (1, 2), (3, 1)]:
+                packet = dict(kind=1, seq=seq, size=64,
+                              send_ns=1_000_000_000 + sec * 1_000_000_000)
+                stats.note_recv(packet, packet['send_ns'] + 300_000_123, 1)
+            stats.note_send(1_000_000_000, 64, 123_456)
+            stats.note_skip(2_000_000_000, 256)
+            stats.probe_rtt_ns.append(600_123_456)
+            stats.probe_rtt_ns_by_second[1] = 600_123_456
+            stats.probe_sent = stats.probe_recv = 1
+        a, b = plain.snapshot(), bounded.snapshot()
+        for key in ['sent_bytes', 'sent_packets', 'recv_unique_packets',
+                    'recv_unique_bytes', 'recv_duplicates',
+                    'recv_bytes_by_second', 'recv_wall_bytes_by_bucket',
+                    'skipped_slots', 'skipped_bytes', 'skipped_slots_by_second',
+                    'probe_rtt_ns_by_second', 'probe_sent', 'probe_recv']:
+            self.assertEqual(a[key], b[key], key)
+        self.assertEqual(storage, (len(bounded.recv_seen.bits),
+                                  len(bounded.send_lag_ns.bins),
+                                  len(bounded.oneway_ns.bins)))
+        self.assertEqual(b['probe_rtt_ns_by_second'][1], 600_123_456)
+        self.assertGreaterEqual(b['send_lag_p99_ns'], a['send_lag_p99_ns'])
+        self.assertLessEqual(b['send_lag_p99_ns']-a['send_lag_p99_ns'], 100_000)
+        self.assertEqual(b['bounded_stats']['capacity_errors'], 0)
+
     def test_exact_slots_match_real_sender_schedule(self):
         for duration, rate in [(1, .01), (3, .07), (1800, 3), (1800, 10), (120, 10), (1, 0)]:
             budget = duration * rate * 1_000_000 / 8

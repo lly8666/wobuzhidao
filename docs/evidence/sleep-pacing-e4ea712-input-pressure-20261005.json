@@ -1,0 +1,422 @@
+{
+  "product_source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+  "helper_source": "e4ea71206f1288d501b13bd96f4c804b739a9892",
+  "state": "FOUR_PASS_NORMAL5205_INPUT_FAIL",
+  "samples": [
+    {
+      "run": 37321746319,
+      "name": "strict-normal-lossless-seed1401-rate10-lanes1",
+      "conclusion": "success",
+      "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "harness_source": "e4ea71206f1288d501b13bd96f4c804b739a9892",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "cpu": {
+        "client": 46.6,
+        "server": 46.61
+      },
+      "min_goodput": 9.999978666666665,
+      "latency": {
+        "post": {
+          "p95_ns": 600913887,
+          "p99_ns": 601188910,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 600511246,
+          "p99_ns": 600707585,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 600801209,
+          "p99_ns": 601005940,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37321752497,
+      "name": "strict-normal-5205-seed1401-rate10-lanes1",
+      "conclusion": "failure",
+      "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "harness_source": "e4ea71206f1288d501b13bd96f4c804b739a9892",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "FAIL",
+        "PERFORMANCE": "CAPACITY_LIMITED"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [
+          "s2c skipped_slots=30"
+        ],
+        "performance": []
+      },
+      "cpu": {
+        "client": 71.01,
+        "server": 71.51
+      },
+      "min_goodput": 9.996245333333334,
+      "latency": {
+        "post": {
+          "p95_ns": 608490714,
+          "p99_ns": 609145775,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 601556281,
+          "p99_ns": 611007193,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 609231175,
+          "p99_ns": 611547556,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37321758919,
+      "name": "strict-game-lossless-seed1382-rate3-lanes4",
+      "conclusion": "success",
+      "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "harness_source": "e4ea71206f1288d501b13bd96f4c804b739a9892",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "cpu": {
+        "client": 44.65,
+        "server": 42.24
+      },
+      "min_goodput": 2.999872,
+      "latency": {
+        "post": {
+          "p95_ns": 601029119,
+          "p99_ns": 601152860,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 600421645,
+          "p99_ns": 600636679,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 601408985,
+          "p99_ns": 601622874,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37321764761,
+      "name": "strict-game-5205-seed1382-rate3-lanes4",
+      "conclusion": "success",
+      "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "harness_source": "e4ea71206f1288d501b13bd96f4c804b739a9892",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "cpu": {
+        "client": 103.57,
+        "server": 98.27
+      },
+      "min_goodput": 2.999872,
+      "latency": {
+        "post": {
+          "p95_ns": 606211423,
+          "p99_ns": 609660329,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 605943963,
+          "p99_ns": 608649068,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 615576556,
+          "p99_ns": 1627162340,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    },
+    {
+      "run": 37321770177,
+      "name": "strict-game-5305-seed1382-rate3-lanes4",
+      "conclusion": "success",
+      "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "harness_source": "e4ea71206f1288d501b13bd96f4c804b739a9892",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "cpu": {
+        "client": 101.25,
+        "server": 95.9
+      },
+      "min_goodput": 2.9998293333333335,
+      "latency": {
+        "post": {
+          "p95_ns": 608703705,
+          "p99_ns": 612642443,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 606293665,
+          "p99_ns": 611423348,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 603390494,
+          "p99_ns": 603922954,
+          "received": 60,
+          "sent": 60
+        }
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "run": 37321752497,
+      "baseline": 37321746319,
+      "stage": "pre",
+      "percentile": "p95_ns",
+      "delta_ms": 1.045035,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321752497,
+      "baseline": 37321746319,
+      "stage": "pre",
+      "percentile": "p99_ns",
+      "delta_ms": 10.299608,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321752497,
+      "baseline": 37321746319,
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 8.429966,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321752497,
+      "baseline": 37321746319,
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 10.541616,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321752497,
+      "baseline": 37321746319,
+      "stage": "post",
+      "percentile": "p95_ns",
+      "delta_ms": 7.576827,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321752497,
+      "baseline": 37321746319,
+      "stage": "post",
+      "percentile": "p99_ns",
+      "delta_ms": 7.956865,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321764761,
+      "baseline": 37321758919,
+      "stage": "pre",
+      "percentile": "p95_ns",
+      "delta_ms": 5.522318,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321764761,
+      "baseline": 37321758919,
+      "stage": "pre",
+      "percentile": "p99_ns",
+      "delta_ms": 8.012389,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321764761,
+      "baseline": 37321758919,
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 14.167571,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321764761,
+      "baseline": 37321758919,
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 1025.539466,
+      "gate_ms": 500.0,
+      "state": "FAIL"
+    },
+    {
+      "run": 37321764761,
+      "baseline": 37321758919,
+      "stage": "post",
+      "percentile": "p95_ns",
+      "delta_ms": 5.182304,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321764761,
+      "baseline": 37321758919,
+      "stage": "post",
+      "percentile": "p99_ns",
+      "delta_ms": 8.507469,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321770177,
+      "baseline": 37321758919,
+      "stage": "pre",
+      "percentile": "p95_ns",
+      "delta_ms": 5.87202,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321770177,
+      "baseline": 37321758919,
+      "stage": "pre",
+      "percentile": "p99_ns",
+      "delta_ms": 10.786669,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321770177,
+      "baseline": 37321758919,
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 1.981509,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321770177,
+      "baseline": 37321758919,
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 2.30008,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321770177,
+      "baseline": 37321758919,
+      "stage": "post",
+      "percentile": "p95_ns",
+      "delta_ms": 7.674586,
+      "gate_ms": 200.0,
+      "state": "PASS"
+    },
+    {
+      "run": 37321770177,
+      "baseline": 37321758919,
+      "stage": "post",
+      "percentile": "p99_ns",
+      "delta_ms": 11.489583,
+      "gate_ms": 500.0,
+      "state": "PASS"
+    }
+  ],
+  "retained_failed_runs": [
+    37318484867,
+    37320066022,
+    37321752497
+  ],
+  "new_failure": {
+    "run": 37321752497,
+    "skip_seconds": [
+      {
+        "second": 112,
+        "slots": 30
+      }
+    ],
+    "generator_cpu_seconds": 16.84542154,
+    "send_lag_p99_ns": 472757,
+    "skipped_slots": 30
+  },
+  "root_cause_proven": false,
+  "next_harness_change": "Use existing soak bounded exact stats; raw per-second probe RTT remains exact, input thresholds unchanged."
+}

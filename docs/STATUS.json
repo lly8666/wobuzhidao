@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "SOURCE2bf core/race/lifecycle36+aggregate/GUI/Linuxserver/P6 PASS; four target samples PASS, Normal5205 twice INPUT_FAIL (30-36 skipped slots), no product drop/performance error. New helper absolute pacing pending; deployed273 unchanged, full70/18/1800s/native not inherited.",
-  "updated_at": "2026-10-05T22:02:20.215880+08:00",
+  "qualification_scope": "Product2bf core/lifecycle36/P6 PASS; two helper epochs each four target samples PASS and Normal5205 INPUT_FAIL. No deployment. Bounded existing soak stats helper pending; exact per-second probe p99/input gates unchanged. Physical deployed273, full qualification not inherited.",
+  "updated_at": "2026-10-05T22:16:52.955869+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,12 +80,12 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Actions qualification of absolute generator pacing, product2bf unchanged and not deployed",
+    "Actions qualification of existing bounded generator stats; product2bf unchanged and not deployed",
     "Windows failed-business-Wake native blackhole pending performance gate",
     "Normal native uplink Wake loss and old raw p99/maxUDP attribution retained"
   ],
-  "next_task": "Validate absolute-deadline-sleep generator helper in Actions, then5 independent performance samples using exact product2bf and same fresh helper matched baselines; preserve both old Normal5205 INPUT_FAIL attempts and all input/p95/p99 thresholds. Only after PASS deploy2bf packages and run300s Windows failed-Wake443 one-way blackhole with same PID/lease/backoff/clear-path recovery/cleanup proof. No blind re-run, no buffer/FEC/4096 or HOL changes;32native cases stillNOT_RUN.",
-  "latest_log": "docs/devlog/20261005-220220-absolute-generator-pacing.md",
+  "next_task": "Validate bounded strict generator stats in Actions; first product2bf/new-helper Normal lossless+5205 independent runs. If qualified, then3 same-helper independent Game samples and18 stage percentile pairs; deploy2bf packages only after allPASS. If112s skip persists, stop speculative pacing/stat changes and run bounded file-only allocation/scheduling diagnostic. Native Wake blackhole/maxUDP/raw tail and32native cases still pending. Every performance Action one sample.",
+  "latest_log": "docs/devlog/20261005-221652-bounded-strict-generator-stats.md",
   "last_tested_source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
   "actions": [
     {
@@ -8137,12 +8137,18 @@
     "native_state": "NOT_RUN"
   },
   "strict_generator_pacing": {
-    "state": "IMPLEMENTED_PENDING_ACTIONS",
+    "state": "PACING_UNIT_PASS_INPUT_FAIL_BOUND_STATS_PENDING",
     "helper_sha": "commit containing latest_log",
     "product_source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
     "scope": "absolute sleep, no injection/skip/validator/packet/target change",
-    "evidence": "docs/evidence/wake-retry-2bf85a1-input-pressure-20261005.json",
+    "evidence": "docs/evidence/sleep-pacing-e4ea712-input-pressure-20261005.json",
     "sample_count": 5,
-    "one_sample_per_action": true
+    "one_sample_per_action": true,
+    "retained_failed_runs": [
+      37318484867,
+      37320066022,
+      37321752497
+    ],
+    "new_scope": "Existing preallocated exact soak stats; no raw per-second probe/injection/validator threshold changes"
   }
 }
