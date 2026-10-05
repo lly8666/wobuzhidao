@@ -12,6 +12,8 @@ Windows收包分离候选沿用已有SegmentMux4096队列，每物理incarnation
 
 Windows已就绪批量发送候选不新增参数。`npcap_io`新增batch_supported/write_calls/batch_calls/batch_requested_packets，以及write_call_ns/max和send_lock_wait_ns/max，分别表示DLL可用、实际调用/请求包数、调用与mutex等待墙钟时间；不是CPU时间，启用沿用diagnostic-jsonl。每批最多8包/16KiB临时scratch、sync=0，没有凑批计时器。是否通过看STATUS和实际原生回执。
 
+Windows内层MTU候选不新增用户配置：虚拟接口IPv4 NlMtu固定为现有lease合法包上限9000，外层`mtu`仍是1400/1500等统一封装预算，LINK仍只按此外层预算拆分。本次并不把外层预算强设为内层MTU。网络脚本内部`TunnelMTU`由Go plan传入9000，Apply验证实效；退出仅在同一adapter/index且现值仍是本次应用值时恢复先前MTU，保留管理员后续修改。默认65535导致大于9000B合法本地IP包令整个客户端退出的边界已进入修复；known invalid/oversize/spoof本地输入在发出前拒绝并计数，后续正常包继续，binding/driver/runtime/部分wire发送错误仍保留fatal。诊断新增`tun_input`分类计数，不做逐包日志或正常包原子计数。是否通过看STATUS；M03/真实DF反馈未执行前不得写超限资格PASS。
+
 Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对象，键名和 CLI 去掉 `--` 后完全一致；时长使用字符串，例如 `"30s"`、`"5m"`。优先级为显式 CLI > JSON > 内置默认。`--tls-startup-padding=false` 可以覆盖配置中的 true。
 
 配置片段（需合并本机接口、身份、密钥、地址等必需字段后运行）：

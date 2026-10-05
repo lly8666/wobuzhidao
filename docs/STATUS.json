@@ -83,8 +83,8 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "Finish independent SOURCE24ff D01 seed1352;retain residual C2S loss/queue peak/input fine-gate limits. Then same-source S16 rotation and remaining DNS/config/IP/MTU/idle matrix. Each performance Action one sample. Never inherit old-source qualifications or enlarge buffers to conceal overflow.",
-  "latest_log": "docs/devlog/20261005-091800-windows-batch-native-first-result.md",
+  "next_task": "Qualify Windows9000 inner-MTU/rejected-local-input candidate in Actions (core/race/Windows restore ownership/GUI/independentNormal+Game5205/P6),while frozenSOURCE24ff S16 seed1353 runs. Then same-source packaged native M01/M03 and remaining43-case scope. No old test inheritance;every performance Action one sample.",
+  "latest_log": "docs/devlog/20261005-092400-windows-inner-mtu-boundary-candidate.md",
   "last_tested_source_sha": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
   "actions": [
     {
@@ -7556,12 +7556,13 @@
   },
   "physical_current": {
     "source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
-    "state": "FIRST_NATIVE_CAPACITY_REACHED_REPEAT_RUNNING",
+    "state": "D01_NATIVE_CAPACITY_REPEATED_ROTATION_RUNNING",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
-      "d01-current-300s-seed1351"
+      "d01-current-300s-seed1351",
+      "d01-current-300s-seed1352"
     ],
-    "running": "D01 seed1352 independent ready-only Npcap batch repeat",
+    "running": "S16 seed1353 same-source rotate60s",
     "supersedes_old_native_qualification": false,
     "rotation": "generation1..6,maxphysical2,exit0;S2C3.06%byte loss/probe71timeout,qualityNOT_PASS",
     "previous_source": "8f53f33",
@@ -7619,14 +7620,14 @@
       "D02",
       "D03"
     ],
-    "full300s_samples": 12,
+    "full300s_samples": 13,
     "case_ids_total": 43,
     "case_ids_not_run": 36,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true
   },
   "windows_ready_send_batch": {
-    "state": "ACTIONS_PASS_NATIVE_FIRST_TARGET_REACHED_REPEAT_RUNNING",
+    "state": "ACTIONS_PASS_NATIVE_D01_CAPACITY_REPEATED_WITH_RESIDUAL_LOSS",
     "source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
     "profile_evidence": "docs/evidence/windows-native-profile-8f53f33-20261005.json",
     "scratch_bytes": 16384,
@@ -7650,5 +7651,14 @@
     ],
     "evidence": "docs/evidence/windows-ready-batch-actions-24ff220-20261005.json",
     "native_evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json"
+  },
+  "windows_tun_mtu_boundary": {
+    "state": "IMPLEMENTED_PENDING_ACTIONS",
+    "source": "CURRENT_COMMIT",
+    "inner_ipv4_mtu": 9000,
+    "outer_connection_budget_unchanged": true,
+    "native_source_still": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
+    "native_m03": "NOT_RUN",
+    "evidence": "docs/devlog/20261005-092400-windows-inner-mtu-boundary-candidate.md"
   }
 }

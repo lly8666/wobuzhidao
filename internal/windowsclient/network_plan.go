@@ -3,20 +3,21 @@ package windowsclient
 import (
 	"errors"
 	"fmt"
+	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
+	"github.com/lly8666/wobuzhidao/internal/splitroute"
 	"net/netip"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
-	"github.com/lly8666/wobuzhidao/internal/splitroute"
 )
 
 const (
-	StateSchema          = "wbd-windows-client-state/v1"
-	NRPTDisplayName      = "WBD Runtime DNS"
-	NRPTComment          = "wbd-owned-runtime-dns/v1"
-	IPv6FirewallGroup    = "WBD Runtime IPv6 Kill Switch"
-	IPv6FirewallComment  = "wbd-owned-runtime-ipv6-killswitch/v1"
+	StateSchema         = "wbd-windows-client-state/v1"
+	NRPTDisplayName     = "WBD Runtime DNS"
+	NRPTComment         = "wbd-owned-runtime-dns/v1"
+	IPv6FirewallGroup   = "WBD Runtime IPv6 Kill Switch"
+	IPv6FirewallComment = "wbd-owned-runtime-ipv6-killswitch/v1"
 )
 
 var ErrNetworkPlan = errors.New("windowsclient: invalid network plan")
@@ -54,11 +55,12 @@ type NetworkPlan struct {
 	Physical     PhysicalPath
 	StatePath    string
 
-	UnderlayRoute OwnedRoute
-	DirectRoutes  []OwnedRoute
-	CaptureRoutes []OwnedRoute
+	UnderlayRoute      OwnedRoute
+	TunnelMTU          uint32
+	DirectRoutes       []OwnedRoute
+	CaptureRoutes      []OwnedRoute
 	CapturePrefixFile4 string
-	DNSServers4   []netip.Addr
+	DNSServers4        []netip.Addr
 
 	NRPTNamespace string
 	NRPTDisplay   string
@@ -119,14 +121,18 @@ func BuildNetworkPlan(cfg Config) (NetworkPlan, error) {
 		netip.MustParsePrefix("0.0.0.0/1"),
 		netip.MustParsePrefix("128.0.0.0/1"),
 	}
-	if len(cfg.Bypass4)>0 {
-		bypass := append([]netip.Prefix(nil),cfg.Bypass4...)
-		bypass = append(bypass,netip.PrefixFrom(server,32))
-		capturePrefixes,err = splitroute.Capture(bypass)
-		if err != nil { return NetworkPlan{},err }
+	if len(cfg.Bypass4) > 0 {
+		bypass := append([]netip.Prefix(nil), cfg.Bypass4...)
+		bypass = append(bypass, netip.PrefixFrom(server, 32))
+		capturePrefixes, err = splitroute.Capture(bypass)
+		if err != nil {
+			return NetworkPlan{}, err
+		}
 	}
 	for _, addr := range dns {
-		if addr==server { return NetworkPlan{},fmt.Errorf("%w: DNS cannot be underlay server",ErrNetworkPlan) }
+		if addr == server {
+			return NetworkPlan{}, fmt.Errorf("%w: DNS cannot be underlay server", ErrNetworkPlan)
+		}
 		capturePrefixes = append(capturePrefixes, netip.PrefixFrom(addr, 32))
 	}
 	capturePrefixes, _ = normalizePrefixes(capturePrefixes)
@@ -146,6 +152,7 @@ func BuildNetworkPlan(cfg Config) (NetworkPlan, error) {
 		Server4:           server,
 		Physical:          PhysicalPath{InterfaceIndex: cfg.Physical.InterfaceIndex, NextHop4: nextHop},
 		StatePath:         filepath.Clean(cfg.StatePath),
+		TunnelMTU:         logicaltunnel.MaxLeasedIPv4PacketLen,
 		UnderlayRoute:     underlay,
 		DirectRoutes:      direct,
 		CaptureRoutes:     capture,
@@ -178,6 +185,7 @@ func (p NetworkPlan) PowerShellArgs(action, scriptPath string) ([]string, error)
 		"-PhysicalInterfaceIndex", strconv.FormatUint(uint64(p.Physical.InterfaceIndex), 10),
 		"-PhysicalNextHop4", p.Physical.NextHop4.String(),
 		"-StatePath", p.StatePath,
+		"-TunnelMTU", strconv.FormatUint(uint64(p.TunnelMTU), 10),
 	}
 	if len(p.DNSServers4) > 0 {
 		values := make([]string, 0, len(p.DNSServers4))
@@ -193,11 +201,20 @@ func (p NetworkPlan) PowerShellArgs(action, scriptPath string) ([]string, error)
 		}
 		args = append(args, "-DirectPrefix4", strings.Join(values, ","))
 	}
-	if p.CapturePrefixFile4!="" { args=append(args,"-CapturePrefixFile4",p.CapturePrefixFile4) } else {
-		if len(p.CaptureRoutes)>8 { return nil,fmt.Errorf("%w: large capture set requires snapshot file",ErrNetworkPlan) }
-		values:=make([]string,0,len(p.CaptureRoutes)); for _,r:=range p.CaptureRoutes { values=append(values,r.Prefix.String()) }
-		args=append(args,"-CapturePrefix4",strings.Join(values,","))
-		if len(values)==0 { args=append(args,"-CapturePrefix4Specified") }
+	if p.CapturePrefixFile4 != "" {
+		args = append(args, "-CapturePrefixFile4", p.CapturePrefixFile4)
+	} else {
+		if len(p.CaptureRoutes) > 8 {
+			return nil, fmt.Errorf("%w: large capture set requires snapshot file", ErrNetworkPlan)
+		}
+		values := make([]string, 0, len(p.CaptureRoutes))
+		for _, r := range p.CaptureRoutes {
+			values = append(values, r.Prefix.String())
+		}
+		args = append(args, "-CapturePrefix4", strings.Join(values, ","))
+		if len(values) == 0 {
+			args = append(args, "-CapturePrefix4Specified")
+		}
 	}
 	return args, nil
 }
@@ -212,10 +229,14 @@ func normalizeAddrs(in []netip.Addr) ([]netip.Addr, error) {
 		set[addr.String()] = addr
 	}
 	keys := make([]string, 0, len(set))
-	for k := range set { keys = append(keys, k) }
+	for k := range set {
+		keys = append(keys, k)
+	}
 	sort.Strings(keys)
 	out := make([]netip.Addr, 0, len(keys))
-	for _, k := range keys { out = append(out, set[k]) }
+	for _, k := range keys {
+		out = append(out, set[k])
+	}
 	return out, nil
 }
 
@@ -229,9 +250,13 @@ func normalizePrefixes(in []netip.Prefix) ([]netip.Prefix, error) {
 		set[prefix.String()] = prefix
 	}
 	keys := make([]string, 0, len(set))
-	for k := range set { keys = append(keys, k) }
+	for k := range set {
+		keys = append(keys, k)
+	}
 	sort.Strings(keys)
 	out := make([]netip.Prefix, 0, len(keys))
-	for _, k := range keys { out = append(out, set[k]) }
+	for _, k := range keys {
+		out = append(out, set[k])
+	}
 	return out, nil
 }

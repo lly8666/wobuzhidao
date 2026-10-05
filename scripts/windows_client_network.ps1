@@ -3,6 +3,7 @@ param(
     [string]$Action = 'Render',
     [string]$AdapterAlias = 'WBD',
     [string]$TunnelAddress4 = '',
+    [ValidateRange(9000,9000)][uint32]$TunnelMTU = 9000,
     [string]$Underlay4 = '',
     [uint32]$PhysicalInterfaceIndex = 0,
     [string]$PhysicalNextHop4 = '',
@@ -115,6 +116,9 @@ function Remove-OwnedState($State) {
     if ($State.PSObject.Properties.Name -contains 'CaptureRoutes') { Remove-OwnedRoutes $State.CaptureRoutes }
     if ($State.PSObject.Properties.Name -contains 'DirectRoutes') { Remove-OwnedRoutes $State.DirectRoutes }
     if ($State.PSObject.Properties.Name -contains 'UnderlayRoutes') { Remove-OwnedRoutes $State.UnderlayRoutes }
+    if ($State.PSObject.Properties.Name -contains 'TunnelMTUState' -and $null -ne $State.TunnelMTUState) {
+        Restore-OwnedTunnelMTU $State.TunnelMTUState
+    }
     if ($State.PSObject.Properties.Name -contains 'Addresses') {
         foreach ($addr in @($State.Addresses)) {
             Remove-NetIPAddress -InterfaceIndex ([uint32]$addr.InterfaceIndex) `
@@ -122,6 +126,20 @@ function Remove-OwnedState($State) {
         }
     }
     Remove-WBDIPv6Rules
+}
+
+function Restore-OwnedTunnelMTU($MTUState) {
+    # Preserve a later administrator change and protect interface identity.
+    $current = Get-NetIPInterface -InterfaceIndex ([uint32]$MTUState.InterfaceIndex) `
+        -AddressFamily IPv4 -PolicyStore ActiveStore -ErrorAction SilentlyContinue
+    foreach ($row in @($current)) {
+        if ($null -ne $row -and $row.InterfaceAlias -eq [string]$MTUState.AdapterAlias -and
+            [uint32]$row.NlMtu -eq [uint32]$MTUState.Applied) {
+            Set-NetIPInterface -InterfaceIndex ([uint32]$MTUState.InterfaceIndex) `
+                -AddressFamily IPv4 -NlMtuBytes ([uint32]$MTUState.Previous) `
+                -PolicyStore ActiveStore -ErrorAction Stop
+        }
+    }
 }
 
 if ($Action -eq 'Cleanup') {
@@ -163,6 +181,7 @@ if ($Action -eq 'Render') {
     Write-Output "01 UNDERLAY $Underlay4/32 ifindex=$PhysicalInterfaceIndex nexthop=$PhysicalNextHop4"
     foreach ($prefix in $directPrefixes) { Write-Output "02 DIRECT $prefix ifindex=$PhysicalInterfaceIndex nexthop=$PhysicalNextHop4" }
     Write-Output "03 ADDRESS_EXCLUSIVE $($lease.CIDR) adapter=$AdapterAlias dhcp=disabled"
+    Write-Output "03 IPV4_TUNNEL_MTU $TunnelMTU outer_budget_separate=1"
     foreach ($prefix in $capturePrefixes) { Write-Output "04 CAPTURE $prefix adapter=$AdapterAlias" }
     if ($dnsServers.Count -gt 0) { Write-Output "05 DNS_NRPT namespace=. servers=$($dnsServers -join ',')" }
     Write-Output '06 IPV6_CAPTURE_SINK ranges=::/1,8000::/1'
@@ -175,7 +194,7 @@ Require-Admin
 
 foreach ($cmd in @(
     'Get-NetAdapter','Get-NetRoute','New-NetRoute','Remove-NetRoute',
-    'Get-NetIPAddress','New-NetIPAddress','Remove-NetIPAddress','Set-NetIPInterface',
+    'Get-NetIPAddress','New-NetIPAddress','Remove-NetIPAddress','Get-NetIPInterface','Set-NetIPInterface',
     'Get-NetFirewallProfile','Get-NetFirewallRule','New-NetFirewallRule','Remove-NetFirewallRule'
 )) {
     if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { throw "$cmd is unavailable" }
@@ -209,6 +228,7 @@ $state = [ordered]@{
     CaptureRoutes = @()
     CaptureRoutes6 = @()
     NRPTRuleName = ''
+    TunnelMTUState = $null
 }
 Save-State $state
 
@@ -251,6 +271,21 @@ try {
     }
 
     Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -Dhcp Disabled -ErrorAction Stop
+    $beforeMTU = @(Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -PolicyStore ActiveStore -ErrorAction Stop)
+    if ($beforeMTU.Count -ne 1 -or $beforeMTU[0].InterfaceAlias -ne $AdapterAlias) {
+        throw 'Wintun MTU interface identity is ambiguous'
+    }
+    if ([uint32]$beforeMTU[0].NlMtu -ne $TunnelMTU) {
+        $state.TunnelMTUState = [ordered]@{
+            InterfaceIndex=$ifIndex; AdapterAlias=$AdapterAlias
+            Previous=[uint32]$beforeMTU[0].NlMtu; Applied=$TunnelMTU
+        }
+        Save-State $state
+        Set-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -NlMtuBytes $TunnelMTU `
+            -PolicyStore ActiveStore -ErrorAction Stop
+    }
+    $actualMTU = Get-NetIPInterface -InterfaceIndex $ifIndex -AddressFamily IPv4 -PolicyStore ActiveStore -ErrorAction Stop
+    if ([uint32]$actualMTU.NlMtu -ne $TunnelMTU) { throw 'Wintun supported MTU did not take effect' }
     @(Get-NetIPAddress -InterfaceIndex $ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue |
         Where-Object { $_.IPAddress -ne $lease.IP }) | ForEach-Object {
             Remove-NetIPAddress -InterfaceIndex $ifIndex -IPAddress ([string]$_.IPAddress) `
@@ -300,6 +335,7 @@ try {
     Write-Output "WBD_WINDOWS_CLIENT_READY adapter=$AdapterAlias ifindex=$ifIndex lease=$($lease.CIDR) dns=$($dnsServers.Count) direct=$($directPrefixes.Count)"
     Write-Output "WBD_WINDOWS_CLIENT_UNDERLAY_LOCKED server=$Underlay4 ifindex=$PhysicalInterfaceIndex nexthop=$PhysicalNextHop4"
     Write-Output 'WBD_WINDOWS_CLIENT_IPV6_FAIL_CLOSED ready=1'
+    Write-Output "WBD_WINDOWS_CLIENT_TUN_MTU ipv4=$TunnelMTU outer_budget_separate=1"
 } catch {
     try { Remove-OwnedState ([pscustomobject]$state) } catch { }
     Remove-Item -LiteralPath $StatePath -Force -ErrorAction SilentlyContinue

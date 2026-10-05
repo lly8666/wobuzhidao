@@ -384,6 +384,7 @@ func runWindows() error {
 	}()
 	fmt.Println("WBD_WINDOWS_CLIENT_READY")
 
+	tunInput := windowsclient.NewTUNInput(router)
 	errCh := make(chan error, 3)
 	if *diagnosticJSONL != "" {
 		go func() {
@@ -402,7 +403,8 @@ func runWindows() error {
 					runtimeentry.TunnelDiagnostic
 					NpcapIO       map[uint64]faketcp.NpcapIODiagnostic         `json:"npcap_io"`
 					ReceiveQueues map[uint64]runtimeentry.SegmentMuxDiagnostic `json:"receive_queues"`
-				}{TunnelDiagnostic: client.DiagnosticSnapshot(now), NpcapIO: ioStats, ReceiveQueues: queueStats}
+					TUNInput      windowsclient.TUNInputDiagnostic             `json:"tun_input"`
+				}{TunnelDiagnostic: client.DiagnosticSnapshot(now), NpcapIO: ioStats, ReceiveQueues: queueStats, TUNInput: tunInput.DiagnosticSnapshot()}
 			})
 		}()
 	}
@@ -417,11 +419,15 @@ func runWindows() error {
 			if n > 0 && buf[0]>>4 == 6 {
 				continue
 			} // captured IPv6 is a sink, never business/wake
-			packet := append([]byte(nil), buf[:n]...)
-			if err := router.ValidateFromTUN(packet); err != nil {
+			accepted, err := tunInput.Accept(buf[:n])
+			if err != nil {
 				errCh <- err
 				return
 			}
+			if !accepted {
+				continue
+			}
+			packet := append([]byte(nil), buf[:n]...)
 			wakeCtx, wakeCancel := context.WithTimeout(ctx, 15*time.Second)
 			err = client.SendPacket(wakeCtx, packet, time.Now())
 			wakeCancel()
