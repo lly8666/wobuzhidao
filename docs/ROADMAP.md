@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-05当前：已配套部署SOURCE7eebdcf，修复退役duplicate SYNACK窄窗错误终止共享server；core/race含失败Wake+SYN30重复、36+aggregate37、P6/GUI/Linuxserver与五独立strict性能/18阶段RTTpairs全部PASS。Normal最低9.99955M、Game最低2.999872M，maxp99增12.3ms，10方向skip0。原生tc-egress1411五分钟正在准备，尚未PASS。原931race失败与1410本机OUTPUT EPERM失败分别保留，旧Normal醒后损失/rawp99/maxUDP/32NOT_RUN未关闭。先STATUS/latest_log；每性能Action一条，不扩buffer/FEC/4096、不引入HOL。
+2026-10-05当前：配套SOURCE7eeb已验core/race含30重复、36+aggregate37、P6及五独立性能/18RTTpairs PASS（maxp99增12.299ms）。原生tc黑洞1411失败Wake恢复PASS：44drop、两端samePID/lease、4fail+1success、quiet两次physical0、ownedcleanup正常；最后清障burst9.983/9.957M仍有0.172/0.425%字节loss，nativep99未测。M02 Game4大包/DF五分钟1412运行中。旧931race/1410localEPERM失败及rawp99/maxUDP/Normal残余loss保留；27完整native样本/11工况/32NOT_RUN，不继承全量资格。先STATUS/latest_log，每性能Action一条，不扩buffer/FEC/4096/HOL。
 
 当前入口以STATUS为准：3e3e094配套包已过Actions定向门并实机D01完整300s，长时间双向中断未再现，但下行8.90%字节损失、208探针超时仍FAIL。S16 rotation独立实机运行；先验最新默认off Windows收包诊断补丁，定位最早下行损失边界再窄修，随后继续DNS/分流/MTU矩阵。旧6181四项保留历史，不继承为最新SOURCE。
 

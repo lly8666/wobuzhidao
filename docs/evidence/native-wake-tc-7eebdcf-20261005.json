@@ -1,0 +1,180 @@
+{
+  "server_same_pid": 441884,
+  "server_pid_samples": 11,
+  "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+  "case": "s18-wake-tc-blackhole-300s-seed1411",
+  "state": "PASS_NATIVE_FAILED_WAKE_RECOVERY",
+  "qualification_scope": "One Normal1 300s failed-Wake diagnostic; not full P7/performance matrix",
+  "p99": "NOT_EVALUATED:no idle probes",
+  "direction": "one-way server-to-client blackhole, not dual",
+  "fault_drop_packets": 44,
+  "fault_events": [
+    {
+      "enabled": true,
+      "unix_ns": 1791213983574497155,
+      "direction": "server-to-client",
+      "mechanism": "tc-egress-drop"
+    },
+    {
+      "enabled": false,
+      "unix_ns": 1791214049346864019,
+      "mechanism": "tc-egress-drop",
+      "direction": "server-to-client",
+      "owned_filter_absent": true,
+      "root_qdisc_unchanged": true,
+      "clsact_retained_for_foreign": false
+    }
+  ],
+  "same_process_pid": 5492,
+  "pid_samples": 56,
+  "lifecycle": {
+    "RecoveryAttempts": 5,
+    "RecoverySucceeded": 1,
+    "RecoveryFailed": 4,
+    "RetryableErrors": 8,
+    "LastError": "runtimeentry: wake lane 1 after []: faketcp: client handshake failed",
+    "NextRetry": "0001-01-01T00:00:00Z"
+  },
+  "endpoints": {
+    "client": {
+      "stable_lease": true,
+      "lease": "10.66.29.155/32",
+      "quiet_samples": [
+        20,
+        34
+      ],
+      "transitions": [
+        {
+          "elapsed_s": -21.633,
+          "Dormant": false,
+          "Closed": false,
+          "PhysicalLanes": 1,
+          "ActiveLogicalLanes": 1,
+          "generations": [
+            1
+          ]
+        },
+        {
+          "elapsed_s": 60.368,
+          "Dormant": true,
+          "Closed": false,
+          "PhysicalLanes": 0,
+          "ActiveLogicalLanes": 0,
+          "generations": []
+        },
+        {
+          "elapsed_s": 240.368,
+          "Dormant": false,
+          "Closed": false,
+          "PhysicalLanes": 1,
+          "ActiveLogicalLanes": 1,
+          "generations": [
+            2
+          ]
+        }
+      ]
+    },
+    "server": {
+      "stable_lease": true,
+      "lease": "10.66.29.155/32",
+      "quiet_samples": [
+        20,
+        34
+      ],
+      "transitions": [
+        {
+          "elapsed_s": -30.994,
+          "Dormant": false,
+          "Closed": false,
+          "PhysicalLanes": 1,
+          "ActiveLogicalLanes": 1,
+          "generations": [
+            1
+          ]
+        },
+        {
+          "elapsed_s": 61.006,
+          "Dormant": true,
+          "Closed": false,
+          "PhysicalLanes": 0,
+          "ActiveLogicalLanes": 0,
+          "generations": []
+        },
+        {
+          "elapsed_s": 241.006,
+          "Dormant": false,
+          "Closed": false,
+          "PhysicalLanes": 1,
+          "ActiveLogicalLanes": 1,
+          "generations": [
+            2
+          ]
+        },
+        {
+          "elapsed_s": 334.006,
+          "Dormant": true,
+          "Closed": false,
+          "PhysicalLanes": 0,
+          "ActiveLogicalLanes": 0,
+          "generations": []
+        }
+      ]
+    }
+  },
+  "later_clear_path_burst": {
+    "c2s_goodput_mbps": 9.982796800000001,
+    "s2c_goodput_mbps": 9.957456,
+    "c2s_loss_percent": 0.17172852205470704,
+    "s2c_loss_percent": 0.425137292417369
+  },
+  "whole_sample_quality": {
+    "C2SGoodputMbps": 7.491373866666666,
+    "S2CGoodputMbps": 7.478652266666667,
+    "C2SByteLossPercent": 25.085847807213224,
+    "S2CByteLossPercent": 25.213064509449424
+  },
+  "cpu_seconds": {
+    "client": 88.234375,
+    "server": 49.45
+  },
+  "cleanup": {
+    "State": "STOPPED",
+    "Ready": true,
+    "Reason": "requested_stop",
+    "ExitCode": 0,
+    "NetworkStateRemaining": false,
+    "OwnedNRPTRemaining": 0,
+    "OwnedFirewallRemaining": 0,
+    "ElapsedSeconds": 349.6
+  },
+  "fixture_cleanup": {
+    "fault_state_absent": true,
+    "egress_filter_absent": true,
+    "server_active": true
+  },
+  "observer": {
+    "lease": "10.66.29.155",
+    "start_unix_s": 1791213868.2326047,
+    "end_unix_s": 1791214203.3642209,
+    "duration_bound_s": 335,
+    "events": [],
+    "filtered_frames": 0,
+    "blank_lines": 1,
+    "captured_frames": 0,
+    "unparsed_frames": 0,
+    "cap_reached": false,
+    "observer_drops": 0,
+    "capture_count_matches": true,
+    "metadata_complete": true,
+    "tcpdump_exit": 0,
+    "ended_by_timeout": true,
+    "payload_stored": false,
+    "pcap_written": false,
+    "excluded_fixture_udp_port": 18445
+  },
+  "fixture_sha256": "daacbda04e13d5337c1b1b0180f08ca6d3e168c466f3c3dcee4f21b272dffa2d",
+  "bounded_resources_have_endpoint_clock_anchors": true,
+  "expected_business_loss_during_blackhole": true,
+  "old_native1410_failure_retained": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json",
+  "raw_pcaps_deleted": true
+}

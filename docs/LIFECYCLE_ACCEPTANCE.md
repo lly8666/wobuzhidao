@@ -74,3 +74,6 @@ L6 的黑洞阶段只验证“业务活动证据不会被当成 idle、失败后
 
 
 2026-10-05补充验收边界：Windows失败Wake修复SOURCE2bf core/race/36+aggregate/P6及五独立性能/18RTTpairs PASS，已配套部署。原生1410完整300s但server本机OUTPUT DROP引起EPERM退出并耗尽systemd重启预算，客户端同PID存活；不能认定网络清障恢复通过，也不能将此本机拒绝归因WAN丢包。下一Actions先验tc-egress匹配丢包且raw send成功/owned清理，再同源新seed原生门。双向暂时黑洞仍需另验，无HOL/队列/缓存策略不变。详见native-wake-local-rejection证据和STATUS。
+
+
+2026-10-05专项补充：SOURCE7eeb原生Normal1 failed-Wake300s tc黑洞1411通过。出口实际44drop，4failed+1success，双端samePID与lease、两quiet物理lane0、ownedcleanup均确认；清障末60s9.983/9.957M，残余0.172/0.425%loss未关闭。无idleprobe故nativep99NOT_EVALUATED，不能继承Actions或将whole故障期25%loss说成clear-path退化。仅server-to-client单向，双边原生另验。原1410localOUTPUT EPERM失败保留，不吞发送错误；M02Game4新增实机case独立运行。证据native-wake-tc-7eebdcf与STATUS为准。

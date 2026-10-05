@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "SOURCE7eeb retiredSYNACK narrow candidate core/race incl30Wake+SYN repetitions/36+aggregate37/P6/Linuxserver/GUI and5 independent strict samples/18 same-source same-helper RTTpairs PASS. Paired7eeb Windows/ARM deployed; native tc1411 PREPARING, not PASS. Full70/18/1800s/P7 not inherited. Parent931 raceFAIL and native1410 localEPERM retained.",
-  "updated_at": "2026-10-05T23:25:09.582090+08:00",
+  "qualification_scope": "SOURCE7eeb retiredSYNACK narrow candidate core/race incl30Wake+SYN repetitions/36+aggregate37/P6/Linuxserver/GUI and5 independent strict samples/18 same-source same-helper RTTpairs PASS. Paired7eeb Windows/ARM deployed; native tc1411 failedWake recovery PASS; M02Game4 native PREPARING/RUNNING, not PASS. Full70/18/1800s/P7 not inherited. Parent931 raceFAIL and native1410 localEPERM retained.",
+  "updated_at": "2026-10-05T23:35:38.723600+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,11 +80,11 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Native7eeb tc-egress failed business Wake recovery300s",
-    "Normal native uplink wake loss / old raw p99 and maximum UDP attribution"
+    "Game4 nativeM02 outer1400/inner9000 large+DF interleaved small packets300s",
+    "Normal native wake residual loss / old raw p99 / maxUDP attribution"
   ],
-  "next_task": "Complete native7eeb s18-wake-tc-blackhole-300s-seed1411: actual TCP443 tc drops, both samePID/lease, failedWake bounded retry, clear-path new payload9.5M+loss<=2%, both quiet physical0, owned cleanup. p99NOT_EVALUATED noidleprobe; retain priorlocalEPERM1410 and931raceFAIL. Then continue Normal wake loss/rawp99/maxUDP and32NOT_RUN; no buffer/FEC/4096/HOL changes.",
-  "latest_log": "docs/devlog/20261005-232509-synack-qualified-native-network-blackhole.md",
+  "next_task": "Finish native7eeb M02 seed1412 Game4 DF false/true IPv4 sizes1399/1400/1401/1500/2000/4096/9000 + small interleave, exact payload, actual lanes4/FEC20 and inner9000/outer1400, bounded capture/ownedcleanup. Then continue maxUDP and remaining caseIDs; native1411 recoveryPASS has residual0.172/0.425% clear-path byte loss, p99NOT_EVALUATED; older rawp99 failures retained. Every performanceAction one sample, noHOL/buffer expansion.",
+  "latest_log": "docs/devlog/20261005-233538-native-wake-recovery-and-game-mtu.md",
   "last_tested_source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
   "actions": [
     {
@@ -7721,7 +7721,7 @@
   },
   "physical_current": {
     "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
-    "state": "DEPLOYED_7EEB_NATIVE_TC_PREPARING",
+    "state": "NATIVE_WAKE_PASS_GAME_MTU_RUNNING",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
       "M01 seed1364",
@@ -7730,7 +7730,7 @@
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
     "running": [
-      "s18-wake-tc-blackhole-300s-seed1411"
+      "m02-current-300s-seed1412"
     ],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
@@ -7742,7 +7742,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "running_case": "s18-wake-tc-blackhole-300s-seed1411",
+    "running_case": "m02-current-300s-seed1412",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7880,7 +7880,16 @@
     "deployed_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
     "source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
     "last_failed_case": "s18-wake-blackhole-300s-seed1410",
-    "last_failure_evidence": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json"
+    "last_failure_evidence": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json",
+    "latest_native_pass": "docs/evidence/native-wake-tc-7eebdcf-20261005.json",
+    "recent_results": [
+      {
+        "case": "s18-wake-tc-blackhole-300s-seed1411",
+        "status": "PASS_NATIVE_FAILED_WAKE_RECOVERY",
+        "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+        "evidence": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
+      }
+    ]
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -7934,11 +7943,18 @@
       "S19",
       "S20"
     ],
-    "full300s_samples": 26,
+    "full300s_samples": 27,
     "case_ids_total": 43,
     "case_ids_not_run": 32,
     "complete_qualification": false,
-    "source_mixed_not_inheritable": true
+    "source_mixed_not_inheritable": true,
+    "additional_client_complete_only_failures": [
+      {
+        "case": "s18-wake-blackhole-300s-seed1410",
+        "evidence": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json",
+        "independent_server_receipts": false
+      }
+    ]
   },
   "windows_ready_send_batch": {
     "state": "ACTIONS_PASS_NATIVE_D01_CAPACITY_REPEATED_WITH_RESIDUAL_LOSS",
@@ -8230,7 +8246,7 @@
     "old_failure_cause_unresolved": true
   },
   "business_wake_failure": {
-    "state": "ACTIONS_SCOPED_PASS_NATIVE_TC_PREPARING",
+    "state": "ACTIONS_SCOPED_PASS_NATIVE_FAILED_WAKE_PASS",
     "candidate_source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
     "deployed_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
     "scope": "Only pre-emission failed business wake/backoff keeps Windows TUN reader alive; binding change/shutdown/actual wire failures remain terminal",
@@ -8283,12 +8299,13 @@
     "fullstack_run": 37317799989,
     "p6_run": 37318647769,
     "performance_state": "PASS_5_SAMPLES_18_STAGE_PAIRS_WITH_HELPER_BCE",
-    "native_state": "PREPARING",
+    "native_state": "PASS_NATIVE_FAILED_WAKE_RECOVERY",
     "native_case": "s18-wake-tc-blackhole-300s-seed1411",
     "evidence": "docs/evidence/wake-retry-2bf85a1-qualification-20261005.json",
     "native_failure_evidence": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json",
     "later_core_failure": "37326843336 foundation sameGo as2bf Game4 Wake; retiredSYNACK candidate pending, oldPASS retained scoped",
-    "latest_candidate_evidence": "docs/evidence/retired-synack-7eebdcf-qualification-20261005.json"
+    "latest_candidate_evidence": "docs/evidence/retired-synack-7eebdcf-qualification-20261005.json",
+    "native_evidence": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
   },
   "strict_generator_pacing": {
     "state": "ACTIONS_SCOPED_PASS",
@@ -8313,16 +8330,18 @@
     ]
   },
   "native_egress_blackhole_fixture": {
-    "state": "ACTIONS_PASS_NATIVE_NOT_RUN",
+    "state": "ACTIONS_PASS_ARM54_NATIVE_DROP_AND_CLEANUP_PASS",
     "scope": "test-only tc flower egress drop; no Go/wire/config changes",
     "previous_fixture_failure": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json",
     "product_source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
     "source": "7d276aae881d00cdc61b906225b62cdcc194db03",
     "run": 37329484643,
-    "artifact": 11353626855
+    "artifact": 11353626855,
+    "native_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "native_evidence": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
   },
   "retired_synack_candidate": {
-    "state": "ACTIONS_SCOPED_PASS_NATIVE_PREPARING",
+    "state": "ACTIONS_SCOPED_PASS_NATIVE_FAILED_WAKE_PASS",
     "parent": "7d276aae881d00cdc61b906225b62cdcc194db03",
     "failure_run": 37326843336,
     "scope": "Closed halfopen association after duplicate AddSYN lookup cannot kill shared listener; actual emitter error preserved inclEPERM/EBADF/ErrHandshakeState from Emit",
@@ -8335,6 +8354,7 @@
     "evidence": "docs/evidence/retired-synack-7eebdcf-qualification-20261005.json",
     "deployed_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
     "fullstack_run": 37330020565,
-    "p6_run": 37330082765
+    "p6_run": 37330082765,
+    "native_evidence": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
   }
 }

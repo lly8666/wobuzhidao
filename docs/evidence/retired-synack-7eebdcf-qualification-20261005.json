@@ -1,6 +1,6 @@
 {
   "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
-  "state": "ACTIONS_SCOPED_PASS_NATIVE_PREPARING",
+  "state": "ACTIONS_SCOPED_PASS_NATIVE_FAILED_WAKE_PASS",
   "core_runs": [
     "37330020713",
     "37330020583",
@@ -763,11 +763,12 @@
     "rollback_source": "2bf85a1"
   },
   "native_case": "s18-wake-tc-blackhole-300s-seed1411",
-  "native_state": "PREPARING",
+  "native_state": "PASS_NATIVE_FAILED_WAKE_RECOVERY",
   "p99_native": "NOT_EVALUATED:no idle probes",
   "full70_full18_soak_qualification": "NOT_INHERITED",
   "prior_failures": [
     37326843336,
     "s18-wake-blackhole-300s-seed1410"
-  ]
+  ],
+  "native_evidence": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
 }

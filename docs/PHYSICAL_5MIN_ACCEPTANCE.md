@@ -129,3 +129,6 @@ M01在Windows TUN65535、Linux TUN1400、外层预算1400下，大于预算的15
 S03–S27、D02–D06、I01–I06、M02/M03、W01仍NOT_RUN；当前助手不是整张矩阵全自动执行器。需要各对应fixture扩展才可跑：1秒阶段归属、稀疏inner HTTPS、纯下行/idle、DNS精确故障、Windows NIC出口观测。不能拿既有120s或Linux hosted互备直接顶替本方案300s/Windows门。遵循已实现模块原参数语义，针对缺的测试框架补，不趁机重写产品。
 
 每轮新DEVLOG和STATUS，保留失败/INVALID与原始小回执。记录产品binary SHA、助手文件hash和实际case/seed/配置；产品若修正必须Actions正确性和独立5205再新包测，旧6181物理成绩不继承。最后正常退出客户端，恢复前后route/NRPT/owned firewall，删除临时任务/地址/损伤规则/证书/抓包，保留无秘密摘要与服务端运行；无网络清理证据不得标该case COMPLETE。
+
+
+2026-10-05专项补充：SOURCE7eeb原生Normal1 failed-Wake300s tc黑洞1411通过。出口实际44drop，4failed+1success，双端samePID与lease、两quiet物理lane0、ownedcleanup均确认；清障末60s9.983/9.957M，残余0.172/0.425%loss未关闭。无idleprobe故nativep99NOT_EVALUATED，不能继承Actions或将whole故障期25%loss说成clear-path退化。仅server-to-client单向，双边原生另验。原1410localOUTPUT EPERM失败保留，不吞发送错误；M02Game4新增实机case独立运行。证据native-wake-tc-7eebdcf与STATUS为准。

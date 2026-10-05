@@ -21,7 +21,7 @@
 
 ## 当前性能主线（2026-09-23）
 
-2026-10-05当前：已配套部署SOURCE7eebdcf，修复退役duplicate SYNACK窄窗错误终止共享server；core/race含失败Wake+SYN30重复、36+aggregate37、P6/GUI/Linuxserver与五独立strict性能/18阶段RTTpairs全部PASS。Normal最低9.99955M、Game最低2.999872M，maxp99增12.3ms，10方向skip0。原生tc-egress1411五分钟正在准备，尚未PASS。原931race失败与1410本机OUTPUT EPERM失败分别保留，旧Normal醒后损失/rawp99/maxUDP/32NOT_RUN未关闭。先STATUS/latest_log；每性能Action一条，不扩buffer/FEC/4096、不引入HOL。
+2026-10-05当前：配套SOURCE7eeb已验core/race含30重复、36+aggregate37、P6及五独立性能/18RTTpairs PASS（maxp99增12.299ms）。原生tc黑洞1411失败Wake恢复PASS：44drop、两端samePID/lease、4fail+1success、quiet两次physical0、ownedcleanup正常；最后清障burst9.983/9.957M仍有0.172/0.425%字节loss，nativep99未测。M02 Game4大包/DF五分钟1412运行中。旧931race/1410localEPERM失败及rawp99/maxUDP/Normal残余loss保留；27完整native样本/11工况/32NOT_RUN，不继承全量资格。先STATUS/latest_log，每性能Action一条，不扩buffer/FEC/4096/HOL。
 
 2026-10-05最新：24ff的D01独立seed1351/1352均完整300s双向近10M、driver/user overflow0、探针全回；上行少量损失及server raw drop保留，不能写全链路无损PASS。S16 seed1353正在同源复验rotation。新候选修复Wintun65535与合法lease包9000不一致、坏本地输入导致整client退出：内层MTU9000与外层预算分开，Apply实效/owned原值恢复，拒绝包在wire前计数、正常包无新计数，runtime/wire错误不吞。候选未过Actions前不部署；先STATUS.windows_tun_mtu_boundary与092400日志，再M01/M03。每性能Action只一条。
 
