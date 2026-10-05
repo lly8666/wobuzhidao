@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "d28 core/race/GUI/Normal+Game5205/P6 PASS;nativeWindows capture overflow measured;newboundeddrain candidate NOT_TESTED",
+  "qualification_scope": "8f exact-source core/race/GUI/Normal+Game5205/P6 PASS;native D01 capture driver drop0 but user queue overflow,quality FAIL;profile diagnostic running",
   "updated_at": "2026-10-05",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -83,9 +83,9 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "Collect d28 D01 double-end diagnostics;qualify bounded Windows capture drain core/race/GUI and independentNormal/Game5205,P6;exact-source nativeD01 verify drops/queueage/RTT/loss,then rotation and remainingDNS/IP/MTU/config cases. Each performanceAction one sample.",
-  "latest_log": "docs/devlog/20261005-082000-windows-bounded-capture-drain.md",
-  "last_tested_source_sha": "d28c0304d2ae23106b85adf90f4ef30b9ca9eb62",
+  "next_task": "Collect native8f D01 seed1342 CPU profile using existing opt-in environment;locate actual Windows handler/syscall hotspot before narrow fix. Capture separation alone is NOT performance fix. Each product fix first Actions core/race/GUI and independent Normal/Game5205,P6,then exact paired native. Continue remaining DNS/IP/MTU/config after capacity defect. Every performance Action one sample.",
+  "latest_log": "docs/devlog/20261005-083800-native-drain-capacity-profile.md",
+  "last_tested_source_sha": "8f53f334c6e87fcbc09d3344f4eeab508fe59179",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -7555,13 +7555,13 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "d28c0304d2ae23106b85adf90f4ef30b9ca9eb62",
-    "state": "FAIL_WINDOWS_CAPTURE_OVERFLOW",
-    "evidence": "docs/evidence/windows-native-receive-20261005.json",
+    "source": "8f53f334c6e87fcbc09d3344f4eeab508fe59179",
+    "state": "FAIL_WINDOWS_USER_RECEIVE_QUEUE_OVERFLOW",
+    "evidence": "docs/evidence/windows-capture-drain-20261005.json",
     "native_completed_300s": [
-      "D01 seed1321 diagnostics on"
+      "D01 seed1341 capture drain"
     ],
-    "running": null,
+    "running": "D01 seed1342 CPU profile diagnostic",
     "supersedes_old_native_qualification": false,
     "rotation": "generation1..6,maxphysical2,exit0;S2C3.06%byte loss/probe71timeout,qualityNOT_PASS",
     "previous_source": "3e3e094",
@@ -7571,9 +7571,52 @@
       "D02 seed1304"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "driver_dropped": 336986,
-    "driver_stats_samples": 340,
-    "driver_stats_errors": 0
+    "driver_dropped": 0,
+    "driver_stats_samples": 337,
+    "driver_stats_errors": 0,
+    "receive_queue": {
+      "1": {
+        "enabled": true,
+        "routes": [
+          {
+            "local_port": 40000,
+            "peer_port": 443,
+            "capacity": 4096,
+            "current": 0,
+            "peak": 4098,
+            "bytes": 0,
+            "bytes_peak": 2250583,
+            "full_waits": 486047,
+            "overflow_drops": 486008,
+            "overflow_bytes": 270345831,
+            "overflow_age": {
+              "samples": 486008,
+              "total_ns": 281219301175900,
+              "max_ns": 766050600,
+              "over_50us": 486008,
+              "over_1ms": 486008,
+              "over_10ms": 486008
+            },
+            "handoff_block": {
+              "samples": 2120551,
+              "total_ns": 1400832100,
+              "max_ns": 1739100,
+              "over_50us": 4018,
+              "over_1ms": 155,
+              "over_10ms": 0
+            },
+            "queue_age": {
+              "samples": 1634543,
+              "total_ns": 811391692715600,
+              "max_ns": 765847500,
+              "over_50us": 1626335,
+              "over_1ms": 1620014,
+              "over_10ms": 1575063
+            }
+          }
+        ]
+      }
+    }
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -7592,12 +7635,26 @@
     "evidence": "docs/evidence/windows-native-receive-20261005.json"
   },
   "windows_capture_drain": {
-    "state": "IMPLEMENTED_NOT_TESTED",
-    "source": "CURRENT_COMMIT",
+    "state": "ACTIONS_PASS_NATIVE_HANDLER_CAPACITY_FAIL",
+    "source": "8f53f334c6e87fcbc09d3344f4eeab508fe59179",
     "kernel_buffer_increase": false,
     "queue": "Existing per-incarnation SegmentMux4096",
     "native_evidence": "D01 d28 seed1321 Windows productdriver drop112285 at approx108s;independent observer nearly complete",
-    "new_cli_parameters": false
+    "new_cli_parameters": false,
+    "evidence": "docs/evidence/windows-capture-drain-20261005.json",
+    "qualification_runs": [
+      37246996809,
+      37246996865,
+      37246996829,
+      37246996810,
+      37246996911,
+      37247042244,
+      37246996803
+    ],
+    "performance_runs": [
+      37247036537,
+      37247039406
+    ]
   },
   "physical_matrix_progress": {
     "unique_case_ids_executed": [
@@ -7606,11 +7663,12 @@
       "M01",
       "D01",
       "S16",
-      "D02"
+      "D02",
+      "D03"
     ],
-    "full300s_samples": 8,
+    "full300s_samples": 10,
     "case_ids_total": 43,
-    "case_ids_not_run": 37,
+    "case_ids_not_run": 36,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true
   }

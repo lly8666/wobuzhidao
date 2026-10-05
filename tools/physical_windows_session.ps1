@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory=$true)][string]$Bundle,
-    [int]$MaxSeconds = 600
+    [int]$MaxSeconds = 600,
+    [string]$CPUProfile = ''
 )
 # Physical qualification controller only: no payload capture, no new data plane.
 $ErrorActionPreference='Stop'
@@ -29,6 +30,12 @@ $info.FileName=Join-Path $Bundle 'wbd-client.exe'
 $info.Arguments='--config "'+(Join-Path $data 'test-config.json')+'" --control-stdin'
 $info.WorkingDirectory=$Bundle
 $info.UseShellExecute=$false; $info.CreateNoWindow=$true
+$info.EnvironmentVariables.Remove('WBD_QUALIFICATION_CPU_PROFILE')
+if($CPUProfile){
+    if($CPUProfile -notmatch '^[A-Za-z0-9-]+\.pprof$'){throw 'CPUProfile must be a plain managed profile filename'}
+    $profilePath=Join-Path $data $CPUProfile
+    $info.EnvironmentVariables['WBD_QUALIFICATION_CPU_PROFILE']=$profilePath
+}
 $info.RedirectStandardInput=$true; $info.RedirectStandardOutput=$true; $info.RedirectStandardError=$true
 $process=[Diagnostics.Process]::new();$process.StartInfo=$info
 $ready=$false; $reason='watchdog';$started=[DateTime]::UtcNow; $samples=0
@@ -50,6 +57,7 @@ try {
         if($process.HasExited){$reason='client_exit';break}
         if(Test-Path -LiteralPath $stop){$reason='requested_stop';break}
         if((Get-Item -LiteralPath $log).Length -gt 2MB){$reason='bounded_log_limit';break}
+        if($CPUProfile -and (Test-Path -LiteralPath $profilePath) -and (Get-Item -LiteralPath $profilePath).Length -gt 16MB){$reason='bounded_profile_limit';break}
         if($samples++ % 10 -eq 0){
             $process.Refresh()
             [IO.File]::WriteAllText($status,([pscustomobject]@{State='RUNNING';Ready=$ready;PID=$process.Id;ElapsedSeconds=[math]::Round(([DateTime]::UtcNow-$started).TotalSeconds,1);CPUSeconds=$process.TotalProcessorTime.TotalSeconds;WorkingSetBytes=$process.WorkingSet64} | ConvertTo-Json),$utf8)
