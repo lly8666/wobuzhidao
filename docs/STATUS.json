@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "Deployed SOURCE660 core/race/config70/long2 PASS; Game5305 paired p99 FAIL retained; native M01 PASS, M03 maximumUDP FAIL twice, S19 repeat lifecycle PASS but downlink1.6437% loss. New WAN neighbor diagnostic pending Actions; no product changes.",
-  "updated_at": "2026-10-05T15:05:48.639153+08:00",
+  "updated_at": "2026-10-05T15:12:37.622041+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -84,7 +84,7 @@
     "Continue native S20/S19 boundary attribution after observer Actions PASS, then MTU sequence diagnosis and remaining matrix"
   ],
   "next_task": "Qualify qualified-sibling egress candidate via core/race/lifecycle and new subset delivery regression;then independent lossless/5205 Normal+Game and Game5305/lossless seed1382 pairs without profile before deployment. Analyze product660 neighbor dynamic/permanent diagnostics and M03seed1398 missing-sequence sample. Retain old automatic-lease wake failure; new server exit context must identify cause. No buffer/FEC/4096 growth,no fresh drop,no HOL.",
-  "latest_log": "docs/devlog/20261005-150548-qualified-owner-contract-repair.md",
+  "latest_log": "docs/devlog/20261005-151237-egress-core-pass-maxudp-clean-repeat.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -7570,7 +7570,7 @@
       "M03 seed1366 FAIL",
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
-    "running": "SOURCE660 maximumUDP with exact missing sequence and target receive/echo evidence",
+    "running": null,
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
@@ -7581,7 +7581,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "running_case": "m03-current-300s-seed1398",
+    "running_case": null,
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7688,6 +7688,12 @@
         "status": "LIFECYCLE_PASS_DELIVERY_PARTIAL",
         "source": "660b370815603c50d38b92229abdec13ca77e1b1",
         "evidence": "docs/evidence/native-game-idle-repeat-660b370-20261005.json"
+      },
+      {
+        "case": "m03-current-300s-seed1398",
+        "status": "PASS_THIS_SAMPLE_OLD_FAILURES_UNRESOLVED",
+        "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+        "evidence": "docs/evidence/native-maxudp-repeat-660b370-20261005.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
@@ -7745,7 +7751,7 @@
       "S19",
       "S20"
     ],
-    "full300s_samples": 22,
+    "full300s_samples": 23,
     "case_ids_total": 43,
     "case_ids_not_run": 32,
     "complete_qualification": false,
@@ -7966,7 +7972,8 @@
     "healthy_profile_peak": 960,
     "global_lock_propagation_risk": true,
     "neighbor_diagnostic": "dynamic37274802852/permanent37274806220 both healthy: stressp99 605.398/601.843ms, queue16.643/12.088ms,timeouts0. No reproduction;ARP cause not proven.",
-    "product_changed": false
+    "product_changed": false,
+    "neighbor_evidence": "docs/evidence/wan-neighbor-diagnostic-9408b12-20261005.json"
   },
   "native_game_idle_repeat": {
     "case": "s19-current-300s-seed1396",
@@ -7977,7 +7984,7 @@
     "p99": "NOT_EVALUATED"
   },
   "qualified_sibling_egress": {
-    "state": "PARENT_COMPILE_FAIL_OWNER_INTERFACE_REPAIRED_ACTIONS_PENDING",
+    "state": "CORE_RACE_LIFECYCLE_PASS_PERFORMANCE_RUNNING",
     "parent": "9408b1261059cc40d8e8c816d339833a15ad4d4e",
     "deployed_product": "660b370815603c50d38b92229abdec13ca77e1b1",
     "scope": "server return path uses qualified lane mask selected under generation fence;missing siblings do not block eligible peer or encode a copy",
@@ -7985,9 +7992,24 @@
     "added_queue": false,
     "waiting": false,
     "parameters_changed": false,
-    "performance": "NOT_RUN",
+    "performance": "NOT_YET_EVALUATED;profileOFF/dynamic neighbors",
     "failed_parent": "022a6be425aae0b76e288f7324a7b49a8f81521d",
-    "failure_reason": "linuxserver Owner interface omitted new GameOutboundOnLanes method;no candidate deployment/performance"
+    "failure_reason": "linuxserver Owner interface omitted new GameOutboundOnLanes method;no candidate deployment/performance",
+    "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+    "gates": [
+      37275839495,
+      37275839507,
+      37275839449,
+      37275839509,
+      37275839467
+    ],
+    "performance_runs": [
+      37276200727,
+      37276204380,
+      37276207990,
+      37276211573,
+      37276215678
+    ]
   },
   "shared_credentials_dormant_failure": {
     "state": "REPRODUCED_CAUSE_PENDING",
@@ -7998,5 +8020,12 @@
     "latest": "Windows TestSharedCredentialsAutomaticNormalAndGameLeases dormant mismatch wake lane1 handshake failed",
     "test_change": "Capture shared server Run result if failure,without retry or loosening gate",
     "related_product_fix": "NOT_PROVEN"
+  },
+  "native_maxudp_repeat": {
+    "state": "PASS_THIS_SAMPLE_OLD_FAILURES_UNRESOLVED",
+    "evidence": "docs/evidence/native-maxudp-repeat-660b370-20261005.json",
+    "exact65507": 171,
+    "missing65507": 0,
+    "old_failure_cause_unresolved": true
   }
 }

@@ -1,0 +1,171 @@
+{
+  "state": "BOTH_HEALTHY_NO_TAIL_REPRODUCTION",
+  "harness": "9408b1261059cc40d8e8c816d339833a15ad4d4e",
+  "samples": [
+    {
+      "run": 37274802852,
+      "mode": "dynamic",
+      "product": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "diagnostic_only": true,
+      "stages": {
+        "post": {
+          "p95_ns": 605993570,
+          "p99_ns": 608273620,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 605187656,
+          "p99_ns": 606508030,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 604499498,
+          "p99_ns": 605397673,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "timeouts": 0,
+      "outliers": [],
+      "queue_max_ms": 16.643461,
+      "cpu": {
+        "client": 84.16,
+        "server": 79.38
+      },
+      "minimum_goodput": 2.999872,
+      "neighbors": {
+        "mode": "dynamic",
+        "scope": "two owned WAN veth pairs only; no business/TUN/host neighbor changes",
+        "product_changed": false,
+        "diagnostic_only": true,
+        "evidence": [
+          {
+            "namespace": "wcli-$",
+            "interface": "cwan",
+            "peer": "198.18.0.1",
+            "neighbors": []
+          },
+          {
+            "namespace": "wrtr-$",
+            "interface": "rcli",
+            "peer": "198.18.0.2",
+            "neighbors": []
+          },
+          {
+            "namespace": "wrtr-$",
+            "interface": "rsrv",
+            "peer": "198.18.0.6",
+            "neighbors": []
+          },
+          {
+            "namespace": "wsrv-$",
+            "interface": "swan",
+            "peer": "198.18.0.5",
+            "neighbors": []
+          }
+        ]
+      }
+    },
+    {
+      "run": 37274806220,
+      "mode": "permanent",
+      "product": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "diagnostic_only": true,
+      "stages": {
+        "post": {
+          "p95_ns": 601704965,
+          "p99_ns": 603774030,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 601684675,
+          "p99_ns": 601842196,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 601789337,
+          "p99_ns": 601843239,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "timeouts": 0,
+      "outliers": [],
+      "queue_max_ms": 12.087983,
+      "cpu": {
+        "client": 65.19,
+        "server": 61.23
+      },
+      "minimum_goodput": 2.999872,
+      "neighbors": {
+        "mode": "permanent",
+        "scope": "two owned WAN veth pairs only; no business/TUN/host neighbor changes",
+        "product_changed": false,
+        "diagnostic_only": true,
+        "evidence": [
+          {
+            "namespace": "wcli-$",
+            "interface": "cwan",
+            "peer": "198.18.0.1",
+            "neighbors": [
+              {
+                "dst": "198.18.0.1",
+                "lladdr": "ae:a2:3c:bd:a2:6c",
+                "state": [
+                  "PERMANENT"
+                ]
+              }
+            ]
+          },
+          {
+            "namespace": "wrtr-$",
+            "interface": "rcli",
+            "peer": "198.18.0.2",
+            "neighbors": [
+              {
+                "dst": "198.18.0.2",
+                "lladdr": "ee:cf:99:05:b1:dc",
+                "state": [
+                  "PERMANENT"
+                ]
+              }
+            ]
+          },
+          {
+            "namespace": "wrtr-$",
+            "interface": "rsrv",
+            "peer": "198.18.0.6",
+            "neighbors": [
+              {
+                "dst": "198.18.0.6",
+                "lladdr": "0a:49:09:30:7c:8b",
+                "state": [
+                  "PERMANENT"
+                ]
+              }
+            ]
+          },
+          {
+            "namespace": "wsrv-$",
+            "interface": "swan",
+            "peer": "198.18.0.5",
+            "neighbors": [
+              {
+                "dst": "198.18.0.5",
+                "lladdr": "b6:e6:3f:0c:8b:6b",
+                "state": [
+                  "PERMANENT"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "interpretation": "Not proof of ARP cause;not a product/performance fix. Original dynamic defaults and failed tails retained."
+}
