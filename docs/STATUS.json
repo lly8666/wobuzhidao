@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "ProductSOURCE2bf core/race/lifecycle36+aggregate37/GUI/Linuxserver/P6 and5 independent scoped performance with helperbce PASS, exact same-helper18 stage RTTpairs PASS. Deployed2bf Windows/ARM; native1410 FAIL from local OUTPUT rejection/server exit; WAN-loss recovery NOT_RUN. Full70/18/1800s/P7 not inherited.",
-  "updated_at": "2026-10-05T23:00:14.335419+08:00",
+  "updated_at": "2026-10-05T23:05:44.408711+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,11 +80,12 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Qualify tc egress network-loss fixture, then same-source failed-Wake native recovery",
+    "Retired duplicate SYNACK shared-server candidate qualification",
+    "Native failed business Wake tc-network-loss qualification after candidate gates",
     "Normal native uplink wake loss / old raw p99 and maximum UDP attribution"
   ],
-  "next_task": "Qualify owned tc-egress-drop fixture in Actions: raw send must succeed while matching TCP443 is actually lost, SSH/UDP/other peer unaffected, foreign root/clsact/filter preserved, exact cleanup. Then same qualified product2bf native fresh seed1411 300s failed-Wake; do not swallow EPERM, reinterpret1410 as WAN recovery failure, or expand buffer/FEC/4096. Retain older p99/Normal/maxUDP and32NOT_RUN.",
-  "latest_log": "docs/devlog/20261005-225500-native-local-rejection-and-network-fault.md",
+  "next_task": "Qualify retired-duplicate SYNACK candidate on exact newSOURCE: core/race incl30 failedWake+retiredSYNACK repetitions, full36 lifecycle, five independent strict perf with bounded helpers and18RTTpairs, P6; never deploy until passed. Then paired native source fresh1411 tc-egress blackhole300s samePID/lease/clear-path recovery. Keep parent931 foundation race FAIL, native1410 localEPERM FAIL, old p99/Normal/maxUDP and32NOT_RUN.",
+  "latest_log": "docs/devlog/20261005-231000-retired-synack-shared-server-boundary.md",
   "last_tested_source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
   "actions": [
     {
@@ -2046,6 +2047,20 @@
       "scope": "Windows failedWake scoped target performance",
       "status": "PASS",
       "note": "One sample/run; exact bounded stats/raw per-second RTT gates; not full18"
+    },
+    {
+      "source_sha": "93182242f1bc23b8a3de42d57272ad4da7a17b3f",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37326843336",
+      "scope": "foundation-race-business-wake",
+      "status": "FAIL",
+      "note": "Game4 failedWake later recovery handshake failed; sharedserver final result ErrHandshakeState. Same product code as2bf; preserved original log."
+    },
+    {
+      "source_sha": "7d276aae881d00cdc61b906225b62cdcc194db03",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37329484643",
+      "scope": "test-fixture-egress-raw-send-semantics",
+      "status": "PASS",
+      "note": "All4helperjobs PASS. Real isolated kernel rawsend succeeds while TCP443 dropped;UDP/otherport/otherpeer pass; clear resumes;foreignclsact/filter/root preserved. Artifact11353626855. Not product or ARM native recovery qualification."
     }
   ],
   "physical_status": "PARTIAL",
@@ -7615,7 +7630,7 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+    "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
     "state": "PARTIAL_NATIVE1410_LOCAL_REJECTION_FAIL",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
@@ -7770,7 +7785,7 @@
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1397 SSH masters expired before workload;not product sample,not counted. Operational scp now BatchMode/ConnectTimeout.",
-    "deployed_source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+    "deployed_source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
     "source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
     "last_failed_case": "s18-wake-blackhole-300s-seed1410",
     "last_failure_evidence": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json"
@@ -8179,7 +8194,8 @@
     "native_state": "FAIL_LOCAL_OUTPUT_REJECTION_SERVER_EXIT",
     "native_case": "s18-wake-blackhole-300s-seed1410",
     "evidence": "docs/evidence/wake-retry-2bf85a1-qualification-20261005.json",
-    "native_failure_evidence": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json"
+    "native_failure_evidence": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json",
+    "later_core_failure": "37326843336 foundation sameGo as2bf Game4 Wake; retiredSYNACK candidate pending, oldPASS retained scoped"
   },
   "strict_generator_pacing": {
     "state": "ACTIONS_SCOPED_PASS",
@@ -8204,9 +8220,23 @@
     ]
   },
   "native_egress_blackhole_fixture": {
-    "state": "IMPLEMENTED_PENDING_ACTIONS",
+    "state": "ACTIONS_PASS_NATIVE_NOT_RUN",
     "scope": "test-only tc flower egress drop; no Go/wire/config changes",
     "previous_fixture_failure": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json",
-    "product_source": "2bf85a1230efea5cd80ff6917d307205c97d917b"
+    "product_source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+    "source": "7d276aae881d00cdc61b906225b62cdcc194db03",
+    "run": 37329484643,
+    "artifact": 11353626855
+  },
+  "retired_synack_candidate": {
+    "state": "IMPLEMENTED_PENDING_ACTIONS",
+    "parent": "7d276aae881d00cdc61b906225b62cdcc194db03",
+    "failure_run": 37326843336,
+    "scope": "Closed halfopen association after duplicate AddSYN lookup cannot kill shared listener; actual emitter error preserved inclEPERM/EBADF/ErrHandshakeState from Emit",
+    "new_queue": false,
+    "new_parameters": false,
+    "healthy_steady_change": false,
+    "deterministic_test": "Close duplicate after table lookup before SYNACK snapshot;other client/live duplicate sameISN response",
+    "race_repetitions": 30
   }
 }

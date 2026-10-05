@@ -79,3 +79,5 @@ jobs:
         with: {go-version: '1.23.12', cache: true}
       - name: Deterministic replacement barrier repeated with race detector
         run: go test -race ./internal/runtimeentry -run '^TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease$' -count=30 -timeout=8m
+      - name: Failed business Wake and retired SYN candidate repetitions
+        run: go test -race ./internal/runtimeentry -run '^(TestBusinessDemandAfterFailedDormantWakeRetriesWithoutClosingOwner|TestLifecycleSYNACK.*)$' -count=30 -timeout=8m

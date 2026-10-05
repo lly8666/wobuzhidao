@@ -1318,11 +1318,7 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 			}
 			return err
 		}
-		synack, err := assoc.SYNACKSegment()
-		if err != nil {
-			return err
-		}
-		return s.cfg.IO.Emit(synack)
+		return s.emitSYNACK(assoc)
 	}
 	assoc, ok := s.table.GetSegment(seg)
 	if !ok {
@@ -1416,6 +1412,24 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 			go s.admit(ctx, assoc)
 		}
 		s.mu.Unlock()
+	}
+	return nil
+}
+
+// Admission rollback can close a duplicate half-open association after AddSYN
+// returns it. A stale SYN then has no response to send; it is local to that
+// candidate and must not terminate the shared listener. Actual emitter errors
+// still propagate, including local firewall rejection.
+func (s *LifecycleServer) emitSYNACK(assoc *faketcp.ServerAssociation) error {
+	synack, err := assoc.SYNACKSegment()
+	if errors.Is(err, faketcp.ErrHandshakeState) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if err := s.cfg.IO.Emit(synack); err != nil {
+		return fmt.Errorf("runtimeentry: emit server SYNACK: %w", err)
 	}
 	return nil
 }
