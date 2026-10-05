@@ -90,6 +90,12 @@ DNS每行独立300秒，与同一配置的Normal1/10M/20:20后台负载同时观
 
 目标只在当前受控198.18.0.1:18446监听，最大echo8972B，验证逐字节内容，不保存正文。记录每档Send/10040/ReceivedExact/Timeout/BadPayload与实际接口MTU；测试结束恢复route/NRPT。MTU1280/1500 case另独立，不在M01中改产品MTU或猜PMTU。当前原生助手physical_mtu_target.py/physical_windows_mtu.ps1支持这条边界功能场景，不是10Mbps性能负载。M01当前读到的实际65535必须保留，不把程序里的MTU=1400字段当接口生效证据。
 
+### 当前MTU与idle验收边界（SOURCE660b370）
+
+Windows实际内层Wintun MTU已修正并硬读回9000；外层connection MTU1400，物理接口1500；上文65535属于旧6181历史，不再作为新运行配置。M01完整300s各DF尺寸至9000 IP均全回；M03 65507合法UDP在DF=false时由IP分片，DF=true超9000接口预算明确MessageSize；65508两种DF API拒绝。两份65507回程各少一包仍FAIL，不能把存活正常写全尺寸无损。下一使用MissingSequences、target实际接收序号及Windows IP前后计数定位，不扩大MTU/socket/FEC。
+
+S18当前单lane已观测双方两次physical/active=0、同lease恢复，质量非零损失保留。S19四lane300s出现额外69s唤醒：助手无业务，而owner多了4个共160B内层IP；不能归因keepalive，也不能写完全受控静默PASS。继续增加只读numeric tuple观测，在WBD TUN上排除本case UDP18445，仅记录其它上行地址/端口/时间；最多1000frame/335s、不生成流量、不保存payload/pcap。达到cap/丢捕获/无法解析时静默归因INCONCLUSIVE。S20纯下行必须看业务入口实际计数与持续无上行业务的足够长窗口，不能因助手Tx=0就忽略系统后台流量。idle夹具禁止探针，p99另在正常传输和独立弱网性能样本验收，不用零探针的0伪装p99优秀。
+
 ## TCP-like/TLS-like抓包
 
 性能case抓建连窗口<=12s、约100s稳态<=6s、约280s尾段<=6s、主动stop<=12s，rotation/唤醒按事件额外窗口；目标peer和server443严格过滤。每窗口最多8192frame、snaplen1600、原文件<=16MiB，当前最多4窗口，总临时磁盘<=64MiB。分析完删raw，再抓下一窗口；JSON保留SHA256、字节数、tcpdump收包/丢包/时间范围及配置。capture drop>0或snap截断时相应外观项INCONCLUSIVE，不为减少文件而把snaplen128的头部截断包当完整TLS证据。

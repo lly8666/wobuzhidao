@@ -49,6 +49,7 @@ jobs:
           python3 -m py_compile tools/native_mtu_boundary_target.py
           python3 tools/test_native_mtu_target.py
           python3 tools/test_native_lifecycle_schedule.py
+          python3 tools/test_native_idle_observer.py
           python3 tools/prepare_config_harness.py --case f20-l4-p1 --artifact-dir artifacts/config-template
           bash -n artifacts/config-template/generated-config.sh
       - uses: actions/upload-artifact@v4
