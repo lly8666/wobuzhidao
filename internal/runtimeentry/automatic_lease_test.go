@@ -61,7 +61,8 @@ func TestSharedCredentialsAutomaticNormalAndGameLeases(t *testing.T) {
 	registry.BeforeExpire = server.ForgetInactiveTunnel
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	go server.Run(ctx)
+	serverDone := make(chan error, 1)
+	go func() { serverDone <- server.Run(ctx) }()
 	defer server.Close()
 	var clients [2]*TunnelClient
 	var wg sync.WaitGroup
@@ -208,7 +209,12 @@ func TestSharedCredentialsAutomaticNormalAndGameLeases(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := clients[0].Wake(ctx); !errors.Is(err, ErrClientLeaseChanged) {
-		t.Fatalf("dormant mismatch: %v", err)
+		select {
+		case serverErr := <-serverDone:
+			t.Fatalf("dormant mismatch: %v; shared server exited: %v", err, serverErr)
+		default:
+			t.Fatalf("dormant mismatch: %v; shared server still running", err)
+		}
 	}
 	server.admitMu.Lock()
 	pinned := !server.forgetInactiveTunnelAt(b.Config.TunnelID, time.Now())

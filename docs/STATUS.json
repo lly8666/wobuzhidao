@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "Deployed SOURCE660 core/race/config70/long2 PASS; Game5305 paired p99 FAIL retained; native M01 PASS, M03 maximumUDP FAIL twice, S19 repeat lifecycle PASS but downlink1.6437% loss. New WAN neighbor diagnostic pending Actions; no product changes.",
-  "updated_at": "2026-10-05T14:51:30.631415+08:00",
+  "updated_at": "2026-10-05T15:01:57.389879+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -83,8 +83,8 @@
     "Localize and fix reproducible client upstream p99 stall; preserve throughput/no-HOL and exact failed samples",
     "Continue native S20/S19 boundary attribution after observer Actions PASS, then MTU sequence diagnosis and remaining matrix"
   ],
-  "next_task": "Qualify confined WAN-neighbor diagnostic helper, then separate single Actions for same SOURCE660/Game5305/seed1382 dynamic and permanent WAN neighbors, profile OFF. Keep dynamic defaults and original p99 failures. Locate scheduled wake downlink1.6437% loss without waiting HOL or dropping fresh traffic; maximumUDP exact missing sequences next. Product default buffering/FEC/4096 unchanged.32 native case IDs NOT_RUN.",
-  "latest_log": "docs/devlog/20261005-145130-raw-send-pressure-neighbor-boundary.md",
+  "next_task": "Qualify qualified-sibling egress candidate via core/race/lifecycle and new subset delivery regression;then independent lossless/5205 Normal+Game and Game5305/lossless seed1382 pairs without profile before deployment. Analyze product660 neighbor dynamic/permanent diagnostics and M03seed1398 missing-sequence sample. Retain old automatic-lease wake failure; new server exit context must identify cause. No buffer/FEC/4096 growth,no fresh drop,no HOL.",
+  "latest_log": "docs/devlog/20261005-150157-qualified-sibling-egress.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -1986,6 +1986,12 @@
       "details": "Controller verifies original9857bdb GUI/core successful attempt1 and exact ZIP/artifact hashes, publishes fixed-source prerelease; not a product test.",
       "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37185800359",
       "source_sha": "bead7f6d5b530eafec6ffdb93481b2eab23e7a8d"
+    },
+    {
+      "source_sha": "9408b1261059cc40d8e8c816d339833a15ad4d4e",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37274592672",
+      "scope": "core Windows automatic lease dormant wake intermittent failure; targeted sameSHA PASS",
+      "status": "FAIL"
     }
   ],
   "physical_status": "PARTIAL",
@@ -7564,7 +7570,7 @@
       "M03 seed1366 FAIL",
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
-    "running": null,
+    "running": "SOURCE660 maximumUDP with exact missing sequence and target receive/echo evidence",
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
@@ -7575,7 +7581,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "running_case": null,
+    "running_case": "m03-current-300s-seed1398",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7684,7 +7690,8 @@
         "evidence": "docs/evidence/native-game-idle-repeat-660b370-20261005.json"
       }
     ],
-    "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression."
+    "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
+    "fixture_invalid_latest": "seed1397 SSH masters expired before workload;not product sample,not counted. Operational scp now BatchMode/ConnectTimeout."
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -7958,7 +7965,7 @@
     "send_alloc_limit": 212992,
     "healthy_profile_peak": 960,
     "global_lock_propagation_risk": true,
-    "neighbor_diagnostic": "ACTIONS_PENDING",
+    "neighbor_diagnostic": "Helper analysis37274592567/predelivery37274592631 PASS;dynamic37274802852/permanent37274806220 running independently, product660 unchanged/profile OFF",
     "product_changed": false
   },
   "native_game_idle_repeat": {
@@ -7968,5 +7975,26 @@
     "background_frames": 0,
     "downlink_loss_percent": 1.6437187699389288,
     "p99": "NOT_EVALUATED"
+  },
+  "qualified_sibling_egress": {
+    "state": "CANDIDATE_ACTIONS_PENDING",
+    "parent": "9408b1261059cc40d8e8c816d339833a15ad4d4e",
+    "deployed_product": "660b370815603c50d38b92229abdec13ca77e1b1",
+    "scope": "server return path uses qualified lane mask selected under generation fence;missing siblings do not block eligible peer or encode a copy",
+    "full_lifecycle_qualification_unchanged": true,
+    "added_queue": false,
+    "waiting": false,
+    "parameters_changed": false,
+    "performance": "NOT_RUN"
+  },
+  "shared_credentials_dormant_failure": {
+    "state": "REPRODUCED_CAUSE_PENDING",
+    "runs": [
+      37269309626,
+      37274592672
+    ],
+    "latest": "Windows TestSharedCredentialsAutomaticNormalAndGameLeases dormant mismatch wake lane1 handshake failed",
+    "test_change": "Capture shared server Run result if failure,without retry or loosening gate",
+    "related_product_fix": "NOT_PROVEN"
   }
 }

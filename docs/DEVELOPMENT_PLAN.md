@@ -308,3 +308,8 @@ owner持锁的快照/身份检查仅能读Lane构造后不可变配置，禁止�
 按LINUX_SERVER.md完成共享用户名/密码、多设备随机唯一IPv4内存7天租约、认证续期与活跃/退休地址保护；不持久化IP，只保存安装身份及owned网络恢复记录。复用既有保护admission WBAL扩展、Normal/Game owner、共享TUN及正式raw平台，数据面不另起一套。多客户端/自动地址native测试须验证TCP/UDP双向隔离和服务端重启后地址变化重建，配套两端新包不可混旧985GUI。systemd与wbdctl实现只读check、就绪、单实例、崩溃网络恢复、手动版本升级/失败回滚及保配置卸载；仅恢复WBD所有权，外部后改sysctl不得覆写。
 
 新并发验收发现换代fresh Ref在transport登记前公开的窄窗。Runtime promotion与transport注册必须在同一runtime mutex下完成，构造失败在owner promotion之前退出；不能通过重复发业务包、长睡眠、扩大grace/队列掩盖missing transport。只有candidate promotion时增加临界区，不新增逐包同步。新SOURCE基础/race/并发重复、native与独立Normal/Game5205后固定配套预发布；全配置/完整弱网长测及物理资格仍按真实证据区分，不继承历史结果。
+
+
+## 2026-10-05 已确认lane的回程资格边界（候选待验）
+
+Game desired=2..4是生命周期目标，不是每包回程必须等所有兄弟lane的屏障。服务端TUN回程在runtime generation fence内选择已通过首条authenticated steady record确认的权威lane，按1..4固定bit mask编码；未确认/缺失/retiring lane不分配PN、FEC、repair备份。零个可用lane保持ErrTunnelNotQualified，不能放宽认证。剩余lane继续既有建连与资格机制，齐全后恢复全复制；TunnelQualified仍报告全部desired lanes齐全，以免部分可发冒充生命周期完成。无等待/积压/主动丢包新策略，客户端wake与wire不改；跨lane首次到达仍立即交付。候选正确/race/实际性能未通过之前不得部署或认定已解决1.64%损失。

@@ -50,6 +50,14 @@ type gameTunnelState struct {
 // returned in result.Failures so one failed lane does not suppress healthy
 // sibling copies.
 func (o *TunnelOwner) GameOutbound(packet []byte, now time.Time) (GameOutboundResult, error) {
+	return o.GameOutboundOnLanes(packet, now, 0x0f)
+}
+
+// GameOutboundOnLanes races only through the caller's qualified lane IDs.
+// A missing/unqualified sibling never consumes a PN, FEC shard or repair slot.
+// The mask is selected under the runtime generation fence; owner membership
+// still supplies the current incarnation and all ordinary source validation.
+func (o *TunnelOwner) GameOutboundOnLanes(packet []byte, now time.Time, eligible uint8) (GameOutboundResult, error) {
 	if o == nil {
 		return GameOutboundResult{}, ErrTunnelOwnerClosed
 	}
@@ -66,6 +74,10 @@ func (o *TunnelOwner) GameOutbound(packet []byte, now time.Time) (GameOutboundRe
 	if len(o.active) == 0 {
 		o.mu.Unlock()
 		return GameOutboundResult{}, ErrTunnelDormant
+	}
+	if eligible == 0 || eligible&^uint8(0x0f) != 0 {
+		o.mu.Unlock()
+		return GameOutboundResult{}, ErrLaneUnavailable
 	}
 	role := o.role
 	hasLease := o.hasLease
@@ -92,17 +104,22 @@ func (o *TunnelOwner) GameOutbound(packet []byte, now time.Time) (GameOutboundRe
 		o.mu.Unlock()
 		return GameOutboundResult{}, ErrTunnelDormant
 	}
+	ids := make([]uint8, 0, len(o.active))
+	for id := range o.active {
+		if eligible&(1<<(id-1)) != 0 {
+			ids = append(ids, id)
+		}
+	}
+	if len(ids) == 0 {
+		o.mu.Unlock()
+		return GameOutboundResult{}, ErrLaneUnavailable
+	}
+	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
 	state, err := o.ensureGameLocked()
 	if err != nil {
 		o.mu.Unlock()
 		return GameOutboundResult{}, err
 	}
-
-	ids := make([]uint8, 0, len(o.active))
-	for id := range o.active {
-		ids = append(ids, id)
-	}
-	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
 
 	packetID, copies, err := state.encoder.WrapCopies(packet, ids)
 	if err != nil {

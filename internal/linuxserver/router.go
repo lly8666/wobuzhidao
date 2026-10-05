@@ -195,6 +195,15 @@ type RoutedOutbound struct {
 }
 
 func (r *SharedTUNRouter) RouteFromTUN(packet []byte, now time.Time) (RoutedOutbound, error) {
+	return r.RouteFromTUNOnLanes(packet, now, 0x0f)
+}
+
+// RouteFromTUNOnLanes preserves lease demux while limiting Game encoding to
+// authenticated, usable lane IDs. Normal mode still requires its sole lane.
+func (r *SharedTUNRouter) RouteFromTUNOnLanes(packet []byte, now time.Time, eligible uint8) (RoutedOutbound, error) {
+	if eligible == 0 || eligible&^uint8(0x0f) != 0 {
+		return RoutedOutbound{}, datapath.ErrLaneUnavailable
+	}
 	_, dst, err := ipv4Endpoints(packet)
 	if err != nil {
 		return RoutedOutbound{}, err
@@ -214,10 +223,13 @@ func (r *SharedTUNRouter) RouteFromTUN(packet []byte, now time.Time) (RoutedOutb
 	out := RoutedOutbound{TunnelID: lease.Config.TunnelID, Lease: dst}
 	switch stats.DesiredLanes {
 	case 1:
+		if eligible&1 == 0 {
+			return out, datapath.ErrLaneUnavailable
+		}
 		out.Normal, err = owner.NormalOutbound(packet, now)
 		return out, err
 	case 2, 3, 4:
-		out.Game, err = owner.GameOutbound(packet, now)
+		out.Game, err = owner.GameOutboundOnLanes(packet, now, eligible)
 		out.IsGame = true
 		return out, err
 	default:

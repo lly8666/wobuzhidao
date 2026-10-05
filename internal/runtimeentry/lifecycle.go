@@ -1859,22 +1859,26 @@ func (s *LifecycleServer) RoutePacket(packet []byte, now time.Time) error {
 	}
 	s.mu.Lock()
 	group := s.byLease[dst]
-	ready := s.groupReadyLocked(group)
 	s.mu.Unlock()
 	if group == nil {
 		return linuxserver.ErrNoLeaseRoute
 	}
-	if !ready {
-		s.refreshQualifiedFromTransport(group)
-		s.mu.Lock()
-		ready = s.groupReadyLocked(group)
-		s.mu.Unlock()
-	}
-	if !ready {
-		return ErrTunnelNotQualified
-	}
 	err = group.rt.WithOutbound(func() error {
-		out, err := s.cfg.Router.RouteFromTUN(packet, now)
+		// Select after acquiring the generation fence. Promotion cannot replace
+		// a qualified ID with an unqualified incarnation during this send.
+		s.mu.Lock()
+		eligible := s.egressLanesLocked(group)
+		s.mu.Unlock()
+		if eligible == 0 {
+			s.refreshQualifiedFromTransport(group)
+			s.mu.Lock()
+			eligible = s.egressLanesLocked(group)
+			s.mu.Unlock()
+		}
+		if eligible == 0 {
+			return ErrTunnelNotQualified
+		}
+		out, err := s.cfg.Router.RouteFromTUNOnLanes(packet, now, eligible)
 		if err != nil {
 			return err
 		}
@@ -1889,6 +1893,21 @@ func (s *LifecycleServer) RoutePacket(packet []byte, now time.Time) error {
 		s.mu.Unlock()
 	}
 	return err
+}
+
+// egressLanesLocked is deliberately distinct from full TunnelQualified.
+// Desired=4 remains the lifecycle target, not a barrier for a ready sibling.
+func (s *LifecycleServer) egressLanesLocked(group *serverLifecycleTunnel) uint8 {
+	if group == nil || group.dormant {
+		return 0
+	}
+	var mask uint8
+	for id, lane := range group.lanes {
+		if lane.qualified && !lane.retiring && logicaltunnel.ValidProductLaneID(id) {
+			mask |= 1 << (id - 1)
+		}
+	}
+	return mask
 }
 
 func (s *LifecycleServer) refreshQualifiedFromTransport(group *serverLifecycleTunnel) {
