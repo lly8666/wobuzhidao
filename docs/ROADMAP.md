@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-05当前：产品SOURCE660b370配套部署；同源70配置PASS、18独立样本五分类PASS，但严格配对Game5305/seed1382 p99增加712ms超过500ms门，整体仍FAIL。Normal/Game各1800s独立长测PASS，最差阶段吞吐9.99899/2.999872M、阶段p99最高621.13/604.47ms；不能抵消短测尾延迟失败。原生M01完整PASS；M03两份最大UDP各缺1回包；S18双方两次Dormant释放和generation1→2→3/lease稳定通过，非零损失及延迟未验保留。HEAD919 helper基础/targeted因漏改STATUS契约FAIL，Go未跑，本提交补齐；未把它当产品回归。下一按STATUS查p99、验helper再S19/S20及其余DNS/IP/FEC/config。每性能Action一条，吞吐/p99硬门不降。
+2026-10-05当前：已部署SOURCE2737415，qualified sibling回程修复core/race/五独立性能与三Game5305复测PASS，native S19改善可重复。当前候选只修Windows Dormant业务唤醒失败被致命退出的问题，源码/性能/P6未验，不能部署或继承273/660资格；实时证据与下一项看STATUS。原生26完整样本/11工况，32工况未跑；剩余Normal唤醒上行损失、旧p99与最大UDP间歇缺包保留，不能猜VM/ARP/FEC根因。每性能Action一条。
 
 当前入口以STATUS为准：3e3e094配套包已过Actions定向门并实机D01完整300s，长时间双向中断未再现，但下行8.90%字节损失、208探针超时仍FAIL。S16 rotation独立实机运行；先验最新默认off Windows收包诊断补丁，定位最早下行损失边界再窄修，随后继续DNS/分流/MTU矩阵。旧6181四项保留历史，不继承为最新SOURCE。
 

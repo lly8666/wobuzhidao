@@ -1,0 +1,334 @@
+{
+  "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+  "samples": [
+    {
+      "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+      "run": 37279219313,
+      "baseline": 37276207990,
+      "state": "PASS_TARGETED_REPEAT",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "pairs": [
+        {
+          "stage": "pre",
+          "percentile": "p95_ns",
+          "delta_ms": 8.530014,
+          "gate_ms": 200.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "pre",
+          "percentile": "p99_ns",
+          "delta_ms": 8.653239,
+          "gate_ms": 500.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "stress",
+          "percentile": "p95_ns",
+          "delta_ms": 2.792984,
+          "gate_ms": 200.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "stress",
+          "percentile": "p99_ns",
+          "delta_ms": 4.392703,
+          "gate_ms": 500.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "post",
+          "percentile": "p95_ns",
+          "delta_ms": 4.291741,
+          "gate_ms": 200.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "post",
+          "percentile": "p99_ns",
+          "delta_ms": 4.963081,
+          "gate_ms": 500.0,
+          "state": "PASS"
+        }
+      ],
+      "stages": {
+        "post": {
+          "p95_ns": 605956521,
+          "p99_ns": 606752630,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 610304093,
+          "p99_ns": 611203585,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 604606196,
+          "p99_ns": 606609787,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "timeouts": 0,
+      "outliers": [],
+      "queue_max_ms": 17.389036,
+      "cpu": {
+        "client": 93.97,
+        "server": 89.5
+      },
+      "minimum_goodput": 2.9994837333333333,
+      "profile": false,
+      "wan_neighbors": "dynamic",
+      "one_sample_per_action": true,
+      "old_tail_failures_resolved": false,
+      "raw_send_pressure": {
+        "maxima": {
+          "client_t": 960,
+          "client_tb": 212992,
+          "client_w": 0,
+          "client_r": 0,
+          "client_rb": 1048576,
+          "client_d": 0,
+          "server_t": 2304,
+          "server_tb": 212992,
+          "server_w": 0,
+          "server_r": 0,
+          "server_rb": 1048576,
+          "server_d": 0
+        },
+        "full_send_buffer_samples": [],
+        "outlier_windows": [],
+        "sampling_seconds": 1,
+        "causal_attribution": "Not established by a healthy repeat or 1Hz counters alone"
+      }
+    },
+    {
+      "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+      "run": 37280126329,
+      "baseline": 37276207990,
+      "state": "PASS_TARGETED_REPEAT",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "pairs": [
+        {
+          "stage": "pre",
+          "percentile": "p95_ns",
+          "delta_ms": -0.20529,
+          "gate_ms": 200.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "pre",
+          "percentile": "p99_ns",
+          "delta_ms": -0.504357,
+          "gate_ms": 500.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "stress",
+          "percentile": "p95_ns",
+          "delta_ms": -0.154162,
+          "gate_ms": 200.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "stress",
+          "percentile": "p99_ns",
+          "delta_ms": -0.389456,
+          "gate_ms": 500.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "post",
+          "percentile": "p95_ns",
+          "delta_ms": -0.062032,
+          "gate_ms": 200.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "post",
+          "percentile": "p99_ns",
+          "delta_ms": 0.536483,
+          "gate_ms": 500.0,
+          "state": "PASS"
+        }
+      ],
+      "stages": {
+        "post": {
+          "p95_ns": 601602748,
+          "p99_ns": 602326032,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 601568789,
+          "p99_ns": 602045989,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 601659050,
+          "p99_ns": 601827628,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "timeouts": 0,
+      "outliers": [],
+      "queue_max_ms": 7.60314,
+      "cpu": {
+        "client": 57.68,
+        "server": 54.53
+      },
+      "minimum_goodput": 2.999872,
+      "profile": false,
+      "wan_neighbors": "dynamic",
+      "one_sample_per_action": true,
+      "old_tail_failures_resolved": false,
+      "raw_send_pressure": {
+        "maxima": {
+          "client_t": 2304,
+          "client_tb": 212992,
+          "client_w": 0,
+          "client_r": 0,
+          "client_rb": 1048576,
+          "client_d": 0,
+          "server_t": 960,
+          "server_tb": 212992,
+          "server_w": 0,
+          "server_r": 0,
+          "server_rb": 1048576,
+          "server_d": 0
+        },
+        "full_send_buffer_samples": [],
+        "outlier_windows": [],
+        "sampling_seconds": 1,
+        "causal_attribution": "Not established by a healthy repeat or 1Hz counters alone"
+      }
+    },
+    {
+      "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+      "run": 37280130149,
+      "baseline": 37276207990,
+      "state": "PASS_TARGETED_REPEAT",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "pairs": [
+        {
+          "stage": "pre",
+          "percentile": "p95_ns",
+          "delta_ms": 0.546581,
+          "gate_ms": 200.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "pre",
+          "percentile": "p99_ns",
+          "delta_ms": 0.518436,
+          "gate_ms": 500.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "stress",
+          "percentile": "p95_ns",
+          "delta_ms": -0.043736,
+          "gate_ms": 200.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "stress",
+          "percentile": "p99_ns",
+          "delta_ms": 0.261719,
+          "gate_ms": 500.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "post",
+          "percentile": "p95_ns",
+          "delta_ms": 2.350571,
+          "gate_ms": 200.0,
+          "state": "PASS"
+        },
+        {
+          "stage": "post",
+          "percentile": "p99_ns",
+          "delta_ms": 2.455732,
+          "gate_ms": 500.0,
+          "state": "PASS"
+        }
+      ],
+      "stages": {
+        "post": {
+          "p95_ns": 604015351,
+          "p99_ns": 604245281,
+          "received": 30,
+          "sent": 30
+        },
+        "pre": {
+          "p95_ns": 602320660,
+          "p99_ns": 603068782,
+          "received": 30,
+          "sent": 30
+        },
+        "stress": {
+          "p95_ns": 601769476,
+          "p99_ns": 602478803,
+          "received": 60,
+          "sent": 60
+        }
+      },
+      "timeouts": 0,
+      "outliers": [],
+      "queue_max_ms": 10.183699,
+      "cpu": {
+        "client": 66.51,
+        "server": 62.49
+      },
+      "minimum_goodput": 2.9987413333333337,
+      "profile": false,
+      "wan_neighbors": "dynamic",
+      "one_sample_per_action": true,
+      "old_tail_failures_resolved": false,
+      "raw_send_pressure": {
+        "maxima": {
+          "client_t": 1280,
+          "client_tb": 212992,
+          "client_w": 0,
+          "client_r": 0,
+          "client_rb": 1048576,
+          "client_d": 0,
+          "server_t": 960,
+          "server_tb": 212992,
+          "server_w": 0,
+          "server_r": 0,
+          "server_rb": 1048576,
+          "server_d": 0
+        },
+        "full_send_buffer_samples": [],
+        "outlier_windows": [],
+        "sampling_seconds": 1,
+        "causal_attribution": "Not established by a healthy repeat or 1Hz counters alone"
+      }
+    }
+  ],
+  "old_tail_failures_resolved": false,
+  "full18": false
+}

@@ -310,6 +310,10 @@ owner持锁的快照/身份检查仅能读Lane构造后不可变配置，禁止�
 新并发验收发现换代fresh Ref在transport登记前公开的窄窗。Runtime promotion与transport注册必须在同一runtime mutex下完成，构造失败在owner promotion之前退出；不能通过重复发业务包、长睡眠、扩大grace/队列掩盖missing transport。只有candidate promotion时增加临界区，不新增逐包同步。新SOURCE基础/race/并发重复、native与独立Normal/Game5205后固定配套预发布；全配置/完整弱网长测及物理资格仍按真实证据区分，不继承历史结果。
 
 
-## 2026-10-05 已确认lane的回程资格边界（候选待验）
+## 2026-10-05 已确认lane的回程资格边界（SOURCE273专项已验）
 
-Game desired=2..4是生命周期目标，不是每包回程必须等所有兄弟lane的屏障。服务端TUN回程在runtime generation fence内选择已通过首条authenticated steady record确认的权威lane，按1..4固定bit mask编码；未确认/缺失/retiring lane不分配PN、FEC、repair备份。零个可用lane保持ErrTunnelNotQualified，不能放宽认证。剩余lane继续既有建连与资格机制，齐全后恢复全复制；TunnelQualified仍报告全部desired lanes齐全，以免部分可发冒充生命周期完成。无等待/积压/主动丢包新策略，客户端wake与wire不改；跨lane首次到达仍立即交付。候选正确/race/实际性能未通过之前不得部署或认定已解决1.64%损失。
+Game desired=2..4是生命周期目标，不是每包回程必须等所有兄弟lane的屏障。服务端TUN回程在runtime generation fence内按原有qualified资格选择非retiring权威lane，固定四位mask编码；未确认/缺失lane不分配PN、FEC或repair备份。冷建连仍需authenticated steady确认；same-ID替换保持此前经admission的原有资格机制，不另收紧或放宽。零个可用lane保持ErrTunnelNotQualified；齐全后恢复全复制，TunnelQualified仍表示全部desired就绪。无等待/积压/新主动丢包策略。SOURCE273 correctness/race与性能专项已验，native S19两份下行损失0.557/0.475%，旧1.644%；不宣称无损或全阶段关闭，源码完整资格按STATUS。
+
+## 2026-10-05 Windows Dormant业务唤醒失败隔离（候选待验）
+
+当没有可用连接且本次Wake失败，原Wake清理partial attachments并设置backoff。PrepareBusiness仅把这条编码/发包之前的失败标为ErrBusinessWakeRetryable；已有backoff sentinel原样返回，期间不分配wire、不重复计错误、不重新建连。Windows TUN reader继续读新需求，在已有退避结束后由后续业务触发恢复；失败的包不加入待发队列/不重放，不伪装已交付。取消、runtime关闭、ErrClientLeaseChanged继续终止/重建平台；完成Wake之后真正SendPacket发包错误不被本策略吞掉。正常稳态路径不变，无新CLI/wire参数、goroutine或等待。必须Actions验证1/4lane首次/partial失败、bounded backoff、稳定owner/lease和错误分类，再独立性能与同源包；最后Windows原生休眠+双边临时黑洞证明同进程清障恢复。未验不能部署。

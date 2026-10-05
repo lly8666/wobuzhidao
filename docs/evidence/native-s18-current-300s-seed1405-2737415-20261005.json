@@ -1,0 +1,344 @@
+{
+  "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+  "case": "s18-current-300s-seed1405",
+  "state": "LIFECYCLE_PASS_COLD_START_LOSS_RETAINED",
+  "p99": "NOT_EVALUATED:no idle probes",
+  "duration_seconds": 300.0004758,
+  "quality": {
+    "C2SGoodputMbps": 9.986772266666668,
+    "S2CGoodputMbps": 9.9575944,
+    "C2SByteLossPercent": 0.1317260604611903,
+    "S2CByteLossPercent": 0.42350633775498636
+  },
+  "cpu_seconds": {
+    "client": 116.84375,
+    "server": 64.6
+  },
+  "observer": {
+    "lease": "10.66.210.191",
+    "start_unix_s": 1791186592.838265,
+    "end_unix_s": 1791186927.936244,
+    "duration_bound_s": 335,
+    "events": [
+      {
+        "unix_s": 1791186624.616584,
+        "src": "10.66.210.191",
+        "src_port": 63818,
+        "dst": "1.1.1.1",
+        "dst_port": 53,
+        "transport": "UDP"
+      }
+    ],
+    "filtered_frames": 1,
+    "blank_lines": 1,
+    "captured_frames": null,
+    "unparsed_frames": 0,
+    "cap_reached": false,
+    "observer_drops": 0,
+    "capture_count_matches": false,
+    "metadata_complete": false,
+    "tcpdump_exit": 0,
+    "ended_by_timeout": true,
+    "payload_stored": false,
+    "pcap_written": false,
+    "excluded_fixture_udp_port": 18445
+  },
+  "cleanup": {
+    "State": "STOPPED",
+    "Ready": true,
+    "Reason": "requested_stop",
+    "ExitCode": 0,
+    "NetworkStateRemaining": false,
+    "OwnedNRPTRemaining": 0,
+    "OwnedFirewallRemaining": 0,
+    "ElapsedSeconds": 349.1
+  },
+  "helper_hashes": {
+    "physical_bounded_capture.py": "aabc25fb2eca637ddc907fdf65ee69e66d09df6f44089939a52ba7bde48c8caf",
+    "physical_dns_observer.py": "88f42ea38bd323f20ebb05a9de059a2e5d2112e3de0a1e10c8d0230efcd35108",
+    "physical_header_watch.py": "977bd060511fc2a3f09c4496b37d5caeaebee4d185ef4fde4dc4667e431f0aea",
+    "physical_mtu_target.py": "8b6283c042bf9a2a2c763ab75a96654e1f89cec85d3a74821207c2959632e0e9",
+    "physical_npcap_watch.cs": "1b6902b9135570e4a7cbcb5046ebc07feaedd7d7e36a9c6ef80d94d7360087c7",
+    "physical_packet_counts.py": "1f663f68b8c090b6dec181cfa082a827cf5c83cb06fbac4030c0ac4f9f2fd510",
+    "physical_resource_watch.py": "16f13312a3d23bc6079f7963ee1c84c3a49f5f118c9523368019e74a4fcf5446",
+    "physical_udp_client.cs": "dbfbc95d0a133c5c22643389266736ba8cf9a5dc4644413bcd459d15256bd428",
+    "physical_udp_server.py": "9f88a896b2f20bab6341d71215cb58fd92a34ee30fe1a80445b792ff4a387547",
+    "physical_windows_business.ps1": "5cb3631268f1adc826891e1b4e07deb64b0a1d8eb6b15978b040fbf7d81176f8",
+    "physical_windows_dns.ps1": "cd976134b3e2e94abbecdfb159db8efc87c22a894db4bae9bcb10798316bbed6",
+    "physical_windows_header_watch.ps1": "e341cbd4ed7c0e8e92f491a4a1215408b3150fbcff18c1515d068b7862e46ea4",
+    "physical_windows_mtu.ps1": "72bd46c001e35d7a6319d6fd552092ca0d98474d3033dd12a0aeeee13d0737e6",
+    "physical_windows_session.ps1": "b3e75fdff75664a6889c564b0a6397a9b7ee03edccc8446c8d2923bc60c19715",
+    "physical_windows_udp.ps1": "fa1da2c70314bc9b021cb4bfb9ac527814dbdf5081a9452720a6a2b4c7b5eb34",
+    "physical_wire_audit.py": "6be5b98d6b62d8f52a95f9f1419d31040dbaa16cf3e3f8ca0174fc801e5c8f83",
+    "native_lifecycle_udp_client.cs": "82e1a72850e5998ddaf6bbd83d37e7337a370922c70c2571eec549aae56cbd70",
+    "native_windows_lifecycle_udp.ps1": "7920867a4721fdd75919053b25aa0f470e8322a504c3ca26aa33f34202194ccf",
+    "native_lifecycle_udp_target.py": "85ebdeb1eb816728a3089faf2dccdcd025543f01bfdc2a287009dad31bab9cb5",
+    "native_idle_boundary_observer.py": "03af34b987fd24e3cbadf32176ca0ca39df94eed24ebf546d6f4835194311cf6"
+  },
+  "effective_config": {
+    "desired": 1,
+    "active": 1,
+    "config": {
+      "keepalive_interval": "5s",
+      "dead_after": "45s",
+      "reconnect_min": "1s",
+      "reconnect_max": "30s",
+      "dormant_after": "30s",
+      "rotate_min": "0s",
+      "rotate_max": "0s",
+      "replacement_grace": "3s"
+    },
+    "lanes": [
+      {
+        "id": 1,
+        "generation": 1,
+        "parity": 20
+      }
+    ]
+  },
+  "endpoints": {
+    "client": {
+      "transitions": [
+        {
+          "elapsed_s": -21.633,
+          "Dormant": false,
+          "Closed": false,
+          "PhysicalLanes": 1,
+          "ActiveLogicalLanes": 1,
+          "generations": [
+            1
+          ]
+        },
+        {
+          "elapsed_s": 65.369,
+          "Dormant": true,
+          "Closed": false,
+          "PhysicalLanes": 0,
+          "ActiveLogicalLanes": 0,
+          "generations": []
+        },
+        {
+          "elapsed_s": 120.369,
+          "Dormant": false,
+          "Closed": false,
+          "PhysicalLanes": 1,
+          "ActiveLogicalLanes": 1,
+          "generations": [
+            2
+          ]
+        },
+        {
+          "elapsed_s": 181.369,
+          "Dormant": true,
+          "Closed": false,
+          "PhysicalLanes": 0,
+          "ActiveLogicalLanes": 0,
+          "generations": []
+        },
+        {
+          "elapsed_s": 240.369,
+          "Dormant": false,
+          "Closed": false,
+          "PhysicalLanes": 1,
+          "ActiveLogicalLanes": 1,
+          "generations": [
+            3
+          ]
+        }
+      ],
+      "leases": [
+        "10.66.210.191/32"
+      ],
+      "stable_lease": true,
+      "quiet_sample_counts": [
+        34,
+        34
+      ]
+    },
+    "server": {
+      "transitions": [
+        {
+          "elapsed_s": -30.559,
+          "Dormant": false,
+          "Closed": false,
+          "PhysicalLanes": 1,
+          "ActiveLogicalLanes": 1,
+          "generations": [
+            1
+          ]
+        },
+        {
+          "elapsed_s": 65.441,
+          "Dormant": true,
+          "Closed": false,
+          "PhysicalLanes": 0,
+          "ActiveLogicalLanes": 0,
+          "generations": []
+        },
+        {
+          "elapsed_s": 120.441,
+          "Dormant": false,
+          "Closed": false,
+          "PhysicalLanes": 1,
+          "ActiveLogicalLanes": 1,
+          "generations": [
+            2
+          ]
+        },
+        {
+          "elapsed_s": 181.441,
+          "Dormant": true,
+          "Closed": false,
+          "PhysicalLanes": 0,
+          "ActiveLogicalLanes": 0,
+          "generations": []
+        },
+        {
+          "elapsed_s": 240.441,
+          "Dormant": false,
+          "Closed": false,
+          "PhysicalLanes": 1,
+          "ActiveLogicalLanes": 1,
+          "generations": [
+            3
+          ]
+        },
+        {
+          "elapsed_s": 333.441,
+          "Dormant": true,
+          "Closed": false,
+          "PhysicalLanes": 0,
+          "ActiveLogicalLanes": 0,
+          "generations": []
+        }
+      ],
+      "leases": [
+        "10.66.210.191/32"
+      ],
+      "stable_lease": true,
+      "quiet_sample_counts": [
+        34,
+        34
+      ]
+    }
+  },
+  "settled_burst_downlink_loss": [
+    {
+      "cutoff_seconds": 100,
+      "client_observation_seconds": 99.0899395,
+      "server_observation_seconds": 99.28588644694537,
+      "cumulative_missing_bytes": 0,
+      "missing_bytes_in_burst": 0
+    },
+    {
+      "cutoff_seconds": 220,
+      "client_observation_seconds": 219.20610059999998,
+      "server_observation_seconds": 219.48624683031812,
+      "cumulative_missing_bytes": 313892,
+      "missing_bytes_in_burst": 313892
+    },
+    {
+      "cutoff_seconds": 303,
+      "client_observation_seconds": "final",
+      "server_observation_seconds": "final",
+      "cumulative_missing_bytes": 635256,
+      "missing_bytes_in_burst": 321364
+    }
+  ],
+  "remaining_cause": "Settled byte deficits separate active bursts; 1Hz state transitions cannot establish exact per-packet loss boundary. No claim cold handshake explains every missing packet.",
+  "settled_burst_uplink_loss": [
+    {
+      "cutoff_seconds": 100,
+      "client_observation_seconds": 99.0899395,
+      "server_observation_seconds": 99.28588644694537,
+      "cumulative_missing_bytes": 0,
+      "missing_bytes_in_burst": 0
+    },
+    {
+      "cutoff_seconds": 220,
+      "client_observation_seconds": 219.20610059999998,
+      "server_observation_seconds": 219.48624683031812,
+      "cumulative_missing_bytes": 62704,
+      "missing_bytes_in_burst": 62704
+    },
+    {
+      "cutoff_seconds": 303,
+      "client_observation_seconds": "final",
+      "server_observation_seconds": "final",
+      "cumulative_missing_bytes": 197588,
+      "missing_bytes_in_burst": 134884
+    }
+  ],
+  "wake_pressure": {
+    "case": "s18-current-300s-seed1405",
+    "source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+    "uplink_missing_packets": 275,
+    "uplink_missing_bytes": 197588,
+    "fixture_udp_drop_max": 0,
+    "fixture_udp_rmem_max": 20736,
+    "raw_af_packet_drop_max": 139,
+    "fixture_udp_drop_changes": [
+      {
+        "sampler_elapsed_seconds": 36.0351435020566,
+        "fixture_drop_count": 0,
+        "sockets": [
+          {
+            "r": 0,
+            "rb": 425984,
+            "t": 0,
+            "tb": 212992,
+            "f": 0,
+            "w": 0,
+            "o": 0,
+            "bl": 0,
+            "d": 0
+          }
+        ]
+      },
+      {
+        "sampler_elapsed_seconds": 345.0356704839505,
+        "fixture_drop_count": null,
+        "sockets": []
+      }
+    ],
+    "raw_af_packet_drop_changes": [
+      {
+        "sampler_elapsed_seconds": 0.03279464412480593,
+        "raw_drop_count": 0,
+        "sockets": [
+          {
+            "r": 0,
+            "rb": 212992,
+            "t": 0,
+            "tb": 212992,
+            "f": 0,
+            "w": 0,
+            "o": 0,
+            "bl": 0,
+            "d": 0
+          }
+        ]
+      },
+      {
+        "sampler_elapsed_seconds": 318.05244843801484,
+        "raw_drop_count": 139,
+        "sockets": [
+          {
+            "r": 0,
+            "rb": 212992,
+            "t": 0,
+            "tb": 212992,
+            "f": 0,
+            "w": 0,
+            "o": 0,
+            "bl": 0,
+            "d": 139
+          }
+        ]
+      }
+    ],
+    "exact_loss_drop_count_match": false,
+    "clock_limitation": "Resource sampler elapsed uses its own earlier start; no exact UTC anchor. Do not treat it as business elapsed.",
+    "causal_attribution": "No fixture UDP socket drops observed; test receiver overflow is not supported. Raw AF_PACKET counts do not map one-to-one to application packets and may include background."
+  }
+}

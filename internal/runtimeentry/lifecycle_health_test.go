@@ -1,9 +1,103 @@
 package runtimeentry
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"sync/atomic"
+	"syscall"
 	"testing"
 	"time"
+
+	"github.com/lly8666/wobuzhidao/internal/faketcp"
 )
+
+func TestRetryableBusinessWakeDoesNotHideWireOrBindingFailures(t *testing.T) {
+	for _, err := range []error{ErrLifecycleRetryBackoff, fmt.Errorf("%w: %w", ErrBusinessWakeRetryable, context.DeadlineExceeded)} {
+		if !RetryableBusinessWake(err) {
+			t.Fatalf("wake/backoff should keep platform reader alive: %v", err)
+		}
+	}
+	for _, err := range []error{nil, context.DeadlineExceeded, syscall.EAGAIN, syscall.ENETDOWN, ErrClientLeaseChanged, ErrClientRuntimeStopped, context.Canceled} {
+		if RetryableBusinessWake(err) {
+			t.Fatalf("unclassified wire/binding/shutdown error hidden: %v", err)
+		}
+		if err != nil && RetryableBusinessWake(fmt.Errorf("%w: %w", ErrBusinessWakeRetryable, err)) &&
+			(errors.Is(err, ErrClientLeaseChanged) || errors.Is(err, ErrClientRuntimeStopped) || errors.Is(err, context.Canceled)) {
+			t.Fatalf("terminal error lost through wrapping: %v", err)
+		}
+	}
+}
+
+func TestBusinessDemandAfterFailedDormantWakeRetriesWithoutClosingOwner(t *testing.T) {
+	for _, lanes := range []int{1, 4} {
+		t.Run(fmt.Sprint(lanes), func(t *testing.T) {
+			h := newLifecycleAuditHarness(t, lanes, 0, 0)
+			owner := h.client.Owner()
+			if err := h.client.Dormant(); err != nil {
+				t.Fatal(err)
+			}
+			if err := h.server.DormantTunnel(h.tunnelID); err != nil {
+				t.Fatal(err)
+			}
+			// Game fails its second attachment, exercising cleanup of a
+			// partially successful wake as well as Normal's first-lane failure.
+			var failWake atomic.Bool
+			failWake.Store(true)
+			failLane := uint8(1)
+			if lanes == 4 {
+				failLane = 2
+			}
+			open := h.client.cfg.OpenLane
+			h.client.cfg.OpenLane = func(id uint8, incarnation uint64) (SegmentIO, faketcp.ClientFlow, error) {
+				if id == failLane && failWake.Load() {
+					return SegmentIO{}, faketcp.ClientFlow{}, errors.New("injected business wake failure")
+				}
+				return open(id, incarnation)
+			}
+			packet := ipv4Packet([4]byte{10, 66, 0, 31}, [4]byte{8, 8, 8, 8}, 17)
+			err := h.client.SendPacket(h.ctx, packet, time.Now())
+			if !RetryableBusinessWake(err) || !errors.Is(err, ErrBusinessWakeRetryable) {
+				t.Fatalf("failed pre-emission wake is terminal: %v", err)
+			}
+			stats := h.client.LifecycleStats()
+			if stats.RecoveryFailed != 1 || stats.RetryableErrors != 1 || stats.NextRetry.IsZero() || stats.LastError == "" {
+				t.Fatalf("missing failed-wake evidence/backoff: %+v", stats)
+			}
+			h.client.mu.Lock()
+			h.client.retryAt = time.Now().Add(time.Minute)
+			h.client.mu.Unlock()
+			for i := 0; i < 32; i++ {
+				if err := h.client.SendPacket(h.ctx, packet, time.Now()); !errors.Is(err, ErrLifecycleRetryBackoff) || !RetryableBusinessWake(err) {
+					t.Fatalf("backoff demand: %v", err)
+				}
+			}
+			if got := h.client.LifecycleStats(); got.RecoveryAttempts != stats.RecoveryAttempts || got.RetryableErrors != stats.RetryableErrors {
+				t.Fatalf("backoff causes attempt/error amplification: %+v", got)
+			}
+			if !h.client.IsDormant() || len(owner.ActiveLanes()) != 0 {
+				t.Fatal("failed wake exposed a lane")
+			}
+			select {
+			case err := <-h.client.Errors():
+				t.Fatalf("retryable wake reported as terminal: %v", err)
+			default:
+			}
+			failWake.Store(false)
+			h.client.mu.Lock()
+			h.client.retryAt = time.Time{}
+			h.client.mu.Unlock()
+			h.sendForward(t, [4]byte{9, 9, 9, 9})
+			if h.client.Owner() != owner || h.client.IsDormant() || len(owner.ActiveLanes()) != lanes {
+				t.Fatal("retry did not recover the same owner")
+			}
+			lease, ok := owner.Lease()
+			if !ok || lease.Config.Address4 != h.lease.Config.Address4 || lease.Config.TunnelID != h.lease.Config.TunnelID {
+				t.Fatal("wake retry changed logical binding")
+			}
+		})
+	}
+}
 
 func TestLifecycleHealthBlackholeFailedCandidatesAndStableRecovery(t *testing.T) {
 	h := newLifecycleAuditHarness(t, 1, 200*time.Millisecond, 0)

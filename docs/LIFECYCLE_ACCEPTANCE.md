@@ -67,3 +67,7 @@ L6 的黑洞阶段只验证“业务活动证据不会被当成 idle、失败后
 
 因此 STATUS 的 `WEAKNET_LIFECYCLE` 可标 COMPLETE，但必须同时保留 `performance_status=FAIL_CAPACITY_LIMITED`。专项完成不关闭整个 P4/P5；用户后续明确授权恢复容量开发，见 WEAKNET_QUALIFICATION 第9节。
 
+
+## 2026-10-05 Windows业务Wake失败平台门（候选）
+
+禁止把Dormant后业务触发的可退避建连失败当成整client致命错误。新门检查PrepareBusiness前置失败分类，已有retryAt限制持续业务尝试；Normal首lane失败、Game第2lane失败后physical/active归零，后续新包可恢复相同owner/lease。真正wire发包错误、地址变化、取消与Close不能被当Wake失败吞掉。错误包不重放，业务未交付不写成功。源码中candidate状态NOT_RUN，完成core/race/Windows build、独立性能和P6后再物理Dormant+temporary blackhole；旧Linux fullstack或273正常Wake不能替代这项Windows失效门。

@@ -24,6 +24,7 @@ import (
 
 var (
 	ErrLifecycleRetryBackoff = errors.New("runtimeentry: wake retry backoff; retry on later business demand")
+	ErrBusinessWakeRetryable = errors.New("runtimeentry: business wake failed; retry on later business demand")
 	ErrLifecycleBusy         = errors.New("runtimeentry: lifecycle transition already pending")
 	ErrLifecycleDormant      = errors.New("runtimeentry: logical tunnel is dormant")
 	ErrLifecycleLaneState    = errors.New("runtimeentry: invalid lifecycle lane state")
@@ -503,7 +504,17 @@ func (c *TunnelClient) PrepareBusiness(ctx context.Context) error {
 	}
 	// A committed idle close publishes dormant before teardown. Wake retains
 	// the operation fence so it waits for teardown and coalesces concurrent wake.
-	return c.Wake(ctx)
+	err := c.Wake(ctx)
+	if err == nil || errors.Is(err, ErrLifecycleRetryBackoff) ||
+		errors.Is(err, ErrClientRuntimeStopped) || errors.Is(err, ErrClientLeaseChanged) ||
+		errors.Is(err, context.Canceled) {
+		return err
+	}
+	// Wake already retired any partially attached set and scheduled bounded
+	// backoff. Mark only this pre-emission failure as retryable; a later wire
+	// error from SendPacket must retain its original fatal handling.
+	c.noteLifecycleError(err)
+	return fmt.Errorf("%w: %w", ErrBusinessWakeRetryable, err)
 }
 
 func (c *TunnelClient) SendPacket(ctx context.Context, packet []byte, now time.Time) error {

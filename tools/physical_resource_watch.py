@@ -8,11 +8,14 @@ def main():
     if not 1<=args.seconds<=660:raise ValueError('bounded1..660seconds')
     hz=os.sysconf('SC_CLK_TCK');pages=os.sysconf('SC_PAGE_SIZE');samples=[];started=time.monotonic()
     while time.monotonic()-started<args.seconds:
+        sample_started_unix_ns=time.time_ns()
+        sample_started_monotonic_ns=time.monotonic_ns()
         stat=Path('/proc/%d/stat'%args.pid).read_text().split(') ',1)[1].split()
         sockets=subprocess.run(['ss','-0apnm'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,timeout=3).stdout
         own=[line.strip() for line in sockets.splitlines() if 'pid=%d,'%args.pid in line]
         udp=subprocess.run(['ss','-uapnm','sport = :18445 or sport = :18446'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,timeout=3)
-        samples.append(dict(elapsed_seconds=time.monotonic()-started,cpu_seconds=(int(stat[11])+int(stat[12]))/hz,
+        samples.append(dict(unix_ns=sample_started_unix_ns,monotonic_ns=sample_started_monotonic_ns,
+            sampled_unix_ns=time.time_ns(),elapsed_seconds=time.monotonic()-started,cpu_seconds=(int(stat[11])+int(stat[12]))/hz,
             rss_bytes=int(stat[21])*pages, socket_lines=own, fixture_udp_socket_lines=udp.stdout.splitlines()[:12],
             fixture_udp_sampler_error=udp.stderr[:256],
             host_cpu=Path('/proc/stat').read_text().splitlines()[0],

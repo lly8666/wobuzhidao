@@ -21,7 +21,7 @@
 
 ## 当前性能主线（2026-09-23）
 
-2026-10-05当前（下文为历史）：部署SOURCE2737415（document HEAD另看git），已确认Game兄弟先发回程、未确认不编码，desired与TunnelQualified全就绪门保持。core/race/lifecycle/GUI/Linuxserver/P6及五独立性能样本和p95/p99配对PASS；native S19醒来下行损失下降，具体数值看STATUS/latest_log。剩余冷启动损失/p99未验保留，不恢复等待队列。SOURCE660全70/长测不能继承；旧660/773尾延迟FAIL、最大UDP两份各缺1、旧租约Wake间歇失败均未抹除。新M03 seed1398 clean171/171但不算原因修好。原生24完整样本/11工况/32 NOT_RUN。先最新STATUS；不扩大buffer/FEC/4096、不降p99/吞吐门，每性能Action一条。
+2026-10-05当前（下文为历史）：实机仍SOURCE2737415；本提交新增Windows业务唤醒失败不退出的候选，Actions/性能/P6未验不得部署，先STATUS/latest_log。273 Game S19两seed下行损失0.557/0.475%，CPU无显著增加；Normal S18仍上行0.132/下行0.424%损失，测试UDPdrop0，不能归因测试收件箱。新增三独立Game5305及正式p95/p99配对PASS，旧660/773秒级尾延迟不据此消除。26完整原生样本/11工况/32NOT_RUN；全量资格不跨source继承。候选只允许建连前失败/已有backoff继续读业务，不吞地址变化/关闭/真实wire错误，不留包重放，不加buffer/FEC/4096。每性能Action一条。
 
 2026-10-05最新：24ff的D01独立seed1351/1352均完整300s双向近10M、driver/user overflow0、探针全回；上行少量损失及server raw drop保留，不能写全链路无损PASS。S16 seed1353正在同源复验rotation。新候选修复Wintun65535与合法lease包9000不一致、坏本地输入导致整client退出：内层MTU9000与外层预算分开，Apply实效/owned原值恢复，拒绝包在wire前计数、正常包无新计数，runtime/wire错误不吞。候选未过Actions前不部署；先STATUS.windows_tun_mtu_boundary与092400日志，再M01/M03。每性能Action只一条。
 

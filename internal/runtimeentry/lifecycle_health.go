@@ -9,6 +9,15 @@ import (
 
 var ErrClientLeaseChanged = errors.New("WBD_CLIENT_LEASE_CHANGED: automatic address changed; rebuild platform binding")
 
+// RetryableBusinessWake applies only before business encoding/emission. It
+// keeps a platform reader alive while the existing wake backoff runs, without
+// treating an attempted wire send as delivered or retrying that packet.
+func RetryableBusinessWake(err error) bool {
+	return !errors.Is(err, ErrClientLeaseChanged) &&
+		!errors.Is(err, ErrClientRuntimeStopped) && !errors.Is(err, context.Canceled) &&
+		(errors.Is(err, ErrBusinessWakeRetryable) || errors.Is(err, ErrLifecycleRetryBackoff))
+}
+
 const (
 	DefaultKeepaliveInterval = 15 * time.Second
 	DefaultDeadAfter         = 90 * time.Second

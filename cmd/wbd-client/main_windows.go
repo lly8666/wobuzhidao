@@ -432,6 +432,12 @@ func runWindows() error {
 			err = client.SendPacket(wakeCtx, packet, time.Now())
 			wakeCancel()
 			if err != nil {
+				if runtimeentry.RetryableBusinessWake(err) {
+					// The tunnel remains dormant after a failed wake. Keep reading
+					// demand so a later packet can retry after existing backoff;
+					// never queue/replay this packet or hide an actual wire error.
+					continue
+				}
 				errCh <- err
 				return
 			}
