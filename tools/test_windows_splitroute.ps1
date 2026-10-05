@@ -37,7 +37,23 @@ try {
         }) }
     }
     function Get-NetIPAddress { param($InterfaceIndex,$IPAddress,$AddressFamily,$ErrorAction) [pscustomobject]@{IPAddress='10.66.0.2';InterfaceIndex=77} }
-    function Set-NetIPInterface { param($InterfaceIndex,$AddressFamily,$Dhcp,$ErrorAction) }
+    function Get-NetIPInterface {
+        param($InterfaceIndex,$AddressFamily,$PolicyStore,$ErrorAction)
+        if($InterfaceIndex -ne 77 -or $AddressFamily -ne 'IPv4' -or $PolicyStore -ne 'ActiveStore'){throw 'MTU lookup touched foreign interface/store'}
+        [pscustomobject]@{InterfaceAlias='WBD';InterfaceIndex=77;NlMtu=$script:tunnelMtu}
+    }
+    function Set-NetIPInterface {
+        param($InterfaceIndex,$AddressFamily,$Dhcp,$NlMtuBytes,$PolicyStore,$ErrorAction)
+        if($InterfaceIndex -ne 77 -or $AddressFamily -ne 'IPv4'){throw 'MTU mutation touched foreign interface'}
+        if($NlMtuBytes){
+            if($PolicyStore -ne 'ActiveStore'){throw 'MTU mutation persisted outside ActiveStore'}
+            if($NlMtuBytes -eq 9000){
+                $intent=Get-Content -LiteralPath $script:mtuJournal -Raw|ConvertFrom-Json
+                if($intent.TunnelMTUState.Previous -ne $script:tunnelMtu -or $intent.TunnelMTUState.Applied -ne 9000){throw 'MTU changed before correct journal was saved'}
+            }
+            $script:tunnelMtu=$NlMtuBytes
+        }
+    }
     function New-NetIPAddress { param($InterfaceIndex,$IPAddress,$PrefixLength,$AddressFamily,$SkipAsSource) }
     function Remove-NetIPAddress { param($InterfaceIndex,$IPAddress,$Confirm,$ErrorAction) }
     function Get-NetFirewallRule { param($Group,$ErrorAction) @($script:firewall | Where-Object { $_.Group -eq $Group }) }
@@ -66,6 +82,7 @@ try {
             [pscustomobject]@{DestinationPrefix='198.18.0.2/32';InterfaceIndex=77;NextHop='192.0.2.254'}
         )
         $state=Join-Path $taskDir "state-$fail.json"
+        $script:tunnelMtu=65535;$script:mtuJournal=$state
         $taskArgs=@{AdapterAlias='WBD';TunnelAddress4='10.66.0.2/32';Underlay4='203.0.113.10';PhysicalInterfaceIndex=12;PhysicalNextHop4='192.0.2.1';DNSServer='1.1.1.1,8.8.8.8';CapturePrefixFile4=$captureFile;StatePath=$state}
         $failed=$false
         try { & $block @taskArgs -Action Apply | Out-Null } catch { $failed=$true; if (-not $fail) { throw } }
@@ -75,14 +92,18 @@ try {
             if (@($saved.CaptureRoutes).Count -ne 1499) { throw 'owned capture journal count wrong' }
             if (@($saved.CaptureRoutes6).Count -ne 2) { throw 'IPv6 sink journal wrong' }
             if ($saved.NRPTRuleName -ne 'owned-rule' -or @($script:firewall).Count -ne 3) { throw 'DNS/IPv6 policies not applied' }
+            if($script:tunnelMtu -ne 9000 -or $saved.TunnelMTUState.Previous -ne 65535){throw 'Supported inner MTU not applied or original value lost'}
             if (@($script:routes).Count -ne 1504) { throw 'large Apply count wrong' }
             # GUI crash recovery has only the owned state path, not old profile args.
             & $block -Action Cleanup -StatePath $state | Out-Null
         }
         if (Test-Path -LiteralPath $state) { throw 'state not cleaned after cleanup/rollback' }
+        if($script:tunnelMtu -ne 65535){throw 'Cleanup/rollback did not restore prior inner MTU'}
         if (@($script:routes).Count -ne 2 -or -not ($script:routes | Where-Object { $_.NextHop -eq '192.0.2.254' })) { throw 'foreign/pre-existing routes lost or owned leaked' }
         if (@($script:firewall).Count -ne 1 -or $script:firewall[0].Description -ne 'foreign-owned' -or @($script:nrpt).Count -ne 1 -or $script:nrpt[0].Name -ne 'foreign-rule') { throw 'DNS/firewall cleanup leaked or removed foreign state' }
-        if ($script:saveCount -gt 5 -or $script:enumerations -gt 12) { throw 'per-prefix state/query work returned' }
+        # One additional constant journal write protects the MTU intent, not a
+        # return to per-prefix state rewriting for the1500-route fixture.
+        if ($script:saveCount -gt 6 -or $script:enumerations -gt 12) { throw 'per-prefix state/query work returned' }
         Write-Output "WINDOWS_SPLIT_OWNERSHIP_MOCK_PASS fail=$fail prefixes=1500 saves=$script:saveCount enumerations=$script:enumerations physical=NOT_RUN"
     }
 } finally {

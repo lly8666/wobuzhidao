@@ -84,7 +84,7 @@
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
   "next_task": "Qualify Windows9000 inner-MTU/rejected-local-input candidate in Actions (core/race/Windows restore ownership/GUI/independentNormal+Game5205/P6),while frozenSOURCE24ff S16 seed1353 runs. Then same-source packaged native M01/M03 and remaining43-case scope. No old test inheritance;every performance Action one sample.",
-  "latest_log": "docs/devlog/20261005-092400-windows-inner-mtu-boundary-candidate.md",
+  "latest_log": "docs/devlog/20261005-093700-windows-mtu-mock-qualification-repair.md",
   "last_tested_source_sha": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
   "actions": [
     {
@@ -7653,12 +7653,18 @@
     "native_evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json"
   },
   "windows_tun_mtu_boundary": {
-    "state": "IMPLEMENTED_PENDING_ACTIONS",
+    "state": "PARENT_ACTIONS_FAIL_MISSING_NETWORK_MOCK_REPAIRED_PENDING",
     "source": "CURRENT_COMMIT",
     "inner_ipv4_mtu": 9000,
     "outer_connection_budget_unchanged": true,
     "native_source_still": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
     "native_m03": "NOT_RUN",
-    "evidence": "docs/devlog/20261005-092400-windows-inner-mtu-boundary-candidate.md"
+    "evidence": "docs/devlog/20261005-092400-windows-inner-mtu-boundary-candidate.md",
+    "failed_parent": "977fee7611b65a0d632636a6ae237a82033a178f",
+    "failed_parent_runs": [
+      37251411532,
+      37251411486
+    ],
+    "reason": "existing hosted Get-NetIPInterface mock absent,causing real CIM/module autoload;product unchanged in repair"
   }
 }
