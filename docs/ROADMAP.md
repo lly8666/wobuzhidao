@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-05当前：产品实机仍2737415；Windows失败Wake候选SOURCE2bf正确性/race/36生命周期+aggregate37job/P6全部PASS，四条性能PASS，Normal5205两次输入skips30–36使整体未过门，不能部署。当前只修测试发包器忙等为绝对deadline sleep，product继续固定2bf，新helper五条含匹配无损基线待Actions；不改跳槽/吞吐/p99门或产品FEC/4096/buffer。先STATUS/latest_log。原生26样本/11工况/32NOT_RUN与旧损失/尾延迟证据保留。每性能Action一条。
+2026-10-05当前：产品已配套部署SOURCE2bf85a1；失败业务Wake候选core/race/36生命周期+aggregate37job/P6及helperbce五独立定向性能/18阶段RTTpairs全部PASS，maxp99增13.133ms、10方向skip0。单条原生s18-wake-blackhole-300s-seed1410运行中，尚未认定恢复通过；server→client443单向故障，不声称双边。当前先STATUS/latest_log。三份输入FAIL、旧raw尾延迟/最大UDP/Normal醒后损失保留；26完整native样本/11工况/32NOT_RUN，全量资格不继承。每性能Action一条，不扩buffer/FEC/4096或引入HOL。
 
 当前入口以STATUS为准：3e3e094配套包已过Actions定向门并实机D01完整300s，长时间双向中断未再现，但下行8.90%字节损失、208探针超时仍FAIL。S16 rotation独立实机运行；先验最新默认off Windows收包诊断补丁，定位最早下行损失边界再窄修，随后继续DNS/分流/MTU矩阵。旧6181四项保留历史，不继承为最新SOURCE。
 

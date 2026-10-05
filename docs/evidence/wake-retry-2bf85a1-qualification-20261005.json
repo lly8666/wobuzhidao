@@ -1,0 +1,777 @@
+{
+  "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+  "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+  "state": "CORE_TARGETED_PERFORMANCE_PACKAGE_PASS_NATIVE_RUNNING",
+  "core_runs": [
+    "37317800084",
+    "37317799945",
+    "37317799990",
+    "37317799991",
+    "37317800003",
+    "37317799989",
+    "37318647769"
+  ],
+  "fullstack_run": 37317799989,
+  "fullstack_job_count": 37,
+  "fullstack_sample_count": 36,
+  "p6_run": 37318647769,
+  "harness_runs": [
+    "37323502148",
+    "37323502143",
+    "37323502140"
+  ],
+  "performance": {
+    "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+    "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+    "state": "PASS_TARGETED",
+    "pending": [],
+    "samples": [
+      {
+        "run": 37323827594,
+        "name": "strict-normal-lossless-seed1401-rate10-lanes1",
+        "conclusion": "success",
+        "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+        "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 89.16,
+          "server": 90.0
+        },
+        "min_goodput": 9.999818666666666,
+        "latency": {
+          "post": {
+            "p95_ns": 603271641,
+            "p99_ns": 603640296,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 602855849,
+            "p99_ns": 603202039,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 604930875,
+            "p99_ns": 605403036,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37323833320,
+        "name": "strict-normal-5205-seed1401-rate10-lanes1",
+        "conclusion": "success",
+        "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+        "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 103.19,
+          "server": 105.15
+        },
+        "min_goodput": 9.999150933333334,
+        "latency": {
+          "post": {
+            "p95_ns": 609125298,
+            "p99_ns": 609175956,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 606641222,
+            "p99_ns": 607318171,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 610553107,
+            "p99_ns": 618536172,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37324851287,
+        "name": "strict-game-lossless-seed1382-rate3-lanes4",
+        "conclusion": "success",
+        "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+        "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 85.34,
+          "server": 81.58
+        },
+        "min_goodput": 2.999889066666667,
+        "latency": {
+          "post": {
+            "p95_ns": 603706701,
+            "p99_ns": 604244588,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 603416591,
+            "p99_ns": 603660929,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 603301944,
+            "p99_ns": 603973887,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37324857309,
+        "name": "strict-game-5205-seed1382-rate3-lanes4",
+        "conclusion": "success",
+        "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+        "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 89.74,
+          "server": 83.98
+        },
+        "min_goodput": 2.9994666666666667,
+        "latency": {
+          "post": {
+            "p95_ns": 604447901,
+            "p99_ns": 608195919,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 604675677,
+            "p99_ns": 605349981,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 603089832,
+            "p99_ns": 603487532,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37324863130,
+        "name": "strict-game-5305-seed1382-rate3-lanes4",
+        "conclusion": "success",
+        "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+        "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 101.31,
+          "server": 95.87
+        },
+        "min_goodput": 2.999872,
+        "latency": {
+          "post": {
+            "p95_ns": 605279094,
+            "p99_ns": 606882277,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 604896457,
+            "p99_ns": 606442496,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 604230622,
+            "p99_ns": 608845102,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      }
+    ],
+    "pairs": [
+      {
+        "run": 37323833320,
+        "baseline": 37323827594,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 3.785373,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37323833320,
+        "baseline": 37323827594,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 4.116132,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37323833320,
+        "baseline": 37323827594,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": 5.622232,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37323833320,
+        "baseline": 37323827594,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": 13.133136,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37323833320,
+        "baseline": 37323827594,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 5.853657,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37323833320,
+        "baseline": 37323827594,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 5.53566,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324857309,
+        "baseline": 37324851287,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 1.259086,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324857309,
+        "baseline": 37324851287,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 1.689052,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324857309,
+        "baseline": 37324851287,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": -0.212112,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324857309,
+        "baseline": 37324851287,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": -0.486355,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324857309,
+        "baseline": 37324851287,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 0.7412,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324857309,
+        "baseline": 37324851287,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 3.951331,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324863130,
+        "baseline": 37324851287,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 1.479866,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324863130,
+        "baseline": 37324851287,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 2.781567,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324863130,
+        "baseline": 37324851287,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": 0.928678,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324863130,
+        "baseline": 37324851287,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": 4.871215,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324863130,
+        "baseline": 37324851287,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 1.572393,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37324863130,
+        "baseline": 37324851287,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 2.637689,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      }
+    ],
+    "full18_qualification": false,
+    "one_sample_per_action": true,
+    "profile": false,
+    "retained_failed_runs": [
+      37318484867,
+      37320066022,
+      37321752497
+    ],
+    "no_cross_helper_baseline": true
+  },
+  "generator_receipts": {
+    "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+    "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+    "pacing": "absolute-deadline-sleep-v1",
+    "generator_sha256": "f87527f8c9621702ed28951cb4f27a7b000f27ba3c25b20bd13bad9e43ad62b1",
+    "samples": [
+      {
+        "run": 37323827594,
+        "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+        "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+        "manifest_hash": "f778b32ab6af23c66c1d25fba1bd4af2a3c9d421978c9850b8fe4497b37aaf48",
+        "downloaded_bytes": 3090,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 28.917070194,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 28.398107613,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 296052,
+            "sent_bytes": 149999680,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "config": {
+          "application_mbps_each_direction": 10.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 1,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37323827594",
+          "identity": "strict:normal:lossless:seed1401:rate10:lanes1:stateful0:neighborsdynamic:source2bf85a1230efea5cd80ff6917d307205c97d917b:harnessbce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+          "schema": 1,
+          "source_sha": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9"
+        }
+      },
+      {
+        "run": 37323833320,
+        "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+        "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+        "manifest_hash": "dd081f21b3748710ebb08316db3f7dd07f7f8031753e6185d102e5452d95d367",
+        "downloaded_bytes": 3090,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 28.190709321,
+            "send_lag_p99_ms": 1.0,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 27.606766707,
+            "send_lag_p99_ms": 1.0,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "config": {
+          "application_mbps_each_direction": 10.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 1,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37323833320",
+          "identity": "strict:normal:5205:seed1401:rate10:lanes1:stateful0:neighborsdynamic:source2bf85a1230efea5cd80ff6917d307205c97d917b:harnessbce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+          "schema": 1,
+          "source_sha": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9"
+        }
+      },
+      {
+        "run": 37324851287,
+        "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+        "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+        "manifest_hash": "035a19953dc50da04e11b4d5306f254fa4409f2ca1fb7abee0b3416c2a6a676b",
+        "downloaded_bytes": 38092,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 10.231220824,
+            "send_lag_p99_ms": 0.9,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 10.050671517,
+            "send_lag_p99_ms": 0.9,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37324851287",
+          "identity": "strict:game:lossless:seed1382:rate3:lanes4:stateful0:neighborsdynamic:source2bf85a1230efea5cd80ff6917d307205c97d917b:harnessbce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+          "schema": 1,
+          "source_sha": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9"
+        }
+      },
+      {
+        "run": 37324857309,
+        "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+        "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+        "manifest_hash": "ecfdbf4b5051d8143e539988b47800d1c8073fc0a328a4f3eb4f35788e0a0821",
+        "downloaded_bytes": 42992,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 9.397749543,
+            "send_lag_p99_ms": 1.0,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 9.114787186,
+            "send_lag_p99_ms": 1.0,
+            "skipped_slots": 0,
+            "sent_packets": 88817,
+            "sent_bytes": 44999920,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37324857309",
+          "identity": "strict:game:5205:seed1382:rate3:lanes4:stateful0:neighborsdynamic:source2bf85a1230efea5cd80ff6917d307205c97d917b:harnessbce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+          "schema": 1,
+          "source_sha": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9"
+        }
+      },
+      {
+        "run": 37324863130,
+        "source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+        "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+        "manifest_hash": "4a08aa60165570f10219988a83a24a4a9fd13a366d5fe9956b382cd2ce975e59",
+        "downloaded_bytes": 48558,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 10.446250034,
+            "send_lag_p99_ms": 1.0,
+            "skipped_slots": 0,
+            "sent_packets": 88817,
+            "sent_bytes": 44999920,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 10.291312984,
+            "send_lag_p99_ms": 1.0,
+            "skipped_slots": 0,
+            "sent_packets": 88817,
+            "sent_bytes": 44999920,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37324863130",
+          "identity": "strict:game:5305:seed1382:rate3:lanes4:stateful0:neighborsdynamic:source2bf85a1230efea5cd80ff6917d307205c97d917b:harnessbce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+          "schema": 1,
+          "source_sha": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9"
+        }
+      }
+    ],
+    "no_pcaps_downloaded": true,
+    "unchanged_input_threshold": true
+  },
+  "deployment": {
+    "source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+    "qualification_runs": [
+      "37317800084",
+      "37317799945",
+      "37317799990",
+      "37317799991",
+      "37317800003",
+      "37317799989",
+      "37318647769"
+    ],
+    "harness_source": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+    "harness_runs": [
+      "37323502148",
+      "37323502143",
+      "37323502140"
+    ],
+    "retained_failed_performance_runs": [
+      37318484867,
+      37320066022,
+      37321752497
+    ],
+    "windows_zip_sha256": "24ec9d3fd88e8c91e423fb8c1b996df7655454bdc7d6d0f0739820ee877233af",
+    "windows_bundle": "WBD-P7-2bf85a1/windows-portable",
+    "server_stage": "/opt/wbd/p7-candidates/2bf85a1",
+    "server_config_preserved": true,
+    "npcap_not_reinstalled": true,
+    "rollback_source": "2737415"
+  },
+  "native_case": "s18-wake-blackhole-300s-seed1410",
+  "native_state": "RUNNING",
+  "full70_full18_1800s": "NOT_RUN_AT_THIS_SOURCE",
+  "physical_release_qualified": false
+}

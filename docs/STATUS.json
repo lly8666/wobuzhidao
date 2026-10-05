@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "Product2bf core/lifecycle36/P6 PASS; two helper epochs each four target samples PASS and Normal5205 INPUT_FAIL. No deployment. Bounded existing soak stats helper pending; exact per-second probe p99/input gates unchanged. Physical deployed273, full qualification not inherited.",
-  "updated_at": "2026-10-05T22:16:52.955869+08:00",
+  "qualification_scope": "ProductSOURCE2bf core/race/lifecycle36+aggregate37/GUI/Linuxserver/P6 and5 independent scoped performance with helperbce PASS, exact same-helper18 stage RTTpairs PASS. Deployed2bf Windows/ARM; native failed-Wake300s RUNNING. Full70/18/1800s/P7 not inherited.",
+  "updated_at": "2026-10-05T22:40:14.780704+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,12 +80,11 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Actions qualification of existing bounded generator stats; product2bf unchanged and not deployed",
-    "Windows failed-business-Wake native blackhole pending performance gate",
-    "Normal native uplink Wake loss and old raw p99/maxUDP attribution retained"
+    "Native Windows failed-business-Wake 300s one-way blackhole on deployed2bf",
+    "Normal native uplink wake loss / old raw p99 and maximum UDP attribution"
   ],
-  "next_task": "Validate bounded strict generator stats in Actions; first product2bf/new-helper Normal lossless+5205 independent runs. If qualified, then3 same-helper independent Game samples and18 stage percentile pairs; deploy2bf packages only after allPASS. If112s skip persists, stop speculative pacing/stat changes and run bounded file-only allocation/scheduling diagnostic. Native Wake blackhole/maxUDP/raw tail and32native cases still pending. Every performance Action one sample.",
-  "latest_log": "docs/devlog/20261005-221652-bounded-strict-generator-stats.md",
+  "next_task": "Finish native s18-wake-blackhole-300s-seed1410 on exact deployed2bf: real one-way443drops/failedWake, samePID/lease, bounded retries, fresh payload recovery after clear, quietlane0 and owned cleanup. Archive actual outcome; p99NOT_EVALUATED without idleprobes. Then retain/attribute native Normal uplink wake loss, oldrawtail/maxUDP and remaining32caseIDs; noHOL/buffer/FEC/4096 changes.",
+  "latest_log": "docs/devlog/20261005-224014-wake-qualified-native-running.md",
   "last_tested_source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
   "actions": [
     {
@@ -2007,6 +2006,46 @@
       "scope": "business-wake-candidate-core",
       "status": "FAIL",
       "note": "New test incorrectly assumed global RetryableErrors==1 despite asynchronous old-lane errors; exact OpenLane/backoff evidence replaces this assumption, failure retained. No deployment/performance."
+    },
+    {
+      "source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "harness_sha": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37323827594",
+      "scope": "Windows failedWake scoped target performance",
+      "status": "PASS",
+      "note": "One sample/run; exact bounded stats/raw per-second RTT gates; not full18"
+    },
+    {
+      "source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "harness_sha": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37323833320",
+      "scope": "Windows failedWake scoped target performance",
+      "status": "PASS",
+      "note": "One sample/run; exact bounded stats/raw per-second RTT gates; not full18"
+    },
+    {
+      "source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "harness_sha": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37324851287",
+      "scope": "Windows failedWake scoped target performance",
+      "status": "PASS",
+      "note": "One sample/run; exact bounded stats/raw per-second RTT gates; not full18"
+    },
+    {
+      "source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "harness_sha": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37324857309",
+      "scope": "Windows failedWake scoped target performance",
+      "status": "PASS",
+      "note": "One sample/run; exact bounded stats/raw per-second RTT gates; not full18"
+    },
+    {
+      "source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
+      "harness_sha": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37324863130",
+      "scope": "Windows failedWake scoped target performance",
+      "status": "PASS",
+      "note": "One sample/run; exact bounded stats/raw per-second RTT gates; not full18"
     }
   ],
   "physical_status": "PARTIAL",
@@ -7577,7 +7616,7 @@
   },
   "physical_current": {
     "source": "660b370815603c50d38b92229abdec13ca77e1b1",
-    "state": "273_NATIVE_WAKE_REPEATS_COMPLETE_DELIVERY_PARTIAL_NEW_WINDOWS_CANDIDATE_NOT_DEPLOYED",
+    "state": "DEPLOYED_2BF_NATIVE_WAKE_BLACKHOLE_RUNNING",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
       "M01 seed1364",
@@ -7585,7 +7624,9 @@
       "M03 seed1366 FAIL",
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
-    "running": [],
+    "running": [
+      "s18-wake-blackhole-300s-seed1410"
+    ],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
@@ -7596,7 +7637,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "running_case": null,
+    "running_case": "s18-wake-blackhole-300s-seed1410",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7731,7 +7772,8 @@
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1397 SSH masters expired before workload;not product sample,not counted. Operational scp now BatchMode/ConnectTimeout.",
-    "deployed_source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a"
+    "deployed_source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+    "source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b"
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -8081,9 +8123,9 @@
     "old_failure_cause_unresolved": true
   },
   "business_wake_failure": {
-    "state": "CORE_PASS_PERFORMANCE_INPUT_FAIL_NATIVE_NOT_RUN",
+    "state": "ACTIONS_PASS_NATIVE_RUNNING",
     "candidate_source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
-    "deployed_source": "2737415b5e2dae228c2037e3c1a46fa3d9941c4a",
+    "deployed_source": "2bf85a1230efea5cd80ff6917d307205c97d917b",
     "scope": "Only pre-emission failed business wake/backoff keeps Windows TUN reader alive; binding change/shutdown/actual wire failures remain terminal",
     "fresh_packet_replayed": false,
     "new_queue": false,
@@ -8133,15 +8175,17 @@
     "core_evidence": "docs/evidence/wake-retry-2bf85a1-input-pressure-20261005.json",
     "fullstack_run": 37317799989,
     "p6_run": 37318647769,
-    "performance_state": "INPUT_FAIL_2_NORMAL5205_ATTEMPTS",
-    "native_state": "NOT_RUN"
+    "performance_state": "PASS_5_SAMPLES_18_STAGE_PAIRS_WITH_HELPER_BCE",
+    "native_state": "RUNNING",
+    "native_case": "s18-wake-blackhole-300s-seed1410",
+    "evidence": "docs/evidence/wake-retry-2bf85a1-qualification-20261005.json"
   },
   "strict_generator_pacing": {
-    "state": "PACING_UNIT_PASS_INPUT_FAIL_BOUND_STATS_PENDING",
-    "helper_sha": "commit containing latest_log",
+    "state": "ACTIONS_SCOPED_PASS",
+    "helper_sha": "bce9fdc343d6edb29c58b2ce9ca51fd41e4e15e9",
     "product_source_sha": "2bf85a1230efea5cd80ff6917d307205c97d917b",
     "scope": "absolute sleep, no injection/skip/validator/packet/target change",
-    "evidence": "docs/evidence/sleep-pacing-e4ea712-input-pressure-20261005.json",
+    "evidence": "docs/evidence/wake-retry-2bf85a1-qualification-20261005.json",
     "sample_count": 5,
     "one_sample_per_action": true,
     "retained_failed_runs": [
@@ -8149,6 +8193,13 @@
       37320066022,
       37321752497
     ],
-    "new_scope": "Existing preallocated exact soak stats; no raw per-second probe/injection/validator threshold changes"
+    "new_scope": "Existing preallocated exact soak stats; no raw per-second probe/injection/validator threshold changes",
+    "qualified_runs": [
+      37323827594,
+      37323833320,
+      37324851287,
+      37324857309,
+      37324863130
+    ]
   }
 }

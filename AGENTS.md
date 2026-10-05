@@ -21,7 +21,7 @@
 
 ## 当前性能主线（2026-09-23）
 
-2026-10-05当前：产品实机仍2737415；Windows失败Wake候选SOURCE2bf正确性/race/36生命周期+aggregate37job/P6全部PASS，四条性能PASS，Normal5205两次输入skips30–36使整体未过门，不能部署。绝对deadline sleep已过单测，但Normal5205仍112s跳30槽；当前仅复用长测有界统计，product继续固定2bf，新helper先Normal无损/5205两条，再Game三条含匹配基线；不改跳槽/吞吐/p99门或产品FEC/4096/buffer。先STATUS/latest_log。原生26样本/11工况/32NOT_RUN与旧损失/尾延迟证据保留。每性能Action一条。
+2026-10-05当前：产品已配套部署SOURCE2bf85a1；失败业务Wake候选core/race/36生命周期+aggregate37job/P6及helperbce五独立定向性能/18阶段RTTpairs全部PASS，maxp99增13.133ms、10方向skip0。单条原生s18-wake-blackhole-300s-seed1410运行中，尚未认定恢复通过；server→client443单向故障，不声称双边。当前先STATUS/latest_log。三份输入FAIL、旧raw尾延迟/最大UDP/Normal醒后损失保留；26完整native样本/11工况/32NOT_RUN，全量资格不继承。每性能Action一条，不扩buffer/FEC/4096或引入HOL。
 
 2026-10-05最新：24ff的D01独立seed1351/1352均完整300s双向近10M、driver/user overflow0、探针全回；上行少量损失及server raw drop保留，不能写全链路无损PASS。S16 seed1353正在同源复验rotation。新候选修复Wintun65535与合法lease包9000不一致、坏本地输入导致整client退出：内层MTU9000与外层预算分开，Apply实效/owned原值恢复，拒绝包在wire前计数、正常包无新计数，runtime/wire错误不吞。候选未过Actions前不部署；先STATUS.windows_tun_mtu_boundary与092400日志，再M01/M03。每性能Action只一条。
 
