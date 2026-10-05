@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "SOURCE7eeb retiredSYNACK narrow candidate core/race incl30Wake+SYN repetitions/36+aggregate37/P6/Linuxserver/GUI and5 independent strict samples/18 same-source same-helper RTTpairs PASS. Paired7eeb Windows/ARM deployed; native tc1411 failedWake recovery PASS; M02Game4 2747/2747 exact but1 late>1s: functionalPASS_WITH_LATE_RESPONSES, latency unqualified. Full70/18/1800s/P7 not inherited. Parent931 raceFAIL and native1410 localEPERM retained.",
-  "updated_at": "2026-10-06T00:04:06.210895+08:00",
+  "updated_at": "2026-10-06T00:08:59.909353+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -84,7 +84,7 @@
     "Old long-tail / maximumUDP / Wake residual loss attribution; remaining physical DNS/IP/config matrix"
   ],
   "next_task": "Finish m03-current-300s-seed1414 paired7eeb + qualified helperf965, original functional/pacing/timeout gates, bounded event timing and independent target. Keep old1412 >1s tail/maxUDP failures open; functional sparse RTT does not replace throughput/strict p99 qualification. Then D04 DNS dual-resolver fault and remaining physical matrix. Each performanceAction one sample; noHOL/buffer/FEC/4096 expansion.",
-  "latest_log": "docs/devlog/20261006-000406-timed-m02-native-result.md",
+  "latest_log": "docs/devlog/20261006-000859-native-dns-leak-observer.md",
   "last_tested_source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
   "actions": [
     {
@@ -8413,5 +8413,13 @@
     ],
     "helper_source": "f9653fb94d89f55a93686449bde4eeb65873fc25",
     "latest_evidence": "docs/evidence/native-timed-mtu-m02-7eebdcf-20261006.json"
+  },
+  "native_dns_leak_observer": {
+    "state": "CANDIDATE_NOT_QUALIFIED",
+    "product_unchanged": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "captures": "Selected physical NIC IPv4/IPv6 TCP/UDP53 only;no payload files/pcap",
+    "bounds": "360s wrapper/8192 frames/128numeric flows",
+    "unsupported": "Unparsed headers/drop/stats errors make no-leak INCONCLUSIVE,not zero",
+    "next": "Actions compile/parser fixtures then D04 same-source dual resolver blackhole with independent10M business/probe"
   }
 }

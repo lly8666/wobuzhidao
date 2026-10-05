@@ -135,3 +135,6 @@ S03–S27、D02–D06、I01–I06、M02/M03、W01仍NOT_RUN；当前助手不是
 
 
 2026-10-05 M02 SOURCE7eeb seed1412：2747/2747完整往返，含1373 small及各DF/1399..9000IPv4。9000IP/DFfalse一次超过原1s，不能算延迟资格PASS；bounded窗口外层<=1340、checksum/冲突/非法TLS头0，不能冒充全程/网站一致证明。新MTU助手最多8192条numeric timing，client monotonic RTT/发送调用时长与UTC，target recv UTC/echo UTC/发送调用monotonic时长；不留payload、不新增流量，不改1s timeout/100ms pacing/3s drain和原完整性/超限门。UTC跨机器没有已知误差界时不可当单程时延。先Actions助手资格再原生复验，吞吐和正式p99另跑独立性能样本。
+
+
+2026-10-06 D04证据补充：物理NIC独立DNS metadata observer仅IPv4/IPv6 TCP/UDP53，<=360s/8192frame/128flows，逐秒及最终UTC/计数，不保存payload/pcap/query。完整窗口、stats返回0、capture drop0、unparsed0且DNSFrames0才能记所选接口无明文DNS。不能覆盖其他NIC/DoH/DoT/全部IPv6；DNS成功或NRPT规则存在不能替代出口证据。先Actions compile/固定header vectors，再原生同源码D04。
