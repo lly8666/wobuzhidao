@@ -18,8 +18,12 @@ jobs:
           Add-Type -Path tools/physical_udp_client.cs
           Add-Type -Path tools/physical_npcap_watch.cs
           Add-Type -Path tools/native_mtu_probe.cs
+          Add-Type -Path tools/native_lifecycle_udp_client.cs
+          foreach($fixture in @(@(-1,0),@(0,0),@(29.9,29.9),@(30,30),@(119.9,30),@(120,30),@(149.9,59.9),@(150,60),@(239.9,60),@(240,60),@(299.9,119.9),@(300,120),@(400,120))) {
+            if([Math]::Abs([WBDNativeLifecycleUDP]::ActiveSeconds($fixture[0])-$fixture[1]) -gt 0.000001){throw 'Lifecycle quiet window accrued backlog'}
+          }
           ./tools/test_windows_tun_mtu.ps1
-          foreach($path in @('tools/native_windows_mtu_boundary.ps1','tools/physical_windows_udp.ps1','tools/physical_windows_dns.ps1','tools/physical_windows_mtu.ps1','tools/physical_windows_header_watch.ps1','tools/physical_windows_session.ps1')) {
+          foreach($path in @('tools/native_windows_lifecycle_udp.ps1','tools/native_windows_mtu_boundary.ps1','tools/physical_windows_udp.ps1','tools/physical_windows_dns.ps1','tools/physical_windows_mtu.ps1','tools/physical_windows_header_watch.ps1','tools/physical_windows_session.ps1')) {
             $tokens=$null; $errors=$null
             [Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path),[ref]$tokens,[ref]$errors) | Out-Null
             if($errors.Count -gt 0){throw ($errors | Out-String)}
@@ -43,6 +47,7 @@ jobs:
           python3 -m py_compile tools/config_effective_args.py tools/config_business.py tools/prepare_config_harness.py tools/check_config_effective.py
           python3 -m py_compile tools/collect_p6_receipts.py
           python3 -m py_compile tools/native_mtu_boundary_target.py
+          python3 tools/test_native_lifecycle_schedule.py
           python3 tools/prepare_config_harness.py --case f20-l4-p1 --artifact-dir artifacts/config-template
           bash -n artifacts/config-template/generated-config.sh
       - uses: actions/upload-artifact@v4

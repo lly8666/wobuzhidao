@@ -83,8 +83,8 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "When SOURCE660b lifecycle fullstack completes SUCCESS,deploy paired validated SOURCE660b P6 package only after native window stopped;execute native M01/M03 with actual inner MTU9000 and original MTU restoration. Then remaining DNS/config/IP/idle matrix. Native24ff Game4 target3M/zero app loss but server raw drops940 is unresolved environment receipt;do not inherit its result to660b. Each performance Action one sample.",
-  "latest_log": "docs/devlog/20261005-094500-mtu-gates-and-native-matrix-progress.md",
+  "next_task": "Finish SOURCE660b nativeM01 seed1362 then M03;retain incomplete1361 fixture failure,validate exact input sizes/DF/API/actual9000MTU/ownedcleanup. Qualify new lifecycle helpers in Actions then nativeS18/S19/S20;ensure quiet contains no helper probes/DNS and never count background business as idle. Continue remaining matrix,one performance sample per Action.",
+  "latest_log": "docs/devlog/20261005-095800-native-idle-fixture-and-mtu-retry.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -7555,22 +7555,19 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
-    "state": "D01_S16_GAME_TARGETS_REACHED_WITH_RECORDED_RESIDUAL_LIMITS",
+    "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+    "state": "M01_RETRY_AFTER_FIXTURE_JSON_READ_ABORT",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
-    "native_completed_300s": [
-      "d01-current-300s-seed1351",
-      "d01-current-300s-seed1352",
-      "s02-current-300s-seed1354",
-      "s16-current-300s-seed1353"
-    ],
-    "running": null,
+    "native_completed_300s": [],
+    "running": "M01 seed1362 native300s;seed1361 incompletefixture not counted",
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
-    "previous_source": "8f53f33",
+    "previous_source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
     "previous_completed_300s": [
-      "D01 seed1341 capture drain FAIL",
-      "D01 seed1342 profiler diagnostic FAIL"
+      "D01 seed1351",
+      "D01 seed1352",
+      "S16 seed1353",
+      "S02 seed1354"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL"
   },
@@ -7655,7 +7652,7 @@
     "native_evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json"
   },
   "windows_tun_mtu_boundary": {
-    "state": "ACTIONS_PASS_NATIVE_NOT_RUN",
+    "state": "ACTIONS_PASS_PAIRED_DEPLOYED_NATIVE_M01_RUNNING",
     "source": "660b370815603c50d38b92229abdec13ca77e1b1",
     "inner_ipv4_mtu": 9000,
     "outer_connection_budget_unchanged": true,
@@ -7680,7 +7677,8 @@
     "performance_runs": [
       37251791633,
       37251794051
-    ]
+    ],
+    "partial_native": "M01 seed1361 INCOMPLETE_FIXTURE JSON status read;requested stop exit0 not spontaneousproductfailure"
   },
   "native_mtu_fixture": {
     "state": "ACTIONS_COMPILE_AND_OWNERSHIP_PASS_NATIVE_NOT_RUN",
@@ -7691,5 +7689,20 @@
     "no_payload_files": true,
     "native_cases": "M01/M03 NOT_RUN for candidate",
     "helper_run": 37252246288
+  },
+  "native_lifecycle_fixture": {
+    "state": "IMPLEMENTED_NOT_TESTED",
+    "helper_head": "CURRENT_COMMIT",
+    "product_source": "660b370815603c50d38b92229abdec13ca77e1b1",
+    "case_ids": [
+      "S18",
+      "S19",
+      "S20"
+    ],
+    "probes_during_idle": false,
+    "background_dns_from_fixture": false,
+    "active_send_seconds": 120,
+    "pure_downlink_send_seconds": 300,
+    "native": "NOT_RUN"
   }
 }
