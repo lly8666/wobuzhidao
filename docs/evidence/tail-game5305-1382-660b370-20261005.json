@@ -1,0 +1,2709 @@
+{
+  "run": 37255274295,
+  "probe_ms": {
+    "78": 602.072268,
+    "79": 601.421063,
+    "80": 601.600654,
+    "81": 1850.733281,
+    "82": 1314.347294,
+    "83": 654.501868,
+    "84": 601.609537,
+    "85": 601.793114
+  },
+  "resource": [
+    {
+      "elapsed_s": 78.054,
+      "host_busy_percent": 57.55,
+      "cpu_pressure": "some avg10=27.49 avg60=22.82 avg300=8.86 total=33144441",
+      "process_cpu_ticks": {
+        "client": 72,
+        "server": 66
+      }
+    },
+    {
+      "elapsed_s": 79.054,
+      "host_busy_percent": 55.87,
+      "cpu_pressure": "some avg10=27.40 avg60=22.95 avg300=8.99 total=33419324",
+      "process_cpu_ticks": {
+        "client": 73,
+        "server": 71
+      }
+    },
+    {
+      "elapsed_s": 80.054,
+      "host_busy_percent": 57.14,
+      "cpu_pressure": "some avg10=27.40 avg60=22.95 avg300=8.99 total=33706779",
+      "process_cpu_ticks": {
+        "client": 76,
+        "server": 71
+      }
+    },
+    {
+      "elapsed_s": 81.054,
+      "host_busy_percent": 56.48,
+      "cpu_pressure": "some avg10=27.51 avg60=23.12 avg300=9.12 total=33984043",
+      "process_cpu_ticks": {
+        "client": 74,
+        "server": 71
+      }
+    },
+    {
+      "elapsed_s": 82.054,
+      "host_busy_percent": 40.9,
+      "cpu_pressure": "some avg10=27.51 avg60=23.12 avg300=9.12 total=34147954",
+      "process_cpu_ticks": {
+        "client": 35,
+        "server": 56
+      }
+    },
+    {
+      "elapsed_s": 83.054,
+      "host_busy_percent": 40.7,
+      "cpu_pressure": "some avg10=25.60 avg60=22.92 avg300=9.17 total=34302674",
+      "process_cpu_ticks": {
+        "client": 60,
+        "server": 31
+      }
+    },
+    {
+      "elapsed_s": 84.054,
+      "host_busy_percent": 75.73,
+      "cpu_pressure": "some avg10=25.60 avg60=22.92 avg300=9.17 total=34736315",
+      "process_cpu_ticks": {
+        "client": 105,
+        "server": 106
+      }
+    },
+    {
+      "elapsed_s": 85.054,
+      "host_busy_percent": 57.83,
+      "cpu_pressure": "some avg10=26.94 avg60=23.25 avg300=9.33 total=35030537",
+      "process_cpu_ticks": {
+        "client": 78,
+        "server": 73
+      }
+    }
+  ],
+  "diagnostics": {
+    "client": [
+      {
+        "elapsed_s": 78.351,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 40.88334,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 2,
+              "RTORepairs": 9,
+              "RepairSucceeded": 11,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 11,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.112379,
+            "outstanding": 4096,
+            "rx_inflight": 7,
+            "rx_pressure": 11,
+            "rx_expired_missing": 150,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 4,
+              "RTORepairs": 0,
+              "RepairSucceeded": 4,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 49,
+              "Retransmitted": 4,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.432634,
+            "outstanding": 2655,
+            "rx_inflight": 5,
+            "rx_pressure": 15,
+            "rx_expired_missing": 162,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 2,
+              "RepairSucceeded": 3,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 3,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.780468,
+            "outstanding": 4032,
+            "rx_inflight": 6,
+            "rx_pressure": 7,
+            "rx_expired_missing": 190,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 0,
+              "RepairSucceeded": 1,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 1,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.115098,
+            "outstanding": 3450,
+            "rx_inflight": 4,
+            "rx_pressure": 19,
+            "rx_expired_missing": 161,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          }
+        ],
+        "pipeline": {
+          "ready_current": null,
+          "ready_peak": null,
+          "ready_drops": null,
+          "handler": null,
+          "queue_age": null,
+          "downstream": null
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 2,
+          "queue_bytes": 1456,
+          "inflight_current": 1,
+          "inflight_bytes": 64,
+          "total_peak": 13,
+          "total_bytes_peak": 7280,
+          "enqueued": 58104,
+          "dequeued": 58102,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "gate_errors": 0,
+          "forward_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 79.351,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 43.094196,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 11,
+              "RepairSucceeded": 12,
+              "RepairExpiredSkipped": 41,
+              "GapExpiredForgiven": 192,
+              "Retransmitted": 12,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.705019,
+            "outstanding": 4032,
+            "rx_inflight": 8,
+            "rx_pressure": 12,
+            "rx_expired_missing": 150,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 4,
+              "RepairSucceeded": 5,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 5,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.754795,
+            "outstanding": 4096,
+            "rx_inflight": 5,
+            "rx_pressure": 15,
+            "rx_expired_missing": 167,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 11,
+              "RepairSucceeded": 12,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 128,
+              "Retransmitted": 12,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.76838,
+            "outstanding": 4068,
+            "rx_inflight": 6,
+            "rx_pressure": 7,
+            "rx_expired_missing": 196,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 9,
+              "RepairSucceeded": 10,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 10,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.9266,
+            "outstanding": 4096,
+            "rx_inflight": 5,
+            "rx_pressure": 19,
+            "rx_expired_missing": 164,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          }
+        ],
+        "pipeline": {
+          "ready_current": null,
+          "ready_peak": null,
+          "ready_drops": null,
+          "handler": null,
+          "queue_age": null,
+          "downstream": null
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 2,
+          "queue_bytes": 1456,
+          "inflight_current": 1,
+          "inflight_bytes": 64,
+          "total_peak": 13,
+          "total_bytes_peak": 7280,
+          "enqueued": 58846,
+          "dequeued": 58844,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "gate_errors": 0,
+          "forward_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 80.351,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 43.666776,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 9,
+              "RTORepairs": 10,
+              "RepairSucceeded": 19,
+              "RepairExpiredSkipped": 107,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 19,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.73018,
+            "outstanding": 4096,
+            "rx_inflight": 8,
+            "rx_pressure": 13,
+            "rx_expired_missing": 150,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 2,
+              "RTORepairs": 10,
+              "RepairSucceeded": 12,
+              "RepairExpiredSkipped": 17,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 12,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.451548,
+            "outstanding": 4032,
+            "rx_inflight": 6,
+            "rx_pressure": 15,
+            "rx_expired_missing": 167,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 3,
+              "RTORepairs": 10,
+              "RepairSucceeded": 13,
+              "RepairExpiredSkipped": 118,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 13,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.861025,
+            "outstanding": 4096,
+            "rx_inflight": 6,
+            "rx_pressure": 7,
+            "rx_expired_missing": 196,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 10,
+              "RepairSucceeded": 11,
+              "RepairExpiredSkipped": 132,
+              "GapExpiredForgiven": 64,
+              "Retransmitted": 11,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 605.165523,
+            "outstanding": 4032,
+            "rx_inflight": 6,
+            "rx_pressure": 19,
+            "rx_expired_missing": 164,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          }
+        ],
+        "pipeline": {
+          "ready_current": null,
+          "ready_peak": null,
+          "ready_drops": null,
+          "handler": null,
+          "queue_age": null,
+          "downstream": null
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 0,
+          "queue_bytes": 0,
+          "inflight_current": 0,
+          "inflight_bytes": 0,
+          "total_peak": 13,
+          "total_bytes_peak": 7280,
+          "enqueued": 59588,
+          "dequeued": 59588,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "gate_errors": 0,
+          "forward_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 81.351,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 44.036126,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.726662,
+            "outstanding": 4044,
+            "rx_inflight": 8,
+            "rx_pressure": 14,
+            "rx_expired_missing": 153,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 6,
+              "RTORepairs": 10,
+              "RepairSucceeded": 16,
+              "RepairExpiredSkipped": 147,
+              "GapExpiredForgiven": 576,
+              "Retransmitted": 16,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.45345,
+            "outstanding": 4096,
+            "rx_inflight": 7,
+            "rx_pressure": 15,
+            "rx_expired_missing": 172,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.786442,
+            "outstanding": 4096,
+            "rx_inflight": 5,
+            "rx_pressure": 7,
+            "rx_expired_missing": 203,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 604.320378,
+            "outstanding": 4096,
+            "rx_inflight": 7,
+            "rx_pressure": 19,
+            "rx_expired_missing": 164,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          }
+        ],
+        "pipeline": {
+          "ready_current": null,
+          "ready_peak": null,
+          "ready_drops": null,
+          "handler": null,
+          "queue_age": null,
+          "downstream": null
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 3,
+          "queue_bytes": 1520,
+          "inflight_current": 1,
+          "inflight_bytes": 1200,
+          "total_peak": 13,
+          "total_bytes_peak": 7280,
+          "enqueued": 60330,
+          "dequeued": 60327,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "gate_errors": 0,
+          "forward_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 82.351,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 44.215607,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 0,
+              "RepairSucceeded": 1,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 1,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 600.972454,
+            "outstanding": 3844,
+            "rx_inflight": 8,
+            "rx_pressure": 14,
+            "rx_expired_missing": 153,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 0,
+              "RepairSucceeded": 1,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 1,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.179391,
+            "outstanding": 4034,
+            "rx_inflight": 7,
+            "rx_pressure": 15,
+            "rx_expired_missing": 172,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 0,
+              "RepairSucceeded": 1,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 1,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.048478,
+            "outstanding": 4024,
+            "rx_inflight": 5,
+            "rx_pressure": 7,
+            "rx_expired_missing": 203,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 0,
+              "RepairSucceeded": 1,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 1,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.057568,
+            "outstanding": 4025,
+            "rx_inflight": 7,
+            "rx_pressure": 19,
+            "rx_expired_missing": 164,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          }
+        ],
+        "pipeline": {
+          "ready_current": null,
+          "ready_peak": null,
+          "ready_drops": null,
+          "handler": null,
+          "queue_age": null,
+          "downstream": null
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 691,
+          "queue_bytes": 349664,
+          "inflight_current": 1,
+          "inflight_bytes": 1200,
+          "total_peak": 692,
+          "total_bytes_peak": 350864,
+          "enqueued": 61069,
+          "dequeued": 60378,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "gate_errors": 0,
+          "forward_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 83.351,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 45.500388,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 11,
+              "RTORepairs": 8,
+              "RepairSucceeded": 19,
+              "RepairExpiredSkipped": 242,
+              "GapExpiredForgiven": 576,
+              "Retransmitted": 19,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.47827,
+            "outstanding": 3006,
+            "rx_inflight": 7,
+            "rx_pressure": 14,
+            "rx_expired_missing": 166,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 7,
+              "RepairSucceeded": 17,
+              "RepairExpiredSkipped": 1424,
+              "GapExpiredForgiven": 512,
+              "Retransmitted": 17,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.063202,
+            "outstanding": 3004,
+            "rx_inflight": 7,
+            "rx_pressure": 15,
+            "rx_expired_missing": 185,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 12,
+              "RTORepairs": 7,
+              "RepairSucceeded": 19,
+              "RepairExpiredSkipped": 923,
+              "GapExpiredForgiven": 512,
+              "Retransmitted": 19,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.463592,
+            "outstanding": 3002,
+            "rx_inflight": 4,
+            "rx_pressure": 7,
+            "rx_expired_missing": 206,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 8,
+              "RepairSucceeded": 18,
+              "RepairExpiredSkipped": 1526,
+              "GapExpiredForgiven": 576,
+              "Retransmitted": 18,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.852107,
+            "outstanding": 3013,
+            "rx_inflight": 6,
+            "rx_pressure": 19,
+            "rx_expired_missing": 179,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          }
+        ],
+        "pipeline": {
+          "ready_current": null,
+          "ready_peak": null,
+          "ready_drops": null,
+          "handler": null,
+          "queue_age": null,
+          "downstream": null
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 318,
+          "queue_bytes": 161120,
+          "inflight_current": 1,
+          "inflight_bytes": 1200,
+          "total_peak": 966,
+          "total_bytes_peak": 489248,
+          "enqueued": 61811,
+          "dequeued": 61493,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "gate_errors": 0,
+          "forward_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 84.351,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 45.752499,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 0,
+              "RTORepairs": 11,
+              "RepairSucceeded": 11,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 11,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.990714,
+            "outstanding": 4096,
+            "rx_inflight": 5,
+            "rx_pressure": 14,
+            "rx_expired_missing": 172,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 11,
+              "RepairSucceeded": 12,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 704,
+              "Retransmitted": 12,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.762206,
+            "outstanding": 4096,
+            "rx_inflight": 8,
+            "rx_pressure": 15,
+            "rx_expired_missing": 192,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 11,
+              "RepairSucceeded": 12,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 704,
+              "Retransmitted": 12,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.39812,
+            "outstanding": 4096,
+            "rx_inflight": 4,
+            "rx_pressure": 7,
+            "rx_expired_missing": 208,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 2,
+              "RTORepairs": 10,
+              "RepairSucceeded": 12,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 12,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.276052,
+            "outstanding": 4096,
+            "rx_inflight": 5,
+            "rx_pressure": 19,
+            "rx_expired_missing": 182,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          }
+        ],
+        "pipeline": {
+          "ready_current": null,
+          "ready_peak": null,
+          "ready_drops": null,
+          "handler": null,
+          "queue_age": null,
+          "downstream": null
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 1,
+          "queue_bytes": 1200,
+          "inflight_current": 1,
+          "inflight_bytes": 256,
+          "total_peak": 966,
+          "total_bytes_peak": 489248,
+          "enqueued": 62553,
+          "dequeued": 62552,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "gate_errors": 0,
+          "forward_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 85.351,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 45.877212,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 278,
+              "RTORepairs": 10,
+              "RepairSucceeded": 288,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 288,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.898729,
+            "outstanding": 4096,
+            "rx_inflight": 6,
+            "rx_pressure": 14,
+            "rx_expired_missing": 172,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 250,
+              "RTORepairs": 10,
+              "RepairSucceeded": 260,
+              "RepairExpiredSkipped": 43,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 260,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.872327,
+            "outstanding": 4078,
+            "rx_inflight": 6,
+            "rx_pressure": 18,
+            "rx_expired_missing": 192,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 280,
+              "RTORepairs": 10,
+              "RepairSucceeded": 290,
+              "RepairExpiredSkipped": 83,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 290,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 604.046196,
+            "outstanding": 4096,
+            "rx_inflight": 5,
+            "rx_pressure": 7,
+            "rx_expired_missing": 208,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 274,
+              "RTORepairs": 10,
+              "RepairSucceeded": 284,
+              "RepairExpiredSkipped": 67,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 284,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 604.063302,
+            "outstanding": 4083,
+            "rx_inflight": 5,
+            "rx_pressure": 19,
+            "rx_expired_missing": 182,
+            "inbound_lock_max_ms": 0.0,
+            "inbound_decode_max_ms": 0.0
+          }
+        ],
+        "pipeline": {
+          "ready_current": null,
+          "ready_peak": null,
+          "ready_drops": null,
+          "handler": null,
+          "queue_age": null,
+          "downstream": null
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 0,
+          "queue_bytes": 0,
+          "inflight_current": 1,
+          "inflight_bytes": 1200,
+          "total_peak": 966,
+          "total_bytes_peak": 489248,
+          "enqueued": 63292,
+          "dequeued": 63292,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "gate_errors": 0,
+          "forward_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      }
+    ],
+    "server": [
+      {
+        "elapsed_s": 78.998,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 31.774385,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 10,
+              "RepairSucceeded": 11,
+              "RepairExpiredSkipped": 11,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 11,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.077968,
+            "outstanding": 4096,
+            "rx_inflight": 6,
+            "rx_pressure": 8,
+            "rx_expired_missing": 176,
+            "inbound_lock_max_ms": 3.957571,
+            "inbound_decode_max_ms": 4.733235
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 0,
+              "RepairSucceeded": 1,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 1,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.744726,
+            "outstanding": 3661,
+            "rx_inflight": 5,
+            "rx_pressure": 12,
+            "rx_expired_missing": 117,
+            "inbound_lock_max_ms": 2.923277,
+            "inbound_decode_max_ms": 2.668016
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 1,
+              "RTORepairs": 10,
+              "RepairSucceeded": 11,
+              "RepairExpiredSkipped": 8,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 11,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.454953,
+            "outstanding": 4032,
+            "rx_inflight": 6,
+            "rx_pressure": 6,
+            "rx_expired_missing": 168,
+            "inbound_lock_max_ms": 3.269469,
+            "inbound_decode_max_ms": 2.689539
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 2,
+              "RTORepairs": 2,
+              "RepairSucceeded": 4,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 4,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.688311,
+            "outstanding": 4068,
+            "rx_inflight": 7,
+            "rx_pressure": 8,
+            "rx_expired_missing": 146,
+            "inbound_lock_max_ms": 4.456105,
+            "inbound_decode_max_ms": 2.002395
+          }
+        ],
+        "pipeline": {
+          "ready_current": 47,
+          "ready_peak": 353,
+          "ready_drops": null,
+          "handler": {
+            "samples": 906090,
+            "total_ns": 33977922625,
+            "max_ns": 7637125,
+            "over_50us": 150744,
+            "over_1ms": 3772,
+            "over_10ms": 0
+          },
+          "queue_age": {
+            "samples": 906091,
+            "total_ns": 1309128109911,
+            "max_ns": 18892917,
+            "over_50us": 788132,
+            "over_1ms": 348806,
+            "over_10ms": 2603
+          },
+          "downstream": {
+            "samples": 58189,
+            "total_ns": 2273176627,
+            "max_ns": 2411985,
+            "over_50us": 8387,
+            "over_1ms": 79,
+            "over_10ms": 0
+          }
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 2,
+          "queue_bytes": 1456,
+          "inflight_current": 1,
+          "inflight_bytes": 64,
+          "total_peak": 16,
+          "total_bytes_peak": 8800,
+          "enqueued": 58552,
+          "dequeued": 58550,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "stale_drops": 0,
+          "send_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 79.998,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 32.13998,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 5,
+              "RTORepairs": 11,
+              "RepairSucceeded": 16,
+              "RepairExpiredSkipped": 7,
+              "GapExpiredForgiven": 704,
+              "Retransmitted": 16,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.739241,
+            "outstanding": 4096,
+            "rx_inflight": 4,
+            "rx_pressure": 8,
+            "rx_expired_missing": 183,
+            "inbound_lock_max_ms": 3.957571,
+            "inbound_decode_max_ms": 4.733235
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 0,
+              "RTORepairs": 11,
+              "RepairSucceeded": 11,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 11,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.928314,
+            "outstanding": 4096,
+            "rx_inflight": 4,
+            "rx_pressure": 12,
+            "rx_expired_missing": 121,
+            "inbound_lock_max_ms": 2.923277,
+            "inbound_decode_max_ms": 2.668016
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 4,
+              "RTORepairs": 10,
+              "RepairSucceeded": 14,
+              "RepairExpiredSkipped": 97,
+              "GapExpiredForgiven": 256,
+              "Retransmitted": 14,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.925443,
+            "outstanding": 4096,
+            "rx_inflight": 6,
+            "rx_pressure": 6,
+            "rx_expired_missing": 171,
+            "inbound_lock_max_ms": 3.547807,
+            "inbound_decode_max_ms": 2.689539
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 2,
+              "RTORepairs": 10,
+              "RepairSucceeded": 12,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 64,
+              "Retransmitted": 12,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.345928,
+            "outstanding": 4058,
+            "rx_inflight": 7,
+            "rx_pressure": 8,
+            "rx_expired_missing": 150,
+            "inbound_lock_max_ms": 4.456105,
+            "inbound_decode_max_ms": 2.002395
+          }
+        ],
+        "pipeline": {
+          "ready_current": 53,
+          "ready_peak": 353,
+          "ready_drops": null,
+          "handler": {
+            "samples": 915530,
+            "total_ns": 34382427928,
+            "max_ns": 7637125,
+            "over_50us": 152565,
+            "over_1ms": 3820,
+            "over_10ms": 0
+          },
+          "queue_age": {
+            "samples": 915531,
+            "total_ns": 1319001808267,
+            "max_ns": 18892917,
+            "over_50us": 796175,
+            "over_1ms": 351687,
+            "over_10ms": 2603
+          },
+          "downstream": {
+            "samples": 58928,
+            "total_ns": 2305907956,
+            "max_ns": 2411985,
+            "over_50us": 8519,
+            "over_1ms": 81,
+            "over_10ms": 0
+          }
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 2,
+          "queue_bytes": 1456,
+          "inflight_current": 1,
+          "inflight_bytes": 64,
+          "total_peak": 16,
+          "total_bytes_peak": 8800,
+          "enqueued": 59294,
+          "dequeued": 59292,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "stale_drops": 0,
+          "send_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 80.998,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 32.405426,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.255644,
+            "outstanding": 4096,
+            "rx_inflight": 6,
+            "rx_pressure": 8,
+            "rx_expired_missing": 183,
+            "inbound_lock_max_ms": 3.957571,
+            "inbound_decode_max_ms": 4.733235
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 0,
+              "RTORepairs": 10,
+              "RepairSucceeded": 10,
+              "RepairExpiredSkipped": 101,
+              "GapExpiredForgiven": 448,
+              "Retransmitted": 10,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 605.716127,
+            "outstanding": 4065,
+            "rx_inflight": 5,
+            "rx_pressure": 12,
+            "rx_expired_missing": 121,
+            "inbound_lock_max_ms": 2.923277,
+            "inbound_decode_max_ms": 2.668016
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.200334,
+            "outstanding": 4096,
+            "rx_inflight": 7,
+            "rx_pressure": 6,
+            "rx_expired_missing": 176,
+            "inbound_lock_max_ms": 3.547807,
+            "inbound_decode_max_ms": 2.689539
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 3,
+              "RTORepairs": 10,
+              "RepairSucceeded": 13,
+              "RepairExpiredSkipped": 93,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 13,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 605.183091,
+            "outstanding": 4096,
+            "rx_inflight": 7,
+            "rx_pressure": 8,
+            "rx_expired_missing": 159,
+            "inbound_lock_max_ms": 4.456105,
+            "inbound_decode_max_ms": 2.002395
+          }
+        ],
+        "pipeline": {
+          "ready_current": 28,
+          "ready_peak": 353,
+          "ready_drops": null,
+          "handler": {
+            "samples": 925003,
+            "total_ns": 34783266690,
+            "max_ns": 7637125,
+            "over_50us": 154348,
+            "over_1ms": 3869,
+            "over_10ms": 0
+          },
+          "queue_age": {
+            "samples": 925004,
+            "total_ns": 1331451127871,
+            "max_ns": 18892917,
+            "over_50us": 804342,
+            "over_1ms": 355181,
+            "over_10ms": 2603
+          },
+          "downstream": {
+            "samples": 59663,
+            "total_ns": 2333323195,
+            "max_ns": 2411985,
+            "over_50us": 8617,
+            "over_1ms": 82,
+            "over_10ms": 0
+          }
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 0,
+          "queue_bytes": 0,
+          "inflight_current": 0,
+          "inflight_bytes": 0,
+          "total_peak": 16,
+          "total_bytes_peak": 8800,
+          "enqueued": 60033,
+          "dequeued": 60033,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "stale_drops": 0,
+          "send_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 81.998,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 32.611722,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 7,
+              "RTORepairs": 10,
+              "RepairSucceeded": 17,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 17,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.008474,
+            "outstanding": 4096,
+            "rx_inflight": 5,
+            "rx_pressure": 8,
+            "rx_expired_missing": 187,
+            "inbound_lock_max_ms": 3.957571,
+            "inbound_decode_max_ms": 4.733235
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 7,
+              "RTORepairs": 10,
+              "RepairSucceeded": 17,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 17,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.955255,
+            "outstanding": 4096,
+            "rx_inflight": 4,
+            "rx_pressure": 12,
+            "rx_expired_missing": 124,
+            "inbound_lock_max_ms": 2.923277,
+            "inbound_decode_max_ms": 2.668016
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 7,
+              "RTORepairs": 10,
+              "RepairSucceeded": 17,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 17,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.185881,
+            "outstanding": 4096,
+            "rx_inflight": 7,
+            "rx_pressure": 9,
+            "rx_expired_missing": 176,
+            "inbound_lock_max_ms": 3.547807,
+            "inbound_decode_max_ms": 2.689539
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 7,
+              "RTORepairs": 10,
+              "RepairSucceeded": 17,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 640,
+              "Retransmitted": 17,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.582641,
+            "outstanding": 4096,
+            "rx_inflight": 6,
+            "rx_pressure": 8,
+            "rx_expired_missing": 159,
+            "inbound_lock_max_ms": 4.456105,
+            "inbound_decode_max_ms": 2.002395
+          }
+        ],
+        "pipeline": {
+          "ready_current": 0,
+          "ready_peak": 353,
+          "ready_drops": null,
+          "handler": {
+            "samples": 931776,
+            "total_ns": 35061874637,
+            "max_ns": 7637125,
+            "over_50us": 155629,
+            "over_1ms": 3899,
+            "over_10ms": 0
+          },
+          "queue_age": {
+            "samples": 931776,
+            "total_ns": 1339505625367,
+            "max_ns": 18892917,
+            "over_50us": 809810,
+            "over_1ms": 357616,
+            "over_10ms": 2603
+          },
+          "downstream": {
+            "samples": 60179,
+            "total_ns": 2351704478,
+            "max_ns": 2411985,
+            "over_50us": 8687,
+            "over_1ms": 82,
+            "over_10ms": 0
+          }
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 2,
+          "queue_bytes": 1456,
+          "inflight_current": 1,
+          "inflight_bytes": 64,
+          "total_peak": 16,
+          "total_bytes_peak": 8800,
+          "enqueued": 60774,
+          "dequeued": 60772,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "stale_drops": 0,
+          "send_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 82.998,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 32.697983,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 0,
+              "RTORepairs": 10,
+              "RepairSucceeded": 10,
+              "RepairExpiredSkipped": 92,
+              "GapExpiredForgiven": 219,
+              "Retransmitted": 10,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.008474,
+            "outstanding": 4096,
+            "rx_inflight": 5,
+            "rx_pressure": 8,
+            "rx_expired_missing": 187,
+            "inbound_lock_max_ms": 3.957571,
+            "inbound_decode_max_ms": 4.733235
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 0,
+              "RTORepairs": 10,
+              "RepairSucceeded": 10,
+              "RepairExpiredSkipped": 143,
+              "GapExpiredForgiven": 515,
+              "Retransmitted": 10,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.955255,
+            "outstanding": 4096,
+            "rx_inflight": 4,
+            "rx_pressure": 12,
+            "rx_expired_missing": 124,
+            "inbound_lock_max_ms": 2.923277,
+            "inbound_decode_max_ms": 2.668016
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 0,
+              "RTORepairs": 10,
+              "RepairSucceeded": 10,
+              "RepairExpiredSkipped": 167,
+              "GapExpiredForgiven": 391,
+              "Retransmitted": 10,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.185881,
+            "outstanding": 4096,
+            "rx_inflight": 7,
+            "rx_pressure": 9,
+            "rx_expired_missing": 176,
+            "inbound_lock_max_ms": 3.547807,
+            "inbound_decode_max_ms": 2.689539
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 0,
+              "RTORepairs": 10,
+              "RepairSucceeded": 10,
+              "RepairExpiredSkipped": 204,
+              "GapExpiredForgiven": 505,
+              "Retransmitted": 10,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.582641,
+            "outstanding": 4096,
+            "rx_inflight": 5,
+            "rx_pressure": 8,
+            "rx_expired_missing": 162,
+            "inbound_lock_max_ms": 4.456105,
+            "inbound_decode_max_ms": 2.002395
+          }
+        ],
+        "pipeline": {
+          "ready_current": 0,
+          "ready_peak": 353,
+          "ready_drops": null,
+          "handler": {
+            "samples": 931776,
+            "total_ns": 35061874637,
+            "max_ns": 7637125,
+            "over_50us": 155629,
+            "over_1ms": 3899,
+            "over_10ms": 0
+          },
+          "queue_age": {
+            "samples": 931776,
+            "total_ns": 1339505625367,
+            "max_ns": 18892917,
+            "over_50us": 809810,
+            "over_1ms": 357616,
+            "over_10ms": 2603
+          },
+          "downstream": {
+            "samples": 60179,
+            "total_ns": 2351704478,
+            "max_ns": 2411985,
+            "over_50us": 8687,
+            "over_1ms": 82,
+            "over_10ms": 0
+          }
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 2,
+          "queue_bytes": 1456,
+          "inflight_current": 1,
+          "inflight_bytes": 64,
+          "total_peak": 16,
+          "total_bytes_peak": 8800,
+          "enqueued": 61515,
+          "dequeued": 61513,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "stale_drops": 0,
+          "send_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 83.998,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 33.227202,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 11,
+              "RTORepairs": 9,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.352362,
+            "outstanding": 4096,
+            "rx_inflight": 3,
+            "rx_pressure": 8,
+            "rx_expired_missing": 207,
+            "inbound_lock_max_ms": 3.957571,
+            "inbound_decode_max_ms": 4.733235
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 6,
+              "RTORepairs": 10,
+              "RepairSucceeded": 16,
+              "RepairExpiredSkipped": 220,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 16,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.274752,
+            "outstanding": 4096,
+            "rx_inflight": 4,
+            "rx_pressure": 12,
+            "rx_expired_missing": 128,
+            "inbound_lock_max_ms": 3.09443,
+            "inbound_decode_max_ms": 2.668016
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 2,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.092308,
+            "outstanding": 4096,
+            "rx_inflight": 5,
+            "rx_pressure": 9,
+            "rx_expired_missing": 196,
+            "inbound_lock_max_ms": 3.547807,
+            "inbound_decode_max_ms": 2.689539
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 6,
+              "RTORepairs": 10,
+              "RepairSucceeded": 16,
+              "RepairExpiredSkipped": 215,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 16,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.723174,
+            "outstanding": 4096,
+            "rx_inflight": 3,
+            "rx_pressure": 8,
+            "rx_expired_missing": 167,
+            "inbound_lock_max_ms": 4.456105,
+            "inbound_decode_max_ms": 2.002395
+          }
+        ],
+        "pipeline": {
+          "ready_current": 67,
+          "ready_peak": 1029,
+          "ready_drops": null,
+          "handler": {
+            "samples": 953378,
+            "total_ns": 35857932574,
+            "max_ns": 7637125,
+            "over_50us": 159051,
+            "over_1ms": 3970,
+            "over_10ms": 0
+          },
+          "queue_age": {
+            "samples": 953379,
+            "total_ns": 1541394302723,
+            "max_ns": 40979628,
+            "over_50us": 830611,
+            "over_1ms": 374909,
+            "over_10ms": 9763
+          },
+          "downstream": {
+            "samples": 61877,
+            "total_ns": 2416938823,
+            "max_ns": 2411985,
+            "over_50us": 8894,
+            "over_1ms": 86,
+            "over_10ms": 0
+          }
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 3,
+          "queue_bytes": 1520,
+          "inflight_current": 1,
+          "inflight_bytes": 1200,
+          "total_peak": 16,
+          "total_bytes_peak": 8800,
+          "enqueued": 62259,
+          "dequeued": 62256,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "stale_drops": 0,
+          "send_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 84.998,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 33.401738,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 11,
+              "RepairSucceeded": 21,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 21,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.707078,
+            "outstanding": 3351,
+            "rx_inflight": 6,
+            "rx_pressure": 8,
+            "rx_expired_missing": 207,
+            "inbound_lock_max_ms": 3.957571,
+            "inbound_decode_max_ms": 4.733235
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.978004,
+            "outstanding": 4096,
+            "rx_inflight": 6,
+            "rx_pressure": 12,
+            "rx_expired_missing": 128,
+            "inbound_lock_max_ms": 3.09443,
+            "inbound_decode_max_ms": 2.668016
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 601.545844,
+            "outstanding": 3836,
+            "rx_inflight": 4,
+            "rx_pressure": 9,
+            "rx_expired_missing": 201,
+            "inbound_lock_max_ms": 3.547807,
+            "inbound_decode_max_ms": 2.689539
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 602.195799,
+            "outstanding": 4096,
+            "rx_inflight": 3,
+            "rx_pressure": 8,
+            "rx_expired_missing": 167,
+            "inbound_lock_max_ms": 4.456105,
+            "inbound_decode_max_ms": 2.002395
+          }
+        ],
+        "pipeline": {
+          "ready_current": 35,
+          "ready_peak": 1029,
+          "ready_drops": null,
+          "handler": {
+            "samples": 963051,
+            "total_ns": 36272311163,
+            "max_ns": 7637125,
+            "over_50us": 160993,
+            "over_1ms": 4021,
+            "over_10ms": 0
+          },
+          "queue_age": {
+            "samples": 963052,
+            "total_ns": 1552863433128,
+            "max_ns": 40979628,
+            "over_50us": 839001,
+            "over_1ms": 378060,
+            "over_10ms": 9763
+          },
+          "downstream": {
+            "samples": 62613,
+            "total_ns": 2442135310,
+            "max_ns": 2411985,
+            "over_50us": 8988,
+            "over_1ms": 86,
+            "over_10ms": 0
+          }
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 3,
+          "queue_bytes": 1520,
+          "inflight_current": 1,
+          "inflight_bytes": 64,
+          "total_peak": 16,
+          "total_bytes_peak": 8800,
+          "enqueued": 62999,
+          "dequeued": 62996,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "stale_drops": 0,
+          "send_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      },
+      {
+        "elapsed_s": 85.998,
+        "gens": [
+          {
+            "ID": 1,
+            "Generation": 1
+          },
+          {
+            "ID": 2,
+            "Generation": 2
+          },
+          {
+            "ID": 3,
+            "Generation": 3
+          },
+          {
+            "ID": 4,
+            "Generation": 4
+          }
+        ],
+        "dormant": false,
+        "gc_max_pause_total_ms": 34.335882,
+        "lanes": [
+          {
+            "ref": {
+              "ID": 1,
+              "Generation": 1
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 604.440262,
+            "outstanding": 2219,
+            "rx_inflight": 7,
+            "rx_pressure": 8,
+            "rx_expired_missing": 207,
+            "inbound_lock_max_ms": 3.957571,
+            "inbound_decode_max_ms": 4.733235
+          },
+          {
+            "ref": {
+              "ID": 2,
+              "Generation": 2
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 605.03508,
+            "outstanding": 3259,
+            "rx_inflight": 6,
+            "rx_pressure": 12,
+            "rx_expired_missing": 128,
+            "inbound_lock_max_ms": 3.09443,
+            "inbound_decode_max_ms": 2.668016
+          },
+          {
+            "ref": {
+              "ID": 3,
+              "Generation": 3
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.115239,
+            "outstanding": 2749,
+            "rx_inflight": 4,
+            "rx_pressure": 9,
+            "rx_expired_missing": 201,
+            "inbound_lock_max_ms": 3.547807,
+            "inbound_decode_max_ms": 2.689539
+          },
+          {
+            "ref": {
+              "ID": 4,
+              "Generation": 4
+            },
+            "delta": {
+              "FastRepairs": 10,
+              "RTORepairs": 10,
+              "RepairSucceeded": 20,
+              "RepairExpiredSkipped": 0,
+              "GapExpiredForgiven": 0,
+              "Retransmitted": 20,
+              "RecordErrors": 0,
+              "PathErrors": 0,
+              "FreshBlocked": 0,
+              "FreshEmitFailures": 0
+            },
+            "srtt_ms": 603.75964,
+            "outstanding": 3390,
+            "rx_inflight": 4,
+            "rx_pressure": 8,
+            "rx_expired_missing": 167,
+            "inbound_lock_max_ms": 4.456105,
+            "inbound_decode_max_ms": 2.002395
+          }
+        ],
+        "pipeline": {
+          "ready_current": 69,
+          "ready_peak": 1029,
+          "ready_drops": null,
+          "handler": {
+            "samples": 973524,
+            "total_ns": 36726105988,
+            "max_ns": 7637125,
+            "over_50us": 163007,
+            "over_1ms": 4078,
+            "over_10ms": 0
+          },
+          "queue_age": {
+            "samples": 973525,
+            "total_ns": 1566049098744,
+            "max_ns": 40979628,
+            "over_50us": 847802,
+            "over_1ms": 381720,
+            "over_10ms": 9777
+          },
+          "downstream": {
+            "samples": 63350,
+            "total_ns": 2469387321,
+            "max_ns": 2411985,
+            "over_50us": 9096,
+            "over_1ms": 86,
+            "over_10ms": 0
+          }
+        },
+        "udp": {
+          "queue_capacity_records": 1024,
+          "queue_capacity_bytes": 9150464,
+          "queue_current": 2,
+          "queue_bytes": 1456,
+          "inflight_current": 1,
+          "inflight_bytes": 64,
+          "total_peak": 16,
+          "total_bytes_peak": 8800,
+          "enqueued": 63740,
+          "dequeued": 63738,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age_max": 0,
+          "stale_drops": 0,
+          "send_errors": 0,
+          "close_drops": 0,
+          "workers": 4,
+          "eviction_max_scan": 0
+        }
+      }
+    ]
+  }
+}

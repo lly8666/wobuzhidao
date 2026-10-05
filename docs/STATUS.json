@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "SOURCE660b core/race/GUI/helpers/independentNormal+Game5205/P6 PASS;fullstack see actual gate state;real9000MTU/M03 native NOT_RUN;SOURCE24ff native D01 repeats/S16/Game evidence kept separate;full70/18/1800s NOT_RUN",
-  "updated_at": "2026-10-05",
+  "updated_at": "2026-10-05T13:20:00+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -83,8 +83,8 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "Finish current native case;continue qualified S18/S19/S20 idle and pure downlink,then remaining FEC/DNS/IP/config physical matrix. Collect independent Normal/Game1800s runs37254546236/37254548514;never inherit old full70/18. Each performance run one sample.",
-  "latest_log": "docs/devlog/20261005-103700-native-mtu-narrow-observation-and-idle.md",
+  "next_task": "Prioritize unchanged-source Game5305 seed1382 p99 localization:read target/receiver probe timestamps and bounded product/network telemetry before a narrow fix;retain failed pair and existing gates. Correct helper repository-contract omission via STATUS+new log,then qualify helpers in Actions and run independent native S19/Game4 and S20/pure downlink. Diagnose maximum UDP missing sequences with new helper. Continue remaining native DNS/IP/FEC/config matrix;each performance Action exactly one sample.",
+  "latest_log": "docs/devlog/20261005-132000-current-qualification-p99-and-native-idle.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -7556,10 +7556,15 @@
   },
   "physical_current": {
     "source": "660b370815603c50d38b92229abdec13ca77e1b1",
-    "state": "NATIVE_MATRIX_RUNNING",
+    "state": "NATIVE_S18_FUNCTIONAL_PASS_QUALITY_PARTIAL_M03_FAIL_RETAINED",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
-    "native_completed_300s": [],
-    "running": "M01 seed1362 native300s;seed1361 incompletefixture not counted",
+    "native_completed_300s": [
+      "M01 seed1364",
+      "M03 seed1365 FAIL",
+      "M03 seed1366 FAIL",
+      "S18 seed1391 lifecyclePASS/qualityPARTIAL"
+    ],
+    "running": null,
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
@@ -7570,7 +7575,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "running_case": "S18 seed1391 idle30 keepalive5 dead45",
+    "running_case": null,
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7640,7 +7645,7 @@
         }
       }
     ],
-    "helper_head": "ef20581269fe5f951164d9253a378c8767f3afad",
+    "helper_head": "919d58b7d9daaa00a53ed61f067098a6159c29d1",
     "completed": [
       {
         "case": "m01-current-300s-seed1364",
@@ -7659,8 +7664,15 @@
         "status": "FAIL",
         "source": "660b370815603c50d38b92229abdec13ca77e1b1",
         "evidence": "docs/evidence/native-inner-mtu-660b370-20261005.json"
+      },
+      {
+        "case": "s18-current-300s-seed1391",
+        "status": "LIFECYCLE_PASS_QUALITY_PARTIAL",
+        "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+        "evidence": "docs/evidence/native-idle-660b370-20261005.json"
       }
-    ]
+    ],
+    "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression."
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -7709,11 +7721,12 @@
       "S16",
       "D02",
       "D03",
-      "M03"
+      "M03",
+      "S18"
     ],
-    "full300s_samples": 18,
+    "full300s_samples": 19,
     "case_ids_total": 43,
-    "case_ids_not_run": 35,
+    "case_ids_not_run": 34,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true
   },
@@ -7802,26 +7815,51 @@
   },
   "current_soak": {
     "source": "660b370815603c50d38b92229abdec13ca77e1b1",
-    "state": "IN_PROGRESS",
-    "runs": [
+    "state": "PASS",
+    "samples": [
       {
-        "id": 37254548514,
-        "name": "soak-game-1800s-seed1372",
-        "display_title": "soak-game-1800s-seed1372",
-        "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
-        "status": "in_progress",
-        "conclusion": null,
-        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37254548514"
+        "mode": "normal",
+        "run": 37254546236,
+        "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+        "result": "PASS",
+        "seconds": 1800,
+        "min_phase_goodput_mbps": 9.998990933333333,
+        "max_phase_p99_ms": 621.12872,
+        "cpu_seconds": {
+          "client": 809.82,
+          "server": 817.18
+        },
+        "socket_drop_max": 0
       },
       {
-        "id": 37254546236,
-        "name": "soak-normal-1800s-seed1371",
-        "display_title": "soak-normal-1800s-seed1371",
-        "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
-        "status": "in_progress",
-        "conclusion": null,
-        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37254546236"
+        "mode": "game",
+        "run": 37254548514,
+        "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+        "result": "PASS",
+        "seconds": 1800,
+        "min_phase_goodput_mbps": 2.999872,
+        "max_phase_p99_ms": 604.474247,
+        "cpu_seconds": {
+          "client": 1080.36,
+          "server": 1016.13
+        },
+        "socket_drop_max": 0
       }
-    ]
+    ],
+    "evidence": "docs/evidence/qualification-660b370-20261005.json"
+  },
+  "current_qualification": {
+    "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+    "config70": "PASS",
+    "strict18_individual": "PASS",
+    "strict18_paired": "FAIL_P99_GAME_5305_SEED1382",
+    "strict_failed_run": 37255274295,
+    "p99_stress_ms": 1314.347294,
+    "p99_lossless_ms": 602.290026,
+    "p99_delta_ms": 712.057268,
+    "p99_delta_gate_ms": 500,
+    "evidence": "docs/evidence/qualification-660b370-20261005.json",
+    "latency_user_priority": "p99 and throughput must not degrade;no threshold weakening/no replacing failed samples",
+    "root_cause": "NOT_YET_LOCALIZED;not a demonstrated sustained CPU saturation or FEC HOL"
   }
 }

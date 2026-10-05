@@ -1,6 +1,6 @@
 # WBD NEXT 详细开发方案
 
-2026-10-05当前：配套产品SOURCE660b370已部署Windows/ARM，基础/race/GUI/MTU ownership/lifecycle36+aggregate/两独立5205/P6通过；helpers HEADef20581 Actions通过，M01 seed1364在原生300s测量，已核验本轮echo PID持有端口。1361/1362/1363夹具异常保留，不作产品失败或PASS。Normal/Game各1800s独立Actions37254546236/37254548514正在跑。下一M03、S18/S19/S20，再其余DNS/IP/FEC/config；唯一实时状态为STATUS及101700日志，全70/18仍NOT_RUN。旧24ff良好原生容量证据不能继承为660b全量资格。
+2026-10-05当前：产品SOURCE660b370配套部署；同源70配置PASS、18独立样本五分类PASS，但严格配对Game5305/seed1382 p99增加712ms超过500ms门，整体仍FAIL。Normal/Game各1800s独立长测PASS，最差阶段吞吐9.99899/2.999872M、阶段p99最高621.13/604.47ms；不能抵消短测尾延迟失败。原生M01完整PASS；M03两份最大UDP各缺1回包；S18双方两次Dormant释放和generation1→2→3/lease稳定通过，非零损失及延迟未验保留。HEAD919 helper基础/targeted因漏改STATUS契约FAIL，Go未跑，本提交补齐；未把它当产品回归。下一按STATUS查p99、验helper再S19/S20及其余DNS/IP/FEC/config。每性能Action一条，吞吐/p99硬门不降。
 
 2026-10-05当前原生修复：稳态广告窗口与bootstrap实际缓冲分离，steady field65535（WS8有效16776960B）无内存扩容，bootstrap不变。旧SOURCE6181在隔离严格conntrack路径性能FAIL、窗口候选三条独立资格PASS；具体物理路由仍待同源复验。Runtime新增source编码至同步wire发送的promotion读写边界，只有实际发布新代获取写锁，候选TLS不持锁；Normal/Game/Windows TUN/Linux sharedTUN/platform服务与timer FEC统一覆盖。禁止吞旧密文stale或对部分已发业务整包重试。该换代候选状态与证据见STATUS及最新devlog，未验不能部署。
 

@@ -1,0 +1,2750 @@
+{
+  "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+  "one_per_action": true,
+  "config_count": 70,
+  "config_result": "PASS",
+  "strict_individual_count": 18,
+  "strict_individual_five_class_result": "PASS",
+  "strict_paired_result": "FAIL",
+  "strict_paired_errors": [
+    "RTT baseline gate failed: ('660b370815603c50d38b92229abdec13ca77e1b1', 'game', '1382', 3.0, 4) scenario=5305"
+  ],
+  "strict_paired_original": {
+    "aggregate_revision": 2,
+    "analysis_version": "loss-tolerant-v1",
+    "errors": [
+      "RTT baseline gate failed: ('660b370815603c50d38b92229abdec13ca77e1b1', 'game', '1382', 3.0, 4) scenario=5305"
+    ],
+    "expected_seeds": [
+      "1381",
+      "1382",
+      "1383"
+    ],
+    "kind": "artifact-only-aggregate",
+    "repeat_status": {
+      "game/5205": {
+        "count": 3,
+        "pass": true,
+        "seeds": [
+          "1381",
+          "1382",
+          "1383"
+        ]
+      },
+      "game/5305": {
+        "count": 3,
+        "pass": true,
+        "seeds": [
+          "1381",
+          "1382",
+          "1383"
+        ]
+      },
+      "game/lossless": {
+        "count": 3,
+        "pass": true,
+        "seeds": [
+          "1381",
+          "1382",
+          "1383"
+        ]
+      },
+      "normal/5205": {
+        "count": 3,
+        "pass": true,
+        "seeds": [
+          "1381",
+          "1382",
+          "1383"
+        ]
+      },
+      "normal/5305": {
+        "count": 3,
+        "pass": true,
+        "seeds": [
+          "1381",
+          "1382",
+          "1383"
+        ]
+      },
+      "normal/lossless": {
+        "count": 3,
+        "pass": true,
+        "seeds": [
+          "1381",
+          "1382",
+          "1383"
+        ]
+      }
+    },
+    "require_run_receipts": true,
+    "required_repeats": 3,
+    "result": "FAIL",
+    "sample_count": 18,
+    "sample_results": [
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "game",
+          "1381",
+          3.0,
+          4
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-lossless-seed1381-rate3-lanes4/summary-loss-tolerant-v1.json",
+        "pass": true,
+        "scenario": "5205",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 5361821,
+            "delta_p99_ns": 5412244,
+            "lossless_p95_ns": 601810338,
+            "lossless_p99_ns": 602237381,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 607172159,
+            "p99_ns": 607649625,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": -1438741,
+            "delta_p99_ns": -2027540,
+            "lossless_p95_ns": 607472265,
+            "lossless_p99_ns": 608788279,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 606033524,
+            "p99_ns": 606760739,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 3412291,
+            "delta_p99_ns": 1500541,
+            "lossless_p95_ns": 601895151,
+            "lossless_p99_ns": 605416992,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 60,
+            "lossy_sent": 60,
+            "p95_ns": 605307442,
+            "p99_ns": 606917533,
+            "pass": true
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-5205-seed1381-rate3-lanes4/summary-loss-tolerant-v1.json"
+      },
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "game",
+          "1382",
+          3.0,
+          4
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-lossless-seed1382-rate3-lanes4/summary-loss-tolerant-v1.json",
+        "pass": true,
+        "scenario": "5205",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 9194858,
+            "delta_p99_ns": 11981654,
+            "lossless_p95_ns": 601847620,
+            "lossless_p99_ns": 602289228,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 611042478,
+            "p99_ns": 614270882,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": 8107432,
+            "delta_p99_ns": 8727018,
+            "lossless_p95_ns": 601955789,
+            "lossless_p99_ns": 602164237,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 610063221,
+            "p99_ns": 610891255,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 6005336,
+            "delta_p99_ns": 6921044,
+            "lossless_p95_ns": 601796551,
+            "lossless_p99_ns": 602290026,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 60,
+            "lossy_sent": 60,
+            "p95_ns": 607801887,
+            "p99_ns": 609211070,
+            "pass": true
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-5205-seed1382-rate3-lanes4/summary-loss-tolerant-v1.json"
+      },
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "game",
+          "1383",
+          3.0,
+          4
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-lossless-seed1383-rate3-lanes4/summary-loss-tolerant-v1.json",
+        "pass": true,
+        "scenario": "5205",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 278212,
+            "delta_p99_ns": 335311,
+            "lossless_p95_ns": 602114623,
+            "lossless_p99_ns": 602334631,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 602392835,
+            "p99_ns": 602669942,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": 2774989,
+            "delta_p99_ns": 3890411,
+            "lossless_p95_ns": 601911118,
+            "lossless_p99_ns": 602159464,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 604686107,
+            "p99_ns": 606049875,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 1142654,
+            "delta_p99_ns": 1141888,
+            "lossless_p95_ns": 601824514,
+            "lossless_p99_ns": 602310612,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 60,
+            "lossy_sent": 60,
+            "p95_ns": 602967168,
+            "p99_ns": 603452500,
+            "pass": true
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-5205-seed1383-rate3-lanes4/summary-loss-tolerant-v1.json"
+      },
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "game",
+          "1381",
+          3.0,
+          4
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-lossless-seed1381-rate3-lanes4/summary-loss-tolerant-v1.json",
+        "pass": true,
+        "scenario": "5305",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 3977580,
+            "delta_p99_ns": 5644563,
+            "lossless_p95_ns": 601810338,
+            "lossless_p99_ns": 602237381,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 605787918,
+            "p99_ns": 607881944,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": -2100588,
+            "delta_p99_ns": -2020805,
+            "lossless_p95_ns": 607472265,
+            "lossless_p99_ns": 608788279,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 605371677,
+            "p99_ns": 606767474,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 3462111,
+            "delta_p99_ns": 418178,
+            "lossless_p95_ns": 601895151,
+            "lossless_p99_ns": 605416992,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 60,
+            "lossy_sent": 60,
+            "p95_ns": 605357262,
+            "p99_ns": 605835170,
+            "pass": true
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-5305-seed1381-rate3-lanes4/summary-loss-tolerant-v1.json"
+      },
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "game",
+          "1382",
+          3.0,
+          4
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-lossless-seed1382-rate3-lanes4/summary-loss-tolerant-v1.json",
+        "pass": false,
+        "scenario": "5305",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 4723282,
+            "delta_p99_ns": 4864763,
+            "lossless_p95_ns": 601847620,
+            "lossless_p99_ns": 602289228,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 606570902,
+            "p99_ns": 607153991,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": 5228574,
+            "delta_p99_ns": 7987343,
+            "lossless_p95_ns": 601955789,
+            "lossless_p99_ns": 602164237,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 607184363,
+            "p99_ns": 610151580,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 3994613,
+            "delta_p99_ns": 712057268,
+            "lossless_p95_ns": 601796551,
+            "lossless_p99_ns": 602290026,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 60,
+            "lossy_sent": 60,
+            "p95_ns": 605791164,
+            "p99_ns": 1314347294,
+            "pass": false
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-5305-seed1382-rate3-lanes4/summary-loss-tolerant-v1.json"
+      },
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "game",
+          "1383",
+          3.0,
+          4
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-lossless-seed1383-rate3-lanes4/summary-loss-tolerant-v1.json",
+        "pass": true,
+        "scenario": "5305",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 15740480,
+            "delta_p99_ns": 17169327,
+            "lossless_p95_ns": 602114623,
+            "lossless_p99_ns": 602334631,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 617855103,
+            "p99_ns": 619503958,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": 13966367,
+            "delta_p99_ns": 13793879,
+            "lossless_p95_ns": 601911118,
+            "lossless_p99_ns": 602159464,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 615877485,
+            "p99_ns": 615953343,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 13597385,
+            "delta_p99_ns": 13440958,
+            "lossless_p95_ns": 601824514,
+            "lossless_p99_ns": 602310612,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 60,
+            "lossy_sent": 60,
+            "p95_ns": 615421899,
+            "p99_ns": 615751570,
+            "pass": true
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-game-5305-seed1383-rate3-lanes4/summary-loss-tolerant-v1.json"
+      },
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "normal",
+          "1381",
+          10.0,
+          1
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-lossless-seed1381-rate10-lanes1/summary-loss-tolerant-v1.json",
+        "pass": true,
+        "scenario": "5205",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 3776457,
+            "delta_p99_ns": 2440969,
+            "lossless_p95_ns": 609088730,
+            "lossless_p99_ns": 610489032,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 612865187,
+            "p99_ns": 612930001,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": 4541625,
+            "delta_p99_ns": 4936579,
+            "lossless_p95_ns": 606797941,
+            "lossless_p99_ns": 607915054,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 611339566,
+            "p99_ns": 612851633,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 4036644,
+            "delta_p99_ns": 17835132,
+            "lossless_p95_ns": 607665137,
+            "lossless_p99_ns": 609231434,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 60,
+            "lossy_sent": 60,
+            "p95_ns": 611701781,
+            "p99_ns": 627066566,
+            "pass": true
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-5205-seed1381-rate10-lanes1/summary-loss-tolerant-v1.json"
+      },
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "normal",
+          "1382",
+          10.0,
+          1
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-lossless-seed1382-rate10-lanes1/summary-loss-tolerant-v1.json",
+        "pass": true,
+        "scenario": "5205",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 4634568,
+            "delta_p99_ns": 7909907,
+            "lossless_p95_ns": 607869097,
+            "lossless_p99_ns": 609309677,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 612503665,
+            "p99_ns": 617219584,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": 17149386,
+            "delta_p99_ns": 19061210,
+            "lossless_p95_ns": 605565574,
+            "lossless_p99_ns": 606410794,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 622714960,
+            "p99_ns": 625472004,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 16085197,
+            "delta_p99_ns": 18240129,
+            "lossless_p95_ns": 606908603,
+            "lossless_p99_ns": 607048027,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 60,
+            "lossy_sent": 60,
+            "p95_ns": 622993800,
+            "p99_ns": 625288156,
+            "pass": true
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-5205-seed1382-rate10-lanes1/summary-loss-tolerant-v1.json"
+      },
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "normal",
+          "1383",
+          10.0,
+          1
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-lossless-seed1383-rate10-lanes1/summary-loss-tolerant-v1.json",
+        "pass": true,
+        "scenario": "5205",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 13230770,
+            "delta_p99_ns": 12831354,
+            "lossless_p95_ns": 604570254,
+            "lossless_p99_ns": 605864304,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 617801024,
+            "p99_ns": 618695658,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": 9958270,
+            "delta_p99_ns": 17111689,
+            "lossless_p95_ns": 605528358,
+            "lossless_p99_ns": 607027827,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 615486628,
+            "p99_ns": 624139516,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 12432417,
+            "delta_p99_ns": 13538850,
+            "lossless_p95_ns": 605303093,
+            "lossless_p99_ns": 606892588,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 60,
+            "lossy_sent": 60,
+            "p95_ns": 617735510,
+            "p99_ns": 620431438,
+            "pass": true
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-5205-seed1383-rate10-lanes1/summary-loss-tolerant-v1.json"
+      },
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "normal",
+          "1381",
+          10.0,
+          1
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-lossless-seed1381-rate10-lanes1/summary-loss-tolerant-v1.json",
+        "pass": true,
+        "scenario": "5305",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 9592097,
+            "delta_p99_ns": 10753726,
+            "lossless_p95_ns": 609088730,
+            "lossless_p99_ns": 610489032,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 618680827,
+            "p99_ns": 621242758,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": 17416969,
+            "delta_p99_ns": 27390301,
+            "lossless_p95_ns": 606797941,
+            "lossless_p99_ns": 607915054,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 624214910,
+            "p99_ns": 635305355,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 16251051,
+            "delta_p99_ns": 19613433,
+            "lossless_p95_ns": 607665137,
+            "lossless_p99_ns": 609231434,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 59,
+            "lossy_sent": 60,
+            "p95_ns": 623916188,
+            "p99_ns": 628844867,
+            "pass": true
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-5305-seed1381-rate10-lanes1/summary-loss-tolerant-v1.json"
+      },
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "normal",
+          "1382",
+          10.0,
+          1
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-lossless-seed1382-rate10-lanes1/summary-loss-tolerant-v1.json",
+        "pass": true,
+        "scenario": "5305",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 3900636,
+            "delta_p99_ns": 4938825,
+            "lossless_p95_ns": 607869097,
+            "lossless_p99_ns": 609309677,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 611769733,
+            "p99_ns": 614248502,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": 3094724,
+            "delta_p99_ns": 6506957,
+            "lossless_p95_ns": 605565574,
+            "lossless_p99_ns": 606410794,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 608660298,
+            "p99_ns": 612917751,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 11325645,
+            "delta_p99_ns": 16607347,
+            "lossless_p95_ns": 606908603,
+            "lossless_p99_ns": 607048027,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 59,
+            "lossy_sent": 60,
+            "p95_ns": 618234248,
+            "p99_ns": 623655374,
+            "pass": true
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-5305-seed1382-rate10-lanes1/summary-loss-tolerant-v1.json"
+      },
+      {
+        "identity": [
+          "660b370815603c50d38b92229abdec13ca77e1b1",
+          "normal",
+          "1383",
+          10.0,
+          1
+        ],
+        "lossless_summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-lossless-seed1383-rate10-lanes1/summary-loss-tolerant-v1.json",
+        "pass": true,
+        "scenario": "5305",
+        "stages": {
+          "post": {
+            "delta_p95_ns": 12032121,
+            "delta_p99_ns": 21542491,
+            "lossless_p95_ns": 604570254,
+            "lossless_p99_ns": 605864304,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 616602375,
+            "p99_ns": 627406795,
+            "pass": true
+          },
+          "pre": {
+            "delta_p95_ns": 7519739,
+            "delta_p99_ns": 6189597,
+            "lossless_p95_ns": 605528358,
+            "lossless_p99_ns": 607027827,
+            "lossless_received": 30,
+            "lossless_sent": 30,
+            "lossy_received": 30,
+            "lossy_sent": 30,
+            "p95_ns": 613048097,
+            "p99_ns": 613217424,
+            "pass": true
+          },
+          "stress": {
+            "delta_p95_ns": 14669104,
+            "delta_p99_ns": 20851539,
+            "lossless_p95_ns": 605303093,
+            "lossless_p99_ns": 606892588,
+            "lossless_received": 60,
+            "lossless_sent": 60,
+            "lossy_received": 60,
+            "lossy_sent": 60,
+            "p95_ns": 619972197,
+            "p99_ns": 627744127,
+            "pass": true
+          }
+        },
+        "summary": "/mnt/d/codex/wbd/evidence-physical-20261005/qualification-660b/strict-normal-5305-seed1383-rate10-lanes1/summary-loss-tolerant-v1.json"
+      }
+    ],
+    "schema": 1,
+    "source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+  },
+  "soaks": [
+    {
+      "mode": "normal",
+      "run": 37254546236,
+      "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "result": "PASS",
+      "seconds": 1800,
+      "min_phase_goodput_mbps": 9.998990933333333,
+      "max_phase_p99_ms": 621.12872,
+      "cpu_seconds": {
+        "client": 809.82,
+        "server": 817.18
+      },
+      "socket_drop_max": 0
+    },
+    {
+      "mode": "game",
+      "run": 37254548514,
+      "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "result": "PASS",
+      "seconds": 1800,
+      "min_phase_goodput_mbps": 2.999872,
+      "max_phase_p99_ms": 604.474247,
+      "cpu_seconds": {
+        "client": 1080.36,
+        "server": 1016.13
+      },
+      "socket_drop_max": 0
+    }
+  ],
+  "samples": [
+    {
+      "identity": "strict-normal-lossless-seed1381-rate10-lanes1",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1381",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255234912,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255234912",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "2020d6b92837f4e57e47048a2bc36921a8fe9292dbb99f4020ac2efc9de9a3ca"
+    },
+    {
+      "identity": "strict-normal-lossless-seed1382-rate10-lanes1",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1382",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255237294,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255237294",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "ad3f49425f26ddb2bcae54f987077f8b511a5f17b79610811d8e4ef3e74cb96c"
+    },
+    {
+      "identity": "strict-normal-lossless-seed1383-rate10-lanes1",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1383",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255239554,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255239554",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "9e35bfd8b12da1ea2dbd41bb94a898656d5c78d1b0378687d373969c9de6e0e7"
+    },
+    {
+      "identity": "strict-normal-5205-seed1381-rate10-lanes1",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1381",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255241813,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255241813",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "e1a86a2e35acb3653e4e12711b4a6e62d4b470ec1402f754c24cb4a02601dade"
+    },
+    {
+      "identity": "strict-normal-5205-seed1382-rate10-lanes1",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1382",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255244270,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255244270",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "646fc4ab0d1976eb01cec3c1f35e96898efc587829d9e57e73a39a759e4e8ef1"
+    },
+    {
+      "identity": "strict-normal-5205-seed1383-rate10-lanes1",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1383",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255247017,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255247017",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "df802d7c4534760d83746eb6056daa9eacc22e4ac1bd686e8c5a6efec706279e"
+    },
+    {
+      "identity": "strict-normal-5305-seed1381-rate10-lanes1",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1381",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255249662,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255249662",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "5f2a11a6e054911bac9402517d85b78599b48626dbd2cd3c9a7191beeb44e3bb"
+    },
+    {
+      "identity": "strict-normal-5305-seed1382-rate10-lanes1",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1382",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255252100,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255252100",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "b4eb41bf340ed1484b90d68c65a577d24077b283fe9ab0686fed6c4c18c12ee9"
+    },
+    {
+      "identity": "strict-normal-5305-seed1383-rate10-lanes1",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1383",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255254664,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255254664",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "58f1779e82992f3392c4313e3c54c333531e5f7d9f04d76ad5a8f46d7afb2c9c"
+    },
+    {
+      "identity": "strict-game-lossless-seed1381-rate3-lanes4",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1381",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255257257,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255257257",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "46230394c7bedac3ed8bbfa7a7ff8b490f65088a3974909958e2904f73859850"
+    },
+    {
+      "identity": "strict-game-lossless-seed1382-rate3-lanes4",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1382",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255259835,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255259835",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "3eb18826beab31beb48383e7fbee92d58a9347cf1210de0cedee0432993062ef"
+    },
+    {
+      "identity": "strict-game-lossless-seed1383-rate3-lanes4",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1383",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255262300,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255262300",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "e7514b9899273dc9c36cca46bd429236d2917987a66e6df0cdde9f6f08a89be2"
+    },
+    {
+      "identity": "strict-game-5205-seed1381-rate3-lanes4",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1381",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255264589,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255264589",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "87536bc3298054f9545e3f302b0dde7f0bed71a1700255ae1020dd679037789f"
+    },
+    {
+      "identity": "strict-game-5205-seed1382-rate3-lanes4",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1382",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255267347,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255267347",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "fd619686d16358de66292d7276ec22a80593d419c16c3840babdf5fbf999849b"
+    },
+    {
+      "identity": "strict-game-5205-seed1383-rate3-lanes4",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1383",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255269842,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255269842",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "0211b7bedd052213394984074935ccce590d018ca6175f2dbf864e09b7561d66"
+    },
+    {
+      "identity": "strict-game-5305-seed1381-rate3-lanes4",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1381",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255272325,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255272325",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "53f36da59107d5908c30fb020b3e2a6c427b49f75f68bd2596f388cba3916178"
+    },
+    {
+      "identity": "strict-game-5305-seed1382-rate3-lanes4",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1382",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255274295,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255274295",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "f60073f63f3e0002692bb25bc1a07dbccf0fcafec44522f3d6f0e1d0759c0763"
+    },
+    {
+      "identity": "strict-game-5305-seed1383-rate3-lanes4",
+      "workflow": "next-strict-weaknet.yml",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1383",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255276476,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255276476",
+      "source_matches": true,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "result": null,
+      "summary_sha256": "09cb092e3b278d7d63c5eae47b3bb327d90669a72100607a8a0603e15d7a15b5"
+    },
+    {
+      "identity": "config-f0-l1-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f0-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255278814,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255278814",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "fedc95017c3ea158e7c9220c382e139609629beed6b7f47b924c1ec098e2258b"
+    },
+    {
+      "identity": "config-f0-l1-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f0-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255281201,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255281201",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "ae823c8c2f68c8e55231ed3998f0dbaf4c315395a3cfe336f91dbd200b05e917"
+    },
+    {
+      "identity": "config-f0-l2-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f0-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255283391,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255283391",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "c831d1e065c98a8f3fdd8931718732ba8f50d2014e44c49ae946e57118fd8cd6"
+    },
+    {
+      "identity": "config-f0-l2-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f0-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255285622,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255285622",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "7cc93c3470b27d8e9920197ec7cac13e3228d7ebb5a6ec7b2414f22e1d943fc4"
+    },
+    {
+      "identity": "config-f0-l3-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f0-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255288274,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255288274",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "c1cd6a7f774c4b779ed8b233f4b1ef13342277f6d7efc68fe232c68b380a960d"
+    },
+    {
+      "identity": "config-f0-l3-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f0-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255290386,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255290386",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "381f13abdaf511a1e76680d742f5be3976898a790b4f259a2af6c94cff8d34e4"
+    },
+    {
+      "identity": "config-f0-l4-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f0-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255292459,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255292459",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "e5afed51800e58b83b597b532956cad878c6856e8984bb87b054367fad25a3b9"
+    },
+    {
+      "identity": "config-f0-l4-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f0-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255294968,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255294968",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "31970afe477c49226aa2c221cb9d75f4f7bd392adb8255313f8057b7f84ffdf8"
+    },
+    {
+      "identity": "config-json-f0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "json-f0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255297357,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255297357",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "a31d889dfe18f1869bd316c51bfa3ae768ae1a4f3da703c16d4d14abed8d491f"
+    },
+    {
+      "identity": "config-f4-l1-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f4-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255299575,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255299575",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "fe836fcfc94736cd72a371f004eb722d574a1d93737bb834bfdf426c02bcb3a9"
+    },
+    {
+      "identity": "config-f4-l1-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f4-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255301943,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255301943",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "c85aa53cf979182327e2b4080ec3606e50018482e4b4c214b02d7a59137d3e37"
+    },
+    {
+      "identity": "config-f4-l2-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f4-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255304096,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255304096",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "883cca75ff11cf81f339556c3c1ccad9f8c1f7fc88aac72b8d9bb37abc1db2e3"
+    },
+    {
+      "identity": "config-f4-l2-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f4-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255306584,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255306584",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "b5b259be8af815f2d6a0b6dc163ea7e4c88d45da1a56fac67faa4a43f47b2ed6"
+    },
+    {
+      "identity": "config-f4-l3-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f4-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255308647,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255308647",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "c4be9be0e5c3901c4b78f8e2b76ff8eb7f330f462caeae6f421fbafb063dce2c"
+    },
+    {
+      "identity": "config-f4-l3-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f4-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255310547,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255310547",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "5ec86ff1d557dcbdc475496f156556ac092e1c91c807a77a769d1addf0019845"
+    },
+    {
+      "identity": "config-f4-l4-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f4-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255312649,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255312649",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "67a7cc2f4011e1e00f00c993985ac7ae2bbfab69d47c9df47d06d86529f85cec"
+    },
+    {
+      "identity": "config-f4-l4-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f4-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255315117,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255315117",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "236d01e3b5ee954152cd65864dcaccb3ccd65152775e19380da2e08a9ba7a26f"
+    },
+    {
+      "identity": "config-json-f4",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "json-f4"
+      },
+      "state": "DISPATCHED",
+      "id": 37255317919,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255317919",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "bff7c12586bed76bf906526cb48b2361c15067f2a46f9be005c0d20afbb3cbb0"
+    },
+    {
+      "identity": "config-f8-l1-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f8-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255320337,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255320337",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "f19712e5be5907d37af5b0a39ec9f6b06bc1f3e0b388369032840e23cc95f108"
+    },
+    {
+      "identity": "config-f8-l1-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f8-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255322850,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255322850",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "95aa88f59f0cc97d120050da5f4ee0666df9bda511212aeadb0d783e6f945d73"
+    },
+    {
+      "identity": "config-f8-l2-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f8-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255325508,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255325508",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "8f0db6e340a250b0d089fcf929d00a594c1a50c8003ff466ca48a8ee9f7ac24d"
+    },
+    {
+      "identity": "config-f8-l2-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f8-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255328198,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255328198",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "072b957ab3c4633cee45350f3b512d2968d27e91b0fddd3de4901946ba770287"
+    },
+    {
+      "identity": "config-f8-l3-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f8-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255330765,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255330765",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "66206883248a4e30b8e9625fe23b45432f5b197e6cd0df7223879237a79840d1"
+    },
+    {
+      "identity": "config-f8-l3-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f8-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255333487,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255333487",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "8b73c93192e5ccbf6c0dda3e578303c7bbdba0b4ba9948555bf71c7d6ae937a1"
+    },
+    {
+      "identity": "config-f8-l4-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f8-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255335793,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255335793",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "73a6d5e1b399e87b2b8cdba71278765d1121c05f8b31a2374df674c69562e877"
+    },
+    {
+      "identity": "config-f8-l4-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f8-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255338271,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255338271",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "4f10af2199c50281b19f86dd5c7083074508ae97b4a6d98c5ecf03e6db2c1d3b"
+    },
+    {
+      "identity": "config-json-f8",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "json-f8"
+      },
+      "state": "DISPATCHED",
+      "id": 37255340445,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255340445",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "205fb53d7aca377d3280be9cfe53dc87440d47d950ed21e9187e74ebf72373de"
+    },
+    {
+      "identity": "config-f10-l1-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f10-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255342748,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255342748",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "e65ff4373fb76f558bc2760ceaedc03def8e672902f93e93e1bf0c8f5a629163"
+    },
+    {
+      "identity": "config-f10-l1-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f10-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255344986,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255344986",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "0b519046ecdf7c09b3344b9afe832bf750fc017313fa1d2b6bf5ba50b27f223c"
+    },
+    {
+      "identity": "config-f10-l2-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f10-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255347375,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255347375",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "96043f3270ac1950fbe6b3d61721d51a1394a0f396a8c79f7f1dedd88394f99d"
+    },
+    {
+      "identity": "config-f10-l2-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f10-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255349493,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255349493",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "f88b15f5b633739691cf7cd74a6abfe48d1f7fb4a5693a962a8902dfe8a8df55"
+    },
+    {
+      "identity": "config-f10-l3-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f10-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255352163,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255352163",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "3e62b94e153a3d6c053c6fb3624de967d9082b5de9d08aeef1b59cb6a19d7a3e"
+    },
+    {
+      "identity": "config-f10-l3-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f10-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255354201,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255354201",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "49e89dc6cd267240bf905c8aa7e2ca5077bf842ec93505447429b7e1316f0095"
+    },
+    {
+      "identity": "config-f10-l4-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f10-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255356308,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255356308",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "641e5919a23fb31b3568d10e85b900ddb2bb08091cf4b8c9d593d98d80f8b547"
+    },
+    {
+      "identity": "config-f10-l4-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f10-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255358300,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255358300",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "102932d39f7e19cd05590ab0f1fcc2312829cbe878ffe54087a6227a3170706a"
+    },
+    {
+      "identity": "config-json-f10",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "json-f10"
+      },
+      "state": "DISPATCHED",
+      "id": 37255360763,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255360763",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "b7f5e975caf572dcbec220eea715b109e0939f836db45f4663b5cc396566f2a1"
+    },
+    {
+      "identity": "config-f12-l1-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f12-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255363177,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255363177",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "d8fc0953ed74baa7d0f170b23a75730ef0574affbb3571dbd812dbad5d1d88d4"
+    },
+    {
+      "identity": "config-f12-l1-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f12-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255365542,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255365542",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "3857501c4b6298a0fc449fcd145ed2e9fb4514d3c2e59acb4448830f3dba1d6d"
+    },
+    {
+      "identity": "config-f12-l2-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f12-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255367868,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255367868",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "3cf91d00f602337ecec58c713719551b90e3ac12d4bf2e7993e6005625395727"
+    },
+    {
+      "identity": "config-f12-l2-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f12-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255369822,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255369822",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "03ec3c0ff84490cb56b52ef2ddabfae9a993036443ce9c929bc2af1461b6aa1a"
+    },
+    {
+      "identity": "config-f12-l3-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f12-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255371708,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255371708",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "e6cc40ef5bed49986268836f19958c87b088aa1350dba2d0ee8c851bbaed2b74"
+    },
+    {
+      "identity": "config-f12-l3-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f12-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255373883,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255373883",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "b813340ed0f64ac8abd0545f3351c1a0e453009b3ccba0ae6c413441e1f66198"
+    },
+    {
+      "identity": "config-f12-l4-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f12-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255376343,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255376343",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "677194e245f198cecd3ab6fbef18fae6163283afb5adb302c890aaf51f77cdc2"
+    },
+    {
+      "identity": "config-f12-l4-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f12-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255378372,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255378372",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "f49fe45259eb7e7218df9ad1beb225df51dd86033abdf5e549fcb565ec9925ce"
+    },
+    {
+      "identity": "config-json-f12",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "json-f12"
+      },
+      "state": "DISPATCHED",
+      "id": 37255380617,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255380617",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "75a6f3641601f9733842d895b6488558392041501da61899c974f9ef214f75ed"
+    },
+    {
+      "identity": "config-f16-l1-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f16-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255382487,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255382487",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "ad99b3de4767b568fa8c47a0040f9c94a16735d47783d4dc1d7c9be5fcdfea29"
+    },
+    {
+      "identity": "config-f16-l1-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f16-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255384756,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255384756",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "0c46a443d1f4c25f05c3add6273357a724a2f2f554c454b8cbf07303c0ef6b94"
+    },
+    {
+      "identity": "config-f16-l2-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f16-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255387026,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255387026",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "38b89d427c675d1ab38536753a4db0a6578271f30069c3afe9c2c0b2bfd24507"
+    },
+    {
+      "identity": "config-f16-l2-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f16-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255389201,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255389201",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "8e1d74e5f0c21c3ba6b79903496032d4bdcb3346e0ce5bebe921c98f64c5a403"
+    },
+    {
+      "identity": "config-f16-l3-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f16-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255391437,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255391437",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "6068de5cb9d1dd4d36ae5148d20b5b396e7c97314f04af0d36d3ed71ad58d129"
+    },
+    {
+      "identity": "config-f16-l3-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f16-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255393636,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255393636",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "98eaf31ef987562ccd9b4c32ce0f40d0169a45d0531a411273b03ad18061636a"
+    },
+    {
+      "identity": "config-f16-l4-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f16-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255395785,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255395785",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "d6796abb2c6429ba46c51b52eb049b85438a8d14f1444ac07c4030996bded991"
+    },
+    {
+      "identity": "config-f16-l4-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f16-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255398296,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255398296",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "756580d7eaa8e7646e343eb94ffeba9866586acbc95086e7ced3b48fe7256b40"
+    },
+    {
+      "identity": "config-json-f16",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "json-f16"
+      },
+      "state": "DISPATCHED",
+      "id": 37255400399,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255400399",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "6b92ffbb1a343954ec268c6f52ca7b702495b8cec5d9d65ff27aba43fce60c5c"
+    },
+    {
+      "identity": "config-f20-l1-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f20-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255402802,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255402802",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "e1b88a68ca76c0be13df09dc1648a7f6f23e6c2fc8cf8192588f36c1a6c61e04"
+    },
+    {
+      "identity": "config-f20-l1-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f20-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255405053,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255405053",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "a0a5de5a6544e8bddabfe92545765bf096359cc361cbb6a0e3454776d1a55c5b"
+    },
+    {
+      "identity": "config-f20-l2-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f20-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255407200,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255407200",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "058c85b48da50dde223a58999e02b5cc783431eef0ef394f1d6042ee0e106294"
+    },
+    {
+      "identity": "config-f20-l2-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f20-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255409692,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255409692",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "f7e159185037a6d7954f045234dfa3cc77ae211a8175c37dd95e005f9a78d075"
+    },
+    {
+      "identity": "config-f20-l3-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f20-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255412427,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255412427",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "f26c28743972b041575853ff66aeb7e9b3daf3da081dd7d54bd27ea89af91503"
+    },
+    {
+      "identity": "config-f20-l3-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f20-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255414754,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255414754",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "b809c14221c6e00db7aa6f5d442a45a54c3d2d4f86be052b7be84fc5e965a099"
+    },
+    {
+      "identity": "config-f20-l4-p0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f20-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255416991,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255416991",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "0c11202a5dc279d0f2c92571b95fd6a808fcc6599e4cfc0f833022293bef2b8c"
+    },
+    {
+      "identity": "config-f20-l4-p1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "f20-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255419986,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255419986",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "05aeec1704bb872d6b7f83cfce125043929be32287e48e32e04e31da3a44674e"
+    },
+    {
+      "identity": "config-json-f20",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "json-f20"
+      },
+      "state": "DISPATCHED",
+      "id": 37255422057,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255422057",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "33caf422b79f87571520c31fa6ec5e5e9192249237d4e692a2ac0fe3a6192bec"
+    },
+    {
+      "identity": "config-defaults",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "defaults"
+      },
+      "state": "DISPATCHED",
+      "id": 37255424548,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255424548",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "534062814d6fd964055cd821b26c2eb5d44e21ae3ee7987be40832b8e311fdc6"
+    },
+    {
+      "identity": "config-mtu1280-reverse0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "mtu1280-reverse0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255426816,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255426816",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "d25a3b3b3797512ea100351977ef6509a9e26b609dbf82a27c3986b3e3bd476d"
+    },
+    {
+      "identity": "config-mtu1280-reverse1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "mtu1280-reverse1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255429051,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255429051",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "9bc9c375d87363bf67745e16b9625c54b6553b871793e8855ab8976483c4f69f"
+    },
+    {
+      "identity": "config-mtu1400-reverse0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "mtu1400-reverse0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255431557,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255431557",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "e60fc44413e58f06ebd49aa8b62a819cf32a06676711287d779b4a920660e32f"
+    },
+    {
+      "identity": "config-mtu1400-reverse1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "mtu1400-reverse1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255434047,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255434047",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "902e5f8c20b23812750293548c8019899072dfd5fe0b2b74828a5199623d4550"
+    },
+    {
+      "identity": "config-mtu1500-reverse0",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "mtu1500-reverse0"
+      },
+      "state": "DISPATCHED",
+      "id": 37255436377,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255436377",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "3700e9518a79d90cfc193393fa6a384bfd1d3870b3b494a0c9010becde239697"
+    },
+    {
+      "identity": "config-mtu1500-reverse1",
+      "workflow": "next-config-effective.yml",
+      "inputs": {
+        "case_id": "mtu1500-reverse1"
+      },
+      "state": "DISPATCHED",
+      "id": 37255438396,
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37255438396",
+      "source_matches": true,
+      "errors": [],
+      "classifications": null,
+      "result": "PASS",
+      "summary_sha256": "cb0fe54aa4e69cb07a9bc4e3dcc5d0f94cc7bdee04d88091f69753a1a21ca1e9"
+    }
+  ],
+  "receipts_gzip_sha256": "42d3b87843b1be75d2f200c4e3d93fc101f6bacd8d9b0fbe5dc7c34f114df447",
+  "tail_evidence": "docs/evidence/tail-game5305-1382-660b370-20261005.json",
+  "qualification": "PARTIAL:p99 failure and native maximum UDP loss retained;not RELEASE_QUALIFIED"
+}
