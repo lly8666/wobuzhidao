@@ -1,0 +1,202 @@
+{
+  "schema": "wbd-inner-mtu-candidate-actions/v1",
+  "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+  "gates": [
+    {
+      "id": 37251772588,
+      "name": "next-foundation",
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37251772588"
+    },
+    {
+      "id": 37251772587,
+      "name": "next-p4-steady-targeted",
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37251772587"
+    },
+    {
+      "id": 37251772577,
+      "name": "next-windows-gui",
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37251772577"
+    },
+    {
+      "id": 37251772566,
+      "name": "next-predelivery-tools",
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37251772566"
+    },
+    {
+      "id": 37251772629,
+      "name": "next-splitroute",
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37251772629"
+    },
+    {
+      "id": 37251796250,
+      "name": "package-prephysical",
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37251796250"
+    },
+    {
+      "id": 37252031098,
+      "name": "next-lifecycle-fullstack",
+      "head_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37252031098"
+    }
+  ],
+  "helper_source": "c08923e618e0f3918dbc98aa0a4c85b22a9c0580",
+  "helper_gate": {
+    "id": 37252246288,
+    "name": "next-predelivery-tools",
+    "head_sha": "c08923e618e0f3918dbc98aa0a4c85b22a9c0580",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37252246288"
+  },
+  "performance": [
+    {
+      "mode": "normal5205",
+      "run": 37251791633,
+      "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 89.57,
+        "server": 90.56
+      },
+      "socket_drop_max": 0,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "wall_goodput": {
+        "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+        "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+        "path_delay_ms": 300,
+        "raw_metric": "wall_delivered_mbps",
+        "threshold_unchanged": true
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300044000,
+        "c2s_qdisc_delay_p95_ns": 300130000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 618274669,
+            "p99_ns": 624683393,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 610432327,
+            "p99_ns": 616666692,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 618679193,
+            "p99_ns": 620248298,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 3199557439,
+        "s2c_qdisc_delay_p50_ns": 300044000,
+        "s2c_qdisc_delay_p95_ns": 300134000
+      }
+    },
+    {
+      "mode": "game5205",
+      "run": 37251794051,
+      "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "cpu": {
+        "client": 94.02,
+        "server": 89.21
+      },
+      "socket_drop_max": 0,
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "wall_goodput": {
+        "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+        "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+        "path_delay_ms": 300,
+        "raw_metric": "wall_delivered_mbps",
+        "threshold_unchanged": true
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300037000,
+        "c2s_qdisc_delay_p95_ns": 300143000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 608948685,
+            "p99_ns": 609047894,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 609901863,
+            "p99_ns": 613160981,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 606197022,
+            "p99_ns": 608027571,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 3279942911,
+        "s2c_qdisc_delay_p50_ns": 300037000,
+        "s2c_qdisc_delay_p95_ns": 300146000
+      }
+    }
+  ],
+  "previous_failed_parent": {
+    "source": "977fee7611b65a0d632636a6ae237a82033a178f",
+    "runs": [
+      37251411532,
+      37251411486
+    ],
+    "cause": "old hosted network fixture lacked Get-NetIPInterface mock;real CIM and module autoload escaped mock isolation;fixed tests include journal-before-mutation and rollback assertions"
+  },
+  "qualification": "ACTIONS_PASS_NATIVE_NOT_RUN",
+  "full70_strict18_1800s": "NOT_RUN",
+  "real_wintun_api": "UNSUPPORTED in hosted;native M01/M03 required"
+}

@@ -4,7 +4,7 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "24ff core/race/GUI/lifecycle/independentNormal+Game5205/P6 PASS;realWindowsbatch nativeD01 seed1351 running;full70/18/1800s NOT_RUN",
+  "qualification_scope": "SOURCE660b core/race/GUI/helpers/independentNormal+Game5205/P6 PASS;fullstack see actual gate state;real9000MTU/M03 native NOT_RUN;SOURCE24ff native D01 repeats/S16/Game evidence kept separate;full70/18/1800s NOT_RUN",
   "updated_at": "2026-10-05",
   "completed": [
     "新架构决策和项目主旨固定",
@@ -83,9 +83,9 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "Qualify SOURCE660b370 Windows inner-MTU/input boundary (foundation/GUI/predelivery/independentNormal+Game5205/P6);finish frozenSOURCE24ff nativeGame4 seed1354. PriorSOURCE977 foundation/GUI failed old mock isolation and is not deployable. Once gates pass and native window stopped deploy exact paired package;M01/M03 then remaining DNS/config/IP/idle scope. Every performance Action one sample.",
-  "latest_log": "docs/devlog/20261005-094100-native-maximum-udp-fixture.md",
-  "last_tested_source_sha": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
+  "next_task": "When SOURCE660b lifecycle fullstack completes SUCCESS,deploy paired validated SOURCE660b P6 package only after native window stopped;execute native M01/M03 with actual inner MTU9000 and original MTU restoration. Then remaining DNS/config/IP/idle matrix. Native24ff Game4 target3M/zero app loss but server raw drops940 is unresolved environment receipt;do not inherit its result to660b. Each performance Action one sample.",
+  "latest_log": "docs/devlog/20261005-094500-mtu-gates-and-native-matrix-progress.md",
+  "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -7556,16 +7556,17 @@
   },
   "physical_current": {
     "source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
-    "state": "D01_CAPACITY_REPEATED_S16_TARGET_REACHED_GAME_RUNNING",
+    "state": "D01_S16_GAME_TARGETS_REACHED_WITH_RECORDED_RESIDUAL_LIMITS",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
       "d01-current-300s-seed1351",
       "d01-current-300s-seed1352",
+      "s02-current-300s-seed1354",
       "s16-current-300s-seed1353"
     ],
-    "running": "S02 seed1354 same-source Game4/3M effective lane/FEC receipt",
+    "running": null,
     "supersedes_old_native_qualification": false,
-    "rotation": "generation1..6,maxphysical2,exit0;S2C3.06%byte loss/probe71timeout,qualityNOT_PASS",
+    "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "8f53f33",
     "previous_completed_300s": [
       "D01 seed1341 capture drain FAIL",
@@ -7621,7 +7622,7 @@
       "D02",
       "D03"
     ],
-    "full300s_samples": 14,
+    "full300s_samples": 15,
     "case_ids_total": 43,
     "case_ids_not_run": 36,
     "complete_qualification": false,
@@ -7654,27 +7655,41 @@
     "native_evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json"
   },
   "windows_tun_mtu_boundary": {
-    "state": "PARENT_ACTIONS_FAIL_MISSING_NETWORK_MOCK_REPAIRED_PENDING",
-    "source": "CURRENT_COMMIT",
+    "state": "ACTIONS_PASS_NATIVE_NOT_RUN",
+    "source": "660b370815603c50d38b92229abdec13ca77e1b1",
     "inner_ipv4_mtu": 9000,
     "outer_connection_budget_unchanged": true,
     "native_source_still": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
     "native_m03": "NOT_RUN",
-    "evidence": "docs/devlog/20261005-092400-windows-inner-mtu-boundary-candidate.md",
+    "evidence": "docs/evidence/windows-tun-mtu-actions-660b370-20261005.json",
     "failed_parent": "977fee7611b65a0d632636a6ae237a82033a178f",
     "failed_parent_runs": [
       37251411532,
       37251411486
     ],
-    "reason": "existing hosted Get-NetIPInterface mock absent,causing real CIM/module autoload;product unchanged in repair"
+    "reason": "existing hosted Get-NetIPInterface mock absent,causing real CIM/module autoload;product unchanged in repair",
+    "qualification_runs": [
+      37251772588,
+      37251772587,
+      37251772577,
+      37251772566,
+      37251772629,
+      37251796250,
+      37252031098
+    ],
+    "performance_runs": [
+      37251791633,
+      37251794051
+    ]
   },
   "native_mtu_fixture": {
-    "state": "IMPLEMENTED_NOT_TESTED",
-    "helper_head": "CURRENT_COMMIT",
+    "state": "ACTIONS_COMPILE_AND_OWNERSHIP_PASS_NATIVE_NOT_RUN",
+    "helper_head": "c08923e618e0f3918dbc98aa0a4c85b22a9c0580",
     "product_source": "660b370815603c50d38b92229abdec13ca77e1b1",
     "max_attempts_per_second": 10,
     "max_request_inventory": 8192,
     "no_payload_files": true,
-    "native_cases": "M01/M03 NOT_RUN for candidate"
+    "native_cases": "M01/M03 NOT_RUN for candidate",
+    "helper_run": 37252246288
   }
 }
