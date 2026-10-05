@@ -83,8 +83,8 @@
     "P7 native:reproduce D0190s outage with anomaly-triggered observation;do not close release gates",
     "P7局部原生验收：Normal10两份完整120s/Game4x3一份120s业务loss0及DNS/TCP/验证HTTPS/清理通过；首轮异常与fresh AF_PACKET+125未解，整体PARTIAL"
   ],
-  "next_task": "Qualify Windows9000 inner-MTU/rejected-local-input candidate in Actions (core/race/Windows restore ownership/GUI/independentNormal+Game5205/P6),while frozenSOURCE24ff S16 seed1353 runs. Then same-source packaged native M01/M03 and remaining43-case scope. No old test inheritance;every performance Action one sample.",
-  "latest_log": "docs/devlog/20261005-093700-windows-mtu-mock-qualification-repair.md",
+  "next_task": "Qualify SOURCE660b370 Windows inner-MTU/input boundary (foundation/GUI/predelivery/independentNormal+Game5205/P6);finish frozenSOURCE24ff nativeGame4 seed1354. PriorSOURCE977 foundation/GUI failed old mock isolation and is not deployable. Once gates pass and native window stopped deploy exact paired package;M01/M03 then remaining DNS/config/IP/idle scope. Every performance Action one sample.",
+  "latest_log": "docs/devlog/20261005-094100-native-maximum-udp-fixture.md",
   "last_tested_source_sha": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
   "actions": [
     {
@@ -7556,13 +7556,14 @@
   },
   "physical_current": {
     "source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
-    "state": "D01_NATIVE_CAPACITY_REPEATED_ROTATION_RUNNING",
+    "state": "D01_CAPACITY_REPEATED_S16_TARGET_REACHED_GAME_RUNNING",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
       "d01-current-300s-seed1351",
-      "d01-current-300s-seed1352"
+      "d01-current-300s-seed1352",
+      "s16-current-300s-seed1353"
     ],
-    "running": "S16 seed1353 same-source rotate60s",
+    "running": "S02 seed1354 same-source Game4/3M effective lane/FEC receipt",
     "supersedes_old_native_qualification": false,
     "rotation": "generation1..6,maxphysical2,exit0;S2C3.06%byte loss/probe71timeout,qualityNOT_PASS",
     "previous_source": "8f53f33",
@@ -7620,7 +7621,7 @@
       "D02",
       "D03"
     ],
-    "full300s_samples": 13,
+    "full300s_samples": 14,
     "case_ids_total": 43,
     "case_ids_not_run": 36,
     "complete_qualification": false,
@@ -7666,5 +7667,14 @@
       37251411486
     ],
     "reason": "existing hosted Get-NetIPInterface mock absent,causing real CIM/module autoload;product unchanged in repair"
+  },
+  "native_mtu_fixture": {
+    "state": "IMPLEMENTED_NOT_TESTED",
+    "helper_head": "CURRENT_COMMIT",
+    "product_source": "660b370815603c50d38b92229abdec13ca77e1b1",
+    "max_attempts_per_second": 10,
+    "max_request_inventory": 8192,
+    "no_payload_files": true,
+    "native_cases": "M01/M03 NOT_RUN for candidate"
   }
 }
