@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "Deployed SOURCE660 core/race/config70/long2 PASS; Game5305 paired p99 FAIL retained; native M01 PASS, M03 maximumUDP FAIL twice, S19 repeat lifecycle PASS but downlink1.6437% loss. New WAN neighbor diagnostic pending Actions; no product changes.",
-  "updated_at": "2026-10-05T15:01:57.389879+08:00",
+  "updated_at": "2026-10-05T15:05:48.639153+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -84,7 +84,7 @@
     "Continue native S20/S19 boundary attribution after observer Actions PASS, then MTU sequence diagnosis and remaining matrix"
   ],
   "next_task": "Qualify qualified-sibling egress candidate via core/race/lifecycle and new subset delivery regression;then independent lossless/5205 Normal+Game and Game5305/lossless seed1382 pairs without profile before deployment. Analyze product660 neighbor dynamic/permanent diagnostics and M03seed1398 missing-sequence sample. Retain old automatic-lease wake failure; new server exit context must identify cause. No buffer/FEC/4096 growth,no fresh drop,no HOL.",
-  "latest_log": "docs/devlog/20261005-150157-qualified-sibling-egress.md",
+  "latest_log": "docs/devlog/20261005-150548-qualified-owner-contract-repair.md",
   "last_tested_source_sha": "660b370815603c50d38b92229abdec13ca77e1b1",
   "actions": [
     {
@@ -7965,7 +7965,7 @@
     "send_alloc_limit": 212992,
     "healthy_profile_peak": 960,
     "global_lock_propagation_risk": true,
-    "neighbor_diagnostic": "Helper analysis37274592567/predelivery37274592631 PASS;dynamic37274802852/permanent37274806220 running independently, product660 unchanged/profile OFF",
+    "neighbor_diagnostic": "dynamic37274802852/permanent37274806220 both healthy: stressp99 605.398/601.843ms, queue16.643/12.088ms,timeouts0. No reproduction;ARP cause not proven.",
     "product_changed": false
   },
   "native_game_idle_repeat": {
@@ -7977,7 +7977,7 @@
     "p99": "NOT_EVALUATED"
   },
   "qualified_sibling_egress": {
-    "state": "CANDIDATE_ACTIONS_PENDING",
+    "state": "PARENT_COMPILE_FAIL_OWNER_INTERFACE_REPAIRED_ACTIONS_PENDING",
     "parent": "9408b1261059cc40d8e8c816d339833a15ad4d4e",
     "deployed_product": "660b370815603c50d38b92229abdec13ca77e1b1",
     "scope": "server return path uses qualified lane mask selected under generation fence;missing siblings do not block eligible peer or encode a copy",
@@ -7985,7 +7985,9 @@
     "added_queue": false,
     "waiting": false,
     "parameters_changed": false,
-    "performance": "NOT_RUN"
+    "performance": "NOT_RUN",
+    "failed_parent": "022a6be425aae0b76e288f7324a7b49a8f81521d",
+    "failure_reason": "linuxserver Owner interface omitted new GameOutboundOnLanes method;no candidate deployment/performance"
   },
   "shared_credentials_dormant_failure": {
     "state": "REPRODUCED_CAUSE_PENDING",

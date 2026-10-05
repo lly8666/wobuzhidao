@@ -51,6 +51,10 @@ func (o *fakeOwner) GameOutbound(p []byte, _ time.Time) (datapath.GameOutboundRe
 	return datapath.GameOutboundResult{PacketID: 7}, nil
 }
 
+func (o *fakeOwner) GameOutboundOnLanes(p []byte, now time.Time, _ uint8) (datapath.GameOutboundResult, error) {
+	return o.GameOutbound(p, now)
+}
+
 func testLease(t *testing.T, idHex, addr string) logicaltunnel.Lease {
 	t.Helper()
 	id, err := logicaltunnel.ParseTunnelID(idHex)

@@ -30,6 +30,7 @@ type Owner interface {
 	Stats() datapath.TunnelOwnerStats
 	NormalOutbound([]byte, time.Time) ([]datapath.WireRecord, error)
 	GameOutbound([]byte, time.Time) (datapath.GameOutboundResult, error)
+	GameOutboundOnLanes([]byte, time.Time, uint8) (datapath.GameOutboundResult, error)
 }
 
 type ServiceHandler interface {
