@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "a280 scoped13Actions(4 strict/12 pairedRTT/P6)PASS;nativeDNSguard functionPASS,overallD01FAIL54upstreammissing/1probe timeout/raw70drop/p99286ms. D06 explicitoff running. Latestfull70/18/1800sNOT_RUN;024 historyonly. M03missing/late andpreviousfailuresretained;P7PARTIAL.",
-  "updated_at": "2026-10-06T20:40:35.598640+08:00",
+  "qualification_scope": "a280 scoped13Actions/12pairedRTT/P6 PASS;nativeDNSon+offfunctionPASS,overallD01+D06FAIL retained.48 full300s/23unique/20NOT_RUN acrosssource,not PASS count. CPUprofileseed1469diagnostic running;full70/18/1800sNOT_RUNcurrent;M03PARTIAL.",
+  "updated_at": "2026-10-06T20:52:00.573242+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,13 +80,13 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "D06 single300s DNSoff config/normalresolver/actualpolicy0/physicalpath/performance",
+    "Bounded CPU-only nativeprofile seed1469;diagnostic not performance qualification",
     "NativehighFEC pressure/p99 diagnosis remainsopen",
     "RemainingnativeDNS/IP/IPv6/startupPadding configurationsNOT_RUN",
     "M03 residual datagram tailPARTIAL"
   ],
-  "next_task": "Complete D06/seed1468 single300s on frozena280 and immutablehelpers,validateactualdns-hijack=false/ownedNRPT+DNSrules0/normalDNS+physicalDNSexpected/explicitUDP+TCPunderlayreply/cleanup,input/p99/CPU/drop. Then prioritize scopednative configuration gap or bounded performanceprofile basedon evidence;do not lowerquality gates,blindrerunM03/expandbuffer/FEC/4096 orforceouter reliability.",
-  "latest_log": "docs/devlog/20261006-203800-dns-guard-native-validation.md",
+  "next_task": "Collect bounded nativeCPUprofile1469 only after normal stop/ownedcleanup;read existingprofile_top decoder, crosscheck Windows sampler blockedforeign stacks against OS CPU,not percentagesasactualCPU. Preserve business/probe/p99/drop failures. Select narrow evidence-backed optimization then Actions core/race and one5205sample perrun;do not expand buffer/FEC/shadow or addHOL. Continue remainingnativeIP/IPv6 configuration gaps after independent workload cleanup.",
+  "latest_log": "docs/devlog/20261006-205000-dns-off-native-and-cpu-diagnosis.md",
   "last_tested_source_sha": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
   "actions": [
     {
@@ -8038,7 +8038,7 @@
   },
   "physical_current": {
     "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-    "state": "D06_NATIVE_DNS_OFF_RUNNING",
+    "state": "NATIVE_CPU_PROFILE_RUNNING",
     "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json",
     "native_completed_300s": [
       {
@@ -8095,16 +8095,23 @@
         "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
         "evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
         "dns_guard_function": "PASS_SCOPED_SELECTED_PHYSICAL_UDP_TCP53"
+      },
+      {
+        "case": "d06-current-300s-seed1468",
+        "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+        "status": "FAIL",
+        "evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
+        "dns_off_function": "PASS_SCOPED_NATIVE_DNS_OFF"
       }
     ],
     "running": [
       {
         "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
         "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
-        "guard_helper_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-        "case": "D06",
-        "seed": 1468,
-        "seconds": 300
+        "case": "S01_CPU_DIAGNOSTIC_ONLY",
+        "seed": 1469,
+        "seconds": 300,
+        "strict_performance_qualification": false
       }
     ],
     "supersedes_old_native_qualification": false,
@@ -8117,7 +8124,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": "d06-current-300s-seed1468",
+    "running_case": "s01-current-300s-seed1469",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8382,16 +8389,23 @@
         "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
         "evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
         "dns_guard_function": "PASS_SCOPED_SELECTED_PHYSICAL_UDP_TCP53"
+      },
+      {
+        "case": "d06-current-300s-seed1468",
+        "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+        "status": "FAIL",
+        "evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
+        "dns_off_function": "PASS_SCOPED_NATIVE_DNS_OFF"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
     "deployed_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
     "source_sha": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-    "last_failed_case": "d01-current-300s-seed1464",
-    "last_failure_evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
+    "last_failed_case": "d06-current-300s-seed1468",
+    "last_failure_evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
     "latest_native_pass": "docs/evidence/native-s09-0246526-seed1446-20261006.json",
-    "latest_native_evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
+    "latest_native_evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
     "not_run_case_ids": [
       "S12",
       "S13",
@@ -8406,7 +8420,6 @@
       "S26",
       "S27",
       "D05",
-      "D06",
       "I01",
       "I02",
       "I03",
@@ -8483,11 +8496,12 @@
       "S08",
       "S09",
       "S10",
-      "S11"
+      "S11",
+      "D06"
     ],
-    "full300s_samples": 47,
+    "full300s_samples": 48,
     "case_ids_total": 43,
-    "case_ids_not_run": 21,
+    "case_ids_not_run": 20,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true,
     "additional_client_complete_only_failures": [
@@ -8568,6 +8582,14 @@
         "evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
         "dns_guard_function": "PASS_SCOPED_SELECTED_PHYSICAL_UDP_TCP53",
         "id": "D01"
+      },
+      {
+        "case": "d06-current-300s-seed1468",
+        "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+        "status": "FAIL",
+        "evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
+        "dns_off_function": "PASS_SCOPED_NATIVE_DNS_OFF",
+        "id": "D06"
       }
     ]
   },
@@ -9616,8 +9638,8 @@
     ],
     "scope": "DNS hijack enabled:two owned outboundUDP/TCP remote53 block rules scoped to selected physical NIC literal alias. Wintun DNS preserved. Off no guard. Not DoH/DoT/allNIC.",
     "hotpath": "No productGo per-record change;observedCPU306.515625/160.01s per300s;nativep99/quality warning remains",
-    "qualification": "13 scopedActions incl4 independentstrict/12 pairedRTT/P6 PASS;normalDNS/on-guard/ownednativecleanup pending",
-    "log": "docs/devlog/20261006-203800-dns-guard-native-validation.md",
+    "qualification": "13 scopedActions incl4 independentstrict/12 pairedRTT/P6 PASS;nativeon+offDNSfunctionPASS,transportqualityPARTIAL",
+    "log": "docs/devlog/20261006-205000-dns-off-native-and-cpu-diagnosis.md",
     "first_candidate_source": "b675fd9d8fc6b6a617f12f5d0af151b7596835f1",
     "failed_run": 37445044674,
     "reason": "PowerShell five scenarios all PASS;existing Go wrapper expected exactly two markers. Assert five named unique scenarios, no product rollback.",
@@ -9631,7 +9653,10 @@
     "native_evidence": "docs/evidence/native-d01-dns-guard-a280566-seed1464-20261006.json",
     "native_function": "PASS_SCOPED_SELECTED_PHYSICAL_UDP_TCP53",
     "native_overall": "FAIL",
-    "native_scope": "NormalDNS60/60,off reachableUDP/TCP,on no reply/actual selectedNIC filters/physical metadataDNS0/drop0;ownedDNScleanup0;D06offcurrentrunning"
+    "native_scope": "On:normalDNS60/60,selectedNICphysicalDNS0/UDP+TCP53blocked,cleanup0. Off:NRPT0/guard0,normalDNS60/60,forcedselectedNICUDP+TCP53replytrue,physicalDNS332expected,cleanup0;notDoH/DoT/allNIC",
+    "dns_off_evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
+    "dns_off_function": "PASS_SCOPED_NATIVE_DNS_OFF",
+    "dns_off_overall": "FAIL"
   },
   "candidate_qualification": {
     "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",

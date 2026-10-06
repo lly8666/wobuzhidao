@@ -52,3 +52,5 @@ device-wide IPv6双向防火墙在安装capture路由前启用；另安装owned 
 如果使用内置表，省略china-ip-file即可。全部代理用route-mode=all，只有LAN直连用bypass-lan。正常启动不会隐式更新表；更新命令无需凭据，更新成功后正常客户端重启应用。
 
 2026-10-06 a280原生DNSguard功能限定通过：单所选physicalNIC，显式UDP/TCP53 off可达/on无reply，正常NRPT60/60、physical metadataDNS0、observerdrop0、ownedDNSgroup退出0；见STATUS与native-d01-dns-guard-a280566-seed1464-20261006证据。整条业务仍有54missing/1probe timeout/raw70drop/p99286ms，记FAIL/质量PARTIAL，不将功能PASS冒充性能或全P7通过。dns-hijack=false完整300s单列D06运行，尚不能继承其原生资格。
+
+2026-10-06 D06实机关闭劫持功能通过：dns-hijack=false，实际NRPT0/DNSguard0、系统DNS60/60、强制selectedphysical UDP/TCP53有效回复、physicalDNS332帧是预期；正常退出owned0。整条300s仍两向各3missing/p99332ms，质量FAIL保留，详见STATUS及native-d06-dns-off-a280566-seed1468-20261006。

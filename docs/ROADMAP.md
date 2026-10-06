@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-06当前：a280 DNSguard13定向Actions(4独立性能/12RTT/P6)PASS并同源部署；原生UDP/TCP物理53阻断、DNS60/60、出口DNS0及退出清理PASS，但D01上行54missing/1probe未回/rawdrop70/p99286ms整体FAIL。D06关闭开关300s运行；历史47份/22工况/21NOT_RUN跨源码不继承，M03未关闭。024全70/18/1800s为历史资格，a280不继承。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：a280 DNSguard13定向Actions/12RTT/P6及原生DNS开关功能PASS；D06双向近10M、2979探针全回、DNS60/60、off规则0且物理UDP/TCP53可达，但两向各缺3包/p99332ms整体FAIL。有界CPU诊断1469运行，不作性能资格。48份/23工况/20NOT_RUN跨源码含失败；M03未关闭，当前全70/18/1800s不继承024历史。每性能Action一条，先STATUS/latest_log。
 
 2026-10-06当前：配套产品9211b24入口过滤已过core/race/真kernel/native12/服务化12/37生命周期、五独立性能18RTT对和P6；实机M03两次1415 PASS/1416 FAIL，最大UDP一missing一1.308s late，1352小包及时，rawsocketdrop0/过滤443实际生效。32完整native/12工况/31NOT_RUN跨源码不继承。先STATUS/latest_log验有界探针phase timing助手，再诊断回程碎片并D04；不将健康一条关闭M03、不扩缓存/FEC/4096/HOL。
 
