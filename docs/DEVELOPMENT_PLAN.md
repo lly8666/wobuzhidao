@@ -1,6 +1,6 @@
 # WBD NEXT 详细开发方案
 
-2026-10-06当前：be456ce Npcap owned返回去冗余复制9定向Actions/12RTT/P6三平台hash全部PASS，已同源部署并保留a280回滚。原生单300s/Normal1/FEC20/10M/profileoff1472运行，未宣称省CPU/p99修复。48普通300s/23工况/20NOT_RUN另1诊断；旧质量FAIL与M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：be456ce去Npcap返回冗余复制9定向Actions/12RTT/P6 PASS，实机单300s近双向10M/2978探针全回/driver+user+rawdrop0；分配量观测降8.29%，CPU基本不变/p99240.64ms，但37上行+1下行missing仍严格FAIL。三份逐秒证据把尾延迟定位到接收排队相关路径，下一步ACK/nativewrite边界诊断。49普通300s/23工况/20NOT_RUN另1诊断；M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
 
 以下带日期段落保留历史，当前任务以STATUS顶层为准。
 

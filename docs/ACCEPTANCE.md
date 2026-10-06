@@ -1,6 +1,6 @@
 # Actions 验收契约
 
-2026-10-06当前：be456ce Npcap owned返回去冗余复制9定向Actions/12RTT/P6三平台hash全部PASS，已同源部署并保留a280回滚。原生单300s/Normal1/FEC20/10M/profileoff1472运行，未宣称省CPU/p99修复。48普通300s/23工况/20NOT_RUN另1诊断；旧质量FAIL与M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：be456ce去Npcap返回冗余复制9定向Actions/12RTT/P6 PASS，实机单300s近双向10M/2978探针全回/driver+user+rawdrop0；分配量观测降8.29%，CPU基本不变/p99240.64ms，但37上行+1下行missing仍严格FAIL。三份逐秒证据把尾延迟定位到接收排队相关路径，下一步ACK/nativewrite边界诊断。49普通300s/23工况/20NOT_RUN另1诊断；M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
 
 2026-10-05当前：产品SOURCE660b370配套部署；同源70配置PASS、18独立样本五分类PASS，但严格配对Game5305/seed1382 p99增加712ms超过500ms门，整体仍FAIL。Normal/Game各1800s独立长测PASS，最差阶段吞吐9.99899/2.999872M、阶段p99最高621.13/604.47ms；不能抵消短测尾延迟失败。原生M01完整PASS；M03两份最大UDP各缺1回包；S18双方两次Dormant释放和generation1→2→3/lease稳定通过，非零损失及延迟未验保留。HEAD919 helper基础/targeted因漏改STATUS契约FAIL，Go未跑，本提交补齐；未把它当产品回归。下一按STATUS查p99、验helper再S19/S20及其余DNS/IP/FEC/config。每性能Action一条，吞吐/p99硬门不降。
 

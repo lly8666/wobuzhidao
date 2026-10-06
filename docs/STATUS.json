@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "be456ce9scopedActions/12pairedRTT/P6PASS;pairednative deployed/300sprofileoff1472RUNNING,not nativePASS or full70/18/1800s. a280 nativequality failures/profilepressure retained;M03PARTIAL;48ordinary300s/23unique/20NOT_RUN plusoneprofilediagnostic.",
-  "updated_at": "2026-10-06T21:12:00.304209+08:00",
+  "qualification_scope": "be456ce9scopedActions/12pairedRTT/P6 PASS;native300s profileoffallocation -8.29% observed,CPUunchanged/p99240.64ms,raw/driver/userdrop0 but37up/1downmissing strictFAIL.49ordinary300s/23unique/20NOT_RUN plusoneprofilediagnostic,not PASS count/current full70/18/1800sNOT_RUN. M03/oldFAIL retained.",
+  "updated_at": "2026-10-06T21:23:24.974755+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,14 +80,14 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Nativebe456ce profileoff Normal1/FEC20/10M seed1472 running",
-    "Nativep99/queue diagnosis unresolved",
-    "Remaining20nativeconfigcasesNOT_RUN",
-    "M03 residualmissing/latePARTIAL"
+    "Nativeclient ACK/nativewrite vsdecode latency boundary diagnosis",
+    "Remaining20nativeconfigurationcase gaps",
+    "M03 residualmissing/late diagnosis",
+    "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Finish singlebe456ce nativeS11/seed1472 profileoff then analyze original strictbusiness/probe/input/CPU/p99/drop/DNS/cleanup and actualallocation/sameconfigobservations against a280D01;WAN/time/seed differ,no causal CPU/p99 benefit claim. Record failures unchanged. If meaningfulnativequeue delay remains,localize synchronousACK/driver vsownerdecode with existing bounded measurements before furtheroptimization. Remainingnative20config cases/M03stillopen.",
-  "latest_log": "docs/devlog/20261006-213100-npcap-copy-package-native-running.md",
-  "last_tested_source_sha": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+  "next_task": "Prioritize nativeclient receive/ACK-emit latency boundary. Existing threeprofileoff sameWindowsclock analyses correlate1s RTT withqueueage .920/.933/.903;send-lock .645/.684/.645. Add onlybounded/defaultoff per-stage ACKemit/decode/delivery/repair observation withexplicitqualification trigger andactive/retiringgeneration fencing,Actionsunit/racebeforedeployment;do not changeACK/recovery strategy until evidence separates waits. No hotpath measurement whenoff/new payload capture/queue/cache growth/outerfullreliability/HOL. Then evidence-backed boundedfeedback optimization andindependentNormal/Game5205. Remaining20nativeconfigurationcases andM03loss/tail remainopen.",
+  "latest_log": "docs/devlog/20261006-214300-npcap-copy-native-resource-result.md",
+  "last_tested_source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -8108,8 +8108,8 @@
   },
   "physical_current": {
     "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
-    "state": "COPY_CANDIDATE_NATIVE_PROFILE_OFF_RUNNING",
-    "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json",
+    "state": "COPY_OPTIMIZATION_VALIDATED_QUALITY_PARTIAL",
+    "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
     "native_completed_300s": [
       {
         "case": "m03-tun-observation-300s-seed1438",
@@ -8172,20 +8172,15 @@
         "status": "FAIL",
         "evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
         "dns_off_function": "PASS_SCOPED_NATIVE_DNS_OFF"
-      }
-    ],
-    "running": [
+      },
       {
+        "case": "s11-current-300s-seed1472",
         "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
-        "case": "S11",
-        "seed": 1472,
-        "seconds": 300,
-        "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
-        "guard_helper_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-        "cpu_profile": false,
-        "client_diagnostics": true
+        "status": "FAIL",
+        "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json"
       }
     ],
+    "running": null,
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
@@ -8196,7 +8191,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": "s11-current-300s-seed1472",
+    "running_case": null,
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8468,16 +8463,22 @@
         "status": "FAIL",
         "evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
         "dns_off_function": "PASS_SCOPED_NATIVE_DNS_OFF"
+      },
+      {
+        "case": "s11-current-300s-seed1472",
+        "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+        "status": "FAIL",
+        "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
     "deployed_source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
     "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
-    "last_failed_case": "d06-current-300s-seed1468",
-    "last_failure_evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
+    "last_failed_case": "s11-current-300s-seed1472",
+    "last_failure_evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
     "latest_native_pass": "docs/evidence/native-s09-0246526-seed1446-20261006.json",
-    "latest_native_evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
+    "latest_native_evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
     "not_run_case_ids": [
       "S12",
       "S13",
@@ -8581,7 +8582,7 @@
       "S11",
       "D06"
     ],
-    "full300s_samples": 48,
+    "full300s_samples": 49,
     "case_ids_total": 43,
     "case_ids_not_run": 20,
     "complete_qualification": false,
@@ -8672,6 +8673,13 @@
         "evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
         "dns_off_function": "PASS_SCOPED_NATIVE_DNS_OFF",
         "id": "D06"
+      },
+      {
+        "case": "s11-current-300s-seed1472",
+        "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+        "status": "FAIL",
+        "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
+        "id": "S11"
       }
     ]
   },
@@ -8764,7 +8772,7 @@
   },
   "current_qualification": {
     "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
-    "state": "SCOPED9_P6_PASS_NATIVE_RUNNING",
+    "state": "SCOPED9_P6_PASS_NATIVE_QUALITY_PARTIAL",
     "core_race": "PASS",
     "normal_5205": "PASS",
     "game_5205": "PASS",
@@ -8774,8 +8782,9 @@
     "full70": "NOT_RUN",
     "full18": "NOT_RUN",
     "p6": "PASS",
-    "native": "RUNNING",
-    "evidence": "docs/evidence/windows-npcap-owned-return-be456ce-actions-20261006.json"
+    "native": "FAIL business_loss37up/1down,profileoff resourcegain observed",
+    "evidence": "docs/evidence/windows-npcap-owned-return-be456ce-actions-20261006.json",
+    "native_evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json"
   },
   "tail_observation": {
     "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
@@ -9772,7 +9781,7 @@
     "evidence": "docs/evidence/windows-dns-guard-a280566-actions-20261006.json"
   },
   "windows_npcap_return_ownership": {
-    "state": "SCOPED_ACTIONS_P6_PASS_NATIVE_RUNNING",
+    "state": "SCOPED_ACTIONS_P6_PASS_NATIVE_RESOURCE_GAIN_QUALITY_PARTIAL",
     "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
     "deployed_source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
     "files": [
@@ -9783,14 +9792,49 @@
     "change": "Return existing MarshalSegment-owned packet;Ethernetframe remainsindependent copy. Removeonepacket allocation+copy perencode call;no pool/borrowedpointer/newqueue.",
     "preserved": "Npcap inboundowned copy/nativecallguard/sendMu/8packet16KiBreadybatch/sparseimmediate/generation/partialprefix/retransmitexactwire;FEC/4096/repair/ACK/MTU unchanged",
     "benefit": "Structural allocation reduction;actualCPU/p99 benefit NOT_TESTED,not mainrootclaim",
-    "native_candidate": "RUNNING seed1472",
+    "native_candidate": "COMPLETE_STRICT_FAIL_BUSINESS_LOSS",
     "actions": "9/9 PASS;four independent120s/12matchedp95+p99 checks PASS",
-    "log": "docs/devlog/20261006-213100-npcap-copy-package-native-running.md",
+    "log": "docs/devlog/20261006-214300-npcap-copy-native-resource-result.md",
     "actions_evidence": "docs/evidence/windows-npcap-owned-return-be456ce-actions-20261006.json",
     "p6": {
       "run": 37468358428,
       "state": "PASS",
       "evidence": "docs/evidence/windows-npcap-owned-return-be456ce-package-deployed-20261006.json"
-    }
+    },
+    "native_evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
+    "observed_allocation_bytes_percent": -8.288312288864741,
+    "observed_allocations_percent": -4.5771288825261935,
+    "observed_cpu": "307.625/159.85s per300s;previous306.515625/160.01;no material measuredCPU saving",
+    "observed_native_p99_ms": 240.6403,
+    "native_cpu_p99_causal_benefit": "NOT_PROVEN",
+    "remaining": "37up/1downmissing;receivequeuep99path stillneedslocalization;M03 remainsPARTIAL"
+  },
+  "native_receive_latency_diagnosis": {
+    "state": "EVIDENCE_NARROWED_NOT_FIXED",
+    "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+    "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
+    "correlations": [
+      {
+        "case": "d01-current-300s-seed1464",
+        "bins": 300,
+        "queue_age_rtt": 0.9204125798874112,
+        "send_wait_rtt": 0.645128395310143
+      },
+      {
+        "case": "d06-current-300s-seed1468",
+        "bins": 300,
+        "queue_age_rtt": 0.932726149666411,
+        "send_wait_rtt": 0.6837187840417087
+      },
+      {
+        "case": "s11-current-300s-seed1472",
+        "bins": 300,
+        "queue_age_rtt": 0.9027753276442887,
+        "send_wait_rtt": 0.644985794981226
+      }
+    ],
+    "code_boundary": "runtimeentry.clientLaneReadLoop -> runtimeowner.handleSegment -> businessDeliver -> synchronoussendACK/Emit -> nextRead",
+    "warning": "1s correlations aggregate differentrecord populations;not unique causality. Npcapdriver/lock timing wall notCPU. Profilingweights include blockedcalls. No blindACK policy change.",
+    "next": "Use bounded/defaultoff ACK emit vsdecode/delivery/repair stage timing andWindows activeclientlane diagnostic coverage to separate slow synchronousfeedback from compute before redesign."
   }
 }

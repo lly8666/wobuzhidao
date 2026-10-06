@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-06当前：be456ce Npcap owned返回去冗余复制9定向Actions/12RTT/P6三平台hash全部PASS，已同源部署并保留a280回滚。原生单300s/Normal1/FEC20/10M/profileoff1472运行，未宣称省CPU/p99修复。48普通300s/23工况/20NOT_RUN另1诊断；旧质量FAIL与M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：be456ce去Npcap返回冗余复制9定向Actions/12RTT/P6 PASS，实机单300s近双向10M/2978探针全回/driver+user+rawdrop0；分配量观测降8.29%，CPU基本不变/p99240.64ms，但37上行+1下行missing仍严格FAIL。三份逐秒证据把尾延迟定位到接收排队相关路径，下一步ACK/nativewrite边界诊断。49普通300s/23工况/20NOT_RUN另1诊断；M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
 
 2026-10-06当前：配套产品9211b24入口过滤已过core/race/真kernel/native12/服务化12/37生命周期、五独立性能18RTT对和P6；实机M03两次1415 PASS/1416 FAIL，最大UDP一missing一1.308s late，1352小包及时，rawsocketdrop0/过滤443实际生效。32完整native/12工况/31NOT_RUN跨源码不继承。先STATUS/latest_log验有界探针phase timing助手，再诊断回程碎片并D04；不将健康一条关闭M03、不扩缓存/FEC/4096/HOL。
 
