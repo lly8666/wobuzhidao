@@ -1363,6 +1363,9 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 	if lane != nil {
 		qualified, err := lane.group.rt.HandleServerSegmentQualified(lane.ref, assoc, seg, now)
 		if err != nil {
+			if s.retiredAssociationError(lane, assoc, err) {
+				return nil
+			}
 			if errors.Is(err, logicaltunnel.ErrStaleLaneGeneration) {
 				// Owner promotion publishes the new generation before admission
 				// publishes byFlow/retiring metadata. Old traffic may arrive in
@@ -1381,7 +1384,7 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 					return nil
 				}
 			}
-			return err
+			return fmt.Errorf("runtimeentry: published lane %d/%d segment: %w", lane.ref.ID, lane.ref.Generation, err)
 		}
 		if qualified {
 			s.markLaneQualified(lane, now)
@@ -1414,6 +1417,19 @@ func (s *LifecycleServer) handleSegment(ctx context.Context, seg faketcp.Segment
 		s.mu.Unlock()
 	}
 	return nil
+}
+
+// A reader may retain the published lane while DORMANT/replacement removes its
+// association. Only the association's own closed-state marker is local; a live
+// handshake failure or emitter error must still terminate/report normally.
+func (s *LifecycleServer) retiredAssociationError(lane *serverLifecycleLane, assoc *faketcp.ServerAssociation, err error) bool {
+	if !errors.Is(err, faketcp.ErrAssociationRetired) || assoc.State() != faketcp.ServerAssociationClosed {
+		return false
+	}
+	s.mu.Lock()
+	retired := s.byFlow[lane.flow] != lane || lane.group.dormant
+	s.mu.Unlock()
+	return retired
 }
 
 // Admission rollback can close a duplicate half-open association after AddSYN

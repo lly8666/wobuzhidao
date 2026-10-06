@@ -19,6 +19,11 @@ var (
 	ErrHandshakeState       = errors.New("faketcp: invalid association handshake state")
 	ErrAssociationMissing   = errors.New("faketcp: association not found")
 	ErrAssociationNoEmitter = errors.New("faketcp: association has no packet emitter")
+	// Only HandleSegment on an already closed association produces this marker.
+	// Keep ErrHandshakeState compatibility while distinguishing retirement from
+	// invalid live handshakes and errors returned by a packet emitter.
+	ErrAssociationRetired = errors.New("faketcp: server association retired")
+	errRetiredHandshake   = errors.Join(ErrHandshakeState, ErrAssociationRetired)
 )
 
 type ServerFlow struct {
@@ -175,10 +180,10 @@ func (a *ServerAssociation) SteadyWindowProfile() (window uint16, scale uint8, s
 	return steadyAdvertisedWindow(a.peer.WindowScaleSet), DefaultWindowScale, a.peer.WindowScaleSet
 }
 
-func (a *ServerAssociation) BootstrapConn() net.Conn { return a.bootstrap }
-func (a *ServerAssociation) BootstrapNext() uint32   { return a.bootstrap.NextSeq() }
-func (a *ServerAssociation) SenderNext() uint32      { return a.sender.NextSeq() }
-func (a *ServerAssociation) SenderLastAck() uint32   { return a.sender.LastAck() }
+func (a *ServerAssociation) BootstrapConn() net.Conn  { return a.bootstrap }
+func (a *ServerAssociation) BootstrapNext() uint32    { return a.bootstrap.NextSeq() }
+func (a *ServerAssociation) SenderNext() uint32       { return a.sender.NextSeq() }
+func (a *ServerAssociation) SenderLastAck() uint32    { return a.sender.LastAck() }
 func (a *ServerAssociation) SenderStats() SenderStats { return a.sender.Stats() }
 func (a *ServerAssociation) SenderPending() int       { return a.sender.Pending() }
 
@@ -202,7 +207,7 @@ func (a *ServerAssociation) synackLocked() Segment {
 		Flags: FlagSYN | FlagACK, Window: a.advertisedWindowLocked(false),
 		MSS: DefaultMSS, MSSSet: true,
 		SACKPermitted: a.peer.SACKPermitted,
-		WindowScale: DefaultWindowScale, WindowScaleSet: a.peer.WindowScaleSet,
+		WindowScale:   DefaultWindowScale, WindowScaleSet: a.peer.WindowScaleSet,
 	}
 }
 
@@ -219,7 +224,10 @@ func (a *ServerAssociation) HandleSegment(seg Segment, now time.Time) (ServerSeg
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
-	if a.state == ServerAssociationClosed || !a.flow.Matches(seg) {
+	if a.state == ServerAssociationClosed {
+		return out, errRetiredHandshake
+	}
+	if !a.flow.Matches(seg) {
 		return out, ErrHandshakeState
 	}
 

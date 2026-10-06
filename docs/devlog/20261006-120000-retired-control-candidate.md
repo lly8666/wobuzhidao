@@ -1,0 +1,31 @@
+# 已发布lane退役控制包竞态候选
+
+## 本轮目标和阶段
+
+起始42e21e6；首次产品改动在本轮发生。修共享server稀有退役控制边界，产品物理部署继续9211b24，候选未通过不能部署。fragment助手Linux真TUN门通过后，仅对旧已部署产品做短观测preflight。
+
+## 修改与原因
+
+42e21e6 predelivery37410839914的transient-overlap repeated60前身30次失败：TestBusinessDemandAfterFailedDormantWakeRetriesWithoutClosingOwner/1在重试业务wake收到client handshake failed，shared server close返回ErrHandshakeState。Go产品源码与921相同，不能归因helper代码回归或忽略该失败。
+
+源码审查发现独立真实边界：共享reader可先取得已发布lane，随后DORMANT/replacement删除byFlow、Close association，再进入HandleServerSegmentQualified。FakeTCP此时返回与live badACK/wire failure相同的ErrHandshakeState，原保护仅处理TransportMissing/RuntimeClosed/PeerReset，因而可能杀共享listener。原7eeb仅处理unpublished candidate/SYNACK的close窗口，未覆盖已发布lane。
+
+faketcp.HandleSegment的closed分支增加ErrAssociationRetired来源marker，仍errors.Is(ErrHandshakeState)兼容；flow mismatch/invalid liveACK不带marker，SYNACK emitter错误不变。只在lifecycle发布lane错误路径、真实associationClosed且byFlow不再是该lane或group已DORMANT时忽略marker。仍active的unexpected closed、live badACK、真实EPERM/EBADF/EmitterHandshake均报告。无健康每包新增锁/计时/日志，原hot success路径不变；只错误路径增加来源诊断。没有扩cache、MTU/FEC/4096、重试deadline或HOL。
+
+新增确定性integration regression钉住DORMANT已提交/byFlow尚未移除/assoc已close窗口，真实handleSegment不会杀listener；另验liveACK/active closed/realwire error不被吞。既有失败Wake与retired control/synACK合为60次race重复门。本修复覆盖源码已确认的边界，但历史失败没有调用栈，不能宣称该run的唯一根因已经证明；后续若失败，published-lane wrapper给出阶段。
+
+## 复用来源
+
+现有生命周期退休元数据与7eeb边界规则；无old提取，无新用户参数。
+
+## Actions证据
+
+42e21e6 helpers threejobsPASS：真实TUN56reverse fragments（48/7/1）、fixedpcapng与PSstats/ownership；整workflow FAIL因为独立Go repeatedWake。失败log retained wake-retry-gates/37410839914-failed.log。本产品候选NOT_RUN，提交后targeted/core/race/60repetitions/37生命周期，再每性能Action一条Normal/Game5205等独立资格与P6，不能用旧921成绩继承。
+
+## 问题、排查与风险
+
+原生1419完整300s最大UDP仍missing1828，8972/DFtrue一次late，小包1359全及时；空fragmentcaptureINVALID保持，raw已删。旧921产品实机不能当此候选回归通过。42助手的shortpreflight将验证Windows event capture非空；只helper功能、不是性能样本，不计300s工况，不修改old部署产品。
+
+## 下一项原子任务
+
+先验本候选Actions原始结果。独立性能资格后再配套包部署；同时补齐1419应用fail/cleanup小回执和shortfragment preflight。若退役bug重复失败，不盲吞更多错误，按新增stage/provenance缩小，保留历史FAIL。物理剩余DNS/IP/config与当前全70/18/1800s仍未完整关闭。

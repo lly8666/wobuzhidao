@@ -84,8 +84,8 @@
     "Bounded reverse-fragment diagnostic helpers Actions qualification",
     "Remaining native IP/config and old rawp99/Wake attribution"
   ],
-  "next_task": "Qualify ETH_P_ALL actual reverse TUN fixture and corrected Pktmon stats/event helper in Actions, then short controlled probe confirms nonempty per-fragment observations before any next300s M03. Application1419 missing1828 and late8972 retained; capture invalid, not proof of no-loss or protocol root. D04 functional PASS/quality PARTIAL remains; no product MTU/buffer/FEC/4096/HOL change, remaining IP/config and current full70/18/soak open.",
-  "latest_log": "docs/devlog/20261006-115000-native-fragment-coverage-correction.md",
+  "next_task": "Qualify narrow retired published-control product candidate (old shared server repeatedWake failure37410839914 retained). Real TUN reverse collector fixture56 passed; finish helper-only2s native preflight on deployed921/helper42, require nonempty Windows packet events before further M03. No new product deployment until scoped correctness/lifecycle/performance/P6. D04 functional pass/businessquality partial and1419missing1828/late remain open; current full70/18/soak and remaining30case IDs not inherited.",
+  "latest_log": "docs/devlog/20261006-120000-retired-control-candidate.md",
   "last_tested_source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
   "actions": [
     {
@@ -7793,7 +7793,9 @@
       "M03 seed1366 FAIL",
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
-    "running": [],
+    "running": [
+      "m03-capture-preflight-2s-seed1420 helper-only"
+    ],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
@@ -7804,7 +7806,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": null,
+    "running_case": "m03-capture-preflight-2s-seed1420",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8563,15 +8565,15 @@
     "evidence": "docs/evidence/native-dns-d04-9211b24-seed1417-20261006.json"
   },
   "native_fragment_diagnostic": {
-    "state": "NATIVE_CAPTURE_EMPTY_REVERSE_ETH_ALL_AND_EVENT_FIX_NOT_QUALIFIED",
+    "state": "HELPER_SCOPED_THREE_JOBS_PASS_REAL_TUN56_SHORT_NATIVE_PREFLIGHT_RUNNING",
     "files": [
       "tools/physical_inner_fragment_watch.py",
       "tools/physical_windows_fragments.ps1"
     ],
     "scope": "Controlled198.18.0.1 to leased10.66 address only; serverTUN before ingestion vs selectedWintun Pktmon; bounded metadata, no transport changes",
     "next": "Actions fixed fragment/pcapng fixtures and PS parse gate before native diagnostic; ownership/capture drops/window must be proven, raw captures deleted after audit",
-    "helper_source": "b3530388e51855a8b4d44cd81e4181e61c9de6d6",
-    "compile_and_fixtures_run": 37409806054,
+    "helper_source": "42e21e63d2a35bffa39547d62316026b0288b9ee",
+    "compile_and_fixtures_run": 37410839914,
     "related_runs": [
       37409806148,
       37409806189
@@ -8597,5 +8599,14 @@
       "raw_deleted": true,
       "root_cause_proven": false
     }
+  },
+  "retired_published_control": {
+    "state": "CANDIDATE_NOT_QUALIFIED_NOT_DEPLOYED",
+    "deployed_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+    "trigger_run": 37410839914,
+    "trigger": "repeated failedWake shared server ErrHandshakeState",
+    "scope": "Only own closed-association marker plus retired byFlow/DORMANT evidence",
+    "historical_run_unique_root_proven": false,
+    "next": "core/race deterministic retired control+60Wake repetitions, fullstack37, independent Normal/Game5205 and same-source P6 before deploy"
   }
 }
