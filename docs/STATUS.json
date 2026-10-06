@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "SOURCE7eeb retiredSYNACK narrow candidate core/race incl30Wake+SYN repetitions/36+aggregate37/P6/Linuxserver/GUI and5 independent strict samples/18 same-source same-helper RTTpairs PASS. Paired7eeb Windows/ARM deployed; native tc1411 failedWake recovery PASS; M02Game4 2747/2747 exact but1 late>1s: functionalPASS_WITH_LATE_RESPONSES, latency unqualified. Full70/18/1800s/P7 not inherited. Parent931 raceFAIL and native1410 localEPERM retained. Native timed M02 seed1413 all2769 exact, p99114.82ms/max118.33ms;M03 seed1414 all1954 exact but4maximumUDP late (max3016ms), no latency qualification. New receive-port candidate not qualified/deployed.",
-  "updated_at": "2026-10-06T10:52:10.632889+08:00",
+  "updated_at": "2026-10-06T11:16:16.182322+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,11 +80,11 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Native maximumUDP tail qualification on paired9211b24",
-    "DNS D04 and remaining physical configuration/routing matrix"
+    "M03-reverse-fragment-diagnostic-and-DNS-helper-qualification",
+    "Remaining DNS/IP/physical matrix; old rawp99/Wake failure attribution"
   ],
-  "next_task": "Run timed M03 seed1415 on paired9211b24 + exact qualified helper, same300s/1s timeout/original boundary gates, window raw audit+delete. Kernel actualfilter443 true must be checked. Collect outside-load host IP fragment/reassembly metadata, no causal claim from mixed-host counters. Then D04 both resolver FORWARD blackhole/defaultNRPT/leak observer/10M business/p99 and recovery, owned cleanup. Old7eeb4late/maxUDP p992240ms/oldrawp99/Wake residual loss retained; noHOL/buffer/FEC/4096 expansion. Latest full70/strict18/1800s not inherited.",
-  "latest_log": "docs/devlog/20261006-105210-server-port-filter-hosted-qualified.md",
+  "next_task": "Qualify bounded UDP probe phase-timing helper in Actions, preserve exact product9211b24. Diagnose M03 reverse failure: target echoed1796, maxUDP one missing/one1.308s late; rawsocketdrop0/filter443true, Windows completed675 reassemblies vs676 echoed large datagrams. Do not blindly repeat unchanged MTU or enlarge buffers/repair. Prepare owned bounded fragment/drop metadata, then physical D04 both-resolver blackhole with per-phase p99 and leak observer. Historical failures/current full70-strict18-soak qualification remain open.",
+  "latest_log": "docs/devlog/20261006-111900-native-probe-phase-timing.md",
   "last_tested_source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
   "actions": [
     {
@@ -7784,7 +7784,7 @@
   },
   "physical_current": {
     "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
-    "state": "TIMED_M03_NATIVE_RUNNING",
+    "state": "M03_REPEAT_FAIL_REVERSE_DIAGNOSTIC_PENDING",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
       "M01 seed1364",
@@ -7792,9 +7792,7 @@
       "M03 seed1366 FAIL",
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
-    "running": [
-      "m03-current-300s-seed1415"
-    ],
+    "running": [],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
@@ -7805,7 +7803,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "running_case": "m03-current-300s-seed1415",
+    "running_case": null,
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7960,15 +7958,27 @@
         "status": "PASS_WITH_LATE_RESPONSES",
         "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
         "evidence": "docs/evidence/native-timed-mtu-m03-7eebdcf-20261006.json"
+      },
+      {
+        "case": "m03-current-300s-seed1415",
+        "status": "PASS",
+        "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+        "evidence": "docs/evidence/native-mtu-9211b24-seed1415-20261006.json"
+      },
+      {
+        "case": "m03-current-300s-seed1416",
+        "status": "FAIL",
+        "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+        "evidence": "docs/evidence/native-mtu-9211b24-seed1416-20261006.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1397 SSH masters expired before workload;not product sample,not counted. Operational scp now BatchMode/ConnectTimeout.",
     "deployed_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
     "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
-    "last_failed_case": "s18-wake-blackhole-300s-seed1410",
-    "last_failure_evidence": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json",
-    "latest_native_pass": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
+    "last_failed_case": "m03-current-300s-seed1416",
+    "last_failure_evidence": "docs/evidence/native-mtu-9211b24-seed1416-20261006.json",
+    "latest_native_pass": "docs/evidence/native-mtu-9211b24-seed1416-20261006.json"
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -8023,7 +8033,7 @@
       "S20",
       "M02"
     ],
-    "full300s_samples": 30,
+    "full300s_samples": 32,
     "case_ids_total": 43,
     "case_ids_not_run": 31,
     "complete_qualification": false,
@@ -8438,7 +8448,7 @@
     "native_evidence": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
   },
   "native_mtu_timing": {
-    "state": "ACTIONS_PASS_TIMED_NATIVE_QUALITY_OPEN",
+    "state": "NATIVE_MTU_SCOPED_FAIL",
     "product_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
     "evidence": "docs/evidence/native-game-mtu-7eebdcf-20261005.json",
     "limit": 8192,
@@ -8481,7 +8491,7 @@
       }
     ],
     "helper_source": "f9653fb94d89f55a93686449bde4eeb65873fc25",
-    "latest_evidence": "docs/evidence/native-timed-mtu-m03-7eebdcf-20261006.json"
+    "latest_evidence": "docs/evidence/native-mtu-9211b24-seed1416-20261006.json"
   },
   "native_dns_leak_observer": {
     "state": "ACTIONS_SCOPED_PASS_NATIVE_NOT_RUN",
@@ -8496,7 +8506,7 @@
     "retained_initial_compile_failure": 37338589896
   },
   "server_receive_port_filter": {
-    "state": "HOSTED_TARGETED_PASS_NATIVE_PENDING",
+    "state": "HOSTED_TARGETED_PASS_NATIVE_MTU_REPEAT_FAIL",
     "deployed_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
     "reason": "M03 rawreceive393318/pipeline392980 vs client write67300; passive15s708 ingress across unrelated TCP/UDP ports. Exact attribution of excess during test and tail causality unknown.",
     "policy": "Server only, same local IPv4/listen TCPport, all source peers/personas accepted;non-Ethernet/loopback uses userspace port check, no buffer/recovery/FEC/wire changes",
@@ -8525,6 +8535,14 @@
     "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
     "performance_samples": 5,
     "rtt_pairs": 18,
-    "max_p99_increase_ms": 11.297867
+    "max_p99_increase_ms": 11.297867,
+    "latest_native": "docs/evidence/native-mtu-9211b24-seed1416-20261006.json"
+  },
+  "native_probe_phase_timing": {
+    "state": "HELPER_NOT_QUALIFIED_NATIVE_NOT_RUN",
+    "product_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+    "file": "tools/physical_udp_client.cs",
+    "policy": "Only bounded received probe SentTick/RTT metadata and UTC/QPC origin; original 12B probe/frequency/load/drain/gates unchanged",
+    "next": "Actions compile before physical D04; per phase latency is separate from DNS success/no-leak"
   }
 }

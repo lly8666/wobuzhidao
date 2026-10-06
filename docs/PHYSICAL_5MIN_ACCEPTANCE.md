@@ -138,3 +138,5 @@ S03–S27、D02–D06、I01–I06、M02/M03、W01仍NOT_RUN；当前助手不是
 
 
 2026-10-06 D04证据补充：物理NIC独立DNS metadata observer仅IPv4/IPv6 TCP/UDP53，<=360s/8192frame/128flows，逐秒及最终UTC/计数，不保存payload/pcap/query。完整窗口、stats返回0、capture drop0、unparsed0且DNSFrames0才能记所选接口无明文DNS。不能覆盖其他NIC/DoH/DoT/全部IPv6；DNS成功或NRPT规则存在不能替代出口证据。先Actions compile/固定header vectors，再原生同源码D04。
+
+2026-10-06当前9211b24入口过滤已验并配套部署，前文“只按ETH_P_IP接收”是旧源码历史。两次同源timed M03 seed1415 PASS/1416 FAIL（最大UDP一missing一late），小包全部准时，不能关闭M03。D04助手新增有界8192个原12字节探针的SentTick/原RTT和client UTC/QPC起点；保持原负载/pacing/drain，先Actions编译。分析以同一客户端时钟对齐故障事件并排除边界误差，分别重算pre/fault/post p95/p99及样本量；还需保留整场原p99和业务注入质量。相邻DNS查询跨边界不能硬归类，物理捕获drop/unparsed/窗口不足仍INCONCLUSIVE。

@@ -23,6 +23,14 @@ public class WBDPhysicalUDPResult {
     public int SendSocketError, ReceiveSocketErrors;
     public string SendErrorStage;
     public List<WBDPhysicalUDPInterval> Intervals = new List<WBDPhysicalUDPInterval>();
+    public long ProbeStartTick, ProbeStartUnixMS;
+    public double ProbeTickFrequency;
+    public int ProbeTimingCapacityErrors;
+    public List<WBDPhysicalProbeTiming> ProbeTiming = new List<WBDPhysicalProbeTiming>(8192);
+}
+public class WBDPhysicalProbeTiming {
+    public long SentTick;
+    public double RTTMS;
 }
 public class WBDPhysicalUDPInterval {
     public double ElapsedSeconds, WBDCPUSeconds;
@@ -62,7 +70,11 @@ public static class WBDPhysicalUDP {
                     if(n==12 && receive[0]=='P' && receive[1]=='7' && receive[2]=='P') {
                         long sent=BitConverter.ToInt64(receive,4);
                         Interlocked.Exchange(ref lastProbeAckTick,Stopwatch.GetTimestamp());
-                        rtts.Add((Stopwatch.GetTimestamp()-sent)*1000.0/Stopwatch.Frequency);continue;
+                        double rtt=(Stopwatch.GetTimestamp()-sent)*1000.0/Stopwatch.Frequency;
+                        rtts.Add(rtt);
+                        if(result.ProbeTiming.Count<8192)result.ProbeTiming.Add(new WBDPhysicalProbeTiming {SentTick=sent,RTTMS=rtt});
+                        else result.ProbeTimingCapacityErrors++;
+                        continue;
                     }
                     if(n<16 || receive[0]!='P' || receive[1]!='7' || receive[2]!='D' || receive[3]!='1') {result.BadPayload++;continue;}
                     uint sequence=Get32(receive,8);int declared=(receive[12]<<8)|receive[13]; bool valid=true;
@@ -77,6 +89,8 @@ public static class WBDPhysicalUDP {
             });
             rx.IsBackground=true;rx.Start();timeBeginPeriod(1);
             Stopwatch watch=Stopwatch.StartNew();string sendStage="start";
+            result.ProbeStartTick=Stopwatch.GetTimestamp();result.ProbeStartUnixMS=(DateTime.UtcNow.Ticks-621355968000000000L)/10000;
+            result.ProbeTickFrequency=Stopwatch.Frequency;
             try {
                 sock.Send(Encoding.ASCII.GetBytes("P7G"));
                 Dictionary<int,byte[]> buffers=new Dictionary<int,byte[]>();
