@@ -1,6 +1,6 @@
 # WBD NEXT 详细开发方案
 
-2026-10-06当前：0246526 Linux内层TUN9000/外层预算不变已过11正确性门（实际kernel+journal9000、invalidouter拒绝、37生命周期）及五独立严格性能/18RTT对/P6，同源Windows/ARM部署；Normal最低9.99926M/Game2.99955M，max p99增量11.21ms。M03短预检1437运行，原生收益未验；852最大UDP3late/p991404ms仍保留。38历史完整300s/16工况/27NOT_RUN跨源码不继承；每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：产品0246526内层TUN9000/外层1400已过17定向Actions（五条严格性能、18RTT对、P6）；M03拆包48→8/systematic95→59已证实，但一missing/一1.28s late保留，小包全及时。最新S06/seed1441 FAIL，历史300s41份/17工况/26NOT_RUN跨源码不继承。Normal/Game独立1800s Actions待收，下一S07。每性能Action一条，先STATUS/latest_log。
 
 以下带日期段落保留历史，当前任务以STATUS顶层为准。
 

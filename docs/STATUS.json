@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "Frozen0246526 innerTUN9000/outerMTU unchanged scoped11correctness gates including37lifecycle, actualkernel+journal+invalidMTU, five independent strict samples/18RTT pairs and P6 PASS; paired deployed, nativeM03 2s preflight1437 running. Prior852 maxUDP p991404ms/3late retained. Full70/18/1800s NOT_RUN.",
-  "updated_at": "2026-10-06T16:30:29.374120+08:00",
+  "qualification_scope": "Frozen024 scoped17Actions/five strict/18RTTpairs/P6 PASS. M03 geometryverified48to8IP/95to59sources butone missing/one late retained. NativeS06 FEC4 full300s target10M/p9971ms/DNS60 passed these scopes,6businessmissing/raw43drop retainedFAIL. Current full70/strict18 and two1800s campaigns nowDISPATCHED, notPASS.",
+  "updated_at": "2026-10-06T17:15:06.970864+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,12 +80,13 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Qualified024 inner9000 corrected observation preflight1440",
-    "Two independent300s M03 own-datagram tail/record overhead validation",
-    "Remaining27 native IDs/current full qualification"
+    "024 S07 Normal1/10M/FEC20:8 seed1444 full300s",
+    "024 70 functional configs+18 strict independentActions seeds1451/52/53 dispatched",
+    "024 Normal/Game1800s Actions runs37440874448/37440878333 running",
+    "M03 individual-datagram tail retainedPARTIAL;no blind repair retune"
   ],
-  "next_task": "Collect nonempty024 M03 preflight1440; actual Linux and Windows inner9000/outer1400/FEC20 config guard, zeroobserver drops. If valid start one300s M03 seed1438, then independently repeat1439 after cleanup. Verify maxUDP fragments48to8, per-size p99/no payload loss/bad content, actual source/record账本/driver/raw drops. Preserve failures, no blind buffer/FEC/4096/HOL changes. Remaining27 native IDs/full70/18/1800s open.",
-  "latest_log": "docs/devlog/20261006-163029-inner-mtu-qualified-native-validation.md",
+  "next_task": "Run S07 independently on paired024/helperb393 withactualconfig/encoder/input/DNS/drop/p99/ownedcleanup; no concurrentnative workloads. Collect024 Normal/Game1800s Actions results. Do not blind repeatM03 or retune FEC/shadow/buffers/HOL. All latestsource full70/strict18 remainNOT_RUN until explicit receipts.",
+  "latest_log": "docs/devlog/20261006-170600-native-fec-profiles-and-mtu-scope.md",
   "last_tested_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
   "actions": [
     {
@@ -8037,11 +8038,30 @@
   },
   "physical_current": {
     "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
-    "state": "QUALIFIED_INNER_MTU_NATIVE_PREFLIGHT_RUNNING",
+    "state": "S07_NATIVE_RUNNING_COMPLETE_ACTIONS_QUALIFICATION_PENDING",
     "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json",
-    "native_completed_300s": [],
+    "native_completed_300s": [
+      {
+        "case": "m03-tun-observation-300s-seed1438",
+        "status": "FAIL_MISSING_OR_LATE",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-inner-mtu-0246526-seed1438-20261006.json"
+      },
+      {
+        "case": "m03-tun-observation-300s-seed1439",
+        "status": "FAIL_MISSING_OR_LATE",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-inner-mtu-0246526-seed1439-20261006.json"
+      },
+      {
+        "case": "s06-current-300s-seed1441",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s06-0246526-seed1441-20261006.json"
+      }
+    ],
     "running": [
-      "m03-tun-observation-2s-seed1440"
+      "s07-current-300s-seed1444"
     ],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
@@ -8053,7 +8073,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": "m03-tun-observation-2s-seed1440",
+    "running_case": "s07-current-300s-seed1444",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8263,18 +8283,35 @@
         "status": "API_EXACT_PASS_TIMING_FAIL",
         "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
         "evidence": "docs/evidence/native-tun-boundary-85209d3-seed1434-20261006.json"
+      },
+      {
+        "case": "m03-tun-observation-300s-seed1438",
+        "status": "FAIL_MISSING_OR_LATE",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-inner-mtu-0246526-seed1438-20261006.json"
+      },
+      {
+        "case": "m03-tun-observation-300s-seed1439",
+        "status": "FAIL_MISSING_OR_LATE",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-inner-mtu-0246526-seed1439-20261006.json"
+      },
+      {
+        "case": "s06-current-300s-seed1441",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s06-0246526-seed1441-20261006.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
     "deployed_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
     "source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
-    "last_failed_case": "m03-tun-observation-300s-seed1434",
-    "last_failure_evidence": "docs/evidence/native-tun-boundary-85209d3-seed1434-20261006.json",
+    "last_failed_case": "s06-current-300s-seed1441",
+    "last_failure_evidence": "docs/evidence/native-s06-0246526-seed1441-20261006.json",
     "latest_native_pass": "docs/evidence/native-mtu-9211b24-seed1415-20261006.json",
-    "latest_native_evidence": "docs/evidence/native-tun-boundary-85209d3-seed1434-20261006.json",
+    "latest_native_evidence": "docs/evidence/native-s06-0246526-seed1441-20261006.json",
     "not_run_case_ids": [
-      "S06",
       "S07",
       "S08",
       "S09",
@@ -8364,11 +8401,12 @@
       "D04",
       "S03",
       "S04",
-      "S05"
+      "S05",
+      "S06"
     ],
-    "full300s_samples": 38,
+    "full300s_samples": 41,
     "case_ids_total": 43,
-    "case_ids_not_run": 27,
+    "case_ids_not_run": 26,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true,
     "additional_client_complete_only_failures": [
@@ -8385,6 +8423,27 @@
         "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
         "status": "API_EXACT_PASS_TIMING_FAIL",
         "evidence": "docs/evidence/native-tun-boundary-85209d3-seed1434-20261006.json"
+      },
+      {
+        "case": "m03-tun-observation-300s-seed1438",
+        "status": "FAIL_MISSING_OR_LATE",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-inner-mtu-0246526-seed1438-20261006.json",
+        "id": "M03"
+      },
+      {
+        "case": "m03-tun-observation-300s-seed1439",
+        "status": "FAIL_MISSING_OR_LATE",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-inner-mtu-0246526-seed1439-20261006.json",
+        "id": "M03"
+      },
+      {
+        "case": "s06-current-300s-seed1441",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s06-0246526-seed1441-20261006.json",
+        "id": "S06"
       }
     ]
   },
@@ -8472,53 +8531,40 @@
     "helper_run": 37253531888
   },
   "current_soak": {
-    "source": "660b370815603c50d38b92229abdec13ca77e1b1",
-    "state": "PASS",
+    "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "state": "IN_PROGRESS",
     "samples": [
       {
         "mode": "normal",
-        "run": 37254546236,
-        "source": "660b370815603c50d38b92229abdec13ca77e1b1",
-        "result": "PASS",
+        "seed": 1442,
+        "run": 37440874448,
         "seconds": 1800,
-        "min_phase_goodput_mbps": 9.998990933333333,
-        "max_phase_p99_ms": 621.12872,
-        "cpu_seconds": {
-          "client": 809.82,
-          "server": 817.18
-        },
-        "socket_drop_max": 0
+        "status": "RUNNING"
       },
       {
         "mode": "game",
-        "run": 37254548514,
-        "source": "660b370815603c50d38b92229abdec13ca77e1b1",
-        "result": "PASS",
+        "seed": 1443,
+        "run": 37440878333,
         "seconds": 1800,
-        "min_phase_goodput_mbps": 2.999872,
-        "max_phase_p99_ms": 604.474247,
-        "cpu_seconds": {
-          "client": 1080.36,
-          "server": 1016.13
-        },
-        "socket_drop_max": 0
+        "status": "RUNNING"
       }
     ],
-    "evidence": "docs/evidence/qualification-660b370-20261005.json"
+    "one_sample_per_action": true
   },
   "current_qualification": {
-    "source": "660b370815603c50d38b92229abdec13ca77e1b1",
-    "config70": "PASS",
-    "strict18_individual": "PASS",
-    "strict18_paired": "FAIL_P99_GAME_5305_SEED1382",
-    "strict_failed_run": 37255274295,
-    "p99_stress_ms": 1314.347294,
-    "p99_lossless_ms": 602.290026,
-    "p99_delta_ms": 712.057268,
-    "p99_delta_gate_ms": 500,
-    "evidence": "docs/evidence/qualification-660b370-20261005.json",
-    "latency_user_priority": "p99 and throughput must not degrade;no threshold weakening/no replacing failed samples",
-    "root_cause": "NOT_YET_LOCALIZED;not a demonstrated sustained CPU saturation or FEC HOL"
+    "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "state": "IN_PROGRESS",
+    "config70": "DISPATCHED_NOT_YET_PASS",
+    "strict18_individual": "DISPATCHED_NOT_YET_PASS",
+    "strict18_paired": "NOT_EVALUATED",
+    "seeds": [
+      1451,
+      1452,
+      1453
+    ],
+    "evidence": "docs/evidence/qualification-0246526-dispatch-20261006.json",
+    "previous_scoped5": "PASS;separatequalification",
+    "one_sample_per_action": true
   },
   "tail_observation": {
     "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
@@ -9145,7 +9191,7 @@
     "native_result": "All2014 received;maxUDP168/168 with3late,p991404ms;small1342/1342 timely;valid12934/12934 drops0"
   },
   "server_inner_mtu_separation": {
-    "state": "SCOPED_ACTIONS_PASS_DEPLOYED_NATIVE_PREFLIGHT_RUNNING",
+    "state": "SCOPED_ACTIONS_PASS_NATIVE_GEOMETRY_VERIFIED_QUALITY_PARTIAL",
     "base_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
     "inner_mtu": 9000,
     "source_of_inner_limit": "logicaltunnel.MaxLeasedIPv4PacketLen",
@@ -9187,6 +9233,89 @@
     "paired_rtt_count": 18,
     "max_p95_increment_ms": 9.488334,
     "max_p99_increment_ms": 11.210221,
-    "native": "preflight1437 INCONCLUSIVE observerwindow,1440 corrected ordering running"
-  }
+    "native": "m03-tun-observation-300s-seed1438",
+    "native_preflight": "docs/evidence/native-inner-mtu-preflight-0246526-seed1440-20261006.json",
+    "native_quality": "Two valid300s:1438 one maxUDP missing;1439 all2047 returned,one9000B IP late1278ms. Small packets alltimely;no globalHOL. M03 not closed.",
+    "native_samples": [
+      {
+        "case": "m03-tun-observation-300s-seed1438",
+        "status": "FAIL_MISSING_OR_LATE",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-inner-mtu-0246526-seed1438-20261006.json"
+      },
+      {
+        "case": "m03-tun-observation-300s-seed1439",
+        "status": "FAIL_MISSING_OR_LATE",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-inner-mtu-0246526-seed1439-20261006.json"
+      }
+    ],
+    "record_limit_receipt": "docs/evidence/native-effective-record-limit-0246526-20261006.json",
+    "native_next": "Do not blind repeat M03 or retune shadow/FEC/buffers. Remaining native config matrix first; a future narrow shard diagnostic must prove missing source/parity/recovery on same-host clock without keys/payload."
+  },
+  "native_fec_profiles": {
+    "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "samples": [
+      {
+        "case": "s06-current-300s-seed1441",
+        "status": "FAIL",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "evidence": "docs/evidence/native-s06-0246526-seed1441-20261006.json",
+        "id": "S06"
+      }
+    ]
+  },
+  "qualification_history": [
+    {
+      "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "config70": "PASS",
+      "strict18_individual": "PASS",
+      "strict18_paired": "FAIL_P99_GAME_5305_SEED1382",
+      "strict_failed_run": 37255274295,
+      "p99_stress_ms": 1314.347294,
+      "p99_lossless_ms": 602.290026,
+      "p99_delta_ms": 712.057268,
+      "p99_delta_gate_ms": 500,
+      "evidence": "docs/evidence/qualification-660b370-20261005.json",
+      "latency_user_priority": "p99 and throughput must not degrade;no threshold weakening/no replacing failed samples",
+      "root_cause": "NOT_YET_LOCALIZED;not a demonstrated sustained CPU saturation or FEC HOL"
+    }
+  ],
+  "soak_history": [
+    {
+      "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+      "state": "PASS",
+      "samples": [
+        {
+          "mode": "normal",
+          "run": 37254546236,
+          "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+          "result": "PASS",
+          "seconds": 1800,
+          "min_phase_goodput_mbps": 9.998990933333333,
+          "max_phase_p99_ms": 621.12872,
+          "cpu_seconds": {
+            "client": 809.82,
+            "server": 817.18
+          },
+          "socket_drop_max": 0
+        },
+        {
+          "mode": "game",
+          "run": 37254548514,
+          "source": "660b370815603c50d38b92229abdec13ca77e1b1",
+          "result": "PASS",
+          "seconds": 1800,
+          "min_phase_goodput_mbps": 2.999872,
+          "max_phase_p99_ms": 604.474247,
+          "cpu_seconds": {
+            "client": 1080.36,
+            "server": 1016.13
+          },
+          "socket_drop_max": 0
+        }
+      ],
+      "evidence": "docs/evidence/qualification-660b370-20261005.json"
+    }
+  ]
 }

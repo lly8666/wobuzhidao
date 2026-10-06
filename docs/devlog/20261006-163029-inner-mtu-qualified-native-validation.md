@@ -33,3 +33,23 @@ SOURCE02465264b37fb61c4d95b190fbfe8322e4912351，冻结qualification/0246526-inn
 ## 追加：短预检1437观察范围不足，修正控制器顺序
 
 应用全部及时返回、Windows22个提交行/drop0、effective config两端inner9000/outer1400/FEC20正确；Linux只有4行，标INCONCLUSIVE，不作为丢片证据、不计300s。Linuxready ownUnix1791275428239812311，第一包ownUnix1791275439974378480已距开始11.73s，原12s窗口被新增preload kernel/config核验RPC占去。将核验全部移到observer bind/ready之前，冻结产品/原助手/观察12s及负载不变，fresh seed1440复核非空完整覆盖，失败原件保留。不是product修复失败，不扩大任何product buffer或force repair。
+
+## 追加：1440短预检有效，开始1438完整300s
+
+仅调整核验与observer启动顺序，产品和qualified helper未变；Linux21/Windows21记录匹配、wholewindow/nonempty/drop0、checksum/真实drivern正确，所有包及时。maxUDP实际8片（父SOURCE48片），short不计完整300s、不关闭M03。开始fresh1438完整300s，之后独立1439复验，继续largestUDP own p99和outer预算/内容/清理验收。
+
+## 追加：完整300s seed1438真实结果
+
+有效观察Linux3414/Windows3412，metadata三drop0；application FAIL_MISSING_OR_LATE，API FAIL，missing1、timeout1、badpayload/duplicate0。最大UDP独立指标{"sent": 171, "received": 170, "missing": 1, "timeout": 1, "rtt_ms": {"p50": 78.56750000000545, "p95": 172.14380000000062, "p99": 186.59960000000098, "max": 318.2424000000026}, "send_call_max_ms": 0.3261000000023273}。core/P6/性能PASS不抵消此failure，successfulp99不含missing，须同时报告。最大UDP实际8个IP片、按实际IP长度/1300接收record限制推导59systematic（父95），总encoder15725source/15725parity，与受控推导15719相差6其他TUN输入，默认recordlimit尚须配置独立回执核对。稀疏产品CPU10.421875s、helper0.796875s不是10M性能资格或纯CPU因果比较。rawsocketdrop0，STOPPED Exit0/owned清理/raw capture删除检查保留。历史完整300s计39，不增加uniqueM03 ID或减少其余NOT_RUN。
+
+## 追加：完整300s seed1439真实结果
+
+有效观察Linux3415/Windows3415，metadata三drop0；application FAIL_MISSING_OR_LATE，API PASS_WITH_LATE_RESPONSES，missing0、timeout1、badpayload/duplicate0。最大UDP独立指标{"sent": 171, "received": 171, "missing": 0, "timeout": 0, "rtt_ms": {"p50": 77.13699999999335, "p95": 166.18880000000047, "p99": 287.06369999997605, "max": 349.76389999999924}, "send_call_max_ms": 0.42240000000504097}。core/P6/性能PASS不抵消此failure，successfulp99不含missing，须同时报告。最大UDP实际8个IP片、按实际IP长度/1300接收record限制推导59systematic（父95），总encoder15725source/15725parity，与受控推导15720相差5其他TUN输入，默认recordlimit尚须配置独立回执核对。稀疏产品CPU16.171875s、helper1s不是10M性能资格或纯CPU因果比较。rawsocketdrop0，STOPPED Exit0/owned清理/raw capture删除检查保留。历史完整300s计40，不增加uniqueM03 ID或减少其余NOT_RUN。
+
+## 追加：双样本收口与下一配置
+
+两条完整M03同源024/助手b393，有效整窗口观测：1438 Linux3414/Windows3412，1最大UDP缺2内层IP片；1439 Linux3415/Windows3415完整、2047全部回包，但9000B DF包seq1768迟到1278.2255ms。后者回程只有一个IP包，最终提交晚，旁边1364小包全部及时，不能把长尾完全归咎于IP分片或写成全连接HOL。两条badpayload/duplicate及metadata drop0、server rawdrop0，无4096/FEC-cap压力证据；正常退出/owned清理及pcap审计删除。1438 maxUDP successful-only p99186.5996ms并列missing1，1439该类别171全及时/p99287.0637ms，但9000B类别最大1.278s仍保留；不平均掩盖失败，也不拿两个随机WAN样本宣称全局p99提升。
+
+独立复核实际客户端--check-config recordlimit1300，服务端内层9000/外层1400、FEC20及源SHA/清理状态（secret-free receipt）。最大UDP59 systematic/父95、9000B IP8/父13的几何减少已与实际encoder counts一致；两条source15725/parity15725对受控15719/15720，其余6/5是其他TUN输入。无新逐包处理，作用是降低必要封装，不承诺真实WAN所有包及时或可靠。维持有限3s恢复和无HOL，不为全收齐强制外层可靠。
+
+历史完整300s40、unique16/27NOT_RUN包括失败/跨源码，整体P7仍PARTIAL；当前SOURCE全70/strict18/1800s NOT_RUN。文档HEAD cb5的基础37437054262/targeted37437054339/preflight37437054298/GUI37437054377均PASS（只文档变化，执行SOURCE与产品024分别记录）。下一条单独S06/seed1441 Normal1、每方向10M、FEC20:4、300s和DNS60次，actuallane/FEC诊断与输入延迟/CPU/driver/rawdrop、p99/退出清理/限量pcap删除；不拿较低FEC替代20:20主资格。原生不可知WANloss单列真实失败，不改程序凑指标。

@@ -1,0 +1,24 @@
+{
+  "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+  "windows": {
+    "version": "wbd-client version=next-rc-02465264b37f source_sha=02465264b37fb61c4d95b190fbfe8322e4912351 go=go1.23.12 os=windows arch=amd64",
+    "record_limit": 1300,
+    "outer_mtu": 1400,
+    "fec": 20,
+    "lanes": 1,
+    "state": "STOPPED",
+    "network_remaining": false,
+    "client_process_count": 0,
+    "config_backup_exists": false
+  },
+  "server": {
+    "version": "wbd-server version=next-rc-02465264b37f source_sha=02465264b37fb61c4d95b190fbfe8322e4912351 go=go1.23.12 os=linux arch=arm64",
+    "active": "active",
+    "inner_mtu": 9000,
+    "outer_mtu": 1400,
+    "fec": 20,
+    "config_backup_exists": false,
+    "test_address_exists": false
+  },
+  "scope": "secret-free selected effective CLI fields and clean pre-test ownership"
+}

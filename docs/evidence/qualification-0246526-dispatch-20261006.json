@@ -1,0 +1,894 @@
+{
+  "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+  "frozen_ref": "qualification/0246526-inner-mtu-20261006",
+  "strict_seeds": [
+    1451,
+    1452,
+    1453
+  ],
+  "samples": [
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-normal-lossless-seed1451-rate10-lanes1",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1451",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-normal-lossless-seed1452-rate10-lanes1",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1452",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-normal-lossless-seed1453-rate10-lanes1",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "lossless",
+        "seed": "1453",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-normal-5205-seed1451-rate10-lanes1",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1451",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-normal-5205-seed1452-rate10-lanes1",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1452",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-normal-5205-seed1453-rate10-lanes1",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5205",
+        "seed": "1453",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-normal-5305-seed1451-rate10-lanes1",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1451",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-normal-5305-seed1452-rate10-lanes1",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1452",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-normal-5305-seed1453-rate10-lanes1",
+      "inputs": {
+        "mode": "normal",
+        "scenario": "5305",
+        "seed": "1453",
+        "rate_mbps": "10",
+        "lanes": "1",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-game-lossless-seed1451-rate3-lanes4",
+      "inputs": {
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1451",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-game-lossless-seed1452-rate3-lanes4",
+      "inputs": {
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1452",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-game-lossless-seed1453-rate3-lanes4",
+      "inputs": {
+        "mode": "game",
+        "scenario": "lossless",
+        "seed": "1453",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-game-5205-seed1451-rate3-lanes4",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1451",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-game-5205-seed1452-rate3-lanes4",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1452",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-game-5205-seed1453-rate3-lanes4",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5205",
+        "seed": "1453",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-game-5305-seed1451-rate3-lanes4",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1451",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-game-5305-seed1452-rate3-lanes4",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1452",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-strict-weaknet.yml",
+      "identity": "strict-game-5305-seed1453-rate3-lanes4",
+      "inputs": {
+        "mode": "game",
+        "scenario": "5305",
+        "seed": "1453",
+        "rate_mbps": "3",
+        "lanes": "4",
+        "product_source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f0-l1-p0",
+      "inputs": {
+        "case_id": "f0-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f0-l1-p1",
+      "inputs": {
+        "case_id": "f0-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f0-l2-p0",
+      "inputs": {
+        "case_id": "f0-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f0-l2-p1",
+      "inputs": {
+        "case_id": "f0-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f0-l3-p0",
+      "inputs": {
+        "case_id": "f0-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f0-l3-p1",
+      "inputs": {
+        "case_id": "f0-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f0-l4-p0",
+      "inputs": {
+        "case_id": "f0-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f0-l4-p1",
+      "inputs": {
+        "case_id": "f0-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-json-f0",
+      "inputs": {
+        "case_id": "json-f0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f4-l1-p0",
+      "inputs": {
+        "case_id": "f4-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f4-l1-p1",
+      "inputs": {
+        "case_id": "f4-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f4-l2-p0",
+      "inputs": {
+        "case_id": "f4-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f4-l2-p1",
+      "inputs": {
+        "case_id": "f4-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f4-l3-p0",
+      "inputs": {
+        "case_id": "f4-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f4-l3-p1",
+      "inputs": {
+        "case_id": "f4-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f4-l4-p0",
+      "inputs": {
+        "case_id": "f4-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f4-l4-p1",
+      "inputs": {
+        "case_id": "f4-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-json-f4",
+      "inputs": {
+        "case_id": "json-f4"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f8-l1-p0",
+      "inputs": {
+        "case_id": "f8-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f8-l1-p1",
+      "inputs": {
+        "case_id": "f8-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f8-l2-p0",
+      "inputs": {
+        "case_id": "f8-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f8-l2-p1",
+      "inputs": {
+        "case_id": "f8-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f8-l3-p0",
+      "inputs": {
+        "case_id": "f8-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f8-l3-p1",
+      "inputs": {
+        "case_id": "f8-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f8-l4-p0",
+      "inputs": {
+        "case_id": "f8-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f8-l4-p1",
+      "inputs": {
+        "case_id": "f8-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-json-f8",
+      "inputs": {
+        "case_id": "json-f8"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f10-l1-p0",
+      "inputs": {
+        "case_id": "f10-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f10-l1-p1",
+      "inputs": {
+        "case_id": "f10-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f10-l2-p0",
+      "inputs": {
+        "case_id": "f10-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f10-l2-p1",
+      "inputs": {
+        "case_id": "f10-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f10-l3-p0",
+      "inputs": {
+        "case_id": "f10-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f10-l3-p1",
+      "inputs": {
+        "case_id": "f10-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f10-l4-p0",
+      "inputs": {
+        "case_id": "f10-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f10-l4-p1",
+      "inputs": {
+        "case_id": "f10-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-json-f10",
+      "inputs": {
+        "case_id": "json-f10"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f12-l1-p0",
+      "inputs": {
+        "case_id": "f12-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f12-l1-p1",
+      "inputs": {
+        "case_id": "f12-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f12-l2-p0",
+      "inputs": {
+        "case_id": "f12-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f12-l2-p1",
+      "inputs": {
+        "case_id": "f12-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f12-l3-p0",
+      "inputs": {
+        "case_id": "f12-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f12-l3-p1",
+      "inputs": {
+        "case_id": "f12-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f12-l4-p0",
+      "inputs": {
+        "case_id": "f12-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f12-l4-p1",
+      "inputs": {
+        "case_id": "f12-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-json-f12",
+      "inputs": {
+        "case_id": "json-f12"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f16-l1-p0",
+      "inputs": {
+        "case_id": "f16-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f16-l1-p1",
+      "inputs": {
+        "case_id": "f16-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f16-l2-p0",
+      "inputs": {
+        "case_id": "f16-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f16-l2-p1",
+      "inputs": {
+        "case_id": "f16-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f16-l3-p0",
+      "inputs": {
+        "case_id": "f16-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f16-l3-p1",
+      "inputs": {
+        "case_id": "f16-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f16-l4-p0",
+      "inputs": {
+        "case_id": "f16-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f16-l4-p1",
+      "inputs": {
+        "case_id": "f16-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-json-f16",
+      "inputs": {
+        "case_id": "json-f16"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f20-l1-p0",
+      "inputs": {
+        "case_id": "f20-l1-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f20-l1-p1",
+      "inputs": {
+        "case_id": "f20-l1-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f20-l2-p0",
+      "inputs": {
+        "case_id": "f20-l2-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f20-l2-p1",
+      "inputs": {
+        "case_id": "f20-l2-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f20-l3-p0",
+      "inputs": {
+        "case_id": "f20-l3-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f20-l3-p1",
+      "inputs": {
+        "case_id": "f20-l3-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f20-l4-p0",
+      "inputs": {
+        "case_id": "f20-l4-p0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-f20-l4-p1",
+      "inputs": {
+        "case_id": "f20-l4-p1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-json-f20",
+      "inputs": {
+        "case_id": "json-f20"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-defaults",
+      "inputs": {
+        "case_id": "defaults"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-mtu1280-reverse0",
+      "inputs": {
+        "case_id": "mtu1280-reverse0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-mtu1280-reverse1",
+      "inputs": {
+        "case_id": "mtu1280-reverse1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-mtu1400-reverse0",
+      "inputs": {
+        "case_id": "mtu1400-reverse0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-mtu1400-reverse1",
+      "inputs": {
+        "case_id": "mtu1400-reverse1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-mtu1500-reverse0",
+      "inputs": {
+        "case_id": "mtu1500-reverse0"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    },
+    {
+      "workflow": "next-config-effective.yml",
+      "identity": "config-mtu1500-reverse1",
+      "inputs": {
+        "case_id": "mtu1500-reverse1"
+      },
+      "state": "DISPATCHED",
+      "dispatch_exit": 0
+    }
+  ],
+  "one_per_action": true
+}

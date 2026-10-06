@@ -1,6 +1,6 @@
 # Actions 验收契约
 
-2026-10-06当前 SOURCE9211b24679ff97c46c20f69af47ed3f3e850b2ad：接收端口过滤已通过core/race/真AF_PACKET/native多客户端12/服务化12/37生命周期、五条独立120s性能及18RTT对、P6并配套部署；全部socketdrop0，p99最大增加11.30ms。当前原生M03 seed1415正在运行，D04未跑；最新全70/strict18/1800s未重验。证据server-port-filter-9211b24-20261006.json与STATUS为当前入口，下文旧660失败保持历史，不自动关闭或变成最新下一步。
+2026-10-06当前：产品0246526内层TUN9000/外层1400已过17定向Actions（五条严格性能、18RTT对、P6）；M03拆包48→8/systematic95→59已证实，但一missing/一1.28s late保留，小包全及时。最新S06/seed1441 FAIL，历史300s41份/17工况/26NOT_RUN跨源码不继承。Normal/Game独立1800s Actions待收，下一S07。每性能Action一条，先STATUS/latest_log。
 
 2026-10-05当前：产品SOURCE660b370配套部署；同源70配置PASS、18独立样本五分类PASS，但严格配对Game5305/seed1382 p99增加712ms超过500ms门，整体仍FAIL。Normal/Game各1800s独立长测PASS，最差阶段吞吐9.99899/2.999872M、阶段p99最高621.13/604.47ms；不能抵消短测尾延迟失败。原生M01完整PASS；M03两份最大UDP各缺1回包；S18双方两次Dormant释放和generation1→2→3/lease稳定通过，非零损失及延迟未验保留。HEAD919 helper基础/targeted因漏改STATUS契约FAIL，Go未跑，本提交补齐；未把它当产品回归。下一按STATUS查p99、验helper再S19/S20及其余DNS/IP/FEC/config。每性能Action一条，吞吐/p99硬门不降。
 
@@ -62,7 +62,7 @@ Linux共享TUN/单host NAT/DNS/UDP/TCP、Windows路由/分流/lease/IPv6清理�
 
 网络：300ms单向；120秒；30/60/30秒；5%->20%->5%和5%->30%->5%。保留原业务大中小包混合和双向负载，harness从old定向提取后删除旧源码下载与DTLS选择。
 
-每个Action job同时只跑一条负载，允许不同job扇出。每场景至少两次独立运行。5/10/15/20Mbps起步；Mbps明确每方向或总和，同时报告PPS和线上实际字节。再做资源允许的40Mbps aggregate-inner目标；50/100Mbps只是容量探索，不把达不到定为协议错误，也不恢复旧分支40Mbps成绩。
+每个性能 Action run 只跑一条样本，禁止不同 job 在同一 run 扇出，禁止串行多样本和 A/B。每场景至少两次独立 run。5/10/15/20Mbps起步；Mbps明确每方向或总和，同时报告PPS和线上实际字节。再做资源允许的40Mbps aggregate-inner目标；50/100Mbps只是容量探索，不把达不到定为协议错误，也不恢复旧分支40Mbps成绩。
 
 额外覆盖无损低延迟、单向/双向、小包PPS、FEC off、多lane。记录 offered/accepted/actual send、send failure、skipped slots、send lag；不能因一个可忽略skip就判全无效，也不能忽略真实注入不足。注入有效性必须单独出结果。
 
