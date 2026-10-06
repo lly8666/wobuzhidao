@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "SOURCE7eeb retiredSYNACK narrow candidate core/race incl30Wake+SYN repetitions/36+aggregate37/P6/Linuxserver/GUI and5 independent strict samples/18 same-source same-helper RTTpairs PASS. Paired7eeb Windows/ARM deployed; native tc1411 failedWake recovery PASS; M02Game4 2747/2747 exact but1 late>1s: functionalPASS_WITH_LATE_RESPONSES, latency unqualified. Full70/18/1800s/P7 not inherited. Parent931 raceFAIL and native1410 localEPERM retained. Native timed M02 seed1413 all2769 exact, p99114.82ms/max118.33ms;M03 seed1414 all1954 exact but4maximumUDP late (max3016ms), no latency qualification. New receive-port candidate not qualified/deployed.",
-  "updated_at": "2026-10-06T11:28:46.581875+08:00",
+  "updated_at": "2026-10-06T11:35:10.968407+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -84,8 +84,8 @@
     "Bounded reverse-fragment diagnostic helpers Actions qualification",
     "Remaining native IP/config and old rawp99/Wake attribution"
   ],
-  "next_task": "Collect D04 seed1417 on paired product9211b24 and qualified helperf7c; evaluate DNS failure/recovery, no physical DNS leakage, per-phase p99 and offered load separately. Qualify bounded reverse fragment helpers before instrumented M03; never repeat unchanged MTU blindly, expand repair buffers or restore HOL. Historical failures/latest full70-strict18-soak stay open.",
-  "latest_log": "docs/devlog/20261006-113500-pktmon-owned-command-arguments.md",
+  "next_task": "Finish owned bounded reverse-fragment M03 seed1418 on paired product9211b24/helper5c; compare serverTUN and WindowsWintun IDs/offsets and retain observercoverage/drop integrity. D04 functional gates passed but business32missing and raw187drops/pacingp99 unavailable remain PARTIAL; do not claim zero-loss or fullP7. No buffers/FEC/4096/HOL expansion. Latest full70/strict18/1800s and remaining30 case IDs still open.",
+  "latest_log": "docs/devlog/20261006-114000-native-dns-dual-fault-result.md",
   "last_tested_source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
   "actions": [
     {
@@ -7785,7 +7785,7 @@
   },
   "physical_current": {
     "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
-    "state": "D04_RUNNING_M03_REVERSE_FRAGMENT_DIAGNOSTIC_PENDING",
+    "state": "D04_FUNCTIONAL_PASS_QUALITY_PARTIAL_M03_DIAGNOSTIC_SETUP",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
       "M01 seed1364",
@@ -7794,7 +7794,7 @@
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
     "running": [
-      "d04-current-300s-seed1417"
+      "m03-current-300s-seed1418 diagnostic"
     ],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
@@ -7805,8 +7805,8 @@
       "S16 seed1353",
       "S02 seed1354"
     ],
-    "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "running_case": "d04-current-300s-seed1417",
+    "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
+    "running_case": "m03-current-300s-seed1418",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7876,7 +7876,7 @@
         }
       }
     ],
-    "helper_head": "f7c8a592e351f3e89c408c5b5465a862466f2e2e",
+    "helper_head": "5c94366ab453120d63ab5a28d85007456aa8bcd5",
     "completed": [
       {
         "case": "m01-current-300s-seed1364",
@@ -7973,6 +7973,12 @@
         "status": "FAIL",
         "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
         "evidence": "docs/evidence/native-mtu-9211b24-seed1416-20261006.json"
+      },
+      {
+        "case": "d04-current-300s-seed1417",
+        "status": "DNS_FUNCTIONAL_PASS_BUSINESS_QUALITY_PARTIAL",
+        "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+        "evidence": "docs/evidence/native-dns-d04-9211b24-seed1417-20261006.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
@@ -7981,7 +7987,8 @@
     "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
     "last_failed_case": "m03-current-300s-seed1416",
     "last_failure_evidence": "docs/evidence/native-mtu-9211b24-seed1416-20261006.json",
-    "latest_native_pass": "docs/evidence/native-mtu-9211b24-seed1415-20261006.json"
+    "latest_native_pass": "docs/evidence/native-mtu-9211b24-seed1415-20261006.json",
+    "latest_native_evidence": "docs/evidence/native-dns-d04-9211b24-seed1417-20261006.json"
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -8034,11 +8041,12 @@
       "S18",
       "S19",
       "S20",
-      "M02"
+      "M02",
+      "D04"
     ],
-    "full300s_samples": 32,
+    "full300s_samples": 33,
     "case_ids_total": 43,
-    "case_ids_not_run": 31,
+    "case_ids_not_run": 30,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true,
     "additional_client_complete_only_failures": [
@@ -8542,7 +8550,7 @@
     "latest_native": "docs/evidence/native-mtu-9211b24-seed1416-20261006.json"
   },
   "native_probe_phase_timing": {
-    "state": "ACTIONS_PASS_NATIVE_D04_RUNNING",
+    "state": "ACTIONS_PASS_NATIVE_D04_PHASES_EVALUATED",
     "product_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
     "file": "tools/physical_udp_client.cs",
     "policy": "Only bounded received probe SentTick/RTT metadata and UTC/QPC origin; original 12B probe/frequency/load/drain/gates unchanged",
@@ -8553,15 +8561,24 @@
       37408486089,
       37408486138,
       37408486233
-    ]
+    ],
+    "evidence": "docs/evidence/native-dns-d04-9211b24-seed1417-20261006.json"
   },
   "native_fragment_diagnostic": {
-    "state": "COMMAND_ARGUMENT_FIX_NOT_QUALIFIED_NATIVE_NOT_RUN",
+    "state": "ACTIONS_OWNERSHIP_AND_FIXED_FRAGMENTS_PASS_NATIVE_SETUP",
     "files": [
       "tools/physical_inner_fragment_watch.py",
       "tools/physical_windows_fragments.ps1"
     ],
     "scope": "Controlled198.18.0.1 to leased10.66 address only; serverTUN before ingestion vs selectedWintun Pktmon; bounded metadata, no transport changes",
-    "next": "Actions fixed fragment/pcapng fixtures and PS parse gate before native diagnostic; ownership/capture drops/window must be proven, raw captures deleted after audit"
+    "next": "Actions fixed fragment/pcapng fixtures and PS parse gate before native diagnostic; ownership/capture drops/window must be proven, raw captures deleted after audit",
+    "helper_source": "5c94366ab453120d63ab5a28d85007456aa8bcd5",
+    "compile_and_fixtures_run": 37409438238,
+    "related_runs": [
+      37409438245,
+      37409438233
+    ],
+    "foundation_run": 37409438248,
+    "foundation_state": "IN_PROGRESS_AT_RECORDING"
   }
 }

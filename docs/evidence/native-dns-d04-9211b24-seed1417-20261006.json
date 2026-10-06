@@ -1,0 +1,1595 @@
+{
+  "schema": "wbd-native-dns-d04/v1",
+  "status": "DNS_FUNCTIONAL_PASS_BUSINESS_QUALITY_PARTIAL",
+  "errors": [],
+  "product_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+  "helper_source": "f7c8a592e351f3e89c408c5b5465a862466f2e2e",
+  "case": "d04-current-300s-seed1417",
+  "phase_boundary_guard_seconds": 15,
+  "phase_clock_scope": "Same-client UTC/QPC; DNS separate watch same signal with excluded transition guard; server rates same start transaction, not exact one-way times",
+  "fault_start_seconds": 67.921,
+  "fault_end_seconds": 186.567,
+  "probe_phases": {
+    "pre": {
+      "start_seconds": 5,
+      "end_seconds": 52.92100000000001,
+      "received_probes": 476,
+      "p95_ms": 135.4826,
+      "p99_ms": 200.5121,
+      "max_ms": 215.3238,
+      "c2s_goodput_mbps": 10.00025743763241,
+      "s2c_goodput_mbps": 9.998684706440669
+    },
+    "fault": {
+      "start_seconds": 82.921,
+      "end_seconds": 171.567,
+      "received_probes": 880,
+      "p95_ms": 178.8374,
+      "p99_ms": 254.324,
+      "max_ms": 272.7323,
+      "c2s_goodput_mbps": 10.000115850363295,
+      "s2c_goodput_mbps": 9.999946382864133
+    },
+    "post": {
+      "start_seconds": 201.567,
+      "end_seconds": 295,
+      "received_probes": 927,
+      "p95_ms": 142.3984,
+      "p99_ms": 220.9945,
+      "max_ms": 240.7955,
+      "c2s_goodput_mbps": 9.998213320930939,
+      "s2c_goodput_mbps": 9.99903828216771
+    }
+  },
+  "dns_phases": {
+    "pre": {
+      "total": 10,
+      "success": 10,
+      "udp_total": 5,
+      "tcp_total": 5,
+      "max_ms": 174.8846,
+      "errors": []
+    },
+    "fault": {
+      "total": 7,
+      "success": 0,
+      "udp_total": 4,
+      "tcp_total": 3,
+      "max_ms": 15084.6798,
+      "errors": [
+        "10057,Microsoft.DnsClient.Commands.ResolveDnsName",
+        "ERROR_TIMEOUT,Microsoft.DnsClient.Commands.ResolveDnsName"
+      ]
+    },
+    "post": {
+      "total": 18,
+      "success": 18,
+      "udp_total": 9,
+      "tcp_total": 9,
+      "max_ms": 165.72390000000001,
+      "errors": []
+    }
+  },
+  "dns_boundary_samples": [
+    {
+      "ElapsedSeconds": 1.8413758,
+      "TCPOnly": false,
+      "Success": true,
+      "Milliseconds": 134.1035,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 1.9959273,
+      "TCPOnly": true,
+      "Success": true,
+      "Milliseconds": 136.7132,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 60.166081899999995,
+      "TCPOnly": false,
+      "Success": true,
+      "Milliseconds": 71.2861,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 60.3085308,
+      "TCPOnly": true,
+      "Success": true,
+      "Milliseconds": 132.78810000000001,
+      "IPv4": [
+        "104.16.124.96",
+        "104.16.123.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 77.1491391,
+      "TCPOnly": false,
+      "Success": false,
+      "Milliseconds": 7084.8865000000005,
+      "IPv4": [],
+      "Error": "ERROR_TIMEOUT,Microsoft.DnsClient.Commands.ResolveDnsName"
+    },
+    {
+      "ElapsedSeconds": 92.2377218,
+      "TCPOnly": true,
+      "Success": false,
+      "Milliseconds": 15078.2602,
+      "IPv4": [],
+      "Error": "10057,Microsoft.DnsClient.Commands.ResolveDnsName"
+    },
+    {
+      "ElapsedSeconds": 180.7676524,
+      "TCPOnly": true,
+      "Success": false,
+      "Milliseconds": 15048.3304,
+      "IPv4": [],
+      "Error": "10057,Microsoft.DnsClient.Commands.ResolveDnsName"
+    },
+    {
+      "ElapsedSeconds": 187.8158916,
+      "TCPOnly": false,
+      "Success": false,
+      "Milliseconds": 7033.912600000001,
+      "IPv4": [],
+      "Error": "ERROR_TIMEOUT,Microsoft.DnsClient.Commands.ResolveDnsName"
+    },
+    {
+      "ElapsedSeconds": 188.1033122,
+      "TCPOnly": true,
+      "Success": true,
+      "Milliseconds": 276.98720000000003,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 188.2197225,
+      "TCPOnly": false,
+      "Success": true,
+      "Milliseconds": 103.9991,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 188.4543589,
+      "TCPOnly": true,
+      "Success": true,
+      "Milliseconds": 223.2674,
+      "IPv4": [
+        "104.16.124.96",
+        "104.16.123.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 188.58970109999998,
+      "TCPOnly": false,
+      "Success": true,
+      "Milliseconds": 126.31320000000001,
+      "IPv4": [
+        "104.16.124.96",
+        "104.16.123.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 188.8802177,
+      "TCPOnly": true,
+      "Success": true,
+      "Milliseconds": 281.2942,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 189.0465825,
+      "TCPOnly": false,
+      "Success": true,
+      "Milliseconds": 157.0415,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 189.31053319999998,
+      "TCPOnly": true,
+      "Success": true,
+      "Milliseconds": 250.245,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 189.40397009999998,
+      "TCPOnly": false,
+      "Success": true,
+      "Milliseconds": 83.74560000000001,
+      "IPv4": [
+        "104.16.124.96",
+        "104.16.123.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 189.5429648,
+      "TCPOnly": true,
+      "Success": true,
+      "Milliseconds": 129.9899,
+      "IPv4": [
+        "104.16.124.96",
+        "104.16.123.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 189.6183974,
+      "TCPOnly": false,
+      "Success": true,
+      "Milliseconds": 68.3347,
+      "IPv4": [
+        "104.16.124.96",
+        "104.16.123.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 189.7552959,
+      "TCPOnly": true,
+      "Success": true,
+      "Milliseconds": 127.25380000000001,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 189.83009009999998,
+      "TCPOnly": false,
+      "Success": true,
+      "Milliseconds": 66.9738,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 189.96531399999998,
+      "TCPOnly": true,
+      "Success": true,
+      "Milliseconds": 128.08190000000002,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 190.14950869999998,
+      "TCPOnly": false,
+      "Success": true,
+      "Milliseconds": 71.12660000000001,
+      "IPv4": [
+        "104.16.124.96",
+        "104.16.123.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 190.33972419999998,
+      "TCPOnly": true,
+      "Success": true,
+      "Milliseconds": 179.8896,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 200.1861418,
+      "TCPOnly": false,
+      "Success": true,
+      "Milliseconds": 81.132,
+      "IPv4": [
+        "104.16.123.96",
+        "104.16.124.96"
+      ],
+      "Error": null
+    },
+    {
+      "ElapsedSeconds": 200.33934359999998,
+      "TCPOnly": true,
+      "Success": true,
+      "Milliseconds": 144.9202,
+      "IPv4": [
+        "104.16.124.96",
+        "104.16.123.96"
+      ],
+      "Error": null
+    }
+  ],
+  "physical_dns": {
+    "scope": "Selected physical NIC only; plaintextIPv4/IPv6 TCP/UDP53; includes background DNS; excludes DoH/DoT/otherNIC",
+    "state": "PASS_NO_PLAINTEXT_DNS_OBSERVED",
+    "window": {
+      "start_client_unix_ms": 1791257133771,
+      "includes_background_queries": true,
+      "selected_physical_interface_only": true,
+      "stop_client_unix_ms": 1791257449039
+    },
+    "first": {
+      "ElapsedSeconds": 4.0880509,
+      "UnixMS": 1791257133687,
+      "ObserverReceived": 0,
+      "ObserverDropped": 0,
+      "StatsReturnCode": 0,
+      "PayloadStored": false,
+      "Final": false,
+      "DNSFrames": 0,
+      "UnparsedFrames": 0,
+      "DNSFlows": {}
+    },
+    "last": {
+      "ElapsedSeconds": 319.671161,
+      "UnixMS": 1791257449270,
+      "ObserverReceived": 0,
+      "ObserverDropped": 0,
+      "StatsReturnCode": 0,
+      "PayloadStored": false,
+      "Final": false,
+      "DNSFrames": 0,
+      "UnparsedFrames": 0,
+      "DNSFlows": {}
+    },
+    "observations": 302,
+    "dns_frame_delta": 0,
+    "unparsed_delta": 0
+  },
+  "pooled_p99_ms": 233.3082,
+  "probes_received": 2979,
+  "probes_sent": 2979,
+  "c2s_goodput_mbps": 9.999372373333333,
+  "s2c_goodput_mbps": 9.999953386666666,
+  "c2s_loss_percent": 0.005810160416430676,
+  "s2c_loss_percent": 0,
+  "client_cpu_seconds": 300.546875,
+  "server_cpu_seconds": 162.18,
+  "server_raw_socket_drop_max": 187,
+  "wire_windows": [
+    {
+      "pcap_bytes": 3128,
+      "pcap_sha256": "3912d2d290e1378cd8324776c325428c7a91ffe732cdee33901017e2849514cf",
+      "captured_frames": 17,
+      "truncated_frames": 0,
+      "parse_rejected_frames": 0,
+      "flows": [
+        {
+          "direction": "C2S",
+          "peer_port": 40000,
+          "packets": 9,
+          "flags": {
+            "SYN": 1,
+            "ACK": 8,
+            "FIN": 0,
+            "RST": 0
+          },
+          "max_ipv4_length": 706,
+          "header_timeline": [
+            {
+              "timestamp": 1791257099.465763,
+              "seq": 1830932735,
+              "ack": 0,
+              "flags": 2,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257099.527248,
+              "seq": 1830932736,
+              "ack": 231154181,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 1024
+            },
+            {
+              "timestamp": 1791257099.528723,
+              "seq": 1830932736,
+              "ack": 231154181,
+              "flags": 24,
+              "payload_length": 666,
+              "window": 1024
+            },
+            {
+              "timestamp": 1791257099.591005,
+              "seq": 1830933402,
+              "ack": 231155080,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 1020
+            },
+            {
+              "timestamp": 1791257099.591482,
+              "seq": 1830933402,
+              "ack": 231155080,
+              "flags": 24,
+              "payload_length": 64,
+              "window": 1024
+            },
+            {
+              "timestamp": 1791257099.651771,
+              "seq": 1830933466,
+              "ack": 231155080,
+              "flags": 24,
+              "payload_length": 105,
+              "window": 1024
+            },
+            {
+              "timestamp": 1791257099.711789,
+              "seq": 1830933571,
+              "ack": 231155148,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 1023
+            },
+            {
+              "timestamp": 1791257099.817236,
+              "seq": 1830933571,
+              "ack": 231155148,
+              "flags": 24,
+              "payload_length": 40,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257099.936752,
+              "seq": 1830933611,
+              "ack": 231155188,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            }
+          ],
+          "payload_packets": 4,
+          "payload_bytes": 875,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "syn_options": [
+            {
+              "mss": 1360,
+              "ws": 8,
+              "sack": true
+            }
+          ],
+          "exact_seq_length_repeats": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "out_of_order_or_repeat_segments": 0,
+          "tls_record_types": {
+            "22": 1,
+            "20": 1,
+            "23": 3
+          },
+          "tls_wire_versions": {
+            "0x301": 1,
+            "0x303": 4
+          },
+          "tls_complete_records": 5,
+          "tls_length_p50": 53,
+          "tls_length_p95": 100,
+          "tls_length_max": 661,
+          "tls_unaligned_runs": 0,
+          "tls_partial_tail_runs": 0,
+          "tls_invalid_headers_in_aligned_runs": 0,
+          "plaintext_hello": {
+            "legacy_version": 771,
+            "ciphers": [
+              4865,
+              4867,
+              4866,
+              49195,
+              49199,
+              52393,
+              52392,
+              49196,
+              49200,
+              49162,
+              49161,
+              49171,
+              49172,
+              156,
+              157,
+              47,
+              53
+            ],
+            "extensions": [
+              0,
+              23,
+              65281,
+              10,
+              11,
+              35,
+              16,
+              5,
+              34,
+              51,
+              43,
+              13,
+              45,
+              28,
+              65037
+            ],
+            "supported_versions": [
+              772,
+              771
+            ],
+            "sni": [
+              "www.cloudflare.com"
+            ],
+            "alpn_offered": [
+              "h2",
+              "http/1.1"
+            ],
+            "ja3s_md5": null,
+            "ja3_md5": "b5001237acdf006056b409cc433726b0"
+          }
+        },
+        {
+          "direction": "S2C",
+          "peer_port": 40000,
+          "packets": 8,
+          "flags": {
+            "SYN": 1,
+            "ACK": 8,
+            "FIN": 0,
+            "RST": 0
+          },
+          "max_ipv4_length": 939,
+          "header_timeline": [
+            {
+              "timestamp": 1791257099.465921,
+              "seq": 231154180,
+              "ack": 1830932736,
+              "flags": 18,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257099.528819,
+              "seq": 231154181,
+              "ack": 1830933402,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 1021
+            },
+            {
+              "timestamp": 1791257099.529541,
+              "seq": 231154181,
+              "ack": 1830933402,
+              "flags": 24,
+              "payload_length": 899,
+              "window": 1024
+            },
+            {
+              "timestamp": 1791257099.591545,
+              "seq": 231155080,
+              "ack": 1830933466,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 1023
+            },
+            {
+              "timestamp": 1791257099.651951,
+              "seq": 231155080,
+              "ack": 1830933571,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 1023
+            },
+            {
+              "timestamp": 1791257099.652146,
+              "seq": 231155080,
+              "ack": 1830933571,
+              "flags": 24,
+              "payload_length": 68,
+              "window": 1024
+            },
+            {
+              "timestamp": 1791257099.817429,
+              "seq": 231155148,
+              "ack": 1830933611,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257099.876241,
+              "seq": 231155148,
+              "ack": 1830933611,
+              "flags": 24,
+              "payload_length": 40,
+              "window": 65535
+            }
+          ],
+          "payload_packets": 3,
+          "payload_bytes": 1007,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "syn_options": [
+            {
+              "mss": 1360,
+              "sack": true,
+              "ws": 8
+            }
+          ],
+          "exact_seq_length_repeats": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "out_of_order_or_repeat_segments": 0,
+          "tls_record_types": {
+            "22": 1,
+            "20": 1,
+            "23": 7
+          },
+          "tls_wire_versions": {
+            "0x303": 9
+          },
+          "tls_complete_records": 9,
+          "tls_length_p50": 63,
+          "tls_length_p95": 139,
+          "tls_length_max": 430,
+          "tls_unaligned_runs": 0,
+          "tls_partial_tail_runs": 0,
+          "tls_invalid_headers_in_aligned_runs": 0,
+          "plaintext_hello": {
+            "legacy_version": 771,
+            "ciphers": [
+              4865
+            ],
+            "extensions": [
+              43,
+              51
+            ],
+            "supported_versions": [
+              772
+            ],
+            "sni": [],
+            "alpn_offered": [],
+            "ja3s_md5": "f4febc55ea12b31ae17cfb7e614afda8",
+            "ja3_md5": null
+          }
+        }
+      ],
+      "payload_exported": false,
+      "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+      "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof",
+      "window_seconds": 12.057472455780953,
+      "capture_returncode": 0,
+      "capture_kernel_drops": 0,
+      "capture_filter": "tcp and host 10.0.0.130 and host 223.166.220.248 and port 443",
+      "capture_stderr": "tcpdump: listening on enp0s3, link-type EN10MB (Ethernet), capture size 1600 bytes\n17 packets captured\n17 packets received by filter\n0 packets dropped by kernel\n",
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "pcap_bytes": 4202585,
+      "pcap_sha256": "18bd1767436b17d3d8c89e855c4b649bffa82322c167f310241135734d149b2d",
+      "captured_frames": 8192,
+      "truncated_frames": 0,
+      "parse_rejected_frames": 0,
+      "flows": [
+        {
+          "direction": "S2C",
+          "peer_port": 40000,
+          "packets": 3671,
+          "flags": {
+            "SYN": 0,
+            "ACK": 3671,
+            "FIN": 0,
+            "RST": 0
+          },
+          "max_ipv4_length": 1340,
+          "header_timeline": [
+            {
+              "timestamp": 1791257236.055781,
+              "seq": 586517911,
+              "ack": 2178335546,
+              "flags": 24,
+              "payload_length": 371,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.056089,
+              "seq": 586518282,
+              "ack": 2178337160,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.056576,
+              "seq": 586518282,
+              "ack": 2178337742,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.056813,
+              "seq": 586518282,
+              "ack": 2178338369,
+              "flags": 24,
+              "payload_length": 627,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.057883,
+              "seq": 586518909,
+              "ack": 2178339484,
+              "flags": 24,
+              "payload_length": 1115,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.059006,
+              "seq": 586520024,
+              "ack": 2178340734,
+              "flags": 24,
+              "payload_length": 1300,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.059051,
+              "seq": 586521324,
+              "ack": 2178340734,
+              "flags": 24,
+              "payload_length": 314,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.059085,
+              "seq": 586521638,
+              "ack": 2178340734,
+              "flags": 24,
+              "payload_length": 211,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.059124,
+              "seq": 586521849,
+              "ack": 2178340734,
+              "flags": 24,
+              "payload_length": 371,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.059162,
+              "seq": 586522220,
+              "ack": 2178340734,
+              "flags": 24,
+              "payload_length": 627,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.059263,
+              "seq": 586522847,
+              "ack": 2178341309,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.059446,
+              "seq": 586522847,
+              "ack": 2178342307,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            }
+          ],
+          "payload_packets": 2475,
+          "payload_bytes": 1820977,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "syn_options": [],
+          "exact_seq_length_repeats": 6,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "out_of_order_or_repeat_segments": 10,
+          "tls_record_types": {
+            "23": 2469
+          },
+          "tls_wire_versions": {
+            "0x303": 2469
+          },
+          "tls_complete_records": 2469,
+          "tls_length_p50": 366,
+          "tls_length_p95": 1295,
+          "tls_length_max": 1295,
+          "tls_unaligned_runs": 0,
+          "tls_partial_tail_runs": 0,
+          "tls_invalid_headers_in_aligned_runs": 0,
+          "plaintext_hello": {}
+        },
+        {
+          "direction": "C2S",
+          "peer_port": 40000,
+          "packets": 4521,
+          "flags": {
+            "SYN": 0,
+            "ACK": 4521,
+            "FIN": 0,
+            "RST": 0
+          },
+          "max_ipv4_length": 1290,
+          "header_timeline": [
+            {
+              "timestamp": 1791257236.056002,
+              "seq": 2178336796,
+              "ack": 586321125,
+              "flags": 24,
+              "payload_length": 364,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.056002,
+              "seq": 2178337160,
+              "ack": 586322739,
+              "flags": 24,
+              "payload_length": 211,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.056002,
+              "seq": 2178337160,
+              "ack": 586322739,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.056002,
+              "seq": 2178337371,
+              "ack": 586323321,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.056506,
+              "seq": 2178337371,
+              "ack": 586323948,
+              "flags": 24,
+              "payload_length": 371,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.056506,
+              "seq": 2178337742,
+              "ack": 586323948,
+              "flags": 24,
+              "payload_length": 627,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.056742,
+              "seq": 2178338369,
+              "ack": 586323948,
+              "flags": 24,
+              "payload_length": 1115,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.058747,
+              "seq": 2178339484,
+              "ack": 586325063,
+              "flags": 24,
+              "payload_length": 1250,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.058986,
+              "seq": 2178340734,
+              "ack": 586325063,
+              "flags": 24,
+              "payload_length": 364,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.058986,
+              "seq": 2178341098,
+              "ack": 586325063,
+              "flags": 24,
+              "payload_length": 211,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.058986,
+              "seq": 2178341309,
+              "ack": 586325063,
+              "flags": 24,
+              "payload_length": 371,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257236.059245,
+              "seq": 2178341680,
+              "ack": 586325063,
+              "flags": 24,
+              "payload_length": 627,
+              "window": 65535
+            }
+          ],
+          "payload_packets": 2463,
+          "payload_bytes": 1761096,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "syn_options": [],
+          "exact_seq_length_repeats": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "out_of_order_or_repeat_segments": 11,
+          "tls_record_types": {
+            "23": 2463
+          },
+          "tls_wire_versions": {
+            "0x303": 2463
+          },
+          "tls_complete_records": 2463,
+          "tls_length_p50": 366,
+          "tls_length_p95": 1245,
+          "tls_length_max": 1245,
+          "tls_unaligned_runs": 0,
+          "tls_partial_tail_runs": 0,
+          "tls_invalid_headers_in_aligned_runs": 0,
+          "plaintext_hello": {}
+        }
+      ],
+      "payload_exported": false,
+      "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+      "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof",
+      "window_seconds": 1.6852134596556425,
+      "capture_returncode": 0,
+      "capture_kernel_drops": 0,
+      "capture_filter": "tcp and host 10.0.0.130 and host 223.166.220.248 and port 443",
+      "capture_stderr": "tcpdump: listening on enp0s3, link-type EN10MB (Ethernet), capture size 1600 bytes\n8192 packets captured\n8435 packets received by filter\n0 packets dropped by kernel\n",
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "pcap_bytes": 386,
+      "pcap_sha256": "75214fd6397a8075ba8e0c115d00534cfd2e774a58d1b2a67fa6780e5bfbdb36",
+      "captured_frames": 4,
+      "truncated_frames": 0,
+      "parse_rejected_frames": 0,
+      "flows": [
+        {
+          "direction": "C2S",
+          "peer_port": 40000,
+          "packets": 2,
+          "flags": {
+            "SYN": 0,
+            "ACK": 2,
+            "FIN": 0,
+            "RST": 0
+          },
+          "max_ipv4_length": 80,
+          "header_timeline": [
+            {
+              "timestamp": 1791257444.811028,
+              "seq": 2833367655,
+              "ack": 1256592417,
+              "flags": 24,
+              "payload_length": 40,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257445.939698,
+              "seq": 2833367695,
+              "ack": 1256592457,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            }
+          ],
+          "payload_packets": 1,
+          "payload_bytes": 40,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "syn_options": [],
+          "exact_seq_length_repeats": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "out_of_order_or_repeat_segments": 0,
+          "tls_record_types": {
+            "23": 1
+          },
+          "tls_wire_versions": {
+            "0x303": 1
+          },
+          "tls_complete_records": 1,
+          "tls_length_p50": 35,
+          "tls_length_p95": 35,
+          "tls_length_max": 35,
+          "tls_unaligned_runs": 0,
+          "tls_partial_tail_runs": 0,
+          "tls_invalid_headers_in_aligned_runs": 0,
+          "plaintext_hello": {}
+        },
+        {
+          "direction": "S2C",
+          "peer_port": 40000,
+          "packets": 2,
+          "flags": {
+            "SYN": 0,
+            "ACK": 2,
+            "FIN": 0,
+            "RST": 0
+          },
+          "max_ipv4_length": 80,
+          "header_timeline": [
+            {
+              "timestamp": 1791257444.813322,
+              "seq": 1256592417,
+              "ack": 2833367695,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257445.875515,
+              "seq": 1256592417,
+              "ack": 2833367695,
+              "flags": 24,
+              "payload_length": 40,
+              "window": 65535
+            }
+          ],
+          "payload_packets": 1,
+          "payload_bytes": 40,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "syn_options": [],
+          "exact_seq_length_repeats": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "out_of_order_or_repeat_segments": 0,
+          "tls_record_types": {
+            "23": 1
+          },
+          "tls_wire_versions": {
+            "0x303": 1
+          },
+          "tls_complete_records": 1,
+          "tls_length_p50": 35,
+          "tls_length_p95": 35,
+          "tls_length_max": 35,
+          "tls_unaligned_runs": 0,
+          "tls_partial_tail_runs": 0,
+          "tls_invalid_headers_in_aligned_runs": 0,
+          "plaintext_hello": {}
+        }
+      ],
+      "payload_exported": false,
+      "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+      "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof",
+      "window_seconds": 12.04230734007433,
+      "capture_returncode": 0,
+      "capture_kernel_drops": 0,
+      "capture_filter": "tcp and host 10.0.0.130 and host 223.166.220.248 and port 443",
+      "capture_stderr": "tcpdump: listening on enp0s3, link-type EN10MB (Ethernet), capture size 1600 bytes\n4 packets captured\n6 packets received by filter\n0 packets dropped by kernel\n",
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "pcap_bytes": 4506323,
+      "pcap_sha256": "22a668a622e0c2ee006ed7c01a5eca9f397ed7b4a18aa8540886adcfc0940d71",
+      "captured_frames": 8192,
+      "truncated_frames": 0,
+      "parse_rejected_frames": 0,
+      "flows": [
+        {
+          "direction": "C2S",
+          "peer_port": 40000,
+          "packets": 4156,
+          "flags": {
+            "SYN": 0,
+            "ACK": 4156,
+            "FIN": 0,
+            "RST": 0
+          },
+          "max_ipv4_length": 1290,
+          "header_timeline": [
+            {
+              "timestamp": 1791257414.640742,
+              "seq": 2775080172,
+              "ack": 1196722622,
+              "flags": 24,
+              "payload_length": 1115,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.640742,
+              "seq": 2775081287,
+              "ack": 1196725219,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.640742,
+              "seq": 2775081287,
+              "ack": 1196725590,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.640742,
+              "seq": 2775081287,
+              "ack": 1196726332,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.640742,
+              "seq": 2775081287,
+              "ack": 1196726703,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.640964,
+              "seq": 2775081287,
+              "ack": 1196726703,
+              "flags": 24,
+              "payload_length": 1250,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.640964,
+              "seq": 2775082537,
+              "ack": 1196726703,
+              "flags": 24,
+              "payload_length": 364,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.64121,
+              "seq": 2775082901,
+              "ack": 1196729303,
+              "flags": 24,
+              "payload_length": 211,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.64121,
+              "seq": 2775083112,
+              "ack": 1196729303,
+              "flags": 24,
+              "payload_length": 371,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.641252,
+              "seq": 2775083483,
+              "ack": 1196729303,
+              "flags": 24,
+              "payload_length": 627,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.641252,
+              "seq": 2775082901,
+              "ack": 1196729303,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.641252,
+              "seq": 2775084110,
+              "ack": 1196731903,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            }
+          ],
+          "payload_packets": 2708,
+          "payload_bytes": 1942485,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "syn_options": [],
+          "exact_seq_length_repeats": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "out_of_order_or_repeat_segments": 11,
+          "tls_record_types": {
+            "23": 2708
+          },
+          "tls_wire_versions": {
+            "0x303": 2708
+          },
+          "tls_complete_records": 2708,
+          "tls_length_p50": 366,
+          "tls_length_p95": 1245,
+          "tls_length_max": 1245,
+          "tls_unaligned_runs": 0,
+          "tls_partial_tail_runs": 0,
+          "tls_invalid_headers_in_aligned_runs": 0,
+          "plaintext_hello": {}
+        },
+        {
+          "direction": "S2C",
+          "peer_port": 40000,
+          "packets": 4036,
+          "flags": {
+            "SYN": 0,
+            "ACK": 4036,
+            "FIN": 0,
+            "RST": 0
+          },
+          "max_ipv4_length": 1340,
+          "header_timeline": [
+            {
+              "timestamp": 1791257414.641388,
+              "seq": 1196943433,
+              "ack": 2775082537,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.641558,
+              "seq": 1196943433,
+              "ack": 2775082901,
+              "flags": 24,
+              "payload_length": 627,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.641626,
+              "seq": 1196944060,
+              "ack": 2775082901,
+              "flags": 24,
+              "payload_length": 1115,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.641715,
+              "seq": 1196945175,
+              "ack": 2775082901,
+              "flags": 24,
+              "payload_length": 1300,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.641742,
+              "seq": 1196946475,
+              "ack": 2775082901,
+              "flags": 24,
+              "payload_length": 314,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.641784,
+              "seq": 1196946789,
+              "ack": 2775082901,
+              "flags": 24,
+              "payload_length": 211,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.641982,
+              "seq": 1196947000,
+              "ack": 2775083483,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.642141,
+              "seq": 1196947000,
+              "ack": 2775085225,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.642313,
+              "seq": 1196947000,
+              "ack": 2775085225,
+              "flags": 24,
+              "payload_length": 371,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.642447,
+              "seq": 1196947371,
+              "ack": 2775085225,
+              "flags": 24,
+              "payload_length": 627,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.643435,
+              "seq": 1196947998,
+              "ack": 2775085225,
+              "flags": 24,
+              "payload_length": 1115,
+              "window": 65535
+            },
+            {
+              "timestamp": 1791257414.643882,
+              "seq": 1196949113,
+              "ack": 2775086839,
+              "flags": 16,
+              "payload_length": 0,
+              "window": 65535
+            }
+          ],
+          "payload_packets": 2690,
+          "payload_bytes": 1983368,
+          "ipv4_checksum_bad": 0,
+          "tcp_checksum_bad": 0,
+          "fragmented": 0,
+          "syn_options": [],
+          "exact_seq_length_repeats": 0,
+          "retransmission_or_overlap_bytes_conflict": 0,
+          "out_of_order_or_repeat_segments": 1,
+          "tls_record_types": {
+            "23": 2690
+          },
+          "tls_wire_versions": {
+            "0x303": 2690
+          },
+          "tls_complete_records": 2690,
+          "tls_length_p50": 622,
+          "tls_length_p95": 1295,
+          "tls_length_max": 1295,
+          "tls_unaligned_runs": 0,
+          "tls_partial_tail_runs": 0,
+          "tls_invalid_headers_in_aligned_runs": 0,
+          "plaintext_hello": {}
+        }
+      ],
+      "payload_exported": false,
+      "bounds": "Window-only;mid-stream gaps/tails inconclusive;no-HOL needs business evidence",
+      "security_note": "TLS1.3 tickets/encrypted extensions not observable without session secrets;not a website fingerprint equivalence proof",
+      "window_seconds": 1.5189293422736228,
+      "capture_returncode": 0,
+      "capture_kernel_drops": 0,
+      "capture_filter": "tcp and host 10.0.0.130 and host 223.166.220.248 and port 443",
+      "capture_stderr": "tcpdump: listening on enp0s3, link-type EN10MB (Ethernet), capture size 1600 bytes\n8192 packets captured\n8377 packets received by filter\n0 packets dropped by kernel\n",
+      "raw_deleted_after_analysis": true
+    }
+  ],
+  "owned_stop": {
+    "State": "STOPPED",
+    "Ready": true,
+    "Reason": "requested_stop",
+    "ExitCode": 0,
+    "NetworkStateRemaining": false,
+    "OwnedNRPTRemaining": 0,
+    "OwnedFirewallRemaining": 0,
+    "ElapsedSeconds": 357.4
+  },
+  "fault_events": [
+    {
+      "enabled": true,
+      "lease": "10.66.170.85",
+      "targets": [
+        "1.1.1.1",
+        "8.8.8.8"
+      ],
+      "elapsed": 67.06094921310432,
+      "client_unix_ms": 1791257202127
+    },
+    {
+      "enabled": false,
+      "counters": "Chain WBD_P7_TEST_1417 (2 references)\n    pkts      bytes target     prot opt in     out     source               destination         \n      26     1424 DROP       all  --  *      *       0.0.0.0/0            8.8.8.8             \n      32     1808 DROP       all  --  *      *       0.0.0.0/0            1.1.1.1             \n       0        0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* wbd-native-dns-9211b24-1417 */\n",
+      "elapsed": 185.76282308995724,
+      "client_unix_ms": 1791257320773
+    }
+  ],
+  "input_quality": {
+    "total_offered_within_99_101": true,
+    "client_max_send_lag_ms": 15.167999999960102,
+    "server_max_send_lag_ms": 39.876440245222966,
+    "p99_send_lag": "NOT_EVALUATED_HELPER_HAS_MAX_ONLY",
+    "strict_performance_qualification": false
+  },
+  "not_full_p7": true,
+  "old_failures_retained": true,
+  "receipt_hashes": {
+    "analysis.json": "7459231556d699c57956ee889bfd2263ad0c770c0041e546f332903b730a896f",
+    "case-config.json": "166b5d2bf9be890798c44b834008dfc4d00a93e3e5fc4263e813824d77ac97ad",
+    "cleanup-errors.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "client-diagnostic.jsonl": "7c4dc88a1d55e7cd0c4d985486d5be25def55fafc0b8cfc545c72efe5e7c8652",
+    "client-session.json": "6006be904ec2a1dcf9276ca22ef67764a45295e5dbe3740ebabca84d7122fb2f",
+    "d01-dns-default-300s-dns.json": "7914eafaa9e4c1b44c5c71291bbad49991bf36aebd42f82d48f2f24c7cca02cc",
+    "d04-current-300s-seed1417-linux-headers.jsonl": "7f382ea340e7a0594d9c2e58e7933d3c73f5569d0febc2aee54c64ba466df213",
+    "d04-current-300s-seed1417-live.json": "cf8ccc0c4fea90d203e642fd47f7a4e1c03141def7c9250f3a8ab759b081a638",
+    "d04-current-300s-seed1417-observer.json": "e0dc7ed52be0f8284c8e2f12e76db827687b32294848ef87770f32379b957569",
+    "d04-current-300s-seed1417-physical-dns.jsonl": "dfa1da0ef9f43fa474c02b8248d1d183ca12ba34a275876c79e4b2c1b86ec15c",
+    "d04-current-300s-seed1417-resources.json": "cb377dbd1963018f340f7319702a530133b3eb50ebec1e857b111f65bc05b3b8",
+    "d04-current-300s-seed1417-start-wire.json": "47fc368b829a4441ec0da87a4c7eaca75db571e013a36685f13472d4bc7ce6dd",
+    "d04-current-300s-seed1417-steady-wire.json": "95eb8d5b86c27cbb4322cd945424904da68178b0a9d09f9f9f785e5a335332bd",
+    "d04-current-300s-seed1417-stop-wire.json": "911e9f070fa8033c788e573e3e3e355e6b85fc1ceadc160451a7ca63ff92e822",
+    "d04-current-300s-seed1417-tail-wire.json": "3e3cd9dfb1a12e92a64783d89bdf43c8eecaa693bbc2f2c9c1f7039634b6acbd",
+    "d04-current-300s-seed1417-target.json": "d15a1f50fea257daf389b9fa8b3fb22e6b1c05851969fbed728a9dd1763973c7",
+    "d04-current-300s-seed1417-windows-headers.jsonl": "467198cb4710b48302c7f94b0f3a7cea0f79811e9c049a912329f4aba29d12ba",
+    "d04-current-300s-seed1417.json": "97463f0a4ff709cfb57707d3874ea96a790fbb3bb843b658e3b474111bc282b9",
+    "deployed-versions.json": "9dd914b2d7265e9a421d73d28af001146829ee05d36ec494a0814ffe373611ed",
+    "dns-fault-events.json": "bd9e992ff3d86a3a348074e61db4f44678d2b63153243c0f2190135b7e5067f2",
+    "effective-lanes.json": "35cf1e29203d2ebdf8df74b71e12f6f7e79d8b692d855ca9a52885e33ee62294",
+    "header-preflight-windows-headers.jsonl": "6a00c142a176dbcc8fd540d5e90e02b352e9f87c2ed3422004be368c462c9a34",
+    "helper-source-hashes.json": "432fc32a7551befa7c99b6afb85ab1f334c319d52e9037270beef0d238dd2d1e",
+    "helper-source-unchanged.json": "89a1bd729816edd75c25b2b3eae07e8aa18a3c4d0b2ff7357b088b79512895d2",
+    "helper-source.json": "9e0e80afecc14dc090b2089cac75499539fdfe777a86b5f60d94d5dd71e7f131",
+    "measurement-status.json": "81132cb27c529b1a08af6545cf492a0e62e71d92106ad25fcb3c664ad48c19c6",
+    "observation-window.json": "e6490fdd4742e9c6eb6b43292d90122fc14b35a3fa1eb877f94132d245b6077c",
+    "p7-network-after.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+    "p7-network-before.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+    "p7-status.json": "fd63329584940cd482fb53a6c0ab3a9251e6224521cb69642b3b96658568ef45",
+    "server-before.json": "e9ddf2b2fa0c58a1c7e7fe5f70a8fbd6882f1c204598fbb6c9f7b092e12f66e6",
+    "server-diagnostic.jsonl": "30274ad144554ed13cd2ee7b7cd67682786bc7ab3b599739a1ecd1a6536b9a16",
+    "trigger-timeline.json": "0367aaabff17c60316b5e8e8f1050f30ec44f93a6466e8c76d1a23c4b3d7ac3f",
+    "windows-observer-processes.json": "5a9a5762378ee1b360ed8583c9ccdb65ea2aae209f4609d95e7c142c03c41055"
+  },
+  "raw_io_last": {
+    "enabled": true,
+    "receive_port": 443,
+    "kernel_port_filter": true,
+    "receive_calls": 860505,
+    "receive_messages": 2287808,
+    "receive_multi": 537280,
+    "receive_fallbacks": 0,
+    "send_calls": 1354737,
+    "send_messages": 2093561,
+    "send_multi": 208719,
+    "send_fallbacks": 0
+  },
+  "client_npcap_io": {
+    "1": {
+      "enabled": true,
+      "supported": true,
+      "generation": 1,
+      "read_packets": 2092603,
+      "read_bytes": 1110058871,
+      "write_packets": 2288092,
+      "write_bytes": 1099520012,
+      "read_gap_max_ns": 14842490900,
+      "driver_received": 2092603,
+      "driver_dropped": 0,
+      "interface_dropped": 0,
+      "stats_samples": 348,
+      "stats_errors": 0,
+      "batch_supported": true,
+      "write_calls": 1549234,
+      "batch_calls": 211620,
+      "batch_requested_packets": 950478,
+      "write_call_ns": 159327410800,
+      "write_call_max_ns": 25197600,
+      "send_lock_wait_ns": 103350476900,
+      "send_lock_wait_max_ns": 23480400
+    }
+  },
+  "client_receive_queues": {
+    "1": {
+      "enabled": true,
+      "routes": [
+        {
+          "local_port": 40000,
+          "peer_port": 443,
+          "capacity": 4096,
+          "current": 0,
+          "peak": 1503,
+          "bytes": 0,
+          "bytes_peak": 741048,
+          "full_waits": 0,
+          "overflow_drops": 0,
+          "overflow_bytes": 0,
+          "overflow_age": {
+            "samples": 0,
+            "total_ns": 0,
+            "max_ns": 0,
+            "over_50us": 0,
+            "over_1ms": 0,
+            "over_10ms": 0
+          },
+          "handoff_block": {
+            "samples": 2092603,
+            "total_ns": 3048819700,
+            "max_ns": 1650900,
+            "over_50us": 7369,
+            "over_1ms": 389,
+            "over_10ms": 0
+          },
+          "queue_age": {
+            "samples": 2092603,
+            "total_ns": 25293431196200,
+            "max_ns": 220650500,
+            "over_50us": 1705842,
+            "over_1ms": 1422136,
+            "over_10ms": 364971
+          }
+        }
+      ]
+    }
+  },
+  "client_tun_input": {
+    "max_ipv4_packet_bytes": 9000,
+    "rejected_oversize": 0,
+    "rejected_invalid_ipv4": 0,
+    "rejected_source": 0
+  },
+  "dns_server_observer": {
+    "counted_frames": 331,
+    "flows": [
+      {
+        "src": "10.66.170.85",
+        "dst": "1.1.1.1",
+        "transport": "UDP",
+        "packets": 36
+      },
+      {
+        "src": "1.1.1.1",
+        "dst": "10.66.170.85",
+        "transport": "UDP",
+        "packets": 24
+      },
+      {
+        "src": "10.66.170.85",
+        "dst": "1.1.1.1",
+        "transport": "TCP",
+        "packets": 145
+      },
+      {
+        "src": "1.1.1.1",
+        "dst": "10.66.170.85",
+        "transport": "TCP",
+        "packets": 100
+      },
+      {
+        "src": "10.66.170.85",
+        "dst": "8.8.8.8",
+        "transport": "UDP",
+        "packets": 6
+      },
+      {
+        "src": "10.66.170.85",
+        "dst": "8.8.8.8",
+        "transport": "TCP",
+        "packets": 20
+      }
+    ],
+    "observer_drops": 0,
+    "payload_stored": false,
+    "pcap_written": false
+  }
+}
