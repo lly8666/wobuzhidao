@@ -92,3 +92,6 @@ Windows state-path 默认 EXE 同目录 data/network-state.json；network-script
 
 
 2026-10-06服务端接收入口候选无新参数：沿用实际server-ip/listen-port，Ethernet/loopback AF_PACKET挂经典BPF，内核只收本地IPv4 TCP目的监听端口；所有peer和普通SYN/ALPN/TLS fallback保留，不用固定persona做身份门。其他链路类型保留用户态端口过滤。raw_io诊断新增receive_port与kernel_port_filter，让测试能读到实际安装情况。状态以STATUS.server_receive_port_filter为准，未过Actions/P6不部署。
+
+
+2026-10-06 Linux服务端内层MTU分离候选：`mtu`仅控制外层IPv4连接预算（576..9000，默认1500），服务端共享TUN固定采用现有`logicaltunnel.MaxLeasedIPv4PacketLen=9000`，与Windows内层一致。旧入口将外层1400同时设为内层1400，使最大UDP回包先拆48个IP片、再逐片LINK分片；候选9000预计为8个内层IP片，具体record数量和p99以验收为准。不是外层发9000B包，不扩收包/修复缓存，不变FEC/重传/交付规则。`--check-config`仍显式验证外层范围；managed journal保存实际内层9000，generic builder和旧1400 journal恢复语义不变。无新增JSON字段，PARAMETERS.json仅同步帮助文字。Actions/实际部署状态以STATUS为准。

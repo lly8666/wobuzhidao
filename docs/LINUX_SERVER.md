@@ -91,3 +91,5 @@ upgrade先核验包内哈希、平台、源码/版本及现有配置兼容性，
 客户端异常退出且没有FIN时，原端口复用的SYN也按同一全lane失活条件处理：max(90秒,3个server keepalive间隔)前仍保护旧owner，之后后台安全detach并接受原握手重试；不回收未到期的7天地址。无需改4096、MTU或重传模式，不改变普通业务idle逻辑。
 
 Linux/OpenWrt正式CLI在/run/wbd-client按kernel network namespace持有独占锁，并记录boot/namespace、canonical网络参数和随机NFT所有权标记；这是TPROXY系统网络恢复journal，不是IP租约缓存。SIGKILL释放锁，新进程先核对旧owned IPv4/IPv6 route/rule和NFT marker，再恢复自己的残留网络状态，按新配置启动；健康旧进程仍运行时拒绝重复启动，foreign状态不匹配时不自动删。正常停止删除journal并恢复自己的规则。只有带新journal的本版本残留可自动恢复，旧版本无journal的未知残留仍保持拒绝接管。
+
+共享TUN内层MTU使用既有lease合法IPv4包上限9000；配置`mtu`是外层连接预算，不能通过修改它扩大内层缓冲或发超路径的大外层包。升级前正常停止并清理旧owned网络，重新启动建立正确TUN；旧journal按原值恢复仍支持。候选是否实际通过见STATUS.server_inner_mtu_separation。

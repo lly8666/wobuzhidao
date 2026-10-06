@@ -23,6 +23,7 @@ import (
 	"github.com/lly8666/wobuzhidao/internal/faketcp"
 	"github.com/lly8666/wobuzhidao/internal/linuxserver"
 	"github.com/lly8666/wobuzhidao/internal/logicaltunnel"
+	"github.com/lly8666/wobuzhidao/internal/pathmtu"
 	"github.com/lly8666/wobuzhidao/internal/platformflow"
 	"github.com/lly8666/wobuzhidao/internal/qualificationdiag"
 	"github.com/lly8666/wobuzhidao/internal/realityfront"
@@ -60,7 +61,7 @@ func runServer() error {
 		password           = flag.String("password", "", "protected admission password")
 		decoy              = flag.String("decoy", "", "ordinary TLS fallback target host:port")
 		serverLimit        = flag.Uint("server-record-limit", 1250, "client-to-server TLS-like record wire limit")
-		mtu                = flag.Int("mtu", 1500, "connection/shared-TUN MTU")
+		mtu                = flag.Int("mtu", 1500, "outer IPv4 connection MTU; shared inner TUN uses the leased packet limit")
 		tlsStartupPadding  = flag.Bool("tls-startup-padding", false, "bounded passive inner TLS startup padding; no waiting; default off")
 		fecParity          = flag.Int("fec-parity", 0, "fixed FEC parity shards: 0=off; allowed 4,8,10,12,16,20")
 		firewall           = flag.String("firewall", "auto", "shared-TUN firewall backend: auto|nft|iptables")
@@ -177,7 +178,13 @@ func runServer() error {
 		return err
 	}
 
-	plan, err := linuxserver.BuildNetworkPlan(*tunName, leasePool, *mtu, linuxserver.FirewallBackend(*firewall), *nftForward)
+	// The inner TUN must not fragment packets to the outer carrier ceiling
+	// before LINK applies that ceiling. Keep config validation independent of
+	// the supported inner packet limit, including --check-config.
+	if err := pathmtu.ValidateConnectionMTU(*mtu); err != nil {
+		return err
+	}
+	plan, err := linuxserver.BuildNetworkPlan(*tunName, leasePool, logicaltunnel.MaxLeasedIPv4PacketLen, linuxserver.FirewallBackend(*firewall), *nftForward)
 	if err != nil {
 		return err
 	}

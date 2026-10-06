@@ -57,6 +57,12 @@ def main():
         checked=ctl("check")
         if document["password"] in checked.stdout or document["route-key-hex"] in checked.stdout:raise RuntimeError("check disclosed secret")
         passed("real CLI check with relative cert paths and redacted fields")
+        for invalid_mtu in (575,9001):
+            invalid={**document,"mtu":invalid_mtu};config.write_text(json.dumps(invalid))
+            ctl("check",success=False)
+            if Path("/var/lib/wbd/network-state.json").exists():raise RuntimeError("invalid outer MTU changed network")
+        config.write_bytes(original)
+        passed("outer MTU limits remain enforced independently of the inner TUN")
         ctl("install","--package",a)
         if config.read_bytes()!=original:raise RuntimeError("reinstall changed config")
         passed("idempotent install preserves credentials/config")
@@ -64,6 +70,12 @@ def main():
         if run(["systemctl","is-enabled",service]).stdout.strip()!="enabled":raise RuntimeError("not enabled")
         state=Path("/var/lib/wbd/network-state.json")
         if not state.exists():raise RuntimeError("no network journal")
+        link=json.loads(run(["ip","-j","link","show","dev","wbdg0"]).stdout)
+        journal=json.loads(state.read_text())
+        if len(link)!=1 or link[0]["mtu"]!=9000:raise RuntimeError("shared inner TUN did not use leased packet limit")
+        # Inspect kernel state and the recovery journal, not just CLI text.
+        if journal["Plan"]["MTU"]!=9000:raise RuntimeError("managed journal omitted actual inner MTU")
+        passed("outer config 1400 uses actual inner TUN 9000 with matching recovery journal")
         rules=run(["iptables-save"]).stdout
         if "wbd-server-rst" not in rules or "--sport 24443" not in rules:raise RuntimeError("missing scoped RST rule")
         before_pid=run(["systemctl","show",service,"--property=MainPID","--value"]).stdout.strip()

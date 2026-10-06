@@ -1,6 +1,6 @@
 # 原生与Actions五分钟工况验收
 
-2026-10-06当前：产品85209d3有界默认off Windows写TUN观察器已过core/build/race20、37生命周期、网络/GUI/padding、五独立严格性能/18RTT对及P6，配套部署；2s M03非空观察92/92/drops0 PASS，完整300s/seed1434运行。60f原生S03双lane零loss/p99119ms；S04三lane业务零loss/p9972ms但raw247drops；S05 FECoff双向约10M/p9970ms，下行22包缺失保留质量FAIL，未知WAN loss不强行修成可靠TCP。37历史完整300s/16工况/27NOT_RUN跨SOURCE不继承，M03最大UDP缺包/迟到仍未解。先STATUS/latest_log；不扩FEC/4096/buffer、不引HOL，每性能Action一条。
+2026-10-06当前：852 M03完整300s/seed1434双边观察12934/12934、drop0、2014全回但最大UDP3次1.27..1.91s late，最大UDP自身p991404ms，质量FAIL保留；延迟在最后片提交Wintun前，非driver调用慢。Linux内层1400让最大UDP先拆48片，候选改为既有lease上限9000、外层预算仍原配置，仅入口变更、无热路径/缓存/FEC/4096调整。候选Actions/P6/原生NOT_RUN，先STATUS/latest_log。38历史完整300s/16工况/27NOT_RUN跨源码不继承；每性能Action一条。
 
 以下带日期段落保留历史，当前任务以STATUS顶层为准。
 

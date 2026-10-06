@@ -1,6 +1,6 @@
 # WBD NEXT 详细开发方案
 
-2026-10-06当前：产品85209d3有界默认off Windows写TUN观察器已过core/build/race20、37生命周期、网络/GUI/padding、五独立严格性能/18RTT对及P6，配套部署；2s M03非空观察92/92/drops0 PASS，完整300s/seed1434运行。60f原生S03双lane零loss/p99119ms；S04三lane业务零loss/p9972ms但raw247drops；S05 FECoff双向约10M/p9970ms，下行22包缺失保留质量FAIL，未知WAN loss不强行修成可靠TCP。37历史完整300s/16工况/27NOT_RUN跨SOURCE不继承，M03最大UDP缺包/迟到仍未解。先STATUS/latest_log；不扩FEC/4096/buffer、不引HOL，每性能Action一条。
+2026-10-06当前：852 M03完整300s/seed1434双边观察12934/12934、drop0、2014全回但最大UDP3次1.27..1.91s late，最大UDP自身p991404ms，质量FAIL保留；延迟在最后片提交Wintun前，非driver调用慢。Linux内层1400让最大UDP先拆48片，候选改为既有lease上限9000、外层预算仍原配置，仅入口变更、无热路径/缓存/FEC/4096调整。候选Actions/P6/原生NOT_RUN，先STATUS/latest_log。38历史完整300s/16工况/27NOT_RUN跨源码不继承；每性能Action一条。
 
 以下带日期段落保留历史，当前任务以STATUS顶层为准。
 
@@ -92,6 +92,8 @@ P2 关闭需要 Actions 普通内核 TCP 客户端经真实网络入口的建连
 TLS-like 基础开销固定 31 字节，默认 padding=0。P3 增加显式非零 padding 能力时，只用当前 record 的剩余预算；现有无填充 LINK/FEC 容量公式不缩小，不因填充增加分片。SOURCE 和最大 PARITY 均必须 fit。超大业务由 LINK 先分片；不拆加密 record，不调用 carrier 分片。
 
 路径变小通过新 lane 的正确预算解决；不重新切割已分配 TCP Seq 的旧密文。配置 MTU 不是端到端 PMTU 探测，日志明确区分。
+
+服务端和Windows内层虚拟网卡统一采用已有lease包上限9000；operator `mtu`独立限制外层载体。避免内核先按外层预算把合法内层包IP分片，再让LINK逐片重复分片。超限IPv4由系统按DF语义分片/拒绝，LINK仅等待自己的数据报；外层预算和peer MSS验证不变。旧managed journal按保存的MTU恢复，不套用新入口常量。候选资格与实测fragment/PPS/最大UDP自身p99见STATUS。
 
 ## 6. TCP-like 恢复
 

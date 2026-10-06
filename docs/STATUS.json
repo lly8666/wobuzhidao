@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "Frozen85209d3 opt-in TUN observation scoped core/build/race20,37lifecycle,network/GUI/padding, five independent strict samples+18RTT pairs, rawpacing and P6 PASS; paired Windows/ARM deployed. Native60f S03 zero loss; S04 business zero loss/raw247drops; S05 FECoff 10M with22 downlink missing retained FAIL zero-loss quality. New852 M03 2s observation preflight running, not300s/notP7. Full70/18/soak not inherited.",
-  "updated_at": "2026-10-06T15:53:51.505721+08:00",
+  "qualification_scope": "Deployed852 scoped qualification retained. Full300s M03 valid12934 Linux/Windows fragments,all2014 exact;maxUDP3late/p991404ms upstream of final driver submission,quality FAIL. New Linux inner MTU separation candidate NOT_RUN;no previous qualification inherited.",
+  "updated_at": "2026-10-06T16:14:40.881804+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,12 +80,12 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "852 native M03 full300s valid dual-boundary observation seed1434",
-    "M03 missing/late fragment boundary diagnosis",
-    "Remaining native IP/config/full current qualification"
+    "Linux shared inner TUN9000/outer MTU unchanged candidate qualification",
+    "M03 own-datagram tail revalidation after qualified candidate",
+    "Remaining27 native IDs and current full qualification"
   ],
-  "next_task": "Collect852 M03 full300s seed1434; compare Linux reverse to Windows TUN submission by exact IPID/offset sets for any missing/late application probe. Valid2s preflight92/92/drops0 does not fix historical M03. No blind empty capture, no FEC/4096/buffer growth/HOL; remaining27 native IDs and current full70/18/soak open.",
-  "latest_log": "docs/devlog/20261006-155156-tun-probe-qualified-native-progress.md",
+  "next_task": "Freeze current inner MTU candidate; run exact-source core/race, Linux native/service regression including actualkernel9000 and invalid outerMTU, lifecycle/network gates; independent Normal/Game5205 performance eachrun one sample plus lossless and5305 where needed. Only after gates+P6 paired deploy then two independent300s M03, compare largeUDP p99 and fragment/PPS counts. Do not increaseFEC/4096/buffer or force reliable/HOL; full70/18/1800s remain open.",
+  "latest_log": "docs/devlog/20261006-161440-server-inner-mtu-separation.md",
   "last_tested_source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
   "actions": [
     {
@@ -8037,7 +8037,7 @@
   },
   "physical_current": {
     "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
-    "state": "M03_VALID_OBSERVATION_FULL300S_RUNNING",
+    "state": "M03_COMPLETE_EXACT_DELIVERY_TAIL_FAIL_INNER_MTU_CANDIDATE",
     "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json",
     "native_completed_300s": [
       "M01 seed1364",
@@ -8045,9 +8045,7 @@
       "M03 seed1366 FAIL",
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
-    "running": [
-      "m03-tun-observation-300s-seed1434"
-    ],
+    "running": [],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
     "previous_source": "60f6544aa09259c8589c39eac08019ae284116c4",
@@ -8058,7 +8056,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": "m03-tun-observation-300s-seed1434",
+    "running_case": null,
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8255,16 +8253,22 @@
         "status": "FAIL",
         "source": "60f6544aa09259c8589c39eac08019ae284116c4",
         "evidence": "docs/evidence/native-s05-60f6544-seed1426-20261006.json"
+      },
+      {
+        "case": "m03-tun-observation-300s-seed1434",
+        "status": "API_EXACT_PASS_TIMING_FAIL",
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "evidence": "docs/evidence/native-tun-boundary-85209d3-seed1434-20261006.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
     "deployed_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
     "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
-    "last_failed_case": "m03-current-300s-seed1419",
-    "last_failure_evidence": "docs/evidence/native-fragment-boundary-9211b24-20261006.json",
+    "last_failed_case": "m03-tun-observation-300s-seed1434",
+    "last_failure_evidence": "docs/evidence/native-tun-boundary-85209d3-seed1434-20261006.json",
     "latest_native_pass": "docs/evidence/native-mtu-9211b24-seed1415-20261006.json",
-    "latest_native_evidence": "docs/evidence/native-fragment-boundary-9211b24-20261006.json",
+    "latest_native_evidence": "docs/evidence/native-tun-boundary-85209d3-seed1434-20261006.json",
     "not_run_case_ids": [
       "S06",
       "S07",
@@ -8352,7 +8356,7 @@
       "S04",
       "S05"
     ],
-    "full300s_samples": 37,
+    "full300s_samples": 38,
     "case_ids_total": 43,
     "case_ids_not_run": 27,
     "complete_qualification": false,
@@ -8362,6 +8366,15 @@
         "case": "s18-wake-blackhole-300s-seed1410",
         "evidence": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json",
         "independent_server_receipts": false
+      }
+    ],
+    "recent_samples": [
+      {
+        "case": "m03-tun-observation-300s-seed1434",
+        "id": "M03",
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "status": "API_EXACT_PASS_TIMING_FAIL",
+        "evidence": "docs/evidence/native-tun-boundary-85209d3-seed1434-20261006.json"
       }
     ]
   },
@@ -8996,7 +9009,7 @@
     "server_p99_upper_ms": 1.2
   },
   "windows_tun_probe_observer": {
-    "state": "SCOPED_ACTIONS_PASS_NATIVE_2S_OBSERVATION_PASS_FULL300S_RUNNING",
+    "state": "SCOPED_ACTIONS_PASS_NATIVE_VALID_12934_ROWS_TAIL_DIAGNOSED",
     "base_product_source": "60f6544aa09259c8589c39eac08019ae284116c4",
     "scope": "Only controlled198.18.0.1->currentlease UDP echo18446 firstfragment; nonfirst IPpair/protocol scope only; no packet bytes retained",
     "pending_capacity": 1024,
@@ -9117,6 +9130,21 @@
     "deployed_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
     "native_preflight": "PASS_NONEMPTY_92_MATCHED_FRAGMENTS",
     "native_preflight_evidence": "docs/evidence/native-tun-preflight-85209d3-seed1433-20261006.json",
-    "native_running": "m03-tun-observation-300s-seed1434"
+    "native_running": null,
+    "native_evidence": "docs/evidence/native-tun-boundary-85209d3-seed1434-20261006.json",
+    "native_result": "All2014 received;maxUDP168/168 with3late,p991404ms;small1342/1342 timely;valid12934/12934 drops0"
+  },
+  "server_inner_mtu_separation": {
+    "state": "IMPLEMENTED_ACTIONS_NOT_RUN",
+    "base_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "inner_mtu": 9000,
+    "source_of_inner_limit": "logicaltunnel.MaxLeasedIPv4PacketLen",
+    "outer_mtu_configuration_unchanged": true,
+    "no_hot_path_changes": true,
+    "no_new_flags": true,
+    "no_buffer_changes": true,
+    "journal_compatibility": "Generic BuildNetworkPlan and recovery unchanged, old saved1400 accepted",
+    "evidence": "docs/evidence/native-tun-boundary-85209d3-seed1434-20261006.json",
+    "log": "docs/devlog/20261006-161440-server-inner-mtu-separation.md"
   }
 }
