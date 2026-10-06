@@ -11,6 +11,9 @@ import (
 
 func TestLifecycleRetiredAssociationControlDoesNotStopSharedListener(t *testing.T) {
 	h := newLifecycleAuditHarness(t, 1, 0, 0)
+	// Admission finishes asynchronously after the client's authenticated result.
+	// Use real delivered business as the publication barrier, not a sleep.
+	h.sendForward(t, [4]byte{1, 1, 1, 1})
 	h.server.mu.Lock()
 	var lane *serverLifecycleLane
 	for _, candidate := range h.server.byFlow {
