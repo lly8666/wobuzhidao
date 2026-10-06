@@ -1,6 +1,6 @@
 # Actions 验收契约
 
-2026-10-06当前：Npcap发送冗余返回整包复制候选已实现待Actions；输入/帧/后续发送所有权回归增强，无wire/恢复策略改动。a280原生CPU诊断完成但148下行missing/useroverflow3233/p99663ms保留，不作性能资格；DNS开关功能PASS。48普通300s/23工况/20NOT_RUN另1诊断，当前候选不继承a280/024资格；M03未关闭。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：be456ce Npcap owned返回去重复制候选9定向Actions/四独立120s/12p95+p99配对全部PASS；P6打包运行，实机候选未验，Linux成绩不证明Windows省CPU。部署仍a280，DNS开关功能PASS/质量FAIL、CPU诊断溢出失败保留。48普通300s/23工况/20NOT_RUN另1诊断；M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
 
 2026-10-05当前：产品SOURCE660b370配套部署；同源70配置PASS、18独立样本五分类PASS，但严格配对Game5305/seed1382 p99增加712ms超过500ms门，整体仍FAIL。Normal/Game各1800s独立长测PASS，最差阶段吞吐9.99899/2.999872M、阶段p99最高621.13/604.47ms；不能抵消短测尾延迟失败。原生M01完整PASS；M03两份最大UDP各缺1回包；S18双方两次Dormant释放和generation1→2→3/lease稳定通过，非零损失及延迟未验保留。HEAD919 helper基础/targeted因漏改STATUS契约FAIL，Go未跑，本提交补齐；未把它当产品回归。下一按STATUS查p99、验helper再S19/S20及其余DNS/IP/FEC/config。每性能Action一条，吞吐/p99硬门不降。
 

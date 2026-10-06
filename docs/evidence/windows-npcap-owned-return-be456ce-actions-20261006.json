@@ -1,0 +1,1013 @@
+{
+  "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+  "state": "PASS",
+  "primary_runs": [
+    {
+      "label": "foundation",
+      "run": 37467445072,
+      "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467445072",
+      "jobs": [
+        {
+          "name": "repository-contract",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "p4-linux-shared-tun-privileged (iptables)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "p4-linux-shared-tun-privileged (nft)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "p4-openwrt-tproxy-privileged",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "p2-kernel-fallback",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "active-go-tests (ubuntu-24.04)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "active-go-tests (windows-2022)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "p6-release-candidate",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "p5-load",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "p5-weaknet-5-20-5",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "p5-fec2020-weaknet-5-20-5",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "p5-fec2020-weaknet-5-30-5",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "p5-load-40",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "p5-https-measurement-base",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "p5-weaknet-5-30-5",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "p5-soak",
+          "status": "completed",
+          "conclusion": "skipped"
+        }
+      ]
+    },
+    {
+      "label": "steady",
+      "run": 37467445034,
+      "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467445034",
+      "jobs": [
+        {
+          "name": "contract",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "steady-core (windows-2022)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "linux-privileged (iptables)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "lifecycle-focus",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "steady-core (ubuntu-24.04)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "linux-privileged (nft)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "label": "gui",
+      "run": 37467445206,
+      "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467445206",
+      "jobs": [
+        {
+          "name": "gui-portable",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "label": "preflight",
+      "run": 37467445354,
+      "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467445354",
+      "jobs": [
+        {
+          "name": "seeded-netem-preflight",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "label": "lifecycle",
+      "run": 37467445046,
+      "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467445046",
+      "jobs": [
+        {
+          "name": "core",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "label": "strict-normal",
+      "run": 37467498831,
+      "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467498831",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.00175438,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 67264,
+            "max_rmem_ratio": 0.06414794921875
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 43072,
+            "max_rmem_ratio": 0.04107666015625
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 102.65,
+          "server": 103.87
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "10341": 0.0,
+            "5917": 14.31,
+            "5919": 4.43,
+            "5920": 13.14,
+            "5921": 0.0,
+            "5922": 0.0,
+            "5923": 0.0,
+            "5930": 15.49,
+            "5946": 13.26,
+            "5947": 14.59,
+            "5948": 13.94,
+            "6466": 0.0
+          },
+          "server": {
+            "5898": 0.0,
+            "5900": 4.39,
+            "5901": 14.63,
+            "5902": 15.23,
+            "5903": 0.0,
+            "5904": 0.0,
+            "5905": 15.33,
+            "5906": 13.96,
+            "5942": 14.57,
+            "5949": 11.97,
+            "6539": 0.0
+          }
+        }
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300043000,
+        "c2s_qdisc_delay_p95_ns": 300131000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 612356066,
+            "p99_ns": 614218295,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 607556749,
+            "p99_ns": 608435569,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 613490893,
+            "p99_ns": 615769564,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 3299361795,
+        "s2c_qdisc_delay_p50_ns": 300043000,
+        "s2c_qdisc_delay_p95_ns": 300135000
+      },
+      "goodput": {
+        "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+        "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+        "path_delay_ms": 300,
+        "raw_metric": "wall_delivered_mbps",
+        "threshold_unchanged": true
+      }
+    },
+    {
+      "label": "strict-game",
+      "run": 37467504952,
+      "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467504952",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.000189274,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 173760,
+            "max_rmem_ratio": 0.16571044921875
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 43392,
+            "max_rmem_ratio": 0.0413818359375
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 56.29,
+          "server": 53.47
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "5550": 7.77,
+            "5552": 2.14,
+            "5553": 7.7,
+            "5554": 7.67,
+            "5555": 8.63,
+            "5556": 0.0,
+            "5563": 8.39,
+            "5576": 0.0,
+            "5812": 0.0,
+            "5813": 6.85,
+            "6065": 0.0
+          },
+          "server": {
+            "5531": 0.0,
+            "5533": 1.93,
+            "5534": 7.72,
+            "5535": 6.9,
+            "5536": 0.0,
+            "5537": 0.0,
+            "5538": 8.69,
+            "5539": 7.01,
+            "5575": 6.96,
+            "5577": 6.09,
+            "6150": 0.0
+          }
+        }
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300011000,
+        "c2s_qdisc_delay_p95_ns": 300072000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 600850413,
+            "p99_ns": 601253387,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 600625255,
+            "p99_ns": 600873336,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 600547597,
+            "p99_ns": 600906832,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 3195705055,
+        "s2c_qdisc_delay_p50_ns": 300010000,
+        "s2c_qdisc_delay_p95_ns": 300069000
+      },
+      "goodput": {
+        "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+        "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+        "path_delay_ms": 300,
+        "raw_metric": "wall_delivered_mbps",
+        "threshold_unchanged": true
+      }
+    },
+    {
+      "label": "strict-normal-baseline",
+      "run": 37467631403,
+      "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467631403",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.000239289,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 23424,
+            "max_rmem_ratio": 0.0223388671875
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 13440,
+            "max_rmem_ratio": 0.0128173828125
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 75.85,
+          "server": 75.43
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "5987": 10.4,
+            "5989": 2.82,
+            "5990": 0.0,
+            "5991": 11.26,
+            "5992": 11.07,
+            "5993": 0.0,
+            "6000": 10.11,
+            "6013": 0.0,
+            "6014": 11.69,
+            "6468": 0.0,
+            "6500": 0.0
+          },
+          "server": {
+            "5968": 0.0,
+            "5970": 2.8,
+            "5971": 0.0,
+            "5972": 11.26,
+            "5973": 12.15,
+            "5974": 0.0,
+            "5975": 7.83,
+            "5976": 11.06,
+            "6012": 11.47,
+            "6015": 10.19,
+            "6985": 0.0
+          }
+        }
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300013000,
+        "c2s_qdisc_delay_p95_ns": 300043000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 602602594,
+            "p99_ns": 602840117,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 602676339,
+            "p99_ns": 602748183,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 602513999,
+            "p99_ns": 602706875,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 601634261,
+        "s2c_qdisc_delay_p50_ns": 300013000,
+        "s2c_qdisc_delay_p95_ns": 300043000
+      },
+      "goodput": {
+        "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+        "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+        "path_delay_ms": 300,
+        "raw_metric": "wall_delivered_mbps",
+        "threshold_unchanged": true
+      }
+    },
+    {
+      "label": "strict-game-baseline",
+      "run": 37467636231,
+      "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467636231",
+      "classifications": {
+        "CAPTURE": "PASS",
+        "CORRECTNESS": "PASS",
+        "ENVIRONMENT": "PASS",
+        "INPUT_VALIDITY": "PASS",
+        "PERFORMANCE": "PASS"
+      },
+      "errors": {
+        "capture": [],
+        "correctness": [],
+        "environment": [],
+        "input": [],
+        "performance": []
+      },
+      "resource": {
+        "errors": [],
+        "link_drop_delta": {
+          "biz": {
+            "rx": 0,
+            "tx": 0
+          },
+          "client": {
+            "rx": 0,
+            "tx": 0
+          },
+          "router": {
+            "rx": 0,
+            "tx": 0
+          },
+          "server": {
+            "rx": 0,
+            "tx": 0
+          },
+          "target": {
+            "rx": 0,
+            "tx": 0
+          }
+        },
+        "max_gap_s": 1.000863975,
+        "missing_process_samples": {
+          "client": 0,
+          "server": 0
+        },
+        "packet_socket_by_endpoint": {
+          "biz/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "client/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 42240,
+            "max_rmem_ratio": 0.040283203125
+          },
+          "router/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          },
+          "server/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 1048576,
+            "max_rmem_alloc": 15936,
+            "max_rmem_ratio": 0.01519775390625
+          },
+          "target/ss_packet": {
+            "max_drops": 0,
+            "max_rcv_buf": 0,
+            "max_rmem_alloc": 0,
+            "max_rmem_ratio": 0.0
+          }
+        },
+        "packet_socket_command_errors": {},
+        "process_cpu_seconds": {
+          "client": 83.14,
+          "server": 79.5
+        },
+        "samples": 120,
+        "socket_drop_by_endpoint": {
+          "biz/ss_packet": 0,
+          "biz/ss_raw": 0,
+          "biz/ss_udp": 0,
+          "client/ss_packet": 0,
+          "client/ss_raw": 0,
+          "client/ss_udp": 0,
+          "router/ss_packet": 0,
+          "router/ss_raw": 0,
+          "router/ss_udp": 0,
+          "server/ss_packet": 0,
+          "server/ss_raw": 0,
+          "server/ss_udp": 0,
+          "target/ss_packet": 0,
+          "target/ss_raw": 0,
+          "target/ss_udp": 0
+        },
+        "socket_drop_max": 0,
+        "thread_cpu_seconds": {
+          "client": {
+            "5938": 10.4,
+            "5940": 4.49,
+            "5941": 0.0,
+            "5942": 11.31,
+            "5943": 10.25,
+            "5944": 0.0,
+            "5951": 0.0,
+            "5963": 12.71,
+            "6200": 11.53,
+            "6201": 12.0,
+            "6488": 0.0
+          },
+          "server": {
+            "5918": 0.0,
+            "5920": 3.78,
+            "5921": 11.45,
+            "5922": 11.35,
+            "5923": 0.0,
+            "5924": 0.0,
+            "5925": 10.71,
+            "5936": 9.56,
+            "5937": 9.4,
+            "5964": 11.43,
+            "6452": 0.0
+          }
+        }
+      },
+      "latency": {
+        "c2s_qdisc_delay_p50_ns": 300032000,
+        "c2s_qdisc_delay_p95_ns": 300109000,
+        "probe_loss_percent": 0.0,
+        "probe_stage": {
+          "post": {
+            "p95_ns": 606718999,
+            "p99_ns": 607976745,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 606510706,
+            "p99_ns": 608157756,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 606600171,
+            "p99_ns": 607581624,
+            "received": 60,
+            "sent": 60
+          }
+        },
+        "queue_pre_p95_ns": 601149582,
+        "s2c_qdisc_delay_p50_ns": 300032000,
+        "s2c_qdisc_delay_p95_ns": 300107000
+      },
+      "goodput": {
+        "gate_metric": "wall_delivered_mbps_path_delay_aligned",
+        "note": "Arrival wall windows are shifted by the manifest fixed one-way path delay. This removes deterministic propagation fill/drain from stage boundaries; the configured 99% goodput threshold is unchanged.",
+        "path_delay_ms": 300,
+        "raw_metric": "wall_delivered_mbps",
+        "threshold_unchanged": true
+      }
+    }
+  ],
+  "paired_rtt_checks": [
+    {
+      "mode": "normal",
+      "stage": "pre",
+      "percentile": "p95_ns",
+      "delta_ms": 4.88041,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "normal",
+      "stage": "pre",
+      "percentile": "p99_ns",
+      "delta_ms": 5.687386,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "normal",
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": 10.976894,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 60,
+      "lossy_received": 60,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "mode": "normal",
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": 13.062689,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 60,
+      "lossy_received": 60,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "mode": "normal",
+      "stage": "post",
+      "percentile": "p95_ns",
+      "delta_ms": 9.753472,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "normal",
+      "stage": "post",
+      "percentile": "p99_ns",
+      "delta_ms": 11.378178,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "game",
+      "stage": "pre",
+      "percentile": "p95_ns",
+      "delta_ms": -5.885451,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "game",
+      "stage": "pre",
+      "percentile": "p99_ns",
+      "delta_ms": -7.28442,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "game",
+      "stage": "stress",
+      "percentile": "p95_ns",
+      "delta_ms": -6.052574,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 60,
+      "lossy_received": 60,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "mode": "game",
+      "stage": "stress",
+      "percentile": "p99_ns",
+      "delta_ms": -6.674792,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 60,
+      "lossy_received": 60,
+      "baseline_sent": 60,
+      "baseline_received": 60
+    },
+    {
+      "mode": "game",
+      "stage": "post",
+      "percentile": "p95_ns",
+      "delta_ms": -5.868586,
+      "gate_ms": 200.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    },
+    {
+      "mode": "game",
+      "stage": "post",
+      "percentile": "p99_ns",
+      "delta_ms": -6.723358,
+      "gate_ms": 500.0,
+      "state": "PASS",
+      "lossy_sent": 30,
+      "lossy_received": 30,
+      "baseline_sent": 30,
+      "baseline_received": 30
+    }
+  ],
+  "scope": "Nine scoped exact-source Actions inclfour independent120s and12 matchedRTT checks;not full70/full18/1800s/P6 or native performance benefit"
+}

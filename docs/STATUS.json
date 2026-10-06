@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "NewNpcap redundant-return-copy candidate IMPLEMENTED_NOT_TESTED. a280 nativeCPUprofile1469 collected diagnosticFAIL148downstreammissing/useroverflow3233/p99663ms;not ordinaryqualification/CPU A-B. a280 scoped13Actions+DNSon/off functionPASS historyretained.48 ordinary300s/23unique/20NOT_RUN plusoneCPUdiagnostic;M03PARTIAL.",
-  "updated_at": "2026-10-06T21:00:02.863484+08:00",
+  "qualification_scope": "be456ce narrowNpcapcopy candidate9scopedActions/four independent120s/12pairedRTT PASS;P6running/nativeNOT_RUN. Linux strict provesregression/no WindowsCPU benefitclaim. Deployednative remainsa280;DNSon/offfunctionPASS/qualityFAIL andprofilepressureFAILretained. Full70/18/1800sNOT_RUN current.",
+  "updated_at": "2026-10-06T21:08:39.716584+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,13 +80,13 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Qualify narrowNpcap return-copy candidate in Actions core/race+independentNormal/Game5205",
-    "NativeCPUprofile hasblockedforeign contamination;no causalperformance claim",
-    "RemainingnativeDNS/IP/IPv6/startupPadding configsNOT_RUN",
-    "NativehighFEC p99/M03 missing-tail unresolved"
+    "Exactsource P6 packagebe456ce run37468358428",
+    "Nativeprofileoff performance benefit NOT_RUN for copycandidate",
+    "Remainingnative20configurationcasesNOT_RUN",
+    "HighFEC p99/M03 diagnosis unresolved"
   ],
-  "next_task": "Freeze exactNpcap return-copy candidateSHA,review ownedwire regression in Actions foundation/targeted/GUI/preflight then separateNormal5205 seed1470 and Game5205 seed1471 runs;matchedlossless baselinesonlyif qualification needsRTT. P6 and nativeprofileoff repeat onlyaftergatesPASS. Do not expandbuffers/FEC/4096/changeACK policy or claim copyremoval fixesnativep99. More ambitious driver/FEC changes require bounded cause evidence.",
-  "latest_log": "docs/devlog/20261006-211200-npcap-owned-return-copy-candidate.md",
+  "next_task": "Collect exactbe456ce P6run37468358428 manifests/hash/three platformreceipts aftersuccess;only then guardedpairdeployment preserving a280rollback/config/installationID. Singleprofileoff native Normal1/10M/FEC20 seed1472,original helperb393+guarda280,measurebusiness/probes/p99/CPU/allocation/queue andcleanup. Anyfailure retains data;no blinddriver/FEC/cache/HOL changes.",
+  "latest_log": "docs/devlog/20261006-212800-npcap-owned-return-actions.md",
   "last_tested_source_sha": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
   "actions": [
     {
@@ -2468,6 +2468,69 @@
       "scope": "tun-observer-qualified-next-p4-steady-targeted",
       "status": "PASS",
       "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467445072",
+      "scope": "npcap-owned-return-scoped-foundation",
+      "status": "PASS",
+      "note": "Exact attempt1;does not inherit full70/18/1800s/native qualification"
+    },
+    {
+      "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467445034",
+      "scope": "npcap-owned-return-scoped-steady",
+      "status": "PASS",
+      "note": "Exact attempt1;does not inherit full70/18/1800s/native qualification"
+    },
+    {
+      "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467445206",
+      "scope": "npcap-owned-return-scoped-gui",
+      "status": "PASS",
+      "note": "Exact attempt1;does not inherit full70/18/1800s/native qualification"
+    },
+    {
+      "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467445354",
+      "scope": "npcap-owned-return-scoped-preflight",
+      "status": "PASS",
+      "note": "Exact attempt1;does not inherit full70/18/1800s/native qualification"
+    },
+    {
+      "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467445046",
+      "scope": "npcap-owned-return-scoped-lifecycle",
+      "status": "PASS",
+      "note": "Exact attempt1;does not inherit full70/18/1800s/native qualification"
+    },
+    {
+      "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467498831",
+      "scope": "npcap-owned-return-scoped-strict-normal",
+      "status": "PASS",
+      "note": "Exact attempt1;does not inherit full70/18/1800s/native qualification"
+    },
+    {
+      "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467504952",
+      "scope": "npcap-owned-return-scoped-strict-game",
+      "status": "PASS",
+      "note": "Exact attempt1;does not inherit full70/18/1800s/native qualification"
+    },
+    {
+      "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467631403",
+      "scope": "npcap-owned-return-scoped-strict-normal-baseline",
+      "status": "PASS",
+      "note": "Exact attempt1;does not inherit full70/18/1800s/native qualification"
+    },
+    {
+      "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37467636231",
+      "scope": "npcap-owned-return-scoped-strict-game-baseline",
+      "status": "PASS",
+      "note": "Exact attempt1;does not inherit full70/18/1800s/native qualification"
     }
   ],
   "physical_status": "PARTIAL",
@@ -8677,19 +8740,23 @@
     "helper_run": 37253531888
   },
   "current_soak": {
-    "source": "CURRENT_COMMIT",
+    "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
     "state": "NOT_RUN"
   },
   "current_qualification": {
-    "source": "CURRENT_COMMIT",
-    "state": "COPY_CANDIDATE_NOT_RUN",
-    "core_race": "NOT_RUN",
-    "normal_5205": "NOT_RUN",
-    "game_5205": "NOT_RUN",
+    "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+    "state": "SCOPED9_PASS_P6_RUNNING",
+    "core_race": "PASS",
+    "normal_5205": "PASS",
+    "game_5205": "PASS",
+    "lossless_baselines": "PASS",
+    "paired_rtt_checks": "12/12 PASS",
+    "lifecycle": "PASS",
     "full70": "NOT_RUN",
     "full18": "NOT_RUN",
-    "p6": "NOT_RUN",
-    "native": "NOT_RUN"
+    "p6": "RUNNING",
+    "native": "NOT_RUN",
+    "evidence": "docs/evidence/windows-npcap-owned-return-be456ce-actions-20261006.json"
   },
   "tail_observation": {
     "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
@@ -9686,8 +9753,8 @@
     "evidence": "docs/evidence/windows-dns-guard-a280566-actions-20261006.json"
   },
   "windows_npcap_return_ownership": {
-    "state": "IMPLEMENTED_NOT_TESTED",
-    "source": "CURRENT_COMMIT",
+    "state": "SCOPED_ACTIONS_PASS_NATIVE_NOT_RUN",
+    "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
     "deployed_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
     "files": [
       "internal/faketcp/npcap.go",
@@ -9698,7 +9765,13 @@
     "preserved": "Npcap inboundowned copy/nativecallguard/sendMu/8packet16KiBreadybatch/sparseimmediate/generation/partialprefix/retransmitexactwire;FEC/4096/repair/ACK/MTU unchanged",
     "benefit": "Structural allocation reduction;actualCPU/p99 benefit NOT_TESTED,not mainrootclaim",
     "native_candidate": "NOT_RUN",
-    "actions": "NOT_RUN",
-    "log": "docs/devlog/20261006-211200-npcap-owned-return-copy-candidate.md"
+    "actions": "9/9 PASS;four independent120s/12matchedp95+p99 checks PASS",
+    "log": "docs/devlog/20261006-212800-npcap-owned-return-actions.md",
+    "actions_evidence": "docs/evidence/windows-npcap-owned-return-be456ce-actions-20261006.json",
+    "p6": {
+      "run": 37468358428,
+      "state": "RUNNING",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37468358428"
+    }
   }
 }

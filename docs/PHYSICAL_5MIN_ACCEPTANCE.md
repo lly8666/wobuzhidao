@@ -1,6 +1,6 @@
 # 原生与Actions五分钟工况验收
 
-2026-10-06当前：Npcap发送冗余返回整包复制候选已实现待Actions；输入/帧/后续发送所有权回归增强，无wire/恢复策略改动。a280原生CPU诊断完成但148下行missing/useroverflow3233/p99663ms保留，不作性能资格；DNS开关功能PASS。48普通300s/23工况/20NOT_RUN另1诊断，当前候选不继承a280/024资格；M03未关闭。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：be456ce Npcap owned返回去重复制候选9定向Actions/四独立120s/12p95+p99配对全部PASS；P6打包运行，实机候选未验，Linux成绩不证明Windows省CPU。部署仍a280，DNS开关功能PASS/质量FAIL、CPU诊断溢出失败保留。48普通300s/23工况/20NOT_RUN另1诊断；M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
 
 以下带日期段落保留历史，当前任务以STATUS顶层为准。
 

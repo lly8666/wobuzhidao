@@ -1,6 +1,6 @@
 # WBD NEXT — 每位 agent 的开发入口
 
-2026-10-06当前：Npcap发送冗余返回整包复制候选已实现待Actions；输入/帧/后续发送所有权回归增强，无wire/恢复策略改动。a280原生CPU诊断完成但148下行missing/useroverflow3233/p99663ms保留，不作性能资格；DNS开关功能PASS。48普通300s/23工况/20NOT_RUN另1诊断，当前候选不继承a280/024资格；M03未关闭。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：be456ce Npcap owned返回去重复制候选9定向Actions/四独立120s/12p95+p99配对全部PASS；P6打包运行，实机候选未验，Linux成绩不证明Windows省CPU。部署仍a280，DNS开关功能PASS/质量FAIL、CPU诊断溢出失败保留。48普通300s/23工况/20NOT_RUN另1诊断；M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
 
 本分支是 `next/tlslike-dataplane`，唯一产品方向为单进程、单 TLS-like 数据面。不是 DTLS 兼容分支。所有 agent，包括全新接手者，在修改前执行以下流程。
 
