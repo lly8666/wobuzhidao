@@ -12,6 +12,9 @@ using System.Threading;
 public class WBDPhysicalUDPResult {
     public long TxPackets, TxBytes, RxPackets, RxBytes, DuplicatePackets, BadPayload, ReorderedPackets;
     public double MaxSendLagMs, ProbeP95Ms, ProbeP99Ms, WBDCPUSeconds, HelperCPUSeconds;
+    public long SendLagSamples, SendLagOverflowSamples;
+    public double SendLagP99UpperMs, SendLagResolutionMs=0.1;
+    public string PacingMode="byte-budget-1ms-batch32";
     public int ProbeCount, ProbeSent, Seconds;
     public double RequestedMbps;
     public volatile string ServerJSON;
@@ -36,6 +39,29 @@ public class WBDPhysicalUDPInterval {
     public double ElapsedSeconds, WBDCPUSeconds;
     public long TxBytes, RxBytes;
 }
+// Fixed 102 counters: exact sample count and a conservative percentile bound,
+// not a retained per-packet timeline. Values >10ms share an overflow bucket.
+public class WBDPhysicalSendLag {
+    private readonly long[] bins=new long[102];
+    public long Samples, OverflowSamples;
+    public double MaximumMs;
+    public void Record(double milliseconds) {
+        if(Double.IsNaN(milliseconds) || Double.IsInfinity(milliseconds))throw new ArgumentException("Finite lag required");
+        milliseconds=Math.Max(0,milliseconds);
+        int bin=milliseconds>10?101:(int)Math.Ceiling(milliseconds*10);
+        bins[bin]++;Samples++;if(bin==101)OverflowSamples++;
+        MaximumMs=Math.Max(MaximumMs,milliseconds);
+    }
+    public double UpperPercentile(double percentile) {
+        if(percentile<=0 || percentile>1 || Double.IsNaN(percentile))throw new ArgumentException("Percentile required");
+        if(Samples==0)return 0;
+        long rank=(long)Math.Ceiling(Samples*percentile),count=0;
+        for(int i=0;i<bins.Length;i++) {
+            count+=bins[i];if(count>=rank)return i==101?MaximumMs:i/10.0;
+        }
+        throw new InvalidOperationException("Lag sample count mismatch");
+    }
+}
 public static class WBDPhysicalUDP {
     [DllImport("winmm.dll")] static extern uint timeBeginPeriod(uint period);
     [DllImport("winmm.dll")] static extern uint timeEndPeriod(uint period);
@@ -45,6 +71,7 @@ public static class WBDPhysicalUDP {
     public static WBDPhysicalUDPResult Run(string target,int port,double mbps,int seconds,uint seed,int wbdPid,string livePath="") {
         if(seconds<1 || seconds>600 || mbps<=0 || mbps>40 || Math.Ceiling(mbps*1000000/8*seconds/647.2)+5>=1000000) throw new ArgumentException("Out of bounded test duration/bitmap range");
         WBDPhysicalUDPResult result=new WBDPhysicalUDPResult(); result.Seconds=seconds;result.RequestedMbps=mbps;
+        WBDPhysicalSendLag sendLag=new WBDPhysicalSendLag();
         Process app=Process.GetProcessById(wbdPid); double appBefore=app.TotalProcessorTime.TotalSeconds;
         double helperBefore=Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds;
         using(Socket sock=new Socket(AddressFamily.InterNetwork,SocketType.Dgram,ProtocolType.Udp)) {
@@ -101,8 +128,10 @@ public static class WBDPhysicalUDP {
                     double elapsed=watch.Elapsed.TotalSeconds, budget=elapsed*rate;int batch=0;
                     while(result.TxBytes+sizes[sequence%sizes.Length]<=budget && batch<32) {
                         int size=sizes[sequence%sizes.Length];byte[] b=buffers[size];Put32(b,8,sequence);
+                        // Resample each actual send, including work inside a batch.
+                        double lagMs=(watch.Elapsed.TotalSeconds-(result.TxBytes+size)/rate)*1000;
                         sendStage="business";sock.Send(b);result.TxBytes+=size;result.TxPackets++;sequence++;batch++;
-                        result.MaxSendLagMs=Math.Max(result.MaxSendLagMs,(elapsed-result.TxBytes/rate)*1000);
+                        sendLag.Record(lagMs);
                     }
                     if(elapsed>=nextProbe) {Array.Copy(BitConverter.GetBytes(Stopwatch.GetTimestamp()),0,probe,4,8);sendStage="probe";sock.Send(probe);result.ProbeSent++;nextProbe=elapsed+.1;}
                     if(elapsed>=nextReport) {
@@ -135,6 +164,9 @@ public static class WBDPhysicalUDP {
         try {app.Refresh();result.WBDCPUSeconds=app.TotalProcessorTime.TotalSeconds-appBefore;}
         catch(InvalidOperationException) {if(result.Intervals.Count>0)result.WBDCPUSeconds=result.Intervals[result.Intervals.Count-1].WBDCPUSeconds;}
         result.HelperCPUSeconds=Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds-helperBefore;
+        if(sendLag.Samples!=result.TxPackets)throw new InvalidOperationException("Lag coverage mismatch");
+        result.SendLagSamples=sendLag.Samples;result.SendLagOverflowSamples=sendLag.OverflowSamples;
+        result.SendLagP99UpperMs=sendLag.UpperPercentile(.99);result.MaxSendLagMs=sendLag.MaximumMs;
         return result;
     }
 }

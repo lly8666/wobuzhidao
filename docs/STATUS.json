@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "SOURCE7eeb retiredSYNACK narrow candidate core/race incl30Wake+SYN repetitions/36+aggregate37/P6/Linuxserver/GUI and5 independent strict samples/18 same-source same-helper RTTpairs PASS. Paired7eeb Windows/ARM deployed; native tc1411 failedWake recovery PASS; M02Game4 2747/2747 exact but1 late>1s: functionalPASS_WITH_LATE_RESPONSES, latency unqualified. Full70/18/1800s/P7 not inherited. Parent931 raceFAIL and native1410 localEPERM retained. Native timed M02 seed1413 all2769 exact, p99114.82ms/max118.33ms;M03 seed1414 all1954 exact but4maximumUDP late (max3016ms), no latency qualification. New receive-port candidate not qualified/deployed.",
-  "updated_at": "2026-10-06T11:59:13.047730+08:00",
+  "qualification_scope": "Product candidate60f core/race/60 failed-Wake+SYN+retired repetitions/Linuxserver/GUI/padding/lifecycle37/strict preflight PASS. Independent Normal lossless/5205 and P6 RUNNING. Native sender histogram helper pending Actions, no Go change. Deployed921 unchanged; D04 functionalPASS/qualityPARTIAL, M03 maximumUDP missing/lateFAIL and selected Wintun packet observationUNSUPPORTED. Full70/18/soak/P7 not inherited.",
+  "updated_at": "2026-10-06T12:15:48.606887+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -84,8 +84,8 @@
     "Bounded reverse-fragment diagnostic helpers Actions qualification",
     "Remaining native IP/config and old rawp99/Wake attribution"
   ],
-  "next_task": "Qualify retired-control candidate after fixing test publication barrier via real delivered business; keep819testfixture failure and42historical failedWake. Normal/Game independent5205 plus lifecycle/P6 before any paired deploy. Native 1419 APP_FAIL/diagnosticINVALID,1420 Linux reverse85rowsPASS/Windows packet events UNSUPPORTED; do not blindrepeat or infer no loss from counters. Pick controlled observable Windows boundary. D04 functionalPASS/qualityPARTIAL; remaining30 case IDs/current full70/18/soak open.",
-  "latest_log": "docs/devlog/20261006-120500-native-results-and-publication-barrier.md",
+  "next_task": "Finish candidate60f exact-source correctness/lifecycle37/preflight. Then independent Normal lossless+5205 and Game lossless+5205+5305, raw pacing and paired p95/p99 before same-source P6/deploy. No new performance scheme; one sample per Action. NativeM03 needs observable Windows boundary; no blind300s repeats of empty packet capture. D04 functionalPASS/business qualityPARTIAL; remaining30 case IDs and current full70/18/soak open.",
+  "latest_log": "docs/devlog/20261006-121800-native-input-p99-observer.md",
   "last_tested_source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
   "actions": [
     {
@@ -2215,6 +2215,69 @@
       "scope": "P6",
       "status": "PASS",
       "note": "Exact-source scoped gate; physical/full70/strict18/1800s not inherited."
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411859529",
+      "scope": "retired-published-control-next-strict-harness-preflight",
+      "status": "PASS",
+      "note": "Exact-source scoped candidate qualification, not full release/P7; independent performance pending"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565897",
+      "scope": "retired-published-control-next-windows-gui",
+      "status": "PASS",
+      "note": "Exact-source scoped candidate qualification, not full release/P7; independent performance pending"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565981",
+      "scope": "retired-published-control-next-linux-server",
+      "status": "PASS",
+      "note": "Exact-source scoped candidate qualification, not full release/P7; independent performance pending"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565900",
+      "scope": "retired-published-control-next-foundation",
+      "status": "PASS",
+      "note": "Exact-source scoped candidate qualification, not full release/P7; independent performance pending"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565811",
+      "scope": "retired-published-control-next-predelivery-tools",
+      "status": "PASS",
+      "note": "Exact-source scoped candidate qualification, not full release/P7; independent performance pending"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565856",
+      "scope": "retired-published-control-next-tls-startup-padding",
+      "status": "PASS",
+      "note": "Exact-source scoped candidate qualification, not full release/P7; independent performance pending"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565849",
+      "scope": "retired-published-control-next-lifecycle",
+      "status": "PASS",
+      "note": "Exact-source scoped candidate qualification, not full release/P7; independent performance pending"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565840",
+      "scope": "retired-published-control-next-p4-steady-targeted",
+      "status": "PASS",
+      "note": "Exact-source scoped candidate qualification, not full release/P7; independent performance pending"
+    },
+    {
+      "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565847",
+      "scope": "retired-published-control-next-lifecycle-fullstack",
+      "status": "PASS",
+      "note": "Exact-source scoped candidate qualification, not full release/P7; independent performance pending"
     }
   ],
   "physical_status": "PARTIAL",
@@ -8609,15 +8672,45 @@
     "windows_packet_rows": 0
   },
   "retired_published_control": {
-    "state": "CANDIDATE_TEST_PUBLICATION_BARRIER_FIX_PENDING",
+    "state": "CORRECTNESS_PASS_PERFORMANCE_PENDING",
     "deployed_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
     "trigger_run": 37410839914,
     "trigger": "repeated failedWake shared server ErrHandshakeState",
     "scope": "Only own closed-association marker plus retired byFlow/DORMANT evidence",
     "historical_run_unique_root_proven": false,
     "next": "core/race deterministic retired control+60Wake repetitions, fullstack37, independent Normal/Game5205 and same-source P6 before deploy",
-    "candidate_source": "81939eb674cb80330184dbe067209b227c727fc7",
+    "candidate_source": "60f6544aa09259c8589c39eac08019ae284116c4",
     "candidate_failed_test_run": 37411327860,
-    "failed_test_reason": "deterministic retired integration fixture sampled byFlow before async admission published; use real delivered business barrier. Product logic unchanged by fixture fix."
+    "failed_test_reason": "deterministic retired integration fixture sampled byFlow before async admission published; use real delivered business barrier. Product logic unchanged by fixture fix.",
+    "product_logic_source": "81939eb674cb80330184dbe067209b227c727fc7",
+    "test_publication_barrier_source": "60f6544aa09259c8589c39eac08019ae284116c4",
+    "repetition_run": 37411565811,
+    "repeated_race_state": "PASS_60",
+    "lifecycle_core_run": 37411565849,
+    "lifecycle_core_state": "PASS",
+    "freeze_ref": "qualification/60f6544-retired-control-20261006",
+    "performance_state": "RUNNING_NORMAL_LOSSLESS_5205",
+    "fullstack_run": 37411565847,
+    "fullstack_state": "PASS_37",
+    "package_state": "RUNNING",
+    "foundation_state": "PASS",
+    "linux_server_state": "PASS",
+    "preflight_state": "PASS",
+    "performance_runs": [
+      37412573311,
+      37412577103
+    ],
+    "package_run": 37412581223
+  },
+  "native_input_p99_observer": {
+    "state": "HELPER_ACTIONS_PENDING",
+    "scope": "native C# and ARM target successful business sends only; actual per-send monotonic clock minus unchanged byte budget deadline; 102 counters",
+    "resolution_ms": 0.1,
+    "overflow_threshold_ms": 10,
+    "overflow_percentile_policy": "conservative observed maximum, never claim exact quantile above10ms",
+    "product_changed": false,
+    "pacing_changed": false,
+    "historical_native_input_p99": "NOT_EVALUATED; cannot infer from old MaxSendLagMs or inherit new counters",
+    "next": "qualify fixed C#/Python vectors in Actions before native use; full positive sample count must equal sent packets; no old D04 quality promotion"
   }
 }

@@ -5,6 +5,35 @@ from pathlib import Path
 SIZES = (96, 256, 512, 1000, 1372)
 PATTERN = bytes(range(256)) * 6
 
+class SendLag:
+    """Fixed histogram with conservative 0.1ms percentile upper bounds."""
+    def __init__(self):
+        self.bins = [0] * 102
+        self.samples = self.overflow = 0
+        self.maximum = 0.0
+
+    def record(self, milliseconds):
+        if not math.isfinite(milliseconds):
+            raise ValueError('Finite lag required')
+        milliseconds = max(0.0, milliseconds)
+        index = 101 if milliseconds > 10 else math.ceil(milliseconds * 10)
+        self.bins[index] += 1
+        self.samples += 1
+        self.overflow += index == 101
+        self.maximum = max(self.maximum, milliseconds)
+
+    def upper_percentile(self, percentile):
+        if not math.isfinite(percentile) or not 0 < percentile <= 1:
+            raise ValueError('Percentile required')
+        if not self.samples:
+            return 0.0
+        rank, count = math.ceil(self.samples * percentile), 0
+        for index, value in enumerate(self.bins):
+            count += value
+            if count >= rank:
+                return self.maximum if index == 101 else index / 10
+        raise ValueError('Lag sample count mismatch')
+
 def cpu(pid):
     fields = Path('/proc/%s/stat' % pid).read_text().split(') ', 1)[1].split()
     return (int(fields[11]) + int(fields[12])) / os.sysconf('SC_CLK_TCK')
@@ -35,6 +64,7 @@ def main():
         stats = dict(RxPackets=0, RxBytes=0, DuplicatePackets=0, BadPayload=0, ReorderedPackets=0,
                      TxPackets=0, TxBytes=0, MaxSendLagMs=0.0)
         start = time.monotonic(); cpu_before = cpu(args.wbd_pid); helper_cpu_before = time.process_time()
+        send_lag = SendLag()
         maximum = -1; finished = threading.Event(); intervals = []; next_report = 5.0
         def send():
             sequence = 0; buffers = {n: bytearray(n) for n in SIZES}
@@ -44,8 +74,9 @@ def main():
                 while stats['TxBytes'] + SIZES[sequence % len(SIZES)] <= budget and batch < 32:
                     n = SIZES[sequence % len(SIZES)]; b = buffers[n]
                     struct.pack_into('!4sIIHBB', b, 0, b'P7D1', seed, sequence, n, 1, 0)
+                    lag_ms = (time.monotonic()-start-(stats['TxBytes']+n)/rate)*1000
                     sock.sendto(b, peer); stats['TxBytes'] += n; stats['TxPackets'] += 1
-                    stats['MaxSendLagMs'] = max(stats['MaxSendLagMs'], (elapsed-stats['TxBytes']/rate)*1000)
+                    send_lag.record(lag_ms)
                     sequence += 1; batch += 1
                 time.sleep(.001)
             finished.set()
@@ -71,7 +102,12 @@ def main():
             if seq < maximum: stats['ReorderedPackets'] += 1
             maximum = max(maximum, seq); stats['RxPackets'] += 1; stats['RxBytes'] += n
         sender.join()
+        if send_lag.samples != stats['TxPackets']:
+            raise ValueError('Lag coverage mismatch')
         stats.update(Result='MEASURED', Seed=seed, Seconds=duration, RequestedMbps=config['Mbps'],
+                     SendLagSamples=send_lag.samples, SendLagOverflowSamples=send_lag.overflow,
+                     SendLagP99UpperMs=send_lag.upper_percentile(.99), SendLagResolutionMs=.1,
+                     MaxSendLagMs=send_lag.maximum, PacingMode='byte-budget-1ms-batch32',
                      PeerIPv4=peer[0], WBDCPUSeconds=cpu(args.wbd_pid)-cpu_before,
                      HelperCPUSeconds=time.process_time()-helper_cpu_before,
                      EffectiveTargetReceiveBuffer=sock.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF),

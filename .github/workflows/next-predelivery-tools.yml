@@ -31,6 +31,7 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           Add-Type -Path tools/physical_udp_client.cs
+          ./tools/test_physical_send_lag.ps1
           Add-Type -Path tools/physical_npcap_watch.cs
           ./tools/test_physical_dns_metadata.ps1
           ./tools/test_physical_fragment_ownership.ps1
@@ -69,6 +70,7 @@ jobs:
           python3 tools/test_native_idle_observer.py
           python3 tools/test_physical_inner_fragments.py
           python3 tools/test_realpath_pacing.py
+          python3 tools/test_physical_send_lag.py
           python3 tools/prepare_config_harness.py --case f20-l4-p1 --artifact-dir artifacts/config-template
           bash -n artifacts/config-template/generated-config.sh
       - uses: actions/upload-artifact@v4

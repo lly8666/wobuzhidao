@@ -1,0 +1,95 @@
+{
+  "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+  "freeze_ref": "qualification/60f6544-retired-control-20261006",
+  "deployed_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+  "historical_failure_unique_root_proven": false,
+  "correctness_state": "PASS_SCOPED",
+  "gates": [
+    {
+      "id": 37411859529,
+      "name": "next-strict-harness-preflight",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411859529"
+    },
+    {
+      "id": 37411565897,
+      "name": "next-windows-gui",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565897"
+    },
+    {
+      "id": 37411565981,
+      "name": "next-linux-server",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565981"
+    },
+    {
+      "id": 37411565900,
+      "name": "next-foundation",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565900"
+    },
+    {
+      "id": 37411565811,
+      "name": "next-predelivery-tools",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565811"
+    },
+    {
+      "id": 37411565856,
+      "name": "next-tls-startup-padding",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565856"
+    },
+    {
+      "id": 37411565849,
+      "name": "next-lifecycle",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565849"
+    },
+    {
+      "id": 37411565840,
+      "name": "next-p4-steady-targeted",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565840"
+    },
+    {
+      "id": 37411565847,
+      "name": "next-lifecycle-fullstack",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37411565847"
+    }
+  ],
+  "lifecycle_jobs": 37,
+  "lifecycle_samples": 36,
+  "repeated_failed_wake_syn_retired_count": 60,
+  "replacement_barrier_count": 30,
+  "performance_state": "PENDING",
+  "performance_runs": [
+    37412573311,
+    37412577103
+  ],
+  "package_run": 37412581223,
+  "one_sample_per_performance_action": true,
+  "normal_success_hot_path_new_locks_counters_logs": false,
+  "no_hol_or_repair_policy_change": true,
+  "full_release_qualified": false
+}
