@@ -1,6 +1,6 @@
 # WBD NEXT 详细开发方案
 
-2026-10-06当前：be456ce Npcap owned返回去重复制候选9定向Actions/四独立120s/12p95+p99配对全部PASS；P6打包运行，实机候选未验，Linux成绩不证明Windows省CPU。部署仍a280，DNS开关功能PASS/质量FAIL、CPU诊断溢出失败保留。48普通300s/23工况/20NOT_RUN另1诊断；M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：be456ce Npcap owned返回去冗余复制9定向Actions/12RTT/P6三平台hash全部PASS，已同源部署并保留a280回滚。原生单300s/Normal1/FEC20/10M/profileoff1472运行，未宣称省CPU/p99修复。48普通300s/23工况/20NOT_RUN另1诊断；旧质量FAIL与M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
 
 以下带日期段落保留历史，当前任务以STATUS顶层为准。
 

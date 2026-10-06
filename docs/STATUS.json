@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "be456ce narrowNpcapcopy candidate9scopedActions/four independent120s/12pairedRTT PASS;P6running/nativeNOT_RUN. Linux strict provesregression/no WindowsCPU benefitclaim. Deployednative remainsa280;DNSon/offfunctionPASS/qualityFAIL andprofilepressureFAILretained. Full70/18/1800sNOT_RUN current.",
-  "updated_at": "2026-10-06T21:08:39.716584+08:00",
+  "qualification_scope": "be456ce9scopedActions/12pairedRTT/P6PASS;pairednative deployed/300sprofileoff1472RUNNING,not nativePASS or full70/18/1800s. a280 nativequality failures/profilepressure retained;M03PARTIAL;48ordinary300s/23unique/20NOT_RUN plusoneprofilediagnostic.",
+  "updated_at": "2026-10-06T21:12:00.304209+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,13 +80,13 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Exactsource P6 packagebe456ce run37468358428",
-    "Nativeprofileoff performance benefit NOT_RUN for copycandidate",
-    "Remainingnative20configurationcasesNOT_RUN",
-    "HighFEC p99/M03 diagnosis unresolved"
+    "Nativebe456ce profileoff Normal1/FEC20/10M seed1472 running",
+    "Nativep99/queue diagnosis unresolved",
+    "Remaining20nativeconfigcasesNOT_RUN",
+    "M03 residualmissing/latePARTIAL"
   ],
-  "next_task": "Collect exactbe456ce P6run37468358428 manifests/hash/three platformreceipts aftersuccess;only then guardedpairdeployment preserving a280rollback/config/installationID. Singleprofileoff native Normal1/10M/FEC20 seed1472,original helperb393+guarda280,measurebusiness/probes/p99/CPU/allocation/queue andcleanup. Anyfailure retains data;no blinddriver/FEC/cache/HOL changes.",
-  "latest_log": "docs/devlog/20261006-212800-npcap-owned-return-actions.md",
+  "next_task": "Finish singlebe456ce nativeS11/seed1472 profileoff then analyze original strictbusiness/probe/input/CPU/p99/drop/DNS/cleanup and actualallocation/sameconfigobservations against a280D01;WAN/time/seed differ,no causal CPU/p99 benefit claim. Record failures unchanged. If meaningfulnativequeue delay remains,localize synchronousACK/driver vsownerdecode with existing bounded measurements before furtheroptimization. Remainingnative20config cases/M03stillopen.",
+  "latest_log": "docs/devlog/20261006-213100-npcap-copy-package-native-running.md",
   "last_tested_source_sha": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
   "actions": [
     {
@@ -2531,6 +2531,13 @@
       "scope": "npcap-owned-return-scoped-strict-game-baseline",
       "status": "PASS",
       "note": "Exact attempt1;does not inherit full70/18/1800s/native qualification"
+    },
+    {
+      "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37468358428",
+      "scope": "npcap-owned-return-P6-three-platform",
+      "status": "PASS",
+      "note": "All threefilehash/manifest/Actionsreceipt verified;ARM actualruntimeversion validated in deployment,not fullP7"
     }
   ],
   "physical_status": "PARTIAL",
@@ -8100,8 +8107,8 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-    "state": "NATIVE_PROFILE_COLLECTED_COPY_CANDIDATE_NOT_TESTED",
+    "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+    "state": "COPY_CANDIDATE_NATIVE_PROFILE_OFF_RUNNING",
     "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json",
     "native_completed_300s": [
       {
@@ -8167,10 +8174,21 @@
         "dns_off_function": "PASS_SCOPED_NATIVE_DNS_OFF"
       }
     ],
-    "running": null,
+    "running": [
+      {
+        "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+        "case": "S11",
+        "seed": 1472,
+        "seconds": 300,
+        "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
+        "guard_helper_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+        "cpu_profile": false,
+        "client_diagnostics": true
+      }
+    ],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
-    "previous_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "previous_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
     "previous_completed_300s": [
       "D01 seed1351",
       "D01 seed1352",
@@ -8178,7 +8196,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": null,
+    "running_case": "s11-current-300s-seed1472",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8454,8 +8472,8 @@
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
-    "deployed_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-    "source_sha": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "deployed_source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+    "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
     "last_failed_case": "d06-current-300s-seed1468",
     "last_failure_evidence": "docs/evidence/native-d06-dns-off-a280566-seed1468-20261006.json",
     "latest_native_pass": "docs/evidence/native-s09-0246526-seed1446-20261006.json",
@@ -8496,7 +8514,8 @@
         "evidence": "docs/evidence/native-cpu-profile-a280566-seed1469-20261006.json",
         "counted_as_performance_qualification": false
       }
-    ]
+    ],
+    "deployment_evidence": "docs/evidence/windows-npcap-owned-return-be456ce-package-deployed-20261006.json"
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -8745,7 +8764,7 @@
   },
   "current_qualification": {
     "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
-    "state": "SCOPED9_PASS_P6_RUNNING",
+    "state": "SCOPED9_P6_PASS_NATIVE_RUNNING",
     "core_race": "PASS",
     "normal_5205": "PASS",
     "game_5205": "PASS",
@@ -8754,8 +8773,8 @@
     "lifecycle": "PASS",
     "full70": "NOT_RUN",
     "full18": "NOT_RUN",
-    "p6": "RUNNING",
-    "native": "NOT_RUN",
+    "p6": "PASS",
+    "native": "RUNNING",
     "evidence": "docs/evidence/windows-npcap-owned-return-be456ce-actions-20261006.json"
   },
   "tail_observation": {
@@ -9753,9 +9772,9 @@
     "evidence": "docs/evidence/windows-dns-guard-a280566-actions-20261006.json"
   },
   "windows_npcap_return_ownership": {
-    "state": "SCOPED_ACTIONS_PASS_NATIVE_NOT_RUN",
+    "state": "SCOPED_ACTIONS_P6_PASS_NATIVE_RUNNING",
     "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
-    "deployed_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "deployed_source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
     "files": [
       "internal/faketcp/npcap.go",
       "internal/faketcp/npcap_test.go"
@@ -9764,14 +9783,14 @@
     "change": "Return existing MarshalSegment-owned packet;Ethernetframe remainsindependent copy. Removeonepacket allocation+copy perencode call;no pool/borrowedpointer/newqueue.",
     "preserved": "Npcap inboundowned copy/nativecallguard/sendMu/8packet16KiBreadybatch/sparseimmediate/generation/partialprefix/retransmitexactwire;FEC/4096/repair/ACK/MTU unchanged",
     "benefit": "Structural allocation reduction;actualCPU/p99 benefit NOT_TESTED,not mainrootclaim",
-    "native_candidate": "NOT_RUN",
+    "native_candidate": "RUNNING seed1472",
     "actions": "9/9 PASS;four independent120s/12matchedp95+p99 checks PASS",
-    "log": "docs/devlog/20261006-212800-npcap-owned-return-actions.md",
+    "log": "docs/devlog/20261006-213100-npcap-copy-package-native-running.md",
     "actions_evidence": "docs/evidence/windows-npcap-owned-return-be456ce-actions-20261006.json",
     "p6": {
       "run": 37468358428,
-      "state": "RUNNING",
-      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37468358428"
+      "state": "PASS",
+      "evidence": "docs/evidence/windows-npcap-owned-return-be456ce-package-deployed-20261006.json"
     }
   }
 }
