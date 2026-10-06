@@ -1,0 +1,944 @@
+{
+  "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+  "gates": [
+    {
+      "id": 37430769636,
+      "name": "package-prephysical",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430769636"
+    },
+    {
+      "id": 37430766235,
+      "name": "strict-game-5305-seed1432-rate3-lanes4",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430766235"
+    },
+    {
+      "id": 37430762511,
+      "name": "strict-game-5205-seed1432-rate3-lanes4",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430762511"
+    },
+    {
+      "id": 37430758406,
+      "name": "strict-game-lossless-seed1432-rate3-lanes4",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430758406"
+    },
+    {
+      "id": 37430754854,
+      "name": "strict-normal-5205-seed1431-rate10-lanes1",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430754854"
+    },
+    {
+      "id": 37430751625,
+      "name": "strict-normal-lossless-seed1431-rate10-lanes1",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430751625"
+    },
+    {
+      "id": 37430273515,
+      "name": "next-strict-harness-preflight",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273515"
+    },
+    {
+      "id": 37430273363,
+      "name": "next-predelivery-tools",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273363"
+    },
+    {
+      "id": 37430273498,
+      "name": "next-windows-gui",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273498"
+    },
+    {
+      "id": 37430273446,
+      "name": "next-splitroute",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273446"
+    },
+    {
+      "id": 37430273519,
+      "name": "next-default-network",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273519"
+    },
+    {
+      "id": 37430273354,
+      "name": "next-linux-server",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273354"
+    },
+    {
+      "id": 37430273490,
+      "name": "next-foundation",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273490"
+    },
+    {
+      "id": 37430273377,
+      "name": "next-lifecycle-fullstack",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273377"
+    },
+    {
+      "id": 37430273309,
+      "name": "next-tls-startup-padding",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273309"
+    },
+    {
+      "id": 37430273260,
+      "name": "next-lifecycle",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273260"
+    },
+    {
+      "id": 37430273328,
+      "name": "next-p4-steady-targeted",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273328"
+    }
+  ],
+  "performance": {
+    "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "state": "PASS_TARGETED",
+    "pending": [],
+    "samples": [
+      {
+        "run": 37430751625,
+        "name": "strict-normal-lossless-seed1431-rate10-lanes1",
+        "conclusion": "success",
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 45.56,
+          "server": 45.71
+        },
+        "min_goodput": 9.999978666666665,
+        "latency": {
+          "post": {
+            "p95_ns": 600899239,
+            "p99_ns": 600944213,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 600744121,
+            "p99_ns": 601779078,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 600807696,
+            "p99_ns": 601137067,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37430754854,
+        "name": "strict-normal-5205-seed1431-rate10-lanes1",
+        "conclusion": "success",
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 101.98,
+          "server": 104.15
+        },
+        "min_goodput": 9.99872,
+        "latency": {
+          "post": {
+            "p95_ns": 609567677,
+            "p99_ns": 610641740,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 607037082,
+            "p99_ns": 607949847,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 614650543,
+            "p99_ns": 616436193,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37430758406,
+        "name": "strict-game-lossless-seed1432-rate3-lanes4",
+        "conclusion": "success",
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 56.68,
+          "server": 53.28
+        },
+        "min_goodput": 2.999872,
+        "latency": {
+          "post": {
+            "p95_ns": 601276646,
+            "p99_ns": 601523766,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 600842311,
+            "p99_ns": 601181463,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 600925085,
+            "p99_ns": 601333201,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37430762511,
+        "name": "strict-game-5205-seed1432-rate3-lanes4",
+        "conclusion": "success",
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 104.35,
+          "server": 98.03
+        },
+        "min_goodput": 2.999889066666667,
+        "latency": {
+          "post": {
+            "p95_ns": 601702847,
+            "p99_ns": 601723169,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 601598493,
+            "p99_ns": 602028963,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 601428751,
+            "p99_ns": 601553249,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37430766235,
+        "name": "strict-game-5305-seed1432-rate3-lanes4",
+        "conclusion": "success",
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 51.51,
+          "server": 48.76
+        },
+        "min_goodput": 2.999872,
+        "latency": {
+          "post": {
+            "p95_ns": 600717901,
+            "p99_ns": 600910744,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 601195802,
+            "p99_ns": 608198338,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 600562785,
+            "p99_ns": 600737492,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      }
+    ],
+    "pairs": [
+      {
+        "run": 37430754854,
+        "baseline": 37430751625,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 6.292961,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430754854,
+        "baseline": 37430751625,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 6.170769,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430754854,
+        "baseline": 37430751625,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": 13.842847,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430754854,
+        "baseline": 37430751625,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": 15.299126,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430754854,
+        "baseline": 37430751625,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 8.668438,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430754854,
+        "baseline": 37430751625,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 9.697527,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430762511,
+        "baseline": 37430758406,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 0.756182,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430762511,
+        "baseline": 37430758406,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 0.8475,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430762511,
+        "baseline": 37430758406,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": 0.503666,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430762511,
+        "baseline": 37430758406,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": 0.220048,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430762511,
+        "baseline": 37430758406,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 0.426201,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430762511,
+        "baseline": 37430758406,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 0.199403,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430766235,
+        "baseline": 37430758406,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 0.353491,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430766235,
+        "baseline": 37430758406,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 7.016875,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430766235,
+        "baseline": 37430758406,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": -0.3623,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430766235,
+        "baseline": 37430758406,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": -0.595709,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430766235,
+        "baseline": 37430758406,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": -0.558745,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37430766235,
+        "baseline": 37430758406,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": -0.613022,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      }
+    ],
+    "full18_qualification": false,
+    "one_sample_per_action": true,
+    "profile": false,
+    "retained_failed_runs": [
+      37318484867,
+      37320066022,
+      37321752497
+    ],
+    "no_cross_helper_baseline": true
+  },
+  "raw_generator_receipts": {
+    "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "pacing": "absolute-deadline-sleep-v1",
+    "generator_sha256": "f87527f8c9621702ed28951cb4f27a7b000f27ba3c25b20bd13bad9e43ad62b1",
+    "samples": [
+      {
+        "run": 37430751625,
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "manifest_hash": "75187da95689bcc0774652dc9434a44de2d223ba4de354fa5edd178eeba7cb45",
+        "downloaded_bytes": 155045,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 11.67652154,
+            "send_lag_p99_ms": 0.4,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 11.264289061,
+            "send_lag_p99_ms": 0.4,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "server_kernel_filter": {
+          "samples": 150,
+          "kernel_port_filter": true,
+          "receive_ports": [
+            443
+          ],
+          "last_receive_messages": 1179360
+        },
+        "config": {
+          "application_mbps_each_direction": 10.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 1,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37430751625",
+          "identity": "strict:normal:lossless:seed1431:rate10:lanes1:stateful0:neighborsdynamic:source85209d3a076e36c3c7e32981b95cd856d45a7dc1:harness85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+          "schema": 1,
+          "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1"
+        }
+      },
+      {
+        "run": 37430754854,
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "manifest_hash": "295638a13214e9fe139145e57270b28f1bef4e5223c135e97cd6525462edb2f5",
+        "downloaded_bytes": 214295,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 28.084721567,
+            "send_lag_p99_ms": 1.0,
+            "skipped_slots": 0,
+            "sent_packets": 296052,
+            "sent_bytes": 149999680,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 27.441635760999997,
+            "send_lag_p99_ms": 1.0,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "server_kernel_filter": {
+          "samples": 150,
+          "kernel_port_filter": true,
+          "receive_ports": [
+            443
+          ],
+          "last_receive_messages": 1361069
+        },
+        "config": {
+          "application_mbps_each_direction": 10.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 1,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37430754854",
+          "identity": "strict:normal:5205:seed1431:rate10:lanes1:stateful0:neighborsdynamic:source85209d3a076e36c3c7e32981b95cd856d45a7dc1:harness85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+          "schema": 1,
+          "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1"
+        }
+      },
+      {
+        "run": 37430758406,
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "manifest_hash": "8333944b05e1a14028368722cd9f9dfa8a5ab437d70d4b399ac25545d02d2a20",
+        "downloaded_bytes": 329221,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 7.438353804999999,
+            "send_lag_p99_ms": 0.6,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 7.258467316,
+            "send_lag_p99_ms": 0.7,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "server_kernel_filter": {
+          "samples": 149,
+          "kernel_port_filter": true,
+          "receive_ports": [
+            443
+          ],
+          "last_receive_messages": 1378011
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37430758406",
+          "identity": "strict:game:lossless:seed1432:rate3:lanes4:stateful0:neighborsdynamic:source85209d3a076e36c3c7e32981b95cd856d45a7dc1:harness85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+          "schema": 1,
+          "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1"
+        }
+      },
+      {
+        "run": 37430762511,
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "manifest_hash": "a75051170a5c4aa1a72719fd5b1d3871142733212bface56c00628ba66aca07d",
+        "downloaded_bytes": 423456,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 10.177639428,
+            "send_lag_p99_ms": 1.0,
+            "skipped_slots": 0,
+            "sent_packets": 88817,
+            "sent_bytes": 44999920,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 9.984309431,
+            "send_lag_p99_ms": 1.1,
+            "skipped_slots": 0,
+            "sent_packets": 88817,
+            "sent_bytes": 44999920,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "server_kernel_filter": {
+          "samples": 150,
+          "kernel_port_filter": true,
+          "receive_ports": [
+            443
+          ],
+          "last_receive_messages": 1596638
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37430762511",
+          "identity": "strict:game:5205:seed1432:rate3:lanes4:stateful0:neighborsdynamic:source85209d3a076e36c3c7e32981b95cd856d45a7dc1:harness85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+          "schema": 1,
+          "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1"
+        }
+      },
+      {
+        "run": 37430766235,
+        "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "manifest_hash": "e583752337970f49040ed9b1a1fa652c5a1dec56f6c203130a6d39127a4abaca",
+        "downloaded_bytes": 416017,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 4.710051098,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 88816,
+            "sent_bytes": 44999664,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 4.537584768,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "server_kernel_filter": {
+          "samples": 150,
+          "kernel_port_filter": true,
+          "receive_ports": [
+            443
+          ],
+          "last_receive_messages": 1461833
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37430766235",
+          "identity": "strict:game:5305:seed1432:rate3:lanes4:stateful0:neighborsdynamic:source85209d3a076e36c3c7e32981b95cd856d45a7dc1:harness85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+          "schema": 1,
+          "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1"
+        }
+      }
+    ],
+    "no_pcaps_downloaded": true,
+    "unchanged_input_threshold": true
+  },
+  "deployment": {
+    "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "qualification_runs": [
+      "37430273490",
+      "37430273328",
+      "37430273354",
+      "37430273498",
+      "37430273260",
+      "37430273377",
+      "37430273363",
+      "37430273309",
+      "37430273515",
+      "37430273446",
+      "37430273519",
+      "37430751625",
+      "37430754854",
+      "37430758406",
+      "37430762511",
+      "37430766235",
+      "37430769636"
+    ],
+    "harness_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "harness_runs": [
+      "37430273515"
+    ],
+    "retained_failed_performance_runs": [
+      37318484867,
+      37320066022,
+      37321752497
+    ],
+    "windows_zip_sha256": "b2504606acd6661db28c0970da9ef0fe080542dd45882b4775d77b257ac13f02",
+    "windows_bundle": "WBD-P7-85209d3/windows-portable",
+    "server_stage": "/opt/wbd/p7-candidates/85209d3",
+    "server_config_preserved": true,
+    "npcap_not_reinstalled": true,
+    "rollback_source": "60f6544"
+  },
+  "race_repetitions": 20,
+  "lifecycle_jobs": 37,
+  "full_release_qualified": false,
+  "native_observation": "PREFLIGHT_RUNNING",
+  "success_is_application_delivery": false
+}

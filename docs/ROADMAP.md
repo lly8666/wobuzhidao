@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-06当前：固定产品60f6544已过core/race/60次Wake-SYN退役重复/37生命周期、五独立严格性能及18RTT对、三平台P6并配套部署。助手b393四门PASS。实机S03双lane/FEC20:20/双向3M完整300s零loss、2981探针全回/p99=119.40ms、DNS60/60/owned清理通过；S04三lane正在测。新增默认关闭受控Windows写TUN逐片元数据候选未验，先Actions，不继承60f资格。M03缺包/迟到仍未解决，空Pktmon仍UNSUPPORTED；35历史完整样本/14工况/29NOT_RUN跨源码不能继承。保持无HOL/有界repair、不扩FEC/4096/buffer，每性能Action一条。
+2026-10-06当前：产品85209d3有界默认off Windows写TUN观察器已过core/build/race20、37生命周期、网络/GUI/padding、五独立严格性能/18RTT对及P6，配套部署；2s M03非空观察92/92/drops0 PASS，完整300s/seed1434运行。60f原生S03双lane零loss/p99119ms；S04三lane业务零loss/p9972ms但raw247drops；S05 FECoff双向约10M/p9970ms，下行22包缺失保留质量FAIL，未知WAN loss不强行修成可靠TCP。37历史完整300s/16工况/27NOT_RUN跨SOURCE不继承，M03最大UDP缺包/迟到仍未解。先STATUS/latest_log；不扩FEC/4096/buffer、不引HOL，每性能Action一条。
 
 2026-10-06当前：配套产品9211b24入口过滤已过core/race/真kernel/native12/服务化12/37生命周期、五独立性能18RTT对和P6；实机M03两次1415 PASS/1416 FAIL，最大UDP一missing一1.308s late，1352小包及时，rawsocketdrop0/过滤443实际生效。32完整native/12工况/31NOT_RUN跨源码不继承。先STATUS/latest_log验有界探针phase timing助手，再诊断回程碎片并D04；不将健康一条关闭M03、不扩缓存/FEC/4096/HOL。
 

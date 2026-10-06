@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "Frozen60f targeted correctness/lifecycle37/five independent strict samples+18 RTT pairs/three-target P6 PASS and paired Windows/ARM deployed. Helperb393 four Actions PASS. NativeS03 full300s 2 lanes/FEC20:20/3M each way zero loss, p99 119.40ms; not full P7. New opt-in Windows TUN metadata product candidate unqualified; M03 missing/late unresolved. Full70/strict18/1800s not inherited.",
-  "updated_at": "2026-10-06T15:31:39.529433+08:00",
+  "qualification_scope": "Frozen85209d3 opt-in TUN observation scoped core/build/race20,37lifecycle,network/GUI/padding, five independent strict samples+18RTT pairs, rawpacing and P6 PASS; paired Windows/ARM deployed. Native60f S03 zero loss; S04 business zero loss/raw247drops; S05 FECoff 10M with22 downlink missing retained FAIL zero-loss quality. New852 M03 2s observation preflight running, not300s/notP7. Full70/18/soak not inherited.",
+  "updated_at": "2026-10-06T15:53:51.505721+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,13 +80,13 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Bounded opt-in Windows pre-TUN metadata observer Actions qualification",
-    "Frozen60f nativeS04 Game3/FEC20:20 300s seed1425",
-    "Remaining native IP/config/current full qualification"
+    "852 native M03 full300s valid dual-boundary observation seed1434",
+    "M03 missing/late fragment boundary diagnosis",
+    "Remaining native IP/config/full current qualification"
   ],
-  "next_task": "Qualify bounded opt-in TUN observation candidate core/build/race, independent Normal/Game lossless and5205 plus Game5305 pairedRTT/rawpacing, exact-source P6 before deploy. While frozen60f nativeS04 runs, preserve all historicalM03 failures. After qualified observer deployment first 2s nonzero/coverage preflight, then one300s M03 with Linux reverse+Windows submission; no empty-capture repeat, no FEC/4096/buffer growth.",
-  "latest_log": "docs/devlog/20261006-153139-bounded-tun-probe-observer.md",
-  "last_tested_source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+  "next_task": "Collect852 M03 full300s seed1434; compare Linux reverse to Windows TUN submission by exact IPID/offset sets for any missing/late application probe. Valid2s preflight92/92/drops0 does not fix historical M03. No blind empty capture, no FEC/4096/buffer growth/HOL; remaining27 native IDs and current full70/18/soak open.",
+  "latest_log": "docs/devlog/20261006-155156-tun-probe-qualified-native-progress.md",
+  "last_tested_source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -2348,6 +2348,125 @@
       "scope": "native-send-lag-helper-next-foundation",
       "status": "PASS",
       "note": "Go product unchanged from frozen60f; C#/Python fixed vectors and helper compilation before native use"
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430769636",
+      "scope": "tun-observer-qualified-package-prephysical",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430766235",
+      "scope": "tun-observer-qualified-strict-game-5305-seed1432-rate3-lanes4",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430762511",
+      "scope": "tun-observer-qualified-strict-game-5205-seed1432-rate3-lanes4",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430758406",
+      "scope": "tun-observer-qualified-strict-game-lossless-seed1432-rate3-lanes4",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430754854",
+      "scope": "tun-observer-qualified-strict-normal-5205-seed1431-rate10-lanes1",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430751625",
+      "scope": "tun-observer-qualified-strict-normal-lossless-seed1431-rate10-lanes1",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273515",
+      "scope": "tun-observer-qualified-next-strict-harness-preflight",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273363",
+      "scope": "tun-observer-qualified-next-predelivery-tools",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273498",
+      "scope": "tun-observer-qualified-next-windows-gui",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273446",
+      "scope": "tun-observer-qualified-next-splitroute",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273519",
+      "scope": "tun-observer-qualified-next-default-network",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273354",
+      "scope": "tun-observer-qualified-next-linux-server",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273490",
+      "scope": "tun-observer-qualified-next-foundation",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273377",
+      "scope": "tun-observer-qualified-next-lifecycle-fullstack",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273309",
+      "scope": "tun-observer-qualified-next-tls-startup-padding",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273260",
+      "scope": "tun-observer-qualified-next-lifecycle",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
+    },
+    {
+      "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273328",
+      "scope": "tun-observer-qualified-next-p4-steady-targeted",
+      "status": "PASS",
+      "note": "Frozen exact source; not full70/18/1800s/P7. Strict runs independently one sample each; paired RTT separately validated."
     }
   ],
   "physical_status": "PARTIAL",
@@ -7917,8 +8036,8 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "60f6544aa09259c8589c39eac08019ae284116c4",
-    "state": "S03_SCOPED_NATIVE_PASS_M03_UNRESOLVED",
+    "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "state": "M03_VALID_OBSERVATION_FULL300S_RUNNING",
     "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json",
     "native_completed_300s": [
       "M01 seed1364",
@@ -7927,11 +8046,11 @@
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
     "running": [
-      "s04-current-300s-seed1425"
+      "m03-tun-observation-300s-seed1434"
     ],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
-    "previous_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+    "previous_source": "60f6544aa09259c8589c39eac08019ae284116c4",
     "previous_completed_300s": [
       "D01 seed1351",
       "D01 seed1352",
@@ -7939,7 +8058,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": "s04-current-300s-seed1425",
+    "running_case": "m03-tun-observation-300s-seed1434",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8124,16 +8243,57 @@
         "status": "PASS_SCOPED_NATIVE_CAPACITY",
         "source": "60f6544aa09259c8589c39eac08019ae284116c4",
         "evidence": "docs/evidence/native-s03-60f6544-seed1423-20261006.json"
+      },
+      {
+        "case": "s04-current-300s-seed1425",
+        "status": "BUSINESS_PASS_TRANSPORT_PRESSURE",
+        "source": "60f6544aa09259c8589c39eac08019ae284116c4",
+        "evidence": "docs/evidence/native-s04-60f6544-seed1425-20261006.json"
+      },
+      {
+        "case": "s05-current-300s-seed1426",
+        "status": "FAIL",
+        "source": "60f6544aa09259c8589c39eac08019ae284116c4",
+        "evidence": "docs/evidence/native-s05-60f6544-seed1426-20261006.json"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
-    "deployed_source": "60f6544aa09259c8589c39eac08019ae284116c4",
-    "source_sha": "60f6544aa09259c8589c39eac08019ae284116c4",
+    "deployed_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "source_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
     "last_failed_case": "m03-current-300s-seed1419",
     "last_failure_evidence": "docs/evidence/native-fragment-boundary-9211b24-20261006.json",
     "latest_native_pass": "docs/evidence/native-mtu-9211b24-seed1415-20261006.json",
-    "latest_native_evidence": "docs/evidence/native-fragment-boundary-9211b24-20261006.json"
+    "latest_native_evidence": "docs/evidence/native-fragment-boundary-9211b24-20261006.json",
+    "not_run_case_ids": [
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12",
+      "S13",
+      "S14",
+      "S15",
+      "S17",
+      "S21",
+      "S22",
+      "S23",
+      "S24",
+      "S25",
+      "S26",
+      "S27",
+      "D05",
+      "D06",
+      "I01",
+      "I02",
+      "I03",
+      "I04",
+      "I05",
+      "I06",
+      "W01"
+    ]
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -8188,11 +8348,13 @@
       "S20",
       "M02",
       "D04",
-      "S03"
+      "S03",
+      "S04",
+      "S05"
     ],
-    "full300s_samples": 35,
+    "full300s_samples": 37,
     "case_ids_total": 43,
-    "case_ids_not_run": 29,
+    "case_ids_not_run": 27,
     "complete_qualification": false,
     "source_mixed_not_inheritable": true,
     "additional_client_complete_only_failures": [
@@ -8834,7 +8996,7 @@
     "server_p99_upper_ms": 1.2
   },
   "windows_tun_probe_observer": {
-    "state": "UNQUALIFIED_CANDIDATE",
+    "state": "SCOPED_ACTIONS_PASS_NATIVE_2S_OBSERVATION_PASS_FULL300S_RUNNING",
     "base_product_source": "60f6544aa09259c8589c39eac08019ae284116c4",
     "scope": "Only controlled198.18.0.1->currentlease UDP echo18446 firstfragment; nonfirst IPpair/protocol scope only; no packet bytes retained",
     "pending_capacity": 1024,
@@ -8846,6 +9008,115 @@
     "no_business_shedding": true,
     "success_is_application_delivery": false,
     "coverage_gate": "observed=recorded=sum consumed rows;all metadata drops0;nonempty preflight;missing final snapshot INVALID",
-    "next": "Actions core/Windowsbuild/race repeated20, strict independent performance and P6; do not deploy before qualification"
+    "next": "Nonempty/wholewindow/drained counts and all metadata drops0 before full300s; success means submission only",
+    "source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "freeze_ref": "qualification/85209d3-tunprobe-20261006",
+    "correctness_gates": [
+      {
+        "id": 37430273515,
+        "name": "next-strict-harness-preflight",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273515"
+      },
+      {
+        "id": 37430273363,
+        "name": "next-predelivery-tools",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273363"
+      },
+      {
+        "id": 37430273498,
+        "name": "next-windows-gui",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273498"
+      },
+      {
+        "id": 37430273446,
+        "name": "next-splitroute",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273446"
+      },
+      {
+        "id": 37430273519,
+        "name": "next-default-network",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273519"
+      },
+      {
+        "id": 37430273354,
+        "name": "next-linux-server",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273354"
+      },
+      {
+        "id": 37430273490,
+        "name": "next-foundation",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273490"
+      },
+      {
+        "id": 37430273377,
+        "name": "next-lifecycle-fullstack",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273377"
+      },
+      {
+        "id": 37430273309,
+        "name": "next-tls-startup-padding",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273309"
+      },
+      {
+        "id": 37430273260,
+        "name": "next-lifecycle",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273260"
+      },
+      {
+        "id": 37430273328,
+        "name": "next-p4-steady-targeted",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37430273328"
+      }
+    ],
+    "race_repetitions": 20,
+    "lifecycle_run": 37430273377,
+    "lifecycle_jobs": 37,
+    "performance_runs": [
+      37430751625,
+      37430754854,
+      37430758406,
+      37430762511,
+      37430766235
+    ],
+    "paired_rtt_count": 18,
+    "max_p99_increment_ms": 15.299126,
+    "package_run": 37430769636,
+    "deployed_source": "85209d3a076e36c3c7e32981b95cd856d45a7dc1",
+    "native_preflight": "PASS_NONEMPTY_92_MATCHED_FRAGMENTS",
+    "native_preflight_evidence": "docs/evidence/native-tun-preflight-85209d3-seed1433-20261006.json",
+    "native_running": "m03-tun-observation-300s-seed1434"
   }
 }

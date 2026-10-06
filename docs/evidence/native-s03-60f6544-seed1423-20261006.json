@@ -101,6 +101,8 @@
     "driver_dropped": 0,
     "interface_dropped": 0
   },
+  "client_npcap_stats_supported": true,
+  "client_user_receive_overflow_max": 0,
   "wire_windows": [
     {
       "captured_frames": 30,
@@ -175,6 +177,5 @@
     "server-diagnostic.jsonl": "86239dc401323a1da8a373f971b57a9eda203c9e629cc61e5222c9e3b618dd46",
     "trigger-timeline.json": "051fb512f42259dfb3778c357830018468b40552996c5ae5b6e7cf0a6d7389a9",
     "windows-observer-processes.json": "29a15c7359c3abb7885394dc4a30e2882738d8d79936ca8f3d3a8c06a0216465"
-  },
-  "old_failures_retained": true
+  }
 }
