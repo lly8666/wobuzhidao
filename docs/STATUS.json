@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "78b8faf scoped9/RTT12/P6 PASS; explicitstage diagnostic1361629samples showsACKfeedback209s vsOwner45.8s/Deliver5.79s, butqueueoverflow51534/probe19missing/business4343downmissing/p99712.93ms STRICTFAIL.49ordinary300s unchanged/23unique/20NOT_RUN plus2diagnostics; not off performance regression/benefit proof, no P7closure.",
-  "updated_at": "2026-10-06T22:11:29.438784+08:00",
+  "qualification_scope": "Windows-only ACK feedback worker candidate NOT_RUN; physical deployed78b8faf stays unchanged. Previous78 scoped9/RTT12/P6 PASS but stageon diagnostic queueoverflow51534/19probe+4343downmissing/p99712.93 FAIL.49ordinary300s/23unique/20NOT_RUN plus2diagnostics; old full70/18/1800s not inherited.",
+  "updated_at": "2026-10-06T22:22:42.653560+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -85,8 +85,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Implement Windows-only one pending latest-ACK feedback worker per generation, coalescing no packet history. Keep FIN ACK/control repair synchronous, original2records/2ms timing, bounded lifecycle shutdown and observable async errors. Default client stage instrumentation remains off; validate Actions and native off before claiming benefit.",
-  "latest_log": "docs/devlog/20261006-221800-client-stage-native-ack-boundary.md",
+  "next_task": "Freeze and qualify Windows bounded latestACK worker candidate: Windows/Linux core+race including ten repeated worker races and trueTLS/Game replacement/DORMANT/wake; GUI/preflight/lifecycle; independentNormal/Game5205 and matched lossless (one performanceAction one sample), P6. Only after PASS paired deploy and native explicitstageoff Normal10/Game4 capacity/p99/drop validation. Preserve209s wall diagnostic/4343missing/19probe failures; no CPU claim from enqueue alone, no cache/FEC/MTU enlargement.",
+  "latest_log": "docs/devlog/20261006-223000-windows-bounded-latest-ack-worker.md",
   "last_tested_source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
   "actions": [
     {
@@ -8835,25 +8835,22 @@
     "helper_run": 37253531888
   },
   "current_soak": {
-    "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+    "source": "CURRENT_COMMIT",
     "state": "NOT_RUN"
   },
   "current_qualification": {
-    "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
-    "state": "SCOPED9_RTT12_P6_PASS_NATIVE_NOT_RUN",
-    "core_race": "PASS",
-    "normal_5205": "PASS",
-    "game_5205": "PASS",
-    "lossless_baselines": "PASS",
-    "paired_rtt_checks": "12/12 PASS",
-    "lifecycle": "PASS",
+    "source": "CURRENT_COMMIT",
+    "state": "NOT_RUN",
+    "core_race": "NOT_RUN",
+    "normal_5205": "NOT_RUN",
+    "game_5205": "NOT_RUN",
+    "lossless_baselines": "NOT_RUN",
+    "paired_rtt_checks": "NOT_RUN",
+    "lifecycle": "NOT_RUN",
     "full70": "NOT_RUN",
     "full18": "NOT_RUN",
-    "p6": "PASS",
-    "native": "Explicit stage diagnostic FAIL_QUEUE_PRESSURE; ordinary native off on thissource NOT_RUN",
-    "evidence": "docs/evidence/client-stage-78b8faf-actions-package-deployed-20261006.json",
-    "tail_warning": "Normal5205 stressp99 delta453.341298ms passed500ms gate butnearbound; no tail-latency improvement claim or broader qualification.",
-    "native_diagnostic_evidence": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json"
+    "p6": "NOT_RUN",
+    "native": "NOT_RUN stageoff required"
   },
   "tail_observation": {
     "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
@@ -9649,6 +9646,23 @@
       "native": "FAIL business_loss37up/1down,profileoff resourcegain observed",
       "evidence": "docs/evidence/windows-npcap-owned-return-be456ce-actions-20261006.json",
       "native_evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json"
+    },
+    {
+      "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+      "state": "SCOPED9_RTT12_P6_PASS_NATIVE_NOT_RUN",
+      "core_race": "PASS",
+      "normal_5205": "PASS",
+      "game_5205": "PASS",
+      "lossless_baselines": "PASS",
+      "paired_rtt_checks": "12/12 PASS",
+      "lifecycle": "PASS",
+      "full70": "NOT_RUN",
+      "full18": "NOT_RUN",
+      "p6": "PASS",
+      "native": "Explicit stage diagnostic FAIL_QUEUE_PRESSURE; ordinary native off on thissource NOT_RUN",
+      "evidence": "docs/evidence/client-stage-78b8faf-actions-package-deployed-20261006.json",
+      "tail_warning": "Normal5205 stressp99 delta453.341298ms passed500ms gate butnearbound; no tail-latency improvement claim or broader qualification.",
+      "native_diagnostic_evidence": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json"
     }
   ],
   "soak_history": [
@@ -9948,5 +9962,15 @@
     "native_evidence": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json",
     "native_status": "DIAGNOSTIC_FAIL_QUEUE_PRESSURE",
     "native_samples": 1361629
+  },
+  "windows_latest_ack_feedback": {
+    "source": "CURRENT_COMMIT",
+    "state": "IMPLEMENTED_NOT_TESTED",
+    "evidence_basis": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json",
+    "scope": "Windows CLI internal default on; Linux/server/direct embedders default off. Per generation one lazy worker and one pending latest-ACK bit/channel token, no cached packets/history. Existing2records/2ms decisions; current seq/ACK/SACK at worker selection. FIN ACK/challenge/repair synchronous.",
+    "lifecycle": "Exact transport cfg/ref captured; stop under transport mutex clears pending, never joins blocked native emit under owner lock. Already accepted in-flight IO drains via native gate; no new queued sends after close. Worker error latched and original fatal tick exit preserved; closed generation never publishes error to new ref.",
+    "hotpath": "No new per-record clocks unless qualification stage opt-in. Fixed locked counters and at most one worker per physical generation (client<=10). No FEC/MTU/shadow/recovery/wire/CLI/configfile changes.",
+    "qualification": "NOT_RUN; Actions blocked-write noHOL/coalescing/latestACK/close/error/piggyback/actualFIN/race10 + realTLS replacement/wake; independent5205+lossless/P6 before deployment, then native stageoff",
+    "log": "docs/devlog/20261006-223000-windows-bounded-latest-ack-worker.md"
   }
 }

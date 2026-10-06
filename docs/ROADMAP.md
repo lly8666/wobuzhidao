@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-06当前：78b8faf默认off客户端接收分段诊断9定向Actions/12配对RTT/P6 PASS并同源部署；下一条显式进程局部计时实机诊断，CPUprofileoff/原14helper不动。ACK/重传/FEC/MTU行为未改，不能宣称尾延迟修好。旧be456实机37上行+1下行missing严格FAIL；49普通300s/23工况/20NOT_RUN另1诊断，M03未关闭，当前全70/18/1800s不继承。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：Windows最新ACK后台发送候选已实现，最多每generation一个worker/一个待发位；2records/2ms原决策、FIN确认/challenge/repair同步，默认不做逐包计时。Actions/race10/独立5205/P6未验，未部署。实机仍78b8faf；显式诊断ACK墙钟209s/Owner45.8s但queueoverflow51534/19probe+4343downmissing严格FAIL，不算普通性能。49普通300s/23工况/20NOT_RUN另2诊断；M03未关闭。每性能Action一条，先STATUS/latest_log。
 
 2026-10-06当前：配套产品9211b24入口过滤已过core/race/真kernel/native12/服务化12/37生命周期、五独立性能18RTT对和P6；实机M03两次1415 PASS/1416 FAIL，最大UDP一missing一1.308s late，1352小包及时，rawsocketdrop0/过滤443实际生效。32完整native/12工况/31NOT_RUN跨源码不继承。先STATUS/latest_log验有界探针phase timing助手，再诊断回程碎片并D04；不将健康一条关闭M03、不扩缓存/FEC/4096/HOL。
 

@@ -251,7 +251,8 @@ func runWindows() error {
 	}
 	diagnosticEndpoints := make(map[uint64]nativeDiagnostic)
 	client, err := runtimeentry.DialTunnelClient(ctx, runtimeentry.TunnelClientConfig{
-		ObserveTiming: observeClientStageTiming,
+		ObserveTiming:    observeClientStageTiming,
+		AsyncACKFeedback: true,
 		OpenLane: func(_ uint8, incarnation uint64) (runtimeentry.SegmentIO, faketcp.ClientFlow, error) {
 			port, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), incarnation)
 			if err != nil {

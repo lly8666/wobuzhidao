@@ -33,3 +33,6 @@ jobs:
         run: |
           set -euo pipefail
           go test -race ./internal/runtimeowner -count=1
+
+      - name: Bounded native ACK worker race repetitions
+        run: go test -race ./internal/runtimeowner -run='^TestACKFeedback' -count=10

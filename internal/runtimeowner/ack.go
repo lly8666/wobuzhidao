@@ -8,20 +8,28 @@ import (
 
 // sendACK runs after immediate business delivery. Only gap-free advancing
 // records coalesce: first arrival, every second record, SACK/gap/duplicate and
-// FIN feedback stay immediate. A single reusable lane timer handles sparse
+// FIN feedback stay immediately eligible. Native Windows sends ordinary ACKs
+// through one bounded worker; FIN confirmation stays synchronous. A lane timer handles sparse
 // traffic without depending on the owner's 100ms maintenance tick.
 func (t *laneTransport) sendACK(urgent bool) error {
+	return t.sendACKMode(urgent, false)
+}
+
+func (t *laneTransport) sendACKMode(urgent, synchronous bool) error {
 	t.mu.Lock()
 	if t.closed {
 		t.mu.Unlock()
 		return nil
 	}
-	if t.cfg.ACKDelay == 0 || urgent || !t.ackSentOnce || t.recvSACKN != 0 {
+	if synchronous || t.cfg.ACKDelay == 0 || urgent || !t.ackSentOnce || t.recvSACKN != 0 {
 		t.ackSentOnce = true
 		t.cancelACKLocked()
 		seg := t.outboundSegment(t.sendNext, t.recvNext, nil)
 		t.mu.Unlock()
-		return t.cfg.Emit(seg)
+		if synchronous {
+			return t.cfg.Emit(seg)
+		}
+		return t.emitACKFeedback(seg)
 	}
 	t.ackCount++
 	if t.ackCount >= 2 {
@@ -29,7 +37,10 @@ func (t *laneTransport) sendACK(urgent bool) error {
 		t.cancelACKLocked()
 		seg := t.outboundSegment(t.sendNext, t.recvNext, nil)
 		t.mu.Unlock()
-		return t.cfg.Emit(seg)
+		if synchronous {
+			return t.cfg.Emit(seg)
+		}
+		return t.emitACKFeedback(seg)
 	}
 	t.ackPending = true
 	t.stats.ACKDeferred++
@@ -59,6 +70,10 @@ func (t *laneTransport) noteACKPiggybackLocked(seg faketcp.Segment) {
 		t.stats.ACKPiggybacked++
 		t.cancelACKLocked()
 	}
+	if t.ackWorkerPending && t.recvSACKN == 0 && seg.Ack == t.recvNext {
+		t.stats.ACKWorkerPiggybacked++
+		t.ackWorkerPending = false
+	}
 }
 
 func (t *laneTransport) flushACKTimer() {
@@ -73,7 +88,7 @@ func (t *laneTransport) flushACKTimer() {
 	seg := t.outboundSegment(t.sendNext, t.recvNext, nil)
 	t.stats.ACKTimerSent++
 	t.mu.Unlock()
-	if err := t.cfg.Emit(seg); err != nil {
+	if err := t.emitACKFeedback(seg); err != nil {
 		t.mu.Lock()
 		t.stats.ACKTimerFailures++
 		if t.ackAsyncError == nil {

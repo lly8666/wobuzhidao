@@ -64,3 +64,5 @@ Linux部署新增：logicaltunnel/lease_registry.go只内存7天随机租约，c
 openwrtclient/managed_linux.go仅封装正式Linux客户端启动/退出的namespace flock与/run网络journal，低层OpenRuntime及数据收发不变；新客户端死后恢复已有TPROXY owned状态，未知/foreign拒绝删，未保存tunnel IP。runtimeentry的inactive predicate仅用于SYN复用、接入模式重建和到期lease，不是新的steady健康扫描或业务idle策略。
 
 2026-10-06客户端分段诊断候选：qualificationdiag/client_stage_timing.go在Windows入口网络操作前验证私有环境变量；runtimeentry/lifecycle.go只在显式ObserveTiming时为附着/提升后的ref开启runtimeowner及datapath既有计时。runtimeowner/perf_diag.go提供有界同步ACK反馈/选中repair墙钟统计，handleSegment所有repair出口及直接challenge ACK覆盖；ACK timer、recovery tick策略不变。off无新增计时，服务端既有ObserveTiming不会自动启用新feedback计数；无新CLI/config/wire或old复用。候选资格以STATUS为准。
+
+2026-10-06 Windows ACK解耦候选：runtimeowner/ack_feedback.go每transport/ref独立lazy worker+一个latest待发位，无包历史/无限goroutine；ack.go原2records/2ms选择后提交最新反馈，successful data piggyback有界取消；runtime.go hasFIN强制同步，RST/close清待发不join堵住native的worker。recovery.go错误出口复用；runtimeentry client internal flag按每新ref继承，Windows入口默认true、Linux/server默认false，无新CLI/wire。perf_diag.go保留enqueue与worker实际emit分别计时，默认off。Actions race10和生命周期/独立性能验证以STATUS为准。

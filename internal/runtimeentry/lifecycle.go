@@ -294,7 +294,9 @@ type TunnelClientConfig struct {
 	// Explicit qualification-only client receive/decode/feedback timing.
 	// Ordinary diagnostic snapshots leave per-record timing disabled.
 	ObserveTiming bool
-	OpenLane      ClientLaneOpener
+	// Native Windows only: bounded latest-ACK sender; other callers default off.
+	AsyncACKFeedback bool
+	OpenLane         ClientLaneOpener
 
 	Lease        logicaltunnel.Lease
 	DesiredLanes int
@@ -828,6 +830,7 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		Emit:                  ioCfg.Emit,
 		EmitBatch:             ioCfg.EmitBatch,
 		ObserveFeedbackTiming: c.cfg.ObserveTiming,
+		AsyncACKFeedback:      c.cfg.AsyncACKFeedback,
 	}
 
 	var snapshot datapath.TunnelLaneSnapshot

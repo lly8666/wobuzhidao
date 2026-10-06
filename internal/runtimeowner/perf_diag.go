@@ -39,6 +39,7 @@ type transportTiming struct {
 	freshCritical  atomicDuration
 	ackFeedback    feedbackDuration
 	selectedRepair feedbackDuration
+	ackWorkerEmit  feedbackDuration
 }
 
 // Fixed-size counters, updated only by explicit qualification instrumentation.
@@ -114,4 +115,9 @@ func (t *transportTiming) apply(out *TransportStats) {
 	out.SelectedRepairMaxNS = t.selectedRepair.duration.max.Load()
 	out.SelectedRepairOver1MS = t.selectedRepair.over1MS.Load()
 	out.SelectedRepairOver10MS = t.selectedRepair.over10MS.Load()
+	out.ACKWorkerEmitSamples = t.ackWorkerEmit.samples.Load()
+	out.ACKWorkerEmitNS = t.ackWorkerEmit.duration.total.Load()
+	out.ACKWorkerEmitMaxNS = t.ackWorkerEmit.duration.max.Load()
+	out.ACKWorkerEmitOver1MS = t.ackWorkerEmit.over1MS.Load()
+	out.ACKWorkerEmitOver10MS = t.ackWorkerEmit.over10MS.Load()
 }

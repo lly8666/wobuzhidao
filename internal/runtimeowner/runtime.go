@@ -60,6 +60,9 @@ type TransportConfig struct {
 	// Qualification-only, immutable opt-in for synchronous receive feedback.
 	// Ordinary diagnostics and server timing do not enable this extra clock work.
 	ObserveFeedbackTiming bool
+	// Native Windows opts in to one bounded latest-ACK sender per generation.
+	// Payload/FIN/repair emission remains synchronous; direct embedders default off.
+	AsyncACKFeedback bool
 }
 
 func (c *TransportConfig) normalize() error {
@@ -257,6 +260,20 @@ type TransportStats struct {
 	SelectedRepairMaxNS    uint64 `json:"selected_repair_max_ns,omitempty"`
 	SelectedRepairOver1MS  uint64 `json:"selected_repair_over_1ms,omitempty"`
 	SelectedRepairOver10MS uint64 `json:"selected_repair_over_10ms,omitempty"`
+	ACKWorkerEnabled       bool   `json:"ack_worker_enabled,omitempty"`
+	ACKWorkerPending       bool   `json:"ack_worker_pending,omitempty"`
+	ACKWorkerRunning       bool   `json:"ack_worker_running,omitempty"`
+	ACKWorkerQueued        uint64 `json:"ack_worker_queued,omitempty"`
+	ACKWorkerCoalesced     uint64 `json:"ack_worker_coalesced,omitempty"`
+	ACKWorkerPiggybacked   uint64 `json:"ack_worker_piggybacked,omitempty"`
+	ACKWorkerAttempts      uint64 `json:"ack_worker_attempts,omitempty"`
+	ACKWorkerSent          uint64 `json:"ack_worker_sent,omitempty"`
+	ACKWorkerFailures      uint64 `json:"ack_worker_failures,omitempty"`
+	ACKWorkerEmitSamples   uint64 `json:"ack_worker_emit_samples,omitempty"`
+	ACKWorkerEmitNS        uint64 `json:"ack_worker_emit_ns,omitempty"`
+	ACKWorkerEmitMaxNS     uint64 `json:"ack_worker_emit_max_ns,omitempty"`
+	ACKWorkerEmitOver1MS   uint64 `json:"ack_worker_emit_over_1ms,omitempty"`
+	ACKWorkerEmitOver10MS  uint64 `json:"ack_worker_emit_over_10ms,omitempty"`
 }
 
 type laneTransport struct {
@@ -328,15 +345,18 @@ type laneTransport struct {
 	deliveredOrder []uint32
 	deliveredHead  int
 
-	stats         TransportStats
-	timing        transportTiming
-	closed        bool
-	ackPending    bool
-	ackCount      int
-	ackSentOnce   bool
-	ackDue        time.Time
-	ackTimer      *time.Timer
-	ackAsyncError error
+	stats            TransportStats
+	timing           transportTiming
+	closed           bool
+	ackPending       bool
+	ackCount         int
+	ackSentOnce      bool
+	ackDue           time.Time
+	ackTimer         *time.Timer
+	ackAsyncError    error
+	ackWorker        *ackFeedbackWorker
+	ackWorkerPending bool
+	ackWorkerRunning bool
 }
 
 func newLaneTransport(owner *datapath.TunnelOwner, ref logicaltunnel.LaneRef, deliver PacketSink, cfg TransportConfig) (*laneTransport, error) {
@@ -585,6 +605,7 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		t.peerRST = true
 		t.closed = true
 		t.cancelACKLocked()
+		t.stopACKFeedbackLocked()
 		clear(t.pending)
 		clear(t.received)
 		t.pendingOrder = nil
@@ -665,7 +686,9 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 	if observeFeedback {
 		ackStarted = time.Now()
 	}
-	ackErr := t.sendACK(urgentACK)
+	// FIN confirmation must reach the synchronous emit boundary before the
+	// lifecycle can retire this transport. Ordinary data feedback may be queued.
+	ackErr := t.sendACKMode(urgentACK, hasFIN)
 	if observeFeedback {
 		t.timing.ackFeedback.observe(time.Since(ackStarted))
 	}
@@ -988,11 +1011,15 @@ func (t *laneTransport) statsSnapshotAt(now time.Time) TransportStats {
 	out.Closed = t.closed
 	t.timing.apply(&out)
 	out.FeedbackTimingEnabled = out.TimingEnabled && t.cfg.ObserveFeedbackTiming
+	out.ACKWorkerEnabled = t.cfg.AsyncACKFeedback
+	out.ACKWorkerPending = t.ackWorkerPending
+	out.ACKWorkerRunning = t.ackWorkerRunning
 	return out
 }
 
 func (t *laneTransport) close() {
 	t.mu.Lock()
+	t.stopACKFeedbackLocked()
 	if t.closed {
 		t.mu.Unlock()
 		return

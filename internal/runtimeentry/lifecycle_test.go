@@ -107,7 +107,8 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	var barrierHits atomic.Uint64
 	releaseReplacement := func() { releaseOnce.Do(func() { close(replacementReady) }) }
 	client, err := DialTunnelClient(ctx, TunnelClientConfig{
-		ObserveTiming: true,
+		ObserveTiming:    true,
+		AsyncACKFeedback: true,
 		OpenLane: func(laneID uint8, incarnation uint64) (SegmentIO, faketcp.ClientFlow, error) {
 			if failNextOpen {
 				failNextOpen = false
@@ -316,6 +317,9 @@ func assertClientStageTiming(t *testing.T, client *TunnelClient, active, retirin
 		for _, lane := range lanes {
 			if !lane.Transport.TimingEnabled || !lane.Transport.FeedbackTimingEnabled {
 				t.Fatalf("generation %v lost explicit timing opt-in", lane.Ref)
+			}
+			if !lane.Transport.ACKWorkerEnabled {
+				t.Fatalf("generation %v lost native ACK worker policy", lane.Ref)
 			}
 		}
 	}
