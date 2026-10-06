@@ -21,7 +21,7 @@
 
 ## 当前性能主线（2026-09-23）
 
-2026-10-06当前：产品仍配套SOURCE7eeb。timed M02 seed1413全部2769完整/0超时，稀疏RTT p99114.82ms；M03 seed1414全部1954完整，但65507UDP163次有4迟到1.28..3.02s，此档p992240ms，1302小包准时，未给延迟PASS。30完整native/12工况/31NOT_RUN跨源码不继承。新server内核listen-port过滤候选仅改接收入口、未部署，先STATUS/latest_log验core/race/真AF_PACKET/native回落与独立性能后P6。DNS helperd4a已验但D04未跑。旧失败保留；每性能Action一条，不扩buffer/FEC/4096/HOL。
+2026-10-06当前：配套产品SOURCE9211b24内核listen-port过滤通过core/race/真AF_PACKET/native12/服务化12/GUI/startup、37生命周期及五条独立120s性能/18RTT对，socketdrop0、p99最大增加11.30ms；P6校验并配套部署。原生M03/D04待本SOURCE测试。旧7eeb M03全部1954回来但65507UDP4迟到/p992240ms未关闭。30完整native/12工况/31NOT_RUN跨源码不继承；最新全70/strict18/1800s NOT_RUN，见STATUS/latest_log。每性能Action一条，不扩缓存/FEC/4096/HOL。
 
 2026-10-05最新：24ff的D01独立seed1351/1352均完整300s双向近10M、driver/user overflow0、探针全回；上行少量损失及server raw drop保留，不能写全链路无损PASS。S16 seed1353正在同源复验rotation。新候选修复Wintun65535与合法lease包9000不一致、坏本地输入导致整client退出：内层MTU9000与外层预算分开，Apply实效/owned原值恢复，拒绝包在wire前计数、正常包无新计数，runtime/wire错误不吞。候选未过Actions前不部署；先STATUS.windows_tun_mtu_boundary与092400日志，再M01/M03。每性能Action只一条。
 

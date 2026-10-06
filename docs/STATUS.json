@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "SOURCE7eeb retiredSYNACK narrow candidate core/race incl30Wake+SYN repetitions/36+aggregate37/P6/Linuxserver/GUI and5 independent strict samples/18 same-source same-helper RTTpairs PASS. Paired7eeb Windows/ARM deployed; native tc1411 failedWake recovery PASS; M02Game4 2747/2747 exact but1 late>1s: functionalPASS_WITH_LATE_RESPONSES, latency unqualified. Full70/18/1800s/P7 not inherited. Parent931 raceFAIL and native1410 localEPERM retained. Native timed M02 seed1413 all2769 exact, p99114.82ms/max118.33ms;M03 seed1414 all1954 exact but4maximumUDP late (max3016ms), no latency qualification. New receive-port candidate not qualified/deployed.",
-  "updated_at": "2026-10-06T10:23:05.499614+08:00",
+  "updated_at": "2026-10-06T10:52:10.632889+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -80,12 +80,12 @@
     "2026-10-05：五分钟配置/DNS/IP/MTU/外观矩阵入方案；原生S01/S02/M01/D01各独立300s已执行并保留D01 FAIL，不代表整矩阵或P7通过"
   ],
   "in_progress": [
-    "Actions qualify kernel receive-port filter candidate; product7eeb still deployed",
-    "MaximumUDP tail recovery/fragment boundary attribution and pending DNS D04/physical matrix"
+    "Native maximumUDP tail qualification on paired9211b24",
+    "DNS D04 and remaining physical configuration/routing matrix"
   ],
-  "next_task": "Qualify narrow server kernel receive-port filter before deploy: core/race, Linux-server real AF_PACKET/no truncation/default endpoint compatibility + multi-client ordinary TLS fallback. Then each independent Normal/Game5205 plus lossless same-source RTT pairs (at least Game5305 for old tail), no profile/AB/matrix. P6 new paired candidate only after gates; repeat timed M03 for tail attribution. Product currently remains7eeb, maxUDP1414 all163 exact but4late1.28..3.02s/maxUDP p992240ms, small1302 timely; no globalHOL claim from this sparse fixture. DNS D04 not run. Historical rawp99/Wake loss remain open.",
-  "latest_log": "docs/devlog/20261006-103000-receive-filter-test-import.md",
-  "last_tested_source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+  "next_task": "Run timed M03 seed1415 on paired9211b24 + exact qualified helper, same300s/1s timeout/original boundary gates, window raw audit+delete. Kernel actualfilter443 true must be checked. Collect outside-load host IP fragment/reassembly metadata, no causal claim from mixed-host counters. Then D04 both resolver FORWARD blackhole/defaultNRPT/leak observer/10M business/p99 and recovery, owned cleanup. Old7eeb4late/maxUDP p992240ms/oldrawp99/Wake residual loss retained; noHOL/buffer/FEC/4096 expansion. Latest full70/strict18/1800s not inherited.",
+  "latest_log": "docs/devlog/20261006-105210-server-port-filter-hosted-qualified.md",
+  "last_tested_source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -2151,6 +2151,69 @@
       "scope": "independent-strict-strict-game-5305-seed1382-rate3-lanes4",
       "status": "PASS",
       "note": "Exact source; scoped qualification, not full70/18/soak/P7."
+    },
+    {
+      "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37404305990",
+      "scope": "foundation",
+      "status": "PASS",
+      "note": "Exact-source scoped gate; physical/full70/strict18/1800s not inherited."
+    },
+    {
+      "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37404305850",
+      "scope": "core-race",
+      "status": "PASS",
+      "note": "Exact-source scoped gate; physical/full70/strict18/1800s not inherited."
+    },
+    {
+      "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37404307413",
+      "scope": "Linux-server/kernel-native",
+      "status": "PASS",
+      "note": "Exact-source scoped gate; physical/full70/strict18/1800s not inherited."
+    },
+    {
+      "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37404306007",
+      "scope": "GUI",
+      "status": "PASS",
+      "note": "Exact-source scoped gate; physical/full70/strict18/1800s not inherited."
+    },
+    {
+      "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37404305849",
+      "scope": "lifecycle-core",
+      "status": "PASS",
+      "note": "Exact-source scoped gate; physical/full70/strict18/1800s not inherited."
+    },
+    {
+      "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37404337202",
+      "scope": "startup",
+      "status": "PASS",
+      "note": "Exact-source scoped gate; physical/full70/strict18/1800s not inherited."
+    },
+    {
+      "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37404337020",
+      "scope": "strict-preflight",
+      "status": "PASS",
+      "note": "Exact-source scoped gate; physical/full70/strict18/1800s not inherited."
+    },
+    {
+      "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37404554110",
+      "scope": "lifecycle37",
+      "status": "PASS",
+      "note": "Exact-source scoped gate; physical/full70/strict18/1800s not inherited."
+    },
+    {
+      "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37405198748",
+      "scope": "P6",
+      "status": "PASS",
+      "note": "Exact-source scoped gate; physical/full70/strict18/1800s not inherited."
     }
   ],
   "physical_status": "PARTIAL",
@@ -7720,8 +7783,8 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
-    "state": "M03_EXACT_WITH_LONG_TAIL_FILTER_CANDIDATE_ACTIONS",
+    "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+    "state": "TIMED_M03_NATIVE_RUNNING",
     "evidence": "docs/evidence/windows-ready-batch-native-24ff220-20261005.json",
     "native_completed_300s": [
       "M01 seed1364",
@@ -7729,10 +7792,12 @@
       "M03 seed1366 FAIL",
       "S18 seed1391 lifecyclePASS/qualityPARTIAL"
     ],
-    "running": [],
+    "running": [
+      "m03-current-300s-seed1415"
+    ],
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
-    "previous_source": "24ff220b86b103689d3e2cebcb8411f87a4910ab",
+    "previous_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
     "previous_completed_300s": [
       "D01 seed1351",
       "D01 seed1352",
@@ -7740,7 +7805,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "3e D02 backup UDP+TCP observed;1/60 queries failed,qualityPARTIAL",
-    "running_case": null,
+    "running_case": "m03-current-300s-seed1415",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -7810,7 +7875,7 @@
         }
       }
     ],
-    "helper_head": "f9653fb94d89f55a93686449bde4eeb65873fc25",
+    "helper_head": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
     "completed": [
       {
         "case": "m01-current-300s-seed1364",
@@ -7899,8 +7964,8 @@
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1397 SSH masters expired before workload;not product sample,not counted. Operational scp now BatchMode/ConnectTimeout.",
-    "deployed_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
-    "source_sha": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "deployed_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+    "source_sha": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
     "last_failed_case": "s18-wake-blackhole-300s-seed1410",
     "last_failure_evidence": "docs/evidence/native-wake-local-rejection-2bf85a1-20261005.json",
     "latest_native_pass": "docs/evidence/native-wake-tc-7eebdcf-20261005.json"
@@ -8431,16 +8496,16 @@
     "retained_initial_compile_failure": 37338589896
   },
   "server_receive_port_filter": {
-    "state": "CANDIDATE_NOT_QUALIFIED_NOT_DEPLOYED",
-    "deployed_source": "7eebdcf83a6d2cbfcf32f1148f61e95ca74c4535",
+    "state": "HOSTED_TARGETED_PASS_NATIVE_PENDING",
+    "deployed_source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
     "reason": "M03 rawreceive393318/pipeline392980 vs client write67300; passive15s708 ingress across unrelated TCP/UDP ports. Exact attribution of excess during test and tail causality unknown.",
     "policy": "Server only, same local IPv4/listen TCPport, all source peers/personas accepted;non-Ethernet/loopback uses userspace port check, no buffer/recovery/FEC/wire changes",
     "diagnostics": [
       "raw_io.receive_port",
       "raw_io.kernel_port_filter"
     ],
-    "evidence": "docs/evidence/native-timed-mtu-m03-7eebdcf-20261006.json",
-    "next": "Actions core/race, isolated AF_PACKET kernel filter/default compatibility, real ordinary TLS fallback+multi-client, then independent Normal/Game5205 and lossless RTT pairs;P6 paired deploy only after passing",
+    "evidence": "docs/evidence/server-port-filter-9211b24-20261006.json",
+    "next": "Timed M03 seed1415 same-source native with IP metadata, then DNS D04; no inherited latest full70/strict18/1800s qualification",
     "failed_candidate_source": "d9b188ad07dad699f4538d5aa59eaaf835fa864c",
     "failed_gates": [
       {
@@ -8456,6 +8521,10 @@
         "name": "next-foundation"
       }
     ],
-    "failure_reason": "Linux faketcp test compile failed: unused x/sys/unix import. Product delivery compiled, kernel fixture never reached. Removed unused test import only; exact corrected-source Actions qualification pending."
+    "failure_reason": "Linux faketcp test compile failed: unused x/sys/unix import. Product delivery compiled, kernel fixture never reached. Removed unused test import only; exact corrected-source Actions qualification pending.",
+    "source": "9211b24679ff97c46c20f69af47ed3f3e850b2ad",
+    "performance_samples": 5,
+    "rtt_pairs": 18,
+    "max_p99_increase_ms": 11.297867
   }
 }

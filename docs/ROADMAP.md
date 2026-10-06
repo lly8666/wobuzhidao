@@ -1,8 +1,8 @@
 # 唯一开发路线图
 
-2026-10-06当前：产品仍配套SOURCE7eeb。timed M02 seed1413全部2769完整/0超时，稀疏RTT p99114.82ms；M03 seed1414全部1954完整，但65507UDP163次有4迟到1.28..3.02s，此档p992240ms，1302小包准时，未给延迟PASS。30完整native/12工况/31NOT_RUN跨源码不继承。新server内核listen-port过滤候选仅改接收入口、未部署，先STATUS/latest_log验core/race/真AF_PACKET/native回落与独立性能后P6。DNS helperd4a已验但D04未跑。旧失败保留；每性能Action一条，不扩buffer/FEC/4096/HOL。
+2026-10-06当前：配套产品SOURCE9211b24内核listen-port过滤通过core/race/真AF_PACKET/native12/服务化12/GUI/startup、37生命周期及五条独立120s性能/18RTT对，socketdrop0、p99最大增加11.30ms；P6校验并配套部署。原生M03/D04待本SOURCE测试。旧7eeb M03全部1954回来但65507UDP4迟到/p992240ms未关闭。30完整native/12工况/31NOT_RUN跨源码不继承；最新全70/strict18/1800s NOT_RUN，见STATUS/latest_log。每性能Action一条，不扩缓存/FEC/4096/HOL。
 
-当前入口以STATUS为准：3e3e094配套包已过Actions定向门并实机D01完整300s，长时间双向中断未再现，但下行8.90%字节损失、208探针超时仍FAIL。S16 rotation独立实机运行；先验最新默认off Windows收包诊断补丁，定位最早下行损失边界再窄修，随后继续DNS/分流/MTU矩阵。旧6181四项保留历史，不继承为最新SOURCE。
+历史3e3e094阶段入口（已由上段当前状态覆盖）：当时配套包已过Actions定向门并实机D01完整300s，长时间双向中断未再现，但下行8.90%字节损失、208探针超时仍FAIL。当时下一项S16/Windows收包诊断不作为本轮任务；最新下一步以STATUS为准。旧失败不继承为新SOURCE资格。
 
 2026-10-05最新原生五分钟进展：固定6181db6未改产品；S01 Normal10与S02 Game4×3达到目标附近但C2S缺74/10包，不能写无损PASS；M01外层MTU1400大包至9000B无坏数据但有1次迟到。D01默认NRPT+10M出现约90秒双向中断、约30.12%业务loss和8/60 DNS失败，明确FAIL；整体P7仍PARTIAL。优先按STATUS.physical_5min复现D01并异常触发抓包定位最早边界，不直接归因DNS/VM或扩大buffer/FEC/4096。完整DNS互备、LAN/CN/IP/IPv6、其他配置/生命周期/弱网未跑。方案PHYSICAL_5MIN_ACCEPTANCE.md、日志devlog/20261005-021317-five-minute-native-capture-matrix.md、evidence/physical-5min-6181db6-20261005.json及压缩原始计数为当前证据入口；每性能Action只一条。原始pcap已删、退出owned清理通过，服务端保留active。
 
