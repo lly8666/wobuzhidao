@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "New explicit client receive-stage observation candidate NOT_RUN. Deployed be456 remains scoped9+12RTT/P6 PASS but native37up/1downmissing FAIL.49ordinary300s/23unique/20NOT_RUN plusoneCPUdiagnostic; diagnostic candidate does not inherit old full70/18/1800s.",
-  "updated_at": "2026-10-06T21:43:39.069593+08:00",
+  "qualification_scope": "78b8faf explicit default-off stage diagnostic9scopedActions+12RTT+P6 PASS;paired deployed, native diagnostic pending. be456 priornative37up/1downmissing FAIL retained.49ordinary300s/23unique/20NOT_RUN plusoneCPUdiagnostic;full70/18/1800s newsource NOT_RUN.",
+  "updated_at": "2026-10-06T21:57:06.074127+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -85,9 +85,9 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Qualify clock-robust test revision on exact new source: Windows/Linux core+race/lifecycle then independent Normal/Game5205 and matched lossless (one sample per Action), P6, paired deployment and one explicit native stage diagnostic. e305 first Windows assertion failure retained; runtime strategy unchanged. No blindACK redesign/cache growth; M03/20 native gaps open.",
-  "latest_log": "docs/devlog/20261006-215000-client-stage-windows-clock-test-fix.md",
-  "last_tested_source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+  "next_task": "Run one paired78b8faf Normal1/10M/FEC20 native300s with explicit process-local client stage timing and CPUprofileoff, unchanged14helpers b393/guardprobea280. Verify actualflags/samples, preserve originalinput/business/probe/cleanup gates; stage sample diagnostic-only not ordinaryqualification. Read per-stage wall vs queue/nativeIO, then evidence-backed minimal feedback optimization;no blindACK/cache/FEC/MTU change. M03/20nativeconfigurationgaps remain.",
+  "latest_log": "docs/devlog/20261006-221500-client-stage-actions-package-deployed.md",
+  "last_tested_source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
   "actions": [
     {
       "source_sha": "6181db66b67594b07cd989b8b8b5848cedf6ccc3",
@@ -2538,6 +2538,66 @@
       "scope": "npcap-owned-return-P6-three-platform",
       "status": "PASS",
       "note": "All threefilehash/manifest/Actionsreceipt verified;ARM actualruntimeversion validated in deployment,not fullP7"
+    },
+    {
+      "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37473117172",
+      "scope": "client-stage scoped foundation",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37473117480",
+      "scope": "client-stage scoped steady",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37473117650",
+      "scope": "client-stage scoped gui",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37473288689",
+      "scope": "client-stage scoped preflight",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37473117239",
+      "scope": "client-stage scoped lifecycle",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37473263204",
+      "scope": "client-stage scoped strict-normal",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37473275944",
+      "scope": "client-stage scoped strict-game",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37473269165",
+      "scope": "client-stage scoped strict-normal-baseline",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37473281955",
+      "scope": "client-stage scoped strict-game-baseline",
+      "status": "PASS"
+    },
+    {
+      "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+      "url": "https://github.com/lly8666/wobuzhidao/actions/runs/37474264106",
+      "scope": "client-stage P6 threeplatform hash/manifest/receipt",
+      "status": "PASS"
     }
   ],
   "physical_status": "PARTIAL",
@@ -8107,8 +8167,8 @@
     "package_run": 37243579697
   },
   "physical_current": {
-    "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
-    "state": "COPY_OPTIMIZATION_VALIDATED_QUALITY_PARTIAL",
+    "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+    "state": "STAGE_DIAGNOSTIC_PAIRED_DEPLOYED_NATIVE_PENDING",
     "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
     "native_completed_300s": [
       {
@@ -8180,10 +8240,10 @@
         "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json"
       }
     ],
-    "running": null,
+    "running": "s01-current-300s-seed1477 explicit stage diagnostic",
     "supersedes_old_native_qualification": false,
     "rotation": "SOURCE24ff S16 seed1353 gen1..6,maxphysical2,target10M,probe2979/2979,driver/user overflow0;C2S0.00367%byte loss;one-second handoff fine-gate NOT_EVALUATED",
-    "previous_source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
+    "previous_source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
     "previous_completed_300s": [
       "D01 seed1351",
       "D01 seed1352",
@@ -8191,7 +8251,7 @@
       "S02 seed1354"
     ],
     "dns_failover": "D04 source921/helperf7c: bothresolver blocked58actualdrops; background10M and2979/2979probe, stagep99+53.81ms;18/18postqueries;selectedNIC plaintextDNS0;C2S0.00581%loss/raw187drop retained",
-    "running_case": null,
+    "running_case": "S01 diagnostic-only",
     "invalid_cases": [
       {
         "seed": 1361,
@@ -8473,8 +8533,8 @@
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
-    "deployed_source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
-    "source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+    "deployed_source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+    "source_sha": "78b8faf0f90e98b98dbc404306cab7689df2b267",
     "last_failed_case": "s11-current-300s-seed1472",
     "last_failure_evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
     "latest_native_pass": "docs/evidence/native-s09-0246526-seed1446-20261006.json",
@@ -8516,7 +8576,7 @@
         "counted_as_performance_qualification": false
       }
     ],
-    "deployment_evidence": "docs/evidence/windows-npcap-owned-return-be456ce-package-deployed-20261006.json"
+    "deployment_evidence": "docs/evidence/client-stage-78b8faf-actions-package-deployed-20261006.json"
   },
   "windows_receive_diagnostics": {
     "state": "ACTIONS_PASS_NATIVE_SUPPORTED_CAUSE_LOCATED",
@@ -8767,23 +8827,24 @@
     "helper_run": 37253531888
   },
   "current_soak": {
-    "source": "CURRENT_COMMIT",
+    "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
     "state": "NOT_RUN"
   },
   "current_qualification": {
-    "source": "CURRENT_COMMIT",
-    "state": "NOT_RUN",
-    "scope": "Explicit default-off client receive stage timing; old be456 scoped PASS does not qualify this candidate",
-    "core_race": "NOT_RUN",
-    "normal_5205": "NOT_RUN",
-    "game_5205": "NOT_RUN",
-    "paired_rtt_checks": "NOT_RUN",
-    "lifecycle": "NOT_RUN",
-    "p6": "NOT_RUN",
-    "native": "NOT_RUN",
+    "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
+    "state": "SCOPED9_RTT12_P6_PASS_NATIVE_NOT_RUN",
+    "core_race": "PASS",
+    "normal_5205": "PASS",
+    "game_5205": "PASS",
+    "lossless_baselines": "PASS",
+    "paired_rtt_checks": "12/12 PASS",
+    "lifecycle": "PASS",
     "full70": "NOT_RUN",
     "full18": "NOT_RUN",
-    "first_candidate_failures": "docs/evidence/client-stage-e305070-windows-clock-test-failure-20261006.json"
+    "p6": "PASS",
+    "native": "NOT_RUN explicit diagnostic pending",
+    "evidence": "docs/evidence/client-stage-78b8faf-actions-package-deployed-20261006.json",
+    "tail_warning": "Normal5205 stressp99 delta453.341298ms passed500ms gate butnearbound; no tail-latency improvement claim or broader qualification."
   },
   "tail_observation": {
     "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
@@ -9751,7 +9812,7 @@
   "windows_dns_underlay_guard": {
     "state": "NATIVE_FUNCTION_PASS_TRANSPORT_QUALITY_PARTIAL",
     "source": "a280566b3a1642d43afe95f29a70ab4daf4e8759",
-    "deployed_source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
+    "deployed_source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
     "files": [
       "scripts/windows_client_network.ps1",
       "tools/test_windows_splitroute.ps1",
@@ -9853,15 +9914,17 @@
     "next": "Qualify new default-off client stage timing in Actions; only after core/race/Normal+Game5205 and matched lossless/P6 pass deploy paired source and one explicit diagnostic native sample. Separate ACK/native wait from compute; do not change ACK semantics blind."
   },
   "client_receive_stage_timing": {
-    "state": "TEST_CLOCK_ASSUMPTION_FIXED_ACTIONS_PENDING",
-    "source": "CURRENT_COMMIT",
+    "state": "SCOPED_ACTIONS_P6_PASS_DEPLOYED_NATIVE_PENDING",
+    "source": "78b8faf0f90e98b98dbc404306cab7689df2b267",
     "default": "off; ordinary diagnostic-jsonl does not enable per-record clocks",
     "activation": "Windows explicit process-local WBD_QUALIFICATION_CLIENT_STAGE_TIMING=1 plus diagnostic-jsonl; invalid value/missing output rejected before network mutation",
     "scope": "Bounded wall-clock receive decode/delivery/ACK feedback/selected repair counters. Timer ACK/recovery tick excluded. Active/retiring refs; replacement and wake reenable only attached generations.",
     "hotpath": "No added clocks or atomic updates when off; no new queue/goroutine/timer or payload capture; transport behavior preserved",
     "tests": "Actions pending: delivery before blocked ACK, snapshots while emit blocked, off/base-only/flag-only gates, emit errors, pure ACK selected repair exact wire, nil repair excluded, threshold boundaries, replacement/DORMANT/wake",
-    "log": "docs/devlog/20261006-215000-client-stage-windows-clock-test-fix.md",
+    "log": "docs/devlog/20261006-221500-client-stage-actions-package-deployed.md",
     "first_candidate": "e3050706966377d306c9c4de0a26a54b8d77b322",
-    "first_failure": "docs/evidence/client-stage-e305070-windows-clock-test-failure-20261006.json"
+    "first_failure": "docs/evidence/client-stage-e305070-windows-clock-test-failure-20261006.json",
+    "evidence": "docs/evidence/client-stage-78b8faf-actions-package-deployed-20261006.json",
+    "deployed_source": "78b8faf0f90e98b98dbc404306cab7689df2b267"
   }
 }
