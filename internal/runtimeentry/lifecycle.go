@@ -291,7 +291,10 @@ type TunnelClientConfig struct {
 	ReconnectMin      time.Duration
 	ReconnectMax      time.Duration
 	TLSStartupPadding bool
-	OpenLane          ClientLaneOpener
+	// Explicit qualification-only client receive/decode/feedback timing.
+	// Ordinary diagnostic snapshots leave per-record timing disabled.
+	ObserveTiming bool
+	OpenLane      ClientLaneOpener
 
 	Lease        logicaltunnel.Lease
 	DesiredLanes int
@@ -818,12 +821,13 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		SendNext: handoff.SendNext, ReceiveNext: handoff.ReceiveNext,
 		AdvertisedWindow: handoff.AdvertisedWindow, AdvertisedWindowSet: true,
 		WindowScale: handoff.WindowScale, WindowScaleSet: handoff.WindowScaleSet,
-		InitialRTO:    runtimeowner.DefaultRepairRTO,
-		RepairHorizon: runtimeowner.DefaultRepairHorizon,
-		SACKPermitted: handoff.Peer.SACKPermitted,
-		ACKDelay:      runtimeowner.DefaultACKDelay,
-		Emit:          ioCfg.Emit,
-		EmitBatch:     ioCfg.EmitBatch,
+		InitialRTO:            runtimeowner.DefaultRepairRTO,
+		RepairHorizon:         runtimeowner.DefaultRepairHorizon,
+		SACKPermitted:         handoff.Peer.SACKPermitted,
+		ACKDelay:              runtimeowner.DefaultACKDelay,
+		Emit:                  ioCfg.Emit,
+		EmitBatch:             ioCfg.EmitBatch,
+		ObserveFeedbackTiming: c.cfg.ObserveTiming,
 	}
 
 	var snapshot datapath.TunnelLaneSnapshot
@@ -854,6 +858,12 @@ func (c *TunnelClient) connectLaneLocked(ctx context.Context, laneID uint8, repl
 		return logicaltunnel.LaneRef{}, err
 	}
 
+	if c.cfg.ObserveTiming {
+		if err := c.rt.SetTimingDiagnostics(snapshot.Ref, true); err != nil {
+			laneState.close()
+			return logicaltunnel.LaneRef{}, err
+		}
+	}
 	if err := c.rt.ConfigureHealth(snapshot.Ref, c.cfg.KeepaliveInterval, c.businessIdle); err != nil {
 		laneState.close()
 		return logicaltunnel.LaneRef{}, err

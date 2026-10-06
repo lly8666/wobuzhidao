@@ -91,6 +91,10 @@ func runWindows() error {
 	if *diagnosticJSONL != "" && *diagnosticInterval <= 0 {
 		return errors.New("diagnostic-interval must be positive")
 	}
+	observeClientStageTiming, err := qualificationdiag.ClientStageTimingEnabled(*diagnosticJSONL)
+	if err != nil {
+		return err
+	}
 	if *updateChinaIP != "" {
 		if err := splitroute.Update(*updateChinaIP); err != nil {
 			return err
@@ -247,6 +251,7 @@ func runWindows() error {
 	}
 	diagnosticEndpoints := make(map[uint64]nativeDiagnostic)
 	client, err := runtimeentry.DialTunnelClient(ctx, runtimeentry.TunnelClientConfig{
+		ObserveTiming: observeClientStageTiming,
 		OpenLane: func(_ uint8, incarnation uint64) (runtimeentry.SegmentIO, faketcp.ClientFlow, error) {
 			port, err := runtimeentry.RotatingSourcePort(uint16(*sourcePort), incarnation)
 			if err != nil {

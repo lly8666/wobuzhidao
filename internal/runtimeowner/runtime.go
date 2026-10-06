@@ -54,9 +54,12 @@ type TransportConfig struct {
 	SACKPermitted bool
 	// Zero preserves immediate ACK for direct embedders. Production admission
 	// opts into DefaultACKDelay; this never gates business delivery.
-	ACKDelay      time.Duration
-	Emit          faketcp.SegmentEmitter
-	EmitBatch     faketcp.SegmentBatchEmitter
+	ACKDelay  time.Duration
+	Emit      faketcp.SegmentEmitter
+	EmitBatch faketcp.SegmentBatchEmitter
+	// Qualification-only, immutable opt-in for synchronous receive feedback.
+	// Ordinary diagnostics and server timing do not enable this extra clock work.
+	ObserveFeedbackTiming bool
 }
 
 func (c *TransportConfig) normalize() error {
@@ -90,34 +93,34 @@ func (c *TransportConfig) normalize() error {
 }
 
 type pendingRecord struct {
-	control         bool
-	seq             uint32
-	end             uint32
-	flags           uint8
-	payload         []byte
-	firstSent       time.Time
-	lastSent        time.Time
-	retries         uint32
-	wasRetried      bool
-	rttSampled      bool
-	sacked          bool
-	retired         bool
+	control             bool
+	seq                 uint32
+	end                 uint32
+	flags               uint8
+	payload             []byte
+	firstSent           time.Time
+	lastSent            time.Time
+	retries             uint32
+	wasRetried          bool
+	rttSampled          bool
+	sacked              bool
+	retired             bool
 	repairInFlight      bool
 	repairNotBefore     time.Time
 	fastRepairArmed     bool
 	fastRepairReadyTick uint64
 	repairPrev          *pendingRecord
-	repairNext      *pendingRecord
-	repairLinked    bool
-	evictPrev       *pendingRecord
-	evictNext       *pendingRecord
-	evictLinked     bool
-	retiredPrev     *pendingRecord
-	retiredNext     *pendingRecord
-	retiredLinked   bool
-	expiryPrev      *pendingRecord
-	expiryNext      *pendingRecord
-	expiryLinked    bool
+	repairNext          *pendingRecord
+	repairLinked        bool
+	evictPrev           *pendingRecord
+	evictNext           *pendingRecord
+	evictLinked         bool
+	retiredPrev         *pendingRecord
+	retiredNext         *pendingRecord
+	retiredLinked       bool
+	expiryPrev          *pendingRecord
+	expiryNext          *pendingRecord
+	expiryLinked        bool
 }
 
 type repairReserveRecord struct {
@@ -140,109 +143,120 @@ type deliveredMark struct {
 }
 
 type TransportStats struct {
-	ACKDeferred           uint64
-	ACKCoalesced          uint64
-	ACKPiggybacked        uint64
-	ACKTimerSent          uint64
-	ACKTimerFailures      uint64
-	AuthenticatedRecords  uint64
-	HealthSent            uint64
-	HealthReceived        uint64
-	LastAuthenticated     time.Time
-	PressureForgiven      uint64
-	FreshSent             uint64
-	RepairSelected        uint64
-	RepairAttempts        uint64
-	RepairSucceeded       uint64
-	RepairFailures        uint64
-	Retransmitted         uint64
-	Acked                 uint64
-	SACKed                uint64
-	SACKRetired           uint64
-	Abandoned             uint64
-	RepairEvicted         uint64
-	RepairMetadataEvicted uint64
-	RepairReserveStored   uint64
-	RepairReserveRetired  uint64
-	RepairReserveEvicted  uint64
-	RepairReserveDropped  uint64
-	RepairReserveExpired  uint64
-	RepairReserveRepairs  uint64
-	RepairEvictionCalls   uint64
-	RepairEvictionScanSteps uint64
-	RepairEvictionMaxScan uint64
-	FreshBlocked          uint64
-	FreshWindowBypass     uint64
-	FreshEmitFailures     uint64
-	FreshBatchCalls       uint64
-	FreshBatchSent        uint64
-	RecoveryTicks         uint64
-	GapForgiveChecks      uint64
-	GapIndexSteps         uint64
-	GapMetadataDropped    uint64
-	GapExpiredForgiven    uint64
-	FastRepairs           uint64
-	FastRepairEvidence    uint64
-	FastRepairArmed       uint64
-	FastRepairArmFired    uint64
-	FastRepairArmCanceled uint64
-	RTORepairs            uint64
-	RepairDeferred        uint64
-	RepairExpiredSkipped  uint64
-	RepairBudgetSpent     uint64
-	RepairCreditBytes     uint64
-	Received              uint64
-	Duplicates            uint64
-	LateFirstArrival      uint64
-	ForgivenGaps          uint64
-	RecordErrors          uint64
-	PathErrors            uint64
-	FINAttempts           uint64
-	FINTransmits          uint64
-	FINAcked              uint64
-	RSTAttempts           uint64
-	RSTSent               uint64
-	PeakOutstanding       int
-	Outstanding           int
-	OutstandingBytes      uint64
-	RepairReservePeak     int
+	ACKDeferred              uint64
+	ACKCoalesced             uint64
+	ACKPiggybacked           uint64
+	ACKTimerSent             uint64
+	ACKTimerFailures         uint64
+	AuthenticatedRecords     uint64
+	HealthSent               uint64
+	HealthReceived           uint64
+	LastAuthenticated        time.Time
+	PressureForgiven         uint64
+	FreshSent                uint64
+	RepairSelected           uint64
+	RepairAttempts           uint64
+	RepairSucceeded          uint64
+	RepairFailures           uint64
+	Retransmitted            uint64
+	Acked                    uint64
+	SACKed                   uint64
+	SACKRetired              uint64
+	Abandoned                uint64
+	RepairEvicted            uint64
+	RepairMetadataEvicted    uint64
+	RepairReserveStored      uint64
+	RepairReserveRetired     uint64
+	RepairReserveEvicted     uint64
+	RepairReserveDropped     uint64
+	RepairReserveExpired     uint64
+	RepairReserveRepairs     uint64
+	RepairEvictionCalls      uint64
+	RepairEvictionScanSteps  uint64
+	RepairEvictionMaxScan    uint64
+	FreshBlocked             uint64
+	FreshWindowBypass        uint64
+	FreshEmitFailures        uint64
+	FreshBatchCalls          uint64
+	FreshBatchSent           uint64
+	RecoveryTicks            uint64
+	GapForgiveChecks         uint64
+	GapIndexSteps            uint64
+	GapMetadataDropped       uint64
+	GapExpiredForgiven       uint64
+	FastRepairs              uint64
+	FastRepairEvidence       uint64
+	FastRepairArmed          uint64
+	FastRepairArmFired       uint64
+	FastRepairArmCanceled    uint64
+	RTORepairs               uint64
+	RepairDeferred           uint64
+	RepairExpiredSkipped     uint64
+	RepairBudgetSpent        uint64
+	RepairCreditBytes        uint64
+	Received                 uint64
+	Duplicates               uint64
+	LateFirstArrival         uint64
+	ForgivenGaps             uint64
+	RecordErrors             uint64
+	PathErrors               uint64
+	FINAttempts              uint64
+	FINTransmits             uint64
+	FINAcked                 uint64
+	RSTAttempts              uint64
+	RSTSent                  uint64
+	PeakOutstanding          int
+	Outstanding              int
+	OutstandingBytes         uint64
+	RepairReservePeak        int
 	RepairReserveOutstanding int
-	RepairReserveBytes    uint64
-	OldestOutstandingAge  time.Duration
-	RepairQueue           int
-	SACKedOutstanding     int
-	OutOfOrder            int
-	OutOfOrderBytes       uint64
-	OldestOutOfOrderAge   time.Duration
-	WriteClosed           bool
-	LocalFINAcked         bool
-	PeerFIN               bool
-	PeerRST               bool
-	SRTT                  time.Duration
-	RTO                   time.Duration
-	AdvertisedWindow      uint16
-	WindowScale           uint8
-	WindowScaleSet        bool
-	Closed                bool
+	RepairReserveBytes       uint64
+	OldestOutstandingAge     time.Duration
+	RepairQueue              int
+	SACKedOutstanding        int
+	OutOfOrder               int
+	OutOfOrderBytes          uint64
+	OldestOutOfOrderAge      time.Duration
+	WriteClosed              bool
+	LocalFINAcked            bool
+	PeerFIN                  bool
+	PeerRST                  bool
+	SRTT                     time.Duration
+	RTO                      time.Duration
+	AdvertisedWindow         uint16
+	WindowScale              uint8
+	WindowScaleSet           bool
+	Closed                   bool
 
-	TimingEnabled bool   `json:"timing_enabled,omitempty"`
-	TimingSamples uint64 `json:"timing_samples,omitempty"`
-	LockWaitNS    uint64 `json:"lock_wait_ns,omitempty"`
-	LockWaitMaxNS uint64 `json:"lock_wait_max_ns,omitempty"`
-	LockHeldNS    uint64 `json:"lock_held_ns,omitempty"`
-	LockHeldMaxNS uint64 `json:"lock_held_max_ns,omitempty"`
-	ACKProcessNS    uint64 `json:"ack_process_ns,omitempty"`
-	ACKProcessMaxNS uint64 `json:"ack_process_max_ns,omitempty"`
-	OwnerNS       uint64 `json:"owner_ns,omitempty"`
-	OwnerMaxNS    uint64 `json:"owner_max_ns,omitempty"`
-	DeliverNS          uint64 `json:"deliver_ns,omitempty"`
-	DeliverMaxNS       uint64 `json:"deliver_max_ns,omitempty"`
-	RepairEvictionNS    uint64 `json:"repair_eviction_ns,omitempty"`
-	RepairEvictionMaxNS uint64 `json:"repair_eviction_max_ns,omitempty"`
-	FreshLockWaitNS     uint64 `json:"fresh_lock_wait_ns,omitempty"`
-	FreshLockWaitMaxNS  uint64 `json:"fresh_lock_wait_max_ns,omitempty"`
-	FreshCriticalNS     uint64 `json:"fresh_critical_ns,omitempty"`
-	FreshCriticalMaxNS  uint64 `json:"fresh_critical_max_ns,omitempty"`
+	TimingEnabled          bool   `json:"timing_enabled,omitempty"`
+	TimingSamples          uint64 `json:"timing_samples,omitempty"`
+	LockWaitNS             uint64 `json:"lock_wait_ns,omitempty"`
+	LockWaitMaxNS          uint64 `json:"lock_wait_max_ns,omitempty"`
+	LockHeldNS             uint64 `json:"lock_held_ns,omitempty"`
+	LockHeldMaxNS          uint64 `json:"lock_held_max_ns,omitempty"`
+	ACKProcessNS           uint64 `json:"ack_process_ns,omitempty"`
+	ACKProcessMaxNS        uint64 `json:"ack_process_max_ns,omitempty"`
+	OwnerNS                uint64 `json:"owner_ns,omitempty"`
+	OwnerMaxNS             uint64 `json:"owner_max_ns,omitempty"`
+	DeliverNS              uint64 `json:"deliver_ns,omitempty"`
+	DeliverMaxNS           uint64 `json:"deliver_max_ns,omitempty"`
+	RepairEvictionNS       uint64 `json:"repair_eviction_ns,omitempty"`
+	RepairEvictionMaxNS    uint64 `json:"repair_eviction_max_ns,omitempty"`
+	FreshLockWaitNS        uint64 `json:"fresh_lock_wait_ns,omitempty"`
+	FreshLockWaitMaxNS     uint64 `json:"fresh_lock_wait_max_ns,omitempty"`
+	FreshCriticalNS        uint64 `json:"fresh_critical_ns,omitempty"`
+	FreshCriticalMaxNS     uint64 `json:"fresh_critical_max_ns,omitempty"`
+	FeedbackTimingEnabled  bool   `json:"feedback_timing_enabled,omitempty"`
+	ACKFeedbackSamples     uint64 `json:"ack_feedback_samples,omitempty"`
+	ACKFeedbackNS          uint64 `json:"ack_feedback_ns,omitempty"`
+	ACKFeedbackMaxNS       uint64 `json:"ack_feedback_max_ns,omitempty"`
+	ACKFeedbackOver1MS     uint64 `json:"ack_feedback_over_1ms,omitempty"`
+	ACKFeedbackOver10MS    uint64 `json:"ack_feedback_over_10ms,omitempty"`
+	SelectedRepairSamples  uint64 `json:"selected_repair_samples,omitempty"`
+	SelectedRepairNS       uint64 `json:"selected_repair_ns,omitempty"`
+	SelectedRepairMaxNS    uint64 `json:"selected_repair_max_ns,omitempty"`
+	SelectedRepairOver1MS  uint64 `json:"selected_repair_over_1ms,omitempty"`
+	SelectedRepairOver10MS uint64 `json:"selected_repair_over_10ms,omitempty"`
 }
 
 type laneTransport struct {
@@ -285,8 +299,8 @@ type laneTransport struct {
 	repairScan  *pendingRecord
 	repairCount int
 
-	evictHead   *pendingRecord
-	evictTail   *pendingRecord
+	evictHead *pendingRecord
+	evictTail *pendingRecord
 
 	repairReserve      map[uint32]*repairReserveRecord
 	repairReserveHead  *repairReserveRecord
@@ -314,14 +328,14 @@ type laneTransport struct {
 	deliveredOrder []uint32
 	deliveredHead  int
 
-	stats  TransportStats
-	timing transportTiming
-	closed bool
-	ackPending bool
-	ackCount int
-	ackSentOnce bool
-	ackDue time.Time
-	ackTimer *time.Timer
+	stats         TransportStats
+	timing        transportTiming
+	closed        bool
+	ackPending    bool
+	ackCount      int
+	ackSentOnce   bool
+	ackDue        time.Time
+	ackTimer      *time.Timer
 	ackAsyncError error
 }
 
@@ -337,11 +351,11 @@ func newLaneTransport(owner *datapath.TunnelOwner, ref logicaltunnel.LaneRef, de
 		sendNext: cfg.SendNext, lastAck: cfg.SendNext,
 		recvStart: cfg.ReceiveNext, recvNext: cfg.ReceiveNext,
 		baseRTO: cfg.InitialRTO, rto: cfg.InitialRTO,
-		repairCredit: steadyRepairBurstBytes,
-		pending:      make(map[uint32]*pendingRecord, MaxOutstandingRecords),
+		repairCredit:  steadyRepairBurstBytes,
+		pending:       make(map[uint32]*pendingRecord, MaxOutstandingRecords),
 		repairReserve: make(map[uint32]*repairReserveRecord, steadyRepairReserveRecords),
-		received:     make(map[uint32]*receiveSpan, MaxOutstandingRecords),
-		delivered:    make(map[uint32]deliveredMark, MaxOutstandingRecords),
+		received:      make(map[uint32]*receiveSpan, MaxOutstandingRecords),
+		delivered:     make(map[uint32]deliveredMark, MaxOutstandingRecords),
 	}, nil
 }
 
@@ -380,7 +394,7 @@ func (t *laneTransport) outboundSegmentFlags(seq, ack uint32, flags uint8, paylo
 }
 
 type preparedFresh struct {
-	seg faketcp.Segment
+	seg     faketcp.Segment
 	pending *pendingRecord
 	control bool
 }
@@ -505,6 +519,7 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 	}
 
 	observeTiming := t.timing.enabled.Load()
+	observeFeedback := observeTiming && t.cfg.ObserveFeedbackTiming
 	var lockWaitStarted time.Time
 	if observeTiming {
 		lockWaitStarted = time.Now()
@@ -552,20 +567,20 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 		seqLT(seg.Seq, t.recvStart) {
 		ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
 		t.mu.Unlock()
-		if err := t.cfg.Emit(ackSeg); err != nil {
+		if err := t.emitReceiveACK(ackSeg, observeFeedback); err != nil {
 			return err
 		}
-		return t.emitSelectedRepair(repair, now)
+		return t.emitReceiveRepair(repair, now, observeFeedback)
 	}
 
 	if seg.Flags&faketcp.FlagRST != 0 {
 		if seg.Seq != t.recvNext {
 			ackSeg := t.outboundSegment(t.sendNext, t.recvNext, nil)
 			t.mu.Unlock()
-			if err := t.cfg.Emit(ackSeg); err != nil {
+			if err := t.emitReceiveACK(ackSeg, observeFeedback); err != nil {
 				return err
 			}
-			return t.emitSelectedRepair(repair, now)
+			return t.emitReceiveRepair(repair, now, observeFeedback)
 		}
 		t.peerRST = true
 		t.closed = true
@@ -582,7 +597,7 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 	hasFIN := seg.Flags&faketcp.FlagFIN != 0
 	if !hasPayload && !hasFIN {
 		t.mu.Unlock()
-		return t.emitSelectedRepair(repair, now)
+		return t.emitReceiveRepair(repair, now, observeFeedback)
 	}
 
 	previousNext := t.recvNext
@@ -646,10 +661,18 @@ func (t *laneTransport) handleSegment(seg faketcp.Segment, now time.Time) error 
 			}
 		}
 	}
-	if err := t.sendACK(urgentACK); err != nil {
-		return err
+	ackStarted := time.Time{}
+	if observeFeedback {
+		ackStarted = time.Now()
 	}
-	return t.emitSelectedRepair(repair, now)
+	ackErr := t.sendACK(urgentACK)
+	if observeFeedback {
+		t.timing.ackFeedback.observe(time.Since(ackStarted))
+	}
+	if ackErr != nil {
+		return ackErr
+	}
+	return t.emitReceiveRepair(repair, now, observeFeedback)
 }
 
 func (t *laneTransport) acceptPayloadLocked(seq uint32, payload []byte, now time.Time) (bool, error) {
@@ -964,6 +987,7 @@ func (t *laneTransport) statsSnapshotAt(now time.Time) TransportStats {
 	out.PeerRST = t.peerRST
 	out.Closed = t.closed
 	t.timing.apply(&out)
+	out.FeedbackTimingEnabled = out.TimingEnabled && t.cfg.ObserveFeedbackTiming
 	return out
 }
 

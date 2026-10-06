@@ -62,3 +62,5 @@ Windows GUI新增：windows/gui/Portable.cs为参数清单/便携文件/profile/
 Linux部署新增：logicaltunnel/lease_registry.go只内存7天随机租约，client_identity.go只持久化安装身份；realityfront/admission.go受保护WBAL扩展，V2稳态不变。runtimeentry首lane绑定自动lease，server每客户端Normal/Game独立owner，到期只能detach inactive owner。linuxserver/managed_linux.go复用现有网络plan/apply/cleanup，加write-ahead网络恢复日志/单实例锁/窄RST，不写租约；notify_linux.go就绪通知。deploy/linux/wbdctl是短时管理工具，systemd仍只运行一个Go server，无新常驻协议壳。next-linux-server是功能安装测试，性能仍每Action一条。详细状态LINUX_SERVER与STATUS。
 
 openwrtclient/managed_linux.go仅封装正式Linux客户端启动/退出的namespace flock与/run网络journal，低层OpenRuntime及数据收发不变；新客户端死后恢复已有TPROXY owned状态，未知/foreign拒绝删，未保存tunnel IP。runtimeentry的inactive predicate仅用于SYN复用、接入模式重建和到期lease，不是新的steady健康扫描或业务idle策略。
+
+2026-10-06客户端分段诊断候选：qualificationdiag/client_stage_timing.go在Windows入口网络操作前验证私有环境变量；runtimeentry/lifecycle.go只在显式ObserveTiming时为附着/提升后的ref开启runtimeowner及datapath既有计时。runtimeowner/perf_diag.go提供有界同步ACK反馈/选中repair墙钟统计，handleSegment所有repair出口及直接challenge ACK覆盖；ACK timer、recovery tick策略不变。off无新增计时，服务端既有ObserveTiming不会自动启用新feedback计数；无新CLI/config/wire或old复用。候选资格以STATUS为准。

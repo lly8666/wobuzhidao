@@ -27,12 +27,12 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	var installation logicaltunnel.InstallationID
 	installation[0] = 2
 	lease := logicaltunnel.Lease{
-		Account: "game",
+		Account:        "game",
 		InstallationID: installation,
 		Config: logicaltunnel.TunnelConfig{
 			TunnelID: tunnelID,
 			Address4: "10.66.0.3/32",
-			Routes4: []string{"0.0.0.0/0"},
+			Routes4:  []string{"0.0.0.0/0"},
 		},
 	}
 	if err := lease.Validate(); err != nil {
@@ -53,22 +53,22 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	}
 	server, err := NewLifecycleServer(LifecycleServerConfig{
 		ServerConfig: ServerConfig{
-			IO: serverEP.io(),
-			ListenPort: 443,
+			IO:              serverEP.io(),
+			ListenPort:      443,
 			MaxAssociations: 32,
-			InitialRTO: time.Second,
-			TickInterval: 10 * time.Millisecond,
-			MaxFlows: 64,
+			InitialRTO:      time.Second,
+			TickInterval:    10 * time.Millisecond,
+			MaxFlows:        64,
 			Admission: realityfront.ServerAdmissionConfig{
 				TLS: realityfront.ServerConfig{
 					ServerName: "target.test",
-					RouteKey: routeKey,
-					TLSConfig: &tls.Config{Certificates: []tls.Certificate{cert}},
-					Timeout: 3 * time.Second,
+					RouteKey:   routeKey,
+					TLSConfig:  &tls.Config{Certificates: []tls.Certificate{cert}},
+					Timeout:    3 * time.Second,
 				},
 				ExpectedUsername: "game",
 				ExpectedPassword: "correct-password",
-				ServerLimit: 1250,
+				ServerLimit:      1250,
 			},
 			LookupLease: func(id logicaltunnel.TunnelID) (logicaltunnel.Lease, error) {
 				if id != tunnelID {
@@ -77,11 +77,11 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 				return lease.Clone(), nil
 			},
 			Lane: datapath.ServerLaneParams{
-				ConnectionMTU: 1500,
+				ConnectionMTU:   1500,
 				TxIPv4HeaderLen: 20, TxTCPHeaderLen: 20,
 				RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
 			},
-			Router: router,
+			Router:  router,
 			Service: platformflow.DefaultServerConfig(),
 		},
 		DesiredLanes: 2,
@@ -107,6 +107,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	var barrierHits atomic.Uint64
 	releaseReplacement := func() { releaseOnce.Do(func() { close(replacementReady) }) }
 	client, err := DialTunnelClient(ctx, TunnelClientConfig{
+		ObserveTiming: true,
 		OpenLane: func(laneID uint8, incarnation uint64) (SegmentIO, faketcp.ClientFlow, error) {
 			if failNextOpen {
 				failNextOpen = false
@@ -128,7 +129,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 								case <-replacementReady:
 								case <-ctx.Done():
 									return ctx.Err()
-									}
+								}
 							}
 						}
 					}
@@ -137,9 +138,9 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 			}
 			return ioCfg, flow, err
 		},
-		Lease: lease,
+		Lease:        lease,
 		DesiredLanes: 2,
-		MaxFlows: 64,
+		MaxFlows:     64,
 		Admission: realityfront.ClientAdmissionConfig{
 			TLS: realityfront.ClientConfig{
 				ServerName: "target.test", RouteKey: routeKey, Timeout: 3 * time.Second,
@@ -148,7 +149,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 			TunnelID: tunnelID.Bytes(), ClientLimit: 1300,
 		},
 		Lane: datapath.ClientLaneParams{
-			ConnectionMTU: 1500,
+			ConnectionMTU:   1500,
 			TxIPv4HeaderLen: 20, TxTCPHeaderLen: 20,
 			RxIPv4HeaderLen: 20, RxTCPHeaderLen: 20,
 		},
@@ -185,6 +186,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	})
 
 	before := laneGenerations(client.Owner().ActiveLanes())
+	assertClientStageTiming(t, client, 2, 0)
 	if before[1] == 0 || before[2] == 0 {
 		t.Fatalf("initial generations=%v", before)
 	}
@@ -204,6 +206,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	if stats := client.Owner().Stats(); stats.Retiring != 1 || stats.PhysicalLanes != 3 || stats.ActiveLogicalLanes != 2 {
 		t.Fatalf("client A+B overlap stats=%+v", stats)
 	}
+	assertClientStageTiming(t, client, 2, 1)
 	var previousServerState string
 	waitLifecycle(t, 3*time.Second, func() bool {
 		select {
@@ -236,6 +239,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 			cs.GameLogicalOutbound >= 2 && ss.GameDelivered >= 2
 	})
 	after := laneGenerations(client.Owner().ActiveLanes())
+	assertClientStageTiming(t, client, 2, 0)
 	if after[1] <= before[1] || after[2] != before[2] {
 		t.Fatalf("replacement generations before=%v after=%v", before, after)
 	}
@@ -249,6 +253,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	if stats := client.Owner().Stats(); !stats.Dormant || stats.ActiveLogicalLanes != 0 {
 		t.Fatalf("client dormant stats=%+v", stats)
 	}
+	assertClientStageTiming(t, client, 0, 0)
 	if stats, ok := server.TunnelStats(tunnelID); !ok || !stats.Dormant || stats.ActiveLogicalLanes != 0 {
 		t.Fatalf("server dormant stats=%+v ok=%v", stats, ok)
 	}
@@ -256,6 +261,7 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	if err := client.Wake(ctx); err != nil {
 		t.Fatal(err)
 	}
+	assertClientStageTiming(t, client, 2, 0)
 	if client.Owner() != ownerPtr {
 		t.Fatal("wake replaced the stable TunnelOwner")
 	}
@@ -297,6 +303,21 @@ func TestLifecycleEntryGameReplacementDormantWakeKeepsStableLease(t *testing.T) 
 	serverCancel()
 	if err := <-serverDone; err != nil && !errors.Is(err, context.Canceled) {
 		t.Fatal(err)
+	}
+}
+
+func assertClientStageTiming(t *testing.T, client *TunnelClient, active, retiring int) {
+	t.Helper()
+	d := client.DiagnosticSnapshot(time.Now())
+	if len(d.Lanes) != active || len(d.RetiringLanes) != retiring {
+		t.Fatalf("timing snapshot lanes=%d retiring=%d want=%d/%d", len(d.Lanes), len(d.RetiringLanes), active, retiring)
+	}
+	for _, lanes := range [][]LaneDiagnostic{d.Lanes, d.RetiringLanes} {
+		for _, lane := range lanes {
+			if !lane.Transport.TimingEnabled || !lane.Transport.FeedbackTimingEnabled {
+				t.Fatalf("generation %v lost explicit timing opt-in", lane.Ref)
+			}
+		}
 	}
 }
 
