@@ -1,6 +1,6 @@
 # WBD NEXT — 每位 agent 的开发入口
 
-2026-10-06当前：852 M03完整300s/seed1434双边观察12934/12934、drop0、2014全回但最大UDP3次1.27..1.91s late，最大UDP自身p991404ms，质量FAIL保留；延迟在最后片提交Wintun前，非driver调用慢。Linux内层1400让最大UDP先拆48片，候选改为既有lease上限9000、外层预算仍原配置，仅入口变更、无热路径/缓存/FEC/4096调整。候选Actions/P6/原生NOT_RUN，先STATUS/latest_log。38历史完整300s/16工况/27NOT_RUN跨源码不继承；每性能Action一条。
+2026-10-06当前：0246526 Linux内层TUN9000/外层预算不变已过11正确性门（实际kernel+journal9000、invalidouter拒绝、37生命周期）及五独立严格性能/18RTT对/P6，同源Windows/ARM部署；Normal最低9.99926M/Game2.99955M，max p99增量11.21ms。M03短预检1437运行，原生收益未验；852最大UDP3late/p991404ms仍保留。38历史完整300s/16工况/27NOT_RUN跨源码不继承；每性能Action一条，先STATUS/latest_log。
 
 本分支是 `next/tlslike-dataplane`，唯一产品方向为单进程、单 TLS-like 数据面。不是 DTLS 兼容分支。所有 agent，包括全新接手者，在修改前执行以下流程。
 

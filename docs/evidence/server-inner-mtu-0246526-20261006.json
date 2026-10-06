@@ -1,0 +1,924 @@
+{
+  "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+  "ref": "qualification/0246526-inner-mtu-20261006",
+  "correctness": {
+    "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "state": "PASS_SCOPED",
+    "gates": [
+      {
+        "id": 37434856774,
+        "name": "next-foundation",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37434856774"
+      },
+      {
+        "id": 37434856776,
+        "name": "next-p4-steady-targeted",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37434856776"
+      },
+      {
+        "id": 37434856770,
+        "name": "next-linux-server",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37434856770"
+      },
+      {
+        "id": 37434856788,
+        "name": "next-windows-gui",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37434856788"
+      },
+      {
+        "id": 37434856787,
+        "name": "next-lifecycle",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37434856787"
+      },
+      {
+        "id": 37434856836,
+        "name": "next-predelivery-tools",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37434856836"
+      },
+      {
+        "id": 37434856771,
+        "name": "next-strict-harness-preflight",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37434856771"
+      },
+      {
+        "id": 37434918750,
+        "name": "next-lifecycle-fullstack",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37434918750"
+      },
+      {
+        "id": 37434923911,
+        "name": "next-splitroute",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37434923911"
+      },
+      {
+        "id": 37434928920,
+        "name": "next-default-network",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37434928920"
+      },
+      {
+        "id": 37434856778,
+        "name": "next-tls-startup-padding",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37434856778"
+      }
+    ]
+  },
+  "service": {
+    "source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "result": "PASS",
+    "checks": [
+      "fresh install",
+      "real CLI check with relative cert paths and redacted fields",
+      "outer MTU limits remain enforced independently of the inner TUN",
+      "idempotent install preserves credentials/config",
+      "Type=notify readiness and autostart enabled",
+      "outer config 1400 uses actual inner TUN 9000 with matching recovery journal",
+      "SIGKILL ownership recovery and automatic restart",
+      "SIGTERM cleanup and scoped RST removal",
+      "invalid config fails without network modifications",
+      "install cannot replace a running version; explicit upgrade required",
+      "successful upgrade and config preservation",
+      "explicit rollback",
+      "failed readiness rolls back binary AND service unit",
+      "uninstall preserves config/certs and removes owned network/service"
+    ],
+    "scope": "actual hosted systemd/iptables; isolated managed nft+iptables in same workflow; not performance/physical"
+  },
+  "performance": {
+    "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "state": "PASS_TARGETED",
+    "pending": [],
+    "samples": [
+      {
+        "run": 37435169589,
+        "name": "strict-normal-lossless-seed1435-rate10-lanes1",
+        "conclusion": "success",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 88.71,
+          "server": 89.46
+        },
+        "min_goodput": 9.999978666666665,
+        "latency": {
+          "post": {
+            "p95_ns": 602950447,
+            "p99_ns": 603659552,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 602614149,
+            "p99_ns": 602973201,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 602606985,
+            "p99_ns": 602820758,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37435174393,
+        "name": "strict-normal-5205-seed1435-rate10-lanes1",
+        "conclusion": "success",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 74.83,
+          "server": 74.67
+        },
+        "min_goodput": 9.999261866666668,
+        "latency": {
+          "post": {
+            "p95_ns": 602954459,
+            "p99_ns": 609483734,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 611515122,
+            "p99_ns": 614183422,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 610202382,
+            "p99_ns": 611922511,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37435178500,
+        "name": "strict-game-lossless-seed1436-rate3-lanes4",
+        "conclusion": "success",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 65.62,
+          "server": 61.69
+        },
+        "min_goodput": 2.999872,
+        "latency": {
+          "post": {
+            "p95_ns": 601085671,
+            "p99_ns": 602558618,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 601047776,
+            "p99_ns": 601106314,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 600978308,
+            "p99_ns": 601458165,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37435182727,
+        "name": "strict-game-5205-seed1436-rate3-lanes4",
+        "conclusion": "success",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 99.51,
+          "server": 94.25
+        },
+        "min_goodput": 2.999872,
+        "latency": {
+          "post": {
+            "p95_ns": 610012252,
+            "p99_ns": 610139540,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 610536110,
+            "p99_ns": 611182037,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 607661482,
+            "p99_ns": 610461026,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      },
+      {
+        "run": 37435186866,
+        "name": "strict-game-5305-seed1436-rate3-lanes4",
+        "conclusion": "success",
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "classifications": {
+          "CAPTURE": "PASS",
+          "CORRECTNESS": "PASS",
+          "ENVIRONMENT": "PASS",
+          "INPUT_VALIDITY": "PASS",
+          "PERFORMANCE": "PASS"
+        },
+        "errors": {
+          "capture": [],
+          "correctness": [],
+          "environment": [],
+          "input": [],
+          "performance": []
+        },
+        "cpu": {
+          "client": 99.26,
+          "server": 94.64
+        },
+        "min_goodput": 2.999552,
+        "latency": {
+          "post": {
+            "p95_ns": 605425809,
+            "p99_ns": 606122626,
+            "received": 30,
+            "sent": 30
+          },
+          "pre": {
+            "p95_ns": 603593261,
+            "p99_ns": 605165199,
+            "received": 30,
+            "sent": 30
+          },
+          "stress": {
+            "p95_ns": 603793178,
+            "p99_ns": 604973612,
+            "received": 60,
+            "sent": 60
+          }
+        }
+      }
+    ],
+    "pairs": [
+      {
+        "run": 37435174393,
+        "baseline": 37435169589,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 8.900973,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435174393,
+        "baseline": 37435169589,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 11.210221,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435174393,
+        "baseline": 37435169589,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": 7.595397,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435174393,
+        "baseline": 37435169589,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": 9.101753,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435174393,
+        "baseline": 37435169589,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 0.004012,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435174393,
+        "baseline": 37435169589,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 5.824182,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435182727,
+        "baseline": 37435178500,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 9.488334,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435182727,
+        "baseline": 37435178500,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 10.075723,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435182727,
+        "baseline": 37435178500,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": 6.683174,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435182727,
+        "baseline": 37435178500,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": 9.002861,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435182727,
+        "baseline": 37435178500,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 8.926581,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435182727,
+        "baseline": 37435178500,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 7.580922,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435186866,
+        "baseline": 37435178500,
+        "stage": "pre",
+        "percentile": "p95_ns",
+        "delta_ms": 2.545485,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435186866,
+        "baseline": 37435178500,
+        "stage": "pre",
+        "percentile": "p99_ns",
+        "delta_ms": 4.058885,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435186866,
+        "baseline": 37435178500,
+        "stage": "stress",
+        "percentile": "p95_ns",
+        "delta_ms": 2.81487,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435186866,
+        "baseline": 37435178500,
+        "stage": "stress",
+        "percentile": "p99_ns",
+        "delta_ms": 3.515447,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435186866,
+        "baseline": 37435178500,
+        "stage": "post",
+        "percentile": "p95_ns",
+        "delta_ms": 4.340138,
+        "gate_ms": 200.0,
+        "state": "PASS"
+      },
+      {
+        "run": 37435186866,
+        "baseline": 37435178500,
+        "stage": "post",
+        "percentile": "p99_ns",
+        "delta_ms": 3.564008,
+        "gate_ms": 500.0,
+        "state": "PASS"
+      }
+    ],
+    "full18_qualification": false,
+    "one_sample_per_action": true,
+    "profile": false,
+    "retained_failed_runs": [
+      37318484867,
+      37320066022,
+      37321752497
+    ],
+    "no_cross_helper_baseline": true
+  },
+  "generator_receipts": {
+    "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "pacing": "absolute-deadline-sleep-v1",
+    "generator_sha256": "f87527f8c9621702ed28951cb4f27a7b000f27ba3c25b20bd13bad9e43ad62b1",
+    "samples": [
+      {
+        "run": 37435169589,
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "manifest_hash": "0b39a0cc2b551c36c783cc08bb58562df51b6e5cd18508099cc59ae8096721e0",
+        "downloaded_bytes": 173177,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 28.941354561,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 28.284437618,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "server_kernel_filter": {
+          "samples": 150,
+          "kernel_port_filter": true,
+          "receive_ports": [
+            443
+          ],
+          "last_receive_messages": 1170400
+        },
+        "config": {
+          "application_mbps_each_direction": 10.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 1,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37435169589",
+          "identity": "strict:normal:lossless:seed1435:rate10:lanes1:stateful0:neighborsdynamic:source02465264b37fb61c4d95b190fbfe8322e4912351:harness02465264b37fb61c4d95b190fbfe8322e4912351",
+          "schema": 1,
+          "source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+        }
+      },
+      {
+        "run": 37435174393,
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "manifest_hash": "ef29be59e13a1c17f4f95067ff67dec86e3f1e17b42d6ae07328dfa1ef562cd0",
+        "downloaded_bytes": 211717,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 20.623244279,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 20.377549453,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 296054,
+            "sent_bytes": 150000000,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "server_kernel_filter": {
+          "samples": 150,
+          "kernel_port_filter": true,
+          "receive_ports": [
+            443
+          ],
+          "last_receive_messages": 1360499
+        },
+        "config": {
+          "application_mbps_each_direction": 10.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 1,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37435174393",
+          "identity": "strict:normal:5205:seed1435:rate10:lanes1:stateful0:neighborsdynamic:source02465264b37fb61c4d95b190fbfe8322e4912351:harness02465264b37fb61c4d95b190fbfe8322e4912351",
+          "schema": 1,
+          "source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+        }
+      },
+      {
+        "run": 37435178500,
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "manifest_hash": "de3d770e08546def4cf8226b76d0bd199419505298e1b20c021075a176895460",
+        "downloaded_bytes": 337058,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 9.345131394,
+            "send_lag_p99_ms": 0.7,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 9.175494126999999,
+            "send_lag_p99_ms": 0.8,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "server_kernel_filter": {
+          "samples": 150,
+          "kernel_port_filter": true,
+          "receive_ports": [
+            443
+          ],
+          "last_receive_messages": 1397834
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37435178500",
+          "identity": "strict:game:lossless:seed1436:rate3:lanes4:stateful0:neighborsdynamic:source02465264b37fb61c4d95b190fbfe8322e4912351:harness02465264b37fb61c4d95b190fbfe8322e4912351",
+          "schema": 1,
+          "source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+        }
+      },
+      {
+        "run": 37435182727,
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "manifest_hash": "100eddd35c10e65886f088edbe2a2e11b331f28c5b62e51326c3b8c65d509ef4",
+        "downloaded_bytes": 422572,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 9.979250096000001,
+            "send_lag_p99_ms": 1.1,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 9.786318636,
+            "send_lag_p99_ms": 1.2,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "server_kernel_filter": {
+          "samples": 150,
+          "kernel_port_filter": true,
+          "receive_ports": [
+            443
+          ],
+          "last_receive_messages": 1596324
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37435182727",
+          "identity": "strict:game:5205:seed1436:rate3:lanes4:stateful0:neighborsdynamic:source02465264b37fb61c4d95b190fbfe8322e4912351:harness02465264b37fb61c4d95b190fbfe8322e4912351",
+          "schema": 1,
+          "source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+        }
+      },
+      {
+        "run": 37435186866,
+        "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+        "manifest_hash": "9d32f586ac62930a15cc4df752da462a6a8d95cba67505db82e875950a37e7cd",
+        "downloaded_bytes": 429097,
+        "generators": {
+          "c2s": {
+            "process_cpu_seconds": 10.329628226999999,
+            "send_lag_p99_ms": 1.1,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          },
+          "s2c": {
+            "process_cpu_seconds": 10.14268461,
+            "send_lag_p99_ms": 1.1,
+            "skipped_slots": 0,
+            "sent_packets": 88818,
+            "sent_bytes": 45001120,
+            "pacing": "absolute-deadline-sleep-v1"
+          }
+        },
+        "server_kernel_filter": {
+          "samples": 150,
+          "kernel_port_filter": true,
+          "receive_ports": [
+            443
+          ],
+          "last_receive_messages": 1461485
+        },
+        "config": {
+          "application_mbps_each_direction": 3.0,
+          "blackhole_ms": 0,
+          "blackhole_nominal_offset_s": null,
+          "diagnostic_rate_only": false,
+          "drain_s": 10,
+          "duration_s": 120,
+          "fec": "20:20",
+          "generator_stats": "bounded-v1-exact-dedupe",
+          "hidden_bandwidth_limit": false,
+          "lanes": 4,
+          "mtu": 1400,
+          "one_way_delay_ms": 300,
+          "packet_sizes_equal_count_cycle": [
+            64,
+            256,
+            1200
+          ],
+          "padding": "off",
+          "qdisc_limit_packets": 200000,
+          "stages_s": [
+            30,
+            60,
+            30
+          ],
+          "stateful_middlebox": false,
+          "wan_neighbors": "dynamic"
+        },
+        "sample_claim": {
+          "github_run_attempt": "1",
+          "github_run_id": "37435186866",
+          "identity": "strict:game:5305:seed1436:rate3:lanes4:stateful0:neighborsdynamic:source02465264b37fb61c4d95b190fbfe8322e4912351:harness02465264b37fb61c4d95b190fbfe8322e4912351",
+          "schema": 1,
+          "source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351"
+        }
+      }
+    ],
+    "no_pcaps_downloaded": true,
+    "unchanged_input_threshold": true
+  },
+  "deployment": {
+    "source_sha": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "qualification_runs": [
+      "37435191070",
+      "37435186866",
+      "37435182727",
+      "37435178500",
+      "37435174393",
+      "37435169589",
+      "37434928920",
+      "37434923911",
+      "37434918750",
+      "37434856774",
+      "37434856787",
+      "37434856770",
+      "37434856778",
+      "37434856776",
+      "37434856771",
+      "37434856836",
+      "37434856788"
+    ],
+    "harness_source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "harness_runs": [
+      "37434856774",
+      "37434856771",
+      "37434856836"
+    ],
+    "retained_failed_performance_runs": [
+      37318484867,
+      37320066022,
+      37321752497
+    ],
+    "windows_zip_sha256": "dbb899897ee19086ee39024374ed8435a3c8e221823c6441bfa41fcc43e61307",
+    "windows_bundle": "WBD-P7-0246526/windows-portable",
+    "server_stage": "/opt/wbd/p7-candidates/0246526",
+    "server_config_preserved": true,
+    "npcap_not_reinstalled": true,
+    "rollback_source": "85209d3"
+  },
+  "full70": "NOT_RUN",
+  "strict_full18": "NOT_RUN",
+  "soak1800": "NOT_RUN",
+  "native": "PREFLIGHT_RUNNING",
+  "no_prior_qualification_inherited": true
+}
