@@ -1,6 +1,6 @@
 # 唯一开发路线图
 
-2026-10-06当前：产品0246526内层TUN9000/外层1400已过17定向Actions（五条严格性能、18RTT对、P6）；M03拆包48→8/systematic95→59已证实，但一missing/一1.28s late保留，小包全及时。最新S06/seed1441 FAIL，历史300s41份/17工况/26NOT_RUN跨源码不继承。Normal/Game独立1800s Actions待收，下一S07。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：部署SOURCE024内层TUN9000/外层1400，完整70配置+18独立严格弱网/36配对RTT全部PASS；Normal/Game1800s待收。S09 FEC20:12单300s满速无损/DNS60/60，S07/S08少量loss和物理DNS泄漏保留；新Windows DNS出口保护候选NOT_RUN，下一Actions验后同源部署。M03 missing/late未关闭；历史44份/20工况/23NOT_RUN跨源码不继承，S10运行。每性能Action一条，先STATUS/latest_log。
 
 2026-10-06当前：配套产品9211b24入口过滤已过core/race/真kernel/native12/服务化12/37生命周期、五独立性能18RTT对和P6；实机M03两次1415 PASS/1416 FAIL，最大UDP一missing一1.308s late，1352小包及时，rawsocketdrop0/过滤443实际生效。32完整native/12工况/31NOT_RUN跨源码不继承。先STATUS/latest_log验有界探针phase timing助手，再诊断回程碎片并D04；不将健康一条关闭M03、不扩缓存/FEC/4096/HOL。
 

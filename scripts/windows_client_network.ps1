@@ -26,6 +26,9 @@ $IPv6Outbound = 'WBD Block IPv6 Outbound'
 $IPv6Inbound = 'WBD Block IPv6 Inbound'
 $IPv6Description = 'wbd-owned-runtime-ipv6-killswitch/v1'
 $IPv6Universe = @('::/1','8000::/1')
+$DNSGroup = 'WBD Runtime DNS Underlay Guard'
+$DNSOutboundNames = @('WBD Block Underlay DNS UDP','WBD Block Underlay DNS TCP')
+$DNSDescription = 'wbd-owned-runtime-dns-underlay-guard/v1'
 
 function Assert-IPv4([string]$Value, [string]$Label) {
     $ip = $null
@@ -95,6 +98,14 @@ function Remove-WBDIPv6Rules {
     }) | Remove-NetFirewallRule -ErrorAction SilentlyContinue
 }
 
+function Remove-WBDDNSRules {
+    if (-not (Get-Command Get-NetFirewallRule -ErrorAction SilentlyContinue) -or
+        -not (Get-Command Remove-NetFirewallRule -ErrorAction SilentlyContinue)) { return }
+    @(Get-NetFirewallRule -Group $DNSGroup -ErrorAction SilentlyContinue | Where-Object {
+        $_.DisplayName -in $DNSOutboundNames -and $_.Description -eq $DNSDescription
+    }) | Remove-NetFirewallRule -ErrorAction SilentlyContinue
+}
+
 function Remove-OwnedRoutes($Routes) {
     $ownedKeys = @{}
     foreach ($route in @($Routes)) {
@@ -126,6 +137,7 @@ function Remove-OwnedState($State) {
         }
     }
     Remove-WBDIPv6Rules
+    Remove-WBDDNSRules
 }
 
 function Restore-OwnedTunnelMTU($MTUState) {
@@ -151,6 +163,7 @@ if ($Action -eq 'Cleanup') {
     } else {
         Remove-StaleWBDNRPT
         Remove-WBDIPv6Rules
+        Remove-WBDDNSRules
     }
     Write-Output 'WBD_WINDOWS_CLIENT_CLEANUP_PASS'
     exit 0
@@ -183,7 +196,10 @@ if ($Action -eq 'Render') {
     Write-Output "03 ADDRESS_EXCLUSIVE $($lease.CIDR) adapter=$AdapterAlias dhcp=disabled"
     Write-Output "03 IPV4_TUNNEL_MTU $TunnelMTU outer_budget_separate=1"
     foreach ($prefix in $capturePrefixes) { Write-Output "04 CAPTURE $prefix adapter=$AdapterAlias" }
-    if ($dnsServers.Count -gt 0) { Write-Output "05 DNS_NRPT namespace=. servers=$($dnsServers -join ',')" }
+    if ($dnsServers.Count -gt 0) {
+        Write-Output "05 DNS_NRPT namespace=. servers=$($dnsServers -join ',')"
+        Write-Output "05 DNS_UNDERLAY_GUARD ifindex=$PhysicalInterfaceIndex outbound=udp,tcp remote_port=53"
+    }
     Write-Output '06 IPV6_CAPTURE_SINK ranges=::/1,8000::/1'
     Write-Output '06 IPV6_FAIL_CLOSED directions=inbound,outbound ranges=::/1,8000::/1'
     Write-Output '07 CLEANUP state_owned_only=1'
@@ -211,11 +227,22 @@ if (Test-Path -LiteralPath $StatePath) {
 }
 Remove-StaleWBDNRPT
 Remove-WBDIPv6Rules
+Remove-WBDDNSRules
 
 $adapter = Get-NetAdapter -Name $AdapterAlias -ErrorAction Stop | Select-Object -First 1
 $ifIndex = [uint32]$adapter.ifIndex
 if ($ifIndex -eq $PhysicalInterfaceIndex) {
     throw 'physical underlay interface resolved to Wintun; refusing recursive capture'
+}
+$dnsUnderlay = $null
+if ($dnsServers.Count -gt 0) {
+    $physicalAdapters = @(Get-NetAdapter -ErrorAction Stop | Where-Object { [uint32]$_.ifIndex -eq $PhysicalInterfaceIndex })
+    if ($physicalAdapters.Count -ne 1 -or [string]::IsNullOrWhiteSpace([string]$physicalAdapters[0].Name)) {
+        throw 'DNS guard physical interface identity is ambiguous'
+    }
+    # NetSecurity accepts a WildcardPattern. Escape an administrator's literal
+    # adapter name so brackets or asterisks cannot broaden the rule to Wintun.
+    $dnsUnderlay = [Management.Automation.WildcardPattern]::new([Management.Automation.WildcardPattern]::Escape([string]$physicalAdapters[0].Name))
 }
 
 $state = [ordered]@{
@@ -239,6 +266,17 @@ try {
     New-NetFirewallRule -DisplayName $IPv6Inbound -Group $IPv6Group -Description $IPv6Description `
         -Direction Inbound -Action Block -Enabled True -Profile Any -Protocol Any `
         -LocalAddress $IPv6Universe | Out-Null
+    if ($dnsServers.Count -gt 0) {
+        # Install before capture/NRPT and keep through cleanup. Explicitly
+        # interface-bound DNS can bypass the preferred route and NRPT alone.
+        # Only the selected underlay's ordinary DNS egress is blocked; encrypted
+        # transport, tunneled DNS, and dns-hijack=false retain their own paths.
+        foreach ($protocol in @('UDP','TCP')) {
+            New-NetFirewallRule -DisplayName "WBD Block Underlay DNS $protocol" -Group $DNSGroup `
+                -Description $DNSDescription -Direction Outbound -Action Block -Enabled True `
+                -Profile Any -Protocol $protocol -RemotePort 53 -InterfaceAlias $dnsUnderlay | Out-Null
+        }
+    }
 
     $underlayPrefix = "$Underlay4/32"
     $existingUnderlay = Get-NetRoute -DestinationPrefix $underlayPrefix `
@@ -336,6 +374,7 @@ try {
     Write-Output "WBD_WINDOWS_CLIENT_UNDERLAY_LOCKED server=$Underlay4 ifindex=$PhysicalInterfaceIndex nexthop=$PhysicalNextHop4"
     Write-Output 'WBD_WINDOWS_CLIENT_IPV6_FAIL_CLOSED ready=1'
     Write-Output "WBD_WINDOWS_CLIENT_TUN_MTU ipv4=$TunnelMTU outer_budget_separate=1"
+    if ($dnsServers.Count -gt 0) { Write-Output "WBD_WINDOWS_CLIENT_DNS_UNDERLAY_GUARD ifindex=$PhysicalInterfaceIndex ready=1" }
 } catch {
     try { Remove-OwnedState ([pscustomobject]$state) } catch { }
     Remove-Item -LiteralPath $StatePath -Force -ErrorAction SilentlyContinue

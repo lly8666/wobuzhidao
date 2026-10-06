@@ -1,0 +1,295 @@
+{
+  "schema": "wbd-native-static-case/v1",
+  "status": "FAIL",
+  "errors": [
+    "business_loss",
+    "physical_dns_scope"
+  ],
+  "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+  "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
+  "case": "s07-current-300s-seed1444",
+  "effective": {
+    "desired": 1,
+    "active": 1,
+    "lanes": [
+      {
+        "id": 1,
+        "generation": 1,
+        "parity": 8
+      }
+    ]
+  },
+  "actual_send_seconds": 300.0006798,
+  "goodput_mbps": {
+    "c2s": 9.999846613333334,
+    "s2c": 9.999953386666666
+  },
+  "business_loss": {
+    "c2s_packets": 8,
+    "s2c_packets": 0,
+    "c2s_percent": 0.0013344026616901594,
+    "s2c_percent": 0
+  },
+  "probes": {
+    "sent": 2980,
+    "received": 2980,
+    "p95_ms": 68.8179,
+    "p99_ms": 76.1558
+  },
+  "phases": {
+    "early": {
+      "probes": 894,
+      "p95_ms": 62.8997,
+      "p99_ms": 76.1558,
+      "c2s_goodput_mbps": 9.999826380736142,
+      "s2c_goodput_mbps": 10.000045038617483
+    },
+    "middle": {
+      "probes": 894,
+      "p95_ms": 71.3218,
+      "p99_ms": 76.74,
+      "c2s_goodput_mbps": 9.998383792142228,
+      "s2c_goodput_mbps": 10.000050743713919
+    },
+    "late": {
+      "probes": 894,
+      "p95_ms": 63.8279,
+      "p99_ms": 75.3382,
+      "c2s_goodput_mbps": 10.000149473586136,
+      "s2c_goodput_mbps": 9.999838885799631
+    }
+  },
+  "input_quality": {
+    "client": {
+      "TxPackets": 579419,
+      "SendLagSamples": 579419,
+      "SendLagOverflowSamples": 5,
+      "SendLagP99UpperMs": 2,
+      "MaxSendLagMs": 12.280099999998129,
+      "PacingMode": "byte-budget-1ms-batch32"
+    },
+    "server": {
+      "TxPackets": 579418,
+      "SendLagSamples": 579418,
+      "SendLagOverflowSamples": 74,
+      "SendLagP99UpperMs": 1.2,
+      "MaxSendLagMs": 42.77551579212968,
+      "PacingMode": "byte-budget-1ms-batch32"
+    }
+  },
+  "default_dns": {
+    "total": 60,
+    "success": 60
+  },
+  "physical_dns": {
+    "state": "INCONCLUSIVE_OR_LEAK",
+    "scope": "selected physical NIC only, plaintext IPv4/IPv6 TCP/UDP53; not DoH/DoT/otherNIC",
+    "observations": 302,
+    "dns_frames": 6,
+    "observer_drops": 0
+  },
+  "cpu_seconds": {
+    "client": 231.53125,
+    "server": 133.22,
+    "client_helper": 21.390625,
+    "server_helper": 36.217096240000004
+  },
+  "server_raw_socket_drop_max": 0,
+  "client_npcap_max": {
+    "driver_dropped": 0,
+    "interface_dropped": 0
+  },
+  "client_npcap_stats_supported": true,
+  "client_user_receive_overflow_max": 0,
+  "wire_windows": [
+    {
+      "captured_frames": 17,
+      "window_seconds": 12.054451955948025,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "captured_frames": 8192,
+      "window_seconds": 1.8663078150711954,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "captured_frames": 4,
+      "window_seconds": 12.036613065283746,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    },
+    {
+      "captured_frames": 8192,
+      "window_seconds": 1.8820095350965858,
+      "capture_kernel_drops": 0,
+      "raw_deleted_after_analysis": true
+    }
+  ],
+  "live_snapshot_write_errors": 3,
+  "owned_cleanup": {
+    "State": "STOPPED",
+    "Ready": true,
+    "Reason": "requested_stop",
+    "ExitCode": 0,
+    "NetworkStateRemaining": false,
+    "OwnedNRPTRemaining": 0,
+    "OwnedFirewallRemaining": 0,
+    "ElapsedSeconds": 357.1
+  },
+  "matched_native_rtt_baseline": "NOT_RUN",
+  "strict_performance_qualification": false,
+  "full_p7": false,
+  "receipt_hashes": {
+    "case-config.json": "adf95cc33deeee3c56c931a49d4ccab3c31fc40db9a6eb4c1f7a85facd9e5dd9",
+    "cleanup-errors.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "client-diagnostic.jsonl": "7ed34138242b692348ebd0f97dd48b509ea28bd45fc187c2a5d51cf7c38ac9eb",
+    "client-session.json": "b31c5277e5645bc5aa8c7f27b322c20fef582697bcad559743220b25b40072f1",
+    "d01-dns-default-300s-dns.json": "1352edcc96ca593ca29c64c09577caa10642fd9a233922e6199c7f9068c437c5",
+    "deployed-versions.json": "2f6632497bbf86bc52e0a1adda367985adf8fdad7b8c39b2bc22b417d163ac48",
+    "dns-fault-events.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "effective-lanes.json": "7022d313bbf25342b811335cbe988250b740079b2c0528fec29f6e502171938c",
+    "header-preflight-windows-headers.jsonl": "f0ca0e7726f75a5cfff261e2fe96d642375c0678a83242abee50aa5604f66ffe",
+    "helper-source-hashes.json": "9f171a01ab5167da485e4c96e53dbec406f47c005b4410323d92cd0055035c84",
+    "helper-source-unchanged.json": "89a1bd729816edd75c25b2b3eae07e8aa18a3c4d0b2ff7357b088b79512895d2",
+    "helper-source.json": "9b799f6e027c64bf4d8f8c579a718e09bf92c341f83da32fb61c2135c0caf5b6",
+    "measurement-status.json": "81132cb27c529b1a08af6545cf492a0e62e71d92106ad25fcb3c664ad48c19c6",
+    "observation-window.json": "a670b66fd9e5475ed2d261270773940603e52f7d27ade6cc4854a6fb72dde372",
+    "p7-network-after.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+    "p7-network-before.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+    "p7-status.json": "98b8de09221166bee48028d9e178a3bd148f6fc23f53b6ed2cd62ce92439b617",
+    "s07-current-300s-seed1444-linux-headers.jsonl": "01e1c6ea4f37d9ab15fe2441eaadc1e5e122b679a50eb79967555bbdbf2713fb",
+    "s07-current-300s-seed1444-live.json": "52f23303a37851c96d9dfc545731cc1040a7a84ee9a7997af788e416b84194a5",
+    "s07-current-300s-seed1444-observer.json": "023a0c12731adbf0f03b55e32aa7ec5c9f6882930c2823e8dd3c02ae25bdf2aa",
+    "s07-current-300s-seed1444-physical-dns.jsonl": "38837796107d7cb34d1acad59748e3f80a6b13b7bae8ed23d20bde14b96f5817",
+    "s07-current-300s-seed1444-resources.json": "5077a7d748b2a55029a24dead335ca9bbeb1300698ada34de1fd921249072607",
+    "s07-current-300s-seed1444-start-wire.json": "b827bf7a07a9e81d456d9b814248437126dd7a3e7b92e5c141fb85a965fc50fe",
+    "s07-current-300s-seed1444-steady-wire.json": "301c8178b5561aa68b1d512a3220dcf5696bc47ff17808a1c6abdd8dab52d9f8",
+    "s07-current-300s-seed1444-stop-wire.json": "bbe718c0c622f5cd0453fc6055e0cd3c22ba1305f04ac511bc98aeed890bb433",
+    "s07-current-300s-seed1444-tail-wire.json": "04a774e364d7490e26eba580a6dd484023238a39d12f30ff0fb51fb423478e8a",
+    "s07-current-300s-seed1444-target.json": "05c1602dd159d21603fd189182e9ba203e84bfd9b9434a092bb1348e503716c9",
+    "s07-current-300s-seed1444-windows-headers.jsonl": "e5af392272f12c835e20a6579faf8e6626a28fa957317414e069c2cdfb76b8b9",
+    "s07-current-300s-seed1444.json": "4333ac8bc71cca652ba58d78d9ac17bd273ee4255e34c051256719356616d7f8",
+    "server-before.json": "d4fa78a56bbc7e013785f641f44bc14d4dd69732f6ce2538f1efd1c09fb1eafe",
+    "server-diagnostic.jsonl": "8553d57a5b62cd5ca97fb96f7638c2070a99b7761156b4366c41d0e1421e228d",
+    "trigger-timeline.json": "a99531118164ada637d0ace66096250d684b97dff67959783ab9d9736a685b58",
+    "windows-observer-processes.json": "7cee6e43a6354088b750a37aafdb4fe0c2451649ebd275868cc2a07e2640928a"
+  },
+  "case_id": "S07",
+  "configuration": {
+    "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "case": "s07-current-300s-seed1444",
+    "seed": 1444,
+    "mbps": 10,
+    "seconds": 300,
+    "lanes": 1,
+    "fec": 8,
+    "connection_mtu": 1400,
+    "route_mode": "all",
+    "dns_default": true,
+    "rotate_seconds": 0,
+    "lease": "10.66.118.49",
+    "server_pid": 460470,
+    "diagnostic_enabled": true,
+    "client_diagnostics": true
+  },
+  "fec_accounting": {
+    "schema": "wbd-native-fec-accounting/v1",
+    "source": "02465264b37fb61c4d95b190fbfe8322e4912351",
+    "case": "s07-current-300s-seed1444",
+    "parity": 8,
+    "scope": "Full diagnostic lifetime including handshake, DNS, probes and drain. Encoder bytes include56B FEC headers. Observed TCP payload includes TLS overhead and retransmits, excludes TCP/IP headers. Not an exact load-only wire amplification or CPU A/B.",
+    "roles": {
+      "client": {
+        "encoder": {
+          "source_shards": 698480,
+          "source_bytes": 435102818,
+          "parity_shards": 279460,
+          "parity_bytes": 340638931,
+          "full_blocks": 34872,
+          "partial_blocks": 68,
+          "refs": 1,
+          "parity_shard_ratio": 0.40009735425495363,
+          "parity_byte_ratio": 0.782892955200304,
+          "configured_full_block_ratio": 0.4
+        },
+        "transport_peak_per_lane": {
+          "PeakOutstanding": 1606,
+          "FreshBlocked": 0,
+          "FreshWindowBypass": 0,
+          "FreshSent": 977964,
+          "Retransmitted": 16,
+          "Abandoned": 0,
+          "RepairEvicted": 0,
+          "RepairExpiredSkipped": 0,
+          "RecordErrors": 0,
+          "PathErrors": 0
+        },
+        "receive_fec_peak_per_lane": {
+          "in_flight": 1,
+          "pressure_retirements": 0,
+          "reconstruction_events": 1016,
+          "recovered_sources": 1181
+        },
+        "receive_expiry_peak_per_lane": {
+          "ExpiredIncomplete": 0,
+          "ExpiredMissingSources": 0
+        }
+      },
+      "server": {
+        "encoder": {
+          "source_shards": 698439,
+          "source_bytes": 435100618,
+          "parity_shards": 279422,
+          "parity_bytes": 354572996,
+          "full_blocks": 34858,
+          "partial_blocks": 77,
+          "refs": 1,
+          "parity_shard_ratio": 0.4000664338617975,
+          "parity_byte_ratio": 0.8149218395272424,
+          "configured_full_block_ratio": 0.4
+        },
+        "transport_peak_per_lane": {
+          "PeakOutstanding": 2439,
+          "FreshBlocked": 0,
+          "FreshWindowBypass": 0,
+          "FreshSent": 977889,
+          "Retransmitted": 594,
+          "Abandoned": 0,
+          "RepairEvicted": 0,
+          "RepairExpiredSkipped": 0,
+          "RecordErrors": 0,
+          "PathErrors": 0
+        },
+        "receive_fec_peak_per_lane": {
+          "in_flight": 2,
+          "pressure_retirements": 0,
+          "reconstruction_events": 2,
+          "recovered_sources": 4
+        },
+        "receive_expiry_peak_per_lane": {
+          "ExpiredIncomplete": 1,
+          "ExpiredMissingSources": 9
+        }
+      }
+    },
+    "errors": [],
+    "windows_outer_observation": {
+      "observer_received": 2943185,
+      "observer_dropped": 0,
+      "stats_error": 0,
+      "flows": 2,
+      "tcp_payload_bytes": {
+        "C2S": 806076585,
+        "S2C": 819955062
+      },
+      "tcp_packets": {
+        "C2S": 1533277,
+        "S2C": 1409908
+      }
+    },
+    "status": "PASS_ACCOUNTING"
+  },
+  "scope": "Single300s nativeWindows/Npcap/Wintun toARM WAN. Input known, underlyingWANloss unknown; not strictcontrolled qualification, no matched RTT baseline."
+}

@@ -41,6 +41,7 @@ jobs:
             if([Math]::Abs([WBDNativeLifecycleUDP]::ActiveSeconds($fixture[0])-$fixture[1]) -gt 0.000001){throw 'Lifecycle quiet window accrued backlog'}
           }
           ./tools/test_windows_tun_mtu.ps1
+          ./tools/test_windows_dns_guard_probe.ps1
           foreach($path in @('tools/native_windows_lifecycle_udp.ps1','tools/native_windows_mtu_boundary.ps1','tools/physical_windows_udp.ps1','tools/physical_windows_dns.ps1','tools/physical_windows_dns_watch.ps1','tools/physical_windows_fragments.ps1','tools/physical_windows_mtu.ps1','tools/physical_windows_header_watch.ps1','tools/physical_windows_session.ps1')) {
             $tokens=$null; $errors=$null
             [Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path),[ref]$tokens,[ref]$errors) | Out-Null

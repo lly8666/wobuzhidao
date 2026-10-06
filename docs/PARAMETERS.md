@@ -47,7 +47,7 @@ Linux/Windows 正式入口均支持 `--config 路径.json`。JSON 是扁平对�
 | 参数 | 默认 | 范围/语义 |
 | --- | --- | --- |
 | `route-mode` | bypass-lan-cn | 客户端IPv4业务分流；普通DNS劫持优先于LAN/中国直连规则。all仍保留server/local必需绕行。IPv6始终拦截后丢弃，不传入IPv4数据面。 |
-| `dns-hijack` | true | 默认开启普通DNS处理。Linux/OpenWrt捕获转发及本机TCP/UDP 53，经现有隧道访问dns4；Windows通过owned NRPT接管系统解析，经Wintun访问dns4。false关闭DNS策略，不关闭IPv6拦截。 |
+| `dns-hijack` | true | 默认开启普通DNS处理。Linux/OpenWrt捕获转发及本机TCP/UDP 53，经现有隧道访问dns4；Windows通过owned NRPT接管系统解析，经Wintun访问dns4，同时用两条owned系统规则阻止当前选定物理出口直接发送UDP/TCP 53。显式绑定该物理接口的DNS被阻止而非伪造回复；不接管DoH/DoT，不宣称其它接口已覆盖。false不安装DNS出口规则并关闭NRPT策略，不关闭IPv6拦截。候选实效看STATUS。 |
 | `dns4` | 1.1.1.1,8.8.8.8 | 一至两台IPv4解析器，不能为空（开启劫持时）。Linux UDP首次等待1.5s后仅尝试一次备用，总期限6s；SERVFAIL/REFUSED立即切换，NXDOMAIN正常回复；TCP每次上游尝试最多3s。近期健康服务器优先30s，两台互备。Windows使用系统DNS客户端故障切换。关闭时不配置DNS。CLI覆盖同名JSON键。 |
 | `china-ip-file` | 空 | 客户端可选本地IPv4 CIDR表，空则使用内置固定版本。仅bypass-lan-cn读取；最多1MiB/65536条，严格校验，无效文件启动失败，不静默回退。重启客户端应用新快照。 |
 | `update-china-ip` | 空 | 客户端手动更新命令：值为输出文件路径，下载固定官方来源，校验后原子替换并退出，无需隧道凭据。正常启动不联网更新；失败保留旧文件。配合china-ip-file使用，不修改程序内置表。 |
