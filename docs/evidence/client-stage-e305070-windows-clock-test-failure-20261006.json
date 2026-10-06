@@ -1,0 +1,69 @@
+{
+  "source": "e3050706966377d306c9c4de0a26a54b8d77b322",
+  "receipts": [
+    {
+      "id": 37472401963,
+      "name": "next-foundation",
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "e3050706966377d306c9c4de0a26a54b8d77b322",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37472401963"
+    },
+    {
+      "id": 37472401711,
+      "name": "next-p4-steady-targeted",
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "e3050706966377d306c9c4de0a26a54b8d77b322",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37472401711"
+    },
+    {
+      "id": 37472401866,
+      "name": "next-runtimeowner-recovery",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "e3050706966377d306c9c4de0a26a54b8d77b322",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37472401866"
+    },
+    {
+      "id": 37472401748,
+      "name": "next-lifecycle",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "e3050706966377d306c9c4de0a26a54b8d77b322",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37472401748"
+    },
+    {
+      "id": 37472401905,
+      "name": "next-windows-gui",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "e3050706966377d306c9c4de0a26a54b8d77b322",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37472401905"
+    },
+    {
+      "id": 37472401840,
+      "name": "next-strict-harness-preflight",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "e3050706966377d306c9c4de0a26a54b8d77b322",
+      "run_attempt": 1,
+      "html_url": "https://github.com/lly8666/wobuzhidao/actions/runs/37472401840"
+    }
+  ],
+  "failed_scope": "New runtimeowner duration-positive assertions on Windows; actual no-HOL delivery/error/wire/lifecycle checks passed",
+  "facts": "Windows snapshots showed selected_repair_samples=1 with selected_repair_ns=0 for very short emit; no fabricated minimum duration. Linux runtimeowner unit/race and lifecycle passed.",
+  "fix": "Test-only blocked ACK and selected repair write held20ms; fast Owner/Deliver use explicit receive sample and independently proved actual delivery instead of requiring positive wall duration. Runtime code unchanged.",
+  "performance_samples": [
+    37472633684,
+    37472638871,
+    37472644157,
+    37472651150
+  ],
+  "performance_scope": "Already dispatched old-source samples retained; never inherited as new-source qualification"
+}

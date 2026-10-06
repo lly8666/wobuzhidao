@@ -5,7 +5,7 @@
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
   "qualification_scope": "New explicit client receive-stage observation candidate NOT_RUN. Deployed be456 remains scoped9+12RTT/P6 PASS but native37up/1downmissing FAIL.49ordinary300s/23unique/20NOT_RUN plusoneCPUdiagnostic; diagnostic candidate does not inherit old full70/18/1800s.",
-  "updated_at": "2026-10-06T21:37:56.372908+08:00",
+  "updated_at": "2026-10-06T21:43:39.069593+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -85,8 +85,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Freeze and qualify this default-off client receive stage diagnostic candidate: Actions foundation/steady unit+race/GUI/preflight/lifecycle, independent Normal+Game5205 and matched lossless samples (one sample per Action), then exact-source P6. Only after PASS deploy paired version and one process-local env opt-in native diagnostic. Original14 helper files remain byte-identical; no payload capture/global env/ACK algorithm change. Retain be456 native qualityFAIL and20 remaining configuration gaps/M03.",
-  "latest_log": "docs/devlog/20261006-221000-client-receive-stage-diagnostics.md",
+  "next_task": "Qualify clock-robust test revision on exact new source: Windows/Linux core+race/lifecycle then independent Normal/Game5205 and matched lossless (one sample per Action), P6, paired deployment and one explicit native stage diagnostic. e305 first Windows assertion failure retained; runtime strategy unchanged. No blindACK redesign/cache growth; M03/20 native gaps open.",
+  "latest_log": "docs/devlog/20261006-215000-client-stage-windows-clock-test-fix.md",
   "last_tested_source_sha": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
   "actions": [
     {
@@ -8782,7 +8782,8 @@
     "p6": "NOT_RUN",
     "native": "NOT_RUN",
     "full70": "NOT_RUN",
-    "full18": "NOT_RUN"
+    "full18": "NOT_RUN",
+    "first_candidate_failures": "docs/evidence/client-stage-e305070-windows-clock-test-failure-20261006.json"
   },
   "tail_observation": {
     "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
@@ -9852,13 +9853,15 @@
     "next": "Qualify new default-off client stage timing in Actions; only after core/race/Normal+Game5205 and matched lossless/P6 pass deploy paired source and one explicit diagnostic native sample. Separate ACK/native wait from compute; do not change ACK semantics blind."
   },
   "client_receive_stage_timing": {
-    "state": "IMPLEMENTED_NOT_TESTED",
+    "state": "TEST_CLOCK_ASSUMPTION_FIXED_ACTIONS_PENDING",
     "source": "CURRENT_COMMIT",
     "default": "off; ordinary diagnostic-jsonl does not enable per-record clocks",
     "activation": "Windows explicit process-local WBD_QUALIFICATION_CLIENT_STAGE_TIMING=1 plus diagnostic-jsonl; invalid value/missing output rejected before network mutation",
     "scope": "Bounded wall-clock receive decode/delivery/ACK feedback/selected repair counters. Timer ACK/recovery tick excluded. Active/retiring refs; replacement and wake reenable only attached generations.",
     "hotpath": "No added clocks or atomic updates when off; no new queue/goroutine/timer or payload capture; transport behavior preserved",
     "tests": "Actions pending: delivery before blocked ACK, snapshots while emit blocked, off/base-only/flag-only gates, emit errors, pure ACK selected repair exact wire, nil repair excluded, threshold boundaries, replacement/DORMANT/wake",
-    "log": "docs/devlog/20261006-221000-client-receive-stage-diagnostics.md"
+    "log": "docs/devlog/20261006-215000-client-stage-windows-clock-test-fix.md",
+    "first_candidate": "e3050706966377d306c9c4de0a26a54b8d77b322",
+    "first_failure": "docs/evidence/client-stage-e305070-windows-clock-test-failure-20261006.json"
   }
 }
