@@ -11,6 +11,9 @@ $prefix=Join-Path $data $Name
 $etl=$prefix+'.etl';$pcap=$prefix+'.pcapng';$text=$prefix+'-events.txt'
 $receipt=$prefix+'-capture.json';$ready=$prefix+'-ready.json';$stopRequest=$prefix+'-stop.request'
 $filter='WBD-'+$Name
+$notRunningCN=-join @([char]0x6ca1,[char]0x6709,[char]0x8fd0,[char]0x884c)
+$inactiveCN=-join @([char]0x672a,[char]0x8fd0,[char]0x884c)
+$noneCN=[string][char]0x65e0
 $ownedCapture=$false;$ownedFilter=$false;$errors=@();$started=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
 function Invoke-Pktmon([string[]]$Arguments) {
     $result=(& pktmon.exe @Arguments 2>&1 | Out-String)
@@ -29,9 +32,9 @@ try {
     $status=Invoke-Pktmon -Arguments @('status')
     # Fail closed on unrecognized/localized status instead of touching another
     # capture. Supported target reports one of these explicit inactive states.
-    if($status -notmatch '(?i)(not running|没有运行|未运行)'){throw 'Packet monitor already active or status unknown'}
+    if($status -notmatch '(?i)not running' -and -not $status.Contains($notRunningCN) -and -not $status.Contains($inactiveCN)){throw 'Packet monitor already active or status unknown'}
     $filters=Invoke-Pktmon -Arguments @('filter','list')
-    if($filters -notmatch '(?im)^\s*(无|None|No filters\.?)\s*$'){throw 'Existing/unknown filters; preserve foreign filters'}
+    if($filters -notmatch ('(?im)^\s*('+$noneCN+'|None|No filters\.?)\s*$')){throw 'Existing/unknown filters; preserve foreign filters'}
     $components=Invoke-Pktmon -Arguments @('list')
     if($components -notmatch ('(?m)^\s*'+$ComponentId+'\s+.*WBD Tunnel\s*$')){throw 'Selected component is not the current WBD Tunnel'}
     Invoke-Pktmon -Arguments @('filter','add',$filter,'-d','IPv4','-i','198.18.0.1',$Lease)|Out-Null

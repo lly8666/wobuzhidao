@@ -4,11 +4,12 @@ $fixture=Join-Path $env:RUNNER_TEMP ('wbd-fragment-'+[guid]::NewGuid().ToString(
 New-Item -ItemType Directory -Path (Join-Path $fixture 'data')|Out-Null
 $global:WBDPktmonCalls=[Collections.Generic.List[object]]::new()
 $global:WBDPktmonForeign=$false;$global:WBDPktmonActive=$null
+$global:WBDPktmonChinese=$false
 function global:pktmon.exe {
     $values=@($args);$global:WBDPktmonCalls.Add($values);$global:LASTEXITCODE=0
     switch($values[0]){
-        'status' {if($global:WBDPktmonForeign){'Packet monitor is running foreign.etl'}elseif($global:WBDPktmonActive){'Running '+$global:WBDPktmonActive}else{'Packet monitor is not running'}}
-        'filter' {if($values[1] -eq 'list'){'None'}}
+        'status' {if($global:WBDPktmonForeign){'Packet monitor is running foreign.etl'}elseif($global:WBDPktmonActive){'Running '+$global:WBDPktmonActive}elseif($global:WBDPktmonChinese){-join @([char]0x6ca1,[char]0x6709,[char]0x8fd0,[char]0x884c)}else{'Packet monitor is not running'}}
+        'filter' {if($values[1] -eq 'list'){if($global:WBDPktmonChinese){[string][char]0x65e0}else{'None'}}}
         'list' {'57    WBD Tunnel'}
         'start' {
             $global:WBDPktmonActive=$values[[array]::IndexOf($values,'--file-name')+1]
@@ -27,6 +28,9 @@ try {
     if(-not $result.Converted -or -not $result.RawETLDeleted -or $result.OwnedCaptureRemaining -or $result.OwnedFilterRemaining){throw 'Own capture cleanup failed'}
     $start=@($global:WBDPktmonCalls|Where-Object {$_[0] -eq 'start'})
     if($start.Count -ne 1 -or -not ($start[0] -contains '--file-size') -or -not ($start[0] -contains '16') -or -not ($start[0] -contains '--pkt-size') -or -not ($start[0] -contains '64')){throw 'Capture arguments were lost or bound changed'}
+    $global:WBDPktmonChinese=$true
+    & $PSScriptRoot/physical_windows_fragments.ps1 -Bundle $fixture -Lease '10.66.1.1' -ComponentId 57 -Seconds 1 -Name localized
+    $global:WBDPktmonChinese=$false
     $foreignBefore=$global:WBDPktmonCalls.Count;$global:WBDPktmonForeign=$true;$failed=$false
     try{& $PSScriptRoot/physical_windows_fragments.ps1 -Bundle $fixture -Lease '10.66.1.1' -ComponentId 57 -Seconds 1 -Name foreign}catch{$failed=$true}
     if(-not $failed){throw 'Foreign active capture was accepted'}
