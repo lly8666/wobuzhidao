@@ -23,3 +23,5 @@
 ## 下一项原子任务
 
 依次跑stageoff/profileoff Normal1双向10M/FEC20/300s seed1480和Game4双向3M/300s seed1481；不得同机并行。实际worker=true/timing=false硬校验，原输入、probe、business、DNS/owned清理门保持，抓包有界分析即删。看worker queued/coalesced/piggybacked/attempts/sent/failures及接收overflow、CPU和p99，保持吞吐不能掩盖少量loss。M03及20配置缺口继续待验。
+
+实机启动回执：S01 seed1480正在单条300s测量；effective-lanes真实active1/worker=true/stage_timing=false。当前NOT_COMPLETE，完成后保留原严格门。

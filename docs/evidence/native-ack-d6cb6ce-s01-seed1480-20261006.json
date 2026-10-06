@@ -1,0 +1,663 @@
+{
+  "native": {
+    "schema": "wbd-native-static-case/v1",
+    "status": "FAIL",
+    "errors": [
+      "probe_coverage",
+      "business_loss"
+    ],
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "helper_source": "b393bc30bcbeff8a6e4922243820649cec31157c",
+    "case": "s01-current-300s-seed1480",
+    "effective": {
+      "desired": 1,
+      "active": 1,
+      "lanes": [
+        {
+          "id": 1,
+          "generation": 1,
+          "parity": 20,
+          "ack_worker": true,
+          "stage_timing": null
+        }
+      ]
+    },
+    "actual_send_seconds": 300.0014183,
+    "goodput_mbps": {
+      "c2s": 9.998453439999999,
+      "s2c": 9.999151679999999
+    },
+    "business_loss": {
+      "c2s_packets": 89,
+      "s2c_packets": 32,
+      "c2s_percent": 0.015266163784244391,
+      "s2c_percent": 0.008283749856652367
+    },
+    "probes": {
+      "sent": 2980,
+      "received": 2979,
+      "p95_ms": 118.9952,
+      "p99_ms": 126.3645
+    },
+    "phases": {
+      "early": {
+        "probes": 894,
+        "p95_ms": 119.0835,
+        "p99_ms": 127.3683,
+        "c2s_goodput_mbps": 9.997865386739466,
+        "s2c_goodput_mbps": 9.999328695502765
+      },
+      "middle": {
+        "probes": 893,
+        "p95_ms": 119.29,
+        "p99_ms": 135.5978,
+        "c2s_goodput_mbps": 9.995045872914522,
+        "s2c_goodput_mbps": 9.998521831137127
+      },
+      "late": {
+        "probes": 894,
+        "p95_ms": 118.516,
+        "p99_ms": 122.6136,
+        "c2s_goodput_mbps": 10.000354298372356,
+        "s2c_goodput_mbps": 9.998959951064027
+      }
+    },
+    "input_quality": {
+      "client": {
+        "TxPackets": 579419,
+        "SendLagSamples": 579419,
+        "SendLagOverflowSamples": 27,
+        "SendLagP99UpperMs": 2,
+        "MaxSendLagMs": 15.63749999996844,
+        "PacingMode": "byte-budget-1ms-batch32"
+      },
+      "server": {
+        "TxPackets": 579419,
+        "SendLagSamples": 579419,
+        "SendLagOverflowSamples": 76,
+        "SendLagP99UpperMs": 1.2,
+        "MaxSendLagMs": 46.326838782917434,
+        "PacingMode": "byte-budget-1ms-batch32"
+      }
+    },
+    "default_dns": {
+      "total": 60,
+      "success": 60
+    },
+    "physical_dns": {
+      "state": "PASS_NO_PLAINTEXT_DNS_OBSERVED",
+      "scope": "selected physical NIC only, plaintext IPv4/IPv6 TCP/UDP53; not DoH/DoT/otherNIC",
+      "observations": 303,
+      "dns_frames": 0,
+      "observer_drops": 0
+    },
+    "cpu_seconds": {
+      "client": 278.578125,
+      "server": 158.41,
+      "client_helper": 20.796875,
+      "server_helper": 35.419453559999994
+    },
+    "server_raw_socket_drop_max": 155,
+    "client_npcap_max": {
+      "interface_dropped": 0,
+      "driver_dropped": 0
+    },
+    "client_npcap_stats_supported": true,
+    "client_user_receive_overflow_max": 0,
+    "wire_windows": [
+      {
+        "captured_frames": 17,
+        "window_seconds": 12.05402809008956,
+        "capture_kernel_drops": 0,
+        "raw_deleted_after_analysis": true
+      },
+      {
+        "captured_frames": 8192,
+        "window_seconds": 1.6927896640263498,
+        "capture_kernel_drops": 0,
+        "raw_deleted_after_analysis": true
+      },
+      {
+        "captured_frames": 4,
+        "window_seconds": 12.042702873237431,
+        "capture_kernel_drops": 0,
+        "raw_deleted_after_analysis": true
+      },
+      {
+        "captured_frames": 8192,
+        "window_seconds": 1.722986658103764,
+        "capture_kernel_drops": 0,
+        "raw_deleted_after_analysis": true
+      }
+    ],
+    "live_snapshot_write_errors": 1,
+    "owned_cleanup": {
+      "State": "STOPPED",
+      "Ready": true,
+      "Reason": "requested_stop",
+      "ExitCode": 0,
+      "NetworkStateRemaining": false,
+      "OwnedNRPTRemaining": 0,
+      "OwnedFirewallRemaining": 0,
+      "ElapsedSeconds": 358.4
+    },
+    "matched_native_rtt_baseline": "NOT_RUN",
+    "strict_performance_qualification": false,
+    "full_p7": false,
+    "receipt_hashes": {
+      "case-config.json": "02202a79092dc17d4036e83cfaf693c93893a15e1f9041e910f300551a2bb204",
+      "cleanup-errors.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "client-diagnostic.jsonl": "91c1cbe85dbd1d9976b8f9b1d6022f64680c09ff7e6606a33439a5d3902d3f05",
+      "client-session.json": "deef9c7a93eb730b8a0d8f81b172c4742718f1ded15bbb40f48ff9cfa76c70ec",
+      "d01-dns-default-300s-dns.json": "a75fe648a1e0ce89d2a64d9b9ca257391e04bc77e62219e7ba836348c858567c",
+      "deployed-versions.json": "2cf54ea98b6f0044710e812a44d2e227faf0d2052e73de71f109289b696b36ee",
+      "dns-fault-events.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "dns-guard-active-filters.json": "cb3763bb83dad7b32d6ef4484f52d04bf1fab8e447c787d3b1edb21dabf71602",
+      "dns-guard-helper-source.json": "26324882aa38c713995a01dcbf2c4451203862b617243374a3dd7e4ff41afa3a",
+      "dns-guard-on-proof.json": "b8c450c53d28b6e9f56feeb26bdfb6a35caf89fcfa13c09077a6dd31c4b24bf1",
+      "dns-guard-owned-cleanup.json": "2791e3f32f1ebd7a10242b5320bd0d357d1494805482e080ef16c70cdb01188b",
+      "effective-lanes.json": "ea3016d38d20b4d76148a80eefbe9cf1fe17054d7d62e7df6665716774f14397",
+      "header-preflight-windows-headers.jsonl": "abe657f06144b17e9f51c91b162f324db2c84884e0e1478294edcca860390ee3",
+      "helper-source-hashes.json": "9f171a01ab5167da485e4c96e53dbec406f47c005b4410323d92cd0055035c84",
+      "helper-source-unchanged.json": "89a1bd729816edd75c25b2b3eae07e8aa18a3c4d0b2ff7357b088b79512895d2",
+      "helper-source.json": "e38c65b84b85c63910c172ff2e6d43e64474155a4dfd1a55642ca76a3fbfe834",
+      "measurement-status.json": "81132cb27c529b1a08af6545cf492a0e62e71d92106ad25fcb3c664ad48c19c6",
+      "observation-window.json": "2da00883ddb1b77aa0f6d5979b4f4eff395526aeab312608d53f790fcd28847e",
+      "p7-network-after.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+      "p7-network-before.json": "d5cb7086dcf78f478885907080b5a994c20f837bbc9fef8b3035d8461cb1d368",
+      "p7-status.json": "8ced5453de1a01d251cf438365e0038dd2bcf7dcb9043b15331de0bc83f1b8e3",
+      "s01-current-300s-seed1480-linux-headers.jsonl": "f1f90732c4161e233350e637aa752feff68b3bcaba104c12446a976f420c7d4a",
+      "s01-current-300s-seed1480-live.json": "a091599ceb6d7cb8646129c442045fe743428bef11f56efa63b77d0a966b3889",
+      "s01-current-300s-seed1480-observer.json": "70976620fa2dc80cecfa358db2e1988870f71986cef0cef5f9f063c154ae9c2e",
+      "s01-current-300s-seed1480-physical-dns.jsonl": "343a135f839f0628d4ce6b3ec7c25769e24407ef3d0d323e62c25bc9680dcf7e",
+      "s01-current-300s-seed1480-resources.json": "b3838ccf28c63dc8151261d83bb981ba40fddd31c0cf1d99a1a7f8d9fc379bf4",
+      "s01-current-300s-seed1480-start-wire.json": "2ac7ef99272f5a1aa08224ef35b7fc966328ffa91c339e61f7ca20413c988624",
+      "s01-current-300s-seed1480-steady-wire.json": "bb39534306f511ee78abd1136ccae6f763454a147a5924e61ceb6a5890b9a8d5",
+      "s01-current-300s-seed1480-stop-wire.json": "e5f04206ecd5ad3eb99ca300d0b728d1fd916a883c476a12d34f8462e127cd0a",
+      "s01-current-300s-seed1480-tail-wire.json": "375df92bd2a00652f4b45e7d24d99eb5986bf3c87a3cf0d5722dfd138bfa0e8f",
+      "s01-current-300s-seed1480-target.json": "4d23fd59e5c1c4ba5a08c0687bb27743ce6f9bbbce0bfe2756ed8a6298652cba",
+      "s01-current-300s-seed1480-windows-headers.jsonl": "69cc92b975bf2a53d8f8d5c6e0bf257948470fc303de8bed146a08eda3ee9097",
+      "s01-current-300s-seed1480.json": "a634e0ab5b22db4d41918b53e2865f9bce79ee80af00bbb626052c9f0ecc525a",
+      "server-before.json": "ae327a6de3238e23750dbbd0b92f6a935fb8b4f4b8be41fdf811c5fcd787e8fa",
+      "server-diagnostic.jsonl": "b46f098f90ef5d729bba5660e53ab36a5f31e06d9b5df715ce793d350d3f96e6",
+      "trigger-timeline.json": "9dd0a34a3533ded6dda715c97486993a3585f84ab5c3b1f5b0968d6162df6622",
+      "windows-observer-processes.json": "eab293ba065db3926525f75224c3be4b1bfc0d5bdf1735d7c5529e5c969a03b4"
+    }
+  },
+  "worker": {
+    "schema": "wbd-native-ack-worker-observation/v1",
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "case": "s01-current-300s-seed1480",
+    "configuration_observation": "PASS",
+    "errors": [],
+    "transport_refs": [
+      {
+        "ref": {
+          "ID": 1,
+          "Generation": 1
+        },
+        "snapshots": 340,
+        "first_unix_ns": 1791297886585757300,
+        "maxima": {
+          "ack_worker_queued": 1267961,
+          "ack_worker_coalesced": 791718,
+          "ack_worker_piggybacked": 3086,
+          "ack_worker_attempts": 473157,
+          "ack_worker_sent": 473157,
+          "ack_worker_failures": 0
+        },
+        "last_unix_ns": 1791298225587472600,
+        "last_flags": {
+          "ack_worker_enabled": true,
+          "ack_worker_pending": false,
+          "ack_worker_running": false,
+          "timing_enabled": false,
+          "feedback_timing_enabled": false
+        }
+      }
+    ],
+    "totals": {
+      "ack_worker_queued": 1267961,
+      "ack_worker_coalesced": 791718,
+      "ack_worker_piggybacked": 3086,
+      "ack_worker_attempts": 473157,
+      "ack_worker_sent": 473157,
+      "ack_worker_failures": 0
+    },
+    "native_status": "FAIL",
+    "native_errors": [
+      "probe_coverage",
+      "business_loss"
+    ],
+    "scope": "Worker counters summed once per unique incarnation using observed cumulative maxima. Last flags describe final diagnostic snapshot, not joined thread proof. Ordinary helper/owned cleanup remains authoritative. No per-record clocks, CPU profile, ACK payload/history capture or acceptance gate changes. Ratios are observed scheduling/coalescing counts, not CPU savings.",
+    "coalesced_per_queued": 0.6244024855654078
+  },
+  "fec_accounting": {
+    "schema": "wbd-native-fec-accounting/v1",
+    "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "case": "s01-current-300s-seed1480",
+    "parity": 20,
+    "scope": "Full diagnostic lifetime including handshake, DNS, probes and drain. Encoder bytes include56B FEC headers. Observed TCP payload includes TLS overhead and retransmits, excludes TCP/IP headers. Not an exact load-only wire amplification or CPU A/B.",
+    "roles": {
+      "client": {
+        "encoder": {
+          "source_shards": 698479,
+          "source_bytes": 435102699,
+          "parity_shards": 698479,
+          "parity_bytes": 524017112,
+          "full_blocks": 29147,
+          "partial_blocks": 6885,
+          "refs": 1,
+          "parity_shard_ratio": 1.0,
+          "parity_byte_ratio": 1.204352703865898,
+          "configured_full_block_ratio": 1.0
+        },
+        "transport_peak_per_lane": {
+          "PeakOutstanding": 4096,
+          "FreshBlocked": 0,
+          "FreshWindowBypass": 0,
+          "FreshSent": 1396982,
+          "Retransmitted": 61,
+          "Abandoned": 0,
+          "RepairEvicted": 0,
+          "RepairExpiredSkipped": 0,
+          "RecordErrors": 0,
+          "PathErrors": 0
+        },
+        "receive_fec_peak_per_lane": {
+          "in_flight": 5,
+          "pressure_retirements": 0,
+          "reconstruction_events": 4219,
+          "recovered_sources": 5480
+        },
+        "receive_expiry_peak_per_lane": {
+          "ExpiredIncomplete": 23,
+          "ExpiredMissingSources": 43
+        }
+      },
+      "server": {
+        "encoder": {
+          "source_shards": 698438,
+          "source_bytes": 435101448,
+          "parity_shards": 698438,
+          "parity_bytes": 547046415,
+          "full_blocks": 27176,
+          "partial_blocks": 8835,
+          "refs": 1,
+          "parity_shard_ratio": 1.0,
+          "parity_byte_ratio": 1.2572847493718293,
+          "configured_full_block_ratio": 1.0
+        },
+        "transport_peak_per_lane": {
+          "PeakOutstanding": 4096,
+          "FreshBlocked": 0,
+          "FreshWindowBypass": 0,
+          "FreshSent": 1396904,
+          "Retransmitted": 3154,
+          "Abandoned": 0,
+          "RepairEvicted": 0,
+          "RepairExpiredSkipped": 0,
+          "RecordErrors": 0,
+          "PathErrors": 0
+        },
+        "receive_fec_peak_per_lane": {
+          "in_flight": 8,
+          "pressure_retirements": 1,
+          "reconstruction_events": 13,
+          "recovered_sources": 33
+        },
+        "receive_expiry_peak_per_lane": {
+          "ExpiredIncomplete": 5,
+          "ExpiredMissingSources": 86
+        }
+      }
+    },
+    "errors": [],
+    "windows_outer_observation": {
+      "observer_received": 3961125,
+      "observer_dropped": 0,
+      "stats_error": 0,
+      "flows": 2,
+      "tcp_payload_bytes": {
+        "C2S": 1002491310,
+        "S2C": 1022542951
+      },
+      "tcp_packets": {
+        "C2S": 1870209,
+        "S2C": 2090916
+      }
+    },
+    "status": "PASS_ACCOUNTING"
+  },
+  "owned_dns_cleanup": {
+    "owned_dns_rules": 0,
+    "client_processes": 0
+  },
+  "stage_timing": false,
+  "cpu_profile": false,
+  "full_p7": false,
+  "queue_latency": {
+    "schema": "wbd-native-same-clock-queue-latency/v1",
+    "case": "s01-current-300s-seed1480",
+    "qualified_bins": 300,
+    "clock": "Client ProbeStartUnixMS anchor + monotonic SentTick;Windows diagnostic unix_ns;1-second aggregates only,not per-record causality. Never align remote ARM clock.",
+    "scope": "Diagnostic-on evidence. Pearson correlation is observational. RTT is send-time attributed and includes whole path;queue age is records consumed in interval. Driver/lock sums are wall time,not CPU. Missing/invalid RTT excluded from correlation but reported;original overall failure remains authoritative.",
+    "probe_sent": 2980,
+    "probe_received": 2979,
+    "correlations": {
+      "receive_queue_age_mean_ms": 0.5667874834973388,
+      "receive_queue_current": -0.04729376232044954,
+      "write_call_mean_us": 0.33807047418864045,
+      "send_lock_wait_ms_per_s": 0.22939460941893114,
+      "alloc_mib_per_s": -0.03711148162871605
+    },
+    "highest_rtt_bins": [
+      {
+        "elapsed_s": 105.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 167.77067999999997,
+        "rtt_max_ms": 294.3331,
+        "receive_queue_age_mean_ms": 8.829159312320916,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3391,
+        "write_call_mean_us": 199.94102034797993,
+        "send_lock_wait_ms_per_s": 309.8456,
+        "alloc_mib_per_s": 41.276878356933594
+      },
+      {
+        "elapsed_s": 179.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 117.47765999999997,
+        "rtt_max_ms": 140.7656,
+        "receive_queue_age_mean_ms": 0.2310606328182487,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3703,
+        "write_call_mean_us": 111.10202538482312,
+        "send_lock_wait_ms_per_s": 210.3151,
+        "alloc_mib_per_s": 41.47175598144531
+      },
+      {
+        "elapsed_s": 190.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 117.24746999999999,
+        "rtt_max_ms": 132.0017,
+        "receive_queue_age_mean_ms": 0.24791036226930965,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3698,
+        "write_call_mean_us": 116.79561925365063,
+        "send_lock_wait_ms_per_s": 198.7925,
+        "alloc_mib_per_s": 41.72850799560547
+      },
+      {
+        "elapsed_s": 159.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 117.22966,
+        "rtt_max_ms": 121.0707,
+        "receive_queue_age_mean_ms": 0.1558502665322,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3425,
+        "write_call_mean_us": 102.07112408759124,
+        "send_lock_wait_ms_per_s": 171.0835,
+        "alloc_mib_per_s": 41.2579345703125
+      },
+      {
+        "elapsed_s": 71.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 116.04941999999998,
+        "rtt_max_ms": 123.2499,
+        "receive_queue_age_mean_ms": 0.388935187057634,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3746,
+        "write_call_mean_us": 108.42768286171916,
+        "send_lock_wait_ms_per_s": 226.9063,
+        "alloc_mib_per_s": 41.48645782470703
+      },
+      {
+        "elapsed_s": 254.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 115.67052000000001,
+        "rtt_max_ms": 120.5021,
+        "receive_queue_age_mean_ms": 0.22350595978591062,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3701,
+        "write_call_mean_us": 103.7750337746555,
+        "send_lock_wait_ms_per_s": 186.5072,
+        "alloc_mib_per_s": 41.646453857421875
+      },
+      {
+        "elapsed_s": 116.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 9,
+        "probe_missing": 0,
+        "rtt_mean_ms": 115.55994444444445,
+        "rtt_max_ms": 147.0424,
+        "receive_queue_age_mean_ms": 0.367664606498195,
+        "receive_queue_current": 1,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3845,
+        "write_call_mean_us": 116.60873862158648,
+        "send_lock_wait_ms_per_s": 221.3077,
+        "alloc_mib_per_s": 42.015647888183594
+      },
+      {
+        "elapsed_s": 175.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 115.46211000000001,
+        "rtt_max_ms": 122.9345,
+        "receive_queue_age_mean_ms": 0.2777178581807614,
+        "receive_queue_current": 2,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3871,
+        "write_call_mean_us": 118.72944975458537,
+        "send_lock_wait_ms_per_s": 243.807,
+        "alloc_mib_per_s": 41.59014892578125
+      },
+      {
+        "elapsed_s": 275.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 114.59823000000002,
+        "rtt_max_ms": 120.8106,
+        "receive_queue_age_mean_ms": 0.21432905189910118,
+        "receive_queue_current": 2,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3550,
+        "write_call_mean_us": 121.73397183098592,
+        "send_lock_wait_ms_per_s": 204.497,
+        "alloc_mib_per_s": 41.258628845214844
+      },
+      {
+        "elapsed_s": 234.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 114.52350000000001,
+        "rtt_max_ms": 119.966,
+        "receive_queue_age_mean_ms": 0.1425564396689415,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3948,
+        "write_call_mean_us": 101.51339918946302,
+        "send_lock_wait_ms_per_s": 190.5852,
+        "alloc_mib_per_s": 41.933990478515625
+      },
+      {
+        "elapsed_s": 161.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 114.49206000000001,
+        "rtt_max_ms": 122.0626,
+        "receive_queue_age_mean_ms": 0.17828010682835282,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3822,
+        "write_call_mean_us": 105.88916797488227,
+        "send_lock_wait_ms_per_s": 206.8915,
+        "alloc_mib_per_s": 41.59174346923828
+      },
+      {
+        "elapsed_s": 293.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 114.45299999999997,
+        "rtt_max_ms": 117.0587,
+        "receive_queue_age_mean_ms": 0.15490903019744484,
+        "receive_queue_current": 12,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3830,
+        "write_call_mean_us": 99.27180156657964,
+        "send_lock_wait_ms_per_s": 183.1943,
+        "alloc_mib_per_s": 41.61180877685547
+      },
+      {
+        "elapsed_s": 269.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 114.38297,
+        "rtt_max_ms": 116.4451,
+        "receive_queue_age_mean_ms": 0.1668280701754386,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3545,
+        "write_call_mean_us": 100.12434414668547,
+        "send_lock_wait_ms_per_s": 172.048,
+        "alloc_mib_per_s": 41.16859436035156
+      },
+      {
+        "elapsed_s": 128.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 114.33465999999999,
+        "rtt_max_ms": 122.4127,
+        "receive_queue_age_mean_ms": 0.13396043685809345,
+        "receive_queue_current": 1,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3895,
+        "write_call_mean_us": 94.79940949935815,
+        "send_lock_wait_ms_per_s": 190.2198,
+        "alloc_mib_per_s": 41.632469177246094
+      },
+      {
+        "elapsed_s": 196.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 114.32605999999998,
+        "rtt_max_ms": 118.7281,
+        "receive_queue_age_mean_ms": 0.1428904052699413,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3881,
+        "write_call_mean_us": 98.1335480546251,
+        "send_lock_wait_ms_per_s": 197.4034,
+        "alloc_mib_per_s": 41.90949249267578
+      },
+      {
+        "elapsed_s": 74.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 114.22722000000002,
+        "rtt_max_ms": 127.8605,
+        "receive_queue_age_mean_ms": 0.2738777615215801,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3745,
+        "write_call_mean_us": 114.39060080106809,
+        "send_lock_wait_ms_per_s": 239.0747,
+        "alloc_mib_per_s": 41.621376037597656
+      },
+      {
+        "elapsed_s": 107.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 114.12506,
+        "rtt_max_ms": 117.1095,
+        "receive_queue_age_mean_ms": 0.19942268565615462,
+        "receive_queue_current": 3,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3848,
+        "write_call_mean_us": 103.74911642411642,
+        "send_lock_wait_ms_per_s": 196.1991,
+        "alloc_mib_per_s": 41.654052734375
+      },
+      {
+        "elapsed_s": 140.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 114.09691000000001,
+        "rtt_max_ms": 138.9183,
+        "receive_queue_age_mean_ms": 0.2063518897864974,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3711,
+        "write_call_mean_us": 106.76785233090811,
+        "send_lock_wait_ms_per_s": 221.4839,
+        "alloc_mib_per_s": 41.66144561767578
+      },
+      {
+        "elapsed_s": 185.78747272491455,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 113.93912,
+        "rtt_max_ms": 118.5065,
+        "receive_queue_age_mean_ms": 0.24596417604912998,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3640,
+        "write_call_mean_us": 110.29527472527472,
+        "send_lock_wait_ms_per_s": 213.08,
+        "alloc_mib_per_s": 41.179725646972656
+      },
+      {
+        "elapsed_s": 6.787472724914551,
+        "seconds": 1.0,
+        "probe_received": 10,
+        "probe_missing": 0,
+        "rtt_mean_ms": 113.87333000000001,
+        "rtt_max_ms": 119.9837,
+        "receive_queue_age_mean_ms": 0.2381966637781629,
+        "receive_queue_current": 0,
+        "receive_queue_overflow_delta": 0,
+        "write_calls": 3575,
+        "write_call_mean_us": 108.86587412587411,
+        "send_lock_wait_ms_per_s": 203.0989,
+        "alloc_mib_per_s": 41.5252685546875
+      }
+    ]
+  },
+  "previous_off_observational_delta": {
+    "p99_ms": -114.27579999999999,
+    "client_cpu_seconds": -29.046875,
+    "server_cpu_seconds": -1.4399999999999977,
+    "scope": "Same machines/config/Normal10/FEC20/stageoff/profileoff;different seed/time/WAN. Observational only, no strict causal A-B. Instrumented78 is not performance baseline."
+  }
+}

@@ -4,8 +4,8 @@
   "archive_source_sha": "b5c848f4e9afdffd15d1bc451560edf4e9390a35",
   "milestone": "P5",
   "product_state": "IN_PROGRESS",
-  "qualification_scope": "d6cb6ce Windows latest-ACK worker10scoped/12RTT/P6 PASS paired deployed; stage-off native NOT_RUN. Linux strict path unchanged, no Windows benefit claim.49ordinary300s/23unique/20NOT_RUN plus2diagnostics; M03/full70/full18/1800s remain open.",
-  "updated_at": "2026-10-06T22:43:24.669595+08:00",
+  "qualification_scope": "d6cb6ce10scoped/12RTT/P6 andlifecycle36+aggregate PASS; nativeS01300s FAIL,worker=PASS,stageoff/profileoff. 50 ordinary300s/23unique/20NOT_RUN plus2diagnostics;M03/full70/full18/1800s remain open.",
+  "updated_at": "2026-10-06T22:52:30.858850+08:00",
   "completed": [
     "新架构决策和项目主旨固定",
     "旧代码/文档/工作流整体隔离到old",
@@ -85,8 +85,8 @@
     "M03 residualmissing/late diagnosis",
     "Currentproduct full70/18/1800s NOT_RUN"
   ],
-  "next_task": "Run one stageoff/profileoff native300s Normal1/10M/FEC20 seed1480 then separate Game4/3M seed1481; exact d6 paired binaries,14helpers b393/guardprobea280. Verify actual workerON/timingOFF, input/app/probes/p99/queue/driver/raw drops/error counters/DNS/owned cleanup; preserve original gates and all FAIL, no performance claim from instrumented78. No concurrent physical runs. M03 and20native configuration gaps remain.",
-  "latest_log": "docs/devlog/20261006-224324-native-ack-qualified-deployed.md",
+  "next_task": "Run separate native Game4/3M/FEC20 stageoff/profileoff300s seed1481 on same paired d6; no concurrent physical sample. Preserve all gates/counters/rawcleanup.",
+  "latest_log": "docs/devlog/20261006-225230-native-ack-s01-result.md",
   "last_tested_source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
   "actions": [
     {
@@ -8240,7 +8240,7 @@
   },
   "physical_current": {
     "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
-    "state": "ACK_WORKER_PAIRED_DEPLOYED_NATIVE_PENDING",
+    "state": "ACK_WORKER_NATIVE_RESULTS_QUALITY_PARTIAL",
     "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
     "native_completed_300s": [
       {
@@ -8310,6 +8310,13 @@
         "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
         "status": "FAIL",
         "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json"
+      },
+      {
+        "case": "s01-current-300s-seed1480",
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "FAIL",
+        "evidence": "docs/evidence/native-ack-d6cb6ce-s01-seed1480-20261006.json",
+        "ack_configuration": "PASS"
       }
     ],
     "running": null,
@@ -8601,16 +8608,23 @@
         "source": "be456cee72a663a35d7e62fbedf17cc74bcbe410",
         "status": "FAIL",
         "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json"
+      },
+      {
+        "case": "s01-current-300s-seed1480",
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "FAIL",
+        "evidence": "docs/evidence/native-ack-d6cb6ce-s01-seed1480-20261006.json",
+        "ack_configuration": "PASS"
       }
     ],
     "helper_gate": "predelivery37256467593/GUI37256467603 PASS;foundation37256467620/targeted37256467646 FAIL repository-contract:Each change needs STATUS update;Go jobs SKIPPED. This commit repairs documentation contract,not a known product regression.",
     "fixture_invalid_latest": "seed1424 setup version check failed after SSH masters expired; no workload/remote mutations started; not counted. Refreshed SSH before seed1425.",
     "deployed_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
     "source_sha": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
-    "last_failed_case": "s11-current-300s-seed1472",
-    "last_failure_evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
+    "last_failed_case": "s01-current-300s-seed1480",
+    "last_failure_evidence": "docs/evidence/native-ack-d6cb6ce-s01-seed1480-20261006.json",
     "latest_native_pass": "docs/evidence/native-s09-0246526-seed1446-20261006.json",
-    "latest_native_evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
+    "latest_native_evidence": "docs/evidence/native-ack-d6cb6ce-s01-seed1480-20261006.json",
     "not_run_case_ids": [
       "S12",
       "S13",
@@ -8722,7 +8736,7 @@
       "S11",
       "D06"
     ],
-    "full300s_samples": 49,
+    "full300s_samples": 50,
     "case_ids_total": 43,
     "case_ids_not_run": 20,
     "complete_qualification": false,
@@ -8820,6 +8834,14 @@
         "status": "FAIL",
         "evidence": "docs/evidence/native-npcap-owned-return-be456ce-seed1472-20261006.json",
         "id": "S11"
+      },
+      {
+        "case": "s01-current-300s-seed1480",
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "FAIL",
+        "evidence": "docs/evidence/native-ack-d6cb6ce-s01-seed1480-20261006.json",
+        "ack_configuration": "PASS",
+        "id": "S01"
       }
     ]
   },
@@ -8922,10 +8944,11 @@
     "full70": "NOT_RUN",
     "full18": "NOT_RUN",
     "p6": "PASS",
-    "native": "NOT_RUN stage-off Normal/Game pending",
+    "native": "Scoped S01 FAIL; original gates retained;full P7 NOT_COMPLETE",
     "evidence": "docs/evidence/native-ack-d6cb6ce-actions-package-deployed-20261006.json",
     "scope_boundary": "Strict hosted Linux path does not enable the production Windows ACK worker; blocked-write unit/race and Windows core validate it. Native performance required.",
-    "lifecycle_fullstack": "36/36 samples + aggregate PASS"
+    "lifecycle_fullstack": "36/36 samples + aggregate PASS",
+    "native_evidence": "docs/evidence/native-ack-d6cb6ce-s01-seed1480-20261006.json"
   },
   "tail_observation": {
     "state": "REPRODUCED_CLIENT_UPSTREAM_P99_FAIL",
@@ -10040,14 +10063,26 @@
   },
   "windows_latest_ack_feedback": {
     "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
-    "state": "SCOPED_ACTIONS_P6_PASS_DEPLOYED_NATIVE_PENDING",
+    "state": "SCOPED_ACTIONS_P6_PASS_NATIVE_SCOPED_RESULTS",
     "evidence_basis": "docs/evidence/native-client-stage-78b8faf-seed1477-20261006.json",
     "scope": "Windows CLI internal default on; Linux/server/direct embedders default off. Per generation one lazy worker and one pending latest-ACK bit/channel token, no cached packets/history. Existing2records/2ms decisions; current seq/ACK/SACK at worker selection. FIN ACK/challenge/repair synchronous.",
     "lifecycle": "Exact transport cfg/ref captured; stop under transport mutex clears pending, never joins blocked native emit under owner lock. Already accepted in-flight IO drains via native gate; no new queued sends after close. Worker error latched and original fatal tick exit preserved; closed generation never publishes error to new ref.",
     "hotpath": "No new per-record clocks unless qualification stage opt-in. Fixed locked counters and at most one worker per physical generation (client<=10). No FEC/MTU/shadow/recovery/wire/CLI/configfile changes.",
     "qualification": "10 scoped PASS/race10/12RTT PASS/P6 PASS; native stageoff NOT_RUN",
-    "log": "docs/devlog/20261006-224324-native-ack-qualified-deployed.md",
+    "log": "docs/devlog/20261006-225230-native-ack-s01-result.md",
     "evidence": "docs/evidence/native-ack-d6cb6ce-actions-package-deployed-20261006.json",
-    "deployed_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db"
+    "deployed_source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+    "native_samples": [
+      {
+        "case": "s01-current-300s-seed1480",
+        "source": "d6cb6cee4c241aac8dd2f542a876edc57bf3d7db",
+        "status": "FAIL",
+        "evidence": "docs/evidence/native-ack-d6cb6ce-s01-seed1480-20261006.json",
+        "ack_configuration": "PASS"
+      }
+    ],
+    "native_evidence": "docs/evidence/native-ack-d6cb6ce-s01-seed1480-20261006.json",
+    "latest_native_status": "FAIL",
+    "native_performance_complete": false
   }
 }

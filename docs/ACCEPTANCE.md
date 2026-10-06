@@ -1,6 +1,6 @@
 # Actions 验收契约
 
-2026-10-06当前：d6cb6ce Windows最新ACK后台发送10定向Actions/race10、12阶段RTT及三平台P6 PASS并同源配套部署；Windows实机stageoff尚未跑，Linux性能路径保持同步不能冒充Windows收益。下一条Normal10/300s seed1480，再独立Game4×3 seed1481；49普通300s/23工况/20NOT_RUN另2诊断、M03未关闭，原78显式诊断FAIL保留。每性能Action一条，先STATUS/latest_log。
+2026-10-06当前：d6cb6ce Windows最新ACK10定向/race10、12RTT/P6/lifecycle36+aggregate PASS；最新实机S01 seed1480完整300s FAIL，worker实际PASS/stageoff/profileoff，goodput9.99845/9.99915M、p99126.36ms，损失/压力原门保留。50普通样本/23工况/20NOT_RUN另2诊断，M03/P7未关闭。每性能Action一条，先STATUS/latest_log。
 
 2026-10-05当前：产品SOURCE660b370配套部署；同源70配置PASS、18独立样本五分类PASS，但严格配对Game5305/seed1382 p99增加712ms超过500ms门，整体仍FAIL。Normal/Game各1800s独立长测PASS，最差阶段吞吐9.99899/2.999872M、阶段p99最高621.13/604.47ms；不能抵消短测尾延迟失败。原生M01完整PASS；M03两份最大UDP各缺1回包；S18双方两次Dormant释放和generation1→2→3/lease稳定通过，非零损失及延迟未验保留。HEAD919 helper基础/targeted因漏改STATUS契约FAIL，Go未跑，本提交补齐；未把它当产品回归。下一按STATUS查p99、验helper再S19/S20及其余DNS/IP/FEC/config。每性能Action一条，吞吐/p99硬门不降。
 
